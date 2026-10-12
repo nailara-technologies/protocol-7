@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = nameserv.dns_tcp.handler.read
+# descr = read framed dns tcp messages and answer them in order
+
+my $id = shift->w->data;
+
+my $conns = <nameserv.dns_tcp.conns> // return;
+my $conn  = $conns->{$id}            // return;
+
+my $sock = $conn->{'sock'};
+
+my $chunk = '';
+my $bytes = <[base.s_read]>->( $sock, \$chunk, 65536 );
+
+if ( ( $bytes // -1 ) == -1 ) {
+    <[base.logs]>->(
+        1,               ': dns tcp read error [ %s ] : %s',
+        $conn->{'peer'}, <[base.str.os_err]>
+    );
+    <[nameserv.dns_tcp.close]>->($conn);
+    return;
+}
+
+if ( $bytes == 0 ) {    ## peer closed the connection ##
+    <[nameserv.dns_tcp.close]>->($conn);
+    return;
+}
+
+$conn->{'in'} .= $chunk;
+
+## hard input limit : 2 length bytes + maximum dns message size ##
+if ( length $conn->{'in'} > 65537 ) {
+    <[base.logs]>->(
+        1, ': dns tcp input buffer limit [ %s ]',
+        $conn->{'peer'}
+    );
+    <[nameserv.dns_tcp.close]>->($conn);
+    return;
+}
+
+## framed messages : 2-byte big-endian length + dns message ; several ##
+## queries may arrive pipelined in a single read                      ##
+my $activity = 0;
+while ( length $conn->{'in'} >= 2 ) {
+    my $msg_len = unpack qw| n |, $conn->{'in'};
+    if ( $msg_len < 12 ) {    ## zero length or shorter than a dns header ##
+        <[nameserv.dns_tcp.close]>->($conn);
+        return;
+    }
+    last if length $conn->{'in'} < 2 + $msg_len;    ## incomplete message ##
+
+    ## drop the whole frame [ length prefix + message ] ##
+    my $wire  = substr $conn->{'in'}, 0, 2 + $msg_len, '';
+    my $query = substr $wire, 2;
+    $activity++;
+
+    <nameserv.stats>->{'tcp_queries'}++;
+
+    my $reply = <[nameserv.answer]>->($query);
+    next if not defined $reply;
+
+    ## tcp replies are never truncated : 65535 holds any dns message ##
+    my $reply_data = $reply->data(65535);
+    next if not defined $reply_data or not length $reply_data;
+
+    $conn->{'out'} .= pack( qw| n |, length $reply_data ) . $reply_data;
+
+    ## a client that sends queries but never reads its replies : the output ##
+    ## is capped like the input [ four full-size replies ]                  ##
+    if ( length $conn->{'out'} > 4 * 65537 ) {
+        <[base.logs]>->(
+            1, ': dns tcp output buffer limit [ %s ]',
+            $conn->{'peer'}
+        );
+        <[nameserv.dns_tcp.close]>->($conn);
+        return;
+    }
+}
+
+if ($activity) {
+    $conn->{'last_active'} = time;    ## a complete query resets idle ##
+
+    ## re-arm the idle timeout ##
+    if ( ref $conn->{'timer'} ) {
+        $conn->{'timer'}->cancel
+            if $conn->{'timer'}->can('is_active')
+            and $conn->{'timer'}->is_active;
+        $conn->{'timer'} = undef;
+    }
+    $conn->{'timer'} = <[event.add_timer]>->(
+        {   after   => <nameserv.cfg.tcp.idle_timeout> // 13,
+            handler => qw| nameserv.dns_tcp.handler.timeout |,
+            data    => $id,
+            desc    => "dns tcp idle timeout [ $conn->{'peer'} ]"
+        }
+    );
+
+    ## try to flush ; a partial write arms the write watcher ##
+    <[nameserv.dns_tcp.handler.write]>->( $conn->{'id'} );
+}
+
+return;
+
+#,,,,,,..,,.,,,,,,...,.,.,,,,,.,,,.,.,.,,,,,,,..,,...,...,...,.,,,,,.,,,,,,,.,
+#YYTF27K2OT55DANADMYXBSX7GK6LHHUANDEZXVQUP5CAUOQES7BRAU2CMFQCKPAM54NKJ6RC5GXJK
+#\\\|MX2UHHFVXXG63RCGQSH2MM64UGR7CAWNJRKMC4G35NZLVRD7WND \ / AMOS7 \ YOURUM ::
+#\[7]R7NYCROXR3X2X3IVHZEP4ZUKWDOPFHCLR7SQC2W75MTGDEIXGOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

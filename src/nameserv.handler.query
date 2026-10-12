@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = nameserv.handler.query
-# descr = handle incoming dns query packets
+# descr = handle incoming dns query packets over udp
 
 ## reply on the socket the query arrived on [ ipv4 \ ipv6 listeners ] ##
 my $event = shift;
@@ -17,108 +17,33 @@ if ( not defined $from_addr ) {
     return;
 }
 
-## parse dns packet
-my $packet = eval { Net::DNS::Packet->new( \$packet_data ) };
-if ( not defined $packet or $@ ) {
-    <nameserv.stats>->{'errors'}++;
-    <[base.logs]>->( 0, "failed to parse dns packet: %s", $@ ) if $@;
-    return;
-}
-
-my @questions = $packet->question();
-if ( not @questions ) {
-    ## no questions, ignore
-    return;
-}
-
-my $qname = lc( $questions[0]->qname() );
-my $qtype = $questions[0]->qtype();
-
-<nameserv.stats>->{'queries'}++;
-
-<[base.logs]>->( 3, ": dns query [ %s %s ]", $qname, $qtype );
-
-## create reply packet
-my $reply = Net::DNS::Packet->new( $qname, $qtype );
-$reply->header->id( $packet->header->id );
-$reply->header->qr(1);    ## set as response
-$reply->header->aa(1);    ## authoritative answer
-
-## find matching zone [ longest suffix match ]
-my $zone_match = <[nameserv.zone.lookup]>->($qname);
-
-my $found_answer = 0;
-my $name_exists  = 0;
-
-if ($zone_match) {
-    my $ttl = $zone_match->{'ttl'};
-
-    ## search records for match
-    if ( $qname =~ m|^_protocol7\._tcp\.| ) {
-        $found_answer = <[nameserv.handler.p7ref_lookup]>->(
-            {   reply      => $reply,
-                qname      => $qname,
-                zone_match => $zone_match,
-                ttl        => $ttl,
-            }
-        );
-    } else {
-        for my $rec ( @{ $zone_match->{'records'} } ) {
-            my $rec_name = lc( $rec->{'name'} // '' );
-            my $rec_type = $rec->{'type'} // '';
-
-            $name_exists = 1 if $rec_name eq $qname;
-
-            ## match name and type
-            next if $rec_name ne $qname;
-            next if $rec_type ne $qtype;
-
-            ## per-record ttl overrides the zone default
-            my $rr_ttl = $rec->{'ttl'} // $ttl;
-
-            ## build rr using string-form constructor (phase-1 simple
-            ## approach)
-            my $value = $rec->{'value'} // '';
-            my $rr_str
-                = sprintf( "%s %d IN %s %s", $qname, $rr_ttl, $qtype,
-                $value );
-
-            my $rr = eval { Net::DNS::RR->new($rr_str) };
-            if ( defined $rr ) {
-                $reply->push( answer => $rr );
-                $found_answer = 1;
-            } else {
-                <[base.logs]>->(
-                    0,      "failed to create rr for %s: %s",
-                    $qname, $@
-                ) if $@;
-            }
-        }
+## udp size limit : the query's edns udp size when it carries an opt record ##
+## [ capped at 1232, the safe mtu-derived ceiling ], else 512               ##
+my $udp_size = 512;
+my $q_packet = eval { Net::DNS::Packet->new( \$packet_data ) };
+if ( defined $q_packet ) {
+    my ($opt)
+        = grep { $_->isa(qw| Net::DNS::RR::OPT |) } $q_packet->additional;
+    if ( defined $opt ) {
+        my $edns_size = $opt->udpsize;
+        $udp_size = $edns_size > 1232 ? 1232 : $edns_size
+            if $edns_size > 512;
     }
-
-    if ($found_answer) {
-        $reply->header->rcode('NOERROR');
-    } elsif ($name_exists) {
-        $reply->header->rcode('NOERROR');    ## nodata : name without type
-    } else {
-        $reply->header->rcode('NXDOMAIN');
-    }
-} else {
-    ## no zone match : not authoritative for it ##
-    $reply->header->aa(0);
-    $reply->header->rcode('REFUSED');
 }
 
-## send response
-my $reply_data = $reply->data;
+my $reply = <[nameserv.answer]>->($packet_data);
+return if not defined $reply;
+
+## send response [ truncate sets the tc bit when records drop off ] ##
+my $reply_data = $reply->data($udp_size);
 if ( defined $reply_data and length $reply_data ) {
     send $sock, $reply_data, 0, $from_addr;
 }
 
 0;
 
-#,,..,,..,,,.,,..,,,,,..,,,,.,,.,,.,,,.,.,..,,..,,...,...,..,,,.,,.,.,,..,.,.,
-#DHXC5OQY6C5THYBLD4APQXBLNI7YJE7QKRWVLICWVBM4XAJTCYIWYXTSXMVPARYEQCJSI7DBYZYVW
-#\\\|NPCF2VJPAY7XVOGMRT7C2P77XMAHGR6EZ6OXU6RBFUHME3SUZVU \ / AMOS7 \ YOURUM ::
-#\[7]JIZM6ARLVBUMW4GUJOMJ6OSVDPCGW35GAGN635NHZ4XBN4SOWQDA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,.,,,.,,,.,,,.,,...,..,,,,,,,,,,..,,...,...,,,,,..,,..,,.,.,,,.,
+#V3DWOGRVWF76UG4YDP7NUB4TPXKIDHLTU5D5UH76TUPKNV23ZMFI5WMGHII7NNRQ5HBTUKA5E7P34
+#\\\|J2LBROWGJ5IVJPQAKKFGGWKU55XSR6TD5LPMARRQMLBK2KH2WGT \ / AMOS7 \ YOURUM ::
+#\[7]5D7OVKZHEJATKMK3COOVMZLC6RTHAPUKYG4QZ5FWFBW5M3VRSUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
