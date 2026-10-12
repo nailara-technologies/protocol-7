@@ -2462,8 +2462,10 @@ return [ qw[
         nameserv.sync.conn.write
         nameserv.sync.conn.flush
         nameserv.sync.conn.close
+        nameserv.consistency.run
         nameserv.cmd.remove-zone
         nameserv.cmd.ensure-zone
+        nameserv.cmd.consistency
         mpv.startup.job.finalize
         mpv.handler.pipe.version
         mpv.handler.pipe.command
@@ -3040,6 +3042,7 @@ return [ qw[
         nameserv.sync.entry.encode
         nameserv.sync.entry.decode
         nameserv.sync.client.start
+        nameserv.consistency.query
         nameserv.cmd.remove-record
         mpv.snapshot.apply_pending
         mpv.handler.resume_timeout
@@ -3342,6 +3345,7 @@ return [ qw[
         nameserv.sync.writer.verify
         nameserv.sync.handler.write
         nameserv.sync.client.finish
+        nameserv.consistency.finish
         nameserv.cmd.discover-nodes
         mpv.startup.job.fork_player
         mpv.handler.window_id_reply
@@ -3930,6 +3934,7 @@ return [ qw[
         nameserv.zone.tombstone.clear
         nameserv.orbital.auto_publish
         nameserv.handler.p7ref_lookup
+        nameserv.consistency.complete
         mpv.handler.event.file-loaded
         models.storage.create_symlink
         models.handler.task-poll-step
@@ -4219,6 +4224,7 @@ return [ qw[
         nameserv.sync.client.connected
         nameserv.sync.checksums.verify
         nameserv.handler.publish_reply
+        nameserv.consistency.host-name
         mpv.pulse.disable_idle_suspend
         mpv.handler.scan_encoded_timer
         mpv.handler.reenc_notify_reply
@@ -4704,6 +4710,7 @@ return [ qw[
         nshell.no-tty-debug.cmd.char-add
         nshell.declare_strm_size_support
         nameserv.sync.client.apply_reply
+        nameserv.consistency.evaluate-dn
         nameserv.cmd.last-data-timestamp
         mpv.startup.handler.socket_ready
         mpv.startup.handler.coords_reply
@@ -4914,6 +4921,7 @@ return [ qw[
         osf-cache.holdings.scan_apt_cache
         nodes.orbital.format_strm_payload
         nameserv.sync.client.handler.read
+        nameserv.consistency.reverse-name
         mpv.initialize.observe_properties
         mpv.handler.event.property-change
         models.storage.discover_directory
@@ -5291,6 +5299,8 @@ return [ qw[
         pager.util.encode.encode_5x7_matrix
         p7-log.startup.legacy_gap_sweep.run
         osd-logo.handler.colortoalpha_reply
+        nameserv.consistency.real-addresses
+        nameserv.consistency.handler.answer
         models.storage.adapter.discover_all
         models.gguf.file.file_type_to_quant
         models.decision.recommendation_base
@@ -5433,6 +5443,7 @@ return [ qw[
         nshell.handler.ctrl_o_render_preload
         nodes.handler.discover_details_reply
         nameserv.sync.client.handler.connect
+        nameserv.consistency.handler.timeout
         mpv.startup.handler.placement_online
         models.storage.adapter.invoke.repair
         models.storage.adapter.invoke.import
@@ -6122,8 +6133,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,...,,,,,,..,,..,...,,..,,..,,,,,,,,,,,,,.,.,...,...,,..,..,,.,.,.,,,.,,,
-#3AO4V2K2KAN77SANEHOP4W67DMWB4GEIXFPXMPSHTDHYZ4BM4ITQ3GX4WZY7J4CPJM7E6C37AJ35Y
-#\\\|CFGVNBPKAEKH3YSNZU5SK4GR5XIO4T4HIFTC3FOO7WJO47RCCEN \ / AMOS7 \ YOURUM ::
-#\[7]HBOYNGAIRP77EBXAO7PJTDFKEV7SZ4WJCWAPQ3S2WNEIBGLDJEBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,.,.,...,,,.,,,,,.,,,.,,,,..,.,.,...,...,..,,.,.,.,.,,.,,,.,,
+#3XRLNOX45WKUZZVH7DB36PRIPFNXARQZBWXL7KK53I55S6DB4SOOVY5KIMDEPHDG2EQ7NLWEB5C6C
+#\\\|RK67GRXSHAODOGPWWUO66I5MTX5DFEG62YPXA2DOT7O2Q3IH4F5 \ / AMOS7 \ YOURUM ::
+#\[7]HZUW7CROYQQDFOS5AC26DIGDLO5NSB4VLMPIYFY4P3JWXDUP3YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
