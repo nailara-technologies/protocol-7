@@ -104,9 +104,9 @@ if ( !-x <v7-zenki.gcc_bin> ) {
 ##                                                                         ##
 ##  the parameter propagation this used to wait for is the launcher chain  ##
 ##  : the alias name reaches the started zenka as                          ##
-##  <system.start.launcher_name>  [ see data/md/design/ZENKA-              ##
-##  SYMLINK-CHAIN-RESOLUTION.md ].  a future 'aliases' zenka may absorb    ##
-##  the registry side of this                                              ##
+##  <system.start.launcher_name>                                           ##
+##  [ see data/md/design/ZENKA- SYMLINK-CHAIN-RESOLUTION.md ].  a future   ##
+##  'aliases' zenka may absorb the registry side of this                   ##
 <[v7-zenki.install_workflow_shortcuts]>;
 
 ## modprobe ##
@@ -140,6 +140,10 @@ if ( !defined <v7-zenki.rmmod_bin> || !-x <v7-zenki.rmmod_bin> ) {
 
 map { <[v7-zenki.init_start_setup]>->($ARG) }
     @{ clone(<v7-zenki.cfg_data.start_setup>) };
+
+## per-host zenki overrides [ /etc/protocol-7/v7-zenki/host.cfg ] on top of ##
+## the parsed start profile [ including an automatic '-lowram' choice ]     ##
+<[v7-zenki.apply_host_zenki_cfg]>;
 
 if (    exists <system.subs_loaded.devmod>
     and <system.subs_loaded.devmod> > 1
@@ -285,8 +289,8 @@ delete <list.users>;
 
 return 0;    ## successful init ##
 
-#,,..,...,...,,,.,,,.,...,.,,,,,,,...,...,,.,,..,,...,...,...,.,.,.,,,.,.,...,
-#LZYXFXNFZYTLKTI5TZ6I4INNOX4FENZND5JRG3PS7H3AOU36H5WCSBX534BEJ46KW74FA5HKO5CEQ
-#\\\|MH6NQYECWYY7O4NHUHWM2CHMQ6VGEKE46P475EDVCGPCFFLCRGS \ / AMOS7 \ YOURUM ::
-#\[7]HFRLRDRQOF253QVKTK5ZDPZ7CCAPZ4QKJDBUKIQLVH2IZZRME4DY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,,,,,.,,,,,.,,..,,.,,,.,,..,,..,,...,...,.,,,,,,,..,,,.,,,,,,
+#FKVT6BWKXDIPLDXTMM5T3UEZMEOBG6XRYYBIPL3YUMIJDWVQ7PFDSGBSR7S7XG2AKZS4C67ZYU6UU
+#\\\|ARFWGXWCQIAD7PRU7LIQB7773ACQ7NWBZULSLOJ7IUSIIVGGTIX \ / AMOS7 \ YOURUM ::
+#\[7]MJ25BKAEF6WG2GEAWAT2DSSK6RVK4RD7I2RXSJQOOXFK4N4BXADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
