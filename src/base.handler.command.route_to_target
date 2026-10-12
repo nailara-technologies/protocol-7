@@ -274,6 +274,22 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
                 'target' => { 'sid' => $target_sid }
             }
         );
+
+        ## route id generation failed                                       ##
+        ## [ exhausted table or invalid parameters ] : log once at level 0  ##
+        ## and skip this target -- when no target remains, the nothing-sent ##
+        ## path below replies FALSE to the requester instead of a broken    ##
+        ## line [ todo 7N3 ]                                                ##
+        if ( ref $route ne qw| HASH | ) {
+            <[base.logs]>->(
+                0,   '[%d] route.add failed [ target %s, cmd : %s ]',
+                $id, $target_sid, $cmd
+            );
+            $refusal_type = qw| route-add |;
+            $targets_denied++;
+            next;
+        }
+
         ## numerical ##
         my $target_cmd_id = $route->{'target'}->{'cmd_id'};
 
@@ -401,8 +417,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
 return undef;    ##  fell through : caller handles unknown-command  ##
 
-#,,..,,..,,..,,,,,..,,.,,,.,,,.,.,...,.,.,,,,,..,,...,...,.,,,.,,,,..,,,,,.,,,
-#5RFQM44AL7Y2XWU7OLAEVTPKXD57FHGARMX3I2YHHFQ54YJTOJ3NQ7OVCU26ZFHJ5GE6GQZDVSGPO
-#\\\|4YHUZYVOV5H2CSOLCLB4AEACWNJA3TIRIL63OW2BB3FQWSUUBKX \ / AMOS7 \ YOURUM ::
-#\[7]F5RQDNWDWWTL4YHPY6O3Y2XSAA5AKJ7KH2ZFFYCL3XW3W5KZYCBA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,,,,,..,,,,,,..,,,..,,..,,..,..,,...,...,..,,,,,,,.,,,.,,.,.,
+#3KRBXWODDH5XD4GOY4AW3AWTBGN3WESMSYAN3L2DO5IXCGO467LYMP2GRXEO2ALFL4DAMF5SL5C6G
+#\\\|HB5LOYKILP34KWJJPEGG4EPV6N2ILKBRIACQX3PUTDPARVLIU5Y \ / AMOS7 \ YOURUM ::
+#\[7]OD53SJJVKPHNQ2BAJYV4HEE3364EKWNEQ2O3GDPKKTUUGDSMCKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
