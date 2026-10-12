@@ -1204,17 +1204,26 @@ items:
   - network
   text: 'yourum : no ipv6 since the 2026-10-12 02:32 reboot -- gateway fe80::1 does not answer neighbour discovery, config unchanged since 2025-12 [ provider side ? ]. dn0110 unreachable over ipv6'
 - added: 3X4ZRLHDIM
-  details: ''
-  done_at: null
+  details: 'landed 962a74069 [ 2026-10-12 ] : tcp 53 live on pri, delta, yourum [ v4 + v6, checked from pri \ delta ]. pri : ufw 53/tcp opened. yourum : systemd-resolved held 127.0.0.53\54:53 tcp [ blocks the wildcard bind ] -- static /etc/resolv.conf [ provider resolvers, old copy in /root ], resolved stopped + masked [ its sockets re-activated it ].'
+  done_at: 3X42BNNIJ4
   id: NRQ
+  priority: normal
+  status: done
+  tags:
+  - nameserv
+  text: 'nameserv : dns over tcp refused on every server [ udp only ] -- needed for truncated replies [ large txt \ many records ]'
+- added: 3X42BNNTEQ
+  details: "started as a sub-named instance : v7-zenki.start nameserv[cache] [ server ] or nameserv[cache-local] [ linux desktop ]. answers only loopback clients [ 127.0.0.0/8, ::1 -- enforced in code, never only by config : no open resolver ]. forward + cache to the configured upstream servers first [ ttl-honouring, negative cache ], full recursion only if ever needed. opt-in until proven : resolv.conf keeps a fallback upstream. later : dns tunnelled over protocol-7 [ the cache forwards through a zenka link instead of udp ]. context : yourum's resolved stub blocked nameserv's tcp 53 bind [ NRQ ]."
+  done_at: null
+  id: 4ZW
   priority: normal
   status: open
   tags:
   - nameserv
-  text: 'nameserv : dns over tcp refused on every server [ udp only ] -- needed for truncated replies [ large txt \ many records ]'
+  text: 'nameserv[cache] \ nameserv[cache-local] : forwarding dns cache instance [ replaces systemd-resolved on desktops and hosts ]'
 
-#,,,.,.,.,,,,,,.,,..,,,,,,,,,,,,,,,.,,.,.,.,,,..,,...,...,.,,,,.,,,,.,,.,,,,,,
-#I7GWS5BRZTH3PTSHGYYSCT4FYHEOZGB23JNVHPAURFI5H5QD2Z5SOGV3D3TPSQ4DLMFKLWKITNZ2C
-#\\\|NXYGMGGP5KMLWP422TR2AV2FEV7UDPRU5QZHJ36EMLOT4YKYEKP \ / AMOS7 \ YOURUM ::
-#\[7]EW6D5QW6OCNAZZIMG5ZVPDRUZGTR25FRX6Y3BZHILZI2I2Z256CQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,..,,,,,,,..,.,.,.,,,,.,,..,,..,,..,,...,..,,..,,,.,,.,.,..,,,,.,
+#3WYBMVOBN4BJ2BWMUOV42PLFQTWQGSXBUZ365DSGMOGW6Z4Y3QKBFPUKXVZX4IHX24PXKAAUVFRE4
+#\\\|G4J4P3QLKQ4VUIOTLJ73OQZJSBVWVYEH2MX723EWANZLOJDJJTY \ / AMOS7 \ YOURUM ::
+#\[7]OTYOVGVHMSQAKRE3HZ5TOS6ZLA36QIR35BWDIWDSRUPPHVWJ2YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
