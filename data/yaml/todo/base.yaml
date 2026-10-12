@@ -1246,6 +1246,7 @@ items:
     menu <-> agent [ user 2026-10-12 ] : an authenticated bidirectional STRM session [ see B2K ]. approving is authority : the session is bound to the real user [ kernel peer check on the unix socket + keypair login, never a claimed name -- the 2026-09-20 $USER bypass ]. a pending request names the zenka as the cube authenticated it, never as self-described [ else one zenka requests under another's grants ].
     approval as a dependency [ user 2026-10-12 ] : a request waits on 'user approved', the menu click resolves it and everything waiting proceeds [ template engine : slot resolution = dependency resolution ]. the approval carries the request id + a checksum of what was shown [ e.g. the file list to sign ] : a changed request does not match and stays open. only the authenticated menu session resolves it ; zenki can wait on it, never resolve it.
     STAGE 1 LANDED 8113793bc [ 2026-10-12 ] : import \ export \ files, keyed-mac blob names, chunked cascade, mid-import check, blobs in sync. open : gc of unreferenced blobs, then the agent \ grants \ menu \ code-signing stages.
+    archive mode + export -d + sync at scale LANDED 5c4e1193f : import -a [ single pass, random blob name ], export -d, blobs unhashed in sync, list files instead of argv, pulled files linked not read. next : C2H [ member index ], HTC [ trickle upload ], gc.
   done_at: null
   id: Y7O
   priority: normal
@@ -1283,18 +1284,20 @@ items:
   - vault
   text: 'p7-vault : single file out of an archive, fetching only its chunks [ encrypted remote reads ]'
 - added: 3X44HEMSI4
-  details: 'user 2026-10-12 : sort unsorted data before p7-vault import [ freeing the host \ wsl before the move ]. <sources...> -> <target>/<type>/ ; type by extension [ lowercased, jpeg -> jpg style aliases ], or by content [ mime type via file \ File::MimeInfo ] for files without or with a wrong extension. DEFAULT = dry run : prints the plan [ counts and sizes per type ], nothing touched until -go. copy by default, -move on request : same filesystem = rename, across filesystems = copy, verify [ checksum ], then delete the source. NEVER overwrite : an identical file [ same checksum ] at the target counts as a duplicate and is skipped [ with -move : the source is removed only after the match is verified ], a different one gets a numbered name. keeps mtime \ mode. writes a journal [ from -> to per file ] so a move can be undone. options : -x <glob> excludes [ as import -a ], -by ext|mime, -flat \ -keep-tree [ keep the relative source path below the type dir ]. then : p7-vault import -d \ -a per type dir.'
-  done_at: null
+  details: |-
+    user 2026-10-12 : sort unsorted data before p7-vault import [ freeing the host \ wsl before the move ]. <sources...> -> <target>/<type>/ ; type by extension [ lowercased, jpeg -> jpg style aliases ], or by content [ mime type via file \ File::MimeInfo ] for files without or with a wrong extension. DEFAULT = dry run : prints the plan [ counts and sizes per type ], nothing touched until -go. copy by default, -move on request : same filesystem = rename, across filesystems = copy, verify [ checksum ], then delete the source. NEVER overwrite : an identical file [ same checksum ] at the target counts as a duplicate and is skipped [ with -move : the source is removed only after the match is verified ], a different one gets a numbered name. keeps mtime \ mode. writes a journal [ from -> to per file ] so a move can be undone. options : -x <glob> excludes [ as import -a ], -by ext|mime, -flat \ -keep-tree [ keep the relative source path below the type dir ]. then : p7-vault import -d \ -a per type dir.
+    LANDED 5c4e1193f [ 2026-10-12 ] as bin/p7-sort : dry run default, -go, -move [ verified across filesystems ], -by ext|mime, -x, -keep-tree, duplicates incl. numbered names, journal + -undo.
+  done_at: 3X44LDMTJA
   id: MER
   priority: normal
-  status: open
+  status: done
   tags:
   - vault
   - tools
   text: 'pre-import sorter : files from source paths into type subdirectories of a target [ copy, or move ]'
 
-#,,,,,,,,,...,..,,,..,.,.,.,.,,,,,,,,,,,,,.,.,..,,...,...,.,,,...,,..,.,,,,,.,
-#52XPSDDKZLLYAIEMMA54CRJE6STCTUT3SUHTGK4GITS2XRAEAMI5PUYIVVQJMM7RXHCUQTCB4FGP4
-#\\\|XRNG3MW6YTDGLUGY6UULZHLP7MXBI3STV5FV7IHK47XXU4J5KPP \ / AMOS7 \ YOURUM ::
-#\[7]JG3MKC67TKSCMNHIZH2ULEQHV64BJN35J6W77BGM5V3B2FG7UYBY 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,.,,,.,,..,.,.,...,,,.,.,.,,.,,..,,...,..,,,..,,.,,,.,,,..,,,.,
+#WYVRSBJIFFGRZUL6OUREDMASZZQFKVTHMBJYQSU3FVWWH6A242IVQHLHBQGGLJSYQXRLSTIRUQ6XS
+#\\\|WUIPBSZTM3W26TSOUV45JZILTU5VVT5LAC2NFJVW4G5I6MRBWL2 \ / AMOS7 \ YOURUM ::
+#\[7]NQTEOL2EQRK4WKEDKCIPYURUTJGYLCKIDXFNEXL5UPT76QQ2ZSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
