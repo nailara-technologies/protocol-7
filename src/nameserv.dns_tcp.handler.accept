@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = nameserv.dns_tcp.handler.accept
+# descr = accept a dns tcp connection [ rfc 7766 ], register its handlers
+
+my $listen_sock = shift->w->data;
+
+my $sock = $listen_sock->accept;
+return if not $sock;
+
+$sock->blocking(0);
+
+my $max = <nameserv.cfg.tcp.max_connections> // 77;
+
+my $conns = <nameserv.dns_tcp.conns> //= {};
+
+if ( scalar keys %$conns >= $max ) {
+    ## refuse : log level 1 at most once per minute ##
+    my $now = time;
+    if ( $now - ( <nameserv.stats>->{'tcp_refused_logged'} // 0 ) >= 60 ) {
+        <nameserv.stats>->{'tcp_refused_logged'} = $now;
+        <[base.logs]>->(
+            1, ': dns tcp connection refused [ limit %d ]', $max
+        );
+    }
+    close $sock;
+    return;
+}
+
+my $peer = $sock->peerhost // 'unknown';
+my $id   = sprintf '%s:%s', $peer, fileno($sock);
+$id .= '..' while exists $conns->{$id};
+
+$conns->{$id} = {
+    id          => $id,
+    sock        => $sock,
+    peer        => $peer,
+    in          => '',
+    out         => '',
+    last_active => time,
+};
+
+## idle timeout : reset on every complete query [ read handler ] ##
+$conns->{$id}{'timer'} = <[event.add_timer]>->(
+    {   after   => <nameserv.cfg.tcp.idle_timeout> // 13,
+        handler => qw| nameserv.dns_tcp.handler.timeout |,
+        data    => $id,
+        desc    => "dns tcp idle timeout [ $peer ]"
+    }
+);
+
+$conns->{$id}{'watcher'} = <[event.add_io]>->(
+    {   fd      => $sock,
+        poll    => 'r',
+        handler => qw| nameserv.dns_tcp.handler.read |,
+        data    => $id,
+        desc    => "dns tcp read handler [ $peer ]"
+    }
+);
+
+return;
+
+#,,,.,,,,,,.,,,.,,.,,,,..,,,,,..,,.,.,...,...,..,,...,...,..,,,..,.,.,..,,.,.,
+#R2KOPFRBZXZTBYAVPD3WEXC3JQ5BDUUB3P5LEG6GIHGNUIPAAUCAVDNI6A2SBFDL6M7S2KXPV54CI
+#\\\|E44QSTGQXC2ZMMNQZJXZUVDDFGUH2IEZMVCSVAROADF7TUHCZVB \ / AMOS7 \ YOURUM ::
+#\[7]Z6UPDXWMBYAZEOLQOUBGUEA5SHQUOA7SGBGG3F5TEJQQKU44X2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

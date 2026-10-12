@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = nameserv.dns_tcp.handler.write
+# descr = continue writing buffered dns tcp output
+
+## the write watcher passes the event object ; the read handler calls this ##
+## module with the connection id directly                                  ##
+my $param = shift // return;
+my $id    = ( ref $param and $param->can('w') ) ? $param->w->data : $param;
+
+my $conns = <nameserv.dns_tcp.conns> // return;
+my $conn  = $conns->{$id}            // return;
+
+my $sock = $conn->{'sock'};
+
+if ( defined $sock ) {
+    while ( length $conn->{'out'} ) {
+        my $written = <[base.s_write]>->(
+            $sock, \$conn->{'out'}, length $conn->{'out'}
+        );
+        if ( ( $written // -1 ) == -1 ) {
+            <[nameserv.dns_tcp.close]>->($conn);
+            return;
+        }
+        last if $written == 0;    ## would block : keep the rest buffered ##
+        substr( $conn->{'out'}, 0, $written ) = '';
+    }
+}
+
+if ( not length $conn->{'out'} ) {
+    if ( ref $conn->{'wwatcher'} ) {
+        $conn->{'wwatcher'}->cancel if $conn->{'wwatcher'}->is_active;
+        $conn->{'wwatcher'} = undef;
+    }
+    <[nameserv.dns_tcp.close]>->($conn)
+        if $conn->{'close_after_out'};
+} elsif ( defined $sock and not ref $conn->{'wwatcher'} ) {
+    $conn->{'wwatcher'} = <[event.add_io]>->(
+        {   fd      => $sock,
+            poll    => 'w',
+            handler => qw| nameserv.dns_tcp.handler.write |,
+            data    => $conn->{'id'},
+            desc    => 'dns tcp write handler'
+        }
+    );
+}
+
+return TRUE;
+
+#,,.,,,..,.,,,,..,,,,,..,,..,,,,.,,,,,...,..,,..,,...,..,,.,.,,..,.,,,...,,,.,
+#JZ3THO2XA42UTGGVUAOY6LKP5AQS7ZFQV7A35FI3R2KMXTWERRHDPUDLAWFKPZMRQGP3LQIAF2HJO
+#\\\|IQA5UDNLNQASCP32CFY2MXS5FKPSQPGMTA2FMTRO5NAMTMLH7IN \ / AMOS7 \ YOURUM ::
+#\[7]NMAM7PCJSTLDHT63HI6LOAD4E6XGTEJIWWLEFFUOBQBD54VQMCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
