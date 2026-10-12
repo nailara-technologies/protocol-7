@@ -3,16 +3,22 @@
 # name  = sourcecode.console.version
 # descr = return current protocol-7 sourcecode version
 
-printf( <<'EOT', <protocol-7.src-ver>, <protocol-7.rel-ver> );
-.____
-:__ / .
-:/ /    protocol-7 source code version : %s
-:_/ .: AMOS7 base software release version : %s
-:
-EOT
+## 'version :' compacts to 'version:' in both lines when either line would ##
+## pass 78 columns [ longer version strings later ]                        ##
+my @line = (
+    sprintf( ':/ /   protocol-7 source code version : %s',
+        <protocol-7.src-ver> ),
+    sprintf( ':_/ .: AMOS7 base software release version : %s',
+        <protocol-7.rel-ver> )
+);
+if ( grep { length $ARG > 78 } @line ) {
+    s|version :|version:| for @line;
+}
 
-#,,,.,,,,,.,,,,.,,..,,.,,,.,.,..,,.,.,,,.,..,,..,,...,..,,..,,,..,,.,,.,.,,..,
-#WVZJI26CSZAU5F7E3HFFUUH4H7STXVYMXKN3T5UQWW7TOE467R46DJKED7V2A3SYDK2Q3IINQ4ZJW
-#\\\|GJAIRYJCBITBUN5JUUFMSJ53WRFWTD7YJHWKRHEKMXLD33M7DQW \ / AMOS7 \ YOURUM ::
-#\[7]2KOOJSOKCEWSIZTHRXDLAMUD2VY26CJ3ALYJLZY36I2FFFR6LUDI 7  DATA SIGNATURE ::
+printf( ".____\n:__ / .\n%s\n%s\n:\n", @line );
+
+#,,.,,..,,.,.,,..,.,,,.,.,,,,,,,.,.,,,,,.,.,,,..,,...,.,,,.,.,,.,,..,,...,,,.,
+#JWZTS75ZGMM7NGWQHATB63OFDH4OUR57A54VOI3N6FWZ4X7TSWYCFWEXGTJ2U336I5LCN465XUHS4
+#\\\|Z6PBOJB42WHVVAVPBBW6RUDCBEIB7SIP5XDSVVXUMO2CAWCHNRP \ / AMOS7 \ YOURUM ::
+#\[7]KGV3FJDSYDPMPW4QTHU45I7VQNR5L5ZMXQFZFNRJP433D2V26YBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
