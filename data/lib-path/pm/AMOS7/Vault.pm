@@ -16,7 +16,7 @@ package AMOS7::Vault;    ####################################################
 ## NEVER pass a secret value to warn / die / a log line. errors name the file
 ## or the entry id, never the content.
 
-use v5.24;
+use v5.32.0;
 use utf8;
 use strict;
 use English;
@@ -40,6 +40,7 @@ our $VERSION = qw| AMOS7::Vault-VERSION.0000001 |;
     vault_rewrap
     vault_wraps
     entry_save
+    entry_code_new
     entry_load
     entry_versions
     entries_latest
@@ -371,6 +372,58 @@ sub _new_id {
     return _harmonic( sub { _b32( _random_bytes(10) ) } );
 }
 
+## the 3-char display code of an entry
+## [ bin/todo's chk3 shape : a random seed through AMOS7::CHKSUM, 3 chars ].
+## loaded lazily so a copy that only READS a vault never needs the chksum
+## tree. AMOS7::CHKSUM's str_length is package-global : localize it, exactly
+## like bin/todo's chk3
+sub _chk3 {
+    my $seed = shift;
+    no warnings qw| once |;    ##  referenced exactly once, by design  ##
+    local $AMOS7::CHKSUM::str_length = 3;
+    return scalar AMOS7::CHKSUM::amos_chksum("$seed");
+}
+
+## codes of all live entries [ deleted ones free their code, as in bin/todo :
+## collision checks only ever look at what is still there ]
+sub _used_codes {
+    my $vault = shift;
+    my ($list) = entries_latest($vault);
+    my %used;
+    foreach my $entry ( @{$list} ) {
+        my $code = $entry->{'record'}{'code'} // '';
+        $used{ uc $code } = 1 if length $code;
+    }
+    return %used;
+}
+
+## a fresh 3-char code, collision-checked against the live entries and
+## harmony-checked while AMOS7::Assert::Truth loads [ same rules as bin/todo's
+## gen_id : nothing that could read as a legacy numeric id, retry, then a
+## plain pass without the harmony gate rather than fail ]
+sub entry_code_new {
+    my $vault = shift;
+    require AMOS7::CHKSUM;
+
+    my %used         = _used_codes($vault);
+    my $want_harmony = _truth_loaded();
+    my $max_retries  = 200;
+
+    foreach my $pass ( 1, 0 ) {
+        foreach my $try ( 1 .. $max_retries ) {
+            my $candidate = _chk3( join '-', time, $PID, rand(1e9), $try );
+            next if $candidate =~ m{^\d+$};
+            next if $used{ uc $candidate };
+            next
+                if $pass
+                and $want_harmony
+                and not AMOS7::Assert::Truth::is_true($candidate);
+            return $candidate;
+        }
+    }
+    die "vault : no free entry code\n";
+}
+
 sub recovery_code_normalize {
     my $code = uc( shift // '' );
     $code =~ tr|018|OLB|;      ## common misreadings of the paper copy ##
@@ -655,7 +708,13 @@ sub entry_save {
     $id //= _new_id();
     die "vault : invalid entry id\n" if $id !~ m|^[A-Z2-7]{16}$|;
 
-    my %plain     = ( %{$record}, updated => ntime_b32( ntime_now() ) );
+    my %plain = ( %{$record}, updated => ntime_b32( ntime_now() ) );
+
+    ## every record carries its 3-char display code ; an entry saved without
+    ## one [ a vault written by an older p7-vault ] gets it here
+    $plain{'code'} = entry_code_new($vault)
+        if not length( $plain{'code'} // '' );
+
     my $plaintext = $JSON->encode( \%plain ) . qq|\n|;
     my $pad       = $PAD_BLOCK - ( length($plaintext) % $PAD_BLOCK );
     $plaintext .= ' ' x $pad;
@@ -1138,8 +1197,8 @@ sub gen_password {
 
 1;
 
-#,,..,.,,,,,,,,.,,.,.,.,.,,,,,...,..,,.,.,...,..,,...,...,.,.,.,.,,..,.,.,..,,
-#2XRCPN55VFJHJ4KJYX3MHANQSC3INTH2NW4W2UA55DD6W25WC4DE7HIIOFSWYA7VMDYTTG4XGSVEE
-#\\\|FPV3AV2UUNLZVYWRAMWBH5X7WL5ZSOUFMFBHLKD4JBMZPDTYQOH \ / AMOS7 \ YOURUM ::
-#\[7]N5PRH6HOZNPPZX2ZGCEUN4VGJJW3GMZVP6VYRY2OOIMWM6PGO2BI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,,,..,,.,.,...,.,,,,..,,,,,.,,,..,,...,...,.,,,.,,,,..,,,,,.,.,
+#NG33XKL4MGSTQ3FKACUK2PY3WNCUUCFDFW55IHKN5TCLSAJGBQUWB42SRRGC52GCDPNC7UBTZCTO2
+#\\\|2KEA2ZG22C4EY3KZBA6YZ36UB34YRJVHRKXPBAH6CPETDMILUFM \ / AMOS7 \ YOURUM ::
+#\[7]QVSAJHB6FFZWL7267VQZNPZYHZQ5RUNSGDRXZXGFW32RSFK5MCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
