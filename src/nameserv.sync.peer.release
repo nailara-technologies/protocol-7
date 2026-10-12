@@ -15,6 +15,13 @@ if ( ref $peer->{'watcher'} ) {
     $peer->{'watcher'} = undef;
 }
 
+if ( ref $peer->{'conn_timer'} ) {
+    $peer->{'conn_timer'}->cancel
+        if $peer->{'conn_timer'}->can('is_active')
+        and $peer->{'conn_timer'}->is_active;
+    $peer->{'conn_timer'} = undef;
+}
+
 close $peer->{'sock'} if defined $peer->{'sock'};
 $peer->{'sock'} = undef;
 
@@ -22,8 +29,8 @@ $peer->{'state'} = qw| idle |;
 
 return TRUE;
 
-#,,,,,..,,..,,,.,,,.,,,..,,..,.,,,...,...,,..,..,,...,...,,..,..,,.,.,.,,,,,,,
-#YBFH4J4GPNJOKDWX4J5Q67IIRS2VFISMVWRKTZMWAZAZ4IZMINWPAJNAZT37Q3UGAS2A3R6DLGJNC
-#\\\|BOYKURUCGER2LBZAA7KJRGGFDWGNOEMACPAKKOJQQXE4H67CAMP \ / AMOS7 \ YOURUM ::
-#\[7]XRXFDKPACOAU47WO66EQXJR2VXV63BHL3PWLH42JYZXGHATVKWCA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,..,,,..,..,,,,.,,,.,,,,,,,,,..,,...,..,,,,.,.,.,..,,,,.,..,,
+#2RT4UDDVUQXYGFW6V4FZTA4VTOASWZSRLLOAUHLQGP6UBZQAUBKW6UF5GNYZHPJ676ECJ46EZWY6Q
+#\\\|X4NKWGELRVP5P55KPXR2AI2IAZOFO57EDKOYN5PZYTIZ4XQMMM7 \ / AMOS7 \ YOURUM ::
+#\[7]R6ANGW55EPRVTFP7SWQJMS6PQAO74XLBS7NXUFUOW3POY6RCP2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

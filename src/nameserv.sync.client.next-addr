@@ -1,0 +1,131 @@
+## [:< ##
+
+# name  = nameserv.sync.client.next-addr
+# descr = try the next pull address or fail the pull
+
+my $state  = shift // return FALSE;
+my $reason = shift // 'connect timeout';
+my $final  = shift // TRUE;    ## FALSE while client.start still runs ##
+
+my $addrs = $state->{'addrs'} // return FALSE;
+
+require IO::Socket::IP;
+require Socket;    ## SOCK_STREAM \ AF_INET : not imported into a zenka ##
+
+## drop the current attempt, if any ##
+if ( ref $state->{'watcher'} ) {
+    $state->{'watcher'}->cancel
+        if $state->{'watcher'}->can('is_active')
+        and $state->{'watcher'}->is_active;
+    $state->{'watcher'} = undef;
+}
+if ( ref $state->{'conn_timer'} ) {
+    $state->{'conn_timer'}->cancel
+        if $state->{'conn_timer'}->can('is_active')
+        and $state->{'conn_timer'}->is_active;
+    $state->{'conn_timer'} = undef;
+}
+close $state->{'sock'} if defined $state->{'sock'};
+$state->{'sock'} = undef;
+
+my $timeout = <nameserv.cfg.sync.connect_timeout> // 7;
+
+my $ident
+    = length( $state->{'peer'} // '' )
+    ? $state->{'peer'}
+    : sprintf '%s:%d', $state->{'host'}, $state->{'port'};
+
+my $addr_log = <nameserv.sync.client.addr_log> //= {};
+$addr_log->{$ident} //= {};
+
+## one log line per peer and address family when falling back ##
+my $log_fallback = sub {
+    my $failed = shift // return;
+    my $next   = shift // return;
+    my $family = $failed->{'family'};
+    return if $addr_log->{$ident}{$family};
+    $addr_log->{$ident}{$family} = TRUE;
+    <[base.logs]>->(
+        1, ': sync peer %s : %s %s unreachable, using %s %s',
+        $ident, $family, $failed->{'host'}, $next->{'family'}, $next->{'host'}
+    );
+};
+
+## the address that just failed, if any : none before the first attempt ##
+$log_fallback->(
+    $addrs->[ $state->{'addr_idx'} ],
+    $addrs->[ $state->{'addr_idx'} + 1 ]
+) if $state->{'addr_idx'} >= 0;
+
+while ( $state->{'addr_idx'} < $#$addrs ) {
+    $state->{'addr_idx'}++;
+    my $addr = $addrs->[ $state->{'addr_idx'} ];
+    my $family
+        = $addr->{'family'} eq qw| ipv6 |
+        ? Socket::AF_INET6()
+        : Socket::AF_INET();
+
+    my $sock = IO::Socket::IP->new(
+        PeerHost  => $addr->{'host'},
+        PeerPort  => $state->{'port'},
+        Family    => $family,
+        Type      => Socket::SOCK_STREAM(),
+        Blocking  => 0,
+        ReuseAddr => 1
+    );
+
+    if ( not defined $sock ) {
+        $log_fallback->( $addr, $addrs->[ $state->{'addr_idx'} + 1 ] );
+        next;
+    }
+
+    $state->{'sock'} = $sock;
+    $state->{'buf'}  = '';
+
+    if ( $sock->connected ) {    ## connect already done ##
+        <[nameserv.sync.client.connected]>->($state);
+    } else {
+        $state->{'watcher'} = <[event.add_io]>->(
+            {   fd      => $sock,
+                poll    => 'w',
+                handler => qw| nameserv.sync.client.handler.connect |,
+                data    => $state->{'id'},
+                desc    => "sync pull connect [ "
+                    . "$state->{'host'}:$state->{'port'} ]"
+            }
+        );
+        $state->{'conn_timer'} = <[event.add_timer]>->(
+            {   after   => $timeout,
+                handler => qw| nameserv.sync.client.handler.connect-timeout |,
+                data    => $state->{'id'},
+                desc    => "sync pull connect timeout [ "
+                    . "$state->{'host'}:$state->{'port'} ]"
+            }
+        );
+    }
+
+    return TRUE;
+}
+
+## every address failed ##
+if ($final) {
+    <[base.logs]>->(
+        1, ': sync pull connect failed [ %s:%d ] : %s',
+        $state->{'host'}, $state->{'port'}, $reason
+    );
+    <[nameserv.sync.client.finish]>->(
+        $state,
+        {   mode => qw| false |,
+            data => sprintf 'connect failed : %s',
+            $reason
+        }
+    );
+}
+
+return FALSE;
+
+#,,,,,.,.,...,,..,,,,,,..,..,,,,,,,..,...,..,,..,,...,..,,..,,..,,..,,,..,,,,,
+#ZJE6RTJFBTNITVGMHEHL7X7WLIHVIR4WGBQ3FJFUN2CHQYDDIUTWXMW5FDVJK5BT3QWSLG3GFYWLO
+#\\\|MG65EONNXFYQ4EOYX73VCJFGIAWFOQ4SM3IYCS4ZTBOFWHGNNMV \ / AMOS7 \ YOURUM ::
+#\[7]N32PUU5HN5AACHWKRT6LIDHNRXZ2XI7B3PPOXCADSLQZF5AILECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
