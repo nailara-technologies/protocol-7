@@ -19,12 +19,14 @@ metadata:
 
 **Zone sync [ 4CJ ] LIVE 2026-10-12** between three name servers : DN0000 pri.v7.ax [ serves, nameserv.cfg.sync.listen = yes, official port 7753 ], DN1110 delta and DN0110 yourum [ pull ; nameserv.cfg.sync.peers + writer grant keyed by pri's host-root id CXNFESGA..ZYI in /etc/protocol-7/nameserv/host.cfg ]. all three answer the public acme zones identically ; INWX delegates acme.v7.ax and acme.protocol-7.network to all three [ NS ttl 3900 -> 93600 once stable ]. the private domain's acme zone : pri only [ no grant on delta \ yourum ]. ipv6 between yourum and pri does not route ; the peer loop falls back to ipv4 by itself since YJP [ bdd644957, logs it once ]. commands : sign-zone <zone>|:missing:, add-record [ set-record replaces ALL values of a name+type ], remove-zone \ restore-zone. glue registered : dn0110, dn1110 [ dn0000 pending ] ; dn0110.v7.ax \ dn1110.v7.ax optional for v7.ax independence. pri's letsencr alias_ns lists all three.
 
+**No local commits on any server since 2026-10-12** [ 9987 ] : every host choice lives in /etc/protocol-7/<zenka>/host.cfg -- v7-zenki [ load.start_setup = remote-server, v7-zenki.host.zenki.enable \ disable \ on-demand ], events [ events.load_config = letsencr, events.host.at.dist-upgrade = atom 02:47 \ pri 03:47 \ yourum 04:47 \ delta 05:47 ], nameserv [ sync, grants, dn_names ], letsencr. a server pulls without any local edit ; a new host gets these files, nothing in the checkout. stale index stat once blocked a reset on yourum [ git update-index --refresh ] -- worth adding to p7-git-pull--rebase.
+
 **yourum** [ new server 2, contabo, 6 vcpu 12 GB, debian sid, kernel 7.2.9 ] installed 2026-10-12 : git clone, install_minimal_dependencies, netselect-apt + sid [ debian.sources moved aside ], debian_dist_upgrade.sh, p7-deps install basic-remote-server [ Git::Native fails to build -- coding only ], unit enabled, load.start_setup = remote-server in its v7-zenki host.cfg. sshd keys only + ClientAliveInterval 77 [ /etc/ssh/sshd_config.d/10-p7-keys-only.conf ] -- pri \ delta \ atom still allow root passwords [ asked, not yet done ]. no taeki account there [ use root@yourum ]. ~/.ssh/config : short names atom [ port 2242 ], pri, delta, yourum ; root login with the user's key on all [ interim, todo LGC ].
 
 **Open** : yourum.v7.ax -- access not set up yet, the user resets its password first [ 2026-10-12 ; leave it to them ]. atom [ being retired ] : generic -lowram profile + `v7-zenki.host.zenki.disable = nameserv web system` in its host.cfg [ DYK, cfcd5c6e9 ; its profile edit left the local commit ], no nameserv there ; cube route leak 7N3 [ high ] hit atom after 2.5 days. wildcard cert [ request-certificate extra names ], delta port 25 + narrow ufw, new unit on pri.v7.ax + other hosts, old host `zenki.disabled = nameserv`, 7WR socket paths, rename the wsl host at session end, p7-git-pull--rebase vs identical untracked files, path \ port \ mount condition types.
 
-#,,.,,,..,...,,,.,.,,,...,,,,,.,,,.,.,.,.,...,..,,...,...,,..,,,.,,,.,...,,.,,
-#SROLKWXGXIHNAIQ7LBPBQMSKKTLQXEN4PKHPBWKYACBRFMUMV6ZJNMBBV5UAXLGLOD5GHZG5U5JR2
-#\\\|UO6OY4WP5U6LQBBXA7ROOUZ3O2KY5JPXTZIBAMMU5LX7AITWBRK \ / AMOS7 \ YOURUM ::
-#\[7]HFN2O4C4WMM4A4SIOQ6GSGY2YJT7CMN24PMITBGQITWCTPPYZWCA 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,,,,,..,...,.,,,,,.,,.,,..,,..,,...,...,...,,.,,.,.,,,,,,.,,
+#K557QJBJLVILQE7ME3SXSYLEZG4A5CR7ZFXFOJEATKW2LQFI5CXEDYFNBFWTH5LBFZVLCOJBTJMFG
+#\\\|NW23G4256MCPIUZYNPDTDK22FNUDYBPO6DXSGJSRVVF76GDZXSK \ / AMOS7 \ YOURUM ::
+#\[7]ODC5Y7BUKTK6YNHI2JKI5GYIPQEPPLIM52IZI5IDNZBFHBJKS4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
