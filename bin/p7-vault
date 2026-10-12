@@ -1951,8 +1951,15 @@ sub cmd_sync {
         say msg( 'refuse',
             "no vault in '%s' [ on %s ] -- copy the key file first",
             $remote, $host );
-        say msg( 'info', 'scp %s %s:%s', shq( _key_path_local() ),
-            $host, shq($remote) );
+        ## the dir first : 'scp key host:dir' with no dir there writes a FILE
+        ## named like the dir
+        say msg( 'info', "ssh %s 'mkdir -p -m 700 %s'", $host, $remote );
+        say msg(
+            'info',
+            'scp %s %s:%s/',
+            shq( _key_path_local() ),
+            $host, shq($remote)
+        );
         return FALSE;
     }
 
@@ -2603,8 +2610,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,,,,.,.,,,.,..,,,.,,,,.,,,,,,,.,,.,,,,.,,..,..,,...,...,.,,,,..,,.,,...,,,,,
-#3CYP4GN2OJBCB75PU2WNGGTLXDXJ4UCGPLYJ7L52E5AYDFJQ23WZJG43PJSLGDX56QXSWYIAVB3ZW
-#\\\|NNJJ3OJ5NNEOFSZCTMVLDFN3JJVOT44FUKD7PRE5UAQM2VCQEZJ \ / AMOS7 \ YOURUM ::
-#\[7]P5KJLHBBTYIOO7WQRO5BHFJHSQOOOJGGSRT2IP7GU2FD23HOAUDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,,.,,,,,,.,,,,,,,,,,,,.,,,.,..,,...,..,,.,.,.,,,.,.,,..,...,
+#NVHUYUJMLLGZM2663YZ5IM6TOO6YYQCOKDXZLX72RIOMAGNKNIBSK7O6J7ZVWKFLLYTISVFI6VQHY
+#\\\|HGH4ENFKPOOGMBWK22PO7FAWCMROB3KFXCKQUASR7YBDRWFISY6 \ / AMOS7 \ YOURUM ::
+#\[7]O7NIOMHDTIQMAV5ABVYHNLPV3IRZD75ZRYXBQRNTUM2DRRDOZMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
