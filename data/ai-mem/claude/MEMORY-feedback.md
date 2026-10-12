@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [readkey-raw-mode-leaves-icrnl](feedback-readkey-raw-mode-leaves-icrnl.md) — ReadMode(4) keeps icrnl on : pasted crlf becomes two line feeds [ the WSL interlaced-paste cause, fixed efaf3f29b ] -- clear icrnl in any raw-mode reader or reuse AMOS7::TERM::Editor
 - [call-swapped-names-not-file-names](feedback-call-swapped-names-not-file-names.md) — 2026-10-11 : base.chk-sum.{jha,amos,bmw,bmw384,elf,profile} swap to chk-sum.* at load -- call <[chk-sum.*]>, never <[base.chk-sum.*]> [ most common undefined-sub cause ] ; reference \ from_substr stay base.
 - [harmonic-values-not-decimal-round](feedback-harmonic-values-not-decimal-round.md) — 2026-10-11 : intervals \ ttls \ timeouts are 13-based [ 3900 = 13 x 5 min, not 3600 ] ; in an inconsistent set the 13-based value is the intended one -- ask before "fixing" it
 - [no-manual-modifications-on-hosts](feedback-no-manual-modifications-on-hosts.md) — deploy via pull-git, host specifics in host.cfg, automate one-time host steps in code ; private names [ private domain, desktop host name ] never in tree \ commits \ memory
@@ -203,8 +204,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [never-touch-sig-under-event-watcher](feedback-never-touch-sig-under-event-watcher.md) — never set\restore `$SIG{X}` inside a zenka : resets the disposition under the Event watcher, alias watchers [ CLD ] block add_signal repair ; v7-zenki lost SIGCHLD after every p7c\p-7-r compile [ fixed 07e19f5a2, 2026-10-07 ] ; check SigCgt bit 16
 
-#,,..,,.,,,..,...,,,,,.,,,.,.,,..,,.,,,..,.,.,..,,...,...,..,,,,,,..,,,,.,,,,,
-#NLC2RMRREXCYSGP7KCAEPH7PHYSAH4O27CDC2I3H4YYIKGJQCUY3BC3NUIXFUJDBUC2NKLPG6ZEAM
-#\\\|N3HPRCT2IG7YCI423IMY6B4TOWNSR5UGFEPM7RPND4E3WKTLGK6 \ / AMOS7 \ YOURUM ::
-#\[7]3K6PDHPVHDGTFZDVQZ3UKYMJCGMJKBHSO6RTQBATOUJP5LVSG2CQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,,,.,.,,,..,,.,,,..,,,,.,,,.,..,,...,...,,..,.,.,...,,..,...,
+#ZRAXBOPPKJQWYSPHSZXGEELUO4XTVDZTL5UED2UROGKYL27OGDNZHC6ZL2EAF7JUEBVQZTQZCTL42
+#\\\|DBO3RCOYGIPFHWRBJ3K47RLA27K2L2RFRNKMYDK5NVS3RNZLS52 \ / AMOS7 \ YOURUM ::
+#\[7]AHEO6J7YVHNPUK272LMTOTQGOKCOXWXZXBFNKSI6PKRL5GNI32DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
