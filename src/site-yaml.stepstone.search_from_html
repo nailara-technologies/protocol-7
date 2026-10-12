@@ -5,8 +5,16 @@
 
 my ( $url, $html ) = @ARG;
 
-## extract all job page hrefs from the result listing
-my @hrefs = ( $html =~ m{href="(/stellenangebote--[^"]+inline\.html)"}g );
+## extract all job page hrefs from the result listing -- relative or, as ##
+## stepstone writes them since 2026-10, absolute [ the path is kept ]    ##
+my @hrefs = (
+    $html =~ m{ href="
+                ## absolute : optional ##
+                (?:https://www\.stepstone\.de)?
+                ## the path is kept    ##
+                (/stellenangebote--[^"]+inline\.html)
+                " }xg
+);
 
 my @jobs;
 my %seen;
@@ -37,8 +45,8 @@ for my $href (@hrefs) {
 
 return \@jobs;
 
-#,,..,,,.,,,.,..,,.,,,.,.,,..,,,,,.,,,,,,,,,,,..,,...,...,..,,.,,,.,,,,,.,..,,
-#4G4RLSSHDBTIOKUXFYHC7EDIC3YHBBYJL6GUHKZZXSEIJTP7ORSY44NXXWWXBNM3EBUOOQCLQNG3E
-#\\\|YWW56COCXSH526EJR7UG4DQ42PMVHTR26HWUGKPYSKBKABTU2J5 \ / AMOS7 \ YOURUM ::
-#\[7]XZGRVP37BHYRMTV7622TEEWDSQDQFO6QNHEL5JB6THNPEXJ2RKBY 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,.,.,.,...,...,.,,,.,.,..,,..,,..,,...,...,..,,...,.,,,,,.,.,.,
+#WMCL6T7THI2DHT3SXKTPR6WQQMB3E3N3F2NWLQB46JOVULMRRX34KCNRBF7BP3OOVKGT6OUIJBQYW
+#\\\|HTIHKZKMGXHUDJKSB5NL6F6Y5I3XTIFFZTX4C7HGTXPNYO2QZLU \ / AMOS7 \ YOURUM ::
+#\[7]JWNC6KGRLXBYCGJPQKM2IBSCRX7BWWQP6BQSWESVUWBYYMZCEGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
