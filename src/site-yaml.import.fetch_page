@@ -42,6 +42,13 @@ if ( $st->{'page'} > 1 ) {
         }
 
         if ( not @{$links} ) {
+            ## a fetched page without a single job link : a real empty search,
+            ## or a parser that no longer matches the site -- never silent
+            ## [ looked like 'nothing new' for days, 2026-10 ]
+            <[base.logs]>->(
+                1,             'import: page %d : no job links in %d bytes',
+                $st->{'page'}, length $raw_result
+            );
             return <[site-yaml.import.finish]>->($import_id);
         }
 
@@ -109,8 +116,8 @@ if ( $st->{'page'} > 1 ) {
 
 return;
 
-#,,,.,,,,,,,,,.,.,..,,.,,,.,.,.,,,,..,.,.,,..,..,,...,...,..,,...,,..,,,.,,..,
-#RCNCOWMRQ4IRUOUPVR4FCISTHI5KRPL572VQBZB562WRVSI7GVGO3QTS77IQFXDILVMLMYZO3POFK
-#\\\|YORVMLWZHPNEHIOLSUJLKJ4NS77QMU653Q2PV44WBJ7KI5DS4JO \ / AMOS7 \ YOURUM ::
-#\[7]OSYTXH7D7NBM7CEOCXQKKUFMF2QJNFWEX5NQB7MNSNQQYCJELKCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,.,,,.,.,..,,,.,,,,,,..,,,..,..,,...,...,,..,,.,,,,.,,.,,...,
+#4XWV2CKVYQG4AURZE3QXMA2FLDK6GSQOIIPTW4KSM7PZHYW6IUVWKQALTRMJ5K66JV2XPBFNMPUFE
+#\\\|4BGCZKYYTXSAFCQKQBJ7ZDLB5KBL4BK7WN3Q5URWK66ZOD2RHYR \ / AMOS7 \ YOURUM ::
+#\[7]N7ERKNAJB4J4JNGO6V42PKHZAOPILSUSI3NJ6CTARPPN6EAMOSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
