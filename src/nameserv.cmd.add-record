@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = nameserv.cmd.add-record
+# descr = add one more value to a name [ keeps the others ]
+# param = <zone> <type> <name> <value>
+#
+# set-record replaces every record of a name + type ; add-record adds a
+# value next to the existing ones [ e.g. a second NS of a zone ]. an
+# identical record is a no-op. the new record is signed by this host's
+# sync key, a tombstone of the same identity is cleared, peers are woken.
+
+my @parts = grep {length} split m|\s+|, $call->{'args'} // '';
+my $usage = {
+    mode => 'false',
+    data => 'usage: add-record <zone> ' . '<type> <name> <value>'
+};
+return $usage if @parts < 4;
+
+my $zone_name = lc( shift @parts );
+my $rec_type  = uc( shift @parts );
+my $rec_name  = lc( shift @parts );
+my $rec_value = join ' ', @parts;
+s|\.+$|| for $zone_name, $rec_name;    ## optional trailing dots ##
+
+return $usage if $rec_type !~ m|\A[A-Z0-9]{1,10}\z| or not length $rec_value;
+return { mode => 'false', data => 'single-value type : use set-record' }
+    if $rec_type eq qw| SOA | or $rec_type eq qw| CNAME |;
+
+my $zones = <nameserv.zones>;
+return { mode => 'false', data => "zone not found: $zone_name" }
+    if not exists $zones->{$zone_name};
+return { mode => 'false', data => "$rec_name is not in $zone_name" }
+    if $rec_name ne $zone_name and $rec_name !~ m|\.\Q$zone_name\E\z|;
+
+my $zone    = $zones->{$zone_name};
+my $new_rec = {
+    name  => $rec_name,
+    type  => $rec_type,
+    value => $rec_value,
+    ts    => <[base.ntime.b32]>,
+};
+my $identity = <[nameserv.entry.identity]>->( $zone_name, $new_rec );
+
+return {
+    mode => 'true',
+    data => "already present: $rec_name $rec_type $rec_value"
+    }
+    if grep { <[nameserv.entry.identity]>->( $zone_name, $ARG ) eq $identity }
+    @{ $zone->{'records'} // [] };
+
+<[nameserv.sync.sign]>->( $zone_name, $new_rec );
+push @{ $zone->{'records'} }, $new_rec;
+<[nameserv.zone.tombstone.clear]>->( $zone_name, $new_rec );
+
+$zone->{'serial'} = time();
+<[nameserv.zone.save]>->($zone_name);
+<[nameserv.event.emit]>->( 'data-changed', { 'zone' => $zone_name } );
+
+return {
+    mode => 'true',
+    data => sprintf(
+        'record added: ' . '%s %s %s',
+        $rec_name, $rec_type, $rec_value
+    )
+};
+
+#,,.,,,,,,,,,,.,.,.,,,..,,.,,,,,,,.,,,,.,,,..,..,,...,...,,..,..,,,..,.,,,...,
+#FKUZXHWWF577MRML4ZA47XCRD3RVF5YD66B53WJ2QIGDP6V74N4XUCVZKTFWZWFTWJF4TI3TRHAC6
+#\\\|Y75B5FUULOJ67YE76ITPQAKK5V72TODLZPWUGGRM2Q6F5Y2S2FF \ / AMOS7 \ YOURUM ::
+#\[7]E5I7ESMX23QPEWL3UIM5BKSMDBUUUVXXBT3SUE4FDSKXTXWFLMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
