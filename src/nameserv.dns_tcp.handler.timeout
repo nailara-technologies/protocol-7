@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = nameserv.dns_tcp.handler.timeout
+# descr = close an idle dns tcp connection
+
+my $id = shift->w->data;
+
+my $conns = <nameserv.dns_tcp.conns> // return;
+my $conn  = $conns->{$id}            // return;
+
+<[base.logs]>->(
+    2,
+    ': dns tcp connection idle timeout [ %s ]',
+    $conn->{'peer'} // 'unknown'
+);
+
+<[nameserv.dns_tcp.close]>->($conn);
+
+return;
+
+#,,,.,,..,,.,,...,...,,,,,..,,.,,,,.,,,,,,...,..,,...,.,.,...,,,.,.,.,,,.,,.,,
+#ZHETR2AWKTIQGUWCZX2VQM2MBBCUYP2DZNNTIPMMLEQEPC7MEGAHWR7K6VPMC4SSSC2KFY4ZBAEDK
+#\\\|X55SMWWWVUGVBYPUP2PMRV5QEF4TK2DCDJJEDZBQ6C36IION6ZV \ / AMOS7 \ YOURUM ::
+#\[7]CC7FI44HEZIVJSUSFEJY6YJZKF4OU6XC56FTGLGAGILM54FVAMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

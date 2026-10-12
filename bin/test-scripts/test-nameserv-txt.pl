@@ -69,7 +69,7 @@ sub compile_module {
 }
 
 compile_module($ARG) for qw| nameserv.cmd.add-txt nameserv.cmd.remove-txt
-    nameserv.zone.lookup nameserv.handler.query |;
+    nameserv.zone.lookup nameserv.handler.query nameserv.answer |;
 
 ## --- stubs ------------------------------------------------------------- ##
 
@@ -78,6 +78,12 @@ $code{'base.logs'} = sub {
     push @logs, sprintf( $_[1] // '', @_[ 2 .. $#ARG ] );
     return TRUE;
 };
+
+## stage 1 \ 3 calls : timestamps, signing, tombstones, sync wake-up ##
+$code{'base.ntime.b32'} = sub { return 'TS' };
+$code{$ARG} = sub { return TRUE }
+    for qw| nameserv.sync.sign nameserv.zone.tombstone.add
+    nameserv.zone.tombstone.clear nameserv.event.emit |;
 
 my @saved_zones;
 $code{'nameserv.zone.save'} = sub {
@@ -352,8 +358,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,.,.,..,,,..,.,.,,..,.,,,.,,,,,.,...,.,,,..,,...,..,,,,.,.,,,,.,,..,,,,.,
-#DQI5OYP3IHKHRSLIBB7TAK3HVGLXSE5GGUVR5KRIKJYQSR6WUHXXGAXR3YJYK4SXENDLWZU6MK3UI
-#\\\|IEOPV5J3BYEBYFFF5CWHTWW3VLY6AXZKN6FJQLDWX7OYGIINJKT \ / AMOS7 \ YOURUM ::
-#\[7]2Z3FHO7LXN3Q7TT67FCJXWJVVH4LBHPGHBAQPV7QV4LSNLZD6SCA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,.,,,,.,,,,,,.,,,..,,,..,,,.,..,,...,.,.,.,.,,,,,.,,,,.,,,..,
+#DXHTV5ZQHHZ5XFPQUV44PAPUITZAKQBLCEEXQNMGSUMURZGUP5GHSPJVJ46P4VQV4YZBMMH4STPYU
+#\\\|NBQGC56PG7WAK3ZZAXSWESNQC22OSCE3NTOWR4OKKIOOKGDWNXT \ / AMOS7 \ YOURUM ::
+#\[7]U5KSNF36Y6MXFK5TIZ2IAAK2OO3P5XLFMYMVWN7EWF6JCEJWYOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,9 @@
 ## [:< ##
 
 # name  = nameserv.start_listener
-# descr = start the dns udp listener (called by init_code)
+# descr = start the dns udp + tcp listeners (called by init_code)
+
+my $reinit = shift // FALSE;
 
 ## one udp socket per configured address [ 'nameserv.bind.addr' : a list,   ##
 ## e.g. '0.0.0.0 ::' for ipv4 + ipv6 -- the glue of a delegated name server ##
@@ -66,10 +68,68 @@ for my $addr (@addrs) {
 ## first socket : the one older code refers to ##
 <nameserv.socket> = <nameserv.sockets>->[0];
 
+## tcp listeners [ rfc 7766 ] : one per address, same port -- re-init safe, ##
+## init_code passes its reinit flag : existing tcp sockets are not re-bound ##
+<nameserv.tcp_sockets> //= [];
+unless ( $reinit and scalar <nameserv.tcp_sockets>->@* ) {
+    for my $addr (@addrs) {
+        my $is_v6 = index( $addr, qw| : | ) >= 0;
+        my $open  = sub {
+            IO::Socket::IP->new(
+                LocalHost => $ARG[0],
+                LocalPort => <nameserv.bind.port>,
+                Proto     => 'tcp',
+                Listen    => 77,
+                ReuseAddr => 1,
+                Blocking  => 0,
+                (   index( $ARG[0], qw| : | ) >= 0
+                    ? ( V6Only => $has_v4 ? 1 : 0 )
+                    : ()
+                ),
+            );
+        };
+        my $sock = $open->($addr);
+
+        ## like the udp socket above : no ipv6 on this host -> the ipv4 ##
+        ## wildcard, not an error                                       ##
+        if (    not defined $sock
+            and $is_v6
+            and $addr =~ m|^[0:]+$|
+            and !$has_v4 ) {
+            <[base.logs]>->(
+                1, 'IPv6 wildcard not available - retrying with 0.0.0.0'
+            );
+            $addr = '0.0.0.0';
+            $sock = $open->($addr);
+        }
+        if ( not defined $sock ) {
+            <[base.logs]>->(
+                0,     "cannot bind dns tcp socket %s : %s",
+                $addr, <[base.str.os_err]>
+            );
+            next;
+        }
+
+        push <nameserv.tcp_sockets>->@*, $sock;
+        <[event.add_io]>->(
+            {   fd      => $sock,
+                poll    => 'r',
+                handler => qw| nameserv.dns_tcp.handler.accept |,
+                data    => $sock,
+                desc    => "dns tcp accept handler [ $addr ]"
+            }
+        );
+        <[base.logs]>->(
+            1,     ": dns tcp listener started on %s:%d",
+            $addr, <nameserv.bind.port>
+        );
+    }
+}
+
 return <nameserv.socket>;
 
-#,,,,,,..,.,,,,.,,..,,..,,,,,,.,,,.,.,,.,,..,,..,,...,...,.,.,.,.,..,,,,.,.,.,
-#Q7NT7OHZWO5SQXF4UJXQS5IGZ3VDYBPSSGUNSMLNZIXX3RZONV7A7SBRM7TBDWWR7ICS7AGML2XOO
-#\\\|WOX2OAHZCO7CIDUP2JZN7OHVILCZ7SEZ2LNJUSAPYBVOODMMA5Z \ / AMOS7 \ YOURUM ::
-#\[7]TBI4KXNHPINVJGEXRBGZ5TT65HTORF5TDCUM6J7EWHLVHCEQ7IDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,,..,.,,,..,,,.,,.,,,..,,,..,..,,...,...,...,...,.,.,,.,,.,.,
+#WQDO3X7MS5SVCL4WIWTWW3JXC2666FC7RX7B5D46OGU33ENT6YBSSAZCZYNPFDWL5YHLN3OBI34DO
+#\\\|U2U4WTDN2EET2CDKSOUPWESQCKLFY26L5RT2YWBGA5EV5AMDCP2 \ / AMOS7 \ YOURUM ::
+#\[7]H235Z6BHTYDSCAW425VPQOZLHIRLMKTTWFJ4NH2U3ZKUK4LEGCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

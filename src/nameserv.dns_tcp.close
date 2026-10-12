@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = nameserv.dns_tcp.close
+# descr = close a dns tcp connection and drop its state
+
+my $conn = shift // return;
+
+my $conns = <nameserv.dns_tcp.conns> //= {};
+$conn = $conns->{$conn} if not ref $conn and defined $conns->{$conn};
+return if ref $conn ne qw| HASH |;
+
+for my $key (qw| watcher wwatcher timer |) {
+    if ( ref $conn->{$key} ) {
+        $conn->{$key}->cancel
+            if $conn->{$key}->can('is_active')
+            and $conn->{$key}->is_active;
+        $conn->{$key} = undef;
+    }
+}
+
+close $conn->{'sock'} if defined $conn->{'sock'};
+
+delete $conns->{ $conn->{'id'} } if length( $conn->{'id'} // '' );
+
+return TRUE;
+
+#,,..,,,,,...,,,.,,,,,.,,,..,,.,,,,,,,,,.,,,.,..,,...,...,...,.,,,,..,...,,..,
+#W5PGN7NSTQ2R5Y7UOPZVDWH65SMMJRROBRGLAFEXSLIQDOZ3EOIV3XLISHAMFX24OPZ2PFDEXRG44
+#\\\|G4FF36WGKUHAFX4QCTFMKZKCLNQQADL46G3HNSIJGARVFQDF2SJ \ / AMOS7 \ YOURUM ::
+#\[7]X22XM3N5IJ5WZ3S3WVNHRZ4QVW5QU4SNVKKPKTQDHOBXSIZO2ABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

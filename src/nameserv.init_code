@@ -3,6 +3,8 @@
 # name  = nameserv.init_code
 # descr = initialize nameserv dns server state
 
+my $reinit = shift;
+
 <[base.perlmod.load]>->('Net::DNS');
 <[base.perlmod.load]>->('Net::DNS::Packet');
 <[base.perlmod.load]>->('Net::DNS::RR');
@@ -15,9 +17,9 @@
 
 ## runtime state
 <nameserv.zones> //= {}; ## { zone_name => { records => [...], serial => N } }
-<nameserv.socket>                  //= undef;
-<nameserv.stats>                   //= { queries => 0, errors => 0 };
-<nameserv.discovered>              //= {};
+<nameserv.socket>     //= undef;
+<nameserv.stats>      //= { queries => 0, errors => 0, tcp_queries => 0 };
+<nameserv.discovered> //= {};
 <nameserv.cfg.auto_publish_domain> //= undef;
 <nameserv.cfg.challenge_ttl>       //= 60;
 
@@ -28,6 +30,10 @@
 ## takes unauthenticated connections, a desktop never opens it unasked   ##
 <nameserv.cfg.sync.port>   //= 7753;
 <nameserv.cfg.sync.listen> //= 'no';
+
+## tcp dns [ rfc 7766 ] connection limits ##
+<nameserv.cfg.tcp.max_connections> //= 77;
+<nameserv.cfg.tcp.idle_timeout>    //= 13;
 
 ## consistency check configuration [ per host in host.cfg ] ##
 <nameserv.cfg.dn_names>       //= '';    ## own name server names ##
@@ -57,8 +63,8 @@ if ( not -d <nameserv.zone_dir> ) {
 ## load initial zones
 <[nameserv.zones.load]>;
 
-## start udp listener (binds to port 53, must happen before root.drop_privs)
-<[nameserv.start_listener]>;
+## udp + tcp listeners [ port 53 : before root.drop_privs ] ##
+<[nameserv.start_listener]>->($reinit);
 
 ## stage 2 : timestamp delta sync [ silent without sync config ] ##
 <[nameserv.sync.start]>;
@@ -85,8 +91,8 @@ for my $timer ( @{ <nameserv.consistency.timers> // [] } ) {
 
 0;
 
-#,,,,,,,.,,..,.,.,..,,,.,,.,.,,.,,...,,,,,.,.,..,,...,...,,,.,,,,,...,.,.,,.,,
-#EDKKINMAWXR6XX3JF5MRYY7QXXZE5QDSJKYY2AVABRUUQHJT2UP3FXUBG6MTOH7JKGKKQAKN374CI
-#\\\|GZ3GMF2YSGPYW464LQE53UI7RGP2B2O2PZ55ZQ5RQPDCHYYQQCX \ / AMOS7 \ YOURUM ::
-#\[7]EEUAVD4JKQNQQHUNUPG3VP7AF3AID5PDZAIMFPP3R6EGY7LOKEDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,,.,,,,,,.,,,.,,,,.,,,..,,,.,..,,...,...,.,.,,.,,,..,,,,,...,
+#7WJBUNH4N4TKXO7YYAGFWEBSJTQJ6IP7ZBCP7DYZ54ZHQDU73YPQHQQOHGS6NZ2LWLYNQPAGHWA24
+#\\\|GCE5RGULEMGL2WH6NICUVEVCYMAAKJL7JQYSHOO2JT4PYXNKKV3 \ / AMOS7 \ YOURUM ::
+#\[7]RDLNZQI7CFCU7USPJEEWC3ZIZ7B3BXP6QOMH65XQG3NDJ73DHEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
