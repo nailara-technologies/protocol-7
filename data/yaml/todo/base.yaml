@@ -1245,6 +1245,7 @@ items:
     code signing [ user 2026-10-12 ] : the signing run gets the sourcecode key through the vault agent instead of a passphrase prompt, approved in the menu. stricter than other grants : approval per run [ no 'always', at most a very short window ], the request shows what is signed [ file count + list ] ; the agent performs the signing and returns only signatures -- the key never leaves it, not even to the requesting zenka.
     menu <-> agent [ user 2026-10-12 ] : an authenticated bidirectional STRM session [ see B2K ]. approving is authority : the session is bound to the real user [ kernel peer check on the unix socket + keypair login, never a claimed name -- the 2026-09-20 $USER bypass ]. a pending request names the zenka as the cube authenticated it, never as self-described [ else one zenka requests under another's grants ].
     approval as a dependency [ user 2026-10-12 ] : a request waits on 'user approved', the menu click resolves it and everything waiting proceeds [ template engine : slot resolution = dependency resolution ]. the approval carries the request id + a checksum of what was shown [ e.g. the file list to sign ] : a changed request does not match and stays open. only the authenticated menu session resolves it ; zenki can wait on it, never resolve it.
+    STAGE 1 LANDED 8113793bc [ 2026-10-12 ] : import \ export \ files, keyed-mac blob names, chunked cascade, mid-import check, blobs in sync. open : gc of unreferenced blobs, then the agent \ grants \ menu \ code-signing stages.
   done_at: null
   id: Y7O
   priority: normal
@@ -1263,8 +1264,8 @@ items:
   - protocol
   text: 'bidirectional STRM channel : generic primitive [ HS4 tunnel, menu <-> vault agent ]'
 
-#,,..,...,,.,,.,,,,..,,.,,,..,,.,,.,.,,,.,.,.,..,,...,...,.,,,.,.,,.,,.,,,..,,
-#ZVPKJOWGHLE3LT3EJ4P47FZ3WR6OLKYXM57B5L3UDG6HSJ6LS4SNHGWF35G2FDO5XD4YIUB26ADZ6
-#\\\|WDJLHMJJXBTU4ABI4K7ENVHERBQHWY4TC7VF55JXTH3DVIAYUTR \ / AMOS7 \ YOURUM ::
-#\[7]CFGQYNSGRFE4I4BVAJJOJAMBJN7IENKBUQ7HXXD7EYA3W4WCX6BI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,.,,,,.,.,.,,,.,,..,,.,,..,,,.,,..,,...,...,.,,,..,,,..,,..,,.,,
+#2WLXSHVPG4ZZQ3QVBIAHOGUHBJGS7SKN466YNS3I2XXJKUXM5LTRXDEAOGMABN64DW7UOMFBKIA3A
+#\\\|QXSOLU6WE53I2ISKJC3KMCIYNQ6IE523W54C3AJ7MJ4WIC3NBMY \ / AMOS7 \ YOURUM ::
+#\[7]LED7ATOC46X4LJBXC5GCKO2YPZFUFTPN4ZZPPJCF5WPS4ZLGXEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
