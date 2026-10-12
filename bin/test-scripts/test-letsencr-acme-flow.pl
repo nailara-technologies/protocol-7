@@ -21,6 +21,7 @@ use JSON::XS;
 use Crypt::Misc  qw| encode_b32r decode_b32r |;
 use MIME::Base64 qw| encode_base64url |;
 use Digest::SHA  qw| sha256 |;
+use Socket       ();    ## letsencr.init_code loads it in the zenka ##
 
 BEGIN {
     my $up = File::Spec->updir;
@@ -64,7 +65,9 @@ sub ok ($;$) {
 }
 
 my $runtime_pragmas
-    = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;};
+    = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;}
+    ## as bin/Protocol-7 ##
+    . q{ use List::Util qw| min max uniq reduce |;};
 
 sub compile_module {
     my ($module_name) = @ARG;
@@ -85,7 +88,7 @@ compile_module("letsencr.child.acme.$ARG")
     step_account on_account step_new_order on_new_order step_authz on_authz key_authorization
     step_setup on_setup step_propagate on_propagate step_respond on_respond
     step_poll_authz on_poll_authz step_finalize on_order step_poll_order
-    on_download cleanup finish fail next_queued |;
+    on_download cleanup finish fail next_queued challenge_name |;
 compile_module($ARG) for qw| letsencr.child.cmd.request-certificate
     letsencr.child.cmd.renew-certificate letsencr.child.acme_use_server |;
 
@@ -487,6 +490,58 @@ ok(
     'txt value removed on failure'
 );
 
+## --- 5b : no addresses : the alias_ns servers, unreachable skipped ----- ##
+say ':: dns-01 propagation on the alias_ns servers';
+reset_all();
+$data{'letsencr'}{'dns'}{'provider'}            = 'nameserv';
+$data{'letsencr'}{'dns'}{'nameserv'}{'targets'} = 'nameserv';
+$data{'letsencr'}{'dns'}{'alias_ns'}            = 'localhost localhost';
+$orders_by_domain{'*.j.test'}                   = {
+    'order_url'      => 'O-j',
+    'finalize_url'   => 'F-j',
+    'authorizations' => ['Z-j'],
+};
+request_cert( '*.j.test', 'R10' );
+acme_reply( authz_body( 'j.test', 'wildcard' => 1 ) );
+@routes = grep { $_->{'command'} eq 'nameserv.add-txt' } @routes;
+route_reply('TRUE');
+my @ns = @dns ? @{ $dns[0]{'servers'} } : ();
+ok( ( grep { $_ eq '127.0.0.1' } @ns ) == 1 && !@acme,
+    'alias_ns resolved : each address asked once, no respond yet'
+);
+$value = ( values %{ $data{'letsencr'}{'child'}{'orders'} } )[0]
+    ->{'authz'}{'Z-j'}{'dns_value'};
+$q = shift @dns;
+$code{ $q->{'on_done'} }->(
+    {   'params'  => $q->{'params'},
+        'results' => {
+            '192.0.2.1' =>
+                { 'ok' => 0, 'rcode' => 'TIMEOUT', 'values' => [] },
+            '192.0.2.2' =>
+                { 'ok' => 0, 'rcode' => 'TIMEOUT', 'values' => [] },
+        }
+    }
+);
+ok( @timers == 1 && !@acme, 'no server answering : poll again' );
+fire_timer();
+$q = shift @dns;
+ok( "@{ $q->{'servers'} }" eq "@ns", '  :.. same addresses, resolved once' );
+$code{ $q->{'on_done'} }->(
+    {   'params'  => $q->{'params'},
+        'results' => {
+            '192.0.2.1' => { 'ok' => 1, 'values' => [$value] },
+            '192.0.2.2' =>
+                { 'ok' => 0, 'rcode' => 'TIMEOUT', 'values' => [] },
+            '192.0.2.3' =>
+                { 'ok' => 0, 'rcode' => 'SENDFAIL', 'values' => [] },
+        }
+    }
+);
+ok( @acme == 1 && $acme[0]{'url'} eq 'C-D-j.test',
+    'value on the answering server, unreachable ones skipped : answered' );
+ok( ( grep {m|skipped, not answering : 192\.0\.2\.2 192\.0\.2\.3|} @logs ),
+    '  :.. skipped servers logged' );
+
 ## --- 6 : a lost reply : the deadline fails the order, the queue moves -- ##
 say ':: lost set-up reply';
 reset_all();
@@ -602,8 +657,8 @@ say sprintf 'passed : %d ' . ' failed : %d', $test_count - $fail_count,
     $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,.,,,.,,.,,,.,,,,,,,..,,...,.,.,,.,,...,..,,...,...,.,,,.,.,..,,.,.,,,,,
-#PTHH7ETM5S4VUJYS5BDNSOOCH6TQRIETLIGZN46A7JGVRYDCICAV7U2ECIBI4QOZMMQYKULAM4DZS
-#\\\|UT432TG4BPCQG3ETK3B7462M6OOLZW4JLJ2PWV7IHBMG5B4IBGS \ / AMOS7 \ YOURUM ::
-#\[7]LLCGOHIYYNF7XLIEPYB6JYCCITANFHQMRWEKB4SCQNAJ6E4R3ECQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,,,,,.,,,.,.,,,,,...,..,,.,,,..,,...,..,,,.,,.,.,..,,.,.,.,,,
+#5P7WF6WOETJFZPZYFJ56FEWCC4EA2SAZKG4FFMGEL65TIRQC2QAWDGTVB6I2I7U7BRNXMLVNBXK6A
+#\\\|ODINATCN67P62GGE3X2QE5RIKQBB7EX6ZSCW2JUIQ3BD5ASEFF2 \ / AMOS7 \ YOURUM ::
+#\[7]6K4DFYWJRTZUA7YFIIOPIXLKSHCJKE6Q4PA5L24QOYMCA3MEB4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

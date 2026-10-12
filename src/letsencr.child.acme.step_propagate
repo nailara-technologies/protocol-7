@@ -10,9 +10,33 @@ $order->{'step'}    = qw| propagate |;
 $order->{'waiting'} = 0;
 
 ## authoritative servers to ask directly [ no recursion ] -- unset : the ##
-## set-up replies are the confirmation [ a single local nameserv ]       ##
+## addresses of letsencr.dns.alias_ns                                    ##
+## [ every server of the alias zone, resolved once per order ] ; neither ##
+## set : the set-up replies are the confirmation                         ##
+## [ a single local nameserv ]                                           ##
 my @servers = grep {length}
     split m|\s+|, <letsencr.dns.nameserv.addresses> // '';
+if ( not @servers and length( <letsencr.dns.alias_ns> // '' ) ) {
+    $order->{'ns_addresses'} //= [
+        uniq map {
+            my ( $error, @found )
+                = Socket::getaddrinfo( $ARG, undef,
+                { 'socktype' => Socket::SOCK_DGRAM() } );
+            <[base.logs]>->(
+                0,    ': acme : %s : not resolved [ %s ]',
+                $ARG, $error
+            ) if $error or not @found;
+            map {
+                (   Socket::getnameinfo(
+                        $ARG->{'addr'}, Socket::NI_NUMERICHOST()
+                    )
+                )[1]
+            } @found;
+        } grep {length} split m|\s+|,
+        <letsencr.dns.alias_ns>
+    ];
+    @servers = $order->{'ns_addresses'}->@*;
+}
 
 my @pending = grep {
             $ARG->{'type'} eq qw| dns-01 |
@@ -43,8 +67,8 @@ foreach my $authz (@pending) {
 
 return TRUE;
 
-#,,,,,,.,,,..,.,.,,.,,,,.,,..,..,,,.,,,.,,,.,,..,,...,...,...,,.,,...,,,,,..,,
-#KNDLBHD63DRSE6FXLS7WOVHFKFDJEZDX3OKIIGVCAONWCFZD3EURPQN3C5FF3VD7DM5HA6DQJTBQM
-#\\\|H33FLPOEAMDQCVTSVCRER6HQ5RFAZPU3442CBC7UPZFAHRWKMYQ \ / AMOS7 \ YOURUM ::
-#\[7]2TN6CPXTN5V4WNTURFJQC4NM2OANGWUOMWM2BO3W262SQI5FPIAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,..,.,.,.,.,...,,,.,,.,,,,.,,,,,..,,...,...,...,,,,,,..,,.,,,..,
+#EQ7BZP2NB3DU723MPKW2EWYDT4ZCWNNC4VLUKBABF3B5KBYJDC5LXBF5HXGQQGIFFUSJRA7WAXZ5M
+#\\\|U6IDD7E6SGFDUV5PJB6ZEKFGMRLX3B2ZSOGZF6JQTHCMGBSI5RB \ / AMOS7 \ YOURUM ::
+#\[7]W6DMM25EXA344HKTHRVOPRS6PB4AUWFUL3MBOGOU7XGHCP7HQ2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

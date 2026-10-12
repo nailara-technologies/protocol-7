@@ -1074,7 +1074,9 @@ items:
   - setup
   text: "smtpd : automatic account setup from the users zenka's contact data"
 - added: 3X36ZSN2F4
-  details: "design : data/md/design/TIMESTAMP-DELTA-SYNC.md [ 2026-10-11 ]. signed entries, not a secured channel : any peer relays, any transport carries, writer grants per key [ a host's letsencr writes only its own _acme-challenge names ]. queries last-data-timestamp \\ next-data-timestamp \\ since \\ full, signed state checksum. stages : 1 timestamps + tombstones + checksum [ kimi ], 2 tcp line protocol [ kimi ], 3 signing \\ grants \\ accept rules [ claude, security ], 4 letsencr writes to every nameserv, 5 generic %data \\ N7FS [ 4EO ]. replaces axfr for DN0000 \\ DN0110 \\ DN1110."
+  details: |-
+    design : data/md/design/TIMESTAMP-DELTA-SYNC.md [ 2026-10-11 ]. signed entries, not a secured channel : any peer relays, any transport carries, writer grants per key [ a host's letsencr writes only its own _acme-challenge names ]. queries last-data-timestamp \ next-data-timestamp \ since \ full, signed state checksum. stages : 1 timestamps + tombstones + checksum [ kimi ], 2 tcp line protocol [ kimi ], 3 signing \ grants \ accept rules [ claude, security ], 4 letsencr writes to every nameserv, 5 generic %data \ N7FS [ 4EO ]. replaces axfr for DN0000 \ DN0110 \ DN1110.
+    stage 4 [ 2026-10-12 ] : not needed as designed -- add-txt on the primary signs the entry and the peers pull it. the real gap was the propagation check : unset nameserv.addresses meant no check at all with three authoritative servers. now letsencr asks the resolved letsencr.dns.alias_ns addresses, skipping servers that do not answer [ the ca's resolver moves on too ]. expansion, when transport is simpler : dns-01 from any host [ its own nameserv signs, pri pulls from it, name: grants on every peer ; atom has no nameserv ].
   done_at: null
   id: 4CJ
   priority: normal
@@ -1191,9 +1193,28 @@ items:
   - host
   - claude
   text: 'cloud session bootstrap : backend + own signing key in one step'
+- added: 3X4ZRLGWDQ
+  details: 'resolved by a second reboot [ 2026-10-12 11:19 ] : router reachable again, dn0110 answers over ipv6 from pri. cause unknown ; only change before the first reboot was /etc/hostname [ cloud-init disabled, so no network effect ] + dist-upgrade'
+  done_at: 3X4ZTFPAPQ
+  id: KUL
+  priority: normal
+  status: done
+  tags:
+  - nameserv
+  - network
+  text: 'yourum : no ipv6 since the 2026-10-12 02:32 reboot -- gateway fe80::1 does not answer neighbour discovery, config unchanged since 2025-12 [ provider side ? ]. dn0110 unreachable over ipv6'
+- added: 3X4ZRLHDIM
+  details: ''
+  done_at: null
+  id: NRQ
+  priority: normal
+  status: open
+  tags:
+  - nameserv
+  text: 'nameserv : dns over tcp refused on every server [ udp only ] -- needed for truncated replies [ large txt \ many records ]'
 
-#,,,.,,.,,..,,...,.,,,..,,,.,,.,,,,,.,...,,,,,..,,...,...,..,,..,,..,,...,...,
-#UPUPLJG5PQK3BRDZVVIG6VMDA3D62CLDOV54BD275V6E7JN4KYCH6WKV6IJ6MX5W7OU73QZIN4JEY
-#\\\|LH3GXFGYY36GRBPAG42XCVOHZI2ZU4V7QBHTWXUXDHVS4XTRBGZ \ / AMOS7 \ YOURUM ::
-#\[7]AEP2WWM4GQM3LW5BC55VFFAK7XIN7UKVSZVHS4YO5IFTCMKR3GAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,..,,,,,,,,,,,,,,,.,,.,.,.,,,..,,...,...,.,,,,.,,,,.,,.,,,,,,
+#I7GWS5BRZTH3PTSHGYYSCT4FYHEOZGB23JNVHPAURFI5H5QD2Z5SOGV3D3TPSQ4DLMFKLWKITNZ2C
+#\\\|NXYGMGGP5KMLWP422TR2AV2FEV7UDPRU5QZHJ36EMLOT4YKYEKP \ / AMOS7 \ YOURUM ::
+#\[7]EW6D5QW6OCNAZZIMG5ZVPDRUZGTR25FRX6Y3BZHILZI2I2Z256CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

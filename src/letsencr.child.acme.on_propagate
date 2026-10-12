@@ -11,22 +11,32 @@ my $order
 my $authz = $order->{'authz'}->{ $res->{'params'}->{'authz'} // '' }
     // return FALSE;
 
-my $results = $res->{'results'} // {};
-my @missing = grep {
+## a server that does not answer is skipped                                 ##
+## [ the ca's resolver moves on to the next name server too ] ; one that    ##
+## answers without the value is missing. at least one server has to confirm ##
+my $results     = $res->{'results'} // {};
+my @unreachable = grep {
+    ( $results->{$ARG}->{'rcode'} // '' ) =~ m{^(TIMEOUT|SENDFAIL)\z}
+    }
+    sort keys $results->%*;
+my %unreachable = map { $ARG => TRUE } @unreachable;
+my @missing     = grep {
     my $r = $results->{$ARG};
     not( $r->{'ok'}
         and grep { $ARG eq $authz->{'dns_value'} }
         ( $r->{'values'} // [] )->@* )
-} sort keys $results->%*;
+} grep { not $unreachable{$ARG} } sort keys $results->%*;
+my $confirmed = keys( $results->%* ) - @unreachable - @missing;
 
-if ( keys $results->%* and not @missing ) {
+if ( $confirmed and not @missing ) {
     $authz->{'propagated'} = TRUE;
     <[base.logs]>->(
-        2,
-        ': acme : %s : txt value on %d server%s',
-        $authz->{'domain'},
-        scalar keys $results->%*,
-        <[base.cnt_s]>->( scalar keys $results->%* )
+        1, ': acme : %s : skipped, not answering : %s',
+        $authz->{'domain'}, join ' ', @unreachable
+    ) if @unreachable;
+    <[base.logs]>->(
+        2, ': acme : %s : txt value on %d server%s',
+        $authz->{'domain'}, $confirmed, <[base.cnt_s]>->($confirmed)
     );
 } else {
     <[base.logs]>->(
@@ -62,8 +72,8 @@ return <[letsencr.child.acme.step_propagate]>->( $order->{'order_id'} )
 
 return TRUE;
 
-#,,,,,,.,,..,,,..,,.,,.,,,.,.,,,.,.,.,,..,,..,..,,...,...,..,,,,.,,,.,,..,.,,,
-#37WDS4N7RHAMCT2WMOYD6SWYSYKQEUVXTV4H2EQL3CPQIO5BQY77AK5ZIGK6KHVCNQUEZ6Q4RUWNW
-#\\\|36GSYLGXUGPYXC6NCRAVXMM63MO52ZIELPDUMFTDEAZF4WJ2KM5 \ / AMOS7 \ YOURUM ::
-#\[7]G6PXFAPUJ4735HEFVK5CBFWQ75EW2JNJ2Z5ABY6TGSXUH5JWSACQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,,.,,,,,,..,,.,,,,,,,..,,.,.,..,,...,...,.,.,,.,,.,,,..,,...,
+#33B6ITLI6P2DVZFGEFY7EXFYCNJ6C5XYHNC2LPYQT4PFGZSRDRJCQJD6XEWR3HSSMNX2OH3HALDYI
+#\\\|VS4JE5YG76655JTAHOPY5MCGADBDFA6ZIRXJP5HVZ2SEOGW4DO4 \ / AMOS7 \ YOURUM ::
+#\[7]HQULD5NY7IF2PC3XUYWU5GQ3LMQ5B3M7DLOE7HRB23NVMYHTT2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
