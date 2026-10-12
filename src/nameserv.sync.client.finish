@@ -6,7 +6,7 @@
 my $state  = shift // return;
 my $result = shift // { mode => qw| false |, data => 'no result' };
 
-for my $key (qw| watcher timer |) {
+for my $key (qw| watcher timer conn_timer |) {
     if ( ref $state->{$key} ) {
         $state->{$key}->cancel
             if $state->{$key}->can('is_active')
@@ -35,8 +35,8 @@ if ( $result->{'mode'} eq qw| true | and not defined $result->{'ts'} ) {
 
 return $result;
 
-#,,,.,,.,,.,,,..,,...,..,,,.,,,,,,,..,.,,,,,.,..,,...,...,.,.,.,,,,,,,,..,,.,,
-#B5DCMJUEQMJWLG5VUJ5VIRQFYDB5SANNMIJGI6MAFIDQIRPLSFIUVZRKB67EP75BLH2PFSZLDUBTY
-#\\\|X3ICZUOVGU6NKMZNGPT36UET56P3YYCEXLLIJ6ETTKJ73EUOG2U \ / AMOS7 \ YOURUM ::
-#\[7]OMMCY2JHNQ3IZB4T4TIETRIUT2T2ZAFPG676HDC7UYEXANKJTODI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,.,,,,,,,..,,.,.,,,,,,.,,,..,..,,...,...,...,..,,...,,..,,,,,
+#G3P2ZDU7PS6LK4W7ZSMLLDZ6LRTLZCBEWELVWJDGSHQRZPT5SCPH3OHPBRXOX6PC2FJJ6Z7H3NLSI
+#\\\|BD3RX3F5K3VHP7B4W3U67RU75S2EINZG2RJ47AMPTCQMNMPYKLI \ / AMOS7 \ YOURUM ::
+#\[7]5USY3DFVSHRHPFQDVT2JP3RB7C4M7AX5FH7M65QWI6VBLTHFIKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

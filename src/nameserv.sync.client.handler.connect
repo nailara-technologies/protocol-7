@@ -18,24 +18,15 @@ if ( $sock->connect ) {
 } elsif ( not $OS_ERROR{EINPROGRESS}
     and not $OS_ERROR{EWOULDBLOCK}
     and not $OS_ERROR{EALREADY} ) {
-    <[base.logs]>->(
-        1, ': sync pull connect failed [ %s:%d ] : %s',
-        $state->{'host'}, $state->{'port'}, <[base.str.os_err]>
-    );
-    <[nameserv.sync.client.finish]>->(
-        $state,
-        {   mode => qw| false |,
-            data => sprintf 'connect failed : %s',
-            <[base.str.os_err]>
-        }
-    );
+    ## hard connect error : try the next address ##
+    <[nameserv.sync.client.next-addr]>->( $state, <[base.str.os_err]> );
 }
 ## still in progress : the watcher fires again on the next event ##
 
-return;
+return TRUE;
 
-#,,.,,.,,,,..,..,,,..,..,,,,.,.,,,...,..,,,,.,..,,...,..,,.,.,..,,,..,,..,,..,
-#L77ATP46Y5UDAVTRE57RSPPVIZAC5U2NU3ADZTY3UNH4AFVZ6ES5HSQQS2UMNAUE65EC4PYZ4F6UU
-#\\\|7ND55YPPV2WIKNYIPT23S7YGE6UOSFYGSGKB5MQYU3GOQ7PON5C \ / AMOS7 \ YOURUM ::
-#\[7]5CZ5PZGQKVUK7BIC64TVZP44FTPJXBWUC6AAVLPIWWG5O2W6IGBI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,..,,,,,,.,.,...,,.,,,,.,,..,,.,,..,,...,...,,..,,,.,,,,,.,.,.,.,
+#SWSYMHTHUK7Z2PZXJN72ZXISV76DPERILF4BQRXGDHW2AEBRZXRR3MY5UIIAX54CP52O7ODC2HFKI
+#\\\|JJ4VCF2XHF2RLMYKHW2HOJXJ3XEV52IQTY6SXH3IXNVZKVXY62A \ / AMOS7 \ YOURUM ::
+#\[7]DJ7MGV6B2GGBC2VDB2NKI3UVAFDAU2N7NNDACWJIGXQ4NIAEWODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

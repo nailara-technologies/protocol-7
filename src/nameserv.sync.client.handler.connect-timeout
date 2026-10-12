@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = nameserv.sync.client.handler.connect-timeout
+# descr = connect timeout watch for a pending sync pull connect
+
+my $id = shift->w->data;
+
+my $pending = <nameserv.sync.client.pending> // return;
+my $state   = $pending->{$id}                // return;
+
+return FALSE if $state->{'phase'} ne qw| connect |;    ## already done ##
+
+## the connect did not complete in time : try the next address ##
+<[nameserv.sync.client.next-addr]>->( $state, 'connect timeout' );
+
+return TRUE;
+
+#,,,,,,.,,.,,,..,,.,,,..,,...,...,,.,,.,.,,..,..,,...,...,...,,,,,.,,,...,.,.,
+#QGQV64AN5KZGTPH4MECHKGVMDOLEXIM3KBB3LZRBKRV222S7UHPPI3Q6WWCHDZJPOXHEZX5DPEPH6
+#\\\|AGU72TV2AR7VXHY6BCKMYLFRKWIDHTTPKY3NLYQZIIXQ4WRAENO \ / AMOS7 \ YOURUM ::
+#\[7]RHTQOCXDVTDNTJ2KLT2WBHKPFRAWVLAJO4FIVAOKK4HQA74N7UCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,17 +18,18 @@ if ( $sock->connect ) {
 } elsif ( not $OS_ERROR{EINPROGRESS}
     and not $OS_ERROR{EWOULDBLOCK}
     and not $OS_ERROR{EALREADY} ) {
-    <[nameserv.sync.peer.fail]>->(
+    ## hard connect error : try the next address ##
+    <[nameserv.sync.peer.next-addr]>->(
         $key, sprintf 'connect : %s',
         <[base.str.os_err]>
     );
 }
 ## still in progress : the watcher fires again on the next event ##
 
-return;
+return TRUE;
 
-#,,,,,.,,,...,,,.,.,,,,.,,.,,,.,,,,,,,.,,,.,.,..,,...,...,.,.,.,.,,.,,...,...,
-#JUJHSSMW5LQKAKST4HSB4HJRW7NCWY6PERUUSXVPD7LXFR5KLARMK5MS2KXPLIGDU2ETURF2VEGEQ
-#\\\|XSQKVJUBDM4GHY5RLMPSQ7NNKYFY3ZSETER7L5IOUKNXIMBBCW7 \ / AMOS7 \ YOURUM ::
-#\[7]IQDFNU3YFC6OCWULAGBCRXUTD65EJRRSX4RJRFN4MGLXXEE7REBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,,,.,,,,,.,.,..,,.,,,.,,,...,..,,...,...,..,,,.,,.,,,...,,..,
+#3FD3NPZHO3GKNGFF6AGICCI4JK77I47Y6LJUOUROOH32L7IUD2WMKSU5OGQH63ZY3U672YXB4MFD2
+#\\\|OURZJSBSOLWEGPPROJUXLZ43MZL54DMTMOM422PHNVFEITDFXXT \ / AMOS7 \ YOURUM ::
+#\[7]C7RT6TFJ42EESZASMBGAVCEBRNVAYYO2DVQUB5Q2GUKRAAFCAUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

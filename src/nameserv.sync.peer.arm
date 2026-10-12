@@ -4,52 +4,43 @@
 # descr = open the long-poll connection of one sync peer
 
 my $key = shift // return;
+$key = $key->w->data if ref $key;    ## timer handlers get the event ##
 
 my $peers = <nameserv.sync.peers> // return;
 my $peer  = $peers->{$key}        // return;
 
 return if $peer->{'state'} ne qw| idle |;
 
-require IO::Socket::IP;
-require Socket;    ## SOCK_STREAM : not imported into a zenka ##
+## resolve to an ordered address list [ ipv6 first ] : one getaddrinfo per ##
+## connect attempt is acceptable [ see nameserv.sync.addresses ]           ##
+my $addrs = <[nameserv.sync.addresses]>->( $peer->{'host'}, $peer->{'port'} );
 
-my $sock = IO::Socket::IP->new(
-    PeerHost  => $peer->{'host'},
-    PeerPort  => $peer->{'port'},
-    Type      => Socket::SOCK_STREAM(),
-    Blocking  => 0,
-    ReuseAddr => 1
-);
-
-if ( not defined $sock ) {
+if ( not scalar @$addrs ) {
     <[nameserv.sync.peer.fail]>->(
-        $key, sprintf 'connect : %s',
+        $key, sprintf 'resolve : %s',
         <[base.str.os_err]>
     );
     return;
 }
 
-$peer->{'sock'}  = $sock;
-$peer->{'state'} = qw| connecting |;
-$peer->{'buf'}   = '';
-
-if ( $sock->connected ) {
-    <[nameserv.sync.peer.connected]>->($key);
-} else {
-    $peer->{'watcher'} = <[event.add_io]>->(
-        {   fd      => $sock,
-            poll    => 'w',
-            handler => qw| nameserv.sync.peer.handler.connect |,
-            data    => $key,
-            desc    => "sync peer connect [ $key ]"
-        }
+## the address that worked last time is tried first ##
+my $worked = $peer->{'addr_worked'};
+if ( length( $worked // '' ) ) {
+    @$addrs = (
+        ( grep { $ARG->{'host'} eq $worked } @$addrs ),
+        ( grep { $ARG->{'host'} ne $worked } @$addrs )
     );
 }
 
+$peer->{'addrs'}    = $addrs;
+$peer->{'addr_idx'} = -1;       ## next-addr advances before each attempt ##
+
+<[nameserv.sync.peer.next-addr]>->($key);
+
 return TRUE;
 
-#,,,,,,,.,,.,,,,,,,.,,.,,,,,.,,,.,..,,...,,,.,..,,...,...,..,,.,.,...,.,.,,.,,
-#A345SG3DQQ3HY252VU4AYT7CTU4L5F3X5CBKFUARDPEIVI4J7T4KQIYL6VZ7IR66FR5CJZ556OFQS
-#\\\|ZQMAQFG42MYZXWMFZ3TIG6KSYKZNVN7QVMICVH6TIWV3CREHNSU \ / AMOS7 \ YOURUM ::
-#\[7]HD7QGQK6NHL7NGXC6KYV3Z2KPYRTVBNYRER6EINPINGPCR5RWOCA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,,..,.,,,...,...,,.,,.,.,..,,..,,...,.,.,.,.,...,.,,,.,.,,..,
+#OMNHIUEHIFQWCITKXL42PVENULMVMDSYND54ZRMKZ3LYJGYOOICTHVW744QPKWIVIWCJLA3M5BL52
+#\\\|NG3MO6ICDSZLLOTURCLSTW5MRBKIABT5FABZQZLBKR2QFTXYIGF \ / AMOS7 \ YOURUM ::
+#\[7]H65TGSUAM7OPOMOVON3WAC7FFTVQPENGLKQVKGCENGYTRKZIMSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
