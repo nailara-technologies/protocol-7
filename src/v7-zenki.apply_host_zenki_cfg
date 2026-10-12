@@ -1,0 +1,212 @@
+## [:< ##
+
+# name  = v7-zenki.apply_host_zenki_cfg
+# descr = apply host.cfg zenki overrides onto the start profile
+
+##  per-host zenki choices live in /etc/protocol-7/v7-zenki/host.cfg     ##
+##  [ loaded by base.load_host_config ] as 'v7-zenki.host.zenki.*' keys, ##
+##  all optional, space separated zenka names :                          ##
+##                                                                       ##
+##    v7-zenki.host.zenki.enable    = <names>  ## added to zenki.enabled  ##
+##    v7-zenki.host.zenki.disable   = <names>  ## out of zenki.enabled    ##
+##                                             ## and into zenki.disabled  ##
+##    v7-zenki.host.zenki.on-demand = <names>  ## into zenki.on-demand    ##
+##                                                                       ##
+##  applied once per init, right after the start profile [ including an  ##
+##  automatic '-lowram' choice ] is parsed and before autostart ; the    ##
+##  application is set based, so a re-init that re-parses the profile    ##
+##  cannot apply an override twice                                       ##
+
+my $enable_str    = <v7-zenki.host.zenki.enable>;
+my $disable_str   = <v7-zenki.host.zenki.disable>;
+my $on_demand_str = <v7-zenki.host.zenki.on-demand>;
+
+$enable_str    = '' if not defined $enable_str    or ref $enable_str;
+$disable_str   = '' if not defined $disable_str   or ref $disable_str;
+$on_demand_str = '' if not defined $on_demand_str or ref $on_demand_str;
+
+return TRUE
+    if not length $enable_str
+    and not length $disable_str
+    and not length $on_demand_str;
+
+return TRUE if not defined <v7-zenki.start_setup.globals.zenki>;
+
+my $zenki_cfg = <v7-zenki.start_setup.globals.zenki>;
+
+my @enable_names    = split m|\s+|, $enable_str;
+my @disable_names   = split m|\s+|, $disable_str;
+my @on_demand_names = split m|\s+|, $on_demand_str;
+
+my $enabled_defined = defined $zenki_cfg->{'enabled'} ? TRUE : FALSE;
+my @enabled         = split m|\s+|, $zenki_cfg->{'enabled'}   // '';
+my @disabled        = split m|\s+|, $zenki_cfg->{'disabled'}  // '';
+my @on_demand       = split m|\s+|, $zenki_cfg->{'on-demand'} // '';
+
+my %enabled   = map { $ARG => 1 } @enabled;
+my %disabled  = map { $ARG => 1 } @disabled;
+my %on_demand = map { $ARG => 1 } @on_demand;
+
+## a name in both enable and disable means disable wins                    ##
+## [ one level 0 line per name ] ; names that are no valid zenka names are ##
+## skipped -- they must not reach zenka.is_enabled, where the syntax check ##
+## would abort v7-zenki ; each key list keeps its own order                ##
+my $name_re = <regex.base.usr_str> // qr|(?:[a-z0-9][a-z0-9\-_]{0,31})|i;
+
+my %conflict = map { $ARG => 1 }
+    grep {
+    my $name = $ARG;
+    grep { $ARG eq $name } @disable_names
+    } @enable_names;
+my @conflicts = grep { $conflict{$ARG} } @disable_names;
+
+my ( @applied_enable, @applied_disable, @applied_on_demand, @invalid );
+
+my %seen_enable;
+foreach my $name (@enable_names) {
+    next if $seen_enable{$name}++;
+    if ( $name !~ m|^$name_re$| ) {
+        push @invalid, $name;
+        next;
+    }
+    push @applied_enable, $name if not $conflict{$name};
+}
+
+my %seen_disable;
+foreach my $name (@disable_names) {
+    next if $seen_disable{$name}++;
+    if ( $name !~ m|^$name_re$| ) {
+        push @invalid, $name;
+        next;
+    }
+    push @applied_disable, $name;
+}
+
+my %seen_on_demand;
+foreach my $name (@on_demand_names) {
+    next if $seen_on_demand{$name}++;
+    if ( $name !~ m|^$name_re$| ) {
+        push @invalid, $name;
+        next;
+    }
+    push @applied_on_demand, $name;
+}
+
+my ( $enabled_changed, $disabled_changed, $on_demand_changed );
+
+foreach my $name (@applied_enable) {
+    ## only into zenki.enabled when the profile defines that list --   ##
+    ## creating it here would flip every unlisted zenka to disabled ., ##
+    if ( $enabled_defined and not $enabled{$name} ) {
+        $enabled{$name} = 1;
+        push @enabled, $name;
+        $enabled_changed = TRUE;
+    }
+    if ( $disabled{$name} ) {    ## an enable lifts a profile disable ., ##
+        delete $disabled{$name};
+        @disabled         = grep { $ARG ne $name } @disabled;
+        $disabled_changed = TRUE;
+    }
+}
+
+foreach my $name (@applied_disable) {
+    if ( $enabled{$name} ) {
+        delete $enabled{$name};
+        @enabled         = grep { $ARG ne $name } @enabled;
+        $enabled_changed = TRUE;
+    }
+    if ( not $disabled{$name} ) {
+        $disabled{$name} = 1;
+        push @disabled, $name;
+        $disabled_changed = TRUE;
+    }
+}
+
+## no zenki.on-demand list in the profile = every zenka may start on demand ##
+## ; adding names would turn that into 'only these' and silently block all  ##
+## others -- so names are only added to an existing allow list              ##
+if ( @applied_on_demand and not defined $zenki_cfg->{'on-demand'} ) {
+    <[base.logs]>->(
+        1,
+        ': host.cfg on-demand ignored [ %s ] : '
+            . 'the profile allows every zenka on demand',
+        join( ' ', @applied_on_demand )
+    );
+    @applied_on_demand = ();
+}
+foreach my $name (@applied_on_demand) {
+    if ( not $on_demand{$name} ) {
+        $on_demand{$name} = 1;
+        push @on_demand, $name;
+        $on_demand_changed = TRUE;
+    }
+}
+
+$zenki_cfg->{'enabled'}   = join ' ', @enabled   if $enabled_changed;
+$zenki_cfg->{'disabled'}  = join ' ', @disabled  if $disabled_changed;
+$zenki_cfg->{'on-demand'} = join ' ', @on_demand if $on_demand_changed;
+
+## autostart order : dropped disabled zenki, then newly enabled ones that ##
+## have a config section in the profile                                   ##
+## [ appended, dependency handling at autostart covers the order ]        ##
+my $start_order = <v7-zenki.start_setup.zenki.startup.start_order> // [];
+my @start_order = grep { not $disabled{$ARG} } $start_order->@*;
+
+my $zenki_config = <v7-zenki.start_setup.zenki.config> // {};
+foreach my $name (@applied_enable) {
+    next if grep { $ARG eq $name } @start_order;
+    next if not exists $zenki_config->{$name};
+    push @start_order, $name;
+}
+
+<v7-zenki.start_setup.zenki.startup.start_order> = \@start_order;
+
+return TRUE
+    if not @applied_enable
+    and not @applied_disable
+    and not @applied_on_demand;
+
+<[base.logs]>->(
+    0,        ': host.cfg zenki override : skipping invalid name[s] <-- %s',
+    join ' ', @invalid
+) if @invalid;
+
+map {
+    <[base.logs]>->(
+        0,
+        ': host.cfg zenki override conflict : '
+            . "'%s' in enable and disable -- disable wins",
+        $ARG
+    )
+} @conflicts;
+
+my $detail = join ' ; ',
+    (
+    @applied_enable ? sprintf 'enable : %s',
+        join ' ', @applied_enable
+    : ()
+    ),
+    (
+    @applied_disable ? sprintf 'disable : %s',
+        join ' ', @applied_disable
+    : ()
+    ),
+    (
+    @applied_on_demand ? sprintf 'on-demand : %s',
+        join ' ', @applied_on_demand
+    : ()
+    );
+
+<[base.logs]>->(
+    1,
+    ': start profile %s + host.cfg [ %s ]',
+    <v7-zenki.cfg_data.start_profile> // qw| unknown |, $detail
+);
+
+return TRUE;
+
+#,,.,,,..,..,,.,,,.,.,,..,..,,.,,,.,,,.,,,,,.,..,,...,...,.,.,.,.,,,,,,.,,,..,
+#FR2UWYIWY2ACBKKGKIDSEIDSRQXWMCMNEPXHPXLBHHXLZDUZJBU33FP4DTWF2D6VHTVGQGJ75SMIU
+#\\\|3TP5VD442W5REID2NRBSTKC7NQBU2YKN6GCJ6TLCAZQCXZXT5SD \ / AMOS7 \ YOURUM ::
+#\[7]WE73NUUH7JCDMXQN5R5TIWCOWAG47ZOJCGRX2SZOA42TMXBCM6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
