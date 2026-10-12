@@ -30,6 +30,9 @@ use FindBin;
 use Getopt::Std;
 use List::Util ();
 use Encode     qw| decode encode |;
+use Fcntl      qw| O_WRONLY O_CREAT O_EXCL |;
+use POSIX      ();
+use File::Spec ();
 
 BEGIN {
     ## repo layout first, then a backup copy [ AMOS7/ beside the script ] ##
@@ -41,7 +44,8 @@ use AMOS7::Vault qw|
     entry_save entry_load entry_versions entries_latest vault_verify
     archive_write archive_open archive_restore file_secret git_blob_id
     gen_password recovery_code_new recovery_code_normalize
-    type_fields secret_field ntime_b32_to_unix version_to_unix
+    type_fields secret_field ntime_b32 ntime_b32_to_unix version_to_unix
+    blob_import blob_export
     |;
 
 ##[ global constants ]##
@@ -152,6 +156,9 @@ my %COMMANDS = (
     get               => \&cmd_get,
     edit              => \&cmd_edit,
     rm                => \&cmd_rm,
+    import            => \&cmd_import,
+    export            => \&cmd_export,
+    files             => \&cmd_files,
     notes             => \&cmd_notes,
     scratchpad        => \&cmd_scratchpad,
     codes             => \&cmd_codes,
@@ -228,17 +235,27 @@ sub usage {
     list [ filter ]          titles, urls, user names
     notes [ filter ]         every note : code, title, size, last change
                              [ bodies never shown ]
+    import <path>... [ -t t ]  store files : one blob per content, one
+                             'file' entry per file [ directories recurse,
+                             symlinks skipped ]
+    export <filter> [ dest ] write a stored file back [ mode and mtime
+                             restored, owner as root ]
+    files [ filter ]         stored files : code, title, size, origins,
+                             last import
     scratchpad               open the 'scratchpad' note in the editor,
                              creating it when missing
     codes                    give a 3-char code to entries lacking one
-    sync <host>[:<dir>]      union of the entry files with another host
-                             [ never overwrites, never deletes ]
+    sync <host>[:<dir>]      union of the entry and blob files with
+                             another host [ never overwrites, never
+                             deletes ]
     show <filter> [ -r ]     one entry, secrets masked [ -r reveals ]
     copy <filter> [ field ]  to the clipboard [ default password ],
                              cleared after $CLIP_CLEAR_SECONDS s
     get <filter> [ field ]   print one value raw [ for pipes ]
     edit <filter>            change fields [ enter keeps a value ]
-    rm <filter>              delete [ a new deleted version, history stays ]
+    rm <filter>              delete [ a new deleted version, history stays
+                             -- a file entry leaves its blob, a later gc
+                             would collect unreferenced ones ]
     history <filter>         versions of one entry [ deleted ones too ]
     restore <filter> [ n ]   make an older version current again
                              [ default : the newest not deleted one ]
@@ -831,7 +848,7 @@ sub cmd_show {
     say '';
     foreach my $field ( 'type', 'code', type_fields($type) ) {
         my $value = $record->{$field};
-        next if not defined $value or not length $value;
+        next if not defined $value or ref $value or not length $value;
         if ( secret_field($field) and not $reveal ) {
             $value = '*' x 8;
         }
@@ -928,6 +945,332 @@ sub cmd_rm {
     return TRUE;
 }
 
+##[ FILES ]###################################################################
+
+## import paths into the vault : one blob per file content, one 'file' entry
+## per file. directories recurse, symlinks and non-files are skipped with a
+## note. -t sets the title and takes a single file
+sub cmd_import {
+    my ( $title_opt, @paths ) = ( undef, () );
+    while (@ARG) {
+        my $arg = shift @ARG;
+        if ( $arg eq '-t' ) { $title_opt = shift @ARG // '' }
+        else                { push @paths, $arg }
+    }
+    if ( not @paths ) {
+        say msg( 'info',
+            'import <path>... [ -t <title> : single file only ]' );
+        return FALSE;
+    }
+    if ( defined $title_opt and ( not length $title_opt or @paths != 1 ) ) {
+        say msg( 'refuse', '-t takes one title for a single file' );
+        return FALSE;
+    }
+
+    my @files = _import_collect(@paths);
+    if ( not @files ) {
+        say msg( 'refuse', 'nothing to import' );
+        return FALSE;
+    }
+
+    my $v      = unlocked() // return FALSE;
+    my $host   = ( POSIX::uname() )[1];
+    my $failed = 0;
+    foreach my $file (@files) {
+        my $had  = _blob_count($dir);
+        my $done = eval { _import_one( $v, $file, $host, $title_opt ) };
+        if ( not $done ) {
+            say STDERR msg( 'refuse', '%s',
+                $EVAL_ERROR || "cannot import $file" );
+            $failed++;
+            next;
+        }
+        my $state
+            = _blob_count($dir) > $had ? qw| stored | : qw| deduplicated |;
+        say msg(
+            $state eq qw| stored | ? qw| done | : qw| info |,
+            "%s '%s' [ %s bytes ] %s",
+            @{$done}{qw| code title |},
+            $done->{'size'},
+            $state
+        );
+    }
+    return $failed ? FALSE : TRUE;
+}
+
+sub _blob_count {
+    my $blobs = shift . '/blobs';
+    return 0 if not -d $blobs;
+    opendir( my $dh, $blobs ) or return 0;
+    my $count = grep { not m|^\.| and -f "$blobs/$_" } readdir $dh;
+    closedir $dh;
+    return $count;
+}
+
+## directories recurse, one regular file after the other ; symlinks and other
+## non-files are skipped with a note
+sub _import_collect {
+    my @out;
+    foreach my $path (@_) {
+        if ( -l $path ) {
+            say STDERR msg( 'info', 'skipping symlink %s', $path );
+            next;
+        }
+        if ( -d $path ) {
+            opendir( my $dh, $path ) or do {
+                say STDERR msg( 'refuse', 'cannot read %s', $path );
+                next;
+            };
+            my @sub = map {"$path/$_"}
+                sort grep { $_ ne '.' and $_ ne '..' } readdir $dh;
+            closedir $dh;
+            push @out, _import_collect(@sub);
+        } elsif ( -f $path ) {
+            push @out, $path;
+        } else {
+            say STDERR msg( 'info',
+                'skipping %s [ not a regular file ]', $path );
+        }
+    }
+    return @out;
+}
+
+## one file : the blob, then the entry. an existing live 'file' entry of the
+## same blob gains the new origin [ one new version ] when this host+path is
+## new ; else a new entry. returns { code, title, size }
+sub _import_one {
+    my ( $v, $file, $host, $title_opt ) = @ARG;
+
+    my @st = stat $file or die "cannot stat $file : $OS_ERROR\n";
+    my ( $name, $size ) = blob_import( $v, $file );
+
+    my $abs = File::Spec->rel2abs($file);
+    my $title
+        = defined $title_opt
+        ? $title_opt
+        : ( File::Spec->splitpath($abs) )[2];
+    my %origin = (
+        host     => $host,
+        path     => $abs,
+        mode     => $st[2] & 07777,
+        uid      => $st[4],
+        gid      => $st[5],
+        user     => scalar getpwuid( $st[4] ) // $st[4],
+        mtime    => int $st[9],
+        imported => ntime_b32( AMOS7::Vault::ntime_now() ),
+    );
+
+    my ($list)  = entries_latest($v);
+    my ($entry) = grep {
+        lc( $ARG->{'record'}{'type'} // '' ) eq qw| file |
+            and ( $ARG->{'record'}{'blob'} // '' ) eq $name
+    } @{$list};
+
+    my ( %record, $id );
+    if ($entry) {
+        %record = %{ $entry->{'record'} };
+        $id     = $entry->{'id'};
+        my $origins = $record{'origins'} // [];
+        my $recorded
+            = grep { $ARG->{'host'} eq $host and $ARG->{'path'} eq $abs }
+            @{$origins};
+        if ( not $recorded ) {
+            push @{$origins}, \%origin;
+            $record{'origins'} = $origins;
+            delete $record{'updated'};
+            entry_save( $v, $id, \%record );
+        }
+    } else {
+        %record = (
+            type    => qw| file |,
+            title   => $title,
+            blob    => $name,
+            size    => $size,
+            origins => [ \%origin ],
+        );
+        $id = entry_save( $v, undef, \%record );
+    }
+
+    my ($saved) = entry_load( $v, $id );
+    return {
+        code  => $saved->{'code'} // '',
+        title => $record{'title'} // '',
+        size  => $size,
+    };
+}
+
+## write a stored file back. no dest : the recorded path of this host is the
+## prompt default [ else the most recent origin of any host ]. never
+## overwrites without a confirm ; mode and mtime are restored, the owner only
+## as root [ a note when it differs and we cannot ]
+sub cmd_export {
+    my @args   = @ARG;
+    my $dest   = @args > 1 ? pop @args : undef;
+    my $entry  = pick( join ' ', @args ) // return FALSE;
+    my $record = $entry->{'record'};
+    if ( lc( $record->{'type'} // '' ) ne qw| file | ) {
+        say msg(
+            'refuse',
+            "'%s' is not a file entry",
+            $record->{'title'} // ''
+        );
+        return FALSE;
+    }
+    my $v = unlocked() // return FALSE;
+
+    my $origins = $record->{'origins'} // [];
+    if ( not @{$origins} ) {
+        say msg( 'refuse', 'no origin recorded for this file' );
+        return FALSE;
+    }
+
+    ## this host's origin wins [ the last of its records ] ; else the most
+    ## recently imported one of any host
+    my $origin;
+    foreach my $o ( @{$origins} ) {
+        $origin = $o if $o->{'host'} eq ( POSIX::uname() )[1];
+    }
+    ($origin) = sort {
+        ( ntime_b32_to_unix( $b->{'imported'} // '' ) // 0 )
+            <=> ( ntime_b32_to_unix( $a->{'imported'} // '' ) // 0 )
+    } @{$origins} if not defined $origin;
+    my $default = $origin->{'path'} // '';
+
+    if ( not defined $dest ) {
+        my $answer = prompt_line("export to [ $default ]") // return FALSE;
+        $dest = length $answer ? $answer : $default;
+    }
+    if ( not length $dest ) {
+        say msg( 'refuse', 'no destination' );
+        return FALSE;
+    }
+    ## a directory as destination : the file keeps its recorded name ##
+    if ( -d $dest ) {
+        my ($base) = ( $origin->{'path'} // '' ) =~ m|([^/]+)\z|;
+        $base //= $record->{'title'} // 'file';
+        $dest =~ s|/+\z||;
+        $dest = "$dest/$base";
+    }
+    ## a fresh host often lacks the original directory : created on request
+    my ($parent) = $dest =~ m|\A(.+)/[^/]+\z|;
+    if ( defined $parent and not -d $parent ) {
+        return FALSE if not confirm("create directory '$parent'");
+        require File::Path;
+        File::Path::make_path( $parent, { mode => 0700, error => \my $e } );
+        if ( not -d $parent ) {
+            say msg( 'refuse', 'cannot create %s', $parent );
+            return FALSE;
+        }
+    }
+    if ( -e $dest or -l $dest ) {
+        return FALSE if not confirm("overwrite '$dest'");
+    }
+
+    ## temp file next to the dest, then rename over it ##
+    my $tmp = sprintf '%s.p7tmp.%s', $dest, $PID;
+    my $ok  = eval {
+        sysopen( my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600 )
+            or die "cannot create $tmp : $OS_ERROR\n";
+        binmode $fh;
+        blob_export( $v, $record->{'blob'}, $fh );
+        $fh->flush or die "$OS_ERROR\n";
+        close $fh  or die "$OS_ERROR\n";
+        chmod( $origin->{'mode'} & 07777, $tmp )
+            if defined $origin->{'mode'};
+        utime( $origin->{'mtime'}, $origin->{'mtime'}, $tmp )
+            if defined $origin->{'mtime'};
+        rename $tmp, $dest or die "cannot rename $tmp : $OS_ERROR\n";
+        1;
+    };
+    if ( not $ok ) {
+        my $err = $EVAL_ERROR;
+        unlink $tmp;
+        say STDERR msg( 'refuse', '%s', $err );
+        return FALSE;
+    }
+
+    my ( $want_uid, $want_gid ) = @{$origin}{qw| uid gid |};
+    if ( $EUID == 0 and defined $want_uid ) {
+        chown $want_uid, ( $want_gid // -1 ), $dest;
+    } elsif ( defined $want_uid and defined $want_gid ) {
+        my @st = stat $dest;
+        say STDERR msg( 'info', 'owner %s:%s not restored [ not root ]',
+            $want_uid, $want_gid )
+            if @st and ( $st[4] != $want_uid or $st[5] != $want_gid );
+    }
+
+    say msg( 'done', "exported '%s' -> %s", $record->{'title'} // '', $dest );
+    return TRUE;
+}
+
+## every stored file in bin/todo's list style : code, title, size, origin
+## count and the last import date on the right
+sub cmd_files {
+    my $filter = join ' ', @ARG;
+    my $v      = unlocked() // return FALSE;
+    my ( $list, $errors ) = entries_latest($v);
+    say STDERR $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
+
+    my @files = grep {
+        lc( $ARG->{'record'}{'type'} // '' ) eq qw| file |
+            and matches( $ARG->{'record'}, $filter )
+    } @{$list};
+
+    my $width = list_width();
+
+    say '';
+    say notes_rule( $width, ' .:[ files ]:. ', TRUE );
+    say '';
+    if ( not @files ) {
+        say '  ' . $C{0} . '[ no files ]' . $C{R};
+    } else {
+        say foreach files_lines( \@files, $width );
+    }
+    say '';
+    say notes_rule( $width,
+        sprintf( ' [ %d file%s ] ', scalar @files, @files == 1 ? '' : 's' ),
+        FALSE );
+    return TRUE;
+}
+
+## rows for cmd_files, shaped like notes_lines
+sub files_lines {
+    my ( $files, $width ) = @ARG;
+    my @rows;
+    foreach my $entry ( @{$files} ) {
+        my $record  = $entry->{'record'};
+        my @origins = @{ $record->{'origins'} // [] };
+        my $last    = 0;
+        foreach my $o (@origins) {
+            my $u = ntime_b32_to_unix( $o->{'imported'} // '' ) // 0;
+            $last = $u if $u > $last;
+        }
+        my $info = sprintf '%d bytes · %d origin%s · %s',
+            $record->{'size'} // 0,
+            scalar @origins, @origins == 1 ? '' : 's',
+            $last ? ymd_date($last) : '-';
+        my $marker = @origins ? '┋' : ' ';
+        my $code   = $record->{'code'} // '';
+        my $prefix = sprintf '  %s  %-4s·  ', $marker, $code;
+
+        my $title = $record->{'title'} // '';
+        if ($width) {
+            my $avail = $width - length($prefix) - length($info) - 2;
+            $title = center_ellipse( $title, $avail ) if $avail >= 5;
+        }
+        push @rows, [ length( $prefix . $title ), $prefix . $title, $info ];
+    }
+
+    my $max = 0;
+    foreach my $row (@rows) { $max = $row->[0] if $row->[0] > $max }
+    return map {
+        my ( $vis, $text, $info ) = @{$ARG};
+        my $line = $text;
+        $line .= ' ' x ( $max - $vis ) if $width and $max > $vis;
+        $line . '  ' . $C{0} . $info . $C{R};
+    } @rows;
+}
+
 ##[ NOTES ]###################################################################
 
 ## every note in bin/todo's list style : code column, title, a details marker,
@@ -1022,11 +1365,16 @@ sub list_width {
     return $columns =~ m|^\d+$| && $columns >= 40 ? $columns : 80;
 }
 
+## date of a unix time, for the right side of the lists
+sub ymd_date {
+    my @time = localtime( shift // 0 );
+    return sprintf '%04d-%02d-%02d', $time[5] + 1900, $time[4] + 1, $time[3];
+}
+
 ## date of a version name, for the right side of the notes list
 sub version_date {
     my $unix = version_to_unix( shift // '' ) // return '-';
-    my @time = localtime $unix;
-    return sprintf '%04d-%02d-%02d', $time[5] + 1900, $time[4] + 1, $time[3];
+    return ymd_date($unix);
 }
 
 ## standalone port of bin/todo's center_ellipse [ keep in step ] : cut
@@ -1149,24 +1497,30 @@ sub cmd_sync {
 
     my @ssh = split m{\s+}, ( $ENV{'P7_VAULT_SSH'} // qw| ssh | );
 
-    ## local entry files : names matching the entry pattern, sha1 by content
-    my %local_sha;
-    my $local_invalid = 0;
-    opendir( my $dh, "$dir/entries" ) or do {
-        say msg( 'refuse', 'cannot read %s', "$dir/entries" );
-        return FALSE;
-    };
-    while ( my $name = readdir $dh ) {
-        next if $name =~ m|^\.|;
-        if ( $name =~ $AMOS7::Vault::ENTRY_FILE_RE ) {
-            $local_sha{$name} = file_sha1("$dir/entries/$name");
-        } else {
-            $local_invalid++;
-        }
+    ## the union runs per directory kind : entries and blobs share the same
+    ## rules [ strict name pattern, sha1 by content, never overwrite ]
+    my %kind = (
+        entries => {
+            re   => $AMOS7::Vault::ENTRY_FILE_RE,
+            case => ( '?' x 16 ) . '.'
+                . ( '?' x 14 ) . '.'
+                . ( '?' x 8 )
+                . '.vlt.B32',
+        },
+        blobs => {
+            re   => $AMOS7::Vault::BLOB_FILE_RE,
+            case => ( '?' x 32 ) . '.vlb',
+        },
+    );
+    my $invalid = 0;
+    foreach my $name ( sort keys %kind ) {
+        my ( $sha, $invalid_local )
+            = _sync_local_listing( "$dir/$name", $kind{$name}{'re'} );
+        $kind{$name}{'sha'} = $sha;
+        $invalid += $invalid_local;
     }
-    closedir $dh;
 
-    ## ONE ssh call : key file, entry names, sha1 sums
+    ## ONE ssh call : key file, entry and blob names, sha1 sums
     my $probe = join ' ',
         'cd ' . shq($remote),
         '2>/dev/null && {',
@@ -1176,6 +1530,10 @@ sub cmd_sync {
         'ls entries 2>/dev/null;',
         'echo P7VAULT-SHA;',
         '( cd entries 2>/dev/null && sha1sum * 2>/dev/null );',
+        'echo P7VAULT-BLOBS-LS;',
+        'ls blobs 2>/dev/null;',
+        'echo P7VAULT-BLOBS-SHA;',
+        '( cd blobs 2>/dev/null && sha1sum * 2>/dev/null );',
         'echo P7VAULT-END;',
         '}';
     my ( $out, $probe_ok ) = run_capture( @ssh, $host, $probe );
@@ -1189,8 +1547,6 @@ sub cmd_sync {
     }
 
     my ($key_text) = $out =~ m|P7VAULT-KEY\n(.*?)P7VAULT-LS|s;
-    my ($ls_text)  = $out =~ m|P7VAULT-LS\n(.*?)P7VAULT-SHA|s;
-    my ($sha_text) = $out =~ m|P7VAULT-SHA\n(.*?)P7VAULT-END|s;
 
     ## the remote vault id : the key file is in the clear -- parsed by the
     ## vault's own key file parser [ format + kdf checked too ]
@@ -1211,21 +1567,14 @@ sub cmd_sync {
         return FALSE;
     }
 
-    ## remote entry names from the listing : every name passes the same strict
+    ## remote names from the listing : every name passes the same strict
     ## pattern before it can travel -- a hostile name never reaches a path
     ## join
-    my %remote_sha;
-    my $remote_invalid = 0;
-    foreach my $line ( split m|\n|, $ls_text // '' ) {
-        $remote_invalid++, next
-            if $line !~ $AMOS7::Vault::ENTRY_FILE_RE;
-        $remote_sha{$line} = undef;    ## filled from the sha1 lines ##
-    }
-    foreach my $line ( split m|\n|, $sha_text // '' ) {
-        my ( $sha, $name ) = $line =~ m|\A([0-9a-f]{40})  (\S+)|;
-        next if not defined $sha;
-        next if $name !~ $AMOS7::Vault::ENTRY_FILE_RE;
-        $remote_sha{$name} = $sha;
+    foreach my $name ( sort keys %kind ) {
+        my ( $remote, $invalid_remote )
+            = _sync_remote_listing( $out, $name, $kind{$name}{'re'} );
+        $kind{$name}{'remote'} = $remote;
+        $invalid += $invalid_remote;
     }
 
     ## the key files are never transferred -- a content difference means a
@@ -1240,142 +1589,218 @@ sub cmd_sync {
             . $C{R};
     }
 
-    my @push_names = sort grep { not exists $remote_sha{$ARG} }
-        keys %local_sha;
-    my @pull_names = sort grep { not exists $local_sha{$ARG} }
-        keys %remote_sha;
-    my @conflicts = sort grep {
-                exists $local_sha{$ARG}
-            and defined $remote_sha{$ARG}
-            and $local_sha{$ARG} ne $remote_sha{$ARG}
-        }
-        keys %remote_sha;
+    my @all_conflicts;
+    foreach my $name (qw| entries blobs |) {
+        my $k          = $kind{$name};
+        my %local_sha  = %{ $k->{'sha'} };
+        my %remote_sha = %{ $k->{'remote'} };
+        my @push_names = sort grep { not exists $remote_sha{$ARG} }
+            keys %local_sha;
+        my @pull_names = sort grep { not exists $local_sha{$ARG} }
+            keys %remote_sha;
+        my @conflicts = sort grep {
+                    exists $local_sha{$ARG}
+                and defined $remote_sha{$ARG}
+                and $local_sha{$ARG} ne $remote_sha{$ARG}
+            }
+            keys %remote_sha;
 
-    ## push : ONE tar stream, extracted into a temp dir inside the remote
-    ## vault, each file moved into entries/ only when absent
-    my $pushed       = 0;
-    my $push_skipped = 0;
-    if (@push_names) {
-        my $entries_dir = shq("$remote/entries");
-        my $case_pattern
-            = ( '?' x 16 ) . '.'
-            . ( '?' x 14 ) . '.'
-            . ( '?' x 8 )
-            . '.vlt.B32';
-        my $receive = join ' ',
-            'd=$(mktemp -d ' . shq("$remote/.p7-sync.XXXXXXXX") . ')',
-            '&& tar -C "$d" -xf -',
-            "&& { [ -d $entries_dir ] || mkdir $entries_dir; }",
-            '&& moved=0; skipped=0;',
-            'for f in "$d"/*; do',
-            'b=${f##*/};',
-            'case "$b" in',
-            "$case_pattern)",
-            "[ -e $entries_dir/" . '"$b" ]',
-            '&& skipped=$((skipped+1))',
-            '|| { mv "$f" ' . "$entries_dir/" . '"$b"',
-            '&& moved=$((moved+1)); } ;;',
-            'esac;',
-            'done;',
-            'rm -rf "$d";',
-            'echo P7SYNC moved=$moved skipped=$skipped';
-        my $pipeline = sprintf '%s | %s %s %s',
-            join( ' ',
-            'tar', '-C', shq("$dir/entries"), '-cf', '-', '--', @push_names ),
-            join( ' ', @ssh ), shq($host), shq($receive);
-        my ( $pout, $pok ) = run_capture($pipeline);
-        my ( $moved, $skipped )
-            = ( $pout // '' ) =~ m|P7SYNC moved=(\d+) skipped=(\d+)|;
-        if ( not $pok or not defined $moved ) {
-            say msg( 'refuse', 'push to %s failed [ nothing was replaced ]',
-                $host );
-            return FALSE;
+        my ( $pushed, $push_skipped ) = ( 0, 0 );
+        if (@push_names) {
+            my $r = _sync_push( $host, \@ssh, "$dir/$name", $remote, $name,
+                $k->{'case'}, \@push_names );
+            if ( not defined $r ) {
+                say msg( 'refuse',
+                    'push to %s failed [ nothing was replaced ]', $host );
+                return FALSE;
+            }
+            ( $pushed, $push_skipped ) = @{$r};
         }
-        $pushed       = $moved;
-        $push_skipped = $skipped;
+
+        my ( $pulled, $pull_conflicts, $invalid_pull ) = ( 0, 0, 0 );
+        if (@pull_names) {
+            my $r = _sync_pull( $host, \@ssh, $dir, "$dir/$name",
+                "$remote/$name", $k->{'re'}, \@pull_names );
+            return FALSE if not defined $r;    ## the message is out ##
+            ( $pulled, $pull_conflicts, $invalid_pull ) = @{$r};
+            $invalid += $invalid_pull;
+        }
+
+        push @all_conflicts, map {"$name/$_"} @conflicts;
+        $k->{'report'} = [
+            $pushed, $pulled,
+            scalar(@conflicts) + $push_skipped + $pull_conflicts
+        ];
     }
 
-    ## pull : the same the other way, through a local temp dir inside the
-    ## vault, then the vault's own write-new-file rule per file
-    my ( $pulled, $pull_conflicts ) = ( 0, 0 );
-    if (@pull_names) {
-        my $tmp = sprintf '%s/.p7-sync.%s.%s', $dir, $PID,
-            AMOS7::Vault::_b32( AMOS7::Vault::_random_bytes(4) );
-        mkdir $tmp, 0700 or do {
-            say msg( 'refuse', 'cannot create %s', $tmp );
-            return FALSE;
-        };
-        ## the local tar extracts only the validated names        ##
-        ## [ a hostile stream cannot add paths or extra members ] ##
-        my $pipeline = sprintf '%s %s %s | tar -C %s -xf - -- %s',
-            join( ' ', @ssh ), shq($host),
-            shq(
-            join ' ',
-            'cd ' . shq("$remote/entries"),
-            '&& tar -cf - --', @pull_names
-            ),
-            shq($tmp), join( ' ', @pull_names );
-        my ( undef, $pok ) = run_capture($pipeline);
-        if ( not $pok ) {
-            unlink glob "$tmp/*";
-            rmdir $tmp;
-            say msg( 'refuse', 'pull from %s failed', $host );
-            return FALSE;
-        }
-        opendir( my $tdh, $tmp );
-        while ( my $name = readdir $tdh ) {
-            next if $name =~ m|^\.|;
-            my $src = "$tmp/$name";
-            ## a symlink would pull in whatever it points to : refused ##
-            if (   $name !~ $AMOS7::Vault::ENTRY_FILE_RE
-                or -l $src
-                or not -f _ ) {
-                ## hostile content in the stream : refused, deleted ##
-                $remote_invalid++;
-                unlink $src;
-                next;
-            }
-            my $target = "$dir/entries/$name";
-            if ( -e $target ) {
-                ## appeared meanwhile : same content is fine, different is a
-                ## conflict -- never replaced
-                $pull_conflicts++
-                    if file_sha1($target) ne file_sha1($src);
-                next;
-            }
-            open( my $fh, '<:raw', $src ) or next;
-            my $content = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
-            close $fh;
-            my ( $ok, $err )
-                = AMOS7::Vault::_write_new_file( $target, $content );
-            if   ($ok) { $pulled++ }
-            else       { say STDERR msg( 'refuse', '%s', $err ) }
-        }
-        closedir $tdh;
-        unlink glob "$tmp/*";
-        rmdir $tmp;
-    }
+    say msg( 'info', 'ignored %s invalid file name%s [ never transferred ]',
+        $invalid, $invalid == 1 ? '' : 's' )
+        if $invalid;
 
-    say msg(
-        'info',
-        'ignored %s invalid file name%s [ never transferred ]',
-        $local_invalid + $remote_invalid,
-        $local_invalid + $remote_invalid == 1 ? '' : 's'
-    ) if $local_invalid or $remote_invalid;
-
-    my $conflict_count = @conflicts + $push_skipped + $pull_conflicts;
-    if (@conflicts) {
+    if (@all_conflicts) {
         say $C{o}
             . '  << conflict : same name, different content -- left alone :'
             . $C{R};
-        say "     $C{V}$ARG$C{R}" foreach @conflicts;
+        say "     $C{V}$ARG$C{R}" foreach @all_conflicts;
     }
+    my $conflict_count
+        = $kind{'entries'}{'report'}[2] + $kind{'blobs'}{'report'}[2];
     say msg(
         $conflict_count ? 'refuse' : 'done',
         'pushed %s, pulled %s, conflicts %s',
-        $pushed, $pulled, $conflict_count
+        @{ $kind{'entries'}{'report'} }
+    );
+    say msg(
+        $conflict_count ? 'refuse' : 'done',
+        'blobs : pushed %s, pulled %s, conflicts %s',
+        @{ $kind{'blobs'}{'report'} }
     );
     return $conflict_count ? FALSE : TRUE;
+}
+
+## local names + sha1 sums : only names matching the kind's pattern, the
+## others counted [ never transferred ]. a missing dir
+## [ a vault written before blobs existed ] is an empty side
+sub _sync_local_listing {
+    my ( $path, $re ) = @ARG;
+
+    my ( %sha, $invalid ) = ( (), 0 );
+    opendir( my $dh, $path ) or return ( \%sha, 0 );
+    while ( my $name = readdir $dh ) {
+        next if $name =~ m|^\.|;
+        if ( $name =~ $re ) { $sha{$name} = file_sha1("$path/$name") }
+        else                { $invalid++ }
+    }
+    closedir $dh;
+    return ( \%sha, $invalid );
+}
+
+## remote names + sha1 sums out of the probe output : every name passes the
+## same strict pattern before it can travel
+sub _sync_remote_listing {
+    my ( $out, $kind, $re ) = @ARG;
+
+    my ( $ls_tag, $sha_tag, $end_tag )
+        = $kind eq qw| blobs |
+        ? (
+        qw| P7VAULT-BLOBS-LS |,
+        qw| P7VAULT-BLOBS-SHA |,
+        qw| P7VAULT-END |
+        )
+        : ( qw| P7VAULT-LS |, qw| P7VAULT-SHA |, qw| P7VAULT-BLOBS-LS | );
+
+    my ($ls_text)  = $out =~ m|\Q$ls_tag\E\n(.*?)\Q$sha_tag\E|s;
+    my ($sha_text) = $out =~ m|\Q$sha_tag\E\n(.*?)\Q$end_tag\E|s;
+
+    my ( %sha, $invalid ) = ( (), 0 );
+    foreach my $line ( split m|\n|, $ls_text // '' ) {
+        $invalid++, next if $line !~ $re;
+        $sha{$line} = undef;    ## filled from the sha1 lines ##
+    }
+    foreach my $line ( split m|\n|, $sha_text // '' ) {
+        my ( $sum, $name ) = $line =~ m|\A([0-9a-f]{40})  (\S+)|;
+        next if not defined $sum;
+        next if $name !~ $re;
+        $sha{$name} = $sum;
+    }
+    return ( \%sha, $invalid );
+}
+
+## push : ONE tar stream per kind, extracted into a temp dir inside the remote
+## vault [ the target subdir may not exist yet on an older copy ], each file
+## moved in only when absent. returns [ moved, skipped ] or undef
+sub _sync_push {
+    my ( $host, $ssh, $local_dir, $remote, $sub, $case_pattern, $names )
+        = @ARG;
+
+    my $target_dir = shq("$remote/$sub");
+    my $receive    = join ' ',
+        'd=$(mktemp -d ' . shq("$remote/.p7-sync.XXXXXXXX") . ')',
+        '&& tar -C "$d" -xf -',
+        "&& { [ -d $target_dir ] || mkdir $target_dir; }",
+        '&& moved=0; skipped=0;',
+        'for f in "$d"/*; do',
+        'b=${f##*/};',
+        'case "$b" in',
+        "$case_pattern)",
+        "[ -e $target_dir/" . '"$b" ]',
+        '&& skipped=$((skipped+1))',
+        '|| { mv "$f" ' . "$target_dir/" . '"$b"',
+        '&& moved=$((moved+1)); } ;;',
+        'esac;',
+        'done;',
+        'rm -rf "$d";',
+        'echo P7SYNC moved=$moved skipped=$skipped';
+    my $pipeline = sprintf '%s | %s %s %s',
+        join( ' ', 'tar', '-C', shq($local_dir), '-cf', '-', '--',
+        @{$names} ),
+        join( ' ', @{$ssh} ), shq($host), shq($receive);
+    my ( $pout, $pok ) = run_capture($pipeline);
+    my ( $moved, $skipped )
+        = ( $pout // '' ) =~ m|P7SYNC moved=(\d+) skipped=(\d+)|;
+    return ( not $pok or not defined $moved ) ? undef : [ $moved, $skipped ];
+}
+
+## pull : the same the other way, through a local temp dir inside the vault,
+## then the vault's own write-new-file rule per file. a symlink would pull in
+## whatever it points to : refused. returns [ pulled, conflicts, invalid ] or
+## undef on failure
+sub _sync_pull {
+    my ( $host, $ssh, $dir, $local_dir, $remote_dir, $re, $names ) = @ARG;
+
+    my $tmp = sprintf '%s/.p7-sync.%s.%s', $dir, $PID,
+        AMOS7::Vault::_b32( AMOS7::Vault::_random_bytes(4) );
+    mkdir $tmp, 0700 or do {
+        say msg( 'refuse', 'cannot create %s', $tmp );
+        return undef;
+    };
+    ## the local tar extracts only the validated names        ##
+    ## [ a hostile stream cannot add paths or extra members ] ##
+    my $pipeline = sprintf '%s %s %s | tar -C %s -xf - -- %s',
+        join( ' ', @{$ssh} ), shq($host),
+        shq(
+        join ' ',
+        'cd ' . shq($remote_dir),
+        '&& tar -cf - --',
+        @{$names}
+        ),
+        shq($tmp), join( ' ', @{$names} );
+    my ( undef, $pok ) = run_capture($pipeline);
+    if ( not $pok ) {
+        unlink glob "$tmp/*";
+        rmdir $tmp;
+        say msg( 'refuse', 'pull from %s failed', $host );
+        return undef;
+    }
+    my ( $pulled, $conflicts, $invalid ) = ( 0, 0, 0 );
+    opendir( my $tdh, $tmp );
+    while ( my $name = readdir $tdh ) {
+        next if $name =~ m|^\.|;
+        my $src = "$tmp/$name";
+        ## hostile content in the stream : refused, deleted ##
+        if ( $name !~ $re or -l $src or not -f _ ) {
+            $invalid++;
+            unlink $src;
+            next;
+        }
+        my $target = "$local_dir/$name";
+        if ( -e $target ) {
+            ## appeared meanwhile : same content is fine, different is a
+            ## conflict -- never replaced
+            $conflicts++ if file_sha1($target) ne file_sha1($src);
+            next;
+        }
+        open( my $fh, '<:raw', $src ) or next;
+        my $content = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+        close $fh;
+        my ( $ok, $err ) = AMOS7::Vault::_write_new_file( $target, $content );
+        if   ($ok) { $pulled++ }
+        else       { say STDERR msg( 'refuse', '%s', $err ) }
+    }
+    closedir $tdh;
+    unlink glob "$tmp/*";
+    rmdir $tmp;
+    return [ $pulled, $conflicts, $invalid ];
 }
 
 sub _key_path_local { return "$dir/vault.key.B32" }
@@ -1725,8 +2150,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,,.,,,.,,..,,..,.,,,,,.,..,,..,,...,.,.,,,,,..,,...,...,...,,,.,..,,...,.,.,
-#N324M2NKLUAEZKU5Z7LTTSVYL3XVRP3JJNH6MCT6TA5VJLWLAB4X37V24FZGXTB2Q6JDYFOBSXB2W
-#\\\|HWEWEESWUOSJSIHXVPLLPISHHKFOXPQACLFYPTPSXUDJKSCTNPZ \ / AMOS7 \ YOURUM ::
-#\[7]3ACUX2DZXON36INNJZQA3THZOQSPUANWM276CPSPGEFFWYXVOGBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,,.,,.,,,..,,.,,,,,.,,..,,,.,..,,...,...,,.,,,.,,,,.,..,,,,,,
+#5GRAZTOCCAU2XWWKAPA3ZZP72HCBTZWWNCH3Q3UEZHNX4PF3NQRLZLKSBD2XB27J4PMG6TSTT4FCO
+#\\\|KYRSAKQFVMPMG5NWCITOM5EBBSAZQQUAQ4HB7YPLMCI72JCOK6J \ / AMOS7 \ YOURUM ::
+#\[7]RM5QWPTV4LOQRGHLWPMOOPXX4RKBZPHVCMVT2DQ5HUGH64AYWICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

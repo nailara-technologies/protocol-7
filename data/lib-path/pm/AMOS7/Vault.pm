@@ -2,8 +2,8 @@
 
 package AMOS7::Vault;    ####################################################
 
-## personal secret vault : logins, notes, contacts -- encrypted at rest, one
-## file per entry version, recoverable with plain perl + CryptX
+## personal secret vault : logins, notes, contacts, files -- encrypted at
+## rest, one file per entry version, recoverable with plain perl + CryptX
 ## [ or Crypt::Argon2 ] and nothing else from protocol-7.
 ##
 ## format : data/md/design/VAULT-FORMAT.md [ keep both in step ]
@@ -45,6 +45,9 @@ our $VERSION = qw| AMOS7::Vault-VERSION.0000001 |;
     entry_versions
     entries_latest
     vault_verify
+    blob_import
+    blob_export
+    blob_verify
     archive_write
     archive_open
     archive_records
@@ -76,6 +79,7 @@ use Crypt::AuthEnc::ChaCha20Poly1305 qw|
     chacha20poly1305_decrypt_verify
     |;
 use Crypt::AuthEnc::GCM qw| gcm_encrypt_authenticate gcm_decrypt_verify |;
+use Crypt::Mac::BLAKE2b ();
 
 ##[ FORMAT CONSTANTS ]########################################################
 
@@ -98,6 +102,7 @@ our %TYPES = (
     login   => [qw| title url username password totp notes |],
     note    => [qw| title body |],
     contact => [qw| title name phone email address notes |],
+    file    => [qw| title blob size origins |],
 );
 our %SECRET = map { $ARG => TRUE } qw| password totp body |;
 
@@ -195,13 +200,36 @@ sub _sync_dir {
 
 sub _dir_of { ( my $dir = shift ) =~ s|/[^/]+$||; return $dir }
 
-## a new file that must not exist yet [ entry versions are never replaced ]
+## a new file that must not exist yet
+## [ entry versions and blobs are never replaced ]
 sub _write_new_file {
     my ( $path, $content ) = @ARG;
+    return _write_new_file_stream( $path,
+        sub { print { $_[0] } $content or die "$OS_ERROR\n" } );
+}
+
+## the streaming form : $writer receives the open temp handle and dies on a
+## failed write. the temp carries the content to disk, THEN takes its final
+## name -- never holding the whole file in memory for blobs
+sub _write_new_file_stream {
+    my ( $path, $writer ) = @ARG;
 
     return ( FALSE, "$path exists" ) if -e $path;
-    my ( $tmp, $err ) = _write_synced_tmp( $path, $content );
-    return ( FALSE, $err ) if not defined $tmp;
+    my $tmp = sprintf qw| %s.tmp.%s |, $path, _b32( _random_bytes(5) );
+    sysopen( my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600 )
+        or return ( FALSE, "cannot create $tmp : $OS_ERROR" );
+    binmode $fh;
+
+    my $ok = eval { $writer->($fh); 1 } ? TRUE : FALSE;
+    $ok &&= $fh->flush;
+    $ok &&= $fh->sync;
+    $ok &&= close $fh;
+
+    if ( not $ok ) {
+        my $err = $EVAL_ERROR || "$OS_ERROR";
+        unlink $tmp;
+        return ( FALSE, "cannot write $tmp : $err" );
+    }
 
     ## link fails if the name exists [ exclusive ] ; filesystems without hard
     ## links [ vfat usb keys ] fall back to the checked rename
@@ -576,7 +604,7 @@ sub vault_init {
         if not defined $passphrase or not length $passphrase;
     die "vault : $dir already holds a vault\n" if -e _key_path($dir);
 
-    foreach my $sub_dir ( $dir, "$dir/entries" ) {
+    foreach my $sub_dir ( $dir, "$dir/entries", "$dir/blobs" ) {
         next if -d $sub_dir;
         mkdir $sub_dir, 0700 or die "vault : cannot create $sub_dir\n";
     }
@@ -883,6 +911,257 @@ sub vault_verify {
         }
     }
     return ( $ok, \@errors );
+}
+
+##[ BLOBS ]###################################################################
+
+## file content, chunked and cascaded, one blob per content. the name is a
+## keyed mac over the content -- never a plain checksum : with a plain one,
+## anyone holding the blob directory could confirm a known file. the mac key
+## is vault-bound, so the same content names differently in two vaults, and
+## the blob key is deterministic, so one vault deduplicates to one blob
+our $BLOB_BIN_MAGIC = qw| P7VB |;
+our $BLOB_CHUNK     = 1048576;      ## 1 MiB of plaintext per chunk ##
+our $BLOB_FILE_RE   = qr{\A[A-Z2-7]{32}\.vlb\z};
+
+sub _blob_dir { return $_[0]->{'dir'} . '/blobs' }
+
+sub _blob_path {
+    my ( $vault, $name ) = @ARG;
+    return sprintf qw| %s/blobs/%s.vlb |, $vault->{'dir'}, $name;
+}
+
+## the name mac key : hkdf out of the vault key, never the content's plain
+## digest. streaming over the file, 1 MiB at a time
+sub _blob_name_mac_new {
+    my $vault = shift;
+    my $key = hkdf( $vault->{'key'}, 'p7 blob name', qw| BLAKE2b_512 |,
+        32, 'p7 blob name key' );
+    return Crypt::Mac::BLAKE2b->new( 32, $key );
+}
+
+sub _blob_name_of_mac {
+    return substr( _b32( shift->mac ), 0, 32 );
+}
+
+sub _blob_name_mac {
+    my ( $vault, $path ) = @ARG;
+
+    open( my $fh, '<:raw', $path ) or die "vault : cannot read $path\n";
+    my $mac = _blob_name_mac_new($vault);
+    while (TRUE) {
+        my $got = read( $fh, my $buf, $BLOB_CHUNK );
+        die "vault : cannot read $path\n" if not defined $got;
+        last                              if $got == 0;
+        $mac->add($buf);
+    }
+    close $fh;
+    return $mac;
+}
+
+## deterministic per name : the same content lands on the same blob
+sub _blob_key {
+    my ( $vault, $name ) = @ARG;
+    return hkdf( $vault->{'key'}, $name, qw| BLAKE2b_512 |, 32,
+        'p7 blob key' );
+}
+
+sub _blob_ad {
+    my ( $vault, $name, $i, $last ) = @ARG;
+    return join ' ', $BLOB_BIN_MAGIC, $FORMAT, $vault->{'id'}, $name, $i,
+        $last;
+}
+
+## read up to $n bytes into $$buf : the count back, undef on a read error
+sub _read_up_to {
+    my ( $fh, $buf, $n ) = @ARG;
+    $$buf = '';
+    while ( length $$buf < $n ) {
+        my $got = read( $fh, $$buf, $n - length $$buf, length $$buf );
+        return undef if not defined $got;
+        last         if $got == 0;
+    }
+    return length $$buf;
+}
+
+sub _read_chunk {
+    my $fh = shift;
+    my ( $buf, $got ) = ( '', undef );
+    while ( length $buf < $BLOB_CHUNK ) {
+        $got = read( $fh, $buf, $BLOB_CHUNK - length $buf, length $buf );
+        die "vault : read failed\n" if not defined $got;
+        last                        if $got == 0;
+    }
+    return $buf;
+}
+
+## import a file's content as one blob : returns ( name, size ). a blob of the
+## same content already there means nothing is written [ dedup ] and the name
+## is still returned
+sub blob_import {
+    my ( $vault, $path ) = @ARG;
+
+    die "vault : locked\n" if not defined $vault->{'key'};
+    my @before = stat $path or die "vault : cannot stat $path\n";
+
+    ## pass 1 : the name mac walks the content ##
+    my $name   = _blob_name_of_mac( _blob_name_mac( $vault, $path ) );
+    my $target = _blob_path( $vault, $name );
+    return ( $name, $before[7] ) if -e $target;
+
+    ## pass 2 : encrypt. the file changed between the passes -- size or mtime
+    ## differ -- means the mac and the content would disagree : abort
+    my @now = stat $path;
+    die "vault : $path changed while importing\n"
+        if @now < 13
+        or $now[7] != $before[7]
+        or $now[9] != $before[9];
+
+    mkdir _blob_dir($vault), 0700 if not -d _blob_dir($vault);
+
+    my $key = _blob_key( $vault, $name );
+    my ( $ok, $err ) = _write_new_file_stream(
+        $target,
+        sub {
+            my $out = shift;
+            print {$out}
+                pack( q{a4 C N}, $BLOB_BIN_MAGIC, $FORMAT, $BLOB_CHUNK )
+                or die "$OS_ERROR\n";
+            open( my $in, '<:raw', $path )
+                or die "vault : cannot read $path\n";
+            ## the bytes actually encrypted are checked against the name :
+            ## a file changing DURING this pass would otherwise store other
+            ## content under the name [ wrong dedup, and the per-chunk keys
+            ## and nonces of the name reused for different plaintext ]
+            my $check = _blob_name_mac_new($vault);
+            my $i     = 0;
+            my $cur   = _read_chunk($in);
+            while (TRUE) {
+                $check->add($cur);
+                ## one chunk of lookahead : the last flag lives in the salt
+                ## and the ad, so it is read out of the position
+                my $next
+                    = length($cur) == $BLOB_CHUNK
+                    ? _read_chunk($in)
+                    : '';
+                my $last = length $next ? 0 : 1;
+                my ( $nonce, $ct, $tag ) = _cascade_encrypt(
+                    $key,
+                    pack( q{N C}, $i, $last ),
+                    'p7 blob chunk',
+                    _blob_ad( $vault, $name, $i, $last ), $cur
+                );
+                print {$out} pack( q{N}, length $ct ) . $nonce . $ct . $tag
+                    or die "$OS_ERROR\n";
+                last if $last;
+                ( $cur, $i ) = ( $next, $i + 1 );
+            }
+            close $in;
+            die "vault : $path changed while importing\n"
+                if _blob_name_of_mac($check) ne $name;
+        }
+    );
+    die "vault : $err\n" if not $ok;
+    return ( $name, $before[7] );
+}
+
+## streaming decrypt, chunk frames walked in order. $out undef verifies only
+sub _blob_decrypt {
+    my ( $vault, $name, $src, $out ) = @ARG;
+
+    my $head = '';
+    my $got  = _read_up_to( $src, \$head, 9 );
+    return ( FALSE, 'read failed' )      if not defined $got;
+    return ( FALSE, 'truncated header' ) if $got < 9;
+    my ( $magic, $format, $chunk_size ) = unpack q{a4 C N}, $head;
+    return ( FALSE, 'not a blob file' ) if $magic ne $BLOB_BIN_MAGIC;
+    return ( FALSE, "blob format $format not supported" )
+        if $format != $FORMAT;
+    return ( FALSE, 'unsupported chunk size' )
+        if $chunk_size != $BLOB_CHUNK;
+
+    my $key = _blob_key( $vault, $name );
+    my ( $i, $len_buf, $len_len ) = ( 0, '', 0 );
+    $len_len = _read_up_to( $src, \$len_buf, 4 );
+    return ( FALSE, 'read failed' )           if not defined $len_len;
+    return ( FALSE, 'truncated : no chunks' ) if $len_len == 0;
+
+    while (TRUE) {
+        return ( FALSE, 'truncated : partial chunk length' )
+            if $len_len < 4;
+        my ($ct_len) = unpack q{N}, $len_buf;
+        ## a plaintext chunk is at most $BLOB_CHUNK ; the cascade adds 32 ##
+        return ( FALSE, 'corrupt chunk length' )
+            if $ct_len > $BLOB_CHUNK + 32;
+        my ( $nonce, $ct, $tag ) = ( '', '', '' );
+        foreach
+            my $part ( [ \$nonce, 12 ], [ \$ct, $ct_len ], [ \$tag, 16 ] ) {
+            my $n = _read_up_to( $src, $part->[0], $part->[1] );
+            return ( FALSE, 'read failed' )     if not defined $n;
+            return ( FALSE, 'truncated chunk' ) if $n < $part->[1];
+        }
+
+        ## lookahead : eof right after the frame marks the final chunk, so it
+        ## decrypts with last = 1 -- a last = 1 chunk in the middle is tried
+        ## as last = 0 and fails its tag
+        ( $len_buf, $len_len ) = ( '', 0 );
+        $len_len = _read_up_to( $src, \$len_buf, 4 );
+        return ( FALSE, 'read failed' ) if not defined $len_len;
+        my $last = $len_len == 0 ? 1 : 0;
+
+        my $pt = _cascade_decrypt(
+            $key,
+            pack( q{N C}, $i, $last ),
+            'p7 blob chunk',
+            _blob_ad( $vault, $name, $i, $last ),
+            $nonce, $ct, $tag
+        );
+        return ( FALSE, 'authentication failed' ) if not defined $pt;
+        if ( defined $out ) {
+            print {$out} $pt or return ( FALSE, "write failed : $OS_ERROR" );
+        }
+        if ($last) {
+            return ( FALSE, 'trailing bytes after final chunk' )
+                if $len_len > 0;
+            return ( TRUE, undef );
+        }
+        $i++;
+    }
+}
+
+sub _blob_check_name {
+    my $name = shift // '';
+    die "vault : invalid blob name\n"
+        if $name !~ m|\A[A-Z2-7]{32}\z|;
+    return $name;
+}
+
+## write the decrypted blob to an open handle. dies on any failure
+sub blob_export {
+    my ( $vault, $name, $dest_fh ) = @ARG;
+    _blob_check_name($name);
+    die "vault : locked\n" if not defined $vault->{'key'};
+
+    my $path = _blob_path( $vault, $name );
+    open( my $src, '<:raw', $path ) or die "vault : cannot read $path\n";
+    my ( $ok, $err ) = _blob_decrypt( $vault, $name, $src, $dest_fh );
+    close $src;
+    die "vault : blob $name : $err\n" if not $ok;
+    return TRUE;
+}
+
+## decrypt a blob discarding the content : TRUE or FALSE
+sub blob_verify {
+    my ( $vault, $name ) = @ARG;
+    _blob_check_name($name);
+    return FALSE if not defined $vault->{'key'};
+
+    my $path = _blob_path( $vault, $name );
+    return FALSE if not -r $path;
+    open( my $src, '<:raw', $path ) or return FALSE;
+    my ( $ok, undef ) = _blob_decrypt( $vault, $name, $src, undef );
+    close $src;
+    return $ok;
 }
 
 ##[ ARCHIVE ]#################################################################
@@ -1197,8 +1476,8 @@ sub gen_password {
 
 1;
 
-#,,.,,.,.,,..,.,,,..,,.,.,...,.,,,,..,,,,,.,,,..,,...,...,.,,,.,,,,..,,,,,.,.,
-#NG33XKL4MGSTQ3FKACUK2PY3WNCUUCFDFW55IHKN5TCLSAJGBQUWB42SRRGC52GCDPNC7UBTZCTO2
-#\\\|2KEA2ZG22C4EY3KZBA6YZ36UB34YRJVHRKXPBAH6CPETDMILUFM \ / AMOS7 \ YOURUM ::
-#\[7]QVSAJHB6FFZWL7267VQZNPZYHZQ5RUNSGDRXZXGFW32RSFK5MCDA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,,,,,...,..,,..,,...,,..,,,.,..,,...,...,...,,,.,.,.,.,,,,..,
+#QMZH3YED5NCOLOHWKLPLZYZLXW4NMGYRO5GI4HYZXEBT6JS75I46JF2FFMZA6TRPPG4A3N6D7IX3C
+#\\\|WBOVUDPVHVNNRGXSV7MCRNA677LEA4HGVCMS7VGDTIIFIUVBWKQ \ / AMOS7 \ YOURUM ::
+#\[7]OT6ETELGTHKPIZLWZWOOXOD4TBDD3MTHXTR24A76CVOH6OTYK2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

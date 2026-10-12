@@ -20,6 +20,8 @@ by hand from this text.
   vault.key.B32     0600   key file : vault id, kdf, wrapped vault key
   entries/          0700
     <id>.<version>.vlt.B32   one file per entry VERSION, never rewritten
+  blobs/            0700
+    <name>.vlb      one file per file CONTENT, never rewritten
 ```
 
 - `<id>` : 16 base32 chars [ 80 random bits ]. file names carry no title,
@@ -172,8 +174,17 @@ binary, inside the base32 block :
 ```
 
 types and fields : `login` [ title url username password totp notes ],
-`note` [ title body ], `contact` [ title name phone email address notes ].
-absent fields are left out. unknown fields are kept as they are.
+`note` [ title body ], `contact` [ title name phone email address notes ],
+`file` [ title blob size origins ]. absent fields are left out. unknown
+fields are kept as they are.
+
+- `file` records a stored file's content : `blob` is the blob name [ the
+  content's keyed mac, below ], `size` its plaintext length, `origins` a
+  list of `{ host, path, mode, uid, gid, user, mtime, imported }` --
+  every import of the same content on a new host+path appends one origin
+  as a new entry version. deleting a `file` entry leaves its blob :
+  other entries may share it, and a garbage collection of unreferenced
+  blobs is out of scope for format 1
 
 - `code` : the 3-char display code of the entry [ bin/todo's chk3 shape :
   a random seed through AMOS7::CHKSUM, 3 chars ], collision-checked
@@ -185,6 +196,53 @@ absent fields are left out. unknown fields are kept as they are.
   `p7-vault codes` assigns codes to all entries lacking one [ one new
   version each ]. an exact 3-char code match resolves an entry before
   any title rule
+
+## blob files : stored file content
+
+`p7-vault import` stores a file's content as one blob : `<name>.vlb` in
+`blobs/`, binary. `<name>` : 32 base32 chars [ no padding ] of the first
+20 bytes of a keyed blake2b-256 mac [ rfc 7693 ] over the content,
+streamed 1 MiB at a time. the mac key = hkdf-blake2b-512 : key material
+= vault key, salt = `p7 blob name`, 32 bytes, info = `p7 blob name key`.
+a plain content checksum is NOT allowed -- with one, anyone holding the
+blob directory could confirm a known file. the key is vault-bound, so
+the same content names differently in two vaults, and deterministic, so
+one vault deduplicates to one blob
+
+```
+ 0   4  'P7VB'
+ 4   1  format                 1
+ 5   4  chunk size             N, big endian, 1048576
+ 9  ..  chunks, back to back, until eof
+```
+
+chunk i [ from 0 ] holds up to `chunk size` bytes of the plaintext. the
+file is read one chunk at a time -- the whole file is never in memory.
+the import walks the file twice : first the name mac, then the
+encryption, and aborts when size or mtime changed between the passes
+
+- blob key = hkdf-blake2b-512 : key material = vault key, salt =
+  `<name>`, 32 bytes, info = `p7 blob key` -- deterministic, so the same
+  content in one vault is one blob
+- chunk i encrypts its plaintext with the cascade : root = blob key,
+  salt = `pack( 'N C', i, <last> )`, label `p7 blob chunk`, associated
+  data `P7VB <format> <vault id> <name> <i> <last>` [ single spaces ].
+  `<last>` is 1 only on the final chunk ; an empty file is one empty
+  chunk with last = 1. the twofish nonce is derived with the key, and
+the blob key and the salt are fixed for a given chunk -- safe only
+because the same content encrypts to the same chunk : never reuse the
+scheme with a per-file random salt
+- stored per chunk : `pack( 'N', length <ct> )` , nonce [ 12 ] ,
+  ciphertext , tag [ 16 ] -- the outer chacha20-poly1305 frame
+- `<last>` is not stored in the frame : it is read out of the position
+  [ a final chunk that is not at eof, or eof before a final chunk, fails
+  the tag or reads as truncation ]
+- decrypting : sequential, the index from the position. rejects : bad
+  magic or format, a chunk failing either layer, a final chunk not at
+  eof, eof without a final chunk [ truncation ], trailing bytes
+- a blob writes like an entry : a temp file inside `blobs/`, synced,
+  then renamed only when the target is absent. an existing blob of that
+  name means deduplication -- nothing is written
 
 ## archive : one file for untrusted copies
 
@@ -235,35 +293,37 @@ same base32 block, title `p7-vault archive`. binary inside :
 - each archive still shows its size class [ coarse growth ] and, through
   the commit, when it was made
 
-## sync : a manual union of the entry files
+## sync : a manual union of the entry and blob files
 
 `p7-vault sync <ssh-host>[:<remote dir>]` unites a vault with a copy on
 another host [ remote dir default : `.n/vault` in the remote home ].
-entry version files are opaque and never change, so a sync is a plain
-file union -- never overwrite, never delete :
+entry version and blob files are opaque and never change, so a sync is a
+plain file union -- never overwrite, never delete. `entries/` and
+`blobs/` unite with the same rules, reported on two lines :
 
 - ONE ssh call [ the command comes from `P7_VAULT_SSH`, default `ssh`,
   so ControlMaster or a wrapper can stand in ] lists the remote vault id
   [ read out of the remote key file, which sits in the clear ] and the
-  remote `entries/` file names with their sha1 sums. a different vault
-  id is refused ; no remote vault is refused with a hint to copy the key
-  file first
-- push : local entry files missing remotely travel as ONE tar stream
-  over ssh, extracted into a temp dir inside the remote vault, and each
-  file is moved into the remote `entries/` only when absent. pull : the
-  same the other way, through a local temp dir, then the vault's own
-  write-new-file rule [ temp file, checked rename, directory sync ] per
-  file
-- only names matching the entry file pattern are transferred [ strict
-  regex on both sides -- a hostile remote name never reaches a path
-  join ]. a file present on both sides with different content is
+  remote `entries/` and `blobs/` file names with their sha1 sums. a
+  different vault id is refused ; no remote vault is refused with a hint
+  to copy the key file first
+- push : local files missing remotely travel as ONE tar stream over
+  ssh per directory kind, extracted into a temp dir inside the remote
+  vault, and each file is moved into the remote `entries/` \ `blobs/`
+  only when absent. pull : the same the other way, through a local temp
+  dir, then the vault's own write-new-file rule [ temp file, checked
+  rename, directory sync ] per file
+- only names matching the entry \ blob file pattern are transferred
+  [ strict regex on both sides -- a hostile remote name never reaches a
+  path join ]. a file present on both sides with different content is
   reported as a conflict and left alone ; identical content needs no
   transfer at all, so a second sync moves nothing
 - the key files are NEVER transferred. differing key file content means
   a passphrase change on one side : a warning says to copy
   `vault.key.B32` over by hand, once. no unlock is needed -- the files
   are opaque
-- report : `pushed n, pulled m, conflicts k`
+- report : `pushed n, pulled m, conflicts k` for the entries, then the
+  same for the blobs
 
 ## opening a vault by hand
 
@@ -278,6 +338,10 @@ botan ; NOT python's `cryptography` package ] :
    cascade decrypt the vault key [ label, ad as above ]
 2. for each newest `entries/<id>.*.vlt.B32` : cascade decrypt with the
    vault key as root and the entry's salt, parse the json
+3. for a stored file [ a `file` record ] : name the blob as above, blob
+   key = hkdf [ salt = name, info `p7 blob key` ], then cascade decrypt
+   each chunk in order [ salt, label, ad as above, last from the
+   position ] and concat the plaintext chunks
 
 `bin/p7-vault -d <copy> verify` does both for every version. from an
 archive : take the key file out of its header for step 1, cascade decrypt
@@ -288,8 +352,8 @@ the payload with the vault key, then step 2 for each record's data.
 a session agent [ unlock once per login ], the vault-edit form ui,
 totp code display, purging old versions.
 
-#,,,,,,,.,.,.,.,.,,,.,.,,,..,,,.,,.,,,,,,,,..,..,,...,...,.,.,..,,,,.,.,.,..,,
-#CJQU2NARWXLFCSYHAKSP7HQZU4KLRB5J7JBYU4UCQZEWJH6JN3EIGEJ5EWT63H5M53CBE7R6KZGQ6
-#\\\|DP3TCCCYCRLVZCGW7B6TLAPIXDMIX3QF2ZNV4OPTHHXPOAMXMHP \ / AMOS7 \ YOURUM ::
-#\[7]JN44ZLURMFPZTP5BA4WIH74WH4XEB5HG2YRQ5BE52E66UOTKIKAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,,,.,,,..,,.,,,,.,,...,..,,..,,..,,...,..,,..,,,,.,,,.,.,.,.,,,
+#AW4Y22KDR6AUOLVGI57Y6D6EGQPFBPPMXTYJPC7VV5VBG5DDEM5QOJJH7RQTXJWSUWFMLLDOAUW22
+#\\\|KEVRMQIMR4RRYL3Q5LJOM4JSVDENINKLWIZDZOBRHBDFGNROSEA \ / AMOS7 \ YOURUM ::
+#\[7]WI2ZIVOD33FA5BYG6QW64YAPEYJONLY2QVXX5FR2DSBKFQGKIICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

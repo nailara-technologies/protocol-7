@@ -16,7 +16,7 @@ use constant FALSE => 0;    ##  false  ##
 
 BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
 
-use AMOS7::Vault qw| vault_init entry_save |;
+use AMOS7::Vault qw| vault_init entry_save blob_import |;
 
 my ( $pass, $fail ) = ( 0, 0 );
 
@@ -53,6 +53,14 @@ sub sync {
     return ( $out, $? >> 8 );
 }
 
+sub blobs {
+    my $dir = shift;
+    opendir( my $dh, "$dir/blobs" ) or return ();
+    my @names = sort grep { not m|^\.| } readdir $dh;
+    closedir $dh;
+    return @names;
+}
+
 ## two copies of one vault : same key file, separate entries ##
 my $dir_a = "$tmp/a";
 my $v     = vault_init( $dir_a, 'pass phrase', undef, %kdf );
@@ -78,6 +86,22 @@ ok( entries($dir_a) == 3, '  :.. three entry files each' );
 ( $out, $rc ) = sync( $dir_a, $dir_b );
 ok( $out =~ m|pushed 0, pulled 0, conflicts 0|,
     'second sync transfers nothing' );
+
+## blobs travel in the union too : one import on a, one sync ##
+my $blob_src = "$tmp/blob-src.bin";
+open( my $bfh, '>:raw', $blob_src ) or die $OS_ERROR;
+print {$bfh} 'blob content ' x 1000;
+close $bfh;
+blob_import( $v, $blob_src );
+( $out, $rc ) = sync( $dir_a, $dir_b );
+ok( $rc == 0, 'blob sync succeeds' );
+ok( $out =~ m|blobs : pushed 1, pulled 0, conflicts 0|,
+    '  :.. the blob is pushed' );
+ok( "@{[ blobs($dir_a) ]}" eq "@{[ blobs($dir_b) ]}",
+    '  :.. both sides hold the blob' );
+( $out, $rc ) = sync( $dir_a, $dir_b );
+ok( $out =~ m|blobs : pushed 0, pulled 0, conflicts 0|,
+    '  :.. a second sync moves no blob' );
 
 ## same name, different content : reported, never replaced ##
 my $name = 'A' x 16 . '.' . '2' x 14 . '.' . 'B' x 8 . '.vlt.B32';
@@ -115,8 +139,8 @@ ok( $rc != 0, 'missing remote vault refused' );
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,,,,,,,,..,,...,.,.,.,.,,..,.,.,..,,,..,..,,...,...,..,,...,,.,,,.,,.,.,
-#FDSH3JOAFTQQSUA4E5YNKJR5MADAFDACFVQEFB4DJLORM4QM5XXJZ3MXB4GZMRWYV6ZUFX4GHJKWY
-#\\\|LZQ4QRU2IBKAAEE6TSG3I5VNUSQ25FFBWLKOQH26FIM2F6KO5BE \ / AMOS7 \ YOURUM ::
-#\[7]CP6SNVAY4QJYJ2LPJV7ULH5L37W37GY2LJSPNJ7HS65Q47PJZ6BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,.,...,.,,,..,,,,,,...,,,,,.,,,..,,...,...,...,,..,,.,,,,,,.,,,
+#7AN5LNF5F5GDVM2B3IRQCCER2LISVHKP4IMWN2J4CYICOUD7OER4ZKASV6XX3PLQNHBYHTWZHULXE
+#\\\|QXZU76CWVATBSE63F7QIGXDKOWZJGO5ERB2O5UTFF6B5252AJYS \ / AMOS7 \ YOURUM ::
+#\[7]Z24S277BO4YHHJOPQMC33LO4GV3MYRJP6F6MADCQT4TC7UT4HYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
