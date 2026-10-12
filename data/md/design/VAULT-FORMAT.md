@@ -5,7 +5,11 @@
 this file is the recovery reference : copy it next to every backup of a
 vault, together with those three files
 [ layout : `p7-vault`, `AMOS7/Vault.pm`,
-`AMOS7/NTIME.pm` in one directory ]. everything below uses standard
+`AMOS7/NTIME.pm` in one directory ]. the 3-char entry codes
+additionally use `AMOS7/CHKSUM.pm` with its AMOS7 dependencies, the note
+editor `AMOS7/TERM/Editor.pm` -- both only for interactive use, the
+three files above open every vault on their own. everything below uses
+standard
 primitives only, so a vault opens without protocol-7 -- with the script, or
 by hand from this text.
 
@@ -28,10 +32,11 @@ by hand from this text.
   `restore` writes an older version again as the newest
 - harmony : generated values that name files [ vault id, entry ids,
   version tails ] or that the owner sees [ the recovery code -- grouped AND
-  plain form --, generated passwords ] are drawn again until
+  plain form --, generated passwords, entry codes ] are drawn again until
   `AMOS7::Assert::Truth::is_true` accepts them [ ~28 % pass ; < 4 of the
   recovery code's 160 bits ]. only generating needs that module : reading
-  never checks harmony, so a copy without it opens every vault
+  never checks harmony, so a copy without it opens every vault [ and
+  generates unfiltered ]
 
 ## encodings
 
@@ -161,13 +166,25 @@ binary, inside the base32 block :
 ## record
 
 ```
-{ "type": "login", "title": .., "url": .., "username": .., "password": ..,
-  "totp": .., "notes": .., "updated": "<ntime base32>" [, "deleted": 1 ] }
+{ "type": "login", "code": .., "title": .., "url": .., "username": ..,
+  "password": .., "totp": .., "notes": .., "updated": "<ntime base32>"
+  [, "deleted": 1 ] }
 ```
 
 types and fields : `login` [ title url username password totp notes ],
 `note` [ title body ], `contact` [ title name phone email address notes ].
 absent fields are left out. unknown fields are kept as they are.
+
+- `code` : the 3-char display code of the entry [ bin/todo's chk3 shape :
+  a random seed through AMOS7::CHKSUM, 3 chars ], collision-checked
+  against the codes of all live entries and harmony-checked like the
+  other generated values. it lives INSIDE the encrypted record, never
+  in a file name -- the list of sites stays private in a public copy.
+  every record carries one : an entry saved without it [ a vault
+  written by an older p7-vault ] gets it on its next save, and
+  `p7-vault codes` assigns codes to all entries lacking one [ one new
+  version each ]. an exact 3-char code match resolves an entry before
+  any title rule
 
 ## archive : one file for untrusted copies
 
@@ -218,6 +235,36 @@ same base32 block, title `p7-vault archive`. binary inside :
 - each archive still shows its size class [ coarse growth ] and, through
   the commit, when it was made
 
+## sync : a manual union of the entry files
+
+`p7-vault sync <ssh-host>[:<remote dir>]` unites a vault with a copy on
+another host [ remote dir default : `.n/vault` in the remote home ].
+entry version files are opaque and never change, so a sync is a plain
+file union -- never overwrite, never delete :
+
+- ONE ssh call [ the command comes from `P7_VAULT_SSH`, default `ssh`,
+  so ControlMaster or a wrapper can stand in ] lists the remote vault id
+  [ read out of the remote key file, which sits in the clear ] and the
+  remote `entries/` file names with their sha1 sums. a different vault
+  id is refused ; no remote vault is refused with a hint to copy the key
+  file first
+- push : local entry files missing remotely travel as ONE tar stream
+  over ssh, extracted into a temp dir inside the remote vault, and each
+  file is moved into the remote `entries/` only when absent. pull : the
+  same the other way, through a local temp dir, then the vault's own
+  write-new-file rule [ temp file, checked rename, directory sync ] per
+  file
+- only names matching the entry file pattern are transferred [ strict
+  regex on both sides -- a hostile remote name never reaches a path
+  join ]. a file present on both sides with different content is
+  reported as a conflict and left alone ; identical content needs no
+  transfer at all, so a second sync moves nothing
+- the key files are NEVER transferred. differing key file content means
+  a passphrase change on one side : a warning says to copy
+  `vault.key.B32` over by hand, once. no unlock is needed -- the files
+  are opaque
+- report : `pushed n, pulled m, conflicts k`
+
 ## opening a vault by hand
 
 needs perl with CryptX >= 0.088 [ or CryptX + Crypt::Argon2 :
@@ -238,11 +285,11 @@ the payload with the vault key, then step 2 for each record's data.
 
 ## not in format 1 [ later ]
 
-sync between hosts over protocol-7, a session agent [ unlock once per
-login ], the vault-edit form ui, totp code display, purging old versions.
+a session agent [ unlock once per login ], the vault-edit form ui,
+totp code display, purging old versions.
 
-#,,,.,.,.,.,,,,.,,..,,,..,,,,,...,,,,,,.,,..,,..,,...,...,.,.,,,.,,.,,..,,,,.,
-#TLA4UVZPXNQOPQV25YLNA5WPUE5LGJV45FZEPR66TT76S7VC5TDGFRDXJTNVKZJLXU3C64XNWBXD6
-#\\\|UAZ6ZQLCDUMBAHP5OPFFKPQV3I3BHTB6M65FVFTGUSHQA3EMR7K \ / AMOS7 \ YOURUM ::
-#\[7]W7BFCKHKPO53VJF36IKQGRRRF6WAJIQUIURT24A5EKWP5254AYCI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,.,,,.,.,,,..,,,.,,.,,,,,,,,..,..,,...,...,.,.,..,,,,.,.,.,..,,
+#CJQU2NARWXLFCSYHAKSP7HQZU4KLRB5J7JBYU4UCQZEWJH6JN3EIGEJ5EWT63H5M53CBE7R6KZGQ6
+#\\\|DP3TCCCYCRLVZCGW7B6TLAPIXDMIX3QF2ZNV4OPTHHXPOAMXMHP \ / AMOS7 \ YOURUM ::
+#\[7]JN44ZLURMFPZTP5BA4WIH74WH4XEB5HG2YRQ5BE52E66UOTKIKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

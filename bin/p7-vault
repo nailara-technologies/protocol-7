@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-use v5.24;
+use v5.32.0;
 use utf8;
 use strict;
 use English;
@@ -19,6 +19,12 @@ use warnings;
 ## p7-vault <command> [ args ] one command
 ##
 ## secrets are only ever typed at a prompt, never taken from argv.
+##
+## a full copy needs this file, AMOS7/Vault.pm + AMOS7/NTIME.pm
+## [ as AMOS7/ beside it ], plus AMOS7/CHKSUM.pm with its AMOS7 dependencies
+## [ the 3-char entry codes ] and AMOS7/TERM/Editor.pm [ the note editor ] --
+## the last two only for interactive use, a read-only recovery copy opens
+## every vault without them
 
 use FindBin;
 use Getopt::Std;
@@ -146,6 +152,10 @@ my %COMMANDS = (
     get               => \&cmd_get,
     edit              => \&cmd_edit,
     rm                => \&cmd_rm,
+    notes             => \&cmd_notes,
+    scratchpad        => \&cmd_scratchpad,
+    codes             => \&cmd_codes,
+    sync              => \&cmd_sync,
     history           => \&cmd_history,
     restore           => \&cmd_restore,
     gen               => \&cmd_gen,
@@ -214,7 +224,15 @@ sub usage {
 
     init                     create a vault [ $dir ]
     add [ login|note|contact ]  new entry, fields prompted
+                             [ a tty opens note bodies in the editor ]
     list [ filter ]          titles, urls, user names
+    notes [ filter ]         every note : code, title, size, last change
+                             [ bodies never shown ]
+    scratchpad               open the 'scratchpad' note in the editor,
+                             creating it when missing
+    codes                    give a 3-char code to entries lacking one
+    sync <host>[:<dir>]      union of the entry files with another host
+                             [ never overwrites, never deletes ]
     show <filter> [ -r ]     one entry, secrets masked [ -r reveals ]
     copy <filter> [ field ]  to the clipboard [ default password ],
                              cleared after $CLIP_CLEAR_SECONDS s
@@ -239,6 +257,9 @@ sub usage {
 
     hidden input : tab shows \\ hides the value, ctrl-u clears it,
                    esc \\ ctrl-c cancels
+
+    -s on add \\ edit  ....  note body via the hidden multi-line prompt
+                             instead of the editor [ scripts, pipes ]
 
     -d  .......  vault directory [ default P7_VAULT_DIR or ~/.n/vault ]
     -R  .......  unlock with the recovery code
@@ -515,6 +536,16 @@ sub pick {
     my ( $list, $errors ) = entries_latest( $v, $with_deleted );
     say STDERR $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
 
+    ## an exact 3-char code match wins over every title rule [ codes are
+    ## unique among live entries -- a 3-letter title cannot be mistaken for
+    ## one, and a code is never taken for a title substring ]
+    if ( length $filter == 3 ) {
+        my ($by_code)
+            = grep { lc( $ARG->{'record'}{'code'} // '' ) eq lc $filter }
+            @{$list};
+        return $by_code if defined $by_code;
+    }
+
     my @hits = grep { lc( $ARG->{'record'}{'title'} // '' ) eq lc $filter }
         @{$list};
     @hits = grep { matches( $ARG->{'record'}, $filter ) } @{$list}
@@ -562,8 +593,11 @@ sub summary_line {
         : join( ' ',
         grep {length} $record->{'username'} // '',
         $record->{'url'} // '' );
-    return sprintf "$C{0}%3s$C{R}  $C{0}%-7s$C{R} "
-        . "$C{T}%-28s$C{R} $C{V}%s$C{R}", $n, $type,
+    return
+        sprintf "$C{0}%3s$C{R} $C{0}%-4s$C{R} "
+        . "$C{0}%-7s$C{R} $C{T}%-28s$C{R} $C{V}%s$C{R}", $n,
+        $record->{'code'} // '',
+        $type,
         $record->{'title'} // '', $who;
 }
 
@@ -645,7 +679,13 @@ sub cmd_init {
 }
 
 sub cmd_add {
-    my $type = shift // 'login';
+    my $secret = grep { $ARG eq '-s' } @ARG ? TRUE : FALSE;
+    my @args   = grep { $ARG ne '-s' } @ARG;
+    my $type   = shift @args // 'login';
+    if (@args) {
+        say msg( 'refuse', 'add takes one type [ login note contact ]' );
+        return FALSE;
+    }
     if ( not type_fields($type) ) {
         say msg( 'refuse', "unknown type '%s' [ " . "login note contact ]",
             $type );
@@ -655,7 +695,12 @@ sub cmd_add {
 
     my %record = ( type => $type );
     foreach my $field ( type_fields($type) ) {
-        my $value = ask_field( $field, undef ) // return FALSE;
+        my %opt = ( secret => $secret, title => $record{'title'} );
+        ## 'add note' offers 'scratchpad' as the title while no live note
+        ## carries it -- one key away from the everyday scratch note
+        $opt{'default'} = note_title_default($v)
+            if $field eq 'title' and $type eq 'note';
+        my $value = ask_field( $field, undef, %opt ) // return FALSE;
         $record{$field} = $value if length $value;
     }
     if ( not length( $record{'title'} // '' ) ) {
@@ -667,10 +712,25 @@ sub cmd_add {
     return TRUE;
 }
 
-## one field. $current undef : new entry. returns the new value [ '' = none ]
-## or undef on cancel [ end of input ]
+## 'scratchpad' as a default title for a new note, only while no live note
+## carries that title [ case-insensitive ]
+sub note_title_default {
+    my $v       = shift;
+    my ($list)  = entries_latest($v);
+    my ($taken) = grep {
+                lc( $ARG->{'record'}{'type'}  // '' ) eq qw| note |
+            and lc( $ARG->{'record'}{'title'} // '' ) eq qw| scratchpad |
+    } @{$list};
+    return $taken ? undef : qw| scratchpad |;
+}
+
+## one field. $current undef : new entry. %opt :  default -- offered on empty
+## input when there is no current value secret  -- the note body uses the
+## hidden multi-line prompt even on a tty [ the -s flag ]  title   -- the
+## entry's title, for the editor frame  returns the new value [ '' = none ] or
+## undef on cancel [ end of input ]
 sub ask_field {
-    my ( $field, $current ) = @ARG;
+    my ( $field, $current, %opt ) = @ARG;
     my $has = defined $current && length $current;
 
     if ( $field eq 'password' ) {
@@ -696,6 +756,19 @@ sub ask_field {
     }
 
     if ( $field eq 'body' ) {
+        ## a tty edits the body in the shared terminal editor ; -s and pipes
+        ## keep the old hidden prompt, exactly as before
+        if ( -t STDIN and -t STDOUT and not $opt{'secret'} ) {
+            my $edited = note_editor(
+                {   text   => $has ? $current : '',
+                    title  => $opt{'title'} // 'note',
+                    label  => 'note body',
+                    colors => \%C,
+                }
+            );
+            return undef if not defined $edited;    ## editor aborted ##
+            return $edited;
+        }
         if ($has) {
             my $choice = prompt_line('body : k(eep) / r(eplace) [k]')
                 // return undef;
@@ -710,10 +783,27 @@ sub ask_field {
         return $has && !length $new ? $current : $new;
     }
 
-    my $label = $has ? "$field [$current] [ - clears ]" : $field;
-    my $new   = prompt_line($label) // return undef;
-    return '' if $new eq '-';
-    return $has && !length $new ? $current : $new;
+    my $default = $has ? undef : $opt{'default'};
+    my $label
+        = $has             ? "$field [$current] [ - clears ]"
+        : defined $default ? "$field [$default]"
+        :                    $field;
+    my $new = prompt_line($label) // return undef;
+    return ''       if $new eq '-';
+    return $current if $has         and !length $new;
+    return $default if !length $new and defined $default;
+    return $new;
+}
+
+## the shared editor, loaded only when a note body is edited on a tty --
+## nothing else in this script needs Term::ReadKey beyond what it needed
+sub note_editor {
+    my $params = shift;
+    state $have_editor = eval { require AMOS7::TERM::Editor; 1 };
+    die "p7-vault : AMOS7/TERM/Editor.pm not found -- copy it next "
+        . "to this script [ see data/md/design/VAULT-FORMAT.md ]\n"
+        if not $have_editor;
+    return AMOS7::TERM::Editor::edit_text($params);
 }
 
 sub cmd_list {
@@ -739,7 +829,7 @@ sub cmd_show {
     my $type   = $record->{'type'} // 'login';
 
     say '';
-    foreach my $field ( 'type', type_fields($type) ) {
+    foreach my $field ( 'type', 'code', type_fields($type) ) {
         my $value = $record->{$field};
         next if not defined $value or not length $value;
         if ( secret_field($field) and not $reveal ) {
@@ -800,13 +890,19 @@ sub cmd_copy {
 }
 
 sub cmd_edit {
-    my $entry  = pick( join ' ', @ARG ) // return FALSE;
-    my $v      = unlocked()             // return FALSE;
+    my $secret = grep { $ARG eq '-s' } @ARG ? TRUE : FALSE;
+    my @args   = grep { $ARG ne '-s' } @ARG;
+    my $entry  = pick( join ' ', @args ) // return FALSE;
+    my $v      = unlocked()              // return FALSE;
     my %record = %{ $entry->{'record'} };
     delete $record{'updated'};
 
     foreach my $field ( type_fields( $record{'type'} // 'login' ) ) {
-        my $value = ask_field( $field, $record{$field} ) // return FALSE;
+        my $value = ask_field(
+            $field, $record{$field},
+            secret => $secret,
+            title  => $record{'title'}
+        ) // return FALSE;
         if ( length $value ) { $record{$field} = $value }
         else                 { delete $record{$field} }
     }
@@ -830,6 +926,491 @@ sub cmd_rm {
         . "  '$title' deleted [ older versions stay readable in history ]"
         . $C{R};
     return TRUE;
+}
+
+##[ NOTES ]###################################################################
+
+## every note in bin/todo's list style : code column, title, a details marker,
+## and on the right the body size in lines \ bytes plus the last change date
+## from the version name. bodies are never printed
+sub cmd_notes {
+    my $filter = join ' ', @ARG;
+    my $v      = unlocked() // return FALSE;
+    my ( $list, $errors ) = entries_latest($v);
+    say STDERR $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
+
+    my @notes = grep {
+        lc( $ARG->{'record'}{'type'} // '' ) eq qw| note |
+            and matches( $ARG->{'record'}, $filter )
+    } @{$list};
+
+    my $width = list_width();
+
+    say '';
+    say notes_rule( $width, ' .:[ notes ]:. ', TRUE );
+    say '';
+    if ( not @notes ) {
+        say '  ' . $C{0} . '[ no notes ]' . $C{R};
+    } else {
+        say foreach notes_lines( \@notes, $width );
+    }
+    say '';
+    say notes_rule( $width,
+        sprintf( ' [ %d note%s ] ', scalar @notes, @notes == 1 ? '' : 's' ),
+        FALSE );
+    return TRUE;
+}
+
+## rows for cmd_notes, shaped like bin/todo's format_items :  '  <marker>
+## <code>  ·  <title> <pad> <info>'  the marker is '┋' when the body holds
+## text [ bin/todo's details marker ], a space otherwise -- one column, so the
+## codes never shift
+sub notes_lines {
+    my ( $notes, $width ) = @ARG;
+    my @rows;
+    foreach my $entry ( @{$notes} ) {
+        my $record = $entry->{'record'};
+        my $body   = $record->{'body'} // '';
+        my @lines  = split m|\n|, $body, -1;
+        pop @lines if @lines > 1 and $lines[-1] eq '';
+        my $info = sprintf '%d line%s · %d bytes · %s',
+            scalar @lines, @lines == 1 ? '' : 's',
+            length( encode( 'UTF-8', $body ) ),
+            version_date( $entry->{'version'} );
+        my $marker = length $body ? '┋' : ' ';
+        my $code   = $record->{'code'} // '';
+        my $prefix = sprintf '  %s  %-4s·  ', $marker, $code;
+
+        my $title = $record->{'title'} // '';
+        if ($width) {
+            ## the row's own budget : title ellipsizes so prefix + title + gap
+            ## + info stays inside the terminal, like todo
+            my $avail = $width - length($prefix) - length($info) - 2;
+            $title = center_ellipse( $title, $avail ) if $avail >= 5;
+        }
+        push @rows, [ length( $prefix . $title ), $prefix . $title, $info ];
+    }
+
+    my $max = 0;
+    foreach my $row (@rows) { $max = $row->[0] if $row->[0] > $max }
+    return map {
+        my ( $vis, $text, $info ) = @{$ARG};
+        my $line = $text;
+        $line .= ' ' x ( $max - $vis ) if $width and $max > $vis;
+        $line . '  ' . $C{0} . $info . $C{R};
+    } @rows;
+}
+
+## '─' fill with an anchored label, header-style [ label left ] or
+## footer-style [ label right ] ; width 0 [ piped ] gives the bare label
+sub notes_rule {
+    my ( $width, $label, $header ) = @ARG;
+    my $anchor = $C{0} . $label . $C{0};
+    return $anchor . $C{R} if not $width or length($label) + 2 >= $width;
+    my $fill = $width - length $label;
+    if ($header) {
+        return $anchor . ( '─' x $fill ) . $C{R};
+    }
+    return ( '─' x $fill ) . $anchor . $C{R};
+}
+
+## terminal width for the notes list
+## [ 0 when piped : no truncation, like bin/todo's format_items ]
+sub list_width {
+    return 0 if not -t STDOUT;
+    my $columns = $ENV{'COLUMNS'} // 80;
+    return $columns =~ m|^\d+$| && $columns >= 40 ? $columns : 80;
+}
+
+## date of a version name, for the right side of the notes list
+sub version_date {
+    my $unix = version_to_unix( shift // '' ) // return '-';
+    my @time = localtime $unix;
+    return sprintf '%04d-%02d-%02d', $time[5] + 1900, $time[4] + 1, $time[3];
+}
+
+## standalone port of bin/todo's center_ellipse [ keep in step ] : cut
+## characters from the center, splice in '.,.', keep the total length
+sub center_ellipse {
+    my ( $str, $len ) = @ARG;
+    return $str if length($str) <= $len;
+    my $start = int( $len / 2 ) - 1;
+    substr( $str, $start, length($str) - $len + 3, '.,.' );
+    return $str;
+}
+
+## open the note titled 'scratchpad' in the editor, creating it when no live
+## note carries that title. the editor aborts leave everything as it was
+sub cmd_scratchpad {
+    die "p7-vault : scratchpad needs a terminal\n" if not -t STDIN;
+    my $v = unlocked() // return FALSE;
+
+    my ($list) = entries_latest($v);
+    my ($note) = grep {
+                lc( $ARG->{'record'}{'type'}  // '' ) eq qw| note |
+            and lc( $ARG->{'record'}{'title'} // '' ) eq qw| scratchpad |
+    } @{$list};
+
+    my $id     = $note ? $note->{'id'}                   : undef;
+    my $body   = $note ? $note->{'record'}{'body'} // '' : '';
+    my $edited = note_editor(
+        {   text   => $body,
+            title  => 'scratchpad',
+            label  => 'note body',
+            colors => \%C,
+        }
+    ) // return FALSE;
+
+    entry_save( $v, $id,
+        { type => qw| note |, title => qw| scratchpad |, body => $edited } );
+    say $C{g} . "  stored 'scratchpad'" . $C{R};
+    return TRUE;
+}
+
+## give a 3-char code to every live entry that lacks one : one new version
+## each, nothing else touched. saving assigns the code, so this only re-saves
+## the records that need it
+sub cmd_codes {
+    my $v = unlocked() // return FALSE;
+    my ( $list, $errors ) = entries_latest($v);
+    say STDERR $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
+
+    my @missing
+        = grep { not length( $ARG->{'record'}{'code'} // '' ) } @{$list};
+    if ( not @missing ) {
+        say msg( 'info', 'every entry already has a code' );
+        return TRUE;
+    }
+    say msg(
+        'info',
+        '%s %s without a code :',
+        scalar @missing,
+        @missing == 1 ? 'entry' : 'entries'
+    );
+    say '  ' . summary_line( $ARG + 1, $missing[$ARG]{'record'} )
+        foreach 0 .. $#missing;
+    return FALSE
+        if not confirm( 'one new version each [ the old '
+            . 'ones stay in history ] -- go ahead' );
+
+    foreach my $entry (@missing) {
+        my %record = %{ $entry->{'record'} };
+        delete $record{'updated'};
+        entry_save( $v, $entry->{'id'}, \%record );
+        my ($now) = entry_load( $v, $entry->{'id'} );
+        say $C{g}
+            . sprintf( "  %s -> %s%s%s",
+            $record{'title'} // $entry->{'id'},
+            $C{0}, $now->{'code'} // '', $C{R} );
+    }
+    return TRUE;
+}
+
+##[ SYNC ]####################################################################
+
+## manual union of the entry files with another host :  p7-vault sync
+## <ssh-host>[:<remote dir>]
+## [ remote dir default : .n/vault in the remote home ]  one ssh call reads
+## the remote vault id [ from the key file, which sits in the clear ] and
+## lists the remote entries/ names + sha1 sums. a different vault id is
+## refused, a missing remote vault is refused with a hint. missing files
+## travel as ONE tar stream per direction, into a temp dir inside the vault,
+## and each file lands in entries/ only when absent -- never replaced, never
+## deleted. the key files are never transferred : differing content means a
+## passphrase change on one side, reported with a hint to copy vault.key.B32
+## over by hand once. no unlock needed, the files are opaque. the ssh command
+## comes from P7_VAULT_SSH [ default 'ssh' ] so ControlMaster or a test
+## wrapper can stand in
+sub cmd_sync {
+    my $target = shift // do {
+        say msg( 'info',
+            'sync <ssh-host>[:<remote dir>] [ ssh via P7_VAULT_SSH ]' );
+        return FALSE;
+    };
+    my ( $host, $remote ) = split m{:}, $target, 2;
+    $remote = qw| .n/vault |
+        if not defined $remote or not length $remote;
+
+    if ( not length $host ) {
+        say msg( 'refuse', 'sync needs an ssh host' );
+        return FALSE;
+    }
+    ## shell-safe only : the remote side is re-quoted at every use, and a dir
+    ## that could break out of the quoting is refused here
+    if ( $remote !~ m{\A[0-9A-Za-z._~/-]+\z} ) {
+        say msg( 'refuse', "unsafe remote dir '%s'", $remote );
+        return FALSE;
+    }
+    if ( not vault_exists($dir) ) {
+        say msg( 'refuse', 'no vault in %s', $dir );
+        return FALSE;
+    }
+    my ($vh) = vault_open($dir);    ## locked is enough : the id is clear ##
+
+    my @ssh = split m{\s+}, ( $ENV{'P7_VAULT_SSH'} // qw| ssh | );
+
+    ## local entry files : names matching the entry pattern, sha1 by content
+    my %local_sha;
+    my $local_invalid = 0;
+    opendir( my $dh, "$dir/entries" ) or do {
+        say msg( 'refuse', 'cannot read %s', "$dir/entries" );
+        return FALSE;
+    };
+    while ( my $name = readdir $dh ) {
+        next if $name =~ m|^\.|;
+        if ( $name =~ $AMOS7::Vault::ENTRY_FILE_RE ) {
+            $local_sha{$name} = file_sha1("$dir/entries/$name");
+        } else {
+            $local_invalid++;
+        }
+    }
+    closedir $dh;
+
+    ## ONE ssh call : key file, entry names, sha1 sums
+    my $probe = join ' ',
+        'cd ' . shq($remote),
+        '2>/dev/null && {',
+        'echo P7VAULT-KEY;',
+        'cat vault.key.B32 2>/dev/null;',
+        'echo P7VAULT-LS;',
+        'ls entries 2>/dev/null;',
+        'echo P7VAULT-SHA;',
+        '( cd entries 2>/dev/null && sha1sum * 2>/dev/null );',
+        'echo P7VAULT-END;',
+        '}';
+    my ( $out, $probe_ok ) = run_capture( @ssh, $host, $probe );
+    if ( not $probe_ok or not defined $out or $out !~ m|P7VAULT-KEY| ) {
+        say msg( 'refuse',
+            "no vault in '%s' [ on %s ] -- copy the key file first",
+            $remote, $host );
+        say msg( 'info', 'scp %s %s:%s', shq( _key_path_local() ),
+            $host, shq($remote) );
+        return FALSE;
+    }
+
+    my ($key_text) = $out =~ m|P7VAULT-KEY\n(.*?)P7VAULT-LS|s;
+    my ($ls_text)  = $out =~ m|P7VAULT-LS\n(.*?)P7VAULT-SHA|s;
+    my ($sha_text) = $out =~ m|P7VAULT-SHA\n(.*?)P7VAULT-END|s;
+
+    ## the remote vault id : the key file is in the clear -- parsed by the
+    ## vault's own key file parser [ format + kdf checked too ]
+    my $key_bin = AMOS7::Vault::_b32_text_decode( $key_text // '' );
+    my ($remote_vault)
+        = defined $key_bin
+        ? AMOS7::Vault::_key_file_parse( $key_bin, $remote )
+        : ();
+    my $remote_id = ref $remote_vault ? $remote_vault->{'id'} : undef;
+    if ( not defined $remote_id ) {
+        say msg( 'refuse', "%s : '%s' holds no vault key file",
+            $host, $remote );
+        return FALSE;
+    }
+    if ( $remote_id ne $vh->{'id'} ) {
+        say msg( 'refuse', 'different vault [ %s : %s ] -- refusing',
+            $host, $remote_id );
+        return FALSE;
+    }
+
+    ## remote entry names from the listing : every name passes the same strict
+    ## pattern before it can travel -- a hostile name never reaches a path
+    ## join
+    my %remote_sha;
+    my $remote_invalid = 0;
+    foreach my $line ( split m|\n|, $ls_text // '' ) {
+        $remote_invalid++, next
+            if $line !~ $AMOS7::Vault::ENTRY_FILE_RE;
+        $remote_sha{$line} = undef;    ## filled from the sha1 lines ##
+    }
+    foreach my $line ( split m|\n|, $sha_text // '' ) {
+        my ( $sha, $name ) = $line =~ m|\A([0-9a-f]{40})  (\S+)|;
+        next if not defined $sha;
+        next if $name !~ $AMOS7::Vault::ENTRY_FILE_RE;
+        $remote_sha{$name} = $sha;
+    }
+
+    ## the key files are never transferred -- a content difference means a
+    ## passphrase change on one side : say how to reconcile, keep going
+    my $local_key_sha  = file_sha1( _key_path_local() );
+    my $remote_key_sha = text_sha1( $key_text // '' );
+    if ( $local_key_sha ne $remote_key_sha ) {
+        say $C{o}
+            . '  << the key files differ -- a passphrase change on one side? '
+            . 'copy vault.key.B32 over by hand, once, then sync again '
+            . '[ entries still unite below ] >>'
+            . $C{R};
+    }
+
+    my @push_names = sort grep { not exists $remote_sha{$ARG} }
+        keys %local_sha;
+    my @pull_names = sort grep { not exists $local_sha{$ARG} }
+        keys %remote_sha;
+    my @conflicts = sort grep {
+                exists $local_sha{$ARG}
+            and defined $remote_sha{$ARG}
+            and $local_sha{$ARG} ne $remote_sha{$ARG}
+        }
+        keys %remote_sha;
+
+    ## push : ONE tar stream, extracted into a temp dir inside the remote
+    ## vault, each file moved into entries/ only when absent
+    my $pushed       = 0;
+    my $push_skipped = 0;
+    if (@push_names) {
+        my $entries_dir = shq("$remote/entries");
+        my $case_pattern
+            = ( '?' x 16 ) . '.'
+            . ( '?' x 14 ) . '.'
+            . ( '?' x 8 )
+            . '.vlt.B32';
+        my $receive = join ' ',
+            'd=$(mktemp -d ' . shq("$remote/.p7-sync.XXXXXXXX") . ')',
+            '&& tar -C "$d" -xf -',
+            "&& { [ -d $entries_dir ] || mkdir $entries_dir; }",
+            '&& moved=0; skipped=0;',
+            'for f in "$d"/*; do',
+            'b=${f##*/};',
+            'case "$b" in',
+            "$case_pattern)",
+            "[ -e $entries_dir/" . '"$b" ]',
+            '&& skipped=$((skipped+1))',
+            '|| { mv "$f" ' . "$entries_dir/" . '"$b"',
+            '&& moved=$((moved+1)); } ;;',
+            'esac;',
+            'done;',
+            'rm -rf "$d";',
+            'echo P7SYNC moved=$moved skipped=$skipped';
+        my $pipeline = sprintf '%s | %s %s %s',
+            join( ' ',
+            'tar', '-C', shq("$dir/entries"), '-cf', '-', '--', @push_names ),
+            join( ' ', @ssh ), shq($host), shq($receive);
+        my ( $pout, $pok ) = run_capture($pipeline);
+        my ( $moved, $skipped )
+            = ( $pout // '' ) =~ m|P7SYNC moved=(\d+) skipped=(\d+)|;
+        if ( not $pok or not defined $moved ) {
+            say msg( 'refuse', 'push to %s failed [ nothing was replaced ]',
+                $host );
+            return FALSE;
+        }
+        $pushed       = $moved;
+        $push_skipped = $skipped;
+    }
+
+    ## pull : the same the other way, through a local temp dir inside the
+    ## vault, then the vault's own write-new-file rule per file
+    my ( $pulled, $pull_conflicts ) = ( 0, 0 );
+    if (@pull_names) {
+        my $tmp = sprintf '%s/.p7-sync.%s.%s', $dir, $PID,
+            AMOS7::Vault::_b32( AMOS7::Vault::_random_bytes(4) );
+        mkdir $tmp, 0700 or do {
+            say msg( 'refuse', 'cannot create %s', $tmp );
+            return FALSE;
+        };
+        ## the local tar extracts only the validated names        ##
+        ## [ a hostile stream cannot add paths or extra members ] ##
+        my $pipeline = sprintf '%s %s %s | tar -C %s -xf - -- %s',
+            join( ' ', @ssh ), shq($host),
+            shq(
+            join ' ',
+            'cd ' . shq("$remote/entries"),
+            '&& tar -cf - --', @pull_names
+            ),
+            shq($tmp), join( ' ', @pull_names );
+        my ( undef, $pok ) = run_capture($pipeline);
+        if ( not $pok ) {
+            unlink glob "$tmp/*";
+            rmdir $tmp;
+            say msg( 'refuse', 'pull from %s failed', $host );
+            return FALSE;
+        }
+        opendir( my $tdh, $tmp );
+        while ( my $name = readdir $tdh ) {
+            next if $name =~ m|^\.|;
+            my $src = "$tmp/$name";
+            ## a symlink would pull in whatever it points to : refused ##
+            if (   $name !~ $AMOS7::Vault::ENTRY_FILE_RE
+                or -l $src
+                or not -f _ ) {
+                ## hostile content in the stream : refused, deleted ##
+                $remote_invalid++;
+                unlink $src;
+                next;
+            }
+            my $target = "$dir/entries/$name";
+            if ( -e $target ) {
+                ## appeared meanwhile : same content is fine, different is a
+                ## conflict -- never replaced
+                $pull_conflicts++
+                    if file_sha1($target) ne file_sha1($src);
+                next;
+            }
+            open( my $fh, '<:raw', $src ) or next;
+            my $content = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+            close $fh;
+            my ( $ok, $err )
+                = AMOS7::Vault::_write_new_file( $target, $content );
+            if   ($ok) { $pulled++ }
+            else       { say STDERR msg( 'refuse', '%s', $err ) }
+        }
+        closedir $tdh;
+        unlink glob "$tmp/*";
+        rmdir $tmp;
+    }
+
+    say msg(
+        'info',
+        'ignored %s invalid file name%s [ never transferred ]',
+        $local_invalid + $remote_invalid,
+        $local_invalid + $remote_invalid == 1 ? '' : 's'
+    ) if $local_invalid or $remote_invalid;
+
+    my $conflict_count = @conflicts + $push_skipped + $pull_conflicts;
+    if (@conflicts) {
+        say $C{o}
+            . '  << conflict : same name, different content -- left alone :'
+            . $C{R};
+        say "     $C{V}$ARG$C{R}" foreach @conflicts;
+    }
+    say msg(
+        $conflict_count ? 'refuse' : 'done',
+        'pushed %s, pulled %s, conflicts %s',
+        $pushed, $pulled, $conflict_count
+    );
+    return $conflict_count ? FALSE : TRUE;
+}
+
+sub _key_path_local { return "$dir/vault.key.B32" }
+
+## single-quote for a remote sh -c string
+sub shq {
+    my $text = shift // '';
+    $text =~ s|'|'\\''|g;
+    return "'$text'";
+}
+
+## run a command [ list, or one shell string ] capturing stdout ; stderr stays
+## on our stderr. returns ( stdout, exit-ok )
+sub run_capture {
+    my @cmd = @ARG;
+    open( my $pipe, '-|', @cmd )
+        or return ( undef, FALSE );
+    my $out = do { local $INPUT_RECORD_SEPARATOR; <$pipe> }
+        // '';
+    close $pipe;
+    return ( $out, $? == 0 ? TRUE : FALSE );
+}
+
+sub file_sha1 {
+    my $path = shift;
+    open( my $fh, '<:raw', $path ) or return undef;
+    my $content = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+    close $fh;
+    return text_sha1($content);
+}
+
+sub text_sha1 {
+    state $have_sha1 = eval { require Crypt::Digest::SHA1; 1 };
+    die "p7-vault : Crypt::Digest::SHA1 missing\n" if not $have_sha1;
+    return Crypt::Digest::SHA1::sha1_hex( shift // '' );
 }
 
 sub cmd_history {
@@ -1144,8 +1725,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,..,.,,,.,,,...,,,.,.,,,,.,,,,.,.,.,..,,...,..,,...,...,,,.,,,,,,.,,..,,.,.,
-#HXYIWKNPV5M6HZS74SECUR2FXX5ALL267OMICLB5CKV7OTHMDHOD4E4VC6Z5NU6EFR6GB6VILUKII
-#\\\|NFK2C423QLGVXJSZG2X7TOMORJXJGMNZQGBT4CN4TTX4SR5IXNB \ / AMOS7 \ YOURUM ::
-#\[7]AQVQR3UWM626QVH2MF7HGBBJ6BGTEHMQYHAQ3QFLZ4UEXDZLIWCY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,..,.,,,,,.,..,,..,,...,.,.,,,,,..,,...,...,...,,,.,..,,...,.,.,
+#N324M2NKLUAEZKU5Z7LTTSVYL3XVRP3JJNH6MCT6TA5VJLWLAB4X37V24FZGXTB2Q6JDYFOBSXB2W
+#\\\|HWEWEESWUOSJSIHXVPLLPISHHKFOXPQACLFYPTPSXUDJKSCTNPZ \ / AMOS7 \ YOURUM ::
+#\[7]3ACUX2DZXON36INNJZQA3THZOQSPUANWM276CPSPGEFFWYXVOGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
