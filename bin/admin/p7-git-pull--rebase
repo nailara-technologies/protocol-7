@@ -22,6 +22,12 @@ chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
 ## brings it back tracked. a differing file is left and still refuses   ##
 system(qw| git fetch --quiet |) == 0
     or die ":\n:: git fetch failed : $OS_ERROR\n\n";
+
+## refresh the index stat info -- a file with only a newer timestamp   ##
+## [ same content ] would otherwise refuse the pull as 'not uptodate'  ##
+## non-zero exit = real modifications, the check below reports those   ##
+system(qw| git update-index -q --refresh |);
+
 foreach my $path ( split m|\0|, git_out(qw| ls-files --others --exclude-standard -z |) )
 {
     next if not length $path or -l $path or not -f $path;
@@ -102,8 +108,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,.,,,,,,,.,,.,,,.,,,,..,,.,,,..,.,.,,..,.,,,..,,...,.,,,,..,,.,,...,,.,,,..,
-#KURNYPXTCN6TDJ2GTYTV5UKKYGVTD2XGL2LSIMJILORR2SZ2VB3UDW6XUWYHOFPU3P4BCMSLB35T6
-#\\\|JI2F6X32UP64XIYVIGSHA3CH5NVWTLYCTAG4JDMY5PF7LVXAESF \ / AMOS7 \ YOURUM ::
-#\[7]NCM5UESC7QDAW4XZCZ44MXTUIO66NBTPOPH56SCD67EQHP5QCGBY 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,.,.,,,.,,.,,,,,,.,.,,.,,,,.,..,,...,...,..,,,..,,,.,,,.,,,,,
+#R66LQUTK5XRBKCOCMNJN5BV3N4GTDH2LX2FN5WUYTT3IHJEWXWLBIZZ3URN2SLDYK52FCSL3HZM2Q
+#\\\|RS5WDY6PTXHD7ASJGDKLRS7FW4VVQGOTCHZU46N73YQ6UHO3R3B \ / AMOS7 \ YOURUM ::
+#\[7]PXAKBQCBJDY5K3742RTPB4FEHUCBZAHOL5OVPAW6MU5C7NINZADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
