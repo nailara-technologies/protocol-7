@@ -52,8 +52,8 @@ p7_load_code(qw| base |);       ## loading remaining base module routines ##
 
 $data{'system'}{'start'}{'program_name'} = $PROGRAM_NAME;
 
-## walk the invoked name through its symlink chain to a zenka name [ see ##
-## data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md ]                    ##
+## walk the invoked name through its symlink chain to a zenka name ##
+## [ see data/md/design/ZENKA-SYMLINK-CHAIN-RESOLUTION.md ]        ##
 my $start_chain = p7_resolve_zenka_symlink_chain();
 my $zenkaname   = $start_chain->{'zenka_name'};
 
@@ -429,8 +429,8 @@ sub p7_resolve_zenka_symlink_chain {
     ## follows the filesystem symlink chain from the invoked name until a   ##
     ## recognized 'p7-<zenka>' [ or legacy ] segment names the zenka, or a  ##
     ## real file ends the chain, collecting every name walked on the way.   ##
-    ## side-effect free : @ARGV is never modified here -- this runs twice [ ##
-    ## p7_early_whitelist_load peeks first, the main flow resolves next ]   ##
+    ## side-effect free : @ARGV is never modified here -- this runs twice   ##
+    ## [ p7_early_whitelist_load peeks first, the main flow resolves next ] ##
 
     my $start_path = shift;    ##  own invocation when not given  ##
     my $own_lookup = not defined $start_path;
@@ -538,8 +538,8 @@ sub p7_early_whitelist_load {    ##  load sub whitelist before base module  ##
 
     ## peek at zenka name non-destructively [ before @ARGV is processed ] ##
     ## -- the resolver never touches @ARGV, the bare-argument form is     ##
-    ## consumed at the main call site alone [ this one runs first, and    ##
-    ## twice ]                                                            ##
+    ## consumed at the main call site alone                               ##
+    ## [ this one runs first, and twice ]                                 ##
     my $zenkaname = p7_resolve_zenka_symlink_chain()->{'zenka_name'};
 
     return unless defined $zenkaname and length $zenkaname;
@@ -1106,8 +1106,8 @@ sub p7_ntime {    # [ netw. time : secs from 2002-06-05 * 4200 ]
     my $ntime = sprintf qw| %.*f |, $ntime_precision, $ntime_now;
 
     ## harmony is asserted on the returned value itself : stepping back one ##
-    ## ntime unit at a time to the latest harmonic value, no waiting [      ##
-    ## never in the future, monotonic across calls ]                        ##
+    ## ntime unit at a time to the latest harmonic value, no waiting        ##
+    ## [ never in the future, monotonic across calls ]                      ##
     while ( $want_harmony
         and not $code{'base.assert.harmony'}->( $ntime, 0 )
         and $retries_left-- > 0 ) {
@@ -1603,14 +1603,14 @@ sub consume_body {
         $end );
 }
 
-## second body of s///, tr///, y/// : $pos is right after the first body's  ##
-## close delim. for paired delimiters a fresh open char follows [ maybe     ##
-## after whitespace ]; for same-char delimiters the same delim continues.   ##
-## returns ( $open2, $close2, $inner2, $pos_after, $body2_start,            ##
-## $has_own_open_char ). for paired delimiters body2 carries its own        ##
-## literal opening char in the source [ needs re-emitting ] ; for same-char ##
-## delimiters it does not [ the middle delimiter was already emitted as     ##
-## body1's close ]                                                          ##
+## second body of s///, tr///, y/// : $pos is right after the first body's ##
+## close delim. for paired delimiters a fresh open char follows            ##
+## [ maybe after whitespace ]; for same-char delimiters the same delim     ##
+## continues.  returns ( $open2, $close2, $inner2, $pos_after,             ##
+## $body2_start, $has_own_open_char ). for paired delimiters body2 carries ##
+## its own literal opening char in the source [ needs re-emitting ] ; for  ##
+## same-char delimiters it does not                                        ##
+## [ the middle delimiter was already emitted as body1's close ]           ##
 sub consume_second_body {
     my ( $sref, $pos, $open1, $close1 ) = @ARG;
     if ( $open1 ne $close1 ) {
@@ -1631,10 +1631,11 @@ sub consume_second_body {
 my %P7SYN_QLIKE = map { $ARG => 1 } qw| q qq qw qr m s tr y |;
 
 ## true when $pos sits on a segment of a '<..>' data key chain : directly ##
-## after '<' or after a key chain character inside it [ both the 'y' and  ##
-## the '-y' remainder of 'qq-y' in <x.qq-y> ]. scans back over key chain  ##
-## characters [ word, '-', '.', ':' ] -- reaching '<' means inside a key. ##
-## any other left context stops the scan before a '<' can be reached      ##
+## after '<' or after a key chain character inside it                     ##
+## [ both the 'y' and the '-y' remainder of 'qq-y' in <x.qq-y> ]. scans   ##
+## back over key chain characters [ word, '-', '.', ':' ] -- reaching '<' ##
+## means inside a key. any other left context stops the scan before a '<' ##
+## can be reached                                                         ##
 sub inside_key_chain {
     my ( $sref, $pos ) = @ARG;
     my $p = $pos - 1;
@@ -1666,10 +1667,10 @@ sub match_qlike_op {
     return ( $kw, $p );
 }
 
-## interpolation class of one delimited body, mirroring real perl :         ##
-## q()/qw()/tr///y/// never interpolate ; '-delimited bodies never          ##
-## interpolate [ m'..' s'..'..' qr'..' ] ; everything else [ qq m s qr with ##
-## a non-' delim, plain "..." ] interpolates by default                     ##
+## interpolation class of one delimited body, mirroring real perl :      ##
+## q()/qw()/tr///y/// never interpolate ; '-delimited bodies never       ##
+## interpolate [ m'..' s'..'..' qr'..' ] ; everything else               ##
+## [ qq m s qr with a non-' delim, plain "..." ] interpolates by default ##
 sub qlike_class {
     my ( $kw, $delim ) = @ARG;
     return 'NEVER' if $kw eq qw|q|  or $kw eq qw|qw|;
@@ -2025,14 +2026,16 @@ sub p7_syntax__scan {
     return $out;
 }
 
-## scan in byte mode : every structural character this scanner keys on is   ##
-## ascii, and utf-8 is self-synchronizing [ no ascii byte ever occurs       ##
-## inside a multi-byte sequence ], so byte-level scanning is equivalent --  ##
-## but it avoids perl's character-index arithmetic on utf8-flagged strings, ##
-## which the scanner's substr/pos access pattern makes pathological [       ##
-## measured 42x slower on a 75k module file ]. every module source reaches  ##
-## this translator utf8-flagged [ bin/Protocol-7 opens with                 ##
-## :encoding(UTF-8) ], so this is the common path, not an edge case         ##
+## scan in byte mode : every structural character this scanner keys on is  ##
+## ascii, and utf-8 is self-synchronizing                                  ##
+## [ no ascii byte ever occurs inside a multi-byte sequence ], so          ##
+## byte-level scanning is equivalent -- but it avoids perl's               ##
+## character-index arithmetic on utf8-flagged strings, which the scanner's ##
+## substr/pos access pattern makes pathological                            ##
+## [ measured 42x slower on a 75k module file ]. every module source       ##
+## reaches this translator utf8-flagged                                    ##
+## [ bin/Protocol-7 opens with  :encoding(UTF-8) ], so this is the common  ##
+## path, not an edge case                                                  ##
 sub p7_syntax__translate
 {    ## p7 syntax -> perl [ becomes base.syntax.translate ]
 
@@ -2271,18 +2274,18 @@ sub p7_load_code {
                         if $data{'code'}{$file_name}{'deferred_stub'}
                         and not $nested_hook_ancestor_in_batch;
 
-                    ## else : real compiled code already lands at this key, ##
-                    ## or this is a nested hook whose ancestor is being     ##
-                    ## bulk-loaded right here -- fall through to a normal   ##
-                    ## compile so it stays reachable by reload instead of   ##
-                    ## being silently excluded forever [ see data/tasks/    ##
-                    ## completed/loader-reload-stale-cmd-modules.md ] and   ##
-                    ## isn't left to an expensive solo lazy-compile later [ ##
-                    ## see loader-eager-compile-nested-hooks-under-         ##
-                    ## loaded-ancestor.md ]  clear now-stale flag -- about  ##
-                    ## to compile for real, a later pass with the ancestor  ##
-                    ## NOT in its batch must not misread this as "still     ##
-                    ## just a stub"                                         ##
+                    ## else : real compiled code already lands at this key,       ##
+                    ## or this is a nested hook whose ancestor is being           ##
+                    ## bulk-loaded right here -- fall through to a normal         ##
+                    ## compile so it stays reachable by reload instead of         ##
+                    ## being silently excluded forever [ see data/tasks/          ##
+                    ## completed/loader-reload-stale-cmd-modules.md ] and         ##
+                    ## isn't left to an expensive solo lazy-compile later [       ##
+                    ## see                                                        ##
+                    ## loader-eager-compile-nested-hooks-under-loaded-ancestor.md ##
+                    ## ]  clear now-stale flag -- about to compile for            ##
+                    ## real, a later pass with the ancestor NOT in its            ##
+                    ## batch must not misread this as "still just a stub"         ##
                     delete $data{'code'}{$file_name}{'deferred_stub'};
                 }
 
@@ -2331,8 +2334,8 @@ sub p7_load_code {
                 #                     continuation lines before processing ..,
                 my $orig_len = length $data{'code'}{$file_name}{'source'};
                 ## join continuation lines first [ lines ending with ->,
-                ## comma, operators but skip protected lines [ comments, POD,
-                ## special sections ]
+                ## comma, operators but skip protected lines
+                ## [ comments, POD, special sections ]
                 my @lines = split "\n", $data{'code'}{$file_name}{'source'};
                 my @joined;
                 my $heredoc_end;      ## heredoc terminator tracking ##
@@ -2358,8 +2361,8 @@ sub p7_load_code {
                     }
 
                     ## detect heredoc opener [ <<'TAG' <<"TAG" <<~'TAG' ] ##
-                    ## require operator context before <<  [ prevents     ##
-                    ## matching << inside string literals ]               ##
+                    ## require operator context before <<                 ##
+                    ## [ prevents matching << inside string literals ]    ##
                     if ( $line =~ m{(?:^|[=\(,;\s])<<~?\s*(['"])(\w+)\1} ) {
                         $heredoc_end = $2;
                     }
@@ -2551,14 +2554,15 @@ sub p7_load_code {
             ## invoked.  it is NOT meant to make the underlying sub
             ## uncompileable : a `next` here used to skip compiling the sub at
             ## all, so any LEGITIMATE internal <[...]> call site within the
-            ## SAME zenka's own code [ e.g. plugin.user-edit.key-
-            ## details.render's <[crypt.C25519.cmd.get-public-key]> ] could
-            ## never resolve -- confirmed live, 2026-08-16 : that exact call
-            ## left the sub perpetually stubbed, and base.handler.
-            ## deferred_compile's goto handoff recursed into the stub forever
-            ## once whitelist-deferred, aborting the zenka.  only skip the
-            ## DISPATCH-TABLE registration [ and the collision check that
-            ## exists to protect it ] below, never the compile
+            ## SAME zenka's own code [ e.g.
+            ## plugin.user-edit.key-details.render's
+            ## <[crypt.C25519.cmd.get-public-key]> ] could never resolve --
+            ## confirmed live, 2026-08-16 : that exact call left the sub
+            ## perpetually stubbed, and base.handler.  deferred_compile's goto
+            ## handoff recursed into the stub forever once whitelist-deferred,
+            ## aborting the zenka.  only skip the DISPATCH-TABLE registration
+            ## [ and the collision check that exists to protect it ] below,
+            ## never the compile
             my $cmd_disabled = $cmd_type eq qw| cmd |
                 and exists $disabled_commands{$cmd_name};
 
@@ -2568,11 +2572,11 @@ sub p7_load_code {
                 if ( $sub_name ne $old_sub ) {
                     ## different file claiming the same cmd -- always a    ##
                     ## namespace accident in this system, never a feature, ##
-                    ## so log.error [ always-visible ] not log.devmod [    ##
-                    ## dev-only chatter ] -- silent last-wins overwrite    ##
-                    ## previously buried this class of bug until live-     ##
-                    ## tested [ ncode.cmd.review vs context.cmd.review,    ##
-                    ## 2026-07-24 ]                                        ##
+                    ## so log.error [ always-visible ] not log.devmod      ##
+                    ## [ dev-only chatter ] -- silent last-wins overwrite  ##
+                    ## previously buried this class of bug until           ##
+                    ## live-tested [ ncode.cmd.review vs                   ##
+                    ## context.cmd.review, 2026-07-24 ]                    ##
                     if (not exists $data{'base'}{'overwritten'}{$cmd_type}
                         {$cmd_name} ) {
                         $code{'log.error'}->(
@@ -2996,19 +3000,21 @@ sub p7_load_code {
     ## load : subs already installed directly — no swap needed              ##
     ##                                                                      ##
     ## $is_reload_batch alone missed a real third case : a module that was  ##
-    ## only ever STUBBED at startup [ whitelist-deferred, never previously  ##
-    ## compiled ] being compiled for the first time via a later             ##
-    ## runtime/deferred-compile call, once $active_version is already set.  ##
-    ## that batch has no sub with a prior 'no-error'/ 'warned' status, so   ##
-    ## $is_reload_batch stays FALSE, yet it also is not the very-first-load ##
-    ## case [ $active_version already defined ] -- it fell through to the   ##
+    ## only ever STUBBED at startup                                         ##
+    ## [ whitelist-deferred, never previously compiled ] being compiled for ##
+    ## the first time via a later runtime/deferred-compile call, once       ##
+    ## $active_version is already set.  that batch has no sub with a prior  ##
+    ## 'no-error'/ 'warned' status, so $is_reload_batch stays FALSE, yet it ##
+    ## also is not the very-first-load case                                 ##
+    ## [ $active_version already defined ] -- it fell through to the        ##
     ## discard branch below, so a successful deferred compile never reached ##
     ## %code and base.handler.  deferred_compile's goto handoff kept        ##
     ## re-entering the still-a-stub sub, recursing until Perl's own depth   ##
-    ## guard aborted the zenka [ confirmed live, 2026-08-16 :               ##
-    ## crypt.C25519.cmd.get-public-key ].  any successful compile after the ##
-    ## initial load must be applied, whether or not anything in the batch   ##
-    ## happens to be a RELOAD of previously-working code                    ##
+    ## guard aborted the zenka                                              ##
+    ## [ confirmed live, 2026-08-16 : crypt.C25519.cmd.get-public-key ].    ##
+    ## any successful compile after the initial load must be applied,       ##
+    ## whether or not anything in the batch happens to be a RELOAD of       ##
+    ## previously-working code                                              ##
     if ( defined $active_version and not $err_count ) {
 
         ## archive prior version under its load-seq key  using seq key ##
@@ -3058,8 +3064,8 @@ sub p7_load_code {
 
     } elsif ( not defined $active_version ) {
 
-        ## base first load : mark version without swapping  [ subs already ##
-        ## in %code via direct install above ]                             ##
+        ## base first load : mark version without swapping    ##
+        ## [ subs already in %code via direct install above ] ##
         $active_version = $new_version;
 
     }   ##  else : staging discarded, %code unchanged, old code stays live  ##
@@ -3124,9 +3130,9 @@ sub p7_devmod_sub {
     ## base.stdout.raw_fh, or whatever gets added to the write path next ]  ##
     ## is itself a traced sub under verbosity>2 and would call back in here ##
     ## -- name-based exclusion lists proved fragile [ missed twice ], this  ##
-    ## blocks *any* reentrant call unconditionally instead. 'local' [ not   ##
-    ## 'state'/'my' -- those can't be localized ] auto-resets on every exit ##
-    ## path, including an unexpected die                                    ##
+    ## blocks *any* reentrant call unconditionally instead. 'local'         ##
+    ## [ not 'state'/'my' -- those can't be localized ] auto-resets on      ##
+    ## every exit path, including an unexpected die                         ##
     return if $p7_devmod_sub_tracing;
     local $p7_devmod_sub_tracing = TRUE;    ##  true  ##
 
@@ -3274,8 +3280,8 @@ sub p7_devmod_sub {
 
         ## this call site only -- every other 'say'/print in bin/Protocol-7 ##
         ## is untouched. loop on syswrite instead of trusting a single      ##
-        ## 'say' to complete -- a short/interrupted write into this pipe [  ##
-        ## read by v7.handler.zenka_output on the other end ] would         ##
+        ## 'say' to complete -- a short/interrupted write into this pipe    ##
+        ## [ read by v7.handler.zenka_output on the other end ] would       ##
         ## previously drop the remainder silently.  base.stdout.raw_fh      ##
         ## gives an unlayered, redirectable write target -- see             ##
         ## data/md/design/STDIO-MULTIPLEX-PROTOCOL.md                       ##
@@ -3715,10 +3721,15 @@ sub p7_banner {
             $bg_0, $fg, ' ', $rst, "\r"
         }
         split( m|\n|, $nailara_header );
+    ## gap between the two version strings : fills the 77 inner columns  ##
+    ## [ one space each side ], so longer version strings keep the frame ##
+    my $gap = 77 - 2 - length($version_str) - length($release_str);
+    $gap = 1 if $gap < 1;
+
     say $px, $bg_0, $fg, ' ', $bg_1, ' ' x 77, $bg_0 . $fg, ' ', $rst,
         "\n",
         $px, $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $version_str, $bg_1,
-        '    ',
+        ' ' x $gap,
         $bg_0, $fg, $release_str, $bg_1, ' ', $bg_0 . $fg, ' ', $rst,
         "\n", $px, $fg, $bg_0, '/', $bg_1, ' ' x 77, $bg_0 . $fg, '\\',
         $rst,
@@ -6656,8 +6667,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,,,,.,,...,...,,,.,.,.,.,,,..,,.,,,.,.,..,,...,...,..,,,.,,,.,,,,,,.,,,
-#POSIO4RRPTM3WHTQWW6PYGQBC44UY2H7ON7VXE5O7SKJJAMTW7F3C2CD4E6ZP6VYP66XD75CVRDVQ
-#\\\|JMZNLFDO5YBZRMNRIKZUVYG3J7WDJXU7COMPVKZ53G2XUX7IAZ2 \ / AMOS7 \ YOURUM ::
-#\[7]SS5GPAD5B46O67K7FRWVHA6TWS2NOPXQ5WQWDJ5P5UCZXCK7DOCA 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,..,,,,,,,.,,...,,,.,,.,,,,,,..,,...,..,,.,.,,.,,,,,,,,,,,..,
+#JP6GJV3QWRKOGSM47PVLMFSGK2V3KFTDRL552MLY6HYVI2QCSQ73DVWCHMKV7GKVGPPIJPFFSZ2OQ
+#\\\|PPWBCDL6BFXZUO44FXQDTNL4SEM5ANBFNZIJOX3VCGMJ33ROEK4 \ / AMOS7 \ YOURUM ::
+#\[7]WTN6XFD6HPF6NZT33TZTFOJW62HO2JMTFHGNJ5X3KTMQY6JQ6GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
