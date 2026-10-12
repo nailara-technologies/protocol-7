@@ -1,0 +1,221 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Cwd     qw| abs_path |;
+use FindBin qw| $RealBin |;
+use File::Temp qw| tempdir |;
+
+## prepares a fresh debian / ubuntu vm so that 'bin/format-code -c' and the ##
+## standalone nameserv tests [ entry stage1, sync stage2 ] run. apt first,  ##
+## cpanm only for modules apt has no package for. idempotent : a module    ##
+## that already loads is skipped, a second run installs nothing            ##
+
+our $up_dir = File::Spec->updir;
+our $Bin    = $RealBin;
+
+## module => apt package [ undef = not packaged, comes from cpan ] ##
+## who needs it :                                                   ##
+##   format-code    : PPI, Perl::Tidy, List::MoreUtils              ##
+##   nameserv tests : YAML::XS, Digest::BMW [ chk-sum.bmw stub ],   ##
+##                    Crypt::Ed25519 [ nameserv.sync.accept and     ##
+##                    nameserv.sync.client.apply_reply, stage2 ]    ##
+my @modules = (
+    [qw| PPI             libppi-perl            |],
+    [qw| Perl::Tidy      perltidy               |],
+    [qw| List::MoreUtils liblist-moreutils-perl |],
+    [qw| YAML::XS        libyaml-libyaml-perl   |],
+    [ qw| Digest::BMW     |, undef ],
+    [ qw| Crypt::Ed25519  |, undef ],
+);
+
+## local sources of the cpan-only modules, in build order ##
+## [ data/lib-path/pm-src/<dir>, like crypt-curve25519 ]    ##
+my %pm_src = (
+    'Digest::BMW'    => [qw| digest-bmw |],
+    'Crypt::Ed25519' => [qw| canary-stability crypt-ed25519 |],
+);
+
+## apt packages only needed when a cpan module has to be built [ xs ] ##
+my @cpan_build_pkgs = qw| cpanminus build-essential |;
+
+## files for the final check [ format-code -c ] and the two tests ##
+my @check_src = qw| src/nameserv.sync.apply src/nameserv.zone.save |;
+my @tests     = qw|
+    bin/test-scripts/test-nameserv-entry-stage1.pl
+    bin/test-scripts/test-nameserv-sync-stage2.pl
+    |;
+
+## safely determine protocol-7 root path ##
+my $p7_root = p7_root_dir();
+
+chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
+
+my @sudo = $EUID == 0 ? () : qw| sudo -n |;
+$ENV{'DEBIAN_FRONTEND'} = qw| noninteractive |;
+
+my @failed;    ## everything that did not work, reported at the end ##
+
+print ":\n: cloud-session-setup : $p7_root\n:\n";
+
+## [ 1 ] which modules are missing ##
+my ( @apt_needed, @cpan_needed );
+foreach my $entry (@modules) {
+    my ( $module, $pkg ) = @{$entry};
+    if ( module_loads($module) ) {
+        printf ": ok      %-16s [ present ]\n", $module;
+        next;
+    }
+    if ( defined $pkg ) {
+        printf ": missing %-16s -> apt %s\n", $module, $pkg;
+        push @apt_needed, $pkg;
+    } else {
+        printf ": missing %-16s -> cpanm\n", $module;
+        push @cpan_needed, $module;
+    }
+}
+
+## cpan builds need cpanm and a compiler -- only installed when used ##
+if (@cpan_needed) {
+    foreach my $pkg (@cpan_build_pkgs) {
+        next if apt_installed($pkg);
+        printf ": missing %-16s -> apt %s [ for cpan builds ]\n", $pkg, $pkg;
+        push @apt_needed, $pkg;
+    }
+}
+
+## [ 2 ] apt ##
+if (@apt_needed) {
+    print ":\n: apt-get update ..,\n";
+    run( @sudo, qw| apt-get update -qq | )
+        or print ": warning : apt-get update reported errors"
+        . " [ continuing with the lists present ]\n";
+
+    print ":\n: installing [ apt ] : @apt_needed\n:\n";
+    run( @sudo, qw| apt-get install -y -qq --no-install-recommends |,
+        @apt_needed )
+        or push @failed, "apt-get install @apt_needed";
+} else {
+    print ":\n: apt : nothing to install\n";
+}
+
+## [ 3 ] cpanm [ only modules apt has no package for ] ##
+if (@cpan_needed) {
+    if ( not apt_installed(qw| cpanminus |) ) {
+        push @failed, "cpanm not available [ cpan modules : @cpan_needed ]";
+    } else {
+        ## local sources first [ data/lib-path/pm-src, in build order ] :  ##
+        ## reproducible, and cloud sessions cannot reach cpan [ proxy ] -- ##
+        ## built from a temporary copy, so no build files land in the tree ##
+        $ENV{'PERL_CANARY_STABILITY_NOPROMPT'} = 1; ## else it asks [ tty ] ##
+        foreach my $module (@cpan_needed) {
+            my @src_dirs = @{ $pm_src{$module} // [] };
+            my $local_ok = @src_dirs ? 1 : 0;
+            foreach my $src_dir (@src_dirs) {
+                my $path = File::Spec->catdir( $p7_root, qw| data lib-path pm-src |,
+                    $src_dir );
+                if ( not -d $path ) { $local_ok = 0; last }
+                my $tmp = tempdir( CLEANUP => 1 );
+                run( qw| cp -r |, $path, $tmp ) or do { $local_ok = 0; last };
+                print ":\n: installing [ pm-src ] : $src_dir\n:\n";
+                run( qw| cpanm --notest --quiet |,
+                    File::Spec->catdir( $tmp, $src_dir ) )
+                    or do { $local_ok = 0; last };
+            }
+            next if $local_ok and module_loads($module);
+            print ":\n: installing [ cpanm ] : $module\n:\n";
+            run( qw| cpanm --notest --quiet |, $module )
+                or push @failed, "cpanm $module";
+        }
+    }
+} else {
+    print ": cpanm : nothing to install\n";
+}
+
+## [ 4 ] recheck modules after installing ##
+foreach my $entry (@modules) {
+    my $module = $entry->[0];
+    push @failed, "module $module still does not load"
+        if not module_loads($module);
+}
+
+## [ 5 ] final check : format-code -c on two src files, both tests ##
+print ":\n: check : bin/format-code -c @check_src\n:\n";
+run( qw| bin/format-code -c |, @check_src )
+    or push @failed, "format-code -c @check_src";
+
+foreach my $test (@tests) {
+    print ":\n: check : $test\n:\n";
+    run( $EXECUTABLE_NAME, $test ) or push @failed, "test $test";
+}
+
+## [ 6 ] summary ##
+if (@failed) {
+    print ":\n: cloud-session-setup : NOT complete :\n";
+    print ":   - $ARG\n" for @failed;
+    print ":\n";
+    exit 1;
+}
+
+print ":\n: cloud-session-setup : all checks passed .\n:\n";
+
+exit 0;
+
+#[ SUBROUTINES ]##############################################################
+
+## true when the module loads in the system perl [ no repo lib-path ] ##
+sub module_loads {
+    my $module = shift;
+    my $pid    = fork() // die ":\n:: fork failed : $OS_ERROR\n\n";
+    if ( $pid == 0 ) {
+        open( STDOUT, '>', File::Spec->devnull );
+        open( STDERR, '>', File::Spec->devnull );
+        exec( $EXECUTABLE_NAME, "-M$module", qw| -e 1 | );
+        exit 127;
+    }
+    waitpid( $pid, 0 );
+    return $CHILD_ERROR == 0;
+}
+
+## true when dpkg reports the package as installed [ stderr silenced : ##
+## 'no packages found' for a never-installed package is expected ]     ##
+sub apt_installed {
+    my $pkg = shift;
+    my $pid = open( my $pipe, '-|' ) // return 0;
+    if ( $pid == 0 ) {
+        open( STDERR, '>', File::Spec->devnull );
+        exec( qw| dpkg-query -W -f=${Status} |, $pkg );
+        exit 127;
+    }
+    local $RS = undef;
+    my $status = <$pipe> // '';
+    close($pipe);
+    return $status =~ m|\binstall ok installed\b|;
+}
+
+## list form system [ no shell ], true on exit 0 ##
+sub run {
+    my $exit = system(@_);
+    return 1 if $exit == 0;
+    my $code = $exit == -1 ? "[ $OS_ERROR ]" : $exit >> 8;
+    print ": command failed [ exit $code ] : @_\n";
+    return 0;
+}
+
+sub c_dir  { File::Spec->catdir(@_) }
+sub r2_abs { File::Spec->rel2abs(@_) }
+
+sub p7_root_dir {
+    my $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    die "  :\n  :: not a directory : '$root_path'\n\n" if !-d $root_path;
+    return $root_path;
+}
+
+#,,,.,,,,,.,,,,,,,,,,,,.,,.,.,,,,,.,.,.,.,,,.,..,,...,.,.,...,...,.,.,,,,,..,,
+#VOTASYM2L3PODMH463KFERFBKU32PNEXIRF7W4ULJRFJZGYGTUBILC7IT3E466WYXO2QBOK65FX6A
+#\\\|GMYE75U35TBSTQ3N62MWEAQMO4SQFKGQZGZJE6CDGJZREHMP7XU \ / AMOS7 \ YOURUM ::
+#\[7]IK7XVETUVUUUJHM5VM5RRASPVZI3AFCBX77OSG3M6X7GWR2AGWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
