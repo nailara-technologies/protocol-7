@@ -1263,9 +1263,38 @@ items:
   - strm
   - protocol
   text: 'bidirectional STRM channel : generic primitive [ HS4 tunnel, menu <-> vault agent ]'
+- added: 3X44D3MSHQ
+  details: 'user 2026-10-12, for the first sync of large archives [ 88 GB invoke outputs to pri ]. RATE : a configurable upload limit [ e.g. -r 4M or P7_VAULT_RATE ], throttled inside the push pipeline [ own token bucket, no external pv needed ], so the uplink stays usable. RESUME : blobs are chunked [ 1 MiB frames, each authenticated ] -> the remote keeps a partial upload under a temp name and reports its last complete frame offset ; the next sync continues from there instead of restarting the blob. a partial file never becomes a blob : renamed only when complete and its frames verify structurally [ last flag at eof ]. BACKGROUND : low priority [ nice \ ionice ], progress line [ bytes, rate, eta ], later scheduled by the events zenka [ e.g. nights, like dist-upgrade times in host.cfg ]. builds on the sync scaling of the archive-mode change.'
+  done_at: null
+  id: HTC
+  priority: normal
+  status: open
+  tags:
+  - vault
+  - sync
+  text: 'p7-vault sync : trickle upload [ rate limit, resumable, background ]'
+- added: 3X44FKMKNY
+  details: "user 2026-10-12 : get one file from an archive without it ever lying unencrypted on the remote. chunks decrypt independently [ keys from the chunk index ] and full frames have a fixed size [ 4 + 12 + 1048576 + 16 + 16 = 1048624 bytes after the 9-byte header ] -> frame i sits at 9 + i * 1048624. NEEDED : a member index recorded at import -a [ name, offset in the tar stream, size -- parsed from the tar headers as the stream passes ; stored encrypted with the entry or as its own small blob, 52k members ~ a few MB ]. export <archive> <member> [ dest ] : index lookup -> covering chunk range -> local seek, or ONE ssh range read from a remote copy [ dd offset \\ count on the encrypted blob ] -> decrypt locally -> cut the member's bytes -> write. a 5 MB png out of 88 GB = about 6 MB transferred, the remote only ever serves ciphertext. builds on archive mode ; related : HTC [ trickle upload ]."
+  done_at: null
+  id: C2H
+  priority: normal
+  status: open
+  tags:
+  - vault
+  text: 'p7-vault : single file out of an archive, fetching only its chunks [ encrypted remote reads ]'
+- added: 3X44HEMSI4
+  details: 'user 2026-10-12 : sort unsorted data before p7-vault import [ freeing the host \ wsl before the move ]. <sources...> -> <target>/<type>/ ; type by extension [ lowercased, jpeg -> jpg style aliases ], or by content [ mime type via file \ File::MimeInfo ] for files without or with a wrong extension. DEFAULT = dry run : prints the plan [ counts and sizes per type ], nothing touched until -go. copy by default, -move on request : same filesystem = rename, across filesystems = copy, verify [ checksum ], then delete the source. NEVER overwrite : an identical file [ same checksum ] at the target counts as a duplicate and is skipped [ with -move : the source is removed only after the match is verified ], a different one gets a numbered name. keeps mtime \ mode. writes a journal [ from -> to per file ] so a move can be undone. options : -x <glob> excludes [ as import -a ], -by ext|mime, -flat \ -keep-tree [ keep the relative source path below the type dir ]. then : p7-vault import -d \ -a per type dir.'
+  done_at: null
+  id: MER
+  priority: normal
+  status: open
+  tags:
+  - vault
+  - tools
+  text: 'pre-import sorter : files from source paths into type subdirectories of a target [ copy, or move ]'
 
-#,,.,,..,,,..,,.,,,,.,.,.,,,.,,..,,.,,..,,,.,,..,,...,...,.,,,..,,,..,,..,,.,,
-#2WLXSHVPG4ZZQ3QVBIAHOGUHBJGS7SKN466YNS3I2XXJKUXM5LTRXDEAOGMABN64DW7UOMFBKIA3A
-#\\\|QXSOLU6WE53I2ISKJC3KMCIYNQ6IE523W54C3AJ7MJ4WIC3NBMY \ / AMOS7 \ YOURUM ::
-#\[7]LED7ATOC46X4LJBXC5GCKO2YPZFUFTPN4ZZPPJCF5WPS4ZLGXEBI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,,..,.,.,.,.,,,,,,,,,,,,,.,.,..,,...,...,.,,,...,,..,.,,,,,.,
+#52XPSDDKZLLYAIEMMA54CRJE6STCTUT3SUHTGK4GITS2XRAEAMI5PUYIVVQJMM7RXHCUQTCB4FGP4
+#\\\|XRNG3MW6YTDGLUGY6UULZHLP7MXBI3STV5FV7IHK47XXU4J5KPP \ / AMOS7 \ YOURUM ::
+#\[7]JG3MKC67TKSCMNHIZH2ULEQHV64BJN35J6W77BGM5V3B2FG7UYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

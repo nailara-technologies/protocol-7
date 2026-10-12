@@ -46,6 +46,7 @@ our $VERSION = qw| AMOS7::Vault-VERSION.0000001 |;
     entries_latest
     vault_verify
     blob_import
+    blob_import_stream
     blob_export
     blob_verify
     archive_write
@@ -935,7 +936,7 @@ sub _blob_path {
 ## digest. streaming over the file, 1 MiB at a time
 sub _blob_name_mac_new {
     my $vault = shift;
-    my $key = hkdf( $vault->{'key'}, 'p7 blob name', qw| BLAKE2b_512 |,
+    my $key   = hkdf( $vault->{'key'}, 'p7 blob name', qw| BLAKE2b_512 |,
         32, 'p7 blob name key' );
     return Crypt::Mac::BLAKE2b->new( 32, $key );
 }
@@ -997,7 +998,43 @@ sub _read_chunk {
 
 ## import a file's content as one blob : returns ( name, size ). a blob of the
 ## same content already there means nothing is written [ dedup ] and the name
-## is still returned
+## is still returned  the shared chunk-writing loop : the blob header, then
+## chunk frames read from $in, one MiB of plaintext at a time
+## [ the whole stream is never in memory ]. $check : an optional name mac
+## updated per chunk -- the keyed name of blob_import verifies the encrypted
+## bytes against the name. \$size : an optional accumulator for the plaintext
+## byte count
+sub _blob_write_stream {
+    my ( $vault, $name, $key, $in, $out, $check, $size ) = @ARG;
+
+    print {$out} pack( q{a4 C N}, $BLOB_BIN_MAGIC, $FORMAT, $BLOB_CHUNK )
+        or die "$OS_ERROR\n";
+    my $i   = 0;
+    my $cur = _read_chunk($in);
+    while (TRUE) {
+        $$size += length $cur if defined $size;
+        $check->add($cur)     if defined $check;
+        ## one chunk of lookahead : the last flag lives in the salt and the
+        ## ad, so it is read out of the position
+        my $next
+            = length($cur) == $BLOB_CHUNK
+            ? _read_chunk($in)
+            : '';
+        my $last = length $next ? 0 : 1;
+        my ( $nonce, $ct, $tag ) = _cascade_encrypt(
+            $key,
+            pack( q{N C}, $i, $last ),
+            'p7 blob chunk',
+            _blob_ad( $vault, $name, $i, $last ), $cur
+        );
+        print {$out} pack( q{N}, length $ct ) . $nonce . $ct . $tag
+            or die "$OS_ERROR\n";
+        last if $last;
+        ( $cur, $i ) = ( $next, $i + 1 );
+    }
+    return TRUE;
+}
+
 sub blob_import {
     my ( $vault, $path ) = @ARG;
 
@@ -1024,38 +1061,14 @@ sub blob_import {
         $target,
         sub {
             my $out = shift;
-            print {$out}
-                pack( q{a4 C N}, $BLOB_BIN_MAGIC, $FORMAT, $BLOB_CHUNK )
-                or die "$OS_ERROR\n";
             open( my $in, '<:raw', $path )
                 or die "vault : cannot read $path\n";
-            ## the bytes actually encrypted are checked against the name :
-            ## a file changing DURING this pass would otherwise store other
+            ## the bytes actually encrypted are checked against the name : a
+            ## file changing DURING this pass would otherwise store other
             ## content under the name [ wrong dedup, and the per-chunk keys
             ## and nonces of the name reused for different plaintext ]
             my $check = _blob_name_mac_new($vault);
-            my $i     = 0;
-            my $cur   = _read_chunk($in);
-            while (TRUE) {
-                $check->add($cur);
-                ## one chunk of lookahead : the last flag lives in the salt
-                ## and the ad, so it is read out of the position
-                my $next
-                    = length($cur) == $BLOB_CHUNK
-                    ? _read_chunk($in)
-                    : '';
-                my $last = length $next ? 0 : 1;
-                my ( $nonce, $ct, $tag ) = _cascade_encrypt(
-                    $key,
-                    pack( q{N C}, $i, $last ),
-                    'p7 blob chunk',
-                    _blob_ad( $vault, $name, $i, $last ), $cur
-                );
-                print {$out} pack( q{N}, length $ct ) . $nonce . $ct . $tag
-                    or die "$OS_ERROR\n";
-                last if $last;
-                ( $cur, $i ) = ( $next, $i + 1 );
-            }
+            _blob_write_stream( $vault, $name, $key, $in, $out, $check );
             close $in;
             die "vault : $path changed while importing\n"
                 if _blob_name_of_mac($check) ne $name;
@@ -1063,6 +1076,38 @@ sub blob_import {
     );
     die "vault : $err\n" if not $ok;
     return ( $name, $before[7] );
+}
+
+## import a stream's content as one blob, SINGLE pass : the name is RANDOM
+## [ 32 base32 chars, retried while the file exists ]. used for archives -- no
+## dedup : the random name reveals nothing about the content, and the stream
+## is read once, so the keyed-mac name of blob_import
+## [ two passes over a seekable file ] is neither possible nor needed. returns
+## ( name, size ) [ size : the plaintext byte count ]
+sub blob_import_stream {
+    my ( $vault, $in_fh ) = @ARG;
+
+    die "vault : locked\n" if not defined $vault->{'key'};
+    mkdir _blob_dir($vault), 0700 if not -d _blob_dir($vault);
+
+    my ( $name, $target );
+    while (TRUE) {
+        $name   = substr( _b32( _random_bytes(20) ), 0, 32 );
+        $target = _blob_path( $vault, $name );
+        last if not -e $target;
+    }
+
+    my $key  = _blob_key( $vault, $name );
+    my $size = 0;
+    my ( $ok, $err ) = _write_new_file_stream(
+        $target,
+        sub {
+            _blob_write_stream( $vault, $name, $key, $in_fh, $_[0],
+                undef, \$size );
+        }
+    );
+    die "vault : $err\n" if not $ok;
+    return ( $name, $size );
 }
 
 ## streaming decrypt, chunk frames walked in order. $out undef verifies only
@@ -1476,8 +1521,8 @@ sub gen_password {
 
 1;
 
-#,,..,.,,,,.,,,..,,,,,...,..,,..,,...,,..,,,.,..,,...,...,...,,,.,.,.,.,,,,..,
-#QMZH3YED5NCOLOHWKLPLZYZLXW4NMGYRO5GI4HYZXEBT6JS75I46JF2FFMZA6TRPPG4A3N6D7IX3C
-#\\\|WBOVUDPVHVNNRGXSV7MCRNA677LEA4HGVCMS7VGDTIIFIUVBWKQ \ / AMOS7 \ YOURUM ::
-#\[7]OT6ETELGTHKPIZLWZWOOXOD4TBDD3MTHXTR24A76CVOH6OTYK2AQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,,,,,..,,,.,,...,..,,,,,,,.,,..,,...,...,..,,,.,,,,.,..,,...,
+#EO3CKTAOEAAJRY5CLT6SFBHPMRSK7J3ANRKVH77HCUQDO5Y6U6FUMWWNS7RSMWRMRPQT6FJW72WXC
+#\\\|4EMN63SDQSE6SFK7UGRL5AR3DRKQTNE7IQ6DZ5WTEOVZSFJGBM6 \ / AMOS7 \ YOURUM ::
+#\[7]HTWMO2R3OTJHXGSUESUQMT6LLYSKCXAVHXHRBQFAFI5OEI22PWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
