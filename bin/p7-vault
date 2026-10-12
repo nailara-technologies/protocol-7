@@ -214,10 +214,21 @@ sub msg {
         qw| done |   => $C{g},
     }->{$kind} // $C{T};
 
+    ## a value returns to the colour around it : the frame colour inside
+    ## [ .. ], the message colour outside -- one return colour per %s
+    my @back;
+    my $depth = 0;
+    while ( $format =~ m{(\[|\]|%s)}g ) {
+        if    ( $1 eq '[' ) { $depth++ }
+        elsif ( $1 eq ']' ) { $depth-- if $depth }
+        else                { push @back, $depth ? $C{0} : $color }
+    }
     $format =~ s|(\[[^\[\]]*\])|$C{0}$1$color|g;
+    my $i = 0;
     my $text
         = @values
-        ? sprintf( $format, map {"$C{V}$ARG$color"} @values )
+        ? sprintf( $format,
+        map { $C{V} . $ARG . ( $back[ $i++ ] // $color ) } @values )
         : $format;
     return "  $color$text$C{R}";
 }
@@ -235,9 +246,10 @@ sub usage {
     list [ filter ]          titles, urls, user names
     notes [ filter ]         every note : code, title, size, last change
                              [ bodies never shown ]
-    import <path>... [ -t t ]  store files : one blob per content, one
+    import [ <path>... ] [ -t t ]  store files : one blob per content, one
                              'file' entry per file [ directories recurse,
-                             symlinks skipped ]
+                             symlinks skipped ]. no path : file selector
+                             [ -d : select a directory ]
     export <filter> [ dest ] write a stored file back [ mode and mtime
                              restored, owner as root ]
     files [ filter ]         stored files : code, title, size, origins,
@@ -951,16 +963,32 @@ sub cmd_rm {
 ## per file. directories recurse, symlinks and non-files are skipped with a
 ## note. -t sets the title and takes a single file
 sub cmd_import {
-    my ( $title_opt, @paths ) = ( undef, () );
+    my ( $title_opt, $pick_dir, @paths ) = ( undef, FALSE, () );
     while (@ARG) {
         my $arg = shift @ARG;
-        if ( $arg eq '-t' ) { $title_opt = shift @ARG // '' }
-        else                { push @paths, $arg }
+        if    ( $arg eq '-t' ) { $title_opt = shift @ARG // '' }
+        elsif ( $arg eq '-d' ) { $pick_dir = TRUE }
+        else                   { push @paths, $arg }
     }
+
+    ## no path : the file selector [ -d : a directory ], one import per pick,
+    ## then 'another?' -- until something more native exists
     if ( not @paths ) {
-        say msg( 'info',
-            'import <path>... [ -t <title> : single file only ]' );
-        return FALSE;
+        my $picked = select_import_path($pick_dir);
+        if ( not defined $picked ) {
+            say msg( 'info',
+                      'import <path>... [ -t <title> : single '
+                    . 'file only ] [ -d : select a directory ]' );
+            return FALSE;
+        }
+        while ( defined $picked ) {
+            cmd_import( defined $title_opt ? ( '-t', $title_opt ) : (),
+                $picked );
+            undef $title_opt;    ## a title belongs to the first pick ##
+            last if not confirm('import another');
+            $picked = select_import_path($pick_dir);
+        }
+        return TRUE;
     }
     if ( defined $title_opt and ( not length $title_opt or @paths != 1 ) ) {
         say msg( 'refuse', '-t takes one title for a single file' );
@@ -1201,6 +1229,53 @@ sub cmd_export {
 
     say msg( 'done', "exported '%s' -> %s", $record->{'title'} // '', $dest );
     return TRUE;
+}
+
+## file \ directory selector for import : Term::Clui::FileSelect
+## [ as the keys zenka's archive selector ], loaded only here. undef when
+## there is no terminal, no Term::Clui, or nothing was picked. CLUI_DIR OFF :
+## Term::Clui otherwise records choices in a database under the home directory
+## -- that would leave the imported paths outside the vault
+our $import_last_dir;
+
+sub select_import_path {
+    my $want_dir = shift;
+    return undef if not -t STDIN or not -t STDOUT;
+    local $ENV{'CLUI_DIR'} = qw| OFF |;
+    return undef if not eval { require Term::Clui::FileSelect; 1 };
+
+    ## the directory p7-vault was started in, later the last one used ##
+    require Cwd;
+    my $start = $import_last_dir // Cwd::getcwd() // $ENV{'HOME'} // '/';
+    $start = '/' if not -d $start;
+    say msg(
+        'info',
+        'select a %s to import [ q : cancel ]',
+        $want_dir ? 'directory' : 'file'
+    );
+    ## the selector draws in the current colour, but Term::Clui resets all
+    ## attributes [ "\e[0m" ] after highlights and between directory lists :
+    ## all its text goes through puts, so puts is wrapped to set the vault's
+    ## label colour first [ a colour code keeps reverse \ bold ]
+    my $puts = \&Term::Clui::puts;
+    no warnings qw| redefine |;
+    local *Term::Clui::puts = sub {
+        print {*Term::Clui::TTY} $C{T} if length $C{T};
+        return $puts->(@ARG);
+    };
+    use warnings qw| redefine |;
+    print $C{T};
+    my $path = Term::Clui::FileSelect::select_file(
+        -TopDir => '/',
+        -Path   => $start,
+        -FPat   => '*',
+        -Title  => $want_dir ? 'import directory' : 'import file',
+        ( $want_dir ? ( -Directory => 1 ) : () ),
+    );
+    print $C{R};
+    return undef if not defined $path or not length $path;
+    ($import_last_dir) = $want_dir ? ($path) : $path =~ m|\A(.*)/[^/]*\z|;
+    return $path;
 }
 
 ## every stored file in bin/todo's list style : code, title, size, origin
@@ -2149,8 +2224,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,,.,,,,,,,,,,,..,.,,,..,,..,,,.,,,.,,..,,..,,...,...,...,...,.,,,,.,,,..,
-#J5J3OFCNXYC4SADP7JLXIT53GAPHHW2I2SEC7QJXPAQ356BN5DELQXMDQBFPHJMRY7GD77AS5UN3G
-#\\\|PXQKE43AJHJREZO3ZHXJ3QFJARQ7ZFYSHJGV26LZFEGUG63DIEL \ / AMOS7 \ YOURUM ::
-#\[7]6AQI6D3BYR4IRZVJIKEWUWFHJAX6CKE5UJ7L2SP7YKJ4MCOQXKCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,..,,..,,..,,,,,,..,,,,.,,.,,..,,...,...,..,,,..,.,.,.,.,,.,,
+#443AHIJRGKJTOANA2PPH2R7WI6AADTBXYMYGZ6CBRAAIDJ5XH4ML4PTWZUKAZ3YKZ4JQFSZSVDEMG
+#\\\|HX3F7IV5EGCIS3J2HI7SZSRGKVJVYOYLB7FMQNC55M6JNRYLMBA \ / AMOS7 \ YOURUM ::
+#\[7]XS53IPSF7E5ORM3YBJUWMRRBBTJCLRAH2WRSXMA6NV4P27GXT6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
