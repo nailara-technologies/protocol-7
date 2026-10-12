@@ -12,6 +12,27 @@ if ( ref $state->{'watcher'} ) {
     $state->{'watcher'} = undef;
 }
 
+if ( ref $state->{'conn_timer'} ) {
+    $state->{'conn_timer'}->cancel
+        if $state->{'conn_timer'}->can('is_active')
+        and $state->{'conn_timer'}->is_active;
+    $state->{'conn_timer'} = undef;
+}
+
+## remember the address that worked : it is tried first next time ##
+my $addrs = $state->{'addrs'};
+my $addr  = undef;
+if (    ref $addrs eq qw| ARRAY |
+    and $state->{'addr_idx'} >= 0
+    and ref $addrs->[ $state->{'addr_idx'} ] eq qw| HASH | ) {
+    $addr = $addrs->[ $state->{'addr_idx'} ];
+}
+if ( defined $addr ) {
+    my $worked = <nameserv.sync.client.addr_worked> //= {};
+    $worked->{ sprintf '%s:%d', $state->{'host'}, $state->{'port'} }
+        = $addr->{'host'};
+}
+
 my $zone_arg = length( $state->{'target'} // '' ) ? $state->{'target'} : '';
 my $request
     = length $zone_arg
@@ -33,8 +54,8 @@ $state->{'watcher'} = <[event.add_io]>->(
 
 return TRUE;
 
-#,,,,,...,.,.,,,,,,.,,,.,,..,,,,,,,,,,,,,,,.,,..,,...,...,,,.,...,,.,,.,.,,,,,
-#D5CURA77LJM2XPYDVOJL76JHQYM423ZNMKBWTROXVA75P5O452WSQ2EFOC7O7CTD773XIYGO3STUM
-#\\\|N6FCRWF5VG37BNMG7ECYWZTMHHIVQYHQ65CO4RY472X7OMOIW4Y \ / AMOS7 \ YOURUM ::
-#\[7]FNXHYOUREJU2IORIFV5HG6JMNPQAXFPJPSUA6MAPBKRRFDLOCCBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,,,.,.,.,.,.,,..,..,,.,.,,.,,..,,...,...,,,,,,.,,,,.,,,.,.,,,
+#J5HJYGN5XM4OHU6MAXULKFGBAPTFPYEV2U3IYDHUL3QWUQTWO4XDWCWCD3PC567VQBKOKOTLZD6TO
+#\\\|ZMUU2ZX2PFDE3ORMM2ZZ3CR3H2KHY2VRVS6PQXQPJLKWP6F65WC \ / AMOS7 \ YOURUM ::
+#\[7]PF4UBJLRMAKK6HZRVAJM67EXZSCOTNFVM7PYQBHO3RIWXSQHL4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.next-addr
+# descr = try the next peer address or fail the peer
+
+my $key    = shift // return FALSE;
+my $reason = shift // 'connect : failed';
+
+my $peers = <nameserv.sync.peers> // return FALSE;
+my $peer  = $peers->{$key}        // return FALSE;
+
+my $addrs = $peer->{'addrs'} // return FALSE;
+
+require IO::Socket::IP;
+require Socket;    ## SOCK_STREAM \ AF_INET : not imported into a zenka ##
+
+## drop the current attempt, if any ##
+if ( ref $peer->{'watcher'} ) {
+    $peer->{'watcher'}->cancel
+        if $peer->{'watcher'}->can('is_active')
+        and $peer->{'watcher'}->is_active;
+    $peer->{'watcher'} = undef;
+}
+if ( ref $peer->{'conn_timer'} ) {
+    $peer->{'conn_timer'}->cancel
+        if $peer->{'conn_timer'}->can('is_active')
+        and $peer->{'conn_timer'}->is_active;
+    $peer->{'conn_timer'} = undef;
+}
+close $peer->{'sock'} if defined $peer->{'sock'};
+$peer->{'sock'} = undef;
+
+my $timeout = <nameserv.cfg.sync.connect_timeout> // 7;
+
+$peer->{'addr_log'} //= {};
+
+## one log line per peer and address family when falling back ##
+my $log_fallback = sub {
+    my $failed = shift // return;
+    my $next   = shift // return;
+    my $family = $failed->{'family'};
+    return if $peer->{'addr_log'}{$family};
+    $peer->{'addr_log'}{$family} = TRUE;
+    <[base.logs]>->(
+        1,    ': sync peer %s : %s %s unreachable, using %s %s',
+        $key, $family, $failed->{'host'}, $next->{'family'}, $next->{'host'}
+    );
+};
+
+## the address that just failed, if any : none before the first attempt ##
+$log_fallback->(
+    $addrs->[ $peer->{'addr_idx'} ],
+    $addrs->[ $peer->{'addr_idx'} + 1 ]
+) if $peer->{'addr_idx'} >= 0;
+
+while ( $peer->{'addr_idx'} < $#$addrs ) {
+    $peer->{'addr_idx'}++;
+    my $addr = $addrs->[ $peer->{'addr_idx'} ];
+    my $family
+        = $addr->{'family'} eq qw| ipv6 |
+        ? Socket::AF_INET6()
+        : Socket::AF_INET();
+
+    my $sock = IO::Socket::IP->new(
+        PeerHost  => $addr->{'host'},
+        PeerPort  => $peer->{'port'},
+        Family    => $family,
+        Type      => Socket::SOCK_STREAM(),
+        Blocking  => 0,
+        ReuseAddr => 1
+    );
+
+    if ( not defined $sock ) {
+        $log_fallback->( $addr, $addrs->[ $peer->{'addr_idx'} + 1 ] );
+        next;
+    }
+
+    $peer->{'sock'}  = $sock;
+    $peer->{'state'} = qw| connecting |;
+    $peer->{'buf'}   = '';
+
+    if ( $sock->connected ) {    ## connect already done ##
+        <[nameserv.sync.peer.connected]>->($key);
+    } else {
+        $peer->{'watcher'} = <[event.add_io]>->(
+            {   fd      => $sock,
+                poll    => 'w',
+                handler => qw| nameserv.sync.peer.handler.connect |,
+                data    => $key,
+                desc    => "sync peer connect [ $key ]"
+            }
+        );
+        $peer->{'conn_timer'} = <[event.add_timer]>->(
+            {   after   => $timeout,
+                handler => qw| nameserv.sync.peer.handler.timeout |,
+                data    => $key,
+                desc    => "sync peer connect timeout [ $key ]"
+            }
+        );
+    }
+
+    return TRUE;
+}
+
+## every address failed : the existing failure path ##
+<[nameserv.sync.peer.fail]>->( $key, $reason );
+
+return FALSE;
+
+#,,,.,,..,.,.,..,,,,.,.,.,..,,.,,,,.,,,..,,,,,..,,...,...,.,.,.,.,.,.,...,...,
+#CWBJHLCUNIAYQGVIU7THKZ6V7S5F37KZLEMQUPFUY4N446TXJF6H63BUFMPNE2DGSK5Z52AT5LN7G
+#\\\|SY3RK2SPP3BTPC2MLHNIB7QTMZXOJEEYUTMTXKKSYNB4JS3NILV \ / AMOS7 \ YOURUM ::
+#\[7]RUTPFKC2433WXT7AIKJHUHPQF4NDZRX6IYXGEYRA45NWFGDURICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

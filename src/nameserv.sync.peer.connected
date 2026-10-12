@@ -15,6 +15,20 @@ if ( ref $peer->{'watcher'} ) {
     $peer->{'watcher'} = undef;
 }
 
+if ( ref $peer->{'conn_timer'} ) {
+    $peer->{'conn_timer'}->cancel
+        if $peer->{'conn_timer'}->can('is_active')
+        and $peer->{'conn_timer'}->is_active;
+    $peer->{'conn_timer'} = undef;
+}
+
+## remember the address that worked : it is tried first next time ##
+my $addrs = $peer->{'addrs'};
+$peer->{'addr_worked'} = $addrs->[ $peer->{'addr_idx'} ]{'host'}
+    if ref $addrs eq qw| ARRAY |
+    and $peer->{'addr_idx'} >= 0
+    and ref $addrs->[ $peer->{'addr_idx'} ] eq qw| HASH |;
+
 syswrite $peer->{'sock'},
     sprintf 'next-data-timestamp since:%s', $peer->{'ts'} . "\n";
 
@@ -31,8 +45,8 @@ $peer->{'watcher'} = <[event.add_io]>->(
 
 return TRUE;
 
-#,,.,,,..,,.,,.,,,,,.,.,,,...,,..,,.,,.,.,,,.,..,,...,...,..,,.,,,,,.,,.,,,,.,
-#V4CQ5MUUR2INJRMWB7FZ5OGWNFGC76RFOZ6B2G57JZ44IRWIJWACIVNVKLAE2UWLMA2KLWXLKSNH4
-#\\\|55BSXMGJ4DZM6OJCQEL3QM2RR2CRUAGVEISLMGXSKFTJNWZE4NI \ / AMOS7 \ YOURUM ::
-#\[7]5NBZDVZJV6XGS4IA46DQR7EWT7SAIGQKPAWFZTERO35Y5SVH6GCA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,,.,,,.,,,,,,...,,,,,,..,,,,,..,,...,...,,.,,,..,,,.,...,...,
+#DUVZA6MIB7S76WTKB6MGDJBN66XWLG5DFWSXOTSCD7BYUCVTANG2AGSEEGJBOTOQCYKVK2MZD6OPW
+#\\\|PV3XRZUOKWLFYYH3APJCOMGANOCQNFNF4EWTLZC6BNN5K2MHZ6B \ / AMOS7 \ YOURUM ::
+#\[7]RUV5ZO5OOKIFCCRXQ2O3IP6ECYJ2KWFNDPFETGSFMQTJUCLRESAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

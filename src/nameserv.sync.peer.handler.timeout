@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.handler.timeout
+# descr = connect timeout watch for a pending peer connect
+
+my $key = shift->w->data;
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+return FALSE
+    if $peer->{'state'} ne qw| connecting |;    ## connect already done ##
+
+## the connect did not complete in time : close it, try the next address ##
+<[nameserv.sync.peer.next-addr]>->( $key, 'connect timeout' );
+
+return TRUE;
+
+#,,.,,,,,,,.,,,..,..,,...,..,,.,.,,,.,..,,,.,,..,,...,...,,.,,,.,,.,,,,..,,..,
+#7BKVUWTRBWL3TKV475DZXBUDGCB2C5DWVF73UPIZCLDXPPHFQ5JEINVC3UP4SVS7TMGUX6AOYFMOE
+#\\\|53L3ZD4PHXOKRKOBGQHNOTHHT4BOAEKEHSBV3446ETDD3NKX563 \ / AMOS7 \ YOURUM ::
+#\[7]L6437JZ35N4A7CMLGHJR4KZBL4CLINF5ANXO36CX5HXAXJ5MLKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

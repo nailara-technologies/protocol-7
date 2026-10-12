@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = nameserv.sync.addresses
+# descr = resolve a sync peer host to an ordered address list
+
+my $host = shift // return [];
+my $port = shift // 0;
+
+require Socket;    ## getaddrinfo \ inet_pton : not imported into a zenka ##
+
+## a literal address is a list of one : nothing to resolve ##
+return [ { family => qw| ipv4 |, host => $host } ]
+    if defined Socket::inet_pton( Socket::AF_INET(), $host );
+return [ { family => qw| ipv6 |, host => $host } ]
+    if defined Socket::inet_pton( Socket::AF_INET6(), $host );
+
+## host name : one getaddrinfo per connect attempt is acceptable ##
+my ( $error, @results )
+    = Socket::getaddrinfo( $host, $port,
+    { socktype => Socket::SOCK_STREAM() } );
+
+return [] if length $error;
+
+my ( @v6, @v4 );
+my %seen;
+for my $result (@results) {
+    my ( $err, $numeric )
+        = Socket::getnameinfo( $result->{'addr'}, Socket::NI_NUMERICHOST() );
+    next if length $err or $seen{$numeric}++;
+    my $entry = {
+        family => $result->{'family'} == Socket::AF_INET6()
+        ? qw| ipv6 |
+        : qw| ipv4 |,
+        host => $numeric
+    };
+    if ( $entry->{'family'} eq qw| ipv6 | ) {
+        push @v6, $entry;
+    } else {
+        push @v4, $entry;
+    }
+}
+
+return [ @v6, @v4 ];
+
+#,,,,,,..,,,,,,.,,...,,,,,,..,.,,,,..,.,,,...,..,,...,...,..,,...,,,,,..,,,..,
+#QIHIUFO5QCJRTA34X3YACPHJZ66XKYACCI2UFUOZX35IG67GFC7VS2GQXG5JC7HZBTYDQAQEVBMRK
+#\\\|56R6SN4LBEYZIAYSPGIQ5TDP5LVTA2T2FNDYL7GVCIVQEKRIH7B \ / AMOS7 \ YOURUM ::
+#\[7]NPPWXJSFGZC2LYYJFZI35WRSLX4YWRNERGY7HDSHTOU6357LG6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
