@@ -233,6 +233,7 @@ for my $mod (
     nameserv.cmd.add-txt
     nameserv.cmd.remove-txt
     nameserv.cmd.sign-zone
+    nameserv.cmd.add-record
     nameserv.sync.entry.encode
     nameserv.sync.entry.decode
     nameserv.sync.since
@@ -622,11 +623,30 @@ check 'signed records stay untouched',
     (       $r->{'data'} =~ m|0 signed|
         and $zones->{'old.test'}{'records'}[1]{'sig'} eq $sig_before );
 
+## --- add-record : one more value, the others stay ##
+## ------------------------                         ##
+
+$r = cmd( 'add-record', 'old.test NS old.test dn0110.example' );
+my @ns = grep { $ARG->{'type'} eq 'NS' } @{ $zones->{'old.test'}{'records'} };
+check 'add-record keeps the existing NS',
+    ( @ns == 2 and grep { $ARG->{'value'} eq 'dn0000.example' } @ns );
+check '  :.. the new one is signed',
+    ( grep { $ARG->{'value'} eq 'dn0110.example' and defined $ARG->{'sig'} }
+        @ns );
+$r = cmd( 'add-record', 'old.test NS old.test dn0110.example' );
+check 'identical record : no-op',
+    ( $r->{'data'} =~ m|already present|
+        and 2 == grep { $ARG->{'type'} eq 'NS' }
+        @{ $zones->{'old.test'}{'records'} } );
+$r = cmd( 'add-record', 'old.test A www.elsewhere.test 10.0.0.1' );
+check 'name outside the zone refused',
+    ( $r->{'mode'} eq 'false' and $r->{'data'} =~ m|not in| );
+
 printf "\npassed : %d  failed : %d\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,,.,,.,,,..,.,,,,,,,,,,,,,.,...,,..,.,,,..,,...,...,...,.,.,.,,,,,,,,,,,
-#7MZFOXPBLTS2LOOZMU3FH3FN7SVVK6YS3GNJWCI5OV45H43TBIDN3VOTROYYQDYRE2ED35Y4Q7ZOK
-#\\\|WVXJFM5GTZ6OHON2BKYV3TO4K44AHS2F65K2XWZIJY3CF3QICVY \ / AMOS7 \ YOURUM ::
-#\[7]P43UJC6TL5DOZMMQTTI4MEP6MGTPA5OGJTK7DFKRTOXFPMSWIMAY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,,,,,,..,...,.,,,...,.,.,...,..,,...,...,..,,,,.,,,,,..,,,..,
+#BC4OSA4OOQGZJNUEFOUFRGHF2TDMJ3BICH36HKCN6TPK2G24I3CM5EZLBINEKJLYIT6X5BJ3KXFYW
+#\\\|M5GTOIGB22L2OE5YUBPC5VI5L7AUPMAJ6OLSMUTGO6PMQHUN46X \ / AMOS7 \ YOURUM ::
+#\[7]CKWE4JNQTUO4UMEUDS5SGAUYMMHG3CEH4VY35GBUYARFQU36VACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

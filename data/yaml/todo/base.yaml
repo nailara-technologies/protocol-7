@@ -1152,9 +1152,29 @@ items:
   - debian
   - host
   text: 'debian zenka : host bootstrap [ mirror, suite, dist-upgrade, dependencies ]'
+- added: 3X4N7NUKJ4
+  details: "found 2026-10-12 : ipv6 between yourum [ 2a02:c207 ] and pri [ 2a02:c206 ] does not route in either direction, both stacks work otherwise. nameserv.sync.peer.arm and nameserv.sync.client.start create ONE non-blocking IO::Socket::IP to the peer name : it takes the first address [ ipv6 ] and a connect stuck in SYN-SENT never falls back to ipv4 -- the peer loop stalls silently [ no log line ]. fix : resolve the name, try each address with a short connect timeout [ ipv6 first, then ipv4 ], remember the address that worked per peer, log once which family failed. then yourum's /etc/protocol-7/nameserv/host.cfg goes back from 161.97.144.6 to pri.v7.ax [ comment there ]."
+  done_at: null
+  id: YJP
+  priority: normal
+  status: open
+  tags:
+  - nameserv
+  - sync
+  text: 'nameserv sync : try every peer address, fall back past a dead ipv6'
+- added: 3X4OBUPZBE
+  details: "at start-up and every 3900 s ; warns only, never changes anything ; one concise line per finding that says exactly what to do, e.g. 'update glue dn1110.protocol-7.network : AAAA 2604:a00:..:90c6 -> <new address> [ registrar ]' or 'add dn0110.protocol-7.network to the NS set of acme.v7.ax'. checks : [ 1 ] this host's DN name A\\AAAA in public dns vs the addresses it really has [ interfaces \\ detected.cfg host.ipv6 -- catches a changed SLAAC address ] ; [ 2 ] glue : ask the parent zone's servers [ TLD ] for the delegation, compare its glue with the real addresses ; [ 3 ] each served zone's NS set contains every configured DN name, and each answers the zone with the same SOA serial [ sync cross-check ] ; [ 4 ] ptr of each address points back to the host name [ DDB needs it too ]. command nameserv.consistency shows the last result. shares host-domain code with DDB and WW5."
+  done_at: null
+  id: VDS
+  priority: normal
+  status: open
+  tags:
+  - nameserv
+  - host
+  text: 'nameserv : consistency check [ own records, glue, NS sets, ptr ]'
 
-#,,,.,...,,,,,,..,..,,.,,,,.,,...,.,.,.,,,,.,,..,,...,...,,,.,.,,,...,,,,,...,
-#N42WYGHEXQZJ35NBGL3GDRENL7FQ4NJIRALMCT4YRZWAVEBUZ5QIZ5YJELSIUD7QBIQV7ED4TN5SQ
-#\\\|FTR3LQIV7NHMYXKQCITUQ6AOXGEG62UZYLRMUHHLGMZX3RGQYB2 \ / AMOS7 \ YOURUM ::
-#\[7]TSWQJTPNYO72UTSF22BEMJLZ2BSO27ARD2JCO3IDOSNO5UHQLODQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,,.,,.,.,..,,.,.,...,...,,,.,..,,...,..,,.,.,,.,,,,,,.,,,.,,,
+#GIPRMRZET3VCOHJDXJV3DCVCHGERYKFSTMJDWBNZYQOHXW6TEO4MUGSX2DWJQYJUA7FXGFZGVRQVC
+#\\\|QFESN37GEJ7NYABAJOMCECNTWESPPDQA5ZVCYZ3MGUZZZWARL2O \ / AMOS7 \ YOURUM ::
+#\[7]63AVX5XFCXSSKQMRTSFUIPS2Y6FX5DBWEP3RD3PB2TJ4OURLKECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
