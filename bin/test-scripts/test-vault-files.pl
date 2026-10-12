@@ -5,11 +5,13 @@ use English;
 use warnings;
 
 ## tests for the vault blobs [ data/md/design/VAULT-FORMAT.md ] : round trips
-## over the chunk boundaries, dedup, vault-bound names, tamper detection. runs
-## on throwaway dirs, cheap kdf -- never ~/.n/vault
+## over the chunk boundaries, dedup, vault-bound names, tamper detection,
+## archive import/export + export -d through the p7-vault cli. runs on
+## throwaway dirs, cheap kdf -- never ~/.n/vault
 
 use FindBin;
 use File::Temp qw| tempdir |;
+use IPC::Open2 qw| open2 |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -19,6 +21,7 @@ BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
 
 use AMOS7::Vault qw|
     vault_init vault_open vault_unlock
+    entries_latest
     blob_import blob_export blob_verify
     |;
 
@@ -184,17 +187,135 @@ ok( !$locked_ok, 'locked vault : import refused' );
     use warnings qw| redefine |;
     my $died = !eval { blob_import( $v, $moving ); 1 };
     ok( $died && $@ =~ m|changed while importing|,
-        'content changed during encryption : import aborts' );
+        'content changed during encryption : import aborts'
+    );
     opendir( my $bdh, "$dir/blobs" ) or die $OS_ERROR;
     ok( !grep( {m|\.tmp\.|} readdir $bdh ), '  :.. no temp file left' );
     closedir $bdh;
 }
 
+## CLI tests : import -a / export -a / export -d through bin/p7-vault -- the
+## passphrase and the confirms travel on stdin [ no tty ]
+my $vault_bin = "$FindBin::Bin/../p7-vault";
+
+sub p7vault {
+    my ( $input, @args ) = @ARG;
+    my $pid
+        = open2( my $read, my $write, $^X, $vault_bin, '-d', $dir, @args );
+    binmode $write;
+    print {$write} $input;
+    close $write;
+    my $out = do { local $INPUT_RECORD_SEPARATOR; <$read> }
+        // '';
+    close $read;
+    waitpid $pid, 0;
+    $out =~ s|\e\[[0-9;]*m||g;
+    return ( $out, $? >> 8 );
+}
+
+sub tree_files {
+    my ( $base, $rel ) = @ARG;
+    my @out;
+    opendir( my $dh, $base ) or die "cannot read $base : $OS_ERROR";
+    foreach my $name ( sort grep { not m|^\.| } readdir $dh ) {
+        my $path = length $rel ? "$rel/$name" : $name;
+        if ( -d "$base/$name" ) {
+            push @out, tree_files( "$base/$name", $path );
+        } else {
+            push @out, $path;
+        }
+    }
+    closedir $dh;
+    return @out;
+}
+
+## import -a : a small tree with nested dirs, the webp files excluded ##
+my $tree = "$tmp/tree";
+mkdir $tree               or die $OS_ERROR;
+mkdir "$tree/nested"      or die $OS_ERROR;
+mkdir "$tree/nested/deep" or die $OS_ERROR;
+write_file( "$tree/one.txt",               'first file' );
+write_file( "$tree/nested/two.txt",        'second file' );
+write_file( "$tree/nested/deep/three.bin", 'third file' );
+write_file( "$tree/nested/photo.webp",     'webp one' );
+write_file( "$tree/nested/deep/pic.webp",  'webp two' );
+
+my ( $out, $rc )
+    = p7vault( "pass phrase one\n", 'import', '-a', $tree, '-x', '*.webp' );
+ok( $rc == 0 && $out =~ m|stored|, 'import -a : the archive is stored' );
+
+my ($list) = entries_latest($v);
+my ($arec) = grep { ( $ARG->{'archive'} // '' ) eq qw| tar | }
+    map { $ARG->{'record'} } @{$list};
+ok( defined $arec, 'import -a : archive entry recorded' );
+ok( ( $arec->{'excludes'} // [] )->@* == 1,
+    'import -a : the exclusion is recorded'
+);
+ok( ( $arec->{'origins'} // [] )->@* == 1,
+    'import -a : one origin [ the directory ]'
+);
+
+## the archive blob decrypts to a tar stream : no webp, the rest inside ##
+open( my $tfh, '>:raw', "$tmp/archive.tar" ) or die $OS_ERROR;
+blob_export( $v, $arec->{'blob'}, $tfh );
+close $tfh;
+my $tar = slurp("$tmp/archive.tar");
+ok( substr( $tar, 257, 5 ) eq 'ustar', 'archive blob decrypts : tar magic' );
+ok( index( $tar, '.webp' ) == -1, 'import -a : webp excluded from the tar' );
+ok( index( $tar, 'three.bin' ) != -1,
+    'import -a : nested files inside the tar'
+);
+
+## export -a into a temp dir : file lists and content match the original ##
+my $restore = "$tmp/restore";
+( $out, $rc ) = p7vault( "pass phrase one\ny\n", 'export', 'tree', $restore );
+ok( $rc == 0 && $out =~ m|exported|, 'export -a : extracted' );
+my @want = grep { !m|\.webp\z| } tree_files( $tree, '' );
+my @got  = tree_files( "$restore/tree", '' );
+ok( "@got" eq "@want", 'export -a : the file lists match' );
+my $same = grep { slurp("$restore/tree/$_") eq slurp("$tree/$_") } @want;
+ok( $same == scalar @want, 'export -a : the contents match' );
+
+## export -d : three files under a prefix to a new location ##
+my $pfx = "$tmp/pfx";
+mkdir $pfx       or die $OS_ERROR;
+mkdir "$pfx/sub" or die $OS_ERROR;
+write_file( "$pfx/a.txt",     'alpha' );
+write_file( "$pfx/sub/b.txt", 'beta' );
+write_file( "$pfx/sub/c.bin", 'gamma' );
+( $out, $rc ) = p7vault(
+    "pass phrase one\n", 'import',
+    "$pfx/a.txt",        "$pfx/sub/b.txt",
+    "$pfx/sub/c.bin"
+);
+ok( $rc == 0 && $out =~ m|stored|, 'import : three files under the prefix' );
+
+my $dest = "$tmp/dest";
+( $out, $rc )
+    = p7vault( "pass phrase one\ny\n", 'export', '-d', $pfx, $dest );
+ok( $rc == 0 && $out =~ m|exported 3, skipped 0|,
+    'export -d : all three exported' );
+ok( slurp("$dest/a.txt") eq 'alpha'
+        && slurp("$dest/sub/b.txt") eq 'beta'
+        && slurp("$dest/sub/c.bin") eq 'gamma',
+    'export -d : the contents landed relative to the prefix'
+);
+ok( ( ( stat "$dest/sub" )[2] & 0777 ) == 0700,
+    'export -d : a new parent directory is 0700'
+);
+
+## export -d refuses nothing silently : a second run asks per file, 'n' ##
+## skips                                                                ##
+( $out, $rc )
+    = p7vault( "pass phrase one\ny\nn\nn\nn\n", 'export', '-d', $pfx, $dest );
+ok( $rc != 0 && $out =~ m|exported 0, skipped 3|,
+    'export -d : existing files are skipped unasked-overwritten' );
+
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,,,,,,.,.,.,,..,,..,.,,,...,.,.,,..,,.,,..,,...,...,...,.,,,,..,,.,,,,.,
-#HV6OGL6BH5VLW7FAQNYXVX4SQCWMJFZVV5BESFGYMMIHFTM6MTVHYN66C6WCSMZ2DO6VSXJBSD3JU
-#\\\|NISCLOSWHVYHHK4VIJX74JB6N4TEWMRCGHKFPZB6SDMNL5KIHDR \ / AMOS7 \ YOURUM ::
-#\[7]6B3UMQYNHRPCU7OETKY7IDLHQSXMGBNPRC7COJ6MLHO4UE7Z3SDA 7  DATA SIGNATURE ::
+#,,..,..,,...,,..,,,.,..,,,.,,,..,,,,,,,,,,,.,..,,...,..,,.,,,,,.,.,.,,.,,,,,,
+#2J4QO3YYSVU7W5P3UBG3SLOCS7O4XENGIEPOCEBCF7BIPXNRZPCYE2WYAQCGHTE4KMPZIXHO4BZXS
+#\\\|OD7MZFH3RAK4F34OGZ3MMMFBS3TTNEEWHEFXV27IAITMLQDILQ4 \ / AMOS7 \ YOURUM ::
+#\[7]E7ZQCXUWPDDC3IWQ6H4RHFI6Y4Q5VIH2AE6J37LJKV3OW2LDECAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

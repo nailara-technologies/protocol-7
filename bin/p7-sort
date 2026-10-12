@@ -1,0 +1,405 @@
+#!/usr/bin/perl
+use v5.32.0;
+use strict;
+use English;
+use warnings;
+
+###         ###
+##  p7-sort  ##
+###         ###
+
+## pre-import sorter : files from source paths into type subdirectories of a
+## target [ copy, or move ]. dry run by default -- nothing is touched until
+## -go. never overwrites : an identical file at the target is a duplicate
+## [ skipped ; with -move its source goes only after the match is verified ],
+## a different one gets a numbered name. every action lands in a journal, so
+## -undo can reverse a run. then : p7-vault import -d \ -a per type dir.
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $lib = abs_path(
+        File::Spec->catdir( $RealBin, '..', 'data/lib-path/pm' ) );
+    unshift @INC, $lib if defined $lib and -d $lib;
+}
+
+use AMOS7;    ## %C : the project colours ##
+use File::Find  ();
+use File::Copy  ();
+use File::Path  ();
+use Digest::SHA ();
+use POSIX       qw| strftime |;
+use Errno       qw| EXDEV |;
+use Fcntl       qw| O_WRONLY O_CREAT O_EXCL |;
+
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+our %C;
+%C = map { $ARG => '' } keys %C if $ENV{'NO_COLOR'} or not -t STDOUT;
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my $option_list = <<'EOL';
+
+    .: p7-sort command line options :.
+
+    p7-sort <source>... -t <target> [ options ]
+    p7-sort -undo <journal>
+
+    -t <dir>  ....  target directory [ type subdirectories go below ]
+    -go  .........  do it [ without : dry run, the plan only ]
+    -move  .......  move instead of copy [ across filesystems : copy,
+                    verify, then remove the source ]
+    -by ext|mime    type from the extension [ default ] or the content
+                    [ file --mime-type ; files without an extension use
+                    the content in ext mode too ]
+    -x <glob>  ...  exclude by name [ repeatable, e.g. -x '*.webp' ]
+    -keep-tree  ..  keep the relative source path below the type dir
+    -undo <file>    reverse the run recorded in a journal
+    -h  ..........  this list
+
+EOL
+
+my ( @sources, @excludes, $target,    $undo );
+my ( $go,      $move,     $keep_tree, $by ) = ( FALSE, FALSE, FALSE, 'ext' );
+
+while (@ARGV) {
+    my $arg = shift @ARGV;
+    if    ( $arg eq '-t' )         { $target    = shift @ARGV }
+    elsif ( $arg eq '-go' )        { $go        = TRUE }
+    elsif ( $arg eq '-move' )      { $move      = TRUE }
+    elsif ( $arg eq '-keep-tree' ) { $keep_tree = TRUE }
+    elsif ( $arg eq '-by' )        { $by        = shift @ARGV // '' }
+    elsif ( $arg eq '-x' )         { push @excludes, shift @ARGV // '' }
+    elsif ( $arg eq '-undo' )             { $undo = shift @ARGV }
+    elsif ( $arg =~ m{\A-(h|options)\z} ) { print $option_list; exit 0 }
+    elsif ( $arg =~ m{\A-} ) {
+        sort_exit( "unknown " . "option '$arg'" );
+    } else {
+        push @sources, $arg;
+    }
+}
+
+exit( run_undo($undo) ? 0 : 1 ) if defined $undo;
+
+sort_exit('no source given')           if not @sources;
+sort_exit('no target given [ -t ]')    if not defined $target;
+sort_exit("-by takes 'ext' or 'mime'") if $by !~ m{\A(ext|mime)\z};
+foreach my $source (@sources) {
+    sort_exit("source not found : $source") if not -e $source;
+}
+
+my $target_abs = abs_path($target) // File::Spec->rel2abs($target);
+my @exclude_re = map { glob_re($ARG) } @excludes;
+
+##[ COLLECT ]#################################################################
+
+## [ path, relative path, type, size ] per file ; symlinks are skipped, the
+## target dir is never descended into [ a target inside a source ]
+my ( @plan, $skipped_links );
+foreach my $source (@sources) {
+    my $source_abs = abs_path($source);
+    if ( -f $source_abs ) {
+        add_file( $source_abs, File::Spec->catdir( $source_abs, '..' ) );
+        next;
+    }
+    File::Find::find(
+        {   no_chdir   => 1,
+            preprocess => sub {
+                return grep {
+                    my $p = "$File::Find::dir/$ARG";
+                    not( -d $p and abs_path($p) eq $target_abs )
+                } @ARG;
+            },
+            wanted => sub {
+                my $path = $File::Find::name;
+                if ( -l $path ) { $skipped_links++; return }
+                return if not -f _;
+                add_file( $path, $source_abs );
+            },
+        },
+        $source_abs
+    );
+}
+
+sub add_file {
+    my ( $path, $base ) = @ARG;
+    my ($name) = $path =~ m{([^/]+)\z};
+    return if grep { $name =~ $ARG } @exclude_re;
+    my $rel = File::Spec->abs2rel( $path, abs_path($base) );
+    push @plan, [ $path, $rel, file_type( $path, $name ), -s $path ];
+}
+
+##[ PLAN ]####################################################################
+
+my ( %count, %bytes );
+foreach my $item (@plan) {
+    $count{ $item->[2] }++;
+    $bytes{ $item->[2] } += $item->[3];
+}
+
+section( $go ? ( $move ? 'moving' : 'copying' ) : 'plan [ dry run ]' );
+my ($type_width) = sort { $b <=> $a } 4, map {length} keys %count;
+foreach my $type ( sort { $bytes{$b} <=> $bytes{$a} } keys %count ) {
+    say sprintf "$C{0}:$C{T}  %-*s $C{0}.: "
+        . "$C{T}%7d$C{0} file%s  $C{T}%9s$C{R}",
+        $type_width, $type, $count{$type}, $count{$type} == 1 ? ' ' : 's',
+        human( $bytes{$type} );
+}
+my $total_bytes = 0;
+$total_bytes += $ARG->[3] for @plan;
+say "$C{0}:$C{R}";
+say sprintf "$C{0}::$C{T} %d files, %s -> %s $C{0}.:$C{R}", scalar @plan,
+    human($total_bytes), $target_abs;
+say sprintf "$C{0}:$C{o}  %d symlink%s skipped$C{R}", $skipped_links,
+    $skipped_links == 1 ? '' : 's'
+    if $skipped_links;
+
+if ( not $go ) {
+    say "$C{0}:\n:$C{T}  dry run -- add $C{b} -go $C{R}$C{T} to "
+        . ( $move ? 'move' : 'copy' )
+        . " them$C{0}\n:$C{R}";
+    exit 0;
+}
+exit 0 if not @plan;
+
+##[ RUN ]#####################################################################
+
+File::Path::make_path( $target_abs, { mode => 0700 } ) if not -d $target_abs;
+## one journal per run, never replacing another [ two runs in one second ]
+my $journal_path = sprintf '%s/.p7-sort-journal.%s.%d.tsv', $target_abs,
+    strftime( '%Y%m%d-%H%M%S', localtime ), $PID;
+sysopen( my $journal, $journal_path, O_WRONLY | O_CREAT | O_EXCL, 0600 )
+    or sort_exit("cannot create journal $journal_path : $OS_ERROR");
+$journal->autoflush(1);
+
+my %done = map { $ARG => 0 } qw| copied moved duplicate failed |;
+foreach my $item (@plan) {
+    my ( $path, $rel, $type ) = @{$item};
+    my $sub        = $keep_tree ? $rel : ( $rel =~ m{([^/]+)\z} )[0];
+    my $dest       = "$target_abs/$type/$sub";
+    my ($dest_dir) = $dest =~ m{\A(.*)/[^/]+\z};
+    File::Path::make_path( $dest_dir, { mode => 0700 } ) if not -d $dest_dir;
+
+    my $sum = sha($path);
+    if ( not defined $sum ) {
+        report( 'failed', $path, 'cannot read' );
+        next;
+    }
+
+    ## an existing file : identical = duplicate, else the next numbered name
+    ## -- the numbered ones are compared too
+    ## [ an earlier run may hold the same content as name.1.ext already ]
+    if ( -e $dest ) {
+        $dest = free_or_same( $dest, $sum );
+        if ( -e $dest ) {
+            if ( $move and unlink $path ) {
+                say {$journal} join "\t", 'dup-removed', $path, $dest, $sum;
+            } else {
+                say {$journal} join "\t", 'duplicate', $path, $dest, $sum;
+            }
+            $done{'duplicate'}++;
+            next;
+        }
+    }
+
+    my $how
+        = $move
+        ? move_file( $path, $dest, $sum )
+        : copy_file( $path, $dest, $sum );
+    if ( not $how ) {
+        report( 'failed', $path, $OS_ERROR || 'verify failed' );
+        next;
+    }
+    say {$journal} join "\t", $how, $path, $dest, $sum;
+    $done{ $how eq 'copy' ? 'copied' : 'moved' }++;
+}
+close $journal;
+
+section('done');
+foreach my $what (qw| copied moved duplicate failed |) {
+    next if not $done{$what};
+    my $color = $what eq 'failed' ? $C{o} : $C{g};
+    say sprintf "$C{0}:%s  %-10s $C{0}.: $C{T}%d$C{R}", $color, $what,
+        $done{$what};
+}
+say "$C{0}:\n::$C{T} journal $C{0}.: $C{T}$journal_path$C{0}\n:$C{R}";
+exit( $done{'failed'} ? 1 : 0 );
+
+##[ FILE OPERATIONS ]#########################################################
+
+## copy, keep mode + mtime, verify the copy against the source checksum ##
+sub copy_file {
+    my ( $from, $to, $sum ) = @ARG;
+    my $tmp = "$to.p7-sort.$PID";
+    File::Copy::copy( $from, $tmp ) or return undef;
+    my @st = stat $from;
+    chmod $st[2] & 07777, $tmp;
+    utime $st[8], $st[9], $tmp;
+    if ( ( sha($tmp) // '' ) ne $sum or not rename $tmp, $to ) {
+        unlink $tmp;
+        return undef;
+    }
+    return 'copy';
+}
+
+## same filesystem : rename. across : copy, verify, then remove the source ##
+sub move_file {
+    my ( $from, $to, $sum ) = @ARG;
+    return 'move' if rename $from, $to;
+    return undef if $OS_ERROR != EXDEV;
+    copy_file( $from, $to, $sum ) or return undef;
+    unlink $from                  or return undef;
+    return 'move-copy';
+}
+
+## 'name.ext', 'name.1.ext', 'name.2.ext' .. : the first one holding the same
+## content [ a duplicate ], else the first free one
+sub free_or_same {
+    my ( $path, $sum ) = @ARG;
+    my ( $stem, $ext ) = $path =~ m{\A(.*?)(\.[^./]*)?\z};
+    $ext //= '';
+    for ( my $n = 0;; $n++ ) {
+        my $candidate = $n ? "$stem.$n$ext" : $path;
+        return $candidate if not -e $candidate;
+        return $candidate if ( sha($candidate) // '' ) eq $sum;
+    }
+}
+
+sub sha {
+    my $path   = shift;
+    my $digest = Digest::SHA->new(256);
+    return eval { $digest->addfile( $path, 'b' ); $digest->hexdigest };
+}
+
+##[ UNDO ]####################################################################
+
+## reverse order : moves go back when the original place is free and the file
+## still matches, copies are removed when they still match
+sub run_undo {
+    my $path = shift;
+    open( my $fh, '<', $path ) or sort_exit("cannot read $path : $OS_ERROR");
+    my @lines = reverse grep {length} map { chomp; $ARG } <$fh>;
+    close $fh;
+
+    my %undone = map { $ARG => 0 } qw| restored removed kept |;
+    section('undo');
+    foreach my $line (@lines) {
+        my ( $how, $from, $to, $sum ) = split m{\t}, $line;
+        next if not defined $sum or $how eq 'duplicate';
+        if ( not -e $to or ( sha($to) // '' ) ne $sum ) {
+            report( 'kept', $to, 'missing or changed' );
+            $undone{'kept'}++;
+            next;
+        }
+        if ( $how eq 'copy' ) {
+            unlink $to and $undone{'removed'}++;
+            next;
+        }
+        if ( -e $from ) {
+            report( 'kept', $to, "'$from' exists again" );
+            $undone{'kept'}++;
+            next;
+        }
+        my ($dir) = $from =~ m{\A(.*)/[^/]+\z};
+        File::Path::make_path($dir) if defined $dir and not -d $dir;
+
+        ## a removed duplicate source comes back as a copy of the identical
+        ## target [ the target stays : it was there before this run ]
+        my $back
+            = $how eq 'dup-removed'
+            ? copy_file( $to, $from, $sum )
+            : move_file( $to, $from, $sum );
+        if   ($back) { $undone{'restored'}++ }
+        else         { report( 'kept', $to, 'cannot move back' ) }
+    }
+    foreach my $what (qw| restored removed kept |) {
+        my $color = $what eq 'kept' ? $C{o} : $C{g};
+        say sprintf "$C{0}:%s  %-10s $C{0}.: $C{T}%d$C{R}", $color, $what,
+            $undone{$what};
+    }
+    say "$C{0}:$C{R}";
+    return TRUE;
+}
+
+##[ TYPES ]###################################################################
+
+our %alias;
+
+BEGIN {
+    %alias = (
+        jpeg     => 'jpg',
+        tif      => 'tiff',
+        htm      => 'html',
+        yml      => 'yaml',
+        mpeg     => 'mpg',
+        markdown => 'md',
+        text     => 'txt',
+    );
+}
+
+## ext mode : the lowercased extension [ aliases folded ], the content for
+## files without one. mime mode : always the content
+sub file_type {
+    my ( $path, $name ) = @ARG;
+    if ( $by eq 'ext' and $name =~ m|.\.([0-9A-Za-z]{1,10})\z| ) {
+        my $ext = lc $1;
+        return $alias{$ext} // $ext;
+    }
+    return mime_type($path);
+}
+
+## 'image/png' -> 'image-png' ; no file command : 'no-ext' ##
+sub mime_type {
+    my $path = shift;
+    open( my $fh, '-|', 'file', '--brief', '--mime-type', '--', $path )
+        or return 'no-ext';
+    my $mime = <$fh> // '';
+    close $fh;
+    chomp $mime;
+    $mime =~ s{/}{-}g;
+    return $mime =~ m{\A[0-9A-Za-z.+_-]+\z} ? $mime : 'no-ext';
+}
+
+##[ OUTPUT ]##################################################################
+
+sub glob_re {
+    my $glob = quotemeta shift;
+    $glob =~ s{\\\*}{.*}g;
+    $glob =~ s{\\\?}{.}g;
+    return qr{\A$glob\z};
+}
+
+sub human {
+    my $n = shift // 0;
+    foreach my $unit (qw| B K M G T |) {
+        return sprintf( $unit eq 'B' ? '%d %s' : '%.1f %s', $n, $unit )
+            if $n < 1024 or $unit eq 'T';
+        $n /= 1024;
+    }
+}
+
+sub section {
+    say sprintf "$C{0}:\n::[$C{T} %s $C{0}]:.\n:$C{R}", shift;
+}
+
+sub report {
+    my ( $what, $path, $why ) = @ARG;
+    say STDERR sprintf "$C{0}:$C{o}  %s $C{0}.: $C{T}%s $C{0}\[ %s ]$C{R}",
+        $what, $path, $why;
+}
+
+sub sort_exit {
+    say STDERR sprintf "$C{0}:\n::$C{o} %s $C{0}.:\n:$C{R}", shift;
+    exit 2;
+}
+
+#,,,,,,..,,,.,,.,,,..,,..,,..,..,,,.,,..,,,,,,..,,...,...,...,..,,,,.,...,,,,,
+#2X335Y4AA7Q45EMEDPN56MZRSE4KXTOMR2WYVIAWSHHGEH7B7RUC4OLDZ523YBKRYRDF2O22JLRN6
+#\\\|CQH7PJVQZMQYLQODIOWFNVJMZOPPMKCJVG6TGCD2GL2VSZQDDJH \ / AMOS7 \ YOURUM ::
+#\[7]LYQ2424DTIDLYD4FXAVFQBURMIKQ365ZSFXFSH5DKGFYXOMLN2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

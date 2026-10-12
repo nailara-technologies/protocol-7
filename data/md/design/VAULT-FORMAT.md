@@ -185,6 +185,14 @@ fields are kept as they are.
   as a new entry version. deleting a `file` entry leaves its blob :
   other entries may share it, and a garbage collection of unreferenced
   blobs is out of scope for format 1
+- an archive [ `p7-vault import -a <dir> [ -x <glob> ]...` ] is a `file`
+  record of a different shape : `archive` is `tar`, `blob` names the tar
+  stream of the whole directory [ archived with the recorded `--exclude`
+  globs, kept in `excludes` ], `size` its bytes, `origins` holds the one
+  directory. archives do NOT dedup -- the blob name is random, so two
+  imports of the same directory are two blobs. the random name reveals
+  nothing about the content and the stream is read once, so the
+  keyed-mac name of a plain import is neither possible nor needed
 
 - `code` : the 3-char display code of the entry [ bin/todo's chk3 shape :
   a random seed through AMOS7::CHKSUM, 3 chars ], collision-checked
@@ -219,7 +227,11 @@ one vault deduplicates to one blob
 chunk i [ from 0 ] holds up to `chunk size` bytes of the plaintext. the
 file is read one chunk at a time -- the whole file is never in memory.
 the import walks the file twice : first the name mac, then the
-encryption, and aborts when size or mtime changed between the passes
+encryption, and aborts when size or mtime changed between the
+passes. a STREAM import [ `blob_import_stream`, the archive path ] is
+single pass with a RANDOM 32-char name instead -- no mac, no dedup [
+see the archive record, above ]; the chunk frames, the chunk keys and
+the write are exactly the same
 
 - blob key = hkdf-blake2b-512 : key material = vault key, salt =
   `<name>`, 32 bytes, info = `p7 blob key` -- deterministic, so the same
@@ -303,16 +315,23 @@ plain file union -- never overwrite, never delete. `entries/` and
 
 - ONE ssh call [ the command comes from `P7_VAULT_SSH`, default `ssh`,
   so ControlMaster or a wrapper can stand in ] lists the remote vault id
-  [ read out of the remote key file, which sits in the clear ] and the
-  remote `entries/` and `blobs/` file names with their sha1 sums. a
-  different vault id is refused ; no remote vault is refused with a hint
-  to copy the key file first
+  [ read out of the remote key file, which sits in the clear ], the
+  remote `entries/` names with their sha1 sums [ the conflict check --
+  the probe hashes entries with `find entries -maxdepth 1 -type f -exec
+  sha1sum {} +`, no shell glob ] and the `blobs/` names ALONE : a blob
+  name is a keyed mac or random, so the same name IS the same content
+  and blobs are never hashed. a different vault id is refused ; no
+  remote vault is refused with a hint to copy the key file first
 - push : local files missing remotely travel as ONE tar stream over
-  ssh per directory kind, extracted into a temp dir inside the remote
-  vault, and each file is moved into the remote `entries/` \ `blobs/`
-  only when absent. pull : the same the other way, through a local temp
-  dir, then the vault's own write-new-file rule [ temp file, checked
-  rename, directory sync ] per file
+  ssh per directory kind, the validated names in a temp list file [
+  `tar -C <dir> -cf - -T <list>` ], extracted into a temp dir inside the
+  remote vault, and each file is moved into the remote `entries/`
+  \ `blobs/` only when absent. pull : the same the other way -- the name
+  list goes to the remote on ITS stdin [ `tar -cf - -T -` ], the local
+  tar extracts only the listed names, then the vault's own
+  write-new-file rule [ temp file, checked rename, directory sync ] per
+  file. no file list ever sits on a command line [ E2BIG at some 100k
+  names ]
 - only names matching the entry \ blob file pattern are transferred
   [ strict regex on both sides -- a hostile remote name never reaches a
   path join ]. a file present on both sides with different content is
@@ -352,8 +371,8 @@ the payload with the vault key, then step 2 for each record's data.
 a session agent [ unlock once per login ], the vault-edit form ui,
 totp code display, purging old versions.
 
-#,,,,,,,.,,.,,.,,,.,,,..,,.,,,,.,,...,..,,..,,..,,...,..,,..,,,,.,,,.,.,.,.,,,
-#AW4Y22KDR6AUOLVGI57Y6D6EGQPFBPPMXTYJPC7VV5VBG5DDEM5QOJJH7RQTXJWSUWFMLLDOAUW22
-#\\\|KEVRMQIMR4RRYL3Q5LJOM4JSVDENINKLWIZDZOBRHBDFGNROSEA \ / AMOS7 \ YOURUM ::
-#\[7]WI2ZIVOD33FA5BYG6QW64YAPEYJONLY2QVXX5FR2DSBKFQGKIICA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,..,,,.,,,,,,.,,,..,,,..,.,,,,,.,..,,...,...,...,,..,.,,,,,,,,,,,
+#226NDKIP47TZL3CK6XZ5LW7UNPEXOQLEQKRPBVZRZFH3UWX46S5AKPHDV76RU5UZRG764AI7N7PSU
+#\\\|RZNKK6YZYFYIOUH2KEP57HSQBFQH2HKHJLG6C7ETX7AAYI2KEPW \ / AMOS7 \ YOURUM ::
+#\[7]YHTVZUQCGGFSOTTXEIFKV3YIQE3VKAZXN5JG5JGEFMT4MYSMUKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
