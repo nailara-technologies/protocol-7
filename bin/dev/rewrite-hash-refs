@@ -1,0 +1,176 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+use IPC::Open2;
+
+###                  ###
+##  rewrite-hash-refs ##
+###                  ###
+
+## keeps commit references valid across a history rewrite :
+##
+##  -m        : --msg-filter mode for git filter-branch. message on stdin,
+##              every commit id in it [ 7-40 hex, abbreviated or full ] is
+##              resolved against the OLD objects and swapped for its new id
+##              from filter-branch's own map [ ../map/<old> ], same length.
+##              ids not [ yet ] rewritten stay as they are.
+##
+##  -f <map>  : working tree mode, after the rewrite. <map> holds 'old new'
+##              lines [ written by the rewrite ] ; every tracked text file
+##              gets its commit ids swapped. changes are left uncommitted
+##              [ signatures need renewing anyway ]. -n : dry run.
+##
+## a token is only taken as a commit id when it resolves to exactly one
+## commit -- checksums, numbers and colours stay untouched.
+
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+## hex run with at least one letter, not part of a longer word ##
+my $id_regex = qr{(?<![0-9A-Za-z_])(?=[0-9]*[a-f])([0-9a-f]{7,40})(?![0-9A-Za-z_])};
+
+my %opt;
+getopts( 'mf:nq', \%opt ) or usage();
+usage() if not( $opt{'m'} xor defined $opt{'f'} );
+
+my $TTY = -t STDOUT;
+my ( $reset, $blacklight, $TRUE_color, $NEON_orange, $NEON_green_yellow )
+    = $TTY
+    ? ( "\e[0m", "\e[38;2;68;39;172m", "\e[38;2;6;71;195m",
+        "\e[38;2;197;141;7m", "\e[38;2;71;195;6m" )
+    : ('') x 5;
+
+$opt{'m'} ? msg_filter() : file_mode( $opt{'f'} );
+exit 0;
+
+##[ -m : filter-branch --msg-filter ]#########################################
+
+sub msg_filter {
+    binmode STDIN,  qw| :raw |;
+    binmode STDOUT, qw| :raw |;
+    my $msg = do { local $INPUT_RECORD_SEPARATOR; readline STDIN } // '';
+
+    my %tokens = map { $ARG => TRUE } $msg =~ m{$id_regex}g;
+    if (%tokens) {
+        my $full = resolve_commits( keys %tokens );
+        $msg =~ s{$id_regex}{ new_for( $1, $full->{$1} ) }ge;
+    }
+    print $msg;
+}
+
+## filter-branch runs filters in <tempdir>/t, its map lives in ../map ##
+sub new_for {
+    my ( $token, $old_full ) = @ARG;
+    return $token if not defined $old_full;
+    my $map_file = "../map/$old_full";
+    return $token if not -r $map_file;
+    open( my $fh, qw| < |, $map_file ) or return $token;
+    my $new = readline $fh;
+    close $fh;
+    return $token if not defined $new or $new !~ m{^([0-9a-f]{40})};
+    return substr( $1, 0, length $token );
+}
+
+## token -> full commit id, unique commits only [ git cat-file batch ] ##
+sub resolve_commits {
+    my @tokens = @ARG;
+    my %full;
+    my $pid = open2( my $out, my $in, qw| git cat-file --batch-check | );
+    print {$in} "$ARG^{commit}\n" for @tokens;
+    close $in;
+    foreach my $token (@tokens) {
+        my $line = readline $out // last;
+        $full{$token} = $1 if $line =~ m{^([0-9a-f]{40}) commit };
+    }
+    close $out;
+    waitpid $pid, 0;
+    return \%full;
+}
+
+##[ -f : tracked files in the working tree ]##################################
+
+sub file_mode {
+    my $map_path = shift;
+    my $dry_run  = $opt{'n'} ? TRUE : FALSE;
+
+    open( my $map_fh, qw| < |, $map_path ) or fail( "\l$OS_ERROR", $map_path );
+    my ( %new_of, %by_prefix );
+    while ( my $line = readline $map_fh ) {
+        next if $line !~ m{^([0-9a-f]{40}) ([0-9a-f]{40})$};
+        next if $1 eq $2;    ## unchanged commit ##
+        $new_of{$1} = $2;
+        push $by_prefix{ substr( $1, 0, 7 ) }->@*, $1;
+    }
+    close $map_fh;
+    fail( 'no changed commits in map', $map_path ) if not %new_of;
+
+    open( my $grep_fh, qw| -\| |,
+        qw| git grep -l -I -z -E |, q{[0-9a-f]{7,40}}, qw| -- . | )
+        or fail("cannot start git grep : \l$OS_ERROR");
+    my @files = do { local $INPUT_RECORD_SEPARATOR = "\0"; readline $grep_fh };
+    close $grep_fh;
+    chomp @files;
+
+    my ( $total, $ambiguous, $file_count ) = ( 0, 0, 0 );
+    foreach my $file (@files) {
+        next if $file eq $map_path;
+        open( my $fh, qw| < |, $file ) or next;
+        binmode $fh, qw| :raw |;
+        my $text = do { local $INPUT_RECORD_SEPARATOR; readline $fh };
+        close $fh;
+
+        my $count = 0;
+        $text =~ s{$id_regex}{
+            my $token = $1;
+            my @hits = grep { index( $ARG, $token ) == 0 }
+                ( $by_prefix{ substr( $token, 0, 7 ) } // [] )->@*;
+            $ambiguous++ if @hits > 1;
+            @hits == 1
+                ? do { $count++; substr( $new_of{ $hits[0] }, 0, length $token ) }
+                : $token;
+        }ge;
+        next if not $count;
+
+        $file_count++;
+        $total += $count;
+        say "$blacklight:   $NEON_green_yellow$count $blacklight.: "
+            . "$TRUE_color$file$reset"
+            if not $opt{'q'};
+        next if $dry_run;
+        open( $fh, qw| > |, $file ) or fail( "\l$OS_ERROR", $file );
+        binmode $fh, qw| :raw |;
+        print {$fh} $text;
+        close $fh;
+    }
+
+    say "$blacklight:\n::[$NEON_green_yellow "
+        . ( $dry_run ? 'would update' : 'updated' )
+        . " $total references in $file_count files $blacklight] "
+        . ( $ambiguous ? ".: $NEON_orange$ambiguous ambiguous left $blacklight" : '' )
+        . "::\n:$reset";
+}
+
+sub fail {
+    my ( $msg, $subject ) = @ARG;
+    print STDERR "$blacklight:\n::[$NEON_orange $msg $blacklight] .: "
+        . "$NEON_green_yellow" . ( $subject // 'rewrite-hash-refs' )
+        . "$blacklight ::\n:$reset\n";
+    exit 2;
+}
+
+sub usage {
+    print STDERR ":\n:: usage : rewrite-hash-refs -m          "
+        . "[ filter-branch --msg-filter ]\n"
+        . ":         rewrite-hash-refs -f <map> [-n] [-q] "
+        . "[ tracked files, -n dry run ]\n:\n";
+    exit 2;
+}
+
+#,,.,,.,,,,,.,,,,,,.,,.,.,.,,,,,,,,,,,...,,,.,..,,...,...,.,,,.,,,,..,...,.,,,
+#SQ5IDVB2VDYQNG4LPPKZKHEEBTGOA2BKJ2T2DE5NTKMGC7S6DDNABKB5LTJN75SFKBBHXSYDGTPWO
+#\\\|TKQPDNRAHYI2LNUUY34UONYESWNEM7I24M5XAXTIBYHGRMIQMA2 \ / AMOS7 \ YOURUM ::
+#\[7]HDB43UE6HJOPLOVKZYSGEEF6DF4WKUDON4V5AKCAN5OF7HJFVSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
