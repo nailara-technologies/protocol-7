@@ -62,8 +62,17 @@ LoRA applies to 2.1 there yet. old SDXL \ FLUX LoRAs never carry over
 offered, not done : importing main's image records [ 49441 ] + boards into
 the fork db so the old gallery works there.
 
-#,,.,,,,.,,.,,,.,,,,.,..,,,,.,..,,,..,.,,,...,..,,...,...,,.,,,,,,,..,,,.,,.,,
-#HRV7PARD4FWOORKVYN32RDBGPVOHJE5BBGJGAVWTDRSAQ7M56RMW7JZQEF3YM3L7JTP5UK4ZFBGUS
-#\\\|PSRANVMVH7URDGIBVLAWBUFLYVDKOBVJGUUS32JNTZFFHI2NFHG \ / AMOS7 \ YOURUM ::
-#\[7]FOZEDXPAA6QOKDOQBLNRLBBG5WR5SAIDNCX7VORDDACJITWMZEDI 7  DATA SIGNATURE ::
+**2026-10-13 turbo** : WORKS = realrebelai/Qwen-Image-2.1-Turbo_GGUFs Q4_K_S [ 4.0 GB, key 85dd664a..,
+auto-detected qwen-image \ qwen_image_2_1, renders with ref images ; defaults 8 steps, cfg 1, 2048 ].
+pick a gguf by HEADER first [ curl -r 0-2097151 + parse ] : the fork needs general.architecture
+qwen_image21 and NO 'model.diffusion_model.' prefix -- unsloth \ AtomicChat \ DogukanUrker carry the prefix
+[ probe falls to flux \ schnell ; a PATCH of base only relabels, ui stays flux : no refs, no generate ],
+Abiray tags qwen_image. unsloth Q4_K_M record dd06b313.. is dead [ delete in the ui ]. caveat : invoke's
+own 8-step flow-match curve, not the trained sigmas. plan [ user ] : turbo for bulk feature extraction
+renders, best ones re-rendered with the full 2.1.
+
+#,,,.,,.,,,..,..,,,.,,,..,..,,,..,,.,,...,,..,..,,...,...,.,.,,,.,...,.,.,.,.,
+#MTN4V3FXMY6EBRXH4Y3YQ7CQI7NS3LSE75RU5KEAJUNEIEXYQYEL3JHX2DN6YHWJ5LWTAYJLU4UTW
+#\\\|U7FV5U5GRSX4XNRRD6LWC5FP6W2JI47YWNSOIU3BPYC7F3ZSBOX \ / AMOS7 \ YOURUM ::
+#\[7]JTFHTH4UGQ6WZNDM4NZI765MABWYA33BLD5TUAIAXVBMITUOKOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
