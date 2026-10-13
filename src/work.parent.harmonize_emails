@@ -248,6 +248,12 @@ foreach my $variant ( keys %canonical_author_map ) {
 if ($dry_run) {
     say "";
     <[base.log]>->( 1, "  PREVIEW - No changes will be made (dry run)" );
+    <[base.log]>->(
+        1,
+        "  execute also keeps commit references valid : ids in messages are "
+            . "swapped during the rewrite, tracked files after it [ "
+            . "uncommitted ], old -> new map kept in .git/"
+    );
     say "";
 
     if ( %changes_by_email || %changes_by_author ) {
@@ -466,12 +472,32 @@ $ENV{WORKFLOW_DATA_FILE} = $data_file;
 ## Run git filter-branch : the env-filter must be SOURCED [ '. script' ] -- ##
 ## run as a program its exports die with the child shell and nothing        ##
 ## changes. tags are rewritten along [ --tag-name-filter cat ]              ##
+##                                                                          ##
+## commit references stay valid : the commit-filter records every 'old new' ##
+## pair in a map kept in .git/, the msg-filter swaps ids mentioned in       ##
+## messages [ bin/dev/rewrite-hash-refs -m ], tracked files are updated     ##
+## from the map after the run [ -f, left uncommitted ]                      ##
 my $shell_quote = sub { q{'} . ( $ARG[0] =~ s{'}{'\\''}gr ) . q{'} };
-my $git_cmd     = sprintf(
-    'cd %s && git filter-branch -f --env-filter '
-        . '%s --tag-name-filter cat -- --all 2>&1',
+my $refs_tool   = File::Spec->catfile( <system.root_path>,
+    qw| bin dev rewrite-hash-refs | );
+my $map_file = sprintf( '%s/.git/harmonize-emails.%d.map', $repo_path, time );
+unlink $map_file;
+
+my $commit_filter = sprintf(
+    'n=$(git commit-tree "$@") || exit 1 ; '
+        . 'echo "$GIT_COMMIT $n" >> %s ; echo "$n"',
+    $shell_quote->($map_file)
+);
+my $git_cmd = sprintf(
+    'cd %s && git filter-branch -f --env-filter %s --msg-filter '
+        . '%s --commit-filter %s --tag-name-filter cat -- --all 2>&1',
     $shell_quote->($repo_path),
-    $shell_quote->(". $filter_script")
+    $shell_quote->(". $filter_script"),
+    $shell_quote->(
+        join q{ },  map { $shell_quote->($ARG) } $EXECUTABLE_NAME,
+        $refs_tool, qw| -m |
+    ),
+    $shell_quote->($commit_filter)
 );
 
 <[base.log]>->( 2, "  Running : git filter-branch --env-filter" );
@@ -494,6 +520,20 @@ if ( $exit_code != 0 ) {
 
 <[base.log]>->( 1, "  ✓ Git history rewritten successfully" );
 <[base.log]>->( 1, "  ✓ Harmonized emails and authors across history" );
+<[base.log]>->( 1, "  ✓ old -> new commit map : $map_file" );
+
+## commit ids in tracked files of the working tree [ left uncommitted ] ##
+my $refs_cmd = join q{ }, q{cd}, $shell_quote->($repo_path), q{&&},
+    map( { $shell_quote->($ARG) } $EXECUTABLE_NAME,
+    $refs_tool, qw| -q -f |, $map_file ),
+    q{2>&1};
+my $refs_output = qx{$refs_cmd};
+chomp $refs_output;
+<[base.log]>->( 1, "  $ARG" )
+    foreach grep {length} split m|\n|, $refs_output =~ s{\e\[[0-9;]*m}{}gr;
+<[base.log]>->(
+    1, "  ⚠ tracked files updated, uncommitted : review, sign, commit"
+);
 <[base.log]>->(
     1, "  ⚠ Remember to force-push if you've already pushed this branch"
 );
@@ -501,14 +541,15 @@ if ( $exit_code != 0 ) {
 return {
     success        => TRUE,
     changed        => $commits_to_change,
+    map_file       => $map_file,
     email_mapping  => \%changes_by_email,
     author_mapping => \%changes_by_author
 };
 
 0;
 
-#,,..,,,,,..,,.,.,..,,.,,,,,.,,,,,..,,.,,,,..,..,,...,...,,.,,,..,,.,,,.,,,.,,
-#FV27OX4C652ARD5KI2OXYYJLKQLYAOIM7E5UJIQYIHUSJ7PK7YJ4BTNTNVKB2ZJMITWGFOK62FQZ6
-#\\\|E2B2WLRL3NC7FHUK6N5NGJ3RJZFIXOQTOBYBSTTNUVZHALCK4N7 \ / AMOS7 \ YOURUM ::
-#\[7]H3JRUS6AD6IV4OZTYDGJWUE2ELBUMUJSCI76RG6RPVNV3YA4BACY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,,,,,,..,,..,..,,,..,.,,,,,,,..,,...,...,..,,.,.,,,.,,.,,.,,,
+#CJ7FU4T2JDJPFRECK7PDVQ4UC7D6SRXX2I7BLDKZGQJYM2C6BKZNH73ZQG6BXLET5DXH6522WP77G
+#\\\|3GPUUAXJSHVFRIO2K7IMIIIFC6OAUWPYPLUKRPI42UMEQTNGQQS \ / AMOS7 \ YOURUM ::
+#\[7]H7GZUO5IMEM2YC3GEDM52BN7ASW7OX7EI4HR3574LAFU3VKNWICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
