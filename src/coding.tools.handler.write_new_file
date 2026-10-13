@@ -85,16 +85,19 @@ return
     . '[supported are :raw,:bytes,:encoding(UTF-8)]'
     unless length( $norm_encoding // '' );
 
-## create missing parent directories : directly when the nearest existing ##
-## ancestor is writable, else through the chmod child                     ##
-## [ creates parents as the admin user ]                                  ##
+## create missing parent directories : through the chmod child first        ##
+## [ admin user, 0775, admin group -- as apply-staged \ scratchpad_rescue ] ##
+## even when the ancestor is writable : a direct make_path is the zenka     ##
+## user's 0700 default [ src/coding/image 2026-10-12 : unreadable to the    ##
+## admin, dep-graph aborted on it ] ; direct 0775 only without a child      ##
 my $chmod_fh = <coding.chmod_child.w_fh>;
 if ( !-d $parent_dir ) {
-    if ( -w $anchor_dir ) {
-        <[file.path.make_dir]>->($parent_dir);
-    } elsif ( defined $chmod_fh ) {
+    if ( defined $chmod_fh ) {
         print {$chmod_fh} "mkdir $parent_dir\n";
         <[coding.chmod_child.readline]>;
+    }
+    if ( !-d $parent_dir and -w $anchor_dir ) {
+        <[file.make_path]>->( $parent_dir, 0775 );
     }
     return sprintf ': error : cannot create directory %s', $parent_dir
         unless -d $parent_dir;
@@ -170,8 +173,8 @@ return
     $path, length($content), $stage_rel )
     . $sig_note;
 
-#,,,.,,.,,,.,,,.,,.,.,,,.,,,,,.,,,.,,,,..,..,,.,.,...,..,,,,,,,..,,.,,,,.,,,.,
-#BSFDA2I2YXQRXFM75TIHXUA72YNV4KPYUNO5CGYOKMOHUJSICT4TPJYNFNVNWH3MPUOVNP6ND3LSE
-#\\\|RWQM2GQCOGG2GDVY7Z4DASOCKUMJI3PAWIICI5VBHSA7F7H7XPA \ / AMOS7 \ YOURUM ::
-#\[7]7DXCWHOIDKPHLTU5JZRSGNJE3SHIBXVII77LMWWXIKZBUQO3JOBY 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,.,,,,,.,,,,,.,.,..,,.,.,...,.,.,...,..,,.,,,.,.,,,.,..,,...,
+#FMJ5PEUXZTS5YVC66Z32HELVNDJKOFYC3CIJZD2XIVVDBTABGVGNYU6JEYLQN2MCNE7LUGNS6LNNS
+#\\\|RAGMZC6UPELBSUM5WR2OAPUSZKVU4LNG3FH3CS5VHLAXI2CVB4D \ / AMOS7 \ YOURUM ::
+#\[7]P4SVOLWAFY2KYZSZBARNT5KBANQA5VOIT2AYL3VLJWK2522WR4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

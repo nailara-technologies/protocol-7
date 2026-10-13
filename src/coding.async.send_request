@@ -332,7 +332,7 @@ my $request_body = {
     'dry_multiplier'     => <inference.model.dry_multiplier>     // 0.8,
     'dry_base'           => <inference.model.dry_base>           // 1.75,
     'dry_allowed_length' => <inference.model.dry_allowed_length> // 2,
-    'dry_penalty_last_n' => <inference.model.dry_penalty_last_n> // -1,
+    'dry_penalty_last_n' => <[coding.helper.dry_last_n]>->($srv_key),
 };
 
 ## add tools if available [ matches task.execute logic ] ##
@@ -399,8 +399,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,.,...,,,,,.,.,,.,,..,,,..,,.,,..,,..,,...,..,,...,...,...,.,,,.,,,,.,,,,,,
-#4XHQOOZ5EGDZGBJ5D5NHH3X33JFXLYRYVWLZOKT4FJOIDGZ62FX7QJ73FG5NIEP53MOIR4LR66I34
-#\\\|G2YYWVW5PM7YYEWC7A5T3KYVINVMHGBGCUMZMZA6G62UMS6FONY \ / AMOS7 \ YOURUM ::
-#\[7]JMYVEPEG2URJMDJL4FOX5TCX5QMBMPNTNWXEAKFB3LX2NJ4GDYBY 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,.,.,,..,.,,,,,.,.,.,.,,,.,,,..,,...,...,,.,,,.,,,,,,...,,..,
+#3M7AGLKWA7TJR4AO2PD57ACUXFNO6I7LE7X6DGSMVCMWLQGYM36BVI4NQSZ2J64IZKYN4TN6VR7II
+#\\\|KGPZ2F3JCDZNJBRKJKFWXF2CAGC276DKSDFVG5266FJKYIOEEBA \ / AMOS7 \ YOURUM ::
+#\[7]VUUS7KBWBC2QVK7Z6CAO4PI3HWZCZJJMHDPMWXSXHYG5FYL3NSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

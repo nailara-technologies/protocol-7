@@ -54,6 +54,49 @@ my $model_path        = $params->{'model_path'}  // '';
 my $mmproj_path       = $params->{'mmproj_path'} // '';
 my $amos_id           = $params->{'amos_id'}     // '';
 
+## extra llama.cpp builds [ inference.runtime.<name>.* ] : a gpu model    ##
+## whose file name matches a runtime's 'match' regex spawns with that     ##
+## build's binary and library path                                        ##
+## [ prismml fork : ternary bonsai pq2_0 \ ptq1_0 ] -- an explicit params ##
+## binary other than the backend default wins : restart_server \ async    ##
+## spawn pass the default itself                                          ##
+## [ a bonsai restart got the ik binary and exited 1 ]                    ##
+my $runtime_name       = '';
+my $runtime_lib_path   = $lib_path;
+my $default_gpu_binary = <inference.backend.gpu.binary>
+    // "$lib_path/llama-server-cuda-fa";
+
+if ($backend eq qw| gpu |
+    and ( !defined $params->{'binary'}
+        or $params->{'binary'} eq $default_gpu_binary )
+) {
+    my $runtimes   = <inference.runtime> // {};
+    my $model_file = $model_path =~ s|^.*/||r;
+    for my $name ( sort keys %$runtimes ) {
+        my $rt = $runtimes->{$name};
+        next if ref $rt ne qw| HASH |;
+        my $match = $rt->{'match'} // '';
+        next if !length $match or !length( $rt->{'binary'} // '' );
+        my $re = eval {qr{$match}i};
+        if ( !defined $re ) {
+            <[base.logs]>->(
+                0,
+                '[spawn_inference_server] ' . 'runtime %s : bad match regex',
+                $name
+            );
+            next;
+        }
+        next if $model_file !~ $re;
+        ( $runtime_name, $binary ) = ( $name, $rt->{'binary'} );
+        $runtime_lib_path = $rt->{'lib_path'} // ( $binary =~ s|/[^/]+$||r );
+        <[base.logs]>->(
+            1,     '[spawn_inference_server] runtime %s : %s',
+            $name, $binary
+        );
+        last;
+    }
+}
+
 ## kv cache type [ coding.cfg.kv_cache_type ] : auto [ default ] is f16,   ##
 ## q8_0 only when f16 cannot reach the context floor -- on this build a    ##
 ## q8_0 cache cuts prompt processing ~10x                                  ##
@@ -64,6 +107,25 @@ my $kv_cache_type = lc( <coding.cfg.kv_cache_type> // qw| auto | );
 $kv_cache_type = qw| f16 | if length( <coding.cfg.lora_adapter> // '' );
 $kv_cache_type = qw| f16 |
     if $kv_cache_type eq qw| auto | and $backend ne qw| gpu |;
+
+## sliding window layers at window size [ coding.cfg.swa_compress = yes ] : ##
+## gemma4 keeps 40 of 48 layers in a 1024 window, without it they get n_ctx ##
+## rows each [ ik_llama --swa-compress ]. only for a model whose gguf has   ##
+## swa layers : the flag also changes dflash models' cross ctx              ##
+my $swa_compress
+    = ( <coding.cfg.swa_compress> // qw| no | ) eq qw| yes | ? TRUE : FALSE;
+if ($swa_compress) {
+    my $shape
+        = length $model_path
+        ? <[models.gguf.file.extract_attention]>->($model_path)
+        : undef;
+    my $pattern
+        = ref $shape eq qw| HASH |
+        ? $shape->{'sliding_window_pattern'}
+        : undef;
+    $swa_compress = FALSE
+        unless ref $pattern eq qw| ARRAY | and grep {$ARG} @$pattern;
+}
 
 ## gpu layers : a value above the model's real layer count [ 999 : all ] is ##
 ## clamped to it -- the old fixed 33 kept every model with more layers      ##
@@ -86,6 +148,7 @@ if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
                 mmproj_path   => $mmproj_path,
                 backend       => $backend,
                 kv_cache_type => qw| f16 |,
+                swa_compress  => $swa_compress,
                 gpu_layers    => $gpu_layers,
                 layer_count   => $model_layer_count,
 
@@ -111,6 +174,7 @@ if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
                     mmproj_path   => $mmproj_path,
                     backend       => $backend,
                     kv_cache_type => qw| f16 |,
+                    swa_compress  => $swa_compress,
                     gpu_layers    => $gpu_layers,
                     layer_count   => $model_layer_count,
                     offload_mb    => $all_mb / 1024**2,
@@ -152,6 +216,7 @@ if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
                     mmproj_path   => $mmproj_path,
                     backend       => $backend,
                     kv_cache_type => $kv_cache_type,
+                    swa_compress  => $swa_compress,
                     gpu_layers    => $gpu_layers,
                     layer_count   => $model_layer_count,
                     offload_mb    => $mb,
@@ -557,6 +622,7 @@ my $safe = <[coding.helper.calculate_safe_context]>->(
         mmproj_path   => $mmproj_path,
         backend       => $backend,
         kv_cache_type => $kv_cache_type,
+        swa_compress  => $swa_compress,
         offload_mb    => $moe_offload_mb,       ## moe experts in ram ##
         gpu_layers    => $gpu_layers,           ## actual -ngl value used ##
         layer_count   => $model_layer_count,    ## true total [ gguf ] ##
@@ -674,7 +740,8 @@ push @cmd, qw| -c |, $ctx_size;
 push @cmd, qw| -ctk |, $kv_cache_type, qw| -ctv |, $kv_cache_type
     if $kv_cache_type ne qw| f16 |;
 push @cmd, qw| --n-cpu-moe |, $n_cpu_moe if $n_cpu_moe;
-push @cmd, qw| -n |,          $max_tokens;
+push @cmd, qw| --swa-compress | if $swa_compress;
+push @cmd, qw| -n |, $max_tokens;
 
 # Backend-specific settings
 if ( $backend eq qw| cpu | ) {
@@ -892,8 +959,9 @@ if ( length $lora_path ) {
 # every launch [ confirmed live 2026-08-26 : reproduced standalone, crash
 # only happens with this env var set, matching the exact live crash shape ].
 # the cpu binary needs no override at all -- it resolves its own libs fine.
+## a runtime build [ inference.runtime.<name>.lib_path ] brings its own ##
 local $ENV{'LD_LIBRARY_PATH'}
-    = <coding.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' )
+    = $runtime_lib_path . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' )
     if $backend eq qw| gpu |;
 
 ## manual fork/exec, not IPC::Open3 : Open3 already does exactly this      ##
@@ -1128,8 +1196,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,,..,,,.,.,,,.,.,,,,,,.,,,,.,,,.,..,,..,,..,,...,...,...,,.,,..,,.,,,..,,
-#TOVRXRQ2FL7IBJTUSQAUDZVHGXNAOGXJRM5CHOOF5CVIB4RY4Z7GKM6L7OFPL2KWK6EL3DARAU73U
-#\\\|IJHS2TIG3EFA5E2SOPVXS75GQ3AA6GZAIILFR4SH77C4LN4ZMHI \ / AMOS7 \ YOURUM ::
-#\[7]3BYDAR5RV7LAJQMNQALDMRICZIPWX5SAETIL2ZAU5HKBC7MOO6BQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,...,.,,,,.,,.,,,,..,,.,,,.,,,,.,..,,...,...,,..,.,,,,..,...,...,
+#7KQY7HQSOYTZVKKQEBBX3VWI6KCPU73RIMWI66VUK4LSU5P4LVG6FEWYAAL7EQ3ZOXHXVVDC7EWCI
+#\\\|VSTKK375LEPWL3OUHS3VF46JSPRMYYCMPLY54XL5RPR6MHOBJCR \ / AMOS7 \ YOURUM ::
+#\[7]SHAQOICUYZOZ4TBYLWKPUWHZTSB43X3VG52G7SCTVRD2WJNYTOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

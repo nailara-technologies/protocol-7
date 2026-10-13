@@ -20,14 +20,15 @@ $port //= 80;
 $path = '/' if !length($path);
 
 ## Parse body ##
-my $json     = JSON::XS->new->utf8->canonical;
+my $json = JSON::XS->new->utf8->canonical;
+<[coding.helper.numify_body]>->($body) if ref $body;
 my $body_str = ref($body) ? $json->encode($body) : $body;
 
 ## scale data-start timeout with estimated prompt size : a flat timeout    ##
 ## starves large prompts — the first streamed token can't arrive until the ##
 ## whole prompt is prefilled, and prefill of 15K+ tokens routinely exceeds ##
-## a short flat budget under queue contention. floor stays as configured [ ##
-## short prompts really do start in a couple seconds ]                     ##
+## a short flat budget under queue contention. floor stays as configured   ##
+## [ short prompts really do start in a couple seconds ]                   ##
 my $chars_per_token        = 3.2;
 my $est_prompt_tokens      = int( length($body_str) / $chars_per_token );
 my $prefill_tokens_per_sec = <coding.cfg.prefill_tokens_per_sec> // 1200;
@@ -193,11 +194,12 @@ my $stall_timeout_sec = ( <coding.http-timeouts.stall> // 77 )
     * ( <coding.stretch.timeout_factor> // 1.0 );
 $state->{'stall_timeout_sec'} = $stall_timeout_sec;
 
-## identify what this connection is FOR : real tasks have a task_id, self- ##
-## test probes don't [ deliberately - see coding.self_test.async_probe ]   ##
-## and rely on request_kind [ probe / tier1 ] instead - without either,    ##
-## this line used to just say "connected", leaving the reader to infer the ##
-## purpose from whatever log line follows several chunks later             ##
+## identify what this connection is FOR : real tasks have a task_id,       ##
+## self-test probes don't                                                  ##
+## [ deliberately - see coding.self_test.async_probe ] and rely on         ##
+## request_kind [ probe / tier1 ] instead - without either, this line used ##
+## to just say "connected", leaving the reader to infer the purpose from   ##
+## whatever log line follows several chunks later                          ##
 my $conn_label
     = length( $callbacks->{'task_id'} // '' ) ? $callbacks->{'task_id'}
     : $callbacks->{'request_kind'}            ? $callbacks->{'request_kind'}
@@ -213,8 +215,8 @@ return {
     state   => $state,
 };
 
-#,,,.,,,.,,..,.,.,...,,,,,,.,,,.,,.,,,.,.,.,,,.,.,...,...,,..,,,.,,,,,...,.,.,
-#2Q2ALFRPWYNP6OXBY3VGRNJSVZQJDJCI2ITVKEC6QK3FTYYXDCOCMZ27JXIDPB5PL5QNZQ46E345M
-#\\\|OMA7I2I6Y7MW64ZHNF6SXSAN3T7YLILR7XFYUJTBYYDU76YJ6LC \ / AMOS7 \ YOURUM ::
-#\[7]NH4EEAEVCLRYVNBGL2LSJEIKB6HHCTC4HP56A2GP7V7ED5GLS2DI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,,,.,,.,,..,,.,,,.,,,..,,,,,,.,.,...,...,...,.,.,...,,,,,,..,
+#PXT427W4XXEATCHHFKVZWUASXKXJKKGLGGJ4757XAPRQZNMIHG7XH6DOMV5UDE4IL7PQBMCFRZFX6
+#\\\|DEBY4DE2HZSTJKEWCBTNBQ2V6A64PKJ5J3PW7FSBASTQSHI6QE6 \ / AMOS7 \ YOURUM ::
+#\[7]ZPOZWI7BOJ2MX7EK3BKYOO3UAKND7QILMXCQS5ZQKFXKI2YJLAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

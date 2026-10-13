@@ -25,6 +25,13 @@ return { 'mode' => qw| false |, 'data' => 'file parameter required' }
 if ( !length($dest) ) {
     if ( $file =~ m\.gguf$\i ) {
         $dest = <[base.models_root]> // '/mnt/ext-xfs-data/models-lmstudio';
+
+        ## lmstudio layout <root>/<publisher>/<repo> : model names come   ##
+        ## from the repo dir and the mmproj pairs within it               ##
+        ## [ a bonsai download at the root became 'folded 27B' ] -- plain ##
+        ## repo names only                                                ##
+        $dest .= "/$repo"
+            if $repo =~ m{^[\w.-]+/[\w.-]+$} and $repo !~ m{\.\.};
     } else {
         $dest = <external.models.download.temp> // '/tmp/model-downloads';
     }
@@ -158,8 +165,8 @@ my $dl_id = sprintf( '%s:%s', $repo, $file );
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,.,,..,,.,.,,,,,.,,,,..,,,.,,..,,,.,...,..,,...,...,..,,,..,,.,,..,,,..,
-#AWZ5EP55KIBR45PLVJGI2GOHSM6Q333YZ37IXLYCZ3QE7OBYHCKAO2QM3Y7DJXW23U72GDT4U6JGE
-#\\\|3VGKXXIQMH5IDZ7SCETN7FIS5UQA43XD7WXHKHTLCSWMQYLGGMY \ / AMOS7 \ YOURUM ::
-#\[7]A27LWDUEWJHLF3ZP3EGORDU22LKILNUW3RJAP5GGESOHIOYCCSCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,.,,,,.,,,,.,..,,,..,.,.,,..,..,,...,...,,,.,.,.,...,.,.,.,,,
+#4J5JRFQBZMFRIIWASURX3J5RDH6VQFUIUX6ASZZ6PZS4OB7GMTWP34N5UA2WVMQORLDRSVFUDGZZO
+#\\\|2PEP3ZRD4VZUSBWOAYAMQJWPAY7O45WGUBCXBXB7IE2BOWGSKPD \ / AMOS7 \ YOURUM ::
+#\[7]4EOUWJGTQMDG43J5NIXRLNUMMN7IE6YZYLNML5ANWNF3W4NJSMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

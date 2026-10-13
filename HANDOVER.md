@@ -1,3 +1,25 @@
+# Session Handover — 2026-10-13 [ weekly budget ~99 % ]
+
+memory : data/ai-mem/claude/project-2026-10-12-gemma4-12b-agentic-batch-and-swa-planner.md [ full detail ]
+
+**done + live** : gemma4 swa planner [ --swa-compress, gemma4 8k -> 145k ctx ] ; multi-runtime
+[ inference.runtime.<name>.* : per-model llama.cpp build, prismml fork in /data/source/prismml-llama.cpp ] ;
+strict-server request fixes [ coding.helper.numify_body, coding.helper.dry_last_n ] ; write_new_file mkdir via
+chmod child ; fetch-files models_root config + <publisher>/<repo> downloads + hf-remove dir cleanup ;
+discovery mmproj filter + repo-dir names [ 14 \ 82 renamed, diffed ].
+
+**verdicts** : gemma4 12b agentic v2 [ yuxinlu1 ] not usable for p7 coding [ harness 4/9, manual ~0.5/9 ] ->
+copies removed. coding default back on OFSQC4I:QDBKEXY.
+
+**next, in order**
+1. bonsai 27b [ PP5HZMQ:JQKYA2Y ] : cuda NaN logits on some prompts [ cpu fine, partial offload fine ] -- full-gpu
+   bisect [ fused gated delta net vs pq2_0 sm86 kernels ], coding off the gpu ~15 min, then upstream issue ;
+   then re-run cfg/model-batches/bonsai-27b-check.yaml.
+2. spawn race on model switch-back : pending-switch spawn + crash-restart both bind :8000.
+3. model_batch.blob.restore:33 make_dir 0700 default -> chmod child \ 0775 [ as write_new_file ].
+4. prune stale registry entries on rescan [ VKIXTQA:TJF37JQ mmproj-as-model ] ; rmdir tmp/p7_modules.
+5. score.task : flag files written outside flat src/<module.name> [ false 4/4 ] ; batch revert leaves new dirs.
+
 # Session Handover — 2026-09-14
 
 **Read this before touching anything called "loadable memory," "module-catalog

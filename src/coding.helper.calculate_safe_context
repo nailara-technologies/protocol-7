@@ -7,6 +7,7 @@
 #           kv_cache_type => f16 | q8_0 | .. ,   [ default f16 ]
 #           offload_mb => N,      [ moe expert weights in ram : --n-cpu-moe ]
 #           vram_total_mb => N,   [ skips the nvidia-smi query : planners ]
+#           swa_compress => bool, [ --swa-compress : swa layers at window ]
 #           probe => bool }       [ planner variant : quiet logs ]
 # return = { context_length => N, calculated => N, explanation => "...",
 #            limited_by => "..." }
@@ -74,7 +75,8 @@ my $cache_type = lc( $params->{'kv_cache_type'} // qw| f16 | );
 my $elem_bytes = $CACHE_BYTES{$cache_type} // 2;
 
 my $kv_bytes_per_token;
-my $kv_source = qw| size-class |;
+my $kv_source    = qw| size-class |;
+my $swa_fixed_mb = 0;    ## swa layers at window size [ --swa-compress ] ##
 my $shape
     = length $model_path
     ? <[models.gguf.file.extract_attention]>->($model_path)
@@ -100,6 +102,33 @@ if ( ref $shape eq qw| HASH | and $shape->{'block_count'} ) {
     }
 
     my $bytes = $kv_head_sum * ( $k_len + $v_len ) * $elem_bytes;
+
+    ## sliding window layers [ gemma4 : 5 of 6 ] have their own k \ v    ##
+    ## lengths. without --swa-compress the server still gives them n_ctx ##
+    ## rows [ a per-token cost at the swa lengths ] ; with it they hold  ##
+    ## window + ubatch rows : a fixed size, only the global layers grow  ##
+    my $pattern = $shape->{'sliding_window_pattern'};
+    if (    ref $pattern eq qw| ARRAY |
+        and ref $kv_heads eq qw| ARRAY |
+        and grep {$ARG} @$pattern ) {
+        my $k_swa  = $shape->{'key_length_swa'}   // $k_len;
+        my $v_swa  = $shape->{'value_length_swa'} // $v_len;
+        my $window = $shape->{'sliding_window'}   // 0;
+        my ( $global_sum, $swa_sum ) = ( 0, 0 );
+        for my $layer ( 0 .. $#$kv_heads ) {
+            if   ( $pattern->[$layer] ) { $swa_sum    += $kv_heads->[$layer] }
+            else                        { $global_sum += $kv_heads->[$layer] }
+        }
+        my $swa_bytes = $swa_sum * ( $k_swa + $v_swa ) * $elem_bytes;
+        $bytes = $global_sum * ( $k_len + $v_len ) * $elem_bytes;
+        if ( $params->{'swa_compress'} and $window > 0 ) {
+            ## window + default ubatch 512, padded up generously ##
+            $swa_fixed_mb = $swa_bytes * ( $window + 1024 ) / ( 1024 * 1024 );
+        } else {
+            $bytes += $swa_bytes;
+        }
+    }
+
     if ( $bytes > 0 ) {
         $kv_bytes_per_token = $bytes;
         $kv_source          = sprintf 'gguf %s', $cache_type;
@@ -119,9 +148,16 @@ if ( !$kv_bytes_per_token ) {
 }
 <[base.logs]>->(
     $log_info,
-    '[calculate_safe_context] kv cache : %.1f KB per token [ %s ]',
-    $kv_bytes_per_token / 1024, $kv_source
+    '[calculate_safe_context] kv cache : %.1f KB per token [ %s ]%s',
+    $kv_bytes_per_token / 1024,
+    $kv_source,
+    $swa_fixed_mb
+    ? sprintf( ' + swa window %.0f MB', $swa_fixed_mb )
+    : ''
 );
+
+## the fixed swa window cache sits next to the weights, like the mmproj ##
+$mmproj_size_mb += $swa_fixed_mb;
 
 ## for CPU backend : RAM-aware clamp, mirrors the GPU/VRAM math below using ##
 ## /proc/meminfo MemAvailable [ same source as                              ##
@@ -646,8 +682,8 @@ return {
     kv_bytes_per_token => $kv_bytes_per_token,
 };
 
-#,,,.,.,.,...,..,,.,.,...,,.,,,,.,,,,,..,,,.,,.,.,...,..,,,,.,,..,,,.,...,,,.,
-#DKHQSFJ5LHLQWIDWVLIP4UHSTTXZSC5ZIJUZVJYHXZFXGJ2NKON6PBSOEXPANCPA7LL2BYC47CUQ2
-#\\\|PQ5V7XIXYFOBINJAOAD33YWPJITE2XIANJJSOOXIS3KVPRAD4O4 \ / AMOS7 \ YOURUM ::
-#\[7]KC3DUFWGM6GHX4YLCKAWWKHFQ3FU3R43FLZPP57DWRRA6LMZ7KAA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,,,.,,,,,.,.,,,..,,.,.,,..,..,,.,.,...,.,,,.,,,,.,,,,,,..,,,.,,
+#YHX6Y5LIXUFVI2I2AAYVMXPDTISWXESUF5JKTS3Y5HFV3OWSRMRQMLMWHJ52HER67MZ3KKA6Y57HY
+#\\\|HMJM5U4OH4OW4AKTNS4EZX7SPVVYVUUX4G3ZBQ25N3GUXUXW5GF \ / AMOS7 \ YOURUM ::
+#\[7]J5BNM4FFCQ3J4VBO3NPJ7ZWTAKIKN67XBYDFXZYON243PONDGWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

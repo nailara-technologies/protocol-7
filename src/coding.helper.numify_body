@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = coding.helper.numify_body
+# descr = sampler fields of a request body as json numbers, in place
+# param = $body [ hashref : a chat completions request ]
+# note  = config values arrive as perl strings [ '256' ] and encode as json
+#         strings : ik_llama accepts them, mainline-based builds [ prismml
+#         fork ] answer http 400 'type must be number'. top-level sampler
+#         keys only -- messages \ tools \ model stay as they are
+
+my $body = shift;
+return $body if ref $body ne qw| HASH |;
+
+my $numeric_key = qr{^(?:max_tokens|n_predict|temperature|top_[pk]|min_p
+    |typical_p|seed|n_probs|repeat_\w+|presence_penalty|frequency_penalty
+    |dry_\w+|mirostat\w*|xtc_\w+)$}x;
+
+for my $key ( keys %$body ) {
+    next if $key !~ $numeric_key;
+    my $value = $body->{$key};
+    next if !defined $value or ref $value;
+    $body->{$key} = 0 + $value
+        if $value =~ m{^\s*-?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?\s*$};
+}
+return $body;
+
+#,,.,,.,.,,..,.,,,,.,,,..,,..,,,.,..,,,..,,.,,..,,...,...,,..,.,.,...,,,,,...,
+#7WHP6MXAXG4GFEBBMMG3UTSNTJCXAJQMJV6MVSGJL3G4OSHST4FKGYF7ZRZRIFTNM7LIXPDNBWNRY
+#\\\|QUTZP3LVDVAPOXTGAHZKY2C46NUTLNIGHJOKFJ6CBGWVWS24VMQ \ / AMOS7 \ YOURUM ::
+#\[7]AUJFAZET4L4CJ7ZBVK6VMVB6SDFGVWHAVHUXZDWZWFQUGDD3TIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

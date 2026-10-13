@@ -21,7 +21,7 @@ $filename =~ s|.*/||;
 $filename =~ s|\.gguf$||i;
 
 ## Clean filename (strip quantization suffix) [ '.' separates it too : ##
-## unsloth exports are named 'Qwen3.5-9B.Q8_0.gguf' ]                   ##
+## unsloth exports are named 'Qwen3.5-9B.Q8_0.gguf' ]                  ##
 my $clean_filename = $filename;
 $clean_filename =~ s|[-_.]?[IQ][0-8](?:_[A-Z0-9_]+)?\s*$||i;
 $clean_filename =~ s|[-_.]$||;
@@ -32,15 +32,30 @@ $clean_filename =~ s|\s*\.?mmproj[-_\s]?[a-z0-9]*\s*||gi;
 $clean_filename =~ s|\s+| |g;
 $clean_filename =~ s{^\s+|\s+$}{}g;
 
-## a '<name>-GGUF' repo directory names one model : preferred over the ##
-## file name below once the metadata has no usable name -- export tools ##
-## name files after the base model, three different 9b finetunes were   ##
-## all registered as 'Qwen3.5-9B' from 'Qwen3.5-9B.Q8_0.gguf'           ##
+## a '<name>-GGUF' repo directory names one model : preferred over the file ##
+## name below once the metadata has no usable name -- export tools name     ##
+## files after the base model, three different 9b finetunes were all        ##
+## registered as 'Qwen3.5-9B' from 'Qwen3.5-9B.Q8_0.gguf'                   ##
+my $repo_name = '';
 if ( $file_path =~ m{/([^/]+)-GGUF/[^/]+\.gguf$}i ) {
-    ( my $repo_name = $1 ) =~ s{[-_\s]+}{ }g;
+    ( $repo_name = $1 ) =~ s{[-_\s]+}{ }g;
     $repo_name =~ s{^\s+|\s+$}{}g;
-    $clean_filename = $repo_name if length $repo_name > 5;
+    ## a quant suffix in the dir name [ 'Wicked-Love-12B-Q5_K_M-GGUF' ] ##
+    $repo_name =~ s|\s+I?Q\d(?:\s+[A-Z0-9]{1,2}){0,2}$||i;
+    $repo_name      = ''         if length $repo_name <= 5;
+    $clean_filename = $repo_name if length $repo_name;
 }
+
+## a metadata name that shares little with the '<name>-GGUF' repo dir gives ##
+## way to it [ bonsai : general.name 'Hf' is garbage, basename + size_label ##
+## made 'folded 27B' from the export template ]                             ##
+my $prefer_repo = sub {
+    my ($name) = @ARG;
+    return $name if !length $repo_name;
+    return <[models.gguf.file.name_diverges]>->( $name, $repo_name )
+        ? $repo_name
+        : $name;
+};
 
 ## a bare projector file [ 'mmproj.gguf', 'mmproj-BF16.gguf' ] cleans to ##
 ## nothing : the repo directory names it instead [ e.g. Jackrong/<model> ##
@@ -111,7 +126,7 @@ if ( $meta && $meta->{'general.name'} ) {
             }
         }
 
-        return $name;
+        return $prefer_repo->($name);
     }
 }
 
@@ -127,7 +142,7 @@ if ( $meta && $meta->{'general.basename'} && $meta->{'general.size_label'} ) {
     $base =~ s|\s+| |g;
 
     ## a basename of only 'mmproj' leaves nothing : fall through ##
-    return "$base $size" if $base =~ m|\S|;
+    return $prefer_repo->("$base $size") if $base =~ m|\S|;
 }
 
 ## Strategy 3: Use basename only
@@ -145,9 +160,10 @@ if ( $meta && $meta->{'general.basename'} ) {
         if ( defined $meta->{'general.file_type'} ) {
             my $quant = <[models.gguf.file.file_type_to_quant]>
                 ->( $meta->{'general.file_type'} );
+            $base = $prefer_repo->($base);
             return wantarray ? ( $base, $quant ) : $base;
         }
-        return $base;
+        return $prefer_repo->($base);
     }
 }
 
@@ -180,8 +196,8 @@ if ( $file_path =~ m|/([^/]+)-GGUF/[^/]+\.gguf$|i ) {
 ## Strategy 6: Fallback to cleaned filename only
 return $clean_filename;
 
-#,,,.,,,,,,..,,.,,,..,,..,,,.,,.,,...,,..,.,,,..,,...,...,.,,,.,,,.,.,,,,,,.,,
-#HIXNYFMAS4XVZH2RAZ4YZYROYOWBCSLYLJBCGPBHSXCT3LB7RKCN6C2VI3FIPUDCZ73WPDRT5YD3K
-#\\\|S4OXXJT7DJKKHHIBCBRKEQH46XCPZ3NPQTF4X4ZIRMSCRSNIYVA \ / AMOS7 \ YOURUM ::
-#\[7]22YQOROND5PVHRRT2HBJXFKVVOZ4HC67YWR2R5MX4EQV66PFE6CY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,.,,.,.,..,,.,.,,,,,,,.,.,,,.,.,..,,...,...,...,.,,,,..,..,,,.,,
+#RPPB2B3XWRXGFTPQWGRNC6VAIAXCFDGLDLREDQGI2IHRVMZ7AISHINBW2CBGFCFGJKDGRSCM7UDQQ
+#\\\|H4D7Z57BDPDLW4YWQO7MFGKZA2R23OPYIT5G3QGLNCJZ2O6GZ4R \ / AMOS7 \ YOURUM ::
+#\[7]JVKZYOQSFAIYQELO6ODWUCIJBWM5NIWXKGLKTTBDYXGY567OQYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
