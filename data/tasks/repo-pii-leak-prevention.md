@@ -39,6 +39,14 @@ added lines ], all tags, with the external pattern file ; output
 categories + commit ids + paths only. rewriting history is the USER's
 decision [ destructive, affects every clone ] -- the tool never does it.
 
+status [ 2026-10-13 ] : built, `bin/dev/pii-audit`. pattern file default
+`/etc/protocol-7/pii-audit/patterns` [ -p \ $P7_PII_PATTERNS override ], warns
+when readable by others ; `# category` lines group the regexes below
+them. matches inside reported paths \ tag names are masked `[..]`, regex
+errors name the line number only. tested on a throwaway repo with
+manufactured data ; full history [ 10018 commits, 132 tags ] ~40 s.
+exit 0 clean \ skipped, 1 findings, 2 error.
+
 ## phase 3 : dispatch payload check
 
 in `bin/mcp-server-p7` before a kimi_* \ claude_* prompt leaves : the same
@@ -56,8 +64,8 @@ pattern file location, which categories [ names, phone \ address shapes,
 private domains, assessment-file markers ], blocking or report-only,
 whether a local-model second pass [ coding zenka ] is wanted.
 
-#,,..,,,,,.,.,..,,,,,,,,.,.,,,,..,.,.,,,,,,..,.,.,...,...,.,.,.,.,..,,,..,.,.,
-#TU55WSNAVT3USJCVOUXIP7566GMCMOHQBBVNQWGBMFMICSJ7X2BSHYP2J57ETURCEMWWITUEEFYDG
-#\\\|4FDGOXC2OKVWCNTYIMGB7YDN4SDJTV4ABE5RAHHJ3H4UJF7SDSM \ / AMOS7 \ YOURUM ::
-#\[7]IK25QNB3GPLXRQOHKJHSFNR5HSU2FZUJCOXHQQFDBAQN43BI4OBI 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,.,.,,,.,,..,,.,,.,.,...,,,.,.,.,...,...,.,,,...,,,.,..,,,..,
+#GK7BPDETPAJTXDP2OJXC2O7BQD64B2CTI6RW7UYKI4655OQUJEE3L6GEKM7N3BQMNDJBVUUOOHF4K
+#\\\|OVKKNAYHM2BZTO3LCUQ4IQBOCLSDOPJ6E6NGO7SOTH74A5EAGZG \ / AMOS7 \ YOURUM ::
+#\[7]BOJTRNOSGQHNGBCFKOTD7UCJZA24EGFLIJTJXTOOAJZ3TT4QV2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

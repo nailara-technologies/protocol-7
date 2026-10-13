@@ -1,0 +1,373 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+use Fcntl qw| :mode |;
+
+###            ###
+##  pii-audit   ##
+###            ###
+
+## read-only history audit for personal \ sensitive data                    ##
+## [ design vectors 2-5 of data/md/design/REPO-PII-LEAK-PREVENTION.md ] :   ##
+## every commit message, every added \ renamed path, every added diff line, ##
+## every tag name and tag message, matched against an external pattern file ##
+##                                                                          ##
+## output names CATEGORIES, commit ids and paths only -- never the matched  ##
+## text and never the pattern itself                                        ##
+## [ the pattern file IS the sensitive data ]. rewriting history stays the  ##
+## user's decision : nothing here writes to the repository.                 ##
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir       = File::Spec->updir;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    my $root_path
+        = abs_path( r2_abs( c_dir( $RealBin, $up_dir, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    $ENV{'P7_ROOT'} //= $root_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+## pattern file outside the repository tree [ /etc/protocol-7/<name>/       ##
+## convention, see base.path-set-up.check-zenka-paths ] -- overridden by -p ##
+## or $P7_PII_PATTERNS                                                      ##
+use constant DEFAULT_PATTERNS => qw| /etc/protocol-7/pii-audit/patterns |;
+
+use constant EXIT_CLEAN    => 0;
+use constant EXIT_FINDINGS => 1;
+use constant EXIT_ERROR    => 2;
+
+$OUTPUT_AUTOFLUSH = TRUE;    ## true ##
+
+##[ colors ]##################################################################
+
+my $TTY     = -t STDOUT;
+my $ERR_TTY = -t STDERR;
+
+my ( $reset, $nailara_bg, $blacklight, $TRUE_color, $NEON_orange,
+    $NEON_green_yellow )
+    = $TTY
+    ? (
+    "\e[0m",              "\e[48;2;9;5;42m",
+    "\e[38;2;68;39;172m", "\e[38;2;6;71;195m",
+    "\e[38;2;197;141;7m", "\e[38;2;71;195;6m"
+    )
+    : ('') x 6;
+
+##[ options ]#################################################################
+
+my %opt;
+getopts( 'p:r:mhq', \%opt ) or usage(EXIT_ERROR);
+usage(EXIT_CLEAN) if $opt{'h'};
+
+my $pattern_file = $opt{'p'} // $ENV{'P7_PII_PATTERNS'} // DEFAULT_PATTERNS;
+my @rev_args = defined $opt{'r'} ? split( m{\s+}, $opt{'r'} ) : qw| --all |;
+my $msg_only = $opt{'m'} ? TRUE : FALSE;    ## messages + paths, no blobs ##
+my $quiet    = $opt{'q'} ? TRUE : FALSE;    ## summary only               ##
+
+my $root = $ENV{'P7_ROOT'};
+chdir $root or fail("\l$OS_ERROR : $root");
+
+##[ pattern file ]############################################################
+##
+## format : one regex per line ; a comment line '# <category>' sets the
+## category for the regexes below it ; blank lines and '##' comments are
+## ignored ; regexes match case-insensitively unless prefixed '(?-i)'
+
+if ( not -e $pattern_file ) {
+    say_msg( 'no pattern file, audit skipped', $pattern_file, $NEON_orange );
+    exit EXIT_CLEAN;
+}
+
+my @patterns = load_patterns($pattern_file);
+fail( 'no patterns defined', $pattern_file ) if not @patterns;
+
+my %cat_seen;
+my @categories = grep { not $cat_seen{$ARG}++ } map { $ARG->[0] } @patterns;
+
+say_msg(
+    sprintf(
+        '%d patterns, %d categories',
+        scalar @patterns,
+        scalar @categories
+    ),
+    $pattern_file,
+    $TRUE_color
+) if not $quiet;
+
+##[ walk history ]############################################################
+
+my %findings;    ## category -> commit -> { where -> 1 } ##
+my %cat_count;
+my $commit_count = 0;
+
+my $total = git_lines( qw| rev-list --count |, @rev_args );
+$total = ( $total // 0 ) + 0;
+
+my @log_cmd = (
+    qw| git log --no-color --no-ext-diff --no-textconv |,
+    qw| --format=%x01%h%x02%B%x03 |,
+    ( $msg_only ? qw| --name-status -M | : qw| -p -U0 -M | ),
+    @rev_args
+);
+
+open( my $log_fh, qw| -\| |, @log_cmd )
+    or fail("cannot start git log : \l$OS_ERROR");
+binmode $log_fh, qw| :raw |;
+
+my ( $commit, $in_msg, $msg, $cur_path );
+
+while ( my $line = readline $log_fh ) {
+    if ( $line =~ m{^\x01([0-9a-f]+)\x02(.*)$}s ) {
+        $commit = $1;
+        $commit_count++;
+        show_progress( $commit_count, $total );
+        $cur_path = undef;
+        my $rest = $2;
+        if ( $rest =~ s{\x03\n?$}{} ) {
+            scan_text( $rest, $commit, 'message' );
+        } else {
+            ( $in_msg, $msg ) = ( TRUE, $rest );
+        }
+        next;
+    }
+    if ($in_msg) {
+        if ( $line =~ s{\x03\n?$}{} ) {
+            $msg .= $line;
+            scan_text( $msg, $commit, 'message' );
+            ( $in_msg, $msg ) = ( FALSE, undef );
+        } else {
+            $msg .= $line;
+        }
+        next;
+    }
+    next if not defined $commit;
+
+    if ($msg_only) {    ## name-status : 'A\tpath' \ 'R100\told\tnew' ##
+        next if $line !~ m{^[ACDMRTUX]\d*\t};
+        chomp $line;
+        my ( $status, @paths ) = split m{\t}, $line;
+        next if $status =~ m{^D};
+        scan_text( $ARG, $commit, "path $ARG" ) for @paths;
+        next;
+    }
+
+    if ( $line =~ m{^\+\+\+ (?:b/)?(.+?)\n?$} ) {
+        $cur_path = $1 eq '/dev/null' ? undef : $1;
+        scan_text( $cur_path, $commit, "path $cur_path" )
+            if defined $cur_path;
+        next;
+    }
+    if ( $line =~ m{^rename to (.+?)\n?$} ) {
+        scan_text( $1, $commit, "path $1" );
+        next;
+    }
+    if ( defined $cur_path and $line =~ m{^\+(?!\+\+ )} ) {
+        scan_text( substr( $line, 1 ), $commit, $cur_path );
+    }
+}
+close $log_fh;
+fail( 'git log failed', "exit " . ( $CHILD_ERROR >> 8 ) )
+    if $CHILD_ERROR and not $commit_count;
+
+clear_progress();
+
+##[ tags : names + annotated messages ]#######################################
+
+my $tag_count = 0;
+if ( not defined $opt{'r'} ) {
+    open(
+        my $tag_fh,
+        qw| -\| |,
+        qw| git for-each-ref refs/tags --format=%01%(refname:short)%02%(objecttype)%02%(contents)%03 |
+    ) or fail("cannot list tags : \l$OS_ERROR");
+    binmode $tag_fh, qw| :raw |;
+    my $tag_data = do { local $INPUT_RECORD_SEPARATOR; readline $tag_fh };
+    close $tag_fh;
+    while ( ( $tag_data // '' )
+        =~ m{\x01([^\x02]*)\x02([^\x02]*)\x02([^\x03]*)\x03}g ) {
+        my ( $tag, $type, $contents ) = ( $1, $2, $3 );
+        ## lightweight : commit message, already scanned ##
+        $contents = q{} if $type ne q{tag};
+        $tag_count++;
+        scan_text( $tag,      "tag:$tag", 'tag name' );
+        scan_text( $contents, "tag:$tag", 'tag message' )
+            if length $contents;
+    }
+}
+
+##[ report ]##################################################################
+
+if ( not %findings ) {
+    say_msg(
+        sprintf( 'clean : %d commits, %d tags', $commit_count, $tag_count ),
+        'no findings', $NEON_green_yellow );
+    say "$blacklight:$reset";
+    exit EXIT_CLEAN;
+}
+
+foreach my $category (@categories) {
+    next if not exists $findings{$category};
+    my $by_commit = $findings{$category};
+    say "$blacklight:\n:: [ $NEON_orange$category$blacklight ] "
+        . "$TRUE_color$cat_count{$category}$blacklight matches in "
+        . "$TRUE_color"
+        . scalar( keys $by_commit->%* )
+        . "$blacklight commits \\ tags ::$reset";
+    next if $quiet;
+    foreach my $id ( sort keys $by_commit->%* ) {
+        foreach my $where ( sort keys $by_commit->{$id}->%* ) {
+            say "$blacklight:   $NEON_green_yellow$id "
+                . "$blacklight.: $TRUE_color$where$reset";
+        }
+    }
+}
+
+say_msg(
+    sprintf(
+        '%d categories with matches : %d commits, %d tags scanned',
+        scalar keys %findings,
+        $commit_count, $tag_count
+    ),
+    'findings',
+    $NEON_orange
+);
+say "$blacklight:$reset";
+exit EXIT_FINDINGS;
+
+##[ subroutines ]#############################################################
+
+sub scan_text {
+    my ( $text, $id, $where ) = @ARG;
+    return if not defined $text or not length $text;
+    foreach my $pattern (@patterns) {
+        my ( $category, $regex ) = $pattern->@*;
+        my $hits = () = $text =~ m{$regex}g;
+        next if not $hits;
+        $cat_count{$category} += $hits;
+        $findings{$category}->{ mask_text($id) }->{ mask_text($where) }
+            = TRUE;
+    }
+}
+
+## paths can embed what the patterns look for [ design vector 8 ] : every
+## match inside a reported location is replaced before it is printed
+sub mask_text {
+    my $text = shift;
+    ## a label prefix would break anchored patterns : mask the rest alone ##
+    return $1 . mask_text($2) if $text =~ m{^(path |tag:)(.+)$}s;
+    foreach my $pattern (@patterns) {
+        $text =~ s{$pattern->[1]}{[..]}g;
+    }
+    return $text;
+}
+
+sub load_patterns {
+    my $path = shift;
+
+    my @stat = stat $path or fail( "\l$OS_ERROR", $path );
+    say_msg( 'readable by others, chmod o-r advised', $path, $NEON_orange )
+        if $stat[2] & S_IROTH;
+
+    open( my $fh, qw| < |, $path ) or fail( "\l$OS_ERROR", $path );
+    binmode $fh, qw| :raw |;
+
+    my @list;
+    my $category = qw| uncategorized |;
+    my $line_nr  = 0;
+    while ( my $line = readline $fh ) {
+        $line_nr++;
+        chomp $line;
+        $line =~ s{\r$}{};
+        next if $line =~ m{^\s*(?:##.*)?$};
+        if ( $line =~ m{^\s*#\s*(\S.*?)\s*$} ) {
+            $category = $1;
+            next;
+        }
+        ## the pattern text itself is never echoed -- line number only ##
+        my $regex = eval {qr{$line}i};
+        fail( 'invalid regex', "$path line $line_nr" ) if not defined $regex;
+        push @list, [ $category, $regex ];
+    }
+    close $fh;
+    return @list;
+}
+
+sub git_lines {
+    open( my $fh, qw| -\| |, 'git', @ARG ) or return undef;
+    my @out = readline $fh;
+    close $fh;
+    chomp @out;
+    return wantarray ? @out : $out[0];
+}
+
+sub show_progress {
+    my ( $num, $of ) = @ARG;
+    return if not $ERR_TTY or $quiet or not $of or $num % 13;
+    my $chars_max  = 13;
+    my $char_count = int( $chars_max * $num / $of );
+    $char_count = $chars_max if $char_count > $chars_max;
+    printf STDERR "\r${blacklight}:::[$nailara_bg$TRUE_color%-${chars_max}s"
+        . "$reset$blacklight]:"
+        . ":[$nailara_bg$TRUE_color %6d / %-6d $reset$blacklight]:.$reset\r",
+        ':' x $char_count, $num, $of;
+}
+
+sub clear_progress {
+    print STDERR "\r", ' ' x 42, "\r" if $ERR_TTY and not $quiet;
+}
+
+sub say_msg {
+    my ( $msg, $subject, $color ) = @ARG;
+    $color //= $NEON_orange;
+    say "$blacklight:\n::[$color $msg $blacklight] "
+        . ".: $color$subject$blacklight ::\n:$reset";
+}
+
+sub fail {
+    my ( $msg, $subject ) = @ARG;
+    clear_progress();
+    $subject //= 'pii-audit';
+    print STDERR "$blacklight:\n::[$NEON_orange $msg $blacklight] .: "
+        . "$NEON_green_yellow$subject$blacklight ::\n:$reset\n";
+    exit EXIT_ERROR;
+}
+
+sub usage {
+    my $code = shift;
+    print "$blacklight:\n:: [ ${NEON_green_yellow}pii-audit$blacklight ] "
+        . "${TRUE_color}read-only history audit for personal "
+        . "data$reset\n$blacklight:\n:   "
+        . "$NEON_green_yellow-p$TRUE_color <file>  $blacklight: "
+        . "pattern file [ \$P7_PII_PATTERNS, ${\ DEFAULT_PATTERNS } "
+        . "]\n:   $NEON_green_yellow-r$TRUE_color <revs>  $blacklight: "
+        . "revision range [ default --all + tags ]\n:   "
+        . "$NEON_green_yellow-m$TRUE_color         $blacklight: "
+        . "messages + paths only, no diff lines\n:   "
+        . "$NEON_green_yellow-q$TRUE_color         $blacklight: "
+        . "category summary only\n:\n: exit : 0 clean \\ skipped , 1 "
+        . "findings , 2 error\n:$reset\n";
+    exit $code;
+}
+
+#,,,,,.,,,.,.,...,.,,,,..,,.,,..,,.,.,,,,,..,,..,,...,...,.,,,...,,..,,..,,,.,
+#6MHUF5L5SPKRAMBBNX62LB7J2ZD3RXN6PPKOE6CB7ILPDQBYMUCC3NWKKJFBKRSYKTVQVBI7ANDSO
+#\\\|2MMJIABEHTMEKTSL37ANQ62GMFJQPWQTHRCE73AV2BSEOV2ILV4 \ / AMOS7 \ YOURUM ::
+#\[7]KTZUCDS7WDZ7R5UY2S4YFBWYZ2ATSYCR3KLKGGGMOHAQNIZE24CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
