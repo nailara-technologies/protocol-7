@@ -21,7 +21,7 @@ These patterns should not appear in commits to maintain clean commit histories.
 Also reports pii pattern matches in the message [ `bin/dev/pii-audit -f`, report only ].
 
 ### pii check
-Patterns live outside the repository : `/etc/protocol-7/pii-audit/patterns` [ or `$P7_PII_PATTERNS` ], mode 0600. No pattern file = one skip notice, never a failure. Output names category + file + line only, never the matched text. See `data/tasks/repo-pii-leak-prevention.md`.
+Patterns live outside the repository : `/etc/protocol-7/pii-audit/patterns` [ or `$P7_PII_PATTERNS` ], mode 0600. No pattern file = silent [ a normal installation state ], never a failure. Output names category + file + line only, never the matched text. See `data/tasks/repo-pii-leak-prevention.md`.
 
 ## Installation
 
@@ -54,8 +54,8 @@ git config core.hooksPath
 
 The `.git/hooks/` directory contains sample hooks provided by git. The actual hooks used are in this directory (`bin/dev/git-hooks/`) and are version controlled, so all developers have the same hooks.
 
-#,,..,,,,,,,.,.,,,..,,.,.,,,,,.,.,,.,,,,.,,,,,..,,...,...,...,..,,,.,,,.,,,.,,
-#YERS3IRYLRWNPD3CXAFWTQYCBWAXUD4HAWWQ3CTCE4G243LMMHJA6AEEDCC4ZQ4Q7ZBUX2AZI3UN4
-#\\\|JODZY766PI722JTWB774VXV4QMMQ4GJVC4Z5A7ROG5DNMKWIO2Y \ / AMOS7 \ YOURUM ::
-#\[7]KPVQM7GYQUA3DQGWU7Y6YMMCZ3JEI7ZZ3SOARIOA7TLQ54QXFCDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,,.,,,,,,,..,,,,,...,,,.,,..,..,,...,...,...,.,,,,.,,,,.,,,,,
+#LGUQCT6TL2H2ILLYBHD4HHMKYAYWB4VFGOE37UQGPGOEGPBZIEEJJ2A7ZOO53CJVIWXX2SOLZ3726
+#\\\|ZLW6E7MA36MEJWGHAOMQDTIMSUABSA3JKX2CXM4HC2NDUDAUFVG \ / AMOS7 \ YOURUM ::
+#\[7]5SZG6OUT7TDJCIOVSRPHEBS5DPK4R6375ATZWMAA7QITGFOXU2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
