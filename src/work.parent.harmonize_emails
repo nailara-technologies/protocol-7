@@ -426,6 +426,9 @@ eval "$(perl -MJSON -e '
     my $json = <$fh>;
     close $fh;
     my $data = decode_json($json);
+    ## shell single-quoting, no literal quote char [ inside bash quotes ] ##
+    my $q = chr 39;
+    sub sq { my $v = shift; $v =~ s{$q}{$q\\$q$q}g; return $q . $v . $q }
 
     my $author_email = $ENV{GIT_AUTHOR_EMAIL};
     my $author_name = $ENV{GIT_AUTHOR_NAME};
@@ -435,21 +438,21 @@ eval "$(perl -MJSON -e '
     # Apply email mappings
     if (exists $data->{email_map}{$author_email}) {
         $author_email = $data->{email_map}{$author_email};
-        print "export GIT_AUTHOR_EMAIL=\"$author_email\"\n";
+        print "export GIT_AUTHOR_EMAIL=", sq($author_email), "\n";
     }
     if (exists $data->{email_map}{$committer_email}) {
         $committer_email = $data->{email_map}{$committer_email};
-        print "export GIT_COMMITTER_EMAIL=\"$committer_email\"\n";
+        print "export GIT_COMMITTER_EMAIL=", sq($committer_email), "\n";
     }
 
     # Apply author name mappings
     if (exists $data->{author_map}{$author_name}) {
         $author_name = $data->{author_map}{$author_name};
-        print "export GIT_AUTHOR_NAME=\"$author_name\"\n";
+        print "export GIT_AUTHOR_NAME=", sq($author_name), "\n";
     }
     if (exists $data->{author_map}{$committer_name}) {
         $committer_name = $data->{author_map}{$committer_name};
-        print "export GIT_COMMITTER_NAME=\"$committer_name\"\n";
+        print "export GIT_COMMITTER_NAME=", sq($committer_name), "\n";
     }
 ')"
 FILTER_SCRIPT
@@ -460,10 +463,16 @@ chmod 0755, $filter_script;
 ## Set environment for filter script
 $ENV{WORKFLOW_DATA_FILE} = $data_file;
 
-## Run git filter-branch
-my $git_cmd
-    = sprintf( 'cd %s && git filter-branch -f --env-filter %s -- --all 2>&1',
-    $repo_path, $filter_script );
+## Run git filter-branch : the env-filter must be SOURCED [ '. script' ] -- ##
+## run as a program its exports die with the child shell and nothing        ##
+## changes. tags are rewritten along [ --tag-name-filter cat ]              ##
+my $shell_quote = sub { q{'} . ( $ARG[0] =~ s{'}{'\\''}gr ) . q{'} };
+my $git_cmd     = sprintf(
+    'cd %s && git filter-branch -f --env-filter '
+        . '%s --tag-name-filter cat -- --all 2>&1',
+    $shell_quote->($repo_path),
+    $shell_quote->(". $filter_script")
+);
 
 <[base.log]>->( 2, "  Running : git filter-branch --env-filter" );
 my $output    = `$git_cmd`;
@@ -498,8 +507,8 @@ return {
 
 0;
 
-#,,,.,.,.,..,,,,.,,..,,,.,.,,,,.,,.,.,,,,,..,,..,,...,...,..,,,,,,..,,...,,,.,
-#QCZYK3FFLXUFEGF6DCLXVAZJB3EXIP6CMCNEG4QWORQE5UZWW6MONDGWMB6OSWFYR5PR3FGZJ3JWW
-#\\\|KZ6H3MSX3BXYF34BD7PFO3MUN6BBQCACCCW3B3YNGW5Z7M6PDV7 \ / AMOS7 \ YOURUM ::
-#\[7]EGT6DKEI76C2TVWULIBZRD2ZQ5S7SYSVR7NEUSHLH6QSZK7FNIAA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,..,,.,,,,,.,,,,,..,,.,,,,..,..,,...,...,,.,,,..,,.,,,.,,,.,,
+#FV27OX4C652ARD5KI2OXYYJLKQLYAOIM7E5UJIQYIHUSJ7PK7YJ4BTNTNVKB2ZJMITWGFOK62FQZ6
+#\\\|E2B2WLRL3NC7FHUK6N5NGJ3RJZFIXOQTOBYBSTTNUVZHALCK4N7 \ / AMOS7 \ YOURUM ::
+#\[7]H3JRUS6AD6IV4OZTYDGJWUE2ELBUMUJSCI76RG6RPVNV3YA4BACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

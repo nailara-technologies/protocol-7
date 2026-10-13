@@ -50,7 +50,7 @@ exit 0 clean \ skipped, 1 findings, 2 error.
 status [ 2026-10-13 ] : phase 1 built, report only. `pii-audit -s` [ staged
 diff : added lines as path:line, added \ renamed paths ] from `pre-commit`,
 `pii-audit -f` [ message, comment lines skipped ] from `commit-msg` ; both
-hooks ignore the result. silent when clean, one skip notice without a
+hooks ignore the result. silent when clean and without a
 pattern file. `pre-commit` itself not run here [ Git::Wrapper missing in
 the cloud container ] -- `commit-msg` was run directly.
 
@@ -71,8 +71,8 @@ pattern file location, which categories [ names, phone \ address shapes,
 private domains, assessment-file markers ], blocking or report-only,
 whether a local-model second pass [ coding zenka ] is wanted.
 
-#,,.,,,..,,,,,.,.,..,,...,,..,,,,,.,,,.,.,,,.,.,.,...,...,.,.,,,.,...,,.,,,..,
-#WIEEFFIXEQV3TGVG3FWCKIPHB2ZE7W63JTSBGLYNC57OMV2EYOUL32ETUZK3LBLI5T272WASTXBE2
-#\\\|HFFCCRVJRFRCFQLAMD3GP6SQFNCSUYOWTP7H3CVBISVBYPHOMVW \ / AMOS7 \ YOURUM ::
-#\[7]QYEBUCEUAELNGETUTOZD3F62SSFAQBZJXG26V6J4DMWZLBEH64AI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,.,,.,,,,,.,,.,,,.,,,,,,,.,,,,,,.,.,...,...,.,.,.,.,..,,.,,,...,
+#VC3CHMO3RKTBCJVU5BSF2ZO3CSJFDT23JYZO3BRMQCRXF75E7HZJ4OYMYZJBPLLKLQV5QTN5AXRTE
+#\\\|SMB75XSL47BLUDKQHDEXV2TWSLR6H3BGNE44AKUIQ6XF5KOX7CC \ / AMOS7 \ YOURUM ::
+#\[7]36L25LH5CFBGRYP6FIMXKQJ42N5WGF2C32LI2RL4VBUSWEBX4OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
