@@ -51,6 +51,10 @@ my $root_path = abs_path(
     )
 );
 
+## pii check [ report only, never blocks -- bin/dev/pii-audit -s ] ##
+my $pii_audit = File::Spec->catfile( $root_path, qw| bin dev pii-audit | );
+system( $^X, $pii_audit, qw| -s | ) if -f $pii_audit;
+
 ## amend detection — skip version check when amending ##
 my $is_amend = 0;
 if ( ( defined $ENV{'PERSISTENT_AMEND'} and $ENV{'PERSISTENT_AMEND'} ne '0' )
@@ -468,8 +472,8 @@ sub shell_quote {
     return "'$str'";
 }
 
-#,,.,,...,...,,,,,,,,,,.,,..,,.,,,,.,,,,.,..,,..,,...,..,,..,,,..,,..,..,,,.,,
-#MV3YDO4D7GPQFZV2FEU3V7TYZC4JF4U3SSLG7PH3C3WOXNMX7T5E2ECKOPVGOI5RKCGTS3E7PIB56
-#\\\|5FC2RZUC74W6GB6ADMXJOFMPWUEPJA2C2NVMQ3KU7UHTIOIM6RA \ / AMOS7 \ YOURUM ::
-#\[7]5BT3IHEE54HGLJKLQWLTMPHG6QDSZX5WK3PKIARIOQHAG24UXODQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,..,.,,,...,.,.,,.,,...,,.,,,,,,..,,...,...,..,,,,.,,.,,.,,,.,.,
+#TJFE3TGZIDHQDD3BH4UWQE6BCKZ6GCWQUBJMUAFXFBRPD5CUA4BRXQSHP4XQPPZDHAIUPZET7HFCG
+#\\\|NW6CFC4LBIU3POJHKR7LTMXJGRURIRRS4SCJWWN4RYKZEADM4XT \ / AMOS7 \ YOURUM ::
+#\[7]4ERAETOAD2CE4QURB6ZBL5ZRUQCI5XIIIVBUYTCNQ55HB664QADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,6 +6,7 @@ This directory contains git hooks for the Protocol-7 project. These hooks help m
 
 ### `pre-commit`
 Runs before committing. Checks and restores Protocol-7 file permissions.
+Also reports pii pattern matches in the staged diff [ `bin/dev/pii-audit -s`, report only ].
 
 ### `post-checkout`
 Runs after checking out a branch. Restores Protocol-7 file permissions.
@@ -16,6 +17,11 @@ Runs when creating a commit message. Prevents forbidden patterns from being comm
 - Lines starting with `Co-Authored-By:`
 
 These patterns should not appear in commits to maintain clean commit histories.
+
+Also reports pii pattern matches in the message [ `bin/dev/pii-audit -f`, report only ].
+
+### pii check
+Patterns live outside the repository : `/etc/protocol-7/pii-audit/patterns` [ or `$P7_PII_PATTERNS` ], mode 0600. No pattern file = one skip notice, never a failure. Output names category + file + line only, never the matched text. See `data/tasks/repo-pii-leak-prevention.md`.
 
 ## Installation
 
@@ -48,8 +54,8 @@ git config core.hooksPath
 
 The `.git/hooks/` directory contains sample hooks provided by git. The actual hooks used are in this directory (`bin/dev/git-hooks/`) and are version controlled, so all developers have the same hooks.
 
-#,,,,,...,.,,,..,,,.,,.,,,...,,..,..,,,,,,,,.,..,,...,..,,.,,,...,..,,...,...,
-#CZP4AJYC5U2LRPCMI4UCZWCTFEVWXUCV5A7RRJ2YGQCWNMSQ4OUXDSHVZF2RI3E7K5I42E77JTHG6
-#\\\|ZCJAKBSLT2OSACKMFO4S4YG6EPSZJDRECNFGSRUE3J2CJ4CGQMP \ / AMOS7 \ YOURUM ::
-#\[7]BFASPIEJ535MQ7D7N5PG32WQQZPS6LETZ2ROGWJEDPIMQ77OUGDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,..,,.,.,,,,,.,.,,.,,,,.,,,,,..,,...,...,...,..,,,.,,,.,,,.,,
+#YERS3IRYLRWNPD3CXAFWTQYCBWAXUD4HAWWQ3CTCE4G243LMMHJA6AEEDCC4ZQ4Q7ZBUX2AZI3UN4
+#\\\|JODZY766PI722JTWB774VXV4QMMQ4GJVC4Z5A7ROG5DNMKWIO2Y \ / AMOS7 \ YOURUM ::
+#\[7]KPVQM7GYQUA3DQGWU7Y6YMMCZ3JEI7ZZ3SOARIOA7TLQ54QXFCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

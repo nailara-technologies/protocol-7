@@ -73,13 +73,17 @@ my ( $reset, $nailara_bg, $blacklight, $TRUE_color, $NEON_orange,
 ##[ options ]#################################################################
 
 my %opt;
-getopts( 'p:r:mhq', \%opt ) or usage(EXIT_ERROR);
+getopts( 'p:r:f:mhqs', \%opt ) or usage(EXIT_ERROR);
 usage(EXIT_CLEAN) if $opt{'h'};
 
 my $pattern_file = $opt{'p'} // $ENV{'P7_PII_PATTERNS'} // DEFAULT_PATTERNS;
 my @rev_args = defined $opt{'r'} ? split( m{\s+}, $opt{'r'} ) : qw| --all |;
 my $msg_only = $opt{'m'} ? TRUE : FALSE;    ## messages + paths, no blobs ##
 my $quiet    = $opt{'q'} ? TRUE : FALSE;    ## summary only               ##
+my $staged   = $opt{'s'} ? TRUE : FALSE;    ## pre-commit : staged diff   ##
+my $msg_file = $opt{'f'};                   ## commit-msg : message file ##
+$msg_file = File::Spec->rel2abs($msg_file) if defined $msg_file;
+$quiet    = TRUE                           if $staged or defined $msg_file;
 
 my $root = $ENV{'P7_ROOT'};
 chdir $root or fail("\l$OS_ERROR : $root");
@@ -91,7 +95,14 @@ chdir $root or fail("\l$OS_ERROR : $root");
 ## ignored ; regexes match case-insensitively unless prefixed '(?-i)'
 
 if ( not -e $pattern_file ) {
-    say_msg( 'no pattern file, audit skipped', $pattern_file, $NEON_orange );
+    say_msg(
+        (   $quiet
+            ? 'no pattern file, pii check ' . 'skipped'
+            : 'no pattern file, audit skipped'
+        ),
+        $pattern_file,
+        $NEON_orange
+    );
     exit EXIT_CLEAN;
 }
 
@@ -110,6 +121,75 @@ say_msg(
     $pattern_file,
     $TRUE_color
 ) if not $quiet;
+
+##[ hook modes : staged diff \ commit message ]###############################
+##
+## phase 1 of data/tasks/repo-pii-leak-prevention.md : report only, the hooks
+## ignore the exit code. -s scans the added lines and the added \ renamed
+## paths of the staged diff [ path + line number ], -f the message file
+## [ editor comment lines and the verbose scissors part skipped ]. silent when
+## clean.
+
+if ( $staged or defined $msg_file ) {
+    my @where;    ## [ category, location ] ##
+
+    if ($staged) {
+        open( my $diff_fh, qw| -\| |,
+            qw| git diff --cached --no-color --no-ext-diff --no-textconv |,
+            qw| -U0 -M | )
+            or fail("cannot start git diff : \l$OS_ERROR");
+        binmode $diff_fh, qw| :raw |;
+        my ( $cur_path, $line_nr );
+        while ( my $line = readline $diff_fh ) {
+            if ( $line =~ m{^\+\+\+ (?:b/)?(.+?)\n?$} ) {
+                $cur_path = $1 eq '/dev/null' ? undef : $1;
+                push @where,
+                    map { [ $ARG, "path $cur_path" ] }
+                    match_categories($cur_path)
+                    if defined $cur_path;
+            } elsif ( $line =~ m{^rename to (.+?)\n?$} ) {
+                push @where, map { [ $ARG, "path $1" ] } match_categories($1);
+            } elsif ( $line =~ m{^@@ -\S+ \+(\d+)} ) {
+                $line_nr = $1;
+            } elsif ( defined $cur_path and $line =~ m{^\+(?!\+\+ )} ) {
+                push @where,
+                    map { [ $ARG, "$cur_path:$line_nr" ] }
+                    match_categories( substr( $line, 1 ) );
+                $line_nr++;
+            }
+        }
+        close $diff_fh;
+    } else {
+        open( my $msg_fh, qw| < |, $msg_file )
+            or fail( "\l$OS_ERROR", $msg_file );
+        binmode $msg_fh, qw| :raw |;
+        my $line_nr = 0;
+        while ( my $line = readline $msg_fh ) {
+            $line_nr++;
+            last if $line =~ m{^# -+ >8 -+$};    ## verbose commit scissors ##
+            next if $line =~ m{^#};
+            push @where,
+                map { [ $ARG, "message line $line_nr" ] }
+                match_categories($line);
+        }
+        close $msg_fh;
+    }
+
+    exit EXIT_CLEAN if not @where;
+
+    my %seen;
+    print "$blacklight:\n:: [ ${NEON_orange}pii check$blacklight ] "
+        . "${TRUE_color}matches, commit not blocked$blacklight ::\n";
+    foreach my $finding (@where) {
+        my ( $category, $location ) = $finding->@*;
+        $location = mask_text($location);
+        next if $seen{"$category\0$location"}++;
+        print "$blacklight:   [ $NEON_orange$category$blacklight "
+            . "] .: $TRUE_color$location$reset\n";
+    }
+    print "$blacklight:$reset\n";
+    exit EXIT_FINDINGS;
+}
 
 ##[ walk history ]############################################################
 
@@ -266,6 +346,16 @@ sub scan_text {
     }
 }
 
+## categories with a match in $text [ hook modes : location per category ] ##
+sub match_categories {
+    my $text = shift;
+    my %hit;
+    foreach my $pattern (@patterns) {
+        $hit{ $pattern->[0] } = TRUE if $text =~ $pattern->[1];
+    }
+    return grep { $hit{$ARG} } @categories;
+}
+
 ## paths can embed what the patterns look for [ design vector 8 ] : every
 ## match inside a reported location is replaced before it is printed
 sub mask_text {
@@ -361,13 +451,16 @@ sub usage {
         . "$NEON_green_yellow-m$TRUE_color         $blacklight: "
         . "messages + paths only, no diff lines\n:   "
         . "$NEON_green_yellow-q$TRUE_color         $blacklight: "
-        . "category summary only\n:\n: exit : 0 clean \\ skipped , 1 "
-        . "findings , 2 error\n:$reset\n";
+        . "category summary only\n:   $NEON_green_yellow-s$TRUE_color  "
+        . "       $blacklight: staged diff [ pre-commit, report only "
+        . "]\n:   $NEON_green_yellow-f$TRUE_color <file>  $blacklight: "
+        . "commit message file [ commit-msg, report only ]\n:\n: exit "
+        . ": 0 clean \\ skipped , 1 findings , 2 error\n:$reset\n";
     exit $code;
 }
 
-#,,,,,.,,,.,.,...,.,,,,..,,.,,..,,.,.,,,,,..,,..,,...,...,.,,,...,,..,,..,,,.,
-#6MHUF5L5SPKRAMBBNX62LB7J2ZD3RXN6PPKOE6CB7ILPDQBYMUCC3NWKKJFBKRSYKTVQVBI7ANDSO
-#\\\|2MMJIABEHTMEKTSL37ANQ62GMFJQPWQTHRCE73AV2BSEOV2ILV4 \ / AMOS7 \ YOURUM ::
-#\[7]KTZUCDS7WDZ7R5UY2S4YFBWYZ2ATSYCR3KLKGGGMOHAQNIZE24CY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,,.,,..,,,..,.,.,,..,..,,,.,,..,,...,...,.,,,..,,,.,,,,,,,,,,
+#DLNLZWASRC3YAGN5DXCXXPMVQLRXCY4ZUNZVKKNFIFFKVOA5CBW4S66655QWQCXMMMPXURIJJMNME
+#\\\|J5NDVXU5E5356JJMZ3JFWIZHKMSQZB2VZYWBSW26ZL23JJUVOD6 \ / AMOS7 \ YOURUM ::
+#\[7]E2GN5KJRC5TCSVRMYEKZUCF5KIAIL2EAMF4SVR47NK2AJACAVKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

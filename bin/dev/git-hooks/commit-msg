@@ -2,6 +2,8 @@
 use v5.24;
 use strict;
 use English;
+use FindBin qw| $RealBin |;
+use File::Spec;
 use warnings;
 use open qw[ :std :utf8 ];
 ##
@@ -78,6 +80,12 @@ if (@filtered_lines) {
     print STDERR "\n";
 }
 
+## pii check [ report only, never blocks -- bin/dev/pii-audit -f ] ##
+my $pii_audit
+    = File::Spec->catfile( $RealBin, File::Spec->updir, qw| pii-audit | );
+system( $EXECUTABLE_NAME, $pii_audit, qw| -f |, $commit_msg_file )
+    if -f $pii_audit;
+
 ## message form check [ title, one empty line, '- ' bullet body ] ##
 ##
 ## rejects the two unambiguous cases : line 2 not empty, and a long
@@ -135,8 +143,8 @@ if ( @form_lines > 1 and $title_len > $warn_title_len ) {
 
 exit 0;
 
-#,,..,...,,,,,,.,,..,,.,.,,,,,.,,,..,,,..,,.,,..,,...,...,..,,,..,,..,,,,,,,,,
-#2XMT4XOC7BDUXDWYIUCG5JIZA6EVZK77NHKOTU3KU3UCAGEUKCRFZU25G5HYGLLJDH3RRK7VJ5KDK
-#\\\|MJ32AQJ5X434D7MOSQQQK37GDYMXDVSMC5DS7MQOYVOVXSCEUMW \ / AMOS7 \ YOURUM ::
-#\[7]P5ETEBGQ22WKRTNFHMWXNLXMUQAPZDBDARWMDOUBLAMH74DQ7GAY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,...,,.,,..,,.,.,...,..,,,..,..,,...,...,..,,,..,.,,,,,,,,,,,
+#B4EIUYDSJBBGZ4KVD6BXU4NOJHYJKBTQZHDG6IN4JRPMTXNZU2E4M6ZTHDKEG7J2LMGSK32VUPHLE
+#\\\|QXLAYFWLUYWB3GKH6YBQQGFW62YTI7BHCC3RIN5GLQYATBTSHUF \ / AMOS7 \ YOURUM ::
+#\[7]AVOSYMUXUKB676SHS4GX5YQXHFYURNHGLK6ZMSFRDALWU2QRSEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
