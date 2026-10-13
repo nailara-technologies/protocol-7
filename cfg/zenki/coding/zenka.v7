@@ -173,6 +173,11 @@ inference.backend.gpu.gpu_layers = 999  ## all layers : clamped to the model's r
 ## is used anyway while a lora adapter is set                            ##
 coding.cfg.kv_cache_type = auto
 
+## sliding window layers at window size [ --swa-compress, ik_llama ] : ##
+## gemma4 = 40 of 48 layers in a 1024 window, ~16 KB per token f16    ##
+## instead of ~336 KB. archs without swa ignore it                     ##
+coding.cfg.swa_compress = yes
+
 ## moe models : keep the expert weights of as many layers in ram as the    ##
 ## context floor [ inference.model.context_length ] needs [ --n-cpu-moe ] ##
 coding.cfg.moe_expert_offload = yes
@@ -290,6 +295,14 @@ coding.cfg.partial_offload_min_layers = 4
 ## commented out = unchanged behavior, same discipline as the keys above    ##
 coding.cfg.catalog_harvest = yes
 coding.cfg.catalog_corpus_dir = /data/projects/protocol-7/data/catalog-corpus
+
+## extra llama.cpp builds : a gpu model whose file name matches 'match'   ##
+## [ regex, case-insensitive ] spawns with that build's binary and lib     ##
+## path instead of inference.backend.gpu.binary -- prismml fork : ternary  ##
+## bonsai pq2_0 \ ptq1_0 [ stock \ ik builds reject or garble them ]       ##
+inference.runtime.prismml.binary = /data/source/prismml-llama.cpp/llama-server-cuda
+inference.runtime.prismml.lib_path = /data/source/prismml-llama.cpp
+inference.runtime.prismml.match = ternary-bonsai|PQ2_0|PTQ1_0
 
 inference.backend.cpu.enabled = auto
 inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
@@ -532,8 +545,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,,,.,,.,,,,.,.,.,,.,,,.,,.,,,,,,,,,.,,.,,.,.,...,...,...,,.,,,.,,.,.,,..,
-#ICW3HVRR4YKEQL662X5JVQH3LM7H5KBFY262TQZAR7FRIVHWILO6T543TL2NJPXTCDQLDII7TEDSG
-#\\\|KCO62OI5ESO7AYWXVRLK2BNOTDWSL4VD4YYQ44Z2AWO7YQZ5RUD \ / AMOS7 \ YOURUM ::
-#\[7]GI6IDPNURBRHQQZMEB5K7KEK2CBJJ2GGCB53BWPXVKZP6AHLNWBI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,..,,.,,,,..,,.,,,,,,.,.,,.,,.,.,...,...,,,,,,,.,,..,,,,,,.,,
+#NVRQVEWMOBBZT2S5PID23OMVH7QD6ENB452DY7FZSXZ7GYPN4MXPL45QVIZHKDNVEOM5ZPYLTQXOS
+#\\\|ZQKN32GQHMBCVR5HZGA7MNPSP2QVM3KUHJUAD64TMOWXTHX3IFH \ / AMOS7 \ YOURUM ::
+#\[7]6UC642V7QKN26LW2NLMOOKIM76JNQD4YMNCG7CKZ3OR4K3YRYCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

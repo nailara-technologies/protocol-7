@@ -29,13 +29,14 @@ if ( $completion_url !~ m{/v1/chat/completions$} ) {
 ## 8001=cpu) is what actually selects the model, not this request body.     ##
 ## $model_id here is a label for logging/archival only - confirmed live     ##
 ## 2026-06-21 after the field was mistaken for a working switch param.      ##
-## step-1 experiment [ 2026-07-31, task coding-self-test-async-http-        ##
-## client-rewrite ] : stream => true, still blocking LWP - keeps bytes      ##
-## flowing so a silence-based cutoff [ the leading http_500 hypothesis :    ##
-## stream=false is one long silent read ] can't trip. SSE deltas are        ##
-## accumulated below exactly like coding.async.chunk_handler does           ##
-## anti-repetition sampling : see cfg/zenki/coding/zenka.v7's own comment   ##
-## on <inference.model.repeat_penalty> for why this exists                  ##
+## step-1 experiment                                                        ##
+## [ 2026-07-31, task coding-self-test-async-http-client-rewrite ] : stream ##
+## => true, still blocking LWP - keeps bytes flowing so a silence-based     ##
+## cutoff [ the leading http_500 hypothesis : stream=false is one long      ##
+## silent read ] can't trip. SSE deltas are accumulated below exactly like  ##
+## coding.async.chunk_handler does anti-repetition sampling : see           ##
+## cfg/zenki/coding/zenka.v7's own comment on                               ##
+## <inference.model.repeat_penalty> for why this exists                     ##
 my $request_body = {
     model              => $model_id,
     messages           => [ { role => 'user', content => $prompt } ],
@@ -47,9 +48,11 @@ my $request_body = {
     dry_multiplier     => <inference.model.dry_multiplier>     // 0.8,
     dry_base           => <inference.model.dry_base>           // 1.75,
     dry_allowed_length => <inference.model.dry_allowed_length> // 2,
-    dry_penalty_last_n => <inference.model.dry_penalty_last_n> // -1,
+    dry_penalty_last_n =>
+        <[coding.helper.dry_last_n]>->( $params->{'backend'} ),
 };
 
+<[coding.helper.numify_body]>->($request_body);
 my $json_body = eval { JSON::PP->new->utf8->encode($request_body) };
 if ($@) {
     <[base.logs]>->( 0, 'http_inference_client: JSON encode error: %s', $@ );
@@ -103,8 +106,9 @@ my $reply = eval {
 
             ## die - NOT return - is what actually aborts the transfer.    ##
             ## LWP catches it, stops reading and reports it via the X-Died ##
-            ## response header [ verified live against LWP 6.83 : it does  ##
-            ## NOT rethrow ] - re-thrown right after ->post below          ##
+            ## response header                                             ##
+            ## [ verified live against LWP 6.83 : it does NOT rethrow ] -  ##
+            ## re-thrown right after ->post below                          ##
             die 'self_test_stream_deadline'
                 if <[base.time]>->(9) > $deadline;
 
@@ -167,8 +171,8 @@ if ($@) {
 
 return $reply;
 
-#,,.,,,..,.,.,..,,.,.,..,,...,..,,.,,,,.,,,,,,..,,...,..,,...,,..,.,.,...,.,,,
-#53FJY7YYF2AH4TYPNNBNTUVA56LDAU6XQKMQ3N7QGDNZQ522IRLPURDP4R7JZ2CEKEEYUMPXDFIBC
-#\\\|C54WGJ6SFG6QXO3T65DLVDJFMDN7PSN7MTGD4GRKTZAPWZM2SYP \ / AMOS7 \ YOURUM ::
-#\[7]LROQ6TY2LOFCQIX2OJB26TZY7YYYHLPE65KPBGTVIEWNBRBESUCY 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,,,,..,.,,,...,,,,,,.,,...,.,.,..,,...,...,.,,,.,.,,.,,...,...,
+#QRC7ZEBBUCVYHS5BKH6BBSSWFRPB26WLLENWDL4AH2TII2ZSHIEEYHG7J7462ZQIS5OPDRKHO7PNW
+#\\\|FI5CK7CD5LI6V6NP7WPCFI4HK3635S3NEGPUB2D3CNXB4DVRL2Q \ / AMOS7 \ YOURUM ::
+#\[7]NXFPOMXINWTZ7PDC7LCFN4SSXSSIV4RBSX32L5WWQXXXFAGYGSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

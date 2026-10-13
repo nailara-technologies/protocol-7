@@ -58,7 +58,7 @@ my $body = {
     dry_multiplier     => <inference.model.dry_multiplier>     // 0.8,
     dry_base           => <inference.model.dry_base>           // 1.75,
     dry_allowed_length => <inference.model.dry_allowed_length> // 2,
-    dry_penalty_last_n => <inference.model.dry_penalty_last_n> // -1,
+    dry_penalty_last_n => <[coding.helper.dry_last_n]>->($backend),
 };
 
 my $acc     = { content => '', reasoning => '', finish_reason => '' };
@@ -158,8 +158,8 @@ $finish->( { mode => qw| false |, data => 'request_failed' } )
 
 return $http;
 
-#,,.,,.,,,..,,...,,..,,..,,,,,,,.,...,,,,,,..,..,,...,..,,.,,,,..,,,.,..,,.,.,
-#D476DMXQ43HIDKSYPKGTCW4EUAXBK233T45NINXLXPKHFJMMX4JPV4ZWFVBLIGBN5GN7MMCMBED5E
-#\\\|Q2FAM6PNTHXKLHYORFBGCXXK6SCOEZEXWVKAS4PSANAQWQWWDLW \ / AMOS7 \ YOURUM ::
-#\[7]KNRTAS3JKMZROH6PPLN27IFIOURI6GQQY7BVGGD7X2U5B3E4DIBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,.,.,,.,,.,,,.,.,,,.,,.,,.,,,..,,...,...,.,.,.,.,.,,,.,.,.,,,
+#5YNRTBAMHEHJKH77ECPFIG7TNLYRTSF67QKIMMSIFRFXADUSSE6AY6C3M3EM3MDI2KLJOQFJ3S272
+#\\\|5UIMPORFCCTWF5UVZCDE7VP3S2AZ33TZGNXDBOFCX5MR66XLTSV \ / AMOS7 \ YOURUM ::
+#\[7]KE2NLMK7IUAU52KW73OYVIP5EZM5C42WTLO5ANW6WDOSZRE4IOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
