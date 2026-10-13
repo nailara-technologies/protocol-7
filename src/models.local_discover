@@ -67,8 +67,10 @@ foreach my $scan_dir (@$scan_paths) {
                 $filename =~ s|.*/||;
                 $filename =~ s|\.gguf$||;
 
-                ## Skip mmproj files - they're vision projectors, not models
-                next if $filename =~ m|^mmproj|i;
+                ## skip mmproj files : vision projectors, not models -- the ##
+                ## word anywhere [ 'Ternary-Bonsai-2-27B-mmproj-Q8_0' was   ##
+                ## registered as a model ], as the companion glob below     ##
+                next if $filename =~ m|mmproj|i;
 
                 say STDERR $filename;
 
@@ -159,8 +161,8 @@ return {
     'scanned_paths' => $scan_paths,
 };
 
-#,,.,,.,,,,..,.,.,...,.,,,.,.,...,,,,,,..,,,.,.,.,...,...,,..,,,,,,,,,,.,,..,,
-#N564BDVQFKXXZXJJYBSNVXJUWKLOS2GQOJA7SS44YUWF5YGB5OKVOGX7DVSSBPGTDFG5X27QYMW44
-#\\\|4KP5AQSYMJWCHMTMW3QJFIKMDII3CYMNLV7AH3K67S3XJQZ2EIT \ / AMOS7 \ YOURUM ::
-#\[7]MTFQS46MCTDSWW3U3EGKDVXFO3SFPRPVC3KPMKB77I3F77TJC6DI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,.,.,,,,.,,,..,,.,,.,.,,,.,..,,.,.,...,...,,..,.,.,,..,.,,,,..,
+#IFNCIIMR7LYB4G5RSMDAFXXXQCSTM74JF3P2IVYHM4CEANNZVWJ6QY2FPBDRMESOJS7NWALJLPFHW
+#\\\|UPF6BGX2KCY2FPJJQVHCHB4R3ENALWAK2XPTFACR3QQA7VZF7WO \ / AMOS7 \ YOURUM ::
+#\[7]PEEBAIOKNYQVB35MYVZTM34H6JOO4ILBJM3HS54PCIVDAHQXZ6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

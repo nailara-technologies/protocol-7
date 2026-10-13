@@ -6,6 +6,8 @@
 # return = { architecture, block_count, head_count, head_count_kv [ scalar
 #            or per-layer aref ], key_length, value_length,
 #            embedding_length, full_attention_interval, expert_count,
+#            sliding_window, sliding_window_pattern [ per-layer 0 \ 1
+#            aref ], key_length_swa, value_length_swa [ gemma4 swa ],
 #            expert_bytes [ per-layer aref, moe only ], expert_bytes_total }
 #          or undef
 
@@ -45,7 +47,8 @@ my ( $STRING, $ARRAY ) = ( 8, 9 );
 
 ## the per-architecture keys this reader keeps [ <arch>.<field> ] ##
 my $wanted = qr{^[a-z0-9_]+\.(?:block_count|embedding_length
-    |attention\.(?:head_count|head_count_kv|key_length|value_length)
+    |attention\.(?:head_count|head_count_kv|key_length|value_length
+    |key_length_swa|value_length_swa|sliding_window|sliding_window_pattern)
     |full_attention_interval|expert_count)$}x;
 
 open my $fh, '<:raw', $file_path or return undef;
@@ -159,7 +162,9 @@ return {
             expert_count |
     ),
     (   map { $ARG => $meta{"$arch.attention.$ARG"} }
-            qw| head_count head_count_kv key_length value_length |
+            qw| head_count head_count_kv key_length value_length
+            key_length_swa value_length_swa sliding_window
+            sliding_window_pattern |
     ),
     (   %expert_bytes
         ? ( 'expert_bytes' => [
@@ -172,8 +177,8 @@ return {
     ),
 };
 
-#,,..,...,.,,,,.,,,,,,,..,..,,..,,,..,,..,..,,..,,...,...,...,,,,,.,,,,,,,...,
-#NL3UY7CCODU7CWDSXJJFR4RHQPNBKJOBTFXFCK2VDU4MRZCJHCBZ4UOHXMSWYQKACE7WRBJM5QJQS
-#\\\|OV3HTVUXFJHMG5YDTSETGCHKA5N5ZGBKT4EVWYR73YRLAXNSO7N \ / AMOS7 \ YOURUM ::
-#\[7]X5LOQBCM7ARECKRWM3EHVNJPZVYQTGZJIHPUWBCFCF3MJLV364BQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,.,.,.,.,..,,,.,,,,.,,,.,,..,..,,...,...,,..,..,,,..,..,,,..,
+#COXLIGZGLC4WJ2WAA43WFM4BJ5KQJ7HRZI4FSIG6SV5Z3S7WKGSZHU3C7YGLLK3FWNNHY5HRBVMQE
+#\\\|Z4INWOGHICE6HD2X4CJ6UYTJD4OLLM6QYRWX7RFO4RLPSLMGXZT \ / AMOS7 \ YOURUM ::
+#\[7]H2LKEDMRRFRI6KYU4ZQ4LDTAA2KGM2QW3YVPJFZUN4BE2HS7E4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

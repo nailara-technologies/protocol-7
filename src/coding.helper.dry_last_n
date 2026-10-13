@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = coding.helper.dry_last_n
+# descr = dry_penalty_last_n for a request : -1 [ full context ] as the
+#         running server's n_ctx
+# param = $backend [ gpu | cpu, default gpu ]
+# note  = mainline-based builds [ prismml fork ] refuse -1 with http 400
+#         [ 'Value must be between 0 <= value' ] -- the context size means
+#         the same on every build
+
+my $backend = shift // qw| gpu |;
+$backend = qw| gpu | if $backend ne qw| cpu |;
+
+my $last_n = <inference.model.dry_penalty_last_n> // -1;
+return $last_n if $last_n >= 0;
+
+my $srv = ( <coding.inference_servers> // {} )->{$backend} // {};
+return $srv->{'n_ctx'} // <inference.model.context_length> // 0;
+
+#,,.,,,.,,,,.,...,.,,,,..,,..,.,,,.,.,...,.,.,..,,...,...,.,.,..,,..,,,.,,.,,,
+#OQU3BTISIA755FAN44IVJFT5FQZRER44HS4TU4WCSPN644XVWMQ4IHKDP72S7VNCKBGTO22QKU4DY
+#\\\|LOAYDWDVP3XXBTLHWHQEHSOAIFICXVAQ7JN24B3B6Q2J57ZBSSR \ / AMOS7 \ YOURUM ::
+#\[7]2YOJSQBOYXID4WSUCHLJR4URBXSEEGC2GY23QGHVLN5GIIC32MCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

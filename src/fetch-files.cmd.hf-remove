@@ -35,9 +35,20 @@ unlink $real_path
     'data' => sprintf( 'cannot remove %s : %s', $real_path, $OS_ERROR )
     };
 
-## the repo directory goes too once empty [ never the root itself ] ##
+## the repo directory goes too once empty, then its publisher directory ##
+## [ <root>/<publisher>/<repo> ] -- never the root itself               ##
 ( my $dir = $real_path ) =~ s|/[^/]+$||;
-my $dir_removed = ( $dir ne $real_root and rmdir $dir ) ? ' + empty dir' : '';
+my $dirs_gone = 0;
+while ( $dirs_gone < 2
+    and index( $dir, "$real_root/" ) == 0
+    and rmdir $dir ) {
+    $dirs_gone++;
+    $dir =~ s|/[^/]+$||;
+}
+my $dir_removed
+    = $dirs_gone
+    ? sprintf( ' + %d empty dir%s', $dirs_gone, $dirs_gone > 1 ? 's' : '' )
+    : '';
 
 <[base.logs]>->(
     1, '[hf.remove] removed %s [ %.2f GB ]%s',
@@ -51,8 +62,8 @@ return {
     )
 };
 
-#,,,,,,.,,.,,,...,...,.,.,,..,.,,,.,,,.,,,..,,..,,...,...,...,...,.,,,,,.,...,
-#6VCX74S6YZ2GSV2EJRDXOODAQSESEM5BDNUDF6FAF2YDZH2YIOLNSPPUV27TKNJV4GA75ICXK6MGK
-#\\\|GEHXBBTN53NKMN7YU5XYOMAVD5FP5QSBY5HLYW6VF4MVLUNDZRZ \ / AMOS7 \ YOURUM ::
-#\[7]QBE2Y5TI7N6ALXLR7PD2FHCNF6GVQ7ALFYR7DVZJSPG5ZG74VSDY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,..,,,,,,,..,,..,..,,...,,..,..,,...,...,,,.,...,..,,,..,,..,
+#QZ7SHKUECNIRDVCSQTJLXB2ZCNUXX7PGFPYV3L5VU32EJFATRROACFUDDZSDWRYJKWQKXBSSJRWH4
+#\\\|2DEEGLZPYBNQLYZDGDPNITPP3VXBOZDB5L74OQLUND4WWOJ3QLY \ / AMOS7 \ YOURUM ::
+#\[7]FTNG44KTZBK5WIUCPPQ2C5IE6WY6LGH6PTAMB3LVE4UTJM5COMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
