@@ -1,30 +1,30 @@
 ## [:< ##
 
 # name  = work.console.harmonize-emails
-# param = [exec|outliers] [pattern]
+# param = [outliers] [execute] [key phrase]
 # descr = standardize author+email across git history
 
-my $param1 = shift // '';
-my $param2 = shift // '';
+my $args_str = shift // q{};
 
-## Determine execute mode, harmonize_outliers, and key phrase
+## console params arrive as ONE string [ base.call.console_command ] :   ##
+## leading 'outliers' \ 'execute' keywords in any order, the rest is the ##
+## key phrase [ surrounding quotes removed ]                             ##
 my $dry_run            = 1;
 my $harmonize_outliers = 0;
-my $key_phrase         = '';
 
-if ( $param1 eq 'execute' || $param1 eq 'exec' ) {
-    $dry_run    = 0;
-    $key_phrase = $param2;
-} elsif ( $param1 eq 'harmonize-outliers' || $param1 eq 'outliers' ) {
-    $harmonize_outliers = 1;
-    if ( $param2 eq 'execute' || $param2 eq 'exec' ) {
+my @tokens = split m| +|, $args_str =~ s{^\s+|\s+$}{}gr;
+while (@tokens) {
+    if ( $tokens[0] =~ m{^(?:execute|exec)$} ) {
         $dry_run = 0;
+    } elsif ( $tokens[0] =~ m{^(?:harmonize-outliers|outliers)$} ) {
+        $harmonize_outliers = 1;
     } else {
-        $key_phrase = $param2;
+        last;
     }
-} elsif ( length $param1 ) {
-    $key_phrase = $param1;
+    shift @tokens;
 }
+my $key_phrase = join q{ }, @tokens;
+$key_phrase =~ s{^(['"])(.*)\1$}{$2}s;
 
 <[base.log]>->(
     1, "Harmonizing author names and email addresses in git history..."
@@ -68,8 +68,8 @@ unless ( $result->{success} ) {
 my $changed = $result->{changed} || 0;
 return say "::\n: ✓ Harmonized $changed commits\n::";
 
-#,,,.,...,,,,,..,,,.,,,..,,,.,..,,.,,,,..,,..,..,,...,...,,,.,,,,,.,.,...,...,
-#5JNMVI5A6PQYW6FFLUP2KLDCYVW37LSVOWBYVBEBTVVUQ6WJMBJQVGRUPE2CTVWID6BKVMA3CHNXS
-#\\\|45L4UXW26HXAAOYPBXEEANY4Z3HSZ4GMWAQMW66UCBY4T3LX3MN \ / AMOS7 \ YOURUM ::
-#\[7]5FAHVC4QW4Y3AL3X7FGCTCUDIXG4VWU6AYVJRDLDOD3F2HBMJ4CQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,..,,,,.,...,...,,,.,..,,,,.,..,,...,...,..,,,,.,.,.,,,.,.,.,
+#RJYXNUA6BBJ2MTDS6O674LDKK5PVTOKV3UJNEKPQAXFRO2OI7EF7JMNEUMMETSRWEXVCRZBLGXPD6
+#\\\|FTX763X5B67GLT53EBTHRTHYHFTBQVY7FCSDH3EDOUGFTU3IC5P \ / AMOS7 \ YOURUM ::
+#\[7]CREVOQVWT2ZGXB4YQBV3V7ZOSZRWVDC5SX2UKCDZK22PYEL3GOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
