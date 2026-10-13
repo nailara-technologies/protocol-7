@@ -47,6 +47,13 @@ errors name the line number only. tested on a throwaway repo with
 manufactured data ; full history [ 10018 commits, 132 tags ] ~40 s.
 exit 0 clean \ skipped, 1 findings, 2 error.
 
+status [ 2026-10-13 ] : phase 1 built, report only. `pii-audit -s` [ staged
+diff : added lines as path:line, added \ renamed paths ] from `pre-commit`,
+`pii-audit -f` [ message, comment lines skipped ] from `commit-msg` ; both
+hooks ignore the result. silent when clean, one skip notice without a
+pattern file. `pre-commit` itself not run here [ Git::Wrapper missing in
+the cloud container ] -- `commit-msg` was run directly.
+
 ## phase 3 : dispatch payload check
 
 in `bin/mcp-server-p7` before a kimi_* \ claude_* prompt leaves : the same
@@ -64,8 +71,8 @@ pattern file location, which categories [ names, phone \ address shapes,
 private domains, assessment-file markers ], blocking or report-only,
 whether a local-model second pass [ coding zenka ] is wanted.
 
-#,,..,...,...,.,,,.,.,,,.,,..,,.,,.,.,...,,,.,.,.,...,...,.,,,...,,,.,..,,,..,
-#GK7BPDETPAJTXDP2OJXC2O7BQD64B2CTI6RW7UYKI4655OQUJEE3L6GEKM7N3BQMNDJBVUUOOHF4K
-#\\\|OVKKNAYHM2BZTO3LCUQ4IQBOCLSDOPJ6E6NGO7SOTH74A5EAGZG \ / AMOS7 \ YOURUM ::
-#\[7]BOJTRNOSGQHNGBCFKOTD7UCJZA24EGFLIJTJXTOOAJZ3TT4QV2CA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,..,,...,,..,,,,,.,,,.,.,,,.,.,.,...,...,.,.,,,.,...,,.,,,..,
+#WIEEFFIXEQV3TGVG3FWCKIPHB2ZE7W63JTSBGLYNC57OMV2EYOUL32ETUZK3LBLI5T272WASTXBE2
+#\\\|HFFCCRVJRFRCFQLAMD3GP6SQFNCSUYOWTP7H3CVBISVBYPHOMVW \ / AMOS7 \ YOURUM ::
+#\[7]QYEBUCEUAELNGETUTOZD3F62SSFAQBZJXG26V6J4DMWZLBEH64AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
