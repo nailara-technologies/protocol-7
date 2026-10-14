@@ -7,6 +7,7 @@ use Getopt::Std;
 use Encode  qw| decode encode |;
 use FindBin qw| $RealBin |;
 use File::Spec;
+use IPC::Open2;
 
 ###                     ###
 ##  strip-llm-metadata   ##
@@ -20,7 +21,13 @@ use File::Spec;
 ##                [ git filter-branch --msg-filter ]
 ##  -i <file>   : in place, removed lines reported on stderr [ commit-msg ]
 ##  -s [revs]   : scan, prints the ids of commits whose message would change
-##                [ default rev : HEAD ]
+##                or whose author \ committer is an llm identity
+##                [ default rev : HEAD, -v adds : author committer message ]
+##  -H          : HEAD rebuilt when its author \ committer is an llm identity
+##                or its message holds llm metadata : the configured
+##                user.name \ user.email takes the llm's place, the author
+##                date stays [ post-commit -- commit-tree + update-ref, no
+##                hooks run again ]
 ##  -p <file>   : other pattern file
 ##  -C <dir>    : repository to scan [ -s, default : current directory ]
 ##
@@ -31,16 +38,19 @@ use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
 my %opt;
-getopts( 'i:sp:C:', \%opt ) or usage();
+getopts( 'i:sp:C:vH', \%opt ) or usage();
 usage() if defined $opt{'i'} and $opt{'s'};
 
 my $pattern_file = $opt{'p'}
     // File::Spec->catfile( $RealBin, File::Spec->updir,
     File::Spec->updir, qw| cfg git llm-metadata.patterns | );
+my @identities;
 my @patterns = load_patterns($pattern_file);
 
 if ( defined $opt{'i'} ) {
     in_place( $opt{'i'} );
+} elsif ( $opt{'H'} ) {
+    harmonize_head();
 } elsif ( $opt{'s'} ) {
     chdir $opt{'C'} or fail( "\l$OS_ERROR", $opt{'C'} ) if defined $opt{'C'};
     scan( @ARGV ? @ARGV : qw| HEAD | );
@@ -62,13 +72,24 @@ sub load_patterns {
     while ( my $line = readline $fh ) {
         next if $line =~ m{^\s*(?:#|$)};
         chomp $line;
-        my ( $action, $regex ) = $line =~ m{^(line|prefix)\s+(.+?)\s*$}
+        my ( $action, $regex )
+            = $line =~ m{^(line|prefix|identity)\s+(.+?)\s*$}
             or fail( "invalid pattern line '$line'", $path );
+        if ( $action eq 'identity' ) {
+            push @identities, qr{$regex};
+            next;
+        }
         push @list, { action => $action, regex => qr{$regex} };
     }
     close $fh;
     fail( 'no patterns defined', $path ) if not @list;
     return @list;
+}
+
+## 'Name <email>' matching an identity pattern ##
+sub llm_identity {
+    my $ident = decode( qw| UTF-8 |, shift );
+    return scalar grep { $ident =~ $ARG } @identities;
 }
 
 ##[ strip : message bytes in, cleaned bytes + removed lines out ]#############
@@ -135,21 +156,108 @@ sub in_place {
 
 sub scan {
     my @revs = @ARG;
-    open( my $log_fh, qw| -\| |,
-        qw| git -c color.ui=false log --no-color --format=%H%x00%B%x00 |,
-        @revs, qw| -- | )
-        or fail("cannot start git log : \l$OS_ERROR");
+    open(
+        my $log_fh, qw| -\| |,
+        qw| git -c color.ui=false log --no-color |,
+        q{--format=%H%x00%an <%ae>%x00%cn <%ce>%x00%B%x00},
+        @revs, qw| -- |
+    ) or fail("cannot start git log : \l$OS_ERROR");
     binmode $log_fh, qw| :raw |;
     local $INPUT_RECORD_SEPARATOR = "\0";
     while ( my $hash = readline $log_fh ) {
         chomp $hash;
         $hash =~ s{^\s+}{};
-        my $msg = readline $log_fh // last;
-        chomp $msg;
+        chomp( my $author    = readline $log_fh // last );
+        chomp( my $committer = readline $log_fh // last );
+        chomp( my $msg       = readline $log_fh // last );
         my ( undef, @removed ) = strip($msg);
-        say $hash if @removed;
+        my @reasons = (
+            ( llm_identity($author)    ? qw| author |    : () ),
+            ( llm_identity($committer) ? qw| committer | : () ),
+            ( @removed                 ? qw| message |   : () )
+        );
+        next if not @reasons;
+        say $opt{'v'} ? "$hash @reasons" : $hash;
     }
     close $log_fh;
+}
+
+##[ -H : post-commit ]########################################################
+
+sub harmonize_head {
+    my $fields = git_out(
+        qw| log -1 --date=raw |,
+        q{--format=%H%x00%T%x00%P%x00%an%x00%ae%x00%ad%x00%cn%x00%ce%x00%B},
+        qw| HEAD |
+    );
+    my ($hash,   $tree,   $parents, $a_name, $a_email,
+        $a_date, $c_name, $c_email, $msg
+    ) = split m{\0}, $fields, 9;
+    return if not defined $msg;
+
+    my $llm_author    = llm_identity("$a_name <$a_email>");
+    my $llm_committer = llm_identity("$c_name <$c_email>");
+    my ( $clean, @removed ) = strip($msg);
+    return if not $llm_author and not $llm_committer and not @removed;
+
+    chomp( my $name  = git_out(qw| config user.name |) );
+    chomp( my $email = git_out(qw| config user.email |) );
+    if (    ( $llm_author or $llm_committer )
+        and ( not length $email or llm_identity("$name <$email>") ) ) {
+        print STDERR "\n:: warning :: llm identity on HEAD, but user.name \\ "
+            . "user.email is no developer identity to replace "
+            . "it with [ pre-push will refuse it ]\n\n";
+        return if not @removed;
+        ( $llm_author, $llm_committer ) = ( FALSE, FALSE );
+    }
+
+    local $ENV{'GIT_AUTHOR_NAME'}  = $llm_author ? $name  : $a_name;
+    local $ENV{'GIT_AUTHOR_EMAIL'} = $llm_author ? $email : $a_email;
+    local $ENV{'GIT_AUTHOR_DATE'}  = $a_date;
+    ## committer always explicit : an inherited GIT_COMMITTER_* env      ##
+    ## [ the llm session's own ] would come back otherwise. date renewed ##
+    local $ENV{'GIT_COMMITTER_NAME'}  = $llm_committer ? $name  : $c_name;
+    local $ENV{'GIT_COMMITTER_EMAIL'} = $llm_committer ? $email : $c_email;
+    delete local $ENV{'GIT_COMMITTER_DATE'};
+
+    my @parent_args = map { ( qw| -p |, $ARG ) } split m{ }, $parents;
+    my $pid         = open2( my $out, my $in, qw| git commit-tree |, $tree,
+        @parent_args );
+    binmode $in, qw| :raw |;
+    print {$in} $clean;
+    close $in;
+    chomp( my $new = readline($out) // '' );
+    close $out;
+    waitpid $pid, 0;
+    fail( 'commit-tree failed', $hash ) if $new !~ m|^[0-9a-f]{40}$|;
+
+    system(
+        qw| git update-ref -m |,
+        'post-commit : llm identity \ metadata harmonized',
+        qw| HEAD |, $new, $hash
+        ) == 0
+        or fail( 'update-ref failed', $hash );
+
+    my @what = (
+        ( $llm_author    ? qw| author |    : () ),
+        ( $llm_committer ? qw| committer | : () ),
+        ( @removed       ? qw| message |   : () )
+    );
+    binmode STDERR, qw| :utf8 |;
+    printf STDERR "\n:: info :: llm %s harmonized .: HEAD %s -> %s\n",
+        join( q{ \\ }, @what ), substr( $hash, 0, 9 ), substr( $new, 0, 9 );
+    print STDERR "::   - $ARG\n" foreach grep {length} @removed;
+    print STDERR "\n";
+}
+
+sub git_out {
+    open( my $fh, qw| -\| |, qw| git -c color.ui=false |, @ARG )
+        or fail("cannot start git : \l$OS_ERROR");
+    binmode $fh, qw| :raw |;
+    my $text = do { local $INPUT_RECORD_SEPARATOR; readline $fh }
+        // '';
+    close $fh;
+    return $text;
 }
 
 sub fail {
@@ -170,8 +278,8 @@ sub usage {
     exit 2;
 }
 
-#,,.,,.,,,..,,,,,,.,.,,.,,..,,,..,.,.,,..,,.,,..,,...,...,..,,,.,,...,.,.,,,,,
-#3QT3BUVV4CP6DFUO6NODSTIB6QQPYEQLHWGC4JRUA7IWKOEAG2WH3DUGWGS43QDQXIGJLWYZ22SS4
-#\\\|7TGEBBOWIBZCNLYRDJULQ76ZRLHFDWVJJGROCRZXYD7MOSGFEZA \ / AMOS7 \ YOURUM ::
-#\[7]M654RPX3K2XHTGQUJUOIMS74FOVGGSDFCTEYOHA5TCBDELNPMGCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,.,.,,,.,,..,,.,,.,,,..,,..,,..,,...,..,,...,...,..,,,.,,,.,,
+#N7K5O437GRKISGG5XO5F3MQH77H3JM5KZKUUENSWYXXRRF5QRL5C6JTWFLSMYEL2UZYBSZE5KQYZ6
+#\\\|LX6LUTW5H4UBDVOHOYT5M3AVHRK5YH3ALFNX6O2Q5VBUCZTINK7 \ / AMOS7 \ YOURUM ::
+#\[7]QKKJH77TS7LFTEMWSGSVRRJQX6Q67R735TBY7DV53XIQ76Z6POAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

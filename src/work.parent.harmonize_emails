@@ -77,6 +77,34 @@ foreach my $pair (@sorted_pairs) {
         };
 }
 
+## committer identities count too : an address can sit there alone          ##
+## [ a retired domain in an old gitconfig ], the env-filter maps both roles ##
+my %committer_pairs;
+if ( open my $committer_fh,
+    '-|', qw| git -C |, <git.cfg.repository_path>,
+    qw| -c color.ui=false log --no-color --format=%H%x00%cn%x00%ce HEAD | ) {
+    while ( my $line = readline $committer_fh ) {
+        chomp $line;
+        my ( $hash, $name, $email ) = split m|\0|, $line;
+        next if not defined $email;
+        my $pair = "$name <$email>";
+        next if $pair eq $main_developer;
+        $committer_pairs{$pair}++;
+        push @{ $email_commits{$email} }, $hash;
+        push @{ $author_commits{$name} }, $hash;
+    }
+    close $committer_fh;
+}
+foreach my $pair ( sort keys %committer_pairs ) {
+    next if exists $author_email_pairs{$pair};    ## listed already ##
+    push @outliers,
+        {
+        pair    => $pair,
+        commits => $committer_pairs{$pair},
+        role    => 'committer'
+        };
+}
+
 if (@outliers) {
     <[base.log]>->(
         1,
@@ -87,8 +115,9 @@ if (@outliers) {
         <[base.log]>->(
             1,
             sprintf(
-                "    %s (%d commits)",
-                $outlier->{pair}, $outlier->{commits}
+                "    %s (%d commits%s)",
+                $outlier->{pair}, $outlier->{commits},
+                ( $outlier->{role} ? " as $outlier->{role}" : '' )
             )
         );
     }
@@ -317,16 +346,14 @@ if ($dry_run) {
         say "";
         if ($harmonize_outliers) {
             <[base.log]>->(
-                1,
-                "  To execute: p7-work harmonize-emails "
-                    . "harmonize-outliers execute"
+                1, "  To execute: p7-work harmonize-emails outliers execute"
             );
             if ( length $key_phrase ) {
                 <[base.log]>->(
                     1,
                     sprintf(
-                        "  With filter: p7-work harmonize-emails "
-                            . "harmonize-outliers execute \"%s\"",
+                        "  With filter: p7-work "
+                            . "harmonize-emails outliers execute \"%s\"",
                         $key_phrase
                     )
                 );
@@ -371,8 +398,8 @@ if ($dry_run) {
             <[base.log]>->(
                 1,
                 sprintf(
-                    "  Or with pattern filter (e.g. author name): p7-work "
-                        . "harmonize-emails harmonize-outliers \"%s\"",
+                    "  Or with pattern filter (e.g. author name): "
+                        . "p7-work harmonize-emails outliers \"%s\"",
                     $outlier_author
                 )
             );
@@ -619,8 +646,8 @@ return {
 
 0;
 
-#,,..,...,,..,..,,,..,,..,,,.,,,.,.,.,.,,,,..,..,,...,..,,...,.,,,,.,,,..,...,
-#OHNHCGOTKPNBR3LEAZMVALY3C7ZB7QCSQHD6GUOA3GQ4CVBSAUAFFXHVP7XU6ZY2G7SZ7V2GK2CRW
-#\\\|FH2CCCNGFHNJGH6OT5WRKJDYPVHAZQ76VCZOG2V6BJIWREN2G4F \ / AMOS7 \ YOURUM ::
-#\[7]GJ22LMKFAZPHTXQ4AIUZUS4H2ZLCQBGJSUJYFEBI7GZCYS5WJUCA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,,,,,,,,,.,,,.,.,..,,...,..,,..,,...,..,,...,.,,,..,,.,,,...,
+#UVRHP2DZDBVVGBFL2GGI6LYRB75ULVT7P6VRGHIT766JLO2ZNHQNCT7Y2UXMKUGR4IMSRASI5OQ7G
+#\\\|UT4HGSDUZ6EQU4EBWL5CLUC7DYMPOEAWMPYWNKN3OKCQUMUD56K \ / AMOS7 \ YOURUM ::
+#\[7]XCQHTZ3BCEGWTFTFB67DRDPDVCE4AGA3O4C53SPVIQP5NTCJ5UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
