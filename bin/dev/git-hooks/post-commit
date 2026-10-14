@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use FindBin qw| $RealBin |;
+use File::Spec;
+
+## post-commit : a commit with an llm author \ committer gets the configured
+## user.name \ user.email instead, llm metadata leaves its message [
+## bin/dev/strip-llm-metadata -H, patterns in cfg/git/llm-metadata.patterns ]
+##
+## the one hook a plain cherry-pick and rebase run too : picked cloud commits
+## keep their author, and pre-commit \ commit-msg never see them. HEAD is
+## rebuilt with commit-tree + update-ref, so no hook runs a second time
+
+my $strip_tool = File::Spec->catfile( $RealBin, File::Spec->updir,
+    qw| strip-llm-metadata | );
+exit 0 if not -f $strip_tool;
+
+system( $EXECUTABLE_NAME, $strip_tool, qw| -H | );
+exit 0;    ## a post-commit hook cannot undo the commit, never fail it ##
+
+#,,,,,,..,.,.,,,,,...,..,,,..,.,,,...,,,.,.,,,..,,...,..,,.,,,.,,,,,,,.,.,,,,,
+#FGZPBYC3YWFC4YIADBZXHWRMWTS5UEGGNS3WX62E2PURS43QMEREOR2LVQ4GWBL3Z52XHOD6KFOFQ
+#\\\|KHAECPA3YPPKW65FZSZ3QMX5FH2IZE72I2HD5HRISWZ5N6KFBST \ / AMOS7 \ YOURUM ::
+#\[7]YJDJTKOQUN56XHXJT4F3TNW4LTGHPS5NNFA5C2ZMOFDLQXV75UCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

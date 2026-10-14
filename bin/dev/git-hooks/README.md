@@ -19,10 +19,24 @@ Runs when creating a commit message. Removes llm metadata through
 - `Generated with Claude Code` lines
 - the `[CLAUDE] ` subject prefix [ the subject itself stays ]
 
-Note : a plain `git cherry-pick` runs no `commit-msg` hook, picked commits
-keep their metadata.
-
 Also reports pii pattern matches in the message [ `bin/dev/pii-audit -f`, report only ].
+
+Note : a plain `git cherry-pick` runs no `commit-msg` hook -- `post-commit`
+covers picked commits.
+
+### `post-commit`
+Runs after every commit, including each commit of a cherry-pick or rebase.
+A commit with an llm author \ committer [ `identity` patterns ] gets the
+configured `user.name` \ `user.email` instead, the author date stays, llm
+metadata leaves the message [ `bin/dev/strip-llm-metadata -H` : HEAD rebuilt
+with `commit-tree` + `update-ref`, no hook runs twice ]. a cloud session's
+commit can be picked into a local session without any changed environment.
+
+### `pre-push`
+Refuses to push commits that still carry an llm identity or llm metadata,
+listing them with the reason [ author \ committer \ message ]. fix recent
+commits with `git rebase --force-rebase <base>` [ post-commit re-authors
+each ], older history with `p7-work harmonize-emails outliers execute`.
 
 ### pii check
 Patterns live outside the repository : `/etc/protocol-7/pii-audit/patterns` [ or `$P7_PII_PATTERNS` ], mode 0600. No pattern file = silent [ a normal installation state ], never a failure. Output names category + file + line only, never the matched text. See `data/tasks/repo-pii-leak-prevention.md`.
@@ -58,8 +72,8 @@ git config core.hooksPath
 
 The `.git/hooks/` directory contains sample hooks provided by git. The actual hooks used are in this directory (`bin/dev/git-hooks/`) and are version controlled, so all developers have the same hooks.
 
-#,,.,,.,.,..,,.,,,...,...,,.,,,,.,,,,,..,,..,,..,,...,...,..,,..,,,,.,,..,..,,
-#LYFT3PNAJYJDK3E4L4OOQDBJXF3ELUNR3TAXOZRLVXTMUWPVOPD32COEZ3IJTM7Q6CAVVB7SALWOQ
-#\\\|KBOB7SWXX2QGLBBEZ72VUGJ4HRXQBNVH2OZHHLWVG33S2DDRJZW \ / AMOS7 \ YOURUM ::
-#\[7]HPFPD5LME22TXRL7GYHIE4WGVPB6PW5HQ2VOUNLY6JYYXZYWBOBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,.,,,..,,,..,.,.,.,.,,.,,...,..,,...,...,.,,,.,,,...,.,.,.,,,
+#FDEW3PNQZ6TNQVASE4BBM6ZTJIM2YKWAQDYEL33AT2RAALE7DSL3ZRNRQZFVFLSFUHYIWOE26XSTM
+#\\\|I2P3DRYTYWFEBUJQ3GREVWZBNZVXVMNDFQAXUL7QBY4GUW7YSS6 \ / AMOS7 \ YOURUM ::
+#\[7]PIY6F7RZPN7YFBVHLUKM54WZ5WSCIPYWW3TFWC3AARTZYZHN2IAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

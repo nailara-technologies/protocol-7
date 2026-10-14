@@ -6,8 +6,10 @@
 ##
 ##   <action> <perl regex, matched against each message line>
 ##
-##   line   : the whole line is removed
-##   prefix : only the matched text is removed, the rest of the line stays
+##   line     : the whole line is removed
+##   prefix   : only the matched text is removed, the rest of the line stays
+##   identity : an author \ committer 'Name <email>' that is an llm, not a
+##              developer [ post-commit re-authors it, pre-push refuses it ]
 
 line    ^\s*Co-Authored-By:
 line    ^\s*Claude-Session:
@@ -15,3 +17,6 @@ line    \p{Emoji}\s*Generated with\s
 line    ^\s*Generated with \[?Claude Code
 line    \[Claude Code\] \([^\)]+\)\s*$
 prefix  ^\[CLAUDE\]\s+
+
+identity  <[^>]*\@anthropic\.com>$
+identity  ^Claude(?:\s+\[[^\]]*\])?\s+<

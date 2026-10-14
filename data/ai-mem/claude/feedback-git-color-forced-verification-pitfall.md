@@ -46,3 +46,16 @@ and confirm truly empty output, not a filtered-and-hopefully-empty one.
 #\\\|LDTXBDV2JXZH33APOVFUMRS55YDP3JO3Q2N347KOEUANP24ZVL3 \ / AMOS7 \ YOURUM ::
 #\[7]736JATCD3Q3GB6QYGE2LWF45VEMA4GFGK5T6OJMVVWM477YKBCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**2026-10-14 : it breaks TOOLS too, not just checks.** `bin/dev/rewrite-hash-refs -f` read
+`git grep -l -z` output -- every filename came back wrapped in ESC codes, every `open` failed,
+`or next` skipped silently : "updated 0 references in 0 files" after a real history rewrite
+[ should have been 30840 in 5703 ]. a cloud session's tests on a throwaway repo passed because
+colour isn't forced there. rule for any script parsing git output : `git -c color.ui=false
+<cmd> --no-color`, and never let a per-file failure be skipped silently -- count + report it.
+
+#,,..,,..,,,,,,,,,,,,,,,,,,,,,,.,,,,.,,..,,..,..,,...,...,.,.,,,,,...,,.,,..,,
+#5FVG7AEHNGPSABNSQBQNAVTXKIGGLE62RNNXFNFYYYQAIPAECRJX5FEGK7XFOFFYO5XHOKO5LTP5M
+#\\\|JUIZPRXFKHMGLCRTKSQVTEZYWOHL4NVNMVMO534WE4HCDHJG4OU \ / AMOS7 \ YOURUM ::
+#\[7]FCG2MBO42VKNDMDY27VY2KLEZZJFPTRJXBDKWL44VVJ4SAAD5QCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

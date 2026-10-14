@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use FindBin qw| $RealBin |;
+use File::Spec;
+
+## pre-push : refuses to push commits with an llm author \ committer or llm
+## metadata in their message [ bin/dev/strip-llm-metadata -s, patterns in
+## cfg/git/llm-metadata.patterns ] -- the post-commit hook fixes them when
+## they are made, this is the check that nothing slipped through
+##
+## stdin : <local ref> <local id> <remote ref> <remote id> per pushed ref
+
+my $remote     = shift // q{};
+my $strip_tool = File::Spec->catfile( $RealBin, File::Spec->updir,
+    qw| strip-llm-metadata | );
+exit 0 if not -f $strip_tool;
+
+my %found;
+while ( my $line = readline STDIN ) {
+    my ( $local_ref, $local_id, $remote_ref, $remote_id ) = split m| +|,
+        $line =~ s{\s+$}{}r;
+    next if not defined $remote_id or $local_id =~ m|^0+$|;    ## deletion ##
+
+    ## new ref or a remote id unknown here [ rewritten history ] : every ##
+    ## commit not on that remote yet                                     ##
+    my @revs
+        = (
+        $remote_id =~ m|^0+$|
+            or system( qw| git cat-file -e |, "$remote_id^{commit}" ) != 0
+        )
+        ? ( $local_id, qw| --not |, "--remotes=$remote" )
+        : ("$remote_id..$local_id");
+
+    open( my $scan_fh, qw| -\| |, $EXECUTABLE_NAME, $strip_tool,
+        qw| -s -v -- |, @revs )
+        or next;
+    while ( my $hit = readline $scan_fh ) {
+        chomp $hit;
+        my ( $id, @reasons ) = split m| |, $hit;
+        $found{$id} = "@reasons [ $local_ref ]";
+    }
+    close $scan_fh;
+}
+exit 0 if not %found;
+
+print STDERR "\n:: error :: llm identity \\ metadata in commits to push\n";
+my $shown = 0;
+foreach my $id ( sort keys %found ) {
+    last if ++$shown > 13;
+    printf STDERR "::   %s : %s\n", substr( $id, 0, 9 ), $found{$id};
+}
+printf STDERR "::   .. %d more\n", ( keys %found ) - 13 if keys %found > 13;
+print STDERR "::\n:: fix recent commits : git rebase --force-rebase <base> [ "
+    . "post-commit re-authors each ]\n:: fix older history   : "
+    . "p7-work harmonize-emails outliers execute\n\n";
+exit 1;
+
+#,,,,,...,,,.,..,,,,,,,,.,,.,,.,,,.,.,,.,,,,,,..,,...,...,.,.,,.,,.,,,...,,.,,
+#DSFJVD3UXAUEDAL4MWSD2F3AN3JE3XY77KQKLWLOUATYEGZS5AHD2DWYEPKUEJJ4SIQDQCNQBJZFS
+#\\\|AHV6GEPTWKUHSM47UKZCR3RWBGQE6MZKKXBFK23THCIIY66WSAL \ / AMOS7 \ YOURUM ::
+#\[7]6YEQ5LFRXOIP3P4CUNBSDBU2BQWCCWWINXS5AHZR25W73ONS5AAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
