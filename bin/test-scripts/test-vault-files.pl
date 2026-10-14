@@ -23,6 +23,7 @@ use AMOS7::Vault qw|
     vault_init vault_open vault_unlock
     entries_latest
     blob_import blob_export blob_verify
+    blob_import_stream blob_discard
     |;
 
 my ( $pass, $fail ) = ( 0, 0 );
@@ -311,11 +312,108 @@ ok( ( ( stat "$dest/sub" )[2] & 0777 ) == 0700,
 ok( $rc != 0 && $out =~ m|exported 0, skipped 3|,
     'export -d : existing files are skipped unasked-overwritten' );
 
+## import -a pre-check : unreadable paths refuse before anything is stored, ##
+## -x excluding them passes, -i skips them as exact names                   ##
+## [ as root every path is readable : skipped ]                             ##
+SKIP_UNREADABLE: {
+    if ( $EUID == 0 ) {
+        say '  skip  import -a pre-check [ root reads everything ]';
+        last SKIP_UNREADABLE;
+    }
+    my $locked = "$tmp/locked";
+    mkdir $locked           or die $OS_ERROR;
+    mkdir "$locked/closed"  or die $OS_ERROR;
+    mkdir "$locked/open[1]" or die $OS_ERROR;
+    write_file( "$locked/fine.txt",          'readable' );
+    write_file( "$locked/closed/inside.txt", 'behind a closed dir' );
+    write_file( "$locked/open[1]/secret",    'no read permission' );
+    write_file( "$locked/open[1]/ok.txt",    'readable too' );
+    chmod 0000, "$locked/open[1]/secret";
+    chmod 0000, "$locked/closed";
+
+    my $count = sub {
+        my ($l) = entries_latest($v);
+        return scalar grep { ( $ARG->{'archive'} // '' ) eq qw| tar | }
+            map { $ARG->{'record'} } @{$l};
+    };
+    my @blobs_before = blob_files($dir);
+    my $before       = $count->();
+
+    ( $out, $rc ) = p7vault( "pass phrase one\n", 'import', '-a', $locked );
+    ok( $rc != 0 && $out =~ m|2 paths not readable|,
+        'import -a : unreadable paths refuse the import'
+    );
+    ok( $out =~ m|locked/closed\b| && $out =~ m|locked/open\[1\]/secret|,
+        'import -a : the unreadable paths are listed' );
+    ok( $count->() == $before && blob_files($dir) == @blobs_before,
+        'import -a : refused before any entry or blob is written'
+    );
+
+    ( $out, $rc ) = p7vault( "pass phrase one\n",
+        'import', '-a', $locked, '-x', 'closed', '-x', '*/secret' );
+    ok( $rc == 0 && $out =~ m|stored|,
+        'import -a : -x excluding the unreadable paths passes' );
+
+    ( $out, $rc ) = p7vault(
+        "pass phrase one\n", 'import', '-a', "$locked/",
+        '-i', '-t', 'locked-skip'
+    );
+    ok( $rc == 0
+            && $out =~ m|2 paths not readable -- skipped|
+            && $out =~ m|stored|,
+        'import -a -i : skipped and stored [ trailing slash dir ]'
+    );
+    my ($l)    = entries_latest($v);
+    my ($srec) = grep { ( $ARG->{'title'} // '' ) eq 'locked-skip' }
+        map { $ARG->{'record'} } @{$l};
+    ok( defined $srec
+            && join( ',', @{ $srec->{'skipped'} // [] } ) eq
+            'locked/closed,locked/open[1]/secret',
+        'import -a -i : the skipped names are recorded'
+    );
+
+    if ( defined $srec ) {
+        open( my $sfh, '>:raw', "$tmp/skip.tar" ) or die $OS_ERROR;
+        blob_export( $v, $srec->{'blob'}, $sfh );
+        close $sfh;
+        my @members = `tar -tf $tmp/skip.tar`;
+        chomp @members;
+        ok( ( grep { $ARG eq 'locked/open[1]/ok.txt' } @members )
+                && !( grep {m{secret|closed}} @members ),
+            'import -a -i : bracket name kept, skipped paths left out'
+        );
+    }
+    ( $out, $rc ) = p7vault(
+        "pass phrase one\ny\n", 'export',
+        'locked-skip',          "$tmp/skip-restore"
+    );
+    ok( $rc == 0
+            && $out =~ m|2 paths not in the archive|
+            && $out =~ m|locked/open\[1\]/secret|,
+        'export : the skipped paths are named'
+    );
+    chmod 0700, "$locked/closed";
+    chmod 0600, "$locked/open[1]/secret";
+}
+
+## blob_discard : a failed archive's stream blob goes, names are checked ##
+{
+    open( my $in, '<', \'stream bytes of a failed tar' ) or die $OS_ERROR;
+    my ($name) = blob_import_stream( $v, $in );
+    close $in;
+    ok( -e "$dir/blobs/$name.vlb", 'blob_discard : stream blob written' );
+    ok( blob_discard( $v, $name ) && !-e "$dir/blobs/$name.vlb",
+        'blob_discard : removed' );
+    ok( blob_discard( $v,  $name ), 'blob_discard : gone already is TRUE' );
+    ok( !blob_discard( $v, '../vault.key' ) && !blob_discard( $v, undef ),
+        'blob_discard : malformed names refused' );
+}
+
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,..,..,,...,,..,,,.,..,,,.,,,..,,,,,,,,,,,.,..,,...,..,,.,,,,,.,.,.,,.,,,,,,
-#2J4QO3YYSVU7W5P3UBG3SLOCS7O4XENGIEPOCEBCF7BIPXNRZPCYE2WYAQCGHTE4KMPZIXHO4BZXS
-#\\\|OD7MZFH3RAK4F34OGZ3MMMFBS3TTNEEWHEFXV27IAITMLQDILQ4 \ / AMOS7 \ YOURUM ::
-#\[7]E7ZQCXUWPDDC3IWQ6H4RHFI6Y4Q5VIH2AE6J37LJKV3OW2LDECAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,,,.,.,.,..,,,,.,,,.,,..,,..,..,,...,...,.,.,,..,,,,,.,.,.,.,
+#CZYRIAXQE46HKDNZR57ZA7BMAYHAXYETF4ZJXXYLF7JDDVGJB6KM3PR5GOMFQD2JMGYKW7X3KNBXI
+#\\\|T7KOBJ27BRTS3VHUHZYO66QK4WQ3A636UDCY7KRQOPZZBZD2Q5B \ / AMOS7 \ YOURUM ::
+#\[7]FDHGQQSX7EFQOY3RF7V2F42B3CCEMXZMGMKVLE4KOZZXGSOSAADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

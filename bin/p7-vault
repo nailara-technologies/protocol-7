@@ -45,7 +45,7 @@ use AMOS7::Vault qw|
     archive_write archive_open archive_restore file_secret git_blob_id
     gen_password recovery_code_new recovery_code_normalize
     type_fields secret_field ntime_b32 ntime_b32_to_unix version_to_unix
-    blob_import blob_import_stream blob_export
+    blob_import blob_import_stream blob_export blob_discard
     |;
 
 ##[ global constants ]##
@@ -74,6 +74,9 @@ $SIG{'INT'} = sub {
 };
 
 my $CLIP_CLEAR_SECONDS = $ENV{'P7_VAULT_CLIP_SECONDS'} // 45;
+
+## the interactive shell pads every command with an empty line itself ##
+my $IN_SHELL = FALSE;
 
 my $dir = $ENV{'P7_VAULT_DIR'} // sprintf qw| %s/.n/vault |,
     $ENV{'HOME'} // ( getpwuid($EUID) )[7];
@@ -162,7 +165,7 @@ my %COMMANDS = (
     notes             => \&cmd_notes,
     scratchpad        => \&cmd_scratchpad,
     codes             => \&cmd_codes,
-    sync              => \&cmd_sync,
+    sync              => \&cmd_sync_hosts,
     history           => \&cmd_history,
     restore           => \&cmd_restore,
     gen               => \&cmd_gen,
@@ -170,14 +173,14 @@ my %COMMANDS = (
     verify            => \&cmd_verify,
     archive           => \&cmd_archive,
     'restore-archive' => \&cmd_restore_archive,
-    commands          => sub { usage() },
+    commands          => sub { usage( join ' ', @ARG ) },
 );
 
 my $vault;    ## unlocked handle, opened on first need ##
 
 if (@ARGV) {
     my $cmd = shift @ARGV;
-    my $sub = $COMMANDS{$cmd} // die "p7-vault : unknown command '$cmd'\n";
+    my $sub = $COMMANDS{$cmd} // do { unknown_command($cmd); exit 1 };
     exit( $sub->(@ARGV) ? 0 : 1 );
 }
 
@@ -188,6 +191,7 @@ if ( not vault_exists($dir) ) {
 } else {
     unlocked() or exit 1;
 }
+$IN_SHELL = TRUE;
 while (TRUE) {
     my $line = prompt_line( 'vault', TRUE ) // last;
     my ( $cmd, @args ) = split ' ', $line;
@@ -195,7 +199,7 @@ while (TRUE) {
     last if $cmd eq 'quit' or $cmd eq 'q' or $cmd eq 'exit';
     my $sub = $COMMANDS{$cmd};
     if ( not $sub ) {
-        say msg( 'refuse', "unknown command '%s' [ commands ]", $cmd );
+        unknown_command($cmd);
         next;
     }
     $sub->(@args);
@@ -204,10 +208,15 @@ exit 0;
 
 ##[ OUTPUT ]##################################################################
 
+## TRUE after a hidden prompt's closing ':' line : the next hidden prompt
+## shares it [ new + re-enter ] instead of opening a second frame
+my $SECRET_FRAME_OPEN = FALSE;
+
 ## one message line : kind 'info' [ T ], 'refuse' [ amber ], 'done' [ green ].
 ## %s values come out in the content color, '[ .. ]' in the frame color
 sub msg {
     my ( $kind, $format, @values ) = @ARG;
+    $SECRET_FRAME_OPEN = FALSE;    ## a message ends a ':' prompt frame ##
     my $color = {
         qw| info |   => $C{T},
         qw| refuse | => $C{o},
@@ -235,7 +244,60 @@ sub msg {
 
 ##[ USAGE ]###################################################################
 
+## an unknown command searches the usage with what was typed : the matching
+## entries, or a refusal -- both with the 'commands' hint
+sub unknown_command {
+    my $typed = shift // '';
+    my @lines = usage_entries( usage_text(), $typed );
+    if ( not @lines ) {
+        say msg( 'refuse', "unknown command '%s' [ 'commands' lists all ]",
+            $typed );
+        return FALSE;
+    }
+    say msg( 'refuse', "unknown command '%s' -- entries holding it :",
+        $typed );
+    say '';    ## not through print_usage : the shell would drop it ##
+    print_usage( join "\n", @lines, '' );
+    say msg( 'info', "[ 'commands' for the full list ]" );
+    return FALSE;
+}
+
+## the entries holding $keyword [ case-insensitive, as base.cmd.commands ] :
+## an entry is its 4-space line and the deeper continuation lines below it
+sub usage_entries {
+    my ( $text, $keyword ) = @ARG;
+    my ( @kept, @block );
+    my $flush = sub {
+        push @kept, @block if grep {m|\Q$keyword\E|i} @block;
+        @block = ();
+    };
+    foreach my $line ( split m|\n|, $text ) {
+        if    ( $line =~ m|^ {4}\S| ) { $flush->(); push @block, $line }
+        elsif ( @block and $line =~ m|^ {10,}\S| ) { push @block, $line }
+        else                                       { $flush->() }
+    }
+    $flush->();
+    return @kept;
+}
+
+## [ keyword ] : only the entries holding it, the header line stays
 sub usage {
+    my $keyword = shift // '';
+    my $text    = usage_text();
+    if ( length $keyword ) {
+        my @kept = usage_entries( $text, $keyword );
+        if ( not @kept ) {
+            say msg( 'refuse', "no commands matching '%s'", $keyword );
+            return FALSE;
+        }
+        my ($header) = $text =~ m{^(  p7-vault.*)$}m;
+        $text = join "\n", '', $header, '', @kept, '';
+    }
+    print_usage($text);
+    return TRUE;
+}
+
+sub usage_text {
     my $text = <<"EOF";
 
   p7-vault [ -d <path> ] [ -R ] [ <command> [ args ] ]
@@ -250,10 +312,11 @@ sub usage {
                              'file' entry per file [ directories recurse,
                              symlinks skipped ]. no path : file selector
                              [ -d : select a directory ]
-    import -a <dir> [ -x g ]... [ -t t ]
+    import -a <dir> [ -x g ]... [ -i ] [ -t t ]
                              archive a whole directory : one tar stream, one
                              blob, one 'file' entry [ -x excludes a glob,
-                             repeatable ; no dedup -- archives are stored
+                             repeatable ; unreadable paths refuse the import,
+                             -i skips them ; no dedup -- archives are stored
                              as imported ]
     export <filter> [ dest ] write a stored file back [ mode and mtime
                              restored, owner as root ]. an archive entry
@@ -269,17 +332,17 @@ sub usage {
     scratchpad               open the 'scratchpad' note in the editor,
                              creating it when missing
     codes                    give a 3-char code to entries lacking one
-    sync <host>[:<dir>]      union of the entry and blob files with
-                             another host [ never overwrites, never
-                             deletes ]
+    sync <host>[:<dir>]...   union of the entry and blob files with
+                             other hosts, one after the other [ never
+                             overwrites, never deletes ]
     show <filter> [ -r ]     one entry, secrets masked [ -r reveals ]
     copy <filter> [ field ]  to the clipboard [ default password ],
                              cleared after $CLIP_CLEAR_SECONDS s
     get <filter> [ field ]   print one value raw [ for pipes ]
     edit <filter>            change fields [ enter keeps a value ]
     rm <filter>              delete [ a new deleted version, history stays
-                             -- a file entry leaves its blob, a later gc
-                             would collect unreferenced ones ]
+                             -- a file entry leaves its blob : format 1
+                             has no gc, sync would bring it back ]
     history <filter>         versions of one entry [ deleted ones too ]
     restore <filter> [ n ]   make an older version current again
                              [ default : the newest not deleted one ]
@@ -294,7 +357,8 @@ sub usage {
                              file in a git history ], -p the plain passphrase
     restore-archive <file>   into -d : a new vault, or the same one
                              [ adds missing versions, replaces nothing ]
-    commands                 this list [ interactive : quit ends ]
+    commands [ keyword ]     this list [ interactive : quit ends ], only
+                             the entries holding the keyword
 
     hidden input : tab shows \\ hides the value, ctrl-u clears it,
                    esc \\ ctrl-c cancels
@@ -311,6 +375,14 @@ sub usage {
     -h  .......  this list [ also -options ]
 
 EOF
+
+    return $text;
+}
+
+## names in T, descriptions and continuation lines in the frame color
+sub print_usage {
+    my $text = shift;
+    $text =~ s|\A\n|| if $IN_SHELL;    ## the shell prompt padded already ##
 
     ## names in T, descriptions and continuation lines in the frame color ##
     foreach my $line ( split m|\n|, $text ) {
@@ -359,29 +431,37 @@ sub readline_term {
     return $READLINE = $term;
 }
 
-## $history : add the line to the in-memory history [ command lines ]
+## $history : add the line to the in-memory history [ command lines ] $history
+## : the command prompt [ '\n:: vault :: ', an empty line after a command --
+## the padding bin/nshell uses ], add the line to the in-memory history
 sub prompt_line {
     my $label   = shift;
     my $history = shift // FALSE;
+    $SECRET_FRAME_OPEN = FALSE;
 
     my $line;
     my $rl = readline_term();
+    print "\n" if $history;    ## outside the readline prompt : no redraw ##
     if ( defined $rl and $rl->ReadLine ne qw| Term::ReadLine::Stub | ) {
         ## \001 \002 mark the color codes as zero width for readline.  the ##
         ## prompt ends in the input color [ nshell : p7_fg_0004 = T ], so  ##
         ## typed text is not left in the default grey                      ##
         my ( $t, $f, $v )
             = map { length ? "\001$ARG\002" : '' } @C{qw| T 0 V |};
-        $line = $rl->readline("  $t$label$f >$v ");
+        $line = $rl->readline(
+            $history ? "${f}:: $t$label$f ::$v " : "  $t$label$f >$v " );
         print $C{R};
         return undef if not defined $line;
     } else {
-        print "  $C{T}$label$C{0} >$C{V} ";
+        print $history
+            ? "$C{0}:: $C{T}$label$C{0} ::$C{V} "
+            : "  $C{T}$label$C{0} >$C{V} ";
         $line = <STDIN>;
         print $C{R};
         return undef if not defined $line;
         chomp $line;
     }
+    print "\n" if $history and $line =~ m|\S|;
 
     ## terminal escape sequences : arrow keys in both the csi and the
     ## application cursor form, function keys, a lone escape
@@ -396,10 +476,20 @@ sub prompt_line {
     return $line;
 }
 
-## no-echo input, never logged, never on argv ##
+## no-echo input, never logged, never on argv  framed as AMOS7::TERM's ##
+## password prompt :  ':' / ': label : ***' / ':'                      ##
 sub prompt_secret {
     my $label = shift;
-    print "  $C{T}$label$C{0} :$C{R} ";
+    print "$C{0}:$C{R}\n" if not $SECRET_FRAME_OPEN;
+    print "$C{0}: $C{T}$label$C{0} :$C{R} ";
+    my $secret = _prompt_secret_read($label);
+    print "$C{0}:$C{R}\n";
+    $SECRET_FRAME_OPEN = TRUE;
+    return $secret;
+}
+
+sub _prompt_secret_read {
+    my $label = shift;
 
     return read_secret_raw($label)
         if -t STDIN and eval { require Term::ReadKey; 1 };
@@ -424,7 +514,8 @@ sub prompt_secret {
             . '  << arrow \ escape keys do not edit '
             . 'a hidden value -- type it again >>'
             . $C{R};
-        return prompt_secret($label);
+        print "$C{0}: $C{T}$label$C{0} :$C{R} ";
+        return _prompt_secret_read($label);
     }
     return decode( 'UTF-8', $line );
 }
@@ -448,7 +539,7 @@ sub read_secret_raw {
     ## stars back. tab shows the value itself [ checking a long password ]
     my @stars;
     my $redraw = sub {
-        printf "\r\e[K  $C{T}%s$C{0} :$C{V} %s$C{R}", $label,
+        printf "\r\e[K$C{0}: $C{T}%s$C{0} :$C{V} %s$C{R}", $label,
             $visible
             ? decode( 'UTF-8', $bytes )
             : '*' x List::Util::sum0(@stars);
@@ -515,11 +606,16 @@ sub prompt_secret_lines {
     my $label = shift;
     say msg( 'info', "$label [ end with a line holding only '.' ] :" );
     my @lines;
+    print "$C{0}:$C{R}\n";    ## one frame for all lines, numbered ##
     while (TRUE) {
-        my $line = prompt_secret('  ');
+        my $number = sprintf '%2d', 1 + @lines;
+        print "$C{0}: $C{T}$number$C{0} :$C{R} ";
+        my $line = _prompt_secret_read($number);
         last if not defined $line or $line eq '.';
         push @lines, $line;
     }
+    print "$C{0}:$C{R}\n";
+    $SECRET_FRAME_OPEN = TRUE;
     return join qq|\n|, @lines;
 }
 
@@ -629,8 +725,10 @@ sub matches {
     return FALSE;
 }
 
+## $width [ the list ] : the right column is shortened to fit, choice lists
+## leave it out and keep the full path
 sub summary_line {
-    my ( $n, $record ) = @ARG;
+    my ( $n, $record, $width ) = @ARG;
     my $type = $record->{'type'} // 'login';
     ## file entries show their latest recorded path : same-named files out of
     ## different directories stay apart in a choice list
@@ -642,6 +740,11 @@ sub summary_line {
         : join( ' ',
         grep {length} $record->{'username'} // '',
         $record->{'url'} // '' );
+    if ($width) {    ## '  ' + the fixed columns before it : 48 ##
+        my $avail = $width - 48;
+        $who = center_ellipse( $who, $avail )
+            if $avail >= 5 and length $who > $avail;
+    }
     return
         sprintf "$C{0}%3s$C{R} $C{0}%-4s$C{R} "
         . "$C{0}%-7s$C{R} $C{T}%-28s$C{R} $C{V}%s$C{R}", $n,
@@ -657,8 +760,10 @@ sub _file_who {
     my $who = ( ( $record->{'origins'} // [] )->[-1] // {} )->{'path'} // '';
     if ( ( $record->{'archive'} // '' ) eq qw| tar | ) {
         my @excludes = @{ $record->{'excludes'} // [] };
+        my @skipped  = @{ $record->{'skipped'}  // [] };
         $who .= ' [ tar archive';
         $who .= sprintf ' · %d excluded', scalar @excludes if @excludes;
+        $who .= sprintf ' · %d skipped',  scalar @skipped  if @skipped;
         $who .= ' ]';
     }
     return $who;
@@ -875,12 +980,19 @@ sub cmd_list {
     my ( $list, $errors ) = entries_latest($v);
     say STDERR $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
 
+    ## framed like files \ notes : header, rows, count footer ##
+    my $width   = list_width();
+    my @entries = grep { matches( $ARG->{'record'}, $filter ) } @{$list};
+    say '' if not $IN_SHELL;    ## the shell prompt padded already ##
+    say notes_rule( $width, ' .:[ entries ]:. ', TRUE );
+    say '';
     my $n = 0;
-    foreach
-        my $entry ( grep { matches( $ARG->{'record'}, $filter ) } @{$list} ) {
-        say '  ' . summary_line( ++$n, $entry->{'record'} );
-    }
-    say msg( 'info', '[ no entries ]' ) if not $n;
+    say '  ' . summary_line( ++$n, $ARG->{'record'}, $width )
+        foreach @entries;
+    say '  ' . $C{0} . '[ no entries ]' . $C{R} if not $n;
+    say '';
+    say notes_rule( $width,
+        sprintf( ' [ %d entr%s ] ', $n, $n == 1 ? 'y' : 'ies' ), FALSE );
     return TRUE;
 }
 
@@ -891,7 +1003,7 @@ sub cmd_show {
     my $record = $entry->{'record'};
     my $type   = $record->{'type'} // 'login';
 
-    say '';
+    say '' if not $IN_SHELL;    ## the shell prompt padded already ##
     foreach my $field ( 'type', 'code', type_fields($type) ) {
         my $value = $record->{$field};
         next if not defined $value or ref $value or not length $value;
@@ -997,14 +1109,16 @@ sub cmd_rm {
 ## per file. directories recurse, symlinks and non-files are skipped with a
 ## note. -t sets the title and takes a single file
 sub cmd_import {
-    my ( $title_opt, $pick_dir, $archive_dir, @excludes, @paths )
-        = ( undef, FALSE, undef, (), () );
+    my ( $title_opt, $pick_dir, $archive_dir, $skip_unreadable )
+        = ( undef, FALSE, undef, FALSE );
+    my ( @excludes, @paths );
     while (@ARG) {
         my $arg = shift @ARG;
         if    ( $arg eq '-t' ) { $title_opt   = shift @ARG // '' }
         elsif ( $arg eq '-d' ) { $pick_dir    = TRUE }
         elsif ( $arg eq '-a' ) { $archive_dir = shift @ARG // '' }
         elsif ( $arg eq '-x' ) { push @excludes, shift @ARG // '' }
+        elsif ( $arg eq '-i' ) { $skip_unreadable = TRUE }
         else                   { push @paths, $arg }
     }
 
@@ -1022,8 +1136,35 @@ sub cmd_import {
             say msg( 'refuse', '-t takes one title' );
             return FALSE;
         }
+        if ( not -d $archive_dir ) {
+            say msg( 'refuse', '%s is not a directory', $archive_dir );
+            return FALSE;
+        }
+        ## unreadable paths found before the passphrase and before a blob ##
+        ## is written : refused, or skipped with -i                       ##
+        my @unreadable = _archive_unreadable( $archive_dir, \@excludes );
+        if (@unreadable) {
+            say msg(
+                $skip_unreadable ? 'info' : 'refuse',
+                '%s path%s not readable%s',
+                scalar @unreadable,
+                @unreadable == 1 ? ''                   : 's',
+                $skip_unreadable ? ' -- skipped [ -i ]' : ''
+            );
+            say msg( 'info', '  %s', $ARG )
+                foreach @unreadable[ 0 .. List::Util::min( 12, $#unreadable )
+                ];
+            say msg( 'info', '  .. %s more', @unreadable - 13 )
+                if @unreadable > 13;
+            if ( not $skip_unreadable ) {
+                say msg( 'info',
+                    'nothing stored [ -x <glob> excludes, -i skips them ]' );
+                return FALSE;
+            }
+        }
         my $v = unlocked() // return FALSE;
-        return _import_archive( $v, $archive_dir, \@excludes, $title_opt );
+        return _import_archive( $v, $archive_dir, \@excludes, $title_opt,
+            \@unreadable );
     }
     if (@excludes) {
         say msg( 'refuse', '-x is only valid with -a' );
@@ -1186,42 +1327,109 @@ sub _import_one {
     };
 }
 
+## a directory as tar sees it : ( parent, base )
+## [ trailing slashes dropped, so 'dir/' archives as 'dir' too ], empty when
+## it is no directory
+sub _archive_split {
+    my $dir = shift // '';
+    return () if not -d $dir;
+    $dir =~ s|(?<=.)/+\z||;
+    my $base   = $dir =~ m|\A.*/([^/]+)\z| ? $1                       : $dir;
+    my $parent = $dir =~ m|\A(.*)/[^/]+\z| ? ( length $1 ? $1 : '/' ) : '.';
+    return ( $parent, $base );
+}
+
+## the member names [ 'base/sub/file' ] tar could not read : files without
+## read permission, directories without read or search permission
+## [ not descended ]. -x globs are honoured the way tar matches them by
+## default : '*' crosses '/', a glob matches the whole name or any part after
+## a '/' [ bracket classes are taken literally here ]. symlinks are archived
+## as links and need no read permission
+sub _archive_unreadable {
+    my ( $dir, $excludes ) = @ARG;
+    no warnings qw| once |;    ## File::Find globals, loaded at run time ##
+    my ( $parent, $base ) = _archive_split($dir) or return ();
+    my $root  = $parent eq '.' ? $base : "$parent/$base";
+    my @globs = map {
+        my $re = join '',
+            map { $ARG eq '*' ? '.*' : $ARG eq '?' ? '.' : quotemeta $ARG }
+            split //, $ARG;
+        qr{(?:\A|/)$re(?:/|\z)};
+    } grep {length} @{$excludes};
+
+    require File::Find;
+    my @unreadable;
+    File::Find::find(
+        {   no_chdir => 1,
+            wanted   => sub {
+                my $path   = $File::Find::name;
+                my $member = $base . substr( $path, length $root );
+                if ( grep { $member =~ $ARG } @globs ) {
+                    $File::Find::prune = 1 if -d $path;
+                    return;
+                }
+                return if -l $path;
+                if ( -d _ ) {
+                    if ( not -r _ or not -x _ ) {
+                        push @unreadable, $member;
+                        $File::Find::prune = 1;
+                    }
+                } elsif ( not -r _ ) {
+                    push @unreadable, $member;
+                }
+            },
+        },
+        $root
+    );
+    return sort @unreadable;
+}
+
 ## import -a : pipe 'tar -C <parent> -cf - [ --exclude=<glob> ]... -- <base>'
 ## [ list form, no shell ] into blob_import_stream : the tar bytes land in one
 ## randomly-named blob, one 'file' entry with archive => 'tar' records it. tar
 ## exit 1 [ 'file changed as we read it' ] is a warning, the entry stays ;
-## exit >= 2 aborts with NO entry -- the blob may already be written
-## [ an orphan : a later gc collects it ]
+## exit >= 2 aborts with NO entry -- the blob already written is discarded
+## [ unreferenced, never synced ]
 sub _import_archive {
-    my ( $v, $dir, $excludes, $title_opt ) = @ARG;
+    my ( $v, $dir, $excludes, $title_opt, $skipped ) = @ARG;
+    $skipped //= [];
 
-    if ( not -d $dir ) {
+    my ( $parent, $base ) = _archive_split($dir) or do {
         say msg( 'refuse', '%s is not a directory', $dir );
         return FALSE;
-    }
-    $dir =~ s|/+/\z||;
-    my $base   = $dir =~ m|\A.*/([^/]+)\z| ? $1 : $dir;
-    my $parent = $dir =~ m|\A(.*)/[^/]+\z| ? $1 : qw| . |;
+    };
+    $dir = $parent eq '.' ? $base : "$parent/$base";
 
     my @tar = ( qw| tar -C |, $parent, qw| -cf - | );
     push @tar, map {"--exclude=$ARG"} @{$excludes};
+    ## skipped paths : exact member names, no glob meaning ##
+    push @tar, qw| --anchored --no-wildcards |,
+        ( map {"--exclude=$ARG"} @{$skipped} ),
+        qw| --wildcards --no-anchored |
+        if @{$skipped};
     push @tar, '--', $base;
-    open( my $stream, '-|', @tar ) or do {
+    my $errors = tool_stderr_begin();
+    my $opened = open( my $stream, '-|', @tar );
+    tool_stderr_end($errors);
+    if ( not $opened ) {
         say msg( 'refuse', 'cannot run tar : %s', $OS_ERROR );
         return FALSE;
-    };
+    }
     binmode $stream;
     my ( $name, $size ) = blob_import_stream( $v, $stream );
     close $stream;
     my $tar_exit = $? >> 8;
+    tool_stderr_print( $errors, qw| tar | );
     if ( $tar_exit >= 2 ) {
+        ## the stream's blob is this run's, unreferenced and never synced :
+        ## removed now [ format 1 has no gc -- it would travel otherwise ]
+        my $gone = blob_discard( $v, $name );
         say msg(
             'refuse',
-            "tar failed [ exit $tar_exit ] -- no entry saved "
-                . '[ blob %s may remain '
-                . 'in the vault : '
-                . "a later gc collects it ]",
-            $name
+            "tar failed [ exit $tar_exit ] -- no entry saved%s",
+            $gone
+            ? ''
+            : sprintf( ' [ blob %s could not be removed ]', $name )
         );
         return FALSE;
     }
@@ -1250,6 +1458,7 @@ sub _import_archive {
         ],
     );
     $record{'excludes'} = [ @{$excludes} ] if @{$excludes};
+    $record{'skipped'}  = [ @{$skipped} ]  if @{$skipped};
 
     my $id = entry_save( $v, undef, \%record );
     my ($saved) = entry_load( $v, $id );
@@ -1453,13 +1662,18 @@ sub _export_archive {
     my @tar = ( qw| tar -C |, $dest );
     push @tar, qw| --no-same-owner | if $EUID != 0;
     push @tar, qw| -xf - |;
-    my $ok = eval {
-        open( my $in, '|-', @tar ) or die "cannot run tar : $OS_ERROR\n";
+    my $errors = tool_stderr_begin();
+    my $ok     = eval {
+        my $opened = open( my $in, '|-', @tar );
+        tool_stderr_end($errors);
+        die "cannot run tar : $OS_ERROR\n" if not $opened;
         binmode $in;
         blob_export( $v, $record->{'blob'}, $in );
-        close $in or die 'tar exited ' . ( $? >> 8 ) . " : $OS_ERROR\n";
+        close $in or die 'tar exited ' . ( $? >> 8 ) . "\n";
         1;
     };
+    tool_stderr_end($errors) if not $ok;    ## died before the restore ##
+    tool_stderr_print( $errors, qw| tar | );
     if ( not $ok ) {
         say STDERR msg( 'refuse', '%s', $EVAL_ERROR );
         return FALSE;
@@ -1470,6 +1684,18 @@ sub _export_archive {
         $record->{'title'} // '',
         "$dest/$base"
     );
+    ## an archive imported with -i is not the whole directory : say what it
+    ## never held, so a restore does not look complete when it is not
+    my @skipped = @{ $record->{'skipped'} // [] };
+    if (@skipped) {
+        say msg(
+            'info',
+            '%s path%s not in the archive ' . '[ unreadable at import ]',
+            scalar @skipped,
+            @skipped == 1 ? '' : 's'
+        );
+        say msg( 'info', '  %s', $ARG ) foreach @skipped;
+    }
     return TRUE;
 }
 
@@ -1613,7 +1839,7 @@ sub cmd_files {
 
     my $width = list_width();
 
-    say '';
+    say '' if not $IN_SHELL;    ## the shell prompt padded already ##
     say notes_rule( $width, ' .:[ files ]:. ', TRUE );
     say '';
     if ( not @files ) {
@@ -1643,12 +1869,14 @@ sub files_lines {
         my $info = '';
         if ( ( $record->{'archive'} // '' ) eq qw| tar | ) {
             my @excludes = @{ $record->{'excludes'} // [] };
+            my @skipped  = @{ $record->{'skipped'}  // [] };
             $info = 'tar archive';
             $info .= sprintf ' · %d excluded', scalar @excludes if @excludes;
+            $info .= sprintf ' · %d skipped',  scalar @skipped  if @skipped;
             $info .= ' · ';
         }
-        $info .= sprintf '%d bytes · %d origin%s · %s',
-            $record->{'size'} // 0,
+        $info .= sprintf '%s · %d origin%s · %s',
+            size_str( $record->{'size'} // 0 ),
             scalar @origins, @origins == 1 ? '' : 's',
             $last ? ymd_date($last) : '-';
         my $marker = @origins ? '┋' : ' ';
@@ -1691,7 +1919,7 @@ sub cmd_notes {
 
     my $width = list_width();
 
-    say '';
+    say '' if not $IN_SHELL;    ## the shell prompt padded already ##
     say notes_rule( $width, ' .:[ notes ]:. ', TRUE );
     say '';
     if ( not @notes ) {
@@ -1753,9 +1981,13 @@ sub notes_lines {
 sub notes_rule {
     my ( $width, $label, $header ) = @ARG;
     my $anchor = $C{T} . $label;
-    return $anchor . $C{R} if not $width or length($label) + 2 >= $width;
-    my $fill = $C{0} . ( '─' x ( $width - length $label ) );
-    return ( $header ? $anchor . $fill : $fill . $anchor ) . $C{R};
+    return $anchor . $C{R} if not $width or length($label) + 3 >= $width;
+    ## a '─' cap on the outer end as bin/todo : both lines end in the frame,
+    ## not in the label's padding space [ looked one column short ]
+    my $cap  = $C{0} . '─';
+    my $fill = $C{0} . ( '─' x ( $width - 1 - length $label ) );
+    return ( $header ? $cap . $anchor . $fill : $fill . $anchor . $cap )
+        . $C{R};
 }
 
 ## terminal width for the notes list
@@ -1764,6 +1996,20 @@ sub list_width {
     return 0 if not -t STDOUT;
     my $columns = $ENV{'COLUMNS'} // 80;
     return $columns =~ m|^\d+$| && $columns >= 40 ? $columns : 80;
+}
+
+## a size for the lists : bytes below 1 KiB, else one decimal KiB \ MiB \ GiB
+sub size_str {
+    my $bytes = shift // 0;
+    return "$bytes bytes" if $bytes < 1024;
+    my @units = qw| KiB MiB GiB TiB |;
+    my $value = $bytes / 1024;
+    my $unit  = shift @units;
+    while ( $value >= 1024 and @units ) {
+        $value /= 1024;
+        $unit = shift @units;
+    }
+    return sprintf '%.1f %s', $value, $unit;
 }
 
 ## date of a unix time, for the right side of the lists
@@ -1872,7 +2118,32 @@ sub cmd_codes {
 ## differing content means a passphrase change on one side, reported with a
 ## hint to copy vault.key.B32 over by hand once. no unlock needed, the files
 ## are opaque. the ssh command comes from P7_VAULT_SSH [ default 'ssh' ] so
-## ControlMaster or a test wrapper can stand in
+## ControlMaster or a test wrapper can stand in  sync <host>... : one host
+## after the other, a failed one does not stop the rest ; a summary line when
+## there were several
+sub cmd_sync_hosts {
+    my @targets = @ARG;
+    return cmd_sync(@targets) if @targets <= 1;
+    my @failed;
+    foreach my $target (@targets) {
+        say msg( 'info', '[ %s ]', $target );
+        cmd_sync($target) or push @failed, $target;
+        say '';
+    }
+    if (@failed) {
+        say msg(
+            'refuse',
+            '%s of %s hosts not in sync [ %s ]',
+            scalar @failed,
+            scalar @targets,
+            join ' ', @failed
+        );
+        return FALSE;
+    }
+    say msg( 'done', 'all %s hosts in sync', scalar @targets );
+    return TRUE;
+}
+
 sub cmd_sync {
     my $target = shift // do {
         say msg( 'info',
@@ -2275,13 +2546,60 @@ sub shq {
 ## run a command [ list, or one shell string ] capturing stdout ; stderr stays
 ## on our stderr. returns ( stdout, exit-ok )
 sub run_capture {
-    my @cmd = @ARG;
-    open( my $pipe, '-|', @cmd )
-        or return ( undef, FALSE );
+    my @cmd    = @ARG;
+    my $errors = tool_stderr_begin();
+    my $opened = open( my $pipe, '-|', @cmd );
+    tool_stderr_end($errors);
+    if ( not $opened ) {
+        tool_stderr_print( $errors, $cmd[0] );
+        return ( undef, FALSE );
+    }
     my $out = do { local $INPUT_RECORD_SEPARATOR; <$pipe> }
         // '';
     close $pipe;
-    return ( $out, $? == 0 ? TRUE : FALSE );
+    my $ok = $? == 0 ? TRUE : FALSE;
+    tool_stderr_print( $errors, ( split m{ }, $cmd[0] )[0] );
+    return ( $out, $ok );
+}
+
+## an external tool's stderr [ tar, ssh ] goes to an anonymous temp file and
+## comes back through msg() once the tool exited -- raw lines broke the styled
+## output. STDERR is redirected only around the fork : the child keeps the
+## temp file, our own messages stay on the terminal
+sub tool_stderr_begin {
+    open( my $saved, '>&', \*STDERR ) or return undef;
+    open( my $tmp,   '+>', undef )    or return undef;
+    open( STDERR,    '>&', $tmp )     or return undef;
+    return [ $saved, $tmp ];
+}
+
+sub tool_stderr_end {
+    my $errors = shift        // return;
+    my $saved  = $errors->[0] // return;    ## restored already ##
+    open( STDERR, '>&', $saved );
+    binmode STDERR, ':encoding(UTF-8)';
+    close $saved;
+    $errors->[0] = undef;
+}
+
+## 'tar: x: Cannot open' -> tar : x: Cannot open [ the line's own tool name
+## when it has one, a pipeline mixes tar and ssh lines ]
+sub tool_stderr_print {
+    my ( $errors, $tool ) = @ARG;
+    return if not defined $errors;
+    my $tmp = $errors->[1];
+    seek $tmp, 0, 0;
+    while ( my $line = readline $tmp ) {
+        $line = decode( qw| UTF-8 |, $line );
+        $line =~ s{\s+\z}{};
+        next if not length $line;
+        my ( $name, $text )
+            = $line =~ m{\A([\w.-]+):\s+(.+)\z}
+            ? ( $1, $2 )
+            : ( $tool, $line );
+        say STDERR msg( 'refuse', '%s : %s', $name // 'tool', $text );
+    }
+    close $tmp;
 }
 
 sub file_sha1 {
@@ -2610,8 +2928,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,..,..,,,,,,,.,,,,.,,.,,,,.,..,,,,.,,,,,,.,,..,,...,...,..,,.,,,,..,.,.,,,.,
-#VPG22NRCJBG3K7NRTDQFIQ2DWOQ4XG4BUGRRR5S5SORYCUJCQXIS35AWBBMUWI6LMEW4Q2MB55QWI
-#\\\|VHTBD7A75Z3GY67VVBF2ZFCJE4PV5UDMCWPNETRRJ5DVFCHEVBY \ / AMOS7 \ YOURUM ::
-#\[7]PUVNTVHSTJRUETMFWD34CQRZ2KQ52GDWAZ5EJSAGYNJI32M2YUDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,.,,.,,,,,,,..,,,,,,,,,.,.,,..,..,,...,...,...,,..,,,,,.,.,...,
+#HKRYBJYAQNKKLP5TVNDV2XKQSMCITBWL5WBAD7FAXL4GV2MT4SJWSVX7G6IDB2NJ7HRSMOFW2LUM2
+#\\\|FK55VMIGU3E2LPVZHHVI5Q2J7VYCKYZ4RKVZI4W7ZISC4CLETNO \ / AMOS7 \ YOURUM ::
+#\[7]C35HRWT3PEGGNXUYG2ZLFS4M6XVVFSR5HU2CCQVPWGWAWYKMCKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
