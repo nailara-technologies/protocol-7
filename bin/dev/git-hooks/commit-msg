@@ -27,58 +27,16 @@ unless ( -f $commit_msg_file ) {
     exit 1;
 }
 
-# Read the commit message
+## llm metadata removed in place [ patterns : cfg/git/llm-metadata.patterns,
+## shared with the harmonize-emails history rewrite ]
+my $strip_tool = File::Spec->catfile( $RealBin, File::Spec->updir,
+    qw| strip-llm-metadata | );
+system( $EXECUTABLE_NAME, $strip_tool, qw| -i |, $commit_msg_file ) == 0
+    or exit 1;
+
 open my $fh, '<', $commit_msg_file or die ":\n:: \l$OS_ERROR\n\n";
-my @original_lines = <$fh>;
+my @kept_lines = <$fh>;
 close $fh;
-
-# Filter patterns that should be automatically removed from commit message
-my @filter_patterns = (
-    qr|\p{Emoji} Generated with |,
-    qr|^Co-Authored-By:|,
-    qr|^Claude-Session:|,
-    qr|^\[CLAUDE\] |,
-    qr|\[Claude Code\] \([^\)]+\)$|
-);
-
-# Process lines: separate filtered from kept lines
-my @kept_lines;
-my @filtered_lines;
-
-foreach my $line (@original_lines) {
-    my $should_filter = 0;
-    foreach my $pattern (@filter_patterns) {
-        if ( $line =~ $pattern ) {
-            $should_filter = 1;
-            push @filtered_lines, $line;
-            last;
-        }
-    }
-    unless ($should_filter) {
-        push @kept_lines, $line;
-    }
-}
-
-# If patterns were found, write cleaned message back to file
-if (@filtered_lines) {
-
-    # Write cleaned message back to file
-    open $fh, '>', $commit_msg_file or die ":\n:: \l$OS_ERROR\n\n";
-    foreach my $line (@kept_lines) {
-        print $fh $line;
-    }
-    close $fh;
-
-    # Inform user that patterns were removed
-    print STDERR "\n";
-    print STDERR ":: info :: removed author metadata from commit message\n";
-    print STDERR ":: filtered patterns:\n";
-    foreach my $problematic (@filtered_lines) {
-        chomp $problematic;
-        print STDERR "::   - $problematic\n" if length $problematic;
-    }
-    print STDERR "\n";
-}
 
 ## pii check [ report only, never blocks -- bin/dev/pii-audit -f ] ##
 my $pii_audit
@@ -143,8 +101,8 @@ if ( @form_lines > 1 and $title_len > $warn_title_len ) {
 
 exit 0;
 
-#,,.,,,..,,,.,,.,,...,,.,,..,,.,.,...,..,,,..,..,,...,...,..,,,..,.,,,,,,,,,,,
-#B4EIUYDSJBBGZ4KVD6BXU4NOJHYJKBTQZHDG6IN4JRPMTXNZU2E4M6ZTHDKEG7J2LMGSK32VUPHLE
-#\\\|QXLAYFWLUYWB3GKH6YBQQGFW62YTI7BHCC3RIN5GLQYATBTSHUF \ / AMOS7 \ YOURUM ::
-#\[7]AVOSYMUXUKB676SHS4GX5YQXHFYURNHGLK6ZMSFRDALWU2QRSEBA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,..,,,..,,..,,.,,,..,,..,.,,,..,,...,...,..,,...,,..,,,,,.,.,
+#E2TZBDCP2NCTYPSACVQJCE7AYYN5A5VLSCBPEGNHFUI74YJDXRPQ5KPOXAVZIROGFB3U46JH32UXW
+#\\\|PRIS46HZXKLWFYQDYVDVH6BBA77UORQZH7Q5KDJRI66G3RZILXL \ / AMOS7 \ YOURUM ::
+#\[7]3WPXJQP6V3PMNMGDSLJJQOSNXHYUJ4BR54H72PTGECRXDPUAXACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

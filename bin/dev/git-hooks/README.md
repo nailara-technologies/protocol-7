@@ -12,11 +12,15 @@ Also reports pii pattern matches in the staged diff [ `bin/dev/pii-audit -s`, re
 Runs after checking out a branch. Restores Protocol-7 file permissions.
 
 ### `commit-msg`
-Runs when creating a commit message. Prevents forbidden patterns from being committed:
-- Lines starting with `🤖 Generated with`
-- Lines starting with `Co-Authored-By:`
+Runs when creating a commit message. Removes llm metadata through
+`bin/dev/strip-llm-metadata`, patterns in `cfg/git/llm-metadata.patterns`
+[ shared with the `harmonize-emails` history rewrite ] :
+- `Co-Authored-By:` and `Claude-Session:` lines [ also indented ]
+- `Generated with Claude Code` lines
+- the `[CLAUDE] ` subject prefix [ the subject itself stays ]
 
-These patterns should not appear in commits to maintain clean commit histories.
+Note : a plain `git cherry-pick` runs no `commit-msg` hook, picked commits
+keep their metadata.
 
 Also reports pii pattern matches in the message [ `bin/dev/pii-audit -f`, report only ].
 
@@ -54,8 +58,8 @@ git config core.hooksPath
 
 The `.git/hooks/` directory contains sample hooks provided by git. The actual hooks used are in this directory (`bin/dev/git-hooks/`) and are version controlled, so all developers have the same hooks.
 
-#,,.,,.,,,,,.,,,.,,.,,,,,,,..,,,,,...,,,.,,..,..,,...,...,...,.,,,,.,,,,.,,,,,
-#LGUQCT6TL2H2ILLYBHD4HHMKYAYWB4VFGOE37UQGPGOEGPBZIEEJJ2A7ZOO53CJVIWXX2SOLZ3726
-#\\\|ZLW6E7MA36MEJWGHAOMQDTIMSUABSA3JKX2CXM4HC2NDUDAUFVG \ / AMOS7 \ YOURUM ::
-#\[7]5SZG6OUT7TDJCIOVSRPHEBS5DPK4R6375ATZWMAA7QITGFOXU2CY 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,.,,,...,...,,.,,,,.,,,,,..,,..,,..,,...,...,..,,..,,,,.,,..,..,,
+#LYFT3PNAJYJDK3E4L4OOQDBJXF3ELUNR3TAXOZRLVXTMUWPVOPD32COEZ3IJTM7Q6CAVVB7SALWOQ
+#\\\|KBOB7SWXX2QGLBBEZ72VUGJ4HRXQBNVH2OZHHLWVG33S2DDRJZW \ / AMOS7 \ YOURUM ::
+#\[7]HPFPD5LME22TXRL7GYHIE4WGVPB6PW5HQ2VOUNLY6JYYXZYWBOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,17 @@
+## llm metadata in commit messages ##
+##
+## one shared list for the commit-msg hook [ fresh commits ] and the
+## harmonize-emails history rewrite [ msg-filter ], both applied through
+## bin/dev/strip-llm-metadata
+##
+##   <action> <perl regex, matched against each message line>
+##
+##   line   : the whole line is removed
+##   prefix : only the matched text is removed, the rest of the line stays
+
+line    ^\s*Co-Authored-By:
+line    ^\s*Claude-Session:
+line    \p{Emoji}\s*Generated with\s
+line    ^\s*Generated with \[?Claude Code
+line    \[Claude Code\] \([^\)]+\)\s*$
+prefix  ^\[CLAUDE\]\s+
