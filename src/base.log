@@ -34,8 +34,8 @@ if ( $log_level !~ m|^\d+(?::\d+){0,2}$| ) {
 <system.zenka.verbosity.logfile> //= 0;
 
 ## per target levels : a line can be console level 2 while stored at level ##
-## 1, so the logfile keeps it without raising the logfile verbosity [ and  ##
-## collecting every other level 2 line with it ]                           ##
+## 1, so the logfile keeps it without raising the logfile verbosity        ##
+## [ and collecting every other level 2 line with it ]                     ##
 my ( $lvl_console, $lvl_buffer, $lvl_logfile ) = split m|:|, $log_level;
 $lvl_buffer  //= $lvl_console;
 $lvl_logfile //= $lvl_buffer;
@@ -122,6 +122,10 @@ if ( length fileno(STDOUT)
         <[base.utf8.clean_str]>->( \$log_str, 2, 2 );    ## warn level 2 ##
     }
     say $log_str;    ## clean UTF-8 passed through ##
+
+    ## a console command's own output keeps its color after the log line   ##
+    ## reset [ not part of $log_str : stdout log \ v7 patterns unchanged ] ##
+    print $colors{'p7_fg_0002'} if defined <system.console.command>;
 }
 ##
 
@@ -136,8 +140,8 @@ if ( length fileno(STDOUT)
 
 return TRUE;
 
-#,,,,,.,.,,,.,.,.,,,,,..,,..,,,.,,,,.,...,,..,..,,...,...,...,.,,,,..,,,.,.,,,
-#UHG56HZMAKVF6CJZSLN4D6QRLSHHGZYCGKWNQY37UUJSDCCZWE7YAALNYZEUFONMR74RCLAEIZXIK
-#\\\|OD4BFHIBPGDVRBCQF5MZMUVUKCV7QHVDY2IQHZ2P7UHBURX5LIZ \ / AMOS7 \ YOURUM ::
-#\[7]JH6GWGP3ABWKZSPQHHWIEXSHYA2TG62UDDLMSNEFOP2PA47X46AY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,.,,,,,,..,,,,,...,,.,,,.,,,.,,..,,...,...,.,.,.,,,.,.,..,,..,,
+#U3AVSXPEZ6G6M6NMUFBRSZCFXB62LBMS2U5HI7HQ4EEMGBBKLQEUW2GJE4XBH5EXHKOUFL45FRIQA
+#\\\|63YB3ZDU64QYEH5S5J4MLUFJKROTQBDFSXHGSPITE5R4EVFOCH4 \ / AMOS7 \ YOURUM ::
+#\[7]U3JP6JYWUUZJG6PH6MPNAK6XMS4PWWWPAGBLR6NJD6VGF4VJOKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
