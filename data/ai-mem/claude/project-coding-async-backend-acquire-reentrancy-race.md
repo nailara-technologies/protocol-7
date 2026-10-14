@@ -1,6 +1,6 @@
 ---
 name: project-coding-async-backend-acquire-reentrancy-race
-description: REVERTED 2026-09-24 -- the 2026-09-23 fix (d3c07acee) broke EVERY normal multi-round coding task, not just the race it targeted. Root race still open and unfixed; see the correction at the top of this file before touching backend_acquire again
+description: REVERTED 2026-09-24 -- the 2026-09-23 fix (c93bb499d) broke EVERY normal multi-round coding task, not just the race it targeted. Root race still open and unfixed; see the correction at the top of this file before touching backend_acquire again
 metadata:
   type: project
 ---
@@ -17,7 +17,7 @@ enqueue_round" root cause below was never real; the misdiagnosis session
 [ task-PYYJCJY, 04:08-05:07 ] followed. Detector widened same day : units
 with no letters/digits or <= 3 distinct chars count as structural and get
 the long [ 200 char ] threshold [ also covers the 68 blank-line-run aborts
-in the log ]. The seq fix [ e8bb6b5b7 ] stands on its own -- real
+in the log ]. The seq fix [ 6d278dfcd ] stands on its own -- real
 stale-callback holes, just not this incident.
 
 **UPDATE 2026-09-24 [ later same day ]**: re-analysis found the
@@ -146,8 +146,8 @@ and `coding.session.listeners` dedup FIRST, before assuming an encoding
 problem — this exact symptom shape (duplication, not corruption-in-place)
 already fooled one full session into the wrong subsystem once.
 
-#,,..,.,,,,..,.,,,.,.,,.,,,..,...,..,,,.,,,,,,.,.,...,..,,.,.,,..,,..,..,,,.,,
-#25XEUZ4WIJQP6OFB2FWTXDYJYZPLGN5LO4VGMZS4N32DOBREBD6PD3HDNU7Q5ZNUDXER6OUGZSEXM
-#\\\|5FTL4AA7WGKW5U4VEIIRFLBYLPMP4GYJKWT2PJPHDHFZVRB7AUK \ / AMOS7 \ YOURUM ::
-#\[7]YTVNYW2YWK5CTRLS26OKEA3F4YSZJXZ5TUBA2LV7ATZOJVBAMEDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,,,.,,,,,,,.,,,,,,,.,,..,..,,.,.,...,...,.,,,.,,,.,,,,,.,..,,
+#KCFOGCEVQTMT5E6VDFZR7L3BUF7CKX4YBVJ34WC74RCMITZ5R47STQMEGPPLFKNHSXABGXKHIIXNO
+#\\\|QQASDY2BAP3MRV4OCVF6DJX7XI3U3VU257RMWA4YOVT64NHP4E7 \ / AMOS7 \ YOURUM ::
+#\[7]SP4B5OJK4DJE7T3GMQLERLOIOHXSKJEJSARY3X7B3IAEXGDIYWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -65,7 +65,7 @@ my $run_started = <[coding.self_test.run]>->(
             ## forever on a genuinely broken model: caps at                 ##
             ## coding.cfg.self_test_seed_retry_max attempts per model_id,   ##
             ## reset on any clean self-test pass. prompt 3 was added        ##
-            ## 2026-08-08 [ b73e33876 ] but this gate was never extended -- ##
+            ## 2026-08-08 [ ba7beab49 ] but this gate was never extended -- ##
             ## a riddle miss landing on prompt 3 only silently completed    ##
             ## 2/3 with no restart [ found live 2026-09-21 : this model     ##
             ## misses the primed variant alone ~18% of runs, 25x            ##
@@ -130,12 +130,12 @@ my $run_started = <[coding.self_test.run]>->(
                         $retry_max
                     );
 
-                    ## consequence of the async inversion : dependencies    ##
-                    ## were already rechecked above, so real tasks can be   ##
-                    ## streaming while this decision fires - a respawn      ##
-                    ## right here could kill the server mid-task. defer     ##
-                    ## until the backend lock is free and the queue empty [ ##
-                    ## bounded at 120s in the handler ]                     ##
+                    ## consequence of the async inversion : dependencies  ##
+                    ## were already rechecked above, so real tasks can be ##
+                    ## streaming while this decision fires - a respawn    ##
+                    ## right here could kill the server mid-task. defer   ##
+                    ## until the backend lock is free and the queue empty ##
+                    ## [ bounded at 120s in the handler ]                 ##
                     <coding.seed_restart_defer> //= {};
                     my $defer_id
                         = <[base.gen_id]>->(<coding.seed_restart_defer>);
@@ -168,11 +168,12 @@ my $run_started = <[coding.self_test.run]>->(
                 delete <coding.self_test_seed_retry_count>->{$test_model_id};
             }
 
-            ## self-test has now actually concluded [ pass or fail,         ##
-            ## decision made above ] - any contention-retry state left for  ##
-            ## THIS backend is obsolete, then safe to let real tasks start  ##
-            ## [ self_test_retry_count delete kept as rollover hygiene from ##
-            ## the poll-timer design, the count itself is gone ]            ##
+            ## self-test has now actually concluded                         ##
+            ## [ pass or fail, decision made above ] - any contention-retry ##
+            ## state left for THIS backend is obsolete, then safe to let    ##
+            ## real tasks start [ self_test_retry_count delete kept as      ##
+            ## rollover hygiene from the poll-timer design, the count       ##
+            ## itself is gone ]                                             ##
             delete <coding.self_test_retry_pending>->{$backend};
             delete <coding.self_test_retry_count>->{$backend};
             $resume_queue->();
@@ -187,24 +188,25 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
         ? ( $run_started->{'data'} // 'unknown' )
         : 'unknown';
 
-    ## lost the race for THIS backend's own in-flight guard slot [ this     ##
-    ## backend's self-test is already running - the guard is a per-backend  ##
-    ## hash since 2026-08-27 [ task : coding-self-test-true-parallelization ##
-    ## ], so a DIFFERENT backend's self-test never blocks this one and this ##
-    ## path is now same-backend contention only, eg stacked restart paths   ##
-    ## each triggering a self-test for the same backend ] : NOT a real      ##
-    ## error. the slot clears once that probe's on_done fires [             ##
-    ## coding.self_test.handler.poll_probe ], so instead of silently        ##
-    ## dropping this backend's self-test we mark it pending and let a       ##
-    ## per-backend variable watcher on the guard slot itself wake it the    ##
-    ## instant the slot clears [ task : coding-self-test-parallel-backend-  ##
-    ## gap, option 1, watcher redesign 2026-08-26, per-backend 2026-08-27 - ##
-    ## replaces the original 10s polling retry timer with the jobqueue      ##
-    ## event.add_var precedent, see jobqueue.event.register_job_queues ].   ##
-    ## ALL retry state is keyed generically by the backend identifier       ##
-    ## string in hashes - never two named variables or a fixed-size         ##
-    ## structure - so nothing here needs rework when multi-slot support     ##
-    ## grows beyond gpu/cpu                                                 ##
+    ## lost the race for THIS backend's own in-flight guard slot [ this    ##
+    ## backend's self-test is already running - the guard is a per-backend ##
+    ## hash since 2026-08-27                                               ##
+    ## [ task : coding-self-test-true-parallelization ], so a DIFFERENT    ##
+    ## backend's self-test never blocks this one and this path is now      ##
+    ## same-backend contention only, eg stacked restart paths each         ##
+    ## triggering a self-test for the same backend ] : NOT a real error.   ##
+    ## the slot clears once that probe's on_done fires                     ##
+    ## [ coding.self_test.handler.poll_probe ], so instead of silently     ##
+    ## dropping this backend's self-test we mark it pending and let a      ##
+    ## per-backend variable watcher on the guard slot itself wake it the   ##
+    ## instant the slot clears [ task :                                    ##
+    ## coding-self-test-parallel-backend-gap, option 1, watcher redesign   ##
+    ## 2026-08-26, per-backend 2026-08-27 - replaces the original 10s      ##
+    ## polling retry timer with the jobqueue event.add_var precedent, see  ##
+    ## jobqueue.event.register_job_queues ].  ALL retry state is keyed     ##
+    ## generically by the backend identifier string in hashes - never two  ##
+    ## named variables or a fixed-size structure - so nothing here needs   ##
+    ## rework when multi-slot support grows beyond gpu/cpu                 ##
     if ( $fail_reason eq 'self-test already in progress' ) {
         <coding.self_test_retry_pending> //= {};
         <coding.self_test_retry_timer>   //= {};
@@ -224,30 +226,32 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
         } else {
             ## the wait budget must cover a REALISTIC full self-test cycle, ##
             ## not an arbitrary small count -- coding.init_code already     ##
-            ## computes the worst-case duration of one full cycle [ 3       ##
-            ## prompts, each up to 90s * retries worst case ] into          ##
+            ## computes the worst-case duration of one full cycle           ##
+            ## [ 3 prompts, each up to 90s * retries worst case ] into      ##
             ## <coding.cfg.self_test_max_total> [ ~1700s by default ].      ##
             ## confirmed live 2026-08-26 : the original flat 15s budget     ##
             ## gave up on gpu's self-test while cpu's own cycle had barely  ##
             ## started. the watcher wakes the backend the instant the guard ##
-            ## clears, so this number is now only the safety-net timeout [  ##
-            ## total wait seconds, not a poll- attempt count ] for a guard  ##
-            ## that genuinely never clears [ hung probe elsewhere ].        ##
+            ## clears, so this number is now only the safety-net timeout    ##
+            ## [ total wait seconds, not a poll- attempt count ] for a      ##
+            ## guard that genuinely never clears [ hung probe elsewhere ].  ##
             ## cfg.self_test_retry_max is kept as an explicit override of   ##
             ## that same seconds value.                                     ##
             ##                                                              ##
-            ## semantics note [ task : backend-aware timeout scaling, item  ##
-            ## 6 ] : this net is explicitly a "guard slot never cleared"    ##
-            ## fallback, NOT a self-test duration limit. under the          ##
-            ## liveness-aware poll_probe a slow-but-LIVE probe can          ##
-            ## legitimately hold its slot past this window [ deferred up to ##
-            ## the auto-derived outer cap ], so the callback below          ##
-            ## re-checks the holding probe's liveness before firing and     ##
-            ## re-arms another window instead of force-resuming the queue   ##
-            ## mid-round [ the premature-resume class of 5d32f8783 ]. the   ##
-            ## fixed derivation stays the arming value : the window's       ##
-            ## length is not load-bearing for correctness any more, only    ##
-            ## the liveness decision at fire time is                        ##
+            ## semantics note                                               ##
+            ## [ task : backend-aware timeout scaling, item 6 ] : this net  ##
+            ## is explicitly a "guard slot never cleared" fallback, NOT a   ##
+            ## self-test duration limit. under the liveness-aware           ##
+            ## poll_probe a slow-but-LIVE probe can legitimately hold its   ##
+            ## slot past this window                                        ##
+            ## [ deferred up to the auto-derived outer cap ], so the        ##
+            ## callback below re-checks the holding probe's liveness before ##
+            ## firing and re-arms another window instead of force-resuming  ##
+            ## the queue mid-round                                          ##
+            ## [ the premature-resume class of f9d9ecba5 ]. the fixed       ##
+            ## derivation stays the arming value : the window's length is   ##
+            ## not load-bearing for correctness any more, only the liveness ##
+            ## decision at fire time is                                     ##
             my $wait_timeout = <coding.cfg.self_test_retry_max>
                 // <coding.cfg.self_test_max_total> // 1700;
 
@@ -288,19 +292,17 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
             ## '\<coding.self_test_probe_in_flight>' : a leading backslash  ##
             ## is the translator's ESCAPE ((?<!\\)<..>), so that form would ##
             ## silently watch a reference to the literal name string and    ##
-            ## never fire [ a real past bug in                              ##
-            ## user-edit.setup_stdin_watcher ]                              ##
+            ## never fire                                                   ##
+            ## [ a real past bug in  user-edit.setup_stdin_watcher ]        ##
             $guard_watchers->{$backend} = <[event.add_var]>->(
-                {   'var' => \$data{'coding'}{'self_test_probe_in_flight'}
-                        {$backend},
-                    'poll'    => qw| w |,
-                    'prio'    => 0,
+                {   'var'  => \<coding.self_test_probe_in_flight>->{$backend},
+                    'poll' => qw| w |,
+                    'prio' => 0,
                     'repeat'  => 1,
                     'handler' => qw| coding.helper.self_test_guard_watcher |,
                     'data'    => [
                         $backend,
-                        \$data{'coding'}{'self_test_probe_in_flight'}
-                            {$backend}
+                        \<coding.self_test_probe_in_flight>->{$backend}
                     ],
                     'desc' =>
                         "coding self-test in-flight guard [backend=$backend]",
@@ -365,8 +367,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,,,,.,,,.,,,,.,,,,,,.,,,,,.,,.,,.,.,,..,...,..,,...,...,..,,,,.,,,.,,,.,..,,
-#L77YKTVPDC7QC6BTVMS63L7WWNTY67W5UQ7HQ5FUAEIWPNM5ZFNH5LA7DYP3PL3AGDHV5OYYJNMYW
-#\\\|3AHR3TMTIOWBUCDPPWBZNZ44M3CJF6EPIZVBAG5IN5X5ZEWCFTB \ / AMOS7 \ YOURUM ::
-#\[7]DOX4JYJXPDUK35EHECQDFPJVJSJORERUJGFDAFEPPA7ZPCIFGGAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,...,,.,,,.,,,..,,,,,.,,,,,,,,,.,..,,...,...,.,.,...,,.,,...,,.,,
+#BQXHXSHMOTJ5XLQHGTADZRQATSWHTGKRRDLQCHI6GJF26ZIBK6FU3CDYDKBAJPZA765S573LQLY62
+#\\\|XIQMRPBCBCOO7KP3FYCZ5LMKCKHVUAYTMIFJTESWGWQSBMC6GFO \ / AMOS7 \ YOURUM ::
+#\[7]ZLKMMTQKLWEEXY6IKLLISDDAQVCHVKTK77DEWQB462FEVZRFOWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

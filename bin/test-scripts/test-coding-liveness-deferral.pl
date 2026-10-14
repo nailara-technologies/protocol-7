@@ -17,7 +17,7 @@ use warnings;
 ##     stubbed throughout [ settable $now ]. covers items 3-5 of            ##
 ##     data/tasks/coding-backend-aware-timeout-scaling.md :                 ##
 ##                                                                          ##
-##     - item 3 [ the 5d32f8783-class regression check ] :                  ##
+##     - item 3 [ the f9d9ecba5-class regression check ] :                  ##
 ##     verify_inference_startup's fallback queue-resume does NOT fire       ##
 ##     while poll_probe's own deferred-but-alive round is still running     ##
 ##     [ probe past self_test_max_total + 120 but stream alive and          ##
@@ -239,7 +239,7 @@ my $cpu_server = sub {
     return;
 };
 
-say ': 1. [item 3 / 5d32f8783 regression] fallback does NOT resume the queue '
+say ': 1. [item 3 / f9d9ecba5 regression] fallback does NOT resume the queue '
     . 'while poll_probe`s deferred-but-alive round is still running';
 
 reset_state();
@@ -262,7 +262,7 @@ $cpu_server->();
     );
     ok( scalar( grep { $ARG->[1] =~ m{resuming queue anyway} } @log_calls )
             == 0,
-        'fallback did NOT fire [ the 5d32f8783 bug class ]'
+        'fallback did NOT fire [ the f9d9ecba5 bug class ]'
     );
     ok( scalar(
             grep {
@@ -412,7 +412,7 @@ reset_state();
     $st = $data{'coding'}{'self_test_switch_state'}{'SW1'};
     ok( scalar(@switch_model_calls) == 1,
         'restore switch-model call initiated on stall' );
-    ## poll_switch went backend-aware in 8c765db92 : the restore call now ##
+    ## poll_switch went backend-aware in f23a68c44 : the restore call now ##
     ## carries an explicit backend= suffix [ default 'gpu' here : SW1 has ##
     ## no backend field ]                                                 ##
     ok( ( $switch_model_calls[0]{'args'} // '' ) eq 'MOLD backend=gpu',
@@ -513,8 +513,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,.,.,.,.,.,.,,.,,.,,,,,.,,,.,..,,.,,,,,,,..,,...,...,.,.,,,.,..,,,.,,,,.,
-#QMPHTMMSH6SU4WASEVP53QIX3PW76TESF3ESFGF2ZW72DLQLLYO7Q4KAQGL4PMKF4J6KZT27V25SU
-#\\\|EYZVEFMXKDSWLMUP4LCJLUSUXMUDYTJHHVSVDHAIMZMNHMZVEF6 \ / AMOS7 \ YOURUM ::
-#\[7]QMWSSXLXJ2G2FFSNDI3ZSKVAWY2T4MNY77X26BOEJLZVTBECJKCA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,..,..,,.,.,,,,,,.,,...,,,,,,..,..,,...,...,..,,...,.,.,..,,,,.,
+#JJZUERPJH67GDKQOYCBL3YVIKRBRQJVZWPVNICLYDE3W7JKN2EJLDHVYUQZRXKA5ZMGYZG5ENTZDQ
+#\\\|EPIH4KCBSGZKBSS2QE2WIOTOX3PVAB6S5ZNMHAORUD57GHXPLHW \ / AMOS7 \ YOURUM ::
+#\[7]L6BFB26PBR2EFKSNDYXHMFPBZ6XCOT4D72FWKX6I7M3FAFHBCGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

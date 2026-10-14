@@ -242,9 +242,9 @@ here relies on the earlier summary.
   comment at lines 26-37 is explicit about the "bounded, never unbounded"
   design and cites the need to stay in sync with
   `coding.handler.verify_inference_startup` because of the premature-resume
-  race fixed in commit `5d32f8783` (the source comments call it `4c3cf0e73`,
+  race fixed in commit `f9d9ecba5` (the source comments call it `4c3cf0e73`,
   but that hash does not exist in this repo; `git log --all --grep` resolves
-  the incident to `5d32f8783`).
+  the incident to `f9d9ecba5`).
 
 **other elapsed-time-only ceilings found in the same chain** (all read
 independently; this is the full grep sweep, not just the candidate list):
@@ -299,7 +299,7 @@ independently; this is the full grep sweep, not just the candidate list):
 **cross-dependency / "what would break" assessment:**
 
 the critical coupling is between `poll_probe`'s `max_total` and
-`verify_inference_startup`'s fallback-resume ceiling. commit `5d32f8783`
+`verify_inference_startup`'s fallback-resume ceiling. commit `f9d9ecba5`
 explicitly fixed the same class of bug: an independently-derived ceiling
 fired before self-test had actually concluded. if `max_total` becomes
 liveness-aware (or unbounded), the fallback at `verify_inference_startup`
@@ -427,7 +427,7 @@ design decisions.
    fallback cannot remain a simple `self_test_budget + 120` wall-clock
    counter; it must either check the same liveness signal or derive from
    the same large absolute cap. this is the highest-risk touch point after
-   `poll_probe` itself because of the `5d32f8783` precedent.
+   `poll_probe` itself because of the `f9d9ecba5` precedent.
 
 4. `src/coding.self_test.handler.poll_switch:22-29,264-283` — the `testing`
    phase `max_wait` must be made liveness-aware (check the probe's
@@ -526,12 +526,12 @@ also out of scope, different systems entirely, don't conflate:
      probes in the new version, never for slow-but-live ones.
    - `verify_inference_startup`'s fallback-resume ceiling does not fire
      prematurely once `poll_probe`'s ceiling becomes liveness-aware --
-     this is the direct `5d32f8783`-class regression check.
+     this is the direct `f9d9ecba5`-class regression check.
 4. no live zenka restart at any point -- validation is standalone-script
    only, same rule as the parallelization task.
 
-#,,,.,,..,,..,,..,,,,,,.,,,.,,,.,,..,,...,..,,..,,...,...,,.,,.,,,..,,,.,,,.,,
-#GTSWT26KJKUG37WQCDUWRCX5AUJWQLZATGFYO35FXZEPU3TIEFP6LG6M7QQYTUZLNFPOHYYK5Q2UQ
-#\\\|4SW3XWXOEHX4MBJGJSHA57YASGMAJGEEYDAY35Q7IKEQITRIO6M \ / AMOS7 \ YOURUM ::
-#\[7]6574P7PWCW7RNF4EDL5FZLUKKTJCHFLMVO6JRODZ4Y75VFECR2DQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,.,.,.,.,...,,,.,,.,,...,,..,..,,...,..,,...,...,.,,,,.,,...,
+#F5OIZS2FAHZFKUKWPGSRESKDVIK4PRVIVYKWL2PER2RVAYCFA2WYDNE3SGQKWRIZDR2BXG7OKTEJY
+#\\\|BTPNRAVIXFDGYURSBVKGL4KCQJ4TG63MX2BANZAGN6DLZ7BDFOF \ / AMOS7 \ YOURUM ::
+#\[7]G6ZLUCBYSHTUOCVA4HGKQVCXLM7HSYLVD3I3EDUIPEOTMDYAKKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

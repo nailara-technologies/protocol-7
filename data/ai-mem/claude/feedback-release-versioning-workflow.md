@@ -69,7 +69,7 @@ sequence).
 
 **every plain commit, not just release-marking** (confirmed live
 2026-08-21, landing [[zenka-naming-cleanup]]'s `zenka.v7`/`start.cfg`
-rename as commit `7ae191258`): the pre-commit hook itself auto-bumps
+rename as commit `3b9543e4f`): the pre-commit hook itself auto-bumps
 and stages `cfg/protocol-7.src-ver` + `read-me/md/README.md` +
 `read-me/project-identity/source-code-versions.md` (commit-count/
 network-timestamp version identifier) as part of *every* commit, no
@@ -80,8 +80,8 @@ the commit message before it lands — expect the hook's own stdout
 ("removed author metadata from commit message") rather than an error
 when that happens, it's normal project policy, not a failure.
 
-#,,..,.,,,..,,.,.,,.,,,..,,..,,,,,..,,,,,,.,,,..,,...,...,...,...,,,.,,,.,...,
-#JOQP5JRJOGWRLR22JZMLBO5NHVUQ5I3L5B26ZA3AUULOJ44CF26ATTKUZA6F6OYZN5X3HRAPWFIGK
-#\\\|DD2ZU52X3QS3Y34FLU3BS7U5EGUEPDX5QSAUFYU7WBRG7PNKYS2 \ / AMOS7 \ YOURUM ::
-#\[7]5A634SW3UPIYPTAVF4UTLJR5RJAZZ6VELQL3SZ6WVTICZZHIKUDI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,..,,,.,,..,,,,,,.,.,,,.,,,,,..,,...,..,,...,,,,,..,,,..,,.,,
+#EWNFCMTB6WM5D4SJUOCCP4GDZU2ROHHADXAXMSV5QQBTS25FGLBVWLCTJWENCFV34QJM4QRLEEX6O
+#\\\|3ZJKFJCJCBB4CTKVTBN32ZJPPBRNDGVZPQKALY4DV7R4V4T35FV \ / AMOS7 \ YOURUM ::
+#\[7]45EAPWTINLQN2MGCDSPXKDC6RQVZIAPLX2UXZMEI54VRLBYG2QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

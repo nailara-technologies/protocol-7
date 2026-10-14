@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-Session 2026-09-16, commits `3a7d592d7`, `e095f27da`, `4092ea9a4`.
+Session 2026-09-16, commits `97742d99f`, `b768003bf`, `df3a87dd5`.
 Triggered by a real incident: probing `note_delete({})` (see
 [[feedback-tool-probe-empty-args-destructive-default]]) wiped all 38
 sections of the coding zenka's `unknown` note task tree, unrecoverable
@@ -55,7 +55,7 @@ it subtracted a raw ntime value (`created`, always ntime-sourced) from
 real unix time with zero unit conversion. **Do not re-derive a fix by
 hand** — `base.ntime.delta_seconds($start_ntime)` already exists and was
 established for this exact bug class in `coding.cmd.list-tasks`'s
-2026-08-19 fix (`dd162183b`); `base.parser.duration` now uses it. Also
+2026-08-19 fix (`5bf722767`); `base.parser.duration` now uses it. Also
 added an optional 3rd `$scale` param (`'unix'|'ntime'`) so a caller that
 already knows its input's scale doesn't have to rely on the ambiguous
 magnitude heuristic at all (a `0`/small ntime value is indistinguishable
@@ -114,8 +114,8 @@ what `ntime_convert` already covers transparently).
   session initially built a redundant ntime conversion before finding
   `base.ntime.delta_seconds` already existed for exactly that purpose).
 
-#,,,.,..,,,..,,..,,,,,.,,,,..,,.,,,,.,,,,,..,,..,,...,..,,.,,,.,.,,,,,.,,,,,.,
-#METAEPQ53XXE462DL6KSGEDHZREIQ4XTKNZS7XNIBJAJYT5UBUSYYWGVYVWDEHSIZKGLRO256676U
-#\\\|7YSP63MZ3CYES2EIANDDGJAHNMWXJPHZEORZONVVHII6URNKHDR \ / AMOS7 \ YOURUM ::
-#\[7]4DV4PLFBVWM2G4372TEKIH5LIC76GBJB2PU7MA2ITBRZXT6YECDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,.,.,.,,,..,,,,,,.,.,,,,,,,,,..,,...,...,,,.,.,,,,.,,,,,,,,,,
+#PQ4TFH7J3WYTW36EOHEOAJ6WD7FSIX4BQKKQBKGWZZL2C3I5XTIDFNMSA54GZT7ZR6EVD2YTCE5TC
+#\\\|EXWQPCU52SW5ZENB2UDUZ4QX62EYTR42BD2F2R33USQXMI6447H \ / AMOS7 \ YOURUM ::
+#\[7]Z3AKYBSQIVJIODJ2QXQFVKUFFDJ2A5A4PWFN5NDTQ4GOTRGA6YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

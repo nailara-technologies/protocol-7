@@ -1,8 +1,8 @@
 # osf-cache stage 4b : holders reached over external links
 
-follows stage 4 [ `1c15c65d9`, live : multi-source fetch from main +
+follows stage 4 [ `ee5d0ced0`, live : multi-source fetch from main +
 `osf-cache[peer]` into `osf-cache[peer2]` ] and the external links
-[ `c26bfb171` : `external.connect <name> <host[:port]>` opens an
+[ `1a0bd0346` : `external.connect <name> <host[:port]>` opens an
 encrypted named link, then `external.<name>.<zenka>.<command>` reaches
 that host's cube -- verified on localhost as `external.self.list
 sessions` ].
@@ -101,8 +101,8 @@ how link failures surface, what only a live run can confirm. write the
 report as soon as tests pass -- the last run hit its quota during
 cleanup.
 
-#,,..,,,,,,,,,,..,.,.,,..,,,.,,,.,..,,,..,,..,..,,...,...,.,.,.,.,..,,,.,,.,.,
-#2QYH53RB6ZNN3MCOCBVYRPED4ZBOBVHC6JHGEKV7DIZUC4HITADDOQ3CTNUJKGWBC2HLURQVW2H62
-#\\\|Y5NOS2N53RQ4CTXH5WTYPEKINTUITOQ4XS6VM5UNXQDU2H6NXQE \ / AMOS7 \ YOURUM ::
-#\[7]XRH3QLXMGOKJ77F5X7OOMPY3IOBHUMSSMQ2TEQZT73X3M74J44AQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,.,...,,,,,.,,,,..,,,.,.,.,...,..,,...,...,..,,,,,,..,,..,,,,,,
+#IXZ32LCGVHGJZU54ZC3BAKBJB5H5EJCLAGS7GDYMW3L5LPQYJISMQO3C3GC25POO6EKQTENNEKNAS
+#\\\|WV43SSDPBGKOOSQGJZHHC4AEG4ETKOD3VSRJRMOBLP6Z7XZG4PU \ / AMOS7 \ YOURUM ::
+#\[7]ZHCA2GBL7EZWO6IPOJI5DGT55HO6HHZOQ2R755MYDUZVC6SBW4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

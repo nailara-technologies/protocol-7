@@ -50,12 +50,12 @@ restart only, reattach by name + cmdline + start time
 
 **config keys** : `load_config_file` nests dotted names ->
 `<external.models.invokeai.path>`, never `$data{'models'}{'external....'}`
-[ models export \ resolve \ repair fixed d16c38e49 ].
+[ models export \ resolve \ repair fixed a55fb1a22 ].
 
 see [[feedback-init-code-runs-before-drop-privs]].
 
-#,,..,,,.,.,,,.,,,,..,.,,,...,.,.,,.,,,..,,,,,..,,...,...,..,,,..,,..,,,.,,,,,
-#Q2QO7ZQRSCSPXQFCIQ5PJLS7FVLDWWXQY6CBTURKT4AESGLH54EXPBH5XDSPRGX4HFHY6WHCZ2MK4
-#\\\|ZG7B7TWCQE6QODRQKP7QF3JP3A6NG2D4DKNF5FMXFHW7UJLITQL \ / AMOS7 \ YOURUM ::
-#\[7]D7IS3Q5ZHG6F4UDIE5EAH6I5AZNKFWCA3HOXXOBKPFTEF574BUAI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,.,,..,...,..,,,.,,..,,,..,,,.,..,,...,...,.,.,.,,,...,,..,.,,,
+#FVQ4N7XSS3646JGTPHBVYP3TFUBRTBVLF47KQ4JTNIPQ7VQNVWVVGWSNSWQCESU4L2HJYVY7ZW2BG
+#\\\|FTXEU5ZIR7QBW3IRAQKKG3PSFEHIVTR2GGOPBPZZV3VXQRBXG5D \ / AMOS7 \ YOURUM ::
+#\[7]65E35RV27HWPCSFYXMAIQYUKMN6CMWWZLBW26NHMD4LG4RLYK2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

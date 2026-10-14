@@ -96,18 +96,18 @@ after a normal respawn cycle.
 other module in this repo. Leave the working tree uncommitted --
 report back with what changed and how you verified it.
 
-## status [ 2026-09-17 ] — DONE, live-verified, committed `b73f67e83`
+## status [ 2026-09-17 ] — DONE, live-verified, committed `96b49c33c`
 
 kimi (k2.8) landed the single hook-point call exactly as specified.
 Live-verifying it same session surfaced a real access-control gap
 (`v7-zenki.gone_child` missing from `access.cmd.usr.coding` --
 `cube` was silently rejecting every call) -- fixed separately,
-committed `757477f66`, and confirmed end-to-end: killing a real cpu
+committed `69a78c9a1`, and confirmed end-to-end: killing a real cpu
 server pid now correctly de-registers it (`v7-zenki.instance_pids`
 no longer lists it), a fresh respawn correctly re-registers.
 
-#,,,,,,.,,..,,,,,,.,.,,.,,,,,,,,.,,,,,,.,,.,,,.,.,...,...,.,,,..,,.,,,.,,,,,.,
-#65BKHWJJNDYKWAZHURREXP4VBD4BELKBBPXSDBITETZLSWEUQ7AOQGKQ6OHPGXHXPFSSNYR7ZVLL6
-#\\\|7R62TFDELSGL2G7F5LCMPHII3RCULXJMJ7J3DK5WRLP7D2LD4LV \ / AMOS7 \ YOURUM ::
-#\[7]SE4T3VOMXOIEDNBRGY4D6CVUKVB2FLGANKU74CTL4GKTNNIXX2AY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,,,,..,,,,,...,..,,,.,,.,,,.,.,.,.,...,...,.,,,,..,,.,,,.,,.,,,
+#WRSHJUDSROVAKWDSZTAKRYZMOVAO3YN7U57QPHJZPUKYYF36IQ6BZ2FFWAGYAKZBDGSU6UPMPEDPO
+#\\\|PTXBLADVGP3OC2YNWODJUDVVLDLC6HJUF66ZC2ZRRCO2P4YRMQK \ / AMOS7 \ YOURUM ::
+#\[7]N64KCMU6VZZI4OV7HDQXVHRTV6GHI37JC2CU2DB6AW2HWCFD5MCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

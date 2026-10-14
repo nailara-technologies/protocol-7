@@ -40,13 +40,14 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
 
         ##  checking v7 registry for target zenka  ##
 
-        ## check if already online [ the target named by this buffer's     ##
-        ## log_cmd ] : the status request below is only fulfilled when the ##
-        ## target CHANGES its status -- a pause while it stays online [ a  ##
-        ## reload, a failed append ] never resumed [ 2026-09-30 ].  resume ##
-        ## through a one-shot timer, at most every 5s : an online target   ##
-        ## that keeps refusing appends must not become an idle loop [ cf.  ##
-        ## 494791f15 ]                                                     ##
+        ## check if already online                                         ##
+        ## [ the target named by this buffer's log_cmd ] : the status      ##
+        ## request below is only fulfilled when the target CHANGES its     ##
+        ## status -- a pause while it stays online                         ##
+        ## [ a reload, a failed append ] never resumed [ 2026-09-30 ].     ##
+        ## resume through a one-shot timer, at most every 5s : an online   ##
+        ## target that keeps refusing appends must not become an idle loop ##
+        ## [ cf. 5a16981ce ]                                               ##
         my $target_online = grep {
             my $inst = <v7-zenki.zenka.instance>->{$ARG} // {};
             ( $inst->{'zenka_name'} // '' ) eq $target_zenka
@@ -101,10 +102,10 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
         ## no session yet [ an early event loop turn before the cube       ##
         ## connection, e.g. crypt.C25519.gen_keys' harmonic key search ] : ##
         ## send nothing, stay paused and not asking -- the lines collect.  ##
-        ## no re-arm here [ no idle loop, see 494791f15 ] : the one-time   ##
+        ## no re-arm here [ no idle loop, see 5a16981ce ] : the one-time   ##
         ## callback registered by base.log.send-buffer.init re-arms it at  ##
         ## instance verification. replaces the <system.init_reports> queue ##
-        ## of eaab2467f : its single flush at verification ran before this ##
+        ## of aa2235630 : its single flush at verification ran before this ##
         ## callback in every zenka without such an early loop turn -- the  ##
         ## request was never sent and the buffer stayed paused for good    ##
         return FALSE if not <system.zenka.initialized>;
@@ -182,8 +183,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     }
 }
 
-#,,.,,,.,,.,,,,..,.,,,.,,,...,,,.,,,.,,,.,.,.,..,,...,...,...,,.,,...,...,...,
-#37RER7UXBYMZTBAMWPWBLWWVIJQQI7YZSEAIXQIEI2GXL24W52VB67THCSREQVX2FMC55GYD22PK2
-#\\\|L2BBWSYLZOI57NXHTUSHW2VGCVM6ZSROWSWWHJGCOSYXCT757ZW \ / AMOS7 \ YOURUM ::
-#\[7]AGCUYLHTQXKO7AJ7RM5IME4YXB363ASUCJIN7XELYN77PE2V2UBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,..,,,.,,..,,..,,.,,,.,.,.,.,.,.,..,,...,...,,..,..,,,..,,,.,,,.,
+#SVNE4EIIPSHIV4XD4JBGAFIAMEYCHNBW53CBWTU3UVXXUUYLTONCLUYKU2V4TKKPR2NYQLRKQVDCK
+#\\\|43CWKM64EWU4637MEGTJH6CSACCF4YDTFCYNREMHIGT2YEJWN2V \ / AMOS7 \ YOURUM ::
+#\[7]2INJSZW4FFD6QRHYQC7OF6HSQNQGQLRLQ3E6OXENWKBVK2MSISAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

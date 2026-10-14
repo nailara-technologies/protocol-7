@@ -4,13 +4,13 @@
 
 Session history, in order:
 1. Headless-mode fast-swap + paged multi-position capture built (this session).
-   Landed, commit `22d380fb2`.
+   Landed, commit `d64109fd1`.
 2. **Incident 1**: running the real corpus, a stale `swap_views` draw-signal
    connection (headless mode never disconnected it) drove a runaway
    `clear_bg_view` reload loop -- WebKitWebProcess hit 59% system RAM, OS
    watchdog killed it. Root-caused, fixed
    (`web-browser.util.disconnect_swap_views_signal`), independently verified
-   stable across 4 full passes. Landed, commit `ad5670f98`. See
+   stable across 4 full passes. Landed, commit `12da911ca`. See
    `data/ai-mem/claude/bug-web-browser-stale-gtk-signal-headless-memory-leak.md`.
 3. **Incident 2**: resuming the batch after fixing (1), a stale in-flight
    WebKit async snapshot completion from a stopped run fired against
@@ -264,8 +264,8 @@ still-unapplied `cfg.capture_page_timeout` override). Next: restart, apply
 zoom/headless/timeout overrides fresh, then resume/retry from the point
 this batch reached plus a retry list built from `.timeouts.tsv`.
 
-#,,..,,..,,,.,.,.,,..,,..,,.,,,.,,...,,.,,,.,,..,,...,..,,.,,,...,,,.,..,,..,,
-#CBLMPH3Z5YXR2QXTOJVV24AKDWF5KUXVPQTEM5MELOJY6QF5Q3NCDFGNX3DWMWXLNR3HGRLI2HKGM
-#\\\|XDUYOXASTZYETGKGCFDVOZMF3YSA7W3HQG7TLYJZJEUBP2CH2RS \ / AMOS7 \ YOURUM ::
-#\[7]5TJF3BPHARXBLSAK5O6V5M5MG6GR72URCGOLVWST5XPXYBSHBYDY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,.,.,.,,,...,.,,,,..,,..,,,,,..,,...,...,...,..,,..,,,..,.,,,
+#WPSQ5VSYJBBYOF3PKMOOYLXW7GZU4SBDBV54GRAUYIE6EYCMUJTVS2Z32UCBBPGKDAPMH3DM33QUK
+#\\\|4FPJJUJNX4WSD4VIQBOOHCTQ2VNVERYPEYC6NZ2Y2FT2NFMFQAX \ / AMOS7 \ YOURUM ::
+#\[7]EID3MOOK2IZQJTQCLLAK62SQG4H6KMB323GKL6FHIFVSNEQAACBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

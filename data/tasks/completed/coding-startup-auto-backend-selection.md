@@ -178,7 +178,7 @@ current async startup-spawn path only ever spawns the GPU inference
 server; CPU-only spawning is an explicit unimplemented placeholder" --
 that premise is now WRONG, `coding.async_spawn_inference_servers` has
 had a full symmetric CPU spawn block since the CPU-spawn-crash-loop fix
-(`24f45740f`). that file's hybrid/partial-GPU-offload (`-ngl`) content
+(`8ef69a4b2`). that file's hybrid/partial-GPU-offload (`-ngl`) content
 is unrelated and still current -- only its opening framing is stale.
 worth a small correction pass on that file separately, not part of
 this task.
@@ -188,8 +188,8 @@ on a machine with both a working GPU and enough CPU RAM, which is the
 only environment this has been used in so far; this matters once a
 CPU-only or resource-constrained deployment is actually being set up.
 
-#,,,.,...,,.,,.,.,,,,,,..,.,.,..,,.,,,,..,,..,..,,...,...,...,.,,,,..,,.,,.,.,
-#FSN36RZEE4MQGGHABD4NANNY4JDYOLDDY5FP54WHZ7WSRSQSSSITJ5KHZ5A2762GVDQGSIU76TPYA
-#\\\|NQY4CINSTZDJBCJQ32ZBCCXGVHZW5HOUA2AL6AMD27L62HGLZ7X \ / AMOS7 \ YOURUM ::
-#\[7]42D6A34WPSZUTBIYT7E73P4G4RS265R667NG6RKAGIMGIGPDFSBY 7  DATA SIGNATURE ::
+#,,..,...,,..,,..,.,.,.,.,,..,,,.,,..,,,,,.,,,..,,...,...,.,,,,,.,,,,,.,,,..,,
+#YVXLPR35JWFBR6YMCLUG4RA3RVH7BEHC2XBQOTBRGG23GXPTSKJUDW3ELEG4L642FQXR27VQEBPHO
+#\\\|MJ36T3WQT56UK2PUKEW74LX65OP2BVWIGQQOMLSWNDS5YYVQT5K \ / AMOS7 \ YOURUM ::
+#\[7]42P6ODI765ZUZ5LMF56KZUCPDTIEHEEKUEAPVWO5BK3F6FMHSQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -412,7 +412,7 @@ longer throws `undefined value as subroutine reference`.
 ### RESOLVED 2026-09-05 — root causes of both remaining symptoms identified
 
 **symptom 1 (transport's subscription vanishing) : ALREADY FIXED before this
-pass.** Commit `5a12f1ca0` (naming `.cmd.` fix) + the `proxy.init_code`
+pass.** Commit `1b80a5b9f` (naming `.cmd.` fix) + the `proxy.init_code`
 zenka-guard fix closed it. Verified live: `rotation_subscribers->{'*'} =
 ['proxy','transport']`, and a fresh `cred-mesh.rotate` now produces BOTH
 `proxy.handler.cred_rotated: flushed ...` and
@@ -422,7 +422,7 @@ entry is gone (it was the leaked-timer firing proxy's deferred handler
 inside cred-mesh's process — fixed by the guard, confirmed). The task-file
 premise that this was still open was stale.
 
-**symptom 2 (base32.decode undef in transport) : FIXED by commit `a6d5de568`**
+**symptom 2 (base32.decode undef in transport) : FIXED by commit `fb1aae873`**
 ("fix redundant base. prefix on base32 calls (bug 5)"), which landed
 2026-07-18 but was not reflected in the task premise. Root cause: `base.
 base32.pre_init` renames the whole `base.base32.*` namespace to bare
@@ -478,7 +478,7 @@ is 22/23 with scenario 4 fully green (only the out-of-scope scenario-5
 `relay pending file` assertion remains, tracked separately).
 
 **symptom 2 (base32.decode undef in transport) — root cause confirmed and
-already fixed by commit `a6d5de568`.** `base.base32.pre_init` renames the
+already fixed by commit `fb1aae873`.** `base.base32.pre_init` renames the
 `base.base32.*` namespace to bare `base32.*` at runtime via
 `base.swap_subs`, so the pre-swap call `<[base.base32.decode]>` resolved
 to undef in EVERY zenka post-swap; proxy only appeared immune because its
@@ -530,8 +530,8 @@ latent, still untouched by design).
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,.,,..,,...,.,,,.,.,.,,,,..,,..,,.,,.,.,..,,..,,...,...,.,.,,,,,,,.,,,.,.,,,
-#RF4MP2MDMN2D5JEZDZF2A7WEVOE4EFHEMEPZNHRZDP2CBBPYMVUJA4NCD2P3JYKPJJLWZ4EJO5IOK
-#\\\|KSVWMUNIP3CIWRKHIOYMS5TBA5UDEDGKE6XLT6TGWUQQGQKTGVG \ / AMOS7 \ YOURUM ::
-#\[7]M3GG75SBFDGN7BQELWNVPHUMUARU7PC2VBLKUSL4KH2DFODDQYAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,,..,..,,,,.,,..,,..,..,,,..,..,,...,...,..,,.,,,..,,,,.,,,,,
+#S6ZFKHJWE3LA2DQMMM26FLG4MAOHQI6MTJRIW5MXSBV6TU7TU2PCFJF45NBDQQW32RHMJJGV6EJMM
+#\\\|MP66NCEWZGTAYEG52VZ3MEJITZDCEST3BXCIXIHREROLA3KUXHS \ / AMOS7 \ YOURUM ::
+#\[7]2WRWWN2ANAXI64E4MUKTHQ66KDWMIGKCVS3OZVUZR2ZLY7JYCQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

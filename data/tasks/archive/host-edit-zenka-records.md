@@ -1,6 +1,6 @@
 # host-edit zenka : records + form [ lane B1 ]
 
-**base : b282f8fce** [ form.* engine extracted ]. no zenka restart ; a
+**base : e6877c0f8** [ form.* engine extracted ]. no zenka restart ; a
 console zenka runs as a fresh process per invocation.
 
 ## read first
@@ -78,8 +78,8 @@ console zenka runs as a fresh process per invocation.
   lane hit the 100 step limit ]
 - do NOT commit ; write `data/tasks/host-edit-zenka-records.report.md`
 
-#,,,.,,,,,.,.,..,,,.,,,,.,,,,,...,,..,,,.,,..,..,,...,...,,.,,,..,,.,,,,,,,.,,
-#5VR2FWVUNUE2654FST3MRWYHVYJKQ6IBHWEM2YTZZPZS2FQFPCQ5Q2NR2G4IBSCHBGKIFARVKZKAQ
-#\\\|Q54DFNTRZCGVINWJ7XD43I332RMPEHDADA6WGNUPZD5Q5PFWZKX \ / AMOS7 \ YOURUM ::
-#\[7]PLZGTAC5ALBBLTRCRORMF43ECWOWBXKEEEZYFT5IYZQE374IPACY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,...,.,,,,,,,,..,,.,,,,,,.,.,..,,...,...,.,.,.,,,,..,..,,,,,,
+#DG76TXVZA42FEH67PODZ2S3YNXFLNGXR7GLHWYRW32RI5OGHML3IK5X3UWPDFLH27ZIVKLOSOD4Z6
+#\\\|MELTQED4YM6ARTZICUQJ4ODMUAIDMQWVVR52FZ6P2OMKQN4GXTV \ / AMOS7 \ YOURUM ::
+#\[7]EEUIYPKZ26RJE4BUUWSHYQZIURC3F4RXVHMRM6MLIOSI5ENMOADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

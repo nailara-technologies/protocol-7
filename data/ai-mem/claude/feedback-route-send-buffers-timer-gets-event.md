@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-two async gotchas found reviewing kimi's letsencr enrollment, 2026-10-09 [ 4a3e42c0b ] :
+two async gotchas found reviewing kimi's letsencr enrollment, 2026-10-09 [ 8a53d61a7 ] :
 
 1. `<[protocol-7.route-send]>` -> base.protocol-7.command.send.local only APPENDS to
    `$data{'session'}{$sid}{'buffer'}{'output'}` ; the event loop flushes it later. a command
@@ -24,18 +24,18 @@ two async gotchas found reviewing kimi's letsencr enrollment, 2026-10-09 [ 4a3e4
    stub had delivered the wrong shape too ]. make stubs deliver the real shape.
 4. `event.add_timer` knows `after` \ `at` [ + `interval` ] only -- an unknown `delay` is
    ignored and the timer fires AT ONCE [ four letsencr parent retry \ rate-limit timers did
-   that : "retry in 1800 s" ran within seconds, fixed 4f4d1cbda ].
+   that : "retry in 1800 s" ran within seconds, fixed 42f5402a5 ].
 
 also : base.event.* is swapped to event.* at pre_init -- call `<[event.add_timer]>`, never
-`<[base.event.add_timer]>` [ host-edit.flow.schedule died on it, 998f9175a ].
+`<[base.event.add_timer]>` [ host-edit.flow.schedule died on it, e8426915d ].
 
 **Why:** stub-based tests hide all three -- stubs act instantly and get plain hashes.
 **How to apply:** when reviewing \ writing async zenka code, check every route-send whose
 result is used in the same call, every timer handler's first arg, and that tests deliver
 replies explicitly and pass Event-shaped objects [ see test-letsencr-enroll.pl ].
 
-#,,,,,.,,,,..,...,,,.,..,,,..,.,.,...,..,,,.,,..,,...,...,...,,,,,,,,,.,,,.,,,
-#7CDLTVOAOL6RQRGYYNX3J523QRLI53DVYBCFXVOZN3BNFWK2KHHGOQ2L7XYKK5F3MJCEKLAHUAIMS
-#\\\|4BVG5RIC7DCDNUOGULNKOGUYFCYN6JEEY24LAWI22OZ2AVWVDGX \ / AMOS7 \ YOURUM ::
-#\[7]GTAGC3DTXXMPHFMLUQDYJHT5QXMZRYKF7BNIQY3XHSD57TM2KUBA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,,..,,.,,,,,,,,,,,,.,,,,,,..,..,,...,...,.,.,..,,..,,..,,..,,
+#JSLTSDIXP4QCNXYR3WN3XISSDSHJ47KZGSQLG7IJISVPA6Y4JE53DWSCV2CXP2I5GE3BQZIZUAPKO
+#\\\|6OGSFACKI7EIPOJRLOJFT7YHIXZR4LZWA5UKXWLIAVQ4FFJGUEW \ / AMOS7 \ YOURUM ::
+#\[7]ZS5XEPTLDZ5KF2LX5FCLWP6MVAF7CD7DEHKDYAYIBPVBARBC7QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-2026-10-06, release AMOS7-v6.13.5 [ `1282c3cd6` ] : `bin/dev/release-version
+2026-10-06, release AMOS7-v6.13.5 [ `d13c8426b` ] : `bin/dev/release-version
 -s` tagged **AMOS7-v6.13.8** -- it calculated a fresh version [ the
 calculation has a time component ; source version and rel-ver were both
 unchanged ] instead of using the committed `cfg/protocol-7.rel-ver`. the
@@ -26,8 +26,8 @@ committed file : `bin/dev/release-version -s $(head -1 cfg/protocol-7.rel-ver)`
 [[feedback-never-feed-command-substitution-into-destructive-cmds]] -- then
 check `git tag --points-at HEAD` before pushing tags.
 
-#,,,.,.,,,..,,,.,,..,,...,,..,,,,,,.,,,,,,,,,,..,,...,...,...,.,,,,.,,...,.,.,
-#WM2T7XWW7UL6636GU4EP3XILHLXS2Q2D3RN4JYTMXFGKYMMHJQYQBCZTKRA4UYG2ISQ4YNBMX5ARG
-#\\\|32IQ2OMAVXAORQ3NHVRUOWO5VZAYUSRZVJFVNC6WHKEMRXYCRPE \ / AMOS7 \ YOURUM ::
-#\[7]JIXE2SD2RAZGHG7DZVAK7ATGCC3PV4BKOTGC6ZXQANWW5HK5EQAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,..,..,,,..,.,,,,..,.,,,.,.,.,.,..,,...,...,,.,,...,,,,,...,.,,,
+#PIHICYGNSPG6R4OGG6S42T3RNSP44YFTMTNXVRWHXXUHX66ENHYLWIHVLSWI5Q7FPYVCOAWNRR6Y2
+#\\\|ME7OD7ZTFBY6JNGC3TX6CXDDBZZNLYUSAHCYCWXMSVMUDYVIOC3 \ / AMOS7 \ YOURUM ::
+#\[7]LNW2ZIKNRI3H3PSGXPG3SWKTLRZIMDMP2CRUYKHO4B5OEEFY3WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

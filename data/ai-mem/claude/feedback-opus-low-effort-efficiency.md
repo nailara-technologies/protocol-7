@@ -9,11 +9,11 @@ metadata:
 low effort. User's assessment : more efficient than prior Sonnet sessions on
 medium or high -- far fewer research rounds and corrections, gets things
 right first time. The web session did the whole token-based backend lock
-[ 21 modules, caller enumeration, offline sim, 45995da5b ] for 6 of 100
+[ 21 modules, caller enumeration, offline sim, fd6c09f30 ] for 6 of 100
 promo credits and passed all five live checks first try.
 
 **Why:** the costly failure mode in this project is the plausible-but-wrong
-fix that must be reverted [ d3c07acee ], not shallow per-step reasoning.
+fix that must be reverted [ c93bb499d ], not shallow per-step reasoning.
 
 **How to apply:**
 - low effort is the default ; it works because of fast feedback [ live
@@ -27,8 +27,8 @@ fix that must be reverted [ d3c07acee ], not shallow per-step reasoning.
   mechanical well-specified work, local session for live-zenka verification
   [[feedback-token-budget-pacing-early-week]]
 
-#,,,,,...,,..,,..,...,,,.,,..,,,.,,..,.,,,,,,,..,,...,.,.,.,,,,.,,...,,..,,..,
-#WBBXC4DPTBLI4IZ462X3W7DMOTUZAPFVJL6RYLO53FJ2MXIAVV57AGXADAHV4YVRK65EFFNANOC4E
-#\\\|AOGTADMXGFR54CC3CY3VU2GNFQXNEWB5SHTH2EHNTAYHGGLSU7A \ / AMOS7 \ YOURUM ::
-#\[7]KNGKUK4PULYSYFAW4K272L7ATKAF44N7KUN2NLP2ZJNP6LJWA4AY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,,..,,,.,.,,,,..,,.,,...,,.,,..,,...,...,.,.,,..,,,.,,,,,.,.,
+#64RYVCB4XI6UNAV6G4OTQEIBHYQKCJJQ3ORBTR3SM4JCDLFUUXXMK7ETGQPZCWBJWXGH2TPUKMSIK
+#\\\|NITBFJADRM22L5BN2CAD3S4UYAWEJEAQU65XENI3TGJHF4GO6F5 \ / AMOS7 \ YOURUM ::
+#\[7]EFYKQDMOVR6UZ7MPULHFMCWK6TOYRC64INX5YH42SSOYGRTENOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

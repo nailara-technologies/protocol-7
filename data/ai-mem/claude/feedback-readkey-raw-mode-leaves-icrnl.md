@@ -10,7 +10,7 @@ system : the tty driver still turns every "\r" into "\n", so a Windows
 Terminal paste [ crlf line endings ] reaches the program as "\n\n" -- one
 empty line after every pasted line. no terminal setting fixes it, it is
 the program's tty mode. confirmed and fixed 2026-10-12 in
-AMOS7::TERM::Editor [ commit efaf3f29b ] : `_disable_icrnl` [ core
+AMOS7::TERM::Editor [ commit bdd1b718c ] : `_disable_icrnl` [ core
 POSIX::Termios ] right after ReadMode(4), ReadMode(0) restores on exit ;
 plus bracketed paste [ "\e[?2004h", block insert, line endings
 normalised ] and "\r\n" as one enter without it. the user confirmed the
@@ -25,8 +25,8 @@ and "\n" each as enter ] alone would not have explained it.
 when pasted text shows doubled line breaks, check the tty flags first
 [ `stty -a` inside the program's mode ], not the terminal settings.
 
-#,,,,,,,,,,,,,.,,,,.,,,,,,.,.,...,.,,,,,,,.,,,..,,...,...,..,,,,.,...,...,,.,,
-#DYGLQQLU4LFEAQFZKZSFAIQKWIIIUYGJY6TRGA6Y2EEPLE4VJHW7K476THJZAS77TTMTTIIB7II44
-#\\\|3IRS6D6AX54Q7W6P4DPL56UI2KSNABUAQURXGOR3YFV5UJUPZK7 \ / AMOS7 \ YOURUM ::
-#\[7]BDAA26KPCYJE5H64YYECDBVUVHMRESQMMJESTOOXQDYTJTDZJUDI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,...,.,.,,.,,...,,,.,...,,.,,,,,,..,,...,...,.,.,...,,,.,,.,,...,
+#RIHYENGUKORVZLDRNODLNBVR6Y4SIO552EWGKNH3NCNDWTXKFHKPHQ47Z2OB2AFFJXOU4YZYL4F6S
+#\\\|6LCWD4672EZUFDQNMQSAG5KS6T3SITPXQC4GPWQWKFTEKXLWAPI \ / AMOS7 \ YOURUM ::
+#\[7]VPM4QND5VUYVM4DB7KTXZYPBLNHHQK34DKAMTOH5P6SGHDWOEEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

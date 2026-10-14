@@ -8,7 +8,7 @@ use warnings;
 ## bytes pragma transitively. mirror that here, as the precedent tests do. ##
 use bytes;
 
-## host-root key creation [ 25a60f33b, 2026-10-05 ] : compiles the REAL    ##
+## host-root key creation [ 59d353676, 2026-10-05 ] : compiles the REAL    ##
 ## crypt.C25519.gen_keys with the real base.prng.* modules it needs [      ##
 ## reseed \ entropy_pool \ add_entropy \ bytes ] and checks the fresh      ##
 ## random path, the deterministic passphrase path and the error branches.  ##
@@ -364,8 +364,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,...,..,,.,,,,,.,..,,.,.,...,,.,,,..,.,,,..,,...,...,...,,,,,,.,,.,.,..,,
-#SZHY2TSYKLH657KINDTTECQDCHHWB5JUI3NUHBWZRNYMRUSOE3WHGOGDYFO7KZATTCFWU7QEDJWZA
-#\\\|TFVMAQBWNB6VXUM7LNCG3N2VNU4MJ23SC3QA4KSSTILHEK7YB65 \ / AMOS7 \ YOURUM ::
-#\[7]6RDXH2QGR3SHHYAQIOUYFVQ3KNPDAQ434GW46KRUZH72HDIKG4AI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,.,,...,,..,...,.,,,.,.,.,.,,,,,..,,...,...,.,,,,..,.,,,...,,.,,
+#O5ITBYUKPEVUPXX5RGWDTUKIEZHFDCONWLLPH6VGJQH2M4YXP5DGMH3TA6JW72JDDYOXMVTYMLZJE
+#\\\|TM5QOPBA5FNHDUB3ZK3YC3FWGLDOHFIOTVY7ONI4LL7Z4TZ2UQI \ / AMOS7 \ YOURUM ::
+#\[7]HVPQVVXPCEOUT77ZSFUXMNQC2JYQTB2KUHOWZNNN5IKZPPJQWADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

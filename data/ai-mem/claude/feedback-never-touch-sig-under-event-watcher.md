@@ -7,16 +7,16 @@ metadata:
 
 never write `$SIG{SIGNAL}` [ set, `local`, or save\restore ] in code that runs inside a zenka with an Event signal watcher. under Event, `$SIG{CHLD}` reads undef, so `$SIG{CHLD} = $orig` installs SIG_DFL beneath the watcher. Event only calls sigaction when its per-signal count goes 0 -> 1, so while a second watcher on the same number exists, `event.add_signal` cannot repair it.
 
-2026-10-07 : `v7-zenki.compile_bin_p7c\_p7r` [ IGNORE during gcc, then restore ] + `base.init_zenka.install_signal_handlers` also registering the `CLD` alias from `keys %SIG` => v7-zenki never saw SIGCHLD again after any compile [ at start or on reload ]. symptom : `<KILL>ed children` on every idle stop [ a zombie, so kill 9 "succeeds" ] then `liveness : ... gone without a processed SIGCHLD`. fixed `07e19f5a2` : gcc pid -> `<v7-zenki.sig_chld.ignore_child_pid>`, one watcher per signal number.
+2026-10-07 : `v7-zenki.compile_bin_p7c\_p7r` [ IGNORE during gcc, then restore ] + `base.init_zenka.install_signal_handlers` also registering the `CLD` alias from `keys %SIG` => v7-zenki never saw SIGCHLD again after any compile [ at start or on reload ]. symptom : `<KILL>ed children` on every idle stop [ a zombie, so kill 9 "succeeds" ] then `liveness : ... gone without a processed SIGCHLD`. fixed `158f47c30` : gcc pid -> `<v7-zenki.sig_chld.ignore_child_pid>`, one watcher per signal number.
 
 **Why:** the loss is silent. stops still completed through the cube shutdown status, so it only surfaced once the liveness sweep logged at level 0.
 
 **How to apply:** to skip one child's SIGCHLD in v7-zenki, register it in `ignore_child_pid`. quick live check : `/proc/<pid>/status` SigCgt, bit 16 [ signal 17 ] must be 1. related : [[never-feed-command-substitution-into-destructive-cmds]] [ its "dead pids listed online" hypotheses -- this was likely one ]
 
-regression test : `bin/test-scripts/test-signal-handler-aliases.pl` [ 7d6515542 ; fails 6 checks against the pre-fix module, `P7_TEST_SIG_SRC=<file>` to point it elsewhere ]. live-verified the fix on all three stop paths : clean stop [ <TERM>, nothing after ], blocked zenka [ mod-test + `devmod.cmd.sleep` via `v7-zenki.devmod-enable` -> <KILL> then a real `signal 9` exit, no liveness line ], heartbeat timeout -> error -> KILL -> restart [ < name > label, real status ]. symptom fingerprint of the bug : `<KILL>ed children` on every stop + liveness line 2-7 s later + `exit code -001`.
+regression test : `bin/test-scripts/test-signal-handler-aliases.pl` [ d6cce9d0f ; fails 6 checks against the pre-fix module, `P7_TEST_SIG_SRC=<file>` to point it elsewhere ]. live-verified the fix on all three stop paths : clean stop [ <TERM>, nothing after ], blocked zenka [ mod-test + `devmod.cmd.sleep` via `v7-zenki.devmod-enable` -> <KILL> then a real `signal 9` exit, no liveness line ], heartbeat timeout -> error -> KILL -> restart [ < name > label, real status ]. symptom fingerprint of the bug : `<KILL>ed children` on every stop + liveness line 2-7 s later + `exit code -001`.
 
-#,,,.,...,,..,,..,.,.,,,.,..,,,.,,...,.,,,,.,,..,,...,...,.,.,,..,,,,,.,,,,,.,
-#2NGEBCE6VD2BUOBVQVU4K4GD5Q6TLO4LC5GGGSGYKL3PYBIZC6QSBFN3JBHNVD3H3OG5HYHVDNTIA
-#\\\|KOQ3FTIWW2W2WMTKMFJ2TZP3TWRARV3HGUWZNRYSQCE4XQ725SO \ / AMOS7 \ YOURUM ::
-#\[7]FB52VSINVZQGJY7XCR3HIXGULP74JSO5ROFACKJHZUCTBAKKDACA 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,.,...,,,.,,..,,,,,.,,,,,.,,..,..,,...,...,..,,..,,...,,,,,,.,,
+#KGT67SB2NYWQBAEYRPJU3E5BR7CM6HBQU7MZ56JEZ6JKHMOQUJFDIZ7SEPBXV5TG732CBQMBSE6F4
+#\\\|FAGXRYBEEUA6WOBDAVNDOI6FTLVUAMOENJQJKDG5ETYCG33FULD \ / AMOS7 \ YOURUM ::
+#\[7]HPB3CAJEUF4YLQZY75HQEAYT5BHAW2LOXLYDYSIKSQGNCWXWGSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

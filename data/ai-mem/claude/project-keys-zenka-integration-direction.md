@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-**Landed, 2026-08-23, commit `f14c524d4`**: this file's own "Idea, per user
+**Landed, 2026-08-23, commit `fa003e5a6`**: this file's own "Idea, per user
 2026-08-14" section below — moving TOFU host pins out of the regular `keys`
 directory into a parallel directory — is now built. Settled shape:
 `.n/remote-keys/known/<host>_<port>.public`, a third sibling next to the
@@ -287,8 +287,8 @@ both up and down, not just a single strict parent-chain per key the way
 `key_signed_by`'s current attached-signature-file scan implicitly assumes.
 Still exploratory — no file format/syntax decided yet as of this message.
 
-#,,,.,.,.,.,,,,,,,,.,,.,,,,,,,..,,.,.,.,,,.,.,..,,...,..,,...,,..,,,,,,,.,,.,,
-#YM52L6HZLDNPO24DX2ELUYHNRHBLHWWPTAK2G7NA3B3QNPFOYBBS3ZKHOYX7PE2VEGZWMMTY7DVOO
-#\\\|2EOGDOA6JVVN7MPWXSKRHZVRDZYWQBDVQW6ZUV6X2XOUTMBT5KM \ / AMOS7 \ YOURUM ::
-#\[7]BMFR7ARWTFJUEGC5WVIZWNRSIJYTDRO3ONNYIOKGVNZH7BUUX4CA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,,..,.,.,.,,,,,,,,,,,.,.,..,,..,,...,...,.,,,..,,,.,,.,,,,..,
+#UIPBWKOP6LR5KJLCAHZUPMZQ3PRJMHGBSUHKCNGWNCWL4IUKCDOCI32KEJVUS7R3VTG52DML2ZIAY
+#\\\|P62W55BBE6DJ2F4V2QAAGRG2SA6MC57SONLMNMOOMI72GFQG5DU \ / AMOS7 \ YOURUM ::
+#\[7]5NO3UX7LVVRJATU3XH7GYBW6Z5B57X3I5BTRYLSXA2EJNRIEXYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: cpanm-triggered-inline-elf-utf8-boundary-bug
-description: "FULLY CLOSED 2026-08-26, committed 0875c8668 + 94aa460a7: sudo cpanm --force forced a perl 5.40.1->5.42.3 version churn that surfaced two real 2021-era C-source bugs in AMOS7::CHKSUM::ELF::inline_elf (stale-len STRLEN underflow, forced u8_len=1 misalignment) AND, once the resulting keys.backup.* infrastructure enabled a real end-to-end test, a THIRD independent 2021-era bug in crypt.C25519.load_keypair (read wrong key file, unconditional prefix-strip) that was the actual root cause of .secret-bearing keys failing to re-encrypt; all three fixed and empirically verified against a real key, all changes committed and signed"
+description: "FULLY CLOSED 2026-08-26, committed e44f729b4 + 8c86e8764: sudo cpanm --force forced a perl 5.40.1->5.42.3 version churn that surfaced two real 2021-era C-source bugs in AMOS7::CHKSUM::ELF::inline_elf (stale-len STRLEN underflow, forced u8_len=1 misalignment) AND, once the resulting keys.backup.* infrastructure enabled a real end-to-end test, a THIRD independent 2021-era bug in crypt.C25519.load_keypair (read wrong key file, unconditional prefix-strip) that was the actual root cause of .secret-bearing keys failing to re-encrypt; all three fixed and empirically verified against a real key, all changes committed and signed"
 metadata:
   type: feedback
 ---
@@ -299,11 +299,11 @@ touched deliberately; user restored it with `git restore`. Worth a
 signing-tool file-type-filter fix someday (exclude binaries), but not
 chased further this session.
 
-**Committed and landed on `base`**: `0875c8668` (60 files — the actual
+**Committed and landed on `base`**: `e44f729b4` (60 files — the actual
 fix: `inline_elf`, `crypt.C25519.load_keypair`, all six `keys.backup.*`
 modules, three new `keys.console.*` commands, the three fixed existing
 `keys.console.*` commands, `sourcecode.console.verify-p7-signatures`,
-task docs, memory) then `94aa460a7` (2202 files — the pure signature-
+task docs, memory) then `8c86e8764` (2202 files — the pure signature-
 only re-sign under the corrected algorithm, split from the real fix via
 `bin/admin/vc-changed-files -sig-only` so the meaningful diff isn't
 buried in mechanical churn; includes one incidental real change, an
@@ -327,8 +327,8 @@ since `Inline->bind` validates it exists rather than creating it. Full
 recipe in [[torch-worker-zenka-foundation]], which needs this pattern
 for its planned `torch.init_code` module.
 
-#,,,,,,,.,..,,...,...,,.,,.,,,,,,,,.,,,.,,,.,,.,.,...,..,,...,..,,,..,..,,.,,,
-#C7RCVRHNXJEX2AVUII7OE6MY5TUEBKXNZEDBNGCLCTVDODDYZOTOHDUESWHPL47JTFPGJXYWPU7OY
-#\\\|WICEEEQWBUWRBMTXDE5BJQOWR6GVEHSBGPSPS7NDHB5G4DUM3FS \ / AMOS7 \ YOURUM ::
-#\[7]6TG7P562F2YZ6IR6GVBDMOFXYS3YJCJ4ZGKO2W3Z44MSNEQOUIDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,..,,...,.,.,,,.,,,.,,..,..,,.,.,...,...,...,..,,,,,,...,..,,
+#WE6RJAT235LGOZDS5AKJYU2VSRKCEEPTT37AQEOHSLFS6NC23ASCKEGM3POTTQHXOI2YINCIFD5AQ
+#\\\|Q5ZNK3Z6YA6YH3X5IOCS3CZEU63SE75BE5I7TKM22CLCV3SGO5Y \ / AMOS7 \ YOURUM ::
+#\[7]3R36QQVHNR4PMJV2HTE5BDVDMD2RNSRYN77L3QSYQ6M52EYHVMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

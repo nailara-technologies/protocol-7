@@ -19,7 +19,7 @@ having the gaps closed".
   possession, the DH is ephemeral-only -> an active MITM relays the
   announcement [ p-7-r's TOFU pin passes ] and runs separate DH with both
   sides. TOFU of an unproven key protects nothing -- p-7-r today, and
-  `external.link.open` [ c26bfb171 ] which has no server check at all
+  `external.link.open` [ 1a0bd0346 ] which has no server check at all
 - trust and permission are fused today : `authorized/cube/<label>.public`
   both authenticates AND names the access-grant label
 
@@ -290,7 +290,7 @@ having the gaps closed".
   peers ]
 - related memory : topic-observer-centric-space [ buffer swapping
   navigation ], topic-latency-algorithmic-authority-entropy-toll
-- MISMATCH to resolve : osf-cache stage 4 [ 1c15c65d9 ] fixed the merkle
+- MISMATCH to resolve : osf-cache stage 4 [ ee5d0ced0 ] fixed the merkle
   leaf at 65536 bytes [ a protocol constant, part of tree identity ] ;
   the data-zenka design says 63K blocks = packets -> if osf-cache segments
   are those blocks, the leaf must be 63K. cheap now [ only local test
@@ -511,8 +511,8 @@ related : [[project-cross-host-trust-bootstrap-gap]],
 [[project-keys-zenka-integration-direction]],
 [[users-zenka-unblocks-cross-host-testing]]
 
-#,,.,,,.,,.,,,,..,...,,..,.,,,,,.,...,.,.,,,.,..,,...,...,..,,.,.,.,.,,,,,.,,,
-#7XH7UXNXK2YCX4ESYAQYFOIGWJPGFBQISA2NBAT5FM7ANXZ6JTFUDKWIK7KPFBKGIQ225BOCCZOE6
-#\\\|Q6QGCZXH3UZZV7BNRV4DZZMWPKAM3NRGRZ7ZHP3TPXY6TRAKREX \ / AMOS7 \ YOURUM ::
-#\[7]LLDKOFUTTIGNLTKRYVXBFQIP4K5CDFTXZSZFOF4C3W2CLDVLCOCY 7  DATA SIGNATURE ::
+#,,..,,..,..,,..,,.,.,..,,,..,.,.,,..,...,...,..,,...,...,...,,,.,.,.,,,.,.,,,
+#V4VYK2VY5PJE5OP2I5UOZINTA3L2M5PUZ6M7QG6VT5Z24M6APD24VJOJH3W6HR5LTXXX77ADTIORK
+#\\\|UY6RGRCBQVA3UWFVJXIEVYMCDQN5MTTI2FODKTMLRADLSKLJEJ7 \ / AMOS7 \ YOURUM ::
+#\[7]ATRVM5YMMCZJCODRDCHGCR2ZGEI5RZ4ZL46A4SPQ7ZXU5QU3BMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

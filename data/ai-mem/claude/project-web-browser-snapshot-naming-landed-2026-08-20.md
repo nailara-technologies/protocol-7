@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-Session 2026-08-20, commits `33aba773b` then `7e9007f3b` (user's own
+Session 2026-08-20, commits `4d85cc653` then `b008467cf` (user's own
 follow-on idea, same session).
 
 ## what changed
@@ -49,8 +49,8 @@ two-field pattern (`<amos-chksum of the grouping key>.<ntime.B32>`)
 is the one to reach for — cheap, needs no index file, sorts correctly
 by construction.
 
-#,,,,,..,,,..,,..,,,.,,,.,,,.,...,,.,,...,..,,.,.,...,..,,,,.,...,,,.,,,.,...,
-#EQSZLXEEQO5WBTMUUHEY4IIQF2NRJUVQ6HKZ3PAET4A7CQI57XMN6FOFFPNUZDKDU4DAR6N7VTIZK
-#\\\|NPQM7DS6J3TOH3QMN37ODYWQ72DOWNADFAAFKPCDGUXDQI6JYK7 \ / AMOS7 \ YOURUM ::
-#\[7]F6H4NYSZLH6HTD3F4Q2JAHM3VXUCLPZYV3EZNI7UXOC5RHNDPWDY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,.,,,,..,...,,.,,...,.,,,.,.,.,.,...,...,.,.,,,,,,,.,.,,,,,.,
+#47HDVGWSCE45CZSVJBBS5OG4NNAQ4SG4IJVGMEHEX6UEXOK3QDVSZQBXIDFIM7UKUIJWGNVZ3RHW4
+#\\\|PCARMU52J4RD3JUWDNS34664QF7T7HFRUMU46LQYWULD3BIZNUU \ / AMOS7 \ YOURUM ::
+#\[7]OIUQGGJXU6OUQFXI7CEVN3OXMBVNB7UZCNP47YZILPSJYMV4JMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

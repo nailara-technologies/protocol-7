@@ -9,7 +9,7 @@ metadata:
 
 root cause of "coding does nothing, claims success, spawns nothing" found via
 git-history audit (user's idea: `git log --follow` on the spawn/teardown
-files) of `coding.async_spawn_inference_servers` (commit `7a26b4386`,
+files) of `coding.async_spawn_inference_servers` (commit `109dd864e`,
 2026-08-27 "auto backend selection"): `$cpu_fallback_requested` is captured
 as a **local** snapshot of `<coding.cpu_fallback_requested>` at function
 entry, then the global gets reset to `FALSE` immediately. When the GPU
@@ -149,8 +149,8 @@ this exact failure mode, before reaching for gdb again.
   mid-session, not left in any task file or dispatch prompt in its wrong
   form.
 
-#,,.,,,.,,,,.,...,,.,,.,.,,..,..,,,.,,,,,,.,.,.,.,...,..,,..,,.,.,...,,..,,,.,
-#AODHAZRIF5I5MP6XVC5DL5TFWDCURKY23SV5JWJ6E45YEUSMYWEORFA2FJNJYXHFTCXS6DAKEY6ZM
-#\\\|TGA5ZAXNGKZKM2BWW5WRZAJPLNTOC53CD3LKZBEJPXNFXG4T5RX \ / AMOS7 \ YOURUM ::
-#\[7]KSRTLEFX7LJMGYFCT3SZMAECGEV2MV7LZ4T75QUK35WGGBFWWCCI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,...,...,.,,,,,.,,..,..,,.,.,.,.,...,..,,,,.,.,,,...,,,.,...,
+#SE5UILZ2IYKTTMOZT3GOTGGCS7FUJS35SHGXZRTBN4M3VXPCV6VOE7BITKRJVAXTSX3TBN5F4GQJW
+#\\\|IWGWHZKOFXPLEZIXRU3HIO2CKG4M4GZAVI6GWFFTJRASKHP4XUF \ / AMOS7 \ YOURUM ::
+#\[7]R2G5WVC6VIYO4XRSFMWUZ44N6FS7XSWSANAMR4U6BBORFF5IQIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

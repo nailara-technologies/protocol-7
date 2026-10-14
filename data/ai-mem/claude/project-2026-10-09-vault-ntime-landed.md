@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-09-vault-ntime-landed
-description: LANDED 2026-10-09 a143c2f64 + 58ddba430 -- bin/p7-vault [ AMOS7::Vault, personal passwords \ notes \ contacts, standalone ], AMOS7::NTIME + bin/ntime [ ntime without backend ], format-code title box + bracket-aware reflow. open : real vault not created yet, backup command, sync, pri argon2 package
+description: LANDED 2026-10-09 0f4c9f499 + 154585d38 -- bin/p7-vault [ AMOS7::Vault, personal passwords \ notes \ contacts, standalone ], AMOS7::NTIME + bin/ntime [ ntime without backend ], format-code title box + bracket-aware reflow. open : real vault not created yet, backup command, sync, pri argon2 package
 metadata:
   type: project
 ---
@@ -71,8 +71,8 @@ format-code -c compiles .pm files inside a sub -- file-level `my` reads as
 "not available", use `our`. pkill -f with a pattern from my own command line
 kills my own shell.
 
-#,,..,,..,..,,,,.,.,,,,..,,,.,,,.,...,,,.,,,.,..,,...,...,...,..,,...,.,.,,..,
-#ULF44FCPMG4VZLCNIQEPY24U25YJMAATDZ64FLMWASP5VWN6QNQST6A5RC7YZH3AAXKPE5KWYMGFG
-#\\\|P4D4XHFKNNIAOSLI4KK27RMIUYVJGPBFAEPWGEBKGN6VDKLGXG6 \ / AMOS7 \ YOURUM ::
-#\[7]PZR4GH6UDPQ2PK4OESNCT2GO5YHVCH6WOLH6NGO2TDSI3VYTSCCA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,..,,.,.,.,,,,..,,,,,,.,,...,,..,..,,...,...,..,,,,.,,,,,...,.,,,
+#ASXPLW2KCALU3KNS2LVYLDHDXHVQHSPG53KSQWHF225GUWFFZNFGO2TTCES2S4DYSJVDRR6NOPQ76
+#\\\|ULLULFCZN4DU6TB7FUG4DMH3GQXD7GPITAVQ75EHYAGW6DC62E3 \ / AMOS7 \ YOURUM ::
+#\[7]YNVLJBCMHYGMXHE6TOGKJSYAZALFVCHKIYPDYG6BL5CHC2C7EUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

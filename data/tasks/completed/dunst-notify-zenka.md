@@ -8,7 +8,7 @@
 
 design: [[topic-smtpd-actionable-mail-channels-notify]]
 source: same-session follow-on, 2026-08-24 — after fixing the dbus regex bug
-        and notify-osd's missing child-pid registration (commit 80320f339),
+        and notify-osd's missing child-pid registration (commit 607d1458f),
         notify-osd reaches `online` reliably and notify-send succeeds
         end-to-end (no more `ServiceUnknown`), but the popup itself still
         doesn't render visibly on this WSLg host. Root cause not found —
@@ -390,8 +390,8 @@ compositor limitation, not fixed).
   spawned binary) rather than the open3-wrapper shape both notify-osd and
   dunst use — out of scope for this task, noted for whoever picks that up.
 
-#,,.,,,,,,,..,,.,,...,.,.,.,,,..,,,.,,..,,.,,,.,.,...,...,.,.,..,,,..,.,.,...,
-#MERJDIE5PJCTOCL6ICKF46HP24TDL4RBWB3IWDUICCPBFIAXL2JUQVXYKZDCZIP5HZ4UA32IHBH6I
-#\\\|JO4RBWBVF57CY3QOQSOCB3OLS2HR6XKDGCBVVWHMXDWC2B5432Q \ / AMOS7 \ YOURUM ::
-#\[7]DSP3FHNJDTUQAZ247RP4ENXWCXKKC7NCJ4CC2WC3RC67UAPY34CA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,..,,,,,.,.,.,.,,,.,...,,..,...,.,.,...,...,.,,,...,..,,.,.,..,,
+#CLIRIMQVBLH6TAW4FTNXJQWEN3L2H4ZDBNWHZWCF3MG5YEZSRTRNSRISXZC33GF7WCETQBKG54HXY
+#\\\|ZIAMJTL6Y2VGVCUWTEQE6JIMF3BPM45G2IE6I7MVF7ZTTXOJB66 \ / AMOS7 \ YOURUM ::
+#\[7]BF2JS3RXEVKE65KYZ54RL3PE7IX2JUJLSCOWU6SM656WHEGLUCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

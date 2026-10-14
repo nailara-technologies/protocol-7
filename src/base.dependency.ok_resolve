@@ -6,7 +6,7 @@
 #         jobqueue ] : a failed check gives the object type's resolve hook
 #         a chance to fix it [ eg. cascade-start a zenka ]. pure status
 #         checks call base.dependency.ok -- the hook firing there started
-#         dependencies of non-running zenki [ regression a40e31e96,
+#         dependencies of non-running zenki [ regression c8cd075d0,
 #         2026-08-26, fixed 2026-09-30 ]
 
 my $object_id = shift // '';
@@ -88,14 +88,14 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
 
             ## ntime is NOT seconds -- base.ntime.delta_seconds divides by  ##
             ## 4200 to get real seconds. comparing raw ntime deltas against ##
-            ## a plain "5" made this debounce a near no-op [ ~1.2ms, not 5s ##
-            ## ], confirmed live: repeated un-throttled resolve calls for   ##
-            ## the SAME chain object [ cube, during v7's own dependency-    ##
-            ## chain setup at boot ] spawned multiple redundant cube        ##
-            ## instances before the first one's v7-zenki.zenka.instance     ##
-            ## entry existed for zenka.cmd.start_once's own idempotency     ##
-            ## check to catch -- see data/ai-mem/claude/ session notes,     ##
-            ## 2026-08-26                                                   ##
+            ## a plain "5" made this debounce a near no-op                  ##
+            ## [ ~1.2ms, not 5s ], confirmed live: repeated un-throttled    ##
+            ## resolve calls for the SAME chain object                      ##
+            ## [ cube, during v7's own dependency-chain setup at boot ]     ##
+            ## spawned multiple redundant cube instances before the first   ##
+            ## one's v7-zenki.zenka.instance entry existed for              ##
+            ## zenka.cmd.start_once's own idempotency check to catch -- see ##
+            ## data/ai-mem/claude/ session notes, 2026-08-26                ##
             my $elapsed_secs
                 = defined $last_resolve
                 ? <[base.ntime.delta_seconds]>->( $last_resolve, $now )
@@ -131,8 +131,8 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
 }
 return TRUE;
 
-#,,,.,,.,,.,.,.,.,,,.,,.,,,.,,..,,.,.,,.,,,..,.,.,...,...,.,,,,,,,,..,.,.,...,
-#4V2YDRELJOTR7N5DLDB53RXPSZJ47JBVSBCE6D2QAHZFD4XERLJN7VKMECCPIHBOS4LKVSOLIMBBC
-#\\\|RWDGNLAMW6KWPGCLYX3NVT4BWQUIBD334CLTYVUJWZATZQZTIRW \ / AMOS7 \ YOURUM ::
-#\[7]M6IXEAMMIXAISWSMXTDEHMZOX7HKTMZDNLH4ZB4RPQD7I4ZL5WDI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,.,,,,,...,...,,,,,.,.,.,,,,,,,.,.,...,...,.,,,.,.,...,.,.,...,
+#4TKUFTI7JWLFV725FHJWWSI2JGZORQ4G3OU74WOSYM2CE6F6BSB6TYNZ2BHSKEB64VD63NYKTNHLY
+#\\\|BA6QWVNLRNUQJ5LM2DM4MS6V6MPYTIWRBKGIOU3PWCG3MO2YTUF \ / AMOS7 \ YOURUM ::
+#\[7]GNNW6UHAFTJ2MM35R7VDRA5DH37H2KTVMFUJT3ARWWP2BLDEUEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

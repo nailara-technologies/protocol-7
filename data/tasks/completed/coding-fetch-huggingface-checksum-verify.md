@@ -227,7 +227,7 @@ hash (fetched live, not assumed); a seeded exact-size garbage file
 caught and quarantined end-to-end; a real small file downloaded and
 verified with no regression to the normal path; a non-LFS file
 completing with sha explicitly noted as skipped rather than silently
-"verified". Committed `5ac9b18f7`.
+"verified". Committed `238b371d3`.
 
 **Item 5 (root cause) deliberately left open**, per this task's own
 instruction: whether the original corruption was aria2c's `--continue`
@@ -236,8 +236,8 @@ further -- only the silent-acceptance hole is closed. The next real
 occurrence will now be caught immediately with a fresh, cleanly-
 reproducible case.
 
-#,,.,,,,.,...,..,,.,,,,,,,,,,,,.,,,,.,.,,,,,,,..,,...,...,..,,..,,,..,.,.,,,.,
-#FXJNXZ34L6SDZF2UJIUID6ZINK24IWZKTAMZ7XYHGSWTQOTC23SPCHE7YVGXDFIYVR4CRLTBJ6MBC
-#\\\|CGC5BLSENW5FFBVSESCJSOGLA5RHZITLTSZN3RDOYGPHOCWXXHC \ / AMOS7 \ YOURUM ::
-#\[7]LCNX5ALDHJAVZWIGW3CD36FUF5MFUHLXC2GEV74OMU2NOO2ERYDY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,...,,,,,,.,,,..,..,,.,.,,,.,..,,..,,...,..,,.,,,...,..,,,,,,.,.,
+#KJFEUZNVFQ3GLKUX5QKG7DQWNU4HYDL4D3OMHMZDKCHWWEKF2Y64PJNWKCKX4D47A26GKINHRM2RW
+#\\\|FM5P7E34IVHYNYHO7G4LYZBWNKRBBQA7ZMJSZ2IQUXN5JJO5362 \ / AMOS7 \ YOURUM ::
+#\[7]HATYV4VZWJQPCKI5LMCSG5BKMFKDHOUKWDX56C5GPQBCKSJIGKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

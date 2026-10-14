@@ -88,7 +88,7 @@ package FakeTimer {
             $self->{'params'}{'cb'}->();
             return;
         }
-        ## named-handler timers [ since d89cb1f46 : reload-unsafe coderef  ##
+        ## named-handler timers [ since f2597139c : reload-unsafe coderef  ##
         ## closures replaced by handler= + data slots ] are dispatched the ##
         ## way base.event.add_timer invokes them : fresh %code lookup on   ##
         ## the handler name, called with the watcher as the event wrapper  ##
@@ -191,7 +191,7 @@ compile_module('coding.helper.resume_task_queue_for_backend');
 compile_module('coding.helper.self_test_guard_watcher');
 compile_module('coding.helper.trigger_backend_self_test');
 
-## the safety-net timer is a NAMED handler since d89cb1f46 [ was a        ##
+## the safety-net timer is a NAMED handler since f2597139c [ was a        ##
 ## reload-unsafe self-re-arming coderef closure ] : its liveness re-check ##
 ## and give-up logic live in this module, state arriving via the timer's  ##
 ## data slot [ backend, wait_timeout ]                                    ##
@@ -666,8 +666,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,.,,.,.,,..,...,,,,,..,,,..,,.,,,..,,.,,..,,...,...,,,,,,,.,.,,,..,,,,,,
-#7L3N2IX7TE2MK67XW6V6EXQUB4MHARASSW3SOYAPRAM75HGNLX67LBM2RYGW7C4UIY74NCN3WRB3A
-#\\\|AAIHQOCFKOSFLKXM5HBSFDGI3QK5X5CPNRWONRG4SG6Z2Y7IITL \ / AMOS7 \ YOURUM ::
-#\[7]CYYX7O7ZIVTQN73IHIF3RD2LMXDHRHJHM5ZO5LHM3XEECBUEJQCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,.,,,,,.,..,,.,.,,,,,,.,,.,,,..,,...,..,,,..,,,.,..,,,.,,,..,
+#RBKEK2AUYUWKAS3JTAAJXVGCDBLMXWDVPFRUPXHTXM4QS3SPEQNNX66W55HSFKIO5I5T4RROCYPVS
+#\\\|6VVX34LU3SQOQEZIMIG2YVKH7NFB2Q3WXZKGOIAB22UIKZQ6OTQ \ / AMOS7 \ YOURUM ::
+#\[7]SFZJ6WLPNQL4RBSZS7H3AZ7HSIXGNBV35XRBLHDDUUUMATZNASDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

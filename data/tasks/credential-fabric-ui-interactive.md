@@ -3,7 +3,7 @@
 ## status update [ 2026-09-08 — not ready to archive as one unit ]
 
 **part 1 + 2 (selection, rotate/revoke/grant/approve, the whole vault-edit
-chrome/UX pass) are genuinely done** — landed (`62923a289`, `4aca07938`),
+chrome/UX pass) are genuinely done** — landed (`407739de7`, `87c1af324`),
 live-verified across multiple rounds directly with the user, latest
 confirmed working ("ok, looks much better.."). that portion is ready to
 archive.
@@ -537,7 +537,7 @@ round's plumbing fixes (`ui.unfold`, `ui.cmd.ui-show`, `cred-mesh.cmd.ui-
 show`, the screen-clear fix, `char-add`) are real, independently
 verified, and worth landing regardless of the UX gap above. The UX/
 interaction-design pass is the explicit next step, not done here.
-**Committed as `62923a289`.**
+**Committed as `407739de7`.**
 
 ## `user-edit` comparison [ per the user's own suggestion, same session ]
 
@@ -1172,8 +1172,8 @@ child`, the phase-1 render modules that added `row_keys`).
 do not add the `#,,..` stub to any new file. lowercase comments,
 `[ word ]` annotations. no emoji.
 
-#,,,,,.,.,.,.,,.,,..,,.,.,.,.,.,,,.,,,...,,..,..,,...,...,..,,,,,,...,,,.,,..,
-#YNT5P5IYOFM5ENSEIXYWMJ72Y4DTPB4KCYBUMXBCYK3XNJFJSDXWZZHRRBUCLZHCE4R3PGY47IBOM
-#\\\|EDTYG2PXWIN4PCLFCXST7TJEH7YC5537YRCRR5AF64ZLNDT6GZY \ / AMOS7 \ YOURUM ::
-#\[7]WWOALV3K4UZM274RQL5XAOXYFLO5AD27HOW66RTW4WW6GBPMUSCI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,...,.,,,,.,,.,,,,,.,..,,,,.,.,,,..,,...,..,,...,.,,,...,,.,,,,.,
+#K66XDWRBOZ2DLDOAQFBEBPQXYKT4APEG4VU55NHX7QIIBVDYFWLTR2RZT2NRKLMLMSI4EXPOZRB6E
+#\\\|C77RCTGLO6A3GIJ326MEZ5JLJEAPVGCOEYYCYDZADMVDNY6GGRS \ / AMOS7 \ YOURUM ::
+#\[7]6NSGUUYWHI3PSPRR3YAHT47JYYWOBG6LRXFLDDXXYSXDY7POCGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

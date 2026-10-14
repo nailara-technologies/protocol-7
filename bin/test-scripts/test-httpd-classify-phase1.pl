@@ -52,7 +52,7 @@ our $call;
 
 ##  stub code refs for the base/format subs the classify modules invoke  ##
 %code = (
-    ## <[base.file.*]> renamed to <[file.*]> in e928c96ab ##
+    ## <[base.file.*]> renamed to <[file.*]> in 3f583de04 ##
     'file.glob' => sub {
 
         my $pattern = shift;
@@ -430,8 +430,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,...,,.,,,,.,.,.,,,,,...,.,,,.,,,.,.,,,,,..,,...,...,...,.,,,.,.,..,,.,,,
-#ZXN63HVJR4AU5PJBALXFEPTUCOQNAUNVQKYY6ZZLQJCPR3ZI4PQ3BUTFGNTMARXXWX6JABG2BWUOA
-#\\\|ZKPBPV4RMERY2LV237KEG3TCJW6Q6DJZQNXZA4MMNLVM6PMFAJA \ / AMOS7 \ YOURUM ::
-#\[7]ETTYWH6RB3C2G4BHQB3VBHKFUCAKQQH5NKNSECORSDHSR6YYKSCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,,,.,.,,,,,,,...,..,,,.,,,,.,..,,...,...,..,,,,,,,.,,,.,,..,,
+#QYZPMMTW45WB6ORU44NHBHMEUBXWS3E6ZNZSFCXPNTJFKRVWEWLJS4XBHTTN62ZNCV5ZMABCORAKW
+#\\\|O7WFN6IVOEGXKM5PRUN3M5GELLL3GYLOR7IPZN7QA5ATI773YJQ \ / AMOS7 \ YOURUM ::
+#\[7]IAS7KTBDEXTONWMPJFO2MKHFREB4YJ22AHIPFDBG65HVPKBADWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

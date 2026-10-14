@@ -6,7 +6,7 @@ metadata:
 ---
 
 Task file: `data/tasks/completed/system-oom-watchdog-dynamic-poll-and-restart-escalation.md`
--- DONE, live-verified, committed `f138268e4` (2026-09-17, same session).
+-- DONE, live-verified, committed `7263aed38` (2026-09-17, same session).
 
 **Why:** motivated directly by [[bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17]]
 -- a coding-zenka `llama-server-cpu` child spiked from a few hundred MB
@@ -29,8 +29,8 @@ to just those two.
 
 [[bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17]]
 
-#,,.,,..,,.,.,...,,,.,.,,,.,,,.,.,,.,,,..,,,.,.,.,...,..,,.,,,..,,,.,,.,,,,.,,
-#O4SPJEPV3B5NQJHCGGXSXCA7W7FB6FNVXFZXRGMDRIQNCUHGCZUOTPIOQ3JFTL3RYQXD5YGEQOFPE
-#\\\|7JBRZZLL3WTBCTSQBNSMRWUPER3MA5MIZY5A5N7BEN5LJ7QKWFI \ / AMOS7 \ YOURUM ::
-#\[7]U26J6TJLOI2XMPZJVJ7PBEZU2GY2GM4DFV2SBPXORLQFLH3ZOKCY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,.,,,,,,,,.,...,..,,,,,,..,,,..,.,.,...,...,.,.,...,..,,.,.,,.,,
+#RQL6F7FL6U5HWJOLNSJ3XPHJXKHFTITJI6PNIJRYYC4MUVZUIKF5IUKCGQMTHZO7RSWLPBY6C32XK
+#\\\|CA2TVG45VOBLJYEKLN6GTKKHU7VX7SDXFMVPXXRA34ETT43C2BL \ / AMOS7 \ YOURUM ::
+#\[7]QUFRQZJQDQXWETIYDBE6LN5S53RMN2JT4A4RSSKAQTJDLEVDJCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

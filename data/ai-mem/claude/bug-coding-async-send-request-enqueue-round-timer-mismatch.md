@@ -71,12 +71,12 @@ missing" it flagged as unlocated is this one).
 with zero chunks received, check the live log for
 `send_request: queue paused : rescheduling <id> in 5s` with no
 `enqueue_round:` line following — that was this bug's fingerprint before
-the fix landed (commit `dd162183b`). After the fix, expect to see the
+the fix landed (commit `5bf722767`). After the fix, expect to see the
 `enqueue_round:` line every 5s while paused, and an actual `send_request:
 task=... round=... messages=...` line once unpaused.
 
-#,,..,,,,,.,,,,..,..,,,,,,.,.,,,.,.,.,,,,,.,.,..,,...,..,,.,.,,,,,,.,,...,.,,,
-#GDU4OSFJMQZP2G4XLF5CVMDKAV7DHXNB7X7T5ZPSAJZHFF4HYWXDIV7PB3SQTUNORVRIEMPUWJNY6
-#\\\|4KJV4M3MA52PVFS5YO6JOE3YMUMIKAWUF2UAL67A56C2K5EWLC2 \ / AMOS7 \ YOURUM ::
-#\[7]GZ33TW3XNVDYJBZLQVAZYGMXB57DUNOGHW6K5VHASWW75DSKYSDY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,,,.,,.,,,.,,..,,.,.,...,.,.,..,,...,...,...,...,..,,..,,...,
+#5CJIK7K24R3EWVLFW5BJVSLNYCZTED4NC62E52XIHW2Z6YSTYPVIK3TZT7ZYDHTGNFSOGUQ4IMJ2I
+#\\\|LXC6FTKHD3BSTCJ6ABLXGKV3ZCUBWO2J3SMTKCEK2F233EL5HHU \ / AMOS7 \ YOURUM ::
+#\[7]QV2TDGCS3RTUCNGL7TV3WPVRACGGQPPJJN2HZAIWUIROCNHW32AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

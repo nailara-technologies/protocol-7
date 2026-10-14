@@ -3,7 +3,7 @@
 ### goal
 
 `clients.https.request` (just gained real HTTP/2 support, commit
-`4c4ea552c`, `data/tasks/clients-https-http2-support.md` — read that task
+`ef7558078`, `data/tasks/clients-https-http2-support.md` — read that task
 file for the full HTTP/2 background, it's assumed context here) connects
 directly to the origin host — no proxy awareness at all. This is the
 second, separate reason site-yaml still can't be usefully switched over to
@@ -182,7 +182,7 @@ with no hand-rolled socket code involved.
 
 also confirm the no-proxy case is unaffected: the same call with `proxy`
 omitted, against any plain reachable HTTPS target, must behave exactly as
-it did before this task (byte-identical to `4c4ea552c`'s state).
+it did before this task (byte-identical to `ef7558078`'s state).
 
 ---
 
@@ -204,7 +204,7 @@ prompt: |
 
   read data/tasks/clients-https-http2-support.md first for context on what
   clients.https.request already does and why (real HTTP/2 support landed
-  same day, commit 4c4ea552c) -- this task adds the one piece that work
+  same day, commit ef7558078) -- this task adds the one piece that work
   deliberately left out.
 
   read src/clients.https.request in full before changing anything -- this
@@ -226,8 +226,8 @@ prompt: |
   use $ARG not @_ where the file already does; lowercase comments; bracket
   annotations [ like this ]; do not touch the trailing signature blocks.
 
-#,,,,,.,.,.,.,,,,,,.,,.,,,.,,,.,.,..,,,,.,,..,..,,...,...,,,.,...,,.,,.,.,..,,
-#IXEZIXOMF7E3A5QXX5OSO6FDIX742KN4BKZQJGYIOMF6U45FL2BT5YDTGIFUTAMHR5XWVISMJ2DJW
-#\\\|GEPD23CQ3P6SF5X62BTSNEYMCKNMMKUS6KQVF3PGCDFUNU24RBU \ / AMOS7 \ YOURUM ::
-#\[7]BATBT7SLHC2THHQPQBQVTSZI4TW5JUO2CTJOLMGRAUIKGNVER6AA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,..,,,,.,...,,.,,,,.,,.,,.,,,..,,...,...,,.,,...,.,.,,,,,...,
+#7ETZXJQGGN423QGSFHZDRNY2JYIKXPT3VMSB6VM7TBV5QMLXRYOKOEFC2BBWEBZ7TUSH3CD7F2ZFE
+#\\\|CAL5AMNXJ7DKO2YEPB5SLIPBUBMZBKHFHUAAIDKGZIRT25RWMP6 \ / AMOS7 \ YOURUM ::
+#\[7]2VKTVDHNB3QBHTUWOA6XGGAUVUJ46KSSIRJ3EE5S4HXWMTCO2GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

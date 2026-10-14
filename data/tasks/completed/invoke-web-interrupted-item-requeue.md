@@ -17,7 +17,7 @@ parsing, `pause` \ `resume` \ `queue`, `start_paused` ].
 - the user must not have to think about this -- but a wrongly identified item
   must never be re-queued
 
-## the idea [ built : 96032e50b 97c47314a 8b6386873 3f566d868 ]
+## the idea [ built : f10a4f2ae b9f06aafc 46d30ccee 9a7db8288 ]
 
 record the interruption where only invoke-web can see it : at the START of an
 item, not at stop time -- so a crash or an OOM that takes the zenka down too is
@@ -104,8 +104,8 @@ flows lags one call behind -- `resolve` can see the previous call's record.
 export's per-record `on_disk` numbers are affected by that ; the config-key
 fix itself is correct [ proven with a correctly-populated `$ARG` ].
 
-#,,..,.,,,,..,,,.,.,,,...,,.,,...,,,.,...,..,,..,,...,...,,.,,,..,,.,,..,,,,,,
-#3ODT5GPKQ7RC6USPYUR63VWZM6OH7TKEUOVPCV36DRRGZ5GU45WLLI5D6DUESXQWMWSNJJLIHBRUG
-#\\\|KX3VQFUE4Y36JAV3DIQMDZT3FWTFCNONHB3S3ZQEPOBJCOR6RTF \ / AMOS7 \ YOURUM ::
-#\[7]WGQNYE34MVRE7K4ZPCKRCUASIYBFK3U7BBXVCTMNDMVVPBLHU6CQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,,..,.,.,.,.,,,,,,,.,,,.,.,,,..,,...,...,...,.,.,,,,,,,.,.,.,
+#H3PQA5SACO4SO6WHP4SMOH6KSVT375XCJPSXRXWIMV5UAL6A4A6NX7VHMXZBW6QYEWVLRHBBK4AN2
+#\\\|6WYFZYTZB2B2ICYY6DBPQT2DIN6FUADDB5EDV3IYHBQK3DG47BV \ / AMOS7 \ YOURUM ::
+#\[7]NJJLACZMOYWM6L2X43VDPV4PVEIQ72B3EHANA4HURE75XCTJS4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

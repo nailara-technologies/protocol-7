@@ -49,7 +49,7 @@ findings were caught by the user, not by inspection ahead of time — see
 
 Reverted cleanly: the commit (`7af528e8c`) was local-only, never pushed
 (`hub/base` didn't have it), so `git reset --soft` + selective `git
-restore --source=f6a59105a` fully backed out `nshell.read_from_buffer`/
+restore --source=196783e12` fully backed out `nshell.read_from_buffer`/
 `nshell.shell_loop`/`nshell.handler.command_reply` with no trace, no
 force-push needed.
 
@@ -185,7 +185,7 @@ treatment for the common empty-selection state. That's interaction
 design, not a bug fix, and is the explicit next session's work — ready to
 commit this round's plumbing fixes as a checkpoint regardless.
 
-**Committed as `62923a289`.** Per the user's own suggestion, then
+**Committed as `407739de7`.** Per the user's own suggestion, then
 compared directly against `user-edit` via its own `char-add` (see
 [[topic-user-edit-console-zenka-status]]'s 2026-09-07 caution — its
 char-add mutates LIVE data, briefly edited the real `taeki` record by
@@ -255,8 +255,8 @@ called verified, not just reasoned-through. Full account: data/tasks/
 credential-fabric-ui-interactive.md's "interaction-design pass, round
 one" section.
 
-#,,.,,..,,..,,...,.,,,,,,,..,,...,..,,...,,.,,..,,...,...,,,.,,.,,,,.,.,,,,.,,
-#OEMJMAFC26VQQXKSFASA34CJOHED36UA42EPMF4H7UC25NI4Z6PIKBSKBQNWE4Y5UXH5ZKFCEVZY2
-#\\\|FQHTMJ3UBSOEMYDHQTUZXEMGKAZJ25IN2YK6ROXAWJ6NLPQAMCX \ / AMOS7 \ YOURUM ::
-#\[7]F6GAN5K3IYZN7J76O3TNCMLFSOQLD35W7UA5FFFS4UNV7JRY4AAY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,...,..,,.,.,,..,.,,,.,,,,.,,..,,...,...,...,...,...,,,,,..,,
+#4JXHKPGD5POI5LUAKY2BVBOCNW2SPCYDGIM7PSQIYRAEUDUB5FIHNM3JHCLNVBCLPXKETI73YXSZK
+#\\\|YYPKW6SXW7EDR5ZAP2VGHPBIMXMGAEFODYFESYZHZXSQMYQRLAX \ / AMOS7 \ YOURUM ::
+#\[7]7T7HB5ZTHXMJKC4IRRCRYJG5UNUEMQPC5KGLH4A27RWMQWG6YSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

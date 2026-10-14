@@ -12,7 +12,7 @@ changes the tree. never read real key dirs [ `~/.n/`,
 
 ## why
 
-`bin/test-scripts/test-auth-link-binding.pl` [ commit ad31ddd5a ] tests
+`bin/test-scripts/test-auth-link-binding.pl` [ commit a79712581 ] tests
 the server modules and the Perl client SEPARATELY, each against stubs of
 the other side. nothing yet proves the REAL server code and the REAL
 client code agree on the wire. this test runs both against each other.
@@ -85,8 +85,8 @@ server side ].
 check proves, which stubs you used and why, any real bug [ described,
 not fixed ]. write it as soon as the script passes.
 
-#,,,,,.,,,.,.,,.,,,,,,,,,,.,.,..,,.,,,,..,,.,,..,,...,...,,,,,..,,,,,,...,.,.,
-#IAVYBKAS7SOY2MDIVMGYS2I2A2RR3TZOIQJJODBRUZG4FIXG2V52GCODJ7L4RZCVE3Y5A5ABRUMNO
-#\\\|QYDVCP7EK7EE2KLMWJILOH2AS27TT2MLWF7XUZBKQZ5OTHQSHJM \ / AMOS7 \ YOURUM ::
-#\[7]SZNEB4MA5VNEUMTYMTT4OKYFI3CFMBPG2VSQ7LM2K4VH3IGMDEAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,,.,,.,.,.,,,...,,.,,,..,..,,..,,...,...,..,,,,,,..,,,.,,,.,,
+#IHZ7MEPCAVC4PUV5Y7PYIBST4K75QTQ6GL6AEKM4XKLNOJ5UGNNQLNGUTWPYABOVBNOVSR7BB5LQO
+#\\\|5SVGVSYHVPIC64GE5NAXVRYJNXHZUH7E6CJ2UBLIDQMFO2SF745 \ / AMOS7 \ YOURUM ::
+#\[7]7Y5Q6TUHVADA62VDCECWP4A6XNAPNNCZTCUNDJGSRPL7YTTZSABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

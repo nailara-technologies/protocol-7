@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-12-session-handover-dns-tcp-vault-notes
-description: START HERE -- session 2026-10-11..12 handover [ last 03803b730, v9993+ ] : dns over tcp live on all 3 name servers, letsencr propagation check, pm-src vendored + :keep: signing, editor paste fix, p7-vault notes \ codes \ sync ; next : user tests, then Y7O -> B2K -> HS4 after the weekly reset
+description: START HERE -- session 2026-10-11..12 handover [ last 012eab8fe, v9993+ ] : dns over tcp live on all 3 name servers, letsencr propagation check, pm-src vendored + :keep: signing, editor paste fix, p7-vault notes \ codes \ sync ; next : user tests, then Y7O -> B2K -> HS4 after the weekly reset
 metadata:
   type: project
 ---
@@ -10,21 +10,21 @@ kimi 92 % ]. follows [[servers-dns01-host-config-2026-10-11]].
 
 ## landed [ all committed + pushed to hub base ]
 
-- `1439358df` pm-src : Digest::BMW, Crypt::Ed25519, Canary::Stability
+- `75884c1d8` pm-src : Digest::BMW, Crypt::Ed25519, Canary::Stability
   vendored [ unmodified cpan, sha256 checked ] + bin/dev/cloud-session-setup
   builds them when cpan is blocked. NEW signing syntax in
   src/sourcecode.source_path_set_up : `!<path>:keep:.pm.pl` = exclude
   the path except those suffixes [ collect_file_list + pre-commit hook ].
   only the perl files of others' work are signed.
-- `d69710921` cloud-session-setup : File::Which, Event, CryptX via apt
+- `6e26fc72e` cloud-session-setup : File::Which, Event, CryptX via apt
   [ p7-deps could not start in the cloud ]. untested : next cloud
   session runs `bin/p7-deps list` [ there is no `verify` ].
-- `e7d5b3c4d` letsencr : dns-01 propagation asks every address of
+- `0af0e6e99` letsencr : dns-01 propagation asks every address of
   letsencr.dns.alias_ns [ resolved once per order ], non-answering
   servers skipped, an answering one without the value blocks.
   query_txt_async takes ipv6. NOT yet seen live : next dns-01 renewal on
   pri should log 'txt value on N servers'. letsencr is on-demand there.
-- `962a74069` nameserv : dns over tcp [ rfc 7766, nameserv.answer shared,
+- `15ae9b99f` nameserv : dns over tcp [ rfc 7766, nameserv.answer shared,
   dns_tcp.* handlers, 77 conns \ 13 s idle \ 64k in \ 4 replies out ] +
   udp replies truncated with tc. LIVE on pri \ delta \ yourum, v4 + v6.
   pri : ufw 53/tcp opened. tcp binds only in init [ port 53 before
@@ -35,11 +35,11 @@ kimi 92 % ]. follows [[servers-dns01-host-config-2026-10-11]].
   re-activated it after disable --now ]. yourum also lost ipv6 after its
   02:32 reboot [ /etc/hostname change + dist-upgrade only ] ; a second
   reboot fixed it, provider panel address unchanged [ KUL closed ].
-- `efaf3f29b` AMOS7::TERM::Editor : editor out of bin/todo, bracketed
+- `bdd1b718c` AMOS7::TERM::Editor : editor out of bin/todo, bracketed
   paste, crlf = one enter, ctrl-d de-interlace. the WSL paste bug was
   icrnl [ [[readkey-raw-mode-leaves-icrnl]] ] -- user confirmed fixed.
   bin/todo : timelocal instead of timelocal_posix [ floor perl 5.32 ].
-- `03803b730` p7-vault : note bodies in the editor [ -s = old hidden
+- `012eab8fe` p7-vault : note bodies in the editor [ -s = old hidden
   prompt ], 'scratchpad' default title + command, `notes` overview,
   3-char codes inside the record [ `codes` backfills ], `sync
   <host>[:<dir>]` = entry file union over ssh [ P7_VAULT_SSH, key files
@@ -86,8 +86,8 @@ kimi 92 % ]. follows [[servers-dns01-host-config-2026-10-11]].
   is /usr/local/protocol-7 [ root-owned, pull with
   bin/admin/p7-git-pull--rebase as root ].
 
-#,,..,.,.,...,,.,,,..,,.,,,,.,,.,,..,,,,.,.,.,..,,...,...,..,,,..,...,..,,.,.,
-#RUVUD7NPF5CZY5LCLK4HOZ4U4XIEF3CZT5Y7SS6GWSSU5PO5CBFANHAOMIRLOHMKF763ZZH3LNTQY
-#\\\|U7AFVLFEOI737H2INIX7XOE4A56A4BW7FZHUL455NRJQJR4KH34 \ / AMOS7 \ YOURUM ::
-#\[7]RBHONZBJGSW2RPCIIFYOIBSBTG7XKSZHVI7MBXDCBBV3ZMHJWQDI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,,..,,.,,.,.,,.,,.,,,,.,,,..,..,,...,...,,..,.,.,.,,,..,,,..,
+#GSJFQOJ44454ZDH65I4UIUILPFVSHZBS6WTVJMPQA6PKO3OLKZRDHC7LSW7BEUOJDNEDNVP2O7IEI
+#\\\|ZZ4R5HJPVJF3KNPGKVBNRAZ3C4W344FNWJ774BG6Q74CACBPSPF \ / AMOS7 \ YOURUM ::
+#\[7]DB3B2HQSOJTQD32WN3WEO36VEX2QEK3ODODKH4TOAK4ZLRFGAYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,8 +18,8 @@ via `<[coding.spawn_inference_server]>->({...})`. It worked, but it was
 reinventing a wheel that already exists at the zenka-lifecycle level.
 
 **the actually-clean way**: `v7-zenki.terminate <zenka-name>` (renamed
-from `v7.stop` in `a315a0e5a`, then `v7`->`v7-zenki` identity rename in
-`23a0e8d53`) sends a graceful SIGTERM to the zenka's own process
+from `v7.stop` in `d555d3dfc`, then `v7`->`v7-zenki` identity rename in
+`bd98e1c17`) sends a graceful SIGTERM to the zenka's own process
 (`v7-zenki.zenka.instance.stop` -> `v7-zenki.terminate_process`, with a
 timeout-based SIGKILL escalation only if it doesn't exit cleanly). A
 SIGTERM'd zenka runs its own `<zenka-name>.end_code` on the way out --
@@ -60,8 +60,8 @@ e.g. for a maintenance window), not as the default way to "just restart."
 
 [[feedback-mcp-server-p7-kimi-dispatch-nonblocking]]
 
-#,,..,,,,,..,,,,,,.,.,.,,,,..,...,,,,,,,.,.,,,..,,...,...,...,,.,,...,,.,,,,.,
-#BFGVKUCHRQET4OHIWZW7JE45WSZHIE5TSGQFOHAIGCVSQVDQOSLHA3GNYF4WTBL5JK7MCIFGXHFNS
-#\\\|HJFYOHW5PIGHNIV2WV3NTVDK5AXVRSMRBP4KJNWQ2SZP3THPVKI \ / AMOS7 \ YOURUM ::
-#\[7]O44T34HWXJ7JAXF7NVK555RPKWUKSCJ2YEJCMNDWAEDWGTCGBKDY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,.,,.,,,.,,,.,.,,..,..,,,,,,,.,,..,,...,...,...,,.,,,,.,.,,,.,.,
+#ALTBELAUMEL2HZWFOQI35YWCE7JN24ME6G4Y64MBZRYYZA5PENRMYWNUAJ54UFH3RZMEXDSRGN2IS
+#\\\|PK7PAHTNTYQLDQ4BN3RRYUPDQ7FQOVGWG3UC3EJX47EMYGOIO26 \ / AMOS7 \ YOURUM ::
+#\[7]7SYFGC4LVSZJENKOGYEVSXFSO5HNU36CQNXS36EQNQ3FXTWPTUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

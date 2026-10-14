@@ -122,7 +122,7 @@ verifies :
 
 - `external.<link>.list sessions osf-cache` actually reaching the
   REMOTE host's cube over the encrypted named link [ link up,
-  session registered, reply routed back — the c26bfb171 handshake
+  session registered, reply routed back — the 1a0bd0346 handshake
   on a real socket ].
 - the remote rows being that host's real osf-cache sessions and the
   route strings resolving there [ session ids exist remotely ].
@@ -400,8 +400,8 @@ all checks passed
 
 ```
 
-#,,.,,,,.,.,.,..,,...,.,,,,.,,,..,..,,.,.,,.,,..,,...,...,,..,.,,,.,,,..,,.,.,
-#5HENMA3KFGULLNX5LT3MFIHAIJJVVQV5YVNCT74OJDBAB3SKVFFXXWVPYU4Q24T4RQ7S63HZ2P43K
-#\\\|WLQHWIB3NTURGHTAYU2N53WNWBJ3YNTQQ3GD6FTRJHFNWEEGD6M \ / AMOS7 \ YOURUM ::
-#\[7]AOU2S2HQKOL3IDMHIGFNRP3IQPRPVCVD6PWEDBCVARFHEMODWQAI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,..,,,,,,...,,,.,...,...,,,.,,.,,..,,...,...,,.,,,,,,,..,,.,,.,,,
+#E3KWJKY2KE3QHYTKY77SZXS375Q5BOIQ2SLMBBU6ZAEQLOYGXTB4HFRHVT7IYL4EQY4NO4QTPYV66
+#\\\|7AATTZZAATYVT2264DWQCZBVAIFFF3IWTF4V7Z76OBXPCNCH5LZ \ / AMOS7 \ YOURUM ::
+#\[7]RKSOL2I4VZBR6JTQYGYHLMQVG5EXS3CWFF4222ESGR7JVOFBQMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

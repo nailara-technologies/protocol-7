@@ -74,7 +74,7 @@ for my $m (
     qw| base.shm.path base.shm.write base.shm.read httpd.handler.shm_write |)
 {
     load_p7_module( "$RealBin/../../src/$m", $m )
-        ;    ## modules/ -> src/ [ 5255a50a3 ]
+        ;    ## modules/ -> src/ [ 62c6b7341 ]
 }
 
 ##[ stub the pure-plumbing dependencies ]#####################################
@@ -410,8 +410,8 @@ say "passed : $pass   failed : $fail";
 remove_tree($test_dir) if -d $test_dir;
 exit( $fail ? 1 : 0 );
 
-#,,.,,.,,,,..,,,,,,,,,,,.,.,.,,..,,.,,,,.,,..,..,,...,...,.,,,,..,,,,,,,,,.,.,
-#HZQCWJ4THHRSMRMKEKHWKMKVTTOVRVW7OH62LZIIOSM2UVL3O5642ZXLU2H3CSSAGJ3JCNRDUMUYY
-#\\\|ZSMDHQ7WSKY3WOZDUWYDNWUDF3JXB7PRLWM6OGC2OQ5CHVMMAHM \ / AMOS7 \ YOURUM ::
-#\[7]RIEMLLJTUQSRIN6GR2EKZNQUZJQYYIFQGBV4UL5EAPJKYUQBHIAI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,.,,...,.,.,.,.,,,,,,,.,,.,,,..,..,,...,...,.,,,,..,.,,,,,,,.,.,
+#TT3MRDVELMQQ3ZZKADV5S4JUDRKWKAVWVKLOPB3TQEI7FEEYD5YHCICMK6TNLMGSOA23YV4HGZL34
+#\\\|GITRTI2SUQHL7RW66MQV7AVRGZ2YACIZFISBKGXSKBE7E23KR4G \ / AMOS7 \ YOURUM ::
+#\[7]TMSC2SLMFTCMDI3OUJL74COH3WWW3LMGCV7SGWLIBJT5F45HW4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

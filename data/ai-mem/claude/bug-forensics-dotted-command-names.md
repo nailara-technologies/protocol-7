@@ -183,7 +183,7 @@ used to separate "not live-routed" from "live-routed", applied here to
 separate "regex rejects the shape entirely" from "regex matched, target
 just isn't registered." These two commands were unreachable through
 cube routing since the day they were written (2026-03-27) — fixed by
-renaming to `plan9-connect`/`plan9-scan` (see commit `599a24103` and
+renaming to `plan9-connect`/`plan9-scan` (see commit `a15af0830` and
 `data/tasks/completed/plan-9-server-event-loop-wiring.md`).
 
 **The `[a-z]`-only restriction may itself be stricter than intended,
@@ -240,10 +240,10 @@ if there's no wrapper to rename in the first place.
 #\[7]57XLACX7K55PYPIQ7ZRWGTLC23K2XF4M7MTTVNYV7OMHPNUIDQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**2026-10-07 recurrence + correction :** I named a command `anon.archive-table` [ registered via a dotted `<base.cmd>` alias ] -> routed as hop-chain `anon` -> 'offline'. the PREFIX may hold dots : the loader [ bin/Protocol-7 `m{\.(cmd|console)\.(.+)$}` ] registers `p7-log.anon.cmd.resolve` as `resolve` -- my commit 4bab8c80f message wrongly says p7-log.anon.cmd.* "never became commands" [ pushed, the rename itself is harmless ]. base.post_init's anomaly scan had the same wrong rule [ `^[^.]+\.cmd\.[^.]+$` flagged 139 valid prefix-dotted modules ] and looked `<base.cmd>` up by module name [ it is keyed by command name ] -> every real command reported 'internal subroutine'. fixed to `\.cmd\.([^.]+)$` + lookup by the captured name.
+**2026-10-07 recurrence + correction :** I named a command `anon.archive-table` [ registered via a dotted `<base.cmd>` alias ] -> routed as hop-chain `anon` -> 'offline'. the PREFIX may hold dots : the loader [ bin/Protocol-7 `m{\.(cmd|console)\.(.+)$}` ] registers `p7-log.anon.cmd.resolve` as `resolve` -- my commit d03d9ea58 message wrongly says p7-log.anon.cmd.* "never became commands" [ pushed, the rename itself is harmless ]. base.post_init's anomaly scan had the same wrong rule [ `^[^.]+\.cmd\.[^.]+$` flagged 139 valid prefix-dotted modules ] and looked `<base.cmd>` up by module name [ it is keyed by command name ] -> every real command reported 'internal subroutine'. fixed to `\.cmd\.([^.]+)$` + lookup by the captured name.
 
-#,,.,,,.,,,,.,,..,,..,.,,,,,,,,,.,.,,,.,,,,,.,..,,...,...,...,..,,,..,,.,,.,,,
-#FTSYMSKSMBVF7BZLLOYOTMI7PHUCKXW6LXVG4DLFDHGHO7762FOKIARBSX5GVBPY6KKA33NKBXDTG
-#\\\|ECEO2WO2MUNURZDVQGXFV27ZYI2H6FGRDCFDLNI2QCGJO2HP74B \ / AMOS7 \ YOURUM ::
-#\[7]QEQKXUDXCADORFPYZIFFBOX6FHMQXQUD564UGHIKIUOFL2NUEOBI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,..,,..,,,..,.,.,,..,..,,,,,,,..,..,,...,...,,..,..,,,..,..,,.,.,
+#QSZE5MXUI7AMNRUFPS2DRS37A7DDEQO47ZJEZQGJVKIAJI6X35RYJ33E537WCDAT4EKYUNPNXP34Y
+#\\\|AX7GCKHIA4NDOQNY5CMGTK7DCIJPJALSJJ3Y4PHOQU5GRJ5BS26 \ / AMOS7 \ YOURUM ::
+#\[7]66EIOY5OQYYH4KB6S6TPTMOCLE6Q4PP6CM33JXDRNUPKN3NCD6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

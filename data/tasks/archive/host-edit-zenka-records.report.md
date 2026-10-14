@@ -1,6 +1,6 @@
 # host-edit zenka : records + form [ lane B1 ] : report
 
-lane B1 of `data/md/design/HOST-SETUP.md`. base commit `b282f8fce`,
+lane B1 of `data/md/design/HOST-SETUP.md`. base commit `e6877c0f8`,
 branch `base`. no commit made. no zenka restarted ; all live checks ran
 against fresh per-invocation console processes.
 
@@ -114,8 +114,8 @@ advertised ], secret senders [ `<<` failure shape ].
    [ pre-existing before this lane ] and `data/md/design/HOST-SETUP.md`
    [ a 'reuse' section appeared mid-session -- a concurrent lane's edit ].
 
-#,,,.,.,,,.,,,,..,,,.,,.,,,,,,,,,,,,.,,,.,..,,..,,...,..,,.,,,...,,,.,,..,,,.,
-#UE7G5IJFPCPEI3435EP7JKICIU35E3CUGVV4YCQQ2FZNI2DXOHFXC3LKRD2NEHKXYBVFOGZRA6Y2O
-#\\\|TXS3LRXGUILE3XDOTF6B3Y6FDFNV6OL725K6CUSA6QKBJOMQTTF \ / AMOS7 \ YOURUM ::
-#\[7]QZUGROIGMLM3UXKQAFNHY3GSLGIEY52MXPFZOKTRCOLTPGGYTYDA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,,.,.,,,..,,...,,.,,,..,,.,,..,,...,..,,,.,,,,.,,,,,...,..,,
+#L622NHJ27LEUV2RP63KZYND2QOWLRYNVWNB2U3JCRVW2VZXATOAHCEME7MYYI5HRO3ABP3XHPETM4
+#\\\|IW2KZ3QFHFIHDOIFGZZLQI4UP7DLZHKHT6PQAS6SQW6UKM4JDL7 \ / AMOS7 \ YOURUM ::
+#\[7]GBWTDNQ7T3PVOKF4QGNFUQG6X6Z36S7XULAYKESXKSTPUNSVFOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
