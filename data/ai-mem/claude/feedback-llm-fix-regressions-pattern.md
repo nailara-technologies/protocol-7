@@ -5,8 +5,8 @@ metadata:
   type: feedback
 ---
 
-found 2026-09-30 : `eaab2467f` [ log request into one-shot init_reports ],
-`a40e31e96` [ resolve hook inside the pure dependency.ok ], `c9ffcacca`
+found 2026-09-30 : `aa2235630` [ log request into one-shot init_reports ],
+`c8cd075d0` [ resolve hook inside the pure dependency.ok ], `184e84fa6`
 [ latency outliers at level 1 ], plus an old never-built "check if already
 online" in v7-zenki's own log branch. common shape : a fix for ONE observed
 case changed a generic path [ base.*, dependency.*, a shared handler ] on an
@@ -29,7 +29,7 @@ starting generic changes before explaining why other zenki worked ].
   free test zenka ], then `git log --follow` the path for the commit that
   introduced it and read its message for the assumption
 - read the fix history of the path for storm \ race fixes a change must not
-  undo [ e.g. 494791f15, the log storm fix ]
+  undo [ e.g. 5a16981ce, the log storm fix ]
 - test every scenario type the history names, not only the reported one
 - one-shot mechanisms [ init_reports, callbacks.initialized, verify-instance ]
   are the usual trap : anything queued after they fired is silently never
@@ -37,8 +37,8 @@ starting generic changes before explaining why other zenki worked ].
   similar, but the files ARE re-read -- cause open, see
   data/tasks/v7-zenki-start-setup-runtime-reload.md ]
 
-#,,,,,,.,,,.,,,,.,.,,,..,,.,.,.,.,...,,,,,,,.,..,,...,...,,,,,,,,,.,,,..,,...,
-#IVB45S6AL4T6D56IPG6VSILY5TF6DNOZOWMKN6CVOWWLVV3U4USKQYNTRFMDPKVQIIKPSWFS4BMRQ
-#\\\|ZLTZX4H7KVDZVYJDJ4PVKP57YF3KHER6FQ2UUOMINDESV5O77ZN \ / AMOS7 \ YOURUM ::
-#\[7]3CWLHGAW6NKT3N5ALR3U2UCDYXQWPEGQHAUU7TIQE3G5EIDOZWCA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,..,,..,,.,.,.,.,,,.,,,.,,,.,..,,...,...,...,...,.,.,,,.,..,,
+#EACEFM7YLXJD3KXMRBKKKB7KOMBAOTQMKPANXVRHCES5FEQDT2UB2CLQ5ZKYAWJPLATFMIS6BJPHY
+#\\\|NUTWGMTCIUBLEQPI6XG65ZC6VCGJ54JOLD7K6K26HAKUC3SGX7R \ / AMOS7 \ YOURUM ::
+#\[7]PG3B2O3ZU6QUWBRXSDXDBNR6FCD4VRYXJ4ENKVO7TIIKALPQYYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

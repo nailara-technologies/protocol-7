@@ -11,7 +11,7 @@
 ## why now
 
 scoped immediately after landing the model-sweep state machine
-(`coding-test-iteration-state-machine.md`, commit `bc81c9d82`) and
+(`coding-test-iteration-state-machine.md`, commit `ab845c26f`) and
 using it live -- surfaced a separate, more fundamental gap in the same
 session: nothing in `coding.spawn_inference_server`'s kill-old-process
 logic checks whether a real task request is in flight before killing
@@ -264,7 +264,7 @@ task does.
 
 ## related
 
-- `coding-test-iteration-state-machine.md` (landed `bc81c9d82`) -- the
+- `coding-test-iteration-state-machine.md` (landed `ab845c26f`) -- the
   sweep state machine this extends; read its state model and the real
   committed `poll_sweep`/`cmd.model-sweep-pause`/`-resume` code before
   starting.
@@ -280,8 +280,8 @@ task does.
   change from earlier this session and scope #4's `queue_paused` fix
   live in this same file.
 
-#,,.,,.,,,,.,,,.,,...,,,.,,.,,...,,..,.,,,,.,,..,,...,...,,..,.,,,,..,.,.,,.,,
-#W3WYYMO655JD2D3YD547SXT4KEZOH7PE5CB4TPLISS7QYIHH4M25HMZ7TNL2XO5HDBUFMZGAD2R4U
-#\\\|UERX5O6X4RCLZUVHK2XUY2P6FQPEI6OP62BJHHGSO7BVDWLDDHN \ / AMOS7 \ YOURUM ::
-#\[7]IQ7BEWNHP2562RA34EJATO2CZNZ55W2HCOLVGIXQOBPGJD5FNECA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,,,,,,,.,,,,..,,.,,,,,,,,,,,..,..,,...,...,,..,.,,,,,.,,..,...,
+#DAZN6NMIIQFM2GTZK3DXNWF2ENI7ZITL4JNAGSW4LIFXEV2RVY66WNQXIFLPPT7NI6ASUC6KJSTAQ
+#\\\|G5V2UWKMJFMZW2QZQPOUXOPFE6FIK45ANFXUGRWRCYCFO2EDSVT \ / AMOS7 \ YOURUM ::
+#\[7]7T6IJVNV4T2UFYWGGLJOEHA2OGXY2LKX6JBWB44OJUOSBMQVVWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,12 +19,13 @@ $instance->{'timer'}->{'heartbeat-timeout'}->cancel
     and not $instance->{'timer'}->{'heartbeat-timeout'}->is_cancelled;
 
 ## cube answered FALSE 'client not present' : the zenka's session at cube   ##
-## is gone. between a zenka ending [ its cube session closes the moment the ##
-## process exits ] and our own end processing [ sig_chld ->                 ##
-## process_zenka_end ] there is a window where a heartbeat in flight gets   ##
-## exactly this reply -- that is not a heartbeat error. ending states are   ##
-## left to the end path ; only 'still online, no zombie, still no session   ##
-## after one 1s re-check [ no loop ]' falls through as a real problem       ##
+## is gone. between a zenka ending                                          ##
+## [ its cube session closes the moment the process exits ] and our own end ##
+## processing [ sig_chld ->  process_zenka_end ] there is a window where a  ##
+## heartbeat in flight gets exactly this reply -- that is not a heartbeat   ##
+## error. ending states are left to the end path ; only 'still online, no   ##
+## zombie, still no session after one 1s re-check [ no loop ]' falls        ##
+## through as a real problem                                                ##
 if ( $response->{'cmd'} eq qw| FALSE |
     and ( $response->{'call_args'}->{'args'} // '' )
     =~ m{^client not present} ) {
@@ -129,7 +130,7 @@ if (    $response->{'cmd'} eq qw| TRUE |
         ## an outlier is counted [ list heartbeat ] ; logged only above an ##
         ## absolute floor too -- 10x a ~2ms average is ~20ms, under memory ##
         ## pressure nearly every heartbeat, which filled the log file at   ##
-        ## level 1 every few seconds [ c9ffcacca ]. logfile at level 2     ##
+        ## level 1 every few seconds [ 184e84fa6 ]. logfile at level 2     ##
         if (    defined $ref_value
             and $ref_value > 0
             and $latency > 10 * $ref_value ) {
@@ -201,8 +202,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,,.,..,,.,,,,,,,.,.,...,...,.,,,,,.,.,.,,,.,..,,...,...,,,.,.,.,.,.,..,,.,.,
-#3Y6EOMKI76O66TVWSA7SW7LZTY3EYWESPN7MSOXGLOPAYYWNDIRUMIQJKKJGNQVNDW5XLVCRRCN6K
-#\\\|RXISK2ECVYKLNOOK56HQ2IFDLXZIWZUABP2PBSO5SZHOPVNIS3P \ / AMOS7 \ YOURUM ::
-#\[7]I64LF4O25NKP76TS76UDSWWYXKIK373E6WNGXDB5K6HMBTLXTADI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,..,,.,,,.,.,,..,,..,,..,.,,,,,,,..,,...,...,..,,.,.,.,,,..,,...,
+#GRDXRSB2JNFR3VUW2OJJCH7OQZ6O6DGWSZAXVNMSW5IJRILCL2I3JTFNNLFRSQBF5LKHQL6RJSHWI
+#\\\|JL7IEK7QW36UKUJDJQEJRJXNZA3CJ4YR6OGKF3RZ27J7SOEKA23 \ / AMOS7 \ YOURUM ::
+#\[7]IFYQQTU2KRR6LGKLYAGFICAN5AY25ASVKXZJ6CYGPOKOE7EXGMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

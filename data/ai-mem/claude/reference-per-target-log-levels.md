@@ -1,11 +1,11 @@
 ---
 name: reference-per-target-log-levels
-description: base.log / base.logs accept '<console>[:<buffer>][:<logfile>]' level specs [ 3ef566b27 ] -- use '2:1' to hide a line on the console but keep it in buffer + logfile, instead of plain level 2 [ which drops it from the logfile at default verbosity ]
+description: base.log / base.logs accept '<console>[:<buffer>][:<logfile>]' level specs [ e7860c6e8 ] -- use '2:1' to hide a line on the console but keep it in buffer + logfile, instead of plain level 2 [ which drops it from the logfile at default verbosity ]
 metadata:
   type: reference
 ---
 
-Since 3ef566b27 [ 2026-09-24 ] the level argument of `<[base.logs]>` /
+Since e7860c6e8 [ 2026-09-24 ] the level argument of `<[base.logs]>` /
 `<[base.log]>` may be :
 
 - `1` -- plain digit, same level everywhere [ unchanged behaviour ]
@@ -29,8 +29,8 @@ to level 3 ]. `devmod.skip_v7_heartbeat` was dead [ never set ] and got
 removed 2026-09-24 ; `devmod.skip_log_msg` [ p7-log append lines ] is
 still in use.
 
-#,,,.,,,,,.,,,.,,,.,,,,.,,,,.,,..,.,.,,..,,..,..,,...,...,.,.,,,,,,..,.,.,,..,
-#7YLTQHWTDJFIXDHSG2ZP6S2TLDYVY2JJRUPPXKX2TGH6FDQIG6WF5XEBHSAWXWOTSK54FCZLKHPBU
-#\\\|4QREHPXRKVZZH656Q6UBYNVAIKSB7IJPWTO7V3N5FS5G6EQDNGF \ / AMOS7 \ YOURUM ::
-#\[7]2YJYM7II42PGQ37HAPXCCAWWO5PIT4RR7T3QNPY3H4YS6ZLLPOBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,,,,,.,,.,,...,,.,,,,.,.,.,,,,,..,,...,...,..,,,.,,,,.,,..,,..,
+#LJHNJV2YL2SQEOS4ZID56BAZRUOQBXTBNRR4EXDHFTCXJWG3SGQWZVQGNXR6O3ADOCEVISBJIFUQQ
+#\\\|M53YRZXAQWW6A6EXV6EFQ53O4IHSZFSWLQYTDN2KU5ND3V7YWTO \ / AMOS7 \ YOURUM ::
+#\[7]QNHP7ZOVKCCOCT7UZ4EZBHZ3OYYVBBNLGM6UZRXZHCYPLDOAFMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

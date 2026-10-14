@@ -539,10 +539,10 @@ its own doc comment — would corrupt that pass).
 Three more landed this session, all opt-in / additive, none touching the
 existing step0-step5 pipeline:
 
-- `-d` (`step6_compact_data_sugar`, commit 5cd3d50e4): rewrites literal
+- `-d` (`step6_compact_data_sugar`, commit 9e906dbf3): rewrites literal
   `$data{'a'}{'b'}...` chains (depth >= 2, all-literal bareword-shaped
   keys) into `<a.b...>` sugar.
-- `-m` (`step7_compact_module_call_sugar`, commit 5d4972cb7): rewrites
+- `-m` (`step7_compact_module_call_sugar`, commit 949ac9321): rewrites
   literal `$code{'a.b'}->(...)` into `<[a.b]>->(...)`, always keeping
   `->(...)` verbatim rather than also eliding it for the zero-arg case.
 - Both gated on a new `is_p7_module_text($text)` check (the literal
@@ -556,7 +556,7 @@ existing step0-step5 pipeline:
   (`--data-sugar`/`--module-sugar`) -- this project categorically avoids
   `--` long-form flags, single-dash only (`-data-sugar`, `-module-sugar`).
 - `used only once: possible typo` on any `main::` symbol, commit
-  b32a57834: `real_syntax_errors`'s `-c` check only ever sees ONE file at
+  ce03d79f3: `real_syntax_errors`'s `-c` check only ever sees ONE file at
   a time, but `main::` symbols in this codebase routinely get
   installed/referenced from elsewhere at runtime (devmod, `-vvv`-gated
   features, a glob-assigned canary like `base.init_code`'s own
@@ -588,13 +588,13 @@ existing step0-step5 pipeline:
 Same session, after the -d/-m/used-once work above.
 
 - `-p` / `-postfix-deref` (`step8_compact_postfix_deref_sugar`, commit
-  82fdb008d for the repo-wide pass): `${<key.path>}` / `%{<key.path>}` /
+  6e8689860 for the repo-wide pass): `${<key.path>}` / `%{<key.path>}` /
   `@{<key.path>}` (including the `<[module.name]>` call-sugar form) ->
   postfix deref (`<key.path>->$*` etc.), only when the braces contain
   nothing but the bare sugar token. 271 real occurrences. Simplest of the
   four new steps, landed clean on the first real dispatch.
 - `-r` / `-regex-style` (`step9_normalize_regex_delimiters`, commit
-  d12228697 for the repo-wide pass): `m//`/`s///`/bare `=~ //` ->
+  3f9841d67 for the repo-wide pass): `m//`/`s///`/bare `=~ //` ->
   `m||`/`s|||`, escalating to `m{}`/`s{}{}` only when the body contains a
   literal `|`. Authoritative rule source:
   `data/yaml/context-templates/regex-style-fix.yaml`. **Real, severe bug
@@ -609,7 +609,7 @@ Same session, after the -d/-m/used-once work above.
   intentional empty regex match is essentially never real code, while
   `X // default` is everywhere in this codebase. 541 real occurrences in
   the eventual clean repo-wide pass.
-- Signal-handling gap found separately (commit e2b6ea1ef): the
+- Signal-handling gap found separately (commit 01cefbd8c): the
   `-c` check path's `.chk.<name>` temp file only got cleaned up on normal
   completion -- Ctrl-C, an external TERM, Ctrl-\, a downstream pipe reader
   exiting early all left it behind. Fixed: track the in-flight temp file
@@ -635,8 +635,8 @@ outright deleted, both traced back to this).
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]], [[project-ncode-write-path-2026-07-24]]
 
-#,,,,,,,.,,,.,,,,,..,,,,,,.,.,,,,,.,.,,.,,.,.,..,,...,.,.,,,,,,,,,,,,,,..,,.,,
-#X4ULZ2PISSRQ55MQJ35ZGPSCVN3USZHZ2N6EFS55DVQ62NEA2TFP3KYWWL2AVQGBJ7TXUPL54WDPC
-#\\\|UETWRLDQEHZUSG5CQD4BNWQEBU55NICY6IFQB52I4IDX3QLV36W \ / AMOS7 \ YOURUM ::
-#\[7]HKVSQV5BYMIPOY24GR4OHA26TKWXQAIC6656SR5MPIVVATOILOCY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,..,,,..,,.,,...,,.,,,,.,,..,..,,..,,...,...,...,,,.,,,.,...,,,,,
+#D3W3Z63DWYZD5P5Q5AXLBTDCB7LVBSO7EOUSJLA4V2Q3KMY3ZP7NKIK6BPER5PDXX5OE7DLBHBBYK
+#\\\|FNJLTH4HC5PZR2EFXJTCOIRAM56YOSWF7RB6EVTTDLKPWKCWUO3 \ / AMOS7 \ YOURUM ::
+#\[7]CQ63VJGIVD7AL4IQDSV5JRRSVPF6VUICCU2LUIH3JVQFFS3EPGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

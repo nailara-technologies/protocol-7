@@ -504,7 +504,7 @@ items:
   text: compact nested $data{} chains into <key0.key1..> sugar
 - added: 3XAZZVOTPI
   details: |-
-    Reported by the user 2026-09-01 after live-testing 814d0f963's radio fixes
+    Reported by the user 2026-09-01 after live-testing 61f2a454f's radio fixes
     (radio-playback-resilience-phase2.yaml + radio-startup-notify-and-backoff-fix.yaml,
     both since archived to data/yaml/archive/completed-coding-tasks/ as tested and
     working overall). A minor glitch still occurs in jingle detection during
@@ -1020,12 +1020,12 @@ items:
     - reverse dns stays on the protocol-7.network names [ one ptr per ip ; the v7.ax name is an additional forward name ]
     - all names pass the harmony check, lower and upper case
     - glue at the registry and the a \ aaaa records in our own zone must match -- an ip change needs both updated
-    - dns-01 LIVE [ 2026-10-11 ] : production certificate for protocol-7.network issued on new server 1 through the delegated alias [ registrar zone : acme.protocol-7.network NS dn0000 + _acme-challenge CNAME ; our nameserv answers v4 + v6 ; letsencr host.cfg : challenge.type dns-01, provider nameserv, challenge_alias ]. staging first, then production ; renewal runs the same path, no registrar credentials, no web server. code : 2f656aa2e [ host overlay, nameserv v4+v6, challenge alias ], 41f8c6a6d [ challenge.type honored ], deployed by the pull-git zenka. next : the wildcard [ request-certificate with extra names, or an httpsd vhost '*.protocol-7.network' ]
+    - dns-01 LIVE [ 2026-10-11 ] : production certificate for protocol-7.network issued on new server 1 through the delegated alias [ registrar zone : acme.protocol-7.network NS dn0000 + _acme-challenge CNAME ; our nameserv answers v4 + v6 ; letsencr host.cfg : challenge.type dns-01, provider nameserv, challenge_alias ]. staging first, then production ; renewal runs the same path, no registrar credentials, no web server. code : 2e1e3bdd6 [ host overlay, nameserv v4+v6, challenge alias ], 8233b330a [ challenge.type honored ], deployed by the pull-git zenka. next : the wildcard [ request-certificate with extra names, or an httpsd vhost '*.protocol-7.network' ]
     - third provider [ later, not urgent -- user 2026-10-11 : without users a provider-wide failure can wait an hour ; dns already has the registrar's name servers as third point ] : candidate a small hostinger vps [ 1 core, 4 GB, 50 GB, 4 TB traffic, cheaper than the old host -- enough for a name server + backup mx ]. or an ionos vps s+ [ 1 vcore, 2 GB, 60 GB nvme, unlimited traffic, ipv6 /80, eu \ us \ uk data centers ; 2 eur for 3 months, then ~5 eur [ the reference price ], 10 eur setup -- ~61 eur the first year, ~5 eur a month after ; a large stable provider ]. or interserver 1 slice [ 1 core, 2 GB, 40 GB ssd, 2 TB transfer, 3 usd \ month with their price lock -- no introductory trap ; data centers in the usa as far as known : geographic diversity for dns, but a backup mx would queue mail under us jurisdiction ]. before ordering any : outgoing port 25 open, the price after any introductory term, the minimum term, the data center location. avoid : vultr [ blocks smtp, refused to change it ], digital ocean [ low tiers expensive, specs unchanged for years ], 1blu [ bad experience, owner bought up alternatives ], ramnode [ no longer the cheap large-disk option ]
     - geo-aware answers [ user, 2026-10-11 ] : a us node would serve us users with less latency -- nameserv answers by where a query comes from [ the resolver's ip, or edns client subnet when the resolver passes it ], mapped to a region -> the nearest node's address ; later capacity-aware [ a full node drops out of the answers ]. already planned : the loc= field in DNS_RHIZOME.md's txt records and roadmap phase 4 [ load-aware routing, failover ]. short ttls for entry points [ 60-300 s ] -- answers are cached
     - location order as traffic grows [ 2026-10-11 ] : eu [ the two servers ] -> new york [ shortest link to the eu ~80-90 ms, the east coast, large exchanges ; interserver's data center is in secaucus nj ] -> dallas [ the center, ~30-40 ms to both coasts ; geodns splits east \ west ] or los angeles instead if asia-pacific traffic grows by then. decide by where traffic actually comes from [ node logs, geodns ]
     - short-lived failover nodes [ user, 2026-10-11 ] : keep the digital ocean \ vultr accounts for fully automated, temporary failover -- hourly billing, full apis, many locations. flow : a zenka creates a vm through the api, it fetches its set-up + code version by reference and verifies them [ 4EO reproducible set-up ], joins the network, nameserv adds it to the answers ; when the original is back it drops out of dns and the vm is deleted. limits : no mail role on vultr [ port 25 blocked ] -- mail fails over to the second server ; api tokens can spend money : vault \ zenka secret store, a spending limit at the provider where offered
-    - dns-01 for all three domains LIVE [ 2026-10-11 ] : protocol-7.network, v7.ax and one private domain -- production certificates on new server 1. letsencr host.cfg : challenge_alias_prefix acme, alias_ns ; nameserv ensure-zone created acme.v7.ax and the private domain's acme subzone itself [ 30a0d0665, 48cd3c5d3 ]. a new domain needs only the registrar entries [ acme.<domain> NS, _acme-challenge.<domain> CNAME ], nothing on the server. next : the wildcard [ request-certificate with extra names ]. new node 'delta' [ 3rd provider, 1 vcpu xeon avx-512 \ vnni, 2 GB, kvm, debian 13, ipv4 only ; rdns delta.protocol-7.network, forward in both domains ] -- to do : port 25 check, protocol-7 install, ufw narrowed to its roles
+    - dns-01 for all three domains LIVE [ 2026-10-11 ] : protocol-7.network, v7.ax and one private domain -- production certificates on new server 1. letsencr host.cfg : challenge_alias_prefix acme, alias_ns ; nameserv ensure-zone created acme.v7.ax and the private domain's acme subzone itself [ 53e755c75, 268fb29f2 ]. a new domain needs only the registrar entries [ acme.<domain> NS, _acme-challenge.<domain> CNAME ], nothing on the server. next : the wildcard [ request-certificate with extra names ]. new node 'delta' [ 3rd provider, 1 vcpu xeon avx-512 \ vnni, 2 GB, kvm, debian 13, ipv4 only ; rdns delta.protocol-7.network, forward in both domains ] -- to do : port 25 check, protocol-7 install, ufw narrowed to its roles
     - third name server [ decided 2026-10-11 ] : DN1110.protocol-7.network on delta [ passes harmony in both cases ; chosen over DN0010, which completes the numbering but fails harmony -- the rule wins ; 0000 -> 0110 -> 1110 adds a set bit each step ]. set : DN0000 [ + DN0000.v7.ax ] on new server 1, DN0110 on new server 2, DN1110 on delta -- three name servers at two providers ; the registrar's name servers no longer needed as the third point, may stay as a fourth. glue for DN1110 at the .network registry [ ipv4 only, delta has no ipv6 ]
   done_at: null
   id: CJ3
@@ -1204,7 +1204,7 @@ items:
   - network
   text: 'yourum : no ipv6 since the 2026-10-12 02:32 reboot -- gateway fe80::1 does not answer neighbour discovery, config unchanged since 2025-12 [ provider side ? ]. dn0110 unreachable over ipv6'
 - added: 3X4ZRLHDIM
-  details: 'landed 962a74069 [ 2026-10-12 ] : tcp 53 live on pri, delta, yourum [ v4 + v6, checked from pri \ delta ]. pri : ufw 53/tcp opened. yourum : systemd-resolved held 127.0.0.53\54:53 tcp [ blocks the wildcard bind ] -- static /etc/resolv.conf [ provider resolvers, old copy in /root ], resolved stopped + masked [ its sockets re-activated it ].'
+  details: 'landed 15ae9b99f [ 2026-10-12 ] : tcp 53 live on pri, delta, yourum [ v4 + v6, checked from pri \ delta ]. pri : ufw 53/tcp opened. yourum : systemd-resolved held 127.0.0.53\54:53 tcp [ blocks the wildcard bind ] -- static /etc/resolv.conf [ provider resolvers, old copy in /root ], resolved stopped + masked [ its sockets re-activated it ].'
   done_at: 3X42BNNIJ4
   id: NRQ
   priority: normal
@@ -1245,8 +1245,8 @@ items:
     code signing [ user 2026-10-12 ] : the signing run gets the sourcecode key through the vault agent instead of a passphrase prompt, approved in the menu. stricter than other grants : approval per run [ no 'always', at most a very short window ], the request shows what is signed [ file count + list ] ; the agent performs the signing and returns only signatures -- the key never leaves it, not even to the requesting zenka.
     menu <-> agent [ user 2026-10-12 ] : an authenticated bidirectional STRM session [ see B2K ]. approving is authority : the session is bound to the real user [ kernel peer check on the unix socket + keypair login, never a claimed name -- the 2026-09-20 $USER bypass ]. a pending request names the zenka as the cube authenticated it, never as self-described [ else one zenka requests under another's grants ].
     approval as a dependency [ user 2026-10-12 ] : a request waits on 'user approved', the menu click resolves it and everything waiting proceeds [ template engine : slot resolution = dependency resolution ]. the approval carries the request id + a checksum of what was shown [ e.g. the file list to sign ] : a changed request does not match and stays open. only the authenticated menu session resolves it ; zenki can wait on it, never resolve it.
-    STAGE 1 LANDED 8113793bc [ 2026-10-12 ] : import \ export \ files, keyed-mac blob names, chunked cascade, mid-import check, blobs in sync. open : gc of unreferenced blobs, then the agent \ grants \ menu \ code-signing stages.
-    archive mode + export -d + sync at scale LANDED 5c4e1193f : import -a [ single pass, random blob name ], export -d, blobs unhashed in sync, list files instead of argv, pulled files linked not read. next : C2H [ member index ], HTC [ trickle upload ], gc.
+    STAGE 1 LANDED 842e59c58 [ 2026-10-12 ] : import \ export \ files, keyed-mac blob names, chunked cascade, mid-import check, blobs in sync. open : gc of unreferenced blobs, then the agent \ grants \ menu \ code-signing stages.
+    archive mode + export -d + sync at scale LANDED 0a20073d1 : import -a [ single pass, random blob name ], export -d, blobs unhashed in sync, list files instead of argv, pulled files linked not read. next : C2H [ member index ], HTC [ trickle upload ], gc.
   done_at: null
   id: Y7O
   priority: normal
@@ -1286,7 +1286,7 @@ items:
 - added: 3X44HEMSI4
   details: |-
     user 2026-10-12 : sort unsorted data before p7-vault import [ freeing the host \ wsl before the move ]. <sources...> -> <target>/<type>/ ; type by extension [ lowercased, jpeg -> jpg style aliases ], or by content [ mime type via file \ File::MimeInfo ] for files without or with a wrong extension. DEFAULT = dry run : prints the plan [ counts and sizes per type ], nothing touched until -go. copy by default, -move on request : same filesystem = rename, across filesystems = copy, verify [ checksum ], then delete the source. NEVER overwrite : an identical file [ same checksum ] at the target counts as a duplicate and is skipped [ with -move : the source is removed only after the match is verified ], a different one gets a numbered name. keeps mtime \ mode. writes a journal [ from -> to per file ] so a move can be undone. options : -x <glob> excludes [ as import -a ], -by ext|mime, -flat \ -keep-tree [ keep the relative source path below the type dir ]. then : p7-vault import -d \ -a per type dir.
-    LANDED 5c4e1193f [ 2026-10-12 ] as bin/p7-sort : dry run default, -go, -move [ verified across filesystems ], -by ext|mime, -x, -keep-tree, duplicates incl. numbered names, journal + -undo.
+    LANDED 0a20073d1 [ 2026-10-12 ] as bin/p7-sort : dry run default, -go, -move [ verified across filesystems ], -by ext|mime, -x, -keep-tree, duplicates incl. numbered names, journal + -undo.
   done_at: 3X44LDMTJA
   id: MER
   priority: normal
@@ -1296,8 +1296,8 @@ items:
   - tools
   text: 'pre-import sorter : files from source paths into type subdirectories of a target [ copy, or move ]'
 
-#,,..,,..,..,,.,.,,,.,,..,.,.,...,,,.,.,.,,.,,..,,...,..,,,..,,.,,,.,,,..,,,.,
-#WYVRSBJIFFGRZUL6OUREDMASZZQFKVTHMBJYQSU3FVWWH6A242IVQHLHBQGGLJSYQXRLSTIRUQ6XS
-#\\\|WUIPBSZTM3W26TSOUV45JZILTU5VVT5LAC2NFJVW4G5I6MRBWL2 \ / AMOS7 \ YOURUM ::
-#\[7]NQTEOL2EQRK4WKEDKCIPYURUTJGYLCKIDXFNEXL5UPT76QQ2ZSDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,.,.,..,,.,.,,,.,,..,,,,,,..,..,,...,...,..,,.,.,,,.,.,,,,,.,
+#JXB6IKNWMKKUESXSQHCNW4X2EDFZYLXR3YIRAEQOMRYRSIMUTKGGE6TXGLZX76HWU4N2FOM2JVXBE
+#\\\|KET4NS5U6GQHMAGBVLF27HEYVL3G52N3GQSJOWBDNKOQ4GXDYU2 \ / AMOS7 \ YOURUM ::
+#\[7]JL5YOJ4MKJQ3IXYR3V2LYDHZMGS7ETU4N5PVMBNXFVR3N26DCKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

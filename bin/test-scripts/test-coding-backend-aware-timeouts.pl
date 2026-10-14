@@ -159,7 +159,7 @@ compile_module('coding.handler.http_timeout');
 compile_module('coding.self_test.handler.poll_probe');
 
 ## poll_probe's watchdog abort routes through the shared named module      ##
-## coding.self_test.abort_probe since 0fd85797c [ self-test-stop command ] ##
+## coding.self_test.abort_probe since 0ba1d89ce [ self-test-stop command ] ##
 compile_module('coding.self_test.abort_probe');
 
 sub ok ($;$) {
@@ -438,7 +438,7 @@ $data{'coding'}{'self_test_probe_in_flight'} = { 'cpu' => TRUE };
         'completed as failure [ watchdog abort, partial results ]' );
     ok( scalar( grep { $_ eq 'externally aborted' } @errors ) == 1,
         'the probe pipeline got its synthesized abort error exactly once '
-            . "[ 'externally aborted' since 0fd85797c's shared abort_probe ]"
+            . "[ 'externally aborted' since 0ba1d89ce's shared abort_probe ]"
     );
     ok( !$data{'coding'}{'self_test_probe_in_flight'}{'cpu'},
         'per-backend guard slot cleared on the way out'
@@ -512,8 +512,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,.,,,.,,,,.,,...,,,,,.,.,,,.,.,.,,.,,.,.,..,,...,...,,,.,,,.,,,,,,.,,..,,
-#FUQG4TOVYATJP3FHEHG6ZVDHMIB7CPFYF35CGTKUDFHR25SOYNHGNHLOE3NXGQHKGYA4KOEEBYFUY
-#\\\|LLK4JOMCQHTEQTLSWQXDL4EUDMUCQDHRRZLQKGPB46LVQQNBARG \ / AMOS7 \ YOURUM ::
-#\[7]SSW2EMNUTG3ZVITGZHIHG5WDPP5ORQRMTGYUN25RAIS6ZRHZWYAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,...,.,,,...,...,,,,,,,,,,,,,.,.,..,,...,...,.,,,,,.,.,,,,,,,.,.,
+#VTSLYISFLKFIU46OCI5DB5AWPFKUKWRHGG4UOGLEZJH3SSO6ML2QOO2QFMNJSQ5FK5E6FVMUFNBQ6
+#\\\|RINVBZYRDVOQAAPELLLWVAXY6XPIJSKSTFBLLZ63X44NZXBLGFW \ / AMOS7 \ YOURUM ::
+#\[7]YJ53VMHSHHEPDNJIZKNFYBUOTCBZNTYAOAIGGDKHDG5BNYRU3ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -72,7 +72,7 @@ usr.cube`/`access.zenki` first, and only reach for `subroutines.load-early`
 if the actual symptom is a deferred compile error.
 
 **Zenka-to-zenka calls routed via cube arrive as user `cube` too**
-[ 2026-10-04, osf-cache stage 3, `512c58752` ] : a peer grant on
+[ 2026-10-04, osf-cache stage 3, `70db2d411` ] : a peer grant on
 `access.cmd.usr.<caller-zenka>` alone does NOT cover a `<sid>.cmd` /
 `<zenka>.cmd` call sent through cube -- the target zenka logs `no perm.
 [ src 'cube' cmd|usr '<cmd>' ]` and the caller gets `command not known
@@ -82,8 +82,8 @@ or no permission`. The command must be on the target's
 zenka-to-zenka connection. Unit tests with a stubbed route-send can
 never catch this -- only a live run does.
 
-#,,,.,..,,.,.,,,.,,,,,...,.,.,,.,,,,.,.,,,,..,..,,...,..,,.,.,,,.,..,,...,.,,,
-#BK75NVDFMYXMAM5LOGFY4TPY73ZI4KZL3YJF7G7JFW72TCMOV2YVJ5O4LKWIJFX2XUTCOYT52ZF5O
-#\\\|HUFBZSIMB5E3DBZ6PYVYW3NKTWUJ2RG2PMNOFRFN55LE2Y3FL2H \ / AMOS7 \ YOURUM ::
-#\[7]CSOSJNGCLQGIMUZJD6XKKVOHLMJJGNTZWAUCLRRPCGLLWWOAUMCA 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,,,,,...,,..,,,,,,.,,.,,,,..,..,,...,...,,.,,,,.,.,.,,,.,,,,,
+#CFDYBUJLCIO6BOYCKP7ZDAPSTNCS3SQOREBPGQWGV6UHQO3WLS5TAR46HAWBXVZNDACTDRRYZQY4W
+#\\\|RIC3ZF4OIMJFM74EGDLE5RPJNQP2XU2VHUUQFLL4GO6NGSKG5FX \ / AMOS7 \ YOURUM ::
+#\[7]NOVAIX2A3UWMTIDTZ3Z6W5OFP6UIRYZ3WFBADFQ7PLJ4KQWVKYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

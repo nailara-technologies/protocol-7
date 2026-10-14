@@ -63,7 +63,7 @@ this section, not assumed from docs alone:
    layer that gets a coding-zenka's live round/tool-call/output stream
    out to a ui attach point at all, addressably and typed. **build
    phases 1-3 directly on this, don't invent a parallel transport.**
-2. **content buffer -- 22 modules, one commit (`6a4d32e92`), zero
+2. **content buffer -- 22 modules, one commit (`dd272ee24`), zero
    tests, zero real consumers.** `vterm.*` is a real `Term::VTerm`-
    backed terminal cell/cursor/damage-tracked buffer with SHM zero-copy
    multi-reader access (`vterm.init_code`/`.cell`/`.instance`/`.shm`/
@@ -185,7 +185,7 @@ jobsite bulk candidate-scoring calls, all blank. Real but pre-existing
 gap in `coding.task.save_buffers`'s metadata collection for that task
 type, unrelated to this work -- not investigated further.)
 
-**PHASE 1 DONE, live-verified 2026-09-14** (`c51551b33`): both the
+**PHASE 1 DONE, live-verified 2026-09-14** (`d4138d654`): both the
 offline path (`list-backups`/`show-backup`) and the live path
 (`coding.cmd.subscribe-session` + `chunk_handler`/`state_machine`
 hooks) are landed and tested against real tasks. Along the way, found
@@ -201,7 +201,7 @@ clean close, no corruption on the follow-up call. Terminal chrome
 not the UI presentation layer; that's the natural next slice.
 
 **split-screen hardening round, live-verified 2026-09-14** (follow-up to
-`bcf1b4cb5`): the initial cut had three real bugs, all found live by the
+`93a328ddc`): the initial cut had three real bugs, all found live by the
 user and fixed in sequence:
 1. the styled separator (`frame_rule_line`) filled the terminal to its
    exact width, triggering pending-wrap and bleeding the next print onto
@@ -276,7 +276,7 @@ regardless of focus. API shape should be keyed (create/write/read/
 destroy against a specific buffer id) from the start, not singleton-
 then-retrofitted-to-keyed later.
 
-**split-screen prerequisite DONE, live-verified 2026-09-14** (`bcf1b4cb5`):
+**split-screen prerequisite DONE, live-verified 2026-09-14** (`93a328ddc`):
 nshell now supports a Tab-toggled split mode -- pinned input line at the
 bottom, live-streaming content scrolls above it via a real DECSTBM
 scroll region (`AMOS7::TERM::scroll_region_set/clear` + `pinned_row_print`),
@@ -369,7 +369,7 @@ never-fires call site. NOT yet live-retested end to end at time of
 writing -- do that before considering phase 1/Esc "done".
 
 **dead pinned task_id recovery, built + committed 2026-09-14
-(`99795a1e1`).** a tab whose `task_id` was pinned from an earlier round
+(`9221f46ea`).** a tab whose `task_id` was pinned from an earlier round
 -- most commonly after a coding zenka restart wiped its in-memory
 `<coding.task.queue>` -- surfaced a raw `"task not found: task-XXXXXXX"`
 error on the next Tab-in instead of recovering. Nothing nshell could do
@@ -391,7 +391,7 @@ text) -- this is only the narrow "don't show a raw protocol error for a
 task that's genuinely gone" case.
 
 **STRM-SIZE reliability chain, fixed + committed 2026-09-14
-(`3ab777247`) -- not a session-ui feature itself, but directly relevant
+(`d8115311e`) -- not a session-ui feature itself, but directly relevant
 to anything in this file that renders a large reply through nshell
 (e.g. a big `show-backup`/history dump, or a long streamed round).**
 Large SIZE-mode replies had no reliable path to a client whose own
@@ -705,7 +705,7 @@ more idiomatic than building raw pty-sharing from scratch:
   buffer `name:agent-interaction`, lazy GTK window, Z-shift scrollback
   history, headless-degrade to `record_question`.
 - **status, confirmed live 2026-09-13**: prototyped and partially
-  working, not just designed. `599440fde` ("feat(amos-term): interaction
+  working, not just designed. `d9d4aa36e` ("feat(amos-term): interaction
   plugin prototype, fix real SHM bugs found along the way") landed the
   notify-on-write dispatch and verified an ask/reply round-trip
   headless in the amos-term zenka, archived at
@@ -734,7 +734,7 @@ it's a different subsystem (amos-term's own buffer/plugin machinery),
 just not one that needs inventing.
 
 **caveat, user-confirmed 2026-09-13: amos-term has never actually been
-seen running.** all verification to date is headless (the `599440fde`
+seen running.** all verification to date is headless (the `d9d4aa36e`
 ask/reply round-trip). confirmed live: `amos-term` is not in v7's
 always-on `start-set-up.base` -- it's manually/on-demand started
 (`base.cmd.ondemand-zenka` etc. present in its `subroutines.load-early`)
@@ -899,8 +899,8 @@ precedent live in `bin/Protocol-7`:
   and the Esc/Ctrl+C/status-bar batch was already large and unsigned.
   build as its own separate, focused change when actually needed.
 
-#,,.,,...,...,,,.,..,,.,,,,,,,.,,,,.,,,..,,.,,..,,...,...,.,.,,.,,,,,,.,,,..,,
-#AOWSBLFHFPIJNO5W7FLTBF3AP7CZ2G5DF2MDUFSIN6CG2OTYQM3XQ47XXJH2UR55V2OTKTE7CDOGW
-#\\\|HPQBVG7F2A3ZROJXGKKAGSZ5TMEOKZNZGZKWHTNVOEZD3TB2YLR \ / AMOS7 \ YOURUM ::
-#\[7]TJW7YNY7E4MMYPW4H3Z2WBXQZTUYK66BFZAFR7Y54ALT57U5WICI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,...,..,,,..,.,.,.,,,..,,.,.,..,,...,...,,.,,.,,,.,,,.,.,.,,,
+#H2UDGWZFWZNIXFSFI3YHIMZ2RJRBOOPPCOX3OFVJKGAJEERVSFCMNDASYFEYHYB6N5WQENQSQEGB2
+#\\\|WV377XXOBGT4MEIFUW2CRNJC4T4MFKFW3AT7O4PFLT7SLMZLX4Q \ / AMOS7 \ YOURUM ::
+#\[7]3SIKMKBEENRQISSHTJY35G6Z23UG24ZPUDNOYA3RZ3ID46I2WMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -127,7 +127,7 @@ list under a second key ] without changing single-valued callers.
 
 ## status [ 2026-10-09 ]
 
-- stage A DONE + live : eb0cf4658, 4f4d1cbda. local staging run [ failure
+- stage A DONE + live : 8f22dfe8d, 42f5402a5. local staging run [ failure
   path : httpd ready before respond, one false reply, cleanup ] ; atom
   production run for the fresh name `ui.data.v7.ax` [ full success path,
   first real http-01 validation through the new flow, cert installed ]
@@ -157,8 +157,8 @@ list under a second key ] without changing single-valued callers.
   state record [ 2 ] is fixed in writing
 - claude : 2 + 3 + 6 + 7 [ the flow \ reply wiring ] and the review
 
-#,,,,,,,,,,.,,...,..,,...,,,.,,,.,..,,...,...,..,,...,...,.,,,,.,,,.,,..,,,,.,
-#HFWPUMPWGN27QL5CITLRCATP636JPJJLKC5D4KIXSRIPECAG7HRONAOBIAJHQNKWYZDUSLHK6SVXY
-#\\\|ORV6JENOME62X74ARNZJ3L5AX5UJ543YV5LPYVJM67OCH3H772L \ / AMOS7 \ YOURUM ::
-#\[7]ZSMSHPUM5JBKWE7MLDA5FEXDOI2SQVV4JOCEDWETQPJZ7RENRUBY 7  DATA SIGNATURE ::
+#,,.,,...,..,,,.,,,,.,.,,,..,,,,.,...,,.,,,.,,..,,...,..,,.,.,,,.,,.,,..,,,.,,
+#RKXLJ24XCS3T5N4EPZV6RD6L3CXLNDWD4SDKGHYPXFSCSWV2FPVLVOJZ7ZJES6GV5T656L6BI6KZ6
+#\\\|IVJROF3M7Y5HE2UWEGXH7YOMQRTZZFCNGV2QQNWVFW3XMKMAODG \ / AMOS7 \ YOURUM ::
+#\[7]LEA5QCSJXRD7TT3CNULKCBSAILVYR7RQPIPFU4LRNNTQ4IJP4OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

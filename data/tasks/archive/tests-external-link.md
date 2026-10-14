@@ -1,7 +1,7 @@
 # tests : external named links [ external.cmd.connect \ external.link.open ]
 
-ONE test-only script for code verified only live [ `c26bfb171`,
-`201605f07`, 2026-10-05 ]. no change to anything under `src/` or `cfg/`
+ONE test-only script for code verified only live [ `1a0bd0346`,
+`36b4de65d`, 2026-10-05 ]. no change to anything under `src/` or `cfg/`
 -- if a test reveals a real bug, STOP, describe it in the report
 [ inputs, expected, actual ], do not fix it.
 
@@ -85,8 +85,8 @@ write `data/tasks/tests-external-link.report.md` : full script output,
 what each check proves, anything that looked like a real bug
 [ described, not fixed ]. write it as soon as the script passes.
 
-#,,.,,...,...,,.,,,,.,..,,.,,,,,,,.,,,.,.,..,,..,,...,...,..,,,,,,,.,,.,.,,..,
-#G3LJGGJOBGUXZYFWZVY372QQPTLJHWB64TYWELJRFQCGFX6PEPNLA3V63GGI5ZLRHG6ZT34PR67TU
-#\\\|Z7JRPPVKA23UHYCWYPRTHI4S2VH25PTTCK7YPGTKBCQUV2G2AD4 \ / AMOS7 \ YOURUM ::
-#\[7]VBH7LW35SMUMEEMENLLXBGATVH76FDRSTQXEJL7LAWHEWBUUN2BQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,.,.,.,,,.,.,...,,..,,,.,,,,,..,,...,...,...,,,.,,..,,,.,.,,,
+#F4WZQ3NLMGGMPHHT6J4M2OWWZIZCOOLBEMWUHMPTHDTFDWHJKMM7LF6HVGD24VD3N3E2AYPOTC2OU
+#\\\|KQZW5MGQKNC5TFLQWYF4LPX47VZAWFBO5M4HTFLVVKHIAX7XYAC \ / AMOS7 \ YOURUM ::
+#\[7]Z4XB5LFCJB6KYHTC33JJQFGVDTECHIDJPMTQEW5XI7ZGRBJXZEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
