@@ -433,15 +433,29 @@ unless ($skip_signature_check) {
         $verify_status ||= $? >> 8;
     }
 
-    if (@existing_staged_files) {
-        my $file_args
-            = join( ' ', map { shell_quote($_) } @existing_staged_files );
+    ## verified in batches : the command reaches sh -c as ONE string,      ##
+    ## capped at 128K [ MAX_ARG_STRLEN ] -- a history rewrite staging some ##
+    ## thousand files failed with 'argument list too long' otherwise       ##
+    my $max_args_len = 65536;
+    my @batch;
+    my $batch_len = 0;
+    my $verify_batch = sub {
+        return if not @batch;
         my $verify_cmd
             = "cd '$root_path' && bin/Protocol-7 sourcecode "
-            . "verify-p7-signatures :inlist: $file_args 2>&1";
+            . "verify-p7-signatures :inlist: @batch 2>&1";
         $verify_output .= `$verify_cmd`;
         $verify_status ||= $? >> 8;
+        @batch     = ();
+        $batch_len = 0;
+    };
+    foreach my $file (@existing_staged_files) {
+        my $arg = shell_quote($file);
+        $verify_batch->() if $batch_len + length($arg) + 1 > $max_args_len;
+        push @batch, $arg;
+        $batch_len += length($arg) + 1;
     }
+    $verify_batch->();
 
     if ( $verify_status != 0 ) {
         print STDERR "${fg}::\n";
@@ -472,8 +486,8 @@ sub shell_quote {
     return "'$str'";
 }
 
-#,,,.,.,,,,,,,,..,.,,,...,.,.,,.,,...,,.,,,,,,..,,...,...,..,,,,.,,.,,.,,,.,.,
-#TJFE3TGZIDHQDD3BH4UWQE6BCKZ6GCWQUBJMUAFXFBRPD5CUA4BRXQSHP4XQPPZDHAIUPZET7HFCG
-#\\\|NW6CFC4LBIU3POJHKR7LTMXJGRURIRRS4SCJWWN4RYKZEADM4XT \ / AMOS7 \ YOURUM ::
-#\[7]4ERAETOAD2CE4QURB6ZBL5ZRUQCI5XIIIVBUYTCNQ55HB664QADY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,,,,..,,.,,.,.,,.,,.,,,..,,,,,,..,,...,...,..,,,,.,.,.,...,...,
+#QQACCEEAAHGHLWSBM6H337GNZE33HD34VDSE5RCUDEE5KZ5SJL4UE6RBYN5BPASMBB3YBFHRSHDTY
+#\\\|J5DVMANXVTUYEANW2JCLZ2UOTLNCM5SSVCPKT54KUIB3KBFEWYI \ / AMOS7 \ YOURUM ::
+#\[7]K5N7WM37GVJPX2XDQB6NMGQTDLSVZJQO64XPF2CQOXJCQR2PNYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
