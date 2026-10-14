@@ -82,8 +82,7 @@ my ( $out, $rc ) = sync( $dir_a, $dir_b );
 ok( $rc == 0,                                   'first sync succeeds' );
 ok( $out =~ m|pushed 1, pulled 2, conflicts 0|, '  :.. pushed 1, pulled 2' );
 ok( $out !~ m|invalid file name|,
-    '  :.. no invalid names on a clean '
-        . 'pair [ probe sections parsed apart ]'
+    '  :.. no invalid names on a clean pair [ probe sections parsed apart ]'
 );
 ok( $out !~ m{Odd number|uninitialized|used only once},
     '  :.. no perl warnings' );
@@ -211,11 +210,41 @@ ok( $rc == 0
     'scaling : a second sync transfers nothing'
 );
 
+## sync with several hosts : one after the other, a summary ; a refused ##
+## target is counted, the others still run                              ##
+{
+    my ( $dir_c, $dir_d ) = ( "$tmp/multi-c", "$tmp/multi-d" );
+    foreach my $copy ( $dir_c, $dir_d ) {
+        mkdir $copy or die $OS_ERROR;
+        system( 'cp', "$dir_a/vault.key.B32", "$copy/" ) == 0
+            or die 'key copy failed';
+    }
+    my $out
+        = qx{$vault_bin -d $dir_a sync fakehost:$dir_c fakehost:$dir_d 2>&1};
+    my $rc = $? >> 8;
+    $out =~ s|\e\[[0-9;]*m||g;
+    ok( $rc == 0 && $out =~ m|all 2 hosts in sync|,
+        'sync <host>... : both hosts, summary'
+    );
+    ok( "@{[ entries($dir_c) ]}" eq "@{[ entries($dir_a) ]}"
+            && "@{[ entries($dir_d) ]}" eq "@{[ entries($dir_a) ]}",
+        'sync <host>... : every host holds every entry'
+    );
+    $out
+        = qx{$vault_bin -d $dir_a sync 'fakehost:bad;dir' fakehost:$dir_c 2>&1};
+    $rc = $? >> 8;
+    $out =~ s|\e\[[0-9;]*m||g;
+    ok( $rc != 0
+            && $out =~ m|1 of 2 hosts not in sync \[ fakehost:bad;dir \]|,
+        'sync <host>... : a refused target is counted, the rest runs'
+    );
+}
+
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,.,,..,,,,,,.,.,.,.,...,,.,,.,.,,..,,.,,...,..,,...,.,,,..,,...,.,,,,,.,,.,,
-#AF26VWTAKKQAUZJZ3AZVB7IU7CIH75HIDJUDWIAGJGIS7XOPNOC7NDSZ4HRW5TTL5VFQUHAANMOKS
-#\\\|3YETXUKIXRQDS5PY7K67JROEIS75OK4H56EABQYB4ROP65BUL2F \ / AMOS7 \ YOURUM ::
-#\[7]5HIW6YOYW5NUB5FD6CGHUDMWYNW7MVEIF552GAGE577QNSADDMDY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,.,.,,,,,,.,,,..,,,.,...,,..,..,,...,...,,,.,,,,,..,,..,,...,
+#DSM5WP6ENGLKMPZDR6RH4QQP26GZBDJHBXP32DGYVSXOX6FIQ6TGA4QTTCZHRSND5DBCT2LEHSZXG
+#\\\|ZUK7WBGPSHASZZRS5YCTKSR664YYEOZLB77GWXSPSCJABVQM2OE \ / AMOS7 \ YOURUM ::
+#\[7]SR3SAE6OTUOWJJL7YOLUOSN4Q67BWWFZLCVFVN4SO4KSFON3AADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

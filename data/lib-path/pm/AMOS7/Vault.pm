@@ -47,6 +47,7 @@ our $VERSION = qw| AMOS7::Vault-VERSION.0000001 |;
     vault_verify
     blob_import
     blob_import_stream
+    blob_discard
     blob_export
     blob_verify
     archive_write
@@ -177,6 +178,7 @@ sub _write_synced_tmp {
     my $tmp = sprintf qw| %s.tmp.%s |, $path, _b32( _random_bytes(5) );
     sysopen( my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600 )
         or return ( undef, "cannot create $tmp : $OS_ERROR" );
+    _own_like_parent( $fh, $path );
     binmode $fh;
     my $ok = print {$fh} $content;
     $ok &&= $fh->flush;
@@ -201,6 +203,19 @@ sub _sync_dir {
 
 sub _dir_of { ( my $dir = shift ) =~ s|/[^/]+$||; return $dir }
 
+## run as root on a vault owned by a user [ sudo p7-vault -d ~user/.n/vault ]
+## : a new file \ directory takes the owner of the directory it is created in
+## -- the user can still read and write it afterwards. a no-op for everyone
+## else and for a root-owned vault. takes a handle or a path
+sub _own_like_parent {
+    my ( $target, $path ) = @ARG;
+    return if $EUID != 0;
+    my ( $uid, $gid ) = ( stat _dir_of($path) )[ 4, 5 ];
+    return if not defined $uid or $uid == 0;
+    chown $uid, $gid, $target;
+    return;
+}
+
 ## a new file that must not exist yet
 ## [ entry versions and blobs are never replaced ]
 sub _write_new_file {
@@ -219,6 +234,7 @@ sub _write_new_file_stream {
     my $tmp = sprintf qw| %s.tmp.%s |, $path, _b32( _random_bytes(5) );
     sysopen( my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600 )
         or return ( FALSE, "cannot create $tmp : $OS_ERROR" );
+    _own_like_parent( $fh, $path );
     binmode $fh;
 
     my $ok = eval { $writer->($fh); 1 } ? TRUE : FALSE;
@@ -608,6 +624,7 @@ sub vault_init {
     foreach my $sub_dir ( $dir, "$dir/entries", "$dir/blobs" ) {
         next if -d $sub_dir;
         mkdir $sub_dir, 0700 or die "vault : cannot create $sub_dir\n";
+        _own_like_parent( $sub_dir, $sub_dir );
     }
     chmod 0700, $dir;
 
@@ -1054,7 +1071,10 @@ sub blob_import {
         or $now[7] != $before[7]
         or $now[9] != $before[9];
 
-    mkdir _blob_dir($vault), 0700 if not -d _blob_dir($vault);
+    if ( not -d _blob_dir($vault) ) {
+        mkdir _blob_dir($vault), 0700;
+        _own_like_parent( _blob_dir($vault), _blob_dir($vault) );
+    }
 
     my $key = _blob_key( $vault, $name );
     my ( $ok, $err ) = _write_new_file_stream(
@@ -1088,7 +1108,10 @@ sub blob_import_stream {
     my ( $vault, $in_fh ) = @ARG;
 
     die "vault : locked\n" if not defined $vault->{'key'};
-    mkdir _blob_dir($vault), 0700 if not -d _blob_dir($vault);
+    if ( not -d _blob_dir($vault) ) {
+        mkdir _blob_dir($vault), 0700;
+        _own_like_parent( _blob_dir($vault), _blob_dir($vault) );
+    }
 
     my ( $name, $target );
     while (TRUE) {
@@ -1108,6 +1131,21 @@ sub blob_import_stream {
     );
     die "vault : $err\n" if not $ok;
     return ( $name, $size );
+}
+
+## remove a blob this process wrote a moment ago and nothing references -- the
+## stream of a failed archive import [ tar exit >= 2, no entry saved ].  never
+## for a blob that may have travelled : sync is a union, a deleted referenced
+## blob would be gone here and come back from the next copy.  returns TRUE
+## when the file is gone
+sub blob_discard {
+    my ( $vault, $name ) = @ARG;
+    return FALSE if not defined $name or "$name.vlb" !~ $BLOB_FILE_RE;
+    my $path = _blob_path( $vault, $name );
+    return TRUE if not -e $path;
+    unlink $path or return FALSE;
+    _sync_dir( _blob_dir($vault) );
+    return TRUE;
 }
 
 ## streaming decrypt, chunk frames walked in order. $out undef verifies only
@@ -1446,6 +1484,7 @@ sub archive_restore {
     foreach my $sub_dir ( $dir, "$dir/entries" ) {
         next if -d $sub_dir;
         mkdir $sub_dir, 0700 or die "vault : cannot create $sub_dir\n";
+        _own_like_parent( $sub_dir, $sub_dir );
     }
 
     my %report = ( added => 0, same => 0, conflict => [] );
@@ -1521,8 +1560,8 @@ sub gen_password {
 
 1;
 
-#,,,,,,,,,,.,,,.,,,,,,..,,,.,,...,..,,,,,,,.,,..,,...,...,..,,,.,,,,.,..,,...,
-#EO3CKTAOEAAJRY5CLT6SFBHPMRSK7J3ANRKVH77HCUQDO5Y6U6FUMWWNS7RSMWRMRPQT6FJW72WXC
-#\\\|4EMN63SDQSE6SFK7UGRL5AR3DRKQTNE7IQ6DZ5WTEOVZSFJGBM6 \ / AMOS7 \ YOURUM ::
-#\[7]HTWMO2R3OTJHXGSUESUQMT6LLYSKCXAVHXHRBQFAFI5OEI22PWAY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,,,.,..,,.,.,,,,,..,,,,,,.,,,..,,...,...,.,.,,.,,,,,,.,.,...,
+#6HJBJI3HRZSCZ4YKCOOAHJ7OFX3U25IJUMNZWJ3W5YJ2Y6KJB3O5TRZN5WUDJ2NAY6DQJM6N4TIKU
+#\\\|I6N6RXV7ZKMV2JADCPAUPIIGVBQIODBOGS7LZYMY2XTGGD7UACD \ / AMOS7 \ YOURUM ::
+#\[7]3LYUNLBVRUULEYML6GTGMK4L64GVSMTRUFFQLEX7MPOEYMPP7CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

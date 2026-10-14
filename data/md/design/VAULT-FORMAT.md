@@ -192,7 +192,12 @@ fields are kept as they are.
   directory. archives do NOT dedup -- the blob name is random, so two
   imports of the same directory are two blobs. the random name reveals
   nothing about the content and the stream is read once, so the
-  keyed-mac name of a plain import is neither possible nor needed
+  keyed-mac name of a plain import is neither possible nor needed.
+  unreadable paths refuse the import before anything is written ; with
+  `-i` they are left out as exact member names and listed in `skipped`
+  [ an export names them : the archive is not the whole directory ]. a
+  tar failure [ exit >= 2 ] saves no entry and removes its stream blob
+  at once -- unreferenced and never synced, nothing else could hold it
 
 - `code` : the 3-char display code of the entry [ bin/todo's chk3 shape :
   a random seed through AMOS7::CHKSUM, 3 chars ], collision-checked
@@ -255,6 +260,10 @@ scheme with a per-file random salt
 - a blob writes like an entry : a temp file inside `blobs/`, synced,
   then renamed only when the target is absent. an existing blob of that
   name means deduplication -- nothing is written
+- written by root into a vault a user owns [ `sudo p7-vault -d
+  ~user/.n/vault` ] : every new file and directory takes the owner of the
+  directory it is created in, so the user keeps reading and writing it.
+  nothing changes for other users or a root-owned vault
 
 ## archive : one file for untrusted copies
 
@@ -307,7 +316,8 @@ same base32 block, title `p7-vault archive`. binary inside :
 
 ## sync : a manual union of the entry and blob files
 
-`p7-vault sync <ssh-host>[:<remote dir>]` unites a vault with a copy on
+`p7-vault sync <ssh-host>[:<remote dir>]...` [ several hosts : one after
+the other, a refused one does not stop the rest ] unites a vault with a copy on
 another host [ remote dir default : `.n/vault` in the remote home ].
 entry version and blob files are opaque and never change, so a sync is a
 plain file union -- never overwrite, never delete. `entries/` and
@@ -371,8 +381,8 @@ the payload with the vault key, then step 2 for each record's data.
 a session agent [ unlock once per login ], the vault-edit form ui,
 totp code display, purging old versions.
 
-#,,,,,.,.,,..,..,,,.,,,,,,.,,,..,,,..,.,,,,,.,..,,...,...,...,,..,.,,,,,,,,,,,
-#226NDKIP47TZL3CK6XZ5LW7UNPEXOQLEQKRPBVZRZFH3UWX46S5AKPHDV76RU5UZRG764AI7N7PSU
-#\\\|RZNKK6YZYFYIOUH2KEP57HSQBFQH2HKHJLG6C7ETX7AAYI2KEPW \ / AMOS7 \ YOURUM ::
-#\[7]YHTVZUQCGGFSOTTXEIFKV3YIQE3VKAZXN5JG5JGEFMT4MYSMUKBY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,..,,.,,,,..,.,,,,,,,..,,,,.,.,,,..,,...,...,,..,,,.,..,,,,.,,,,,
+#MPDPCYAP56R6UCETK55APLSWERDC2W5ZH2Z7K2LEGMVFZBTDDXPPBFP5B4O3TWR246MJQUDKYPDWI
+#\\\|NFOP6XPDG3SK7WMTXYB7R6Y64I7UYJUW4V7EMLD6JOPZOM3CU5G \ / AMOS7 \ YOURUM ::
+#\[7]HCU3VVH4R4ITX4TPTQA6E5GUU6U4YP4R6DVKSPYADW3U75C7EUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
