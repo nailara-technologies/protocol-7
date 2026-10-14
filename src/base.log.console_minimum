@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = base.log.console_minimum
+# descr = raises console verbosity to at least [level], never lowers it
+#          [ -vv stays 2 ] -- for console zenki whose command results
+#          must show without -v, called after [init_modules] so the init
+#          noise stays at the configured level
+# param = [level] [ default 1 ]
+
+my $level = shift // 1;
+die "expected numerical verbosity level parameter" if $level !~ m|^\d+$|;
+
+<system.zenka.verbosity.console> = $level
+    if not defined <system.zenka.verbosity.console>
+    or <system.zenka.verbosity.console> < $level;
+
+#,,,.,,,.,,..,,,,,,.,,,.,,.,,,...,,,,,,,,,...,..,,...,...,.,,,..,,...,,,,,,..,
+#DAYQKJGWARTQW77SPNY6RYMWFP46HIQGDZHOE3LHJ2XX6UIUMMNMDDMYJW5B4ILYIT5GRNS56PJOO
+#\\\|I3UDV7IXOT3TSAY3FX4BS6TRAW2GTH6CKF3GRTTVSFWAX5BXQSH \ / AMOS7 \ YOURUM ::
+#\[7]R6T5KOZJGNQTU5RWAHNWHP32KK4RFWJEW6EH2IZ255YUBQIRS2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
