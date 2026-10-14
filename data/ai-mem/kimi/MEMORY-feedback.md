@@ -28,7 +28,7 @@ inside; use a combined restart [ stops AND starts ] or don't touch it.
 
 **rename update (2026-09-09)**: `v7` zenka renamed to `v7-zenki`, and
 `v7.stop`/`v7.stop-implicit` renamed to `v7-zenki.terminate`/
-`v7-zenki.terminate-implicit` [ commits a315a0e5a, 23a0e8d53 ]. the
+`v7-zenki.terminate-implicit` [ commits d555d3dfc, bd98e1c17 ]. the
 LESSON above is unchanged, but the commands are now `v7-zenki.terminate
 <zenka>` [ still dangerous on your own zenka, same deadlock risk ] and
 `v7-zenki.restart <zenka>` [ `src/v7-zenki.zenka.cmd.restart`, still a
@@ -64,8 +64,8 @@ Also fixed: `src/web-browser.cmd.stop_slideshow` line 7 was doing a bare `== 0`
 comparison against `<web-browser.slideshow.running>`, throwing an undef warning
 when called on an already-stopped slideshow. Guarded with `( // 0 )`.
 
-#,,,,,,..,...,,..,..,,,,.,,..,,..,,..,,,.,,,.,..,,...,..,,..,,,,,,,..,.,,,.,.,
-#EKNOHNSFGB2RFRU7GZT2DVYWF5SBHM3HTVEC2Y7FGYAJ6PGLZJTMXEXUAVT7CDVWUMJD436QNEQNQ
-#\\\|YULN2F6RGQJP2EX7PWDVFEYA6VX2DDDL3IG3GB2CEHDIZONVZ2A \ / AMOS7 \ YOURUM ::
-#\[7]LCV5WSA6XB4YCX3M2X4XREURH7L6KH6PQLRFUTM2EFJWAXTXWYDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,,,.,.,,,.,.,...,,,,,,,.,.,,,..,,...,..,,,,,,..,,,.,,.,,,,..,
+#Q3572WYTY4WEOWA6IAVTNNJC6O5XEAQO3NBY3ADE242CAPO37KYJCRQLOWUKSB4FD3NR5HSOWY5TE
+#\\\|XE3PNLJSO7RQPL5RMGTLNT5A6QSTLIAEWP4QRRJWDYJYBPK5K4Z \ / AMOS7 \ YOURUM ::
+#\[7]UJVFEH5XEKM4IAUDMXF4VCWD2PXRZK3QODPT7KY23HX4DQ7GYADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

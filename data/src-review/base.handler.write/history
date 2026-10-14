@@ -1,19 +1,19 @@
 # module  : base.handler.write
 # source  : git log [ 9383 commits, color.ui=false verified ]
 # filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
-# alias   : historical modules/<name> and base-code/<name> counted as this file [ 5255a50a3, 8a46ac4b3 renames ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ 62c6b7341, 8a46ac4b3 renames ]
 
 ## genuine commits [ 22 ] ##
 
-2026-05-07 b065fce90 fix: restore large-stream write resilience — EAGAIN/IO-watcher + UTF-8 byte counts
-2026-02-09 9b095a301 Add silence flag to base.session.check_remaining to reduce log noise
-2026-02-08 1ee6bef85 Systematic improvements to core handlers and connection management
-2025-11-25 3af33e4c7 Implement session-level SIZE/CHRSIZE mode negotiation for UTF-8 handling
-2025-11-24 e8b186565 Fix UTF-8 buffer handling for OCTETS mode compatibility
-2025-11-24 db2dd2edd Add write count limit to prevent event loop starvation on large downloads
-2025-11-24 6362ccd00 Fix HTTPS file download truncation to 16KB (one TLS record)
-2025-11-22 ab9aab1f2 committing deferred logging improvement, signed updated version
-2025-11-21 8a73b7f63 fix: Add dedicated base.ssl.write handler for SSL socket encryption
+2026-05-07 3f47480ad fix: restore large-stream write resilience — EAGAIN/IO-watcher + UTF-8 byte counts
+2026-02-09 b8c39874e Add silence flag to base.session.check_remaining to reduce log noise
+2026-02-08 3c722e8d3 Systematic improvements to core handlers and connection management
+2025-11-25 299edc2a7 Implement session-level SIZE/CHRSIZE mode negotiation for UTF-8 handling
+2025-11-24 b162dcb2c Fix UTF-8 buffer handling for OCTETS mode compatibility
+2025-11-24 5723bd564 Add write count limit to prevent event loop starvation on large downloads
+2025-11-24 dfa716ea9 Fix HTTPS file download truncation to 16KB (one TLS record)
+2025-11-22 08fe0cf1d committing deferred logging improvement, signed updated version
+2025-11-21 843bbfbb7 fix: Add dedicated base.ssl.write handler for SSL socket encryption
 2021-07-09 d4dccd568 implemented event callback 'base.handler.counter_overflow_reset'
 2021-06-23 4d7239273 changed behaviour of 'base.s_write' to return -1 for write error
 2021-06-19 3433d2080 implemented 'burst-writes' session param in 'base.handler.write'
@@ -30,14 +30,14 @@
 
 ## bulk/mechanical commits touching this module [ 20, flagged, excluded above ] ##
 
-2026-09-01 87b91fd5f [count=431] repo-wide: format-code -d pass -- compact $data{'a'}{'b'} chains to <a.b> sugar
-2026-08-20 5255a50a3 [count=11428] rename modules/ to src/, fix source signing error-state propagation
-2026-07-24 aae66588c [count=128] base: reflow via format-code; ai-mem: record perl-mod-reload redefined-warnings bug
-2026-04-19 319263e3b [count=111] base : STRM-SIZE stream-cancel infrastructure + cube capability-path fixes
-2025-12-02 92b2b7445 [count=266] style: Fix syntax errors from code style conversions
-2025-11-10 2b8e515ba [count=2153] resigned code-base with updated signature state algorithm
-2025-11-06 cf9046881 [count=2075] resigned twice to create stable signatures
-2025-10-13 6db545d59 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
+2026-09-01 4921a3c21 [count=431] repo-wide: format-code -d pass -- compact $data{'a'}{'b'} chains to <a.b> sugar
+2026-08-20 62c6b7341 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-07-24 932b57c4e [count=128] base: reflow via format-code; ai-mem: record perl-mod-reload redefined-warnings bug
+2026-04-19 199f0d643 [count=111] base : STRM-SIZE stream-cancel infrastructure + cube capability-path fixes
+2025-12-02 603b9f9aa [count=266] style: Fix syntax errors from code style conversions
+2025-11-10 fb7fc655c [count=2153] resigned code-base with updated signature state algorithm
+2025-11-06 c1f16da68 [count=2075] resigned twice to create stable signatures
+2025-10-13 36ded33e7 [count=2054] resigned all 'protocol-7' sourcecode with the new key.
 2021-10-20 1aff749ee [count=2048] replaced source code signature key and resigned all files
 2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
 2021-07-07 8a46ac4b3 [count=3053] renamed protocol-7 source code directory 'base-code' --> 'modules'
@@ -51,8 +51,8 @@
 2015-01-01 608badbbc [count=167] syntax change [foo.bar:baz] -> <[foo.bar]>->(baz) ... (part 2)
 2012-06-05 fbb9a337a [count=266] importing prototype sourcecode
 
-#,,.,,,..,,.,,,.,,.,.,,.,,.,.,.,.,...,..,,,,.,..,,...,...,,,,,..,,,.,,..,,..,,
-#DGUNS4E7D7DE44FXSAEUJCLXQTAFDMZUUIRZL266D5BTGFJLYU7WDQ2PFFDNAYZDE6LRI4EGW6OKW
-#\\\|NNCE2DFABK6J34XTUIIBGGANODYYKOTR5ODNQ336QXNGYOHBCDK \ / AMOS7 \ YOURUM ::
-#\[7]G4AFPEJDUKUF7YFTIKMJAG42LJBBIME7DBDPTVJXYS5E3U524WBA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,,,,,,.,,.,.,,.,,,..,,.,,..,,..,,...,...,...,..,,,..,.,,,,,,,
+#6HTCRSPVZT7OEQRTZ2KDRDSO6XL5L7T44HF37XMIOIJWIUEEDRNR2XKLX5LIL2FGYWP6VB4UN4PX2
+#\\\|VNSXAEBH5PN2JEUJUR7TC2RUO3LRWBP3CMHEMC6NPJWJNZWH36Z \ / AMOS7 \ YOURUM ::
+#\[7]CZBPSVKC3DBIYAJMYCE72TFQA5ZQ2TC5FFSQB5MQKJQIFDU3JIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

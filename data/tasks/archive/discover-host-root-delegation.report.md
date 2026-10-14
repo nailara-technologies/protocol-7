@@ -1,9 +1,9 @@
 # report : discover carries the host-root delegation [ web session ]
 
-branch `discover-host-root-delegation`, base `b7ffad700`
-[ = the task's cited code base `e3c3ee371` plus the commit that added
+branch `discover-host-root-delegation`, base `8244f9fa8`
+[ = the task's cited code base `b00126000` plus the commit that added
 `data/tasks/discover-host-root-delegation.md` itself ; HEAD was already at
-`b7ffad700` as instructed, so the work is on the intended code state ].
+`8244f9fa8` as instructed, so the work is on the intended code state ].
 
 implemented against the code + spec, tested with stubs. no backend run.
 
@@ -217,8 +217,8 @@ could not be installed. honest status :
   only on re-appearance ] + 5 [ orphaned %signatures modules ] are
   follow-ups
 
-#,,..,,..,.,.,.,,,.,.,,..,,..,.,.,.,.,.,,,,..,..,,...,.,.,...,,..,.,.,..,,.,,,
-#45TX2G7GLPRU2DL5VXPGORJSVPMPIYW6JGAU5MR3L7DRLZMCDCVNUEZE2Y3YJFQFKFU5FHYZNNSKG
-#\\\|YSB6RAOBBRFXHAYE7UDRCG3OQAZBXGIZP5MXH7VM6GPFI5OOVTS \ / AMOS7 \ YOURUM ::
-#\[7]AVNA4CVSPCCNRBHBRP5LG4WQWKVKX7YF7LECVBU6GERPH3BSKSAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,...,,,.,,..,,,.,,.,,...,..,,..,,...,...,.,,,,.,,..,,,,.,,.,,
+#6UG453FI3MO3GZQQNS7UKJK4L4PPUK27FWYIZWX6N7HUFJJWEUQSRGD6MHTEG3IUS3IT2CIHV63EO
+#\\\|I3Q5ZVWRJM2WYEZEO5KPSHZ6XCV67MQCTZDER2PDMFOOPBRSTOU \ / AMOS7 \ YOURUM ::
+#\[7]I7LTML2VZRPRSGDBTK4QKOMNA257Z5QWRKAI6I3ZRGJT2UATOIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

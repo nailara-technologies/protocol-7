@@ -127,17 +127,17 @@ but delivered none), the outer branch fired but the inner `@tool_calls`
 guard was false, so no state_machine transition ever dispatched. sm_state
 stayed `streaming` forever, `models.handler.task-result` was never
 invoked, and `task.complete`/`task.fail` never fired. fixed in commit
-`bc10c8d4d` ("fix: coding task orphaning on zero-tool-call rounds") by
+`e9833babd` ("fix: coding task orphaning on zero-tool-call rounds") by
 moving the tool_calls-array check into the outer condition and letting
 empty-tool_calls finishes fall through to the normal stop path (xml/json
-fallback parse, then `finish_stop`). follow-up hardening: `1cf273981`
+fallback parse, then `finish_stop`). follow-up hardening: `6402b5735`
 (2026-07-22, tool-call-shaped-but-unparseable content: bounded
-format-reminder retry, then clean fail) and `87e208f9d` (2026-07-31,
+format-reminder retry, then clean fail) and `01bce7d4b` (2026-07-31,
 reasoning-only stream close without finish_reason: bounded answer-nudge
 retry, then clean fail).
 
 note: plain `git log -- src/coding.*` after the 2026-08-20
-modules/->src/ rename (5255a50a3) shows only the rename commit; the fix
+modules/->src/ rename (62c6b7341) shows only the rename commit; the fix
 is only visible with `git log --follow`. the "not fixed by any commit"
 assessment was an artifact of that.
 
@@ -158,8 +158,8 @@ completed and fired deferred_reply — they vanished from `coding.list-
 tasks` because that command only lists active/pending tasks, and a
 completed task moves to the completed list.
 
-#,,,.,.,,,,,.,,..,,.,,,,,,..,,...,...,.,,,,,,,..,,...,...,,..,.,,,.,,,,..,,,.,
-#C4L7GAJMGEPHI4VXBCJCJHEBNFJQGXW2YCKB2E2MTDP35PRHF7MWB5SW2ZW7S7UGMN4QPTRLYGXX6
-#\\\|TLJVNW5NZPSLA4OVY6OXQKKYVMSJNUHKY5YDW3EYNXCKE555PJS \ / AMOS7 \ YOURUM ::
-#\[7]2CP7Y43CMFM3U26UBDMZJD6QR2UGX7VXMTZSC6ZGX5JQREX6B6DY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,.,.,.,,,.,,,.,.,,,...,,,,,...,..,,...,..,,.,.,,,.,,.,,,..,.,.,
+#OWZBPXYZDRZBVR2R773U5MVWCFKHVOALDWZDHPX4N4MXWWICVZYWSHNHWN4QMG7Y52SFGZSA3FKKS
+#\\\|BBFMOBSL2SI7HTQ3N2KEDIMH6FURA2GVBVCUPPZE5YENZHMXXFX \ / AMOS7 \ YOURUM ::
+#\[7]ONKTP43PCRKW3P7BYIY7JFNPNHDPBEPWA5UJQYSFOYF44K52JQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

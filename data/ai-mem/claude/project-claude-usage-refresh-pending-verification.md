@@ -1,6 +1,6 @@
 ---
 name: project-claude-usage-refresh-pending-verification
-description: claude oauth refresh-on-401 -- proven live through the spawn/trust/mcp chain; the retry-after-refresh race found and fixed 2026-09-23 (f73806def)
+description: claude oauth refresh-on-401 -- proven live through the spawn/trust/mcp chain; the retry-after-refresh race found and fixed 2026-09-23 (2a648f002)
 metadata:
   type: project
 ---
@@ -29,7 +29,7 @@ kimi's already-proven one, closing the specific gap this file existed to
 track — the spawn/trust/mcp/binary-resolution chain documented below
 remains a separate, already-proven concern.
 
-committed `7154ccbd4` (2026-09-16) : `plugin.usage.claude.refresh_token` +
+committed `7bd873e86` (2026-09-16) : `plugin.usage.claude.refresh_token` +
 refresh_retry/finish/reap/cleanup/io/timeout chain, mirroring
 `plugin.usage.kimi`'s proven 401-refresh-and-retry mechanism. triggers on http
 status==401 [ not local expiresAt -- live evidence showed the server
@@ -140,8 +140,8 @@ works reliably, this is extra latency + one extra mcp-server process per
 refresh cycle [ at most every ~5h/7d ], not a correctness problem worth the
 risk of moving the user's real global kimi config file aside mid-spawn.
 
-#,,,,,...,,,,,...,..,,..,,,,.,..,,,,,,...,,,.,..,,...,...,.,.,...,...,,,,,,..,
-#5QX7CZA7WY6PGNW4RTWXZKXXAFEIYCEO27K4NMLK4BS74346SGLKY53YNNHZ6OG7ZRXG2WAOPUQGC
-#\\\|TKX4F3OL2OZIQIJ26PHWH5ZEU7MUL3BMBSWFGY46DUF7ZETDQNO \ / AMOS7 \ YOURUM ::
-#\[7]EBI5ES4RONHVDSS26YQSZ37WR76GGR2VX4ULCZGKYUUU3CJ6BCCA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,.,,,..,.,,,.,.,,.,,..,,,,,,,,.,..,,...,...,.,,,,..,..,,,,.,.,.,
+#PRSKE7Z6O4PKSEVG4JVK333UWUTB3LYT3NB66B573JGSDDGSQQWXDPKZFXVSBCK2CHMCKZZFCGUDI
+#\\\|CKXWHWXGWTETTHSWPNMBNNHJ64WQR7XKYWDDTMSOQXEINZTFHS7 \ / AMOS7 \ YOURUM ::
+#\[7]76UW3KQNS7NU6GNXM24T3722X5VYHKNGUO3GIPR2TZARTPVCG2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

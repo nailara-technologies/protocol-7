@@ -65,10 +65,10 @@ working-tree edits in src/v7-zenki.post_init +
 src/v7-zenki.set_up_zenka_dependencies were left untouched [ not part
 of this task ].
 
-archived [ 2026-10-11 ] : landed as 177a79ef3.
+archived [ 2026-10-11 ] : landed as 3e6dcea8a.
 
-#,,..,,,.,,.,,,.,,,..,,..,,..,...,,..,.,,,,,.,..,,...,..,,.,,,,.,,,,.,.,.,.,,,
-#OZJRXEGBYVEDJ5H4OIZCI7HMTIWL4RW5MQGOSI6MQ5F4KHKXNOQNAQZ73KCVDTGWXFDK6FHZ6O6IM
-#\\\|JCCRU2LHCPQFI2N4GPLQUNI6RBT5MO6KADWCCPEGKORAIYFEAZM \ / AMOS7 \ YOURUM ::
-#\[7]2XIRNIEYYKDRJOD6QPCFKVLM5MI4DRZFJVGBOELCIPFS5R6YCKAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,.,,,.,..,,..,,,,,,,,.,,,,,..,,..,,...,...,...,...,,..,,,,,,.,,
+#ZOEIHGUZUFVHXHUEQRD7TMPASW64Z7CTM4FDNOJ72KFN6VZTBDB5I4SRU5GVBUUZ473ORXPJDMTZ2
+#\\\|CE5QIYGPJXUHJRDS6G6DCXWT5N4GVWNWYSMXV7EQIVGB2UMEE62 \ / AMOS7 \ YOURUM ::
+#\[7]KJNXRYSBJFTDXNWSRWWPK77QXCPP76V4OZ7FDMVYRUK6YHJ4AOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

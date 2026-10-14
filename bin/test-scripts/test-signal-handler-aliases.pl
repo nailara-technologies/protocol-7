@@ -12,7 +12,7 @@
 ## IO ] and Event.pm only calls sigaction when its per-signal watcher count ##
 ## goes 0 -> 1, so a second watcher on the same number silently defeats any ##
 ## later add_signal for that signal [ v7-zenki lost SIGCHLD after           ##
-## v7-zenki.compile_bin_p7c restored $SIG{CHLD} : 07e19f5a2, 2026-10-07 ].  ##
+## v7-zenki.compile_bin_p7c restored $SIG{CHLD} : 158f47c30, 2026-10-07 ].  ##
 ## checks : one registration per sig_num, CHLD yes / CLD no, no IOT beside  ##
 ## ABRT and no POLL beside IO, and a stale CLD watcher from an earlier init ##
 ## is cancelled + deleted on reload.                                        ##
@@ -262,8 +262,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,,.,.,,,.,.,.,.,,,,,,,.,,.,,,,.,,.,,,,.,..,,...,...,.,.,.,.,.,,,,..,...,
-#SVYMNSQQSAVMSTPD4LPQSHKFCSB2VHPKLZBSDDAUWKD5JUE5BOYOL5ILXF2VP4HEGLBEPBRP5TYQI
-#\\\|FJ5VKMVF3PQ45EOPA4UDBHQA6ULAAPNEQRHWZX5H2EHLHM3XO2V \ / AMOS7 \ YOURUM ::
-#\[7]OLDRIB6DNQ7PQKZQBAE5SPGET76RF2QN47X7QSLPMPDWF5EOVEAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,,..,.,.,,..,.,.,,.,,,..,,..,..,,...,...,.,.,,,.,,.,,...,,.,,
+#DR65FN5TQXGWZFJT6ETM3I734NT3VRXWWLZSOLIZIJ3RXLBIAH7LZ5VO6PR4VAFADDDXVFG6HCI6Q
+#\\\|FY34R2ABZTUARKMNPR5MJCUG252E4LRUXQIJQ6ESWLUOKQGTQAS \ / AMOS7 \ YOURUM ::
+#\[7]W3K4C6YHLQXVOHLPWPIRMF6K3P2ZKJTATYSAND6EAHWKFGTGKQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -54,14 +54,14 @@ stale after the work lands, because nobody circles back to update the status
 line. Found **six** separate instances in one session, purely from
 independently re-verifying task docs against `git log`/`grep` while doing an
 unrelated review: `task-zenka-cold-queue-gpu-cooldown-trigger.md` (said
-"planned, not started" — feature shipped same-day, commit `c54c91c4c` +
-threshold-tune fix `e1c3f6b2d`), `inline-subs-batch-misc.md` and
+"planned, not started" — feature shipped same-day, commit `b33f04be4` +
+threshold-tune fix `fa914c837`), `inline-subs-batch-misc.md` and
 `perlmod-move-confirmed-refactor.md` (both fully landed, zero status update),
-`base-parser-list-width.md` (fixed 2026-06-09 in `c54c255c7`, doc never
+`base-parser-list-width.md` (fixed 2026-06-09 in `6e496452b`, doc never
 touched again), plus two `data/yaml/coding-tasks/*.yaml` docs —
 `user-edit-address-cluster-plugin.yaml` (still read "DESIGN DRAFT, not yet
 implemented" despite a full implementation + six polish commits) and
-`users-zenka.yaml` (said "phase 2 not yet built" despite `cb38cdc90`
+`users-zenka.yaml` (said "phase 2 not yet built" despite `1053060cf`
 shipping it — this one also surfaced a genuinely real remaining gap, not
 just a stale line: TOFU peer-validation still missing, flagged in the
 code's own header comment).
@@ -74,8 +74,8 @@ and/or grepping for the described functionality in `src/`. This is cheap
 cosmetic staleness — the `users-zenka.yaml` case shows a stale doc can also
 be hiding a genuine unresolved TODO underneath the wrong headline claim.
 
-#,,.,,,.,,...,,,,,,..,,,,,.,.,,,.,,,.,,,.,..,,..,,...,...,,,.,.,.,...,.,.,,..,
-#VCP4TE332EJ3UT43SSEKSY2FEAFPU726AOGGUTC62MMYG55KRYQZQXPO465BOPNYXGEZCFGCTK3GW
-#\\\|3YO4HYABEZ35AGUCAWV3OAQOVFIOAF2YHFZC6R6ECYHSKDV26C6 \ / AMOS7 \ YOURUM ::
-#\[7]QMPBE2BPQI2SRA5M4IZSSQUMAVCOWOLPDRHQMW2TRBOXQ7X6N6BQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,.,...,.,,,..,,...,...,...,.,.,..,,...,...,,,,,,,.,,..,,,,,...,
+#BJTVXYOGENQINQH3ODINNTMB7YCV7Y25CNOD63KIAKDM5XU2PFDXVRHQD4I5JYF6VQ4ZW6VHTHPQS
+#\\\|432ZYDNC4DCVMCIWCHUI2J6HXUL5JZXR3GOL4TEISXXS74RGCIX \ / AMOS7 \ YOURUM ::
+#\[7]MB636FSMAOR6INFQNBPO6VW4YCH4ORJ7IBQWNSBZUS56AL7ZACBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

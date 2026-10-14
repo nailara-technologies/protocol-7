@@ -18,7 +18,7 @@ affect multiple UIs.
 
 analysis reference: `data/md/development/DEGRADED-FEATURES-AUDIT.md`
 
-## status [ 2026-06-09 ] — DONE, landed in `c54c255c7`. removed the stale
+## status [ 2026-06-09 ] — DONE, landed in `6e496452b`. removed the stale
 ## `$max_len{$last_d_key} -= 2` workaround; separator width now always
 ## `sum(max_len)-1` regardless of table width, fixing last-column
 ## underflow for all key patterns including `ex0:ex1`. `src/base.parser.
@@ -79,8 +79,8 @@ test cases:
 - [ ] TODO comment removed or updated
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,,,.,,,...,,,,,,.,,.,.,,..,,,.,.,,,,,,,,..,..,,...,...,...,...,...,,..,.,.,
-#BNYYDUNOSL6HV3PERNAG24CC523LIXSDLMRZJBLKKRYEZDHYY45KPLK2RWWZECR55DI22VCNUS34A
-#\\\|JHS4WKNS6RTKN7N2VYC5LA7S3PLZCNHSFGULG2V2HED5LJZPE7P \ / AMOS7 \ YOURUM ::
-#\[7]QXR2FARK6BRA2H2PVXDJT7PGUO653PWY3QB4AJEBYNWAJJ5XKMDQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,.,,.,,,,,.,,.,,,,.,..,,,.,,,.,,..,,...,..,,,,.,.,,,.,,,,.,,.,.,
+#RDZA2IPDYIMNYWK7HCAMB6TORIWDMWAXYG2GYSF7UHJ4D4ZGYQHJVQ6BGU4IV4EBKCT6BXBZLUQMM
+#\\\|OHABLFY7HCO36ZAZ2TTIQOKYWYICNAYXOMQBHLJTQYUHOCNV2VZ \ / AMOS7 \ YOURUM ::
+#\[7]FKLCU2YLRPEFOKNN5AXOZQAZNF245RZLVFCTOLH6Q7PPHPWGG6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

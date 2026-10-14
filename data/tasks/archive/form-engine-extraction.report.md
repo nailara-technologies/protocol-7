@@ -1,7 +1,7 @@
 # form engine extraction : report
 
 lane A of `data/md/design/HOST-SETUP.md` [ decision 1 : ONE form engine ].
-base commit `c103c9f38`, branch `base`. no commit made. no zenka restarted ;
+base commit `cf098c4f0`, branch `base`. no commit made. no zenka restarted ;
 all live checks ran against fresh per-invocation user-edit console processes.
 
 ## verdict
@@ -179,8 +179,8 @@ inside : `src/form.*`, `src/user-edit.*`, `src/plugin.user-edit.*`,
    'user-edit-form', menu fallback 'user-edit' ] intentionally unchanged :
    they are output, not references, and the cmp proof depends on them.
 
-#,,,,,,..,,,,,,,,,..,,..,,.,.,,,,,,.,,,,.,,,.,..,,...,..,,,.,,..,,,.,,...,...,
-#TCTYNYMRQ7YF35RT4VIQAMCYG2GKT4LPH373HTFIYFWQ46L4LGLK7CDIZBII4JZJT63X5IJ5Z6JY4
-#\\\|LQS4PI75TLHYUMT4RVEK774GHVT2FVTLKNVB2N74RLDG7U74DW7 \ / AMOS7 \ YOURUM ::
-#\[7]PBNHWEDSQXNVK77X5JEZ5Z3J2H7ADPFL3JDMA6MEOV2QPLNIEQBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,.,,..,,..,,.,,..,,,,,,,,,,,,.,..,,...,...,.,,,,.,,,,.,,.,,.,.,
+#LOASYYI4OCHT3MLHAVKSSKUKRDUFTVJGB2MTBIXTTFPAQ7ABVLXVSPRLN2QW33JAVOBVYRFYA26WW
+#\\\|R7ZQFV7C5MCCVQHW7IPXDVO2LLGG5HWNBRJU2XJM6L5JSE7WCM5 \ / AMOS7 \ YOURUM ::
+#\[7]V35WEAZW44NDQALYEIDSKX2NFO2AAB5GWUPLQGIAFSDFSMK7BQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

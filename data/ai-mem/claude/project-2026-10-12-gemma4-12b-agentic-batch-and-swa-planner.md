@@ -63,14 +63,14 @@ directly stay protocol-7 0664 [ unchanged ]. dep-graph \ gen-sub-whitelist abort
   diverges [ name_diverges ], quant suffix stripped -- 14 of 82 names changed [ diffed ], mostly corrections.
   stale registry entry VKIXTQA:TJF37JQ [ old mmproj-as-model, rescans never prune ].
 - fetch-files : zenka.v7 loads external-inference-models [ base.models_root fell back to /data/models since
-  990f88f39 ] ; hf-download default <root>/<publisher>/<repo> ; hf-remove drops empty repo + publisher dirs.
+  1f9f814b9 ] ; hf-download default <root>/<publisher>/<repo> ; hf-remove drops empty repo + publisher dirs.
 - write_new_file : parents through the chmod child first [ direct make_path = 0700 protocol-7 -> src/coding/image ].
 - open : spawn race on switch back [ pending-switch spawn + crash-restart both bind 8000 : 2 crashes, attempt 3 ok ] ;
   model_batch.blob.restore:33 still make_dir 0700 default ; tmp/p7_modules [ empty, model debris, 0700 ] ;
   gemma4 copies removal approved 2026-10-13.
 
-#,,.,,,,,,,,.,,,,,.,.,,,,,..,,,,.,.,,,.,.,.,,,..,,...,...,,..,.,,,,,,,...,,..,
-#J4IEKZHH4SYZB5RMC637NOCIYDI6UJB5SRYNLCWSQXOGNWGWBA5PMC2C4LTUROD6NVY6BGAFN2G2G
-#\\\|RAQSFYUPAQVR5CC5667IMA3KYKGLM7WVKRVJMNR4TQ7VXF2WOBU \ / AMOS7 \ YOURUM ::
-#\[7]KBGOU27WM4QI525B75KX6TUZE6XYMMDUHN7QO3TCCM7LIHWQ22BI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,.,.,.,,,,,.,.,...,,,,,...,,,,,..,,...,...,,..,.,.,,,.,..,,.,,,
+#Z7YQGCR5BX3S7OQ3IT2PFVXJFYZIRYLQNRH5CDRIWJZH32OSYTGF7DHUASVYJ7UBK7GK4N6ZRLXSG
+#\\\|4MMBWU77TAJM3P3S5PAIZZG5MCRLKZFCILAAC7ERBP6AD4LWMIX \ / AMOS7 \ YOURUM ::
+#\[7]CLJBGRBPNIBYZH64Q25VH7RPDLRJYDCRIJPL4ZYKDLNM2FUBMECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,12 +29,12 @@ before its `[root.drop_privs:...]` line (mirroring cube's placement,
 right after the initial `load_config_file` calls). Verify with
 `ps -o pid,ni,user,stat,comm -p <zenka-pid>,<child-pid>` — both should
 show the same `NI` value and the `<` STAT flag. Fixed this way for the
-mpv zenka 2026-09-04 (commit `04ca71e4b`) after an EFFECTIVE_USER_ID-guarded
+mpv zenka 2026-09-04 (commit `c3a97bea1`) after an EFFECTIVE_USER_ID-guarded
 attempt to renice the child directly turned out to be dead code — the
 zenka is always unprivileged by the time mpv.open_player runs.
 
-#,,.,,,,.,..,,,,,,.,.,...,,..,,.,,,,,,.,,,,..,..,,...,..,,...,,.,,,,,,,..,,..,
-#DEPKRISLQSRLKKAEIZTCF74HFJORCMYBSORNIOALUMQIUHJFV6JAVAFD57DKWPZ624TCRU2Y4GHEE
-#\\\|HK24DFRO2E4LTMFHSGIL65YF6KY6OTHPBN547ST34OUHN6SR5OM \ / AMOS7 \ YOURUM ::
-#\[7]RWHMFBAYA2RV2RLNSRIB425ZNPGAWQL4J4D7EQQIU4ZYJFLNASDI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,,,,,,,,,...,,,.,,..,..,,.,,,..,,...,..,,..,,,.,,,.,,...,..,,
+#SJIIRZKCQLQMHZMXO6JY7RYIRDRPTSAHCA3FNZVD3RJ3DYFSBAO4F4PTSA5ZWWCW2PV2XDZCX25KY
+#\\\|47BA4VTF32MZ4WSIGWVCOKZ6U7R7KGGTRWIWP555ZZTRXHIF34Y \ / AMOS7 \ YOURUM ::
+#\[7]HVXTBG6E2UJWHXFMNFOEHNHQU56PZ4GZM653UFTPTTCTW4LTEYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

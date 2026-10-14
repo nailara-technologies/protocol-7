@@ -45,7 +45,7 @@ flagged by kimi, confirmed correct, not a missed requirement.
 against a running `coding` zenka / real inference backend yet — only the
 stub-runtime test (`test-coding-liveness-deferral.pl` pattern) is
 verified. per [[feedback-use-format-code-not-perl-c]] and this project's
-`completed/` vs `needs-testing/` convention (`6e89af9ba`), that's the
+`completed/` vs `needs-testing/` convention (`37aa6c08e`), that's the
 right bucket until someone watches a real `coding.model-batch` run.
 
 **open correctness questions from kimi's own report, worth checking before
@@ -72,8 +72,8 @@ related: [[project-2026-09-20-model-sweep-unresolved-bucket-and-bzpo73q-final]]
 (full spec, including the owner's option-D zero-git design this
 implementation follows).
 
-#,,,,,..,,.,,,,,,,.,.,...,.,.,,,,,.,,,,.,,.,.,..,,...,...,...,,,.,,,,,,,,,.,.,
-#RODZYFWVBB6OGWBCJLDOPJ3H3DUUHGWR44Q5MALGX4IGQS4AEM6SVAAHHLVPS3TDCZ6ZQCCF7LMS2
-#\\\|LVJKVP3A66HHUO4YGK5KPTBJKL4E3G5QUT3DBSGPRYTD7R7ZQOH \ / AMOS7 \ YOURUM ::
-#\[7]BCN36WOQJXOQ4DVYHPRPELMNUTYLCZ6O3RYDPYYR7JIMGK6IA4CQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,..,.,,,...,.,.,,.,,,.,,...,,,,,..,,...,...,,.,,,,.,.,.,.,.,,.,,
+#YZ7VMJLSPJZ7UAM7JTDOY6DPVG3EBYLCH4HIX7YU2J3EZVDID6VGNAG7OGZOV2ZFEGFFVH4WSG6NM
+#\\\|PCPZIRKLXGZMWU4WMJQPYBUHA42LZHNOLDFMDQHDSMATCUW7MTB \ / AMOS7 \ YOURUM ::
+#\[7]LXXHH7AGUKPHG3HL5Z72HTO7QRHIF2GISBQ5HZ65PA64NSO5WACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

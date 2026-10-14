@@ -20,7 +20,7 @@ and grepped for `is_primary`/`exit(2)` across the diff hunks to find
 exactly which commit introduced the primary/auxiliary split, then
 `git show <that commit> -- <old-path>` to see the FULL diff of that one
 commit against this one file. It proved the mechanism precisely: the
-commit (`55787d320`, "X-11: multi-server jobqueue architecture") changed
+commit (`c44ea3724`, "X-11: multi-server jobqueue architecture") changed
 ONLY the literal `exit(2);` to `exit(2) if $is_primary; return;` and
 touched nothing else in the function. Every other line - the shared
 globals, the "done." log - was written years earlier (this file dates to
@@ -46,8 +46,8 @@ whether any of it is genuinely single-instance-only state (globals,
 messages implying exclusivity) that should have moved to per-instance
 state when the split was added.
 
-#,,,.,.,,,,.,,,.,,,,.,,..,..,,.,.,.,.,..,,,..,..,,...,...,..,,..,,,..,,,,,,.,,
-#EXLLWGUDOWHCQ7C54OF5K4L2IBZPZJWWSSHMYBRHB3LOQX7Q5S5PCCVRNN24FEYCTQZSHTRZF6B5O
-#\\\|2OUULE7MLPQENEMTUZWXITVTB6Q5M4QMQNZ5L3ITTV3K5GDQNK7 \ / AMOS7 \ YOURUM ::
-#\[7]BEAU2F25UXFGOQ2UNZANBQSAMCSAL3X2CEEJATSDMBVPLX42XKCY 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,,..,,,.,...,..,,.,,,..,,,,.,..,,...,...,,.,,...,.,,,..,,..,,
+#EKY3IYDW3BDYTAT7SJUSR3NEOLGUFMMFXTXW7G6WSLRLNN4X5MFAYOD45WJEE5QHRFMKJHSCLSMQI
+#\\\|PE42J6QJPLIJBU5M3KDFZX2YX7HBVVJTLU6GZGMVD4RQFGVNQCT \ / AMOS7 \ YOURUM ::
+#\[7]KL6R7SZ2DMLNCVMWRVD2JUKL2MUJNMDHISNUKDOLNKRQFA7GD2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

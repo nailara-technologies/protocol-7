@@ -39,8 +39,8 @@ urgency, so the design can be done right rather than fast.
 
 The "beyond an ip address" trust dimension isn't hypothetical — it's
 almost exactly what [[project-keys-zenka-integration-direction]]'s
-TOFU-pin/authorized-client work (commits `ddd5418c0`,
-`f14c524d4`, plus the `keys.console.{incoming,list-authorized,authorize,
+TOFU-pin/authorized-client work (commits `385f654d1`,
+`fa003e5a6`, plus the `keys.console.{incoming,list-authorized,authorize,
 drop-authorized}` batch) already built: `.n/remote-keys/known` (outbound
 TOFU pins) and `.n/remote-keys/authorized` (inbound client authorization)
 are exactly the kind of identity substrate a "connection that can
@@ -224,7 +224,7 @@ independent-review detection via `signed_by`+`source_task`,
 approval requests" — exactly the volume a scanner-response system
 would generate). Not built. This session's own
 `keys.console.{list-authorized,drop-authorized,authorize}` batch
-(`ddd5418c0`) is a small real precedent for the same admin-control
+(`385f654d1`) is a small real precedent for the same admin-control
 shape in a different domain. Gotcha to avoid: [[bug-forensics-dotted-command-names]]
 — any new dotted command name silently misparses as a routing hop-chain;
 new admin commands need hyphenated names and BOTH a target-zenka
@@ -509,8 +509,8 @@ not a proposal.** Next step per the user is still open — they were
 asked whether to start with an observation/classification-only first
 step (no blocking action at all) but hadn't answered as of this entry.
 
-#,,.,,..,,.,.,,,.,...,,,,,,.,,..,,,,.,...,,.,,..,,...,...,...,,,.,..,,...,,.,,
-#HC2PU2CSSG24T7RIKTHIH5C5M76I5UKRBSNOQPVA7D2GOXGY2ZRJQKLIJ2WVUAC64OESF7OQXJCZU
-#\\\|TICQUOUPTYSP6BXYP4WGHYMHLDFTQ6B6NLX7W3OHJ2DSRP7RKGA \ / AMOS7 \ YOURUM ::
-#\[7]ZW4XHRJRL4PRQC5YCB5EAOFN4FEZP3DFYDHVFIGM3P7AXX6ZG2BI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,...,,,.,...,,..,,,.,...,..,,..,,..,,...,..,,,..,,,,,,.,,.,,,.,,,
+#GOHKVXAUI7WHGI3INC7YZET6CFHKKLHNTUTOZ2XTBX3XMN5QFQ23MXJMVFL4NZPYPNF5AAGGAMRXK
+#\\\|OLA3LZAPRWVPFJ7D3JXGE7Y7DIUFT67FIMU5SYN7D4CJHSL7P7X \ / AMOS7 \ YOURUM ::
+#\[7]5BJ7WDJ35CTMUO6LR4EHNNW5K4BP7WUZXKMTJMDOSDFBQ7LKHMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

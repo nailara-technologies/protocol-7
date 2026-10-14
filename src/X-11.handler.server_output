@@ -50,12 +50,12 @@ if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
         <[base.logs]>->( 0, "%s-server shut down%s", $bin, $err_str );
     }
 
-    ## "done." is a zenka-shutdown idiom elsewhere in this codebase [ see   ##
-    ## X-11.connect_X11's base.exit(3,'done.',1) ] -- only log it when this ##
-    ## call is actually about to exit; an auxiliary server going away is    ##
-    ## not the zenka being done. [ this was unconditional before 2026-09-06 ##
-    ## -- a leftover from before multi-server support, when this branch     ##
-    ## always exited -- see 55787d320 ]                                     ##
+    ## "done." is a zenka-shutdown idiom elsewhere in this codebase         ##
+    ## [ see X-11.connect_X11's base.exit(3,'done.',1) ] -- only log it     ##
+    ## when this call is actually about to exit; an auxiliary server going  ##
+    ## away is not the zenka being done. [ this was unconditional before    ##
+    ## 2026-09-06 -- a leftover from before multi-server support, when this ##
+    ## branch always exited -- see c44ea3724 ]                              ##
     if ($is_primary) {
         <[base.log]>->( 1, "done." );
         exit(2);
@@ -87,8 +87,8 @@ while ( $server->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     # LLL: terminate server here ?
 }
 
-#,,.,,.,.,,,,,.,.,...,.,.,.,,,,..,..,,..,,...,..,,...,...,,,.,,,.,...,,..,,,,,
-#YEBQJ75GE7XNAY3VGHN6UA2WHYZMIUZ5UB4HYXL2QG5MKJQIH7E623KE2HTY7NNNYM4GYMD3JYFFK
-#\\\|LPSABO4ICKMQNVOPILIOY4XX6TT2YDAKLQ6PGH4NDVD3VEC274X \ / AMOS7 \ YOURUM ::
-#\[7]GU6SOJXLDIYCXFJMMPUCLHE47LLKIMNFBOZMIQK3PSP3GAJANSAI 7  DATA SIGNATURE ::
+#,,..,.,.,...,..,,..,,...,,,.,,,,,,,.,..,,.,,,..,,...,..,,...,.,,,...,,.,,,,,,
+#FDFIN3EAKMRHFWGY54GQ4KXEXV5QNHZOASP7E375GZZYW6F6LIIJZNAINALYQPF5SHA2VRBY5HSAO
+#\\\|6UHJR3KYBF4ECI2UO442SUUBGP4IPSN7ZFUGBP73CS6DOLSM64K \ / AMOS7 \ YOURUM ::
+#\[7]ZEEMYX44KLGDYOD2ZMR55UGOMWNHTAFBMVYMIOAAXBKOT7NTUOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

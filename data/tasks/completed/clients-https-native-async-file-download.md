@@ -135,7 +135,7 @@ untouched) -- a genuine drop-in replacement, not a reimplementation.
 followed one redirect hop to the CDN, hash fetched and verified against
 the published sha256, reached `status=complete` through the unmodified
 verify flow -- confirmed via `sha256sum` independently matching too.
-Committed `9536d9e2b`.
+Committed `086b7291e`.
 
 **One real finding from review, not yet acted on**: the HF bearer token
 in `Authorization` is forwarded unconditionally on every redirect hop,
@@ -149,8 +149,8 @@ The separate `clients.https.request` proxy-threading gap for
 done") was **not** filed as its own task during this work -- still
 open, still worth doing.
 
-#,,..,,..,,.,,,.,,,,.,,..,.,,,,,,,.,,,,.,,,,.,..,,...,...,.,,,.,.,..,,.,.,.,,,
-#2F452YLYI3YBOSPU6ADHI3VRY6V5QYWTGDC5CNOP4NUUJGUJ2ZL3PDGFMKGFX63DQWWUIG62V2ULM
-#\\\|CCKIXVXCYLGATNPBZCMI34IPIPZWMINKMCXBIIZEMGHJL6CGOG5 \ / AMOS7 \ YOURUM ::
-#\[7]EZS6GUMOJ4KEWDMIU2VYTWNPVTPDCVIH4ITVPHHSH7EIKWFRI2CY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,...,,,,,,.,,.,,,,..,,,.,,..,..,,...,...,..,,..,,.,.,,..,..,,
+#VTE2XRDP7OILGZ66AU3MMP2U5CY2WQXTRSYTBDDHMZKWJ3ZFNDEJDPEZDHJSVJJK4BVREA3FJWXSG
+#\\\|CZJFH26TMRDSF2XUFYRYTHL3OXL7DN3VHZVTMMXV4SNMB7M4LAN \ / AMOS7 \ YOURUM ::
+#\[7]KN5XBHZRLN7YAI74PZJWETLJMI5VDTSJDVN3GJ2F26LMD4NNJSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -117,7 +117,7 @@ across all per-file edges : 17281 kept, 25909 flagged-bulk -- **~60%
 of file-commit edges were mechanical noise**, dominated by a handful of
 repo-wide signing/rename passes [ the largest touched 11428 paths ].
 
-the single message-rule-only catch was `a2622fdd2` [ 5 files,
+the single message-rule-only catch was `120596e40` [ 5 files,
 "resigned an updated version after 'base.path.open' fixes and renaming"
 ] -- a genuine mechanical re-sign pass far under the count threshold,
 exactly the class the message branch exists for.
@@ -153,7 +153,7 @@ small ; the count rule does nearly all the work.
   rename commit and a 179-file line-length remediation, both correctly
   mechanical.
 - `coding.catalog.track_write` [ committed today ] : exactly one
-  genuine commit [ e1b1292f4 ], zero bulk. correct.
+  genuine commit [ 27cc53514 ], zero bulk. correct.
 - `base.cfg_bool` also exposed two real methodology gaps, both fixed
   before accepting output : [a] git's own rename detection does NOT
   follow the 2026-08-20 modules/->src/ rename [ signing rewrote file
@@ -235,8 +235,8 @@ documents the revision openly rather than silently retuning. ]
    not just "it ran."
 6. no AMOS7 signature stubs on any new file.
 
-#,,..,.,.,.,.,,,,,.,,,,.,,.,,,.,,,...,,.,,,.,,..,,...,.,,,.,.,,.,,...,.,,,,.,,
-#XXYLL744J3UTHMXI5LZUIEHSJW2PRJKLZEFZXQRCJBYJPFOD4G3FVV5KAONKEYXXFWS7FPZZFLJDI
-#\\\|SUKUNLUD3E6K6FXTTILHXXEXL5D4KF7AS3NC6MEBK3QG3PPR7GM \ / AMOS7 \ YOURUM ::
-#\[7]RLOI3AT67QAX4MHIJ4G6T2K4APUQIALHACXPPWO4P5KWZOYZ6KCY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,,,,,.,.,.,,,...,.,.,,..,,..,..,,...,...,...,...,,..,,,.,,,,,
+#T4VNUCVEKFAMOTTX7BSYMDWKFLAJDZTDZPBS6P3UODHE6RDT22SPCHOYRQUM4FABIBL2F6DC2H4QQ
+#\\\|3ULXH5XHLAPHNYLY5LHED5SFWYODIANTSC6FKM7RRM57QVJ5MKY \ / AMOS7 \ YOURUM ::
+#\[7]BPNDWZVSKRYBOJCUAJXE3SXV7VUYVJ65EFDGF4DWX7GMFQPILECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

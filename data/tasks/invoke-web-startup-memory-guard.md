@@ -53,7 +53,7 @@ thresholds in zenka.v7 [ e.g. 8 GB RAM, 4 GB VRAM free ].
   user starting" marker might be needed
 - `start --force` for the user who knows better
 
-## built [ 2026-09-29, kimi dispatch 76286e182, reviewed ]
+## built [ 2026-09-29, kimi dispatch 6c0e87bfe, reviewed ]
 
 - dependency objects `memory_system` \ `memory_gpu` with the coding zenka's
   callbacks cross-loaded [ modules.load : `coding.callback.object_memory_system
@@ -72,8 +72,8 @@ thresholds in zenka.v7 [ e.g. 8 GB RAM, 4 GB VRAM free ].
   proceeds once memory frees up ; `start force`
 - coding side : `data/tasks/coding-invoke-awareness.md`
 
-#,,.,,.,.,.,,,.,,,,,,,,,,,,,.,.,.,,.,,,.,,...,..,,...,..,,,,.,,.,,.,,,.,,,,,,,
-#KSFFCI52756GUS2HRUSFTH37IN3Z77FBVD6RNEDCC3AIPDVXWNRKKGR7URQZPBBAHVWFRV3CSJKB2
-#\\\|FYW2AUNTITJGBH3GKBCSSHTYM3VVHTYNASN4A4PCW55ROCVQVQF \ / AMOS7 \ YOURUM ::
-#\[7]OCFBCASGDNFABNBBP3NUO2XLE3BYCVX6Q565GBTYVCYDJOOIAMCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,.,,,..,,,,,,,.,.,.,,..,,,,,...,..,,...,...,.,,,...,,,,,,.,,.,.,
+#HNVP362XDARK4CUDUPMDMY6SNJPB2W57UQDYQLL5TRR7NQUSMAO46X6LLGWBTXK6KDQKJYV6QGVLE
+#\\\|FZR2XYSFWS5NF6TUXIYR3KFHSJBPCZMTL4UJSMWCXH23NO2MGCM \ / AMOS7 \ YOURUM ::
+#\[7]OISYC5INAQTTPTU6XOVQ3QOA2NEZG5X37JEBLAFM676JL23Z72BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

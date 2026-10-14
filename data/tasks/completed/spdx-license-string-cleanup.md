@@ -1,6 +1,6 @@
 ## archive: DONE ✓ -- 2026-08-22
-## commit: 7ed1ba794 -- spdx cleanup batches 3-4: last src/ files, plus retire phantom base32 duplicate
-## notes: all 4 batches landed (365b1e26c, fa3e379c9, and batch 3-4 in 7ed1ba794); every
+## commit: 5d811b2f7 -- spdx cleanup batches 3-4: last src/ files, plus retire phantom base32 duplicate
+## notes: all 4 batches landed (651aecd4d, 4a68a0716, and batch 3-4 in 5d811b2f7); every
 ##        SPDX-License-Identifier marker confirmed gone from src/; also retired the
 ##        phantom base.decode.bmw/bmw-L13 duplicate of base32.decode found along the way;
 ##        closes todo item G5X
@@ -134,7 +134,7 @@ default — hold back anything actually live-called for extra scrutiny:
   call sites elsewhere: jobsite.job.read, transport/proxy.cmd.
   cred-rotated, task.cmd.complete, jobsite.store.prune,
   base.vax-int.decode). Traced both phantom modules to commit
-  `13ce23a38` (2026-03-28, "Resolve all undefined routine warnings for
+  `4c214d13d` (2026-03-28, "Resolve all undefined routine warnings for
   clean coding zenka startup") — a mechanical pass that manufactured new
   stub modules matching whatever (wrong) names the pager.* suspect-
   session code already called, instead of redirecting those calls to
@@ -164,8 +164,8 @@ code as first assumed).
 corresponds to todo item `G5X` ("review routines with SPDX marker and
 remove on pass") — mark that done via `todo` once all 4 batches land.
 
-#,,,.,...,,,.,..,,..,,,.,,...,,.,,.,.,,..,..,,..,,...,...,...,..,,..,,,,,,..,,
-#Y4WKT2K5A64YCFKN3KWMMMUAZYH5FDKDRL4MH6XCXLR3RX5K6O36TN5LSGKAQLKHNIVESTHSAK7UW
-#\\\|5XLIJB2EDEFFHHSXOKOG7GJBOV3BXLRFN7UIM2QZKIM4AAT6QXA \ / AMOS7 \ YOURUM ::
-#\[7]WXC77KEKGA4WLESSJOAEXSQTRNBU4TI6NALENYDJ2LB32TX764DQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,..,,.,,,,,.,,..,,,.,...,,,.,..,,...,...,...,..,,,,.,...,,,,,
+#4UGOCKOCFYCJI56HSYH3YXAYP3K6JN7HO5AAERVPMQZOP7TXECTJ3WGGDOMISZ3BOA42BAJVG4NIG
+#\\\|JX33YOND5YYPBHQZ3VRT5DP25HO2DLPUL4YPQHYXFIT3FGMGIBD \ / AMOS7 \ YOURUM ::
+#\[7]M233GMONDBWWKVO2DNNWJF5ZSSLKRLEKHSEGU3DA4LYEPBMWROBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

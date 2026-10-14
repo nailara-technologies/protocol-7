@@ -1,6 +1,6 @@
 # report : test-auth-link-binding-e2e [ auth-keypair v2 + link-upgrade binding, end to end ]
 
-2026-10-07, against commit `1adb45b02` [ host-root delegation on top of the
+2026-10-07, against commit `3053508de` [ host-root delegation on top of the
 binding wire ]. ONE new script : `bin/test-scripts/test-auth-link-binding-e2e.pl`
 [ test only — nothing under `src/`, `cfg/` or the helpers was changed ].
 
@@ -26,7 +26,7 @@ reply as 3 fields :
 <- TRUE <S_pub b32> <server_nonce b32>
 ```
 
-while the test was being written, the tree landed commit `1adb45b02`,
+while the test was being written, the tree landed commit `3053508de`,
 implementing `data/md/design/HOST-ROOT-DELEGATION.md` : the select reply is
 now 4 fields and the delegation is REQUIRED, no compatibility :
 
@@ -48,7 +48,7 @@ now 4 fields and the delegation is REQUIRED, no compatibility :
 [ inputs : the task description + the 3-field design ; expected at task
 start : the 3-field wire ; actual : the landed code requires the 4th field,
 the client refuses a 3-field reply before sending auth. this is a designed
-protocol extension committed as `1adb45b02`, not a bug — the e2e test was
+protocol extension committed as `3053508de`, not a bug — the e2e test was
 adapted to the landed wire, which is the only wire the real modules speak.
 the pin also changed meaning : the pin file now holds the 77-char
 `bmw384` FINGERPRINT of the host-root, not S's 52-char b32. ]
@@ -179,7 +179,7 @@ none. every refusal [ delegation mismatch, expiry, unknown key, tampered
 eph, replay, gate, missing sig ] and every acceptance [ success, re-run, S
 rotation ] matches `AUTH-LINK-BINDING.md` + `HOST-ROOT-DELEGATION.md`
 [ acceptance rules, sections "wire change", "acceptance rules" ] as landed
-in `1adb45b02`. the cross-check against the sibling lane's
+in `3053508de`. the cross-check against the sibling lane's
 `data/tasks/host-root-delegation-perl.report.md` agrees on the wire shape,
 the pin content and the rotation \ mismatch semantics.
 
@@ -206,7 +206,7 @@ the pin content and the rotation \ mismatch semantics.
   hung child can never stall the test; every child is reaped, every socket
   end closed in both processes.
 
-## full output [ 2026-10-07, commit 1adb45b02, perl 5.42.3 ]
+## full output [ 2026-10-07, commit 3053508de, perl 5.42.3 ]
 
 ```
 : e2e success : real client <-> real server over a socketpair
@@ -281,8 +281,8 @@ passed : 54  failed : 0
 stability : 23 consecutive full runs green [ 15 + 8 ], no leaked child
 processes, `bin/format-code -c` clean [ syntax valid ].
 
-#,,,.,,,.,..,,,.,,,..,.,.,.,,,,..,..,,.,.,,.,,..,,...,...,...,.,,,.,.,,,.,..,,
-#EEQVSEWIP7JYPZ4G4HN5HO3PZPLR7XXVN44EEEK7VKHWTVJ2G2JIWEFWLLLCRF4APC4KFZQYX5272
-#\\\|SHG743KHLKOSUY3ZW537NOYXUDWYUEN42ART3OX2OFNFQPQ4XCS \ / AMOS7 \ YOURUM ::
-#\[7]F73AX4QSAVGGH3ZS6NRZ6DAQ2CUKUJH2GOVL27VLBADCX4HSTEDI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,.,,,.,.,...,,.,,,..,.,.,,.,,..,,...,...,...,,,.,,,,,.,.,..,,
+#JRYESFQPS5PLHALMBDR57UVW75DXMJA7YXZIZUALUVTDT4DMREDZM637AD4ZMGD54GQIOB7F5ZE4Q
+#\\\|RXYPUEOLWT2LYO4UEJWYOEQCW275TJSIXMRCX4HJLSYDAR35HGP \ / AMOS7 \ YOURUM ::
+#\[7]HYJ2BEXJPSCS63DEYQMHX63F7TJAP35WH67Q5FTFRFP7VBRCBWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

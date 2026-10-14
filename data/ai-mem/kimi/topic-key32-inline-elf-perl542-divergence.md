@@ -7,7 +7,7 @@ Root cause of "password is not correct" on real C25519 key after perl 5.40.1->5.
   on 32 bytes of RANDOM BINARY candidate key -> C `inline_elf` -> `sv_2pvutf8_nolen` +
   `utf8_to_uvchr_buf` (codepoint semantics since 2021).
 - `utf8_to_uvchr_buf` on malformed UTF-8 (= random binary) returns DIFFERENT (char,len)
-  under 5.42 than 5.40 (same finding as the 2026-07-26 hang fix 9affb84e0). Different elf
+  under 5.42 than 5.40 (same finding as the 2026-07-26 hang fix 66f5e1336). Different elf
   checksum -> different is_true verdict -> different candidate accepted -> key_32 derives a
   DIFFERENT 32-byte Twofish key from the SAME password -> decrypt yields 64 bytes garbage
   -> compare_keypair FALSE. Twofish/b32r/BMW/Curve25519 all innocent (user tested clean).
@@ -39,8 +39,8 @@ Root cause of "password is not correct" on real C25519 key after perl 5.40.1->5.
 Same subsystem, DIFFERENT bug: that one = pure-perl fallback vs C on valid UTF-8.
 This one = compiled C itself across perl versions on malformed/binary input, in key_32's gate.
 
-#,,,.,,..,,.,,.,.,.,,,,..,,.,,.,.,,.,,.,.,,.,,..,,...,...,...,,,,,,..,.,.,,,,,
-#RMPRXW7VX25VB5YCFWJU3676NQOVR54XSQRCAMONQZG4WPV2QKGIQYGSB76PFAJPXCM4CA3INEWWQ
-#\\\|QFYW6SS2N6STQLUMD64XDD6N2YWKXPHSFZXWBO4MSMTCAXL6GBR \ / AMOS7 \ YOURUM ::
-#\[7]FOV4FWLI5BDNDMJ4LGO6VDADTEWOVBAWBL4BRCC3D2WOTQD2AIAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,,.,,,..,,.,,,.,,.,.,.,.,,,,,..,,...,...,,..,,,,,.,,,,,,,,,,,
+#KGZSSTNIIMKBGMEEK7LYMRQEVTXDVWCVAW2ZLY23WPDJTXX6OEH435S6ZNG4CGSU2CISTQOHSLAAC
+#\\\|GKML75DZBEKV274AJSXTHT34YTVZ5J2BGXHDJP63VTKVCOB7VUH \ / AMOS7 \ YOURUM ::
+#\[7]UQPHHW32XHSDSN2NA7IV6I3AEH6IQE3IHUW47GWU5X5EIQGJKCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
