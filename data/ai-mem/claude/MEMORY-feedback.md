@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [stderr-buffered-in-zenki](feedback-stderr-buffered-in-zenki.md) — 2026-10-14 : zenka STDERR is buffered, log \ console output is STDOUT -- a color escape on STDERR lands late [ even at exit ] ; put terminal state on the text's stream, verify with a raw `script -qc` capture
 - [readkey-raw-mode-leaves-icrnl](feedback-readkey-raw-mode-leaves-icrnl.md) — ReadMode(4) keeps icrnl on : pasted crlf becomes two line feeds [ the WSL interlaced-paste cause, fixed bdd1b718c ] -- clear icrnl in any raw-mode reader or reuse AMOS7::TERM::Editor
 - [call-swapped-names-not-file-names](feedback-call-swapped-names-not-file-names.md) — 2026-10-11 : base.chk-sum.{jha,amos,bmw,bmw384,elf,profile} swap to chk-sum.* at load -- call <[chk-sum.*]>, never <[base.chk-sum.*]> [ most common undefined-sub cause ] ; reference \ from_substr stay base.
 - [harmonic-values-not-decimal-round](feedback-harmonic-values-not-decimal-round.md) — 2026-10-11 : intervals \ ttls \ timeouts are 13-based [ 3900 = 13 x 5 min, not 3600 ] ; in an inconsistent set the 13-based value is the intended one -- ask before "fixing" it
@@ -204,8 +205,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [never-touch-sig-under-event-watcher](feedback-never-touch-sig-under-event-watcher.md) — never set\restore `$SIG{X}` inside a zenka : resets the disposition under the Event watcher, alias watchers [ CLD ] block add_signal repair ; v7-zenki lost SIGCHLD after every p7c\p-7-r compile [ fixed 158f47c30, 2026-10-07 ] ; check SigCgt bit 16
 
-#,,,.,.,,,.,.,...,.,.,,,,,.,,,...,,..,,,.,,.,,..,,...,..,,,.,,,,.,,.,,,,.,,..,
-#E7T6TKK3QYJRMAFBQ6VHRFMLCOLLS5OYNM65KLVJWA4CNWAE2WR6UCSOZMPAIZQ7NNQTIGDNKPCKC
-#\\\|CXIMTSXJXNYNNPW5TL6V5HUG2TLGYCK3N6X5NF5XDL34HIDKUDT \ / AMOS7 \ YOURUM ::
-#\[7]RSUQ2DLN4ZDCWORXU4UAOLGV4HOCHQQABDD5L4FEXMFLF2NZ6UBI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,,,,,,,.,,.,,,,,,,,,,,.,,,,,,..,,...,...,.,,,,,,,...,,,.,,.,,
+#ZX623JTEJE2QUB74MW4VHFSE6EWMSF6VLQACRXTTB6EZEKGQ2YT7TE66R4GIMSYOLNX3GTP2I2YN4
+#\\\|BK2PLTYC22CAARDPHOH2GTKJPLMLK5KYDY3OAJX3RCOCL4K7K5I \ / AMOS7 \ YOURUM ::
+#\[7]N7JL2MJBCTJ6PKP54X3RENML7QA2UTB2PW2YM32AHF3QKAD5EGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
