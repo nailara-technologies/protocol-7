@@ -206,8 +206,8 @@ foreach my $author ( keys %authors_seen ) {
     }
 }
 
-## count how many commits would be affected [ unique : one commit can ##
-## hit both an email and an author mapping ]                           ##
+## count how many commits would be affected                            ##
+## [ unique : one commit can hit both an email and an author mapping ] ##
 my %affected_commits;
 my %changes_by_email;
 my %changes_by_author;
@@ -238,6 +238,21 @@ foreach my $variant ( keys %canonical_author_map ) {
     }
 }
 
+## commit messages with llm metadata [ cfg/git/llm-metadata.patterns ] ##
+my $strip_tool = File::Spec->catfile( <system.root_path>,
+    qw| bin dev strip-llm-metadata | );
+my %message_commits;
+if ( open my $scan_fh,
+    '-|', $EXECUTABLE_NAME, $strip_tool, qw| -s -C |,
+    <git.cfg.repository_path>, qw| HEAD | ) {
+    while ( my $hash = readline $scan_fh ) {
+        chomp $hash;
+        $message_commits{$hash} = TRUE if $hash =~ m|^[0-9a-f]{40}$|;
+    }
+    close $scan_fh;
+}
+$affected_commits{$ARG} = TRUE foreach keys %message_commits;
+
 my $commits_to_change = scalar keys %affected_commits;
 
 <[base.log]>->(
@@ -245,6 +260,9 @@ my $commits_to_change = scalar keys %affected_commits;
 );
 <[base.log]>->(
     2, "  Author name variants to map : " . scalar( keys %changes_by_author )
+);
+<[base.log]>->(
+    2, "  Messages with llm metadata : " . scalar( keys %message_commits )
 );
 <[base.log]>->( 1, "  Commits to change : $commits_to_change" );
 
@@ -259,8 +277,14 @@ if ($dry_run) {
     );
     say "";
 
-    if ( %changes_by_email || %changes_by_author ) {
+    if ( %changes_by_email || %changes_by_author || %message_commits ) {
         <[base.log]>->( 1, "  Proposed changes:" );
+
+        <[base.log]>->(
+            1,
+            sprintf( "    llm metadata stripped from %d commit messages",
+                scalar keys %message_commits )
+        ) if %message_commits;
 
         if (%changes_by_email) {
             <[base.log]>->( 1, "    Email mappings:" );
@@ -294,14 +318,14 @@ if ($dry_run) {
         if ($harmonize_outliers) {
             <[base.log]>->(
                 1,
-                "  To execute: workflow harmonize-emails "
+                "  To execute: p7-work harmonize-emails "
                     . "harmonize-outliers execute"
             );
             if ( length $key_phrase ) {
                 <[base.log]>->(
                     1,
                     sprintf(
-                        "  With filter: workflow harmonize-emails "
+                        "  With filter: p7-work harmonize-emails "
                             . "harmonize-outliers execute \"%s\"",
                         $key_phrase
                     )
@@ -309,13 +333,13 @@ if ($dry_run) {
             }
         } else {
             <[base.log]>->(
-                1, "  To execute: workflow harmonize-emails execute"
+                1, "  To execute: p7-work harmonize-emails execute"
             );
             if ( length $key_phrase ) {
                 <[base.log]>->(
                     1,
                     sprintf(
-                        "  With filter: workflow "
+                        "  With filter: p7-work "
                             . "harmonize-emails execute \"%s\"",
                         $key_phrase
                     )
@@ -341,15 +365,13 @@ if ($dry_run) {
         }
         say "";
         <[base.log]>->( 1, "  To harmonize outliers to main developer:" );
-        <[base.log]>->(
-            1, "    workflow harmonize-emails harmonize-outliers"
-        );
+        <[base.log]>->( 1, "    p7-work harmonize-emails outliers" );
         if ( @outliers == 1 ) {
             my ($outlier_author) = $outliers[0]->{pair} =~ m|^(.+?)\s+<|;
             <[base.log]>->(
                 1,
                 sprintf(
-                    "  Or with pattern filter (e.g. author name): workflow "
+                    "  Or with pattern filter (e.g. author name): p7-work "
                         . "harmonize-emails harmonize-outliers \"%s\"",
                     $outlier_author
                 )
@@ -480,11 +502,41 @@ $ENV{WORKFLOW_DATA_FILE} = $data_file;
 ## pair in a map kept in .git/, the msg-filter swaps ids mentioned in       ##
 ## messages [ bin/dev/rewrite-hash-refs -m ], tracked files are updated     ##
 ## from the map after the run [ -f, left uncommitted ]                      ##
+##                                                                          ##
+## the msg-filter also strips llm metadata [ bin/dev/strip-llm-metadata ]   ##
+##                                                                          ##
+## rewritten : local branches and tags. remote-tracking refs keep showing   ##
+## what the remotes hold [ force-with-lease needs that ], refs/stash stays  ##
 my $shell_quote = sub { q{'} . ( $ARG[0] =~ s{'}{'\\''}gr ) . q{'} };
 my $refs_tool   = File::Spec->catfile( <system.root_path>,
     qw| bin dev rewrite-hash-refs | );
 my $map_file = sprintf( '%s/.git/harmonize-emails.%d.map', $repo_path, time );
 unlink $map_file;
+
+## filter-branch -f replaces refs/original : an earlier run's backup is   ##
+## kept under refs/harmonize-backup/<time>/ first [ outside the rewrite ] ##
+my $backup_cmd = sprintf(
+    'cd %s && git for-each-ref --format=%s refs/original/',
+    $shell_quote->($repo_path),
+    $shell_quote->('%(objectname) %(refname)')
+);
+my $backup_base = sprintf( 'refs/harmonize-backup/%d', time );
+
+foreach my $line ( split m|\n|, qx{$backup_cmd} ) {
+    my ( $object, $ref ) = $line =~ m|^([0-9a-f]{40}) refs/original/(.+)$|
+        or next;
+    system( qw| git -C |, $repo_path, qw| update-ref |,
+        "$backup_base/$ref", $object ) == 0
+        or do {
+        <[base.log]>->( 0, "  ✗ cannot back up refs/original/$ref" );
+        return {
+            success => FALSE,
+            error   => "backup of " . "refs/original failed"
+        };
+        };
+}
+<[base.log]>->( 1, "  ✓ previous refs/original kept under $backup_base/" )
+    if qx{$backup_cmd} =~ m|\S|;
 
 my $commit_filter = sprintf(
     'n=$(git commit-tree "$@") || exit 1 ; '
@@ -492,13 +544,18 @@ my $commit_filter = sprintf(
     $shell_quote->($map_file)
 );
 my $git_cmd = sprintf(
-    'cd %s && git filter-branch -f --env-filter %s --msg-filter '
-        . '%s --commit-filter %s --tag-name-filter cat -- --all 2>&1',
+    'cd %s && git filter-branch -f --env-filter %s --msg-filter %s '
+        . '--commit-filter %s --tag-name-filter cat -- --branches --tags '
+        . '2>&1',
     $shell_quote->($repo_path),
     $shell_quote->(". $filter_script"),
     $shell_quote->(
-        join q{ },  map { $shell_quote->($ARG) } $EXECUTABLE_NAME,
-        $refs_tool, qw| -m |
+        join q{ | },
+        join( q{ },
+            map { $shell_quote->($ARG) } $EXECUTABLE_NAME, $strip_tool ),
+        join( q{ },
+            map { $shell_quote->($ARG) } $EXECUTABLE_NAME,
+            $refs_tool, qw| -m | )
     ),
     $shell_quote->($commit_filter)
 );
@@ -562,8 +619,8 @@ return {
 
 0;
 
-#,,,.,.,.,,..,,.,,.,,,,.,,.,,,,..,,.,,,,,,,.,,..,,...,...,,..,..,,..,,.,,,,..,
-#RMPG4QOBOLYFOPR5RMYGAIFYYBYQEFFAGNLE5EEERAGH75VWEQLAZ4WIOHN6NF3Z7URJWBOHCVNPQ
-#\\\|WCZNGK6AYARIIVSTNBTVWCHYMRYUM47YCNGQYN4CHQ4FUXN33XS \ / AMOS7 \ YOURUM ::
-#\[7]RHDBTDBFPJ2ZKEOQQ5DAPNJ2W3HDC7IDR26I3Q3W76VHT4AKS4DQ 7  DATA SIGNATURE ::
+#,,..,...,,..,..,,,..,,..,,,.,,,.,.,.,.,,,,..,..,,...,..,,...,.,,,,.,,,..,...,
+#OHNHCGOTKPNBR3LEAZMVALY3C7ZB7QCSQHD6GUOA3GQ4CVBSAUAFFXHVP7XU6ZY2G7SZ7V2GK2CRW
+#\\\|FH2CCCNGFHNJGH6OT5WRKJDYPVHAZQ76VCZOG2V6BJIWREN2G4F \ / AMOS7 \ YOURUM ::
+#\[7]GJ22LMKFAZPHTXQ4AIUZUS4H2ZLCQBGJSUJYFEBI7GZCYS5WJUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,177 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+use Encode  qw| decode encode |;
+use FindBin qw| $RealBin |;
+use File::Spec;
+
+###                     ###
+##  strip-llm-metadata   ##
+###                     ###
+
+## removes llm metadata [ Co-Authored-By:, 'Generated with Claude Code',
+## '[CLAUDE] ' prefixes .. ] from commit messages. the patterns live in
+## cfg/git/llm-metadata.patterns, shared by every caller :
+##
+##  [no option] : filter, message on stdin, cleaned message on stdout
+##                [ git filter-branch --msg-filter ]
+##  -i <file>   : in place, removed lines reported on stderr [ commit-msg ]
+##  -s [revs]   : scan, prints the ids of commits whose message would change
+##                [ default rev : HEAD ]
+##  -p <file>   : other pattern file
+##  -C <dir>    : repository to scan [ -s, default : current directory ]
+##
+## lines are matched decoded, but only removed or prefix-stripped lines are
+## touched -- every other byte of a message stays as it was
+
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+my %opt;
+getopts( 'i:sp:C:', \%opt ) or usage();
+usage() if defined $opt{'i'} and $opt{'s'};
+
+my $pattern_file = $opt{'p'}
+    // File::Spec->catfile( $RealBin, File::Spec->updir,
+    File::Spec->updir, qw| cfg git llm-metadata.patterns | );
+my @patterns = load_patterns($pattern_file);
+
+if ( defined $opt{'i'} ) {
+    in_place( $opt{'i'} );
+} elsif ( $opt{'s'} ) {
+    chdir $opt{'C'} or fail( "\l$OS_ERROR", $opt{'C'} ) if defined $opt{'C'};
+    scan( @ARGV ? @ARGV : qw| HEAD | );
+} else {
+    binmode STDIN,  qw| :raw |;
+    binmode STDOUT, qw| :raw |;
+    my $msg = do { local $INPUT_RECORD_SEPARATOR; readline STDIN }
+        // '';
+    print {*STDOUT} ( strip($msg) )[0];
+}
+exit 0;
+
+##[ patterns ]################################################################
+
+sub load_patterns {
+    my $path = shift;
+    open( my $fh, qw| < |, $path ) or fail( "\l$OS_ERROR", $path );
+    my @list;
+    while ( my $line = readline $fh ) {
+        next if $line =~ m{^\s*(?:#|$)};
+        chomp $line;
+        my ( $action, $regex ) = $line =~ m{^(line|prefix)\s+(.+?)\s*$}
+            or fail( "invalid pattern line '$line'", $path );
+        push @list, { action => $action, regex => qr{$regex} };
+    }
+    close $fh;
+    fail( 'no patterns defined', $path ) if not @list;
+    return @list;
+}
+
+##[ strip : message bytes in, cleaned bytes + removed lines out ]#############
+
+sub strip {
+    my $msg   = shift;
+    my @lines = split m{(?<=\n)}, $msg;
+    my ( @kept, @removed );
+
+LINE: foreach my $i ( 0 .. $#lines ) {
+        my $raw  = $lines[$i];
+        my $text = decode( qw| UTF-8 |, $raw =~ s{\n$}{}r );
+        foreach my $pattern (@patterns) {
+            next if $text !~ $pattern->{regex};
+            if ( $pattern->{action} eq 'line' ) {
+                push @removed, $text;
+                ## a removed line between two empty lines takes one along ##
+                pop @kept
+                    if @kept
+                    and $kept[-1] eq "\n"
+                    and ( $lines[ $i + 1 ] // "\n" ) eq "\n";
+                next LINE;
+            }
+            push @removed, $text;
+            $text =~ s|$pattern->{regex}||;
+            $raw = encode( qw| UTF-8 |, $text )
+                . ( $raw =~ m{\n$} ? "\n" : '' );
+        }
+        push @kept, $raw;
+    }
+    return ($msg) if not @removed;
+
+    my $clean = join '', @kept;
+    $clean =~ s{\s+\z}{\n};    ## no trailing empty lines ##
+    return ( $clean, @removed );
+}
+
+##[ -i : commit-msg hook ]####################################################
+
+sub in_place {
+    my $file = shift;
+    open( my $fh, qw| < |, $file ) or fail( "\l$OS_ERROR", $file );
+    binmode $fh, qw| :raw |;
+    my $msg = do { local $INPUT_RECORD_SEPARATOR; readline $fh }
+        // '';
+    close $fh;
+
+    my ( $clean, @removed ) = strip($msg);
+    return if not @removed;
+
+    open( $fh, qw| > |, $file ) or fail( "\l$OS_ERROR", $file );
+    binmode $fh, qw| :raw |;
+    print {$fh} $clean;
+    close $fh;
+
+    binmode STDERR, qw| :utf8 |;
+    print STDERR "\n:: info :: removed llm metadata "
+        . "from commit message\n:: filtered :\n";
+    print STDERR "::   - $ARG\n" foreach grep {length} @removed;
+    print STDERR "\n";
+}
+
+##[ -s : commits whose message would change ]#################################
+
+sub scan {
+    my @revs = @ARG;
+    open( my $log_fh, qw| -\| |,
+        qw| git -c color.ui=false log --no-color --format=%H%x00%B%x00 |,
+        @revs, qw| -- | )
+        or fail("cannot start git log : \l$OS_ERROR");
+    binmode $log_fh, qw| :raw |;
+    local $INPUT_RECORD_SEPARATOR = "\0";
+    while ( my $hash = readline $log_fh ) {
+        chomp $hash;
+        $hash =~ s{^\s+}{};
+        my $msg = readline $log_fh // last;
+        chomp $msg;
+        my ( undef, @removed ) = strip($msg);
+        say $hash if @removed;
+    }
+    close $log_fh;
+}
+
+sub fail {
+    my ( $msg, $subject ) = @ARG;
+    print STDERR ":\n:: $msg .: "
+        . ( $subject // 'strip-llm-metadata' )
+        . " ::\n:\n";
+    exit 2;
+}
+
+sub usage {
+    print STDERR ":\n:: usage : strip-llm-metadata [-p <patterns>]           "
+        . "      [ stdin -> stdout ]\n:         "
+        . "strip-llm-metadata [-p <patterns>] -i <file>       [ "
+        . "in place ]\n:         strip-llm-metadata [-p "
+        . "<patterns>] -s [-C <dir>] [revs] [ list commits "
+        . "]\n:\n";
+    exit 2;
+}
+
+#,,.,,.,,,..,,,,,,.,.,,.,,..,,,..,.,.,,..,,.,,..,,...,...,..,,,.,,...,.,.,,,,,
+#3QT3BUVV4CP6DFUO6NODSTIB6QQPYEQLHWGC4JRUA7IWKOEAG2WH3DUGWGS43QDQXIGJLWYZ22SS4
+#\\\|7TGEBBOWIBZCNLYRDJULQ76ZRLHFDWVJJGROCRZXYD7MOSGFEZA \ / AMOS7 \ YOURUM ::
+#\[7]M654RPX3K2XHTGQUJUOIMS74FOVGGSDFCTEYOHA5TCBDELNPMGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
