@@ -108,16 +108,23 @@ sub file_mode {
     fail( 'no changed commits in map', $map_path ) if not %new_of;
 
     open( my $grep_fh, qw| -\| |,
-        qw| git grep -l -I -z -E |, q{[0-9a-f]{7,40}}, qw| -- . | )
+        qw| git -c color.ui=false grep --no-color -l -I -z -E |,
+        q{[0-9a-f]{7,40}}, qw| -- . | )
         or fail("cannot start git grep : \l$OS_ERROR");
     my @files = do { local $INPUT_RECORD_SEPARATOR = "\0"; readline $grep_fh };
     close $grep_fh;
     chomp @files;
 
-    my ( $total, $ambiguous, $file_count ) = ( 0, 0, 0 );
+    my ( $total, $ambiguous, $file_count, $unreadable ) = ( 0, 0, 0, 0 );
     foreach my $file (@files) {
         next if $file eq $map_path;
-        open( my $fh, qw| < |, $file ) or next;
+        ## never skip silently [ forced git colour once hid every file ] ##
+        open( my $fh, qw| < |, $file ) or do {
+            $unreadable++;
+            print STDERR "$blacklight:   $NEON_orange\l$OS_ERROR $blacklight.: "
+                . "$TRUE_color$file$reset\n";
+            next;
+        };
         binmode $fh, qw| :raw |;
         my $text = do { local $INPUT_RECORD_SEPARATOR; readline $fh };
         close $fh;
@@ -150,6 +157,7 @@ sub file_mode {
         . ( $dry_run ? 'would update' : 'updated' )
         . " $total references in $file_count files $blacklight] "
         . ( $ambiguous ? ".: $NEON_orange$ambiguous ambiguous left $blacklight" : '' )
+        . ( $unreadable ? ".: $NEON_orange$unreadable unreadable $blacklight" : '' )
         . "::\n:$reset";
 }
 
@@ -169,8 +177,8 @@ sub usage {
     exit 2;
 }
 
-#,,.,,.,,,,,.,,,,,,.,,.,.,.,,,,,,,,,,,...,,,.,..,,...,...,.,,,.,,,,..,...,.,,,
-#SQ5IDVB2VDYQNG4LPPKZKHEEBTGOA2BKJ2T2DE5NTKMGC7S6DDNABKB5LTJN75SFKBBHXSYDGTPWO
-#\\\|TKQPDNRAHYI2LNUUY34UONYESWNEM7I24M5XAXTIBYHGRMIQMA2 \ / AMOS7 \ YOURUM ::
-#\[7]HDB43UE6HJOPLOVKZYSGEEF6DF4WKUDON4V5AKCAN5OF7HJFVSAY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,..,,,,,,..,,..,,...,.,,,.,,,,..,..,,...,...,..,,,,.,.,,,..,,...,
+#UFPVDO4GLSXYQASGCCVZ7B2TRX66AEXJJJH2JZTAPHNR2ZNFAOT4UTPWWSEZLOQUPBNUJS6L7ANL2
+#\\\|4CERDC3C2KYMERCSRD5YD65AJJINAB7EMTZAGI3YHC46KM2YRNF \ / AMOS7 \ YOURUM ::
+#\[7]Z5O6K5UMILSIXUSMX6KWGJ5SH3ODLS7K45GPJ74XR6PW3G2Z3SBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

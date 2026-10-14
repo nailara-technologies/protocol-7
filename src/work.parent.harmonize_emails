@@ -206,8 +206,9 @@ foreach my $author ( keys %authors_seen ) {
     }
 }
 
-## Count how many commits would be affected
-my $commits_to_change = 0;
+## count how many commits would be affected [ unique : one commit can ##
+## hit both an email and an author mapping ]                           ##
+my %affected_commits;
 my %changes_by_email;
 my %changes_by_author;
 
@@ -216,7 +217,7 @@ foreach my $variant ( keys %canonical_email_map ) {
 
     if ( $variant ne $canonical && $email_commits{$variant} ) {
         my $count = scalar( @{ $email_commits{$variant} } );
-        $commits_to_change += $count;
+        $affected_commits{$ARG} = TRUE foreach @{ $email_commits{$variant} };
         $changes_by_email{$variant} = {
             canonical => $canonical,
             commits   => $count
@@ -229,7 +230,7 @@ foreach my $variant ( keys %canonical_author_map ) {
 
     if ( $variant ne $canonical && $author_commits{$variant} ) {
         my $count = scalar( @{ $author_commits{$variant} } );
-        $commits_to_change += $count;
+        $affected_commits{$ARG} = TRUE foreach @{ $author_commits{$variant} };
         $changes_by_author{$variant} = {
             canonical => $canonical,
             commits   => $count
@@ -237,13 +238,15 @@ foreach my $variant ( keys %canonical_author_map ) {
     }
 }
 
+my $commits_to_change = scalar keys %affected_commits;
+
 <[base.log]>->(
-    2, "  Commits needing email changes: " . scalar( keys %changes_by_email )
+    2, "  Email variants to map : " . scalar( keys %changes_by_email )
 );
 <[base.log]>->(
-    2,
-    "  Commits needing author changes: " . scalar( keys %changes_by_author )
+    2, "  Author name variants to map : " . scalar( keys %changes_by_author )
 );
+<[base.log]>->( 1, "  Commits to change : $commits_to_change" );
 
 if ($dry_run) {
     say "";
@@ -522,6 +525,16 @@ if ( $exit_code != 0 ) {
 <[base.log]>->( 1, "  ✓ Harmonized emails and authors across history" );
 <[base.log]>->( 1, "  ✓ old -> new commit map : $map_file" );
 
+## new ids across all refs : every descendant of a changed commit too ##
+my $rewritten = 0;
+if ( open my $map_fh, '<', $map_file ) {
+    while ( my $line = readline $map_fh ) {
+        $rewritten++ if $line =~ m|^([0-9a-f]{40}) (?!\1)[0-9a-f]{40}$|;
+    }
+    close $map_fh;
+}
+<[base.log]>->( 1, "  ✓ $rewritten commit ids rewritten across all refs" );
+
 ## commit ids in tracked files of the working tree [ left uncommitted ] ##
 my $refs_cmd = join q{ }, q{cd}, $shell_quote->($repo_path), q{&&},
     map( { $shell_quote->($ARG) } $EXECUTABLE_NAME,
@@ -541,6 +554,7 @@ chomp $refs_output;
 return {
     success        => TRUE,
     changed        => $commits_to_change,
+    rewritten      => $rewritten,
     map_file       => $map_file,
     email_mapping  => \%changes_by_email,
     author_mapping => \%changes_by_author
@@ -548,8 +562,8 @@ return {
 
 0;
 
-#,,.,,,,,,..,,.,.,,,,,,..,,..,..,,,..,.,,,,,,,..,,...,...,..,,.,.,,,.,,.,,.,,,
-#CJ7FU4T2JDJPFRECK7PDVQ4UC7D6SRXX2I7BLDKZGQJYM2C6BKZNH73ZQG6BXLET5DXH6522WP77G
-#\\\|3GPUUAXJSHVFRIO2K7IMIIIFC6OAUWPYPLUKRPI42UMEQTNGQQS \ / AMOS7 \ YOURUM ::
-#\[7]H7GZUO5IMEM2YC3GEDM52BN7ASW7OX7EI4HR3574LAFU3VKNWICI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,.,,.,,,,.,,.,,,,..,,.,,,,,,,.,,..,,...,...,,..,..,,..,,.,,,,..,
+#RMPG4QOBOLYFOPR5RMYGAIFYYBYQEFFAGNLE5EEERAGH75VWEQLAZ4WIOHN6NF3Z7URJWBOHCVNPQ
+#\\\|WCZNGK6AYARIIVSTNBTVWCHYMRYUM47YCNGQYN4CHQ4FUXN33XS \ / AMOS7 \ YOURUM ::
+#\[7]RHDBTDBFPJ2ZKEOQQ5DAPNJ2W3HDC7IDR26I3Q3W76VHT4AKS4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
