@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [pre-rewrite-backups-archive](reference-pre-rewrite-backups-archive.md) — 2026-10-14 : 9 old ../p7.bak.* copies archived [ bundle + stashes as refs/saved-stash/NN + loose-file tar ] in /mnt/ext-xfs-data/repository/pre-rewrite-backups/ ; reviewed, nothing left to import ; restore into a scratch repo only, never push [ old ids, llm emails ]
 - [zenki-status-command](reference-zenki-status-command.md) — `p7c v7-zenki.list zenki` = status of all zenki ; there is no v7-zenki.status [ a poll loop on it spammed the console 2026-10-11 ]
 - [strm-size-write-cap-stall](reference-strm-size-write-cap-stall.md) — `base.handler.write`'s 64-syswrite-per-call cap had an unhandled third exit (cap reached, every write succeeded, no EAGAIN) that left the watcher re-armed-but-scheduled-nowhere, silently stranding remaining buffered output forever; fixed 2026-09-14 to fall through to the existing EAGAIN idle-restart rescue instead. Root cause of a verbosity-dependent nshell STRM-SIZE stall (fast/quiet client never hit real EAGAIN, always hit the cap). Also has proven Event-1.28 C-source facts: `Event::var` write-detection is reliable regardless of mutation method, `->again` on a non-timer watcher is a no-op equivalent to `->start`, and `->now`'s dispatch is priority-dependent/not guaranteed immediate — don't re-derive these from scratch next time this area comes up
 - [plugin-namespace-loading-convention](reference-plugin-namespace-loading-convention.md) — `plugin.<zenka>.*` is a real, established convention (5+ zenki use it): `plugins.load = plugin.foo` + `[load_plugins:<plugins.load>]` right after `[load_modules:...]`, mirrors web's example exactly. `base.load_plugins` only loads+tracks, no hook framework comes with it — design your own dispatch on top
@@ -106,8 +107,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 
-#,,.,,.,,,,,.,.,,,..,,,,,,,,,,,,,,.,,,...,,.,,..,,...,..,,..,,,.,,..,,...,...,
-#D4QBHKGT4RPZP3QNHVVC6HJPN7GGFYKJV7ZUKMRWSJJX5LZVVNRXMTYGTOWZ7HDPGJH7QCJ2VHACS
-#\\\|N3RWE3KST63TUHQXEDFAMP4SJB4PBEKXZGWQULSEJTJ3CIE2QKT \ / AMOS7 \ YOURUM ::
-#\[7]V54572TPYCXZ5OPP7ZPPWKGY4BCTHHC7SYQFH4LKVHRLIB76IYCY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,,.,,,,,,.,,,..,,,..,.,,,,,,,..,,...,...,.,.,..,,,..,,,.,,,.,
+#Z4VLV56EALLALDKPR5NKO5BO7QJC2ZV54FRIZOVB2P7NTKXTCZHMXQ7ZFNSRBXBSFQ5JJ44UCL53W
+#\\\|ZUT6EYR4BUF5WC3EB7PBCAUA5XGQ5K6X2BGEDCZHT6DUAGBJJ45 \ / AMOS7 \ YOURUM ::
+#\[7]73ASQ4FPFJX7KFOWI37XJF7O33SNAZUGUH2WGSTBSPXNJO63XGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
