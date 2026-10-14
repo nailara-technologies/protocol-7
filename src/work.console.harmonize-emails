@@ -62,14 +62,19 @@ if ( $result->{dry_run} ) {
 
 unless ( $result->{success} ) {
     my $error = $result->{error} || 'unknown error';
-    return say "::\n: ✗ Harmonization failed: $error\n::";
+    <[base.log]>->( 0, "✗ harmonization failed : $error" );
+    return FALSE;
 }
 
-my $changed = $result->{changed} || 0;
-return say "::\n: ✓ Harmonized $changed commits\n::";
+<[base.log]>->(
+    1,
+    sprintf( "✓ harmonized %d commits [ %d ids rewritten across all refs ]",
+        $result->{changed} // 0, $result->{rewritten} // 0 )
+);
+return TRUE;
 
-#,,,.,.,.,.,.,,..,..,,,,.,...,...,,,.,..,,,,.,..,,...,...,..,,,,.,.,.,,,.,.,.,
-#RJYXNUA6BBJ2MTDS6O674LDKK5PVTOKV3UJNEKPQAXFRO2OI7EF7JMNEUMMETSRWEXVCRZBLGXPD6
-#\\\|FTX763X5B67GLT53EBTHRTHYHFTBQVY7FCSDH3EDOUGFTU3IC5P \ / AMOS7 \ YOURUM ::
-#\[7]CREVOQVWT2ZGXB4YQBV3V7ZOSZRWVDC5SX2UKCDZK22PYEL3GOBQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,,,,,.,...,,,,,..,,,,.,.,,,,..,..,,...,...,,,,,,,.,,,.,,,,,,,,,
+#5GKNC335KYNO66C5NEQE3UOP5G3WN7YFVMNMPAQTAPMSLSQR3IPIN74BRMEVAXD4IWPRG62Z5HNVQ
+#\\\|XADISXEGGUK3KFTTXWSATOMR27OEWUV3MPQ4NGELXRLAEE7S4YI \ / AMOS7 \ YOURUM ::
+#\[7]TUWJICW32NX3EKH6I2VXWLFD2AIC33FSOULHOMHCWOF7WW2AK6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
