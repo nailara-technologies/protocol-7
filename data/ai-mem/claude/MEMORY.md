@@ -30,6 +30,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [user-screen-brightness-sensitivity](feedback-user-screen-brightness-sensitivity.md) — real physical reaction to bright screens, not aesthetic; default new HTML/UI work to dark violet/blue-toned themes proactively, keep print forced light
 - [rapid-pattern-visual-disruption-risk](feedback-rapid-pattern-visual-disruption-risk.md) — real, lasting adverse effect (temporary inability to read text) from sustained attentive exposure to dense high-entropy ANSI-cycling visuals (bin/atom-delta-term); default any future rapid/psychedelic visual work (incl. vision-orbital-hop-sequence-hyperspace-flight-animation) to conservative, easily-slowed cycling rate, not max intensity
 - [no-personal-data-in-repo-tree](feedback-no-personal-data-in-repo-tree.md) — never hardcode emails/PII, or real hostnames/IPs of live deployments, into any repo-tracked file — src, gitignored, or memory files (`data/ai-mem/claude/*.md` is git-tracked too); use `<[file.zenka_dir.load]>->('cfg-dir:<zenka>/file')`, `/data/<project>-data/` external dirs, or generic phrasing instead
+- [never-invent-attribution-headers](feedback-never-invent-attribution-headers.md) — never write copyright \ license \ author \ email headers : a session invented one [ real name + NON-EXISTENT email + AGPL claim, jobs-normalize-titles, removed 2026-10-15 ]. project is free ; authorship only in read-me/author + license, by the owner's choice
 - [memory-write-path](feedback-edit-memory-via-ai-mem-path.md) — always Read/Edit/Write memory via data/ai-mem/claude/<file>, never the ~/.claude/projects/.../memory/ symlink path (same files, home path re-prompts every edit)
 - [settings-json-repair-mode-does-not-persist](feedback-settings-json-repair-mode-does-not-persist.md) — broken .claude/settings.local.json (e.g. trailing comma) triggers in-session repair that burns tokens but never saves; verify JSON validity on disk directly, restart required after manual fix
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart
@@ -79,8 +80,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,..,,.,,,.,,..,,...,..,,.,,,.,,,,.,,,..,..,,...,...,,..,.,.,..,,,,.,...,
-#Q5GDO227BRN7YHIY5GP5FLPKLJ3UWFLEDEMPTXW4ENIVZZEVDOQBB5BHJKCXYPBPC33MNBCV36SVS
-#\\\|H4QDK7N5W3WEKWLH7TDJEKRPHBNN65QIFH3EOX4UMXTPZS73BZP \ / AMOS7 \ YOURUM ::
-#\[7]36SPRJXLLIJ55NUWXRGG7PVP2IOAMU3DQ5LL44O7VOVDBILCGOBI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,..,,,,,,,,,,.,.,,.,,,.,,,,,,..,,..,,...,...,.,,,,,.,.,,,,,.,,,,,
+#KTMTYHIJT5QUXKY5VFEVKNVVMA3JNGTWVPG2GU4XBCK7HDEFS44B2ZDKRVHS3S52SY6VAYT6RMUW2
+#\\\|KAOLBXS7MB2CD6YVQLOIIYAG5RS6Z3QDH3L3NBPYEMOIGRXK2F6 \ / AMOS7 \ YOURUM ::
+#\[7]FJP74WJHD4LTAUDOCYYULSCDA2OL7AUG2STHP3OB753NIJGJVABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
