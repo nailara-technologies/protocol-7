@@ -260,6 +260,18 @@ scheme with a per-file random salt
 - a blob writes like an entry : a temp file inside `blobs/`, synced,
   then renamed only when the target is absent. an existing blob of that
   name means deduplication -- nothing is written
+- the unlocked key lives in ONE private buffer [ built with '.=' : a plain
+  copy would share it, copy on write ], locked in memory with
+  IO::AIO::aio_mlock when IO::AIO is there [ never swapped ], and wiped
+  -- two random overwrites, then truncated -- on a lock and on quit.
+  derived per-entry keys are short perl temporaries this cannot reach
+- the interactive shell locks after 78 min without input [ 13 x 360 s,
+  P7_VAULT_LOCK_SECONDS, 0 = off ; ':keep-open:' at start-up turns it off ]
+  : key wiped, typed-ahead input dropped, screen + scrollback + command
+  history cleared, then the passphrase again. a lock inside a hidden input
+  cancels that command. the prompts wait in a select with the idle time
+  left [ readline in callback mode -- a blocking readline keeps reading
+  after a signal ]. the note editor has no timer : editing counts as input
 - written by root into a vault a user owns [ `sudo p7-vault -d
   ~user/.n/vault` ] : every new file and directory takes the owner of the
   directory it is created in, so the user keeps reading and writing it.
@@ -317,7 +329,10 @@ same base32 block, title `p7-vault archive`. binary inside :
 ## sync : a manual union of the entry and blob files
 
 `p7-vault sync <ssh-host>[:<remote dir>]...` [ several hosts : one after
-the other, a refused one does not stop the rest ] unites a vault with a copy on
+the other, a refused one does not stop the rest ; a path -- '/' './' '../'
+'~' -- is a directory, an external drive : p7-vault runs the same commands
+with sh instead of ssh, the key file is copied there once by hand as for a
+host ] unites a vault with a copy on
 another host [ remote dir default : `.n/vault` in the remote home ].
 entry version and blob files are opaque and never change, so a sync is a
 plain file union -- never overwrite, never delete. `entries/` and
@@ -381,8 +396,8 @@ the payload with the vault key, then step 2 for each record's data.
 a session agent [ unlock once per login ], the vault-edit form ui,
 totp code display, purging old versions.
 
-#,,.,,...,.,.,..,,.,,,,..,.,,,,,,,..,,,,.,.,,,..,,...,...,,..,,,.,..,,,,.,,,,,
-#MPDPCYAP56R6UCETK55APLSWERDC2W5ZH2Z7K2LEGMVFZBTDDXPPBFP5B4O3TWR246MJQUDKYPDWI
-#\\\|NFOP6XPDG3SK7WMTXYB7R6Y64I7UYJUW4V7EMLD6JOPZOM3CU5G \ / AMOS7 \ YOURUM ::
-#\[7]HCU3VVH4R4ITX4TPTQA6E5GUU6U4YP4R6DVKSPYADW3U75C7EUAI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,.,,.,.,.,.,,.,,,,.,,,.,...,,,.,..,,...,...,..,,.,,,.,,,..,,...,
+#462G7UANHHVKPES4MTTS7C7YUOVEUFPAT2IW3SUMAOWTKFYK5RPJDQ7BD6W5FVCBCLG4KQHTDBEMS
+#\\\|O3AT6D74M57GJCXVL4AJSCZTP4LZI3LTTKSPFDANAHNLNEAQXLN \ / AMOS7 \ YOURUM ::
+#\[7]HXQDSAU3LPK62VOHFZBEFMM25EFDJEF3HYDMXR5GD6LIYO7N6CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
