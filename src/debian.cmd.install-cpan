@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = debian.cmd.install-cpan
+# descr = enqueue cpan module install [ one queue with apt ]
+# param = <Module::Name> [ <Module::Name> .. ]
+
+my $param = shift            // {};
+my $args  = $param->{'args'} // '';
+
+my @modules = grep {length} split m|\s+|, $args;
+
+return { 'mode' => qw| false |, 'data' => 'no modules specified' }
+    if not @modules;
+
+my $job_id = <[debian.cpan_enqueue_install]>->(
+    {   'modules'  => \@modules,
+        'reply_id' => $param->{'reply_id'},
+        'source'   => qw| cmd.install-cpan |
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => 'install queue unavailable' }
+    if not defined $job_id;
+
+## the reply is delivered asynchronously by                      ##
+## debian.handler.cpan_child_output once cpanm actually finishes ##
+## [ deferred_reply pattern ]                                    ##
+return { 'mode' => qw| deferred | };
+
+#,,,.,,,,,,,,,,,.,,,,,..,,,,.,..,,,.,,...,,,,,..,,...,...,..,,...,.,,,,.,,,.,,
+#MFCFIK35JHHPIYPMAGATMVKNJNRBALP46HTS5MSSCQAVXIK5DN5XD7B2J644JQ4YORRGID5P33HRW
+#\\\|AB3HELSDBPWMEYDNME2RWWHL42JLJPWSSE3GEMDN65BKDHSE5WS \ / AMOS7 \ YOURUM ::
+#\[7]JFLVFFQPWQSFSNTLD7MS55NUW37W25U2WT65WUXNKW6EMHWGIQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

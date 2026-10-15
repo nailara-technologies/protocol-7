@@ -110,12 +110,16 @@ sub scan_zenki_os_deps {
 
 ##[ probe_os_pkg ]############################################################
 
+## $fresh : the current dpkg state per call, no in-process apt cache  ##
+## [ long-lived processes -- see AMOS7::deps::debp::probe_apt_fresh ] ##
 sub probe_os_pkg {
-    my ( $pkg, $os_type ) = @_;
+    my ( $pkg, $os_type, $fresh ) = @_;
 
     return 0 unless defined $pkg && length $pkg;
 
-    return probe_binary($pkg)                 if $os_type eq 'binary';
+    return probe_binary($pkg) if $os_type eq 'binary';
+    return AMOS7::deps::debp::probe_apt_fresh($pkg)
+        if $os_type eq 'debian' and $fresh;
     return AMOS7::deps::debp::probe_apt($pkg) if $os_type eq 'debian';
 
     ## future: arch, fedora, etc. ##
@@ -151,8 +155,8 @@ sub install_os_pkgs {
 
 1;
 
-#,,..,.,.,...,...,..,,,.,,,,.,.,,,,,.,..,,...,..,,...,...,.,,,...,,,,,..,,.,,,
-#6WCSNIHKGBCKPRWUI3BIFBHAZYETH7KZZ4H2SFFTEYOTUDK4S7CFQOM74T7BT4FPUWOHJBCYED2OK
-#\\\|AO5NK2A6OLPQ4PH4U3CN7EICUPY246ONFI4LID3OTUE6K32B7JN \ / AMOS7 \ YOURUM ::
-#\[7]HJVIWJNL5CPIWVOWEWC37PG244UZ54VGVMVXSCHWOW67XVQFDIBA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,,,,.,,,...,,..,,.,,,..,,..,..,,...,...,.,.,,,.,,,.,,,,,...,
+#52EYC27BY7Q3TQDXKUA2VNTKALOYY6DFU5OKKIV3ZGZNBFZ3ZHNBZYTRP54X4APJP4YERCV6OU4O4
+#\\\|FYIAEB4UTBKAJ6CNSXHK4ABB2GORYTOS7MAGUPSD5ASUAOLLHQO \ / AMOS7 \ YOURUM ::
+#\[7]SROS2DZII3B2VZDQ7CNNNMZZ4SK7ZKYHANQGJVIRU7D6JJUAJEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

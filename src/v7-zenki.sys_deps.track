@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = v7-zenki.sys_deps.track
+# descr = append installed dep entries to var/sys-deps/tracked.yaml
+#         [ shared by check_zenka_deps, handler.deps_install_reply and the
+#           sys_deps reply handler -- one copy of the tracking block ]
+# param = <zenka_name> [ <item> .. ] , <item> = { name => .., type => .. }
+
+my $zenka_name = shift // '';
+my $items      = shift // [];
+
+return if not @$items;
+
+my $track_dir  = <system.root_path> . '/var/sys-deps';
+my $track_file = $track_dir . '/tracked.yaml';
+
+<[file.make_path]>->(
+    $track_dir, 0775, <system.amos-zenka-user>, <system.amos-zenka-user>
+) if !-d $track_dir;
+
+my $tracked = { tracked => [] };
+if ( -f $track_file ) {
+    eval {
+        require YAML::Tiny;
+        my $yaml = YAML::Tiny->read($track_file);
+        $tracked = $yaml->[0] if defined $yaml && defined $yaml->[0];
+    };
+}
+
+for my $item (@$items) {
+    push @{ $tracked->{tracked} },
+        {
+        pkg          => $item->{'name'},
+        type         => $item->{'type'}    // qw| debian |,
+        installed_at => <[base.ntime.b32]> // '',
+        source       => 'v7-prestart',
+        zenka        => $zenka_name,
+        declared     => 0
+        };
+}
+
+eval {
+    require YAML::Tiny;
+    my $yaml = YAML::Tiny->new($tracked);
+    $yaml->write($track_file);
+};
+
+## normalize ownership for sys-deps zenka \ os-pkg access ##
+if ( -f $track_file and $UID == 0 ) {
+    my ( $track_uid, $track_gid )
+        = ( getpwnam(<system.amos-zenka-user>) )[ 2, 3 ];
+    chown( $track_uid, $track_gid, $track_dir, $track_file )
+        if defined $track_uid;
+    chmod( 0775, $track_dir );
+    chmod( 0664, $track_file );
+}
+
+return TRUE;
+
+#,,..,..,,..,,.,.,,,.,...,,,.,.,.,,,.,,,,,.,.,..,,...,..,,.,.,,.,,,,.,...,.,,,
+#CGYAOBHTE6ZD65USQRFT6ASW5KP4A7TIPBQAC57TFO23YEBSIXSD2ZENESPQNS2GP6IWYIVHVM2XM
+#\\\|VQVP5C3VWIRCSHVFEP2EK54LYZRERVZZBIXNFOQ44W2NQZURPPY \ / AMOS7 \ YOURUM ::
+#\[7]MZCS5AWUVNPC3G624JYQ5QUP6TCKI53PFWVC2AACB2RKIUBOQABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

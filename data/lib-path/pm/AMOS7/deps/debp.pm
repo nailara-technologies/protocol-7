@@ -7,7 +7,7 @@ use English;
 use Exporter;
 use base qw| Exporter |;
 
-our @EXPORT_OK = qw| probe_apt install_apt |;
+our @EXPORT_OK = qw| probe_apt probe_apt_fresh install_apt |;
 
 my $_apt_cache;
 
@@ -35,6 +35,33 @@ sub probe_apt {
     ## fallback: dpkg-query if AptPkg unavailable ##
     my $out = `dpkg-query -W -f='\${Status}' "$pkg" 2>/dev/null`;
     return ( defined $out && $out =~ m|install ok installed| ) ? 1 : 0;
+}
+
+##[ probe_apt_fresh ]#########################################################
+
+## dpkg-query per package [ ~3 ms ] : always the current state, no apt   ##
+## cache in the process                                                  ##
+## [ AptPkg::Cache : ~0.4 s, ~70 MB, never updated after an install ] -- ##
+## for long-lived processes [ v7-zenki ]. no shell : the name goes to    ##
+## dpkg-query as an argument                                             ##
+
+sub probe_apt_fresh {
+    my ($pkg) = @_;
+
+    return 0 unless defined $pkg && $pkg =~ m|^[a-z0-9][a-z0-9.+\-~]*$|;
+
+    my $pid = open( my $fh, '-|' );
+    return 0 unless defined $pid;
+    if ( $pid == 0 ) {
+        open( STDERR, '>', '/dev/null' );
+        exec {'dpkg-query'} 'dpkg-query', '-W', '-f=${Status}', $pkg;
+        exit 1;
+    }
+    my $out = do { local $/; <$fh> }
+        // '';
+    close($fh);
+
+    return $out =~ m|install ok installed| ? 1 : 0;
 }
 
 ##[ install_apt ]#############################################################
@@ -104,8 +131,8 @@ sub install_apt {
 
 1;
 
-#,,..,,..,..,,,..,,,.,,,.,...,,,,,...,..,,.,.,..,,...,...,.,,,.,,,,,,,,,,,,,.,
-#MCANLKJ6QY5KZHHAFGCWCPVPXYKQLH45PE7MWBVPDGIKNIDK36WATX5IKKV4UKAQXUHM52F2OBEMI
-#\\\|VY4IMVBYMYKWWFG7H2JUUSI6PDZ22UIT4TPMOZVDB4ECO35AG3F \ / AMOS7 \ YOURUM ::
-#\[7]VIBELBGF3VUU2HTVPCKYUYNHCRS2FHIAQWR4HDKDWP5BTKA6Q4DQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,,,.,,,..,,.,,,...,,..,...,..,,..,,...,...,...,...,...,,,,,,,.,
+#KNDTWDVGFS7T5ZQURQ7BD7B47QB2IPGXZGRCNJZNC4LOOTDI7LJTGXPFIB4TOSWM5FRS5ZKY46UYW
+#\\\|3NQAU244DU5HMAQPHQVARFXTRXOON4WS6LMCCH5OXDG25VBLTJX \ / AMOS7 \ YOURUM ::
+#\[7]SJ2CJBBTKET3YZLCRD2TVWZS6F3KWLGYITO6AEMTIIALETAJM6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = v7-zenki.callback.object.sys_deps
+# descr = start condition : a zenka's declared deps are present [ sys_deps.<zenka> ]
+# note  = state per zenka in <v7-zenki.sys_deps.state>->{<zenka>} :
+#         'ok' -> TRUE ; 'missing' \ 'installing' -> FALSE + re-check later ;
+#         'failed' -> TRUE [ degraded start, logged once ] -- retried only
+#         after <v7-zenki.cfg.sys_deps.retry_after> seconds [ 3600 ]
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+
+my $zenka_name = <dependency.object>->{$object_id}->{'name'} // '';
+return FALSE if not length $zenka_name;
+
+## feature off : no gating at all ##
+return TRUE
+    if not <[base.cfg_bool]>->( <v7-zenki.cfg.auto_install_deps> // FALSE );
+
+## exempt : the install path itself [ see set_up_zenka_dependencies ] ##
+return TRUE
+    if grep { $ARG eq $zenka_name } split m|\s+|,
+    <v7-zenki.cfg.sys_deps.exempt> // 'cube p7-log debian os-pkg';
+
+my $state = ( <v7-zenki.sys_deps.state> // {} )->{$zenka_name};
+$state = <[v7-zenki.sys_deps.probe]>->($zenka_name) if not defined $state;
+
+my $status = $state->{'status'} // qw| ok |;
+
+## an install that never answers                                           ##
+## [ debian or cube restarted mid-install, the reply lost ] : failed after ##
+## install_timeout -- a degraded start, not a zenka waiting forever        ##
+if (    $status eq qw| installing |
+    and defined $state->{'started_at'}
+    and <[base.ntime.delta_seconds]>->( $state->{'started_at'} )
+    > ( <v7-zenki.cfg.sys_deps.install_timeout> // 1800 ) ) {
+    <[base.logs]>->(
+        0,
+        "sys_deps : install for zenka '%s' timed out -- starting it "
+            . 'without [ retried after retry_after ]',
+        $zenka_name
+    );
+    $state->{'status'}      = qw| failed |;
+    $state->{'failed_at'}   = <[base.ntime]>;
+    $state->{'fail_logged'} = FALSE;
+    $state->{'pending'}     = 0;
+    $status                 = qw| failed |;
+}
+
+return TRUE if $status eq qw| ok |;
+
+if ( $status eq qw| failed | ) {
+    ## degraded start : TRUE, but a failed state is re-probed             ##
+    ## [ and thus re-installed ] only once retry_after has elapsed -- not ##
+    ## every start                                                        ##
+    my $retry_after = <v7-zenki.cfg.sys_deps.retry_after> // 3600;
+    my $failed_at   = $state->{'failed_at'}               // 0;
+    if ( $failed_at
+        and <[base.ntime.delta_seconds]>->($failed_at) < $retry_after ) {
+        if ( not $state->{'fail_logged'} ) {
+            $state->{'fail_logged'} = TRUE;
+            my $msg = "still missing deps for zenka '$zenka_name' : ";
+            $msg .= 'pm=' . join( ', ', @{ $state->{'missing_pm'} } ) . ' '
+                if @{ $state->{'missing_pm'} };
+            $msg .= 'os=' . join( ', ', @{ $state->{'missing_os'} } ) . ' '
+                if @{ $state->{'missing_os'} };
+            $msg .= 'bin=' . join( ', ', @{ $state->{'missing_bin'} } )
+                if @{ $state->{'missing_bin'} };
+            <[base.log]>->( 0, $msg );
+        }
+        return TRUE;
+    }
+    ## retry window elapsed : fresh probe [ a new 'missing' state falls ##
+    ## through to FALSE + resolve, ie a new install attempt ]           ##
+    $state = <[v7-zenki.sys_deps.probe]>->($zenka_name);
+    return TRUE if ( $state->{'status'} // qw| ok | ) eq qw| ok |;
+}
+
+## 'missing' or 'installing' : wait, re-check soon ##
+<[v7-zenki.condition.recheck_later]>;
+return FALSE;
+
+#,,,.,,..,,,,,,,,,..,,...,..,,,,,,..,,.,,,.,,,..,,...,...,..,,...,,..,,.,,,,.,
+#23WRS5A7F5HMMAI6AJL5OMZRNKFFS5XJQ5UCNTMBHM2C2RDGKHNX3WL33TBP6YFODOT3DXFRTASF4
+#\\\|TIMJDLUTRV4X3VCVJ4REJZWLRXMO7XQOR7JFBYVUGOEILENZRU3 \ / AMOS7 \ YOURUM ::
+#\[7]YGJK4DPASJQGBEL2D3RE3ZXSWCUJMJPLF2XOQZCFHAMOHDJMZIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

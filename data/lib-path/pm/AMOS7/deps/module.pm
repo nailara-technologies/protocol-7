@@ -11,17 +11,18 @@ our @EXPORT_OK = qw|
     load_known_deps
     scan_zenki_pm_deps
     probe_module
+    probe_module_file
     resolve_install
     |;
 
 ##[ load_known_deps ]#########################################################
 
-## single canonical accessor for src/base.known_dependencies data :        ##
-## reachable from both zenka and standalone-script contexts, so callers    ##
-## never need the <[base.known_dependencies]> P7-module-invocation route [ ##
-## zenka-context only ] for this data. $section selects the data section [ ##
-## default 'perlmod' ] ; the underlying file can be re-routed or upgraded  ##
-## later without hunting down every caller                                 ##
+## single canonical accessor for src/base.known_dependencies data :         ##
+## reachable from both zenka and standalone-script contexts, so callers     ##
+## never need the <[base.known_dependencies]> P7-module-invocation route    ##
+## [ zenka-context only ] for this data. $section selects the data section  ##
+## [ default 'perlmod' ] ; the underlying file can be re-routed or upgraded ##
+## later without hunting down every caller                                  ##
 
 sub load_known_deps {
     my ( $p7_root, $section ) = @_;
@@ -133,6 +134,29 @@ sub probe_module {
     return $EVAL_ERROR ? 0 : 1;
 }
 
+##[ probe_module_file ]#######################################################
+
+## installed = its .pm file is found in @INC -- NOT loaded. for long-lived ##
+## processes [ v7-zenki ] : require would load every zenka's modules into  ##
+## it [ memory, Inline compiles, signal handlers set at load time ]        ##
+
+sub probe_module_file {
+    my ($module_name) = @_;
+
+    return 0 unless defined $module_name && length $module_name;
+    return 0 unless $module_name =~ m|^[A-Za-z_]\w*(?:::\w+)*$|;
+
+    ( my $file = $module_name ) =~ s|::|/|g;
+    $file .= '.pm';
+
+    return 1 if exists $INC{$file};    ## already loaded ##
+    for my $dir (@INC) {
+        next     if ref $dir;          ## code ref hooks ##
+        return 1 if -f "$dir/$file";
+    }
+    return 0;
+}
+
 ##[ resolve_install ]#########################################################
 
 sub resolve_install {
@@ -159,8 +183,8 @@ sub resolve_install {
 
 1;
 
-#,,,,,,.,,.,,,...,,.,,...,,..,,,.,.,.,.,,,.,,,.,.,...,...,,..,,,.,,..,,..,...,
-#7KHAI6BXSVUDICBAZICLM5AJT2ECIGJ3Z6ITVKDM5UAPF5YIUV33VWY7YVDOEZ2AENFD6ZV244JHK
-#\\\|J6L2TYIU656GUPBMNCWYHGGJ35EPETLOWXERA3RHJQ755F6EZZA \ / AMOS7 \ YOURUM ::
-#\[7]XQVX4LA2Y3GQIYUQCLSXTMUNNJ7EJB6FNQ6AVVWJMGRPBI2UVWBA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,,..,,..,.,,,,,.,,,.,,..,...,.,.,...,...,.,.,...,..,,,..,,.,,
+#SRG3MUXFMJNONZXI74JXAWP7VT5FZKRY3HOBWCG4KXZNCGILEHD26R3BFW5JSUOELKEARPPWDGHPG
+#\\\|SYQGPSJEBDRN3RECXWVHCIBS4J36X4M53W2SBEF2SOOUCBNVFT4 \ / AMOS7 \ YOURUM ::
+#\[7]3TOXKL4TD6LLCOCE7SLOHJNC3YISZRCR5FPT5ZAPIFZLPD3UX6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

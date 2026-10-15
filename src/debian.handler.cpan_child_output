@@ -1,0 +1,99 @@
+## [:< ##
+
+# name  = debian.handler.cpan_child_output
+# descr = event I/O handler : accumulate cpan child output per-line, complete
+#         the current install job on the terminating '< <exit_code>' line
+
+my $event        = shift->w;
+my $handler_data = $event->data;
+my $job_id       = $handler_data->{'job_id'};
+
+my $current = <debian.apt_child.current_job>;
+
+## stale watcher guard : cancel if the job was replaced or cleared ##
+if ( not defined $current or ( $current->{'job_id'} // 0 ) != $job_id ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+
+## read available output [ non-blocking ] ##
+my $bytes = <[base.s_read]>->( $event->fd, \$handler_data->{'buffer'}, 4096 );
+
+## process complete lines : '> ..' is cpanm output, '< N' terminates the ##
+## job                                                                   ##
+my $exit_code;
+while ( $handler_data->{'buffer'} =~ s|^([^\n]*)\n|| ) {
+    my $line = ${^CAPTURE}[0];
+    if ( $line =~ m|^< (\d+)$| ) {
+        $exit_code = ${^CAPTURE}[0] + 0;
+        last;
+    }
+    $line =~ s|^> ||;
+    <[base.logs]>->( 1, 'cpan: %s', $line ) if length $line;
+}
+
+## EOF without exit line : child died mid-job ##
+if ( not defined $exit_code and $bytes <= 0 ) {
+    ## the shared root child ##
+    my $child_pid = <debian.apt_child.pid> // 0;
+    return if $child_pid and kill( 0, $child_pid );    ## alive : stay ##
+    <[base.logs]>->(
+        0, 'cpan_child_output: ' . 'child exited mid-job %d', $job_id
+    );
+    $exit_code = 255;
+}
+
+return if not defined $exit_code;    ## not done yet : watcher stays armed ##
+
+##[ job completion ]##########################################################
+
+my $modules  = $current->{'modules'} // [];
+my $reply_id = $current->{'reply_id'};
+
+if ( $exit_code == 0 ) {
+    <[base.logs]>->( 1, ':. cpan modules installed.' );
+    <[jobqueue.move_job]>->( $job_id, qw| completed | );
+} else {
+    <[base.logs]>->( 0, '  ✗ cpanm exited with code %d', $exit_code );
+    <[jobqueue.move_job]>->( $job_id, qw| error | );
+}
+
+## resolve deferred caller [ cross-zenka replies flow back through the ##
+## existing cube route - no separate reply command or grant needed ]   ##
+if ( defined $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        $exit_code == 0
+        ? { 'mode' => qw| true |,
+            'data' => sprintf 'installed : %s',
+            join( ' ', @$modules )
+            }
+        : { 'mode' => qw| false |,
+            'data' => sprintf(
+                'install failed [ exit %d ] : %s',
+                $exit_code, join( ' ', @$modules )
+            )
+        }
+    );
+}
+
+## genuinely done with this job : cancel watcher, release the serialization ##
+## slot, then advance the queue                                             ##
+$event->cancel if $event->is_active;
+<debian.apt_child.current_job> = undef;
+
+## restore idle-shutdown tracking                                           ##
+## [ paired with debian.job.cpan_install's pause ] -- if apt_pump           ##
+## immediately starts another queued job, that job re-pauses on its own, so ##
+## this is always safe to run first                                         ##
+<[base.zenki.resume_ondemand_timeout]>;
+
+<[debian.apt_pump]>;
+
+return;
+
+#,,,.,,..,..,,.,,,,.,,..,,,.,,,,,,,,,,..,,,..,..,,...,.,.,.,,,,.,,,,,,.,.,,,.,
+#ZLNUHL2OYJB273PE53F3NWRYGLHDAPT2JSSAMAIBTIQRT6V5H3MR7HRI5HWFPN7NA4EP4TFQIALOQ
+#\\\|ESZMSLHYHM6JHYALPSC6OYXQT3IKNUJS7TBIFCCL7NO36XUDOJN \ / AMOS7 \ YOURUM ::
+#\[7]M74YC6PV4I7BPBTDFFR7BLJKSUD6NKC46OWCMTO5PCOC7OBDNACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

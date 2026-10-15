@@ -5,8 +5,12 @@
 
 foreach my $zenka_name (@ARG) {
 
-    ## pre-start dependency check ##
-    <[v7-zenki.check_zenka_deps]>->($zenka_name);
+    ## pre-start dependency check [ warn-only ; with auto_install_deps the ##
+    ## sys_deps start condition governs probes + installs on every start   ##
+    ## path -- autostart is only the feature-off fallback, as before ]     ##
+    <[v7-zenki.check_zenka_deps]>->($zenka_name)
+        if not
+        <[base.cfg_bool]>->( <v7-zenki.cfg.auto_install_deps> // FALSE );
 
     my $zenka_config = <v7-zenki.start_setup.zenki.config>->{$zenka_name};
     my $zenka_id     = <[zenka.get_id]>->($zenka_name);
@@ -33,8 +37,8 @@ foreach my $zenka_name (@ARG) {
     }
 }
 
-#,,..,.,,,.,,,,..,,..,.,,,,,,,,..,..,,..,,.,,,..,,...,...,..,,...,,.,,.,,,...,
-#L234CY5TFIX6G2TQ7TZOK2SF5D7O7DL2NJBRETOIQUP4RGRQ7DYAOGF35TD5W4T2FNPXW447PAPYS
-#\\\|PYHJ25AXUM7AL42PHCOSITTOINKVVXFA3JMUDVOPGXPWZ2TKO3Q \ / AMOS7 \ YOURUM ::
-#\[7]Z7GL6GMTGDPCUH5YEY6USYZEXQMF7EAHLT62KGFDFALLDPSF7YAQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,.,,..,,,..,,..,..,,.,,,,,.,,,,,..,,...,...,,,,,,,.,.,,,,..,,.,,
+#32NMHIWAL27PXC5VIRDOIHLRTXYW25L3SPKOKXDVHSVUTXQWJH3ZLWCQKTHFAM7XITY74GLH4EYDU
+#\\\|MN3T2RRWRQIHKFGJGFPMLGEGWPTVMCUO42C6Q6LL7DXFI4QRFTD \ / AMOS7 \ YOURUM ::
+#\[7]WH2BVYAVP272NRZ3MP52DUAWLT3PBWXEEPF3WL6FTIUGIHIHJ4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

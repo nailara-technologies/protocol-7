@@ -1775,6 +1775,7 @@ return [ qw[
         vault-edit.send_action
         valued.node.set_weight
         valued.node.remove_ref
+        v7-zenki.sys_deps.scan
         v7-zenki.startup_probe
         users.remote_fetch.run
         users.cmd.remote-fetch
@@ -2089,6 +2090,8 @@ return [ qw[
         valued.cmd.valued-query
         valued.cmd.valued-nodes
         v7-zenki.zenka.pre_init
+        v7-zenki.sys_deps.track
+        v7-zenki.sys_deps.probe
         v7-zenki.instance_count
         v7-zenki.find-AMOS-user
         users.record.ensure_dir
@@ -2254,6 +2257,8 @@ return [ qw[
         decoder.cmd.show-level5
         decoder.cmd.show-buffer
         decoder.cmd.erase-level
+        debian.job.cpan_install
+        debian.cmd.install-cpan
         dbus.cmd.socket_address
         data.mount.fuse.release
         data.mount.fuse.readdir
@@ -3452,6 +3457,7 @@ return [ qw[
         devmod.cmd.extract-line-map
         decoder.handler.on-boundary
         decoder.cmd.receive-entropy
+        debian.cpan_enqueue_install
         debian.cmd.install-packages
         dbus.handler.process_output
         data.mount.shm.header.write
@@ -4455,6 +4461,7 @@ return [ qw[
         v7-zenki.kept_children_reabsorb
         v7-zenki.keep_children_on_error
         v7-zenki.install_zenka_symlinks
+        v7-zenki.handler.sys_deps_reply
         v7-zenki.handler.start-time-out
         v7-zenki.handler.liveness_sweep
         v7-zenki.enable_heartbeat_timer
@@ -4680,6 +4687,7 @@ return [ qw[
         v7-zenki.zenka-instances.get-ids
         v7-zenki.sub-process.orphan_pids
         v7-zenki.stdout_log.early_buffer
+        v7-zenki.resolve.object.sys_deps
         v7-zenki.register_ondemand_zenki
         v7-zenki.parser.dependency_chain
         v7-zenki.parent.stream_zenka_log
@@ -4790,6 +4798,7 @@ return [ qw[
         discover.process_incoming_packet
         discover.orbital.get_local_p7ref
         discover.handler.incoming_packet
+        debian.handler.cpan_child_output
         data.mount.shm.permission.verify
         data.get.find_interference_match
         crypt.C25519.name_from_skey_name
@@ -4902,6 +4911,7 @@ return [ qw[
         v7-zenki.handler.kept_child_grace
         v7-zenki.callback.system-poweroff
         v7-zenki.callback.setup_zenka_key
+        v7-zenki.callback.object.sys_deps
         v7-zenki.callback.get_x11_display
         v7-zenki.callback.connect_to_cube
         universal.callback.mpv_idle_check
@@ -6164,8 +6174,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,,,,..,,.,,,,.,,.,,.,,,,,.,,,.,,,.,.,,,.,.,...,...,.,,,,.,,.,,,.,,,,..,
-#ZRMMSWIUIDAAKAN4OS6NH7O5VIBFJKBXU6FCPXC76C3R2I3KJW3JQL5GU4GGUO66SXWPQLDH7LGJC
-#\\\|BBLBPWSL53SAOZNTRV626L7SGKTTP3ZKGKFEJMZ6E2HWAS2V3EO \ / AMOS7 \ YOURUM ::
-#\[7]FGNT2WMBQK5VV7LY6ECD2ABW3CSFRONCV5QLAP3LCBHEFDX74EDQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,...,..,,,,,,..,,,,,,.,,,,,.,.,.,...,...,...,,,.,,..,,,,,,.,,
+#3R6XBWC7DPJBLCV55QDHVCBECRF4EL6DDFCUKWHWVAC3XNU7HNV2EH7WR26KVJN2JTYILF2GOT434
+#\\\|XZOP3AQRTEB3FPNJCR7A3ZE6YK74TO3OGEA4NKLEYEWPLKPWRKH \ / AMOS7 \ YOURUM ::
+#\[7]GO4IS2SOZGKH746G2ASV65DUGFSAUMQ6RSZ4LK3PKEVDBBQLUECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

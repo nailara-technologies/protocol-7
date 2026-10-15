@@ -48,6 +48,17 @@ v7-zenki.cfg.install_zenka_symlinks  =  yes     # [yes|no]
 v7-zenki.cfg.zenka_symlink_dir       =  '/usr/local/bin'
 v7-zenki.cfg.install_workflow_shortcuts = yes   # [yes|no] p7.<shorthand> links
 
+### ZENKA DEPENDENCY AUTO-INSTALL [ sys_deps start condition ] ###
+## hosts enable it in /etc/protocol-7/v7-zenki/host.cfg :
+#v7-zenki.cfg.auto_install_deps  =  yes    ## wait for + install declared deps
+v7-zenki.cfg.sys_deps.retry_after = 3600   ## secs before a 'failed' zenka
+                                           ## re-probes + re-installs
+## an install that never answers counts as failed after this [ secs ] :  ##
+## the zenka then starts without, degraded                               ##
+#v7-zenki.cfg.sys_deps.install_timeout = 1800
+## never gated : the install path itself [ routing, logging, installers ] ##
+#v7-zenki.cfg.sys_deps.exempt = cube p7-log debian os-pkg
+
 ## v7-zenki stdout cloning | redirection ##
 #
 v7-zenki.path.zenka_stdout.parent_dir = /var/run/.7/STDOUT
@@ -81,8 +92,8 @@ v7-zenki.cfg.zenka_stdout_redir = yes # ::enabled::
 
 [zenka.loop]
 
-#,,,,,.,,,..,,...,,..,,,.,,..,,..,,,,,,,.,...,..,,...,...,...,..,,,,.,..,,.,.,
-#OEDWOHOQLOP7MAFNZG2AYG7BPJQYASGQIJAUF45ZHLP3MIN4G3K4V757ZVGD47A6JGCT5MNYVNRPU
-#\\\|22QFYX2IT5B3NRT2ONZCIHLMD4CALWTUMVIRLHZ33JXMTJNQXBR \ / AMOS7 \ YOURUM ::
-#\[7]3MZ3DKAKB2XAVWJ5BRAUR6LFVILMF732VR5VSHN42KVXIMDQ3GDA 7  DATA SIGNATURE ::
+#,,..,...,.,,,,..,.,.,,..,...,...,,,.,,,,,..,,..,,...,...,.,.,..,,,,,,,,,,...,
+#YUKGDC7GLVUL2OANBCG57OARZORTSCGPXMDE4KKU5OUEMOZDEBPRKKFYVOMC2VGFH5IWGI4TLCJOU
+#\\\|XTRJYDSSCL4446BNHBOMEAZLBHIJCRVTFKGVP45DPI5VAUXQ7ZW \ / AMOS7 \ YOURUM ::
+#\[7]LXWLKJDUMZZQGPUOIWS6VLESVUVHJNXVUXUIB3P5TVHRZIA2OKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

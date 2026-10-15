@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = v7-zenki.handler.sys_deps_reply
+# descr = deferred debian.install-packages \ debian.install-cpan reply :
+#         track installs, re-probe the zenka's missing deps, finalize the
+#         sys_deps state [ 'ok' or 'failed' ], release waiting starts
+
+my $reply = shift;
+
+my $params     = $reply->{'params'}    // {};
+my $zenka_name = $params->{'zenka'}    // '';
+my $kind       = $params->{'kind'}     // qw| apt |;
+my $packages   = $params->{'packages'} // [];
+my $mode       = $reply->{'mode'}      // qw| unknown |;
+
+return if not length $zenka_name;
+
+my $state = ( <v7-zenki.sys_deps.state> // {} )->{$zenka_name};
+
+if ( not defined $state ) {
+    ## state gone [ reinit ] : nothing to update, still release waiters ##
+    <[jobqueue.check_dependencies]>;
+    return;
+}
+
+if ( $mode eq qw| true | ) {
+    ## track what this install installed [ same tracked.yaml shape ] ##
+    if (@$packages) {
+        <[v7-zenki.sys_deps.track]>->(
+            $zenka_name,
+            [ map { { 'name' => $ARG, 'type' => $kind } } @$packages ]
+        );
+    }
+} else {
+    <[base.logs]>->(
+        0, 'sys_deps: %s install failed for zenka \'%s\' : %s',
+        $kind, $zenka_name, $reply->{'data'} // 'unknown error'
+    );
+}
+
+## more installs still in flight for this zenka [ apt + cpan ] : the last ##
+## reply finalizes the state                                              ##
+$state->{'pending'} = ( $state->{'pending'} // 1 ) - 1;
+if ( $state->{'pending'} > 0 ) {
+    <[jobqueue.check_dependencies]>;
+    return;
+}
+
+## re-probe what was missing when the install started ##
+<[base.perlmod.load]>->('AMOS7::deps::module')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::module');
+<[base.perlmod.load]>->('AMOS7::deps::os_package')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::os_package');
+
+my @still_pm
+    = grep { !AMOS7::deps::module::probe_module_file($ARG) }
+    @{ $state->{'missing_pm'} };
+my @still_os = grep {
+    !AMOS7::deps::os_package::probe_os_pkg( $ARG, qw| debian |, TRUE )
+} @{ $state->{'missing_os'} };
+my @still_bin
+    = grep { !AMOS7::deps::os_package::probe_binary($ARG) }
+    @{ $state->{'missing_bin'} };
+
+$state->{'missing_pm'}  = \@still_pm;
+$state->{'missing_os'}  = \@still_os;
+$state->{'missing_bin'} = \@still_bin;
+
+if ( @still_pm or @still_os or @still_bin ) {
+    $state->{'status'}      = qw| failed |;
+    $state->{'failed_at'}   = <[base.ntime]>;
+    $state->{'fail_logged'} = FALSE;
+} else {
+    $state->{'status'} = qw| ok |;
+}
+
+<[jobqueue.check_dependencies]>;
+
+return;
+
+#,,.,,.,.,.,.,,,.,...,.,.,..,,.,,,,.,,,..,,..,..,,...,...,..,,...,..,,.,,,,,.,
+#B2TM6I63IDGNVW4GXBWUPEAQ2F26ICEWDG6QJM2LTQHTGMGJEFFNW4ZRKCZHCOTU4WLTNLL752QJO
+#\\\|OVNEJ3SYUKK5R3Y6OFM4HRFV4RRJEERUBTPODXW2OJ2VC7MQ5QY \ / AMOS7 \ YOURUM ::
+#\[7]IGQ5VCKCOM3L2ADBMDFSJI2PLTT3K3IS3FSG4WUNSMC7DAGFO6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

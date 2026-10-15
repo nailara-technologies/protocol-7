@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = v7-zenki.sys_deps.probe
+# descr = probe one zenka's declared deps [ via the cached scan ] and record
+#         its sys_deps state [ 'ok' or 'missing' + resolved install targets ]
+
+my $zenka_name = shift;
+return undef if not defined $zenka_name;
+
+my $scan    = <[v7-zenki.sys_deps.scan]>;
+my $pm_deps = $scan->{'pm'} // {};
+my $os_deps = $scan->{'os'} // {};
+
+my @missing_pm;
+my @missing_os;
+my @missing_bin;
+
+## pm deps declared for this zenka ##
+for my $module ( keys %$pm_deps ) {
+    next unless grep { $ARG eq $zenka_name } @{ $pm_deps->{$module} };
+    push @missing_pm, $module
+        unless AMOS7::deps::module::probe_module_file($module);
+}
+
+## os deps declared for this zenka ##
+for my $type ( keys %$os_deps ) {
+    if ( $type eq qw| binary | ) {
+        for my $bin ( keys %{ $os_deps->{$type} } ) {
+            next
+                unless grep { $ARG eq $zenka_name }
+                @{ $os_deps->{$type}{$bin} };
+            push @missing_bin, $bin
+                unless AMOS7::deps::os_package::probe_binary($bin);
+        }
+    } else {
+        for my $pkg ( keys %{ $os_deps->{$type} } ) {
+            next
+                unless grep { $ARG eq $zenka_name }
+                @{ $os_deps->{$type}{$pkg} };
+            push @missing_os, $pkg
+                unless AMOS7::deps::os_package::probe_os_pkg( $pkg, $type,
+                TRUE );
+        }
+    }
+}
+
+my $state = {
+    qw| status      | => qw| ok |,
+    qw| apt         | => [],
+    qw| cpan        | => [],
+    qw| missing_pm  | => [@missing_pm],
+    qw| missing_os  | => [@missing_os],
+    qw| missing_bin | => [@missing_bin],
+    qw| pending     | => 0,
+};
+
+if ( @missing_pm or @missing_os or @missing_bin ) {
+    $state->{'status'} = qw| missing |;
+
+    my @to_install_apt;
+    my @to_install_cpan;
+
+    ## resolve pm modules to debian packages or cpan installs ##
+    my $known_pm_deps
+        = AMOS7::deps::module::load_known_deps(<system.root_path>) // {};
+    for my $module (@missing_pm) {
+        my $resolved
+            = AMOS7::deps::module::resolve_install( $module, $known_pm_deps );
+        if ( $resolved->{method} eq qw| debian | ) {
+            push @to_install_apt, $resolved->{pkg};
+        } else {
+            push @to_install_cpan, $resolved->{pkg};
+        }
+    }
+
+    push @to_install_apt, @missing_os;
+
+    ## binaries resolve to their providing debian package ##
+    ## [ fallback : the declared name itself ]            ##
+    if (@missing_bin) {
+        my $known_bin_deps
+            = AMOS7::deps::module::load_known_deps( <system.root_path>,
+            qw| binary | ) // {};
+        push @to_install_apt,
+            map { $known_bin_deps->{$ARG} // $ARG } @missing_bin;
+    }
+
+    my %seen;
+    $state->{'apt'}  = [ grep { !$seen{$ARG}++ } @to_install_apt ];
+    $state->{'cpan'} = \@to_install_cpan;
+}
+
+<v7-zenki.sys_deps.state>->{$zenka_name} = $state;
+
+return $state;
+
+#,,,.,.,,,,,.,.,.,,,,,,,.,,,.,.,,,,,.,,,.,.,.,..,,...,...,.,,,..,,,,,,.,.,,,,,
+#KMDVWDCVYGJPLL2YPIULSQ24G4DGDUYFDBVAPBDWLZZWS4ESPSGBIHORYIV6EGZXIQZSFKMTUOZRE
+#\\\|GDB7SUALZP5YLCCWSOOLKWL7MAUTMDUGN3JXI3PUMK5UW2Z7T6U \ / AMOS7 \ YOURUM ::
+#\[7]Q76U7YLEGNMJOTNJU2QIBLE2EIYS4ICGDHAMZVAGGVQ6E46WOGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

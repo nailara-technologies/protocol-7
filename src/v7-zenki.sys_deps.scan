@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = v7-zenki.sys_deps.scan
+# descr = cached zenki dependency scan [ pm + os ] : one tree scan per
+#         v7-zenki init [ dropped on reinit by v7-zenki.init_code ]
+
+my $cached = <v7-zenki.sys_deps.scan>;
+return $cached if defined $cached;
+
+<[base.perlmod.load]>->('AMOS7::deps::module')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::module');
+<[base.perlmod.load]>->('AMOS7::deps::os_package')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::os_package');
+
+my $scan = {
+    qw| pm | => AMOS7::deps::module::scan_zenki_pm_deps(<system.root_path>),
+    qw| os | => AMOS7::deps::os_package::scan_zenki_os_deps(
+        <system.conf_path> . qw| /zenki |
+    )
+};
+
+<v7-zenki.sys_deps.scan> = $scan;
+
+return $scan;
+
+#,,,,,,,.,,,.,..,,...,.,.,.,,,.,.,,,.,.,,,.,.,..,,...,...,.,,,...,,.,,.,,,,,,,
+#GX6M55BHWHQAAMGOSXHSV4E2ISBSACNSO6XHGJW4VEQEB66WMN7T6I4JNEUY5KBBCEJMMRAINGTC2
+#\\\|HDB6BHWSYOZ5HN7YPCYISXUZWO22SWKC4LAXHSHASBKZRUCIM2T \ / AMOS7 \ YOURUM ::
+#\[7]F27NZNMJAOSRP365DJ7RLPUJJXGRXN54GI6PF7H53OGHX6ARQ2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

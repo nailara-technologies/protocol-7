@@ -23,6 +23,9 @@
 
 <v7-zenki.cfg_data.start_setup> = [];    ##  <--  << RESETTING >>   ##
 
+## drop the sys_deps scan cache on reinit [ rescanned lazily on next use ] ##
+<v7-zenki.sys_deps.scan> = undef if $ARG[0];
+
 <v7-zenki.host-reboot.enabled>        //= TRUE;
 <v7-zenki.host-reboot.term_delay>     //= 1.3787;
 <v7-zenki.system-poweroff.enabled>    //= TRUE;
@@ -36,7 +39,7 @@
 ## instance id cache with automatic clean-up ##
 <v7-zenki.process.instance_cache>  //= {};
 <v7-zenki.watchers.instance_cache> //= <[event.add_var]>->(
-    {   'var'     => \$data{'v7-zenki'}{'process'}{'instance_cache'},
+    {   'var'     => \<v7-zenki.process.instance_cache>,
         'poll'    => qw| r |,    ## cache reset after 5s without access ##
         'prio'    => 4,
         'repeat'  => TRUE,
@@ -289,8 +292,8 @@ delete <list.users>;
 
 return 0;    ## successful init ##
 
-#,,..,,..,,,,,.,,,,,,,.,,,,,.,,..,,.,,,.,,..,,..,,...,...,.,,,,,,,..,,,.,,,,,,
-#FKVT6BWKXDIPLDXTMM5T3UEZMEOBG6XRYYBIPL3YUMIJDWVQ7PFDSGBSR7S7XG2AKZS4C67ZYU6UU
-#\\\|ARFWGXWCQIAD7PRU7LIQB7773ACQ7NWBZULSLOJ7IUSIIVGGTIX \ / AMOS7 \ YOURUM ::
-#\[7]MJ25BKAEF6WG2GEAWAT2DSSK6RVK4RD7I2RXSJQOOXFK4N4BXADA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,,.,,,..,...,..,,,,.,..,,,,.,..,,...,...,..,,,,.,,..,,,.,.,,,
+#NJYHQRPB7S6NSXPZKDQZ3HBN6LJDQCLP3VOD7I3RDT3DJGX22O4R7XCVDAMJS5FHIBYTBU6256LVO
+#\\\|JRRIYU2WKFE77OVBFYK3Q7JQTQPLE4YT5OP5O72BN6X5EV4HBYA \ / AMOS7 \ YOURUM ::
+#\[7]7TL65VHQWW2PMK5AO3P632VDK5XD542LPELKEO65CLIM47V7KYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

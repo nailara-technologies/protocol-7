@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = debian.job.cpan_install
+# descr = jobqueue callback : spawn one-shot cpanm child, arm output watcher
+
+my $arg     = shift // {};
+my $job_id  = $arg->{'job_id'};
+my $params  = $arg->{'params'}     // {};
+my $modules = $params->{'modules'} // [];
+
+my $fail_job = sub {
+    my $reason = shift;
+    <[base.logs]>
+        ->( 0, 'cpan_install: job %d failed : %s', $job_id, $reason );
+    <[jobqueue.move_job]>->( $job_id, qw| error | );
+    if ( defined $params->{'reply_id'} ) {
+        <[base.callback.cmd_reply]>->(
+            $params->{'reply_id'},
+            { 'mode' => qw| false |, 'data' => $reason }
+        );
+    }
+    <debian.apt_child.current_job> = undef;
+    return;
+};
+
+my $current = <debian.apt_child.current_job>;
+if ( not defined $current or ( $current->{'job_id'} // 0 ) != $job_id ) {
+    <[base.logs]>->(
+        0, 'cpan_install: job %d ' . 'exec without pump slot', $job_id
+    );
+    return;
+}
+
+## sanitize module names before they reach the root child ##
+## [ which checks them again ]                            ##
+for my $module (@$modules) {
+    if ( $module !~ m|^[A-Za-z_][A-Za-z0-9_]*(::[A-Za-z0-9_]+)*$| ) {
+        $fail_job->( sprintf( 'invalid module name : %s', $module ) );
+        return;
+    }
+}
+if ( not @$modules ) {
+    $fail_job->('no modules specified');
+    return;
+}
+
+## the install runs in the ROOT apt child                                  ##
+## [ debian.start.apt_child, forked before drop_privs ] : this process is  ##
+## unprivileged and could not write the system perl library -- the child   ##
+## checks the names again and finds cpanm itself [ fixed paths, no shell ] ##
+my $w_fh = <debian.apt_child.w_fh>;
+my $r_fh = <debian.apt_child.r_fh>;
+if ( not defined $w_fh or not defined $r_fh ) {
+    $fail_job->('apt child not available');
+    return;
+}
+
+## set read pipe non-blocking : event-driven reads must never stall the ##
+## event loop [ same fcntl dance as debian.job.apt_install ]            ##
+<[base.perlmod.load]>->('Fcntl')
+    if not <[base.perlmod.loaded]>->('Fcntl');
+my $flags = fcntl( $r_fh, Fcntl::F_GETFL(), 0 );
+fcntl( $r_fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+    if defined $flags;
+
+printf {$w_fh} "cpan %s\n", join( ' ', @$modules );
+
+## arm output watcher [ mirror : debian.job.apt_install ] ##
+my $watcher = <[event.add_io]>->(
+    {   'fd'      => $r_fh,
+        'handler' => qw| debian.handler.cpan_child_output |,
+        'data'    => { 'job_id' => $job_id, 'buffer' => '' },
+        'poll'    => qw| re |
+    }
+);
+$current->{'watcher'} = $watcher;
+$current->{'modules'} = [@$modules];
+$current->{'started'} = <[base.ntime]>;
+
+## protect against idle-shutdown for however long the install itself takes ##
+## -- resumed in debian.handler.cpan_child_output on completion            ##
+<[base.zenki.pause_ondemand_timeout]>;
+
+<[base.logs]>->(
+    1,       'cpan_install: job %d started : %s',
+    $job_id, join( ' ', @$modules )
+);
+
+return TRUE;
+
+#,,.,,.,,,..,,..,,,..,..,,.,.,.,,,.,.,,,,,...,..,,...,...,...,.,.,...,,,,,,,,,
+#CUIK2CZEP7NUZBT4F7BN7R6DWZ5345BUZEUI3ZQKS4DG2QQM4FTGDPDZAJOWXW5LKBMEAI2MTQ4EM
+#\\\|5DINNWOQAURIKYGRTK55HIWV6AE7QGCV6LKJNWA7FZCQHXFIRY7 \ / AMOS7 \ YOURUM ::
+#\[7]IACG5K2VJGKOQHUTU7HHXZIDMBRLGFDV66JC2QJRTGWU56KKDCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
