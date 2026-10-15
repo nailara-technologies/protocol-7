@@ -9,7 +9,8 @@ use warnings;
 ## passphrase again and goes on ; a lock inside a hidden input cancels the
 ## command ; ':keep-open:' never locks. throwaway vault, cheap kdf also the
 ## hidden input itself [ one buffer written in place ] : backspace over ascii
-## and utf-8, a value past the first buffer size
+## and utf-8, a value past the first buffer size. quit \ q \ exit \ x clear
+## the screen, ctrl-d keeps it
 
 use FindBin;
 use File::Temp qw| tempdir |;
@@ -60,8 +61,10 @@ sub session {
     $pty->close_slave;
     my $out   = '';
     my $drain = sub {
-        my $until = time + shift;
+        my ( $seconds, $text ) = @ARG;    ## [ or until $text appeared ] ##
+        my $until = time + $seconds;
         while ( ( my $left = $until - time ) > 0 ) {
+            last if defined $text and $out =~ $text;
             my $rin = '';
             vec( $rin, fileno($pty), 1 ) = 1;
             last if not select( my $rout = $rin, undef, undef, $left );
@@ -69,6 +72,9 @@ sub session {
             $out .= $buf;
         }
     };
+    ## the first keys only once the passphrase prompt is there : a cold start
+    ## can take longer than the first step's wait
+    $drain->( 15, qr|passphrase| );
     foreach my $step (@steps) {
         $drain->( $step->[0] );
         syswrite( $pty, $step->[1] );
@@ -153,6 +159,24 @@ $plain = $out =~ s|\e\[[0-9;?]*[A-Za-z]||gr;
 ok( $plain =~ m|auto-lock off| && $plain !~ m|locked after| && $rc == 0,
     ':keep-open: : no lock' );
 
+## quit \ q \ exit \ x clear screen + scrollback ; ctrl-d ends, keeps them ##
+foreach my $word (qw| quit q exit x |) {
+    ( $out, $rc ) = session(
+        {}, [':keep-open:'],
+        [ 1,   "pass phrase\r" ],
+        [ 0.6, "$word\r" ]
+    );
+    my $after = substr( $out, rindex( $out, $word ) );
+    ok( index( $after, "\e[3J" ) >= 0 && $rc == 0,
+        "$word : screen and scrollback cleared"
+    );
+}
+( $out, $rc )
+    = session( {}, [':keep-open:'], [ 1, "pass phrase\r" ], [ 0.6, "\x04" ] );
+ok( index( $out, "\e[3J" ) < 0 && $rc == 0,
+    'ctrl-d : ends, ' . 'the screen kept'
+);
+
 ## the hidden input buffer : what was typed, after editing, opens the vault ##
 my $unlocked = sub {
     my ( $out, $rc ) = @ARG;
@@ -202,8 +226,8 @@ ok( $unlocked->( $out, $rc ),
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,..,.,.,.,,,..,,,..,,,.,,,.,,,,,,,.,.,.,,..,..,,...,...,,..,,,.,,.,,.,.,.,,,
-#3VCDKYLDMGCOKW3DRZRYDAPLE4SUJIVBT3R7AWGBWDZIWVJIDJWWRKSYLY65WLQZZKQIETDRPJSP6
-#\\\|UQBKXHZ6WZQ5R6UXDEXFWT3RIMDUC5UVSYWJOP2WLXJA2SR6L76 \ / AMOS7 \ YOURUM ::
-#\[7]2HPDTQK2RSGMAYATE2ID4MDITJFLOS62P65VH53EMESADIJ27IDY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,,,.,..,,,,,,,,.,.,.,.,,,,,.,..,,...,...,...,,,.,.,.,,,,,.,.,
+#XHFRLX4R2IH3SOBCMOVC7XF4TJ5EU52UOA5OGSKFFC2ROQYK77CAUVOQ7K5GXOWLLIPKLCXNHH5GY
+#\\\|OSQXVFK3FVRM6VF7FM3BK5IYUOF4RNRQ2QWIJVF56HRUUU32WK4 \ / AMOS7 \ YOURUM ::
+#\[7]B5QT62SGGSDVPPDD4W535K7UXC7W3MOVX3EHHAAQTNQFTDWMDEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

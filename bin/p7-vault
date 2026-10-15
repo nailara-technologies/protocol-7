@@ -224,7 +224,12 @@ while (TRUE) {
     }
     my ( $cmd, @args ) = split ' ', $line;
     next if not defined $cmd;
-    last if $cmd eq 'quit' or $cmd eq 'q' or $cmd eq 'exit';
+    ## quit \ q \ exit \ x clear the screen ; ctrl-d \ ctrl-c leave it as is
+    if ( $cmd =~ m{\A(?:quit|q|exit|x)\z} ) {
+        vault_lock($vault) if defined $vault;
+        screen_clear();
+        exit 0;
+    }
     my $sub = $COMMANDS{$cmd};
     if ( not $sub ) {
         unknown_command($cmd);
@@ -305,12 +310,19 @@ sub wait_for_input {
 
 ## the lock : key wiped, screen + scrollback + command history cleared, then
 ## the passphrase again -- esc \ ctrl-c \ three wrong tries end the session
+## screen, scrollback and command history [ typed filters, entry names ]
+## cleared : on an auto-lock and on quit \ q \ exit \ x
+sub screen_clear {
+    eval { $main::READLINE->clear_history } if defined $main::READLINE;
+    print "\e[H\e[2J\e[3J"                  if -t STDOUT;
+    return;
+}
+
 sub auto_lock {
     $LOCK_PENDING = FALSE;
     vault_lock($vault) if defined $vault;
     undef $vault;
-    eval { $main::READLINE->clear_history } if defined $main::READLINE;
-    print "\e[H\e[2J\e[3J";
+    screen_clear();
     ## typed-ahead input never reaches the passphrase prompt
     ## [ it would count as a wrong try ]
     POSIX::tcflush( fileno(STDIN), POSIX::TCIFLUSH() ) if -t STDIN;
@@ -424,6 +436,10 @@ sub usage_text {
                              hosts or directories [ a path : '/' './' '~' --
                              an external drive ], one after the other [ never
                              overwrites, never deletes ]
+    sync [ -a | -r <target>... | -l ]
+                             no target : every saved one. -a saves targets,
+                             -r removes them, -l lists them [ <vault>/
+                             sync-targets, this machine only ]
     show <filter> [ -r ]     one entry, secrets masked [ -r reveals ]
     copy <filter> [ field ]  to the clipboard [ default password ],
                              cleared after $CLIP_CLEAR_SECONDS s
@@ -446,8 +462,10 @@ sub usage_text {
                              file in a git history ], -p the plain passphrase
     restore-archive <file>   into -d : a new vault, or the same one
                              [ adds missing versions, replaces nothing ]
-    commands [ keyword ]     this list [ interactive : quit ends ], only
-                             the entries holding the keyword
+    commands [ keyword ]     this list, only the entries holding the
+                             keyword [ interactive : quit \ exit [ q \ x ]
+                             end and clear the screen, ctrl-d \ ctrl-c end
+                             and keep it ]
 
     hidden input : tab shows \\ hides the value, ctrl-u clears it,
                    esc \\ ctrl-c cancels
@@ -2326,7 +2344,19 @@ sub cmd_codes {
 ## there were several
 sub cmd_sync_hosts {
     my @targets = @ARG;
+    return sync_targets_edit(@targets)
+        if @targets and $targets[0] =~ m{\A-[arl]\z};
     say '' if not $IN_SHELL;    ## the shell prompt pads already ##
+    if ( not @targets ) {       ## the saved ones ##
+        @targets = sync_targets_read();
+        if ( not @targets ) {
+            say msg( 'info',
+                      'sync <host>[:<dir>]|<path>... [ '
+                    . 'none saved yet : sync -a <target> ]' );
+            return FALSE;
+        }
+        say msg( 'info', 'saved targets : %s', join ' ', @targets );
+    }
     return cmd_sync(@targets) if @targets <= 1;
     my @failed;
     foreach my $target (@targets) {
@@ -2345,6 +2375,105 @@ sub cmd_sync_hosts {
         return FALSE;
     }
     say msg( 'done', 'all %s hosts in sync', scalar @targets );
+    return TRUE;
+}
+
+## saved sync targets : <vault>/sync-targets, one per line, '#' comments.
+## sync never transfers it -- external drive paths differ per machine
+sub sync_targets_path {
+    return File::Spec->catfile( $dir, qw| sync-targets | );
+}
+
+sub sync_targets_read {
+    open( my $fh, '<', sync_targets_path() ) or return ();
+    my @targets;
+    while ( my $line = <$fh> ) {
+        $line =~ s{\s*(?:\#.*)?\z}{}s;
+        $line =~ s{\A\s+}{};
+        push @targets, $line if length $line;
+    }
+    close $fh;
+    return @targets;
+}
+
+## written whole into a temp file next to it, then renamed
+## [ 0600 ; run as root, it takes the vault directory's owner ]
+sub sync_targets_write {
+    my @targets = @ARG;
+    my $path    = sync_targets_path();
+    my $temp    = "$path.tmp.$PID";
+    sysopen( my $fh, $temp, O_WRONLY | O_CREAT | O_EXCL, 0600 ) or do {
+        say msg( 'refuse', 'cannot write %s : %s', $temp, $OS_ERROR );
+        return FALSE;
+    };
+    print {$fh} "## p7-vault sync targets [ sync -a \\ -r \\ -l ]\n";
+    print {$fh} "$ARG\n" foreach @targets;
+    if ( not close $fh ) {
+        unlink $temp;
+        say msg( 'refuse', 'cannot write %s', $temp );
+        return FALSE;
+    }
+    if ( $EUID == 0 ) {
+        my ( $uid, $gid ) = ( stat $dir )[ 4, 5 ];
+        chown $uid, $gid, $temp if defined $uid;
+    }
+    if ( not rename $temp, $path ) {
+        unlink $temp;
+        say msg( 'refuse', 'cannot replace %s : %s', $path, $OS_ERROR );
+        return FALSE;
+    }
+    return TRUE;
+}
+
+sub sync_targets_edit {
+    my ( $option, @given ) = @ARG;
+    my @saved = sync_targets_read();
+
+    if ( $option eq '-l' ) {
+        if ( not @saved ) {
+            say msg( 'info', 'no saved sync targets [ sync -a <target> ]' );
+            return TRUE;
+        }
+        say '' if not $IN_SHELL;
+        say sprintf '  %s%2d%s  %s', $C{0}, $ARG + 1, $C{R}, $saved[$ARG]
+            foreach 0 .. $#saved;
+        return TRUE;
+    }
+    if ( not @given ) {
+        say msg( 'info', 'sync %s <target>...', $option );
+        return FALSE;
+    }
+
+    if ( $option eq '-a' ) {
+        foreach my $target (@given) {
+            ## the same characters cmd_sync accepts [ shell-safe ] ##
+            if ( $target !~ m{\A[0-9A-Za-z._~/:@+-]+\z} ) {
+                say msg( 'refuse', "unsafe sync target '%s'", $target );
+                return FALSE;
+            }
+        }
+        my %have = map  { $ARG => TRUE } @saved;
+        my @new  = grep { not $have{$ARG}++ } @given;
+        if ( not @new ) {
+            say msg( 'info', 'already saved' );
+            return TRUE;
+        }
+        sync_targets_write( @saved, @new ) or return FALSE;
+        say msg( 'done', 'saved : %s', join ' ', @new );
+        return TRUE;
+    }
+
+    ## -r ##
+    my %drop    = map  { $ARG => TRUE } @given;
+    my @kept    = grep { not $drop{$ARG} } @saved;
+    my @missing = grep {
+        my $target = $ARG;
+        not grep { $ARG eq $target } @saved
+    } @given;
+    say msg( 'refuse', 'not saved : %s', join ' ', @missing ) if @missing;
+    return FALSE if @kept == @saved;
+    sync_targets_write(@kept) or return FALSE;
+    say msg( 'done', 'removed : %s', join ' ', grep { $drop{$ARG} } @saved );
     return TRUE;
 }
 
@@ -3176,8 +3305,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,..,,..,,,,.,.,,,,,,,.,,,,.,,,.,,,,.,,..,..,,...,...,.,,,,,,,.,,,..,,,,.,
-#WHINFBJJMKPWB6NUYCSKR72V6NJQ7D3MEAH2G32XOZMDPYPMT4ZZKVT5YR6W7LHRIBI3GI2G4ZG4E
-#\\\|45T4ALMUU5JVMCP2EEFTBRHIXTQJPVG3RNSH2EHEMV7LC2VBGKZ \ / AMOS7 \ YOURUM ::
-#\[7]YUNEJXSJP6OFD3WHZI56NV6INYLS3K3USKZ6LCNZ2YNYX2DJLCAI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,.,...,,.,,,..,.,.,,,.,,,,,,..,..,,...,...,.,,,...,,.,,.,.,,,.,
+#E6ARBWKERXM7M5UZU3JCDY4B7B7GOM6LH4TR3LKUIDQZJ77XDQNEVNBTDTGZEFQKOGPMDOBRYM62Y
+#\\\|74TFS7JQUNL3EEMYZKIE5JGBEU4HAYDIV3UDC54EKNAMB4N4IV3 \ / AMOS7 \ YOURUM ::
+#\[7]GO74EL7MM3NBGTX7SECEDLH6RIEO2UXPZUODMS3PVZQKNEGEI2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
