@@ -43,8 +43,12 @@ if ($is_ntime) {
     ## class of bug on 2026-08-19 [ commit 5bf722767 ]                      ##
     $secs = Time::Seconds->new( <[base.ntime.delta_seconds]>->($start_time) );
 } else {
-    $secs = Time::Seconds->new( sprintf qw| %.*f |,
-        $precision, <[base.time]>->($precision) - $start_time );
+
+    ## 'now' at full precision : truncated to the display precision first, ##
+    ## a just-opened session [ start_time has 5 decimals ] showed '-0.00s' ##
+    my $delta = <[base.time]>->(7) - $start_time;
+    $delta = 0 if $delta < 0;    ## a clock step back is no negative age ##
+    $secs  = Time::Seconds->new( sprintf qw| %.*f |, $precision, $delta );
 }
 
 my %result = (
@@ -120,8 +124,8 @@ $result_str =~ s|(\d+d)(\d+ hours)|$1 $2 |;
 
 return $result_str;
 
-#,,,.,,..,.,,,,,.,,,,,..,,...,..,,,,,,...,,..,..,,...,...,...,..,,,..,,,,,,,.,
-#PFWSXJQWJGXIRDSWV6KJXVDCFK7NFHCCD3VN5UVTL3DJCCYZU744L6DRXN55T7QOUIKHFZRIJ7E5K
-#\\\|EFMFO5FSQP43FAFOAKMRAPZHSVYACYWSKTLWZFB6HL52APK5ECI \ / AMOS7 \ YOURUM ::
-#\[7]T4YGUSQMCYMV4KT5FKJ4KTMMLZHSJ3JU7FKCTRN5T2GPKKNUOMCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,..,,.,.,,..,,..,...,..,,.,.,.,,,..,,...,...,..,,...,.,.,.,.,...,
+#P24QAUCXAVHFRM3QUZW4JVFQJSOTNUXEI3NMDKV44GA76KPIZJH4KZKIKYX34SY7OSZJZI5KJ3ZUI
+#\\\|XX3N6KA6J2DVKYCAMMTMT4SUFSSQV5WFWIGS55XS46RGHJLOXVI \ / AMOS7 \ YOURUM ::
+#\[7]JSL6CIWNEIERD3A6ED4P6RK3YV7ZIIQHQFZSOG6ZC6426AJFMCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
