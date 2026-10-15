@@ -4,24 +4,34 @@
 
 my $var_P7_path = $ENV{'PROTOCOL_7_VAR'} // '/var/protocol-7';
 
-<system.path.zenka-dirs> //= {
+my %default_dirs = (
     qw| var_run         | => qw|  /var/run/.7            |,
     qw| var_P7          | => $var_P7_path,
     qw| etc_P7          | => qw|  /etc/protocol-7        |,
     qw| UNIX            | => qw|  /var/run/.7/UNIX       |,
     qw| cache_protocol7 | => qw|  /var/cache/protocol-7  |,
-};
+);
 
-<system.path.zenka-dir-modes> //= {
+## per key : an early reader may have created the hash already ##
+<system.path.zenka-dirs> //= {};
+<system.path.zenka-dirs>->{$ARG} //= $default_dirs{$ARG}
+    foreach keys %default_dirs;
+
+my %default_modes = (
     qw| var_run         | => 0775,
     qw| var_P7          | => 0775,
     qw| etc_P7          | => 0775,
     qw| UNIX            | => 0775,
     qw| cache_protocol7 | => 0775,
-};
+);
 
-#,,.,,.,,,,.,,...,,..,,,.,,.,,...,,,,,,..,.,.,..,,...,...,..,,,.,,.,.,...,..,,
-#QRSGLKSRJOTKW3P2WRYEH6E6D7EJWD2FVJEOPDYIDRAAWNFNW42ZIXVP6RNDJH6F7MJMVGKPOF6EO
-#\\\|JBYRSCTCBNKQ2L42VNWORR27LFIMROGCHA5DK5Q7JDAWSH75XWU \ / AMOS7 \ YOURUM ::
-#\[7]5S3ZRDAVYFITRY7X6YHSFDQILKECY3M5N2A43N3EXUEZAZJ35WBY 7  DATA SIGNATURE ::
+## per key : an early reader may have created the hash already ##
+<system.path.zenka-dir-modes> //= {};
+<system.path.zenka-dir-modes>->{$ARG} //= $default_modes{$ARG}
+    foreach keys %default_modes;
+
+#,,,.,,,.,.,.,...,.,.,,,,,,.,,,.,,..,,.,.,.,.,..,,...,...,.,,,,,,,...,...,,..,
+#OAPEIKMASNMW5Q6U2B6RV4SOBAC4KEZ2242PZ5S2AULVJD3IVYKE2BNIBNCEFYQJUJZG7Q3I36LBA
+#\\\|DVDNTROYNDUAQHBAQVHU3IR6XVZGCTFUXDGRDFRTBXONN3WXR33 \ / AMOS7 \ YOURUM ::
+#\[7]ZIIQOJORLSFLP6F4GO4EM4MHBRCYCOA2AWYVAN5IV7ING3GZKMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
