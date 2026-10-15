@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+use v5.32.0;
+use strict;
+use English;
+use warnings;
+
+## run the test scripts named by words, one after the other, and sum them up
+## [ 'run-tests vault term' : test-vault*.pl, test-term*.pl ]. no word : the
+## list of test scripts. only what is named runs -- several tests need a
+## running zenka [ the *-live ones ], the words decide what is wanted
+
+use FindBin;
+use Time::HiRes qw| time |;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+my $test_dir = $FindBin::RealBin;
+my @all      = map { (m{([^/]+)\z})[0] } sort glob "$test_dir/test-*.pl";
+
+if ( not @ARGV ) {
+    say "\n  run-tests <word>... [ runs "
+        . "test-<word>*.pl ] -- the test scripts :\n";
+    say "    $ARG" foreach @all;
+    say '';
+    exit 0;
+}
+
+my %seen;
+my @tests;
+foreach my $word (@ARGV) {
+    my @hits = grep { index( $ARG, "test-$word" ) == 0 } @all;
+    say "  << no test script matches '$word' >>" if not @hits;
+    push @tests, grep { not $seen{$ARG}++ } @hits;
+}
+exit 1 if not @tests;
+
+my @results;
+foreach my $test (@tests) {
+    say "\n::[ $test ]::";
+    my $start = time;
+    system $EXECUTABLE_NAME, "$test_dir/$test";
+    my $rc = $CHILD_ERROR == -1 ? 255 : $CHILD_ERROR >> 8;
+    push @results, [ $test, $rc, time - $start ];
+}
+
+my @failed = grep { $ARG->[1] != 0 } @results;
+say "\n::[ results ]::";
+printf "  %-6s %-40s %6.1f s\n", ( $ARG->[1] ? 'FAIL' : 'ok' ), $ARG->[0],
+    $ARG->[2]
+    foreach @results;
+printf "\n  %d of %d test scripts passed\n\n", @results - @failed,
+    scalar @results;
+exit( @failed ? 1 : 0 );
+
+#,,,.,,..,,..,.,,,,.,,,,,,.,.,,,.,,..,,.,,.,.,..,,...,.,.,..,,.,,,.,.,,,,,..,,
+#JWPBOSKQ7XAIS4GWSCTJWCPWOXTXL5URSHXJW64GIFTTC3EVMZXWD4TREY7ROL6DPFRBN4DEOIVQO
+#\\\|PA2OK4Z5YWROTYPZSKSYCMH7JU6RYFGGGHV2ZPD7GYPIDJJKAEQ \ / AMOS7 \ YOURUM ::
+#\[7]XJ6372SCI4QDA2PLLDSEEWZ6W4LQ5SVSGXNOCH335OVMWOVWM2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

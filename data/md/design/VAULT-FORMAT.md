@@ -280,6 +280,8 @@ scheme with a per-file random salt
   cancels that command. the prompts wait in a select with the idle time
   left [ readline in callback mode -- a blocking readline keeps reading
   after a signal ]. the note editor has no timer : editing counts as input
+- quit \ q \ exit \ x wipe the key and clear screen + scrollback + command
+  history the same way ; ctrl-d \ ctrl-c end the shell and keep the screen
 - written by root into a vault a user owns [ `sudo p7-vault -d
   ~user/.n/vault` ] : every new file and directory takes the owner of the
   directory it is created in, so the user keeps reading and writing it.
@@ -342,6 +344,10 @@ the other, a refused one does not stop the rest ; a path -- '/' './' '../'
 with sh instead of ssh, the key file is copied there once by hand as for a
 host ] unites a vault with a copy on
 another host [ remote dir default : `.n/vault` in the remote home ].
+`sync -a <target>...` saves targets, `-r` removes them, `-l` lists them,
+and a bare `sync` runs every saved one -- the list is
+`<vault>/sync-targets` [ 0600, one target per line ], never transferred :
+paths like an external drive's differ per machine.
 entry version and blob files are opaque and never change, so a sync is a
 plain file union -- never overwrite, never delete. `entries/` and
 `blobs/` unite with the same rules, reported on two lines :
@@ -404,8 +410,8 @@ the payload with the vault key, then step 2 for each record's data.
 a session agent [ unlock once per login ], the vault-edit form ui,
 totp code display, purging old versions.
 
-#,,..,,..,,..,,,,,,..,,.,,,.,,.,,,,,.,,..,,.,,..,,...,...,,..,,..,.,.,,,,,,..,
-#VIST6KWM7EKMAIR7THX6FK3SARE5ZWHGKL4KNN57EONNCWYOSJGUDBVX2UK643VKMTMWWXUKNYUHG
-#\\\|ADPHVSWBCT7DO5CDUZ47WRY2LKIUWBHZD3V2QXDF7V7RDZ7EXZP \ / AMOS7 \ YOURUM ::
-#\[7]DRZI7DKVAMSTT2SF6Q6V3CN2LXAIWW73XFDQXDSPSPC26KTDQGCA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,,,,,..,,,,.,.,,,..,,..,,.,.,..,,...,..,,...,.,.,...,.,.,.,,,
+#J4FHC7HXDTSEDBWUCOM2YUBVPAX4NFNN7PYLLJGOJW6EUAN5WP2XFHKNQPJNGDIFNCSGW3UCADSOI
+#\\\|JERIFSBKNPT73K7HLPWDIMO4YPPU2KFO7JLYACD3AO53IDGFWOF \ / AMOS7 \ YOURUM ::
+#\[7]7EEHUIPM2YS2GINVBX4M63Q2DNNFCQF5QOWNHSAT3RJI7XR2OIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
