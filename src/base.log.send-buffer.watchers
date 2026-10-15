@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = base.log.send-buffer.watchers
+# descr = var watchers + idle send callback of a log send-buffer
+# param = <buffer name>
+# return = TRUE : set up, FALSE : Event not loaded yet [ retried by add-queue ]
+#
+# split out of base.log.send-buffer.init : a bootstrap start logs before
+# Event is installed [ v7-zenki.pre_init ] -- the watchers then come with
+# the first line after Event is loaded, nothing queued is lost
+
+my $name = shift;    ## buffer name ##
+
+return FALSE
+    if not <[base.perlmod.loaded]>->('Event')
+    and not exists $INC{'Event.pm'};
+
+my $b_ref = <log.send-buffer>->{$name} // return FALSE;
+
+foreach my $var_name (qw|  lines-added  sent-lines  |) {
+
+    my $cb_data_param = $var_name ne qw| lines-added | ? undef : {
+        qw| callback | => sub {
+            <[base.log.send-buffer.idle-callback-set]>->($name)
+                if not <log.send-buffer>->{$name}->{'paused'}
+                and not <log.send-buffer>->{$name}->{'waiting'};
+        } ## lines-added triggers installation of idle callback for sending ##
+    };
+    my $cref = $code{'event.add_var'} // $code{'base.event.add_var'};
+    <log.send-buffer>->{$name}->{'watcher'}->{$var_name} = $cref->(
+        {   qw| var  |    => \$b_ref->{$var_name},
+            qw| prio |    => 4,
+            qw| data |    => $cb_data_param,
+            qw| handler | => qw| base.handler.counter_overflow_reset |
+        }
+    );
+
+}
+
+##  preparing check for log target zenka presence  ##
+<[base.log.send-buffer.idle-callback-set]>->($name);
+
+return TRUE;
+
+#,,,.,..,,.,.,.,.,.,.,...,.,.,,,,,,,,,,,,,.,.,..,,...,...,..,,,.,,,.,,.,.,..,,
+#RJLLJALZ7VWCWGZXD3XIGSC3T2CG2JAWCVLBGO2ZRC2MN2SOUB3JPQF5YDHRFUCJ52N7UOVHDGTU4
+#\\\|M5OBFFYEKKNUZA3BUQCX3Q5CHKGIQH434FG6UHFP6GDFPNDDG6Z \ / AMOS7 \ YOURUM ::
+#\[7]JGH6MJUAM6PO6GSRTU6YNV4PRTQ7T35BXFC4FKZKJAGRD6Q7C2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

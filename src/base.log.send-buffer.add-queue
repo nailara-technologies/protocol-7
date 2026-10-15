@@ -67,12 +67,19 @@ while ( $b_ref->{'size'} + $message_length > $b_ref->{'size-limit'}
 push $b_ref->{'data'}->@*, $new_entry_sref;    ##  adding entry to queue  ##
 $b_ref->{'size'} += length $new_entry_sref->$*;   ##[ updating buffer size ]##
 
+## a buffer created before Event was installed [ bootstrap start ] : its ##
+## watchers now, before the counter that triggers sending                ##
+if ( $b_ref->{'watchers_pending'} ) {
+    delete $b_ref->{'watchers_pending'}
+        if <[base.log.send-buffer.watchers]>->($name);
+}
+
 $b_ref->{'lines-added'}++;                        ## triggering sending ##
 
 return TRUE;
 
-#,,.,,.,.,...,,,,,,,.,,..,,.,,,,,,,,.,,,.,..,,..,,...,...,.,.,..,,..,,..,,.,,,
-#3VH3O6RUAISEO54YDPPOOMZETXABX3BIDLBU67YRGWT7THRSRGGMBG3FFHOW4VJSW2UIR7B4WRB62
-#\\\|EVPYYRVJNIW5VDNX365K23BGWSVVQ2LUF3SCCGRGJ5JWURINYTM \ / AMOS7 \ YOURUM ::
-#\[7]J3QMYUXUSUHTL4DARWSK5EYJG3YMPYSOTZTS6FAIC6M6VK5FO4CA 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,.,,..,,,.,,,,,,,.,,,,,,..,,,,,..,,...,...,,..,,..,.,.,,.,,,.,,
+#NIDE2MAZ5QZ7FZJY67LSO54MUKO7LISUGROJ7VWPNG2FCOPAGXBEKHUFTBJRWPFN7WKXVSSSDAQNM
+#\\\|7QPIPUNXVIFX5XL4QVONGULO23AIRKVGO5R7TPGKLK4J7LEGZYS \ / AMOS7 \ YOURUM ::
+#\[7]ZJNB77N54JCAXHG6YTFEHXUM6QI63BHWVJUGKOCEDEBXAOEGLCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
