@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = v7-zenki.zenka.cmd.start
-# param = <zenka-id|name>
+# param = <zenka-id|name> [ :ignore-disabled: ]
 # descr = start a new zenka instance
 
 my $zenka_id;
@@ -30,6 +30,14 @@ return {
     }
     if defined $env_override_key
     and $env_override_key !~ m|^[A-Z_][A-Z0-9_]*$|;
+
+## ':ignore-disabled:' : start even when the profile excludes this zenka ##
+my $ignore_disabled
+    = $zenka_param =~ s{\s*:ignore-disabled:\s*}{ }g ? TRUE : FALSE;
+$zenka_param =~ s{^\s+|\s+$}{}g;
+
+return { 'mode' => qw| false |, 'data' => 'zenka name or id expected' }
+    if not length $zenka_param;
 
 my $recursion = $call_params->{'recursion'} // 0;
 my $once      = $call_params->{'once'}      // 0;
@@ -120,11 +128,8 @@ if ( defined $env_override_key ) {
     }
 }
 
-return {
-    'mode' => qw| false |,
-    'data' => 'zenka explicitly disabled in config'
-    }
-    if <[zenka.is_disabled]>->($zenka_name);
+## zenki.disabled : checked with the allow list below  ##
+## [ one message, ':ignore-disabled:' overrides both ] ##
 
 return {
     'mode' => qw| true |,
@@ -195,34 +200,47 @@ return {
 delete <v7-zenki.zenka.manually_stopped>->{$zenka_name}
     if $start_mode eq qw| manual |;
 
-## explicitly disabled [ zenki.disabled ] : no AUTOMATIC start -- on-demand ##
-## [ start_once from a session, e.g. a web plugin subscribing ] or as a     ##
-## dependency. 'v7-zenki.start <name>' still starts it by hand. before, a   ##
-## remote server ran discover \ nodes \ external \ graphics-matrix          ##
-## [ ~90 MB each ] because the web space plugin subscribed to them          ##
-if ( $recursion or ( $once and defined $call->{'session_id'} ) ) {
+## the start profile decides for EVERY start                                ##
+## [ by hand, start_once, as a dependency, notify_online :start: ] : a      ##
+## zenka in zenki.disabled, or -- with an allow list                        ##
+## [ zenki.on-demand, the -lowram profiles ] -- one that is neither enabled ##
+## nor listed, is refused. ':ignore-disabled:' starts it anyway             ##
+## [ deliberate, per call ; dependencies are checked on their own ]. a      ##
+## mistake on the wrong host                                                ##
+## [ dist-upgrade on a 1 GB server with the full zenki set ] is refused     ##
+## instead of crashing the backend. exempt : a concurrent handover, which   ##
+## replaces an instance already running.  was : only automatic starts were  ##
+## checked [ start_once from a session, dependencies ] -- 'v7-zenki.start'  ##
+## always started [ until 2026-10-15 ]                                      ##
+if ( not $ignore_disabled
+    and ( $call->{'mode'} // '' ) ne qw| concurrent-handover | ) {
     my $zenki_cfg = <v7-zenki.start_setup.globals.zenki> // {};
-    my $disabled  = $zenki_cfg->{'disabled'}             // '';
+    my $profile   = <v7-zenki.cfg_data.start_profile>    // qw| ? |;
 
-    ## an allow list [ zenki.on-demand, a lean profile ] : only enabled  ##
-    ## zenki and the listed ones start automatically, every other one by ##
-    ## hand only                                                         ##
-    if (defined $zenki_cfg->{'on-demand'} and !grep { $ARG eq $zenka_name }
+    my $reason;
+    if ( grep { $ARG eq $zenka_name } split m|\s+|,
+        $zenki_cfg->{'disabled'} // '' ) {
+        $reason = sprintf "in zenki.disabled of profile '%s'", $profile;
+    } elsif (
+        defined $zenki_cfg->{'on-demand'} and !grep { $ARG eq $zenka_name }
         split( m|\s+|, $zenki_cfg->{'enabled'} // '' ),
         split( m|\s+|, $zenki_cfg->{'on-demand'} )
     ) {
-        $disabled .= " $zenka_name";
+        $reason = sprintf "not in the on-demand allow list of profile '%s' "
+            . '[ host.cfg : v7-zenki.host.zenki.on-demand ]', $profile;
     }
-    if ( grep { $ARG eq $zenka_name } split m|\s+|, $disabled ) {
+    if ( defined $reason ) {
         <[base.logs]>->(
-            1,
-            ": zenka '%s' is disabled here -- no automatic "
-                . "start [ v7-zenki.start starts it by hand ]",
-            $zenka_name
+            1,           ": zenka '%s' not started -- %s",
+            $zenka_name, $reason
         );
         return {
             'mode' => qw| false |,
-            'data' => "zenka '$zenka_name' is disabled [ zenki.disabled ]"
+            'data' => sprintf(
+                "zenka '%s' not started : %s -- ':ignore-disabled:' "
+                    . 'starts it anyway',
+                $zenka_name, $reason
+            )
         };
     }
 }
@@ -268,8 +286,11 @@ foreach my $dep_name (@dependencies) {
         if not exists <v7-zenki.zenka.autostart>->{$dep_name};
 }
 
+## a start with ':ignore-disabled:' is not added : the override is per call ##
+## -- as 'enabled' it would let every later automatic start through         ##
 <v7-zenki.start_setup.globals.zenki.enabled> .= sprintf( ' %s', $zenka_name )
-    if not <[zenka.is_enabled]>->($zenka_name);
+    if not $ignore_disabled
+    and not <[zenka.is_enabled]>->($zenka_name);
 
 if ( not defined $zenka_id ) {
     foreach my $id ( keys <v7-zenki.zenka.setup>->%* ) {
@@ -323,8 +344,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,..,,..,..,,.,.,,..,,,.,...,...,..,,,..,..,,..,,...,...,...,,.,,.,.,,.,,,,.,
-#TKWBRMKUU37FK55E7MYVGTICS4S2BIR2G7K4DTMTB2KJFFXMXIPA4AM5Z27ZJNLYTJNFSQTQDSAAG
-#\\\|HMGQ6KZYVIMJ7VNYCQVTMWBLS4HV4IVA7OLIYN5PQGKREHX4VSV \ / AMOS7 \ YOURUM ::
-#\[7]PPXTCX3V7KTFDAR5ZNWC52WQUCIAHJYOR3WG6AUVDZQJDQQHNMCQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,.,.,.,.,,,.,...,...,,,,,..,,..,,...,...,,..,.,,,.,,,..,,...,
+#YRJDUJ2U5OIQA5EKRRXEEQV2RTXDTJYSE5ZZZU3LSCYFBHKHPD42IZKFLRCPZGTKNZ4OEDMDQLTKO
+#\\\|55HTUJJ7P4OJDTJZXIWNJ4ZFRBEZ2F5XLELFLRKPIHRXSUXBMHC \ / AMOS7 \ YOURUM ::
+#\[7]G3B42EFACSQPEZXM5RA2NKDO5Q3G4JSFYV2IU4VGWK2CSFXELQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
