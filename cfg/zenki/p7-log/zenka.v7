@@ -11,19 +11,23 @@ log.timestamp_mode  =  ntime-b32  #  [ntime-b32|ntime-num|unix|localtime]
 p7-log.anon.enabled    =  1
 p7-log.anon.token_len  =  13
 
+## its own key, not the zenka user's identity key [ <user>.base ]: rotating ##
+## the identity no longer forces archive-anon-table + rekey-anon-table      ##
+p7-log.anon.key_name   =  p7-log.anon
+
 ## anon.key resolves its key file through crypt.C25519.key_path ; no key  ##
 ## auto-loading here [ the secret is read lazily after drop_privs ]       ##
 crypt.C25519.auto_load_keys = 0
 
-modules.load        =  auth.client net protocol io.unix io.ip ui crypt.C25519 \
-                       p7-log
+modules.load        = auth.client net protocol io.unix io.ip ui crypt.C25519 \
+                      p7-log
 
-access.cmd.usr.cube =  append commands heart reload cur-pid verify-instance \
-                       list-logs \
-                       list show-buffer buffer-erase buffer-erase-level \
-                       set-name-width file-sizes verbosity \
-                       resolve resolve-line archive-anon-table \
-                       rekey-anon-table
+access.cmd.usr.cube = append commands heart reload cur-pid verify-instance \
+                      list-logs \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      set-name-width file-sizes verbosity \
+                      resolve resolve-line archive-anon-table \
+                      rekey-anon-table
 
 ## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
 ## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
@@ -39,8 +43,8 @@ access.devcmd.usr.cube = devmod:*
 
 [zenka.loop]
 
-#,,,,,,,.,,,.,,,,,..,,.,.,..,,...,...,,..,.,.,..,,...,.,,,...,,..,,..,.,.,.,,,
-#6HVVDY3H2JF3725KGWXPBC7NFELUJJKNMLDA5A224QLWVLUFOFPRL5JRKXJ3LFSYOHRXEGYF6UUME
-#\\\|4PPFU6X726HECBKUR3NYGM5XBVJDCUQ2JAHLYAK7RIZAJ5RCKXU \ / AMOS7 \ YOURUM ::
-#\[7]2ETCBVG2AZXAISAUPXJHBENPOV2MXQMLYSMX6WDVB527YCMVXADA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,..,.,,,.,.,.,.,,,,,...,...,.,,,..,,...,.,,,,.,,.,,,,.,,,..,,..,
+#MK6VH2OOWTMEG6D5T5XQLGSTWEC4QLDVTNXYST3TDVSGN5QHWUKVLVT5K3JQZXTI7N4P2GSFH2OB2
+#\\\|VLLIE6LY64MYDZTQVED2EB6RRKQNTEISLS5E7PJIOPVFV4J7WRO \ / AMOS7 \ YOURUM ::
+#\[7]ZI4ILYWVDEZT4YRBE6XMVURBX7VRZD2DPSUNMXMYELA3D3ABZSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
