@@ -18,7 +18,8 @@ use constant FALSE => 0;    ##  false  ##
 
 BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
 
-use AMOS7::Vault qw| vault_init entry_save blob_import |;
+use AMOS7::Vault qw| vault_init vault_open vault_unlock entry_save
+    blob_import |;
 
 my ( $pass, $fail ) = ( 0, 0 );
 
@@ -334,13 +335,41 @@ ok( $rc == 0
     ok( $out !~ m|\Q$drive\E| && $out =~ m|fakehost:|,
         'saved targets : the other one stays'
     );
+
+    ## no vault here yet : the target's key file starts one, asked first ##
+    my $fresh = "$tmp/fresh-machine/vault";
+    my $start = sub {
+        my $answer = shift;
+        my $out    = qx{echo $answer | $vault_bin -d $fresh sync $drive 2>&1};
+        my $rc     = $? >> 8;
+        $out =~ s|\e\[[0-9;]*m||g;
+        return ( $out, $rc );
+    };
+    ( $out, $rc ) = $start->('n');
+    ok( $rc != 0 && $out =~ m|no vault in .* yet| && !-e $fresh,
+        'sync into no vault : declined, nothing written'
+    ) or print $out;
+    ( $out, $rc ) = $start->('y');
+    ok( $rc == 0
+            && $out =~ m|key file fetched|
+            && "@{[ entries($fresh) ]}" eq "@{[ entries($drive) ]}"
+            && "@{[ blobs($fresh) ]}" eq "@{[ blobs($drive) ]}",
+        'sync into no vault : the key file fetched, everything pulled'
+    ) or print $out;
+    ok( ( ( stat "$fresh/vault.key.B32" )[2] & 07777 ) == 0600
+            && ( ( stat $fresh )[2] & 07777 ) == 0700,
+        'sync into no vault : key file 0600, directory 0700'
+    );
+    my ($opened) = vault_open($fresh);
+    ok( $opened && vault_unlock( $opened, 'pass phrase' ),
+        'sync into no vault : it opens with the passphrase of the source' );
 }
 
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,,,,...,...,.,.,,..,.,,,...,,,.,,..,,,.,..,,...,...,,..,.,.,.,,,,.,,.,.,
-#HMHZBWCDC54AIEIOC746M6CBXICELG3EFCM5FVFPG4AKCJ2CYTHCCBNRZKR2W6G5BOOM75RCBVFL4
-#\\\|HM7XUQUYDGEKQP4AEXOGK4UNI6HKF6B2OJIVKXE7AJHYMVCTY7I \ / AMOS7 \ YOURUM ::
-#\[7]SNU444XNO4RDBCG6ILZO4AEJLVB3TS6JK5I2MFGVYESIF7DPWGDI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,.,,..,,..,,..,..,,.,,,,..,.,.,..,,...,...,...,.,,,,.,,,.,,.,,,
+#UDS2JXMY4KQK4AGYFNY5Z2VXPLNYKLJVFMSGMPKHRZU77QA3PRYPW2MNIQ5VRKKLPPOWA3S5FVJAG
+#\\\|XQZZVRABXP5V3C4LAFB4AIALD5MDSOJUOG7JFNECENKMFMIP5CL \ / AMOS7 \ YOURUM ::
+#\[7]5GVQ63YCX6VDKA7MMAG5QJBQK7UWNULHHBTGJYJ2TIEOPJAQ4CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

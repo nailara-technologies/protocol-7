@@ -156,6 +156,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [log-send-buffer-regression-aa2235630](feedback-log-send-buffer-regression-aa2235630.md) — since 2026-07-18 zenki without an early loop turn lost their p7-log files [ notify_online stuck in one-shot init_reports ] ; fixed 2026-09-30 [ session guard + one-time re-arm ] ; method : measure the order, compare with mod-test, read the storm \ race fix history first
 - [bin-protocol-7-main-subs](../../../data/tasks/bin-protocol-7-main-subs-to-modules.md) — the 86 named subs in bin/Protocol-7's main:: [ and the P7Syntax.pm translator copy ] are a transitional state to be converted, NOT a pattern to extend ; never reloadable, outside the module system, translator kept in lockstep twice
 - [llm-fix-regressions-pattern](feedback-llm-fix-regressions-pattern.md) — 4 regressions in one night [ 2026-09-30 ] from earlier LLM fixes assuming 'single choke point' in generic paths ; method : callers first, measure the order, compare with mod-test, git log --follow the path, test every scenario the history names
+- [test-claimed-bug-effect-before-reporting](feedback-test-claimed-bug-effect-before-reporting.md) — reproduce a bug's claimed symptoms [ or follow every consumer ] before reporting \ committing them ; a regression test must FAIL on the old code -- load_single 2026-10-15 : both claimed effects false, pushed in e13135150
 #,,.,,,.,,,..,,,,,.,.,.,,,...,,.,,.,,,,.,,.,.,..,,...,...,...,..,,,..,.,,,,,.,
 #7LE2BK4UQ5RUKQX7QWLXLNBIR2XONH62DQSG6BRKT2TPB35ATXEMHGU7EGYJ2DARMNR6URZTEAFLM
 #\\\|6MZ7LEMTWQTI6A375A5NGRCO3RLRKE2ESZNLZVJFQKPS2KJMWQX \ / AMOS7 \ YOURUM ::
@@ -209,4 +210,11 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #ZX623JTEJE2QUB74MW4VHFSE6EWMSF6VLQACRXTTB6EZEKGQ2YT7TE66R4GIMSYOLNX3GTP2I2YN4
 #\\\|BK2PLTYC22CAARDPHOH2GTKJPLMLK5KYDY3OAJX3RCOCL4K7K5I \ / AMOS7 \ YOURUM ::
 #\[7]N7JL2MJBCTJ6PKP54X3RENML7QA2UTB2PW2YM32AHF3QKAD5EGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [nested-data-read-autovivifies-before-defaults](feedback-nested-data-read-autovivifies-before-defaults.md) — a nested `<a.b.c>` read before init_modules creates `<a.b>` as {} and cancels a whole-hash `//=` default [ v7-zenki zenka-dirs all undef 2026-10-11..15 via base.host.detect ] ; read early via `( <a.b> // {} )->{c}`, defaults per key
+
+#,,..,,,,,.,,,,.,,.,.,,..,,..,,.,,.,.,,..,,..,..,,...,...,.,,,..,,,.,,,,.,,..,
+#JLJD5O46LN6DXZ2HWAZVU5YST77X6FMCQQWESYILAWYDOTZLV37O3FA7MIVK3DTVGL6OZM3JOUW5A
+#\\\|M5O7JVVXNPJFVQJ2VHSMICQLR3JHFFIDLPWKNERJ4HAPR5JZAY5 \ / AMOS7 \ YOURUM ::
+#\[7]YTFER4UGMFOHF2XITOFLLDZXVNT3NDSX5TNE5V36AZWEC3RYNIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

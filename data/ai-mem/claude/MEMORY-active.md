@@ -5,7 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
-- [project-2026-10-14-session-handover-history-rewrite-llm-identities](project-2026-10-14-session-handover-history-rewrite-llm-identities.md) — START HERE : session 2026-10-13..14 [ last 4d50a0b83, pushed ] -- third history rewrite [ one developer identity, llm metadata stripped ], llm identity hooks [ post-commit re-authors, pre-push refuses ], pii-audit patterns in /etc, pre-rewrite backups archived + reviewed, console color fix ; open : pii placeholders, sudo rm p7.bak.10010
+- [project-2026-10-15-session-handover-vault-secret-wipes](project-2026-10-15-session-handover-vault-secret-wipes.md) — START HERE : session 2026-10-14..15 [ last c0069d2d4, pushed ] -- p7-vault auto-lock \ saved + directory sync \ input timeout \ quit clear \ cursor, secret + password wipes [ COW, AMOS7::TERM reader rewrite, C25519 loaders ], IO::AIO stale-$@ poll bug, invented header removed ; e13135150 overstated the load_single bug [ see correction ] ; open : single-file key password check, vault import update
+- [project-2026-10-14-session-handover-history-rewrite-llm-identities](project-2026-10-14-session-handover-history-rewrite-llm-identities.md) — previous handover : session 2026-10-13..14 [ last 4d50a0b83, pushed ] -- third history rewrite [ one developer identity, llm metadata stripped ], llm identity hooks [ post-commit re-authors, pre-push refuses ], pii-audit patterns in /etc, pre-rewrite backups archived + reviewed, console color fix ; open : pii placeholders, sudo rm p7.bak.10010
 - [project-2026-10-12-session-handover-dns-tcp-vault-notes](project-2026-10-12-session-handover-dns-tcp-vault-notes.md) — previous handover : session 2026-10-11..12 [ last 012eab8fe ] -- dns over tcp live, letsencr propagation check, pm-src + :keep: signing, editor paste fix, p7-vault notes \ codes \ sync ; next after the weekly reset : Y7O -> B2K -> HS4
 - [servers-dns01-host-config-2026-10-11](project-2026-10-11-servers-dns01-host-config.md) — previous handover [ 2026-10-11 ] : 4 servers [ pri DN0000, yourum DN0110, delta DN1110, atom retiring ], zone sync LIVE between the three [ port 7753, signed entries ], host.cfg layered config ; open : stage 4, VDS parent-delegation check [ 7N3, YJP, VDS, DYK live 2026-10-12 ; all servers keys-only sshd ]
 - [keep-new-server-1](project-2026-10-11-keep-new-server-1.md) — the 8-vcpu primary vps keeps running without break : its 24 GB \ 450 GB upgrade was a one-off grant, never suggest cancel \ pause \ re-order
@@ -185,8 +186,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [invoke-qwen21-fork-install](project-2026-10-02-invoke-qwen21-fork-install.md) — qwen-image 2.1 = second invoke.ai install [ krakotay fork ], invoke-web variant switching df1c67ef0, local UI patch in the clone to re-apply, fork applies NO LoRAs to 2.1
 - [invoke-images-session-handover-2026-09-29](project-2026-09-29-invoke-images-session-handover.md) — updated 2026-09-30 ~09:30 : invoke-web [ file transport, recoveries, index ], v7-zenki keep-children \ pressure \ pid files, 4 regressions fixed, open list [ T-C, use warnings in format-code .. ] -- start here
 
-#,,.,,,.,,,,.,,,,,...,...,,..,..,,,,,,,..,,.,,..,,...,...,,.,,...,,,,,...,,,,,
-#MDCTWHUOSKNY3PP745JAPX6RH4RO2R7SKJKULY5Z3YYTTS2PFIJ6S63LXKGXWCWBRBADIREKJQOLG
-#\\\|RCJ3HNA47QBO2W2PLIL7WHEBJEAL5MJZPCFQ2XVZOCADAU4UXCM \ / AMOS7 \ YOURUM ::
-#\[7]LTVKX7D7MQOCPVVFMNLZV4DM7A5732CAJ6GOZAWHHBDUQFSSKQAQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,.,,..,.,,,.,.,...,,..,.,.,.,,,..,,...,..,,,..,..,,...,,,,,,,.,
+#SPJZFD24WCMRCIKQXMUXXRJUMFTGS2BPU5Q5BPNY7T37YUMSH5FBPHJFQXA45EHLBYT4EPD7TVVLE
+#\\\|IZTX7TCIFSF5KC44T3DXHJI53UOKWTBDOW4H7GZ7OLZK3DVRKQ2 \ / AMOS7 \ YOURUM ::
+#\[7]XKWCFWKKUU6MMX2MRJFAR3XWYMABD35TUXGYK2NA5MEWWC67ZYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

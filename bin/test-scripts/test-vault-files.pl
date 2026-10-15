@@ -21,7 +21,7 @@ BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
 
 use AMOS7::Vault qw|
     vault_init vault_open vault_unlock
-    entries_latest
+    entries_latest entry_versions
     blob_import blob_export blob_verify
     blob_import_stream blob_discard
     |;
@@ -409,11 +409,119 @@ SKIP_UNREADABLE: {
         'blob_discard : malformed names refused' );
 }
 
+## import -u : an earlier import updated -- new VERSIONS, not new entries ##
+{
+    my $live_archives = sub {    ## the live archive entries of $tree ##
+        my ($list) = entries_latest($v);
+        return grep {
+            ( $ARG->{'record'}{'archive'} // '' ) eq qw| tar |
+                and grep { $ARG->{'path'} eq $tree }
+                @{ $ARG->{'record'}{'origins'} // [] }
+        } @{$list};
+    };
+    my $file_entry = sub {       ## the live entry recording a path ##
+        my $path   = shift;
+        my ($list) = entries_latest($v);
+        my ($hit)  = grep {
+            ( $ARG->{'record'}{'archive'} // '' ) ne qw| tar |
+                and grep { $ARG->{'path'} eq $path }
+                @{ $ARG->{'record'}{'origins'} // [] }
+        } @{$list};
+        return $hit;
+    };
+    my $versions = sub { scalar @{ entry_versions($v)->{ shift() } // [] } };
+
+    my ($archive) = $live_archives->();
+    my $before    = $versions->( $archive->{'id'} );
+    my $blobs     = () = glob "$dir/blobs/*.vlb";
+    ( $out, $rc ) = p7vault(
+        "pass phrase one\n",
+        qw| import -u -a |,
+        $tree, '-x', '*.webp'
+    );
+    my $blobs_after = () = glob "$dir/blobs/*.vlb";
+    ok( $rc == 0
+            && $out =~ m|unchanged -- no new version|
+            && $versions->( $archive->{'id'} ) == $before
+            && $blobs_after == $blobs,
+        'import -u -a : an unchanged directory adds nothing [ blob gone ]'
+    ) or print $out;
+
+    write_file( "$tree/one.txt", 'first file, changed' );
+    ( $out, $rc ) = p7vault(
+        "pass phrase one\n",
+        qw| import -u -a |,
+        $tree, '-x', '*.webp'
+    );
+    my @archives = $live_archives->();
+    ok( $rc == 0
+            && $out =~ m|a new version|
+            && @archives == 1
+            && $archives[0]{'id'} eq $archive->{'id'}
+            && $versions->( $archive->{'id'} ) == $before + 1
+            && $archives[0]{'record'}{'blob'} ne $archive->{'record'}{'blob'},
+        'import -u -a : a changed directory, the same entry\'s next version'
+    ) or print $out;
+
+    mkdir "$tmp/fresh" or die $OS_ERROR;
+    write_file( "$tmp/fresh/f.txt", 'fresh' );
+    ( $out, $rc )
+        = p7vault( "pass phrase one\n", qw| import -u -a |, "$tmp/fresh" );
+    ok( $rc == 0 && $out =~ m|no earlier archive| && $out =~ m|stored|,
+        'import -u -a : never archived here -- a new entry'
+    ) or print $out;
+
+    ## per file : the prefix tree imported above ##
+    my $b_entry = $file_entry->("$pfx/sub/b.txt");
+    my $b_vers  = $versions->( $b_entry->{'id'} );
+    ( $out, $rc ) = p7vault( "pass phrase one\n", qw| import -u |, $pfx );
+    ok( $rc == 0 && $out =~ m|3 files unchanged|,
+        'import -u <dir> : unchanged files add nothing'
+    ) or print $out;
+
+    write_file( "$pfx/sub/b.txt", 'beta, changed' );
+    unlink "$pfx/sub/c.bin" or die $OS_ERROR;
+    ( $out, $rc ) = p7vault( "pass phrase one\n", qw| import -u |, $pfx );
+    my $b_now = $file_entry->("$pfx/sub/b.txt");
+    ok( $rc == 0
+            && $out =~ m|a new version|
+            && $b_now->{'id'} eq $b_entry->{'id'}
+            && $versions->( $b_entry->{'id'} ) == $b_vers + 1,
+        'import -u <dir> : a changed file, its entry\'s next version'
+    ) or print $out;
+    ok( $out =~ m|1 stored file no longer there|
+            && $out =~ m|\Q$pfx/sub/c.bin\E|
+            && defined $file_entry->("$pfx/sub/c.bin"),
+        'import -u <dir> : a file gone is listed, its entry kept'
+    ) or print $out;
+
+    ## one content at two paths : only the changed path moves on ##
+    write_file( "$tmp/twin-1.txt", 'twin content' );
+    write_file( "$tmp/twin-2.txt", 'twin content' );
+    p7vault(
+        "pass phrase one\n", 'import',
+        "$tmp/twin-1.txt",   "$tmp/twin-2.txt"
+    );
+    my $twin = $file_entry->("$tmp/twin-1.txt");
+    write_file( "$tmp/twin-2.txt", 'twin two changed' );
+    ( $out, $rc )
+        = p7vault( "pass phrase one\n", qw| import -u |, "$tmp/twin-2.txt" );
+    my $one = $file_entry->("$tmp/twin-1.txt");
+    my $two = $file_entry->("$tmp/twin-2.txt");
+    ok( $rc == 0
+            && $one->{'id'} eq $twin->{'id'}
+            && @{ $one->{'record'}{'origins'} } == 1
+            && $two->{'id'} ne $twin->{'id'},
+        'import -u : shared content -- the '
+            . 'changed path moves to its own entry'
+    ) or print $out;
+}
+
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,.,,,..,,.,,,,.,.,.,..,,,,.,,,.,,..,,..,..,,...,...,.,.,,..,,,,,.,.,.,.,
-#CZYRIAXQE46HKDNZR57ZA7BMAYHAXYETF4ZJXXYLF7JDDVGJB6KM3PR5GOMFQD2JMGYKW7X3KNBXI
-#\\\|T7KOBJ27BRTS3VHUHZYO66QK4WQ3A636UDCY7KRQOPZZBZD2Q5B \ / AMOS7 \ YOURUM ::
-#\[7]FDHGQQSX7EFQOY3RF7V2F42B3CCEMXZMGMKVLE4KOZZXGSOSAADY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,,.,,,,,,.,,,.,,,,..,..,,,.,,..,,...,..,,,.,,.,,,,,.,,.,,.,.,
+#VAENDRRCXQLRU47D2LFQYH5WGDCZ6OOL2432AXWC7B5X6N427L5NNNI6GORVX22JWFER2XSHSKTY2
+#\\\|IJL4HNX7ZDJV6Y2FDIEZLMPUX5V7GLSWZUIUPTCCXPT6IXHNTBN \ / AMOS7 \ YOURUM ::
+#\[7]B634OC6PNVUU3VX7ZPEUUOVVFCYZA5E2I2T4JMPB52SAXKNYWQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -455,6 +455,12 @@ sub usage_text {
                              repeatable ; unreadable paths refuse the import,
                              -i skips them ; no dedup -- archives are stored
                              as imported ]
+    import -u [ -a ] <path>...
+                             update an earlier import of the same paths :
+                             changed files \\ a changed archive become new
+                             VERSIONS of their entries [ history \\ restore
+                             reach the old ones ], unchanged ones add
+                             nothing, files gone are listed, never deleted
     export <filter> [ dest ] write a stored file back [ mode and mtime
                              restored, owner as root ]. an archive entry
                              extracts its tar into a directory
@@ -473,7 +479,9 @@ sub usage_text {
                              union of the entry and blob files with other
                              hosts or directories [ a path : '/' './' '~' --
                              an external drive ], one after the other [ never
-                             overwrites, never deletes ]
+                             overwrites, never deletes ]. no vault here yet :
+                             asks to fetch the target's key file, then pulls
+                             everything [ its passphrase opens it ]
     sync [ -a | -r <target>... | -l ]
                              no target : every saved one. -a saves targets,
                              -r removes them, -l lists them [ <vault>/
@@ -1442,8 +1450,8 @@ sub cmd_rm {
 ## per file. directories recurse, symlinks and non-files are skipped with a
 ## note. -t sets the title and takes a single file
 sub cmd_import {
-    my ( $title_opt, $pick_dir, $archive_dir, $skip_unreadable )
-        = ( undef, FALSE, undef, FALSE );
+    my ( $title_opt, $pick_dir, $archive_dir, $skip_unreadable, $update )
+        = ( undef, FALSE, undef, FALSE, FALSE );
     my ( @excludes, @paths );
     while (@ARG) {
         my $arg = shift @ARG;
@@ -1452,6 +1460,7 @@ sub cmd_import {
         elsif ( $arg eq '-a' ) { $archive_dir = shift @ARG // '' }
         elsif ( $arg eq '-x' ) { push @excludes, shift @ARG // '' }
         elsif ( $arg eq '-i' ) { $skip_unreadable = TRUE }
+        elsif ( $arg eq '-u' ) { $update          = TRUE }
         else                   { push @paths, $arg }
     }
 
@@ -1497,7 +1506,7 @@ sub cmd_import {
         }
         my $v = unlocked() // return FALSE;
         return _import_archive( $v, $archive_dir, \@excludes, $title_opt,
-            \@unreadable );
+            \@unreadable, $update );
     }
     if (@excludes) {
         say msg( 'refuse', '-x is only valid with -a' );
@@ -1507,6 +1516,10 @@ sub cmd_import {
     ## no path : the file selector [ -d : a directory ], one import per pick,
     ## then 'another?' -- until something more native exists
     if ( not @paths ) {
+        if ($update) {
+            say msg( 'refuse', '-u needs the paths to update' );
+            return FALSE;
+        }
         my $picked = select_import_path($pick_dir);
         if ( not defined $picked ) {
             say msg( 'info',
@@ -1534,29 +1547,69 @@ sub cmd_import {
         return FALSE;
     }
 
-    my $v      = unlocked() // return FALSE;
-    my $host   = ( POSIX::uname() )[1];
-    my $failed = 0;
+    my $v    = unlocked() // return FALSE;
+    my $host = ( POSIX::uname() )[1];
+    my ( $failed, $unchanged ) = ( 0, 0 );
     foreach my $file (@files) {
-        my $had  = _blob_count($dir);
-        my $done = eval { _import_one( $v, $file, $host, $title_opt ) };
+        my $had = _blob_count($dir);
+        my $done
+            = eval { _import_one( $v, $file, $host, $title_opt, $update ) };
         if ( not $done ) {
             say STDERR msg( 'refuse', '%s',
                 $EVAL_ERROR || "cannot import $file" );
             $failed++;
             next;
         }
-        my $state
-            = _blob_count($dir) > $had ? qw| stored | : qw| deduplicated |;
+        my $state = $done->{'state'} // (
+            _blob_count($dir) > $had ? qw| stored | : qw| deduplicated | );
+        if ( $state eq qw| unchanged | and @files > 1 ) {    ## counted ##
+            $unchanged++;
+            next;
+        }
         say msg(
-            $state eq qw| stored | ? qw| done | : qw| info |,
+            $state =~ m{\A(?:stored|a new version)\z}
+            ? qw| done |
+            : qw| info |,
             "%s '%s' [ %s bytes ] %s",
             @{$done}{qw| code title |},
             $done->{'size'},
             $state
         );
     }
+    if ($update) {
+        say msg(
+            'info',     '%s file%s unchanged',
+            $unchanged, $unchanged == 1 ? '' : 's'
+        ) if $unchanged;
+        _import_report_gone( $v, $host, grep {-d} @paths );
+    }
     return $failed ? FALSE : TRUE;
+}
+
+## -u on a directory : the stored files of this host recorded under it that
+## are no longer there -- listed, nothing deleted [ entries are history ]
+sub _import_report_gone {
+    my ( $v, $host, @dirs ) = @ARG;
+    return if not @dirs;
+    my @prefixes = map { File::Spec->rel2abs($ARG) =~ s|/+\z||r } @dirs;
+    my ($list) = entries_latest($v);
+    my @gone;
+    foreach my $entry ( @{$list} ) {
+        my $record = $entry->{'record'};
+        next if lc( $record->{'type'}  // '' ) ne qw| file |;
+        next if ( $record->{'archive'} // '' ) eq qw| tar |;
+        foreach my $origin ( @{ $record->{'origins'} // [] } ) {
+            my $path = $origin->{'path'} // '';
+            next if ( $origin->{'host'} // '' ) ne $host or -e $path;
+            push @gone, $path
+                if grep { index( $path, "$ARG/" ) == 0 } @prefixes;
+        }
+    }
+    return if not @gone;
+    say msg( 'info', '%s stored file%s no longer there [ nothing deleted ] :',
+        scalar @gone, @gone == 1 ? '' : 's' );
+    say msg( 'info', '  %s', $ARG ) foreach sort @gone;
+    return;
 }
 
 sub _blob_count {
@@ -1600,7 +1653,7 @@ sub _import_collect {
 ## same blob gains the new origin [ one new version ] when this host+path is
 ## new ; else a new entry. returns { code, title, size }
 sub _import_one {
-    my ( $v, $file, $host, $title_opt ) = @ARG;
+    my ( $v, $file, $host, $title_opt, $update ) = @ARG;
 
     my @st = stat $file or die "cannot stat $file : $OS_ERROR\n";
     my ( $name, $size ) = blob_import( $v, $file );
@@ -1620,6 +1673,48 @@ sub _import_one {
         mtime    => int $st[9],
         imported => ntime_b32( AMOS7::Vault::ntime_now() ),
     );
+
+    ## -u : the entry recording this host + path follows the file -- the same
+    ## content is unchanged, new content its next version
+    ## [ history keeps the old one ] ; when the old content is stored for
+    ## other paths too, only this path moves on
+    ## [ to the entry of the new content ]
+    if ($update) {
+        my ($listed) = entries_latest($v);
+        my $here = sub {
+            return
+                grep { $ARG->{'host'} eq $host and $ARG->{'path'} eq $abs }
+                @{ shift->{'origins'} // [] };
+        };
+        my ($mine) = sort { $b->{'version'} cmp $a->{'version'} } grep {
+                    lc( $ARG->{'record'}{'type'}  // '' ) eq qw| file |
+                and ( $ARG->{'record'}{'archive'} // '' ) ne qw| tar |
+                and $here->( $ARG->{'record'} )
+        } @{$listed};
+        if ($mine) {
+            my %old      = %{ $mine->{'record'} };
+            my ($loaded) = entry_load( $v, $mine->{'id'} );
+            my %result   = (
+                code  => ( $loaded // {} )->{'code'} // '',
+                title => $old{'title'}               // '',
+                size  => $size,
+            );
+            return { %result, state => qw| unchanged | }
+                if ( $old{'blob'} // '' ) eq $name;
+            my @others = grep {
+                not( $ARG->{'host'} eq $host and $ARG->{'path'} eq $abs )
+            } @{ $old{'origins'} // [] };
+            delete $old{'updated'};
+            if ( not @others ) {
+                @old{qw| blob size origins |}
+                    = ( $name, $size, [ \%origin ] );
+                entry_save( $v, $mine->{'id'}, \%old );
+                return { %result, state => 'a new version' };
+            }
+            $old{'origins'} = \@others;
+            entry_save( $v, $mine->{'id'}, \%old );
+        }
+    }
 
     my ($list)  = entries_latest($v);
     my ($entry) = grep {
@@ -1724,7 +1819,7 @@ sub _archive_unreadable {
 ## exit >= 2 aborts with NO entry -- the blob already written is discarded
 ## [ unreferenced, never synced ]
 sub _import_archive {
-    my ( $v, $dir, $excludes, $title_opt, $skipped ) = @ARG;
+    my ( $v, $dir, $excludes, $title_opt, $skipped, $update ) = @ARG;
     $skipped //= [];
 
     my ( $parent, $base ) = _archive_split($dir) or do {
@@ -1749,7 +1844,7 @@ sub _import_archive {
         return FALSE;
     }
     binmode $stream;
-    my ( $name, $size ) = blob_import_stream( $v, $stream );
+    my ( $name, $size, $content ) = blob_import_stream( $v, $stream );
     close $stream;
     my $tar_exit = $? >> 8;
     tool_stderr_print( $errors, qw| tar | );
@@ -1792,6 +1887,52 @@ sub _import_archive {
     );
     $record{'excludes'} = [ @{$excludes} ] if @{$excludes};
     $record{'skipped'}  = [ @{$skipped} ]  if @{$skipped};
+    $record{'content'}  = $content;    ## keyed content id [ -u compares ] ##
+
+    ## -u : a new VERSION of the archive entry of this host + directory
+    ## [ history \ restore reach the earlier ones ] ; the same content adds
+    ## nothing [ the new blob discarded ]
+    my $previous
+        = $update
+        ? _archive_previous( $v, $record{'origins'}[0] )
+        : undef;
+    if ($previous) {
+        my $old      = $previous->{'record'};
+        my ($loaded) = entry_load( $v, $previous->{'id'} );
+        my $old_code = ( $loaded // {} )->{'code'} // '';
+        if (    ( $old->{'content'} // '' ) eq $content
+            and "@{ $old->{'excludes'} // [] }" eq "@{$excludes}"
+            and "@{ $old->{'skipped'} // [] }" eq "@{$skipped}" ) {
+            blob_discard( $v, $name );
+            say msg( 'info', "%s '%s' unchanged -- no new version",
+                $old_code, $old->{'title'} // '' );
+            return TRUE;
+        }
+        my $origin = $record{'origins'}[0];
+        my %new    = ( %{$old}, %record );
+        $new{'title'}   = $old->{'title'} if not defined $title_opt;
+        $new{'origins'} = [
+            (   grep {
+                    not(    $ARG->{'host'} eq $origin->{'host'}
+                        and $ARG->{'path'} eq $origin->{'path'} )
+                } @{ $old->{'origins'} // [] }
+            ),
+            $origin
+        ];
+        delete $new{$ARG}
+            foreach grep { not exists $record{$ARG} } qw| excludes skipped |;
+        delete $new{'updated'};
+        entry_save( $v, $previous->{'id'}, \%new );
+        say msg( 'done',
+            "%s '%s' [ %s bytes ] -- a new version [ history %s ]",
+            $old_code, $new{'title'}, $size, $old_code );
+        return TRUE;
+    }
+    say msg(
+        'info',
+        'no earlier archive of %s here -- a new entry',
+        $record{'origins'}[0]{'path'}
+    ) if $update;
 
     my $id = entry_save( $v, undef, \%record );
     my ($saved) = entry_load( $v, $id );
@@ -1802,6 +1943,24 @@ sub _import_archive {
         $record{'title'}, $size
     );
     return TRUE;
+}
+
+## the live archive entry holding this host + directory as an origin
+## [ the newest version when several do ], or undef
+sub _archive_previous {
+    my ( $v, $origin ) = @ARG;
+    my ($list) = entries_latest($v);
+    my @hits = sort { $b->{'version'} cmp $a->{'version'} } grep {
+        my $record = $ARG->{'record'};
+        lc( $record->{'type'} // '' ) eq qw| file |
+            and ( $record->{'archive'} // '' ) eq qw| tar |
+            and not $record->{'deleted'}
+            and grep {
+                    ( $ARG->{'host'} // '' ) eq $origin->{'host'}
+                and ( $ARG->{'path'} // '' ) eq $origin->{'path'}
+            } @{ $record->{'origins'} // [] }
+    } @{$list};
+    return $hits[0];
 }
 
 ## write a stored file back. no dest : the recorded path of this host is the
@@ -2635,11 +2794,11 @@ sub cmd_sync {
         say msg( 'refuse', "unsafe remote dir '%s'", $remote );
         return FALSE;
     }
-    if ( not vault_exists($dir) ) {
-        say msg( 'refuse', 'no vault in %s', $dir );
-        return FALSE;
-    }
-    my ($vh) = vault_open($dir);    ## locked is enough : the id is clear ##
+    ## no vault here yet : the target's key file can start one
+    ## [ asked, after the probe shows a valid vault there ]
+    my $fresh = vault_exists($dir) ? FALSE : TRUE;
+    ## locked : the id is clear ##
+    my ($vh) = $fresh ? () : vault_open($dir);
     if ( $local and File::Spec->rel2abs($dir) eq $remote ) {
         say msg( 'refuse', '%s is this vault itself', $remote );
         return FALSE;
@@ -2728,7 +2887,10 @@ sub cmd_sync {
             $host, $remote );
         return FALSE;
     }
-    if ( $remote_id ne $vh->{'id'} ) {
+    if ($fresh) {
+        $vh = _sync_start_from( $host, $remote, $key_text, $remote_id )
+            // return FALSE;
+    } elsif ( $remote_id ne $vh->{'id'} ) {
         say msg( 'refuse', 'different vault [ %s : %s ] -- refusing',
             $host, $remote_id );
         return FALSE;
@@ -3014,6 +3176,50 @@ sub _sync_pull {
 }
 
 sub _key_path_local { return "$dir/vault.key.B32" }
+
+## sync into a directory without a vault : the target's key file [ in the
+## clear -- the vault key in it is wrapped by the passphrase \ recovery code ]
+## written here after a confirm, then the union pulls every entry and blob.
+## the passphrase is the one of that key file. returns the opened handle
+sub _sync_start_from {
+    my ( $host, $remote, $key_text, $id ) = @ARG;
+    say msg( 'info', "no vault in %s yet -- %s : '%s' holds vault %s",
+        $dir, $host, $remote, $id );
+    if ( not confirm('fetch its key file here and pull everything') ) {
+        say msg( 'info', 'nothing fetched' );
+        return undef;
+    }
+    ## missing parents too [ a new machine : no ~/.n yet ], each 0700 and
+    ## owned like the directory it is created in
+    require File::Path;
+    foreach my $sub_dir ( $dir, "$dir/entries", "$dir/blobs" ) {
+        next if -d $sub_dir;
+        my @made = File::Path::make_path( $sub_dir,
+            { mode => 0700, error => \my $errors } );
+        if ( @{$errors} or not -d $sub_dir ) {
+            say msg( 'refuse', 'cannot create %s', $sub_dir );
+            return undef;
+        }
+        AMOS7::Vault::_own_like_parent( $ARG, $ARG ) foreach @made;
+    }
+    my ( $ok, $err )
+        = AMOS7::Vault::_write_new_file( _key_path_local(), $key_text );
+    if ( not $ok ) {
+        say msg( 'refuse', 'cannot write the key file : %s', $err );
+        return undef;
+    }
+    my ( $vh, $open_err ) = vault_open($dir);
+    if ( not defined $vh or $vh->{'id'} ne $id ) {
+        say msg(
+            'refuse',
+            'the fetched key file does not open : %s',
+            $open_err // 'another vault id'
+        );
+        return undef;
+    }
+    say msg( 'done', 'key file fetched [ its passphrase opens this vault ]' );
+    return $vh;
+}
 
 ## single-quote for a remote sh -c string
 sub shq {
@@ -3417,8 +3623,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,,.,...,,,.,,.,,,.,,,,,,...,...,...,,.,,,.,,..,,...,...,,,.,,.,,,.,,,,,,...,
-#LN5MLOYLLWT32IDZF2BVQ2HXBBQFCQ36356OMPNI7GZA7IFG3DTEL3HPRPIURSHUVELDZZ3WDTS6K
-#\\\|YRHM2KYVLECIAN5336QWRKFOYCAL65MSTW2ZX2CFJFY764CKRCE \ / AMOS7 \ YOURUM ::
-#\[7]RSX7YV4XSFKTKV2TFYAKXAM2FSAGEFVQ6Q44Q6P6KWVC5RMKKQDI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,,,,,.,.,,,..,,,,.,,.,,,,.,,.,,..,,...,...,..,,..,,,,,,..,,,..,
+#5SLXNI6FBBYUVKTFFAGMEIYHJ3H7QPBPNB3XSURGZCWRUB6MRP42LSYA2WLXMZT3RKDUFKSBGKLBQ
+#\\\|R64WB7SR57OUXD37W5V2F5PGZIFDRT2DYSMJKGAJUJFUVVVG65E \ / AMOS7 \ YOURUM ::
+#\[7]36EKK3G2RRUJKQNGMSB3D26TESELUWFW5AEB3SX3VZRLZTBD6YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
