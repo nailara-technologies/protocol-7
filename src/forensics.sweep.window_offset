@@ -1,0 +1,58 @@
+## [:< ##
+
+# name   = forensics.sweep.window_offset
+# descr  = byte offset in a log file from which the sweep window starts
+# param  = <raw filehandle> <file size> <cutoff unix time>
+# return = an offset at or before the first line inside the window [ 0 :
+#          read from the start ]
+#
+# logs are chronological : a binary search over byte offsets narrows to
+# 64 KiB with ~log2( size / 64k ) timestamp decodes -- the sweep then
+# reads from there and latches at the first in-window line. decoding every
+# line from the start took minutes on a 140 MB log and blocked the zenka
+# past its heartbeat [ pri : killed and restarted ~7300 times, 2026-10 ]
+
+my ( $log_fh, $size, $cutoff ) = @ARG;
+
+return 0 if not defined $log_fh or not $size or not defined $cutoff;
+
+my $logline_re = qr|^([A-Z2-7]{10,20})\s+\d{6,7}\s+\d\s|;
+my $max_probe  = 1 << 20;    ## bytes read per probe before giving up ##
+
+## timestamp of the first log line after $pos [ undef : none found ] ##
+my $ts_after = sub {
+    my $pos = shift;
+    seek( $log_fh, $pos, 0 ) or return undef;
+    readline($log_fh) if $pos > 0;    ## the partial line at $pos ##
+    my $read = 0;
+    while ( defined( my $line = readline($log_fh) ) ) {
+        $read += length $line;
+        return undef if $read > $max_probe;
+        next         if $line !~ $logline_re;
+        my $ts_b32 = $LAST_PAREN_MATCH;
+        my $ts_unix;
+        {    ##  junk-shaped lines would warn inside the decoder  ##
+            local $SIG{'__WARN__'} = sub { };
+            $ts_unix = <[base.ntime.B32_2_unix]>->($ts_b32);
+        }
+        return $ts_unix if defined $ts_unix;
+    }
+    return undef;
+};
+
+my ( $low, $high ) = ( 0, $size );
+while ( $high - $low > 65536 ) {
+    my $middle = int( ( $low + $high ) / 2 );
+    my $ts     = $ts_after->($middle);
+    ## no timestamp found : treated as inside the window [ reads more ] ##
+    if   ( defined $ts and $ts < $cutoff ) { $low  = $middle }
+    else                                   { $high = $middle }
+}
+
+return $low;
+
+#,,,,,...,.,.,.,,,.,.,,,.,.,,,..,,..,,,,.,,.,,..,,...,...,...,,..,.,,,.,.,...,
+#4RMV2LUUGIFMRQHDS5NZSTNEUFEAQUECUILLFLUCPGJRYMSN3F25AXD6EYDYCF4TJBTCMF335GANW
+#\\\|4YUXC22EORAT4BCTJY6WQP4PS4FY4I6H4NWY2CMKC4OCRWLEPEK \ / AMOS7 \ YOURUM ::
+#\[7]UM4MMBIINW2C56LI426STOYH5NLENKKBKIQREZ2D7BVJ4PGQEGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
