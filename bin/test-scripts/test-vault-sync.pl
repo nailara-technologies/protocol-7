@@ -240,11 +240,68 @@ ok( $rc == 0
     );
 }
 
+## sync <path> : a directory [ an external drive ] -- no ssh, p7-vault runs ##
+## the same commands with sh                                                ##
+{
+    my $drive = "$tmp/usb-drive/vault";
+    my $run   = sub {
+        my $out = qx{$vault_bin -d $dir_a sync @ARG 2>&1};
+        my $rc  = $? >> 8;
+        $out =~ s|\e\[[0-9;]*m||g;
+        return ( $out, $rc );
+    };
+    my ( $out, $rc ) = $run->($drive);
+    ok( $rc != 0
+            && $out =~ m|mkdir -p -m 700 '\Q$drive\E'|
+            && $out =~ m|cp '[^']+vault\.key\.B32' '\Q$drive\E'/|,
+        'sync <path> : no vault there -- local mkdir \\ cp hint'
+    );
+
+    system( 'mkdir', '-p', '-m', '700', $drive ) == 0 or die 'mkdir failed';
+    system( 'cp', "$dir_a/vault.key.B32", "$drive/" ) == 0
+        or die 'key copy failed';
+    ( $out, $rc ) = $run->($drive);
+    ok( $rc == 0
+            && "@{[ entries($drive) ]}" eq "@{[ entries($dir_a) ]}"
+            && "@{[ blobs($drive) ]}" eq "@{[ blobs($dir_a) ]}",
+        'sync <path> : entries and blobs on the drive'
+    );
+    ( $out, $rc ) = $run->($drive);
+    ok( $rc == 0 && $out =~ m|pushed 0, pulled 0, conflicts 0|,
+        'sync <path> : a second sync moves nothing'
+    );
+
+    entry_save( $v, undef,
+        { type => 'note', title => 'mixed', body => 'm' } );
+    ( $out, $rc ) = $run->( $drive, "fakehost:$tmp/multi-c" );
+    ok( $rc == 0
+            && $out =~ m|all 2 hosts in sync|
+            && "@{[ entries($drive) ]}" eq "@{[ entries($dir_a) ]}"
+            && "@{[ entries(qq|$tmp/multi-c|) ]}" eq "@{[ entries($dir_a) ]}",
+        'sync <path> <host> : a drive and a host in one run'
+    );
+
+    my $vd = { %{$v}, dir => $drive };
+    entry_save( $vd, undef,
+        { type => 'note', title => 'on the drive', body => 'd' } );
+    ( $out, $rc ) = $run->($drive);
+    ok( $rc == 0
+            && $out =~ m|pushed 0, pulled 1, conflicts 0|
+            && "@{[ entries($drive) ]}" eq "@{[ entries($dir_a) ]}",
+        'sync <path> : an entry only on the drive is pulled'
+    );
+
+    ( $out, $rc ) = $run->("$dir_a/");
+    ok( $rc != 0 && $out =~ m|is this vault itself|,
+        'sync <path> : the vault itself is refused'
+    );
+}
+
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,,.,,,,,...,.,.,,,,,,.,,,..,,,.,...,,..,..,,...,...,,,.,,,,,..,,..,,...,
-#DSM5WP6ENGLKMPZDR6RH4QQP26GZBDJHBXP32DGYVSXOX6FIQ6TGA4QTTCZHRSND5DBCT2LEHSZXG
-#\\\|ZUK7WBGPSHASZZRS5YCTKSR664YYEOZLB77GWXSPSCJABVQM2OE \ / AMOS7 \ YOURUM ::
-#\[7]SR3SAE6OTUOWJJL7YOLUOSN4Q67BWWFZLCVFVN4SO4KSFON3AADY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,,,,,,,,.,,.,,,,,.,,,,,.,,,,,,,..,,...,...,,.,,,,,,,,.,.,,,.,,,
+#VKAK7Y4FPJN7DXSJ3QWLDOU53OSEN2KWQYNMMWSS2ZISPDOQDRPS5Q6VMMUEHVB7FSTJQOTWZOUSE
+#\\\|FRSIZF466O4Q2GXSK4SCEBSOGHGX2VRMDQGXVTE5UI73C4A4DWQ \ / AMOS7 \ YOURUM ::
+#\[7]H6NRGWABFD7WM7OWKV7HODVXXC2AWVVJ6BZYU2GPIAGSG5XK7UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

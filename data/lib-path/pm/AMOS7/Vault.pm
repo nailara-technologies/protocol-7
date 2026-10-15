@@ -48,6 +48,7 @@ our $VERSION = qw| AMOS7::Vault-VERSION.0000001 |;
     blob_import
     blob_import_stream
     blob_discard
+    vault_lock
     blob_export
     blob_verify
     archive_write
@@ -683,8 +684,47 @@ sub vault_unlock {
     );
 
     return FALSE if not defined $key or length $key != 32;
-    $vault->{'key'} = $key;
+    ## '.=' gives the handle a private buffer -- a plain copy would share the
+    ## buffer [ copy on write ], and the wipe below would only rewrite its own
+    ## fresh copy
+    $vault->{'key'} = '';
+    $vault->{'key'} .= $key;
+    _wipe( \$key );
+    _mlock( \$vault->{'key'} );
     return TRUE;
+}
+
+## the key never reaches swap : its buffer locked in memory, as the zenki do
+## with their C25519 keys [ crypt.C25519.load_keys_from_secret ]. IO::AIO is
+## optional -- a usb copy without it runs unlocked. derived keys are short
+## lived perl temporaries this cannot reach
+sub _mlock {
+    my $sref = shift;
+    state $have_aio = eval { require IO::AIO; 1 };
+    return FALSE if not $have_aio or not length( ${$sref} // '' );
+    IO::AIO::aio_mlock( ${$sref}, 0, length ${$sref} );
+    IO::AIO::flush();    ## no event loop here : wait for the request ##
+    return TRUE;
+}
+
+## overwrite a secret in place twice with random bytes, then truncate
+## [ base.buffer.erase_secure ] -- the same length keeps the same buffer
+sub _wipe {
+    my $sref = shift;
+    my $len  = length( ${$sref} // '' );
+    return if not $len;
+    substr( ${$sref}, 0, $len, _random_bytes($len) ) for 1 .. 2;
+    ${$sref} = '';
+    return;
+}
+
+## lock an unlocked handle : the key wiped and gone, the handle stays usable
+## for what needs no key [ the id, sync ]
+sub vault_lock {
+    my $vault = shift // return;
+    _wipe( \$vault->{'key'} ) if defined $vault->{'key'};
+    delete $vault->{'key'};
+    return;
 }
 
 ## [re]wrap the unlocked key under a new secret
@@ -1560,8 +1600,8 @@ sub gen_password {
 
 1;
 
-#,,.,,,..,..,,,,.,,,.,..,,.,.,,,,,..,,,,,,.,,,..,,...,...,.,.,,.,,,,,,.,.,...,
-#6HJBJI3HRZSCZ4YKCOOAHJ7OFX3U25IJUMNZWJ3W5YJ2Y6KJB3O5TRZN5WUDJ2NAY6DQJM6N4TIKU
-#\\\|I6N6RXV7ZKMV2JADCPAUPIIGVBQIODBOGS7LZYMY2XTGGD7UACD \ / AMOS7 \ YOURUM ::
-#\[7]3LYUNLBVRUULEYML6GTGMK4L64GVSMTRUFFQLEX7MPOEYMPP7CDQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,,,,,.,,.,,...,.,,,.,.,,.,,.,.,..,,...,...,,..,.,,,,,,,...,,..,
+#5JV4VRPOEMTCU4GFVLL4BPMCFR4GR4BKYZP2Q3HMAFTHMPIM5P7YR6K2O4NHPFIUO5NEOFKK7NLYA
+#\\\|VF43TCNOOF6EY6MYJQSUCERM5FNW3KKFMMVVAH2TFSVGFAJJL7M \ / AMOS7 \ YOURUM ::
+#\[7]FLY4XRNCVEC54HYJ3UKTXUEIOWNVGZL3Q6PF32KU4TXW5XPNEGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
