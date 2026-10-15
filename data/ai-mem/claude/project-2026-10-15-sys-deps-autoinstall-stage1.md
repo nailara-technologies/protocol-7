@@ -32,12 +32,21 @@ REQUIREs the module [ loads it + its signal handlers into v7-zenki ] and
 v7-zenki uses `probe_module_file` \ `probe_apt_fresh` ; test asserts it.
 the sys-deps zenka still uses the old ones [ follow-up ].
 
-**open** : stage 2 -- AMOS7::deps bootstrap check in bin/Protocol-7 before
-`use Event` [ user's 2026-08-31 direction : not p7-deps as a separate
-process ] ; appmgr policy later. see [[project-2026-10-15-forensics-restart-loop-cube-ids]].
+**stage 2 LANDED + verified live 2026-10-15** [ 5e34d2039, 060ead8bf ] :
+v7-zenki.pre_init sets base.perlmod.auto_install for the init phase [ root
++ host opt-in ] -> base.init_code's autoload('Event') installs libevent-perl
+synchronously [ base.perlmod.install, direct apt-get path ] ; post_init
+switches it off. Event is not 'use'd in bin/Protocol-7 -- no bootstrap
+before the module system was needed. test : apt-get remove libevent-perl +
+restart -> reinstalled, all online. follow-on bug found by that test : the
+log send-buffer [ created by v7-zenki's FIRST log line, before pre_init ]
+died at event.add_var -> v7-zenki never logged to p7-log again ; fixed :
+watchers_pending, set up by add-queue once Event is loaded, early lines
+kept. lesson : remove the real dependency and restart -- stubs hid it.
+appmgr policy later. see [[project-2026-10-15-forensics-restart-loop-cube-ids]].
 
-#,,,.,,,.,.,.,,,.,,,.,..,,,,.,...,..,,.,.,.,,,..,,...,..,,.,,,...,,,,,.,.,,,.,
-#KHVPRWTEOKDXGFPSJTZUHBIQAU25MN3CMVNUD22LRG6DXPCRR7GYAG7GV2BF56RMRQKM2IM6JUEXO
-#\\\|LKODESYVSDILD3AUOKLICYB65JPF2SCZI2DAQCWXJCOOYYAYIBM \ / AMOS7 \ YOURUM ::
-#\[7]2CNSAZEXMHCE4F6U4KLRSUJQFI5IIOQE7VYVMXBBD3I45G5QYACQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,,..,,,,,..,,,,.,.,,,...,.,,,..,,...,...,,.,,,.,,.,,,.,,,,.,,
+#4I6MH5FRVOMEC53DKZC7EJYEUVQXUL66YC7X5LW3RVS6GHXK4GKUJGF5WAHCVIMA2EA62BNYFCCNO
+#\\\|KMHEZPVVZKMQ3KWMUEISRRWROKJKR3T7PSUK7DGZA44DVQPCE5Q \ / AMOS7 \ YOURUM ::
+#\[7]OLFYWM7FH3B6PVOVSCU5HD453T7R6BKGINYHQ4XRD4PXGUKUVMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
