@@ -54,7 +54,8 @@ the lesson : verify a bug's effect before naming it.
 
 ## open
 
-- truth check NOT enforceable : 3 of 7 genuine public keys fail it
+- p7-log rekey-anon-table [ src/p7-log.anon.read_table + .cmd.rekey-anon-table, 44-check test ] : BUILT, live run pending [ sign, p7-log restart, backup log-anon/, run on protocol-7.base-anon-2026-10-07 ; pre-flight : 7594 records, 4878 unique, 0 overlap ] ; then delete retired/ + the old key. NEXT : a dedicated random p7-log anon key [ decoupled from <user>.base, so identity rotation no longer forces an archive ]
+- truth check : the 3 failing keys were true under the PRE-2026-08-26 elf algorithm [ sourcecode, remote-fetch-client verified ; anon = 2025 key, old-lib check hangs -- old elf bug ]. no generator to fix. was : 3 of 7 genuine public keys fail it
   [ proto-7.sourcecode, protocol-7.base-anon-2026-10-07,
   remote-fetch-client ] -- generated without the filter, or misread format.
   investigate [ public keys only ]
@@ -62,16 +63,14 @@ the lesson : verify a bug's effect before naming it.
   version ; old copies stay readable with old secrets ] vs owner-key
   rotation first [ host-root rotation exists : PIN_ROTATED ; owner key has
   no path besides re-pinning by hand ]
-- /etc/fstab : add nofail,x-systemd.device-timeout=10s to the
-  /mnt/ext-xfs-data line [ 2026-10-15 reboot : usb disk renumbered,
-  not attached -> emergency mode, Protocol-7 never started ] -- user's call
+- DONE 2026-10-15 : /etc/fstab /mnt/ext-xfs-data has nofail,x-systemd.device-timeout=13s [ reboot with the usb disk renumbered + not attached had stopped boot in emergency mode ; wsl --mount \\.\PHYSICALDRIVE<n> --bare, the disk = ADATA usb, sde3 'Taeki-data' ]
 - live : a sessions secret hold \ release through host-edit \ user-edit form
 - pii pattern placeholders : live host, postal address, assessment marker
 - small : rewinds via '\b \b' if the vault prompt still flickers ; recovery
   code typed back still passes regexes
 
-#,,.,,,,,,,,,,..,,.,,,...,,,,,.,,,...,,.,,,,.,..,,...,...,,..,...,,.,,,,,,,,,,
-#FD7A22N7HTBN3UGMHUJNHSYXOYORHVDZQMAU6AZHRA3LDMKGOCMAI5B3O72T65YV6PLFFJGAVIAZG
-#\\\|2ZJBMUQT4OFHFKUUB7MQZOBO7FPD2KBAZAR76PV7C5UQEQ7BXVS \ / AMOS7 \ YOURUM ::
-#\[7]YU5CDUVJHWE5VPEWJVUPCFGU3QX2NJECZ4TYE7KP3CGEA6HFZCBI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,.,..,,.,,,..,,,.,,..,,,.,,...,..,,...,...,...,,,.,...,,,.,,,,,
+#FGDSSUSPNXIDK3ESULKVQTK5KKD7DIUGNBKYJUDHWPXDYMPNMWY257FFBPSIEXF5OKHW5FG2MOP4G
+#\\\|WQB2O5HC5MYJH2EIPQKT3YWULB7QPYGK455LJXD5KHDBPPLWVVI \ / AMOS7 \ YOURUM ::
+#\[7]PNGS6FXCC3PRRL677TCQO5Y6BIOTMCLOSTEUTE6VH62URTDZWIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
