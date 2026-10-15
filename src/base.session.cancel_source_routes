@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = base.session.cancel_source_routes
+# descr = free every route a closing session started, found by its source
+#         sid [ after base.session.cancel_route over the session's keys ]
+# param = <session id>
+# return = number of routes freed
+#
+# base.route.add keys the source side by the source command id -- a
+# command sent without an id has 0, so each id-less route overwrites the
+# previous one in the source's route table. cancel_route over those keys
+# only frees the last ; the others kept their target-side entry and the
+# global route until the target answered, and forever if it never did
+# [ todo 7N3 : found offline, scenario 11 of
+# test-cube-route-stream-cleanup.pl ]. an id-less source expects no
+# reply, so nothing is sent to it -- the routes are only freed.
+
+my $sid = shift;
+return 0 if not defined $sid or not length $sid;
+
+my $routes = $data{'route'} // {};
+my $freed  = 0;
+
+foreach my $route_id ( keys %{$routes} ) {
+    my $route = $routes->{$route_id};
+    next if ref $route ne qw| HASH |;
+    next if ( $route->{'source'}{'sid'} // '' ) ne $sid;
+
+    my $t_sid = $route->{'target'}{'sid'};
+    my $t_cid = $route->{'target'}{'cmd_id'} // 0;
+
+    ## the target-side entry, only while it still points at this route ##
+    if (    defined $t_sid
+        and exists $data{'session'}{$t_sid}
+        and ref $data{'session'}{$t_sid}{'route'} eq qw| HASH |
+        and ( $data{'session'}{$t_sid}{'route'}{$t_cid} // '' ) eq $route_id )
+    {
+        delete $data{'session'}{$t_sid}{'route'}{$t_cid};
+    }
+
+    delete $routes->{$route_id};
+    $freed++;
+}
+
+<[base.logs]>->(
+    2, '[%d] %d id-less route%s freed on close',
+    $sid, $freed, $freed == 1 ? '' : 's'
+) if $freed;
+
+return $freed;
+
+#,,,.,,,.,.,,,.,,,,,,,..,,...,,,,,.,,,,,.,...,..,,...,...,.,.,,.,,..,,,,.,,.,,
+#3W6DW4NPFWOMCXUEUIVB2BQLSZMF4FIHATRWM77OQR7S4AGLH3DJTGR43QUGLEF6VXWGXJ4XGA6A6
+#\\\|ZETCTCMJSDKOEEYXD6KBSSRNRCKFRYPOUJKK7BBTV47CDN3QDFI \ / AMOS7 \ YOURUM ::
+#\[7]B3FSZSL6YATAM546HEI7KIFGSE5O3AF3TOM3F44VEHQZUJH3CIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
