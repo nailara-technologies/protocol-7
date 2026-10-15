@@ -249,23 +249,38 @@ my $archived_table = catfile( $data_dir, 'log-anon', "table.$archive.bin" );
     ## the same record twice                                             ##
     ## [ store's dedup is per process : a restart writes a token again ] ##
     print {$fh} pack( 'a16 n', 'TOKENDDDDDDDD', length $ct ) . $ct;
+
+    ## a record under a key that no longer exists           ##
+    ## [ the live archive had 47 such records, 2026-10-15 ] ##
+    my $lost_input = ( chr(0x99) x 32 ) . '.:log.anon.v1:.';
+    my $lost_key32 = AMOS7::13::key_32( \$lost_input );
+    my $lost       = 'written under a lost key' . ( chr(8) x 8 );
+    AMOS7::Twofish::key_init( $lost_key32, qw| encryption t | ) or die;
+    my $lost_ct = AMOS7::Twofish::encrypt( qw| t |, \$lost )->$*;
+    AMOS7::Twofish::delete_table_entry(qw| encryption t |);
+    print {$fh} pack( 'a16 n', 'TOKENLLLLLLLL', length $lost_ct ) . $lost_ct;
     close($fh);
 }
 
-my ( $records, $err )
+my ( $records, $err, $unreadable )
     = $code{'p7-log.anon.read_table'}
     ->( $archived_table, $code{'p7-log.anon.key'}->($archive) );
+ok( @{$unreadable} == 1
+        && $unreadable->[0][0] == 3
+        && $unreadable->[0][1] eq 'TOKENLLLLLLLL',
+    'read_table : the lost-key record returned as unreadable [ index, token ]'
+);
 ok( ref $records eq 'ARRAY'
         && @{$records} == 3
         && $records->[0][0] eq 'TOKENAAAAAAAA'
         && $records->[0][1] eq 'alpha secret',
-    'read_table : all three archived records under the archived key'
+    '  :.. the three other records read under the archived key'
 );
-( $records, $err )
+( $records, $err, $unreadable )
     = $code{'p7-log.anon.read_table'}
     ->( $archived_table, $code{'p7-log.anon.key'}->() );
-ok( !defined $records && $err =~ m|padding|,
-    '  :.. under another key : undef, bad padding'
+ok( ref $records eq 'ARRAY' && !@{$records} && @{$unreadable} == 4,
+    '  :.. under another key : nothing readable, all 4 unreadable'
 );
 
 ok( $rekey_cmd->('')->{'mode'} eq 'false', 'rekey : no name refused' );
@@ -300,8 +315,10 @@ ok( $rekey_cmd->('other.base')->{'data'} =~ m|no archived table|,
             ->( [ [ 'TOKENDDDDDDDD', 'a different text' ] ] ) == 1,
         'conflict set-up : the archived token stored with other content'
     );
-    ok( $rekey_cmd->($archive)->{'data'} =~ m|different content|,
-        'rekey : conflicting token refused' );
+    ok( $rekey_cmd->("$archive :skip-unreadable:")->{'data'}
+            =~ m|different content|,
+        'rekey : conflicting token refused'
+    );
     ok( -e $archived_table, '  :.. archive kept' );
     open( my $fh, '>:raw', $table ) or die;    ## undo the set-up ##
     print {$fh} $before;
@@ -309,12 +326,22 @@ ok( $rekey_cmd->('other.base')->{'data'} =~ m|no archived table|,
     delete $data{'p7-log'}{'anon'}{'seen'};
 }
 
-my $reply_rk = $rekey_cmd->($archive);
+my $strict = $rekey_cmd->($archive);
+ok( $strict->{'mode'} eq 'false'
+        && $strict->{'data'}
+        =~ m|^1 of 4 records do not decrypt .*#3 TOKENLLLLLLLL.*nothing changed|
+        && -e $archived_table,
+    'rekey : an unreadable record refuses, counted, archive kept'
+) or say "       $strict->{'data'}";
+
+my $reply_rk = $rekey_cmd->("$archive :skip-unreadable:");
 ok( $reply_rk->{'mode'} eq 'size'
         && $reply_rk->{'data'}
         =~ m|^2 records of '\Q$archive\E' under the current key \[ 2 new \]\n|
+        && $reply_rk->{'data'}
+        =~ m|1 records unreadable under .* left in the archive|
         && $reply_rk->{'data'} =~ m|no longer needed|,
-    "rekey '$archive' : size reply, 2 records, 2 new"
+    "rekey :skip-unreadable: : 2 records, 2 new, 1 left in the archive"
 ) or say "       $reply_rk->{'data'}";
 my $retired
     = catfile( $data_dir, 'log-anon', 'retired', "table.$archive.bin" );
@@ -350,7 +377,7 @@ ok( $rekey_cmd->($archive)->{'data'} =~ m|no archived table|,
     rename( "$retired.key", "$archived_table.key" ) or die;
     put_key( $archive, 0x41 );
     my $size_before = -s $table;
-    my $again       = $rekey_cmd->($archive);
+    my $again       = $rekey_cmd->("$archive :skip-unreadable:");
     ok( $again->{'data'} =~ m|\[ 0 new \]| && -s $table == $size_before,
         'rekey after an interrupted move : 0 new, table unchanged'
     ) or say "       $again->{'data'}";
@@ -415,8 +442,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,..,,,.,,,,,,..,,,..,...,,,.,,,.,,,,,..,,..,,...,...,.,.,,,.,.,,,,.,,,,,,
-#W7SIZQGOSW23IFLGOCVOYMV32SYWO7QDDDXIHF4QBDUWAFLQLBFNJ273OOMHNXTJ2XEKBYJDSQHBC
-#\\\|SPDGEHUHKEZMNC5L7GRPUHVMSNBXM7GD3DO7S3AX75KBSJ7GQH2 \ / AMOS7 \ YOURUM ::
-#\[7]IIXRWQLWWZODKCJKVRCIV7726AAOENUVPD2BDVURHGIXBU3O3ACA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,,..,,,,,,,,,.,,,..,,..,,.,.,..,,...,...,.,.,.,,,,,,,...,,.,,
+#HKEFI75L4ZNYQ3YRVZRQT5KECDASEW3SEXF6ATGOUQ2GAONTH5LNR2NACNLT76WF5FA36PLIMXKYG
+#\\\|U5KR7IWMGSRLAWFJY3CTGAW6UH4EVQO6XU4U7BUUIYYZKCZCZWO \ / AMOS7 \ YOURUM ::
+#\[7]2LZCVJF4F75F35GY6QJZDTDB7327NOGNMYI2RB3J67FT3FM5RMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

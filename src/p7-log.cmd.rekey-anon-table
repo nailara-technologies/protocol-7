@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = p7-log.cmd.rekey-anon-table
-# param = <archived key name>
+# param = <archived key name> [ :skip-unreadable: ]
 # descr = re-encrypt an archived anon table under the current key
 #
 # after archive-anon-table the old key must stay to resolve old tokens.
@@ -11,13 +11,19 @@
 # every record, then moves the archive to log-anon/retired/. the old
 # key is no longer needed by p7-log afterwards -- removing it stays a
 # separate step [ p7-keys remove <name> ]. a failed check moves nothing.
+#
+# records the named key does not decrypt [ written under another key ]
+# refuse the rekey, counted. ':skip-unreadable:' carries the readable
+# ones over and reports the rest -- they stay in the retired archive
 
-my $args   = $call->{'args'} // '';
-my ($name) = grep {length} split m{\s+}, $args;
+my $args            = $call->{'args'} // '';
+my $skip_unreadable = $args =~ s{(?:^|\s):skip-unreadable:(?=\s|$)}{ }g;
+my ($name)          = grep {length} split m{\s+}, $args;
 
 my $false = sub { return { 'mode' => qw| false |, 'data' => shift } };
 
-return $false->('usage : rekey-anon-table <archived key name>')
+return $false->(
+    'usage : rekey-anon-table <archived key name> [ :skip-unreadable: ]')
     if not defined $name;
 return $false->("'$name' is not a key name")
     if $name !~ m|\A[0-9A-Za-z_\-][0-9A-Za-z\.\-_]{0,254}\z|;
@@ -52,17 +58,31 @@ my $old_key32 = <[p7-log.anon.key]>->($name);
 return $false->("key '$name' not usable [ see log ]")
     if not defined $old_key32;
 
-my ( $old_records, $old_err )
+my ( $old_records, $old_err, $unreadable )
     = <[p7-log.anon.read_table]>->( $archived, $old_key32 );
 return $false->("cannot read $archived : $old_err")
     if not defined $old_records;
+my $total = scalar( @{$old_records} ) + scalar( @{$unreadable} );
+return $false->(
+    sprintf "%d of %d records do not decrypt under '%s' [ first : #%d %s ]"
+        . ' -- nothing changed ; :skip-unreadable: carries the rest over',
+    scalar @{$unreadable},
+    $total,
+    $name,
+    @{ $unreadable->[0] }
+) if scalar @{$unreadable} and not $skip_unreadable;
+return $false->(
+    "no record of $archived decrypts " . "under '$name' -- nothing changed" )
+    if not scalar @{$old_records};    ## even with :skip-unreadable: ##
 
 ## what the current table holds already [ a repeated run adds nothing ] ##
 my $current = sub {
     return ( {}, undef ) if not -e $table_path;
-    my ( $records, $err )
+    my ( $records, $err, $bad )
         = <[p7-log.anon.read_table]>->( $table_path, $key32 );
     return ( undef, $err ) if not defined $records;
+    return ( undef, scalar( @{$bad} ) . ' records do not decrypt' )
+        if scalar @{$bad};    ## the current table must be whole ##
     return ( { map { $ARG->[0] => $ARG->[1] } @{$records} }, undef );
 };
 my ( $have, $have_err ) = $current->();
@@ -128,22 +148,33 @@ if ( not rename( $archived_id, $retired_id ) ) {
 delete <p7-log.anon.archive_key32>->{$name};
 
 <[base.logs]>->(
-    0, 'p7-log.anon : archive %s rekeyed [ %d records, %d new ]',
-    $name, scalar keys %archive, $stored
+    0,
+    'p7-log.anon : archive %s rekeyed [ '
+        . '%d records, %d new, %d unreadable ]',
+    $name,
+    scalar keys %archive,
+    $stored,
+    scalar @{$unreadable}
 );
+my $left_behind
+    = scalar @{$unreadable}
+    ? sprintf(
+    " :. %d records unreadable under " . "'%s' -- left in the archive\n",
+    scalar @{$unreadable}, $name )
+    : '';
 <[base.logs]>->( 2, ' :. %s', $retired );
 return {    ## size mode [ as archive-anon-table ] ##
     'mode' => qw| size |,
     'data' => sprintf(
-        "%d records of '%s' under the current key [ %d new ]\n :. "
+        "%d records of '%s' under the current key [ %d new ]\n%s :. "
             . "archive moved : %s\n :. key '%s' no longer needed by p7-log\n",
-        scalar keys %archive,
-        $name, $stored, $retired, $name
+        scalar keys %archive, $name,    $stored,
+        $left_behind,         $retired, $name
     )
 };
 
-#,,.,,,..,,.,,,,,,.,,,,..,,.,,.,.,.,.,,,.,..,,..,,...,.,,,...,,,,,...,.,.,.,,,
-#TOQGBIAQKLVWAT4RDNHTSXZSY3LTHGULBNCIWVZV32HDMTB7FEIKOAHSXB37BC3NUPYV3GAGOKG5K
-#\\\|PFASZI35VSPKP3GEIPPISUPH2A3R5ZMH2FKUV46OR2ITVCSQF54 \ / AMOS7 \ YOURUM ::
-#\[7]M3M3VITNXFQUCIPFAKBN56ACJL6B7RVYLL4ZEC4J5RQDK5FUR4BA 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,,,..,,...,,..,,,.,,,,,,,,,,.,,..,,...,...,...,.,,,.,,,..,,,..,
+#SUIVJTBR5U4N5OJL3NRDRTWH7PGXWHHRZMYGQYRMKJ3QKF2S3OWJKLCIOJUZ3GC4USRUJQDCWHPD2
+#\\\|46TVJDUVWNGLP42O72XDAVDBTJLOITKRJIAW277UJ5FCAIUL2ZW \ / AMOS7 \ YOURUM ::
+#\[7]MDEDPF5R7C2Z6Q5YZX6XAG27D55J324U3BR2SJQVQNKACLUOZCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
