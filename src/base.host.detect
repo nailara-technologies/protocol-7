@@ -8,9 +8,12 @@
 #         [load_config_file_if_present:'var-dir:host/detected.cfg'].
 #         keys : host.mem_mb, host.cpus, host.ipv6 [ yes | no ]
 
-my $var_dir = <system.path.zenka-dirs.var_P7> // '/var/protocol-7';
-my $dir     = "$var_dir/host";
-my $file    = "$dir/detected.cfg";
+## [ read through '// {}' : this runs before base.pre_init, a nested read ##
+## would create an empty zenka-dirs hash and skip its defaults there ]    ##
+my $var_dir = ( <system.path.zenka-dirs> // {} )->{'var_P7'}
+    // '/var/protocol-7';
+my $dir  = "$var_dir/host";
+my $file = "$dir/detected.cfg";
 
 ## facts are not secret : readable regardless of the service umask ##
 if ( $EFFECTIVE_USER_ID == 0 and -d $dir ) {
@@ -63,8 +66,8 @@ if ( open my $out, '>', $file ) {
 
 return TRUE;
 
-#,,,,,,.,,.,.,,,.,,..,...,,..,.,.,,,.,.,,,,..,..,,...,...,,.,,.,,,,,.,,..,..,,
-#JIAOFTP32ZGRP5G32YVCIM7LWPPOPMAGLXMLOAET3F76FGLUJJYX3TMIBDXR5VBQ5UWCLN7R7KUE4
-#\\\|VBX7U6TDEXEYIOBYIBJLQNHWVZJ6FNRL2IB6CQ2VJFZ3KJDOFSO \ / AMOS7 \ YOURUM ::
-#\[7]G25PG5DQEEWGDVCSQDAYQ45FEXURJW2GHIAKXHFRAFB6OPNHNSCQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,,,.,.,,.,,,,.,...,.,.,,,.,,.,,..,,...,...,,..,,,.,.,.,.,,,..,,
+#NWOBSIXGRTEALFJRR5CQV2FR4BWDQDTEU7MZ5K6PWF4W5VUWT47IYLYMNUKXDIUY7IFDTDVOIRQCU
+#\\\|LQORIXYJSWDUEUHWMOI2INT372A7G56L2FEEJODUKZAEGO6IBZI \ / AMOS7 \ YOURUM ::
+#\[7]GGIFCMTSTL2B2OPEBCMBN7JWBGZAG53MW3IMO6BO6T67EA6Q6OAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
