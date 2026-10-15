@@ -796,6 +796,9 @@ return [ qw[
         nameserv.sync.sign
         nameserv.sync.reap
         nameserv.init_code
+        nameserv.cache.put
+        nameserv.cache.key
+        nameserv.cache.get
         mpv.snapshot.write
         mpv.handler.stdout
         mpv.handler.stderr
@@ -1848,6 +1851,7 @@ return [ qw[
         nameserv.cmd.sync-pull
         nameserv.cmd.sign-zone
         nameserv.cmd.show-zone
+        nameserv.cache.forward
         mpv.snapshot.send_quit
         mpv.snapshot.cmd_reply
         mpv.handler.pipe.float
@@ -2175,6 +2179,7 @@ return [ qw[
         nameserv.cmd.list-zones
         nameserv.cmd.get-record
         nameserv.cmd.add-record
+        nameserv.cache.complete
         mpv.startup.open_player
         mpv.set-up.import_rules
         mpv.set-up.export_rules
@@ -2471,6 +2476,7 @@ return [ qw[
         nameserv.cmd.remove-zone
         nameserv.cmd.ensure-zone
         nameserv.cmd.consistency
+        nameserv.cache.upstreams
         mpv.startup.job.finalize
         mpv.handler.pipe.version
         mpv.handler.pipe.command
@@ -3052,6 +3058,7 @@ return [ qw[
         nameserv.sync.client.start
         nameserv.consistency.query
         nameserv.cmd.remove-record
+        nameserv.cache.forward.try
         mpv.snapshot.apply_pending
         mpv.handler.resume_timeout
         mpv.handler.get_list_reply
@@ -3356,6 +3363,7 @@ return [ qw[
         nameserv.sync.client.finish
         nameserv.consistency.finish
         nameserv.cmd.discover-nodes
+        nameserv.cache.forward.next
         mpv.startup.job.fork_player
         mpv.handler.window_id_reply
         mpv.callback.reenc_finished
@@ -3946,6 +3954,8 @@ return [ qw[
         nameserv.handler.p7ref_lookup
         nameserv.dns_tcp.handler.read
         nameserv.consistency.complete
+        nameserv.cache.handler.answer
+        nameserv.cache.client_allowed
         mpv.handler.event.file-loaded
         models.storage.create_symlink
         models.handler.task-poll-step
@@ -4239,6 +4249,7 @@ return [ qw[
         nameserv.dns_tcp.handler.write
         nameserv.consistency.soa-check
         nameserv.consistency.host-name
+        nameserv.cache.handler.timeout
         mpv.pulse.disable_idle_suspend
         mpv.handler.scan_encoded_timer
         mpv.handler.reenc_notify_reply
@@ -5033,6 +5044,7 @@ return [ qw[
         base.strm.subscribe.reply-handler
         base.stream.frame.detect.harmonic
         base.sourcecode.in-mem.sub-source
+        base.session.cancel_source_routes
         base.perlmod.init_install_buffers
         base.perlmod.get_loaded_INC_names
         base.path-template.amos-ntime-dec
@@ -6152,8 +6164,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,.,,..,,..,..,,..,,,,.,,,.,,.,,.,,,,,,,.,.,...,...,..,,,.,,.,,,,.,,,.,,
-#Q3ZZSMOBL5D3SNFBY6P3STDU5FDNYUIQHJBFWQ4FVF3LKOZHCXPS5S4QQ3RHSFORSNOIJCQ6UMHNE
-#\\\|PJPK4ZNRGIJNO7NXACGFTVJXVCSLS5KO6UCIR356BYBJ4CI7JAB \ / AMOS7 \ YOURUM ::
-#\[7]H5D2RCBANAHNLUZVWD7GWCTQXSGEHC4GTFVZNEIDCVL32PEW5ACA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,,,.,,.,,.,,,,,.,,,.,,,.,.,,,.,.,...,...,.,,,,.,,.,,,.,,,,..,
+#ZRMMSWIUIDAAKAN4OS6NH7O5VIBFJKBXU6FCPXC76C3R2I3KJW3JQL5GU4GGUO66SXWPQLDH7LGJC
+#\\\|BBLBPWSL53SAOZNTRV626L7SGKTTP3ZKGKFEJMZ6E2HWAS2V3EO \ / AMOS7 \ YOURUM ::
+#\[7]FGNT2WMBQK5VV7LY6ECD2ABW3CSFRONCV5QLAP3LCBHEFDX74EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

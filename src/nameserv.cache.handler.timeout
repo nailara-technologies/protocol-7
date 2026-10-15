@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = nameserv.cache.handler.timeout
+# descr = time out one upstream try of the forwarding cache
+
+## timer handler : the event carries the state hash ##
+
+my $state = shift->w->data;
+return unless ref $state eq qw| HASH |;
+
+my $key = $state->{'key'} // return;
+
+my $pending = <nameserv.cache.in_flight> // return;
+return unless ref $pending->{$key} and $pending->{$key} == $state;
+
+<[base.logs]>->(
+    2,                 ': cache upstream timeout [ %s %s ]',
+    $state->{'qname'}, $state->{'qtype'}
+);
+
+## timed out : try the next upstream ; all failed -> servfail ##
+<[nameserv.cache.forward.next]>->($state);
+
+return;
+
+#,,.,,,..,,,,,,.,,,,.,...,,,.,,..,...,.,,,...,..,,...,...,...,.,,,...,...,.,,,
+#FFZNGXD2FMDRQG2LJERL7YFGZ2DBXPVSMKLP6KTSYHMMWAO5JO4UM5AKFUNSPS33TX5PGAPYOJE4S
+#\\\|EULXRSFI6UKNCTM2LQGFI5L6SPRQS7UHCFN4C5DHHQNWTWNJLOS \ / AMOS7 \ YOURUM ::
+#\[7]F6U5MHHP22AHOF42QCJRIZDLWRCQDCGBUZHNUCETUZCQQ55CCWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

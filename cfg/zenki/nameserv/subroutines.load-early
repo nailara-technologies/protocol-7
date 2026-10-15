@@ -147,6 +147,9 @@ nameserv.zone.save
 nameserv.sync.sign
 nameserv.sync.reap
 nameserv.init_code
+nameserv.cache.put
+nameserv.cache.key
+nameserv.cache.get
 base.reload_values
 base.reload_config
 base.parser.config
@@ -261,6 +264,7 @@ nameserv.dns_tcp.close
 nameserv.cmd.sync-pull
 nameserv.cmd.sign-zone
 nameserv.cmd.show-zone
+nameserv.cache.forward
 io.ip.tcp.output.close
 format.yaml.write_file
 crypt.C25519.sign_keys
@@ -290,6 +294,7 @@ nameserv.cmd.remove-txt
 nameserv.cmd.list-zones
 nameserv.cmd.get-record
 nameserv.cmd.add-record
+nameserv.cache.complete
 jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
@@ -329,6 +334,7 @@ nameserv.consistency.run
 nameserv.cmd.remove-zone
 nameserv.cmd.ensure-zone
 nameserv.cmd.consistency
+nameserv.cache.upstreams
 io.unix.socket.init_code
 crypt.C25519.verify_sign
 crypt.C25519.single_file
@@ -385,6 +391,7 @@ nameserv.sync.entry.decode
 nameserv.sync.client.start
 nameserv.consistency.query
 nameserv.cmd.remove-record
+nameserv.cache.forward.try
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.key_checksums
@@ -413,6 +420,7 @@ nameserv.sync.handler.write
 nameserv.sync.client.finish
 nameserv.consistency.finish
 nameserv.cmd.discover-nodes
+nameserv.cache.forward.next
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
@@ -462,6 +470,8 @@ nameserv.orbital.auto_publish
 nameserv.handler.p7ref_lookup
 nameserv.dns_tcp.handler.read
 nameserv.consistency.complete
+nameserv.cache.handler.answer
+nameserv.cache.client_allowed
 format.yaml.load_keyword_path
 crypt.C25519.validate_keyname
 crypt.C25519.store_remote_key
@@ -497,6 +507,7 @@ nameserv.handler.publish_reply
 nameserv.dns_tcp.handler.write
 nameserv.consistency.soa-check
 nameserv.consistency.host-name
+nameserv.cache.handler.timeout
 crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
 crypt.C25519.key_bin_checksums
@@ -633,8 +644,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,.,.,,,,,,..,,.,,...,,.,,..,,...,.,.,...,..,,...,...,...,.,.,..,,..,,,.,,
-#PVTOP4PTS3GLK7QBWG7IPCN5XGDHFJJLYFQN5FFCNE6EB55FJD3VKK6OGHGZQR3Y2S4BBGPOPVOE2
-#\\\|M2JVA3V6QJCT3KQRIYZQQLV7IDRXESEQKIGQNNWVM55ZY2SUPZX \ / AMOS7 \ YOURUM ::
-#\[7]2SJG2MFP5FMQUODLXWFONXLQMDCG63AEWOZZL526V42WHTMBBWBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,,.,,.,.,,.,,.,,,,,,,.,.,,,,,..,,...,...,.,.,,,.,...,,,,,,,,,
+#D4R3RMP7GRIJOZ76WBEQW2TN2Y7K7PVYZFNUUZEGR5EMEHD6EODNJOE3Y7BVZ2BTPSA7RCB3SPBLM
+#\\\|TYJMGEZBPSOII7WDVSQCFDLKMZSVGSEKNXRGNLQDHWF4N4V5CWT \ / AMOS7 \ YOURUM ::
+#\[7]C6AL7KZFSS6GK4TCOLYQ462H7M5RP2OHEFEFCUW2Y2D5KW5SBUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

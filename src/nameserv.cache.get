@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = nameserv.cache.get
+# descr = fetch a reply copy from the forwarding cache
+
+my $q = shift // return undef;
+
+my @questions = $q->question;
+return undef unless scalar @questions;
+
+my $key = <[nameserv.cache.key]>->($q) // return undef;
+
+my $entries = <nameserv.cache.entries> // return undef;
+my $entry   = $entries->{$key}         // return undef;
+
+my $now = time;
+if ( $now >= $entry->{'expiry'} ) {
+    ## expired : removed, counts as a miss ##
+    delete $entries->{$key};
+    return undef;
+}
+
+## fresh copy : never hand out the stored packet itself ##
+my $copy = eval { Net::DNS::Packet->new( \$entry->{'reply'}->data(65535) ) };
+return undef unless defined $copy;
+
+## every rr ttl aged by the elapsed time, never below 0 ##
+my $elapsed = $now - $entry->{'stored'};
+if ( $elapsed > 0 ) {
+    for my $rr ( $copy->answer, $copy->authority, $copy->additional ) {
+        next if $rr->type eq qw| OPT |;    ## its 'ttl' holds edns flags ##
+        my $ttl = $rr->ttl - $elapsed;
+        $rr->ttl( $ttl > 0 ? $ttl : 0 );
+    }
+}
+
+$copy->header->id( $q->header->id );
+$copy->header->rd( $q->header->rd );
+
+<nameserv.stats>->{'cache_hits'}++;
+
+return $copy;
+
+#,,,.,,..,,,,,,,.,...,,,.,.,,,.,,,,,,,...,,,,,..,,...,..,,,,.,.,,,,..,..,,.,.,
+#HA4O3NQ2A5OPQ2WK5E7R6BYXJCIWVJQ56KN7DIHYQ6DH6Z26KF7Y4M4SXCJAFFAGRVEEKQIPOMTES
+#\\\|JFCYSVJ4GKGDGZHHU2755IXCTBWL7IPHJLFZ26ZYFS3XMKMIDVO \ / AMOS7 \ YOURUM ::
+#\[7]VPGP6KBS6BVL5XPE6VSLQALSMCNTLIOATY542NT532VU6DTNEMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

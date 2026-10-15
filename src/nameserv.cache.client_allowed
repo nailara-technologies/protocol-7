@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = nameserv.cache.client_allowed
+# descr = loopback-only client check for the forwarding dns cache
+
+## enforced in code for every query : no open resolver, ever ##
+
+my $ip = shift // return FALSE;
+
+return TRUE if $ip =~ m|^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$|;
+return TRUE if $ip eq qw| ::1 |;
+return TRUE if $ip =~ m|^::ffff:127\.\d{1,3}\.\d{1,3}\.\d{1,3}$|i;
+
+return FALSE;
+
+#,,..,...,..,,,.,,,,,,.,,,..,,.,.,,..,,..,,,.,..,,...,...,.,,,,,,,,,,,...,.,.,
+#N2HDYWVCYHORPT2NDAX4PJGQIYQUKMGA5O7PMDA5SCNHHNUAI7MVF5U7HXZ73WZPXQN6FDZRLUVRQ
+#\\\|V5ROMZ2EIPKN7KYDHG3VTXYOAT32MNIOQLPEU4SY5RGBQ7FQODT \ / AMOS7 \ YOURUM ::
+#\[7]T5XA22M6L7XTNUZDTC55KI5SPKU6FXVF2OFOPKRPGGI4DBRFB6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
