@@ -620,18 +620,60 @@ sub read_password_single {
         $C{'R'}, $C{'0'}, $C{'T'};
 
     my $XOR_buffer;    ##  >= 64 bytes mode  ##
-    my $chr_remove    = join '', map {chr} ( 0 .. 9 );
-    my $sequ_left     = join '', map {chr} qw| 27 91 68 |;
-    my $sequ_begin    = join '', map {chr} qw| 27 91 |;
-    my $del_sequence  = join '', map {chr} qw| 27 91 51 126 |;
-    my $seq_END       = chr 126;
-    my $DEL           = chr 127;
-    my $backspace_chr = chr 8;
-    my $NAK           = chr 21;
 
     my $XORchars_count     = 0;
     my $XOR_buffer_pos     = 0;
     my $XOR_stars_slowdown = 1;
+
+    ## the typed bytes live in ONE buffer, edited in place with vec [ no regex
+    ## and no substr copies : a substitution that matches moves the string and
+    ## leaves the old copy behind, about two per backspace ] -- its first $n
+    ## bytes are the value, the rest stays zero. the editing rules are the
+    ## previous regexes, in their order : the returned bytes decrypt existing
+    ## keys [ bin/test-scripts/test-term-password.pl ]
+    my $buf_size = 4 * $tty_read_size;
+    my $buf      = "\0" x $buf_size;
+    my $n        = 0;
+
+    my $find = sub {    ## first position of a byte value, or -1 ##
+        my $byte = shift;
+        foreach my $i ( 0 .. $n - 1 ) {
+            return $i if vec( $buf, $i, 8 ) == $byte;
+        }
+        return -1;
+    };
+    my $delete = sub {    ## $count bytes at $at : the rest moved up ##
+        my ( $at, $count ) = @ARG;
+        vec( $buf, $ARG, 8 ) = vec( $buf, $ARG + $count, 8 )
+            foreach $at .. $n - $count - 1;
+        vec( $buf, $ARG, 8 ) = 0 foreach $n - $count .. $n - 1;
+        $n -= $count;
+    };
+    my $clear = sub {
+        vec( $buf, $ARG, 8 ) = 0 foreach 0 .. $n - 1;
+        $n = 0;
+    };
+    my $sequence_at = sub {    ## the bytes of $sequence at $at ##
+        my ( $at, $sequence ) = @ARG;
+        my @bytes = unpack 'C*', $sequence;
+        return FALSE if $at + @bytes > $n;
+        foreach my $k ( 0 .. $#bytes ) {
+            return FALSE if vec( $buf, $at + $k, 8 ) != $bytes[$k];
+        }
+        return TRUE;
+    };
+    my $sequence_to_backspace = sub {    ## s|\Q$sequence\E|\b|g ##
+        my $sequence = shift;
+        my $found    = FALSE;
+        foreach my $i ( 0 .. $buf_size ) {
+            last if $i >= $n;
+            next if not $sequence_at->( $i, $sequence );
+            vec( $buf, $i, 8 ) = 8;
+            $delete->( $i + 1, length($sequence) - 1 );
+            $found = TRUE;
+        }
+        return $found;
+    };
 
 REREAD_PASSWORD:
 
@@ -654,35 +696,57 @@ REREAD_PASSWORD:
 
         my $show_stars = TRUE;
 
-        my $read_chrs
-            = AMOS7::TERM::read_to_buffer_TTY( \$read_chars_buffer,
-            $tty_read_size );
+        ## read straight into the buffer at $n [ its size stays : sysread
+        ## shortens the string, the zeros are put back in place ]
+        error_exit('TTY_IN handle not opened')
+            if not defined $TTY_IN
+            or not length fileno $TTY_IN;
+        my $room = $buf_size - $n;
+        $room = $tty_read_size if $room > $tty_read_size;
+        my $read_chrs = sysread $TTY_IN, $buf, $room, $n;
+        $n += $read_chrs if $read_chrs;
+        $buf .= "\0" x ( $buf_size - length $buf );
 
         ##  XOR passwd mode  ##
         $extended_processing_mode = FALSE
             if $extended_processing_mode
-            and length($read_chars_buffer) >= $passwd_mlen;
+            and $n >= $passwd_mlen;
 
         if ($extended_processing_mode) {
 
             ##  ignoring return on empty buffer  ##
-            $read_chars_buffer = ''
-                if $read_chars_buffer eq chr 10
-                or $read_chars_buffer eq chr 13;
+            $clear->()
+                if $n == 1
+                and ( vec( $buf, 0, 8 ) == 10 or vec( $buf, 0, 8 ) == 13 );
 
             ## DEL [ or backspace ] ##
             ##
             ##  make backspace  ##
             $show_stars = FALSE
-                if $read_chars_buffer =~ s|\Q$del_sequence\E|$backspace_chr|g;
+                if $sequence_to_backspace->("\e[3~");
             $show_stars = FALSE    ##[ left cursor key also ]##
-                if $read_chars_buffer =~ s|\Q$sequ_left\E|$backspace_chr|g;
-            $show_stars = FALSE
-                if $read_chars_buffer =~ s|$DEL|$backspace_chr|g;
-            $show_stars = FALSE
-                if $read_chars_buffer =~ s|^$backspace_chr||g;  ##[ silent ]##
-            ## process backspace ##
-            while ( $read_chars_buffer =~ s|.$backspace_chr|| ) {
+                if $sequence_to_backspace->("\e[D");
+            foreach my $i ( 0 .. $n - 1 ) {    ## DEL ##
+                next if vec( $buf, $i, 8 ) != 127;
+                vec( $buf, $i, 8 ) = 8;
+                $show_stars = FALSE;
+            }
+            if ( $n and vec( $buf, 0, 8 ) == 8 ) {    ##[ silent : one ]##
+                $delete->( 0, 1 );
+                $show_stars = FALSE;
+            }
+            ## process backspace                           ##
+            ## [ the leftmost 'any byte but LF, then BS' ] ##
+            while (TRUE) {
+                my $at = -1;
+                foreach my $i ( 0 .. $n - 2 ) {
+                    next if vec( $buf, $i,     8 ) == 10;
+                    next if vec( $buf, $i + 1, 8 ) != 8;
+                    $at = $i;
+                    last;
+                }
+                last if $at < 0;
+                $delete->( $at, 2 );
                 $show_stars = FALSE;
                 ## one at a time ##
                 ##
@@ -690,40 +754,57 @@ REREAD_PASSWORD:
                 AMOS7::TERM::del_rnd_stars();
             }
 
-            $show_stars = FALSE    ##  delete other sequences  ##
-                if $read_chars_buffer =~ s|\Q$sequ_begin\E.$seq_END?||g;
-
-            ## CTRL+U [NAK] [erase read] ##
-            ##
-            if ( $extended_processing_mode
-                and rindex( $read_chars_buffer, $NAK ) >= 0 ) {
-                ##  erase characters read so far  ##
-                AMOS7::TERM::rewind_stars();
-                wipe_secret( \$read_chars_buffer );
-                $show_stars = FALSE;
+            ##  delete other sequences [ esc, '[', a byte but LF, '~'? ]  ##
+            my $i = 0;
+            while ( $i < $n ) {
+                if (    $i + 2 < $n
+                    and vec( $buf, $i,     8 ) == 27
+                    and vec( $buf, $i + 1, 8 ) == 91
+                    and vec( $buf, $i + 2, 8 ) != 10 ) {
+                    my $length
+                        = ( $i + 3 < $n and vec( $buf, $i + 3, 8 ) == 126 )
+                        ? 4
+                        : 3;
+                    $delete->( $i, $length );
+                    $show_stars = FALSE;
+                    next;
+                }
+                $i++;
             }
 
-            $show_stars = FALSE if not length $read_chars_buffer;
+            ## CTRL+U [NAK] [erase read]  [ up to the last ctrl-u : what    ##
+            ## came after it in the same read stays -- clearing it too lost ##
+            ## the keys typed right after, and a pasted value after a       ##
+            ## ctrl-u ]                                                     ##
+            if ( $extended_processing_mode and $find->(21) >= 0 ) {
+                ##  erase characters read so far  ##
+                AMOS7::TERM::rewind_stars();
+                my $last = $n - 1;
+                $last-- while vec( $buf, $last, 8 ) != 21;
+                $delete->( 0, $last + 1 );
+            }
+
+            $show_stars = FALSE if not $n;
 
         } elsif ($continue_reading) {    ##  XOR passwd mode  ##
 
             $XOR_buffer //= chr(127) x 64;    ##  initializing XOR buffer  ##
 
-            while ( length $read_chars_buffer ) {
-                my $XOR_char = substr $read_chars_buffer, 0, 1, '';
-                my $code     = ord $XOR_char;
+            my $used = 0;
+            while ( $used < $n ) {
+                my $code = vec( $buf, $used++, 8 );
 
                 if ( $code == 10 or $code == 13 ) {    ## end processing ##
-                    $read_chars_buffer = chr 10;
-                    $continue_reading  = FALSE;
-                    $show_stars        = FALSE;
+                    $clear->();
+                    vec( $buf, 0, 8 ) = 10;
+                    $n                = 1;
+                    $used             = 0;
+                    $continue_reading = FALSE;
+                    $show_stars       = FALSE;
                     last;
                 }
 
-                my $XORBUF_char = substr $XOR_buffer, $XOR_buffer_pos, 1;
-
-                substr $XOR_buffer, $XOR_buffer_pos++, 1,
-                    $XORBUF_char ^ $XOR_char;
+                vec( $XOR_buffer, $XOR_buffer_pos++, 8 ) ^= $code;
 
                 $XORchars_count++;
                 $XOR_buffer_pos = 0 if $XOR_buffer_pos == 64;
@@ -735,20 +816,21 @@ REREAD_PASSWORD:
                 }
                 $XOR_stars_slowdown *= 0.97 if $XOR_stars_slowdown > 0.13;
             }
+            $delete->( 0, $used ) if $used;    ## the folded bytes are gone ##
         }
 
-        $pwd_cur_len = length $read_chars_buffer;
+        $pwd_cur_len = $n;
 
-        $continue_reading = FALSE    ##[  read end conditions  ]##
+        $continue_reading = FALSE              ##[  read end conditions  ]##
             if defined $read_chrs
             and $read_chrs == 0
-            and $abort_mode = qw| timeout |                  ##[ timeout ]##
-            or length($read_chars_buffer) >= $passwd_mlen    ##[ maxlen ]##
-            or length($read_chars_buffer) and (
+            and $abort_mode = qw| timeout |    ##[ timeout ]##
+            or $n >= $passwd_mlen              ##[ maxlen ]##
+            or $n and (
 
-            rindex( $read_chars_buffer, chr 10 ) >= 0         ##[ LF ]##
-            or rindex( $read_chars_buffer, chr 13 ) >= 0      ##[ CR ]##
-            or length($read_chars_buffer) >= $tty_read_size   ##[ read_len ]##
+            $find->(10) >= 0                   ##[ LF ]##
+            or $find->(13) >= 0                ##[ CR ]##
+            or $n >= $tty_read_size            ##[ read_len ]##
 
             );
 
@@ -758,10 +840,10 @@ REREAD_PASSWORD:
         } elsif (
             $continue_reading
             and $extended_processing_mode
-            and length($read_chars_buffer) >= $passwd_mlen    ##[ maxlen ]##
-            or rindex( $read_chars_buffer, chr 27 ) >= 0      ## escape ##
-            or rindex( $read_chars_buffer, chr 4 ) >= 0       ## CTRL-D ##
-            or rindex( $read_chars_buffer, chr 3 ) >= 0       ## CTRL-C ##
+            and $n >= $passwd_mlen             ##[ maxlen ]##
+            or $find->(27) >= 0                ## escape ##
+            or $find->(4) >= 0                 ## CTRL-D ##
+            or $find->(3) >= 0                 ## CTRL-C ##
         ) {
             $abort_mode = qw| user-interrupt |;
             AMOS7::TERM::reset_stars();
@@ -769,9 +851,19 @@ REREAD_PASSWORD:
             $show_stars       = FALSE;
         }
 
-        $show_stars = FALSE    ##  deleting all chars < asc 10  ##
-            if $continue_reading
-            and $read_chars_buffer =~ s|[$chr_remove]+||g;
+        if ($continue_reading) {    ##  deleting all chars < asc 10  ##
+            my $kept = 0;
+            foreach my $i ( 0 .. $n - 1 ) {
+                my $byte = vec( $buf, $i, 8 );
+                if ( $byte <= 9 ) {
+                    $show_stars = FALSE;
+                    next;
+                }
+                vec( $buf, $kept++, 8 ) = $byte;
+            }
+            vec( $buf, $ARG, 8 ) = 0 foreach $kept .. $n - 1;
+            $n = $kept;
+        }
 
         $show_stars = FALSE if $show_stars and not $continue_reading;
         $show_stars = FALSE if $show_stars and not $extended_processing_mode;
@@ -780,17 +872,18 @@ REREAD_PASSWORD:
     }
 
     my $LF_found = FALSE;
-    foreach my $LF_chr ( chr 13, chr 10 ) {
-        my $LF_match_pos = index $read_chars_buffer, $LF_chr;
+    foreach my $LF_byte ( 13, 10 ) {
+        my $LF_match_pos = $find->($LF_byte);
+        next if $LF_match_pos < 0;
         ## truncating pwd buffer to linefeed pos ##
-        $LF_found = TRUE and substr $read_chars_buffer, $LF_match_pos,
-            length($read_chars_buffer) - $LF_match_pos, ''
-            if $LF_match_pos >= 0;
+        $LF_found = TRUE;
+        vec( $buf, $ARG, 8 ) = 0 foreach $LF_match_pos .. $n - 1;
+        $n = $LF_match_pos;
     }
 
     ##  XOR passwd mode  ##
     ##
-    if ( length($read_chars_buffer) >= $passwd_mlen ) {
+    if ( $n >= $passwd_mlen ) {
         $extended_processing_mode = FALSE;
     }
 
@@ -802,12 +895,18 @@ REREAD_PASSWORD:
         say {$TTY_OUTPUT} '';
     }
 
+    ## the value : a copy of exactly its bytes [ or the xor fold ], the buffer
+    ## zeroed for a re-read
     if ( not $extended_processing_mode ) {
-        wipe_secret( \$read_chars_buffer );
         $read_chars_buffer = $XOR_buffer;
         wipe_secret( \$XOR_buffer );    ## shared : only its own share ##
         undef $XOR_buffer;    ## a re-read initializes it again [ //= ] ##
+    } else {
+        $read_chars_buffer = "\0" x $n;
+        vec( $read_chars_buffer, $ARG, 8 ) = vec( $buf, $ARG, 8 )
+            foreach 0 .. $n - 1;
     }
+    $clear->();
 
     if ( $abort_mode ne FALSE ) {
         wipe_secret( \$read_chars_buffer );
@@ -1143,20 +1242,9 @@ sub discard_buffered_input {
 
     ## return codes  0 : input discarded  1 : continue  2 : interrupt ##
 
-    state $interrupt_re;
-    state $continue_regex;
-    state $seq_END //= chr 126;
-    state $sequ_begin //= join '', map {chr} qw| 27 91 |;
     if ( not defined $TTY_IN or not length fileno $TTY_IN ) {
         warn_err('TTY_IN handle not opened <{C1}>');
         return undef;
-    } elsif ( not defined $interrupt_re or not defined $continue_regex ) {
-        my @continue_code      = qw| 10 13 |;
-        my @interrupt_asc_code = qw| 3 4 27 |;
-        $interrupt_re   = join '', map {chr} @interrupt_asc_code;
-        $continue_regex = join '', map {chr} @continue_code;
-        $interrupt_re   = qr|[$interrupt_re]|;
-        $continue_regex = qr|[$continue_regex]|;
     }
     if ( index( [ caller(1) ]->[3], qw| AMOS7::TERM:: |, 0 ) != 0 ) {
         ##[ only flush it ]##
@@ -1167,14 +1255,35 @@ sub discard_buffered_input {
         AMOS7::TERM::set_input_timeout($input_timeout);
 
         ## check for interrupt ##
-        AMOS7::TERM::read_to_buffer_TTY( \my $check_buffer );
+        my $check_buffer = '';
+        AMOS7::TERM::read_to_buffer_TTY( \$check_buffer );
         AMOS7::TERM::set_input_timeout($restore_time);
 
-        ## rem. sequence encoded keys ##
-        $check_buffer =~ s|\Q$sequ_begin\E.$seq_END?||g;
-        ## check for interrupts and continuation key ##
-        return 2 if $check_buffer =~ $interrupt_re;
-        return 1 if $check_buffer =~ $continue_regex;
+        ## typed-ahead keys may be a password
+        ## [ the second of a repeated entry ] : checked byte by byte with vec,
+        ## no regex copies, then wiped. sequence encoded keys [ esc
+        ## '[' a byte but LF, '~'? ] are skipped, then esc \ ctrl-c \ ctrl-d
+        ## interrupt, CR \ LF continue
+        my ( $interrupt, $continue ) = ( FALSE, FALSE );
+        my $length = length $check_buffer;
+        my $i      = 0;
+        while ( $i < $length ) {
+            my $byte = vec( $check_buffer, $i, 8 );
+            if (    $byte == 27
+                and $i + 2 < $length
+                and vec( $check_buffer, $i + 1, 8 ) == 91
+                and vec( $check_buffer, $i + 2, 8 ) != 10 ) {
+                $i += ( $i + 3 < $length
+                        and vec( $check_buffer, $i + 3, 8 ) == 126 ) ? 4 : 3;
+                next;
+            }
+            $interrupt = TRUE if $byte == 3  or $byte == 4 or $byte == 27;
+            $continue  = TRUE if $byte == 10 or $byte == 13;
+            $i++;
+        }
+        wipe_secret( \$check_buffer );
+        return 2 if $interrupt;
+        return 1 if $continue;
     }
     return 0;    ## regular continuation \ no abort ##
 }
@@ -2026,8 +2135,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,..,..,,...,,,,,.,.,.,,,,.,,,,,,,,.,..,,.,,,..,,...,...,.,.,...,,,.,,..,,,,,
-#ROCR3IJKCOXBFXQEGNJLSXMX47RALYV4X7FQK6EN6EDFHZPTKYWGNHMDACFNIQ5IRO7DHTEEGJP62
-#\\\|X4DBJZDCVY5PZDESW7CWOKPMT6N6ZIZ6IVOPGGV2ZKXFTONFSOU \ / AMOS7 \ YOURUM ::
-#\[7]3IYDPOLS42PKBZ4XWJS6PSXE3WLQOPO5B6U2JJC27NRXIVZ4SICQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,..,...,.,.,..,,.,,,,.,,,,,,,..,..,,...,...,.,.,,..,.,.,,,,,.,,,
+#IV67HGTMY2JUQBTSPPKXEPY3UYGEWAQWAUA7V2QJJMMFCCGKSD75YW4RLECPLGLYTNB7ZW3YNRJ6G
+#\\\|4Y6URVWWSFD4K4QXQVFBSTXKTEYBWPMHWDS2RCT6Z2KFEYPORRI \ / AMOS7 \ YOURUM ::
+#\[7]ZLEVSGWG36OL5IW4PIQQPIQVUFJH5SIJKP7R74ER3VWRMJNMAQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
