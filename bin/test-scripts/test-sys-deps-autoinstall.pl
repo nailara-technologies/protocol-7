@@ -548,8 +548,10 @@ my $check_dep_before = $CHECK_DEP_CALLS;
 @TRACKED = ();
 
 $code{'v7-zenki.handler.sys_deps_reply'}->(
-    {   'mode'   => qw| true |,
-        'data'   => 'installed : libacme-perl libhungry0 hungrypkg',
+    {   'cmd'       => qw| TRUE |,    ## the real route-send reply form ##
+        'call_args' => {
+            'args' => 'installed : libacme-perl ' . 'libhungry0 hungrypkg'
+        },
         'params' => {
             'zenka'    => 'hungry',
             'kind'     => qw| apt |,
@@ -569,9 +571,9 @@ ok( scalar(@TRACKED) == 1 and $TRACKED[0][1][0]{'type'} eq qw| apt |,
 );
 
 $code{'v7-zenki.handler.sys_deps_reply'}->(
-    {   'mode'   => qw| true |,
-        'data'   => 'installed : Foo::Missing',
-        'params' => {
+    {   'cmd'       => qw| TRUE |,    ## the real route-send reply form ##
+        'call_args' => { 'args' => 'installed : Foo::Missing' },
+        'params'    => {
             'zenka'    => 'hungry',
             'kind'     => qw| cpan |,
             'packages' => [qw| Foo::Missing |]
@@ -612,9 +614,9 @@ ok( scalar( grep { $ARG->{'command'} eq qw| debian.install-cpan | } @ROUTES )
 
 my $check_dep_broken = $CHECK_DEP_CALLS;
 $code{'v7-zenki.handler.sys_deps_reply'}->(
-    {   'mode'   => qw| false |,
-        'data'   => 'install failed [ exit 1 ]',
-        'params' => {
+    {   'cmd'       => qw| FALSE |,    ## the real route-send reply form ##
+        'call_args' => { 'args' => 'install failed [ exit 1 ]' },
+        'params'    => {
             'zenka'    => 'broken',
             'kind'     => qw| cpan |,
             'packages' => [qw| Bad::Broken |]
@@ -937,8 +939,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,..,,...,.,,,..,,,..,,,,,,..,,,,,,.,,.,,,..,,...,...,.,.,...,,.,,,,.,..,,
-#52LIORJFKUFUZZQQLPKAB3LJFVLQ55SRCB7JQEKK2QZ5DDQSXJR3AO2YRL6EWSZEV4OGVX56WN262
-#\\\|GOIAA5DUAU67LQVK5W5VYJ5OK5WVTPICP7LAKNPJU4CQY3GMKR5 \ / AMOS7 \ YOURUM ::
-#\[7]MF2II4VHS4SHUJVLHK4EKXZPQJVUWDKRTTLEACOQDVE5TK2IPOAI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,.,.,..,,,..,,..,.,.,,,.,.,,,..,,...,...,..,,..,,,,,,,,.,.,.,
+#KL2VT2SCL2B7PU5D4WYI5YMFF6G2II4NHOLNL5RDG3XOTTILQUANAK6NH5BPMLLFF2R5DYWMV3Y5E
+#\\\|GO4T2D3WHDQLXXJHHYHYTYR6XARUQO5DI3EBU4HZEMKOHETVSAD \ / AMOS7 \ YOURUM ::
+#\[7]PJ72AJFS36E5QQDHZH3767EIYFSRL54ZBK3SLHTVGJCOQMSGTCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

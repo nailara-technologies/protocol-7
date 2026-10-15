@@ -6,21 +6,24 @@
 
 my $reply = shift;
 
-my $mode        = $reply->{'mode'}         // qw| unknown |;
-my $params      = $reply->{'params'}       // {};
-my $packages    = $params->{'packages'}    // [];
-my $zenka_name  = $params->{'zenka'}       // '';
-my $missing_pm  = $params->{'missing_pm'}  // [];
-my $missing_os  = $params->{'missing_os'}  // [];
-my $missing_bin = $params->{'missing_bin'} // [];
+## a route-send reply : cmd TRUE \ FALSE, the text in call_args         ##
+## [ not mode \ data -- every install read as failed until 2026-10-15 ] ##
+my $ok          = ( $reply->{'cmd'} // '' ) eq qw| TRUE |;
+my $answer      = $reply->{'call_args'}->{'args'} // '';
+my $params      = $reply->{'params'}              // {};
+my $packages    = $params->{'packages'}           // [];
+my $zenka_name  = $params->{'zenka'}              // '';
+my $missing_pm  = $params->{'missing_pm'}         // [];
+my $missing_os  = $params->{'missing_os'}         // [];
+my $missing_bin = $params->{'missing_bin'}        // [];
 
 ## install failed [ or debian zenka unreachable ] : report the deps that ##
 ## were waiting on this install as still missing, nothing to re-check    ##
-if ( $mode ne qw| true | ) {
+if ( not $ok ) {
     <[base.logs]>->(
         0,
         'check_zenka_deps: install via debian zenka failed : %s',
-        $reply->{'data'} // 'unknown error'
+        length $answer ? $answer : 'unknown error'
     );
     my $msg = "still missing deps for zenka '$zenka_name': ";
     $msg .= 'pm=' . join( ', ', @$missing_pm ) . ' ' if @$missing_pm;
@@ -61,8 +64,8 @@ if ( @still_pm or @still_os or @still_bin ) {
 
 return;
 
-#,,,,,,.,,.,.,.,.,.,.,,,.,,..,.,.,,,,,,,,,,..,..,,...,..,,,..,...,..,,,,,,,,.,
-#2UECRMTUFN7ZHQJWFWXMROQZOKGZHT2KP37PI4YFXQ37RWPOPX4ESH4CCEIX7VCLS24C3OJGGD22G
-#\\\|YZM7X2LEIKDTFFYI4A5IJFT77EIUPOHFVHI7TNZQPFKDJTMIQAS \ / AMOS7 \ YOURUM ::
-#\[7]XHVCS3CIS5J2R7EB75EFLAK47LCM5RNJLJ65BNBKIOJY6EYTZ6AY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,...,,,.,..,,.,.,,,,,,,.,...,..,,..,,...,...,...,,.,,...,..,,.,,,
+#FOVIA577U4FVNTXVKGHRQCEXNOHJMSW3JHPG7UJQCVZHU3MCMZTZ252POF5UNECQ5BNQCDTESAEJA
+#\\\|GCAHJRTT6JXFBZGTDZPIWM5BOMKGURS3JTX7EOBD6APRPVW7QG4 \ / AMOS7 \ YOURUM ::
+#\[7]5XRBNPMI5GPEL7P25LL5YYJMFUDT7FIQ6RAQRQ6NMDBN45TKNWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

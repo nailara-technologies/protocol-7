@@ -62,15 +62,10 @@ perl -Mv5.13 -e \
   cpanm $EXT_LIB_PATH/pm-src/crypt-curve25519 &&
     cd $NAILARA_ROOT && git clean -fxd $EXT_LIB_PATH/pm-src
 
-# 'c-trade'-agent requirements..,
-perl -Mv5.13 -e \
-  'my$M="Poloniex::API";eval"require $M";exit(1)if$@;say"$M is installed .,"'||
-  cpanm --force Poloniex::API
-
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,,,,,..,..,,..,,.,.,..,,,,,,.,.,..,,.,.,,,.,..,,...,...,.,.,...,,,.,,..,,..,
-#E6RVDXEMOJEFI3RE2HOGOBRUBJ23MLJPKSEIELDKAGV4LW5V5AGENUU7WLJZQ4Q6JHMKBKYT7LAQM
-#\\\|33B64EHWLTOCCKOMNYONQ5T5OOJIIRLUXGAS2DORAPWX7TVV3N7 \ / AMOS7 \ YOURUM ::
-#\[7]S3XXYOK4BXPGJQYA3P6MMCXV7S7H4ZYGOG7FUB5GYQNQWILA3ODA 7  DATA SIGNATURE ::
+#,,..,...,..,,,..,,.,,.,,,..,,,..,.,,,,,,,,.,,..,,...,...,,.,,...,,,.,,,,,...,
+#S6QGWAIEJFN32Z7SC4BW32NXLUUGKYHBOEPOOMP242DVYJAGYFWUTPYFRQ2ZMN5JDHDCCQN4LJ52Y
+#\\\|BSKXB5V55WM5WPXSGRPRDI5GQAPIRMFR3WBP55UCUDNHEYXK4QJ \ / AMOS7 \ YOURUM ::
+#\[7]FLFLIYZARYRVRMBVK4LIEDTGE4O54TTNSHVYAM4GBLBNEMDLASDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
