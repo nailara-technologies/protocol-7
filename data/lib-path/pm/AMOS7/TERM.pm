@@ -36,7 +36,7 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
     cursor_set_animation cursor_enable cursor_disable
     frame_border_line frame_rule_line frame_colorize_content frame_bar
     scroll_region_set scroll_region_clear content_area_clear pinned_row_print
-    ask
+    ask wipe_secret
 ];
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
@@ -497,6 +497,10 @@ sub read_password_repeated {
         or not defined $password_1
         or $password_0 ne $password_1 ) {
 
+        ## a retry : the previous entries wiped, not just replaced
+        wipe_secret( \$password_0 );
+        wipe_secret( \$password_1 );
+
         ( $password_0, my $abort_mode )
             = read_password_single( sprintf( 'enter %s', $password_type_msg ),
             $term_title, $output_lines, $input_timeout, %options );
@@ -515,6 +519,8 @@ sub read_password_repeated {
                 and defined $password_1
                 and $password_0 ne $password_1 ) {
                 if ( $password_0 ne $password_1 ) {
+                    wipe_secret( \$password_0 );
+                    wipe_secret( \$password_1 );
                     undef $password_0;
                     undef $password_1;
                     if ( defined $main::PROTOCOL_SEVEN ) {
@@ -539,6 +545,8 @@ sub read_password_repeated {
                 }
             }
             if ( $abort_mode ne FALSE ) {
+                wipe_secret( \$password_0 );
+                wipe_secret( \$password_1 );
                 undef $password_0;
                 undef $password_1;
                 print $C{'R'};
@@ -552,6 +560,7 @@ sub read_password_repeated {
     print sprintf( "%s%s\n", $C{'0'}, $prompt_prefix_string ) x $output_lines;
 
     AMOS7::TERM::close_TTY_no_echo(FALSE);
+    wipe_secret( \$password_1 );    ## the same value : one copy goes back ##
     return $password_0;
 }
 
@@ -690,8 +699,8 @@ REREAD_PASSWORD:
                 and rindex( $read_chars_buffer, $NAK ) >= 0 ) {
                 ##  erase characters read so far  ##
                 AMOS7::TERM::rewind_stars();
-                $read_chars_buffer = '';
-                $show_stars        = FALSE;
+                wipe_secret( \$read_chars_buffer );
+                $show_stars = FALSE;
             }
 
             $show_stars = FALSE if not length $read_chars_buffer;
@@ -793,9 +802,17 @@ REREAD_PASSWORD:
         say {$TTY_OUTPUT} '';
     }
 
-    $read_chars_buffer = $XOR_buffer if not $extended_processing_mode;
+    if ( not $extended_processing_mode ) {
+        wipe_secret( \$read_chars_buffer );
+        $read_chars_buffer = $XOR_buffer;
+        wipe_secret( \$XOR_buffer );    ## shared : only its own share ##
+        undef $XOR_buffer;    ## a re-read initializes it again [ //= ] ##
+    }
 
-    $read_chars_buffer = undef if $abort_mode ne FALSE;
+    if ( $abort_mode ne FALSE ) {
+        wipe_secret( \$read_chars_buffer );
+        $read_chars_buffer = undef;
+    }
 
     ##  checking min pwd length  ##
     ###
@@ -809,7 +826,7 @@ REREAD_PASSWORD:
             warn_err( ' <<  pasword min len is %d  >> <{NC}>',
                 -1, $pwd_min_len );
         }
-        $read_chars_buffer = '';    ##  reset password entered  ##
+        wipe_secret( \$read_chars_buffer );    ##  reset password entered  ##
         if ( AMOS7::TERM::wait_or_abort(1.24) )    ##  1.24s delay  ##
         {                                          ##[  abort by user  ]##
             if ( defined $main::PROTOCOL_SEVEN ) {
@@ -869,8 +886,8 @@ sub terminal_title {
         : "\e[H\e[2J\e[3J";
 
     ( my $term_width, undef ) = AMOS7::TERM::terminal_size();
-    ## guarding against undefined term_width  [ should not happen with new
-    ## defaults ]
+    ## guarding against undefined term_width
+    ## [ should not happen with new defaults ]
     $term_width //= 80;
 
     my $colon_line
@@ -1162,6 +1179,20 @@ sub discard_buffered_input {
     return 0;    ## regular continuation \ no abort ##
 }
 
+## overwrite a secret in place twice with random bytes, then truncate
+## [ base.buffer.erase_secure, AMOS7::Vault ] -- the same length keeps the
+## same buffer. a copy sharing it [ copy on write ] keeps its own share
+sub wipe_secret {
+    my $sref = shift;
+    return FALSE if ref $sref ne qw| SCALAR |;
+    my $len = length( ${$sref} // '' );
+    return FALSE if not $len;
+    my $prng = Crypt::PRNG::Fortuna->new();
+    substr( ${$sref}, 0, $len, $prng->bytes($len) ) for 1 .. 2;
+    ${$sref} = '';
+    return TRUE;
+}
+
 sub reset_read_password_buffer {
 
     $pwd_cur_len = 0 if $pwd_cur_len;
@@ -1398,8 +1429,8 @@ sub editor_process_key {
         return $result;
     }
 
-    ## Ctrl-W - kill word backward [ delete previous word, save to kill buffer
-    ## ]
+    ## Ctrl-W - kill word backward
+    ## [ delete previous word, save to kill buffer ]
     if ( $key eq "\x17" ) {
         if ( $editor->{cursor_pos} > 0 ) {
             my $start_pos = $editor->{cursor_pos};
@@ -1452,8 +1483,8 @@ sub editor_process_key {
     ## left arrow key - move cursor left [ ANSI: \e[D ]
     if ( $key eq "\e[D" or $key eq "\x1b[D" ) {
         if ( $editor->{cursor_pos} > 0 ) {
-            ## scan back over utf-8 continuation bytes [ 10xxxxxx = 0x80-0xBF
-            ## ]
+            ## scan back over utf-8 continuation bytes
+            ## [ 10xxxxxx = 0x80-0xBF ]
             my $step = 1;
             while (
                 $editor->{cursor_pos} - $step > 0
@@ -1520,8 +1551,8 @@ sub editor_process_key {
     ## DEL
     if ( $key eq "\x08" or $key eq "\x7f" ) {
         if ( $editor->{cursor_pos} > 0 ) {
-            ## scan back over utf-8 continuation bytes [ 10xxxxxx = 0x80-0xBF
-            ## ]
+            ## scan back over utf-8 continuation bytes
+            ## [ 10xxxxxx = 0x80-0xBF ]
             my $del_len = 1;
             while (
                 $editor->{cursor_pos} - $del_len > 0
@@ -1645,9 +1676,9 @@ sub cursor_render {
         ## end [ preserve color for next render ]
         return $color . '_' . "\x08";    ## colored underscore then backspace
     } else {
-        ## on a character : show with underline attribute [preserves
-        ## character] apply color and underline, reset underline only [NOT all
-        ## attributes]
+        ## on a character : show with underline attribute
+        ## [preserves character] apply color and underline, reset underline
+        ## only [NOT all attributes]
         return $color . "\e[4m" . $char_at_cursor . "\e[24m\x08";
     }
 }
@@ -1707,8 +1738,8 @@ sub cursor_disable {
 ## elements => [{type=>'anchor',value=>..,color=>..},
 ## {type=>'fill',char=>..,min=>..,color=>..},
 ## {type=>'slot',name=>..,color=>..}]  values => {name=>string} for slots
-## width => target column count reset => ansi reset sequence [ used after
-## every colored segment ]
+## width => target column count reset => ansi reset sequence
+## [ used after every colored segment ]
 sub frame_border_line {
     my $params = shift // {};
 
@@ -1891,17 +1922,17 @@ sub frame_bar {
     return sprintf( '%-*s', $width, $char x $fill );
 }
 
-## split-screen : reserve the bottom N rows as a fixed area [ e.g. an input ##
-## line ], confine scrolling to the rows above via DECSTBM. once set,       ##
-## ordinary print()/"\n" into the content area scroll correctly within that ##
-## region with NO per-print bookkeeping -- the only code that needs care is ##
-## whatever draws into the reserved rows [ see pinned_row_print below ],    ##
-## since the terminal's resting cursor lives inside the scroll region       ##
-## between content prints. caller MUST call scroll_region_clear before the  ##
-## process exits or detaches from the tty, or the terminal is left with a   ##
-## partial scroll region afterward.  returns the last content row [         ##
-## 1-indexed ] on success, undef if the terminal is too small for the       ##
-## requested reservation.                                                   ##
+## split-screen : reserve the bottom N rows as a fixed area                 ##
+## [ e.g. an input line ], confine scrolling to the rows above via DECSTBM. ##
+## once set, ordinary print()/"\n" into the content area scroll correctly   ##
+## within that region with NO per-print bookkeeping -- the only code that   ##
+## needs care is whatever draws into the reserved rows                      ##
+## [ see pinned_row_print below ], since the terminal's resting cursor      ##
+## lives inside the scroll region between content prints. caller MUST call  ##
+## scroll_region_clear before the process exits or detaches from the tty,   ##
+## or the terminal is left with a partial scroll region afterward.  returns ##
+## the last content row [ 1-indexed ] on success, undef if the terminal is  ##
+## too small for the requested reservation.                                 ##
 sub scroll_region_set {
     my $reserved_rows = shift // 1;
 
@@ -1926,8 +1957,8 @@ sub scroll_region_set {
 ## cursor at the bottom, ready for a caller to print/replay into it.        ##
 ## neither scroll_region_set nor scroll_region_clear ever erases the        ##
 ## content rows themselves -- set only moves the DECSTBM boundary and parks ##
-## the cursor, clear only wipes the reserved strip below it -- so re-       ##
-## entering a mode and replaying a buffer shorter than the content area     ##
+## the cursor, clear only wipes the reserved strip below it -- so           ##
+## re-entering a mode and replaying a buffer shorter than the content area  ##
 ## left whatever was already on screen sitting there, making the replay     ##
 ## look like it doubled the content instead of replacing it. call this      ##
 ## right after scroll_region_set, before printing/replaying.                ##
@@ -1971,14 +2002,15 @@ sub scroll_region_clear {
     return;
 }
 
-## draw into one of the fixed rows reserved by scroll_region_set without   ##
-## disturbing the content area's resting cursor position : save cursor [   ##
-## DECSC, not the legacy ANSI.SYS \e[s/\e[u pair -- DECSC/DECRC also       ##
-## preserves attributes and is the xterm-safe choice ], jump to the target ##
-## row, clear it, print, restore. caller passes an ABSOLUTE 1-indexed row  ##
-## number [ e.g. scroll_region_set's return value + 1 for the first        ##
-## reserved row ], never a relative "\r"-style redraw -- the cursor is not ##
-## reliably sitting on that row when this is called.                       ##
+## draw into one of the fixed rows reserved by scroll_region_set without     ##
+## disturbing the content area's resting cursor position : save cursor [     ##
+## DECSC, not the legacy ANSI.SYS \e[s/\e[u pair -- DECSC/DECRC also         ##
+## preserves attributes and is the xterm-safe choice ], jump to the target   ##
+## row, clear it, print, restore. caller passes an ABSOLUTE 1-indexed row    ##
+## number                                                                    ##
+## [ e.g. scroll_region_set's return value + 1 for the first reserved row ], ##
+## never a relative "\r"-style redraw -- the cursor is not reliably sitting  ##
+## on that row when this is called.                                          ##
 sub pinned_row_print {
     my ( $row, $text ) = @_;
     return unless defined $row and defined $text;
@@ -1994,8 +2026,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,..,,.,,,,.,,..,,,.,.,.,.,,,...,.,.,,,,,,.,,..,,...,...,..,,.,,,..,,..,,..,,
-#FXQXCNIAFYXHRDOQVRWNEAVV52KU74GWDSDTW5OF7QX6CGXHNMEOME4CD3JN4FQV255MZEX6YPKLQ
-#\\\|VGDEZEVTCOB2B3BCY3R3FDY4BLH67GWCRIONMAUYANBDOVO3DNA \ / AMOS7 \ YOURUM ::
-#\[7]VYB5ZOQ4HDK64HK5O4WX3RNYFTWIMEGKQ45J6FCO5VF4ZF64PIDI 7  DATA SIGNATURE ::
+#,,..,..,,...,,,,,.,.,.,,,,.,,,,,,,,.,..,,.,,,..,,...,...,.,.,...,,,.,,..,,,,,
+#ROCR3IJKCOXBFXQEGNJLSXMX47RALYV4X7FQK6EN6EDFHZPTKYWGNHMDACFNIQ5IRO7DHTEEGJP62
+#\\\|X4DBJZDCVY5PZDESW7CWOKPMT6N6ZIZ6IVOPGGV2ZKXFTONFSOU \ / AMOS7 \ YOURUM ::
+#\[7]3IYDPOLS42PKBZ4XWJS6PSXE3WLQOPO5B6U2JJC27NRXIVZ4SICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
