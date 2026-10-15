@@ -3,18 +3,24 @@
 # name  = forensics.cmd.sweep-run
 # descr = manually run nightly sweep [ same path as 04:07 slot ]
 
-my $result = <[forensics.event.nightly-sweep]>;
+## the sweep runs in steps [ forensics.sweep.step ] : the reply follows ##
+## once the record is written -- a running sweep is joined, not doubled ##
 
-return {
+return { 'mode' => qw| false |, 'data' => 'sweep failed [ see zenka log ]' }
+    if not <[forensics.event.nightly-sweep]>;
+
+my $state = <forensics.sweep.state>;
+return {    ## finished within the call [ nothing to read ] -- not expected ##
     'mode' => qw| true |,
     'data' => 'sweep record written [ see zenka var-dir sweeps/ ]'
     }
-    if $result;
+    if ref $state ne qw| HASH |;
 
-return { 'mode' => qw| false |, 'data' => 'sweep failed [ see zenka log ]' };
+push @{ $state->{'waiters'} }, $call->{'reply_id'};
+return { 'mode' => qw| deferred | };
 
-#,,,,,.,,,,.,,.,.,,..,..,,,.,,,..,.,,,.,.,..,,..,,...,...,...,,,.,,,.,,..,.,,,
-#5YF6MV4VZKU4BBCGSVYMZKVGOWISF6STKPVUZJJ6EASU6KXJGW24UBKOD4ZF2APDPIUZERZMAQG2A
-#\\\|NK7RDOYD7EZLJUJWOR37LSA7VES2NYCJ2G4IP6XGMIQRXP6ONFG \ / AMOS7 \ YOURUM ::
-#\[7]SIXT2C3CF5FPWUCAJDBM2762XQK7LJUMH7Y4DD6LWR7CTO6ZMICQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,.,,.,,,,.,.,,,...,,,,,..,,,..,..,,...,...,,.,,..,,,..,,,,,,,.,
+#QOTEMUJQUPPJHFJYEOCJMKOHCMFVEHTPSSRK2KR5O5PY7YMAFXFPVLVN5FBTNWYW4VSAFBUGMNNYA
+#\\\|B44RFZ34N4LJXNF2WRSTYNJ6GNW4GIXHCPERQJNB4CMUAN42DY4 \ / AMOS7 \ YOURUM ::
+#\[7]GP27QRIYLAWZ77GEQAFQEUY7WLYV3AAKEK43XRP6G2BJDNU6FKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

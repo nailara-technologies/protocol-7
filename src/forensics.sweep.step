@@ -1,0 +1,187 @@
+## [:< ##
+
+# name  = forensics.sweep.step
+# descr = one bounded slice of the sweep [ timer handler ], re-armed until
+#         every file is read ; then the dated record is written
+#
+# state : <forensics.sweep.state> [ forensics.event.nightly-sweep ]. each
+# file is opened raw and read from forensics.sweep.window_offset -- not
+# from its start -- then latched at the first in-window line [ logs are
+# chronological ]. a slice ends after ~0.2 s, the next one runs on the
+# next loop turn : heartbeats and commands are answered in between.
+
+require Time::HiRes;
+
+my $state = <forensics.sweep.state>;
+return if ref $state ne qw| HASH |;
+
+my $slice_seconds = <forensics.cfg.sweep_slice_seconds> // 0.2;
+my $deadline      = Time::HiRes::time() + $slice_seconds;
+
+my @pattern_classes = (
+    [ qw| NOT-FOUND |, qr| :::\[\s*NOT\s+FOUND\s*\]::: |x ],
+    [ qw| MISS      |, qr| \bMISS\b |x ],
+    [ qw| BAD       |, qr| \bBAD\b |x ],
+);
+
+## log line shape : <ntime-b32> <sid> <level> <message>  [ sid+level fields ##
+## required : keeps banner/junk lines from reaching the ntime decoder,      ##
+## which warns on invalid input ]                                           ##
+
+my $logline_re = qr|^([A-Z2-7]{10,20})\s+\d{6,7}\s+\d\s|;
+my $node_name  = <system.node.name> // '';
+my $lines_read = 0;
+
+SLICE: while (TRUE) {
+
+    ## the next file : opened raw, positioned at the window ##
+    if ( not defined $state->{'fh'} ) {
+        my $log_file = shift @{ $state->{'files'} };
+        last SLICE if not defined $log_file;
+
+        open( my $log_fh, qw| <:raw |, $log_file ) or next SLICE;
+        my $size   = -s $log_fh // 0;
+        my $offset = <[forensics.sweep.window_offset]>->(
+            $log_fh, $size, $state->{'cutoff'}
+        );
+        seek( $log_fh, $offset, 0 ) or do { close($log_fh); next SLICE };
+        readline($log_fh) if $offset > 0;    ## the partial line ##
+
+        my $zenka_name = $log_file;
+        $zenka_name =~ s|^.*/||;
+        $zenka_name =~ s|\.zenka\.log$||;
+        $zenka_name =~ s|^\Q$node_name\E\.|| if length $node_name;
+
+        $state->{'fh'}        = $log_fh;
+        $state->{'zenka'}     = $zenka_name;
+        $state->{'in_window'} = 0;
+        $state->{'files_scanned'}++;
+    }
+
+    ## time is checked every 256 lines       ##
+    ## [ cheap enough, fine grained enough ] ##
+    if ( ++$lines_read % 256 == 0 and Time::HiRes::time() > $deadline ) {
+        last SLICE;
+    }
+
+    my $line = readline( $state->{'fh'} );
+    if ( not defined $line ) {    ## end of this file ##
+        close( $state->{'fh'} );
+        delete $state->{'fh'};
+        next SLICE;
+    }
+
+    next SLICE if $line !~ $logline_re;
+    my $ts_b32 = $LAST_PAREN_MATCH;
+    my ( undef, $sid, $level, $message ) = split ' ', $line, 4;
+    next SLICE if not defined $message;
+
+    if ( not $state->{'in_window'} ) {
+        my $ts_unix;
+        {    ##  junk-shaped lines [ binary log content ] would warn   ##
+            ##  inside the decoder : noise, not signal -- suppressed ##
+            local $SIG{'__WARN__'} = sub { };
+            $ts_unix = <[base.ntime.B32_2_unix]>->($ts_b32);
+        }
+        next SLICE if not defined $ts_unix or $ts_unix < $state->{'cutoff'};
+        $state->{'in_window'} = 1;
+    }
+
+    foreach my $class_ref (@pattern_classes) {
+        my ( $class, $pattern_re ) = @{$class_ref};
+        next if $message !~ $pattern_re;
+
+        my $key_message = $message;
+        $key_message =~ s|^\[\d+\]\s*||;    ## strip [pid] : dedupe key ##
+        $key_message =~ s|\s+$||;
+        utf8::decode($key_message);         ## read raw : text again ##
+
+        $state->{'lines_matched'}++;
+        my $key = join "\x00", $class, $state->{'zenka'}, $key_message;
+        $state->{'entries'}{$key} //= {
+            'class'      => $class,
+            'zenka'      => $state->{'zenka'},
+            'message'    => $key_message,
+            'count'      => 0,
+            'first_seen' => $ts_b32,
+            'last_seen'  => $ts_b32,
+        };
+        $state->{'entries'}{$key}->{'count'}++;
+        $state->{'entries'}{$key}->{'last_seen'} = $ts_b32;
+        last;    ## first matching class wins ##
+    }
+}
+
+## more to read : the next slice on the next loop turn ##
+if ( defined $state->{'fh'} or scalar @{ $state->{'files'} } ) {
+    <[event.add_timer]>->(
+        {   'after'   => 0.01,
+            'repeat'  => FALSE,
+            'handler' => qw| forensics.sweep.step |,
+        }
+    ) and return;
+    close( $state->{'fh'} ) if defined $state->{'fh'};
+    delete <forensics.sweep.state>;
+    <[base.log]>->( 0, 'cannot schedule the next sweep step [ aborted ]' );
+    <[base.callback.cmd_reply]>->(
+        $ARG, { 'mode' => qw| false |, 'data' => 'sweep aborted [ see log ]' }
+    ) foreach @{ $state->{'waiters'} };
+    return;
+}
+
+## done : the dated record ##
+delete <forensics.sweep.state>;
+
+my @entries = sort {
+           $a->{'class'} cmp $b->{'class'}
+        or $a->{'zenka'} cmp $b->{'zenka'}
+        or $a->{'message'} cmp $b->{'message'}
+} values %{ $state->{'entries'} };
+
+my $record = {
+    'sweep' => {
+        'date'           => $state->{'sweep_date'},
+        'generated'      => $state->{'generated'},
+        'generated_unix' => time,
+        'window_seconds' => $state->{'window_seconds'},
+        'log_dir'        => $state->{'log_dir'},
+        'files_scanned'  => $state->{'files_scanned'},
+        'lines_matched'  => $state->{'lines_matched'},
+        'unique_entries' => scalar @entries,
+    },
+    'entries' => \@entries,
+};
+
+my $record_path = $state->{'record_path'};
+my ( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $record_path, $record );
+
+my $reply
+    = $ok
+    ? {
+    'mode' => qw| true |,
+    'data' => "sweep record written [ $record_path ]"
+    }
+    : { 'mode' => qw| false |, 'data' => 'sweep failed [ see zenka log ]' };
+<[base.callback.cmd_reply]>->( $ARG, $reply )
+    foreach @{ $state->{'waiters'} };
+
+return <[base.log]>->( 0, 'sweep record write failed [ %s ]', $write_err )
+    if not $ok;
+
+<[base.logs]>->(
+    1,
+    'nightly sweep : %d files, %d matched lines, %d unique [ %s ]',
+    $state->{'files_scanned'},
+    $state->{'lines_matched'},
+    scalar @entries,
+    $record_path
+);
+
+return TRUE;
+
+#,,.,,,,,,,,.,..,,..,,,,,,..,,,..,,.,,.,,,..,,..,,...,...,..,,..,,,..,,,,,,,,,
+#UL4TIUVKPKGHQJHH23UZQVH4ONJI3RIKLAFCNE4GYJ2G2GW3W444J4C44XQQIR35ZBRJGXELE7KR6
+#\\\|FQS5ZUXU34NDLAHCHZS6ZQHZVRAC5WIYSOHMGLGLSQWHIREUP66 \ / AMOS7 \ YOURUM ::
+#\[7]W7XW6ZB7P7KQSYHCHH2JBTKJG37CHGQU2V53VUDIJVDJLHC3OYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
