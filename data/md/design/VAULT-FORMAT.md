@@ -280,6 +280,17 @@ scheme with a per-file random salt
   cancels that command. the prompts wait in a select with the idle time
   left [ readline in callback mode -- a blocking readline keeps reading
   after a signal ]. the note editor has no timer : editing counts as input
+- a hidden input typed but left without enter clears itself after 13 s
+  without a key [ AMOS7::TERM's password timeout, P7_VAULT_INPUT_SECONDS,
+  0 = off ; only once something is typed ] : the stars rewind, slow and
+  accelerating -- a key during that first rewind keeps the value and is
+  taken as typed, once ; the next timeout rewinds twice as fast, wipes the
+  value and cancels the prompt [ an unlock ends the session ]. keys typed
+  during that last rewind are dropped, never reaching the shell prompt.
+  ctrl-u rewinds fast [ 7 ms, growing ], esc \ ctrl-c \ ctrl-d fast and
+  flat. the cursor : an underscore in the shell, hidden during a hidden
+  input, the terminal's own style back on every exit [ END, INT \ TERM \
+  HUP -- which also wipe the key ]
 - quit \ q \ exit \ x wipe the key and clear screen + scrollback + command
   history the same way ; ctrl-d \ ctrl-c end the shell and keep the screen
 - written by root into a vault a user owns [ `sudo p7-vault -d
@@ -410,8 +421,8 @@ the payload with the vault key, then step 2 for each record's data.
 a session agent [ unlock once per login ], the vault-edit form ui,
 totp code display, purging old versions.
 
-#,,,.,,,.,,.,,.,,,,,,,..,,,,.,.,,,..,,..,,.,.,..,,...,..,,...,.,.,...,.,.,.,,,
-#J4FHC7HXDTSEDBWUCOM2YUBVPAX4NFNN7PYLLJGOJW6EUAN5WP2XFHKNQPJNGDIFNCSGW3UCADSOI
-#\\\|JERIFSBKNPT73K7HLPWDIMO4YPPU2KFO7JLYACD3AO53IDGFWOF \ / AMOS7 \ YOURUM ::
-#\[7]7EEHUIPM2YS2GINVBX4M63Q2DNNFCQF5QOWNHSAT3RJI7XR2OIBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,..,,.,.,.,,,,,,,,.,,,,.,,.,,,,,,..,,...,...,.,.,,,,,,,.,...,,,.,
+#QLSKCT4QK7SVECXOMFFQJHDNHF5IH2TPCMGYEFVAXP7OTZ4Z6GJTG3E2GGP5IEOBC5CPWVOHZM5LW
+#\\\|FGCCUQEM6VHNP5G2YNS4AKITE5YNCO373H2CSNU7C7RC35QXSGT \ / AMOS7 \ YOURUM ::
+#\[7]RTEB4VPBCP6SW3BPVP6LQ4XBEIIC5GXUFTU6O5MGETKWEI3CB2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
