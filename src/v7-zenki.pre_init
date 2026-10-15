@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = v7-zenki.pre_init
+# descr = bootstrap install : missing core perl modules before the loop
+#
+# auto-install stage 2 [ the minimal startup case ] : a core module the
+# zenka machinery itself needs [ Event, loaded by base.init_code ] can not
+# wait for the sys_deps start condition -- there is no event loop yet.
+# with the host's opt-in [ v7-zenki.cfg.auto_install_deps, host.cfg is
+# read before init_modules ] and as root, base.perlmod.load \ autoload
+# install a missing module SYNCHRONOUSLY [ base.perlmod.install ->
+# base.debian.install_package, direct apt-get path : v7-zenki has no apt
+# child ] -- right here nothing else runs yet. v7-zenki starts first, the
+# zenki it starts find the module installed. pre_init runs for every
+# module before any init_code ; v7-zenki.post_init switches it off again
+# [ later a synchronous apt-get would block the event loop -- the
+# sys_deps condition installs async from then on ]
+
+return TRUE if $UID != 0 and $EUID != 0;    ## installs need root ##
+return TRUE
+    if not <[base.cfg_bool]>->( <v7-zenki.cfg.auto_install_deps> // FALSE );
+
+<v7-zenki.bootstrap.auto_install_was> = <base.perlmod.auto_install>;
+<base.perlmod.auto_install>           = TRUE;
+
+<[base.logs]>->(
+    1, ': bootstrap : missing core perl modules are installed [ until init ]'
+);
+
+return TRUE;
+
+#,,..,..,,,,.,.,.,,,,,..,,,..,,,.,,,,,.,,,.,,,..,,...,...,,.,,,,,,,,.,.,.,.,.,
+#6CMJAQBTQRN3X5WQG33TPQ6WYGHWTZAA3KIU2CHS2JXPBYASXKVTIAOBES6ZODNI6SFUCF77FWPAG
+#\\\|2S35FWGYGJMJSEYJ2C6MZKOEYCTMKGTJEW4M7GC35HKEIGYQI6L \ / AMOS7 \ YOURUM ::
+#\[7]NCRLUJ5HLALF2QARFR4JE6P3AS42534GPKGKC3VHRIIIKYJPX2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

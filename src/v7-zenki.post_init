@@ -5,6 +5,15 @@
 
 my $module_reinitialization = shift;
 
+## bootstrap install off again [ v7-zenki.pre_init ] : every init_code has ##
+## run, from here on a synchronous apt-get would block the event loop --   ##
+## missing deps are the sys_deps start condition's job [ async ]           ##
+if (    exists <v7-zenki.bootstrap>
+    and exists <v7-zenki.bootstrap>->{'auto_install_was'} ) {
+    <base.perlmod.auto_install>
+        = delete <v7-zenki.bootstrap>->{'auto_install_was'} // FALSE;
+}
+
 ###  temporary path registration  ###
 ##
 my $tmp_dir_owner = <system.amos-zenka-user>;
@@ -102,8 +111,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,,,,.,,,.,,,,.,,...,.,,,,,.,...,,.,,..,,,,.,..,,...,...,..,,,..,,,.,.,.,.,.,
-#4YUYTE4DE56VX733THND3PR2MZIZEK2YOD7BHHS7J6NPL3RRRBU7OLBJAVBMY77UUVSR5XNENOXBU
-#\\\|LBRCVBH3MZ3KTAZZXBPMU6W6L2NZYVRV3PFKJKVG6PQV3RCRRKC \ / AMOS7 \ YOURUM ::
-#\[7]STJSFIJRY5VBIKD7WA7HXIQKO5CP2LEBNXQJKXHS5HSMEAGQX6AQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,.,.,,..,,..,...,,.,,,.,,..,,,,,,..,,...,...,..,,..,,.,.,,..,,..,
+#IQ4ZYEJ4RUCLLYGYOFTCIEXAV57UCCL6AD6YH6OSON65OJAZ7WYYD2K27KPILDZ4RM56VW2SON5DI
+#\\\|NUGLXNS62LLQOIYH4SZNDPBYBZRI4KAJ4T57BN4QFH6UIEVJVMH \ / AMOS7 \ YOURUM ::
+#\[7]INDVFIOUQRIWRMOSKXTUFFLEVP35O5GXNOOCBEQSE7FUCD2R6QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
