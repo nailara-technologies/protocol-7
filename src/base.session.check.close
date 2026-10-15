@@ -47,6 +47,10 @@ my $route_term_msg = 'FALSE command route collapsed';
     $id, $route_term_msg, keys $session->{'route'}->%*
 );
 
+## id-less commands share the source key 0 : the routes the keys above ##
+## no longer reach are found by their source sid [ todo 7N3 ]          ##
+<[base.session.cancel_source_routes]>->($id);
+
 ## cancel watchers ##
 foreach my $watcher ( keys $session->{'watcher'}->%* ) {
     $session->{'watcher'}{$watcher}->cancel;
@@ -132,8 +136,8 @@ if ( $session_mode eq qw| server | ) {    ##  closed server session  ##
 
 <[base.session.check_remaining]>;
 
-#,,,.,...,,..,.,.,.,,,..,,,,,,.,,,..,,..,,..,,..,,...,...,...,.,,,..,,.,.,.,.,
-#ATQJUNMFZSJJARR6BLGH2DVSNAGL2GHYWT3LXUE7MUP5NLV2LUR72IUE77FOIPNOW6UINAJWYHTWU
-#\\\|M3I3O4UXHAN5SAQAAYCJGUSD3YH5GUA4NZHPBO2FPY42Y7WX7LJ \ / AMOS7 \ YOURUM ::
-#\[7]SDMHBWHQZ2YXMNYMLNGGID73ZKZY7FIC4MOY5WZT3AC5WFVAZUAA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,.,,,,..,,..,.,,,,,,,,,.,,.,,..,,...,...,...,,..,.,.,,,.,.,.,
+#4GHGWG7EPTBFYJ2FNZ6OHTSFUA7WM7KEUZC5FSPSUD5DDXMDD4IS5FNRLE6QG73DA2CU7XLMWQJBI
+#\\\|ZKAMDXBVXRAOFLL7NS6BCW6ZNTNYYFGK75PRXN2QF4JCFRPMIEX \ / AMOS7 \ YOURUM ::
+#\[7]TBRZMY2MJJVHIHR2A2XSB3SZB57MTWU5HHZIVENQAGWQYGPM36BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
