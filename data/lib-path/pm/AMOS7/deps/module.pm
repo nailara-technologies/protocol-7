@@ -4,6 +4,12 @@ use strict;
 use warnings;
 use English;
 
+use File::Spec;
+use File::Temp qw| tempdir |;
+use File::Find qw| find |;
+use File::Copy qw| copy |;
+use File::Path qw| make_path |;
+
 use Exporter;
 use base qw| Exporter |;
 
@@ -13,6 +19,7 @@ our @EXPORT_OK = qw|
     probe_module
     probe_module_file
     resolve_install
+    install_pm_src
     |;
 
 ##[ load_known_deps ]#########################################################
@@ -166,6 +173,14 @@ sub resolve_install {
 
     my $known = $known_deps->{$module_name};
 
+    ## local pm-src sources come first : reproducible, and some hosts      ##
+    ## cannot reach cpan at all [ upstream copies that no longer compile ] ##
+    if (    $known
+        and ref( $known->{pm_src} ) eq 'ARRAY'
+        and scalar @{ $known->{pm_src} } ) {
+        return { method => 'pm_src', dirs => [ @{ $known->{pm_src} } ] };
+    }
+
     if ( $known && $known->{debian} ) {
         my @debs;
         if ( ref( $known->{debian} ) eq 'ARRAY' ) {
@@ -181,10 +196,68 @@ sub resolve_install {
     return { method => 'cpan', pkg => $cpan };
 }
 
+##[ install_pm_src ]##########################################################
+
+## builds modules from their local sources under data/lib-path/pm-src, in   ##
+## the given order : each source dir is copied into a temporary directory   ##
+## and built there with cpanm, so no build files ever land in the tree.     ##
+## returns TRUE when every dir built [ caller falls back to cpan on FALSE ] ##
+
+sub install_pm_src {
+    my ( $p7_root, @dirs ) = @_;
+
+    return 0 unless defined $p7_root and length $p7_root;
+    return 0 unless scalar @dirs;
+
+    local $ENV{'PERL_CANARY_STABILITY_NOPROMPT'} = 1;    ## no tty prompt ##
+
+    my $pm_src_base
+        = File::Spec->catdir( $p7_root, qw| data lib-path pm-src | );
+
+    foreach my $src_dir (@dirs) {
+        my $src_path = File::Spec->catdir( $pm_src_base, $src_dir );
+        return 0 unless -d $src_path;
+
+        my $tmp_dir    = tempdir( CLEANUP => 1 );
+        my $build_path = File::Spec->catdir( $tmp_dir, $src_dir );
+
+        ## recursive copy into the tempdir [ no files land in the tree ] ##
+        _copy_tree( $src_path, $build_path ) or return 0;
+
+        my $exit = system( qw| cpanm --notest --quiet |, $build_path );
+        return 0 if $exit != 0;
+    }
+
+    return 1;
+}
+
+sub _copy_tree {
+    my ( $src, $dst ) = @_;
+
+    make_path($dst) unless -d $dst;
+
+    my $ok = 1;
+    find(
+        sub {
+            return unless $ok;
+            my $rel  = File::Spec->abs2rel( $File::Find::name, $src );
+            my $dest = File::Spec->catfile( $dst, $rel );
+            if ( -d $File::Find::name ) {
+                make_path($dest) unless -d $dest;
+            } else {
+                $ok = copy( $File::Find::name, $dest );
+            }
+        },
+        $src
+    );
+
+    return $ok;
+}
+
 1;
 
-#,,..,.,.,,,.,.,.,,..,,..,.,,,,,.,,,.,,..,...,.,.,...,...,.,.,...,..,,,..,,.,,
-#SRG3MUXFMJNONZXI74JXAWP7VT5FZKRY3HOBWCG4KXZNCGILEHD26R3BFW5JSUOELKEARPPWDGHPG
-#\\\|SYQGPSJEBDRN3RECXWVHCIBS4J36X4M53W2SBEF2SOOUCBNVFT4 \ / AMOS7 \ YOURUM ::
-#\[7]3TOXKL4TD6LLCOCE7SLOHJNC3YISZRCR5FPT5ZAPIFZLPD3UX6DY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,.,.,,.,,,.,,,,,,,,.,,,.,,..,.,.,...,...,...,...,.,,,...,.,,,
+#YGGKS565N6USHCSXEEN6S57PZ4VWKTZUTDDZPGMCWDMUQD55R6SNUIY4KXXIWKFPZFKRV7TLNDZQW
+#\\\|7ENYE35SVBZ77W7MSVTC7P4J5QVLM4QQ2KHJK4A52NLU32WMQ46 \ / AMOS7 \ YOURUM ::
+#\[7]2E7GOG27PGV36I5LD3U2K6WPULVSQKWO6Y2ECFUBL2H5QMWO2MDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
