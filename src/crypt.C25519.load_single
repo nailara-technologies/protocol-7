@@ -136,11 +136,18 @@ if ( not defined $key_type and -f $public_key_file
             say sprintf qw| %s:%s |, $AMOS7::C{'0'}, $AMOS7::C{'R'};
         }
 
-        $keys{'C25519'}{$name}{'private'}
-            = <[crypt.C25519.decrypt_priv_keystr]>->(
+        ## decrypt_priv_keystr returns a reference
+        ## [ FALSE \ undef when it fails ] : the key itself, or no key --
+        ## never the reference
+        my $decrypted_C25519_sref = <[crypt.C25519.decrypt_priv_keystr]>->(
             $keys{'C25519'}{$name}{'private'},
             $key_password
-            );
+        );
+        <[base.buffer.erase_secure]>->( \$key_password );    ## done with ##
+        $keys{'C25519'}{$name}{'private'}
+            = ref $decrypted_C25519_sref eq qw| SCALAR |
+            ? $decrypted_C25519_sref->$*
+            : undef;
     }
 
     if ( not defined $keys{'C25519'}{$name}{'private'} ) {
@@ -160,8 +167,8 @@ if ( not defined $key_type and -f $public_key_file
 
 }
 
-#,,,.,...,,.,,.,.,,..,,,,,,..,,..,,..,,..,.,.,..,,...,...,,,,,.,.,,,,,,,,,...,
-#OD5QSWCILL46EVIBS7SPH3SP7VYHFYIELGMWUSOPJBIKMVXQPE7WMUELKG4TTBYMCPQHZ6UYS4OOE
-#\\\|KQ3LJJJHTKYN354O7GMCPZVDVRV2S5VW2EWQQI4UCIEDTDODRYD \ / AMOS7 \ YOURUM ::
-#\[7]QTDPY5ZPPAO2LG3FTHT2GQQRBFX5AGRQUPZUZ33RWYJZPYFH6UBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,..,,,,,,.,,,.,.,,,,,.,,,,,,,..,,...,...,..,,,,,,,..,..,,,.,,
+#5A4OVCPIOXIR7PRJPSLEUKH3TZP6H6ZLYEEYPTYQRJOIGZ7DPEFCPUHI3DG2CXRSXKF6PLL4ZECYI
+#\\\|XJ2JIJLUMSVHPRZBOSG4NSL3HP3XD7KI5HIHZF3IGNF7ZPASRKH \ / AMOS7 \ YOURUM ::
+#\[7]HK7TASNHKPRSZBPZG35QJFTYE7NAGA2O4ZD4JYCHH7AFNCK2GEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

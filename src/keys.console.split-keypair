@@ -79,6 +79,7 @@ if (   not <[crypt.C25519.write_keys]>->( $name, $key_password, TRUE )
     say sprintf( "\n  <<  cannot write keyfiles for '%s' key  >>\n", $name );
     <[base.exit]>->(qw| 0110 |);
 }
+<[base.buffer.erase_secure]>->( \$key_password );    ## files written ##
 
 say sprintf " :\n :: [ written %d key file%s to disk ]\n",
     $files_written_count,
@@ -86,8 +87,8 @@ say sprintf " :\n :: [ written %d key file%s to disk ]\n",
 
 return TRUE;
 
-#,,..,..,,.,,,..,,,,.,.,.,.,,,,..,.,,,...,,,.,..,,...,.,.,...,.,.,...,,.,,,.,,
-#LG2OWI6CEEE63STZXJO5ICJJ7UMBKZKRJHFHMJWZ3AXHZNXH2C6HB5ZD5DMFL662VPTT7J3UKIGNM
-#\\\|3PLDQH2O7UYCZ5GV423BS375R6UWTUQHGWDF4OEEST7FLU7X5I7 \ / AMOS7 \ YOURUM ::
-#\[7]O76NCS3FN6SWDKS6KA5CPJK4IGUIIC3GR2WADFFOLFDBK7ENSYDQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,..,,,,,,..,,.,.,.,.,,.,,...,..,,...,..,,,..,,..,,,.,..,,..,,
+#ETV56JSEEFUWNJXO7TEQNB6G64BPHST4TRDCX5L6BXUF6LOGQC4HTFAMCCKODOOMM6DPU27LKEPF4
+#\\\|GICV74TOSDN3XQYUETKC4EEZQZV35PSHMFSE2JLI3BUD5FS52AY \ / AMOS7 \ YOURUM ::
+#\[7]BL3X3Q7VJLANTFOWKOOCMOLGS3NBKWGRIZCNGCGDA4J2A2T6TACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
