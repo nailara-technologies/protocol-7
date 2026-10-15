@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = v7-zenki.handler.startup_probe_reply
+# descr = start-up heartbeat answered : 'beating' -> online, else error
+#
+# see v7-zenki.startup_probe. a reply for an older probe \ a gone
+# instance \ an instance no longer 'starting' is ignored
+
+my $response    = shift;
+my $instance_id = $response->{'params'}->{'instance_id'} // '';
+my $probe_id    = $response->{'params'}->{'probe_id'}    // 0;
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+return if not defined $instance;
+
+my $probe = $instance->{'startup_probe'};
+return if ref $probe ne qw| HASH | or $probe->{'id'} != $probe_id;
+
+if ( defined $instance->{'timer'}->{'startup-probe'} ) {
+    $instance->{'timer'}->{'startup-probe'}->cancel
+        if $instance->{'timer'}->{'startup-probe'}->is_active;
+    delete $instance->{'timer'}->{'startup-probe'};
+}
+delete $instance->{'startup_probe'};
+
+return if ( $instance->{'status'} // '' ) ne qw| starting |;
+
+my $zenka_name = $instance->{'zenka_name'};
+my $answer     = $response->{'call_args'}->{'args'} // '';
+
+if ( $response->{'cmd'} eq qw| TRUE | and $answer =~ m|^beating| ) {
+    <[base.logs]>->(
+        2, 'instance %d [ %s ] start-up heartbeat answered [ %.3f s ]',
+        $instance_id, $zenka_name, <[base.time]>->(4) - $probe->{'sent_at'}
+    );
+    return <[zenka.change_status]>->( $instance_id, qw| online | );
+}
+
+<[base.logs]>->(
+    0, 'instance %d [ %s ] start-up heartbeat refused [ %s %s ]',
+    $instance_id, $zenka_name, $response->{'cmd'} // '?', $answer
+);
+return <[zenka.change_status]>->( $instance_id, qw| error | );
+
+#,,.,,...,,.,,.,.,,.,,,..,..,,...,.,.,.,.,.,.,..,,...,...,.,.,,..,,..,,.,,.,,,
+#USLKE7HTFLTOG7WWY65NILA2DDXCAVYP2WX6YVD7OB2SOFQRHSUJFYVC67E3T2F3K7664ENIF3JOE
+#\\\|NEE7GPPVJ6H2O6F7FS2TTD3MVISONUG3D5YRE6TNDWBWQY5NZVM \ / AMOS7 \ YOURUM ::
+#\[7]BRYM27A32BXNO74ZWAYME4J3VYPSQY4KN4Z3NMSOUAMAVS4Q4UDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

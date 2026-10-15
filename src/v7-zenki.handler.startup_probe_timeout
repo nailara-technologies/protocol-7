@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = v7-zenki.handler.startup_probe_timeout
+# descr = start-up heartbeat not answered in time : start-up error
+#
+# see v7-zenki.startup_probe. under host memory pressure the wait is
+# extended first, as for the regular heartbeat [ heartbeat_ext.<level>
+# times heartbeat_ext.secs ] -- a zenka stalled in reclaim is not hung
+
+my $event = shift;
+my $data  = $event->w->data // {};
+my ( $instance_id, $probe_id ) = @{$data}{qw| instance_id probe_id |};
+
+my $instance = <v7-zenki.zenka.instance>->{ $instance_id // '' };
+return if not defined $instance;
+
+my $probe = $instance->{'startup_probe'};
+return if ref $probe ne qw| HASH | or $probe->{'id'} != ( $probe_id // 0 );
+return if ( $instance->{'status'} // '' ) ne qw| starting |;
+
+my $zenka_name = $instance->{'zenka_name'};
+
+## memory pressure : wait longer instead of failing [ as the heartbeat ] ##
+my $level = <v7-zenki.pressure.level> // qw| calm |;
+my $ext_max
+    = $level eq qw| critical |
+    ? <v7-zenki.cfg.pressure.heartbeat_ext.critical> // 6
+    : $level eq qw| elevated |
+    ? <v7-zenki.cfg.pressure.heartbeat_ext.elevated> // 3
+    : 0;
+
+if ( $ext_max and ( $probe->{'pressure_ext'} // 0 ) < $ext_max ) {
+    $probe->{'pressure_ext'}++;
+    <[base.logs]>->(
+        1,
+        'instance %d [ %s ] start-up heartbeat late '
+            . 'under %s memory pressure -- waiting [ %d \ %d ]',
+        $instance_id,
+        $zenka_name,
+        $level,
+        $probe->{'pressure_ext'},
+        $ext_max
+    );
+    $instance->{'timer'}->{'startup-probe'} = <[event.add_timer]>->(
+        {   'after'   => <v7-zenki.cfg.pressure.heartbeat_ext.secs> // 17,
+            'handler' => qw| v7-zenki.handler.startup_probe_timeout |,
+            'data'    => $data
+        }
+    );
+    return;
+}
+
+delete $instance->{'timer'}->{'startup-probe'};
+delete $instance->{'startup_probe'};
+
+<[base.logs]>->(
+    0,
+    'instance %d [ %s ] no start-up heartbeat '
+        . 'reply [ %s s ] -- start-up error',
+    $instance_id,
+    $zenka_name,
+    $probe->{'timeout'}
+);
+return <[zenka.change_status]>->( $instance_id, qw| error | );
+
+#,,..,.,.,,,.,...,...,,..,.,,,.,,,.,.,..,,..,,..,,...,...,.,.,..,,,.,,,..,,..,
+#XMK27GSC2E3YXYR2TQ3M57GPGIX6C6NMC3L2KFX76IYTIJNI6WSACRYHICKNBYLKNUZDUHWJCKLMK
+#\\\|DBYIUL7ESQRT7FKJH7PPHGFUH3ZG24I324UQZXF2FPDARG56KVB \ / AMOS7 \ YOURUM ::
+#\[7]ZRQ527MRX6OULCVRCPRNDOSMEZ7Y62JOSJDPDWBB6KRXWGXU2CCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
