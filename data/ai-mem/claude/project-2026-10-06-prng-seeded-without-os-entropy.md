@@ -112,6 +112,8 @@ related : [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]],
 
 **2026-10-07 protocol-7.base ROTATED [ live ] :** renamed to `protocol-7.base-anon-2026-10-07`, new key created, `p7c p7-log.archive-anon-table protocol-7.base-anon-2026-10-07` [ key ids matched ], v7-zenki restarted -> `.dlg` reissued 07:52, p-7-r OK, old [L:..] token resolved from the archived table. MISSED STEP [ add to every client-key rotation ] : cube's TOFU pin `remote-keys/incoming/<user>.public` must get the new public key too -- the `authorized/cube/` symlink alone is not enough [ test-auth-keypair got `TOFU: MISMATCH` until the pin was replaced ; cube reads the pin per login, no reload ].
 
+**2026-10-15 rekey step [ built, not yet run live ] :** `p7c p7-log.rekey-anon-table <archived key name>` re-encrypts the archived table under the CURRENT key into table.bin [ tokens unchanged ], reads it back, compares every record, moves the archive to log-anon/retired/. add it to every rotation after archive-anon-table ; the old key is then removable. the 2025 protocol-7.base [ archived as protocol-7.base-anon-2026-10-07 ] came from the weak pre-fix prng -- its archive is guessable until rekeyed AND retired/ + the old key + external copies are deleted.
+
 #,,,,,.,.,,,,,,..,.,.,.,,,...,,,,,...,...,,,,,..,,...,...,...,.,.,,..,.,.,,.,,
 #6YK4DDUAND3WCM7T6I5WAM2SQPCB6UW3FREBMBHR5ZCCLRUTQRKIO7LXGZOUY4D4QWD53RI24VSTG
 #\\\|4LY4X2LHSW3SX725JKQSQG6KZIUB2LVFY4VQERLFTVCZBHZVDJ5 \ / AMOS7 \ YOURUM ::
@@ -120,8 +122,8 @@ related : [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]],
 
 **since 8af54c356 :** the TOFU pin step is `sudo -u protocol-7 p7-keys re-pin cube:<user> <key name | base32 pub>` [ keeps a .bak, no cube reload ] -- not yet run against the real key dirs.
 
-#,,,.,.,,,.,,,...,...,...,,.,,,,.,.,,,..,,..,,..,,...,...,.,.,,,,,...,,.,,..,,
-#4X7ILE5E7QLYH3LXT5CWXYN7Y564FCOJIUJS354D2WK4A2RMBKCG4CH7LSJW6WLWCSUHDALRGWP3G
-#\\\|DLSSOXJDP3YAQYJBAHYLRP7VGBES5RMCFHZF6WM53XVI6F3ZNAK \ / AMOS7 \ YOURUM ::
-#\[7]AHIWSDCOQJ4C7WEZPMQXCJ2WQDWARMF7DRA6B4ZAJUORUOJ4AABY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,.,,,,,,..,,,,.,,.,,,..,,,,,..,,..,,...,.,.,.,.,,.,,,..,..,,,,,,
+#G5O2RHQXIZZSCJB32VYKXYDPECYBWH323JPJ5OZ656VJ252CEIOL7BWETI5DJZNCOJPSZNYAPNJJC
+#\\\|5OSV2JZ3YMKPNVY62XZAZJZB2NTU6IURAE2JYZAYP7I5CJHKDOW \ / AMOS7 \ YOURUM ::
+#\[7]F64OE4SN3SOLTFHS3XAGTN2SW4YFQ4LJLGOPNK36OU6HVXSY7SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
