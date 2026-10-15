@@ -1163,7 +1163,7 @@ sub blob_import {
 ## dedup : the random name reveals nothing about the content, and the stream
 ## is read once, so the keyed-mac name of blob_import
 ## [ two passes over a seekable file ] is neither possible nor needed. returns
-## ( name, size ) [ size : the plaintext byte count ]
+## ( name, size, content id ) [ size : the plaintext byte count ]
 sub blob_import_stream {
     my ( $vault, $in_fh ) = @ARG;
 
@@ -1182,15 +1182,19 @@ sub blob_import_stream {
 
     my $key  = _blob_key( $vault, $name );
     my $size = 0;
+    my $mac  = _blob_name_mac_new($vault);    ## the content's own id ##
     my ( $ok, $err ) = _write_new_file_stream(
         $target,
         sub {
             _blob_write_stream( $vault, $name, $key, $in_fh, $_[0],
-                undef, \$size );
+                $mac, \$size );
         }
     );
     die "vault : $err\n" if not $ok;
-    return ( $name, $size );
+    ## the random name hides nothing new ; the third value is the keyed
+    ## content id a file blob is named by [ equal content, equal id ] -- an
+    ## update import compares it with the previous version's
+    return ( $name, $size, _blob_name_of_mac($mac) );
 }
 
 ## remove a blob this process wrote a moment ago and nothing references -- the
@@ -1625,8 +1629,8 @@ sub gen_password {
 
 1;
 
-#,,,,,.,,,,,.,.,,,,,.,,,,,,,.,.,,,,,.,,.,,,,.,..,,...,...,,,.,...,,,,,...,,,.,
-#26WR3GQIOKQ7XPX36DD4VFYM5W52YO4W5TVGTI4BRVGPATS3E4CEX3V7X6F455MBUR5AT3P5IQRKQ
-#\\\|PZUGP2KNW6XAAMXQNFFVFDQG4GVNBXAJC6RHKY4RKAXHN6TTDS5 \ / AMOS7 \ YOURUM ::
-#\[7]TVWKTHZPKXQ7FPVEA7JD6S3QAMHADRFS5JA7KGYLAALHIX265ODA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,.,,,,..,.,.,,.,,,,.,,.,,..,,.,,,..,,...,..,,,,.,..,,.,.,,,,,..,,
+#BQOWCH7IGGEXXQN46DMHSXOKO5D6SZRFVQEZNYX2H6B42LRUR4S3SJPZUIHUEFCMSEFEMODB4ZSD2
+#\\\|KF6ELNIY3BZFOYYPPQQZPOTPENO3CCGN4ZINWO2GGUDDKVICP4D \ / AMOS7 \ YOURUM ::
+#\[7]I2RZ4HMIYI7PEYJY3X6AR3GXYEQ6HTHFYBBZOJ6AN25ZZGGQN6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
