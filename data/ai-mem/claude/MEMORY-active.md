@@ -198,3 +198,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|6CNESMNB32F4XIWVIC7VUE3C7PNJC2XTHHIS4KCYSYTZOUJQYWW \ / AMOS7 \ YOURUM ::
 #\[7]NAROLKQFDXHHKYBORMXILZBCWGKTIP52TK6IPLZLQY2YXXQ4JIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [sys-deps-autoinstall-stage1](project-2026-10-15-sys-deps-autoinstall-stage1.md) — 68bc74a82 : zenka start waits for its deps [ sys_deps, opt-in per host, none enabled yet ] ; root apt child root-shell hole fixed ; v7-zenki probes never require \ AptPkg in-process ; stage 2 [ bootstrap before Event ] open
+
+#,,,,,,,,,..,,.,,,,.,,.,,,,..,...,.,.,.,,,.,,,..,,...,..,,,.,,..,,...,.,.,,,.,
+#HDLYUCPH72WLLU7LLGIC326V7XPH752NUFRUDHN3SWRPQEFLGW2VY6ADDQB6FJC7JJRKVDBNSJFQA
+#\\\|67NLGMESELJOZABQUQ6JTIK3IDZPT5UXUWSOF2GPASKDQ6E53NC \ / AMOS7 \ YOURUM ::
+#\[7]NZ6BEMYYIRNKAJOVE6BSZFL7HCWFMS4Y4QPEFHD42PSTUQSE7ACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
