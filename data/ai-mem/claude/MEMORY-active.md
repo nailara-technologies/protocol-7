@@ -205,3 +205,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|67NLGMESELJOZABQUQ6JTIK3IDZPT5UXUWSOF2GPASKDQ6E53NC \ / AMOS7 \ YOURUM ::
 #\[7]NZ6BEMYYIRNKAJOVE6BSZFL7HCWFMS4Y4QPEFHD42PSTUQSE7ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [session-handover-deps-service-p7r](project-2026-10-16-session-handover-deps-service-p7r.md) — START HERE 2026-10-16 : auto-install live on 4 servers, p7-deps service cmds, ::: over ssh -W, start gate, probe ; OPEN : taeki remote auth [ user runs ], push+deploy d1e5c123b, 4ZW live
+
+#,,.,,.,,,,..,.,,,,,,,.,.,,,,,,..,..,,..,,.,,,..,,...,...,...,...,,..,..,,,..,
+#SRJIA2BT2YOAU2UG72ENNKGSNNDMBYKV7QEHVGEGDTNVH5LO7AH2WMIBGXLDQTVU4DTYJDYIAWXRK
+#\\\|LBZMXZ4PM4J3PCD4V6Q2MTO5B4LDI5XFAPUERWXWNJIU6CYE2FL \ / AMOS7 \ YOURUM ::
+#\[7]LDYK37E5XIDSP5KX5MGSLE5GHWWPHM4FOJNQZMT422BWI3VOP4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
