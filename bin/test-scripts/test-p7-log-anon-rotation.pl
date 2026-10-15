@@ -223,11 +223,144 @@ ok( $code{'p7-log.anon.resolve'}->('TOKENAAAAAAAA') eq FALSE,
 ok( $code{'p7-log.anon.resolve'}->('TOKENBBBBBBBB') eq 'beta secret',
     '  :.. current token still resolves' );
 
+## === rekey-anon-table : the archive re-encrypted under the current key = ##
+say ':: p7-log.cmd.rekey-anon-table';
+
+compile_module('p7-log.anon.read_table');
+compile_module( 'p7-log.cmd.rekey-anon-table', 'my $call = shift // {};' );
+my $rekey_cmd = sub {
+    return $code{'p7-log.cmd.rekey-anon-table'}->( { args => shift } );
+};
+
+put_key( $archive, 0x41 );    ## the archived key back [ removed above ] ##
+my $archived_table = catfile( $data_dir, 'log-anon', "table.$archive.bin" );
+
+## a second archived record, utf-8 and longer than one block ##
+{
+    my $old_key32 = $code{'p7-log.anon.key'}->($archive);
+    my $fragment  = "gr\xc3\xbc\xc3\x9fe aus einem l\xc3\xa4ngeren text";
+    my $pad_len   = 16 - ( length($fragment) % 16 );
+    my $padded    = $fragment . ( chr($pad_len) x $pad_len );
+    AMOS7::Twofish::key_init( $old_key32, qw| encryption t | ) or die;
+    my $ct = AMOS7::Twofish::encrypt( qw| t |, \$padded )->$*;
+    AMOS7::Twofish::delete_table_entry(qw| encryption t |);
+    open( my $fh, '>>:raw', $archived_table ) or die;
+    print {$fh} pack( 'a16 n', 'TOKENDDDDDDDD', length $ct ) . $ct;
+    ## the same record twice                                             ##
+    ## [ store's dedup is per process : a restart writes a token again ] ##
+    print {$fh} pack( 'a16 n', 'TOKENDDDDDDDD', length $ct ) . $ct;
+    close($fh);
+}
+
+my ( $records, $err )
+    = $code{'p7-log.anon.read_table'}
+    ->( $archived_table, $code{'p7-log.anon.key'}->($archive) );
+ok( ref $records eq 'ARRAY'
+        && @{$records} == 3
+        && $records->[0][0] eq 'TOKENAAAAAAAA'
+        && $records->[0][1] eq 'alpha secret',
+    'read_table : all three archived records under the archived key'
+);
+( $records, $err )
+    = $code{'p7-log.anon.read_table'}
+    ->( $archived_table, $code{'p7-log.anon.key'}->() );
+ok( !defined $records && $err =~ m|padding|,
+    '  :.. under another key : undef, bad padding'
+);
+
+ok( $rekey_cmd->('')->{'mode'} eq 'false', 'rekey : no name refused' );
+ok( $rekey_cmd->('svc.base')->{'data'} =~ m|current key name|,
+    'rekey : the current key name refused' );
+ok( $rekey_cmd->('other.base')->{'data'} =~ m|no archived table|,
+    'rekey : a name without an archive refused' );
+
+## an archive whose key id does not match the named key ##
+{
+    my $fake = catfile( $data_dir, 'log-anon', 'table.other.base.bin' );
+    open( my $fh, '>', $fake ) or die;
+    close($fh);
+    open( $fh, '>', "$fake.key" ) or die;
+    print {$fh} "WRONGKEYIDWRONGKEYIDWRONGK\n";
+    close($fh);
+    ok( $rekey_cmd->('other.base')->{'data'} =~ m|did not write|,
+        'rekey : an archive another key wrote refused'
+    );
+    unlink $fake, "$fake.key";
+}
+
+## a token in both tables with different content : nothing changes ##
+{
+    ## slurped in its own block : a local $/ would reach store's chomp ##
+    my $before = do {
+        open( my $in, '<:raw', $table ) or die;
+        local $INPUT_RECORD_SEPARATOR;
+        readline($in);
+    };
+    ok( $code{'p7-log.anon.store'}
+            ->( [ [ 'TOKENDDDDDDDD', 'a different text' ] ] ) == 1,
+        'conflict set-up : the archived token stored with other content'
+    );
+    ok( $rekey_cmd->($archive)->{'data'} =~ m|different content|,
+        'rekey : conflicting token refused' );
+    ok( -e $archived_table, '  :.. archive kept' );
+    open( my $fh, '>:raw', $table ) or die;    ## undo the set-up ##
+    print {$fh} $before;
+    close($fh);
+    delete $data{'p7-log'}{'anon'}{'seen'};
+}
+
+my $reply_rk = $rekey_cmd->($archive);
+ok( $reply_rk->{'mode'} eq 'size'
+        && $reply_rk->{'data'}
+        =~ m|^2 records of '\Q$archive\E' under the current key \[ 2 new \]\n|
+        && $reply_rk->{'data'} =~ m|no longer needed|,
+    "rekey '$archive' : size reply, 2 records, 2 new"
+) or say "       $reply_rk->{'data'}";
+my $retired
+    = catfile( $data_dir, 'log-anon', 'retired', "table.$archive.bin" );
+ok( -e $retired
+        && -e "$retired.key"
+        && !-e $archived_table
+        && !-e "$archived_table.key",
+    '  :.. archive + key id moved to retired/'
+);
+ok( !exists $data{'p7-log'}{'anon'}{'archive_key32'}{$archive},
+    '  :.. archived key32 dropped from the cache'
+);
+
+## the old key gone for good : old tokens resolve from the current table ##
+unlink catfile( $key_dir, "$archive.secret" );
+ok( $code{'p7-log.anon.resolve'}->('TOKENAAAAAAAA') eq 'alpha secret',
+    'old key removed : old token resolves under the current key'
+);
+{  ## resolve decodes utf-8 ; compared as bytes [ the harness's use bytes ] ##
+    my $text = $code{'p7-log.anon.resolve'}->('TOKENDDDDDDDD');
+    utf8::encode($text);
+    ok( $text eq "gr\xc3\xbc\xc3\x9fe aus einem l\xc3\xa4ngeren text",
+        '  :.. utf-8 record intact' );
+}
+ok( $code{'p7-log.anon.resolve'}->('TOKENBBBBBBBB') eq 'beta secret',
+    '  :.. current token unchanged' );
+ok( $rekey_cmd->($archive)->{'data'} =~ m|no archived table|,
+    'rekey again : nothing left to rekey' );
+
+## a repeated run after an interrupted move adds nothing ##
+{
+    rename( $retired,       $archived_table )       or die;
+    rename( "$retired.key", "$archived_table.key" ) or die;
+    put_key( $archive, 0x41 );
+    my $size_before = -s $table;
+    my $again       = $rekey_cmd->($archive);
+    ok( $again->{'data'} =~ m|\[ 0 new \]| && -s $table == $size_before,
+        'rekey after an interrupted move : 0 new, table unchanged'
+    ) or say "       $again->{'data'}";
+}
+
 ## === keyed tokens [ p7-log.anon.replace ] ============================= ##
 say ':: p7-log.anon.replace : keyed tokens';
 
-## stand-ins : classify marks 'host-a' ; the checksum is any stable hash [ ##
-## the bmw-l13 itself is not under test -- only what goes into it ]        ##
+## stand-ins : classify marks 'host-a' ; the checksum is any stable hash ##
+## [ the bmw-l13 itself is not under test -- only what goes into it ]    ##
 require Digest::SHA;
 my $sum_undef = FALSE;
 $code{'chk-sum.bmw.L13-str'} = sub {
@@ -282,8 +415,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,.,,..,,,,.,..,,...,.,.,,..,...,,.,,.,.,..,,...,..,,.,,,.,,,.,,,,,.,..,,
-#KHW346Z7WS6ASC27PT5AENW4QH5KCXLZWO7PO5BLUHSQJVAGWYX2CJQ6JDXT7I7IZ5ULIZGKCTGBE
-#\\\|ILEZKYVEMTXK7ZZ4KKEXGN7EATU2QUGHZ47GOVAXQYT6OFVXX5U \ / AMOS7 \ YOURUM ::
-#\[7]JTG7NWDKFGFPWGH5KAGI7QKS46FPJJ7WNFVZGGNNRPPTRJQ6F6AY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,..,,,..,...,,,.,,,.,,,,,..,,..,,...,...,.,.,,,.,.,,,,.,,,,,,
+#W7SIZQGOSW23IFLGOCVOYMV32SYWO7QDDDXIHF4QBDUWAFLQLBFNJ273OOMHNXTJ2XEKBYJDSQHBC
+#\\\|SPDGEHUHKEZMNC5L7GRPUHVMSNBXM7GD3DO7S3AX75KBSJ7GQH2 \ / AMOS7 \ YOURUM ::
+#\[7]IIXRWQLWWZODKCJKVRCIV7726AAOENUVPD2BDVURHGIXBU3O3ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

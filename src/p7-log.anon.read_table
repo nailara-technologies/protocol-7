@@ -1,0 +1,82 @@
+## [:< ##
+
+# name   = p7-log.anon.read_table
+# descr  = read every record of an anon table under one key
+# param  = <table path> <key32>
+# return = aref of [ token, plaintext bytes ] in file order, undef with a
+#          reason [ second value ] -- unreadable, truncated or a record
+#          that does not decrypt [ the wrong key ]
+#
+# whole-table counterpart of anon.resolve's scan [ rekey-anon-table ] :
+# strict, one bad record fails the read, nothing is skipped silently
+
+my ( $path, $key32 ) = @ARG;
+
+return ( undef, 'no table path' ) if not length( $path // '' );
+return ( undef, 'no key' )        if not defined $key32;
+
+open( my $table_fh, qw| < |, $path )
+    or return ( undef, "cannot open $path : " . <[base.str.os_err]> );
+binmode($table_fh);
+flock( $table_fh, 1 );    ## LOCK_SH ##
+
+my @records;
+my $error;
+while (TRUE) {
+    my $header = '';
+    my $read   = read( $table_fh, $header, 18 );
+    if ( not defined $read ) {
+        $error = "read error : " . <[base.str.os_err]>;
+        last;
+    }
+    last if $read == 0;    ## end of table ##
+    if ( $read < 18 ) {
+        $error = sprintf 'truncated record header after %d records',
+            scalar @records;
+        last;
+    }
+
+    my ( $token, $ct_len ) = unpack( 'a16 n', $header );
+    $token =~ s|\0.*$||s;    ## strip key field padding ##
+
+    my $ciphertext = '';
+    $read = read( $table_fh, $ciphertext, $ct_len );
+    if ( not defined $read or $read < $ct_len or $ct_len % 16 ) {
+        $error = "truncated record '$token'";
+        last;
+    }
+
+    AMOS7::Twofish::key_init( $key32, qw| decryption log_anon_rekey | )
+        or do { $error = 'twofish key init failed'; last };
+    my $dec_ref
+        = AMOS7::Twofish::decrypt( qw| log_anon_rekey |, \$ciphertext );
+    AMOS7::Twofish::delete_table_entry(qw| decryption log_anon_rekey |);
+    if ( ref $dec_ref ne qw| SCALAR | ) {
+        $error = "record '$token' does not decrypt";
+        last;
+    }
+
+    ## strip pkcs7 padding -- every pad byte checked [ a wrong key leaves ##
+    ## random bytes, this catches it far more often than the last byte ]  ##
+    my $plain   = $dec_ref->$*;
+    my $pad_len = ord( substr( $plain, -1 ) );
+    if (   $pad_len < 1
+        or $pad_len > 16
+        or $pad_len > length($plain)
+        or substr( $plain, -$pad_len ) ne chr($pad_len) x $pad_len ) {
+        $error = "record '$token' : bad padding [ wrong key ? ]";
+        last;
+    }
+
+    push @records, [ $token, substr( $plain, 0, length($plain) - $pad_len ) ];
+}
+close($table_fh);
+
+return ( undef, $error ) if defined $error;
+return \@records;
+
+#,,..,..,,,,,,...,..,,,..,...,,,,,...,...,,.,,..,,...,..,,..,,,..,..,,,,,,,,.,
+#6HJNUX7LRULFJSQLMOATVKXBHEJBKECY4D3YXIGCNVEEMUVP6JXVNNDOXFI36C3CEFMD2YWO7QBA6
+#\\\|E4QG6HGCQ6IALLXQJBRCIOYEXXCSX6PSK7MJJ2ICVNB47TJSR5M \ / AMOS7 \ YOURUM ::
+#\[7]FJBW7SRCPY2THWH6QJO2336WQ4KBXGT26X5JC4O7KPHL6EEYUMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

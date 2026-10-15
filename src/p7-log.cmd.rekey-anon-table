@@ -1,0 +1,149 @@
+## [:< ##
+
+# name  = p7-log.cmd.rekey-anon-table
+# param = <archived key name>
+# descr = re-encrypt an archived anon table under the current key
+#
+# after archive-anon-table the old key must stay to resolve old tokens.
+# this re-encrypts every record of log-anon/table.<name>.bin under the
+# CURRENT key into the current table [ tokens unchanged, so old [L:..]
+# tokens keep resolving ], reads the current table back and compares
+# every record, then moves the archive to log-anon/retired/. the old
+# key is no longer needed by p7-log afterwards -- removing it stays a
+# separate step [ p7-keys remove <name> ]. a failed check moves nothing.
+
+my $args   = $call->{'args'} // '';
+my ($name) = grep {length} split m{\s+}, $args;
+
+my $false = sub { return { 'mode' => qw| false |, 'data' => shift } };
+
+return $false->('usage : rekey-anon-table <archived key name>')
+    if not defined $name;
+return $false->("'$name' is not a key name")
+    if $name !~ m|\A[0-9A-Za-z_\-][0-9A-Za-z\.\-_]{0,254}\z|;
+
+my $key32 = <[p7-log.anon.key]>;    ## sets the current key name ##
+return $false->('no usable current key [ see log ]') if not defined $key32;
+return $false->("'$name' is the current key name")
+    if $name eq ( <p7-log.anon.key_name> // '' );
+
+<p7-log.anon.table_path> //= sprintf qw| %s/log-anon/table.bin |,
+    <[file.zenka_dir.data_path]>;
+my $table_path = <p7-log.anon.table_path>;
+( my $table_dir = $table_path ) =~ s|/[^/]+$||;
+
+my $archived    = catfile( $table_dir, "table.$name.bin" );
+my $archived_id = $archived . qw| .key |;
+return $false->("no archived table for '$name' [ $archived ]")
+    if not -e $archived;
+return $false->("no key id for $archived [ nothing to verify against ]")
+    if not -e $archived_id;
+
+## the named key wrote the archive [ as archive-anon-table checks ] ##
+my $table_id = <[file.slurp]>->($archived_id)->$* // '';
+chomp $table_id;
+my $named_id = <[p7-log.anon.key_id]>->($name);
+return $false->("key '$name' not usable [ see log ]")
+    if not defined $named_id;
+return $false->("key '$name' did not write $archived [ key ids differ ]")
+    if $named_id ne $table_id;
+
+my $old_key32 = <[p7-log.anon.key]>->($name);
+return $false->("key '$name' not usable [ see log ]")
+    if not defined $old_key32;
+
+my ( $old_records, $old_err )
+    = <[p7-log.anon.read_table]>->( $archived, $old_key32 );
+return $false->("cannot read $archived : $old_err")
+    if not defined $old_records;
+
+## what the current table holds already [ a repeated run adds nothing ] ##
+my $current = sub {
+    return ( {}, undef ) if not -e $table_path;
+    my ( $records, $err )
+        = <[p7-log.anon.read_table]>->( $table_path, $key32 );
+    return ( undef, $err ) if not defined $records;
+    return ( { map { $ARG->[0] => $ARG->[1] } @{$records} }, undef );
+};
+my ( $have, $have_err ) = $current->();
+return $false->("cannot read $table_path : $have_err") if not defined $have;
+
+my ( @pairs, %archive );
+foreach my $record ( @{$old_records} ) {
+    my ( $token, $plain ) = @{$record};
+    return $false->(
+        "token '$token' twice in $archived with different content")
+        if exists $archive{$token} and $archive{$token} ne $plain;
+    ## the same record again [ restarts ] ##
+    next if exists $archive{$token};
+    $archive{$token} = $plain;
+    if ( exists $have->{$token} ) {
+        return $false->( "token '$token' is in the current table "
+                . 'with different content -- nothing changed' )
+            if $have->{$token} ne $plain;
+        next;
+    }
+    push @pairs, [ $token, $plain ];
+}
+
+## store skips tokens it wrote in this process ; each one is checked below ##
+my $stored = scalar @pairs ? <[p7-log.anon.store]>->( \@pairs ) : 0;
+return $false->('storing under the current key failed [ see log ]')
+    if scalar @pairs and not $stored;
+
+## read back : every archived record, byte-identical, under the current key ##
+( $have, $have_err ) = $current->();
+return $false->("cannot read back $table_path : $have_err")
+    if not defined $have;
+my @missing
+    = grep { not exists $have->{$ARG} or $have->{$ARG} ne $archive{$ARG} }
+    sort keys %archive;
+return $false->(
+    sprintf '%d of %d records missing after the rekey -- archive kept [ %s ]',
+    scalar @missing,
+    scalar keys %archive,
+    $missing[0]
+) if scalar @missing;
+
+## move the archive out of anon.resolve's reach [ table.*.bin ] ##
+my $retired_dir = catfile( $table_dir, qw| retired | );
+if ( not -d $retired_dir ) {
+    my ( $mk_ok, $err ) = <[file.make_path]>->( $retired_dir, 0750 );
+    return $false->(
+        "rekeyed, but cannot create $retired_dir : " . ( $err // '?' ) )
+        if not $mk_ok;
+}
+my $retired    = catfile( $retired_dir, "table.$name.bin" );
+my $retired_id = $retired . qw| .key |;
+return $false->("rekeyed, but $retired exists already -- archive kept")
+    if -e $retired or -e $retired_id;
+return $false->("rekeyed, but cannot move $archived [ $OS_ERROR ]")
+    if not rename( $archived, $retired );
+if ( not rename( $archived_id, $retired_id ) ) {
+    my $why = "$OS_ERROR";
+    rename( $retired, $archived );    ## back : table + id stay paired ##
+    return $false->("rekeyed, but cannot move $archived_id [ $why ]");
+}
+
+delete <p7-log.anon.archive_key32>->{$name};
+
+<[base.logs]>->(
+    0, 'p7-log.anon : archive %s rekeyed [ %d records, %d new ]',
+    $name, scalar keys %archive, $stored
+);
+<[base.logs]>->( 2, ' :. %s', $retired );
+return {    ## size mode [ as archive-anon-table ] ##
+    'mode' => qw| size |,
+    'data' => sprintf(
+        "%d records of '%s' under the current key [ %d new ]\n :. "
+            . "archive moved : %s\n :. key '%s' no longer needed by p7-log\n",
+        scalar keys %archive,
+        $name, $stored, $retired, $name
+    )
+};
+
+#,,.,,,..,,.,,,,,,.,,,,..,,.,,.,.,.,.,,,.,..,,..,,...,.,,,...,,,,,...,.,.,.,,,
+#TOQGBIAQKLVWAT4RDNHTSXZSY3LTHGULBNCIWVZV32HDMTB7FEIKOAHSXB37BC3NUPYV3GAGOKG5K
+#\\\|PFASZI35VSPKP3GEIPPISUPH2A3R5ZMH2FKUV46OR2ITVCSQF54 \ / AMOS7 \ YOURUM ::
+#\[7]M3M3VITNXFQUCIPFAKBN56ACJL6B7RVYLL4ZEC4J5RQDK5FUR4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
