@@ -5,14 +5,24 @@ use strict;
 use English;
 use warnings;
 use File::Spec;
-use Cwd        qw| abs_path |;
-use FindBin    qw| $RealBin |;
-use File::Temp qw| tempdir |;
+use Cwd     qw| abs_path |;
+use FindBin qw| $RealBin |;
 
 ## prepares a fresh debian / ubuntu vm so that 'bin/format-code -c' and the ##
 ## standalone nameserv tests [ entry stage1, sync stage2 ] run. apt first,  ##
 ## cpanm only for modules apt has no package for. idempotent : a module     ##
 ## that already loads is skipped, a second run installs nothing             ##
+
+BEGIN {
+    my $pm_lib = File::Spec->catdir(
+        $RealBin,
+        ( File::Spec->updir ) x 3,
+        qw| data lib-path pm |
+    );
+    unshift( @INC, $pm_lib ) if -d $pm_lib;
+}
+
+use AMOS7::deps::module qw| load_known_deps install_pm_src |;
 
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
@@ -33,12 +43,8 @@ my @modules = (
     [ qw| Crypt::Ed25519 |, undef ],
 );
 
-## local sources of the cpan-only modules, in build order ##
-## [ data/lib-path/pm-src/<dir>, like crypt-curve25519 ]  ##
-my %pm_src = (
-    'Digest::BMW'    => [qw| digest-bmw |],
-    'Crypt::Ed25519' => [qw| canary-stability crypt-ed25519 |],
-);
+## local pm-src sources of the cpan-only modules come from    ##
+## src/base.known_dependencies [ data/lib-path/pm-src/<dir> ] ##
 
 ## apt packages only needed when a cpan module has to be built [ xs ] ##
 my @cpan_build_pkgs = qw| cpanminus build-essential |;
@@ -108,25 +114,22 @@ if (@cpan_needed) {
     if ( not apt_installed(qw| cpanminus |) ) {
         push @failed, "cpanm not available [ cpan modules : @cpan_needed ]";
     } else {
-        ## local sources first [ data/lib-path/pm-src, in build order ] :  ##
-        ## reproducible, and cloud sessions cannot reach cpan [ proxy ] -- ##
-        ## built from a temporary copy, so no build files land in the tree ##
+        ## local sources first [ data/lib-path/pm-src, in build order, via ##
+        ## AMOS7::deps::module::install_pm_src ] : reproducible, and cloud ##
+        ## sessions cannot reach cpan [ proxy ] -- built from a temporary  ##
+        ## copy, so no build files land in the tree                        ##
         $ENV{'PERL_CANARY_STABILITY_NOPROMPT'} = 1; ## else it asks [ tty ] ##
+        my $known_deps = load_known_deps($p7_root);
         foreach my $module (@cpan_needed) {
-            my @src_dirs = @{ $pm_src{$module} // [] };
-            my $local_ok = @src_dirs ? 1 : 0;
-            foreach my $src_dir (@src_dirs) {
-                my $path = File::Spec->catdir( $p7_root,
-                    qw| data lib-path pm-src |, $src_dir );
-                if ( not -d $path ) { $local_ok = 0; last }
-                my $tmp = tempdir( CLEANUP => 1 );
-                run( qw| cp -r |, $path, $tmp ) or do { $local_ok = 0; last };
-                print ":\n: installing [ pm-src ] : $src_dir\n:\n";
-                run(qw| cpanm --notest --quiet |,
-                    File::Spec->catdir( $tmp, $src_dir )
-                ) or do { $local_ok = 0; last };
+            my @src_dirs = @{ $known_deps->{$module}{'pm_src'} // [] };
+            if (@src_dirs) {
+                print ":\n: installing [ pm-src ] : @src_dirs\n:\n";
+                my $local_ok = install_pm_src( $p7_root, @src_dirs );
+                next if $local_ok and module_loads($module);
+                print ":\n: warning : pm-src build "
+                    . "failed [ falling back to cpanm ]\n"
+                    if not $local_ok;
             }
-            next if $local_ok and module_loads($module);
             print ":\n: installing [ cpanm ] : $module\n:\n";
             run( qw| cpanm --notest --quiet |, $module )
                 or push @failed, "cpanm $module";
@@ -215,8 +218,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,..,,,.,,,,,...,.,.,,..,,..,.,,,,.,,.,.,.,.,..,,...,...,,..,,.,,...,.,,,.,,,
-#RQ5KWXARIKTS7SVYGFABGPTQNYKSSKCDQPTITUWGB6B2VOOX4ZIMDX6PC4DSWK5RMOUMFCFWQJ526
-#\\\|7D4SFMRWNPW43GRA7XIHFMWNXWQLHLBGJHM3VIZETHY2JIPI2YX \ / AMOS7 \ YOURUM ::
-#\[7]7PQPOXQ3E44D7KYVZ3A4P46KHOWNHIT4NNDG6RPNMCBCSMASZ2CA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,.,.,,,..,,.,.,...,,,,,.,.,.,.,..,,...,...,..,,..,,,,,,..,,,,,,
+#FPVP2IRQ6CZ6EVQ3UIGRRZR7KPPABUK5AHN37GKVYBFS6LCZQZYQJMZFFSDBS76SDA3EM3AO5TOHI
+#\\\|B47DGUTZO7LQWPCPTJ6PWFYVXSRLTEYKC7AS6DKB3NDFID4DNVB \ / AMOS7 \ YOURUM ::
+#\[7]MUKF7NIZZDO5ZEZFBVXZFWHUB6JLLJ4ZFYAXE627V2YPMZYLNUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

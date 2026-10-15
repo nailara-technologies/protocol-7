@@ -13,6 +13,8 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <pwd.h>
+#include <strings.h>
 
 char *src_bmw_b32 = "[BMW_FILE_CHkSUM]";
 
@@ -395,6 +397,80 @@ static int is_safe_token(const char *s, size_t max, const char *extra)
             return 0;
     }
     return 1;
+}
+
+/* ':::' alias mode : the target is an alias [ no dots ] resolved from the
+   calling user's ~/.ssh/config 'Host <alias>' block, its 'HostName'. a
+   dotted word is never a host here [ commands \ routes are dotted ] -- a
+   slipped '::: zenka.cmd arg' fails before any dns lookup or connect, and
+   the entry says connecting to that system from this host is intended.
+   no HostName : refused [ ssh would resolve the alias itself via dns ].
+   'Host' patterns [ * ? ! ] never match ; the first matching block wins
+   [ as in ssh ] ; Match \ Include are not followed.
+   0 ok [ hostname filled ], 1 no such Host, 2 no HostName, 3 no config */
+static int resolve_host_alias(const char *alias, char *hostname, size_t max)
+{
+    const char *home = NULL;
+    struct passwd *pw = getpwuid(getuid());   /* the real user, not $HOME */
+    if (pw != NULL && pw->pw_dir != NULL && pw->pw_dir[0] == '/')
+        home = pw->pw_dir;
+    if (home == NULL)                          /* static binary without nss */
+        home = secure_getenv("HOME");
+    if (home == NULL || home[0] != '/')
+        return 3;
+
+    char path[1024];
+    if (snprintf(path, sizeof(path), "%s/.ssh/config", home)
+        >= (int)sizeof(path))
+        return 3;
+    FILE *fh = fopen(path, "r");
+    if (fh == NULL)
+        return 3;
+
+    char line[1024];
+    int in_block = 0, found = 0;
+    while (fgets(line, sizeof(line), fh) != NULL) {
+        char *key = line + strspn(line, " \t");
+        if (*key == '#' || *key == '\n' || *key == '\0')
+            continue;
+        char *val = key + strcspn(key, " \t=");
+        if (*val == '\0')
+            continue;
+        *val++ = '\0';
+        val += strspn(val, " \t=");
+        val[strcspn(val, "\r\n")] = '\0';
+
+        if (strcasecmp(key, "Host") == 0 || strcasecmp(key, "Match") == 0) {
+            if (found)
+                break;                         /* the matched block ended */
+            in_block = 0;
+            if (strcasecmp(key, "Match") == 0)
+                continue;
+            char *save = NULL;
+            for (char *tok = strtok_r(val, " \t", &save); tok != NULL;
+                 tok = strtok_r(NULL, " \t", &save)) {
+                if (strpbrk(tok, "*?!") != NULL)
+                    continue;                  /* patterns never match */
+                if (strcmp(tok, alias) == 0) {
+                    in_block = 1;
+                    found = 1;
+                    break;
+                }
+            }
+            continue;
+        }
+        if (in_block && strcasecmp(key, "HostName") == 0) {
+            char *end = val + strcspn(val, " \t");
+            *end = '\0';
+            fclose(fh);
+            if (strlen(val) == 0 || strlen(val) >= max)
+                return 2;
+            strcpy(hostname, val);
+            return 0;
+        }
+    }
+    fclose(fh);
+    return found ? 2 : 1;
 }
 
 /* copy output line n [ 0 based ] of buf into line, without the newline */
@@ -827,6 +903,43 @@ int main( int argc, char * argv[] ) {
 
     /* Parse hostname[:port] format */
     char * hostname_arg = argv[1];
+    char * ssh_alias = NULL;    /* ':::' : the link goes through ssh -W */
+
+    /* ':::' : argv[1] is an alias [ no dots ] from ~/.ssh/config */
+    const char *prog_name = strrchr(argv[0], '/');
+    prog_name = prog_name ? prog_name + 1 : argv[0];
+    if ( strcmp(prog_name, ":::") == 0 ) {
+        static char alias_host[254];
+        char alias[64] = {0};
+        size_t alias_len = strcspn(hostname_arg, ":");
+        if ( alias_len == 0 || alias_len >= sizeof(alias) ) {
+            fprintf(stderr, "<< ':::' expects a host alias >>\n");
+            exit(2);
+        }
+        memcpy(alias, hostname_arg, alias_len);
+        ssh_alias = strdup(alias);
+        if ( ! is_safe_token(alias, sizeof(alias) - 1, "_-") ||
+             alias[0] == '-' ) {
+            fprintf(stderr, "<< ':::' takes a host alias [ no dots ] : '%s' "
+                    "-- 'p-7-r <hostname> ..' for a direct name >>\n",
+                    alias);
+            exit(2);
+        }
+        int rc = resolve_host_alias(alias, alias_host, sizeof(alias_host));
+        if ( rc != 0 ) {
+            fprintf(stderr, "<< ':::' : %s for '%s' in ~/.ssh/config >>\n",
+                    rc == 1 ? "no Host entry" :
+                    rc == 2 ? "no HostName" : "not readable", alias);
+            exit(2);
+        }
+        if ( verbose )
+            fprintf(stderr, ": alias '%s' -> %s\n", alias, alias_host);
+        /* rebuild 'hostname[:port]' with the resolved name */
+        static char alias_arg[262];
+        snprintf(alias_arg, sizeof(alias_arg), "%s%s", alias_host,
+                 hostname_arg + alias_len);
+        hostname_arg = alias_arg;
+    }
     char * port_sep = strchr(hostname_arg, ':');
 
     if ( port_sep != NULL ) {
@@ -902,44 +1015,86 @@ int main( int argc, char * argv[] ) {
     }
     strcat( cmd_str, "\n" );
 
-    /* Connect to remote server via TCP */
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;      /* Allow IPv4 or IPv6 */
-    hints.ai_socktype = SOCK_STREAM;  /* TCP */
-    hints.ai_flags = 0;
-    hints.ai_protocol = 0;            /* Any protocol */
+    /* ':::' : the servers expose ssh only, their cube stays local
+       [ data/md/design/HOST-SETUP.md 'transports' ]. 'ssh -W
+       127.0.0.1:<port> <alias>' on one end of a socketpair is the link :
+       ssh applies the alias' ~/.ssh/config [ user, port, keys, jumps ],
+       authenticates the server by known_hosts, opens no local port and
+       ends with this process ; the p7 host-root pin is checked against
+       the alias' HostName on top. ssh's own prompts and errors go to the
+       terminal [ /dev/tty, stderr ] */
+    if ( ssh_alias != NULL ) {
+        int sv[2];
+        if ( socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv) != 0 ) {
+            fprintf(stderr, "<< socketpair : %s >>\n", strerror(errno));
+            return 3;
+        }
+        char ssh_target[300];
+        snprintf(ssh_target, sizeof(ssh_target), "127.0.0.1:%s", remote_port);
+        pid_t ssh_pid = fork();
+        if ( ssh_pid < 0 ) {
+            fprintf(stderr, "<< fork : %s >>\n", strerror(errno));
+            return 3;
+        }
+        if ( ssh_pid == 0 ) {
+            /* dup2 clears close-on-exec on 0 and 1 only */
+            if ( dup2(sv[1], 0) < 0 || dup2(sv[1], 1) < 0 )
+                _exit(127);
+            char *ssh_argv[] = { "ssh", "-W", ssh_target, "--", ssh_alias,
+                                 NULL };
+            execvp("ssh", ssh_argv);
+            fprintf(stderr, "<< cannot run ssh : %s >>\n", strerror(errno));
+            _exit(127);
+        }
+        close(sv[1]);
+        socket_fd = sv[0];
+        if ( verbose )
+            fprintf(stderr, ": link through ssh -W %s %s [ pid %d ]\n",
+                    ssh_target, ssh_alias, (int)ssh_pid);
+    } else {
 
-    int gai_err = getaddrinfo(remote_host, remote_port, &hints, &result);
-    if (gai_err != 0) {
-        fprintf(stderr, "<< getaddrinfo error : %s >>\n", gai_strerror(gai_err));
-        return 3;
-    }
+        /* Connect to remote server via TCP */
+        memset(&hints, 0, sizeof(struct addrinfo));
+        hints.ai_family = AF_UNSPEC;      /* Allow IPv4 or IPv6 */
+        hints.ai_socktype = SOCK_STREAM;  /* TCP */
+        hints.ai_flags = 0;
+        hints.ai_protocol = 0;            /* Any protocol */
 
-    /* Try each address until we successfully connect */
-    for (rp = result; rp != NULL; rp = rp->ai_next) {
-        /* close-on-exec : helper processes never inherit the link */
-        socket_fd = socket(rp->ai_family, rp->ai_socktype | SOCK_CLOEXEC,
-                           rp->ai_protocol);
-        if (socket_fd == -1)
-            continue;
+        int gai_err = getaddrinfo(remote_host, remote_port, &hints, &result);
+        if (gai_err != 0) {
+            fprintf(stderr, "<< getaddrinfo error : %s >>\n", gai_strerror(gai_err));
+            return 3;
+        }
 
-        if (connect(socket_fd, rp->ai_addr, rp->ai_addrlen) != -1)
-            break;  /* Success */
+        /* Try each address until we successfully connect */
+        for (rp = result; rp != NULL; rp = rp->ai_next) {
+            /* close-on-exec : helper processes never inherit the link */
+            socket_fd = socket(rp->ai_family, rp->ai_socktype | SOCK_CLOEXEC,
+                               rp->ai_protocol);
+            if (socket_fd == -1)
+                continue;
 
-        close(socket_fd);
-    }
+            if (connect(socket_fd, rp->ai_addr, rp->ai_addrlen) != -1)
+                break;  /* Success */
 
-    freeaddrinfo(result);
+            close(socket_fd);
+        }
 
-    if (rp == NULL) {
-        fprintf(stderr, "<< connection not successful : %s:%s >>\n",
-                remote_host, remote_port);
-        return 3;
-    }
+        freeaddrinfo(result);
+
+        if (rp == NULL) {
+            fprintf(stderr, "<< connection not successful : %s:%s >>\n",
+                    remote_host, remote_port);
+            return 3;
+        }
+    }    /* direct tcp */
 
     /* Read protocol banner first */
     char protocol_banner[512] = {0};
     if (read_line(socket_fd, protocol_banner, sizeof(protocol_banner)) < 0) {
+        if ( ssh_alias != NULL )
+            fprintf(stderr, "<< no answer through 'ssh -W' to '%s' "
+                    "[ ssh's message above, if any ] >>\n", ssh_alias);
         fprintf(stderr, "<< error reading protocol banner >>\n");
         return 4;
     }

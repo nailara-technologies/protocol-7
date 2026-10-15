@@ -19,6 +19,13 @@ use AMOS7::deps::module qw(
     scan_zenki_pm_deps
     probe_module
     resolve_install
+    install_pm_src
+);
+use AMOS7::deps::service qw(
+    install
+    enable
+    disable
+    check
 );
 use AMOS7::deps::os_package qw(
     detect_os
@@ -122,6 +129,15 @@ if ( $cmd eq 'check' ) {
     validate_zenka_declarations(@ARGV);
 } elsif ( $cmd eq 'dist-upgrade' ) {
     run_dist_upgrade(@ARGV);
+} elsif ( $cmd eq 'install-service' ) {
+    cmd_install_service();
+} elsif ( $cmd eq 'enable-service' ) {
+    cmd_enable_service(1);
+} elsif ( $cmd eq 'disable-service' ) {
+    cmd_enable_service(0);
+} elsif ( $cmd eq 'check-service' ) {
+    my $all_ok = cmd_check_service();
+    exit( $all_ok ? 0 : 1 );
 } elsif ( $cmd eq 'help' || $cmd eq '--help' || $cmd eq '-h' ) {
     show_help();
 } else {
@@ -412,17 +428,43 @@ sub install_profile {
                 "${blacklight}::${reset}   ${TRUE_color}installing${reset} "
                 . "${neon_green}$module${reset}...\n";
 
-            my $cmd
-                = ( $cpan_cmd eq 'cpanm' )
-                ? "cpanm -n $module"
-                : "cpan -T $module 2>&1 | grep -v 'Loading internal'";
+            ## local pm-src sources first, cpan as fallback -- the report ##
+            ## says which one was used                                    ##
+            my $resolved       = resolve_install( $module, $known_deps );
+            my $installed_from = '';
 
-            my $result = system($cmd);
+            if ( $resolved->{method} eq 'pm_src' ) {
+                print "${blacklight}::${reset}   ${TRUE_color}building "
+                    . "from local sources${reset}: ${neon_green}"
+                    . join(
+                    "${reset}, " . "${neon_green}",
+                    @{ $resolved->{dirs} }
+                    ) . "${reset}\n";
+                if ( install_pm_src( $P7_ROOT, @{ $resolved->{dirs} } ) ) {
+                    $installed_from = 'pm-src';
+                } else {
+                    print "${blacklight}::${reset}   ${neon_amber}pm-src "
+                        . "build failed -- falling back to "
+                        . "CPAN${reset}\n";
+                }
+            }
 
-            if ( $result == 0 ) {
+            if ( not length $installed_from ) {
+                my $cmd
+                    = ( $cpan_cmd eq 'cpanm' )
+                    ? "cpanm -n $module"
+                    : "cpan -T $module 2>&1 | grep -v 'Loading internal'";
+
+                my $result = system($cmd);
+                $installed_from = 'cpan' if $result == 0;
+            }
+
+            if ( length $installed_from ) {
                 print
                     "${blacklight}::${reset}   ${TRUE_color}$module${reset} "
-                    . "${neon_green}installed${reset}\n";
+                    . "${neon_green}installed${reset} ${blacklight}(via "
+                    . "${TRUE_color}$installed_from${blacklight})${reset}"
+                    . "\n";
             } else {
                 print
                     "${blacklight}::${reset}   ${TRUE_color}$module${reset} "
@@ -710,6 +752,82 @@ sub validate_zenka_declarations {
         . "${neon_green}validation complete${reset}\n\n";
 }
 
+##[ SERVICE COMMANDS ]########################################################
+
+## root-only, idempotent, and none of them ever starts, stops or restarts ##
+## the service -- install-service reloads the systemd manager after a     ##
+## changed unit, enable \ disable only flip the unit's enabled state.     ##
+## P7_DEPS_SERVICE_ROOT prefixes every target path [ test roots ]         ##
+
+sub require_root_for_service {
+    return if $EUID == 0;
+    return if length( $ENV{'P7_DEPS_SERVICE_ROOT'} // '' );
+    print_error(
+        'this service command needs root [ '
+            . 'or a P7_DEPS_SERVICE_ROOT test root ]',
+        1
+    );
+}
+
+sub cmd_install_service {
+    require_root_for_service();
+    print "\n";
+    print_header('install service');
+    my $failed = print_service_report( install($P7_ROOT) );
+    exit 1 if $failed;
+}
+
+sub cmd_enable_service {
+    my ($enable) = @_;
+    require_root_for_service();
+    print "\n";
+    print_header( $enable ? 'enable service' : 'disable service' );
+    my $failed = print_service_report( $enable ? enable() : disable() );
+    exit 1 if $failed;
+}
+
+sub cmd_check_service {
+    print "\n";
+    print_header('check service');
+    my ( $report, $all_ok ) = check($P7_ROOT);
+    print_service_report($report);
+    print "${blacklight}::${reset} "
+        . (
+        $all_ok
+        ? "${neon_green}service parts ok"
+        : "${neon_amber}" . "service parts missing or differing"
+        ) . "${reset}\n";
+    return $all_ok;
+}
+
+sub print_service_report {
+    my ($report) = @_;
+
+    my $failed  = 0;
+    my $max_len = 0;
+    foreach my $entry (@$report) {
+        $max_len = length( $entry->[0] )
+            if length( $entry->[0] ) > $max_len;
+    }
+
+    foreach my $entry (@$report) {
+        my ( $part, $status, $detail ) = @$entry;
+        my $dots = '.' x ( $max_len - length($part) + 3 );
+        my $status_color
+            = $status eq 'failed'  ? $neon_amber
+            : $status eq 'ok'      ? $neon_green
+            : $status eq 'missing' ? $neon_amber
+            : $status eq 'differs' ? $neon_amber
+            :                        $TRUE_color;
+        print "${blacklight}::${reset}   ${TRUE_color}$part${reset} "
+            . "${blacklight}$dots${reset} $status_color$status$reset";
+        print " ${blacklight}[$detail]${reset}" if defined $detail;
+        print "\n";
+        $failed++ if $status eq 'failed';
+    }
+    return $failed;
+}
+
 ##[ STYLING FUNCTIONS ]#######################################################
 
 sub print_header {
@@ -826,6 +944,12 @@ ${neon_green}COMMANDS${reset} ${blacklight}(${TRUE_color}Installation${blackligh
   ${TRUE_color}clear-cache${reset}             ${TRUE_color}Clear the dependency cache${reset}
   ${TRUE_color}dist-upgrade${reset}            ${TRUE_color}Run Debian dist-upgrade${reset}
 
+${neon_green}SERVICE COMMANDS${reset} ${blacklight}(${TRUE_color}systemd unit -- none of these starts, stops or restarts the service${blacklight})${reset}:
+  ${TRUE_color}install-service${reset}           ${TRUE_color}Install the unit, the /usr/local/protocol-7 link and the launcher symlinks${reset}
+  ${TRUE_color}enable-service${reset}            ${TRUE_color}Enable the Protocol-7 unit [ systemctl enable ]${reset}
+  ${TRUE_color}disable-service${reset}           ${TRUE_color}Disable the Protocol-7 unit [ systemctl disable ]${reset}
+  ${TRUE_color}check-service${reset}             ${TRUE_color}Read-only check of unit, links and unit state [ exit 1 when parts differ ]${reset}
+
 ${neon_green}COMMANDS${reset} ${blacklight}(${TRUE_color}Introspection${blacklight})${reset}:
   ${TRUE_color}zenka-modules${reset}           ${TRUE_color}Show which zenka declare which CPAN modules${reset}
   ${TRUE_color}zenka-packages${reset}          ${TRUE_color}Show which zenka declare which OS packages${reset}
@@ -859,8 +983,8 @@ ${neon_green}ZENKA CONFIGURATION${reset}:
 EOF
 }
 
-#,,,.,,,.,,,.,,..,...,...,.,,,,.,,,,.,,,.,.,,,..,,...,..,,,,.,,.,,.,.,.,,,.,.,
-#AA6W3LOKGCZG5KCR47WLTOAIMNL2OCUUQZGLVWWSN6KQIC5GSRCJHXPESGNK7WBBTRMKPHSGE7LUG
-#\\\|UUANFRM7T342Y2MHYAPFZEJDU4RJOZUFJ5S7SOP62W5UWLMID7Q \ / AMOS7 \ YOURUM ::
-#\[7]BXWQRU2P63HTBDFGK7T6LBJQNH7X3G2XRCQ44SAQWJBUXH3MVYCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,.,.,.,.,,,,,,.,,,.,,,..,.,,,..,,...,..,,..,,...,.,,,..,,...,
+#SF4TOIBRGTHPPXOX6CBVT2EHPKBPWCGLN32IS4M7PSUGWI7UMMH2KQFZZGPNONLHMX7Z44FQFK574
+#\\\|7DUU5RIYX2Y2PPSDB7JW4SOER5FEATDWIFH7WD7NGL4V2J2YBOV \ / AMOS7 \ YOURUM ::
+#\[7]GRZ42RTEVLKIG3OCEHH2E4U6KTJOCICKDSHZXRQFOQYOKK4SGSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -33,8 +33,8 @@ if ( -d $modules_dir ) {
     opendir( my $mod_dh, $modules_dir ) or return FALSE;
     while ( my $file = readdir($mod_dh) ) {
         next if -d $file;    ## skip any present directories ##
-        ## match .console files like [ work.console.commit ,
-        ## sourcecode.console.* .. ]
+        ## match .console files like
+        ## [ work.console.commit ,  sourcecode.console.* .. ]
         if ( $file =~ m|^([^.]+)\.console\.| ) {
             my $module_name = $LAST_PAREN_MATCH;
             next if exists $console_zenki{$module_name};
@@ -57,8 +57,8 @@ if ( -d $zenki_dir ) {
         next if $dir_name =~ m|^\.\.?$|;
         next unless -d catfile( $zenki_dir, $dir_name );
 
-        ## keep zenka name if it has a console command [ or is listed in ##
-        ## @extra_alias_zenki ]                                          ##
+        ## keep zenka name if it has a console command ##
+        ## [ or is listed in @extra_alias_zenki ]      ##
         push( @zenki_list, $dir_name )
             if defined delete $console_zenki{$dir_name};
     }
@@ -128,12 +128,63 @@ foreach my $zenka_name (@zenki_list) {  # implement zenka symlink skip-list[!]
     }
 }
 
+## unprefixed launcher links : Protocol-7 \ nshell at their own bin         ##
+## launchers, '::' at the installed p7c and ':::' at p-7-r [ each only when ##
+## it exists ; ':::' takes a ~/.ssh/config host alias, see                  ##
+## bin/c_src/p-7-r.c ]. same rule as the p7-* links : create when missing,  ##
+## replace only a symlink that is not current, never a regular file         ##
+my $nshell_bin   = sprintf qw| %s/bin/nshell |, $root_path;
+my $p7c_bin_path = <v7-zenki.cfg.p7c_bin_path> // qw| /usr/local/bin/p7c |;
+my $p7r_bin_path = <v7-zenki.cfg.p7r_bin_path> // qw| /usr/local/bin/p-7-r |;
+my @binary_alias = ( [ qw| Protocol-7 |, $protocol7_bin ] );
+push( @binary_alias, [ qw| nshell |, $nshell_bin ] )   if -x $nshell_bin;
+push( @binary_alias, [ qw| :: |,     $p7c_bin_path ] ) if -x $p7c_bin_path;
+push( @binary_alias, [ qw| ::: |,    $p7r_bin_path ] ) if -x $p7r_bin_path;
+
+foreach my $alias (@binary_alias) {
+    my ( $alias_name, $alias_target ) = @{$alias};
+    my $alias_path = sprintf qw| %s/%s |, $symlink_dir, $alias_name;
+
+    if ( -l $alias_path ) {
+        my $current_target = readlink($alias_path);
+        if ( defined $current_target and $current_target eq $alias_target ) {
+            ## already correct, skiping.. ##
+            <[base.logs]>->( 2, ": =) : %s", $alias_path );
+            next;
+        }
+        ## updating symlink ##
+        unlink($alias_path) or do {
+            <[base.logs]>->( 0, ": cannot update symlink : %s", $alias_path );
+            next;
+        };
+        $updated_count++;
+    } elsif ( -e $alias_path ) {
+        ## a regular file is never touched ##
+        <[base.logs]>->(
+            0, ": not a symlink : %s [ regular file, left alone ]",
+            $alias_path
+        );
+        next;
+    }
+
+    ### creating symlink ###
+    ##
+    if ( symlink( $alias_target, $alias_path ) ) {
+        $installed_count++;
+    } else {
+        <[base.logs]>->(
+            0,           ": failed to create symlink : %s [ \l%s ]",
+            $alias_path, <[base.str.os_err]>
+        );
+    }
+}
+
 ### skip following report when nothing changed : ###
 return FALSE unless $installed_count + $updated_count;
 
 if ( $installed_count > 0 or $updated_count > 0 ) {
     <[base.logs]>->(
-        ': installed %d zenka symlink%s to %s',
+        ': installed %d symlink%s to %s',
         $installed_count + $updated_count,
         <[base.cnt_s]>->( $installed_count + $updated_count ),
         $symlink_dir
@@ -149,8 +200,8 @@ if ( $installed_count > 0 or $updated_count > 0 ) {
 
 return $installed_count + $updated_count;
 
-#,,,.,.,.,,,,,,..,..,,,,,,,,.,,,.,,.,,,,,,..,,..,,...,...,,..,..,,.,,,...,.,.,
-#JSNAD4WJB35N2T73CZVBNFFNB5GW7NZBLC4TLCIXPJT3A5YJNS76OEZHACIQIJJSME2C7YOK7BVR4
-#\\\|TB4EIUGVKGX7QJXFESMVMNTH6U3ML5NP2EJ5NRPUPNHE75SJO7X \ / AMOS7 \ YOURUM ::
-#\[7]T2SN44ZYMAP7QIKLULWV6PGQ4PGQLRTT7726KUICMJIKGGHDIMAY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,.,.,.,...,,..,..,,.,.,,.,,.,.,..,,...,...,,..,,..,,..,,.,,.,,,
+#OHBBE4UILHVN2POKFAGIME3TNZTGJMPDXKSQA3EHSY5VBDQXY6BEIBFCXJ4CAV7E4764SGNB44OPQ
+#\\\|2TVOLZ3DRTCXHIHMY7AQOPLQF2LVPCIQVD4L4N52KQTBB6TXX4P \ / AMOS7 \ YOURUM ::
+#\[7]HKGL4ZNNXCMW6FSKNDD7WXGE2R34MQ52M3U3YKI3M2YNNZBNA4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
