@@ -45,12 +45,19 @@ use AMOS7::Vault qw|
     archive_write archive_open archive_restore file_secret git_blob_id
     gen_password recovery_code_new recovery_code_normalize
     type_fields secret_field ntime_b32 ntime_b32_to_unix version_to_unix
-    blob_import blob_import_stream blob_export blob_discard
+    blob_import blob_import_stream blob_export blob_discard vault_lock
     |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
+
+## sync to a directory : p7-vault stands in for ssh -- '--local-shell <label>
+## <command>' runs the command with sh, as ssh would on a host
+## [ the same push \ pull code for servers and an external drive ]
+if ( @ARGV == 3 and $ARGV[0] eq '--local-shell' ) {
+    exec '/bin/sh', '-c', $ARGV[2] or exit 127;
+}
 
 binmode STDOUT, ':encoding(UTF-8)';
 binmode STDERR, ':encoding(UTF-8)';
@@ -77,6 +84,19 @@ my $CLIP_CLEAR_SECONDS = $ENV{'P7_VAULT_CLIP_SECONDS'} // 45;
 
 ## the interactive shell pads every command with an empty line itself ##
 my $IN_SHELL = FALSE;
+
+## auto-lock : the shell locks after this many seconds without input [ 78 min
+## = 13 x 360 s ; P7_VAULT_LOCK_SECONDS, 0 = off ; ':keep-open:' at start-up
+## turns it off ]. a lock wipes the key, clears screen, scrollback and
+## history, then asks for the passphrase again
+my $LOCK_SECONDS
+    = ( $ENV{'P7_VAULT_LOCK_SECONDS'} // '' ) =~ m|\A\d+\z|
+    ? 0 + $ENV{'P7_VAULT_LOCK_SECONDS'}
+    : 4680;
+my $KEEP_OPEN = grep { $ARG eq ':keep-open:' } @ARGV;
+@ARGV = grep { $ARG ne ':keep-open:' } @ARGV;
+my $LAST_INPUT   = time;
+my $LOCK_PENDING = FALSE;
 
 my $dir = $ENV{'P7_VAULT_DIR'} // sprintf qw| %s/.n/vault |,
     $ENV{'HOME'} // ( getpwuid($EUID) )[7];
@@ -192,8 +212,15 @@ if ( not vault_exists($dir) ) {
     unlocked() or exit 1;
 }
 $IN_SHELL = TRUE;
+say msg( 'info', 'auto-lock off [ :keep-open: ]' ) if $KEEP_OPEN;
+$LAST_INPUT = time;
 while (TRUE) {
-    my $line = prompt_line( 'vault', TRUE ) // last;
+    auto_lock() if $LOCK_PENDING;
+    my $line = prompt_line( 'vault', TRUE );
+    if ( not defined $line ) {
+        next if $LOCK_PENDING;    ## the idle timer, not an end of input ##
+        last;
+    }
     my ( $cmd, @args ) = split ' ', $line;
     next if not defined $cmd;
     last if $cmd eq 'quit' or $cmd eq 'q' or $cmd eq 'exit';
@@ -204,6 +231,7 @@ while (TRUE) {
     }
     $sub->(@args);
 }
+vault_lock($vault) if defined $vault;    ## the key wiped on the way out ##
 exit 0;
 
 ##[ OUTPUT ]##################################################################
@@ -240,6 +268,64 @@ sub msg {
         map { $C{V} . $ARG . ( $back[ $i++ ] // $color ) } @values )
         : $format;
     return "  $color$text$C{R}";
+}
+
+##[ AUTO-LOCK ]###############################################################
+
+## the idle timer runs in the interactive shell while the vault is unlocked
+sub lock_armed {
+    return (    $IN_SHELL
+            and not $KEEP_OPEN
+            and $LOCK_SECONDS > 0
+            and defined $vault ) ? TRUE : FALSE;
+}
+
+## seconds until the lock, undef when the timer is not armed
+sub idle_left {
+    return undef if not lock_armed();
+    my $left = $LOCK_SECONDS - ( time - $LAST_INPUT );
+    return $left > 0 ? $left : 0;
+}
+
+## wait for input on STDIN : TRUE when there is some
+## [ or the timer is not armed : the read may block ], FALSE when the idle
+## time ran out
+sub wait_for_input {
+    state $select = do { require IO::Select; IO::Select->new( \*STDIN ) };
+    while (TRUE) {
+        my $left = idle_left() // return TRUE;
+        if ( $left <= 0 ) {
+            $LOCK_PENDING = TRUE;
+            return FALSE;
+        }
+        return TRUE if $select->can_read($left);
+    }
+}
+
+## the lock : key wiped, screen + scrollback + command history cleared, then
+## the passphrase again -- esc \ ctrl-c \ three wrong tries end the session
+sub auto_lock {
+    $LOCK_PENDING = FALSE;
+    vault_lock($vault) if defined $vault;
+    undef $vault;
+    eval { $main::READLINE->clear_history } if defined $main::READLINE;
+    print "\e[H\e[2J\e[3J";
+    ## typed-ahead input never reaches the passphrase prompt
+    ## [ it would count as a wrong try ]
+    POSIX::tcflush( fileno(STDIN), POSIX::TCIFLUSH() ) if -t STDIN;
+    say msg(
+        'info',
+        'locked after %s without input [ esc \\ ctrl-c ends the session ]',
+        $LOCK_SECONDS >= 60
+        ? sprintf( '%d min', $LOCK_SECONDS / 60 )
+        : "$LOCK_SECONDS s"
+    );
+    if ( not unlocked() ) {
+        print "\e[H\e[2J\e[3J";
+        exit 0;
+    }
+    $LAST_INPUT = time;
+    return;
 }
 
 ##[ USAGE ]###################################################################
@@ -332,8 +418,10 @@ sub usage_text {
     scratchpad               open the 'scratchpad' note in the editor,
                              creating it when missing
     codes                    give a 3-char code to entries lacking one
-    sync <host>[:<dir>]...   union of the entry and blob files with
-                             other hosts, one after the other [ never
+    sync <host>[:<dir>]|<path>...
+                             union of the entry and blob files with other
+                             hosts or directories [ a path : '/' './' '~' --
+                             an external drive ], one after the other [ never
                              overwrites, never deletes ]
     show <filter> [ -r ]     one entry, secrets masked [ -r reveals ]
     copy <filter> [ field ]  to the clipboard [ default password ],
@@ -373,6 +461,8 @@ sub usage_text {
     -color green  values and typed text in phosphor green [ daylight,
                   high contrast ; default : blue ]
     -h  .......  this list [ also -options ]
+    :keep-open:  no auto-lock in the shell [ default : locked after 78 min
+                 without input -- P7_VAULT_LOCK_SECONDS, 0 = off ]
 
 EOF
 
@@ -431,9 +521,9 @@ sub readline_term {
     return $READLINE = $term;
 }
 
-## $history : add the line to the in-memory history [ command lines ] $history
-## : the command prompt [ '\n:: vault :: ', an empty line after a command --
-## the padding bin/nshell uses ], add the line to the in-memory history
+## $history : the command prompt [ '\n:: vault :: ', an empty line after a
+## command -- the padding bin/nshell uses ], the line added to the in-memory
+## history
 sub prompt_line {
     my $label   = shift;
     my $history = shift // FALSE;
@@ -448,15 +538,46 @@ sub prompt_line {
         ## typed text is not left in the default grey                      ##
         my ( $t, $f, $v )
             = map { length ? "\001$ARG\002" : '' } @C{qw| T 0 V |};
-        $line = $rl->readline(
-            $history ? "${f}:: $t$label$f ::$v " : "  $t$label$f >$v " );
+        my $prompt
+            = $history ? "${f}:: $t$label$f ::$v " : "  $t$label$f >$v ";
+        if ( lock_armed() and $rl->ReadLine eq qw| Term::ReadLine::Gnu | ) {
+            ## the callback reader : a select with the idle time left can end
+            ## the wait -- a blocking readline keeps reading after a signal
+            ## and would lock only at the next key
+            my ( $got, $done );
+            $rl->CallbackHandlerInstall(
+                $prompt,
+                sub {
+                    ( $got, $done ) = ( shift, TRUE );
+                    $rl->callback_handler_remove;
+                }
+            );
+            while ( not $done ) {
+                if ( not wait_for_input() ) {
+                    $rl->Attribs->{'line_buffer'} = '';  ## typed text goes ##
+                    $rl->callback_handler_remove;
+                    print "$C{R}\n";
+                    return undef;
+                }
+                $rl->callback_read_char;
+                $LAST_INPUT = time;
+            }
+            $line = $got;
+        } else {
+            $line = $rl->readline($prompt);
+        }
         print $C{R};
         return undef if not defined $line;
     } else {
         print $history
             ? "$C{0}:: $C{T}$label$C{0} ::$C{V} "
             : "  $C{T}$label$C{0} >$C{V} ";
-        $line = <STDIN>;
+        if ( not wait_for_input() ) {
+            print "$C{R}\n";
+            return undef;
+        }
+        $line       = <STDIN>;
+        $LAST_INPUT = time;
         print $C{R};
         return undef if not defined $line;
         chomp $line;
@@ -546,7 +667,21 @@ sub read_secret_raw {
     };
 
     while (TRUE) {
-        my $key = Term::ReadKey::ReadKey(0);
+        ## armed : wait at most the idle time left
+        ## [ a hidden input never keeps an unlocked vault open past the lock ]
+        my $left  = idle_left();
+        my $start = time;
+        my $key   = Term::ReadKey::ReadKey(
+            defined $left ? List::Util::max( 1, $left ) : 0 );
+        if ( not defined $key and defined $left ) {
+            next if idle_left() > 0 and time - $start >= 1;   ## woke early ##
+            if ( idle_left() <= 0 ) {
+                $LOCK_PENDING = TRUE;
+                $cancelled    = TRUE;
+                last;
+            }
+        }
+        $LAST_INPUT = time if defined $key;
         if ( not defined $key or $key eq "\x03" or $key eq "\x04" ) {
             $cancelled = TRUE;
             last;
@@ -971,7 +1106,9 @@ sub note_editor {
     die "p7-vault : AMOS7/TERM/Editor.pm not found -- copy it next "
         . "to this script [ see data/md/design/VAULT-FORMAT.md ]\n"
         if not $have_editor;
-    return AMOS7::TERM::Editor::edit_text($params);
+    my $edited = AMOS7::TERM::Editor::edit_text($params);
+    $LAST_INPUT = time;    ## editing is input : the editor has no timer ##
+    return $edited;
 }
 
 sub cmd_list {
@@ -2123,6 +2260,7 @@ sub cmd_codes {
 ## there were several
 sub cmd_sync_hosts {
     my @targets = @ARG;
+    say '' if not $IN_SHELL;    ## the shell prompt pads already ##
     return cmd_sync(@targets) if @targets <= 1;
     my @failed;
     foreach my $target (@targets) {
@@ -2147,12 +2285,38 @@ sub cmd_sync_hosts {
 sub cmd_sync {
     my $target = shift // do {
         say msg( 'info',
-            'sync <ssh-host>[:<remote dir>] [ ssh via P7_VAULT_SSH ]' );
+                  'sync <ssh-host>[:<remote dir>] '
+                . '| <path> [ ssh via P7_VAULT_SSH ]' );
         return FALSE;
     };
-    my ( $host, $remote ) = split m{:}, $target, 2;
-    $remote = qw| .n/vault |
-        if not defined $remote or not length $remote;
+
+    ## a path [ '/', './', '../', '~' ] is a directory here -- an external
+    ## drive : the same union, the commands run by sh instead of ssh
+    my ( $host, $remote, @ssh );
+    my $local = $target =~ m{\A(?:/|\.{1,2}/|~(?:/|\z))} ? TRUE : FALSE;
+    if ($local) {
+        ( $remote = $target )
+            =~ s{\A~(?=/|\z)}{$ENV{'HOME'} // ( getpwuid $EUID )[7]}e;
+        $remote = File::Spec->rel2abs($remote);
+        $remote =~ s|(?<=.)/+\z||;
+        $host = qw| local |;
+        @ssh  = (
+            $^X,
+            "$FindBin::RealBin/$FindBin::RealScript",
+            qw| --local-shell |
+        );
+        ## the runner is joined into shell strings unquoted, as ssh is ##
+        if ( grep { not m{\A[0-9A-Za-z._/+-]+\z} } @ssh ) {
+            say msg( 'refuse', 'perl \\ script path not shell-safe [ %s ]',
+                join ' ', @ssh );
+            return FALSE;
+        }
+    } else {
+        ( $host, $remote ) = split m{:}, $target, 2;
+        $remote = qw| .n/vault |
+            if not defined $remote or not length $remote;
+        @ssh = split m{\s+}, ( $ENV{'P7_VAULT_SSH'} // qw| ssh | );
+    }
 
     if ( not length $host ) {
         say msg( 'refuse', 'sync needs an ssh host' );
@@ -2169,8 +2333,10 @@ sub cmd_sync {
         return FALSE;
     }
     my ($vh) = vault_open($dir);    ## locked is enough : the id is clear ##
-
-    my @ssh = split m{\s+}, ( $ENV{'P7_VAULT_SSH'} // qw| ssh | );
+    if ( $local and File::Spec->rel2abs($dir) eq $remote ) {
+        say msg( 'refuse', '%s is this vault itself', $remote );
+        return FALSE;
+    }
 
     ## the union runs per directory kind : entries and blobs share the same
     ## rules [ strict name pattern, sha1 by content, never overwrite ]
@@ -2224,6 +2390,12 @@ sub cmd_sync {
             $remote, $host );
         ## the dir first : 'scp key host:dir' with no dir there writes a FILE
         ## named like the dir
+        if ($local) {
+            say msg( 'info', 'mkdir -p -m 700 %s', shq($remote) );
+            say msg( 'info', 'cp %s %s/', shq( _key_path_local() ),
+                shq($remote) );
+            return FALSE;
+        }
         say msg( 'info', "ssh %s 'mkdir -p -m 700 %s'", $host, $remote );
         say msg(
             'info',
@@ -2928,8 +3100,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,.,.,,..,.,.,,.,,,,,,,..,,,,,,,,,.,.,,..,..,,...,...,...,,..,,,,,.,.,...,
-#HKRYBJYAQNKKLP5TVNDV2XKQSMCITBWL5WBAD7FAXL4GV2MT4SJWSVX7G6IDB2NJ7HRSMOFW2LUM2
-#\\\|FK55VMIGU3E2LPVZHHVI5Q2J7VYCKYZ4RKVZI4W7ZISC4CLETNO \ / AMOS7 \ YOURUM ::
-#\[7]C35HRWT3PEGGNXUYG2ZLFS4M6XVVFSR5HU2CCQVPWGWAWYKMCKBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,,.,,,,.,,,.,,,,,...,..,,,..,..,,...,...,..,,.,.,,.,,,,.,...,
+#VPRNNXMTU3ARFKL5ECENBC7WU7VHN44FVAQNOVRFT4KSAUZBDT55S55TI5M4L7I3NY5RVA2LCN2CS
+#\\\|Q77IJCD763UTXLJ7E47EQDGSSTIEINRZPBFR3ACA64XKKJJQAN5 \ / AMOS7 \ YOURUM ::
+#\[7]XB4IHGBMZX3SCPGD7NWT65IE5VEMZSKL25TGRAA5LY4RDJ6VDCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
