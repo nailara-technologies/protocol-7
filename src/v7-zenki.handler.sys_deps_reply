@@ -11,7 +11,10 @@ my $params     = $reply->{'params'}    // {};
 my $zenka_name = $params->{'zenka'}    // '';
 my $kind       = $params->{'kind'}     // qw| apt |;
 my $packages   = $params->{'packages'} // [];
-my $mode       = $reply->{'mode'}      // qw| unknown |;
+## a route-send reply : cmd TRUE \ FALSE, the text in call_args         ##
+## [ not mode \ data -- every install read as failed until 2026-10-15 ] ##
+my $ok     = ( $reply->{'cmd'} // '' ) eq qw| TRUE |;
+my $answer = $reply->{'call_args'}->{'args'} // '';
 
 return if not length $zenka_name;
 
@@ -23,7 +26,7 @@ if ( not defined $state ) {
     return;
 }
 
-if ( $mode eq qw| true | ) {
+if ($ok) {
     ## track what this install installed [ same tracked.yaml shape ] ##
     if (@$packages) {
         <[v7-zenki.sys_deps.track]>->(
@@ -34,7 +37,7 @@ if ( $mode eq qw| true | ) {
 } else {
     <[base.logs]>->(
         0, 'sys_deps: %s install failed for zenka \'%s\' : %s',
-        $kind, $zenka_name, $reply->{'data'} // 'unknown error'
+        $kind, $zenka_name, length $answer ? $answer : 'unknown error'
     );
 }
 
@@ -78,8 +81,8 @@ if ( @still_pm or @still_os or @still_bin ) {
 
 return;
 
-#,,.,,.,.,.,.,,,.,...,.,.,..,,.,,,,.,,,..,,..,..,,...,...,..,,...,..,,.,,,,,.,
-#B2TM6I63IDGNVW4GXBWUPEAQ2F26ICEWDG6QJM2LTQHTGMGJEFFNW4ZRKCZHCOTU4WLTNLL752QJO
-#\\\|OVNEJ3SYUKK5R3Y6OFM4HRFV4RRJEERUBTPODXW2OJ2VC7MQ5QY \ / AMOS7 \ YOURUM ::
-#\[7]IGQ5VCKCOM3L2ADBMDFSJI2PLTT3K3IS3FSG4WUNSMC7DAGFO6DA 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,,,,.,,.,.,,,.,.,,,...,,..,...,..,,...,..,,,.,,.,,,...,,,.,.,,,
+#2LN5RYAVTCGQ4U5DJOMUKENYH3SOAB5TVFIFE4LCGMN5SUUI4EZUMGTRM64RNS75465KNRPNKRVQW
+#\\\|2G5WD2EA24SVSNLILV25F3X5TG2DWTOBOUTWKRU523DMPR7X7LA \ / AMOS7 \ YOURUM ::
+#\[7]WW5ZTQUB6WXMPBYA4GBW4NRLOGOQNSGONDWC4QLXIQDWWSEEG4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

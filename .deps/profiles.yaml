@@ -168,6 +168,15 @@ profiles:
       - libsys-mmap-perl
       - liblinux-termios2-perl
       - libyaml-perl
+      ## declared by server zenki, missing until 2026-10-15 [ yourum's
+      ## system zenka ran without Sys::Statistics::Linux for days ]
+      - libcompress-raw-lzma-perl       # Compress::Raw::Lzma [ most zenki ]
+      - libsys-statistics-linux-perl    # Sys::Statistics::Linux [ system ]
+      - libjson-perl                    # JSON [ httpd ]
+      - libtimedate-perl                # Date::Parse [ httpsd, events ]
+      - libcrypt-openssl-random-perl    # Crypt::OpenSSL::Random [ letsencr ]
+      - libio-compress-lzma-perl        # IO::Compress::Xz [ smtpd ]
+      - libapt-pkg-perl                 # AptPkg::Cache [ debian, optional ]
     cpan:
       - BSD::Resource
       - Capture::Tiny
