@@ -46,6 +46,7 @@ use AMOS7::Vault qw|
     gen_password recovery_code_new recovery_code_normalize
     type_fields secret_field ntime_b32 ntime_b32_to_unix version_to_unix
     blob_import blob_import_stream blob_export blob_discard vault_lock
+    secret_wipe
     |;
 
 ##[ global constants ]##
@@ -630,7 +631,9 @@ sub _prompt_secret_read {
     ## a masked value cannot be edited : an arrow key inside it is junk the
     ## owner never sees. stripping it silently would store a secret that
     ## differs from the one they think they typed -- ask again instead
-    if ( $line =~ m|\e| ) {
+    ## [ index, not a regex : a match keeps its own copy of the line ]
+    if ( index( $line, "\e" ) >= 0 ) {
+        secret_wipe( \$line );
         say $C{o}
             . '  << arrow \ escape keys do not edit '
             . 'a hidden value -- type it again >>'
@@ -638,7 +641,9 @@ sub _prompt_secret_read {
         print "$C{0}: $C{T}$label$C{0} :$C{R} ";
         return _prompt_secret_read($label);
     }
-    return decode( 'UTF-8', $line );
+    my $secret = decode( 'UTF-8', $line );
+    secret_wipe( \$line );
+    return $secret;
 }
 
 ## hidden input in raw mode, key handling as AMOS7::TERM's password reader [
@@ -650,7 +655,13 @@ sub _prompt_secret_read {
 ## mode : ctrl-c arrives as a byte, not a signal
 sub read_secret_raw {
     my $label = shift;
-    my $bytes = '';
+
+    ## the typed bytes live in ONE buffer, written in place : appending [ .= ]
+    ## can move the string and a regex keeps its own copy for the match
+    ## variables -- both leave copies no wipe reaches. a full buffer moves to
+    ## a doubled one, the old one wiped [ still no length limit ]
+    my $bytes = "\0" x 256;
+    my $n     = 0;
     Term::ReadKey::ReadMode('raw');
     my $cancelled = FALSE;
     my $visible   = FALSE;
@@ -659,11 +670,21 @@ sub read_secret_raw {
     ## [ AMOS7::TERM's idea ], kept per byte so a backspace takes its own
     ## stars back. tab shows the value itself [ checking a long password ]
     my @stars;
+
+    ## the first $n bytes as a copy of their own [ for decode ], wiped by the
+    ## caller : a plain substr would leave one in the op's pad target
+    my $typed = sub {
+        my $raw = $bytes;
+        substr( $raw, $n, length($raw) - $n, '' );
+        return \$raw;
+    };
     my $redraw = sub {
+        my $raw = $visible ? $typed->() : undef;
         printf "\r\e[K$C{0}: $C{T}%s$C{0} :$C{V} %s$C{R}", $label,
             $visible
-            ? decode( 'UTF-8', $bytes )
+            ? decode( 'UTF-8', ${$raw} )
             : '*' x List::Util::sum0(@stars);
+        secret_wipe($raw) if defined $raw;
     };
 
     while (TRUE) {
@@ -708,16 +729,29 @@ sub read_secret_raw {
         }
 
         if ( $key eq "\x7f" or $key eq "\x08" ) {    ## one utf-8 char back ##
-            if ( $bytes =~ s{((?:[\xC0-\xFF][\x80-\xBF]*|[\x00-\x7F]))$}{} ) {
-                splice @stars, -length $1;
+            if ($n) {
+                my $start = $n - 1;    ## back over continuation bytes ##
+                $start--
+                    while $start > 0
+                    and ( ord( substr( $bytes, $start, 1 ) ) & 0xC0 ) == 0x80;
+                splice @stars, $start - $n;
+                substr( $bytes, $start, $n - $start, "\0" x ( $n - $start ) );
+                $n = $start;
             }
-        } elsif ( $key eq "\t" ) {                   ## tab : show \ hide ##
+        } elsif ( $key eq "\t" ) {    ## tab : show \ hide ##
             $visible = not $visible;
-        } elsif ( $key eq "\x15" ) {                 ## ctrl-u : clear ##
-            $bytes = '';
+        } elsif ( $key eq "\x15" ) {    ## ctrl-u : clear ##
+            substr( $bytes, 0, $n, "\0" x $n );
+            $n     = 0;
             @stars = ();
         } elsif ( ord $key >= 32 ) {
-            $bytes .= $key;
+            if ( $n == length $bytes ) {    ## full : a doubled buffer ##
+                my $bigger = $bytes . ( "\0" x $n );
+                secret_wipe( \$bytes );
+                $bytes = $bigger;
+                secret_wipe( \$bigger );    ## shared : only its own share ##
+            }
+            substr( $bytes, $n++, 1, $key );
             ## continuation bytes of a utf-8 character add no stars ##
             push @stars, ( ord($key) & 0xC0 ) == 0x80
                 ? 0
@@ -732,8 +766,15 @@ sub read_secret_raw {
     }
     Term::ReadKey::ReadMode('restore');
     print "\n";
-    return undef if $cancelled;
-    return decode( 'UTF-8', $bytes );
+    if ($cancelled) {
+        secret_wipe( \$bytes );
+        return undef;
+    }
+    my $raw    = $typed->();
+    my $secret = decode( 'UTF-8', ${$raw} );
+    secret_wipe($raw);
+    secret_wipe( \$bytes );
+    return $secret;
 }
 
 ## multi-line, no echo, ends at a line holding a single '.' ##
@@ -753,6 +794,11 @@ sub prompt_secret_lines {
     $SECRET_FRAME_OPEN = TRUE;
     return join qq|\n|, @lines;
 }
+
+## wipes the given secrets [ scalar refs ] when it goes out of scope : every
+## return path of a command, early or not
+sub wipe_on_exit { return bless [@ARG], qw| P7Vault::WipeGuard | }
+sub P7Vault::WipeGuard::DESTROY { secret_wipe($ARG) foreach @{ $ARG[0] } }
 
 sub confirm {
     my $question = shift;
@@ -784,15 +830,25 @@ sub unlock_prompt {
         ? ( qw| passphrase-file |, 'passphrase [ ' . '+ key file ]' )
         : ( qw| passphrase |, 'vault passphrase' );
 
+    ## each form of the secret in its own variable, each one wiped : a
+    ## reassignment would free the previous form unwiped
     foreach my $try ( 1 .. 3 ) {
-        my $secret = prompt_secret($label) // return undef;
-        $secret = encode( 'UTF-8', $secret );
-        $secret = eval { file_secret( $secret, $key_file ) } // do {
-            print $C{o} . "  << $EVAL_ERROR" . $C{R};
-            return undef;
+        my $typed  = prompt_secret($label) // return undef;
+        my $phrase = encode( 'UTF-8', $typed );
+        secret_wipe( \$typed );
+        my $with_file;
+        if ( defined $key_file ) {
+            $with_file = eval { file_secret( $phrase, $key_file ) };
+            if ( not defined $with_file ) {
+                secret_wipe( \$phrase );
+                print $C{o} . "  << $EVAL_ERROR" . $C{R};
+                return undef;
             }
-            if defined $key_file;
-        return $handle if vault_unlock( $handle, $secret, $wrap );
+        }
+        my $ok = vault_unlock( $handle, $with_file // $phrase, $wrap );
+        secret_wipe( \$phrase );
+        secret_wipe( \$with_file ) if defined $with_file;
+        return $handle             if $ok;
         say msg( 'refuse', "wrong $label" );
     }
     return undef;
@@ -913,10 +969,13 @@ sub cmd_init {
     }
     say msg( 'info', 'new vault in %s', $dir );
 
-    my $passphrase;
+    my ( $passphrase, $again, $phrase, $recovery, $typed );
+    my $wipe = wipe_on_exit( \$passphrase, \$again, \$phrase, \$recovery,
+        \$typed );
     while (TRUE) {
+        secret_wipe($ARG) foreach \$passphrase, \$again;    ## a retry ##
         $passphrase = prompt_secret('new vault passphrase') // return FALSE;
-        my $again = prompt_secret('re-enter passphrase') // return FALSE;
+        $again      = prompt_secret('re-enter passphrase')  // return FALSE;
         if ( $passphrase ne $again ) {
             say msg( 'refuse', 'passphrases differ, again' );
             next;
@@ -932,7 +991,7 @@ sub cmd_init {
         last;
     }
 
-    my $recovery = recovery_code_new();
+    $recovery = recovery_code_new();
     say '';
     say msg( 'info',
               'recovery code -- opens the vault '
@@ -941,7 +1000,7 @@ sub cmd_init {
     say '';
     say "      $C{B}$C{V}$recovery$C{R}";
     say '';
-    my $typed = prompt_line("type it back to confirm [ or 'skip' ]") // '';
+    $typed = prompt_line("type it back to confirm [ or 'skip' ]") // '';
 
     if ( $typed eq 'skip' ) {
         say $C{o}
@@ -949,27 +1008,32 @@ sub cmd_init {
             . 'loses every entry, with no way back >>'
             . $C{R};
         return FALSE if not confirm('create the vault without one');
+        secret_wipe( \$recovery );
         undef $recovery;
     } else {
         while ( recovery_code_normalize($typed) ne
             recovery_code_normalize($recovery) ) {
             say msg( 'refuse', 'does not match' );
+            secret_wipe( \$typed );
             $typed = prompt_line('type it back') // return FALSE;
         }
     }
     print "\e[3J\e[2J\e[H" if -t STDOUT;    ## code off screen + scrollback ##
 
-    my $created
-        = vault_init( $dir, encode( 'UTF-8', $passphrase ), $recovery );
+    $phrase = encode( 'UTF-8', $passphrase );
+    my $created = vault_init( $dir, $phrase, $recovery );
 
     ## prove both wraps open, from the file, before anyone relies on them ##
+    ## [ the check handles locked again : their keys wiped ]              ##
     my ($check)  = vault_open($dir);
-    my $ok       = vault_unlock( $check, encode( 'UTF-8', $passphrase ) );
+    my $ok       = vault_unlock( $check, $phrase );
     my ($check2) = vault_open($dir);
     $ok = FALSE
         if defined $recovery
         and not vault_unlock( $check2, $recovery, 'recovery' );
+    vault_lock($ARG) foreach $check, $check2;
     if ( not $ok ) {
+        vault_lock($created);
         say $C{o}
             . '  << the new key file does not open -- do not use it >>'
             . $C{R};
@@ -1053,7 +1117,9 @@ sub ask_field {
             my $new = prompt_secret('password') // return undef;
             return $current // '' if not length $new;
             my $again = prompt_secret('re-enter') // return undef;
-            return $new if $new eq $again;
+            my $same  = $new eq $again;
+            secret_wipe( \$again );    ## the entry keeps $new, not this ##
+            return $new if $same;
             say msg( 'refuse', 'differs, again' );
         }
     }
@@ -2860,7 +2926,7 @@ sub cmd_gen {
 ## stay hidden. written, then read back and compared before it counts
 sub cmd_archive {
     my @args = @ARG;
-    my ( $file, %opt, $with_file );
+    my ( $file, %opt, $with_file, $wipe );
     while (@args) {
         my $arg = shift @args;
         if    ( $arg eq '-f' ) { $with_file = shift @args }
@@ -2881,15 +2947,18 @@ sub cmd_archive {
             say msg( 'refuse', 'cannot read %s', $with_file );
             return FALSE;
         }
-        my $phrase = prompt_secret('archive passphrase [ + key file ]')
+        my ( $phrase, $again, $bytes );
+        $wipe = wipe_on_exit( \$phrase, \$again, \$bytes,
+            \$opt{'file_secret'} );
+        $phrase = prompt_secret('archive passphrase [ + key file ]')
             // return FALSE;
-        my $again = prompt_secret('re-enter') // return FALSE;
+        $again = prompt_secret('re-enter') // return FALSE;
         if ( $phrase ne $again ) {
             say msg( 'refuse', 'passphrases differ -- no archive written' );
             return FALSE;
         }
-        $opt{'file_secret'}
-            = file_secret( encode( 'UTF-8', $phrase ), $with_file );
+        $bytes = encode( 'UTF-8', $phrase );
+        $opt{'file_secret'} = file_secret( $bytes, $with_file );
         say msg( 'info', 'key file : %s', $with_file );
         say '  '
             . $C{0}
@@ -2976,9 +3045,11 @@ sub cmd_passwd {
     my $v     = unlocked() // return FALSE;
 
     if ( $which eq 'recovery' ) {
-        my $code = recovery_code_new();
+        my ( $code, $typed );
+        my $wipe = wipe_on_exit( \$code, \$typed );
+        $code = recovery_code_new();
         say "\n      $C{B}$C{V}$code$C{R}\n";
-        my $typed = prompt_line('type it back to confirm') // return FALSE;
+        $typed = prompt_line('type it back to confirm') // return FALSE;
         if ( recovery_code_normalize($typed) ne recovery_code_normalize($code)
         ) {
             say msg( 'refuse', 'does not match -- recovery code unchanged' );
@@ -2992,17 +3063,22 @@ sub cmd_passwd {
         return TRUE;
     }
 
-    my $new   = prompt_secret('new vault passphrase') // return FALSE;
-    my $again = prompt_secret('re-enter passphrase')  // return FALSE;
+    my ( $new, $again, $bytes );
+    my $wipe = wipe_on_exit( \$new, \$again, \$bytes );
+    $new   = prompt_secret('new vault passphrase') // return FALSE;
+    $again = prompt_secret('re-enter passphrase')  // return FALSE;
     if ( $new ne $again ) {
         say msg( 'refuse', 'passphrases differ -- unchanged' );
         return FALSE;
     }
     say $C{o} . '  << short passphrase >>' . $C{R} if length $new < 12;
-    vault_rewrap( $v, 'passphrase', encode( 'UTF-8', $new ) );
+    $bytes = encode( 'UTF-8', $new );
+    vault_rewrap( $v, 'passphrase', $bytes );
 
     my ($check) = vault_open($dir);
-    if ( not vault_unlock( $check, encode( 'UTF-8', $new ) ) ) {
+    my $opens = vault_unlock( $check, $bytes );
+    vault_lock($check);    ## the check handle's key wiped ##
+    if ( not $opens ) {
         say $C{o}
             . '  << the rewritten key file does '
             . 'not open : use the recovery code >>'
@@ -3100,8 +3176,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,,,,..,,.,.,,..,,.,,,,.,,,.,,,,,...,..,,,..,..,,...,...,..,,.,.,,.,,,,.,...,
-#VPRNNXMTU3ARFKL5ECENBC7WU7VHN44FVAQNOVRFT4KSAUZBDT55S55TI5M4L7I3NY5RVA2LCN2CS
-#\\\|Q77IJCD763UTXLJ7E47EQDGSSTIEINRZPBFR3ACA64XKKJJQAN5 \ / AMOS7 \ YOURUM ::
-#\[7]XB4IHGBMZX3SCPGD7NWT65IE5VEMZSKL25TGRAA5LY4RDJ6VDCAA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,.,.,,,,,,,.,,,,.,,,.,,,,.,,..,..,,...,...,.,,,,,,,.,,,..,,,,.,
+#WHINFBJJMKPWB6NUYCSKR72V6NJQ7D3MEAH2G32XOZMDPYPMT4ZZKVT5YR6W7LHRIBI3GI2G4ZG4E
+#\\\|45T4ALMUU5JVMCP2EEFTBRHIXTQJPVG3RNSH2EHEMV7LC2VBGKZ \ / AMOS7 \ YOURUM ::
+#\[7]YUNEJXSJP6OFD3WHZI56NV6INYLS3K3USKZ6LCNZ2YNYX2DJLCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

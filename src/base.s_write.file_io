@@ -34,13 +34,18 @@ my $size_written = undef;    ##  until write attempt  ##
 IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_string_ref->$*,
     $str_offset, sub { $size_written = $ARG[0] } );
 
-##  blocking until write request has been completed  ##
-while ( not defined $size_written ) { IO::AIO::poll() }
+## blocking until write request has been completed  [ $@ cleared : a     ##
+## request without a callback, the C25519 loaders' aio_mlock, makes poll ##
+## die with any $@ still set from an earlier failed eval ]               ##
+{
+    local $EVAL_ERROR;
+    while ( not defined $size_written ) { IO::AIO::poll() }
+}
 
-return $size_written;        ## [ returns -1 on error ] ##
+return $size_written;    ## [ returns -1 on error ] ##
 
-#,,..,,,,,.,,,.,,,,..,.,,,...,,,,,,.,,...,,,.,.,.,...,..,,..,,.,,,.,.,,,,,,,,,
-#ESEALCZV3UWXGQE2MSAFB5N2UQH2IPKEIQII4C7ODORO3CHBP3KIXZKSWXBNQ7GFUBXMTRMXVGOH2
-#\\\|YK63YXUKE6XOJNE6B5JKWNLC5ZZNMPGRTOVH7JPYJBVUXS4X5BH \ / AMOS7 \ YOURUM ::
-#\[7]JTGNVHRONWGIIZJFUXBXJORBGJ57I2BV75YR2QIGQXIIERZKBUCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,..,,...,.,,,,.,,,,.,,.,,,.,,.,.,...,...,,,.,..,,..,,...,.,,,
+#H36IZIGPROZZ3HAL6P6ZLU6QY4QR366VKQDYAS3VC5RBL64LJ5KA4L6H3MLC7HRZYCSF62VH2IWAC
+#\\\|EO26BRPSSXC43XTI3BZFLRPVVEPRQQ43WHNHDCC2NP4XJLDQTHK \ / AMOS7 \ YOURUM ::
+#\[7]UXVA6ZR65LDGXBQGGRGEDQ52XDMBWSCALDCTTMCFK7JWNRWDB6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

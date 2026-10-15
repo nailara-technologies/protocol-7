@@ -7,7 +7,9 @@ use warnings;
 ## p7-vault's auto-lock through a real pty : the shell locks after the idle
 ## time [ P7_VAULT_LOCK_SECONDS ], clears screen + scrollback, asks for the
 ## passphrase again and goes on ; a lock inside a hidden input cancels the
-## command ; ':keep-open:' never locks. throwaway vault, cheap kdf
+## command ; ':keep-open:' never locks. throwaway vault, cheap kdf also the
+## hidden input itself [ one buffer written in place ] : backspace over ascii
+## and utf-8, a value past the first buffer size
 
 use FindBin;
 use File::Temp qw| tempdir |;
@@ -21,6 +23,7 @@ use constant FALSE => 0;    ##  false  ##
 BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
 
 use AMOS7::Vault qw| vault_init |;
+use Encode       qw| encode |;
 
 my ( $pass, $fail ) = ( 0, 0 );
 
@@ -49,9 +52,9 @@ sub session {
         open( STDIN,  '<&', $tty ) or POSIX::_exit(1);
         open( STDOUT, '>&', $tty ) or POSIX::_exit(1);
         open( STDERR, '>&', $tty ) or POSIX::_exit(1);
-        $ENV{$ARG} = $env->{$ARG} foreach keys %{$env};
+        $ENV{$ARG} = $env->{$ARG} foreach grep { $ARG ne '-d' } keys %{$env};
         ## block : no warning ##
-        { exec $^X, $vault_bin, '-d', $dir, @{$args} }
+        { exec $^X, $vault_bin, '-d', $env->{'-d'} // $dir, @{$args} }
         POSIX::_exit(1);
     }
     $pty->close_slave;
@@ -150,11 +153,57 @@ $plain = $out =~ s|\e\[[0-9;?]*[A-Za-z]||gr;
 ok( $plain =~ m|auto-lock off| && $plain !~ m|locked after| && $rc == 0,
     ':keep-open: : no lock' );
 
+## the hidden input buffer : what was typed, after editing, opens the vault ##
+my $unlocked = sub {
+    my ( $out, $rc ) = @ARG;
+    my $plain = $out =~ s|\e\[[0-9;?]*[A-Za-z]||gr;
+    return ( $plain =~ m|sync <host>| and $plain !~ m|wrong| and $rc == 0 );
+};
+( $out, $rc ) = session(
+    {}, [':keep-open:'],
+    [ 1,   "pass phrasX\x7fe\r" ],
+    [ 0.6, "commands sync\r" ],
+    [ 0.6, "quit\r" ]
+);
+ok( $unlocked->( $out, $rc ), 'hidden input : backspace over ascii' );
+
+my $utf8_dir = "$tmp/vault-utf8";
+vault_init(
+    $utf8_dir, encode( 'UTF-8', "p\x{e4}ss phrase \x{fc}" ),
+    undef,
+    t => 1,
+    m => 8192,
+    p => 1
+);
+( $out, $rc ) = session(
+    { '-d' => $utf8_dir },
+    [':keep-open:'],
+    ## typed only once raw mode is on : before it, the tty's own line editing
+    ## erases one BYTE per backspace, half a utf-8 char
+    [ 2.5, encode( 'UTF-8', "p\x{e4}ss phrase \x{fc}\x{fc}" ) . "\x7f\r" ],
+    [ 0.6, "commands sync\r" ],
+    [ 0.6, "quit\r" ]
+);
+ok( $unlocked->( $out, $rc ), 'hidden input : backspace over a utf-8 char' );
+
+my $long     = join ' ', map {"word$ARG"} 1 .. 70;    ## ~ 450 bytes ##
+my $long_dir = "$tmp/vault-long";
+vault_init( $long_dir, $long, undef, t => 1, m => 8192, p => 1 );
+( $out, $rc ) = session(
+    { '-d' => $long_dir },
+    [':keep-open:'],
+    [ 1,   "$long\r" ],
+    [ 1,   "commands sync\r" ],
+    [ 0.6, "quit\r" ]
+);
+ok( $unlocked->( $out, $rc ),
+    'hidden input : past the first buffer [ doubled, nothing lost ]' );
+
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,..,.,.,.,.,..,,..,,..,,..,,.,,,.,.,,,,,..,,...,...,,..,.,.,,,,,,.,,,.,,
-#NM3LPW2JS5DOVVTKZPX47HADGS4RU4H5G5ROEU32VZ4WTA26IH6M3ZD5MO376KJYY7KGQSNMWIFYG
-#\\\|2SNDPUUPLS26VTEXYIQLSYFKT7L7DIQGADCRHBB2YA62CNBFE6B \ / AMOS7 \ YOURUM ::
-#\[7]7OEEETVPISKF7QUVN47MJHGPFAGSMP5IFBYABYAIM5M65WAA34BA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,..,,,..,,,.,,,.,,,,,,,.,.,.,,..,..,,...,...,,..,,,.,,.,,.,.,.,,,
+#3VCDKYLDMGCOKW3DRZRYDAPLE4SUJIVBT3R7AWGBWDZIWVJIDJWWRKSYLY65WLQZZKQIETDRPJSP6
+#\\\|UQBKXHZ6WZQ5R6UXDEXFWT3RIMDUC5UVSYWJOP2WLXJA2SR6L76 \ / AMOS7 \ YOURUM ::
+#\[7]2HPDTQK2RSGMAYATE2ID4MDITJFLOS62P65VH53EMESADIJ27IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,16 +14,23 @@ verified 2026-10-15 with Devel::Peek [ same PV address, IsCOW ] :
   owners are gone -> a wipe there is in place [ fine, p7-auth-keypair-helper.pl ]
 - `$keys{..}{'secret'} = $decrypted_sref->$*` keeps the mlocked buffer [ fine ]
 
+also 2026-10-15 : a regex with a capture [ `s{(..)$}{}` ] and a growing `.=`
+MOVE the string -- the old copy stays unwiped. read secrets into one
+preallocated buffer written with 4-arg substr [ p7-vault read_secret_raw ].
+
 `IO::AIO::aio_mlock` executes on a worker thread at once [ VmLck 0 -> 4 kB
-without any poll ] ; only the completion waits for a poll \ flush.
+without any poll ] ; only the completion waits for a poll \ flush. BUT a
+request without a callback makes the next `IO::AIO::poll` \ `flush` DIE with
+any stale `$@` [ verified ] -> `local $EVAL_ERROR` around every poll loop
+[ base.s_read.file_io, base.s_write.file_io, AMOS7::Vault _mlock ].
 
 **How to apply:** wipe [ base.buffer.erase_secure \ AMOS7::Vault `_wipe` ]
 only works on the sole owner of a buffer -- for every secret check that no
 second scalar holds it, or wipe that one too. derived temporaries [ b32
 strings, sprintf results ] are a separate limit. related : [[no-personal-data-in-repo-tree]].
 
-#,,,,,.,.,..,,,,,,..,,.,.,.,,,.,.,,,,,,,,,,.,,..,,...,.,.,,,,,,,,,.,.,.,.,.,,,
-#QNKRW52GNX7NLVP3FDSMIJHVRHWZGJBHQBBTZWLECQBDMH37F4K6GUD2RBD6PUDG63REC5QNQLBKW
-#\\\|OB3VIYRVOCJR4WRTLMKQVU2NG25HHUVPIUG3QO7PM74E3Q2QC7G \ / AMOS7 \ YOURUM ::
-#\[7]XXAFNHSNTHSG5XC3W2D7C5YAH4QFEWFNFIKXEDMJMLC6YFW3EADY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,..,,.,,.,.,,.,,.,,,..,,,,,,.,.,..,,...,...,.,.,,.,,.,,,,,.,,.,,
+#3T2AINABNOBO727NSDUHXSHLVXJ6WJF3V4XBLG3VJGB3ASAMXOCJTDML2MXM5IKAX4KPLLMNSHLPK
+#\\\|5PGCA3UKJDBK7NOC7O3JXQ2M3ELDWIDOD2TPTCIGFDMYOZ6A6DN \ / AMOS7 \ YOURUM ::
+#\[7]GCSS3DLDHUSYVJSY3LQQZOVTINVCGLXW3VD5KV7P22XN467JY4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

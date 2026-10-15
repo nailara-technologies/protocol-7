@@ -265,6 +265,14 @@ scheme with a per-file random salt
   IO::AIO::aio_mlock when IO::AIO is there [ never swapped ], and wiped
   -- two random overwrites, then truncated -- on a lock and on quit.
   derived per-entry keys are short perl temporaries this cannot reach
+- typed secrets are wiped the same way once used : passphrase, retype,
+  its utf-8 form, the key file secret, a recovery code, and the argon2id
+  output. the hidden input reads into ONE buffer written in place [ no
+  '.=', no regex on it : both leave copies no wipe reaches ], doubled and
+  the old one wiped when full. check handles of init \ passwd are locked
+  again. limits : copies inside argon2 \ the cipher code, the visible form
+  while tab shows the value, the plain `<STDIN>` path without
+  Term::ReadKey
 - the interactive shell locks after 78 min without input [ 13 x 360 s,
   P7_VAULT_LOCK_SECONDS, 0 = off ; ':keep-open:' at start-up turns it off ]
   : key wiped, typed-ahead input dropped, screen + scrollback + command
@@ -396,8 +404,8 @@ the payload with the vault key, then step 2 for each record's data.
 a session agent [ unlock once per login ], the vault-edit form ui,
 totp code display, purging old versions.
 
-#,,..,,.,,,,.,,.,,.,.,.,.,,.,,,,.,,,.,...,,,.,..,,...,...,..,,.,,,.,,,..,,...,
-#462G7UANHHVKPES4MTTS7C7YUOVEUFPAT2IW3SUMAOWTKFYK5RPJDQ7BD6W5FVCBCLG4KQHTDBEMS
-#\\\|O3AT6D74M57GJCXVL4AJSCZTP4LZI3LTTKSPFDANAHNLNEAQXLN \ / AMOS7 \ YOURUM ::
-#\[7]HXQDSAU3LPK62VOHFZBEFMM25EFDJEF3HYDMXR5GD6LIYO7N6CBY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,..,,.,,,.,,.,,,,,.,,..,,.,,..,,...,...,,..,,..,.,.,,,,,,..,
+#VIST6KWM7EKMAIR7THX6FK3SARE5ZWHGKL4KNN57EONNCWYOSJGUDBVX2UK643VKMTMWWXUKNYUHG
+#\\\|ADPHVSWBCT7DO5CDUZ47WRY2LKIUWBHZD3V2QXDF7V7RDZ7EXZP \ / AMOS7 \ YOURUM ::
+#\[7]DRZI7DKVAMSTT2SF6Q6V3CN2LXAIWW73XFDQXDSPSPC26KTDQGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

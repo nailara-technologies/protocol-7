@@ -49,6 +49,7 @@ our $VERSION = qw| AMOS7::Vault-VERSION.0000001 |;
     blob_import_stream
     blob_discard
     vault_lock
+    secret_wipe
     blob_export
     blob_verify
     archive_write
@@ -607,6 +608,7 @@ sub _wrap_key {
         _wrap_ad( $vault, $wrap_name ),
         $vault->{'key'}
     );
+    _wipe( \$root );
 
     $vault->{'wraps'}{$wrap_name}
         = { salt => $salt, nonce => $nonce, ct => $ct, tag => $tag };
@@ -634,13 +636,20 @@ sub vault_init {
         id      => _new_id(),
         created => int( ntime_now() ),
         kdf     => { %KDF_DEFAULT, %kdf },
-        key     => _random_bytes(32),
+        key     => '',
         wraps   => {},
     };
+    my $key = _random_bytes(32);
+    $vault->{'key'} .= $key;    ## a private buffer, as vault_unlock ##
+    _wipe( \$key );
+    _mlock( \$vault->{'key'} );
 
     _wrap_key( $vault, qw| passphrase |, $passphrase );
-    _wrap_key( $vault, qw| recovery |,   recovery_code_normalize($recovery) )
-        if defined $recovery and length $recovery;
+    if ( defined $recovery and length $recovery ) {
+        my $plain = recovery_code_normalize($recovery);
+        _wrap_key( $vault, qw| recovery |, $plain );
+        _wipe( \$plain );
+    }
 
     my ( $ok, $err )
         = _write_new_file( _key_path($dir), _key_file_text($vault) );
@@ -682,6 +691,9 @@ sub vault_unlock {
         _wrap_ad( $vault, $wrap_name ),
         @raw[ 1 .. 3 ]
     );
+    _wipe( \$root );
+    ## normalized copy ##
+    _wipe( \$secret ) if $wrap_name eq qw| recovery |;
 
     return FALSE if not defined $key or length $key != 32;
     ## '.=' gives the handle a private buffer -- a plain copy would share the
@@ -703,7 +715,11 @@ sub _mlock {
     state $have_aio = eval { require IO::AIO; 1 };
     return FALSE if not $have_aio or not length( ${$sref} // '' );
     IO::AIO::aio_mlock( ${$sref}, 0, length ${$sref} );
-    IO::AIO::flush();    ## no event loop here : wait for the request ##
+    ## no event loop here : wait for the request. IO::AIO takes a set $@ as a
+    ## callback error and dies with it -- an earlier failed eval must not
+    ## surface here
+    local $EVAL_ERROR;
+    IO::AIO::flush();
     return TRUE;
 }
 
@@ -717,6 +733,9 @@ sub _wipe {
     ${$sref} = '';
     return;
 }
+
+## the same for callers : typed passphrases, key file secrets
+sub secret_wipe { return _wipe(@ARG) }
 
 ## lock an unlocked handle : the key wiped and gone, the handle stays usable
 ## for what needs no key [ the id, sync ]
@@ -739,6 +758,7 @@ sub vault_rewrap {
         $secret = recovery_code_normalize($secret)
             if $wrap_name eq qw| recovery |;
         _wrap_key( $vault, $wrap_name, $secret );
+        _wipe( \$secret ) if $wrap_name eq qw| recovery |;
     } else {
         delete $vault->{'wraps'}{$wrap_name};
     }
@@ -1322,7 +1342,9 @@ sub file_secret {
     open( my $fh, '<:raw', $path ) or die "vault : cannot read $path\n";
     my $content = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
     close $fh;
-    return pack( q{N/a*}, $content ) . $passphrase;
+    my $secret = pack( q{N/a*}, $content ) . $passphrase;
+    _wipe( \$content );    ## the key file may be private too ##
+    return $secret;
 }
 
 ## the git blob id of a file
@@ -1421,6 +1443,7 @@ sub archive_write {
         if defined $opt->{'file_secret'}
         and not vault_unlock( $archive->{'vault'}, $opt->{'file_secret'},
         qw| passphrase-file | );
+    vault_lock( $archive->{'vault'} );    ## its own copy wiped first ##
     $archive->{'vault'}{'key'} = $vault->{'key'};
     my ( $back, $back_err ) = archive_records($archive);
     die "vault : archive does not decrypt back : $back_err\n"
@@ -1432,6 +1455,8 @@ sub archive_write {
             or $back->[$ARG][1] ne $records->[$ARG][1]
         } 0 .. $#{$records};
 
+    ## shared with the vault's : not wiped ##
+    delete $archive->{'vault'}{'key'};
     return ( scalar @{$records}, -s $path, $wraps );
 }
 
@@ -1600,8 +1625,8 @@ sub gen_password {
 
 1;
 
-#,,..,,..,,..,.,,,,,.,,.,,...,.,,,.,.,,.,,.,.,..,,...,...,,..,.,,,,,,,...,,..,
-#5JV4VRPOEMTCU4GFVLL4BPMCFR4GR4BKYZP2Q3HMAFTHMPIM5P7YR6K2O4NHPFIUO5NEOFKK7NLYA
-#\\\|VF43TCNOOF6EY6MYJQSUCERM5FNW3KKFMMVVAH2TFSVGFAJJL7M \ / AMOS7 \ YOURUM ::
-#\[7]FLY4XRNCVEC54HYJ3UKTXUEIOWNVGZL3Q6PF32KU4TXW5XPNEGAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,,,.,,,,,,,.,.,,,,,.,,.,,,,.,..,,...,...,,,.,...,,,,,...,,,.,
+#26WR3GQIOKQ7XPX36DD4VFYM5W52YO4W5TVGTI4BRVGPATS3E4CEX3V7X6F455MBUR5AT3P5IQRKQ
+#\\\|PZUGP2KNW6XAAMXQNFFVFDQG4GVNBXAJC6RHKY4RKAXHN6TTDS5 \ / AMOS7 \ YOURUM ::
+#\[7]TVWKTHZPKXQ7FPVEA7JD6S3QAMHADRFS5JA7KGYLAALHIX265ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
