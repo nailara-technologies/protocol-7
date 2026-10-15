@@ -9,7 +9,7 @@ metadata:
 
 **dns-01 LIVE** for protocol-7.network, v7.ax and the private domain [ never name it in the tree ] : registrar zone carries acme.<domain> NS dn0000.. + _acme-challenge.<domain> CNAME _acme-challenge.acme.<domain> ; our nameserv answers ; letsencr host.cfg : challenge.type dns-01, provider nameserv, challenge_alias_prefix acme, alias_ns. nameserv.cmd.ensure-zone creates acme.* subzones [ prefix-restricted, add-txt still never creates zones ]. gotchas found : letsencr child only loads letsencr.child.* [ letsencr.dns.* inwx \ cloudflare never ran there ], on_authz read only prefer_dns01 [ challenge.type now honored ], cube access.zenki needed the ensure-zone grant. name servers decided : DN0000 [ + DN0000.v7.ax ] server 1, DN0110 server 2, DN1110 delta [ harmony beats numbering ]. next : wildcard via request-certificate extra names.
 
-**Host config** : `[load_host_config]` in a zenka.v7 reads /etc/protocol-7/<zenka>/host.cfg [ creates the dir as root ; nameserv, letsencr, v7-zenki use it ]. nameserv default one dual-stack socket :: with ipv4 fallback like httpd. start conditions `dependencies = cube unix_group.httpsd` [ v7-zenki.callback.object.unix_user \ unix_group, re-check timer while unmet ]. zenki.disabled now blocks automatic starts [ on-demand, dependency ; manual v7-zenki.start allowed ] ; zenki.on-demand = allow list ; profile start-set-up.remote-server-lowram. web space plugin subscribes to orbital producers only on first orbital-json request [ every host ran discover \ nodes \ external \ graphics-matrix before ].
+**Host config** : `[load_host_config]` in a zenka.v7 reads /etc/protocol-7/<zenka>/host.cfg [ creates the dir as root ; nameserv, letsencr, v7-zenki use it ]. nameserv default one dual-stack socket :: with ipv4 fallback like httpd. start conditions `dependencies = cube unix_group.httpsd` [ v7-zenki.callback.object.unix_user \ unix_group, re-check timer while unmet ]. zenki.disabled + the zenki.on-demand allow list gate EVERY start since 2026-10-15 [ v7-zenki.start too ; ':ignore-disabled:' overrides per call, never enrols in zenki.enabled ; concurrent handover exempt -- user's design : a wrong-host dist-upgrade must not crash a 1 GB server ] ; zenki.on-demand = allow list ; profile start-set-up.remote-server-lowram. web space plugin subscribes to orbital producers only on first orbital-json request [ every host ran discover \ nodes \ external \ graphics-matrix before ].
 
 **Unit** data/lib-path/systemd/system/Protocol-7.service host-neutral [ /usr/local/protocol-7, dev checkout linked there, desktop env in /etc/default/protocol-7, no network-online ] ; Restart=always [ teardown = restart, as before ] + `teardown :no-restart:` = exit 76 [ RestartPreventExitStatus ] + backoff. see [[changed-established-behavior-silently]].
 
@@ -25,8 +25,8 @@ metadata:
 
 **Open** : yourum.v7.ax -- access not set up yet, the user resets its password first [ 2026-10-12 ; leave it to them ]. atom [ being retired ] : generic -lowram profile + `v7-zenki.host.zenki.disable = nameserv web system` in its host.cfg [ DYK, 0306cd50c ; its profile edit left the local commit ], no nameserv there ; cube route leak 7N3 [ high ] hit atom after 2.5 days. wildcard cert [ request-certificate extra names ], delta port 25 + narrow ufw, new unit on pri.v7.ax + other hosts, old host `zenki.disabled = nameserv`, 7WR socket paths, rename the wsl host at session end, p7-git-pull--rebase vs identical untracked files, path \ port \ mount condition types.
 
-#,,,,,,..,...,...,..,,...,,,,,,..,,.,,.,,,,.,,..,,...,...,.,,,..,,..,,...,..,,
-#Y4ZW47JLP3KGZ7JEOA4XKKRBLAPHRQLGTB6OHEKLLQXT4C3DVO5RUYA6JJF2YF7SQK6EXHEQ2QTHG
-#\\\|OEO2SY4FBV2XLBONRTAUJZWBVLPPGDBYXKKSMLEQQAUWUQOQPPU \ / AMOS7 \ YOURUM ::
-#\[7]4U3LQYW6UQBZUI3BTLKZMKFGDDB3G2LVEQSXNVQC6NQ6E6JTFWBY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,,,.,,,,,.,,,.,,..,,.,,.,,,,.,,..,,...,...,.,,,,,,,...,,.,,.,.,
+#OIQY2MUPJMMJIIQOHFM4LVNARRAOL5MPOY7C6P2MJ22G3I3M6IYX22D6OJX6SN3CZZPPANPPR46VU
+#\\\|FVCAPS76M3XHUBGYQZL44QD7QCDY5PGPNHBBGVLVTZIW2WFTYQY \ / AMOS7 \ YOURUM ::
+#\[7]57HC2KQCLOZ4J4LANQYJHWMWB34EA3KYXEROWCSMTTAL4MB45GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
