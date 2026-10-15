@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = v7-zenki.resolve.object.sys_deps
+# descr = start a zenka's missing dep installs [ apt via debian.install-packages,
+#           cpan via debian.install-cpan, both async ] on an unmet sys_deps check
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+my $object_type = <dependency.object>->{$object_id}->{'type'};
+if ( $object_type ne qw| sys_deps | ) {
+    <[base.logs]>->(
+        0,          "object %d is of type '%s' and not 'sys_deps'",
+        $object_id, $object_type
+    );
+    return undef;
+}
+my $zenka_name = <dependency.object>->{$object_id}->{'name'} // '';
+return undef if not length $zenka_name;
+
+return { 'mode' => qw| true |, 'data' => 'feature off' }
+    if not <[base.cfg_bool]>->( <v7-zenki.cfg.auto_install_deps> // FALSE );
+
+my $state = ( <v7-zenki.sys_deps.state> // {} )->{$zenka_name};
+$state = <[v7-zenki.sys_deps.probe]>->($zenka_name) if not defined $state;
+
+## never two installs for one zenka at a time ##
+return { 'mode' => qw| true |, 'data' => $state->{'status'} }
+    if ( $state->{'status'} // qw| ok | ) ne qw| missing |;
+
+my @apt  = @{ $state->{'apt'}  // [] };
+my @cpan = @{ $state->{'cpan'} // [] };
+
+$state->{'status'}     = qw| installing |;
+$state->{'started_at'} = <[base.ntime]>;     ## install_timeout ##
+
+my $pending = 0;
+
+if (@apt) {
+    my $sent = <[protocol-7.route-send]>->(
+        {   'command'   => qw| debian.install-packages |,
+            'call_args' => { 'args' => join( ' ', @apt ) },
+            'reply'     => {
+                'handler' => qw| v7-zenki.handler.sys_deps_reply |,
+                'params'  => {
+                    'zenka'       => $zenka_name,
+                    'kind'        => qw| apt |,
+                    'packages'    => [@apt],
+                    'missing_pm'  => [ @{ $state->{'missing_pm'} } ],
+                    'missing_os'  => [ @{ $state->{'missing_os'} } ],
+                    'missing_bin' => [ @{ $state->{'missing_bin'} } ]
+                }
+            }
+        }
+    );
+    if ($sent) {
+        $pending++;
+    } else {
+        <[base.logs]>->(
+            0,
+            'sys_deps: cannot reach debian zenka '
+                . "[ route-send failed ] for zenka '%s'",
+            $zenka_name
+        );
+    }
+}
+
+if (@cpan) {
+    my $sent = <[protocol-7.route-send]>->(
+        {   'command'   => qw| debian.install-cpan |,
+            'call_args' => { 'args' => join( ' ', @cpan ) },
+            'reply'     => {
+                'handler' => qw| v7-zenki.handler.sys_deps_reply |,
+                'params'  => {
+                    'zenka'    => $zenka_name,
+                    'kind'     => qw| cpan |,
+                    'packages' => [@cpan]
+                }
+            }
+        }
+    );
+    if ($sent) {
+        $pending++;
+    } else {
+        <[base.logs]>->(
+            0,
+            'sys_deps: cannot reach debian zenka '
+                . "[ route-send failed ] for zenka '%s' [ cpan ]",
+            $zenka_name
+        );
+    }
+}
+
+$state->{'pending'} = $pending;
+
+if ( not $pending ) {
+    ## nothing in flight [ route-send failures on every channel ] : the ##
+    ## zenka starts degraded -- released via the re-check timer         ##
+    $state->{'status'}      = qw| failed |;
+    $state->{'failed_at'}   = <[base.ntime]>;
+    $state->{'fail_logged'} = FALSE;
+    <[v7-zenki.condition.recheck_later]>;
+}
+
+return { 'mode' => qw| true |, 'data' => 'sys_deps install started' };
+
+#,,,.,..,,,..,.,,,,..,,,.,,.,,,.,,,.,,.,.,.,.,..,,...,...,,.,,.,,,,,,,,,.,,,.,
+#JX6JVM7OTLWGQ4PPROZZ7CTJQHH3GZUBWKBGV6X5TCZU2UR3STWXIF7ONIOKHFDNSAACVRJZT7VAG
+#\\\|J26ROAUDSMZZHR7H4MRZRPKVUC7WVH6GTPD4HVYWMOKMXTSWRGC \ / AMOS7 \ YOURUM ::
+#\[7]FFSQRLSAUWHRILD5MJKOFPZBWGKASQF26522RMLUFAM7FH22MUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
