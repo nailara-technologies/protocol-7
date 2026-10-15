@@ -26,13 +26,27 @@ metadata:
 decodes per file ] + forensics.sweep.step [ ~0.2 s slices per loop turn ] ;
 sweep-run replies deferred. local 454 MB : 8.95 s -> 0.11 s.
 
-**open** : cube route leak [ 7N3, also hit atom after 2.5 days ] -- routes
-of a dead zenka are never released ; v7-zenki has no backoff for a zenka
-that dies right after every restart [ a loop runs silently for days ].
+**verified live on pri 2026-10-15 20:20** : events.trigger_event forensics ->
+online, sweep record after 7 s [ 11 files, < 1 s ], still online 61 s later.
+
+**v7-zenki** `062953657` : start-up heartbeat probe before 'online' [ no
+reply \ FALSE = start-up error ] + restart delay resets only after
+restart.stable_after [ 77 s, was 4.2 s ] -- a zenka that keeps failing now
+reaches max_delay 300 s [ the user's intended interval ]. NO give-up was
+added : the user declined changing overall restart behaviour.
+
+**7N3 status** : with current code, restarts [ system x5, forensics x5,
+local cube + devmod dump ] leave no routes. pri's cube most likely ran
+pre-d592b22fc code [ started 2026-10-12 ~09:05, fix pulled later, never
+restarted ]. latent defect CONFIRMED offline : base.route.add keys the
+source side by cmd_id, id-less commands [ 0 ] overwrite each other ->
+on source close only the last route is cancelled [ scenario 11 in
+test-cube-route-stream-cleanup.pl, 2 FAILs, kept out of commits until
+fixed ]. leaks only if the target never answers an id-less command.
 see [[project-2026-10-11-servers-dns01-host-config]].
 
-#,,.,,,,.,.,,,..,,.,.,,.,,...,,.,,.,,,,,.,,,.,..,,...,...,,..,.,,,,..,,.,,,.,,
-#7P3MZP7W75VOJME4DC3UPEUJBTOA6Z6LVHTDL2IAJRRBKF7X7Z6ZNM4AZL65NNR3CE2GTQ2LCDIES
-#\\\|QZ2L6BDTLY6VU2TCVUGKWDVG32NXOYGCYA3GY4TRSMUAGPMFWC2 \ / AMOS7 \ YOURUM ::
-#\[7]SCAHDPRXXSHQA6GDZA6AF3A42SAT56MHRW3B5Y23FVNQM5WMWWAA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,.,.,.,.,.,,,.,.,,..,,,,,,,.,..,,...,.,.,..,,,..,,..,...,,.,,
+#DZHL4NFPIC2FQBY7U2HROOQZUZZC4PE4I2UDPPZ4GIKINWX3ZQYA4TVUP2TIJ6M7QY53UDI2GXLXE
+#\\\|B2AKOAVAZYYXZ5SU5PADBKHTKEMRU5VTL36ABII45QR4MUZF32O \ / AMOS7 \ YOURUM ::
+#\[7]UOKCWOXZ7BXNP2GGVHGU7WFPPJPTRLWJ7SDMEI5IE6TOSCRVDIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

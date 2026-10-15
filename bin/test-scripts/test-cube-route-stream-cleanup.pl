@@ -566,13 +566,88 @@ check(
 my $gid6 = $code{'base.gen_id'}->( \%table, 100, '0123456789', 0 );
 check( 's10: harmony disabled works', defined $gid6 );
 
+##[ scenario 11 : id-less commands from a session that then closes ]##########
+## [ 7N3 second path ? ] base.route.add keys the source side by the source ##
+## cmd_id -- 0 for a command sent without an id. a dying zenka             ##
+## [ forensics on pri, ~7300 restarts ] would leave target-side + global   ##
+## routes behind                                                           ##
+
+load_module('base.list.element.add');
+load_module('base.route.add');
+load_module('base.session.cancel_source_routes');
+$code{'base.ntime'} = sub { return '1.0' };
+
+%data                            = ();
+$data{'regex'}{'base'}           = {};
+$data{'net'}{'silent_ignore'}    = {};
+$data{'base'}{'strm'}{'local'}   = {};
+$data{'base'}{'prng'}{'fortuna'} = FakeFortuna->new;
+
+$data{'route'} = {};
+## cube init ##
+$data{'base'}{'element'}{ \$data{'route'} }{'max_count'} = 13747;
+mk_session(5);    ## the zenka that dies
+mk_session(9);    ## v7-zenki
+
+my @s11_routes = map {
+    $code{'base.route.add'}->(
+        {   'source' => { 'sid' => 5, 'cmd_id' => 0 },
+            'target' => { 'sid' => 9 }
+        }
+    )
+} 1 .. 3;
+check( 's11: three id-less routes added',
+    3 == grep { ref $ARG eq 'HASH' } @s11_routes );
+my %s11_before = table_counts();
+printf "       before close : global %d, v7-zenki %d, source %d\n",
+    $s11_before{'route'}, scalar keys %{ $data{'session'}{9}{'route'} },
+    scalar keys %{ $data{'session'}{5}{'route'} };
+
+## session close [ base.session.check.close ] : cancel_route over the ##
+## closing session's own route keys                                   ##
+$code{'base.session.cancel_route'}->(
+    5,
+    'FALSE command route collapsed',
+    keys %{ $data{'session'}{5}{'route'} }
+);
+## then the routes the keys no longer reach [ base.session.check.close ] ##
+my $s11_freed = $code{'base.session.cancel_source_routes'}->(5);
+check( 's11: cancel_source_routes freed the 2 overwritten routes',
+    $s11_freed == 2 );
+delete $data{'session'}{5};
+
+my $s11_global = scalar keys %{ $data{'route'}               // {} };
+my $s11_target = scalar keys %{ $data{'session'}{9}{'route'} // {} };
+printf "       after close  : global %d, v7-zenki %d\n", $s11_global,
+    $s11_target;
+check( 's11: no global route left after the source closed',
+    $s11_global == 0 );
+check( "s11: no route left in the target's table", $s11_target == 0 );
+
+## routes of other sessions are untouched ##
+$data{'route'} = {};
+mk_session(6);
+mk_session(7);
+mk_session(10);
+mk_route( 6, 0, 10, 31, 501 );    ## another source ##
+mk_route( 7, 0, 10, 32, 502 );    ## the closing source ##
+$data{'session'}{10}{'route'}{32} = 999;    ## the target reused the id ##
+my $s11b = $code{'base.session.cancel_source_routes'}->(7);
+check( 's11: only the closing source route freed',
+    $s11b == 1 && exists $data{'route'}{501} && !exists $data{'route'}{502} );
+check( 's11: a target entry pointing at another route is kept',
+    ( $data{'session'}{10}{'route'}{32} // '' ) eq '999' );
+check( 's11: undef \ empty sid frees nothing',
+    $code{'base.session.cancel_source_routes'}->(undef) == 0
+        && $code{'base.session.cancel_source_routes'}->('') == 0 );
+
 ##[ summary ]#################################################################
 
 printf "\n%d passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,.,,,,.,.,.,...,,,.,...,.,.,,,,,..,,,,.,..,,...,...,,..,.,.,.,,,,.,,...,
-#LK5WN3BN7C5DPNJNZVGDYSZZFECLGPMKRKNC6VTMYGJ47L23EI3PTBEKZPBKTYC7BF7KPXTJN6KEG
-#\\\|DI4WYCZHLIEBAAVSZO3NF4PPS6INIKA5UN4NSRH5O7JDFB5P4KV \ / AMOS7 \ YOURUM ::
-#\[7]NGSX5HNNZYGQEQIGHY67R3VJZWCZGKNVVCD2Q4UMTGUGL5PNTYCA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,,,.,...,,,,,.,.,,,.,...,.,.,..,,...,...,,.,,,..,.,,,.,.,,..,
+#XXYBYEC3B4SDGLOP33YZ5WCJ76YCPFFK2A7K6TFSLZRBZUO2IMECABZJ736XIKG3PKY3ZLLBJTO2U
+#\\\|SAR5KL7DCEBMF4BAWKPF2WWOPDQ6Q3ATUHJFVNY7BT267QZVS7D \ / AMOS7 \ YOURUM ::
+#\[7]ZK5PWDQELWC7FXZKIQ7FLLWMOY2S5IPPB6UFLSM2MJYWLWW5WQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
