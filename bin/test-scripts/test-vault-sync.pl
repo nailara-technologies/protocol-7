@@ -295,13 +295,52 @@ ok( $rc == 0
     ok( $rc != 0 && $out =~ m|is this vault itself|,
         'sync <path> : the vault itself is refused'
     );
+
+    ## saved targets : -a \ -l \ -r, a bare 'sync' runs them all ##
+    my $list = "$dir_a/sync-targets";
+    ( $out, $rc ) = $run->();
+    ok( $rc != 0 && $out =~ m|none saved yet|,
+        'saved targets : a bare sync with none saved says how to add' );
+    ( $out, $rc ) = $run->( '-a', $drive, "fakehost:$tmp/multi-c", $drive );
+    ok( $rc == 0 && $out =~ m|saved : \Q$drive\E fakehost:| && -e $list,
+        'saved targets : -a saves, a repeat once' );
+    ok( ( ( stat $list )[2] & 07777 ) == 0600,
+        'saved targets : ' . 'the list is 0600'
+    );
+    ( $out, $rc ) = $run->( '-a', q{'bad;host'} );    ## quoted for qx ##
+    ok( $rc != 0 && $out =~ m|unsafe sync target|,
+        'saved targets : an unsafe target is refused'
+    );
+    ( $out, $rc ) = $run->('-l');
+    ok( $rc == 0 && $out =~ m|1\s+\Q$drive\E| && $out =~ m|2\s+fakehost:|,
+        'saved targets : -l lists them numbered' );
+    entry_save( $v, undef,
+        { type => 'note', title => 'saved run', body => 's' } );
+    ( $out, $rc ) = $run->();
+    ok( $rc == 0
+            && $out =~ m|saved targets :|
+            && $out =~ m|all 2 hosts in sync|
+            && "@{[ entries($drive) ]}" eq "@{[ entries($dir_a) ]}"
+            && "@{[ entries(qq|$tmp/multi-c|) ]}" eq "@{[ entries($dir_a) ]}",
+        'saved targets : a bare sync runs every saved one'
+    ) or print $out;
+    ( $out, $rc ) = $run->( '-r', $drive, 'never-saved' );
+    ok( $rc == 0
+            && $out =~ m|not saved : never-saved|
+            && $out =~ m|removed : \Q$drive\E|,
+        'saved targets : -r removes, names what was not saved'
+    );
+    ( $out, $rc ) = $run->('-l');
+    ok( $out !~ m|\Q$drive\E| && $out =~ m|fakehost:|,
+        'saved targets : the other one stays'
+    );
 }
 
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,..,,..,,,,,,,,,,.,,.,,,,,.,,,,,.,,,,,,,..,,...,...,,.,,,,,,,,.,.,,,.,,,
-#VKAK7Y4FPJN7DXSJ3QWLDOU53OSEN2KWQYNMMWSS2ZISPDOQDRPS5Q6VMMUEHVB7FSTJQOTWZOUSE
-#\\\|FRSIZF466O4Q2GXSK4SCEBSOGHGX2VRMDQGXVTE5UI73C4A4DWQ \ / AMOS7 \ YOURUM ::
-#\[7]H6NRGWABFD7WM7OWKV7HODVXXC2AWVVJ6BZYU2GPIAGSG5XK7UAI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,.,.,,..,.,,,...,,,.,,..,,,.,..,,...,...,,..,.,.,.,,,,.,,.,.,
+#HMHZBWCDC54AIEIOC746M6CBXICELG3EFCM5FVFPG4AKCJ2CYTHCCBNRZKR2W6G5BOOM75RCBVFL4
+#\\\|HM7XUQUYDGEKQP4AEXOGK4UNI6HKF6B2OJIVKXE7AJHYMVCTY7I \ / AMOS7 \ YOURUM ::
+#\[7]SNU444XNO4RDBCG6ILZO4AEJLVB3TS6JK5I2MFGVYESIF7DPWGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
