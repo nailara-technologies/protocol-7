@@ -75,8 +75,9 @@ sub session {
     ## the first keys only once the passphrase prompt is there : a cold start
     ## can take longer than the first step's wait
     $drain->( 15, qr|passphrase| );
-    foreach my $step (@steps) {
-        $drain->( $step->[0] );
+    foreach my $step (@steps) {    ## a regex wait : until that text came ##
+        if ( ref $step->[0] ) { $drain->( 15, $step->[0] ) }
+        else                  { $drain->( $step->[0] ) }
         syswrite( $pty, $step->[1] );
     }
     $drain->(2);
@@ -106,10 +107,11 @@ sub session {
 my ( $out, $rc ) = session(
     { P7_VAULT_LOCK_SECONDS => 2 },
     [],
-    [ 1,   "pass phrase\r" ],
-    [ 4,   "pass phrase\r" ],
-    [ 0.6, "commands sync\r" ],
-    [ 0.6, "quit\r" ]
+    [ 1,                  "pass phrase\r" ],
+    [ [qr|locked after|], '' ],
+    [ 1,                  "pass phrase\r" ],
+    [ 0.6,                "commands sync\r" ],
+    [ 0.6,                "quit\r" ]
 );
 my $plain = $out =~ s|\e\[[0-9;?]*[A-Za-z]||gr;
 ok( $plain =~ m|locked after 2 s without input|, 'idle prompt : locked' );
@@ -160,21 +162,128 @@ ok( $plain =~ m|auto-lock off| && $plain !~ m|locked after| && $rc == 0,
     ':keep-open: : no lock' );
 
 ## quit \ q \ exit \ x clear screen + scrollback ; ctrl-d ends, keeps them ##
+## [ typed once the shell is up : the auto-lock line comes before its      ##
+## prompt ]                                                                ##
 foreach my $word (qw| quit q exit x |) {
     ( $out, $rc ) = session(
         {}, [':keep-open:'],
-        [ 1,   "pass phrase\r" ],
-        [ 0.6, "$word\r" ]
+        [ 1,                   "pass phrase\r" ],
+        [ [qr|auto-lock off|], '' ],
+        [ 0.5,                 "$word\r" ]
     );
-    my $after = substr( $out, rindex( $out, $word ) );
-    ok( index( $after, "\e[3J" ) >= 0 && $rc == 0,
-        "$word : screen and scrollback cleared"
-    );
+    my $shell = index( $out, 'auto-lock off' );
+    ok( $shell >= 0 && index( $out, "\e[3J", $shell ) >= 0 && $rc == 0,
+        "$word : screen and scrollback cleared" );
 }
+( $out, $rc ) = session(
+    {}, [':keep-open:'],
+    [ 1,                   "pass phrase\r" ],
+    [ [qr|auto-lock off|], '' ],
+    [ 0.5,                 "\x04" ]
+);
+ok( index( $out, 'auto-lock off' ) >= 0
+        && index( $out, "\e[3J" ) < 0
+        && $rc == 0,
+    'ctrl-d : ends, the screen kept'
+);
+
+## the cursor : an underscore in the shell, hidden in a hidden input, the
+## terminal's own style back at the end
+ok( index( $out, "\e[4 q" ) >= 0
+        && index( $out, "\e[?25l" ) >= 0
+        && rindex( $out, "\e[0 q" ) > rindex( $out, "\e[4 q" ),
+    'cursor : underscore shell, hidden input, restored on exit'
+);
+
+( $out, $rc ) = session(
+    {}, [':keep-open:'],
+    [ 1,                   "pass phrase\r" ],
+    [ [qr|auto-lock off|], '' ],
+    [ 0.5,                 "\x03" ]
+);
+ok( $rc == 130
+        && rindex( $out, "\e[0 q" ) > rindex( $out, "\e[4 q" )
+        && index( $out, "\e[3J" ) < 0,
+    'ctrl-c in the shell : ends, the cursor restored, the screen kept'
+);
+
+## a typed, not entered secret clears itself [ 2 s here ] : the slow rewind a
+## key stops once, then the fast one ; the unlock is cancelled [ exit 1 ]
+my $plain_of = sub { return shift =~ s|\e\[[0-9;?]*[A-Za-z]||gr };
+my %fast     = ( P7_VAULT_INPUT_SECONDS => 2 );
 ( $out, $rc )
-    = session( {}, [':keep-open:'], [ 1, "pass phrase\r" ], [ 0.6, "\x04" ] );
-ok( index( $out, "\e[3J" ) < 0 && $rc == 0,
-    'ctrl-d : ends, ' . 'the screen kept'
+    = session( \%fast, [':keep-open:'], [ 0.3, 'pass phr' ], [ 9, '' ] );
+ok( $plain_of->($out) =~ m|input timeout -- cleared| && $rc == 1,
+    'input timeout : left alone, cleared and cancelled'
+);
+
+( $out, $rc ) = session(
+    \%fast,
+    [':keep-open:'],
+    [ 0.3, 'pass phr' ],
+    [ 3,   "ase\r" ],             ## inside the slow rewind ##
+    [ 0.6, "commands sync\r" ],
+    [ 0.6, "quit\r" ]
+);
+ok( $plain_of->($out) =~ m|sync <host>|
+        && $plain_of->($out) !~ m{input timeout|wrong}
+        && $rc == 0,
+    'input timeout : a key during the first rewind keeps the value'
+);
+
+( $out, $rc ) = session(
+    \%fast,
+    [':keep-open:'],
+    [ 0.3, 'pass phr' ],
+    [ 3,   'a' ],          ## the one grace used ##
+    [ 7,   '' ]
+);
+ok( $plain_of->($out) =~ m|input timeout -- cleared| && $rc == 1,
+    'input timeout : the second one clears without grace'
+);
+
+## keys typed during the last rewind never reach the shell prompt ##
+( $out, $rc ) = session(
+    \%fast,
+    [':keep-open:'],
+    [ 0.3, "pass phrase\r" ],
+    [ 0.6, "passwd\r" ],
+    [ 0.6, 'new pass' ],
+    [ 3,   'x' ],               ## the grace used ##
+    [ 2.3, 'leakcheck' ],       ## inside the fast rewind ##
+    [ 4,   '' ],
+    [ 0.6, "quit\r" ]
+);
+ok( $plain_of->($out) =~ m|input timeout -- cleared|
+        && $plain_of->($out) !~ m|leakcheck|
+        && $rc == 0,
+    'input timeout : keys typed during the rewind are dropped'
+);
+
+( $out, $rc ) = session(
+    \%fast, [':keep-open:'],
+    ( map { [ 1.2, $ARG ] } split m||, 'pass phrase' ),
+    [ 1.2, "\r" ],
+    [ 0.6, "commands sync\r" ],
+    [ 0.6, "quit\r" ]
+);
+ok( $plain_of->($out) =~ m|sync <host>| && $rc == 0,
+    'input timeout : slow typing, pauses under it, unlocks'
+);
+
+( $out, $rc ) = session(
+    {}, [':keep-open:'],
+    [ 0.3, "garbage\x15pass phrase\r" ],
+    [ 1,   "commands sync\r" ],
+    [ 0.6, "quit\r" ]
+);
+ok( $plain_of->($out) =~ m|sync <host>| && $rc == 0,
+    'ctrl-u : rewound, the keys typed right after it kept'
+);
+
+( $out, $rc ) = session( {}, [':keep-open:'], [ 0.3, "pass\x03" ] );
+ok( $plain_of->($out) !~ m{wrong|sync <host>} && $rc == 1,
+    'ctrl-c : the input dropped, the unlock cancelled'
 );
 
 ## the hidden input buffer : what was typed, after editing, opens the vault ##
@@ -226,8 +335,8 @@ ok( $unlocked->( $out, $rc ),
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,..,..,,,,.,,..,,,.,..,,,,,,,,.,.,.,.,,,,,.,..,,...,...,...,,,.,.,.,,,,,.,.,
-#XHFRLX4R2IH3SOBCMOVC7XF4TJ5EU52UOA5OGSKFFC2ROQYK77CAUVOQ7K5GXOWLLIPKLCXNHH5GY
-#\\\|OSQXVFK3FVRM6VF7FM3BK5IYUOF4RNRQ2QWIJVF56HRUUU32WK4 \ / AMOS7 \ YOURUM ::
-#\[7]B5QT62SGGSDVPPDD4W535K7UXC7W3MOVX3EHHAAQTNQFTDWMDEDA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,,,.,..,,,.,,,..,..,,,..,,..,..,,...,...,...,...,...,...,,.,,
+#LFOZD4IYAWQHGLCAHOERM2EMHZQUTLB7TFUGK3KKYQTJJ2EYP5PXFRFT6H7YDASDQX7BVNE4TNITA
+#\\\|Q2ZOGV44K7NPHXK7LCESEGCOYV2Y5JMDFUIJWVUJUGANV3CPRYI \ / AMOS7 \ YOURUM ::
+#\[7]3H6GT6VCURMYG3B3IGROUWUGE5LJMVKXHAO5LICJ5B2ZNDJO5ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
