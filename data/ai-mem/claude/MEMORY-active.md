@@ -191,3 +191,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|IZTX7TCIFSF5KC44T3DXHJI53UOKWTBDOW4H7GZ7OLZK3DVRKQ2 \ / AMOS7 \ YOURUM ::
 #\[7]XKWCFWKKUU6MMX2MRJFAR3XWYMABD35TUXGYK2NA5MEWWC67ZYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [forensics-restart-loop-cube-ids](project-2026-10-15-forensics-restart-loop-cube-ids.md) — 2026-10-15 pri : forensics boot sweep blocked past heartbeat -> ~7300 restarts in 5 days -> leaked routes exhausted cube ids [ gen_id -1, routed p7c hangs ] ; sweep fixed ab0b5bced, cube route leak 7N3 + v7-zenki restart backoff open
+
+#,,,,,,,,,,..,.,.,,..,,,,,..,,,,,,..,,...,.,.,..,,...,...,,.,,,..,,..,..,,,,,,
+#7YTOGXNR4HW3VJTCPCNJGJG5AWBLPP7PSUN3BMQJWKBMWMVOI6C5MEN25JQW7G2AKND4ZJA3IH37O
+#\\\|6CNESMNB32F4XIWVIC7VUE3C7PNJC2XTHHIS4KCYSYTZOUJQYWW \ / AMOS7 \ YOURUM ::
+#\[7]NAROLKQFDXHHKYBORMXILZBCWGKTIP52TK6IPLZLQY2YXXQ4JIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
