@@ -23,8 +23,13 @@ my $b_read;
 IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, my $r_buff //= '',
     0, sub { $b_read = $ARG[0] // -1 } );
 
-##  wait until read request has been completed  ##
-while ( not defined $b_read ) { IO::AIO::poll() }
+## wait until read request has been completed  a request without a callback ##
+## [ the C25519 loaders' aio_mlock ] makes poll die with any $@ still set   ##
+## -- an earlier failed eval must not end this read                         ##
+{
+    local $EVAL_ERROR;
+    while ( not defined $b_read ) { IO::AIO::poll() }
+}
 
 if ( $b_read > 0 ) {
     ## downgrade UTF-8 flag to prevent double-encoding when sending via ##
@@ -38,8 +43,8 @@ if ( $b_read > 0 ) {
 
 return $b_read;                          ## [ returns -1 on error ] ##
 
-#,,..,,,,,.,.,,,,,,..,..,,.,.,.,,,.,,,.,,,,.,,.,.,...,...,..,,...,,.,,,,.,.,,,
-#6SXEGWNCSCY3EASI76W7JPHS7VUYHIGNANZTLDBOMHER27OU5YU5TCKCHTFMO5W2RGDZCJ4V32VKO
-#\\\|YW5HKXSVUMFPILCFIJG7TZ3TPC66DNR6COK3IE67IFDWRG4FUZN \ / AMOS7 \ YOURUM ::
-#\[7]ZPVFGCRGE5VGYI6U5CG23SXT5QIW4CNAGTLFAUIN7P2URQLRAABI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,,,.,,,,,,.,,.,,,,,,,,.,,,.,,.,.,...,...,,,.,..,,,.,,...,,.,,
+#GFADBWMOZXH5BNRQ42MLWEMG34TA2K47RYJQHDAHQ25TCJXMDTI7DGOETCXARMCKME7QQM74W7UWE
+#\\\|DX7B7ORMB2V6TGQW45ROUPHCJGDUWJUHYVNRLVSINO3I6DJLQBS \ / AMOS7 \ YOURUM ::
+#\[7]XFHSI5VXHIJXWIVIEGFZXMKBIHMQ5KCHM5UTK4BUGMISLZ4LLKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
