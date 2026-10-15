@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = nameserv.cache.put
+# descr = store an upstream reply in the forwarding cache
+
+my $reply = shift // return FALSE;
+return FALSE if ref $reply ne qw| Net::DNS::Packet |;
+
+my @questions = $reply->question;
+return FALSE unless scalar @questions;
+
+my $rcode = $reply->header->rcode;
+
+## never cached : servfail, refused, truncated replies ##
+return FALSE if $rcode eq qw| SERVFAIL | or $rcode eq qw| REFUSED |;
+return FALSE if $reply->header->tc;
+
+my $now       = time;
+my @answer    = $reply->answer;
+my @authority = $reply->authority;
+
+my $ttl;
+if ( $rcode eq qw| NXDOMAIN | or not scalar @answer ) {
+    ## negative answer : soa minimum \ soa ttl from the authority section, ##
+    ## the lower one ; no soa : not cached                                 ##
+    my ($soa) = grep { $_->type eq qw| SOA | } @authority;
+    return FALSE unless ref $soa;
+    my $neg_ttl = $soa->minimum < $soa->ttl ? $soa->minimum : $soa->ttl;
+    my $cap     = <nameserv.cfg.cache.max_negative_ttl> // 900;
+    $ttl = $neg_ttl < $cap ? $neg_ttl : $cap;
+} else {
+    ## positive answer : the lowest ttl of answer + authority rrs ##
+    my $lowest;
+    for my $rr ( @answer, @authority ) {
+        $lowest = $rr->ttl if not defined $lowest or $rr->ttl < $lowest;
+    }
+    return FALSE unless defined $lowest;
+    my $cap = <nameserv.cfg.cache.max_ttl> // 86400;
+    $ttl = $lowest < $cap ? $lowest : $cap;
+}
+
+return FALSE unless $ttl > 0;    ## ttl 0 : never cached ##
+
+my $key     = <[nameserv.cache.key]>->($reply) // return FALSE;
+my $entries = <nameserv.cache.entries> //= {};
+
+my $max = <nameserv.cfg.cache.max_entries> // 7777;
+if ( not exists $entries->{$key} and scalar keys %$entries >= $max ) {
+    ## at the size limit : evict the entries that expire first, down to 90 ##
+    ## % -- not one sort of every entry for each new one                   ##
+    my @by_expiry
+        = sort { $entries->{$a}{'expiry'} <=> $entries->{$b}{'expiry'} }
+        keys %$entries;
+    my $keep = int( $max * 0.9 );
+    $keep = $max - 1 if $keep >= $max;
+    while ( scalar keys %$entries > $keep and scalar @by_expiry ) {
+        delete $entries->{ shift @by_expiry };
+    }
+}
+
+$entries->{$key} = {
+    'stored' => $now,
+    'expiry' => $now + $ttl,
+    'ttl'    => $ttl,
+    'reply'  => $reply
+};
+
+return TRUE;
+
+#,,.,,,,,,..,,,.,,..,,,,,,,..,,,.,.,,,,.,,.,,,..,,...,...,...,.,.,,,.,...,..,,
+#FZQ47XMV3HWWDABE54FYTMTZYWWHWWNILJSVMLD3DP73FCUDR32ADWJYJDIR3JJGCIZOESVK7MZE6
+#\\\|6VZJCDZUAD747Z6XW4WEXDIVEX4D6N7VWHCJSHPNZOM2TIHQMAA \ / AMOS7 \ YOURUM ::
+#\[7]4CC6BKMQCEYD6GYET2MLYPCHO6KXUQ5GCWRT2LRLRWRKYKDREWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

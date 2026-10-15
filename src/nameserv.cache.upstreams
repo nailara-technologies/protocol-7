@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = nameserv.cache.upstreams
+# descr = upstream resolver list for the forwarding cache [ read once ]
+
+## configured ips win ; without them the nameserver lines of                ##
+## /etc/resolv.conf are used, loopback addresses excluded -- the cache must ##
+## never ask itself. read once, the first time, then cached                 ##
+
+my $cached = <nameserv.cache.upstream_list>;
+return @$cached if ref $cached eq qw| ARRAY |;
+
+my @upstreams;
+my $configured = <nameserv.cfg.cache.upstream> // '';
+for my $server ( split m|\s+|, $configured ) {
+    push @upstreams, $server if length $server;
+}
+
+if ( not scalar @upstreams ) {
+    if ( open my $fh, '<', '/etc/resolv.conf' ) {
+        while ( my $line = <$fh> ) {
+            next unless $line =~ m{^\s*nameserver\s+(\S+)}i;
+            my $ip = $1;
+            next if <[nameserv.cache.client_allowed]>->($ip);
+            push @upstreams, $ip;
+        }
+        close $fh;
+    }
+}
+
+<nameserv.cache.upstream_list> = \@upstreams;
+
+return @upstreams;
+
+#,,..,,.,,.,.,,..,,..,,,.,..,,.,.,...,,..,...,..,,...,..,,...,,..,,..,.,.,,..,
+#5OX3YGYFDTONQRBEPLGHTY7LE3LYB6GUFH4P6ZPO764R7HGOCOWSNLFFJN3DPGQXRER2XEAWXXGVK
+#\\\|N2JZKIVDSEXMHQUE5EZHOBN6ZBOPZ2N5RRCHPM3KQZQLV6XYLIV \ / AMOS7 \ YOURUM ::
+#\[7]ACXRHNAJXBGC4IGRKTY5EMLXR77BNTT4OSCTY3SMESUWIMTOQADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

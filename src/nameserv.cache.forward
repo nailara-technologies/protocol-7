@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = nameserv.cache.forward
+# descr = forward one cache-miss query to an upstream resolver, async
+
+## in-flight coalescing : a second query for the same key waits for the  ##
+## pending one [ a list of deliver callbacks ], no second upstream query ##
+
+my $q       = shift // return FALSE;
+my $deliver = shift // return FALSE;
+return FALSE if ref $q ne qw| Net::DNS::Packet |;
+return FALSE if ref $deliver ne qw| CODE |;
+
+my @questions = $q->question;
+return FALSE unless scalar @questions;
+
+my $key = <[nameserv.cache.key]>->($q) // return FALSE;
+
+my $pending = <nameserv.cache.in_flight> //= {};
+
+if ( exists $pending->{$key} ) {
+    push @{ $pending->{$key}{'waiters'} },
+        { 'id' => $q->header->id, 'deliver' => $deliver };
+    return TRUE;
+}
+
+<nameserv.stats>->{'cache_misses'}++;
+
+my $state = {
+    'key'          => $key,
+    'qname'        => lc $questions[0]->qname,
+    'qtype'        => $questions[0]->qtype,
+    'waiters'      => [ { 'id' => $q->header->id, 'deliver' => $deliver } ],
+    'upstream_idx' => 0,
+    'usevc'        => FALSE,    ## tcp retry flag for truncated replies ##
+    'watcher'      => undef,
+    'timer'        => undef,
+    'resolver'     => undef,
+    'sock'         => undef,
+};
+
+$pending->{$key} = $state;
+
+return <[nameserv.cache.forward.try]>->($state);
+
+#,,,.,...,..,,,,.,.,.,,.,,,.,,...,,..,,,,,..,,..,,...,...,...,.,,,,..,,,,,...,
+#CAHXE7XWRFLM3FILEL225VH5BARSNDLYXFMLXAFMPXPW62Y5NHCSO2CCORDTHOTASZNVPBCWNHW4S
+#\\\|B2FFBINNNZU2SGB5MO624TOZLU2RDMPOZ2OSCGDRHD6NTYP2E4N \ / AMOS7 \ YOURUM ::
+#\[7]YWKRXLAIXD7ZNYMHKRSQR7JQG5HV6KQYLA4D7QDELPQGIYSC3MAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

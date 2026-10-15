@@ -18,6 +18,18 @@ nameserv.zone_dir  = '/var/protocol-7/nameserv/zones'
 # nameserv.cfg.tcp.max_connections = 77
 # nameserv.cfg.tcp.idle_timeout    = 13
 
+## forwarding dns cache [ loopback clients only -- never an open        ##
+## resolver ] : an authoritative REFUSED + rd + loopback client is     ##
+## answered from the cache, a miss is forwarded [ rd = 1 ] to the      ##
+## upstreams below ; without them the resolv.conf nameservers are      ##
+## used, loopback addresses excluded -- the cache never asks itself    ##
+# nameserv.cfg.cache.enabled          = no
+# nameserv.cfg.cache.max_ttl          = 86400
+# nameserv.cfg.cache.max_negative_ttl = 900
+# nameserv.cfg.cache.max_entries      = 7777
+# nameserv.cfg.cache.upstream         = 192.0.2.53 192.0.2.54
+# nameserv.cfg.cache.upstream_timeout = 3
+
 ## command access for cube
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
@@ -62,8 +74,8 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml \
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,,,,..,,..,,,,.,.,.,...,,,.,,,,,,.,,.,.,...,..,,...,...,,..,,.,,,,.,,..,.,,,
-#QCZCZMIPOYCQSWGJVSXJT7SIR6JBWPXFXZA72U64X4Y5ZJQZGLF3Y2AGQUDGJ3G5AOVVLPVNQ33M2
-#\\\|HMJTGRVXBI7VHN54ZVVBFQEC5FYCSSL6YVNFXL4M4WRF23C6MBX \ / AMOS7 \ YOURUM ::
-#\[7]3HGH5RFHLXBA2MEAUUIQ5VCMBVTWVKQR6WZLPTPKOV75QQJEG2BI 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,,..,,..,...,...,.,.,..,,,,.,..,,...,..,,,,,,.,,,.,.,.,,,,..,
+#CTXWZUBZWC4IV4S2IJCY6ZYUNTTIRMGNLUJPTBUHRA2HDAA5F5NFZCL7EGDFZDBEQASVPNWFRNWVS
+#\\\|3WDPPA7CSXCJEZDSGMY4WPRHO2GQARCIQRO2FCBDT5WNS3HSOHV \ / AMOS7 \ YOURUM ::
+#\[7]QGTQS4TIJTGRQ2RVJXWIUS44FOKGS3PVAAL2KPNR4DEZRINIIAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

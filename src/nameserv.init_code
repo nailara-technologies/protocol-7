@@ -17,9 +17,17 @@ my $reinit = shift;
 
 ## runtime state
 <nameserv.zones> //= {}; ## { zone_name => { records => [...], serial => N } }
-<nameserv.socket>     //= undef;
-<nameserv.stats>      //= { queries => 0, errors => 0, tcp_queries => 0 };
-<nameserv.discovered> //= {};
+<nameserv.socket> //= undef;
+<nameserv.stats>  //= {
+    'queries'         => 0,
+    'errors'          => 0,
+    'tcp_queries'     => 0,
+    'cache_hits'      => 0,
+    'cache_misses'    => 0,
+    'cache_forwarded' => 0,
+    'cache_servfail'  => 0
+};
+<nameserv.discovered>              //= {};
 <nameserv.cfg.auto_publish_domain> //= undef;
 <nameserv.cfg.challenge_ttl>       //= 60;
 
@@ -34,6 +42,24 @@ my $reinit = shift;
 ## tcp dns [ rfc 7766 ] connection limits ##
 <nameserv.cfg.tcp.max_connections> //= 77;
 <nameserv.cfg.tcp.idle_timeout>    //= 13;
+
+## forwarding dns cache [ loopback clients only -- never an open resolver : ##
+## authoritative REFUSED + rd + loopback client -> cache hit, else          ##
+## forwarded to the upstreams ; without configured upstreams the            ##
+## resolv.conf nameservers are used, loopback excluded                      ##
+<nameserv.cfg.cache.enabled>          //= 'no';
+<nameserv.cfg.cache.max_ttl>          //= 86400;
+<nameserv.cfg.cache.max_negative_ttl> //= 900;
+<nameserv.cfg.cache.max_entries>      //= 7777;
+<nameserv.cfg.cache.upstream>         //= '';
+<nameserv.cfg.cache.upstream_timeout> //= 3;
+
+## cache state [ reinit safe : the cache never resets on a reload ] ##
+<nameserv.cache.entries> //= {};
+
+## a config reload may change cache.upstream : read the list again ##
+delete <nameserv.cache.upstream_list> if $reinit;
+<nameserv.cache.in_flight> //= {};
 
 ## consistency check configuration [ per host in host.cfg ] ##
 <nameserv.cfg.dn_names>       //= '';    ## own name server names ##
@@ -91,8 +117,8 @@ for my $timer ( @{ <nameserv.consistency.timers> // [] } ) {
 
 0;
 
-#,,,,,,,.,,,.,,,,,,.,,,,,,.,,,.,,,,.,,,..,,,.,..,,...,...,.,.,,.,,,..,,,,,...,
-#7WJBUNH4N4TKXO7YYAGFWEBSJTQJ6IP7ZBCP7DYZ54ZHQDU73YPQHQQOHGS6NZ2LWLYNQPAGHWA24
-#\\\|GCE5RGULEMGL2WH6NICUVEVCYMAAKJL7JQYSHOO2JT4PYXNKKV3 \ / AMOS7 \ YOURUM ::
-#\[7]RDLNZQI7CFCU7USPJEEWC3ZIZ7B3BXP6QOMH65XQG3NDJ73DHEDI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,...,,,.,..,,..,,.,,,.,.,,,,,..,,...,..,,.,,,,,.,...,.,,,.,,,
+#5ASKPQOKT2NNSYD5FVT5QAKQDAP4XHBFXKXLGL5KYEDDDHVRTLJSIYML373GVGJZUNRHTVGX2DYYA
+#\\\|D7DHB7RMFZVOPC6ICFFDOZHCT2Z3BEBCC2V4KIHZQQFUJRDQR2I \ / AMOS7 \ YOURUM ::
+#\[7]XUEZXWGL4PAYV653I2JHUHNOJTYH24PJVDX4MF35Q6E33H2JI6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

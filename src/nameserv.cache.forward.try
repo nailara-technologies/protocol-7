@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = nameserv.cache.forward.try
+# descr = send one async upstream query try for a cache-miss state
+
+## one Net::DNS::Resolver bgsend + io watcher + timeout timer per try, so ##
+## the zenka never blocks on dns. a trailing :port on an upstream address ##
+## is honoured [ plain ipv4 a.b.c.d:port or bracketed [v6]:port form ] ;  ##
+## without one the resolver default port 53 applies                       ##
+
+my $state = shift // return FALSE;
+
+## drop the previous attempt's watcher + timer ##
+for my $name (qw| watcher timer |) {
+    if ( ref $state->{$name} ) {
+        $state->{$name}->cancel
+            if $state->{$name}->can('is_active')
+            and $state->{$name}->is_active;
+        $state->{$name} = undef;
+    }
+}
+
+my @upstreams = <[nameserv.cache.upstreams]>->();
+
+if ( $state->{'upstream_idx'} >= scalar @upstreams ) {
+    ## every upstream failed : servfail to every waiter ##
+    return <[nameserv.cache.complete]>->( $state, undef );
+}
+
+my $server = $upstreams[ $state->{'upstream_idx'} ];
+my $ip     = $server;
+my $port   = undef;
+if ( $server =~ m{^\[(.+)\]:(\d+)$} ) {
+    ( $ip, $port ) = ( $1, $2 );
+} elsif ( $server =~ m{^([\d.]+):(\d+)$} ) {
+    ( $ip, $port ) = ( $1, $2 );
+}
+
+my $resolver = Net::DNS::Resolver->new(
+    'nameservers' => [$ip],
+    'recurse'     => 1,       ## rd = 1 to the upstream ##
+    'udp_timeout' => 3,
+    'tcp_timeout' => 3,
+    'igntc'       => 1,       ## the tc retry is ours, over tcp [ below ] ##
+);
+$resolver->port($port) if defined $port;
+$resolver->usevc(1)    if $state->{'usevc'};
+
+my $sock = $resolver->bgsend( $state->{'qname'}, $state->{'qtype'} );
+$state->{'resolver'} = $resolver;
+$state->{'sock'}     = $sock;
+
+if ( not defined $sock ) {
+    ## send failure : try the next upstream ##
+    return <[nameserv.cache.forward.next]>->($state);
+}
+
+$state->{'watcher'} = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'poll'    => 'r',
+        'handler' => qw| nameserv.cache.handler.answer |,
+        'data'    => $state,
+        'desc'    => "cache upstream query [ $state->{'qname'} "
+            . "$state->{'qtype'} via $server ]"
+    }
+);
+$state->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => <nameserv.cfg.cache.upstream_timeout> // 3,
+        'handler' => qw| nameserv.cache.handler.timeout |,
+        'data'    => $state,
+        'desc'    => "cache upstream timeout [ "
+            . "$state->{'qname'} $state->{'qtype'} ]"
+    }
+);
+
+<nameserv.stats>->{'cache_forwarded'}++;
+
+return TRUE;
+
+#,,..,,.,,.,,,,,,,,..,,,.,.,,,,,,,...,,..,...,..,,...,...,.,.,.,.,...,,,.,,..,
+#DAB22YSIG6VAMTLGGTDQG4AZOOVZVOPMCK63GP7BCSIWMDIK74WPHAVURGBMKXUKCXZ5QPFO655F4
+#\\\|KIXREFL6LH6L7WSG6TBU2ESUQIGIDACFVIRW2FX7J4CQR5Q3J6Y \ / AMOS7 \ YOURUM ::
+#\[7]EGPCYDXKTCU4AQBY3SDZEM7NWFKKFH6LGC5NJQ5YLOKEGBRKX6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
