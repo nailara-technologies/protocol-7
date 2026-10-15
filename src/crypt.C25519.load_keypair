@@ -103,7 +103,13 @@ REENTER_GEN_ENTROPY:
 
         ##  generate keypair from user seed entropy  ##
         ##
-        if ( not <[crypt.C25519.gen_keys]>->( $name, $key_seed_entropy ) ) {
+        my $generated
+            = <[crypt.C25519.gen_keys]>->( $name, $key_seed_entropy );
+        ## used up : wiped before any retry \ return
+        ## [ a given password : this wipes a copy of its own, copy on write ]
+        <[base.buffer.erase_secure]>->( \$key_seed_entropy );
+
+        if ( not $generated ) {
             <[base.logs]>->(
                 0, "'%s' key generation was not successful .,", $name
             );
@@ -270,9 +276,10 @@ REENTER_GEN_ENTROPY:
     ##
     if ( $key_status->{'encrypted'} ) {
 
-        ## the colour reset after a prompt is printed ONLY when this call ##
-        ## actually prompted -- a supplied password [ a form's masked     ##
-        ## prompt, char-add ] must leave no stray ':' in a live frame     ##
+        ## the colour reset after a prompt is printed ONLY when this call  ##
+        ## actually prompted -- a supplied password                        ##
+        ## [ a form's masked prompt, char-add ] must leave no stray ':' in ##
+        ## a live frame                                                    ##
         my $pwd_prompted = FALSE;
     RE_READ_PWD:
         if ( not defined $key_password ) {
@@ -310,6 +317,8 @@ REENTER_GEN_ENTROPY:
 
         if ( ref $decrypted_C25519_sref ne qw| SCALAR | ) {
 
+            ## wrong try ##
+            <[base.buffer.erase_secure]>->( \$key_password );
             undef $key_password;
 
             if ( defined $decrypted_C25519_sref
@@ -398,6 +407,10 @@ SKIP_SECRET_KEY_LOADING:
     IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'}, 0, 32 )
         if exists $keys{'C25519'}{$name}{'secret'};
 
+    ## both keys decrypted : the password is done with
+    ## [ a given one : this wipes a copy of its own, copy on write ]
+    <[base.buffer.erase_secure]>->( \$key_password );
+
     return TRUE;    ## true ##
 
 } else {
@@ -410,8 +423,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,..,,.,,,,.,.,,,.,,,,,,,,,,,,.,,...,.,.,,,,,..,,...,..,,,,.,,.,,,.,,.,.,...,
-#YSUMU6KET4YHGKCPDHKW2HXVP2EJKU3PD2P7REE4KNXJG5CYPCVDMMDSOF6TEEEPNKPJCP2ANC4KO
-#\\\|DV3B2G2DSREPNNZHWIRIHWWRPOZDTFC6GFGXSQCWZVKBA4HFUXI \ / AMOS7 \ YOURUM ::
-#\[7]3QN5EDMTF4IIEAA2FPZS25WI4ATSSARW2EE6KFKBCPR34CWIUGDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,...,,,.,,,.,.,.,,,,,.,,,,..,.,,,..,,...,...,..,,.,.,..,,,,.,...,
+#BRMC55XFOBKIJKL5FWOL6QRUHJRKCPI5QS23XP3OCKW5SF4MRSYSO5OE4LYGKUKFTC2FPHOLVQUWU
+#\\\|DNIH5IXSIZBSY5X645UCHIJVITL4B3R3SCZW7PMW6NZ5PKTQWOR \ / AMOS7 \ YOURUM ::
+#\[7]MPYCTYSNZJ6IWCRH7CRL2KR5WL3N6BFNHZGDP7224SLT64F4MWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
