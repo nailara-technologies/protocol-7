@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = v7-zenki.startup_probe
+# descr = after verification : 'online' only once the zenka answers a
+#         heartbeat ; no answer \ FALSE is a start-up error
+# param = <instance id>
+#
+# the probe runs before set-initialized [ cube delivers v7-zenki's
+# commands to an uninitialized session ]. reply :
+# v7-zenki.handler.startup_probe_reply, no reply :
+# v7-zenki.handler.startup_probe_timeout -> status 'error' from
+# 'starting', so the start-up error path applies [ startup-error-retries,
+# startup-error hooks ]. a zenka that blocks with a scan should do it
+# before set-initialized or later from a timer -- after the probe.
+# skipped [ 'online' at once, as before ] for heartbeat.disabled zenki
+# and the cube zenka itself.
+
+my $instance_id = shift;
+return warn 'expected instance id <{C1}>' if not defined $instance_id;
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+return undef if not defined $instance;
+
+my $globals      = <v7-zenki.start_setup.globals> // {};
+my $zenka_name   = $instance->{'zenka_name'};
+my $zenka_config = <v7-zenki.start_setup.zenki.config>->{$zenka_name} // {};
+
+my $heartbeat_disabled = exists $zenka_config->{'heartbeat'}->{'disabled'}
+    && <[base.cfg_bool]>->( $zenka_config->{'heartbeat'}->{'disabled'} );
+
+if ( $heartbeat_disabled or $instance->{'is-cube'} ) {
+    return <[zenka.change_status]>->( $instance_id, qw| online | );
+}
+
+my $timeout_secs
+    = $zenka_config->{'heartbeat'}->{'timeout'}
+    || $globals->{'heartbeat'}->{'timeout'}
+    || 17;    ##  <-- as v7-zenki.handler.heartbeat_timer  ##
+
+my $probe_id = ( $instance->{'startup_probe'}->{'id'} // 0 ) + 1;
+$instance->{'startup_probe'} = {
+    'id'      => $probe_id,
+    'sent_at' => <[base.time]>->(4),
+    'timeout' => $timeout_secs,
+};
+
+$instance->{'timer'}->{'startup-probe'} = <[event.add_timer]>->(
+    {   'after'   => $timeout_secs,
+        'handler' => qw| v7-zenki.handler.startup_probe_timeout |,
+        'data' => { 'instance_id' => $instance_id, 'probe_id' => $probe_id }
+    }
+);
+
+my $root_sid      = $instance->{'root_sid'};
+my $cube_sid      = $instance->{'cube_sid'};
+my $command_route = defined $cube_sid ? "$root_sid.$cube_sid" : $root_sid;
+
+<[base.logs]>->(
+    2, 'instance %d [ %s ] start-up heartbeat probe [ %s s ]',
+    $instance_id, $zenka_name, $timeout_secs
+);
+
+<[protocol-7.command.send.local]>->(
+    {   'command' => "$command_route.heart",
+        'reply'   => {
+            'handler' => qw| v7-zenki.handler.startup_probe_reply |,
+            'params'  =>
+                { 'instance_id' => $instance_id, 'probe_id' => $probe_id }
+        }
+    }
+);
+
+return TRUE;
+
+#,,.,,.,,,.,,,,..,..,,,..,,,.,.,,,,,.,..,,,..,..,,...,.,.,.,,,,.,,,..,.,,,,..,
+#M5MPLOZJIBEDTS7IUKGY264A4BMI636ALBWU7HUXSB4HPWOTVWNDUWWK7GMJHNMBOKLDBJVJDREIS
+#\\\|27YK57ZS4C4KT2EZKKPMDVB7MJT66OZFNYXJZBMN5TNPLTRBBGM \ / AMOS7 \ YOURUM ::
+#\[7]LZYEFCGBTROCKQWARPFVBDUQCUBHBZA5HXMFRM7JS5DDOJSSFGAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
