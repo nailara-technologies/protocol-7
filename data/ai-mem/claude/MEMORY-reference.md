@@ -84,6 +84,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [cube-type eager devmod precompile](reference-cube-type-eager-devmod-precompile.md) — `system.zenka.type = cube` zenki (cube, cube-13) deliberately keep `devmod.*` in `subroutines.load-early`, regenerated that way by `gen-sub-whitelist`/`dep-graph` even after manual removal; appliance filesystem-crash resilience (only already-compiled code survives a vanished filesystem), not cruft — don't hand-prune it like regular client zenki's load-early lists
 - [log ntime timestamp conversion](reference-log-ntime-timestamp-conversion.md) — `p7c localtime <stamp>` / `p7c delta-time <stamp>` convert zenka-log base32 stamps; `::` = p7c
 - [claude-web-promotion-credits-overflow](reference-claude-web-promotion-credits-overflow.md) — cloud-session credits [ until 2026-11-05 ] SHOULD apply first, but on 2026-10-07 the web usage bar showed plan usage [ switch, cause unknown ; confirmed again 2026-10-12 : plan drawn, credit untouched ] -- check the bar after starting a web lane ; the place for backend-independent tasks [ spec-driven code, offline tests ] -- offer task files there [ ask first ] ; live checks stay local
+- [perl-cow-secret-wipe](reference-perl-cow-secret-wipe.md) — copying a secret shares its buffer [ COW ] : a wipe of one copy misses the other ; pass by reference, build key buffers with .= ; aio_mlock needs no poll
 
 #,,..,...,,,.,,,.,,.,,,,,,,,,,..,,,,.,,.,,.,,,..,,...,...,..,,.,,,,..,,,.,,..,
 #IDHQBYU4ZPC26MOBGHIZOXCZW46F4C72HTIW4WGXHFEDKBH4WZOLEIWGJE56VFO6LANL2YY3BLOAY
@@ -107,8 +108,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 
-#,,..,,,.,,,,,.,,,,.,,,,,,.,,,..,,,..,.,,,,,,,..,,...,...,.,.,..,,,..,,,.,,,.,
-#Z4VLV56EALLALDKPR5NKO5BO7QJC2ZV54FRIZOVB2P7NTKXTCZHMXQ7ZFNSRBXBSFQ5JJ44UCL53W
-#\\\|ZUT6EYR4BUF5WC3EB7PBCAUA5XGQ5K6X2BGEDCZHT6DUAGBJJ45 \ / AMOS7 \ YOURUM ::
-#\[7]73ASQ4FPFJX7KFOWI37XJF7O33SNAZUGUH2WGSTBSPXNJO63XGCQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,..,,,,.,...,,..,.,,,,,.,.,.,,,.,..,,...,...,...,...,,.,,.,.,,.,,
+#7WOYIB5CYEJFIR46TZ5Q2SFAT6PG4WYBTG46KBAIS4ATAJCS5HSPIT3NXVESJWHNL7VLZXJOQOZTO
+#\\\|2AAZ7KJT2OHHD2C5Z62MENKP7HYNIBZTN42JZTWCMNFGJO3JEF6 \ / AMOS7 \ YOURUM ::
+#\[7]EDXYC34IO6GQ54ZAMO5CAXR6HKO3U5IXAWJFCSJ3EZGZ6WVGKWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
