@@ -54,7 +54,9 @@ the lesson : verify a bug's effect before naming it.
 
 ## open
 
-- p7-log rekey-anon-table [ src/p7-log.anon.read_table + .cmd.rekey-anon-table, 44-check test ] : BUILT, live run pending [ sign, p7-log restart, backup log-anon/, run on protocol-7.base-anon-2026-10-07 ; pre-flight : 7594 records, 4878 unique, 0 overlap ] ; then delete retired/ + the old key. NEXT : a dedicated random p7-log anon key [ decoupled from <user>.base, so identity rotation no longer forces an archive ]
+- DONE 2026-10-15 [ 84010c720 b6b776b9c 6952b6fe2 ] : p7-log rekey-anon-table [ :skip-unreadable: ] ; live : the weak 2025 archive rekeyed [ 4832 records ; 47 under a key that no longer exists, left in retired/ ] ; then p7-log moved to its OWN key p7-log.anon [ config key_name ; reload config, archive-anon-table + rekey-anon-table protocol-7.base : 5416 records, 0 missing ]. backup /var/protocol-7/p7-log/log-anon.bak-2026-10-15.
+- user's call : delete log-anon/retired/ + the backup ; p7-keys remove protocol-7.base-anon-2026-10-07 [ protocol-7.base STAYS : cube S \ .dlg ]
+- REMOTES : before a host gets 6952b6fe2, as protocol-7 `p7-keys create -U p7-log.anon`, then reload config + archive + rekey <user>.base -- without the key every span becomes [L:-] [ lost ]. offered : auto-create + auto-migrate in p7-log [ undecided ]. also check remotes' protocol-7.base date [ before 2026-10-07 = weak prng key ; user thinks they were regenerated, not in memory ]
 - truth check : the 3 failing keys were true under the PRE-2026-08-26 elf algorithm [ sourcecode, remote-fetch-client verified ; anon = 2025 key, old-lib check hangs -- old elf bug ]. no generator to fix. was : 3 of 7 genuine public keys fail it
   [ proto-7.sourcecode, protocol-7.base-anon-2026-10-07,
   remote-fetch-client ] -- generated without the filter, or misread format.
@@ -69,8 +71,8 @@ the lesson : verify a bug's effect before naming it.
 - small : rewinds via '\b \b' if the vault prompt still flickers ; recovery
   code typed back still passes regexes
 
-#,,.,,...,,,,,.,.,..,,.,,,..,,,.,,..,,,.,,...,..,,...,...,...,,,.,...,,,.,,,,,
-#FGDSSUSPNXIDK3ESULKVQTK5KKD7DIUGNBKYJUDHWPXDYMPNMWY257FFBPSIEXF5OKHW5FG2MOP4G
-#\\\|WQB2O5HC5MYJH2EIPQKT3YWULB7QPYGK455LJXD5KHDBPPLWVVI \ / AMOS7 \ YOURUM ::
-#\[7]PNGS6FXCC3PRRL677TCQO5Y6BIOTMCLOSTEUTE6VH62URTDZWIBQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,,..,,,.,,..,,,,,,.,,,..,.,.,..,,...,...,..,,.,,,...,..,,,,,,
+#U2NMV6SO57MMFGVLPKDBQV4JBHW56GD5ECMO5KRM3PXDIBGDA4BM5KMFHFAQRXUAPE5EV7SEK3XT6
+#\\\|TPQ54M7Y7Y6WBUL2GCXQHA6NQTLED4F5DG7RUVJ7XE6CTWANXUM \ / AMOS7 \ YOURUM ::
+#\[7]WJVQJXXLQNDRJ5E2BLG7XXBAJAJHPUTNKAAZXUP3P4YMSZ2M2UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
