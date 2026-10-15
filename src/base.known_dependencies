@@ -347,10 +347,23 @@ return {
             'debian'        => ['libterm-readkey-perl'],
             'cpan_fallback' => 'Term::ReadKey'
         },
-        'Crypt::Curve25519' => { 'cpan' => 'Crypt::Curve25519' },
-        'Digest'            => { 'cpan' => 'Digest' },
-        'Digest::BMW'       => { 'cpan' => 'Digest::BMW' },
-        'Digest::JHash'     => {
+        ## local sources under data/lib-path/pm-src, in build order --   ##
+        ## upstream does not compile [ curve25519 ] or cloud sessions    ##
+        ## cannot reach cpan : built from pm-src first, cpan as fallback ##
+        'Crypt::Curve25519' => {
+            'cpan'   => 'Crypt::Curve25519',
+            'pm_src' => [qw| crypt-curve25519 |]
+        },
+        'Crypt::Ed25519' => {
+            'cpan'   => 'Crypt::Ed25519',
+            'pm_src' => [qw| canary-stability crypt-ed25519 |]
+        },
+        'Digest'      => { 'cpan' => 'Digest' },
+        'Digest::BMW' => {
+            'cpan'   => 'Digest::BMW',
+            'pm_src' => [qw| digest-bmw |]
+        },
+        'Digest::JHash' => {
             'debian'        => ['libdigest-jhash-perl'],
             'cpan_fallback' => 'Digest::JHash'
         },
@@ -428,8 +441,8 @@ return {
     }
 };
 
-#,,,.,...,..,,...,,,.,,,,,,.,,,..,.,,,.,.,,.,,.,.,...,...,,,.,..,,.,,,,,,,,,,,
-#KG4QND6LA37DOQQ45BT2PQSXYVI7IHV3JOMSG63S2EEJSZPLKQ5TET7XLKK7ZZE4DHNQSVNWUJBHC
-#\\\|JPLUBS27QAX7F75JPDBKLZYIB5ZWYTUOGXK6MIV72JZ6EY74JQZ \ / AMOS7 \ YOURUM ::
-#\[7]D55UTHICFRVEKUA2E5Q4EG74EMYTNVTHVGUSRUVIUBDKXI73MKAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,,.,,,.,,,.,,,.,,.,,,..,,.,,.,.,...,...,.,.,,.,,.,.,,..,,,.,
+#GW5Q3XJQO66NZODKZK3BV4FBUUFL4BDOZJR7DHVB7KIBUGS346CSJFAXUBFOFWY2SMGM6XHJD2R3Y
+#\\\|FRJ4ZU64XDAQSOR64GNAHHE4CVQ4WQTV5RZZ3D5OVNQ5BILK3OQ \ / AMOS7 \ YOURUM ::
+#\[7]XKQS72LRREUOUAINUCTYIQ42OTQIUC2CV6XU6XPJQUFDQLRYBQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

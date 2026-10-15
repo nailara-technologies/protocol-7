@@ -259,12 +259,17 @@ Async HTTP server components implemented on `base`:
 ### System Integration - P7C Binary
 - **Source**: `bin/c_src/p7c.c` - C implementation for low-latency network access
 - **Auto-installation**: Compiled and installed to system path when v7 zenka starts
-- **Configuration**:
-  - `v7-zenki.cfg.install_bin_p7 = yes` - Enable auto-installation
-  - `v7-zenki.cfg.p7_bin_path = '/usr/local/bin/p7c'` - Installation path
-  - `v7-zenki.cfg.bin_p7_static = yes` - Static binary compilation
+- **Configuration** [ `cfg/zenki/v7-zenki/zenka.v7` ]:
+  - `v7-zenki.cfg.install_bin_p7c = yes` - Enable auto-installation
+  - `v7-zenki.cfg.p7c_bin_path = '/usr/local/bin/p7c'` - Installation path
+  - `v7-zenki.cfg.bin_p7c_static = yes` - Static binary compilation
+  - the remote client `p-7-r` [ `bin/c_src/p-7-r.c` ] has the same keys with `p7r`
 - **Purpose**: Provides system-wide access to Protocol-7 network commands without requiring network code in calling scripts
 - **Usage**: `p7c <command> [args]` - Routes commands through Unix socket to cube zenka
+- **Short forms** [ symlinks kept by `v7-zenki.install_zenka_symlinks` ]:
+  - `:: <command>` = `p7c` [ local ]
+  - `::: <alias> <command>` = `p-7-r` through `ssh -W` : `<alias>` is a `Host` [ no dots ] of the caller's `~/.ssh/config` with a `HostName` -- servers expose ssh only, a dotted word is never a host there
+- **Service** [ before the first start, as root ]: `bin/p7-deps install-service` [ unit, `/usr/local/protocol-7`, launch symlinks ], `enable-service` \ `disable-service`, `check-service` -- none of them starts or restarts
 - **Environment**: Uses `PROTOCOL_7_UNIX_PATH` and `PROTOCOL_7_BIN_P7_USER` environment variables
 
 ### Interactive Shell - nshell

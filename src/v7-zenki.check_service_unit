@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = v7-zenki.check_service_unit
+# descr = warn when the installed systemd unit differs from the repo
+
+my $repo_unit_path
+    = sprintf qw| %s/data/lib-path/systemd/system/Protocol-7.service |,
+    <system.root_path>;
+my $installed_unit_path = <v7-zenki.cfg.service_unit_path>
+    // qw| /usr/lib/systemd/system/Protocol-7.service |;
+
+return TRUE unless -f $repo_unit_path;    ## nothing to compare against ##
+
+open my $repo_fh, '<', $repo_unit_path or do {
+    <[base.logs]>->(
+        0,               ': cannot read repo systemd unit : %s [ \l%s ]',
+        $repo_unit_path, <[base.str.os_err]>
+    );
+    return FALSE;
+};
+my $repo_content = do { local $INPUT_RECORD_SEPARATOR = undef; <$repo_fh> };
+close $repo_fh;
+
+my $unit_content = undef;
+if ( -f $installed_unit_path ) {
+    if ( open my $unit_fh, '<', $installed_unit_path ) {
+        $unit_content
+            = do { local $INPUT_RECORD_SEPARATOR = undef; <$unit_fh> };
+        close $unit_fh;
+    }
+}
+
+if ( defined $unit_content and $unit_content eq $repo_content ) {
+    <[base.logs]>->( 2, ': =) : systemd unit matches the repo copy' );
+    return TRUE;
+}
+
+## differs or missing : report only -- a changed unit changes restart ##
+## behaviour, and that decision belongs to the admin                  ##
+##
+<[base.log]>->(
+    0, ': systemd unit differs from the repo -- bin/p7-deps install-service'
+);
+
+return FALSE;
+
+#,,.,,,,.,.,,,.,.,...,.,,,,,,,.,,,...,,,,,...,..,,...,...,...,.,,,..,,...,,.,,
+#WIMPAZVGBKYTKPROC5IJJFYWDN3KVVHJRW4LAYGGKX7VO6TO57PJ7YNWJXQTQYY6LGOGMDILTIOR4
+#\\\|57G2OJLL6IRMJCO6LNPJZOCAVBS5MMG75XWMRMORB6NGYQZRIVR \ / AMOS7 \ YOURUM ::
+#\[7]IA6FZTJBT4BUOATR7A72YANH2B6P2IYFAJIC3XX4VA5D7JANNIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
