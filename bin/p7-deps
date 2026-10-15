@@ -83,10 +83,31 @@ my $host_os    = detect_os();
 # Parse command
 my $cmd = shift @ARGV || 'help';
 
+## check \ install take one or more profiles [ options start with '-' ] ; ##
+## every name is validated before anything runs                           ##
+my @profile_args = grep { !m|^-| } @ARGV;
+my @option_args  = grep {m|^-|} @ARGV;
+if ( $cmd eq 'check' or $cmd eq 'install' ) {
+    my $profiles = load_profiles();
+    my @unknown  = grep { not exists $profiles->{$ARG} } @profile_args;
+    if (@unknown) {
+        print_error(
+            'Unknown profile'
+                . ( @unknown > 1 ? 's' : '' ) . ': '
+                . join( ', ', @unknown ),
+            0
+        );
+        exit 1;
+    }
+}
+
 if ( $cmd eq 'check' ) {
-    check_profile( @ARGV, 'explicit' );
+    die "Usage: bin/p7-deps check <profile>... [--no-cache]\n"
+        if not @profile_args;
+    check_profile( $ARG, @option_args, 'explicit' ) for @profile_args;
 } elsif ( $cmd eq 'install' ) {
-    install_profile(@ARGV);
+    @profile_args = qw| minimal | if not @profile_args;
+    install_profile($ARG) for @profile_args;
 } elsif ( $cmd eq 'list' ) {
     list_profiles();
 } elsif ( $cmd eq 'status' ) {
@@ -286,12 +307,16 @@ sub check_profile {
     }
 }
 
+## once per run : shared includes, repeated names ##
+my %installed_profiles;
+
 sub install_profile {
     my ( $profile_name, $opts ) = @_;
 
     unless ($profile_name) {
         $profile_name = 'minimal';
     }
+    return if $installed_profiles{$profile_name}++;
 
     my $profiles = load_profiles();
     unless ( exists $profiles->{$profile_name} ) {
@@ -795,8 +820,8 @@ ${neon_green}USAGE${reset}:
 
 ${neon_green}COMMANDS${reset} ${blacklight}(${TRUE_color}Installation${blacklight})${reset}:
   ${TRUE_color}list${reset}                    ${TRUE_color}List all available profiles${reset}
-  ${TRUE_color}check${reset} ${blacklight}[profile]${reset}         ${TRUE_color}Check dependencies for a profile${reset}
-  ${TRUE_color}install${reset} ${blacklight}[profile]${reset}       ${TRUE_color}Install all dependencies for a profile${reset}
+  ${TRUE_color}check${reset} ${blacklight}[profile]...${reset}      ${TRUE_color}Check dependencies for one or more profiles${reset}
+  ${TRUE_color}install${reset} ${blacklight}[profile]...${reset}    ${TRUE_color}Install dependencies for one or more profiles${reset}
   ${TRUE_color}status${reset}                  ${TRUE_color}Show status of all base profiles${reset}
   ${TRUE_color}clear-cache${reset}             ${TRUE_color}Clear the dependency cache${reset}
   ${TRUE_color}dist-upgrade${reset}            ${TRUE_color}Run Debian dist-upgrade${reset}
@@ -834,8 +859,8 @@ ${neon_green}ZENKA CONFIGURATION${reset}:
 EOF
 }
 
-#,,,.,,,.,,,.,...,.,.,...,.,,,,,,,...,,,.,,..,..,,...,...,.,.,,,,,,..,.,.,.,,,
-#4TMUHCAFMG3PKKZW7PLNXY7B67EALOPWKALU3GANEJUKI5A3OAW2HUVTHQUFKXK46HSYRLCQ4XM7A
-#\\\|5JU6JO3YTILAXMDCG2T3MOC2PCGDMTES7I5QLVQGXVVD6KVFSAC \ / AMOS7 \ YOURUM ::
-#\[7]GSFXHXKOHW5RBR3UQZDK7SORSG4LVCXJDBR6A5VC2FREKROMPWBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,...,...,.,,,,.,,,,.,,,.,.,,,..,,...,..,,,,.,,.,,.,.,.,,,.,.,
+#AA6W3LOKGCZG5KCR47WLTOAIMNL2OCUUQZGLVWWSN6KQIC5GSRCJHXPESGNK7WBBTRMKPHSGE7LUG
+#\\\|UUANFRM7T342Y2MHYAPFZEJDU4RJOZUFJ5S7SOP62W5UWLMID7Q \ / AMOS7 \ YOURUM ::
+#\[7]BXWQRU2P63HTBDFGK7T6LBJQNH7X3G2XRCQ44SAQWJBUXH3MVYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
