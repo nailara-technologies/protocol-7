@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = nameserv.cache.handler.answer
+# descr = read an upstream reply for the forwarding cache [ bgread ]
+
+## io watcher handler : the event carries the state hash ##
+
+my $state = shift->w->data;
+return unless ref $state eq qw| HASH |;
+
+my $key = $state->{'key'} // return;
+
+my $pending = <nameserv.cache.in_flight> // return;
+return unless ref $pending->{$key} and $pending->{$key} == $state;
+
+my $pkt = $state->{'resolver'}->bgread( $state->{'sock'} );
+
+if ( not defined $pkt ) {
+    ## socket error : try the next upstream ##
+    <[nameserv.cache.forward.next]>->($state);
+    return;
+}
+
+if ( $pkt->header->tc and not $state->{'usevc'} ) {
+    ## truncated over udp : retry the same upstream over tcp ##
+    <[base.logs]>->(
+        2, ': cache reply truncated, ' . 'retry over tcp [ %s %s ]',
+        $state->{'qname'}, $state->{'qtype'}
+    );
+    $state->{'usevc'} = TRUE;
+    <[nameserv.cache.forward.try]>->($state);
+    return;
+}
+
+## an upstream that cannot answer [ servfail \ refused ] : the next one ##
+## first -- delivered [ never cached ] only from the last upstream      ##
+my $rcode = $pkt->header->rcode;
+if ( $rcode eq qw| SERVFAIL | or $rcode eq qw| REFUSED | ) {
+    my @upstreams = <[nameserv.cache.upstreams]>->();
+    if ( $state->{'upstream_idx'} + 1 < scalar @upstreams ) {
+        <[base.logs]>->(
+            2, ': cache upstream %s [ %s %s ] -- next upstream',
+            $rcode, $state->{'qname'}, $state->{'qtype'}
+        );
+        <[nameserv.cache.forward.next]>->($state);
+        return;
+    }
+}
+
+## good reply : cache it, deliver to every waiter ##
+<[nameserv.cache.complete]>->( $state, $pkt );
+
+return;
+
+#,,.,,..,,...,,,,,.,,,,..,.,,,.,,,.,,,,,,,,..,..,,...,..,,,,,,,.,,.,,,,,,,...,
+#VMME4OHHL2LUI5PUVOJS3GLFGSHO7W3FF3HC7D2BXXOXKNZPJJUP2Y7YRQ4W4IXECSSTR2BA7XIDG
+#\\\|LKIWA33JD4OWZMFAEQK2DKQPPMYOI7SUJGCVJSNKH25KGB3UAYS \ / AMOS7 \ YOURUM ::
+#\[7]HGGR6WUOBNOC2XVU6TAP7OISJJH2RTOZCHGU7FESTSIJDAGAVIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

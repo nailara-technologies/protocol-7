@@ -60,6 +60,43 @@ while ( length $conn->{'in'} >= 2 ) {
     my $reply = <[nameserv.answer]>->($query);
     next if not defined $reply;
 
+    ## forwarding cache mode [ same conditions as the udp handler ] ##
+    if (    $reply->header->rcode eq qw| REFUSED |
+        and <[base.cfg_bool]>->( <nameserv.cfg.cache.enabled> // FALSE )
+        and <[nameserv.cache.client_allowed]>->( $conn->{'peer'} // '' ) ) {
+
+        my $q_packet = eval { Net::DNS::Packet->new( \$query ) };
+        if ( defined $q_packet and $q_packet->header->rd ) {
+            my $hit = <[nameserv.cache.get]>->($q_packet);
+            if ( defined $hit ) {
+                $reply = $hit;
+            } else {
+                ## miss : forward async ; the connection may close before ##
+                ## the upstream answers -- the deliver callback re-checks ##
+                ## it by id AND identity : a new connection can reuse the ##
+                ## id [ peer + fileno ] of a closed one                   ##
+                my $conn_id  = $id;
+                my $conn_ref = $conn;
+                <[nameserv.cache.forward]>->(
+                    $q_packet,
+                    sub {
+                        my $fwd_reply = shift                    // return;
+                        my $fwd_conns = <nameserv.dns_tcp.conns> // return;
+                        my $fwd_conn  = $fwd_conns->{$conn_id}   // return;
+                        return if $fwd_conn != $conn_ref;
+                        my $fwd_data = $fwd_reply->data(65535);
+                        return unless defined $fwd_data and length $fwd_data;
+                        $fwd_conn->{'out'}
+                            .= pack( qw| n |, length $fwd_data ) . $fwd_data;
+                        <[nameserv.dns_tcp.handler.write]>->($conn_id);
+                        return;
+                    }
+                );
+                next;    ## answered later, maybe ##
+            }
+        }
+    }
+
     ## tcp replies are never truncated : 65535 holds any dns message ##
     my $reply_data = $reply->data(65535);
     next if not defined $reply_data or not length $reply_data;
@@ -102,8 +139,8 @@ if ($activity) {
 
 return;
 
-#,,,,,,..,,.,,,,,,...,.,.,,,,,.,,,.,.,.,,,,,,,..,,...,...,...,.,,,,,.,,,,,,,.,
-#YYTF27K2OT55DANADMYXBSX7GK6LHHUANDEZXVQUP5CAUOQES7BRAU2CMFQCKPAM54NKJ6RC5GXJK
-#\\\|MX2UHHFVXXG63RCGQSH2MM64UGR7CAWNJRKMC4G35NZLVRD7WND \ / AMOS7 \ YOURUM ::
-#\[7]R7NYCROXR3X2X3IVHZEP4ZUKWDOPFHCLR7SQC2W75MTGDEIXGOBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,.,,,,.,...,.,,,,..,,.,,,..,,,,,..,,...,...,.,.,,..,,,.,,..,,.,,
+#6SB7OSN2F3IC22DTAGPOZ6JWVUKPI7D3FS2XUN36UW4JRGXZUUSO56N6E3PBBOIHS37QG33OBCC2U
+#\\\|ZVNWPHBGCTKZPV4P2FMOM4NTZELASU4TJEPNVRA4XRATEXPKU2I \ / AMOS7 \ YOURUM ::
+#\[7]DYTJNRX5NDTLHMQPSM4NB24LIHQVPZH5RAQM5E7XSNEE2LPMKSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

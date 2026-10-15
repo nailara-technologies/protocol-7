@@ -3,6 +3,8 @@
 # name  = nameserv.handler.query
 # descr = handle incoming dns query packets over udp
 
+require Socket;    ## getnameinfo : not imported into a zenka ##
+
 ## reply on the socket the query arrived on [ ipv4 \ ipv6 listeners ] ##
 my $event = shift;
 my $sock
@@ -34,6 +36,40 @@ if ( defined $q_packet ) {
 my $reply = <[nameserv.answer]>->($packet_data);
 return if not defined $reply;
 
+## forwarding cache mode : authoritative REFUSED + mode on + rd set + ##
+## loopback client [ checked in code, never only by bind or config ]  ##
+if (    $reply->header->rcode eq qw| REFUSED |
+    and <[base.cfg_bool]>->( <nameserv.cfg.cache.enabled> // FALSE )
+    and defined $q_packet
+    and $q_packet->header->rd
+    and defined $from_addr ) {
+
+    my ( $gai_err, $peer_ip )
+        = Socket::getnameinfo( $from_addr, Socket::NI_NUMERICHOST() );
+
+    if (    not length $gai_err
+        and defined $peer_ip
+        and <[nameserv.cache.client_allowed]>->($peer_ip) ) {
+        my $hit = <[nameserv.cache.get]>->($q_packet);
+        if ( defined $hit ) {
+            $reply = $hit;
+        } else {
+            ## miss : forward async, the deliver callback answers later ##
+            <[nameserv.cache.forward]>->(
+                $q_packet,
+                sub {
+                    my $fwd_reply = shift // return;
+                    my $fwd_data  = $fwd_reply->data($udp_size);
+                    if ( defined $fwd_data and length $fwd_data ) {
+                        send $sock, $fwd_data, 0, $from_addr;
+                    }
+                }
+            );
+            return;    ## no synchronous reply ##
+        }
+    }
+}
+
 ## send response [ truncate sets the tc bit when records drop off ] ##
 my $reply_data = $reply->data($udp_size);
 if ( defined $reply_data and length $reply_data ) {
@@ -42,8 +78,8 @@ if ( defined $reply_data and length $reply_data ) {
 
 0;
 
-#,,.,,,.,,.,,,,.,,,.,,,.,,,.,,...,..,,,,,,,,,,..,,...,...,,,,,..,,..,,.,.,,,.,
-#V3DWOGRVWF76UG4YDP7NUB4TPXKIDHLTU5D5UH76TUPKNV23ZMFI5WMGHII7NNRQ5HBTUKA5E7P34
-#\\\|J2LBROWGJ5IVJPQAKKFGGWKU55XSR6TD5LPMARRQMLBK2KH2WGT \ / AMOS7 \ YOURUM ::
-#\[7]5D7OVKZHEJATKMK3COOVMZLC6RTHAPUKYG4QZ5FWFBW5M3VRSUDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,..,,..,,,.,,,,,,.,,,,..,,..,,,.,..,,...,...,,.,,.,,,.,,,,,.,,..,
+#544SHGMQVIGYISRILHGJH6UT77TFSDVII6RNGSVODYAIHWQY5CR5GMPQTYZABBC6HNUAKJNMYMTDG
+#\\\|APOAXDL57DMAOW7M7ZPXJ3ZJMJDKSE22ON5CQFKRUQTYUHYRF7O \ / AMOS7 \ YOURUM ::
+#\[7]WDXGCEBXOB5QYRHUE7GHXH6ECHLSO3Z3B4CMBGE56NU3HSZYOGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

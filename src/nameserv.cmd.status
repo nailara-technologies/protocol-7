@@ -16,17 +16,26 @@ my @zone_list = map {
 } sort keys %$zones;
 
 my $data_str = sprintf(
-    "nameserv status:\n  bind: %s:%d\n  zones: %d loaded\n "
-        . " queries: %d\n  errors: %d\n  zone list:\n    %s",
-    <nameserv.bind.addr>, <nameserv.bind.port>,
-    scalar keys %$zones,  $stats->{'queries'},
-    $stats->{'errors'},   join( "\n    ", @zone_list ) || '(none)'
+    "nameserv status:\n  bind: %s:%d\n  zones: %d loaded\n  queries: %d\n  "
+        . "errors: %d\n  cache: %d hits, %d misses, %d forwarded, %d "
+        . "servfail, %d entries\n  zone list:\n    %s",
+    <nameserv.bind.addr>,
+    <nameserv.bind.port>,
+    scalar keys %$zones,
+    $stats->{'queries'},
+    $stats->{'errors'},
+    $stats->{'cache_hits'}      // 0,
+    $stats->{'cache_misses'}    // 0,
+    $stats->{'cache_forwarded'} // 0,
+    $stats->{'cache_servfail'}  // 0,
+    scalar keys %{ <nameserv.cache.entries> // {} },
+    join( "\n    ", @zone_list ) || '(none)'
 );
 
 return { mode => 'size', data => $data_str };
 
-#,,,,,.,.,...,,..,,,,,..,,,.,,.,.,,,,,.,,,,,,,..,,...,...,.,,,,,,,,..,...,,.,,
-#ISQW3ZX6ZOFWXO3PEUXKV22TUBZF5F6JF7GCE7YZ3MWSZMX7KBX73NJOX6E33YYI7JZ56YG7A2SFO
-#\\\|PSL3TSS4C45L7OZ53LNGGPUCUJABQS3O7OEOLCXNIBJL3F5HC74 \ / AMOS7 \ YOURUM ::
-#\[7]MZ75LYPWHSAFOQCEHPERTNV4JIQNNHBJFF3FEFPARECNUU7TGGCY 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,...,,..,.,,,,,,,,,.,..,,...,..,,...,...,.,.,,.,,,..,.,,,...,
+#WIVHXZD42Y5IA7HLNG2QRSNEC74OF3YZLMWTJP4X53KQI575HXOC6XL3IOX7U7ZMDTNVF444MQZC2
+#\\\|BM26HHLHL5SNXVOBJGTB27REDUVA6FXIF6ZGOB33VKFYUTQIEL7 \ / AMOS7 \ YOURUM ::
+#\[7]UCVWTTBNI5GAXGJ3B3ZSAMP5KGRUXCLGTVO6B2KON2Z2GOHMWWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
