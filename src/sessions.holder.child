@@ -42,6 +42,8 @@ if ( defined $secret_ref ) {
     my $b32_str = $secret_ref->$* // '';
     chomp $b32_str;
     $secret_key = decode_b32r($b32_str);
+    <[base.buffer.erase_secure]>->( \$b32_str );
+    <[base.buffer.erase_secure]>->($secret_ref);    ## the file text too ##
 } else {
     my $prng = Crypt::PRNG::Fortuna->new();
     $secret_key = $prng->bytes(32);
@@ -49,6 +51,7 @@ if ( defined $secret_ref ) {
     <[file.zenka_dir.write]>->(
         'holder-identity.secret', \"$b32_out\n", '>', 0600
     );
+    <[base.buffer.erase_secure]>->( \$b32_out );
 }
 
 if ( not defined $secret_key or length($secret_key) != 32 ) {
@@ -71,12 +74,12 @@ IO::AIO::aio_mlock( $private_key, 0, 64 );
 IO::AIO::aio_mlock( $secret_key,  0, 32 );
 
 ## plain %SIG handlers, deliberately NOT Event.pm -- see header note.  USR1 ##
-## wakes the DORMANT pause() loop; USR2 is corroboration-only [ EOF is what ##
-## actually drives the ATTACHED->DORMANT transition ]. a plain blocking     ##
-## readline IS safely interrupted [ EINTR ] and retried by Perl's own       ##
-## deferred-signal-safety for ordinary %SIG handlers even with no event     ##
-## loop running at all -- unlike Event->signal() watchers, which is exactly ##
-## why this plain form is the safe one here.                                ##
+## wakes the DORMANT pause() loop; USR2 is corroboration-only               ##
+## [ EOF is what actually drives the ATTACHED->DORMANT transition ]. a      ##
+## plain blocking readline IS safely interrupted [ EINTR ] and retried by   ##
+## Perl's own deferred-signal-safety for ordinary %SIG handlers even with   ##
+## no event loop running at all -- unlike Event->signal() watchers, which   ##
+## is exactly why this plain form is the safe one here.                     ##
 my $attach_requested = 0;
 $SIG{USR1} = sub { $attach_requested = 1; };
 $SIG{USR2} = sub {
@@ -104,16 +107,17 @@ $sock->autoflush(1);
 
 ## main lifecycle wrapped in eval -- a forked child with no eval has no     ##
 ## safety net at all: an uncaught die() prints "Died at ... line N" to the  ##
-## inherited STDERR [ the controlling terminal, not any p7-log- visible     ##
-## buffer ] and the process vanishes with zero trace reachable from the     ##
-## console. raw warn() IS visible via console.show-buffer [                 ##
+## inherited STDERR                                                         ##
+## [ the controlling terminal, not any p7-log- visible buffer ] and the     ##
+## process vanishes with zero trace reachable from the console. raw warn()  ##
+## IS visible via console.show-buffer [                                     ##
 ## base.init_zenka.install_signal_handlers wires __WARN__ into the same log ##
 ## path, inherited at fork time ], but die() bypasses that.                 ##
 eval {
 
-## main lifecycle: ATTACHED [ blocking line loop ] <-> DORMANT [           ##
-## POSIX::pause(), waiting on plain SIGUSR1 ], the transition into DORMANT ##
-## driven by EOF, the transition out driven by SIGUSR1                     ##
+## main lifecycle: ATTACHED [ blocking line loop ] <-> DORMANT       ##
+## [ POSIX::pause(), waiting on plain SIGUSR1 ], the transition into ##
+## DORMANT driven by EOF, the transition out driven by SIGUSR1       ##
     while (1) {
 
         ## ATTACHED ##
@@ -154,10 +158,10 @@ eval {
         close($sock);
         undef $sock;
 
-        ## DORMANT -- plain POSIX::pause() loop until SIGUSR1 sets the     ##
-        ## flag; pause() returns on ANY signal delivery [ including USR2's ##
-        ## harmless corroboration log, ALRM, etc ], so loop until the real ##
-        ## flag lands                                                      ##
+        ## DORMANT -- plain POSIX::pause() loop until SIGUSR1 sets the    ##
+        ## flag; pause() returns on ANY signal delivery                   ##
+        ## [ including USR2's harmless corroboration log, ALRM, etc ], so ##
+        ## loop until the real flag lands                                 ##
         $attach_requested = 0;
         POSIX::pause() until $attach_requested;
 
@@ -182,8 +186,8 @@ warn sprintf( 'sessions.holder.child: fatal: %s <{C1}>', $EVAL_ERROR )
 <[base.buffer.erase_secure]>->( \$secret_key );
 exit(0);
 
-#,,,.,,.,,.,.,,.,,,,,,..,,,,.,.,.,,,,,,,,,...,..,,...,.,.,,,.,,,.,,..,.,,,...,
-#6QHCBUG76QJTOHZUB4NTRFO37YDBUV3HMUSIIACX7M2AZTHNWN3JSF4I423VPR5LPI23BDWDV5IFS
-#\\\|GDZB5UJE4KY4UDII2ZVFT3ZQYIGBVSHFPOFIXXZBD6VXLC3UTHK \ / AMOS7 \ YOURUM ::
-#\[7]36A6WDH6REVRSZ7A2DCR4SYSQQRGJU6PGZIOV646JG6N5B4QZMBQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,...,,,.,..,,.,,,...,..,,..,,..,,...,..,,,,.,,,,,,.,,,..,,,,,
+#FJAPFI6E5UAUZDAPNIOGO5OY7LQOMOLCRTYUNRPWIK6RJ262EZCCYEFE6UYNHRSWKI46W5NJP6V4Q
+#\\\|LW4BTXRUJAMTRDGFQBWDDUAPQDW47ASUE5XDEL537RWWSVRAWTW \ / AMOS7 \ YOURUM ::
+#\[7]TLIGUT3IG5L7TMQIJ3QFWTCHLIIFHZ7JFX46O32N5K64X7WF76DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
