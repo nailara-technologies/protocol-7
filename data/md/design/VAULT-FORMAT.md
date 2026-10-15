@@ -347,6 +347,28 @@ same base32 block, title `p7-vault archive`. binary inside :
 - each archive still shows its size class [ coarse growth ] and, through
   the commit, when it was made
 
+## import -u : an earlier import updated
+
+`import -u <path>...` and `import -u -a <dir>` follow files and
+directories imported before [ re-importing `/etc/protocol-7` after a
+change ] :
+
+- a file : the live entry recording this host + path as an origin. the
+  same blob -> unchanged, nothing written. new content -> the entry's next
+  version with the new blob and origin [ the old version keeps the old
+  blob : history \ restore ]. when the old content is stored for other
+  paths too, only this path moves on : the entry keeps the others, this
+  path goes to the entry of the new content [ dedup as always ]
+- an archive : the archive entry of this host + directory [ the newest
+  when several ]. the stream import returns a keyed content id [ the name
+  mac a file blob is named by ] recorded as `content` ; equal content and
+  the same excludes \ skipped paths -> no new version, the new blob is
+  discarded [ never referenced ]. otherwise the entry's next version. an
+  archive imported before `content` existed always gets a new version
+- files of this host recorded under a given directory that no longer exist
+  are listed, never deleted -- entries are history
+- no earlier import found : a new entry, as without -u
+
 ## sync : a manual union of the entry and blob files
 
 `p7-vault sync <ssh-host>[:<remote dir>]...` [ several hosts : one after
@@ -359,6 +381,12 @@ another host [ remote dir default : `.n/vault` in the remote home ].
 and a bare `sync` runs every saved one -- the list is
 `<vault>/sync-targets` [ 0600, one target per line ], never transferred :
 paths like an external drive's differ per machine.
+no vault here yet [ a new machine ] : the probe still runs, and when the
+target holds a valid key file `sync` names its vault id and asks to fetch
+it -- the key file is written [ 0600, missing parents created 0700 ], then
+the union pulls every entry and blob. the key file is safe to copy : the
+vault key in it is wrapped by the passphrase \ recovery code, which open
+the new copy as they open the source.
 entry version and blob files are opaque and never change, so a sync is a
 plain file union -- never overwrite, never delete. `entries/` and
 `blobs/` unite with the same rules, reported on two lines :
@@ -421,8 +449,8 @@ the payload with the vault key, then step 2 for each record's data.
 a session agent [ unlock once per login ], the vault-edit form ui,
 totp code display, purging old versions.
 
-#,,..,.,.,.,,,..,,.,.,.,,,,,,,,.,,,,.,,.,,,,,,..,,...,...,.,.,,,,,,,.,...,,,.,
-#QLSKCT4QK7SVECXOMFFQJHDNHF5IH2TPCMGYEFVAXP7OTZ4Z6GJTG3E2GGP5IEOBC5CPWVOHZM5LW
-#\\\|FGCCUQEM6VHNP5G2YNS4AKITE5YNCO373H2CSNU7C7RC35QXSGT \ / AMOS7 \ YOURUM ::
-#\[7]RTEB4VPBCP6SW3BPVP6LQ4XBEIIC5GXUFTU6O5MGETKWEI3CB2AY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,,.,,,..,,.,,,,,,.,,,,.,,,,.,..,,...,...,.,.,,,,,.,.,.,,,..,,
+#HIJ4YP4EWKMT5QMIND55K55D7IFNTWUAQT3X2KU2ZA2Y4DDDJFYTBYQIJZ24WF74IVHFYLPEUZ43Q
+#\\\|L6QSYMPXTPLWCHARXX24W5G53UQMY3SFVN6WWKCL5Q27V7QW3KO \ / AMOS7 \ YOURUM ::
+#\[7]RJHTYDB4YEZXCK6DRISJIMIKQDR3IQPT7YWC65JIHOY3WCGVHMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

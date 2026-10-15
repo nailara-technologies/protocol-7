@@ -56,6 +56,22 @@ if (   not defined $decrypted_C25519_sref
     return undef;
 }
 
+## no public key to compare with [ a lone .private ] : an Ed25519 private key
+## [ the expanded form ] always carries its clamp bits -- the low 3 bits of
+## the first byte clear, bit 7 of the 32nd clear and bit 6 set. a wrong
+## password decrypts to random bytes, 31 of 32 fail this [ the truth filter of
+## gen_keys cannot serve : not every existing key went through it ]
+if (not defined $public_key
+    and (  ( vec( $decrypted_C25519_sref->$*, 0, 8 ) & 7 ) != 0
+        or ( vec( $decrypted_C25519_sref->$*, 31, 8 ) & 0xC0 ) != 0x40 )
+) {
+    <[base.buffer.erase_secure]>->($decrypted_C25519_sref);
+    <[base.log]>->( 1, ':' );
+    <[base.log]>->( 0, ': password is not correct ..,' );
+    <[base.log]>->( 1, ':' );
+    return FALSE;
+}
+
 ##  need to use compare_keypair to be certain password was correct  ##
 ##
 ##  [ or compare chksum if was known ]
@@ -65,6 +81,7 @@ if (defined $public_key and not <[crypt.C25519.compare_keypair]>->(
         $decrypted_C25519_sref->$*, TRUE    ##[ silent ]##
     ) // FALSE
 ) {
+    <[base.buffer.erase_secure]>->($decrypted_C25519_sref);    ## not it ##
     <[base.log]>->( 1, ':' );
     <[base.log]>->( 0, ': password is not correct ..,' );
     <[base.log]>->( 1, ':' );
@@ -102,8 +119,8 @@ return ( $decrypted_C25519_sref, $key_checksum ) if wantarray;
 
 return $decrypted_C25519_sref;
 
-#,,,,,,.,,...,.,.,,,,,,.,,.,,,,,,,,.,,..,,,,.,..,,...,...,,.,,,,,,,.,,,,,,...,
-#R6QN23TRMNLR6GQNK3WQUVF3ERWKYP6YKOW3XBX35ILPAUZSOR7XCZPHF6BERNPYWNKJWFBPBG6WI
-#\\\|4QIJRKT6G5QJEFS7RDADIFYSEEORNICOFU2TM24ZVOCWIFZF55C \ / AMOS7 \ YOURUM ::
-#\[7]TXMXB737TTIXPPTFL36HZDEHCR52LFJFTVFUEGC54F4GDM3ED2CQ 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,,,,,,,,,,,.,.,,,.,,.,,,..,,,,,..,,...,...,.,,,,,.,.,,,..,,.,,,
+#6YRWE32UTZET5J7ZBVHIL6J3GEZTNQX3OHKWWU5GA4ZSLVALSVFZO63QVPQIPOA2UWNCXW6MOUNVE
+#\\\|BUSDZJUMGSLFNPMH56VSMDM56QIZZ4C4KHNDL7VHD64KQTC5MWN \ / AMOS7 \ YOURUM ::
+#\[7]ZZAT6SRZXXDI7BMIKUM2L7MDXTVP7HLLIHZUIOZDMCIZKAP2MUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
