@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = debian.cpan_enqueue_install
+# descr = enqueue cpanm install job on the shared serialized apt-install
+#         queue [ one install in flight across apt and cpan ]
+# param = $params [ { modules => aref, reply_id, source, priority } ]
+
+my $params  = shift                // {};
+my $modules = $params->{'modules'} // [];
+
+return undef if not @$modules;
+
+if ( not defined <debian.apt_child.w_fh> ) {
+    <[base.logs]>->(
+        0, 'cpan_enqueue: install queue unavailable [ no apt_child w_fh ]'
+    );
+    return undef;
+}
+
+## same dedicated queue as apt [ debian.apt_pump pumps it manually, one  ##
+## install in flight at a time -- mixing cpan jobs into it keeps apt and ##
+## cpan installs strictly serialized on the child side too ]             ##
+if ( not exists <jobqueue.joblist.apt-install> ) {
+    <jobqueue.joblist.apt-install> = <[jobqueue.queue_template]>;
+    <jobqueue.joblist.count>->{'apt-install'} = 0;
+}
+
+my $job_id = <[jobqueue.add_job]>->(
+    {   'name'      => sprintf( 'cpan install : %s', join( ' ', @$modules ) ),
+        'object_id' => 0,
+        'priority'  => $params->{'priority'} // 0,
+        'target_queue'    => qw| apt-install |,
+        'job_callback'    => qw| debian.job.cpan_install |,
+        'callback_params' => {
+            'modules'  => [@$modules],
+            'reply_id' => $params->{'reply_id'},
+            'source'   => $params->{'source'} // qw| local |
+        },
+    }
+);
+
+<[base.logs]>->(
+    1,       'cpan_enqueue: queued job %d : %s',
+    $job_id, join( ' ', @$modules )
+);
+
+## start immediately if no install is in flight                   ##
+## [ else waits for the completion handler to advance the queue ] ##
+<[debian.apt_pump]>;
+
+return $job_id;
+
+#,,.,,.,,,.,.,..,,.,,,,,,,..,,,,,,,,,,,..,.,.,..,,...,...,.,,,,,,,..,,..,,,,,,
+#4SF7Q3G3ECQK6R5675Z23H6V6S4QJXYQ5UIE7RLHFFNVAL7UFYQMD47LTYPBYRLNQCZKUENKK77CY
+#\\\|6ULKY63EGT6PXUXDYVTVVH76T2OAZGQLZ6PWJNGSQS3DRAVIQFR \ / AMOS7 \ YOURUM ::
+#\[7]5BMY7QS2SJX6VZDOHF6MYUJDB5YXG6PGA274I6PA2VL6PEBTJOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,7 +26,7 @@ my @missing_bin;
 for my $module ( keys %$pm_deps ) {
     next unless grep { $ARG eq $zenka_name } @{ $pm_deps->{$module} };
     push @missing_pm, $module
-        unless AMOS7::deps::module::probe_module($module);
+        unless AMOS7::deps::module::probe_module_file($module);
 }
 
 ## Check os deps for this zenka ##
@@ -45,7 +45,8 @@ for my $type ( keys %$os_deps ) {
                 unless grep { $ARG eq $zenka_name }
                 @{ $os_deps->{$type}{$pkg} };
             push @missing_os, $pkg
-                unless AMOS7::deps::os_package::probe_os_pkg( $pkg, $type );
+                unless AMOS7::deps::os_package::probe_os_pkg( $pkg, $type,
+                TRUE );
         }
     }
 }
@@ -85,8 +86,8 @@ if ( $auto_install && $has_root ) {
 
     ## resolve missing binaries to their providing debian packages [ the    ##
     ## declared name is the binary, not always the package : cpanm lives in ##
-    ## cpanminus, ffprobe in ffmpeg, .. ] -- fallback is the name itself [  ##
-    ## correct for git, mpv, openbox, .. ]                                  ##
+    ## cpanminus, ffprobe in ffmpeg, .. ] -- fallback is the name itself    ##
+    ## [ correct for git, mpv, openbox, .. ]                                ##
     if (@missing_bin) {
         my $known_bin_deps
             = AMOS7::deps::module::load_known_deps( <system.root_path>,
@@ -108,48 +109,11 @@ if ( $auto_install && $has_root ) {
         }
     }
 
-    ## Log to tracking file ##
-    if (@installed) {
-        my $track_dir  = <system.root_path> . '/var/sys-deps';
-        my $track_file = $track_dir . '/tracked.yaml';
-        <[file.make_path]>->(
-            $track_dir, 0775, <system.amos-zenka-user>,
-            <system.amos-zenka-user>
-        ) if !-d $track_dir;
-        my $tracked = { tracked => [] };
-        if ( -f $track_file ) {
-            eval {
-                require YAML::Tiny;
-                my $yaml = YAML::Tiny->read($track_file);
-                $tracked = $yaml->[0] if defined $yaml && defined $yaml->[0];
-            };
-        }
-        for my $pkg (@installed) {
-            push @{ $tracked->{tracked} },
-                {
-                pkg          => $pkg,
-                type         => 'debian',
-                installed_at => <[base.ntime.b32]> // '',
-                source       => 'v7-prestart',
-                zenka        => $zenka_name,
-                declared     => 0
-                };
-        }
-        eval {
-            require YAML::Tiny;
-            my $yaml = YAML::Tiny->new($tracked);
-            $yaml->write($track_file);
-        };
-        ## normalize ownership for sys-deps zenka \ os-pkg access ##
-        if ( -f $track_file and $UID == 0 ) {
-            my ( $track_uid, $track_gid )
-                = ( getpwnam(<system.amos-zenka-user>) )[ 2, 3 ];
-            chown( $track_uid, $track_gid, $track_dir, $track_file )
-                if defined $track_uid;
-            chmod( 0775, $track_dir );
-            chmod( 0664, $track_file );
-        }
-    }
+    ## Log to tracking file [ shared helper, same tracked.yaml shape ] ##
+    <[v7-zenki.sys_deps.track]>->(
+        $zenka_name,
+        [ map { { 'name' => $ARG, 'type' => qw| cpan | } } @installed ]
+    ) if @installed;
 
     ## route apt installs through the debian zenka's jobqueue-serialized  ##
     ## bridge [ same shape as sys-deps.cmd.install ] : one install in     ##
@@ -187,11 +151,11 @@ if ( $auto_install && $has_root ) {
         }
     }
 
-    ## Re-check [ synchronous portion only ] : cpan-installed modules are  ##
-    ## re-probed here ; apt-routed packages [ incl. perl modules resolved  ##
-    ## to debian packages ] + binaries are re-checked by the reply handler ##
-    ## once the install actually finished                                  ##
-    @missing_pm = grep { !AMOS7::deps::module::probe_module($ARG) }
+    ## Re-check [ synchronous portion only ] : cpan-installed modules are ##
+    ## re-probed here ; apt-routed packages                               ##
+    ## [ incl. perl modules resolved to debian packages ] + binaries are  ##
+    ## re-checked by the reply handler once the install actually finished ##
+    @missing_pm = grep { !AMOS7::deps::module::probe_module_file($ARG) }
         grep { !$pm_via_apt{$ARG} } @missing_pm;
     if ($apt_pending) {
         @missing_os  = ();
@@ -209,8 +173,8 @@ if ( @missing_pm || @missing_os || @missing_bin ) {
 
 0;
 
-#,,..,,,,,.,,,.,.,.,,,,,,,.,.,..,,..,,.,,,,.,,..,,...,...,,..,,..,,,,,,,,,.,,,
-#JPCQPAGAU54R3QPFV55BPQKBLGY727QH7LRDEXWJ3DZJAQAOUR2MLBEMW3FYEVCHGZGF2RHWBLAU2
-#\\\|DVSP5V73CEP4YFMT26UMS5IF7J53SX4XMZMDO6EX7LLEWZ6HDKT \ / AMOS7 \ YOURUM ::
-#\[7]TXNNTMVLU7O7XAJKJAHB5UK5WKR3S3EPX2VIIV2EZKD6YYACIIBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,,,,,,,.,...,,,.,.,.,,..,...,..,,...,...,,.,,,.,,..,,,,,,,,.,
+#2XW3L6EUNTM73CLXXXOIYFYW3HHY36XTCLYQP3NIMX7BQGXE27WUZYRAJRRTJWMBBOR7CUA665QPK
+#\\\|UTCSDEFDME5DGOOWBAKLSCVMQBUCKKCAIGTPC5E22IL43H7EOA4 \ / AMOS7 \ YOURUM ::
+#\[7]QY552VBKSEHLBI2T6N36ATENOUFRRDO5KKZ4TZRKQFAH7WBBXMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

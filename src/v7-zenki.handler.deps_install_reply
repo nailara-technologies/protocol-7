@@ -30,48 +30,12 @@ if ( $mode ne qw| true | ) {
     return;
 }
 
-## Track successful installs [ same tracked.yaml shape as the sync path in ##
-## v7-zenki.check_zenka_deps + sys-deps.handler.install_reply ]            ##
-if (@$packages) {
-    my $track_dir  = <system.root_path> . '/var/sys-deps';
-    my $track_file = $track_dir . '/tracked.yaml';
-    <[file.make_path]>->(
-        $track_dir, 0775, <system.amos-zenka-user>, <system.amos-zenka-user>
-    ) if !-d $track_dir;
-    my $tracked = { tracked => [] };
-    if ( -f $track_file ) {
-        eval {
-            require YAML::Tiny;
-            my $yaml = YAML::Tiny->read($track_file);
-            $tracked = $yaml->[0] if defined $yaml && defined $yaml->[0];
-        };
-    }
-    for my $pkg (@$packages) {
-        push @{ $tracked->{tracked} },
-            {
-            pkg          => $pkg,
-            type         => 'debian',
-            installed_at => <[base.ntime.b32]> // '',
-            source       => 'v7-prestart',
-            zenka        => $zenka_name,
-            declared     => 0
-            };
-    }
-    eval {
-        require YAML::Tiny;
-        my $yaml = YAML::Tiny->new($tracked);
-        $yaml->write($track_file);
-    };
-    ## normalize ownership for sys-deps zenka \ os-pkg access ##
-    if ( -f $track_file and $UID == 0 ) {
-        my ( $track_uid, $track_gid )
-            = ( getpwnam(<system.amos-zenka-user>) )[ 2, 3 ];
-        chown( $track_uid, $track_gid, $track_dir, $track_file )
-            if defined $track_uid;
-        chmod( 0775, $track_dir );
-        chmod( 0664, $track_file );
-    }
-}
+## Track successful installs [ same tracked.yaml shape, via the shared ##
+## v7-zenki.sys_deps.track helper ]                                    ##
+<[v7-zenki.sys_deps.track]>->(
+    $zenka_name,
+    [ map { { 'name' => $ARG, 'type' => qw| debian | } } @$packages ]
+) if @$packages;
 
 ## Re-check the deps that were waiting on this install ##
 <[base.perlmod.load]>->('AMOS7::deps::module')
@@ -79,9 +43,10 @@ if (@$packages) {
 <[base.perlmod.load]>->('AMOS7::deps::os_package')
     if not <[base.perlmod.loaded]>->('AMOS7::deps::os_package');
 
-my @still_pm = grep { !AMOS7::deps::module::probe_module($ARG) } @$missing_pm;
+my @still_pm
+    = grep { !AMOS7::deps::module::probe_module_file($ARG) } @$missing_pm;
 my @still_os
-    = grep { !AMOS7::deps::os_package::probe_os_pkg( $ARG, 'debian' ) }
+    = grep { !AMOS7::deps::os_package::probe_os_pkg( $ARG, 'debian', TRUE ) }
     @$missing_os;
 my @still_bin
     = grep { !AMOS7::deps::os_package::probe_binary($ARG) } @$missing_bin;
@@ -96,8 +61,8 @@ if ( @still_pm or @still_os or @still_bin ) {
 
 return;
 
-#,,,,,,.,,...,,.,,.,.,..,,..,,,.,,.,,,..,,,,,,..,,...,...,...,.,.,,,,,.,.,.,,,
-#WGFCGAYL4WMI4D55VWGYHPTTRLFX5P66V3WJP6Z2CMTUDYIT4XNJZNT7AFBP4P7TQISCH6K532P44
-#\\\|2EBGFUTOZBC6GJIWFFTVMINCR6ZCEXQOLPS3EFO5GXAFPTNLFR7 \ / AMOS7 \ YOURUM ::
-#\[7]GYLL5UEAHPSLX5XMB7BWMX4TMACHISLKHGLQQ3VSR53KUQNOMMAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,.,.,,,.,,..,.,.,,,,,,,,,,..,..,,...,..,,,..,...,..,,,,,,,,.,
+#2UECRMTUFN7ZHQJWFWXMROQZOKGZHT2KP37PI4YFXQ37RWPOPX4ESH4CCEIX7VCLS24C3OJGGD22G
+#\\\|YZM7X2LEIKDTFFYI4A5IJFT77EIUPOHFVHI7TNZQPFKDJTMIQAS \ / AMOS7 \ YOURUM ::
+#\[7]XHVCS3CIS5J2R7EB75EFLAK47LCM5RNJLJ65BNBKIOJY6EYTZ6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
