@@ -18,7 +18,15 @@
 ## - 'push first' refusal when @{u}..HEAD is non-empty, both with the stubbed
 ## git and against a REAL throwaway git repo with an unpushed commit on top of
 ## a pushed one
-## - claude_cloud_status wraps `claude agents --json` + `claude logs`
+## - claude_cloud_status wraps `claude agents --json` + `claude logs` for
+## non-cloud ids ; a CLOUD id [ session_… / cse_… ] makes no agents / logs
+## call and gets the url + teleport hint instead
+## - claude_cloud_result : branch picker listing + log / diffstat / full
+## newest commit message against a REAL temp repo with a bare 'hub' remote,
+## HEAD + working tree asserted unchanged, bad names refused before any git
+## call, and an inline MUTATION run
+## [ result copy whose fetch became a checkout ] proving the unchanged-HEAD
+## assertion bites
 ##
 ## env knobs [ also used by the mutation runs ] :  P7_MCP_SERVER_PL  -- run a
 ## different server copy [ mutated or not ] PERL5LIB          -- needed when
@@ -342,6 +350,10 @@ sub check {
 ##[ server lifecycle ]##
 
 sub spawn_server {
+    ## the server to run : the env override wins                            ##
+    ## [ mutation runs point it  ] at a mutated copy of this file — see the ##
+    ## notes at the bottom ]                                                ##
+    my $srv_pl   = $ENV{'P7_MCP_SERVER_PL'} // $server_pl;
     my $stub_dir = "$tmp_dir/stubbin";
     local %ENV = %ENV;
     $ENV{'PATH'}                 = "$stub_dir:$ENV{'PATH'}";
@@ -349,8 +361,14 @@ sub spawn_server {
     $ENV{'P7_REAL_GIT'}          = $real_git;
     $ENV{'CLAUDE_STUB_LOG'}      = "$tmp_dir/claude-argv.log";
     $ENV{'GIT_STUB_LOG'}         = "$tmp_dir/git-argv.log";
+    ## a server COPY outside the repo cannot find data/lib-path/pm via its ##
+    ## own FindBin — give it the lib path for its compile-time AMOS7 /     ##
+    ## Digest::BMW requires                                                ##
+    $ENV{'PERL5LIB'}
+        = "$root_path/data/lib-path/pm"
+        . ( length( $ENV{'PERL5LIB'} // '' ) ? ":$ENV{'PERL5LIB'}" : '' );
 
-    my $pid = open3( $srv_wtr, $srv_rdr, '>&STDERR', $server_pl );
+    my $pid = open3( $srv_wtr, $srv_rdr, '>&STDERR', $srv_pl );
     binmode( $srv_wtr, ':raw' );
     binmode( $srv_rdr, ':raw' );
     mcp_request( 'initialize',
@@ -376,6 +394,28 @@ sub stub_calls {
         close $fh;
     }
     return @calls;
+}
+
+## list-form git output capture [ snapshots for the unchanged-HEAD checks ]##
+sub git_capture {
+    my @cmd = @_;
+    open( my $fh, '-|', @cmd ) or die "cannot run @cmd : $!";
+    my $out = do { local $/ = undef; <$fh> }
+        // '';
+    close $fh;
+    return $out;
+}
+
+sub head_of {
+    my ($repo) = @_;
+    my $out = git_capture( $real_git, '-C', $repo, 'rev-parse', 'HEAD' );
+    chomp $out;
+    return $out;
+}
+
+sub porcelain_of {
+    my ($repo) = @_;
+    return git_capture( $real_git, '-C', $repo, 'status', '--porcelain' );
 }
 
 ## read the git stub argv log : one tab-joined argv per line ##
@@ -455,6 +495,71 @@ system( $real_git, '-C', $temp_repo2, 'remote', 'add', 'origin',
     or die $!;
 system( $real_git, '-C', $temp_repo2, 'push', '-qu', 'origin', 'cloud-test2' )
     == 0
+    or die $!;
+
+## third throwaway repo : a bare remote named 'hub' + a PUSHED feature    ##
+## branch with two commits [ the claude_cloud_result target ] — HEAD sits ##
+## on 'base' so the tool's base default is exercised for real             ##
+my $result_remote = tempdir( 'p7-cld-hub-XXXX',   TMPDIR => 1, CLEANUP => 1 );
+my $result_repo   = tempdir( 'p7-cld-repo3-XXXX', TMPDIR => 1, CLEANUP => 1 );
+system( $real_git, 'init', '-q', '--bare', "$result_remote/hub.git" ) == 0
+    or die "bare init failed";
+system( $real_git, '-C', $result_repo, 'init', '-q' ) == 0 or die "repo init";
+system( $real_git, '-C', $result_repo, 'config', 'user.email', 't@example' );
+system( $real_git, '-C', $result_repo, 'config', 'user.name',  't' );
+system( $real_git, '-C', $result_repo, 'branch', '-M',         'base' ) == 0
+    or die "branch rename failed";
+{
+    open( my $fh, '>', "$result_repo/f" ) or die $!;
+    print {$fh} "base\n";
+    close $fh;
+}
+system( $real_git, '-C', $result_repo, 'add', 'f' ) == 0 or die $!;
+{
+    ## distinct committer dates : the branch-picker sorts by committerdate, ##
+    ## and same-second commits tie with an unspecified order otherwise      ##
+    local $ENV{'GIT_COMMITTER_DATE'} = '2026-10-10T12:00:00 +0200';
+    system( $real_git, '-C', $result_repo, 'commit', '-qm', 'base commit' )
+        == 0
+        or die $!;
+}
+system( $real_git, '-C', $result_repo, 'remote', 'add', 'hub',
+    "$result_remote/hub.git" ) == 0
+    or die $!;
+system( $real_git, '-C', $result_repo, 'push', '-qu', 'hub', 'base' ) == 0
+    or die $!;
+system( $real_git, '-C', $result_repo, 'checkout', '-qb', 'cloud-result' )
+    == 0
+    or die $!;
+{
+    open( my $fh, '>>', "$result_repo/f" ) or die $!;
+    print {$fh} "feature line\n";
+    close $fh;
+}
+{
+    local $ENV{'GIT_COMMITTER_DATE'} = '2026-10-12T12:00:00 +0200';
+    system( $real_git, '-C', $result_repo, 'commit', '-qam',
+        'feature work one' ) == 0
+        or die $!;
+}
+{
+    open( my $fh, '>', "$result_repo/result.feature" ) or die $!;
+    print {$fh} "new feature file\n";
+    close $fh;
+}
+system( $real_git, '-C', $result_repo, 'add', 'result.feature' ) == 0
+    or die $!;
+{
+    local $ENV{'GIT_COMMITTER_DATE'} = '2026-10-14T12:00:00 +0200';
+    system( $real_git, '-C', $result_repo, 'commit', '-qm',
+              "cloud session summary\n\nimplemented "
+            . "the thing\nverified the other thing" ) == 0
+        or die $!;
+}
+system( $real_git, '-C', $result_repo, 'push', '-qu', 'hub', 'cloud-result' )
+    == 0
+    or die $!;
+system( $real_git, '-C', $result_repo, 'checkout', '-q', 'base' ) == 0
     or die $!;
 
 ## start the scripted fake cube + wait for its socket ##
@@ -1232,6 +1337,201 @@ eval {
 
     kill_server($mcp_pid);
     $mcp_pid = undef;
+
+    ##=========================================================##
+    ## phase 9 : status for a CLOUD id — no agents / logs call   ##
+    ##=========================================================##
+    {
+        local %ENV = %ENV;
+        $ENV{'CLAUDE_STUB_MODE'}          = 'status';
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $mcp_pid                          = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
+
+    my $cloud_id = 'session_018fjDZetZXhjdXJ6ecCrmzt';
+    ( $t, $e )
+        = tool_call( 'claude_cloud_status', { 'session_id' => $cloud_id } );
+    check(
+        'status [ cloud id ] : url + teleport hint + result pointer',
+        !$e
+            && index( $t, "https://claude.ai/code/$cloud_id" ) >= 0
+            && index( $t, "claude --teleport $cloud_id" ) >= 0
+            && index( $t, 'claude_cloud_result' ) >= 0
+            && index( $t, 'NOT visible to the local readers' ) >= 0,
+        "err=$e text=$t"
+    );
+    check(
+        'status [ cloud id ] : no agents / logs call was made',
+        scalar stub_calls("$tmp_dir/claude-argv.log") == 0,
+        scalar stub_calls("$tmp_dir/claude-argv.log") . ' claude calls'
+    );
+
+    ## a cse_ id is treated the same way ##
+    ( $t, $e )
+        = tool_call( 'claude_cloud_status', { 'session_id' => 'cse_00Abc' } );
+    check(
+        'status [ cse_ id ] : same plain reply, still no local readers',
+        !$e
+            && index( $t, 'https://claude.ai/code/cse_00Abc' ) >= 0
+            && scalar stub_calls("$tmp_dir/claude-argv.log") == 0,
+        "err=$e text=$t"
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
+    ##=========================================================##
+    ## phase 10 : claude_cloud_result against the real hub repo  ##
+    ##=========================================================##
+    {
+        local %ENV = %ENV;
+        delete $ENV{'GIT_STUB_BRANCH'};
+        delete $ENV{'GIT_STUB_SHA'};
+        delete $ENV{'GIT_STUB_UNPUSHED'};
+        delete $ENV{'GIT_STUB_DIRTY'};
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $result_repo;
+        $mcp_pid = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
+
+    my $head_before   = head_of($result_repo);
+    my $status_before = porcelain_of($result_repo);
+
+    ## without branch : newest remote branches of 'hub', newest first ##
+    ( $t, $e ) = tool_call( 'claude_cloud_result', {} );
+    check(
+        'result [ no branch ] : hub branches listed with dates + subjects',
+        !$e
+            && index( $t, 'hub/cloud-result' ) >= 0
+            && index( $t, 'cloud session summary' ) >= 0
+            && index( $t, 'hub/base' ) >= 0,
+        "err=$e text=$t"
+    );
+    check(
+        'result [ no branch ] : newest first [ cloud-result above base ]',
+        !$e && index( $t, 'hub/cloud-result' ) < index( $t, 'hub/base' ),
+        $t
+    );
+
+    ## with branch : log + diffstat + full newest commit message ##
+    ( $t, $e )
+        = tool_call( 'claude_cloud_result', { 'branch' => 'cloud-result' } );
+    check(
+        'result [ branch ] : ahead-log + diffstat + full summary message',
+        !$e
+            && index( $t, 'feature work one' ) >= 0
+            && $t =~ m{result\.feature}
+            && index( $t, 'cloud session summary' ) >= 0
+            && index( $t, 'verified the other thing' ) >= 0,
+        "err=$e text=$t"
+    );
+    my @result_git = git_calls("$tmp_dir/git-argv.log");
+    check(
+        'result [ branch ] : fetch hub + base..hub/branch ranges ran',
+        (   @result_git
+                and
+                grep { join( ' ', @$_ ) =~ m{-c color\.ui=false fetch hub} }
+                @result_git
+                and grep {
+                join( ' ', @$_ )
+                    =~ m{log --oneline --no-color base\.\.hub/cloud-result}
+                } @result_git
+                and grep {
+                join( ' ', @$_ )
+                    =~ m{diff --stat --no-color base\.\.\.hub/cloud-result}
+                } @result_git
+        ),
+        join ' | ',
+        map { join ' ', @$_ } @result_git
+    );
+
+    ## read-only : HEAD + working tree exactly as before ##
+    my $head_after   = head_of($result_repo);
+    my $status_after = porcelain_of($result_repo);
+    check(
+        'result : HEAD + working tree unchanged',
+        $head_after eq $head_before && $status_after eq $status_before,
+        "head $head_before -> $head_after ; "
+            . "status '$status_before' -> '$status_after'"
+    );
+
+    ## bad names refused BEFORE any git call ##
+    my $git_calls_before_bad = scalar git_calls("$tmp_dir/git-argv.log");
+    ( $t, $e )
+        = tool_call( 'claude_cloud_result', { 'branch' => 'bad..name' } );
+    check(
+        'result : branch with .. refused before any git call',
+        $e
+            && index( $t, "invalid branch 'bad..name'" ) >= 0
+            && scalar git_calls("$tmp_dir/git-argv.log")
+            == $git_calls_before_bad,
+        "err=$e text=$t"
+    );
+    ( $t, $e )
+        = tool_call( 'claude_cloud_result', { 'remote' => 'x;y' } );
+    check(
+        'result : shell-shaped remote refused before any git call',
+        $e
+            && index( $t, "invalid remote 'x;y'" ) >= 0
+            && scalar git_calls("$tmp_dir/git-argv.log")
+            == $git_calls_before_bad,
+        "err=$e text=$t"
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
+    ##=========================================================##
+    ## phase 11 : MUTATION-CHECK — a result copy whose fetch became `git ##
+    ## checkout <branch>` must trip the  unchanged-HEAD assertion ; then ##
+    ## restore + report                                                  ##
+    ##=========================================================##
+    my $mutated = "$tmp_dir/mcp-server-p7-checkout-mutation";
+    {
+        open( my $fh, '<', $server_pl ) or die "cannot read $server_pl : $!";
+        my $src = do { local $/ = undef; <$fh> };
+        close $fh;
+        ## the mutation : result's sole write turned into a tree-moving ##
+        ## checkout of the very branch it was asked about               ##
+        my $hits = $src
+            =~ s/qw\| git -c color\.ui=false fetch \|, \$remote/qw| git -c color.ui=false checkout |, \$branch/;
+        die "mutation anchor not found in $server_pl" unless $hits == 1;
+        open( my $out, '>', $mutated ) or die "cannot write $mutated : $!";
+        print {$out} $src;
+        close $out;
+        chmod 0755, $mutated;
+    }
+    {
+        local %ENV = %ENV;
+        $ENV{'P7_MCP_SERVER_PL'}          = $mutated;
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $result_repo;
+        $mcp_pid                          = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
+
+    my $mut_head_before = head_of($result_repo);
+    ( $t, $e )
+        = tool_call( 'claude_cloud_result', { 'branch' => 'cloud-result' } );
+    my $mut_head_after = head_of($result_repo);
+    check(
+        'MUTATION [ result runs git checkout ] : HEAD moved '
+            . '— the unchanged-HEAD assertion FAILS as designed',
+        $mut_head_after ne $mut_head_before,
+        "head $mut_head_before -> $mut_head_after [ reply err=$e ]"
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
+    ## restore the temp repo : back on 'base' at the original commit ##
+    system( $real_git, '-C', $result_repo, 'checkout', '-q', 'base' ) == 0
+        or die "mutation restore failed";
+    check(
+        'MUTATION : temp repo restored to its base branch',
+        head_of($result_repo) eq $mut_head_before,
+        head_of($result_repo) . ' vs ' . $mut_head_before
+    );
 };
 my $eval_err = $@;
 
@@ -1286,9 +1586,12 @@ exit( $fail ? 1 : 0 );
 ## 3. poll cap replaced by wait-exit   -> 'returns early / still alive' FAIL
 ## 4. /fast always sent                -> 'fast only when true' FAILs
 ## 5. dirty-tree check dropped         -> 'dirty tree' checks FAIL
+## 6. result fetch turned to checkout  -> the inline MUTATION run in phase 11
+##    proves the unchanged-HEAD assertion catches it [ expected to FAIL there
+##    by design — that IS the check working ]
 
-#,,.,,..,,.,,,...,,.,,,.,,,,.,...,.,,,,..,,..,..,,...,...,..,,.,.,..,,..,,,..,
-#ZALGMLYFS6AKJEAS4ZCR7OXJZYRTMBSRW7YYZ6N55C7ITBZKNYZBT54FKXT2G2GUICIVWHU4KSATA
-#\\\|MONKEJMB5HZTQ3LWO2VV7GVD5WFBALWTYC3VINMABHSTSJN6X3R \ / AMOS7 \ YOURUM ::
-#\[7]MVQ3N3C7T5WIISRFJA6VMGIDL54BDCNWTMZ3CAAJPOK7SZHXCKBI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,,,.,,,.,,,.,...,,..,,,.,..,,..,,...,...,,..,,,.,,,.,,.,,,.,,
+#WOJKMHVWPPPEACUR76GT6MKERXEVMKNDTGW2WQKV674UR57YIBMAXQBKWZOJ7DHFCIGATQR5FOR6W
+#\\\|5ZJM6MMKZ3RY5ZLJ74RPUQMFNQSJHQQSRWYNSMHJ5UZKZOQ457W \ / AMOS7 \ YOURUM ::
+#\[7]6QPC4RKR4TZUBQO42DVLOPL455HKHAKVFEBHNKH6BVP2HAUNNQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

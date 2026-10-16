@@ -473,12 +473,22 @@ my @external_tools = (
             . 'capture file size, any session id / url parsed from it so '
             . 'far, and its last N lines ; the way to recover the url of '
             . 'a session that was still starting when the dispatch '
-            . 'returned. [ 2 ] session_id — wraps the two documented '
-            . 'non-interactive readers : `claude agents --json` [ its '
-            . 'help says : for scripting, does not require a tty ] for '
-            . 'the session state, then `claude logs <session_id>` [ '
-            . 'prints the session recent terminal output ] for what it '
-            . 'produced. read-only : creates and bills nothing.',
+            . 'returned. [ 2 ] session_id — for ids that are NOT cloud '
+            . 'ids it wraps the two documented non-interactive readers : '
+            . '`claude agents --json` [ its help says : for scripting, '
+            . 'does not require a tty ] for the session state, then '
+            . '`claude logs <session_id>` [ prints the session recent '
+            . 'terminal output ] for what it produced. for a CLOUD '
+            . 'session id [ session_… / cse_… ] those readers are '
+            . 'SKIPPED — they only know LOCAL background sessions and '
+            . 'answer misleadingly for a cloud id [ observed : "no '
+            . 'active or completed background session matched this id" '
+            . 'on a healthy cloud session ] ; the reply then says so '
+            . 'plainly and prints the claude.ai/code url, the `claude '
+            . '--teleport <id>` takeover hint [ needs a clean tree + a '
+            . 'real terminal — a manual step ] and points at '
+            . 'claude_cloud_result for fetching the branch the session '
+            . 'pushed. read-only : creates and bills nothing.',
         'params' => [
             [   'session_id',
                 'the cloud session id from a claude_cloud_dispatch '
@@ -497,6 +507,45 @@ my @external_tools = (
             ],
         ],
         ## no 'command' : routed by name to tool_claude_cloud_status, ##
+        ## registered only — same pattern as kimi_check_status        ##
+    },
+    {   'name'        => 'claude_cloud_result',
+        'description' =>
+            'fetch the result a claude_cloud_dispatch cloud session '
+            . 'pushed — the session works on a clone of the repo and '
+            . 'finishes with a pushed branch, so its work product shows '
+            . 'up ONLY as remote refs, never as anything the local '
+            . 'readers [ claude agents / logs ] can see. read-only for '
+            . 'the working tree : `git fetch <remote>` [ list-form — '
+            . 'remote-tracking refs only ] is the SOLE write ; checkout '
+            . '/ merge / reset are NEVER run here. without branch : '
+            . 'lists the newest remote branches [ `git for-each-ref '
+            . '--sort=-committerdate refs/remotes/<remote>/ '
+            . '--count=15 --format=…` : name, date, subject ] so the '
+            . "session's branch can be picked. with branch : `git log "
+            . '--oneline <base>..<remote>/<branch>` + `git diff --stat '
+            . "<base>...<remote>/<branch>` + the newest commit message "
+            . 'in full [ the session summary often lives there ]. base '
+            . "defaults to the branch the dispatch started from [ the "
+            . "repo's current branch ], else 'base' ; remote defaults "
+            . "to 'hub'. branch / base / remote validated [ "
+            . '^[A-Za-z0-9._/-]+$, no .. ] BEFORE any git call ; always '
+            . '`git -c color.ui=false … --no-color` [ this shell forces '
+            . 'colour otherwise ].',
+        'params' => [
+            [   'branch',
+                'the branch the cloud session pushed [ optional — '
+                    . 'omit to list the newest remote branches instead ]',
+                0
+            ],
+            [   'base',
+                'range base [ default : the branch the dispatch started '
+                    . 'from — the repo current branch — else "base" ]',
+                0
+            ],
+            [ 'remote', 'remote name (default: hub)', 0 ],
+        ],
+        ## no 'command' : routed by name to tool_claude_cloud_result, ##
         ## registered only — same pattern as kimi_check_status        ##
     },
     {   'name'        => 'coding_summarize',
@@ -1450,6 +1499,8 @@ sub handle_tools_call {
         tool_claude_cloud_dispatch( $id, $args );
     } elsif ( $name eq 'claude_cloud_status' ) {
         tool_claude_cloud_status( $id, $args );
+    } elsif ( $name eq 'claude_cloud_result' ) {
+        tool_claude_cloud_result( $id, $args );
     } elsif ( my ($ext) = grep { $_->{'name'} eq $name } @external_tools ) {
         tool_external_command( $id, $args, $ext );
     } else {
@@ -4995,15 +5046,20 @@ sub _cloud_parse_ids {
     return ( $url, $session_id );
 }
 
-## read a cloud session back, two independent read-only readers : [ 1 ]   ##
-## capture_file [ a path from a claude_cloud_dispatch reply ] — its size, ##
-## any id/url parsed from it so far, and its tail ; recovers the url of a ##
-## session that was still starting when the dispatch returned [ 2 ]       ##
-## session_id — state from `claude agents --json`                         ##
-## [ documented as "for scripting; does not require a tty" ] + recent     ##
-## terminal output from `claude logs <id>`                                ##
-## [ prints the session recent terminal output ] nothing here creates or  ##
-## bills anything                                                         ##
+## read a cloud session back, two independent read-only readers : [ 1 ]     ##
+## capture_file [ a path from a claude_cloud_dispatch reply ] — its size,   ##
+## any id/url parsed from it so far, and its tail ; recovers the url of a   ##
+## session that was still starting when the dispatch returned [ 2 ]         ##
+## session_id — for ids that are NOT cloud ids : state from  `claude agents ##
+## --json` [ documented as "for scripting; does not require a tty" ] +      ##
+## recent terminal output from `claude logs <id>`                           ##
+## [ prints the session recent terminal output ]. a CLOUD session id        ##
+## [ session_… / cse_… ] never reaches those readers — they only know LOCAL ##
+## background sessions and answer misleadingly for a cloud id [ observed    ##
+## 2026-10-16 on the first real cloud run : "no active or completed         ##
+## background session matched this id" on a healthy session ] — the reply   ##
+## says so plainly and prints the url + teleport hint instead.  nothing     ##
+## here creates or bills anything                                           ##
 sub tool_claude_cloud_status {
     my ( $id, $args ) = @ARG;
 
@@ -5046,8 +5102,24 @@ sub tool_claude_cloud_status {
         }
     }
 
-    ## [ 2 ] the documented session readers — only when an id is known ##
-    if ( length $session_id ) {
+    ## [ 2 ] session_id — cloud ids are invisible to the local readers : ##
+    ## say so plainly with the url + takeover hint instead of the        ##
+    ## misleading "no session matched" the local readers answer for them ##
+    if ( length $session_id
+        and $session_id =~ m{\A(?:session|cse)_[A-Za-z0-9][A-Za-z0-9._-]*\z} )
+    {
+        push @lines, '' if @lines;
+        push @lines,
+              'cloud sessions are NOT visible to the local readers [ `claude '
+            . 'agents` / `claude logs` only know LOCAL background '
+            . 'sessions — querying them for a cloud id just yields the '
+            . 'misleading "no session matched" reply ] : skipping both.',
+            "follow the session live : https://claude.ai/code/$session_id",
+            "take it over interactively : claude --teleport $session_id "
+            . '[ needs a clean tree + a real terminal — a manual step ]',
+            'fetch the branch it pushed : claude_cloud_result( remote=…,',
+            "    branch=… ) [ base defaults to the dispatch branch ]";
+    } elsif ( length $session_id ) {
         my $repo = $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} // $ROOT_PATH;
 
         my $state = '';
@@ -5095,6 +5167,160 @@ sub tool_claude_cloud_status {
             push @lines, 'recent output [ claude logs ] :', $logs;
         }
     }
+    send_tool_result( $id, join( "\n", @lines ), 0 );
+}
+
+## fetch the RESULT of a cloud session : the dispatch preamble demands the  ##
+## session finish with a pushed branch, so its work product shows up ONLY   ##
+## as remote refs — nothing the local readers [ claude agents / logs ] can  ##
+## see. read-only for the working tree : `git fetch <remote>`               ##
+## [ list-form, remote-tracking refs only ] is the SOLE write allowed here  ##
+## ; checkout / merge / reset are NEVER run. without branch : newest remote ##
+## branches first [ name, date, subject ] so the session's branch can be    ##
+## picked ; with branch : commits ahead, diffstat, and the newest commit    ##
+## message in full [ the session summary often lives there ]                ##
+sub tool_claude_cloud_result {
+    my ( $id, $args ) = @ARG;
+
+    my $branch = $args->{'branch'} // '';
+    my $base   = $args->{'base'}   // '';
+    my $remote = $args->{'remote'} // qw| hub |;
+
+    ## repo the session cloned — same override as the other cloud tools   ##
+    my $repo = $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} // $ROOT_PATH;
+    return send_tool_result( $id, "cloud repo not found: $repo", 1 )
+        if not -d $repo;
+
+    ## name validation BEFORE any git call [ all three end up verbatim in ##
+    ## git argv ; list-form exec keeps each one a single argument, but a  ##
+    ## '..' range slip or a dash-led name would still confuse git itself  ##
+    for my $pair (
+        [ 'branch', $branch ],
+        [ 'base',   $base ],
+        [ 'remote', $remote ]
+    ) {
+        my ( $what, $name ) = @{$pair};
+        next unless length $name;
+        return send_tool_result(
+            $id,
+            "invalid $what '$name' : must match ^[A-Za-z0-9._/-]+\$, "
+                . 'contain no .. and not start with a dash',
+            1
+            )
+            if $name !~ m{\A[A-Za-z0-9._/-]+\z}
+            or index( $name, q{..} ) >= 0
+            or index( $name, q{-} ) == 0;
+    }
+
+    ## base default : the branch the dispatch started from                  ##
+    ## [ the repo's current branch — claude_cloud_dispatch's own default ], ##
+    ## else 'base'                                                          ##
+    if ( not length $base and length $branch ) {
+        my ( $b_out, $b_err )
+            = _cloud_run_list( [qw| git branch --show-current |], 30, $repo );
+        ($base) = split m{\n}, $b_out // '' if not defined $b_err;
+        $base //= '';
+        $base = qw| base | if not length $base;
+    }
+
+    ## the SOLE write : fetch brings the session's pushed branch into the ##
+    ## remote-tracking refs ; the working tree + HEAD are never touched   ##
+    my ( $f_out, $f_err, $f_code )
+        = _cloud_run_list( [ qw| git -c color.ui=false fetch |, $remote ],
+        60, $repo );
+    return send_tool_result(
+        $id,
+        "git fetch $remote failed : " . ( defined $f_err ? $f_err : $f_out ),
+        1
+        )
+        if defined $f_err
+        or ( $f_code // 0 ) != 0;
+
+    if ( not length $branch ) {
+        ## branch picker : newest remote branches first, one per line    ##
+        my $fmt = '%(refname:short)%09%(committerdate:iso8601)%09%(subject)';
+        my ( $l_out, $l_err, $l_code ) = _cloud_run_list(
+            [   'git',                   '-c',
+                'color.ui=false',        'for-each-ref',
+                '--sort=-committerdate', '--no-color',
+                "refs/remotes/$remote/", '--count=15',
+                "--format=$fmt"
+            ],
+            60, $repo
+        );
+        return send_tool_result(
+            $id,
+            'git for-each-ref failed : '
+                . ( defined $l_err ? $l_err : $l_out ),
+            1
+            )
+            if defined $l_err
+            or ( $l_code // 0 ) != 0;
+        send_tool_result(
+            $id,
+            join( "\n",
+                "remote '$remote' : newest remote branches "
+                    . '[ newest first — pick the session branch, then re-run',
+                'with branch=<name> ] :',
+                $l_out ),
+            0
+        );
+        return;
+    }
+
+    my $remote_branch = "$remote/$branch";
+    my @lines         = (
+        "remote: $remote",
+        "branch: $branch",
+        "base: $base [ range $base..$remote_branch ]"
+    );
+
+    ## commits the session added on top of the base                     ##
+    my ( $l_out, $l_err, $l_code ) = _cloud_run_list(
+        [   qw| git -c color.ui=false log --oneline --no-color |,
+            "$base..$remote_branch"
+        ],
+        60, $repo
+    );
+    if ( defined $l_err or ( $l_code // 0 ) != 0 ) {
+        send_tool_result(
+            $id,
+            "git log failed [ bad base or branch? ] : "
+                . ( defined $l_err ? $l_err : $l_out ),
+            1
+        );
+        return;
+    }
+    push @lines, '', "commits ahead of $base :",
+        ( length $l_out ? $l_out : '[ none — the branch is not ahead ]' );
+
+    ## what changed relative to the merge-base                            ##
+    my ( $d_out, $d_err ) = _cloud_run_list(
+        [   qw| git -c color.ui=false diff --stat --no-color |,
+            "$base...$remote_branch"
+        ],
+        60, $repo
+    );
+    push @lines, '', "diffstat $base...$remote_branch :";
+    push @lines,
+          defined $d_err ? "[ diffstat " . "failed : $d_err ]"
+        : length $d_out  ? $d_out
+        :                  '[ no changes ]';
+
+    ## the newest commit message in full : the session summary often lives ##
+    ## there                                                               ##
+    my ( $m_out, $m_err ) = _cloud_run_list(
+        [   qw| git -c color.ui=false log -1 --format=%B --no-color |,
+            $remote_branch
+        ],
+        60, $repo
+    );
+    push @lines, '', "newest commit message [ $remote_branch ] :";
+    push @lines,
+          defined $m_err ? "[ message read failed : $m_err ]"
+        : length $m_out  ? $m_out
+        :                  '[ unreadable ]';
+
     send_tool_result( $id, join( "\n", @lines ), 0 );
 }
 
@@ -5453,8 +5679,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,.,,,.,,...,.,.,,..,...,,..,...,,,,,.,.,..,,...,...,.,,,...,,..,..,,.,.,
-#F76T2SZDBAL3K5C4RYJDWYR6XUFKB2YTVBDUIPJVG26CGLDWWVE7YTJAZZI4O36VQCM7T46FTZKLK
-#\\\|JV3XZ66C2TMBLBM37XHIBXBTCBCSMMHAN3MWD4V74ANTBTVTBAQ \ / AMOS7 \ YOURUM ::
-#\[7]HUI6RHFWTTK46SSVATIFBQ6MNUKR2X6L7AE6SYI2GCHTJ5H5HCDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,.,..,,,,,,...,,.,,,.,,,.,,,,.,..,,...,...,...,..,,,..,..,,.,,,
+#7PBNBJBLJCCCZVBQHH63SNPCYXIEY7MFH6NR2VKPAVZ2PUHC7G3KVQZBGZDRPETJFIQJKEEM4SZU4
+#\\\|SW3SSJCX3ZQC6FO5DC2OJHN3PSUGGAVYXXPOZK3KN7ITNFGHESY \ / AMOS7 \ YOURUM ::
+#\[7]OYAMR2PRI3C6NG3E2F2BY5H5Z7CDV2QTANMMFDXHXFHQSMSGCGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
