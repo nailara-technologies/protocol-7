@@ -35,6 +35,7 @@ use AMOS7::TERM::Frame qw|
     frame_color_enabled frame_column_line frame_title_banner
     frame_section_header frame_status_row frame_error_line
     frame_progress_bar frame_option_list
+    frame_terminal_width frame_fit_width
     |;
 
 my $pass_count = 0;
@@ -253,6 +254,49 @@ check 'progress : bar and label blue on the nailara background',
         index( frame_section_header( 's', $ON ), "\e[" ) >= 0;
 }
 
+## frame_fit_width : the bin/todo center cut ##
+
+check 'fit width : shorter text unchanged',
+    frame_fit_width( 'short', 10 ) eq 'short';
+check 'fit width : no width means no limit',
+    frame_fit_width( 'a much longer line', undef ) eq 'a much longer line';
+my $fitted = frame_fit_width( 'abcdefghijklmnopqrstuvwxyz', 10 );
+check 'fit width : center ellipse keeps the total length',
+    length($fitted) == 10;
+check 'fit width : the mark is spliced into the middle',
+    $fitted eq 'abc.,.wxyz';
+check 'fit width : exact width stays untouched',
+    frame_fit_width( '1234567890', 10 ) eq '1234567890';
+check 'fit width : a tiny budget gets a plain cut',
+    frame_fit_width( 'abcdefghijklmnopqrstuvwxyz', 3 ) eq 'abc';
+
+## frame_terminal_width : 0 without a terminal, the pty size with one ##
+
+{
+    open( my $pipe_out, '-|', $EXECUTABLE_NAME, '-e', 'print 1' )
+        or die "pipe : $OS_ERROR";
+    check 'terminal width : a pipe is no terminal -> 0',
+        frame_terminal_width($pipe_out) == 0;
+    close $pipe_out;
+
+    my $tty;
+    if ( open( $tty, '+<', '/dev/ptmx' ) and -t $tty ) {
+        local $ENV{'TERM'}    = 'xterm';
+        local $ENV{'COLUMNS'} = undef;
+        my $winsize = pack( 'S4', 24, 66, 0, 0 );
+        ioctl( $tty, 0x5414, $winsize ) or die "TIOCSWINSZ : $OS_ERROR";
+        check 'terminal width ' . ': the pty size',
+            frame_terminal_width($tty) == 66;
+        my $zero = pack( 'S4', 0, 0, 0, 0 );
+        ioctl( $tty, 0x5414, $zero ) or die "TIOCSWINSZ : $OS_ERROR";
+        check 'terminal width : size 0 falls back to 80',
+            frame_terminal_width($tty) == 80;
+        close $tty;
+    } else {
+        print "skip : no /dev/ptmx terminal -- the width not checked\n";
+    }
+}
+
 ## frame_error_exit : framed error line on STDERR, exit 0110 ##
 
 {
@@ -301,8 +345,8 @@ EOF
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,..,,.,,,,,,,.,,,.,,,,..,.,,,.,.,.,.,...,..,,...,...,...,,,.,,,.,.,.,,..,
-#KF22GGQPYKE2HGPZE463CZ3PHILYOM5ID3XF46AIWSGJHPGPWSSN6G26N4VXT6PTK5A2HFHJSK76A
-#\\\|IWVXX5NDMIB7RMRVVVCMSWO4I2L67MCAW5JURAFCYAXYMQRDKME \ / AMOS7 \ YOURUM ::
-#\[7]QBOEV7AZXMOQ4XFVI56O6LICQMVJBEX3PY7IZ65YEXFOCFBABYAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,..,,,.,,,,,,,,,,,,,,,,,,,,.,...,..,,...,...,.,.,...,,.,,,,,,...,
+#MDBGLZITM2DJUYNVKZHFAHHN42UJOPT63EX2EGVV3PEN3OQPZVFQFFOVYKMTEBY5FXELT5VQZJ2Z4
+#\\\|LWNM6JCJVQQNY5CACKYT6RMS5R5AHNFBGGQUV62VXPVJYSJSCJI \ / AMOS7 \ YOURUM ::
+#\[7]YLNFXFQKTWFRQPZ4FLFTRR3ZCCF66EU77MK7X6YF776237ZEGAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
