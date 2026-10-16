@@ -9,6 +9,7 @@
 <[base.perlmod.load]>->('AMOS7::deps::module');
 <[base.perlmod.load]>->('AMOS7::deps::os_package');
 <[base.perlmod.load]>->('AMOS7::deps::debp');
+<[base.perlmod.load]>->('AMOS7::deps::tracked');
 
 ## Detect host OS ##
 <sys-deps.host_os> = AMOS7::deps::os_package::detect_os();
@@ -30,37 +31,24 @@ my $zenki_base = <system.conf_path> . '/zenki';
         . " os dep types"
 );
 
-## Read tracking log ##
+## Read tracking log [ shared AMOS7::deps::tracked implementation ] ##
 <sys-deps.tracked> = [];
 
 my $track_file = <system.root_path> . '/var/sys-deps/tracked.yaml';
 if ( -f $track_file ) {
-    eval {
-        require YAML::Tiny;
-        my $yaml = YAML::Tiny->read($track_file);
-        if ( defined $yaml && defined $yaml->[0] && ref $yaml->[0] eq 'HASH' )
-        {
-            <sys-deps.tracked> = $yaml->[0]->{'tracked'} // [];
-        }
-    };
-    if ($EVAL_ERROR) {
-        <[base.log]>->( 0, "  failed to read tracking log: $EVAL_ERROR" );
-    } else {
-        <[base.log]>->(
-            2,
-            "  tracking log: "
-                . scalar( <sys-deps.tracked>->@* )
-                . " entries"
-        );
-    }
+    <sys-deps.tracked>
+        = AMOS7::deps::tracked::read_tracked(<system.root_path>);
+    <[base.log]>->(
+        2, "  tracking log: " . scalar( <sys-deps.tracked>->@* ) . " entries"
+    );
 }
 
 <[base.log]>->( 2, 'sys-deps zenka initialization complete' );
 
 0;
 
-#,,,.,,..,.,.,.,.,,..,.,.,..,,.,.,,,,,,..,.,.,..,,...,...,.,,,...,,,.,,,.,,,.,
-#AYD7RGQLYJJWQJTDKZUJUXL44KYY7KRFIEFFZCW6CQDG2O226FHZVBH4R5FFJLTU5S4VF2A4Z7FLM
-#\\\|ZSJ55SPH7MYVFNRBJXKZJLFKF4ZOS4MB6M2MMRIVQWRIMTL7IYG \ / AMOS7 \ YOURUM ::
-#\[7]HXSWGQPJKRNONT7CDXPAKDT35KOPF3GOSO5C25BVOOQPG6CJZKAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,...,.,,,,.,,.,,,,.,,..,,,..,..,,...,...,...,,,.,...,,..,..,,
+#QVOM5CHFF3XZIVD2E6GEZGVRRL6EKI2UPXZ7ITJHWNOU6VEZS6ON4EYJV3VEBCZCGCDDLF63PQMGU
+#\\\|PFIIXP4RBAZ6URB2UW6QEI75BPAP7DLBNG6XC6KKJTW5XVPBGUA \ / AMOS7 \ YOURUM ::
+#\[7]E6XWASCW2C7HUWF3LMU2C52XRG2O3ZMOTJRQB7VMXRH6IAETXSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

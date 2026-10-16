@@ -1,9 +1,10 @@
 ## [:< ##
 
 # name  = v7-zenki.sys_deps.track
-# descr = append installed dep entries to var/sys-deps/tracked.yaml
+# descr = record installed dep entries in var/sys-deps/tracked.yaml
 #         [ shared by check_zenka_deps, handler.deps_install_reply and the
-#           sys_deps reply handler -- one copy of the tracking block ]
+#           sys_deps reply handler -- thin call to the shared
+#           AMOS7::deps::tracked::record implementation ]
 # param = <zenka_name> [ <item> .. ] , <item> = { name => .., type => .. }
 
 my $zenka_name = shift // '';
@@ -11,39 +12,26 @@ my $items      = shift // [];
 
 return if not @$items;
 
+## small + core-only module : safe to load in-process ##
+<[base.perlmod.load]>->('AMOS7::deps::tracked')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::tracked');
+
+my $track_file = AMOS7::deps::tracked::track_file(<system.root_path>);
 my $track_dir  = <system.root_path> . '/var/sys-deps';
-my $track_file = $track_dir . '/tracked.yaml';
 
-<[file.make_path]>->(
-    $track_dir, 0775, <system.amos-zenka-user>, <system.amos-zenka-user>
-) if !-d $track_dir;
-
-my $tracked = { tracked => [] };
-if ( -f $track_file ) {
-    eval {
-        require YAML::Tiny;
-        my $yaml = YAML::Tiny->read($track_file);
-        $tracked = $yaml->[0] if defined $yaml && defined $yaml->[0];
-    };
-}
-
-for my $item (@$items) {
-    push @{ $tracked->{tracked} },
-        {
-        pkg          => $item->{'name'},
-        type         => $item->{'type'}    // qw| debian |,
-        installed_at => <[base.ntime.b32]> // '',
-        source       => 'v7-prestart',
-        zenka        => $zenka_name,
-        declared     => 0
-        };
-}
-
-eval {
-    require YAML::Tiny;
-    my $yaml = YAML::Tiny->new($tracked);
-    $yaml->write($track_file);
-};
+AMOS7::deps::tracked::record(
+    <system.root_path>,
+    [   map {
+            {   'pkg'          => $ARG->{'name'},
+                'type'         => $ARG->{'type'}     // qw| debian |,
+                'installed_at' => <[base.ntime.b32]> // '',
+                'source'       => 'v7-prestart',
+                'zenka'        => $zenka_name,
+                'declared'     => 0
+            }
+        } @$items
+    ]
+);
 
 ## normalize ownership for sys-deps zenka \ os-pkg access ##
 if ( -f $track_file and $UID == 0 ) {
@@ -57,8 +45,8 @@ if ( -f $track_file and $UID == 0 ) {
 
 return TRUE;
 
-#,,..,..,,..,,.,.,,,.,...,,,.,.,.,,,.,,,,,.,.,..,,...,..,,.,.,,.,,,,.,...,.,,,
-#CGYAOBHTE6ZD65USQRFT6ASW5KP4A7TIPBQAC57TFO23YEBSIXSD2ZENESPQNS2GP6IWYIVHVM2XM
-#\\\|VQVP5C3VWIRCSHVFEP2EK54LYZRERVZZBIXNFOQ44W2NQZURPPY \ / AMOS7 \ YOURUM ::
-#\[7]MZCS5AWUVNPC3G624JYQ5QUP6TCKI53PFWVC2AACB2RKIUBOQABA 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,.,,,,,...,,..,,.,,..,,,.,,,.,,..,,...,...,.,.,,..,.,.,.,.,..,,
+#PSETLCS3KX2D3MSPDHA7AFBMNUO5QLPXWJTWVLTAEIXWCEF25MXHLPLNRG7ZFHXH3VDZUYAE2PLK2
+#\\\|CIQFUKQIIWIFB7GYIRVTP7XMFFEYCQWXR3PMQ75CTRFJYYLYLSJ \ / AMOS7 \ YOURUM ::
+#\[7]NDW4J7PJODJMVVOM4X6G4TDJKNW6PO4N25EX6CS44OHZRU6WZSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
