@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = keys.root_registry_note
+# descr = warn when a client-key command works on root's own registry
+# note  = run as root, p7-keys resolves root's home [ /root/.n ] -- a cube
+#         runs as its zenka user and never reads that registry ;
+#         'USER=<zenka user> p7-keys ..' selects the cube's one. a warning,
+#         not a refusal : root's registry is a valid target too
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+
+return FALSE
+    if $EUID != 0
+    or ( $key_vars_ref->{'usr_name'} // '' ) ne qw| root |;
+
+printf "\n  :: note : this is root's key registry [ %s ] -- a cube reads its "
+    . "zenka user's,\n  ::        e.g. 'USER=protocol-7 p7-keys %s "
+    . "..' ::\n",
+    $key_vars_ref->{'incoming_dir'} // '?', shift // '<command>';
+
+return TRUE;
+
+#,,.,,,,,,.,,,.,.,,,.,...,..,,,..,.,,,,,.,.,,,..,,...,.,.,...,.,,,..,,,,.,,.,,
+#IQ243MNMTIZPI7KKY3LBPXD5LEBAMCMVHQHEABTOPPI76UMAYLNHJYFSVVSDHRA5PEIY5VYEEFZGI
+#\\\|RHSTHQNY3CMN5JIK7X4CMZUNS4BQZMURPTUDMQN3KHU3YQYPW5N \ / AMOS7 \ YOURUM ::
+#\[7]YKHLGK65WZWYU3O2ON42Z6HAPIJSSC3RL24ZWGHAXV6W2MYTWSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

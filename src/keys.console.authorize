@@ -25,13 +25,15 @@ if ( $zenka =~ m{[/\x00]} or $username =~ m{[/\x00]} ) {
     <[base.exit]>->(qw| 0113 |);
 }
 
+<[keys.root_registry_note]>->(qw| authorize |);
+
 <[base.exit]>->(qw| 0010 |)
     if not <[keys.authorize_link]>->( $zenka, $username );
 
 printf( "\n  :: authorized '%s' for '%s' ::\n\n", $username, $zenka );
 
-#,,..,.,,,.,.,,,.,...,.,,,,..,.,.,.,,,,,,,.,.,.,.,...,...,,.,,..,,.,.,,.,,,..,
-#LNO2UOHI4TYW3YZHFCT6ZNM3WR2JSB54BWY4OADY43FFRJJCZEHTTIJQYNSZ6PO3SZEK4PHGFNMN4
-#\\\|RD6SUHEE6O7APXJ7HMIG37KAUBXSUV2JFM22JZGE7G5OPDZNOE2 \ / AMOS7 \ YOURUM ::
-#\[7]54LKGSYRV7SXKAJDQIDH465NVMEKFJTV4MIH4U25YAXTW62RDQAA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,.,,...,...,.,,,,.,,,.,,.,,,,,,,.,.,...,...,.,.,,.,,,,,,...,..,,
+#LR5BVMKE4MUWCUZ57Y4WZY5XRRMXIA7ZODIS2E7UGAVGSS5VWONEHBSLOBMN4ZBSK45FLNKTHOM3C
+#\\\|H42NIEXAKYWPPNOZA2N73DGY3PXTY2QEP7BTNHLONGKKJKNHBWO \ / AMOS7 \ YOURUM ::
+#\[7]K5ISCWBETRWC762YREXEB6WDUIZE44A7Z64ORPG6CKHCUHSJ2UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

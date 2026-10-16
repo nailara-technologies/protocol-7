@@ -117,6 +117,7 @@ $code{'crypt.C25519.key_vars'} = sub {
     };
 };
 
+compile_module(qw| keys.root_registry_note |);
 compile_module(qw| keys.owned_dir |);
 compile_module(qw| keys.authorize_link |);
 compile_module(qw| keys.console.authorize |);
@@ -358,6 +359,15 @@ if ( $UID != 0 ) {
         && $stdout =~ m|owned by|;
     ok( $names_dir, '  :.. error names the directory and its owner' );
 
+    ## an already-authorized user still gets the ownership walk         ##
+    ## [ a repeated call is how a root-made tree gets repaired ] -- the ##
+    ## walk runs before the already-authorized answer                   ##
+    $result = run_cmd( 'keys.console.authorize', 'cube:bob' );
+    ok( $result->{'out'} =~ m|owned by|
+            && $result->{'out'} !~ m|already authorized|,
+        'already authorized : ownership walked first'
+    );
+
     ## a root-created directory is fixed when the helper runs as root --   ##
     ## the fix path itself needs root ; verified here only for the refusal ##
     ## side                                                                ##
@@ -412,8 +422,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,..,,,,.,,..,,,,,...,...,,..,...,...,...,.,.,...,...,.,.,,,,,.,,,...,,..,
-#AN3ZBIYZ6L5HITHT4QCLH6SRQ73JAI3LOHQGQEU4VPQU7EV4PVGF5JO3OTA2MTQH6WHBPL3PXR4PG
-#\\\|VDJMN3EVZGNN56WGYER2OGPT3B7YPO6KVQX56Y67OPHFPSLWXCP \ / AMOS7 \ YOURUM ::
-#\[7]7I34QSDDPDBGHYQ652DVNVCV5KINDWQD6AIFQTR3XJ65UYO4D2BI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,,.,,.,.,..,,,,.,,,.,..,,,,,,.,.,...,...,.,.,.,,,,,.,...,...,
+#K33ZDGVL5JAMCUT5VIEUKCZZ3U2TCG3AHH6VOFO6HHWE7D6T5EB6IIZQF7YTIVYP6CC33RKZB4RZM
+#\\\|P64Z2ZTBRFHFNFMT5NOHLCKSR2CRFYPSQPOIPUBTTDIDEWPWS65 \ / AMOS7 \ YOURUM ::
+#\[7]Y3H3JEHTBPBIAXQEN3TJJNQ5Z3MKELKVJNLOCOAOP4VMIYLLSEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
