@@ -3,22 +3,9 @@
 # name = sys-deps.cmd.undeclared
 # descr = tracked packages not yet declared in deps/os cfgs
 
-my $os_deps = <sys-deps.os_deps>;
-my $tracked = <sys-deps.tracked> // [];
-
-my %declared;
-for my $type ( keys %$os_deps ) {
-    for my $pkg ( keys %{ $os_deps->{$type} } ) {
-        $declared{$pkg} = 1;
-    }
-}
-
-my @undeclared;
-for my $entry (@$tracked) {
-    next if $entry->{'declared'};
-    next if $declared{ $entry->{'pkg'} };
-    push @undeclared, $entry;
-}
+## entries whose package is not declared in any zenka's deps/os/<dir>/ ##
+## [ shared AMOS7::deps::tracked implementation, type-aware ]          ##
+my @undeclared = @{ AMOS7::deps::tracked::undeclared(<system.root_path>) };
 
 my @output;
 push @output, ":", "::[ undeclared packages ]", ":";
@@ -48,8 +35,8 @@ return {
     'data' => "\n" . join( "\n", @output ) . "\n"
 };
 
-#,,..,,..,,,,,.,.,.,,,...,..,,..,,,,,,..,,,,,,..,,...,..,,.,,,,,.,,,,,.,.,.,,,
-#OM6U7ECTZRJYIODYLMFKP6ZFXVMIOEXZNF5Q76WXIKSHJPMD6ECROZRWPRDV7ZJ3BTTMXTKXAFSMQ
-#\\\|ATC6IHYTPQBVCIMWCQKJZGD4VZDIWSOJ7MPKKQQHLHFYPGDT4OX \ / AMOS7 \ YOURUM ::
-#\[7]CQAUQHXOP7WSRHFZDU3DYGLZSZNXXXSH2WZ42GZCAQMKYE74ESCY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,..,,..,.,.,.,.,...,...,,,,,,..,..,,...,.,,,,,.,...,.,.,.,.,...,
+#IAHSRXOTKDYFSRVF7L3FXHDEG57QXVUX4DTTNY6V7NCPMVBXTBNL56WAWJZBZAGP4WPV5ZFJM3TCG
+#\\\|F7EORSOSZZWKLWQU3URSV5OOKJGS32OQF3ML22RFIZKKEZBVW4O \ / AMOS7 \ YOURUM ::
+#\[7]TKEIYM4KGANKR3VA57OGP2SEY7OMUL7DNV5474UIYSVPOMZY5CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

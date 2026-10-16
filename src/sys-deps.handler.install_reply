@@ -32,35 +32,22 @@ if ( $mode eq qw| TRUE | ) {
 }
 
 ## Track successful installs [ moved from sys-deps.cmd.install : the actual ##
-## install now completes asynchronously in the debian zenka ]               ##
+## install now completes asynchronously in the debian zenka ] via the       ##
+## shared AMOS7::deps::tracked record : dedups on type + name and writes    ##
+## atomically                                                               ##
 if (@ok) {
-    my $track_dir  = <system.root_path> . '/var/sys-deps';
-    my $track_file = $track_dir . '/tracked.yaml';
-    if ( !-d $track_dir ) {
-        eval {
-            require File::Path;
-            File::Path::make_path($track_dir);
-        };
-    }
-    my $tracked = { tracked => <sys-deps.tracked> // [] };
-    for my $pkg (@ok) {
-        push @{ $tracked->{'tracked'} },
-            {
-            pkg          => $pkg,
-            type         => 'debian',
-            installed_at => <[base.ntime.b32]> // '',
-            source       => 'sys-deps',
-            zenka        => $zenka,
-            declared     => 0
-            };
-    }
-    eval {
-        require YAML::Tiny;
-        my $yaml = YAML::Tiny->new($tracked);
-        $yaml->write($track_file);
-    };
-    chmod( 0664, $track_file ) if -f $track_file and -o $track_file;
-    <sys-deps.tracked> = $tracked->{'tracked'};
+    my @entries = map {
+        {   'pkg'          => $ARG,
+            'type'         => qw| debian |,
+            'installed_at' => <[base.ntime.b32]> // '',
+            'source'       => 'sys-deps',
+            'zenka'        => $zenka,
+            'declared'     => 0
+        }
+    } @ok;
+    AMOS7::deps::tracked::record( <system.root_path>, \@entries );
+    <sys-deps.tracked>
+        = AMOS7::deps::tracked::read_tracked(<system.root_path>);
 }
 
 my @output;
@@ -81,8 +68,8 @@ if ( defined $reply_id ) {
 
 return;
 
-#,,,.,,..,.,,,,,,,...,.,,,,,.,.,.,,.,,,,,,...,..,,...,...,..,,.,.,..,,.,,,.,.,
-#ILKA7GOHLSJTVOJN4ULMZ5SNA7JFM3X5ZSPLHUFINQSVZ6452T63TVXJ3D7JT4Y5QSBFB76WWLQ2Q
-#\\\|ZVUA6GHQEZLDOTBTTHJ3262YBLBTQMT5UPNJQBEX2TIJO34WPNS \ / AMOS7 \ YOURUM ::
-#\[7]ETSCHWUZ32PEWN2TIFPHHMZLRAVLIRNW4JQKV62C56IIXTV7NCAY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,.,,,.,,,..,,.,,,.,,.,.,...,.,.,..,,...,...,..,,,,,,...,...,...,
+#6J6PKP24OYQOUPAWEH2CW5JCYIR4APWW4CTIUA2K3CAIWDP4JBC7E66KBAZSEIB3AZFSAP4OBOFJY
+#\\\|KVEIADBVMVX7KKKFITTYWDKVYKP64322JQEQUGC46FUISZL5SPZ \ / AMOS7 \ YOURUM ::
+#\[7]ALAKQGBBEK5ELG54J726AKTGCONIRQL7UHQADS6JAGAHDNKM76BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

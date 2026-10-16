@@ -16,33 +16,16 @@ unless ( defined $pkg && defined $zenka ) {
     };
 }
 
-my $dep_dir_name = AMOS7::deps::os_package::dep_type_to_dir('debian');
-my $zenka_os_dep_dir
-    = <system.conf_path> . "/zenki/$zenka/deps/os/$dep_dir_name";
+## write the declaration marker + flag the entry declared [ shared       ##
+## AMOS7::deps::tracked promote : validates names, refuses unknown zenki ##
+## and untracked packages, writes atomically ]                           ##
+my $result
+    = AMOS7::deps::tracked::promote( <system.root_path>, $zenka, $pkg );
 
-eval {
-    require File::Path;
-    File::Path::make_path($zenka_os_dep_dir) unless -d $zenka_os_dep_dir;
-};
+return { 'mode' => qw| false |, 'data' => $result->{'error'} }
+    if not $result->{'ok'};
 
-my $pkg_file = "$zenka_os_dep_dir/$pkg";
-
-if ( -f $pkg_file ) {
-    return {
-        'mode' => qw| true |,
-        'data' => "$pkg already declared for zenka '$zenka'"
-    };
-}
-
-open my $fh, '>',
-    $pkg_file
-    or return {
-    'mode' => qw| false |,
-    'data' => "failed to create $pkg_file: $!"
-    };
-close $fh;
-
-## Update tracking state ##
+## reflect the new declared state in memory ##
 my $tracked = <sys-deps.tracked> // [];
 for my $entry (@$tracked) {
     if ( $entry->{'pkg'} eq $pkg ) {
@@ -51,22 +34,20 @@ for my $entry (@$tracked) {
     }
 }
 
-## Save updated tracking state ##
-my $track_file = <system.root_path> . '/var/sys-deps/tracked.yaml';
-eval {
-    require YAML::Tiny;
-    my $yaml = YAML::Tiny->new( { tracked => $tracked } );
-    $yaml->write($track_file);
-};
-chmod( 0664, $track_file ) if -f $track_file and -o $track_file;
+if ( $result->{'status'} eq qw| exists | ) {
+    return {
+        'mode' => qw| true |,
+        'data' => "$pkg already declared for zenka '$zenka'"
+    };
+}
 
 return {
     'mode' => qw| true |,
     'data' => "declared $pkg for zenka '$zenka'"
 };
 
-#,,,,,.,.,..,,,.,,,,.,,,,,.,,,..,,.,.,...,.,.,..,,...,...,..,,.,,,,,.,,,,,.,.,
-#FWKIEHP2GLP6HMORYOZ3R72DGI744WOMSZSW5MTOK4V6EXDTAYMZJR4U74HFE62KJ3EGPZSD7PKYU
-#\\\|5QYCQNCWFKITEYXRXUTIKM6SFV3XE4QGLYNTIOK4UYZSHKR36HH \ / AMOS7 \ YOURUM ::
-#\[7]PF4ECYYFYL2DJVU3RZASPXRUNBCQK6P5WJAVIJ22D4RSUC4ZWUDY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,...,...,.,,,,..,.,.,.,.,.,,,,..,..,,...,...,.,.,,,,,.,,,,,,,...,
+#HMLARUTDYNP3YEOJJGTCOGN56F5EYXBZG7WLZ7AEBU3SOLNYRKTMMBEF5C4YUY3EDVLF54G6A2UY4
+#\\\|RZOUBRIGYJKS6AW2UG6LMASCJAP6EYXENHTPOTNLTVO4GFKA6AD \ / AMOS7 \ YOURUM ::
+#\[7]ANCRIUGXXE5G2YAA337V6KFFQDPMUJ4PT5DRRCOIJJ7OQ5F6CKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
