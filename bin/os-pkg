@@ -13,9 +13,9 @@ BEGIN {
     use lib "$RealBin/../data/lib-path/pm";
 }
 
-use AMOS7::deps::os_package
-    qw( detect_os scan_zenki_os_deps dep_type_to_dir );
-use AMOS7::deps::debp qw( install_apt );
+use AMOS7::deps::os_package qw( detect_os );
+use AMOS7::deps::debp       qw( install_apt );
+use AMOS7::deps::tracked    qw| read_tracked record undeclared promote |;
 
 $OUTPUT_AUTOFLUSH = 1;
 
@@ -24,7 +24,6 @@ $OUTPUT_AUTOFLUSH = 1;
 my $P7_ROOT    = File::Spec->catdir( $RealBin, File::Spec->updir );
 my $TRACK_DIR  = File::Spec->catdir( $P7_ROOT, 'var', 'sys-deps' );
 my $TRACK_FILE = File::Spec->catfile( $TRACK_DIR, 'tracked.yaml' );
-my $ZENKI_DIR  = File::Spec->catdir( $P7_ROOT, 'cfg', 'zenki' );
 
 make_path($TRACK_DIR) unless -d $TRACK_DIR;
 
@@ -74,18 +73,7 @@ sub cmd_install {
 
     my $result = install_apt(@pkgs);
 
-    my $tracked = load_tracked();
-
     for my $pkg ( @{ $result->{ok} } ) {
-        push @{ $tracked->{tracked} },
-            {
-            pkg          => $pkg,
-            type         => 'debian',
-            installed_at => iso_timestamp(),
-            source       => 'manual',
-            zenka        => undef,
-            declared     => 0
-            };
         print ":. installed and tracked: $pkg\n";
     }
 
@@ -93,12 +81,25 @@ sub cmd_install {
         print ":. FAILED: $pkg\n";
     }
 
-    save_tracked($tracked);
+    record(
+        $P7_ROOT,
+        [   map {
+                {   pkg          => $ARG,
+                    type         => 'debian',
+                    installed_at => iso_timestamp(),
+                    source       => 'manual',
+                    zenka        => undef,
+                    declared     => 0
+                }
+            } @{ $result->{ok} }
+        ]
+    );
+
+    group_file_access();
 }
 
 sub cmd_list {
-    my $tracked = load_tracked();
-    my @entries = @{ $tracked->{tracked} // [] };
+    my @entries = @{ read_tracked($P7_ROOT) };
 
     unless (@entries) {
         print ":. no tracked packages\n";
@@ -118,16 +119,7 @@ sub cmd_list {
 }
 
 sub cmd_undeclared {
-    my $tracked  = load_tracked();
-    my $os_deps  = scan_zenki_os_deps($ZENKI_DIR);
-    my %declared = map { $_ => 1 } keys %{ $os_deps->{debian} // {} };
-
-    my @undeclared;
-    for my $entry ( @{ $tracked->{tracked} // [] } ) {
-        next if $entry->{declared};
-        next if $declared{ $entry->{pkg} };
-        push @undeclared, $entry;
-    }
+    my @undeclared = @{ undeclared($P7_ROOT) };
 
     unless (@undeclared) {
         print ":. all tracked packages are declared\n";
@@ -149,33 +141,20 @@ sub cmd_declare {
         exit 1;
     }
 
-    my $zenka_os_dep_dir = File::Spec->catdir( $ZENKI_DIR, $zenka, 'deps',
-        'os', dep_type_to_dir('debian') );
+    my $result = promote( $P7_ROOT, $zenka, $pkg );
 
-    make_path($zenka_os_dep_dir) unless -d $zenka_os_dep_dir;
+    if ( not $result->{'ok'} ) {
+        print ":. $result->{'error'}\n";
+        exit 1;
+    }
 
-    my $pkg_file = File::Spec->catfile( $zenka_os_dep_dir, $pkg );
-
-    if ( -f $pkg_file ) {
+    if ( $result->{'status'} eq 'exists' ) {
         print ":. $pkg already declared for zenka '$zenka'\n";
     } else {
-        open my $fh, '>', $pkg_file or do {
-            print ":. failed to create $pkg_file: $!\n";
-            exit 1;
-        };
-        close $fh;
         print ":. declared $pkg for zenka '$zenka'\n";
     }
 
-    # Update tracking state
-    my $tracked = load_tracked();
-    for my $entry ( @{ $tracked->{tracked} // [] } ) {
-        if ( $entry->{pkg} eq $pkg ) {
-            $entry->{declared} = 1;
-            last;
-        }
-    }
-    save_tracked($tracked);
+    group_file_access();
 }
 
 sub cmd_help {
@@ -194,32 +173,7 @@ EOF
 
 ##[ TRACKING STATE ]##########################################################
 
-sub load_tracked {
-    return { tracked => [] } unless -f $TRACK_FILE;
-
-    ## return from inside an eval BLOCK only returns from the eval ##
-    my $tracked;
-    eval {
-        require YAML::Tiny;
-        my $yaml = YAML::Tiny->read($TRACK_FILE);
-        $tracked = $yaml->[0] if defined $yaml && defined $yaml->[0];
-    };
-
-    return $tracked // { tracked => [] };
-}
-
-sub save_tracked {
-    my ($data) = @_;
-
-    eval {
-        require YAML::Tiny;
-        my $yaml = YAML::Tiny->new($data);
-        $yaml->write($TRACK_FILE);
-    };
-
-    if ($EVAL_ERROR) {
-        warn ":. failed to write tracking state: $EVAL_ERROR\n";
-    }
+sub group_file_access {
 
     ## group-access for sys-deps zenka \ v7-zenki [ best-effort ] ##
     if ( defined $p7_gid and -f $TRACK_FILE and -o $TRACK_FILE ) {
@@ -238,8 +192,8 @@ sub iso_timestamp {
     );
 }
 
-#,,.,,,.,,..,,,,.,.,,,.,.,.,,,,,,,.,,,,,.,,.,,..,,...,...,..,,..,,,,,,.,,,,.,,
-#H7LG4X3MARD56P3UIDXPDI53EIYDTAF5JMVFR23EWSGWWLHXJZ3SIAYTVKCGE4PJSHGRDIGWNUDOM
-#\\\|EB2WCD2LO3XBUMSCRDDMJF4FBY74HEZBFVLGXYYEZT2YY2IMQJZ \ / AMOS7 \ YOURUM ::
-#\[7]C2QKZHMY6BI45RTX3U4C6SH2IS5Y2UK6ILT5GVS6EVHN32JVZQAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,,,,,,,,,.,,,.,,,,.,,..,,,,.,..,,...,..,,...,,.,,,,.,,.,,,.,,
+#LFOOBRAX566O4WWURE7BONHKVEYIQKQYG3I762GOMIA3DUHWJT5B2OTPVXHT7H4BOKT6S56YB2CPC
+#\\\|PMVBOQKFY4CR2E7DQCSBAZG4XF2DICWZML633CUSG5B5FRYWCZH \ / AMOS7 \ YOURUM ::
+#\[7]DEELZGIOUSVYOOQSC7QD4222DK22FPYMSJN6O6AYFWC7N5OH4SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

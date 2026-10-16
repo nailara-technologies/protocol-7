@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3X7P7G5OGI-10064.0 :::
+::: SOURCE-CODE VERSION :: 3X7YBGFOMA-10065.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -282,13 +282,13 @@ Three primary methods for interacting with the Protocol-7 network:
 
    - `p7c list sessions`: Display active network sessions
      ```
-      : usid :.  : protocol :.  : type :.  : mode :.  : uname :.         : since :.
-     ------------------------------------------------------------------------------
-       2397943   protocol-7     unix      server          ---                37'56"
-       1250179   protocol-7    ip.tcp     server          ---                37'56"
-       1239197   protocol-7     unix      client        v7-zenki             37'56"
-       5479000   protocol-7     unix      client         system              37'53"
-       7174732   protocol-7     unix      client         p7-log              37'53"
+      : usid :.  : protocol :.  : type :.  : mode :.  : uname :.  : since :.
+     ---------------------------------------------------------------------------
+       3495297    protocol-7      unix      server       ---        16h 58'38"
+       7310444    protocol-7     ip.tcp     server       ---        16h 58'38"
+       5771202    protocol-7      unix      client    v7-zenki      16h 58'38"
+       7091700    protocol-7      unix      client     system       16h 58'36"
+       9079727    protocol-7      unix      client     p7-log       16h 58'35"
        ...
      ```
 
@@ -517,8 +517,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,.,,,.,...,...,,,,,.,,,...,..,,,,,,.,,,,,.,..,,...,..,,...,..,,,.,,.,,,..,,
-#T52H6I5E5SJCWDZLY72SA4GXIDE37SXXU7ZRMCIS4I4HYDU57IZ7UP4IWT6UGEAA5HOEB44XMYKIS
-#\\\|6SVATO6JTTRCMFBRE6Y65S5RIMNLYAYSFR6YY2GXY7YES2DSUO2 \ / AMOS7 \ YOURUM ::
-#\[7]CYZLMS57Y64BDV27J3EGMZPRDCXC7VGPAIRN56N7RXQJ4OAL3EAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,..,,..,,,.,,...,,,,,.,,,,,,,..,,...,...,...,..,,...,.,.,...,
+#XQAA6YZYJ3YXN6SMFY5GVDM2M7DVIJY6RR5RDF4LH35MVOEZQBLIZQU7A34J2MA5NP2V7PI63UOT4
+#\\\|DIFY423RJPUWVL355WYTOSQRNJBQ3DCZYWXEK6DXKMXSXLVHY5K \ / AMOS7 \ YOURUM ::
+#\[7]SGPU6U2LTRNEG2N22FVU52SJZJSJC42SFTNALXTQFSBOR7RNVUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
