@@ -299,8 +299,8 @@ chmod( 0755, File::Spec->catfile( $stub_dir, 'systemctl' ) );
         = run_capture( $EXECUTABLE_NAME,
         "$root_path/bin/p7-deps", qw| help | );
     check 'bin/p7-deps help exits 0 on core perl only', $exit == 0;
-    check 'help shows the dependency manager title',
-        $out =~ m|Protocol-7\sDependency\sManager|;
+    check 'help shows the option list title',
+        $out =~ m|[.]:\sp7-deps\scommand\sline\soptions\s:[.]|;
 
     ( $exit, $out )
         = run_capture( $EXECUTABLE_NAME,
@@ -455,8 +455,8 @@ check 'probe_binary by relative path',
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,.,,.,,,,..,.,.,.,,,,,.,...,..,,.,.,...,..,,...,...,,,.,,,,,,,.,,..,,..,
-#TQQJEM66V337L3I6F37HIFC6DVEBADVNY4R6I6ZFD5WW3JGCG2XJ77WOKF3BKEBMRY5TU47CV5J42
-#\\\|MCFX23CPPR5WAIHVAG4IOR42KFODRU5BSK7AVDRAPEQ567ITWDG \ / AMOS7 \ YOURUM ::
-#\[7]L47OCUZ5Y547IQWQZJTD2YWQ3RFGS5XQ7XRTJGM2VCIPJ5PD5SBY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,..,,,,,,,.,,,,,,,,,,,,.,,.,,..,,...,...,...,,..,,,.,,.,,...,
+#HHFCNS3EQUBASTBK5ZA4B7AJ4DU4EPSSPZLSMNPVDN54K5NT6P43PQOXSHV6FOLY3R3XUGRXCLA3W
+#\\\|ZJLXXER5JQYP37V4Z76JFGPXNRBZSBI5XK5ZRHU5UQBMHCBAGGO \ / AMOS7 \ YOURUM ::
+#\[7]7VYYJXV7D6VXMMY77RO7FACIMEU5AMPTMN3GPNYKYDSBQPNLNODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
