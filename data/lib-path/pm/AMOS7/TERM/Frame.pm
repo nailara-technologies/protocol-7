@@ -34,6 +34,7 @@ our $VERSION = qw| AMOS7::TERM::Frame-VERSION.0000001 |;
     frame_color_enabled frame_column_line frame_title_banner
     frame_section_header frame_option_list
     frame_status_row frame_error_line frame_error_exit frame_progress_bar
+    frame_terminal_width frame_fit_width
 ];
 
 ##[ PROTOCOL-7 COLOR PALETTE ]################################################
@@ -238,6 +239,48 @@ sub frame_bar {
     $fill = $width if $fill > $width;
 
     return sprintf( '%-*s', $width, $char x $fill );
+}
+
+## the terminal width in columns : TIOCGWINSZ on the output handle, then ##
+## COLUMNS, then tput cols [ the bin/todo order, minus Term::ReadKey ],  ##
+## then 80. 0 when the output is no terminal -- callers read that as 'no ##
+## limit' [ pipes and files keep the full text ]                         ##
+sub frame_terminal_width {
+    my $fh = shift // \*STDOUT;
+    return 0 if not -t $fh;
+
+    my $winsize = pack( 'S4', 0, 0, 0, 0 );
+    if ( ioctl( $fh, 0x5413, $winsize ) ) {    ## linux TIOCGWINSZ ##
+        my ( undef, $cols ) = unpack( 'S4', $winsize );
+        return $cols if $cols >= 40;
+    }
+    my $cols = $ENV{'COLUMNS'} // '';
+    return $cols + 0 if $cols =~ m{^\d+$} and $cols + 0 >= 40;
+
+    $cols = `tput cols 2>/dev/null`;
+    chomp $cols if defined $cols;
+    return $cols + 0
+        if defined $cols
+        and $cols =~ m{^\d+$}
+        and $cols + 0 >= 40;
+    return 80;
+}
+
+## shorten $text to $width columns the bin/todo way [ center_ellipse ] :   ##
+## the surplus is cut from the middle and '.,.' is spliced in, keeping the ##
+## total length. no width, an equal \ shorter text pass through, a budget  ##
+## too small for the mark gets a plain cut                                 ##
+sub frame_fit_width {
+    my $text  = shift // '';
+    my $width = shift // 0;
+    my $mark  = shift // '.,.';
+
+    return $text if not $width or length($text) <= $width;
+    my $room = $width - length($mark);
+    return substr( $text, 0, $width ) if $room < 2;
+    my $start = int( $room / 2 );
+    substr( $text, $start, length($text) - $room, $mark );
+    return $text;
 }
 
 ##[ SHARED TERMINAL HELPERS ]#################################################
@@ -463,8 +506,8 @@ sub frame_progress_bar {
 
 1;
 
-#,,..,.,.,,.,,,.,,.,.,.,.,,,.,.,,,.,.,,.,,,..,..,,...,...,,,.,,.,,,,.,,,,,...,
-#ZH3PSIFH7N6GPV2LIJZYNB76UWQKOUTDF2QGJMUHPTXHPOBJZZ4OA62LWLOMQTWKEVKPU6VEJZOD6
-#\\\|F5EDOLP7CKMFSD7AYG6MKSB2KT6527IZWS56JHWWK6MSYBLJMTH \ / AMOS7 \ YOURUM ::
-#\[7]F44WKCTZFKAJU7ALENSAGLUHC3VG5MKASJHIYBZJEJCBTYE7SACA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,,,,,.,.,,,.,,,.,...,,,,,,..,..,,...,.,.,.,,,,..,..,,..,,,.,,
+#BAOSMSYO6RXF626CHW7OJ7ILA3ZFE3KLETFHKRSWMRLFHUMZ52MYZIPLBMYKHPI7YK5MCRAKOGIL6
+#\\\|GMESYRO5YDZZTOCP3C4EDFSSBQFUUMWYK6JVW5IGND4RFQAEM3H \ / AMOS7 \ YOURUM ::
+#\[7]PJH3A7FYRGGWWLYFTHXQK2ROD7OY75A6MZSCVHYSW5JDG3G4BEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -107,6 +107,11 @@ profiles:
     description: "includes out-test"
     includes:
       - out-test
+  out-wide:
+    description: "a wide include list"
+    includes:
+      - out-test
+      - out-all
 EOF
 
 ## dpkg-query : installed when listed in the state file ##
@@ -141,12 +146,22 @@ write_file( "$no_aptpkg/AptPkg/Cache.pm",
 my $err_file = File::Spec->catfile( $sandbox, 'stderr' );
 
 ## linux pty ioctls : unlock the slave, read its number ##
-use constant { TIOCSPTLCK => 0x40045431, TIOCGPTN => 0x80045430 };
+use constant {
+    TIOCSPTLCK => 0x40045431,
+    TIOCGPTN   => 0x80045430,
+    TIOCSWINSZ => 0x5414
+};
 
 sub open_pty {
+    my ( $rows, $cols ) = @_;
     open( my $master, '+<', '/dev/ptmx' ) or return;
     my $unlock = pack( 'i', 0 );
     ioctl( $master, TIOCSPTLCK, $unlock ) or return;
+    if ( defined $cols ) {
+        ## a set terminal size -- the width the output has to fit ##
+        my $winsize = pack( 'S4', $rows // 24, $cols, 0, 0 );
+        ioctl( $master, TIOCSWINSZ, $winsize ) or return;
+    }
     my $number = pack( 'i', 0 );
     ioctl( $master, TIOCGPTN, $number ) or return;
     my $slave_path = '/dev/pts/' . unpack( 'i', $number );
@@ -156,9 +171,12 @@ sub open_pty {
 sub p7_deps {
     my ( $tty, $env, @args ) = @_;
 
+    my ( $rows, $cols );
+    ( $rows, $cols ) = @$tty if ref $tty eq 'ARRAY';
+
     my ( $master, $slave_path );
     if ($tty) {
-        ( $master, $slave_path ) = open_pty();
+        ( $master, $slave_path ) = open_pty( $rows, $cols );
         return if not $master;
     }
 
@@ -174,9 +192,11 @@ sub p7_deps {
         $ENV{'PERL5LIB'}             = $no_aptpkg;
         $ENV{'P7_DEPS_SERVICE_ROOT'} = $svc;
         delete $ENV{'NO_COLOR'};
+        delete $ENV{'COLUMNS'};    ## the pty size decides, not the caller ##
         @ENV{ keys %$env } = values %$env;
         open( STDIN,  '<', File::Spec->devnull );
         open( STDERR, '>', $err_file );
+
         if ($tty) {
             POSIX::setsid();
             open( STDOUT, '+<', $slave_path ) or exit 126;
@@ -232,6 +252,7 @@ check 'list : plain text exact', $out eq banner_space(<<'EOF');
 ::
 ::   out-all .... includes out-test [ includes : out-test ]
 ::   out-test ... p7-deps output test [ 3 packages ]
+::   out-wide ... a wide include list [ includes : out-test, out-all ]
 :
 EOF
 printf "       : got [%s]\n", $out if $out !~ m|out-test \.\.\. p7-deps|;
@@ -239,8 +260,8 @@ frame_rules( 'list', $out );
 
 ( $exit, $out, $err ) = p7_deps( FALSE, {}, qw| check out-all | );
 $plain{'check'} = $out;
-check 'check, one missing : exit 0 [ out-all itself misses nothing ]',
-    $exit == 0;
+check 'check, included profile misses a package '
+    . ': exit 1 [ out-all counts out-test ]', $exit == 1;
 check 'check : plain text exact', $out eq banner_space(<<'EOF');
 :
  .: dependency check :.
@@ -259,7 +280,7 @@ check 'check : plain text exact', $out eq banner_space(<<'EOF');
 ::   description ... includes out-test
 ::   includes ...... out-test
 ::
-::   result ........ all dependencies installed [ 0 / 0 ]
+::   result ........ 1 missing [ bin/p7-deps install out-all ]
 :
 EOF
 printf "       : got [%s]\n", $out if $out !~ m|1 missing|;
@@ -321,6 +342,17 @@ check 'unknown profiles : exit 1', $exit == 1;
 check 'unknown profiles : named in the error line',
     $err =~ m|^:: < p7-deps > : unknown profiles \[ no-such, another \] |m;
 
+## list through a pipe is not width-limited : the full text stays ##
+
+( $exit, $out ) = p7_deps( FALSE, {}, qw| list | );
+check 'list through a pipe : exit 0', $exit == 0;
+check 'list through a pipe : no width limit, the full description text',
+    (
+    index( $out, 'p7-deps output test [ 3 packages ]' ) >= 0
+        and grep { length > 50 } split m|\n|,
+    $out
+    );
+
 ## --- coloured output on a terminal ##
 ## ------------------                ##
 
@@ -366,6 +398,30 @@ if ( not open_pty() ) {
     check 'check : the 1 missing result amber, not green',
         index( $colored, "${am}1 missing$R" ) >= 0;
 
+    ## a narrow terminal : every line fits its width, the description is   ##
+    ## shortened in the middle, the name, leaders and the bracketed counts ##
+    ## stay whole                                                          ##
+    my $cols_narrow = 50;
+    my ( $w_exit, $fitted ) = p7_deps( [ 24, $cols_narrow ], {}, qw| list | );
+    my $fitted_plain = strip_ansi($fitted);
+    check 'list on a 50-column terminal : exit 0', $w_exit == 0;
+    check 'list on a 50-column terminal : no line runs past the width',
+        not grep { length > $cols_narrow } split m|\n|, $fitted_plain;
+    check 'list on a 50-column terminal : the long descriptions shortened',
+        (       index( $fitted_plain, '.,.' ) >= 0
+            and index( $fitted_plain, 'p7-deps output test' ) < 0
+            and index( $fitted_plain, 'includes out-test [ ' ) < 0 );
+    check 'list on a 50-column terminal : the bracketed counts whole',
+        (       index( $fitted_plain, '[ 3 packages ]' ) >= 0
+            and index( $fitted_plain, '[ includes : out-test ]' ) >= 0 );
+    ## a bracket wider than the room [ out-wide's include list ] : the ##
+    ## description keeps a head, the bracket itself is shortened too   ##
+    my ($wide_row) = grep {m{out-wide}} split m|\n|, $fitted_plain;
+    check 'list on a 50-column terminal : a too-wide bracket shortened too',
+        (       defined $wide_row
+            and length($wide_row) <= $cols_narrow
+            and $wide_row =~ m{\[ [^\]]*\.,\.[^\]]* \]} );
+
     ( undef, $colored ) = p7_deps( TRUE, {}, qw| help | );
     check 'help : no green at all', index( $colored, $gr ) < 0;
     check 'help : title words blue, frame purple',
@@ -375,8 +431,8 @@ if ( not open_pty() ) {
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,.,.,,,,.,,.,,,,.,,...,,,.,.,.,,,.,,,,,..,,...,...,..,,..,,,,.,.,,,,..,
-#CR4VIZ34K6ZIQV34YZZEGDAUV4KJ6U32IKS4WNHFF5OOVIVDOTP2S6XLM7R2PNQBYJA4YAXDO5A6I
-#\\\|N52IRVDEKIPLKOZIG5BJPRGBDQV2F7E3VF5RG7C6LO4X6LVPA4U \ / AMOS7 \ YOURUM ::
-#\[7]6VVFVMMVTHSZA7M4RRP3S5HCDZB6WIPZQOB46XW3NGHASKDW64DA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,.,,...,.,.,..,,,..,,,.,,..,.,,,..,,...,...,.,.,,.,,,,.,,.,,...,
+#CGOSTDPTONBCDJUPSGXTNFUKJCVULBJJGIJIN3O6QW3U3ZS7DL5L3DKTRLK43BOS3T6HRBCRKGGFO
+#\\\|YWAWRHRRG2D7GJXUG2YJWSRZ57K3XUE25JFEL7LRDTFBY6KWPFZ \ / AMOS7 \ YOURUM ::
+#\[7]WOZW4WI4MMWHG37ZQVQ2647EKYQXGWZIGYCKKBXXGROJCKJPQSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

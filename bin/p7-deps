@@ -51,6 +51,7 @@ use AMOS7::deps::dist_upgr ();
 use AMOS7::TERM::Frame     qw|
     frame_column_line frame_title_banner frame_section_header
     frame_status_row frame_error_line frame_error_exit frame_option_list
+    frame_terminal_width frame_fit_width
     |;
 
 $OUTPUT_AUTOFLUSH = 1;
@@ -112,7 +113,8 @@ if ( $cmd eq 'check' ) {
         'check needs a profile [ bin/p7-deps check <profile>.. --no-cache ]' )
         if not @profile_args;
     banner('dependency check');
-    ## exit 1 when a profile misses dependencies [ bin/p7-install ] ##
+    ## exit 1 when a profile or one of its included profiles misses ##
+    ## dependencies [ bin/p7-install ]                              ##
     my $missing = 0;
     $missing += check_profile( $ARG, @option_args, 'explicit' )
         for @profile_args;
@@ -205,17 +207,23 @@ sub check_profile {
     my $profile = $profiles->{$profile_name};
 
     my @missing;
-    my $total  = 0;
-    my $all_ok = 1;
+    my $total       = 0;
+    my $inc_missing = 0;
+    my $inc_total   = 0;
 
-    ## included profiles first -- each one is its own section above ##
+    ## included profiles first -- each one is its own section above ; their ##
+    ## missing packages count for this profile too [ the exit code, the     ##
+    ## summary and the cache, like install counts them ]                    ##
     if ( $profile->{includes} ) {
         for my $included ( @{ $profile->{includes} } ) {
-            my $result = check_profile( $included, '--no-cache',
+            my ( $missed, $count )
+                = check_profile( $included, '--no-cache',
                 $is_explicit_check ? 'explicit' : undef );
-            $all_ok = 0 if $result != 0;
+            $inc_missing += $missed;
+            $inc_total   += $count;
         }
     }
+    $total += $inc_total;
 
     my @rows = ( [ 'description', $profile->{description}, undef, 'value' ] );
     push @rows,
@@ -273,20 +281,19 @@ sub check_profile {
         }
     }
 
-    $all_ok = 0 if @missing;
-
     say frame_section_header("profile $profile_name");
-    if (@missing) {
+    my $missing_n = scalar(@missing) + $inc_missing;
+    if ($missing_n) {
         print_rows(
             @rows, undef,
             [   'result',
-                scalar(@missing) . ' missing',
+                $missing_n . ' missing',
                 "bin/p7-deps install $profile_name", 'warn'
             ]
         );
         say frame_column_line();
         update_cache( $profile_name, 0 );
-        return 1;
+        return wantarray ? ( $missing_n, $total ) : $missing_n;
     } else {
         print_rows(
             @rows, undef,
@@ -296,7 +303,7 @@ sub check_profile {
         );
         say frame_column_line();
         update_cache( $profile_name, 1 );
-        return 0;
+        return wantarray ? ( 0, $total ) : 0;
     }
 }
 
@@ -475,6 +482,43 @@ sub list_profiles {
 
     banner('dependency profiles');
     say frame_section_header('available profiles');
+
+    ## on a terminal the description fits the width -- the name, the dot    ##
+    ## leaders and the bracketed counts stay whole ; a pipe or a file keeps ##
+    ## the full text [ frame_terminal_width 0 -> no limit ]                 ##
+    my $term_width = frame_terminal_width();
+    if ($term_width) {
+        my $label_w = label_width( map { $ARG->[0] } @rows );
+        for my $row (@rows) {
+            my $fixed = 10 + $label_w + (
+                defined $row->[2] && length $row->[2]
+                ? length( $row->[2] ) + 5
+                : 0
+            );
+            my $budget = $term_width - $fixed;
+            if ( $budget >= 5 ) {
+                $row->[1] = frame_fit_width( $row->[1], $budget )
+                    if length( $row->[1] ) > $budget;
+                next;
+            }
+            ## the bracket alone is too wide [ a long include list ] : the ##
+            ## description keeps a short head, the bracket shrinks too     ##
+            next if not defined $row->[2] or not length $row->[2];
+            my ( $desc_w, $detail_w );
+            ## a shorter head on narrow terminals ##
+            for my $head ( 12, 4 ) {
+                $desc_w   = $head;
+                $detail_w = $term_width - 10 - $label_w - 5 - $desc_w;
+                last if $detail_w >= 5;
+            }
+            next if $detail_w < 5;
+            $row->[1] = frame_fit_width( $row->[1], $desc_w )
+                if length( $row->[1] ) > $desc_w;
+            $row->[2] = frame_fit_width( $row->[2], $detail_w )
+                if length( $row->[2] ) > $detail_w;
+        }
+    }
+
     print_rows(@rows);
     say frame_column_line();
 }
@@ -952,8 +996,8 @@ sub show_help {
 EOL
 }
 
-#,,.,,,,.,.,.,,,.,,,.,..,,..,,,..,,,.,..,,.,.,..,,...,..,,,,,,.,,,,.,,..,,..,,
-#FLAUES3SOBPAA763CQP7F4FW2S4NYOGG3IBHC42PN35JW4QV2AJR3TYW6N5ZNJSTJGNOABLWUSPW4
-#\\\|OY7YSU33B4OEA572A36NTLVAFCHENVZEJJDS55XEADPCTV6WWS3 \ / AMOS7 \ YOURUM ::
-#\[7]KNQZQCBOICIH6GD5O6ADCTDDYKLE4PL437KY64B6RSQDRKGDG4AQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,.,,,,..,.,,,...,.,,,,,,,,.,,..,,...,...,..,,,..,,..,...,...,
+#5BJP2CTESK7C7JJDYGKXCSOXXL54PWXHZW6MPQWDDRK3N6ORFSRBRUZYLMBIPX2LFVUKJQ66K6MR4
+#\\\|WE6HKLUBOFMB2TUKAHVARMD3NB7YXBEWVHP7JSSKVRBFZPT7L4C \ / AMOS7 \ YOURUM ::
+#\[7]IL2WZD3APFZOBFVGYLSRUPQLOUYD5PGOXLJ72THVPEPA7RNQJECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
