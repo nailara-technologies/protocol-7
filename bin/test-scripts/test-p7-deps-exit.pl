@@ -93,6 +93,10 @@ profiles:
     description: "p7-deps exit code test"
     apt:
       - p7-test-package
+  exit-incl:
+    description: "includes exit-test"
+    includes:
+      - exit-test
 EOF
 
 ## dpkg-query : installed when listed in the state file ##
@@ -172,11 +176,28 @@ check 'install, nothing missing : apt-get not run', not -e $apt_log;
 ( $exit, $out ) = p7_deps(qw| install no-such-profile |);
 check 'install, unknown profile : exit 1', $exit == 1;
 
+## an included profile's packages count in -- the including profile's exit ##
+## code and cache follow the included one's missing \ present              ##
+
+my $incl_cache = "$tree/.deps/cache/exit-incl.cache";
+
+( $exit, $out ) = p7_deps(qw| check exit-incl |);
+check 'check, included profile complete : exit 0', $exit == 0;
+check 'check, included profile complete : including profile cache ok',
+    ( slurp($incl_cache) // '' ) eq 'ok';
+
+unlink $state;
+
+( $exit, $out ) = p7_deps(qw| check exit-incl |);
+check 'check, included profile missing a package : exit 1', $exit == 1;
+check 'check, included profile missing a package : cache not ok',
+    ( slurp($incl_cache) // '' ) ne 'ok';
+
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,..,.,.,,,,,...,,,.,.,,,,,,,.,.,,..,,,.,..,,...,...,..,,,..,...,,,.,,,,,
-#3T7DNTRAUE3JF5PQSEPE6JCZLEAYN74FSPU7WEIOKJDQD6KM6C4S6KESUYNCFC226LXL3KRMIQU2O
-#\\\|3K7W2DIW367C2ZY7ICOYIQSFWSJ5GUT7RABZQIF4CJJVPVQ6SMX \ / AMOS7 \ YOURUM ::
-#\[7]B2JGUDWTLCATJU5AEPGWZYJCA3ZNRO2KKDEY2LUPRLAUHCMO52BI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,...,,..,,,,,,,.,...,,..,..,,,,,,..,,...,...,..,,.,,,,.,,..,,.,.,
+#G4I5L7EBKIW5LJH73N4ROQ5LXGKDAOE7IHPDREB4OGV6K47QAQHXNXEBEG4MW4KF4NII36MVWBEBS
+#\\\|TMR4YZKOSEIAJLWN3OUYJYRSMA2GIA6V4P5T4KMDYCZL5EPG3AO \ / AMOS7 \ YOURUM ::
+#\[7]TDRLGTZ5NJ5DDG6I3IMYSO6DEGV5BAPPN5L2YSFESAJVOKYHTECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
