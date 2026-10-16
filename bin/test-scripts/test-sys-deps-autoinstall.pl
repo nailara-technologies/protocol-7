@@ -923,6 +923,103 @@ ok( scalar(@IO_WATCHERS) == 1 and $IO_WATCHERS[0]{'fd'} == $child_r,
 );
 ok( !@MOVED && !@REPLIES, '  :.. job still running, no reply yet' );
 
+##[ 11b : the root runner's result line in the apt output handler ]###########
+## '> ..' output, '= ok=.. failed=.. manual=..', '< N' -- split across ##
+## reads, the reply names failed \ manual [ AMOS7::deps::root_runner ] ##
+
+say ': debian.handler.apt_child_output [ root runner result line ]';
+
+require AMOS7::deps::root_runner;
+compile_module('debian.handler.apt_child_output');
+
+{
+
+    package FakeIOEvent;
+    sub new    { my ( $class, %arg ) = @_; return bless { %arg, 'on' => 1 } }
+    sub w      { return $_[0] }
+    sub data   { return $_[0]{'data'} }
+    sub fd     { return $_[0]{'fd'} }
+    sub cancel { $_[0]{'on'} = 0; return }
+    sub is_active { return $_[0]{'on'} }
+}
+
+my @CHUNKS;    ## one per base.s_read call ##
+my $real_s_read = $code{'base.s_read'};
+$code{'base.s_read'} = sub {
+    my ( $fd, $buffer_ref ) = @ARG;
+    my $chunk = shift @CHUNKS;
+    return 0 if not defined $chunk;
+    $$buffer_ref .= $chunk;
+    return length $chunk;
+};
+
+$data{'jobqueue'}{'joblist'} = {};    ## nothing for apt_pump to start ##
+
+sub apt_output_event {
+    my ( $job_id, $reply_id, $packages ) = @ARG;
+    @REPLIES                                    = ();
+    @MOVED                                      = ();
+    @LOGS                                       = ();
+    $data{'debian'}{'apt_child'}{'current_job'} = {
+        'job_id'   => $job_id,
+        'reply_id' => $reply_id,
+        'packages' => $packages
+    };
+    return FakeIOEvent->new(
+        'fd'   => 0,
+        'data' => { 'job_id' => $job_id, 'buffer' => '' }
+    );
+}
+
+my $apt_event = apt_output_event( 801, 51, [qw| foo bar baz |] );
+@CHUNKS = ( "> output line\n= ok=baz failed=foo manual=bar\n", "< 1\n" );
+$code{'debian.handler.apt_child_output'}->($apt_event);
+ok( !@MOVED && !@REPLIES && $apt_event->is_active,
+    'result line without exit line : job still running, watcher armed' );
+$code{'debian.handler.apt_child_output'}->($apt_event);
+ok( scalar( grep { $ARG->[0] == 801 and $ARG->[1] eq qw| error | } @MOVED ),
+    "'< 1' after the result : job moved to error" );
+ok( scalar(
+               @REPLIES == 1
+            && ( $REPLIES[0][1]{q|mode|} // q|| ) eq qw| false |
+            && $REPLIES[0][1]{q|data|} =~ m|failed : foo ; manual : bar|
+    ),
+    '  :.. FALSE reply names failed \ manual from the result line'
+);
+ok( !grep( { $ARG->[1] =~ m|= ok=| } @LOGS )
+        && scalar( grep( { $ARG->[1] eq q|apt: output line| } @LOGS ) ),
+    "  :.. '> ' lines logged, the result line is not"
+);
+ok( !$apt_event->is_active
+        && !defined $data{'debian'}{'apt_child'}{'current_job'},
+    '  :.. watcher cancelled, pump slot released'
+);
+
+$apt_event = apt_output_event( 802, 52, [qw| okpkg |] );
+@CHUNKS    = ("> fine\n= ok=okpkg failed= manual=\n< 0\n");
+$code{'debian.handler.apt_child_output'}->($apt_event);
+ok( scalar(
+        grep { $ARG->[0] == 802 and $ARG->[1] eq qw| completed | } @MOVED
+        )
+        && @REPLIES == 1
+        && ( $REPLIES[0][1]{'mode'} // '' ) eq qw| true |
+        && $REPLIES[0][1]{'data'} eq 'installed : okpkg',
+    "all ok + '< 0' : completed, TRUE 'installed : okpkg'"
+);
+
+$apt_event = apt_output_event( 803, 53, [qw| p1 p2 |] );
+@CHUNKS    = ("> refused : invalid package name\n< 1\n");
+$code{'debian.handler.apt_child_output'}->($apt_event);
+ok( scalar(
+               @REPLIES == 1
+            && ( $REPLIES[0][1]{q|mode|} // q|| ) eq qw| false |
+            && $REPLIES[0][1]{q|data|} =~ m|failed : p1 p2|
+    ),
+    "no result line [ a refusal ] : every package counts as failed"
+);
+
+$code{'base.s_read'} = $real_s_read;
+
 ##[ 12 : no in-process 'require' \ apt cache probes in v7-zenki ]#############
 
 say ': probes inside v7-zenki';

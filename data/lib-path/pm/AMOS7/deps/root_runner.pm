@@ -192,8 +192,14 @@ sub read_status {
     while ( time <= $deadline ) {
         my $left = $deadline - time;
         $left = 0 if $left < 0;
-        last if not $select->can_read( $left || 0.2 );
+        ## a signal [ SIGCHLD in the zenka ] is no timeout : wait on ##
+        local $OS_ERROR = 0;
+        if ( not $select->can_read( $left || 0.2 ) ) {
+            next if $!{'EINTR'};
+            last;
+        }
         my $got = sysread( $fh, my $char, 1 );
+        next         if not defined $got and $!{'EINTR'};
         last         if not $got;
         return $line if $char eq "\n";
         $line .= $char;
