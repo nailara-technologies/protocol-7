@@ -113,7 +113,7 @@ my $svc_sandbox = tempdir( CLEANUP => 1 );
 my $svc_root    = File::Spec->catdir( $svc_sandbox, 'root' );
 my $calls_log   = File::Spec->catfile( $svc_sandbox, 'calls.log' );
 
-my $systemctl_stub = sprintf <<'EOF', $calls_log, $svc_sandbox, $svc_sandbox;
+my $systemctl_stub = sprintf <<'EOF', $calls_log, ($svc_sandbox) x 3;
 #!/bin/sh
 echo "$@" >> "%s"
 if [ "$1" = "is-enabled" ]; then
@@ -121,6 +121,9 @@ if [ "$1" = "is-enabled" ]; then
 fi
 if [ "$1" = "is-active" ]; then
     cat "%s/active.out" 2>/dev/null || echo inactive
+fi
+if [ "$1" = "show" ]; then
+    cat "%s/show-$4.out" 2>/dev/null
 fi
 exit 0
 EOF
@@ -184,7 +187,10 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
     my @statuses = map { $pairs[ 2 * $ARG + 1 ] } 0 .. ( @pairs / 2 - 1 );
     check 'second run reports all ok',
         ( scalar(@statuses) > 0 and not grep { $_ ne 'ok' } @statuses );
-    check 'no second daemon-reload', slurp($calls_log) eq $calls_before;
+    ## the state read-back adds is-* \ show calls -- count the reloads only ##
+    my $reloads = sub { scalar( () = $_[0] =~ m|^daemon-reload$|mg ) };
+    check 'no second daemon-reload',
+        $reloads->( slurp($calls_log) ) == $reloads->($calls_before);
 
     ## [ 3 ] a changed installed unit -> changed + daemon-reload ##
 
@@ -238,8 +244,49 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
     check 'check-service shows active when stubbed so',
         $out =~ m|is-active\s[.]+\sactive|;
     check 'unit state does not change the exit code', $exit == 0;
-    unlink( File::Spec->catfile( $svc_sandbox, 'enabled.out' ) );
+
+    ## [ 5b ] what the running service uses : unit mtime vs its start ##
+    my $show_start = File::Spec->catfile( $svc_sandbox,
+        'show-ActiveEnterTimestamp.out' );
+    my $unit_mtime = ( stat($unit_path) )[9];
+    write_file( $show_start, sprintf( "@%d\n", $unit_mtime - 60 ) );
+    ( $exit, $out ) = p7_deps(qw| check-service |);
+    check 'started before the unit changed : reported',
+        $out =~ m|running\sservice\s[.]+\solder\s\[started\sbefore|;
+    check '  :.. exit code unchanged', $exit == 0;
+
+    write_file( $show_start, sprintf( "@%d\n", $unit_mtime + 60 ) );
+    ( $exit, $out ) = p7_deps(qw| check-service |);
+    check 'started after the unit changed : uses it',
+        $out =~ m|running\sservice\s[.]+\sok\s\[uses\sthe\sinstalled|;
+
+    write_file( $show_start, "\n" );    ## an older systemctl : no row ##
+    ( $exit, $out ) = p7_deps(qw| check-service |);
+    check 'unparseable start time : no running-service row',
+        $out !~ m|running\sservice|;
+
+    my $show_reload
+        = File::Spec->catfile( $svc_sandbox, 'show-NeedDaemonReload.out' );
+    write_file( $show_reload, "yes\n" );
+    ( $exit, $out ) = p7_deps(qw| check-service |);
+    check 'daemon-reload pending : unit loaded stale',
+        $out =~ m|unit\sloaded\s[.]+\sstale|;
+    write_file( $show_reload, "no\n" );
+    ( $exit, $out ) = p7_deps(qw| check-service |);
+    check '  :.. no stale row without it', $out !~ m|unit\sloaded|;
+
+    ## install-service shows the state read back after installing ##
+    write_file( $show_start, sprintf( "@%d\n", $unit_mtime - 60 ) );
+    ( $exit, $out ) = p7_deps(qw| install-service |);
+    check 'install-service : state after install shown',
+        $out =~ m|state\safter\sinstall.*running\sservice\s[.]+\solder|s;
+    unlink( $show_start, $show_reload );
+
     unlink( File::Spec->catfile( $svc_sandbox, 'active.out' ) );
+    ( $exit, $out ) = p7_deps(qw| check-service |);
+    check 'inactive service : no running-service row',
+        $out !~ m|running\sservice|;
+    unlink( File::Spec->catfile( $svc_sandbox, 'enabled.out' ) );
 
     unlink($nshell_link);
     ( $exit, $out ) = p7_deps(qw| check-service |);
@@ -656,8 +703,8 @@ check 'missing unit logs exactly one level 0 line', level0_count(qr|^|) == 1;
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,,.,..,,...,...,,..,..,,,.,,,,.,.,.,,..,..,,...,...,..,,...,...,.,,,...,
-#IB2EAX6GW2WC74OMVUD6EQAIQNWK7POXEUH7RRMGD4Y2ICLYIYCUP4TRTVFM2LLGFEGKRQ2FDXVA4
-#\\\|BEWQ67BES4L6HZAXR6MDEQNBONTBUIZQY6QU5FIY7EPWTHVL73F \ / AMOS7 \ YOURUM ::
-#\[7]AYCSVYWEIUUJOVZPDZ7DFUIK4HLOE2CCUHIDEMFXRTP77GLW72CQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,,,.,,..,..,,.,,,,,.,,..,,.,,..,,...,..,,,,,,..,,..,,...,,,,,
+#KDWAGAXRUUUVSGQKB2YQ4UXUTCQPMOTHMBD2PEC6ZKFSXVNEUWNSMXE62TMJNYLK7AUYVRD3P6KCM
+#\\\|RL6HDWDEESTXAR4T6WZNYNX4Q6KBF2THH4EZSIEFPD4E7OTLQUS \ / AMOS7 \ YOURUM ::
+#\[7]QONVEHYWMKKBERKPHLP72TFUVCUUBUCAQH2BZZ7GKFSXWBM6V2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
