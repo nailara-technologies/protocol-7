@@ -160,6 +160,26 @@ print {$fh} JSON::PP->new->canonical->encode( \@ARGV ), "\n";
 close $fh;
 my $mode   = $ENV{'CLAUDE_STUB_MODE'} // 'cloud';
 my $linger = $ENV{'STUB_LINGER'}      // 30;
+## like the real cli : creating a cloud session needs a terminal [ the  ##
+## follow-ups via -p do not ] -- passes only through the script pty     ##
+if ( $mode eq 'notty'
+    or ( @ARGV and $ARGV[0] =~ m{^--cloud=} and not -t STDOUT ) )
+{
+    print "Error: --cloud requires an interactive terminal.\n";
+    print "Non-interactive invocations (piped stdout, --init-only, "
+        . "--sdk-url) run locally and would silently ignore --cloud. "
+        . "Drop --cloud, or run from a TTY.\n";
+    exit 1;
+}
+if ( $mode eq 'ansi' ) {
+    ## a pty run : colour, cursor and carriage-return codes around the id ##
+    print "\e[?25l\e[1m\e[38;5;141mcreated cloud session\e[0m\r\n";
+    print "\e[2KSession ID: \e[36msession_01AnsiWrapped9k\e[0m\r\n";
+    print "View: \e]8;;https://claude.ai/code/session_01AnsiWrapped9k\a"
+        . "\e[4mhttps://claude.ai/code/session_01AnsiWrapped9k\e[24m"
+        . "\e]8;;\a\r\n\e[?25h";
+    exit 0;
+}
 if ( $mode eq 'garbage' ) {
     print "cloud say what? no id here, no url either\n";
     exit 0;
@@ -664,6 +684,50 @@ eval {
     $mcp_pid = undef;
 
     ##=============================================================##
+    ## phase 2b : pty output -- escape codes around the id \ url [ the stub ##
+    ## refuses creation without a terminal, so every passing dispatch in    ##
+    ## this file went through the script pty ]                              ##
+    ##=============================================================##
+    for my $stub_mode (qw| ansi notty |) {
+        {
+            local %ENV = %ENV;
+            $ENV{'CLAUDE_STUB_MODE'}          = $stub_mode;
+            $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
+            $ENV{'GIT_STUB_SHA'}              = $fake_sha;
+            $ENV{'GIT_STUB_UNPUSHED'}         = '0';
+            $ENV{'GIT_STUB_DIRTY'}            = '';
+            $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+            $mcp_pid                          = spawn_server();
+        }
+        unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
+        ( $t, $e )
+            = tool_call( 'claude_cloud_dispatch',
+            { 'prompt' => "pty $stub_mode" } );
+        if ( $stub_mode eq 'ansi' ) {
+            check(
+                'pty output : id + url parsed through colour \ cursor codes',
+                !$e
+                    && $t =~ m{status=started}
+                    && index( $t, 'session_01AnsiWrapped9k' ) >= 0
+                    && $t
+                    =~ m{url: https://claude\.ai/code/session_01AnsiWrapped9k\b},
+                "err=$e text=$t"
+            );
+            check( 'pty output : raw text shown without escape codes',
+                index( $t, "\e" ) < 0, $t );
+        } else {
+            check(
+                'no terminal : reply says nothing started, nothing billed',
+                index( $t, 'nothing started, nothing billed' ) >= 0
+                    && index( $t, 'STARTED A BILLED' ) < 0,
+                "err=$e text=$t"
+            );
+        }
+        kill_server($mcp_pid);
+        $mcp_pid = undef;
+    }
+
+    ##=============================================================##
     ## phase 3 : push-first refusal [ stubbed git, deterministic ]   ##
     ##=============================================================##
     {
@@ -1098,11 +1162,11 @@ eval {
         { 'prompt' => 'x', 'effort' => 'low' } );
     check(
         'follow-up json error reported [ session itself still fine ]',
-        !$e && $t =~ m{status=started} && index(
-            $t,
-            'follow-up /effort low : error '
-                . '[ simulated follow-up failure ]'
-        ) >= 0,
+        !$e
+            && $t =~ m{status=started}
+            && index( $t,
+            'follow-up /effort low : error [ simulated follow-up failure ]' )
+            >= 0,
         "err=$e text=$t"
     );
 
@@ -1202,7 +1266,11 @@ for my $capture ( glob("$root_path/data/state/claude-cloud-*.out") ) {
     open my $fh, q{<}, $capture or next;
     my $first = <$fh> // q{};
     close $fh;
-    next if $first !~ m{^(?:created claude cloud session|cloud say what)};
+    ## pty stub codes ##
+    $first =~ s{\e(?:\[[0-9;?]*[\x40-\x7e]|\][^\a]*\a)}{}g;
+    next
+        if $first
+        !~ m{^(?:created (?:claude )?cloud session|cloud say what|Error: --cloud requires an interactive terminal)};
     unlink $capture, "$capture.pid";
 }
 
@@ -1219,8 +1287,8 @@ exit( $fail ? 1 : 0 );
 ## 4. /fast always sent                -> 'fast only when true' FAILs
 ## 5. dirty-tree check dropped         -> 'dirty tree' checks FAIL
 
-#,,.,,,..,..,,,,,,...,..,,,,.,..,,,,,,...,,.,,..,,...,...,...,..,,,,.,..,,..,,
-#IACE5CDTW7HC2MIL7WQJK2DBFD245JBPZIQE6VUOSFIQPE2H7XGQAPEFTLPK4OOAVK5IJ3FJLQ6ZG
-#\\\|6B4JQWOT3WT2WHXD3IBRMAF7F62RCTNOZY3WZFJDZZADKKDM43O \ / AMOS7 \ YOURUM ::
-#\[7]USJXEPQIKO4ALW2ZBBRRN2WU5IJKPAUSRNMP3XUZD3PS5CS4DQAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,...,,.,,,.,,,,.,...,.,,,,..,,..,..,,...,...,..,,.,.,..,,..,,,..,
+#ZALGMLYFS6AKJEAS4ZCR7OXJZYRTMBSRW7YYZ6N55C7ITBZKNYZBT54FKXT2G2GUICIVWHU4KSATA
+#\\\|MONKEJMB5HZTQ3LWO2VV7GVD5WFBALWTYC3VINMABHSTSJN6X3R \ / AMOS7 \ YOURUM ::
+#\[7]MVQ3N3C7T5WIISRFJA6VMGIDL54BDCNWTMZ3CAAJPOK7SZHXCKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
