@@ -1,0 +1,514 @@
+#!/usr/bin/env perl
+use v5.32.0;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+###            ###
+##  p7-install  ##
+###            ###
+
+## installs protocol-7 on a debian host, from bare to a service unit :
+##
+## 1. base packages ..... ca-certificates git perl build-essential
+## 2. checkout .......... clone \ update /usr/local/protocol-7
+## 3. dependencies ...... bin/p7-deps install <profile>
+## 4. service unit ...... bin/p7-deps install-service
+## 5. boot start ........ bin/p7-deps enable-service [ --enable only ]
+## 6. service ........... systemctl start Protocol-7 [ --start only ]
+##
+## every step looks first and acts only on what is missing -- a second run
+## changes nothing. the service is never restarted, and started only with
+## --start when it is not running. --dry-run reads, writes nothing and runs no
+## installer [ git ls-remote is its only network call ].
+##
+## standalone on purpose : core perl only. a copy for a bare host needs this
+## file plus AMOS7.pm, AMOS7/TERM/Frame.pm and AMOS7/deps/debp.pm
+## [ as AMOS7/ beside it ] -- the repo layout works as it is.
+##
+## env P7_INSTALL_ROOT prefixes the install path and the service targets
+## [ test roots ; root is not needed then ]
+
+use FindBin;
+use Getopt::Long ();
+use File::Spec;
+use File::Path qw| make_path |;
+
+BEGIN {
+    ## repo layout first, then a copy [ AMOS7/ beside the script ] ##
+    unshift @INC, "$FindBin::RealBin/../data/lib-path/pm", $FindBin::RealBin;
+}
+
+use AMOS7::TERM::Frame qw|
+    frame_column_line frame_title_banner frame_section_header
+    frame_status_row frame_error_exit
+    |;
+use AMOS7::deps::debp qw| probe_apt_fresh |;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+$OUTPUT_AUTOFLUSH = 1;
+
+my $TOOL = qw| p7-install |;
+
+my @BASE_PACKAGES = qw| ca-certificates git perl build-essential |;
+
+## without dpkg the same tools are looked up in PATH instead ##
+my @BASE_BINARIES = qw| git perl make cc |;
+
+my $UNIT = qw| Protocol-7 |;
+
+## status rows line up on the longest label ##
+my $LABEL_WIDTH = 15;
+
+##[ options ]#################################################################
+
+my %opt = (
+    'profile' => qw| minimal |,
+    'branch'  => qw| base |,
+    'repo'    => 'https://github.com/nailara-technologies/protocol-7.git',
+);
+
+Getopt::Long::Configure(qw| no_ignore_case |);
+Getopt::Long::GetOptions(
+    \%opt,    'profile=s', 'branch=s', 'repo=s',
+    'enable', 'start',     'dry-run',  'nc',
+    'help|h|options'
+) or frame_error_exit( $TOOL, 'unknown option [ --help lists them ]' );
+
+frame_error_exit( $TOOL, sprintf 'unexpected argument [ %s ]', $ARGV[0] )
+    if @ARGV;
+
+$AMOS7::TERM::Frame::color_override = FALSE if $opt{'nc'};
+
+if ( $opt{'help'} ) {
+    print_help();
+    exit 0;
+}
+
+## names go to git \ p7-deps as arguments -- nothing may read as an option ##
+frame_error_exit( $TOOL, "profile name not valid [ $opt{'profile'} ]" )
+    if $opt{'profile'} !~ m|\A[\w][\w\-]*\z|;
+frame_error_exit( $TOOL, "branch name not valid [ $opt{'branch'} ]" )
+    if $opt{'branch'} !~ m|\A[\w][\w.\-/]*\z|
+    or index( $opt{'branch'}, '..' ) >= 0;
+frame_error_exit( $TOOL, "repository not valid [ $opt{'repo'} ]" )
+    if $opt{'repo'} !~ m|\A[\w/.~\@:]|;
+
+my $DRY_RUN      = $opt{'dry-run'} ? TRUE : FALSE;
+my $INSTALL_ROOT = $ENV{'P7_INSTALL_ROOT'} // '';
+my $TARGET = File::Spec->catdir( $INSTALL_ROOT, qw| usr local protocol-7 | );
+
+##[ root ]####################################################################
+
+## the first thing after the options : nothing is read or run before ##
+if ( $EUID != 0 and not length $INSTALL_ROOT ) {
+    frame_error_exit( $TOOL,
+              'needs root -- it installs packages and '
+            . 'writes /usr/local [ sudo bin/p7-install ]' );
+}
+
+##[ steps ]###################################################################
+
+say frame_column_line();
+say frame_title_banner(
+    $DRY_RUN ? 'protocol-7 install [ dry run ]' : 'protocol-7 install' );
+say frame_column_line();
+
+my @steps = (
+    [ 'base packages', \&step_base_packages ],
+    [ 'checkout',      \&step_checkout ],
+    [ 'dependencies',  \&step_dependencies ],
+    [ 'service unit',  \&step_service_unit ],
+    [ 'service state', \&step_service_state ],
+);
+
+foreach my $step (@steps) {
+    my ( $title, $code ) = @{$step};
+    say frame_section_header($title);
+    my $ok = $code->();
+    say frame_column_line();
+    ## a later step needs the earlier ones -- stop at the first failure, ##
+    ## the next run picks up where this one stopped                      ##
+    frame_error_exit( $TOOL,
+        sprintf '%s failed -- stopped here, run it again once fixed', $title )
+        if not $ok;
+}
+
+say frame_status_row(
+    'protocol-7',
+    $DRY_RUN ? 'dry run -- nothing written' : 'ok',
+    { width => $LABEL_WIDTH }
+);
+say frame_column_line();
+exit 0;
+
+##[ step 1 : base packages ]##################################################
+
+sub step_base_packages {
+
+    ## not a dpkg host : the tools themselves, found in PATH or not ##
+    if ( not in_path(qw| dpkg-query |) ) {
+        my $all_found = TRUE;
+        foreach my $binary (@BASE_BINARIES) {
+            my $found = in_path($binary);
+            $all_found = FALSE if not $found;
+            row($binary,
+                $found ? 'ok'      : 'missing',
+                $found ? 'in PATH' : 'no dpkg here -- install it by hand'
+            );
+        }
+        return $all_found;
+    }
+
+    my %present = map  { $ARG => probe_apt_fresh($ARG) } @BASE_PACKAGES;
+    my @missing = grep { not $present{$ARG} } @BASE_PACKAGES;
+
+    if ( not @missing or $DRY_RUN ) {
+        row( $ARG, $present{$ARG} ? 'ok' : ( 'missing', 'would install' ) )
+            foreach @BASE_PACKAGES;
+        return TRUE;
+    }
+
+    if ( not in_path(qw| apt-get |) ) {
+        row( $ARG, 'missing', 'no apt-get here' ) foreach @missing;
+        return FALSE;
+    }
+
+    {
+        local $ENV{'DEBIAN_FRONTEND'}          = qw| noninteractive |;
+        local $ENV{'APT_LISTCHANGES_FRONTEND'} = qw| none |;
+
+        ## stale package lists on a fresh host : refresh first. a failed ##
+        ## refresh is reported, the install may still work without it    ##
+        my $update_exit = run_cmd(qw| apt-get -q update |);
+        row( 'apt-get update', 'failed', "exit $update_exit" )
+            if $update_exit != 0;
+
+        run_cmd( qw| apt-get -q -y install |, @missing );
+    }
+
+    ## the result is what dpkg says now, not apt-get's exit code ##
+    my $all_present = TRUE;
+    foreach my $package (@BASE_PACKAGES) {
+        if ( $present{$package} ) {
+            row( $package, 'ok' );
+        } elsif ( probe_apt_fresh($package) ) {
+            row( $package, 'installed', undef, 'ok' );
+        } else {
+            row( $package, 'failed' );
+            $all_present = FALSE;
+        }
+    }
+    return $all_present;
+}
+
+##[ step 2 : checkout ]#######################################################
+
+sub step_checkout {
+
+    ## a development checkout linked here belongs to its developer ##
+    if ( -l $TARGET ) {
+        row('checkout', 'ok',
+            sprintf 'linked to %s -- left alone',
+            readlink($TARGET) // '?'
+        );
+        return -d $TARGET ? TRUE : FALSE;
+    }
+
+    return update_checkout() if -e File::Spec->catfile( $TARGET, '.git' );
+
+    if ( -e $TARGET and not is_empty_dir($TARGET) ) {
+        row( 'checkout', 'failed',
+            "$TARGET is not a git checkout -- left alone" );
+        return FALSE;
+    }
+
+    if ($DRY_RUN) {
+        row( 'checkout', 'would clone', "$opt{'branch'} -> $TARGET" );
+        return TRUE;
+    }
+
+    my $parent = ( File::Spec->splitpath($TARGET) )[1];
+    make_path($parent) if not -d $parent;
+
+    my $exit = run_cmd( qw| git clone --branch |,
+        $opt{'branch'}, '--', $opt{'repo'}, $TARGET );
+
+    if ( $exit == 0 and -e File::Spec->catfile( $TARGET, '.git' ) ) {
+        row( 'checkout', 'cloned', "$opt{'branch'} -> $TARGET", 'ok' );
+        return TRUE;
+    }
+    row( 'checkout', 'failed', "git clone exit $exit" );
+    return FALSE;
+}
+
+## fast-forward only, on the branch asked for, without local changes -- ##
+## anything else is reported and left as it is [ still installable ]    ##
+sub update_checkout {
+    my $short = sub { substr( $ARG[0] // '', 0, 9 ) };
+
+    my ( undef, $head )    = git_read(qw| rev-parse HEAD |);
+    my ( undef, $current ) = git_read(qw| symbolic-ref --short -q HEAD |);
+
+    if ( not length $head ) {
+        row( 'checkout', 'failed', "no HEAD in $TARGET" );
+        return FALSE;
+    }
+
+    if ( ( $current // '' ) ne $opt{'branch'} ) {
+        row('checkout',
+            'left alone',
+            sprintf(
+                "on '%s', not '%s'",
+                $current || 'detached HEAD',
+                $opt{'branch'}
+            ),
+            'warn'
+        );
+        return TRUE;
+    }
+
+    if ($DRY_RUN) {
+        my ( $exit, $line )
+            = git_read( qw| ls-remote origin |, "refs/heads/$opt{'branch'}" );
+        my ($remote) = ( $line // '' ) =~ m|\A([0-9a-f]{40,64})\s|;
+        if ( not defined $remote ) {
+            row( 'checkout', 'unknown', "git ls-remote exit $exit", 'warn' );
+        } elsif ( $remote eq $head ) {
+            row( 'checkout', 'up to date', $short->($head), 'ok' );
+        } else {
+            row('checkout',         'would update',
+                sprintf '%s -> %s', $short->($head),
+                $short->($remote)
+            );
+        }
+        return TRUE;
+    }
+
+    my $fetch_exit = run_cmd( qw| git -C |, $TARGET, qw| fetch -q origin |,
+        $opt{'branch'} );
+    if ( $fetch_exit != 0 ) {
+        row( 'checkout', 'not updated', "git fetch exit $fetch_exit",
+            'warn' );
+        return TRUE;
+    }
+
+    my ( undef, $fetched ) = git_read(qw| rev-parse FETCH_HEAD |);
+
+    if ( $fetched eq $head ) {
+        row( 'checkout', 'up to date', $short->($head), 'ok' );
+        return TRUE;
+    }
+
+    my ( undef, $changed )
+        = git_read(qw| status --porcelain --untracked-files=no |);
+    if ( length $changed ) {
+        row( 'checkout', 'left alone', 'local changes', 'warn' );
+        return TRUE;
+    }
+
+    run_cmd( qw| git -C |, $TARGET, qw| merge -q --ff-only FETCH_HEAD | );
+
+    ## the result is the HEAD now, not merge's exit code ##
+    my ( undef, $new_head ) = git_read(qw| rev-parse HEAD |);
+    if ( $new_head eq $fetched ) {
+        row( 'checkout', 'updated',
+            sprintf( '%s -> %s', $short->($head), $short->($new_head) ),
+            'ok' );
+    } else {
+        row( 'checkout', 'left alone', 'not a fast-forward', 'warn' );
+    }
+    return TRUE;
+}
+
+##[ step 3 : dependencies ]###################################################
+
+sub step_dependencies {
+    return p7_deps_step(
+        'p7-deps install', $opt{'profile'},
+        qw| install |,     $opt{'profile'}
+    );
+}
+
+##[ step 4 : service unit ]###################################################
+
+sub step_service_unit {
+    return p7_deps_step( 'install-service', undef, qw| install-service | );
+}
+
+##[ step 5 + 6 : boot start, service ]########################################
+
+## both report the state systemd reads back -- --enable \ --start act only ##
+## when it differs, and nothing here ever restarts                         ##
+sub step_service_state {
+
+    ## no systemd here : the state is unknown, asking for it is a failure ##
+    if ( not in_path(qw| systemctl |) ) {
+        row( $ARG, 'unknown', 'no systemctl here', 'warn' )
+            foreach 'boot start', 'service';
+        return ( $opt{'enable'} or $opt{'start'} ) ? FALSE : TRUE;
+    }
+
+    my $enabled = unit_state(qw| is-enabled |) eq qw| enabled |;
+
+    if ($enabled) {
+        row( 'boot start', 'enabled', undef, 'ok' );
+    } elsif ( not $opt{'enable'} ) {
+        row( 'boot start', 'disabled', '--enable enables it' );
+    } elsif ($DRY_RUN) {
+        row( 'boot start', 'would enable' );
+    } else {
+        return FALSE
+            if
+            not p7_deps_step( 'enable-service', undef, qw| enable-service | );
+        if ( unit_state(qw| is-enabled |) ne qw| enabled | ) {
+            row( 'boot start', 'failed', 'still not enabled' );
+            return FALSE;
+        }
+        row( 'boot start', 'enabled', undef, 'ok' );
+    }
+
+    my $active = unit_state(qw| is-active |) eq qw| active |;
+
+    if ($active) {
+        row( 'service', 'active', 'running -- not restarted', 'ok' );
+    } elsif ( not $opt{'start'} ) {
+        row( 'service', 'inactive', '--start starts it' );
+    } elsif ($DRY_RUN) {
+        row( 'service', 'would start' );
+    } else {
+        my $exit = run_cmd( qw| systemctl start |, $UNIT );
+        if ( unit_state(qw| is-active |) ne qw| active | ) {
+            row( 'service', 'failed', "systemctl start exit $exit" );
+            return FALSE;
+        }
+        row( 'service', 'started', undef, 'ok' );
+    }
+    return TRUE;
+}
+
+##[ helpers ]#################################################################
+
+## a p7-deps command of the checkout ; dry run : reported, never run      ##
+## [ p7-deps writes its cache into the checkout ]. P7_INSTALL_ROOT is     ##
+## passed on as P7_DEPS_SERVICE_ROOT -- the service targets stay in there ##
+sub p7_deps_step {
+    my ( $label, $detail, @args ) = @ARG;
+
+    my $p7_deps = File::Spec->catfile( $TARGET, qw| bin p7-deps | );
+
+    if ($DRY_RUN) {
+        row( $label, 'would run', $detail );
+        return TRUE;
+    }
+    if ( not -f $p7_deps ) {
+        row( $label, 'failed', "$p7_deps not found" );
+        return FALSE;
+    }
+
+    local $ENV{'P7_DEPS_SERVICE_ROOT'} = $INSTALL_ROOT
+        if length $INSTALL_ROOT;
+
+    my $exit = run_cmd( $EXECUTABLE_NAME, $p7_deps, @args );
+    say frame_column_line();
+    if ( $exit == 0 ) {
+        row( $label, 'ok', $detail );
+        return TRUE;
+    }
+    row( $label, 'failed',
+        join( ' ', grep {defined} $detail, "exit $exit" ) );
+    return FALSE;
+}
+
+## systemctl is-enabled \ is-active : the first output line ##
+sub unit_state {
+    my ($query) = @ARG;
+    my ( undef, $state ) = run_read( qw| systemctl |, $query, $UNIT );
+    return $state // '';
+}
+
+sub row {
+    my ( $label, $status, $detail, $level ) = @ARG;
+    say frame_status_row(
+        $label, $status,
+        {   width  => $LABEL_WIDTH,
+            detail => $detail,
+            level  => $level,
+        }
+    );
+    return TRUE;
+}
+
+## list form, output passes through ; the exit code [ 127 : not run ] ##
+sub run_cmd {
+    my (@cmd) = @ARG;
+    system { $cmd[0] } @cmd;
+    return $CHILD_ERROR == -1 ? 127 : $CHILD_ERROR >> 8;
+}
+
+## list form ; ( exit code, all of stdout chomped ), stderr discarded ##
+sub run_read {
+    my (@cmd) = @ARG;
+    my $pid = open( my $pipe, '-|' ) // return ( 127, undef );
+    if ( $pid == 0 ) {
+        open( STDERR, '>', File::Spec->devnull );
+        exec { $cmd[0] } @cmd or exit 127;
+    }
+    my $out = do { local $INPUT_RECORD_SEPARATOR = undef; <$pipe> }
+        // '';
+    close($pipe);
+    $out =~ s|\n\z||;    ## not chomp : \$/ was undef while reading ##
+    return ( $CHILD_ERROR >> 8, $out );
+}
+
+sub git_read { return run_read( qw| git -C |, $TARGET, @ARG ) }
+
+sub in_path {
+    my ($name) = @ARG;
+    foreach my $dir ( split m|:|, $ENV{'PATH'} // '' ) {
+        next if not length $dir;
+        my $path = File::Spec->catfile( $dir, $name );
+        return TRUE if -f $path and -x _;
+    }
+    return FALSE;
+}
+
+sub is_empty_dir {
+    my ($dir) = @ARG;
+    return FALSE if not -d $dir;
+    opendir( my $dh, $dir ) or return FALSE;
+    my @entries = grep { $ARG ne '.' and $ARG ne '..' } readdir($dh);
+    closedir($dh);
+    return @entries ? FALSE : TRUE;
+}
+
+sub print_help {
+    print <<"EOL";
+
+ bin/p7-install [ options ] .. installs protocol-7 [ as root ]
+
+    --profile <name> ...  p7-deps profile [ default : minimal ]
+    --branch <name> ....  branch to clone \\ follow [ default : base ]
+    --repo <url> .......  repository to clone
+    --enable ...........  enable the service unit [ boot start ]
+    --start ............  start the service when it is not running
+                          [ never a restart ]
+    --dry-run ..........  report what would be done, write nothing
+    -nc ................  no colours [ also with NO_COLOR, or no terminal ]
+    --help .............  this option list
+
+ a second run changes nothing that is in place already.
+
+EOL
+    return TRUE;
+}
+
+#,,,,,,,,,,..,,,.,,,.,,.,,,,,,,.,,,.,,...,.,,,..,,...,...,..,,,,.,,,.,...,,..,
+#46434CWEISVR4UDOPAUTXMCYIYDRHNCD6AX4O7EUOVGDE4MXEMN36XKDVIXI7JAUNVTHSNVDQA4IW
+#\\\|JZSJKMHMA43YQIXTPEXZ6CQHZ3D4BCS6PAHDDNSXXMB4FAJVMF2 \ / AMOS7 \ YOURUM ::
+#\[7]6EPKLCE6DYD6Z7L2O4CTQIYAUJTAICBWS7POYEC2A5EFF4PSU2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

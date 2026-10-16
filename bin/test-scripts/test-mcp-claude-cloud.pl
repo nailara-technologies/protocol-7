@@ -31,7 +31,12 @@
 ## env knobs [ also used by the mutation runs ] :  P7_MCP_SERVER_PL  -- run a
 ## different server copy [ mutated or not ] PERL5LIB          -- needed when
 ## the server copy lives outside the repo
-## [ compile-time AMOS7/Digest::BMW requires ]
+## [ compile-time AMOS7/Digest::BMW requires ]  launch-clone notes : every
+## dispatch now runs claude from a launch clone at
+## <root>/data/state/cloud-launch/protocol-7. the github-url check is
+## overridable for tests ONLY via PROTOCOL_7_MCP_CLOUD_GITHUB_HOSTS [
+## comma-separated extra url prefixes — the tests substitute local bare repos
+## for github ] ; PROTOCOL_7_MCP_CLOUD_REMOTE picks a non-'hub' remote name.
 ##
 ## usage : perl bin/test-scripts/test-mcp-claude-cloud.pl
 
@@ -42,6 +47,7 @@ use IO::Socket::UNIX;
 use IO::Select;
 use IPC::Open3;
 use File::Temp qw| tempdir |;
+use File::Path qw| remove_tree |;
 use Symbol     qw| gensym |;
 use Time::HiRes;
 
@@ -64,8 +70,6 @@ if ( not length $real_git ) {
         :                           '';
     die 'cannot locate the real git binary' if not length $real_git;
 }
-
-my $fake_sha = '0123456789abcdef0123456789abcdef01234567';
 
 ##[ scripted fake-cube replies [ keyed by exact command string ] ]##
 
@@ -161,10 +165,12 @@ my $STUB_CLAUDE = <<'EOT';
 use strict;
 use warnings;
 use JSON::PP;
+use Cwd qw| getcwd |;
 $| = 1;    ## model a well-behaved streaming cli : no stdio block-buffering on the capture file ##
 my $log = $ENV{'CLAUDE_STUB_LOG'} or die "CLAUDE_STUB_LOG not set\n";
 open my $fh, '>>', $log or die "stub log : $!\n";
 print {$fh} JSON::PP->new->canonical->encode( \@ARGV ), "\n";
+print {$fh} "CWD\t" . getcwd() . "\n";
 close $fh;
 my $mode   = $ENV{'CLAUDE_STUB_MODE'} // 'cloud';
 my $linger = $ENV{'STUB_LINGER'}      // 30;
@@ -396,6 +402,19 @@ sub stub_calls {
     return @calls;
 }
 
+## the CWD lines the stub recorded [ one per invocation, after its argv ] ##
+sub stub_cwds {
+    my ($file) = @_;
+    my @cwds;
+    if ( open( my $fh, '<', $file ) ) {
+        while ( my $line = <$fh> ) {
+            push @cwds, $1 if $line =~ m{\ACWD\t(.+?)\n?\z};
+        }
+        close $fh;
+    }
+    return @cwds;
+}
+
 ## list-form git output capture [ snapshots for the unchanged-HEAD checks ]##
 sub git_capture {
     my @cmd = @_;
@@ -562,6 +581,50 @@ system( $real_git, '-C', $result_repo, 'push', '-qu', 'hub', 'cloud-result' )
 system( $real_git, '-C', $result_repo, 'checkout', '-q', 'base' ) == 0
     or die $!;
 
+## fourth throwaway repo : the LAUNCH-CLONE source — a bare 'hub' remote   ##
+## with a single fully-pushed clean branch 'cloud-base' and CLAUDE.md at   ##
+## the root [ the launch clone sparse-checkouts it ]. the github-url check ##
+## accepts these local urls via the TEST-ONLY override below               ##
+my $launch_remote
+    = tempdir( 'p7-cld-lremote-XXXX', TMPDIR => 1, CLEANUP => 1 );
+my $launch_repo = tempdir( 'p7-cld-lrepo-XXXX', TMPDIR => 1, CLEANUP => 1 );
+system( $real_git, 'init', '-q', '--bare', "$launch_remote/launch.git" ) == 0
+    or die "bare init failed";
+system( $real_git, '-C', $launch_repo, 'init',   '-q' ) == 0 or die $!;
+system( $real_git, '-C', $launch_repo, 'config', 'user.email', 't@example' );
+system( $real_git, '-C', $launch_repo, 'config', 'user.name',  't' );
+{
+    open( my $fh, '>', "$launch_repo/CLAUDE.md" ) or die $!;
+    print {$fh} "# launch clone test repo\n";
+    close $fh;
+}
+system( $real_git, '-C', $launch_repo, 'add', 'CLAUDE.md' ) == 0 or die $!;
+system( $real_git, '-C', $launch_repo, 'commit', '-qm', 'init' ) == 0
+    or die $!;
+system( $real_git, '-C', $launch_repo, 'branch', '-M', 'cloud-base' ) == 0
+    or die $!;
+system( $real_git, '-C', $launch_repo, 'remote', 'add', 'hub',
+    "$launch_remote/launch.git" ) == 0
+    or die $!;
+system( $real_git, '-C', $launch_repo, 'push', '-qu', 'hub', 'cloud-base' )
+    == 0
+    or die $!;
+
+## where the server's launch clone will live                                ##
+## [ server's ROOT_PATH == the    ] repo root for the unmutated runs ] +    ##
+## whether it predates this run the launch clone lives in this run's temp   ##
+## dir [ the server reads PROTOCOL_7_MCP_CLOUD_LAUNCH_DIR ] : a real launch ##
+## clone under data/state is never reused, fetched into or removed by this  ##
+## test                                                                     ##
+my $launch_dir = "$tmp_dir/cloud-launch/protocol-7";
+$ENV{'PROTOCOL_7_MCP_CLOUD_LAUNCH_DIR'} = $launch_dir;
+my $launch_preexisting = -d $launch_dir;
+my $launch_sha         = head_of($launch_repo);
+
+## the TEST-ONLY github-url override : accept the local bare urls           ##
+$ENV{'PROTOCOL_7_MCP_CLOUD_GITHUB_HOSTS'}
+    = "$launch_remote/launch.git,$bare_remote/remote.git";
+
 ## start the scripted fake cube + wait for its socket ##
 $srv_pid = fork();
 die "fork failed" if not defined $srv_pid;
@@ -583,11 +646,7 @@ eval {
     {
         local %ENV = %ENV;
         $ENV{'CLAUDE_STUB_MODE'}          = 'cloud';
-        $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
-        $ENV{'GIT_STUB_SHA'}              = $fake_sha;
-        $ENV{'GIT_STUB_UNPUSHED'}         = '0';
-        $ENV{'GIT_STUB_DIRTY'}            = '';
-        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
         $mcp_pid                          = spawn_server();
     }
 
@@ -659,7 +718,7 @@ eval {
         'preamble carries branch + sha + no-merge rule',
         (           defined $sent_prompt
                 and $sent_prompt =~ m{start from branch 'cloud-base'}
-                and $sent_prompt =~ m{at commit '$fake_sha'}
+                and $sent_prompt =~ m{at commit '$launch_sha'}
                 and $sent_prompt =~ m{do not\s+merge to the default branch}
         ),
         defined $sent_prompt ? $sent_prompt : '<--cloud value missing>'
@@ -672,7 +731,8 @@ eval {
                 and $sent_prompt =~ m{`git remote -v`}
                 and $sent_prompt =~ m{attach the github repository with write}
                 and $sent_prompt =~ m{single snapshot commit without history}
-                and $sent_prompt =~ m{'dev/<topic>' from '$fake_sha' and push}
+                and $sent_prompt
+                =~ m{'dev/<topic>' from '$launch_sha' and push}
                 and $sent_prompt =~ m{never to 'cloud-base'}
         ),
         defined $sent_prompt ? $sent_prompt : '<--cloud value missing>'
@@ -695,6 +755,63 @@ eval {
     );
     check( 'result names the billed-session fact',
         index( $t, 'BILLED' ) >= 0, $t );
+
+    ## launch clone [ created by this first dispatch ] ##
+    my @cwds1 = stub_cwds("$tmp_dir/claude-argv.log");
+    check(
+        'launch clone : stub claude cwd IS the launch clone',
+        ( @cwds1 == 1 and $cwds1[0] eq $launch_dir ),
+        "cwds=@cwds1"
+    );
+    check(
+        'launch clone : reply names the clone path + its HEAD',
+        (           index( $t, "launch_clone: $launch_dir" ) >= 0
+                and index( $t, "launch_clone_head: $launch_sha" ) >= 0
+        ),
+        $t
+    );
+    check( 'launch clone : created on first dispatch',
+        -d "$launch_dir/.git", $launch_dir );
+    check(
+        'launch clone : origin is the hub url',
+        git_capture( $real_git, '-C', $launch_dir,
+            'remote', 'get-url', 'origin' ) eq "$launch_remote/launch.git\n",
+        git_capture(
+            $real_git, '-C', $launch_dir, 'remote', 'get-url', 'origin'
+        )
+    );
+    check(
+        'launch clone : HEAD is the dispatched sha on the branch name',
+        (   head_of($launch_dir) eq $launch_sha
+                and git_capture( $real_git, '-C', $launch_dir,
+                'symbolic-ref', 'HEAD' ) eq "refs/heads/cloud-base\n"
+        ),
+        head_of($launch_dir) . ' vs ' . $launch_sha
+    );
+    check(
+        'launch clone : sparse one-file worktree, clean status',
+        (           -f "$launch_dir/CLAUDE.md"
+                and not -e "$launch_dir/bin"
+                and git_capture( $real_git, '-C', $launch_dir,
+                'status', '--porcelain' ) eq ''
+        ),
+        join ' ',
+        map { $_ // '?' } glob("$launch_dir/*")
+    );
+    check(
+        'checkout grew NO origin remote',
+        git_capture(
+            $real_git,    '-C',
+            $launch_repo, 'config',
+            '--get',      'remote.origin.url'
+        ) eq '',
+        'origin url : '
+            . git_capture(
+            $real_git,    '-C',
+            $launch_repo, 'config',
+            '--get',      'remote.origin.url'
+            )
+    );
 
     ## environment param [ 3 elements : --cloud=<task>, --environment, id ] ##
     ( $t, $e )
@@ -769,11 +886,7 @@ eval {
     {
         local %ENV = %ENV;
         $ENV{'CLAUDE_STUB_MODE'}          = 'garbage';
-        $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
-        $ENV{'GIT_STUB_SHA'}              = $fake_sha;
-        $ENV{'GIT_STUB_UNPUSHED'}         = '0';
-        $ENV{'GIT_STUB_DIRTY'}            = '';
-        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
         $mcp_pid                          = spawn_server();
     }
     unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
@@ -787,11 +900,25 @@ eval {
     );
     check( 'unparseable output : raw text returned',
         index( $t, 'cloud say what? no id here, no url either' ) >= 0, $t );
-    my @phase2_git = git_calls("$tmp_dir/git-argv.log");
+    my @phase2_git  = git_calls("$tmp_dir/git-argv.log");
+    my @phase2_join = map { join ' ', @$_ } @phase2_git;
     check(
-        'git identity + push + dirty checks still ran [ 4 git calls ]',
-        @phase2_git == 4,
-        join ' | ', map { join ' ', @$_ } @phase2_git
+        'git identity + push + dirty checks still ran on the checkout',
+        (   ( grep { $_ eq 'branch --show-current' } @phase2_join )
+                && ( grep {m{\Arev-parse --verify --quiet HEAD\z}}
+                @phase2_join )
+                && ( grep {m{log --oneline --no-color }} @phase2_join )
+                && ( grep {m{status --porcelain }} @phase2_join )
+        ),
+        join ' | ',
+        @phase2_join
+    );
+    check(
+        'launch clone reused : no second clone on later dispatches',
+        ( not grep { $_->[0] eq 'clone' } @phase2_git )
+            && ( grep { $_->[0] eq 'fetch' } @phase2_git ),
+        join ' | ',
+        map { join ' ', @$_ } @phase2_git
     );
 
     kill_server($mcp_pid);
@@ -806,11 +933,7 @@ eval {
         {
             local %ENV = %ENV;
             $ENV{'CLAUDE_STUB_MODE'}          = $stub_mode;
-            $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
-            $ENV{'GIT_STUB_SHA'}              = $fake_sha;
-            $ENV{'GIT_STUB_UNPUSHED'}         = '0';
-            $ENV{'GIT_STUB_DIRTY'}            = '';
-            $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+            $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
             $mcp_pid                          = spawn_server();
         }
         unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
@@ -841,16 +964,218 @@ eval {
         $mcp_pid = undef;
     }
 
+    ##=========================================================##
+    ## phase 2c : launch-clone reuse + HEAD follows the dispatch  ##
+    ##=========================================================##
+    {
+        local %ENV = %ENV;
+        $ENV{'CLAUDE_STUB_MODE'}          = 'cloud';
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
+        $mcp_pid                          = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
+
+    ## a new commit on the branch, pushed — the dispatched sha must move ##
+    {
+        open( my $fh, '>>', "$launch_repo/CLAUDE.md" ) or die $!;
+        print {$fh} "more\n";
+        close $fh;
+    }
+    system( $real_git, '-C', $launch_repo, 'commit', '-qam', 'two' ) == 0
+        or die $!;
+    system( $real_git, '-C', $launch_repo, 'push', '-q' ) == 0 or die $!;
+    $launch_sha = head_of($launch_repo);
+
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'reuse the launch clone' } );
+
+    my @phase2c_git = git_calls("$tmp_dir/git-argv.log");
+    check(
+        'reuse : second dispatch fetches, never re-clones',
+        !$e
+            && ( not grep { $_->[0] eq 'clone' } @phase2c_git )
+            && ( grep { $_->[0] eq 'fetch' } @phase2c_git ),
+        join ' | ',
+        map { join ' ', @$_ } @phase2c_git
+    );
+    check(
+        'reuse : launch HEAD moved to the new dispatched sha',
+        (   head_of($launch_dir) eq $launch_sha
+                and git_capture( $real_git, '-C', $launch_dir,
+                'symbolic-ref', 'HEAD' ) eq "refs/heads/cloud-base\n"
+        ),
+        head_of($launch_dir) . ' vs ' . $launch_sha
+    );
+    check(
+        'reuse : reply names the clone + its current head',
+        (           index( $t, "launch_clone: $launch_dir" ) >= 0
+                and index( $t, "launch_clone_head: $launch_sha" ) >= 0
+        ),
+        $t
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
+    ##=========================================================##
+    ## phase 2d : a non-github hub url is refused before anything starts [ ##
+    ## the result repo's hub is a local bare repo and the TEST-ONLY        ##
+    ## override is removed for this phase ]                                ##
+    ##=========================================================##
+    {
+        local %ENV = %ENV;
+        $ENV{'CLAUDE_STUB_MODE'} = 'cloud';
+        delete $ENV{'PROTOCOL_7_MCP_CLOUD_GITHUB_HOSTS'};
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $result_repo;
+        $mcp_pid = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
+
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'should never reach claude' } );
+    check(
+        'non-github remote : refused before anything starts',
+        $e && index( $t, 'not a GitHub URL' ) >= 0,
+        "err=$e text=$t"
+    );
+    check(
+        'non-github remote : claude was never invoked',
+        scalar stub_calls("$tmp_dir/claude-argv.log") == 0,
+        scalar stub_calls("$tmp_dir/claude-argv.log") . ' claude calls'
+    );
+    check(
+        'non-github remote : the existing launch clone was untouched',
+        git_capture( $real_git, '-C', $launch_dir,
+            'remote', 'get-url', 'origin' ) eq "$launch_remote/launch.git\n",
+        git_capture(
+            $real_git, '-C', $launch_dir, 'remote', 'get-url', 'origin'
+        )
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
+    ##=========================================================##
+    ## phase 2e : MUTATION-CHECK — a copy that starts claude from the ##
+    ## CHECKOUT again must trip the launch-clone cwd assert           ##
+    ##=========================================================##
+    my $mut1_dir = "$tmp_dir/mut1";
+    my $mut1     = "$mut1_dir/mcp-server-p7";
+    {
+        open( my $fh, '<', $server_pl ) or die "cannot read $server_pl : $!";
+        my $src = do { local $/ = undef; <$fh> };
+        close $fh;
+        ## the mutation : the detached worker chdirs to the checkout    ##
+        ## instead of the launch clone [ one substitution, one anchor ] ##
+        my $hits = $src
+            =~ s/_cloud_fork_run\( \\\@cmd, \$launch_dir \)/_cloud_fork_run( \\\@cmd, \$repo )/;
+        die "mutation anchor not found in $server_pl" unless $hits == 1;
+        mkdir $mut1_dir             or die $!;
+        open( my $out, '>', $mut1 ) or die "cannot write $mut1 : $!";
+        print {$out} $src;
+        close $out;
+        chmod 0755, $mut1;
+    }
+    {
+        local %ENV = %ENV;
+        $ENV{'P7_MCP_SERVER_PL'}          = $mut1;
+        $ENV{'CLAUDE_STUB_MODE'}          = 'cloud';
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
+        $mcp_pid                          = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log";
+
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'mutated cwd dispatch' } );
+    my @mut1_cwds = stub_cwds("$tmp_dir/claude-argv.log");
+    check(
+        'MUTATION [ cwd -> checkout ] : claude started from the '
+            . 'CHECKOUT — the launch-clone cwd assertion FAILS as designed',
+        !$e && @mut1_cwds == 1 && $mut1_cwds[0] eq $launch_repo,
+        "err=$e cwd=@mut1_cwds"
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
+    ##=========================================================##
+    ## phase 2f : MUTATION-CHECK — with the launch clone neither pointed at ##
+    ## nor verified against the dispatched commit, a wrong HEAD reaches     ##
+    ## claude : the HEAD == sha assertion FAILS as designed                 ##
+    ##=========================================================##
+    my $mut2_dir = "$tmp_dir/mut2";
+    my $mut2     = "$mut2_dir/mcp-server-p7";
+    {
+        open( my $fh, '<', $server_pl ) or die "cannot read $server_pl : $!";
+        my $src = do { local $/ = undef; <$fh> };
+        close $fh;
+        ## the mutation : update-ref retargeted to a canary ref      ##
+        ## [ the branch never moves ] + the HEAD == sha gate removed ##
+        my $anchor2 = q|) if ( $launch_head // '' ) ne $sha;|;
+        my $hits    = $src
+            =~ s/"refs\/heads\/\$branch", \$sha/"refs\/heads\/p7-mut-canary", \$sha/;
+        die "mutation anchor 1 not found in $server_pl" unless $hits == 1;
+        $hits = $src =~ s/\Q$anchor2\E/) if 0;/;
+        die "mutation anchor 2 not found in $server_pl" unless $hits == 1;
+        mkdir $mut2_dir             or die $!;
+        open( my $out, '>', $mut2 ) or die "cannot write $mut2 : $!";
+        print {$out} $src;
+        close $out;
+        chmod 0755, $mut2;
+    }
+    {
+        local %ENV = %ENV;
+        $ENV{'P7_MCP_SERVER_PL'}          = $mut2;
+        $ENV{'CLAUDE_STUB_MODE'}          = 'cloud';
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
+        $mcp_pid                          = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log";
+
+    ## the SHARED launch clone, still at the older commit of the earlier  ##
+    ## phases -- a fresh clone would sit at the tip and hide the mutation ##
+    my $mut2_launch = $launch_dir;
+
+    ## the branch moves on first [ an empty commit, pushed ] : the mutated ##
+    ## server fetches it but only moves its canary ref, so the launch      ##
+    ## clone's HEAD provably stays behind the dispatched commit -- without ##
+    ## this, a clone already at the tip would hide the mutation            ##
+    system( $real_git, '-C', $launch_repo, 'commit', '-q', '--allow-empty',
+        '-m', 'mut2 advance' ) == 0
+        or die "mut2 advance commit : $!";
+    system( $real_git, '-C', $launch_repo, 'push', '-q', 'hub', 'cloud-base' )
+        == 0
+        or die "mut2 advance push : $!";
+    my $mut2_sha = head_of($launch_repo);
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'mutated head dispatch' } );
+    check(
+        'MUTATION [ HEAD check skipped ] : claude started although the '
+            . 'launch clone is NOT at the dispatched commit — the HEAD == '
+            . 'sha assertion FAILS as designed',
+        !$e
+            && $t =~ m{status=started}
+            && $t =~ m{\Q$mut2_sha\E}
+            && length( head_of($mut2_launch) )
+            && head_of($mut2_launch) ne $mut2_sha,
+        "err=$e head='" . head_of($mut2_launch) . "' dispatched=$mut2_sha"
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
     ##=============================================================##
     ## phase 3 : push-first refusal [ stubbed git, deterministic ]   ##
     ##=============================================================##
     {
         local %ENV = %ENV;
         $ENV{'CLAUDE_STUB_MODE'}          = 'cloud';
-        $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
-        $ENV{'GIT_STUB_SHA'}              = $fake_sha;
         $ENV{'GIT_STUB_UNPUSHED'}         = '1';
-        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
         $mcp_pid                          = spawn_server();
     }
     unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
@@ -895,8 +1220,9 @@ eval {
         delete $ENV{'GIT_STUB_BRANCH'};
         delete $ENV{'GIT_STUB_SHA'};
         delete $ENV{'GIT_STUB_UNPUSHED'};
-        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $temp_repo;
-        $mcp_pid = spawn_server();
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REMOTE'} = 'origin';
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'}   = $temp_repo;
+        $mcp_pid                            = spawn_server();
     }
     unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
 
@@ -933,11 +1259,7 @@ eval {
     {
         local %ENV = %ENV;
         $ENV{'CLAUDE_STUB_MODE'}          = 'slowurl';
-        $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
-        $ENV{'GIT_STUB_SHA'}              = $fake_sha;
-        $ENV{'GIT_STUB_UNPUSHED'}         = '0';
-        $ENV{'GIT_STUB_DIRTY'}            = '';
-        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
         $mcp_pid                          = spawn_server();
     }
     unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
@@ -1014,11 +1336,7 @@ eval {
     {
         local %ENV = %ENV;
         $ENV{'CLAUDE_STUB_MODE'}          = 'nourl';
-        $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
-        $ENV{'GIT_STUB_SHA'}              = $fake_sha;
-        $ENV{'GIT_STUB_UNPUSHED'}         = '0';
-        $ENV{'GIT_STUB_DIRTY'}            = '';
-        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
         $ENV{'PROTOCOL_7_MCP_CLOUD_POLL'} = '8';
         $mcp_pid                          = spawn_server();
     }
@@ -1118,11 +1436,7 @@ eval {
     {
         local %ENV = %ENV;
         $ENV{'CLAUDE_STUB_MODE'}          = 'cloud';
-        $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
-        $ENV{'GIT_STUB_SHA'}              = $fake_sha;
-        $ENV{'GIT_STUB_UNPUSHED'}         = '0';
-        $ENV{'GIT_STUB_DIRTY'}            = '';
-        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
         $mcp_pid                          = spawn_server();
     }
     unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
@@ -1262,11 +1576,7 @@ eval {
     {
         local %ENV = %ENV;
         $ENV{'CLAUDE_STUB_MODE'}          = 'followuperr';
-        $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
-        $ENV{'GIT_STUB_SHA'}              = $fake_sha;
-        $ENV{'GIT_STUB_UNPUSHED'}         = '0';
-        $ENV{'GIT_STUB_DIRTY'}            = '';
-        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $launch_repo;
         $mcp_pid                          = spawn_server();
     }
     unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
@@ -1302,8 +1612,9 @@ eval {
         delete $ENV{'GIT_STUB_SHA'};
         delete $ENV{'GIT_STUB_UNPUSHED'};
         delete $ENV{'GIT_STUB_DIRTY'};
-        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $temp_repo2;
-        $mcp_pid = spawn_server();
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REMOTE'} = 'origin';
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'}   = $temp_repo2;
+        $mcp_pid                            = spawn_server();
     }
     unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
 
@@ -1567,6 +1878,12 @@ check( 'detached stub claude processes killed at cleanup',
 ## repo's data/state when running unmutated — leave no litter behind     ]##
 unlink @capture_files, map {"$_.pid"} @capture_files;
 
+## remove the launch clone this run created [ a pre-existing one stays ] ##
+if ( not $launch_preexisting and -d $launch_dir ) {
+    remove_tree($launch_dir);
+    rmdir "$tmp_dir/cloud-launch";
+}
+
 ## and every other capture this run created [ the plain dispatch cases ] : new
 ## since the start AND stub output -- a real cloud run started meanwhile is
 ## never removed
@@ -1598,9 +1915,13 @@ exit( $fail ? 1 : 0 );
 ## 6. result fetch turned to checkout  -> the inline MUTATION run in phase 11
 ##    proves the unchanged-HEAD assertion catches it [ expected to FAIL there
 ##    by design — that IS the check working ]
+## 7. claude started from the checkout again [ phase 2e ] -> the launch-clone
+##    cwd assertion FAILs [ got : the checkout path ]
+## 8. launch clone neither pointed at nor verified against the dispatched
+##    commit [ phase 2f ] -> the HEAD == sha assertion FAILs
 
-#,,..,.,,,,..,,.,,.,.,...,...,,..,,,.,..,,,,,,..,,...,...,.,.,,..,.,.,.,,,.,.,
-#L4Q4RA5A2ERJPJQBQL3E2JZO7CGEYAA2ZH4ZRJVXVFBDHV4RYBQHL7OE7YU6TRSDO6CEC2HHL747S
-#\\\|KM7HH56KDXHP222NIYBEHDEYUX6OJ6RXXIRWWBY6CW32EUDB4DO \ / AMOS7 \ YOURUM ::
-#\[7]IFJ4PQUIOOIRGLXUMAOO5A34BBB5EI6UBQE26I5HFA4CHMZH5MAI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,..,.,.,,,,,,,.,,,.,,..,.,,,..,,..,,...,...,.,,,...,,,,,,,,,,,.,
+#BIWNHJSL54ALULIPTBSLGTHV4FC47VBNMCIA3XPBRBYWBSL4YDPULU2JB6ULFLHYC5JFPG3EDUC7Q
+#\\\|LLE4ZNR7MGN2G2QZFCC5MLTDJ7RDC6JKT3BUZEIKYJYB546DGGQ \ / AMOS7 \ YOURUM ::
+#\[7]C5PU2X5IMVQM7U75LFXG4ODPDVJPUK4NGET7JDDSAMHF6IEWBYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

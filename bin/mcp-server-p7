@@ -420,15 +420,37 @@ my @external_tools = (
             . 'refuses when tracked files have uncommitted changes [ '
             . 'without the Claude GitHub App on the repo, claude --cloud '
             . 'uploads the local tree including them ] unless '
-            . 'allow_dirty=true [ warned in the reply ]. use '
-            . 'claude_cloud_status(session_id=..., capture_file=...) to '
-            . 'read the session / the capture file back afterwards.',
+            . 'allow_dirty=true [ warned in the reply ]. claude runs '
+            . 'from a dedicated LAUNCH CLONE at '
+            . 'data/state/cloud-launch/protocol-7 [ under the repo root, '
+            . 'gitignored ] : created on first use as `git clone '
+            . '--filter=blob:none --no-checkout <hub-url>` — the '
+            . 'cheapest clone that still gives the CLI a real repo with '
+            . 'full history — so `git remote get-url origin` in its cwd '
+            . 'IS the github url and the CLI clones from github instead '
+            . 'of uploading this >100MB checkout as a squashed snapshot. '
+            . 'before every dispatch the launch clone fetches the branch '
+            . 'and HEAD is pointed at exactly the dispatched commit [ '
+            . 'update-ref + symbolic-ref, sparse CLAUDE.md-only worktree '
+            . ']; origin-must-be-github and HEAD-must-equal-sha are '
+            . 're-confirmed pre-start — a mismatch refuses with nothing '
+            . 'started. the reply names the launch clone path and its '
+            . 'HEAD. use claude_cloud_status(session_id=..., '
+            . 'capture_file=...) to read the session / the capture file '
+            . 'back afterwards.',
         'params' => [
             [ 'prompt', 'the task description for the cloud session', 1 ],
             [   'branch',
                 'branch the cloud session starts from [ default : the repo '
                     . 'current branch ] ; local commits not on the remote '
                     . 'yet -> push-first refusal',
+                0
+            ],
+            [   'remote',
+                'github remote name on this checkout, used as the launch '
+                    . 'clone origin [ param or PROTOCOL_7_MCP_CLOUD_REMOTE, '
+                    . 'default: hub ] ; refused when its url is not a GitHub '
+                    . 'URL',
                 0
             ],
             [   'environment',
@@ -4577,6 +4599,23 @@ sub _cloud_run_list {
     return ( $output, undef, $? >> 8 );
 }
 
+## github-url check, mirroring what claude --cloud accepts for cloning [   ##
+## https \ ssh \ git@ forms of github.com — verified in the 2.1.301 bundle ##
+## ]. PROTOCOL_7_MCP_CLOUD_GITHUB_HOSTS is a TEST-ONLY escape hatch [      ##
+## comma-separated extra url prefixes — the tests substitute a local bare  ##
+## repo for github ] ; never set it outside the test harness               ##
+sub _cloud_is_github_url {
+    my ($url) = @ARG;
+    return 0 if not defined $url or not length $url;
+    return 1 if $url =~ m{\A(?:https?://|git@)(?:www\.)?github\.com[:/]}i;
+    for my $prefix ( split m{,},
+        $ENV{'PROTOCOL_7_MCP_CLOUD_GITHUB_HOSTS'} // '' ) {
+        $prefix =~ s{^\s+|\s+$}{}g;
+        return 1 if length $prefix and index( $url, $prefix ) == 0;
+    }
+    return 0;
+}
+
 ## dispatch a task to a BILLED claude.ai cloud session. the CLI form is     ##
 ## fixed by its own help + docs : --cloud [description] creates a NEW cloud ##
 ## session whose description IS the task, and -p is REJECTED with a         ##
@@ -4637,6 +4676,38 @@ sub tool_claude_cloud_dispatch {
     my $repo = $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} // $ROOT_PATH;
     return send_tool_result( $id, "cloud repo not found: $repo", 1 )
         if not -d $repo;
+
+    ## github remote : the CLI decides clone-vs-upload by `git remote       ##
+    ## get-url origin` in ITS cwd [ verified in the 2.1.301 bundle : "no    ##
+    ## GitHub remote was detected … Check that `git remote get-url origin`  ##
+    ## returns a GitHub URL." ] — this checkout has no 'origin' on purpose  ##
+    ## [ the github remote is 'hub' ] and >100MB, so a session started here ##
+    ## would upload a single squashed snapshot without history or remote.   ##
+    ## the dispatch therefore runs from a small dedicated launch clone      ##
+    ## [ prepared below ] whose origin IS the github url.                   ##
+    my $remote = $args->{'remote'} // $ENV{'PROTOCOL_7_MCP_CLOUD_REMOTE'}
+        // 'hub';
+    return send_tool_result( $id, "invalid remote '$remote'", 1 )
+        if $remote !~ m{\A[A-Za-z0-9][A-Za-z0-9._/-]*\z}
+        or index( $remote, '..' ) >= 0;
+
+    my ( $url_out, $url_err )
+        = _cloud_run_list( [ qw| git remote get-url |, $remote ], 30, $repo );
+    my ($hub_url) = split m{\n}, $url_out // '';
+    return send_tool_result(
+        $id,
+        "cannot read the url of remote '$remote' — is "
+            . "this a checkout of the github repo? [ $url_err ]",
+        1
+    ) if defined $url_err or not length $hub_url;
+    return send_tool_result(
+        $id,
+        "remote '$remote' is '$hub_url', not a GitHub URL — claude "
+            . '--cloud checks `git remote get-url origin` and would not '
+            . 'clone from github, falling back to uploading the local '
+            . 'tree as a squashed snapshot ; refusing',
+        1
+    ) if not _cloud_is_github_url($hub_url);
 
     ## branch : param, else the repo current branch [ detached HEAD has ##
     ## none — then the caller must pass branch explicitly ]             ##
@@ -4731,6 +4802,123 @@ sub tool_claude_cloud_dispatch {
         . 'the local tree including them'
         if $allow_dirty and length $dirty;
 
+    ## launch clone prepare [ see the remote check above ] : created on     ##
+    ## first use as a blobless no-checkout clone [ --filter=blob:none —     ##
+    ## commits+trees only : the cheapest clone that still is a real repo    ##
+    ## with full history ; the blob a sparse CLAUDE.md checkout needs       ##
+    ## arrives on demand. against a local test remote the filter is ignored ##
+    ## with a warning — harmless ]. before EVERY dispatch : fetch the       ##
+    ## branch, point HEAD at exactly the dispatched commit                  ##
+    ## [ update-ref + symbolic-ref — no full checkout ], keep a sparse      ##
+    ## one-file worktree so the repo looks ordinary [ clean `git status` ], ##
+    ## then CONFIRM origin is a github url and HEAD is the dispatched       ##
+    ## commit — refuse with nothing started otherwise                       ##
+    ## PROTOCOL_7_MCP_CLOUD_LAUNCH_DIR : another place                      ##
+    ## [ tests -- they never touch the real launch clone ]                  ##
+    my $launch_dir = $ENV{'PROTOCOL_7_MCP_CLOUD_LAUNCH_DIR'}
+        // "$ROOT_PATH/data/state/cloud-launch/protocol-7";
+    if ( not -d "$launch_dir/.git" ) {
+        ( my $launch_parent = $launch_dir ) =~ s{/+[^/]+/*\z}{};
+        eval { make_path($launch_parent) } if not -d $launch_parent;
+        my ( $clone_out, $clone_err, $clone_code ) = _cloud_run_list(
+            [   'git',                'clone',
+                '--filter=blob:none', '--no-checkout',
+                $hub_url,             $launch_dir
+            ],
+            300
+        );
+        return send_tool_result(
+            $id,
+            "failed to create the launch clone at $launch_dir : "
+                . (
+                defined $clone_err
+                ? $clone_err
+                : 'exit code ' . ( $clone_code // '?' )
+                ),
+            1
+        ) if not -d "$launch_dir/.git";
+    }
+
+    ## the launch dir outlives remote url changes                          ##
+    ## [ tests point the tool at different throwaway repos ] — keep origin ##
+    ## in sync ; a failure here still trips the pre-start confirm below    ##
+    my ( $lo_out, $lo_err )
+        = _cloud_run_list( [qw| git remote get-url origin |], 30,
+        $launch_dir );
+    my ($launch_origin) = split m{\n}, $lo_out // '';
+    _cloud_run_list( [ qw| git remote set-url origin |, $hub_url ],
+        30, $launch_dir )
+        if not defined $lo_err
+        and length $launch_origin
+        and $launch_origin ne $hub_url;
+
+    my ( $lf_out, $lf_err, $lf_code )
+        = _cloud_run_list( [ qw| git fetch origin |, $branch ],
+        120, $launch_dir );
+    return send_tool_result(
+        $id,
+        "launch clone could not fetch '$branch' : "
+            . ( defined $lf_err ? $lf_err : "exit code $lf_code" ),
+        1
+        )
+        if defined $lf_err
+        or ( $lf_code // 1 ) != 0;
+
+    my ( $lu_out, $lu_err, $lu_code )
+        = _cloud_run_list(
+        [ qw| git update-ref |, "refs/heads/$branch", $sha ],
+        30, $launch_dir );
+    return send_tool_result(
+        $id,
+        "launch clone could not be pointed at '$sha' : "
+            . ( defined $lu_err ? $lu_err : "exit code $lu_code" ),
+        1
+        )
+        if defined $lu_err
+        or ( $lu_code // 1 ) != 0;
+
+    _cloud_run_list( [ qw| git symbolic-ref HEAD |, "refs/heads/$branch" ],
+        30, $launch_dir );
+
+    ## sparse one-file worktree : the cloud session clones from github    ##
+    ## itself — the launch repo only needs to look ordinary               ##
+    ## [ clean `git status` ] and carry CLAUDE.md for the conventions. -f ##
+    ## keeps the file in sync when the branch moves                       ##
+    ## [ a plain checkout preserves the stale file as a local change ]    ##
+    _cloud_run_list( [qw| git sparse-checkout set CLAUDE.md |],
+        60, $launch_dir );
+    _cloud_run_list( [ qw| git checkout -qf |, $branch ], 120, $launch_dir );
+
+    ## pre-start confirm : refuse with nothing started unless the launch ##
+    ## clone's origin is a github url and HEAD is exactly the dispatched ##
+    ## commit [ the whole point of the launch clone ]                    ##
+    my ( $o_out, $o_err )
+        = _cloud_run_list( [qw| git remote get-url origin |], 30,
+        $launch_dir );
+    my ($origin_now) = split m{\n}, $o_out // '';
+    return send_tool_result(
+        $id,
+        "launch clone origin '"
+            . ( $origin_now // '' )
+            . "' is not a GitHub URL — refusing to start anything "
+            . '[ claude --cloud would fall back to uploading the local '
+            . 'tree as a squashed snapshot ]',
+        1
+        )
+        if defined $o_err
+        or not _cloud_is_github_url( $origin_now // '' );
+    my ( $h_out, $h_err )
+        = _cloud_run_list( [qw| git rev-parse HEAD |], 30, $launch_dir );
+    my ($launch_head) = split m{\n}, $h_out // '';
+    return send_tool_result(
+        $id,
+        "launch clone HEAD '"
+            . ( $launch_head // '' )
+            . "' is not the dispatched commit '$sha' "
+            . '— refusing to start anything',
+        1
+    ) if ( $launch_head // '' ) ne $sha;
+
     ## fixed preamble + the untrusted task : the WHOLE text is the cloud ##
     ## session description — one argv element, list-form exec keeps it   ##
     ## intact all the way into the claude process                        ##
@@ -4775,8 +4963,8 @@ sub tool_claude_cloud_dispatch {
         @cmd = ( $script_bin, qw| -q -e -c |, $shell_cmd, qw| /dev/null | );
     }
 
-    log_msg( '[claude_cloud] dispatch : branch=%s sha=%s repo=%s',
-        $branch, $sha, $repo );
+    log_msg( '[claude_cloud] dispatch : branch=%s sha=%s repo=%s launch=%s',
+        $branch, $sha, $repo, $launch_dir );
 
     ## DETACHED start [ kimi_dispatch model ] : the claude process gets its ##
     ## own session, stdin from /dev/null, stdout+stderr to a capture file   ##
@@ -4787,7 +4975,7 @@ sub tool_claude_cloud_dispatch {
     ## and then killed the cloud client at the alarm ]  script runs its -c  ##
     ## string with $SHELL : a plain posix sh                                ##
     local $ENV{'SHELL'} = '/bin/sh';
-    my $run = _cloud_fork_run( \@cmd, $repo );
+    my $run = _cloud_fork_run( \@cmd, $launch_dir );
     return send_tool_result( $id, $run->{'error'}, 1 )
         if length( $run->{'error'} // '' );
     my $gpid = $run->{'gpid'};
@@ -4835,6 +5023,8 @@ sub tool_claude_cloud_dispatch {
             . '— this STARTED A BILLED claude.ai cloud session.',
         "branch: $branch",
         "commit: $sha",
+        "launch_clone: $launch_dir",
+        "launch_clone_head: $launch_head",
         "capture_file: $path",
         'the claude process is DETACHED [ own session, stdin /dev/null ] — '
             . 'it keeps running after this reply and is never killed by this '
@@ -5689,8 +5879,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,.,,,.,,,.,,..,,,.,,,..,.,.,,,,,,,.,,,,,..,,...,...,.,.,,,,,,,.,,..,,..,
-#LUEPF2WNWGEJVZ57ONHPF5PZJ4BK2XOTUPMJDQU6TU5H5O2HETBKA45C3WUVHLBTQAGQLO6KVRH2I
-#\\\|PMFDUB2BF4QBJ2SHPQJMNA42VPODKFF2WUSVYMDZGFMLKFNED4W \ / AMOS7 \ YOURUM ::
-#\[7]HY4T3SYOHLP55CWUE5VMROM3T6L3SBOAEAIJUWTKJXP2TNWE3KCA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,.,,,..,,...,,,.,,,.,,,,,.,,,.,,,..,,...,...,,,,,,..,,..,.,,,...,
+#WSZNALWCC33LPHJ6VWPEGVLWULUI6UIQFESR3T53FAKN4RU7CTV3C3NYGB6LAN2HYJCL4GLB42HB6
+#\\\|2XF7MQPBFRRYGRPAIPBOKEB2SJBKHRFMOO2N7GDL6BQSVSN2GJ7 \ / AMOS7 \ YOURUM ::
+#\[7]CIE53XOALUJKME3WOJEEP7IF3XCIDHEWOPHB7D2RB4DDLTLAUOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

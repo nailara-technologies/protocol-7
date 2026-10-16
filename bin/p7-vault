@@ -117,11 +117,12 @@ my $dir = $ENV{'P7_VAULT_DIR'} // sprintf qw| %s/.n/vault |,
     $ENV{'HOME'} // ( getpwuid($EUID) )[7];
 
 ## colors : on by default, off with -nc [ bin/Protocol-7, ssh.hash-hostkey ]
-## or a set NO_COLOR, and when STDOUT is not a terminal. the palette is
-## %AMOS7::C's, copied -- this script runs without AMOS7.pm [ usb copy ]
+## or a non-empty NO_COLOR [ no-color.org ], and when STDOUT is not a
+## terminal. the palette is %AMOS7::C's, copied -- this script runs without
+## AMOS7.pm [ usb copy ]
 my $no_colors = grep { $ARG eq '-nc' } @ARGV;
 @ARGV = grep { $ARG ne '-nc' } @ARGV;
-$no_colors ||= defined $ENV{'NO_COLOR'} || !-t STDOUT;
+$no_colors ||= length( $ENV{'NO_COLOR'} // '' ) || !-t STDOUT;
 
 our %C = (
     'T' => "\e[38;2;6;71;195m",     ## labels, field names, titles ##
@@ -525,7 +526,7 @@ sub usage_text {
     -d  .......  vault directory [ default P7_VAULT_DIR or ~/.n/vault ]
     -R  .......  unlock with the recovery code
     -k  .......  unlock with passphrase + key file [ -k <file> ]
-    -nc ......  no colors [ also with NO_COLOR set, or output not a terminal ]
+    -nc ......  no colors [ also with a non-empty NO_COLOR, or output not a terminal ]
     -color green  values and typed text in phosphor green [ daylight,
                   high contrast ; default : blue ]
     -h  .......  this list [ also -options ]
@@ -3623,8 +3624,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,,,,,.,,...,.,,,,,.,.,,,..,,,,.,,.,,,,.,,.,,..,,...,...,..,,..,,,,,,..,,,..,
-#5SLXNI6FBBYUVKTFFAGMEIYHJ3H7QPBPNB3XSURGZCWRUB6MRP42LSYA2WLXMZT3RKDUFKSBGKLBQ
-#\\\|R64WB7SR57OUXD37W5V2F5PGZIFDRT2DYSMJKGAJUJFUVVVG65E \ / AMOS7 \ YOURUM ::
-#\[7]36EKK3G2RRUJKQNGMSB3D26TESELUWFW5AEB3SX3VZRLZTBD6YBY 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,,,.,.,,,,..,,,.,.,.,...,..,,..,,...,...,..,,.,,,,,.,.,,,.,,,
+#L5L46TRGKUAWVLZ4UIS3S3DV64NM3T3HSHGYHDWTZOSANAUOMQGUJTENIWIUXYBGAT5MG5EAPY7HI
+#\\\|N7MRRBGSHK7U5KZVQ3HR7HA5JLUICFG4EAR3TYK3CWCW42HKPON \ / AMOS7 \ YOURUM ::
+#\[7]P7Y2563D5EGNID2G6SGT4EBYQ5ZTJLR5PGQLOAMXZCCL2N2AX2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
