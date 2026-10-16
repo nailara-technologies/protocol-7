@@ -36,8 +36,17 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
 - step 4 second half : generic root runner [ the debian zenka's root apt
   child -> backend::<family>::install ].
 - step 7 : debs via dh-make-perl [ 21 modules \ ~17 dists ] + our own
-  SIGNED repo index [ osf-cache only serves anchored debs ] -- the signing
-  key decision is open [ gpg repo key vs p7 trust chain ]. goals :
+  SIGNED repo index [ osf-cache only serves anchored debs ]. KEY DECIDED
+  2026-10-17 : a gpg repo key [ apt-native, signed-by= ], NEVER created
+  by hand -- the repo builder generates it on first publish [ gpg --batch,
+  ed25519, sign-only, own GNUPGHOME in user-keys/root/ ], host-root signs
+  its fingerprint [ like the .dlg ], p7-install checks that + the pin
+  before writing /etc/apt/keyrings, fail-closed. separate key, not
+  derived from host-root. unencrypted for now ; encryption LATER via our
+  own tools [ p7-vault unlock style ] once the detaching secret \ key
+  holding child of the signature workflow exists -- reuse it to hold and
+  pass on such external keys too [ esp. ed25519 ]. read side exists :
+  osf-cache.debian.read_inrelease. goals :
   upstream disappearance, offline node groups. a cloud VM has apt but no
   CPAN : the first consumer.
 - legacy scripts bin/dependencies/*.debian.sh : retire or one-line calls
@@ -49,13 +58,13 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
   'STARTED A BILLED' only with an id [ at status=starting say 'may be
   starting' ] ; cursor-forward escapes [ ESC[nC ] as spaces and utf-8 in
   the shown raw output.
-- hub/dev/p7-install-frame-helpers and dev/p7-deps-house-style are
-  merged [ squashed ] -- delete when the owner wants.
+- hub/dev/p7-install-frame-helpers [ 01f172086 ] and dev/p7-deps-house-style
+  [ 29fff9c0e ] DELETED 2026-10-17 [ squash-merged ].
 - the cred-mesh \ p7-vault delegation idea and the vault inotify watch :
   previous entry, unchanged.
 
-#,,..,.,.,,,,,..,,.,,,..,,...,.,.,.,,,,..,,,.,..,,...,...,...,,.,,,.,,,,,,.,.,
-#FUGF2ZVNJLFTC7Y6QEQYFHP74NT5HN3GZWH6WNYSWVVKMSMFP7KI6WJK3H57PQV2EZAUA2GDO2JVK
-#\\\|M2CKGHSWUW4TRNK6IQZ3LG5ZNYZ3XMLM32NCBZ4AHA2M2AUGX3K \ / AMOS7 \ YOURUM ::
-#\[7]Q5SDV5OBHAZQF5MFYF47I4T6Y34PBBPTJ5QOCUJ4OVKC42CDQUCQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,..,,,..,,..,,.,,,,.,.,,,,,.,..,,...,...,.,.,,,.,,,,,,.,,...,
+#VZBITJKDTYEYK5VM7RLACAK25V53KTECAPI7H5LDG6NDS5JHDAGSNHG37EX7FCUPUAPAAFBJUFS56
+#\\\|XE2CSXH3FBLIWCS2EMABIR2YSL6G7DHTQDAFGCMEEAMUGIYDUJM \ / AMOS7 \ YOURUM ::
+#\[7]QMON2TGNZZT3DQG47CQBGDOCDMK4XFAAVIXSB6BLH3DK4CQYDGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
