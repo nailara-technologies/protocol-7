@@ -644,18 +644,14 @@ eval {
         = ( @$argv and $argv->[0] =~ m{\A--cloud=(.*)\z}s ) ? $1 : undef;
     check(
         'the whole task travels as ONE argv element [ no shell splitting ]',
-        (   defined $sent_prompt and $sent_prompt eq join( "\n",
-                '[ protocol-7 cloud dispatch ]',
-                'you are working in a cloud clone of the protocol-7 '
-                    . 'repository [ github nailara-technologies/protocol-7 '
-                    . '].',
-                "start from branch 'cloud-base' at commit '$fake_sha'.",
-                'read CLAUDE.md first and follow its conventions.',
-                'note: do not merge to the default branch.',
-                'finish with a pushed branch plus a summary of what changed.',
-                '',
-                'task :',
-                $nasty )
+        ## the preamble wording may change ; the task must arrive whole, ##
+        ## after 'task :', inside the one --cloud argument               ##
+        (   defined $sent_prompt
+                and
+                index( $sent_prompt, '[ protocol-7 ' . 'cloud dispatch ]' )
+                == 0
+                and substr( $sent_prompt, -length("task :\n$nasty") ) eq
+                "task :\n$nasty"
         ),
         defined $sent_prompt ? $sent_prompt : '<--cloud value missing>'
     );
@@ -664,7 +660,20 @@ eval {
         (           defined $sent_prompt
                 and $sent_prompt =~ m{start from branch 'cloud-base'}
                 and $sent_prompt =~ m{at commit '$fake_sha'}
-                and $sent_prompt =~ m{do not merge to the default branch}
+                and $sent_prompt =~ m{do not\s+merge to the default branch}
+        ),
+        defined $sent_prompt ? $sent_prompt : '<--cloud value missing>'
+    );
+    check(
+        'preamble : push path proven before any work '
+            . '[ remote, history, empty dev branch pushed ]',
+        (           defined $sent_prompt
+                and $sent_prompt =~ m{BEFORE any work, prove the push path}
+                and $sent_prompt =~ m{`git remote -v`}
+                and $sent_prompt =~ m{attach the github repository with write}
+                and $sent_prompt =~ m{single snapshot commit without history}
+                and $sent_prompt =~ m{'dev/<topic>' from '$fake_sha' and push}
+                and $sent_prompt =~ m{never to 'cloud-base'}
         ),
         defined $sent_prompt ? $sent_prompt : '<--cloud value missing>'
     );
@@ -1590,8 +1599,8 @@ exit( $fail ? 1 : 0 );
 ##    proves the unchanged-HEAD assertion catches it [ expected to FAIL there
 ##    by design — that IS the check working ]
 
-#,,.,,,,,,..,,,,,,,,.,,,.,,,.,...,,..,,,.,..,,..,,...,...,,..,,,.,,,.,,.,,,.,,
-#WOJKMHVWPPPEACUR76GT6MKERXEVMKNDTGW2WQKV674UR57YIBMAXQBKWZOJ7DHFCIGATQR5FOR6W
-#\\\|5ZJM6MMKZ3RY5ZLJ74RPUQMFNQSJHQQSRWYNSMHJ5UZKZOQ457W \ / AMOS7 \ YOURUM ::
-#\[7]6QPC4RKR4TZUBQO42DVLOPL455HKHAKVFEBHNKH6BVP2HAUNNQBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,.,,.,.,...,...,,..,,,.,..,,,,,,..,,...,...,.,.,,..,.,.,.,,,.,.,
+#L4Q4RA5A2ERJPJQBQL3E2JZO7CGEYAA2ZH4ZRJVXVFBDHV4RYBQHL7OE7YU6TRSDO6CEC2HHL747S
+#\\\|KM7HH56KDXHP222NIYBEHDEYUX6OJ6RXXIRWWBY6CW32EUDB4DO \ / AMOS7 \ YOURUM ::
+#\[7]IFJ4PQUIOOIRGLXUMAOO5A34BBB5EI6UBQE26I5HFA4CHMZH5MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

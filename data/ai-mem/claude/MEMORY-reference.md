@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [cloud-sessions-first-run](reference-cloud-sessions-first-run.md) — claude --cloud needs a terminal [ script ], agents \ logs see only local sessions, a session must prove its push path first [ remote w/ write access, real history, empty dev/<topic> pushed ] ; results only as a pushed branch
 - [usage-pools-fast-mode](reference-usage-pools-fast-mode.md) — fast mode uses the normal plan limits, only Fable is billed via usage credits ; fast \ k2.7-fast = spend a closing window, never a default ; cloud effort low on purpose
 - [pre-rewrite-backups-archive](reference-pre-rewrite-backups-archive.md) — 2026-10-14 : 9 old ../p7.bak.* copies archived [ bundle + stashes as refs/saved-stash/NN + loose-file tar ] in /mnt/ext-xfs-data/repository/pre-rewrite-backups/ ; reviewed, nothing left to import ; restore into a scratch repo only, never push [ old ids, llm emails ]
 - [zenki-status-command](reference-zenki-status-command.md) — `p7c v7-zenki.list zenki` = status of all zenki ; there is no v7-zenki.status [ a poll loop on it spammed the console 2026-10-11 ]
@@ -109,8 +110,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 
-#,,,.,...,,..,.,.,,.,,,,.,.,,,..,,.,.,,,.,..,,..,,...,...,,.,,,..,,.,,,,,,,,.,
-#2C5ONOGHX3W5WRTZPB67T6H62K6M52QBAHOZO5EFIBF7W7DKUHG2VDAD64A3HJV6YI6SL45BVU7AO
-#\\\|3QW64CASGBOFXGG75T7QNZIG5X3XMFQRQVULEKN5ISILR5VY5SQ \ / AMOS7 \ YOURUM ::
-#\[7]HS5N2PIK5HQKVECFDYJH2QWBS654RTGZ4O7JAS7PJ2ZDGK2ADICQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,.,...,,..,.,,,,,,,,.,,.,,,,..,..,,...,...,,..,...,.,.,...,,,.,
+#7GRK3SVFB2SKCUFTWM3TE466BIL4WACM2G7YQU7Z3SJ3FST7XZRLA72NRPL2Q3CHC2JADDXOZHFUY
+#\\\|ZAPJWKVY7E33JWJ5H4W56WOYTKU6B5Z7LT7LFFXOJCIVF6RNSC2 \ / AMOS7 \ YOURUM ::
+#\[7]XN4NAZJ4BZINKYOXKWFNYRO7WLHIL5LI2T4GC4KJYE7ZIGJLPQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

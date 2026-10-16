@@ -4739,9 +4739,19 @@ sub tool_claude_cloud_dispatch {
         'you are working in a cloud clone of the protocol-7 '
         . 'repository [ github nailara-technologies/protocol-7 ].',
         "start from branch '$branch' at commit '$sha'.",
+        'BEFORE any work, prove the push path [ a session once worked '
+        . 'on a snapshot without a remote and could not deliver ] :',
+        '1. `git remote -v` : without a remote that has write '
+        . 'access, attach the github repository with write access first.',
+        "2. fetch '$branch' and confirm commit '$sha' is in the history -- "
+        . 'on a single snapshot commit without history, stop and report.',
+        "3. create the branch 'dev/<topic>' from '$sha' and push it right "
+        . 'away, still empty -- only then start the task.',
         'read CLAUDE.md first and follow its conventions.',
-        'note: do not merge to the default branch.',
-        'finish with a pushed branch plus a summary of what changed.', '',
+        "note: push only to 'dev/<topic>', never to '$branch' ; do not "
+        . 'merge to the default branch.',
+        'finish with the pushed dev branch plus a summary of what changed.',
+        '',
         'task :',
         $prompt;
 
@@ -5113,7 +5123,7 @@ sub tool_claude_cloud_status {
               'cloud sessions are NOT visible to the local readers [ `claude '
             . 'agents` / `claude logs` only know LOCAL background '
             . 'sessions — querying them for a cloud id just yields the '
-            . 'misleading "no session matched" reply ] : skipping both.',
+            . 'misleading "no session matched" reply ] : skipping ' . 'both.',
             "follow the session live : https://claude.ai/code/$session_id",
             "take it over interactively : claude --teleport $session_id "
             . '[ needs a clean tree + a real terminal — a manual step ]',
@@ -5679,8 +5689,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,.,,,,.,,,,.,..,,,,,,...,,.,,,.,,,.,,,,.,..,,...,...,...,..,,,..,..,,.,,,
-#7PBNBJBLJCCCZVBQHH63SNPCYXIEY7MFH6NR2VKPAVZ2PUHC7G3KVQZBGZDRPETJFIQJKEEM4SZU4
-#\\\|SW3SSJCX3ZQC6FO5DC2OJHN3PSUGGAVYXXPOZK3KN7ITNFGHESY \ / AMOS7 \ YOURUM ::
-#\[7]OYAMR2PRI3C6NG3E2F2BY5H5Z7CDV2QTANMMFDXHXFHQSMSGCGCI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,.,,..,,,.,,,..,.,.,,,,,,,.,,,,,..,,...,...,.,.,,,,,,,.,,..,,..,
+#LUEPF2WNWGEJVZ57ONHPF5PZJ4BK2XOTUPMJDQU6TU5H5O2HETBKA45C3WUVHLBTQAGQLO6KVRH2I
+#\\\|PMFDUB2BF4QBJ2SHPQJMNA42VPODKFF2WUSVYMDZGFMLKFNED4W \ / AMOS7 \ YOURUM ::
+#\[7]HY4T3SYOHLP55CWUE5VMROM3T6L3SBOAEAIJUWTKJXP2TNWE3KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
