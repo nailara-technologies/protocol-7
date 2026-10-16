@@ -112,6 +112,20 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
   6. p7-deps style overhaul as it becomes central -- read bin/todo,
      bin/format-code, bin/amos-chksum first [ user's references ],
      derive the shared look into the frame module.
+     study done 2026-10-16 [ kimi, read-only : palette meanings, the ':'
+     grammar, 13 p7-deps departures, a helper proposal for
+     AMOS7::TERM::Frame -- frame_section_header, frame_title_banner,
+     frame_status_row, frame_kv_row, frame_result_box, frame_error_line \
+     warn_line, frame_option_list, frame_help_block, frame_color_enabled
+     [ -t STDOUT + NO_COLOR ] ; frame_rule_line \ colorize_content \ bar
+     have no callers ]. DECIDED [ user ] :
+     1. titles TRUE blue [ p7_fg_0004 ] ; green only for ok \ success.
+     2. main title ' .: main title :. ' ; a section title continuing a
+        ':' \ '::' column on the left : ':::[ section title ]'.
+     3. errors in the format-code form [ ':: < tool > : message' ] with
+        the AMOS7 exit codes [ '<{NC}>', 0110 ] -- or an improvement.
+     4. references : bin/todo, plus bin/amos-chksum or bin/format-code
+        [ = bin/ptd ] -- adopt format-code's progress bar style.
   7. [ user, 2026-10-16 ] a zenka builds DEBIAN PACKAGES -- for
      environments \ appliances that deploy nothing else [ the user hit
      this before ]. home : the build zenka's recipe registry [
@@ -156,8 +170,8 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
 - README 2026-10-16 : auto-install, keys + vault sections added [ commit
   pending at writing ].
 
-#,,.,,,,.,,..,,,.,,.,,,,.,.,,,,,,,...,.,.,..,,..,,...,...,.,.,...,...,,.,,..,,
-#D3A7CXXECQIUH7N3UU7U7RS7SPO3OBKU5YSQMUGHMX3CKFIM4FFXF4G6AQ6GXPIGLEWXX4QAVC42M
-#\\\|5MPBVFYRQ7WZIDBY6FPJPBF3MY5S2R6PL4LMULRLK37YTKPNJ34 \ / AMOS7 \ YOURUM ::
-#\[7]GP4KUWNY7JAYLL7S4N4AMYTZ5ICOBXZ7EF57R7SPFNJHSARSU2DY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,.,.,.,,..,...,.,,,,,.,.,.,..,,..,,...,...,..,,,,.,,,.,,,.,,,.,
+#2RRJDR27JJESNUOKRNMLDPDHW3N6DYXE3ZDFGHQEWESHY64KBHPPC5FBGOUPGSIS3XCHKLPDCWVIK
+#\\\|YDRCXJNTUSR7PHHA2BIDQYOFOVLWMEWQVUJEBFMIEW73QDO7B4J \ / AMOS7 \ YOURUM ::
+#\[7]4WPKBGWM4GCWIDHEVBTCYWTC6WRAO3KDRVCATSAKV6ZVH4UPGCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

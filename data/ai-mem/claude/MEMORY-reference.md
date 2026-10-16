@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [usage-pools-fast-mode](reference-usage-pools-fast-mode.md) — fast mode uses the normal plan limits, only Fable is billed via usage credits ; fast \ k2.7-fast = spend a closing window, never a default ; cloud effort low on purpose
 - [pre-rewrite-backups-archive](reference-pre-rewrite-backups-archive.md) — 2026-10-14 : 9 old ../p7.bak.* copies archived [ bundle + stashes as refs/saved-stash/NN + loose-file tar ] in /mnt/ext-xfs-data/repository/pre-rewrite-backups/ ; reviewed, nothing left to import ; restore into a scratch repo only, never push [ old ids, llm emails ]
 - [zenki-status-command](reference-zenki-status-command.md) — `p7c v7-zenki.list zenki` = status of all zenki ; there is no v7-zenki.status [ a poll loop on it spammed the console 2026-10-11 ]
 - [strm-size-write-cap-stall](reference-strm-size-write-cap-stall.md) — `base.handler.write`'s 64-syswrite-per-call cap had an unhandled third exit (cap reached, every write succeeded, no EAGAIN) that left the watcher re-armed-but-scheduled-nowhere, silently stranding remaining buffered output forever; fixed 2026-09-14 to fall through to the existing EAGAIN idle-restart rescue instead. Root cause of a verbosity-dependent nshell STRM-SIZE stall (fast/quiet client never hit real EAGAIN, always hit the cap). Also has proven Event-1.28 C-source facts: `Event::var` write-detection is reliable regardless of mutation method, `->again` on a non-timer watcher is a no-op equivalent to `->start`, and `->now`'s dispatch is priority-dependent/not guaranteed immediate — don't re-derive these from scratch next time this area comes up
@@ -108,8 +109,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 
-#,,..,,.,,,,.,..,,,,.,...,,..,.,,,,,.,.,.,,,.,..,,...,...,...,...,,.,,.,.,,.,,
-#7WOYIB5CYEJFIR46TZ5Q2SFAT6PG4WYBTG46KBAIS4ATAJCS5HSPIT3NXVESJWHNL7VLZXJOQOZTO
-#\\\|2AAZ7KJT2OHHD2C5Z62MENKP7HYNIBZTN42JZTWCMNFGJO3JEF6 \ / AMOS7 \ YOURUM ::
-#\[7]EDXYC34IO6GQ54ZAMO5CAXR6HKO3U5IXAWJFCSJ3EZGZ6WVGKWAQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,,.,,,,.,.,,,..,,.,.,,,.,..,,..,,...,...,,.,,,..,,.,,,,,,,,.,
+#2C5ONOGHX3W5WRTZPB67T6H62K6M52QBAHOZO5EFIBF7W7DKUHG2VDAD64A3HJV6YI6SL45BVU7AO
+#\\\|3QW64CASGBOFXGG75T7QNZIG5X3XMFQRQVULEKN5ISILR5VY5SQ \ / AMOS7 \ YOURUM ::
+#\[7]HS5N2PIK5HQKVECFDYJH2QWBS654RTGZ4O7JAS7PJ2ZDGK2ADICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
