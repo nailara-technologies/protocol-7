@@ -192,6 +192,27 @@ if ( $mode eq 'garbage' ) {
     }
     exit 0;
 }
+if ( @ARGV and $ARGV[0] eq '-p' ) {
+    ## tuning follow-up reply : the documented json shapes            ##
+    ## {ok, session_id, url} / {ok:false, session_id, error}          ##
+    if ( ( $ENV{'CLAUDE_STUB_MODE'} // '' ) eq 'followuperr' ) {
+        print JSON::PP->new->canonical->encode(
+            {   'ok'         => JSON::PP::false,
+                'session_id' => '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+                'error'      => 'simulated follow-up failure'
+            }
+        ), "\n";
+    } else {
+        print JSON::PP->new->canonical->encode(
+            {   'ok'         => JSON::PP::true,
+                'session_id' => '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+                'url' =>
+                    'https://claude.ai/code/3fa85f64-5717-4562-b3fc-2c963f66afa6'
+            }
+        ), "\n";
+    }
+    exit 0;
+}
 print "created claude cloud session\n";
 print "session id : 3fa85f64-5717-4562-b3fc-2c963f66afa6\n";
 print "open https://claude.ai/code/3fa85f64-5717-4562-b3fc-2c963f66afa6"
@@ -230,6 +251,13 @@ if ( $key =~ m{\A-c color\.ui=false log --oneline --no-color \S+\z} ) {
         exit 0;    ## empty : everything is on the remote ##
     }
     exec $ENV{'P7_REAL_GIT'}, @ARGV;    ## real @{u}..HEAD check ##
+}
+if ( $key eq '-c color.ui=false status --porcelain --untracked-files=no' ) {
+    if ( defined $ENV{'GIT_STUB_DIRTY'} ) {
+        print $ENV{'GIT_STUB_DIRTY'};    ## empty : clean tree ##
+        exit 0;
+    }
+    exec $ENV{'P7_REAL_GIT'}, @ARGV;    ## real dirty-tree check ##
 }
 exec $ENV{'P7_REAL_GIT'}, @ARGV;
 EOT
@@ -386,6 +414,29 @@ system( $real_git, '-C', $temp_repo, 'push', '-qu', 'origin', 'cloud-test' )
 system( $real_git, '-C', $temp_repo, 'commit', '-qam', 'local only' ) == 0
     or die $!;
 
+## second throwaway repo, fully pushed AND clean [ for the dirty-tree  ]  ##
+## refusal : an uncommitted tracked-file change is added before phase 9 ] ##
+my $temp_repo2 = tempdir( 'p7-cld-repo2-XXXX', TMPDIR => 1, CLEANUP => 1 );
+system( $real_git, '-C', $temp_repo2, 'init',   '-q' ) == 0 or die $!;
+system( $real_git, '-C', $temp_repo2, 'config', 'user.email', 't@example' );
+system( $real_git, '-C', $temp_repo2, 'config', 'user.name',  't' );
+{
+    open( my $fh, '>', "$temp_repo2/f" ) or die $!;
+    print {$fh} "x\n";
+    close $fh;
+}
+system( $real_git, '-C', $temp_repo2, 'add', 'f' ) == 0 or die $!;
+system( $real_git, '-C', $temp_repo2, 'commit', '-qm', 'init' ) == 0
+    or die $!;
+system( $real_git, '-C', $temp_repo2, 'branch', '-M', 'cloud-test2' ) == 0
+    or die $!;
+system( $real_git, '-C', $temp_repo2, 'remote', 'add', 'origin',
+    "$bare_remote/remote.git" ) == 0
+    or die $!;
+system( $real_git, '-C', $temp_repo2, 'push', '-qu', 'origin', 'cloud-test2' )
+    == 0
+    or die $!;
+
 ## start the scripted fake cube + wait for its socket ##
 $srv_pid = fork();
 die "fork failed" if not defined $srv_pid;
@@ -410,6 +461,7 @@ eval {
         $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
         $ENV{'GIT_STUB_SHA'}              = $fake_sha;
         $ENV{'GIT_STUB_UNPUSHED'}         = '0';
+        $ENV{'GIT_STUB_DIRTY'}            = '';
         $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
         $mcp_pid                          = spawn_server();
     }
@@ -586,6 +638,7 @@ eval {
         $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
         $ENV{'GIT_STUB_SHA'}              = $fake_sha;
         $ENV{'GIT_STUB_UNPUSHED'}         = '0';
+        $ENV{'GIT_STUB_DIRTY'}            = '';
         $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
         $mcp_pid                          = spawn_server();
     }
@@ -602,8 +655,8 @@ eval {
         index( $t, 'cloud say what? no id here, no url either' ) >= 0, $t );
     my @phase2_git = git_calls("$tmp_dir/git-argv.log");
     check(
-        'git identity + push check still ran [ 3 git calls ]',
-        @phase2_git == 3,
+        'git identity + push + dirty checks still ran [ 4 git calls ]',
+        @phase2_git == 4,
         join ' | ', map { join ' ', @$_ } @phase2_git
     );
 
@@ -705,6 +758,7 @@ eval {
         $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
         $ENV{'GIT_STUB_SHA'}              = $fake_sha;
         $ENV{'GIT_STUB_UNPUSHED'}         = '0';
+        $ENV{'GIT_STUB_DIRTY'}            = '';
         $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
         $mcp_pid                          = spawn_server();
     }
@@ -785,6 +839,7 @@ eval {
         $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
         $ENV{'GIT_STUB_SHA'}              = $fake_sha;
         $ENV{'GIT_STUB_UNPUSHED'}         = '0';
+        $ENV{'GIT_STUB_DIRTY'}            = '';
         $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
         $ENV{'PROTOCOL_7_MCP_CLOUD_POLL'} = '8';
         $mcp_pid                          = spawn_server();
@@ -835,6 +890,282 @@ eval {
         "err=$e text=$t"
     );
 
+    ## tuning requested but no id parsed -> skipped + exact send-later cmd ##
+    my $calls_before_skip = scalar stub_calls("$tmp_dir/claude-argv.log");
+    ( $t, $e ) = tool_call(
+        'claude_cloud_dispatch',
+        {   'prompt' => 'tuned silent task',
+            'effort' => 'low',
+            'model'  => 'sonnet',
+            'fast'   => 'true'
+        }
+    );
+    my ($cap6b) = $t =~ m{capture_file: (\S+)};
+    push @capture_files, $cap6b if defined $cap6b;
+    my ($pid6b) = $t =~ m{pid=(\d+)};
+    push @stub_pids, $pid6b if defined $pid6b and $pid6b > 1;
+    check(
+        'no id : tuning SKIPPED with the exact commands to send later',
+        !$e
+            && $t =~ m{status=starting}
+            && index( $t, 'session tuning SKIPPED' ) >= 0
+            && index(
+            $t,
+            'claude -p "/effort low" --cloud '
+                . '<session-id> --output-format json'
+            ) >= 0
+            && index(
+            $t,
+            'claude -p "/model sonnet" --cloud '
+                . '<session-id> --output-format json'
+            ) >= 0
+            && index( $t,
+            'claude -p "/fast" --cloud <session-id> --output-format json' )
+            >= 0,
+        "err=$e text=$t"
+    );
+    check(
+        'no id : no follow-up was sent [ only the dispatch ran ]',
+        scalar stub_calls("$tmp_dir/claude-argv.log")
+            == $calls_before_skip + 1,
+        scalar stub_calls("$tmp_dir/claude-argv.log") . ' claude calls'
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
+    ##=========================================================##
+    ## phase 7 : tuning follow-ups [ effort, model, fast ]       ##
+    ##=========================================================##
+    {
+        local %ENV = %ENV;
+        $ENV{'CLAUDE_STUB_MODE'}          = 'cloud';
+        $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
+        $ENV{'GIT_STUB_SHA'}              = $fake_sha;
+        $ENV{'GIT_STUB_UNPUSHED'}         = '0';
+        $ENV{'GIT_STUB_DIRTY'}            = '';
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $mcp_pid                          = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
+
+    my $expected_id = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+
+    ( $t, $e ) = tool_call(
+        'claude_cloud_dispatch',
+        {   'prompt' => 'tuned task',
+            'effort' => 'high',
+            'model'  => 'sonnet',
+            'fast'   => 'true'
+        }
+    );
+    my @fargv       = stub_calls("$tmp_dir/claude-argv.log");
+    my @expected_fu = (
+        [   '-p',              '/effort high',
+            '--cloud',         $expected_id,
+            '--output-format', 'json'
+        ],
+        [   '-p',              '/model sonnet',
+            '--cloud',         $expected_id,
+            '--output-format', 'json'
+        ],
+        [ '-p', '/fast', '--cloud', $expected_id, '--output-format', 'json' ],
+    );
+    check(
+        'tuning : dispatch + 3 follow-ups = 4 claude calls',
+        !$e && @fargv == 4,
+        scalar @fargv . ' calls'
+    );
+    check(
+        'tuning : follow-up argv exact list, order effort, model, fast',
+        (   @fargv == 4
+                and join( '|', @{ $fargv[1] } ) eq
+                join( '|', @{ $expected_fu[0] } )
+                and join( '|', @{ $fargv[2] } ) eq
+                join( '|', @{ $expected_fu[1] } )
+                and join( '|', @{ $fargv[3] } ) eq
+                join( '|', @{ $expected_fu[2] } )
+        ),
+        join ' ;; ',
+        map { join ' ', @$_ } @fargv
+    );
+    check(
+        'tuning : reply reports each follow-up ok',
+        !$e
+            && index( $t, 'follow-up /effort high : ok' ) >= 0
+            && index( $t, 'follow-up /model sonnet : ok' ) >= 0
+            && index( $t, 'follow-up /fast : ok' ) >= 0,
+        $t
+    );
+
+    ## fast only when true : effort alone sends exactly one follow-up ##
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'effort only', 'effort' => 'low' } );
+    my @fargv2    = stub_calls("$tmp_dir/claude-argv.log");
+    my @new_calls = @fargv2[ 4 .. $#fargv2 ];    ## added by this dispatch ##
+    my $fast_new
+        = grep { $_->[0] eq '-p' and $_->[1] eq '/fast' } @new_calls;
+    check(
+        'fast only when true : no /fast follow-up without fast=true',
+        !$e
+            && @fargv2 == 6
+            && @new_calls == 2
+            && $new_calls[1][1] eq '/effort low'
+            && $fast_new == 0,
+        join ' ;; ',
+        map { join ' ', @$_ } @new_calls
+    );
+
+    ## fast="false" must not toggle fast mode [ a '//' vs 'eq' precedence ##
+    ## slip once read any defined value as true ]                         ##
+    my $fast_before = grep { $_->[0] eq '-p' and $_->[1] eq '/fast' }
+        stub_calls("$tmp_dir/claude-argv.log");
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'fast false', 'effort' => 'low', 'fast' => 'false' } );
+    my $fast_after = grep { $_->[0] eq '-p' and $_->[1] eq '/fast' }
+        stub_calls("$tmp_dir/claude-argv.log");
+    check(
+        'fast="false" : no /fast follow-up',
+        !$e && $fast_after == $fast_before,
+        "before $fast_before after $fast_after"
+    );
+
+    ## nothing sent when no tuning param is given ##
+    my $calls_before_plain = scalar stub_calls("$tmp_dir/claude-argv.log");
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch', { 'prompt' => 'plain' } );
+    my @fargv3 = stub_calls("$tmp_dir/claude-argv.log");
+    check(
+        'no tuning params : no follow-up sent, account default stays',
+        !$e
+            && @fargv3 == $calls_before_plain + 1    ## the creation only ##
+            && index( $t, 'follow-up' ) < 0,
+        scalar @fargv3 . ' calls'
+    );
+
+    ## invalid effort / model refused before anything runs ##
+    my $claude_before_invalid = scalar stub_calls("$tmp_dir/claude-argv.log");
+    my $git_before_invalid    = scalar git_calls("$tmp_dir/git-argv.log");
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'x', 'effort' => 'sideways' } );
+    check(
+        'invalid effort refused before anything runs',
+        $e
+            && index( $t, "invalid effort 'sideways'" ) >= 0
+            && scalar stub_calls("$tmp_dir/claude-argv.log")
+            == $claude_before_invalid
+            && scalar git_calls("$tmp_dir/git-argv.log")
+            == $git_before_invalid,
+        "err=$e text=$t"
+    );
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'x', 'model' => 'x; rm -rf' } );
+    check(
+        'invalid model refused [ shell-shaped name never dispatched ]',
+        $e
+            && index( $t, 'invalid model' ) >= 0
+            && scalar stub_calls("$tmp_dir/claude-argv.log")
+            == $claude_before_invalid
+            && scalar git_calls("$tmp_dir/git-argv.log")
+            == $git_before_invalid,
+        "err=$e text=$t"
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
+    ##=========================================================##
+    ## phase 7b : follow-up json error reported                  ##
+    ##=========================================================##
+    {
+        local %ENV = %ENV;
+        $ENV{'CLAUDE_STUB_MODE'}          = 'followuperr';
+        $ENV{'GIT_STUB_BRANCH'}           = 'cloud-base';
+        $ENV{'GIT_STUB_SHA'}              = $fake_sha;
+        $ENV{'GIT_STUB_UNPUSHED'}         = '0';
+        $ENV{'GIT_STUB_DIRTY'}            = '';
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $root_path;
+        $mcp_pid                          = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
+
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'x', 'effort' => 'low' } );
+    check(
+        'follow-up json error reported [ session itself still fine ]',
+        !$e && $t =~ m{status=started} && index(
+            $t,
+            'follow-up /effort low : error '
+                . '[ simulated follow-up failure ]'
+        ) >= 0,
+        "err=$e text=$t"
+    );
+
+    kill_server($mcp_pid);
+    $mcp_pid = undef;
+
+    ##=========================================================##
+    ## phase 8 : dirty-tree refusal [ real repo, delegation ]    ##
+    ##=========================================================##
+    {
+        open( my $fh, '>>', "$temp_repo2/f" ) or die $!;
+        print {$fh} "uncommitted change\n";
+        close $fh;
+    }
+    {
+        local %ENV = %ENV;
+        $ENV{'CLAUDE_STUB_MODE'} = 'cloud';
+        delete $ENV{'GIT_STUB_BRANCH'};
+        delete $ENV{'GIT_STUB_SHA'};
+        delete $ENV{'GIT_STUB_UNPUSHED'};
+        delete $ENV{'GIT_STUB_DIRTY'};
+        $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} = $temp_repo2;
+        $mcp_pid = spawn_server();
+    }
+    unlink "$tmp_dir/claude-argv.log", "$tmp_dir/git-argv.log";
+
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch', { 'prompt' => 'dirty work' } );
+    check(
+        'dirty tree : refused with uncommitted-changes error',
+        $e
+            && index( $t, 'uncommitted changes in tracked files' ) >= 0
+            && index( $t, 'commit or stash them first' ) >= 0,
+        "err=$e text=$t"
+    );
+    check(
+        'dirty tree : claude was never invoked',
+        scalar stub_calls("$tmp_dir/claude-argv.log") == 0,
+        scalar stub_calls("$tmp_dir/claude-argv.log") . ' claude calls'
+    );
+
+    ## the string "false" is no permission [ a '//' vs 'eq' precedence slip ##
+    ## once read any defined value as true ]                                ##
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'dirty work', 'allow_dirty' => 'false' } );
+    check(
+        'allow_dirty="false" : still refused',
+        $e && index( $t, 'uncommitted changes in tracked files' ) >= 0,
+        "err=$e text=$t"
+    );
+
+    ( $t, $e )
+        = tool_call( 'claude_cloud_dispatch',
+        { 'prompt' => 'dirty work', 'allow_dirty' => 'true' } );
+    check(
+        'allow_dirty=true : passes with a warning',
+        !$e
+            && $t =~ m{status=started}
+            && index( $t, 'warning: allow_dirty=true' ) >= 0,
+        "err=$e text=$t"
+    );
+
     kill_server($mcp_pid);
     $mcp_pid = undef;
 };
@@ -882,11 +1213,14 @@ exit( $fail ? 1 : 0 );
 
 ## the mutation runs [ see task ] drive this same file with P7_MCP_SERVER_PL
 ## pointing at a mutated server copy and expect the targeted checks to FAIL :
-## 1. command built as a shell string -> 'injection sentinel' FAILs
-## 2. push-first check dropped        -> 'push first' checks FAIL
+## 1. command built as a shell string  -> 'injection sentinel' FAILs
+## 2. push-first check dropped         -> 'push first' checks FAIL
+## 3. poll cap replaced by wait-exit   -> 'returns early / still alive' FAIL
+## 4. /fast always sent                -> 'fast only when true' FAILs
+## 5. dirty-tree check dropped         -> 'dirty tree' checks FAIL
 
-#,,,.,.,.,,,,,.,,,.,,,.,,,...,,,,,,,.,...,.,.,..,,...,...,.,,,.,.,..,,,,,,,,,,
-#VH4TDWWB7TBDGMN4ZA4HGHXPAHP2T6FAMJEYJJ2YTKHCLHIO756IGFI573JQ7XUEU3SB5ULUDF7PU
-#\\\|GISITQO5TZLZRXSJQL6VJGMBS2Q5OK7U4XDNUMZI32G5GHVEC66 \ / AMOS7 \ YOURUM ::
-#\[7]3GQNBTUVMDR5P37ZISKXNSYLXBV5KY3IHYYAWESVSZ5JGX2UXWDI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,,,...,..,,,,.,..,,,,,,...,,.,,..,,...,...,...,..,,,,.,..,,..,,
+#IACE5CDTW7HC2MIL7WQJK2DBFD245JBPZIQE6VUOSFIQPE2H7XGQAPEFTLPK4OOAVK5IJ3FJLQ6ZG
+#\\\|6B4JQWOT3WT2WHXD3IBRMAF7F62RCTNOZY3WZFJDZZADKKDM43O \ / AMOS7 \ YOURUM ::
+#\[7]USJXEPQIKO4ALW2ZBBRRN2WU5IJKPAUSRNMP3XUZD3PS5CS4DQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

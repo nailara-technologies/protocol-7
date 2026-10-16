@@ -402,9 +402,27 @@ my @external_tools = (
             . 'output format is not guaranteed — when parsing finds '
             . 'nothing, the raw output is returned with an explicit '
             . 'not-parsed note, never a failure ], plus the raw output '
-            . 'itself. use claude_cloud_status(session_id=..., '
-            . 'capture_file=...) to read the session / the capture file '
-            . 'back afterwards.',
+            . 'itself. optional per-session tuning : after the session '
+            . 'id is parsed, each requested setting is sent as its own '
+            . 'follow-up message [ `claude -p "/<cmd>" --cloud '
+            . '<session-id> --output-format json` — queues one message '
+            . 'into the running session, exits right away, 60 s alarm ; '
+            . 'effort low|medium|high|xhigh|max and model '
+            . '<alias-or-name, ^[A-Za-z0-9._-]+$> are SAFE — plain '
+            . 'target values ; fast TOGGLES fast mode, its current state '
+            . 'cannot be read first, so it is NEVER a default — faster '
+            . 'output at higher cost, the same trade-off as kimi '
+            . 'k2.7-fast ]. nothing is sent when no tuning param is '
+            . 'given [ the account default stays — the owner keeps low '
+            . 'on purpose to save credits ] ; when the id was not parsed '
+            . 'yet [ status=starting ] the follow-ups are SKIPPED and '
+            . 'the exact commands to send later are printed. also '
+            . 'refuses when tracked files have uncommitted changes [ '
+            . 'without the Claude GitHub App on the repo, claude --cloud '
+            . 'uploads the local tree including them ] unless '
+            . 'allow_dirty=true [ warned in the reply ]. use '
+            . 'claude_cloud_status(session_id=..., capture_file=...) to '
+            . 'read the session / the capture file back afterwards.',
         'params' => [
             [ 'prompt', 'the task description for the cloud session', 1 ],
             [   'branch',
@@ -416,6 +434,30 @@ my @external_tools = (
             [   'environment',
                 'self-hosted environment id for the cloud '
                     . 'session [ passed as --environment, ccpool_... ]',
+                0
+            ],
+            [   'effort',
+                'effort level : low|medium|high|xhigh|max [ sent as its '
+                    . 'own /effort follow-up once the session id is known ]',
+                0
+            ],
+            [   'model',
+                'model alias or full name, ^[A-Za-z0-9._-]+$ [ sent as its '
+                    . 'own /model follow-up once the session id is known ]',
+                0
+            ],
+            [   'fast',
+                'toggle fast mode ON [ boolean, default false — /fast '
+                    . 'toggles and the current state cannot be read, so this '
+                    . 'is only sent when explicitly true ; faster output at '
+                    . 'higher cost, the same trade-off as kimi k2.7-fast ]',
+                0
+            ],
+            [   'allow_dirty',
+                'allow dispatch with uncommitted changes in tracked files [ '
+                    . 'default : refused — without the Claude GitHub App, '
+                    . 'claude --cloud uploads the local tree including them '
+                    . '; warned in the reply ]',
                 0
             ],
         ],
@@ -4507,6 +4549,37 @@ sub tool_claude_cloud_dispatch {
     return send_tool_result( $id, 'prompt is required', 1 )
         if not length $prompt;
 
+    ## tuning param validation FIRST — before any git call or dispatch :   ##
+    ## effort is a closed enum, model is restricted to ^[A-Za-z0-9._-]+$ [ ##
+    ## both end up inside slash commands sent to a remote session, so      ##
+    ## anything outside those shapes is refused here rather than shipped ] ##
+    my %valid_effort = map { $ARG => 1 } qw| low medium high xhigh max |;
+    my $effort       = lc( $args->{'effort'} // '' );
+    return send_tool_result( $id,
+        "invalid effort '$effort' : use low|medium|high|xhigh|max", 1 )
+        if length $effort and not $valid_effort{$effort};
+
+    my $model = $args->{'model'} // '';
+    return send_tool_result( $id,
+        "invalid model '$model' : must match ^[A-Za-z0-9._-]+\$", 1 )
+        if length $model and $model !~ m{\A[A-Za-z0-9._-]+\z};
+
+    my $fast
+        = (
+        lc( $args->{'fast'} // '' ) eq 'true'
+            or ( $args->{'fast'} // '' ) eq '1'
+        )
+        ? 1
+        : 0;
+    my $allow_dirty
+        = (
+        lc( $args->{'allow_dirty'} // '' ) eq 'true'
+            or ( $args->{'allow_dirty'} // '' ) eq '1'
+        )
+        ? 1
+        : 0;
+    my @dirty_warning;    ## populated by the dirty check, printed late ##
+
     ## repo the cloud session clones : this server's repo unless told       ##
     ## otherwise [ the env override exists so tests can point the tool at a ##
     ## throwaway git repo ]                                                 ##
@@ -4577,6 +4650,35 @@ sub tool_claude_cloud_dispatch {
             . "has not seen — push them before dispatching :\n$unpushed",
         1
     ) if length $unpushed;
+
+    ## dirty-tree refusal : without the Claude GitHub App on the repo,      ##
+    ## claude --cloud does not clone — it UPLOADS the local tree as a       ##
+    ## bundle, uncommitted tracked changes included, so refuse by default ; ##
+    ## allow_dirty=true is the explicit opt-in [ warned in the reply ]      ##
+    my ( $dirty, $d_err ) = _cloud_run_list(
+        [qw| git -c color.ui=false status --porcelain --untracked-files=no |],
+        30, $repo
+    );
+    return send_tool_result(
+        $id,
+        'uncommitted changes in tracked files : commit or stash them '
+            . 'first [ without the Claude GitHub App on the repo, '
+            . "claude --cloud uploads the local tree including them ]"
+            . (
+            defined $d_err
+            ? " [ cleanliness check itself failed: $d_err — refusing "
+                . 'rather than risk leaking uncommitted work ]'
+            : "\n$dirty"
+            ),
+        1
+        )
+        if ( not $allow_dirty and length $dirty )
+        or defined $d_err;
+    push @dirty_warning,
+        'warning: allow_dirty=true with uncommitted changes in tracked files '
+        . '— without the Claude GitHub App, claude --cloud can upload '
+        . 'the local tree including them'
+        if $allow_dirty and length $dirty;
 
     ## fixed preamble + the untrusted task : the WHOLE text is the cloud ##
     ## session description — one argv element, list-form exec keeps it   ##
@@ -4673,6 +4775,67 @@ sub tool_claude_cloud_dispatch {
         ? "url: $url"
         : 'url: NOT parsed from output [ tolerant regexes, '
         . 'exact format not guaranteed — see raw output below ]';
+
+    ## per-session tuning follow-ups : each requested setting is its own    ##
+    ## message [ `claude -p "/<cmd>" --cloud <id> --output-format json` —   ##
+    ## documented to queue one message into the running session and exit ;  ##
+    ## json shapes {ok,...} / {ok:false, session_id, error} ]. only when an ##
+    ## id was parsed : a still-starting session gets the exact commands to  ##
+    ## send later instead. order : effort, model, fast                      ##
+    ## [ fast last because it toggles — irreversible blind flip ]           ##
+    my @tuning_report;
+    if ( not length $session_id
+        and ( length $effort or length $model or $fast ) ) {
+        my @later;
+        push @later, "/effort $effort" if length $effort;
+        push @later, "/model $model"   if length $model;
+        push @later, "/fast"           if $fast;
+        push @lines, '',
+            'session tuning SKIPPED : no session id '
+            . 'parsed yet — the session is still starting.',
+            'send later, one message per command, in this order :', map {
+            sprintf 'claude -p "%s" --cloud '
+                . '<session-id> --output-format json', $_
+            } @later;
+    } elsif ( length $session_id
+        and ( length $effort or length $model or $fast ) ) {
+        my @followups;
+        push @followups, "/effort $effort" if length $effort;
+        push @followups, "/model $model"   if length $model;
+        push @followups, "/fast"           if $fast;
+        for my $slash (@followups) {
+            my ( $out, $f_err ) = _cloud_run_list(
+                [   'claude',    '-p',
+                    $slash,      '--cloud',
+                    $session_id, '--output-format',
+                    'json'
+                ],
+                60, $repo
+            );
+            my $data
+                = ( not defined $f_err and length $out )
+                ? eval { $json->decode($out) }
+                : undef;
+            my $verdict;
+            if ( defined $f_err ) {
+                $verdict = "error [ $f_err ]";
+            } elsif ( ref $data eq 'HASH' and defined $data->{'ok'} ) {
+                $verdict
+                    = $data->{'ok'}
+                    ? 'ok'
+                    : 'error [ '
+                    . ( $data->{'error'} // 'no error detail' ) . ' ]';
+            } else {
+                $verdict = "unparseable reply [ $out ]";
+            }
+            push @tuning_report,
+                sprintf( 'follow-up %s : %s', $slash, $verdict );
+            log_msg( '[claude_cloud] follow-up %s : %s', $slash, $verdict );
+        }
+        push @lines, '', 'session tuning follow-ups :', @tuning_report;
+    }
+
+    push @lines, @dirty_warning if @dirty_warning;
     push @lines, '', 'raw output :', $raw;
 
     ## error only when the CLI itself reported an Error and nothing ##
@@ -5246,8 +5409,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,..,...,,,,,,..,...,,.,,,..,,,.,.,.,..,,..,,...,..,,.,,,,,.,.,.,..,,...,
-#VGIGUFA4JEXDJ3CSJOF46QWFPEJI476U6N7XYAKGTSKCT7XFTBHLSGHRRGGA5JCJUZBJVGY2PNJ3Q
-#\\\|CQGW6TNCQELAYHESGUHWXYHS7XDUFO2N2C2WPG6F54LQ3MXA3RL \ / AMOS7 \ YOURUM ::
-#\[7]76R2APCWJFAJVSXOPPQAXET3PD7WMD5ME6O2GYKEDBUWSANTRGCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,,.,...,,.,,.,.,...,..,,,,.,..,,...,...,.,.,..,,,.,,,..,...,
+#DRJ7B3D6B6ZKNOX7KTO7TPXTVPNEKQPXHD3FYFQ2HB6GOSS6ESZ4DZ524NL43OTTTOXXJBEWWPER6
+#\\\|6KMHOU5XNLT2EZGK42ZIS5HBKGV2JNLIO4KLQP7ZJ5WJO66ILP3 \ / AMOS7 \ YOURUM ::
+#\[7]QQIHSOMCW6KHSU24RFI5DHOM4YWCD7GZU66R5NBIMKNQ6XDWPYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
