@@ -260,6 +260,9 @@ profiles:
   ai-models:
     description: "AI/LLM model support [local and remote backends]"
     apt:
+      - bsdutils               # script : a pseudo-terminal for `claude --cloud`
+                                # [ bin/mcp-server-p7 claude_cloud_dispatch --
+                                # the cli refuses --cloud without a terminal ]
       - libanyevent-http-perl
       - libanyevent-perl
       - python3.14-venv        # needed to create a python3.14 venv matching

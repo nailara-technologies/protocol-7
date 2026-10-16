@@ -4698,6 +4698,22 @@ sub tool_claude_cloud_dispatch {
     push @cmd, '--environment', $args->{'environment'}
         if length( $args->{'environment'} // '' );
 
+    ## claude --cloud refuses without a terminal [ '--cloud requires an    ##
+    ## interactive terminal' -- piped stdout counts as non-interactive ] : ##
+    ## run it inside a pseudo-terminal via script                          ##
+    ## [ bsdutils, debian priority required ]. script -c takes ONE shell   ##
+    ## string, so every argv element is single-quoted, a quote inside      ##
+    ## becomes '\'' -- the task text never reaches the shell unquoted      ##
+    my ($script_bin) = grep { -f and -x }
+        map {"$_/script"} grep {length} split m{:}, $ENV{'PATH'} // '';
+    if ( defined $script_bin ) {
+        my $shell_cmd = join q{ }, map {
+            ( my $arg = $_ ) =~ s{'}{'\\''}g;
+            "'$arg'"
+        } @cmd;
+        @cmd = ( $script_bin, qw| -q -e -c |, $shell_cmd, qw| /dev/null | );
+    }
+
     log_msg( '[claude_cloud] dispatch : branch=%s sha=%s repo=%s',
         $branch, $sha, $repo );
 
@@ -4707,7 +4723,9 @@ sub tool_claude_cloud_dispatch {
     ## running after this tool returns, so this single-threaded server is   ##
     ## not held hostage for the whole cloud run [ the old qx()-until-EOF    ##
     ## shape would have blocked every other tool call for up to 30 minutes  ##
-    ## and then killed the cloud client at the alarm ]                      ##
+    ## and then killed the cloud client at the alarm ]  script runs its -c  ##
+    ## string with $SHELL : a plain posix sh                                ##
+    local $ENV{'SHELL'} = '/bin/sh';
     my $run = _cloud_fork_run( \@cmd, $repo );
     return send_tool_result( $id, $run->{'error'}, 1 )
         if length( $run->{'error'} // '' );
@@ -4744,7 +4762,15 @@ sub tool_claude_cloud_dispatch {
             'status=%s tool=claude_cloud_dispatch pid=%d',
             $status, $gpid
         ),
-        'cloud session dispatched via `claude --cloud <task>` '
+        (           $status eq 'finished_no_id'
+                and $raw =~ m{requires an interactive terminal}
+            )
+        ? 'claude refused BEFORE creating a session [ no '
+            . 'terminal ] — nothing started, nothing billed.'
+        : $status eq 'finished_no_id'
+        ? 'claude exited without a session id — check claude.ai/code before '
+            . 'any retry [ a session may exist ; never retry blindly ].'
+        : 'cloud session dispatched via `claude --cloud <task>` '
             . '— this STARTED A BILLED claude.ai cloud session.',
         "branch: $branch",
         "commit: $sha",
@@ -4836,7 +4862,7 @@ sub tool_claude_cloud_dispatch {
     }
 
     push @lines, @dirty_warning if @dirty_warning;
-    push @lines, '', 'raw output :', $raw;
+    push @lines, '', 'raw output :', _cloud_plain_text($raw);
 
     ## error only when the CLI itself reported an Error and nothing ##
     ## parseable came out — a bare parse miss                       ##
@@ -4930,9 +4956,27 @@ sub _slurp_raw {
 ## [ and unobserved without a real billed run ], so this accepts the       ##
 ## documented url shape, the documented session_/cse_ id shapes, a plain   ##
 ## uuid, and a loose 'session id : X' line — and happily returns nothing   ##
+## terminal output -> plain text : csi \ osc escape sequences and carriage ##
+## returns go [ claude runs inside a pseudo-terminal via script ]          ##
+sub _cloud_plain_text {
+    my ($text) = @_;
+    $text //= q{};
+    ## osc [ titles, links ] ##
+    $text =~ s{\e\][^\a\e]*(?:\a|\e\\)}{}g;
+    ## csi [ colour, cursor ] ##
+    $text =~ s{\e\[[0-9;?<>=]*[ -/]*[\x40-\x7e]}{}g;
+    ## charset selection      ##
+    $text =~ s{\e[()][0-9A-Za-z]}{}g;
+    ## keypad \ cursor save   ##
+    $text =~ s{\e[=>78]}{}g;
+    $text =~ s{\r\n?}{\n}g;
+    return $text;
+}
+
 sub _cloud_parse_ids {
-    my ($raw)      = @_;
-    my ($url)      = $raw =~ m{(https?://claude\.ai/code/[^\s"'<>)]*)}i;
+    my ($raw) = @_;
+    $raw = _cloud_plain_text($raw);    ## a pty adds colour \ cursor codes ##
+    my ($url) = $raw =~ m{(https?://claude\.ai/code/[^\s"'<>)]*)}i;
     my $session_id = '';
     if ( defined $url and $url =~ m{/code/([A-Za-z0-9._-]+)} ) {
         $session_id = $1;
@@ -4980,7 +5024,7 @@ sub tool_claude_cloud_status {
         if ( not -f $capture_file ) {
             push @lines, "capture_file: NOT found [ $capture_file ]";
         } else {
-            my $raw = _slurp_raw($capture_file);
+            my $raw = _cloud_plain_text( _slurp_raw($capture_file) );
             my ( $url, $parsed_id ) = _cloud_parse_ids($raw);
             my @all   = split m{\n}, $raw, -1;
             my $start = @all > $max_lines ? @all - $max_lines : 0;
@@ -5409,8 +5453,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,,,,,,,.,.,.,,,.,...,,.,,.,.,...,..,,,,.,..,,...,...,.,.,..,,,.,,,..,...,
-#DRJ7B3D6B6ZKNOX7KTO7TPXTVPNEKQPXHD3FYFQ2HB6GOSS6ESZ4DZ524NL43OTTTOXXJBEWWPER6
-#\\\|6KMHOU5XNLT2EZGK42ZIS5HBKGV2JNLIO4KLQP7ZJ5WJO66ILP3 \ / AMOS7 \ YOURUM ::
-#\[7]QQIHSOMCW6KHSU24RFI5DHOM4YWCD7GZU66R5NBIMKNQ6XDWPYAY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,...,.,.,,..,...,,..,...,,,,,.,.,..,,...,...,.,,,...,,..,..,,.,.,
+#F76T2SZDBAL3K5C4RYJDWYR6XUFKB2YTVBDUIPJVG26CGLDWWVE7YTJAZZI4O36VQCM7T46FTZKLK
+#\\\|JV3XZ66C2TMBLBM37XHIBXBTCBCSMMHAN3MWD4V74ANTBTVTBAQ \ / AMOS7 \ YOURUM ::
+#\[7]HUI6RHFWTTK46SSVATIFBQ6MNUKR2X6L7AE6SYI2GCHTJ5H5HCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
