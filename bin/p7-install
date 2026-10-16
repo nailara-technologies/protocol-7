@@ -413,8 +413,8 @@ sub p7_deps_step {
     local $ENV{'P7_DEPS_SERVICE_ROOT'} = $INSTALL_ROOT
         if length $INSTALL_ROOT;
 
+    ## p7-deps closes its own output with a ':' line ##
     my $exit = run_cmd( $EXECUTABLE_NAME, $p7_deps, @args );
-    say frame_column_line();
     if ( $exit == 0 ) {
         row( $label, 'ok', $detail );
         return TRUE;
@@ -507,8 +507,8 @@ EOL
     return TRUE;
 }
 
-#,,,,,,,,,,..,,,.,,,.,,.,,,,,,,.,,,.,,...,.,,,..,,...,...,..,,,,.,,,.,...,,..,
-#46434CWEISVR4UDOPAUTXMCYIYDRHNCD6AX4O7EUOVGDE4MXEMN36XKDVIXI7JAUNVTHSNVDQA4IW
-#\\\|JZSJKMHMA43YQIXTPEXZ6CQHZ3D4BCS6PAHDDNSXXMB4FAJVMF2 \ / AMOS7 \ YOURUM ::
-#\[7]6EPKLCE6DYD6Z7L2O4CTQIYAUJTAICBWS7POYEC2A5EFF4PSU2DQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,.,,,,..,,..,..,,.,,,,..,.,,,..,,...,...,,.,,,..,..,,,..,,.,,
+#MV3UF5CFHNOYBTG5D3RPGKDP2FOBHD5VIRQQE6FZC667H652C7NGVTIHINVGY64CPV7QOUSNOD5VC
+#\\\|PAXQB45YTTJU4MXDCG3DUAWXWM7LAI2CQTW32UT4CD2B4V4ZDYB \ / AMOS7 \ YOURUM ::
+#\[7]WOAHZPBA4IEF3JGE2IEYLGUP5O7T34KFVOV3R7Z25WEKTNGUL6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

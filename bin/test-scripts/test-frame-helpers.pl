@@ -34,7 +34,7 @@ BEGIN {
 use AMOS7::TERM::Frame qw|
     frame_color_enabled frame_column_line frame_title_banner
     frame_section_header frame_status_row frame_error_line
-    frame_progress_bar
+    frame_progress_bar frame_option_list
     |;
 
 my $pass_count = 0;
@@ -76,7 +76,24 @@ my @cases = (
     ],
     [   'section header',
         sub { frame_section_header( 'base packages', $_[0] ) },
-        ':::[ base packages ]'
+        ":::[ base packages ]\n::"
+    ],
+    [   'section header, other column',
+        sub {
+            frame_section_header( 'state', { %{ $_[0] }, column => ':' } );
+        },
+        ":::[ state ]\n:"
+    ],
+    [   'option list',
+        sub {
+            frame_option_list(
+                "\n    .: tool options :.\n\n    list "
+                    . "<name>.. ...  the [ named ] lists\n\n",
+                $_[0]
+            );
+        },
+        "\n    .: tool options :.\n\n    list "
+            . "<name>.. ...  the [ named ] lists\n"
     ],
     [   'status row ok',
         sub { frame_status_row( 'git', 'ok', { %{ $_[0] }, width => 15 } ) },
@@ -173,8 +190,13 @@ check 'banner : title blue, frame purple, no green',
     $c eq "$pu .: $R${bl}title$R$pu :. $R";
 
 $c = frame_section_header( 'section', $ON );
-check 'section : title blue, frame purple, no green',
-    $c eq "${pu}:::[ $R${bl}section$R$pu ]$R";
+check 'section : title blue, frame purple, \'::\' line below, no green',
+    $c eq "${pu}:::[ $R${bl}section$R$pu ]$R\n${pu}::$R";
+
+$c = frame_option_list( "  -nc ..  no [ colours ]\n", $ON );
+check 'option list : words blue, the rest purple, spaces bare, no green',
+    $c eq "  $pu-$R${bl}nc$R $pu..$R  ${bl}no$R "
+    . "$pu\[$R ${bl}colours$R $pu]$R";
 
 $c = frame_error_line( 'tool', 'message', $ON );
 check 'error : tool blue [ not green ], message amber, frame purple',
@@ -256,11 +278,31 @@ EOF
         $out eq "before|:\n:: < tool > : it broke\n:\n";
 }
 
+## the exit option : another code, the same framed line ##
+
+{
+    local $ENV{'NO_COLOR'} = '1';
+    my $pid = open( my $pipe, '-|' ) // die "fork : $OS_ERROR";
+    if ( $pid == 0 ) {
+        open( STDERR, '>&', \*STDOUT );
+        exec( $EXECUTABLE_NAME, '-I', $main::lib_path, '-e',
+            'use AMOS7::TERM::Frame qw| frame_error_exit |;frame_error_exit( '
+                . '"tool", "no such thing", { exit => 1 } )' )
+            or exit 127;
+    }
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $out = <$pipe> // '';
+    close $pipe;
+    check 'error exit, exit option : exit 1', ( $CHILD_ERROR >> 8 ) == 1;
+    check 'error exit, exit option : the same framed line',
+        $out eq ":\n:: < tool > : no such thing\n:\n";
+}
+
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,..,.,,,...,,,.,.,,,,,.,...,.,,,.,.,.,.,..,,...,...,...,..,,.,,,,..,,..,
-#44RHRIUPVPZY3FXC7BTJU3CZGG3XC3XJU3JCUYW74PHPYFVTHKBDAQ7FO3L22KJWTVDKUTXROAZBE
-#\\\|DYKZDJLONAY3V7PMEMIYGIW5H7NYHUAX4A7II6BTVPPILVROKGU \ / AMOS7 \ YOURUM ::
-#\[7]NBKCG23QJZOXLYAIC7HAOOWIW7VZY4KSJ6QSZVSOE6GPJXF644BA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,.,,,.,,,,..,.,,,.,.,.,.,...,..,,...,...,...,,,.,,,.,.,.,,..,
+#KF22GGQPYKE2HGPZE463CZ3PHILYOM5ID3XF46AIWSGJHPGPWSSN6G26N4VXT6PTK5A2HFHJSK76A
+#\\\|IWVXX5NDMIB7RMRVVVCMSWO4I2L67MCAW5JURAFCYAXYMQRDKME \ / AMOS7 \ YOURUM ::
+#\[7]QBOEV7AZXMOQ4XFVI56O6LICQMVJBEX3PY7IZ65YEXFOCFBABYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

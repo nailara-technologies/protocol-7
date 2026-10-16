@@ -252,13 +252,13 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
     write_file( $show_start, sprintf( "@%d\n", $unit_mtime - 60 ) );
     ( $exit, $out ) = p7_deps(qw| check-service |);
     check 'started before the unit changed : reported',
-        $out =~ m|running\sservice\s[.]+\solder\s\[started\sbefore|;
+        $out =~ m|running\sservice\s[.]+\solder\s\[\sstarted\sbefore|;
     check '  :.. exit code unchanged', $exit == 0;
 
     write_file( $show_start, sprintf( "@%d\n", $unit_mtime + 60 ) );
     ( $exit, $out ) = p7_deps(qw| check-service |);
     check 'started after the unit changed : uses it',
-        $out =~ m|running\sservice\s[.]+\sok\s\[uses\sthe\sinstalled|;
+        $out =~ m|running\sservice\s[.]+\sok\s\[\suses\sthe\sinstalled|;
 
     write_file( $show_start, "\n" );    ## an older systemctl : no row ##
     ( $exit, $out ) = p7_deps(qw| check-service |);
@@ -304,7 +304,7 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
     ( $exit, $out ) = p7_deps(qw| check-service |);
     check 'check-service exit 1 with a regular file', $exit == 1;
     check 'regular file reported as differs',
-        $out =~ m|nshell\ssymlink\s[.]+\sdiffers\s\[not\sa\ssymlink\]|;
+        $out =~ m|nshell\ssymlink\s[.]+\sdiffers\s\[\snot\sa\ssymlink\s\]|;
     unlink($nshell_link);
     p7_deps(qw| install-service |);    ## restore ##
 
@@ -703,8 +703,8 @@ check 'missing unit logs exactly one level 0 line', level0_count(qr|^|) == 1;
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,.,,,,,,,.,,,,.,,..,..,,.,,,,,.,,..,,.,,..,,...,..,,,,,,..,,..,,...,,,,,
-#KDWAGAXRUUUVSGQKB2YQ4UXUTCQPMOTHMBD2PEC6ZKFSXVNEUWNSMXE62TMJNYLK7AUYVRD3P6KCM
-#\\\|RL6HDWDEESTXAR4T6WZNYNX4Q6KBF2THH4EZSIEFPD4E7OTLQUS \ / AMOS7 \ YOURUM ::
-#\[7]QONVEHYWMKKBERKPHLP72TFUVCUUBUCAQH2BZZ7GKFSXWBM6V2DY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,.,.,.,...,,..,,,,,,.,,.,,,,..,..,,...,...,.,,,..,,,.,,..,,..,,
+#7A7SHHTG5HTXW256KPJOQMS2Q22XOP4GNSDPBE6FH5BHZ4JT2SBLV7IX6Z5NINSPCBC3SA53A4MLK
+#\\\|3POPGX4JA4PNWOMA332VZKUNDPLDBMAO35KXZFNYIUKYBDH5J67 \ / AMOS7 \ YOURUM ::
+#\[7]UNOV5TLW5LJJF2SINJOOKUAIV3GYOF3TJQAPL45K7V6SIC4CRICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
