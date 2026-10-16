@@ -9,6 +9,7 @@ use base qw| Exporter |;
 
 our @EXPORT_OK = qw|
     detect_os
+    backend_available
     scan_zenki_os_deps
     probe_os_pkg
     probe_binary
@@ -26,17 +27,56 @@ my %DIR_TO_TYPE = reverse %TYPE_TO_DIR;
 sub dep_type_to_dir { my ($type) = @_; return $TYPE_TO_DIR{$type} // $type; }
 sub dep_dir_to_type { my ($dir)  = @_; return $DIR_TO_TYPE{$dir}  // $dir; }
 
-## Load debian backend for dispatch [ fully-qualified calls only :      ##
-## compile-time imports break when Module::Refresh wipes the shared CV  ##
-## during a live v7 reload [ %DB::sub active ] -- runtime stash lookups ##
-## always resolve to the current coderef ]                              ##
+## OS-family backends live in AMOS7/deps/backend/<family>.pm and are loaded ##
+## BY FAMILY NAME at runtime -- never a compile-time import of the dispatch ##
+## targets : Module::Refresh wipes the shared CV during a live v7 reload    ##
+## [ %DB::sub active ] and a coderef imported at compile time would keep    ##
+## pointing at the old sub, while a runtime stash lookup [ ->can ] always   ##
+## resolves to the current coderef. debp stays loaded the same way for its  ##
+## direct users [ bin/p7-deps, bin/os-pkg ]                                 ##
 use AMOS7::deps::debp;
+
+## family names map to AMOS7/deps/backend/<family>.pm -- validated before ##
+## anything touches require [ no path traversal, no surprises ]           ##
+my $FAMILY_NAME_RE = qr|\A[a-z0-9_]+\z|;    ## \z : no trailing newline ##
+
+## the backend method for a family, or undef                              ##
+## [ unknown \ missing family, failed require, or no such method ]. the   ##
+## require result is memoized in %INC by perl itself ; Module::Refresh    ##
+## drops the %INC entry on reload so the next lookup loads the file again ##
+sub _backend_method {
+    my ( $family, $method ) = @_;
+
+    return undef unless defined $family and $family =~ $FAMILY_NAME_RE;
+
+    my $mod  = "AMOS7::deps::backend::$family";
+    my $file = "AMOS7/deps/backend/$family.pm";
+
+    eval { require $file } or return undef;
+
+    return $mod->can($method);
+}
+
+sub backend_available {
+    my ($family) = @_;
+    return 0 unless defined $family and $family =~ $FAMILY_NAME_RE;
+    return eval { require "AMOS7/deps/backend/$family.pm" } ? 1 : 0;
+}
 
 ##[ detect_os ]###############################################################
 
 sub detect_os {
-    if ( -f '/etc/os-release' ) {
-        open my $fh, '<', '/etc/os-release' or return 'unknown';
+    my ($alt_release_path) = @_;
+
+    ## optional os-release path [ tests feed fixture files ] -- the default ##
+    ## stays the real /etc/os-release                                       ##
+    my $release_path
+        = defined $alt_release_path
+        ? $alt_release_path
+        : qw| /etc/os-release |;
+
+    if ( -f $release_path ) {
+        open my $fh, '<', $release_path or return 'unknown';
         my $content = do { local $/; <$fh> };
         close $fh;
 
@@ -44,11 +84,17 @@ sub detect_os {
             return 'debian';
         } elsif ( $content =~ m|^ID_LIKE=.*debian|m ) {
             return 'debian';
+        } elsif ( $content =~ m|^ID=nixos$|m ) {
+            return 'nixos';
         } elsif ( $content =~ m|^ID=arch$|m ) {
             return 'arch';
         } elsif ( $content =~ m|^ID=fedora$|m ) {
             return 'fedora';
         }
+
+        ## an explicit fixture path stands for the whole os-release state : ##
+        ## no host fallback below                                           ##
+        return 'unknown' if defined $alt_release_path;
     }
 
     if ( -f '/etc/debian_version' ) {
@@ -116,11 +162,15 @@ sub probe_os_pkg {
     return 0 unless defined $pkg && length $pkg;
 
     return probe_binary($pkg) if $os_type eq 'binary';
-    return AMOS7::deps::debp::probe_apt_fresh($pkg)
-        if $os_type eq 'debian' and $fresh;
-    return AMOS7::deps::debp::probe_apt($pkg) if $os_type eq 'debian';
 
-    ## future: arch, fedora, etc. ##
+    ## dispatch by FAMILY NAME through the backend module -- os names never ##
+    ## appear here : a new family is one backend file, no change to this    ##
+    ## code                                                                 ##
+    if ( my $probe = _backend_method( $os_type, 'probe' ) ) {
+        return $probe->( $pkg, $fresh );
+    }
+
+    ## unknown family or no backend module : nothing to probe with ##
     return 0;
 }
 
@@ -166,18 +216,23 @@ sub install_os_pkgs {
 
     return { ok => [], failed => [] } unless @pkgs;
 
-    if ( $os_type eq 'debian' ) {
-        return AMOS7::deps::debp::install_apt(@pkgs);
+    ## dispatch by FAMILY NAME through the backend module                   ##
+    ## [ see probe_os_pkg ] : the debian contract passes through unchanged, ##
+    ## straight from debp::install_apt                                      ##
+    if ( my $install = _backend_method( $os_type, 'install' ) ) {
+        return $install->(@pkgs);
     }
 
-    ## Future: arch, fedora, etc. ##
-    return { ok => [], failed => [@pkgs] };
+    ## unknown family or no backend module : everything needs the admin by ##
+    ## hand [ 'manual' -- e.g. nixos is declarative and will report        ##
+    ## configuration.nix lines here later ]                                ##
+    return { ok => [], failed => [], manual => [@pkgs] };
 }
 
 1;
 
-#,,,.,,..,,.,,,..,,..,,,,,..,,...,,,.,...,.,,,..,,...,...,,..,,..,..,,,,.,,,,,
-#LV3TPJZVLCJ6DWVJE33QBGRTVGFHLA2SYH7VWGAYD4DBBYIKO4U6DU3LWNDWDE4OXUENZ2LKMVZ56
-#\\\|6OAFHVWVRG6W54KY2HVF7MRV72R5U3OOHNBJLKDDH3O6HKWYARQ \ / AMOS7 \ YOURUM ::
-#\[7]BF6DSAWFHZAKKZ2NTO5XOFDX2WWGTRSZ54T4IRW4AFCO2JDVQUAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,...,,.,,.,.,,,,,.,,,.,.,...,..,,...,...,.,.,,,,,,,,,...,.,,,
+#QQC6CLNA2PQLFKAZLFXXTOJRURNQSUCB7P5F3DRR2S76XMUK76264JYRPJ4VHJ6PFL7WBIKLQFRSS
+#\\\|YZEIXDUDVLMCVBRMZSDXDFMILSIRJWZGF7UFHQ7BKTBX3SMBCYR \ / AMOS7 \ YOURUM ::
+#\[7]4QSRZLHU4XEOUIYWEXQU6WHUSNPRXULI5VSSQKMYIGSUO4CAPKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
