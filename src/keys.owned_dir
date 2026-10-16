@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = keys.owned_dir
+# descr = create or verify a key-registry directory owned by the key user
+# note  = as root : create then chown, fix a mismatched owner with a warning
+#         line ; as the key user : nothing to chown ; as anyone else :
+#         refuse with a clear error naming the directory and its owner
+
+my ( $dir_path, $dir_mode, $want_uid, $want_gid ) = @ARG;
+
+if ( not defined $dir_path or not length $dir_path ) {
+    say "\n  << expected directory path parameter >>\n";
+    return FALSE;
+} elsif ( not defined $want_uid or not defined $want_gid ) {
+    printf "\n  << no key user ownership for '%s' >>\n\n", $dir_path;
+    return FALSE;
+}
+
+$dir_mode //= 0700;
+
+if ( -d $dir_path ) {
+    my ( $cur_uid, $cur_gid ) = ( CORE::stat($dir_path) )[ 4, 5 ];
+
+    ## the owner decides -- a group set on purpose stays [ e.g. a local ##
+    ## protocol-7:<admin> registry the admin reads through its group ]  ##
+    return TRUE if $cur_uid == $want_uid;
+
+    if ( $EUID == 0 ) {
+        ## a root group comes with a root-made directory, it goes too ##
+        $want_gid = $cur_gid if $cur_gid != 0;
+        chown( $want_uid, $want_gid, $dir_path ) or do {
+            printf "\n  << cannot chown '%s' : %s >>\n\n",
+                $dir_path, <[base.str.os_err]>;
+            return FALSE;
+        };
+        printf "\n  :: fixed ownership of '%s' [ %s:%s --> %s:%s ] ::\n\n",
+            $dir_path,
+            getpwuid($cur_uid)  // $cur_uid,
+            getgrgid($cur_gid)  // $cur_gid,
+            getpwuid($want_uid) // $want_uid,
+            getgrgid($want_gid) // $want_gid;
+        return TRUE;
+    }
+
+    printf "\n  << '%s' is owned by '%s' [ expected "
+        . "'%s' ] -- run as root to fix >>\n\n",
+        $dir_path,
+        getpwuid($cur_uid)  // $cur_uid,
+        getpwuid($want_uid) // $want_uid;
+    return FALSE;
+} elsif ( -e $dir_path or -l $dir_path ) {
+    printf "\n  << '%s' exists and is not a directory >>\n\n", $dir_path;
+    return FALSE;
+}
+
+if ( not mkdir $dir_path, $dir_mode ) {
+    printf "\n  << mkdir '%s' failed : %s >>\n\n",
+        $dir_path, <[base.str.os_err]>;
+    return FALSE;
+}
+
+if ( not chmod $dir_mode, $dir_path ) {
+    printf "\n  << chmod '%04o' '%s' failed : %s >>\n\n",
+        $dir_mode, $dir_path, <[base.str.os_err]>;
+    return FALSE;
+}
+
+if ( $EUID == 0 and $EUID != $want_uid ) {
+    if ( not chown $want_uid, $want_gid, $dir_path ) {
+        printf "\n  << chown '%s' failed : %s >>\n\n",
+            $dir_path, <[base.str.os_err]>;
+        return FALSE;
+    }
+}
+
+return TRUE;
+
+#,,..,.,,,,.,,.,,,.,.,..,,...,,,,,,.,,.,.,..,,.,.,...,...,.,,,.,,,,,,,,..,...,
+#7O2KM6QIYVBDQIGNJXP7VKATG3VTJEMWKNNYYIE6L76CUNU2WLWHWOWXWUIJYZK7ETLEWIMN4SPJO
+#\\\|VPQ4IU5SMDYTDTMXE5G44UWOEDOCCJ6F6BTX2I7L5MYLV54CDJ2 \ / AMOS7 \ YOURUM ::
+#\[7]HR7RXXZJM3H3VUBRYNXLPR7XFWMMHBUCGMHXRYQBUF2GDXY6VQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
