@@ -31,9 +31,9 @@ BEGIN {
 
     ## local AMOS7 lib path : standalone bmw-L13 use, same pattern as       ##
     ## bin/amos-chksum. computed LOCALLY, never sent over the wire — cube's ##
-    ## single-line command buffer caps at 242707 bytes [                    ##
-    ## base.handler.command ], and tail-truncated session content can run   ##
-    ## to ~400KB                                                            ##
+    ## single-line command buffer caps at 242707 bytes                      ##
+    ## [  base.handler.command ], and tail-truncated session content can    ##
+    ## run to ~400KB                                                        ##
     my $root_path
         = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
     my $local_lib_path
@@ -365,6 +365,97 @@ my @external_tools = (
             ],
         ],
         'timeout' => 2400,    ## 40 minutes
+    },
+    {   'name'        => 'claude_cloud_dispatch',
+        'description' =>
+            'dispatch a task to a BILLED claude.ai cloud session [ real '
+            . 'money — every call starts a metered cloud session working '
+            . 'on a clone of the protocol-7 github repo '
+            . 'nailara-technologies/protocol-7 ]. runs `claude --cloud '
+            . '<task>` : the whole prefixed task becomes the cloud '
+            . 'session description [ deliberately NO -p : the CLI '
+            . 'rejects --cloud with a task description combined with '
+            . '--print — with -p, --cloud only accepts an existing '
+            . 'session id / claude.ai/code url to queue a message into ; '
+            . 'non-interactivity instead comes from stdout being a pipe, '
+            . 'which the CLI help itself counts as non-interactive ]. '
+            . 'list-form exec, never a shell string [ the prompt is '
+            . 'untrusted text ]. the prompt is prefixed with a fixed '
+            . 'preamble telling the session to start from the named '
+            . 'branch + commit, read CLAUDE.md, never merge to the '
+            . 'default branch, and finish with a pushed branch + '
+            . 'summary. refuses with a push-first error when the branch '
+            . 'has local commits the remote has not seen yet [ a cloud '
+            . 'session clones the remote and would silently miss them ]. '
+            . 'starts the claude process DETACHED [ own session via '
+            . 'setsid, stdin /dev/null, stdout+stderr to a capture file '
+            . 'under data/state/ named like the kimi capture files — the '
+            . 'process is never killed by this server and keeps running '
+            . 'after the tool returns, same async model as kimi_dispatch '
+            . ']. this call then polls that capture file for up to 60 s '
+            . '[ PROTOCOL_7_MCP_CLOUD_POLL overrides ] and returns AS '
+            . 'SOON AS a session id or claude.ai/code url is parsed ; on '
+            . 'timeout it returns status=starting with the capture-file '
+            . 'path + pid + whatever output exists — never an error just '
+            . 'for that. returns the session id + claude.ai/code url '
+            . 'parsed from the output with tolerant regexes [ the exact '
+            . 'output format is not guaranteed — when parsing finds '
+            . 'nothing, the raw output is returned with an explicit '
+            . 'not-parsed note, never a failure ], plus the raw output '
+            . 'itself. use claude_cloud_status(session_id=..., '
+            . 'capture_file=...) to read the session / the capture file '
+            . 'back afterwards.',
+        'params' => [
+            [ 'prompt', 'the task description for the cloud session', 1 ],
+            [   'branch',
+                'branch the cloud session starts from [ default : the repo '
+                    . 'current branch ] ; local commits not on the remote '
+                    . 'yet -> push-first refusal',
+                0
+            ],
+            [   'environment',
+                'self-hosted environment id for the cloud '
+                    . 'session [ passed as --environment, ccpool_... ]',
+                0
+            ],
+        ],
+        ## no 'command' : routed by name to  tool_claude_cloud_dispatch, ##
+        ## registered only — same pattern as kimi_check_status           ##
+    },
+    {   'name'        => 'claude_cloud_status',
+        'description' =>
+            'read the state + recent terminal output of a cloud session '
+            . 'started by claude_cloud_dispatch. two independent '
+            . 'readers, at least one required : [ 1 ] capture_file [ a '
+            . 'path returned by claude_cloud_dispatch ] — shows the '
+            . 'capture file size, any session id / url parsed from it so '
+            . 'far, and its last N lines ; the way to recover the url of '
+            . 'a session that was still starting when the dispatch '
+            . 'returned. [ 2 ] session_id — wraps the two documented '
+            . 'non-interactive readers : `claude agents --json` [ its '
+            . 'help says : for scripting, does not require a tty ] for '
+            . 'the session state, then `claude logs <session_id>` [ '
+            . 'prints the session recent terminal output ] for what it '
+            . 'produced. read-only : creates and bills nothing.',
+        'params' => [
+            [   'session_id',
+                'the cloud session id from a claude_cloud_dispatch '
+                    . 'result [ optional when capture_file is given ]',
+                0
+            ],
+            [   'capture_file',
+                'a capture-file path from a claude_cloud_dispatch '
+                    . 'result [ optional when session_id is given ]',
+                0
+            ],
+            [   'lines',
+                'number of capture-file lines to '
+                    . 'include (default: 40, max: 200)',
+                0
+            ],
+        ],
+        ## no 'command' : routed by name to tool_claude_cloud_status, ##
+        ## registered only — same pattern as kimi_check_status        ##
     },
     {   'name'        => 'coding_summarize',
         'description' =>
@@ -1313,6 +1404,10 @@ sub handle_tools_call {
         tool_p7_memory_digest( $id, $args );
     } elsif ( $name eq 'kimi_check_status' ) {
         tool_kimi_check_status( $id, $args );
+    } elsif ( $name eq 'claude_cloud_dispatch' ) {
+        tool_claude_cloud_dispatch( $id, $args );
+    } elsif ( $name eq 'claude_cloud_status' ) {
+        tool_claude_cloud_status( $id, $args );
     } elsif ( my ($ext) = grep { $_->{'name'} eq $name } @external_tools ) {
         tool_external_command( $id, $args, $ext );
     } else {
@@ -1691,10 +1786,11 @@ sub sock_read_bytes {
     return $data;
 }
 
-## idle-bounded variants for the STRM drain loop [ select-based, no signals ##
-## ] : can_read gates every sysread, so a quiet-but-open stream trips the   ##
-## safety valve instead of blocking the whole mcp server.  returns ( $data, ##
-## undef ) on success, ( undef, 'timeout'|'eof' ) else                      ##
+## idle-bounded variants for the STRM drain loop                        ##
+## [ select-based, no signals ] : can_read gates every sysread, so a    ##
+## quiet-but-open stream trips the safety valve instead of blocking the ##
+## whole mcp server.  returns ( $data, undef ) on success, ( undef,     ##
+## 'timeout'|'eof' ) else                                               ##
 
 sub sock_readline_timed {
     my ( $sock, $idle_timeout ) = @ARG;
@@ -1868,8 +1964,8 @@ sub cube_command_multiline {
         return ( 1, $data );
     }
 
-    ## STRM / STRM-SIZE stream reply -- drain all frames [ prefix- tolerant ##
-    ## : '(5)STRM open' and '(5) STRM open' both match ]                    ##
+    ## STRM / STRM-SIZE stream reply -- drain all frames                    ##
+    ## [ prefix- tolerant : '(5)STRM open' and '(5) STRM open' both match ] ##
     if ( $first_line =~ m{^(?:\( \d+ \)\s*)?STRM(?:-SIZE)?\s+open\b}x ) {
         return drain_strm_stream( $sock, $first_line );
     }
@@ -1891,20 +1987,22 @@ sub cube_disconnect {
 
 ##[ strm safety valve bounds ]##
 ##
-## idle-primary, bytes-secondary [ task: mcp-server-p7-strm-support ] : an ##
-## idle bound distinguishes [ still producing ] from [ parked open         ##
-## indefinitely ] without truncating legitimately slow bounded streams ;   ##
-## the byte cap stops a fast runaway producer from ballooning one tool     ##
-## result without limit. both env-overridable for callers expecting a long ##
-## quiet stretch. initialized in the configuration section above the main  ##
-## loop [ file-scope assignments after it never execute ]                  ##
+## idle-primary, bytes-secondary [ task: mcp-server-p7-strm-support ] : an  ##
+## idle bound distinguishes [ still producing ] from                        ##
+## [ parked open indefinitely ] without truncating legitimately slow        ##
+## bounded streams ; the byte cap stops a fast runaway producer from        ##
+## ballooning one tool result without limit. both env-overridable for       ##
+## callers expecting a long quiet stretch. initialized in the configuration ##
+## section above the main loop                                              ##
+## [ file-scope assignments after it never execute ]                        ##
 
-## drain an STRM / STRM-SIZE reply stream [ frames : open / push / close  ##
-## per src/base.stream.* ]. hard invariant : every exit either reaches a  ##
-## clean close with the socket left byte-clean, or tears the socket down  ##
-## via cube_disconnect -- never a partial-return with frames left in the  ##
-## cached socket's receive buffer. never retries : server-side effects of ##
-## the command already happened once the first reply line arrived         ##
+## drain an STRM / STRM-SIZE reply stream                                   ##
+## [ frames : open / push / close per src/base.stream.* ]. hard invariant : ##
+## every exit either reaches a clean close with the socket left byte-clean, ##
+## or tears the socket down via cube_disconnect -- never a partial-return   ##
+## with frames left in the cached socket's receive buffer. never retries :  ##
+## server-side effects of the command already happened once the first reply ##
+## line arrived                                                             ##
 sub drain_strm_stream {
     my ( $sock, $first_line, $opt ) = @ARG;
     $opt //= {};
@@ -1956,8 +2054,9 @@ sub drain_strm_stream {
         ## close frame : the only exit that keeps the socket cached ##
         if ( $header =~ m{^STRM(?:-SIZE)?\s+close\s*$} ) {
             if ( defined $total and $received_bytes != $total ) {
-                ## bounded-total mismatch is a real failure [ p7c.c mirrors ##
-                ## this check ] ; socket state indeterminate                ##
+                ## bounded-total mismatch is a real failure    ##
+                ## [ p7c.c mirrors this check ] ; socket state ##
+                ## indeterminate                               ##
                 log_msg( 'STRM total mismatch : %d of %d bytes received',
                     $received_bytes, $total );
                 cube_disconnect();
@@ -2117,8 +2216,8 @@ sub cube_command {
         return ( 0, "command not acknowledged: $reply_data" );
     }
 
-    ## STRM / STRM-SIZE stream reply -- drain all frames [ prefix- tolerant ##
-    ## : '(5)STRM open' and '(5) STRM open' both match ]                    ##
+    ## STRM / STRM-SIZE stream reply -- drain all frames                    ##
+    ## [ prefix- tolerant : '(5)STRM open' and '(5) STRM open' both match ] ##
     if ( $first_line =~ m{^(?:\( \d+ \)\s*)?STRM(?:-SIZE)?\s+open\b}x ) {
         return drain_strm_stream( $sock, $first_line );
     }
@@ -2413,8 +2512,8 @@ sub _checklist_instruction {
 }
 
 ## background kimi-legacy follow-up dispatch — forks and detaches, never
-## blocks the mcp loop [ child stdio redirected away from the protocol channel
-## ]
+## blocks the mcp loop
+## [ child stdio redirected away from the protocol channel ]
 sub _dispatch_followup {
     my ($prompt) = @ARG;
 
@@ -2966,9 +3065,9 @@ sub _bmw_l13_harmonize {
     $time_start = sprintf qw| %.1f |, Time::HiRes::time
         if AMOS7::TEMPLATE::template_count() > 0;
 
-    ## fallback cap : guards cycles that never satisfy [ validator AND      ##
-    ## true_int ] when no truth template is assigned [ matches the original ##
-    ## module's iteration cap, same rationale ]                             ##
+    ## fallback cap : guards cycles that never satisfy                 ##
+    ## [ validator AND true_int ] when no truth template is assigned   ##
+    ## [ matches the original module's iteration cap, same rationale ] ##
     my $max_iterations_num = 100_000;
     my $iteration_num      = 0;
 
@@ -3046,19 +3145,21 @@ sub _tree_notify {
     eval {
         local $SIG{'ALRM'} = sub { die "timeout\n" };
         alarm(5);
-        ## $origin_json [ JSON::XS ->utf8 encode ] and $result [ raw bytes ##
-        ## back from cube_command ] are already byte strings — do NOT      ##
-        ## Encode::encode them again, that double-encodes any non-ASCII    ##
-        ## char [ classic "Ã©" corruption ]. only $focus is real perl      ##
-        ## character text [ decoded from the incoming MCP JSON-RPC args ]  ##
-        ## and needs the one real encode                                   ##
+        ## $origin_json [ JSON::XS ->utf8 encode ] and $result             ##
+        ## [ raw bytes back from cube_command ] are already byte strings — ##
+        ## do NOT Encode::encode them again, that double-encodes any       ##
+        ## non-ASCII char [ classic "Ã©" corruption ]. only $focus is real ##
+        ## perl character text                                             ##
+        ## [ decoded from the incoming MCP JSON-RPC args ] and needs the   ##
+        ## one real encode                                                 ##
         my $origin_json = $json->encode( $origin // {} );
         my $args        = join(
             ' ',
             "chk=$chk",
             'source=mcp',
-            ## focus is free text [ the full instruction, may contain     ##
-            ## spaces ] : always B32-wrap, never pass as a bare \S+ token ##
+            ## focus is free text                                    ##
+            ## [ the full instruction, may contain spaces ] : always ##
+            ## B32-wrap, never pass as a bare \S+ token              ##
             (   length($focus)
                 ? 'focus=:B32:' . encode_b32r( encode( 'UTF-8', $focus ) )
                 : ()
@@ -3429,9 +3530,10 @@ sub tool_session_catchup {
     return send_tool_result( $id, "session file missing: $s->{'file'}", 1 )
         unless -f $s->{'file'};
 
-    ## explicit instruction wins; otherwise fall back to a primed ##
-    ## store_summary_focus [ same one-shot/sticky consumption as  ##
-    ## tool_external_command ], then the generic default          ##
+    ## explicit instruction wins; otherwise fall back to a primed          ##
+    ## store_summary_focus                                                 ##
+    ## [ same one-shot/sticky consumption as tool_external_command ], then ##
+    ## the generic default                                                 ##
     my $inst
         = length($instruction)           ? $instruction
         : defined $pending_summary_focus ? $pending_summary_focus
@@ -3523,13 +3625,13 @@ sub tool_session_catchup {
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
         alarm(590);
-        ## 600 was too tight for the ROLLING carried-forward summary [ not ##
-        ## just the final answer ] -- each chunking round forces whatever  ##
-        ## state is being tracked through this same cap as "previous       ##
-        ## summary" input to the next round, so a too-small value causes   ##
-        ## lossy re-compression every round instead of genuine             ##
-        ## accumulation. bumped 5x ; still a real bound, just not one that ##
-        ## starves multi-round tracking on a long transcript               ##
+        ## 600 was too tight for the ROLLING carried-forward summary        ##
+        ## [ not just the final answer ] -- each chunking round forces      ##
+        ## whatever state is being tracked through this same cap as         ##
+        ## "previous summary" input to the next round, so a too-small value ##
+        ## causes lossy re-compression every round instead of genuine       ##
+        ## accumulation. bumped 5x ; still a real bound, just not one that  ##
+        ## starves multi-round tracking on a long transcript                ##
         $result = _do_summarize( $text, $inst, 3000, $origin );
         alarm(0);
     };
@@ -4029,10 +4131,11 @@ sub tool_external_command {
     ## kimi-specific defaults and model alias resolution
     if ( $ext->{'name'} =~ m{^kimi_} ) {
         ## default changed 2026-09-15, per user + a real observed data point
-        ## -- superseded the 2026-08-16 k3-256k-by-default reasoning below [
-        ## kept for history, not current advice ]. 'kimi-for-coding' [ our
-        ## 'k2.7' alias ] now runs K2.8 Preview under the hood [ a 2026-09
-        ## Kimi-side upgrade, "performance close to K3" per Kimi's own docs ]
+        ## -- superseded the 2026-08-16 k3-256k-by-default reasoning below
+        ## [ kept for history, not current advice ]. 'kimi-for-coding'
+        ## [ our 'k2.7' alias ] now runs K2.8 Preview under the hood [ a
+        ## 2026-09 Kimi-side upgrade, "performance close to K3" per Kimi's own
+        ## docs ]
         ## -- and a real multi-hour, moderately complex dispatch this session
         ## [ GGUF conversion + running python probes + orchestrating a
         ## validation sweep + write-up ] used only ~35% of the rate-limit
@@ -4047,11 +4150,12 @@ sub tool_external_command {
         ## pass model=k3 explicitly when K3's specifically stronger reasoning
         ## genuinely matters [ permission models, concurrency, protocol design
         ## -- see project-kimi-k2.7-vs-k3-tier-economics.md's "how to apply"
-        ## ], and model=k3-1m only on the rare task whose CONTEXT [ not
-        ## reasoning difficulty ] genuinely exceeds 256k or needs video input
+        ## ], and model=k3-1m only on the rare task whose CONTEXT
+        ## [ not reasoning difficulty ] genuinely exceeds 256k or needs video
+        ## input
         ## -- see the 2026-09-17 alias rename note on %model_map below : 'k3'
-        ## bare now points at the 256k variant, not the 1M one, on purpose [
-        ## the usually-correct choice should be the short name ]
+        ## bare now points at the 256k variant, not the 1M one, on purpose
+        ## [ the usually-correct choice should be the short name ]
         $args->{'model'} //= 'k2.8';
 
         my %model_map = (
@@ -4060,16 +4164,16 @@ sub tool_external_command {
             ## 1M context" -- the old bare 'k3' pointing at the 1M variant  ##
             ## made the expensive choice the SHORT, easy-to-type one and    ##
             ## the usually-correct 256k variant the one you had to remember ##
-            ## to ask for. flipped : 'k3' now IS the 256k-ceiling variant [ ##
-            ## same reasoning tier, ~1/2 the quota ], and the full          ##
+            ## to ask for. flipped : 'k3' now IS the 256k-ceiling variant   ##
+            ## [ same reasoning tier, ~1/2 the quota ], and the full        ##
             ## 1M-context variant needs its size spelled out in the name    ##
             ## you type                                                     ##
             'k3' => 'kimi-code/k3-256k',
             ## explicit alias, unchanged ##
             'k3-256k' => 'kimi-code/k3-256k',
             'k3-1m'   => 'kimi-code/k3',        ## the old bare 'k3' target ##
-            ## canonical name, matches the model actually running [ K2.8 ##
-            ## Preview, 2026-09 Kimi-side upgrade ]                      ##
+            ## canonical name, matches the model actually running ##
+            ## [ K2.8 Preview, 2026-09 Kimi-side upgrade ]        ##
             'k2.8' => 'kimi-code/kimi-for-coding',
             ## deprecated alias, kept working for anyone's existing typed ##
             ## 'model=k2.7' -- same target as 'k2.8', don't diverge these ##
@@ -4138,17 +4242,18 @@ sub tool_external_command {
         ## kimi dispatch/continue run DETACHED [ _kimi_fork_run ] : the     ##
         ## unconditional qx() below blocked this whole single-threaded      ##
         ## server — one blocking STDIN read loop, no fork/threads for       ##
-        ## request handling — for the entire kimi run [ up to the 4620s     ##
-        ## alarm ], so kimi_check_status [ and every other tool call ]      ##
-        ## queued behind it and could never get a turn while a dispatch was ##
-        ## in flight [ root-caused 2026-09-08 ]. kimi is the ONLY tool      ##
-        ## family on this path with a dedicated result-recovery tool [      ##
-        ## kimi_check_status reads the session's wire.jsonl back ], which   ##
+        ## request handling — for the entire kimi run                       ##
+        ## [ up to the 4620s alarm ], so kimi_check_status                  ##
+        ## [ and every other tool call ] queued behind it and could never   ##
+        ## get a turn while a dispatch was in flight                        ##
+        ## [ root-caused 2026-09-08 ]. kimi is the ONLY tool family on this ##
+        ## path with a dedicated result-recovery tool                       ##
+        ## [ kimi_check_status reads the session's wire.jsonl back ], which ##
         ## is why returning early here is safe — doing the same for         ##
-        ## claude_* would be a regression [ no claude_check_status exists   ##
-        ## to ever retrieve the result ], so claude_dispatch /              ##
-        ## claude_continue / everything else keeps the exact blocking qx()  ##
-        ## behavior in the else branch, deliberately                        ##
+        ## claude_* would be a regression                                   ##
+        ## [ no claude_check_status exists to ever retrieve the result ],   ##
+        ## so claude_dispatch / claude_continue / everything else keeps the ##
+        ## exact blocking qx() behavior in the else branch, deliberately    ##
         my $run = _kimi_fork_run( $cmd, $ext );
         if ( length( $run->{'error'} // '' ) ) {
             $error = $run->{'error'};
@@ -4221,13 +4326,13 @@ sub tool_external_command {
             my $t0 = time;
             ## this call site previously had NO timeout at all -- unlike    ##
             ## every other _do_summarize call site in this file, nothing    ##
-            ## wrapped it in alarm(). since this whole server is single-    ##
-            ## threaded [ one blocking STDIN read loop, no fork/threads for ##
-            ## request handling ], a stuck summarize here blocked every     ##
-            ## other MCP tool call indefinitely, not just this one.  also   ##
-            ## bumped 600->3000 : see the matching fix + comment on the     ##
-            ## session_catchup call site for why 600 was too tight for a    ##
-            ## rolling carried-forward summary specifically                 ##
+            ## wrapped it in alarm(). since this whole server is            ##
+            ## single-threaded [ one blocking STDIN read loop, no           ##
+            ## fork/threads for request handling ], a stuck summarize here  ##
+            ## blocked every other MCP tool call indefinitely, not just     ##
+            ## this one.  also bumped 600->3000 : see the matching fix +    ##
+            ## comment on the session_catchup call site for why 600 was too ##
+            ## tight for a rolling carried-forward summary specifically     ##
             my $summary;
             eval {
                 local $SIG{ALRM} = sub { die "timeout\n" };
@@ -4300,8 +4405,8 @@ sub tool_external_command {
                 my $tpath
                     = "$ROOT_PATH/data/yaml/context-templates/$tslug.yaml";
 
-                ## overwriting an existing template is expected/intended [ a
-                ## later dispatch's insight replaces an earlier one ], but
+                ## overwriting an existing template is expected/intended
+                ## [ a later dispatch's insight replaces an earlier one ], but
                 ## stay loud about it rather than clobbering silently
                 log_msg( "create_template: overwriting existing %s", $tpath )
                     if -e $tpath;
@@ -4326,6 +4431,466 @@ sub tool_external_command {
     send_tool_result( $id, $result, length($error) ? 1 : 0 );
 }
 
+##[ claude cloud session tools ]##
+
+## run @cmd strictly LIST-FORM                                             ##
+## [ never a shell string — the cloud prompt is untrusted text ] with      ##
+## stdout+stderr merged, stdin from /dev/null, optional working directory, ##
+## and an alarm() timeout. returns ( output, error, exit_code ) ; error    ##
+## undef on clean runs                                                     ##
+sub _cloud_run_list {
+    my ( $cmd, $timeout, $cwd ) = @ARG;
+
+    my ( $rdr, $wtr );
+    pipe( $rdr, $wtr ) or return ( undef, "pipe failed: $OS_ERROR", undef );
+
+    my $pid = fork();
+    if ( not defined $pid ) {
+        close $rdr;
+        close $wtr;
+        return ( undef, "fork failed: $OS_ERROR", undef );
+    }
+    if ( $pid == 0 ) {    ## child : redirect stdio, chdir, exec list-form ##
+        close $rdr;
+        chdir($cwd) if defined $cwd and length $cwd;
+        open( STDIN,  '<',  '/dev/null' );
+        open( STDOUT, '>&', $wtr ) or POSIX::_exit(127);
+        open( STDERR, '>&', $wtr ) or POSIX::_exit(127);
+        close $wtr;
+        exec( @{$cmd} );      ## one arg = program, rest = argv : no shell ##
+        POSIX::_exit(127);    ## reached only when exec itself fails   ##
+    }
+    close $wtr;
+
+    my $output = '';
+    eval {
+        local $SIG{ALRM} = sub { die "timeout\n" };
+        alarm( $timeout // 120 );
+        $output = do { local $/ = undef; <$rdr> }
+            // '';
+        close $rdr;
+        alarm(0);
+    };
+    if ($EVAL_ERROR) {
+        alarm(0);
+        kill 'KILL', $pid;
+        waitpid( $pid, 0 );
+        close $rdr;
+        return ( $output, "command timed out after ${timeout}s", undef )
+            if $EVAL_ERROR eq "timeout\n";
+        return ( $output, "error: $EVAL_ERROR", undef );
+    }
+    waitpid( $pid, 0 );
+    return ( $output, undef, $? >> 8 );
+}
+
+## dispatch a task to a BILLED claude.ai cloud session. the CLI form is     ##
+## fixed by its own help + docs : --cloud [description] creates a NEW cloud ##
+## session whose description IS the task, and -p is REJECTED with a         ##
+## description [ verified against installed 2.1.301 : "With --print,        ##
+## --cloud sends the prompt to an existing cloud session ... To start a new ##
+## cloud session from a description instead, drop --print" ; the headless   ##
+## docs confirm ]. so the whole preamble + task goes into ONE               ##
+## '--cloud=<task>' argv element                                            ##
+## [ value form : optional-value flags need it ], and non-interactivity     ##
+## comes from stdout being a captured pipe                                  ##
+## [ the -p help : the trust dialog is skipped "when stdout is not a TTY" ] ##
+## + stdin from /dev/null. NO --bg : a background start only prints the     ##
+## short id, with no claude.ai/code url to parse, and the spec wants the    ##
+## url in the reply — so the call blocks [ alarm-capped ] until the session ##
+## reports back, exactly like claude_dispatch does on this single-threaded  ##
+## server                                                                   ##
+sub tool_claude_cloud_dispatch {
+    my ( $id, $args ) = @ARG;
+
+    my $prompt = $args->{'prompt'} // '';
+    return send_tool_result( $id, 'prompt is required', 1 )
+        if not length $prompt;
+
+    ## repo the cloud session clones : this server's repo unless told       ##
+    ## otherwise [ the env override exists so tests can point the tool at a ##
+    ## throwaway git repo ]                                                 ##
+    my $repo = $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} // $ROOT_PATH;
+    return send_tool_result( $id, "cloud repo not found: $repo", 1 )
+        if not -d $repo;
+
+    ## branch : param, else the repo current branch [ detached HEAD has ##
+    ## none — then the caller must pass branch explicitly ]             ##
+    my $branch = $args->{'branch'} // '';
+    if ( length $branch
+        and $branch !~ m{\A[A-Za-z0-9][A-Za-z0-9._/-]*\z} ) {
+        return send_tool_result( $id,
+            "branch '$branch' does not look like a git branch name", 1 );
+    }
+    if ( not length $branch ) {
+        my ( $b_out, $b_err )
+            = _cloud_run_list( [qw| git branch --show-current |], 30, $repo );
+        return send_tool_result( $id,
+            "cannot determine current branch : $b_err", 1 )
+            if defined $b_err;
+        ($branch) = split m{\n}, $b_out // '';
+        $branch //= '';
+    }
+    return send_tool_result( $id,
+        'cannot determine the branch — pass branch explicitly', 1 )
+        if not length $branch;
+
+    ## start commit : the branch tip                  ##
+    ## [ HEAD when defaulting to the current branch ] ##
+    my $verify_ref = length( $args->{'branch'} // '' ) ? $branch : 'HEAD';
+    my ( $sha_out, $s_err )
+        = _cloud_run_list(
+        [ qw| git rev-parse --verify --quiet |, $verify_ref ],
+        30, $repo );
+    my $sha
+        = ( not defined $s_err )
+        ? ( split m{\n}, $sha_out // '' )[0] // ''
+        : '';
+    return send_tool_result(
+        $id,
+        "cannot resolve a commit for branch '$branch'"
+            . ' [ is it fetched locally? ]',
+        1
+    ) if not length $sha;
+
+    ## cloud sessions clone the REMOTE repo : local-only commits would   ##
+    ## silently vanish there, so refuse instead of dispatching a session ##
+    ## that works on stale code                                          ##
+    my $range
+        = length( $args->{'branch'} // '' )
+        ? "$branch\@{u}..$branch"
+        : '@{u}..HEAD';
+    my ( $unpushed, $u_err )
+        = _cloud_run_list(
+        [ qw| git -c color.ui=false log --oneline --no-color |, $range ],
+        30, $repo );
+    return send_tool_result(
+        $id,
+        "push first : branch '$branch' has no upstream on the remote — "
+            . 'push it before dispatching [ a cloud session clones the '
+            . 'remote and would not even see the branch ]',
+        1
+    ) if defined $u_err;
+    return send_tool_result(
+        $id,
+        "push first : branch '$branch' has local commits the remote "
+            . "has not seen — push them before dispatching :\n$unpushed",
+        1
+    ) if length $unpushed;
+
+    ## fixed preamble + the untrusted task : the WHOLE text is the cloud ##
+    ## session description — one argv element, list-form exec keeps it   ##
+    ## intact all the way into the claude process                        ##
+    my $full_prompt = join "\n",
+        '[ protocol-7 cloud dispatch ]',
+        'you are working in a cloud clone of the protocol-7 '
+        . 'repository [ github nailara-technologies/protocol-7 ].',
+        "start from branch '$branch' at commit '$sha'.",
+        'read CLAUDE.md first and follow its conventions.',
+        'note: do not merge to the default branch.',
+        'finish with a pushed branch plus a summary of what changed.', '',
+        'task :',
+        $prompt;
+
+    my @cmd = ( 'claude', sprintf( '--cloud=%s', $full_prompt ) );
+    push @cmd, '--environment', $args->{'environment'}
+        if length( $args->{'environment'} // '' );
+
+    log_msg( '[claude_cloud] dispatch : branch=%s sha=%s repo=%s',
+        $branch, $sha, $repo );
+
+    ## DETACHED start [ kimi_dispatch model ] : the claude process gets its ##
+    ## own session, stdin from /dev/null, stdout+stderr to a capture file   ##
+    ## under data/state/ — it is NEVER killed by this server and keeps      ##
+    ## running after this tool returns, so this single-threaded server is   ##
+    ## not held hostage for the whole cloud run [ the old qx()-until-EOF    ##
+    ## shape would have blocked every other tool call for up to 30 minutes  ##
+    ## and then killed the cloud client at the alarm ]                      ##
+    my $run = _cloud_fork_run( \@cmd, $repo );
+    return send_tool_result( $id, $run->{'error'}, 1 )
+        if length( $run->{'error'} // '' );
+    my $gpid = $run->{'gpid'};
+    my $path = $run->{'tmp_out'};
+
+    ## bounded early-return poll : read the capture file and return AS SOON ##
+    ## AS a session id / claude.ai/code url is parseable from it ; after    ##
+    ## the cap, hand the capture file to claude_cloud_status instead of     ##
+    ## blocking on                                                          ##
+    my $poll_cap = $ENV{'PROTOCOL_7_MCP_CLOUD_POLL'} // 60;
+    $poll_cap = 1 if $poll_cap < 1;
+    my $t0     = Time::HiRes::time();
+    my $raw    = '';
+    my $status = 'starting';
+    my ( $url, $session_id );
+    while (1) {
+        $raw = _slurp_raw($path);
+        ( $url, $session_id ) = _cloud_parse_ids($raw);
+        if ( defined $url or length $session_id ) {
+            $status = 'started';
+            last;
+        }
+        if ( not kill( 0, $gpid ) ) {
+            $status = 'finished_no_id';
+            last;
+        }
+        last if Time::HiRes::time() - $t0 >= $poll_cap;
+        select( undef, undef, undef, 0.25 );
+    }
+
+    my @lines = (
+        sprintf(
+            'status=%s tool=claude_cloud_dispatch pid=%d',
+            $status, $gpid
+        ),
+        'cloud session dispatched via `claude --cloud <task>` '
+            . '— this STARTED A BILLED claude.ai cloud session.',
+        "branch: $branch",
+        "commit: $sha",
+        "capture_file: $path",
+        'the claude process is DETACHED [ own session, stdin /dev/null ] — '
+            . 'it keeps running after this reply and is never killed by this '
+            . 'server.',
+    );
+    if ( $status eq 'starting' ) {
+        push @lines,
+            sprintf(
+            'no claude.ai/code url or session id in the '
+                . 'capture file yet [ polled %.1fs of the %ds cap ]',
+            Time::HiRes::time() - $t0, $poll_cap
+            ),
+            'recover the url later: claude_cloud_status(capture_file="'
+            . $path . '")';
+    } elsif ( $status eq 'finished_no_id' ) {
+        push @lines,
+            'the claude process already exited without '
+            . 'producing a session id — see the raw output below';
+    }
+    push @lines, length $session_id
+        ? "session_id: $session_id"
+        : 'session_id: NOT parsed from output [ tolerant regexes, '
+        . 'exact format not guaranteed — see raw output below ]';
+    push @lines, defined $url
+        ? "url: $url"
+        : 'url: NOT parsed from output [ tolerant regexes, '
+        . 'exact format not guaranteed — see raw output below ]';
+    push @lines, '', 'raw output :', $raw;
+
+    ## error only when the CLI itself reported an Error and nothing ##
+    ## parseable came out — a bare parse miss                       ##
+    ## [ or a still-starting session ] is never an error            ##
+    my $is_err
+        = ( $status eq 'finished_no_id' and $raw =~ m{^\s*Error:}m )
+        ? 1
+        : 0;
+    send_tool_result( $id, join( "\n", @lines ), $is_err );
+}
+
+## double-fork a claude cloud worker DETACHED                              ##
+## [ _kimi_fork_run shape, minus the session-dir scan ] : the intermediate ##
+## child is reaped at once, the real worker is orphaned to init            ##
+## [ no zombies, no SIGCHLD games ] and gets its own session via setsid so ##
+## it survives anything that happens to this server ; its pid lands in     ##
+## <capture>.pid for liveness checks                                       ##
+sub _cloud_fork_run {
+    my ( $cmd, $cwd ) = @ARG;
+
+    my $state_dir = "$ROOT_PATH/data/state";
+    eval { make_path($state_dir) } if not -d $state_dir;
+
+    ## per-dispatch capture file, named like the kimi capture files [      ##
+    ## kimi-dispatch-<pid>-<epoch>.out -> claude-cloud-<pid>-<epoch>.out ] ##
+    my $tmp_out = sprintf '%s/claude-cloud-%d-%.6f.out',
+        $state_dir, $PID, Time::HiRes::time();
+    my $pid_file = "$tmp_out.pid";
+
+    my $pid = fork();
+    if ( not defined $pid ) {
+        return { 'error' => "fork failed: $OS_ERROR" };
+    }
+    if ( $pid == 0 ) {
+        my $gpid = fork();
+        POSIX::_exit(1) if not defined $gpid;
+        if ( $gpid == 0 ) {
+            ## worker : own session, stdio to the capture file, then  ##
+            ## straight into claude — never returns to perl code here ##
+            POSIX::setsid();
+            open( STDIN,  '<',  '/dev/null' );
+            open( STDOUT, '>',  $tmp_out ) or POSIX::_exit(1);
+            open( STDERR, '>&', \*STDOUT );
+            chdir($cwd) if defined $cwd and length $cwd;
+            exec( @{$cmd} );      ## list-form : no shell, no requoting ##
+            POSIX::_exit(127);    ## reached only when exec fails    ##
+        }
+        ## intermediate child : hand the worker pid to the parent, exit  ##
+        if ( open( my $pfh, '>', $pid_file ) ) {
+            print $pfh $gpid;
+            close $pfh;
+        }
+        POSIX::_exit(0);
+        ## in a forked child of the mcp server process ##
+    }
+    waitpid( $pid, 0 );    ## intermediate child exits immediately ##
+
+    my $gpid = '';
+    if ( open( my $pfh, '<', $pid_file ) ) {
+        $gpid = <$pfh> // '';
+        close $pfh;
+    }
+    chomp $gpid;
+    if ( $gpid !~ m{^\d+$} or $gpid < 2 ) {
+        unlink $tmp_out, $pid_file;
+        return { 'error' => 'failed to start detached claude cloud worker' };
+    }
+    return {
+        'gpid'     => $gpid,
+        'tmp_out'  => $tmp_out,
+        'pid_file' => $pid_file
+    };
+}
+
+## raw-byte slurp of a capture file [ tolerant of a missing or still-open ##
+## file : both yield whatever exists, possibly '' ]                       ##
+sub _slurp_raw {
+    my ($path) = @_;
+    return '' if not defined $path or not -f $path;
+    if ( open( my $fh, '<:raw', $path ) ) {
+        local $/ = undef;
+        my $content = <$fh> // '';
+        close $fh;
+        return $content;
+    }
+    return '';
+}
+
+## tolerant session id + url extraction, shared by the dispatch poll and   ##
+## claude_cloud_status : the exact --cloud output format is not guaranteed ##
+## [ and unobserved without a real billed run ], so this accepts the       ##
+## documented url shape, the documented session_/cse_ id shapes, a plain   ##
+## uuid, and a loose 'session id : X' line — and happily returns nothing   ##
+sub _cloud_parse_ids {
+    my ($raw)      = @_;
+    my ($url)      = $raw =~ m{(https?://claude\.ai/code/[^\s"'<>)]*)}i;
+    my $session_id = '';
+    if ( defined $url and $url =~ m{/code/([A-Za-z0-9._-]+)} ) {
+        $session_id = $1;
+    } elsif ( $raw =~ m{\b((?:session|cse)_[A-Za-z0-9][A-Za-z0-9._-]{5,})\b} )
+    {
+        $session_id = $1;    ## documented cloud session id shapes      ##
+    } elsif ( $raw
+        =~ m|\b([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b|i
+    ) {
+        $session_id = $1;
+    } elsif ( $raw
+        =~ m{\b(?:session[ _-]*id|id)\s*[:=]\s*([A-Za-z0-9][A-Za-z0-9._-]{5,})\b}i
+    ) {
+        $session_id = $1;
+    }
+    return ( $url, $session_id );
+}
+
+## read a cloud session back, two independent read-only readers : [ 1 ]   ##
+## capture_file [ a path from a claude_cloud_dispatch reply ] — its size, ##
+## any id/url parsed from it so far, and its tail ; recovers the url of a ##
+## session that was still starting when the dispatch returned [ 2 ]       ##
+## session_id — state from `claude agents --json`                         ##
+## [ documented as "for scripting; does not require a tty" ] + recent     ##
+## terminal output from `claude logs <id>`                                ##
+## [ prints the session recent terminal output ] nothing here creates or  ##
+## bills anything                                                         ##
+sub tool_claude_cloud_status {
+    my ( $id, $args ) = @ARG;
+
+    my $session_id   = $args->{'session_id'}   // '';
+    my $capture_file = $args->{'capture_file'} // '';
+    return send_tool_result( $id,
+        'session_id or capture_file is required', 1 )
+        if not length $session_id and not length $capture_file;
+
+    my $max_lines = $args->{'lines'} // 40;
+    $max_lines = 200 if $max_lines > 200;
+    $max_lines = 1   if $max_lines < 1;
+
+    my @lines;
+
+    ## [ 1 ] capture-file tail — the late-url recovery path ##
+    if ( length $capture_file ) {
+        if ( not -f $capture_file ) {
+            push @lines, "capture_file: NOT found [ $capture_file ]";
+        } else {
+            my $raw = _slurp_raw($capture_file);
+            my ( $url, $parsed_id ) = _cloud_parse_ids($raw);
+            my @all   = split m{\n}, $raw, -1;
+            my $start = @all > $max_lines ? @all - $max_lines : 0;
+            push @lines,
+                sprintf(
+                'capture_file: %s [ %d bytes ]',
+                $capture_file, length $raw
+                ),
+                (
+                length $parsed_id ? "session_id: $parsed_id"
+                : 'session_id: NOT parsed from capture file yet'
+                ),
+                (
+                defined $url ? "url: $url"
+                : 'url: NOT parsed from capture file yet'
+                ),
+                sprintf( 'last %d lines:', $max_lines ),
+                @all[ $start .. $#all ];
+        }
+    }
+
+    ## [ 2 ] the documented session readers — only when an id is known ##
+    if ( length $session_id ) {
+        my $repo = $ENV{'PROTOCOL_7_MCP_CLOUD_REPO'} // $ROOT_PATH;
+
+        my $state = '';
+        my ( $agents, $agents_err )
+            = _cloud_run_list( [qw| claude agents --json |], 60, $repo );
+        if ( not defined $agents_err and length $agents ) {
+            ## agents output is raw bytes off the pipe ; $json is in ->utf8 ##
+            ## mode and expects exactly that [ same contract as the other   ##
+            ## $json->decode() call sites in this file ]                    ##
+            my $list = eval { $json->decode($agents) };
+            if ( not $EVAL_ERROR and ref $list eq 'ARRAY' ) {
+                for my $entry ( @{$list} ) {
+                    next unless ref $entry eq 'HASH';
+                    my $blob = join ' ', map { $entry->{$ARG} // '' }
+                        keys %{$entry};
+                    next unless index( $blob, $session_id ) >= 0;
+                    $state = sprintf 'active [ %s ]',
+                        join ', ',
+                        map { sprintf '%s=%s', $ARG, $entry->{$ARG} }
+                        grep { not ref $entry->{$ARG} } sort keys %{$entry};
+                    last;
+                }
+                $state
+                    = 'no active or completed background session matched '
+                    . 'this id [ yet — a just-started session appears '
+                    . 'in the listing a moment after creation ]'
+                    if not length $state;
+            }
+        }
+        $state
+            = 'unavailable [ claude agents --json failed: '
+            . ( defined $agents_err ? $agents_err : 'unparseable output' )
+            . ' ]'
+            if not length $state;
+
+        my ( $logs, $logs_err )
+            = _cloud_run_list( [ qw| claude logs |, $session_id ], 60,
+            $repo );
+
+        push @lines, '' if @lines;
+        push @lines, "state: $state";
+        if ( defined $logs_err ) {
+            push @lines, "recent output: failed to read [ $logs_err ]";
+        } else {
+            push @lines, 'recent output [ claude logs ] :', $logs;
+        }
+    }
+    send_tool_result( $id, join( "\n", @lines ), 0 );
+}
+
 ## fork + detach a kimi-legacy dispatch WITHOUT blocking this server's      ##
 ## request loop, then give it a short bounded window to fail fast           ##
 ##                                                                          ##
@@ -4333,13 +4898,13 @@ sub tool_external_command {
 ## exec straight into kimi-legacy, never return to perl code in the worker  ##
 ## ], adapted to a DOUBLE fork : the intermediate child is reaped by the    ##
 ## parent at once and the real worker is orphaned to init.  that achieves   ##
-## what _dispatch_followup's local $SIG{'CHLD'}='IGNORE' does [ no zombies  ##
-## ] while still allowing liveness polling — a SIGCHLD disposition of       ##
-## IGNORE only auto-reaps if it is still in effect when the child dies, so  ##
-## a 'local'ed one would leak a zombie per dispatch once restored, and a    ##
-## permanent one would break qx()/system() exit- status handling elsewhere  ##
-## in this server. no SIGCHLD games at all here : init reaps the worker,    ##
-## the parent never has to                                                  ##
+## what _dispatch_followup's local $SIG{'CHLD'}='IGNORE' does               ##
+## [ no zombies ] while still allowing liveness polling — a SIGCHLD         ##
+## disposition of IGNORE only auto-reaps if it is still in effect when the  ##
+## child dies, so a 'local'ed one would leak a zombie per dispatch once     ##
+## restored, and a permanent one would break qx()/system() exit- status     ##
+## handling elsewhere in this server. no SIGCHLD games at all here : init   ##
+## reaps the worker, the parent never has to                                ##
 sub _kimi_fork_run {
     my ( $cmd, $ext ) = @ARG;
 
@@ -4353,12 +4918,13 @@ sub _kimi_fork_run {
         $state_dir, $PID, Time::HiRes::time();
     my $pid_file = "$tmp_out.pid";
 
-    ## snapshot existing kimi session dirs : a FRESH kimi_dispatch makes    ##
-    ## kimi-legacy create ~/.kimi/sessions/<hash>/<uuid>/ about a second    ##
-    ## after start [ measured 2026-09-08 : dir at 1.1s vs first real stdout ##
-    ## at 16.6s ] — long before its first output line and well inside the   ##
-    ## bounded window below, so the new session's uuid is recoverable by    ##
-    ## diffing against this snapshot instead of grepping logs afterwards    ##
+    ## snapshot existing kimi session dirs : a FRESH kimi_dispatch makes   ##
+    ## kimi-legacy create ~/.kimi/sessions/<hash>/<uuid>/ about a second   ##
+    ## after start                                                         ##
+    ## [ measured 2026-09-08 : dir at 1.1s vs first real stdout at 16.6s ] ##
+    ## — long before its first output line and well inside the bounded     ##
+    ## window below, so the new session's uuid is recoverable by diffing   ##
+    ## against this snapshot instead of grepping logs afterwards           ##
     my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
     my $sess_glob
         = "$home/.kimi/sessions/*/????????-????-????-????-????????????";
@@ -4410,15 +4976,15 @@ sub _kimi_fork_run {
         return { 'error' => 'failed to start detached kimi-legacy worker' };
     }
 
-    ## bounded fast-fail window [ 6s ] : exists ONLY so a near-instant      ##
-    ## failure [ exec failure, immediate CLI usage error ] returns          ##
-    ## synchronously with its real output instead of falsely claiming       ##
-    ## "dispatched". it is NOT meant to catch normal completion — every     ##
-    ## real kimi run takes minutes [ even a one-word-prompt run took ~17s   ##
-    ## on 2026-09-08 ], so this cap should almost always be exceeded. 6s is ##
-    ## long enough for a fresh session's directory + uuid to appear [ ~1s,  ##
-    ## measured ] with wide margin, short enough to be irrelevant next to   ##
-    ## any real run                                                         ##
+    ## bounded fast-fail window [ 6s ] : exists ONLY so a near-instant     ##
+    ## failure [ exec failure, immediate CLI usage error ] returns         ##
+    ## synchronously with its real output instead of falsely claiming      ##
+    ## "dispatched". it is NOT meant to catch normal completion — every    ##
+    ## real kimi run takes minutes                                         ##
+    ## [ even a one-word-prompt run took ~17s on 2026-09-08 ], so this cap ##
+    ## should almost always be exceeded. 6s is long enough for a fresh     ##
+    ## session's directory + uuid to appear [ ~1s, measured ] with wide    ##
+    ## margin, short enough to be irrelevant next to any real run          ##
     my $wait_cap       = 6;
     my $wait_start     = Time::HiRes::time();
     my $finished       = 0;
@@ -4506,8 +5072,8 @@ sub _kimi_dispatch_async_reply {
             . "kimi_check_status(session_id=\"$uuid\")",
             "To resume this session: kimi -r $uuid";
     } else {
-        ## fresh dispatch whose session dir was not attributable in time [ ##
-        ## e.g. a concurrent unrelated dispatch in the same window ]       ##
+        ## fresh dispatch whose session dir was not attributable in time ##
+        ## [ e.g. a concurrent unrelated dispatch in the same window ]   ##
         push @lines,
               'session uuid: not attributable yet at reply time. it shows up '
             . '~1s after kimi-legacy starts as the NEWEST directory '
@@ -4574,8 +5140,8 @@ sub tool_kimi_check_status {
     ## unified activity corroboration : a live process alone is not proof   ##
     ## of an active session — a lingering idle sh -c wrapper can outlive    ##
     ## its completed turn by hours [ observed 2026-07-17 : zero cpu, idle   ##
-    ## 4h40m after the result had already landed ]. both the argv pid-      ##
-    ## match and the fresh-dispatch fallback below funnel through the same  ##
+    ## 4h40m after the result had already landed ]. both the argv pid-match ##
+    ## and the fresh-dispatch fallback below funnel through the same        ##
     ## freshness gate : the session's own wire.jsonl must have been written ##
     ## recently, and a trailing TurnEnd event means done regardless of      ##
     ## process state                                                        ##
@@ -4680,8 +5246,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,..,,,.,.,.,...,...,,,.,,..,,,,,,.,,...,..,,...,...,...,...,.,.,,,.,,.,,
-#KMWEALGP7F7MHXUGKLKKZ75O37IIL7Y3FLZX4W43KJJL7OILEXP7JXOPOT4L34E37SRIAATKXEVP4
-#\\\|25FED4SIM5YI722JILRGXNTAYSCF4L5N6Y7ZSSYI3P3CEDLQMIS \ / AMOS7 \ YOURUM ::
-#\[7]2IMXQ652UNYA7B2FWK7AAYAEQ4GEEZWWTNJZBPYRLMUZUSAJDWAQ 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,,..,...,,.,,,..,,,.,.,.,..,,..,,...,..,,.,,,,,.,.,.,..,,...,
+#VGIGUFA4JEXDJ3CSJOF46QWFPEJI476U6N7XYAKGTSKCT7XFTBHLSGHRRGGA5JCJUZBJVGY2PNJ3Q
+#\\\|CQGW6TNCQELAYHESGUHWXYHS7XDUFO2N2C2WPG6F54LQ3MXA3RL \ / AMOS7 \ YOURUM ::
+#\[7]76R2APCWJFAJVSXOPPQAXET3PD7WMD5ME6O2GYKEDBUWSANTRGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

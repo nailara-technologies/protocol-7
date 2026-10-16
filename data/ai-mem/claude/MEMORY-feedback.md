@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [kimi-specs-forbid-stash-and-real-runs](feedback-kimi-specs-forbid-stash-and-real-runs.md) — 2026-10-16 : a parallel kimi task did a git stash round trip with unsigned work in the tree [ popped by luck ], another ran the billed CLI against the spec -- every spec forbids stash \ checkout \ reset \ restore and real outward runs ; check stash list + pending files after a parallel round
 - [verify-push-landed-before-deploy](feedback-verify-push-landed-before-deploy.md) — 2026-10-16 : "go ahead" came before the push, I tore down 4 servers on old code -- git fetch + compare @{u} first, gate the remote teardown on the pulled head ; p7-keys-only changes need a pull, no teardown
 - [stderr-buffered-in-zenki](feedback-stderr-buffered-in-zenki.md) — 2026-10-14 : zenka STDERR is buffered, log \ console output is STDOUT -- a color escape on STDERR lands late [ even at exit ] ; put terminal state on the text's stream, verify with a raw `script -qc` capture
 - [readkey-raw-mode-leaves-icrnl](feedback-readkey-raw-mode-leaves-icrnl.md) — ReadMode(4) keeps icrnl on : pasted crlf becomes two line feeds [ the WSL interlaced-paste cause, fixed bdd1b718c ] -- clear icrnl in any raw-mode reader or reuse AMOS7::TERM::Editor
@@ -214,8 +215,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [nested-data-read-autovivifies-before-defaults](feedback-nested-data-read-autovivifies-before-defaults.md) — a nested `<a.b.c>` read before init_modules creates `<a.b>` as {} and cancels a whole-hash `//=` default [ v7-zenki zenka-dirs all undef 2026-10-11..15 via base.host.detect ] ; read early via `( <a.b> // {} )->{c}`, defaults per key
 
-#,,..,,.,,..,,,,.,,,,,.,,,,,,,,,.,...,.,.,.,.,..,,...,...,.,.,.,.,..,,..,,.,.,
-#LMHZCM6PL7KZHLKBZL77DKPVZPDKITRQD7VBUOA5O5GTGEBFOQZRSZUEDZADYJVYZDZ5PTHXVNMCM
-#\\\|MFGQOI7IKO3CBOCRXMB5SXQNWMDCJL7CEY5SON4IX3BVRLJURDF \ / AMOS7 \ YOURUM ::
-#\[7]4FAT3VYIWCEC4YAPG2NTOUNVQKEIZH2EC6AQCLK56QWTMEIKZ4BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,...,.,,,..,,.,.,.,,,.,.,.,,,..,,...,...,..,,.,.,..,,,,,,.,,,
+#SPBR2IFJDCFLSVMTL6TJ7RJSLCXDFFOKDPLNIEHY6Z4XB3M6EHD44ERXJETIHZ6752J5E2OXYPNEA
+#\\\|J2XC3D6K5S76AGDUEAMMMKNJ3WONFMDR25T4GI6EHPWVYVDAMVW \ / AMOS7 \ YOURUM ::
+#\[7]2VTTXPM7R57H6P5S2W45JZU3CEVZTXFV5WFRIJQUAAQ5IS7EE2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
