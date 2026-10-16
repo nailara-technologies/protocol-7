@@ -34,8 +34,15 @@ that the file's ownership will need restoring afterward via `chown`, so it's exp
 than alarming. Check ownership with `ls -la` on the target (or a sibling file in the same
 directory) BEFORE editing, not after something breaks.
 
-#,,,.,.,,,,,.,...,,,.,,..,,,,,.,,,..,,.,,,...,..,,...,...,,,.,.,.,,,.,.,,,...,
-#H5FX5NSITAZMM7BX3KVT6BNUD5UZUKENLWO4FDJ3GYTCLDTOH57WIENADL4JN3PF3U6LK6COAQ2PE
-#\\\|YGLDILECCHIB4AKXUGLE3HKPM7RPSK6CE33V72UXNNNLUJH4JMV \ / AMOS7 \ YOURUM ::
-#\[7]UF767GDFPZS6K6SVGRG7EXUKDXB3G3FBJPXBCUOCL6LSEAGPX6BY 7  DATA SIGNATURE ::
+**Same trap as root over ssh [ 2026-10-16 ]**: a hand-written root block `install -d -o
+protocol-7 .../remote-keys/incoming` set the owner on the LAST directory only -- the missing
+parent `remote-keys/` was created root:root, `p7-keys authorize` then failed and cube could
+not read the registry [ all four servers, a night of 'not authorized' ]. prefer the zenka's
+own command [ now `USER=protocol-7 p7-keys add-incoming`, which hands every directory to
+the zenka user ] ; in a hand block, create each level explicitly or run it as the zenka user.
+
+#,,,,,..,,,..,.,.,,.,,,.,,.,,,.,.,.,.,,.,,,.,,..,,...,..,,...,.,.,..,,,,.,,.,,
+#AXU5BEKYSSLCOH4JJ44QOMX65UKST3AZSRCYAVJT7RW4SQ74PI72Y24XRT2GRSCHDMG6ZATUZDKAQ
+#\\\|IOBSUVER46SGKHPAVOCN2DHYY6D3Z5EQQKYPAAB3P34UMUGZFQO \ / AMOS7 \ YOURUM ::
+#\[7]YEZAGNGUU5LKUAZBFMWSE47LX6A4D6SORSJNEQHZUYDLBTLA7SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

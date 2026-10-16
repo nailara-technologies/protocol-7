@@ -5,6 +5,16 @@ metadata:
   type: feedback
 ---
 
+## 2026-10-16 : `reload plugins` never runs init_code
+
+base.reload_plugins = base.load_code over <plugins.status> : recompile
+only. a plugin's init_code [ and what it arms or re-reads ] runs again
+only with `<zenka>.reload init` [ init_modules with reinit TRUE ]. cost a
+night : authorized keys fixed on disk were never re-read by cube [ now
+moot for keys : inotify watcher, see
+[[project-2026-10-16-auth-watcher-add-incoming]] ]. when a reload must
+change runtime STATE, not just code, use `reload init`.
+
 ## 2026-10-04 : third gap found + fixed [ plugin.* via modules.load ]
 
 storage and universal listed their plugins in `modules.load` instead of
@@ -164,8 +174,8 @@ not just as a fallback for when something looks wrong.
 
 **Restart-only changes are defects [ 2026-09-24, per user ]**: the only remaining reason a zenka needs a restart for a code or config change is a handler that is neither registered reload-safe nor reinstalled in an init phase. when such an instance is found, fix it [ make it reload-safe or reinstall it at init ] rather than accepting the restart -- the goal is that no zenka ever needs a restart just for code or config changes.
 
-#,,,,,,.,,,.,,,.,,.,.,.,.,,,,,.,.,...,.,.,,,.,...,...,...,..,,,,,,,..,,,.,...,
-#BJIAS47LTNC6WTOQCQAGSDK6EP5JRKF7ZPKY3IOYU5F7GR3AQJ2XXWJM3YTWCNU7LVR4FOVGGMVUS
-#\\\|BYOTBNHBEYNGZH223K53I6OHPTCMTV3ZCJQRYUAFJVQIQX32SXD \ / AMOS7 \ YOURUM ::
-#\[7]MEIMY2HNU4NUW6575NPSP4JSUH5ZYDH7NA3YFYYD6ZNOBPDF6KCY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,...,,,,,,,,,..,,,,.,...,,.,,..,,...,...,..,,...,.,.,,..,.,.,,,.,
+#W24FVSGAM2CCPFP5K2GLDIW3OVRJIAO5JPATSOZUKZTUW5IVTAWYY4W2FO422UIAC5EUQEKZZQ7JK
+#\\\|QTVFQLKYL5VCRMCVGCPUSZK537B6EJLX5UOE7NLB3ZHCBEEHC4J \ / AMOS7 \ YOURUM ::
+#\[7]36COU3G64LJSBHB3GSDXEGOIBSQTCBLQ62EQMC3M5R3RQOKJHWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

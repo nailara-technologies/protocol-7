@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [verify-push-landed-before-deploy](feedback-verify-push-landed-before-deploy.md) — 2026-10-16 : "go ahead" came before the push, I tore down 4 servers on old code -- git fetch + compare @{u} first, gate the remote teardown on the pulled head ; p7-keys-only changes need a pull, no teardown
 - [stderr-buffered-in-zenki](feedback-stderr-buffered-in-zenki.md) — 2026-10-14 : zenka STDERR is buffered, log \ console output is STDOUT -- a color escape on STDERR lands late [ even at exit ] ; put terminal state on the text's stream, verify with a raw `script -qc` capture
 - [readkey-raw-mode-leaves-icrnl](feedback-readkey-raw-mode-leaves-icrnl.md) — ReadMode(4) keeps icrnl on : pasted crlf becomes two line feeds [ the WSL interlaced-paste cause, fixed bdd1b718c ] -- clear icrnl in any raw-mode reader or reuse AMOS7::TERM::Editor
 - [call-swapped-names-not-file-names](feedback-call-swapped-names-not-file-names.md) — 2026-10-11 : base.chk-sum.{jha,amos,bmw,bmw384,elf,profile} swap to chk-sum.* at load -- call <[chk-sum.*]>, never <[base.chk-sum.*]> [ most common undefined-sub cause ] ; reference \ from_substr stay base.
@@ -213,8 +214,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [nested-data-read-autovivifies-before-defaults](feedback-nested-data-read-autovivifies-before-defaults.md) — a nested `<a.b.c>` read before init_modules creates `<a.b>` as {} and cancels a whole-hash `//=` default [ v7-zenki zenka-dirs all undef 2026-10-11..15 via base.host.detect ] ; read early via `( <a.b> // {} )->{c}`, defaults per key
 
-#,,..,,,,,.,,,,.,,.,.,,..,,..,,.,,.,.,,..,,..,..,,...,...,.,,,..,,,.,,,,.,,..,
-#JLJD5O46LN6DXZ2HWAZVU5YST77X6FMCQQWESYILAWYDOTZLV37O3FA7MIVK3DTVGL6OZM3JOUW5A
-#\\\|M5O7JVVXNPJFVQJ2VHSMICQLR3JHFFIDLPWKNERJ4HAPR5JZAY5 \ / AMOS7 \ YOURUM ::
-#\[7]YTFER4UGMFOHF2XITOFLLDZXVNT3NDSX5TNE5V36AZWEC3RYNIAI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,.,,,,,.,,,,,,,,,.,...,.,.,.,.,..,,...,...,.,.,.,.,..,,..,,.,.,
+#LMHZCM6PL7KZHLKBZL77DKPVZPDKITRQD7VBUOA5O5GTGEBFOQZRSZUEDZADYJVYZDZ5PTHXVNMCM
+#\\\|MFGQOI7IKO3CBOCRXMB5SXQNWMDCJL7CEY5SON4IX3BVRLJURDF \ / AMOS7 \ YOURUM ::
+#\[7]4FAT3VYIWCEC4YAPG2NTOUNVQKEIZH2EC6AQCLK56QWTMEIKZ4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
