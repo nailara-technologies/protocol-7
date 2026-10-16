@@ -16,9 +16,6 @@ return if not @$items;
 <[base.perlmod.load]>->('AMOS7::deps::tracked')
     if not <[base.perlmod.loaded]>->('AMOS7::deps::tracked');
 
-my $track_file = AMOS7::deps::tracked::track_file(<system.root_path>);
-my $track_dir  = <system.root_path> . '/var/sys-deps';
-
 AMOS7::deps::tracked::record(
     <system.root_path>,
     [   map {
@@ -33,20 +30,14 @@ AMOS7::deps::tracked::record(
     ]
 );
 
-## normalize ownership for sys-deps zenka \ os-pkg access ##
-if ( -f $track_file and $UID == 0 ) {
-    my ( $track_uid, $track_gid )
-        = ( getpwnam(<system.amos-zenka-user>) )[ 2, 3 ];
-    chown( $track_uid, $track_gid, $track_dir, $track_file )
-        if defined $track_uid;
-    chmod( 0775, $track_dir );
-    chmod( 0664, $track_file );
-}
+## normalize ownership for sys-deps zenka \ os-pkg access [ shared helper ] ##
+AMOS7::deps::tracked::chown_to_user( <system.root_path>,
+    <system.amos-zenka-user> );
 
 return TRUE;
 
-#,,..,.,.,...,.,.,,,,,...,,..,,.,,..,,,.,,,.,,..,,...,...,.,.,,..,.,.,.,.,..,,
-#PSETLCS3KX2D3MSPDHA7AFBMNUO5QLPXWJTWVLTAEIXWCEF25MXHLPLNRG7ZFHXH3VDZUYAE2PLK2
-#\\\|CIQFUKQIIWIFB7GYIRVTP7XMFFEYCQWXR3PMQ75CTRFJYYLYLSJ \ / AMOS7 \ YOURUM ::
-#\[7]NDW4J7PJODJMVVOM4X6G4TDJKNW6PO4N25EX6CS44OHZRU6WZSCI 7  DATA SIGNATURE ::
+#,,,.,...,,..,,..,,.,,.,.,,..,..,,,.,,.,,,,,,,..,,...,...,,,.,,,.,,,.,.,,,,,.,
+#2HHS37VWBIRJUAPW3BEHLQJW5UAS6FCCYLJWD6HZ3UO4XSKOFKZVOOEBPENQVHKWZMBIPZZYYBBQG
+#\\\|HB4J7A3G27OHQEPEEEODA46TPDKPMKJKUZMATVVFWTNRM3QBLE4 \ / AMOS7 \ YOURUM ::
+#\[7]COSHPKG6ZRO3NUUNRNKXTUAYLVT6ROWN2DXUW7S4UMHXAVJVK2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

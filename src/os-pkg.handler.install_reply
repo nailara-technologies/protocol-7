@@ -6,16 +6,28 @@
 my $reply = shift;
 return warn 'no reply hashref received' if not defined $reply;
 
-## reply-handler signature : one hashref { sid, cmd, call_args, params }  ##
-## 'cmd' is the wire-level mode keyword, the payload is call_args->args [ ##
-## see sys-deps.handler.install_reply ]                                   ##
+## reply-handler signature : one hashref { sid, cmd, call_args, params } ##
+## 'cmd' is the wire-level mode keyword, the payload is call_args->args  ##
+## [ see sys-deps.handler.install_reply ]                                ##
 my $mode      = uc( $reply->{'cmd'} // '' );
 my $params    = $reply->{'params'}              // {};
 my $reply_str = $reply->{'call_args'}->{'args'} // '';
 my $reply_id  = $params->{'reply_id'};
+my $packages  = $params->{'packages'} // [];
+my $zenka     = $params->{'zenka'};
 my $backend   = $params->{'backend'} // 'backend';
 
 my $ok = $mode eq qw| TRUE |;
+
+## the wire-level reply is all-or-nothing                               ##
+## [ same shape as  sys-deps.handler.install_reply ] : TRUE means every ##
+## requested package installed OK, anything else means they all failed  ##
+my ( @ok, @failed );
+if ($ok) {
+    @ok = @$packages;
+} else {
+    @failed = @$packages;
+}
 
 <[base.logs]>->(
     $ok ? 1 : 0,
@@ -24,6 +36,23 @@ my $ok = $mode eq qw| TRUE |;
     $ok                ? 'done'     : 'failed',
     length($reply_str) ? $reply_str : qw| no details |
 );
+
+## Track the packages that INSTALLED OK in var/sys-deps/tracked.yaml via    ##
+## the shared AMOS7::deps::tracked record                                   ##
+## [ dedups on type + name, writes atomically ] : failed packages are never ##
+## recorded                                                                 ##
+if (@ok) {
+    my @entries = map {
+        {   'pkg'          => $ARG,
+            'type'         => $params->{'backend'} // qw| debian |,
+            'installed_at' => <[base.ntime.b32]>   // '',
+            'source'       => 'os-pkg',
+            'zenka'        => $zenka,
+            'declared'     => 0
+        }
+    } @ok;
+    AMOS7::deps::tracked::record( <system.root_path>, \@entries );
+}
 
 return if not defined $reply_id;
 
@@ -38,8 +67,8 @@ return if not defined $reply_id;
 
 return;
 
-#,,..,,,.,...,,.,,,,.,,..,,.,,..,,,,.,,.,,...,..,,...,...,...,,..,,,.,,..,,.,,
-#W52ZG3OWQ3JPXVCH73OO4NB3ZIGMRUXLJ5X6KVNA33EXTTDGUTJI5MIH5WREPTQJNYBH2XQBOLAZQ
-#\\\|EMNLXJNK4TFYC2XJSKV2TGSQBHHN3VN3CENRC7SQ6ANZJ3FDW6B \ / AMOS7 \ YOURUM ::
-#\[7]7KYFPHGNNSPWFV3F4T5TSIBJ4KK6XFM6OJLJE5Q2L7S4PNQJGEBA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,,.,...,,,.,...,,,.,.,,,...,..,,...,...,,,,,..,,...,.,,,,,,,
+#APZDJPTPZHSH4WFMWQ2BKUUEULU477JZEG3ZUIWR5XKJ2ROWHWMLDY6AYLMHUCMJHEHQN4I64MTWS
+#\\\|AX2HLUS6Z6PFCXRZNGVBKZOBRXESNMGMYMQFDVMMWEJPMYGVXJN \ / AMOS7 \ YOURUM ::
+#\[7]VGXXTE2GWIHA6H2BYT54Z47SWTX2LUO734G3EGINJUJIS3FDOCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

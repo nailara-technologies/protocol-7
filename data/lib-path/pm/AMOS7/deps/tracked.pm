@@ -11,7 +11,8 @@ use Fcntl      qw| O_RDONLY O_DIRECTORY LOCK_EX |;
 use Exporter;
 use base qw| Exporter |;
 
-our @EXPORT_OK = qw| track_file read_tracked record undeclared promote |;
+our @EXPORT_OK
+    = qw| track_file read_tracked record undeclared promote chown_to_user |;
 
 ## fully-qualified calls into os_package [ compile-time imports break when ##
 ## Module::Refresh wipes the shared CV during a live v7 reload ]           ##
@@ -127,6 +128,32 @@ sub record {
 
     return undef unless _save( $p7_root, $entries );
     return $entries;
+}
+
+##[ chown_to_user ]###########################################################
+
+## hand the tracked file + its directory over to the zenka user after a     ##
+## ROOT install [ v7-zenki prestart \ perlmod auto-install stage 2 ] so the ##
+## unprivileged sys-deps \ os-pkg zenki keep read-write access. no-op when  ##
+## not root, when the user is unknown or the file does not exist            ##
+
+sub chown_to_user {
+    my ( $p7_root, $user ) = @_;
+
+    return unless defined $p7_root and defined $user and length $user;
+    return if $UID != 0;
+
+    my $path = track_file($p7_root);
+    return unless -f $path;
+
+    my $dir = File::Spec->catdir( $p7_root, qw| var sys-deps | );
+    my ( $uid, $gid ) = ( getpwnam($user) )[ 2, 3 ];
+    return unless defined $uid;
+
+    chown( $uid, $gid, $dir, $path );
+    chmod 0775, $dir;
+    chmod 0664, $path;
+    return 1;
 }
 
 ##[ undeclared ]##############################################################
@@ -283,8 +310,8 @@ sub _save {
 
 1;
 
-#,,,,,..,,...,...,,.,,...,..,,,,.,.,.,..,,.,.,..,,...,...,,,.,,..,,.,,...,..,,
-#G2JHXWB3TQAGC6GM7TG7SXP37HXF2LLI5REX6S6LFQ5T742WTQLE5UDEE7HROUXIHSSGQWFSSXFTU
-#\\\|X3Y7RSBHA7JA7JFIGKWSDL4M7E7YY7ROHOYL3ZVHHXDMYNHTE5F \ / AMOS7 \ YOURUM ::
-#\[7]BBEPQEMU7QYMQGNI7TZM46EA6JVLPYPTFDTRMFSBAU3RIB2RSYBY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,...,,,.,,..,..,,.,.,,,.,,.,,,..,..,,...,..,,.,.,,.,,,..,..,,,,,,
+#B5QGROFIGE737NPNGTJ4MCBDJ4HMXFN7OGN47ZZPEES4P4UGQOKSV7N2O6JRLGKQRLUSGYTW4GQTK
+#\\\|ZGRQHXZHA5RBIRXSVRQJQQFUTTR34YMMBEODY25A2XEVCG5PC4A \ / AMOS7 \ YOURUM ::
+#\[7]FF3RM4QQMB2NHRGRYYIYADNABBW2RDVHLMBLGOW4IYCETV4VLIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

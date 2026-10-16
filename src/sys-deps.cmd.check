@@ -43,7 +43,7 @@ my $pm_missing = 0;
 if (@zenka_pm) {
     push @output, ":  perl modules:";
     for my $module (@zenka_pm) {
-        my $ok     = AMOS7::deps::module::probe_module($module);
+        my $ok     = AMOS7::deps::module::probe_module_file($module);
         my $status = $ok ? 'installed' : 'missing';
         push @output, sprintf( ":    %-40s %s", $module, $status );
         $pm_missing++ unless $ok;
@@ -57,7 +57,7 @@ if (@zenka_os) {
     push @output, ":  OS packages:";
     for my $dep (@zenka_os) {
         my $ok = AMOS7::deps::os_package::probe_os_pkg( $dep->{'pkg'},
-            $dep->{'type'} );
+            $dep->{'type'}, 1 );
         my $status = $ok ? 'installed' : 'missing';
         push @output, sprintf( ":    %-40s %s", $dep->{'pkg'}, $status );
         $os_missing++ unless $ok;
@@ -78,8 +78,8 @@ return {
     'data' => "\n" . join( "\n", @output ) . "\n"
 };
 
-#,,.,,,,,,,,.,,,.,,,,,,,.,.,,,.,.,,,,,,..,.,.,..,,...,...,,,,,,,,,.,,,,..,,.,,
-#FGLGWSVV4R6BFWUYZP6G3G4COI3VSI44UGCAJAORY5NQEQENSWHNOCWJCQPCSDKGWHZ3PZJNBGHSU
-#\\\|SU3PSFD4CBFY2PCD3ER3VKVOCKVBC3FVS2F4AQQKG5CQ5MSKLQ5 \ / AMOS7 \ YOURUM ::
-#\[7]JTFNOVIFJ7C7VZLPD3XOQDT3UDRLH6HBK2FFSIJ64O5NHE4NJ4BY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,,,.,.,,,...,,,.,.,,,.,,,..,,..,,...,.,.,..,,.,.,.,,,,,,,,,,,
+#HBPN332G36XUFUJMNXMVMTRJF34YI3DNI5OSL7N7WDQYVT7NLXTYE2EWNIENWFHJDJ4R3HJWWATRS
+#\\\|ZK7SZO76T2YWP44522GUPESCYH7AXIDKBXP6HVPUW2ZNANU6NDY \ / AMOS7 \ YOURUM ::
+#\[7]R2VSTR724SBKQLNSDFU5JVT4DK7QELW5F4M7NKR5A2IAC6RILQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
