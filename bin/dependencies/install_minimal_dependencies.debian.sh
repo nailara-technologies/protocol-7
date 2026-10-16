@@ -5,10 +5,8 @@ bin_path=`dirname $script_path` # ./bin/dependencies
 NAILARA_ROOT=`realpath $bin_path/../..`
 EXT_LIB_PATH="$NAILARA_ROOT/data/lib-path"
 
-ln -f -s $NAILARA_ROOT/bin/Protocol-7 /usr/local/bin/Protocol-7
-ln -f -s $NAILARA_ROOT/bin/nshell /usr/local/bin/nshell
-
-cp $EXT_LIB_PATH/systemd/system/Protocol-7.service /lib/systemd/system/
+## unit file \ links : bin/p7-deps install-service at the end [ it needs ##
+## the perl modules installed below ]                                   ##
 
 ### dependencies for 'v7-zenki', 'cube', 'p7-log', 'system', 'httpd',
 ##                   'events' and some non-X11 zenki agents + nshell
@@ -62,10 +60,15 @@ perl -Mv5.13 -e \
   cpanm $EXT_LIB_PATH/pm-src/crypt-curve25519 &&
     cd $NAILARA_ROOT && git clean -fxd $EXT_LIB_PATH/pm-src
 
+## the unit [ compared first, written atomically, systemd reloaded after a ##
+## change -- a plain cp left 'changed on disk' until a manual reload ],   ##
+## /usr/local/protocol-7 + launcher symlinks ; never starts or restarts   ##
+$NAILARA_ROOT/bin/p7-deps install-service
+
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,..,...,..,,,..,,.,,.,,,..,,,..,.,,,,,,,,.,,..,,...,...,,.,,...,,,.,,,,,...,
-#S6QGWAIEJFN32Z7SC4BW32NXLUUGKYHBOEPOOMP242DVYJAGYFWUTPYFRQ2ZMN5JDHDCCQN4LJ52Y
-#\\\|BSKXB5V55WM5WPXSGRPRDI5GQAPIRMFR3WBP55UCUDNHEYXK4QJ \ / AMOS7 \ YOURUM ::
-#\[7]FLFLIYZARYRVRMBVK4LIEDTGE4O54TTNSHVYAM4GBLBNEMDLASDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,,..,..,,,,.,,.,,..,,,.,,,,.,..,,...,..,,...,...,,.,,..,,.,,,
+#X4EOCDRMW4UGV6H6YD2PTLB3DO7ZHTIEF77UP7LDCYSLBNGLRROP6FPNYKKPWATZ6F7NYULSUXP5Y
+#\\\|ANXH4Q6WR244OJXVYGXNWTVYGAOT6ZOYCAUXMEU46TCO6E3B6RY \ / AMOS7 \ YOURUM ::
+#\[7]Y6LTQ53CAH762ETTTG5GCIDSFCRQB7ZKWO7KL27JSSAOZVY7F6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
