@@ -13,6 +13,8 @@ use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
 use AMOS7;
+use AMOS7::TERM::Frame qw|
+    frame_border_line frame_rule_line frame_colorize_content frame_bar |;
 
 use Event;
 use POSIX;
@@ -92,17 +94,10 @@ our %cursor_state = (
 
 ##[ PROTOCOL-7 COLOR PALETTE ]################################################
 
-our %p7_colors = (
-    'p7_fg_0000' => "\e[38;2;68;39;172m",    ##  purple  ##
-    'p7_fg_0001' => "\e[38;2;38;46;153m",    ##    blue  ##
-    'p7_fg_0002' => "\e[38;2;170;94;2m",     ##   brown  ##
-    'p7_fg_0003' => "\e[38;2;9;170;94m",     ##  phosphor green [ cursor ]  ##
-    'p7_fg_0004' => "\e[38;2;6;71;195m",     ##  TRUE blue       [ text ]   ##
-    ##  neon amber  [ brighter 0002 ]  ##
-    'p7_fg_0005' => "\e[38;2;197;141;7m",
-    ##  neon green  [ brighter 0003 ]  ##
-    'p7_fg_0006' => "\e[38;2;71;195;6m",
-);
+## defined in AMOS7::TERM::Frame [ core-only ] : the very same hash via ##
+## glob alias, not a copy -- mutating one side is visible on the other  ##
+our %p7_colors;
+*p7_colors = \%AMOS7::TERM::Frame::p7_colors;
 
 ##[ HISTORY MANAGEMENT ]######################################################
 
@@ -1843,193 +1838,10 @@ sub cursor_disable {
 
 ##[ ASCII FRAME HELPERS ]#####################################################
 
-## render a border line via anchor/fill/slot elasticity model  parameters:
-## elements => [{type=>'anchor',value=>..,color=>..},
-## {type=>'fill',char=>..,min=>..,color=>..},
-## {type=>'slot',name=>..,color=>..}]  values => {name=>string} for slots
-## width => target column count reset => ansi reset sequence
-## [ used after every colored segment ]
-sub frame_border_line {
-    my $params = shift // {};
-
-    my $elements = $params->{'elements'} // [];
-    my $values   = $params->{'values'}   // {};
-    my $width    = $params->{'width'}    // 0;
-    my $reset    = $params->{'reset'}    // '';
-
-    return '' if not @{$elements};
-
-    ## sum fixed-width parts and locate fill slots ##
-    my $fixed_width = 0;
-    my @fill_idx;
-    for my $i ( 0 .. $#{$elements} ) {
-        my $el = $elements->[$i];
-        return warn_err('element type not defined')
-            if not defined $el->{'type'};
-        if ( $el->{'type'} eq qw| anchor | ) {
-            $fixed_width += length( $el->{'value'} // '' );
-        } elsif ( $el->{'type'} eq qw| slot | ) {
-            $fixed_width += length( $values->{ $el->{'name'} } // '' );
-        } elsif ( $el->{'type'} eq qw| fill | ) {
-            push @fill_idx, $i;
-        }
-    }
-
-    my $available = $width - $fixed_width;
-    $available = 0 if $available < 0;
-
-    ## distribute available column budget across fill elements ##
-    my %alloc;
-    if (@fill_idx) {
-        if ( @fill_idx == 1 ) {
-            $alloc{ $fill_idx[0] } = $available;
-        } else {
-            my $sum_min = 0;
-            $sum_min += ( $elements->[$_]->{'min'} // 1 ) for @fill_idx;
-            my $used = 0;
-            for my $idx (@fill_idx) {
-                my $min = $elements->[$idx]->{'min'} // 1;
-                my $a   = int( $available * $min / $sum_min );
-                $a = 0 if $a < 0;
-                $alloc{$idx} = $a;
-                $used += $a;
-            }
-            my $rem = $available - $used;
-            $alloc{ $fill_idx[-1] } += $rem if $rem != 0;
-        }
-    }
-
-    ## assemble line with per-element color wrap ##
-    my $line = '';
-    for my $i ( 0 .. $#{$elements} ) {
-        my $el    = $elements->[$i];
-        my $color = $el->{'color'} // '';
-        my $r     = length($color) ? $reset : '';
-        if ( $el->{'type'} eq qw| anchor | ) {
-            my $v = $el->{'value'} // '';
-            $line .= $color . $v . $r if length $v;
-        } elsif ( $el->{'type'} eq qw| slot | ) {
-            my $v = $values->{ $el->{'name'} } // '';
-            $line .= $color . $v . $r if length $v;
-        } elsif ( $el->{'type'} eq qw| fill | ) {
-            my $n = $alloc{$i} // 0;
-            $line .= $color . ( $el->{'char'} x $n ) . $r if $n > 0;
-        }
-    }
-
-    return $line;
-}
-
-## convenience wrapper : title on the left, fill dashes to the right  colors
-## hash uses keys 'title', 'fill', 'reset' [ any missing = no color ]
-sub frame_rule_line {
-    my $title = shift // '';
-    my $width = shift // 0;
-    my $C     = shift // {};
-
-    return frame_border_line(
-        {   width    => $width,
-            reset    => $C->{'reset'} // '',
-            elements => [
-                {   type  => qw| anchor |,
-                    value => $title,
-                    color => $C->{'title'} // '',
-                },
-                {   type  => qw| fill |,
-                    char  => $C->{'char'} // '-',
-                    min   => 1,
-                    color => $C->{'fill'} // '',
-                },
-            ],
-        }
-    );
-}
-
-## colorize a content line  splits label:/value with leading/trailing pad also
-## handles a separator row [ colon-border + = fill + colon-border ] color-hash
-## keys used : fill_colon fill_eq label value
-sub frame_colorize_content {
-    my $line  = shift // '';
-    my $A     = shift // {};
-    my $reset = shift // '';
-    return $line if not length $line;
-
-    ## separator row : left border + run of = + right border ##
-    if ( $line =~ m{^([:.])(\s*=+\s*)([:.])$} ) {
-        my ( $lb, $mid, $rb ) = ( $1, $2, $3 );
-        return
-              ( $A->{'fill_colon'} // '' )
-            . $lb
-            . $reset
-            . ( $A->{'fill_eq'} // '' )
-            . $mid
-            . $reset
-            . ( $A->{'fill_colon'} // '' )
-            . $rb
-            . $reset;
-    }
-
-    my $first = substr( $line, 0, 1 );
-    my $last  = length($line) > 1 ? substr( $line, -1, 1 ) : '';
-    my $body
-        = length($line) > 1
-        ? substr( $line, 1, length($line) - 2 )
-        : '';
-
-    my $left
-        = ( $first eq qw| : | )
-        ? ( ( $A->{'fill_colon'} // '' ) . $first . $reset )
-        : $first;
-    my $right
-        = ( $last eq qw| : | )
-        ? ( ( $A->{'fill_colon'} // '' ) . $last . $reset )
-        : $last;
-
-    my $body_colored;
-    if ( $body =~ m{^(\s*)([\w][\w\-\.]*:)(\s+)(.*?)(\s*)$} ) {
-        my ( $lpad, $lbl, $sp, $val, $rpad ) = ( $1, $2, $3, $4, $5 );
-        $body_colored
-            = $lpad
-            . ( $A->{'label'} // '' )
-            . $lbl
-            . $reset
-            . $sp
-            . ( length($val) ? ( $A->{'value'} // '' ) . $val . $reset : '' )
-            . $rpad;
-    } elsif ( length $body and $body =~ m{\S} ) {
-        if ( $body =~ m{^(\s*)(.*?)(\s*)$} ) {
-            my ( $lpad, $mid, $rpad ) = ( $1, $2, $3 );
-            $body_colored = $lpad
-                . (
-                length($mid)
-                ? ( $A->{'value'} // '' ) . $mid . $reset
-                : ''
-                ) . $rpad;
-        } else {
-            $body_colored = $body;
-        }
-    } else {
-        $body_colored = $body;
-    }
-
-    return $left . $body_colored . $right;
-}
-
-## render fraction [ 0..1 ] as a left-justified space-padded fill bar
-sub frame_bar {
-    my $frac  = shift // 0;
-    my $width = shift // 0;
-    my $char  = shift // ':';
-
-    $frac  = 0 if $frac < 0;
-    $frac  = 1 if $frac > 1;
-    $width = 0 if $width < 0;
-
-    my $fill = int( $width * $frac );
-    $fill = $width if $fill > $width;
-
-    return sprintf( '%-*s', $width, $char x $fill );
-}
+## frame_border_line, frame_rule_line, frame_colorize_content and frame_bar ##
+## live in AMOS7::TERM::Frame [ core-only ] -- imported above and kept in   ##
+## this package's @EXPORT_OK, so every existing caller keeps working        ##
+## unchanged                                                                ##
 
 ## split-screen : reserve the bottom N rows as a fixed area                 ##
 ## [ e.g. an input line ], confine scrolling to the rows above via DECSTBM. ##
@@ -2135,8 +1947,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,,.,..,,,,.,,..,...,.,.,..,,.,,,,.,,,,,,,..,..,,...,...,.,.,,..,.,.,,,,,.,,,
-#IV67HGTMY2JUQBTSPPKXEPY3UYGEWAQWAUA7V2QJJMMFCCGKSD75YW4RLECPLGLYTNB7ZW3YNRJ6G
-#\\\|4Y6URVWWSFD4K4QXQVFBSTXKTEYBWPMHWDS2RCT6Z2KFEYPORRI \ / AMOS7 \ YOURUM ::
-#\[7]ZLEVSGWG36OL5IW4PIQQPIQVUFJH5SIJKP7R74ER3VWRMJNMAQAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,.,..,,.,.,,.,,.,,,.,,,,.,,,,.,..,,...,...,,.,,,,.,,,.,,..,,,,,
+#JYYF64AXMRJHQF7IS6HUNRON3LHXFF3UDR7JCVLJWJQTF5GJGDYL74ZGKGS5Z5WR6NZ3WJ6A3S2TK
+#\\\|TSNLDE2YDRUFRANBUVE4KO3XGV6AMQY2M7FQN6EDK3P5AZ6IW4I \ / AMOS7 \ YOURUM ::
+#\[7]CD43CUHDWMN32EEGLHKGXUF4M7SLDGNLSDVE7H7G2TXLDQVM5OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
