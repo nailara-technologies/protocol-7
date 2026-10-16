@@ -1,0 +1,160 @@
+## [:< ##
+
+# name  = keys.console.add-incoming
+# param = <username> <public key | file | - > [ <zenka> ]
+# descr = add the incoming client key of a not-yet-seen user [ optionally
+#         authorizing it for a zenka ]
+# note  = writes incoming/<username>.public [ 0640, owned by the key user ]
+#         ; a successful login used to be the only writer of that file ;
+#         cube re-reads authorized keys via inotify, no reload needed
+
+my $arg = shift;
+
+if ( not defined $arg or not length $arg ) {
+    say "\n  << expected '<username> <public key "
+        . "| file | - > [ <zenka> ]' parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my ( $username, $key_spec, $zenka ) = split( m| +|, $arg, 3 );
+
+if (   not defined $username
+    or not length $username
+    or not defined $key_spec
+    or not length $key_spec ) {
+    say "\n  << expected '<username> <public key "
+        . "| file | - > [ <zenka> ]' parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+if ( $username =~ m{[/\x00]} or $username !~ m{^[A-Za-z0-9._-]+$} ) {
+    say "\n  << username must match [A-Za-z0-9._-] "
+        . "and must not contain '/' >>\n";
+    <[base.exit]>->(qw| 0113 |);
+}
+
+if ( defined $zenka and ( $zenka =~ m{[/\x00]} or not length $zenka ) ) {
+    say "\n  << zenka must not contain '/' >>\n";
+    <[base.exit]>->(qw| 0113 |);
+}
+
+## the key : a literal base32 string, a path to a file holding one ##
+## [ e.g. a copied '<name>.base.public' ] or '-' for stdin         ##
+my $key_b32;
+if ( $key_spec eq qw| - | ) {
+    local $INPUT_RECORD_SEPARATOR = undef;
+    $key_b32 = <STDIN>;
+} elsif ( -f $key_spec ) {
+    $key_b32 = <[file.slurp]>->($key_spec)->$*;
+} else {
+    $key_b32 = $key_spec;
+}
+
+if ( not defined $key_b32 or not length $key_b32 ) {
+    say "\n  << no public key given >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+$key_b32 =~ s|\s+||g;    ## strip surrounding \ embedded whitespace ##
+
+## the key must decode to exactly 32 bytes [ C25519 ] ##
+my $key_bin = eval { Crypt::Misc::decode_b32r($key_b32) };
+if ( not defined $key_bin or length $key_bin != 32 ) {
+    printf "\n  << '%s' is not a valid base32 C25519 public key >>\n\n",
+        $key_spec;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+my $incoming_dir = $key_vars_ref->{'incoming_dir'};
+my $uid          = $key_vars_ref->{'uid'};
+my $gid          = $key_vars_ref->{'gid'};
+
+if ( not defined $incoming_dir ) {
+    say "\n  << incoming key directory not resolved >>\n";
+    <[base.exit]>->(qw| 0020 |);
+}
+
+## ownership of every directory on the path -- as root a mismatched        ##
+## existing directory is fixed [ with a warning line from keys.owned_dir ] ##
+## , as anyone else the helper refuses with a clear error                  ##
+my $remote_keys_dir = $incoming_dir;
+$remote_keys_dir =~ s|/+[^/]+$||;
+
+<[base.exit]>->(qw| 0020 |)
+    if not <[keys.owned_dir]>->( $remote_keys_dir, 0750, $uid, $gid );
+<[base.exit]>->(qw| 0020 |)
+    if not <[keys.owned_dir]>->( $incoming_dir, 0700, $uid, $gid );
+
+my $pin_file = catfile( $incoming_dir, "${username}.public" );
+
+if ( -f $pin_file ) {
+    my $cur_b32 = <[file.slurp]>->($pin_file)->$*;
+    $cur_b32 //= '';
+    chomp $cur_b32;
+
+    if ( $cur_b32 eq $key_b32 ) {
+        printf "\n  :: incoming key for '%s' already present ::\n\n",
+            $username;
+    } else {
+        printf "\n  << '%s' already has an incoming key -- use "
+            . "'p7-keys re-pin %s:%s <new key>' to replace it >>\n\n",
+            $username,
+            defined $zenka ? $zenka : '<zenka>',
+            $username;
+        <[base.exit]>->(qw| 0010 |);
+    }
+} else {
+    require Fcntl;
+
+    my $pin_fh;
+    if (not sysopen(
+            $pin_fh,
+            $pin_file,
+            Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+                | Fcntl::O_NOFOLLOW(),
+            0640
+        )
+    ) {
+        die sprintf( "<< pin open failed : %s >>\n", <[base.str.os_err]> );
+    }
+
+    if ( not print {$pin_fh} $key_b32, "\n" or not close($pin_fh) ) {
+        my $why = <[base.str.os_err]>;
+        unlink($pin_file);
+        die sprintf( "<< pin write failed : %s >>\n", $why );
+    }
+
+    if ( $EUID == 0 and defined $uid and $EUID != $uid ) {
+        if ( not chown $uid, $gid, $pin_file ) {
+            printf "\n  << chown '%s' failed : %s >>\n\n",
+                $pin_file, <[base.str.os_err]>;
+        }
+    }
+
+    printf "\n  :: added incoming key for '%s' ::\n\n", $username;
+}
+
+## already authorized with this pin : nothing to do [ a repeated call ] ##
+my $auth_link = catfile(
+    $key_vars_ref->{'auth_dir'} // '',
+    $zenka // '',
+    "${username}.public"
+);
+if (    defined $zenka
+    and -l $auth_link
+    and ( readlink($auth_link) // '' ) eq $pin_file ) {
+    printf "\n  :: '%s' already authorized for '%s' ::\n\n", $username,
+        $zenka;
+} elsif ( defined $zenka ) {
+    <[base.exit]>->(qw| 0010 |)
+        if not <[keys.authorize_link]>->( $zenka, $username );
+
+    printf "\n  :: authorized '%s' for '%s' ::\n\n", $username, $zenka;
+}
+
+#,,..,,..,..,,.,.,,..,...,...,,..,,..,,.,,.,.,.,.,...,...,,.,,.,,,.,,,,.,,...,
+#SSS2QOR24H55GJ45FDBIG3JDUX77HNKGS42576TSU4WHNLI4OWDM4IUU4Q5MDMBTXSZGJI2CXLFJA
+#\\\|2YVQCFJ2VUUSY4QSKM36654ITW3ZEQTMQMSJR7CVHXYEAKSVPVY \ / AMOS7 \ YOURUM ::
+#\[7]IVK6MPW6TRL7CLZ4TRN7RCGQ4FZR62X2SSPKXWCK3NOFSCSYCYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
