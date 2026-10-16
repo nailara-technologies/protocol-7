@@ -83,11 +83,45 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
   IN_CLOSE_WRITE \ IN_MOVED_TO [ never a half-written file ], the same
   self-expanding pattern as plugin.auth.auth-keypair.watch-authorized for
   blob subdirs ; locked session = mark stale only.
+- PLANNED [ agreed 2026-10-16, not started ] : installer + generic deps
+  layer. findings : AMOS7::deps::{debp,dist_upgr,module,service} are core
+  perl ; NOT core : os_package [ File::Which -> small PATH scan ], TERM
+  [ Event, Term::ReadLine, Fortuna -- p7-deps uses only
+  frame_border_line ], tracked.yaml [ YAML::Tiny -> keep the format, put
+  a copy into data/lib-path/pm ].
+  1. AMOS7::TERM::Frame : core-only frames \ colours, TERM re-exports it.
+  2. bin/p7-install : standalone like p7-vault [ script + AMOS7/ ] --
+     base packages, clone \ update /usr/local/protocol-7, p7-deps install
+     <profile>, install-service [, enable-service ] ; then retire
+     bin/dependencies/*.debian.sh [ or one-line calls ].
+  3. backend interface : AMOS7::deps::backend::<family> loaded by name
+     [ debp -> backend::debian, alias kept ] : probe \ install ->
+     { ok, failed, manual } \ refresh \ needs_root. 'manual' = admin
+     action [ nixos is declarative : report configuration.nix lines ].
+     new OS = one file + detect_os line. names : deps/os/<dir>/ per
+     family ; perl modules via base.known_dependencies family keys,
+     cpan_fallback when unmapped [ a new OS still gets every module ].
+  4. one detect_os [ os-pkg zenka has its own os-pkg.backend_type ] ;
+     the debian zenka's root apt child -> generic root runner calling
+     backend::<family>::install [ names checked in root, no shell ].
+  5. AMOS7::deps::tracked [ record \ read \ undeclared \ promote, entries
+     carry the family ] replaces 3 writers : bin/os-pkg [ + its own
+     promote \ undeclared ], sys-deps.handler.install_reply,
+     v7-zenki.sys_deps.track. sys-deps : fresh \ _file probes, no
+     hard-coded 'debian'.
+  6. p7-deps style overhaul as it becomes central -- read bin/todo,
+     bin/format-code, bin/amos-chksum first [ user's references ],
+     derive the shared look into the frame module.
+  direction [ user ] : the future settings zenka [ its namespace already
+  freed ] ties packages a USER installed to
+  that user's data in the users zenka -> reproducible user + developer
+  set-ups ; expect cross-integrations [ tracked entries need a user
+  field, not just zenka \ family ].
 - README 2026-10-16 : auto-install, keys + vault sections added [ commit
   pending at writing ].
 
-#,,..,,,,,.,,,,.,,,.,,.,.,...,,.,,.,,,,..,,..,..,,...,..,,.,.,...,..,,.,.,,,,,
-#P4ZNVVONVIFTTPEUO6KASQZ2UDB5Q7LCRILIHRIATF4UVAA5QZKYDWLMFXUXM6BY4BMEJWNU5OF2W
-#\\\|BQ776S2TU3GNKG5BKHJIGKZ5LYMEZYSMIHJYNYUOHDTFKQJ6R7O \ / AMOS7 \ YOURUM ::
-#\[7]UNRECEM3R3LXI2RSXXP7VNN55X6CQ4J2RILFWIJORFHP7PAUOYCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,.,,,,..,...,,.,,,,.,,..,,,.,..,,...,...,.,.,...,,..,...,.,.,
+#OZ2575EALA2VJEGC4DPI5MLTCJJPV3BN4BKK7ZD356LP4IK64USJ5BTRCBAY6F7HGPRXKEQF5IPRY
+#\\\|IYKGKV53HN3ZSWRNXQMQSFVGS2AZ5HCO2X6JKJGEJD6RO6IXNIP \ / AMOS7 \ YOURUM ::
+#\[7]YB3ORBSXLWFTDROH3B6O427GJGHZGUK5W3VZNEX5JZLXMGGXGYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
