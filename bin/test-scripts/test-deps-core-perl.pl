@@ -183,6 +183,91 @@ EOF
     printf "       : %s\n", $out;
 }
 
+## the shared terminal helpers render in the stripped environment, plain ##
+## and coloured, and pull in nothing beyond core perl                    ##
+
+{
+    my $child = sprintf <<'EOF', B::perlstring($lib_path);
+BEGIN {
+    my $lib = %s;
+    use Config;
+    @INC = ( $lib, $Config::Config{privlibexp},
+        $Config::Config{archlibexp} );
+}
+use AMOS7::TERM::Frame qw| frame_color_enabled frame_column_line
+    frame_title_banner frame_section_header frame_status_row
+    frame_error_line frame_progress_bar |;
+my $n = 0;
+for my $color ( 0, 1 ) {
+    my $o = { color => $color };
+    for my $s (
+        frame_column_line( ':', $o ), frame_title_banner( 't', $o ),
+        frame_section_header( 's', $o ), frame_status_row( 'l', 'ok', $o ),
+        frame_error_line( 'tool', 'm', $o ), frame_progress_bar( 1, 2, 'f', $o )
+    ) {
+        $n++ if length $s and ( index( $s, "\e" ) >= 0 ) == $color;
+    }
+}
+frame_color_enabled();
+if ( $n != 12 ) { print "FAIL rendered $n of 12\n"; exit 1 }
+for my $forbidden ( qw| File/Which.pm Event.pm Term/ReadLine.pm
+    Crypt/PRNG/Fortuna.pm YAML/Tiny.pm | ) {
+    if ( exists $INC{$forbidden} ) { print "FAIL pulled in $forbidden\n"; exit 1 }
+}
+print "12 helper renders\n";
+exit 0;
+EOF
+    local $ENV{'PERL5LIB'} = undef;
+    my ( $exit, $out ) = run_capture( $EXECUTABLE_NAME, '-e', $child );
+    chomp $out;
+    check 'frame helpers render plain + coloured on core perl only',
+        $exit == 0;
+    printf "       : %s\n", $out;
+}
+
+## bin/p7-install compiles and answers --help with @INC stripped before it ##
+## loads anything [ BEGIN strip, then do <script> ] -- every module it     ##
+## pulls in comes from data/lib-path/pm or the core perl dirs              ##
+
+{
+    my $script  = "$root_path/bin/p7-install";
+    my $sandbox = tempdir( CLEANUP => 1 );
+    my $inc_log = File::Spec->catfile( $sandbox, 'inc.log' );
+    my $child   = sprintf <<'EOF', B::perlstring($script),
+BEGIN {
+    use Config;
+    @INC = ( $Config::Config{privlibexp}, $Config::Config{archlibexp} );
+    $0 = %s;
+    $main::pre_strip{$_} = 1 for keys %%INC;
+}
+END {
+    open my $fh, '>', %s or die;
+    print {$fh} "$INC{$_}\n" for grep { not $main::pre_strip{$_} } keys %%INC;
+    close $fh;
+}
+do $0;
+die $@ if $@;
+EOF
+        B::perlstring($inc_log);
+    local $ENV{'PERL5LIB'} = undef;
+    my ( $exit, $out )
+        = run_capture( $EXECUTABLE_NAME, '-e', $child, '--', '--help' );
+    check 'bin/p7-install --help exits 0 on core perl only', $exit == 0;
+
+    my @paths = map { abs_path($_) // $_ }
+        grep { length and $_ ne $script } split m|\n|,
+        slurp($inc_log) // '';
+    my @foreign = grep {
+                index( $_, $lib_path ) != 0
+            and index( $_, $Config{privlibexp} ) != 0
+            and index( $_, $Config{archlibexp} )
+            != 0
+    } @paths;
+    check 'bin/p7-install loads only lib-path and core perl modules',
+        ( @paths > 0 and not @foreign );
+    printf "       : foreign %s\n", $_ for @foreign;
+}
+
 ## bin/p7-deps help and check-service in the stripped environment           ##
 
 my $svc_sandbox = tempdir( CLEANUP => 1 );
@@ -370,8 +455,8 @@ check 'probe_binary by relative path',
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,.,,,,,.,,,,,,,...,...,,..,,.,,,,.,.,.,..,,...,..,,,..,,,.,.,,,,.,,,.,,
-#P6Z44U4OGGYYE6CDVX4LLYW3LKJUQ4UJ3W2BTEF2TZ4GTK64G6VN7KOZRXT3UY3PHK6E2IFQ3RYCU
-#\\\|T7AJJICZVB3F5TTPNDEYCNPVJUZ55ID77DRIRXDF6J4WL4LZQRA \ / AMOS7 \ YOURUM ::
-#\[7]IBPS7IQXFO55QY22QLHEDZFGG2EJHBEG7VLXBCT65IA3OFZOASAQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,.,.,.,,,,,.,...,..,,.,.,...,..,,...,...,,,.,,,,,,,.,,..,,..,
+#TQQJEM66V337L3I6F37HIFC6DVEBADVNY4R6I6ZFD5WW3JGCG2XJ77WOKF3BKEBMRY5TU47CV5J42
+#\\\|MCFX23CPPR5WAIHVAG4IOR42KFODRU5BSK7AVDRAPEQ567ITWDG \ / AMOS7 \ YOURUM ::
+#\[7]L47OCUZ5Y547IQWQZJTD2YWQ3RFGS5XQ7XRTJGM2VCIPJ5PD5SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
