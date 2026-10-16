@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3X7PJBPFEA-10059.0 :::
+::: SOURCE-CODE VERSION :: 3X7PJ3OBDA-10060.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -146,10 +146,20 @@ Note: For browser agent functionality, see additional dependencies in the browse
 
 To start Protocol-7 with the v7-zenki management zenka, run: `bin/Protocol-7 v7-zenki`
 
-Alternatively, to use systemd:
+Alternatively, to use systemd, set the service up once as root, then start it:
 
-- Enable: `systemctl enable Protocol-7`
-- Start: `systemctl start Protocol-7`
+```bash
+bin/p7-deps install-service   # unit, /usr/local/protocol-7 link, launcher symlinks
+bin/p7-deps enable-service    # systemctl enable
+systemctl start Protocol-7
+```
+
+- `bin/p7-deps check-service`: read-only check of unit, links and unit state
+  [ exit 1 when a part differs ]
+- `bin/p7-deps disable-service`: systemctl disable
+- none of the service commands starts, stops or restarts the service ; a
+  changed unit takes effect at the next restart. v7-zenki logs a unit that
+  differs from the repository's, it never replaces it
 
 ### Interacting with the System
 
@@ -200,12 +210,48 @@ Three primary methods for interacting with the Protocol-7 network:
 
    **p-7-r** (protocol-7 remote):
    ```bash
-   p-7-r <command> [args]
+   p-7-r [-v] [-strict] <hostname[:port]> <command> [args]
    ```
-   - Remote command execution over network
+   - Remote command execution over network [ default port 42 ]
    - Automatically compiled and installed during v7-zenki startup
-   - Enables distributed command access
+   - Authenticates with the caller's key [ auth-keypair, `~/.n/user-keys/` ] ;
+     the server has to authorize it first [ see *Authorizing a Remote User* ]
+   - The server proves its identity : its host-root is pinned on first
+     contact in `~/.n/remote-keys/servers/<host>_<port>.public`, a different
+     host-root later is refused. `-strict` refuses an unpinned server
    - Installed at: `/usr/local/bin/p-7-r`
+
+   **Short forms** [ symlinks kept by v7-zenki ]:
+   ```bash
+   :: <command> [args]            # = p7c, local
+   ::: <alias> <command> [args]   # = p-7-r through 'ssh -W'
+   ```
+   - `<alias>` is a `Host` of the caller's `~/.ssh/config` [ no dots ] with a
+     `HostName` ; the link is `ssh -W 127.0.0.1:42 <alias>`, so a server
+     only needs to expose ssh. a dotted word is never a host here : a
+     slipped `::: zenka.cmd` fails before any lookup
+     ```
+     Host node-local
+         HostName host.example.local
+         User root
+     ```
+     then `::: node-local list sessions`, `::: node-local v7-zenki.list zenki`
+
+   **Authorizing a Remote User** [ on the server, once per user ]:
+   ```bash
+   USER=protocol-7 p7-keys add-incoming <user> <public key | file | -> cube
+   ```
+   - writes the user's public key [ e.g. a copied `<user>.base.public` ] to
+     the zenka user's `incoming/` and authorizes it for `cube` in one call
+   - cube watches its authorized keys [ inotify ] and re-reads them within a
+     second -- no reload, no restart ; revoking with `p7-keys
+     drop-authorized cube:<user>` applies the same way
+   - run as root, `p7-keys` works on root's own registry unless `USER`
+     names the zenka user [ it prints a note then ] ; every directory it
+     creates or finds root-owned is handed to the zenka user, so a repeated
+     call also repairs a root-made registry
+   - related : `p7-keys incoming`, `list-authorized`, `authorize
+     cube:<user>`, `re-pin cube:<user> <new key>` [ a rotated user key ]
 
    ### Common Commands
 
@@ -388,8 +434,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,,,,,.,,,,,,,,,.,,,,..,.,,,,..,...,,,.,,.,,..,,...,...,..,,.,,,,,,,,,,,.,,,
-#QGGZJBWNIF2IL3EH26NRO7A5IHBFLSDIOYHJSM2XVJGQGLWRXBWZW3QAAQ7OGLXDY3XGAJK3SXUIS
-#\\\|GFIVKXDL3KVN2V443WOVHUMNFIAGJPP43PSC3APTBSJEWQOOHDF \ / AMOS7 \ YOURUM ::
-#\[7]WGXQOI5SCLJH7APIQROZ645YHFOB57GVQ5SA2Q3JXKC6PHT26CBY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,.,,.,,,.,.,...,...,...,.,,,.,.,..,,...,...,...,,.,,.,.,.,,,,.,,
+#G3ZZVE57WUS6P4JOIZVBJFGGCS6ZFCKECAQBBEUD7Y5LATVR5EKVDXSQOBQHL6XO6CK5A2AJCLGPW
+#\\\|2AZ4EIMWK6JFVXFVP27DZ52YBD4XBIVJZK4M4WZCSAMQPKNUC7B \ / AMOS7 \ YOURUM ::
+#\[7]KJQNKCA6LEDG7CXUCGYA4S23N7BR2VZ4T5S25O6L2IVMWOFFZOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
