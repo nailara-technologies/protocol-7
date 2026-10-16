@@ -3,6 +3,7 @@
 # name  = debian.handler.apt_child_output
 # descr = event I/O handler : accumulate apt child output per-line, complete
 #         the current install job on the terminating '< <exit_code>' line
+#         [ the '= ok=..' result line before it names failed \ manual ]
 
 my $event        = shift->w;
 my $handler_data = $event->data;
@@ -19,14 +20,20 @@ if ( not defined $current or ( $current->{'job_id'} // 0 ) != $job_id ) {
 ## read available output [ non-blocking ] ##
 my $bytes = <[base.s_read]>->( $event->fd, \$handler_data->{'buffer'}, 4096 );
 
-## process complete lines : '> ..' is apt-get output, '< N' terminates the ##
-## job - keep listening across multiple '>' lines of one install           ##
+## process complete lines : '> ..' is install output, '= ok=.. failed=.. ##
+## manual=..' the backend's result, '< N' terminates the job -- keep     ##
+## listening across multiple '>' lines of one install                    ##
+## [ wire format : AMOS7::deps::root_runner ]                            ##
 my $exit_code;
 while ( $handler_data->{'buffer'} =~ s|^([^\n]*)\n|| ) {
     my $line = ${^CAPTURE}[0];
     if ( $line =~ m|^< (\d+)$| ) {
         $exit_code = ${^CAPTURE}[0] + 0;
         last;
+    }
+    if ( my $result = AMOS7::deps::root_runner::parse_result($line) ) {
+        $handler_data->{'result'} = $result;
+        next;
     }
     $line =~ s|^> ||;
     <[base.logs]>->( 1, 'apt: %s', $line ) if length $line;
@@ -49,20 +56,34 @@ return if not defined $exit_code;    ## not done yet : watcher stays armed ##
 
 my $packages = $current->{'packages'} // [];
 my $reply_id = $current->{'reply_id'};
+my $result   = $handler_data->{'result'} // {};
+
+## what did not install, by the backend's own result                      ##
+## [ an exit without a result line : the whole request counts as failed ] ##
+my @failed = @{ $result->{'failed'} // [] };
+my @manual = @{ $result->{'manual'} // [] };
+@failed = @$packages if $exit_code != 0 and not @failed and not @manual;
+
+my $detail = join ' ; ',
+    grep {length} (
+    @failed ? sprintf( 'failed : %s', join( ' ', @failed ) ) : '',
+    @manual ? sprintf( 'manual : %s', join( ' ', @manual ) ) : ''
+    );
 
 if ( $exit_code == 0 ) {
     <[base.logs]>->( 1, ':. successfully installed.' );
     <[jobqueue.move_job]>->( $job_id, qw| completed | );
-} elsif ( $exit_code == 100 ) {
-    <[base.logs]>->( 0, '  ✗ package not found : cannot continue' );
-    <[jobqueue.move_job]>->( $job_id, qw| error | );
 } else {
-    <[base.logs]>->( 0, '  ✗ apt-get exited with code %d', $exit_code );
+    <[base.logs]>->(
+        0,          '  ✗ install exited with code %d [ %s ]',
+        $exit_code, $detail
+    );
     <[jobqueue.move_job]>->( $job_id, qw| error | );
 }
 
-## resolve deferred caller [ cross-zenka replies flow back through the ##
-## existing cube route - no separate reply command or grant needed ]   ##
+## resolve deferred caller [ cross-zenka replies flow back through the      ##
+## existing cube route - no separate reply command or grant needed ] -- all ##
+## or nothing, as the reply handlers of sys-deps \ os-pkg read              ##
 if ( defined $reply_id ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
@@ -72,8 +93,8 @@ if ( defined $reply_id ) {
             }
         : { 'mode' => qw| false |,
             'data' => sprintf(
-                'install failed [ exit %d ] : %s',
-                $exit_code, join( ' ', @$packages )
+                'install failed [ exit %d ] : %s [ %s ]',
+                $exit_code, join( ' ', @$packages ), $detail
             )
         }
     );
@@ -84,9 +105,10 @@ if ( defined $reply_id ) {
 $event->cancel if $event->is_active;
 <debian.apt_child.current_job> = undef;
 
-## restore idle-shutdown tracking [ paired with debian.job.apt_install's  ##
-## pause ] -- if apt_pump immediately starts another queued job, that job ##
-## re-pauses on its own, so this is always safe to run first              ##
+## restore idle-shutdown tracking                                           ##
+## [ paired with debian.job.apt_install's pause ] -- if apt_pump            ##
+## immediately starts another queued job, that job re-pauses on its own, so ##
+## this is always safe to run first                                         ##
 <[base.zenki.resume_ondemand_timeout]>;
 
 <[debian.apt_pump]>;

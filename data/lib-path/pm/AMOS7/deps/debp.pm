@@ -66,12 +66,21 @@ sub probe_apt_fresh {
 
 ##[ install_apt ]#############################################################
 
+## optional leading CODE ref : an output sink, called once per apt-get      ##
+## output line [ the root runner streams it to its parent ] -- package      ##
+## names can never be code refs. no shell : apt-get and lslocks run         ##
+## list-form, a name that could read as an option or holds whitespace fails ##
+## before anything runs                                                     ##
 sub install_apt {
+    my $sink = ( @_ and ref $_[0] eq 'CODE' ) ? shift : undef;
     my (@pkgs) = @_;
 
     return { ok => [], failed => [] } unless @pkgs;
 
     return { ok => [], failed => [@pkgs] } if $EUID != 0;
+
+    return { ok => [], failed => [@pkgs] }
+        if grep { not defined $_ or $_ !~ m|\A[A-Za-z0-9][^\s]*\z| } @pkgs;
 
     local $ENV{'APT_LISTCHANGES_FRONTEND'} = 'none';
     local $ENV{'UCF_FORCE_CONFFOLD'}       = 'true';
@@ -91,26 +100,21 @@ sub install_apt {
         my $wait   = 2 + int( rand(5) );
 
         ## wait for dpkg lock ##
-        while ( length(qx(lslocks | grep ^dpkg 2>/dev/null)) and $wait = 11
-            or $wait-- ) {
+        while ( _dpkg_locked() and $wait = 11 or $wait-- ) {
             if ( $wait > 10 and !$warned++ ) {
                 warn "auto_install: waiting for dpkg lock ...\n";
             }
             select( undef, undef, undef, 0.33 );
         }
 
-        my $cmd = 'apt-get -fy install ' . join( ' ', @pkgs ) . ' 2>&1';
-        open( my $apt_out, '-|', $cmd ) or do {
+        my ( $result, $output )
+            = _run_output( $sink, qw| apt-get -fy install |, @pkgs );
+
+        if ( not defined $result ) {
             warn "apt-get failed to execute: $!\n";
             push @failed, @pkgs;
             last;
-        };
-
-        my $output = join( '', <$apt_out> );
-        close($apt_out);
-        my $result = $?;
-
-        if ( $result == 0 ) {
+        } elsif ( $result == 0 ) {
             push @installed, @pkgs;
             $ok = 1;
         } elsif ( $output =~ m|Unable to locate package| ) {
@@ -127,6 +131,48 @@ sub install_apt {
     $_apt_cache = undef;
 
     return { ok => \@installed, failed => \@failed };
+}
+
+## list-form command, stderr joined into stdout : ( $? , all output ) ##
+## [ undef $? when the fork failed ], each line to $sink when given   ##
+sub _run_output {
+    my ( $sink, @cmd ) = @_;
+
+    my $pid = open( my $fh, '-|' );
+    return ( undef, '' ) unless defined $pid;
+    if ( $pid == 0 ) {
+        open( STDERR, '>&', \*STDOUT );
+        exec { $cmd[0] } @cmd;
+        exit 127;
+    }
+
+    my $output = '';
+    while ( my $line = <$fh> ) {
+        $output .= $line;
+        if ( defined $sink ) {
+            chomp( my $text = $line );
+            $sink->($text);
+        }
+    }
+    close($fh);
+
+    return ( $?, $output );
+}
+
+## a dpkg lock held [ lslocks list-form, a missing lslocks reads as ##
+## unlocked -- as the former shell pipe did ]                       ##
+sub _dpkg_locked {
+    my $pid = open( my $fh, '-|' );
+    return 0 unless defined $pid;
+    if ( $pid == 0 ) {
+        open( STDERR, '>', '/dev/null' );
+        exec {'lslocks'} 'lslocks';
+        exit 127;
+    }
+    my $locked = grep {m|^dpkg|} <$fh>;
+    close($fh);
+
+    return $locked ? 1 : 0;
 }
 
 1;

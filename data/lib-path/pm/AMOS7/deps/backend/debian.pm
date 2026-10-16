@@ -32,11 +32,14 @@ sub probe {
 ## pass-through : the { ok, failed } hashref contract of  debp::install_apt ##
 ## IS the debian-family contract and stays unchanged -- 'manual' is empty   ##
 ## by definition on debian                                                  ##
-## [ no admin-side action needed beyond apt itself ]                        ##
+## [ no admin-side action needed beyond apt itself ]. an optional leading   ##
+## CODE ref is the output sink of the interface                             ##
+## [ one call per output line, used by AMOS7::deps::root_runner ] and       ##
+## passes through as well                                                   ##
 sub install {
-    my (@pkgs) = @_;
+    my (@args) = @_;
 
-    return AMOS7::deps::debp::install_apt(@pkgs);
+    return AMOS7::deps::debp::install_apt(@args);
 }
 
 ##[ refresh ]#################################################################

@@ -13,27 +13,16 @@ if ( $reinit and defined <os-pkg.backend_type> ) {
 
 <[base.log]>->( 2, 'initializing os-pkg zenka..,' );
 
-## the OS family comes from the shared detector                           ##
-## [ the same detect_os sys-deps.init_code and v7-zenki use ] ;           ##
-## /etc/os-release is still read here for the <os-pkg.os_release> display ##
-## data                                                                   ##
+## the OS family comes from the shared detector  [ the same detect_os      ##
+## sys-deps.init_code, v7-zenki and the debian zenka's root runner use ] ; ##
+## the os-release display data comes from the same module, no parsing of   ##
+## its own here                                                            ##
 <[base.perlmod.load]>->('AMOS7::deps::os_package')
     if not <[base.perlmod.loaded]>->('AMOS7::deps::os_package');
 
 my $family = AMOS7::deps::os_package::detect_os();
 
-## read /etc/os-release once [ display data ] ##
-my %os_release;
-if ( open my $fh, '<', qw| /etc/os-release | ) {
-    while ( my $line = <$fh> ) {
-        chomp $line;
-        next unless $line =~ m{^([A-Z_]+)=(.*)$};
-        my ( $key, $value ) = ( $1, $2 );
-        $value =~ s{^"|"$}{}g;
-        $os_release{$key} = $value;
-    }
-    close $fh;
-}
+my %os_release = %{ AMOS7::deps::os_package::read_os_release() };
 
 my $id = $os_release{'ID'} // '';
 
