@@ -693,19 +693,21 @@ sub analyze_zenka_reachability {
     ##  analyze which modules are reachable from a zenka's entry points  ##
     my ( $graph, $zenka_name, $lines_ref ) = @ARG;
 
-    my ( $loaded_set, $entry_commands, $whitelist_register );
+    my ( $loaded_set, $entry_commands, $whitelist_register, $plugins_load );
     if ( defined $lines_ref ) {
         ##  stdin mode: parse lines directly  ##
-        ( $loaded_set, $entry_commands, undef, undef, $whitelist_register )
-            = parse_start_lines($lines_ref);
+        (   $loaded_set, $entry_commands, undef, undef, $whitelist_register,
+            $plugins_load
+        ) = parse_start_lines($lines_ref);
     } else {
         ##  file mode: locate and parse start file  ##
         my $start_file = c_dir( $root_path, qw| cfg zenki |,
             $zenka_name, qw| zenka.v7 | );
         die ":: zenka start file not found: $start_file\n" if !-f $start_file;
-        ( $loaded_set, $entry_commands, undef, undef, $whitelist_register )
-            = parse_zenka_start_file($start_file)
-            ;    ##  config_files unused here  ##
+        (   $loaded_set, $entry_commands, undef, undef, $whitelist_register,
+            $plugins_load
+            )
+            = parse_zenka_start_file($start_file); ##  config_files unused  ##
     }
 
     say ":: zenka : $zenka_name";
@@ -969,9 +971,24 @@ sub analyze_zenka_reachability {
             }
         }
 
+        #  plugins.load prefixes : loaded with their lifecycle subs [       #
+        #  init_code and what it arms ] -- the full subtree                 #
+        for my $prefix ( @{$plugins_load} ) {
+            for my $node ( grep {m{^\Q$prefix\E(?:\.|$)}} keys %{$graph} ) {
+                next if $reachable{$node};
+                my %new = walk_reachable( $pruned_graph, [$node] );
+                %reachable = ( %reachable, %new );
+            }
+        }
+
        #  include plugin.* modules scoped to loaded namespaces only          #
        #  plugin.auth.* only when auth loaded, plugin.web.* when web loaded  #
        #  also match plugin.X.* when plugin.X is explicitly in modules.load  #
+       #  without plugins.load only the direct children plugin.<ns>.<name>  #
+       #  [ the depth a 'plugin.<ns>.%s' dispatch reaches ] + their calls : #
+       #  a plugin's own registry \ watcher code runs from its init_code,   #
+       #  which only runs where the plugin is loaded [ cube : auth-keypair  #
+       #  load-authorized-users \ watch-authorized ]                        #
         if ( exists $loaded_set->{'net'} ) {
             my %loaded_ns
                 = map { ( split m|\.| )[0] => 1 } keys %{$loaded_set};
@@ -982,7 +999,7 @@ sub analyze_zenka_reachability {
                     $loaded_ns{$1} = 1;
                 }
             }
-            for my $node ( grep {m|^plugin\.|} keys %{$graph} ) {
+            for my $node ( grep {m|^plugin\.[^.]+\.[^.]+$|} keys %{$graph} ) {
                 next if $reachable{$node};
                 my ($plugin_ns) = $node =~ m|^plugin\.([^.]+)|;
                 next if defined $plugin_ns and not $loaded_ns{$plugin_ns};
@@ -1215,6 +1232,16 @@ sub parse_start_lines {
         }
     }
 
+    ## plugins.load : [load_plugins:<plugins.load>] loads these prefixes ##
+    ## and runs their lifecycle subs -- their full subtree is needed     ##
+    my @plugins_load;
+    for my $line (@joined_lines) {
+        if ( $line =~ m|^\s*plugins\.load\s*=\s*(.+)| ) {
+            ( my $value = $1 ) =~ s|\s*##.*$||;
+            push @plugins_load, grep {m|^plugin\.|} split m|\s+|, $value;
+        }
+    }
+
     ##  extract load_config_file includes [ [load_config_file:'name'] ]  ##
     my @config_files;
     my @config_ambiguous;    ##  variable-ref cases [ runtime-resolved ]  ##
@@ -1261,10 +1288,8 @@ sub parse_start_lines {
         }
     }
 
-    return (
-        \%loaded_set,       \@entry_commands, \@config_files,
-        \@config_ambiguous, \@whitelist_register
-    );
+    return ( \%loaded_set, \@entry_commands, \@config_files,
+        \@config_ambiguous, \@whitelist_register, \@plugins_load );
 }
 
 sub parse_access_cmd_config {
@@ -1767,8 +1792,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,,,..,,,.,,.,.,,,.,,.,,.,.,...,...,.,,,,..,.,.,...,...,..,,.,,,.,.,,,.,.,.,
-#VXEI3ZD72RTFIOSBYSGSGT3RZHYY74L3ZPUBQBTH5A7WIPGCGCYADAHL57BOZQVRSCC5ONWFOGXOW
-#\\\|QZBM3OU2N6CRVA3Z6FJPXMYNJCBJ465WIXAB64LPKU5IKO2KTBT \ / AMOS7 \ YOURUM ::
-#\[7]TSES5XDKILKOKC5UUG73RKYGXCAYVUQTOJUBDAN55SI5OSV6FUCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,...,,.,,,,,,...,,.,,.,.,,,,,...,.,.,...,...,...,..,,,..,.,,,,,.,
+#WP6TQGVIUO2FQICOQI5LSPWMRJUMXKUAJNFQZ6XYUWQRNRL6OEOGLE53VWGMWNPAKJ2GY7OTRZC72
+#\\\|BD7RC6WLRYX45OIUJ7SSD2ZC2MY4YKCZH3FKJGCTD3TXPWTEFRD \ / AMOS7 \ YOURUM ::
+#\[7]GDYH2Z34IPAIGG636TZGQHTFEYTTKMBVUQ3DN4DS57UBKEFHISCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -365,6 +365,7 @@ base.log.send-buffer.init
 base.load_runtime_modules
 base.is_defined_recursive
 base.handler.link-upgrade
+base.handler.inotify_poll
 base.file.zenka_dir.write
 base.erase_buffer_content
 base.chk-sum.elf.pre_init
@@ -448,7 +449,6 @@ base.access.special-user-map
 auth.client.server_pin.check
 storage.visual.util.proximity
 protocol.protocol-7.init_code
-plugin.storage.util.find_path
 plan-9.server.handle-io-wstat
 plan-9.server.handle-io-write
 plan-9.server.handle-io-clunk
@@ -474,7 +474,6 @@ auth.client.unix.authenticate
 ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
-plugin.storage.util.visual.min
 plugin.storage.p7ref.init_code
 plugin.storage.inference.store
 plugin.storage.checksum.verify
@@ -501,6 +500,7 @@ crypt.C25519.decrypt_secret_key
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.inotify.install_io_watcher
 base.handler.link-upgrade.input
 storage.unix.handler.amos-chksum
 plugin.storage.checksum.map-file
@@ -608,8 +608,6 @@ auth.client.auth-keypair.authenticate
 storage.protocol.SFTP.open_unix_socket
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
-plugin.storage.util.visual.levenshtein
-plugin.storage.util.visual.extract_L13
 plugin.storage.util.resolve_all_p7refs
 plugin.storage.util.normalize_checksum
 plugin.storage.checksum.cluster.lookup
@@ -627,20 +625,17 @@ plugin.storage.checksum.cluster.traverse
 plugin.storage.checksum.cache-invalidate
 protocol.protocol-7.auth.select-size-mode
 plugin.storage.checksum.cluster.init-code
+plugin.auth.auth-keypair.watch-authorized
 base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
-plugin.storage.util.visual.extract_network
 plugin.auth.auth-keypair.tofu-notification
-plugin.storage.util.visual.extract_temporal
 plugin.storage.util.create_overflow_cluster
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 plugin.storage.util.visual.temporal_distance
 plugin.storage.util.visual.semantic_distance
-plugin.storage.util.visual.extract_intrinsic
 plugin.storage.util.visual.checksum_distance
-plugin.storage.util.visual.calculate_entropy
 base.log.send-buffer.reply-handler.send-reply
 plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
@@ -650,9 +645,10 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 plugin.storage.util.inference.update_branch_meta
 base.log.send-buffer.reply-handler.notify-online
+plugin.auth.auth-keypair.handler.reload-authorized
 
-#,,..,,,.,,,.,..,,,.,,,,,,.,.,..,,,,,,,,,,.,,,..,,...,...,..,,.,.,.,.,..,,,.,,
-#US7BPLAQ4FMBBNFG3ONDOGE7PP7R2MZN2O2VH2K3K3APAM6WBNLSBF7W5GOAHRWGYM6ERM3NQUGMQ
-#\\\|THNZ3IKRAMAQCJNRVLOGDJ4EFUTONSIK4C5Q2IAKD7AK3CVBSDC \ / AMOS7 \ YOURUM ::
-#\[7]Z377KECN3G33G3347ZVOYSV3XRAOAJPKYEIC7RNAYZ2ZMXQU7QDI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,..,,,.,,...,.,.,..,,,..,,,,,,,.,..,,...,..,,,,.,.,,,.,,,,.,,,..,
+#NJOJQ4OEATC3XNLSLW7TF77ESPS6FTKTSJJ6Y2AIGBEPUX63YXZL522CGQ4ZR7A45YICSMWOE2JKW
+#\\\|ACPYPWDVF6I3M4ZX5IG2OYASVDJOEGMYFLKEQMVBFC3V5FMOJS4 \ / AMOS7 \ YOURUM ::
+#\[7]7DUX4DCTXA2VUG3GSK6TV5USUXGRBCGZUUDST7MHB3NP4PLYBOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

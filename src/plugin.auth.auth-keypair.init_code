@@ -5,9 +5,14 @@
 
 my $reinit = shift;    ## provided by 'base.init_modules' [TRUE|FALSE] ##
 
-## reinit : re-read the authorized keys [ the first load is the zenka.v7 ##
-## call after init_modules ] -- rotated \ revoked client keys apply      ##
-<[plugin.auth.auth-keypair.load-authorized-users]> if $reinit;
+## reinit : re-read the authorized keys                                    ##
+## [ the first load is the zenka.v7 call after init_modules ] -- rotated \ ##
+## revoked client keys apply ; between reinits the directory watches       ##
+## re-read them                                                            ##
+if ($reinit) {
+    <[plugin.auth.auth-keypair.load-authorized-users]>;
+    <[plugin.auth.auth-keypair.watch-authorized]>;
+}
 
 ##  Run initial cleanup of expired unpinned keys  ##
 my $initial_cleanup = <[plugin.auth.auth-keypair.cleanup-incoming-keys]>;
@@ -30,8 +35,8 @@ my $cleanup_interval = <plugin.auth.auth-keypair.cleanup_interval_seconds>
 
 0;
 
-#,,,,,.,,,.,.,...,,,.,..,,.,,,,.,,.,,,,..,,,.,.,.,...,...,,,.,,..,,,,,...,,.,,
-#AWKNIJH2DY44F35E6HXGUMJ7XOTB2HSHOB3FPMVBKOJHSWYWTT2WDJDYG3K5POG6DWZQZIBKLUSLA
-#\\\|5N5CQF3DEITIDGGB7VI6WXJZ3TUFHM5MO3NHEXAPOEXVCJOTMYB \ / AMOS7 \ YOURUM ::
-#\[7]CGQ3APK2VHT7E5NYTMGYQQRQBEXU7KE3XKIWXF6KX7V7PATVOSBI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,,,,,,,.,,,,,,..,,,,,,,,,,..,.,.,...,...,..,,...,,,,,.,.,,,,,
+#V3LX44JIJATKOPZO3S3ZTBK6QS56ATDGL7GIUOEU3PRI3DX63M4E6K2LWMWLSOGEWK52ZEYUOULFC
+#\\\|UFEUMJ5C3FP274VAMISGQCH2WRPFHHKRCEZJKNMNHKJQ4CPDNNI \ / AMOS7 \ YOURUM ::
+#\[7]JRA3WKATIDV6UFHWPQPGFAO3VHIY63BKLBZUPWX7TADYQGCHYACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
