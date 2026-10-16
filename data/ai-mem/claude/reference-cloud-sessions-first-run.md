@@ -30,8 +30,22 @@ first real runs through bin/mcp-server-p7 [ claude_cloud_dispatch ] :
   a snapshot ] -> create dev/<topic> and push it EMPTY -> only then work ;
   push only to dev/<topic>.
 - the user's rule : cloud sessions push to 'dev/<topic>' branches.
-- open : why it got a snapshot -- check that the Claude GitHub App
-  installation covers the nailara-technologies org \ this repo.
+- WHY the snapshot : the cli decides clone vs upload by `git remote
+  get-url origin` [ found in its own bundle ] ; this checkout has no
+  origin ON PURPOSE [ owner : never add one ]. fix : claude_cloud_dispatch
+  starts claude from a blobless LAUNCH CLONE [ data/state/cloud-launch/
+  protocol-7, origin = the hub url, HEAD = the dispatched commit, sparse
+  CLAUDE.md-only worktree ; PROTOCOL_7_MCP_CLOUD_LAUNCH_DIR moves it ].
+  verified on the second session : real history, empty dev/ branch
+  pushed before any work. the Claude GitHub App covers protocol-7 and
+  workspace-transfer [ not DATA yet ].
+- ONE-TIME per launch dir : claude shows a workspace trust dialog [ the
+  pty makes it interactive ; with stdin /dev/null it waits forever ] --
+  the owner ran `claude` there once : trust YES, the project mcp server
+  NO [ the launch claude only creates the session ].
+- cost : ~$6 per session for both runs [ installer at effort high, the
+  p7-deps restyle at medium ] -- with a test requirement the session sets
+  its own depth, the effort level barely changed the total.
 - results come back reviewed like kimi's : a worktree of the branch in
   the scratchpad, tests there [ a worktree path makes check-service's
   install-link check differ -- base fails the same way there ], then a
@@ -40,8 +54,8 @@ first real runs through bin/mcp-server-p7 [ claude_cloud_dispatch ] :
 see [[reference-usage-pools-fast-mode]] [ cloud credits, effort low by
 default ].
 
-#,,,,,,,.,,..,.,,,.,,,,,.,,.,,,.,,...,.,.,.,,,..,,...,...,...,,.,,,.,,.,.,,.,,
-#JFCV242V6OTNZJTCN57WBZ7FU4KVQ5AMSQ3QYMJGWOHNLDNJ6J3KGRLF6HZRNWZCDYTRMA3AQXC2K
-#\\\|BNXPWSOUBDBDIEJ362L4AJTTAAHMT362MQFTHQCTCQFRAGJIG45 \ / AMOS7 \ YOURUM ::
-#\[7]FS5675VWMJ3Q2CBCSBFM3KVZIMZ2JS3LSLFAN5QEJHUUUTASACDY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,,,.,.,,,.,.,.,,,,,,,,,,,,..,..,,...,...,...,,..,,.,,.,.,...,
+#47RLPCKUWFWNWETXWRHRMMC2WX6NLVOEE6GATFXHVAY72LUP4DRC3YUCZCWREE4WKG3B6ZM6TESCQ
+#\\\|CO2CHENZVID5WGHQ76TX3G7MWLE7WSBPUKCZ2AZ7RLMEOLPRFTE \ / AMOS7 \ YOURUM ::
+#\[7]A5GFWJWF3PPJFCKF4FB4FVXW4N66UWSYOJ6FRIH6JEIHC3D2AGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
