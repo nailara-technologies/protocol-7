@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3X7PJ3OBDA-10060.0 :::
+::: SOURCE-CODE VERSION :: 3X7PNZNIGA-10061.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -52,8 +52,8 @@ Protocol-7 is a multi-agent system framework written in Perl. It implements a ha
 
 Protocol-7 uses a sophisticated dependency tracking system to manage Perl module requirements:
 
-- **Core Dependencies**: Perl 5.28.0 or newer
-- **Perl Modules**: Required modules are tracked in the `pm-dep` directory of each zenka and mapped in [src/base.known_dependencies](src/base.known_dependencies)
+- **Core Dependencies**: Perl 5.32.0 or newer [ the `use v5.32.0` line of [bin/Protocol-7](bin/Protocol-7) ]
+- **Perl Modules**: Required modules are declared per zenka in `cfg/zenki/<zenka>/deps/` [ `p-mod/` Perl modules, `os/deb/` Debian packages ] and mapped to packages in [src/base.known_dependencies](src/base.known_dependencies)
 - **Package Management**: Dependencies can be resolved from Debian packages or CPAN as specified in the dependency mappings
 - **Dependency Manager**: [bin/p7-deps](bin/p7-deps) provides comprehensive dependency analysis and installation
 
@@ -82,6 +82,31 @@ The `bin/p7-deps` tool provides both analysis and installation capabilities:
 - Aggregates dependencies from base.known_dependencies and all zenki configurations
 - Supports profile-based installation (default: protocol7_full)
 - Self-contained: no need for workspace-transfer repository
+
+### Automatic Installation at Zenka Start
+
+A host can let v7-zenki install missing dependencies itself, per host and
+off by default. In `/etc/protocol-7/v7-zenki/host.cfg`:
+
+```
+v7-zenki.cfg.auto_install_deps = yes
+```
+
+- **at every zenka start** [ autostart, on-demand, restart ] v7-zenki checks
+  the zenka's declared dependencies first ; missing ones are installed
+  [ Debian packages via apt, else CPAN ] and the zenka starts once they are
+  present
+- **installs run as root** in one serialized queue [ the debian zenka's
+  root apt child, forked before privileges are dropped ] ; package names
+  are re-validated there, never passed through a shell
+- **a failed install** starts the zenka anyway [ degraded, logged ] and is
+  retried after `v7-zenki.cfg.sys_deps.retry_after` [ 3600 s ] ; an install
+  that never answers counts as failed after
+  `v7-zenki.cfg.sys_deps.install_timeout` [ 1800 s ]
+- **during v7-zenki's own start-up** Perl modules it needs itself [ e.g.
+  `Event` ] are installed directly, before the event loop exists
+- exempt from the check : `cube p7-log debian os-pkg`
+  [ `v7-zenki.cfg.sys_deps.exempt` ]
 
 ## Installation
 
@@ -322,6 +347,63 @@ Three primary methods for interacting with the Protocol-7 network:
    - The earlier `v7.<zenka>` symlink form is deprecated: `bin/Protocol-7`
      still recognizes it, but new installations get the `p7-` prefix only
 
+## Keys and Secrets
+
+### p7-keys : Curve25519 Identity and Trust
+
+`p7-keys` [ the keys zenka, `p7-keys commands` lists everything, `p7-keys
+describe <command>` explains one ] manages the C25519 keys of the calling
+user [ `~/.n/user-keys/` ] and what a host trusts :
+
+- **own keys** : `create [-U] [name]` [ `-U` : the `base` user key ], `list`,
+  `enc-key` \ `dec-key` \ `change-passwd`, `rename`, `duplicate`,
+  `split-keypair`, `get-encoded-key`, seed-phrase \ passphrase keys
+  [ `gen-pwd-keyfile`, `get-sp-pub-key` ]
+- **backups** : a key file is backed up before p7-keys changes it [ `list-backups`,
+  `restore-backup`, `prune-backups` ] ; `keys-backup-archive` \
+  `decrypt-archive` move a whole key set encrypted ; removals are
+  reversible [ `removed`, `undo-remove` ]
+- **remote clients** [ who may log in to a zenka ] : `add-incoming`,
+  `authorize`, `drop-authorized`, `re-pin`, `incoming`, `list-authorized`
+  [ see *Authorizing a Remote User* ]
+- **host trust chain** : an owner root certifies host-roots [
+  `certify-host`, `accept-owner` ] ; `owner-pin` trusts every host an
+  owner certifies, `distrust` refuses a key anywhere in a chain
+
+### p7-vault : Personal Vault
+
+[bin/p7-vault](bin/p7-vault) keeps logins, notes, contacts and files
+encrypted in `~/.n/vault` [ `P7_VAULT_DIR`, `-d` ]. It is standalone on
+purpose : perl, CryptX and Term::ReadKey, nothing from a running
+Protocol-7 -- it works on any Linux machine, a Protocol-7 host or not,
+and on one whose backend is not set up or not running. a copy of the
+script, its `AMOS7/` modules and
+[data/md/design/VAULT-FORMAT.md](data/md/design/VAULT-FORMAT.md) next to a
+backup opens every vault.
+
+```bash
+p7-vault init                 # create, with passphrase + recovery code
+p7-vault                      # interactive : unlock once, then commands
+p7-vault copy <filter>        # password to the clipboard, cleared after 45 s
+p7-vault commands [keyword]   # every command
+```
+
+- **encryption** : a cascade of Twofish and ChaCha20-Poly1305 on every
+  layer, keys from argon2id + hkdf-blake2b -- a break of one cipher alone
+  reveals nothing [ details in VAULT-FORMAT.md ]
+- **entries** : `add` \ `edit` \ `show` [ secrets masked, `-r` reveals ] \
+  `get` [ raw, for pipes ] \ `list` \ `notes` ; every change is a new
+  version [ `history`, `restore` ] -- `rm` too
+- **files** : `import` [ one blob per content ; `-a` a whole directory as
+  one archive ; `-u` updates : changes become new versions ] and `export`
+- **sync** : `sync <host>[:<dir>] | <path>` merges entries and blobs with
+  other hosts or an external drive -- never overwrites, never deletes
+- **untrusted copies** : `archive <file>` writes one file for a public
+  place [ entry count and edit times hidden ], opened with the recovery
+  code [ or passphrase + any key file, `-f` ]
+- secrets are only typed at a prompt, never taken from argv ; the shell
+  locks itself after 78 minutes without input
+
 ## Key Concepts
 
 - **Zenki**: Autonomous agents that perform specific functions
@@ -434,8 +516,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,..,,..,.,,,,.,,.,,,.,.,...,...,...,.,,,.,.,..,,...,...,...,,.,,.,.,.,,,,.,,
-#G3ZZVE57WUS6P4JOIZVBJFGGCS6ZFCKECAQBBEUD7Y5LATVR5EKVDXSQOBQHL6XO6CK5A2AJCLGPW
-#\\\|2AZ4EIMWK6JFVXFVP27DZ52YBD4XBIVJZK4M4WZCSAMQPKNUC7B \ / AMOS7 \ YOURUM ::
-#\[7]KJQNKCA6LEDG7CXUCGYA4S23N7BR2VZ4T5S25O6L2IVMWOFFZOCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,...,.,.,,..,,,,,,,.,,.,,.,.,,..,..,,...,...,..,,,,.,,,,,...,.,.,
+#CWO5FXSE3HGWKO4NKMAPY6KBVI5BNQVHIVGCTP6VFAHHHOOVIOBDF3TH6FNTJ4Q4CXZSZK5LFTWPG
+#\\\|WSC7NRWHKMAYCCJIPLHWAAXUBEMKS3YSJOHPWELIXKJGVNQR27C \ / AMOS7 \ YOURUM ::
+#\[7]NY63ZDMTPJYLLDU2IYAFQK5EURHUZUV2NP32X3ZFVQMZMF22LOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

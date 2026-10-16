@@ -49,17 +49,45 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
 
 ## open
 
-- push 716313a79, pull on all 4 [ p7-keys only : no teardown ], live
-  incident test on pri : chown root authorized/ -> `USER=protocol-7 p7-keys
-  add-incoming taeki <pin file> cube` -> expect 'fixed ownership'.
+- DONE : 716313a79 + 3b038d1da pulled on all 4 ; pri incident test passed
+  [ root-owned authorized/ -> 'fixed ownership .. root:root -->
+  protocol-7:protocol-7', login kept working ; plain root prints the
+  registry note, creates nothing ].
 - unit differs on pri + atom : `bin/p7-deps install-service` [ user's call ].
 - 4ZW live, legacy install script, set-up rename, sys-deps probes [ see
   the handover above ].
 - atom [ 964 MB, 1 vCPU ] : memory pressure critical on every teardown ;
   letsencr start timed out once, retry fine.
+- IDEA [ user 2026-10-16, no rush, plan first ] : cred-mesh reads p7-vault
+  secrets through delegation -- a vault grant to cred-mesh instead of
+  cred-mesh keeping its own copies. to settle in the plan : what is
+  delegated [ one entry \ field \ filter ], how long, revocation, whether
+  p7-vault stays standalone [ its explicit design goal ] -- read
+  data/md/design/VAULT-FORMAT.md + cred-mesh's current secret source first.
+  history [ user ] : vault-edit [ cred-mesh's terminal client ] never got
+  p7-vault's secret editing -- a left-over gap ; the standalone script was
+  chosen instead because it is needed anyway on hosts not fully set up, or
+  with the backend shut down \ failing. so : the delegation must not make
+  p7-vault depend on a running cred-mesh -- the backend is the optional
+  side, vault access works without it. the user values p7-vault being a
+  generic tool for ANY linux machine, not only protocol-7 hosts -- keep
+  every integration optional and outside the script's core.
+  part of the plan [ user + me agreed ] : p7-vault interactive shell
+  watches the vault dir with Linux::Inotify2 -- format is append-only
+  [ new version files, sync never overwrites ] so a new file is always
+  safe to pick up : refresh the index, print ':: n entries changed'. no
+  protocol with cred-mesh needed, the file system is the interface.
+  conditions : OPTIONAL dep [ eval require ; missing = SILENT, plus a
+  manual `reload` command -- user's choice over an automatic mtime
+  fallback, intuitive either way ], interactive mode only [ one-shot reads fresh anyway ], only
+  IN_CLOSE_WRITE \ IN_MOVED_TO [ never a half-written file ], the same
+  self-expanding pattern as plugin.auth.auth-keypair.watch-authorized for
+  blob subdirs ; locked session = mark stale only.
+- README 2026-10-16 : auto-install, keys + vault sections added [ commit
+  pending at writing ].
 
-#,,.,,,.,,.,,,,,,,,..,,,,,,.,,.,,,.,.,,,,,...,..,,...,...,..,,,,,,,,,,,,.,,.,,
-#HYPZKJDZLXJ4DPDTUX7G5NAJ5VSSJL72JRFZIE2ODMJYEJIQOIPYJZILTNE5GED4VZ3IILW4U5A5Y
-#\\\|2V3FQDD3OPWVF7GNBH6QNY4CVZZLSMTEIZUDR3S3DD7YJL22KXD \ / AMOS7 \ YOURUM ::
-#\[7]MQYODXT6DZROQO6BDPC4XYSCW2TQPU2OIEOWM6QNVYQJW6SIHQCY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,,.,,.,.,...,,.,,.,,,,..,,..,..,,...,..,,.,.,...,..,,.,.,,,,,
+#P4ZNVVONVIFTTPEUO6KASQZ2UDB5Q7LCRILIHRIATF4UVAA5QZKYDWLMFXUXM6BY4BMEJWNU5OF2W
+#\\\|BQ776S2TU3GNKG5BKHJIGKZ5LYMEZYSMIHJYNYUOHDTFKQJ6R7O \ / AMOS7 \ YOURUM ::
+#\[7]UNRECEM3R3LXI2RSXXP7VNN55X6CQ4J2RILFWIJORFHP7PAUOYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
