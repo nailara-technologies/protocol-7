@@ -32,7 +32,7 @@ our $VERSION = qw| AMOS7::TERM::Frame-VERSION.0000001 |;
 @EXPORT_OK = qw[
     frame_border_line frame_rule_line frame_colorize_content frame_bar
     frame_color_enabled frame_column_line frame_title_banner
-    frame_section_header
+    frame_section_header frame_option_list
     frame_status_row frame_error_line frame_error_exit frame_progress_bar
 ];
 
@@ -243,8 +243,9 @@ sub frame_bar {
 ##[ SHARED TERMINAL HELPERS ]#################################################
 ##
 ## the look of bin/todo, bin/format-code and bin/amos-chksum as one set of  ##
-## helpers. every helper returns a string [ no newline, nothing printed ]   ##
-## except frame_error_exit. colour meanings :                               ##
+## helpers. every helper returns a string [ no trailing newline, nothing    ##
+## printed ] except frame_error_exit -- frame_section_header and           ##
+## frame_option_list return more than one line. colour meanings :          ##
 ##   ok \ success ................ neon green  [ p7_fg_0006 ] -- only these ##
 ##   warnings \ errors ........... neon amber  [ p7_fg_0005 ]               ##
 ##   titles \ labels \ values .... TRUE blue   [ p7_fg_0004 ]               ##
@@ -313,6 +314,8 @@ sub frame_title_banner {
 }
 
 ## section title continuing a ':' \ '::' column : ':::[ section title ]' ##
+## and a '::' line below it, so the rows' '::' column starts right under ##
+## the header [ option column : that line, default '::' ]                ##
 sub frame_section_header {
     my $title = shift // '';
     my $opt   = shift // {};
@@ -321,7 +324,27 @@ sub frame_section_header {
     return
           _paint( $on, qw| p7_fg_0000 |, ':::[ ' )
         . _paint( $on, qw| p7_fg_0004 |, $title )
-        . _paint( $on, qw| p7_fg_0000 |, ' ]' );
+        . _paint( $on, qw| p7_fg_0000 |, ' ]' ) . "\n"
+        . _paint( $on, qw| p7_fg_0000 |, $opt->{'column'} // qw| :: | );
+}
+
+## an option list after bin/todo and bin/amos-chksum : the text as given, ##
+## its words TRUE blue and everything between them purple                 ##
+## [ dot leaders, brackets, '.:' ]. the trailing newline is taken off     ##
+sub frame_option_list {
+    my $text = shift // '';
+    my $opt  = shift // {};
+
+    $text =~ s|\n\z||;
+    return $text if not _color_on($opt);
+
+    ## spaces stay unpainted : words blue, every other run purple ##
+    $text =~ s{(\w+)|([^\w\s]+)}{
+        defined $1
+            ? _paint( TRUE, qw| p7_fg_0004 |, $1 )
+            : _paint( TRUE, qw| p7_fg_0000 |, $2 )
+    }ge;
+    return $text;
 }
 
 ## status words and their level : the same split bin/p7-deps' service      ##
@@ -391,14 +414,15 @@ sub frame_error_line {
         . _paint( $on, qw| p7_fg_0005 |, $message );
 }
 
-## the error line framed by ':' rows on STDERR, then exit 0110 ##
+## the error line framed by ':' rows on STDERR, then exit 0110 [ option  ##
+## exit : another code, for callers whose exit codes are fixed already ] ##
 sub frame_error_exit {
     my ( $tool, $message, $opt ) = @ARG;
     my $col = _paint( _color_on( $opt, \*STDERR ), qw| p7_fg_0000 |, ':' );
     STDOUT->flush;    ## what was printed before stays before the error ##
     print STDERR $col, "\n", frame_error_line( $tool, $message, $opt ), "\n",
         $col, "\n";
-    exit($exit_error);
+    exit( $opt->{'exit'} // $exit_error );
 }
 
 ## progress bar after bin/format-code : ':::[:::::        ]:::[ label ]:.' ##
@@ -439,8 +463,8 @@ sub frame_progress_bar {
 
 1;
 
-#,,,.,,..,.,.,,..,.,.,,.,,,..,,,,,,,,,.,.,,,.,..,,...,...,..,,,,,,,,.,..,,..,,
-#R3UVAVIHALQOFZIKCXICVKOSAEK5YHXY6MKHOM2GW2RQPLYNRANTOQQXAMXGA2BHA5UCL3ZPSX3WE
-#\\\|3WCNLC43DHYR4N3VID4NZIIZ7QXY4U2HMFD7ANWOMX3J3BABC5N \ / AMOS7 \ YOURUM ::
-#\[7]JAXBLPUZWJO4FGUF47K6PM7NGKJ3CK72XAO3B65XJ6IRWAUECEBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,.,.,.,.,,,.,.,,,.,.,,.,,,..,..,,...,...,,,.,,.,,,,.,,,,,...,
+#ZH3PSIFH7N6GPV2LIJZYNB76UWQKOUTDF2QGJMUHPTXHPOBJZZ4OA62LWLOMQTWKEVKPU6VEJZOD6
+#\\\|F5EDOLP7CKMFSD7AYG6MKSB2KT6527IZWS56JHWWK6MSYBLJMTH \ / AMOS7 \ YOURUM ::
+#\[7]F44WKCTZFKAJU7ALENSAGLUHC3VG5MKASJHIYBZJEJCBTYE7SACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -372,6 +372,17 @@ reset_sandbox();
     check 'fresh : exit 0', $exit == 0;
     print $out if $exit != 0;
 
+    ## the printed frame [ the stub p7-deps prints nothing -- a real one ##
+    ## nested in a step is not covered here ]                            ##
+    my @lines   = split m|\n|, $out;
+    my @headers = grep { $lines[$_] =~ m|^:::\[ .+ \]$| } 0 .. $#lines;
+    check 'fresh output : five step headers, each with a \'::\' line below',
+        ( @headers == 5
+            and not grep { ( $lines[ $_ + 1 ] // '' ) ne '::' } @headers );
+    check 'fresh output : the first step reads as decided',
+        $out =~ m|^:\n:::\[ base packages \]\n::\n::   ca-certificates |m;
+    check 'fresh output : no \':\' line twice in a row', $out !~ m|^:\n:\n|m;
+
     my @apt = calls('apt-get');
     check 'fresh : apt-get update ran once',
         ( grep {m|\bupdate$|} @apt ) == 1;
@@ -640,8 +651,8 @@ EOF
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,.,.,,..,,.,,,..,.,,,...,...,,.,,.,,,.,,,..,,...,..,,,..,,..,,..,,..,,,.,
-#I574UBI7QXZIGHAACMAQKBNFVRWOHFJQ6KTGSGGWPKRXGDXRFLLQZ5QA62SI5A6U4FBRAQ75O6AIC
-#\\\|5S4MATAIYCAAMDIKKEKWT4YOZGANHWROT4NASALKRTM37VXTKO2 \ / AMOS7 \ YOURUM ::
-#\[7]4KT3DP4QLYE2ZJQ3T6JUPHBXJ7VQB7QMBHF5VGRJCVJZIAYL5WDI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,,.,,.,.,.,.,,,,,,..,.,,,.,.,..,,...,...,,,.,,,,,..,,,,,,,,,,
+#BKUIMUXRBFDJMGRZ6UDGSWDWXJYYRBNVGXB3TDJCD5IK2NVBDRIQZUA4RNOKYQAVY4SZHPHJQ4NZI
+#\\\|2O2KYMVC6DVFQUDSAX5DXP4FY2WL7X6JQ4FRYUSXXABKHGHSGPF \ / AMOS7 \ YOURUM ::
+#\[7]D3KUZ7CEMNWCR2I3H7QCLMCOYVRAYXP763QVADIKIYZ3C3DIPQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
