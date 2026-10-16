@@ -35,20 +35,21 @@ use AMOS7::deps::os_package qw(
 );
 use AMOS7::deps::debp      qw( probe_apt install_apt );
 use AMOS7::deps::dist_upgr ();
-use AMOS7::TERM            qw| frame_border_line |;
+use AMOS7::TERM::Frame     qw| frame_border_line |;
 
 $OUTPUT_AUTOFLUSH = 1;
 
-## color palette [ pulled from shared %AMOS7::TERM::p7_colors ]
-my $TTY        = -t STDOUT;
-my $reset      = $TTY ? "\e[0m"                               : '';
-my $blacklight = $TTY ? $AMOS7::TERM::p7_colors{'p7_fg_0000'} : '';  ## purple
+## color palette [ pulled from shared %AMOS7::TERM::Frame::p7_colors ]
+my $TTY   = -t STDOUT;
+my $reset = $TTY ? "\e[0m" : '';
+my $blacklight
+    = $TTY ? $AMOS7::TERM::Frame::p7_colors{'p7_fg_0000'} : '';    ## purple
 my $TRUE_color
-    = $TTY ? $AMOS7::TERM::p7_colors{'p7_fg_0004'} : '';    ## TRUE blue
+    = $TTY ? $AMOS7::TERM::Frame::p7_colors{'p7_fg_0004'} : '';   ## TRUE blue
 my $neon_green
-    = $TTY ? $AMOS7::TERM::p7_colors{'p7_fg_0006'} : '';    ## neon green
+    = $TTY ? $AMOS7::TERM::Frame::p7_colors{'p7_fg_0006'} : '';  ## neon green
 my $neon_amber
-    = $TTY ? $AMOS7::TERM::p7_colors{'p7_fg_0005'} : '';    ## neon amber
+    = $TTY ? $AMOS7::TERM::Frame::p7_colors{'p7_fg_0005'} : '';  ## neon amber
 
 ## terminal width [ adapts to real tty size for framed output ]
 my $TERM_WIDTH = 72;
@@ -992,8 +993,8 @@ ${neon_green}ZENKA CONFIGURATION${reset}:
 EOF
 }
 
-#,,..,...,,..,.,.,,..,.,.,,,.,...,.,,,,,,,,,,,..,,...,...,..,,,,,,.,,,.,,,..,,
-#WWIJFHKXOWIITXIPUBDIDVYKMG6SCKZZRJZS7RBZICUUG7XVP6Z6EVFFBAJIHU6N663INRWZDOAYW
-#\\\|6YODCV52MC4M7HNCX6LJR3CDOVSWCX5M7VFRVNXAGQZUQJH2T5F \ / AMOS7 \ YOURUM ::
-#\[7]KJYGTZITEDLVPKATUYTKX7N6CS2IKASI2ATF2FYFLKUOPM6VEUBI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,.,.,..,,.,,,,..,...,,..,.,,,..,,...,...,,,,,,.,,.,.,.,.,,.,,
+#ESJNEJM43GBW6NRWRAPZQ63DTZ7MLGLA2GWOED74XFURXO7DFK73XWUDCE7PUQEDHT7RIJ3G77O5K
+#\\\|L5CQMHCASD4J62PLMSW5MIH25YXUWFNEYITESANK5SJRBY3KHLM \ / AMOS7 \ YOURUM ::
+#\[7]ODWEI37TDCUAXQPSEN4AIK3M2RWJT3B3D7FMEZ5BI6K5XAWZXWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

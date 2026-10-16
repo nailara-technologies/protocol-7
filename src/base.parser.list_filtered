@@ -127,6 +127,12 @@ foreach my $key_name ( $display_keys->@* ) {
         $key_name_str =~ s|^([^:]+):([^:]+)$|$2|;
         $key_orig_str = $1 if defined $1;
     }
+    ## a left \ right offset [ e.g. right+5 ] adds spaces to every value -- ##
+    ## count them, or longer values overflow [ right ] or get cut [ left ]  ##
+    my $pad = 0;
+    $pad = $1
+        if ( ( $align // {} )->{$key_orig_str} // q{} )
+        =~ m{^(?:left|right)[-+](\d+)$};
     $max_len{$key_name} = length($key_name_str) + $spacing + 3;
     foreach my $key_val ( keys $data_ref->%* ) {
         ## Skip entries that don't match filter
@@ -146,6 +152,13 @@ foreach my $key_name ( $display_keys->@* ) {
             // '';
         $max_len{$key_name} = length($filtered_val) + 4
             if length($filtered_val) > $max_len{$key_name} - 3;
+        ## only where value + offset exceed the RENDERED width : a list ##
+        ## that fit before stays byte-identical                         ##
+        my $render_cut = 1;
+        $max_len{$key_name} = length($filtered_val) + $pad + $render_cut
+            if $pad
+            and length($filtered_val) + $pad
+            > $max_len{$key_name} - $render_cut;
     }
     $table_width += $max_len{$key_name};
 }
@@ -246,8 +259,8 @@ foreach my $key_val (@sorted_keys) {
 
 return $table_string . "\n";
 
-#,,.,,.,.,..,,,.,,...,..,,,..,.,.,..,,,.,,.,.,.,.,...,...,.,.,.,.,..,,.,,,...,
-#LQ323GJ7UXNIF4ADDZMM3BS3V5IO3KH5SSC6X3747OB5VXADSD56ENHZ3XXMKIVIJMJ5WAAAVYDHU
-#\\\|HKPYACMMMO2HJLQ3BFEBCV2LDPUXUE7M2VLKWOCD7NW2ULSBOHB \ / AMOS7 \ YOURUM ::
-#\[7]RWL26HZOJF5HKTBDAP6JPBR7LTWM3OP5UDWGPGGUJXWG6J3B2SCY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,...,,,.,.,,,,,,,,,,,.,,,..,,.,.,...,..,,..,,.,.,,,,,,,.,,.,,
+#65RZAC67UG3WNNNJOGAPUGWHJKFJLRJU3KEKXXL5ZRMAVUBPN3SDGXGPXPEFBTHI6YAE64DTOEZLY
+#\\\|BCSA76HJWMGELNPSTABQLXKQSPUWRQTO7PZG4VG4K23OR5TFZVV \ / AMOS7 \ YOURUM ::
+#\[7]4AS2LVZANTOBJYAFDBJROK6GL3JHQ7NVPXNXSMUWINX2Y2BPNYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

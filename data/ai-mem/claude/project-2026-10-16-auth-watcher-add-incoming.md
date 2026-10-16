@@ -112,6 +112,42 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
   6. p7-deps style overhaul as it becomes central -- read bin/todo,
      bin/format-code, bin/amos-chksum first [ user's references ],
      derive the shared look into the frame module.
+  7. [ user, 2026-10-16 ] a zenka builds DEBIAN PACKAGES -- for
+     environments \ appliances that deploy nothing else [ the user hit
+     this before ]. home : the build zenka's recipe registry [
+     build.cmd.recipe-run ] -> a 'deb' recipe ; delivery : osf-cache
+     shares .debs peer to peer [ lookup \ has \ fetch \ segment \ merkle,
+     also over external links ] but ONLY anchored ones : InRelease
+     verified with gpgv against apt's trusted keyrings -> Packages ->
+     hash [ bin/dev/osf-holdings, osf-cache.debian.* ]. own-built debs
+     are in no debian-signed index -> rejected, correctly. needed : our
+     own signed repo index [ InRelease + Packages ] whose key the target's
+     apt trusts -- apt requires that anyway [ appliances ]. OPEN decision
+     : which key signs -- a dedicated gpg repo key, or tied to the p7
+     trust chain [ host-root \ owner ].
+     goals [ user ] : survives UPSTREAM DISAPPEARANCE [ a removed CPAN
+     dist \ mirror package stays installable and verifiable from our own
+     signed index ] and OFFLINE INSTALLS for node groups [ nodes without
+     internet fetch from each other ] -- keep both in every design choice
+     here [ e.g. the index must be self-contained, no upstream lookups
+     at install time ]. a package owns its files : that is when Protocol-7, p7c, :: \
+     ::: move to /usr/bin [ decided : /usr/local/bin until then -- dpkg
+     owns /usr/bin ; cron's PATH lacks /usr/local/bin -> full paths ].
+     also the legacy 'LLL cpan2deb' note : CPAN modules without a debian
+     package ship as debs too -- dh-make-perl [ user ; it also resolves
+     module -> package : 'dh-make-perl locate' ]. measured 2026-10-16
+     [ apt-file on the owning .pm, any package name ] : 160 declared
+     p-mod, 15 AMOS7, 21 modules \ ~17 dists with NO debian package :
+     AnyEvent::Curl::Multi Config::Hosts Crypt::Curve25519 Crypt::Ed25519
+     Debian::Apt::PM Device::Gembird Digest::BMW Digest::Skein Glib::Event
+     HTTP::Soup Imager::Screenshot IPC::Shm::Simple Mediainfo Net::IP::Lite
+     Poppler Term::VTerm[ ::Pos ::Rect ::Screen ] Tie::Dir X11::WM.
+     Crypt::Curve25519 builds from data/lib-path/pm-src [ patched copy ] ;
+     Debian::Apt::PM is the unused one [ drop instead ]. a module name ->
+     'lib<name>-perl' guess is wrong for sub-modules [ Crypt::Misc is in
+     libcryptx-perl, SDL::* in libsdl-perl, PDL in 'pdl', Perl::Tidy in
+     'perltidy' ] -- always look up the owning package. the backend interface [ 3 ] then
+     has a package to install, not just names.
   direction [ user ] : the future settings zenka [ its namespace already
   freed ] ties packages a USER installed to
   that user's data in the users zenka -> reproducible user + developer
@@ -120,8 +156,8 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
 - README 2026-10-16 : auto-install, keys + vault sections added [ commit
   pending at writing ].
 
-#,,,,,.,.,,.,,.,,,.,,,,..,...,,.,,,,.,,..,,,.,..,,...,...,.,.,...,,..,...,.,.,
-#OZ2575EALA2VJEGC4DPI5MLTCJJPV3BN4BKK7ZD356LP4IK64USJ5BTRCBAY6F7HGPRXKEQF5IPRY
-#\\\|IYKGKV53HN3ZSWRNXQMQSFVGS2AZ5HCO2X6JKJGEJD6RO6IXNIP \ / AMOS7 \ YOURUM ::
-#\[7]YB3ORBSXLWFTDROH3B6O427GJGHZGUK5W3VZNEX5JZLXMGGXGYAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,,.,,,,.,.,,,,,,,...,.,.,..,,..,,...,...,.,.,...,...,,.,,..,,
+#D3A7CXXECQIUH7N3UU7U7RS7SPO3OBKU5YSQMUGHMX3CKFIM4FFXF4G6AQ6GXPIGLEWXX4QAVC42M
+#\\\|5MPBVFYRQ7WZIDBY6FPJPBF3MY5S2R6PL4LMULRLK37YTKPNJ34 \ / AMOS7 \ YOURUM ::
+#\[7]GP4KUWNY7JAYLL7S4N4AMYTZ5ICOBXZ7EF57R7SPFNJHSARSU2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

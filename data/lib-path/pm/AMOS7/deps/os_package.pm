@@ -17,8 +17,6 @@ our @EXPORT_OK = qw|
     dep_dir_to_type
     |;
 
-use File::Which qw| which |;
-
 ## short on-disk deps/os/* dir name <-> canonical internal type string [ ##
 ## keeps 'debian'/'binary' as the type string used everywhere else, only ##
 ## the leaf directory name is shortened ]                                ##
@@ -128,12 +126,35 @@ sub probe_os_pkg {
 
 ##[ probe_binary ]############################################################
 
+## core-only replacement for File::Which::which : a name with a path       ##
+## separator is checked directly, otherwise the first -f && -x hit in      ##
+## $ENV{PATH} wins [ empty entries skipped ] -- keeps bin/p7-deps loadable ##
+## on a bare host without File::Which                                      ##
+
+sub _which_path {
+    my ($binary) = @_;
+
+    return undef unless defined $binary and length $binary;
+
+    if ( index( $binary, '/' ) >= 0 ) {
+        return ( -f $binary and -x $binary ) ? $binary : undef;
+    }
+
+    foreach my $dir ( split m|:|, $ENV{'PATH'} // '' ) {
+        next unless length $dir;
+        my $path = "$dir/$binary";
+        return $path if -f $path and -x $path;
+    }
+
+    return undef;
+}
+
 sub probe_binary {
     my ($binary) = @_;
 
     return 0 unless defined $binary && length $binary;
 
-    my $path = File::Which::which($binary);
+    my $path = _which_path($binary);
 
     return ( defined $path && length $path ) ? 1 : 0;
 }
@@ -155,8 +176,8 @@ sub install_os_pkgs {
 
 1;
 
-#,,.,,.,.,...,,,,,,,,,.,,,...,,..,,.,,,..,,..,..,,...,...,.,.,,,.,,,.,,,,,...,
-#52EYC27BY7Q3TQDXKUA2VNTKALOYY6DFU5OKKIV3ZGZNBFZ3ZHNBZYTRP54X4APJP4YERCV6OU4O4
-#\\\|FYIAEB4UTBKAJ6CNSXHK4ABB2GORYTOS7MAGUPSD5ASUAOLLHQO \ / AMOS7 \ YOURUM ::
-#\[7]SROS2DZII3B2VZDQ7CNNNMZZ4SK7ZKYHANQGJVIRU7D6JJUAJEBA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,..,,..,,,,,..,,...,,,.,...,.,,,..,,...,...,,..,,..,..,,,,.,,,,,
+#LV3TPJZVLCJ6DWVJE33QBGRTVGFHLA2SYH7VWGAYD4DBBYIKO4U6DU3LWNDWDE4OXUENZ2LKMVZ56
+#\\\|6OAFHVWVRG6W54KY2HVF7MRV72R5U3OOHNBJLKDDH3O6HKWYARQ \ / AMOS7 \ YOURUM ::
+#\[7]BF6DSAWFHZAKKZ2NTO5XOFDX2WWGTRSZ54T4IRW4AFCO2JDVQUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

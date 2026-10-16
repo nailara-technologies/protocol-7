@@ -87,6 +87,12 @@ foreach my $key_name ( $display_keys->@* ) {
         $key_name_str =~ s|^([^:]+):([^:]+)$|$2|;
         $key_orig_str = $1 if defined $1;
     }
+    ## a left \ right offset [ e.g. right+5 ] adds spaces to every value -- ##
+    ## count them, or longer values overflow [ right ] or get cut [ left ]  ##
+    my $pad = 0;
+    $pad = $1
+        if ( ( $align // {} )->{$key_orig_str} // q{} )
+        =~ m{^(?:left|right)[-+](\d+)$};
     $max_len{$key_name} = length($key_name_str) + $spacing + 3;
     foreach my $key_val ( keys $data_ref->%* ) {
         next
@@ -102,6 +108,13 @@ foreach my $key_name ( $display_keys->@* ) {
             // '';    ##  <--  warn when undefined ?  [LLL]
         $max_len{$key_name} = length($filtered_val) + 4
             if length($filtered_val) > $max_len{$key_name} - 3;
+        ## only where value + offset exceed the RENDERED width : a list ##
+        ## that fit before stays byte-identical                         ##
+        my $render_cut = ( $index ? 3 : 1 );
+        $max_len{$key_name} = length($filtered_val) + $pad + $render_cut
+            if $pad
+            and length($filtered_val) + $pad
+            > $max_len{$key_name} - $render_cut;
     }
     $table_width += $max_len{$key_name};
 }
@@ -116,9 +129,12 @@ foreach my $key_name ( $display_keys->@* ) {
         .= pack( "A$max_len{$key_name}", " : " . $key_name_str . " :." );
 }
 $table_string =~ s| +$||;
-$table_width--;
-my $sub_line  .= '-' x $table_width;
-$table_string .= "\n$sub_line\n";
+## the separator is drawn once the rows exist : the longest printed line  ##
+## plus two dashes, one when that would pass 80 columns                   ##
+## [ a separator longer than the terminal wraps ] -- as before 6e496452b, ##
+## where a narrowed last column made the padding                          ##
+my $sub_line_mark = "\x{0}sub-line\x{0}";
+$table_string .= "\n$sub_line_mark\n";
 
 my @sorted_keys = <[base.reverse-sort]>->($data_ref);
 
@@ -213,10 +229,18 @@ foreach my $key_val (@sorted_keys) {
     $table_string .= "\n";
 }
 
+my $longest = 0;
+foreach my $line ( split m|\n|, $table_string ) {
+    next                     if $line eq $sub_line_mark;
+    $longest = length($line) if length($line) > $longest;
+}
+my $sub_line = q{-} x ( $longest + ( $longest + 2 > 80 ? 1 : 2 ) );
+$table_string =~ s|\Q$sub_line_mark\E|$sub_line|;
+
 return $table_string . "\n";
 
-#,,,.,..,,.,,,,..,,,.,.,.,,..,.,.,,,,,,..,.,,,..,,...,...,.,,,.,,,.,.,,,,,.,,,
-#TF5TDPZQ5PVTU5JRVVLZTU57BUADHCB3WMBLNZY7QLGJ6O6HNDNLH2U4BUSXBDSHIX6GBTXNOL3T6
-#\\\|H3W5DXU5E4RGJMWPYN6OPTZE5TSUTN6HSI47FQDBOXQEJEMCGDK \ / AMOS7 \ YOURUM ::
-#\[7]4HQSXILYHIWD2AVJNVQW5BVWGXXQUTRPWLWFPYOORCK4GV4CGACI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,..,..,,.,,,...,.,.,.,.,.,,,,,.,..,,...,...,.,.,.,.,...,,.,,.,,,
+#MQ3SPKWV35RS2SQTNOO7B275HRDWODAJCI7KV43WUSMZX6G3NXS36SK5FPDIK5QPRJQQDXGXOSNGU
+#\\\|6PKQRSTE3REPNDNSXUKZHRAAU5ZIQLFEND4UM3UDS45VVH3D6RP \ / AMOS7 \ YOURUM ::
+#\[7]CZ5GVVL7XGOYRB4G53EERZYSIVKRUYSRV2PYIJKXVVS76JBPECBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

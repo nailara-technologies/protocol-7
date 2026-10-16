@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3X7PTVOEOQ-10063.0 :::
+::: SOURCE-CODE VERSION :: 3X7P7G5OGI-10064.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -309,16 +309,17 @@ Three primary methods for interacting with the Protocol-7 network:
 
    - `p7c v7-zenki.list`: Lists specific to the v7-zenki management zenka
      ```
-      : list name :.  : description :.
-     --------------------------------------------------------------------
-       dependency      current zenka dependency status
-       available      available zenki \ descriptions
-       subnames      'subnames' of registered zenki [ when available ]
-       sessions      registered \ connected sessions
-       children      PIDs of zenki and their children
-       buffers      [log] ring buffers in use
-        manual      zenki marked as 'manually stopped'
-         zenki      currently running \ managed zenka instances
+      : list name :.    : description :.
+     ------------------------------------------------------------------------------
+       dependency         current zenka dependency status
+        heartbeat         heartbeat latency per instance [ cube : v7 round trip ]
+        available         available zenki \ descriptions
+         subnames         'subnames' of registered zenki [ when available ]
+         sessions         registered \ connected sessions
+         children         PIDs of zenki and their children
+          buffers         [log] ring buffers in use
+           manual         zenki marked as 'manually stopped'
+            zenki         currently running \ managed zenka instances
      ```
 
    ### Routing Principles
@@ -516,8 +517,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,.,,,,,,,,,,...,..,,,,,,...,.,.,.,,,,.,,.,.,..,,...,...,,.,,..,,...,.,,,..,,
-#BRLHUJKV2YKIMVIOQQV5456O7DW6QN2JY4KV2KOM562EYRWUTTQVOBTAEDTM34D2WFLR7MEDJVXOY
-#\\\|5CG3OZWFBE6ZR3U7SRSYIJJDPXADTXFX3SZAXIV23A5TDUPUIWG \ / AMOS7 \ YOURUM ::
-#\[7]YENTHHXJYGHQLZRZMY6EAQTYT4YY7HJVTL6GSNAYFCZOAJ2XIWCI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,...,,,,,.,,,...,..,,,,,,.,,,,,.,..,,...,..,,...,..,,,.,,.,,,..,,
+#T52H6I5E5SJCWDZLY72SA4GXIDE37SXXU7ZRMCIS4I4HYDU57IZ7UP4IWT6UGEAA5HOEB44XMYKIS
+#\\\|6SVATO6JTTRCMFBRE6Y65S5RIMNLYAYSFR6YY2GXY7YES2DSUO2 \ / AMOS7 \ YOURUM ::
+#\[7]CYZLMS57Y64BDV27J3EGMZPRDCXC7VGPAIRN56N7RXQJ4OAL3EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
