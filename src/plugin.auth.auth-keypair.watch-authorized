@@ -1,0 +1,123 @@
+## [:< ##
+
+# name  = plugin.auth.auth-keypair.watch-authorized
+# descr = self-expanding inotify watches on authorized/<zenka>/ and incoming/
+#         : a key [ un ]authorized \ re-pinned while the zenka runs is re-read
+#         without a reload
+# note  = a missing directory is covered by its deepest existing parent [ not
+#         above the key user's home ] ; every re-read re-scans, so the watches
+#         grow one level down as directories appear and fall back to the
+#         parent when one is removed. called after the startup load [ zenka.v7
+#         ] and on reinit [ init_code ]
+# return = number of watched directories, FALSE without inotify \ key paths
+#          or when the zenka does not offer auth-keypair
+
+## only a zenka offering auth-keypair reads client keys ##
+return FALSE
+    if not grep { $ARG eq qw| auth-keypair | }
+    split( m|\s+|, <auth.supported_methods> // '' );
+
+<[base.perlmod.autoload]>->('Linux::Inotify2')
+    if not defined &Linux::Inotify2::new;
+<[base.inotify.install_io_watcher]>;
+my $inotify = <base.obj.inotify> // return FALSE;
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+my $home_dir     = $key_vars_ref->{'usr_home'};
+my $auth_dir     = $key_vars_ref->{'auth_dir'};
+my $incoming_dir = $key_vars_ref->{'incoming_dir'};
+return FALSE
+    if not defined $home_dir
+    or not defined $auth_dir
+    or not defined $incoming_dir;
+
+## authorized/<zenka>/ holds the links, incoming/ their targets ##
+## [ a re-pin rewrites the target, the link stays ]             ##
+my @targets = ( catfile( $auth_dir, <system.zenka.name> ), $incoming_dir );
+
+my $watches = <plugin.auth.auth-keypair.watches> //= {};
+
+## deepest existing directory of each target, never above the home dir ##
+my %wanted;
+foreach my $target (@targets) {
+    my $dir = $target;
+    while ( not -d $dir ) {
+        ( my $parent = $dir ) =~ s{/+[^/]+/*$}{};
+        last if $parent eq $dir or length $parent < length $home_dir;
+        $dir = $parent;
+    }
+    next if not -d $dir or index( $dir, $home_dir ) != 0;
+    $wanted{$dir} = TRUE;
+}
+
+## a parent watched until its child appeared is not needed anymore ##
+foreach my $dir ( sort keys $watches->%* ) {
+    next if $wanted{$dir};
+    my $watch = delete $watches->{$dir};
+    $watch->cancel if defined $watch;
+    <[base.logs]>->( 2, ': auth-keypair : stopped watching %s', $dir );
+}
+
+my $mask
+    = Linux::Inotify2::IN_CREATE() | Linux::Inotify2::IN_DELETE()
+    | Linux::Inotify2::IN_MOVED_FROM() | Linux::Inotify2::IN_MOVED_TO()
+    | Linux::Inotify2::IN_CLOSE_WRITE() | Linux::Inotify2::IN_ATTRIB()
+    | Linux::Inotify2::IN_DELETE_SELF() | Linux::Inotify2::IN_MOVE_SELF()
+    | Linux::Inotify2::IN_ONLYDIR();
+
+foreach my $dir ( sort keys %wanted ) {
+    next if defined $watches->{$dir};
+    my $is_target = grep { $ARG eq $dir } @targets;
+    my $watch     = $inotify->watch(
+        $dir, $mask,
+        sub {
+            my $event = shift;
+
+            ## the directory itself is gone or moved : drop its watch, the ##
+            ## re-scan falls back to the parent                            ##
+            if (   $event->IN_IGNORED
+                or $event->IN_DELETE_SELF
+                or $event->IN_MOVE_SELF ) {
+                my $watches = <plugin.auth.auth-keypair.watches> // {};
+                if ( defined $watches->{$dir}
+                    and $watches->{$dir} == $event->w ) {
+                    delete $watches->{$dir};
+                    $event->w->cancel if not $event->IN_IGNORED;
+                }
+            } elsif ( not $is_target ) {
+                ## a parent : only a directory on the way to a target ##
+                ## counts                                             ##
+                my $path = catfile( $dir, $event->name // return );
+                return
+                    if not grep { index( "$ARG/", "$path/" ) == 0 } @targets;
+            }
+
+            ## settle a burst [ mkdir + link + chmod ] into one re-read ##
+            <plugin.auth.auth-keypair.reload_timer>->cancel
+                if defined <plugin.auth.auth-keypair.reload_timer>;
+            <plugin.auth.auth-keypair.reload_timer> = <[event.add_timer]>->(
+                {   'after'   => 1,
+                    'handler' =>
+                        qw| plugin.auth.auth-keypair.handler.reload-authorized |,
+                }
+            );
+        }
+    );
+    if ( not defined $watch ) {
+        <[base.logs]>->(
+            0,    ': auth-keypair : cannot watch %s [ %s ]',
+            $dir, "$OS_ERROR"
+        );
+        next;
+    }
+    $watches->{$dir} = $watch;
+    <[base.logs]>->( 2, ': auth-keypair : watching %s', $dir );
+}
+
+return scalar keys $watches->%*;
+
+#,,.,,...,,,.,,.,,.,,,.,,,,,,,,..,,..,..,,,..,..,,...,...,.,.,,,,,,,,,.,,,,..,
+#ACKAJMKYYPNIY5F5NUWC35734WQ2QRZFSIRMMP5W7B3NWXTPFYXKFHMOWIL4HET3JQOUFB4TQ2X72
+#\\\|DQJZWF6J4UJSBOYFPY72GET2QLRU6DE33LM4AIB7CZAEQE3TXPB \ / AMOS7 \ YOURUM ::
+#\[7]BL7IU5INJ42SYCF5CNJJBFCWV6TZZLLF5V3AWELJPUAGABEGK4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
