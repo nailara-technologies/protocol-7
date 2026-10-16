@@ -13,7 +13,16 @@ if ( $reinit and defined <os-pkg.backend_type> ) {
 
 <[base.log]>->( 2, 'initializing os-pkg zenka..,' );
 
-## read /etc/os-release once ##
+## the OS family comes from the shared detector                           ##
+## [ the same detect_os sys-deps.init_code and v7-zenki use ] ;           ##
+## /etc/os-release is still read here for the <os-pkg.os_release> display ##
+## data                                                                   ##
+<[base.perlmod.load]>->('AMOS7::deps::os_package')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::os_package');
+
+my $family = AMOS7::deps::os_package::detect_os();
+
+## read /etc/os-release once [ display data ] ##
 my %os_release;
 if ( open my $fh, '<', qw| /etc/os-release | ) {
     while ( my $line = <$fh> ) {
@@ -26,22 +35,20 @@ if ( open my $fh, '<', qw| /etc/os-release | ) {
     close $fh;
 }
 
-## map distribution to backend type [ same type names as             ##
-## AMOS7::deps::os_package : debian for debian, ubuntu or raspbian ] ##
-my $id      = $os_release{'ID'}      // '';
-my $id_like = $os_release{'ID_LIKE'} // '';
+my $id = $os_release{'ID'} // '';
 
-my %id_like_map = map { $ARG => 1 } split m{\s+}, $id_like;
-
-my $backend_type;
-$backend_type = qw| debian |
-    if $id =~ m{^(debian|ubuntu|raspbian)$}
-    or grep { $id_like_map{$ARG} } qw| debian ubuntu raspbian |;
+## the backend type is the family when a backend module exists for it, ##
+## undef otherwise [ same 'unsupported' replies as before ]            ##
+my $backend_type
+    = AMOS7::deps::os_package::backend_available($family) ? $family : undef;
 
 ## optional config override [ os-pkg.backend = <type> in zenka config ] ##
 my $override = <os-pkg.backend>;
 if ( defined $override and length $override ) {
-    $backend_type = $override;
+    $backend_type
+        = AMOS7::deps::os_package::backend_available($override)
+        ? $override
+        : undef;
     <[base.log]>->( 2, "  backend override from config : $override" );
 }
 
@@ -68,8 +75,8 @@ if ( defined $backend_type ) {
 
 0;
 
-#,,.,,,.,,..,,.,.,,,,,.,,,,,.,.,.,,,.,.,,,,..,.,.,...,...,...,.,.,,,.,,,,,...,
-#I2JIZVPSR7G33VS3HHWGXYPUHKWWDWEZGPSX25ENHYB4SXKOXTFOGBZ4QW62PKMXH54RX335IEOE4
-#\\\|G6PQDV4KKWRTHOLISACKGYWE2VVDTQ3LL7VNERO5RJCN5JTHEQM \ / AMOS7 \ YOURUM ::
-#\[7]5SH3TYK3422QAUPMUZ5YAD3YVGI5U5SC6HDJY25HYWHJHMUVCYCA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,..,,,..,,.,,...,...,,,.,,,,,.,.,.,.,...,..,,...,..,,.,.,.,.,..,,
+#5OWKT734ARMO6PQ52J3ULZXRFI2THNSRHTWJD3NJ3WHRVYYUK7TSPSR6WFTRZAVJGTH54FE7YOVWK
+#\\\|FJW7QCI325CQJ7O7RYRSD2WTUZBHMRF6VRWYWM6IABG4NBDCTWN \ / AMOS7 \ YOURUM ::
+#\[7]JE2V66YMKGAX5SZYUBKYQMURHYPUGIVFLRNG5SZ75AQT3KSEHABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

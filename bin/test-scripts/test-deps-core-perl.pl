@@ -102,6 +102,7 @@ sub run_capture {
 ## modules that come after it                                               ##
 
 my @core_modules = qw|
+    AMOS7::deps::backend::debian
     AMOS7::deps::debp
     AMOS7::deps::dist_upgr
     AMOS7::deps::module
@@ -369,8 +370,8 @@ check 'probe_binary by relative path',
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,.,,,,,,,...,.,,,.,,,.,.,,..,,,.,,.,,...,..,,...,..,,...,,,,,,,.,,..,...,
-#P25QSC6DSM4WGY3QWS37JJQJQF372CSD7O5HXWPE2FIW742IJDQFEZOMRF2DPN5FNRUNADHERJDRQ
-#\\\|3EHVZTJCKLVDCKLLUXWBPDS2CFEJEESFXA5KDT6UJV2O5HPXTQS \ / AMOS7 \ YOURUM ::
-#\[7]HYDCFYHEADJTQC5F6TZDZRS7APRFSCFFNUFKTGNL4LO2LYS34GAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,,,,,...,...,,..,,.,,,,.,.,.,..,,...,..,,,..,,,.,.,,,,.,,,.,,
+#P6Z44U4OGGYYE6CDVX4LLYW3LKJUQ4UJ3W2BTEF2TZ4GTK64G6VN7KOZRXT3UY3PHK6E2IFQ3RYCU
+#\\\|T7AJJICZVB3F5TTPNDEYCNPVJUZ55ID77DRIRXDF6J4WL4LZQRA \ / AMOS7 \ YOURUM ::
+#\[7]IBPS7IQXFO55QY22QLHEDZFGG2EJHBEG7VLXBCT65IA3OFZOASAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
