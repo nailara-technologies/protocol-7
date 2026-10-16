@@ -31,6 +31,9 @@ our $VERSION = qw| AMOS7::TERM::Frame-VERSION.0000001 |;
 
 @EXPORT_OK = qw[
     frame_border_line frame_rule_line frame_colorize_content frame_bar
+    frame_color_enabled frame_column_line frame_title_banner
+    frame_section_header
+    frame_status_row frame_error_line frame_error_exit frame_progress_bar
 ];
 
 ##[ PROTOCOL-7 COLOR PALETTE ]################################################
@@ -237,10 +240,207 @@ sub frame_bar {
     return sprintf( '%-*s', $width, $char x $fill );
 }
 
+##[ SHARED TERMINAL HELPERS ]#################################################
+##
+## the look of bin/todo, bin/format-code and bin/amos-chksum as one set of  ##
+## helpers. every helper returns a string [ no newline, nothing printed ]   ##
+## except frame_error_exit. colour meanings :                               ##
+##   ok \ success ................ neon green  [ p7_fg_0006 ] -- only these ##
+##   warnings \ errors ........... neon amber  [ p7_fg_0005 ]               ##
+##   titles \ labels \ values .... TRUE blue   [ p7_fg_0004 ]               ##
+##   structure [ : [ ] . < > ] ... purple      [ p7_fg_0000 ]               ##
+## without colours the very same text comes back, no escape sequence in it ##
+
+## backgrounds -- apart from %p7_colors, which holds foregrounds only ##
+our %p7_bg = (
+    ##  nailara background [ format-code's progress bar ]  ##
+    'p7_bg_0002' => "\e[48;2;9;5;42m",
+);
+
+our $color_reset = "\e[0m";
+
+## the AMOS7 error exit code [ AMOS7::error_exit : exit( qw| 0110 | ) ] ##
+our $exit_error = qw| 0110 |;
+
+## undef : frame_color_enabled decides ; TRUE \ FALSE force colours on \ ##
+## off for every helper [ a -nc option, tests ]                          ##
+our $color_override;
+
+## the central colour gate : colours on a terminal only, never with a      ##
+## non-empty NO_COLOR [ no-color.org : 'present and not an empty string' ] ##
+## -- the handle to test is the one the text goes to [ STDERR for errors ] ##
+sub frame_color_enabled {
+    my $fh = shift // \*STDOUT;
+    return $color_override ? TRUE : FALSE if defined $color_override;
+    return FALSE                          if length( $ENV{'NO_COLOR'} // '' );
+    return -t $fh ? TRUE : FALSE;
+}
+
+## per-call option { color => TRUE \ FALSE } wins over the gate ##
+sub _color_on {
+    my ( $opt, $fh ) = @_;
+    return $opt->{'color'} ? TRUE : FALSE
+        if defined $opt and defined $opt->{'color'};
+    return frame_color_enabled($fh);
+}
+
+## one coloured segment [ empty text stays empty, no colour : plain ] ##
+sub _paint {
+    my ( $on, $key, $text ) = @_;
+    return ''    if not length( $text // '' );
+    return $text if not $on;
+    my $color = $p7_colors{$key} // $p7_bg{$key} // '';
+    return $color . $text . $color_reset;
+}
+
+## the bare left column between rows : ':' [ or '::' .. ] ##
+sub frame_column_line {
+    my $column = shift // ':';
+    my $opt    = shift // {};
+    return _paint( _color_on($opt), qw| p7_fg_0000 |, $column );
+}
+
+## main title : ' .: main title :. ' ##
+sub frame_title_banner {
+    my $title = shift // '';
+    my $opt   = shift // {};
+    my $on    = _color_on($opt);
+
+    return
+          _paint( $on, qw| p7_fg_0000 |, ' .: ' )
+        . _paint( $on, qw| p7_fg_0004 |, $title )
+        . _paint( $on, qw| p7_fg_0000 |, ' :. ' );
+}
+
+## section title continuing a ':' \ '::' column : ':::[ section title ]' ##
+sub frame_section_header {
+    my $title = shift // '';
+    my $opt   = shift // {};
+    my $on    = _color_on($opt);
+
+    return
+          _paint( $on, qw| p7_fg_0000 |, ':::[ ' )
+        . _paint( $on, qw| p7_fg_0004 |, $title )
+        . _paint( $on, qw| p7_fg_0000 |, ' ]' );
+}
+
+## status words and their level : the same split bin/p7-deps' service      ##
+## report uses [ 'ok' green, the problem words amber, the rest TRUE blue ] ##
+our %status_level = (
+    ( map { $ARG => qw| ok | } qw| ok success | ),
+    (   map { $ARG => qw| warn | }
+            qw| failed missing differs stale older warning error refused |
+    ),
+);
+
+## dot-leader status row :  '::   label ...... status [ detail ]'  options ##
+## : width [ label column, the longest label of the block ], detail, level ##
+## [ ok \ warn \ value -- else looked up by the status ], column           ##
+## [ default '::' ], color. the leader has three dots at least so the      ##
+## longest label still stands apart from its status                        ##
+sub frame_status_row {
+    my $label  = shift // '';
+    my $status = shift // '';
+    my $opt    = shift // {};
+    my $on     = _color_on($opt);
+
+    my $width  = $opt->{'width'}  // length($label);
+    my $column = $opt->{'column'} // qw| :: |;
+    my $level  = $opt->{'level'}  // $status_level{$status} // qw| value |;
+    my $dots   = '.'
+        x ( 3 + ( $width > length($label) ? $width - length($label) : 0 ) );
+
+    my $status_key
+        = $level eq qw| ok |   ? qw| p7_fg_0006 |
+        : $level eq qw| warn | ? qw| p7_fg_0005 |
+        :                        qw| p7_fg_0004 |;
+
+    my $row
+        = _paint( $on, qw| p7_fg_0000 |, $column ) . '   '
+        . _paint( $on, qw| p7_fg_0004 |, $label ) . ' '
+        . _paint( $on, qw| p7_fg_0000 |, $dots ) . ' '
+        . _paint( $on, $status_key,      $status );
+
+    my $detail = $opt->{'detail'} // '';
+    $row
+        .= ' '
+        . _paint( $on, qw| p7_fg_0000 |, '[ ' )
+        . _paint( $on, qw| p7_fg_0004 |, $detail )
+        . _paint( $on, qw| p7_fg_0000 |, ' ]' )
+        if length $detail;
+
+    return $row;
+}
+
+## error line in the bin/format-code form : ':: < tool > : message'. an    ##
+## AMOS7 caller marker at the end [ ' <{NC}>', ' <{C1}>' ] is taken off -- ##
+## this line never shows a caller. the tool name is TRUE blue, not         ##
+## format-code's green [ green means ok only ] ; colours follow STDERR     ##
+sub frame_error_line {
+    my $tool    = shift // '';
+    my $message = shift // '';
+    my $opt     = shift // {};
+    my $on      = _color_on( $opt, \*STDERR );
+
+    $message =~ s{ <\{(?:NC|C\d+)\}>$}{};
+
+    return
+          _paint( $on, qw| p7_fg_0000 |, ':: < ' )
+        . _paint( $on, qw| p7_fg_0004 |, $tool )
+        . _paint( $on, qw| p7_fg_0000 |, ' > : ' )
+        . _paint( $on, qw| p7_fg_0005 |, $message );
+}
+
+## the error line framed by ':' rows on STDERR, then exit 0110 ##
+sub frame_error_exit {
+    my ( $tool, $message, $opt ) = @ARG;
+    my $col = _paint( _color_on( $opt, \*STDERR ), qw| p7_fg_0000 |, ':' );
+    STDOUT->flush;    ## what was printed before stays before the error ##
+    print STDERR $col, "\n", frame_error_line( $tool, $message, $opt ), "\n",
+        $col, "\n";
+    exit($exit_error);
+}
+
+## progress bar after bin/format-code : ':::[:::::        ]:::[ label ]:.' ##
+## [ done of total ]. options : width [ bar columns, default 13 ],         ##
+## label_width [ pads the label so a \r redraw overwrites a longer one ],  ##
+## color. the caller adds the '\r' or '\n'                                 ##
+sub frame_progress_bar {
+    my $done  = shift // 0;
+    my $total = shift // 0;
+    my $label = shift // '';
+    my $opt   = shift // {};
+    my $on    = _color_on($opt);
+
+    my $width = $opt->{'width'} // 13;
+    my $bar   = frame_bar( $total > 0 ? $done / $total : 0, $width, ':' );
+    my $bg    = $on ? $p7_bg{'p7_bg_0002'} : '';
+
+    my $line
+        = _paint( $on, qw| p7_fg_0000 |, ':::[' )
+        . (
+        $on ? $bg . $p7_colors{'p7_fg_0004'} . $bar . $color_reset : $bar )
+        . _paint( $on, qw| p7_fg_0000 |, ']' );
+
+    if ( length $label ) {
+        my $padded = sprintf ' %-*s ',
+            $opt->{'label_width'} // length($label),
+            $label;
+        $line .= _paint( $on, qw| p7_fg_0000 |, ':::[' )
+            . (
+              $on
+            ? $bg . $p7_colors{'p7_fg_0004'} . $padded . $color_reset
+            : $padded
+            ) . _paint( $on, qw| p7_fg_0000 |, ']' );
+    }
+
+    return $line . _paint( $on, qw| p7_fg_0000 |, ':.' );
+}
+
 1;
 
-#,,.,,,,.,...,.,,,.,,,...,,,.,...,.,.,..,,,,,,..,,...,...,.,.,.,.,.,,,.,,,.,.,
-#JPFFGZUZSKFGA7KY73GJ4FMMHKVJS5SBXYHN2D56K4UD5OQ4MR7EDKBYF3PBLMLWNNLLSUCESNVKS
-#\\\|2L7KAIFEL3LFWBV2EJKDKVZRBMCC7KQ446X6JHGMYLAXHE65HUK \ / AMOS7 \ YOURUM ::
-#\[7]URLBFTE2U37OW7A3OTEYUPZSZLP2JU6SULPKCH4THN5TNRUNWICA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,.,.,,.,,,..,,,,,,,,,.,.,,,.,..,,...,...,..,,,,,,,,.,..,,..,,
+#R3UVAVIHALQOFZIKCXICVKOSAEK5YHXY6MKHOM2GW2RQPLYNRANTOQQXAMXGA2BHA5UCL3ZPSX3WE
+#\\\|3WCNLC43DHYR4N3VID4NZIIZ7QXY4U2HMFD7ANWOMX3J3BABC5N \ / AMOS7 \ YOURUM ::
+#\[7]JAXBLPUZWJO4FGUF47K6PM7NGKJ3CK72XAO3B65XJ6IRWAUECEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

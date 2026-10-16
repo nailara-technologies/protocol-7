@@ -82,7 +82,8 @@ my $PROFILES_FILE = File::Spec->catfile( $DEPS_DIR, 'profiles.yaml' );
 my $CACHE_DIR     = catdir( $DEPS_DIR, 'cache' );
 my $ZENKI_DIR     = catdir( $P7_ROOT,  'cfg', 'zenki' );
 
-make_path($CACHE_DIR) unless -d $CACHE_DIR;
+## the cache dir is created by update_cache when it first writes -- read ##
+## only commands [ help, check-service ] write nothing into the checkout ##
 
 my %pkg_cache  = ();
 my $known_deps = load_known_deps($P7_ROOT);
@@ -112,10 +113,17 @@ if ( $cmd eq 'check' or $cmd eq 'install' ) {
 if ( $cmd eq 'check' ) {
     die "Usage: bin/p7-deps check <profile>... [--no-cache]\n"
         if not @profile_args;
-    check_profile( $ARG, @option_args, 'explicit' ) for @profile_args;
+    ## exit 1 when a profile misses dependencies [ bin/p7-install ] ##
+    my $missing = 0;
+    $missing += check_profile( $ARG, @option_args, 'explicit' )
+        for @profile_args;
+    exit( $missing ? 1 : 0 );
 } elsif ( $cmd eq 'install' ) {
     @profile_args = qw| minimal | if not @profile_args;
-    install_profile($ARG) for @profile_args;
+    ## exit 1 when an apt \ cpan install failed [ bin/p7-install ] ##
+    my $failed = 0;
+    $failed += install_profile($ARG) for @profile_args;
+    exit( $failed ? 1 : 0 );
 } elsif ( $cmd eq 'list' ) {
     list_profiles();
 } elsif ( $cmd eq 'status' ) {
@@ -333,7 +341,10 @@ sub install_profile {
     unless ($profile_name) {
         $profile_name = 'minimal';
     }
-    return if $installed_profiles{$profile_name}++;
+    return 0 if $installed_profiles{$profile_name}++;
+
+    ## failed apt \ cpan installs, included profiles counted in ##
+    my $failed = 0;
 
     my $profiles = load_profiles();
     unless ( exists $profiles->{$profile_name} ) {
@@ -354,7 +365,7 @@ sub install_profile {
             . join( "${reset}, ${neon_green}", @{ $profile->{includes} } )
             . "${reset}\n\n";
         for my $included ( @{ $profile->{includes} } ) {
-            install_profile( $included, $opts );
+            $failed += install_profile( $included, $opts );
         }
     }
 
@@ -401,6 +412,7 @@ sub install_profile {
             . "${reset}\n";
         my $result = install_apt(@to_install_apt);
         if ( @{ $result->{failed} } ) {
+            $failed += @{ $result->{failed} };
             print "${blacklight}::${reset} "
                 . "${neon_amber}failed${reset}: ${neon_amber}"
                 . join( "${reset}, ${neon_amber}", @{ $result->{failed} } )
@@ -467,6 +479,7 @@ sub install_profile {
                     . "${TRUE_color}$installed_from${blacklight})${reset}"
                     . "\n";
             } else {
+                $failed++;
                 print
                     "${blacklight}::${reset}   ${TRUE_color}$module${reset} "
                     . "${neon_amber}installation failed${reset}\n";
@@ -474,9 +487,16 @@ sub install_profile {
         }
     }
 
+    ## the cache says ok only when nothing failed ##
     print "\n${blacklight}::${reset} "
-        . "${neon_green}installation complete${reset}\n";
-    update_cache( $profile_name, 1 );
+        . (
+        $failed
+        ? "${neon_amber}installation incomplete${reset} ${blacklight}[ "
+            . "${neon_amber}$failed failed${blacklight} ]${reset}\n"
+        : "${neon_green}installation complete${reset}\n"
+        );
+    update_cache( $profile_name, $failed ? 0 : 1 );
+    return $failed;
 }
 
 sub list_profiles {
@@ -919,6 +939,7 @@ sub update_cache {
 
     ## non-fatal : the real check/install result is already printed by the ##
     ## time this runs, so a cache-write failure shouldn't abort the run    ##
+    make_path($CACHE_DIR) unless -d $CACHE_DIR;
     open my $fh, '>', $cache_file
         or return print_error("cannot write cache: $!");
     print $fh $status ? 'ok' : 'fail';
@@ -993,8 +1014,8 @@ ${neon_green}ZENKA CONFIGURATION${reset}:
 EOF
 }
 
-#,,,.,..,,..,,.,.,.,.,..,,.,,,,..,...,,..,.,,,..,,...,...,,,,,,.,,.,.,.,.,,.,,
-#ESJNEJM43GBW6NRWRAPZQ63DTZ7MLGLA2GWOED74XFURXO7DFK73XWUDCE7PUQEDHT7RIJ3G77O5K
-#\\\|L5CQMHCASD4J62PLMSW5MIH25YXUWFNEYITESANK5SJRBY3KHLM \ / AMOS7 \ YOURUM ::
-#\[7]ODWEI37TDCUAXQPSEN4AIK3M2RWJT3B3D7FMEZ5BI6K5XAWZXWCI 7  DATA SIGNATURE ::
+#,,..,...,,,.,...,,.,,.,.,,..,.,,,.,.,.,.,,..,..,,...,..,,,.,,,..,.,.,,,.,...,
+#6AAZ5DCMWACPDY4ZLBMIDATGOSAFATPX4U545M66UESAQMORTONYBC6RQUYHZ5ANVMJ7XH6O6KHX4
+#\\\|TUO5DBDXYCCPD2GJV6MTNUHI3NITOLYOQGJAYDU6BPIRLUWZBBI \ / AMOS7 \ YOURUM ::
+#\[7]TY4WN5AXQV7IRVZ7QEWPFO43QQIPATB7ZUXTRP3OBP7MKHELUOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
