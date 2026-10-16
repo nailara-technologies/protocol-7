@@ -11,7 +11,7 @@ my @missing_os;
 my @missing_bin;
 
 for my $module ( sort keys %$pm_deps ) {
-    unless ( AMOS7::deps::module::probe_module($module) ) {
+    unless ( AMOS7::deps::module::probe_module_file($module) ) {
         push @missing_pm, $module;
     }
 }
@@ -25,7 +25,8 @@ for my $type ( keys %$os_deps ) {
         }
     } else {
         for my $pkg ( sort keys %{ $os_deps->{$type} } ) {
-            unless ( AMOS7::deps::os_package::probe_os_pkg( $pkg, $type ) ) {
+            unless ( AMOS7::deps::os_package::probe_os_pkg( $pkg, $type, 1 ) )
+            {
                 push @missing_os, $pkg;
             }
         }
@@ -63,8 +64,8 @@ return {
     'data' => "\n" . join( "\n", @output ) . "\n"
 };
 
-#,,..,,,.,..,,,,,,.,.,..,,...,,,,,.,.,.,.,,.,,..,,...,...,..,,..,,..,,,..,,..,
-#I34CAVAN2BDJMCRAE53LX6WFZLHX6ZZ2JS3ZALSFL3ARTQFQD5N4765N6CB6ZWQHERWXL3OORYRBO
-#\\\|LWN2PUIKZXB5MHGVZUBEGVSUVYLGFKFJ4SM3X6EATS4H27Z45XZ \ / AMOS7 \ YOURUM ::
-#\[7]2QTKQIUTP455OJDFIODRY3J7IB7EVEQI6ODULU7CLXKXIKXK4GBY 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,,..,,..,.,,,...,.,.,,.,,,,.,..,,...,...,.,,,,,.,..,,.,,,,,,,
+#EGDGA4GM3CI6GKGLEOTTUDCROI52C6FVHWK5QFRW2RI3DQNNM5NZRWBGURWEVWBSNVIVGFMQ5EHJ4
+#\\\|C3DE4SOI2VRNOTPHS5FFBSUFLDTIBSVXFVH7PLRALYXMZE34DH5 \ / AMOS7 \ YOURUM ::
+#\[7]XSLG53S2G5K44OJODYX3GKZUBRCIDGWGTUET5UJBJJ3AYQXJ7GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

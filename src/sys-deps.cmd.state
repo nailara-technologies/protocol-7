@@ -24,7 +24,7 @@ push @output, ":";
 ## Probe status for all pm deps ##
 my $missing_pm = 0;
 for my $module ( sort keys %$pm_deps ) {
-    my $ok = AMOS7::deps::module::probe_module($module);
+    my $ok = AMOS7::deps::module::probe_module_file($module);
     $missing_pm++ unless $ok;
 }
 
@@ -33,7 +33,7 @@ my $missing_os = 0;
 for my $type ( keys %$os_deps ) {
     next if $type eq 'binary';
     for my $pkg ( sort keys %{ $os_deps->{$type} } ) {
-        my $ok = AMOS7::deps::os_package::probe_os_pkg( $pkg, $type );
+        my $ok = AMOS7::deps::os_package::probe_os_pkg( $pkg, $type, 1 );
         $missing_os++ unless $ok;
     }
 }
@@ -73,8 +73,8 @@ return {
     'data' => "\n" . join( "\n", @output ) . "\n"
 };
 
-#,,,.,.,.,,..,..,,,,.,.,,,.,,,,.,,,.,,,,.,,,,,..,,...,...,..,,,..,...,.,.,..,,
-#JMNUB6KZLKYSJ2JAE44CXMC243PKKVYYZ4AGFREEEZZLXSL3L36YADJ4ZAVPY3P7VVR26BD75BWQ2
-#\\\|KLJEHNENVN2IEQFICWYVT234S5FQOS3QQ7MSEQAH3M63VIJU3UI \ / AMOS7 \ YOURUM ::
-#\[7]BCEADRR2SJFACM626WPKBASXEL2Q443EDJUTBJ6CND34PL2LLACY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,..,,,..,,,.,,..,,.,,,.,,,,.,..,,...,...,,..,,,.,.,,,...,...,
+#DEO3JURDJSGVQYKXCG43GVH3AJZ5NE5VUM33KLQZQM7QC6TZOJEWOLBKRR4METISAGGX6INHTASFG
+#\\\|S24DBF6OU3HL7TZQZ2FAJSAPZI3U5E27EDKMLNHWJQJRVC75SZN \ / AMOS7 \ YOURUM ::
+#\[7]MK54OIG5N566NMCQ43LW7VRSRKJFZSX42R6HFSCU456XPSQQ2KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

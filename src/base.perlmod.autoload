@@ -67,7 +67,51 @@ if ( not <base.perlmod.auto_install> ) {
 <[base.logs]>->( 2, ":. [ '%s' ]", $reason );
 
 ## auto-install ##
-<[base.perlmod.install]>->($module_name);
+my $install_result = <[base.perlmod.install]>->($module_name);
+
+## track what was ACTUALLY installed in var/sys-deps/tracked.yaml         ##
+## [ source perlmod-autoload ] : core perl only, no event loop exists at  ##
+## this stage -- a failure to record must never fail or delay the install ##
+## or the start-up [ logged at level 1, then on ]                         ##
+if ( ref $install_result eq qw| HASH | ) {
+    my @track_entries;
+    push @track_entries, map {
+        {   'pkg'    => $ARG,
+            'type'   => qw| debian |,
+            'source' => 'perlmod-autoload',
+            'zenka'  => <system.zenka.name>,
+        }
+    } @{ $install_result->{'installed_deb'} // [] };
+    push @track_entries, map {
+        {   'pkg'    => $ARG,
+            'type'   => qw| cpan |,
+            'source' => 'perlmod-autoload',
+            'zenka'  => <system.zenka.name>,
+        }
+    } @{ $install_result->{'installed_cpan'} // [] };
+
+    if (@track_entries) {
+        my $record_ok = eval {
+            require AMOS7::deps::tracked;
+            my $recorded
+                = AMOS7::deps::tracked::record( <system.root_path>,
+                \@track_entries );
+
+            ## root install : hand the file + dir to the zenka user ##
+            ## [ shared helper, same as v7-zenki.sys_deps.track ]   ##
+            AMOS7::deps::tracked::chown_to_user( <system.root_path>,
+                <system.amos-zenka-user> );
+            $recorded;
+        };
+        if ( not $record_ok ) {
+            my $why = length $EVAL_ERROR ? $EVAL_ERROR : 'write failed';
+            <[base.logs]>->(
+                1, ':. unable to track perlmod install of %s [ %s ]',
+                $module_name, $why
+            );
+        }
+    }
+}
 
 eval { Module::Load::autoload( $module_name, @export ) }; ##  trying again  ##
 
@@ -84,8 +128,8 @@ if ( length $EVAL_ERROR ) {
 
 return TRUE;         ## true ##  [ module loaded ]
 
-#,,.,,,,.,,..,..,,,,,,,,,,.,,,,..,,,,,,,.,.,.,..,,...,..,,...,,,.,..,,,,.,...,
-#ZP6NM4JLAGY7EJQYITYEZTJOXJQKOF23VGO4YDH3BOOIZSQNHWZANP37LGDJIJ7HRA5EWJL5CSTUO
-#\\\|XV7LS4TFPP3OBAUJONB2QTENP6GLCFEWZRHRUFRUPU2KNUS7CY4 \ / AMOS7 \ YOURUM ::
-#\[7]JQMCGTQJQVO5XLB42DTMBRXQ7ZYIJOI7IEVC6YCS5ZPI5RBKSAAA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,...,,,,,..,,,..,,.,,,,.,,,,,..,,...,..,,...,.,.,.,,,,.,,,,.,
+#SCKVTFO2MEZECTIFKHLJDLG3U2VH3EX567DSTAPDI5XDHO3PDELMMI6RGOWDWS2VNYARPLD4DZOEA
+#\\\|MLBK26WTXHP442NQYRWSRZ6YL4N63XK7ZRJK2RTLSJYEVFBBM2C \ / AMOS7 \ YOURUM ::
+#\[7]VTZXEVKMXQR4G4VQCIMGKQ7VF35CJ3ZFSX7OEFEREDU3XW4NYKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

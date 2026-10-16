@@ -12,9 +12,9 @@ if ( $args =~ m|zenka=(\S+)| ) {
     $zenka_filter = $1;
 }
 
-## no privilege check here : sys-deps always runs unprivileged [ root      ##
-## dropped right after init ] - the actual install is routed to the debian ##
-## zenka's privileged apt_child bridge further below                       ##
+## no privilege check here : sys-deps always runs unprivileged             ##
+## [ root dropped right after init ] - the actual install is routed to the ##
+## debian zenka's privileged apt_child bridge further below                ##
 
 my $pm_deps = <sys-deps.pm_deps>;
 my $os_deps = <sys-deps.os_deps>;
@@ -24,13 +24,15 @@ my @to_install;
 
 for my $type ( keys %$os_deps ) {
     next if $type eq 'binary';
+    ## hard-coded 'debian' filter here : replaced by the later ##
+    ## backend-interface task [ os-pkg backend selection ]     ##
     next unless $type eq 'debian';
     for my $pkg ( sort keys %{ $os_deps->{$type} } ) {
         next
             if defined $zenka_filter
             and !grep { $ARG eq $zenka_filter } @{ $os_deps->{$type}{$pkg} };
         push @to_install, $pkg
-            unless AMOS7::deps::os_package::probe_os_pkg( $pkg, $type );
+            unless AMOS7::deps::os_package::probe_os_pkg( $pkg, $type, 1 );
     }
 }
 
@@ -42,7 +44,7 @@ for my $module ( sort keys %$pm_deps ) {
     next
         if defined $zenka_filter
         and !grep { $ARG eq $zenka_filter } @{ $pm_deps->{$module} };
-    next if AMOS7::deps::module::probe_module($module);
+    next if AMOS7::deps::module::probe_module_file($module);
     my $resolved
         = AMOS7::deps::module::resolve_install( $module, $known_deps );
     push @to_install, $resolved->{'pkg'}
@@ -88,8 +90,8 @@ return {
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,.,...,,.,,...,,,,,,..,,..,.,,,,..,,,,,..,,...,...,.,,,.,.,,,,,,,.,...,
-#J4IX3ARNGYTJULMHDTBDYDV5W55NNRG5V2QDY56D2IZ2G5IEDUCUAFHCLTQMCCXLJGNRGHUYJML3G
-#\\\|LFS5DE7QMIYAIS7NZO62LHGN2E6R4OYEIANYQJESWA7PCGRUDZJ \ / AMOS7 \ YOURUM ::
-#\[7]ISH23S6LIWRA6C74VP5VTBXWRGKCBXZ7GI5PKVFJ6ZUP6ET35GAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,..,..,,,,.,..,,,,.,,..,,,.,,..,..,,...,...,,..,.,,,,..,,,.,..,,
+#XJZKTM3NS7QFMFUPTKUO2PFT6DEZWILOTB7MYGTR5RFF5TYGFNMJGDYSFNZODXL5XWZK5M2KPFVNU
+#\\\|IIL7UEYUKG6NTF6UPHKIYS2POANRGZ5KE7SDI2NKNV4GBCMAQXY \ / AMOS7 \ YOURUM ::
+#\[7]LBZBN3Z5AWEXSY65UZHPASTXH7DKOZXKIC4MZ5CYKEBNPDWMEEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

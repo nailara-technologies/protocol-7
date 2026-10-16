@@ -2,10 +2,16 @@
 
 # name  = os-pkg.cmd.install
 # descr = install packages through the distribution backend zenka
-# param = <pkg> [ <pkg> .. ]
+# param = <pkg> [ <pkg> .. ] [ zenka=<name> ]
 
 my $param = shift;
 my $args  = $param->{'args'} // '';
+
+## an optional zenka=<name> token names the requesting zenka [ recorded in ##
+## the tracked-package list, same convention as sys-deps.cmd.install ]     ##
+my $asking_zenka;
+$asking_zenka = $1
+    if $args =~ s{(?:^|\s)zenka=([A-Za-z0-9][\w.\-]*)(?=\s|$)}{ };
 
 my @pkgs = grep {length} split m{\s+}, $args;
 
@@ -52,6 +58,7 @@ my $sent = <[protocol-7.route-send]>->(
             'params'  => {
                 'packages' => \@pkgs,
                 'backend'  => $backend_type,
+                'zenka'    => $asking_zenka,
                 'reply_id' => $param->{'reply_id'}
             }
         }
@@ -66,8 +73,8 @@ return {
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,..,..,,...,.,.,,,.,...,...,,.,,,.,,.,,,..,,...,...,.,.,..,,..,,,,,,.,.,
-#C7IEZNTJ7LZHXI7LXKXLEMW63RPWJDRJZPYEJEJHKSD57HXF52GQ5SSHTEPQEDPZ74TDAZYBMDTJI
-#\\\|DNUB62BKHBWJ2OCVKGCIBJ5YUOQ5AXM2DBJWPEF7I5KERZOHLFY \ / AMOS7 \ YOURUM ::
-#\[7]GW7GGREKD36F4GPF4IXVZFTKP6VYQLNSKCJF3WGCU3LOQMKUBKCI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,.,.,,,.,..,,..,,...,,.,,..,,,.,,..,,...,...,...,,,.,,.,,,.,,...,
+#SNRXOKBRKZQLPXPIXA2UZZSGHZWW3YA4LRN2DJT3LUMOH6EODLUTYOVCCK42TAIY6XMHTN6DVZRM2
+#\\\|HMAQW6DFJRXPWNCBTOVBIL4KKV32TEBETY4BDXCESR3KQWPAP6N \ / AMOS7 \ YOURUM ::
+#\[7]CRN34BOMX643TIT43QCCV3PRABNGDRBTWZFDGD7YK366SUINQMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
