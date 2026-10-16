@@ -235,15 +235,40 @@ sub check {
     );
     my ( undef, $active_out )
         = _systemctl_capture(qw| is-active Protocol-7 |);
-    push(
-        @report,
-        [   'systemctl is-active',
-            ( defined $active_out and $active_out eq 'active' )
-            ? 'active'
-            : 'inactive',
-            undef
-        ]
+    my $is_active = ( defined $active_out and $active_out eq 'active' );
+    push( @report,
+        [ 'systemctl is-active', $is_active ? 'active' : 'inactive', undef ]
     );
+
+    ## what the running service uses [ informational ] : a unit file      ##
+    ## written after the last start applies only at the next start -- the ##
+    ## running process keeps the unit it was started with                 ##
+    my ( undef, $need_reload )
+        = _systemctl_capture(
+        qw| show Protocol-7 -p NeedDaemonReload --value |);
+    push( @report, [ 'unit loaded', 'stale', 'daemon-reload pending' ] )
+        if defined $need_reload and $need_reload eq 'yes';
+
+    if ( $is_active and defined $installed ) {
+        my ( undef, $started ) = _systemctl_capture(
+            qw| show Protocol-7 -p ActiveEnterTimestamp --value
+                --timestamp=unix |
+        );
+        my $unit_mtime = ( stat( $P->{'unit_path'} ) )[9];
+        if ( defined $started and $started =~ m|^@(\d+)$| ) {
+            my $started_at = $1;
+            push(
+                @report,
+                $unit_mtime > $started_at
+                ? [ 'running service',
+                    'older',
+                    'started before the unit changed '
+                        . '-- it applies at the next start'
+                    ]
+                : [ 'running service', 'ok', 'uses the installed unit' ]
+            );
+        }
+    }
 
     return ( \@report, $all_ok );
 }
@@ -342,8 +367,8 @@ sub _write_file {
 
 1;
 
-#,,,.,,,,,,.,,,,,,,,,,,.,,,,.,...,...,,..,,..,..,,...,...,...,,,.,,..,.,,,.,.,
-#VP6ZA5ZCBZZXV56UN6KYUAZIGR27MZK2S4HFXCWVFP273M2OT7POIRV5HRBEAGVBP5AWFLFO7TLXO
-#\\\|CENEI5DCBHSTBJJX2GK7VV3PY7U2DT4ZTZNRBXUL6XFGLOKWPYD \ / AMOS7 \ YOURUM ::
-#\[7]ZJLBWIN3EQOPPOONFBKVEHDJ54TUHNYR2ACRCTZXFVO2Y7GBQYBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,,,.,,..,,..,.,.,..,,,,.,...,..,,...,...,.,.,.,.,,,.,..,,,,,,
+#5F4N5ZLLL3PSEA7H6EOG5BTCX4P3OLJBXIASVTK2IPPTUEQHLOYPAHEJ3KP63VV3DERBUO5BXPKRW
+#\\\|ZRY5KRML6OYEKXHR7GD4OL4TODC3VWQIEWCE5W3OZAWPWJXBK7A \ / AMOS7 \ YOURUM ::
+#\[7]YPQHI34RXQATA4QBEQTBXVNERYBW6Y3FCE4R3M7CILBNAY7O2KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

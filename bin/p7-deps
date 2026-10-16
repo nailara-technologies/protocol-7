@@ -774,6 +774,13 @@ sub cmd_install_service {
     print "\n";
     print_header('install service');
     my $failed = print_service_report( install($P7_ROOT) );
+
+    ## the state read back from disk \ systemd, not what was just done ##
+    print "${blacklight}::${reset}\n";
+    print "${blacklight}::${reset} "
+        . "${TRUE_color}state after install${reset}\n";
+    my ($state) = check($P7_ROOT);
+    print_service_report($state);
     exit 1 if $failed;
 }
 
@@ -818,6 +825,8 @@ sub print_service_report {
             : $status eq 'ok'      ? $neon_green
             : $status eq 'missing' ? $neon_amber
             : $status eq 'differs' ? $neon_amber
+            : $status eq 'stale'   ? $neon_amber
+            : $status eq 'older'   ? $neon_amber
             :                        $TRUE_color;
         print "${blacklight}::${reset}   ${TRUE_color}$part${reset} "
             . "${blacklight}$dots${reset} $status_color$status$reset";
@@ -983,8 +992,8 @@ ${neon_green}ZENKA CONFIGURATION${reset}:
 EOF
 }
 
-#,,,,,.,,,,,,,.,.,.,.,.,.,,,,,,.,,,.,,,..,.,,,..,,...,..,,..,,...,.,,,..,,...,
-#SF4TOIBRGTHPPXOX6CBVT2EHPKBPWCGLN32IS4M7PSUGWI7UMMH2KQFZZGPNONLHMX7Z44FQFK574
-#\\\|7DUU5RIYX2Y2PPSDB7JW4SOER5FEATDWIFH7WD7NGL4V2J2YBOV \ / AMOS7 \ YOURUM ::
-#\[7]GRZ42RTEVLKIG3OCEHH2E4U6KTJOCICKDSHZXRQFOQYOKK4SGSCQ 7  DATA SIGNATURE ::
+#,,..,...,,..,.,.,,..,.,.,,,.,...,.,,,,,,,,,,,..,,...,...,..,,,,,,.,,,.,,,..,,
+#WWIJFHKXOWIITXIPUBDIDVYKMG6SCKZZRJZS7RBZICUUG7XVP6Z6EVFFBAJIHU6N663INRWZDOAYW
+#\\\|6YODCV52MC4M7HNCX6LJR3CDOVSWCX5M7VFRVNXAGQZUQJH2T5F \ / AMOS7 \ YOURUM ::
+#\[7]KJYGTZITEDLVPKATUYTKX7N6CS2IKASI2ATF2FYFLKUOPM6VEUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
