@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = plugin.auth.auth-keypair.handler.reload-authorized
+# descr = re-read the authorized keys after a change in their directories [
+#         plugin.auth.auth-keypair.watch-authorized ], then re-scan the watches
+
+delete <plugin.auth.auth-keypair.reload_timer>;
+
+my $had    = scalar keys( ( $keys{'authorized-remote'} // {} )->%* );
+my $loaded = <[plugin.auth.auth-keypair.load-authorized-users]> // 0;
+
+<[base.logs]>->(
+    1,    ': auth-keypair : authorized keys changed, %d -> %d user%s',
+    $had, $loaded, $loaded == 1 ? '' : 's'
+);
+
+<[plugin.auth.auth-keypair.watch-authorized]>;
+
+return TRUE;
+
+#,,..,.,,,...,..,,.,.,,..,.,,,..,,,..,,.,,..,,..,,...,...,.,.,...,,,.,,,.,,.,,
+#DXQFNN2NMJ6OW5MOHJTS2727XMA3VZVHHWTFNY23EDCTMBOB4KDJEST47SJC6HZGHE7FZ3ZYGZ2LE
+#\\\|MW3FZJ67GBKS3SAI7Q7V52WRNGGGPFGSE2L6L4PVWZVJ77ZDWXG \ / AMOS7 \ YOURUM ::
+#\[7]PZIOWYRWTXPPBYAAF5WQ2PKVZYEEVEGWB2UKQ3EFCHTA2OP3HIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
