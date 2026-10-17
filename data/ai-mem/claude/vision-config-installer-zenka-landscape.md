@@ -48,8 +48,34 @@ Don't start building the installer zenka or a settings zenka
 unprompted; the namespace being reserved is a signal of intent, not a
 request to fill it.
 
-#,,..,,..,,..,..,,,,.,,.,,,.,,.,.,,,.,.,,,.,.,..,,...,...,.,.,.,,,...,,.,,...,
-#JPEULEAHWGPE7UA2OKDUKJE4QO6MO557XFQSZ53JEBCAPWYHJVO73XENDZIC3UDFET4OFH376XZNK
-#\\\|PMVFYVZEX4ZCU4YOLBU3PWOLHT7KFIOQBUIR57ZPQADYF7ZSXZN \ / AMOS7 \ YOURUM ::
-#\[7]DDNODTBGXQZ3FTDJUFRXZ5AKV75AJJ2X7QFPMRJD75E42BJKEOAY 7  DATA SIGNATURE ::
+
+## boot medium path [ 2026-10-17, owner ]
+
+- earlier boot medium work may be LOST [ two crashed laptops, only disk
+  recovery could bring it back ] -- the experience stays.
+- convergence order : own signed debs for everything [ step 7, see
+  [[project-2026-10-17-session-handover-installer-cloud]] ] -> a LIVE
+  boot medium RUNNING protocol-7 with persistent user data [ overlayfs,
+  usable offline and connected ] -> INSTALLER MODE as a natural addition
+  of that medium [ the installer zenka above : more capable than
+  debian-installer, which stays the simpler option -- a preseed
+  late_command adding the medium's repo + a profile metapackage ].
+- the debs make it simple : no cpan \ network \ compiling at install
+  time, profiles as metapackages, the same repo for medium, stick and
+  offline node groups.
+- open : the trust anchor on the medium [ no pin on a fresh machine --
+  the medium carries the repo key + host-root pub + signed fingerprint,
+  could write the first pin ] -- owner's call.
+- the plan side survives in the repo : data/yaml/coding-tasks/
+  phase-5-multinode-deployment.yaml [ 2026-02-07 ] -- task A2 = data
+  recovery of both laptops [ image first, checksums ], A3 = install media
+  [ usb for laptops, sd image for the pi, usb \ net boot for the atom,
+  preseed ] ; all still pending. git history holds no boot medium code.
+  the path above would replace A3's preseed-only approach.
+- still intent, not a build request.
+
+#,,..,.,,,...,.,,,,..,...,,.,,..,,,.,,,,,,..,,...,...,...,..,,...,...,.,.,.,,,
+#2KGKRKEDW5EQF77PZDSOB3S3U772Z4EOP77QSTB4WN6KLNEU4PKDBAXRTF5ESDZJ2WYME2Y7GJYAQ
+#\\\|O7ESVORTQQMCEWDHVIEDOD2YNKJQEOP67JUK5AXZPWP6XHFOAQP \ / AMOS7 \ YOURUM ::
+#\[7]MTB3EREAM7HFSZ4ANJE6CIXQL46E4ENR2WBRRBGOG4ZRCCI7ZCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,6 +9,7 @@ use base qw| Exporter |;
 
 our @EXPORT_OK = qw|
     detect_os
+    read_os_release
     backend_available
     scan_zenki_os_deps
     probe_os_pkg
@@ -102,6 +103,33 @@ sub detect_os {
     }
 
     return 'unknown';
+}
+
+##[ read_os_release ]#########################################################
+
+## the KEY=value pairs of os-release [ quotes stripped ] for display -- the ##
+## family itself comes from detect_os only, so every zenka and the root     ##
+## runner agree on it. optional path as for detect_os ; {} when unreadable  ##
+sub read_os_release {
+    my ($alt_release_path) = @_;
+
+    my $release_path
+        = defined $alt_release_path
+        ? $alt_release_path
+        : qw| /etc/os-release |;
+
+    my %os_release;
+    open my $fh, '<', $release_path or return \%os_release;
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        next unless $line =~ m{^([A-Z_]+)=(.*)$};
+        my ( $key, $value ) = ( $1, $2 );
+        $value =~ s{^"|"$}{}g;
+        $os_release{$key} = $value;
+    }
+    close $fh;
+
+    return \%os_release;
 }
 
 ##[ scan_zenki_os_deps ]######################################################
@@ -231,8 +259,8 @@ sub install_os_pkgs {
 
 1;
 
-#,,,.,.,.,.,,,.,.,...,,.,,.,.,,,,,.,,,.,.,...,..,,...,...,.,.,,,,,,,,,...,.,,,
-#QQC6CLNA2PQLFKAZLFXXTOJRURNQSUCB7P5F3DRR2S76XMUK76264JYRPJ4VHJ6PFL7WBIKLQFRSS
-#\\\|YZEIXDUDVLMCVBRMZSDXDFMILSIRJWZGF7UFHQ7BKTBX3SMBCYR \ / AMOS7 \ YOURUM ::
-#\[7]4QSRZLHU4XEOUIYWEXQU6WHUSNPRXULI5VSSQKMYIGSUO4CAPKCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,.,,,,,,..,,...,.,,,.,,,..,,,,.,..,,...,..,,...,,.,,,..,,..,..,,
+#43JRG7SJ4UDNBX37L3X55FI55O7WFYQ5MC6SBF3K4KE6IKGW55BFA4WMMOHBIEQB7HVNTXOKJTSEK
+#\\\|RLW63UYGPY3MUYADLDSWV5IZ3J6JBVNQBZKEQ52YS3F3GKSKNXJ \ / AMOS7 \ YOURUM ::
+#\[7]KZI4M6R7CQHZW2BLLTNYSOSYZQYKZQTRSD6WU2KARCKUFIEKD4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

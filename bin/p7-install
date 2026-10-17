@@ -25,7 +25,9 @@ use warnings;
 ##
 ## standalone on purpose : core perl only. a copy for a bare host needs this
 ## file plus AMOS7.pm, AMOS7/TERM/Frame.pm and AMOS7/deps/debp.pm
-## [ as AMOS7/ beside it ] -- the repo layout works as it is.
+## [ as AMOS7/ beside it ] -- the repo layout works as it is. without
+## AMOS7/deps/tracked.pm a copy cannot read a recorded profile and the
+## 'minimal' default applies, as on a fresh host
 ##
 ## env P7_INSTALL_ROOT prefixes the install path and the service targets
 ## [ test roots ; root is not needed then ]
@@ -67,9 +69,8 @@ my $LABEL_WIDTH = 15;
 ##[ options ]#################################################################
 
 my %opt = (
-    'profile' => qw| minimal |,
-    'branch'  => qw| base |,
-    'repo'    => 'https://github.com/nailara-technologies/protocol-7.git',
+    'branch' => qw| base |,
+    'repo'   => 'https://github.com/nailara-technologies/protocol-7.git',
 );
 
 Getopt::Long::Configure(qw| no_ignore_case |);
@@ -90,8 +91,10 @@ if ( $opt{'help'} ) {
 }
 
 ## names go to git \ p7-deps as arguments -- nothing may read as an option ##
+## [ --profile is optional : without it the recorded profile decides ]     ##
 frame_error_exit( $TOOL, "profile name not valid [ $opt{'profile'} ]" )
-    if $opt{'profile'} !~ m|\A[\w][\w\-]*\z|;
+    if defined $opt{'profile'}
+    and $opt{'profile'} !~ m|\A[\w][\w\-]*\z|;
 frame_error_exit( $TOOL, "branch name not valid [ $opt{'branch'} ]" )
     if $opt{'branch'} !~ m|\A[\w][\w.\-/]*\z|
     or index( $opt{'branch'}, '..' ) >= 0;
@@ -328,10 +331,33 @@ sub update_checkout {
 ##[ step 3 : dependencies ]###################################################
 
 sub step_dependencies {
-    return p7_deps_step(
-        'p7-deps install', $opt{'profile'},
-        qw| install |,     $opt{'profile'}
-    );
+    my ( $profile, $detail ) = resolve_profile();
+    row( 'profile', $profile, $detail );
+    return p7_deps_step( 'p7-deps install', $profile,
+        qw| install |, $profile );
+}
+
+## without --profile : the most recently installed profile recorded in the ##
+## checkout's tracked store [ type 'profile' ] ; none recorded -> the      ##
+## 'minimal' default. an explicit --profile always wins                    ##
+sub resolve_profile {
+    return ( $opt{'profile'}, 'command line' )
+        if defined $opt{'profile'};
+
+    ## the tracked module may be absent in a standalone copy : then the ##
+    ## default applies, as on a fresh host                              ##
+    my $recorded = eval {
+        require AMOS7::deps::tracked;
+        AMOS7::deps::tracked::recorded_profiles($TARGET);
+    } // [];
+
+    if ( @{$recorded} ) {
+        my $detail = qw| recorded |;
+        $detail = sprintf 'recorded, most recent of %d', scalar @{$recorded}
+            if @{$recorded} > 1;
+        return ( $recorded->[0]{'pkg'}, $detail );
+    }
+    return ( qw| minimal |, 'default, none recorded' );
 }
 
 ##[ step 4 : service unit ]###################################################
@@ -491,7 +517,8 @@ sub print_help {
 
  bin/p7-install [ options ] .. installs protocol-7 [ as root ]
 
-    --profile <name> ...  p7-deps profile [ default : minimal ]
+    --profile <name> ...  p7-deps profile [ default : the recorded
+                          profile, else minimal ]
     --branch <name> ....  branch to clone \\ follow [ default : base ]
     --repo <url> .......  repository to clone
     --enable ...........  enable the service unit [ boot start ]
@@ -507,8 +534,8 @@ EOL
     return TRUE;
 }
 
-#,,..,,.,,,..,...,.,,,,..,,..,..,,.,,,,..,.,,,..,,...,...,,.,,,..,..,,,..,,.,,
-#MV3UF5CFHNOYBTG5D3RPGKDP2FOBHD5VIRQQE6FZC667H652C7NGVTIHINVGY64CPV7QOUSNOD5VC
-#\\\|PAXQB45YTTJU4MXDCG3DUAWXWM7LAI2CQTW32UT4CD2B4V4ZDYB \ / AMOS7 \ YOURUM ::
-#\[7]WOAHZPBA4IEF3JGE2IEYLGUP5O7T34KFVOV3R7Z25WEKTNGUL6BY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,,,.,.,,,.,.,,.,,.,.,,,.,...,..,,...,...,.,,,,..,.,.,..,,,,.,
+#U5VVMAMZLOP5Q2IPNG3QZMKCP2QD5O2V3SG5JDDQ7RBAOEJLBWROVQWBPANTYQWD6KCV74GXFRMTK
+#\\\|CFJKAUDOUHYRVWN4KR7TWQ5TEF4XXNSXBTBBEFQP3XJDJGFYNFJ \ / AMOS7 \ YOURUM ::
+#\[7]AK5RDSGQZRWJ2J3JLWMGDE4XIAQBK2N4Y7UQYKQELG6UJEH34QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

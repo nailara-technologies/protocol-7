@@ -66,65 +66,32 @@ if ( $> != 0 ) {
     return 0;
 }
 
-local $ENV{'APT_LISTCHANGES_FRONTEND'} = qw| none |;
-local $ENV{'UCF_FORCE_CONFFOLD'}       = qw| true |;
-local $ENV{'UCF_FORCE_CONFMISS'}       = qw| true |;
-local $ENV{'DEBCONF_PRIORITY'}         = qw| critical |;
-local $ENV{'DEBIAN_FRONTEND'}          = qw| noninteractive |;
-local $ENV{'PAGER'}                    = qw| /bin/true |;
-local $ENV{'LANG'}                     = qw| en_US.UTF-8 |;
+## direct install as root : through the debian family backend [       ##
+## AMOS7::deps::debp::install_apt -- list-form apt-get, names checked ##
+## before anything runs, dpkg lock wait + retries ] ; no shell here   ##
+<[base.perlmod.load]>->(qw| AMOS7::deps::os_package |)
+    if not <[base.perlmod.loaded]>->(qw| AMOS7::deps::os_package |);
 
-my $errors   = 0;
-my $max_fail = 5;
-my $ok       = 0;
-my $wait;
-my $warned;
+my $s = @deb_list > 1 ? q|s| : q||;
+<[base.logs]>->(
+    1,  "auto_install: debian package%s: %s",
+    $s, join( q|, |, @deb_list )
+);
 
-while ( !$ok and $max_fail-- ) {
-    $warned = 0;
-    $wait   = 2 + int( rand(5) );
-    while ( length(qx(lslocks|grep ^dpkg)) and $wait = 11 or $wait-- ) {
-        if ( $wait > 10 and !$warned++ ) {
-            <[base.logs]>->( 1, "auto_install: waiting for dpkg lock ..." );
-        }
-        <[base.sleep]>->(0.33);
-    }
+my $result
+    = AMOS7::deps::os_package::install_os_pkgs( qw| debian |, @deb_list );
+my @failed = ( @{ $result->{failed} // [] }, @{ $result->{manual} // [] } );
 
-    my $s = @deb_list > 1 ? 's' : '';
-    <[base.logs]>->(
-        1,  "auto_install: debian package%s: %s",
-        $s, join( ', ', @deb_list )
-    );
-
-    my $apt_cmd = 'apt-get -fy install ' . join( ' ', @deb_list ) . ' 2>&1';
-    open( my $apt_out, '-|', $apt_cmd ) or do {
-        <[base.logs]>->( 0, "  ✗ apt-get failed to execute : %s", $! );
-        $errors++;
-        next;
-    };
-
-    my $output = join( '', <$apt_out> );
-    close($apt_out);
-    my $result = $?;
-
-    if ( $result == 0 ) {
-        <[base.logs]>->( 1, ":. successfully installed." );
-        $ok = 1;
-    } elsif ( $output =~ m|Unable to locate package| ) {
-        ## package doesn't exist : don't retry ##
-        <[base.logs]>->( 0, "  ✗ package not found : cannot continue" );
-        $errors++;
-        last;
-    } else {
-        $errors++;
-        <[base.logs]>->( 1, ": retrying automatic installation ..," );
-    }
+if (@failed) {
+    <[base.logs]>->( 0, "  ✗ not installed : %s", join( q|, |, @failed ) );
+} else {
+    <[base.logs]>->( 1, ":. successfully installed." );
 }
 
-return $errors;
+return scalar @failed;
 
-#,,..,..,,..,,,,,,..,,.,,,,.,,..,,,,.,..,,...,..,,...,..,,,,.,..,,,.,,,,,,.,,,
-#6M4VWA56Q42LC3CZ3IDU7WUDD35JR6JBCZXML4JTCJQLWZXR75FFL6BZN3UGBG4JV3F4BGWSX5YTO
-#\\\|PN7HAIMJSNU62K52TPW4FQ6TXKAVVYNS3KJJOQFB7HBHGIFSZM7 \ / AMOS7 \ YOURUM ::
-#\[7]S7PGPXZ5FMWX54CU4EMVB5O7R3EANI6ZS55QYZJFNIPSLMYJNUCA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,...,...,,,,,,,.,,,.,,.,,,.,,..,,...,...,.,,,.,.,,,,,.,.,,,,,
+#DUHXXVKVEGDG4YKN36ZO5OW2XGRVWCX5Z2DAHJHF4BBPDUNZ3S5WWBHX2AGGGHH5SF2ZQMCSK5736
+#\\\|QDMQC3C7TGEX6AGRTXBNN3YVIVAT5QBLY74IQKD6ZSH5BLINPY4 \ / AMOS7 \ YOURUM ::
+#\[7]LXYNPDMYCAQ5XJLI5JQYRU7MGR2PJ27TGXUHHE4VCXLRZ3XJEYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
