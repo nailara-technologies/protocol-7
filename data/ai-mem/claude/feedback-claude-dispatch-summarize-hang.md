@@ -47,7 +47,7 @@ dispatch.
 **confirmed also on `kimi_dispatch`, 2026-07-30**: same shape — MCP tool
 reports "still running" long after the underlying `kimi-legacy` process
 has actually exited and its deliverable is already on disk. `bin/dev/
-notify-pid-gone <pid> [interval]` (blocks until the PID is gone, then
+notify-pid-gone [-i <seconds>] <pid> [<pid> ..]` (blocks until every PID is gone, then
 returns — see the script itself, in `bin/dev/`) is a cleaner check than
 manual `ps -o pid,etime,time,pcpu` polling: grab the real PID from `ps
 aux | grep <dispatch-command-fragment>` right after firing the dispatch,
@@ -85,8 +85,8 @@ third time in the same codebase. worth remembering `bin/mcp-server-p7`
 as a whole has this class of risk at multiple call sites, not just the
 two already fixed.
 
-#,,.,,,.,,.,.,,,.,...,,,.,,.,,...,,..,.,,,,,,,..,,...,...,,..,,..,...,,,.,.,.,
-#4C54FATBA737CTLDWWMR2I5U6BXIBHID53N4D6SVFAEB5L6IWPPNOUCXC4AMQG2RLVCQ2CNTYWAMC
-#\\\|6UQJTG5A5UV7P2PZIBGWNEV5KWXRGVVH3GZKBDBBABXPNWDZG3N \ / AMOS7 \ YOURUM ::
-#\[7]GLDJPJ37IACI5GXIE7DSO5ROP3JES6DDX6EIDRW6GHMOJTCFGWBA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,..,,.,.,..,,...,,,,,,.,,,..,...,..,,...,...,,,.,,,,,,,,,,..,,.,,
+#HVV7PTIC3FTR77MB6Y5KJSYQVDTEFDVIPJRUBFSYBUYDIZ65MIKWJZZPGBIS2BTAK2OIELBG4KTBA
+#\\\|OSCJ4K6VC2G5WUGZMYG467GEGQ43PSFNKK5D4VEOZEEXPSVVPZL \ / AMOS7 \ YOURUM ::
+#\[7]NY5BDYCQSFTY5CEYIRPXA3EACNQSPNUVMNBNWW2XRGWKIAAZFICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

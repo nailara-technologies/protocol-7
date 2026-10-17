@@ -11,7 +11,7 @@ $PROGRAM_NAME = qw| [mcp-server-p7] |;
 use JSON;
 use POSIX       qw| strftime |;
 use List::Util  qw| max |;
-use Encode      qw| encode |;
+use Encode      qw| encode decode |;
 use Fcntl       qw| FD_CLOEXEC F_SETFD F_GETFD |;
 use Crypt::Misc qw| encode_b32r |;
 use IO::Socket::UNIX;
@@ -4998,6 +4998,18 @@ sub tool_claude_cloud_dispatch {
             $status = 'started';
             last;
         }
+        ## the trust dialog blocks forever on stdin /dev/null and never     ##
+        ## creates a session : kill the spawned process                     ##
+        ## [ its own session — the negative pid takes the whole group ] and ##
+        ## report not started                                               ##
+        if ( _cloud_trust_prompt_seen($raw) ) {
+            $status = 'trust_prompt';
+            kill( 'TERM', -$gpid );
+            select( undef, undef, undef, 0.2 );
+            kill( 'KILL', -$gpid ) if kill( 0, $gpid );
+            log_msg( '[claude_cloud] trust dialog seen — killed %d', $gpid );
+            last;
+        }
         if ( not kill( 0, $gpid ) ) {
             $status = 'finished_no_id';
             last;
@@ -5011,16 +5023,30 @@ sub tool_claude_cloud_dispatch {
             'status=%s tool=claude_cloud_dispatch pid=%d',
             $status, $gpid
         ),
-        (           $status eq 'finished_no_id'
-                and $raw =~ m{requires an interactive terminal}
-            )
+        $status eq 'trust_prompt'
+        ? 'claude is waiting on the ONE-TIME workspace trust dialog — NOT '
+            . 'STARTED, NOTHING BILLED [ the spawned process was killed ]'
+        : (         $status eq 'finished_no_id'
+                and $raw =~ m{requires an interactive terminal} )
         ? 'claude refused BEFORE creating a session [ no '
             . 'terminal ] — nothing started, nothing billed.'
         : $status eq 'finished_no_id'
         ? 'claude exited without a session id — check claude.ai/code before '
             . 'any retry [ a session may exist ; never retry blindly ].'
-        : 'cloud session dispatched via `claude --cloud <task>` '
-            . '— this STARTED A BILLED claude.ai cloud session.',
+        : ( $status eq 'started' and length $session_id )
+        ? 'cloud session dispatched via `claude --cloud <task>` '
+            . '— this STARTED A BILLED claude.ai cloud session.'
+        : $status eq 'started'
+        ? 'a claude.ai/code url was seen but no session id parsed — a cloud '
+            . 'session very likely EXISTS and IS BILLED ; confirm via '
+            . 'claude_cloud_status(capture_file="'
+            . $path . '").'
+        : 'the session MAY BE STARTING — no claude.ai/code url or session id '
+            . 'was parsed within the poll cap ; check with '
+            . 'claude_cloud_status(capture_file="'
+            . $path
+            . '") before assuming anything started '
+            . '[ nothing confirmed billed ].',
         "branch: $branch",
         "commit: $sha",
         "launch_clone: $launch_dir",
@@ -5039,6 +5065,16 @@ sub tool_claude_cloud_dispatch {
             ),
             'recover the url later: claude_cloud_status(capture_file="'
             . $path . '")';
+    } elsif ( $status eq 'trust_prompt' ) {
+        push @lines, '',
+            'one-time fix : run, as the repo '
+            . 'owner, ONCE, in the launch clone :', '',
+            "    cd $launch_dir \&\& claude", '',
+            "answer the folder prompt with '1' [ Yes, proceed ] and the "
+            . 'project MCP server prompt with No',
+            '[ the launch claude only creates the session '
+            . '— it never runs the project mcp server ]',
+            'then re-run claude_cloud_dispatch.';
     } elsif ( $status eq 'finished_no_id' ) {
         push @lines,
             'the claude process already exited without '
@@ -5061,7 +5097,8 @@ sub tool_claude_cloud_dispatch {
     ## send later instead. order : effort, model, fast                      ##
     ## [ fast last because it toggles — irreversible blind flip ]           ##
     my @tuning_report;
-    if ( not length $session_id
+    if (    $status ne 'trust_prompt'
+        and not length $session_id
         and ( length $effort or length $model or $fast ) ) {
         my @later;
         push @later, "/effort $effort" if length $effort;
@@ -5212,6 +5249,18 @@ sub _slurp_raw {
 sub _cloud_plain_text {
     my ($text) = @_;
     $text //= q{};
+    ## the capture is raw bytes off the pty : decode first so valid utf-8 ##
+    ## survives intact                                                    ##
+    ## [ no mojibake or mangled multibyte chars in the reply ] ; lone     ##
+    ## invalid bytes fall back to the replacement char. already-decoded   ##
+    ## input [ cloud_status runs the capture through this twice ] is left ##
+    ## untouched — pure-ascii stays flag-off and re-decodes harmlessly    ##
+    $text = decode( 'UTF-8', $text, Encode::FB_DEFAULT )
+        if not utf8::is_utf8($text);
+    ## cursor-forward BEFORE the generic csi strip : the cli redraws reach ##
+    ## past earlier columns with it — dropping the escape would glue the   ##
+    ## redrawn text onto stale columns. bare \e[C is one column            ##
+    $text =~ s{\e\[([0-9]*)C}{ ' ' x ( length $1 ? $1 : 1 ) }ge;
     ## osc [ titles, links ] ##
     $text =~ s{\e\][^\a\e]*(?:\a|\e\\)}{}g;
     ## csi [ colour, cursor ] ##
@@ -5222,6 +5271,20 @@ sub _cloud_plain_text {
     $text =~ s{\e[=>78]}{}g;
     $text =~ s{\r\n?}{\n}g;
     return $text;
+}
+
+## the ONE-TIME workspace trust dialog : claude prints it the first time it ##
+## runs from a directory it has not seen [ the pty makes it interactive ;   ##
+## with stdin /dev/null it would wait forever, no session created, nothing  ##
+## billed ]. exact prompt text verified in the installed cli bundle [ "Do   ##
+## you trust the files in this folder?" with "Yes, proceed" \ "No, exit"    ##
+## options ]. when the dispatch poll sees it, the spawned process is killed ##
+## and the reply tells the owner the one-time fix                           ##
+sub _cloud_trust_prompt_seen {
+    my ($raw) = @_;
+    return 0 if not length $raw;
+    return _cloud_plain_text($raw)
+        =~ m{Do you trust the files in this folder\?} ? 1 : 0;
 }
 
 sub _cloud_parse_ids {
@@ -5879,8 +5942,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,,,,,.,,.,,,..,,...,,,.,,,.,,,,,.,,,.,,,..,,...,...,,,,,,..,,..,.,,,...,
-#WSZNALWCC33LPHJ6VWPEGVLWULUI6UIQFESR3T53FAKN4RU7CTV3C3NYGB6LAN2HYJCL4GLB42HB6
-#\\\|2XF7MQPBFRRYGRPAIPBOKEB2SJBKHRFMOO2N7GDL6BQSVSN2GJ7 \ / AMOS7 \ YOURUM ::
-#\[7]CIE53XOALUJKME3WOJEEP7IF3XCIDHEWOPHB7D2RB4DDLTLAUOCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,,,.,.,,,,.,,.,,,...,,,,,,,,,..,,...,..,,,..,.,.,,..,,..,.,,,
+#TJBNVMOYV2XEMJ7I77DSWZOXPPISHWTRGVLXGDEK5KZF33LQO67PCPOZVZ6ZQ44T6T52PEMHK652A
+#\\\|GIGFJTXU3U3VULYUSAG2SIRW2HODR3MZ4MXG2SQASUA63HGTMFQ \ / AMOS7 \ YOURUM ::
+#\[7]GK6XPGK253NLZSYNUUHBAMR5JSYWMIJN7QFCZQ5OSEUEX4EJF6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

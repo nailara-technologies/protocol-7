@@ -1,25 +1,59 @@
 #!/bin/bash
 
-## usage: notify-pid-gone <pid> [poll_interval_seconds]
-## blocks until process <pid> no longer exists, then exits [ e.g. watching
-## an AFK kimi-legacy dispatch finish without babysitting a 1800s+ MCP call ]
+## usage: notify-pid-gone [-i <seconds>] <pid> [<pid> ..]
+## blocks until every <pid> no longer exists, then exits [ e.g. watching
+## AFK kimi-legacy dispatches finish without babysitting a 1800s+ MCP call ]
+## one 'gone: pid <pid>' line per process as it ends ; -i : poll interval,
+## default 5 s [ an interval above 300 s is accepted with a warning -- it
+## looks like a pid passed where the interval was expected ]
 
-pid="$1"
-interval="${2:-5}"
-
-if [ -z "$pid" ]; then
-    echo "usage: notify-pid-gone <pid> [poll_interval_seconds]" >&2
+usage() {
+    echo "usage: notify-pid-gone [-i <seconds>] <pid> [<pid> ..]" >&2
     exit 1
+}
+
+interval=5
+if [ "$1" = "-i" ]; then
+    [ -n "$2" ] || usage
+    interval="$2"
+    shift 2
 fi
 
-until ! kill -0 "$pid" 2>/dev/null; do
-    sleep "$interval"
+[[ "$interval" =~ ^[0-9]+([.][0-9]+)?$ ]] || {
+    echo "notify-pid-gone: interval '$interval' is not a number" >&2
+    exit 1
+}
+[ "${interval%%.*}" -gt 300 ] \
+    && echo "notify-pid-gone: warning : interval ${interval} s -- a pid?" >&2
+
+[ $# -gt 0 ] || usage
+
+pids=()
+for pid in "$@"; do
+    [[ "$pid" =~ ^[0-9]+$ ]] || {
+        echo "notify-pid-gone: '$pid' is not a pid" >&2
+        exit 1
+    }
+    pids+=("$pid")
 done
 
-echo "gone: pid $pid"
+while [ ${#pids[@]} -gt 0 ]; do
+    left=()
+    for pid in "${pids[@]}"; do
+        if kill -0 "$pid" 2>/dev/null; then
+            left+=("$pid")
+        else
+            echo "gone: pid $pid"
+        fi
+    done
+    pids=("${left[@]}")
+    [ ${#pids[@]} -gt 0 ] && sleep "$interval"
+done
 
-#,,,.,,.,,,,,,.,.,,.,,,..,,,,,,.,,,,,,.,,,.,.,..,,...,...,...,...,,.,,.,,,,,.,
-#HA7MFVJXMJSWIFEN6ERKURMIVBNLOAN766I2F63YG6345QJT77I3O7EKBHDV6CG43TDOMV7XMN5G6
-#\\\|ODK3FSWELCKVYVO6Q6PECBVR4FHQH3TA6HMY62ZV4HZUU6WCHFF \ / AMOS7 \ YOURUM ::
-#\[7]3HTS3M25ZJAK2CLX6H5WUIQKS4N6BRZMXFB5RJOCNRF47ELQSUCA 7  DATA SIGNATURE ::
+exit 0
+
+#,,,.,...,.,,,.,.,.,,,..,,,.,,...,,.,,,..,,.,,..,,...,..,,.,.,..,,,.,,,,.,...,
+#JWKZNRJURFJI27CPQ5CSTMEJTBS7PNOW3TETNH3JV7T4G6ZEWCJGS2YVJRLISRYB4I6YAKPRA4XII
+#\\\|VWK77Z4H4GX4XRQOZ5QAD3TQ5TWQ53JGJD2Z442MHJ32TBVYEHH \ / AMOS7 \ YOURUM ::
+#\[7]T7UDNTTLJOEYWG4376IG6NLV22BQN5KISAPDIG2PLZPDOITLQCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
