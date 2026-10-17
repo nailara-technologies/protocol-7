@@ -47,6 +47,7 @@ use AMOS7::deps::os_package qw|
     probe_binary
     |;
 use AMOS7::deps::debp      qw| probe_apt install_apt |;
+use AMOS7::deps::tracked   qw| record |;
 use AMOS7::deps::dist_upgr ();
 use AMOS7::TERM::Frame     qw|
     frame_column_line frame_title_banner frame_section_header
@@ -124,7 +125,13 @@ if ( $cmd eq 'check' ) {
     banner('dependency install');
     ## exit 1 when an apt \ cpan install failed [ bin/p7-install ] ##
     my $failed = 0;
-    $failed += install_profile($ARG) for @profile_args;
+    my @installed;
+    foreach my $profile_name (@profile_args) {
+        my $profile_failed = install_profile($profile_name);
+        $failed += $profile_failed;
+        push @installed, $profile_name if not $profile_failed;
+    }
+    record_profiles(@installed);
     exit( $failed ? 1 : 0 );
 } elsif ( $cmd eq 'list' ) {
     list_profiles();
@@ -457,6 +464,33 @@ sub install_profile {
     say frame_column_line();
     update_cache( $profile_name, $failed ? 0 : 1 );
     return $failed;
+}
+
+## the profiles installed cleanly this run, into the tracked store     ##
+## [ type 'profile' ] -- bin/p7-install picks the most recent one on a ##
+## re-run without --profile. a failed write is reported, never fatal   ##
+sub record_profiles {
+    my (@profiles) = @ARG;
+    return unless @profiles;
+
+    my $recorded = eval {
+        record(
+            $P7_ROOT,
+            [   map {
+                    {   'type'   => qw| profile |,
+                        'pkg'    => $ARG,
+                        'source' => $TOOL,
+                    }
+                } @profiles
+            ]
+        );
+    };
+    print STDERR frame_error_line(
+        $TOOL, 'installed profile not recorded in the tracked store'
+        ),
+        "\n"
+        if not $recorded;
+    return;
 }
 
 sub list_profiles {
@@ -996,8 +1030,8 @@ sub show_help {
 EOL
 }
 
-#,,,,,...,,,,,...,.,,,,..,.,,,...,.,,,,,,,,.,,..,,...,...,..,,,..,,..,...,...,
-#5BJP2CTESK7C7JJDYGKXCSOXXL54PWXHZW6MPQWDDRK3N6ORFSRBRUZYLMBIPX2LFVUKJQ66K6MR4
-#\\\|WE6HKLUBOFMB2TUKAHVARMD3NB7YXBEWVHP7JSSKVRBFZPT7L4C \ / AMOS7 \ YOURUM ::
-#\[7]IL2WZD3APFZOBFVGYLSRUPQLOUYD5PGOXLJ72THVPEPA7RNQJECA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,,.,,,,.,,..,,.,,..,,,,,,,..,..,,...,...,...,,,.,...,..,,.,,,
+#AFUJ3VDFZST5P7L6TEUDXN4PAGUK3RDPJER2AN7FNY5C5AKDJ7RODUEX5SOEHX5ZE7GEIXQ3EEUVU
+#\\\|X3UTSFMN3XGQ6KU4DKCS5SB6LUI7RIRGVP2BZMFQYLUMHLU65OE \ / AMOS7 \ YOURUM ::
+#\[7]A6JNA3QKXD3MP47I33UEQGYX66EXGFZBDYT2H2236EVBTVULKSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

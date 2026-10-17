@@ -1,90 +1,86 @@
 ## [:< ##
 
 # name  = debian.start.apt_child
-# descr = fork root child for apt-get before privilege drop
+# descr = fork the generic root runner before the privilege drop
+# note  = AMOS7::deps::root_runner : detects the os family itself, installs
+#         through AMOS7::deps::backend::<family>::install, 'cpan' via cpanm
 
 return if defined <debian.apt_child.w_fh>;
 return if $UID != 0 and $EUID != 0;          ## must be root to fork ##
 
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
-<[base.perlmod.load]>->('IPC::Open2')
-    if not <[base.perlmod.loaded]>->('IPC::Open2');
-
-## child reads install commands on stdin, replies with output + exit code ##
-my $child_code = <<~'EOT';
-use strict; use warnings;
-local $ENV{'APT_LISTCHANGES_FRONTEND'} = 'none';
-local $ENV{'UCF_FORCE_CONFFOLD'}       = 'true';
-local $ENV{'UCF_FORCE_CONFMISS'}       = 'true';
-local $ENV{'DEBCONF_PRIORITY'}         = 'critical';
-local $ENV{'PAGER'}                    = '/bin/true';
-local $ENV{'LANG'}                     = 'en_US.UTF-8';
-local $ENV{'DEBIAN_FRONTEND'}          = 'noninteractive';
-$| = 1;
-$0 = 'debian[apt-child:idle]';    ## recognizable in ps, doubles as a  ##
-                                  ## live status display while running ##
-## the commands come from the unprivileged zenka process : every name is ##
-## checked HERE again and nothing goes through a shell [ list-form exec ] ##
-## -- the parent's check alone would leave a root shell to whoever can    ##
-## write to this pipe                                                     ##
-my $pkg_re = qr|^[a-z0-9][a-z0-9.+\-~]*$|;
-my $mod_re = qr|^[A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z0-9_]+)*$|;
-
-## cpanm : fixed locations only, never a path from the parent ##
-my ($cpanm) = grep { -x $_ } qw| /usr/bin/cpanm /usr/local/bin/cpanm |;
-
-my $run = sub {    ## command list -> '> ' output lines, '< N' exit code ##
-    my $pid = open( my $fh, '-|' );
-    if ( not defined $pid ) { print "< 1\n"; return }
-    if ( $pid == 0 ) {
-        open( STDERR, '>&', \*STDOUT );
-        exec {$_[0]} @_;
-        exit 127;
-    }
-    while ( my $out = <$fh> ) { print "> $out" }
-    close($fh);
-    printf "< %d\n", $? >> 8;
-};
-
-while ( my $line = <STDIN> ) {
-    chomp $line;
-    last unless length $line;
-    if ( $line =~ m|^install (.+)$| ) {
-        my @pkgs = split /\s+/, $1;
-        if ( grep { $_ !~ $pkg_re } @pkgs ) {
-            print "> refused : invalid package name\n< 1\n";
-            next;
-        }
-        $0 = sprintf 'debian[apt-child:installing %s]', join( ' ', @pkgs );
-        $run->( qw| apt-get -fy install |, @pkgs );
-        $0 = 'debian[apt-child:idle]';
-    } elsif ( $line =~ m|^cpan (.+)$| ) {
-        my @mods = split /\s+/, $1;
-        if ( grep { $_ !~ $mod_re } @mods ) {
-            print "> refused : invalid module name\n< 1\n";
-            next;
-        }
-        if ( not defined $cpanm ) {
-            print "> refused : no cpanm [ apt : cpanminus ]\n< 1\n";
-            next;
-        }
-        $0 = sprintf 'debian[apt-child:cpan %s]', join( ' ', @mods );
-        $run->( $cpanm, qw| --quiet --notest |, @mods );
-        $0 = 'debian[apt-child:idle]';
-    } elsif ( $line eq 'exit' ) {
-        last;
-    } else {
-        print "< 1\n";    ## unknown command ##
-    }
+foreach my $pm (qw| IPC::Open2 Cwd AMOS7::deps::root_runner |) {
+    <[base.perlmod.load]>->($pm) if not <[base.perlmod.loaded]>->($pm);
 }
-EOT
 
-<debian.apt_child.pid>
-    = IPC::Open2::open2( <debian.apt_child.r_fh>, <debian.apt_child.w_fh>,
-    <system.path.perl_bin>, qw| -e |, $child_code )
-    || die sprintf( "cannot start apt child process [ %s ]\n",
-    scalar <[base.format_error]>->($OS_ERROR) );
+## everything the child gets is decided HERE, still as root : the lib root ##
+## [ resolved, no symlinks left ], the zenka user's uid                    ##
+## [ refused as owner of anything it loads ] and the process label         ##
+my $lib_root
+    = Cwd::abs_path( sprintf( '%s/data/lib-path/pm', <system.root_path> ) );
+my $zenka_user = <system.amos-zenka-user>;
+my $deny_uid
+    = defined $zenka_user ? scalar( ( getpwnam($zenka_user) )[2] ) : undef;
+
+if ( not defined $lib_root or not defined $deny_uid ) {
+    <[base.logs]>->(
+        0,
+        'debian: root runner not started [ %s ]',
+        not defined $lib_root
+        ? 'no lib path'
+        : sprintf( "no uid for zenka user '%s'", $zenka_user // '' )
+    );
+    return;
+}
+
+## the runner file is loaded by absolute path before its own @INC hook ##
+## exists : checked here first [ same owner \ mode walk ]              ##
+my ( $state, $why )
+    = AMOS7::deps::root_runner::check_path( $lib_root,
+    qw| AMOS7/deps/root_runner.pm |, $deny_uid );
+if ( $state ne qw| ok | ) {
+    <[base.logs]>->( 0, 'debian: root runner refused : %s', $why );
+    return;
+}
+
+my @argv = AMOS7::deps::root_runner::spawn_argv( <system.path.perl_bin>,
+    $lib_root, $deny_uid, qw| debian | );
+
+## no perl environment from this process may change what the child loads ##
+{
+    my @perl_env = AMOS7::deps::root_runner::perl_env_names();
+    local @ENV{@perl_env};
+    delete @ENV{@perl_env};
+
+    <debian.apt_child.pid>
+        = IPC::Open2::open2( <debian.apt_child.r_fh>,
+        <debian.apt_child.w_fh>, @argv )
+        || die sprintf( "cannot start root runner process [ %s ]\n",
+        scalar <[base.format_error]>->($OS_ERROR) );
+}
+
+## start-up line : '+ ready ..' or '- refused : <reason>'              ##
+## [ unsafe lib tree ] -- a refused runner leaves no w_fh, the install ##
+## paths answer 'not available' instead of writing to a gone process   ##
+my $status
+    = AMOS7::deps::root_runner::read_status( <debian.apt_child.r_fh>, 20 );
+
+if ( not defined $status or $status !~ m|^\+ ready | ) {
+    <[base.logs]>->(
+        0,
+        'debian: root runner refused to start : %s',
+        defined $status ? $status =~ s|^- refused : ||r : 'no start-up line'
+    );
+    close(<debian.apt_child.w_fh>);
+    close(<debian.apt_child.r_fh>);
+    kill( 'TERM', <debian.apt_child.pid> );    ## a refused one is gone ##
+    waitpid( <debian.apt_child.pid>, 0 );
+    <debian.apt_child.w_fh> = undef;
+    <debian.apt_child.r_fh> = undef;
+    <debian.apt_child.pid>  = undef;
+    return;
+}
 
 ## register with v7-zenki for lifecycle management : gets terminated \ ##
 ## restarted along with this zenka instead of surviving as an orphan   ##
@@ -92,12 +88,12 @@ EOT
 <[base.zenki.report_child_pid]>->(<debian.apt_child.pid>);
 
 <[base.logs]>->(
-    1, 'debian: apt-child started [pid:%d]',
-    <debian.apt_child.pid>
+    1,                      'debian: root runner started [pid:%d] %s',
+    <debian.apt_child.pid>, $status =~ s|^\+ ready ||r
 );
 
-#,,,.,.,.,...,.,.,,..,,,,,,.,,,,.,,..,...,...,..,,...,...,.,.,,.,,,.,,,..,,..,
-#IPYDMKQKEA2QNBZKR2ITHYTTAEXL24OTQCWETOXZRWPTL6INF2IGM4U5LILVN2UGSWJOXNYA5OHMS
-#\\\|KIE6I4HOEVRMLXKILLH3SM4MZXSJLCLIKY7LXZI7AUBWD6HLW3W \ / AMOS7 \ YOURUM ::
-#\[7]7D5A6E4ZSI7UP3ZI44FRKMWMDRSC74IGVCOAHTVKPVNAN4XJXAAA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,,,.,..,,,..,..,,,..,,,.,,,.,..,,...,...,,..,,,.,...,,,.,,..,
+#7SG3QXJGCKPVIMHABG6BIXTHVXR2GOJJEGHBNF3S27PJMUR2EFBZMGAD6YARGJ3Q6I7RIASLR2GPY
+#\\\|E57MVAIJJN7GZJSMIAHQX7MJECREB6RJRTCJP7BBTQ7PZJRUNBI \ / AMOS7 \ YOURUM ::
+#\[7]4Q35JIQQKARPJAXWQRHLI3PFAJDMA6DJ4LZ5EJ5LDBZBBLTZXEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

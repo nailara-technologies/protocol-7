@@ -46,6 +46,13 @@ first real runs through bin/mcp-server-p7 [ claude_cloud_dispatch ] :
 - cost : ~$6 per session for both runs [ installer at effort high, the
   p7-deps restyle at medium ] -- with a test requirement the session sets
   its own depth, the effort level barely changed the total.
+  third run [ root runner, effort high, 2026-10-17 ] : ~$7 -- two advisor
+  calls, a Digest::BMW build for bin/ncode, tracing the zenka user set-up.
+  credits after it : $67 of $100 [ expire 2026-11-05 ].
+  effort rule [ 2026-10-17 ] : send MEDIUM by default, HIGH only for
+  security-critical work [ root, auth, crypto ] -- so far high \ medium
+  cost about the same, keep comparing. the closing "burns fastest --
+  medium handles most tasks" line is the cli's generic /effort text.
 - results come back reviewed like kimi's : a worktree of the branch in
   the scratchpad, tests there [ a worktree path makes check-service's
   install-link check differ -- base fails the same way there ], then a
@@ -54,8 +61,8 @@ first real runs through bin/mcp-server-p7 [ claude_cloud_dispatch ] :
 see [[reference-usage-pools-fast-mode]] [ cloud credits, effort low by
 default ].
 
-#,,.,,..,,.,.,.,,,,,.,.,,,.,.,.,,,,,,,,,,,,..,..,,...,...,...,,..,,.,,.,.,...,
-#47RLPCKUWFWNWETXWRHRMMC2WX6NLVOEE6GATFXHVAY72LUP4DRC3YUCZCWREE4WKG3B6ZM6TESCQ
-#\\\|CO2CHENZVID5WGHQ76TX3G7MWLE7WSBPUKCZ2AZ7RLMEOLPRFTE \ / AMOS7 \ YOURUM ::
-#\[7]A5GFWJWF3PPJFCKF4FB4FVXW4N66UWSYOJ6FRIH6JEIHC3D2AGCI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,,,,,.,,,,,,..,,,,,,,.,,,,.,..,,...,...,...,...,,,,,,.,,,,,,
+#C6XXX6U4Z4THVSCVREY75ZABDHPUYKTZX5W4DTXIMKQ4SZR6VZZYEDIF7HMETVBHVMA5E7CZC2IMW
+#\\\|ETB5LEVOZLU4FYLCOGSEXTWI37FUCDE2MRTRM6ZMJ4LCKFEYGFO \ / AMOS7 \ YOURUM ::
+#\[7]NNSEVFZXWBZ6L7BGXELQRAE3UEEDGCA7L4D3RLICPY5RGVK5ASBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

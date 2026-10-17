@@ -487,7 +487,107 @@ reset_sandbox();
         qr{^(restart|reload|try-restart|stop)\b} ) == 0;
 }
 
-## --- [ 6 ] --dry-run writes nothing and runs no installer ##
+## --- [ 6 ] recorded profile detection                                     ##
+## [ the tracked store of the checkout ] -- env P7_INSTALL_ROOT keeps every ##
+## run inside the sandbox, the tracked store is a fixture written into the  ##
+## target                                                                   ##
+## ------------------                                                       ##
+
+sub tracked_fixture {
+    my (@entries) = @ARG;                ## [ pkg, installed_at ] pairs ##
+    my $yaml = "---\ntracked:\n";
+    for my $entry (@entries) {
+        $yaml
+            .= sprintf
+            "  -\n    declared: 0\n    family: debian\n    installed_at: "
+            . "'%s'\n    pkg: %s\n    source: p7-deps\n    type: "
+            . "profile\n",
+            $entry->[1], $entry->[0];
+    }
+    return $yaml;
+}
+
+sub plant_tracked {
+    my ($yaml) = @_;
+    my $dir = File::Spec->catdir( $target, qw| var sys-deps | );
+    make_path($dir);
+    write_file( File::Spec->catfile( $dir, 'tracked.yaml' ), $yaml );
+    return TRUE;
+}
+
+## the p7-deps call right after $offset earlier ones                        ##
+## [ the first of the run : 'install <profile>', before 'install-service' ] ##
+sub p7_deps_call_after {
+    my ($offset) = @_;
+    my (@calls)  = calls('p7-deps');
+    return @calls > $offset ? $calls[$offset] : undef;
+}
+
+## no record : the 'minimal' default stays, fresh hosts unchanged ##
+reset_sandbox();
+{
+    install();    ## the checkout exists now, with no tracked store ##
+    my $before = scalar calls('p7-deps');
+    my ( $exit, $out ) = install();
+    check 'profile : no record : exit 0', $exit == 0;
+    check 'profile : no record : p7-deps install minimal',
+        p7_deps_call_after($before) eq 'install minimal';
+    check 'profile : no record : the row says default, none recorded',
+        $out =~ m|^::   profile \.+ minimal \[ default, none recorded \]$|m;
+}
+
+## one record : the recorded profile wins, no --profile given ##
+reset_sandbox();
+{
+    install();
+    plant_tracked(
+        tracked_fixture( [ 'basic-remote-server', '2026-10-10T10:00:00Z' ] )
+    );
+    my $before = scalar calls('p7-deps');
+    my ( $exit, $out ) = install();
+    check 'profile : one record : exit 0', $exit == 0;
+    check 'profile : one record : p7-deps install basic-remote-server',
+        p7_deps_call_after($before) eq 'install basic-remote-server';
+    check 'profile : one record : the row says recorded',
+        $out =~ m|^::   profile \.+ basic-remote-server \[ recorded \]$|m;
+}
+
+## two records : the most recently installed one wins ##
+reset_sandbox();
+{
+    install();
+    plant_tracked(
+        tracked_fixture(
+            [ 'basic-remote-server', '2026-10-10T10:00:00Z' ],
+            [ 'full',                '2026-10-15T10:00:00Z' ],
+        )
+    );
+    my $before = scalar calls('p7-deps');
+    my ( $exit, $out ) = install();
+    check 'profile : two records : exit 0', $exit == 0;
+    check 'profile : two records : the most recent profile is installed',
+        p7_deps_call_after($before) eq 'install full';
+    check 'profile : two records : the row says most recent of 2',
+        $out =~ m|^::   profile \.+ full \[ recorded, most recent of 2 \]$|m;
+}
+
+## explicit --profile always wins, over any record ##
+reset_sandbox();
+{
+    install();
+    plant_tracked(
+        tracked_fixture( [ 'basic-remote-server', '2026-10-10T10:00:00Z' ] )
+    );
+    my $before = scalar calls('p7-deps');
+    my ( $exit, $out ) = install(qw| --profile minimal |);
+    check 'profile : explicit : exit 0', $exit == 0;
+    check 'profile : explicit --profile beats the record',
+        p7_deps_call_after($before) eq 'install minimal';
+    check 'profile : explicit : the row says command line',
+        $out =~ m|^::   profile \.+ minimal \[ command line \]$|m;
+}
+
+## --- [ 7 ] --dry-run writes nothing and runs no installer ##
 ## ------------------                                       ##
 
 ## fresh root : everything missing ##
@@ -528,7 +628,7 @@ reset_sandbox();
             and not grep {m{\b(fetch|merge)\b}} @new_git );
 }
 
-## --- [ 7 ] failures stop the chain with exit 0110 ##
+## --- [ 8 ] failures stop the chain with exit 0110 ##
 ## ------------------                               ##
 
 reset_sandbox();
@@ -584,7 +684,7 @@ reset_sandbox();
     check 'no systemctl, nothing asked : exit 0', $exit == 0;
 }
 
-## --- [ 8 ] standalone : a copy [ script + AMOS7/ ] on core perl only ##
+## --- [ 9 ] standalone : a copy [ script + AMOS7/ ] on core perl only ##
 ## ------------------                                                  ##
 
 reset_sandbox();
@@ -651,8 +751,8 @@ EOF
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,.,.,,,,,.,,.,,.,.,.,.,,,,,,..,.,,,.,.,..,,...,...,,,.,,,,,..,,,,,,,,,,
-#BKUIMUXRBFDJMGRZ6UDGSWDWXJYYRBNVGXB3TDJCD5IK2NVBDRIQZUA4RNOKYQAVY4SZHPHJQ4NZI
-#\\\|2O2KYMVC6DVFQUDSAX5DXP4FY2WL7X6JQ4FRYUSXXABKHGHSGPF \ / AMOS7 \ YOURUM ::
-#\[7]D3KUZ7CEMNWCR2I3H7QCLMCOYVRAYXP763QVADIKIYZ3C3DIPQBY 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,.,.,.,.,...,...,...,,,,,,..,..,,...,...,..,,,..,,,,,,,.,.,,,
+#UPTF4TVYB75D5D3KHSGXZUMUO3P3OZRP5WDG23K3LLLPFBOWQCBXIFA4HOWIQ42KJ725I4FDXYWEK
+#\\\|L5BY2FQDIT7PLCHD4Z6KUQYGKSPS7BFSOKWKO3BWGWBGAO3BHUT \ / AMOS7 \ YOURUM ::
+#\[7]7UPRAANMBIELNE3YCSKTLNZTUXCZ6S34CT6BATJSMUCYK52HU4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

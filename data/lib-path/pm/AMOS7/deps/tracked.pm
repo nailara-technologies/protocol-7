@@ -11,8 +11,8 @@ use Fcntl      qw| O_RDONLY O_DIRECTORY LOCK_EX |;
 use Exporter;
 use base qw| Exporter |;
 
-our @EXPORT_OK
-    = qw| track_file read_tracked record undeclared promote chown_to_user |;
+our @EXPORT_OK = qw| track_file read_tracked record undeclared promote
+    chown_to_user recorded_profiles |;
 
 ## fully-qualified calls into os_package [ compile-time imports break when ##
 ## Module::Refresh wipes the shared CV during a live v7 reload ]           ##
@@ -23,7 +23,9 @@ use AMOS7::deps::os_package;
 ## single implementation for var/sys-deps/tracked.yaml [ OS packages and    ##
 ## CPAN modules installed while a system runs, later declared as empty      ##
 ## marker files under cfg/zenki/<zenka>/deps/os/<dir>/<pkg> for replication ##
-## to other hosts ]. previously three separate copies                       ##
+## to other hosts ]. a 'profile' entry [ type 'profile' ] records the       ##
+## p7-deps profile installed on a host -- read back by bin/p7-install on    ##
+## re-runs. previously three separate copies                                ##
 ## [ bin/os-pkg, sys-deps.handler.install_reply, v7-zenki.sys_deps.track ]  ##
 ## -- this one dedups, writes atomically and adds the 'family' and optional ##
 ## 'user' fields                                                            ##
@@ -60,6 +62,28 @@ sub read_tracked {
         }
     };
     return $entries;
+}
+
+##[ recorded_profiles ]#######################################################
+
+## profile entries [ type 'profile', written by bin/p7-deps install ], most ##
+## recently installed first -- bin/p7-install picks the first one on a      ##
+## re-run without --profile                                                 ##
+
+sub recorded_profiles {
+    my ($p7_root) = @_;
+
+    my @profiles = grep {
+                ref $ARG eq 'HASH'
+            and ( $ARG->{'type'} // '' ) eq qw| profile |
+            and defined $ARG->{'pkg'}
+    } @{ read_tracked($p7_root) };
+
+    return [
+        sort {
+            ( $b->{'installed_at'} // '' ) cmp( $a->{'installed_at'} // '' )
+        } @profiles
+    ];
 }
 
 ##[ record ]##################################################################
@@ -176,6 +200,8 @@ sub undeclared {
         next if $entry->{'declared'};
         my $type = $entry->{'type'} // '';
         my $pkg  = $entry->{'pkg'}  // '';
+        ## an install record, not a package ##
+        next if $type eq qw| profile |;
         next
             if length $pkg
             and defined $os_deps->{$type}
@@ -310,8 +336,8 @@ sub _save {
 
 1;
 
-#,,,.,...,,,,,...,,,.,,..,..,,.,.,,,.,,.,,,..,..,,...,..,,.,.,,.,,,..,..,,,,,,
-#B5QGROFIGE737NPNGTJ4MCBDJ4HMXFN7OGN47ZZPEES4P4UGQOKSV7N2O6JRLGKQRLUSGYTW4GQTK
-#\\\|ZGRQHXZHA5RBIRXSVRQJQQFUTTR34YMMBEODY25A2XEVCG5PC4A \ / AMOS7 \ YOURUM ::
-#\[7]FF3RM4QQMB2NHRGRYYIYADNABBW2RDVHLMBLGOW4IYCETV4VLIAA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,.,.,,,,,.,,,,..,,,.,..,,.,,,..,,...,...,,..,,,.,,.,,..,,,,.,
+#HR5KN5AQH7ZIELB2U4KFW54HAOEFBQTBOVGDFVVUZZRF657HCHIRQ3NC43HF66OYUZCJGQPRSSKIS
+#\\\|7MCX66DAUPIKEWNJCRUHBIAC7QSK34VTJFBKO6W7QMHQLXRF6XM \ / AMOS7 \ YOURUM ::
+#\[7]J3MQOAQRSTLNSIU2WRS356CP65UVOBW3HKACLBBK3YSLK2GPHOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

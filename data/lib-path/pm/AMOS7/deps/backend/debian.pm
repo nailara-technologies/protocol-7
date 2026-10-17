@@ -32,11 +32,14 @@ sub probe {
 ## pass-through : the { ok, failed } hashref contract of  debp::install_apt ##
 ## IS the debian-family contract and stays unchanged -- 'manual' is empty   ##
 ## by definition on debian                                                  ##
-## [ no admin-side action needed beyond apt itself ]                        ##
+## [ no admin-side action needed beyond apt itself ]. an optional leading   ##
+## CODE ref is the output sink of the interface                             ##
+## [ one call per output line, used by AMOS7::deps::root_runner ] and       ##
+## passes through as well                                                   ##
 sub install {
-    my (@pkgs) = @_;
+    my (@args) = @_;
 
-    return AMOS7::deps::debp::install_apt(@pkgs);
+    return AMOS7::deps::debp::install_apt(@args);
 }
 
 ##[ refresh ]#################################################################
@@ -48,8 +51,8 @@ sub refresh { return 1 }
 
 1;
 
-#,,..,..,,..,,.,.,,,.,,..,...,...,.,,,,,.,,,,,..,,...,...,,..,.,,,,,.,,,,,,,,,
-#HHKXVCGDWKZCSTS57GC3NHKY2UG7MIBQTPWEXHYB3HSVVCDF6A23BBRDCLTR7Z4MVRMYFMJAJPS2C
-#\\\|6FV5ECP4DGZWHOLJGVVIWEIL2AN25HFOS2Y5IPFQCG4C5AUDX6H \ / AMOS7 \ YOURUM ::
-#\[7]VBOWVI7VVKGHXKLRKIHLV36Z5BLKHYMB2DCMLLC3FYVTFOPZCKDA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,..,,,,,,...,,,,,...,.,.,,,,,,.,,..,,...,..,,,.,,,..,,,,,.,.,,,.,
+#4D7A5AEPXQFUPMAK6QYQDWWF3UV5LS4I5JPTDWEU3QPL3H6IL7KTVIBN42WAWRY762P4WZQYKTOG4
+#\\\|JMJKFXHMUPDMEFJNV3HSTNCHPEZ24X43RE4R5K4UDNN5T4N5JDN \ / AMOS7 \ YOURUM ::
+#\[7]IUOX2BDPS3Z5DOPZWMEI3JWGU7NNN6XL5WBVZ43QKXNEZQ5ZCYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

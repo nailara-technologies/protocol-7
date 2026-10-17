@@ -506,6 +506,67 @@ my $host_family = detect_os();
     check 'a bin marker declares the binary entry', ( @$undeclared == 0 );
 }
 
+##[ recorded_profiles ]#######################################################
+
+{
+    my $root = fresh_root(undef);
+
+    check 'recorded_profiles on a missing file returns an empty list',
+        ( @{ AMOS7::deps::tracked::recorded_profiles($root) } == 0 );
+
+    AMOS7::deps::tracked::record(
+        $root,
+        [
+            {   'pkg'  => 'basic-remote-server',
+                'type' => qw| profile |,
+            }
+        ]
+    );
+
+    my $profiles = AMOS7::deps::tracked::recorded_profiles($root);
+    check 'one recorded profile reads back from disk',
+        (       @$profiles == 1
+            and $profiles->[0]{'pkg'} eq 'basic-remote-server'
+            and $profiles->[0]{'type'} eq qw| profile | );
+
+    ## a second profile, installed later, sorts first ##
+    AMOS7::deps::tracked::record(
+        $root,
+        [
+            {   'pkg'          => 'full',
+                'type'         => qw| profile |,
+                'installed_at' => '2999-01-01T00:00:00Z',
+            }
+        ]
+    );
+    AMOS7::deps::tracked::record(
+        $root,
+        [
+            {   'pkg'          => 'basic-remote-server',
+                'type'         => qw| profile |,
+                'installed_at' => '1999-01-01T00:00:00Z',
+            }
+        ]
+    );
+
+    $profiles = AMOS7::deps::tracked::recorded_profiles($root);
+    check 'the most recently installed profile sorts first',
+        (       @$profiles == 2
+            and $profiles->[0]{'pkg'} eq 'full'
+            and $profiles->[1]{'pkg'} eq 'basic-remote-server'
+            and $profiles->[0]{'installed_at'} eq '2999-01-01T00:00:00Z' );
+
+    check 'profile entries are not packages : never reported undeclared',
+        ( @{ AMOS7::deps::tracked::undeclared($root) } == 0 );
+
+    ## package entries still report as before, profiles or not ##
+    AMOS7::deps::tracked::record( $root,
+        [ { 'pkg' => 'libfoo-perl', 'type' => 'debian' } ] );
+    my $undeclared = AMOS7::deps::tracked::undeclared($root);
+    check 'a package entry still reports undeclared next to profiles',
+        ( @$undeclared == 1 and $undeclared->[0]{'pkg'} eq 'libfoo-perl' );
+}
+
 ##[ promote ]#################################################################
 
 {
@@ -640,8 +701,8 @@ my $host_family = detect_os();
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,...,,..,,,.,..,,...,,.,,..,,.,.,,,.,.,,,.,.,...,...,,,.,,,,,.,.,,..,...,
-#WOZXOPUJLXMQPGW727IGYTTF7F4UHZUZTQ4AHULZQPKTGTB75VG4BFYUEPKF26TQQUJKXCCBSPWYS
-#\\\|YF6LJFIU3ICLSRTCVXD6OOL4YBXTRBXU52OAWI53FRNLPMI6JSD \ / AMOS7 \ YOURUM ::
-#\[7]RSDDAEMWX2RZFDCC4DMHCRZA33K2PVU35DY3ESGG6XQTV7LMQQDY 7  DATA SIGNATURE ::
+#,,..,..,,..,,,..,,,.,.,,,.,,,..,,,,,,..,,.,.,.,.,...,...,,.,,,,.,.,,,...,...,
+#BPTWATK6LFQKV7HUGAOBWZ4Z25J7EJCK52XOIIMITUYKQURTBS57PEW5WFNXYHBPVVOQKFVOH77VU
+#\\\|NEZJ7DE3S5BWASNTP7C5R2H5NB6I3BPOSOYHN5VDBG5BO4GXIME \ / AMOS7 \ YOURUM ::
+#\[7]KEQUO3EQO7DJ42REY2B6JD2IHJRWB6RZ4C5PUIJK2LSZH4IUVEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
