@@ -62,7 +62,7 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
   osf-cache.debian.read_inrelease. goals :
   upstream disappearance, offline node groups. a cloud VM has apt but no
   CPAN : the first consumer.
-- legacy scripts bin/dependencies/*.debian.sh : RETIRE once everything
+- legacy scripts bin/dependencies/*.debian.sh : RETIRED 2026-10-18 [ audit data/tasks/legacy-debian-deps-coverage-audit.md, gaps declared, setup configs on bin/p7-dist-upgrade ] ; was : RETIRE once everything
   they did is covered [ owner 2026-10-17 ] -- unless outdated anyway.
   first a read-only coverage audit [ kimi ] : each action -> covered \
   missing \ outdated.
@@ -105,8 +105,8 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
   compositing, re-feeding, prompt categories in
   data/tasks/images-elfdb-feature-collection.md.
 
-#,,..,..,,.,.,...,.,.,.,.,,..,,,.,,.,,...,,,,,..,,...,...,...,.,.,...,,..,...,
-#TQXJRG3C2X3ZXOZ3DRJSVOONXJEGWUDE4IAXPSFBYM2DDAQKQB7JF6Y6GRYPAEXBEBWMOHZVC4N5I
-#\\\|DQ6IALFN7JWWAYDH25GZVLXDLHHCSYXAK3Z3IMWC4IS2LGG5LEC \ / AMOS7 \ YOURUM ::
-#\[7]3EOQHROLFB5IJO2BWXBES33GLC2YWVPO4FCQ4DQU4DGNIJB2L4DA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,..,,.,,,,,.,.,.,,.,,,,,,,.,,...,..,,...,...,,,.,.,.,.,,,...,...,
+#D6X7OYEJR6AT37GXPAAHTXX6CGFWTQ5XGSRUNSPXPNHXIAA4HSIFCE2FSVRYKYNEGO6ZE6H6VKREC
+#\\\|4I5RAPC4KRKUCEZ54LDSGLX42DCGTJ6BJSQ7LHNDR4MHXB45J4K \ / AMOS7 \ YOURUM ::
+#\[7]4GG5LF34PD334JC6ZRKLGTR65GJDOSNWSBGPCRLSBQ6GIASX4ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1081,7 +1081,7 @@ any comment above or after the full statement instead.
 ## LoRA training stack install [ 2026-09-10, task coding-lora-env-setup ]
 
 - dedicated venv at `.venv-lora/` (uv-created, CPython 3.13.15, NOT in any
-  repo tooling convention -- `bin/dependencies/` is perl/debian only).
+  repo tooling convention -- the deps tooling [ bin/p7-deps, .deps/profiles.yaml ] is perl/debian only ; bin/dependencies/ was retired 2026-10-18).
   gitignored via `.gitignore` entry documenting recreate steps.
 - exact install: `uv venv .venv-lora --python /usr/bin/python3` then
   `uv pip install --python .venv-lora/bin/python torch --index-url
@@ -1107,8 +1107,8 @@ differs from what the template serialization produces. also : the assistant
 turn in these files carries NO `<think>` wrapper -- the training script adds
 `<think>\n\n</think>\n\n` programmatically later; do not pre-add it.
 
-#,,..,...,..,,,,,,.,,,.,,,,,,,..,,.,,,,..,.,,,..,,...,...,,,.,...,.,,,,,,,.,.,
-#6ZEK226634MIS3IAD4545MVMBVICNDZ7ULXBYDF54RWKR3TPIGME5WA4FJVSFHJYSINMBKQLLM556
-#\\\|A44IJFP5ZJ2Y5LTQHSE3B3GUMXSAJHUDZEK6JNZSYXYVZDPAYA3 \ / AMOS7 \ YOURUM ::
-#\[7]NJUDBPLY7L6V5SMGR42UCDFAZCQV6DGAVEWM5SR6R45ABADCXEAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,.,,.,.,..,,...,,,.,,,.,.,,,,,,,..,,...,...,,.,,,..,,,.,,,,,.,.,
+#JHUK3UQ4R5ZLNWQLMNMLWFNT4DTVSGWGWB6DCAME6HXLI2V3DG3BZ7T6S74YMIXAB37UW2W7FVIP2
+#\\\|AVL7YTATJGXXOYTUYMB33IKIBJR5OLA5DHHSEKLT2IJRSTXCFIX \ / AMOS7 \ YOURUM ::
+#\[7]V2V6HJXM3TFBX57IQXA7WUIFPYV2JRZCIO2T6SMHR6EEDUEM6OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

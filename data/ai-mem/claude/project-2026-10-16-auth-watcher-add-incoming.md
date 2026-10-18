@@ -93,7 +93,7 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
   2. bin/p7-install : standalone like p7-vault [ script + AMOS7/ ] --
      base packages, clone \ update /usr/local/protocol-7, p7-deps install
      <profile>, install-service [, enable-service ] ; then retire
-     bin/dependencies/*.debian.sh [ or one-line calls ].
+     bin/dependencies/*.debian.sh [ or one-line calls ] -- RETIRED 2026-10-18.
   3. backend interface : AMOS7::deps::backend::<family> loaded by name
      [ debp -> backend::debian, alias kept ] : probe \ install ->
      { ok, failed, manual } \ refresh \ needs_root. 'manual' = admin
@@ -170,8 +170,8 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
 - README 2026-10-16 : auto-install, keys + vault sections added [ commit
   pending at writing ].
 
-#,,..,,,.,.,.,,,.,.,.,,..,...,.,,,,,.,.,.,..,,..,,...,...,..,,,,.,,,.,,,.,,,.,
-#2RRJDR27JJESNUOKRNMLDPDHW3N6DYXE3ZDFGHQEWESHY64KBHPPC5FBGOUPGSIS3XCHKLPDCWVIK
-#\\\|YDRCXJNTUSR7PHHA2BIDQYOFOVLWMEWQVUJEBFMIEW73QDO7B4J \ / AMOS7 \ YOURUM ::
-#\[7]4WPKBGWM4GCWIDHEVBTCYWTC6WRAO3KDRVCATSAKV6ZVH4UPGCCY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,..,,.,.,.,,,..,,..,,,,,,.,,,..,,...,...,..,,.,,,.,.,,.,,...,
+#6RGNIUIQAIM4UFJYTSNGATKA2OEBTHSLGA3VOWUXYL7RDACQGPUGZPHGHB5RL5NMEZB4GJ5F3R6RE
+#\\\|ZS5VOJOMZW23D52O6FKZEREHHXWE2CNZHS6CKGMTOQBSFB3EU2V \ / AMOS7 \ YOURUM ::
+#\[7]UTFCVUJKE6CYOYO3AK6QXWMJGPDLPDAHO55W35LZEJCIMKOEJGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
