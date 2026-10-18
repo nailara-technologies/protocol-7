@@ -65,6 +65,14 @@ foreach my $key (@keys_to_remove) {
 delete $scan_paths->{$path_id};
 <models.scan_paths> = $scan_paths;
 
+## remove the matching canonical search path entry as well [ scan-path-add ##
+## registers both stores ; the deleted path must stop being scanned ]      ##
+my $search_paths_list = [ ( <models.storage.search_paths> // [] )->@* ];
+my @kept_entries
+    = grep { ref $ARG ne qw| HASH | or ( $ARG->{'path'} // '' ) ne $path_dir }
+    @$search_paths_list;
+<models.storage.search_paths> = [@kept_entries];
+
 ## Save updated registry
 my $bytes_saved = <[models.storage.yaml_save]>->($registry);
 unless ( defined $bytes_saved ) {
@@ -89,8 +97,8 @@ return {
     'data' => "removed path [$path_id] and $removed_count models"
 };
 
-#,,,.,.,.,,.,,,,,,,,.,..,,,.,,.,.,,..,.,.,.,,,..,,...,...,.,.,...,,,,,,.,,.,,,
-#FXT227CNX5MRMIEUZJAFIS6HGVB5SSVDOMUZLKSYDMIKT4ZY7VVD3P4SZC2HQTD3XMTBXNOV2WU6G
-#\\\|2MRMWPNEBH436T3QGBH2MABSKU6GSHUOMF45NSLY5UTXHFF7HRX \ / AMOS7 \ YOURUM ::
-#\[7]DG6TDMYUBQH4CAAAKNF2UVFPS5SU3W6W3NLGRCBXTDO2DRPCKMCI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,,,.,,,,,.,..,,,,,,,,.,,..,.,,,..,,...,...,...,,.,,,.,,..,,,.,,
+#74U7N3YD2RJJCIK5GHU6YVNITVJ6RCYWWIQIQY4VEJE3AE3DQSUQTINOKUYRGJJNMBNLETZNYS2U6
+#\\\|SRBUNHXA3TGFXEG4QJQX5FQXMACLFGJMKUXL7LNRH76SQHEHDA6 \ / AMOS7 \ YOURUM ::
+#\[7]BTUQ62ZPDGKHZQ4PANI3EBQK72R3TEII4FXL6MTWRTMFEMKB2YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

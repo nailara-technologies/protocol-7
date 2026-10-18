@@ -63,12 +63,39 @@ $scan_paths->{$path_id} = {
     'path'             => $dir_path,
     'enabled'          => TRUE,
     'recursive'        => TRUE,
-    'tier'             => 3,           # Default tier for manually added paths
+    'tier'             => 3,           # default tier for manually added paths
     'discovered_count' => 0,
     'added_at'         => <[base.ntime]>
 };
 
 <models.scan_paths> = $scan_paths;
+
+## register into the canonical search paths as well -- this is the scan    ##
+## truth for models.discover :re-scan: [ models.discover.scan_all_paths ]. ##
+## an existing configured entry for the same path is upgraded to           ##
+## enabled+recursive instead of duplicated [ 2026-10-18 : configured       ##
+## /data/models was non-recursive, so discover found 0 models where        ##
+## scan-path-add found 2 ]                                                 ##
+my $search_paths_list = [ ( <models.storage.search_paths> // [] )->@* ];
+my $path_known        = FALSE;
+foreach my $entry (@$search_paths_list) {
+    next unless ref $entry eq qw| HASH |;
+    next unless ( $entry->{'path'} // '' ) eq $dir_path;
+    $entry->{'enabled'}   = TRUE;
+    $entry->{'recursive'} = TRUE;
+    $path_known           = TRUE;
+    last;
+}
+push @$search_paths_list, {
+    'path'      => $dir_path,
+    'enabled'   => TRUE,
+    'recursive' => TRUE,
+    'tier'      => 3,           # default tier for manually added paths
+    'path_id'   => $path_id
+    }
+    unless $path_known;
+
+<models.storage.search_paths> = $search_paths_list;
 
 ## Trigger discovery scan
 <[base.logs]>->( 1, '[scan-path-add] scanning directory for models' );
@@ -180,8 +207,8 @@ return {
     'data' => "added path [$path_id] with $added_count models"
 };
 
-#,,,.,...,,,,,.,.,,,,,,,.,...,,,,,.,.,,,.,..,,..,,...,...,..,,..,,...,.,,,..,,
-#FC2N6BATJV3Q6QF6WNWR4Z24ELMEZR27OQQFJZFG77TMSZSCE5ZYXS5B3ZGFV237D532FVK5E42RQ
-#\\\|WAJ2QDPJEQ5GQHKKIOVNNBH2YYJKGA2FWZ4ATJ22FVM4XQKBJJ3 \ / AMOS7 \ YOURUM ::
-#\[7]WMX5GUH4ZDQC5KP7NMFO3LY7CBEJZPQPCOKKQUVBTTWPVP2QAYBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,,,.,.,.,,.,,,..,.,,,,,,,.,.,..,,...,...,...,,,,,,.,,.,,,,,,,
+#PRX6KZY4U2REBELO2AJKWNBARJ5VILBWTRLA7LCQLPRUXUJFNWAW36P6MKRXC3TKCKBKZKFQRTKRA
+#\\\|VOOQPL24DP7BCN2PCT4UHTXTPTGV3E36CLWLDXFF3MQVFZCYIEN \ / AMOS7 \ YOURUM ::
+#\[7]RZ3JV5N3CQZVH67X5OQFX4Z5KR6CKDUP6A2WY5V7DYRP4E2WB6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
