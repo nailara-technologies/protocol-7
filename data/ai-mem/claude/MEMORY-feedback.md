@@ -159,6 +159,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [bin-protocol-7-main-subs](../../../data/tasks/bin-protocol-7-main-subs-to-modules.md) — the 86 named subs in bin/Protocol-7's main:: [ and the P7Syntax.pm translator copy ] are a transitional state to be converted, NOT a pattern to extend ; never reloadable, outside the module system, translator kept in lockstep twice
 - [llm-fix-regressions-pattern](feedback-llm-fix-regressions-pattern.md) — 4 regressions in one night [ 2026-09-30 ] from earlier LLM fixes assuming 'single choke point' in generic paths ; method : callers first, measure the order, compare with mod-test, git log --follow the path, test every scenario the history names
 - [test-claimed-bug-effect-before-reporting](feedback-test-claimed-bug-effect-before-reporting.md) — reproduce a bug's claimed symptoms [ or follow every consumer ] before reporting \ committing them ; a regression test must FAIL on the old code -- load_single 2026-10-15 : both claimed effects false, pushed in e13135150
+- [single-dash-long-options](feedback-single-dash-long-options.md) — new options of our own tools : `-dry-run`, `-write`, never `--` ; say it in every dispatch brief [ 2026-10-18 ]
+
 #,,.,,,.,,,..,,,,,.,.,.,,,...,,.,,.,,,,.,,.,.,..,,...,...,...,..,,,..,.,,,,,.,
 #7LE2BK4UQ5RUKQX7QWLXLNBIR2XONH62DQSG6BRKT2TPB35ATXEMHGU7EGYJ2DARMNR6URZTEAFLM
 #\\\|6MZ7LEMTWQTI6A375A5NGRCO3RLRKE2ESZNLZVJFQKPS2KJMWQX \ / AMOS7 \ YOURUM ::
@@ -215,8 +217,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [nested-data-read-autovivifies-before-defaults](feedback-nested-data-read-autovivifies-before-defaults.md) — a nested `<a.b.c>` read before init_modules creates `<a.b>` as {} and cancels a whole-hash `//=` default [ v7-zenki zenka-dirs all undef 2026-10-11..15 via base.host.detect ] ; read early via `( <a.b> // {} )->{c}`, defaults per key
 
-#,,,,,.,,,...,,,,,,,,,,..,,..,..,,.,.,,,,,.,.,..,,...,...,..,,..,,,..,,,,,,,,,
-#DIRPZRAZTZVBSYV3W65NBQYIWCPW6T32D7YIQVLTJAPYO3UL5SENSM5WIU4DIRPEAWP5PUY4QWNVM
-#\\\|MM4RA4N4BR7Z4S3P5XVZZW5A74FRJW3LXQIPNF7Y3BIJODHZK3T \ / AMOS7 \ YOURUM ::
-#\[7]525SQBFPIMFMFHJRS6FDXUY2KTM7NT7CI43SSY7UGVE3WF3ZU2BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,.,.,,,,,,,,..,...,,.,,,,,,,,,,..,,...,..,,.,.,.,.,..,,.,.,,.,,
+#TT2WIHM6JCAZDHHXGI4B7BMBY53F2LKMXCJJWZX2VUBGMJCOPTVPO6PM2FXSXO4LTZQGFMSKL7ZJM
+#\\\|L4AXG7S2HTASJ7BIBEPMSVBBREDGENSIEMZBFX2ZA3F4WQFF3PM \ / AMOS7 \ YOURUM ::
+#\[7]4XDFJGGD5H2ZRD3AWWHXPFZWTLXP6LYHYT5WPXGSXW6FC7MR5KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

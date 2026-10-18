@@ -19,7 +19,7 @@ use warnings;
 ## unmapped files never guessed a package, an unreadable kernel log, and    ##
 ## write_hw_profile : profile added, replaced, every other byte unchanged,  ##
 ## bad names refused. the command itself runs once against a copied tree    ##
-## for --write                                                              ##
+## for -write                                                              ##
 
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -509,15 +509,15 @@ sub p7_deps {
     return ( $CHILD_ERROR >> 8, $out, slurp("$sandbox/stderr") // '' );
 }
 
-my ( $exit, $out, $err ) = p7_deps(qw| detect-hw --write bad_name |);
-check 'command : a bad --write name exits 0110', $exit == 0110;
+my ( $exit, $out, $err ) = p7_deps(qw| detect-hw -write bad_name |);
+check 'command : a bad -write name exits 0110', $exit == 0110;
 check 'command : the refusal names the name on STDERR',
     $err =~ m|:: < p7-deps > : invalid profile name \[ bad_name \]|;
-check 'command : a refused --write never touched the profiles file',
+check 'command : a refused -write never touched the profiles file',
     slurp("$tree/.deps/profiles.yaml") eq $profiles_fixture;
 
-( $exit, $out ) = p7_deps(qw| detect-hw --write sandboxtest |);
-check 'command : detect-hw --write exits 0 on this host', $exit == 0;
+( $exit, $out ) = p7_deps(qw| detect-hw -write sandboxtest |);
+check 'command : detect-hw -write exits 0 on this host', $exit == 0;
 check 'command : the profile landed in the copied tree',
     slurp("$tree/.deps/profiles.yaml") =~ m|^  hw-sandboxtest:$|m;
 check 'command : every pre-existing profile is still intact',
@@ -534,8 +534,8 @@ if ( $out =~ m|(\d+) packages suggested| and $1 > 0 ) {
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,.,,,,,.,,,.,,..,...,..,,,..,...,,..,..,,..,,...,...,...,,..,...,,..,,,.,
-#4COJW74NNH2E4USD6RIXFEXSFBAWPH2C4QW2EJCBZHI34OK6LXEHBNNHKDGYRT62IWWAVIYFTESUS
-#\\\|PT54RJAGXQGRFRQUYA64ARUIKIHR27R66CGJYMOWICCGDZJBQ2N \ / AMOS7 \ YOURUM ::
-#\[7]7T4N3UBGBN334IY7C4WSVVS4TE736EAFFVTUL5ELKQFWHK43F2DA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,,.,,...,.,,,.,.,,,.,,..,.,.,..,,...,...,,,.,,,,,,.,,,.,,.,.,
+#D2ZSDZQIODNZQRZRZ3BJHKAHCCEPCMTP7BV2EYBL4224LJDSZDC5ML2OHWSHN36ADYP7DXM6MHMHQ
+#\\\|VF33GAFD5NO473Q634YQXIKTJZTWMZFCN55XAYA7VZXFHGUWCLL \ / AMOS7 \ YOURUM ::
+#\[7]XL2UMIMGG7BNNZ5J6B2B2AZA2W7Z4EJDZJYZJEALSUQPDTE5CODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

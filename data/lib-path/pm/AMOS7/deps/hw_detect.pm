@@ -459,7 +459,7 @@ sub _profile_block {
     my $block
         = "  hw-$name:\n"
         . qq|    description: "detected hardware [ bin/p7-deps detect-hw |
-        . qq|--write $name ] -- review before install"\n|
+        . qq|-write $name ] -- review before install"\n|
         . "    apt:\n";
 
     my %seen_pkg;
@@ -503,8 +503,8 @@ sub _run_capture {
 
 1;
 
-#,,,,,,.,,...,...,,.,,,,,,.,.,,,.,...,...,...,..,,...,...,..,,.,.,,,.,.,,,,..,
-#GWW5AO5AXTNBR23GBECM4G4IRSCEZIKYNH5XHVKH3Z424G7WOX3MLUMPCLOHGPQOOYB2TXKPWJD62
-#\\\|KFG3C2KMJ2HTPEPW6CBHEM3AF7WYVWZOJ5O2ZCNCTGNQ7TBONHZ \ / AMOS7 \ YOURUM ::
-#\[7]KKNKKQEIV2KLZM3MTPZH3B3F5JLRKVGBOF5QVNHRSSKARQXZOODA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,...,,,.,...,.,.,..,,..,,...,..,,...,..,,.,,,,,.,,..,..,,,,.,
+#P3EZNNK66S2ITNK3OIKYPNIMKCTTPEDERHXVYQEAT3TZ4HVTOKYAQ7TVEUJA6EHM2CURGVCLVQJSE
+#\\\|PNPKDG5LUSGW7HT4TAJ5Q4KORETCJ7DJOSQVQLAL7O5PTXEUTHU \ / AMOS7 \ YOURUM ::
+#\[7]LP7R33A227DWKHEQJFM4YREOGGIIGZPWL2O64J2GU5FOHRMEEQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
