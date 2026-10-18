@@ -161,6 +161,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [test-claimed-bug-effect-before-reporting](feedback-test-claimed-bug-effect-before-reporting.md) — reproduce a bug's claimed symptoms [ or follow every consumer ] before reporting \ committing them ; a regression test must FAIL on the old code -- load_single 2026-10-15 : both claimed effects false, pushed in e13135150
 - [single-dash-long-options](feedback-single-dash-long-options.md) — new options of our own tools : `-dry-run`, `-write`, never `--` ; say it in every dispatch brief [ 2026-10-18 ]
 - [self-reexec-tests-need-recursion-guard](feedback-self-reexec-tests-need-recursion-guard.md) — a self re-executing test with @ARG [ = @_ ] instead of @ARGV fork-chained and froze the host [ 2026-10-18 ] : env recursion guard always, review spawning before the first run, ulimit -u for unknown tests
+- [compare-against-old-behavior](feedback-compare-against-old-behavior.md) — delegated change to shared code : compare against HEAD too [ the truth fallback silently changed 1377 / 3040 long-number results on every host, 2026-10-18 ] ; prove which file loaded ; add an independent rule to the test
 
 #,,.,,,.,,,..,,,,,.,.,.,,,...,,.,,.,,,,.,,.,.,..,,...,...,...,..,,,..,.,,,,,.,
 #7LE2BK4UQ5RUKQX7QWLXLNBIR2XONH62DQSG6BRKT2TPB35ATXEMHGU7EGYJ2DARMNR6URZTEAFLM
@@ -218,8 +219,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [nested-data-read-autovivifies-before-defaults](feedback-nested-data-read-autovivifies-before-defaults.md) — a nested `<a.b.c>` read before init_modules creates `<a.b>` as {} and cancels a whole-hash `//=` default [ v7-zenki zenka-dirs all undef 2026-10-11..15 via base.host.detect ] ; read early via `( <a.b> // {} )->{c}`, defaults per key
 
-#,,.,,,,.,,.,,.,.,..,,,,,,,..,,,,,,,,,.,,,,..,..,,...,...,...,,.,,,,,,,,,,.,.,
-#LRE6T2D65CKU53QV2KPEH6SGQXRESQT3J2NC5EBDWVDBKZHJPAUG4KSXQXLO2DSKMB4TC3V6D57AO
-#\\\|7CNHQK64G52HHG3FQIHFGW26XMXZFXKXLC3TB3LXBLAVTXWBVPT \ / AMOS7 \ YOURUM ::
-#\[7]JUDPA7DKOXLDY6PXVWHNBXYFXUDXOX7UKWWN5XI24HRKBFPL5QDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,.,,,,..,,,,,...,...,,,.,.,,,..,,...,...,...,..,,,,,,,,,,.,.,
+#3MEXLEE2MXZI4CQZVNDIB7XZKWTU4LUJM45IKIBBAON2KUX37GTKIPMYS35YPYHVDUHLBV7SV7ZWI
+#\\\|W6LVSQ5F3O3UYMH5VGZYQ5W77WOV4GHIYK5KQYELAWUU3PAFGNS \ / AMOS7 \ YOURUM ::
+#\[7]HJV4OGSVPCAIAQ6EAIZNNV4I4U4HVRZFQ5NFHHD63BBI6JACWEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
