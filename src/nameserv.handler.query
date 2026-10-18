@@ -27,7 +27,10 @@ if ( defined $q_packet ) {
     my ($opt)
         = grep { $_->isa(qw| Net::DNS::RR::OPT |) } $q_packet->additional;
     if ( defined $opt ) {
-        my $edns_size = $opt->udpsize;
+        ## Net::DNS 1.57 : udpsize [ size is a deprecated, warning alias ] ##
+        ## ; 1.36 [ debian bookworm ] : size -- its udpsize passes can()   ##
+        ## but dies 'unknown instance method', so try it instead of asking ##
+        my $edns_size = eval { $opt->udpsize } // $opt->size;
         $udp_size = $edns_size > 1232 ? 1232 : $edns_size
             if $edns_size > 512;
     }
@@ -78,8 +81,8 @@ if ( defined $reply_data and length $reply_data ) {
 
 0;
 
-#,,,,,,,.,,..,..,,..,,,.,,,,,,.,,,,..,,..,,,.,..,,...,...,,.,,.,,,.,,,,,.,,..,
-#544SHGMQVIGYISRILHGJH6UT77TFSDVII6RNGSVODYAIHWQY5CR5GMPQTYZABBC6HNUAKJNMYMTDG
-#\\\|APOAXDL57DMAOW7M7ZPXJ3ZJMJDKSE22ON5CQFKRUQTYUHYRF7O \ / AMOS7 \ YOURUM ::
-#\[7]WDXGCEBXOB5QYRHUE7GHXH6ECHLSO3Z3B4CMBGE56NU3HSZYOGAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,.,.,..,,,,,,,,.,.,.,,.,,,..,..,,...,...,.,.,.,,,,..,,..,..,,
+#KMMPNMITJ44IZY67DKPRXUXB7H2F6BCSEHI7G4BG4SS6RSMP26UL7QWQ6FR5USM366ZIFOCKYPMNO
+#\\\|FI4J5CBHHARHMNMOJENIONR5KVMZC34UJR34JCEFFMQSKFG4YUW \ / AMOS7 \ YOURUM ::
+#\[7]DY36SKG2LLM5PBW4SMJLOOD242APM7RDB5JTI6LNMXNZKT24SABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
