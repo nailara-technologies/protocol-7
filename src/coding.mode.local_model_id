@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = coding.mode.local_model_id
+# descr = map a model pin to the id this host knows : '<path>:<content>',
+#         ':<content>' or '<content>' -> the local '<path>:<content>' with
+#         the same content half, else the pin as given
+# param = $model_id -> model id [ upper case ] | undef
+# note  = the path half differs between hosts [ same file under another
+#         parent dir ], the content half does not -- a repo pin written on
+#         one host would else make every task switch away from the model
+#         this host serves. known ids : the selected model, the cpu
+#         backend's model_id and what the inference servers have loaded
+
+my $model_id = uc( shift // '' );
+return undef unless length $model_id;
+
+my ( $path_part, $content_part )
+    = $model_id =~ m|^(?:([A-Z2-7]{7}))?:?([A-Z2-7]{7})$|;
+return $model_id unless defined $content_part;
+
+my @known = grep { defined and length } map { uc( $ARG // '' ) } (
+    <inference.model.amos_id>,
+    <inference.backend.cpu.model_id>,
+    map { ( $ARG // {} )->{'model'} }
+        values %{ <coding.inference_servers> // {} }
+);
+
+## an exact id this host knows stays as it is ##
+return $model_id if defined $path_part and grep { $ARG eq $model_id } @known;
+
+foreach my $known_id (@known) {
+    next unless $known_id =~ m|^[A-Z2-7]{7}:\Q$content_part\E$|;
+    <[base.logs]>->(
+        2,         '[local_model_id] %s -> %s [ same content ]',
+        $model_id, $known_id
+    ) if $known_id ne $model_id;
+    return $known_id;
+}
+
+return $model_id;
+
+#,,,,,.,,,.,,,.,,,.,,,...,.,.,,.,,,..,,,.,,,,,..,,...,...,.,,,.,,,,..,.,.,,,.,
+#GQ4Y2M3XTO7AR547UP6H6DLROPDY4YGJ72GHTJXWJAMWPU73EWE3SZLI2SHR2WWJEP32ZXJVBYYP4
+#\\\|FTYE6LFNYISYWV2B75JSBWRWZJTWJLDWN7WAKT6IWJUAF2TEYJP \ / AMOS7 \ YOURUM ::
+#\[7]DQWZH6X3Z4QXRETDIVTAPVUVRTCURTXUEYAJCVJQN5QCLZGS3ODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
