@@ -9,8 +9,9 @@ use warnings;
 ##  p7-deps  ##
 ###         ###
 
-## profile-based dependency installation and verification, plus the systemd
-## service unit commands [ see 'bin/p7-deps help' ]
+## profile-based dependency installation and verification, plus read-only
+## hardware detection [ firmware \ hardware package suggestions ] and the
+## systemd service unit commands [ see 'bin/p7-deps help' ]
 ##
 ## every output goes through the AMOS7::TERM::Frame helpers : a banner
 ## [ ' .: title :. ' ] per command, ':::[ section ]' headers, dot-leader
@@ -46,6 +47,7 @@ use AMOS7::deps::os_package qw|
     probe_os_pkg
     probe_binary
     |;
+use AMOS7::deps::hw_detect qw| detect_hardware write_hw_profile |;
 use AMOS7::deps::debp      qw| probe_apt install_apt |;
 use AMOS7::deps::tracked   qw| record |;
 use AMOS7::deps::dist_upgr ();
@@ -156,6 +158,8 @@ if ( $cmd eq 'check' ) {
 } elsif ( $cmd eq 'check-service' ) {
     my $all_ok = cmd_check_service();
     exit( $all_ok ? 0 : 1 );
+} elsif ( $cmd eq 'detect-hw' ) {
+    cmd_detect_hw(@ARGV);
 } elsif ( $cmd eq 'help' || $cmd eq '--help' || $cmd eq '-h' ) {
     show_help();
 } else {
@@ -815,6 +819,159 @@ sub validate_zenka_declarations {
     say frame_column_line();
 }
 
+##[ HARDWARE DETECTION ]######################################################
+
+## read-only : suggests firmware \ hardware packages from kernel log      ##
+## failures, the loaded modules' modinfo firmware lists and the pci \ cpu ##
+## ids -- nothing is installed, no apt-get, no network. --write <name>    ##
+## saves the suggestions as a reviewable 'hw-<name>' profile              ##
+
+sub cmd_detect_hw {
+    my (@args) = @_;
+
+    my $write_name;
+    while (@args) {
+        my $arg = shift @args;
+        if ( $arg eq '--write' ) {
+            frame_error_exit( $TOOL,
+                'detect-hw --write ' . 'needs a profile name' )
+                unless @args;
+            $write_name = shift @args;
+        } else {
+            frame_error_exit( $TOOL,
+                      "unknown option [ $arg ] -- "
+                    . 'detect-hw takes --write <name>' );
+        }
+    }
+
+    if ( defined $write_name and $write_name !~ m|\A[a-z0-9-]+\z| ) {
+        frame_error_exit(
+            $TOOL,
+            "invalid profile name [ $write_name ] -- "
+                . 'only a-z 0-9 and \'-\' are allowed',
+            { exit => 0110 }
+        );
+    }
+
+    banner('hardware detection');
+
+    my $result = detect_hardware();
+
+    ## the kernel log the NEEDED evidence stands on ##
+    say frame_section_header('kernel log');
+    if ( $result->{kernel_log}{readable} ) {
+        print_rows(
+            [   $result->{kernel_log}{source},             'readable',
+                'the NEEDED evidence below comes from it', 'ok'
+            ]
+        );
+    } else {
+        print_rows(
+            [   'journalctl \ dmesg',
+                'unreadable',
+                'kernel log needs privileges [ try as '
+                    . 'root ] -- no NEEDED evidence this run',
+                'warn'
+            ]
+        );
+    }
+    say frame_column_line();
+
+    ## the suggestions, grouped by strength ##
+    for my $strength (qw| NEEDED POSSIBLE HARDWARE |) {
+        my @rows;
+        for my $suggestion ( @{ $result->{suggestions} } ) {
+            next unless $suggestion->{strength} eq $strength;
+            my @evidence = @{ $suggestion->{evidence} // [] };
+            push @rows,
+                [ $suggestion->{pkg}, lc $strength, shift @evidence, 'ok' ];
+            push @rows, [ '', '', $_, 'ok' ] for @evidence;
+        }
+        next unless @rows;
+        say frame_section_header( lc "$strength packages" );
+        print_rows(@rows);
+        say frame_column_line();
+    }
+
+    ## hardware findings that name no package [ the nvidia driver ] ##
+    if ( @{ $result->{notes} } ) {
+        say frame_section_header('notes');
+        print_rows(
+            map { [ $_->{topic}, 'separate decision', $_->{evidence}, ] }
+                @{ $result->{notes} } );
+        say frame_column_line();
+    }
+
+    ## firmware files no package mapping was found for ##
+    if ( @{ $result->{unmapped} } ) {
+        say frame_section_header('unmapped firmware');
+        my @rows;
+        for my $entry ( @{ $result->{unmapped} } ) {
+            my @evidence = @{ $entry->{evidence} // [] };
+            push @rows,
+                [
+                $entry->{file},
+                lc $entry->{strength},
+                shift(@evidence)
+                    . ' -- no apt-file \ isenkram-lookup mapping',
+                ];
+            push @rows, [ '', '', $_, ] for @evidence;
+        }
+        print_rows(@rows);
+        say frame_column_line();
+    }
+
+    ## the apt sources the firmware packages live in ##
+    say frame_section_header('apt sources');
+    print_rows(
+        [   'non-free-firmware component',
+            $result->{non_free_firmware} ? 'present' : 'missing',
+            $result->{non_free_firmware}
+            ? 'the detected firmware packages are installable'
+            : 'needed by the detected firmware '
+                . 'packages -- add it to the apt sources',
+            $result->{non_free_firmware} ? 'ok' : 'warn'
+        ]
+    );
+    say frame_column_line();
+
+    ## --write : the reviewable profile [ every other profile untouched ] ##
+    if ( defined $write_name ) {
+        say frame_section_header("write hw-$write_name");
+        my ( $written, $detail )
+            = write_hw_profile( $PROFILES_FILE, $write_name,
+            $result->{suggestions} );
+        if ($written) {
+            print_rows(
+                [   'profile',                               'written',
+                    "hw-$write_name " . "in $PROFILES_FILE", 'ok'
+                ],
+                [   'review', 'suggested',
+                    'check the evidence ' . 'comments before install'
+                ],
+            );
+        } else {
+            print_rows( [ 'profile', 'failed', $detail, 'warn' ] );
+        }
+        say frame_column_line();
+    }
+
+    my $suggested = scalar @{ $result->{suggestions} };
+    my $unmapped  = scalar @{ $result->{unmapped} };
+    print_rows(
+        undef,
+        [   'result',
+            "$suggested package"
+                . ( $suggested == 1 ? '' : 's' )
+                . ' suggested',
+            $unmapped  ? "$unmapped unmapped firmware file" : undef,
+            $suggested ? 'ok'                               : undef
+        ]
+    );
+    say frame_column_line();
+    return;
+}
+
 ##[ SERVICE COMMANDS ]########################################################
 
 ## root-only, idempotent, and none of them ever starts, stops or restarts ##
@@ -1009,6 +1166,12 @@ sub show_help {
 
     --no-cache .....................  check again, not from the cache
 
+    detect-hw ......................  suggest firmware \ hardware packages
+                                      [ read-only ] from the kernel log,
+                                      loaded module firmware, pci \ cpu ids
+    --write <name> .................  save the suggestions as profile
+                                      hw-<name> [ evidence as comments ]
+
     install-service ................  unit, install link, launcher symlinks
     enable-service .................  enable the unit [ systemctl enable ]
     disable-service ................  disable the unit [ systemctl disable ]
@@ -1030,8 +1193,8 @@ sub show_help {
 EOL
 }
 
-#,,..,..,,.,.,.,.,,.,,,,.,,..,,.,,..,,,,,,,..,..,,...,...,...,,,.,...,..,,.,,,
-#AFUJ3VDFZST5P7L6TEUDXN4PAGUK3RDPJER2AN7FNY5C5AKDJ7RODUEX5SOEHX5ZE7GEIXQ3EEUVU
-#\\\|X3UTSFMN3XGQ6KU4DKCS5SB6LUI7RIRGVP2BZMFQYLUMHLU65OE \ / AMOS7 \ YOURUM ::
-#\[7]A6JNA3QKXD3MP47I33UEQGYX66EXGFZBDYT2H2236EVBTVULKSBI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,,,.,,,,,.,,,...,..,,.,,,.,,,..,,...,...,.,.,,..,,,.,.,.,.,.,
+#EULUT2NUGOJ3VKQKKG7KK6FCG5P6F6IH6V6NVVGHAYZX2IHCLY7HFRA3VXDQQMDBDM4GSVAHSFQS2
+#\\\|IRXG5DIHOIV6UXWFQEXGTTDOBWKUZGYLQ63ZL6ZHA2JJ47ND6IB \ / AMOS7 \ YOURUM ::
+#\[7]UJ5RTL2AQWKOEKCIMIN3HJS2YQATJSFKV6SREHWKGUYPOQXMPSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
