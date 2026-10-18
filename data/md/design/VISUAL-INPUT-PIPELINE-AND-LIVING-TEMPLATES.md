@@ -882,9 +882,24 @@ slideshow [ X-11.backgrounds.set_random_image ].
   controller.md [ crystal displays, floating optical controls, uv \ ir
   sensing, the goa party use case, sound from optical and spatial
   translation and field effects ].
+- zenki as INHABITANTS [ user ] : the kitten and elf modes become zenka
+  states -- fur and eye modes [ the optional element variants : natural,
+  room reflection, nebula reflection, blacklight glow ] map to states
+  [ idle, working, on-demand asleep, alert ] and relative relationships
+  [ shared tint between peers that talk, a parent's colour in its
+  children ]. a zenka walking the cube grid : its colours have FUNCTION,
+  the same rule as every added colour above. paw ripples = its activity
+  on the network field.
+  in the network's cosmology zenka MEANS kitten [ zenki : kittens ] --
+  the kitten avatar is the zenka's own form, not a costume. the ETERNAL
+  TEMPLATE KITTEN [ data/md/philosophy/ETERNAL-TEMPLATE-KITTEN.md ; the
+  composite sweetie template of data/tasks/kitten-acquisition-pipeline.md ]
+  : even an elf has a KITTEN CORE -- in resonance-based deduplication
+  every character converges toward the shared template it was made from,
+  so elves and kittens are two faces of one core, not two species.
 
-#,,,.,...,...,.,.,.,.,..,,.,.,.,,,,..,,..,,,.,..,,...,...,...,,,.,,,,,,..,...,
-#HMR2Y55TMZXUMPCKMOD7JXE4EDQHOLSTVVSD4LHL24ZVKM36G77FXBUJ7TY6ZJMWXCCU6ZYAZF72E
-#\\\|G3JZP3DHDP3VQ2NOSL3YNNOIUMZKN3UMDVB7IHRIXLXKR63OOC5 \ / AMOS7 \ YOURUM ::
-#\[7]CXUCCNP5FX7RXL2O7L4RCCRFSVWR6K6CCHZYUGI4WJEQQX2ICYAA 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,,,,,,,.,,.,,..,,.,.,.,.,,,.,..,,...,...,...,.,,,,.,,.,,,.,,,
+#54YXDMERQDSWZYHYQ5O7CDL3FB4J6JUC6YKU6JTRV42X5C5MSKFCH2FPN3ZS73PKSXOBCMROYFPGO
+#\\\|OTVNF2IWQBC7HD3JTJOTIJXSXRDVR22UPCIMZZ5BKODUXE4FFH7 \ / AMOS7 \ YOURUM ::
+#\[7]3GWNALZRFPUAP4SA2Y2DTI23BGQJ6LCRQL5IWT5DYI5YE7EOB2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

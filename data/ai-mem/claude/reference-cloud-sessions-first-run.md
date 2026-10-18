@@ -49,6 +49,7 @@ first real runs through bin/mcp-server-p7 [ claude_cloud_dispatch ] :
   third run [ root runner, effort high, 2026-10-17 ] : ~$7 -- two advisor
   calls, a Digest::BMW build for bin/ncode, tracing the zenka user set-up.
   credits after it : $67 of $100 [ expire 2026-11-05 ].
+- fourth run [ 2026-10-18, N7FS version 1, medium effort ] : ~$9 [ $67 -> $58 ]. 13 new files, 164 checks, 15 mutations, an offline amos collision search ; it pushed to the named branch dev/n7fs-v1 as briefed. its tests passed only on the pure-perl truth path [ no Inline::C in the cloud ] -- review here caught it.
   effort rule [ 2026-10-17 ] : send MEDIUM by default, HIGH only for
   security-critical work [ root, auth, crypto ] -- so far high \ medium
   cost about the same, keep comparing. the closing "burns fastest --
@@ -61,8 +62,8 @@ first real runs through bin/mcp-server-p7 [ claude_cloud_dispatch ] :
 see [[reference-usage-pools-fast-mode]] [ cloud credits, effort low by
 default ].
 
-#,,,,,.,,,...,,.,,,,,,,.,,,,,,..,,,,,,,.,,,,.,..,,...,...,...,...,,,,,,.,,,,,,
-#C6XXX6U4Z4THVSCVREY75ZABDHPUYKTZX5W4DTXIMKQ4SZR6VZZYEDIF7HMETVBHVMA5E7CZC2IMW
-#\\\|ETB5LEVOZLU4FYLCOGSEXTWI37FUCDE2MRTRM6ZMJ4LCKFEYGFO \ / AMOS7 \ YOURUM ::
-#\[7]NNSEVFZXWBZ6L7BGXELQRAE3UEEDGCA7L4D3RLICPY5RGVK5ASBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,,,,,,..,.,,,...,,,.,,,,,,.,,..,,...,...,.,.,...,..,,...,,,,,
+#ETRLZ7QTR42D26CRZ6VN23V7CQQS6LHO2SBQSUM3252T776GQ2NM3BBJ6D65R3X5NBCZ63E4RPGLK
+#\\\|SP3IKSDHV3ZS2D2C6ZWUPQTWPCNWMYOPUNCVKTMRWNODZ62HYSH \ / AMOS7 \ YOURUM ::
+#\[7]KCUWRUGSHTC5RFZ7OWEDC4TSAUCRH3U53N6YSLOFR67VOL3JD6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
