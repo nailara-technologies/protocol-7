@@ -823,7 +823,7 @@ sub validate_zenka_declarations {
 
 ## read-only : suggests firmware \ hardware packages from kernel log      ##
 ## failures, the loaded modules' modinfo firmware lists and the pci \ cpu ##
-## ids -- nothing is installed, no apt-get, no network. --write <name>    ##
+## ids -- nothing is installed, no apt-get, no network. -write <name>    ##
 ## saves the suggestions as a reviewable 'hw-<name>' profile              ##
 
 sub cmd_detect_hw {
@@ -832,15 +832,15 @@ sub cmd_detect_hw {
     my $write_name;
     while (@args) {
         my $arg = shift @args;
-        if ( $arg eq '--write' ) {
+        if ( $arg eq '-write' ) {
             frame_error_exit( $TOOL,
-                'detect-hw --write ' . 'needs a profile name' )
+                'detect-hw -write ' . 'needs a profile name' )
                 unless @args;
             $write_name = shift @args;
         } else {
             frame_error_exit( $TOOL,
                       "unknown option [ $arg ] -- "
-                    . 'detect-hw takes --write <name>' );
+                    . 'detect-hw takes -write <name>' );
         }
     }
 
@@ -935,7 +935,7 @@ sub cmd_detect_hw {
     );
     say frame_column_line();
 
-    ## --write : the reviewable profile [ every other profile untouched ] ##
+    ## -write : the reviewable profile [ every other profile untouched ] ##
     if ( defined $write_name ) {
         say frame_section_header("write hw-$write_name");
         my ( $written, $detail )
@@ -1169,7 +1169,7 @@ sub show_help {
     detect-hw ......................  suggest firmware \ hardware packages
                                       [ read-only ] from the kernel log,
                                       loaded module firmware, pci \ cpu ids
-    --write <name> .................  save the suggestions as profile
+    -write <name> .................  save the suggestions as profile
                                       hw-<name> [ evidence as comments ]
 
     install-service ................  unit, install link, launcher symlinks
@@ -1193,8 +1193,8 @@ sub show_help {
 EOL
 }
 
-#,,..,,,.,..,,.,,,,,.,,,,,.,,,...,..,,.,,,.,,,..,,...,...,.,.,,..,,,.,.,.,.,.,
-#EULUT2NUGOJ3VKQKKG7KK6FCG5P6F6IH6V6NVVGHAYZX2IHCLY7HFRA3VXDQQMDBDM4GSVAHSFQS2
-#\\\|IRXG5DIHOIV6UXWFQEXGTTDOBWKUZGYLQ63ZL6ZHA2JJ47ND6IB \ / AMOS7 \ YOURUM ::
-#\[7]UJ5RTL2AQWKOEKCIMIN3HJS2YQATJSFKV6SREHWKGUYPOQXMPSAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,.,.,.,.,,..,...,...,,.,,,,.,..,,...,...,..,,...,,.,,,.,,..,,
+#W4JW2BQF7DG7HYMUIYNTQJV6POSTT3SERO6WEEAXA6LWWLVYTQ6GVUYBVSTQIZFS3VIMBX5GR4DIQ
+#\\\|CEVMJGGKYKPXUEUFLWXWNLQILU2AHAXFCAYBLGJ2SAYXDK42TTU \ / AMOS7 \ YOURUM ::
+#\[7]UCZM5HSSPXPMBF64M7G5G23OHLEVF3FS2JNZ7MXVIVSVROVMZYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
