@@ -123,9 +123,10 @@ amos7:
 
 # Dependencies
 dependencies:
-  install_minimal: ./bin/dependencies/install_minimal_dependencies.debian.sh
-  install_full: ./bin/dependencies/install_dependencies.debian.sh
-  cpan_modules: ./bin/dependencies/cpan_install.debian.sh
+  # [ ] legacy, pending retirement -- use bin/p7-deps install <profile>
+  install_minimal: bin/p7-deps install minimal
+  install_full: bin/p7-deps install protocol7-extended
+  cpan_modules: bin/p7-deps install zenka-common
 
   system_deps:
     - gcc, make, libc6-dev
@@ -296,7 +297,8 @@ session_pattern:
 troubleshooting:
   missing_dependencies:
     symptom: "Can't locate <Module>.pm"
-    fix: ./bin/dependencies/install_minimal_dependencies.debian.sh
+    # [ ] legacy path replaced by the profile installer
+    fix: bin/p7-deps install minimal
 
   crypto_warnings:
     symptom: Crypt::C25519 warnings

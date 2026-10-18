@@ -10,13 +10,14 @@ Protocol-7 is a Perl-based modular system with a unique architecture focused on 
 
 ### Dependencies Installation
 ```bash
-# Install system dependencies (Debian/Ubuntu)
+# Profile-based dependency management (current)
+bin/p7-deps list                   # Show available profiles
+bin/p7-deps install minimal      # Minimal / server install
+bin/p7-deps install protocol7-extended   # Full desktop install
+
+# Legacy dependency scripts (Debian/Ubuntu) -- legacy, pending retirement
 ./bin/dependencies/install_dependencies.debian.sh
-
-# Install minimal dependencies
 ./bin/dependencies/install_minimal_dependencies.debian.sh
-
-# Install CPAN modules
 ./bin/dependencies/cpan_install.debian.sh
 ```
 
