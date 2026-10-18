@@ -686,9 +686,9 @@ my $FOCUS_FILE = "$ROOT_PATH/data/state/mcp-summary-focus.txt";
 my $summary_focus_sticky
     = 0;    ## 1 if loaded from disk (sticky across sessions)
 
-my $last_chat_mtime = 0;
-my $last_hint_time  = 0;
-my $last_tool_name  = '';
+my $last_chat_mtime;    ## undef until the first scan sets the baseline ##
+my $last_hint_time = 0;
+my $last_tool_name = '';
 
 sub load_sticky_focus {
     return unless -f $FOCUS_FILE and -s $FOCUS_FILE;
@@ -1666,6 +1666,12 @@ sub check_chat_pending {
             my $mtime = ( stat($hpath) )[9] // 0;
             $newest_mtime = $mtime if $mtime > $newest_mtime;
         }
+    }
+
+    ## first scan after start : history older than this session is no news ##
+    if ( not defined $last_chat_mtime ) {
+        $last_chat_mtime = $newest_mtime;
+        return;
     }
 
     if ( $current_tool =~ m{^p7_chat} ) {
@@ -4572,8 +4578,9 @@ sub _cloud_run_list {
         open( STDOUT, '>&', $wtr ) or POSIX::_exit(127);
         open( STDERR, '>&', $wtr ) or POSIX::_exit(127);
         close $wtr;
-        exec( @{$cmd} );      ## one arg = program, rest = argv : no shell ##
-        POSIX::_exit(127);    ## reached only when exec itself fails   ##
+        ## one arg = program, rest = argv : no shell ; _exit only when exec ##
+        ## fails                                                            ##
+        exec( @{$cmd} ) or POSIX::_exit(127);
     }
     close $wtr;
 
@@ -5195,8 +5202,9 @@ sub _cloud_fork_run {
             open( STDOUT, '>',  $tmp_out ) or POSIX::_exit(1);
             open( STDERR, '>&', \*STDOUT );
             chdir($cwd) if defined $cwd and length $cwd;
-            exec( @{$cmd} );      ## list-form : no shell, no requoting ##
-            POSIX::_exit(127);    ## reached only when exec fails    ##
+            ## list-form : no shell, no requoting ; _exit only when exec ##
+            ## fails                                                     ##
+            exec( @{$cmd} ) or POSIX::_exit(127);
         }
         ## intermediate child : hand the worker pid to the parent, exit  ##
         if ( open( my $pfh, '>', $pid_file ) ) {
@@ -5942,8 +5950,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,.,.,,,,,.,.,,,.,.,,,,.,,.,,,...,,,,,,,,,..,,...,..,,,..,.,.,,..,,..,.,,,
-#TJBNVMOYV2XEMJ7I77DSWZOXPPISHWTRGVLXGDEK5KZF33LQO67PCPOZVZ6ZQ44T6T52PEMHK652A
-#\\\|GIGFJTXU3U3VULYUSAG2SIRW2HODR3MZ4MXG2SQASUA63HGTMFQ \ / AMOS7 \ YOURUM ::
-#\[7]GK6XPGK253NLZSYNUUHBAMR5JSYWMIJN7QFCZQ5OSEUEX4EJF6CA 7  DATA SIGNATURE ::
+#,,.,,...,...,..,,,.,,,.,,,,,,,..,,..,.,.,.,,,..,,...,...,.,,,,..,,..,...,,.,,
+#MGYE4WIVP2NMU25K65AGMWXZKXLHH7F7Q65ZDICSFXVHL7TRD6CVM4NPH563BNT7F7K5DPHNGORQE
+#\\\|BS5VC735KJWSU4KXI6ONHNGSYJWEDV3D47XCNEFHXRD66GVRFI2 \ / AMOS7 \ YOURUM ::
+#\[7]C7XZ2GTRCDLYCLRSWJZTL45YYXLAXANCNRQ6IEJ6EMQG5BSTHYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
