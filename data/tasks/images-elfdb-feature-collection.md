@@ -16,6 +16,65 @@ several categories ; gather them here as they come up, then plan. context :
 - goal : a style- and context-aware, self-refining dataset -- without
   degrading entropy through re-feeding [ all steps tested manually by the
   user ; the re-feeding needs to be intelligent ]
+  proven [ user, 2026-10-17 ] : source kittens rendered by OTHER models
+  [ great style, imperfect anatomy -- both worth salvaging ] re-fed into
+  qwen-image 2.1 : quality rose with each iteration, anatomy ended good,
+  no feedback degradation, better than one render step of the same model
+  [ the synthetic kitten background of 2026-10-09 ]. the same principle
+  as the style transitions : every intermediate is a valid input for the
+  next. qwen 2.1 is now capable enough that a one-step or a re-feeding
+  pipeline with it reaches CONSISTENT quality.
+  DRIFT CORRECTION [ user, 2026-10-17 ] : mixing the original source in
+  slightly as a reference corrects face \ character drift [ and colour
+  drift ] -- the rendering catches it and fully adopts it ; then the
+  first source can be REMOVED again and the latest result + style
+  elements are sufficient for steering. the source is a temporary anchor,
+  not a permanent input.
+  PROMPT CATEGORIES with consistent quality [ user, 2026-10-17 ] :
+  - MAGIC KEYWORDS in style context [ blacklight, psytrance, goa-trance ]
+    -- short, the style word carries the whole look.
+  - OVERLONG prompts : more elements than one image can express ; every
+    element the model drops gets a fallback from the SAME prompt [ style
+    family ], so all are compatible -> remarkable coherence and depth,
+    many more random groups emerge, all deeply refined. unless a too
+    high cfg over-reinforces too many elements in parallel.
+  in between : SPECIFICATION prompts [ pose, colours, eyes ] give
+  control, not coherence -- one wording change at a time.
+  RESONANT TERMS [ user, 2026-10-17 ] : deliberately add related terms
+  from a DIFFERENT perspective, knowing they resonate with something
+  already implicit in the image -- the model merges them, which
+  amplifies the implicit and makes it DIRECTABLE. example : 'field-lines'
+  merged with the kitten's whiskers [ which already looked like them ;
+  whiskers are a cat's field sensors ], plus ripples where the paws
+  touch the field.
+  steer through the RESONANT term, not the literal one : 'dense
+  field-lines' likely gives more \ finer whiskers within the field's
+  logic, while 'dense whiskers' targets anatomy directly and tends to
+  over-literal, less desirable results [ redundant bodyparts ].
+  later : an lm-vision [ text-based ] BACKGROUND STYLE EXTRACTION plan --
+  describe each image of the accumulated dataset [ > 50k, overall
+  psychedelic styles despite rendering issues ] in style words, to find
+  similar ones and the magic words behind them [ seed list : the
+  magic_words of data/yaml/prompts/image/psytrance-network-kitten.yaml ].
+  the target is NOT exact recreation of a source style -- model advances
+  and templates make a recreation likely as good or better. what counts
+  is a LOW amount of style[-group] OUTLIERS among the selected elements
+  and element combinations.
+  measure as a SHOTGUN first : how many desirable hits in ANY of our
+  target style groups does an element generate ; precision comes after,
+  from further contextualization or grouping with similar ones.
+  [ 2026-10-17 kitten test : two reference images STACK -- brightness
+  doubled vs the prompt alone, wording changes only took back part. ]
+- EXTRACTION INTO A COMMON TARGET STYLE [ user, 2026-10-17, proven by the
+  kitten series ] : sources of any origin [ photos, other models ]
+  rendered into one shared target style become COMPATIBLE with each other
+  -- already aligned, importable directly, or onto the style ring with
+  further refinement and neighbouring composition chains. the element
+  ESSENCE is preserved and can be translated again into a completely
+  different style or composition, even one only known in the future.
+  so the target style is also the STORAGE style : directly usable as is,
+  and a canonical form to translate from [ cf. the essence normalization
+  of data/tasks/network-elf-avatar-pipeline.md ].
 - invoke.ai is an interim render engine : it will be replaced by something
   native. until then new ui elements drive it through invoke-web's api
   instead of its own web ui -- the testing ground for the native version
@@ -297,6 +356,17 @@ several categories ; gather them here as they come up, then plan. context :
     bracket [ the color wheel position of the last renders vs the target
     arc -> pick references that pull in that direction ]
   - over- \ underexposure [ luminance histogram : clipped highs \ lows ]
+  - point highlights as OUTLIERS [ user, 2026-10-17 -- advice of the friend
+    who introduced the division by 13 ] : eye reflections \ catchlights
+    break the colour range ; colour-depth vision only sets in fully once
+    they are resolved -- the same as avoiding clipping in remastering.
+    next level : MULTI-ELEMENT correlation [ light direction, palette,
+    depth consistent across all elements of one image ].
+    OPAQUENESS is the other form of outlier [ its logical opposite ] --
+    the reason ALL ansi colours are replaced in terminal styles : the
+    default palette optimizes for the opposite target [ maximum
+    distinctness, saturated primaries ], so ours is better by definition,
+    calculated perfectly yet or not.
   - obvious entropy based rendering errors [ noise \ banding \ flat or
     collapsed images : entropy far off the batch's normal range ]
   - LoRA overuse [ e.g. the same traits dominating across a batch, color
@@ -436,8 +506,53 @@ several categories ; gather them here as they come up, then plan. context :
   `data/tasks/task-zenka-cold-queue-gpu-cooldown-trigger.md` [ gpu-temp
   cooldown gate, implementation plan already written ]
 
-#,,,,,...,,.,,.,,,...,.,,,...,..,,,.,,..,,,..,..,,...,...,.,.,,.,,..,,,.,,,,.,
-#A7B2JY25O6N466R66SQPFZHSFKTZTWI2PI4FLUZO4RRQ6UERPFQSVGFDX3YDNB7X5KRGI7GB2XJKI
-#\\\|QVYGQZHBQSGWMKLXMSCCOG5S65C7OMZWQZXNMZYN7IEQW25EDQG \ / AMOS7 \ YOURUM ::
-#\[7]Q2XJJQKPTCICTXIHQTALEJWNGNSFMECOMZBHMNJNGBBHPSCT46DY 7  DATA SIGNATURE ::
+
+## generational layer compositing [ user, 2026-10-17 ]
+
+the manual gimp workflow of ~2016 [ the work itself is likely lost with
+two crashed laptops, ~22GB of .xcf art ; the WORKFLOW survives -- that
+work trained it ] :
+
+1. an image [ e.g. a reference-rendered kitten, see
+   data/yaml/prompts/image/psytrance-network-kitten.yaml ] becomes an
+   INPUT LAYER.
+2. combine it with matching or complementary images as further layers.
+3. tune per-layer translucency and filter \ blend modes until the stack
+   merges into ONE image of its own.
+4. FLATTEN the optimized version -- the key step.
+5. in the next generation that flat result is just another layer -> 1.
+
+.xcf is the planned base format [ the layer model of
+data/md/design/GRAPHICAL-STORAGE-AND-PROCESSING.md : opacity, blend
+mode, visibility, order ]. tests showed even the smaller local models
+have a refined sense of aesthetics and of the nuances that matter here
+-> layer choice, opacity \ mode tuning and the "is it one image now"
+judgement can all be automated. known what works and how ; still work.
+inputs : fetched photos [ quality-asserted ], rendered at the new
+model's precision, then used as layers -- the elf pipeline chain
+[ data/tasks/network-elf-avatar-pipeline.md ].
+
+as a DESKTOP BACKGROUND : the images of one lineage share many overlapping
+parts, so a slow fade from one into the next reads as MORPHING, beyond a
+single crossfade -- a transition-morphing harmonic entropy pool. every
+mix result is itself a perfect current background, at ANY mixing level
+[ no in-between state that looks broken ]. that closure is the design
+goal for choosing which images share a pool. pace : slow, never rapid
+[ see the visual sensitivity notes -- conservative rate by default ].
+cost : one alpha blend of two existing images every ~47 s, swapped in as
+the background -- near zero cpu, cached or not [ milliseconds per frame ;
+the desktop's own wallpaper reload is the larger part ].
+the NON-fading variant exists : X-11 zenka random slideshow
+[ X-11.backgrounds.set_random_image \ background.next-rnd-index \
+cmd.rand-bg :slideshow: \ cmd.stop-slideshow ; images by amos checksum,
+optional h-flip, one event timer per image ]. the morph adds blend steps
+between current and next on that same timer [ steps \ interval \ curve ].
+groups, group-to-group and context driven style transitions : see
+data/md/design/VISUAL-INPUT-PIPELINE-AND-LIVING-TEMPLATES.md
+[ style transitions : groups and context ].
+
+#,,,.,.,,,...,,,,,...,.,.,,,.,..,,...,,.,,..,,..,,...,...,...,,..,.,.,...,,,,,
+#572ODNJRS3HOEXOUXX5UQRNDFRMKQAZNRNVSQWT7EFSHEAZIL3E7N5EWWTUC4EKDR7LOCWKOYESUI
+#\\\|OHJHU6GCLJMGBTHGVEEAOO5NC6UFA7LZZ3IEPEWR3C7CMIVDDDO \ / AMOS7 \ YOURUM ::
+#\[7]AGW6GKJZJYPXNO2U2RG3CTFEAX2JDQG2MHBKS6YGJD2RBTTCMUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

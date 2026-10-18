@@ -33,8 +33,21 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
 
 ## open
 
-- step 4 second half : generic root runner [ the debian zenka's root apt
-  child -> backend::<family>::install ].
+- step 4 second half : generic root runner -- BUILT 2026-10-17 [ cloud
+  session, branch dev/apt-child-generic-root-runner 44f8d1d74, imported +
+  reviewed ] : AMOS7::deps::root_runner [ detects the family itself,
+  backend::<family>::install, checking @INC hook : owner root \ tree
+  owner, never the zenka user, no group\world write ]. added in review :
+  the dirs ABOVE the lib root are checked too [ else any other local
+  account able to write an ancestor swaps in its own tree ] ; group write
+  ok for a PRIVATE group [ no members besides root \ tree owner, none
+  with it as primary group -- this host : protocol-7 dir is 775 taeki ] ;
+  sticky world write only above the root [ /tmp ]. base.debian
+  .install_package direct-root fallback now through the debian backend
+  [ was a shell string ]. LIVE CHECK still open : servers stat \ find,
+  debian zenka start, install-packages, cpan via runner, sudo test run.
+  next : fold the runner into os-pkg as its root child [ cloud proposal,
+  agreed as a separate step ].
 - step 7 : debs via dh-make-perl [ 21 modules \ ~17 dists ] + our own
   SIGNED repo index [ osf-cache only serves anchored debs ]. KEY DECIDED
   2026-10-17 : a gpg repo key [ apt-native, signed-by= ], NEVER created
@@ -49,22 +62,49 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
   osf-cache.debian.read_inrelease. goals :
   upstream disappearance, offline node groups. a cloud VM has apt but no
   CPAN : the first consumer.
-- legacy scripts bin/dependencies/*.debian.sh : retire or one-line calls
-  to p7-install [ owner's call ].
-- p7-install picks the 'minimal' profile by default ; the servers use
-  basic-remote-server -- pass --profile, or detect the one in use.
-- cloud tool polish : recognise the workspace trust dialog in the capture
-  [ end the process, reply 'not started' + the one-time command ] ;
-  'STARTED A BILLED' only with an id [ at status=starting say 'may be
-  starting' ] ; cursor-forward escapes [ ESC[nC ] as spaces and utf-8 in
-  the shown raw output.
+- legacy scripts bin/dependencies/*.debian.sh : RETIRE once everything
+  they did is covered [ owner 2026-10-17 ] -- unless outdated anyway.
+  first a read-only coverage audit [ kimi ] : each action -> covered \
+  missing \ outdated.
+- p7-install profile : DONE 2026-10-17 [ kimi ] -- the installed profile is
+  recorded in the tracked store [ type profile, via record() ], p7-install
+  without --profile uses the most recent one, 'minimal' only when none is
+  recorded ; the choice and its reason are always printed.
+- cloud tool polish : DONE 2026-10-17 [ kimi ] -- trust dialog detected
+  ['Do you trust the files in this folder?'], the process group killed,
+  'NOT STARTED, NOTHING BILLED' + the one-time command ; 'STARTED A
+  BILLED' only with an id, 'MAY BE STARTING' otherwise ; ESC[nC as
+  spaces, utf-8 kept [ test-mcp-cloud-pty-text.pl ].
+- bin/dev/notify-pid-gone : now [-i <seconds>] <pid> [<pid> ..] -- a
+  second pid was read as the poll interval [ slept ~4 days, the kimi
+  completion notices never came ]. interval > 300 s warns.
 - hub/dev/p7-install-frame-helpers [ 01f172086 ] and dev/p7-deps-house-style
   [ 29fff9c0e ] DELETED 2026-10-17 [ squash-merged ].
 - the cred-mesh \ p7-vault delegation idea and the vault inotify watch :
   previous entry, unchanged.
+- IMAGES [ 2026-10-17 ] : imported 2 qwen backgrounds [ XPRC.., 5TFD.. ] ;
+  the sleeping kittens D77K.. [ 113 steps ] stay UNTRACKED [ 2026-10-18 :
+  grey kitten has fur past the other's outline, owner renders a better
+  one ] -- invoke metadata stripped,
+  rename.bmw ; records : data/yaml/prompts/image/psytrance-network-kitten
+  .yaml [ variants, magic_words, style_prompts ], data/yaml/gfx/
+  background-provenance.yaml [ distance \ sharing ]. further image imports
+  WAIT for the checksum storage [ owner : fix that first, too many good
+  kittens for the repository ] -- candidates stay in invoke : the running
+  kitten re-render [ R2G.. source, seed batch pick #2, eye fix good, as a
+  background still too bright ; a 35 % layer blend of the reference-mix
+  render gave the best fur -- saved as reference image
+  /mnt/ext-xfs-data/backup/src-gfx/FQWD6KMMYYUVUCHCRWFYDNNMV6AWWFZOZEJST2WPLPJ4M.png
+  [ prompted 113 base + reference-mix "deep" render at 35 % normal, built
+  from the clipboard copies, not the invoke originals ] ].
+  design notes of the day : style transitions, gates \ jurisdictions,
+  sharing by distance in
+  data/md/design/VISUAL-INPUT-PIPELINE-AND-LIVING-TEMPLATES.md ; layer
+  compositing, re-feeding, prompt categories in
+  data/tasks/images-elfdb-feature-collection.md.
 
-#,,,.,...,.,.,.,,,..,,,..,,..,,.,,,,.,.,,,,,.,..,,...,...,.,.,,,.,,,,,,.,,...,
-#VZBITJKDTYEYK5VM7RLACAK25V53KTECAPI7H5LDG6NDS5JHDAGSNHG37EX7FCUPUAPAAFBJUFS56
-#\\\|XE2CSXH3FBLIWCS2EMABIR2YSL6G7DHTQDAFGCMEEAMUGIYDUJM \ / AMOS7 \ YOURUM ::
-#\[7]QMON2TGNZZT3DQG47CQBGDOCDMK4XFAAVIXSB6BLH3DK4CQYDGBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,,.,,,,.,,,.,,.,,,,.,,.,,,,.,..,,...,...,.,.,,,.,,.,,...,...,
+#VOJ5RIFCHO2JOSATCFJ65UWBVAMJWEN44Q2ME57OK4L32VV6NLCYQTNOBYMV7753UWK6DM4KT47HA
+#\\\|GZZGU343FFTGFFHZTEBJK2FPV57O6IUEW3IMMSTC5RG3BZH7NLL \ / AMOS7 \ YOURUM ::
+#\[7]BA3PX4UIJ35E2TJIQO6XG2NTKV7TGWTKD7FU2VJMNTESIKD3LMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,172 @@
+## image generation prompt : the protocol-7 psytrance-network-kitten ##
+## [ reference-guided : real kitten photos re-rendered, not invented ] ##
+
+name: psytrance-network-kitten
+created: 2026-10-17
+
+prompt: |
+  task : upgrade rendering quality and repair anatomy where necessary
+
+  style : deep blue and blacklight futuristic goa-trance
+
+  quality : high-resolution photorealistic
+
+  character : native protocol-7 psytrance-network-kitten
+
+## the organic references already have perfect anatomy -- kept anyway ##
+## for references that do not                                         ##
+negative_prompt: bad anatomy, redundant bodyparts
+
+generator:
+  app: invokeai 6.14.1-post1
+  mode: qwen_image_txt2img [ with one reference image ]
+  model:
+    name: qwen-image-2.1-UC-Q4_K_M.gguf
+    hash: blake3:907c00c345dd661b91fad13fb463868dc5ae416efec893690a2ae843b01a6699
+  vae:
+    name: qwen_image_2.1_vae_bf16
+    hash: blake3:62cf77e928196a5ba4f118fe108a384a306fdd7cff734df62d2528bcaa69a4b0
+  vl_encoder:
+    name: qwen3vl_8b_int8_convrot
+    hash: blake3:2ee468103d3735269c37f572ee6190ccd03691678eb1b0ab2ab82872376d2fec
+  settings:
+    width: 1216
+    height: 704
+    steps: 24
+    cfg_scale: 5.0
+    shift: 1
+    quantization: none
+  ## model behaviour : qwen-image 2.1 LOCKS IN strongly on the composition ##
+  ## of the reference -- refinement [ fur, colour, light ] follows short   ##
+  ## plain instructions ; a pose \ composition change needs a bold stated  ##
+  ## reason in the prompt, then it does it [ the elves showed it ]. the     ##
+  ## lock-in keeps step \ cfg comparisons fair ONLY WITH A FIXED SEED      ##
+  ## [ invoke picks a new one per run otherwise ] : same composition,      ##
+  ## other refinement. cfg 1 disables guidance AND the negative prompt.          ##
+  ## reference ROLES : qwen-image 2.1 follows instructions that name the   ##
+  ## references -- e.g. re-render reference image 1 at the rotated angle  ##
+  ## of reference image 2 [ subject from one, camera angle from the other ##
+  ## -- the camera rig ]. unnamed references compete or stack instead.    ##
+  ## GRID ROOM LOCK-IN [ proven 2026-10-18 ] : a grid scene WE render and ##
+  ## control, given as a reference, holds the scenery -- different        ##
+  ## kittens render into the same room, their angle to it changeable.     ##
+  ## reusable scenery ; quality still improvable by a prompt asking for it ##
+
+## the reference image carries the subject : same seed, different photo ##
+## -> a different kitten scene                                           ##
+reference: a photo of real kittens [ e.g. ginger kittens on a sunny day ]
+## provenance of the base results : origin unknown, one pass ; the scene
+## was RESTYLED, not replaced [ trees and grass keep their form as
+## crystal \ fibre structures ] -> the photo's own environment remains
+source: photo of unknown origin ; scene restyled, environment structure kept ; one pass
+
+## the same chain as the elf pipeline : reference acquisition -> quality ##
+## filter -> reference-conditioned render [ its qwen-image 2.1 route ]  ##
+related:
+  - data/tasks/network-elf-avatar-pipeline.md [ steps 1 + 6 ]
+  - data/tasks/images-elfdb-feature-collection.md
+  - data/md/design-specs/fractal-data-architecture-holographic-tty.md [ network-kitten themes ]
+
+results:
+  - file: data/gfx/backgrounds/XPRCCAZ5KL7XNLZ3MZWOWQNJYGXKWRXNDDO2V25ZYPJMW.png
+    seed: 3781658147
+  - file: data/gfx/backgrounds/5TFDO7EKGTPK542YIS2GYHLRPM2EWE4G5UAPJQTKQCTHM.png
+    seed: 3781658147
+
+## variant : a source with white fur segments \ a grey kitten -- the
+## refinement block isolates them and keeps both kittens distinct. built
+## over a step series [ cfg 3.5 ] : 24 -> 32 -> 48 -> 63 -> 77, the seed
+## NOT fixed [ 63 and 77 differ : 77 added a second tail parallel to a
+## violet-tinted leg, read as an extra limb -- the SEED did that ]. then
+## 63 -> 113 with the 63 seed FIXED : same composition, no new parts, the
+## one existing tail completed [ longer, fuller ], detail up everywhere
+## [ head +10 %, violet leg +7 %, background lines +50 % sharper ], same
+## peak brightness. lesson : new parts come from the seed, more steps
+## complete and refine what is there. 113 chosen.
+## cfg 5 had crushed the grey kitten into black. the environment line is
+## in twice [ the darkness fix was appended, not replaced ] -- kept as run
+variants:
+  - name: sleeping-embrace
+    reference: a black-and-white and a blue-grey kitten asleep in an embrace on a grey blanket [ photo, 736 x 552, dim light ]
+    source: 'photo of unknown origin [ reverse image search, yandex, 2026-10-17 : no match ] ; isolated subject, environment fully replaced ; one pass'
+    prompt: |
+      task : upgrade rendering quality and repair anatomy where necessary
+
+      style : deep blue and blacklight futuristic goa-trance
+
+      quality : high-resolution photorealistic, fine individual fur strands throughout
+
+      character : native protocol-7 psytrance-network-kittens, two kittens asleep in an embrace
+
+      refinement : keep the exact sleeping pose -- the black-and-white kitten's white front leg wraps around the grey kitten, heads resting together.
+
+        isolate both kittens cleanly from the blanket and place them resting in a native cubic-space-topology network environment : dim nodes and thin connection lines, far darker than the kittens.
+
+        black-and-white kitten : black fur stays deep black with a faint blue rim light ; the white segments become a muted deep violet that keeps the full fur texture and the soft shading of the original white fur -- a dyed fur colour, not a flat fill and not a light source.
+
+        grey kitten : keep it a distinct blue-grey kitten -- its fur becomes smoky silver-blue under the blacklight, with visible fur structure and gentle highlights on head and paws, clearly separate from the black kitten.
+
+       place them resting in a native cubic-space-topology network environment : a dim but clearly visible network of nodes and thin connection lines, darker than the kittens.
+
+        lighting : calm and moody, soft blue ambient light shows both kittens completely including their bodies and tails, no glowing areas, the brightest parts are the kittens' ear rims
+    negative_prompt: bad anatomy, redundant bodyparts, flat colour fill, glowing fur, neon, overexposed, bright white, crushed blacks, merged bodies, extra legs
+    settings:
+      steps: 113
+      cfg_scale: 3.5
+    results:
+      ## not imported yet : the grey kitten has fur past the other kitten's
+      ## outline -- an improved render is in progress
+      - file: data/gfx/backgrounds/D77KPQLTRFNDIGBPZUUTKHJ7GT7BPIG43D635ROOSXIUG.png
+        seed: 3965576381
+        status: pending
+
+## magic style prompt [ user, 2026-10-17 ] : style keywords only, no
+## specification -- the model interprets, coherence comes from the
+## style family. not rendered yet ; watch 'radiates' for glowing fur
+style_prompts:
+  - name: implosion-into-awareness
+    prompt: the psytrance-network-kitten radiates blacklight space on fluorescently shimmering translucent field-lines of the inescapable implosion into awareness of which its presence is the anchor.
+  - name: curious-visitor
+    ## [ user, 2026-10-17 ] : a subject TEMPLATE -- kitten or elf [ the
+    ## shared sweetie template ] ; also a repair prompt for off-range
+    ## renders. 'protocol-7' as an unknown name may act like a watermark
+    ## for sophistication -- test : same seed with and without it
+    prompt: a deeply blue and violet blacklight hyperspace grid with a curious protocol-7 network <subject> as a native inhabitant visiting
+    subject: kitten | elf
+    ## GENERIC form [ user ] : no subject word -- the reference image
+    ## decides the type [ kitten, elf, .. ], the prompt only the scene
+    ## and the state
+    generic: a deeply blue and violet blacklight hyperspace grid with a curious native protocol-7 network inhabitant visiting
+    results:
+      ## first success 2026-10-17 : subject kitten, ONE reference [ the gimp
+      ## original R2G.. ], a NEW seed [ not the reference's ] -- hue 243,
+      ## mean brightness 10, brightest 0.1 % at 85, no catchlights, face
+      ## detail kept. kept outside the repo until the checksum storage
+      - file: /mnt/ext-xfs-data/backup/src-gfx/USE47XOTC4RFERUISWMD62UE22QM67CFAFS6UCC3KTAJO.png
+        seed: 7747777
+        reference: data/gfx/backgrounds/R2G5EBRDYGXW6DEKT7IFAEZUN7YPJNC2MYVJJKWSRN7FO.png
+        negative_prompt: green, teal, cyan, neon, overexposed, white glow, bright stars, catchlights, bad anatomy, redundant bodyparts, extra legs
+
+## magic words [ user, 2026-10-17 ] : one word sets a whole learned
+## reference set -- the model falls back on it wherever in doubt
+magic_words:
+  - word: psytrance
+    sets: the style family [ palettes, fractal structure, uv glow ]
+  - word: blacklight
+    sets: the style family, dark radiance
+  - word: goa-trance
+    sets: the style family
+  - word: awareness
+    sets: eye clarity and focus, ear states, posture as one state [ watch for catchlights ]
+  - word: native
+    sets: the subject belongs to its environment [ light, shadow, edges -- multi-element correlation ]
+  - word: serenity
+    sets: calm [ relaxed posture, lower contrast, no harsh highlights ]
+  - word: deep
+    sets: darkness without flattening [ replaced soft, which lifts the shadows ]
+
+#,,..,..,,.,.,.,.,,.,,,,.,,..,,..,,,.,.,,,..,,..,,...,...,...,.,.,,..,..,,.,,,
+#H3VRBXTA2ECKGGQXTAYOYJE4TYQXJUGGXFNPTCI2KFAKQUTIMV5EBYZG5EFEXNTOKO7PDIZVTSH4W
+#\\\|EVCFIJLT25WJXYYY7S6HJRYY75WUDIPECYHLRIIWOMPMAXK2AQP \ / AMOS7 \ YOURUM ::
+#\[7]U6KDTXCXACJD3AQT42SS2R2WSJCKSBRJXTHELJV3AAX7RQTMEMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -203,9 +203,41 @@ see `ROUTING-CRYSTAL-HARMONIC-INFERENCE.md` for the full crystal model.
 - `llm.service.consensus_vote` — 5-of-7 voting IS the ground zenki layer
 - stream framing protocol — `dot=0 comma=1`, separator inversion on 000
   maps directly to the `01`/`10`/`1[zeros]1` checksum tree structure
+- formations as STRUCTURES [ user, 2026-10-17 ] : zenki travel in litters \
+  groups, and a group has enough elements to form GATES or large ANTENNA
+  ARRAYS itself -- a utility for the group, or a service to the space in
+  its proximity. the gates of the style jurisdictions [ handover between
+  neighbouring space registries, departure certain, arrival routed ] see
+  data/md/design/VISUAL-INPUT-PIPELINE-AND-LIVING-TEMPLATES.md
+- TRUNKS : a litter pools its members' bandwidth into trunks. sharing
+  data AND needs inside the pool, a complete data-set travels on less
+  bandwidth than its size [ what members share travels once --
+  content-addressed, deduplicated ] -> HYPERSPACE speeds for the group,
+  with the network's acceleration as the compensating factor.
+- HYPERSPACE LANES : the network's hyperspace structures already ARE the
+  fast lanes, implicitly. they must carry less bandwidth [ or all data
+  would travel that way ] or need a longer HANDSHAKE to reach the right
+  lane -- the price is DECOUPLING from local interaction, not trunk use ;
+  overall the data arrives in fewer cycles. seen another way the speed
+  is the same, just FEWER HOPS from here to there, one per scale layer.
+  the scales are already defined and visually proven by the cubic-space
+  grid [ grid-v13-final-baseline.html : x20, x200, x10000, x100000 \ bit
+  4 addressing, x1000000 \ bit 5 addressing = universe boundary ].
+  the lanes keep the TRAVEL CONSTRAINT already defined : travel below
+  maximum, communication bandwidth always reserved [ B_travel <= C_max -
+  B_required -- free networking guaranteed by topology prioritization ;
+  data/md/protocol-7-knowledge/08_NETWORK_INTELLIGENCE/
+  tachyon_wind_intelligence.md, part 9 ]. the decoupling is from LOCAL
+  interaction, never from the group's own session ring.
+  formation MODES were captured earlier [ full-chat-captures/
+  3O37VUNMMS3UU.claude-sonnet.protocol-7-knowledge.asc ~31306 ] : 2d
+  cross + 2 front [ 5 ] = directional antenna, 3d cross [ 7 ] = standard
+  node group [ omnidirectional, recursive, hyperspace-capable ], linear
+  trail = travelling, cylindrical listening [ drag cable ], RING MODE
+  [ 7 ] = an active open gate offered to other zenki.
 
-#,,,,,,..,.,,,...,,,,,,.,,.,.,.,.,,,,,,.,,,,,,..,,...,...,...,,,.,.,,,,,.,.,,,
-#54W4BNLJG7WDWBOXFOO73FBCN5ALICLG3SKDO3ZUU5E4PYTKM44TDSAXKYKF5OR7OUA35LE4HCETI
-#\\\|SAVI63NHUUQFMJ3ZWWIQWV32TH73B4ODT7PCEHFTXJIJEEXTSMG \ / AMOS7 \ YOURUM ::
-#\[7]FANJRXBJB4KPR3J3SWLD2VP24KBCB5DICNLYNHKX6FZ6CGGPKICY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,..,,.,.,,,.,.,.,.,.,,,,,,,,,,..,..,,...,...,...,...,.,,,,.,,,.,,
+#YV74NGLEZ342GJI5NYET6OIHXAOWKDND3INVEWWRNSYSATBJN26ZYDPRHBKIB5N2UKY7OURJU6TTI
+#\\\|BYEZAZGW3OFODCFO36DZWZJMNDLJU4TLI7IRGVNIH4ISSRWWNRL \ / AMOS7 \ YOURUM ::
+#\[7]RCPQM5ONWDMUAI7XCZNKEBYXA4HOKPYABBQRWFZ4R7EHK2WNDGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
