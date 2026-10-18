@@ -35,11 +35,14 @@ if ( $raw_type =~ m{^(cpu|gpu)$}i ) {
     $parsed = <[coding.parser.query_prefix]>->($raw_prompt);
 }
 
-## :model:AMOS:ID: keyword : task-level model override, stripped from ##
-## prompt allows task files to be self-describing:                    ##
-## ":model:WZIZD6Y:2BIZKWY:"                                          ##
-if ( $parsed->{'query'} =~ s|:model:([A-Z2-7]{7}:[A-Z2-7]{7}):||i ) {
-    $parsed->{'model'} //= $1;  ## don't override an explicit GPU:M: prefix ##
+## :model:AMOS:ID: keyword : task-level model override, stripped from   ##
+## prompt allows task files to be self-describing:                      ##
+## ":model:WZIZD6Y:2BIZKWY:" -- or ":model::2BIZKWY:", the content half ##
+## alone ; both map to the id this host knows                           ##
+## [ coding.mode.local_model_id ]                                       ##
+if ( $parsed->{'query'} =~ s|:model:((?:[A-Z2-7]{7})?:[A-Z2-7]{7}):||i ) {
+    ## don't override an explicit GPU:M: prefix ##
+    $parsed->{'model'} //= <[coding.mode.local_model_id]>->($1);
     $parsed->{'query'} =~ s{^\s+}{};
     <[base.logs]>->(
         2, ':. prompt.assemble: :model: override → %s',
@@ -56,7 +59,7 @@ if ( $parsed->{'query'} =~ s|:mode:([\w.-]+):||i ) {
     $mode = lc $1;
     $parsed->{'query'} =~ s{^\s+}{};
     my $mode_model = <[coding.mode.setting]>->( $mode, qw| model | );
-    $parsed->{'model'} //= uc $mode_model
+    $parsed->{'model'} //= <[coding.mode.local_model_id]>->($mode_model)
         if defined $mode_model and length $mode_model;
     my $mode_rounds = <[coding.mode.setting]>->( $mode, qw| max_rounds | );
     $task->{'max_rounds'} //= $mode_rounds if defined $mode_rounds;
@@ -377,8 +380,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,,.,...,.,,,..,,...,,,.,...,..,,..,,...,.,.,..,,...,...,,.,,,..,.,.,,.,,,.,,
-#2KH3P5LX4FTT2ZUAMFO3BOFI5NMNBUZ7FPWQ2AQMOHY3EVBTWAZ7KTXDFHQF3TDEG7DZE4ZVDVHRE
-#\\\|E34D563HK6JEWT25XJE56KSJ762HQBSE7ZISIBQETZFJE5W6YZY \ / AMOS7 \ YOURUM ::
-#\[7]446GBLRHIG7IIWBGY6EAC3I6INYJJ4B3ONMSXR4FGKTFQLFGJCAI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,..,..,,.,.,,,,,,,.,.,.,.,,,,..,..,,...,...,..,,,,,,..,,...,...,
+#MSFE4S3LJAJIFHMOKPODL4EIRTUO3FQCMLXNAEXS7YG7A2LXJUQWQF5AM6PDDEECGEIDYXAV5JBB2
+#\\\|5RNUL5Z7YTHYTVEW2WIN67GH3MH2PDIMVBJJKYCYIZT2A3PRKVX \ / AMOS7 \ YOURUM ::
+#\[7]LX6XQLI73NHW5FDBSAAWRQXKUBADQCLPBO4AKLKGKLHQKL7LSMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

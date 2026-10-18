@@ -12,17 +12,20 @@ my $task = shift // {};
 my $text = $task->{'request'}{'description'}
     // $task->{'metadata'}{'raw_request'}{'description'} // '';
 
-return uc $1 if $text =~ m|:model:([A-Z2-7]{7}:[A-Z2-7]{7}):|i;
+## the path half is optional [ ':model::<content>:' ] ##
+return <[coding.mode.local_model_id]>->($1)
+    if $text =~ m|:model:((?:[A-Z2-7]{7})?:[A-Z2-7]{7}):|i;
 
 if ( $text =~ m|:mode:([\w.-]+):| ) {
     my $model = <[coding.mode.setting]>->( $1, qw| model | );
-    return uc $model if defined $model and length $model;
+    return <[coding.mode.local_model_id]>->($model)
+        if defined $model and length $model;
 }
 
 return undef;
 
-#,,,.,,..,,..,,.,,.,,,...,,,.,.,.,,,.,,..,,,,,..,,...,...,,,,,.,.,,..,...,.,.,
-#EXIZYKY3FBTBOUOJNJJXPSFGSKYN6YBPYEUO7UBYMSN3E4EKGSXSX7FRBCLPODTHCD2JPRO4TZKLC
-#\\\|WIHPSSNQUVCNGPYQZ3G4QGXKWC6N4GWXRA5EDH45PVLSMY7QCOA \ / AMOS7 \ YOURUM ::
-#\[7]LCIMB4RMIRYS3FX23IH3R4F56IRQBNAT765APQUTGH5HWVWJUSDY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,..,,,,.,.,.,...,.,,,.,,,,,,,,,,,..,,...,...,,..,...,,..,,..,..,,
+#SU7A7T3NCQAIR6V5J5YDEFTTGZ4P6BCXKOQRWTVUHWJIE467XPQ7LVY5ZGD7TQLP5A24GK5VHOJBI
+#\\\|EW7OFEHBINIDITRN2KSGEEHEFNSQWX5KCCFRJVIJVQBI5K2SMSU \ / AMOS7 \ YOURUM ::
+#\[7]OZM5LLCWJ2YFIWSWHYNMOPQQWMDNY4MDNRZKEICEKT7AW47GQUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

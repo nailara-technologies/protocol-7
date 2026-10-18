@@ -19,23 +19,28 @@ unless ( keys $registry->%* ) {
     return undef;
 }
 
+## ':<content>' : the content half alone, any install path ##
+$lookup_id =~ s{^:}{};
+
 ## Check if this is a composite key (contains colon)
-if ( $lookup_id =~ m{:} ) {
+if ( $lookup_id =~ m{:} and exists $registry->{$lookup_id} ) {
 
     ## COMPOSITE LOOKUP: path_checksum:model_checksum
-    if ( exists $registry->{$lookup_id} ) {
-        <[base.logs]>->(
-            1, '[registry.lookup] found composite key: %s', $lookup_id
-        );
-        return $registry->{$lookup_id};
-    } else {
-        <[base.logs]>->(
-            2, '[registry.lookup] composite key not found: %s', $lookup_id
-        );
-        return undef;
-    }
+    <[base.logs]>->(
+        1, '[registry.lookup] found composite key: %s', $lookup_id
+    );
+    return $registry->{$lookup_id};
 
 } else {
+
+    ## composite key not here : the path half names another host's parent ##
+    ## dir [ same file elsewhere ] -- look up its content half            ##
+    if ( $lookup_id =~ s{^[^:]+:}{} ) {
+        <[base.logs]>->(
+            2, '[registry.lookup] composite key not found, by content: %s',
+            $lookup_id
+        );
+    }
 
     ## SINGLE LOOKUP: just model_checksum (7 chars)  Find all entries with
     ## this model checksum (may be multiple paths)
@@ -93,8 +98,8 @@ if ( $lookup_id =~ m{:} ) {
     return $matches[0]->{entry};
 }
 
-#,,.,,.,,,,,,,.,.,..,,,,,,...,...,,,.,,.,,,,,,..,,...,...,...,.,,,.,,,.,,,,..,
-#HFFMDMBEKHFYJ5AVVFGT4EEIMYWWMUNI534ZFUAQK33I7EMJUHW27VZSM6ZNGHDBUKJ3AODZWEZR2
-#\\\|RHSOUMEWXLM2CNTWC773SLUO7XUQPSPL3GZZTWHR36PZQM2BRR2 \ / AMOS7 \ YOURUM ::
-#\[7]KF3EK7EWGDKBRQ663CWEC4QGZSN7RMXZJNLP2V5W74NULCAJXKCA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,.,,.,.,..,,..,,,..,.,.,,,.,,.,,..,,...,...,..,,,,.,...,.,,,,.,,
+#IFZQWOKNVEPVOS47VPYYDPYUNI42WAXAVAGK6XLI37237JRSDWOO4TBCFOYIXRONM6LD6WEN4QRD6
+#\\\|SYB7ES4F6QNNVT7NPJCNV5ZK3IXV7KDLYKBLI4WO4FFMJ6XZNMU \ / AMOS7 \ YOURUM ::
+#\[7]6HUEKSNNCPGABFMEWQMNP4JNV3TXDLR36HDGDZNRUHLV7B3UYCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
