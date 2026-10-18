@@ -635,6 +635,20 @@ items:
     - free with this : reverse references [ reference counts for cleanup, provenance ], atomic publish [ build under a temp name, one rename ], verify-by-path [ the path is the checksum ]
     - to weigh : inodes \ 4k blocks per small key file [ chunk size, packing ; xfs copes better than ext4 ], very large <amos> directories [ an optional prefix level ]
 
+    root and holders [ user, 2026-10-18 ] : /N7FS/<disk-id>/<epoch>/<amos>/<bmw>/content
+    - /N7FS/ is the one fixed entry point ; a real directory under / or a symlink into /var/ or /data/ -- a per-host choice, tools only know /N7FS
+    - <disk-id> = the holder : an amos checksum over the initialization parameters [ public key, network timestamp, name or type .. ], written INSIDE the store as well as being its directory name. attach \ detach = mount \ unmount at /N7FS/<disk-id> ; on attach the name must match the id inside [ wrong disk under a remembered name, or a clone = a duplicate id, never a silent second holder ]
+    - and the SIGNATURE of a parent or root key [ e.g. host-root ] over the context intent, the timestamp and the public key delegated to -- the id then carries its own authorization : anyone holding the store verifies who created it, for what, and that the store key was delegated [ same shape as host-root signing the cube key, .dlg ]. the signature, the signed fields and the delegated public key are kept inside the store, so the id can be recomputed and checked on attach
+    - collisions avoided at decision time : if the id is taken, take the next network timestamp [ smallest increment ] and checksum again
+    - nested form <mount>:<disk> [ user, 2026-10-18 ; the nested <amos>:<amos> checksums ] : <disk> is the dataset identity, stable and transferable across the network ; <mount> is a checksum per attachment [ e.g. over disk-id, host key, mount timestamp ], new on every mount. usage is ONE checksum by context -- the disk to address the dataset, the mount alone as the local handle [ unmount ] ; <mount>:<disk> is the full form saying what it is. a clone or replica attached elsewhere = the same <disk> under another <mount> : explicit, verifiable, countable as a holder -- never silent
+    - the DISK is the parent, mounts are back-references under it [ references/<ntime>/<mount> ] -- a disk can have several parallel mounts, so no mount can be its root ; finding the disk from a mount handle is a lookup, not a hierarchy. the directory stays /N7FS/<disk>/. mount records kept in two places : the host's registry [ known while the disk is detached or read-only ] and the disk itself when writable [ its travel history ] ; signed, timestamped entries -> merging is a union. refine at the next opportunity
+    - id length [ user, 2026-10-18 ] : amos-7 is unique only where a registry checks it [ inside one namespace, retry at decision time ]. across namespaces ids are never compared bare -- like cube session ids, the REFERENCE between two ids is the route, both may come from the same or separate namespaces, and that held reference is the functional part. so two equal amos-7 disk-ids in two networks never collide : each is reached through its own link [ <route>:<mount>:<disk>, nested ]. a longer checksum [ BMW-L13 over the same signed init record ] stays useful as PROOF when a link is set up [ which disk is behind it ], not as a global name
+    - global addressing [ user, 2026-10-18 ] : DISCOVERY is the true global root, and it maps into addressing topologically. content is global already by its checksum [ the WHAT needs no namespace ] ; holders, disks and nodes are the WHERE -- found through discovery [ discover's orbital p7refs, nodes' position from ip + session key, nameserv <amos>.n7fs.<domain> -- see below ], reached through held references. a global address = a discovery position plus the route from there
+    - the TRUE address is multi-dimensional [ user, 2026-10-18 ] : true as in always valid -- all the elements a re-discovery needs. context is the essence : the same key or the same bytes can be different things in different contexts [ a reused key ; two users with one public key told apart by name and creation epoch already, plus attributes like the home network ]. the content checksum fixes the bytes, the context dimensions fix what they ARE. existing forms to build on : the epoch + key + name triple <epoch>:<key>:<name> [ data/tasks/epoch-validity-search-protocol.md, e.g. V7L36SA:K:username ] and typed checksums [ base.p7refs.gen_template_chksum : the reference type inside the checksum value ]
+    - one id per filesystem, not per physical disk ; meta records the device, so two partitions of one drive do not count as redundancy
+    - addresses stay root-free [ <epoch>/<amos>/<bmw> ] and identical on every disk -- resolution looks under each attached disk-id, finding it under several IS the redundancy count. <disk-id> and <amos> share a shape, the position [ directly under /N7FS ] tells them apart
+    - first store : on the xfs data disk [ suits the many small key files ] ; the image store is the first user -- the invoke-web image index [ invoke-web.index.backup_path, 48680 images ] can serve as assimilate's source list
+
     designs it brings together [ data/md/design/ ] :
     - path structure : BRANCH-NAMESPACE-MASTER.md [ branch.* addressing layer ], P7REF-STORAGE.md
     - nested checksums + epochs : EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md [ newest, 2026-10-02 ], CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md
@@ -1296,8 +1310,8 @@ items:
   - tools
   text: 'pre-import sorter : files from source paths into type subdirectories of a target [ copy, or move ]'
 
-#,,,,,,,,,,.,,..,,.,.,..,,.,.,,,.,,..,,,,,,..,..,,...,...,..,,.,.,,,.,.,,,,,.,
-#JXB6IKNWMKKUESXSQHCNW4X2EDFZYLXR3YIRAEQOMRYRSIMUTKGGE6TXGLZX76HWU4N2FOM2JVXBE
-#\\\|KET4NS5U6GQHMAGBVLF27HEYVL3G52N3GQSJOWBDNKOQ4GXDYU2 \ / AMOS7 \ YOURUM ::
-#\[7]JL5YOJ4MKJQ3IXYR3V2LYDHZMGS7ETU4N5PVMBNXFVR3N26DCKAY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,,,,,...,,,,,.,,,,,.,,,.,,,.,..,,...,..,,,..,.,,,,.,,,,,,,..,
+#2IJDWQ7WNZ564UTYLZ6FF63ESUMKLI43IS5NLDNDRS4BUVVQAINTNCACY4TE3Y6NCVNBKNUA7C4SS
+#\\\|CRMNHAI6ZCN62V6RIFQQEYZ73O3RMBSSKIH2H7OQSV25SGLKED2 \ / AMOS7 \ YOURUM ::
+#\[7]YHB43TN4ZFXHLHFK2B23WT65WB3JI5PTGBKPMTETTDQBLSTSLKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
