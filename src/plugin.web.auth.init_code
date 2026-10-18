@@ -40,24 +40,17 @@ if ( not length( $auth_cfg->{'secret'} // '' ) ) {
 
 $data{'plugin.web.auth'}{'cfg'} = $auth_cfg;
 
-## ensure shared session directory exists ##
-my $session_base = <[plugin.web.auth.session.path]>;
-my $user         = <system.zenka-user.current> // <system.amos-zenka-user>
-    // qw| protocol-7 |;
-my $group = <system.zenka-group.current> // $user;
-
-for my $subdir (qw| active expired |) {
-    my $dir = "$session_base/$subdir";
-    next if -d $dir;
-    <[file.make_path]>->( $dir, 0750, $user, $group );
-}
+## shared session store : created/re-asserted while still root        ##
+## [ this init_code runs before root.drop_privs ] ; idempotent -- see ##
+## plugin.web.auth.store.set-up                                       ##
+<[plugin.web.auth.store.set-up]>;
 
 <[base.logs]>->( 1, 'plugin.web.auth : initialized [ zenka=%s ]', $zenka );
 
 0;
 
-#,,,.,..,,,.,,.,.,.,,,...,,.,,..,,.,.,,.,,,,,,..,,...,...,..,,,,,,,.,,,,.,,,,,
-#6NMXD5Q73LFFNZSCAG4FNUT2OHZALHMQHRC4TV4HAIMJT6VWZPWYRDF7RHBLDWNJ63PILIU7TQKCQ
-#\\\|QGQD6BMAOSGMS22TP5F3FSKCJJZQY3HIHSSOBNZTJGBA6CCNH6T \ / AMOS7 \ YOURUM ::
-#\[7]OJCQ3CEKE224TZP3SU47I6PVQ453YDJWX25TMHPK6UAGESK5SQAA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,..,,..,...,,.,,,..,,,,,,,,,,..,..,,...,...,.,.,...,,.,,,.,,.,,,
+#AP5Z2OYWLBO7VDNBDQ2ERSJAC37BQJFBFSNFTCAFY2ROAZQV37XLC7LMAYIPIMLCTP3JNXMKDFELS
+#\\\|VSBR7KM4NIV7KM6PFTO7FPBSNDSI2STWPGAFFKI275XSXNAYVP2 \ / AMOS7 \ YOURUM ::
+#\[7]B5LSCJGZZPEJ5I5J5C67QQDDTCVDA2XZVTGQKFOJHGRQMO4Q3UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

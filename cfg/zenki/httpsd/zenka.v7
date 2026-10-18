@@ -11,6 +11,10 @@ system.zenka.verbosity.logfile = 2
 modules.load         =  auth.client net protocol io.unix io.ip ui io.ssl \
                         format.json format.yaml httpd httpd.classify httpsd ## devmod
 
+## web auth for the gated /jobs* routes [ shared cfg/zenki/httpd/routes ] ##
+plugins.load         =  plugin.web.auth
+[load_plugins:<plugins.load>]
+
 net.https.addr       =  0:0:0:0:0:0:0:0
 net.https.port       =  443
 
@@ -72,6 +76,10 @@ httpsd.timeout      =  14
 # httpd.classify.max_peers       =  10000
 # httpd.classify.expire_interval =  300
 
+## host-specific overrides [ base.load_host_config : /etc/protocol-7/  ##
+## httpsd/host.cfg ] -- the same web.auth.secret as httpd and web     ##
+[load_host_config]
+
 [load_modules:<modules.load>]
 
 [init_modules]
@@ -90,8 +98,8 @@ httpsd.timeout      =  14
 
 [zenka.loop]
 
-#,,.,,,,.,,..,,.,,.,.,...,...,.,.,,,.,.,,,.,,,..,,...,..,,..,,...,,,.,,.,,,,.,
-#5NN4BS7CEIBM52QOOXPOJNSSFIZD2QCEP3FRX7X6N3XH4BSMZJFGWT7AGL4HJP2QXSYAKW3BQPMBG
-#\\\|4VEUKINIDXQ7YGEETLA4EAGYARWIGF4I7LVTSV5YGC56QQ5IVDM \ / AMOS7 \ YOURUM ::
-#\[7]YVSQOIJI25A5CC6VJKQ272NLR2SCUSSBFBXA73HVZ5NDSHVKN2CY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,.,,,,..,,..,,,,,,.,,.,,,,,.,..,,...,...,..,,,..,,.,,,,.,,,.,
+#BT6X5EY6QPKTBYFB4IFPH22CLIEBBSWUIT6MBKIW2NFCCRW223IKBL4A3J5YO2T3DHBUZWDBGPX6C
+#\\\|FHS3HMR6EUBQBI5XPXOC6F3BB2MGBLJMDKE2GQFA7P47ILGM4GO \ / AMOS7 \ YOURUM ::
+#\[7]NEE6R43D2TWQRI4YC3NH3UZ3P64PPV7C7ELX7LM3HSS7GC5GMWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

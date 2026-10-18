@@ -15,10 +15,9 @@ my $dir          = "$session_base/active/$token_hash";
 my $file         = "$dir/session.yaml";
 
 if ( not -d $dir ) {
-    my $user = <system.zenka-user.current> // <system.amos-zenka-user>
-        // qw| protocol-7 |;
-    my $group = <system.zenka-group.current> // $user;
-    <[file.make_path]>->( $dir, 0750, $user, $group );
+    my $user  = <system.amos-zenka-user> // qw| protocol-7 |;
+    my $group = <[plugin.web.auth.store.group]>;
+    <[file.make_path]>->( $dir, 02770, $user, $group );
 }
 
 my $yaml_str = eval { YAML::XS::Dump($session) };
@@ -30,16 +29,8 @@ if ($@) {
     return FALSE;
 }
 
-## use file.zenka_dir.write when in web zenka for sync semantics ##
-my $zenka = <system.zenka.name> // qw| web |;
-if ( $zenka eq qw| web | ) {
-    my $rel_path = "active/$token_hash/session.yaml";
-    my $written
-        = <[file.zenka_dir.write]>->( $rel_path, \$yaml_str, qw| > |, 0640 );
-    return $written ? TRUE : FALSE;
-}
-
-## fallback direct write for other zenki ##
+## direct write -- the shared store is zenka-independent [ web mints,  ##
+## httpd/httpsd touch last_seen on verify : both must read and write ] ##
 my $fh = <[file.open]>->( $file, qw| :raw |, qw| > |, TRUE, 0640 );
 if ( not defined $fh ) {
     <[base.s_warn]>->(
@@ -51,10 +42,18 @@ print {$fh} $yaml_str;
 close($fh)
     or <[base.s_warn]>->('plugin.web.auth.session.write : close error');
 
+## umask-proof : readers run as other uid [ httpd, httpsd ] -- the file ##
+## MUST be group-readable/writable regardless of the writer's umask     ##
+chmod 0660,
+    $file
+    or <[base.s_warn]>->(
+    'plugin.web.auth.session.write : chmod 0660 failed [ %s ]', $file
+    );
+
 return TRUE;
 
-#,,.,,,.,,...,,,,,...,,,.,..,,.,,,...,,,,,.,.,..,,...,...,,..,,,,,.,,,..,,...,
-#LJFWVDJDVFJLKZS3TGD46JT6TQXT7GYJCE4IGB7QY3SF56Y4NCW4765RY3TJDYROCWOY2NA3BWDRU
-#\\\|S7M7INE2LXUOHHWC5ITUYYTA5Y32ZVFFNTQB4RPRQYECYKGHT25 \ / AMOS7 \ YOURUM ::
-#\[7]EGBEM2WOI4ODEGVKY6ZE7UZTVTCIYUQ2VFU2UDVMCXHQT3S6CSDI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,,,,..,,,,,,,.,...,.,,,..,,,,,,..,,...,...,..,,,.,,...,.,,,,,.,
+#KHWK6DJRJ262CLD4SV4BVCL2CDJE7SN5YG7FC7ZHQSETJHSKHSQUV36DXZGPLF5EOWMU2BHNM7CYQ
+#\\\|UB4JVNFCSCZHN6FKD7A3DTIGC6JZCUTMGOMT6YAAVBDEZNNXAIM \ / AMOS7 \ YOURUM ::
+#\[7]SD6FU4KDPNHYNVBQW6AIG5CPBHGTHXT7XQ2VCTZSXRCB4IE44WCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
