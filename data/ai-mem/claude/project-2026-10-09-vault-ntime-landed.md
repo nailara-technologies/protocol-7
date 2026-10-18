@@ -53,7 +53,7 @@ swapped [ gpu fan repair ]. the vault is the "better minimum state".
 BASE32_to_numerical [ test pinned to real core log stamps ], duration_str =
 base.parser.duration format, localtime_str = cube localtime format. NOT loaded
 by zenki. `bin/ntime` : base32 \ ntime \ unix [ `0+` prefix ], `.. ago` \
-`in ..`, two args = duration. base32 ntime does NOT sort in time order -- the
+`in ..`, two args = duration. base32 ntime sorts only with JITTER [ not strictly monotonic, user 2026-10-18 ] -- the
 vault file names use decimal.
 
 **open** :
@@ -71,8 +71,8 @@ format-code -c compiles .pm files inside a sub -- file-level `my` reads as
 "not available", use `our`. pkill -f with a pattern from my own command line
 kills my own shell.
 
-#,,.,,.,.,,..,..,,.,.,.,,,,..,,,,,,.,,...,,..,..,,...,...,..,,,,.,,,,,...,.,,,
-#ASXPLW2KCALU3KNS2LVYLDHDXHVQHSPG53KSQWHF225GUWFFZNFGO2TTCES2S4DYSJVDRR6NOPQ76
-#\\\|ULLULFCZN4DU6TB7FUG4DMH3GQXD7GPITAVQ75EHYAGW6DC62E3 \ / AMOS7 \ YOURUM ::
-#\[7]YNVLJBCMHYGMXHE6TOGKJSYAZALFVCHKIYPDYG6BL5CHC2C7EUDY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,.,.,,,,,,,.,.,,.,,,..,.,.,,..,..,,...,..,,.,.,,,.,.,,,.,,,,..,
+#XQOX6ZYKCUQ2KGSHKOGDDWNOUUERNYGNWAFR5BCDQYRODJO5M34I4XIVEWN73JUB7Q2NDFFA2L474
+#\\\|J3P73V3R77NUTINUU5UO3LRWZPSFIDAVYYWUQSC7DT5G4SGYX22 \ / AMOS7 \ YOURUM ::
+#\[7]U2TW2MTYP3HTF5UU4BP7IPZTLIHKZPENYHCXGAR7SVJSJZS4EMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
