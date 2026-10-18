@@ -46,15 +46,16 @@ if ( ref $payload eq qw| HASH | and length( $payload->{'token'} // '' ) ) {
 }
 
 my $json_str;
+my $login_session;
 if ( length $token ) {
-    my $session_data = <[plugin.web.auth.verify_session]>->($token);
-    if ( defined $session_data ) {
+    $login_session = <[plugin.web.auth.verify_session]>->($token);
+    if ( defined $login_session ) {
         $json_str = eval {
             JSON::XS::encode_json(
                 {   'ok'         => JSON::XS::true(),
-                    'token_hash' => $session_data->{'token_hash'} // '',
-                    'user_id'    => $session_data->{'user_id'}    // '',
-                    'node_id'    => $session_data->{'node_id'}    // '',
+                    'token_hash' => $login_session->{'token_hash'} // '',
+                    'user_id'    => $login_session->{'user_id'}    // '',
+                    'node_id'    => $login_session->{'node_id'}    // '',
                 }
             );
         } // '{"ok":true}';
@@ -68,14 +69,29 @@ if ( length $token ) {
 if ($is_httpd) {
     my $code = ( $json_str =~ m|"ok":true| ) ? 200 : 401;
     $data{'session'}->{$http_sid}->{'http'}->{'close'} = 1;
+    my $header = {
+        'Content-Type'   => qw| application/json |,
+        'Content-Length' => length($json_str),
+        'Connection'     => qw| close |,
+    };
+    if ( $code == 200 and length $token ) {
+        ## session cookie : HttpOnly + SameSite=Strict always, Secure when ##
+        ## the request arrived over TLS                                    ##
+        ## [ real socket check, never a header ] -- the browser keeps      ##
+        ## sending it; the ui needs no local storage copy of the token     ##
+        my $secure_flag = '';
+        my $peer_fh     = $data{'session'}->{$http_sid}->{'handle'};
+        $secure_flag = '; Secure'
+            if ref $peer_fh and $peer_fh->isa('IO::Socket::SSL');
+        my $max_age = ( $login_session->{'expires_at_epoch'} // 0 ) - time;
+        $max_age = 0 if $max_age < 0;
+        $header->{'Set-Cookie'}
+            = sprintf(
+            'p7_session=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=Strict%s',
+            $token, $max_age, $secure_flag );
+    }
     $data{'session'}->{$http_sid}->{'buffer'}->{'output'}
-        .= <[httpd.new_header]>->(
-        $code,
-        {   'Content-Type'   => qw| application/json |,
-            'Content-Length' => length($json_str),
-            'Connection'     => qw| close |,
-        }
-        );
+        .= <[httpd.new_header]>->( $code, $header );
     $data{'session'}->{$http_sid}->{'buffer'}->{'output'} .= $json_str;
     return 2;
 }
@@ -86,8 +102,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,,.,,,.,,..,,,..,..,,,,.,..,,...,,,,,,,.,..,,...,...,,..,.,,,,,,,...,,,,,
-#ISIEG7VCVD3NNUUCOWHFCZIOHMZ7XKHYSFZC44YB3TXRKWYZWQKR7NKSRKDBYWPITS4PYQ2UPOOR2
-#\\\|4R7XRFXY5ZMS3E4LNJJM7XELWWYQ2C5YMCE6KRLPADKNM7CEMS7 \ / AMOS7 \ YOURUM ::
-#\[7]L2IDIROEVGNXAS6VCJI5Y44TCM5W3O4STU3K6SJW7RSLIVOPPOCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,...,,.,,,..,.,,,.,.,,..,,,.,..,,...,...,,.,,,,,,.,,,,..,,,.,
+#TMHQKYSW4GJOUQQMGXM3GHBKCLUV7GVTEKPC2IOH5UP4ZGZFQYY4SVCTTPO2IJHLHH2KYRFLSTGZU
+#\\\|6ER7J3RVUV7MHRUN6EG4M56EOABI7H3AL6UNN3JCDZ76U4DVCU7 \ / AMOS7 \ YOURUM ::
+#\[7]HGWU6QRER452YUAYHW6DSXB5OS4BA3WIBTDBOO4ZNXZOL4UH2YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

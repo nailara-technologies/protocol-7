@@ -86,6 +86,10 @@
                                      nameserv.remove-txt \
                                      nameserv.ensure-zone
 
+            ## note : web.* above technically covers web.auth-issue [ token minting ]  ##
+            ## -- acceptable : only the httpd zenka itself can authenticate as 'httpd', ##
+            ## and its relayed commands are fixed in cfg/zenki/httpd/routes. NO other   ##
+            ## user gets web.auth-issue : admin-only via cfg/zenki/cube/access.users    ##
             access.cmd.usr.httpd  =  web.process_template_ipc \
                                      web.jobs-data web.jobs-sync web.* \
                                      jobsite.list-trashed jobsite.rescue-http \
@@ -487,8 +491,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,..,,,,,,,,,..,,,.,,,..,,..,.,.,,,.,.,.,,..,.,.,...,...,...,,.,,...,,.,,,,,,
-#XJPGJ5GOXGQ2MIAGL5CORM646OX6XH5L22RN32I6S5UDPTD2UDI7RGWRYV5AWUXOGWERDJXN4YSSG
-#\\\|HSU27TY4JGR4OSSYFXRTEKK7LPNEPSG26KIGEISBBZRUJ3J6AY7 \ / AMOS7 \ YOURUM ::
-#\[7]IMIBNOHM2X7OZSDSJPKW5QWXFXY3EFTEMA3YG74HXAJY4ZTFJODI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,,,,,,..,...,.,,,.,,,,,,,..,,.,.,...,...,..,,...,,.,,,,,,...,
+#XCVQ7DFWTN42JU72QOO2TLKPMWPBMEYVX6N44MHZHP2I4YRMQHKAHIEQJNAYYDISMK5E5T3QXU7BE
+#\\\|4PPKMXAMVFRBQ5H4EEC3RDVN7CGARVB3PB5QLUVSCBU7LF7U5RB \ / AMOS7 \ YOURUM ::
+#\[7]QP537EUQLTJ27E5ROIHII27Z74IWRBTYNIJQMCFM26ST6655KKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

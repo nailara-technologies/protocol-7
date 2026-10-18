@@ -2,8 +2,10 @@
    .:[ cube command access permissions set-up ]:.
 
     ## << developer account permissions >> ## matches <system.admin-user>
-    access.cmd.usr.<admin-user>  =   ** ..*.**
-    access.cmd.usr.<unix-admin>  =   ** ..*.**
+    ## web.auth-issue [ web session token minting ] is listed explicitly :  ##
+    ## admin-only, kept even when the ** wildcards above get disabled       ##
+    access.cmd.usr.<admin-user>  =   ** ..*.** web.auth-issue
+    access.cmd.usr.<unix-admin>  =   ** ..*.** web.auth-issue
 
     ### adjust as required [ current : permissive ] ###
     access.cmd.usr.root          =   ** ..*.** ## [ bin/nshell + 'p7.nshell' ]
@@ -21,8 +23,8 @@
                                        osf-cache.has osf-cache.merkle \
                                        osf-cache.segment
 
-#,,.,,,,,,,.,,,,,,...,.,,,,,,,,.,,,,.,,,.,,.,,..,,...,,..,,..,,,,,,.,,...,.,.,
-#KI7NSXA5BXRFNABB2PLUUUEZW3J6RYGTLJJUVK6N3DSE23X26MEUX44FSEU5B7TIUSTBX6PWFCU2K
-#\\\|JWCIWNY66UBZR47MFI66ZYODESAATNHISEP6GKAYYUQ6IKTQWEJ \ / AMOS7 \ YOURUM ::
-#\[7]G2DJQPFHH7AAC5JRKXC3N3OA2Y3Z7DYNTLXYQTKC263IFVVLUOBY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,.,.,,..,.,,,.,,,..,,,.,,,..,..,,...,...,.,,,,..,..,,,..,,,,,
+#JS2KUCPDJY6WACBU2RN2ILJDXS2MYXHK5YE2JF5ILVIOY7OTVFGSK7WBE2YT4ZUPG26OYAVHTSLK6
+#\\\|ECQGLGYV73MDLD63PZVVDSQYYU73DFOXMEPZVLAVQFPMPPCGFKA \ / AMOS7 \ YOURUM ::
+#\[7]V23YHPF5QRQSZ7P5VFPVDTQ7LEZOZRD5NMFCQZ774ABJ3RYP3QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

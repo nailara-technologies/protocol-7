@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = jobsite.sync.token_for_url
+# descr = resolve the bearer token for a sync url [ host config ]
+# param = url string
+#
+# config [ /etc/protocol-7/jobsite/host.cfg ] :
+#   jobsite.cfg.sync_token  = <token>           ## one token for all urls ##
+#   jobsite.cfg.sync_tokens = <url>=<token> ... ## per-url overrides       ##
+#
+# the token is minted on the httpd host : p7c web.auth-issue jobsite-push \
+#     -ttl 31536000    [ one year ]
+
+my $url = shift // '';
+return '' if not length $url;
+
+## per-url mapping [ space separated url=token pairs ] ##
+my $map_str = <jobsite.cfg.sync_tokens> // '';
+if ( length $map_str ) {
+    for my $pair ( split m|\s+|, $map_str ) {
+        my ( $map_url, $map_token ) = split m|=|, $pair, 2;
+        next unless defined $map_url and length $map_url;
+        return $map_token // '' if $map_url eq $url;
+    }
+}
+
+## single token applying to every sync url ##
+return <jobsite.cfg.sync_token> // '';
+
+#,,.,,.,.,.,.,,..,,..,,..,.,.,...,...,,,.,.,,,..,,...,...,.,.,..,,.,,,,,.,,,,,
+#UPZVWYHPPNNISRDK443BO4GMBL6A4QCDH5F7B3HXNPKBTKZW23S5P7TCVHQ637NB23NACNGBPZF7Q
+#\\\|OKGE3EY3COKW2K44HCWIRG5QXHOL3EEVT55UV47MBQYUXHIYUKM \ / AMOS7 \ YOURUM ::
+#\[7]Z6J6Y3Q4VZVZYGWXYZES3IQWNVGBPDPD6ZRRAL52R7AM6QDNIWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

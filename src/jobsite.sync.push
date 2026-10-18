@@ -36,6 +36,21 @@ my @pushed_urls;
 for my $url (@urls) {
     next unless length $url;
 
+    ## bearer token for this url [ host config ] : empty means push without ##
+    ## auth [ local set-ups keep working ] -- resolved once per cycle, used ##
+    ## by jobsite.sync.push_chunk                                           ##
+    my $auth_token = <[jobsite.sync.token_for_url]>->($url);
+    <jobsite.sync.url_tokens> //= {};
+    <jobsite.sync.url_tokens>->{$url} = $auth_token;
+    if ( not length $auth_token ) {
+        <[base.logs]>->(
+            1,
+            'jss.sync: no auth token configured '
+                . 'for %s : pushing unauthenticated',
+            $url
+        );
+    }
+
     my $last_ntime = <jobsite.sync.last_ntime>->{$url} // '';
     ## fallback to scalar for backward compat ##
     $last_ntime = <jobsite.sync.last_server_ntime> // ''
@@ -174,8 +189,8 @@ my $log_level = $total_jobs ? 1 : 2;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,,.,,.,,..,,.,.,..,,.,,,.,.,..,,,,.,,..,...,..,,...,...,.,,,...,,,,,,.,,.,.,
-#JI65IMHURWY7CN4H2I2STONRCDCGLMUV363KAVDGEOADRJ377MO3EHJ7LQP37C56XD34PEOMV3NBM
-#\\\|YCIRY52LWYVYEQOBDEZVS6ICCUGXNJ6TXQQHEGTY3QL7AJTO5RR \ / AMOS7 \ YOURUM ::
-#\[7]USIEFGQZFN7OJ4AMI42DPWLXX3DKN6J7FZS45E7DBDFI2VKF62CQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,..,,..,,,,,,..,,.,.,.,.,,,,,...,..,,...,...,.,.,,.,,,.,,,,,,..,,
+#HFOKD6GCSVAARUY2NMWCAGUEQIP2KDVGTYXCPNU2KBSWIG4LYSEDIABAFCTIEYDDNYU5LPF5S4T2A
+#\\\|2WNWKYRCL4KECQSWYVSTEFNA75X7RR7Q7BJMYJFMSKBDH3SFAZA \ / AMOS7 \ YOURUM ::
+#\[7]ITDJZIUJXGR3X7I27D2IJL3ISXC6TRB543JMP6DHWA4AX6O2L4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

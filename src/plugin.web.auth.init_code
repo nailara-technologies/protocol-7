@@ -12,6 +12,32 @@ my $cfg_path
 my $auth_cfg = {};
 $auth_cfg = <[format.yaml.load_file]>->($cfg_path) // {}
     if -f $cfg_path;
+
+## secret source : host config ONLY [ base.load_host_config :        ##
+## /etc/protocol-7/<zenka>/host.cfg 'web.auth.secret = ...' ] -- the ##
+## tracked auth.yaml must never carry a secret : refuse to honor one ##
+my $yaml_secret = $auth_cfg->{'secret'} // '';
+if ( length $yaml_secret ) {
+    <[base.logs]>->(
+        0,
+        'plugin.web.auth : secret in tracked auth.yaml IGNORED : use host '
+            . 'config [ web.auth.secret in /etc/protocol-7/%s/host.cfg ]',
+        $zenka
+    );
+    $auth_cfg->{'secret'} = '';
+}
+my $host_secret = <web.auth.secret> // '';
+$auth_cfg->{'secret'} = $host_secret if length $host_secret;
+
+if ( not length( $auth_cfg->{'secret'} // '' ) ) {
+    <[base.logs]>->(
+        1,
+        'plugin.web.auth : no web.auth.secret in '
+            . 'host config : auth fail closed [ zenka=%s ]',
+        $zenka
+    );
+}
+
 $data{'plugin.web.auth'}{'cfg'} = $auth_cfg;
 
 ## ensure shared session directory exists ##
@@ -30,8 +56,8 @@ for my $subdir (qw| active expired |) {
 
 0;
 
-#,,,,,.,,,,,.,...,,,.,,,.,,.,,..,,,..,...,,,.,..,,...,...,.,.,,,,,,..,...,,,,,
-#CHQDZMTBAFDSK6YSJDQ4IFGBE3ZDXVKTTCGGFRQMNQN63DMSK52O4CBTVCV5JKVQJWIFADLW5JACQ
-#\\\|T3KQTKGIYGKJ7WLEJ3PYNWC5GQGUJPHARJV5QUZ463UTFVLDOJG \ / AMOS7 \ YOURUM ::
-#\[7]PRYCW2M7JX55EW2SP3FCD2JJAJJRNZRX22RPIQ4GA3N2NHIYNCDA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,.,,,...,,.,,..,,.,.,,.,,,,,,..,,...,...,..,,,,,,,.,,,,.,,,,,
+#6NMXD5Q73LFFNZSCAG4FNUT2OHZALHMQHRC4TV4HAIMJT6VWZPWYRDF7RHBLDWNJ63PILIU7TQKCQ
+#\\\|QGQD6BMAOSGMS22TP5F3FSKCJJZQY3HIHSSOBNZTJGBA6CCNH6T \ / AMOS7 \ YOURUM ::
+#\[7]OJCQ3CEKE224TZP3SU47I6PVQ453YDJWX25TMHPK6UAGESK5SQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
