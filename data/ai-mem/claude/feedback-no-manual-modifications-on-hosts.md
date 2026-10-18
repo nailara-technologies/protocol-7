@@ -11,8 +11,16 @@ user, 2026-10-11 : "i do not want any more manual modifications where possible, 
 
 **How to apply:** deploy with `p7c v7-zenki.start pull-git` on the host ; when a step needs a file on a host, prefer code that creates it [ nameserv ensure-zone instead of hand-written zone files, base.load_host_config creating its dir, auto-detection writing /var state ] ; the few unavoidable host decisions go into host.cfg, nothing into the checkout. when you must ask the user for a root step, keep it to one block and say it is the last one. related : [[servers-dns01-host-config-2026-10-11]], [[keep-new-server-1]].
 
-#,,.,,,.,,.,.,,,.,,.,,..,,.,.,.,,,,.,,..,,,.,,..,,...,...,.,.,..,,,..,.,,,.,,,
-#BCYQ7OFVY3Y4SGSQMSFYMW53NRSAEXXSSJUSXASJSAG4ALVOMVCW3J2PZ2M6AMN5ZDJ5EMPHYSTMQ
-#\\\|42BZTXDAL2GVSWP4FMXG52OLAX2I4BB7MV4M7CTDJMVH5R5XMYW \ / AMOS7 \ YOURUM ::
-#\[7]L7AJMAAX7QHVOF3PKIYOP6XIP2ONOHBCGPJPVB7G5MZGNQYS7EBI 7  DATA SIGNATURE ::
+
+**Updating a host's checkout : `p7c v7-zenki.start pull-git`, never a
+plain `git pull` [ 2026-10-18 ].** the pull-git set-up runs
+bin/admin/p7-git-pull--rebase as root : fetch, clears untracked files the
+incoming commits start tracking with the same content, `pull --rebase`,
+then bin/admin/restore-p7-permissions. a manual pull skips the last two
+steps. done wrong once on pri, then repaired by running pull-git.
+
+#,,.,,,.,,,.,,,.,,..,,,,,,.,.,,..,.,,,,..,,..,..,,...,...,,..,.,,,,.,,,.,,.,.,
+#QLXLARYHIJMSNMPOFUI53MHW24WEZGMKAZ2YSKLNMSHMNRFVKXKLEQFGV6XD4TLWC32T2YC24EPTM
+#\\\|7C43VQT3FCKLCTWTSYI4SOM3AEWWZL52K2YUKOOI2YEE4AU5IBX \ / AMOS7 \ YOURUM ::
+#\[7]SH627V3TZE6N52FQ7ZOW7CSAUWJHNP5QKEICZOOQP2TIU5G47WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

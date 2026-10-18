@@ -7,7 +7,9 @@ binary : `/data/source/ik_llama.cpp/build-cpu/bin/llama-server`
 fixes the 2026-09-17 ABI-skew segfault :
 `data/ai-mem/claude/bug-coding-cpu-binary-abi-skew-root-cause-2026-09-17.md` ].
 model : `/data/models/tvall43/Qwen3.6-14B-A3B-FableVibes-GGUF/Qwen3.6-14B-A3B-FableVibes-Q4_K_M.gguf`
-[ 8.1 GB, moe 3B active, amos id 72T4WFI:TK55OIY ].
+[ 8.1 GB, moe 3B active ; its amos id comes from the models zenka after
+registering the dir -- `p7c models.list models` ; the 72T4WFI:TK55OIY this
+checklist first named did NOT resolve on the host, 2026-10-18 ].
 
 repo-side support landed with this checklist :
 `coding.cfg.cpu_context_max` [ fixed context cap ],
@@ -162,7 +164,8 @@ mkdir -p /etc/protocol-7/jobsite
 ## the same <amos>:<amos> model id as inference.model.amos_id in the
 ## coding host.cfg above
 echo 'jobsite.cfg.assessment_model = <model id>' > /etc/protocol-7/jobsite/host.cfg
-chown <zenka user> /etc/protocol-7/jobsite/host.cfg
+## root:root 0644 like the other host.cfg files : read as root before
+## the privilege drop, and the zenka cannot loosen its own settings
 ```
 
 then restart the jobsite zenka [ `p7c v7-zenki.restart jobsite` -- check the
@@ -216,8 +219,8 @@ and use the smoke test.
 4. layer 2 assumes systemd v246+ [ pidfd scope placement, exec-in-place ] —
    ancient distros get the unscoped loud-log path instead.
 
-#,,,.,,.,,,.,,,..,.,.,,..,..,,,,.,,,,,...,.,,,..,,...,...,..,,.,.,...,,,,,,,.,
-#MBGRCO7HYDVTFIYNK3QJ53JF6DGRIEZXVILBQP3AUFCU4D2LBEJDPRSOVXZSLFOBZWSOCRI2KPC7Y
-#\\\|QSI5BPBFHNXBK7LC7CUNOMTPQCMDUYK662FDQPNYHMFGLCVTASS \ / AMOS7 \ YOURUM ::
-#\[7]X4SVRQ2GLGDDGHD2LXFS7FQTAZHP3RUSLV4UQK5IDTBMFSELRMBY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,,..,,.,,.,.,.,.,,.,,,,,,,,.,..,,...,...,...,,,.,,,,,,.,,..,,
+#I24KC74DVV7HLKIWN7RTD3K4OGJIY7OHYP3ULGLUURK62OPBFRFLIHGB7WWHMXN7A66AXBW3BF7A4
+#\\\|W722UD35NQ7HRITNLLFR3Q6QVDJJYNT7PJVFQG4DOKAMENXWUFO \ / AMOS7 \ YOURUM ::
+#\[7]HDZZYFS5OUSTDXFZ2EG3LSREHN6R2W4JCPUDDC7Y7QWOJSG4YMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
