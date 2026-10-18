@@ -13,25 +13,28 @@ use constant FALSE => 0;      ##  false  ##
 
 use Exporter;
 use base qw| Exporter |;
-use vars qw| @EXPORT $VERSION |;
+use vars qw| @EXPORT $VERSION $ALGORITHM_VERSION |;
 
 ## INLINE ELF OUTPUT CHECKSUM ##
 ##
-$VERSION = qw| AMOS-13-ELF-7-SQIG7DQ |;    #  amos-chksum -VL7  #
+our $ALGORITHM_VERSION = qw| AMOS-13-ELF-7-MMQNNII |;   #  amos-chksum -VL7  #
+##  module source  ##
+our $VERSION = qw| AMOS7::CHKSUM::ELF-VERSION.A233HVY |;
 
-@EXPORT = qw| elf_chksum inline_elf $VERSION |;
+@EXPORT = qw| elf_chksum inline_elf |;
 
 ## AMOS-13-ELF-7 SETTINGS ##
 ##
-our $elf_mode   //= 7;                     ##  elf hash setting :   4 ##
-our $shift_bits //= 13;                    ##  elf hash setting :  24 ##
+our $elf_mode   //= 7;     ##  elf hash setting :   4 ##
+our $shift_bits //= 13;    ##  elf hash setting :  24 ##
 
 our $overflow_threshold //= 0XFE000000;    ##  elf hash : 0XF0000000 ##
 ##
 ####
 
 use AMOS7;                                 ##  error handler  ##
-use AMOS7::INLINE;                         ## inline_elf compilation ##
+## inline_elf compilation [ $VERSION not imported : alias protection ] ##
+use AMOS7::INLINE qw| compile_inline_source |;
 
 ## skips compilation when included from AMOS7::INLINE::src::TruthAssertion
 if ( defined &AMOS7::INLINE::compile_inline_source ) {
@@ -102,8 +105,8 @@ sub elf_chksum {
 
 return TRUE ##################################################################
 
-#,,.,,..,,,..,,,.,,..,,.,,,,.,,.,,...,,,,,,,,,..,,...,...,,,.,,,,,..,,,,.,,.,,
-#KQPAHEU5CAYCIJ6Q6CHIF7IQLS3RAWKQTGZ7YPDDTKK6SZNLA6FNLOO4DQF3AJIE5SKJM2CK7LP6E
-#\\\|WEIIJAXCNPWQ4RB52BYOP23IZUQK2S64KXMCJ7NG5TDTTEDROYB \ / AMOS7 \ YOURUM ::
-#\[7]EGGZYC5XG65GHIHQUNQIJL6SXVRNOCX7UCA7XVDHR26FGDBDCUDA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,,,,..,.,,,...,,..,,..,...,.,.,..,,...,...,.,,,.,.,,..,,.,,,,.,
+#HD4YV6PDEBOHT62FYHKN27LUUR65FKTHD4R3ISIW2QNX26CGCIDAGLPX5RTRMNRECBNICPQQAFLFQ
+#\\\|RHE555BCPMMIIMGPVG4YRAMJYUQC37AM7WYLX2AKNEZCOBOGGP5 \ / AMOS7 \ YOURUM ::
+#\[7]XPGCPK2BGRZIYPEO4ZLCUEU2OUJVUCHEMPP6XQZI4RO75LZMVIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

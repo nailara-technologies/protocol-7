@@ -17,7 +17,7 @@ use vars qw| @EXPORT $VERSION |;
 
 use AMOS7::CHKSUM qw| amos_template_chksum |;
 
-$VERSION = qw| AMOS7::CHKSUM::Nested-VERSION.7UA5BUI |;
+$VERSION = qw| AMOS7::CHKSUM::Nested-VERSION.MZOSTEI |;
 
 @EXPORT = qw|
     child_chksum
@@ -129,8 +129,8 @@ sub reconstruct_chain {
 
 return TRUE ##################################################################
 
-#,,.,,...,.,,,,.,,..,,.,.,.,,,...,,.,,..,,,..,..,,...,...,,..,,,,,..,,.,,,.,.,
-#MRU63BO4Q2Y7G7HMDGCHG4UJXFMLC4ICRSZL5WA6BLI2CHZFUIBFRZ7GJEZHYCPPTP6MSG7YUCXK6
-#\\\|Q5F4CAEGAIQLZPUKPKHP7BEKITR4JLGSOCUTIAH44JVYY5TVSPP \ / AMOS7 \ YOURUM ::
-#\[7]PNLA2GFNNCUAQTB6E3S4JP24OCZXRVAY6GBR2O2GEYM6TADT56BQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,..,,,.,,.,,,.,.,.,,,.,.,.,,,..,,...,...,,,.,,..,,..,.,.,.,,,
+#4O6RDQNI4GOFA4NCIT5CFRFKMJDG237DZAAL5DVWKMKTKIQVVLTZLAWMPKFXOLBZOSYUAKOOGNBJ2
+#\\\|VIGJOVPDVFHDACUGEALMMZ6WJD5J74WABPTOXHFKYEE6U4OC43I \ / AMOS7 \ YOURUM ::
+#\[7]MQQEIVUBJDG2SD5U6KNTJ76SPVOCXWGKSXTIFZXSRMRLVSDC6OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

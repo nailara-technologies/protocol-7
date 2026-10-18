@@ -518,6 +518,38 @@ inference.model.amos_id = <coding.cfg.start_model>
 ## a placeholder value here would get re-applied [ clobbering the resolved  ##
 ## path ] every time 'reload config'/'reload all' re-parses this file       ##
 
+## [ per-host overlay : /etc/protocol-7/coding/host.cfg, optional ]        ##
+## see base.load_host_config : 'key = value' lines applied ON TOP of        ##
+## everything above on THIS host only, re-applied on 'reload config'.      ##
+## this is the intended home of host-specific values [ a cpu-only server,  ##
+## a remote gpu box ] -- the repo config stays host-agnostic, no hand       ##
+## edits on hosts.                                                          ##
+##                                                                          ##
+## CAVEAT : <...> macros above were expanded at parse time, so a host.cfg   ##
+## override of coding.cfg.start_model does NOT re-expand the keys that      ##
+## reference it [ inference.model.amos_id, inference.backend.*.model_id ]   ##
+## -- set those concrete keys directly in host.cfg.                         ##
+##                                                                          ##
+## example : cpu-only inference host [ no gpu, ram-bound, no swap ] :       ##
+##                                                                          ##
+#inference.backend.gpu.enabled = no
+#inference.backend.cpu.enabled = yes
+#inference.backend.cpu.binary = /data/source/ik_llama.cpp/build-cpu/bin/llama-server
+#inference.backend.cpu.threads = 8
+#inference.backend.cpu.mem_max = 14G    ## systemd-run --scope MemoryMax=cgroup
+#inference.backend.cpu.model_id = 72T4WFI:TK55OIY
+#inference.backend.cpu.path = /data/models/tvall43/Qwen3.6-14B-A3B-FableVibes-GGUF/Qwen3.6-14B-A3B-FableVibes-Q4_K_M.gguf
+#coding.cfg.cpu_context_max = 32768    ## fixed cap, auto-expansion cannot exceed
+#coding.cfg.context_max = 32768        ## keep the shared ceiling in step
+##                                                                          ##
+## [ the explicit inference.backend.cpu.path also satisfies the spawn       ##
+##   dependency without a models-zenka registry entry -- the model file     ##
+##   still SHOULD be registered [ models scan-path-add ] so amos-id         ##
+##   resolution and model metadata work; see                                ##
+##   data/tasks/coding-cpu-host-setup.md ]                                  ##
+
+[load_host_config]
+
 modules.load = auth.client net protocol io.unix io.ip ui jobqueue crypt.C25519 \
                coding models.conversation models.gguf.file storage context \
                ascii note pager format.yaml format.json ncode reasoning llm git \
@@ -545,8 +577,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,,,,..,,,,,,..,,.,,,,..,,.,,,,,,.,.,,.,,.,.,...,...,,,,,,,.,,..,,,,,,.,,
-#NVRQVEWMOBBZT2S5PID23OMVH7QD6ENB452DY7FZSXZ7GYPN4MXPL45QVIZHKDNVEOM5ZPYLTQXOS
-#\\\|ZQKN32GQHMBCVR5HZGA7MNPSP2QVM3KUHJUAD64TMOWXTHX3IFH \ / AMOS7 \ YOURUM ::
-#\[7]6UC642V7QKN26LW2NLMOOKIM76JNQD4YMNCG7CKZ3OR4K3YRYCAA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,,..,,..,..,,,..,,,.,...,...,.,.,...,...,,,.,..,,,,,,.,.,...,
+#P7DQ53PQP65YPYEA3TUKAYWVJG6ARKA6R6E5JNM37HXI4RIZO5DP3WQKRECGXY2PNV6X4PJHHE7O2
+#\\\|KPMNYAWZEVZYOMBXU6JFO4LRLZ3T2V5W4I4Z666HK4NJNBKWQGU \ / AMOS7 \ YOURUM ::
+#\[7]3RUEZ5XRG3ZWCTCFOTAZOGKT77NNXVEVCC5FQAPRTUWGOV3ME2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

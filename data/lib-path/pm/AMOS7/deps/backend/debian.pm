@@ -1,4 +1,5 @@
 package AMOS7::deps::backend::debian;
+our $VERSION = qw| AMOS7::deps::backend::debian-VERSION.FHRM3MQ |;
 
 use strict;
 use warnings;
@@ -51,8 +52,8 @@ sub refresh { return 1 }
 
 1;
 
-#,,.,,,.,,..,,..,,,,,,...,,,,,...,.,.,,,,,,.,,..,,...,..,,,.,,,..,,,,,.,.,,,.,
-#4D7A5AEPXQFUPMAK6QYQDWWF3UV5LS4I5JPTDWEU3QPL3H6IL7KTVIBN42WAWRY762P4WZQYKTOG4
-#\\\|JMJKFXHMUPDMEFJNV3HSTNCHPEZ24X43RE4R5K4UDNN5T4N5JDN \ / AMOS7 \ YOURUM ::
-#\[7]IUOX2BDPS3Z5DOPZWMEI3JWGU7NNN6XL5WBVZ43QKXNEZQ5ZCYBY 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,.,.,..,,...,,..,.,.,...,,.,,..,,...,..,,.,.,,..,.,.,,,.,,.,,
+#M4PK7VN2S5AMXBCICYKYF7ZIEVRJ4IJO3GZNCHI52OHUFO52GLK5TRITNYEYBZKYUZO5CEBX2CQUE
+#\\\|HV4BGR5ZWLF3ZAIYTF3VK4GV3J77A47XMK2DRYVT3H6CKF5NISZ \ / AMOS7 \ YOURUM ::
+#\[7]CB4ZSYVDGANUTMATHCQ2HL7HNZIGLCWLYBTJLXD6DW6NEMV27UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ use vars qw| $VERSION @EXPORT |;
 use Exporter;
 use base qw| Exporter |;
 
-my $VERSION = qw|  |;
+our $VERSION = qw| AMOS7::13::cipher-VERSION.XZ2I2II |;
 
 my $min_key_length = 13;
 
@@ -90,8 +90,8 @@ sub verify { }
 
 return 1;  ###################################################################
 
-#,,,,,,.,,...,,,.,.,,,,.,,,..,,,.,,.,,.,.,...,..,,...,...,,..,.,.,.,.,,.,,,..,
-#EAZDGGK7N4EEJNC4TE6HCG2Q6QQCKAXX3KFC52G7LX2PXUCYTQ2GGERW66OIPYAKDADIYEIEUVY7I
-#\\\|JN4CD3ORXFDQSOOYURN3K4YOWTUGBSOYZY76KFMYNJWTP4VXQXI \ / AMOS7 \ YOURUM ::
-#\[7]BITSC756TIIUFMTPICLEMKH3RNKWAJ6AUAPERXQE4HUH67TTEYBI 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,,,,,,,,..,..,,,,.,,.,,..,,.,,,..,,...,..,,..,,...,...,.,,,,.,,
+#J2VLNT4IGXGNKIOBMJCIUFY46TRJWYULZD23WKDG6Z3NTFKTERINKORQFZ6OI6A44NRADADFH6WEC
+#\\\|U6GXGBBEZAUE7T5A7DBCH6APSSBSDGEISLWSPOHDY3OLOVUPFNA \ / AMOS7 \ YOURUM ::
+#\[7]OI5ZWLKA5DXLSUGK35SBAPGG7XLNDTT5H6KNINQQPI2YV6XUESCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

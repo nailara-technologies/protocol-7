@@ -6,7 +6,7 @@ use strict;
 use English;
 use warnings;
 
-our $VERSION = qw| AMOS-Protocol-P7-XLC5PEQ |;
+our $VERSION = qw| AMOS7::Protocol::P7-VERSION.UFHNXPA |;
 
 use Exporter;
 use base qw| Exporter |;
@@ -175,8 +175,8 @@ sub calc_unix_path {    ## calc unix socket path for ip address port pair ##
 
 return 5;  ###################################################################
 
-#,,,.,,..,,,,,...,...,,,,,.,.,...,.,.,..,,,,.,..,,...,...,,.,,.,.,.,,,.,.,,.,,
-#4BSUUIDE36WMAHPMCGEXMMOIMTJRA42D2YGTXQ2KKZ3MKBWWRWVOCVPY4DQDZRU5IE3NJTCCKYSI4
-#\\\|6TZXT4DCU3Q2X7KLFUSOJQACVQAY27PB3NEFHZ54IQP66PHGTVF \ / AMOS7 \ YOURUM ::
-#\[7]5KRE77P3ZFZ3FKDDJLSS5MWIQIEDREYQAAG6V5O4QSZTOYMMFSBI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,...,,,.,,..,,,.,,,,,,,,,.,,,..,,...,...,.,.,...,.,.,,,.,.,,,
+#JW5PB3NBTBHXFR6PII22S4LNRUTH7KU4UWZU4U6QHPDADQHBSBRTQ4V2CL2G7T34BOQHPTGWUVJRC
+#\\\|LKLDCOIS5B2PH6CIQMIA3IASHWKKTHB4UCFWLJYOZGPS6NRJTY5 \ / AMOS7 \ YOURUM ::
+#\[7]LVN5NOXTLBSM7ZSXPY5FCN6HTG3ZXS6NKAGNFJJRQ3RHTT562IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,7 @@
 ## [:< ##
 
 package AMOS7::Util;   #######################################################
+our $VERSION = qw| AMOS7::Util-VERSION.Z7GGGPA |;
 
 use v5.24;
 use strict;
@@ -229,8 +230,8 @@ sub process_key_press {
 
 return TRUE ##################################################################
 
-#,,,,,,,,,,..,,,.,,,,,,..,.,.,.,,,.,.,,..,,.,,..,,...,...,.,.,.,,,.,,,...,,.,,
-#MNLPXI5KPTEWBLYTW3O4GXDHBH4YAVDCJUUTNUOBHM5AVARFBH4L6AWZPF5SLGESELBMNOP5645ZQ
-#\\\|KILXCHDKN4VSCHS4DNPSWFNYSJPR6TC6EPN4VWGO5JQOY5GCG77 \ / AMOS7 \ YOURUM ::
-#\[7]JBVYR743YMGELX6ZP2PTKNWSKRCJEWJ6LEQ2LGWV5NNBQFMCB6CI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,.,...,.,.,,.,,.,,,.,.,.,,,..,,..,,...,...,..,,.,.,,,,,..,,...,
+#IGMEHZXSQSKTS5ZTPRBFLPXJML732RNR3LU66Z4T7LWFM5HLOPNMH3OZ2P3B2CKE647BLLVNABHYI
+#\\\|YIBHGXQWWOBZF2JSYOWABDNQQ7XWTVFAGT5NAAUGDNGJRX2YIRL \ / AMOS7 \ YOURUM ::
+#\[7]GPAOKBQRRLHF35MQF3EEO775G5ZWY77ZPXDL2GWV3VPWWLZM2OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

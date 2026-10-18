@@ -57,7 +57,7 @@ warn_err(
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-$VERSION = qw| AMOS-INLINE-VER-MEMMQXQ |;
+$VERSION = qw| AMOS7::INLINE-VERSION.GQOQRCA |;
 
 return TRUE;    ## true ##
 
@@ -380,8 +380,8 @@ sub encoded_bmw_chksum {
 
 return TRUE ##################################################################
 
-#,,..,,,.,,..,,,.,,,,,.,.,..,,,..,,,,,.,.,,,.,..,,...,...,.,.,.,,,,,,,..,,,.,,
-#AIYMIZOSEXRYEJAKKAULPB3WAIVQGNZTQZXSDLV4YHNJBP6JVTXDGXT4M73PF6J27QZTISU4D2RVM
-#\\\|6G3KGWKJDA3YPKH4OFEIVJ6IVOOZ26EZ3RLGTAY5OMZXMNMZMCS \ / AMOS7 \ YOURUM ::
-#\[7]MLPZGJ7HORZ54D6YSRBI666RYYBMRU3A3N6AY5JXECHAGUMBGMAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,.,,,...,,..,,,,,,,,,.,,,.,.,..,,...,...,...,...,..,,,,,,..,,
+#OO7NOE3LJN4I3R4D6QVH52MOS3EQTWSIUJGQGBBP7RIMPD7SFBWWBYEJKYACFHLQ4A5FIW2KOVWWU
+#\\\|4ZDOIKVXDBFQ5LHVWU2GHFM2IGBNHV4XLQSK6GFKF3HJGRZNXZP \ / AMOS7 \ YOURUM ::
+#\[7]QKIKXCYMPWKMEWRWZHQI3FIT5JBP2GI3R2AJ7I4YUKSR55VCRKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

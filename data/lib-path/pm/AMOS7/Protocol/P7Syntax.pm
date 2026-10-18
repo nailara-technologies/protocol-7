@@ -6,7 +6,7 @@ use strict;
 use English;
 use warnings;
 
-our $VERSION = qw| AMOS-Protocol-P7Syntax-XKC91QZ |;
+our $VERSION = qw| AMOS7::Protocol::P7Syntax-VERSION.AU4X3TQ |;
 
 use Exporter;
 use base qw| Exporter |;
@@ -789,8 +789,8 @@ sub p7_syntax__swapped_calls {
 
 return 5;  ###################################################################
 
-#,,..,...,.,,,.,,,,,,,.,,,.,.,...,...,..,,...,..,,...,...,.,,,,.,,,,,,,..,.,.,
-#DDH4APSXP3UCMPIIJIWYGTTX36E57C5DUNP4E4FAA2DFXUGE4JDAUBQIFPIIOAX4I4MKNBKKGQXJW
-#\\\|VWNVJQSYKHVFTADPU7ZU2YKI55Q4DYVVD2MHKY3KUQ2NXCTGAFW \ / AMOS7 \ YOURUM ::
-#\[7]R5ZY2EVFX3CHTULTCJXUV3NHHGI5F5KGWMKHTTNQLJZQ23D7DYBA 7  DATA SIGNATURE ::
+#,,..,,.,,...,,..,..,,,,,,.,,,,,,,..,,.,,,.,,,..,,...,..,,...,,..,,..,,..,..,,
+#A65T2JIYLQYMGNMWOVLR5MK5EFFWNGK4YHVOJTCA2KLO5YBW4DUZYY7RLSBD4O2JIOU3VZHLBETOA
+#\\\|4TIFCC2LNGTEDMN46MVFUYWUCDFATMM4CVTZT5KQCWKWNSMDPRP \ / AMOS7 \ YOURUM ::
+#\[7]2LQCNWHLVAGJW5MEEWGLUGSHMQVRFVYATQXDWMJPPLRMBKMFNMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

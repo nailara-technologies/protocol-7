@@ -18,7 +18,7 @@ use vars qw| @EXPORT $VERSION |;
 use Digest::BMW;
 use Math::BigInt;
 
-$VERSION = qw| AMOS7::CHKSUM::BMW384-VERSION.7UA5BUI |;
+$VERSION = qw| AMOS7::CHKSUM::BMW384-VERSION.OA2UNEI |;
 
 @EXPORT = qw|
     bmw384_color
@@ -164,8 +164,8 @@ sub bmw384_coordinate_str {
 
 return TRUE ##################################################################
 
-#,,,.,,..,...,.,,,,,.,.,,,...,..,,,,.,,.,,.,.,..,,...,..,,,,,,,.,,..,,,..,.,.,
-#3UNCOXFLBV4DGAQ6XZAGM3XZSVWCW7VZL26WS437E4CWXTJXO6QFXIMPIJWO5GPKYO2WA46HNUTHG
-#\\\|EDYWUGSYO5J7EAYPPZQ5WJGAW2G5OZOP32Y5A47VDLYNFYAGZMB \ / AMOS7 \ YOURUM ::
-#\[7]NHS2O5T4KOJPX6INRNPZCOVXTUBUUEP27LMAGWBMAGUQ37XK44DQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,,..,.,,,..,,.,.,,.,,...,,,,,..,,...,...,..,,.,.,,,.,,,.,,,.,
+#6X2YZIOEPXMM3EQAZZXL4J4RIVMBBS267NA55CRIUP2C6ECN5QZV3XSO7POKHS7KQT7GSOBAH47WE
+#\\\|GR5ZVPISEN77UTAZVZKAHHN6ZAWUOVFKLCEAOYOGJLFH7JKX6QC \ / AMOS7 \ YOURUM ::
+#\[7]HUOEHV6OKPJTFS2BNBFHSP6EH6I2UVYPGZ73ATIGIPJP5LLJA2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

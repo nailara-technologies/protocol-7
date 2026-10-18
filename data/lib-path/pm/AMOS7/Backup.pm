@@ -31,7 +31,7 @@ use vars qw| @EXPORT $VERSION |;
     $VERSION
     |;
 
-our $VERSION = qw| AMOS7::Backup-VERSION.ZK4M9P1 |;
+our $VERSION = qw| AMOS7::Backup-VERSION.J3FMEKQ |;
 
 ##[ DEPENDENCIES ]############################################################
 
@@ -554,8 +554,8 @@ sub _add_path {
 
 1;
 
-#,,..,.,.,.,,,.,.,.,.,.,,,...,.,,,..,,...,...,..,,...,...,.,.,,.,,,,,,...,..,,
-#E2GRS6QMY5RSE4V5KO2N6ZZ3SEOJC2TT6QABEMMA7RLV5M2A2ZFTGCQH4PDG7DULIPNS22UFJ4344
-#\\\|5T6HCEGTSZIQEMXN67KVWTJCLESCSI4LBTU4X5T2CR7UHTUPVNE \ / AMOS7 \ YOURUM ::
-#\[7]HJ3QHCJW4ZOCPEQYJ4EPRSYDC3O3Z2WA5C7JHPAE6H5SSWFIYYCA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,,..,.,.,.,,,...,,,,,,,.,,,,,..,,...,...,...,,..,...,,,.,.,,,
+#H47BTHCXOHH5EWWKQ3ZPYUTBRIUL5XUDXD7VIKZCUKQOQC5OHOIU5B4L5BNPOMFUNJOC6HA23SXRW
+#\\\|VA2JC2VJLULRCG4CFYISKM5XDJSEFCVBXUTDHXIT4C6VF4Y6NPI \ / AMOS7 \ YOURUM ::
+#\[7]SQSF53CXDA33A4S3UCEX3KTPJID6EQ3I7XDZJ6UXXAQMTDX4Z4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

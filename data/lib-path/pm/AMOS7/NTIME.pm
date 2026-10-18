@@ -2,18 +2,19 @@
 
 package AMOS7::NTIME;    ###################################################
 
-## protocol-7 network time for STANDALONE scripts [ bin/ntime, p7-vault,
-## anything that runs without a backend ]. zenki keep their native routines [
-## base.ntime, base.ntime.b32, base.encode_ntime_to_B32, base.ntime.
-## BASE32_to_numerical in bin/Protocol-7 ] -- this module mirrors them and is
-## not loaded there. keep both in step.
+## protocol-7 network time for STANDALONE scripts
+## [ bin/ntime, p7-vault, anything that runs without a backend ]. zenki keep
+## their native routines [ base.ntime, base.ntime.b32,
+## base.encode_ntime_to_B32, base.ntime. BASE32_to_numerical in bin/Protocol-7
+## ] -- this module mirrors them and is not loaded there. keep both in step.
 ##
 ## ntime  = ( unix seconds - 1023228000 ) * 4200   [ 2002-06-05 ] base32 = rfc
 ## 4648 of perl pack( 'w*', int [ , '7' . fraction ] )
 ##
-## conversions need Crypt::Misc only. harmony [ stepping 'now' back to a
-## harmonic value, as base.ntime does ] loads AMOS7::Assert::Truth on demand
-## -- callers that do not ask for it never pull that chain in.
+## conversions need Crypt::Misc only. harmony
+## [ stepping 'now' back to a harmonic value, as base.ntime does ] loads
+## AMOS7::Assert::Truth on demand -- callers that do not ask for it never pull
+## that chain in.
 
 use v5.24;
 use strict;
@@ -30,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::NTIME-VERSION.0000001 |;
+our $VERSION = qw| AMOS7::NTIME-VERSION.5E2RMPI |;
 
 @EXPORT_OK = qw|
     NTIME_START
@@ -75,8 +76,8 @@ sub ntime_to_unix {
     return $ntime / 4200 + NTIME_START;
 }
 
-## one unit of the last digit back, on the digit string [ exact at every
-## precision ]
+## one unit of the last digit back, on the digit string
+## [ exact at every precision ]
 sub ntime_step_back {
     my @digits = split m||, shift // '';
     for ( my $i = $#digits; $i >= 0; $i-- ) {
@@ -226,8 +227,8 @@ sub relative_str {
     return $delta < 0 ? "in $str" : "$str ago";
 }
 
-## unix time -> 'Fri Oct  9 2026 16:56:52 [ +0.2368 ]' [ cube's localtime
-## command : year before the time, sub seconds appended ]
+## unix time -> 'Fri Oct  9 2026 16:56:52 [ +0.2368 ]'
+## [ cube's localtime command : year before the time, sub seconds appended ]
 sub localtime_str {
     my $unix      = shift // return undef;
     my $precision = shift // 4;
@@ -248,8 +249,8 @@ sub _harmony_loaded {
 
 1;
 
-#,,.,,.,,,,,,,,.,,,,.,,,.,,,.,..,,,..,,,.,..,,..,,...,...,,,.,,,,,.,,,.,,,,..,
-#YXMWA2MQNXSW426WAAILSWQVX7QNE3LJG3O7COV2TZQY52FUSNJS3XIVR7S3BJTFCXOKA5OUMVP2E
-#\\\|GTUIJIFHAJ74ZLQRKUXT7OVOVZI45GYPADOF2TMBKIILBHIJLLF \ / AMOS7 \ YOURUM ::
-#\[7]5MGTXR5XUHVJ3W26WKYBD4H5YUVCGSCXZCHWN4BDXCTXXOOWICCI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,,..,,,.,,,.,,,,,...,,.,,.,.,..,,...,...,...,,..,,,,,.,.,.,.,
+#5WGE2QFLXHUWNISK7IY57RSADY3FYO36I57XPPGV4LTVW2SIM2DAKZBOI27O4VUY5AHKBYJT2XWPY
+#\\\|WBDTGRJRLKOAJDJJRXWRAVGKPGXWSHVZPFMULQ2RXQU3DYTCYEQ \ / AMOS7 \ YOURUM ::
+#\[7]JORKCLG2RYLOMWTLPB3U6N3MH6E2IP2UWZ6FSYOZBTSBREB7FUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

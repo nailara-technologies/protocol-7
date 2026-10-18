@@ -1,5 +1,6 @@
 
 package AMOS7::Assert;  ######################################################
+our $VERSION = qw| AMOS7::Assert-VERSION.G73HTTA |;
 
 use v5.24;
 use strict;
@@ -45,8 +46,8 @@ sub zulum_prefix_length {
 
 return TRUE ##################################################################
 
-#,,,.,,,,,,..,,,,,,..,...,,.,,,.,,,.,,.,,,,.,,..,,...,...,...,.,.,,.,,,.,,.,.,
-#JNSFRUY47PXJ4F2M64STYY3CT5CYT7GHKFTJWE4XZQH2SQ3EQAAH62FY3IW6OYRS3WN54E6BDUVI2
-#\\\|TBXU5DIL3LYKWLVK4JDOKETWE2GIYOBNOPWXC7YGJQ24IE2XFWX \ / AMOS7 \ YOURUM ::
-#\[7]I7WNWV7NCMLQW4V47YIQXZ5SYS6EEQP2IVASJCAB7RVWUAJBIYCI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,,,,,,..,.,,,.,,,.,,,.,.,.,.,..,,...,...,,,,,..,,.,,,,.,,,..,
+#FEENHAZL2SRXNO4FQSYSLV23NKOYKWCY2BBUPGWGL5OHT3ML7UN3AQD4XK4NH2K3HX4W66SPFJU7A
+#\\\|Z4FG3KIG3VJFAWQ4PDE4ZTLZXJIKUW45WUL4KQCTCMY76UNHWLU \ / AMOS7 \ YOURUM ::
+#\[7]VSB3IQSR2HVQESYFE465H5N6JDZ4Z2OP35WVE6PFNCZEISEVS4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,7 +44,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.0000001 |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.5AANLBY |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -279,8 +279,8 @@ sub editor_make_reader {
 sub _read_paste_block {
     ## read until the paste terminator "\e[201~" shows up at the tail
     my ( $reader, $aborted_ref ) = @_;
-    ## idle timeout, not a total one : a large or slow paste keeps going ##
-    ## as long as bytes keep arriving                                     ##
+    ## idle timeout, not a total one : a large or slow paste keeps going as ##
+    ## long as bytes keep arriving                                          ##
     my $paste = '';
     while ( !$$aborted_ref ) {
         my $b = $reader->{'read'}->(2);
@@ -943,8 +943,8 @@ sub edit_text {
 
 1;
 
-#,,..,,,,,,.,,..,,.,.,..,,,.,,,.,,..,,..,,..,,..,,...,...,..,,...,...,,,.,,,,,
-#UGHRCRRR6PTPOS3YVLTFZCJD3MDOOIDPLADTACCJHSJGHUNGNTUO7A6J2SKDRSLDDTIKQSFVAQZPE
-#\\\|XPRPIV6ADEARJJ4GUE6GK6JCGEX6FXXHWVILOPPECRNLLWIQEJK \ / AMOS7 \ YOURUM ::
-#\[7]6WB6P5TJBXHVBOF3BNQT6JKOJRZYAHK4GPHEPYWMZRIQY2MGPYDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,,,,..,..,,,..,.,,,,,.,...,,..,..,,...,...,...,.,,,,.,,,..,,.,,
+#FVWGK6552OIQYTWUNE7V2NOPPSIZ5H5X6C3XXVZWFW3PAVNJLAZ2XQE5IMSKS4UGPBU2UQPGEX75U
+#\\\|FZWCIKCECKR2OFF62LOYQWLNGAVWDRMUSSGJV2OS37TUM7AOTEK \ / AMOS7 \ YOURUM ::
+#\[7]MNVWG2LLMOIJPHWTNQS4CZAQM3MG5ENJKTRT5EHM4I3ND3BFCKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

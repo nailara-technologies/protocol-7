@@ -22,11 +22,14 @@ use vars qw| @EXPORT $VERSION %algorithm_set_up |;
 
 @EXPORT = qw| amos_chksum amos_template_chksum $VERSION |;
 
-our $VERSION = qw| AMOS7::CHKSUM-VERSION.UXA5BUI |;   ##  amos-chksum -VCS  ##
+##  amos-chksum -VCS  ##
+our $ALGORITHM_VERSION = qw| AMOS-CHKSUM-V-KNDGQPA |;
+##  module source version  ##
+our $VERSION = qw| AMOS7::CHKSUM-VERSION.PMKI5VA |;
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS7;                                            ##  error handler  ##
+use AMOS7;    ##  error handler  ##
 use AMOS7::13;
 
 use AMOS7::INLINE;           ## compile_inline_source ##
@@ -338,8 +341,8 @@ sub amos_template_chksum {
 
 return TRUE ##################################################################
 
-#,,,.,..,,...,,,,,..,,.,.,.,.,...,.,,,...,,,,,..,,...,...,...,.,,,..,,..,,,,,,
-#CRVJTGELYCKARHBAFSSXEABMOFC5WKTYLAITPC6ID3WV5SNGY4F36VVURHKW6KQYFKVPRP3H7GIWE
-#\\\|SKD6I3WHTKPWYSTASADFP4DEA5XMHERAR7QN7OZ557UKE25X3SC \ / AMOS7 \ YOURUM ::
-#\[7]XR6OHSKFXZOW6INYOGOBYLC3ML7G2MKQQXSNNTMHTJZRXB6F3SAA 7  DATA SIGNATURE ::
+#,,,,,...,..,,..,,.,,,,,,,,,.,.,,,...,,.,,...,..,,...,...,..,,..,,,,.,..,,...,
+#5S2ZAU7V5ZLSV7D6S2VWBSAKHBYXYH7Q6U3CNFUTBFQFUY344VTGQLLQ72BRQMEAGUPP5DJZF3ZKC
+#\\\|ZAITKINS5Q25UIUOB7XEIREL5NYEMO2H3P2TVMHD3CXOL3HL7DR \ / AMOS7 \ YOURUM ::
+#\[7]3GSHANWD4PEREO6QIGYKT23Q7HRTPC2K42FA6QZ35TNABRL72CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

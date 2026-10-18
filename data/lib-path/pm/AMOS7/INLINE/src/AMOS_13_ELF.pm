@@ -15,9 +15,9 @@ use vars qw| @EXPORT @EXPORT_OK |;
 use base qw| Exporter |;
 
 @EXPORT    = qw[ ];
-@EXPORT_OK = qw| $VERSION |;
+@EXPORT_OK = qw| |;
 
-our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-HQ7GNVQ |;
+our $VERSION = qw| AMOS7::INLINE::src::AMOS_13_ELF-VERSION.ANLMTRY |;
 
 ##[ BITSTRING CONVERSION ]####################################################
 
@@ -274,8 +274,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
 return 5;    ##  true  ##
 
-#,,..,,.,,,..,...,,,.,,,,,,,.,,..,..,,...,,..,..,,...,...,...,,.,,..,,,,.,,.,,
-#72ZHOVPIXKX6OAPZAEWHS32YVUFY6BOUXPB7XEZ457IPIEIE7Y7RIGH7MOWMOJGGEFIMLRQYV2J7S
-#\\\|HIF32HSAXDSDANRO6RRSKHFRH5G6M2GTNRKM7D42VJEBH5LKRBM \ / AMOS7 \ YOURUM ::
-#\[7]TZ3VWGNEFOQZLTZHNNNU37UUVTS6QAWCI34OOA7RW3HMNLIYWOCA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,,,,,.,...,,..,..,,.,,,,..,,,,,..,,...,..,,...,,,.,.,.,..,,.,.,
+#EQ3DBEW7WH7OIEMV66I45IV3V46T4FA5C3DJVVOISYYZ2QAZA25UT7IWH7YXPW4F3DY77M7OJMBNS
+#\\\|NBZ7LUMI7NS7IPVDO7VWUB26TOPHXND7UOEFH2FXE73QCJRGYKE \ / AMOS7 \ YOURUM ::
+#\[7]422BSBT7WZ4HHBC75KPRUUU3QMHRENKDB6NWAFIECUBMXPPUTCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

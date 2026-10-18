@@ -2,6 +2,33 @@
 
 ##  update-amos-versions  ##
 
+##  writes two kinds of versions  ##
+##
+## $ALGORITHM_VERSION .., output version of the checksum algorithm       ##
+## [ AMOS-CHKSUM-V-<x> / AMOS-13-ELF-7-<x> / AMOS-13-ELF-7-SRC-VER-<x> ] ##
+## compared against 'amos-chksum -VCS \ -VL7 \ -VS' live output          ##
+##
+## $VERSION .., module source version  amos checksum over : module NAME     ##
+## first, then the source [ like src/nodes.cmd.update-protocol-elf hashes   ##
+## paths first : a rename changes the version ]  exclusions : the signature ##
+## footer and the $VERSION line itself [ same exclusion idea as the         ##
+## compiled-in checksum of bin/c_src/p7c.c \ p-7-r.c : the checksum         ##
+## placeholder line is not part of the sum ]                                ##
+##                                                                          ##
+## whitespace normalization [ defined once, here ] :                        ##
+## 1. source split into lines  2. each line : every whitespace run becomes  ##
+## one space [ tabs \ spaces, leading, trailing, internal ]  3. lines empty ##
+## after step 2 are dropped  4. lines joined with a single space            ##
+## [ also per line : leading and trailing runs of '#' -- the comment-box  ##
+## markers a reflow adds \ removes ; comment words still count ]          ##
+## -> a format-code reflow [ ANY whitespace change ] must NOT change a      ##
+## version ; only real source changes do  uniform form :                    ##
+## AMOS7::<Module>-VERSION.<amos>                                           ##
+##
+## modes : -check .., report outdated versions only [ exit 1 when any ] ##
+## -dry-run ., show what would change \ change nothing                  ##
+## -root <path> ., operate on another module tree [ testing ]           ##
+
 BEGIN {
     use Cwd;
     use strict;
@@ -13,27 +40,38 @@ BEGIN {
 }
 
 use v5.24;
-use AMOS7::CHKSUM;
-use AMOS7::CHKSUM::ELF;
-use AMOS7::CHKSUM::ELF::Inline;
+use File::Find;
 use List::MoreUtils qw| minmax |;
 
-my $old_versions = {
-    qw| AMOS7::CHKSUM |              => $AMOS7::CHKSUM::VERSION,
-    qw| AMOS7::CHKSUM::ELF |         => $AMOS7::CHKSUM::ELF::VERSION,
-    qw| AMOS7::CHKSUM::ELF::Inline | => $AMOS7::CHKSUM::ELF::Inline::VERSION
-};
+use AMOS7::CHKSUM;
 
-my $new_versions = {
-    qw| AMOS7::CHKSUM |              => qx|  amos-chksum -VCS  |,
-    qw| AMOS7::CHKSUM::ELF |         => qx|  amos-chksum -VL7  |,
-    qw| AMOS7::CHKSUM::ELF::Inline | => qx|  amos-chksum -VS   |,
-};
+my $check_mode = 0;
+my $dry_run    = 0;
+my $root_path  = undef;
 
-( undef, my $o_mlen )
-    = minmax( map { length $old_versions->{$ARG} } keys $old_versions->%* );
-( undef, my $n_mlen )
-    = minmax( map { length $new_versions->{$ARG} } keys $old_versions->%* );
+while ( my $arg = shift @ARGV ) {
+    if ( $arg eq qw| -check | ) {
+        $check_mode = 1;
+    } elsif ( $arg eq qw| -dry-run | ) {
+        $dry_run = 1;
+    } elsif ( $arg eq qw| -root | ) {
+        $root_path = shift @ARGV;
+        die ":\n:: -root expects a directory path\n:\n"
+            if not defined $root_path or not -d $root_path;
+    } else {
+        die ":\n:: unknown option : $arg [ -check "
+            . "| -dry-run | -root <path> ]\n:\n";
+    }
+}
+
+$root_path //= Cwd::abs_path($PROGRAM_NAME);
+$root_path =~ s|(/[^/]+){3}$||;
+
+my $lib_path   = "$root_path/data/lib-path/pm";
+my $amos7_path = "$lib_path/AMOS7";
+
+die ":\n:: AMOS7 module path not found : $amos7_path\n:\n"
+    if not -d $amos7_path;
 
 my $bg  = "\e[48;2;9;5;42m";
 my $fg0 = "\e[38;2;38;46;153m";
@@ -41,29 +79,237 @@ my $fg4 = "\e[38;2;68;39;172m";
 my $CT  = "\e[38;2;6;71;195m";
 my $rst = "\e[0m";
 
-say "$bg$fg0:$rst";
-foreach my $module ( sort keys $old_versions->%* ) {
-    chomp( $new_versions->{$module} );
-    next if $old_versions->{$module} eq $new_versions->{$module};
-    say sprintf "$rst$fg4: ${bg}::$rst$fg4 $bg$CT%${o_mlen}s $rst$fg4 "
-        . "$bg : $rst$fg4 $bg$CT %-${o_mlen}s $rst$fg4 $bg.:$rst",
-        $old_versions->{$module},
-        $new_versions->{$module};
-}
-say "$bg$fg4:$rst";
-foreach my $module ( sort keys $old_versions->%* ) {
-    chomp( $new_versions->{$module} );
-    next if $old_versions->{$module} eq $new_versions->{$module};
-    system(
-        qw| ncode replace all |,
-        $old_versions->{$module},
-        $new_versions->{$module}
-    );
-}
-say "$bg$CT:.,$rst";
+my $changes_reported = 0;
 
-#,,,,,,,.,,.,,...,...,.,,,...,,,.,,.,,,,,,,..,..,,...,...,,,,,,.,,...,,,.,.,,,
-#YSWK3KYI25CZ44SX6FB4ADQIHIY65PNWIGXA4XYHNPPPRR7EYZE2RJBXDY3LHY62Z7MQFWOVI5FYS
-#\\\|FK3DCWIGZCF4SOO5ZFDM55L6MGJLQTRDXNLFCX6MZ5J35RQAR2T \ / AMOS7 \ YOURUM ::
-#\[7]JNGSHSHBQD3KFKBHPLWQX6JHLCHQMVGCIMF6ATE3PB7RFGD4XMCY 7  DATA SIGNATURE ::
+##[ MODULE SOURCE VERSIONS ]##################################################
+
+my @module_files;    ## every AMOS7 module [ AMOS7.pm + AMOS7/**.pm ] ##
+find(
+    sub {
+        push( @module_files, $File::Find::name )
+            if m|\.pm$|
+            and $File::Find::name =~ m,/AMOS7(?:\.pm$|/.*\.pm$),;
+    },
+    $lib_path
+);
+
+my @module_changes;    ## [ module, old // undef, new ] ##
+
+foreach my $file_path ( sort @module_files ) {
+
+    open( my $fh, qw| <:raw |, $file_path ) or do {
+        warn sprintf ':: cannot read %s [ %s ]', $file_path, $OS_ERROR;
+        next;
+    };
+    my $content = join '', <$fh>;
+    close($fh);
+
+    ## signature footer exclusion : everything from the last '#,,' line  ##
+    my @lines = split m|(?<=\n)|, $content;
+
+    my $package     = undef;
+    my $package_idx = undef;
+    foreach my $idx ( 0 .. $#lines ) {
+        if ( $lines[$idx] =~ m,^package\s+([\w:]+)\s*;?, ) {
+            $package     = $1;
+            $package_idx = $idx;
+            last;
+        }
+    }
+
+    if ( not defined $package ) {
+        warn sprintf ':: no package declaration in %s ., skipped', $file_path;
+        next;
+    }
+
+    my $footer_idx = undef;
+    foreach my $idx ( 0 .. $#lines ) {
+        $footer_idx = $idx if $lines[$idx] =~ m|^#,|;
+    }
+    my @body = defined $footer_idx ? @lines[ 0 .. $footer_idx - 1 ] : @lines;
+
+    ## $VERSION line exclusion + current value extraction  ##
+    my $version_idx   = undef;
+    my $current_value = undef;
+    my $static_value  = 0;
+    foreach my $idx ( 0 .. $#body ) {
+        next if $body[$idx] !~ m,^\s*(?:my\s+|our\s+)?\$VERSION\s*=,;
+        $version_idx = $idx;
+        if ( $body[$idx]
+            =~ m,^\s*(?:my\s+|our\s+)?\$VERSION\s*=\s*qw\|\s*(.*?)\s*\|,s ) {
+            $current_value = $1;
+            $static_value  = 1;
+        } elsif ( $body[$idx]
+            =~ m,^\s*(?:my\s+|our\s+)?\$VERSION\s*=\s*['"]([^'"]*)['"], ) {
+            $current_value = $1;
+            $static_value  = 1;
+        }
+        last;
+    }
+
+    next if defined $version_idx and not $static_value;    ## dynamic ##
+
+    my $filtered
+        = join '',
+        defined $version_idx
+        ? @body[ grep { $_ != $version_idx } 0 .. $#body ]
+        : @body;
+
+    ##  whitespace-normalized source [ rule documented in header ]  ##
+    my $normalized = join ' ', grep {length} map {
+        my $line = $ARG;
+        $line =~ s{\s+}{ }g;
+        ## comment-box markers [ '## text ##' ] : a reflow moves words      ##
+        ## across lines and adds \ removes the end markers -- not content   ##
+        $line =~ s{^\s*#+\s*|\s*#+\s*$}{}g;
+        $line
+    } split "\n", $filtered;
+
+    ##  NAME first, then source : renames change the version  ##
+    my $new_version = sprintf( qw| %s-VERSION.%s |,
+        $package, scalar AMOS7::CHKSUM::amos_chksum("$package $normalized") );
+
+    next if defined $current_value and $current_value eq $new_version;
+
+    push( @module_changes,
+        [ $package, $current_value, $new_version, $file_path ] );
+
+    next if $check_mode or $dry_run;
+
+    if ( defined $version_idx ) {    ## replacing the old value itself  ##
+        my $old_quoted = quotemeta( $current_value // '' );
+        $body[$version_idx] =~ s,qw\|\s*$old_quoted\s*\|,qw| $new_version |,;
+    } else {                         ## inserting after the package line  ##
+        splice( @body, $package_idx + 1,
+            0, sprintf( qq{our \$VERSION = qw| %s |;\n}, $new_version ) );
+    }
+
+    my $new_content = join '',
+        ( defined $footer_idx       ? @body                  : () ),
+        @lines[ defined $footer_idx ? $footer_idx .. $#lines : () ];
+
+    open( my $out_fh, qw| >:raw |, $file_path ) or do {
+        warn sprintf ':: cannot write %s [ %s ]', $file_path, $OS_ERROR;
+        next;
+    };
+    print {$out_fh} $new_content;
+    close($out_fh);
+}
+
+##[ ALGORITHM OUTPUT VERSIONS ]###############################################
+
+my $algorithm_setup = {
+    qw| AMOS7::CHKSUM | => {
+        qw| path |   => qw| AMOS7/CHKSUM.pm |,
+        qw| option | => qw| -VCS |,
+    },
+    qw| AMOS7::CHKSUM::ELF | => {
+        qw| path |   => qw| AMOS7/CHKSUM/ELF.pm |,
+        qw| option | => qw| -VL7 |,
+    },
+    qw| AMOS7::CHKSUM::ELF::Inline | => {
+        qw| path |   => qw| AMOS7/CHKSUM/ELF/Inline.pm |,
+        qw| option | => qw| -VS |,
+    },
+};
+
+my @algorithm_changes;    ## [ module, old // undef, new ] ##
+
+foreach my $module ( sort keys $algorithm_setup->%* ) {
+    my $setup     = $algorithm_setup->{$module};
+    my $file_path = "$lib_path/$setup->{'path'}";
+    next if not -f $file_path;    ## partial module tree [ -root testing ]  ##
+    my $new_value  = qx| amos-chksum $setup->{'option'} |;
+    my $exit_value = $CHILD_ERROR >> 8;
+    chomp($new_value);
+    die ":\n:: amos-chksum $setup->{'option'} failed [ $exit_value ]\n:\n"
+        if $exit_value or not length $new_value;
+
+    open( my $fh, qw| <:raw |, $file_path ) or do {
+        warn sprintf ':: cannot read %s [ %s ]', $file_path, $OS_ERROR;
+        next;
+    };
+    my @lines = <$fh>;
+    close($fh);
+
+    my $algo_idx      = undef;
+    my $current_value = undef;
+    foreach my $idx ( 0 .. $#lines ) {
+        next if $lines[$idx] !~ m,^\s*our\s+\$ALGORITHM_VERSION\s*=,;
+        $algo_idx      = $idx;
+        $current_value = $1
+            if $lines[$idx]
+            =~ m,^\s*our\s+\$ALGORITHM_VERSION\s*=\s*qw\|\s*(.*?)\s*\|,s;
+        last;
+    }
+
+    next if defined $current_value and $current_value eq $new_value;
+
+    push( @algorithm_changes, [ $module, $current_value, $new_value ] );
+
+    next if $check_mode or $dry_run;
+
+    if ( defined $algo_idx ) {    ## replacing the old value itself  ##
+        my $old_quoted = quotemeta( $current_value // '' );
+        $lines[$algo_idx] =~ s,qw\|\s*$old_quoted\s*\|,qw| $new_value |,;
+    } else {                      ## inserting after the $VERSION line  ##
+        my $insert_idx = 0;
+        foreach my $idx ( 0 .. $#lines ) {
+            $insert_idx = $idx + 1
+                if $lines[$idx] =~ m,^\s*(?:my\s+|our\s+)?\$VERSION\s*=,;
+        }
+        splice( @lines, $insert_idx, 0,
+            sprintf( qq{our \$ALGORITHM_VERSION = qw| %s |;\n}, $new_value )
+        );
+    }
+
+    open( my $out_fh, qw| >:raw |, $file_path ) or do {
+        warn sprintf ':: cannot write %s [ %s ]', $file_path, $OS_ERROR;
+        next;
+    };
+    print {$out_fh} join '', @lines;
+    close($out_fh);
+}
+
+##[ REPORT ]##################################################################
+
+my @all_changes = ( @module_changes, @algorithm_changes );
+$changes_reported = scalar @all_changes;
+
+if (@all_changes) {
+    my $old_max = 7;
+    my $new_max = 7;
+    ( undef, $old_max ) = minmax( map { length $ARG->[1] // 7 } @all_changes )
+        if @all_changes > 1;
+    ( undef, $new_max ) = minmax( map { length $ARG->[2] } @all_changes );
+
+    say "$bg$fg0:$rst";
+    foreach my $change (@all_changes) {
+        my ( $module, $old, $new ) = @$change;
+        $old //= '- none - ';
+        say sprintf "$rst$fg4: ${bg}::$rst$fg4 $bg$CT%${old_max}s $rst$fg4 "
+            . "$bg : $rst$fg4 $bg$CT %-${new_max}s $rst$fg4 "
+            . "$bg.:$rst"
+            . sprintf( ' %s%s%s', $fg0, $module, $rst ),
+            $old, $new;
+    }
+    say "$bg$fg4:$rst";
+
+    my $action = $check_mode ? qw| outdated | : qw| updated |;
+    say "$bg$CT:. $action : $changes_reported $rst"
+        if not $dry_run;
+} elsif ($check_mode) {
+    say "$bg$CT:. versions current .:$rst";
+}
+
+if ( $check_mode and $changes_reported ) {
+    exit 1;
+} else {
+    exit 0;
+}
+
+#,,.,,...,.,,,,,,,,.,,.,.,...,...,...,,.,,...,..,,...,...,...,.,,,..,,,..,...,
+#6DS24LSWFUZQTS73DOOOFQFX7UJI2ZLUPHNN7CMJQMMQMTONZ2YVT7KYKCKFGXITXLN4UCWMCUXLK
+#\\\|LJMRDENMI656AZNY5N5XIT7RVP5K5CJS7YAJBZORMZGBAVFCUSA \ / AMOS7 \ YOURUM ::
+#\[7]2F4ZPW6BGEDVVCZBY5IPHPNCLOKUEGOSAWXOXQ5JX362QB46NCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

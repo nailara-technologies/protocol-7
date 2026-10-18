@@ -13,7 +13,7 @@ use vars qw| @EXPORT |;
 use base qw| Exporter |;
 @EXPORT = qw| $VERSION |;
 
-our $VERSION = qw| AMOS-INLINE-SRC-EBVQRJQ |;
+our $VERSION = qw| AMOS7::INLINE::src::TruthAssertion-VERSION.34IXAGA |;
 
 ##[ NUMERICAL TRUE \ FALSE ASSERTION ]########################################
 
@@ -163,8 +163,8 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
 
 return 5;    ##  true  ##
 
-#,,..,,.,,,.,,.,,,,..,.,,,,.,,,.,,...,,.,,,,.,..,,...,...,..,,,,,,,,.,,.,,,..,
-#3RVXSIJT7WS25YTEERNBLMO7WRL5QLH2AQRV46ZDH5N7E25EN3XJW5ENJJF3I4LR2CRKH4BJBAB2G
-#\\\|XLBURHX5CVKPYDKV7Y7XA4MGSNWBKGU4JEPCNE6PJNZPJ3XNKPE \ / AMOS7 \ YOURUM ::
-#\[7]RKANNR63WV5NOB6YTXTSHOYGWASVJ7VCFSUEKPZRHAGTCETE4EAY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,..,,,..,..,,,..,..,,,,.,,..,.,,,..,,...,..,,..,,.,,,,,.,.,,,.,,,
+#OA4SGKMZ4LA747JGE2FDJ7G5BH363PMFYJVOHPN6T7OC3RDFQSSMRZO3QLUET46NKXA2TKLEO7DTU
+#\\\|BQZ7VGCXA3YDM2PVQRDJ26L7X52QFYDOR5RR3Q2TENJ7C5JMNI7 \ / AMOS7 \ YOURUM ::
+#\[7]LKBE32353JU6HEBPKFUYV6X3YTKYX2VMJPS3YWZJMSPEK24AA4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

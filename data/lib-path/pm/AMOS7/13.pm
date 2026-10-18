@@ -1,6 +1,7 @@
 ## [:< ##
 
 package AMOS7::13; ###########################################################
+our $VERSION = qw| AMOS7::13-VERSION.JIKYISY |;
 
 use v5.28;
 use strict;
@@ -62,16 +63,10 @@ my $genseed_iterations_0 = 9216;
 my $genseed_iterations_1 = 9216;
 
 my $result_tmpl = {
-    qw| TRUE | => " $C{b}$C{T}:$C{0}"
-        . " %04d$C{b}$C{0} $C{T}:$C{R}"
-        . " $C{b}$C{B}$C{T}%s$C{R}"
-        . " $C{b}%s$C{R}"
-        . " $C{b}%s$C{R}\n",
-    qw| FALSE | => " $C{b}$C{0}  "
-        . "%04d$C{R}$C{b}$C{0}  $C{R}"
-        . " $C{b}$C{0}%s$C{R}"
-        . " $C{b}%s$C{R}"
-        . " $C{b}%s$C{R}\n"
+    qw| TRUE | => " $C{b}$C{T}:$C{0} %04d$C{b}$C{0} $C{T}:$C{R} "
+        . "$C{b}$C{B}$C{T}%s$C{R} $C{b}%s$C{R} $C{b}%s$C{R}\n",
+    qw| FALSE | => " $C{b}$C{0}  %04d$C{R}$C{b}$C{0}  $C{R} "
+        . "$C{b}$C{0}%s$C{R} $C{b}%s$C{R} $C{b}%s$C{R}\n"
 };
 
 ##[ DIVISION BY 13 ]##########################################################
@@ -882,9 +877,8 @@ sub key_32 {  ## create 32 bytes binary encryption key from arbitrary input ##
                 . "iterations (%dx safe limit)\n:: This may cause slowdown "
                 . "in event handlers\n:: RECOMMENDED: Use SCALAR ref "
                 . "instead\n::   Changed: key_32(\\seed, %d)\n::   To:      "
-                . "key_32(\\seed, \\%d_var)\n:: To override: "
-                . "set \$AMOS7::13::allow_high_iterations = 1 before "
-                . "calling\n\n",
+                . "key_32(\\seed, \\%d_var)\n:: To override: set "
+                . "\$AMOS7::13::allow_high_iterations = 1 before calling\n\n",
             $keyname_seed, $total_iters, $ratio,
             $keyname_seed, $keyname_seed
         );
@@ -1277,8 +1271,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,,,,..,,.,,,,,.,.,.,.,.,,.,,.,,,,,,,.,.,...,..,,...,...,,,.,,.,,...,,.,,..,,
-#5ES73RIFXVU6TKICQSZKCBTINGHHHHHN7DICBUCQCHEVBMJ4S7XZYGM7T5ACZOR4N53ITHNY3WM7A
-#\\\|6NHTRZCNES3EVZMNZT65JYAIKDREU52DCU4REBFTPSZ6NP5DDRB \ / AMOS7 \ YOURUM ::
-#\[7]W6OGIOFCNEXOLYLSOC7UFCKYEDJCVIIK5YJSSW2WQBSSFR4EU6BQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,,.,,,.,,..,,.,,,,.,,,.,,.,,,..,,...,...,.,.,..,,,.,,,,,,.,,,
+#DGUILYT62UJ2XGM5NC6SMAZHRWFWMMGKO4Y4IQX5RC63JTOVCCBPVEOOZXMBZQUNMAUQWDMVQUUFO
+#\\\|AZ5KZ7QG5JSP3W4Y5QGNAEM6MBNL4GNCCDWQCCQSDWA5QJGBSZG \ / AMOS7 \ YOURUM ::
+#\[7]6E7CGUJV7VC7Y6FUKVUMLRHL5MD2KN6PSO44KFEIF522VB5GEOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

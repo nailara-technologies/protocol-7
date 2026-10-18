@@ -1,4 +1,5 @@
 package AMOS7::deps::os_package;
+our $VERSION = qw| AMOS7::deps::os_package-VERSION.U53EY3Q |;
 
 use strict;
 use warnings;
@@ -259,8 +260,8 @@ sub install_os_pkgs {
 
 1;
 
-#,,,.,,,,,,..,,.,,,,,,..,,...,.,,,.,,,..,,,,.,..,,...,..,,...,,.,,,..,,..,..,,
-#43JRG7SJ4UDNBX37L3X55FI55O7WFYQ5MC6SBF3K4KE6IKGW55BFA4WMMOHBIEQB7HVNTXOKJTSEK
-#\\\|RLW63UYGPY3MUYADLDSWV5IZ3J6JBVNQBZKEQ52YS3F3GKSKNXJ \ / AMOS7 \ YOURUM ::
-#\[7]KZI4M6R7CQHZW2BLLTNYSOSYZQYKZQTRSD6WU2KARCKUFIEKD4CY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,.,,...,..,,,,,,.,,,,..,.,,,..,,..,,...,...,,,,,.,.,,.,,,.,,..,,
+#AN373C27TK3VFBKIIWLQSJP3QYLCBT4UQKUIWGQ5VSRDXNPRX74ECK56KTMMAU42FYRLEWMJLF5IC
+#\\\|DMJYJVSI2G3SNEBLCQF6XBKWWXOAHR42JUT4QQC5NOZZCFLXTWQ \ / AMOS7 \ YOURUM ::
+#\[7]STNVUYVOJPAODTLS2C3APFJSLY37GBLNRBQCNGDSNXPO6YJXE2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

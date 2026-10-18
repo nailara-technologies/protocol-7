@@ -12,7 +12,7 @@ use warnings;
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
-our $VERSION = qw| AMOS-MODULE-0.1.16 |;
+our $VERSION = qw| AMOS7-VERSION.LM6Z3SQ |;
 
 ## use AMOS7::Version;    ## use to calculate new version ##
 
@@ -265,8 +265,8 @@ sub p7_root_dir {
 
 return TRUE ##################################################################
 
-#,,,.,.,.,,,,,,..,,,.,,..,..,,.,,,,,,,.,.,,.,,..,,...,...,.,.,.,.,.,,,...,,,,,
-#3VXMZ3UZFU4HPIKPCFG6BX4RGYJLR3AUKRLUQE6XAU7DQWZYDY3OD66IDCVK3P7LL5737OPCEE2E4
-#\\\|HQDQ5UEJIJKAOUIPYD2OG254RYLS4D2L55POWKPRLAF2FF5V3UF \ / AMOS7 \ YOURUM ::
-#\[7]JOFLRPDCQNADPC4F5GPDGYIJBEFYB7QJFGNI4UVCVL4CMNTK6UDI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,,,.,,..,,..,,,,,,,.,..,,.,.,..,,...,...,.,,,...,,..,,,,,,.,,
+#PGJ4GERYHO7SUZSEJUTE2HI3M7LAK3LG3BV2TDMTCVU2DJGWPUCN7JVDMBN75TRITISY3NVCEOMFM
+#\\\|25PFEPGYOZVGXNKEXODED2M6UEVDD26OYVNQUTV5A3D3PCLAISD \ / AMOS7 \ YOURUM ::
+#\[7]P22FFNQU2CQVFN4LDOFNGVH3OFNCYMAMZQ5NFJRCAGGKQIHPZGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

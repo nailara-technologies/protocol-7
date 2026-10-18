@@ -17,7 +17,7 @@ use vars qw| $VERSION @EXPORT |;
 use Exporter;
 use base qw| Exporter |;
 
-my $VERSION = qw| 0.07 |;
+our $VERSION = qw| AMOS7::13::Compression-VERSION.C2STVUY |;
 
 @EXPORT = qw| compress extract cache_check |;
 
@@ -74,8 +74,8 @@ sub cache_check {
 
 return 1;  ###################################################################
 
-#,,.,,,,,,,,.,,.,,,,.,,..,...,,..,.,.,..,,,.,,..,,...,...,..,,,..,..,,.,.,.,.,
-#DAUMWWAPH62OQNSBJ7QGJXIQRRGE474ASGN335MU6GA3S2ZF3ONGBLYP75UILCVRAI76MHHTM4GFO
-#\\\|B6OSZGLTWUFODPXG6MI4V46WRU5G37VX7KZ6QCYWPF3JJ5VK3G5 \ / AMOS7 \ YOURUM ::
-#\[7]M25RRI23BR7NYTOO7PE2FEUZMWY3YPVMQSGSLK7MHFUMP3U744BQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,,..,,..,...,,..,.,,,,.,,,.,,..,,...,..,,.,,,...,.,,,..,,...,
+#FFNUQ7OODDGNHLWP7ODLBG6FBW6HKNDOXPL6WVZ762HPQOOAKMSTKE7H3OE3UGXHATDMBD2LKHSUK
+#\\\|S22UIAC7WET6AEMBB6AVPW755J3WOO2DZVRE62SB7NTPTPXQ7AY \ / AMOS7 \ YOURUM ::
+#\[7]VGPQJ4JIKW6VGLXR5ETYCVPGKMSAV6I7TO5YZCMRLQUDYKT37WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,7 +30,7 @@ use vars qw| @EXPORT $VERSION |;
     $METADATA_END
     |;
 
-our $VERSION = qw| AMOS7::Metadata-VERSION.YT9K8L2 |;
+our $VERSION = qw| AMOS7::Metadata-VERSION.7WAN3YY |;
 
 ##[ METADATA CONSTANTS ]######################################################
 
@@ -443,8 +443,8 @@ sub registry_to_yaml {
 
 1;
 
-#,,,.,.,.,,.,,,.,,,,.,...,,,.,,,,,,..,,..,...,..,,...,..,,...,,..,,,,,...,,..,
-#OOJYADC4PCW4KBZYOLUHUWCG7CVAGTKOAX2QDSOWDHET42NJVIVYALRDI3F4WE7RIX723UU7PY65K
-#\\\|AG2N6LQSXGYU4OQYDDTZT2276HDM2CI6ZTEPPRCEWNZJTCCEJN6 \ / AMOS7 \ YOURUM ::
-#\[7]5FWHNE575RNVPGPY76TFXCBLLXE5RXTBOR5ORZUSGB6GWAIYV6DA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,.,,.,,,.,,,.,,.,,,,,.,,..,,,.,..,,...,...,...,,.,,...,,,.,..,,
+#ZI75KDEGNDVDQ32HU7J47SAAVKJV4CKYA7ANR3PQSFBWILDC7XXUBIYJQVT6ZHJCZNQHE5LT7QW66
+#\\\|QIUEBBP7UNZCXDHE2WWI3QH2TDFWWFT7SM7JQXNVB5LX4Q3NQQ2 \ / AMOS7 \ YOURUM ::
+#\[7]RA4GQ42CUUFXAOWLWX2JNX52FOIFDNS7CFY67JPNFBJOJCWBRSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

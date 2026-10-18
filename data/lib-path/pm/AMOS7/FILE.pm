@@ -21,7 +21,7 @@ use AMOS7;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-my $VERSION = qw| AMOS7::FILE-VERSION.4HI7Z2Q |;
+our $VERSION = qw| AMOS7::FILE-VERSION.7EBKAZA |;
 
 @EXPORT = qw| create_dir_path |;
 
@@ -486,8 +486,8 @@ sub read_timestamped_multiline_recent {
 
 return TRUE ##################################################################
 
-#,,,.,.,,,,.,,..,,,.,,..,,..,,..,,.,,,..,,.,,,..,,...,...,,.,,..,,.,.,...,.,.,
-#CKEJMLPBSGEHZYOZZFPKXRM6XR2GS7PGNXVEAGI6UWHVISUBOLOD3K3VXHAZXJBKZPU2BWVNBQC7K
-#\\\|FCNBTQ2664X67O2E4QUUGEGTG2U2XYPFL7BPKY6UHJJU2QQZNAI \ / AMOS7 \ YOURUM ::
-#\[7]CFUQUDAGHYIO2GJSVALIOGPNT3Z2ZDYYD3E5YEGZ5NXJKKSVPYCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,...,,.,,,..,.,,,,..,.,,,..,,..,,...,...,.,.,.,.,,,,,..,,..,,
+#B3LSLOKEVE462XLECZSYXCHKH7OE5XA4UOLOENV5OVOF6XYR3KODSKIGVSOQPFVH7AGIFCDWTYJKU
+#\\\|K6UFWPSW54NTZQREHTOITVFEUT5MP6HONUOCSWAKX7CQU3VVVBN \ / AMOS7 \ YOURUM ::
+#\[7]F2BIHNJV2P2SWN4WQWLYVH7HKNHMP6A2C4EDKEOQU4NTVNYHL6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
