@@ -19,11 +19,34 @@ my $search_paths = [ ( <models.storage.search_paths> // [] )->@* ];
 ## paths added with scan-path-add are ALWAYS scanned too -- before, they ##
 ## only counted while no search path was configured, so a host whose     ##
 ## configured paths do not exist discovered 0 models [ 2026-10-18 ]      ##
-my %have_path = map { ( $ARG->{'path'} // '' ) => 1 } $search_paths->@*;
+my %path_index;
+foreach my $index ( 0 .. $#$search_paths ) {
+    my $entry = $search_paths->[$index];
+    next unless ref $entry eq qw| HASH |;
+    $path_index{ $entry->{'path'} // '' } = $index;
+}
 if ( scalar keys %{ <models.scan_paths> // {} } ) {
     foreach my $path_id ( sort keys <models.scan_paths>->%* ) {
         my $path_data = <models.scan_paths>->{$path_id};
-        next if $have_path{ $path_data->{'path'} // '' }++;
+        my $path_str  = $path_data->{'path'} // '';
+        if ( exists $path_index{$path_str} ) {
+            ## same path already configured : the added entry wins its scan ##
+            ## flags -- a configured non-recursive entry must not silence a ##
+            ## path explicitly registered for recursive scanning            ##
+            ## [ else discover finds 0 where scan-path-add found N ].       ##
+            ## replaces the list slot with a copy : the canonical store     ##
+            ## must not change                                              ##
+            my $entry = $search_paths->[ $path_index{$path_str} ];
+            $search_paths->[ $path_index{$path_str} ] = {
+                %$entry,
+                'enabled' => ( $entry->{'enabled'} // FALSE )
+                    || ( $path_data->{'enabled'} // TRUE ),
+                'recursive' => ( $entry->{'recursive'} // FALSE )
+                    || ( $path_data->{'recursive'} // TRUE )
+            };
+            next;
+        }
+        $path_index{$path_str} = scalar @$search_paths;
         push @$search_paths,
             {
             'path'      => $path_data->{'path'},
@@ -47,8 +70,8 @@ foreach my $path_config (@$search_paths) {
 
 return \@discovered;
 
-#,,.,,,,,,,.,,,,,,.,,,.,.,,,.,,,.,,.,,,.,,,..,..,,...,...,,,,,,..,,..,,..,,.,,
-#CB2AFTH33T3TEJ7F6P6FCRSDPREAMIC2HA2Y7JKC257RUZCVXIA5FVJUPRRWBLPFBQCV6QEU3ZZMS
-#\\\|DV7SZMW7TTKRIYRA2WEZSLB2CQG2S4MWH2ZV732A43DWJ724RBR \ / AMOS7 \ YOURUM ::
-#\[7]M5IVUZISKBMDKEK6YFQLZVM4PNDLJVKVSDVPYDXP5AAFCCKCBSCY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,...,,,.,,,,,,,.,,,.,.,,,.,,,..,,...,...,..,,,..,.,.,.,,,,.,,
+#PCMOL3Q4R3HNGWYR3GEOCXAJFKDDE3J37T23RSVJWZ7UPPQHDUCTWSPBDFJKMBROWDKXENWFZASPM
+#\\\|TKNJIPTNJZSZT2JYCAMP6KZDPRIYWN3X7L2CU4XWVIYPSF776JV \ / AMOS7 \ YOURUM ::
+#\[7]XTXRTRGLC2XEOV2UZBTBC26YW6XAKLIZG74H6BTNTLZSUBDOQKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
