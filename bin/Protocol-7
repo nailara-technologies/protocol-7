@@ -180,7 +180,11 @@ READ_STDIN_CONFIGURATION:
     } else {
         $code{'log.error'}->(':: STDIN closed and no configuration read..,');
     }
-    END { $code{'log.devmod'}->('. . . . terminated . . . . :') }
+
+    END {
+        $code{'log.devmod'}->('. . . . terminated . . . . :')
+            if defined $code{'log.devmod'};
+    }
     if ( $data{'system'}{'background_mode'} ) {    ## backgrounding parent ##
         use warnings qw| FATAL |;
 
@@ -3503,7 +3507,8 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
     state $load_already_attempted = FALSE;
     if (    not defined &AMOS7::Assert::Truth::is_true
         and not $load_already_attempted ) {    ## try only once ##
-        eval { use AMOS7::Assert::Truth };
+        ## compile time [ never fails : pure-perl fallbacks ] ##
+        use AMOS7::Assert::Truth;
         $data{'base'}{'perlmod'}{'loaded'}->{'AMOS7::Assert::Truth'} = TRUE
             if not length $EVAL_ERROR
             and defined &AMOS7::Assert::Truth::is_true;
@@ -6667,8 +6672,8 @@ __DATA__
 :
 :.
 
-#,,.,,,..,...,,,.,..,,,,,,,.,,...,,,.,,.,,,,,,..,,...,..,,.,.,,.,,,,,,,,,,,..,
-#JP6GJV3QWRKOGSM47PVLMFSGK2V3KFTDRL552MLY6HYVI2QCSQ73DVWCHMKV7GKVGPPIJPFFSZ2OQ
-#\\\|PPWBCDL6BFXZUO44FXQDTNL4SEM5ANBFNZIJOX3VCGMJ33ROEK4 \ / AMOS7 \ YOURUM ::
-#\[7]WTN6XFD6HPF6NZT33TZTFOJW62HO2JMTFHGNJ5X3KTMQY6JQ6GDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,..,,...,.,,,.,.,,.,,,,.,.,.,,.,,..,,...,...,,.,,,.,,.,,,.,,,..,,
+#ER5VIUKU6JO3AEBNBQP3TTEJGN5PDKFG52UXD77TSIXVBSEIDB7PBRYFT5S6QQMDZN5O5MP5XWBKU
+#\\\|JPSETJWTA2YDT6IXILIVRJE5S6DATX5PGTCV5UVAXXWLINIDPEN \ / AMOS7 \ YOURUM ::
+#\[7]5RSBZWKGLOMS67LMZXZHZAKEONJBQWGK3PXETT4FCEQ4UESHZ4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

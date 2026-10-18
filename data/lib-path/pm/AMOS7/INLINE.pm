@@ -46,8 +46,14 @@ my $source_registry = {
 ##  internal code_ref registry  ##
 my $subroutines_installed //= {};
 
+##  without Inline::C every subroutine takes its pure-perl alternative  ##
 eval qq| require 'Inline/C.pm' |;
-die "'Inline::C' is not available [ installed ? ]" if length $EVAL_ERROR;
+my $inline_c_available = length $EVAL_ERROR ? FALSE : TRUE;
+warn_err(
+    "'Inline::C' is not available [ installed ? ] -- using pure-perl"
+        . ' alternatives',
+    1
+) if not $inline_c_available;
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
@@ -195,6 +201,7 @@ sub compile_inline_source {
         ###                                                 ###
 
         eval {
+            die "'Inline::C' is not available\n" if not $inline_c_available;
             Inline->bind(
                 qw|  C  |         => $cleaned_source,
                 qw| name |        => $compilation_target,
@@ -231,20 +238,30 @@ sub compile_inline_source {
         ## actually created above -- both were silent no-ops, leaking one   ##
         ## full package stash [ sub + XS/DynaLoader glue ] on every compile ##
         my ($iteration_key) = $compilation_namespace =~ m|^COMPILE::(\d+::)|;
+        ## 'exists' first : without a compilation the stash was never made, ##
+        ## and the nested delete would autovivify %main::'s 'COMPILE::' as  ##
+        ## a plain hash ref [ not a glob -- breaks %main:: symbol scans ]   ##
         delete $main::{'COMPILE::'}{$iteration_key}
-            if defined $iteration_key;
+            if defined $iteration_key
+            and exists $main::{'COMPILE::'};
 
         #######################################################
 
         if ($comp_err    ## $EVAL_ERROR of compilation ##
             or ref $subroutines_installed->{$target_subname} ne qw| CODE |
         ) {
+            ## without Inline::C the fallback is expected : announced once ##
+            ## at load, not per subroutine                                 ##
+            ## [ zenka init counts warnings as errors ] -- only a failing  ##
+            ## fallback is reported below                                  ##
             warn_err( "<< compilation of '%s' not successful >>",
-                0, $current_sub_name );
+                0, $current_sub_name )
+                if $inline_c_available;
             if ( defined &{$fallback_ref} ) {
                 warn_err(
                     "   : installing pure-perl alternative for '%s' ..,",
-                    1, $current_sub_name );
+                    1, $current_sub_name )
+                    if $inline_c_available;
 
                 ## $fallback_ref ##
 
@@ -298,7 +315,8 @@ sub compile_inline_source {
     ## report if less than expected ##
     warn_err( '%d of %d subroutines compiled and installed',
         1, $success_count, $total_subroutine_count )
-        if $success_count < $total_subroutine_count;
+        if $success_count < $total_subroutine_count
+        and $inline_c_available;
 
     ## returning code-ref to compiled routine ##
     return \&{"${target_package}::$subroutine_name"} if $single_func;
@@ -362,8 +380,8 @@ sub encoded_bmw_chksum {
 
 return TRUE ##################################################################
 
-#,,..,,,,,...,.,.,.,,,,.,,,,,,.,.,,..,.,.,,..,..,,...,...,.,,,.,,,,..,,.,,...,
-#SIHNIGSSD43UH7H5RT5DFW32AODWFNEED4C6I6FRSXP4WZHHR657KFUSYUEPTWT4HFLFQF4K374G6
-#\\\|273XPJCCGAIT627CLC734TGDUO4LYHVW322FFOY6RQRIYTYPN7Q \ / AMOS7 \ YOURUM ::
-#\[7]5WKKTBABNTDMCAMUI6HINYVNJK45YAQO4UR5DKUR5UAH6VYZ6MDY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,.,,,,,.,.,..,,,..,,,,,.,.,,,.,..,,...,...,.,.,.,,,,,,,..,,,.,,
+#AIYMIZOSEXRYEJAKKAULPB3WAIVQGNZTQZXSDLV4YHNJBP6JVTXDGXT4M73PF6J27QZTISU4D2RVM
+#\\\|6G3KGWKJDA3YPKH4OFEIVJ6IVOOZ26EZ3RLGTAY5OMZXMNMZMCS \ / AMOS7 \ YOURUM ::
+#\[7]MLPZGJ7HORZ54D6YSRBI666RYYBMRU3A3N6AY5JXECHAGUMBGMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

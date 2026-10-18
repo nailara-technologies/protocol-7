@@ -180,7 +180,7 @@ the minimal / server install script. the model the `minimal` +
 | libguard-perl | covered | profile apt `runtime` :30 [ an `AnyEvent::HTTP` dep ] |
 | libclass-accessor-lite-perl | missing | `Class::Accessor::Lite` unused under `src/` but was an `AnyEvent::HTTP` chain dep ; not in any profile -- apt pulls it in as a dependency of `libanyevent-http-perl` itself, so the explicit entry is redundant |
 | libio-socket-multicast-perl | covered | profile apt `zenka-common` + known deps |
-| libinline-c-perl | missing | `Inline::C` unused directly under `src/` ; needed only when an `Inline::*` cpan build compiles [ `Inline::Lua`, `Inline::Python` ] -- not declared anywhere |
+| libinline-c-perl | covered [ after review ] | CORRECTED : `Inline::C` IS used -- `AMOS7::INLINE` and `AMOS7::CHKSUM::ELF::Inline` [ amos-chksum, the bit tools, src/pager.view.true-int-color ]. now in `src/base.known_dependencies` [ debian libinline-c-perl ] and the `cryptography` profile [ + gcc ] |
 | libconst-fast-perl | covered | profile apt `zenka-common` + known deps :361-364 |
 | liblwpx-paranoidagent-perl | partly | profile cpan `zenka-common` `LWPx::ParanoidAgent` :201 -- cpan-only, debian package not listed [ see script 1 ] |
 | liblinux-inotify2-perl | covered | profile apt `zenka-common` + known deps |
@@ -526,8 +526,8 @@ those are runtime-relevant : the undeclared `compton` / `unclutter` /
 `mediainfo` binaries and the `Curses` gap [ items 3 and 5 in the summary ].
 the rest are deb entries for from-source builds plus doc/config re-anchors.
 
-#,,,,,,,.,.,.,,,.,..,,.,,,.,,,...,.,,,,..,..,,..,,...,...,,,,,,.,,...,.,.,.,,,
-#FE6XF57XDE6P7OP2DYJ5KB6OMUEGMAJHKNKJWM3THXFV547WX4EYZRQYA74EBDS2R7TTJHI4Z6MWU
-#\\\|D6AJFSYJTF2N4DU3APMV7GK7UNRPZZSTC57O4YTXNCZFBM3B3NN \ / AMOS7 \ YOURUM ::
-#\[7]4YGPRZGQCCCEDCBVYZW6OTKZNHWYQB4QXFE4N5M5JTYDNAEWG6CY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,,,.,.,,.,,.,.,,,.,...,.,,,,.,,..,,...,...,...,,,.,...,.,.,...,
+#4WXTKCYCQ6NUR6NKG4CN4RLXPAG5YL7U774AMYPAVSDBAFZSNORVOWFPQIMZ3ISQMBO4CPRPPAQPE
+#\\\|SGADLSBKYNF62N3K6TRMQQYQBCO77DI4N6IKFYRPHXXCBKIRIPV \ / AMOS7 \ YOURUM ::
+#\[7]DL27TTADQKHNUFME3GOYUYT2OMYVOBGQM5WJO2RGPHFWT37BPGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

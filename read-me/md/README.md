@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32AZT5VSNY-10083.0 :::
+::: SOURCE-CODE VERSION :: 32A2BQ4CMY-10084.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -136,17 +136,18 @@ This approach:
 - Provides clear status output with Protocol-7 styling
 - Optionally generates dependency reports for documentation
 
-### Legacy: Using Debian Installation Scripts
+### Installing Dependencies [ profile-based ]
 
-For backwards compatibility, traditional installation scripts are still available:
+Use `bin/p7-deps` -- the profile-based dependency installer [ see
+`bin/p7-deps list` for the available profiles ]:
 
 ### Minimal Installation
 
 The minimal installation provides core functionality without GUI components.
 
-Run this command: `bin/dependencies/install_minimal_dependencies.debian.sh`
+Run this command: `bin/p7-deps install minimal`
 
-This script installs:
+This installs:
 
 - Core Perl modules and system packages for basic functionality
 - Requirements for 'v7-zenki', 'cube', 'p7-log', 'system', 'httpd', 'events' and some non-X11 zenki
@@ -154,11 +155,13 @@ This script installs:
 
 ### Full Installation
 
-For a complete installation including desktop/GUI components, run both scripts in sequence:
+For a complete installation including desktop/GUI components:
 
-First: `bin/dependencies/install_minimal_dependencies.debian.sh`
+Run this command: `bin/p7-deps install protocol7-extended`
 
-Then: `bin/dependencies/install_dependencies.debian.sh`
+Note: `bin/dependencies/*.debian.sh` are the legacy installers, kept for
+backwards compatibility until their retirement -- pending, see
+data/tasks/legacy-debian-deps-coverage-audit.md
 
 The full installation adds:
 
@@ -517,8 +520,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,,,...,.,.,...,,,.,.,.,,,.,...,,,,,...,...,..,,...,..,,,..,...,.,.,,..,,,,,
-#DFDREQUYMX2634BHF5QILZFHOQ7PNV5Z6T4GTYNWTH5ZKY7RB6ATML4X7J46KUE43UQCUTGHGTCBC
-#\\\|XXKJ64QK6H2HLDWJX5FCEBZMT6JHYNXA25CFHER7X4UR5VZU7KW \ / AMOS7 \ YOURUM ::
-#\[7]MNORVRH35GKUX5MT6IASULIP66JY2IQ5JRBOETI6UWUOR6AQZKAA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,.,,,,,.,,.,,,,,,.,,,,..,,,.,..,,...,...,..,,.,,,..,,..,,,..,
+#UQONQG2ACOXNFNFCVRXRB4FRDA6JEQXMAF7FFH6EFBLA4VFYOLHRVU2IQXAUJBHF5FYJR2LHXMPHO
+#\\\|LCGA4GU72BN63S2BHYPP7KFS26LGKKDVEHALMYMS3PHQIYLDSEQ \ / AMOS7 \ YOURUM ::
+#\[7]XXM7Z4SGM4QU2BPKTUG2CYQXDGI2RK2HO4YFYT5XHIL7ZW5E2EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -202,8 +202,9 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
         ## threshold track the CURRENT (growing) $result instead of staying ##
         ## fixed, causing the entropy-loss-avoidance branch to fire at a    ##
         ## different point than the C version for any sufficiently long     ##
-        ## input, independent of character content                          ##
-        my $shift_limit = ~$result >> 4;
+        ## input, independent of character content  32-bit complement like  ##
+        ## the C 'unsigned int' [ perl's ~ is 64-bit ]                      ##
+        my $shift_limit = ( ~$result & 0xFFFFFFFF ) >> 4;
 
         ## iterate through string as UTF-8 codepoints ##
         ##
@@ -213,16 +214,16 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
         ## was tried here first and did NOT close the gap -- because the    ##
         ## actual cause was never a decode-model mismatch between this      ##
         ## codepoint-based loop and the C code's byte-level one. It was two ##
-        ## real bugs in the C side itself [ this file, ~lines 48-49 and     ##
-        ## ~128-134 ]: a stale pre-upgrade `len` that could underflow the   ##
-        ## unsigned STRLEN and read past the buffer, and a forced `u8_len = ##
-        ## 1` override that misaligned the byte cursor on every upgraded    ##
-        ## high byte. With both fixed in the C source, this unpack('U*')    ##
-        ## codepoint loop and the compiled C now agree exactly -- verified  ##
-        ## across 320+ random binary vectors [ 1..512 bytes ] plus the      ##
-        ## fixed UTF-8/malformed/high-entropy test set, zero mismatches.    ##
-        ## See data/tasks/  elf-chksum-c-vs-pure-perl-utf8-divergence.md    ##
-        ## and data/tasks/                                                  ##
+        ## real bugs in the C side itself                                   ##
+        ## [ this file, ~lines 48-49 and ~128-134 ]: a stale pre-upgrade    ##
+        ## `len` that could underflow the unsigned STRLEN and read past the ##
+        ## buffer, and a forced `u8_len = 1` override that misaligned the   ##
+        ## byte cursor on every upgraded high byte. With both fixed in the  ##
+        ## C source, this unpack('U*') codepoint loop and the compiled C    ##
+        ## now agree exactly -- verified across 320+ random binary vectors  ##
+        ## [ 1..512 bytes ] plus the fixed UTF-8/malformed/high-entropy     ##
+        ## test set, zero mismatches.  See data/tasks/                      ##
+        ## elf-chksum-c-vs-pure-perl-utf8-divergence.md and data/tasks/     ##
         ## c25519-key-decryption-failure-hypothesis-2026-08-25.md for the   ##
         ## full investigation                                               ##
         foreach my $character ( unpack( 'U*', $input_str ) ) {
@@ -261,8 +262,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
 return 5;    ##  true  ##
 
-#,,,.,.,,,,..,.,.,..,,..,,,,,,,,,,,,,,.,,,,.,,..,,...,...,.,.,.,.,,..,.,.,,,,,
-#6LD56F6SVVYVZHAGM7H3TWSWL3TBRMKSVETTLZH2MHQX2HZEMWZUE7F4FAEVKWWCKGVIP47NFNFFO
-#\\\|BCVIAGSUR5CTJ7TPVPVUYUYITPXCBETFWFR7TCPSAN2UNUMS5A2 \ / AMOS7 \ YOURUM ::
-#\[7]ZLZLLFGNSUHZ72BQSEDAUKADPQ4ASTOJM5LGIRH4FQEYRKLYGODQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,..,,,.,,,,.,,..,,.,,,,,,.,.,..,,...,...,...,.,.,,.,,,.,,.,,,
+#OC5GP5TVX35XGD6LMJP7KOY5YA3PNWXEVB26Y7SBMODMPQ2F6MSV7POXXULZURP3R2L57KNAHR53Y
+#\\\|N43CEK6E3NLX7EZMMGJPG4AJ3GN3TL2ZLDG6J4KXFOCZA5ML4WE \ / AMOS7 \ YOURUM ::
+#\[7]FZDMCN5ZPECQSGSQNAEYL24QFXG2GDTFQ3JRALEOFVOJWDJ2DSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

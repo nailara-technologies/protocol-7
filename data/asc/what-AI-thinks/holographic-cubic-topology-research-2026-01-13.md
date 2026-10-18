@@ -1229,6 +1229,16 @@ The truth state is NOT FIXED—it's MUTABLE through operations.
 But mutations are PREDICTABLE and CONTROLLABLE.
 ```
 
+> **correction [ 2026-10-18, verified ]** : multiplying by 10 [ or 100, 1000 ]
+> is NEUTRAL -- it only rotates the 6-digit cycle within its family
+> [ 230769 -> 307692 stays false ]. the rule : truth depends only on
+> n mod 13 -- residues { 1, 3, 4, 9, 10, 12 } [ the non-zero squares mod 13 ]
+> are FALSE, { 0, 2, 5, 6, 7, 8, 11 } TRUE [ checked against the compiled
+> true_int on 22001 values, 0 mismatches ]. a multiplier that is a square
+> mod 13 keeps the class [ 10 = 6^2, 1000 = 12 = 5^2, 4 = 2^2 ], a
+> non-square flips it [ 2, 5 ] -- so `<< 1` flips, `<< 2` keeps, and the
+> adaptive shift below steers toward TRUE exactly by that rule.
+
 **The adaptive shifting strategy:**
 
 ```

@@ -1,0 +1,20 @@
+#!/bin/sh
+# p7-dist-upgrade : thin wrapper around 'bin/p7-deps dist-upgrade'
+#
+# the v7-zenki exec-external start set-up only accepts a bare executable
+# path as exec_bin [ no arguments -- src/v7-zenki.zenka.start rejects
+# whitespace in exec_bin ], so the dist-upgrade zenka entries cannot call
+# 'bin/p7-deps dist-upgrade' directly -- they exec this wrapper instead.
+# replaces the legacy bin/dependencies/debian_dist_upgrade.sh.
+
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+exec "$SCRIPT_DIR/p7-deps" dist-upgrade "$@"
+
+#,,,,,.,.,,,.,.,,,,,,,,,,,..,,,,.,.,,,,,,,.,.,..,,...,...,,.,,.,.,.,.,,.,,.,,,
+#ETXCQZIOIDL7UCHYIRP3QU2SLOMCBFVXV4MIJTOUG3KF5LPJWGZJA3AVFAZ6U7R6NVE65LJS42B7W
+#\\\|HXQMM3FYFNBWXTAFMKED6CDMDEZRKBZED74SPHN5L6TPLHTPRIK \ / AMOS7 \ YOURUM ::
+#\[7]LRIMG46BHNPR5CRQICCT5ZZLGKEMZJRD6NTA3ICYVS6KVJXWEKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

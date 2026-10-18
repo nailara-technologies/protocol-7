@@ -569,6 +569,34 @@ rule is the strongest, most concrete match to "inversion bit" as a named,
 implemented concept; the gate's 8th bit joining that family is plausible
 and consistent with the pattern, not yet a proven identity.
 
+
+## truth = quadratic residue class mod 13 [ VERIFIED 2026-10-18 ]
+
+the compiled `true_int` [ AMOS7::INLINE::src::TruthAssertion ] is exactly
+a residue table : `n mod 13` in { 1, 3, 4, 9, 10, 12 } -> FALSE, in
+{ 0, 2, 5, 6, 7, 8, 11 } -> TRUE [ 22001 values, 0 mismatches ]. the false
+set = the non-zero SQUARES mod 13 [ r/13 cycles .076923 \ .230769 family ;
+true = 0 and the .153846 family ].
+
+consequences [ the user's points, all checked ] :
+- a multiplier that is a square mod 13 keeps truth, a non-square flips it
+  [ residue 0 always stays true ]. NEUTRAL : x10, x100, x1000 [ 10 = 6^2,
+  1000 = 12 = -1 = 5^2 -- a decimal shift only rotates the 6-cycle ], x4
+  [ `<< 2` ]. FLIPS : x2 [ `<< 1` ], x5. right shifts drop bits.
+- the 2026-01-13 research note claimed x10 "may become FALSE" -- WRONG,
+  corrected in place [ holographic-cubic-topology-research ~1225 ]. the
+  division-13-table adaptive shift [ `<<= is_true ? 2 : 1` ] steers to TRUE
+  by exactly this rule.
+- floats : a double is m * 2^-e exactly -> truth = table( m mod 13 ),
+  flipped when e is odd -- the fractional bits pushed into integer space
+  by an even shift, no shift actually performed. the compiled true_float
+  checks a 13-digit window of fmod(x,13)/13 instead -- an approximation
+  that can differ when the window lies in the terminating prefix.
+- the pure-perl fallback `calc_true` [ AMOS7/Assert/Truth.pm ] still lacks
+  the reduction [ its own 'LLL : adopt quotient based reduction' note ] ->
+  26 / 311 int and 129 / 311 float disagreements with the C. fix = the
+  residue table [ integers : digit-wise mod 13, any length ].
+
 #,,,,,,.,,...,.,,,,,.,.,.,.,.,,,.,,.,,,,,,...,...,...,...,.,,,,,,,..,,,,,,..,,
 #NAAOOACQD7UAMADWSD7SNZRCJMLB4UZH6BVBMY2MAPIUNBDX4TVL7ZM6UZILH5SDPG4OIQNM5XIOW
 ## 15-bit footer bitmask: matches an already-fully-specified plan, but two competing allocations exist (2026-08-04)
@@ -730,8 +758,8 @@ structure's own source document — not shown, anywhere checked, to be a
 naming layer over structure (4)'s caravan. Cross-referenced into
 `recurring-cube-number-collision-audit.md`'s structure (3) entry.
 
-#,,.,,..,,.,,,...,.,,,,,.,.,.,,.,,,,.,.,.,,.,,..,,...,...,,..,,,.,,,.,...,...,
-#LRBPETL5OOOCTCU7AZ4XSZVGWFF4STASUYI5CQQW6FYKUFX5ZC2PJPFF5NAEOQB3NE6QUR6ILES3W
-#\\\|2M7OVPLXGSLWNTIGYUE5KVDKBEEGYW24AMRE624X3OOSYKZYKGC \ / AMOS7 \ YOURUM ::
-#\[7]BXOBZSM4DBVONYUIJ6RTBWRW3Q4P52O22JST4ZCWEDH4T5KRA4BI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,,,,,,,.,,,,,,,,,,,.,.,.,.,,,..,,...,...,.,,,..,,,,.,.,.,,,.,
+#GDTGCBEIFPCZAVIQNODCQBXHXNFT3K2BILHWBMFD4QOGD2K6CJLR2IOPRZAZO2QO2C77TVHH7X622
+#\\\|MDBKQ43SZLY7ZILCCRGMXPNH7U6WQRLMVRZRBLDNZPH5Y6LAZ36 \ / AMOS7 \ YOURUM ::
+#\[7]2N6T23ASA2EVYF4FJTEDQ2YES35WLIQ7BHI7OCJNHY5RWO4L6UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
