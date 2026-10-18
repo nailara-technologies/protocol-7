@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = plugin.web.auth.store.group
+# descr = resolve the unix group owning the shared web-auth session
+#         store : web.auth.group [ default 'httpd' ] ; falls back to
+#         the zenka's own group on single-user dev hosts, with one
+#         level-1 log line. result cached per process.
+
+if ( length( <plugin.web.auth.store.group.resolved> // '' ) ) {
+    return <plugin.web.auth.store.group.resolved>;
+}
+
+my $group = <web.auth.group> // qw| httpd |;
+
+if ( not defined getgrnam $group ) {
+
+    ## single-user dev host : no httpd group -- fall back to the zenka's ##
+    ## own group so a local set-up still has a working store             ##
+    my $fallback = <system.zenka-group.current> // <system.amos-zenka-user>
+        // qw| protocol-7 |;
+    $fallback = <system.amos-zenka-user>
+        if not defined getgrnam $fallback;
+
+    <[base.logs]>->(
+        1,
+        'plugin.web.auth : group %s does not '
+            . 'exist : using %s for the session store',
+        $group,
+        $fallback
+    );
+    $group = $fallback;
+}
+
+<plugin.web.auth.store.group.resolved> = $group;
+return $group;
+
+#,,,.,,,.,.,.,.,.,,,.,,.,,,,,,.,,,,,,,,,,,..,,..,,...,...,.,.,.,,,..,,,.,,,.,,
+#TRQT3IWSCYHVAEYNZA2HQRQZLBEXLG642OMWJW7AMNJADEDPT4DOZCG5DWDQJ2YVLEZWQ3TWVA334
+#\\\|T35JCB377EYPRTQJLAINSHVCT2ZXVAU4X66TQJLROCIZD6PY62L \ / AMOS7 \ YOURUM ::
+#\[7]UD574HB2WXM4L7RH52MUQ5ENGL37LFW2RHM2RHS3XD6MJDBFL2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,103 @@
+## [:< ##
+
+# name  = plugin.web.auth.store.set-up
+# descr = create/re-assert the shared web-auth session store :
+#         <var_P7>/shared/web-auth/{active,expired} -- owner
+#         <system.amos-zenka-user> [ protocol-7 ], group
+#         web.auth.group [ default 'httpd' ], dirs 2770 [ setgid :
+#         files inherit the group ], session files 0660
+# note  = runs from plugin.web.auth.init_code while still root [ before
+#         root.drop_privs ] ; idempotent [ re-asserts owner/group/mode on
+#         every init ]. not root and the store missing or wrong : one
+#         clear log line, continue fail-closed [ sessions unreadable ->
+#         verify_session refuses every token ]
+# note  = the old per-zenka store [ <var_P7>/web/sessions ] is NOT
+#         migrated : tokens get re-minted -- one log line if active
+#         sessions are found there
+
+my $session_base = <[plugin.web.auth.session.path]>;
+my $owner        = <system.amos-zenka-user> // qw| protocol-7 |;
+
+my ( undef, undef, $owner_uid, $owner_gid ) = getpwnam $owner;
+if ( not defined $owner_uid ) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.store.set-up : unix user %s does not exist', $owner
+    );
+    return FALSE;
+}
+
+my $group = <[plugin.web.auth.store.group]>;
+my ( undef, undef, $group_gid ) = getgrnam $group;
+$group_gid = $owner_gid if not defined $group_gid;
+
+my $is_root = ( $EFFECTIVE_USER_ID == 0 );
+
+for my $dir ( $session_base, "$session_base/active", "$session_base/expired" )
+{
+    if ( not -d $dir ) {
+        if ( not $is_root ) {
+            <[base.logs]>->(
+                1,
+                'plugin.web.auth : session store %s missing and '
+                    . 'not root : cannot create [ auth fail closed ]',
+                $dir
+            );
+            return FALSE;
+        }
+        if ( not <[file.make_path]>->( $dir, 02770, $owner, $group ) ) {
+            <[base.logs]>->(
+                0,    ': :. cannot create session store %s : %s',
+                $dir, <[base.str.os_err]>
+            );
+            return FALSE;
+        }
+        next;
+    }
+
+    ## re-assert owner/group/mode [ idempotent, safe on reinit ] ##
+    my $stat = File::stat::stat($dir);
+    next if not defined $stat;
+    if (    $stat->uid == $owner_uid
+        and $stat->gid == $group_gid
+        and ( $stat->mode & 07777 ) == 02770 ) {
+        next;    ## already as intended ##
+    }
+    if ( not $is_root ) {
+        <[base.logs]>->(
+            1,
+            'plugin.web.auth : session store %s has wrong '
+                . 'owner/group/mode and not root : cannot fix [ auth fail '
+                . 'closed ]',
+            $dir
+        );
+        return FALSE;
+    }
+    chown $owner_uid, $group_gid, $dir;
+    chmod 02770, $dir;
+}
+
+## one-time notice : old per-zenka store is not migrated [ re-mint ] ##
+my $old_base = join qw| / |, <system.path.zenka-dirs>->{'var_P7'},
+    qw| web sessions |;
+if ( not <plugin.web.auth.warned_old_store> and -d "$old_base/active" ) {
+    opendir my $dh, "$old_base/active" or return TRUE;
+    my @leftovers = grep { $_ ne qw| . | and $_ ne qw| .. | } readdir $dh;
+    closedir $dh;
+    if (@leftovers) {
+        <[base.logs]>->(
+            1,
+            'plugin.web.auth : old session store '
+                . '%s is not migrated : re-issue tokens',
+            $old_base
+        );
+    }
+    <plugin.web.auth.warned_old_store> = TRUE;
+}
+
+return TRUE;
+
+#,,.,,,,.,,..,...,.,.,.,.,,,,,.,,,.,,,.,,,,,.,..,,...,...,.,,,,.,,,.,,,,,,,..,
+#T27N5PFJX5LOMS3GU53D54BRY4OUO2PBQJOSJNPRZQ4AAY43O3NJFUMGVLQPWVCBWL6TOXRSWDHV2
+#\\\|B5FWLLDNAB27ICTNMULK32XJFMCX3VCV5LLLXAVV3ZUU7HFHHV7 \ / AMOS7 \ YOURUM ::
+#\[7]J5FN6UULVTZLZ7U7JLZS47D4Q7UWLOMY4PIYQHCH65QLYAH3SEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

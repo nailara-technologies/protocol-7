@@ -28,12 +28,11 @@ return FALSE if not defined $session_data;
 my $epoch       = <[base.ntime.epoch_timestamp]> // time;
 my $expired_dir = "$session_base/expired/$epoch";
 
-my $user = <system.zenka-user.current> // <system.amos-zenka-user>
-    // qw| protocol-7 |;
-my $group = <system.zenka-group.current> // $user;
+my $user = <system.amos-zenka-user> // qw| protocol-7 |;
 
 if ( not -d $expired_dir ) {
-    <[file.make_path]>->( $expired_dir, 0750, $user, $group );
+    my $group = <[plugin.web.auth.store.group]>;
+    <[file.make_path]>->( $expired_dir, 02770, $user, $group );
 }
 
 my $expired_file = "$expired_dir/$token_hash.yaml";
@@ -59,6 +58,14 @@ print {$fh} $yaml_str;
 close($fh)
     or <[base.s_warn]>->('plugin.web.auth.destroy_session : close error');
 
+## umask-proof : the prune runs as yet another uid [ see session.write ] ##
+chmod 0660,
+    $expired_file
+    or <[base.s_warn]>->(
+    'plugin.web.auth.destroy_session : chmod 0660 failed [ %s ]',
+    $expired_file
+    );
+
 if ( unlink($active_file) ) {
     rmdir "$session_base/active/$token_hash";    ## remove empty parent dir ##
     <[base.logs]>->(
@@ -73,8 +80,8 @@ if ( unlink($active_file) ) {
     return FALSE;
 }
 
-#,,.,,.,,,...,,,.,,,.,...,,,.,,,.,.,.,.,,,.,.,..,,...,..,,..,,,,,,.,,,,,,,.,,,
-#3ZJE6Q3SYF5JH2Y33DCJMUOWBVZVGIWVUTWSGLFKIUUMEOHTDLM7NSRBCG3UHKPPYHQASIMXTUVZU
-#\\\|Z7Z4EAZ6BEEAW424DZWMOHQVHDHDSXECESYTTGTWZW4ZYLI3PZ2 \ / AMOS7 \ YOURUM ::
-#\[7]T4NQV5X4GZKLMDU3VB4D2VNYZIYOH5XQYK4HI4CNYBGZSCANNMCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,.,,,,,.,,,,,.,,,,,,,...,,..,..,,...,...,.,.,.,,,,.,,.,.,...,
+#WYYHRN4NNUT6CZCIIIDGXRMWRB3OTUZGI2H73IBEEWTBSVNE2OVGCW5RRUATLWK7ZWRAOY7ZJDTVK
+#\\\|LXKAA44RH2Y6HCK2OFCEIEALSGWQ6C6OUHXKYHXRQR5BRAZMCGY \ / AMOS7 \ YOURUM ::
+#\[7]CHL4XVRDUBCG5NQXNVBKCJGC5PGVUY3PWTFZHK55DFML6626ASAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

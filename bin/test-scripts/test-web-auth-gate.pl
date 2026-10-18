@@ -151,6 +151,7 @@ compile_module($_) for qw|
     plugin.web.auth.session.path
     plugin.web.auth.session.read
     plugin.web.auth.session.write
+    plugin.web.auth.store.group
     plugin.web.auth.destroy_session
     plugin.web.auth.create_session
     plugin.web.auth.verify_session
@@ -342,7 +343,9 @@ ok( $err == 401
 );
 my $no_secret_lines = scalar grep {m|no web\.auth\.secret|sm}
     map {
-    join ' ', map { $_ // '' } $ARG->@*
+    join ' ',
+        map { $_ // '' }
+        $ARG->@*
     } @logged;
 ok( $no_secret_lines == 1,
     'exactly one clear log line for the missing secret' );
@@ -444,8 +447,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,,,,,,,,.,,,..,,..,,,.,,.,.,..,,,.,,,,,,..,,...,...,,.,,.,,,,..,.,.,..,,
-#JUTQB7CHSQUAGB2BXSF5VVI4TZDKTH74IYOXGXSVV52AM3FWFX2IDS7AX6P4ZFTZIMZBZL4DVKOWS
-#\\\|T7NNK7ODZ6VH6KVYGONEQJ66VSI5VDZZOWBLVPZKZ7THT3KOUSX \ / AMOS7 \ YOURUM ::
-#\[7]DCL6O3XPQTLJHXTMUOVZY7ERDXVXI5R724DDOZGBCKCBEQ5WMEBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,.,,.,,,.,,,...,,,,,,,.,.,,,.,.,..,,...,...,,,,,,.,,,,.,,..,,.,,
+#EZRCPZ2OR4JOJ26SBLHITCUXFQ5JZCZGQR6X6GSSDMEFVFYNEIKACUPBCJGZF2SJXKJ74OVQYEYUW
+#\\\|3734WAN33P72HD6UWB7TA35DTDHIDBACPSOHEMQZXYG2KZCK4KK \ / AMOS7 \ YOURUM ::
+#\[7]UJED7VIXHT2OIAWY6TPGX6JLAUZF4GFHQF7DKUX7RIDDOAAQVABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

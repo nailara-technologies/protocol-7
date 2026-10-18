@@ -1,12 +1,17 @@
 ## [:< ##
 
 # name  = plugin.web.auth.session.path
-# descr = return base path to shared web session storage
+# descr = return base path to the shared web-auth session storage
+# note  = built here, NOT as a 'shared' key in base.path-set-up
+#         .zenka-directories : that table is enforced as
+#         protocol-7:protocol-7 0775 by base.path-set-up.check-zenka-paths,
+#         which would fight the store's protocol-7:httpd 2770 requirement
 
-return join qw| / |, <system.path.zenka-dirs>->{'var_P7'}, qw| web sessions |;
+return join qw| / |, <system.path.zenka-dirs>->{'var_P7'},
+    qw| shared web-auth |;
 
-#,,,.,...,..,,.,,,,.,,..,,,,,,.,,,..,,,.,,...,..,,...,.,.,...,,.,,...,...,,,.,
-#2IXXRAKF6RPH2CQN2IA7Q2RLOM7RWPTHKQQHEBZOJDMELBIDLT2SQFPU5XWLPP2KLJVOL6GMLGVW2
-#\\\|MCJFLQ3PO6A6RNZVQOMIXTUBSSA6I4W4Y4S76PXHNJIZHTITULG \ / AMOS7 \ YOURUM ::
-#\[7]7AMNU5I6B4W7FKG722FWUYKB7F2FZFK45AF767KDIDWAQEDBHKCI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,...,,..,,..,.,,,,,,,,,.,..,,,,,,..,,...,...,,..,,..,...,..,,.,.,
+#AIDTKY7BAYU3ASAM4HYG42A2T4G2MUVSVWGVUB6RNPBQT7IVMB36VIMBNEP3LD3LA2VYV7ZRNF4KU
+#\\\|AMRKR25BQAKFQUZIAGWOLX3QFWEN47DH3L4SI42Z5VUPHTLVOMU \ / AMOS7 \ YOURUM ::
+#\[7]WZV5AG6PIY56KMDWFMWZMMPHJSAIA7JMSFZIUYWAZ2Y54ZFWKOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
