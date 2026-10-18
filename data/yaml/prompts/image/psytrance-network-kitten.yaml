@@ -147,6 +147,100 @@ style_prompts:
         reference: data/gfx/backgrounds/R2G5EBRDYGXW6DEKT7IFAEZUN7YPJNC2MYVJJKWSRN7FO.png
         negative_prompt: green, teal, cyan, neon, overexposed, white glow, bright stars, catchlights, bad anatomy, redundant bodyparts, extra legs
 
+## reference chains [ 2026-10-18 ] : one photo, two prompt modes. the
+## PROMPT decides the subject count : a singular visitor in a grid space
+## -> the model selects ONE subject [ the clearest face ] and drops the
+## rest ; the base prompt [ upgrade quality, style, native kitten ] ->
+## it keeps ALL subjects and restyles the environment natively.
+## files not recorded -- the chains are kept as examples of the method
+chains:
+  - name: visitor-into-grid-room
+    ## two generations : the subject survives the chain [ stripes, eyes, ##
+    ## nose kept ], the stage is replaced each time -- no retracing      ##
+    steps:
+      - in:
+          - 'photo : four ginger kittens on a meadow [ fisheye, sunny ]'
+          - 'a symmetric blue grid corridor'
+        prompt: curious-visitor [ singular ]
+        out: ONE kitten isolated in the corridor [ the front one ; three kittens, meadow, sky, trees dropped ]
+      - in: [ 'the isolated kitten', 'the darkest-state node field screenshot [ near black ]' ]
+        prompt: reference roles [ kitten from reference 1, room angle from reference 2 ]
+        out: the same kitten in a corner room aligned to the screenshot perspective
+    ## the same room took other kittens too [ the R2G runner, the
+    ## sleeping pair ] -> reusable scenery
+  - name: style-transfer-whole-scene
+    in:
+      - 'the same four ginger kittens photo'
+    prompt: 'the base prompt above [ task : upgrade rendering quality .. ]'
+    out: all four kittens in place, trees as blue crystal silhouettes, grass as fibre \ glitter network ; first attempt
+    ## environment restyled, not replaced -> shareable only from a free
+    ## source. watch : the eyes turned to glowing blue [ eye-max ]
+    ## NEXT : the same base prompt as a quality pass over the grid-room
+    ## renders [ a third generation, new seed -- not the render's own ]
+
+## lighting [ user, 2026-10-18 ] : the eyes follow the light the model
+## ASSUMES -- with only holographic lines lighting the scene it invents
+## its own sources and the eyes glow. naming light needs an exact source
+## and its spread, a wide one gives wide reflections [ a panorama, blue
+## water at a beach ] -- wanted. point sources pierce the colour range as
+## outliers, downgrade it and pull the subconscious focus onto them.
+lighting:
+  example: a deep blue ambient grid plane lit by a blacklight sun
+  ## or name what the eyes REFLECT -- the world described like in a book,
+  ## its details exist even where only a reflection shows them
+  reflected: a wide blue sky | a galaxy | a violet space nebula
+  ## blacklight = UV to the model : it renders fluorescence where a
+  ## fluorescent material is present, and none where not -> naming the
+  ## materials places the glow [ e.g. grid lines fluorescent, fur matte ]
+  fluorescent: name which materials glow under the blacklight
+  wanted: wide reflections [ panorama quality ]
+  avoid: point light sources [ outliers above the colour range ]
+
+## style framework [ user, 2026-10-18 ] : fluorescence, ambience,
+## translucency, holography and goa-trance combined -- a futuristic deep
+## style reaching from eternal shamanism to [ disentangled from ] time
+## travelling space ships. the model loads these references implicitly.
+## kittens and elves complement each other : one framework, two natives
+framework:
+  parts:
+    - fluorescence
+    - ambience
+    - translucency
+    - holography
+    - goa-trance
+  natives:
+    - psytrance-network-kitten
+    - goatrance-network-elf
+  ## background rules depend on the context [ user, 2026-10-18 ] but BUILD
+  ## ON EACH OTHER, never exclude : neon is embedded in the blue \ violet
+  ## base framework ; on a screen behind translucent dark terminals it
+  ## shimmers through ; projected by a laser beamer it lights the room.
+  ## the dark visualizations will not stay dark either -- colour is a
+  ## progressive build-up where each colour has a function and a meaning,
+  ## multi-layered and harmonically integrated : more information without
+  ## overload, because overall balanced
+  ## the PURPOSE above all layers [ user, 2026-10-18 ] : what shimmers
+  ## through matters too. elves, kittens, space and to a degree nature
+  ## keep the mind in a creative flow state -- backgrounds sustain and
+  ## support that flow, never interrupt it
+  purpose: sustain and support the creative flow state
+  subjects:
+    - elves
+    - kittens
+    - space
+    - nature [ to a degree ]
+  ## and the practical check beside it : translucent text over the image
+  ## stays readable -- low luminance and little fine high-contrast detail
+  ## where the terminals sit [ edge density competes with glyphs ]
+  readable: translucent terminal text stays readable over it
+  layers:
+    base: deep blue and violet [ every context ]
+    neon: embedded in the base, never on its own
+    meaning: each added colour carries a function
+  media:
+    screen: behind translucent dark terminals the colours shimmer through
+    projection: the image lights the room
+
 ## magic words [ user, 2026-10-17 ] : one word sets a whole learned
 ## reference set -- the model falls back on it wherever in doubt
 magic_words:
@@ -165,8 +259,8 @@ magic_words:
   - word: deep
     sets: darkness without flattening [ replaced soft, which lifts the shadows ]
 
-#,,..,..,,.,.,.,.,,.,,,,.,,..,,..,,,.,.,,,..,,..,,...,...,...,.,.,,..,..,,.,,,
-#H3VRBXTA2ECKGGQXTAYOYJE4TYQXJUGGXFNPTCI2KFAKQUTIMV5EBYZG5EFEXNTOKO7PDIZVTSH4W
-#\\\|EVCFIJLT25WJXYYY7S6HJRYY75WUDIPECYHLRIIWOMPMAXK2AQP \ / AMOS7 \ YOURUM ::
-#\[7]U6KDTXCXACJD3AQT42SS2R2WSJCKSBRJXTHELJV3AAX7RQTMEMAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,,,..,,.,.,,,,,,,.,.,,,..,,.,.,..,,...,...,.,.,...,,,.,,,,,...,
+#OWQA4ZZ2UGKBYKW6CLGP6IA3ZW6T6BDX74XLCUJKPG23DHVATOII5GW7SISVS66OS6WV2AAS6HQQG
+#\\\|NO5ODHD2PQVFTLRW7JPDD2BGEHJ476VNGMM7HQ523ULQOTWVNTY \ / AMOS7 \ YOURUM ::
+#\[7]ATF5XDD2NBEUFYS7LKB6QCMI2DPXW7PSMC6N3ZL7Z2RETYPLSMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

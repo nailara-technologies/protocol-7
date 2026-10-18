@@ -56,6 +56,10 @@ real but needs the style. each round moves both toward each other.
   full rect rendered, entity mask cuts it. visible fraction stored.
 - **non-flat** [ curved panels, holographic \ circular displays ] -- later.
   flat rects first.
+- **brand marks** [ 2026-10-18, user ] -- a maker logo on a bezel or a
+  device [ e.g. an apple logo ] is detected and replaced specifically,
+  the screen itself stays. same for ordinary objects that break the
+  style [ a plain glass jar ] : re-rendered native, not the image dropped.
 
 ## surface address
 
@@ -95,8 +99,8 @@ truncation and occlusion [ the cat in front ] in one image. the elf images
   [ highlighted source as an image, palette from the generation ], compositor,
   surface records.
 
-#,,,.,,..,..,,,..,.,,,,,,,,,,,.,,,,,.,,,.,.,,,..,,...,...,.,.,,,.,.,,,,,.,...,
-#W7MO2WXKOBBP56YWVSFR4OWNT4G2ADQY6DA56UL32N7AWGHV3GEZD52BM6HU5WRQCIDOWUALJ34KC
-#\\\|22JHDU4ADAD6PU35KGEGGRKYEA5JEPTA77IVJM5DRCAVEH3YAXW \ / AMOS7 \ YOURUM ::
-#\[7]2ODTTXXU65MCLWFJCCCSGVE2FACTAVCTPWHUFR5SEUFUSODUXGAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,..,,,,,,,,.,.,,,...,.,,,.,.,..,,...,...,...,..,,.,.,.,.,..,,
+#UV44OU32SEJ2IFJWYOPDW7BVJKNJSR43BNQXTQKFXGUDM7OCOVJXSU52KOJQU7AEVKWHA4DS6Z4D4
+#\\\|TIIIYBYIM63NJQYLX5UZH5IMDTZF6QUPVKXCSSDCSHOE2BRLTJM \ / AMOS7 \ YOURUM ::
+#\[7]EZLBN37533MFWDNGLLAKZLNRAKXTRGZNRMWUREPEQN7NLXNBLIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

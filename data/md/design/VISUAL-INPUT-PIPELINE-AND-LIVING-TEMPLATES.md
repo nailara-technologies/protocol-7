@@ -613,8 +613,80 @@ slideshow [ X-11.backgrounds.set_random_image ].
   the "is it one image" optimization target counted for EACH element
   separately, not only for the whole frame.
 
-#,,..,.,,,.,,,,.,,.,,,..,,.,.,,,,,,.,,,.,,,..,..,,...,...,...,,,,,...,,,.,...,
-#4L6SZOT7O2LQEOI5XDVMFCFY6EUTYKUOLPUNFZAG37234RXZADCLUVOSZRXM6ENWHYSVGSMH63YRQ
-#\\\|PVQQEN2NUI2PGDETFLC2HGKCU5YMVHTZ7BTVRU3I6S5IOZ5DWI3 \ / AMOS7 \ YOURUM ::
-#\[7]YW22IZFSOVHRWSYQPLUBYPJWGP3FNGTYRT5ANDQZK2LOTXZHBKAY 7  DATA SIGNATURE ::
+### context- and region-aware desktop [ user, 2026-10-18 ]
+
+- PURPOSE : backgrounds sustain and support the creative flow state, never
+  interrupt it. what shimmers through matters [ elves, kittens, space,
+  nature to a degree ] -- rules build on each other, never exclude : neon
+  embedded in the deep blue \ violet base, each added colour carrying a
+  function [ data/yaml/prompts/image/psytrance-network-kitten.yaml,
+  framework ].
+- REGION AWARE : the desktop knows where translucent terminals sit and
+  asserts readability there -- text contrast after the terminal's own
+  alpha blend, and little glyph-scale high-contrast detail [ code rain,
+  whiskers ] behind text. busy is fine where no terminal sits.
+- CONTEXT AWARE : medium [ screen behind translucent terminals, laser
+  beamer lighting the room ], time, group, the active profile.
+- DYNAMIC : the background adjusts to the current layout and context --
+  pick, shift, or blend [ generational layer compositing ] -- and renders
+  CUSTOM backgrounds for often used or important profiles, laid out
+  around their usual terminal regions.
+- LOVED SUBJECTS : a collection of high quality intermediate versions of
+  loved subjects [ kittens, elves ] -- the characters stay the same and
+  keep stabilizing in quality across generations, while each render
+  places them in a customized perspective and arrangement [ grid rooms,
+  reference roles ]. that adds a PLEASANT entropy : familiar beings, a
+  current and adaptive whole -- intuitively alive in the background.
+  aware contextualization runs as a background task.
+- HYBRIDS : at any iteration characters can hybridize into a new one --
+  the surprise factor. as a harmonic composite of subjects already loved
+  it is probably loved too, and the system already kept it [ it passed
+  the same quality filter ] -- the cast grows from within.
+- CHARACTER GRAPH [ not a parent tree ] : lineage tracking breaks down
+  with hybrids of hybrids. instead a character-DIFFERENCE node graph --
+  the overlaps lie between the nodes. the whole group is sorted against
+  each other AT ONCE : each character gets its position from its
+  closeness to all others [ attraction by similarity ], while a
+  repulsion keeps the individuals apart so the group does not collapse
+  into one spherical blob in the centre. polarization into nodes emerges
+  from that balance ; a hybrid simply lands between those it resembles.
+  recorded parents stay an optional extra where known [ cf. narrow
+  grouping, multi-dimensional distance ].
+  the distance measure : face detection \ recognition algorithm groups
+  [ user ] -- recognition embeddings already place faces so that the
+  distance IS identity. human-trained ones fit the elves ; kittens need
+  animal face \ pet re-identification models ; general image embeddings
+  as the fallback. detection also yields the eye regions [ eye-max
+  assertion ] and the face position [ region-aware placement ].
+- CROP AND MASK [ user ] : cropping unrelated elements out of a source,
+  or cropping to only the wanted element, often makes a surprising
+  difference to the extraction. style transfer can take larger regions
+  on purpose. for the automated CHARACTER RESCUE a mask is the key tool :
+  detection gives the region, segmentation the exact outline. the same
+  mask also solves the hue rotation that recoloured the kitten with its
+  scene [ a uniform or range rotation cannot separate them ].
+  the models exist [ huggingface, user 2026-10-18 ] : segmentation for
+  humans, cats and objects incl. computer screens, and cat-dedicated
+  ones -- fetched through the huggingface zenka path. object classes
+  make the treatment SPECIFIC per object : computer screens stay -- they
+  are re-rendered and represent parts of our network [ their content
+  becomes our visualizations ] -- while brand marks [ e.g. an apple
+  logo, a bezel maker name ] are detected and replaced. the input rule
+  for man-made structures applies per class, not by avoiding whole
+  images by hand.
+  ordinary objects that break the style [ a plain glass jar on the desk ]
+  get the same per-class treatment. such scenes [ cats at network
+  desks ] are ideal intermediate input -- with the specific repairs
+  already result quality.
+  EXISTING PLANS [ build on these, do not restate ] : the model layer and
+  mask-as-assertion in data/tasks/visual-mask-model-layer.md ; face
+  detection, normalization and archetype grouping in
+  data/tasks/kitten-acquisition-pipeline.md [ steps 3 + 4 -- the
+  character graph refines step 4 ] ; screens as addressable surfaces
+  with real rendered content in data/tasks/image-surface-addressing.md.
+
+#,,..,.,,,.,.,...,.,.,,,,,,.,,,,,,.,.,..,,,,.,..,,...,...,...,,,,,,,,,,,.,,,,,
+#NCPL2BAL7YLZZYAITZYNNUUQQ43TRBWF6CQAI3C4QHDFBOYVQW2P7ZBUHSQU4ZHQCU3Z33MI7PFDC
+#\\\|YN7JKVYPOSQB7PQIFC3LIFSMYWV3RAHGIQNM6V2WVOQVNW25A7V \ / AMOS7 \ YOURUM ::
+#\[7]IE7MHRDCDBG67QUSQPZWGY5LWLJPPEV6AG3VHWJPOKRS7L3RFIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
