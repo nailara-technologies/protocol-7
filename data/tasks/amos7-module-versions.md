@@ -23,22 +23,32 @@ amos-versions` only covers the three ALGORITHM versions.
 - a new mode of `bin/dev/update-amos-versions` computes and writes them
   [ one place for both kinds ] ; run with the sign run ; a check mode in
   pre-commit reports outdated versions
+- the tool REPLACES the old version itself [ user : updating used to mean
+  cutting the old version out by hand -- that step goes away ] ; same
+  exclusion rules as the compiled-in checksum of bin/c_src/p7c.c and
+  p-7-r.c [ binaries work without a signature footer ]
 - algorithm versions stay separate : `amos-chksum -VCS \ -VL7 \ -VS`
   describe OUTPUT behaviour, module versions describe SOURCE
 - `$VERSION` never exported -- check unqualified readers first
 - N7FS records both : the algorithm versions that produced its
   addresses, the module versions that wrote the store
 
-## open [ owner ]
+## decisions
 
-- AMOS7::CHKSUM : keep `AMOS7::CHKSUM-VERSION.<x>` or switch to the
-  algorithm form `AMOS-CHKSUM-V-<x>` that update-amos-versions writes ?
+- DECIDED [ 2026-10-18 ] : SPLIT the two kinds. `$VERSION` = the module
+  source version in the uniform form [ `AMOS7::CHKSUM-VERSION.<amos>` ] ;
+  `$ALGORITHM_VERSION` = the output version in the short form :
+  CHKSUM `AMOS-CHKSUM-V-<x>` [ -VCS ], CHKSUM::ELF `AMOS-13-ELF-7-<x>`
+  [ -VL7 ], ELF::Inline `AMOS-13-ELF-7-SRC-VER-<x>` [ -VS ].
+  update-amos-versions writes `$ALGORITHM_VERSION`. "did the code
+  change" vs "do results differ" -- only the second matters for N7FS
+  addresses and signatures
 - fixed 2026-10-18 : `amos-chksum -VS` hashed a HASH reference
   [ `inline_elf()` returns { source, fallback, package } ] -> a random
   value per run ; now `->{'source'}`, stable
 
-#,,,.,..,,.,,,,..,..,,..,,...,...,..,,.,.,.,,,..,,...,...,,.,,,.,,..,,..,,,,,,
-#FYEKFMJRPN4GOI72LX3J6HDPPVYOHZKTMZ5SU77AZFORH5SST3OGNHLYPPZQDQIVRSHRFS2TFYVOG
-#\\\|TLSO23W34F2HDSMRNC55SGVGJLYSEN4JI7KRIEPDHLFNHS4HZJQ \ / AMOS7 \ YOURUM ::
-#\[7]GLX6E6HQRDWGXTDPFFVXIIYCA4BBBSBT3TKHWAQORGP2NHAS2ICQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,...,,,,,,.,,,..,,.,,,,,,,,,,,,.,..,,...,..,,,.,,.,,,..,,,,,,...,
+#XJMTO2S4YB3VXYJQVGXL7OPIZN7XS5EYLIQRH33YF33O6UG5IVD7CALMBNUEVOL4LUGG3IIDLSCEI
+#\\\|7JOCJRIR3RWC7CQB52WMQRLLJ5DNRUP27KAZYWJP34BI2VKFXFV \ / AMOS7 \ YOURUM ::
+#\[7]FG6LSUZO657KIBRIFOSKYM5BH7UMLMUBNLDJLGRTDOU5J5QMTYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
