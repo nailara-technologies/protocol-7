@@ -54,11 +54,11 @@ use AMOS7::TERM qw| terminal_size |;
 use constant TRUE  => 5;
 use constant FALSE => 0;
 
-my $ROOT_PATH   = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
-my $CHAT_DIR    = File::Spec->catdir( $ROOT_PATH, qw| data chat | );
-my $CHANNEL_DIR = File::Spec->catdir( $CHAT_DIR,  qw| channel | );
-my $ARCHIVE_DIR = File::Spec->catdir( $CHAT_DIR,  qw| archive channel | );
-my $MODEL_DIR   = File::Spec->catdir( $CHAT_DIR,  qw| model | );
+my $ROOT_PATH = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
+my $CHAT_DIR  = File::Spec->catdir( $ROOT_PATH, qw| data development chat | );
+my $CHANNEL_DIR = File::Spec->catdir( $CHAT_DIR, qw| channel | );
+my $ARCHIVE_DIR = File::Spec->catdir( $CHAT_DIR, qw| archive channel | );
+my $MODEL_DIR   = File::Spec->catdir( $CHAT_DIR, qw| model | );
 my $STATE_DIR   = File::Spec->catfile( $ENV{'HOME'} // $ENV{'PWD'},
     qw| .config protocol-7 | );
 my $STATE_FILE       = File::Spec->catfile( $STATE_DIR, qw| chat-state | );
@@ -1330,8 +1330,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
-#,,..,,.,,.,,,,,,,.,,,,..,,,.,..,,..,,.,.,,,,,..,,...,...,.,.,,,.,.,,,...,.,.,
-#6KMNHJAMUR2JKFINU3ZU4M4TVEUZ7JEUUD2KDHGYQLUSKG7OX22LIRAHRPYJPVESCH6P2DNOWQCE6
-#\\\|NLRUEWCGPTR3TXNHX4T3OX5QOYTHOTDYFLI63JGW3KQKW5SG3YK \ / AMOS7 \ YOURUM ::
-#\[7]WHROZ6CEQTKBUOMZTM2ONJMI6YXRABS2EF4KOR2BKLMLDLQZ2SBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,.,.,,,.,,,.,,..,.,,,,,,,,,,,..,,...,...,...,,,,,.,.,,.,,...,
+#FLL4RP3MJSH5SWB3MBFOFI3FMEGOJG6ETQS4HE4UEC6EC4JURUJ4XGJ22UASIZRFA6DZLZIFAFILW
+#\\\|KAP2ZNZBTEMQAQZQRS346PYK3E2T6M72VPFAC4LRJU5YNSZHS37 \ / AMOS7 \ YOURUM ::
+#\[7]NO3NDAURF2YHSWCOS2ZCLFJHGBR4CUUCGF6LODRSPHVXFPLRBUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
