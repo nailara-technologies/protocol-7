@@ -408,8 +408,213 @@ image archive system (topic-image-archive-system.md):
   probably: only when root tier changes (global best changes)
 - should the web UI update its palette mid-session (websocket push) or only on page load?
 
-#,,.,,,,,,,..,...,,..,...,,,,,,.,,...,,,.,,.,,..,,...,..,,.,.,.,,,.,,,,.,,,..,
-#2KYYJS2RKP3U56QMSSCK7IEML56YL3MLVOWBYQIAP235WQLLCVRHAFW6HZPRCFRWL5245P6YVVAMU
-#\\\|BRGYXEHLCVANZLH5RVIZ2HK2O6XNWUL7TKVQQ5ZAKHHOMXWAOVJ \ / AMOS7 \ YOURUM ::
-#\[7]NKVSH33ROQODVBIB6YU44OZX6DXKU3WEC7XBJPMWO2HKAODPAECY 7  DATA SIGNATURE ::
+
+## style transitions : groups and context [ user, 2026-10-17 ]
+
+builds on the morph of data/tasks/images-elfdb-feature-collection.md
+[ generational layer compositing : one lineage = images with many
+overlapping parts, every mix level a valid image ] and on the X-11
+slideshow [ X-11.backgrounds.set_random_image ].
+
+- GROUPS : a group is one such lineage pool. inside a group a
+  transition SEQUENCE [ morph steps on the slideshow timer ] ; between
+  groups a group-to-group transition [ a bridge -- ideally images that
+  belong to both, so it stays a morph and never a cut ].
+- CONTEXT : later, priority [ curve ] based, context dependent style
+  transitions -- NOT only for the background : the whole living
+  template [ terminal palette, ui, everything fed from current.yaml ].
+  examples : private <-> work mode, weather changes [ tier 3 above ],
+  companion styles for or from the data-sets being worked on.
+- several contexts can be active at once : their priority curves decide
+  the weights [ the curve scheduling of the feature collection ], the
+  transition between two weightings is itself a slow morph.
+- TIME BUDGET : the transitions are slow, so there is time to CREATE a
+  new style for an occasion, or make an archived one available, before
+  it is needed -- generation runs ahead of the morph, never blocks it.
+- LOCAL and SHARED : works fully local. shared gives BOTH incentives :
+  LOWER latency [ common-interest images rendered distributed reach a
+  loadable result faster than any single machine's cpu \ gpu bottleneck ]
+  and a far larger pool. gpu work is less distributable but TRADABLE :
+  other work performed for the network buys a faster render slot.
+  shareable generic workloads go to the network -- up to rendering
+  povray slices in a 5 of 7 consensus group [ 5 active render and agree
+  on the slice checksum, 2 initialized alternates take over failures
+  with no start-up cost -- see
+  data/ai-mem/claude/topic-node-group-geometry.md ].
+- WARM-UP from the pool : the larger pool is also a cache -- similar
+  images that already match the style requirements start the transition
+  BEFORE the specific render has even begun ; the specific one morphs in
+  when ready. like a warm-up track before the main theme track in a
+  psytrance set segment.
+- SATURATION : as categories fill and refine toward better quality
+  [ the best-5 tournament above ], rendering time goes toward ZERO --
+  exceptions : new categories and specific customizations. a
+  customization becomes a new style, draws interest, and so earns its
+  own cache space -- the pool grows where attention is [ the
+  self-sustaining dataset of data/tasks/images-elfdb-feature-collection.md ].
+- NARROW GROUPING [ user, 2026-10-17 ] : a best version is only
+  determinable inside a narrow visual group [ same subject, same style,
+  same composition family -- like the seed batch of one prompt ]. a NEW
+  style emerging in a batch does not compete there : it opens a new
+  narrow column, which gets its own best-5. columns refine until all 5
+  are really good -- then trimming the lowest scores is LOSSLESS.
+  even with style JITTER, groups of similar styles emerge -- the
+  pipeline collects them SEPARATELY, so the emerging styles are kept
+  [ they may become better than the one initially worked on ] while the
+  original goal still gets its results. new groups spawn IMPLICITLY by
+  distance parameters [ style \ similarity distance from the group ] --
+  both at once, no manual sorting.
+  the distance is MULTI-DIMENSIONAL over different parameter types
+  [ palette, brightness, structure, composition, detail ] : the closest
+  are those with the smallest outliers in TOTAL. dimensions normalized
+  first [ else the largest raw scale decides alone ] ; a sum tolerates
+  jitter in one dimension, a new style deviates in several at once.
+- RE-RENDERING the best images at ever higher quality [ more steps,
+  newer models, re-feeding ] -- likely a POPULAR shared workload : the
+  most liked images draw the most compute, each result replaces its
+  predecessor under the tournament rule, and everyone holding the old
+  version gains the new one.
+  the judgement "is the new one better than the existing one" is a SAFE
+  assertion target for vision llms : a pairwise comparison of two
+  versions of the same composition, guarded by the cheap assertions
+  [ colour ranges held, similarity to the predecessor high, detail up ].
+  two modes : SUGGEST to the user, or -- when fully delegated -- choose
+  inclusion itself, knowing the user's preferred style already. a wrong
+  choice is reversible [ the predecessor stays, undo = hide a layer ].
+  and even a wrong choice is DATA : the correction [ the user restoring
+  the predecessor ] is a labelled example for the next choice -- the
+  system learns from anything that generates data or imports entropy,
+  mistakes included. so the choice log is kept, not only the outcome.
+- REFERENCE HISTORY TREE : keep for every rendering the tree of reference
+  images it included. when a key image gains an improved version,
+  replace it in the tree and RE-RENDER its descendants from there -- like
+  rewriting a git history onto a better base, except the replay gives a
+  BETTER result instead of a likely identical one. content-addressed
+  names [ rename.bmw ] make the tree checkable : a changed key image
+  marks exactly the descendants to redo, the most liked first.
+  the tree reaches DEEP into layered formats like .xcf : each layer's
+  source image AND its parameters [ opacity, blend mode, order, filters ]
+  are nodes too -- an improved layer source re-flattens only the
+  composites that contain it, with their parameters kept or re-tuned.
+  NESTED : a .png layer source is not just the .png -- behind it stands
+  its own tree [ an .xcf, or a text-to-image run : prompt, model, loras,
+  seed, settings, its own reference images ], recursively. so a flatten
+  can ALWAYS be undone, at any depth.
+  and the new models re-render a node even when its source images are
+  NO LONGER AVAILABLE [ from the flat result, the record and the style ]
+  -- often with quality improvements or style alignment as a benefit, so
+  the loss is compensated by an improvement after all.
+- SHARING SOURCES : what decides is how much of a source photo's OWN
+  contribution remains -- environment, light, framing -- not whether the
+  subject is recognizable. a cat's looks, pose and expression are the
+  cat's, nobody's work and no likeness right [ a re-posed cat leaves
+  nothing of the photo ]. an ISOLATED subject in a fully replaced
+  environment is shareable ; a RESTYLED whole scene keeps the scene
+  [ the photographer's choices ] and is shared only from free sources.
+  the isolation also removes the photographer's PRIVATE surroundings
+  [ "kittens are kittens -- but that is my bedroom" : not any more ].
+  re-posed, remixed and later generations are shareable. the record
+  carries it : source, pass count, isolated or restyled. keeping and own
+  use are never restricted by this, only sharing to the pool.
+  the safest path is DISTANCE [ user, 2026-10-17 ] : the number of style
+  translations between a source and a result -- the very definition of
+  the rendering pipeline. restrictions are not enforceable ; the best
+  enforcement makes them NON-APPLICABLE by definition [ enough distance ].
+  the tree stays usable both ways : FORWARD from a source -- someone who
+  loves a kitten image found on yandex finds the network's derivatives
+  as a chain to follow, maybe one better suited as a background, so even
+  the owner of the cat profits -- and REVERSE to edit the tree.
+- INPUT RULE [ user, since the gimp-only pipeline ] : NO man-made
+  structures [ buildings and the like ] in the input images -- not for
+  complaints, but to keep NEGATIVE entropy out : geometrically
+  compromised structures. inputs are natural subjects and scenes
+  [ animals, plants, landscapes, sky, space ]. the network geometry of
+  the target style is rendered, never imported. the gimp imports in
+  data/gfx/backgrounds/ were made under it.
+  constructed structures can be valid -- STARGATES -- but uncertain in
+  their element count : the number of chevrons matters, 13 is important
+  here too, so a found gate may carry compromised geometry. what is
+  imported is the stargate STYLE [ safe : the result is a composite ],
+  the gate itself is re-rendered with the right count -- the geometry is
+  defined : 13 LASER MIRRORS [ the chevrons ] routing blacklight
+  counter-clockwise around the gate ring ; the 13th descends from the 12
+  o'clock position to activate the link, the 13 of the other side is
+  seen as 1 [ +1 addressing ], recursive 13-spirals in the elements
+  [ data/tasks/research-findings/council-of-13.md,
+  data/md/design/WEIGHTED-NETWORK-TIME-PRECISION-CONSENSUS.md ~75 ]
+  -- and what is found online is below our standard and our own
+  refinement anyway.
+  povray builds the exact gate geometry as a SKELETON -- also for gate
+  TRANSITION CHAINS [ gate to gate ] : fast in TRAVEL speed, yet the
+  motion is smooth, on a morphing curve through space [ no abrupt image
+  changes ]. deterministic frames, each free to be re-rendered \ skinned
+  from there [ progressive skinning ].
+  the gates' main FUNCTION : a DISTINCT transition between neighbouring
+  STYLE JURISDICTIONS -- like an atc handover. the environments are
+  quadrants, the gate threshold marks the REGISTRY CHANGE. inside a
+  jurisdiction everything morphs without a boundary ; between two of them
+  the gate is the marked, still smooth passage [ cf. the group-to-group
+  bridge above : a gate is its explicit form ].
+  a gate ENTRY guarantees one thing for certain : DEPARTURE from the
+  space the gate is in. the destination defaults to a NEIGHBOURING space
+  registry, or one eventually ROUTED to -- the departure is certain, the
+  arrival is resolved [ like a message leaving its cube for the next ].
+  gates need not be fixed : zenki travelling as a litter \ formation
+  have enough elements to FORM a gate or an antenna array themselves --
+  for their own use or as a service to nearby space
+  [ data/md/design/DANCING-ZENKI-RHIZOME-STATE.md ].
+  so the QUALITY THRESHOLD is the main filter, and it creates the minimal
+  distance by itself : every input that passes needs at least one
+  re-render to reach our quality.
+- REVERSE DIRECTION [ user, 2026-10-17 ] : screenshots of the real
+  visualizations [ e.g. read-me screen.0.png, the cubic-space field ] as
+  reference images put actual rendered network structure into the art.
+  the loop also runs back : rendered artwork inspires additional
+  visualization [ sub- ]algorithms -- local llms can propose them by
+  looking at the existing structure next to the related artwork.
+  first target : the PURR FIELD visualizations
+  [ data/asc/what-AI-thinks/html-form/visualizations/purr-field/ --
+  bioluminescent v1..v10, cosmic-purr-field-mystery, enhanced-zenki-purr ]
+  : very cool neon gradient cycles, but the cats are too symbolic and
+  too literal at once -- refine with rendered visual hints [ e.g. the
+  ripples where the paws touch the field as purr waves ].
+  CAMERA RIG [ user, 2026-10-17 ] : a screenshot reference binds the
+  render to the visualization's geometry [ proven : it levelled the grid
+  horizon ]. screenshots from fine-stepped camera angles [ e.g. 13
+  keyframes around the circle ] could turn the subject a full rotation,
+  then a video model [ ltx-video or better ] interpolates between the
+  keyframes. same structure as the povray gate chains : exact skeleton,
+  skinned per frame. keep the subject reference constant, the seed not a
+  previous frame's ; slow, smooth rotation by default.
+  PROVEN : the model sees DARK structure perfectly -- the near-black
+  read-me screenshot [ screen.0.png ] came out as a clean corridor of
+  floor and ceiling grids. no level stretching needed ; and the darkness
+  is STATE [ an 8x63 node group with all bits at their lowest ], so a
+  screenshot carries the network's current state into the render.
+  a faint, dark structure acts as EMERGENCE, a bright one as an imposed
+  OVERLAY : the model grows the image along the faint structure and
+  fills it with the prompt's style, while a strong reference imposes its
+  own look [ cf. the stacking of two bright aligned references ].
+- BOOTSTRAP : the desktop already defines the minimum categories it uses
+  [ independent of later expansion ] -- we saturate those OURSELVES at
+  optimum quality first [ the new rendering models + the style
+  framework concept ] ; the shared pool expands from there.
+- PROGRESSIVE SKINNING : the warm-up holds for rendering itself -- skin
+  a ui environment fast from simple translucent elements rendered at
+  small expense, then keep replacing them with higher quality at higher
+  densities and resolutions. povray renders such elements at the highest
+  quality even before or without text-to-image, with reasonable memory
+  requirements [ the povray zenka, initiative P ].
+- the povray context is SKINNABLE itself : the deterministic part gives
+  the alignment to, or the form of, required surfaces and structures ; a
+  high quality space \ nature panorama [ e.g. from yandex ] renders as a
+  reflection or onto a translucent surface as one more layer. then the
+  gimp technique combines them [ generational layer compositing ] -- with
+  the "is it one image" optimization target counted for EACH element
+  separately, not only for the whole frame.
+
+#,,..,.,,,.,,,,.,,.,,,..,,.,.,,,,,,.,,,.,,,..,..,,...,...,...,,,,,...,,,.,...,
+#4L6SZOT7O2LQEOI5XDVMFCFY6EUTYKUOLPUNFZAG37234RXZADCLUVOSZRXM6ENWHYSVGSMH63YRQ
+#\\\|PVQQEN2NUI2PGDETFLC2HGKCU5YMVHTZ7BTVRU3I6S5IOZ5DWI3 \ / AMOS7 \ YOURUM ::
+#\[7]YW22IZFSOVHRWSYQPLUBYPJWGP3FNGTYRT5ANDQZK2LOTXZHBKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
