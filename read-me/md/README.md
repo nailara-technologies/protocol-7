@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32A4HPVLMA-10091.0 :::
+::: SOURCE-CODE VERSION :: 32A4LIUADI-10092.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -158,10 +158,6 @@ This installs:
 For a complete installation including desktop/GUI components:
 
 Run this command: `bin/p7-deps install protocol7-extended`
-
-Note: `bin/dependencies/*.debian.sh` are the legacy installers, kept for
-backwards compatibility until their retirement -- pending, see
-data/tasks/legacy-debian-deps-coverage-audit.md
 
 The full installation adds:
 
@@ -520,8 +516,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,.,,.,,,.,,,,.,,,..,,..,..,,.,,,,..,.,,,,..,..,,...,...,,,.,,,,,,,,,..,,.,,,
-#725DW7LSDVLXOJZFIMK5J7CEY4LLGV34QQ2JM6JEKXR46Z4QR5XPJ6QHCRAGTH2EP5PX6Y6ZXBFIA
-#\\\|EBAIYHQWRTEYB3J4YILBMJYQOY7IMLQMESA447VJA34WJDP7JJZ \ / AMOS7 \ YOURUM ::
-#\[7]ZDFJQEZZQM4M33ZJFEZ6FWS4KAIFZ7NLPBGGIYDKGVV4XIDGTIAA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,,,...,,..,.,.,,..,,.,,,.,,..,,..,,...,...,.,.,,.,,,.,,,.,,.,,,
+#5VKRXNATXVMZ4EHOKAADCBT344LPLEPGWI6LD6LJ4B3WPUVYWXIWE3LC6B554VPGMDOXDRYETSH3Q
+#\\\|QZCPFDJMDYMPUJIODBCZ2JYH7BBQJZGRWIMLN3C2YSX6SDOJPPM \ / AMOS7 \ YOURUM ::
+#\[7]UG2ZFCTAETUCCCMNTBEQHGWPGJCBD4XID76YIQ3JNPXOSAOWRMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,5 +1,8 @@
 # p7-deps : service commands, shared pm-src builds ; v7-zenki : unit check, launch symlinks
 
+[ 2026-10-18 : bin/dependencies/ is retired -- this file keeps the old script
+as a historical reference ; `git log -- bin/dependencies` finds its last version ]
+
 the legacy `bin/dependencies/install_minimal_dependencies.debian.sh` does a
 few host steps nothing else covers. they move into `bin/p7-deps` [ works
 without a running backend -- the unit must exist before the first start ]
@@ -118,8 +121,8 @@ one level 0 log, no copy ].
 new \ changed files, test output [ last lines ], format-code result,
 anything you had to decide yourself.
 
-#,,,.,,.,,,,,,,,,,.,.,.,.,.,,,...,,..,...,..,,..,,...,...,.,,,.,,,.,,,,,,,,,.,
-#56IBEJDPJQQLAJAYGVFSRC55GRKECURBVMYRIV2LGFX2YKDDISHCKEYXBE77BS5SZPJGGRHWDCRAC
-#\\\|RAOSRPB3SEHGF2GKUYPQIYCJTYBP6KN2NVUZPRP5NT4MLLWDAYS \ / AMOS7 \ YOURUM ::
-#\[7]4O4CVR2YR45MJNGNCXST73OUPVSIN45TQFARZ5W7JZQOHTA32IAY 7  DATA SIGNATURE ::
+#,,,,,...,...,.,.,,..,,,.,.,,,,,.,.,,,.,.,,..,..,,...,...,...,,.,,,.,,...,...,
+#WXHK6FSJIZE6AE5JAFKC6BMVFEHM5BTUJQ355VZZ4YDLS4XGQCT7WK7GUGBZKCUNVDUUND5K55TLQ
+#\\\|MB3WKKDPCO3HRCH4C44KRGZD6IL4URPGWFR4VSFU5V5AQRKRF6Z \ / AMOS7 \ YOURUM ::
+#\[7]5JXI73CH3OGSD2FCZ7PIBESMMJCUAI2KDJENWTZHGQYMFFSDPGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

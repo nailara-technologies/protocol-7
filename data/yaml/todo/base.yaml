@@ -1169,7 +1169,7 @@ items:
   text: 'v7-zenki : per-host zenki.enabled \ disabled in host.cfg'
 - added: 3X4NRFENDU
   details: |-
-    the steps a new server gets by hand today [ 2026-10-12, yourum ] : git + clone to /usr/local/protocol-7, netselect-apt for the fastest mirror, switch to unstable [ sid ], bin/dependencies/debian_dist_upgrade.sh, install_minimal_dependencies.debian.sh, bin/p7-deps for the rest, the systemd unit. as debian zenka capabilities, each a command with a check mode : mirror select [ netselect-apt, result kept in host config ], suite switch [ deb822 aware : debian 13 keeps /etc/apt/sources.list.d/debian.sources, netselect-apt writes a classic sources.list -- one of them must be moved aside ], dist-upgrade, dependency profiles [ p7-deps ]. plus the sshd baseline every server got by hand : keys only, ClientAliveInterval 77 [ /etc/ssh/sshd_config.d/10-p7-keys-only.conf ]. goal : a reinstalled host comes back to its definition without a manual step [ 4EO, LGC ].
+    the steps a new server gets by hand today [ 2026-10-12, yourum ] : git + clone to /usr/local/protocol-7, netselect-apt for the fastest mirror, switch to unstable [ sid ], bin/p7-deps dist-upgrade [ legacy bin/dependencies/ retired 2026-10-18 ], bin/p7-deps for the rest, the systemd unit. as debian zenka capabilities, each a command with a check mode : mirror select [ netselect-apt, result kept in host config ], suite switch [ deb822 aware : debian 13 keeps /etc/apt/sources.list.d/debian.sources, netselect-apt writes a classic sources.list -- one of them must be moved aside ], dist-upgrade, dependency profiles [ p7-deps ]. plus the sshd baseline every server got by hand : keys only, ClientAliveInterval 77 [ /etc/ssh/sshd_config.d/10-p7-keys-only.conf ]. goal : a reinstalled host comes back to its definition without a manual step [ 4EO, LGC ].
     also the time zone [ 2026-10-12 : delta came with America/New_York although Europe/Berlin was chosen at install -- the provider image overrode it ; set explicitly : timedatectl set-timezone Europe/Berlin, then restart the backend so every zenka uses it ].
   done_at: null
   id: WW5
@@ -1319,8 +1319,8 @@ items:
   - tools
   text: 'pre-import sorter : files from source paths into type subdirectories of a target [ copy, or move ]'
 
-#,,.,,,,,,,,.,..,,...,...,,,,,.,,,.,.,,,.,.,.,..,,...,...,..,,,,.,,.,,...,.,,,
-#VB654FK5IRLVJ3IWQJDCU366IA3WAPORIQFFPBJV6RVHFHCXLXEROTKFMHMMXHI6PB2I4SVX7UVVA
-#\\\|SSQBMBCCMF2MFZCYU5JVIWH36JLSG44BBEE3L2TXJ2XIHD3M5P5 \ / AMOS7 \ YOURUM ::
-#\[7]KQ6GYELOKHPTJYTXKWIS7VT7QSY6SFPKDIGFETI2S7XVD2C7K4CQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,,.,,.,.,,..,.,,,.,,,...,,,,,..,,...,...,...,...,..,,.,.,,,.,
+#CQYUJDUOETTGNJI5PEJ3ATFL7VKNNUT2X377SKJBXALKOZILFOCUSRYBSVXAT4B26N3MNQ2N3PMYE
+#\\\|4Q7VJVKUUHU6DIKRBLEIYI3U4N3WZBGUJ4A7KCI3DBYB3MIQWCC \ / AMOS7 \ YOURUM ::
+#\[7]3TEIEDQDM6JCP7MLRAWYJ24MVMG2X3IQZHXJUTYRRWZTNVBCMMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
