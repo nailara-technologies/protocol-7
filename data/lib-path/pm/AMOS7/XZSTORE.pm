@@ -21,7 +21,7 @@ use vars qw| @EXPORT $VERSION |;
 
 @EXPORT = qw| xz_write xz_read |;
 
-our $VERSION = qw| AMOS7::XZSTORE-0.01 |;
+our $VERSION = qw| AMOS7::XZSTORE-VERSION.RXNAKXQ |;
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -87,8 +87,8 @@ sub xz_read {
 
 return TRUE;    ##  truth  ##
 
-#,,.,,,,.,.,,,,,.,.,,,..,,...,,.,,,,,,,..,.,,,.,.,...,...,...,...,,,,,,.,,,..,
-#E534DYXUA2OHHX366SR2RGFTRMTQLKGYF352X4WI63ILAUJZVSPADBRSZNFW6FNTMTIEDVC3OD4XK
-#\\\|4GUTRB26AGGAXONPQVLRIJWDRWDO5EOYUZPQSHJLTFAZHLW74XJ \ / AMOS7 \ YOURUM ::
-#\[7]4DFVCJRUHZY75DUYKD5XHVKYCMLQYIWNGWLKKH7R654KWREGDIAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,.,,,.,,..,.,,,.,.,...,,..,..,,.,.,...,...,..,,.,.,..,,,,.,.,.,
+#XI4CVJNX4ZXCJBX6UFPMCLOWGTNXLA3PFAOO3EKV3LY2GANZCU6QKYCIKIJJMOSXWZHBN6TE52SI4
+#\\\|IKE4SGQXAP766ADIGXHUTM3NDDEN2TCZY3XMYVSVX6NDWHNQQNY \ / AMOS7 \ YOURUM ::
+#\[7]7IHBLXGE5BWJGFVGNTZR6MJ6AXGTKRACAFEMYO2XYV4YKOIH4QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

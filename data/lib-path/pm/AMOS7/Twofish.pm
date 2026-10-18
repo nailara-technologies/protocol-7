@@ -25,7 +25,7 @@ use base qw| Exporter |;
 
 @EXPORT_OK = qw| key_init object_table delete_table_entry encrypt decrypt |;
 
-my $VERSION = qw| AMOS7::Twofish-VERSION.2EXJJ7Q |;
+our $VERSION = qw| AMOS7::Twofish-VERSION.Z3N46OI |;
 
 error_exit("perl module 'Crypt::Mode::CBC' not loaded")
     if not defined &Crypt::Mode::CBC::new;
@@ -195,8 +195,8 @@ sub decrypt {
 
 return TRUE ##################################################################
 
-#,,.,,,.,,.,,,,,,,,,.,...,.,,,,.,,,,,,.,.,,..,..,,...,...,,,,,,..,..,,,,.,.,.,
-#6AXMN5YW47RWZ4QGEBE6DU26V65JBTT6UVGXACTWOX3PLSVAX73KO52HZQ62VTYDLBOGEEBZLNGFW
-#\\\|G7MN5QGYWYKYUJIED7A74UBD6GO2AIMPXVXFVLNLTEFKLUT3SOZ \ / AMOS7 \ YOURUM ::
-#\[7]TOU6EDPWCHE7ZDM7YLIJN54BM2DJC4FJ3IRTVAHXV5OQYJYGWECY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,.,...,.,.,.,,,,,,,,,,,.,,,...,..,,...,.,.,..,,.,.,.,,,,.,,,,.,
+#2IE6C76DDDRGW5WRKQM36G2EBINYQPX6QKGJMBQSTYSHXJ4B2YY4AJEUTCIN5FM5FUUWI2N6ALPNS
+#\\\|QTYZ5OMWLXPFILXPOHDP4Z55ELPPX7IEU2GHOFPQGVN4XPXBBVT \ / AMOS7 \ YOURUM ::
+#\[7]LZJZA5VM7XC3IZWYIC7QYDFXK7YVVN27OVLZONFYGI5SVS5HG4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

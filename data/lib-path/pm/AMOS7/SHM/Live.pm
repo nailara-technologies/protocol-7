@@ -24,7 +24,7 @@ use vars qw| @EXPORT_OK $VERSION |;
     live_read
     |;
 
-our $VERSION = qw| AMOS7::SHM::Live-VERSION.AAAAAAA |;    ##  -VCS  ##
+our $VERSION = qw| AMOS7::SHM::Live-VERSION.VOYFRUQ |;    ##  -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -129,8 +129,8 @@ sub live_read {
 
 return TRUE  #################################################################
 
-#,,,,,.,,,,.,,.,,,...,,,,,,,.,...,.,.,,.,,.,.,..,,...,...,,.,,.,,,,..,,,.,,.,,
-#XJ3J63MOP5N7LO3NHJTMO4FTS3ZS3SHNE3Z72CNBWIXUNESDHMIXZGR6ES6HGK7NYSONNKOCTG37K
-#\\\|X4YN4QUXJEOXDP7QS3QZDEH7F4ISSBY4M7L7NL6DBURDWURI2TP \ / AMOS7 \ YOURUM ::
-#\[7]O5NGATMTIL2TXKOCXWZV3QMHYPVF7CHN3IZ37T2CGXWUTF2NAYDY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,.,,..,,..,,,,,,..,.,,,...,...,..,,...,..,,,,.,..,,.,,,,,.,.,.,
+#LTXZJI4EC4GIDDOAQV5UUTI7ZPXMVD3PDXK7P2JHO46QRRN6VXXJ2TEOWEOVLAF2CB6GQO6WTAPJG
+#\\\|5GCOCGJN3BVZ5BL7HQOIHDTKJIW2TFFNXOMKG56ATE7O4LB4CD6 \ / AMOS7 \ YOURUM ::
+#\[7]UXMVJRE4LPETZFC4IF2MGJIRWCFSS32INX4R6R5DNPL3PHNDFAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

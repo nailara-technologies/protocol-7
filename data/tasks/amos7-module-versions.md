@@ -27,6 +27,17 @@ amos-versions` only covers the three ALGORITHM versions.
   cutting the old version out by hand -- that step goes away ] ; same
   exclusion rules as the compiled-in checksum of bin/c_src/p7c.c and
   p-7-r.c [ binaries work without a signature footer ]
+- like src/nodes.cmd.update-protocol-elf [ cfg/network/protocol-version ] :
+  the module NAME goes into the checksum first [ renames change the
+  version ]. NEW here [ planned, update-protocol-elf does not do it
+  yet ] : the source WHITESPACE-NORMALIZED before hashing --
+  re-formatting [ format-code reflow ] must not change a version
+- deeper idea [ user ] : B::Deparse as the normalizer -> real code
+  equivalence [ comments, layout, some syntax forms vanish ]. caveats :
+  its output differs between perl versions [ 5.32 vs 5.42 -> hosts would
+  disagree ] and it must COMPILE the module [ BEGIN \ use side effects,
+  Inline builds ] -- so pinned to one perl, or an extra equivalence
+  check beside the version, not the version itself
 - algorithm versions stay separate : `amos-chksum -VCS \ -VL7 \ -VS`
   describe OUTPUT behaviour, module versions describe SOURCE
 - `$VERSION` never exported -- check unqualified readers first
@@ -47,8 +58,8 @@ amos-versions` only covers the three ALGORITHM versions.
   [ `inline_elf()` returns { source, fallback, package } ] -> a random
   value per run ; now `->{'source'}`, stable
 
-#,,..,.,,,,..,...,,,,,,.,,,..,,.,,,,,,,,,,,,.,..,,...,..,,,.,,.,,,..,,,,,,...,
-#XJMTO2S4YB3VXYJQVGXL7OPIZN7XS5EYLIQRH33YF33O6UG5IVD7CALMBNUEVOL4LUGG3IIDLSCEI
-#\\\|7JOCJRIR3RWC7CQB52WMQRLLJ5DNRUP27KAZYWJP34BI2VKFXFV \ / AMOS7 \ YOURUM ::
-#\[7]FG6LSUZO657KIBRIFOSKYM5BH7UMLMUBNLDJLGRTDOU5J5QMTYDI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,.,,,,.,,.,,,,.,,,,,,,..,.,,,..,,...,...,...,...,,,,,,.,,.,.,
+#AZAMKGQACXPR6DXSRMYMHJGEYDR2TFRNZIPP7TX4FI4EEQWTWGX4FRMA7ZZ6GYKHXVB6VTHHPMV6M
+#\\\|PJTS27EDMNKP2KZMFWXWIDURRNA5OFPIRZSVL5KNNLJ64MZXOSF \ / AMOS7 \ YOURUM ::
+#\[7]QITB6DYMTTMS3BL6CJWWGRTZBBJTBEVXHRV44ELU75DD7ZQV2QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

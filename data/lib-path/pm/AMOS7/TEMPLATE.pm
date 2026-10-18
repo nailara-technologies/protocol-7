@@ -23,7 +23,7 @@ use vars qw| @EXPORT $VERSION |;
 
 @EXPORT = qw| template_is_true is_valid_tempate $VERSION |;
 
-our $VERSION = qw| AMOS7::TEMPLATE-VERSION.VY7PD5Q |;
+our $VERSION = qw| AMOS7::TEMPLATE-VERSION.P5VOWKI |;
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -361,8 +361,8 @@ sub configure_epoch_window_callback {
     my $window_radius          = shift // 1;
     my $sprintf_templates_aref = shift;
 
-    ## validate template logic  ##   [ same rules as
-    ## configure_exclusive_type_callback ]
+    ## validate template logic  ##
+    ## [ same rules as  configure_exclusive_type_callback ]
 
     return error_exit('expected epoch number parameter')
         if not defined $current_epoch_num
@@ -478,8 +478,8 @@ sub TEMPLATE_exclusive_type {
 
 return TRUE ##################################################################
 
-#,,,.,.,,,,..,.,,,,..,,.,,...,,.,,..,,...,.,,,..,,...,...,,.,,.,,,,,,,.,,,..,,
-#PYZV7YZ76IUCYJPK3LH7VRACLFE33FOTOXKZ4XWDXASXU6YMWVTHNGLH64UBN67CC5DDGVE75H6BS
-#\\\|F4K4CSWT2JHHVHN4CRHIUFURGC6ZNC5S3I3X5YNL3J3Y6M7KTZP \ / AMOS7 \ YOURUM ::
-#\[7]EAHG5OJROFHNMHLVOOYFVKFIYKE3YQ3772CDO4GJWI74UWW4SSAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,,,,,.,,,,,.,.,,,.,.,.,,,..,,..,,...,..,,...,...,..,,..,,,,.,
+#USEMTTYUIAXHYFJQ66YY5L4LIPSQTZ5VMQHKXZPXHEDIF754L724TEB67EJDUCMCS4GRQGU2P4IAU
+#\\\|CKIWDWJK2A3KGNDACV2B6B35FHXZXD64SHHZI6YHKSRJMNAHFHH \ / AMOS7 \ YOURUM ::
+#\[7]Z6PL5SEUIDR2JE4YQI4OSJW6K3IVSZ6KB5HKQ6VREM6YNF3KV6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

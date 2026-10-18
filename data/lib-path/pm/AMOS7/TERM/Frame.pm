@@ -27,7 +27,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM::Frame-VERSION.0000001 |;
+our $VERSION = qw| AMOS7::TERM::Frame-VERSION.MNUITUY |;
 
 @EXPORT_OK = qw[
     frame_border_line frame_rule_line frame_colorize_content frame_bar
@@ -506,8 +506,8 @@ sub frame_progress_bar {
 
 1;
 
-#,,,.,,.,,.,,,..,,,,,,.,.,,,.,,,.,...,,,,,,..,..,,...,.,.,.,,,,..,..,,..,,,.,,
-#BAOSMSYO6RXF626CHW7OJ7ILA3ZFE3KLETFHKRSWMRLFHUMZ52MYZIPLBMYKHPI7YK5MCRAKOGIL6
-#\\\|GMESYRO5YDZZTOCP3C4EDFSSBQFUUMWYK6JVW5IGND4RFQAEM3H \ / AMOS7 \ YOURUM ::
-#\[7]PJH3A7FYRGGWWLYFTHXQK2ROD7OY75A6MZSCVHYSW5JDG3G4BEDI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,.,.,,,.,.,,,.,.,,,.,,..,.,,,..,,...,...,...,,.,,...,.,.,..,,
+#CXL3Q7RAOB4RWAUDYBDJKVAHAFQZXKYNVZQO76BEL2RHROM3WIRT5HZDXEK4GW3SZANP5YIXIVEUK
+#\\\|PDDUZH5JSAXM5J3MTUKVJRAQSIESTLATMNDNLQ34SKVO7SCTM6O \ / AMOS7 \ YOURUM ::
+#\[7]W6OZRDU2JNDHOL3RGEANDQAJJQMFFIUG6BFJJR2BB7B3PFQIBKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

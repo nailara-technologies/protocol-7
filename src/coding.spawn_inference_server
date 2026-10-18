@@ -736,6 +736,27 @@ if ( defined $recovery_ceiling and $ctx_size > $recovery_ceiling ) {
     $ctx_size = $recovery_ceiling;
 }
 
+## cpu fixed context cap [ coding.cfg.cpu_context_max ] : re-asserted at    ##
+## the actual spawn site so no override path above                          ##
+## [ configured floor, timeout recovery ceiling, any future addition ] can  ##
+## resurrect an oversized -c -- the oversized-context OOM class of          ##
+## 2026-09-17 was a spawn-side override DISCARDING calculate_safe_context's ##
+## fixed value, so the cap lives in BOTH places                             ##
+## [ see also its cpu branch there ]                                        ##
+my $cpu_ctx_cap = <coding.cfg.cpu_context_max> // 0;
+if (    $backend eq qw| cpu |
+    and $cpu_ctx_cap
+    and $ctx_size > $cpu_ctx_cap ) {
+    <[base.logs]>->(
+        1,
+        '[spawn_inference_server] cpu context %d '
+            . 'capped to %d [coding.cfg.cpu_context_max]',
+        $ctx_size,
+        $cpu_ctx_cap
+    );
+    $ctx_size = $cpu_ctx_cap;
+}
+
 push @cmd, qw| -c |, $ctx_size;
 push @cmd, qw| -ctk |, $kv_cache_type, qw| -ctv |, $kv_cache_type
     if $kv_cache_type ne qw| f16 |;
@@ -963,6 +984,81 @@ if ( length $lora_path ) {
 local $ENV{'LD_LIBRARY_PATH'}
     = $runtime_lib_path . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' )
     if $backend eq qw| gpu |;
+
+## hard memory limit via a cgroup scope [ inference.backend.<b>.mem_max ] : ##
+## a live multi-zenka host [ e.g. a name server ] must never have its other ##
+## zenki starved by a runaway inference process -- NO SWAP means the kernel ##
+## oom-killer picks the victim, and it picked wrong on 2026-09-17           ##
+## [ bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17.md ].          ##
+## implemented as `systemd-run --scope --quiet --collect -p MemoryMax=<v>`  ##
+## prepended to the argv [ still pure list-form exec, no shell ] : a scope  ##
+## tracks OUR process [ systemd-run registers its own pid via pidfd, then   ##
+## execs in place -- v246+ behavior, verified in the v262 source ], so the  ##
+## tracked pid stays llama-server itself and the process-group kill path    ##
+## above is unchanged. value syntax is systemd's                            ##
+## [ 14G, 1536M, plain bytes ] ; unset \/* invalid = no scope               ##
+## [ today's behavior ] ; configured-but-missing systemd-run spawns         ##
+## UNSCOPED with a loud level-0 log rather than refusing                    ##
+## [ a cpu host without systemd must keep working ]                         ##
+my $mem_scope   = '';
+my $mem_max_cfg = <inference.backend>->{$backend}{'mem_max'} // '';
+if ( length $mem_max_cfg ) {
+    if ( $mem_max_cfg =~ m|^\d+(\.\d+)?[kKmMgGtT]?$| ) {
+        $mem_scope = $mem_max_cfg;
+    } else {
+        <[base.logs]>->(
+            0,
+            '[spawn_inference_server] ignoring invalid '
+                . '%s mem_max [ %s ] : expected e.g. 14G',
+            $backend,
+            $mem_max_cfg
+        );
+    }
+}
+
+my $systemd_run = '';
+if ( length $mem_scope ) {
+    ## cached absolute path : searched once per process, only when found -- ##
+    ## a miss is re-attempted on every spawn so a later-fixed PATH recovers ##
+    my $cached_sr = <coding.systemd_run_path> // '';
+    if ( length $cached_sr and -x $cached_sr ) {
+        $systemd_run = $cached_sr;
+    } else {
+        for my $search_dir ( split m|:|, $ENV{'PATH'} // qw| /usr/bin:/bin | )
+        {
+            my $candidate = "$search_dir/systemd-run";
+            if ( -x $candidate and !-d $candidate ) {
+                $systemd_run = $candidate;
+                last;
+            }
+        }
+        <coding.systemd_run_path> = $systemd_run if length $systemd_run;
+    }
+
+    if ( length $systemd_run ) {
+        ## non-root : the user manager owns the scope [ needs a working ##
+        ## user bus + enabled linger, see                               ##
+        ## data/tasks/coding-cpu-host-setup.md]                         ##
+        my @scope_user = $EFFECTIVE_USER_ID ? qw| --user | : ();
+        <[base.logs]>->(
+            1, '[spawn_inference_server] %s mem scope : MemoryMax=%s via %s',
+            $backend, $mem_scope, $systemd_run
+        );
+        unshift @cmd, $systemd_run, @scope_user,
+            qw| --scope --quiet --collect |,
+            '-p', "MemoryMax=$mem_scope";
+    } else {
+        <[base.logs]>->(
+            0,
+            '[spawn_inference_server] %s mem_max configured [ %s ] but '
+                . 'systemd-run not found : spawning WITHOUT hard memory '
+                . 'limit',
+            $backend,
+            $mem_scope
+        );
+        $mem_scope = '';
+    }
+}
 
 ## manual fork/exec, not IPC::Open3 : Open3 already does exactly this      ##
 ## fork+exec [ confirmed by reading its own source ], but gives no hook to ##
@@ -1196,8 +1292,8 @@ return {
     'port'    => $port
 };
 
-#,,..,...,,.,,...,.,,,,.,,.,,,,..,,.,,,.,,,,.,..,,...,...,,..,.,,,,..,...,...,
-#7KQY7HQSOYTZVKKQEBBX3VWI6KCPU73RIMWI66VUK4LSU5P4LVG6FEWYAAL7EQ3ZOXHXVVDC7EWCI
-#\\\|VSTKK375LEPWL3OUHS3VF46JSPRMYYCMPLY54XL5RPR6MHOBJCR \ / AMOS7 \ YOURUM ::
-#\[7]SHAQOICUYZOZ4TBYLWKPUWHZTSB43X3VG52G7SCTVRD2WJNYTOCY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,.,,,,,,..,...,,,.,,,,,,..,,,,,..,,...,...,,,.,,,,,.,,,.,,,,..,
+#XGKMZJPJLRT2UHAZHEKSLJG3EDASNRF22IQBCFZJVD7P6LCGHMNCEKOYW5V5YISZ2QQ737K7NJ6US
+#\\\|RLDU65HYH3EGVDMRFSOEICKTPZOUSBU74HLF5KCAT76PCVIGZYJ \ / AMOS7 \ YOURUM ::
+#\[7]P5YZ6H7XML7UYBZIZ3BAC3IW7OKLBVQQS6Z5BXL6PJYCH7INPSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,5 +1,6 @@
 
 package AMOS7::STDIO::Tags;  #################################################
+our $VERSION = qw| AMOS7::STDIO::Tags-VERSION.TBFJQWI |;
 
 use v5.24;
 use strict;
@@ -26,8 +27,8 @@ use constant {
 
 return 5;  ###################################################################
 
-#,,,.,.,,,.,,,..,,.,.,,..,,,,,.,,,,.,,...,.,.,.,.,...,...,,.,,..,,,.,,,,.,..,,
-#24476OX4D4CBMVO6TU2TUJXAPA44DORIL5DYRZ6JKKC5YQ76APNROBSLMIVJL77REG2HWI4HEG4KI
-#\\\|PJ7P4FXKJ74DM22WM3HXFYDG3YD2I3ZUABCGTRASN76XOYNT4DQ \ / AMOS7 \ YOURUM ::
-#\[7]RWNBFH7NCI5MJJD77DTJGVAXPKFN3U5RKZIHHHA2NVXKCRC6BWCA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,,,.,,,..,,.,,,.,,,.,.,,..,..,,.,.,...,...,...,,.,,,,,,..,,..,,
+#3GFI3XCDXWXJ75G5UK3XMP3UCJBPN2P4FM7IMPGYU2OS5B32QVP7PIE46POMBY4SGAKJBJLTDNXFE
+#\\\|FGCCRBNJ53ZUF7YGROU7TTT7MQVIB2AAM3C5NIYLQUUSPDTCVMA \ / AMOS7 \ YOURUM ::
+#\[7]LFVCTTBA4BRPZKZVJUO2O6MEX2AFHLH23OHNJQBCR4OZGUNIOIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ use base qw| Exporter |;
 
 use vars qw| @EXPORT $VERSION |;
 
-$VERSION = qw| AMOS-INLINE-SRC-SQMV42I |;
+$VERSION = qw| AMOS7::INLINE::src::BitConv-VERSION.CXXWDAQ |;
 
 @EXPORT = qw| $VERSION |;
 
@@ -156,8 +156,8 @@ sub num_to_bit_string {   ## num_to_bit_string ## [ sprintf '%0*b' is faster ]
 
 return 5;
 
-#,,.,,...,...,,.,,.,.,,,,,.,,,,.,,,,,,,..,...,..,,...,...,,.,,.,.,,..,..,,.,,,
-#5PXQDHZ7U5SRKMY5HSOBVOKPZGSQ3BY4GFTYQKGUEVDPLA45LP5NIUKI2ZZWJBUTCQIIASUV24YY4
-#\\\|MM26OA2EPZ2USGZ5W64QQ4UKMQ43CODTCWJSJXTKYGEIXCGYIYD \ / AMOS7 \ YOURUM ::
-#\[7]TJNMMP2N4GOE525CXTV37PFNJMJEZWL4U5M776YGHRO4A3SZXYBA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,,.,,..,,.,,,...,,..,.,,,,..,..,,...,...,..,,.,.,,,,,,.,,.,,,
+#DVHHJEOOR6M4TVZPF7MOSIB7BJ3UCQNNEQ6WVK5KFATUS4GUKGDQIVEW4HFS6B63PBQY3QF5SZIQA
+#\\\|MAKPITSSS35SP6HDNPGNLJKGO6KOAKKSREZGLZCHJD4Z2IFBRWY \ / AMOS7 \ YOURUM ::
+#\[7]BOXPJEQTYBXQGIVO5GW7X23WBFUNGFHYOIJOJ2W3J6YSBMCREQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,7 @@
 ##  [:<  ##
 
 package AMOS7::Assert::Truth; ################################################
+our $VERSION = qw| AMOS7::Assert::Truth-VERSION.C3BUQXY |;
 
 ###                                                           ###
 ##  ASSERT HARMONIC TRUTH BASED ON DIVISION BY 13 CALCULATION  ##
@@ -443,8 +444,8 @@ sub is_template_syntax_valid {
 
 return TRUE ##################################################################
 
-#,,.,,.,.,.,,,,,,,,,,,,.,,,..,.,.,.,,,,..,.,.,..,,...,...,,..,,..,,.,,.,.,..,,
-#JMPEC6Y5QQAWNX6AJE6A5K54DRDGCBJB3VQKJ2KN36DRJIMVF7TRUHYSMXCFPJCTVGJDSH57HJ6UE
-#\\\|7NXEE7LBUP4G4NZB5I6OFQTHEQIQK3H5L2IKGMNXQDSREQMPJZT \ / AMOS7 \ YOURUM ::
-#\[7]N6OXS5HOLKCX2HISGAMTYNS244DKUAG26XKUWVUE4B64XHRLCUAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,,,.,,,.,,.,,...,...,.,,,...,..,,...,...,.,.,,,.,.,,,...,.,,,
+#VQACKYL4TRGVVHCY6YQNFEB5LU7DCAENGYHWD32X6CS5WB2MFQ2BZMVYKDDJIFYC72DE65DN7BKVI
+#\\\|OM5QFFL64OK7APAIVYJJ4YLQGVFK37GGV5AM5GXFBFCYTMQQ65W \ / AMOS7 \ YOURUM ::
+#\[7]2TQNANJGGTZIHEFE5WLMVTFEYJC6ZBW6SCU67Z57MUM7JWUAFSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

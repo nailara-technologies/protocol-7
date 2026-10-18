@@ -14,10 +14,10 @@ use AMOS7::SHM::Feedback;
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
-## page index region : sits between the 512-byte P7SH mount header and the ##
-## first page of actual data. fixed 32 bytes : 4-byte magic, two packed    ##
-## 32-bit ints [ total_pages, page_size ], 13-byte bmw-L13 checksum [      ##
-## always exactly 13 chars per the harmonize_L13 contract ], padded to 32  ##
+## page index region : sits between the 512-byte P7SH mount header and the  ##
+## first page of actual data. fixed 32 bytes : 4-byte magic, two packed     ##
+## 32-bit ints [ total_pages, page_size ], 13-byte bmw-L13 checksum         ##
+## [ always exactly 13 chars per the harmonize_L13 contract ], padded to 32 ##
 use constant PAGE_INDEX_MAGIC  => 'P7PG';
 use constant PAGE_INDEX_SIZE   => 32;
 use constant CHECKSUM_LEN      => 13;
@@ -35,7 +35,7 @@ use vars qw| @EXPORT_OK $VERSION |;
     data_offset
     |;
 
-our $VERSION = qw| AMOS7::SHM::Page-VERSION.AAAAAAA |;    ##  -VCS  ##
+our $VERSION = qw| AMOS7::SHM::Page-VERSION.GYMPOFI |;    ##  -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -91,8 +91,8 @@ sub unpack_page_index {
 
 ##[ PAGE INDEX READ / WRITE ]#################################################
 
-## write the page index into a segment [ between the mount header and the ##
-## first page of data ]                                                   ##
+## write the page index into a segment                     ##
+## [ between the mount header and the first page of data ] ##
 sub write_index {
 
     my ( $mount, $total_pages, $page_size, $checksum ) = @ARG;
@@ -229,8 +229,8 @@ sub create {
 
 return TRUE;
 
-#,,..,,,,,,,,,,,.,...,,..,..,,,.,,.,.,...,,..,..,,...,...,,,,,..,,..,,,,,,,,.,
-#HOYRMIGU5OWZU4WHJHCDX6YK4CKRX42ZQGYYGO7O3OS7KIZCRKW6JYKFKSKN32ATVAJQ7UUOJC7ES
-#\\\|YKEQQPM6OXPZZXNPSTFT44FFKOQHCLXURROSBMLRIV663ZQSDYQ \ / AMOS7 \ YOURUM ::
-#\[7]KQT22KO72FFG243KX5DMC6YBH3ZQ3PD5SFOBUO34RH4LVLH5ZECI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,...,,.,,...,,..,,..,...,,,,,..,,...,...,...,...,.,.,,,.,,..,
+#T6RCT32GTE5TVK7AIAZGRRIW44WAU44GZ35LIIMI3FVVOGAQRSZEUXOWRXWFPW6X5BMB6M3EIS4O2
+#\\\|QZVPCUZZWP3M4RZOW5V4ERW4XSS74STFJKSZFC4CJOOYMSAPOZP \ / AMOS7 \ YOURUM ::
+#\[7]UEQHFJVXR3MZMHDIFELZZKPJQW6PDWBSO7WV4AI6KQZABZPVU6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -52,6 +52,23 @@ mem.oom_terminate_backstop = 8 # [sec.] escalation only : how long to wait
 #process.limits.httpd.action  = kill
 ##
 
+## [ per-host overlay : /etc/protocol-7/system/host.cfg, optional ] ##
+## see base.load_host_config : host-level keys like                  ##
+## process.limits.<name>.* belong THERE [ by role, not hostname ],  ##
+## not into a local edit of this file. the name matches the process ##
+## fname \/* the first cmndline token [ /proc comm is 15 chars --   ##
+## 'llama-server' fits ]. max_mem is PERCENT OF TOTAL RAM [ rss ],  ##
+## seconds is the condition duration before action.                ##
+## example : bound a runaway cpu inference server on a ram-tight     ##
+## host [ 23 GB total, 14 G cgroup cap -> ~61 %, backstop set just  ##
+## above so the two layers do not fight ] :                          ##
+#process.limits.llama-server.max_mem = 65  # [% of total ram]
+#process.limits.llama-server.seconds = 13
+#process.limits.llama-server.action  = kill
+##
+
+[load_host_config]
+
 ### [ 'X-11' zenka can notify on fatal protocol errors for mitigation ] ##
 ##
 # system.X-11_crash.perform_host_reboot = yes
@@ -71,8 +88,8 @@ modules.load = auth.client net protocol io.unix ui system
 
 [zenka.loop]
 
-#,,,,,,..,,..,...,.,,,,,,,,..,.,.,..,,,.,,,.,,..,,...,...,...,,,,,..,,.,,,.,.,
-#EDRY3UEELBRYN7IVEOQV3GWD6T3BL3LBWQ6Y3BE56BAYDF3XP3M3DRWHM43MQY553OMG2QMO2AFGE
-#\\\|2OMSRL6FGSUS7447BHBHMQCNBNLNQM7XRS42DULCAWFEWODJN4A \ / AMOS7 \ YOURUM ::
-#\[7]D52Z7RLGDBAK34IWNDBFL4R47NQ4JB6SNYKCU4GDMEO7WXAOE2DY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,,,,,...,...,,,.,...,.,,,,,,,..,,...,..,,.,,,,,,,..,,.,,,,.,,
+#7TG6HBFF76GRKNFK53PHMGFYZQDSKA6NWSZKV7VYESQBDAO7USG2PTETJH7BN7IVBV5NNSIHYVM24
+#\\\|RJ43YM3COHT57KT7B7A6KCWOV2SO4DMEIWKFQYLB25WVYHU7KR2 \ / AMOS7 \ YOURUM ::
+#\[7]KYXTFRST5YXCCXHHCS645ZC4T6HLZCQIIYUB3E2SBJKBNLFDWCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

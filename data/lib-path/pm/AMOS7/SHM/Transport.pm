@@ -24,7 +24,7 @@ use vars qw| @EXPORT_OK $VERSION |;
     shm_receive
     |;
 
-our $VERSION = qw| AMOS7::SHM::Transport-VERSION.AAAAAAA |;    ##  -VCS  ##
+our $VERSION = qw| AMOS7::SHM::Transport-VERSION.ARPMFFI |;    ##  -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -45,11 +45,11 @@ our $VERSION = qw| AMOS7::SHM::Transport-VERSION.AAAAAAA |;    ##  -VCS  ##
 
 ## page a payload into a segment, sign a read grant for the reader, and return
 ## a compact descriptor. $options keys:  owner_pubkey, owner_privkey,
-## reader_pubkey, content_ref, checksum [required] page_size [default
-## AMOS7::SHM::Page::DEFAULT_PAGE_SIZE]  sub_path, rights [default ['read']],
-## expiry [default time()+3600] time_source, mlock [passed through to
-## AMOS7::SHM::Page::create] returns descriptor hashref on success, { error =>
-## ... } on failure.
+## reader_pubkey, content_ref, checksum [required] page_size
+## [default AMOS7::SHM::Page::DEFAULT_PAGE_SIZE]  sub_path, rights [default
+## ['read']], expiry [default time()+3600] time_source, mlock
+## [passed through to AMOS7::SHM::Page::create] returns descriptor hashref on
+## success, { error => ... } on failure.
 sub shm_announce {
 
     my $options = shift;
@@ -136,9 +136,10 @@ sub shm_announce {
 
 ## pull every page from a segment and verify the announced checksum.  $options
 ## keys:  shm_path [or owner_pubkey + sub_path], reader_privkey [required]
-## verify_checksum [default true]  checksum_fn [required when verify_checksum
-## is true]  returns { ok => TRUE, content_ref => \$content, pages => N } on
-## success, or { ok => FALSE, error => ... } on failure.
+## verify_checksum [default true]  checksum_fn
+## [required when verify_checksum is true]  returns { ok => TRUE, content_ref
+## => \$content, pages => N } on success, or { ok => FALSE, error => ... } on
+## failure.
 sub shm_receive {
 
     my $options = shift;
@@ -210,8 +211,8 @@ sub shm_receive {
 
 return TRUE  #################################################################
 
-#,,,,,,.,,,..,,.,,,,.,.,,,...,.,.,.,,,,..,,..,.,.,...,...,,.,,,,,,.,.,.,.,,,,,
-#VRUD3FNHT2VREUQPHCM7AU4RPFSVTZKAXZDKLMLFMUOHPAVNKTFXWJVCE2VRC7YYJDGDS5EHQUNHI
-#\\\|YMSSAZWYQ5EJGTD2QXBBJSG4XWI7Y42FC275BEPXDC3SIYIMTCQ \ / AMOS7 \ YOURUM ::
-#\[7]IMDRYCRYDTHVXKN5273M4FF2QOAOW2JNKWOXD2QTIQPV5KQEQCDA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,,,.,,,,.,,...,...,..,,.,.,,.,,.,.,...,...,.,.,...,.,,,,..,.,,,
+#3RRTODFO5EMSD6GWALCKK7DB5P3BSNBJQXAL7LXE25IE7UEJYPBKPFNXODUWOVFVKVF5OESZLMTNU
+#\\\|EAMF2OKEX5CMNOUSBHINV3HFW6NZSYWXJDXZYIRZMUECYUTGAEW \ / AMOS7 \ YOURUM ::
+#\[7]7R2VX7LXZZGQI4RSB5DTOCCAY75VMAHJDULOJPJOLYOBBT3EEGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

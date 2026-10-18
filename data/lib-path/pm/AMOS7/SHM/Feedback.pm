@@ -42,7 +42,7 @@ use vars qw| @EXPORT_OK $VERSION |;
     watch_fifo
     |;
 
-our $VERSION = qw| AMOS7::SHM::Feedback-VERSION.AAAAAAA |;    ##  -VCS  ##
+our $VERSION = qw| AMOS7::SHM::Feedback-VERSION.QZOTJDA |;    ##  -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -62,13 +62,13 @@ sub compute_ntime {
     return sprintf( "%.0f", ( time() - 1023228000 ) * 4200 );
 }
 
-## note on the zenka path : the wrapper                                     ##
-## modules/data.mount.shm.feedback.write inject <[base.ntime]> [ no         ##
-## parameter ] as the time_source. that value is produced by p7_ntime's     ##
-## real harmony-retry loop and is the project's notion of a validated       ##
-## network time. the standalone value above is only a comparator for        ##
-## ordering, not a security primitive. this asymmetry is intentional and is ##
-## documented here and at the wrapper call site.                            ##
+## note on the zenka path : the wrapper                                    ##
+## modules/data.mount.shm.feedback.write inject <[base.ntime]>             ##
+## [ no parameter ] as the time_source. that value is produced by          ##
+## p7_ntime's real harmony-retry loop and is the project's notion of a     ##
+## validated network time. the standalone value above is only a comparator ##
+## for ordering, not a security primitive. this asymmetry is intentional   ##
+## and is documented here and at the wrapper call site.                    ##
 
 ##[ FEEDBACK REGION OFFSET ]##################################################
 
@@ -136,10 +136,10 @@ sub read_feedback {
     return $fb;
 }
 
-## write the feedback region. the caller is the reader; it stamps ntime.  ##
-## options : time_source [ coderef returning ntime ], ntime [ explicit    ##
-## value ].  if neither is supplied, compute_ntime() is used [ standalone ##
-## path ].                                                                ##
+## write the feedback region. the caller is the reader; it stamps ntime. ##
+## options : time_source [ coderef returning ntime ], ntime              ##
+## [ explicit value ].  if neither is supplied, compute_ntime() is used  ##
+## [ standalone path ].                                                  ##
 sub write_feedback {
 
     my ( $mount, $last_page_read, $options ) = @ARG;
@@ -172,11 +172,12 @@ sub write_feedback {
 
 ##[ DING PROCESSING ]#########################################################
 
-## process a ding : read the feedback region, guard against the writer's   ##
-## own clock moving backward, and skip stale / duplicate dings [ incoming  ##
-## ntime is not strictly newer than the last value acted on ]. $state is a ##
-## hashref the caller keeps across dings; key last_seen_ntime is updated   ##
-## here. options : time_source [ coderef for the writer's own now ].       ##
+## process a ding : read the feedback region, guard against the writer's  ##
+## own clock moving backward, and skip stale / duplicate dings            ##
+## [ incoming ntime is not strictly newer than the last value acted on ]. ##
+## $state is a hashref the caller keeps across dings; key last_seen_ntime ##
+## is updated here. options : time_source                                 ##
+## [ coderef for the writer's own now ].                                  ##
 sub process_feedback {
 
     my ( $mount, $state, $options ) = @ARG;
@@ -230,8 +231,8 @@ sub process_feedback {
 
 ##[ NOTIFY FIFO ]#############################################################
 
-## sibling notify fifo path for a segment [ e.g. ##
-## /dev/shm/p7:M:...:sub.notify ]                ##
+## sibling notify fifo path for a segment ##
+## [ e.g.  /dev/shm/p7:M:...:sub.notify ] ##
 sub notify_path {
 
     my $mount_or_path = shift;
@@ -285,8 +286,8 @@ sub open_notify_fifo_reader {
 }
 
 ## reader side : after updating the feedback region, write one byte to the ##
-## fifo as a pure ding [ the payload lives in the feedback region, not the ##
-## fifo ].                                                                 ##
+## fifo as a pure ding                                                     ##
+## [ the payload lives in the feedback region, not the fifo ].             ##
 sub ding {
 
     my $mount = shift;
@@ -353,8 +354,8 @@ sub watch_fifo {
 
 return TRUE  #################################################################
 
-#,,.,,,.,,..,,...,...,..,,.,,,..,,,,,,,,.,,,,,..,,...,...,..,,...,,..,.,,,,..,
-#4U7IAPSNGKEGCWG6GX4B7EI4PRQW6ZH37EOPHSNZH34DXYIA4DTZ6ZENXELUMZWRJPPIFGQQXHAQQ
-#\\\|B7CY55WPEDCQIN53XWMJP5V2DRJ4FQNKEIPJ2GXRXZJUKU36TTX \ / AMOS7 \ YOURUM ::
-#\[7]O6CDL7SBYAIJZILE44GHFENGL4K224TG67RCQPQT52CXDKYPHSBA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,,,,,,.,,.,.,.,,,.,.,,,,,,,.,..,,...,...,..,,,,,,,,,,...,,..,
+#HC23THDN5JQHGVHLUPD7TRZ4WX7NG6TLWZATWLSLQP4RHTNNL32SRNUWCGCQ3M2UGQKKNITM547PY
+#\\\|Q3QRESV3HHSOGCLTN7KNV34W4C3WVDKZSAS6EULRC4TCY7KLEQW \ / AMOS7 \ YOURUM ::
+#\[7]LEUCV7WXDDNBDP3GUO7NEIWHEINLQ5QUBSZLEDXSHHOC6YP3T4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

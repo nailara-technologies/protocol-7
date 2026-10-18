@@ -20,7 +20,7 @@ use vars qw| @EXPORT $VERSION |;
     adjacency_to_graph
     |;
 
-our $VERSION = qw| AMOS7::Graph-0.01 |;
+our $VERSION = qw| AMOS7::Graph-VERSION.7ZQXI4I |;
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -112,8 +112,8 @@ sub _sort_nodes {
 
 return TRUE;    ##  truth  ##
 
-#,,,.,,,,,.,.,,..,,..,,,,,,,.,..,,.,.,.,.,,,.,.,.,...,...,...,..,,,..,...,,.,,
-#A622ZMZXLUDITXDUAB2QRPDZBXZZHEKB6KMBENP77OLGIT45T3RLUE4DWIYBHXJCJZ45XQK7IQOG2
-#\\\|7263NDZODRJTYNINUNEMO6ZZKDRNKTKVP5HO3D4WMAPBWAR4RLY \ / AMOS7 \ YOURUM ::
-#\[7]J7SGVM5YSXXMFJHGFJXB25Z7LSVF3YLFZPHLHR77VJANMZS7U6AI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,.,.,...,,.,,,,,,,..,,.,,,,.,.,.,...,...,...,,,.,.,.,,,,,.,.,
+#OCJ6CDFAR76BP27QUGL4W5SJ7FOO4YT3AKMFBR4WE4GLBDHF3WO6HON5RITIAO6QUWCXCDQKNVCNA
+#\\\|RT2PBEMKBSEZCV7ADFMRCHGGXADQJBKSBUU3DFYIEHOY7BUYEAC \ / AMOS7 \ YOURUM ::
+#\[7]SI4BTFKPTNR5WEWNQ64F34METZVTDE5MCN6W4OTZVWIV54SAIEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

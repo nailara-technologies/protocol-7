@@ -109,6 +109,40 @@ push @{ <plugin.web.jobs.connected_jobsites> }, $caller_zenka
 
 ---
 
+### concurrent assessment : who takes which job [ 2026-10-18 ]
+
+the merge keeps state consistent, but nothing stops two hosts from
+assessing the SAME job [ wasted work ; with different models, timing
+decides which result survives ]. three layers, no central lock :
+
+1. **partition by checksum** : a job's amos residue decides its host
+   [ e.g. even / odd for two ] -- known from the job id alone, never a
+   double assessment
+2. **lease** : a job not assessed within its lease time may be taken by
+   another host [ a host being down does not stall its share ]
+3. **time offsets for scanning** [ user ] : hosts scan at staggered
+   times, so each sees the other's synced results before it scans --
+   collisions outside the partition [ leases, imports ] mostly vanish,
+   and a slow cpu host gets its own phase beside the gpu host
+
+partition over the PRESENT hosts [ user ] : hosts announce presence
+through the sync backend ; the residue split is taken over the hosts
+present right now. a host that leaves -- the gpu host while invoke holds
+the gpu memory, or the card is away for repair -- drops out and the
+remaining host processes the COMPLETE set on its own ; when it returns,
+the split resumes. a planned absence [ coding yields to invoke ] is
+announced at once, so its share moves immediately instead of waiting
+out each lease ; the lease stays the fallback for unannounced failure.
+presence is a HEARTBEAT [ present while its entry is fresh ] ; leaving is
+announced only as a courtesy, BEFORE teardown -- at the yield to invoke,
+or when a terminate is requested -- never in end_code [ it runs after the
+network is gone, user 2026-10-18 ]. a lost goodbye only costs time : the
+heartbeat expires and the share moves a little later.
+
+until built : run assessments on ONE host at a time. also open from
+above : the reverse fan-out [ a browser stage change reaches only one
+jobsite zenka today ].
+
 ### relationship to checksum store
 
 checksum stores (title/url/status dirs) are local to each jobsite zenka.
@@ -129,8 +163,8 @@ multi-jobsite reverse fan-out requires auth to be safe.
 
 ## dispatch
 
-#,,,.,,,,,..,,.,.,,..,,..,,,,,.,,,..,,,,.,.,.,..,,...,...,...,.,.,,,.,..,,,.,,
-#HH52WKYKSU3BVLL7GGM7VFYAXWTLFQNKFHKPBCVPFGFAKPGON2DNYHV5TAXDC7DANM7YYII2S6I4W
-#\\\|GMHGRALR2TNFAA72RXCQVXR3OUPLZYHB66JHFWVSQOD3TSWALOE \ / AMOS7 \ YOURUM ::
-#\[7]5POUKB4VEFK4ALTQ7V5BVMJGRQ4ZCO2ECQEZSG7S5YOA55QHOUCA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,..,,,..,,,.,.,,,..,,,,,,.,.,,,,,..,,...,...,,.,,..,,,.,,.,,,,,.,
+#ZBUFSQA6FNLSH42N5MK4NE7SKQ3HS2V67QJ6EL27IEUZKSQ6H3XBNCKZNHRFDQDKL6ZCRULPSJ6DO
+#\\\|J2JM4LBONXE5UOIMBNK7V7DDD5K4R7CJCXBYTOGNPPIFCT235A4 \ / AMOS7 \ YOURUM ::
+#\[7]WYH6S2OQEEHQL33YTUB3SBEX3JLTFYRWBNCBITH4JPULXKBPGODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -310,8 +310,25 @@ if ( $backend ne qw| gpu | ) {
         $final_context = $MIN_CONTEXT if $final_context < $MIN_CONTEXT;
     }
 
+    ## fixed per-host cpu ceiling [ coding.cfg.cpu_context_max ] : a cap    ##
+    ## the RAM math above can NEVER exceed, independent of the shared       ##
+    ## coding.cfg.context_max [ gpu-tuned on the main dev host -- one       ##
+    ## ceiling for both backends is exactly what let the cpu auto-expansion ##
+    ## run into the 2026-09-17 OOM, see                                     ##
+    ## bug-coding-cpu-context-oom-forced-wsl-reboot-2026-09-17.md ].        ##
+    ## applied AFTER every other clamp [ including the hard ram-fraction    ##
+    ## backstop and the MIN_CONTEXT floor ] so it is the last word on the   ##
+    ## cpu side ; unset \/* 0 = no extra cap [ old behavior ]               ##
+    my $cpu_ctx_cap     = <coding.cfg.cpu_context_max> // 0;
+    my $cpu_cap_limited = FALSE;
+    if ( $cpu_ctx_cap and $final_context > $cpu_ctx_cap ) {
+        $final_context   = $cpu_ctx_cap;
+        $cpu_cap_limited = TRUE;
+    }
+
     my $limited_by
-        = $hard_ram_limited                     ? qw| hard_ram_fraction |
+        = $cpu_cap_limited                      ? qw| cpu_maximum |
+        : $hard_ram_limited                     ? qw| hard_ram_fraction |
         : $final_context == $calculated_context ? qw| none |
         : $final_context == $MIN_CONTEXT        ? qw| minimum |
         :                                         qw| maximum |;
@@ -682,8 +699,8 @@ return {
     kv_bytes_per_token => $kv_bytes_per_token,
 };
 
-#,,,.,...,,,.,,,,,.,,,,,.,.,,,..,,.,.,,..,..,,.,.,...,.,,,.,,,,.,,,,,,..,,,.,,
-#YHX6Y5LIXUFVI2I2AAYVMXPDTISWXESUF5JKTS3Y5HFV3OWSRMRQMLMWHJ52HER67MZ3KKA6Y57HY
-#\\\|HMJM5U4OH4OW4AKTNS4EZX7SPVVYVUUX4G3ZBQ25N3GUXUXW5GF \ / AMOS7 \ YOURUM ::
-#\[7]J5BNM4FFCQ3J4VBO3NPJ7ZWTAKIKN67XBYDFXZYON243PONDGWAA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,..,,...,,..,,,,,,.,,.,.,..,,...,.,.,...,..,,...,,..,..,,,.,,,,.,
+#Q345UZHGEI7JAPVJAS3WTHSK4BOD5JKQTE3CKDDO6WKKNFVM6VFF3LR7MOVXDQUU7HGBMU6HWKNDG
+#\\\|BHQ34E4QHNDQSTW4FPQDMIQAX7YRJEU25W5DXOSJLDSUAGQ4HCY \ / AMOS7 \ YOURUM ::
+#\[7]IVBJNJZ5MVDCJLSTDO7EPKM7IOST2GUBSPL2VOTCR57WHMCOSUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

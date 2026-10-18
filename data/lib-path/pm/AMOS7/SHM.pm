@@ -33,24 +33,25 @@ use vars qw| @EXPORT_OK $VERSION |;
 
 ### use AMOS7::Version; ## to generate new version string ###
 ##
-our $VERSION = qw| AMOS7::SHM-VERSION.AAAAAAA |;
+our $VERSION = qw| AMOS7::SHM-VERSION.76X7JJQ |;
 
 ##[ AMOS MODULE ]#############################################################
 
-## the mechanics below [ mmap mapping, header pack / unpack, permission
-## signature verification ] are pure computation — they do not care whether a
-## zenka is running. context-specific values [ time source, group registry,
-## logging ] are injected by the caller, keeping these branch-free in both
-## standalone and zenka mode. the standalone / zenka difference is lifecycle [
-## cleanup — phase 4 ], not mechanics. mirror AMOS7::CHKSUM precedent.
+## the mechanics below
+## [ mmap mapping, header pack / unpack, permission signature verification ]
+## are pure computation — they do not care whether a zenka is running.
+## context-specific values [ time source, group registry, logging ] are
+## injected by the caller, keeping these branch-free in both standalone and
+## zenka mode. the standalone / zenka difference is lifecycle
+## [ cleanup — phase 4 ], not mechanics. mirror AMOS7::CHKSUM precedent.
 
 ## logging shim — zenka wrapper injects <[base.log]>, standalone is silent ##
 our $log_handler;
 
 ## phase 4, standalone only : track creator-owned segment paths for an END- ##
-## time cleanup. zenka mode handles this via its own SIGINT/TERM handler [  ##
-## src/data.mount.shm.init_code ] instead — this list stays empty whenever  ##
-## $main::PROTOCOL_SEVEN is defined.                                        ##
+## time cleanup. zenka mode handles this via its own SIGINT/TERM handler    ##
+## [ src/data.mount.shm.init_code ] instead — this list stays empty         ##
+## whenever $main::PROTOCOL_SEVEN is defined.                               ##
 my @_standalone_owned_paths;
 
 sub _log {
@@ -499,8 +500,9 @@ sub _rights_sufficient {
     return 1;
 }
 
-## group membership check — groups registry is injected [ %data slice in ##
-## zenka mode, caller-supplied hashref standalone ] to stay branch-free  ##
+## group membership check — groups registry is injected                 ##
+## [ %data slice in zenka mode, caller-supplied hashref standalone ] to ##
+## stay branch-free                                                     ##
 sub _group_contains {
 
     my ( $group_id, $member_key, $groups ) = @ARG;
@@ -810,8 +812,8 @@ END {
 
 return TRUE  #################################################################
 
-#,,..,,,.,,.,,,..,..,,.,.,..,,,..,.,.,..,,.,,,..,,...,...,.,.,,,.,,,,,.,,,..,,
-#K33NCUDYL5IWVYGERRW47IVWCAA4XJ26CMGPZEGYQTK4BKAQW7EJ6N4Y3R4QP655DSJKPNKVCSCJ6
-#\\\|X44MZ3P3CYTOOCCEMUQJPFORLDPKT5LLROROHEU5UREZ4U3LUS6 \ / AMOS7 \ YOURUM ::
-#\[7]MEHHCPUFUKLESICCYSNGTMQTABS6AZLPIRALQUQ2OVOHURRB6KAY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,,,.,,,,,,,.,.,.,.,,,,,.,,,,,..,,...,...,...,..,,,,.,...,,.,,
+#QASZXJMLSANITL2I7YUEJ5ACWNKTW4R3SA6RX5XAY6QLW74RGNKKMIJDYT3BCIJYIP5Q2D6SAHDOK
+#\\\|7BOBYLZTJDU73SO2JHFCSFUMUR6BT6CTJQEWC3QOBB7IYENXVLK \ / AMOS7 \ YOURUM ::
+#\[7]RGQ6GRTQRXFFXFQJ3MNKZL6KC2UFXUATIJOAX5T4LQ6W7K2LWQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

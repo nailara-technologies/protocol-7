@@ -22,11 +22,14 @@ use List::MoreUtils qw| minmax |;
 eval qq| require 'Inline/C.pm' |;
 die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
-@EXPORT = qw| compile_inline_elf_to inl_elf_src $VERSION |;
+@EXPORT = qw| compile_inline_elf_to inl_elf_src |;
 
 ## inline elf source code version ##
 ##
-our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-MGF4O4Y |;    ##  amos-chksum -VS  ##
+##  amos-chksum -VS  ##
+our $ALGORITHM_VERSION = qw| AMOS-13-ELF-7-SRC-VER-5Y4RCEY |;
+## module source ##
+our $VERSION = qw| AMOS7::CHKSUM::ELF::Inline-VERSION.FDDZTLQ |;
 
 our $devmod_output_to_console = FALSE;
 
@@ -227,8 +230,8 @@ sub return_elf_c_sourcecode {
 
 return TRUE ##################################################################
 
-#,,..,.,.,..,,...,...,.,.,...,,..,,..,.,.,,,.,..,,...,.,.,...,.,.,,,.,.,,,,,.,
-#P3MYD2P3FY2M42MHXSEPAYCXMPKKK4BNGWIXRRGVTTNIBRXGRHAVJ6DA4UJ4QEYWLWQ2TIE6TFZI4
-#\\\|RFHSJSN5UPFNCKQISLXCMHLFEZKWHQJJR4KJX6NI7YFKK7KRBJF \ / AMOS7 \ YOURUM ::
-#\[7]TXKJL655233XHRSUKG5IYE4ZSJL45HMDDHKK2WNLTX6KFMHDZOAY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,,.,,...,..,,.,.,,..,,,.,,..,..,,...,...,,,,,,.,,...,,..,..,,
+#IBVPER5LJKEBUGHNETC3UCVZNEOTVXHMIZ25VKEQMAHMKDX65LJ2N53FH7XOI263RMNYWP4A7CYKE
+#\\\|TMAP4ZWCEXAQBICHEHXBU2IHEX3GIJQ3CTKP2QJO2KK75437AVE \ / AMOS7 \ YOURUM ::
+#\[7]I7O6ASS26GWC47J6HAA4G4HLNPWPUYSWR3NJDAY7EETZSB2HLGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
