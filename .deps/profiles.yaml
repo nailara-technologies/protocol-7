@@ -153,6 +153,16 @@ profiles:
       - DBD::SQLite
       - FFI::Platypus
 
+  hw-thinkpad-sandybridge:
+    description: "hardware : sandy bridge thinkpads [ x220 tablet, w520 ] -- needs the non-free-firmware apt component"
+    # replaces the legacy blanket 'firmware-misc-nonfree' : these machines
+    # load nothing from it [ i915 needs no blobs before skylake ]. check a
+    # fresh install with : dmesg | grep -i 'direct firmware load' -- add
+    # what it names [ e.g. a swapped bluetooth card ] per machine
+    apt:
+      - firmware-iwlwifi        # intel centrino 6205 \ 6300 wifi
+      - intel-microcode         # cpu microcode updates
+
   coding:
     description: "coding zenka [ libgit2 diffs through Git::Native -- not built on servers ]"
     cpan:
