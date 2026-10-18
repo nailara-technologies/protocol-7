@@ -56,8 +56,16 @@ jobsite.cfg.assess_timeout = 777
 jobsite.cfg.trash_keep_epochs   = 1  ## recoverable compressed stage
 jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
 
-## httpd sync endpoint url
-jobsite.cfg.sync_url      = http://172.24.33.224/jobs-sync
+## httpd sync endpoint : repo default is a hub pushing to its own   ##
+## httpd [ loopback needs no auth token with auth.exempt-loopback ]. ##
+## any other target [ several : sync_urls ] and its bearer token go  ##
+## in /etc/protocol-7/jobsite/host.cfg :                             ##
+##   jobsite.cfg.sync_url    = http://<host>/jobs-sync               ##
+##   jobsite.cfg.sync_urls   = <url> [<url> ..]                      ##
+##   jobsite.cfg.sync_token  = <token>   ## or per-url : ##
+##   jobsite.cfg.sync_tokens = <url>=<token> [<url>=<token> ..]      ##
+## [ token : p7c web.auth-issue jobsite-push -ttl 31536000 ]        ##
+jobsite.cfg.sync_url      = http://127.0.0.1/jobs-sync
 jobsite.cfg.sync_urls     =
 
 ## path to cv/profile context file injected into assessment prompt
@@ -106,8 +114,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite clients.h
 
 [zenka.loop]
 
-#,,.,,..,,..,,,..,..,,,..,.,.,.,,,...,,.,,,,,,..,,...,...,,.,,,.,,,,.,.,.,,..,
-#NHMUQE73VBXDLAZ57DZK2VY6Y7CXCJQWNAXGYZSFELSPXQCSZXEUJOCMADGU5QLT7KYNJTYJXFRLK
-#\\\|TFQ4FEKEQD66NSDXWAONGQJAVLRIP7OBSISY53RTGKVW7LIP4OT \ / AMOS7 \ YOURUM ::
-#\[7]MHP4OFTMNBWMYZXHEFTDROU2BF6WAMSPNRHJ2U4CCFYARIOLGUAY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,..,...,,.,,...,,,,,...,...,...,..,,...,...,,,.,,.,,,,.,.,,,.,,,
+#2EJOY7HB3NFIVMXJL7BFV3OBJGI2S7OLXE7X2W3CDWKMWIY3OZZT52IQV7VLOP2343SRNOH5FUIXG
+#\\\|XL2VUBH5S7G4LIJUDNJ2UVXUUHPEJDSATZNUHZDRMDJLSJQPNSX \ / AMOS7 \ YOURUM ::
+#\[7]DLLX6HWXG36OW2GNJQKDAX5H3SZXFNG4FY2INEOH463O3ZSBZMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,10 +7,10 @@ use warnings;
 ## the production runtime loads the bytes pragma transitively ##
 use bytes;
 
-## letsencr automatic enrollment : allowlist, dns sanity check, http-01    ##
-## self-test, max-per-check, persistent backoff, per-request acme server [ ##
-## staging vs production ] and the staging no-install rule. everything is  ##
-## stubbed : no dns, no http, no acme server is ever contacted.            ##
+## letsencr automatic enrollment : allowlist, dns sanity check, http-01     ##
+## self-test, max-per-check, persistent backoff, per-request acme server    ##
+## [ staging vs production ] and the staging no-install rule. everything is ##
+## stubbed : no dns, no http, no acme server is ever contacted.             ##
 
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -423,7 +423,7 @@ say ': own interfaces as public_addresses [ no network connection ]';
 
     ## the shared address rule ##
     my $is_public = $code{'letsencr.base.address_is_public'};
-    ok( !$is_public->('172.24.33.224')
+    ok( !$is_public->('10.23.42.7')
             && !$is_public->('10.19.0.5')
             && !$is_public->('192.168.1.1')
             && !$is_public->('100.64.0.1')
@@ -819,16 +819,16 @@ say ': separate account storage per acme server';
         'staging : separate account key + registration storage'
     );
 
-    ## the server switch itself is tested in test-letsencr-acme-flow.pl [ ##
-    ## section 7 : acme.begin selects server, directory, account key ]    ##
+    ## the server switch itself is tested in test-letsencr-acme-flow.pl  ##
+    ## [ section 7 : acme.begin selects server, directory, account key ] ##
 }
 
 say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,..,,.,.,,,,,,,,,.,,,,.,,,,,,.,,,.,.,,,,,..,,...,...,,.,,.,.,,..,,,.,.,,,
-#23VLHO4HRJ373FPYEEOE7XDUHTEUY3IZYLFUGH6GGTSYZVWP7PZHJJLMQSQPGIWJFW7GPM5OT4PRA
-#\\\|WAB3J5BLU22GQDWIGI6NHJVKHZAM5OGJOXBKFFB24LZRMLTROK6 \ / AMOS7 \ YOURUM ::
-#\[7]SJBB6D5TEECLUZ2DVTQ4YFI5YZCNDGPV55TA2ATNPGDE2E5U3GBI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,,.,,...,.,,,,,.,.,,,.,,,,..,..,,...,...,.,,,,.,,,,.,..,,,,,,
+#RPL3ZJ3GE7YKZGRMBN6QFQGS64YZQ4PPO67GU7WQTGD46HRQUDTUI2JN4I3NB7I7U3VO3F62Q6XDI
+#\\\|WJ4QUMBMSJQCLWRJCOKNB6MA4ARBBEOE6W5KXVQSJWLLAAORIPY \ / AMOS7 \ YOURUM ::
+#\[7]I73WR7CL5FI7LNILXMA2CQIEE3L4ZXEJ2IGFSAC2V32OSCGBKEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

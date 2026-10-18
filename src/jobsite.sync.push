@@ -30,6 +30,22 @@ for my $id ( keys %{$jobs} ) {
 my $cycle_ntime_b32 = <[base.ntime.b32]>;
 <jobsite.sync.push_cycle_ntime> = $cycle_ntime_b32;
 
+## legacy migration : the pre-multiplex global watermark                    ##
+## [  jobsite.sync.last_server_ntime, persisted as sync_last_ntime ]        ##
+## unambiguously belongs to the ONE configured url -- with several urls it  ##
+## cannot be attributed and is DROPPED [ a new url starts with a full push, ##
+## not just pings until a manual sync ]                                     ##
+my $legacy_ntime = <jobsite.sync.last_server_ntime> // '';
+if ( length $legacy_ntime and @urls == 1 and length $urls[0] ) {
+    my $only_url = $urls[0];
+    if ( not length( <jobsite.sync.last_ntime>->{$only_url} // '' ) ) {
+        <jobsite.sync.last_ntime>->{$only_url} = $legacy_ntime;
+        <[base.logs]>->(
+            2, 'jss.sync: migrated legacy watermark to %s', $only_url
+        );
+    }
+}
+
 my @push_queue;
 my @pushed_urls;
 
@@ -51,10 +67,11 @@ for my $url (@urls) {
         );
     }
 
+    ## no per-url watermark -> FULL push : a newly added backend must       ##
+    ## receive every job once [ the legacy global watermark migrates to the ##
+    ## single configured url above, and cannot be attributed when several   ##
+    ## urls are configured ]                                                ##
     my $last_ntime = <jobsite.sync.last_ntime>->{$url} // '';
-    ## fallback to scalar for backward compat ##
-    $last_ntime = <jobsite.sync.last_server_ntime> // ''
-        if not length $last_ntime;
 
     ## ntime is encode_b32r [reverse byte order] : NOT lexicographically    ##
     ## sortable must compare numerically via base.ntime_BASE32_to_numerical ##
@@ -189,8 +206,8 @@ my $log_level = $total_jobs ? 1 : 2;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,.,,,..,..,,..,,..,,,,,,..,,.,.,.,.,,,,,...,..,,...,...,.,.,,.,,,.,,,,,,..,,
-#HFOKD6GCSVAARUY2NMWCAGUEQIP2KDVGTYXCPNU2KBSWIG4LYSEDIABAFCTIEYDDNYU5LPF5S4T2A
-#\\\|2WNWKYRCL4KECQSWYVSTEFNA75X7RR7Q7BJMYJFMSKBDH3SFAZA \ / AMOS7 \ YOURUM ::
-#\[7]ITDJZIUJXGR3X7I27D2IJL3ISXC6TRB543JMP6DHWA4AX6O2L4CY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,.,,..,,..,,,.,,,.,...,.,.,,,.,..,,...,...,...,.,.,,.,,,.,,,,.,
+#SAOMOKSYMPM3FNXTXONNQPLW2MPVXOAUE76GXSVR4JV6MCIPHCR5TROF6VZXL4KAOINOSLAS33MLY
+#\\\|7U42FLH2FPBKQ3GQHGEDQW6LTAIN3QRBSYBUBCIKLO4C3Q3JOKN \ / AMOS7 \ YOURUM ::
+#\[7]CB5I4URWYR5UXB4OEIMRLKJX4R66DFASFPZN6N3V5XYZQLXPPIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
