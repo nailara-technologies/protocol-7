@@ -89,7 +89,9 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
   rename.bmw ; records : data/yaml/prompts/image/psytrance-network-kitten
   .yaml [ variants, magic_words, style_prompts ], data/yaml/gfx/
   background-provenance.yaml [ distance \ sharing ]. further image imports
-  WAIT for the checksum storage [ owner : fix that first, too many good
+  WAIT for the checksum storage [ 2026-10-18 : N7FS root \ disk-id \
+  addressing DECIDED, 129fe04f3, data/yaml/todo/base.yaml N7FS entry --
+  next = the assimilate command ; owner : fix that first, too many good
   kittens for the repository ] -- candidates stay in invoke : the running
   kitten re-render [ R2G.. source, seed batch pick #2, eye fix good, as a
   background still too bright ; a 35 % layer blend of the reference-mix
@@ -103,8 +105,8 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
   compositing, re-feeding, prompt categories in
   data/tasks/images-elfdb-feature-collection.md.
 
-#,,.,,,,,,,.,,..,,,.,,,,.,,,.,,.,,,,.,,.,,,,.,..,,...,...,.,.,,,.,,.,,...,...,
-#VOJ5RIFCHO2JOSATCFJ65UWBVAMJWEN44Q2ME57OK4L32VV6NLCYQTNOBYMV7753UWK6DM4KT47HA
-#\\\|GZZGU343FFTGFFHZTEBJK2FPV57O6IUEW3IMMSTC5RG3BZH7NLL \ / AMOS7 \ YOURUM ::
-#\[7]BA3PX4UIJ35E2TJIQO6XG2NTKV7TGWTKD7FU2VJMNTESIKD3LMCQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,.,.,.,.,,..,,,.,,.,,...,,,,,..,,...,...,...,.,.,...,,..,...,
+#TQXJRG3C2X3ZXOZ3DRJSVOONXJEGWUDE4IAXPSFBYM2DDAQKQB7JF6Y6GRYPAEXBEBWMOHZVC4N5I
+#\\\|DQ6IALFN7JWWAYDH25GZVLXDLHHCSYXAK3Z3IMWC4IS2LGG5LEC \ / AMOS7 \ YOURUM ::
+#\[7]3EOQHROLFB5IJO2BWXBES33GLC2YWVPO4FCQ4DQU4DGNIJB2L4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
