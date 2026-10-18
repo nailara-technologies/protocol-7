@@ -10,14 +10,20 @@
 
 my @discovered;
 
-## models.storage.search_paths is the canonical shape ; fall back to
-## models.scan_paths [ keyed hash ] and convert to the same list shape if
-## search_paths hasn't been populated yet
-my $search_paths = <models.storage.search_paths> // [];
+## models.storage.search_paths is the canonical shape ; fall back to      ##
+## models.scan_paths [ keyed hash ] and convert to the same list shape if ##
+## search_paths hasn't been populated yet  a copy : the added paths below ##
+## must not grow the configured list                                      ##
+my $search_paths = [ ( <models.storage.search_paths> // [] )->@* ];
 
-if ( !@$search_paths && scalar keys %{ <models.scan_paths> // {} } ) {
-    foreach my $path_id ( keys <models.scan_paths>->%* ) {
+## paths added with scan-path-add are ALWAYS scanned too -- before, they ##
+## only counted while no search path was configured, so a host whose     ##
+## configured paths do not exist discovered 0 models [ 2026-10-18 ]      ##
+my %have_path = map { ( $ARG->{'path'} // '' ) => 1 } $search_paths->@*;
+if ( scalar keys %{ <models.scan_paths> // {} } ) {
+    foreach my $path_id ( sort keys <models.scan_paths>->%* ) {
         my $path_data = <models.scan_paths>->{$path_id};
+        next if $have_path{ $path_data->{'path'} // '' }++;
         push @$search_paths,
             {
             'path'      => $path_data->{'path'},
@@ -41,8 +47,8 @@ foreach my $path_config (@$search_paths) {
 
 return \@discovered;
 
-#,,..,,,,,.,.,,,.,...,.,,,,..,,.,,.,,,.,.,,..,..,,...,...,.,,,,.,,,,.,,.,,,..,
-#FUAKB3LMYK5U2H3HMYCV3ORTCH4H7GH4MPW27ZQW6QM3FCMDICNCCX7LWVGWGVD7DEKOJK6YSJMV2
-#\\\|XWNJSFML6FV34ONJFO6LLU5L2YL2AHKCKFXUEM5QLDU32WPKJ67 \ / AMOS7 \ YOURUM ::
-#\[7]RNHQ73CT55TALHZG6J5FOR3XJFE4E2UMKUAHIPMOGY3EGW3PTOBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,.,,,.,.,,,.,,,.,,.,,,.,,,..,..,,...,...,,,,,,..,,..,,..,,.,,
+#CB2AFTH33T3TEJ7F6P6FCRSDPREAMIC2HA2Y7JKC257RUZCVXIA5FVJUPRRWBLPFBQCV6QEU3ZZMS
+#\\\|DV7SZMW7TTKRIYRA2WEZSLB2CQG2S4MWH2ZV732A43DWJ724RBR \ / AMOS7 \ YOURUM ::
+#\[7]M5IVUZISKBMDKEK6YFQLZVM4PNDLJVKVSDVPYDXP5AAFCCKCBSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
