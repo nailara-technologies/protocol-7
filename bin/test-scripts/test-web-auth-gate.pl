@@ -98,12 +98,19 @@ my @logged;
 my @sent_error;
 my @relayed;
 my $ntime_counter = 1000;
+my $prng_counter  = 0;
 
 $code{'base.logs'} = sub { push @logged, [@ARG]; return };
 $code{'base.log'}  = sub { push @logged, [@ARG]; return };
 $code{'base.s_warn'}
     = sub { push @logged, [ 'warn', sprintf( shift, @ARG ) ]; return };
-$code{'base.ntime.b32'} = sub { $ntime_counter++; return "N$ntime_counter" };
+$code{'base.ntime.b32'}  = sub { $ntime_counter++; return "N$ntime_counter" };
+$code{'base.prng.bytes'} = sub {
+    my $amount = shift // 32;
+    $prng_counter++;
+    return join '',
+        map { chr( ( $prng_counter + $ARG ) % 256 ) } 0 .. $amount - 1;
+};
 $code{'base.ntime.epoch_timestamp'} = sub { return time };
 $code{'base.str.os_err'}            = sub { return $OS_ERROR };
 $code{'format.yaml.load_file'}      = sub {
@@ -231,6 +238,21 @@ ok( $err == 401 && $relayed_count == 0, 'no token -> 401, no relay' );
 
 my $session = mint_token( 'user_id' => qw| jobsite-push | );
 ok( defined $session && length( $session->{'token'} // '' ), 'token minted' );
+
+## same-tick double mint : prng entropy keeps tokens distinct [ q1 ]  ##
+{
+    my $running_ntime_stub = $code{'base.ntime.b32'};
+    $code{'base.ntime.b32'} = sub { return qw| NFROZEN | };
+    my $mint_a = mint_token( 'user_id' => qw| same-tick | );
+    my $mint_b = mint_token( 'user_id' => qw| same-tick | );
+    $code{'base.ntime.b32'} = $running_ntime_stub;
+    ok( defined $mint_a
+            && defined $mint_b
+            && length $mint_a->{'token'}
+            && $mint_a->{'token'} ne $mint_b->{'token'},
+        'same-tick double mint gives two different tokens'
+    );
+}
 
 ( $err, $relayed_count )
     = gate_call( undef, bearer( $session->{'token'} ) );
@@ -447,8 +469,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,.,.,,..,,.,,.,,,.,,,...,,,,,,,.,.,,,.,.,..,,...,...,,,,,,.,,,,.,,..,,.,,
-#EZRCPZ2OR4JOJ26SBLHITCUXFQ5JZCZGQR6X6GSSDMEFVFYNEIKACUPBCJGZF2SJXKJ74OVQYEYUW
-#\\\|3734WAN33P72HD6UWB7TA35DTDHIDBACPSOHEMQZXYG2KZCK4KK \ / AMOS7 \ YOURUM ::
-#\[7]UJED7VIXHT2OIAWY6TPGX6JLAUZF4GFHQF7DKUX7RIDDOAAQVABY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,,.,,..,,,,.,,,,,.,.,..,,,,,,..,,...,...,.,.,,.,,,,,,,.,,,..,
+#FYXQFDE7HM3XZ637KEXKOZ7FYWLGUEFO6LBGWOYY5CURVUDPLPXSBVRV6AIR3VGDKAY6REL5GVLTK
+#\\\|UYQCOZAHQVABVHU2DO3CGCERDNMKBUP5HMFKWK4ZLJA4DMF6C4Y \ / AMOS7 \ YOURUM ::
+#\[7]RSZZD5PWFYTW5SNMAYIDT46QD7ARBD24ORXJCJ3XPTZGIQQYREBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

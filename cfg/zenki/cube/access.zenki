@@ -86,12 +86,26 @@
                                      nameserv.remove-txt \
                                      nameserv.ensure-zone
 
-            ## note : web.* above technically covers web.auth-issue [ token minting ]  ##
-            ## -- acceptable : only the httpd zenka itself can authenticate as 'httpd', ##
-            ## and its relayed commands are fixed in cfg/zenki/httpd/routes. NO other   ##
-            ## user gets web.auth-issue : admin-only via cfg/zenki/cube/access.users    ##
+            ## explicit web.* list [ no wildcard ] : exactly the commands the      ##
+            ## httpd/httpsd zenki send, found by source sweep --                  ##
+            ##   web.process_template_ipc  src/httpd.process_template:88          ##
+            ##   web.jobs-data web.jobs-sync  cfg/zenki/httpd/routes relays       ##
+            ##   web.context  src/httpd.route.handler.context:13 [ POST /context ] ##
+            ##   web.request  src/httpd.route.handler.web-relay:51 route default  ##
+            ## web.auth-issue is deliberately NOT here [ admin-only :              ##
+            ## cfg/zenki/cube/access.users ] -- a compromised httpd can no longer  ##
+            ## mint tokens. httpsd authenticates as user 'httpsd' : its own grant  ##
+            ## below, only what the https jobsite ui and templates relay         ##
+            access.cmd.usr.httpsd =  web.process_template_ipc \
+                                     web.jobs-data web.jobs-sync \
+                                     web.context web.request \
+                                     jobsite.list-trashed jobsite.rescue-http \
+                                     jobsite.import-url-http \
+                                     jobsite.get-prefs jobsite.set-prefs
+
             access.cmd.usr.httpd  =  web.process_template_ipc \
-                                     web.jobs-data web.jobs-sync web.* \
+                                     web.jobs-data web.jobs-sync \
+                                     web.context web.request \
                                      jobsite.list-trashed jobsite.rescue-http \
                                      jobsite.import-url-http \
                                      jobsite.get-prefs jobsite.set-prefs \
@@ -491,8 +505,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,,.,,,,,,,,,,,,,,,,,,..,...,.,,,.,,,,,,,..,,.,.,...,...,..,,...,,.,,,,,,...,
-#XCVQ7DFWTN42JU72QOO2TLKPMWPBMEYVX6N44MHZHP2I4YRMQHKAHIEQJNAYYDISMK5E5T3QXU7BE
-#\\\|4PPKMXAMVFRBQ5H4EEC3RDVN7CGARVB3PB5QLUVSCBU7LF7U5RB \ / AMOS7 \ YOURUM ::
-#\[7]QP537EUQLTJ27E5ROIHII27Z74IWRBTYNIJQMCFM26ST6655KKDI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,,,,,,,,,,,.,..,,.,.,...,,..,.,.,...,...,.,.,.,,,,,.,,..,,.,,
+#CS6M6JZM2ROPWLMG6SRXDC63SQAGVXL6I24HWCFIXH73LTOTW6IHSASDQGHFXGETNAPIFMVSLPBOA
+#\\\|LJLH5OKQK6DCSQVMTUGQE6KGZSZ563WSKEGX6FCGIFKXBRICCRZ \ / AMOS7 \ YOURUM ::
+#\[7]VTKTOQNNU3J6UMBKD4XSGXEY5XUZIP6MPP4QUDG5BCUFLVRFMIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

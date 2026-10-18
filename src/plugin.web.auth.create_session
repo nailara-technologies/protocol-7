@@ -21,8 +21,15 @@ if ( not length $secret ) {
 my $node_id = <system.node.name> // qw| protocol-7 |;
 my $ntime   = <[base.ntime.b32]> // '';
 
-## token = AMOS checksum of (node_id + ntime + user_id + secret) ##
-my $token = <[chk-sum.amos]>->("$node_id $ntime $user_id $secret");
+## 32 bytes of OS-backed prng entropy                                     ##
+## [ base.prng : fortuna, never perl rand ] : same-tick mints stay        ##
+## distinct, and a leaked secret no longer makes tokens recomputable from ##
+## public fields [ q1 of data/tasks/web-ui-user-login.md stage 0 ]        ##
+my $entropy = unpack qw| H* |, <[base.prng.bytes]>->(32) // '';
+
+## token = AMOS checksum of (node_id + ntime + user_id + secret + entropy) ##
+## -- old tokens stay valid : only the hash is stored                      ##
+my $token = <[chk-sum.amos]>->("$node_id $ntime $user_id $secret $entropy");
 return undef if not defined $token;
 
 my $token_hash = <[chk-sum.bmw.L13-str]>->($token);
@@ -62,8 +69,8 @@ return {
     'expires_at_epoch' => $session_data->{'expires_at_epoch'},
 };
 
-#,,,,,..,,..,,,,,,,..,,,.,..,,,..,,..,,.,,.,,,..,,...,...,...,.,,,...,.,.,..,,
-#BDOLZNJEYELN3LDTFTHJZW2TSYGYKWR2GZTCPGY7HAWWBDBMUXVC2FATKXPGW3IGSP424Y4JTO56I
-#\\\|DI3RDFQAUOTGUWACTXVXRJISGJJM6ALOMPJ7PMKQFXWOWBH4KZB \ / AMOS7 \ YOURUM ::
-#\[7]BODM43EYPNJDZXM3DKOD6PVHWNWNLDQ6Y75MXM2M3ZZETM5WCSBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,,,.,..,,,.,,,,.,,,.,,..,.,,,..,,...,...,.,.,,,,,,..,...,,..,
+#GSAZ23NAONDAKQTQ2ODRPL27KYIAKPPQW46AVYCZM5IOQIVN6S6GE6ZTRFAJW5DETEAJTBYGTIROU
+#\\\|OCXTL25LIXDATPIGOK43PQO6URZJJSEJ54SGCYOKIX5SBMI377M \ / AMOS7 \ YOURUM ::
+#\[7]CFGCDEJ37CP5EYES6U52VGSABBLB7BSB56IF4H4BC6456PDZRIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
