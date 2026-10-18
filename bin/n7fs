@@ -1,0 +1,323 @@
+#!/usr/bin/perl
+use v5.32.0;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+###      ###
+##  n7fs  ##
+###      ###
+
+## N7FS version 1 : checksum-addressed store, standalone
+## [ like p7-vault -- no zenka, no running network ]. format :
+## data/md/design/N7FS-SPEC.md + data/md/design/N7FS-FORMAT-1.md [ as built ].
+##
+## n7fs keygen <file>                     new ed25519 key file [ 0600 ]
+## n7fs pubkey <file>                     its public key [ base32 ]
+## n7fs init -name <n> -intent <text>    a new disk under the root
+## n7fs list                              disks under the root
+## n7fs attach <disk> [ -allow-rollback ]
+## n7fs detach <disk>
+## n7fs status <disk>
+## n7fs verify <disk>                     every node of the active epochs
+## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -dry-run ]
+##                 [ -index <image-index.db> [ -index-base <dir> ] ]
+##                 [ <path> .. ]   index + -remove needs -index-base
+## n7fs upgrade <disk> [ -epoch <n> ]     convert into the next epoch of
+##                                         the window [ -epoch : tests ]
+## n7fs confirm <disk>                    confirm an upgrade
+##
+## common : -root <dir>        [ N7FS_ROOT, default /N7FS -- never created ]
+##          -host-dir <dir>    [ N7FS_HOST_DIR, default ~/.n/n7fs ]
+##          -host-key <file>   [ default <host-dir>/host.key ]
+##          -parent-key <file> [ default <host-dir>/parent.key ]
+##          -parent-cmd <cmd>  external parent signer [ words, list-form
+##                              exec, no shell -- the host-root plug ]
+##          -trust <b32 key>   trusted parent key [ repeatable ; else
+##                              <host-dir>/trusted-parents ]
+##
+## assimilate KEEPS the sources unless -remove is given ; a source is only
+## removed after its stored copy and the source itself verified again.
+##
+## single-dash long options, the house form -- no -- forms exist.
+
+use FindBin;
+use Getopt::Long qw| GetOptionsFromArray |;
+
+## our own long options take ONE dash : the prefix pattern rejects the gnu
+## '--' form for every option of this cli
+Getopt::Long::Configure('prefix_pattern=^-');
+
+BEGIN {
+    ## repo layout first, then a copy [ AMOS7/ beside the script ] ##
+    unshift @INC, "$FindBin::Bin/../data/lib-path/pm", "$FindBin::Bin";
+}
+
+use AMOS7::N7FS          qw| root_dir host_dir b32 unb32 |;
+use AMOS7::N7FS::Sign    qw| key_file_signer key_file_write command_signer |;
+use AMOS7::N7FS::Disk    qw| disk_init disk_attach disk_detach disk_status |;
+use AMOS7::N7FS::Store   qw| assimilate store_verify |;
+use AMOS7::N7FS::Convert qw| upgrade confirm |;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+binmode STDOUT, qw| :encoding(UTF-8) |;
+binmode STDERR, qw| :encoding(UTF-8) |;
+
+my @args = @ARGV;
+my %o    = ( qw| trust | => [] );
+GetOptionsFromArray(
+    \@args, \%o,
+    qw| root=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
+        name=s intent=s disk=s index=s index-base=s epoch=s remove keep dry-run
+        allow-rollback help |
+) or usage(2);
+usage(0) if $o{'help'};
+
+my $command = shift @args // usage(2);
+
+my %common;
+$common{'root'}     = $o{'root'}     if defined $o{'root'};
+$common{'host_dir'} = $o{'host-dir'} if defined $o{'host-dir'};
+if ( $o{'trust'}->@* ) {
+    $common{'anchors'} = [
+        map {
+            my $pub = unb32($ARG);
+            fail("-trust : not a base32 public key [ $ARG ]")
+                if not defined $pub
+                or length $pub != 32;
+            $pub
+        } $o{'trust'}->@*
+    ];
+}
+
+my %run = (
+    qw| keygen |     => \&cmd_keygen,
+    qw| pubkey |     => \&cmd_pubkey,
+    qw| init |       => \&cmd_init,
+    qw| list |       => \&cmd_list,
+    qw| attach |     => \&cmd_attach,
+    qw| detach |     => \&cmd_detach,
+    qw| status |     => \&cmd_status,
+    qw| verify |     => \&cmd_verify,
+    qw| assimilate | => \&cmd_assimilate,
+    qw| upgrade |    => \&cmd_upgrade,
+    qw| confirm |    => \&cmd_confirm,
+);
+usage(2) if not exists $run{$command};
+
+my $code = eval { $run{$command}->(@args) };
+if ( not defined $code ) {
+    my $err = $EVAL_ERROR || "n7fs : failed\n";
+    print STDERR $err;
+    exit 1;
+}
+exit $code;
+
+##[ HELPERS ]#################################################################
+
+sub usage {
+    my $exit = shift;
+    open( my $fh, '<', $PROGRAM_NAME ) or exit $exit;
+    while ( my $line = <$fh> ) {
+        last                  if $line =~ m|^use FindBin|;
+        print {*STDERR} $line if $line =~ m|^## |;
+    }
+    exit $exit;
+}
+
+sub fail { die "n7fs : $ARG[0]\n" }
+
+sub say_line { say ': ', @ARG }
+
+sub host_signer {
+    my $file = $o{'host-key'} // host_dir(%common) . '/host.key';
+    fail("no host key $file [ n7fs keygen $file ]") if not -e $file;
+    return key_file_signer($file);
+}
+
+sub parent_signer {
+    if ( defined $o{'parent-cmd'} ) {
+        return command_signer( split m|\s+|, $o{'parent-cmd'} );
+    }
+    my $file = $o{'parent-key'} // host_dir(%common) . '/parent.key';
+    fail("no parent key $file [ n7fs keygen $file, or -parent-cmd ]")
+        if not -e $file;
+    return key_file_signer($file);
+}
+
+sub disk_arg {
+    my $disk = shift // $o{'disk'} // fail('which disk ?');
+    return $disk;
+}
+
+##[ COMMANDS ]################################################################
+
+sub cmd_keygen {
+    my $file = shift // fail('keygen needs a file');
+    my $s    = key_file_write($file);
+    say_line( 'key file ', $file );
+    say_line( 'public   ', b32( $s->public ) );
+    return 0;
+}
+
+sub cmd_pubkey {
+    my $file = shift // fail('pubkey needs a file');
+    say b32( key_file_signer($file)->public );
+    return 0;
+}
+
+sub cmd_init {
+    my $disk = disk_init(
+        %common,
+        qw| parent | => parent_signer(),
+        qw| name |   => $o{'name'},
+        qw| intent | => $o{'intent'},
+    );
+    say_line( 'disk ', $disk, ' created under ', root_dir(%common) );
+    return 0;
+}
+
+sub cmd_list {
+    my $root = root_dir(%common);
+    fail("root $root is not a directory") if not -d $root;
+    opendir( my $dh, $root ) or fail("cannot read $root : $OS_ERROR");
+    say for sort grep {m|\A[A-Z2-7]{7}\z|} readdir $dh;
+    closedir $dh;
+    return 0;
+}
+
+sub cmd_attach {
+    my $done = disk_attach(
+        %common,
+        qw| disk |           => disk_arg(shift),
+        qw| host |           => host_signer(),
+        qw| allow_rollback | => $o{'allow-rollback'} ? TRUE : FALSE,
+    );
+    say_line(
+        sprintf '%s:%s attached [ %s, %s ]',
+        $done->{'mount'}, $done->{'disk'},
+        $done->{'ntime'}, $done->{'window'}
+    );
+    return 0;
+}
+
+sub cmd_detach {
+    my $done = disk_detach(
+        %common,
+        qw| disk | => disk_arg(shift),
+        qw| host | => host_signer(),
+    );
+    say_line(
+        sprintf '%s:%s detached [ %s ]', $done->{'mount'},
+        $done->{'disk'},                 $done->{'ntime'}
+    );
+    return 0;
+}
+
+sub cmd_status {
+    my $s = disk_status(
+        %common,
+        qw| disk | => disk_arg(shift),
+        qw| host | => host_signer(),
+    );
+    say_line( 'disk      ', $s->{'disk'} );
+    say_line( 'name      ', $s->{'name'} );
+    say_line( 'intent    ', $s->{'intent'} );
+    say_line( 'init      ', $s->{'init'} );
+    say_line( 'parent    ',
+        $s->{'anchored'} ? 'trusted anchor' : 'not anchored [ tofu ]' );
+    say_line( 'records   ', $s->{'records'} );
+    say_line( 'window    ', $s->{'window'},
+        defined $s->{'first'} ? " [ $s->{'first'} .. $s->{'last'} ]" : '' );
+    say_line( 'attached  ', $s->{'attached'} // 'no' );
+    say_line(
+        'format    ',
+        $s->{'state'}{'store_format'},
+        $s->{'state'}{'previous'}
+        ? ( ' [ from ',
+            $s->{'state'}{'previous'}{'store_format'},
+            $s->{'state'}{'confirmed'}
+            ? ', confirmed ' . ']'
+            : ', unconfirmed ]'
+            )
+        : ()
+    );
+    say_line( 'epochs    ', join ' ', $s->{'state'}{'epochs'}->@* );
+    return 0;
+}
+
+sub cmd_verify {
+    my $r = store_verify( %common, qw| disk | => disk_arg(shift) );
+    say_line( sprintf '%d nodes verified [ format %d ]',
+        $r->{'nodes'}, $r->{'state'}{'store_format'} );
+    return 0;
+}
+
+sub cmd_assimilate {
+    fail('assimilate : -keep and -remove exclude each other')
+        if $o{'keep'} and $o{'remove'};
+    fail('assimilate : no paths and no -index')
+        if not @args and not defined $o{'index'};
+    my $r = assimilate(
+        %common,
+        qw| disk |       => disk_arg(),
+        qw| host |       => host_signer(),
+        qw| paths |      => [@args],
+        qw| index |      => $o{'index'},
+        qw| index_base | => $o{'index-base'},
+        qw| protect | => [ grep {defined} $o{'host-key'}, $o{'parent-key'} ],
+        qw| remove |  => $o{'remove'}  ? TRUE : FALSE,
+        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
+    );
+    foreach my $e ( $r->{'entries'}->@* ) {
+        say_line(
+            join ' ',
+            $e->{'status'},
+            $e->{'source'} // '?',
+            defined $e->{'addr'} ? ( '->', $e->{'addr'} ) : (),
+            defined $e->{'then'} ? "[ $e->{'then'} ]"     : (),
+            defined $e->{'why'}  ? "[ $e->{'why'} ]"      : ()
+        );
+    }
+    say_line('dry run : nothing was changed') if $r->{'dry_run'};
+    return $r->{'failed'} ? 1 : 0;
+}
+
+sub cmd_upgrade {
+    my $r = upgrade(
+        %common,
+        qw| disk | => disk_arg(shift),
+        qw| host | => host_signer(),
+        defined $o{'epoch'} ? ( qw| epoch | => $o{'epoch'} ) : (),
+    );
+    if ( $r->{'from'} == $r->{'to'} ) {
+        say_line("format $r->{'from'} is the newest this n7fs converts to");
+        return 0;
+    }
+    say_line(
+        sprintf 'format %d -> %d : %d nodes written into epoch %d '
+            . '; the old form stays -- check, then n7fs confirm',
+        $r->{'from'}, $r->{'to'}, $r->{'nodes'}, $r->{'epoch'} );
+    return 0;
+}
+
+sub cmd_confirm {
+    my $r = confirm(
+        %common,
+        qw| disk | => disk_arg(shift),
+        qw| host | => host_signer(),
+    );
+    say_line( sprintf 'format %d confirmed [ %d nodes verified ]',
+        $r->{'format'}, $r->{'nodes'} );
+    return 0;
+}
+
+#,,.,,...,,,.,,,.,,,.,,..,.,.,..,,,,,,,.,,.,,,..,,...,...,,.,,...,,,.,.,,,...,
+#WO26YNXNC7VZGDFUPB25QBXS2IUFHXJ2K3D5YA6H5BO73S5ESCJSSC2Z4SAOU4BE4P26FODEHKME2
+#\\\|WCVSSO27VRUHIW4F5VBZLSLMTBR5CRJ4ZPHFWUUZIZPDZKIM4KO \ / AMOS7 \ YOURUM ::
+#\[7]I4AQ7OKMBVTCO3CV4ABJAZVJSA4G4S3C27VNRRKJ57BXVHJYJSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
