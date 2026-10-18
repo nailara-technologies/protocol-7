@@ -160,6 +160,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [llm-fix-regressions-pattern](feedback-llm-fix-regressions-pattern.md) — 4 regressions in one night [ 2026-09-30 ] from earlier LLM fixes assuming 'single choke point' in generic paths ; method : callers first, measure the order, compare with mod-test, git log --follow the path, test every scenario the history names
 - [test-claimed-bug-effect-before-reporting](feedback-test-claimed-bug-effect-before-reporting.md) — reproduce a bug's claimed symptoms [ or follow every consumer ] before reporting \ committing them ; a regression test must FAIL on the old code -- load_single 2026-10-15 : both claimed effects false, pushed in e13135150
 - [single-dash-long-options](feedback-single-dash-long-options.md) — new options of our own tools : `-dry-run`, `-write`, never `--` ; say it in every dispatch brief [ 2026-10-18 ]
+- [self-reexec-tests-need-recursion-guard](feedback-self-reexec-tests-need-recursion-guard.md) — a self re-executing test with @ARG [ = @_ ] instead of @ARGV fork-chained and froze the host [ 2026-10-18 ] : env recursion guard always, review spawning before the first run, ulimit -u for unknown tests
 
 #,,.,,,.,,,..,,,,,.,.,.,,,...,,.,,.,,,,.,,.,.,..,,...,...,...,..,,,..,.,,,,,.,
 #7LE2BK4UQ5RUKQX7QWLXLNBIR2XONH62DQSG6BRKT2TPB35ATXEMHGU7EGYJ2DARMNR6URZTEAFLM
@@ -217,8 +218,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [nested-data-read-autovivifies-before-defaults](feedback-nested-data-read-autovivifies-before-defaults.md) — a nested `<a.b.c>` read before init_modules creates `<a.b>` as {} and cancels a whole-hash `//=` default [ v7-zenki zenka-dirs all undef 2026-10-11..15 via base.host.detect ] ; read early via `( <a.b> // {} )->{c}`, defaults per key
 
-#,,.,,,.,,.,.,.,.,.,,,,,,,,..,...,,.,,,,,,,,,,..,,...,..,,.,.,.,.,..,,.,.,,.,,
-#TT2WIHM6JCAZDHHXGI4B7BMBY53F2LKMXCJJWZX2VUBGMJCOPTVPO6PM2FXSXO4LTZQGFMSKL7ZJM
-#\\\|L4AXG7S2HTASJ7BIBEPMSVBBREDGENSIEMZBFX2ZA3F4WQFF3PM \ / AMOS7 \ YOURUM ::
-#\[7]4XDFJGGD5H2ZRD3AWWHXPFZWTLXP6LYHYT5WPXGSXW6FC7MR5KDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,.,..,,,,,,,..,,,,,,,,,.,,,,..,..,,...,...,...,,.,,,,,,,,,,.,.,
+#LRE6T2D65CKU53QV2KPEH6SGQXRESQT3J2NC5EBDWVDBKZHJPAUG4KSXQXLO2DSKMB4TC3V6D57AO
+#\\\|7CNHQK64G52HHG3FQIHFGW26XMXZFXKXLC3TB3LXBLAVTXWBVPT \ / AMOS7 \ YOURUM ::
+#\[7]JUDPA7DKOXLDY6PXVWHNBXYFXUDXOX7UKWWN5XI24HRKBFPL5QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

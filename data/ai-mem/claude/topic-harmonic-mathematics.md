@@ -597,6 +597,39 @@ consequences [ the user's points, all checked ] :
   26 / 311 int and 129 / 311 float disagreements with the C. fix = the
   residue table [ integers : digit-wise mod 13, any length ].
 
+
+## the TRUE cycle as modes and as 5 [ user, 2026-10-18 -- interpretation ]
+
+`num-rol -U8` over the rotations of the TRUE cycle 153846 decodes to
+`T=5` [ 846153 ], `5T=` \ `=5T`, `T`, `&.` [ 384615 ], `.` [ 461538 ].
+each rotation is a x10 step -- NEUTRAL [ verified above ] -- so every
+form is the same truth in another MODE : the assertion, the bare truth,
+consensus [ `&.` : an and over parts ], sub-bit [ `.` : a fragment
+meaningful only combined ]. T=5 = the TRUE constant ; 5 of 7 litters ;
+and 5 bits : base32 carries 5 bits per character [ amos 7 chars = 35
+bits, L13 = 65 ], the 5-bit payload of the division-13-table protocol's
+'0 + 5 bits : BASE32 character' states -- the 5-bit trunk.
+and the 5x7 bit matrix [ the protocol's graphical payload ] is 35 bits =
+ONE amos checksum : 7 base32 characters, each a row of 5 pixels -- the
+classic 5x7 dot-matrix glyph size. every amos is drawable as a glyph.
+DOUBLING [ verified arithmetic ] : 2 is a primitive root mod 13 -- x2
+from 1/13 [ .076923 ] walks ALL 12 non-zero residues before returning,
+and each step flips truth [ 2 is a non-square ] : F T F T .. with period
+12. the user's reading : a series of CONNECTION UPGRADES collected as
+handshake validity from stream reading, shift registers in the protocol
+-- each `<< 1` one upgrade, the alternation a checkable expected pattern.
+THE 0050 BRIDGE [ user, 2026-10-18 ] : T(10^k) = 5 * 10^(2k-1) + 5 * 10^(k-1)
+is written only in 5 and 0 -- the TRUE and FALSE constants [ TRUE => 5,
+FALSE => 0 ]. a decimal number that IS a binary pulse train : decimal to
+binary through truth values. the two pulses sit at digit positions k-1
+and 2k-1 -- each k halves the relative pulse rate [ a 2:1 divider ] ;
+frequency dividers to become a core part of the protocol [ user ].
+the FALSE cycle as bytes : 07 69 23 = BEL, 'E', ETB -- the hang-up \
+escape sequence [ like the hayes modem '+++' + ATH0 : guard, mark, end
+block -> validation mode, no ACK ; full-chat-captures/3O37VUNMMS3UU ~5299 ].
+so the TRUE cycle decodes to the truth assertion [ T=5 ], the FALSE cycle
+to the protocol's own terminate sequence.
+
 #,,,,,,.,,...,.,,,,,.,.,.,.,.,,,.,,.,,,,,,...,...,...,...,.,,,,,,,..,,,,,,..,,
 #NAAOOACQD7UAMADWSD7SNZRCJMLB4UZH6BVBMY2MAPIUNBDX4TVL7ZM6UZILH5SDPG4OIQNM5XIOW
 ## 15-bit footer bitmask: matches an already-fully-specified plan, but two competing allocations exist (2026-08-04)
@@ -758,8 +791,8 @@ structure's own source document — not shown, anywhere checked, to be a
 naming layer over structure (4)'s caravan. Cross-referenced into
 `recurring-cube-number-collision-audit.md`'s structure (3) entry.
 
-#,,.,,,,.,,,,,,.,,,,,,,,.,,,,,,,,,,,.,.,.,.,,,..,,...,...,.,,,..,,,,.,.,.,,,.,
-#GDTGCBEIFPCZAVIQNODCQBXHXNFT3K2BILHWBMFD4QOGD2K6CJLR2IOPRZAZO2QO2C77TVHH7X622
-#\\\|MDBKQ43SZLY7ZILCCRGMXPNH7U6WQRLMVRZRBLDNZPH5Y6LAZ36 \ / AMOS7 \ YOURUM ::
-#\[7]2N6T23ASA2EVYF4FJTEDQ2YES35WLIQ7BHI7OCJNHY5RWO4L6UAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,,..,.,,,,.,,,,.,,,.,...,,.,,..,,...,...,,..,,,,,,..,,.,,.,,,
+#LPYZFEDRVU5C33QF53PP42ZAPECILFO2DBGHC4SJ5RGBZXQPIZ4BJ66D4ZQMYUKO6E3MBSNTLFYZW
+#\\\|DN6V544P2ZUWNJZTDXRLUCA3R6PCRG5WSES4HXAUANXKXSGFE5Y \ / AMOS7 \ YOURUM ::
+#\[7]ZHWJN3W2YW5WB2E4DCYKKXXOCU7HTFZKRLCFJJQ7533MZEDT7SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

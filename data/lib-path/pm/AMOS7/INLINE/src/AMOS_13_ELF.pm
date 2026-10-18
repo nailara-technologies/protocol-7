@@ -8,6 +8,8 @@ use strict;
 use English;
 use warnings;
 
+require utf8;    ## utf8::upgrade [ reproduces the sv_2pvutf8 side effect ] ##
+
 use Exporter;
 use vars qw| @EXPORT @EXPORT_OK |;
 use base qw| Exporter |;
@@ -169,6 +171,16 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
     EOC
 
     my $fallback_sub = sub {    ## pure-perl AMOS-13-ELF-7 implementation ##
+        return warn_err( 'input_str is undefined', 1 )
+            if not defined $ARG[0];
+
+        ## the compiled version passes its input through sv_2pvutf8_nolen  ##
+        ## BEFORE reading it : the caller's scalar is upgraded in place    ##
+        ## [ latin-1 -> utf-8 ]. reproduce the side effect so downstream   ##
+        ## byte consumers [ the BMW digest in AMOS7::CHKSUM::amos_chksum ] ##
+        ## see identical bytes on both paths .,                            ##
+        utf8::upgrade( $ARG[0] );
+
         my ( $input_str, $start_sum, $elf_mode, $shift_bits,
             $overflow_threshold )
             = @ARG;
@@ -262,8 +274,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
 return 5;    ##  true  ##
 
-#,,.,,,,.,...,,,.,..,,,.,,,,.,,..,,.,,,,,,.,.,..,,...,...,...,.,.,,.,,,.,,.,,,
-#OC5GP5TVX35XGD6LMJP7KOY5YA3PNWXEVB26Y7SBMODMPQ2F6MSV7POXXULZURP3R2L57KNAHR53Y
-#\\\|N43CEK6E3NLX7EZMMGJPG4AJ3GN3TL2ZLDG6J4KXFOCZA5ML4WE \ / AMOS7 \ YOURUM ::
-#\[7]FZDMCN5ZPECQSGSQNAEYL24QFXG2GDTFQ3JRALEOFVOJWDJ2DSDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,,,.,,,,,,,.,,..,..,,...,,..,..,,...,...,...,,.,,..,,,,.,,.,,
+#72ZHOVPIXKX6OAPZAEWHS32YVUFY6BOUXPB7XEZ457IPIEIE7Y7RIGH7MOWMOJGGEFIMLRQYV2J7S
+#\\\|HIF32HSAXDSDANRO6RRSKHFRH5G6M2GTNRKM7D42VJEBH5LKRBM \ / AMOS7 \ YOURUM ::
+#\[7]TZ3VWGNEFOQZLTZHNNNU37UUVTS6QAWCI34OOA7RW3HMNLIYWOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

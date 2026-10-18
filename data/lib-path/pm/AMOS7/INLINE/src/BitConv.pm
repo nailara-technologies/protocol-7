@@ -61,7 +61,11 @@ sub bit_string_to_num { ##  bit_string_to_num  ## [ faster than eval '0b',., ]
         return warn_err( 'input bitstring size exceeds 64', 1 )
             if length $ARG[0] > 64;
 
-        return unpack qw| Q |, pack qw| B64 |, $ARG[0];
+        ## right-aligned to 64 bits                                       ##
+        ## [ pack B left-aligns : '101' would read as 101000.. ] and read ##
+        ## big-endian [ Q alone is native byte order ]                    ##
+        return unpack qw| Q> |, pack qw| B64 |,
+            substr( ( qw| 0 | x 64 ) . $ARG[0], -64 );
         ##
         ## equivalent to : eval sprintf qw| 0b%s |, $ARG[0] ##
     };
@@ -152,8 +156,8 @@ sub num_to_bit_string {   ## num_to_bit_string ## [ sprintf '%0*b' is faster ]
 
 return 5;
 
-#,,.,,.,,,.,.,.,,,..,,.,.,..,,.,.,,..,...,,.,,..,,...,.,.,..,,.,,,.,.,,.,,,,.,
-#YQTW3WNDQCYWK7CV4CLAILHLFVHOGQ2DZUH3TPJ2QRSOXBHNR4XL3FZ6HFDE5OJ4MCOTIPNFCMHUS
-#\\\|N4V6T6DCPYWQ5OFDRJ5FOVACSAZJH4WKESBZO3DD6XC4VI45ZA4 \ / AMOS7 \ YOURUM ::
-#\[7]JUYPDKLMKMCQZVFC6LUMJNULH6ZDMCVHDBITGL4LVKAPFHIX36DY 7  DATA SIGNATURE ::
+#,,.,,...,...,,.,,.,.,,,,,.,,,,.,,,,,,,..,...,..,,...,...,,.,,.,.,,..,..,,.,,,
+#5PXQDHZ7U5SRKMY5HSOBVOKPZGSQ3BY4GFTYQKGUEVDPLA45LP5NIUKI2ZZWJBUTCQIIASUV24YY4
+#\\\|MM26OA2EPZ2USGZ5W64QQ4UKMQ43CODTCWJSJXTKYGEIXCGYIYD \ / AMOS7 \ YOURUM ::
+#\[7]TJNMMP2N4GOE525CXTV37PFNJMJEZWL4U5M776YGHRO4A3SZXYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

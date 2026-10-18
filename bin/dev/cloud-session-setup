@@ -39,6 +39,9 @@ my @modules = (
     [qw| File::Which          libfile-which-perl     |],
     [qw| Event                libevent-perl          |],
     [qw| Crypt::PRNG::Fortuna libcryptx-perl         |],
+    ## AMOS7::INLINE ##
+    [qw| Inline::C            libinline-c-perl       |],
+    [qw| DBD::SQLite          libdbd-sqlite3-perl    |],    ## n7fs index ##
     [ qw| Digest::BMW    |, undef ],
     [ qw| Crypt::Ed25519 |, undef ],
 );
@@ -85,8 +88,11 @@ foreach my $entry (@modules) {
     }
 }
 
-## cpan builds need cpanm and a compiler -- only installed when used ##
-if (@cpan_needed) {
+## cpan builds need cpanm and a compiler -- only installed when used ;    ##
+## Inline::C compiles at first use, so it needs the compiler as well [    ##
+## without it the pure-perl fallbacks run -- the compiled path is the one ##
+## every real host uses, tests must see it ]                              ##
+if ( @cpan_needed or grep { $ARG eq 'libinline-c-perl' } @apt_needed ) {
     foreach my $pkg (@cpan_build_pkgs) {
         next if apt_installed($pkg);
         printf ": missing %-20s -> apt %s [ for cpan builds ]\n", $pkg, $pkg;
@@ -218,8 +224,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,.,,,,,,,.,,.,.,.,,,..,,.,.,...,,,,,.,.,.,.,..,,...,...,..,,..,,,,,,..,,,,,,
-#FPVP2IRQ6CZ6EVQ3UIGRRZR7KPPABUK5AHN37GKVYBFS6LCZQZYQJMZFFSDBS76SDA3EM3AO5TOHI
-#\\\|B47DGUTZO7LQWPCPTJ6PWFYVXSRLTEYKC7AS6DKB3NDFID4DNVB \ / AMOS7 \ YOURUM ::
-#\[7]MUKF7NIZZDO5ZEZFBVXZFWHUB6JLLJ4ZFYAXE627V2YPMZYLNUCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,,,.,,,.,.,.,.,,,.,.,,..,,,.,..,,...,...,.,.,.,,,,.,,.,.,...,
+#GXPTUFDFTT23DL77UABDDPRZFP52X6WU6Y2DLGFZO45SCXPXRZNBXMO3NJT3NVQCOUYC6XDYTSP6A
+#\\\|72DDCMZAGBZWXZGOJYEPEFZZLWTNNF3BLTI626PCOW7LX3ZR4SB \ / AMOS7 \ YOURUM ::
+#\[7]CMG4RHQYONMG5TDN6P2HGN5QPPDEHU54RMPGUPE3OFJW3NBAHSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -103,14 +103,38 @@ when configured -> remove the source ONLY after every copy is confirmed.
 any failure leaves the source in place. the first source list : the
 invoke-web image index [ invoke-web.index.backup_path ].
 
+## decisions after version 1 was built [ 2026-10-18 ]
+
+- `<bmw>` = BMW384 ; more entropy, if ever needed, as a NESTED checksum
+  [ which also carries context ]
+- amos input is TYPED by what is addressed :
+  - content : amos over the BMW384 text [ cheap, deterministic -- a
+    creation time in it would break dedup ]
+  - identities [ disk, key, mount ] : amos over `<creation-ntime>:<key>:<sig>`
+  - search : amos over `<key>:<pattern>` ; the BMW reply authenticates
+    what was searched and routes toward the result or the next
+    reference point
+- amos checksums also have shorter forms, offsets, elf-truth modes and
+  truth templates -- all usable for checksum TREE structures
+- BMW-L13 : one implementation, an AMOS7 module from the src/ algorithm ;
+  src/ and bin/bmw-L13 call it ; a converter step replaces the stand-in
+- upgrades use the {previous, current, next} epoch window : write into
+  next, switch when confirmed ; the old form is released when it leaves
+  the window
+- the store key signs what the store ASSERTS : meta and state records ;
+  content is verified by its own checksum path [ suggested -- confirm ]
+- prerequisite : the pure-perl truth fallback must be BIT-IDENTICAL to
+  the compiled one -- amos addresses differed between hosts with and
+  without Inline::C [ the v1 collision fixture showed it ]
+
 ## open
 
 - chunk size and packing [ small files : inode cost ]
 - an optional prefix level for very large `<amos>` directories
 - sub-bit distribution and group computation : later layers
 
-#,,.,,,..,,,,,,,.,,.,,.,.,,,.,,,,,,.,,,,,,,,.,..,,...,...,...,,,,,,,.,,,.,,..,
-#A3NR5UIIARPGFCUVR6DPDDSGBO2TNI5GS6RB7H2KTXOCJU66VKKXOWOSLOKDZTU3WHAD5JLT3CCF2
-#\\\|TT4MBW35DRXM364O4QEMPNQXN2P4OBFCGIZWPGMP76PV7ACGECS \ / AMOS7 \ YOURUM ::
-#\[7]ZC2F42G54D4PA7Z73LMQS7KG7ASXYQZXE5T2DCLBAUBUJWIXGKDA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,..,..,,.,.,,,.,...,,,.,,,.,..,,..,,...,...,,,,,,,.,,.,,..,,..,,
+#TRA545F5PGX23UD34MGML3WXMCWGPHOI6HMAMGMF4SGWCXFB7Y6NEFUXYAQECKXTOEEVPDVZIF7MQ
+#\\\|UZ7LXTJVSDCBAOLKVGDQG4E45OTR2U6TDDBU4S4U576OQEQ2V7Z \ / AMOS7 \ YOURUM ::
+#\[7]6MLMS7MQQA5S6H6PUZZJK4EX3C7USM4WLKJKEDVBC4LMTCSUYCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
