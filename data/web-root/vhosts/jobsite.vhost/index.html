@@ -56,6 +56,38 @@ h1 { color: var(--p7-fg-bright); font-size: 1.25rem; font-weight: bold; text-sha
     margin-bottom: -0.5rem;
 }
 
+/* auth login overlay */
+#auth-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(0,4,12,0.82);
+    display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(2px);
+}
+#auth-overlay.open { display: flex; }
+#auth-box {
+    background: rgba(3,21,66,0.95);
+    border: 1px solid var(--p7-accent);
+    border-radius: 0.4rem;
+    padding: 1rem 1.2rem;
+    width: min(92vw, 26rem);
+    display: flex; flex-direction: column; gap: 0.6rem;
+    box-shadow: 0 0 24px rgba(68,39,172,0.35);
+}
+#auth-box h2 { color: var(--p7-fg-bright); font-size: 0.95rem; }
+#auth-box .auth-hint { color: var(--p7-text-dim); font-size: 0.68rem; }
+#auth-token {
+    background: var(--p7-bg-dark);
+    border: 1px solid var(--p7-accent);
+    border-radius: 0.25rem;
+    color: var(--p7-text-soft);
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.5rem;
+    outline: none;
+}
+#auth-token:focus { border-color: var(--p7-fg-bright); box-shadow: 0 0 8px rgba(0,58,255,0.3); }
+#auth-error { color: #c05050; font-size: 0.7rem; min-height: 1em; }
+
 /* controls bar */
 .controls {
     background: rgba(3,37,82,0.72);
@@ -689,6 +721,7 @@ input[type="date"], textarea {
       <span class="spacer"></span>
       <button id="btn-clear-local" class="red" title="lokale Daten löschen">reset</button>
       <button id="btn-sync">↻ <span id="btn-sync-label">sync</span></button>
+      <button id="btn-logout" title="session beenden">logout</button>
     </div>
     <div id="export-panel" style="display:none; margin-top:0.5rem;
          background:#0a1520; border:1px solid #1a3048; border-radius:4px;
@@ -817,6 +850,18 @@ input[type="date"], textarea {
   </div>
   <div id="print-table"></div>
 
+  <!-- auth : token login prompt [ shown when any /jobs* call answers 401 ] -->
+  <div id="auth-overlay">
+    <div id="auth-box">
+      <h2>.: zugang :.</h2>
+      <div class="auth-hint">token einfügen [ von <code>p7c web.auth-issue</code> ] — die session
+        läuft über einen http-only cookie, das token wird nicht lokal gespeichert.</div>
+      <input type="password" id="auth-token" autocomplete="off" placeholder="token">
+      <div id="auth-error"></div>
+      <button id="auth-login-btn">anmelden</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -858,6 +903,68 @@ let assertGlobalInverted = false;
 let searchQuery    = '';
 let searchDebounce = null;
 let filterApplySug = false;
+
+/* ── auth : token login on 401 [ session via p7_session http-only cookie,  ──
+   ── set by POST /auth/login ] -- concurrent 401s share one prompt          */
+let authPromptPromise = null;
+function jobsFetch(url, opts) {
+    opts = opts || {};
+    opts.credentials = 'same-origin';
+    return fetch(url, opts).then(r => {
+        if (r.status !== 401) return r;
+        return ensureAuthToken().then(ok => ok ? fetch(url, opts) : r);
+    });
+}
+function ensureAuthToken() {
+    if (!authPromptPromise) {
+        authPromptPromise = openAuthPrompt()
+            .finally(() => { authPromptPromise = null; });
+    }
+    return authPromptPromise;
+}
+function openAuthPrompt() {
+    return new Promise(resolve => {
+        const ov  = document.getElementById('auth-overlay');
+        const inp = document.getElementById('auth-token');
+        const err = document.getElementById('auth-error');
+        const btn = document.getElementById('auth-login-btn');
+        err.textContent = '';
+        ov.classList.add('open');
+        setTimeout(() => inp.focus(), 50);
+        const done = ok => {
+            ov.classList.remove('open');
+            btn.onclick = null;
+            inp.onkeydown = null;
+            resolve(ok);
+        };
+        const submit = async () => {
+            const token = inp.value.trim();
+            if (!token) { done(false); return; }
+            btn.disabled = true;
+            try {
+                const r = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ token }),
+                });
+                if (r.ok) { inp.value = ''; done(true); return; }
+                err.textContent = 'ungültiges token';
+            } catch (e) {
+                err.textContent = 'fehler: ' + e.message;
+            }
+            btn.disabled = false;
+        };
+        btn.onclick = submit;
+        inp.onkeydown = e => { if (e.key === 'Enter') submit(); };
+    });
+}
+async function logout() {
+    try {
+        await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch (e) { /* session cookie cleared client-side anyway on reload */ }
+    location.reload();
+}
 
 /* ── localStorage — reload cache only, not source of truth ── */
 function saveCache() {
@@ -953,7 +1060,7 @@ async function doPushChange(id, fields) {
         /* backend can detect + reject a stale write instead of silently    */
         /* clobbering a stage that moved on since this browser last synced  */
         if (fields.stage && jobs[id]) body.base_last_modified = jobs[id].last_modified || '';
-        const r = await fetch(JOBS_SYNC, {
+        const r = await jobsFetch(JOBS_SYNC, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -1005,7 +1112,7 @@ async function syncPipeline() {
         const url = lastNtime
             ? JOBS_JSON + '?since=' + lastNtime
             : JOBS_JSON;
-        const r = await fetch(url);
+        const r = await jobsFetch(url);
         if (!r.ok) throw new Error(r.status);
         const data = await r.json();
 
@@ -1277,7 +1384,7 @@ function renderCard(j) {
         saveUserDecisions();
         saveCache(); render();
         try {
-            const r = await fetch(JOBS_SYNC, {
+            const r = await jobsFetch(JOBS_SYNC, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id, action: 'delete' }),
@@ -2066,7 +2173,7 @@ async function submitImportUrl() {
     }
     btn.disabled = true;
     try {
-        const r = await fetch(JOBS_IMPORT_URL, { method: 'POST', body: 'url=' + url });
+        const r = await jobsFetch(JOBS_IMPORT_URL, { method: 'POST', body: 'url=' + url });
         if (!r.ok) throw new Error(r.status);
         const data = await r.json();
         if (!data.ok) throw new Error(data.message || 'unknown error');
@@ -2225,6 +2332,8 @@ document.querySelectorAll('.export-age-slider').forEach(ageSlider => {
         ageSlider.dispatchEvent(new Event('input', { bubbles: true }));
     }, { passive: false });
 });
+
+document.getElementById('btn-logout').addEventListener('click', logout);
 
 document.getElementById('btn-sync').addEventListener('click', () => {
     lastNtime = 0; saveCache(); syncPipeline();
@@ -2454,7 +2563,7 @@ function setTrashWatermark(v) {
 async function syncTrashWatermark() {
     try {
         const local = getTrashWatermark();
-        const r = await fetch(JOBS_PREFS, {
+        const r = await jobsFetch(JOBS_PREFS, {
             method: 'POST',
             body: JSON.stringify({ trash_watermark: local }),
         });
@@ -2489,7 +2598,7 @@ function updateExportLastTimeDisplay() {
 async function syncLastExportTime() {
     try {
         const local = getLastExportTime();
-        const r = await fetch(JOBS_PREFS, {
+        const r = await jobsFetch(JOBS_PREFS, {
             method: 'POST',
             body: JSON.stringify({ last_export_at: local }),
         });
@@ -2508,7 +2617,7 @@ async function loadTrashPanel() {
     await syncTrashWatermark();
     if (myGen !== trashLoadGen) return; /* a newer call started meanwhile — abandon this one */
     try {
-        const r = await fetch(JOBS_TRASH + '?limit=100');
+        const r = await jobsFetch(JOBS_TRASH + '?limit=100');
         if (!r.ok) throw new Error(r.status);
         const data = await r.json();
         if (myGen !== trashLoadGen) return; /* still superseded, discard this response */
@@ -2560,7 +2669,7 @@ async function rescueTrashJob(id, btn) {
     btn.textContent = '…';
     btn.disabled = true;
     try {
-        const r = await fetch(JOBS_TRASH_RESCUE, { method: 'POST', body: `${id} review` });
+        const r = await jobsFetch(JOBS_TRASH_RESCUE, { method: 'POST', body: `${id} review` });
         if (!r.ok) throw new Error(r.status);
         const data = await r.json();
         if (!data.ok) throw new Error(data.message || 'unknown error');

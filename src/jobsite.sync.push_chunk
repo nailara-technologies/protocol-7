@@ -50,6 +50,7 @@ if ( not defined $item ) {
 
     my $reverse = delete <jobsite.sync.push_reverse> // [];
     delete <jobsite.sync.push_queue>;
+    delete <jobsite.sync.url_tokens>;
     <jobsite.sync.push_in_progress> = FALSE;
     <[jobsite.state.persist]>;
     my $log_level = scalar $reverse->@* ? 1 : 2;
@@ -131,6 +132,11 @@ if ( exists $code{'crypt.C25519.sign_data'} ) {
     }
 }
 
+## bearer token [ resolved once per cycle in jobsite.sync.push : host ##
+## config jobsite.cfg.sync_token / jobsite.cfg.sync_tokens ]          ##
+my $auth_token = <jobsite.sync.url_tokens>->{$url} // '';
+$headers->{'Authorization'} = "Bearer $auth_token" if length $auth_token;
+
 <[clients.http.post]>->(
     {   'url'     => $url,
         'body'    => $body,
@@ -144,8 +150,8 @@ if ( exists $code{'crypt.C25519.sign_data'} ) {
     }
 );
 
-#,,,,,.,.,,,,,,.,,,.,,..,,..,,,..,,.,,.,.,,..,..,,...,...,.,,,..,,.,.,.,,,,.,,
-#LKHNJWHIHBUPADPUVF4MBGZ2YYGMMXZRMRSI2RN4LIHAOQ4AZLOBODQTRFXO62HXS5TGUIMAY42TY
-#\\\|XZTVD2H3JABZ4L436IHL5YBI35PAJHFRKJBHJ375CMUZRZOJFZD \ / AMOS7 \ YOURUM ::
-#\[7]NMTQDRHACBHILJ65ICS5KRHH7TTT6KJJJAIQNLGH3V4UXCYZF4BQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,...,,,,,,.,,,,.,...,..,,.,,,,,.,..,,...,...,..,,.,.,,.,,,,,,.,,,
+#PZGYBJM4DTLJLHYTCOIF7TBCYG4NB4GHISFOFV6SWDXWDP762H4X6Z6KIDY2DXRVHOJ6PRNBJGA5I
+#\\\|URU44FOTPVJAPSVAARIZGJJN4HE7GYQ7EQXI65KVAPQMMPFBSJX \ / AMOS7 \ YOURUM ::
+#\[7]6PJEID3TMG6K2BXCATCLRBKLGW64OXLXIVATYQFWSQ4JCTTVWYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

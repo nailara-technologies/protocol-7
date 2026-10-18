@@ -12,29 +12,48 @@
 ##       need [base.white-list.register:'plugin.name'] in the start file.
 ##       plugins under the loaded namespace (plugin.httpd.*) work as-is.
 
-## job pipeline api
-GET   /jobs.json    httpd.route.handler.web-relay  [command:web.jobs-data]
-## auth.required disabled again [ 2026-07-18 ] : cross-host trust bootstrap for jobsite ##
-## not designed yet [ see data/md/design/ZENKA-IDENTITY-AND-TRUST-TOPOLOGY.md ] -- jobsite ##
-## sends no auth header today, so gating this 401s every sync until that lands ##
-POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync]
+## web auth endpoints : direct httpd handlers [ the login cookie flags   ##
+## need the real socket context ] -- login verifies a pre-shared token   ##
+## and sets the p7_session cookie [ HttpOnly, SameSite=Strict, Secure on  ##
+## TLS ]; token minting is admin-only : p7c web.auth-issue <user> [ -ttl  ##
+## <s> ] -- the ui shows a paste-token prompt on any 401 from /jobs*     ##
+GET   /auth/status   plugin.web.auth.handler.status
+POST  /auth/login    plugin.web.auth.handler.login
+POST  /auth/logout   plugin.web.auth.handler.logout
+
+## job pipeline api -- auth.required since 2026-10 [ these routes are    ##
+## served on a PUBLIC host : bearer token [ jobsite push, minted via      ##
+## web.auth-issue ] or p7_session cookie [ ui login ] required ].         ##
+## auth.exempt-loopback spares ONLY real socket peers 127.0.0.1 / ::1    ##
+## [ never X-Forwarded-For : behind a proxy loopback would be everyone ]. ##
+## a local set-up reaching the ui over its private LAN address [ e.g.    ##
+## the WSL host ] is NOT loopback : it either logs in via the ui prompt,  ##
+## or the operator exempts that peer address in host config [ applies    ##
+## only to routes carrying auth.exempt-loopback ] :                      ##
+##   /etc/protocol-7/httpd/host.cfg :                                    ##
+##     web.auth.exempt_peers = 192.0.2.42                                ##
+##   [ full api access from that address -- use sparingly ]              ##
+## a local hub pushing to 127.0.0.1 needs no token with the exemption    ##
+## as enabled below ; a remote jobsite carries its own bearer token in   ##
+## /etc/protocol-7/jobsite/host.cfg [ jobsite.cfg.sync_token ]           ##
+GET   /jobs.json    httpd.route.handler.web-relay  [command:web.jobs-data,auth.required=1,auth.exempt-loopback=1]
+POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync,auth.required=1,auth.exempt-loopback=1]
 
 ## trash-history panel : lightweight recent-trash list + rescue, routed  ##
-## straight to jobsite [ no per-job content ever lives in the web cache, ##
-## same reasoning as the jobs-sync note above -- no auth header yet ]   ##
-GET   /jobs-trash          httpd.route.handler.web-relay  [command:jobsite.list-trashed]
-POST  /jobs-trash-rescue   httpd.route.handler.web-relay  [command:jobsite.rescue-http]
+## straight to jobsite [ no per-job content ever lives in the web cache ] ##
+GET   /jobs-trash          httpd.route.handler.web-relay  [command:jobsite.list-trashed,auth.required=1,auth.exempt-loopback=1]
+POST  /jobs-trash-rescue   httpd.route.handler.web-relay  [command:jobsite.rescue-http,auth.required=1,auth.exempt-loopback=1]
 
 ## manual single-url import : same shape as trash-rescue -- straight to   ##
 ## jobsite [ no content in the web cache ], jobsite.cmd.import-url does   ##
 ## the actual validation/dedup/queueing, this is only the strm+json face  ##
-POST  /jobs-import-url     httpd.route.handler.web-relay  [command:jobsite.import-url-http]
+POST  /jobs-import-url     httpd.route.handler.web-relay  [command:jobsite.import-url-http,auth.required=1,auth.exempt-loopback=1]
 
 ## small shared client-prefs blob [ e.g. trash-panel watermark ] so a     ##
 ## purely-local, no-canonical-server-value setting can still agree across ##
 ## different browsers/profiles instead of drifting independently forever ##
-GET   /jobs-prefs          httpd.route.handler.web-relay  [command:jobsite.get-prefs]
-POST  /jobs-prefs          httpd.route.handler.web-relay  [command:jobsite.set-prefs]
+GET   /jobs-prefs          httpd.route.handler.web-relay  [command:jobsite.get-prefs,auth.required=1,auth.exempt-loopback=1]
+POST  /jobs-prefs          httpd.route.handler.web-relay  [command:jobsite.set-prefs,auth.required=1,auth.exempt-loopback=1]
 
 ## iris — BMW384 field visualization
 GET   /iris/svg     httpd.route.handler.iris-svg
@@ -47,8 +66,8 @@ POST  /iris/negotiate httpd.route.handler.iris-negotiate
 POST  /cursor       plugin.web.space.handler.cursor_update
 POST  /context      httpd.route.handler.context
 
-#,,,.,.,,,...,,,.,...,.,.,,..,,..,..,,..,,,,.,..,,...,..,,.,.,.,,,.,,,,,,,,.,,
-#RP3JA7MAL4FDMDWWBI6FIGETQJUFUB3JMKNOKBIEBEFDEYNU2GCBW2ETNNWZKEUZTNC7TF6XSMQ56
-#\\\|OWIXPNLKJNR2OCPWKGHJFLQJMLBNN5D6GM4QZ6RRKBR2YHZ3W6V \ / AMOS7 \ YOURUM ::
-#\[7]YPGJQJODEWUEKMXH2UT4YLKECPKD55KOEHYST2F2KAA25YEOCCCY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,..,,,,.,,.,,.,,,.,.,,.,,,..,,.,,..,,...,..,,,,.,,.,,,,.,...,,..,
+#NX4PDPP2N57KZQUXTL5GOJ4ZR5RO6EQK5WXU5ONPXYJFMATMGO2OCLUAUVNKIZLRHXM73Y7P6DRKU
+#\\\|N5I2WTQVWLNF6RYQ5GNSTO4YQFX5VGVM7PMT4LNFEKQEC6W65W3 \ / AMOS7 \ YOURUM ::
+#\[7]V7ZAWTKDOAUSRZRESLAYBJODSWNJ2D5NE64TZTQEB6L2THS5XYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

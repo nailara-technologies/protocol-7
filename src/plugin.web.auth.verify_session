@@ -34,6 +34,21 @@ if ( ref $input eq qw| HASH | and exists $input->{'http'} ) {
 
 return undef if not length $token;
 
+## fail closed without a configured secret [ host config ] ##
+my $cfg    = $data{'plugin.web.auth'}{'cfg'} // {};
+my $secret = $cfg->{'secret'}                // '';
+if ( not length $secret ) {
+    if ( not <plugin.web.auth.warned_no_secret> ) {
+        <plugin.web.auth.warned_no_secret> = TRUE;
+        <[base.logs]>->(
+            1,
+            'plugin.web.auth : no web.auth.secret '
+                . 'in host config : auth fail closed'
+        );
+    }
+    return undef;
+}
+
 ## compute token hash ##
 my $token_hash = <[chk-sum.bmw.L13-str]>->($token);
 return undef if not defined $token_hash;
@@ -42,9 +57,21 @@ return undef if not defined $token_hash;
 my $session_data = <[plugin.web.auth.session.read]>->($token_hash);
 return undef if not defined $session_data;
 
+## secret binding : a session minted under a different secret is refused ##
+## [ rotating the host secret revokes every outstanding token ]          ##
+my $current_secret_hash = <[chk-sum.bmw.L13-str]>->($secret);
+return undef if not defined $current_secret_hash;
+my $session_secret_hash = $session_data->{'secret_hash'} // '';
+if ( length $session_secret_hash
+    and $session_secret_hash ne $current_secret_hash ) {
+    <[base.logs]>->(
+        2, 'plugin.web.auth : session secret mismatch : refused [ %s ]',
+        $token_hash
+    );
+    return undef;
+}
+
 ## check expiry ##
-my $cfg     = $data{'plugin.web.auth'}{'cfg'}    // {};
-my $ttl     = $cfg->{'session'}->{'ttl_seconds'} // 86400;
 my $now     = time;
 my $expires = $session_data->{'expires_at_epoch'} // 0;
 
@@ -61,8 +88,8 @@ $session_data->{'last_seen_epoch'} = $now;
 
 return $session_data;
 
-#,,,.,,,,,,..,,,,,,.,,..,,,.,,..,,.,.,.,.,.,,,..,,...,...,...,...,,.,,..,,..,,
-#W2BR5H3PFOYNGQVF57DYXYXSMDN47IBY4BRHIGXBQ7VQJMSQ4TL3XPD5D62E6HDDFDX5RLSILP6TM
-#\\\|ORR2HFO7VXNAIZHVHKVVT26WWEPC42MCGZ3SK2FVZUEAAGJ6M5Z \ / AMOS7 \ YOURUM ::
-#\[7]LAIJNUDIZM7SCKI7D4XA4GZARZGFPEDWEOLWPXRWWV5ANOO22SCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,.,,,.,.,...,,,,,.,,,,..,.,.,..,,...,...,..,,,.,,,..,,.,,.,,,
+#BPZBLG7RO7WD4CP36A7QBBC3VUTVQDKLRL6C7QN2TIUF35FKI3NF53AQJVMLIKBU5QIQIAYX37XHA
+#\\\|QY7TXZTBBYSXKTOCRLE2SELXO3D6F7VWMDVNYPNP5Y2ZZQJLIGT \ / AMOS7 \ YOURUM ::
+#\[7]C7NITCX22FSRGSF6LB6JTLB7AK462F5M4XHYCFC5M5ZA2FKSIYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

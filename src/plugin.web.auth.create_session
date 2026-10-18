@@ -2,7 +2,7 @@
 
 # name  = plugin.web.auth.create_session
 # descr = generate token and create session file
-# param = optional { user_id => '...', data => {} }
+# param = optional { user_id => '...', ttl => <seconds>, data => {} }
 
 my $params  = shift                // {};
 my $user_id = $params->{'user_id'} // <system.amos-zenka-user>
@@ -21,19 +21,24 @@ if ( not length $secret ) {
 my $node_id = <system.node.name> // qw| protocol-7 |;
 my $ntime   = <[base.ntime.b32]> // '';
 
-## token = AMOS checksum of (node_id + ntime + secret) ##
-my $token = <[chk-sum.amos]>->("$node_id $ntime $secret");
+## token = AMOS checksum of (node_id + ntime + user_id + secret) ##
+my $token = <[chk-sum.amos]>->("$node_id $ntime $user_id $secret");
 return undef if not defined $token;
 
 my $token_hash = <[chk-sum.bmw.L13-str]>->($token);
 return undef if not defined $token_hash;
 
-my $ttl       = $cfg->{'session'}->{'ttl_seconds'} // 86400;
+my $secret_hash = <[chk-sum.bmw.L13-str]>->($secret);
+return undef if not defined $secret_hash;
+
+## per-token ttl override [ long-lived machine tokens ] ##
+my $ttl = $params->{'ttl'} // $cfg->{'session'}->{'ttl_seconds'} // 86400;
 my $now_epoch = time;
 my $now_ntime = $ntime;
 
 my $session_data = {
     'token_hash'       => $token_hash,
+    'secret_hash'      => $secret_hash,
     'user_id'          => $user_id,
     'node_id'          => $node_id,
     'created_at'       => $now_ntime,
@@ -57,8 +62,8 @@ return {
     'expires_at_epoch' => $session_data->{'expires_at_epoch'},
 };
 
-#,,.,,..,,,,.,..,,,..,,.,,...,.,,,.,.,,,.,.,,,..,,...,...,..,,,,,,...,.,,,.,.,
-#3TTBIKXUQYKEDMS3ITMDWN3CJTQTQLLXRHUIMSRP5COABMOFJVN6WPLUVZCU3MB7AKWXLVS3EFACG
-#\\\|ULRY623RZF77UYETKRCR3T3KGTM6BU7K43IRO44ZJMNWTSELUV4 \ / AMOS7 \ YOURUM ::
-#\[7]N6HMMYTCCUDEG6EMS6M4KXB7PEZ7NXPQDBOIWPGQKQRLGC5KT4AI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,,..,,,.,..,,,..,,..,,.,,.,,,..,,...,...,...,.,,,...,.,.,..,,
+#BDOLZNJEYELN3LDTFTHJZW2TSYGYKWR2GZTCPGY7HAWWBDBMUXVC2FATKXPGW3IGSP424Y4JTO56I
+#\\\|DI3RDFQAUOTGUWACTXVXRJISGJJM6ALOMPJ7PMKQFXWOWBH4KZB \ / AMOS7 \ YOURUM ::
+#\[7]BODM43EYPNJDZXM3DKOD6PVHWNWNLDQ6Y75MXM2M3ZZETM5WCSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

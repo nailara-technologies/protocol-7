@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = web.cmd.auth-issue
+# descr = mint a web session token [ admin only ] :
+#         web.auth-issue <user_id> [ -ttl <seconds> ]
+# note  = the token is printed exactly once : only its hash is stored.
+#         use a long -ttl for machine push tokens [ e.g. jobsite sync ]
+
+my $args_str = ref $call eq qw| HASH | ? ( $call->{'args'} // '' ) : '';
+
+## admin gate : the ambient caller must be the cube router [ which has     ##
+## already enforced its own access table : see cfg/zenki/cube/access.users ##
+## -- only admin template users carry web.auth-issue ] or a local user     ##
+## explicitly granted web.auth-issue on THIS zenka                         ##
+my @client_sessions = grep {
+            defined $data{'session'}{$ARG}
+        and defined $data{'session'}{$ARG}{'mode'}
+        and $data{'session'}{$ARG}{'mode'} ne qw| server |
+} keys %{ $data{'session'} // {} };
+
+my $caller_user
+    = @client_sessions == 1
+    ? <[base.session.user]>->( $client_sessions[0] )
+    : '';
+
+my $admin = FALSE;
+if ( length $caller_user ) {
+    $admin = TRUE
+        if $caller_user eq qw| cube |
+        or $caller_user eq qw| root |
+        or <[base.has_access]>->( $caller_user, qw| web.auth-issue | );
+}
+
+if ( not $admin ) {
+    <[base.logs]>->(
+        1,
+        'web.auth-issue : refused [ caller=%s ]',
+        length $caller_user ? $caller_user : '(unknown)'
+    );
+    return { 'mode' => qw| false |, 'data' => 'denied : admin only' };
+}
+
+## parse : <user_id> [ -ttl <seconds> ] ##
+my @tokens  = split m|[ \t]+|, $args_str;
+my $user_id = shift @tokens;
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: web.auth-issue <user_id> [ -ttl <seconds> ]'
+    }
+    if not defined $user_id
+    or not length $user_id
+    or $user_id !~ m|^[\w.+-]+$|;
+
+my $ttl;
+while ( my $switch = shift @tokens ) {
+    if ( $switch eq '-ttl' ) {
+        $ttl = shift @tokens;
+    }
+}
+return { 'mode' => qw| false |, 'data' => 'invalid -ttl value' }
+    if defined $ttl and $ttl !~ m|^\d+$|;
+
+my $result = <[plugin.web.auth.create_session]>->(
+    {   'user_id' => $user_id,
+        ( defined $ttl ? ( 'ttl' => $ttl ) : () ),
+    }
+);
+
+if ( not defined $result ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'token creation failed [ web.auth.secret in host config? ]'
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf 'token [ shown once ] : %s  '
+        . 'user=%s expires_at_epoch=%d',
+    $result->{'token'},
+    $result->{'user_id'},
+    $result->{'expires_at_epoch'},
+};
+
+#,,,.,.,,,.,,,,,,,,,.,,..,..,,...,,.,,,,.,.,,,..,,...,...,..,,.,.,,..,..,,...,
+#2CHGQ2BR6Z64OBZDTNSYAAMNNU7G6VSCII6GRLQU2XK7S5NRUDFVHCRIFPWYTBJ4T3VYEUVENUN4C
+#\\\|P5C7EOD552PJYO7JHQMLFOVHAHU2QIHWWJNMI7FCUYKVX552LFR \ / AMOS7 \ YOURUM ::
+#\[7]4KDTE7BFLVM3OD3J5RHHWFGCPYJXVO2CZOUVEHXXG3LKUVYRMABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

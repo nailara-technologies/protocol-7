@@ -10,15 +10,42 @@ my $session = $data{'session'}->{$id};
 
 ## route-level auth gating ##
 if ( $args->{'auth.required'} ) {
-    my $auth_session = <[plugin.web.auth.verify_session]>->($session);
-    if ( not defined $auth_session ) {
-        <[base.logs]>->(
-            1,   '[%d] auth required for %s : unauthorized',
-            $id, $args->{'command'} // '(unknown)'
-        );
-        return <[httpd.send_error_page]>->( $id, 401 );
+    my $exempt    = FALSE;
+    my $peer_addr = $session->{'http'}->{'request'}->{'client'}->{'addr'}
+        // '';
+    if ( length $peer_addr and $args->{'auth.exempt-loopback'} ) {
+        ## real socket peer ONLY [ never X-Forwarded-For : behind a proxy   ##
+        ## loopback would be everyone ]. auth.exempt-loopback spares        ##
+        ## 127.0.0.1 / ::1 plus any peers the operator listed in host       ##
+        ## config [ /etc/protocol-7/httpd/host.cfg :  web.auth.exempt_peers ##
+        ## = 192.0.2.42   -- full api access from that address; for set-ups ##
+        ## reaching the ui over a private LAN address instead of loopback   ##
+        ## [ e.g. a WSL host ]                                              ##
+        my $norm_addr = lc $peer_addr;
+        $norm_addr =~ s|^::ffff:||;
+        if ( $norm_addr eq qw| 127.0.0.1 | or $norm_addr eq qw| ::1 | ) {
+            $exempt = TRUE;
+        } else {
+            my $exempt_peers = <web.auth.exempt_peers> // '';
+            if ( length $exempt_peers ) {
+                my %exempt_peer = map { $ARG => TRUE }
+                    split m|[\s,]+|, $exempt_peers;
+                $exempt = TRUE if $exempt_peer{$norm_addr};
+            }
+        }
     }
-    $session->{'auth_session'} = $auth_session;
+    if ( not $exempt ) {
+        my $auth_session = <[plugin.web.auth.verify_session]>->($session);
+        if ( not defined $auth_session ) {
+            <[base.logs]>->(
+                1,   '[%d] auth required for %s : unauthorized',
+                $id, $args->{'command'} // '(unknown)'
+            );
+            $session->{'http'}->{'close'} = TRUE;
+            return <[httpd.send_error_page]>->( $id, 401 );
+        }
+        $session->{'auth_session'} = $auth_session;
+    }
 }
 
 my $command = $args->{'command'}           // qw| web.request |;
@@ -89,8 +116,8 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
 
 return 0;    # [ deferred : reply handler writes response ]
 
-#,,.,,,,,,...,,..,,..,..,,..,,,.,,...,,.,,..,,..,,...,...,,.,,.,,,...,,,.,.,,,
-#J25KRRFYXXYDHMYGNXX6JS4WPDXIIZGWXRKRKHO4LZ77WH2YI2QS3UEHAJKDJETRZKPYKSJDPVV6M
-#\\\|RUMXH467DJUX43KTIUPG5SBN76Q2HFXETDQ4ZV6V4KIHY36DTVE \ / AMOS7 \ YOURUM ::
-#\[7]SPA6MA5CDKK563DFNXISBGTPPD4GCOMMJWNMGLPHER7G2VYS2YAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,,..,,..,,.,,..,,...,,..,...,..,,...,...,...,,..,,..,.,,,,,,,
+#ZICUZZFOBWJCZBX6HR5KKGOZOK6VJX3H6K3HAX27SJTSPQKRNF3QOEK2MA2EDCVNOQEWCY6KLV63I
+#\\\|EA3KNXCMHWLIJQJ2GFDWGAAUZBQRQKLJGNFAPOKEQF564CXPNBW \ / AMOS7 \ YOURUM ::
+#\[7]G6UQGCQVE6WNKKU4IRP2OLJDC77KCU6HM5OEPM22R2XRI3X6USCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

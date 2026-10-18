@@ -58,13 +58,18 @@ my $json_str
 if ($is_httpd) {
     my $code = $ok ? 200 : 400;
     $data{'session'}->{$http_sid}->{'http'}->{'close'} = 1;
+    my $secure_flag = '';
+    my $peer_fh     = $data{'session'}->{$http_sid}->{'handle'};
+    $secure_flag = '; Secure'
+        if ref $peer_fh and $peer_fh->isa('IO::Socket::SSL');
     $data{'session'}->{$http_sid}->{'buffer'}->{'output'}
         .= <[httpd.new_header]>->(
         $code,
         {   'Content-Type'   => qw| application/json |,
             'Content-Length' => length($json_str),
             'Connection'     => qw| close |,
-            'Set-Cookie'     => 'p7_session=; Max-Age=0; Path=/; HttpOnly',
+            'Set-Cookie'     => 'p7_session=; Max-Age=0; Path=/; '
+                . "HttpOnly; SameSite=Strict$secure_flag",
         }
         );
     $data{'session'}->{$http_sid}->{'buffer'}->{'output'} .= $json_str;
@@ -77,8 +82,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,,,.,..,,...,,..,.,.,,,,,,..,,,,,,..,...,..,,...,...,.,,,,..,.,,,,.,,...,
-#KJTWH5PMRRLEFCUVKLARIB2XS3KTTCWGQXMI7HZHRSALWQEOKZJTZA3RAFPO4CTWQIH7CFNMKM74K
-#\\\|APHVNLK4QU74FJAK2LX6HSGIEP53UI772JT5W56MHYQ53N6PVWU \ / AMOS7 \ YOURUM ::
-#\[7]ABFRLM7EYU4NMRN4G24RFMCJAOKKJN6JK7WMKRMZJ2A5KJEYRQDQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,..,,,.,,.,,,,,,,.,.,...,...,..,,...,...,,.,,.,,,.,.,,,,,,..,
+#XGNHBLMBMIPRRN6DF4MQU5UOWYKIXDPJDAS3GKI64XX25HWWVOCYBYAZZQKXCDXFL5ZCT4OZZTRXM
+#\\\|ZZNEIHZDKVSN4S3GHWFK3YA32X6YKUY5ESDJAAT6S7OGCVCRMPD \ / AMOS7 \ YOURUM ::
+#\[7]I7CC2PJA7SWT7A7QMLYLMBDWFHS456WKGJX5DWRTEHUVXSNHMIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -67,9 +67,14 @@ return { 'mode' => 'false', 'data' => "encode failed: $EVAL_ERROR" }
     if not defined $body;
 
 for my $url (@urls) {
+    my $auth_token = <[jobsite.sync.token_for_url]>->($url);
+    my $headers    = {};
+    $headers->{'Authorization'} = "Bearer $auth_token"
+        if length $auth_token;
     <[clients.http.post]>->(
         {   'url'     => $url,
             'body'    => $body,
+            'headers' => $headers,
             'timeout' => 15,
             'on_done' => qw| jobsite.handler.mark-exported-response |,
             'params'  => { 'url' => $url, 'id' => $id_in, 'stage' => $stage },
@@ -84,8 +89,8 @@ return {
         . join( ', ', @urls ),
 };
 
-#,,,,,,,,,,,,,.,,,.,.,..,,,,.,..,,,.,,.,,,..,,..,,...,...,...,,.,,,..,.,.,,,.,
-#Q2CV3T3AXGVIXRH3WVHVO7HEPUSOGBRZOU5ZPTTL2AODMFOG5UFLQJNK7QYWFSS6TIVG32DSBVW7K
-#\\\|FJV6KQIWZLKM6GJALMV7HFF7ZVUMN2DUKHYCN6KPZ6WWPULIGYO \ / AMOS7 \ YOURUM ::
-#\[7]XR36JOG4PZREQBU7GK6VR7O7WKSSBT2APGHJKFSAW5L3Y7PUGOBY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,,,.,.,.,.,..,,,..,.,,,,,,,..,,..,,...,..,,...,,,,,,..,...,.,.,
+#EIWMU4F6D3Q2SS5HQ6SE5TGDIVPS3HYJZ4TOBSV7BSPHYL6QKNSURUPSLFPLEGXIZ4NS6C4GXSEDQ
+#\\\|UYS4IGZOOAF6WXWDAQERPNAAK6T7UUWARBUUGREJEDE34UOD737 \ / AMOS7 \ YOURUM ::
+#\[7]JNIFQPNNJ53G25H7LXEDJRZREZ25YGORO4AW3PMVOT7T2VB3TCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

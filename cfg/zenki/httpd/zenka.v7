@@ -52,6 +52,13 @@ system.zenka.verbosity.buffer  = 1
 system.zenka.verbosity.logfile = 0
 system.zenka.verbosity.console = 0 ## <-- reduce again after initialization ##
 
+## host-specific overrides [ base.load_host_config : /etc/protocol-7/  ##
+## httpd/host.cfg, 'key = value' on top of this file ] -- e.g. the web ##
+## auth secret + exempt peers for the jobsite routes :                 ##
+##   web.auth.secret = <long random>                                   ##
+##   web.auth.exempt_peers = 192.0.2.42                                ##
+[load_host_config]
+
 [load_modules:<modules.load>]
 
 [init_modules]
@@ -70,8 +77,8 @@ httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 
 [zenka.loop]
 
-#,,,,,.,.,,,,,,.,,.,,,,,,,,.,,..,,,,,,.,,,,,.,..,,...,...,.,,,.,.,..,,,,.,.,,,
-#ZTD6W54YQIXNQZYN34DQTUH2MA5Q5ZBSP566J4FKOW4RC3HNZCHJVPF7OJDOJ3EP6EQHQMTYC6EEC
-#\\\|IY3GX6QEPZ3KFTAMC5UVY4V4FZCKZIAOUJSGTVLQ42LDLAGD7HR \ / AMOS7 \ YOURUM ::
-#\[7]FHFJOAMFH6KFLZI5FSCEHMFJNP7CB4NPV44SWEHQDY2E4MWE5MDY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,..,,,..,...,,..,,..,,,.,.,,,..,,...,...,...,,..,,,,,,,,,,..,
+#O6UVK2HNJZ763JCNWMDZ2OGDXIJKOIYYNBOP6AFDRGKJAIKG5HYOW42CAFBDQJU7EKCRMGABMG6PC
+#\\\|CEH54B64NIPUTPJFJXJJUIYROGJGJZPWZY6GIXLIH6NCC3T6OTJ \ / AMOS7 \ YOURUM ::
+#\[7]FX577PC3SYJU64ZWC7LKJQALTRVRHODFQ3DYSBNFEPWKG2EETCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
