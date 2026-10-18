@@ -655,6 +655,13 @@ items:
     - why the vault fits [ user ] : it was built for three constraints -- standalone [ no running network needed ], secrets handling, and backups stored on FOREIGN or potentially taken hosts. that is the N7FS holder threat model : a holder cannot read [ ciphertext ], cannot forge [ aead \ signatures ], can only withhold or delete -- answered by redundancy across holders
     - that is the MINIMUM protection state [ user ] ; distribution itself adds the next one, above all on SUB-BIT level : no holder keeps whole bits, only shares -- even with a key compromised, one holder's part reveals nothing [ xor \ threshold secret sharing ; k of n holders reconstruct, fewer learn nothing ]. the keys archive's bit-splicing, declined for the single-location vault [ no gain under an aead ], gains its purpose here
     - a further layer [ user, later ] : only GROUPS of zenki -- not attackable as a group because they are distributed -- can work with a dataset at all [ known form : threshold \ secure multi-party computation, no single member ever holds the whole ]. now : the base level only ; the patterns built here [ shares, thresholds, verify-before-switch ] are expected to reappear at other scales
+    - placement and transport [ user, 2026-10-18 ] :
+      - `:<content>` [ empty holder part ] = root-free address : read finds any copy ; a WRITE lets placement pick the holder [ next best by policy : local first, space, redundancy target, trust ] -- the content part is computed, a mismatching write is refused. model ids already have this split [ install-path part : content part ; `:QDBKEXY` ], the leading colon replaces any wildcard
+      - latency CASCADE : accept into the fastest tier, trickle to slower durable tiers [ irrigation ] ; holders get a tier class [ volatile, local durable, remote durable ] -- volatile copies never count toward the redundancy target
+      - UNMOUNT the source as soon as every byte is read and verified in memory [ the medium still holds its data, re-insertable ] ; RELEASE [ delete ] only after N durable copies. exception : a medium with its own history [ mount record, rotating identity material ] gets its signed reception record written BEFORE unmount
+      - confirmations can arrive DEFERRED at any later network entry point ; task results travel the same way -- a mobile medium is a store-and-forward relay [ delay-tolerant networking, the data mule ] ; signed entries, so no trust in path, place or time
+      - optional NETWORK DEDUP : compare at least two independent checksums [ e.g. amos + bmw384 ] with a network copy ; if every assertion matches, the local copy is dropped instead of transferred and a reference to the network version stands as if the transfer completed [ only when that copy is durable, N holders ]. the same frees space temporarily while the network is assumed stable -- re-fetched on demand
+      - and per BLOCK, not only per file [ user ] : a range [ offset, length ] identical to one in the network is referenced from there in the tree -- same range, same checksum address on both sides. fixed offsets lose alignment after an insertion ; content-defined cut points keep it [ the mod-13 rolling chunker : data/tasks/darksun-mod13-rolling-chunker.md -- cut where a rolling window reads 0 mod 13 ], so shifted data still dedups. or SCAN the offset [ user ] : slide a cheap rolling checksum over the local data, byte by byte, against the network's block list and confirm a hit with a strong checksum -- matches at any offset [ the rsync algorithm ]. both together : content-defined blocks for storage, the offset scan for transfers against blocks cut elsewhere. the SAME mod-13 window serves both : 10^6 = 1 mod 13, so a 6-digit window rolls in one step [ v' = 10v - d_out + d_in mod 13 ] -- the cut rule and the weak rolling checksum of the scan [ simulated 2026-10-02 : a 1-digit insert changed zero boundaries ; data/ai-mem/claude/topic-harmonic-correlation-ledger.md ]
     - first store : on the xfs data disk [ suits the many small key files ] ; the image store is the first user -- the invoke-web image index [ invoke-web.index.backup_path, 48680 images ] can serve as assimilate's source list
 
     designs it brings together [ data/md/design/ ] :
@@ -1319,8 +1326,8 @@ items:
   - tools
   text: 'pre-import sorter : files from source paths into type subdirectories of a target [ copy, or move ]'
 
-#,,,.,,..,.,.,,..,,.,,.,.,,..,.,,,.,,,...,,,,,..,,...,...,...,...,..,,.,.,,,.,
-#CQYUJDUOETTGNJI5PEJ3ATFL7VKNNUT2X377SKJBXALKOZILFOCUSRYBSVXAT4B26N3MNQ2N3PMYE
-#\\\|4Q7VJVKUUHU6DIKRBLEIYI3U4N3WZBGUJ4A7KCI3DBYB3MIQWCC \ / AMOS7 \ YOURUM ::
-#\[7]3TEIEDQDM6JCP7MLRAWYJ24MVMG2X3IQZHXJUTYRRWZTNVBCMMCY 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,.,,,,,..,,,..,,..,,,.,.,.,,,,,..,,...,..,,...,,,,,,,.,.,.,,,,,
+#HSPWHPIUG4645OFRMSAIEKGTZZOTPQA3MFXU6QLMQF4KTWVQDURDWCEWX2ZC7QEVBKKWFBROORQ3E
+#\\\|2HKYDRIISXVAPOCU7JD6ZVMDYRTKVKGRCLVITBROSPNXHA5A5P4 \ / AMOS7 \ YOURUM ::
+#\[7]HWUXJWWD3V6FHV3QYW6FJ4JLVTQY4S6PXWCQBOV7FE5I5BR2GOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
