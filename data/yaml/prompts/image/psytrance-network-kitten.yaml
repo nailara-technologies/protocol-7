@@ -122,7 +122,9 @@ variants:
 
 ## magic style prompt [ user, 2026-10-17 ] : style keywords only, no
 ## specification -- the model interprets, coherence comes from the
-## style family. not rendered yet ; watch 'radiates' for glowing fur
+## style family. RENDERED : 'radiates' gave concentric field-line
+## ripples where the paws touch the grid [ the green render, then hue
+## rotated ] -- inherited by its descendants as the image ancestor
 style_prompts:
   - name: implosion-into-awareness
     prompt: the psytrance-network-kitten radiates blacklight space on fluorescently shimmering translucent field-lines of the inescapable implosion into awareness of which its presence is the anchor.
@@ -146,6 +148,18 @@ style_prompts:
         seed: 7747777
         reference: data/gfx/backgrounds/R2G5EBRDYGXW6DEKT7IFAEZUN7YPJNC2MYVJJKWSRN7FO.png
         negative_prompt: green, teal, cyan, neon, overexposed, white glow, bright stars, catchlights, bad anatomy, redundant bodyparts, extra legs
+
+## optional elements [ user, 2026-10-18 ] : effects found by chance are
+## made INTENDED -- defined, high quality, switchable per render. later
+## kept by vision models that recognize and describe elements [ same
+## concept as the ncode llm-managed regex db -- data/ai-mem/claude/
+## topic-llm-pattern-library-generic-infrastructure.md, application 4 ]
+optional_elements:
+  - name: paw-ripples
+    origin: "'radiates' in implosion-into-awareness, inherited through the image ancestor"
+    prompt: where its paws touch the grid, the fluorescent field-lines ripple outward in fine concentric rings
+    ## the grid reacts to the being in it -- native ; a first visual
+    ## form of the purr field
 
 ## reference chains [ 2026-10-18 ] : one photo, two prompt modes. the
 ## PROMPT decides the subject count : a singular visitor in a grid space
@@ -177,6 +191,19 @@ chains:
     ## source. watch : the eyes turned to glowing blue [ eye-max ]
     ## NEXT : the same base prompt as a quality pass over the grid-room
     ## renders [ a third generation, new seed -- not the render's own ]
+
+  - name: paw-ripples-lineage
+    ## an element survives a pure translation step INTACT ; it weakens
+    ## where a new structural reference competes -- not by generation
+    ## count. name an element in the prompt to keep it through such steps
+    steps:
+      - out: "green render, strong paw ripples [ implosion-into-awareness, 'radiates' ]"
+      - prompt: colour translation only
+        out: blue \ violet, ripples kept as they were
+      - in:
+          - the colour translated render
+          - the node group screenshot [ grid pattern, subcubes ]
+        out: the visualization's grid and subcubes as the room, ripples quieter and partly absorbed
 
 ## lighting [ user, 2026-10-18 ] : the eyes follow the light the model
 ## ASSUMES -- with only holographic lines lighting the scene it invents
@@ -259,8 +286,8 @@ magic_words:
   - word: deep
     sets: darkness without flattening [ replaced soft, which lifts the shadows ]
 
-#,,,,,,,.,,.,,,,,,..,,.,.,,,,,,,.,.,,,..,,.,.,..,,...,...,.,.,...,,,.,,,,,...,
-#OWQA4ZZ2UGKBYKW6CLGP6IA3ZW6T6BDX74XLCUJKPG23DHVATOII5GW7SISVS66OS6WV2AAS6HQQG
-#\\\|NO5ODHD2PQVFTLRW7JPDD2BGEHJ476VNGMM7HQ523ULQOTWVNTY \ / AMOS7 \ YOURUM ::
-#\[7]ATF5XDD2NBEUFYS7LKB6QCMI2DPXW7PSMC6N3ZL7Z2RETYPLSMCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,.,,..,,.,.,,,.,.,.,,..,.,,,..,,...,...,...,,,,,,,,,.,,,,.,,
+#KAWU6YPIHDYMGCUTFU34ED6YKUHWD32BRRZZX437YW22VUQQQUNM75JODDEW2TA2OU2YEKAQ4YPZU
+#\\\|PSW6RDFGNFAUCQKEQC75FU7SFTPUV3XFYMGQ2MMECHIHUFZNGIF \ / AMOS7 \ YOURUM ::
+#\[7]35KEINJOLPWKJIJ2NTTX4K2ZPF3SE2UW64FWRE3JHFC6FYEEAUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

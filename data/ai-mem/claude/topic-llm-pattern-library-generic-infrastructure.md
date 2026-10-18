@@ -1,6 +1,6 @@
 ---
 name: llm-pattern-library-generic-infrastructure
-description: "one underlying architecture (regex/phrase pattern database + LLM consensus, self-expanding) proposed for three distinct applications -- error explanation, alias creation, and dispatch context-injection"
+description: "one underlying architecture (regex/phrase pattern database + LLM consensus, self-expanding) proposed for four applications -- error explanation, alias creation, dispatch context-injection, visual element database"
 metadata: 
   node_type: memory
   type: vision
@@ -22,7 +22,7 @@ being hand-authored once. explicitly generic -- meant to be the SAME
 underlying feature used by multiple zenki (coding, ncode, forensics were
 named), not a one-off built into a single zenka.
 
-## three concrete applications proposed
+## concrete applications proposed [ 3 on 2026-09-09, 1 added 2026-10-18 ]
 
 1. **error pattern detection + explanatory error mode.** match command/
    protocol errors (permissions included) against a regex pattern
@@ -61,6 +61,14 @@ named), not a one-off built into a single zenka.
    [[reference-v7-zenki-terminate-clean-zenka-and-child-stop]] for the
    incident and the manual fix applied instead.
 
+4. **visual element database** [ added 2026-10-18 ]. vision models taught
+   to recognize element types in renders [ e.g. paw ripples on a field
+   grid ], describe them in detail for INTENTIONAL transfer into other
+   prompts, and maintain the element database themselves -- the same
+   concept as the ncode zenka's llm-managed regex db. first manual
+   entries : `optional_elements` in
+   data/yaml/prompts/image/psytrance-network-kitten.yaml.
+
 ## honest caveat, the user's own
 
 might be overkill as infrastructure for what is currently "a handful of
@@ -72,8 +80,8 @@ pattern of recurring need is clearer.
 
 [[reference-v7-zenki-terminate-clean-zenka-and-child-stop]]
 
-#,,..,..,,.,,,...,,,.,...,,,,,,.,,,,,,...,,..,..,,...,...,,..,..,,.,,,,,,,,..,
-#5IKS3LGKMADGWQ4KEDNE56363N7OZUI53VUZHNG3DLVOQM5AVGO5LMZBD52A2ANLEVXBP7RIJHNZ6
-#\\\|C6INTYV5O4FSFOIO3Z2BMLYELE3RZUNQHEMOWWJRSVHIGPXCCU6 \ / AMOS7 \ YOURUM ::
-#\[7]SBSYEJM67RFJT3F4MR5CKGLEPAQPFJAEVT2IR7JB3RIBRIXPEOAY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,,..,,.,,..,,.,,,,..,,,.,,,,,..,,...,...,,,.,..,,.,.,,,,,,,.,
+#GC65LXFDSOD3M7DRBQ6RLCHLBQAQEKEGED6MXGHAYETGNSQRDBUFVWQE2GA6LCWM5CLYWDNZONWZM
+#\\\|QTMQR6MHHN4T7K4Y55U3VWABPE5QYD5WCDAYACX3SWZ3R3RHQJK \ / AMOS7 \ YOURUM ::
+#\[7]3CBEXQ4MNFSNDBEB7VDO36P4PG35UU5D7M27ASR4GKME7FTSQCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
