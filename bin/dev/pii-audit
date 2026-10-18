@@ -49,6 +49,11 @@ use constant FALSE => 0;    ##  false  ##
 ## or $P7_PII_PATTERNS                                                      ##
 use constant DEFAULT_PATTERNS => qw| /etc/protocol-7/pii-audit/patterns |;
 
+## known findings [ history audit only ] : 'commit-id category' per line, ##
+## reviewed history that will not be rewritten -- no text, no pattern.    ##
+## overridden by -k or $P7_PII_KNOWN, written by -K                       ##
+use constant DEFAULT_KNOWN => qw| /etc/protocol-7/pii-audit/known |;
+
 use constant EXIT_CLEAN    => 0;
 use constant EXIT_FINDINGS => 1;
 use constant EXIT_ERROR    => 2;
@@ -73,7 +78,7 @@ my ( $reset, $nailara_bg, $blacklight, $TRUE_color, $NEON_orange,
 ##[ options ]#################################################################
 
 my %opt;
-getopts( 'p:r:f:mhqs', \%opt ) or usage(EXIT_ERROR);
+getopts( 'p:r:f:k:mhqsK', \%opt ) or usage(EXIT_ERROR);
 usage(EXIT_CLEAN) if $opt{'h'};
 
 my $pattern_file = $opt{'p'} // $ENV{'P7_PII_PATTERNS'} // DEFAULT_PATTERNS;
@@ -82,6 +87,9 @@ my $msg_only = $opt{'m'} ? TRUE : FALSE;    ## messages + paths, no blobs ##
 my $quiet    = $opt{'q'} ? TRUE : FALSE;    ## summary only               ##
 my $staged   = $opt{'s'} ? TRUE : FALSE;    ## pre-commit : staged diff   ##
 my $msg_file = $opt{'f'};                   ## commit-msg : message file ##
+my $known_file = $opt{'k'} // $ENV{'P7_PII_KNOWN'} // DEFAULT_KNOWN;
+my $write_known = $opt{'K'} ? TRUE : FALSE;    ## accept current findings ##
+$known_file = File::Spec->rel2abs($known_file);
 $msg_file = File::Spec->rel2abs($msg_file) if defined $msg_file;
 $quiet    = TRUE                           if $staged or defined $msg_file;
 
@@ -194,6 +202,7 @@ if ( $staged or defined $msg_file ) {
 ##[ walk history ]############################################################
 
 my %findings;    ## category -> commit -> { where -> 1 } ##
+my %hit_count;   ## category -> commit -> matches       ##
 my %cat_count;
 my $commit_count = 0;
 
@@ -292,11 +301,48 @@ if ( not defined $opt{'r'} ) {
     }
 }
 
+##[ known findings ]##########################################################
+
+if ($write_known) {    ## accept every current finding as known history ##
+    my @lines = map {
+        my $category = $ARG;
+        map {"$ARG $category\n"} sort keys $findings{$category}->%*
+    } sort keys %findings;
+    my $tmp = "$known_file.tmp.$PID";
+    my $old_umask = umask 0077;
+    open( my $out_fh, qw| > |, $tmp ) or fail("\l$OS_ERROR : $tmp");
+    print {$out_fh} @lines;
+    close $out_fh or fail("\l$OS_ERROR : $tmp");
+    umask $old_umask;
+    rename( $tmp, $known_file ) or fail("\l$OS_ERROR : $known_file");
+    say_msg( sprintf( '%d known findings written', scalar @lines ),
+        $known_file, $NEON_green_yellow );
+    say "$blacklight:$reset";
+    exit EXIT_CLEAN;
+}
+
+my $known_count = 0;    ## reviewed history, not reported again ##
+if ( -f $known_file ) {
+    open( my $in_fh, qw| < |, $known_file )
+        or fail("\l$OS_ERROR : $known_file");
+    while ( my $line = <$in_fh> ) {
+        my ( $id, $category ) = $line =~ m{^(\S+) (.+?)\s*$} or next;
+        next if not exists $findings{$category}    ## no autovivification ##
+            or not exists $findings{$category}->{$id};
+        delete $findings{$category}->{$id};
+        $cat_count{$category} -= $hit_count{$category}->{$id} // 0;
+        $known_count++;
+        delete $findings{$category} if not %{ $findings{$category} };
+    }
+    close $in_fh;
+}
+
 ##[ report ]##################################################################
 
 if ( not %findings ) {
     say_msg(
-        sprintf( 'clean : %d commits, %d tags', $commit_count, $tag_count ),
+        sprintf( 'clean : %d commits, %d tags%s', $commit_count, $tag_count,
+            $known_count ? ", $known_count known" : '' ),
         'no findings', $NEON_green_yellow );
     say "$blacklight:$reset";
     exit EXIT_CLEAN;
@@ -341,6 +387,7 @@ sub scan_text {
         my $hits = () = $text =~ m{$regex}g;
         next if not $hits;
         $cat_count{$category} += $hits;
+        $hit_count{$category}->{ mask_text($id) } += $hits;
         $findings{$category}->{ mask_text($id) }->{ mask_text($where) }
             = TRUE;
     }
@@ -454,13 +501,17 @@ sub usage {
         . "category summary only\n:   $NEON_green_yellow-s$TRUE_color  "
         . "       $blacklight: staged diff [ pre-commit, report only "
         . "]\n:   $NEON_green_yellow-f$TRUE_color <file>  $blacklight: "
-        . "commit message file [ commit-msg, report only ]\n:\n: exit "
+        . "commit message file [ commit-msg, report only ]\n:   "
+        . "$NEON_green_yellow-k$TRUE_color <file>  $blacklight: known "
+        . "findings [ \$P7_PII_KNOWN, ${\ DEFAULT_KNOWN } ]\n:   "
+        . "$NEON_green_yellow-K$TRUE_color         $blacklight: write the "
+        . "current findings as known [ reviewed history ]\n:\n: exit "
         . ": 0 clean \\ skipped , 1 findings , 2 error\n:$reset\n";
     exit $code;
 }
 
-#,,..,.,.,.,,,...,,.,,..,,.,.,...,.,.,.,.,.,.,..,,...,...,.,,,,.,,,..,.,.,.,.,
-#GN6J3D2QJP7VK67WZ3GSFTF7JFK7NPSYSH226M33RNN2RBQ3ZL4FQJAYS6XOV7K3CTGPCI27J7NKE
-#\\\|O3UEIQUFKFOT3SSQ33LYLJKQ4GAGYDFTGQEZ4EXLSEH6ODPP5FB \ / AMOS7 \ YOURUM ::
-#\[7]23O3EODX5VS5SSYXHRPNYFSWMZVTEIONJCXDYTVOU7E5E4YDN4CA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,..,,,..,,..,.,,,,,,,,..,..,,,,,,..,,...,..,,...,,,,,,..,.,,,,.,,
+#IOW3CASJCNV6FDKAO2EKUFKC5ODO5HB4XMKNDRBWNZKZHVRSL45OIYAGHMGURLOBZFPDSF7LOPCVC
+#\\\|OEQ4K4N3Y6Y6SGYSOGXZHPZVDNJ6NTJAHQBD57YFBPAY4UWIQJG \ / AMOS7 \ YOURUM ::
+#\[7]V6VIS4FENK6VFPHT7SBRXPALHJW2EN3W7MXYYZBZ5RMQDBJOJQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

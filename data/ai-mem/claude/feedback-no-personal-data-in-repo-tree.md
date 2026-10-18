@@ -20,8 +20,15 @@ never write actual personal data (email addresses, specific personal file paths,
 
 If personal data is accidentally staged/committed, treat it as a real incident — check history for prior commits before assuming a working-tree fix is sufficient.
 
-#,,,,,,.,,...,...,,..,,,,,..,,,.,,,..,.,.,.,,,..,,...,.,.,..,,,.,,.,.,,..,,,,,
-#ARHIFE7HL7OC5247ILGGE4BMRXDGZYB3JS4ODZEUJF6NTGHAUNORQRIGSCUJURYZKNTI5OKEHRZY4
-#\\\|LVHILFSZ2VCXUPF5FERMTVJMIWSRPRSWXVJUV2BPGCMME56UTOF \ / AMOS7 \ YOURUM ::
-#\[7]JFNUDMX7BMNPVDQSHNDSRCCURQYNUAZO75MVGVPNH53IXZBYNSCQ 7  DATA SIGNATURE ::
+
+**Extends to domains we WANT to acquire [ 2026-10-18 ].** domains the
+project hopes to get [ back ] later are never named in the repo -- a
+public repo naming them invites domain grabbers. write "every domain
+added later" instead. owned domains [ protocol-7.network, v7.ax ] are
+public dns data anyway and fine to name.
+
+#,,,.,.,,,.,.,,,,,,,,,,..,..,,...,,,,,.,,,,..,..,,...,...,.,,,.,,,,,,,...,.,.,
+#YNPK4WYGVZYP4AFIZJ7XR7T574RXCTLBIWW6ZOKORWRP3RCQ2RI26XX2VPG4Y4ZEWAUZSNN3ERKHI
+#\\\|OSBZX2PQRZCGC6VV6SDR4RZECQUZOYQRMPBXUIZRQK4ELCQULXR \ / AMOS7 \ YOURUM ::
+#\[7]EWULEUX6SIN43ZLBD7ATDM7YVM6AA3SBCKHHKYSWSELTMLVKYCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
