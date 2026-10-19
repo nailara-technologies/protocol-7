@@ -1,0 +1,39 @@
+## [:< ##
+
+# name   = nameserv.sync.grants.zone_match
+# descr  = does one zone: grant item cover a zone name
+# param  = <zone>, <granted item without the 'zone:' prefix>
+# return = TRUE | FALSE
+#
+# an item with a '*' label covers exactly <head>.<one or more labels>.<tail>
+# [ zone:acme.*.example.org covers acme.a.example.org and
+# acme.a.b.example.org -- never acme.example.org itself, never
+# acme.example.org.evil, never acmex.example.org, never an empty middle
+# label ]. without a '*' the zone must equal the item. case-insensitive,
+# trailing dots tolerated.
+
+my $zone    = lc( shift // '' );
+my $granted = lc( shift // '' );
+
+$zone    =~ s{\.+$}{};
+$granted =~ s{\.+$}{};
+
+return FALSE if not length $zone or not length $granted;
+
+if ( index( $granted, '*' ) >= 0 ) {
+    ## '*' = one or more NON-EMPTY dns labels [ never '.+' : that would ##
+    ## match empty labels as in acme...example.org, or any byte ]       ##
+    my $labels = q|[a-z0-9_](?:[a-z0-9_-]*[a-z0-9_])?|;
+    my $regex  = join q|\.|,
+        map { $ARG eq '*' ? "$labels(?:\\.$labels)*" : quotemeta $ARG }
+        split m|\.|, $granted, -1;
+    return ( $zone =~ m|\A$regex\z| ) ? TRUE : FALSE;
+}
+
+return ( $zone eq $granted ) ? TRUE : FALSE;
+
+#,,.,,,,,,..,,.,,,.,,,,,,,..,,,.,,,,.,,,.,,..,..,,...,...,...,,.,,.,,,.,.,,.,,
+#F3DLBXMRDX6JUWTKJRAKUDKIZVX3KJFY5ZK2NW4LGFKYBOS7HKWJE4V7CUGOWIZCJS32MDFFVO7XG
+#\\\|3PND3OIQBEMVY53Y3IHUYOLH6BSHD6HVVBLZHA7AJJAALKI53QV \ / AMOS7 \ YOURUM ::
+#\[7]LBQRGXFQRW5LCRNMEEEZTDBVCPS6N7WZ6HUL2MAN5PJTUWBVHOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = nameserv.sync.grants.pulled
+# descr = on_done of a grant-change re-pull : drop the zone from the
+#         refused list once a pull ran
+#
+# a failed pull leaves the zone remembered : the next grant change --
+# or any later change inside the zone, which mismatches the checksum
+# and triggers a full fetch -- tries again.
+
+my $state  = shift // return;
+my $result = shift // {};
+
+return if ( $result->{'mode'} // '' ) ne qw| true |;
+
+my $zone = lc( $state->{'target'} // '' );
+$zone =~ s{\.+$}{};
+return if not length $zone;
+
+delete <nameserv.sync.refused_zones>->{$zone};
+
+return TRUE;
+
+#,,,.,.,,,...,,.,,,,.,,..,,.,,.,.,,..,,..,.,.,..,,...,...,.,.,...,.,.,,,.,,,,,
+#ENPOJATTYKFOTGOAIWLZXD6DDD2STAIBLUR7NCD3LBOF4OIXVH2NJHZOV6BQUMN3BX4DBCJUOZBQO
+#\\\|CXABEOOHKEFVSVQ5QQ2VDACCZ3UYX2NHXKYN5VGT25SKESPZCZ6 \ / AMOS7 \ YOURUM ::
+#\[7]KWHMU7TZEUMDPKKK25NKBT7YRUWQ3JB5YXQBKGK6E5HTQOLHC6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

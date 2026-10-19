@@ -214,6 +214,7 @@ for my $mod (
     nameserv.sync.sign
     nameserv.sync.writer.own
     nameserv.sync.writer.verify
+    nameserv.sync.grants.zone_match
     nameserv.sync.accept
     nameserv.zone.tombstone.add
     nameserv.zone.tombstone.clear
@@ -653,8 +654,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,.,.,,.,,,..,.,,,.,,,.,,,,,.,,,,,.,,,,,,,..,,...,...,,..,.,.,...,,,,,...,
-#G26IFL7UQ464M4TDUWELRVJJR4SGVZ5ESCIZ6MXQFINV6JSHPOED5F3ZS2B345OFT76E63JFNEBJS
-#\\\|UMURNGHQE5YNQCVJ5447YEE354YL4YDRYCS73CJ6RYYSC3DP3O7 \ / AMOS7 \ YOURUM ::
-#\[7]3HCPUKAZWPMFZPEFOKPMCTDBAUJUZKHLY2BHRT6VLDFAFNJ2QMBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,,,.,.,..,,.,.,,,.,,,.,..,,...,..,,...,.,,,,..,,,.,,,,,..,,..,,
+#LWPC3GVLY73ZEP77OK7EBGGEFIKMQ3VYROPIYMICAP2CFOCBQ7OYIFVP2UO3WLU7JLVWBB2D2IMQM
+#\\\|ZZ6EFCQKQ2ONY6OCRH6SCE4F2PLIWLB2T6RXM4ZKHOM5ZRBDIAJ \ / AMOS7 \ YOURUM ::
+#\[7]WEKQXW77UVZ7XNILPH5OV56ISZSTIRMTFQSL74IG3ZECVX7YEKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

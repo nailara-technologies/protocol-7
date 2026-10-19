@@ -11,6 +11,11 @@
 # writer's grant covers zone + name [ tombstones too ] ; ts not too far
 # ahead [ sync.max_future ] nor older than the tombstone window
 # [ sync.max_age ]. newest-wins per identity is nameserv.sync.apply.entry.
+# a zone: grant item with a '*' label covers the acme challenge subzones
+# below a domain [ zone:acme.*.example.org : exactly acme.<one or more
+# labels>.example.org ] -- nameserv.sync.grants.zone_match. zones refused
+# for lack of a grant are remembered [ nameserv.sync.refused_zones ] :
+# a grant change re-pulls them once [ nameserv.sync.grants.renew ].
 
 my $body_b32 = shift // '';
 my $sig_b32  = shift // '';
@@ -22,9 +27,13 @@ my $entry = <[nameserv.sync.entry.decode]>->($body_b32)
     // return $refuse->('entry body not valid');
 
 my $info = <nameserv.sync.writers>->{$writer};
-return $refuse->('writer not verified')
-    if ref $info ne qw| HASH |
-    or $info->{'not_after'} <= time;
+if ( ref $info ne qw| HASH | or $info->{'not_after'} <= time ) {
+    ## remembered : a grant change may verify this writer later ##
+    my $refused_zone = lc $entry->{'zone'};
+    $refused_zone =~ s{\.+$}{};
+    <nameserv.sync.refused_zones>->{$refused_zone} = TRUE;
+    return $refuse->('writer not verified');
+}
 
 my $body = <[base32.decode]>->($body_b32);
 my $sig  = <[base32.decode]>->($sig_b32);
@@ -34,16 +43,24 @@ return $refuse->('signature not valid')
     or not Crypt::Ed25519::verify( $body, $info->{'pub'}, $sig );
 
 ## grants : receiver config, keyed by the writer's host-root id ##
-my $zone  = lc $entry->{'zone'};
-my $name  = lc $entry->{'name'};
+my $zone = lc $entry->{'zone'};
+my $name = lc $entry->{'name'};
+$zone =~ s{\.+$}{};
+$name =~ s{\.+$}{};
 my $grant = ( <nameserv.cfg.sync.writer> // {} )->{ $info->{'anchor'} } // '';
 my $allowed = FALSE;
 foreach my $item ( split m|\s+|, $grant ) {
     if ( $item =~ m|\Azone:(.+)\z| ) {
-        my $granted = lc $1;
-        $allowed = TRUE
-            if $zone eq $granted
-            and ( $name eq $granted or $name =~ m|\.\Q$granted\E\z| );
+        my $granted = $1;
+        next if not <[nameserv.sync.grants.zone_match]>->( $zone, $granted );
+        ## a pattern covers the entry's own zone : the name must be the ##
+        ## zone itself or below it, never outside the matched zone      ##
+        my $base = $zone;
+        if ( index( lc $granted, '*' ) < 0 ) {
+            $base = lc $granted;
+            $base =~ s{\.+$}{};
+        }
+        $allowed = TRUE if $name eq $base or $name =~ m|\.\Q$base\E\z|;
     } elsif ( $item =~ m|\Aname:(.+)\z| ) {
         $allowed = TRUE
             if $name eq lc $1
@@ -52,7 +69,12 @@ foreach my $item ( split m|\s+|, $grant ) {
     }
     last if $allowed;
 }
-return $refuse->("no grant for $name in $zone") if not $allowed;
+if ( not $allowed ) {
+    ## remembered : a grant change re-pulls this zone once ##
+    ## [ nameserv.sync.grants.renew ]                      ##
+    <nameserv.sync.refused_zones>->{$zone} = TRUE;
+    return $refuse->("no grant for $name in $zone");
+}
 
 ## ts window : not ahead of local time beyond the skew, not older than the ##
 ## tombstone window [ replay of long-deleted records ]                     ##
@@ -70,8 +92,8 @@ $entry->{'writer'} = $writer;
 
 return $entry;
 
-#,,,,,,.,,.,,,..,,...,.,,,,,.,...,...,,,,,...,..,,...,...,.,.,,.,,,.,,,,.,,,.,
-#URYQ5HDSMR74BR66372EOOM6ZDONUAEEFSAIDK2IC7OVF5A5QVIP5JGOEVIMON3XMY3C2EGMIJRFC
-#\\\|LR3JVAT43MPKXXB4U7MUK5DZVCF25ZJKFES2VBIZNGMVUDV6AGW \ / AMOS7 \ YOURUM ::
-#\[7]T7XQYAL3KCDA3GBBVZJISIHXBGK4537HRQFUTV4EKC4RF66SBKAA 7  DATA SIGNATURE ::
+#,,.,,...,,..,..,,,,,,,..,.,,,.,,,,,,,,.,,,,,,..,,...,...,.,,,,,.,,,.,,..,,..,
+#3JZLCWHWUZR4HJZFT2DOLL4ZP6GEBA2M6E7LSSNHGPY3QSI5BMUC7PJ4XHLVWCYGRXZ5ZAQ47H4PK
+#\\\|GYQFVGZUMXPIW72WOSM6CCLMTAJWUWHAT5QWUIJANJTVCYJEZPY \ / AMOS7 \ YOURUM ::
+#\[7]BUC3Q6UXW7SK36AQ54NOAY6RXHCLMF7IBRUOCC6FWA36ENH42ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

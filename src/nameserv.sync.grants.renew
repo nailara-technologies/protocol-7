@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = nameserv.sync.grants.renew
+# descr = after a grant-set change : re-pull once the refused zones the
+#         new grants cover that the old ones did not
+#
+# the pull cursor advances past refused entries [ re-pulling permanently
+# refused junk on every pull is not an option ] -- a zone whose entries
+# only ever arrived while no grant covered it stays empty until something
+# changes inside it. nameserv.sync.accept remembers such zones in
+# <nameserv.sync.refused_zones> ; this module runs on every sync start
+# [ init and reinit alike ] and, when nameserv.cfg.sync.writer changed
+# since the last run, pulls every remembered zone the new grants cover
+# but the old ones did not, once, from every configured peer -- the same
+# pull 'nameserv.cmd.sync-pull <host> <port> <zone>' starts. idempotent :
+# an unchanged grant set does nothing.
+
+my $grants = <nameserv.cfg.sync.writer> // {};
+
+## one snapshot line per anchor, items sorted : any change is a change ##
+my $snapshot = {};
+foreach my $anchor ( keys %$grants ) {
+    $snapshot->{$anchor}
+        = [ grep {length} split m|\s+|, $grants->{$anchor} // '' ];
+}
+my $fingerprint = join "\n",
+    map { sprintf '%s=%s', $ARG, join ' ', sort @{ $snapshot->{$ARG} } }
+    sort keys %$snapshot;
+
+my $state                = <nameserv.sync.grants.state> //= {};
+my $previous             = $state->{'snapshot'}    // {};
+my $fingerprint_previous = $state->{'fingerprint'} // '';
+
+return TRUE if $fingerprint eq $fingerprint_previous;
+
+$state->{'snapshot'}    = $snapshot;
+$state->{'fingerprint'} = $fingerprint;
+
+## the first run only records the baseline : a remembered refused list ##
+## without a baseline must not trigger a mass re-pull                  ##
+return TRUE if not length $fingerprint_previous;
+
+my $covers = sub {
+    my ( $set, $zone ) = @ARG;
+    foreach my $anchor ( keys %$set ) {
+        foreach my $item ( @{ $set->{$anchor} } ) {
+            next if $item !~ m|\Azone:(.+)\z|;
+            return TRUE
+                if <[nameserv.sync.grants.zone_match]>->( $zone, $1 );
+        }
+    }
+    return FALSE;
+};
+
+my $refused = <nameserv.sync.refused_zones> // {};
+my @zones   = sort
+    grep { $covers->( $snapshot, $ARG ) and not $covers->( $previous, $ARG ) }
+    keys %$refused;
+
+return TRUE if not @zones;
+
+my $peers = <nameserv.sync.peers> // {};
+<[base.logs]>->(
+    1,        ': sync : grant change : re-pulling %s from %d peer[s]',
+    "@zones", scalar keys %$peers
+);
+
+## the same pull 'sync-pull <host> <port> <zone>' starts ##
+for my $zone (@zones) {
+    for my $key ( sort keys %$peers ) {
+        my $peer = $peers->{$key} // next;
+        <[nameserv.sync.client.start]>->(
+            {   host    => $peer->{'host'},
+                port    => $peer->{'port'},
+                zone    => $zone,
+                on_done => qw| nameserv.sync.grants.pulled |,
+            }
+        );
+    }
+}
+
+return TRUE;
+
+#,,,,,...,..,,.,,,..,,,.,,.,.,...,,,,,,,,,,..,..,,...,...,...,.,,,..,,.,.,,..,
+#YS5KBDUKUMPXBVEGZQUAWRMGFJM25PDEVVOKBZBOXZCF2OQNZMSB7L4JWTJGOMDLMXW7RBIUF27RU
+#\\\|JEVCZD5SD77YSXJUSQYY6WTA2LENMQ5H36C22EGSDIWYDHT6BHO \ / AMOS7 \ YOURUM ::
+#\[7]A7FP6EZFVK5TMW55YFCTMGXHAK2B5R5RREWEOMHGKOLEJJLPSQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

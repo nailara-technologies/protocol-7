@@ -220,6 +220,7 @@ for my $mod (
     nameserv.sync.sign
     nameserv.sync.writer.own
     nameserv.sync.writer.verify
+    nameserv.sync.grants.zone_match
     nameserv.sync.accept
     nameserv.zone.tombstone.add
     nameserv.zone.tombstone.clear
@@ -645,8 +646,8 @@ check 'name outside the zone refused',
 printf "\npassed : %d  failed : %d\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,..,,,.,,,,,,,,,,,..,...,.,,,...,.,.,...,..,,...,...,..,,,,.,,,,,..,,,..,
-#BC4OSA4OOQGZJNUEFOUFRGHF2TDMJ3BICH36HKCN6TPK2G24I3CM5EZLBINEKJLYIT6X5BJ3KXFYW
-#\\\|M5GTOIGB22L2OE5YUBPC5VI5L7AUPMAJ6OLSMUTGO6PMQHUN46X \ / AMOS7 \ YOURUM ::
-#\[7]CKWE4JNQTUO4UMEUDS5SGAUYMMHG3CEH4VY35GBUYARFQU36VACY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,,..,,.,,..,,,..,,..,,..,...,..,,...,...,.,,,...,,.,,..,,...,
+#XT5YE5RXNGMNQX7RG7I3EVPHLQM3IJ2OMA5RBBYOZPXTBQEMAYKN722T7VBCYX33WEM57OTPS5KP4
+#\\\|BH3BREARB7IQYBE7NGPXHD6WHJNYLOFGQC77HBARFCSWZTD3NUQ \ / AMOS7 \ YOURUM ::
+#\[7]6OXDOVP7R7DVZTQ4Q3H4KXUBZVRNSUBSVZOKQ5AMSQSX7HN32AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
