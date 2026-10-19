@@ -37,7 +37,11 @@ if ( not -t STDIN ) {
 ## | for the sprintf formats : qw splits on whitespace, so 'qw| user-edit :
 ## records |' yields THREE list elements and silently corrupts the hash
 ## pairing -- which is why only the single-token entry was resolving
-my $source        = <form.source>              // {};
+
+my $source = <form.source> // {};
+
+return FALSE if ref $source ne qw| HASH | or not keys $source->%*;
+
 my $menu_fallback = $source->{'menu_fallback'} // qw| user-edit |;
 
 <form.menu.title> = {
@@ -48,7 +52,6 @@ my $menu_fallback = $source->{'menu_fallback'} // qw| user-edit |;
 
 push <callbacks.end_code>->@*, qw| form.term_restore |;
 
-my $source = <form.source>          // return FALSE;
 my $sender = $source->{'value_all'} // return FALSE;
 
 <[$sender]>->(qw| form.handler.browse_start_reply |);
@@ -59,8 +62,8 @@ my $sender = $source->{'value_all'} // return FALSE;
 
 return TRUE;
 
-#,,,.,,,.,.,,,..,,,,.,.,.,,,,,.,,,...,,..,,.,,..,,...,...,...,,,.,.,,,.,,,,,,,
-#KOKQW3PNCZU62ID75JKAPW4CXJBWFS75A76RGJPJD4M7NN5LLFMZACKLQDO3B2K23SAOPRZ64LDIA
-#\\\|SQ2WRFVGHJPIW54WSQYFPBUFKDEGJEHFCFB4L4AVHLGATO73KUU \ / AMOS7 \ YOURUM ::
-#\[7]E3HM2YB3PCRRU54UF3252IET37OJ6JXVAA4IF7QO5AOMXMLOTQCI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,.,.,...,...,,.,,.,,,,,.,,..,..,,...,...,,,,,.,.,,.,,,.,,,..,
+#PMV4GQWUCLEVCEKSZMESYNSVWS6VPZSAZ5S7CYZPGZNCAIW3JPGXGYYMDKZZLVYZ5HDTNGNYJJVJU
+#\\\|UQQ6YEQG725OASOXCJZSCMYKOXZVICIBO2C5LT6AUKVRR4P3BHL \ / AMOS7 \ YOURUM ::
+#\[7]N6U2EM6ZNBREXUDWPOZUHHXIJ4MSUDIJDIDHBR7IODMPWCS4MGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
