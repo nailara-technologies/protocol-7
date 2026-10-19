@@ -29,11 +29,12 @@ my $wildcard_permissions_allowed          #                            :::
 ##  devmod command mask source availability [ same sentinel as SIG NUM53 ]  ##
 my $devmod_present = <[base.code.exists]>->(qw| devmod.dump |);
 
-## devmod commands dispatch under bare, stripped names [ same convention  ##
-## base.cmd.commands uses to classify them for display ] -- they carry no ##
-## 'devmod.' prefix in the string base.has_access ever checks, so         ##
-## 'devmod:*' cannot be a namespace-PREFIX regex ; it expands below to a  ##
-## live alternation of whatever devmod commands are actually loaded       ##
+## devmod commands dispatch under bare, stripped names                     ##
+## [ same convention base.cmd.commands uses to classify them for display ] ##
+## -- they carry no 'devmod.' prefix in the string base.has_access ever    ##
+## checks, so 'devmod:*' cannot be a namespace-PREFIX regex ; it expands   ##
+## below to a live alternation of whatever devmod commands are actually    ##
+## loaded                                                                  ##
 my @devmod_cmd_names;
 if ($devmod_present) {
     @devmod_cmd_names = map { ( my $n = $ARG ) =~ s|^devmod\.cmd\.||; $n }
@@ -79,8 +80,8 @@ foreach my $user ( <[base.reverse-sort]>->( \%mask_user ) ) {
         my @split_mask = <[base.reverse-sort]>
             ->( uniq split( m|[ \t]+|, $access_cfg_mask ) );
 
-        ## fold in devmod command mask patterns when devmod is loaded [ ##
-        ## presence of the entry is the per-user devcmd whitelist ]     ##
+        ## fold in devmod command mask patterns when devmod is loaded ##
+        ## [ presence of the entry is the per-user devcmd whitelist ] ##
         my %devcmd_pattern = ();
         if ( $devmod_present and defined <access.devcmd.usr>->{$config_user} )
         {
@@ -292,8 +293,8 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 
 return $errors;
 
-#,,,,,..,,,,.,.,,,,,,,..,,..,,,,,,,,.,,,,,..,,..,,...,...,.,.,,,.,,..,,..,,,,,
-#Y3BT672XAP7SVBCP3O3MJXCPKPU6KCIG6IPDGIIBTSODKQUT4XCXCSX4D6K2WAQH6SNPM7MCW6TS4
-#\\\|U55D6RAR3EYPSHE5KAEJ4QY6274ZMCBQH6F74BCRSKZL2PS5DRQ \ / AMOS7 \ YOURUM ::
-#\[7]H7QRWX6G4VUIJZXPLH3VOIKMUASJQEOPR4MHRUHEWPVITBJRTQAI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,,.,,.,.,.,,,.,.,,,.,,,.,,,.,..,,...,...,...,.,.,,,,,,,.,..,,
+#AZX2JV6SRPT3EHHRUZKZQHZPC7BHOU6AALQX2VPM2XQ4HOQEMBB7Y26WUJEWNCMS5FP4PLFDK544S
+#\\\|IATPDI4QUOAKKTAYQBXE6EIX5DICZDWSUQO7UBVJN2J2CFDO5YR \ / AMOS7 \ YOURUM ::
+#\[7]JG3TJDWCQSMGSQZWN4HGNB2NTJLIJAGNDIMX4MA4KVWMHKNSEECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

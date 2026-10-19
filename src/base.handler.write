@@ -75,20 +75,21 @@ if ( fileno $session->{'handle'} ) {
 
         my $remaining_buf = bytes::length $session->{'buffer'}->{'output'};
 
-        ## exited the write loop on the write-count cap [ not EAGAIN, not   ##
-        ## drained ] : every syswrite succeeded, the client is just faster  ##
-        ## than 64 writes' worth of data -- neither of the branches below   ##
-        ## expects this case, so left alone it re-arms the watcher as       ##
-        ## active without ever having scheduled anything to continue it,    ##
-        ## which then makes the io_idle_restart check further down [ 'not   ##
-        ## $event->w->is_active' ] skip pushing it onto <watcher_list.      ##
-        ## paused>, so the remaining buffered bytes never get sent -- a     ##
-        ## silent, permanent stall with no error and no disconnect.         ##
-        ## confirmed live 2026-09-14 : coding.dump [ a ~1.5MB reply, routed ##
-        ## through this exact loop ] reliably completed only when the       ##
-        ## client was slow enough [ higher nshell verbosity ] to force a    ##
-        ## real EAGAIN before hitting 64 writes -- a fast/quiet client      ##
-        ## never got EAGAIN, always hit the cap instead, and stalled        ##
+        ## exited the write loop on the write-count cap                     ##
+        ## [ not EAGAIN, not drained ] : every syswrite succeeded, the      ##
+        ## client is just faster than 64 writes' worth of data -- neither   ##
+        ## of the branches below expects this case, so left alone it        ##
+        ## re-arms the watcher as active without ever having scheduled      ##
+        ## anything to continue it, which then makes the io_idle_restart    ##
+        ## check further down [ 'not $event->w->is_active' ] skip pushing   ##
+        ## it onto <watcher_list. paused>, so the remaining buffered bytes  ##
+        ## never get sent -- a silent, permanent stall with no error and no ##
+        ## disconnect.  confirmed live 2026-09-14 : coding.dump             ##
+        ## [ a ~1.5MB reply, routed through this exact loop ] reliably      ##
+        ## completed only when the client was slow enough                   ##
+        ## [ higher nshell verbosity ] to force a real EAGAIN before        ##
+        ## hitting 64 writes -- a fast/quiet client never got EAGAIN,       ##
+        ## always hit the cap instead, and stalled                          ##
         my $hit_write_cap
             = $write_count >= $max_writes_per_call && $write_size > 0;
 
@@ -115,8 +116,8 @@ if ( fileno $session->{'handle'} ) {
             $event->w->start if $remaining_buf > 0;
 
         } else {
-            ## var watcher: only restart when socket was still writable [ ##
-            ## EAGAIN case is handled by write_handler IO watcher below ] ##
+            ## var watcher: only restart when socket was still writable     ##
+            ## [ EAGAIN case is handled by write_handler IO watcher below ] ##
             $event->w->start if not $hit_eagain;
         }
 
@@ -175,8 +176,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return FALSE;
 
-#,,,.,.,,,,.,,.,.,,,,,,,.,,..,,,,,.,,,,.,,,..,..,,...,...,,,,,,.,,,,.,.,,,,,,,
-#DOFXIMX24DSTP72YGKCMFGSZO5CJD5T4K2ASIYHYVNJYXT46CVPTU7URVKQO4DQIBMF6PPZUPRGSS
-#\\\|IJK36S6GW7XYBVCLGXKZHVHNKJRAGB6MHZU6CXFQZLODUGZMI7G \ / AMOS7 \ YOURUM ::
-#\[7]ODAA2ABTS5XFTOFF3BLKDVYNQO5COVBQSDTPP37I6UKXCVIXY6CY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,.,,,,,,,..,,,,,.,.,...,,.,,,,.,..,,...,...,,..,...,...,...,.,.,
+#PCMZTDXFPMRONTOHAE3XMEEXPZAHAWBGNKIVG7DGBVXBEUSBUWGSLHMB6YCSWO2B2M4CYZJ37LDIG
+#\\\|OTTDMHYHW3PXWZ4KLMO26BJ7O3TY7W67SFYUENYW7B6GA6WVX2N \ / AMOS7 \ YOURUM ::
+#\[7]F4FAAGSQQBXLWLQVSVUV762GI5D3C7JVJIC3HEHZKJMHK4N3XCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -141,9 +141,9 @@ foreach my $depth_round ( 1 .. $depth ) {
         last;
     }
 
-    ## outer epoch segment repeated : the nested-grouping case [ session    ##
-    ## inside epoch ] is the caller invoking a second pass with a different ##
-    ## epoch parameter, not per-round threading                             ##
+    ## outer epoch segment repeated : the nested-grouping case              ##
+    ## [ session inside epoch ] is the caller invoking a second pass with a ##
+    ## different epoch parameter, not per-round threading                   ##
     push( @path_segments, $encoded_epoch, $chksum );
 
     $round_input = join qw| / |, @path_segments;
@@ -158,8 +158,8 @@ if ($gen_failed) {
 
 return join qw| / |, @path_segments;
 
-#,,..,,..,..,,...,,,,,.,,,,,.,,..,,,,,.,,,...,..,,...,...,..,,,,,,,..,...,.,.,
-#2OJUSDFTJ7GW7VNFJ33UZ5EIAMNO6TXVMEN7CNTANXI6NQZBY4WR5BOORMW3BSHB5WNWEUACSZAFQ
-#\\\|OE23VKEE2KEK6MBUD53ZJK3TBOVMZFO2OUBFLVUCKZIUNJQO3NV \ / AMOS7 \ YOURUM ::
-#\[7]VMZFSQUDPAME4LTEOOP52J4MERGQT2IHWR5ZJIRCJKBQXQ5A6QCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,.,,,,.,...,,.,,.,,,,.,,,..,..,,...,...,,,.,,.,,...,.,.,.,.,
+#B3MESYP4PT6U6LBGOC3O3FT5SXOU646BIMG2AK77MWTSSA2FPLDJHUS5USZCSRURRPOOGCVH655B6
+#\\\|CIDWB3TZPWB3PI3GG5DVHSVWEZSDWYFNBP4CXSWXC737TQSWYL4 \ / AMOS7 \ YOURUM ::
+#\[7]2EH6IYB3B2JAI6SRKHNFEDFRLLWZO5CHC5HQLH45LRAL5HXKPYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

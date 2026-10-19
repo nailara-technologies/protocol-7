@@ -14,8 +14,8 @@ my $src_deps = <[base.get_path.zenka_cfg]>;
 $src_deps
     =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/deps/src-used|;
 
-## skip if dependencies already registered  [ when root : fall through to ##
-## fix any ownership or permission issues ]                               ##
+## skip if dependencies already registered                                ##
+## [ when root : fall through to fix any ownership or permission issues ] ##
 my $already_registered = TRUE;
 foreach my $src ( keys %np7_src ) {
     my $src_file = catfile( $src_deps, $src );
@@ -68,10 +68,11 @@ if ( -d $src_deps and -w $src_deps ) {
     foreach my $mod_name ( sort keys %np7_src ) {
         next if $mod_name eq qw| devmod |;
 
-        ## collapse feature : a lifecycle/runtime sub-file [ e.g.       ##
-        ## base.base32.pre_init ] is already covered once any ancestor  ##
-        ## namespace [ 'base', 'base.base32', ... ] is registered -- or ##
-        ## about to be, within this same batch -- so skip its own file  ##
+        ## collapse feature : a lifecycle/runtime sub-file                 ##
+        ## [ e.g. base.base32.pre_init ] is already covered once any       ##
+        ## ancestor namespace [ 'base', 'base.base32', ... ] is registered ##
+        ## -- or about to be, within this same batch -- so skip its own    ##
+        ## file                                                            ##
         my @ancestors = split m|\.|, $mod_name;
         pop @ancestors;    ## drop the leaf : ancestors only ##
         my $covered = FALSE;
@@ -142,8 +143,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,,,,,.,,..,,..,,,..,,..,,..,.,,,...,..,,,,.,..,,...,...,.,,,.,,,,.,,,,.,...,
-#DAHT34EBVIV5NR7LOU6OT55FFHX3EE7PRVYCCUJQS6DBCOOGXAZRPJRKS5XJMNOVSQW6RY3MQ3Q2Y
-#\\\|BN6WLMAXB5PYOSJ7V7CHOQNLYQQAWUULUQPPKOKBOHVUTTZSIF6 \ / AMOS7 \ YOURUM ::
-#\[7]RZT7CKYFVSUCDFQSATA2PKZAZT22HCUKTRCJPHDAVVTM4OIBCGAA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,,,.,,,.,.,,..,,,.,,.,,.,,,.,,,..,,...,...,...,...,,..,,.,,,,,,
+#NGD3KXD7C7O4SP526MQX7S7C3X6D6MGSGFCNWVCZTQHAZZLCZY3FH3XNXBE6HRGG7AUCUGBVEZTRQ
+#\\\|G5WPCOK5PECAKK4WWW7ODJU5WJVW55PCBMIGUWBTHQAG4K4JXZY \ / AMOS7 \ YOURUM ::
+#\[7]NIONUZ4GO4Z2ES3HPSLVHJZXVLADP6XNTXSSNCTOCGAPN6VDA2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

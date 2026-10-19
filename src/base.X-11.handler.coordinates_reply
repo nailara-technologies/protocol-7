@@ -10,12 +10,13 @@
 
 my $reply = shift;
 
-## the fallback timer may have already fired + run the continuation [ tile  ##
-## was stuck, then a late reply arrives once it resumes ]. the timeout      ##
-## handler deletes the stored continuation when it fires, so its absence is ##
-## the signal that startup already proceeded -- a late reply must NOT run   ##
-## the continuation a second time [ would re-open the window ]. mirrors the ##
-## guard in base.X-11.handler.coordinates_timeout.                          ##
+## the fallback timer may have already fired + run the continuation      ##
+## [ tile was stuck, then a late reply arrives once it resumes ]. the    ##
+## timeout handler deletes the stored continuation when it fires, so its ##
+## absence is the signal that startup already proceeded -- a late reply  ##
+## must NOT run the continuation a second time                           ##
+## [ would re-open the window ]. mirrors the guard in                    ##
+## base.X-11.handler.coordinates_timeout.                                ##
 return if not defined <x11.coordinates_async_continuation>;
 
 ## real reply arrived -- cancel the fallback timer and clear pending state ##
@@ -70,8 +71,8 @@ return $code{$continuation_handler}->($continuation_params)
 
 return;
 
-#,,,,,..,,,,.,,.,,,.,,..,,...,..,,.,,,,,,,,,,,..,,...,...,,..,,,.,,.,,,,.,,.,,
-#GIGYFYFX3D4ERX2MHZ4DUDBGXM7T6JGZZNMOL7XZJVVPVBYR25Q3XDC65EWJOLA6WKOADVJS4UJ6Q
-#\\\|XXEI7WZTJGTCFWZNAE6ACAT2B7YAG4OSNJDYSUB75JHQZEUZSW6 \ / AMOS7 \ YOURUM ::
-#\[7]PE3QQ4JJG736KSW7RDPTGIPG3KX4C727WZPS3Y4IGDDEMHK4DADI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,..,,,,.,.,,,,,.,.,.,,.,,,,.,.,.,..,,...,...,..,,,..,.,,,..,,.,,,
+#R6IE3E3R4UYFH6O3Z2J3FI6XE7RCV2OA6LAVWEKEX7NQYC7PZGV46D3RK2GMJFZALBOSWLRPPEDR6
+#\\\|TO4QKV34DLYC5SFSB3AOMGJTDT7RMNILL66XETRPN2DEEZP5UXA \ / AMOS7 \ YOURUM ::
+#\[7]E5TUAY2PMWWSJWJ2IVQMTCWFJBDRMMXV7GEIFOOB6DWGFWT2DQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

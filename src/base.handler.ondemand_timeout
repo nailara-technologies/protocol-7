@@ -11,9 +11,10 @@ return if <base.ondemand.idle_term_sent>;
 
 <[base.log]>->( 1, "zenka idle shutdown.., [ $timeout sec$s ]" );
 
-## ask v7 to terminate this instance cleanly [ stops heartbeat tracking and ##
-## prevents restart ] -- fall back to bare exit on error, false reply or    ##
-## when no reply arrives within the guard timeout ..,                       ##
+## ask v7 to terminate this instance cleanly                              ##
+## [ stops heartbeat tracking and prevents restart ] -- fall back to bare ##
+## exit on error, false reply or when no reply arrives within the guard   ##
+## timeout ..,                                                            ##
 
 my $guard_timer = <[event.add_timer]>->(
     {   'after'   => 2.3,    ##  guard : idle-term reply wait limit  ##
@@ -43,8 +44,8 @@ if ( not defined $sent or $sent < 1 ) {    ##  no route to cube \ v7  ##
     exit(0);
 }
 
-#,,.,,,..,,,,,.,.,,..,,,,,...,,,,,,,,,,..,,..,..,,...,...,,,,,.,.,,,,,,,.,,..,
-#7OXKDCO5CZPHQDNPRB3W3A667A6BYE2HHOF2K66WR7IJADV4GGAVAMDE7AAL4EBPZFCWY55AQZYJE
-#\\\|PUJGLE6D2AHZNCJZHVPJXAB2TYEWWIQSZ33CUOIX3MJG6LHBIM3 \ / AMOS7 \ YOURUM ::
-#\[7]LTNP5DJBXMA2GLSLSSB63G6JHMZQVYWX4YIXRXZUMX63BM5D22DY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,.,,,,.,,.,.,.,.,.,,,,..,,,,,..,,...,..,,.,,,...,..,,,,,,...,
+#A2ZEITE6H6DRHJYQBXOZ5UXYOZO4WV2D5ZYEVC2HX5HS5ILI5OLXDGN6IRULJFU533EKHD6SUTNAQ
+#\\\|2IXSGTSWDLTOYT4JUNYXRG46IADS4RLS5L5NZIR7XWRJLFWOZNY \ / AMOS7 \ YOURUM ::
+#\[7]G27M5GOKJWQIE6A4UHT2UO7Q6N4KHWJULKTP3RJVMWWZSWNB3KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

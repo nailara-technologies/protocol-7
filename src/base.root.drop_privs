@@ -63,13 +63,13 @@ if ( not length( $user // '' ) ) {
     my %_gid = map { $ARG => TRUE } split( ' ', $GID );
     my %egid = map { $ARG => TRUE } split( ' ', $EGID );
 
-    ## resolve secondary groups  [ explicit only if primary override, or
-    ## auto-detect | explicit ]
+    ## resolve secondary groups
+    ## [ explicit only if primary override, or auto-detect | explicit ]
     my @secondary_gids;
 
     if (@groups_list) {
-        ## process explicit group parameters  [ always used, replaces
-        ## auto-detect ]
+        ## process explicit group parameters
+        ## [ always used, replaces auto-detect ]
         for my $gname (@groups_list) {
             ## handle colon-separated groups within single parameter
             my @gnames = split m{:}, $gname;
@@ -89,8 +89,8 @@ if ( not length( $user // '' ) ) {
             }
         }
     } elsif ( !defined $override_primary_group ) {
-        ## auto-detect secondary groups from group membership  [ only when no
-        ## primary group override ]
+        ## auto-detect secondary groups from group membership
+        ## [ only when no primary group override ]
         while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
             push( @secondary_gids, $_gid )
                 if ( grep( $ARG eq $user, split( m|\s+|, $_members ) ) );
@@ -119,10 +119,11 @@ if ( not length( $user // '' ) ) {
             2, "< drop_privs > already '%s', doing nothing.", $user
         );
 
-        ## recording confirmed identity [ same as the real-drop branch    ##
-        ## below ] - downstream owner-checks [ file.zenka_dir.write etc ] ##
-        ## expect this to be set whenever we genuinely run as $user,      ##
-        ## whether or not an actual privilege drop happened               ##
+        ## recording confirmed identity                                     ##
+        ## [ same as the real-drop branch below ] - downstream owner-checks ##
+        ## [ file.zenka_dir.write etc ] expect this to be set whenever we   ##
+        ## genuinely run as $user, whether or not an actual privilege drop  ##
+        ## happened                                                         ##
         <system.zenka-user.current> = $user
             if not defined <system.zenka-user.current>
             or $user ne <system.zenka-user.current>;
@@ -271,8 +272,8 @@ if ( not length( $user // '' ) ) {
     }
 }
 
-#,,,.,,..,..,,,,,,.,,,.,,,,..,...,.,,,,.,,,.,,..,,...,...,.,.,,,,,,,.,.,,,...,
-#22LLP4NFVQ4IVKSHM4PALCK7FZYBAGFJSF7RJFCCTUCJG34Q54J6P7PNTSLEOKPD7UJXPJWPM5ZZO
-#\\\|KYFJR6UV5KIEXDA2FSZ65UF7G3ZMX5RC2C27YT3LML6D3ZLJJBZ \ / AMOS7 \ YOURUM ::
-#\[7]GGFDLSQJL5GK7YTTUH2Z7BZAI6RBYOOGRILCLL5ISIK7GSMQZ6CQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,,,.,,.,,...,,..,.,.,.,.,,,,,..,,...,..,,..,,.,,,...,..,,,.,,
+#N7CQKT6XAEMV4HSTF37PGUWTPUVJKSD6NTZE5VTDUQUX6YTLV7Z55YK77J7YE3QAJ4M62ZFR3S2WK
+#\\\|7N4QDZJPOVAU6TUM7NL5MBJUJSIPELBK7URANBIEHJZ6D6WUZFE \ / AMOS7 \ YOURUM ::
+#\[7]K3UZ2QJGT5CF6L6EZHVIABWHYQVOOGAAWIMRIHSSRFDFRCUQBYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

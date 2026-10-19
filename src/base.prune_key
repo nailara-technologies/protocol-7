@@ -48,12 +48,13 @@ while ( my $sub_key = shift @dtree ) {
 
     if ( ref $cur_href ne qw| HASH | or not exists $cur_href->{$sub_key} ) {
 
-        ## not-found is routine for cleanup-style callers [ e.g. pruning a  ##
-        ## key that was never set this boot ] -- quiet level-2 log by       ##
-        ## default so idempotent calls don't become noise; an explicit      ##
-        ## silent=>0 caller genuinely expects the key to be there, so raise ##
-        ## it via s_warn [ unconditional, includes call site ] instead of a ##
-        ## verbosity-gated log line that could still be missed              ##
+        ## not-found is routine for cleanup-style callers                 ##
+        ## [ e.g. pruning a key that was never set this boot ] -- quiet   ##
+        ## level-2 log by default so idempotent calls don't become noise; ##
+        ## an explicit silent=>0 caller genuinely expects the key to be   ##
+        ## there, so raise it via s_warn                                  ##
+        ## [ unconditional, includes call site ] instead of a             ##
+        ## verbosity-gated log line that could still be missed            ##
         if ($silent) {
             <[base.logs]>->(
                 2, ": prune_key : key not found '%s'",
@@ -98,8 +99,8 @@ for ( my $i = $#chain - 1; $i >= 0; $i-- ) {
 
 return wantarray ? ( $del_value, $pruned ) : $del_value;
 
-#,,,,,.,,,,..,...,.,.,..,,..,,,,,,,,,,,,,,,..,..,,...,...,,..,...,,,.,...,.,,,
-#WR2RJIP5446BU3FGEBYSY67H6FAE6HZSHNZOBVRYDJVMXU4BITVDBW4AH7KYE3R6O7TV44Y3XUBSO
-#\\\|VY4QKEU2J7F43QHSYCEGSDK7LC3YNWWUBUKYNKA7Z5K3KUIR25B \ / AMOS7 \ YOURUM ::
-#\[7]YUGV57TNR4VU5XCTKG5WB5AHMYV2JY5XKMPH2HRYNPQKK5RGI4AI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,,,,,.,,,.,..,,,,,,,..,.,.,.,.,..,,...,...,,..,..,,.,,,...,..,,
+#EB4GLYAAIO7ZAFMXIEO2U7EM7UB6GPQV3QCMOEX6JDZXLMEVRWZN44JABTPJG6QR6DNXOFCEBYXIY
+#\\\|DEZEE4IGY74PBAJ6WA2J337VR5MIRNQLZ6YQZZCTQKSVRA3OCQO \ / AMOS7 \ YOURUM ::
+#\[7]UZKXENV6ZUAY4HO33EOKLWYB2HPSOTNWZARKGQW4PHVQOA6TXYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

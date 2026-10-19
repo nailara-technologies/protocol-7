@@ -3,13 +3,13 @@
 # name  = base.perlmods.refresh_stale
 # descr = refresh perl modules changed on disk, wiping their old subs first
 
-## staleness-aware replacement for 'Module::Refresh->refresh' in the        ##
-## 'reload perl-mods' command path : only .pm files whose mtime changed     ##
-## since Module::Refresh's own cache was last updated are reloaded [ no     ##
-## forced reload of unchanged modules ], and for those the file's old subs  ##
-## are removed from the symbol table first [ wipe_file_subs ] so the reload ##
-## no longer collides with previous definitions [ which perl reported as    ##
-## spurious 'subroutine redefined' warnings for every sub ]                 ##
+## staleness-aware replacement for 'Module::Refresh->refresh' in the       ##
+## 'reload perl-mods' command path : only .pm files whose mtime changed    ##
+## since Module::Refresh's own cache was last updated are reloaded         ##
+## [ no forced reload of unchanged modules ], and for those the file's old ##
+## subs are removed from the symbol table first [ wipe_file_subs ] so the  ##
+## reload no longer collides with previous definitions [ which perl        ##
+## reported as spurious 'subroutine redefined' warnings for every sub ]    ##
 
 <base.perlmods.refresh> //= Module::Refresh->new;
 my $mod = <base.perlmods.refresh>;
@@ -47,8 +47,8 @@ foreach my $module_key ( sort keys %INC ) {
 
 return $error_count ? FALSE : TRUE;
 
-#,,.,,..,,,.,,,.,,,,.,,,.,..,,...,.,.,,..,...,..,,...,...,...,.,.,,..,...,,.,,
-#5CZGGTATKHRQKPY7HPTMTXDGPZFFL4SW6CWZIOTICCZA3AQTNW6CV554XI7Q63DE5QU2GGPYSX4QM
-#\\\|IE5YHOZWOETZNGCFZXQLYFKTM5XQGVWQ22SFRJMQCCEFMO4RB3L \ / AMOS7 \ YOURUM ::
-#\[7]5GSMHAMWCJHXAV37KZPCQI2ICZE5VWEBQJLC6GKYADOKHW2M32BQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,,,...,..,,,..,,,.,.,,,,.,,,.,,..,,...,...,.,.,,,.,,.,,...,,..,
+#V36KLBV3NKPRR3KVIJTSDBS4CSGBKBLHHGIEV2YJGWBZFCWDEFIOG5REHNRTHC3SB3OPJXZPANWE4
+#\\\|5FF6HYZXCUQIUEWIVJEDQVYNQUAEGUCX7ZX4P7HAHUZXHMDAAVC \ / AMOS7 \ YOURUM ::
+#\[7]Z3SZ4M73OHALA5D3VUABZWDI6XFSUPXJGKNXXEXODI6RSRDMDSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

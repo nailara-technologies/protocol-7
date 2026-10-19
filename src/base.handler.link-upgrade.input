@@ -75,8 +75,9 @@ $session->{'link_frame_state'} = qw| header |;
 
 my $counter = $session->{'link_read_counter'} // 0;
 
-## no direction : never fall back to a zero suffix [ that reuses nonces ##
-## across the two directions ] - the session cannot be encrypted safely ##
+## no direction : never fall back to a zero suffix                          ##
+## [ that reuses nonces across the two directions ] - the session cannot be ##
+## encrypted safely                                                         ##
 if ( not defined $session->{'link_nonce_dir_read'} ) {
     <[base.s_warn]>->(
         sprintf 'link-upgrade nonce direction ' . 'missing [session %d]',
@@ -128,8 +129,8 @@ $session->{'link_read_counter'} = $counter + 1;
 $session->{'link_plain_buffer'} .= $plaintext;
 
 ## swap decrypted plaintext into the input buffer for base.handler.command,
-## keep any raw bytes beyond the frame aside [ normally none : bytewise reads
-## are exact, defensive only ]
+## keep any raw bytes beyond the frame aside
+## [ normally none : bytewise reads are exact, defensive only ]
 my $raw_rest = $$input;
 $$input = $session->{'link_plain_buffer'};
 
@@ -153,8 +154,8 @@ if ( $session->{'link_frame_state'} eq qw| header | ) {
 
 return $ret_code;    ## 0 : command processed | 1 : incomplete plaintext
 
-#,,,.,.,,,.,.,,..,.,,,...,,,.,.,.,,,,,.,,,,,,,.,.,...,..,,..,,...,..,,,,,,.,,,
-#JXAZARBCONGZFDCQVGVHJWBYWJRG5DOCZKKPYC2ELMMPRMYWKHMT5JHCPV5SRPEAZTG76WYRH4B36
-#\\\|QB5RUZAJAJID7H6CHB6HTYSGFTOJBBHO326OTERUTVNIFSVOYD3 \ / AMOS7 \ YOURUM ::
-#\[7]OQ2HFX7QWCSSR3UUL6JTRFTRZXADEKJBP2HNGVEFWX7D3GS5KMBY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,,.,,..,,..,,...,...,..,,,..,.,.,...,...,..,,.,,,,..,,,,,..,,
+#WYZV2WKOD2OUJJQJEHWDLZNNM6G5MZDX3VJQRGU33WP7IRUC7JCP2YENWYY5B5BM3AEKSNL776GI6
+#\\\|N6N33EMHDFGJL5ABVX2LFAX5QGX4EVNZMGTCP5QFYWVJ4DA5H23 \ / AMOS7 \ YOURUM ::
+#\[7]AB6HCZMBBVRHBG5SZFHZYN5Y5BENE7XZBATOK3UXZZU3EF7S7WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

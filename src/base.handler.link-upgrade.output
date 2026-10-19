@@ -39,8 +39,9 @@ utf8::downgrade( $$output, 1 ) if utf8::is_utf8($$output);
 
 my $counter = $session->{'link_write_counter'} // 0;
 
-## no direction : never fall back to a zero suffix [ that reuses nonces ##
-## across the two directions ] - the session cannot be encrypted safely ##
+## no direction : never fall back to a zero suffix                          ##
+## [ that reuses nonces across the two directions ] - the session cannot be ##
+## encrypted safely                                                         ##
 if ( not defined $session->{'link_nonce_dir_write'} ) {
     <[base.s_warn]>->(
         sprintf 'link-upgrade nonce direction missing [session %d]', $id
@@ -89,8 +90,8 @@ $session->{'link_write_counter'} = $counter + 1;
 ## drain the framed bytes to the socket [ restarts watcher as needed ]
 return <[base.handler.write]>->($event);
 
-#,,,,,.,.,,,.,,.,,,.,,.,.,.,.,..,,.,,,,..,,,.,.,.,...,...,.,.,...,.,.,..,,,,,,
-#RMEMZPO7PKKKEM66YYFJJVPSGMJRAIWLDQOK5CQX6T77K5EXV2XGFTAAU23FPQBQJR2GISHTI2MSK
-#\\\|QL2ST3RW7JXVNB54PAW42TLNQV2FCMYHWV3PUPDXFQ4RW52Y6DG \ / AMOS7 \ YOURUM ::
-#\[7]S4AIOJOB4CURY74BFTH5XLZHFIH7J77GG7DPOCF4CIWDP6HDO4BY 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,,,,,.,,,...,.,,,,.,,...,...,.,.,...,...,.,,,.,.,.,,,,..,..,,
+#VZN4MLCIAMD3UDKGUG53AAGM4D2DCGIQL6NVULUHJ6GZ5PQWLQZUFTM3HEYREKAXFCQ326OVP5RVI
+#\\\|6Y4NIEX3DBBFMZGM26NALQROAMNLAAJKMVGLKLVUUDJL2N3O4OY \ / AMOS7 \ YOURUM ::
+#\[7]HNVSNVNQMSBXY7P2Z2KKR6CKGHQXV7CGPPI5XHRILABJCUK7GKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

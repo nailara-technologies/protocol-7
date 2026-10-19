@@ -9,8 +9,8 @@ die "expected process id parameter" if $child_pid !~ m|^\d+$|;
 $child_name = '' if $child_name !~ m{^[A-Za-z0-9][A-Za-z0-9_.\-]*$};
 
 ## the optional name \ role [ e.g. 'invokeai' ] says WHICH child it is -- a ##
-## new instance claims a crash-kept child by name [ v7-zenki                ##
-## restart.keep_children \ v7-zenki.claim-children ]                        ##
+## new instance claims a crash-kept child by name                           ##
+## [ v7-zenki restart.keep_children \ v7-zenki.claim-children ]             ##
 push(
     @{ <system.report_children> //= [] },
     length $child_name ? "$child_pid $child_name" : $child_pid
@@ -25,8 +25,8 @@ if (<system.zenka.initialized>) {
     );
 }
 
-#,,,.,...,.,.,,..,...,...,.,,,...,..,,,.,,,.,,..,,...,...,,..,,,.,...,..,,,,,,
-#57PSAOQUABUQOPEFLAWNMPYQQUCMGDMBJ36ZTG6TBHDAM52KGR6E2WIPTC7URSCBICH34KJZMAV62
-#\\\|XYUXRM25EAQXNTZGNB77ZF7STVCRIPOCQ43RFTTAB7LYQFCG2SN \ / AMOS7 \ YOURUM ::
-#\[7]G4FAPDHK7GAUJMRXYRRVY5EY73O34WLWMHRAAY3IZBL4V7MZM2AI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,,.,,,,.,,,.,,..,,,.,..,,,,.,..,,...,...,,..,..,,..,,..,,.,,,
+#5SC3BMCFRV7CL6HQXWNIKRMRDYEMCN53ZDIUYLXACGXLOGK6ZXI5P7XT7W72WIAM2WI6XVZ4LKM42
+#\\\|4SBV2UC2D42GTX4GTXMKX3LHSW3KRFKMOXDBL2D54XFLW7FPSGQ \ / AMOS7 \ YOURUM ::
+#\[7]C3GGMNGQHDZSNJTL2P6O4TQ2YR4OORBKOWFVUT2OPB3QT7NE2CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

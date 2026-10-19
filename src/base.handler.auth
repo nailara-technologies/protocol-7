@@ -119,8 +119,8 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
     ## [ not optional ] - a bare '(declare|select)-\S+' line collides with  ##
     ## the zenka-auth wire format '<zenka_name> <key>\n', since any zenka   ##
     ## named e.g. 'select-region' or 'declare-foo' produces a line this     ##
-    ## branch would otherwise swallow before the real auth plugin sees it [ ##
-    ## found live 2026-06-19, select-region zenka auth timeout ]            ##
+    ## branch would otherwise swallow before the real auth plugin sees it   ##
+    ## [ found live 2026-06-19, select-region zenka auth timeout ]          ##
     my $action     = $1;
     my $capability = $2;
     my $args       = $3 // '';
@@ -307,8 +307,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,,,,...,.,.,,,.,,.,,.,.,,.,,..,,.,.,,.,,...,..,,...,...,.,.,.,,,,,,,,,.,...,
-#JHJXRIVWRWE4TZZV63KCR2XJ2IHQTPFTDUKI4QUK5CZT77I2NYIRWQ5MX7M4THNZYTWMOOGE5Q6PK
-#\\\|4B5YSTZA4NS2DXQO7VXBPPTOA325WDRNC2K7JSUGDPN4TI233SW \ / AMOS7 \ YOURUM ::
-#\[7]H3HHVFLUWHJM3TULSFZU2WA766IHNV7ESTKO5RR4UBV27GYB3GDA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,,,.,.,.,...,,,,,,,,,,,.,..,,..,,...,...,..,,..,,.,,,,.,,,..,
+#7LGKHRK43TS2J62SPJNH4WYYPRMHDWZRBDOCTANM3G464AM6IFWY6CM2OYRSHR6OVNEOOOFUHVFEM
+#\\\|RWNVBRUBDACRSLEN77AB6FE6ZZLJLCHFD7DWLE6HMUYY43WG6LV \ / AMOS7 \ YOURUM ::
+#\[7]NJT6RR5GARQYCTM3NHGC6J4IGY25UGS6Q76RRV2DNNCSI7LBOABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

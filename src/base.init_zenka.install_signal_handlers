@@ -13,12 +13,12 @@ foreach my $signal_name ( @registered_signals, qw|  KILL  STOP __WARN__  | ) {
     delete $ignored_sig{ uc $signal_name };
 }
 
-## one watcher per signal number : %SIG carries aliases [ CLD = CHLD, IOT = ##
-## ABRT, POLL = IO ]. a second Event watcher on the same number keeps       ##
-## Event's count above zero, so a later add_signal for that signal never    ##
-## re-installs the kernel handler -- once anything resets the disposition [ ##
-## $SIG{CHLD} restore after a gcc compile ], the signal is lost for good [  ##
-## v7-zenki : 2026-10-07, no SIGCHLD ]                                      ##
+## one watcher per signal number : %SIG carries aliases                     ##
+## [ CLD = CHLD, IOT = ABRT, POLL = IO ]. a second Event watcher on the     ##
+## same number keeps Event's count above zero, so a later add_signal for    ##
+## that signal never re-installs the kernel handler -- once anything resets ##
+## the disposition [ $SIG{CHLD} restore after a gcc compile ], the signal   ##
+## is lost for good [ v7-zenki : 2026-10-07, no SIGCHLD ]                   ##
 <[base.perlmod.load]>->('Config');
 my %sig_num;
 @sig_num{ split( ' ', $Config::Config{'sig_name'} ) }
@@ -79,8 +79,8 @@ foreach
     );
 }
 
-#,,.,,,,.,.,,,...,,.,,,,.,,.,,.,,,,,,,.,,,.,,,..,,...,...,...,.,.,,,.,...,..,,
-#4PV5IP676PIKKTLO46ND4W7ONYW47SIAY4L24ICEFEMW5DEWF4PASFIZZBZKW3PTD2VVATDBUAK6Q
-#\\\|6IMULB73XXNMDIUFKZACEZKRCCULBUVFRWUCDHTTWTH5AZVPUG7 \ / AMOS7 \ YOURUM ::
-#\[7]S6CKTSON4L3ANU2VEZLO3YA5BJFUDTWBT3BEZH3GCOSCOHFABEAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,.,.,,.,,...,.,,,..,,...,,.,,..,,...,..,,..,,...,...,..,,,,,,
+#F2M4DGCZ2226272SFN3T7P22KYYZKLTGMK6H7F4RO74OWYUWNI55ZGOMTAOTZB5TLTAPLOOK77QS6
+#\\\|OFMPDAORHDRH4L6EXYDOESDGGTVHTCL47GCZCMDDF4FTKUUINP2 \ / AMOS7 \ YOURUM ::
+#\[7]OCTCHJGWUZPLZ4XBMR6RU6L2BVOCBR2DKYW5WO3GA2CBBI7W2EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -100,8 +100,9 @@ if ( -d $file_abs_path ) {
 
 my ( undef, undef, $uid, $gid ) = getpwnam $current_zenka_username;
 
-## override gid when zenka has a configured group [ e.g. drop_privs to ##
-## <user>:protocol-7 ] - mirrors base.path-set-up.check-zenka-paths    ##
+## override gid when zenka has a configured group     ##
+## [ e.g. drop_privs to <user>:protocol-7 ] - mirrors ##
+## base.path-set-up.check-zenka-paths                 ##
 if ( defined <system.zenka-group.current> ) {
     my ( undef, undef, $override_gid )
         = getgrnam <system.zenka-group.current>;
@@ -115,8 +116,8 @@ if ( $open_mode_str eq qw| > | ) {
 
     ## file.temp always appends the zenka name to whichever dir it is given ##
     ## - pass the un-prefixed parent so the temp file lands on the same     ##
-    ## filesystem as $file_abs_path [ rename() only requires same           ##
-    ## filesystem, not same directory ]                                     ##
+    ## filesystem as $file_abs_path                                         ##
+    ## [ rename() only requires same filesystem, not same directory ]       ##
     my $tmp_base_dir
         = $global_config_path
         ? $zenka_dir_href->{'etc_P7'}
@@ -214,8 +215,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,.,,,.,,,..,,,,,,,,,..,,,..,,..,,,.,,,,,...,..,,...,...,,.,,.,,,...,,.,,...,
-#H2T2TWVIPILPXQVQ5FB3RMF7M7464TRDT2ST4XCVIQCEFRP2IASHKV4MJHDSNWGHHSFHL7ERE4W5O
-#\\\|X4AT2PHCONQPDFYSHB5G3BXNYAY4LNRXS5UG5Y2CBVTHR2VIWU7 \ / AMOS7 \ YOURUM ::
-#\[7]ZQNVBCX6N42SQ5BOG45YBF3EADQCB7UDMRMQMI4XM3MJXQRZZIDI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,.,.,.,,,,,,,,,,..,.,,,,,.,,,.,..,,...,...,,.,,,.,,,..,,,,,,.,,
+#5JBVTN4E7YAOOTIMPET45QU7LVBVAWJ2O4TOMQ6724Z54BRWBAZMSBSFZIAM6DC2ES4435TKLY7HC
+#\\\|7Z5G2NUVLUJXP4F274I6BEYKAUMTSNRSA3ZVNF5SHJLAYD4XH7K \ / AMOS7 \ YOURUM ::
+#\[7]DWXAAC7TVYOIPE2UPSXDR7PDTCAX5C5R7KQEZ5ORHDZGXDYRC2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
