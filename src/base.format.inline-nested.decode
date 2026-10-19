@@ -8,12 +8,12 @@
 
 my $block = shift // '';
 
-## inline-wrapped input : strip header, footer and per-line framing keep    ##
-## the pre-strip physical lines too -- wrap-vs-free-format classification   ##
-## below must judge against the ORIGINAL line length [ what encode actually ##
-## constrained to 78 cols ], not the shorter, post-strip length, or         ##
-## reconstruction misclassifies wrapped content as free-format once the     ##
-## outer ':  ' framing overhead is removed                                  ##
+## inline-wrapped input : strip header, footer and per-line framing keep  ##
+## the pre-strip physical lines too -- wrap-vs-free-format classification ##
+## below must judge against the ORIGINAL line length                      ##
+## [ what encode actually constrained to 78 cols ], not the shorter,      ##
+## post-strip length, or reconstruction misclassifies wrapped content as  ##
+## free-format once the outer ':  ' framing overhead is removed           ##
 my $inline_path;
 my @frame_lines = split m|\n|, $block, -1;
 my @orig_lines  = @frame_lines;
@@ -135,8 +135,8 @@ return
     ? { inline_path => $inline_path, pairs => \@pairs }
     : \@pairs;
 
-#,,.,,,..,,,.,.,,,,,.,..,,.,,,,,.,.,,,,..,,..,..,,...,...,...,,.,,,,,,,,.,.,,,
-#J7WPZGKPKGELP7DO4NGZEDEU5G5H3WBVX7EX3N75ZRWQ2C3K35QBVKLPNE543JDWFGIQSSGYKNUUC
-#\\\|SKDJGJGKRH6GSN2RKWPIO4YIM6I6GJFJXFQRNRLY6DSGPM3XZIS \ / AMOS7 \ YOURUM ::
-#\[7]5WCGJJJEP26FRMDQA3SAQOLDOL2ATFOMRQAAODVNFE2FUMQ3L2DQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,.,.,,,.,,..,,..,...,,,,,,..,..,,...,...,..,,,..,,,,,,,,,.,.,
+#O435QG72Y3MJFDHRESHZTGOH7LQ7MWH5RVJ4B6CTERBRGIWVIWJXTU7MVSNC4BYWNCNQYDA6OKZZU
+#\\\|WUUCUMSVUBDQVEPVTKGLGGVGKPBYIJPPJPBWVD3KNIE5RBS4UFY \ / AMOS7 \ YOURUM ::
+#\[7]Z5JSHSBZ27NHRZVKCOJS6YEJT3RBQN2IU7MUIMMUVBOQAYFEUQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

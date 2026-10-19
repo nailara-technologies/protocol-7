@@ -79,8 +79,8 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     ## Ensure data ends with newline for protocol coherence
     $data .= "\n" unless $data =~ m|\n$|;
 
-    ## SIZE mode reports BYTE count for buffer/socket operations [ bytes::
-    ## loaded via perlmod.autoload : not a lexical pragma ]
+    ## SIZE mode reports BYTE count for buffer/socket operations
+    ## [ bytes:: loaded via perlmod.autoload : not a lexical pragma ]
     my $byte_count = bytes::length($data);
 
     $output->$* .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $byte_count, $data );
@@ -171,8 +171,8 @@ if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,..,.,,,,.,,..,,,,.,,,,,.,.,,,.,,.,,..,,...,..,,...,...,..,,.,.,...,,,.,.,,,
-#CGECD42LKJNSL7JDBIHFOV7GJ7ESYLKITJIGUJGZZQS7MW7ZDQMAETV3TNYP3BJODVU2NJ7B2ZGJU
-#\\\|YO73UUP72FR5DSX3PYUEA7D2KFNRU2KDD6RU24RMAU2JGCTOU5T \ / AMOS7 \ YOURUM ::
-#\[7]YGBOWQSSA4T5J72XJIWP5XNPEECLHFK2K5LRZVKFHOWO53QSV2DY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,,..,,,,,,,.,,,,,,,.,.,.,...,..,,...,..,,...,.,.,,,.,.,.,.,.,
+#SPZBFQOR3A2OWHZ74H6A3HGLNSWU66VASWLTLZK77WVUPIQA7SPNNGZWDZ4W6K5JT5NLPMUHG6AHW
+#\\\|ZQP6G7FKYO6SC4P4KPWFEEK2P3REKNPEBEA66MSZ7ZWELK2ZT7G \ / AMOS7 \ YOURUM ::
+#\[7]QFLHYVUVTT2PU22YWYVMBH654SJ3PPIJXQ7I7VB4KIJ6N7EQMQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,14 +63,15 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
         ? $callback->( $chain_object_id, $event_id )
         : $callback->($chain_object_id);
 
-    ## pure check : no resolve hook here [ see base.dependency.ok_resolve ##
-    ## for the start paths ] -- status checks must never start anything   ##
+    ## pure check : no resolve hook here                                ##
+    ## [ see base.dependency.ok_resolve for the start paths ] -- status ##
+    ## checks must never start anything                                 ##
     return FALSE if !$callback_ok;
 }
 return TRUE;
 
-#,,,,,.,.,..,,,,,,.,.,,..,,..,,.,,.,.,..,,,..,..,,...,...,..,,...,,,.,.,,,,.,,
-#5SNM36B662SCP35M4CZCQXO5UAFBNJ4GKA6RHMKPE2JGCVMTSXRZVWYS2GUNA2FY6LSF4GCTLR6UU
-#\\\|NLWGJQLALUUC5VHYJADTVLYLUK4KHCT42OA5RVAGL54YJS6DR3Q \ / AMOS7 \ YOURUM ::
-#\[7]NRUUJWRHCANWZO7YMA5KTN6MCRFS4ZT4WEL7ROYJWH5UXH7ODUDQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,,..,.,,,.,,,,..,,,,,,..,,,.,..,,...,.,.,..,,,..,.,.,,,.,,,.,
+#24U5YIUHP5OU4I7QQQZNTWLL7G7BSVBCPG6JKXHWXEL2Y4SSPDDNWRVIXIY3XQOSCKWJ5FR472MC4
+#\\\|ILIKGIVN2OLGXLCIG6ZTB32GVDKRBFVDSESSDYLCSJ2ZUB22EYU \ / AMOS7 \ YOURUM ::
+#\[7]4I55UIUQQDIIY55XEB355ZQY3P43PRCM7BMZDKGMHYDVXZZZYGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

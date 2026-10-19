@@ -5,12 +5,12 @@
 # descr = remove all subs a perl module file defines from the symbol table
 
 ## called before Module::Refresh->refresh_module so the re-execution of the ##
-## file does not collide with its previous definitions [ which perl reports ##
-## as 'subroutine redefined' warnings ]. the %DB::sub entries for the file  ##
-## are removed as well : otherwise unload_subs would do an undef+delete on  ##
-## them that leaves reinstalled subs uncallable on perl >= 5.38.            ##
-## mro::method_changed_in flushes perl's stash caches after the direct      ##
-## symbol table changes [ same as constant.pm does ]                        ##
+## file does not collide with its previous definitions                      ##
+## [ which perl reports as 'subroutine redefined' warnings ]. the %DB::sub  ##
+## entries for the file are removed as well : otherwise unload_subs would   ##
+## do an undef+delete on them that leaves reinstalled subs uncallable on    ##
+## perl >= 5.38.  mro::method_changed_in flushes perl's stash caches after  ##
+## the direct symbol table changes [ same as constant.pm does ]             ##
 
 my $file_path = shift // '';
 return FALSE if not length $file_path;
@@ -31,9 +31,9 @@ foreach my $sym ( keys %DB::sub ) {
 }
 
 ## declarations %DB::sub cannot cover : modules compiled before $^P was set ##
-## [ no %DB::sub entries at all ] and 'use constant' subs [ stored as stash ##
-## proxy refs, never tracked ]. over-matching is safe here : deleting a     ##
-## non-existent stash entry is a no-op                                      ##
+## [ no %DB::sub entries at all ] and 'use constant' subs                   ##
+## [ stored as stash proxy refs, never tracked ]. over-matching is safe     ##
+## here : deleting a non-existent stash entry is a no-op                    ##
 if ( open my $fh, qw| < |, $file_path ) {
     my $current_pkg = qw| main |;
     my $in_pod      = FALSE;
@@ -72,8 +72,8 @@ foreach my $pkg_name ( keys %pkg_touched ) {
 
 return TRUE;    ## true ##
 
-#,,..,,,,,...,.,,,,..,,.,,,,.,,.,,.,,,,..,,..,..,,...,...,.,.,,.,,,,.,...,...,
-#YIEHGNFC5VGR3SA5H47BRSUNHOA3CLXBPVZ4UWNNMLUC4SEVLB2HKNUKMEBTUZ2DLFAO43XNQMF64
-#\\\|ZJEFRRJVDGZ57O2V67J62553KEATER6AQIZB4MLKFLJ7IQI7UYQ \ / AMOS7 \ YOURUM ::
-#\[7]3674FAEHRPNKQE3RXOEQA5GNGHAYGDPGRFZCYS5EY2O43QC66UBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,..,,.,,,,.,,.,.,.,.,,,,,,,.,..,,...,..,,,,,,,,,,.,.,,.,,,,,,
+#EQE2IKKICWWJJNKXKND5OXI4V6VCGO7LNHLY4QBP5IZB7ISOB73HGUEAP7QINYTNAS4H7AYZGYDXK
+#\\\|YPALJMQ4YHAQ76RROS7Y2YGM6QDDYJY75AE4U4TZYD3Q2VCAMF2 \ / AMOS7 \ YOURUM ::
+#\[7]QVUMMJ2OQAPOJCZRVWGGZLWCJ7BMDULJQCOTDAV7V2HZ656CPUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,10 +27,10 @@ my $id      = $event->w->data;
 my $session = $data{'session'}{$id};
 my $input   = \$session->{'buffer'}->{'input'};
 
-## auth-keypair binding [ data/md/design/AUTH-LINK-BINDING.md ] : on a     ##
-## binding-PENDING session every failure disconnects [ never a fallback to ##
-## state 1 ] and drops the single-use server nonce with the rest of the    ##
-## binding material                                                        ##
+## auth-keypair binding [ data/md/design/AUTH-LINK-BINDING.md ] : on a   ##
+## binding-PENDING session every failure disconnects                     ##
+## [ never a fallback to state 1 ] and drops the single-use server nonce ##
+## with the rest of the binding material                                 ##
 my $pending = ( $session->{'link_binding'} // '' ) eq qw| pending |;
 
 my $drop_binding = sub {
@@ -319,8 +319,8 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
 1;
 
-#,,,.,.,.,,,.,,,,,,,.,,,,,,..,,,.,,..,..,,,,.,..,,...,...,,,,,..,,.,,,,..,,,.,
-#I24HOLH76C4NWJLHTPVC2FQZQVKEU3PNR5K5GBHPYSAVEXT2M56ZUXA5ZNP6A5JB4LS45SAIYD2ZO
-#\\\|LM5SKMNDMKO75N6ISBTO4VYCFHATDRY37WR7ROG6ON3GPCJ4UMJ \ / AMOS7 \ YOURUM ::
-#\[7]GWZ5KX3LADO5OFAMABOEBAWYHZ3NCNMVFKGFPQ675EI5VUK7A4DA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,...,.,.,.,,,,,.,,,,,,.,,.,,,,..,..,,...,...,.,.,.,.,,,.,...,.,.,
+#BWWVDXL2Z7YWLVY4XY25JR2UZ6XUOY7PHFAOP2AYAWYDCF34C2KX6725ML6E7QP2YUJSYVFCOGZ26
+#\\\|DBTQNLJ3QH3ZNZKN3WW453LTD57RB7YLCILPXX3PPRCLFRAD426 \ / AMOS7 \ YOURUM ::
+#\[7]MQ5SINOW2KHXBVGNSEXSOSIFGWWXND7V3CO5AILD6UV4Z2S2EACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,14 +5,15 @@
 # descr = run external command, kill + return undef on timeout
 
 ## synchronous drop-in for system()/qx() style calls to external tools that ##
-## can wedge [ eg. driver-dependent commands like xrandr, nvidia-smi,       ##
-## intel_gpu_top ] - caller still blocks until the command finishes or the  ##
-## timeout fires, but a hung child gets killed instead of freezing the      ##
-## whole zenka indefinitely. built on select() + base.s_read [ same         ##
-## non-blocking read primitive coding.handler.  http_io uses ] rather than  ##
-## alarm() - no signal-handler fragility, no interaction with any other     ##
-## alarm() in the same process. caller must autoload IPC::Open3 itself [    ##
-## not done here, avoid loading it unused ]                                 ##
+## can wedge                                                                ##
+## [ eg. driver-dependent commands like xrandr, nvidia-smi, intel_gpu_top ] ##
+## - caller still blocks until the command finishes or the timeout fires,   ##
+## but a hung child gets killed instead of freezing the whole zenka         ##
+## indefinitely. built on select() + base.s_read                            ##
+## [ same non-blocking read primitive coding.handler.  http_io uses ]       ##
+## rather than alarm() - no signal-handler fragility, no interaction with   ##
+## any other alarm() in the same process. caller must autoload IPC::Open3   ##
+## itself [ not done here, avoid loading it unused ]                        ##
 
 my ( $timeout, $cmd ) = @_;
 $timeout //= 7;
@@ -75,8 +76,8 @@ close($err_fh) if defined $err_fh and defined fileno($err_fh);
 
 return $eof ? $buffer : undef;
 
-#,,.,,,.,,,..,,,,,,.,,,,.,..,,..,,,.,,,.,,.,.,..,,...,...,..,,..,,.,.,...,,,.,
-#BTJUPUZQ4OAK6RMPW6QFHGXLPETIB334QBGYLCDRVVD5XA2ORQMFZXMRH2EAPZVTXVFBJTE5PNK4M
-#\\\|FC27BYTOBRX6VLJWLHFUYGX3HVMBJBVZEEVT45RB7YK5ANDYDKG \ / AMOS7 \ YOURUM ::
-#\[7]IH6KKQRRS5DITBDXS3DMYTCAOLPB6QGLYFXP5QSXWNUVU3HQF2DQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,.,...,.,,,.,.,..,,,.,,,..,...,..,,...,...,...,,.,,,,,,,,.,,,,,
+#2NXVIEKYRYGNOCEN5DIBHGKHCTUEYAJJIU2SMFKZMJY73UBFDAEBBE2M7HZM4FN3BVMOSYXTMDPP4
+#\\\|NQYS3MAM37JFQRKAMUCATVEBFCS62QEORWO2R6OKVJFPOFWRRAT \ / AMOS7 \ YOURUM ::
+#\[7]QWC4SNLJRX6JESR33IIXYYKGNVVIQ2E2OE4MCS7Z3TDXALSOKADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

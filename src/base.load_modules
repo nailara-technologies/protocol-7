@@ -53,8 +53,8 @@ my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@modules_to_load);
 ## plugin.* names listed in modules.load [ storage, universal ] must land  ##
 ## in the same registry base.load_plugins fills : 'reload source' skips    ##
 ## plugin.* by design and 'reload plugins' only walks <plugins.status>, so ##
-## without this no reload ever recompiled them [ while both reported       ##
-## success ]                                                               ##
+## without this no reload ever recompiled them                             ##
+## [ while both reported success ]                                         ##
 map { <plugins.status>->{$ARG} //= {} }
     grep {m|^plugin\.|} @modules_to_load;
 
@@ -68,8 +68,8 @@ return TRUE if not $subs_failed and $subs_ok;
 
 return FALSE;
 
-#,,,.,,,,,.,,,.,,,,.,,.,.,.,,,...,,,,,..,,,,.,..,,...,...,,..,.,.,,..,,.,,..,,
-#4YA7F6KIY5EQAOHALKZ6WIYUJ4MAWEBNQGCG2JTCPH2OPWLFAZPPISH4GYHSNCKJIDBA63HS243OC
-#\\\|V2MEF6O4UXM3VIXXGB3PVCKUL34LUNXPGUHBOAN2E5GPDONVAI7 \ / AMOS7 \ YOURUM ::
-#\[7]ITY3ANDGSJXJI6CDMJERZ3EEF4JXBC2T7QT64BKUQCZOBP3PZ4AY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,...,,.,,..,,..,,,,,,,..,.,,,.,.,..,,...,...,.,.,.,.,...,.,.,,,,,
+#RLC3U6Z33GGLIGRU5EJA3ADIOLVOULNGPX2FFVRZUZQDLU6NGSOILDGTEPXZMAEHFQ4P4KCOUE5D2
+#\\\|AUYWUHPMIGPADXNIDERBQPPPWA4HMX6URUUTVPI6C3XNQDQQDTX \ / AMOS7 \ YOURUM ::
+#\[7]VLN7MCVPXKYYRF2S77PBCJWBO3YKG7NULK2XVXPJ3QYAULBMXKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

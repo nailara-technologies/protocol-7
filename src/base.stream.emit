@@ -55,10 +55,10 @@ if ( $mode =~ m,^(?:TRUE|FALSE|WAIT|GET|TERM)$, ) {
     ## confirmed live 2026-09-14 : coding.dump [ base.devmod.dump_var's     ##
     ## Dumper output, routed through this single-frame emitter since it's a ##
     ## LOCAL command reply, never process_reply's relay path ] permanently  ##
-    ## paused nshell's own read handler [ 'input handler paused [ buffer    ##
-    ## full ]' ] against a 242707-byte size.buffer.input.  sibling fix to   ##
-    ## process_reply's STRM-SIZE relay path, which already honors the same  ##
-    ## flag for replies forwarded from a routed target                      ##
+    ## paused nshell's own read handler [ 'input handler paused             ##
+    ## [ buffer full ]' ] against a 242707-byte size.buffer.input.  sibling ##
+    ## fix to process_reply's STRM-SIZE relay path, which already honors    ##
+    ## the same flag for replies forwarded from a routed target             ##
     if ( $session->{'strm_size_support'} and $count > <size.buffer.input> ) {
         my $chunk_size = 8192;
         my $frame_out  = sprintf "%sSTRM-SIZE open %d\n", $cmd_id_str, $count;
@@ -100,8 +100,8 @@ $session->{'buffer'}->{'output'} .= $frame;
 
 return $written;
 
-#,,,.,,.,,.,,,,,.,..,,,..,,,,,,,,,,,.,.,,,.,.,..,,...,...,.,.,..,,...,,,,,,,.,
-#SXOQ7EZYWP2AZX3MYMJ7V3P52VHZ5SUIJWORTIUM6LNNEWV6ARMI7S4IP6EHU4ZMF4DLO4OHCGSWG
-#\\\|ULXDBIJXEOZQHEO3AWBMISGWUPGUMXK2VM3VNYK6Q5UF2N6ZHDR \ / AMOS7 \ YOURUM ::
-#\[7]BMEJNNU5EFABN7KSQX3VWEK6XI2UUV3KU6Z3H2YNQA4QIPWUJCDY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,.,.,...,.,,,,,.,..,,,.,,.,,,..,,...,...,.,.,,,,,,..,..,,,.,,
+#5DPDVKRURZYPHKDVRFVCUNGSWY3L3OHKERVK7Q33CPUKBOWWHDN2XXAXNVTQZIKIY73D5WLQIAKIC
+#\\\|HQM4Z4MYWHU6DDMUAOYNN74ZILFWASAQDNHCQRRL42SJ5RQPZ2I \ / AMOS7 \ YOURUM ::
+#\[7]UAVZFNSTPZNMDNRSDEFJ5NNJ4JIHVFHPGODNQNF2JPZJQDNHQSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

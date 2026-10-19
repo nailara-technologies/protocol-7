@@ -13,11 +13,11 @@ my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 ##  bypass whitelist : deferred stubs are for non-whitelisted modules  ##
 <[base.load_runtime_modules]>->($sub_name);
 
-## self-heal swapped-namespace aliases : if $sub_name was moved by          ##
-## swap_subs before this stub ever got compiled [ e.g. base.base32.* ->     ##
-## base32.* ], the short-name key still holds this very stub and would      ##
-## recompile from scratch on every future call -- copy the freshly compiled ##
-## sub there too so it stops re-entering here                               ##
+## self-heal swapped-namespace aliases : if $sub_name was moved by         ##
+## swap_subs before this stub ever got compiled                            ##
+## [ e.g. base.base32.* -> base32.* ], the short-name key still holds this ##
+## very stub and would recompile from scratch on every future call -- copy ##
+## the freshly compiled sub there too so it stops re-entering here         ##
 if ( ref $code{$sub_name} eq qw| CODE | ) {
     delete $data{'code'}{$sub_name}{'deferred_stub'};    ## real code now ##
     my $moved_to = $data{'code'}{$sub_name}{'moved_to'};
@@ -56,8 +56,8 @@ $code{$sub_name} = eval(                         ##
 
 <[base.logs]>->( 0, '..: deferred compile failed [ %s ]', $sub_name );
 
-#,,,,,...,,,.,,..,,..,,,,,,..,,..,.,.,..,,..,,..,,...,...,,,.,,.,,.,,,,..,...,
-#BZ45AGCOW7JDDDQZ76LP3R4J4RPS4YQ7Q2NADKOHI6GCLWIKGWRBYSUFLFSI3KPAZ6DAGBXDZCFXU
-#\\\|ZYRRMIXKYWNZIWGB5L6W45DMZY6SOVRVCEFXZKDT5JMHP5OMUG5 \ / AMOS7 \ YOURUM ::
-#\[7]GXRJYBZXYXZQT3TWAJ7EGSOTRNV63ZMKMURUXD2TPRBH56WJ7CDI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,...,,,.,..,,,..,..,,.,.,.,,,.,,,..,,...,..,,,,,,...,...,,..,...,
+#TSCZR5RXC22LBOQBIAFHUKCAVK5LMATKNPEUKCSQUHAGKU5DXHUULVYWCP3PGX2UEQXQGC4M4ZSYU
+#\\\|WICTOO2Y33C6N2DFH5Q2D4YZWUFO4VD4MGJIPSXSLW5UM5ODPRI \ / AMOS7 \ YOURUM ::
+#\[7]LNARF42RZT5WAV23DXSFWWS5H6OPF7SDEL43PNZAZ4JNM3XLF2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

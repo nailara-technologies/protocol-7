@@ -7,12 +7,12 @@
 #         every console command keys.console.* registered [ a zenka that
 #         loads keys for its code, not for its commands -- host-edit ]
 
-## the console twin of base.disable_command : removes the command from     ##
-## <base.console> [ name -> handler, what base.call.console_command        ##
-## dispatches by ] and from <base.commands>->{'console'} [ the 'commands'  ##
-## listing ]. the handler's CODE is kept -- other modules may call it      ##
-## directly [ bin/Protocol-7 keeps disabled cmd subs compiled for the same ##
-## reason ].                                                               ##
+## the console twin of base.disable_command : removes the command from      ##
+## <base.console>                                                           ##
+## [ name -> handler, what base.call.console_command dispatches by ] and    ##
+## from <base.commands>->{'console'} [ the 'commands' listing ]. the        ##
+## handler's CODE is kept -- other modules may call it directly             ##
+## [ bin/Protocol-7 keeps disabled cmd subs compiled for the same reason ]. ##
 
 my @requested = grep { defined $ARG and length $ARG } @ARG;
 
@@ -52,8 +52,8 @@ foreach my $request (@requested) {
 
 return $removed;
 
-#,,..,.,,,,,,,,,.,..,,.,,,,,,,.,,,...,,..,,.,,..,,...,...,...,,.,,...,.,.,.,.,
-#CFCSNFE6AESWQVX63IQADXUQVESFBXC5TUFNUKSHO7VRWPIMDX2ZHVFPBKL5WC6YGPQSEHDHNMYDA
-#\\\|DDAUCQ65SCYBSOQDIEN2K525ZNT5QI4K3TXXLDQPT53VY3SZM7M \ / AMOS7 \ YOURUM ::
-#\[7]K6IVCECFTHWWHM5ZM6WZRTNQQL7MBHR4R22KBKW6I2YXENYZAACA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,.,,,,..,...,...,,..,...,..,,..,,...,...,..,,..,,..,,,..,,..,
+#6B7IATCXUWRVFSXKY37CBRN7VNGBYKJ2LH7YW7Y3ERL6YUG4FC45KUB7YZSZSVBYIO45JOTDBVKP4
+#\\\|7HT3GHUQ4HB6DCFPZN3A626633F5BV2RKFKKZ7PRCSZ5FWZJTYJ \ / AMOS7 \ YOURUM ::
+#\[7]TFORJOO3T26FQZLZ6NGMRPYOMNEGDVPOPL3IW2H2YXX7A4SNLUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

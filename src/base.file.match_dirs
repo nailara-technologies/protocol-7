@@ -49,13 +49,14 @@ if ( not defined $regex_aref ) {
     my @file_table = map {
         my $key = $ARG // '';
         $key =~ s|\.|\\.|g;
-        ## single '*' must exclude the path separator [ don't cross into a ##
-        ## subdirectory ], NOT the dot -- this codebase names things with  ##
-        ## dots as the primary namespace separator [ amos-term.cmd.foo ],  ##
-        ## so excluding dots silently matched only the minority of dotless ##
-        ## names. found live 2026-09-10 chasing an incomplete signing pass ##
-        ## on data/src-review/*/review.md : every dotted module name was   ##
-        ## silently excluded, not a source_path_set_up pattern problem.    ##
+        ## single '*' must exclude the path separator                   ##
+        ## [ don't cross into a subdirectory ], NOT the dot -- this     ##
+        ## codebase names things with dots as the primary namespace     ##
+        ## separator [ amos-term.cmd.foo ], so excluding dots silently  ##
+        ## matched only the minority of dotless names. found live       ##
+        ## 2026-09-10 chasing an incomplete signing pass on             ##
+        ## data/src-review/*/review.md : every dotted module name was   ##
+        ## silently excluded, not a source_path_set_up pattern problem. ##
         $key =~ s{(\*\*|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^/]*' : '.*' }ge;
 
         ( my $reg_ex, my $regex_err_str ) = <[base.eval.comp_regex]>->($key);
@@ -117,8 +118,8 @@ if ( not $recursion_entered ) {
     }
 }
 
-#,,,.,,..,..,,...,..,,,.,,,,,,,.,,..,,,.,,.,,,..,,...,...,...,..,,.,.,.,,,,,,,
-#VBVMSUQDHYYJR4R7WS3E64UQXKFCQIPIVOLKXKI4CGVTPFZKFVU2KBCXFIEB5K2AD6JFB4BLN5YI6
-#\\\|CAW4IZ4SPYD2JJA2H6TCNGAGKCQ2LKJCYADCWDUWGZKULWHUMKJ \ / AMOS7 \ YOURUM ::
-#\[7]HUIYWPVVFS6ISQYTEI5JBM5JX22SMTWYGDLEY73PI4CLIYPSAWAA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,...,...,,..,.,,,,.,,,,.,,.,,..,,...,..,,..,,,,,,.,.,..,,,,,,
+#5WPQ53JNEZQXGHUE5ZPR326GUVX2Q3AMXHQKXIHWTWXII6UOS2WLRXAK5L5S7SX73Y7YMZR4GJQMA
+#\\\|ZWX4G6C63NCJPSQSRJSB6GCSQBHCXT3GELD6DVAAGB5MIRLGMEN \ / AMOS7 \ YOURUM ::
+#\[7]ZWCWAMKHHI5K2Z2XRJWNEQC73YXY7HTG5XHITNFLZC5POVZLWQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

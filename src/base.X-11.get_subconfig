@@ -20,8 +20,8 @@ my $cube_fh = $data{'session'}{$local_sid}{'handle'};
     $cube_fh, "($cmd_id)tile.get_subconfig $name_str\n"
 );
 
-## bounded wait for the reply : tile answers this immediately when alive [  ##
-## from its own <tile.subconfig> ], so silence here means tile is offline   ##
+## bounded wait for the reply : tile answers this immediately when alive    ##
+## [ from its own <tile.subconfig> ], so silence here means tile is offline ##
 ## or stuck. without the timeout the readline blocks the event loop forever ##
 ## -> zenka start-up timeout. on timeout return undef so the caller falls   ##
 ## back to defaults. each received line re-arms the wait. configurable.     ##
@@ -91,8 +91,8 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     return undef;
 }
 
-#,,.,,.,,,...,..,,...,,.,,..,,...,..,,,,.,.,.,..,,...,...,,,,,,..,,,.,...,,..,
-#UG4Z5KCPO6TCPZ564DEKZVHZ62OHWP3E422DJCXZBKUC7IQOSJZCLOAEGURRW6RW2YN4I543SHXLU
-#\\\|HQCDA36R5ECQLPLH5DBNUK7W2DV3K7EI6V6YTT3BCTSVVRBD7UC \ / AMOS7 \ YOURUM ::
-#\[7]VOE6YEXWHUV7LMHFQZ5R3BN7I6ZWH2KEL52PKFDOCU2BC53L3MCA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,,,,.,,...,..,,,..,,,.,.,,,,.,,..,,...,...,,.,,.,,,,,.,..,,,.,,
+#3SZ545CQ4W5SF6XFCF7PK5B2E7YCKOKEDYCSEGAREJI2J5RO6OLDRHCVYMRNZO2J2RWWBGJCNAXU4
+#\\\|WKYNWELE5FZWNWDJRS5KRUUPE5KRONWTXQ34SLZDVGONDWTZ6YE \ / AMOS7 \ YOURUM ::
+#\[7]2D4UNLBI5KFFBW5IUEOBZCFZQAQXD3W777FE2DU5C5UGKTQTNICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
