@@ -26,9 +26,9 @@ return { 'rendered' => '', 'row_keys' => [] }
 
 ## collapsed preview once the list would otherwise crowd the card -- same
 ## problem user-edit's user_keys field solves with a windowed count, adapted
-## here as a plain threshold since this field has no per-row navigation of
-## its own to window against [ per the user-edit comparison's collapsed-
-## preview item, data/tasks/credential-fabric-ui-interactive.md ]
+## here as a plain threshold since this field has no per-row navigation of its
+## own to window against [ per the user-edit comparison's collapsed-preview
+## item, data/tasks/credential-fabric-ui-interactive.md ]
 state $preview_threshold = 4;
 
 my $subs      = $data->{'subscribers'} // [];
@@ -37,7 +37,7 @@ my $sub_count = scalar @$subs;
 my $subscribers_str
     = $sub_count == 0                  ? qw| none |
     : $sub_count <= $preview_threshold ? join( ', ', sort @$subs )
-    :                                     sprintf( ':..%d.entries..:', $sub_count );
+    :   sprintf( ':..%d.entries..:', $sub_count );
 
 my %values = (
     SLOT_NAME        => $data->{'slot'},
@@ -62,8 +62,8 @@ return {
     'row_keys' => []
 };
 
-#,,..,,,.,,,,,..,,,,.,,,.,,,,,,..,..,,,.,,.,.,..,,...,...,...,.,,,...,..,,.,,,
-#5IAJMVJN5XWFJHMO4TLDUFN3BPUQIZOCYX2GXWIEX73TGBPLIDT4IHPTEZW4TSNCU6KZV6A5GDSEW
-#\\\|NNOQPUPNV5RIXIYWDTQAINJF54AM7UCR24XAWOO6GAAHXPLHPXV \ / AMOS7 \ YOURUM ::
-#\[7]2CL43HCG5YCB56ITT7253ZKFC72NVM4T24AF27FSH6JNKMWLDCAY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,.,.,,,.,,,,,..,,,.,,..,,...,..,,...,...,.,.,,.,,.,.,,,.,,..,
+#LOLCHZI4V4LZBI3N5IFWUMNRAOMSGY6VGE6JREGWTJI72SCBI5IA37F7EX75TL63IG7OR7YYNULSK
+#\\\|6YCX5I76LAUWIDMPW2CUCXPAPRKA4PQFM76F66O2YYVMOB35DSL \ / AMOS7 \ YOURUM ::
+#\[7]ZOH567PIQFQHFXVRVM2YXJH3GX3TXYT2JCEHSTNHPAWKGJEM7CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,8 +21,7 @@ if ( $status eq qw| valid | ) {
     or $status eq qw| deactivated |
     or $status eq qw| expired |
     or $status eq qw| revoked | ) {
-    my ($error)
-        = grep {defined}
+    my ($error) = grep {defined}
         map { $ARG->{'error'} } ( $body->{'challenges'} // [] )->@*;
     return <[letsencr.child.acme.fail]>->(
         $order->{'order_id'},
@@ -42,8 +41,8 @@ return <[letsencr.child.acme.step_poll_authz]>->(
     $order->{'order_id'}, qw| next |
 );
 
-#,,,.,,.,,,..,,,.,.,.,,,,,,.,,,..,..,,...,,,.,..,,...,...,..,,,,.,,..,,,,,.,.,
-#5KR2M6I3P7I3ZCPD65O3IWN7EFULMTT54HTDEDQ6HVD5UHBML5LKGPCUJN77LAG7VUAHRR5PKF3YE
-#\\\|4H45QO2LXFQ42K3LIEFFBQIZJ3CVXTDLBZK5M74XQRYUUX3VXT2 \ / AMOS7 \ YOURUM ::
-#\[7]HAKTGYRWFE4BLQQXWAC2NVEPZNJ3WAYYMCYSEUE5JMXCD7GAGWBY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,,,,,.,,,.,,,,.,,...,,,.,...,..,,...,...,.,.,,,,,.,,,..,,,..,
+#PXJUIOVDJ5TVLC3TAFDT3BERW2XFSJ3WNG45GWMR4GXG2PMKAMEJXEETMTZC7SL5MKRYVAJA6ERHQ
+#\\\|EWIS5G2R6VGVUD4FX6OH3MENXA4STAXFAFKEWQIR6KGCHZQVZQF \ / AMOS7 \ YOURUM ::
+#\[7]NV4C4IERPKJJBMRWNKPLAMIDCGYQR5ITS2M36AH2PK6SLPPFKACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

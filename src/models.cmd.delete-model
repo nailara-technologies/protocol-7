@@ -128,15 +128,16 @@ unless ( rename( $real_file, $new_file_path ) ) {
     };
 }
 
-## write the sidecar IMMEDIATELY once the file has actually moved -- ANY  ##
-## failure past this point [ mmproj rename, the sidecar write itself, a   ##
-## crash from an undefined sub, whatever ] must never leave a moved file  ##
-## with no recorded original path : trash-list/trash-rescue both key off  ##
-## this file existing, and a file sitting in trash with nothing pointing  ##
-## back to where it came from is effectively lost. confirmed live         ##
-## 2026-09-20 : an undefined-sub crash [ format.yaml not loaded in this   ##
-## zenka yet ] hit the OLD code's post-rename, pre-sidecar gap exactly -- ##
-## recovered by hand, but should never have been possible                 ##
+## write the sidecar IMMEDIATELY once the file has actually moved -- ANY ##
+## failure past this point [ mmproj rename, the sidecar write itself, a  ##
+## crash from an undefined sub, whatever ] must never leave a moved file ##
+## with no recorded original path : trash-list/trash-rescue both key off ##
+## this file existing, and a file sitting in trash with nothing pointing ##
+## back to where it came from is effectively lost. confirmed live        ##
+## 2026-09-20 : an undefined-sub crash                                   ##
+## [ format.yaml not loaded in this zenka yet ] hit the OLD code's       ##
+## post-rename, pre-sidecar gap exactly -- recovered by hand, but should ##
+## never have been possible                                              ##
 my $meta = {
     'checksum'             => $checksum,
     'name'                 => $entry->{'name'} // '',
@@ -213,8 +214,8 @@ return {
         . "with: models.trash-rescue $checksum\n"
 };
 
-#,,,.,,,,,..,,..,,..,,,.,,,,.,.,.,..,,,,,,,,,,..,,...,.,.,...,,,.,..,,...,.,,,
-#OBOES37PSRSIQJVYFXCSPCWSFJ7SSIWIDPDZ6VRCWKZTQHKU4GHLMYMOSHT33CTFYV4UDTUZIJ2YQ
-#\\\|IT3545KTTYIBUFF6GVOUFGSYDKMGJ2QTVTYGMFJ6NIVDWM2XSFY \ / AMOS7 \ YOURUM ::
-#\[7]IQAO4GZ6F3E3UPBKZG7UN5MOENH7LGUI6V4TRBG5VXSEUYCIR6DY 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,,..,,,.,..,,.,,,,,,,.,.,.,,,..,,...,...,,.,,,..,...,,,,,...,
+#JDY5CDLJWYE3RS2PJRLTZUAEF7GSL3DNUH2CFL76W6C66MFQQX6C6W6GGN7LIGWD4UD472NSJSTGY
+#\\\|DIEQD2TS7SHTQ2WNMCB2FFYXXQBQEPEXIGTYJPQWPP72QRVF3YC \ / AMOS7 \ YOURUM ::
+#\[7]KPVFADS277ZKUEG45TLFPYC5PXRXAAYUY2C7WE2NMNHEL7AMJYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

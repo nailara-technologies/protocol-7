@@ -52,10 +52,11 @@ if ( <mpv.pending_commands> and <mpv.pending_commands>->@* ) {
     <[base.s_write]>->( <mpv.socket>, $ARG ) foreach $pending->@*;
 }
 
-## window-id is mpv's own ipc property [ null until the real window opens,
-## vo-dependent ] - subscribe instead of firing fade_in/geometry here
-## synchronously; mpv.handler.event.property-change.window-id does both once a
-## real id arrives, async, no X-11 title-matching involved
+## window-id is mpv's own ipc property
+## [ null until the real window opens, vo-dependent ] - subscribe instead of
+## firing fade_in/geometry here synchronously;
+## mpv.handler.event.property-change.window-id does both once a real id
+## arrives, async, no X-11 title-matching involved
 <[mpv.send_command]>->( qw| observe_property |, 1, qw| window-id | )
     if not <mpv.audio_only> and ( <mpv.fade_in> or defined <mpv.geometry> );
 
@@ -64,8 +65,8 @@ if ( <mpv.pending_commands> and <mpv.pending_commands>->@* ) {
 ## release finalize job — observe_properties + get_playlist run from there ##
 <[jobqueue.check_dependencies]>;
 
-#,,.,,...,..,,,,,,...,,,,,,.,,.,,,,,,,...,..,,.,.,...,...,..,,..,,,,.,.,,,.,,,
-#UQQR5YKWHZD5KFJVPTH4XDQMERC3N64FWXZ4JGPYGGJ2XCYYHEB6YABARH2I6RZYCSWG4AWK6BGR2
-#\\\|UROVFYMEUWPD4WNKHADR47TBWF3GSK5RAAPL5FQT3ONQ45PGBNB \ / AMOS7 \ YOURUM ::
-#\[7]RHRB64PJLDBI3VRRXFGATT52LRTQ5BBHXVLSCBW2BBIHFW7H4MBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,..,,,,.,,.,,.,,,,.,,...,.,.,.,.,.,.,...,...,,,,,,,,,,.,,,..,,..,
+#6F6PFOIDYX3BWMBYITV5NGNQHJMIYNVPV2NMEXP2QENMLG3TOX3IO5XLVWP3QKL5LIW2XNALT7YMW
+#\\\|BJORGCHCMO7L656XC4Y7FJMZC6HQ6MJNSKNEWI2WG32V45FIPC6 \ / AMOS7 \ YOURUM ::
+#\[7]4NCZYPOJZ6VH45YYPEUQ633R6OFKVDTI3DWIBCC3MHPB5QPBX2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

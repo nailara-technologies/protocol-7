@@ -80,9 +80,9 @@ if ( not defined $nonce or not length $nonce ) {
     return TRUE;    ## the request continues from the nonce reply ##
 }
 
-## a nonce is single use : consume it now. a request lost without a reply [ ##
-## no replay-nonce came back ] then fetches a fresh one, instead of         ##
-## resending this one into a certain badNonce                               ##
+## a nonce is single use : consume it now. a request lost without a reply ##
+## [ no replay-nonce came back ] then fetches a fresh one, instead of     ##
+## resending this one into a certain badNonce                             ##
 delete $order->{'nonce'} if ref $order eq qw| HASH |;
 delete <letsencr.child.acme_client>->{'nonce'};
 
@@ -117,8 +117,8 @@ if ( $method eq qw| POST | ) {
 
 return TRUE;
 
-#,,,.,...,...,..,,,,.,,.,,,..,..,,.,,,.,.,.,,,..,,...,...,.,,,.,,,.,,,,,.,,,,,
-#EZIYC4UQJMU47B4DVRVCCJ5NVPF7UOLQDCH6XK4ILQIY462SR6URWX5VUPZZXU3GN6ND5CZDVT5MC
-#\\\|GJ2K35KTXJBF3VGNUHJ5WJF6LCLETOO6UPYOQTP7RCPMMH6PAED \ / AMOS7 \ YOURUM ::
-#\[7]BVWGQTZA2OPQKPPWMIGZ2C7XBKXZWJRB37PCFIMXMAXNYBC562DI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,,..,,,.,,..,,.,,.,,,,.,,,,,,..,,...,...,,.,,...,..,,,,,,,,,,
+#GIEPFZZIAKKO24AGGMFCZM3XQOQS4W6XLRN7L7QVNFYUZN424JY7OXI44V57JGB2UZO3IN32YWJBC
+#\\\|BP265UTSZNZRVUIE23X53X72NMLKHLPW3DMMQCQP2JCUNRY4QAI \ / AMOS7 \ YOURUM ::
+#\[7]IJ2C2VHLTCYU5ZJJ6Q6V3KSGCQUKY2DI7N6B2CSQ4TUIDN25PKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

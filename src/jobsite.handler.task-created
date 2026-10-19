@@ -13,10 +13,10 @@ my $attempt  = $call->{'params'}{'attempt'}                      // 0;
 my $cur_attt = ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0;
 
 if ( $attempt and $attempt != $cur_attt ) {
-    ## stale reply : the watchdog already gave up on this attempt and       ##
-    ## either requeued the job or moved on -- ignore, do NOT touch          ##
-    ## pending_count [ already released by the timeout ] or re-dispatch [ a ##
-    ## newer attempt, if any, already owns the queue ]                      ##
+    ## stale reply : the watchdog already gave up on this attempt and   ##
+    ## either requeued the job or moved on -- ignore, do NOT touch      ##
+    ## pending_count [ already released by the timeout ] or re-dispatch ##
+    ## [ a newer attempt, if any, already owns the queue ]              ##
     <[base.logs]>->(
         1,
         'jss.task-created: stale reply for job '
@@ -74,8 +74,8 @@ my %protected_stage
     }
 );
 
-#,,.,,...,.,,,,.,,,,,,,,,,,.,,,..,..,,..,,.,.,..,,...,...,,,.,.,.,,..,,..,,..,
-#CLN6NCWUBKYIB35OURGSRROGTG32UMDUNGB2KKSLUM3AS2UIKZ7VM3LBWNM66MZIPAE5F3NAU6T46
-#\\\|2YYBM5TSRH5XX4DH5NTWGR3NFGHBHSWWLJIAU7PCAGZHTKGAGCD \ / AMOS7 \ YOURUM ::
-#\[7]VKUYN2ESULUQ6S2TZ56IZQQPDJQM23O2I5X3C56TYKQNRHEUJQBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,,.,,..,,..,,..,...,..,,,.,,..,,...,...,.,.,,,.,,..,,..,.,,,
+#QR2CWAJLCO4CJDA2T4FN7NZVVV7IA4E4QY5FKEN6MLMRGXBPRRXYSTHNJT2YFJ7USKVR75SUGZ46W
+#\\\|FX76OXFOY3EMTGLKTXXA5FNBVLU6F73YNYLRXJPGFEZXIUIF4YL \ / AMOS7 \ YOURUM ::
+#\[7]BPHGFX55PUTYGK4VJAUPJ6AJYSVSP6P55VJ67JOHYTFFV5AP6MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

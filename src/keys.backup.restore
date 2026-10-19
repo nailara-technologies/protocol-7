@@ -20,8 +20,8 @@ if ( $type !~ m{^(secret|private|public)$} ) {
 }
 
 ## root-held key : only root may touch its files [ host-root delegation ] ##
-## the resolved key dir is root/ then, backups stay inside it [ rename    ##
-## keeps owner 0 + modes ]                                                ##
+## the resolved key dir is root/ then, backups stay inside it             ##
+## [ rename keeps owner 0 + modes ]                                       ##
 my $key_path_ref = <[crypt.C25519.key_path]>->($key_name);
 if ( not defined $key_path_ref ) {
     <[base.logs]>->( 0, "key path of '%s' not resolvable", $key_name );
@@ -92,8 +92,8 @@ if ( not rename( $chosen->{'path'}, $live_path ) ) {
 
 return $live_path;
 
-#,,,,,,.,,.,,,.,,,,.,,,,.,..,,...,...,...,...,..,,...,..,,...,,,.,,,.,.,,,...,
-#JMJUWD2H4Y2AMXJE4E2K2U3DMXKT64H76C7EOEIF4MCXPMCUEJHFBUOTBW4H6C2EWD4OPYL57RJYK
-#\\\|LGNLT6QWFFRZZUXPWECTOCQDWXE6CHYNGH7NW26VFQSK6T6ELSE \ / AMOS7 \ YOURUM ::
-#\[7]JKF3TLIN5RCMQMKH2SCIDQPLEOWSQSUPRH3SAQ6F5QK6TRGKPEBA 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,.,.,,,.,.,.,.,.,,,.,,,,,.,.,..,,...,...,,,.,,,.,...,,,.,...,
+#RLVXFBOSFOA7FNXJOLA3ZDVY4QBIHFKQ7EQ7VTSJR3HH3BESIYCURY2IGMFHX5DNKJ4CP7XUEXGWC
+#\\\|7GHK4CRGDAPUQMTKQLJ2YJMPUSCLT4USZCXN2YTHPUBB2BSE27T \ / AMOS7 \ YOURUM ::
+#\[7]EDVPZ3ZZUEMQCKHSWWSMUXXEVUEQ454JIMY2SWH5CD46Y3U4AWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

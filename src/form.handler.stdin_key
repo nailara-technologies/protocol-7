@@ -3,11 +3,11 @@
 # name  = form.handler.stdin_key
 # descr = event.add_io handler : decode keystrokes and drive the form
 
-## fires whenever STDIN is readable [ registered by  form.setup_stdin_watcher
-## ].  never blocks : STDIN is O_NONBLOCK, one sysread per firing, and a
-## partially-arrived escape sequence is simply left in the buffer for the next
-## one [ editor.input.next_key returns undef and consumes nothing in that case
-## ].
+## fires whenever STDIN is readable
+## [ registered by  form.setup_stdin_watcher ].  never blocks : STDIN is
+## O_NONBLOCK, one sysread per firing, and a partially-arrived escape sequence
+## is simply left in the buffer for the next one
+## [ editor.input.next_key returns undef and consumes nothing in that case ].
 ##
 ## this module does NOT render.  every mutation just bumps  <form.dirty>, and
 ## the base.event.add_var watcher on that scalar is what repaints — the same
@@ -61,9 +61,9 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     ## one routed call outstanding [ form.action.send ] : vault-edit's busy
     ## discipline -- EVERY key is dropped while <form.busy> is set except the
     ## unambiguous quit [ ctrl-c ].  a bare Esc never reaches this loop as a
-    ## resolved key [ form.handler.esc_timeout's debounce calls form.escape
-    ## directly ], so an Esc-quit still works while busy without any branch
-    ## for it here
+    ## resolved key
+    ## [ form.handler.esc_timeout's debounce calls form.escape directly ], so
+    ## an Esc-quit still works while busy without any branch for it here
     next if <form.busy> and $key ne "\x03";
 
     ## the FIRST key of a freshly opened card retires the one-shot discovery
@@ -91,9 +91,9 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     }
 
     ## the focused def is resolved BEFORE process_key rather than after, which
-    ## is safe because process_key only ever READS 'active_field' [ line 17,
-    ## never assigned there ] -- no branch of it can move focus under us, so
-    ## the def is the same one either side of the call
+    ## is safe because process_key only ever READS 'active_field'
+    ## [ line 17, never assigned there ] -- no branch of it can move focus
+    ## under us, so the def is the same one either side of the call
     ##
     ## SAMPLED BEFORE process_key, and that ordering is the whole point : on a
     ## field holding one character Delete removes the character, and a check
@@ -108,11 +108,11 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         = <[form.removable_field]>->( $editor_state, $focus_def );
 
     ## an EMPTY interior row of a list that still has OTHER content in it :
-    ## $remove_target above only fires when EVERY row of the field is empty [
-    ## the whole-field removal case ], so a list with mixed empty/filled rows
-    ## falls through it entirely today.  sampled BEFORE process_key for the
-    ## same "one keystroke, two effects" reason $remove_target already is --
-    ## see the Delete branch below  '&&'/'!', not 'and'/'not' : both bind
+    ## $remove_target above only fires when EVERY row of the field is empty
+    ## [ the whole-field removal case ], so a list with mixed empty/filled
+    ## rows falls through it entirely today.  sampled BEFORE process_key for
+    ## the same "one keystroke, two effects" reason $remove_target already is
+    ## -- see the Delete branch below  '&&'/'!', not 'and'/'not' : both bind
     ## LOWER than '=', so '$x = A and B and C' assigns only A and evaluates
     ## B/C for nothing, and 'A && not B' is not the same grouping as 'A && !B'
     ## either -- see MEMORY-feedback.md's own note on this exact trap
@@ -136,20 +136,21 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         ->( $editor_state, $focus_def->{'name'} ) // 0
         : undef;
 
-    ## PLUGIN MODE : once a pinned key's row has been ENTERED [ mode =
-    ## 'plugin:<field>', set by the Tab/Right trigger further below ], EVERY
-    ## key routes DIRECTLY to the plugin's own handler.key, bypassing editor.
-    ## control.process_key entirely : the plugin owns full key handling once
-    ## entered, per design. LeftArrow is not an exception to this any more --
-    ## see its own block just below for why it is still special-cased, but
-    ## only to READ handler.key's return value, never to skip calling it.
-    ## Esc's OWN return path needs no  code HERE : it never reaches this loop
-    ## as a resolved key while ambiguous [ form.handler.esc_timeout's debounce
-    ## ], and once resolved, form.escape's EXISTING generic "leave a sub-mode"
-    ## branch already relabels ANY non-menu:/non-list: mode back to 'insert'
-    ## -- plugin mode never touches the schema, so a bare relabel already IS
-    ## the correct return.  escape.pm DOES need one small addition though --
-    ## see its own note -- for the readonly toggle immediately below
+    ## PLUGIN MODE : once a pinned key's row has been ENTERED
+    ## [ mode = 'plugin:<field>', set by the Tab/Right trigger further below ],
+    ## EVERY key routes DIRECTLY to the plugin's own handler.key, bypassing
+    ## editor.  control.process_key entirely : the plugin owns full key
+    ## handling once entered, per design. LeftArrow is not an exception to
+    ## this any more -- see its own block just below for why it is still
+    ## special-cased, but only to READ handler.key's return value, never to
+    ## skip calling it.  Esc's OWN return path needs no  code HERE : it never
+    ## reaches this loop as a resolved key while ambiguous
+    ## [ form.handler.esc_timeout's debounce ], and once resolved,
+    ## form.escape's EXISTING generic "leave a sub-mode" branch already
+    ## relabels ANY non-menu:/non-list: mode back to 'insert' -- plugin mode
+    ## never touches the schema, so a bare relabel already IS the correct
+    ## return.  escape.pm DOES need one small addition though -- see its own
+    ## note -- for the readonly toggle immediately below
     my ($active_plugin_field)
         = ( $editor_state->{'mode'} // '' ) =~ m|^plugin:(\w+)$|;
 
@@ -161,10 +162,10 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
 
         ## ctrl-c leaves the form from plugin mode too, as process_key's
         ## 'signal' does everywhere else : a plugin's own handler.key never
-        ## treats it as an exit, so the host-actions tab ignored it [ found
-        ## live ].  an OPEN in-frame prompt still gets it first -- there
-        ## ctrl-c cancels only the prompt [ editor.control.prompt.handler.key
-        ## ]
+        ## treats it as an exit, so the host-actions tab ignored it
+        ## [ found live ].  an OPEN in-frame prompt still gets it first --
+        ## there ctrl-c cancels only the prompt
+        ## [ editor.control.prompt.handler.key ]
         if ( $key eq "\x03" and not $editor_state->{'prompt'} ) {
             <[form.quit]>->( 'cancelled', 'no-op' );
             return TRUE;
@@ -246,11 +247,11 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     ## Delete on an empty INTERIOR row -- per user, removes just this row
     ## rather than requiring a navigation event first.  no separate removal
     ## primitive : editor.control.list.scroll's harvest-and-merge already
-    ## drops an empty buffer exactly like leaving the row does [ see
-    ## form.resort_list's own note ], so a $direction 0 resort IS the removal.
-    ## NOT gated on 'sort_on_focus' -- unlike  sync_list_mode's resort
-    ## trigger, this is a general list-hygiene move, not a sorting-specific
-    ## one, so it applies to any list field
+    ## drops an empty buffer exactly like leaving the row does
+    ## [ see form.resort_list's own note ], so a $direction 0 resort IS the
+    ## removal.  NOT gated on 'sort_on_focus' -- unlike  sync_list_mode's
+    ## resort trigger, this is a general list-hygiene move, not a
+    ## sorting-specific one, so it applies to any list field
     if (    $remove_empty_row
         and not defined $remove_target
         and ( $key eq "\e[3~" or $key eq "\x1b[3~" ) ) {
@@ -285,11 +286,11 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
 
     ## Left / Right PAGE a windowed list's position row -- same reasoning as
     ## the add-a-field row's Left/Right above : process_key already claimed
-    ## \e[D/\e[C for cursor movement [ a harmless no-op here, the buffer is
-    ## readonly ], so they never arrive as passthrough.  per user : once focus
-    ## can land on the position row it reads as a selectable thing in its own
-    ## right, so Left/Right page it exactly like PageUp/PageDown do rather
-    ## than doing nothing
+    ## \e[D/\e[C for cursor movement
+    ## [ a harmless no-op here, the buffer is readonly ], so they never arrive
+    ## as passthrough.  per user : once focus can land on the position row it
+    ## reads as a selectable thing in its own right, so Left/Right page it
+    ## exactly like PageUp/PageDown do rather than doing nothing
     if ( ref $focus_def eq qw| HASH | and $focus_def->{'list_info'} ) {
         my $direction
             = $key eq "\e[C" ? 1
@@ -310,12 +311,12 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     ## re-enters, permanently stuck.  Tab keeps its ordinary field_next
     ## meaning everywhere, no exceptions.
     ##
-    ## Right is TWO-STAGE instead, per user : cursor position 0 [ just arrived
-    ## ] lets process_key's own ALREADY-APPLIED cursor move stand [ readonly
-    ## blocks MUTATION only, not cursor movement, so Right at position 0
-    ## already moved the cursor to 1 by the time this runs ] -- nothing
-    ## claimed, key falls through as an ordinary cursor move.  only once the
-    ## cursor was ALREADY past 0 BEFORE this keystroke [
+    ## Right is TWO-STAGE instead, per user : cursor position 0
+    ## [ just arrived ] lets process_key's own ALREADY-APPLIED cursor move
+    ## stand [ readonly blocks MUTATION only, not cursor movement, so Right at
+    ## position 0 already moved the cursor to 1 by the time this runs ] --
+    ## nothing claimed, key falls through as an ordinary cursor move.  only
+    ## once the cursor was ALREADY past 0 BEFORE this keystroke [
     ## $plugin_cursor_before, sampled ahead of process_key same as
     ## $remove_empty_row is ] does Right mean "enter" instead of "move further
     ## right" -- so landing here takes one Right to move in, a second Right to
@@ -328,8 +329,8 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     ## written anything ], the cursor can never move past 0 no matter how many
     ## times Right is pressed -- there is nothing to move INTO -- so
     ## $plugin_cursor_before stays 0 forever and this trigger could never
-    ## fire, leaving an empty pinned field permanently un-enterable. the two-
-    ## stage protection exists to let a first Right's ordinary cursor move
+    ## fire, leaving an empty pinned field permanently un-enterable. the
+    ## two-stage protection exists to let a first Right's ordinary cursor move
     ## stand before a second commits to entering ; on empty content there IS
     ## no ordinary cursor move to protect, so entering on the FIRST Right
     ## loses nothing there. gated on the field's VALUE length, not on
@@ -351,11 +352,12 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
                 and ( ( $plugin_cursor_before // 0 ) > 0 or $field_is_empty )
             )
 
-            ## Enter enters too, in ONE press [ per user : more ergonomic than
-            ## Right ] -- it has no cursor meaning to protect, so the
-            ## two-stage rule above is Right's alone.  on a pinned row Enter
-            ## therefore no longer submits the form ; inside, the plugin's own
-            ## handler.key gets the next Enter [ e.g. add host ]
+            ## Enter enters too, in ONE press
+            ## [ per user : more ergonomic than Right ] -- it has no cursor
+            ## meaning to protect, so the two-stage rule above is Right's
+            ## alone.  on a pinned row Enter therefore no longer submits the
+            ## form ; inside, the plugin's own handler.key gets the next Enter
+            ## [ e.g. add host ]
             or $key eq "\r" or $key eq "\n"
         )
     ) {
@@ -408,18 +410,19 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     ## Left/Right/Enter reads as broken, not as "v1 scope".
     ##
     ## falls through to the generic passthrough conversion just below when
-    ## there is nowhere to go [ Down already on the last line, Up already on
-    ## the first ] -- that conversion is what leaves the field via
-    ## field_next/field_prev exactly as any other field's Up/Down already
-    ## does, so this never becomes a dead end the way an earlier version of
-    ## the plugin-tab trigger did before its own Tab-trap fix.
+    ## there is nowhere to go
+    ## [ Down already on the last line, Up already on the first ] -- that
+    ## conversion is what leaves the field via field_next/field_prev exactly
+    ## as any other field's Up/Down already does, so this never becomes a dead
+    ## end the way an earlier version of the plugin-tab trigger did before its
+    ## own Tab-trap fix.
     ##
     ## does NOT create a line on Down at the last row : the reserved blank
     ## rows are CAPACITY, not lines -- editor.control.multiline.lines exists
-    ## specifically so a blank line is never silently reaped, and auto-
-    ## appending one just because the cursor moved would be the same violation
-    ## from the opposite direction.  Enter stays the only way to grow the
-    ## buffer
+    ## specifically so a blank line is never silently reaped, and
+    ## auto-appending one just because the cursor moved would be the same
+    ## violation from the opposite direction.  Enter stays the only way to
+    ## grow the buffer
     if (    ref $focus_def eq qw| HASH |
         and $focus_def->{'multiline'}
         and ( $key eq "\e[B" or $key eq "\e[A" ) ) {
@@ -466,10 +469,10 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         }
 
         ## PgDn / PgUp : page a windowed list field's window -- unclaimed by
-        ## editor.control.process_key for the same reason Up/Down are [ no
-        ## branch there ], so claimed here the same way.  no field-count guard
-        ## : form.scroll_list is itself the "is there anything to scroll"
-        ## check and no-ops cleanly when there isn't
+        ## editor.control.process_key for the same reason Up/Down are
+        ## [ no branch there ], so claimed here the same way.  no field-count
+        ## guard : form.scroll_list is itself the "is there anything to
+        ## scroll" check and no-ops cleanly when there isn't
         $action = qw| list_scroll_next |
             if $result->{'passthrough'} eq "\e[6~";
         $action = qw| list_scroll_prev |
@@ -587,8 +590,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,.,,,..,.,.,...,...,,,.,..,,.,,,,,,,...,..,,..,,...,..,,.,,,,.,,,.,,...,..,,
-#KEK756WW56BV72ZT5S7KNHL6VVC7USAVOAQMAYUTPCORYEP2422KT5TB7XFVNCOUOOMD5E5MBMYA2
-#\\\|4AITQVLWIJIT72AL6LOIY6YRAP2C4WXAGXFYCIDQNRQFA6NYTFU \ / AMOS7 \ YOURUM ::
-#\[7]WVRYAVUFMC5CEWBOQJY3JEORROMVZ7CQ47VOBPEX27Q3ODGSC4CI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,,,.,...,,.,,...,.,,,,.,,.,,,..,,...,...,,.,,.,,,,..,...,,,.,
+#CMHSQR4A4DSM5YQVTJ3OVICJSZKNO63GZTH3MLV3ROGRCHD3MOQZUOLWGTZX6DVNGPGSZBESF3XIA
+#\\\|5YOAXBBRWN4D4TDPCIBFHVYHK4VGEV7TFS2WEL7UZEDPM65BY7K \ / AMOS7 \ YOURUM ::
+#\[7]5FDLFXLLSJOYYXOYFL256MLRG3WSMD4LXBHPP7J7Q2RBUHMENAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

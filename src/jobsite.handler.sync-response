@@ -10,11 +10,11 @@ my $params     = $result->{'params'}     // {};
 my $chunk_size = $params->{'chunk_size'} // 0;
 my $url        = $params->{'url'}        // '';
 
-## a chunk only counts as confirmed if the transport succeeded AND the      ##
-## server's own response body says ok : a 200 wrapping {"ok":false,...} [   ##
-## e.g. a partial write failure on the receiving side ] must NOT be treated ##
-## as delivered, or the affected jobs get silently skipped from every       ##
-## future sync once the watermark moves past them                           ##
+## a chunk only counts as confirmed if the transport succeeded AND the  ##
+## server's own response body says ok : a 200 wrapping {"ok":false,...} ##
+## [ e.g. a partial write failure on the receiving side ] must NOT be   ##
+## treated as delivered, or the affected jobs get silently skipped from ##
+## every future sync once the watermark moves past them                 ##
 my $reply   = $ok ? eval { JSON::XS::decode_json($body) }        : undef;
 my $body_ok = ref $reply eq 'HASH' ? ( $reply->{'ok'} // FALSE ) : FALSE;
 
@@ -51,8 +51,8 @@ if ( $ok and ref $reply eq 'HASH' and $body_ok ) {
 ## blocks the rest of the queue from being attempted this cycle         ##
 <[jobsite.sync.push_chunk]>;
 
-#,,,,,,,.,.,,,,..,,.,,.,,,.,.,,..,.,.,,..,,,,,..,,...,...,.,.,,,,,..,,.,,,,..,
-#O6W7CEAKXD5OYSSF2U25XTZ5M4ZYBDF2URLVTBITZIC3LQPKGVB6L6ALNKNAD42JHDRP6QVEEJBT2
-#\\\|XRESD22L7EZB3C7UECBTLYHEJMXKIMJO7MHSLBXT3AGYMUVHEC2 \ / AMOS7 \ YOURUM ::
-#\[7]4BJMCW4MLGQUL7ITS5SDPRF7S6TXW4OUKJK2LKAILEZOWMXN7YBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,,,,,...,..,,,,,,,,,,,..,..,,..,,...,...,,,,,...,...,,.,,.,.,
+#7UMZ5F6MT2ABC6PVDZZSGZT6S74JTYE3DCQ7U5S7IGWTJFGM6T2VR4ZZX6FHB756SQGC3FSEHX6HQ
+#\\\|A4BV55MZZKVJ4FW3UWTLS62EHQVYBUAUBAMRBXL5MKX4PNYGI4T \ / AMOS7 \ YOURUM ::
+#\[7]CSLWRZWCMTH3IHQYZLUH4WW6KIAQOPZ4DEWQRIRGWIAF3DUW3YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

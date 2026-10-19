@@ -20,10 +20,10 @@ return FALSE if ref $editor_state ne qw| HASH |;
 
 my $username = <form.username> // return FALSE;
 
-## COLLAPSE FIRST, unconditionally.  Enter submits from ANY field [
-## editor.control.process_key ], and submitting while a list is expanded would
-## collect '<field>_0', '<field>_1' as separate top-level record fields and
-## permanently replace the array.  collapse is a no-op when nothing is
+## COLLAPSE FIRST, unconditionally.  Enter submits from ANY field
+## [ editor.control.process_key ], and submitting while a list is expanded
+## would collect '<field>_0', '<field>_1' as separate top-level record fields
+## and permanently replace the array.  collapse is a no-op when nothing is
 ## expanded, so this is safe to call every time
 my $collapsed = <[editor.control.list.collapse]>->($editor_state);
 
@@ -53,13 +53,14 @@ if (@masked_fields) {
         return FALSE;
     }
 
-    ## a held-secret name is built from the username [ form.<user>.  <field>
-    ## ], and sessions.cmd.hold only accepts ^[\w\-]+$ -- users.
-    ## cmd.value-set only rejects '/' and '\', so a legal-but-unusual username
-    ## could otherwise fail the hold call after the form has already reset.
-    ## checked HERE, before editor.control.submit runs, for the identical
-    ## reason the reachability guard above is checked here : refusing AFTER
-    ## submit resets the fields would destroy what the user just typed
+    ## a held-secret name is built from the username
+    ## [ form.<user>.  <field> ], and sessions.cmd.hold only accepts ^[\w\-]+$
+    ## -- users.  cmd.value-set only rejects '/' and '\', so a
+    ## legal-but-unusual username could otherwise fail the hold call after the
+    ## form has already reset.  checked HERE, before editor.control.submit
+    ## runs, for the identical reason the reachability guard above is checked
+    ## here : refusing AFTER submit resets the fields would destroy what the
+    ## user just typed
     if ( $username !~ m|^[\w\-]+$| ) {
         print "\n  << not sent : username contains characters a held-secret "
             . "name cannot carry [ ^[\\w\\-]+\$ only ] >>\n\n";
@@ -85,9 +86,9 @@ if ( ref $result ne qw| HASH | or not $result->{'ok'} ) {
 my $values = $result->{'values'} // {};
 
 ## masked values must NEVER reach users.value-set's plaintext JSON payload --
-## pulled out here, before anything downstream [ the add-a-field-row strip,
-## the list-field substitution ] gets a chance to see them still sitting in
-## $values
+## pulled out here, before anything downstream
+## [ the add-a-field-row strip, the list-field substitution ] gets a chance to
+## see them still sitting in $values
 my %secret_values;
 $secret_values{$_} = delete( $values->{$_} ) // '' foreach @masked_fields;
 
@@ -222,8 +223,8 @@ foreach my $field_name (@masked_fields) {
 ## completion, if any masked fields, is reply-driven from here ##
 return TRUE;
 
-#,,.,,..,,.,.,...,,,.,,,.,...,..,,...,.,.,..,,..,,...,...,,,.,...,.,,,..,,..,,
-#2I5JLAWSDZVKBWV75NEF3MQGMTUCYUQQA7FGO2WXWJR2C2WGGEHXXPE22DC5P4ETZ27S4NEQDSJOI
-#\\\|T45GGIGPMKZHR76NUGIBMICVH46PZ3PG4DEWXRXOICDGB3BUCWR \ / AMOS7 \ YOURUM ::
-#\[7]5UQSAKLJ5NHONLBQPB7VXMEO3XLHETC7EZMPV5F6LS34H2T36WBY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,,,...,...,,,,,.,.,...,..,,,..,..,,...,..,,.,,,,,.,.,.,,..,..,,
+#O3W4I3TGW35VTOQG2KQIAY2SLBKGWKPHQAUS3XYJYH7DT2AWMV4WEOCJZX255ONAFQPO2SWIWS6Z6
+#\\\|3JIQGS2WZL3WZBWCIWJG5V5G7Q57LS2G37MYOSMRBJB4GQS32XZ \ / AMOS7 \ YOURUM ::
+#\[7]FXYGVHV7ZSVWD5T4ZP5NVJVNR47ASE7ZKPOU2JT66LQWNUXU5GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

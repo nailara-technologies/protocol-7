@@ -36,14 +36,16 @@ my $entry_added = FALSE;    ##  host [re-]appeared ?  ##
 
 my $pkey_L13 = <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} );
 
-## --------------------------------------------------------------------     ##
-## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md,           ##
-## TRUST-CHAIN-STEP2.md ] : the packet signature already verified under the ##
-## hostkey ; now classify the CHAIN that key carries [ the field may hold   ##
-## more than one statement, leaf first ]. the hostkey IS the announced S,   ##
-## so it is the subject. pinning is a read-only set-membership test against ##
-## the client pin stores -- discover NEVER writes a pin.                    ##
-## --------------------------------------------------------------------     ##
+## --------------------------------------------------------------------    ##
+## host-root delegation                                                    ##
+## [ data/md/design/HOST-ROOT-DELEGATION.md, TRUST-CHAIN-STEP2.md ] : the  ##
+## packet signature already verified under the hostkey ; now classify the  ##
+## CHAIN that key carries                                                  ##
+## [ the field may hold more than one statement, leaf first ]. the hostkey ##
+## IS the announced S, so it is the subject. pinning is a read-only        ##
+## set-membership test against the client pin stores -- discover NEVER     ##
+## writes a pin.                                                           ##
+## --------------------------------------------------------------------    ##
 ##
 my $delegation = $packet_fields_href->{'delegation'};    ## raw field ##
 my $hostkey    = $packet_fields_href->{'hostkey'};       ## raw 32 bytes ##
@@ -148,8 +150,8 @@ if ( not defined $delegation or not length $delegation ) {
 }
 
 ## adaptive log level per host key : level 0 the first time, then up to 3 ##
-## for repeats -- a flood of bad packets cannot flood the log [ the       ##
-## base.cache.refaddr-prefix.init pattern, kept per sender ]              ##
+## for repeats -- a flood of bad packets cannot flood the log             ##
+## [ the base.cache.refaddr-prefix.init pattern, kept per sender ]        ##
 $data{'discover.host-root-log'} //= {};
 my $flood_level = sub {
     my $level = $data{'discover.host-root-log'}->{$pkey_L13}++ // 0;
@@ -195,13 +197,13 @@ if ( defined $drop_reason ) {
     return FALSE;
 }
 
-## a host whose root_fp CHANGES is adopted only FORWARD [ the same rule as  ##
-## trust.pin_decide ] : the new chain must be owner-trusted, the delegated  ##
-## name the SAME, and the certifying statement STRICTLY later than the one  ##
-## stored for the previous root [ since : the not_before of the statement   ##
-## certifying the host-root, 0 when never owner-verified ]. anything else : ##
-## the packet is DROPPED [ no address update ], the old entry kept and      ##
-## marked invalid                                                           ##
+## a host whose root_fp CHANGES is adopted only FORWARD                     ##
+## [ the same rule as trust.pin_decide ] : the new chain must be            ##
+## owner-trusted, the delegated name the SAME, and the certifying statement ##
+## STRICTLY later than the one stored for the previous root [ since : the   ##
+## not_before of the statement certifying the host-root, 0 when never       ##
+## owner-verified ]. anything else : the packet is DROPPED                  ##
+## [ no address update ], the old entry kept and marked invalid             ##
 $data{'discover.host-root'} //= {};
 if ( defined $root_fp ) {
     my $prev  = $data{'discover.host-root'}->{$pkey_L13};
@@ -246,9 +248,9 @@ if ( defined $root_fp ) {
     };
 }
 
-## the trust fields stored on every host entry built below [ and shown by ##
-## discover.cmd.host_details ] ; a bare 'unverified' carries no root an   ##
-## accepted packet resets this sender's flood log level                   ##
+## the trust fields stored on every host entry built below                  ##
+## [ and shown by discover.cmd.host_details ] ; a bare 'unverified' carries ##
+## no root an accepted packet resets this sender's flood log level          ##
 delete $data{'discover.host-root-log'}->{$pkey_L13};
 
 my %trust_field = ( qw| trust | => $trust );
@@ -408,8 +410,8 @@ if ( defined $orbital_p7ref and length $orbital_p7ref ) {
     <[discover.orbital.share_grid_fragment]>->( $hostname, $pkey );
 }
 
-#,,..,...,,.,,.,,,..,,,..,.,.,..,,,..,..,,,..,..,,...,...,,,.,,,.,,.,,.,,,,,,,
-#32IAAD2QN4D52LVL3II4DA5YOFXBZR2FW4ZUCEYQLEASLKOMKDC3WR5LRPMKRG6BZ5VR74FQZJABG
-#\\\|DBWNGTOOH3TT5X4A56E7MM5RAQR7PJ23K4KIUQLQKKZBPDEQDVE \ / AMOS7 \ YOURUM ::
-#\[7]RU6IOK5HOJH6S2ZW4ASDOUYF3YDAGDWMHF5PPWKJ53DS2VNI2IDA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,.,,.,,.,,,,.,,,.,,,..,,.,,,,,,..,,...,...,.,.,,..,,..,,,,,.,,,
+#UWMCMIW2R5K2EBBFIN5IAOB3LYZMUIL6QEGOELPMBR3O6ZT4QXJSDYMMX47HXLZZ4TAO6OOYQGD3G
+#\\\|CADNNRZGRF7UCVLJQE4QRJH6EGRCETK7S5OBOQ3ALP6JSHVFVJG \ / AMOS7 \ YOURUM ::
+#\[7]5CXU73OCNZ33XT47LNXBWDVWCO465EWWTP2QQM2DQMXJEOTFXKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

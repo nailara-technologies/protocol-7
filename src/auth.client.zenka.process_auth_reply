@@ -38,9 +38,9 @@ if ( my $answer = readline($backend_socket) ) {
         <[base.logs]>->( 2, '::: [ %s ]', $plugin );
         return undef;
     } elsif ( $answer =~ m|^AUTH_ERROR (\S.*)$| ) {
-        ## a refusal with its reason [ auth-keypair : not authorized, TOFU ##
-        ## mismatch, .. ] -- not a protocol mismatch                       ##
-        ## remote text ##
+        ## a refusal with its reason                                     ##
+        ## [ auth-keypair : not authorized, TOFU mismatch, .. ] -- not a ##
+        ## protocol mismatch  remote text                                ##
         my $reason = substr( $1 =~ s{[^\x20-\x7e]}{}gr, 0, 120 );
         <[base.logs]>->( 0, '[#] authentication refused : %s', $reason );
         <[base.logs]>->( 2, '::: [ %s ]',                      $plugin );
@@ -66,8 +66,8 @@ if ( my $answer = readline($backend_socket) ) {
     <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
 }
 
-#,,..,,..,.,,,,..,.,.,.,,,,,,,,,,,.,,,,.,,.,,,..,,...,..,,,,,,...,,..,,..,,,.,
-#PBIMJ2F7FZ5OZTWIL6R5ASVKC7NPZMETHJCEPFTLV2VL45GBXTGX6QPIRRLIJZJPLMJ7L3FMSX5W2
-#\\\|ESNXLSWPBFURP7RUH6AA24N6SMXVA2KVVD7RANN2U7MG57KMOLE \ / AMOS7 \ YOURUM ::
-#\[7]2FA2ZXCMCLPG5FRKDJMTUMXSJMK6VO5CKA64DDOWOJUAD3TVU4DY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,...,.,.,,.,,...,,,.,...,,..,..,,...,...,,.,,.,,,,.,,,.,,..,,
+#E4YHKVGLKUWXGHW3N2SV5R34E5PVMCWT6NXHR4PEM53WR2BAN5UCSJUTMRA3K73EYXGUBQNKCXLBU
+#\\\|2N2YSE7PQ5PNC6J7WQAIPBPPECPMN35WHJN55QCI6CXL2IUXIMN \ / AMOS7 \ YOURUM ::
+#\[7]CDU7R3YEXASHUX2ZKM3VD4AFBJEGM32NSFA3DNCCHPKKHJBTKGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

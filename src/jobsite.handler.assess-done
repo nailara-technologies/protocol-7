@@ -47,11 +47,12 @@ if ( not defined $job_rec ) {
     return;
 }
 
-## stale reply : the watchdog already gave up on this attempt [ see        ##
-## dispatch.next ] and either requeued the job or moved it onto a fresh    ##
-## attempt -- do NOT touch pending_count [ already released by the timeout ##
-## ] or re-dispatch [ a newer attempt, if any, already owns the queue ],   ##
-## just drop this late arrival                                             ##
+## stale reply : the watchdog already gave up on this attempt               ##
+## [ see dispatch.next ] and either requeued the job or moved it onto a     ##
+## fresh attempt -- do NOT touch pending_count                              ##
+## [ already released by the timeout ] or re-dispatch                       ##
+## [ a newer attempt, if any, already owns the queue ], just drop this late ##
+## arrival                                                                  ##
 if ( $attempt and $attempt != ( $job_rec->{'attempt'} // 0 ) ) {
     <[base.logs]>->(
         1,
@@ -69,15 +70,15 @@ if ( lc($mode) eq qw| false | ) {
         0,        'assess-done: task %s failed for job %s',
         $task_id, $job_id
     );
-    ## hard infra failure [ no model result at all ] : flag it for the      ##
-    ## fehler tab, same as a validation-repair failure below, but do NOT    ##
-    ## touch stage/status -- unlike a real low score this carries no new    ##
-    ## information about the job, so evicting it out of wherever the user   ##
-    ## placed it [ e.g. review ] would be pure data loss dressed up as a    ##
-    ## pipeline decision. status='assessed' is also a dead end : the web    ##
-    ## plugin purges that legacy status on every restart [ see              ##
-    ## plugin.web.jobs.init_code ], so the job would eventually vanish from ##
-    ## disk entirely                                                        ##
+    ## hard infra failure [ no model result at all ] : flag it for the    ##
+    ## fehler tab, same as a validation-repair failure below, but do NOT  ##
+    ## touch stage/status -- unlike a real low score this carries no new  ##
+    ## information about the job, so evicting it out of wherever the user ##
+    ## placed it [ e.g. review ] would be pure data loss dressed up as a  ##
+    ## pipeline decision. status='assessed' is also a dead end : the web  ##
+    ## plugin purges that legacy status on every restart                  ##
+    ## [ see plugin.web.jobs.init_code ], so the job would eventually     ##
+    ## vanish from disk entirely                                          ##
     if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
         eval { $timer->cancel };
     }
@@ -180,13 +181,14 @@ if (    not $validation->{'is_valid'}
     return;
 }
 
-## a repair pass already failed once for this job [ from an earlier        ##
-## reassess cycle ] and this fresh full assessment is ALSO invalid : the   ##
-## log below has always claimed "keeping original", but the code that      ##
-## followed unconditionally overwrote score/reason/summary with this new [ ##
-## empty/defective ] result anyway -- that's the actual root cause of      ##
-## review-tab cards silently losing their text on a second bad reassess.   ##
-## $give_up gates every overwrite below so "keeping original" is true.     ##
+## a repair pass already failed once for this job                          ##
+## [ from an earlier reassess cycle ] and this fresh full assessment is    ##
+## ALSO invalid : the log below has always claimed "keeping original", but ##
+## the code that followed unconditionally overwrote score/reason/summary   ##
+## with this new [ empty/defective ] result anyway -- that's the actual    ##
+## root cause of review-tab cards silently losing their text on a second   ##
+## bad reassess.  $give_up gates every overwrite below so "keeping         ##
+## original" is true.                                                      ##
 my $give_up
     = ( not $validation->{'is_valid'} and $job_rec->{'repair_attempted'} );
 
@@ -372,8 +374,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,..,...,,..,,,,,,.,,.,,,..,,.,.,.,,,,,.,,,.,..,,...,...,,..,,,,,,..,..,,,,.,
-#BSOI7HFQ6BVY5QRP5UAIXHRR2LPCVJJ7FBPBJEZIFRRG2WIWENY7Y3QAKTLF27Q77QUJWMSO3MFL2
-#\\\|TP3BA65DLPJCGNAZIITWQO3EHHFZSVQKJMIKB65UWORCBLB2MB4 \ / AMOS7 \ YOURUM ::
-#\[7]IWIAGFPOTCKHA4L2AG3HA7QTVS5AHJLNAOVA2EXNUI2QBUTJLADQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,.,.,,,,,,,,..,.,.,,.,,,,,,.,,,..,,...,...,..,,..,,,..,...,..,,
+#2ELG3VYBVSMX5X3IHJWXEB6YT7P6CBXDZRE5PUTMZFPVOVRYMNECF5RBGFLCTGQZ3UW6IYYWGKGKS
+#\\\|PT2A6YCZSC7FSFRMI4HU4FLAXLT64R6K6637TEBS6N6YN6Q2P44 \ / AMOS7 \ YOURUM ::
+#\[7]LIEZ5RQEF74J6FL3FNGSNRYF522AAFP42WGLXQA3EG3A7J43XUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

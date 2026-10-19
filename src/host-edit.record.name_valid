@@ -9,14 +9,14 @@ my ($name) = @ARG;
 return FALSE if not defined $name or not length $name;
 
 ## like the trust name rule, narrowed to a dns label's length : a host
-## record's name doubles as the external link name, the pin stem [
-## <name>_<port>.public ] and a filesystem entry under hosts/, so it must stay
-## lowercase-alnum-led and free of path surprises [ '/' and '\' are excluded
-## structurally by the character class ]
+## record's name doubles as the external link name, the pin stem
+## [ <name>_<port>.public ] and a filesystem entry under hosts/, so it must
+## stay lowercase-alnum-led and free of path surprises
+## [ '/' and '\' are excluded structurally by the character class ]
 return $name =~ m|\A[a-z0-9][a-z0-9._-]{0,62}\z| ? TRUE : FALSE;
 
-#,,,.,,,,,.,.,,,,,...,,..,.,,,..,,.,,,,,.,,,,,..,,...,...,.,.,...,,,.,,.,,.,,,
-#SICXAOGK6NNBZKT5OFCQ6ZQWK7DTWNJURSEMEZILQ7MP2V6GTZREXJEVC6UHCCXXZCSYY4J6KZFSQ
-#\\\|L22RKMMXIJBMZCAG3U2VGKU6FDERBGGT36JQI2O26X4AYW6MJS5 \ / AMOS7 \ YOURUM ::
-#\[7]DKLTTFSEZOUVAXQ6CZNXROPLCQTMS2IV4OJTWCKVFNNVY4UZW2DY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,.,,.,,,,.,,..,,..,,,..,.,.,..,,..,,...,...,,.,,..,,.,.,...,...,
+#4RFCF6FOVMNOEMQA73VHWZLQNT3BVWABLK7AFZUQHPL46RGLA4YKRAFYTO3LYHN4YTH2RZOKN7DZG
+#\\\|RWLJT7EWBKACPJCOVDH4QZJD5YRADOKGFNVBCWOQDX55D25S2TN \ / AMOS7 \ YOURUM ::
+#\[7]YYHHWSJ5AFPILBYNPFCPR2OC3J7UV6PQLCCBEMTEXDUMISL6MGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

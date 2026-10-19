@@ -4,10 +4,10 @@
 # descr = in-frame prompt display string for its anchoring field's row
 # param = $editor_state, $field_name
 
-## called from the anchoring field's display_override [ e.g. plugin.
-## user-edit.key-actions.render ] on every repaint.  returns undef when no
-## prompt is open or the open prompt belongs to a DIFFERENT field, so the
-## caller falls back to its own ordinary display.
+## called from the anchoring field's display_override
+## [ e.g. plugin. user-edit.key-actions.render ] on every repaint.  returns
+## undef when no prompt is open or the open prompt belongs to a DIFFERENT
+## field, so the caller falls back to its own ordinary display.
 ##
 ## masking reuses the EXISTING machinery [ design anchor 2 ] : the prompt
 ## buffer was created with type => 'masked' by prompt.open, so editor.
@@ -23,17 +23,17 @@
 ## buffer offset -- its own header ], so "a plugin wanting its own cursor
 ## indication draws one itself".  same overlay convention plugin.user-edit.
 ## address-cluster.render already uses, NOT render_form's own literal '|'
-## default [ that default is dead for user-edit's real render path -- user-
-## edit.form.render always overrides it with this SAME \x01 placeholder, then
-## substitutes inverse-video-on-the-real-character or a phosphor underscore
-## afterward -- confirmed live, 2026-08-16 ].  \x01 [ CURSOR_PLACEHOLDER, one
-## byte, matching address-cluster's own constant ] REPLACES the character it
-## sits on, with one reserved trailing cell so an end-of-buffer cursor has
-## somewhere to live without growing the string by more than that cell.
-## plugin.user-edit.key-actions.cursor_char [ delegating to editor.control.
-## prompt.cursor_char ] is the other half : it hands user-edit.form.render the
-## real character this placeholder overlaid, so the substitution styles it
-## exactly like any ordinary field's cursor.
+## default [ that default is dead for user-edit's real render path --
+## user-edit.form.render always overrides it with this SAME \x01 placeholder,
+## then substitutes inverse-video-on-the-real-character or a phosphor
+## underscore afterward -- confirmed live, 2026-08-16 ].  \x01
+## [ CURSOR_PLACEHOLDER, one byte, matching address-cluster's own constant ]
+## REPLACES the character it sits on, with one reserved trailing cell so an
+## end-of-buffer cursor has somewhere to live without growing the string by
+## more than that cell.  plugin.user-edit.key-actions.cursor_char
+## [ delegating to editor.control. prompt.cursor_char ] is the other half : it
+## hands user-edit.form.render the real character this placeholder overlaid,
+## so the substitution styles it exactly like any ordinary field's cursor.
 
 my ( $editor_state, $field_name ) = @ARG;
 
@@ -71,8 +71,8 @@ substr( $prefix, $marker_at, 1 ) = "\x01";    ## CURSOR_PLACEHOLDER ##
 
 return $prefix;
 
-#,,.,,.,,,..,,,.,,,,.,...,,,,,.,.,.,,,,..,,.,,..,,...,...,..,,,,.,...,..,,,,,,
-#MQNKHOJLIKX6PVFL4IY257UR4652OL2SRCNKQPHDQ2OS7EQJMFYKPPG5QIHHYWYJLSKAUXUGJXY3Y
-#\\\|VPYHEJXNPROXFSIK3MTDBA2ZHETZZ7TKHLK7RP3QKH3QERFR35N \ / AMOS7 \ YOURUM ::
-#\[7]6Y2XPGVF52PLDBUD76HX3A7GJKJ2LRODNW7BOGLFODIVFCAZ7OBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,.,,.,,..,,,..,,..,,..,...,,,,,..,,...,...,,..,..,,,.,,.,,,...,
+#3757KV4IDJJGJPFFU4CMHIOAFAKLI3UZRCPATQONKTQDWVHBQWHXCBOMITIC6IG5MFL364ONGADL2
+#\\\|OLZBGAAXCDCFVKUHBYPGTXS4XC65F3KN3L2MXZ63AWUDSJBGK5X \ / AMOS7 \ YOURUM ::
+#\[7]GD5PZV4YCXMFJDRAKTK7MTOTXSLZKS5HYTCZD676IHOJZJG2J4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

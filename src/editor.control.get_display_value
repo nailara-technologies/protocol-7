@@ -11,9 +11,9 @@
 ##
 ## masked fields return a run of '*' of the same length -- same length so
 ## cursor offsets, required-width computation and per-row fill padding all
-## stay consistent with the real buffer [ see editor.ui.ascii_frame.
-## render_form's width note ].  a caller must therefore never assume the
-## displayed string equals the stored one.
+## stay consistent with the real buffer
+## [ see editor.ui.ascii_frame. render_form's width note ].  a caller must
+## therefore never assume the displayed string equals the stored one.
 ##
 ## adding a type that renders differently from how it is stored means
 ## extending THIS module, not the renderers -- UNLESS a single field def needs
@@ -41,8 +41,8 @@ my ($field_def)
 ## exists so a caller [ e.g. user-edit's plugin-typed fields ] can customise
 ## exactly one field's display without teaching this SHARED, zenka-agnostic
 ## module about a caller-specific concept ; the alternative -- a hardcoded
-## branch here for that specific caller's feature -- would leak zenka-
-## specific knowledge into code every zenka's forms share
+## branch here for that specific caller's feature -- would leak zenka-specific
+## knowledge into code every zenka's forms share
 return $field_def->{'display_override'}->( $editor_state, $field )
     if ref $field_def eq qw| HASH |
     and ref $field_def->{'display_override'} eq qw| CODE |;
@@ -94,8 +94,8 @@ if ( $type eq qw| masked | ) {
 
 return $value;
 
-#,,..,...,.,.,...,,,.,,.,,..,,,,,,,,,,,..,...,..,,...,..,,,.,,,,,,,..,,..,...,
-#WAJ7FQCPXRLF3WH5LWVFIY6GRWRHS7WU4JYKVYJNVWCLFYJJOLMKGHOZJESXYXAU2ATZS5IE3SCEG
-#\\\|IEZ7R7QN7GWYYHHLTYU7CKRV3ALFFH75KO5KX7CO3T27M6X5LTA \ / AMOS7 \ YOURUM ::
-#\[7]HVCM4WSHRQ4ABXTFQUO6OTZWXAPETMEAOKGWTHVJ6GMPYNR6SWBY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,,,.,..,,,,,,,,,,...,,,.,.,.,..,,...,...,,,.,,..,.,,,.,,,.,.,
+#XVWKBQ2AERXTCGYG3MSD3FGBFCX7X5CBQGFENGHFH7SPHGUE4FIENXT76LQN3VSVCUKRFP4JNC7JW
+#\\\|WHEY64UGS55BFMRLYATSV6XNYTTKTCUUIAC6RNNW5PSY2HAT45J \ / AMOS7 \ YOURUM ::
+#\[7]YGCCMKLKA55XJ6MWWRRVM262YVTDDBZRSB4L4TQUNN445KTKYSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

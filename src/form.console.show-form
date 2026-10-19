@@ -19,9 +19,9 @@
 ## 'show-form :create-admin:' would take the tag itself as the username
 my ( $params, $tags ) = <[form.parse_params]>->( shift // '' );
 
-## record source, registered by the zenka's own init_code [ user-edit.
-## init_code for this console ] -- the senders and the default record name
-## both come from here, keeping this module record-independent
+## record source, registered by the zenka's own init_code
+## [ user-edit. init_code for this console ] -- the senders and the default
+## record name both come from here, keeping this module record-independent
 my $source = <form.source> // return FALSE;
 
 my $username = $params;
@@ -64,8 +64,8 @@ my $sender = $source->{'value_get'} // return FALSE;
 ## resumes here only if the reply handler unlooped to offer a record ##
 return <[form.offer_create]>->( $username, $tags );
 
-#,,,.,.,,,,.,,...,,..,...,,,,,...,.,.,,.,,...,..,,...,...,,,,,..,,..,,,..,,,.,
-#G7FM4QSB2U5J7EG54UWZBXXBUB2AVSYDT7ZUYHCOTSCD6MCIRZRTH4EX2LO7RQK7C5C3M6GOQPOCO
-#\\\|BZMD7GTRW6GCOWJB3S3FAMLYCEQTZA7WLBYGANCHWWAFAPTYNNW \ / AMOS7 \ YOURUM ::
-#\[7]TJ4H2DPXNX47ZCSU6NOMMY6L4R7F2XNC57N3YZJSZCOCTJKTSYAY 7  DATA SIGNATURE ::
+#,,..,...,.,,,,..,,,.,,,,,,..,,,.,,,.,..,,.,,,..,,...,...,...,.,,,,,,,.,,,...,
+#44XIBTCSJFUXSGZCS65YKXHN4GPQMXWARKE2A2IYV2W5QC4YXQE3VUIWONAXL6I3Q5SYEOJU7RJDI
+#\\\|LOGWS72E62BLJEYEZJAOLG4CXNCSX6UC5SJ3EC6P3ARTA72ALMK \ / AMOS7 \ YOURUM ::
+#\[7]NSQYOMWC5B3Y5Y4S65ENRDBYEH75AZQ4NO7QTQFAQGKTF3JAUSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

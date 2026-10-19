@@ -16,8 +16,8 @@
 ##
 ## returns undef when there is nothing TO scroll -- no list currently expanded
 ## [ mode is not 'list:<field>' ], or -- PAGING only, $direction non-zero --
-## the field's entry count is at or under editor.control.list.window_cap [ a
-## single window already shows everything, nowhere to page TO ].  callers
+## the field's entry count is at or under editor.control.list.window_cap
+## [ a single window already shows everything, nowhere to page TO ].  callers
 ## treat undef as "not applicable, skip the repaint", the same contract
 ## editor.control.list.collapse's no-op return already sets.
 ##
@@ -29,8 +29,8 @@
 ## or paged.  the window_cap guard above is SKIPPED for this case : a 2-entry
 ## list has nothing to PAGE but still has something to SORT.
 ##
-## the caller MUST rebuild the frame afterwards [ same as .expand / .collapse
-## ].
+## the caller MUST rebuild the frame afterwards
+## [ same as .expand / .collapse ].
 
 my ( $editor_state, $direction ) = @ARG;
 
@@ -113,11 +113,11 @@ foreach my $field_def ( $source->{'schema'}->@* ) {
 
 ## built through editor.control.create rather than assembled by hand -- expand
 ## carries every OTHER field's value across by calling
-## editor.control.get_value on the state it is GIVEN [ its own "still live
-## while the list is open" note ], which needs a real 'fields' buffer hash to
-## read from.  a bare { schema => ... } stub has none, and every non-list
-## field's just-harvested default above would silently go back to '' the
-## moment expand re-read it
+## editor.control.get_value on the state it is GIVEN
+## [ its own "still live while the list is open" note ], which needs a real
+## 'fields' buffer hash to read from.  a bare { schema => ... } stub has none,
+## and every non-list field's just-harvested default above would silently go
+## back to '' the moment expand re-read it
 my $collapsed_state = <[editor.control.create]>
     ->( { qw| fields | => \@collapsed_fields, qw| active_field | => 0 } );
 
@@ -129,8 +129,8 @@ return <[editor.control.list.expand]>->(
     $collapsed_state, $field_name, $new_offset
 );
 
-#,,,,,...,,,,,,,,,...,,,.,,..,...,..,,,,,,,.,,..,,...,..,,..,,,,,,...,,..,..,,
-#IPUA7UKASP5UYJ2XCVKQUADZTJCX5KOVNMJYPEZ3XUZXPQXJ3NLVI2UIPV542SBIKED56RZNLL3WS
-#\\\|OAATBSK5H6LAC56N3KVNCLODWAOQRTUBKFFKFIRYVUXTVDRRPIC \ / AMOS7 \ YOURUM ::
-#\[7]HZYQAEGJSJMHVP276DFRKPTTIMDR7XMWT62L6GHQGGU2O5K7WYDA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,..,,...,,,.,,.,,,..,,.,,...,.,,,..,,...,...,...,,,.,,,,,,..,,,.,
+#CO33CT6IDD3226SI45JWZSASZYH255GFMV42BGSKPSGCVFBCEFHS5SYCBJBHXOQB5WSECTFEMBJ2U
+#\\\|SQO5QWCIJVDHQXLBRVBJBPCCS233I5LQLVYZL63K5WBYHJ6EIUB \ / AMOS7 \ YOURUM ::
+#\[7]RPNC464IPHQYGLUBWL37IFWHZGCNTJGQ3OMPVQILYJ6UXNW2LAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

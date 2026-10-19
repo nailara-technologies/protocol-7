@@ -104,8 +104,9 @@ foreach my $type (qw|  secret  private  public  |) {
         or die
         sprintf( '< chmod ' . '%04o > %s', $file_mode, <[base.str.os_err]> );
 
-    ## owner set on the handle [ never a path chown that could follow a ##
-    ## swapped-in symlink ] ; root-held files stay root's [ owner 0 ]   ##
+    ## owner set on the handle                                         ##
+    ## [ never a path chown that could follow a swapped-in symlink ] ; ##
+    ## root-held files stay root's [ owner 0 ]                         ##
     chown( $uid, $gid, $key_fh )
         or warn sprintf( '%s [ %s ]', <[base.str.os_err]>, $tmp_fname )
         if not $root_held;
@@ -232,8 +233,8 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
     return $keywrite_status;    ## return write success status ##
 }
 
-#,,..,.,,,.,,,.,,,.,.,,,,,...,..,,,,,,,,,,..,,..,,...,...,...,,.,,..,,.,.,,.,,
-#64HATSBLIJDEJ3BX7LZOZYNY2WPRG6SCPZRG3B5BLEP3YXQPIUSFVGMB4G3ACGJIQBJAKDB5SJFRM
-#\\\|GQPXHVFLVJODKKTJ26P7AXXCCQRXN3YT5UF4PVEUIKZHNC5AO57 \ / AMOS7 \ YOURUM ::
-#\[7]ZH4Q7IGY62Y3KMW6HFJUAIQPEXNVYPWCFFBBHGVADO3AKAFXACCI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,,..,,.,,...,...,...,,.,,..,,..,,...,...,,,.,.,.,,..,,..,...,
+#FU7AUYBIQ7DRQSNCMHIOFUFWQ5KOQBOGQORO4KX2RJKZAQD4IA5XCUYRDBDHKN22JOZYFDMDWRKIU
+#\\\|OWT57PQZLIARMU2IE7Y2UVO6RYH2KULR47LPYSS6ZUMEAFK7BLD \ / AMOS7 \ YOURUM ::
+#\[7]LQWHTQ4YVPHVFH5IPJ5E2YXWGNMDB6JQ7MF7UJRPJJQ2XQEA2SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

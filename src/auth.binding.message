@@ -25,9 +25,9 @@ my %label = (
 
 return undef if not exists $label{$kind};
 
-## binary fields : exactly 32 bytes ; string fields : printable ascii      ##
-## tokens, 1 .. 65535 bytes. each is copied, downgraded to bytes [ never a ##
-## wide character string ] and only the checked copy is packed             ##
+## binary fields : exactly 32 bytes ; string fields : printable ascii    ##
+## tokens, 1 .. 65535 bytes. each is copied, downgraded to bytes         ##
+## [ never a wide character string ] and only the checked copy is packed ##
 my %field;
 my $take_bin = sub {
     my $name  = shift;
@@ -43,8 +43,8 @@ my $take_str = sub {
     my $value = $fields->{$name};
     return FALSE if not defined $value or ref $value;
     return FALSE if not utf8::downgrade( $value, 1 );
-    ## 16 bit length apart from the pattern [ perl 5.36 : quantifier max ##
-    ## 65534 ]                                                           ##
+    ## 16 bit length apart from the pattern ##
+    ## [ perl 5.36 : quantifier max 65534 ] ##
     return FALSE if $value !~ m|\A[\x21-\x7e]+\z| or length($value) > 65535;
     $field{$name} = $value;
     return TRUE;
@@ -90,8 +90,8 @@ my $transcript = pack(
 
 return pack( qw| Z* |, $label{$kind} ) . $transcript;
 
-#,,..,...,...,,.,,...,,,.,..,,,.,,,.,,.,.,...,..,,...,..,,,,,,..,,,,,,,.,,.,.,
-#RSKLK24IMZ6ACMU7BZOBUOUA5CRDMOLPZUAHQL3R5WGZXOFFKAUWELI7UJP7VUU3EPXASVSLVQD54
-#\\\|O6TPRTZIE6I6AZ4SDIFT4OEAVKYK3BB6P2EGFM32EW2WOMKMXC6 \ / AMOS7 \ YOURUM ::
-#\[7]5RN27DZYRDWMRWO6B62YLANUAZGHGRW6EOKZS7CEWI4LVEICSACY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,,..,,,.,.,.,,,,,,,,,.,,,.,,,..,,...,.,.,...,,..,,,,,,,.,.,.,
+#6RAGVCD6ZSOSDNA2E3RLK22IYAQE25FNHEB7W6Y2DA6EKBFBRTTJGQPV2EJBMMQPQKLJ42KZI5QNK
+#\\\|EM4QB5YF2DEZJFGPAMVCX26DCTSM4LDDTTYIPO5CMEFZXSJR4PJ \ / AMOS7 \ YOURUM ::
+#\[7]NT2UDLFDGICJ63A4J5SUSK7QO6UIYHKWBUSU5KFAAIIGBSW3G6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

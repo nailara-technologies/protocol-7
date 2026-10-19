@@ -25,8 +25,9 @@ foreach my $file ( <[file.all_files]>->($incoming_dir)->@* ) {
     ## enumerate every character a host_safe segment might legitimately     ##
     ## contain. an early version restricted this to [0-9a-z_]+, which       ##
     ## plugin.auth.auth-keypair.cleanup-incoming-keys also uses -- that     ##
-    ## silently drops any dotted IPv4 host_safe [ '127.0.0.1_42' has a '.'  ##
-    ## the class excludes ] there too, not just here. a tighter but         ##
+    ## silently drops any dotted IPv4 host_safe                             ##
+    ## [ '127.0.0.1_42' has a '.' the class excludes ] there too, not just  ##
+    ## here. a tighter but                                                  ##
     ## still real gap: RFC4007 IPv6 zone ids [ 'fe80::1%eth0' ] survive     ##
     ## tr/:\//__/  untouched since '%' isn't replaced, so a class-based     ##
     ## match would drop those too, even though '%' is currently unlikely in ##
@@ -97,8 +98,8 @@ foreach my $file ( <[file.all_files]>->($incoming_dir)->@* ) {
 
 return \%incoming_keys;
 
-#,,,.,,.,,.,.,,,,,,,.,.,,,,..,,,,,...,,.,,,,,,..,,...,...,.,.,...,.,.,,..,,.,,
-#TKGWIGQXYQFVTNIE75QSFQKX2QEPZ5AOA6X6LKPP7V57K674TCNXXC3EMZSLWC3KMKO2CI53N52AU
-#\\\|T4TQCLRO5HTJX3TMCTLWLOHKL63PGLUPCPACLBH6MLEL53W5PPT \ / AMOS7 \ YOURUM ::
-#\[7]MOVJZMROUOBEMT4VCBDHP7ZMVJPMZANCRQF3U3PYRR2ZFF2M5ODA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,,.,,...,...,.,.,...,,,,,,.,,..,,...,.,.,.,,,,,.,,,.,,..,,..,
+#4QS3ZJ6C5JBBTHW2R4CQ37LCZYOBEGR7MXWZBGX7GWUTCDJJLP674QASLADYOINPYJDR7A2VYOQUA
+#\\\|XF23E3BGIBZIIRAZLIVPSNUPNEB3S3FJEYANUXFCHPG4RMVX77J \ / AMOS7 \ YOURUM ::
+#\[7]SHLUWR5Z4LG7LJWYLA2MBH4253HTSPR75S7MMOTVSHG27J23BGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,8 +36,8 @@ return if ( <invoke-web.status> // '' ) ne 'running';
 return if <invoke-web.index.running>;
 
 ## queue state from the db : no blocking http call in the event loop -- ##
-## invoke.ai's api answers slowly while it loads models [ a blocking    ##
-## request stalled the zenka : v7 response timeouts ]                   ##
+## invoke.ai's api answers slowly while it loads models                 ##
+## [ a blocking request stalled the zenka : v7 response timeouts ]      ##
 my $dbh = <[invoke-web.queue.db]> // return;
 my ( $in_progress, $pending ) = $dbh->selectrow_array(
     "SELECT SUM( status = 'in_progress' ), SUM( status "
@@ -88,8 +88,8 @@ if ($pending) {
 
 <[invoke-web.drain.stop]>->( $idle, 0 );
 
-#,,,.,.,.,,..,,,.,...,,,.,,.,,.,,,,..,..,,,.,,..,,...,...,,,,,,,.,,,,,.,,,...,
-#DLAF5RUCCOMFXCUA45ADA2OKV5WITQPF7Z6LTFUILBQCBEQXWCIVEKZHOLLPJROHJCBKK4Y4QZK4C
-#\\\|QCGFSCUQ5XFGCZ3WGFAXBDX6IHLJPENQZERUMIW44JYNUYQ3QLP \ / AMOS7 \ YOURUM ::
-#\[7]57OWN4GSMMLEPZG3LP2BZCPTTFWYWKXT5AYARIS4XCHHKNPXRMCI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,,..,..,,,.,,...,,,,,.,,,,.,,..,,...,...,...,,.,,...,..,,,.,,
+#4EGT6D2YSQR2H5XWSTXDBWVVI3EDLY4OZBJSXHKI2XVFA6D6X36Q66D6U2Y5CAOWMIKUK6NBGF644
+#\\\|Z3RIDZLP3H75UMW4KHJ4NZMAXUKC4F2IEUSMZBXPW2MOVYO5TTG \ / AMOS7 \ YOURUM ::
+#\[7]BUCVE5WH736ZR6GJDNHRT7NMDKW2SV4KR5HYUUWQ7A5WK5ZACKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

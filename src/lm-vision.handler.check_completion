@@ -189,10 +189,10 @@ $full_output =~ s{\[\s*[a-z_]+\s*\]}{}g;
 # After cleanup patterns, we should have mostly model response text
 # But there may still be extra noise - collapse whitespace and trim
 
-## Remove all debug/initialization lines from output  [ applies to both stdout
-## and stderr ]  Both buffers may contain debug output interspersed with model
-## response Aggressively strip patterns while preserving the actual response
-## text
+## Remove all debug/initialization lines from output
+## [ applies to both stdout and stderr ]  Both buffers may contain debug
+## output interspersed with model response Aggressively strip patterns while
+## preserving the actual response text
 
 ## Remove build and compiler info
 $full_output =~ s|build:\s+\d+[^\n]+\n?||gm;
@@ -318,8 +318,8 @@ $payload_tail =~ s|\n|<newline>|g;
     length($payload)
 );
 
-## Store payload and metadata for downstream handlers  [ completion chain,
-## etc. ]
+## Store payload and metadata for downstream handlers
+## [ completion chain, etc. ]
 $vision_job->{'payload'}            = $payload;
 $vision_job->{'debug_log'}          = $vision_job->{'stderr'};
 $vision_job->{'raw_payload_sample'} = $payload;
@@ -380,8 +380,8 @@ if ( length $payload ) {
     }
 );
 
-#,,..,.,.,.,.,..,,,,,,.,,,..,,.,,,...,.,,,..,,..,,...,...,,,,,..,,..,,..,,,,,,
-#ZHRHNDYJO4ERJX7QNP7CDARDQHUZGOFMVHN2CDY3JDKMPLIMZDODCXWAG24VMR35HNLCLJ23CHWCO
-#\\\|5A4B4H2US2RZ24BQVFRDVLLH6BBBLVAKFZGLPX5IAYJTJ6QX73Z \ / AMOS7 \ YOURUM ::
-#\[7]DBNNYMSVUXZRSZ6QG53HTWASEKPEG2532YXX3JYGBE2NTHQKQICI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,,,,,,..,,,.,.,.,..,,,,.,,..,..,,...,...,,..,,.,,..,,.,,,,,.,
+#5KAFSNV5FL6O6YTFJOFBJACZTC4RH3AD2AYSRHLB4JR2BBMUPCJZZSJHAPIKSMD4SAIPTPVEAYIZ2
+#\\\|2UU3UYURPEASWY42ELBOJMVAGMPE4IZLWTWZ5QDBC2XMGBVTHW5 \ / AMOS7 \ YOURUM ::
+#\[7]ETOSZV7QXWC2FBD2IHM4YS2L5DJFRK5ID6FBDIASUT2UBGJE3CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

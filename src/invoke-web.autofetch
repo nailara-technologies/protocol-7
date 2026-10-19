@@ -125,8 +125,8 @@ my ( $repo, $repo_file );
 my $source = $record->{'source'} // '';
 if ( $record->{'source_type'} eq qw| hf_repo_id | ) {
 
-    ## invokeai appends ::file to select one file out of the repo [ a ##
-    ## ::subfolder without an extension selects a diffusers tree ]    ##
+    ## invokeai appends ::file to select one file out of the repo      ##
+    ## [ a ::subfolder without an extension selects a diffusers tree ] ##
     my ( $r, $sub ) = split m|::|, $source, 2;
     if ( defined $sub and $sub =~ m{\.[\w]+$} ) {
         ( $repo, $repo_file ) = ( $r, $sub );
@@ -199,8 +199,8 @@ $fetch->{'state'} = qw| fetching |;
 $fetch->{'time'}  = <[base.time]>->(3);
 <[invoke-web.missing.save]>;
 
-## single line : the command protocol is line based [ pretty json would ##
-## break it -- the values carry no newlines ]                           ##
+## single line : the command protocol is line based               ##
+## [ pretty json would break it -- the values carry no newlines ] ##
 my $args_json
     = <[format.json.encode]>
     ->( { 'repo' => $repo, 'file' => $repo_file, 'dest' => $staging_dir } );
@@ -240,8 +240,8 @@ if ( defined <invoke-web.autofetch.timers>->{$name} ) {
 
 return { 'ok' => TRUE, 'msg' => "fetch dispatched [ $repo : $repo_file ]" };
 
-#,,..,,.,,,..,..,,..,,,,.,,,,,,,,,.,,,.,.,,,.,..,,...,...,.,.,..,,..,,,.,,...,
-#PR3Y7P5ZJYAA4SMKHXDOSVK2JSO3XGM3NHKTTM4JEYRFVHVL4YVHS44H6QXPCAOVTTED5UVHLK5ZS
-#\\\|O2VEDFGLUZOX5YXC2RJ3EVL3WS5HZWUM7MFRLH5IOPW3LBST7TS \ / AMOS7 \ YOURUM ::
-#\[7]J6JQLMGQK2IGLSVV65O5RLG2IL7DLZMCMHHHU3HEXW432KDCZYDI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,,..,.,.,,.,,,..,,,,,..,,..,,..,,...,...,,,,,.,.,..,,..,,,..,
+#5HTIJUQ4WURM4ZEYW63VCOYONAS7WKEROR67NWNI6CQJQ4CQOLC6TD3WXJIVEC2O4KIP67LG3VWNM
+#\\\|NPLPZCNWZC5HCDUY33UOZZGZU4TRFO2B3VNAMUQLZHYOIZEW7PS \ / AMOS7 \ YOURUM ::
+#\[7]JCUVWLHXE3EKTTBZZIAY5DOAFJFO3Y4EMTPYT4WJ2HMXFO62RSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

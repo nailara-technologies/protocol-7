@@ -7,10 +7,11 @@
 
 ## the inverse of editor.control.multiline.cursor_line -- factored out once a
 ## second caller needed the same "sum of line lengths plus one '\n' each"
-## arithmetic user-edit.form.scroll_multiline already had inline [ moving the
-## cursor to a window's first line ] and user-edit.handler.stdin_key's Up/Down
-## -within-a-field handling needs too [ moving to the same column on the line
-## above/below ] -- two implementations of one sum would drift, same reasoning
+## arithmetic user-edit.form.scroll_multiline already had inline
+## [ moving the cursor to a window's first line ] and
+## user-edit.handler.stdin_key's Up/Down -within-a-field handling needs too
+## [ moving to the same column on the line above/below ] -- two
+## implementations of one sum would drift, same reasoning
 ## editor.control.list.summary documents for itself.
 ##
 ## $col is CLAMPED to the target line's own length, not carried past it --
@@ -34,8 +35,8 @@ $col = $line_len if $col > $line_len;
 
 return $offset + $col;
 
-#,,..,,,,,...,...,,..,.,,,,,.,.,,,,,.,,.,,...,..,,...,...,.,.,.,,,.,,,.,,,.,.,
-#6XIAZSVC2SRT64LOQ7FGGZVVXMDBGREAP7LYFCDYY4OR3AETJKVXSWLY6HDYGHBGSNUTBKP7PDP2I
-#\\\|4LRKB7SP6RF6DTWK2DPIBDQHUKTTQITNKBSSIUJTPIVISWQR5BY \ / AMOS7 \ YOURUM ::
-#\[7]7GI5GBIEC7VBP6YFC6DZSR74P453U53PE5L2ZJCT4KXLG6NZAAAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,,,,,,,..,,...,.,.,.,,,,,,,.,.,..,,...,...,...,,,.,,..,.,,,,,,,
+#B2USKBUISNT5OPMJTJHKB5J6TDHEYY6JF33SWS5XFXAPY3E4UOT2B3E7OY5X5FYB23MDHBRZPMHDU
+#\\\|RZETMKQ74WEHLVKETCCA35LZJKRQFWICMCUZ7NRYBYOACNWUKC2 \ / AMOS7 \ YOURUM ::
+#\[7]VMCPS63H7BDUKZZ75MKUDH4RXRWZ7EV2BBSKYUA6RBA7B46BKWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

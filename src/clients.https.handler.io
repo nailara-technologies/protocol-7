@@ -85,11 +85,11 @@ my $body = <[clients.https.decode_body]>->(
     $parsed->{'body'}, $parsed->{'headers'}, qw| clients.https |
 );
 
-## response headers travel with the result : keys are lower-cased here [    ##
-## and on the h2 path ], so callers look them up in lower case -- needed by ##
-## any api that carries its answer in headers rather than the body [ e.g.   ##
-## the anthropic-ratelimit-* set ]. headers_multi keeps every value of a    ##
-## repeated header in order [ acme sends several 'Link:' headers ]          ##
+## response headers travel with the result : keys are lower-cased here     ##
+## [ and on the h2 path ], so callers look them up in lower case -- needed ##
+## by any api that carries its answer in headers rather than the body      ##
+## [ e.g. the anthropic-ratelimit-* set ]. headers_multi keeps every value ##
+## of a repeated header in order [ acme sends several 'Link:' headers ]    ##
 $code{ $state->{'on_done'} }->(
     {   'ok'            => $ok,
         'status'        => $status,
@@ -100,8 +100,8 @@ $code{ $state->{'on_done'} }->(
     }
 );
 
-#,,.,,.,.,...,..,,.,,,.,.,.,.,,..,..,,.,.,.,,,..,,...,...,,..,,.,,..,,,,,,,,.,
-#YSLX6TBTKIMFA7TRWBGYRMXO47SJSVVW24DZVTE62TUYTY62MD5DJI4Q33GC6C7UQWBC5HBFGTZQM
-#\\\|3IRHHJH5JXQMBV7QS2M2EOMXIUYYRUVALG7S4TRXQ6ONRGQWPIN \ / AMOS7 \ YOURUM ::
-#\[7]R2GZM2WCNOLS7WRWIOAIQIJUELTR6IWG5XZOSGWAE2PEXZRO6QCI 7  DATA SIGNATURE ::
+#,,..,.,.,...,,.,,.,,,...,.,,,...,.,,,,,.,,,.,..,,...,...,,..,,,.,...,.,.,,.,,
+#64KSIZOAR4FXIQIK3ZPLFOM3KCXQYQIRJ3YHL2LBXWSPP3QR4V3COZGMS4VHTEQCKGSPOUB63PVZ2
+#\\\|YRYNKZUM4TPZMRCNVXAV56NGCBRODC7GD6UVOVXCHP33IYNUXZ3 \ / AMOS7 \ YOURUM ::
+#\[7]A3VMGPD356KWU5U2KQ4KFAJLP3MVHOWN2AOKO4EOFOK73M7JBYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

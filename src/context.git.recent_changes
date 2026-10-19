@@ -32,9 +32,10 @@ unless ( -d "$root/.git" ) {
 ## process [ second call dies 'invalid version <garbage> on git_diff_options'
 ## -- reproducible one-shot, owner-independent ] and the root cause is
 ## untraced. the binary path needs no libgit2 and honors the safe.directory
-## env vars coding.init_code sets [ GIT_CONFIG_COUNT ; the binary never had
-## the ownership problem ]. Git::Wrapper passes diff args through RAW [ no
-## Smart parser on diff ] so '--stat' output comes back verbatim.
+## env vars coding.init_code sets
+## [ GIT_CONFIG_COUNT ; the binary never had the ownership problem ].
+## Git::Wrapper passes diff args through RAW [ no Smart parser on diff ] so
+## '--stat' output comes back verbatim.
 my $git = Git::Wrapper->new($root);
 
 my $stat_output = '';
@@ -53,13 +54,13 @@ eval {
 
 ## if no uncommitted changes, show recent commits instead ##
 unless ( length $stat_output ) {
-    ## the log stays on Git::Wrapper -- Git::Native has no log API [ only
-    ## Diff, currently landmined, see above ]. Git::Wrapper's log() FORCES its
-    ## own --pretty=medium and parses for '^commit <sha>' lines : passing
-    ## '--oneline' overrides the format on the command line and the parser
-    ## dies 'unhandled: <line>' on the first output row -- broken since the
-    ## March 2026 rewrite, masked by a fully silent eval. use the structured
-    ## objects and build the oneline shape here instead.
+    ## the log stays on Git::Wrapper -- Git::Native has no log API
+    ## [ only Diff, currently landmined, see above ]. Git::Wrapper's log()
+    ## FORCES its own --pretty=medium and parses for '^commit <sha>' lines :
+    ## passing '--oneline' overrides the format on the command line and the
+    ## parser dies 'unhandled: <line>' on the first output row -- broken since
+    ## the March 2026 rewrite, masked by a fully silent eval. use the
+    ## structured objects and build the oneline shape here instead.
     my @logs      = ();
     my $log_error = '';
     eval {
@@ -117,8 +118,8 @@ if ( $file_count >= $max_files ) {
 
 return $output;
 
-#,,,.,,.,,..,,,.,,.,,,,..,.,,,,,,,,.,,.,,,.,,,..,,...,...,..,,,,,,..,,,.,,,.,,
-#Q6RPQOYSM7FGDBDVQZRYSCPHNSTSL7QNIIKERWC7H36V4FHMLIFXNRJXCTHZOADXCV2XKRSVGUMEY
-#\\\|GP73DID6R5TKUOQW4WSQETIYHMLVUHIA6QO5C4CDMGQZMHLFEHK \ / AMOS7 \ YOURUM ::
-#\[7]J5KA7BDHAHMWVCEI675W3VJDB7H2B4HGY25BHTYQZ3ZFXWKOVIAI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,,,.,,.,,,..,.,,,..,,..,,.,,,..,,...,...,.,.,.,.,.,,,..,,..,,
+#JXHTFRZR6NM75WRQU7BIGPAN564QWBOICV7MUTPRWV6M6TAC75YFNMIC2TNZW3AOQZGPHKG5LNGYE
+#\\\|WXIMLR4AELE4J2ZHCTUEIDHFBRQN56Z3GAQCC5TFTDWY3VGBEEB \ / AMOS7 \ YOURUM ::
+#\[7]WCIK3JLIUP2BS55HALXLXUES7QAMUTZ7KUTCBDBODWOLOOPUZQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

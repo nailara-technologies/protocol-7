@@ -11,8 +11,8 @@ my $params = $ARG[0] // {};
 # determine db path from config, params, or default
 my $admin_user = <system.admin-user> // '';
 my $admin_home = length $admin_user ? ( getpwnam $admin_user )[7] : undef;
-## invoke.ai default db location : <root>/databases/invokeai.db [ an older ##
-## layout used <root>/db/ -- a stale copy may still sit there ]            ##
+## invoke.ai default db location : <root>/databases/invokeai.db            ##
+## [ an older layout used <root>/db/ -- a stale copy may still sit there ] ##
 my $invoke_root = <external.models.invokeai.root>
     // ( defined $admin_home ? "$admin_home/.invokeai" : undef );
 my $db_path = $params->{'db_path'} // <external.models.invokeai.db>
@@ -124,8 +124,8 @@ for my $m (@$models) {
 
 return \@filtered;
 
-#,,,,,...,,,.,.,.,...,..,,,,,,,..,..,,.,,,,,,,.,.,...,...,.,,,,.,,...,.,.,.,,,
-#WQBFZ7UFLGALT7QLKOEMNB36K4N4WM5RPVGHGAMZ3WQRJ2M6X3WBXWMOFDVRZYDPOJ4HD3GNVLADI
-#\\\|BGAJ6FDCX3S3PXFZHMKVLJVRXGDEOFHMKLFMQ5SKKSD4AIRSCFI \ / AMOS7 \ YOURUM ::
-#\[7]4F3QIAJTHW7OXOYZ3QIJEGHBGTC6TP75LRWDWT33XD7J7BEFTMBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,.,..,,,,.,.,,,.,.,.,,,,.,,,,.,.,.,...,...,,.,,,,,,,,,,.,.,,,.,
+#6I4RPFDWGO7ZOMUZAINL6HJ4YR7SUQ7G5O2TV66XYSC5EWA6RPNF7NQPQBW5NY6HV3EIQFJVCF7WG
+#\\\|5C4S7JA7SSLF27JZHQP3QNCUI7NWDUZYTABWFWIUITLGIRII64V \ / AMOS7 \ YOURUM ::
+#\[7]QKMTPRT5UTVRB5WH4BZ4JMH4RDGX4OH2ZBLC26FCYLVHBLQJMQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

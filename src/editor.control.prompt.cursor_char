@@ -8,15 +8,17 @@
 ## companion to editor.control.prompt.render, split out so a plugin's own
 ## <plugin>.cursor_char sub [ e.g. plugin.user-edit.key-actions.cursor_char ]
 ## can hand this back to user-edit.form.render for the SAME inverse-video /
-## underscore overlay every ordinary field gets -- exactly the plugin.user-
-## edit.address-cluster.cursor_char precedent : editor.control.prompt.render
-## draws its own cursor marker into the restructured text it returns [ a
-## plugin field has no positional relationship to the raw buffer offset, same
-## reason address-cluster's own .render does this ], so the generic
-## \x01-overlay in user-edit.form.render needs a DIFFERENT source for "what
-## character sits there" -- this is it.  returns '' [ same as the raw-buffer
-## fallback branch in user-edit.form.render itself ] whenever there is no open
-## prompt for this field, or the cursor sits past the last character.
+## underscore overlay every ordinary field gets -- exactly the
+## plugin.user-edit.address-cluster.cursor_char precedent :
+## editor.control.prompt.render draws its own cursor marker into the
+## restructured text it returns [ a plugin field has no positional
+## relationship to the raw buffer offset, same reason address-cluster's own
+## .render does this ], so the generic \x01-overlay in user-edit.form.render
+## needs a DIFFERENT source for "what character sits there" -- this is it.
+## returns ''
+## [ same as the raw-buffer fallback branch in user-edit.form.render itself ]
+## whenever there is no open prompt for this field, or the cursor sits past
+## the last character.
 
 my ( $editor_state, $field_name ) = @ARG;
 
@@ -44,8 +46,8 @@ return '' if $cursor >= length $display;
 
 return substr( $display, $cursor, 1 );
 
-#,,,,,,,,,,.,,..,,...,,,,,,..,,,.,.,,,,,.,...,..,,...,...,...,,,,,.,,,..,,..,,
-#QAIZ7JA3J6JESBAOKKDQVE4OPZIDZOJWHXPRZELXJY4VPJXIKZNEGFFHBOPRJ2FZ2S3UQYOJXWAZ6
-#\\\|JILE7UH5SQW452QBVEQ7GVU2Q62W2C7CAIJVWACHXLCZSKHVZWE \ / AMOS7 \ YOURUM ::
-#\[7]B63UVZG6N4L6SPRWHLHCYHDQQIUDNYXH5PLC74OV6EYQWQVQFUAY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,...,.,,,,,.,,.,,,,,,.,.,...,...,..,,...,..,,.,.,...,...,,.,,,,,,
+#H4J55755PR6VIISCX5TIU2IIH5FYM53XTJ6JTX37PHF6AO2UAOOPODAQY77DMQ6PPWPEB3MIFKTQC
+#\\\|7MGP5ZZHOZUBPLX42UJ7QRTVEJH2GDUADXSCXSLIQJAW3TXZOWZ \ / AMOS7 \ YOURUM ::
+#\[7]FTEEBK4DMYUT27J2PG5ZPGXCBW5ZMHLO6BCWZ5RMYLS6WS2IKSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

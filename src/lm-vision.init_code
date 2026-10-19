@@ -132,9 +132,9 @@ if ( $model_path && $mmproj_path ) {
 # Temp files are managed by base.file.temp
 # with automatic cleanup via end_code callbacks
 
-## register for coding zenka startup notification  [ first poll triggered  ##
-## when coding comes online ]  [ re-triggered after idle shutdown via http ##
-## error handler ]                                                         ##
+## register for coding zenka startup notification              ##
+## [ first poll triggered when coding comes online ]           ##
+## [ re-triggered after idle shutdown via http error handler ] ##
 <lm-vision.poll_interval> = 5.0;
 <lm-vision.poll_paused>   = 0;
 
@@ -147,9 +147,9 @@ if ( $model_path && $mmproj_path ) {
 ## reliably hits send.local's "no clients in session" drop.                ##
 ## <system.init_reports> was tried first but only ever flushes once around ##
 ## the initial connect event and does not reliably carry a deferred reply  ##
-## handler through that flush -- <system.callbacks.initialized> [ same     ##
-## pattern as coding.init_code's GPU-stats subscribe ] fires once this     ##
-## zenka's own session is up and keeps the reply wiring intact.            ##
+## handler through that flush -- <system.callbacks.initialized>            ##
+## [ same pattern as coding.init_code's GPU-stats subscribe ] fires once   ##
+## this zenka's own session is up and keeps the reply wiring intact.       ##
 push @{ <system.callbacks.initialized> //= [] }, sub {
     <[protocol-7.route-send]>->(
         {   'command'   => qw| v7-zenki.notify_online |,
@@ -162,8 +162,8 @@ push @{ <system.callbacks.initialized> //= [] }, sub {
 
 0;    # Return success for module initialization
 
-#,,,,,.,.,..,,,..,.,.,..,,,.,,.,,,,.,,.,,,,.,,..,,...,...,...,,..,...,..,,.,.,
-#3VJD44C6HTKMWEPZAD7IZAWNBJP2ULS2EYUMLZ72GMYI3RQUX46NF753G23FYLKHYPR7J4GJ36LSW
-#\\\|QHKPLCFAJQ65AQOYX2AFMTDVE52EZKA7XNB37FFIBDDZW4RUIZK \ / AMOS7 \ YOURUM ::
-#\[7]OE4Y5KXNY252WOXEFQYRV2SDMQCAKGCQE7EOAQWENS636ALLK2BA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,.,,,,,.,.,,,.,.,.,.,.,.,,,,,..,,...,...,,.,,,..,,,.,...,.,.,
+#P7HMUEV5IASG62RBRN2DJHSWAYTYUJBMJ37AWZM44ECHT67CG6NRKR7SIQM24YZTLUQH26PHM4I2K
+#\\\|T3CA3RNICE6QUVV4GN3SHIMVO2L3SGKYIVNWLLCQ6CPSKCSSSLI \ / AMOS7 \ YOURUM ::
+#\[7]NTTVRGZIMBY5IFKOY2AQNSR2SC6O7EGY5CB5MVY32QZ3QUBYC2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,12 +5,12 @@
 # param = $address
 # return = 1 | 0
 
-## shared by the child's enrollment DNS check [ letsencr.child.check_domain_
-## dns ] and the parent's own-interface scan [ letsencr.parent.local_public_
-## addresses ] -- in letsencr.base so both processes load it before the fork.
-## not public : loopback \ private [ rfc 1918 ] \ link-local \ cgnat \
-## benchmark \ documentation \ multicast \ reserved, v6 loopback \ unique
-## local \ link-local
+## shared by the child's enrollment DNS check
+## [ letsencr.child.check_domain_ dns ] and the parent's own-interface scan
+## [ letsencr.parent.local_public_ addresses ] -- in letsencr.base so both
+## processes load it before the fork.  not public : loopback \ private
+## [ rfc 1918 ] \ link-local \ cgnat \ benchmark \ documentation \ multicast \
+## reserved, v6 loopback \ unique local \ link-local
 
 my $addr = shift;
 return 0 unless defined $addr;
@@ -34,8 +34,8 @@ return 0 if $addr =~ m{^ 22[4-9] \. | ^ 2[3-9][0-9] \. }x;
 return 0 if $addr =~ m{^ 255 \. }x;               ## multicast \ reserved ##
 return 1;
 
-#,,.,,...,..,,..,,...,,,,,,..,.,,,,..,.,.,,,,,..,,...,...,,,.,..,,,.,,..,,,,.,
-#FNCL76YDB7NEYWIN3LO4GWRL3IAGJBY5WZYBBMXPF2GFXWVQ6UXVDJOU72WCYLDIRBFDU7R5UOHQO
-#\\\|L6UXWXXX6R7C7HYILDMQFPRAQGJVIDRUW7CM7RUY4EJGOAUNMD4 \ / AMOS7 \ YOURUM ::
-#\[7]VK3MMBDCI43OMKSHLN4ADRYQE5YOIJHACOQJS3GHW6YFVXKXZ2DA 7  DATA SIGNATURE ::
+#,,.,,...,,..,,.,,.,.,,,.,,,,,,,.,,..,,.,,.,.,..,,...,..,,...,,.,,,,.,,.,,..,,
+#EUW2K3TC6TTXDGSZK37X3E7BBCN4BQWZYNIDFOOBFL3IO7R446EK4SWJU4J3NMFPPCBVWJVS6IC4K
+#\\\|K6SOCFLYCGN7QSC4JA32TEZDC5TVD3YPVVA6L756YGBB6CIYMOM \ / AMOS7 \ YOURUM ::
+#\[7]6I6WWYB3I2XMJ7OI7BB6X7IS44M56ZQJ4ZPRIM3IRPP5OGKWUQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

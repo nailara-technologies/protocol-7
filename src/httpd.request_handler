@@ -123,11 +123,11 @@ if ( index( $h_req->uri, qw| %0 |, 0 ) >= 0
     return 2;
 }
 
-## request pattern classification [ phase 1 : observation only ] records   ##
-## the request into <httpd.classify.peer> and returns a match for log      ##
-## annotation -- never touches the connection, and when the feature is     ##
-## disabled the <httpd.classify> branch does not even exist [ exists-guard ##
-## also prevents autovivification ]                                        ##
+## request pattern classification [ phase 1 : observation only ] records ##
+## the request into <httpd.classify.peer> and returns a match for log    ##
+## annotation -- never touches the connection, and when the feature is   ##
+## disabled the <httpd.classify> branch does not even exist              ##
+## [ exists-guard also prevents autovivification ]                       ##
 my $classify_tag = '';
 if (    exists <httpd.classify>
     and <httpd.classify.enabled>
@@ -192,8 +192,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,,.,.,,,,,.,..,,,.,,,,,,,..,..,,...,,..,.,.,..,,...,..,,,.,,,.,,,,,,.,.,,,.,
-#ZWM2PUVYS7PF3VN6YOWAJVQVGY2ETAZBVGB4U2CJORV6AYUKTLJYPQPO2LDPRWRYWLDWSUH7MJ6PU
-#\\\|RUEBDSLXCFY5R4YI2P7RMZ3ZGXDVLLJYLK55KRWPXEL67LI25XI \ / AMOS7 \ YOURUM ::
-#\[7]5F4ACC5A34LASWXXUP4H2JOP6EZLB2VZGDTXKUMUAZD54MJLSQBA 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,.,.,,..,.,,,,,.,.,,,..,,,.,,..,,...,...,.,.,...,.,.,...,,,,,
+#OYNGTHHESQCUMTVNL4HCLYIE7EC7EG6H5I6YNYHG3LIGDJGHG5YIM5JF3P4O5AKRHMQL7Y2VCYOBC
+#\\\|7UKIG67FFYTH5XPTMPDGPBMRHX5KCZU22CSLTTJWDQWCKUP3BHS \ / AMOS7 \ YOURUM ::
+#\[7]CKR6U37V2P5D23KBKXLSMY5HQWRDVEF4UPMDXZ276ABGKIUCSIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

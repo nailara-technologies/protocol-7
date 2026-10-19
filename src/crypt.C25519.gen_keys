@@ -6,8 +6,9 @@ my $key_name_param      = shift;    ##  optional  ##
 my $key_seed_passphrase = shift;    ##  optional  ##
 my $secret_key          = shift;    ##  optional  ##
 
-## a caller's own 32 byte secret rebuilds an EXISTING key [ e.g. letsencr ##
-## account key ] -- used exactly as given, never swapped for a fresh one  ##
+## a caller's own 32 byte secret rebuilds an EXISTING key                ##
+## [ e.g. letsencr account key ] -- used exactly as given, never swapped ##
+## for a fresh one                                                       ##
 my $secret_supplied = defined $secret_key;
 
 my $harmoic_public_keys = TRUE;     ##  public key truth requirement  ##
@@ -45,11 +46,11 @@ if ( defined $key_seed_passphrase and not length( $secret_key // '' ) ) {
 
 ##  or create from random input  ##
 ##
-## a fresh secret = BMW-256 over the [ OS-seeded ] fortuna stream AND 32 ##
-## bytes from /dev/random, which waits until the kernel CRNG is ready [  ##
-## linux >= 5.6 ; select-bounded, 30 s ] -- matters at early boot and on ##
-## embedded systems. never hangs, never fails : without /dev/random the  ##
-## fortuna part alone is used [ logged ]                                 ##
+## a fresh secret = BMW-256 over the [ OS-seeded ] fortuna stream AND 32   ##
+## bytes from /dev/random, which waits until the kernel CRNG is ready      ##
+## [ linux >= 5.6 ; select-bounded, 30 s ] -- matters at early boot and on ##
+## embedded systems. never hangs, never fails : without /dev/random the    ##
+## fortuna part alone is used [ logged ]                                   ##
 my $fresh_secret = sub {
     <[base.prng.add_entropy]>->($name);    ## fresh input for this key ##
     my $kernel = '';
@@ -116,8 +117,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,,,,,,.,,..,.,,,,,,,...,,,,,...,,.,,,,,,.,.,..,,...,..,,,,.,...,.,,,...,,.,,
-#OVASHGN5GTJ5RR2ATT7ZVSZKL63VUW6UE3DMVIA5B6UJYAYZ4K6BQU57UVKUSMIRUASFEIXBG5VNK
-#\\\|YPFOOEGWH5GU2CPTMHFD5E7EQ5DU6QMEGIS3ZDBYGVPALGMTY4H \ / AMOS7 \ YOURUM ::
-#\[7]QLZZUQSETYQE7LJTAFRGPUQXR4GPMBIAD22QRL6XZOASVDRCKYDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,.,,,..,.,,,..,,..,,.,,,.,.,,,.,..,,...,...,.,,,,.,,...,...,.,.,
+#6KCZAINLY6JUFRJD6TLY4URHSX2OT6PVOAXAYL4KZKGMXQTYDM73MVYGOOIO6L4ZHOHF7AAI3S2X4
+#\\\|ACPQGJMGYSBTP466ONGTMFR6TPVYESZXKCS4OULZ64VQDER62KF \ / AMOS7 \ YOURUM ::
+#\[7]KPKU4OA6MC6BTCA4PEKKPM67YFSHNIZUWAUZMV7M4HVX2SNIAGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,15 +40,16 @@ if ( $idx_status =~ m{^(blocked|deleted|trash)(:|$)} ) {
 
 my $store = <jobs.store> // <[jobsite.job.load_all]>;
 
-## hard-block student-only positions [ thesis / internship / apprenticeship ##
-## ] -- candidate is a 25+ year full-time professional, not enrolled in any ##
-## degree program, so these are categorically inapplicable no matter how    ##
-## strong the technical overlap looks to the LLM [ see F5INW : a            ##
-## Masterarbeit scored 7 and landed in review purely on skill-keyword match ##
-## ]. checked by title only -- not the full description, since phrases like ##
-## "abgeschlossene Ausbildung" are normal requirement-section text, not a   ##
-## signal the position itself is one -- and only for genuinely new jobs,    ##
-## same gating as the checksum blacklist below                              ##
+## hard-block student-only positions                                        ##
+## [ thesis / internship / apprenticeship ] -- candidate is a 25+ year      ##
+## full-time professional, not enrolled in any degree program, so these are ##
+## categorically inapplicable no matter how strong the technical overlap    ##
+## looks to the LLM [ see F5INW : a Masterarbeit scored 7 and landed in     ##
+## review purely on skill-keyword match ]. checked by title only -- not the ##
+## full description, since phrases like "abgeschlossene Ausbildung" are     ##
+## normal requirement-section text, not a signal the position itself is one ##
+## -- and only for genuinely new jobs, same gating as the checksum          ##
+## blacklist below                                                          ##
 if (not exists $store->{$id}
     and ( $job->{'title'} // '' )
     =~ m{
@@ -163,8 +164,8 @@ return {
     'data' => $is_new ? qw| new | : qw| updated |
 };
 
-#,,..,,,.,,..,.,,,,,,,,.,,,,,,,..,..,,...,..,,.,.,...,...,...,,.,,,..,.,,,...,
-#7EWM73ATJGXIM3DIJWJDKPZJONFLZMUFZRVW3YO4CW72ORJK5AJA3ODQWSFLJJSVM46UPBQXEYR54
-#\\\|VHKV3FNFF7PWKPGYDSWNGQ5CFMJWICHOST4ACTNUYN43FRJ4NLV \ / AMOS7 \ YOURUM ::
-#\[7]MGJEJY2OYT23ZZ4ZVPO3EQJI5LYUMB3MEDRXP6VIZ75RJTPJM4CI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,.,,,...,,,.,,,.,.,.,..,,..,,.,.,...,...,...,.,.,..,,...,...,
+#3BOTCH6EOUT5ARTHVGGRHPGZLZCBASXPEMVUEFCNRRLUTFHB2S6XPLJZYV35JDRSA3I2U6BHP6KYW
+#\\\|N5FASZMA5CO4PJTLZKE4WZS2N7WIDSN2PVUUVJF4CPQY2346TEI \ / AMOS7 \ YOURUM ::
+#\[7]EAZUNZAMT65JVUC7AFLU5RHRZ2SMNFVLE3MZV5WYEZU6AQS2HWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,9 +5,10 @@
 
 <[base.logs]>->( 2, 'host-edit zenka initialized' );
 
-## raw terminal mode for the interactive form [ form.term_init /
-## form.term_restore ] — linux-native, no XS build issues, and API-compatible
-## with POSIX::Termios [ nshell.init_code / user-edit.init_code precedent ]
+## raw terminal mode for the interactive form
+## [ form.term_init / form.term_restore ] — linux-native, no XS build issues,
+## and API-compatible with POSIX::Termios
+## [ nshell.init_code / user-edit.init_code precedent ]
 <[base.perlmod.load]>->('Linux::Termios2');
 
 ## resolve the invoking Unix user, for the start file's  system.auth-user =
@@ -80,9 +81,9 @@
 };
 
 ## P7-native home dir resolution [ base.get_homedir ] and the path keywords ##
-## user-edit registers : VAR_P7 resolves to this zenka's data dir [         ##
-## /var/protocol-7/host-edit/ ], HOME_N to ~/.n [ the client pin store root ##
-## host-edit.trust.pin_state reads ]                                        ##
+## user-edit registers : VAR_P7 resolves to this zenka's data dir           ##
+## [ /var/protocol-7/host-edit/ ], HOME_N to ~/.n                           ##
+## [ the client pin store root host-edit.trust.pin_state reads ]            ##
 my $home_dir = <[base.get_homedir]>->(<host-edit.unix_user>);
 
 my $host_edit_path_keywords = {
@@ -93,11 +94,11 @@ my $host_edit_path_keywords = {
 
 <[base.path.register_keywords]>->($host_edit_path_keywords);
 
-## best-effort data dir creation : a console zenka runs as the invoking   ##
-## unix user [ system.auth-user below ], and /var/protocol-7 is group-    ##
-## protocol-7 writable, so the zenka dir and hosts/ subdir can be made on ##
-## first run -- user-edit's own /var/protocol-7/user-edit exists for the  ##
-## same reason                                                            ##
+## best-effort data dir creation : a console zenka runs as the invoking  ##
+## unix user [ system.auth-user below ], and /var/protocol-7 is          ##
+## group-protocol-7 writable, so the zenka dir and hosts/ subdir can be  ##
+## made on first run -- user-edit's own /var/protocol-7/user-edit exists ##
+## for the same reason                                                   ##
 my $data_dir = <[base.path.resolve_keywords]>->(qw| [VAR_P7] |);
 mkdir $data_dir, 0750
     if defined $data_dir and not -d $data_dir;
@@ -108,8 +109,8 @@ mkdir $hosts_dir, 0750
 
 return TRUE;
 
-#,,,,,,,.,,,,,,..,..,,..,,.,,,.,.,..,,...,.,.,..,,...,...,...,.,.,,..,..,,,,,,
-#XT5MKLHDPY5XHS7T2LIQCNDXUNYNSN67XSJDCN72V3K2LOB7RIB2PV53SMKUQTVXN76HVIW66SKDK
-#\\\|ACT27CQ6SCS2XH4ML76ATGBASWUWQFL44CP6AD7FJEM4PC3GGTU \ / AMOS7 \ YOURUM ::
-#\[7]EIXKVIVRHTTWAKX4IY3VFYXZA7M7WGXEJVP2EGYDIKFCS4FE3UCY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,.,.,,..,,,,,,..,..,,..,,...,..,,...,...,.,.,..,,...,.,,,.,.,
+#5F62CUGLT675IXCRATIZVWL5UCVLGERES7HIVXOZORP3IWHELMJQRQLXRS57AKRHPRT5EOPC4SKK2
+#\\\|LLJESBPAW2BFJPEXCXNQLGVTPJD5LDWTVWXQMLCYXQM3EVYYIB5 \ / AMOS7 \ YOURUM ::
+#\[7]AHXKLBYSKM5GXUE7UZ26UFBJNQC7U5SZLJPV4P7DUZTNW4XG5YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

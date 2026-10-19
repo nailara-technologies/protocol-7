@@ -13,11 +13,12 @@ return {
     if $param !~ m|^$B32_re{1,22}$|;
 
 ## the charset/length check above accepts anything base32-shaped, including
-## e.g. a full log-entry id [ ntime + a uniqueness suffix, concatenated before
-## encoding ] -- this shape check rejects that before it ever reaches
-## base.ntime_BASE32_to_numerical's own deep validation, which assumes
-## well-formed input and warns loudly instead of failing quietly -- see
-## base.ntime.b32_is_shape_valid's module note
+## e.g. a full log-entry id
+## [ ntime + a uniqueness suffix, concatenated before encoding ] -- this shape
+## check rejects that before it ever reaches base.ntime_BASE32_to_numerical's
+## own deep validation, which assumes well-formed input and warns loudly
+## instead of failing quietly -- see base.ntime.b32_is_shape_valid's module
+## note
 return {
     'mode' => qw| false |,
     'data' => 'BASE32 decoding error [ timestamp not valid ]'
@@ -35,8 +36,8 @@ return {
 
 return { 'mode' => qw| true |, 'data' => $ntime_value };
 
-#,,,,,..,,,.,,,,.,,,.,.,,,,,,,,.,,,..,...,.,.,..,,...,...,.,,,...,...,,,,,.,.,
-#EC3ELME6JC5BIIEALOIQ5AUZLCS7UB3HIXLSI3UD7VXE35BDJ7UWDGTZDWCSAKUEKUWXOWF46QAPY
-#\\\|MMJ6SV33SO3D3SM6ZIKEGMQZM4VCN6KY5OM6I3NCJT7GAHF4XJ2 \ / AMOS7 \ YOURUM ::
-#\[7]XF5B65K7MTLQNGJGOYPDZIOHYLHVYFY7DQUHESZJWONWDCPQAOCQ 7  DATA SIGNATURE ::
+#,,,,,...,...,,.,,..,,,.,,.,.,,,.,,,,,.,,,.,.,..,,...,..,,.,.,..,,...,,,.,.,.,
+#WWJNBXY5CZSC3NRKJGWB2OUZJI4FEGNTSTYUGFIK5J2SXXG7EDAFSRGYNZJLHJDS4BMFJIHAFLQU2
+#\\\|WNEMRPJ6XXA2QNZ7XBZG64AFDGUBUJHDS7GTCMLK6M2LHERRF6I \ / AMOS7 \ YOURUM ::
+#\[7]PVOYNJAUUCUCVNFKPUON334XV2WTNVHKOATKUIY63VJ3YSDGSGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

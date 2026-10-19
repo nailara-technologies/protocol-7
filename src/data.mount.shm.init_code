@@ -15,8 +15,8 @@
 <[base.perlmod.autoload]>->('Sys::Mmap')
     unless exists $INC{'Sys/Mmap.pm'};
 
-## standalone-loadable core : mmap / header / permission mechanics [ same ##
-## hybrid precedent as AMOS7::CHKSUM ; wrappers call into it ]            ##
+## standalone-loadable core : mmap / header / permission mechanics    ##
+## [ same hybrid precedent as AMOS7::CHKSUM ; wrappers call into it ] ##
 <[base.perlmod.autoload]>->('AMOS7::SHM')
     unless exists $INC{'AMOS7/SHM.pm'};
 
@@ -88,13 +88,13 @@ if ( eval { require POSIX } ) {
 
 ##[ CLEANUP HANDLER ]#########################################################
 
-## phase 4 : register a normal end_code callback rather than assigning      ##
-## $SIG{'INT'}/$SIG{'TERM'} directly — direct assignment would clobber      ##
-## base.sig_int / base.sig_term [ v7 teardown, cross-zenka shutdown notify, ##
-## <system.kill_list> killing ]. end_code callbacks run on every exit path  ##
-## via bin/Protocol-7's own END block regardless of how exit was reached,   ##
-## same precedent as v7-zenki.setup_stdout_redir ->                         ##
-## v7-zenki.stdout_log.close                                                ##
+## phase 4 : register a normal end_code callback rather than assigning       ##
+## $SIG{'INT'}/$SIG{'TERM'} directly — direct assignment would clobber       ##
+## base.sig_int / base.sig_term                                              ##
+## [ v7 teardown, cross-zenka shutdown notify, <system.kill_list> killing ]. ##
+## end_code callbacks run on every exit path via bin/Protocol-7's own END    ##
+## block regardless of how exit was reached, same precedent as               ##
+## v7-zenki.setup_stdout_redir ->  v7-zenki.stdout_log.close                 ##
 push <callbacks.end_code>->@*, qw| data.mount.shm.cleanup |;
 
 <[base.log]>->( 2, "SHM mounting subsystem initialized" );
@@ -102,8 +102,8 @@ push <callbacks.end_code>->@*, qw| data.mount.shm.cleanup |;
 # Init codes must return 0 or 5 for success
 return TRUE;
 
-#,,..,.,,,,,,,.,,,...,.,,,...,..,,...,,..,,.,,.,.,...,...,,,.,,,.,,,.,.,.,...,
-#A5X6TP3WY2ADIZHVCUTT3YVP6ETC2TOBGR3OM3T223MX7KI32OSYOL6BPQWIU7XSBROCXZKGKVBY2
-#\\\|WQERMOEH3EJM2JAUDHOAV4LWJZQPZDNZHNHIULOCPEOQBOBLFGB \ / AMOS7 \ YOURUM ::
-#\[7]XGP5RZO37SNYFB6YL7EUT7RRTHID4LEHKXT2MZGJKKFBMAWUHOCA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,...,,,,,,.,,..,,.,.,,.,,,..,.,.,...,...,...,...,..,,,,,,,.,,
+#Q3UVZZBILZKNRO6VTUGU75ZL5CH6VZEQDBA6EIAAGD2JGS6C3AU3TPDHCZ2E5CH2INJFVJWV2DHXK
+#\\\|J6N32HMDGHBPX53LTK4PPDSRBLQ4EEKEECDES2NJDLRN73BHS3Y \ / AMOS7 \ YOURUM ::
+#\[7]O7IRH6U3EROKSXC7OD7PABGJP4QEUQPPJIEMYB6TACNT3RMAA2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

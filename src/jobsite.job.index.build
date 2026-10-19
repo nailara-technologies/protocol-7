@@ -16,11 +16,11 @@ my %epoch_statuses = (
     trash   => qr/\.yxz\.B32$/
 );
 
-## scan epoch-bucketed [ terminal state ] dirs FIRST : an orphaned          ##
-## blocked/deleted/trash file left behind by an incomplete cleanup [ e.g. a ##
-## rescue that didn't remove the old trash copy ] must never win over a     ##
-## legitimate active-status record for the same id, so active statuses are  ##
-## scanned second and take priority on collision                            ##
+## scan epoch-bucketed [ terminal state ] dirs FIRST : an orphaned        ##
+## blocked/deleted/trash file left behind by an incomplete cleanup        ##
+## [ e.g. a rescue that didn't remove the old trash copy ] must never win ##
+## over a legitimate active-status record for the same id, so active      ##
+## statuses are scanned second and take priority on collision             ##
 for my $status ( keys %epoch_statuses ) {
     my $dir = "$jobs_root/$status";
     next if not -d $dir;
@@ -63,8 +63,8 @@ for my $status (@active_statuses) {
 
 return $index;
 
-#,,..,,.,,.,,,,..,,,.,..,,,.,,..,,...,.,,,,,,,..,,...,...,,,.,..,,.,.,.,.,,,.,
-#D7YMEXP7AK2CJSRJ23TAKNZ4YQZKIBHUTO4R6JBHNRSQQF4KMJHX2LCY62THJB2OHLFOVRG3LYTSI
-#\\\|IJOMGNRBCI3IZ4JJ3EIWFPYEY4PRORHA63KROVGNE7RA3ISVQJA \ / AMOS7 \ YOURUM ::
-#\[7]MMA6LEUFZZMARCDD3PUUS2DGTICQ42PFLXPADKERK2SH2MZK3OCA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,.,,...,,..,.,,,.,,,,..,,,,,..,,..,,...,.,.,.,.,,,.,,.,,,,.,..,,
+#ALG6UCHAXKJZVGREV7F3Q7P3SAQJG5BXXSSZOTSKAJDMDB2MQWQGFCY6Y5OHVQ25YQHEN3VH7T7V2
+#\\\|REDA24DDN3H4QVSIU5GMG6T5B56MJBIW2T7X4Q4CUMLWZ6NZOHN \ / AMOS7 \ YOURUM ::
+#\[7]DDY6WRUQTHXHBOPCHY42Z4WIKPPG4RWXU7FOLUCRK5RVD5PPCGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

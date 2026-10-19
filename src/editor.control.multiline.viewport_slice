@@ -35,9 +35,9 @@ return ( $line_text, $has_cursor ? $cursor_col : undef )
 return ( '', undef ) if $width < 1;
 
 ## too narrow for markers to mean anything -- plain truncation, still bounded
-## by width, just no '<'/'>' dressing. never hit in practice [ the caller's
-## own width floor is far above 3 ], kept only so this never overshoots width
-## on a degenerate input
+## by width, just no '<'/'>' dressing. never hit in practice
+## [ the caller's own width floor is far above 3 ], kept only so this never
+## overshoots width on a degenerate input
 if ( $width < 3 ) {
     my $slice = substr( $line_text, 0, $width );
     return ( $slice,
@@ -49,10 +49,11 @@ $cursor = length($line_text) if $cursor > length($line_text);
 
 ## reserve room for BOTH a leading '<' and trailing '>' unconditionally, even
 ## on a call that only ends up needing one -- avoids a circular "how many
-## markers does this window need" computation [ marker count depends on
-## offset, offset depends on body_width ]. a wasted marker-width column near
-## an edge costs nothing : this is a soft display cap, not a structural
-## invariant, and the result never exceeds $width either way
+## markers does this window need" computation
+## [ marker count depends on offset, offset depends on body_width ]. a wasted
+## marker-width column near an edge costs nothing : this is a soft display
+## cap, not a structural invariant, and the result never exceeds $width either
+## way
 my $body_width = $width - 2;
 
 my $offset = $cursor - int( $body_width / 2 );
@@ -79,8 +80,8 @@ $slice = $slice . q|>| if not $shows_right_edge;
 
 return ( $slice, $display_col );
 
-#,,.,,..,,...,,,.,..,,.,.,.,.,,,.,.,,,,,.,.,,,..,,...,...,,..,.,.,,..,,,.,.,,,
-#HXFFJ5R3N5KABW2KTU3QWV25A4ZUSKKC2UTDPT4C7OXTMDENWXZNUZ4RJ37Y75TEMRPCWDJQ6JEK2
-#\\\|SJ3EUGEQK2OXIRXPOXYXFLQF6MD3CHMC3OB3YINXDF4RC7PWUTZ \ / AMOS7 \ YOURUM ::
-#\[7]7GWH4X3AAIOIISWOM4OU3SRFSQN5M4KDJKUNLCKCJD5R2VPPP2CI 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,.,,,.,,,..,,.,.,...,,,,,,,,,..,,...,..,,,.,,,..,,,.,,.,,.,.,
+#POMPCIAUAGGFG4Z2XS6J7QXXLDX45FW2ZBCGJBL2IAKMEZTEVCOXTWNHD6N4S5JTWPWI7NJ3ROUUE
+#\\\|6JO5O4KFVDKEFTN7AHE5XKR33YMWYGWVMAS5LDRFMWW63TBEWY5 \ / AMOS7 \ YOURUM ::
+#\[7]YP4VDI7PMUATOPGXMFM3TEKIF4QNZQACDDIUS5DXZUJQKOBX2QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

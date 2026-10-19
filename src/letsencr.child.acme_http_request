@@ -11,8 +11,8 @@ my $kid     = shift;    # Key ID for authenticated requests
 
 <[base.logs]>->( 3, "ACME HTTP %s to %s...", $method, substr( $url, 0, 50 ) );
 
-## Create HTTP client [ use standard LWP::UserAgent to  allow localhost for
-## testing.. ]
+## Create HTTP client
+## [ use standard LWP::UserAgent to  allow localhost for testing.. ]
 
 my $ua = LWP::UserAgent->new( timeout => 10, );
 
@@ -111,8 +111,8 @@ return {
     headers => $response->headers,
 };
 
-#,,..,,..,,,,,,.,,,,,,,.,,,,,,,.,,,,.,,..,..,,..,,...,...,.,.,...,.,.,,,,,,.,,
-#VNWNOO6VFWELCZ74GP2AAO6T4T33GQWJDYZG6KAMNVXDHAZJBXK3YNAMH5AYSPIGPEFHPBLVUSPO4
-#\\\|2VZY6MW5OKGM6PMFNZFTQG4HREYT5KG4YLSKC3WCTOU5UZN5ZYR \ / AMOS7 \ YOURUM ::
-#\[7]QGAE4LMW2IUQMMIVWHNZDF46BDXKXVZS7RPPLZKQ6EUQ2MF5MOAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,..,,..,,,,,,,..,.,.,.,.,,,.,,..,..,,...,...,,..,.,,,,,,,,..,,.,,
+#6ALK3EF6NBSDDNEHCW377SRHU6D27TUFSPMX5FEVZHUCZKD3T7GSLDMS6WOSEG37M7QUEXLQHVSGC
+#\\\|NR4A7RZXSI3AUACXDQ2RNNN7BK6D67HPX2SGAXK3YXRHSAYHVWG \ / AMOS7 \ YOURUM ::
+#\[7]S2BAKQ6FIMYYBHVMYQC3EFFEJPF5ZMYZB4IRUSCOBYXWKXYN5ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

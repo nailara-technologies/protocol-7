@@ -85,10 +85,10 @@ if ( $kind eq qw| ready | ) {
     }
 } elsif ( $kind eq qw| model_render | ) {
 
-    ## second complaint about a missing model : the autofetch trigger [   ##
-    ## data/tasks/invoke-missing-model-autofetch.md ]. same model name as ##
-    ## the startup 'Missing model file' line ; item status : failed,      ##
-    ## error_type FileNotFoundError                                       ##
+    ## second complaint about a missing model : the autofetch trigger       ##
+    ## [ data/tasks/invoke-missing-model-autofetch.md ]. same model name as ##
+    ## the startup 'Missing model file' line ; item status : failed,        ##
+    ## error_type FileNotFoundError                                         ##
     my ($name)    = $line =~ m{Files for model '([^']+)' not found at (\S+)};
     my $path      = $2;
     my ($session) = $line =~ m{invoking session (\S+),};
@@ -150,8 +150,8 @@ if ( $kind eq qw| ready | ) {
     if ( $line =~ m{queue item (\d+), session (\S+)} ) {
         <invoke-web.render> = { 'item' => $1, 'session' => $2 };
 
-        ## render statistics : host snapshot, gpu feed [ /proc reads and ##
-        ## asynchronous requests only ]                                  ##
+        ## render statistics : host snapshot, gpu feed    ##
+        ## [ /proc reads and asynchronous requests only ] ##
         <[invoke-web.stats.render_start]>->(<invoke-web.render>);
     }
 } elsif ( $kind eq qw| item_done | ) {
@@ -211,13 +211,13 @@ if ( $kind eq qw| ready | ) {
     }
 }
 
-## console \ logfile in house style : '(node_name)' -> '[ node_name ]' [ ##
-## single identifiers only ; the output tail keeps the raw line ]        ##
+## console \ logfile in house style : '(node_name)' -> '[ node_name ]' ##
+## [ single identifiers only ; the output tail keeps the raw line ]    ##
 ( my $log_line = $line ) =~ s{\(([\w.-]+)\)}{[ $1 ]}g;
 <[base.logs]>->( $level, '[invoke.ai] %s', $log_line );
 
-#,,.,,.,.,.,.,,.,,,..,,.,,.,.,...,,.,,...,.,,,..,,...,...,.,,,,.,,,.,,,.,,..,,
-#7LKJCSBHW7WFXZDDNK7BIN5MTVL5VA37FNBQZPVJY4ZOXWHKSGLIAAWBH7PYH4K5F6BVZNHO6UTDI
-#\\\|JXBL6MR3XW64R2IWCA3PZI4SHRQZQOLQXQXLK33ZIDR6RCWRIMA \ / AMOS7 \ YOURUM ::
-#\[7]KP7THHRM63P2JXFMVFXY4ZSRA2E3O76JSEI22GIVZHMFR6UAIYBI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,...,,,.,...,.,.,,.,,,..,.,,,..,,...,...,...,.,.,..,,,.,,,,,,
+#5ZDOJFIW3XSIIYD5NOAXAA2YZ6S3UNG3GMJDORRQWSE7EDYR7XX5423CW53DM7KQS75FUPDQFAODO
+#\\\|BESCNVBWT7YZOR3T3PUY3U52V6CSMG7YVSMF2Z7QIASPCD7ZG3E \ / AMOS7 \ YOURUM ::
+#\[7]DHOFRBW4L2M72X7DZECX44GSR2ALV6AIKW46X4LC2A6ZHV3MKGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

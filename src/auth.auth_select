@@ -47,12 +47,13 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
             if defined $key_name
             and ref $keys{'C25519'}{$key_name} eq qw| HASH |;
 
-        ## the host-root delegation of S [ data/md/design/HOST-ROOT-        ##
-        ## DELEGATION.md ] : read fresh on EVERY select [ renewals ], sent  ##
-        ## as the REQUIRED 4th field. missing \ unparsable \ expired \ not  ##
-        ## for this S -> auth-keypair refused, before any nonce is drawn or ##
-        ## stored. the file holds the CHAIN [ TRUST-CHAIN-STEP2.md : one    ##
-        ## statement per line, leaf first ; one line = step 1, unchanged ]  ##
+        ## the host-root delegation of S                                    ##
+        ## [ data/md/design/HOST-ROOT- DELEGATION.md ] : read fresh on      ##
+        ## EVERY select [ renewals ], sent as the REQUIRED 4th field.       ##
+        ## missing \ unparsable \ expired \ not for this S -> auth-keypair  ##
+        ## refused, before any nonce is drawn or stored. the file holds the ##
+        ## CHAIN [ TRUST-CHAIN-STEP2.md : one statement per line, leaf      ##
+        ## first ; one line = step 1, unchanged ]                           ##
         my ( $delegation, $dlg_refusal );
         if (   ref $code{'trust.verify'} ne qw| CODE |
             or ref $code{'trust.chain'} ne qw| CODE |
@@ -210,8 +211,8 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     return FALSE;
 }
 
-#,,,,,.,.,...,..,,.,,,...,.,,,.,.,,.,,...,,,.,..,,...,...,.,,,,.,,,,.,,.,,,,,,
-#765XQO66ZRAZDNQHXKXGKGTCZFIFJMILAIA2LBES2WW3G46ANLBFPKIGEMTDQIQMH54VSICC6QPJC
-#\\\|BRQNIIF3PZ5NTLHV73COJJWB6WGQKU33DWMXVY3NBWD2VBNLWCL \ / AMOS7 \ YOURUM ::
-#\[7]Z5RTNNTTU2ZBH6RG376MCYG2IZYREDV2XKETHF54B7CYFDE5JAAA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,...,...,.,.,..,,,,.,,.,,.,,,.,,,..,,...,...,..,,,.,,.,,,.,,,,.,,
+#TADOEXJCAE4JX4KMGUSA32CH6VUEI5PNKSSNIBRFQ26XZLS7Y3H35POJ56UHFKLQDHYTWCH2AVGWU
+#\\\|KI7HY7VA25XPOBYD7YXWDIFRYAJNQDVZJKONTBZM6FU7U4PQ7IW \ / AMOS7 \ YOURUM ::
+#\[7]DSSY6CBMFOTPOH4AOMQR5LQGHZ373KFU5FEPAL33BCR5JGXMQYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,23 +6,23 @@
 #         to forensics.handler.rule-proposal [ candidate written there ]
 # param = { sweep_date => YYYY-MM-DD [ default : latest ], max => N }
 
-##      phase 2 [ data/tasks/forensics-agent.md task 2.2 ] : the LLM        ##
-##      rule-synthesis loop from                                            ##
-##      CONCEPT-SECURITY-AND-FORENSICS-ARCHITECTURE : anomaly -> llm        ##
-##      analysis -> generated detection rule -> next occurrence caught      ##
-##      deterministically. candidates are written as auditable yaml on      ##
-##      disk [ schema mirrors the ncode pattern store, see                  ##
-##      data/ai-mem/claude/topic-ncode-pattern-learning-loop.md ] and       ##
-##      gated : status 'candidate' requires manual review + move to         ##
-##      rules/active/ before any activation.                                ##
-##                                                                          ##
-##      local models only [ HYBRID-LLM-GOVERNANCE ] : inference goes        ##
-##      to the coding zenka via cube.coding.ask-reply [ ':simple:'          ##
-##      marker : single round, no tools, no file access ].                  ##
-##                                                                          ##
-##      manually triggered [ forensics.cmd.rules.synthesize ] -- not        ##
-##      chained into the 04:07 sweep yet : candidates need a review         ##
-##      habit before the loop runs unattended.                              ##
+##      phase 2 [ data/tasks/forensics-agent.md task 2.2 ] : the LLM         ##
+##      rule-synthesis loop from                                             ##
+##      CONCEPT-SECURITY-AND-FORENSICS-ARCHITECTURE : anomaly -> llm         ##
+##      analysis -> generated detection rule -> next occurrence caught       ##
+##      deterministically. candidates are written as auditable yaml on       ##
+##      disk [ schema mirrors the ncode pattern store, see                   ##
+##      data/ai-mem/claude/topic-ncode-pattern-learning-loop.md ] and        ##
+##      gated : status 'candidate' requires manual review + move to          ##
+##      rules/active/ before any activation.                                 ##
+##                                                                           ##
+##      local models only [ HYBRID-LLM-GOVERNANCE ] : inference goes         ##
+##      to the coding zenka via cube.coding.ask-reply                        ##
+##      [ ':simple:' marker : single round, no tools, no file access ].      ##
+##                                                                           ##
+##      manually triggered [ forensics.cmd.rules.synthesize ] -- not         ##
+##      chained into the 04:07 sweep yet : candidates need a review          ##
+##      habit before the loop runs unattended.                               ##
 
 my $params = shift // {};
 $params = {} if ref $params ne qw| HASH |;
@@ -203,8 +203,8 @@ return {
     'skipped'    => \@skipped,
 };
 
-#,,,.,.,,,.,,,...,.,,,.,.,,,.,,,,,...,,.,,..,,..,,...,...,.,,,...,..,,.,,,,,,,
-#Q7WPWKSETRMSL4LINFSUH5QMILSURMKR55NIUDTJZA35IBY5FNLRXFGTPUAM7FTAGO6JNA35HKEPY
-#\\\|35LOQL3PZO3NT6KAFXU3XSAQV3ITXUSOMHMAIPZZC3P4UOE7A55 \ / AMOS7 \ YOURUM ::
-#\[7]H2HHWFF3IXCCT7WKWLVJ5H5LDHIOUJRS3HTNAL2EGHLWQXEWPQDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,,,.,,,.,,,,,,,,,,,.,,,,,,,.,.,..,,...,...,...,.,.,.,.,,..,,,.,
+#33KSIC3GMMAUFKBUYO6VHSJOAL57W4TFCE5Q5BGLL6N37CEATHE6JGQ2DAPDOLG4MGWNARIQG4ZUI
+#\\\|GEISTTHQAQANJARYGSOTID3G62LGTQFG2RWMELFRKNHLPZIDI4O \ / AMOS7 \ YOURUM ::
+#\[7]RSLHVTRYPELB5HOFH3H5X3JT3RSGLD5DZTD3LDEGYXRRKUNZ2IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

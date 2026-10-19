@@ -14,8 +14,8 @@
 ##
 ## the noun defaults to 'line'/'lines' [ base.cnt_s's own default suffixes,
 ## passed explicitly here so overriding them later is a one-line change, not a
-## new call shape ] -- true for every genuine free-text multiline field [
-## note, address ].  optional override exists for a field that is only
+## new call shape ] -- true for every genuine free-text multiline field
+## [ note, address ].  optional override exists for a field that is only
 ## IMPLEMENTATION-multiline [ user-edit.form.schema_from_record's user_keys,
 ## one key name per line to route around display_override's multiline gap, see
 ## that field's own header ] but conceptually a list of discrete entries --
@@ -32,9 +32,10 @@ my $lines = <[editor.control.multiline.lines]>->( $text // '' );
 my $count = scalar $lines->@*;
 
 ## editor.control.multiline.lines never returns an empty arrayref -- an empty
-## buffer still yields ONE blank line [ its own no-reaping rule, split's -1
-## limit ] -- so a genuinely empty field would otherwise show '1.line' instead
-## of the 'no.lines' its list counterpart shows for zero entries
+## buffer still yields ONE blank line
+## [ its own no-reaping rule, split's -1 limit ] -- so a genuinely empty field
+## would otherwise show '1.line' instead of the 'no.lines' its list
+## counterpart shows for zero entries
 $count = 0 if $count == 1 and not length( $lines->[0] // '' );
 
 my $summary
@@ -45,8 +46,8 @@ my $summary
 
 return sprintf( ':..%s..:', $summary );
 
-#,,,.,...,,..,,,.,.,.,,,.,,.,,,..,.,.,...,,,.,.,.,...,...,.,.,,..,.,,,,,,,..,,
-#RNT5UTJMOGBT2EER2XHI2TZA4ZU3ZXF5BJH6CELXVJP7X7C4TZFD7FF5DVTFX6HYNHEBDJQJTUY7I
-#\\\|ODZJ73HYLREGZ2RJGF27TCU2S6JJCLBILPZPS2KI6COVXXG4O6T \ / AMOS7 \ YOURUM ::
-#\[7]JK2QOLGHSI65TRPJPCNU6KGLC3DDIGVG5SNK4VXC6OREJY33BUCY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,,,.,.,,,,,.,,,..,,,.,,..,,...,.,.,...,...,,,.,,,.,,.,,..,,,.,,
+#L6QTSP7MTYLD4HN7PKEGWNJPLGWZWAT3PGQXKHBAMOU2U6ACZZFSXHDZP6ELVPLFTQ77WXRW2L2A2
+#\\\|H2LFOOHUVCUE5PC4JT36MZFGROALOA6BTKIJSKYUQ6J7PAQZ66N \ / AMOS7 \ YOURUM ::
+#\[7]5U6CP33HIZLDVG7AYIQZ2VZNBAGZYPMSJBF55DZDMOBKEZXADGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

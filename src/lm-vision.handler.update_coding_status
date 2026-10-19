@@ -36,11 +36,11 @@ my $gpu_status = $status->{'gpu'}{'status'} // 'unknown';
 my $interval   = <lm-vision.poll_interval>  // 5.0;
 
 if ( $gpu_status eq qw| ready | ) {
-    ## slow steady-state poll, not a pause : a later coding.switch-model [ ##
-    ## vision <-> non-vision ] must be reflected here within one interval  ##
-    ## instead of the cache going stale indefinitely -- the live HTTP call ##
-    ## in lm-vision.handler.http_analyze is what actually catches a wrong  ##
-    ## guess, this just keeps the pre-check honest                         ##
+    ## slow steady-state poll, not a pause : a later coding.switch-model    ##
+    ## [ vision <-> non-vision ] must be reflected here within one interval ##
+    ## instead of the cache going stale indefinitely -- the live HTTP call  ##
+    ## in lm-vision.handler.http_analyze is what actually catches a wrong   ##
+    ## guess, this just keeps the pre-check honest                          ##
     $interval = 30.0;
 } else {
     $interval = sprintf( '%.2f', $interval * 1.2 );
@@ -93,8 +93,8 @@ $old_timer->cancel() if defined $old_timer && $old_timer->is_active();
 
 return;
 
-#,,..,,,,,..,,,,,,,.,,..,,.,.,,.,,.,,,,..,...,..,,...,...,...,.,,,,,.,,.,,,.,,
-#KSU34K6NZKNGGN7UDAESQPRKCRKIPFC7QMXO5GECRUYNTSTZ2Z3WKZHTVDIC5ZWHQTDQPTN5B5MMO
-#\\\|RWAOH7JUAFTRNAFUPXWNWFZFD5NWER7KQKRF4IOJ6Y3I3CL5OQN \ / AMOS7 \ YOURUM ::
-#\[7]4EFHVFDVL2NOHVUOQ5QRNQARJ44Y5477AONLIB4P5BCCZ462IKAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,...,.,.,.,,,,.,,,.,,.,.,.,.,..,,...,..,,...,...,,..,,.,,..,,
+#T5HTM6SKMNCH6BXVFM6ERY4STXH6QESCJWJJKBRWEGZCSCTBRFJNMH3F6GP7LDBUBFBPSFHLCTJQ6
+#\\\|IM3YD6QVNENGBI2EGGM5AFF3CHEUOCZKR4OHPYNLU7LZLCPC344 \ / AMOS7 \ YOURUM ::
+#\[7]5IGASPRUGU3F6MLYPHH25YIFU434IWOXY27WO7BJC6DYR4237GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,9 +19,10 @@ $dl->{'hash_attempts'} = $attempt;
 ## sha256 comes back in a single ?blobs=true response, so the expected hash ##
 ## for this download is extracted from the siblings list by                 ##
 ## fetch.file.huggingface.handler.blob_hash_response. the result is cached  ##
-## in the <fetch.file.downloads> entry [ hash_state / expected_sha256 /     ##
-## expected_size ] -- aria2c handles its own retries internally, so this    ##
-## fires once per download attempt, not per aria2c retry.                   ##
+## in the <fetch.file.downloads> entry                                      ##
+## [ hash_state / expected_sha256 / expected_size ] -- aria2c handles its   ##
+## own retries internally, so this fires once per download attempt, not per ##
+## aria2c retry.                                                            ##
 my $api_url
     = sprintf( 'https://huggingface.co/api/models/%s?blobs=true', $repo );
 
@@ -47,8 +48,8 @@ my $proxy = $ENV{'https_proxy'} // $ENV{'http_proxy'} // '';
 
 return 0;
 
-#,,,,,...,,,,,,.,,,.,,,,,,..,,,,,,,,.,.,,,.,.,..,,...,...,...,,..,,.,,,..,,..,
-#IWZYGEXJQEGVXUX6WSH7O2TRCDUXXF352RJUVWHC7FEIBEZFMEXOSPF7GGNBPFGIJAXYJUZCX72KK
-#\\\|5GBPJU56HD6GGBJQEPOSOWD7DXIXFOXGMM7J526Z2XD743WSD24 \ / AMOS7 \ YOURUM ::
-#\[7]6NMIZAEYWPDUGKOFJ6Y3OHZHPF7R7D3LVRBKDJXKKHZKAOIV2CCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,.,.,...,.,,,,,,,,..,,,,,.,.,..,,...,...,,,.,,..,,..,,,,,...,
+#Q4E6H56C4W2YXN4XICSCWRIRZJ66FE36GT6CLUTZDS62BLOLACJISPLHKZDC2XJPZP62XQTWVVF36
+#\\\|MWMAPO6D5HOLBMXFPKTGLXNYK3R3U62AD6JVZKM4ZVZPRQVGPRJ \ / AMOS7 \ YOURUM ::
+#\[7]7CCRZG7XHD5KG677VUYSV5Q56WHZWCA2XDLH3M7WYZSKQ5UJ72BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,11 +5,11 @@
 
 my $caller = <mpv.startup.caller> // <system.zenka.name> // 'mpv';
 
-## force=1 : always opens the interactive placement ui [ rather than      ##
-## instantly re-serving the saved profile ], but still seeds it from that ##
-## same saved profile - so calling reposition again before mpv is next    ##
-## started continues from the last commit instead of resetting to a       ##
-## blank/default position each time                                       ##
+## force=1 : always opens the interactive placement ui                      ##
+## [ rather than instantly re-serving the saved profile ], but still seeds  ##
+## it from that same saved profile - so calling reposition again before mpv ##
+## is next started continues from the last commit instead of resetting to a ##
+## blank/default position each time                                         ##
 <[protocol-7.route-send]>->(
     {   'command'   => 'window-place.coords',
         'call_args' => { 'args'    => sprintf 'caller=%s force=1', $caller },
@@ -22,8 +22,8 @@ return {
     'data' => sprintf( 'repositioning requested [caller=%s]', $caller )
 };
 
-#,,,.,..,,.,.,,,.,...,,..,.,,,,.,,,.,,,,.,,..,..,,...,...,.,.,,,.,...,,,,,,.,,
-#67HEAZ535VEW6B2UBXVFB24MGZGS55GARFJD5BDH6PO5M6R7BY34SN6OMQP52EHIUCTJ2ZPPKYHEM
-#\\\|OU5ZO52ZQFKKOZFZBUEMDQL3QT3GPXPXNSCGUWSHSIJFCTMQYRQ \ / AMOS7 \ YOURUM ::
-#\[7]KZIMCH3GDFIJ54OCP6MT222I7E2Y3MZBMFFBSBBCSL24OL3QPCCQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,,,.,,,,,.,.,,,,,,,...,.,.,,,.,..,,...,...,...,...,.,,,.,,,,,.,
+#6FHXWZ3TCKGKFWWSFDNHWLK533CZ453WAO2LBSAUUSA63IOAUHXIS6UVYKKWECZRVK4QUN3GSA5CO
+#\\\|MAWR6ILECJFJN2ZUZUTXUKSFQS4JOQNNUP6KQ7K2QZG2ZU7YXDG \ / AMOS7 \ YOURUM ::
+#\[7]3RUH2AZYEAP3NDHLRUCPZ5I5O7IND2ZHFZ4GCTAIXULYO3QEGQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
