@@ -18,9 +18,10 @@
 #         handles instead ] -- cancelling and reinstalling the timer rather
 #         than leaving a stale one running alongside a fresh duplicate
 
-## stored on the provider hash so a later RELOAD's init_code [ which does ##
-## re-run, unlike this file ] can find and cancel this exact timer before ##
-## installing its own fresh one, rather than leaving two running          ##
+## stored on the provider hash so a later RELOAD's init_code              ##
+## [ which does re-run, unlike this file ] can find and cancel this exact ##
+## timer before installing its own fresh one, rather than leaving two     ##
+## running                                                                ##
 <usage.provider.kimi>->{'watchdog_timer'} = <[event.add_timer]>->(
     {   'after'   => 0,
         'handler' => qw| plugin.usage.kimi.refresh_watchdog |,
@@ -39,8 +40,8 @@
 
 0;
 
-#,,.,,..,,,.,,..,,.,.,,,,,.,,,,.,,,,.,...,...,..,,...,...,,.,,.,.,.,.,..,,,..,
-#6Q6APHND2VUL5U5RQZIX67QOFEQ76GJN3ETE5LXICCZMZNFBFT6RHPSWJRYXQ5XFPKTIBYXSAQLYU
-#\\\|N6DGCCM5BDK2CIXYQB66RNAQ2GRHC7MYCGOQNJDYBPN4L5PVCGF \ / AMOS7 \ YOURUM ::
-#\[7]HA4ASLBOWJNNKFI46TVW7QDEJUZ3LVTD23MBJVRLGKHRL6S3K2AY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,,,,,,..,..,,.,,,...,,.,,.,,,..,,...,..,,,..,,..,..,,...,..,,
+#DB4IM4IHAPBTOTTLHH5NA7DJN3LIGK7BPYFLJ7COL6DP2RWHJK5BYEHC6QUJQ46AM3K7GTFCVHUO6
+#\\\|XQDBGVFFZIFBWEZI3QNNOS3VGYD4C7VT44ASOAQTIY4FZF2W6P6 \ / AMOS7 \ YOURUM ::
+#\[7]HA7UY777EF3PBQEPDM7UQZPC2GZWWV7YWZ6PPAHYWEJTBB7P7MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

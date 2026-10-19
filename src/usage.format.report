@@ -51,11 +51,11 @@ if ( $format eq qw| compact | ) {
 if ( $format eq qw| pretty | ) {
 
     ## human-facing default : one small block per provider, real row labels ##
-    ## as the api already gave them [ 'plan usage', '5 hour', ..  '5h',     ##
-    ## '7d' ] rather than a fixed/guessed set of names -- kimi's windows in ##
-    ## particular are not a fixed pair, so nothing here assumes which ones  ##
-    ## will show up or in what order  clean leading newline, matches the    ##
-    ## other formats                                                        ##
+    ## as the api already gave them                                         ##
+    ## [ 'plan usage', '5 hour', ..  '5h', '7d' ] rather than a             ##
+    ## fixed/guessed set of names -- kimi's windows in particular are not a ##
+    ## fixed pair, so nothing here assumes which ones will show up or in    ##
+    ## what order  clean leading newline, matches the other formats         ##
     push @lines, '';
     my $block_sep = FALSE;    ##  set once a provider block has printed  ##
     foreach my $name ( $request->{'order'}->@* ) {
@@ -205,8 +205,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 
 return join "\n", @lines;
 
-#,,,.,.,.,,..,..,,.,,,,.,,...,..,,..,,,.,,.,.,..,,...,...,,,,,,,.,,,,,.,.,...,
-#FMOFVAC5UBB5LJMQ4LHB2GDDFPCPXBGXQIMYQMJIIG5PODN7V6ZDCXMULNKHHD7FLE6U4WQRXHK6K
-#\\\|DM2XHNOZYP4WJITX2EL2CIUYAW7MTPSEJCRMHPAYMUXJHSJYOED \ / AMOS7 \ YOURUM ::
-#\[7]5O546KEF3ZIPQA37I67USXWS2OZF5GF4Q6AK3D4E7IM3DMIHYYBI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,..,,.,.,,,.,.,.,,..,,..,,,.,,,,,..,,...,...,...,,.,,,..,,,.,,.,,
+#RBLQ3RRTWX6ZRNVAI5STOK3P2PGLI7Y4PCA65ES37TBCSPJXV3D7R2OWFGMUW3ZG5TL7BR6YNKNH4
+#\\\|2NPP6TBQHTLDMEYQYNKIKLDY7PEMOZ5HW2XXZUWQOXJKGGFYE26 \ / AMOS7 \ YOURUM ::
+#\[7]A6B24ODAEIVOXCD2X3QB6MBDZ5QYAUJTMM6FHPGB67KHYCEHVGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -59,8 +59,8 @@ if ( defined <vault-edit.esc.timer> ) {
 ## call they triggered has actually replied. process_input_buffer is normally
 ## woken by fd 0 becoming readable [ never happens here ] ; the reply that
 ## clears <vault-edit.busy> arrives over the real network instead, so pump the
-## event loop directly rather than calling the decode step just once [
-## user-edit.cmd.char-add's own loop precedent ]
+## event loop directly rather than calling the decode step just once
+## [ user-edit.cmd.char-add's own loop precedent ]
 my $iteration = 0;
 while ( ( length( <vault-edit.input_buffer> // '' ) or <vault-edit.busy> )
     and $iteration < 21 ) {
@@ -74,8 +74,8 @@ return {
     qw| data | => <vault-edit.last_render> // "\n  : no render yet\n"
 };
 
-#,,..,..,,,,.,,,.,,,,,,..,.,,,..,,...,..,,..,,..,,...,...,..,,..,,..,,,,,,...,
-#SEX6F55NP4NDE7VDRYLUMM5SBFJ4SXVT6ODWC6S5HIDW6U63E7G4KGOVRU7OVW4IGGHOAOFFQ6BJ4
-#\\\|RJCJW24BZMXVROPBOKJYXFQRN5CSY3GL5BKIVT65KOUVB6DMZ24 \ / AMOS7 \ YOURUM ::
-#\[7]N4HKQLTS3E7URSAXP5RQA46M3WTAGXKJNTARVUJEB5IVUGWECMBI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,,,.,.,,,.,,,,..,,.,,.,.,,.,,..,,...,...,,,.,,.,,,..,...,,,.,
+#WTR26LO6TLGO4PLSTBSN7NVHR6RWLOWNFIYH2TRB6EQD7JTSV3K4E3HOIZ5XEKKSPLANAWYHSHMUY
+#\\\|KJCFZZTERJZSQJZLOMSJ4SBROZLTINPNM3HB2DUZYYFPJNVMN5G \ / AMOS7 \ YOURUM ::
+#\[7]JWOFOVPUI6TNG7JAYQYO6V7APD3UV4HIC2X3RUKICXDYOJLYRUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

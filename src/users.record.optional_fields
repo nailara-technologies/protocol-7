@@ -19,8 +19,8 @@
 ## EXTEND HERE.  this list is deliberately small -- it is a starting
 ## vocabulary, not a closed model, and adding to it costs one line.
 ##
-## a THIRD shape, 'masked', joined the two above 2026-08-14 : a scalar REF [
-## \'' ] rather than a plain string, so ref() on the value still makes the
+## a THIRD shape, 'masked', joined the two above 2026-08-14 : a scalar REF
+## [ \'' ] rather than a plain string, so ref() on the value still makes the
 ## declaration [ 'ARRAY' => list, 'SCALAR' => masked, else line ] -- see
 ## users.cmd.field-options' matching 3-way check. a masked field's SUBMIT
 ## destination differs too [ user-edit.form.  submit routes it to
@@ -29,18 +29,19 @@
 ## this is a staging step, not permanent credential storage ]
 
 ## split from a single 'full_name', per user 2026-08-12 : the USER-facing name
-## [ what a git commit or a login carries -- 'Taeki Ten' ] and the REAL name [
-## what a job application reply pins to a specific email/domain instead ] are
-## two different pieces of data with two different audiences, not one field
-## with two use cases
+## [ what a git commit or a login carries -- 'Taeki Ten' ] and the REAL name
+## [ what a job application reply pins to a specific email/domain instead ]
+## are two different pieces of data with two different audiences, not one
+## field with two use cases
 ##
 ## contact and location moved here FROM users.record.default_fields, per user
 ## : nothing is mandatory beyond the record's own identity [ its username ]
 ## any more -- a minimal record is just that identity plus whichever of these
 ## the user actually chooses to add.  see users.record.default_fields' own
-## note on what this required elsewhere [ user-edit.handler.value_get_reply's
-## zero-field bootstrap path ] before a record with truly nothing in it could
-## ever be opened and built up from scratch
+## note on what this required elsewhere
+## [ user-edit.handler.value_get_reply's zero-field bootstrap path ] before a
+## record with truly nothing in it could ever be opened and built up from
+## scratch
 return {
     qw| address |        => '',
     qw| contact |        => [],
@@ -54,8 +55,8 @@ return {
     qw| timezone |       => '',
 };
 
-#,,.,,,..,..,,,.,,,,,,,.,,.,.,,,.,.,.,,,,,,,,,..,,...,...,,..,,..,,,,,.,,,,,,,
-#L5PSPWNCXJWAKHX67GRLKK7X5BUFB5VY5P6E2BLNPF73XBT4O2BS63P6P5KGB3SJ267MHWNVYA6UY
-#\\\|VXWNYPI7QNWWDP6KUCDJMNXAGY6NE3KQ36CCNM3RWNM6II55GOZ \ / AMOS7 \ YOURUM ::
-#\[7]IZBMGUIMLVG2EGZO6SKA3IFUKFKZ5ED72K523S7GWDI3DIOB62BY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,.,,,..,.,,,..,,..,,,,.,,.,,,.,,..,,...,...,.,,,,,,,,..,.,,,..,,
+#SWQB4S3QQVOJCFROYVLWWQDPJQQIDQ4P5Q4B2PA7ISFTEAUGIDOCFDMBLQVAAL5ZQU32SKJ6MML42
+#\\\|HM2Z4464NHI3J4TJRGASDNOLCVY2IA74PPDIUIVXZ3EVE2BYEJE \ / AMOS7 \ YOURUM ::
+#\[7]YA2HGJP437DATRSOYMRF32TVUTF2OXZVVB3A2VSXEDEYN6YA4GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

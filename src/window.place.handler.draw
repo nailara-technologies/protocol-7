@@ -18,16 +18,16 @@ my $h = $widget->get_allocated_height // $inst->{'geom'}{'height'} // 240;
 ## clear ##
 $context->set_operator('source');
 
-## translucent deep blue fill [ reduced alpha when pinned over a target ##
-## window ]                                                             ##
+## translucent deep blue fill                         ##
+## [ reduced alpha when pinned over a target window ] ##
 my $fill_alpha = $inst->{'fill_alpha'} // 0.72;
 $context->set_source_rgba( 0.0, 0.0, 0.24, $fill_alpha );
 $context->paint;
 
 $context->set_operator('over');
 
-## corner brackets [ protocol-7 'truth' foreground #0647C3 ] [ arm = 16, ##
-## matches $corner hit-region in button_press ]                          ##
+## corner brackets [ protocol-7 'truth' foreground #0647C3 ] ##
+## [ arm = 16, matches $corner hit-region in button_press ]  ##
 my $arm = 16;
 $context->set_source_rgba( 0.023529, 0.278431, 0.764706, 0.9 );
 $context->set_line_width(2);
@@ -106,8 +106,8 @@ $context->show_text($readout);
 
 return TRUE;
 
-#,,,.,,,.,.,.,.,.,,.,,,,,,,,,,..,,..,,.,,,,.,,.,.,...,...,..,,.,.,...,,,,,.,,,
-#P2WXSJMQ2625OPKYNYJ7JFDYJD3G4T6JW2ILMZ4IQDR6PLHIVU45W3EHCZOXUYRWVOKANGBFKA6TY
-#\\\|MHKEZQSZ4AFRC4BXWEHG4KVR6AQ3D3ONBNQMBTMDULMH7H4F7MD \ / AMOS7 \ YOURUM ::
-#\[7]4O2SUFLGMPZI66U237I3TDUP7EZ35SA4TLLS5TVC5JESNYFEKKAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,...,,,,,...,..,,,,.,,..,.,,,.,.,...,...,,,.,,.,,.,,,,.,,,.,,
+#PUSMWR6M6U2LCNYB5WS4FFRB25JAGB3QCBIMTFV6S445IDEIM36N2ONWZ273OYEX5HEMHANRMSUL6
+#\\\|WQ577FN36MKT2HONC5AJEOCWQCOX77DINKDKEKVARHNHJICTNL4 \ / AMOS7 \ YOURUM ::
+#\[7]K55O5XBRBSAYD76MVNUQ2FWHL3M4Z3DUR2PT2VKV2ODJNL7IQ4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

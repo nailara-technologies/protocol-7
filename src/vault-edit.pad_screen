@@ -5,13 +5,13 @@
 # param = $screen [ the fully composed title+body+footer+hints text ]
 
 ## per the user directly : the whole screen read as "stuck to the terminal
-## border" with nothing but cred-mesh's own frames flush against column 0
-## and row 0. a left margin plus one blank line on top is the minimal fix --
-## a full bordered parent frame centering the (variably-widthed) child
-## frames inside it is a real design job of its own [ terminal-width
-## detection, sizing a border to the widest line, centering shorter ones ]
-## better done with live iteration than guessed at blind ; this is the
-## immediate, low-risk half of what was asked for
+## border" with nothing but cred-mesh's own frames flush against column 0 and
+## row 0. a left margin plus one blank line on top is the minimal fix -- a
+## full bordered parent frame centering the (variably-widthed) child frames
+## inside it is a real design job of its own [ terminal-width detection,
+## sizing a border to the widest line, centering shorter ones ] better done
+## with live iteration than guessed at blind ; this is the immediate, low-risk
+## half of what was asked for
 
 my $screen = shift // '';
 
@@ -25,14 +25,14 @@ my @lines = split m|\n|, $screen, -1;
 $screen = join( "\n", map { length($_) ? "$margin$_" : $_ } @lines );
 
 ## a bare "\n" prefix, not a blank CONTENT line of its own -- this is
-## screen-top spacing, not a piece of the layout any future edit here
-## should treat as a real row
+## screen-top spacing, not a piece of the layout any future edit here should
+## treat as a real row
 $screen = "\n$screen";
 
 return $screen;
 
-#,,..,,.,,.,.,...,..,,.,.,...,,,.,,..,.,,,.,,,..,,...,...,.,.,.,.,.,.,.,.,,,.,
-#HI2PKVSHJUUQDD2MYPCTSU33OQTA6AKU3MTQ6LK4PKLRMQRJM62EWZSPBEOMR5PK3KMEQGCEW2WJ2
-#\\\|KAXMGNST7F6KPNED6HFHRLO7LG5NK4DGINP3RC7KJNQRTNDXREJ \ / AMOS7 \ YOURUM ::
-#\[7]64GK3VPIBEDCSDEUY3IFTF3Z3IGY3UHNQNPJS2ITKN5PMK4LE2AQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,..,,,.,,.,,,,..,.,.,,.,,..,,,,,,..,,...,...,.,.,.,,,.,.,...,,..,
+#JDUKIXRUBUGKUHIC4PMDS6AFHSCLH37ON334Q4K5O2BG7Z5UOYOKSVKNBS5ASH5VLLCKCWVUI3JVM
+#\\\|OXMC5TN3WGKKHGTJQGWZMK5GSOYXH5U6QGVJY5MFNEF2WOH77OK \ / AMOS7 \ YOURUM ::
+#\[7]ZR7N772FPMV7EPQCJEK6Z4QIW7AJM6TMN4UHRPOXH7JYBJDI2ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
