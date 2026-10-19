@@ -19,19 +19,22 @@ return FALSE if not defined $key_name or not length $key_name;
 
 my $checksums = <[keys.checksum_href]> // {};
 
+## keys.checksum_href is FLAT : { key name => chksum string } -- one checksum
+## per key, never per file type [ same source keys.console.list reads ].  an
+## encrypted key's entry is the '<:...:>' marker string, still just a value
+my $sum = $checksums->{$key_name} // '';
+
 my @rows = (
     {   qw| key |   => $key_name,
         qw| label | => sprintf( 'name       %s', $key_name )
     },
 );
 
-foreach my $type (qw| public private secret |) {
-    my $sum = $checksums->{$key_name}{$type};
-    next if not defined $sum or not length $sum;
+if ( length $sum ) {
     push @rows,
         {
-        qw| key |   => sprintf( qw| %s.%s |, $key_name, $type ),
-        qw| label | => sprintf( '%-10s %s',  $type,     $sum )
+        qw| key |   => sprintf( qw| %s.checksum |, $key_name ),
+        qw| label | => sprintf( '%-10s %s', qw| checksum |, $sum )
         };
 }
 
@@ -39,8 +42,8 @@ push @rows, { qw| key | => '', qw| label | => '[ read-only ]' };
 
 return <[form.menu.open_rows]>->( \@rows, qw| keydetail |, <form.state> );
 
-#,,.,,...,,,,,.,.,,,.,..,,,..,,..,.,,,,..,...,..,,...,..,,,,.,,,,,...,...,..,,
-#7LUB57HEVYNYHVOJ5PVMOM4KYOO7BEJY7G36CUNBT56JVIUYRRHYB5FX3EMVQZMX57EQPWA34IKW2
-#\\\|WXNC3LPD763RYHAHH7MJITXT7XWVOZ3FGPLTEQ26G6EOBDM5ITY \ / AMOS7 \ YOURUM ::
-#\[7]43C3MPG5EKPQKZP5GUAJJGJL2WB4FIG7XWLV2JAUTSPQL3PB5IDI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,.,,,.,.,,,,,,,.,..,,..,,,..,..,,...,..,,.,,,,.,,.,.,.,.,..,,
+#CV7HPU3D6H5AX7LN3CSB7HLNK7G2JTCSRHVOVTHMRGD75SH6VXB55E6SW3LJ5QWP7S7BJI65NTM2K
+#\\\|2ZSL675FFJ4PS34DYZHZLAJXEE5QPENXAPTDUFQD3UYJWW7DWTX \ / AMOS7 \ YOURUM ::
+#\[7]BNW5FJ5CJGF7TB6U3PF5OPEFAVTYVGDAGEJHGEDJHEMXLI7K6AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
