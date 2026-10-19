@@ -95,8 +95,8 @@ if ( not defined $backup_paths ) {
 if ( defined $keywrite_status and $keywrite_status == TRUE ) {
     <[base.log]>->( 1, 'write was successful, removing backup files..,' );
 
-    ## these backups held UNENCRYPTED key material [ the key being upgraded ##
-    ## to encrypted ] -- shred, don't just unlink                           ##
+    ## these backups held UNENCRYPTED key material                         ##
+    ## [ the key being upgraded to encrypted ] -- shred, don't just unlink ##
     my $shred_bin = <keys.bin_path.shred>;
     foreach my $type ( keys %$backup_paths ) {
         if ( length( $shred_bin // '' ) and -x $shred_bin ) {
@@ -133,8 +133,8 @@ if ( defined $keywrite_status and $keywrite_status == TRUE ) {
 ABORT_KEY_ENCRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,.,,..,,..,,.,,,.,.,,,.,.,,,,,,,...,.,.,,,,,..,,...,...,...,.,.,.,,,..,,,,.,
-#7G55TCEG3VIR7HI63DW7DX6WNPHXHBR2LVH7C4XWU5SUZP4KQ7GVUXH4WSG3IARYBBQYP43ZPSVW2
-#\\\|RBEQQA5LK626WO2YY2NMIRNQ2MZBBNUU54NK6KO3MV4YXVFZTOQ \ / AMOS7 \ YOURUM ::
-#\[7]QIS7PF5AXIF2HYMPQQV2EXMVINHD7S4CVDW5D6GKDW4L7CEJTMCY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,..,,.,,,,..,,.,,.,.,...,.,,,.,.,..,,...,..,,.,,,,,.,,,,,...,,,.,
+#2KNWX2JG5TK5FZHT5OUUFJPRYRM4RRDILPBN3EGLLCNW7JIECAHG26QLBTAHQW56ZCGV423Q74GBY
+#\\\|7K3LYFMDP4K6OCBP45VA7BQABM7WMLIONWLVF5RBBRZTJUIFMJ6 \ / AMOS7 \ YOURUM ::
+#\[7]BAHZYRXFK2XDQBC5K2PPKMG4P7XEWRBCOJC33YSTPYRIBT2DUKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

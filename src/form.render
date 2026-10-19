@@ -3,8 +3,8 @@
 # name  = form.render
 # descr = render the active user-edit form to the terminal
 
-## doubles as the base.event.add_var watcher handler for  <form.dirty> [ see
-## form.handler.value_get_reply ] : both a  keystroke edit and an async
+## doubles as the base.event.add_var watcher handler for  <form.dirty>
+## [ see form.handler.value_get_reply ] : both a  keystroke edit and an async
 ## out-of-band field update just bump that counter, and this module is what
 ## turns either into an actual redraw.
 ##
@@ -29,9 +29,10 @@ if ( not exists <ascii.frame.cache>->{$frame_name} ) {
 ## every line wraps and the card becomes unreadable, so the column count is
 ## passed to render_form as a frame-width cap there.  one-shot and
 ## -no-tty-debug renders leave it undef and stay byte-identical.  same
-## <form.term_cols> form.handler.term_resize maintains [ form.setup_stdin_
-## watcher seeds it ], with the same on-demand AMOS7::TERM fallback the row
-## budget below already uses -- terminal_size returns ( cols, rows )
+## <form.term_cols> form.handler.term_resize maintains
+## [ form.setup_stdin_ watcher seeds it ], with the same on-demand AMOS7::TERM
+## fallback the row budget below already uses -- terminal_size returns ( cols,
+## rows )
 my $frame_max_width;
 if ( <form.interactive> and not <form.mode.no_tty_debug> ) {
     $frame_max_width = <form.term_cols> // (
@@ -45,11 +46,12 @@ if ( <form.interactive> and not <form.mode.no_tty_debug> ) {
 
 ## SOH placeholder for the cursor : one character wide so render_form's width
 ## and fill maths stay exact, substituted for a coloured '|' after
-## colourisation below [ an ansi sequence passed in directly would break row
-## alignment ]  one-character placeholders, substituted for coloured glyphs
-## after colourisation below.  they must be single characters : render_form's
-## width and fill maths measure them with length(), so passing ansi directly
-## would break row alignment
+## colourisation below
+## [ an ansi sequence passed in directly would break row alignment ]
+## one-character placeholders, substituted for coloured glyphs after
+## colourisation below.  they must be single characters : render_form's width
+## and fill maths measure them with length(), so passing ansi directly would
+## break row alignment
 my $rendered = <[editor.ui.ascii_frame.render_form]>->(
     $editor_state,
     $frame_name,
@@ -82,8 +84,9 @@ my $bottom_visible = TRUE;
 ## one-shot and -no-tty modes render the whole frame unchanged.  the footer
 ## status line [ form.chrome ] gets a row of its OWN : without one it was
 ## printed onto the frame's closing border, which has no trailing newline in
-## interactive mode [ found live : ': pri.v7.ax : pinned' glued to the border
-## ].  same test form.chrome uses to decide it prints at all
+## interactive mode
+## [ found live : ': pri.v7.ax : pinned' glued to the border ].  same test
+## form.chrome uses to decide it prints at all
 my $chrome_busy  = <form.busy>;
 my $chrome_lines = (
     length( <form.status> // '' )
@@ -263,9 +266,9 @@ if (    $bottom_visible
 $rendered = join( "\n", @frame_lines );
 
 ## colourise by character class through the shared frame colouriser --
-## config-driven from cfg/ascii-frame [ purple structure, TRUE blue slot
-## values ], the same call memory.render.term and  context.provider.frame
-## already use
+## config-driven from cfg/ascii-frame
+## [ purple structure, TRUE blue slot values ], the same call
+## memory.render.term and  context.provider.frame already use
 $rendered = <[ascii.frame.render.color]>->($rendered) // $rendered;
 
 $rendered =~ s{\x06}{$hint_row_colored}ge;
@@ -288,10 +291,11 @@ my $active_name  = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
 ## cursor_bearing note on why that field never gets the generic \x01 overlay
 ## at all ], so substr() against $active_value/$active_cursor below would be
 ## meaningless for one. a plugin field that wants this same styling exposes
-## '<plugin>.cursor_char' instead [ e.g. plugin.user-edit.address-cluster.
-## cursor_char ] -- given the same $editor_state/$active_name pair, it returns
-## just the character ITS OWN cursor sits on. absent that sub, a plugin field
-## gets no styling here at all, same as before this existed
+## '<plugin>.cursor_char' instead
+## [ e.g. plugin.user-edit.address-cluster. cursor_char ] -- given the same
+## $editor_state/$active_name pair, it returns just the character ITS OWN
+## cursor sits on. absent that sub, a plugin field gets no styling here at
+## all, same as before this existed
 my $active_plugin = <form.plugin.registry.by_key>->{$active_name};
 my $plugin_cursor_char_sub
     = defined $active_plugin
@@ -325,9 +329,9 @@ if ( defined $plugin_cursor_char_sub
 ## '\n' [ end of any line but the last ] -- substr would then hand back the
 ## newline itself, and every branch below would splice that raw byte straight
 ## into an ansi-colored render, corrupting this row's alignment exactly like
-## an un-windowed '\n' reaching a slot does [  user-edit-multiline-note.yaml
-## ].  treated the same as "nothing here" -- same as $cursor_char already
-## being empty
+## an un-windowed '\n' reaching a slot does
+## [  user-edit-multiline-note.yaml ].  treated the same as "nothing here" --
+## same as $cursor_char already being empty
 $cursor_char = '' if $cursor_char eq "\n";
 
 ## THREE cases, not two.  '-nc' blanks the COLOUR palette but is not a request
@@ -430,10 +434,10 @@ if (<form.interactive>) {
     my $done   = $colors{'reset'}      // '';
 
     ## the full cmd-list block is HIDDEN by default -- per user, it crowds a
-    ## card that is otherwise just a handful of fields.  ctrl-? [
-    ## form.handler.stdin_key ] toggles it back on ; until either that happens
-    ## or the block is showing, a one-line discovery hint stands in for it,
-    ## shown exactly once per opened card [ hint_seen reset in
+    ## card that is otherwise just a handful of fields.  ctrl-?
+    ## [ form.handler.stdin_key ] toggles it back on ; until either that
+    ## happens or the block is showing, a one-line discovery hint stands in
+    ## for it, shown exactly once per opened card [ hint_seen reset in
     ## form.handler.value_get_reply, set on the first key of the card ]
     if (<form.help_visible>) {
 
@@ -485,8 +489,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,.,,...,.,,,.,.,,.,,,.,,.,,,.,.,..,,,..,.,.,..,,...,...,.,,,..,,,,.,.,,,,.,,
-#Y5VJI2NBTLDP6AGP334IGEWEI7OURE7G4KKKKCVSTTJO7JIW2FKLMF2P5EI7A5LRK7KHA7S44PJ7U
-#\\\|PA2Y6SBUNNGXS5C3KQJQFT7CVDQRIP5HESXMMMLKJMKRNQRYTZV \ / AMOS7 \ YOURUM ::
-#\[7]KIIHUE5WZDXK5SAA542BB5UESEV6KZ6DMR3PNDMFNLKURAXBLCBI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,...,,..,...,.,.,.,.,,..,,,,,..,,...,...,,,.,,,.,,,,,..,,.,.,
+#CJH42GSRDW7ZKAEG4PE544IX43FSPPFDAAG3Q4DXI6AQ6TKRY5ZOQCDBBV5LNRAVMFN4KNIZBL2BW
+#\\\|R6LCB2ILOGFZASPT4QIYQJOXIQYM2PU6GKBXR7WY657FYPJ3LWP \ / AMOS7 \ YOURUM ::
+#\[7]QRRZPQPF5MCSKOSQHRQXXPYWHGVNPH3Q32AGZY6VUPJTUGRD4EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

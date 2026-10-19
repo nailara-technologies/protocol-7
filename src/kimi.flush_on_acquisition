@@ -10,8 +10,9 @@ my $href_pending = <kimi.approval.pending> // {};
 <kimi.approval.pending> = {};
 
 foreach my $request_id ( keys %{$href_pending} ) {
-    ## re-invoke handler with the original stored record [ not a blank payload
-    ## ] so sudo check and auto_allow policy see real fields
+    ## re-invoke handler with the original stored record
+    ## [ not a blank payload ] so sudo check and auto_allow policy see real
+    ## fields
     my $stored  = $href_pending->{$request_id} // {};
     my $payload = {
         'id'           => $request_id,
@@ -23,8 +24,8 @@ foreach my $request_id ( keys %{$href_pending} ) {
     <[kimi.handler.approval_request]>->( $request_id, $payload );
 }
 
-#,,..,,..,.,.,,,.,,,.,.,.,.,.,.,,,,,.,.,.,...,..,,...,...,,.,,.,,,,..,,..,...,
-#C6ZEM34TABFRCCTFJ3Y4VJ4S6NEWES6N7MWKKFQAUQLWMVPU3JLEWBARGLTM3H4MFMFPEZOFIXKHY
-#\\\|XQI5WLMST5CTGMQJNYDKNZXDEEEVR7ANOF2OL4OSPFCAV4NUVAA \ / AMOS7 \ YOURUM ::
-#\[7]CWDXLDZXLZH6MT74GZLZKQ227MAII5QLFPPCCNSGX3UL4LLND6DQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,...,...,.,.,...,,.,,,,.,,,,,.,.,..,,...,...,...,,..,,.,,,,.,.,,,
+#57HCULXDOEHWQEE7WVMDQX3JUM3ZWNL6AMRVEFGEPVDV7MBRJL5OVVBHYA5ZY454FLAWFGAVNY7BE
+#\\\|QH7F6SGRXYLSQPUJJJ6AY3K3WVVKHZGBBOD2T6OA2TNDBEWB7YX \ / AMOS7 \ YOURUM ::
+#\[7]UNMGU4O6SX7UFHWSKBLUP4EOGSG363Z3JPVDL52EQUT4TXMG7UCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

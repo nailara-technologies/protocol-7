@@ -6,17 +6,19 @@
 # note  = keeps the old pin as incoming/<user>.public.<time>.bak
 
 ## why : cube keeps a TOFU pin per remote client key in                     ##
-## incoming/<username>.public [ one line : base32 of the 32-byte Ed25519    ##
-## public key ] and authorized/<zenka>/<username>.public is a symlink to    ##
-## that pin [ see keys.console.authorize ]. when a client rotates its key   ##
-## the pin still holds the old key and cube refuses with 'TOFU mismatch' [  ##
-## plugin.auth.auth-keypair.validate-incoming- tofu ] -- this command       ##
+## incoming/<username>.public                                               ##
+## [ one line : base32 of the 32-byte Ed25519 public key ] and              ##
+## authorized/<zenka>/<username>.public is a symlink to that pin            ##
+## [ see keys.console.authorize ]. when a client rotates its key the pin    ##
+## still holds the old key and cube refuses with 'TOFU mismatch'            ##
+## [ plugin.auth.auth-keypair.validate-incoming- tofu ] -- this command     ##
 ## replaces the pin for an ALREADY authorized identity [                    ##
 ## authorized/<zenka>/<username>.public must exist -- it may link to the    ##
 ## pin or straight to a key file ], never anyone new. the new key is either ##
-## a local key name [ its .public file resolved via crypt.C25519.key_path,  ##
-## holder 'user' ] or a literal base32 public key string. no cube reload    ##
-## needed : cube reads the pin on every login attempt.                      ##
+## a local key name                                                         ##
+## [ its .public file resolved via crypt.C25519.key_path, holder 'user' ]   ##
+## or a literal base32 public key string. no cube reload needed : cube      ##
+## reads the pin on every login attempt.                                    ##
 
 my $arg = shift;
 
@@ -107,10 +109,8 @@ my $bak_file = sprintf qw| %s.%d.bak |, $pin_file, time;
 
 if ( -e $bak_file or -l $bak_file ) {
     printf(
-        "\n  << backup name '%s' already "
-            . "exists -- refusing to re-pin >>\n\n",
-        $bak_file
-    );
+        "\n  << backup name '%s' already exists -- refusing to re-pin >>\n\n",
+        $bak_file );
     <[base.exit]>->(qw| 0010 |);
 }
 
@@ -153,8 +153,8 @@ if ( not rename( $tmp_file, $pin_file ) ) {
 printf( " :\n :: re-pinned '%s:%s'\n", $zenka, $username );
 printf( " :. old pin kept as '%s' ::\n\n", $bak_file_name );
 
-#,,,,,,,.,,..,.,,,,,,,..,,.,.,,,.,.,.,..,,.,.,.,.,...,...,,.,,,,.,,,.,,,,,.,.,
-#CNO3LBE5G6MRJWOLTKYCAOOEWTUYSFNLJ5HXF7XM3ZNCQW3EEQL3CFKYKUSM7POKL53QSGAZO7X3S
-#\\\|HUA3C6KT4OZR4FIAM74DIH6DKPVXIBNFH4I76LF6GNHTKV3A376 \ / AMOS7 \ YOURUM ::
-#\[7]W7M265AV73RJ447M6H7XALM4V7RMHPNCEOVYYB3WKKW723ACTMDA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,,..,,,,,...,.,.,,..,,,.,,..,.,.,...,...,.,.,..,,,.,,,,,,..,,
+#GANSMU2DZ2EWEZ7AAMXG62OOOHBYMVRNHCWRU6SYDTBJXIDOESJ6H7DQMYR3AT4B2L3XXSYCL4BYS
+#\\\|GJUJ46FSFGHO42VMVOWKZQATXR7OBA57RDLBPZ7FXOW5SWL4AWH \ / AMOS7 \ YOURUM ::
+#\[7]2FZG274VRXTIPXUN2Z6CXU7IQLPZIMFTVUVMJZGA5OMV5XU6Z4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

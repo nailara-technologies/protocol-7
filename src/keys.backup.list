@@ -17,9 +17,10 @@ my $key_vars_ref
 
 my $key_dir = $key_vars_ref->{'key_dir'};
 
-## directories to scan : the resolved key dir [ root/ for a root-held   ##
-## filter name ] and, only when running as root, the root key dir too [ ##
-## host-root delegation ] -- a non-root process never opens root/       ##
+## directories to scan : the resolved key dir                            ##
+## [ root/ for a root-held filter name ] and, only when running as root, ##
+## the root key dir too [ host-root delegation ] -- a non-root process   ##
+## never opens root/                                                     ##
 my $root_key_dir = <[crypt.C25519.root_key_dir]> // '';
 my @scan_dirs    = ($key_dir);
 
@@ -69,8 +70,8 @@ foreach my $path ( map { <[file.all_files]>->($ARG)->@* } @scan_dirs ) {
 
 return \@backups;
 
-#,,..,,..,.,,,,..,.,,,...,..,,,,,,,,,,,,.,,,,,..,,...,...,.,,,,.,,,,.,,..,,.,,
-#HEHAM2EEWPW7IRBFOL7TQFISIUELGTM3NVU42IWKMHNAK43EI6G34GIGPQD6ZV3KYFM722H5QHHW6
-#\\\|4ZR66ZJP6V55RWV2BY2J65PAETMB6ONCDVQNJRZZQCQJTDYMRWX \ / AMOS7 \ YOURUM ::
-#\[7]YQKAWFQBBGXE7JHIS5PDADPETYKMGD4IXUINAC6TOBTD27F256BA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,,,...,.,,,...,,.,,,.,,.,,,,..,..,,...,...,,..,,..,...,,,.,.,,,
+#UZ447H6EZHLVQFS3EBBQARA7OYPVM4VZ64COC3L6TDTT5UUQRXL6GRRQRIQNDL5O7WJIASGJPQQ4S
+#\\\|SYFNSSOJ7OQBJC4H73MPQFE7ODKG3BBGFSJOWSP5ICEZYNDFD4Q \ / AMOS7 \ YOURUM ::
+#\[7]AAALPITAVSFXCEXE75A3F4GR7SUCPJVLFJBMUH2C6RMU5KXUZYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

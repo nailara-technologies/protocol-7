@@ -13,8 +13,8 @@ $log_tag //= 'clients.https';
 
 return $body if not length $body;
 
-## decompress when content-encoding set [ gzip, deflate, zstd ] [ br is ##
-## deliberately never offered, so never decoded here ]                  ##
+## decompress when content-encoding set [ gzip, deflate, zstd ] ##
+## [ br is deliberately never offered, so never decoded here ]  ##
 my $encoding = lc( $headers->{'content-encoding'} // '' );
 if ( length $encoding and $encoding ne qw| identity | ) {
     my $plain = '';
@@ -33,8 +33,8 @@ return $body if not length $body;
 
 ## character-decode : decompression above only ever touches bytes -- $body ##
 ## is still raw wire bytes here, not a decoded perl string. use the        ##
-## response's own declared charset when present, default utf-8 otherwise [ ##
-## the overwhelming common case for real-world html ]                      ##
+## response's own declared charset when present, default utf-8 otherwise   ##
+## [ the overwhelming common case for real-world html ]                    ##
 my ($charset) = ( $headers->{'content-type'} // '' ) =~ m{charset=([\w-]+)}i;
 $charset //= 'UTF-8';
 my $decoded
@@ -50,8 +50,8 @@ if ( defined $decoded ) {
 
 return $body;
 
-#,,,,,...,,..,.,,,,,,,,,,,.,,,.,,,..,,.,.,,,.,..,,...,...,.,,,,.,,,,.,,.,,.,.,
-#6POMSXALWKREDM3BI7OSE7LF6OJPR2ICWCL2G2XCX2IGC6RRWFY2LY6M6TFUVVMOME5UDCPTYIWJQ
-#\\\|KGJPOINVRHEUBXI253ZTBCQIUGRS7FD6PA6I6ZY7CRTPZINDABX \ / AMOS7 \ YOURUM ::
-#\[7]TIEUBWIWSNJW5FKAO7R267QEV2WPFSMNFBCLGKQ5K2XKMYWWDQCY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,.,,,.,.,,,.,,,,,,,.,...,,,,,..,,...,..,,...,,,,,,,,,.,.,.,,,
+#QSKXLFYEQ5VHWKCF77OWYPICGXDMISFERYMJSMAOBEDTVRWUKF4ZO7JYAVQLD2U4MPDKQEFIMVM4I
+#\\\|2CNBVQHBXJU7IYZH3HDQUVYVWL7I64CNESE6RK3GUSUTG4ALUUQ \ / AMOS7 \ YOURUM ::
+#\[7]FSUJKZETZFAWDRBPQR7JECAMWODQ5EP4EKQTLNA7KQLMANKFQOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

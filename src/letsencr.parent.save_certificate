@@ -47,8 +47,8 @@ my $metadata = {
     status          => 'valid',
 };
 
-## warn if chain intermediate does not match leaf issuer  [ full AIA repair
-## happens in child.validate_chain : this is a safety net ]
+## warn if chain intermediate does not match leaf issuer
+## [ full AIA repair happens in child.validate_chain : this is a safety net ]
 if ( length($chain_pem) ) {
     my $issuer_check
         = <[letsencr.x509_field]>->( $certificate_pem, '-issuer' );
@@ -116,8 +116,8 @@ foreach my $ext ( keys %files ) {
         }
     }
 
-    ## unlink before write so open() creates a new inode  [ setgid group
-    ## inheritance only applies to newly created files ]
+    ## unlink before write so open() creates a new inode
+    ## [ setgid group inheritance only applies to newly created files ]
     unlink $file_path if -f $file_path;
 
     ## write new file
@@ -178,8 +178,8 @@ return {
     error_msg => undef
 };
 
-#,,,,,..,,,..,.,,,,,.,..,,,.,,.,.,...,.,,,..,,..,,...,...,...,,.,,,.,,..,,.,.,
-#A2PS3HNXDYP4IJLPTPEOHVYOM5F53E6QUZANSKVT4L7JIOMKR56ITN5CU4HYEKGWKLOANFBNM4ESE
-#\\\|THJDH5BZNAXOR5VNIXFYDOVJL4WC2M6M3Z5ICWRRP3726S5TAM4 \ / AMOS7 \ YOURUM ::
-#\[7]YYYFIB7PS4KD2NYH7IXXG2JRNIM3WNZVLYVQCULWGVQ57NXN2OAI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,,,,,..,,.,,,.,.,..,,...,,,,,..,,...,..,,...,.,,,..,,..,,.,.,
+#H2V4EPEZ4UZCKFMYXL3Y3TQC6LVWALNH322OLJM6XKPMUV3ZLTHJWY3QY2O63MOVFPWGC2VZFD4SA
+#\\\|JBPJENES6ZLTRSK4A3WOY4NMANRVCEH2MKUJJ2UTGW2PYK6LPZG \ / AMOS7 \ YOURUM ::
+#\[7]SEYWFP3P4Y4JOD4UIIMRLZLTVXA7KRMUAUGPEDZRW3DKPENB4YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

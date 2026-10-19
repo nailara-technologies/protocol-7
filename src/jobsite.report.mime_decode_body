@@ -8,11 +8,12 @@
 my $raw = shift // '';
 return '' if not length $raw;
 
-## normalize line endings once, up front : a bare "(.*)$/m" header-value  ##
-## capture happily includes a trailing \r on CRLF input [ '.' matches \r, ##
-## only \n anchors '$' in multiline mode ], corrupting every header value ##
-## with an invisible trailing \r [ e.g. "quoted-printable\r" never        ##
-## eq-matches 'quoted-printable', silently skipping decode entirely ]     ##
+## normalize line endings once, up front : a bare "(.*)$/m" header-value ##
+## capture happily includes a trailing \r on CRLF input                  ##
+## [ '.' matches \r, only \n anchors '$' in multiline mode ], corrupting ##
+## every header value with an invisible trailing \r [ e.g.               ##
+## "quoted-printable\r" never eq-matches 'quoted-printable', silently    ##
+## skipping decode entirely ]                                            ##
 $raw =~ s|\r\n|\n|g;
 
 my $parse_headers = sub {
@@ -58,27 +59,27 @@ my $decode_leaf = sub {
     ## shown as literal visible text, e.g. security-gateway rewritten       ##
     ## tracking links ]. stripping AFTER formatting is unreliable since     ##
     ## word-wrap would already have fragmented a long url across several    ##
-    ## lines by then -- do it while still one string match stops at `<` [   ##
-    ## not just whitespace ] : when a visible-text url sits directly        ##
-    ## against the next tag with no space in between [ e.g.                 ##
-    ## "...xyz</a><span style=\"...\">" ], plain `\S+` treats `<` as an     ##
-    ## ordinary non-space char and eats straight through the                ##
+    ## lines by then -- do it while still one string match stops at `<`     ##
+    ## [ not just whitespace ] : when a visible-text url sits directly      ##
+    ## against the next tag with no space in between                        ##
+    ## [ e.g.  "...xyz</a><span style=\"...\">" ], plain `\S+` treats `<`   ##
+    ## as an ordinary non-space char and eats straight through the          ##
     ## closing/opening tags too -- orphaning the next tag's attributes as   ##
     ## unowned text that html::treebuilder's parser recovery then leaks     ##
     ## into the visible output instead of consuming as markup               ##
     $part_body =~ s{https?://[^\s<]+}{[Link entfernt]}g;
-    ## a wrapped tracking link can split mid-url onto the next line [ the   ##
-    ## sender's own line-wrap, not something we introduce ], leaving a      ##
-    ## percent-encoded continuation fragment with no leading "http" for the ##
-    ## pattern above to catch. the %XX groups aren't necessarily            ##
-    ## consecutive [ e.g. "%26u%3Dhttps%253A%252F%252F..." — literal chars  ##
-    ## sit between them ], so match any non-space run containing 3+ %XX     ##
-    ## occurrences anywhere within it                                       ##
+    ## a wrapped tracking link can split mid-url onto the next line        ##
+    ## [ the sender's own line-wrap, not something we introduce ], leaving ##
+    ## a percent-encoded continuation fragment with no leading "http" for  ##
+    ## the pattern above to catch. the %XX groups aren't necessarily       ##
+    ## consecutive [ e.g. "%26u%3Dhttps%253A%252F%252F..." — literal chars ##
+    ## sit between them ], so match any non-space run containing 3+ %XX    ##
+    ## occurrences anywhere within it                                      ##
     $part_body =~ s|[^\s<]*(?:%[0-9A-Fa-f]{2}[^\s<]*){2,}|[Link entfernt]|g;
     ## some hr/erp systems render an inline attachment reference as         ##
     ## "filename.pdf<x?id=...&xsrf=...&somekey=...>" visible text -- not an ##
-    ## http(s) link, so the patterns above miss it. keep the filename [     ##
-    ## useful : notes an attachment existed ], drop only the bracketed      ##
+    ## http(s) link, so the patterns above miss it. keep the filename       ##
+    ## [ useful : notes an attachment existed ], drop only the bracketed    ##
     ## internal-reference tracking uri                                      ##
     $part_body =~ s{<\w\?id=[^>]*>}{}g;
 
@@ -132,9 +133,10 @@ $walk = sub {
     ## the message body -- e.g. a boilerplate "datenschutz.txt"            ##
     ## privacy-policy attachment sent alongside a real text/html reply.    ##
     ## without this check a text/plain attachment can win the 'plain' slot ##
-    ## before the real text/html body [ nested deeper, e.g. inside a       ##
-    ## multipart/related sibling part ] is ever reached, so the disclaimer ##
-    ## silently replaces the actual reply as this mail's entire content    ##
+    ## before the real text/html body                                      ##
+    ## [ nested deeper, e.g. inside a multipart/related sibling part ] is  ##
+    ## ever reached, so the disclaimer silently replaces the actual reply  ##
+    ## as this mail's entire content                                       ##
     my $disposition = lc( $headers->{'content-disposition'} // '' );
     return
         if $ctype_raw   =~ m{[;\s](?:file)?name\s*=}i
@@ -146,8 +148,9 @@ $walk = sub {
     ## or newline left over from the template survives decoding. a plain    ##
     ## length() check let that one whitespace byte still win the 'plain'    ##
     ## slot below and permanently hide the real content sitting in the html ##
-    ## sibling [ found{'plain'} wins the final selection unless it's still  ##
-    ## undef ] -- require at least one non-whitespace character             ##
+    ## sibling                                                              ##
+    ## [ found{'plain'} wins the final selection unless it's still undef ]  ##
+    ## -- require at least one non-whitespace character                     ##
     return if $decoded !~ m|\S|;
 
     if ( $ctype =~ m{text/plain} or not length $ctype ) {
@@ -188,20 +191,21 @@ $result =~ s{
     .*
 }{}xism;
 
-## strip invisible unicode padding [ zero-width space/joiner, soft hyphen, ##
-## combining grapheme joiner ] some marketing html inserts for             ##
-## anti-clipping purposes -- harmless to a browser, but shows as a wall of ##
-## visible dot-like glyphs in a plain-text render. leaves behind runs of   ##
-## the *real* spaces that separated them, and stripped-link replacements   ##
-## leave blank paragraphs -- collapse both down after portal-registration  ##
-## receipts sometimes echo the account's own login credentials back in     ##
-## plain text [ "Benutzername: .. / Passwort: .." ] -- this is real leaked ##
-## secret material, not evidence, and must never reach a rendered report   ##
-## regardless of how the mail gets classified                              ##
+## strip invisible unicode padding                                          ##
+## [ zero-width space/joiner, soft hyphen, combining grapheme joiner ] some ##
+## marketing html inserts for anti-clipping purposes -- harmless to a       ##
+## browser, but shows as a wall of visible dot-like glyphs in a plain-text  ##
+## render. leaves behind runs of the *real* spaces that separated them, and ##
+## stripped-link replacements leave blank paragraphs -- collapse both down  ##
+## after portal-registration receipts sometimes echo the account's own      ##
+## login credentials back in plain text                                     ##
+## [ "Benutzername: .. / Passwort: .." ] -- this is real leaked secret      ##
+## material, not evidence, and must never reach a rendered report           ##
+## regardless of how the mail gets classified                               ##
 if ( length $result ) {
-    ## the colon is NOT reliably present -- "Passwort skdöl08530" [ no ":" ##
-    ## at all ] leaked a real password straight through the first version  ##
-    ## of this regex, which required one                                   ##
+    ## the colon is NOT reliably present -- "Passwort skdöl08530"          ##
+    ## [ no ":" at all ] leaked a real password straight through the first ##
+    ## version of this regex, which required one                           ##
     $result =~ s{
         ^ ( [ \t]* (?:Passwort|Kennwort|Password|Pass|Benutzername|
               Username|Login|Zugangsdaten|Bewerber-ID|Benutzer-ID|
@@ -210,23 +214,24 @@ if ( length $result ) {
     }{$1\[entfernt\]}mgix;
     $result =~ s|[\x{200B}\x{200C}\x{200D}\x{00AD}\x{034F}]||g;
     $result =~ s| {2,}| |g;
-    ## a line containing only spaces/tabs isn't a truly empty line to the   ##
-    ## \n{3,} collapse just below [ there's always a non-\n char breaking   ##
-    ## up the run ], so a run of such near-blank lines still shows up as an ##
-    ## oversized empty gap -- normalize them to genuinely empty first       ##
+    ## a line containing only spaces/tabs isn't a truly empty line to the ##
+    ## \n{3,} collapse just below                                         ##
+    ## [ there's always a non-\n char breaking up the run ], so a run of  ##
+    ## such near-blank lines still shows up as an oversized empty gap --  ##
+    ## normalize them to genuinely empty first                            ##
     $result =~ s|^[ \t]+$||gm;
     $result =~ s|\n{3,}|\n\n|g;
 
     ## a single tracking url can be hard-wrapped by the sender's own mail   ##
     ## client across MANY separate physical lines before it ever reaches us ##
-    ## -- each fragment doesn't individually look like a url [ no http      ##
-    ## prefix, no %XX run ], so most of them slip straight past the link-   ##
-    ## stripping regexes above and leak as raw base64url gibberish, while   ##
-    ## the few fragments that DO match produce one "[Link entfernt]" per    ##
-    ## wrapped line instead of one for the whole link -- collapse any       ##
-    ## contiguous run of "already stripped" markers and/or bare base64url-  ##
-    ## charset noise lines [ optionally quote-prefixed, e.g. "> " ] down to ##
-    ## a single marker                                                      ##
+    ## -- each fragment doesn't individually look like a url                ##
+    ## [ no http prefix, no %XX run ], so most of them slip straight past   ##
+    ## the link-stripping regexes above and leak as raw base64url           ##
+    ## gibberish, while the few fragments that DO match produce one         ##
+    ## "[Link entfernt]" per wrapped line instead of one for the whole link ##
+    ## -- collapse any contiguous run of "already stripped" markers and/or  ##
+    ## bare base64url-charset noise lines                                   ##
+    ## [ optionally quote-prefixed, e.g. "> " ] down to a single marker     ##
     if ( $result =~ m|\[Link entfernt\]| ) {
         my @rlines   = split m|\n|, $result, -1;
         my $is_noise = sub {
@@ -257,8 +262,8 @@ if ( length $result ) {
 
 return $result;
 
-#,,,.,,..,..,,...,.,,,,,.,..,,.,,,.,,,,,,,...,.,.,...,...,...,,.,,..,,...,,,,,
-#IM4WTOS4YATIVFWZNZONUZXTXBQPMEIUKGPUUVQ4F2SEPGDVHU7EOT2HEDLYKJ67R4YVMNXSWYKU6
-#\\\|TFE3TKEXRWU5A62J754JFTNC7EBLUQ55DW5ALL4QNXHNWQWRXEF \ / AMOS7 \ YOURUM ::
-#\[7]2UOXJ4OPOJOQ2VU6UVTE4XE5PF3C7J2IQHKUZ5BL7QOJIAT3EGBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,.,,,..,,.,,.,,,,..,.,.,,,,,,.,,.,.,...,...,..,,.,.,.,.,,,,,,.,,
+#Y65OLHASABTQNNFYD5YMKW5CV6QCEEKDTJQQVS7LHO6LH235BVPM3LHPWHWUAIAPPXHCIERNSNL46
+#\\\|OLLF5KO3LGL37U2HQSLHVJN4YNT4UKDEFRPSPTRYKK4I335QHKC \ / AMOS7 \ YOURUM ::
+#\[7]L6SHHRJPXZSVTZAYR3ISTIQMQV67P72G57NYQACXRJTJ7AEB74AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,16 +4,16 @@
 # descr = derive an editor.control schema from a users.* record envelope
 # param = $record [ , $submit_on ]
 
-## the record's settings payload is deliberately open [ users-zenka.yaml : no
-## declared settings field list exists anywhere yet ], so the form schema is
-## DERIVED at runtime from whatever keys the record actually carries, rather
-## than declared here.  when a real field list eventually exists this stays
-## valid — typed/enum/validator field defs then merge on top of what this
-## returns, they do not replace it.
+## the record's settings payload is deliberately open
+## [ users-zenka.yaml : no declared settings field list exists anywhere yet ],
+## so the form schema is DERIVED at runtime from whatever keys the record
+## actually carries, rather than declared here.  when a real field list
+## eventually exists this stays valid — typed/enum/validator field defs then
+## merge on top of what this returns, they do not replace it.
 ##
 ## every field is a freeform_line : editor.control.create rejects every other
-## type as interface-only, and no setting is known to be enum- or secret-
-## shaped yet [ user-edit-console-zenka.yaml : field_types_needed ]
+## type as interface-only, and no setting is known to be enum- or
+## secret-shaped yet [ user-edit-console-zenka.yaml : field_types_needed ]
 
 my ( $record, $submit_on ) = @ARG;
 
@@ -34,10 +34,10 @@ my @field_defs;
 ## at all [ confirmed live : 'subroutine not defined', the same reason
 ## user-edit talks to users only over the cube link, e.g.
 ## form.console.show-form's N.users.value-get ], and loading the whole users.*
-## module family into user-edit's deliberately narrow modules.load [ see this
-## zenka's start file header ] just to reach one two-item list would be a much
-## larger coupling than the duplication it avoids.  keep the two lists in sync
-## by hand if the vocabulary ever changes
+## module family into user-edit's deliberately narrow modules.load
+## [ see this zenka's start file header ] just to reach one two-item list
+## would be a much larger coupling than the duplication it avoids.  keep the
+## two lists in sync by hand if the vocabulary ever changes
 my %sort_on_focus = map { $ARG => TRUE } qw| contact phone |;
 
 ## which SCALAR fields render/edit as multiple windowed display rows instead
@@ -59,18 +59,19 @@ my %collapse_summary
 ## alphabetical-descending tiebreak -- see base.each_sort / base.cmd.commands
 ## for the same idiom elsewhere ] rather than a plain alphabetical `sort`, per
 ## user.  applied ONCE, at the very end of this function, across the UNION of
-## real field names and any synthesised ones [ identity_key / user_keys below
-## ] -- per user, a synthesised field is just another named row for ordering
-## purposes, not something pinned to a fixed trailing position regardless of
-## its own name's length.  this loop therefore only COLLECTS field defs by
-## name now, it does not decide row order itself
+## real field names and any synthesised ones
+## [ identity_key / user_keys below ] -- per user, a synthesised field is just
+## another named row for ordering purposes, not something pinned to a fixed
+## trailing position regardless of its own name's length.  this loop therefore
+## only COLLECTS field defs by name now, it does not decide row order itself
 my %field_def_by_name;
 
 foreach my $name ( keys %{$fields} ) {
 
-    ## ascii.frame slot tokens are \w+ [ ascii.frame.parse's own token regex
-    ## ], so a field name that cannot become a slot name is skipped loudly
-    ## here instead of rendering as a silently blank row
+    ## ascii.frame slot tokens are \w+
+    ## [ ascii.frame.parse's own token regex ], so a field name that cannot
+    ## become a slot name is skipped loudly here instead of rendering as a
+    ## silently blank row
     if ( $name !~ m|^\w+$| ) {
         <[base.logs]>->(
             2, ': field name is not slot-safe, skipped [ %s ]', $name
@@ -80,8 +81,8 @@ foreach my $name ( keys %{$fields} ) {
 
     my $value = $fields->{$name} // '';
 
-    ## an ARRAY becomes a LIST field : collapsed it draws as a count summary [
-    ## editor.control.get_display_value ] and expands into one editable row
+    ## an ARRAY becomes a LIST field : collapsed it draws as a count summary
+    ## [ editor.control.get_display_value ] and expands into one editable row
     ## per entry when entered.  the type stays freeform_line because
     ## editor.control.create accepts no other -- 'list' is metadata on the
     ## field def, and 'entries' is the authoritative value
@@ -109,18 +110,19 @@ foreach my $name ( keys %{$fields} ) {
         next;
     }
 
-    ## PLUGIN-PINNED key : per design doc data/yaml/coding-tasks/user-edit-
-    ## plugin-detail-tabs.yaml, a field a plugin has pinned itself to stays a
-    ## PLAIN SCALAR buffer [ get_value / submit / draft / outbox all keep
-    ## working completely unmodified ] with only DISPLAY customised, via the
-    ## GENERIC display_override hook editor.control.get_display_value now
-    ## honours -- that module stays unaware this is "a plugin," it just calls
-    ## a coderef.  readonly blocks ORDINARY typing before the field is entered
-    ## [ form.handler.stdin_key's Tab/Right trigger ] ; once entered [ mode =
-    ## 'plugin:<name>' ], that same handler routes every key straight to the
-    ## plugin's own handler.key, bypassing editor.control.  process_key -- and
-    ## process_key's readonly guard -- entirely, so this never blocks the
-    ## plugin's OWN edits, only a stray keystroke that landed here before
+    ## PLUGIN-PINNED key : per design doc
+    ## data/yaml/coding-tasks/user-edit-plugin-detail-tabs.yaml, a field a
+    ## plugin has pinned itself to stays a PLAIN SCALAR buffer [ get_value /
+    ## submit / draft / outbox all keep working completely unmodified ] with
+    ## only DISPLAY customised, via the GENERIC display_override hook
+    ## editor.control.get_display_value now honours -- that module stays
+    ## unaware this is "a plugin," it just calls a coderef.  readonly blocks
+    ## ORDINARY typing before the field is entered
+    ## [ form.handler.stdin_key's Tab/Right trigger ] ; once entered
+    ## [ mode = 'plugin:<name>' ], that same handler routes every key straight
+    ## to the plugin's own handler.key, bypassing editor.control.  process_key
+    ## -- and process_key's readonly guard -- entirely, so this never blocks
+    ## the plugin's OWN edits, only a stray keystroke that landed here before
     ## Tab/Right was pressed
     my $pinned_plugin = <form.plugin.registry.by_key>->{$name};
 
@@ -207,18 +209,19 @@ if ( ( <form.source>->{'default_record'} // '' ) eq
     ## the zenka PROCESS's own <crypt.C25519.base_key_name> -- user-edit
     ## represents exactly one human, so defaulting the former to the latter
     ## HERE [ the first place user-edit needs it ] is valid for this zenka
-    ## specifically, while keeping the two overrideable independently [ see
-    ## crypt.C25519.post_init's header notes ].  the identity_key tab and the
-    ## user_keys exclusion below both read the USER pointer now.
+    ## specifically, while keeping the two overrideable independently
+    ## [ see crypt.C25519.post_init's header notes ].  the identity_key tab
+    ## and the user_keys exclusion below both read the USER pointer now.
     <crypt.C25519.user_key_name> //= <crypt.C25519.base_key_name>;
     my $identity_name = <crypt.C25519.user_key_name> // '';
 
     ## NO priming call here anymore : the base_key_name hijack this file's
     ## earlier `<[crypt.C25519.key_vars]>->($identity_name)` worked around is
     ## fixed at the root in crypt.C25519.key_vars itself -- base_key_name is
-    ## now established ONCE by post_init's bare startup call, and explicit-
-    ## name lookups [ key_checksums etc. below ] no longer mutate it, so there
-    ## is nothing left to lock in.  the old priming call is dead code.
+    ## now established ONCE by post_init's bare startup call, and
+    ## explicit-name lookups [ key_checksums etc. below ] no longer mutate it,
+    ## so there is nothing left to lock in.  the old priming call is dead
+    ## code.
 
     ## SYNTHESISED, self-record-only : every OTHER named C25519 key the
     ## invoking Unix user holds.  MOVED to  form.build_user_keys_field,
@@ -232,16 +235,18 @@ if ( ( <form.source>->{'default_record'} // '' ) eq
     $field_def_by_name{'user_keys'} = <[form.build_user_keys_field]>;
 
     ## SYNTHESISED, self-record-only : the 'key actions' tab -- the first
-    ## INTERACTIVE key feature [ create a new named C25519 key without leaving
-    ## the form ], unlike the display-only identity_key / user_keys above.
-    ## carries plugin => 'plugin.user-edit.key-actions' directly on its own
-    ## field def, the same way identity_key does -- but UNLIKE identity_key it
-    ## is ALSO pinned in the plugin registry's by_key map [
-    ## plugin.user-edit.key-actions.tab_info's pinned_keys ], which is exactly
-    ## what makes stdin_key's Right-entry trigger able to fire on it.  its
-    ## Enter handler opens the in-frame key-create prompt chain [ editor.
-    ## control.prompt.* ] rendered into THIS row -- nothing leaves the event
-    ## loop for it any more [ the blocking-excursion shape is retired ]
+    ## INTERACTIVE key feature
+    ## [ create a new named C25519 key without leaving the form ], unlike the
+    ## display-only identity_key / user_keys above.  carries plugin =>
+    ## 'plugin.user-edit.key-actions' directly on its own field def, the same
+    ## way identity_key does -- but UNLIKE identity_key it is ALSO pinned in
+    ## the plugin registry's by_key map
+    ## [  plugin.user-edit.key-actions.tab_info's pinned_keys ], which is
+    ## exactly what makes stdin_key's Right-entry trigger able to fire on it.
+    ## its Enter handler opens the in-frame key-create prompt chain
+    ## [ editor. control.prompt.* ] rendered into THIS row -- nothing leaves
+    ## the event loop for it any more
+    ## [ the blocking-excursion shape is retired ]
     $field_def_by_name{'key_actions'} = {
         qw| name |             => qw| key_actions |,
         qw| type |             => qw| freeform_line |,
@@ -266,9 +271,10 @@ if ( ( <form.source>->{'default_record'} // '' ) eq
     ## row for the checksum instead of a manually-flipped config.  reads the
     ## SAME $identity_name already resolved above for the user_keys exclusion,
     ## no second resolution needed. the identity key is immutable for this
-    ## zenka's own process lifetime [ see plugin.  form.key-details.render's
-    ## own header ], so this decision, made once here at schema-build time,
-    ## never needs re-checking per render the way a live-changing value would
+    ## zenka's own process lifetime
+    ## [ see plugin.  form.key-details.render's own header ], so this
+    ## decision, made once here at schema-build time, never needs re-checking
+    ## per render the way a live-changing value would
     <user-edit.cfg.identity_key_name_threshold> //= 20;
     my $identity_detail_mode = length($identity_name)
         > <user-edit.cfg.identity_key_name_threshold>;
@@ -320,8 +326,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,..,,..,,,,,.,,,.,,,,.,,..,,,,.,,.,,.,,,.,,,..,,...,..,,..,,,..,,..,,..,,,,,
-#GVB6QK4LNHRP424UEX3IQ3XXYR2TUQNYSG256OZAG6G3UIADCAPWAPS56AJJ4JHHGQYQUWYBEFMNG
-#\\\|WXG6PMEBDUEONUKNCKMU46UHCIXGCP7O5UL4NWAH6JPU3CYME2N \ / AMOS7 \ YOURUM ::
-#\[7]EBQGMYCUG64D52FSETCTLAVCQF63ZODU3WZLK4DDQ3CX6R7OWYCI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,,,...,,.,,,.,,.,,,,,,,..,,..,,..,,...,...,..,,..,,,..,..,,.,,,
+#LKEXQ3K3NRYGMNMO6WIDHVPF72FLQKBQSCRMP2FPPS4QPRVCLZK45JITI5EJVBLGM37FBODPINZDG
+#\\\|YPDFOW7WC3CLJY2LXYRGTQJTPM46BWHXNK2DE3WKPC7YGP7JGJP \ / AMOS7 \ YOURUM ::
+#\[7]RVHAUGRKHAQENLPFPGOLW6RIBA2T7PR2BI633A7C7U5I2OFBYKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

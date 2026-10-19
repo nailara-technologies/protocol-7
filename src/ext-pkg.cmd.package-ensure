@@ -10,10 +10,10 @@
 ##    its own versions/ updater ] .., ext-pkg's job is bootstrap onto a     ##
 ##    fresh machine , not ongoing version management ..,                    ##
 ##                                                                          ##
-##    registry : cfg/zenki/ext-pkg/packages/<name>.yaml [ manager ,         ##
-##    package , check , install ] .., a status record is written per        ##
-##    check to <ext-pkg.cfg.status_dir>/<name>.yaml -- that data feeds      ##
-##    the phase-2 coverage audit [ task 2.1 ]                               ##
+##    registry : cfg/zenki/ext-pkg/packages/<name>.yaml                     ##
+##    [ manager , package , check , install ] .., a status record is        ##
+##    written per check to <ext-pkg.cfg.status_dir>/<name>.yaml -- that     ##
+##    data feeds the phase-2 coverage audit [ task 2.1 ]                    ##
 
 my $args_str = $call->{'args'} // '';
 ( my $pkg_name = $args_str ) =~ s{^\s+|\s+$}{}g;
@@ -70,8 +70,8 @@ return {
     }
     if not exists $known_manager{ $entry->{'manager'} };
 
-## run shell command , capture merged output + exit code  [ registry ##
-## content is repo-controlled , shell form is intentional ]          ##
+## run shell command , capture merged output + exit code               ##
+## [ registry content is repo-controlled , shell form is intentional ] ##
 my $run_cmd = sub {
     my $cmd       = shift;
     my $out       = qx( $cmd 2>&1 ) // '';
@@ -183,8 +183,8 @@ return {
     )
 };
 
-#,,,,,.,.,...,.,.,.,.,...,,..,.,,,...,.,.,.,.,..,,...,..,,...,,.,,,..,,.,,,..,
-#V6LKZJCUGOKOUNZ44B23VXGJQME5TSLWH2Z7MYMRNJSG2ZWKMA3WIFYOEMOXO7F65EPFGBNTXXPQQ
-#\\\|M6FRMVXZL5LUHGLUMNXY5WNYFHA4PI23KFS2SZ67TNGQNSQPWRE \ / AMOS7 \ YOURUM ::
-#\[7]DYZJLG2X4PIWT7QRCXK2WUF6WNJNX2YFQXEM7Y4QRRGK7J6PTIAA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,.,.,,,,,.,.,..,,,.,,.,.,.,.,..,,...,...,.,.,,,,,.,,,..,,,.,,
+#IETBHM77NOB3ZSOXHXHNPOEOCPKPSASEI2PCDGEZ3F4A3WKAFEC4H5VXJFYMSTNU2C34MGMFFTRMM
+#\\\|SZAR3UT62TIC5H72RLYPULPTZG7CAPIIAHF3MOW54OHJPVEZ2NZ \ / AMOS7 \ YOURUM ::
+#\[7]4Z45IDXC5U6H4SWBRULLCEJLADRFHVS7ZDP2K32ZSJHBQZPPKYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

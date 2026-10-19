@@ -10,11 +10,11 @@
 ##  not as root during init [ the sweep record dir would end up root-owned  ##
 ##  -- same hazard build.init_code documents ]                              ##
 ##                                                                          ##
-##  the sweep dir IS created here at init, with the zenka user as owner [   ##
-##  p7-log.init_code precedent ] : file.make_path is only available during  ##
-##  the init phase -- post-init the deferred-compile sources are cleaned    ##
-##  and the sub resolves to undef [ verified live 2026-07-29 : probe via    ##
-##  forensics.cmd.sweep-run ]                                               ##
+##  the sweep dir IS created here at init, with the zenka user as owner     ##
+##  [ p7-log.init_code precedent ] : file.make_path is only available       ##
+##  during the init phase -- post-init the deferred-compile sources are     ##
+##  cleaned and the sub resolves to undef                                   ##
+##  [ verified live 2026-07-29 : probe via forensics.cmd.sweep-run ]        ##
 
 my $var_p7    = <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
 my $sweep_dir = <forensics.cfg.sweep_dir>       // sprintf qw| %s/%s/sweeps |,
@@ -69,8 +69,8 @@ if ( not -d $reports_dir ) {
 
 return 0;
 
-#,,,,,...,,,.,.,.,,,.,...,..,,,,.,.,,,,,.,.,,,..,,...,...,,.,,..,,.,.,.,,,.,.,
-#ZBRU5QRMKZRHEEXIKCGHDVUYYZ2XL7WA6KMVX5GVMHKY4C33BAHNQUS3YKZEGSBR4525VJGH7DF4A
-#\\\|WWPTZ433C547UAZKJEPVL4QEDCYH7MC2UP5NWIRA4FADD2SXPYG \ / AMOS7 \ YOURUM ::
-#\[7]XH67ACETUQ4YSETPFWSZ6N2GU7ZLB2URXN6QMIXH75SSK7R2NKAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,..,...,..,,...,,,,,.,.,...,...,..,,...,..,,..,,...,...,,,,,,,.,
+#ALKGCVMGQR5MSEX4HJEFEM5UXGTM7HTWZTHZMK3JOYYBT7VDROWK3KCETKON5R5EYGFDXFTBWANIW
+#\\\|F3NAW66RSWNZDQY4AE4FVZZOYWJPDOSONN5QWMMZR34PNQT4CFE \ / AMOS7 \ YOURUM ::
+#\[7]SOSKCDYZ6ZIXXTBNLJLFQYG3DGD7N2X6RCX2HPERJVLWHWK3YGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

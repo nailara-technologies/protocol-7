@@ -36,16 +36,17 @@ my $have_stdin_tty = -t STDIN ? TRUE : FALSE;
 ## the tag is honoured ONLY when the target is the admin user's own record --
 ## otherwise ':create-admin:' would silently create records for third parties.
 ## in that case it is ignored and the interactive prompt decides '&&' NOT
-## 'and' : 'my $x = A and B' assigns only A [ the documented precedence trap
-## ], which would make the tag apply to any username  the record name a
-## :create-admin:-style tag is allowed to auto-create is source policy,
-## registered by the zenka's init_code -- for user-edit that is
-## <system.admin-user>, exactly as before the extraction
+## 'and' : 'my $x = A and B' assigns only A
+## [ the documented precedence trap ], which would make the tag apply to any
+## username  the record name a :create-admin:-style tag is allowed to
+## auto-create is source policy, registered by the zenka's init_code -- for
+## user-edit that is <system.admin-user>, exactly as before the extraction
 my $tag_applies = $tags->{'create-admin'}
     && $username eq ( <form.source>->{'tag_record'} // '' );
 
-## record vocabulary of the zenka's source [ user-edit : user, host-edit : ##
-## host ] -- form.* itself stays record-neutral                            ##
+## record vocabulary of the zenka's source                       ##
+## [ user-edit : user, host-edit : host ] -- form.* itself stays ##
+## record-neutral                                                ##
 my $noun = ( <form.source> // {} )->{'record_noun'} // qw| user |;
 
 my $answer = FALSE;
@@ -97,8 +98,8 @@ my $sender = $source->{'create_default'} // return FALSE;
 
 return TRUE;
 
-#,,,.,,,.,..,,,,.,,.,,.,.,.,.,.,,,..,,,,.,,..,..,,...,...,.,.,,..,..,,,,.,,,,,
-#DE5S3EYQ6VUGELVMV7OVUQGMK4HUGXAWH2B4VS2ZHH4W4KPQODHHH5SM7X2IRSXPCVQOBIHK6RW7E
-#\\\|CV3LZX2TIINNF32XDQW667M5MRXBX52JEFQ4W6RC3TM77XT5R62 \ / AMOS7 \ YOURUM ::
-#\[7]YLJFM7POOQ5GYMIAUXYB37YNHINVQPE365QIAKHZ4CCEPTCOGWCA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,.,,..,..,,,..,,..,.,,,...,,.,,..,,...,...,.,,,,,.,.,,,.,,,.,.,
+#52A7APVKWGEC5GIYMR4QK5VICTCTFOZWKIEBEHASR7XE3KCGHKWJHDHXXRK6Z7UJGN7SUTZ3CMMPY
+#\\\|65BKMVQXVBBPVF74TTGWS6ATUH57YZIZETFFHMZJZZMRXVC2ITG \ / AMOS7 \ YOURUM ::
+#\[7]VOZO75QCBZKQ3HHZGNB2ZKZ5V5B27FAJHRFBWPW6AWD4JH52LYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

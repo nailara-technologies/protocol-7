@@ -26,11 +26,12 @@ if ( -S '/mnt/wslg/runtime-dir/wayland-0' ) {
 ## see cfg/zenki/dunst/dunstrc's own header comment                         ##
 my $dunstrc = <system.root_path> . '/cfg/zenki/dunst/dunstrc';
 
-## make the project's 'White Rabbit' font [ data/ttf/console/white-rabbit.  ##
-## flipped.ttf ] discoverable to pango/fontconfig without installing it     ##
-## system-wide -- a small fontconfig snippet that chains in the real system ##
-## config [ <include> ] then adds just this one font dir, regenerated fresh ##
-## on every startup [ cheap, avoids stale-path issues across hosts ]        ##
+## make the project's 'White Rabbit' font                                   ##
+## [ data/ttf/console/white-rabbit. flipped.ttf ] discoverable to           ##
+## pango/fontconfig without installing it system-wide -- a small fontconfig ##
+## snippet that chains in the real system config [ <include> ] then adds    ##
+## just this one font dir, regenerated fresh on every startup               ##
+## [ cheap, avoids stale-path issues across hosts ]                         ##
 my $font_dir     = <system.root_path> . '/data/ttf/console';
 my $fc_conf_dir  = '/tmp/protocol-7-dunst-fontconfig';
 my $fc_conf_path = "$fc_conf_dir/fonts.conf";
@@ -73,8 +74,8 @@ if ( !<dunst.pid> ) {
     }
 );
 
-#,,.,,.,.,...,,..,,,,,,,,,,,,,,..,..,,.,,,,,.,.,.,...,..,,.,.,,,,,,..,,.,,..,,
-#BOZKQHF3VETWHWRE2K35OEW2P4YBXTJAL2VEBWWHF36P63IXBATBI66UE7GWWN3W56AZBCMXUKILM
-#\\\|32TEWTJEXTIOLZADKYYJFTYXRURFYVU7JE32FS4P2HMIQXJ6BIT \ / AMOS7 \ YOURUM ::
-#\[7]67RZVQC2YZRAVT7YW2QNINCAEIXR4UOPJKCX5JYRTWRU3AY3LYCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,...,,..,.,.,,.,,.,.,.,,,,..,.,.,...,...,.,.,..,,...,,,.,...,
+#J4IVCSJNJVSYYFZLODHBOGB5UPRSAHR2SS2M7YWZPLSWMTVOZRAXZERMU7JQLGE2KYSL2COFRYYHY
+#\\\|FBYKMHBJGYI5X5MVE3KZFI3WMR5CCI3UUU4EYTR24SDZAWUM3DS \ / AMOS7 \ YOURUM ::
+#\[7]RTTDIVXBGNBFVIHDVSEKBAZDAEM2JFF6DL4EGB7KBUHCEDIA3ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

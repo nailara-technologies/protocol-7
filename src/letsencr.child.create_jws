@@ -23,8 +23,8 @@ my $payload_json = ref($payload) ? JSON::XS::encode_json($payload) : $payload;
 ## URL-safe base64 encode payload
 my $payload_b64 = encode_base64url($payload_json);
 
-## create JOSE header with appropriate algorithm  [ RS256 for RSA keys, EdDSA
-## for Ed25519 keys ]
+## create JOSE header with appropriate algorithm
+## [ RS256 for RSA keys, EdDSA for Ed25519 keys ]
 my $header = {
     alg   => $algorithm,
     nonce => $nonce,
@@ -91,8 +91,8 @@ return {
     signature => $signature_b64,
 };
 
-#,,,,,.,,,.,.,.,.,,..,,..,...,..,,,..,,,,,...,..,,...,..,,.,.,,,.,.,,,..,,..,,
-#MVKLC72ZSII52EXSNOZKRB2KMJ5QOQVFQWQKJVYQZG3PQNDDPYIJ6XEJECMQZW2PN653UVID7YFKU
-#\\\|S5CYBFYRXLY25NJ2W64T5GCBYEUAIXF4LOFXBLPOALVYLL32NMN \ / AMOS7 \ YOURUM ::
-#\[7]DTEXBFXWBJYD5QA64CVQ2OTODHI4SIY2HQJCKQPYC3ERDLPZE2AA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,,..,.,.,.,.,,,.,,,.,,..,,.,,..,,...,...,,..,.,,,,,.,,.,,,,,,
+#4G64OQ7WKYKDTJ73EZGTT5YI6Q5IVDAJAZG27HWIJEYP72UD2TNIIDTVSSX7WFJIOL646ZBMSC3EO
+#\\\|CNPRJF3ULHRCA72XYHQMFGWMHI72YK25LCARIALJOW3NBOA3Y66 \ / AMOS7 \ YOURUM ::
+#\[7]WPGAXOHIQPSHWRW272QJJZCPKZHZKZ7DODTGGGVCEDT3RYFG62AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

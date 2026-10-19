@@ -3,11 +3,12 @@
 # name  = jobsite.dispatch.consume_slot
 # descr = decrement pending_count for a queue entry skipped without dispatch
 
-## a queue entry can be dropped before task.create ever fires [ trashed    ##
-## job, stale generation ] -- it still occupied a pending_count slot from  ##
-## when the batch was enqueued, so that slot must be released here or      ##
-## pending_count never reaches 0 and the cycle sticks on 'assessing'       ##
-## forever, same failure class as jobsite.handler.task-created's decrement ##
+## a queue entry can be dropped before task.create ever fires             ##
+## [ trashed job, stale generation ] -- it still occupied a pending_count ##
+## slot from when the batch was enqueued, so that slot must be released   ##
+## here or pending_count never reaches 0 and the cycle sticks on          ##
+## 'assessing' forever, same failure class as                             ##
+## jobsite.handler.task-created's decrement                               ##
 
 <jobsite.pending_count>--;
 if ( <jobsite.pending_count> <= 0 ) {
@@ -28,8 +29,8 @@ if ( <jobsite.pending_count> <= 0 ) {
     }
 }
 
-#,,,,,,.,,,,,,..,,.,,,..,,,,.,.,.,,.,,,,.,,,.,..,,...,...,...,,..,..,,,..,,,,,
-#CBBWORMNOJ5CKZ6VIUFUYZEXBAJ7BSCAFOZFLUBCFD42AZ33ITKKYBRYVABAD6HJZQSIHWC7F4ZGS
-#\\\|WP2XKUUNOIQANXA2NRNR3H3ZFJP6NOA2WA7LVDVGUHIO6I3OXMG \ / AMOS7 \ YOURUM ::
-#\[7]NQP4NHTGRUAOPY6J3L6MQBMXBXWUB4O5Z3P4LTNHE4UWO475AWAY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,.,,,,,,,,,,,,.,...,,.,,,,,,..,,...,...,,,.,..,,...,,,,,,,.,
+#BDPHP5MGX4YZBBP6OVUTGAIOSYXPNDRDYQER2VNWXYWBFX4SO4Z6AXNWXNOMGILKVEYGMBWRPLJ6M
+#\\\|BYGGMETGBM5KDF4DF4JSYDUGPXD2NPUCHEVPIAND5BIDUYU6BTM \ / AMOS7 \ YOURUM ::
+#\[7]RXBOJ7UNASTYRRNP6TS6HCTGHQLDZHMLGGDP5PRBZEQQGG3PHUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

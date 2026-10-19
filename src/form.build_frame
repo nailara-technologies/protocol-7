@@ -6,9 +6,9 @@
 
 ## phase 2's render_form takes a NAMED frame and resolves it through
 ## ascii.frame.load, which reads data/yaml/ascii-frames/<name>.yaml.  a form
-## whose field list is derived from a users.* record at runtime [ see
-## form.schema_from_record ] has no such file and cannot have one, so this
-## module builds the mockup text in memory, parses it through the same
+## whose field list is derived from a users.* record at runtime
+## [ see form.schema_from_record ] has no such file and cannot have one, so
+## this module builds the mockup text in memory, parses it through the same
 ## ascii.frame.parse the yaml path uses, and seeds the result directly into
 ## <ascii.frame.cache> under $frame_name.  render_form then finds it on its
 ## own ascii.frame.load call and needs no change at all.
@@ -77,12 +77,12 @@ my $title_bar = sprintf( '.:[ %s ]:', $title );
 
 ## the optional-field vocabulary -- the WHOLE of it, name => shape -- and
 ## separately the part still ADDABLE : whichever names are not already present
-## as fields on this schema, counting an expanded list's rows [ '<field>_0',
-## '<field>_1' .. ] toward their SOURCE field, the same bookkeeping
-## form.addable_fields does for the live row itself.  kept apart because they
-## answer two different questions below : whether the add-a-field row exists
-## AT ALL [ @vocabulary -- the feature as a whole ] versus how WIDE it is
-## right now [ @addable ]
+## as fields on this schema, counting an expanded list's rows
+## [ '<field>_0', '<field>_1' .. ] toward their SOURCE field, the same
+## bookkeeping form.addable_fields does for the live row itself.  kept apart
+## because they answer two different questions below : whether the add-a-field
+## row exists AT ALL [ @vocabulary -- the feature as a whole ] versus how WIDE
+## it is right now [ @addable ]
 my $vocabulary = <form.field_options>;
 my @vocabulary
     = ref $vocabulary eq qw| HASH | ? sort keys %{$vocabulary} : ();
@@ -117,9 +117,9 @@ my $display_length = sub {
     ## measure only what remained ADDABLE ] and which had no bound at all as
     ## the vocabulary grew, the same width-explosion class already found and
     ## fixed for the multiline note/address fields. now the row's render is
-    ## itself windowed to this same constant [
-    ## editor.ui.ascii_frame.render_form's own add_field block ], so this is
-    ## simply that constant's own reservation, +2 for the outer bracket/
+    ## itself windowed to this same constant
+    ## [  editor.ui.ascii_frame.render_form's own add_field block ], so this
+    ## is simply that constant's own reservation, +2 for the outer bracket/
     ## pad-mark pair [ same accounting as before -- editor.control.cycler.
     ## render_windowed's per-choice cells already carry the inner padding ].
     ## the frame no longer resizes on every add/remove either, since neither
@@ -164,11 +164,12 @@ my $has_label = sub {
 ## [ measured via length($row->[3]), row->[3] being this sub's own return
 ## value ] already accounts for the gap and the [ length- preserving ]
 ## underscore swap automatically -- the row-geometry identity this file's own
-## header derives [ prefix = label_width + 6, body = label_width + len(name) +
-## 10 ] stays correct unchanged, since label_width itself now simply measures
-## the padded/converted text rather than the raw name.  the TOKEN [ {{name}} /
-## {{name_N}} ] must never go through this -- it is a slot key, not display
-## text
+## header derives
+## [ prefix = label_width + 6, body = label_width + len(name) + 10 ] stays
+## correct unchanged, since label_width itself now simply measures the
+## padded/converted text rather than the raw name.  the TOKEN
+## [ {{name}} / {{name_N}} ] must never go through this -- it is a slot key,
+## not display text
 my $label_of = sub {
     my ($field_def) = @ARG;
     my $raw = $field_def->{'list_row_of'} // $field_def->{'name'};
@@ -187,12 +188,12 @@ my $row_of = sub {
 my @current_rows = map { $row_of->($ARG) } $schema->{'fields'}->@*;
 
 ## the add-a-field row is reserved for even when it is NOT THERE.  it arrives
-## a round trip after the first paint [ progressive enhancement, see
-## form.handler.value_get_reply ], it is absent while a list is expanded, and
-## it comes and goes as the vocabulary empties and refills -- so measuring
-## only the times it happens to be in the schema would leave every one of
-## those transitions moving the frame.  it is the widest row in the form, so
-## that is the largest movement there is
+## a round trip after the first paint
+## [ progressive enhancement, see form.handler.value_get_reply ], it is absent
+## while a list is expanded, and it comes and goes as the vocabulary empties
+## and refills -- so measuring only the times it happens to be in the schema
+## would leave every one of those transitions moving the frame.  it is the
+## widest row in the form, so that is the largest movement there is
 push @current_rows,
     [
     <[form.add_field_name]>, $display_length->( { qw| add_field | => TRUE } ),
@@ -202,19 +203,20 @@ push @current_rows,
     and not $is_menu
     and not grep { $ARG->{'add_field'} } $schema->{'fields'}->@*;
 
-## OPT-IN detail display for user_keys [ user-edit.cfg.user_keys_display_type
-## = 'detail' ] : the currently SELECTED entry's checksum, written into the
-## SAME reserved scrollinfo row user_keys' own multiline block already carries
-## unconditionally -- per user, a separate 4th row here was one reservation
-## too many : the checksum sitting well right of the actual key names already
-## reads as "not another list entry" on its own, no extra blank-row separation
-## needed.  a plain content row [ scrollinfo already is one ], not a
-## border-line token -- see topic-user-edit-console-zenka- status.md's
-## 2026-08-15 update for why a border line was tried first and reverted :
+## OPT-IN detail display for user_keys
+## [ user-edit.cfg.user_keys_display_type = 'detail' ] : the currently
+## SELECTED entry's checksum, written into the SAME reserved scrollinfo row
+## user_keys' own multiline block already carries unconditionally -- per user,
+## a separate 4th row here was one reservation too many : the checksum sitting
+## well right of the actual key names already reads as "not another list
+## entry" on its own, no extra blank-row separation needed.  a plain content
+## row [ scrollinfo already is one ], not a border-line token -- see
+## topic-user-edit-console-zenka- status.md's 2026-08-15 update for why a
+## border line was tried first and reverted :
 ## ascii.frame.render.color.border_line has no concept of "this span is an
 ## opaque value," so a checksum embedded there came out partly miscolored and
-## partly uncolored ; render.color.content_line, which every ordinary row [
-## scrollinfo included ] already goes through, colors arbitrary value text
+## partly uncolored ; render.color.content_line, which every ordinary row
+## [ scrollinfo included ] already goes through, colors arbitrary value text
 ## correctly with no extra work needed here.
 ##
 ## still needs its own width reservation though : scrollinfo's own normal
@@ -227,9 +229,9 @@ push @current_rows,
 ## at least wide enough for the longest checksum shape in use [
 ## '<::[enc-key]::CCCCCCC:>', 23 chars ], with margin for it to sit right of
 ## the actual names rather than flush-left.  reserved ONLY in detail mode AND
-## only when this form actually has a user_keys field [ self-records only, see
-## schema_from_record ] -- inline mode [ the default ] must not change the
-## frame shape at all.
+## only when this form actually has a user_keys field
+## [ self-records only, see schema_from_record ] -- inline mode
+## [ the default ] must not change the frame shape at all.
 ##
 ## the row's registered NAME here is deliberately '' [ this is pure width
 ## bookkeeping -- no token of this name is ever pushed to @bodies, the
@@ -256,8 +258,8 @@ push @current_rows,
 ## min_width, every slot's live rendered width), so an UNDER-sized reservation
 ## here doesn't break anything, it just gets silently overridden every render
 ## by the checksum's own actual width -- traced 3 reservation values (26, 60,
-## 33) before landing on 45, the one that makes both passes agree exactly [
-## static min_width == live required_width, confirmed by dumping both ],
+## 33) before landing on 45, the one that makes both passes agree exactly
+## [ static min_width == live required_width, confirmed by dumping both ],
 ## meaning nothing is being reserved that live content doesn't already need.
 ## below 45, static min_width undershoots and the checksum's own live width
 ## silently wins anyway [ same rendered result, no visible bug, just a static
@@ -356,8 +358,8 @@ foreach my $row ( @current_rows, map { $ARG->@* } @other_row_sets ) {
     $label_width = length $row->[3] if length $row->[3] > $label_width;
 }
 
-## the mockup geometry of one rendering, in ascii.frame.render's own units [
-## inner content width : borders excluded, lpad/rpad included ]
+## the mockup geometry of one rendering, in ascii.frame.render's own units
+## [ inner content width : borders excluded, lpad/rpad included ]
 my $required_width_for = sub {
 
     my ($rows) = @ARG;
@@ -412,18 +414,18 @@ if ($is_menu) {
         my $name = $field_def->{'name'} // next;
 
         ## a MULTILINE field's own block -- see user-edit-multiline-note.yaml.
-        ## always shown windowed [ never a single-row collapsed summary the
-        ## way a list is ], so this handles its own body rows entirely and
-        ## moves on -- the generic label/token push and the list-only
-        ## expansion-row logic below both assume ONE token per field, which a
-        ## multiline field never has.
+        ## always shown windowed
+        ## [ never a single-row collapsed summary the way a list is ], so this
+        ## handles its own body rows entirely and moves on -- the generic
+        ## label/token push and the list-only expansion-row logic below both
+        ## assume ONE token per field, which a multiline field never has.
         ##
         ## the scrollinfo row is reserved UNCONDITIONALLY, not only once the
         ## note actually exceeds the cap : the alternative is rebuilding the
         ## frame's row STRUCTURE from ordinary typing the moment a note
         ## crosses that threshold, which nothing else in this module does --
-        ## every other structural rebuild is triggered by an explicit event [
-        ## add/remove field, list expand/collapse ], never by a keystroke
+        ## every other structural rebuild is triggered by an explicit event
+        ## [ add/remove field, list expand/collapse ], never by a keystroke
         ## landing inside an already-open field.  editor.ui.ascii_frame.
         ## render_form leaves the slot blank while under the cap, reading as a
         ## reserved blank row exactly like an under-cap list's own reservation
@@ -435,10 +437,11 @@ if ($is_menu) {
 
             my $cap = <[editor.control.list.window_cap]>;
 
-            ## label_of, not raw $name : the label DISPLAY [ gap + underscore
-            ## swap, see label_of's own header ] must go through the same
-            ## conversion every other row's label does.  $name stays raw for
-            ## both {{%s_%d}} token args -- those are slot keys, not text
+            ## label_of, not raw $name : the label DISPLAY
+            ## [ gap + underscore swap, see label_of's own header ] must go
+            ## through the same conversion every other row's label does.
+            ## $name stays raw for both {{%s_%d}} token args -- those are slot
+            ## keys, not text
             push @bodies,
                 sprintf(
                 '   %*s:  {{%s_%d}}',
@@ -446,16 +449,17 @@ if ($is_menu) {
                 $name,        $ARG
                 ) foreach 0 .. $cap - 1;
 
-            ## '...' marks this a BLOCK slot, not a field slot [ ascii.frame.
-            ## parse's own trailing-dots syntax ] : found live 2026-08-15 -- a
-            ## field slot's width formula is prefix+value+SUFFIX, where suffix
-            ## is whatever literal text followed the token in the BUILD-TIME
-            ## mockup line -- pure trailing whitespace here, added to pad this
-            ## row's SHORT unsubstituted placeholder out to whatever width
-            ## other fields' literal text already established.  that padding
-            ## is only meaningful for a short/empty placeholder; once a real,
-            ## much longer value [ the detail-mode checksum ] substitutes in,
-            ## the SAME static suffix gets added ON TOP of it, double-counting
+            ## '...' marks this a BLOCK slot, not a field slot
+            ## [ ascii.frame. parse's own trailing-dots syntax ] : found live
+            ## 2026-08-15 -- a field slot's width formula is
+            ## prefix+value+SUFFIX, where suffix is whatever literal text
+            ## followed the token in the BUILD-TIME mockup line -- pure
+            ## trailing whitespace here, added to pad this row's SHORT
+            ## unsubstituted placeholder out to whatever width other fields'
+            ## literal text already established.  that padding is only
+            ## meaningful for a short/empty placeholder; once a real, much
+            ## longer value [ the detail-mode checksum ] substitutes in, the
+            ## SAME static suffix gets added ON TOP of it, double-counting
             ## width nothing actually needs and widening the frame well past
             ## the checksum's own real length -- exactly the visible "why is
             ## there so much blank padding" the project owner flagged. a block
@@ -499,10 +503,10 @@ if ($is_menu) {
         ## two list-shaped fields in a row do not stack two separate gaps.
         ##
         ## separator_before is the same idea for a SYNTHESISED, non-record row
-        ## sitting among ordinary fields [ e.g. form.schema_from_ record's
-        ## identity_key tab ] : unlike add_field/list_info it still carries a
-        ## real label, so it needs its own opt-in flag rather than
-        ## piggybacking on those two field shapes
+        ## sitting among ordinary fields
+        ## [ e.g. form.schema_from_ record's identity_key tab ] : unlike
+        ## add_field/list_info it still carries a real label, so it needs its
+        ## own opt-in flag rather than piggybacking on those two field shapes
         push @bodies, ''
             if ( $starts_list_block
             or $field_def->{'add_field'}
@@ -519,15 +523,15 @@ if ($is_menu) {
         ## OPT-IN detail display [ identity_key only, 'identity_detail_mode'
         ## -- see schema_from_record ] : a checksum row directly AFTER the
         ## name's own row, matching user_keys' own detail mode exactly --
-        ## below the content, not above it [ this field has no scrollinfo-
-        ## style row already reserved after it the way a multiline field does,
-        ## so this pushes a NEW one rather than repurposing an existing one --
-        ## still only in this one opt-in mode, inline stays unaffected ].
-        ## block-type slot [ {{name...}} ] from the start, not field-type --
-        ## see topic-ascii-frame-system.md's "field-slot suffix double-counts"
-        ## entry for why a field-type slot would silently over-widen the frame
-        ## the moment a real checksum substitutes in for a placeholder this
-        ## short
+        ## below the content, not above it [ this field has no
+        ## scrollinfo-style row already reserved after it the way a multiline
+        ## field does, so this pushes a NEW one rather than repurposing an
+        ## existing one -- still only in this one opt-in mode, inline stays
+        ## unaffected ].  block-type slot [ {{name...}} ] from the start, not
+        ## field-type -- see topic-ascii-frame-system.md's "field-slot suffix
+        ## double-counts" entry for why a field-type slot would silently
+        ## over-widen the frame the moment a real checksum substitutes in for
+        ## a placeholder this short
         push @bodies, sprintf( '  {{%s_detail...}}', $name )
             if $field_def->{'identity_detail_mode'};
 
@@ -639,8 +643,8 @@ my $entry = {
 
 return $entry;
 
-#,,..,.,,,.,.,,.,,.,.,.,,,.,,,..,,,..,.,,,,.,,..,,...,...,.,.,,..,.,,,..,,,,,,
-#E4IWMQB4KABWWJUGR5DKCRQXN4V3XX2DETFLF7QJQHH3ZEQMTPEIVBMOUMAJUQOU4R6QKJM4OLIG2
-#\\\|IZLH2PQ7NJ26X3RUNAUMCENZJ3EQ4T2NW5E4GOG2KYMFRED3O2O \ / AMOS7 \ YOURUM ::
-#\[7]LWLA4SGBMMKPS4IOKVIRU3RTSDBDGWKEG253TU4RDO7W2GC5YSCI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,,,,..,.,,,.,,,..,,,,.,..,,.,.,..,,...,...,.,.,.,.,,,,,.,,,.,,,
+#Y53QSKQJJ4DSDWBLPD7N5UYQOUUDXMCEEGM65J5SBAJAEEPDYFIFJFVSPZKXLQQSLEBMESO5WBTK6
+#\\\|SCYYQRFCG4RUCGZTNH5JLOTO25T7N2WIOTDZVCHOGANZVYTRHMY \ / AMOS7 \ YOURUM ::
+#\[7]TT6RBIJG5QBVJKPI7MQ3GPUTQ4NOAOA3YIMKPGTBNX7PRMMMT6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

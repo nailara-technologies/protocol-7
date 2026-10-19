@@ -4,16 +4,16 @@
 # descr = render editor state as ascii-art form via ascii.frame backend
 # param = $editor_state, $frame_name [ , $only_field, $marks, $max_frame_width ]
 
-## rendering backend for the editor.ui.* contract [ design doc :
-## editor-namespace-interface-design.yaml ]. builds a FRESH values hash from
-## editor.control.get_display_value on every call [ no live slot binding —
-## ascii.frame.slot.bind deliberately not used here ].
+## rendering backend for the editor.ui.* contract
+## [ design doc : editor-namespace-interface-design.yaml ]. builds a FRESH
+## values hash from editor.control.get_display_value on every call
+## [ no live slot binding — ascii.frame.slot.bind deliberately not used here ].
 ##
-## focus indication : ascii.frame slot prefix/suffix are static [ part of the
-## descriptor, not the values ], so the ACTIVE field's value itself is
-## bracket-wrapped and given a '|' cursor marker at the character offset from
-## editor.control.get_cursor before entering the values hash.  inactive fields
-## render their plain value.
+## focus indication : ascii.frame slot prefix/suffix are static
+## [ part of the descriptor, not the values ], so the ACTIVE field's value
+## itself is bracket-wrapped and given a '|' cursor marker at the character
+## offset from editor.control.get_cursor before entering the values hash.
+## inactive fields render their plain value.
 ##
 ## cursor-marker width note [ hand-traced against ascii.frame.render ] : the
 ## marker [ and brackets ] are counted BOTH in the required_width computation
@@ -81,9 +81,10 @@ return undef if not defined $descriptor;
 ## before its row would exceed the caller's frame budget.  worst-prefix, not
 ## per-slot : every labelled row shares the label-column prefix, and capping
 ## to the widest keeps the single computation below trivial while still
-## bounding EVERY row [ an unlabelled row's own prefix is never wider than the
-## worst ].  -4 is the generic value reservation this module adds itself [
-## pad, cursor cell, two framing cells ]
+## bounding EVERY row
+## [ an unlabelled row's own prefix is never wider than the worst ].  -4 is
+## the generic value reservation this module adds itself
+## [ pad, cursor cell, two framing cells ]
 my $value_budget;
 if ( defined $max_frame_width and $max_frame_width > 0 ) {
 
@@ -138,21 +139,22 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         my $is_active = ( $name eq $active_name );
 
         ## COLLAPSED : per user, matching how a list field already collapses
-        ## to a count summary [ editor.control.list.summary's own
-        ## ':..2.entries..:' ] the instant it is not focused -- the full
-        ## windowed view only matters while actively being edited ; unfocused,
-        ## a line count is enough to know something is there. no separate
-        ## "expand" step to sync anywhere the way a list field's own
-        ## sync_list_mode has to -- that exists because a list's expansion
-        ## restructures the SCHEMA itself into one row per entry, while a
-        ## multiline field's value is always the ONE buffer $name already
-        ## names, so $is_active alone decides which view this renders, fresh
-        ## on every call. mirrors the collapsed list's own zero-leading-pad
-        ## convention exactly [ no bracket framing either -- same as list,
-        ## this row is never simultaneously collapsed AND focused, by
-        ## construction of the branch itself, so there is nothing to frame ].
-        ## the remaining slots reserved by user-edit.form.build_frame [
-        ## '<name>_1' .. '<name>_<cap-1>', '<name>_scrollinfo' ] go blank,
+        ## to a count summary
+        ## [ editor.control.list.summary's own ':..2.entries..:' ] the instant
+        ## it is not focused -- the full windowed view only matters while
+        ## actively being edited ; unfocused, a line count is enough to know
+        ## something is there. no separate "expand" step to sync anywhere the
+        ## way a list field's own sync_list_mode has to -- that exists because
+        ## a list's expansion restructures the SCHEMA itself into one row per
+        ## entry, while a multiline field's value is always the ONE buffer
+        ## $name already names, so $is_active alone decides which view this
+        ## renders, fresh on every call. mirrors the collapsed list's own
+        ## zero-leading-pad convention exactly [ no bracket framing either --
+        ## same as list, this row is never simultaneously collapsed AND
+        ## focused, by construction of the branch itself, so there is nothing
+        ## to frame ].  the remaining slots reserved by
+        ## user-edit.form.build_frame
+        ## [ '<name>_1' .. '<name>_<cap-1>', '<name>_scrollinfo' ] go blank,
         ## same "reserved but currently empty" treatment an under-cap window's
         ## own scrollinfo slot already gets further down -- the frame's height
         ## stays exactly what it always reserves, unconditionally, regardless
@@ -198,8 +200,8 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         ## AUTO-SCROLL-TO-CURSOR : only the active field's own edits can ever
         ## move the cursor outside the current window, so this only adjusts
         ## while focused here -- an unfocused multiline field's window stays
-        ## exactly where PgUp/PgDn last left it [
-        ## user-edit.form.scroll_multiline ], same as a list's does
+        ## exactly where PgUp/PgDn last left it
+        ## [  user-edit.form.scroll_multiline ], same as a list's does
         my $offset = $field_def->{'multiline_offset'} // 0;
         $offset = 0           if $offset < 0;
         $offset = $max_offset if $offset > $max_offset;
@@ -212,27 +214,29 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         }
         $field_def->{'multiline_offset'} = $offset;
 
-        ## per-row viewport budget, derived from the frame's OWN already-
-        ## computed width floor -- see the 'MULTILINE VIEWPORT' section of
-        ## user-edit-address-cluster-plugin.yaml. a multiline field's body
-        ## never contributes to min_width [ user-edit.form.build_frame's
-        ## $display_length returns 0 for it ], so this reads a floor computed
-        ## entirely from everything ELSE in the form -- no circularity.
-        ## label_width + 10 mirrors build_frame's own row-prefix accounting [
-        ## '   %*s:  ' = label_width + 6, plus this block's own +4 pad/cursor
-        ## reservation ]. floored, not tuned to exact pixel precision -- a
-        ## soft display cap, adjust the floor/subtraction against what
-        ## actually renders, not a structural invariant.
+        ## per-row viewport budget, derived from the frame's OWN
+        ## already-computed width floor -- see the 'MULTILINE VIEWPORT'
+        ## section of user-edit-address-cluster-plugin.yaml. a multiline
+        ## field's body never contributes to min_width
+        ## [ user-edit.form.build_frame's $display_length returns 0 for it ],
+        ## so this reads a floor computed entirely from everything ELSE in the
+        ## form -- no circularity.  label_width + 10 mirrors build_frame's own
+        ## row-prefix accounting [ '   %*s:  ' = label_width + 6, plus this
+        ## block's own +4 pad/cursor reservation ]. floored, not tuned to
+        ## exact pixel precision -- a soft display cap, adjust the
+        ## floor/subtraction against what actually renders, not a structural
+        ## invariant.
         ##
-        ## NOTE : this module is generic editor.ui.* [ ascii.frame render
-        ## backend, zenka-agnostic ] reading 'label_width' off the descriptor
-        ## -- a key only user-edit.form.build_frame sets, not part of this
-        ## module's own generic frame contract. the '// 0' fallback means any
-        ## OTHER caller [ a frame built some other way, without that key ]
-        ## just gets a wider budget rather than breaking -- silent, not
-        ## unsafe, but worth knowing this is a cross-layer reach, not a
-        ## documented contract field  floor raised 20 -> 46 : a name (up to 20
-        ## chars, see user-edit.form.  schema_from_record's own
+        ## NOTE : this module is generic editor.ui.*
+        ## [ ascii.frame render backend, zenka-agnostic ] reading
+        ## 'label_width' off the descriptor -- a key only
+        ## user-edit.form.build_frame sets, not part of this module's own
+        ## generic frame contract. the '// 0' fallback means any OTHER caller
+        ## [ a frame built some other way, without that key ] just gets a
+        ## wider budget rather than breaking -- silent, not unsafe, but worth
+        ## knowing this is a cross-layer reach, not a documented contract
+        ## field  floor raised 20 -> 46 : a name (up to 20 chars, see
+        ## user-edit.form.  schema_from_record's own
         ## base.parser.ellipse_center call) plus a space plus the longest
         ## checksum shape actually in use [ an encrypted key's
         ## '<::[enc-key]::CCCCCCC:>', 23 chars ] needs 44 -- below this floor
@@ -253,16 +257,16 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 
             ## only the ONE row actually holding the cursor is marked as
             ## focused -- the rest of the block renders plain, the same
-            ## single-row highlight convention an expanded list already uses [
-            ## only its 'active_field' row gets brackets, siblings do not ]
+            ## single-row highlight convention an expanded list already uses
+            ## [ only its 'active_field' row gets brackets, siblings do not ]
             my $is_cursor_row
                 = ( $is_active and $line_index == $cursor_line );
 
-            ## bound this ONE line to the row's width budget -- non-
-            ## destructively [ editor.control.multiline.viewport_slice ], the
-            ## stored text itself never changes, only what this render shows.
-            ## cursor-following only on the row that actually holds it ; every
-            ## other overlong row windows from its own start
+            ## bound this ONE line to the row's width budget --
+            ## non-destructively [ editor.control.multiline.viewport_slice ],
+            ## the stored text itself never changes, only what this render
+            ## shows.  cursor-following only on the row that actually holds it
+            ## ; every other overlong row windows from its own start
             my $display_col;
             ( $line_text, $display_col )
                 = <[editor.control.multiline.viewport_slice]>->(
@@ -284,16 +288,17 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
                 : $mark{'pad_l'} . $display . $mark{'pad_r'};
         }
 
-        ## always present in the frame [ build_frame's own reasoning for
-        ## reserving it unconditionally ], left blank under the cap rather
-        ## than omitted -- reads as a reserved blank row, same as an under-cap
-        ## list's own reservation.
+        ## always present in the frame
+        ## [ build_frame's own reasoning for reserving it unconditionally ],
+        ## left blank under the cap rather than omitted -- reads as a reserved
+        ## blank row, same as an under-cap list's own reservation.
         ##
-        ## OPT-IN detail mode [ user-edit.cfg.user_keys_display_type =
-        ## 'detail', user_keys only ] shares this SAME slot with pagination
-        ## info rather than replacing it -- per user, pagination text renders
-        ## flush-left in this row while the checksum sits well right of it, so
-        ## the two never actually collide visually ; a fixed left-column width
+        ## OPT-IN detail mode
+        ## [ user-edit.cfg.user_keys_display_type = 'detail', user_keys only ]
+        ## shares this SAME slot with pagination info rather than replacing it
+        ## -- per user, pagination text renders flush-left in this row while
+        ## the checksum sits well right of it, so the two never actually
+        ## collide visually ; a fixed left-column width
         ## [ same $indent used for the checksum's own column start ] keeps
         ## that true regardless of how long the pagination text gets.  reading
         ## the config directly [ not a generic descriptor signal ] matches
@@ -341,13 +346,13 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         ## contribute 0 to it by the same synthesised-field convention -- see
         ## the reservation note in build_frame ] is substituted in, does not
         ## reliably match $descriptor->{'min_width'} as read here -- confirmed
-        ## live 2026-08-15 [ min_width read back as 80, actual rendered inner
-        ## width 100 ]. a fixed column start sidesteps needing that number to
-        ## be exact ; tuned against this row's own reservation [ see
-        ## build_frame ] to land clearly right-of-center without depending on
-        ## the frame's true final width, and generously past any realistic
-        ## pagination text length [ 'N-M of T', well under 20 chars ] so the
-        ## two never overlap
+        ## live 2026-08-15
+        ## [ min_width read back as 80, actual rendered inner width 100 ]. a
+        ## fixed column start sidesteps needing that number to be exact ;
+        ## tuned against this row's own reservation [ see build_frame ] to
+        ## land clearly right-of-center without depending on the frame's true
+        ## final width, and generously past any realistic pagination text
+        ## length [ 'N-M of T', well under 20 chars ] so the two never overlap
         $values{$info_slot}
             = length($detail_checksum)
             ? sprintf( '%-42s%s', $pagination_text, $detail_checksum )
@@ -359,11 +364,12 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     ## ADD-A-FIELD CYCLER : see the 'user-edit form: horizontal-scroll
     ## add-a-field cycler' design. handled entirely separately from the
     ## generic per-field body below, same reason the multiline block above is
-    ## -- this row's display is not its stored value at all [ 'choices' +
-    ## 'choice' index, editor.control.cycler.set ], and windowing it needs
-    ## live auto-scroll state persisted on the field def, the same live-
-    ## reference-through-$editor_state pattern 'multiline_offset' above
-    ## already uses, just over discrete CELLS instead of characters.
+    ## -- this row's display is not its stored value at all
+    ## [ 'choices' + 'choice' index, editor.control.cycler.set ], and
+    ## windowing it needs live auto-scroll state persisted on the field def,
+    ## the same live-reference-through-$editor_state pattern
+    ## 'multiline_offset' above already uses, just over discrete CELLS instead
+    ## of characters.
     if ( $field_def->{'add_field'} ) {
 
         my @choices = grep { defined $ARG and length $ARG }
@@ -439,9 +445,9 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 
         ## no inner reservation : render_windowed's own per-choice cells
         ## already carry the padding a value elsewhere gets from the
-        ## pad+cursor-cell reservation below, and this row is never cursor-
-        ## bearing [ its value is a choice index, not text -- see the generic
-        ## $cursor_bearing exclusion this replaces ]
+        ## pad+cursor-cell reservation below, and this row is never
+        ## cursor-bearing [ its value is a choice index, not text -- see the
+        ## generic $cursor_bearing exclusion this replaces ]
         $values{$name}
             = $name eq $active_name
             ? $mark{'focus_l'} . $value . $mark{'focus_r'}
@@ -544,8 +550,9 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         ##
         ## the CURSOR CELL gives a cursor sitting past the last character
         ## somewhere to live -- without it the marker is appended instead,
-        ## growing the value by one and stepping the closing bracket [ and the
-        ## whole frame ] right as soon as you reach the end of a field.
+        ## growing the value by one and stepping the closing bracket
+        ## [ and the whole frame ] right as soon as you reach the end of a
+        ## field.
         ##
         ## the LEADING pad keeps the value off its opening framing character.
         ## the trailing side has no separate pad of its own any more -- per
@@ -620,9 +627,10 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 
     ## framing : brackets when focused, matching spaces when not, so a value
     ## occupies the same columns either way and nothing shifts sideways --
-    ## except a collapsed list's summary [ or a collapsed scalar's -- same
-    ## treatment ], whose outer LEADING pad is dropped too [ see the 'list'
-    ## branch above for why that is safe here ]
+    ## except a collapsed list's summary
+    ## [ or a collapsed scalar's -- same treatment ], whose outer LEADING pad
+    ## is dropped too
+    ## [ see the 'list' branch above for why that is safe here ]
     my $row_pad_l
         = ( $field_def->{'list'} or $collapsed_scalar )
         ? ''
@@ -635,11 +643,12 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 
     $values{$name} = $value;
 
-    ## OPT-IN detail display [ identity_key only, 'identity_detail_mode' --
-    ## see schema_from_record ] : the plugin's own render call above [ reached
-    ## through get_display_value's display_override dispatch, well before this
-    ## point ] stashed the checksum on $field_def itself when in this mode,
-    ## rather than including it in $value -- same
+    ## OPT-IN detail display
+    ## [ identity_key only, 'identity_detail_mode' -- see schema_from_record ]
+    ## : the plugin's own render call above [ reached through
+    ## get_display_value's display_override dispatch, well before this point ]
+    ## stashed the checksum on $field_def itself when in this mode, rather
+    ## than including it in $value -- same
     ## hand-data-forward-through-the-field-def pattern user_keys_names already
     ## uses. write it into the field's own reserved detail row [ a block-type
     ## slot user-edit.form.build_frame reserves only in this same mode -- see
@@ -685,8 +694,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,.,,.,.,...,,,,,..,,,,,,...,...,,,,,.,,,..,,..,,...,...,,..,,,,,,,,,...,...,
-#AEIC33PE5SFOH2LWV42H6OQUIZXCUFUEQKADIM2WUVC2JB5LQT2Y5IVBVB6YILXRJ7QV2IQZAGKY2
-#\\\|PZTCRLXMDZRF6I23INEKQ53VA4ICNOGG2HJVIMK7ZTFWO6DGC3L \ / AMOS7 \ YOURUM ::
-#\[7]RYNJ647ZU6332BI4NCUY5GYUQ6HJ6SJ467Z3NCVDS26AJEKACMDQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,..,,...,.,.,..,,..,,,,,,.,,,..,,...,..,,..,,.,,,,..,,.,,,.,,
+#G7SJURTQUIPAI5HVSX5JT5JBCX5XP36GRTK5EU5QJEF2OIEH5EB3ZDGONOSCKPUG3SZI7R5B3Y5BW
+#\\\|LR4CNICMOBZ2FSJJIO73OJHAYYWAUF7BKLJGWHJYIZ7JPAAWHOG \ / AMOS7 \ YOURUM ::
+#\[7]OHGJFLC3OAL4WECGWMTA63GT2BKF3XX7ZJ3SBPVIU2TA4UPDSUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -43,8 +43,8 @@ my $written
 return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
     if not $written;
 
-## enqueue chunked cube persist as background job [ skip if already running ##
-## ]                                                                        ##
+## enqueue chunked cube persist as background job ##
+## [ skip if already running ]                    ##
 <index.jobs>->{'persist-cube'} //= { 'job-type' => 'persist-cube' };
 <[index.tick.start]>;
 
@@ -52,8 +52,8 @@ return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
 
 return TRUE;
 
-#,,..,.,,,,,.,..,,,.,,,.,,..,,,.,,,.,,,,,,,,.,..,,...,..,,,,.,.,.,,,.,,,,,,..,
-#BF4YH72QUYECXFQCUIX5MDYL4YFEOP5UZCR6S6MDVJHK5B3OKMFZAYXUPTOWHPTV2JVIVB7VSHCR6
-#\\\|YD5PJAAQDLBCS4UAYF4MAVKWGPCYRIGML2SULPZQFJMVAM7ZUUK \ / AMOS7 \ YOURUM ::
-#\[7]CAWW7TLO3JY7EFSDUUVKPSQXVYO6L3SLOVWXXUTEGFO2R5FY3CAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,,,.,,,.,..,,.,,,...,.,,,,,.,..,,...,...,,.,,.,,,,,.,...,,,.,
+#BHS4FXBJT5Y55HTZ3EX6JOYD7YNE72CT2UH6TPOKEGIOYVWKPDC5MEM7B6C4CJBSU4SYUXVGR4U3S
+#\\\|3WEZHMMM2C763COEKQKJ5KRZKN3FYNTVVABRRIOGW3Q2Y7PIFNI \ / AMOS7 \ YOURUM ::
+#\[7]BISVD5ZFMBIU4SDQWGWL3ZJSLYTGX52OWY2TD773ZQDQTF6TN2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

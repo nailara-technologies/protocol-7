@@ -32,9 +32,10 @@ my $multi_field = scalar $schema->{'fields'}->@* > 1 ? TRUE : FALSE;
 ## READONLY : block every MUTATING key, not just insertion.  the printable
 ## branch far below already checked $buffer->{'readonly'}, but delete,
 ## backspace, the kill commands and yank did not -- so a "read-only" field
-## could still be emptied with Backspace.  navigation [ Tab, arrows, Ctrl-a /
-## Ctrl-e ], submit and the advisory signal stay allowed, which is what makes
-## a read-only row usable as a selectable MENU entry
+## could still be emptied with Backspace.  navigation
+## [ Tab, arrows, Ctrl-a / Ctrl-e ], submit and the advisory signal stay
+## allowed, which is what makes a read-only row usable as a selectable MENU
+## entry
 state %mutating_key = map { $ARG => TRUE } (
     "\x04",     ## ctrl-d  delete at cursor  ##
     "\x0b",     ## ctrl-k  kill to end       ##
@@ -83,16 +84,17 @@ if ( $key eq "\n" or $key eq "\r" ) {
         return $result;
     }
     ## a PLUGIN-PINNED field's Enter must never fall through to a form-wide
-    ## submit, even before the field has been ENTERED into plugin mode [ the
-    ## caller's own Right-entry trigger, not handled here ] : per-field
+    ## submit, even before the field has been ENTERED into plugin mode
+    ## [ the caller's own Right-entry trigger, not handled here ] : per-field
     ## override, same reasoning and same "checked before the schema-level
     ## submit_on" placement as the multiline branch just above.  found live,
     ## 2026-08-15, on plugin.user-edit.key-actions -- landing on the field and
-    ## pressing Enter out of habit [ its normal meaning everywhere else in
-    ## this form ] silently submitted the WHOLE record instead of doing
-    ## nothing, before Right had ever been pressed to enter the tab.  applies
-    ## to every plugin-pinned field generically, not a key-actions-only patch
-    ## -- plugin.user-edit.address-cluster's own 'address' field had the
+    ## pressing Enter out of habit
+    ## [ its normal meaning everywhere else in this form ] silently submitted
+    ## the WHOLE record instead of doing nothing, before Right had ever been
+    ## pressed to enter the tab.  applies to every plugin-pinned field
+    ## generically, not a key-actions-only patch --
+    ## plugin.user-edit.address-cluster's own 'address' field had the
     ## identical latent gap, just never noticed because that field's own
     ## content rarely sits on Enter's own submit path unremarked
     return $result if $field_def->{'plugin'};
@@ -115,15 +117,16 @@ if ( $key eq "\x03" ) {
 my $cursor_pos = $buffer->{'cursor'};
 my $buf_len    = <[editor.buffer.memory.length]>->($buffer);
 
-## a masked field's DISPLAY cursor is always pinned to the END [ editor.
-## control.get_display_cursor ] -- the real cursor a forward-delete [ Ctrl-D,
-## Delete key ] would act on is therefore never visible on screen, even in the
-## common case where the real cursor genuinely IS at the end. silently
-## removing whatever real character sits at an invisible position, with no way
-## to see it happened, is unsafe -- so for a masked field, forward- delete and
-## backspace collapse into the SAME function : both always remove the
-## character immediately before the cursor, exactly as backspace does.  every
-## other field type keeps its real, visible cursor and is unaffected
+## a masked field's DISPLAY cursor is always pinned to the END
+## [ editor. control.get_display_cursor ] -- the real cursor a forward-delete
+## [ Ctrl-D, Delete key ] would act on is therefore never visible on screen,
+## even in the common case where the real cursor genuinely IS at the end.
+## silently removing whatever real character sits at an invisible position,
+## with no way to see it happened, is unsafe -- so for a masked field,
+## forward- delete and backspace collapse into the SAME function : both always
+## remove the character immediately before the cursor, exactly as backspace
+## does.  every other field type keeps its real, visible cursor and is
+## unaffected
 my $is_masked = ( $buffer->{'type'} // '' ) eq qw| masked |;
 my $backspace = sub {
     return if $cursor_pos <= 0;
@@ -249,8 +252,8 @@ if ( $key eq "\x19" ) {
     return $result;
 }
 
-## left arrow : move cursor left one CHARACTER [ ANSI: \e[D ] [ masked : same
-## as backspace, per user -- see the note above Ctrl-D ]
+## left arrow : move cursor left one CHARACTER [ ANSI: \e[D ]
+## [ masked : same as backspace, per user -- see the note above Ctrl-D ]
 if ( $key eq "\e[D" or $key eq "\x1b[D" ) {
     if ($is_masked) {
         $backspace->();
@@ -273,8 +276,8 @@ if ( $key eq "\e[C" or $key eq "\x1b[C" ) {
     return $result;
 }
 
-## delete key [ ANSI: \e[3~ ] : delete character at cursor [ masked : same as
-## backspace, see the note above Ctrl-D ]
+## delete key [ ANSI: \e[3~ ] : delete character at cursor
+## [ masked : same as backspace, see the note above Ctrl-D ]
 if ( $key eq "\e[3~" or $key eq "\x1b[3~" ) {
     if ($is_masked) {
         $backspace->();
@@ -311,8 +314,8 @@ if ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 ) {
 $result->{'passthrough'} = $key;
 return $result;
 
-#,,.,,,,,,.,.,..,,...,..,,,,,,.,,,,.,,,,.,.,,,..,,...,...,..,,,..,,,,,...,...,
-#S3AFRLJDRYM32G23NIE4EXPNPWN3GOOHHYQ3DAEUJ5THVDEHXRJGKYCZUP5DM4Y3SVREPQIEVNDUG
-#\\\|YFWJUGTK7CTXW5SRDZBQFACZI7K2USN64GGMNKUPMJDXRYZTDAA \ / AMOS7 \ YOURUM ::
-#\[7]NJDDQA2MQP5R2PAUPGUG5Y633G4R2RLSLAB5PTQYQBDY3WV7B4AY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,,..,,,,,.,.,,.,,.,.,,,.,,.,,..,,...,...,,,.,,.,,,,.,,.,,...,
+#F3X6UZGFUBWFCAODBOAID4HOUCEIEX5AV77S7YB7NRFJIUUK2OUF46O3BNLSPBKWS5I6GEVIXCTBK
+#\\\|UBYDHJYQ45TJRZ24TYMAF54CLOFYV2VDSTHQ4NPT7T4JU7L7DD5 \ / AMOS7 \ YOURUM ::
+#\[7]XXBCK7QZSIPAO5CNRPJH5CNMS2YTNOAWH2XSMLYPXDGQA3UGU4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

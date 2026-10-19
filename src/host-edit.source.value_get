@@ -4,12 +4,12 @@
 # descr = local record source : fetch one host record
 # param = $record_name, $reply_handler
 
-## one half of the record source the form engine calls through <form.source> [
-## registered by host-edit.init_code ].  unlike user-edit's sender this does
+## one half of the record source the form engine calls through <form.source>
+## [ registered by host-edit.init_code ].  unlike user-edit's sender this does
 ## LOCAL file io -- there is no hosts zenka -- but the reply still travels the
 ## same shape the users zenka gives over the wire : { sid, cmd, call_args,
-## params, data? }, with SIZE mode carrying the yaml payload in 'data' [
-## form.handler.value_get_reply parses it with format.yaml ].  the reply is
+## params, data? }, with SIZE mode carrying the yaml payload in 'data'
+## [ form.handler.value_get_reply parses it with format.yaml ].  the reply is
 ## DEFERRED to the next event tick on a 0 s timer, exactly as a network reply
 ## would be : the engine's reply handlers are written for the async wire and
 ## must never run inline from a sender.
@@ -89,8 +89,8 @@ if ( not length $record_name ) {
 
 return TRUE;
 
-#,,,.,,,.,,.,,.,,,...,,.,,.,,,.,.,,..,.,,,,..,..,,...,...,...,..,,,..,,..,...,
-#PRXGAEATCVRKQKDN7ZP37QS7SUSAIPMWBB6DOTCIC65X2HDIFBMKLAZAO652A54NFRWY6UEWGWXCI
-#\\\|XVNVBRCOIRHVZLJOJEW42VXWZPMFRK6GDHQMKUOHX2Z54CJWMM4 \ / AMOS7 \ YOURUM ::
-#\[7]Y3ZJU75GQY3S4EYDEIKJ245LDDPDRWRYSVXDPFW2DCWRXRHI5ECI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,.,.,..,,,.,,.,.,,.,,,,,,,..,..,,...,...,.,.,..,,,..,,..,.,,,
+#Y4V4ARGZH3I6SYA7U6DM26E6QFZXR2FB7RPV3YJNMNJO7XZF3CBFJWDMYKV63JLXX3IJRUW2IX4NM
+#\\\|YQ2AXNIZ5DGHFT4XHE6JQ2SNCROZJF2SXORO7MQOFIB36MFD24L \ / AMOS7 \ YOURUM ::
+#\[7]ZE5WUK74QGAUXIZCYYX2ERJ2F55NPPGM6NFSQUFPXWCHJDH5ISAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

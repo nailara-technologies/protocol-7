@@ -104,12 +104,12 @@ for my $path ( sort glob("$letters_dir/*") ) {
 ## unmatched duplicates of the same letter still collapse                   ##
 my %by_dedup_key;
 for my $letter (@letters) {
-    ## strip everything but letters/digits, not just whitespace --       ##
-    ## pdftotext and HTML::FormatText render the same source letter with ##
-    ## tiny punctuation-level differences [ en-dash vs hyphen, curly vs  ##
-    ## straight quotes, a stray form-feed ] that a whitespace-only strip ##
-    ## still lets slip through as "different" text and defeats the dedup ##
-    ## entirely                                                          ##
+    ## strip everything but letters/digits, not just whitespace --         ##
+    ## pdftotext and HTML::FormatText render the same source letter with   ##
+    ## tiny punctuation-level differences                                  ##
+    ## [ en-dash vs hyphen, curly vs straight quotes, a stray form-feed ]  ##
+    ## that a whitespace-only strip still lets slip through as "different" ##
+    ## text and defeats the dedup entirely                                 ##
     my $fingerprint = lc( $letter->{'text'} // '' );
     $fingerprint =~ s|[^a-z0-9äöüß]+||g;
     my $key
@@ -141,8 +141,8 @@ return {
     'letters'    => \@letters,
 };
 
-#,,..,.,,,...,,..,...,,..,..,,,.,,,,.,..,,..,,.,.,...,...,...,.,,,..,,,..,,,.,
-#NKFJWVMUJAXJJH642SXNW6T2O4A4XCGAP7NMFDFEHPKYMHNFX6GPRJUK37HEL3TFY7ZIONHZ7JUMG
-#\\\|QC5O2ET3RMW2ZXXIQWIZUXDSXIH2HANJ6FTZ4QBBHRWUCGMTG57 \ / AMOS7 \ YOURUM ::
-#\[7]B3LDXVRM6D7HGHF3V5TPRJONMRSIRVLXCJCJPWIJE6244SUWBGCA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,,..,..,,,.,,,..,...,...,,.,,.,.,...,...,,,,,...,,..,.,.,,.,,
+#JWIZCVWFFERTZK5VJJA45SH2GXXKHTJDEERL2YKUZX5SFXWMK74SXKPSMKIA4V62HMRR6PLTMIE6I
+#\\\|PQQEUZLBANHAI35LCAGZ24UUFOFK2YQ5GMGFFIF23G4D2Z6AAKD \ / AMOS7 \ YOURUM ::
+#\[7]74YK6Y4RKXSLGVO52Z7UTG424P6LBXERTE2F52QHSZ3GO2WBFCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

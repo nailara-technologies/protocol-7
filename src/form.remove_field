@@ -8,8 +8,8 @@
 ## one-way until now : Delete on an empty optional field takes it off the
 ## form, and the add-a-field row offers it again immediately.
 ##
-## only EMPTY fields, and only optional ones -- the caller  [
-## form.handler.stdin_key ] enforces both, which is also why there is no
+## only EMPTY fields, and only optional ones -- the caller
+## [  form.handler.stdin_key ] enforces both, which is also why there is no
 ## confirmation step : nothing is lost, and the field is one keystroke away
 ## from coming back.
 ##
@@ -65,11 +65,11 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         };
 }
 
-## a form with nothing left in it cannot be rendered [ build_frame refuses an
-## empty field list ], and a record with no fields is not editable either --
-## the default fields are never optional, so this cannot happen from the
-## keystroke path, but a caller reaching here directly must not be able to
-## empty the form
+## a form with nothing left in it cannot be rendered
+## [ build_frame refuses an empty field list ], and a record with no fields is
+## not editable either -- the default fields are never optional, so this
+## cannot happen from the keystroke path, but a caller reaching here directly
+## must not be able to empty the form
 return FALSE if not @fields;
 
 my $new_state = <[editor.control.create]>
@@ -120,8 +120,8 @@ $new_state->{'active_field'} = $position;
 
 return TRUE;
 
-#,,.,,..,,,,.,,,.,,.,,..,,,..,,,.,,,.,,.,,.,,,..,,...,...,.,.,,..,.,.,,..,.,.,
-#7LUDBPNUZYPSAINVSRMHDPBR76DUAZXCFZXXHA5JO3TDAKSIXY6QEG5WZBKTN62GANR5G67WZ6MM6
-#\\\|UJKAS7FXIGUODPFEYNIQ46QQETMDNQOVPRPXQUC42EOY6AG3KZJ \ / AMOS7 \ YOURUM ::
-#\[7]FENLVSJOJDJG6U35IIJLREPOPVDMPL7RLYADWRCR34SW4KVMCIDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,...,,,,,.,,,..,,,.,,,..,..,,..,,...,...,,.,,..,,,.,,...,..,,
+#LHJN64MDWWEV7ULGP5W5QEP3MBGXYAV6EQIDINXQNKNFZNAT2TAKBTMDYL2IQ3MLS5UZH6FZCVYJW
+#\\\|L7E2PV6H4VY3BQIDYKMC7QI63FD7S7GT22KHWSC3OYOY3WS5EVJ \ / AMOS7 \ YOURUM ::
+#\[7]ZL7JJ2Y2ZQFYYOZKCITANRCZCVT63NKOJHLHYK4CNW3SZOMI6CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

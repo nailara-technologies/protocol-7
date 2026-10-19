@@ -11,11 +11,12 @@ my $attempt = $wdata->{'attempt'}      // 0;
 
 return unless length $job_id;
 
-## already resolved by a real reply [ or a newer dispatch already re-armed ##
-## this job_id's slot in the hash ] : nothing to do -- this stray fire     ##
-## should be unreachable once ->cancel is called at every release/re-arm   ##
-## point, but the check is cheap insurance against a firing that was       ##
-## already queued by the event loop before cancel took effect              ##
+## already resolved by a real reply                                        ##
+## [ or a newer dispatch already re-armed this job_id's slot in the hash ] ##
+## : nothing to do -- this stray fire should be unreachable once ->cancel  ##
+## is called at every release/re-arm point, but the check is cheap         ##
+## insurance against a firing that was already queued by the event loop    ##
+## before cancel took effect                                               ##
 return unless delete <jobsite.assess_timer>->{$job_id};
 
 my $job_rec = <jobsite.tasks>->{$job_id};
@@ -53,8 +54,8 @@ $job->{'repair_failed'} = TRUE;
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,.,,.,,,.,,,...,,..,.,,,,,.,,,.,,,.,,,.,..,,..,,...,...,..,,,,,,,,,,.,,,.,,,
-#G5IUSMABADGTMCTANF24KBBZ46IUEGOART7S5PHO6IGHOXGK6K3FTHVTDZUUL65GA4QN5XW53O42W
-#\\\|6YL5CMYPQ3DI23FSMCZK53AB3LMJF4BI73M2QRO73TQEBOKS7MU \ / AMOS7 \ YOURUM ::
-#\[7]VMPD6WQCM5C5K4EUX22764XWFDTLJKXBA755NSDDXQR6TKWTWIAA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,.,.,.,.,.,,,,.,,,.,,.,.,.,.,..,,...,..,,..,,,.,,,..,..,,,.,,
+#ED56XLETGKRMS53NZ2C3ICYHE6EQRCEQX5QPL52IL2MBQYEEN6TN5D5V5B3JL2RXKQVVRLGWAJREU
+#\\\|TAQVLJDCUQX7AHPXB3RBIPN4NIE5KXPHBTMZWDTXA4O7FPCVJYF \ / AMOS7 \ YOURUM ::
+#\[7]ZLDZZTAI5MPKPLTV3U7GBKPAQQQTE4MUFISOORC4GWUAHUO44MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

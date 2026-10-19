@@ -107,12 +107,12 @@ if ( not $force and defined <invoke-web.dep.memory_system> ) {
     }
 }
 
-## build spawn command  the zenka itself runs as the admin user [ zenka.v7 ##
-## drop_privs ]                                                            ##
+## build spawn command  the zenka itself runs as the admin user ##
+## [ zenka.v7 drop_privs ]                                      ##
 my @cmd = ( $binary, "--root=$root" );
 
-## start paused : hold the pending items until the pause at ready is through [
-## invoke.ai's processor starts resumed and dequeues before its api is up ]
+## start paused : hold the pending items until the pause at ready is through
+## [ invoke.ai's processor starts resumed and dequeues before its api is up ]
 <[invoke-web.queue.hold]>
     if <[invoke-web.start_paused]> ne qw| no |
     or defined <invoke-web.recover>;
@@ -189,8 +189,8 @@ my $proc_start = <[invoke-web.proc_start_time]>->($child_pid) // '';
 );
 
 ## register pid file at v7-zenki : removed on a planned end only, so a pid ##
-## file still present at the next zenka start means 'not a planned end' [  ##
-## invoke-web.recover.after_crash then restarts invoke.ai ]                ##
+## file still present at the next zenka start means 'not a planned end'    ##
+## [ invoke-web.recover.after_crash then restarts invoke.ai ]              ##
 <[base.zenki.report_pid_file]>
     ->( sprintf( '%s/state/invokeai.pid', <[file.zenka_dir.data_path]> ) );
 
@@ -209,8 +209,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,,,,...,.,.,.,,,,,.,,,.,,.,,.,.,..,,,.,,...,..,,...,...,,.,,,,,,,.,,..,,.,.,
-#4DNOR4O65OQM42Z6UR3HI5KT32SCUTRME6IBEMFPPDE7CIHJD2GIDKYX6SDO4LRMKWFWMVQSNT5NQ
-#\\\|PKCUR2ZWLGIMD7QFWSVM6BQ2YCQSC7BTCUOEXIYR6XG64RSHQJZ \ / AMOS7 \ YOURUM ::
-#\[7]O7A5DLBDBQFCLX4SUHMYH46O46NLOCY4F37DTXY4ZXBVJ3JQS2AI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,.,,,.,..,,,,,,,.,,.,.,.,.,.,,,..,,...,...,.,.,...,...,,,,,,,.,
+#HJTGXFTN44RH6VOHL3BSJWB4LKS5MTEP24WP6ZOGUKUHGY56PVVZDPN2SZSTFB47SSGPEX5AOHKXS
+#\\\|EAKMABBRMU5QFHSCYB5GAVU273JKV4JZDHBZI7TW3EII4JZZVEE \ / AMOS7 \ YOURUM ::
+#\[7]WOOBW5MYOLNL7AJTCMAWUVRENWZRLUPCVKO52KH2PAOXNYKP3WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

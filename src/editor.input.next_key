@@ -10,11 +10,11 @@
 ## consumed bytes are removed from the buffer in place.
 ##
 ## returns undef when the buffer holds nothing usable YET — either it is
-## empty, or it ends mid-sequence [ a lone "\e", or a CSI still awaiting its
-## final byte ].  the buffer is left INTACT in that case, so the caller just
-## reads more bytes and calls again ; this is what makes the non-blocking
-## event.add_io path safe, where a keystroke can arrive split across two
-## reads.
+## empty, or it ends mid-sequence
+## [ a lone "\e", or a CSI still awaiting its final byte ].  the buffer is
+## left INTACT in that case, so the caller just reads more bytes and calls
+## again ; this is what makes the non-blocking event.add_io path safe, where a
+## keystroke can arrive split across two reads.
 ##
 ## lives in the shared editor namespace rather than a zenka's own, since
 ## editor.control.process_key defines these key strings and every editor
@@ -77,8 +77,8 @@ while ( $index < $buffer_length ) {
 ## final byte has not arrived yet ##
 return undef;
 
-#,,..,.,.,.,,,.,,,.,.,,..,,,,,,,,,.,,,...,.,,,..,,...,...,...,...,.,,,,,,,..,,
-#AEDSF7ENCBDGQMYQABX4HUPQWLYQIXM6CKM5ZPZNCPHJ4ADW52IDAZYKRF2JRSOSRYPZI3DXEJDDG
-#\\\|32L5DZXTWAZPJSU3RWF3ZQDUMCKYPHBUJMFHALKYMNL2UFH5RMP \ / AMOS7 \ YOURUM ::
-#\[7]RD75PXC47TFM4GUQCNQBZCAQZ7IWLISTZAUJWYE43QJWYOS4YCCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,,..,...,.,,,...,,,.,.,.,,,,,..,,...,..,,..,,.,,,,.,,..,,..,,
+#C4J5G2K2XGUDAWCRP2TGRV7NF6I3MMZP22K3O4B25V27S6E4LSTPJPAUI5RRW3IHTLUWAWL3I3R3W
+#\\\|7FRDWEYSLLPWFCJM7HMDM56N7PM4IGUX6I7EQ4QK56IODWKC2JK \ / AMOS7 \ YOURUM ::
+#\[7]OFHP6PRADDISYPV2VWUEV5BK7O3HVBTQOYRAFURUET2IVORXIQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

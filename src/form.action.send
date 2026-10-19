@@ -10,9 +10,9 @@
 ## the form half of HOST-SETUP.md's reuse section [ lane B2a ] : exactly ONE
 ## routed call is ever outstanding, and form.handler.stdin_key refuses to
 ## decode further keys while <form.busy> is set, so a second call can never
-## race the first -- the event loop is single-threaded [ callbacks run to
-## completion before the next fires ], so the busy flag alone is sufficient
-## discipline, same as vault-edit.send_action's own note
+## race the first -- the event loop is single-threaded
+## [ callbacks run to completion before the next fires ], so the busy flag
+## alone is sufficient discipline, same as vault-edit.send_action's own note
 
 my ( $command, $args, $on_reply, $timeout ) = @ARG;
 
@@ -42,8 +42,8 @@ my $timer = <[event.add_timer]>->(
     qw| timer |    => $timer,
 };
 
-## the session-id prefix matches the user-edit senders' own shape [
-## user-edit.source.value_get : '%d.users.value-get' ] -- the form engine
+## the session-id prefix matches the user-edit senders' own shape
+## [ user-edit.source.value_get : '%d.users.value-get' ] -- the form engine
 ## never builds the full route itself, it only appends $command after the cube
 ## sid.  send.local's return is NOT a reply -- it is 1+ [ targets written ], 0
 ## [ unknown target ], -1 [ empty session table ] or -2 [ malformed command ]
@@ -65,8 +65,8 @@ if ( not $sent or $sent < 0 ) {
 
 return TRUE;
 
-#,,,.,...,.,,,.,,,,.,,,,,,,.,,,,,,,,.,,.,,,.,,..,,...,...,...,,..,,..,.,.,.,.,
-#Z6KMGIIWPPDVXEBORF6LD7OF7IW3DHGCW23D7YIT6KNPY4CHWTFYGGDE7E624QG6OPJ5QKO3KC53O
-#\\\|5ZEIPJYT54KRKWKXF67ZTF67BIW5B65KONJUTADT2F5E5UFJETX \ / AMOS7 \ YOURUM ::
-#\[7]UFYBGVPQWCK3XFNO4RQOW3EXASKGZWHTUFPOJK7IM2NKVUIAZWDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,...,,.,,,..,,,,,,,,,.,,,.,.,.,,,..,,...,...,...,.,.,..,,.,,,,,.,
+#OBB4DGGTSPNIT5BLKHBNRCT2GIMMCXZX4ODIS5ZBR7XG6EPNROHVIXUBRVVEL6X4ZM44UJNORODFK
+#\\\|RF4DFSWFIF7KZ4QVU4GEQWQVGBIILDKJUKNPJKKZYARRDYWDUEN \ / AMOS7 \ YOURUM ::
+#\[7]IHXJCXRMZI3GOI424CENQOGZGAQR4NXH7U463E7XJXMXFJRX6OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

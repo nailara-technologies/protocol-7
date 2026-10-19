@@ -11,25 +11,24 @@
 # return = { mode => true, report_path => .., count => N }
 #          or { mode => false, data => <error> }
 
-##      phase 1 [ data/tasks/forensic-report-pipeline.md task 1.1 ] :       ##
-##      deliberately mechanical -- no LLM calls, local records only [       ##
-##      HYBRID-LLM-GOVERNANCE offline invariant ].                          ##
-##                                                                          ##
-##      no cross-store join : the investigation records ALREADY embed       ##
-##      the full enriched finding [ scanner, oid, name, severity,           ##
-##      target ] alongside the verdict, keyed by correlation id in the      ##
-##      filename <date>_<correlation_id>.yaml -- this module                ##
-##      aggregates and transforms those records over a period, nothing      ##
-##      else.                                                               ##
-##                                                                          ##
-##      reports are GENERALIZED by design : entries carry the pattern       ##
-##      CLASS of an issue, never target identifiers or exploit detail       ##
-##      [ forensics.report.generalize produces the network-safe form        ##
-##      ].                                                                  ##
-##                                                                          ##
-##      a period with no investigation records is NOT an error -- an        ##
-##      empty-but-valid report is written [ consistent with the sweep       ##
-##      writing a record even with zero matched lines ]                     ##
+##      phase 1 [ data/tasks/forensic-report-pipeline.md task 1.1 ] :        ##
+##      deliberately mechanical -- no LLM calls, local records only          ##
+##      [ HYBRID-LLM-GOVERNANCE offline invariant ].                         ##
+##                                                                           ##
+##      no cross-store join : the investigation records ALREADY embed        ##
+##      the full enriched finding                                            ##
+##      [ scanner, oid, name, severity, target ] alongside the               ##
+##      verdict, keyed by correlation id in the filename                     ##
+##      <date>_<correlation_id>.yaml -- this module aggregates and           ##
+##      transforms those records over a period, nothing else.                ##
+##                                                                           ##
+##      reports are GENERALIZED by design : entries carry the pattern        ##
+##      CLASS of an issue, never target identifiers or exploit detail        ##
+##      [ forensics.report.generalize produces the network-safe form ].      ##
+##                                                                           ##
+##      a period with no investigation records is NOT an error -- an         ##
+##      empty-but-valid report is written [ consistent with the sweep        ##
+##      writing a record even with zero matched lines ]                      ##
 
 my $param = shift // {};
 $param = { 'date' => $param } if not ref $param;    ## bare date string ##
@@ -300,8 +299,8 @@ return {
     'count'       => scalar @entries,
 };
 
-#,,,,,.,,,...,..,,...,..,,.,,,,.,,,..,.,,,.,.,..,,...,...,...,,..,,.,,,.,,,..,
-#73RZIPUT6BYRRLY6PQZ5MHJJZO6J7AHGPFHLGB26HOZMALLM6NBAR6YHDTKHKDWNHCJZZRMTWRECU
-#\\\|L4SJJUWHIXPIVG5DIJZ5OT5CNGNYH6SZWNZYSLOTM6JAEM26NZO \ / AMOS7 \ YOURUM ::
-#\[7]RGNIXNNTIGDGSQFSJ7TIVGNFGKLFDRKLGXO6WQYTI5ISNCXBAQBA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,.,.,.,.,..,,,..,,.,,,,,,..,,..,,...,...,.,.,,,.,,..,..,,..,,
+#CXYGCT6VQZGVCOSVTONDHYVSSWF6CLDGCVJGNJFHZQOQ5UKFTQ42YG6IGU2CZNQWWXCVPCN27EGKK
+#\\\|4SGWVX2C3X64H436AMKK2BYXY52CUBUB7WEXZKDLFCBEF636LLN \ / AMOS7 \ YOURUM ::
+#\[7]WEQSLJJVZLVUKCSCCTYTDM2FH7FBRSEUPKFGNGFM3WF2J32K7YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -38,10 +38,11 @@ return {
     if not defined $job_id;
 
 ## strip tracking query/fragment [ e.g. ?rltr=... ] : a scan-discovered url ##
-## never carries one [ site-yaml.stepstone.search's own href regex stops at ##
-## inline.html ], so a manually pasted url is the only source of a "dirty"  ##
-## one -- normalize before storing/checksumming/queueing so it matches what ##
-## the rest of the pipeline always produces                                 ##
+## never carries one                                                        ##
+## [ site-yaml.stepstone.search's own href regex stops at inline.html ], so ##
+## a manually pasted url is the only source of a "dirty" one -- normalize   ##
+## before storing/checksumming/queueing so it matches what the rest of the  ##
+## pipeline always produces                                                 ##
 $url =~ s{[?#].*$}{};
 
 ## already known to the local pipeline ? say where it currently sits ##
@@ -86,8 +87,8 @@ return {
         . "fetch, lands as 'new' on success ]",
 };
 
-#,,.,,,.,,,..,,..,,,.,,,.,..,,,,.,,..,..,,,.,,..,,...,..,,...,,,,,..,,,,,,,,,,
-#EM7CNM2EDGARKXUQOV2NQNW43Y4FKWVJXNH7TUQDP2L3WYJAXBIPMXOX23JJ3LASYM2SOTX3XX6UY
-#\\\|IWDWNST22D75EL2H7CANJG6CNIZ2YDFOWPQOYYATECTM2GU4BXO \ / AMOS7 \ YOURUM ::
-#\[7]K6PVTCAJIJQB7V3NVJARIP4C7THZVOECN3UV2MYW4O5T4UYBIGAI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,,.,,..,,.,.,,,,,,.,,,.,,,..,..,,...,...,,.,,,.,,,..,,,.,.,.,
+#UFCU7M3Y4SL3HSBSABMJSF4XBWQXHJJOJAA3Z25YUQH3DJHJQHTC5I2HA7WNG55A7TLQDEMV676R6
+#\\\|OCF42P3IW74RSIIMO2LM7ZHMPPMSBFY3YWRVVJKX7W7I33G5RI3 \ / AMOS7 \ YOURUM ::
+#\[7]KUXTVWE7B4HJP2PD67LANSJ5PDYF2ZMWBD5CRM7MR563CMV4QCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,10 +25,10 @@ my @public_addresses = grep { length($ARG) }
     split( m|\s+|, <letsencr.cfg.public_addresses> // '' );
 
 ## none configured : this host's own public interface addresses -- the DNS
-## check then accepts only names resolving HERE, with no network connection [
-## a dev box no longer self-tests third-party hosts ].  no public address on
-## any interface : nothing to enroll from here unless configured [ a server
-## behind port forwarding sets letsencr.cfg.public_addresses ]
+## check then accepts only names resolving HERE, with no network connection
+## [ a dev box no longer self-tests third-party hosts ].  no public address on
+## any interface : nothing to enroll from here unless configured
+## [ a server behind port forwarding sets letsencr.cfg.public_addresses ]
 if ( not @public_addresses ) {
     my @local = <[letsencr.parent.local_public_addresses]>;
     if ( @local == 1 and not defined $local[0] ) {
@@ -169,8 +169,8 @@ foreach my $domain ( <[base.sort]>->( @{$new_domains} ) ) {
 
 return { 'status' => qw| success |, 'queued' => $queued };
 
-#,,,.,,,.,,,.,..,,,.,,..,,..,,...,.,.,..,,,,.,..,,...,.,.,,,.,..,,..,,,..,,,,,
-#KIDCRPI2GH7SFUJIYQUKMFAMDPJKUT3XOOGYQZY4KJITG2FE6AK4KNBCUEFQLBY54THH7II4HFYE6
-#\\\|O3ISE6SWEBKJW4DNSARX7ZE6YCMHYXTIZWYD45OFLXGX5N4RECV \ / AMOS7 \ YOURUM ::
-#\[7]MEXIWKHWCU4TQR5F6FTJXGDEJGNBFVJHDGOBIA2CPFX7NZEW5CDQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,,,.,..,,,,.,,,,,...,,,,,.,.,..,,...,..,,..,,,,,,,,,,.,,,,,,,
+#FLSDE65DBHELVW52PEU7L7DEXJDT6GA3NL2QXYJOHTRKOMIGQVVSX2HVBCUPE7ISZXJNUZMM7LMAG
+#\\\|OMKMTJCFNQ33RWRAQBSPZAB6RQIG5FHEP2RKRQ2PRJOPJ6ZWLVN \ / AMOS7 \ YOURUM ::
+#\[7]QPXRBL2FMPYX7ULIN6I2UXZT25HISJDFWAH5LCGF2S2F4XFUQKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,9 +13,10 @@ my @active_statuses
 
 ## also index blocked/deleted/trash for completeness, but don't load      ##
 ## content scanned FIRST : an orphaned terminal-state file left behind by ##
-## an incomplete cleanup [ e.g. a rescue that didn't remove the old trash ##
-## copy ] must never win over a legitimate active-status record for the   ##
-## same id -- active statuses are scanned second and take priority below  ##
+## an incomplete cleanup                                                  ##
+## [ e.g. a rescue that didn't remove the old trash copy ] must never win ##
+## over a legitimate active-status record for the same id -- active       ##
+## statuses are scanned second and take priority below                    ##
 my @epoch_statuses = qw| blocked deleted |;
 for my $status (@epoch_statuses) {
     my $dir = "$jobs_root/$status";
@@ -97,9 +98,9 @@ for my $status (@active_statuses) {
 ## unconditionally from the file wipes the marker dispatch.assessments just ##
 ## set, moments before the task it dispatched even replies. that defeats    ##
 ## dispatch.assessments' own "already in flight" skip-check, so a           ##
-## re-entrant call [ settle-timer, or any repeat call while a batch is      ##
-## running ] queues the same job again -- keep the in-flight marker,        ##
-## refresh everything else                                                  ##
+## re-entrant call                                                          ##
+## [ settle-timer, or any repeat call while a batch is running ] queues the ##
+## same job again -- keep the in-flight marker, refresh everything else     ##
 for my $id ( keys %jobs ) {
     my $job           = $jobs{$id};
     my $prior_stage   = ( <jobsite.tasks>->{$id} // {} )->{'stage'} // '';
@@ -146,8 +147,8 @@ for my $id ( keys $tasks->%* ) {
 
 return \%jobs;
 
-#,,.,,,,.,,..,..,,..,,...,.,.,,.,,,,.,..,,,..,..,,...,..,,.,,,...,,..,,,.,,,,,
-#FTGMLEGRTOY7DBEYZVWOMPISJYMA6LCGUK723HTO53MOL5J2JFVWUJOR43ATCZSVE6RNJI5PPMT5S
-#\\\|PIBEQICSCFKXAHQI2YFQO7WKYGR6S6NUEBMCGBWL6DTLVVKLG7N \ / AMOS7 \ YOURUM ::
-#\[7]XWX4TGEH3J5CP7BJPWLQ5UWNLANHWNSWCV7VM5H2XFI6L2PFOMBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,.,,,,.,,,.,,,..,,..,...,,.,,,,.,..,,...,...,.,.,,,.,.,,,..,,,..,
+#B27J7YY5EM6TN4ZKPLLSXCMMB7PMIECWJTACLM4MSYB7ALCSELZARCRJZI34ZN3SOBIO4AC3BYOVA
+#\\\|OXKPH2ZDAHXMNFF7OK2BOZK24P6LXPLRG6IDOOPFYM6CZVIDHPU \ / AMOS7 \ YOURUM ::
+#\[7]6LBHJICOHCDSR472Q32DKRATNRBHURW5D2CLPAJMJA2S5OJ4CSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

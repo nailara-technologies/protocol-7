@@ -5,8 +5,8 @@
 # param  = model name [ from 'Missing model file: <name>' lines ]
 # return = hashref { name, found, records => [ hashref, .. ] } | undef
 
-## read-only selects through the shared queue db handle [ WAL — invoke.ai ##
-## writes concurrently ]                                                  ##
+## read-only selects through the shared queue db handle ##
+## [ WAL — invoke.ai writes concurrently ]              ##
 my $name = shift // return undef;
 
 my $dbh = <[invoke-web.queue.db]> // return undef;
@@ -28,8 +28,8 @@ my @results;
 foreach my $record (@$records) {
     my $rel_path = $record->{'path'} // '';
 
-    ## expected absolute path under the models root [ bare uuid paths are ##
-    ## diffusers directories ]                                            ##
+    ## expected absolute path under the models root  ##
+    ## [ bare uuid paths are diffusers directories ] ##
     my $expected_path
         = $rel_path =~ m{^/}
         ? $rel_path
@@ -51,8 +51,9 @@ foreach my $record (@$records) {
     }
 
     push @results, {
-        ## graphs may key on name or id [ open question in the autofetch ##
-        ## brief ] — key carries the db primary key                      ##
+        ## graphs may key on name or id                                  ##
+        ## [ open question in the autofetch brief ] — key carries the db ##
+        ## primary key                                                   ##
         'key'    => $record->{'id'},
         'type'   => $record->{'type'},
         'base'   => $record->{'base'},
@@ -74,8 +75,8 @@ foreach my $record (@$records) {
 
 return { 'name' => $name, 'found' => $found, 'records' => \@results };
 
-#,,,,,...,,,.,,,.,,,,,.,,,..,,,..,,..,,.,,,,,,..,,...,...,.,.,...,.,.,,.,,,..,
-#AADHG6SYBJH33LXCISEBB6K3D2WQRWPL2QF3SNCYQUDPYKKYUMINX6AML6JCPVKEQPU5ZJQAFIJHK
-#\\\|SSDZ56LYUOTO6VHUDS7QMAHE6NOG6GN3WUI6P3TL6ORSW6FWNTV \ / AMOS7 \ YOURUM ::
-#\[7]Q3YCZUT2IIOXGCNGOEDANBMXWZSOS5OMO7PUJCBQVN34ZUNPHEBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,.,.,,,,,.,...,...,...,,,,,.,,,..,,...,...,.,,,.,.,,..,,.,,,,.,
+#SAK7EZFOHEHMKAWQUCPPLY7TPOQARNUWFLFTPS4ZUFNWMES2HBMEFNEWRDF6YDCXRWJADCUWRLG5U
+#\\\|2TMLHJ3WZFSIGTPZIDUUIGQ7O2NWKKCUCNZDX27ZLPKO7GRZWRT \ / AMOS7 \ YOURUM ::
+#\[7]I2AJ5JT6DMQBHMVWHPN5U2FLJ5HVYIQ37QBAB74USGUPOBP4SQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -43,14 +43,14 @@ my $job_id = <[jobqueue.add_job]>->(
     $job_id, join( ' ', @$packages )
 );
 
-## start immediately if no install is in flight [ else waits for the ##
-## completion handler to advance the queue ]                         ##
+## start immediately if no install is in flight                   ##
+## [ else waits for the completion handler to advance the queue ] ##
 <[debian.apt_pump]>;
 
 return $job_id;
 
-#,,.,,,,.,..,,,.,,.,.,,,,,..,,..,,.,,,..,,.,.,..,,...,...,,..,.,.,..,,,..,,,,,
-#3KGP5MHCRS7XTZWLVJEW5QRSZN6KECBCH7PKX4TNFGHVIXRJNHOU6JLRIUP55X6APYNMNT36J3QG2
-#\\\|264ISGYKXQUKAS3SEZRCFUE5PCHAIHICCEMYXD7OTEFFA5CTHTO \ / AMOS7 \ YOURUM ::
-#\[7]NF4QZUASXZESTMRCPNNOWBGYKUIIE4ZPQMU7LSOFS266N2UDXCBY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,,.,,.,,,..,,,,,,.,.,,,.,.,.,..,,...,...,,,,,,,.,,,.,..,,,..,
+#35IZE55C6GQ4SW5NDDDFG2WJSUXDS26GKLWHN6XTTT3Z2JVWDDY6W7DGP6P3V7YOCD7W7BMG45ZMA
+#\\\|WZQBNWFL4LF3GGC54GLX3LLG5EQQ2WN7KWGWRKSBS6AF2RUGNM2 \ / AMOS7 \ YOURUM ::
+#\[7]PM6SNLW7J3MWD7FBDOHSBPHQ2K6SRR6CXU3LOKF2FA7EAIOUGWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

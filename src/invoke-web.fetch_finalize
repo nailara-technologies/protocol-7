@@ -44,8 +44,9 @@ my $fail = sub {
 return { 'ok' => FALSE, 'msg' => 'no staged download recorded' }
     if not length $staged or not length $dest;
 
-## lstat, never stat : a symlink planted by another user [ the staging ##
-## directory is world-writable ] must fail here, not pass through      ##
+## lstat, never stat : a symlink planted by another user                ##
+## [ the staging directory is world-writable ] must fail here, not pass ##
+## through                                                              ##
 return { 'ok' => FALSE, 'msg' => "staged file not found [ $staged ]" }
     if not lstat($staged);
 return {
@@ -68,14 +69,14 @@ return { 'ok' => TRUE, 'msg' => 'hash verification already running' }
     if defined <invoke-web.hashverify.jobs>
     and defined <invoke-web.hashverify.jobs>->{$name};
 
-## TOCTOU : hashing \ renaming BY PATH in a world-writable directory        ##
-## without the sticky bit lets any local user swap the file after [ or      ##
-## during -- multi-GB hashing takes minutes ] the check. move the staged    ##
-## file into the private verify directory first [ atomic rename, same       ##
-## filesystem ; world-writable .autofetch allows this zenka to rename in it ##
-## ] -- from there on no other user can reach it by path. the stored        ##
-## staging path follows the file [ restart self-heal \ mismatch removal     ##
-## look in the private directory ]                                          ##
+## TOCTOU : hashing \ renaming BY PATH in a world-writable directory       ##
+## without the sticky bit lets any local user swap the file after          ##
+## [ or during -- multi-GB hashing takes minutes ] the check. move the     ##
+## staged file into the private verify directory first [ atomic rename,    ##
+## same filesystem ; world-writable .autofetch allows this zenka to rename ##
+## in it ] -- from there on no other user can reach it by path. the stored ##
+## staging path follows the file                                           ##
+## [ restart self-heal \ mismatch removal look in the private directory ]  ##
 my $verify_dir = <[invoke-web.autofetch.verify_dir]>
     // return $fail->('private verify directory not usable [ see log ]');
 
@@ -88,11 +89,12 @@ if ( $staged !~ m{^\Q$verify_dir\E/[^/]+$} ) {
     <[invoke-web.missing.save]>;
 }
 
-## re-check in the private directory [ nothing can be swapped here any more ##
-## ] : the file could have been replaced between the lstat above and the    ##
-## rename. a symlink [ rename moves the link, the hash would read its       ##
-## target ], a hard link [ a second path outside stays writable ] or a file ##
-## of another owner [ an open handle stays writable ] is refused            ##
+## re-check in the private directory                                      ##
+## [ nothing can be swapped here any more ] : the file could have been    ##
+## replaced between the lstat above and the rename. a symlink             ##
+## [ rename moves the link, the hash would read its target ], a hard link ##
+## [ a second path outside stays writable ] or a file of another owner    ##
+## [ an open handle stays writable ] is refused                           ##
 my @st          = CORE::lstat($staged);
 my %trusted_uid = map { $ARG => TRUE } grep {defined} $EFFECTIVE_USER_ID,
     scalar getpwnam( <invoke-web.autofetch.downloader_user>
@@ -143,9 +145,9 @@ my $script = join( "\n",
     'sys.stdout.write( h.hexdigest() )',
 );
 
-## digest pipe + exec-status pipe [ FD_CLOEXEC : a successful exec closes   ##
-## it, so the parent tells "exec worked" [ EOF ] apart from "exec failed" [ ##
-## errno text ] -- the idiom of coding.spawn_inference_server ]             ##
+## digest pipe + exec-status pipe [ FD_CLOEXEC : a successful exec closes ##
+## it, so the parent tells "exec worked" [ EOF ] apart from "exec failed" ##
+## [ errno text ] -- the idiom of coding.spawn_inference_server ]         ##
 my ( $digest_r, $digest_w, $stat_r, $stat_w );
 pipe( $digest_r, $digest_w ) or return $fail->("pipe failed : $OS_ERROR");
 pipe( $stat_r,   $stat_w )   or return $fail->("pipe failed : $OS_ERROR");
@@ -216,8 +218,8 @@ delete $fetch->{'reason'};
 
 return { 'ok' => TRUE, 'msg' => "hash verification running [ child $pid ]" };
 
-#,,..,...,,..,.,.,,,,,.,,,,..,,..,,,,,,,.,.,,,..,,...,...,.,,,,.,,.,.,.,.,,,,,
-#5FCQGXZY4XHUUPP4ORSTX4VHUYHRSO2KY624LLWJ5AP5B5BN6IO45RUZMXTNVDJUHZXWHMUIKIMSC
-#\\\|HWGVBB4YCSTV4WFXEFREKB3OZT44RWOWAFTFCYHRDFV2SYSNKUF \ / AMOS7 \ YOURUM ::
-#\[7]Q6SRXOWM2IX3YTOXOOFFKTZGR6OIBZS7SXTA773JVH73G5UGZGBY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,..,,,.,,,..,,,,,.,,,...,,.,,..,,...,...,.,.,...,,..,,,,,...,
+#PLH4Y6BMEGBTCFU2V3UJ6HOWKTS2FVBNZLX2R6T65TUMIYIVT5WBQVA4OHTFAG4CCOYRWC4WMAI56
+#\\\|PSITHJMTBNVFT47RNCMPNTFK3TWKR6TD5DIRRHWNQSQITYC5PX4 \ / AMOS7 \ YOURUM ::
+#\[7]TX2WDSTYWHEFFCUHXLSJTRNTLXBYCTVZWFECLMVDXUPFGBCGJUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

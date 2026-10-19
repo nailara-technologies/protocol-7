@@ -131,17 +131,17 @@ for my $entry ( @{$entries} ) {
         ## leak; see jobsite.dispatch.consume_slot ]                      ##
         <jobsite.pending_count> = ( <jobsite.pending_count> // 0 ) + 1;
 
-        ## refresh source data before re-scoring, when the source supports  ##
-        ## it : site-yaml.import-url re-scrapes and calls                   ##
-        ## jobsite.cmd.job-upsert, which now preserves the full protected   ##
-        ## field set and merges in whatever changed on the live posting [   ##
-        ## salary estimate, updated description, ... ]. the actual LLM pass ##
-        ## is deferred until that refresh really lands -- see               ##
-        ## jobsite.dispatch.reassess_now, fired either from job-upsert's    ##
-        ## awaiting_refetch check or, if the source url isn't refetchable,  ##
-        ## from jobsite.handler.reassess-refetch-queued's fallback -- so a  ##
-        ## reassess never scores stale data when a fresher fetch was        ##
-        ## possible                                                         ##
+        ## refresh source data before re-scoring, when the source supports ##
+        ## it : site-yaml.import-url re-scrapes and calls                  ##
+        ## jobsite.cmd.job-upsert, which now preserves the full protected  ##
+        ## field set and merges in whatever changed on the live posting    ##
+        ## [ salary estimate, updated description, ... ]. the actual LLM   ##
+        ## pass is deferred until that refresh really lands -- see         ##
+        ## jobsite.dispatch.reassess_now, fired either from job-upsert's   ##
+        ## awaiting_refetch check or, if the source url isn't refetchable, ##
+        ## from jobsite.handler.reassess-refetch-queued's fallback -- so a ##
+        ## reassess never scores stale data when a fresher fetch was       ##
+        ## possible                                                        ##
         <jobsite.tasks>->{$id}{'awaiting_refetch'} = $gen;
         <[protocol-7.route-send]>->(
             {   'command'   => 'site-yaml.import-url',
@@ -212,8 +212,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,.,,,.,,,..,,..,.,,,,,,,...,,.,,..,,,,,,,.,,..,,...,...,...,.,,,.,,,.,,,.,,,
-#HQL2EISLKCBAECW2SN3GLOTEEDLCVR2YXBOW3SSUNYULXYB3KHO5Q3VCBMLWVBKJVZ3S6S2JLHTPC
-#\\\|XEQGEPCSE5ADWOM6NOVTROMRAFNDOFGGIXGNMETU7SFPDPPMYXC \ / AMOS7 \ YOURUM ::
-#\[7]WUIBWTCJRBGZYYIV5Y6TTGGXMBLM7ISWEIMK362VIBE5QBVVSOBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,..,,,..,,,.,,..,.,.,,,,,.,,,..,,...,..,,..,,,.,,.,,,.,.,,,.,
+#OD7YPNVRS35AYCN7KMW36BGBGRKFFC5K7WNQM4S4Y4M424NZ7C33S2QCY25OKRKBIV2Q6EEMSNZJW
+#\\\|U66ML6DUGYURV2GCVC7T34MFJMIIYJZGMKS2KKWGUWOTNS6EK4I \ / AMOS7 \ YOURUM ::
+#\[7]S4TFT4TSUHSGDJ7IBC3HJU4O6KW5ZZS5KMVBEGHSF2KJZCD25UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

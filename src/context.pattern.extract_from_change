@@ -99,16 +99,17 @@ if ( length $old_middle and length $new_middle ) {
 
         $pattern = $prefix . $escaped_old . $suffix;
 
-        ## structural-wrap detection : the \w+ runs of $old_middle become  ##
-        ## the capture groups of $pattern [ the later \d+ and \s+ passes   ##
-        ## add none ] ; when there is exactly one such token and the new   ##
-        ## middle still contains it as a contiguous substring, the change  ##
-        ## is a wrap around the token [ e.g. ( word ) -> [ word ] ], so    ##
-        ## reconstruct $replace around the $1 backreference [ same stored  ##
-        ## backreference convention ncode.cmd.apply expands post-cb45d56d0 ##
-        ## ] instead of overfitting to the training line ; genuine content ##
-        ## changes and multi-token cases keep the literal $new [ correct   ##
-        ## positional multi-group mapping is a deliberate follow-up ]      ##
+        ## structural-wrap detection : the \w+ runs of $old_middle become   ##
+        ## the capture groups of $pattern                                   ##
+        ## [ the later \d+ and \s+ passes add none ] ; when there is        ##
+        ## exactly one such token and the new middle still contains it as a ##
+        ## contiguous substring, the change is a wrap around the token [    ##
+        ## e.g. ( word ) -> [ word ] ], so reconstruct $replace around the  ##
+        ## $1 backreference [ same stored backreference convention          ##
+        ## ncode.cmd.apply expands post-cb45d56d0 ] instead of overfitting  ##
+        ## to the training line ; genuine content changes and multi-token   ##
+        ## cases keep the literal $new [ correct positional multi-group     ##
+        ## mapping is a deliberate follow-up ]                              ##
         my @tokens = $old_middle =~ m|\w+|g;
 
         if ( @tokens == 1 and index( $new_middle, $tokens[0] ) >= 0 ) {
@@ -162,8 +163,8 @@ return {
     'vars'    => \@vars
 };
 
-#,,,,,,,.,..,,..,,.,,,.,,,.,,,,,.,,,.,,,,,..,,.,.,...,...,.,.,,,.,.,.,,..,.,.,
-#DF6US3N2EACGSLYKUB72J43QPMAGCVG2XYWVM3P2PKEK2EMWTY76SVVGP4E7QCJCK23WIVIWGSCXI
-#\\\|RV6HQPOYIFZZKYPEDBA2BGLQ6RFTNJGGCACN5CGBNEAMUOQZ3EU \ / AMOS7 \ YOURUM ::
-#\[7]IFH24GMSULPGRREIJSK4PODWQQB6WAL3FJDSRWRQC46SV2UQH4DQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,.,,,.,,,..,,,,,,,..,,,,,,..,.,.,...,..,,,,.,.,,,,,.,.,.,.,,,
+#Q4DNFKYA7CLVQGGKD47U2XF3SH4GFE4V53VSD2BB3EAGRMIFLHHJT6KIU2QMFXTGOEQ2L3L5RPDZI
+#\\\|NJW4YQLQSPZ7ZNAB5W6UJSTRJVKXEPCE7HJSD6WM62V6AARWZSM \ / AMOS7 \ YOURUM ::
+#\[7]WF4I5OSJG3LF3H7P53OQP6SXGHF6WFS6OGQ4C2ZLWODZRYGFKKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

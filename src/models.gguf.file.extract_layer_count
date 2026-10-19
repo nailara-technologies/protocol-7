@@ -56,10 +56,10 @@ unless ( $magic eq 'GGUF' ) {
 
 $kv_count = 1000 if $kv_count > 1000;
 
-## block_count is stored per-architecture as `<arch>.block_count` [ eg ##
-## `llama.block_count`, `qwen35.block_count` ] -- the suffix is fixed  ##
-## across every known architecture so it can be matched without first  ##
-## knowing `general.architecture`                                      ##
+## block_count is stored per-architecture as `<arch>.block_count`          ##
+## [ eg `llama.block_count`, `qwen35.block_count` ] -- the suffix is fixed ##
+## across every known architecture so it can be matched without first      ##
+## knowing `general.architecture`                                          ##
 for my $i ( 0 .. $kv_count - 1 ) {
     my $key_len_buf;
     read( $fh, $key_len_buf, 8 ) == 8 or last;
@@ -148,8 +148,8 @@ for my $i ( 0 .. $kv_count - 1 ) {
 close($fh);
 return undef;
 
-#,,..,,..,..,,.,,,,,.,,,.,,,,,.,,,..,,.,,,..,,..,,...,...,...,..,,,,.,.,,,.,.,
-#GSZZEYPLACFS3RYADXZVOFTMSDFY7YDHTGVFTPC66OVYL4HNVXYQ33ED5NSOJDJYQBAPBAHMX245A
-#\\\|CHFQHE43FR3GWRPSJEGA4DFSHFOPZ3YNIZ4XNC37OFD6TQZAKOI \ / AMOS7 \ YOURUM ::
-#\[7]HCUKXKXNNGM3OOYRYH2MKLSS3S3OTYYGG3FDACUNUIVLBD7D36CA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,.,.,,..,..,,.,,,,..,,..,,,.,..,,...,...,,,.,,,,,,,.,,..,,..,
+#K6MVINN7MUOWO7WLJTBBQ5H77MT7RZUJAEKAO7DZTOHIVUEYJZGX3Y7UENKSKBJT7S24U6P2GOTKQ
+#\\\|WSZGK6537WH7GHUMXFHTCOPAPTKP5MNDAHTEC7HVFVH6STDUL7Y \ / AMOS7 \ YOURUM ::
+#\[7]F5CUROSRTZYXIS4UB37UKVM5YE4ALMBR5NK3L6HDXW4EMLBMCMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

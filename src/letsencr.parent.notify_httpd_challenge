@@ -23,8 +23,8 @@ unless ( $domain && $token && $key_auth ) {
     $type, $domain
 );
 
-## send challenge setup command to HTTPd via cube router  [ parameters as
-## space-separated args: domain token key_auth type ]
+## send challenge setup command to HTTPd via cube router
+## [ parameters as space-separated args: domain token key_auth type ]
 my $challenge_cmd = qw| httpd.setup-acme-challenge |;
 my $args_string   = join ' ', $domain, $token, $key_auth, $type;
 
@@ -51,8 +51,8 @@ if ($result) {
     };
 }
 
-#,,..,,,,,..,,,.,,,,,,...,...,.,.,...,,,,,.,.,..,,...,...,,.,,,..,,.,,...,,.,,
-#6OIFSRASCZQNKCUQVFAC465VEZSHGBYIKSKKR73RUUYMIZDZZL3UIMKLN7S5NYNZ4HXJSWI7A7KR2
-#\\\|RN3FONATW5EQN5RIUQK7T76B3AX3X2FBIT7RJ226HFFJ2U4SFRF \ / AMOS7 \ YOURUM ::
-#\[7]CI7WZDOGLESHXCBBM4TKHBFZIQJ6WNPZJGGFRKUL3NE4RJD6D2CQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,.,,.,,,,,,,...,,.,,,,,,..,,,.,,..,,...,..,,..,,,.,,,,.,,,,,,,.,
+#DQUSI4Y2BYC7JBN3OXMI6NPEUJNFEXZJ5QSN4PDQTNKXCF4Q2ZV7EXQC7JSGW4IP3LTUJW7GOSXTI
+#\\\|W675XPDZ5PUAZZOYSASSKJO3MV2XJLPEWQKJ3RTR4CUYCKAEH7T \ / AMOS7 \ YOURUM ::
+#\[7]URFBHECZRMAJX4NNYCSVGGWM6X7O7ZQNA2XJUJPS4AF2JLQLP2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

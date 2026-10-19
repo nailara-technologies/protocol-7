@@ -11,14 +11,14 @@ if ( not defined $name or not length $name ) {
     <[base.exit]>->(qw| 0110 |);
 }
 
-## optional 'user:<name>' / 'known:<name>' category prefix -- forces        ##
-## resolution to a single directory, both to disambiguate a name that       ##
-## exists in both [ see the ambiguity check below ] and as an always-       ##
-## available explicit form. category words mirror the directory names       ##
-## themselves [ user-keys / remote-keys/known ], not role-adjectives like   ##
-## 'hostkey' -- a user-keys entry can itself BE a host's own identity key   ##
-## from a connecting client's perspective, so 'hostkey:' would collide with ##
-## that meaning rather than resolve it                                      ##
+## optional 'user:<name>' / 'known:<name>' category prefix -- forces       ##
+## resolution to a single directory, both to disambiguate a name that      ##
+## exists in both [ see the ambiguity check below ] and as an              ##
+## always-available explicit form. category words mirror the directory     ##
+## names themselves [ user-keys / remote-keys/known ], not role-adjectives ##
+## like 'hostkey' -- a user-keys entry can itself BE a host's own identity ##
+## key from a connecting client's perspective, so 'hostkey:' would collide ##
+## with that meaning rather than resolve it                                ##
 my $forced_category;
 if ( $name =~ m{^(user|known):(.+)$} ) {
     ( $forced_category, $name ) = ( $1, $2 );
@@ -91,12 +91,13 @@ if ( not defined $forced_category or $forced_category eq qw| user | ) {
     }
 }
 
-## known-host pins live in a separate directory [ known_hosts_dir, not    ##
-## key_dir ] and never carry a filename extension keys_re recognizes, so  ##
-## they need their own resolution -- reuses keys.list_remote_keys as the  ##
-## single source of truth for valid names, both the 'list' display form [ ##
-## port-hidden, e.g. 'local' ] and the raw file stem [ 'local_42' ], so   ##
-## remove always accepts exactly what list shows                          ##
+## known-host pins live in a separate directory                           ##
+## [ known_hosts_dir, not key_dir ] and never carry a filename extension  ##
+## keys_re recognizes, so they need their own resolution -- reuses        ##
+## keys.list_remote_keys as the single source of truth for valid names,   ##
+## both the 'list' display form [ port-hidden, e.g. 'local' ] and the raw ##
+## file stem [ 'local_42' ], so remove always accepts exactly what list   ##
+## shows                                                                  ##
 my $known_match;
 if ( not defined $forced_category or $forced_category eq qw| known | ) {
     my $remote_keys_ref = <[keys.list_remote_keys]>;
@@ -183,8 +184,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,,.,.,.,.,.,.,,,,.,,...,,..,...,,,,,...,,..,..,,...,...,...,.,.,,,,,...,,,.,
-#COHIFIZNV2B2V5CI7GXGPWPVD7LKAIQEO7RWRE7CDULASEPOZ5PULMVMCGD3CEF3R72L7RLB6SR3A
-#\\\|2YZX4K46LDHGL5P7OTDDYW3PVD2QEEWT2RQFGLBZWHQUK3MLQZR \ / AMOS7 \ YOURUM ::
-#\[7]U5TE5QMN5NIPNLPNPM272VYPB4O4OPAW64WGPJSJLGTCNHV7L2DQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,...,.,,,,.,,.,,,,.,,.,,,,.,,..,,...,...,.,.,,,,,,..,...,.,,,
+#3CM7GUKA2DYVUJXBA3JE2IPU73KSPUOZJBE4GVSXQVPCLI62W3ZIYOJ55UHHJGZODMRTDIJ5O7WJO
+#\\\|QFVGVOEKUOIMO56FRBQY7HBLXY72XUJOOH3UJ7SYIS3EMYYEKBY \ / AMOS7 \ YOURUM ::
+#\[7]AT2E5WDGHOTNSMXK4B5HUV4FRXTPXGK5V5KVWA5C7JTYZWURDMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

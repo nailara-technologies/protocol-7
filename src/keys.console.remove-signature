@@ -17,8 +17,8 @@ if ( not defined $name ) {
     <[base.exit]>->(qw| 0010 |);
 }
 
-## root-held key or root signature key : only root may operate on it [ ##
-## host-root delegation ]                                              ##
+## root-held key or root signature key : only root may operate on it ##
+## [ host-root delegation ]                                          ##
 my $key_path_ref;
 foreach my $held_name ( $name, $rkey_name ) {
     my $held_ref = <[crypt.C25519.key_path]>->($held_name);
@@ -83,8 +83,8 @@ foreach my $file_name (@sig_files) {
 printf " :\n :: [ removed %d file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,,,,,,,,,.,,,,.,.,,,,,.,,,,,,,.,.,,,...,.,.,..,,...,...,.,,,.,,,.,,,,..,,,,,
-#CNIPSUBUSKZUMZ5XCSWMPAM3GI4KOCIUBDWENPFZDOPKS3VE6A54FVJIGVXJZDXUPQ3Z5X3YGYD2G
-#\\\|57HXPRC3NXWXGAYIGLMSL3LVT43JWALAC3VE2DLORBMIVXZA4QS \ / AMOS7 \ YOURUM ::
-#\[7]4RK2JRXMWEJCHSGNPIAN3INS26OMKTEORGZZQUOXPZ7VB7XSQABI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,,,...,.,.,.,,,...,.,.,,,.,..,,..,,...,...,..,,.,,,,..,,,,,.,.,
+#O3EHLOSBLBZ6T3ADWPT5NJUERWWSNDKPS4JODFBKQYESB3KGKC5PGVXN6IEMWKJENFN5BB26J5ERE
+#\\\|ZNJFFUOMW2OLMW3B4Q4SXW76L3OLOH7CDAKNBCAI3XVAG22YP5T \ / AMOS7 \ YOURUM ::
+#\[7]AJZ7GM5V4ZWQMZZQ5YRI7S7OLUTBMY4CV7TR6YHXWDUWBKHNDQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

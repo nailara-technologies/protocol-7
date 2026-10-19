@@ -18,9 +18,10 @@ my $key_usr      = $key_vars_ref->{'usr_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
-## 'host-root' : this host's SECRET root key [ the trust chain anchors here ##
-## ], created once by v7-zenki [ as root ] in the root-held root/ --        ##
-## independent of auto_load_keys, which v7-zenki switches off               ##
+## 'host-root' : this host's SECRET root key                               ##
+## [ the trust chain anchors here ], created once by v7-zenki [ as root ]  ##
+## in the root-held root/ -- independent of auto_load_keys, which v7-zenki ##
+## switches off                                                            ##
 <[crypt.C25519.host_root.create]>;
 
 if ( not <crypt.C25519.auto_load_keys> //= TRUE ) {
@@ -77,8 +78,8 @@ if (    exists $keys{'C25519'}{$key_name}
 
 0;
 
-#,,.,,,..,,,.,,,,,,.,,,,.,,,.,,,,,.,,,..,,,.,,..,,...,..,,,..,,,,,.,,,.,.,,,,,
-#SJSIPRRTROK4QRI5DA5TFO2DLMFNBZ5GUCDVXYEYBFGQ3FCFDVNOOMSBQYMCGNIZVKVWNUPFHE7YQ
-#\\\|MJGCKRVEUBAOBM3QWERVKGLZ5JYINNZXTN7MZNAVLMXYZWWYLSV \ / AMOS7 \ YOURUM ::
-#\[7]RTAUSUW5GW5J3A22DT6GSKXKIF4SQVDHOBI4NESKMQXKSGFWEACQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,,.,.,,,.,,,.,.,,,.,..,,,,.,..,,..,,...,.,.,..,,...,.,,,...,.,.,
+#VIHEQT5BY6XYX2ZVF52CJSI7NMBRUGJNCN2XYMCXEOIR23REPKRLIIVVFQS5HLUFJ626JZVNF3I5A
+#\\\|OALCAHKGSP2ODHHJUMASM4V7Q4XMZG4WF46HKPDKNUGYMJYM7FM \ / AMOS7 \ YOURUM ::
+#\[7]O63SJKGTVL3FCUDQPRHFQ2CYC5B6ID7UTCIXPPJTXOI3CGVVRWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

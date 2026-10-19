@@ -23,16 +23,16 @@ my ($max_id)
 <invoke-web.queue.last_seen>   = $max_id // 0;
 <invoke-web.queue_interactive> = TRUE;
 
-## no polling : checks run on database writes [ inotify ->
-## invoke-web.queue.watch_trigger, debounced ] ; drain_check's minute timer is
-## the fallback. arm the db watch in case ready has not armed it yet [ it is a
-## no-op when already armed ]
+## no polling : checks run on database writes
+## [ inotify ->  invoke-web.queue.watch_trigger, debounced ] ; drain_check's
+## minute timer is the fallback. arm the db watch in case ready has not armed
+## it yet [ it is a no-op when already armed ]
 <[invoke-web.activity.watch_db]>;
 
 return TRUE;
 
-#,,,,,..,,.,,,,,,,,..,,.,,,,,,.,,,.,.,,,,,..,,..,,...,...,...,.,,,...,,,.,,,,,
-#F2YPI2UC47O2F5AYR6BICCAKNBIENFAJMMA5WYL6N4RASACS6OI4636RP7BMLPE4J6QF3KKO2SENU
-#\\\|JBPZYT5NHPATZPO4XNMOE246HBSLXVEXIWLBYZ4BICSVH2MMU32 \ / AMOS7 \ YOURUM ::
-#\[7]22CO6U6CKB2YE2P3WIFAOHANTPUI3UGCSUPJK5PQ6R67TP3XZSCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,..,,,,,.,.,,,,,,..,,.,,.,,,..,,..,,...,...,...,.,.,,,.,,,,,...,
+#JOWNKHJ4KOZQGJ247AOZ4D2QPBWWBUCU5DS4NVE742W3IA2M3VDPJ5VWMZO6CWHOX6SK6NBDKKD6W
+#\\\|JT2KTCEV34DYF6QHZZB5RBMY3QML6D6B6UCXHU3JX62NPMHJZ5V \ / AMOS7 \ YOURUM ::
+#\[7]KBFHCCJ7GWSWWFWIRXAIB5EWELS3P7KSQT2VKOWBHHGXKXNPQKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

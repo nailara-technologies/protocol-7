@@ -21,8 +21,8 @@ if ( not defined $cp_from or not defined $cp_to ) {
 }
 
 ## a root-held key is never copied : the copy would land in the user key ##
-## directory, readable \ deletable by the backend user [ host-root       ##
-## delegation ] -- refused for root too                                  ##
+## directory, readable \ deletable by the backend user                   ##
+## [ host-root delegation ] -- refused for root too                      ##
 foreach my $held_name ( $cp_from, $cp_to ) {
     my $held_ref = <[crypt.C25519.key_path]>->($held_name);
     if ( not defined $held_ref ) {
@@ -107,8 +107,8 @@ say sprintf( "\n  ::  successfully copied %d file%s  ::\n",
 
 <[base.exit]>;
 
-#,,..,...,,.,,,,,,..,,,,,,.,,,.,,,,,,,,..,,.,,..,,...,...,.,.,.,.,.,,,,,,,...,
-#US6MWKB32CFL7ZGTFUY4VPFO563D5R7I6IQUGIZF26XLGUEVAMCBWR2WLLDNZ6WIMWLZ3FTDNGM3M
-#\\\|DGLSJQTW7VT4SIPZL2LSU3ZR66BCR2SKFSKBQWPPZNUF55POUH5 \ / AMOS7 \ YOURUM ::
-#\[7]Y5PNGYNO4X776MEZXHIP4BFVNQKZKXFQLRT4BEHVT7GYJHYUZUDI 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,...,,.,,,,,,,..,.,,,.,.,...,.,.,..,,...,...,,,,,.,,,.,.,.,.,.,,,
+#HJ4S4UFNLSFFHZV2YTAIKVMR7UM4FT6HTC2L4PLTWZC5CPO52CGCQUWFOUI4K5IW6E5ZFPT4LFUUI
+#\\\|FLW2KC7YQLAOI6VSYYEYHLO2LXIWTKKCBZXWSSU6GKHRXCVOKWG \ / AMOS7 \ YOURUM ::
+#\[7]BVQ65Y4AOAE6FAAJKQPFLWTWW6JKU5XTD27INOVGPEADFAUMACAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -100,8 +100,8 @@ unless ( $check_result && ref($check_result) eq qw| HASH | ) {
 ## handler_renewal_check [ seconds earlier, same registry ] ##
 my @needs_renewal = @{ $check_result->{'needs_renewal'} // [] };
 
-## step 5: queue renewal requests for domains needing renewal [ ##
-## queue_renewal_requests logs the result itself ]              ##
+## step 5: queue renewal requests for domains needing renewal ##
+## [ queue_renewal_requests logs the result itself ]          ##
 <[letsencr.parent.queue_renewal_requests]>->( \@needs_renewal );
 
 ## also check for new domains that need certificates  (have vhosts but no
@@ -128,8 +128,8 @@ if ( @new_domains > 0 ) {
 
 return TRUE;
 
-#,,..,,,,,,.,,..,,...,...,,..,,,.,,.,,..,,.,,,..,,...,...,,.,,,,,,,.,,,,,,,,.,
-#CO4LOMXV3SUKJOAXDAVVNYFICUIEHH6J57MJRKNA3NETGC5H6EB5NVB2ZUV5APBB7A5VV6YAHKR54
-#\\\|I3LIL5OG7SOF6ZRDNELMXDELH2S62MME5N37ABIR2XXYSNPNIX6 \ / AMOS7 \ YOURUM ::
-#\[7]VYAYOQ4SBANAHEOYMVZLA6KE2ZO4BXC66CI5Y6GGENEJIXM3IWCA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,,..,..,,.,.,.,,,.,.,,..,.,.,..,,...,...,..,,,..,.,.,,,,,..,,
+#5F72Q5CVC7EBGER2YOGF3YEFKGDX6EODOF7S2C2W4Y4KV54GGXQZNK67HZ6SDSSOGYR5AO6SATZ2Q
+#\\\|MONFUJSRHMFS2OJ4IOAJW4XQRKHSQMP4OVDWHL34MIAL4OFU5LE \ / AMOS7 \ YOURUM ::
+#\[7]OKHKX3PCURSMPYDMXK5JPWRKRALE2NE5B7CQ5HUFCCH3W7KV74CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

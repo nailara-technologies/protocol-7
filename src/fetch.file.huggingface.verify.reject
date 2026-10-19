@@ -18,8 +18,8 @@ my $reply_id = $dl->{'reply_id'} // '';
 ## quarantine : NEVER leave a corrupt file at its final path -- a later ##
 ## fetch attempt must not mistake it for a good file, and nothing       ##
 ## downstream must be able to accidentally load it. naming follows the  ##
-## manual convention from the 2026-09-10 shard-4 incident  [            ##
-## $dest.CORRUPT-<timestamp> ]                                          ##
+## manual convention from the 2026-09-10 shard-4 incident               ##
+## [ $dest.CORRUPT-<timestamp> ]                                        ##
 my $timestamp  = POSIX::strftime( '%Y%m%d-%H%M%S', gmtime );
 my $quarantine = "$dest.CORRUPT-$timestamp";
 my $suffix     = 0;
@@ -57,8 +57,8 @@ if ( length $reply_id ) {
 
 return 0;
 
-#,,,,,..,,...,,,,,.,,,,..,.,,,,,,,,,.,,,,,..,,..,,...,...,..,,.,,,.,.,,..,,..,
-#H6VNAICGBP277JFOSL3YULGG56BYQV2J6KRPUZ42EE4QRGL6IFOIMTNQZFCRLVCQIVZ7H2BLTJWXU
-#\\\|PGJONDXKLN4FWNPD46TJ7JN526OGEMFAYRTONYIOJNICKZNX2UF \ / AMOS7 \ YOURUM ::
-#\[7]RE4K567VYZDDQIINRAAAONWYSTZTOYL47DPUFMZDUFHVSARKFSBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,..,,,,,,..,,.,,,.,.,..,,.,,,..,,...,..,,...,..,,,.,,,..,,..,
+#4764CVSYJEMREFPSMKKIL5OTSNZGXEV4KVVGXIFRPYAAGEB2DIYD3FY45YSBZDICID5IL3WSFD25S
+#\\\|PQOCF5Y5HYFLGQLEU77SO4JNKB7FQZOBESARU5EUIHKLYTCQODR \ / AMOS7 \ YOURUM ::
+#\[7]N377IRJUM7D4LKBH6T2GG4Y4T5J6YL4K7LCXAMTMOETOIGIUUWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

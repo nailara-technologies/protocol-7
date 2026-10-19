@@ -6,11 +6,12 @@
 
 ## the PgUp/PgDn counterpart for a multiline field, mirroring form.
 ## scroll_list's shape but with no mode-switch to drive : a multiline field is
-## always shown in its windowed form [ never collapses to a summary row, see
-## user-edit-multiline-note.yaml ], so there is no editor.control.list.scroll
-## equivalent to call -- the window offset is a plain integer stored directly
-## on the field def [ 'multiline_offset' ], the same way the add-a-field
-## cycler stores its own position in 'choice'.
+## always shown in its windowed form
+## [ never collapses to a summary row, see user-edit-multiline-note.yaml ], so
+## there is no editor.control.list.scroll equivalent to call -- the window
+## offset is a plain integer stored directly on the field def
+## [ 'multiline_offset' ], the same way the add-a-field cycler stores its own
+## position in 'choice'.
 ##
 ## returns FALSE [ no frame rebuild ] when the focused field is not multiline,
 ## or has too few lines to window at all -- callers read this as "not
@@ -44,8 +45,8 @@ $offset = $max_offset if $offset > $max_offset;
 $field_def->{'multiline_offset'} = $offset;
 
 ## the CURSOR moves to the start of the window's first line too, not just the
-## offset -- editor.ui.ascii_frame.render_form's own auto-scroll-to-cursor [
-## user-edit-multiline-note.yaml ] would otherwise snap the window straight
+## offset -- editor.ui.ascii_frame.render_form's own auto-scroll-to-cursor
+## [ user-edit-multiline-note.yaml ] would otherwise snap the window straight
 ## back to wherever the cursor already was on the very next render, since
 ## nothing else moved it.  same move list's own PgUp/PgDn makes for the SAME
 ## reason [ scroll_list's note : "editor.control.list.expand always lands
@@ -73,8 +74,8 @@ my $current_pos = <[editor.control.get_cursor]>->( $editor_state, $name )
 
 return TRUE;
 
-#,,,.,,.,,..,,..,,..,,...,,..,,,,,,,,,.,,,...,..,,...,...,.,.,...,.,,,...,,.,,
-#LCUMUJ54G2DG7F3EWERAZYXFZ4343TPYTIWJLNPVTSE2ZWGISZR4744JAROSSOEOH5O5WLNHQ74VU
-#\\\|5MAGI75IMNVWTJZPTW5MXU3I6A2J2425R3BOZ22BVI2CINKYHMI \ / AMOS7 \ YOURUM ::
-#\[7]PGPVPFUA65EECSD2KHFZKKJTNS72RZ7WSCRV6M3KFORY7AQUNQDY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,.,,.,,.,.,...,.,,,,.,,,,,,,,.,..,,...,...,.,,,,..,,.,,,.,,..,,
+#J3Z3PDN576KNHP74AVRCZ72FD4V5D5PZNI3JG7KTN5IWN4FCNBDSNOKFJCTVQXCM7EUBW2AY6WMO6
+#\\\|KBB4UX64QUDGAZBV4HBGMQYMVJAIFO72DXMZNEHH3EKKET3TWWL \ / AMOS7 \ YOURUM ::
+#\[7]OTVW2MO5ADBUDONRLATWZWUSXCSJU6XLASD4HDBQYJM45YYC5IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

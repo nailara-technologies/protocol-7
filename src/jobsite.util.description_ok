@@ -9,16 +9,17 @@
 
 my $job = shift // {};
 
-## minimum length : real stepstone postings run to hundreds of chars   ##
-## minimum ; a scrape/extraction failure [ blocked interstitial, empty ##
-## body, ... ] tends toward zero, not merely short                     ##
+## minimum length : real stepstone postings run to hundreds of chars       ##
+## minimum ; a scrape/extraction failure                                   ##
+## [ blocked interstitial, empty body, ... ] tends toward zero, not merely ##
+## short                                                                   ##
 my $MIN_LEN = 120;
 
 ## replacement-char cluster : the direct scar left by a failed charset      ##
 ## decode [ Encode::decode's FB_DEFAULT substitutes U+FFFD per invalid byte ##
-## rather than failing outright -- a handful can be real [ one stray        ##
-## mis-encoded byte on the source's own end ], a cluster means the whole    ##
-## body is garbage                                                          ##
+## rather than failing outright -- a handful can be real                    ##
+## [ one stray mis-encoded byte on the source's own end ], a cluster means  ##
+## the whole body is garbage                                                ##
 my $MAX_FFFD = 2;
 
 ## non-printable ratio : catches raw/binary bytes that happened to survive ##
@@ -63,8 +64,8 @@ return {
 
 return { 'ok' => TRUE };
 
-#,,,.,,.,,..,,...,.,,,,,,,,.,,...,.,.,,..,,..,..,,...,...,.,.,,.,,,,.,,.,,..,,
-#3LAWQB3GCBPS4BALOSB6735UBVVMBTF3XYKGQSX6VL6I4NQENWPUAB3DW7WDZYUPU3SGJS7KWMAEO
-#\\\|CIZ6ZBEFHRXQ4ROBTKOAHOWYH4L36WIEYFSDRK46G7WAJFF7EXN \ / AMOS7 \ YOURUM ::
-#\[7]QYMX7IKRIAP45BBM7YKKAX72A4KPI24TDUTVQSH7WHQRXXVDGGBQ 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,.,,,.,.,.,.,,.,,,,,,..,,.,,,..,,...,...,...,,,.,.,,,,.,,,,.,
+#OGRXIXOCBIM7JPIYH4HKJUUNDTTNGUFROIPE75DGCKXHJHBLW72HJC7NESDDU2GVESMWZYD7B2IL2
+#\\\|CFDBFEAYE7NIX3BLG5HUAWD3AYKFPOG2SBY5LBY4J5AW6THOUSU \ / AMOS7 \ YOURUM ::
+#\[7]AEXM76KFOS5EAHC4IGAFG6RTTWXMVZNK7OMWY4M664VGX5BXMOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

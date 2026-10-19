@@ -24,11 +24,11 @@ $view //= qw| overview |;
 ## then autovivifies a brand-new, DISCONNECTED hashref rather than aliasing
 ## the real slot in %data -- the write silently never reaches
 ## %data{session}{...}{cred-mesh}{ui} at all. found live : every interactive-*
-## call afterward correctly resolved the same session_id [ confirmed by a
-## temporary diagnostic ] and still reported "no active ui focus", because
-## nothing had actually been stored there despite this code visibly running
-## and returning a normal-looking render  [
-## data/tasks/credential-fabric-ui-interactive.md ]
+## call afterward correctly resolved the same session_id
+## [ confirmed by a temporary diagnostic ] and still reported "no active ui
+## focus", because nothing had actually been stored there despite this code
+## visibly running and returning a normal-looking render
+## [  data/tasks/credential-fabric-ui-interactive.md ]
 my $ui    = $data{'session'}{$session_id}{'cred-mesh'}{'ui'} //= {};
 my $focus = $ui->{'focus'};
 if ( not defined $focus or ref $focus ne qw| HASH | ) {
@@ -105,14 +105,13 @@ if ( $view eq qw| overview | ) {
     ## that reads as a real gap depends on whether the PRECEDING section's own
     ## rendered text happens to already end in a newline, which varies [ a
     ## restricted-access message string carries its own trailing "\n", an
-    ## ascii.frame.render frame generally does not ]. found live, per the
-    ## user directly : the restricted-slots message sat flush against the
-    ## overview frame above it while still getting a real blank line before
-    ## the NEXT section below, an inconsistency traced to exactly this.
-    ## normalizing [ strip whatever trailing newlines are already there, then
-    ## add exactly one blank line's worth back ] makes every section
-    ## boundary read the same regardless of what either side's own render
-    ## happens to end with
+    ## ascii.frame.render frame generally does not ]. found live, per the user
+    ## directly : the restricted-slots message sat flush against the overview
+    ## frame above it while still getting a real blank line before the NEXT
+    ## section below, an inconsistency traced to exactly this.  normalizing [
+    ## strip whatever trailing newlines are already there, then add exactly
+    ## one blank line's worth back ] makes every section boundary read the
+    ## same regardless of what either side's own render happens to end with
     if ( length $output ) {
         $output =~ s|\n*\z||;
         $output .= "\n\n";
@@ -126,14 +125,13 @@ if ( $view eq qw| overview | ) {
     ## that reads as a real gap depends on whether the PRECEDING section's own
     ## rendered text happens to already end in a newline, which varies [ a
     ## restricted-access message string carries its own trailing "\n", an
-    ## ascii.frame.render frame generally does not ]. found live, per the
-    ## user directly : the restricted-slots message sat flush against the
-    ## overview frame above it while still getting a real blank line before
-    ## the NEXT section below, an inconsistency traced to exactly this.
-    ## normalizing [ strip whatever trailing newlines are already there, then
-    ## add exactly one blank line's worth back ] makes every section
-    ## boundary read the same regardless of what either side's own render
-    ## happens to end with
+    ## ascii.frame.render frame generally does not ]. found live, per the user
+    ## directly : the restricted-slots message sat flush against the overview
+    ## frame above it while still getting a real blank line before the NEXT
+    ## section below, an inconsistency traced to exactly this.  normalizing [
+    ## strip whatever trailing newlines are already there, then add exactly
+    ## one blank line's worth back ] makes every section boundary read the
+    ## same regardless of what either side's own render happens to end with
     if ( length $output ) {
         $output =~ s|\n*\z||;
         $output .= "\n\n";
@@ -163,14 +161,13 @@ if ( $view eq qw| overview | ) {
     ## that reads as a real gap depends on whether the PRECEDING section's own
     ## rendered text happens to already end in a newline, which varies [ a
     ## restricted-access message string carries its own trailing "\n", an
-    ## ascii.frame.render frame generally does not ]. found live, per the
-    ## user directly : the restricted-slots message sat flush against the
-    ## overview frame above it while still getting a real blank line before
-    ## the NEXT section below, an inconsistency traced to exactly this.
-    ## normalizing [ strip whatever trailing newlines are already there, then
-    ## add exactly one blank line's worth back ] makes every section
-    ## boundary read the same regardless of what either side's own render
-    ## happens to end with
+    ## ascii.frame.render frame generally does not ]. found live, per the user
+    ## directly : the restricted-slots message sat flush against the overview
+    ## frame above it while still getting a real blank line before the NEXT
+    ## section below, an inconsistency traced to exactly this.  normalizing [
+    ## strip whatever trailing newlines are already there, then add exactly
+    ## one blank line's worth back ] makes every section boundary read the
+    ## same regardless of what either side's own render happens to end with
     if ( length $output ) {
         $output =~ s|\n*\z||;
         $output .= "\n\n";
@@ -261,8 +258,8 @@ $output .= sprintf( "\n\x02VEFOCUS view=%s row=%d count=%d\x03",
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,.,,,..,,.,,...,...,,,.,.,.,.,,,,,,,,.,,.,.,.,.,...,...,,,,,,.,,,,.,.,,,...,
-#OKOFAVVPGWM2GHCEVKHQJYEA3CK63WTNJMTJTCHRYECAJ5V3MLMUWE7YGQA6EI7SSLZXQUCSH22TO
-#\\\|K3ZVWTRL6YFZ725I3ZONJTVEJHCT7JAYIVU54HQUDMGQ4F5GQZS \ / AMOS7 \ YOURUM ::
-#\[7]RXDO3HGTYOAZZTWEM7LRCOC4AYWE4R4EJ6WO7YD3VJK4HXAFZ2BI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,..,,,.,,,,.,,..,,.,,.,.,,,.,,,.,.,.,...,...,,..,,,,,,,,,.,,,,,.,
+#BLVECND4NC5JQOAPDEXAKBL6IMZBW6YBKRD76ZWCHXEF4P2X45XC3WPNBGFSSGDCVHWURIAMPVTRA
+#\\\|NRML3WAKJM2H44FJ5ZS5PQBVGCWTCBF35BZYEILBVOWJ4V5UOLU \ / AMOS7 \ YOURUM ::
+#\[7]WUNM5SC2PTXMWMCYPQBK62VRXD67FLPSCQ3HFN33M26Q6SUZICDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

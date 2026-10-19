@@ -40,8 +40,8 @@ unless (@cert_files) {
 my @cert_only = grep {m{\.pem$}} @cert_files;
 @cert_only = @cert_files unless @cert_only;
 
-## filter to certs whose domain matches a known vhost hostname  [
-## httpd.cfg.hostnames is populated by httpd.scan_site_dir ]
+## filter to certs whose domain matches a known vhost hostname
+## [ httpd.cfg.hostnames is populated by httpd.scan_site_dir ]
 my $known_hosts = <httpd.cfg.hostnames> // {};
 my @matching    = grep {
     my ($name) = m{/([^/]+)\.(?:pem|cert)$};
@@ -51,9 +51,9 @@ my @matching    = grep {
 ## fall back to all certs if no hostname match [ no scan data yet ]
 @cert_only = @matching if @matching;
 
-## prefer cert closest to root domain [ fewest domain levels ]  e.g. v7.ax [ 2
-## parts ] preferred over visual.v7.ax [ 3 parts ] within same depth, prefer
-## most recently modified
+## prefer cert closest to root domain [ fewest domain levels ]  e.g. v7.ax
+## [ 2 parts ] preferred over visual.v7.ax [ 3 parts ] within same depth,
+## prefer most recently modified
 my $active_cert = (
     sort {
         my ($an) = $a =~ m{/([^/]+)\.(?:pem|cert)$};
@@ -87,8 +87,8 @@ return {
     key_path  => $key_file,
 };
 
-#,,.,,,,.,,..,.,,,.,.,,.,,,.,,,,.,...,,.,,,,.,.,.,...,...,,,,,.,,,,..,,,.,.,,,
-#ARA6UVV2HFBC6DYELBVAXY6MDRTJYB4BZFF7FA3YIHGWJV4KHIQF5XUJZONQKJ7RD6P6F2BJP4SYI
-#\\\|7UXNNEKDT4OBV62CI23BHLWAUS6FGTRSHN426QDXDVGEV7UMD3C \ / AMOS7 \ YOURUM ::
-#\[7]2JCMGGCGFJZ6XGGE4XMEHWVM234CHY7YISIJCIK5IKUUBOLEXYBY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,..,,.,.,..,,,,.,,.,,,.,,..,,.,.,...,...,.,.,,.,,.,.,,,,,,.,,
+#5JTGMJEWDUA2HKF2EGNE6TBJD7XDAJM7Z4OIS3SDACFFEWV74FI3H5CMWXKXMKH4CLEIEMV4NHJTE
+#\\\|HMFTSIPHABSVHO54FZZPG5CE4XUABNCCX3DGR5ETXJNSGZ5BTUU \ / AMOS7 \ YOURUM ::
+#\[7]KNYHKVXJUXU46HLNNI3HL3FV6CCWATVTEZVTSMLSIDWFF64L54BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

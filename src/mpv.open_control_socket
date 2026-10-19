@@ -38,13 +38,14 @@ if ( not defined $socket_dir or not -d $socket_dir ) {
     }
 );
 
-## socket may already exist [ created in the gap between fork and watch     ##
-## install ] -- inotify only reports creates seen after the watch is armed, ##
-## so this covers that race without risking a double dispatch               ##
+## socket may already exist                                                ##
+## [ created in the gap between fork and watch install ] -- inotify only   ##
+## reports creates seen after the watch is armed, so this covers that race ##
+## without risking a double dispatch                                       ##
 <[mpv.startup.handler.socket_ready]> if -e $socket_path;
 
-#,,,,,,,,,...,,,,,,..,..,,,..,,,.,.,,,,.,,.,,,..,,...,...,..,,.,.,.,,,..,,...,
-#Y4SAKZM55GCUHZGWCW43PNAJ4JEYRK4BO57ZU6RVGXLN5GZOQF4EVNB6UYYQVMCGZOL3NTEMGBT46
-#\\\|ZAI5HETZXJWU65G65WYX6NGP6PLQQWSLFKDVUOWUZ37B3TSPTRO \ / AMOS7 \ YOURUM ::
-#\[7]YEGPDRTVKJMJQLQIDFSTBUY23YAFZORJDWTS62MZTQN2YBOLNKBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,...,,..,,.,,.,.,...,,.,,..,,...,..,,...,...,...,.,,,,.,,,..,,,,,
+#3YIF75E6ARYVYO4UJKKDE3H3VWSQHBQCECIJHARBWEMCLQU2TJO6LA6TCQFXRMW533B3BBGQVFUGI
+#\\\|FSWJN2JQNHCY4CMKZRA6VOV374VSILXW43DL2KKQQ6ZTAONRQBF \ / AMOS7 \ YOURUM ::
+#\[7]ZRNHCQPCACOBIQOXORF2QCDZ6YNOWQXAVJB74DKBRBFOOGOBKOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

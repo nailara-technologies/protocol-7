@@ -37,12 +37,13 @@ if ( $path =~ m|\.pdf$|i ) {
     ## letters spaced apart as a design choice, e.g. a cv's own name header ##
     ## ] can come out of pdftotext with inconsistent glyph-spacing          ##
     ## reconstruction across different runs of the source pdf -- e.g. a     ##
-    ## 2-letter cluster stuck together instead of evenly single-letter-     ##
-    ## spaced, visually reading as suddenly packed tight partway through.   ##
-    ## detect a line made ONLY of capital letters and whitespace, grouped   ##
-    ## in clusters of 1-3 letters [ covers both the correctly single-       ##
-    ## spaced runs and the occasional 2-letter glitch cluster ], and        ##
-    ## re-normalize it to a single uniform space between every letter       ##
+    ## 2-letter cluster stuck together instead of evenly                    ##
+    ## single-letter-spaced, visually reading as suddenly packed tight      ##
+    ## partway through.  detect a line made ONLY of capital letters and     ##
+    ## whitespace, grouped in clusters of 1-3 letters [ covers both the     ##
+    ## correctly single-spaced runs and the occasional 2-letter glitch      ##
+    ## cluster ], and re-normalize it to a single uniform space between     ##
+    ## every letter                                                         ##
     $text =~ s{
         ^([ \t]*)([A-ZÄÖÜ](?:[ \t]+[A-ZÄÖÜ]{1,3})+)[ \t]*$
     }{
@@ -52,11 +53,12 @@ if ( $path =~ m|\.pdf$|i ) {
         for my $cluster (@clusters) {
             ## a 2-3 letter glitch cluster [ e.g. "TA" ] is exactly where  ##
             ## the original reconstruction broke down -- that's the most   ##
-            ## likely spot a genuinely WIDER real gap [ a word boundary,   ##
-            ## e.g. between first and last name ] got miscounted down to a ##
-            ## single space, so mark it with a double space instead of     ##
-            ## uniform single-spacing everywhere, or first/last name fuse  ##
-            ## into one unbroken run with no visible word break at all     ##
+            ## likely spot a genuinely WIDER real gap                      ##
+            ## [ a word boundary, e.g. between first and last name ] got   ##
+            ## miscounted down to a single space, so mark it with a double ##
+            ## space instead of uniform single-spacing everywhere, or      ##
+            ## first/last name fuse into one unbroken run with no visible  ##
+            ## word break at all                                           ##
             push @pieces, '   ' if @pieces and length($cluster) > 1;
             for my $letter ( split //, $cluster ) {
                 push @pieces, ' ' if @pieces and $pieces[-1] !~ /^\s+$/;
@@ -68,13 +70,14 @@ if ( $path =~ m|\.pdf$|i ) {
 
     ## a short header/subtitle line [ e.g. a cv's centered job-title line ] ##
     ## can wrap mid-phrase the same way the arbeitszeugnis bullets did --   ##
-    ## "...AI" / "Infrastructure" split across two lines with no sentence-  ##
-    ## ending punctuation before the break. limit this merge to the         ##
-    ## document's first ~10 lines only [ where such short, deliberately     ##
-    ## laid-out header text lives ] so ordinary body-paragraph line-wraps   ##
-    ## further down are never touched -- only merge when the FOLLOWING line ##
-    ## is itself short and just a couple of words, a strong signal it's an  ##
-    ## orphaned tail fragment rather than a new line of prose               ##
+    ## "...AI" / "Infrastructure" split across two lines with no            ##
+    ## sentence-ending punctuation before the break. limit this merge to    ##
+    ## the document's first ~10 lines only                                  ##
+    ## [ where such short, deliberately laid-out header text lives ] so     ##
+    ## ordinary body-paragraph line-wraps further down are never touched -- ##
+    ## only merge when the FOLLOWING line is itself short and just a couple ##
+    ## of words, a strong signal it's an orphaned tail fragment rather than ##
+    ## a new line of prose                                                  ##
     {
         my @hlines = split m|\n|, $text, -1;
         my $limit  = $#hlines < 10 ? $#hlines : 10;
@@ -125,8 +128,8 @@ if ( $path =~ m|\.pdf$|i ) {
         $text = join "\n", @hlines2;
     }
 
-    ## a multi-page letter/reference doc repeats its letterhead footer [   ##
-    ## bank iban/bic, geschäftsführer, registergericht, steuer-nr ] on     ##
+    ## a multi-page letter/reference doc repeats its letterhead footer     ##
+    ## [ bank iban/bic, geschäftsführer, registergericht, steuer-nr ] on   ##
     ## every page -- pdftotext has no page boundary marker, so that footer ##
     ## ends up spliced straight into the running body text wherever a page ##
     ## break happened to fall, interrupting a list or paragraph mid-flow.  ##
@@ -141,11 +144,11 @@ if ( $path =~ m|\.pdf$|i ) {
         (?:^.*Steuer-?Nr\.?:?.*\n)?
     }{}mgix;
 
-    ## word/office-generated pdfs often use a symbol-font bullet glyph [   ##
-    ## e.g. wingdings U+F0B7 ] that pdftotext preserves as its raw private ##
-    ## use area codepoint -- with no symbol font available it renders as a ##
-    ## missing-glyph box/blank instead of a bullet. swap any private-use   ##
-    ## area char for a normal, universally renderable bullet               ##
+    ## word/office-generated pdfs often use a symbol-font bullet glyph    ##
+    ## [ e.g. wingdings U+F0B7 ] that pdftotext preserves as its raw      ##
+    ## private use area codepoint -- with no symbol font available it     ##
+    ## renders as a missing-glyph box/blank instead of a bullet. swap any ##
+    ## private-use area char for a normal, universally renderable bullet  ##
     $text =~ s|[\x{E000}-\x{F8FF}]|•|g;
 
     ## pdftotext -layout re-derives each bullet's column position from the ##
@@ -192,11 +195,12 @@ if ( $path =~ m|\.pdf$|i ) {
     ## footer is still sitting there too, but only at THAT one join, not    ##
     ## between every item, which would look like an arbitrary inconsistency ##
     ## rather than a deliberate style. normalize both cases the same way :  ##
-    ## strip every blank line that sits between two list lines [ a bullet   ##
-    ## marker or a re-indented continuation line ], then re-insert exactly  ##
-    ## one blank line before every bullet marker except the first [ whose   ##
-    ## lead-in paragraph already ends in a real, correct blank line ] --    ##
-    ## uniform spacing between every item regardless of page-break origin   ##
+    ## strip every blank line that sits between two list lines              ##
+    ## [ a bullet marker or a re-indented continuation line ], then         ##
+    ## re-insert exactly one blank line before every bullet marker except   ##
+    ## the first [ whose lead-in paragraph already ends in a real, correct  ##
+    ## blank line ] -- uniform spacing between every item regardless of     ##
+    ## page-break origin                                                    ##
     {
         my $is_list_line
             = sub { defined $_[0] and $_[0] =~ m{^(?:  • |    \S)} };
@@ -217,14 +221,14 @@ if ( $path =~ m|\.pdf$|i ) {
         $text = join "\n", @out;
     }
 
-    ## a short, heavily right-indented title line [ e.g. a centered         ##
-    ## "Zeugnis" heading ] both sits glued directly to the next paragraph   ##
-    ## with zero blank line, AND its large run of leading spaces is         ##
-    ## -layout's way of faking a centered position via plain-text column    ##
-    ## offset -- verified against the actual source pdf : it IS genuinely   ##
-    ## centered there, not an arbitrary indent, so left-aligning it         ##
-    ## (previous fix) loses real layout intent. wrap it in \x01 sentinel    ##
-    ## markers instead -- consumed downstream by                            ##
+    ## a short, heavily right-indented title line                           ##
+    ## [ e.g. a centered "Zeugnis" heading ] both sits glued directly to    ##
+    ## the next paragraph with zero blank line, AND its large run of        ##
+    ## leading spaces is -layout's way of faking a centered position via    ##
+    ## plain-text column offset -- verified against the actual source pdf : ##
+    ## it IS genuinely centered there, not an arbitrary indent, so          ##
+    ## left-aligning it (previous fix) loses real layout intent. wrap it in ##
+    ## \x01 sentinel markers instead -- consumed downstream by              ##
     ## jobsite.report.render_dossier's $esc helper, which turns it into an  ##
     ## actual centered html block once the surrounding text has been        ##
     ## html-escaped [ can't emit real markup here -- this sub returns plain ##
@@ -256,8 +260,8 @@ if ( $path =~ m|\.html?$|i ) {
 
 return '';
 
-#,,,,,,,.,,,.,,,.,,,.,..,,.,,,.,,,.,.,...,...,.,.,...,...,.,.,.,.,,,,,.,,,,,.,
-#WS4QDK7HP5SMFQ4CUC744MB3VR7CGVNOC5WIIFB76OKMAHNHCUF62ICALSU4CUGN6QVLMLBHMRWGE
-#\\\|NJFSFXYKCETY6KNG2XEMPE2PIVNWG67AFSBEZGBSDY2QZMRQTC5 \ / AMOS7 \ YOURUM ::
-#\[7]C33WR3DEJXHDHHQZ3RFULCG3KMTAMOGIHNYPT5ROFIA3RJ6PIYDA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,,,,.,,,,.,,..,.,,,,..,,,,,,..,.,.,...,...,,..,,.,,.,.,,,.,,..,
+#JJVPTAASMINYKLGQBGJ5CC2XHVMCEY3LA3RN5HFIWMTZWX7QPPI2VQA76A3UGLWOU4ZYL3ZIJTHMW
+#\\\|I4WFQX5GF2LIN35HHUR2CRN766BUJXHI6WCULADOYXP53KUVI7N \ / AMOS7 \ YOURUM ::
+#\[7]5J536Q25GPT4IENM5YDRGKDBFY6P3LES6BI4ZXWAA6GCYCCW6EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

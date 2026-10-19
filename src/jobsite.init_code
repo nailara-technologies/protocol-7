@@ -42,10 +42,10 @@ if ( $EFFECTIVE_USER_ID == 0 ) {
 ## per-job state lives under jobsite.tasks.<job_id>.*
 <jobsite.tasks> //= {};
 
-## in-flight watchdog timers, keyed by job_id -- NOT persisted [ mirrors  ##
-## audio.decode's transient-object hash ] : a fresh process has no timers ##
-## to restore, they're re-armed by dispatch.next/dispatch.repair as jobs  ##
-## are (re)dispatched after restart                                       ##
+## in-flight watchdog timers, keyed by job_id -- NOT persisted             ##
+## [ mirrors audio.decode's transient-object hash ] : a fresh process has  ##
+## no timers to restore, they're re-armed by dispatch.next/dispatch.repair ##
+## as jobs are (re)dispatched after restart                                ##
 <jobsite.assess_timer> = {};
 
 ## migrate flat layout to status-directory layout (one-time) ##
@@ -124,8 +124,8 @@ if ( glob("$jobs_root/*.yaml") ) {
 <[jobsite.job.index.build]>;
 <jobs.store> = <[jobsite.job.load_all]>;
 
-## restore the removed-id tombstone log so a reload doesn't lose not-yet- ##
-## pushed removal signals for the web-cache                               ##
+## restore the removed-id tombstone log so a reload doesn't lose ##
+## not-yet-pushed removal signals for the web-cache              ##
 my $removed_log_file = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite removed-log.yaml |;
 if ( -f $removed_log_file ) {
@@ -208,10 +208,10 @@ if ( $sync_interval > 0 ) {
 
 ## re-wire task.wait-done for any jobs stuck mid-assessment after restart   ##
 ## KNOWN GAP : task_id is never cleared on completion by assess-done /      ##
-## repair-done, so it can't be used alone as an in-flight signal [ that     ##
-## would re-flag every job ever assessed, every reload ]. stage is the only ##
-## safe signal for now, but a protected stage [ e.g. applied ] mid-         ##
-## reassessment keeps its real stage and would be missed here — narrow,     ##
+## repair-done, so it can't be used alone as an in-flight signal            ##
+## [ that would re-flag every job ever assessed, every reload ]. stage is   ##
+## the only safe signal for now, but a protected stage [ e.g. applied ]     ##
+## mid-reassessment keeps its real stage and would be missed here — narrow, ##
 ## restart-timing-window edge case, left open rather than risking a         ##
 ## reload-triggered reassessment storm                                      ##
 $tasks = <jobsite.tasks> // {};
@@ -271,9 +271,10 @@ my $job_count = scalar keys %{$tasks};
     <jobsite.cycle>, $job_count
 );
 
-## on its own startup schedule, check configured zenki for job files        ##
-## stranded under their own var dir [ eg from a past path-resolution desync ##
-## ] ; jobsite decides when to look, never an unsolicited push              ##
+## on its own startup schedule, check configured zenki for job files   ##
+## stranded under their own var dir                                    ##
+## [ eg from a past path-resolution desync ] ; jobsite decides when to ##
+## look, never an unsolicited push                                     ##
 <[event.add_timer]>->(
     {   'after'   => 2,
         'repeat'  => FALSE,
@@ -283,8 +284,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,.,,.,.,,..,.,,,,..,,,.,,..,...,,,,,,,.,.,.,..,,...,..,,,,.,,..,,..,.,.,.,.,
-#2F5WWYAV6RVF2RHLEVOID4OHICIO4HHRP7THTCZNAP7H4KHNHCI7URONYO32SHLCZLLGBL2PNQRR6
-#\\\|OE6JEVFHNTQDJUFAOLL6EAE5GCX224M5BDYQOSNQLORQYBWGLHU \ / AMOS7 \ YOURUM ::
-#\[7]BHTQW5UVNZHU5O6VB5FRUG5XEZUUSMBAWYYZVLLHRT5EQ6JDFUDA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,,.,,,,.,.,,,.,,,...,,..,..,,..,,...,...,,..,,,.,.,.,.,.,,..,
+#WABJ2UWXFMTEDQD2YGY624SXWHHDZQUMSYQTPNVFYA7OXFJ7E32I7XNZOL45TYF3JBFIVB7CZL6PI
+#\\\|EHBR3XVSKCTE5JKO7TG4CFKC2KWPKJJMAP6A4M632UJEGTDSHAF \ / AMOS7 \ YOURUM ::
+#\[7]OZEKNE6B3DOZPSXMBTT6FGNPYLKQFYTS5YPNOIINYNEY7PECZGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

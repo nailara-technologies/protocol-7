@@ -11,8 +11,8 @@ unless ( length $task_id ) {
 
 <[base.logs]>->( 2, ': task-notify: new task %s', $task_id );
 
-## claim the task via async callback chain  [ jobqueue handles ##
-## serialization : no active_id guard needed here ]            ##
+## claim the task via async callback chain                             ##
+## [ jobqueue handles serialization : no active_id guard needed here ] ##
 <[protocol-7.route-send]>->(
     {   'command'   => 'task.claim',
         'call_args' => { 'args' => "$task_id models" },
@@ -25,8 +25,8 @@ unless ( length $task_id ) {
 
 return { 'mode' => 'true', 'data' => "claiming $task_id" };
 
-#,,.,,,..,.,.,...,.,.,...,,.,,...,,.,,..,,.,.,.,.,...,..,,,.,,,.,,,..,,,,,...,
-#RX4RUY3YYHEIAUZWRZLP6OXBJKFSS6C2XZIPXKO4L6S2BLQFJQYZCTWVWYVYOAACHVQTAG2BZJ6RQ
-#\\\|57GFEQ3ZRHX3AECS7CBPQAEHPD4H6ED3AYN5CSZBJSZRQVHHGJV \ / AMOS7 \ YOURUM ::
-#\[7]47JZATKDDVTP72K2W2VBTFTPONE3MUKGOI42KAUPKOTSSHJI4ODI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,.,,,...,.,.,.,.,,,,,..,,..,,.,.,...,...,..,,.,.,,.,,.,,,,,.,
+#T5Y7Q32ISL2PGLX3UXID2CNSBG3SO7B7T3WHSKAGC3FXHA4EBHADNDWSROXFAB4AT3J24IMZWFR2C
+#\\\|XSURDAYJ75KOZFSUIQOQI2FM4JP3SQ3YLSTA2SV57CCCNO7KTNE \ / AMOS7 \ YOURUM ::
+#\[7]DT4QW2P6FXYE3O4DMCJGGXCV3OVX2H7R2ZJAEUCDF62L3YOAIEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

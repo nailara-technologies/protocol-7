@@ -19,9 +19,9 @@ $requested_encoding =~ s|\s+||g;
 
 my $session = $data{'session'}{$session_id};
 
-## a binding-pending session [ auth-keypair ] has no state 1 to fall back  ##
-## to : any refusal here disconnects it [ data/md/design/AUTH-LINK-BINDING ##
-## ]                                                                       ##
+## a binding-pending session [ auth-keypair ] has no state 1 to fall back ##
+## to : any refusal here disconnects it                                   ##
+## [ data/md/design/AUTH-LINK-BINDING ]                                   ##
 my $refuse = sub {
     my $reason = shift;
     if ( ( $session->{'link_binding'} // '' ) eq qw| pending | ) {
@@ -81,8 +81,8 @@ return {
     'data' => "link-upgrade OK $pubkey_b32"
 };
 
-#,,,.,.,.,,.,,,,,,,,.,,..,..,,,..,.,.,,,.,,..,..,,...,...,...,,..,,,.,,..,..,,
-#D5PYOYWRU5VLJRCZ4EJE2ZKEH4KICVJFP777MM36ODHZSRBOXBT45XOOIO4OSAA2KLOPR3HS5FV5Y
-#\\\|MC5NHM4D43DYZ2E74PEH5IAPW63SENHSF5BQUAE3F6DCAE7XEVD \ / AMOS7 \ YOURUM ::
-#\[7]6QV2A46HQ2FBTRFIFKG7Q3IYBQEPWBMMLT4OTCACJX6X2EJ6IYAA 7  DATA SIGNATURE ::
+#,,,,,...,..,,,..,,..,,..,..,,.,,,,,,,...,.,,,..,,...,...,...,,.,,.,,,,,,,,,,,
+#35FAMF6LXNVO6KSHEJVQHCN7D6O3JZ35KIWNHX4CPZTDFDSQ5NB55EJJPFJUGPPALLTU4BSX7RTB4
+#\\\|N7YLZQPZBHV2JTZFMQJQBF3T2KLZWYHSWXVTNXNDUEAAYVXC32G \ / AMOS7 \ YOURUM ::
+#\[7]4COOUJTRBRGMIMJ2TXRPFLWJVMV2FRUHF2GERVIQFX5FPWVI5KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

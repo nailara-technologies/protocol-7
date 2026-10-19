@@ -4,9 +4,9 @@
 # descr = retry failed \ canceled items [ + all | text ]
 # param = <id ..> | failed|canceled
 
-## no filter : list only [ grouped by error ] ; 'all' or an error text [  ##
-## e.g. 'cuda' ] retries. an item with a copy already [ ui retry too ] is ##
-## never retried again. missing model items : see requeue-missing         ##
+## no filter : list only [ grouped by error ] ; 'all' or an error text      ##
+## [ e.g. 'cuda' ] retries. an item with a copy already [ ui retry too ] is ##
+## never retried again. missing model items : see requeue-missing           ##
 
 my $arg = lc( $call->{'args'} // '' );
 $arg =~ s{^\s+|\s+$}{}g;
@@ -161,8 +161,8 @@ return {
     data => sprintf( "%d item%s re-queued\n", $count, $count == 1 ? '' : 's' )
 };
 
-#,,,.,,..,,,,,,,.,,.,,,.,,...,,.,,..,,.,.,,..,..,,...,..,,,.,,,,.,.,,,,,.,,..,
-#AR6JRNVB433FREXKQG4MGLFGLU7HU7FM2NNFVIFZOD7U7VFRUZXB3CWQX2D5M5GKFGI5CZSOH4IFM
-#\\\|L5K6QOR2HDDUM7DLM774KUAETJD746DVKH4JKS2K4TXJCDPEQSY \ / AMOS7 \ YOURUM ::
-#\[7]IXILNMPLYA6RHSZWHWQRDVY7XAEKZFC3SQNWUSIZ7ECG7PCUC6CQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,,,,..,...,,..,.,.,,,.,.,.,...,..,,...,...,.,,,.,,,,,,,,.,,,,,,
+#DP2LMKM6WUZMLYNRTQKLLYWPZCYA5RYKHMBZZ5BYWFZ65GGONBAMTWQWTL6P65ERSMZ2ECMJEG5OY
+#\\\|ONM4HMLLRI2UDK7JYZNREL75JX5DA7GFRX4GS5XB3R2HW5DJAFO \ / AMOS7 \ YOURUM ::
+#\[7]U7PUIHHHVZ5N45SFSNHHNZYXPVVQ53FKCI4RJCVJSSOGHQC2TKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

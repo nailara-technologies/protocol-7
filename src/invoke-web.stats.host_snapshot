@@ -43,8 +43,8 @@ my $vmstat = $read->('/proc/vmstat');
 
 ( $snap{'uptime_s'} ) = $read->('/proc/uptime') =~ m{^(\d+)};
 
-## whole disks : reads, sectors read, ms reading, ms busy [ diskstats ##
-## fields 4 6 7 13 ] -- partitions and virtual devices left out       ##
+## whole disks : reads, sectors read, ms reading, ms busy                   ##
+## [ diskstats fields 4 6 7 13 ] -- partitions and virtual devices left out ##
 foreach my $line ( split m{\n}, $read->('/proc/diskstats') ) {
     my @field = split ' ', $line;
     next if ( $field[2] // '' ) !~ m{^(?:sd[a-z]+|vd[a-z]+|nvme\d+n\d+)$};
@@ -56,8 +56,8 @@ foreach my $line ( split m{\n}, $read->('/proc/diskstats') ) {
 
 return \%snap;
 
-#,,,.,...,,,,,,,,,,,,,,,,,...,...,,.,,,,.,...,..,,...,.,.,.,.,,..,,.,,.,.,,..,
-#45G44HWWRV3SOZC7TK7IP55HWG5G3L3NVWE6YEU3YN27BJZQCCQJ6HB766RWSMUL3GD7OFJNPQXTQ
-#\\\|Q7KVNAXRL64FXYIBI5DT4QSJ65OGGR5HVN7Q4BRH7BNP65HBAKJ \ / AMOS7 \ YOURUM ::
-#\[7]HUSZQVUJWPDGT5XNXE3XOZR4YPRXTYRGMMLVR7EQOVTBYPFLTSBI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,...,,..,.,.,,,,,,,.,,,,,,..,..,,...,...,.,.,,,.,..,,,,.,,.,,
+#3S5JXBFKMVJNO7RTSRE7BD7THUJK2DNR34TNRLEZZGXFOGBL3GL5O3HGBMCXN3FZTZTWZJ2SV6DQY
+#\\\|RBKTPGBWSYPBLQ4REPIS32JGPTZYVTGB75J5B3JQR5LKJSRFXTP \ / AMOS7 \ YOURUM ::
+#\[7]UDQH5AU7LP5FUINGOAKVAJUY43A5ADEWV6S5QGS7LODICNLFP6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

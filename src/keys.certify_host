@@ -96,9 +96,10 @@ if (   not defined $owner_pub
     $unload->();
     return $fail->( qw| 0110 |, 'owner key is not an Ed25519 signing key' );
 }
-## a virtual \ derived key has nothing on disk to check a phrase against :  ##
-## a wrong phrase is simply ANOTHER key. expect_id [ the owner pin's key id ##
-## ] makes that fail closed instead of signing as a stranger                ##
+## a virtual \ derived key has nothing on disk to check a phrase against : ##
+## a wrong phrase is simply ANOTHER key. expect_id                         ##
+## [ the owner pin's key id ] makes that fail closed instead of signing as ##
+## a stranger                                                              ##
 if ( defined $expect_id
     and ( <[trust.key_id]>->($owner_pub) // '' ) ne $expect_id ) {
     $unload->();
@@ -144,8 +145,8 @@ return {
     qw| host |      => $host,
 };
 
-#,,,.,.,,,...,,..,,.,,.,,,,.,,,.,,,,,,.,,,.,.,..,,...,...,...,...,,,,,,..,,,.,
-#6IMGCVNYYLBHNPW2INP3DS3JYQVZ5MP4GKRGAVN2E5UTMZOYB2Z7M62DOOM4426J3LN7DRGOBGCUE
-#\\\|NTUXHIT6RX3H5XHRWLFOMABP3N4SA2FTS7MKG5GO4JJVI4UH4HO \ / AMOS7 \ YOURUM ::
-#\[7]EHYN5FRKZ7ERD2F4XNJHKCJG7L2OJZGT2SPLU4ATIRKTOCTNS6AI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,.,,,...,...,...,..,,.,,,,,.,..,,...,..,,,,.,,,,,..,,,,.,.,,,
+#DHC5EXDYJFND74LB4XQKIIJ2PAVZMLLYXHPM7O6WPCNRQQO6BO54HE26GZBXHEFPM2YMLDNXNUIWU
+#\\\|PWIV25NV4O6DCFOHRTLUAJ7MCQQ7VI2K2CQBFVVLZ7NLMDLKXCK \ / AMOS7 \ YOURUM ::
+#\[7]34Z5UMP7MPGLA32TPKD67W7QVFOPIGID7DYBGCW7U4US45OKSIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

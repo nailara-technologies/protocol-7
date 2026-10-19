@@ -17,7 +17,8 @@
 ## load stored certificates from disk into memory registry
 my $load_result = <[letsencr.parent.load_certificate_registry]>;
 ## success needs no line here : load_certificate_registry logs the count ##
-my $load_status = ref $load_result eq qw| HASH |
+my $load_status
+    = ref $load_result eq qw| HASH |
     ? $load_result->{status} // ''
     : '';
 if ( $load_status eq qw| partial | ) {
@@ -141,8 +142,8 @@ if ( not exists <buffer.acme-activity> ) {
 
 0;
 
-#,,..,...,..,,,,,,.,,,,,,,.,,,..,,,.,,...,,,,,..,,...,...,.,.,.,,,...,,.,,...,
-#54H5D2JIOY64K2XIXBBW2LGOJ4ARKFUAU2GT5FFPPOIQINMN43QMVAYDE3HUCHORQ4CZT2BPEE4EK
-#\\\|UKS6FYKC3LOZKBZZVFOAXCOZLMOMKAQTW3L45EQHGJVJEK4IGI2 \ / AMOS7 \ YOURUM ::
-#\[7]O7CMUMJ3IMIBUAUGWXKB3TEKUHT7UIBAF256HXDWQPQKNAAQ2WAA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,.,.,,,,.,,...,.,.,,..,,,.,,,,,..,,...,..,,,..,,,.,,.,,,,.,.,,,
+#Y56NHLPFDSLOWY5UQQXGIDE3FOXGQQOI33BDJ2GAJ6I6CQ7PGXVBNM43T4ZUPEK5HP5ZWPDES2RRE
+#\\\|RBI4FDVOR7K6VMW63WYYYDEXMBPCH7MEWVZ4WYDLD3WWI42FQCB \ / AMOS7 \ YOURUM ::
+#\[7]M7FOYWQTXR7NI53JJAFLJWQEYGMJ5ISRLV6R4PZFQC7H77FC4QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -58,13 +58,14 @@ if ( length $old_status ) {
 }
 
 ## defensive scan for orphaned copies : the index-derived old path above is ##
-## a single guess that can be stale relative to the filesystem [ e.g.       ##
-## rapid multi-step status sequences ], leaving copies of this job under    ##
-## other status dirs that neither this rename nor store.prune ever sees     ##
-## again -- glob for this id across all status dirs [ one-level for the     ##
-## plain statuses, two-level for the epoch-bucketed blocked/deleted/trash   ##
-## dirs with their varying epoch subdir names ] and remove any genuine      ##
-## stray that is neither the new target nor the handled old path            ##
+## a single guess that can be stale relative to the filesystem              ##
+## [ e.g. rapid multi-step status sequences ], leaving copies of this job   ##
+## under other status dirs that neither this rename nor store.prune ever    ##
+## sees again -- glob for this id across all status dirs [ one-level for    ##
+## the plain statuses, two-level for the epoch-bucketed                     ##
+## blocked/deleted/trash dirs with their varying epoch subdir names ] and   ##
+## remove any genuine stray that is neither the new target nor the handled  ##
+## old path                                                                 ##
 my @stray_matches = eval {
     grep { -f $ARG } map { glob($ARG) }
         "$jobs_root/*/$enc_id.yaml",
@@ -226,8 +227,8 @@ rename( $index_tmp, $index_file )
 
 return $written;
 
-#,,,,,.,.,.,,,...,...,.,.,,,,,,,,,.,,,...,...,..,,...,...,.,.,...,.,.,,,.,,..,
-#NSTZ534QSJBWPL2SAKZ2JQ4HNKUKHG5NLQTNB7SZFMKPHRJNZMM5HFPKORLMMBOFQKYIAALBS373M
-#\\\|JCHNBUDPHOY75MT2ARO44WISWS76FVFPZ5KOZPF2AJBMSRYYK5B \ / AMOS7 \ YOURUM ::
-#\[7]2KBYU5WANXZB2A5HRWUZHJHRVOEWYHL4HOZYJ3P3B36KAVRFHGAY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,,,.,,.,,,.,,.,,,,,,,.,.,,..,..,,...,...,..,,,,,,..,,,..,.,.,
+#B7LFZYHCVUPCKNI7PLU2LZBW4RRAYY6OZ4IXSIOXLI3Z5RDFQAKY5EYXYQ2SKBWLGB72I5UQ7DI2O
+#\\\|V6VPZQA64I6JZ4UETAD3Q6WZGLP33X3W4WYY7TA4NDVIIEQYF34 \ / AMOS7 \ YOURUM ::
+#\[7]ZMDOUEAIPVXH5OLNCYD73WRRQEPNNSM6BANVGDGRHCXY5R5AM6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

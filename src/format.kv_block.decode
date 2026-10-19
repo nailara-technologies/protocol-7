@@ -29,8 +29,8 @@ foreach my $cand (@candidates) {
 }
 my %is_key = map { $_->[0] => 1 } grep { $_->[1] == $min_col } @candidates;
 
-## continuation prefix : ':' . ' ' x ( $max_len + 7 ) [ max_len = min_col - ##
-## 2 ]                                                                      ##
+## continuation prefix : ':' . ' ' x ( $max_len + 7 ) ##
+## [ max_len = min_col - 2 ]                          ##
 my $strip_n  = $min_col + 5;
 my $strip_re = qr|^: {0,$strip_n}(.*)$|;
 
@@ -95,8 +95,8 @@ $flush_key->();
 
 return \@pairs;
 
-#,,,.,,,.,..,,.,,,,,,,.,,,,,,,.,,,..,,...,,,,,..,,...,...,.,,,,,.,,.,,..,,.,.,
-#E7TQ2XQERYWX4KHZ7L3CABVZ33EMT6ZTGERV5PNBKCTCVKWRNPBMLJB5SZQLPU7OLNNTBCEG3BQGY
-#\\\|N3EHLLR7J5HT4F5OMRRKDLCL3EUA7OUCYHS2ES56I4WU2LSG2IC \ / AMOS7 \ YOURUM ::
-#\[7]ASPQK4JVZSLYBIHMZVYLGN66GEJM2M2V4SL6BFKN5NWHCMJDJABY 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,,,.,,.,,.,,,,.,,,,,,,,,,,.,,..,,...,...,.,,,,,.,,..,,,.,,,.,
+#T47VOGJ73I654NDTDQN3LGLLWILIJQ3TQMLI73TMNICDPYHUYZFQFYVLTLFVJTQYQEIFUIGNO2VHK
+#\\\|I5HTL5WHJK5BUPJ2UOCBS5CXK2O4BZ2N3KDBRFN7CDDGBIN5URZ \ / AMOS7 \ YOURUM ::
+#\[7]ODFEFB6A7Z4IHKFHE5CVF5WVI5TFQYTL43TQBNQXHYIMNOHHX2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

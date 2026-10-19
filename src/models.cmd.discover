@@ -4,11 +4,12 @@
 # descr = unified model discovery : list, re-scan, clear registry
 # param = [:clear:] [:re-scan:] [:available:|:unavailable:]
 
-## consolidates models.cmd.discover_files + models.cmd.clear-registry [
-## data/yaml/coding-tasks/models-discover-cleanup.yaml ] into one command with
-## unified flags. both older commands were REMOVED outright, not deprecated --
-## repo-wide audit found zero real callers for either (console/human-operator
-## use only), see that task file's resolution section for the full audit.
+## consolidates models.cmd.discover_files + models.cmd.clear-registry
+## [ data/yaml/coding-tasks/models-discover-cleanup.yaml ] into one command
+## with unified flags. both older commands were REMOVED outright, not
+## deprecated -- repo-wide audit found zero real callers for either
+## (console/human-operator use only), see that task file's resolution section
+## for the full audit.
 #
 # usage:
 #   models.discover                    list registry [ default : all ]
@@ -19,10 +20,11 @@
 #   models.discover :clear: :re-scan:  clear then re-scan
 #
 ## backward compatible : coding.handler.fetch_model_discovery calls this with
-## the pre-consolidation bare-word contract [ call_args => { args =>
-## 'available' } ], not the colon-flag form -- both are accepted, and the
-## list-mode reply TEXT FORMAT below is unchanged byte-for-byte, since
-## coding.handler.models_discover_reply parses it directly by regex.
+## the pre-consolidation bare-word contract
+## [ call_args => { args => 'available' } ], not the colon-flag form -- both
+## are accepted, and the list-mode reply TEXT FORMAT below is unchanged
+## byte-for-byte, since coding.handler.models_discover_reply parses it
+## directly by regex.
 
 my $args = $call->{'args'} // '';
 
@@ -101,8 +103,8 @@ if ($do_rescan) {
     return { 'mode' => qw| size |, 'data' => $reply_str };
 }
 
-## list [ default mode, unchanged from pre-consolidation ##
-## models.cmd.discover ]                                 ##
+## list                                                                    ##
+## [ default mode, unchanged from pre-consolidation  models.cmd.discover ] ##
 
 ## access registry directly to preserve keys (keys are the amos composite ids)
 my $registry = <models.registry> // {};
@@ -166,8 +168,8 @@ foreach my $model (@discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,,,,,...,,.,,,..,,.,,.,,,.,,,,..,...,,,.,..,,...,...,.,.,.,,,,,,,.,.,..,,
-#ZAKY53Y6J7DS5FT3P3JJVWMB75KEANDFFZWSGYIMHLSYTHFOIE6NW2KDTL4A222CL3JER7NQOYUWW
-#\\\|5O3HO3P5CWUBEVSR224GHF6EYQV3KG4G25OG6LRS74ARRLYE6L5 \ / AMOS7 \ YOURUM ::
-#\[7]XSKMJZ4UZ2H2VCI7W64DI4IAWU3Y6XAHU7JSWCMF5KVBL2CGPQCA 7  DATA SIGNATURE ::
+#,,..,..,,..,,,,.,...,.,,,...,.,.,...,,.,,,.,,..,,...,..,,,..,,,,,.,.,,,,,.,,,
+#VDKJWEGEW3HEMMAMLQYJD7OYIYMFE4V6MCT4EIBUVNON5C64PYAJD56N4MOPZZTC5PBUGMP4ULWWI
+#\\\|HL435HCLV2KY44JMPGQ4AEHNEJAAY4POUGOLMKH5HVLOYENGKQ4 \ / AMOS7 \ YOURUM ::
+#\[7]UTF7EIYLJWL76RV6TC6GQXGCTZKPAT6OSJ23J7CQVMSBTQ3BLMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

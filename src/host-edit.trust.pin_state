@@ -6,12 +6,12 @@
 # return = { trust => ..., owner_trust => ... }
 
 ## HOST-SETUP.md 'host record' : key id, leaf name and since are NEVER copied
-## into the record -- the host pin in ~/.n/remote-keys/servers/ [
-## <host>_<port>.public ] is the single source of truth.  the form READS it [
-## keys.list_remote_keys-style, three header lines ] and shows trust from it ;
-## a record with no reachable pin shows 'not contacted yet'.  through a tunnel
-## the dialled address is a local forward, so the pin is named after the
-## RECORD [ <name>_<port> ] -- tried first ; the address stem is only a
+## into the record -- the host pin in ~/.n/remote-keys/servers/
+## [ <host>_<port>.public ] is the single source of truth.  the form READS it
+## [ keys.list_remote_keys-style, three header lines ] and shows trust from it
+## ; a record with no reachable pin shows 'not contacted yet'.  through a
+## tunnel the dialled address is a local forward, so the pin is named after
+## the RECORD [ <name>_<port> ] -- tried first ; the address stem is only a
 ## fallback [ the pre-tunnel TOFU layout ].
 
 my ( $record_name, $fields ) = @ARG;
@@ -49,10 +49,11 @@ if ( defined $servers_dir and -d $servers_dir ) {
 
         ( my $safe_host = $host ) =~ tr|:|_|;
 
-        ## the RECORD's pin first [ p-7-r -host <name>:<port> names it so  ##
-        ## through a tunnel ] ; the address stem only as a fallback for a  ##
-        ## direct connect made before the record existed -- another host's ##
-        ## pin at a shared address [ localhost ] must never win            ##
+        ## the RECORD's pin first                                           ##
+        ## [ p-7-r -host <name>:<port> names it so through a tunnel ] ; the ##
+        ## address stem only as a fallback for a direct connect made before ##
+        ## the record existed -- another host's pin at a shared address     ##
+        ## [ localhost ] must never win                                     ##
         foreach my $stem (
             sprintf( qw| %s_%s |, $record_name // '', $port ),
             sprintf( qw| %s_%s |, $safe_host,         $port )
@@ -74,9 +75,10 @@ if ( defined $servers_dir and -d $servers_dir ) {
             next if not defined $key_id or $key_id !~ m|\A[A-Z2-7]{77}\z|;
 
             ## 'since' is the not_before of an OWNER statement certifying the
-            ## host-root [ forward-only rotation, p7-auth-keypair-helper.pl
-            ## pin_decide ] -- 0 for a first-contact pin, which has none. it
-            ## is not the pin date : shown as a utc date only when set
+            ## host-root
+            ## [ forward-only rotation, p7-auth-keypair-helper.pl pin_decide ]
+            ## -- 0 for a first-contact pin, which has none. it is not the pin
+            ## date : shown as a utc date only when set
             $since = 0 if not defined $since or $since !~ m|\A[0-9]+\z|;
             $columns{'trust'} = sprintf(
                 q{key %s · %s%s},
@@ -110,8 +112,8 @@ if ( length $owner and defined $owners_dir ) {
 
 return \%columns;
 
-#,,..,.,.,,,.,..,,...,..,,,.,,,,,,,.,,,,.,,,,,..,,...,.,.,,,.,,..,...,..,,..,,
-#MY5HMH33TUBHKZ4XBKTZLNYIPGA4K7OP62D2HZ46UNBL6FCPA7LBCR5SVADT6RWPAMZ44EI7HMATW
-#\\\|VUH2VORAXZCSTR5PPAM5Y5AWCPJXHLHGDGFJK7ZZMZOEWJ4ADZZ \ / AMOS7 \ YOURUM ::
-#\[7]4F3M4D5EY6YF4M2YU2XXBKIJZ5EBYKL45M5DRWR36JIDFC5OJQDA 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,...,.,.,,,,,,.,,..,,...,.,.,..,,...,...,.,.,.,.,..,,...,..,,
+#DD7S57TGC5HS3SYSPVB42UZQOT2UKWMPQMV4KTA2HXGSCUZV6Z4I2LJJCDPW3Z3ELJVEYBZ5NGCYY
+#\\\|4SLYHPGKL2NSZRT44XV3AEGVR7YTSRIATRJY2PUTYS237S6VVJD \ / AMOS7 \ YOURUM ::
+#\[7]2YJD7U4AS6XNO6DOIM5FXRACX5227ZBOTHQ3QSPHOIM7HPNIB2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

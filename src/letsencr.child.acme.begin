@@ -25,8 +25,9 @@ if ( not ref $req->{'domains'} eq qw| ARRAY | or not $req->{'domains'}->@* ) {
     return { 'mode' => qw| false |, 'data' => 'domains required' };
 }
 
-## local + quick : server context [ resets the client state when the server ##
-## changes ] and its account key [ separate per server ]                    ##
+## local + quick : server context                                          ##
+## [ resets the client state when the server changes ] and its account key ##
+## [ separate per server ]                                                 ##
 my $server = <[letsencr.child.acme_use_server]>->( $req->{'server'} );
 
 my $key = <[letsencr.child.load_account_key]>->($server)
@@ -50,8 +51,8 @@ return { 'mode' => qw| false |, 'data' => 'acme order could not start' }
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,...,.,.,,.,,,,.,,,,,,.,,,..,.,.,,.,,,.,,..,,...,...,,,.,,,,,,..,.,,,..,,
-#26ZEQPCFXD6O5OIVT2NLMW5DICAW4HIP4IKSTTWEJYSONH6OQDBA5J7JLMQHGJKHXVDMFLJHBER4I
-#\\\|AG5Y2PFRTNWCVVJ7JDYWAGJPDCLVGMGXUR77S7JP63RNRSY2MFF \ / AMOS7 \ YOURUM ::
-#\[7]DWY4YQA3BUXBX5GLWISUHJ3UDD7RQJGEUIHOPFQVNX3HZDFRSOCA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,.,,,..,,.,.,,.,,...,,,,,..,,..,,...,...,...,,.,,.,,,,,,,,,,,
+#XJLZWDIWIV4UKDI4BV2MGCRCJ66RE6SKWTK4RLRJRCPOYGNWGSV5QBO5B2UWH5QVLYJEYXWJBCNMI
+#\\\|UTMAX7LOZARM7WIPXRADAQN2TXRN3DP6N3YP5IJZYCJU3G4DGGF \ / AMOS7 \ YOURUM ::
+#\[7]VKRON6R3FBE2T676LBQ3TEAAQRHWOEFQ2WISV6AXMUYVNDBYUIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

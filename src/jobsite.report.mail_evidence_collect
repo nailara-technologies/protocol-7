@@ -12,8 +12,8 @@ my $entries = $param->{'entries'} // [];
 my $mail_dir = $param->{'mail_dir'} // <jobsite.cfg.mail_dir>
     // '/data/jobcenter-report-data/mail-rejections';
 
-## mbox files directly in mail_dir, plus one level of subdirs [ per-account ##
-## ]                                                                        ##
+## mbox files directly in mail_dir, plus one level of subdirs ##
+## [ per-account ]                                            ##
 my @mbox_files = (
     glob("$mail_dir/*.mbox"), glob("$mail_dir/*/*.mbox"),
     glob("$mail_dir/*"),      glob("$mail_dir/*/*")
@@ -81,24 +81,25 @@ my $noise_subject_re = <jobsite.cfg.mail_noise_subject_re> // qr{
     | (?:deine|ihre)\ einwahldaten
 }ix;
 
-## stems, not full inflected forms : "nicht berücksichtigt" [ past         ##
-## participle ] silently failed to match the equally common infinitive     ##
-## phrasing "leider ... nicht berücksichtigen können" -- verified against  ##
-## real rejection mail, 41 of 59 real ones turned out to depend solely on  ##
-## the generic 'leider' fallback below because this and 'nicht ausgewählt' ##
-## [ not actually idiomatic german in this context ] never matched at all  ##
+## stems, not full inflected forms : "nicht berücksichtigt"               ##
+## [ past participle ] silently failed to match the equally common        ##
+## infinitive phrasing "leider ... nicht berücksichtigen können" --       ##
+## verified against real rejection mail, 41 of 59 real ones turned out to ##
+## depend solely on the generic 'leider' fallback below because this and  ##
+## 'nicht ausgewählt' [ not actually idiomatic german in this context ]   ##
+## never matched at all                                                   ##
 my %rejection_words = map { $ARG => 1 }
     ( 'absage', 'ablehnung', 'nicht berücksichtig', 'rejection', 'regret', );
 ## "es klappt [vorher] bei denen nicht" -- same idiom as 'nicht geklappt' ##
 ## but with the negation trailing instead of leading ; word order varies  ##
 my $klappt_re = qr{nicht\s+geklappt|klappt\s+(?:\S+\s+){0,6}nicht}i;
-## 'leider'/'unfortunately' are the dominant real-world rejection signal [ ##
-## "Leider müssen wir Ihnen mitteilen..." ] but too generic to trust alone ##
-## -- "leider konnte ich Sie telefonisch nicht erreichen" [ a recruiter    ##
-## apologizing for a missed *phone call* while chasing a still- pending    ##
-## skill-sheet request ] matched and misclassified a live, never- answered ##
-## lead as a rejection. require a decision-verb word to co-occur anywhere  ##
-## in the same mail before trusting the generic apology word               ##
+## 'leider'/'unfortunately' are the dominant real-world rejection signal  ##
+## [ "Leider müssen wir Ihnen mitteilen..." ] but too generic to trust    ##
+## alone -- "leider konnte ich Sie telefonisch nicht erreichen" [ a       ##
+## recruiter apologizing for a missed *phone call* while chasing a still- ##
+## pending skill-sheet request ] matched and misclassified a live, never- ##
+## answered lead as a rejection. require a decision-verb word to co-occur ##
+## anywhere in the same mail before trusting the generic apology word     ##
 my $leider_re  = qr{leider|unfortunately}i;
 my $verdict_re = qr{
       ## mitteilen / mitzuteilen / mitgeteilt [ separable ##
@@ -169,9 +170,10 @@ my $date_sort_key = sub {
 
 my @evidence;
 for my $mbox_path (@mbox_files) {
-    ## a lone .eml file [ e.g. proton mail export tool's one-file-per-   ##
-    ## message layout ] IS a single message already -- only genuine mbox ##
-    ## files [ concatenated messages ] need splitting                    ##
+    ## a lone .eml file                                                    ##
+    ## [ e.g. proton mail export tool's one-file-per-message layout ] IS a ##
+    ## single message already -- only genuine mbox files                   ##
+    ## [ concatenated messages ] need splitting                            ##
     my $messages;
     if ( $mbox_path =~ m|\.eml$|i ) {
         my $content_ref = <[file.slurp]>->($mbox_path);
@@ -301,10 +303,10 @@ for my $mbox_path (@mbox_files) {
     }
 }
 
-## exact-duplicate guard : the same physical message can turn up twice [    ##
-## e.g. present in both mail accounts, or duplicated within one export ] -- ##
-## these bypass the per-job dedup below entirely when unmatched, so catch   ##
-## them here by identical subject+sender+date before that runs              ##
+## exact-duplicate guard : the same physical message can turn up twice     ##
+## [ e.g. present in both mail accounts, or duplicated within one export ] ##
+## -- these bypass the per-job dedup below entirely when unmatched, so     ##
+## catch them here by identical subject+sender+date before that runs       ##
 my %seen_exact;
 @evidence = grep {
     my $k = join( "\x1e", $_->{'subject'}, $_->{'from'}, $_->{'date'} );
@@ -334,8 +336,8 @@ my @result = ( values %latest_by_nr, @unmatched );
 
 return \@result;
 
-#,,,,,,,.,..,,.,.,.,,,,.,,..,,.,,,...,,.,,,,,,.,.,...,..,,,,.,,..,,,,,,,,,,,,,
-#VOCQF6I2R5XLPUUILM24LN4HNVHM4V2WMA3AOP3ZZOAO65MLNP6ARXSF4ITFJ36PQKVQUBZEYZS3S
-#\\\|FK63PQ52EBDVEDL5NM4IRQRCRXFUIEQIAYMVZVDH6D2W4T2FMID \ / AMOS7 \ YOURUM ::
-#\[7]NA5AL5ET5H4LHXBWADYZWVKO437KIFA3TGD2XQGP32ARETBIP2AA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,...,,,,,,..,,,.,,.,,,..,.,.,.,.,...,...,..,,.,,,...,.,,,,..,
+#PS5IQ3IENKKNTUSZRRVZF2IK4KBL4TJU3K7FJ6K6ZB45C74QW3JHZJMQOUY5U4U33TED7W3H25CTU
+#\\\|WTFXQURTMSRV5TL2J3PTCAVJXXJIOMYVIYVP3NK4KGR3UVGXVNJ \ / AMOS7 \ YOURUM ::
+#\[7]XUL3YB26ZMSFKRFQGELQZ7AQ7XSLBKB76UYWJRBXOBN6K3O65GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

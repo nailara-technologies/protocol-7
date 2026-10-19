@@ -48,9 +48,10 @@ foreach my $vhost ( $vhosts_list->@* ) {
         next;
     }
 
-    ## special-use names never resolve publicly [ rfc 6761 \ 6762 \ 8375, ##
-    ## icann .internal ; .lan by convention ] : pattern-installed local   ##
-    ## vhosts like 'jobs.local' stay served but get no acme order         ##
+    ## special-use names never resolve publicly                             ##
+    ## [ rfc 6761 \ 6762 \ 8375, icann .internal ; .lan by convention ] :   ##
+    ## pattern-installed local vhosts like 'jobs.local' stay served but get ##
+    ## no acme order                                                        ##
     if ($vhost =~ m{\.(?:local|localhost|test|invalid|example|internal|lan
                        |onion|home\.arpa)$}xi
     ) {
@@ -64,8 +65,9 @@ foreach my $vhost ( $vhosts_list->@* ) {
     # Normalize domain (lowercase)
     my $domain = lc($vhost);
 
-    ## a wildcard groups under its base domain [ *.example.com -> ##
-    ## example.com ] ; every other name is its own domain         ##
+    ## a wildcard groups under its base domain                        ##
+    ## [ *.example.com -> example.com ] ; every other name is its own ##
+    ## domain                                                         ##
     my $base_domain = $domain;
     $base_domain = $LAST_PAREN_MATCH if $domain =~ m|^\*\.(.+)$|;
 
@@ -111,8 +113,8 @@ return {
     domains => \%domains_map,
 };
 
-#,,,,,,.,,...,...,...,.,.,,,,,.,,,,,.,,,.,.,.,..,,...,..,,,.,,,,.,,,.,..,,,,.,
-#DA53L7IGQD42DZB54XX4ZLUXDULEOV6UNOB4TT4NBEFVJHJBF2NH45QWRBBJ2GLXO3CX75OA7XT7M
-#\\\|QFANMCMPDAZNY7TLCIHMZ45KWWXJAWKW44WNTO37EH73VZP6X7M \ / AMOS7 \ YOURUM ::
-#\[7]2XVLCXGLRMRBGQIYXS2AMZVZ3O42WQNBPC4WJFUUQ2FJNE5NNICY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,.,,.,.,..,,,.,,,,,,,,.,,,,,..,,..,,...,...,.,.,,,,,.,.,..,,.,,,
+#NVCLPBUPA7GKY7ILAFFYPF5OW63YOLS6DGSHDTVNBSY2LXRRNIYYHJD5Y63HBQPMM3CME4EW5B3YI
+#\\\|PEPB7JKVQID4NOWSZTIOUCMTWMPN35XVQJMEUUCJNTMUGGNQDHK \ / AMOS7 \ YOURUM ::
+#\[7]LXST764BWOZNGI5333C5REVPNZ7URXYEFO5ZYBPSL5T7CE4FZEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

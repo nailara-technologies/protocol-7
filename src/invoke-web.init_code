@@ -111,14 +111,14 @@ delete <invoke-web.output>;    ## replaced by the bounded output tail ##
 <invoke-web.url> = <invoke-web.url_detected>
     // <external.models.invokeai.url> // 'http://127.0.0.1:9090';
 
-## invoke.ai is installed below the home of the zenka's run user [ zenka.v7 ##
-## ]                                                                        ##
+## invoke.ai is installed below the home of the zenka's run user ##
+## [ zenka.v7 ]                                                  ##
 my $run_user = <invoke-web.run_user> // <system.admin-user> // '';
 my $run_home = length $run_user ? ( getpwnam $run_user )[7] : undef;
 
-## installs : the main one [ 'default' ] plus the configured variants [  ##
-## zenka.v7 invoke-web.variants.<name>.env \ root \ descr ] -- each with ##
-## its own conda env, root, database and models                          ##
+## installs : the main one [ 'default' ] plus the configured variants      ##
+## [ zenka.v7 invoke-web.variants.<name>.env \ root \ descr ] -- each with ##
+## its own conda env, root, database and models                            ##
 my %installs = (
     'default' => {
         'binary' => <external.models.invokeai.binary> // (
@@ -185,8 +185,8 @@ foreach my $name ( sort keys %installs ) {
 }
 <invoke-web.variant_set> = \%installs;
 
-## active install : kept on a reinit, else the one selected last [ ##
-## invoke-web.variant.select ]                                     ##
+## active install : kept on a reinit, else the one selected last ##
+## [ invoke-web.variant.select ]                                 ##
 if ( not defined <invoke-web.variant_active> ) {
     my $saved = <[file.zenka_dir.load]>->('state/variant');
     <invoke-web.variant_active>
@@ -219,11 +219,12 @@ if ( defined $saved_ref ) {
             $proc_cmd = <$cfh>;
             close $cfh;
         }
-        ## start time re-check [ /proc stat field 22, recorded in the pid   ##
-        ## file by cmd.start ] : a reused pid with a matching cmdline is    ##
-        ## NOT our invoke.ai -- the pid file is stale then  || , not 'or' : ##
-        ## 'or' binds lower than '=' and dropped the comparison -- adoption ##
-        ## was refused whenever a start time was recorded                   ##
+        ## start time re-check                                              ##
+        ## [ /proc stat field 22, recorded in the pid file by cmd.start ] : ##
+        ## a reused pid with a matching cmdline is NOT our invoke.ai -- the ##
+        ## pid file is stale then  || , not 'or' : 'or' binds lower than    ##
+        ## '=' and dropped the comparison -- adoption was refused whenever  ##
+        ## a start time was recorded                                        ##
         my $start_matches = !length $saved_start
             || ( <[invoke-web.proc_start_time]>->($saved_pid) // '' ) eq
             $saved_start;
@@ -287,8 +288,8 @@ if ( defined $saved_ref ) {
 }
 
 ## items still held from a start the zenka did not survive : release them
-## after the privilege drop [ a db write as root here would leave root owned
-## -wal \ -shm files behind ]
+## after the privilege drop
+## [ a db write as root here would leave root owned -wal \ -shm files behind ]
 <[event.add_timer]>->(
     {   'after'   => 1,
         'handler' => 'invoke-web.handler.queue_release_retry',
@@ -356,8 +357,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,,,,...,..,,.,,,,,,,,..,,..,..,,,,.,...,,..,..,,...,...,,..,,.,,.,.,,,.,,,.,
-#DAB34IZLIDA3RSUAQ7JWFLUQZJBWQOHXMXPU3J54FG7K6EV5T4ZD6TBAQHF5UJ2NUDBHZMLK4N3ZO
-#\\\|7R24PLTQY5T4FXVPWFOJF4SORPT7Y6YOJT4YEWR36WO5WMJQQAI \ / AMOS7 \ YOURUM ::
-#\[7]2PCP5YRE5CB27H743KL4UEV3XSFUQA4QKVPLYSTROLEVT5PWUMCA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,...,,..,,..,..,,.,.,..,,..,,..,,...,...,,,,,,..,,,.,,..,,,.,
+#BZ562LKZJ3N22724236HJYBMLEVSGYJCZ2FYKPXSRTGF6BPWX4LL3OUV3AK62NP7K3HGMNB5ZL6OI
+#\\\|F5R5GWSL3OGIQNZ7GZWANR34EFI2UB2HVJOUSVGQNUWJUDDSFK4 \ / AMOS7 \ YOURUM ::
+#\[7]IGGQPEBIKMCCADAISEGIB6363IAO7XY2OO2FL4ANF72EDHHOW6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

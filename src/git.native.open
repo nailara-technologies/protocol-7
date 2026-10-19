@@ -20,16 +20,16 @@ my $path = shift // <system.root_path>;
 
 require Git::Native;
 
-## NO_SEARCH keeps Git::Native->open's exact discovery semantics [ it also
-## passes NO_SEARCH ] ; FROM_ENV [ 1 << 4 ] turns on use_env. the binding does
-## not export the constants -- values from libgit2's
+## NO_SEARCH keeps Git::Native->open's exact discovery semantics
+## [ it also passes NO_SEARCH ] ; FROM_ENV [ 1 << 4 ] turns on use_env. the
+## binding does not export the constants -- values from libgit2's
 ## include/git2/repository.h v1.9.7
 my $open_flags = ( 1 << 0 ) | ( 1 << 4 );
 
 return Git::Native->open_ext( $path, 'flags' => $open_flags );
 
-#,,,.,,,,,,,.,,,.,.,,,,..,.,,,,,.,,,.,,..,,,,,.,.,...,...,,.,,..,,,,.,,,.,.,.,
-#V4MH5BX5ZZZR24ZJY52Z7HWXNSKKXQ6YDVR6ZZFO7JTDIUI7RPJY6EQ3L2ID3SSW6ZWRMIAIF6C4E
-#\\\|6XFY3OXTZJVBPBPTJZ3RQFL264HITJHZZPWZ2KJDESAWZRDZEF7 \ / AMOS7 \ YOURUM ::
-#\[7]4DHBTAUDYKDZBPEZJNZB3OTYWYFPLFOQZQHSUVCHES4T4XAGG2CI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,.,,..,,..,,.,,,.,,,,,,.,.,.,,,.,.,...,...,,..,,.,,.,,,.,,,,,.,
+#6TUN7BJIYNP2UEOEGJOHUP3FI6LDYX7HGVWP2RI4NK7TKV7KDXLZ4ASNMSGKYEW33VYON4UJJMNZI
+#\\\|SKY5QTXCUWZZDMWVHVFATNCTSXWVPGRJ77DERFQFKQ6SAAVK7ZZ \ / AMOS7 \ YOURUM ::
+#\[7]D27RZJAJZUG43T4W53GPUZWTKY3CZQBSYT56MYC5AZLX2SRJLAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

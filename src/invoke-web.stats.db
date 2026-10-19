@@ -49,8 +49,8 @@ $dbh->do(
         . 'psi_io_full_s REAL, uptime_s INTEGER, win_mem_start_pct '
         . 'REAL, win_mem_end_pct REAL, PRIMARY KEY ( install, session '
         . ') )' );
-## columns added later : an existing table gets them [ null for older rows ##
-## ]                                                                       ##
+## columns added later : an existing table gets them ##
+## [ null for older rows ]                           ##
 my %have = map { $ARG->[1] => TRUE }
     @{ $dbh->selectall_arrayref('PRAGMA table_info(renders)') // [] };
 my @added = (
@@ -79,8 +79,8 @@ $dbh->do( 'CREATE INDEX IF NOT EXISTS '
 
 return <invoke-web.stats_dbh> = $dbh;
 
-#,,.,,,,,,,,,,.,.,,,,,...,.,.,,.,,.,.,...,.,.,..,,...,.,.,,,,,,.,,,..,...,.,.,
-#KPGJNKJYMUZAOBX4HCBXPC63FYUENC7KPUHSODDEFC7IXXI4QELWUB6RKT2FJSBNI54L6DLKKG47G
-#\\\|6Z7ATYC2M3W2G7CAUH5EIR4NEGGFFKXHM3MWAQY4YHFREVSJW6O \ / AMOS7 \ YOURUM ::
-#\[7]PKVCVTTCZTCAVC2VT3VF7W3RL5RZR5IYNKKI2OHUYQAOTZREOCCY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,.,,.,,..,,.,,,,,,,...,,,.,..,,..,,...,...,.,,,...,..,,.,,,...,
+#EHTIKP77FTOAYSDEPW6OKRNZRK2MEILZAYNZGW7QYKGGRMPO2Y77GOKJL4TZXSVLHXNTVLEGEKBFE
+#\\\|Q2DYXRG4OP64IZKKXT7RR7MMUE4DQTQ2Y7LFXX4PU2TCHI3N2D6 \ / AMOS7 \ YOURUM ::
+#\[7]MCNJJJ4MIOATFV4ATNCCFAVYLUX6U32Z6LYTWDCFZZYUNOZYGSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -45,12 +45,13 @@ my $editor_state = <form.state>;
 return FALSE if ref $editor_state ne qw| HASH |;
 
 ## the ROW only ever goes onto a plain form : never over a menu, and never
-## while a list is expanded [ its rows are transient and collapse would drop
-## it ] -- but the FRAME is rebuilt either way.  build_frame reserves this
-## row's width whether or not the row is there yet, and the reservation is
-## only possible once the vocabulary is known, so rebuilding here is what
-## makes the width settle the moment the answer lands instead of at whatever
-## later collapse happens to rebuild next
+## while a list is expanded
+## [ its rows are transient and collapse would drop it ] -- but the FRAME is
+## rebuilt either way.  build_frame reserves this row's width whether or not
+## the row is there yet, and the reservation is only possible once the
+## vocabulary is known, so rebuilding here is what makes the width settle the
+## moment the answer lands instead of at whatever later collapse happens to
+## rebuild next
 my $attached = ( $editor_state->{'mode'} // qw| insert | ) eq qw| insert |
     && <[form.add_field_row]>->(
     $editor_state, <[form.addable_fields]>->($editor_state)
@@ -67,8 +68,8 @@ my $attached = ( $editor_state->{'mode'} // qw| insert | ) eq qw| insert |
 
 return $attached ? TRUE : FALSE;
 
-#,,,.,..,,,,.,.,,,.,,,.,,,.,,,.,.,,,,,.,,,..,,..,,...,...,,.,,,,,,.,.,...,,,.,
-#5UQTJL27XDFG7Q2IULSR4Z7WIWVMIBSYHIZHCLVUOBRPW2ZRBKXIJHMJXC6UKUGNSFLGTBZ2R66FU
-#\\\|VE3EQSJ2HXSQRN6JJPYZGHCWBUVMFKA4ZD3LZXF4STIVP4FFDF3 \ / AMOS7 \ YOURUM ::
-#\[7]VO35S3KMLHNNSD2ZPIBY3YTGMSTMCJBA2EKOVF2PFDXNWYFKR2BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,,,...,,,.,...,,.,,,,.,.,.,,..,..,,...,.,.,,,.,,,,,.,.,,,.,...,
+#BVDJTLS2QQGLNH5MVA722DMK33WWFZYCMNA2NQMNKNTAHMBZBY6ZRLFVKDXHNWLVYTAGOVRGYSFVY
+#\\\|UGMDIE6ZMWYVWXE4VBHM4GFGCMGOUKKGSTOHRKQIEAO22T32TB6 \ / AMOS7 \ YOURUM ::
+#\[7]KZU4WIKVYMZEZUUA6AGDKVOOYDVLRVQU2MG57OJTJR77Q4ZEXMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

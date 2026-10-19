@@ -20,9 +20,9 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     ## set server socket to non-blocking ##
     $fd->blocking(0);
 
-    ## accept tcp connection without ssl handshake  [ blocking would stall ##
-    ## here ]  IO::Socket::IP::accept bypasses SSL's accept override but   ##
-    ## preserves IP socket layer [ buffering, sockopt ]                    ##
+    ## accept tcp connection without ssl handshake                          ##
+    ## [ blocking would stall here ]  IO::Socket::IP::accept bypasses SSL's ##
+    ## accept override but preserves IP socket layer [ buffering, sockopt ] ##
     my $tcp_client = $fd->IO::Socket::IP::accept();
 
     if ( not $tcp_client ) {
@@ -60,8 +60,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     binmode( $tcp_client, ':raw' );
 
     ## upgrade tcp socket to ssl with deferred handshake  SSL_reuse_ctx ##
-    ## accepts IO::Socket::SSL instance directly [ inherits cert, key,  ##
-    ## ciphers from server socket ]                                     ##
+    ## accepts IO::Socket::SSL instance directly                        ##
+    ## [ inherits cert, key, ciphers from server socket ]               ##
     my $ssl_client = eval {
         IO::Socket::SSL->start_SSL(
             $tcp_client,
@@ -160,8 +160,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;    ## <-- connection closed \ error connecting ##
 }
 
-#,,,,,.,,,...,.,.,,.,,,,,,.,.,...,...,...,,..,.,.,...,...,.,,,,,,,,.,,.,.,,,,,
-#A57T4ZV3PXYBRAAFERCJUBPOZRPAQDUR2GOZBJ3W6RVULCOPSVF72TTLF2Z34CK7XXTQUQBQ3OHKI
-#\\\|IDMUWRLRDWHTLMSS462PI23UZPCJMBVBTZQHXBKL5Y6DZQIJF3P \ / AMOS7 \ YOURUM ::
-#\[7]XK5FQPEQVYHYHHO4KKACPOPW4ANBCRL2S5S4YAKL46PXBYSLQOCQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,,,,,,,,,,..,.,.,..,,,,.,...,.,.,...,...,,,.,...,,,.,.,,,,.,,
+#2XRZAKQQ6GTOXJASUW6UE4NE24DD572HIFOQKI6OZVZIW4ARWQYQEPHIBITH5BYRALCKKNMMAC6UO
+#\\\|FJMI7D366L3EEUDXSNXDNHWQ2MT6QQZVTSCZZTTVDL6M4KHICYT \ / AMOS7 \ YOURUM ::
+#\[7]RCMYAEDWCYKCXBPECCM2RPN3WOFABF64YJSK67L5VW5AQSVIPYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

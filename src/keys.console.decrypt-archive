@@ -81,8 +81,8 @@ foreach my $file ( <[base.sort]>->($read_user_keys) ) {
 
 ## an archive entry named like a root-held key is never imported : files    ##
 ## are restored by basename into the USER key directory, where a root- held ##
-## secret would be readable \ replaceable by the backend user [ host-root   ##
-## delegation ]                                                             ##
+## secret would be readable \ replaceable by the backend user               ##
+## [ host-root delegation ]                                                 ##
 foreach my $extracted_filename ( <[base.sort]>->($read_user_keys) ) {
     my ($held_name)
         = <[crypt.C25519.key_name_and_type]>->($extracted_filename);
@@ -230,8 +230,8 @@ return say sprintf "\n  ::[  wrote %d archived key file%s to disk. =)  ]::\n",
     $write_success_count, <[base.cnt_s]>->($write_success_count),
     if $write_success_count;
 
-#,,..,,.,,,.,,,.,,,.,,...,...,..,,,,,,,,,,,..,..,,...,..,,,.,,,,,,...,...,...,
-#R4ZYFJYGUJCY5YQ4DACTXVMWHJNIT2OAEZI5CS77JMENY6NTKAQ27XRKSUPNR6WZSOPP7ICQWWC62
-#\\\|LTPJFAJYT24SZUODQFVOT4X4NTW4V5QNEPDWB3M37WXUP4UPCVZ \ / AMOS7 \ YOURUM ::
-#\[7]5DIFQ5TKVMXXQ4XNVPDMWEW3PF46MQRXBHEDCV2TVYVSGKDPYGBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,,,,,,,..,,,,,,.,.,,,.,.,,,.,.,..,,...,..,,...,,.,,..,,..,,.,,,
+#PIWA2VVENDQ7RBSKY4XLO625G53RXQFWOOQKCBJP4OWRILDJPLYA2NQHW5MJB3N6K2EOREAC3CU4S
+#\\\|GXSACIEWWXZV5OFLREJETWRSPNQRHICXDCAO4KJ57UPINLRIPWN \ / AMOS7 \ YOURUM ::
+#\[7]65GBB3VIVAIADMFQB6TI7GHKIPWJQB2OX3FHTGRTUNOWIJBHJKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

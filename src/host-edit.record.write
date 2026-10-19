@@ -7,11 +7,11 @@
 
 ## overwrite mode is temp-file-then-rename() : atomic replace, no
 ## unlink-then-open window where a crash mid-write would leave the path
-## missing instead of intact-old-or-intact-new [ same reasoning as
-## base.file.zenka_dir.write ].  the temp file is created in the SAME
-## directory as the target, so rename() stays on one filesystem, and is chmod
-## 0600 before the rename -- host records hold link metadata [ ssh user@host,
-## ports ], never secrets, but the store is still private.
+## missing instead of intact-old-or-intact-new
+## [ same reasoning as base.file.zenka_dir.write ].  the temp file is created
+## in the SAME directory as the target, so rename() stays on one filesystem,
+## and is chmod 0600 before the rename -- host records hold link metadata
+## [ ssh user@host, ports ], never secrets, but the store is still private.
 
 my ( $name, $envelope ) = @ARG;
 
@@ -66,8 +66,8 @@ if ( not rename $tmp_path, $resolved_path ) {
 
 return ( TRUE, undef );
 
-#,,,.,..,,,,.,.,,,,..,,.,,.,.,..,,...,,,.,...,..,,...,..,,...,,,,,..,,,,.,.,,,
-#GUGC42XAFDI5SJM3GV3LRZGGZNCB3YA2UDXL46OO64VG6PQIQTBOZ5O3QYF4OOJO4F2SEETPDRMEO
-#\\\|SGI7D2GYOS7FXXTHOSVYEIS7PZL5R7F4AUZYSP6ZJRZ4QY3MGOD \ / AMOS7 \ YOURUM ::
-#\[7]ZUQGYVBVMQKONPT66YTTUJDOBTDFF44SWZSG6XEGQDWASFLATQCI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,.,,,..,,,..,..,,.,,,..,,.,,,..,,...,...,,,,,.,,,...,.,.,,,.,
+#G6UIMZDCAQFY77NPEDYKUTY4H4R64BQ27E6BKREJQR5STWY7KUHHHDXHJKPWVAEUNHWV2WOLGKJMS
+#\\\|MY3KOSBLHQ6EVRQD5AEUBI6B7LIGOGULHY7FWTCBDGRTIFVTC5O \ / AMOS7 \ YOURUM ::
+#\[7]FIP2RKVGIKPTP5YZSFTRCSF7OE3Q3ZBNCJQWR22USDC7KCQX4MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

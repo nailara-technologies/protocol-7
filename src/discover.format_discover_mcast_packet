@@ -33,12 +33,13 @@ if (   not defined <discover.announce_msg_header>
         Crypt::Misc::encode_b32r( $keys{'C25519'}->{$host_key}->{'public'} );
 }    ## the old '.sig.*' raw-pubkey signature lines are no longer emitted ##
 
-## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md,          ##
-## TRUST-CHAIN-STEP2.md 'wire' ] : the '<S>.dlg' file sits next to S [ a   ##
-## public artefact outside root/ ] and now holds the CHAIN, one statement  ##
-## per line, LEAF FIRST ; read it FRESH every packet so renewals \         ##
-## rotations take effect, and ship it as a 3-space 'dlg:' field BEFORE the ##
-## payload so the packet signature below covers it                         ##
+## host-root delegation                                                     ##
+## [ data/md/design/HOST-ROOT-DELEGATION.md, TRUST-CHAIN-STEP2.md 'wire' ]  ##
+## : the '<S>.dlg' file sits next to S [ a public artefact outside root/ ]  ##
+## and now holds the CHAIN, one statement per line, LEAF FIRST ; read it    ##
+## FRESH every packet so renewals \ rotations take effect, and ship it as a ##
+## 3-space 'dlg:' field BEFORE the payload so the packet signature below    ##
+## covers it                                                                ##
 ##
 my $deleg_line = '';
 my $dlg_wire;
@@ -64,8 +65,8 @@ if ( ref $chain eq qw| ARRAY | ) {
     ## the leaf decides [ under its own issuer, as in step 1 ] ; the chain ##
     ## above it is sent only while it verifies too -- an owner statement   ##
     ## that expired between two daily issue runs must not refuse every     ##
-    ## announce : the leaf goes alone [ the send-side rule of              ##
-    ## auth.auth_select ]                                                  ##
+    ## announce : the leaf goes alone                                      ##
+    ## [ the send-side rule of auth.auth_select ]                          ##
     my $host_pub  = $keys{'C25519'}->{$host_key}->{'public'};
     my $issuer_of = sub {
         my $st = <[trust.statement]>->( qw| parse_wire |, shift );
@@ -165,8 +166,8 @@ if ( not defined $signature_str ) {
 return sprintf "%s%s\n", $packet_str,    ## appending packet signature ##
     Crypt::Misc::encode_b32r($signature_str);
 
-#,,,,,...,,,.,,..,,.,,..,,..,,.,.,.,.,,..,...,..,,...,...,.,.,,,.,..,,,,,,.,,,
-#4GJ7UEEPZCLI2TLODNUTOXON7ZMTNHSRDZ7XBMKSVZGRONWXY6IUXCFODMUIH5JNG4ICZ7KBNFK3Y
-#\\\|S5B5NNL5I3NMCXRYR45VZQTXUAD5GA77VVCQQRWNAENZ65I7GJK \ / AMOS7 \ YOURUM ::
-#\[7]KKW4QNB3I36S4GE4CM6SRENOCLJMYXJ7HGMYL2AUB4B33A5PUQCI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,..,,,..,..,,.,.,,.,,,.,,..,,..,,...,...,,.,,,,,,..,,,.,,.,.,
+#Y5WTCQ2VUWV2PQDZ6HPEN7NIL5BXS5FSDIELDJ6JLCNQ4ADSA27RQUDQIX77K4D5KJT5LKY26L2KI
+#\\\|NGLW3BPSE4GJZIUIUR6WHI6YYL53XR4OL5NCJCQPC74J4YJ37FJ \ / AMOS7 \ YOURUM ::
+#\[7]FYNRXSIYGV3BRZMFMEG6LU6Z4K6MCQC4BNTBYFVHGJAUWUO56AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
