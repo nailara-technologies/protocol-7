@@ -79,8 +79,9 @@ if ( length($content) ) {
     }
 }
 
-## extract <think> blocks from content into reasoning [ model may emit them ##
-## inline ] do this after accumulation to handle multi-chunk blocks         ##
+## extract <think> blocks from content into reasoning                  ##
+## [ model may emit them inline ] do this after accumulation to handle ##
+## multi-chunk blocks                                                  ##
 while ( $context->{'content'} =~ s|<think>(.*?)</think>||s ) {
     my $reasoning_text = $1;
     $reasoning_text =~ s|^\s+||;
@@ -148,9 +149,9 @@ if ( defined $choice->{'finish_reason'} ) {
         ## as stop so xml/json fallback parse runs and, failing that,       ##
         ## finish_stop dispatches so the state machine reaches a terminal   ##
         ## state. without this the round stalls at sm_state='streaming' and ##
-        ## the task never completes or fails, orphaning the caller [        ##
-        ## task-zenka records stuck at in_progress forever ].  guard: don't ##
-        ## complete parent while compaction subtask is pending              ##
+        ## the task never completes or fails, orphaning the caller          ##
+        ## [ task-zenka records stuck at in_progress forever ].  guard:     ##
+        ## don't complete parent while compaction subtask is pending        ##
         my $task_state
             = <[coding.async.state_manager]>->( qw| get |, $task_id );
         if ( defined $task_state
@@ -172,9 +173,9 @@ if ( defined $choice->{'finish_reason'} ) {
             return $context;
         }
 
-        ## intercept model_selection responses on self-select tasks [ round ##
-        ## 0 ] round 0 of a self-select task never completes : it always    ##
-        ## continues                                                        ##
+        ## intercept model_selection responses on self-select tasks       ##
+        ## [ round 0 ] round 0 of a self-select task never completes : it ##
+        ## always continues                                               ##
         my $task_ref_ch = <coding.task.queue>->{$task_id} // {};
         if (    ( $task_ref_ch->{'self_select_model'} // 0 )
             and ( $context->{'round'} // 0 ) == 0
@@ -483,8 +484,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,,.,..,,,,,,.,,,.,.,.,.,,,,,,.,,.,.,,..,,,.,.,.,...,...,...,.,,,.,,,,,,,,..,
-#DJBT455GXMFI7NJGLLWB6SSEGPY7JEZH4AXMQL2KLXRFM4WUGSMZ6SPHHQNFV7GWK6KSLY5GAM5TA
-#\\\|47BEIFLDHX3LFJ5JIOVCRX6WJRLEYYMBFQQ4A5OTU6LPK7ZJNNS \ / AMOS7 \ YOURUM ::
-#\[7]J3OWHZKFJIM3TXKR4PX57CTE5KMDJMV5P6XT6JDHF4WXZHCMZWBA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,...,,,.,.,.,.,.,,.,,,,,,..,,,.,,.,.,...,...,,..,,.,,,,,,.,.,,..,
+#HPYBX4RMYOLHJCRPF6EMD5LAQ2ITIT6BHRXGRGM6XIUBCDSXGWKK5DNMXH5JARUC37IMHEEYIFBVM
+#\\\|65OZNJDG434VMWIYJIC7TYIXB3SYHO7QUV2P7X44SGXH2OM4XX5 \ / AMOS7 \ YOURUM ::
+#\[7]D5YNVWBSZXA5FEUMQZIZUNHWLTBPC5UHAUS5K7T3HPHS4BXL5OBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

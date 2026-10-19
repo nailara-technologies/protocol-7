@@ -7,10 +7,10 @@ my ( $task_id, $error, $req_seq ) = @ARG;
 
 my $state = <[coding.async.state_manager]>->( 'get', $task_id );
 
-## stale callback from an older connection of this task [ left streaming ##
-## while the next round was sent ] : ignore, same as http_complete --    ##
-## otherwise it would retry a round already in flight, free the newer    ##
-## request's lock, or fail the task mid-flight                           ##
+## stale callback from an older connection of this task                 ##
+## [ left streaming while the next round was sent ] : ignore, same as   ##
+## http_complete -- otherwise it would retry a round already in flight, ##
+## free the newer request's lock, or fail the task mid-flight           ##
 my $current_seq = ( $state // {} )->{'request_seq'} // 0;
 if ( defined $req_seq && $req_seq != $current_seq ) {
     <[base.logs]>->(
@@ -301,8 +301,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
 
 return;
 
-#,,.,,,.,,.,.,,,.,.,.,..,,.,,,.,.,.,,,,.,,,.,,..,,...,..,,.,.,,.,,.,,,,.,,..,,
-#IQOUOZTU67JTKV7GEZSF76FHJPO44A25AFPHD2ZDMPI7A77SIVKWRKVSUKRID7FIZ6MY65RG5UKJM
-#\\\|QKHSSQ5NXE6IMOHYVJNLEE4P3HQUYNG22SWD7OSDC4QHQ6DWYMG \ / AMOS7 \ YOURUM ::
-#\[7]3G256DY4TE3D6TCJQM3XBLPD36EAO2SOVEPH7V5XR46Z4FJSY6AA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,,,,..,.,,,,,,,...,.,.,,,,,,.,,..,,...,...,.,.,..,,,.,,...,,..,
+#3HVHOVRYQVLMO4RKLTPWRJ4N3OAOM2CPTN6RX5Z73BL3MMUVV3YN2UUASQXXD5DXIHWBS2V6PLTM6
+#\\\|U5OVBC43I5QKNIQVON5KY6T4L24JYGK6WWXYA2W7HEZAPEIYHR4 \ / AMOS7 \ YOURUM ::
+#\[7]PJW5BPR3TB27SQQXKQCE2CFZHU5K45O6GOIGXYB7HPTE7W3EZMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

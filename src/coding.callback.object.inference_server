@@ -38,15 +38,15 @@ my $status = $server->{'status'} // 'starting';
 ## crash+restart+retry and got a real response, yet coding.status still     ##
 ## showed it as failed because SOMETHING checked this dependency while      ##
 ## status was still 'crashed'. 'failed' is the only genuinely terminal      ##
-## state [ set once restart_count is exhausted ] -- only that should hard-  ##
-## fail a waiting job; 'crashed' waits through recovery like 'starting'     ##
-## does                                                                     ##
+## state [ set once restart_count is exhausted ] -- only that should        ##
+## hard-fail a waiting job; 'crashed' waits through recovery like           ##
+## 'starting' does                                                          ##
 return FALSE if $status eq qw| failed |;
 return TRUE  if $status eq qw| ready |;
 return undef;    ## still starting / crashed / restarting ##
 
-#,,,,,,,.,,..,...,...,.,.,,,,,.,,,...,...,,,,,.,.,...,...,.,.,,.,,..,,,,,,.,,,
-#BUWLF2GMWEQRH5RWABGGDOEHPLYBUI236IVIMUMPS25LUXRWOYBVY6NQ66YUJKTT4HS4WGNHZFHIY
-#\\\|OJ7G6EPZ6XJY7ZB67XP3CFEBB2FMBTA6SYH7IV6W2GFRDX4ID6J \ / AMOS7 \ YOURUM ::
-#\[7]CK7MSGJDUDXXUDHUHQHFLOKSDFLOJKGT2DHOEZ7ANMSOP4ZHR4AI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,..,,...,.,.,.,,,,.,,,,,,..,,,,.,.,.,...,...,,.,,,,,,...,.,.,.,,,
+#FJ7NMT5LK2OFGZUIN2BYHEKWD2WTA6T4XJ4K66S47FYYYOBPGVNCDGTIPSLSSINST3XTOMBTES4CY
+#\\\|7GPHRDOBRFKOB53PYWOOLN3ZIZ7IKHE4A4DLNVPB46JMUL3TWCW \ / AMOS7 \ YOURUM ::
+#\[7]JDQ4FOWYX73TUYLN37DCAFSHCZUJEJWU6A5YXNI6KWOQEUPTWYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

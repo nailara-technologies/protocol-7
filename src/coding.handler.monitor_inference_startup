@@ -85,10 +85,11 @@ if (
         $server->{'status'}       = qw| ready |;
         $server->{'ready_logged'} = TRUE;
 
-        ## genuine readiness clears the crash-restart count [ see          ##
-        ## coding.spawn_inference_server's carry-forward comment ] -- a    ##
-        ## server that's been stable for hours shouldn't have an old crash ##
-        ## streak from days ago count towards today's 5-attempt cutoff     ##
+        ## genuine readiness clears the crash-restart count                 ##
+        ## [ see coding.spawn_inference_server's carry-forward comment ] -- ##
+        ## a server that's been stable for hours shouldn't have an old      ##
+        ## crash streak from days ago count towards today's 5-attempt       ##
+        ## cutoff                                                           ##
         $server->{'restart_count'} = 0;
 
         ## await_resources exists ONLY for the one-time :twin: handover     ##
@@ -128,21 +129,22 @@ if (
         ## hasn't resolved yet - confirmed live 2026-07-31 : the async      ##
         ## conversion originally ran this immediately, letting tasks start  ##
         ## mid-self-test, sometimes well before a bad-seed cat-test failure ##
-        ## was even detected. the body lives in the named helper [          ##
-        ## coding.helper.resume_task_queue_for_backend ] since the          ##
-        ## self-test guard watcher's retry path [ event.add_var handlers    ##
-        ## cannot carry closures ] reaches the same logic by name           ##
+        ## was even detected. the body lives in the named helper            ##
+        ## [ coding.helper.resume_task_queue_for_backend ] since the        ##
+        ## self-test guard watcher's retry path                             ##
+        ## [ event.add_var handlers cannot carry closures ] reaches the     ##
+        ## same logic by name                                               ##
         my $resume_queue = sub {
             <[coding.helper.resume_task_queue_for_backend]>->($backend);
         };
 
-        ## run model self-test cycle after server is ready [ timeout_stats, ##
-        ## TTFT, anomaly detection ] must come after $server->{'model'} is  ##
-        ## set above, not before SKIP if a self-test-driven                 ##
-        ## switch-test-restore cycle is already running its own explicit    ##
-        ## test against this exact readiness event - without this, every    ##
-        ## switch self-test triggers caused a redundant duplicate auto-test ##
-        ## [ confirmed live 2026-06-21 ]                                    ##
+        ## run model self-test cycle after server is ready                  ##
+        ## [ timeout_stats, TTFT, anomaly detection ] must come after       ##
+        ## $server->{'model'} is set above, not before SKIP if a            ##
+        ## self-test-driven  switch-test-restore cycle is already running   ##
+        ## its own explicit test against this exact readiness event -       ##
+        ## without this, every switch self-test triggers caused a redundant ##
+        ## duplicate auto-test [ confirmed live 2026-06-21 ]                ##
         if (<coding.self_test_switch_in_progress>) {
             <[base.logs]>->(
                 2,
@@ -163,8 +165,8 @@ if (
             ## the single-flight-guard retry path [ another backend's     ##
             ## self-test already running at this readiness event ]        ##
             ## re-enters the SAME logic via timer instead of a drifting   ##
-            ## duplicate [ task : coding-self-test-parallel-backend-gap,  ##
-            ## option 1 ]                                                 ##
+            ## duplicate                                                  ##
+            ## [ task : coding-self-test-parallel-backend-gap, option 1 ] ##
             <[coding.helper.trigger_backend_self_test]>->(
                 {   'backend'      => $backend,
                     'server'       => $server,
@@ -175,8 +177,8 @@ if (
         }
     }
 
-    ## cancel watcher once ready : no need to keep reading server output [ ##
-    ## continuing to read monopolizes the event loop during inference ]    ##
+    ## cancel watcher once ready : no need to keep reading server output  ##
+    ## [ continuing to read monopolizes the event loop during inference ] ##
     <[coding.cancel_watcher.backend_monitor]>->($event);
 
 ### [ LLL : needs combined event cancel handler [ stdout stderr ] ]
@@ -250,8 +252,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,,.,..,,,.,,,..,.,.,,.,,,..,.,.,,,.,..,,..,,..,,...,.,,,.,.,,,.,...,,,.,,.,,
-#CLSN4U6ZSBRK2KGDIW43BDS6RWTC6K26YRM2PYGCMRMI7R53VTWG7TBRJG45IKN7KRLWRQ4IPICNY
-#\\\|M3CXVHGV45ZQIMAWBCGAEWHYM4FGP7B3HXNAWFMS2FF5HKRHEQE \ / AMOS7 \ YOURUM ::
-#\[7]TYJWJSESSWSX762U2WN2OM3C4OI3VMETCIPY7JIH5HU64EWKN2CQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,..,,,..,,,,,,,,,,.,,...,..,,..,,...,...,...,...,,..,.,,,,..,
+#5DGN36REHPO2DGUTXSARJ5DNSZXHE2P33TORD22JT4RI3HNG3TUMZOOZVMTY2S6DIHTLWIP2BLASQ
+#\\\|ZA3VMOKV6PCD46S4V4TMEKFAUBIMGF3JDYXIDJXODQECVJAVOVL \ / AMOS7 \ YOURUM ::
+#\[7]FXV2I3LJ5KECS45KHM5CPZ3IKZ4UWH3CYZDNTVCCVX76A2CAPQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

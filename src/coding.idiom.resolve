@@ -12,11 +12,12 @@
 ##      on the idiom rubric and produces code that dies at load time.       ##
 ##      a rubric hit that does not resolve is a REGRESSION, not a win.      ##
 ##                                                                          ##
-##      module resolution checks the live %code hash first [ what is        ##
-##      actually callable in this zenka ] and falls back to the             ##
-##      on-disk src/ listing [ modules a different zenka would load ].      ##
-##      config resolution walks the real %data tree via                     ##
-##      base.data_key_exists semantics rather than guessing.                ##
+##      module resolution checks the live %code hash first                  ##
+##      [ what is actually callable in this zenka ] and falls back to       ##
+##      the on-disk src/ listing                                            ##
+##      [ modules a different zenka would load ].  config resolution        ##
+##      walks the real %data tree via base.data_key_exists semantics        ##
+##      rather than guessing.                                               ##
 
 my $params = shift // {};
 
@@ -65,8 +66,8 @@ if ( $kind eq qw| config | ) {
 
 return { 'mode' => qw| false |, 'data' => "unknown resolve kind '$kind'" };
 
-#,,,,,,,,,,,,,.,.,,,,,.,.,,..,..,,,,.,..,,,,,,..,,...,...,,.,,.,.,,..,..,,...,
-#SHEGAV3YFC5VXHYN3WK4IWFO47ALORRFCZYBS3KU6NCYTAO36CS2GULZ6AJIBS5E4LLNBXKJSIHSK
-#\\\|UZGQXU6UADG6K5NDSLKQ4XNAYCVTZKGTZC5GICRVGGT2PPBHRR7 \ / AMOS7 \ YOURUM ::
-#\[7]2TAF3PRQD4E2W2GN6F4QKS6GPDRZPIBZWA5GUWICFER5EBYCM2DA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,...,.,.,..,,,,.,.,.,.,.,.,,,,.,,..,,...,...,...,,,,,,,.,..,,,.,,
+#DMOJ2PIHWKIFPKE6F3JFYNOXR4WZ23KIC62BUPVPRSPZHPUXKOMRWTXGTEFYDKIW524KFSPDQDXPG
+#\\\|6PXJP4TDZQ74M6YSV22YOB7J4B2OUNWLNWM3CDECQVCIJ2PGRDL \ / AMOS7 \ YOURUM ::
+#\[7]PVAHIKJZK2UXU4NFUC7CJUMYMXRAY3KTLYW5IVNK4ALYPAKNTCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,10 +22,11 @@ return TRUE if not <coding.self_test_retry_pending>->{$backend};
 
 ## liveness re-check [ item 6, see the semantics note in
 ## coding.helper.trigger_backend_self_test ] : if the probe holding THIS
-## backend's slot is still streaming [ the shared coding.async.stream_tps
-## is_alive signal ] and under its own outer cap, the guard is held
-## LEGITIMATELY - re-arm another window and keep waiting. probe state is keyed
-## by probe_id, not backend : scan for the entry whose backend field matches
+## backend's slot is still streaming
+## [ the shared coding.async.stream_tps is_alive signal ] and under its own
+## outer cap, the guard is held LEGITIMATELY - re-arm another window and keep
+## waiting. probe state is keyed by probe_id, not backend : scan for the entry
+## whose backend field matches
 my $probe_states = <coding.self_test_probe_state> // {};
 for my $id ( keys %{$probe_states} ) {
     my $pst = $probe_states->{$id};
@@ -78,8 +79,8 @@ delete <coding.self_test_retry_timer>->{$backend};
 <[coding.helper.resume_task_queue_for_backend]>->($backend);
 return TRUE;
 
-#,,,.,..,,..,,,..,,.,,..,,..,,,.,,,,.,,,,,,..,.,.,...,...,...,...,,.,,..,,,..,
-#EKDIZF757BEYJZA3VPUGOQCNZ6UNDJ2D4C6OP22YZ5GFLSTHOYMCWJTKPPVSFTRJWBTOLD3VYQWVO
-#\\\|3BPEWSNBPYGAGB7BSFKBXTDKWGEQCF742JTH7D46X5QQDT2FFJW \ / AMOS7 \ YOURUM ::
-#\[7]6XPYZNIF4C5JB2ZM2YZOXNXF6GG6NEQQ7DSG2FWJ47PNVVWWDWBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,...,,,.,,..,...,...,.,,,,.,,.,,,.,.,...,...,.,.,.,,,.,.,,,,,.,.,
+#NMVEDOREWCOBOZDYFZPJ7T6ZH3CK7CYCECQHLEMGTNWQQDOL7GTXAYHB7IP6FKAUUX7UY3QSUQOL6
+#\\\|LPOEI4HCGB7EYIIAD6CPLMLVUUBC4XFDBODX666KNN2TO6HZ5PN \ / AMOS7 \ YOURUM ::
+#\[7]GJKC3KZABTTIUOMFRPQL6L5ALQLPWN5QB2TRA57COLWWHYPSJADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

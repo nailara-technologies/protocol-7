@@ -37,15 +37,16 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             ## from coding.lora_train_spawn freeing the gpu for training ], ##
             ## not a crash -- "crashed" on that line reads as alarming and  ##
             ## contradicts the very next log line when the training guard   ##
-            ## below fires. same reasoning extends to exit=9 [ raw wait-    ##
-            ## status low byte = SIGKILL ] : spawn_smart's force=1 path     ##
-            ## kill('KILL',$old_pid)s the previous server BEFORE setting    ##
-            ## <coding.switching_backend>, so that guard is already TRUE by ##
-            ## the time this SIGCHLD is reaped for a deliberate switch-kill ##
-            ## -- confirmed live 2026-09-18 : every model-switch logged an  ##
-            ## alarming "crashed [pid=X exit=9]" even on a totally routine  ##
-            ## switch. wording only; $server_info->{'status'} stays         ##
-            ## 'crashed' below, other code paths key off that literal       ##
+            ## below fires. same reasoning extends to exit=9                ##
+            ## [ raw wait-status low byte = SIGKILL ] : spawn_smart's       ##
+            ## force=1 path kill('KILL',$old_pid)s the previous server      ##
+            ## BEFORE setting <coding.switching_backend>, so that guard is  ##
+            ## already TRUE by the time this SIGCHLD is reaped for a        ##
+            ## deliberate switch-kill -- confirmed live 2026-09-18 : every  ##
+            ## model-switch logged an alarming "crashed [pid=X exit=9]"     ##
+            ## even on a totally routine switch. wording only;              ##
+            ## $server_info->{'status'} stays 'crashed' below, other code   ##
+            ## paths key off that literal                                   ##
             my $is_deliberate
                 = $exit_status == 0
                 || <coding.switching_backend>->{$backend}
@@ -65,8 +66,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             $server_info->{'crashed_at'}  = <[base.ntime]>;
             $server_info->{'exit_status'} = $exit_status;
 
-            ## skip crash recovery if zenka is draining [ new twin instance ##
-            ## owns GPU ]                                                   ##
+            ## skip crash recovery if zenka is draining ##
+            ## [ new twin instance owns GPU ]           ##
             if (<coding.draining>) {
                 <[base.logs]>->(
                     1,
@@ -124,14 +125,14 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             $server_info->{'restart_count'} = $restart_count;
 
             ## sweep-driven candidates are ALMOST EXPECTED to hit a         ##
-            ## model-pinned crash -- retrying through the full regular-     ##
-            ## operation ladder [5 attempts, up to 125s backoff] wastes     ##
-            ## real sweep wall-clock time on a failure that's very likely   ##
-            ## deterministic, not transient. per backend, not per candidate ##
-            ## -- <coding.model_sweep_state>->{$backend} is defined exactly ##
-            ## while a sweep is actively driving [ or paused mid- ] this    ##
-            ## backend, so this needs no new state, just reuses that        ##
-            ## existing signal                                              ##
+            ## model-pinned crash -- retrying through the full              ##
+            ## regular-operation ladder [5 attempts, up to 125s backoff]    ##
+            ## wastes real sweep wall-clock time on a failure that's very   ##
+            ## likely deterministic, not transient. per backend, not per    ##
+            ## candidate -- <coding.model_sweep_state>->{$backend} is       ##
+            ## defined exactly while a sweep is actively driving            ##
+            ## [ or paused mid- ] this backend, so this needs no new state, ##
+            ## just reuses that existing signal                             ##
             my $max_attempts
                 = defined <coding.model_sweep_state>->{$backend}
                 ? ( <coding.cfg.sweep_crash_restart_max_attempts> // 1 )
@@ -209,8 +210,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path (e.g.
 ## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,,,,.,,,,..,,,.,,.,,,,.,...,...,,.,,,..,,.,,..,,...,..,,...,..,,.,,,,..,,,,,
-#ZSXRHZRR64LZHRAHPZYLTB7HB77FE2ERIPTBSAV4NZP7G2EK6RG2XFHB5XNLEY6S7RLKRHA6DD2OS
-#\\\|WKBT6UBS3XPFG5RNVZSA75WOWCBHETAZMDCYBZIIPQNARI6GPVU \ / AMOS7 \ YOURUM ::
-#\[7]KZNFJU7V2OX3PP6INR356IDM2MZOFI5XFGYFD3R6WDCDYJKKTMCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,.,,..,,...,.,,,,.,,...,.,.,,..,..,,...,...,...,,,.,,,,,.,,,,,,,
+#IJ36UW3N6CWE2G5NFQ6UU5SCBXKIVR2JEJPXMUKWOW7VE4MIKKNDDXZV5A7TB2HVDWROIPZB3224O
+#\\\|VM5RNCYGP2CMX4CG4YWHFEC2VWHGRJX4ETUUB3FWQESRBTAU7UW \ / AMOS7 \ YOURUM ::
+#\[7]DLQIAAZGHESB7QROEUQLC22FF4CRWVAW3TWJ2OGNHU57QIT4PUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

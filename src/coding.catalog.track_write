@@ -49,14 +49,15 @@ return { 'mode' => qw| true |, 'data' => 'not a src module' }
 ## resolve the task this write belongs to. primary : the tool-executor      ##
 ## context key <coding.catalog.active_task>, set by                         ##
 ## coding.async.tool_executor tightly around each synchronous tool dispatch ##
-## -- exact attribution, no guessing. fallback [ callers without executor   ##
-## context, e.g. coding.cmd.call-tool ] : the in-progress queue scan        ##
-## record_observation also uses, but a bare 'first in_progress task' scan   ##
-## is WRONG under concurrency : coding.task.execute sets the status before  ##
-## backend acquisition, so a queued-behind task already reads as            ##
-## in_progress [ cross-task misattribution confirmed live 2026-09-09 ].     ##
-## when several tasks are in_progress, only the one actually holding a      ##
-## backend lock [ coding.async.backend_acquire ] can be executing tools     ##
+## -- exact attribution, no guessing. fallback                              ##
+## [ callers without executor context, e.g. coding.cmd.call-tool ] : the    ##
+## in-progress queue scan record_observation also uses, but a bare 'first   ##
+## in_progress task' scan is WRONG under concurrency : coding.task.execute  ##
+## sets the status before backend acquisition, so a queued-behind task      ##
+## already reads as in_progress                                             ##
+## [ cross-task misattribution confirmed live 2026-09-09 ].  when several   ##
+## tasks are in_progress, only the one actually holding a backend lock      ##
+## [ coding.async.backend_acquire ] can be executing tools                  ##
 my $task_id = <coding.catalog.active_task> // '';
 
 if ( not length $task_id ) {
@@ -94,8 +95,8 @@ return { 'mode' => qw| true |, 'data' => 'no active task' }
 
 return { 'mode' => qw| true |, 'data' => $module };
 
-#,,,.,,.,,.,.,.,.,,,,,,,,,.,,,,,.,.,.,.,,,.,.,..,,...,...,..,,,..,,,,,.,,,,,,,
-#DLBJWXNJFWM3DA7BJTPGTXHTFZI2NUVOYQXVNKNXEY6RTO3PK4HEH2H7PN7OR23A3AGAKRQVEQ5T6
-#\\\|ZKZW6R3UBQPGX3YLJEIXZ46MGLXAVPYSMQBFYDHPWG6AYVIM77T \ / AMOS7 \ YOURUM ::
-#\[7]RATCZMNC2VOFC6B2GYU4HJUGMZGOOUVVZ34LGMETRQ6EHVHG7IAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,.,.,,..,.,,,,..,...,...,,,.,..,,...,...,,..,,,.,.,,,...,,.,,
+#DB5GPQINPKYMPITDDBMGHJCEVYSM6FOYFYBMY6VPWUV43UWAJ5EYUB5CFTXG4M3NQF7UXNNBNBDIC
+#\\\|6UCK6K7QLZBNPKSPGNRTRTI5KO5YEEUOUPEYFGEACQP64ISFWSH \ / AMOS7 \ YOURUM ::
+#\[7]HBLCHBEQ2Y6KFPCQVR2SHZYEXAQJFWUHTS6TOEYBEZUI5F3FW4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

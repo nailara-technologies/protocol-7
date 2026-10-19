@@ -89,9 +89,10 @@ if ( !-w $abs_path and defined $chmod_fh ) {
     if ( -w $abs_path ) {
         $mode_restore = $cur_mode;
     } elsif ( defined $gw_reply and $gw_reply eq qw| ok | ) {
-        ## gw changed the mode but we still cannot write [ e.g. coding  ##
-        ## zenka lacks admin group ] : revert so no permission drift is ##
-        ## left behind when the apply fails with 'no write access'      ##
+        ## gw changed the mode but we still cannot write                 ##
+        ## [ e.g. coding zenka lacks admin group ] : revert so no        ##
+        ## permission drift is left behind when the apply fails with 'no ##
+        ## write access'                                                 ##
         printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $abs_path;
         <[coding.chmod_child.readline]>;    ## consume restore reply ##
     }
@@ -114,8 +115,8 @@ if ( -w $abs_path ) {
 
 return 'error: no write access to file';
 
-#,,,.,.,.,,,,,...,,,,,.,.,,,.,,..,.,.,.,,,,,.,..,,...,...,..,,,,.,,,.,,,.,...,
-#O5U3Z5WBPD577VVOO5423MXUJSBM5TUC6QHXTJN45K2M5L26CUMUP76TYPWBPZKCAIP57OIUYHDKK
-#\\\|477GSSMLZHSX4H6LB376BJMO5G555HB4YBYAH3EJKW5BB5KSUY7 \ / AMOS7 \ YOURUM ::
-#\[7]Z4FNV3Y7ZGBLOJKKL32ZZ5WVPNTQ3PDGR5I6V3TUYVEXC3DM4ODI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,,,..,,.,.,..,,...,..,,..,,.,.,..,,...,...,,..,,,.,.,.,.,,,..,,
+#QONBZYT2PLWXCD52IZUYPMH3NKQIDSEQUMJ63QOAZZKSNI25PJ4RH64CTIYJ7GOUG735F3KKBBWXE
+#\\\|5DKMXROBAMABPTUHTXQZSJOSYML2GGFGHXRMUEVZTFNPKOZBBIJ \ / AMOS7 \ YOURUM ::
+#\[7]UCGAI62WBR4KKR3RS5UKY72OU2BUOBCYCYTFICD6BVGVAVJMYOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

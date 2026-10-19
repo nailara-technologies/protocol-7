@@ -21,10 +21,10 @@ return undef if length($text) < $unit_min * $min_run;
 ## of how long the overall response has grown                             ##
 my $tail = length($text) > $window ? substr( $text, -$window ) : $text;
 
-## a short unit [ unit_min..unit_max chars ] repeated immediately min_run+ ##
-## times back-to-back - the classic degenerate-loop shape [ a model        ##
-## regurgitating the same phrase/token run ], independent of what the unit ##
-## actually contains                                                       ##
+## a short unit [ unit_min..unit_max chars ] repeated immediately min_run+  ##
+## times back-to-back - the classic degenerate-loop shape                   ##
+## [ a model regurgitating the same phrase/token run ], independent of what ##
+## the unit actually contains                                               ##
 my $re = qr/(.{$unit_min,$unit_max}?)\1{$min_run,}/s;
 
 return undef unless $tail =~ $re;
@@ -38,18 +38,20 @@ my $full_match_len = $+[0] - $-[0];
 ## a unit made of a single repeated character [ ':....:' -style ascii.frame
 ## border fills, AMOS7 signature terminators, '====' / '----' dividers ] is
 ## common LEGITIMATE content in this codebase, not the degenerate-loop failure
-## mode this check exists to catch [ a model looping on a real multi-character
-## PHRASE ]. require a much longer run before flagging those specifically,
-## using the actual matched span length rather than $& [ avoids the global
-## perf penalty of touching that special var ]
+## mode this check exists to catch
+## [ a model looping on a real multi-character PHRASE ]. require a much longer
+## run before flagging those specifically, using the actual matched span
+## length rather than $&
+## [ avoids the global perf penalty of touching that special var ]
 ##
 ## widened 2026-09-24 : a single-char test missed every OTHER structural shape
-## -- blank-line runs [ '  \n    \n', 68 false aborts in the log ], box-
-## drawing borders [ '──┼──' ], '-=-=' rules, and a line drawing that arrived
-## as mojibake [ 'âââ', task-5JXMWYY 2026-09-23 03:48, aborted mid-demo ].
-## structural = no letters/digits at all, OR at most 3 distinct chars ; a
-## genuine phrase loop has neither property. such runs still get caught, just
-## at the long threshold
+## -- blank-line runs [ '  \n    \n', 68 false aborts in the log ],
+## box-drawing borders [ '──┼──' ], '-=-=' rules, and a line drawing that
+## arrived as mojibake
+## [ 'âââ', task-5JXMWYY 2026-09-23 03:48, aborted mid-demo ].  structural =
+## no letters/digits at all, OR at most 3 distinct chars ; a genuine phrase
+## loop has neither property. such runs still get caught, just at the long
+## threshold
 my %distinct   = map { $ARG => 1 } split m||, $matched_unit;
 my $structural = ( $matched_unit !~ m|[\p{L}\p{N}]| or keys(%distinct) <= 3 );
 
@@ -70,8 +72,8 @@ if ($structural) {
 
 return { matched => $matched_unit, unit_len => length($matched_unit) };
 
-#,,,.,,..,..,,,.,,,.,,,,.,,.,,..,,..,,..,,,,,,.,.,...,...,..,,..,,..,,,..,,.,,
-#GMG2CJ7RZYPKAW4NSXZ4S4EZOCBNZOZL7SLKSX6ACJ4ATFA7CBJEKZ4I6S3GH74TGOQM2E5MEIYI4
-#\\\|UHAQTKXZOHISITO2AKWPRDM47ABQHQF2V4QB3QK5SUYVAYJUWVA \ / AMOS7 \ YOURUM ::
-#\[7]IALG5Y3FAX35QH6AH6L56U3BOHIV5RXUOHS2V7HIMXADWXBVU6DI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,.,,.,,,..,.,,,,,.,,..,,..,,..,.,.,...,..,,,..,,,.,.,,,,..,,.,,
+#VH4VBYPTVMXGGA526353HQORLLP33B4VUKGQQQEBKV4E2ZWVJ3WS7S5CNLXOK3IYSYJ4JBVEKNENS
+#\\\|V6JN5UNB6TKDRFLD4J42L2O6SSXFK6FHI5GZPQ4NCZL4JVEOJZI \ / AMOS7 \ YOURUM ::
+#\[7]QAMDSG4KTNZHHLV32RLK2PYI4OEYO5IPUDKJJ4TCEMI5HNLLGCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

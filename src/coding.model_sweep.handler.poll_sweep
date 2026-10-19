@@ -89,11 +89,11 @@ my $clear_cursor = sub {
 
 ## helper : finish the sweep and log a per-status summary ##
 my $finish_sweep = sub {
-    ## defensive : normally unreachable with a candidate in flight [ the ##
-    ## finished-advancing block releases first ], but if state was ever  ##
-    ## corrupted into idx>=total mid-candidate the lock would otherwise  ##
-    ## outlive the sweep and wedge the backend [ guarded no-op via       ##
-    ## backend_release's holder check when nothing is held ]             ##
+    ## defensive : normally unreachable with a candidate in flight       ##
+    ## [ the finished-advancing block releases first ], but if state was ##
+    ## ever corrupted into idx>=total mid-candidate the lock would       ##
+    ## otherwise outlive the sweep and wedge the backend [ guarded no-op ##
+    ## via backend_release's holder check when nothing is held ]         ##
     my $held_switch_id = $state->{'switch_id'} // '';
     <[coding.async.backend_release]>->(
         sprintf( qw| sweep:%s |, $held_switch_id ),
@@ -129,8 +129,8 @@ my $finish_sweep = sub {
 
     ## drain deferred pinned-model switches : a :no_yield: sweep never   ##
     ## yields by definition, so a pin deferred during this run only gets ##
-    ## its switch once the sweep is actually done [ drain site : natural ##
-    ## completion ]                                                      ##
+    ## its switch once the sweep is actually done                        ##
+    ## [ drain site : natural completion ]                               ##
     <[coding.helper.drain_model_pin_deferrals]>->($backend);
 
     delete <coding.model_sweep_state>->{$backend};
@@ -142,17 +142,17 @@ if ( $idx >= $total ) {
     return;
 }
 
-## helper : circuit breaker -- classify the just-finished candidate's       ##
-## verdict via the crash-class tag now carried in its model_status detail [ ##
-## poll_switch / verify_inference_startup write sites ] and count           ##
-## CONSECUTIVE identical [ crash_class, exit_status ] signatures.           ##
-## in-memory, per-backend, never persisted -- reset on model-sweep-resume [ ##
-## a stale pre-fix count would re-trip instantly ] and on any non-matching  ##
-## outcome. trips ONLY on crash_before_ready :  crash_after_ready is        ##
-## plausibly N genuinely distinct bad models [ auto- halting on it is a     ##
-## false positive in the wrong direction ], and resource-insufficient       ##
-## returns before any spawn at all, so transient contention never produces  ##
-## a crash class to false-positive here                                     ##
+## helper : circuit breaker -- classify the just-finished candidate's      ##
+## verdict via the crash-class tag now carried in its model_status detail  ##
+## [ poll_switch / verify_inference_startup write sites ] and count        ##
+## CONSECUTIVE identical [ crash_class, exit_status ] signatures.          ##
+## in-memory, per-backend, never persisted -- reset on model-sweep-resume  ##
+## [ a stale pre-fix count would re-trip instantly ] and on any            ##
+## non-matching outcome. trips ONLY on crash_before_ready :                ##
+## crash_after_ready is plausibly N genuinely distinct bad models          ##
+## [ auto- halting on it is a false positive in the wrong direction ], and ##
+## resource-insufficient returns before any spawn at all, so transient     ##
+## contention never produces a crash class to false-positive here          ##
 my $check_breaker = sub {
     my ($checksum) = @_;
     return '' if !length $checksum;
@@ -222,8 +222,8 @@ my $start_candidate = sub {
     <coding.self_test_switch_state> //= {};
     my $switch_id = <[base.gen_id]>->(<coding.self_test_switch_state>);
 
-    ## hold the backend lock for the ENTIRE candidate cycle [ switch +      ##
-    ## self-test + restore ] : the deliberately-global                      ##
+    ## hold the backend lock for the ENTIRE candidate cycle                 ##
+    ## [ switch + self-test + restore ] : the deliberately-global           ##
     ## coding.helper.backend_idle check loops BOTH backends' locks, so this ##
     ## makes a sweep's own activity visible to it -- the OTHER backend's    ##
     ## sweep then yields instead of racing in parallel, the same mutual     ##
@@ -389,9 +389,10 @@ if ( $phase eq qw| idle | ) {
                         $yield_why = 'task stream STALLED';
                     }
                 } else {
-                    ## lock held but no http_state yet [ between rounds,   ##
-                    ## brief dispatch window ] : nothing to check liveness ##
-                    ## against -- fall through to the flat 300s cap        ##
+                    ## lock held but no http_state yet                     ##
+                    ## [ between rounds, brief dispatch window ] : nothing ##
+                    ## to check liveness against -- fall through to the    ##
+                    ## flat 300s cap                                       ##
                     $yield_why = 'task pre-stream [ no http_state ]';
                 }
             }
@@ -443,8 +444,9 @@ if ( $phase eq qw| idle | ) {
 
             ## the whole point of yielding is to let a parked pinned task ##
             ## through : drain its deferred switch-model right here, the  ##
-            ## same tick the yield is detected [ and every tick it keeps  ##
-            ## yielding ], rather than waiting for a separate signal      ##
+            ## same tick the yield is detected                            ##
+            ## [ and every tick it keeps yielding ], rather than waiting  ##
+            ## for a separate signal                                      ##
             <[coding.helper.drain_model_pin_deferrals]>->($backend);
 
             ## bounded, matching vision_switch_poll's own 300s bound : past ##
@@ -524,14 +526,14 @@ if ( $phase eq qw| waiting | ) {
         : undef;
 
     if ( !defined $switch_state ) {
-        ## terminal phase reached : release THIS candidate's backend lock  ##
-        ## FIRST -- every terminal transition of the switch cycle [        ##
-        ## success, failure, restore ] funnels through this one block, and ##
-        ## so does the circuit-breaker trip below : holding the lock past  ##
-        ## here would wedge this backend for every sweep and real task     ##
-        ## behind it. $switch_id is read from state here, BEFORE it is     ##
-        ## reset to '' a few lines down [ guarded no-op via                ##
-        ## backend_release's holder check when somehow nothing is held ]   ##
+        ## terminal phase reached : release THIS candidate's backend lock   ##
+        ## FIRST -- every terminal transition of the switch cycle           ##
+        ## [ success, failure, restore ] funnels through this one block,    ##
+        ## and so does the circuit-breaker trip below : holding the lock    ##
+        ## past here would wedge this backend for every sweep and real task ##
+        ## behind it. $switch_id is read from state here, BEFORE it is      ##
+        ## reset to '' a few lines down [ guarded no-op via                 ##
+        ## backend_release's holder check when somehow nothing is held ]    ##
         <[coding.async.backend_release]>->(
             sprintf( qw| sweep:%s |, $switch_id ),
             $backend, qw| force |
@@ -589,8 +591,8 @@ if ( $phase eq qw| waiting | ) {
 
 ## unknown phase : defensive cleanup  if a candidate cycle was in flight    ##
 ## when the phase got corrupted, its backend lock is still held and nothing ##
-## else will EVER release it -- drop it here [ guarded no-op via            ##
-## backend_release's holder check ]                                         ##
+## else will EVER release it -- drop it here                                ##
+## [ guarded no-op via backend_release's holder check ]                     ##
 my $orphan_switch_id = $state->{'switch_id'} // '';
 <[coding.async.backend_release]>->(
     sprintf( qw| sweep:%s |, $orphan_switch_id ),
@@ -603,8 +605,8 @@ my $orphan_switch_id = $state->{'switch_id'} // '';
 $state->{'idx'} = $total;
 return TRUE;
 
-#,,.,,,,,,...,.,,,,,.,...,...,,..,,,,,,,,,,.,,..,,...,...,,,,,...,,.,,,,.,,,,,
-#EU4G7DWC552OR7VJKZWEY5NDX5TY4TL2XC2NIR27PXDT3R2TEYJDUFGLVZP4M7GKKVRHRFXWU7ADA
-#\\\|KY7354SM566CXW2M5C7KQW5O57LJY44WNZRYCSG37ELMKJ2ZPFZ \ / AMOS7 \ YOURUM ::
-#\[7]QIVLEANY3R45HPSX5XU5CRBV3CS3XEO4JJQ75GYI4B5CMADJJSCI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,,,.,.,..,,,..,,..,,.,,,,,,.,,,..,,...,...,.,,,,,.,..,,,,.,,,.,
+#EGQCSSVGQZ2D53KPYF4FBXJK3TK57FO63TR2R2IS2ZQKA7FVZ5C4D63UH5CFWQNWCASS7VQV6XP5O
+#\\\|PQDJ7NMVCKQAHIGVYXLBQ24EWFPEGTZ5UHRIKWGPNJAID26JHUT \ / AMOS7 \ YOURUM ::
+#\[7]EEWWF446M7JNVBJAUYO3D6MRQBELOVYADII3V7QQM6553KQF44BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

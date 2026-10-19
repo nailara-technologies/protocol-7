@@ -15,10 +15,10 @@ my $backend       = $reply->{'params'}->{'backend'}       // 'gpu';
     $model_amos_id, $backend
 );
 
-## clear regardless of outcome below : a reply arrived, the request this ##
-## guard was tracking is no longer in flight either way [ see            ##
-## coding.resolve_model_path's own comment for why this flag exists ] -- ##
-## per-backend now, so a cpu reply doesn't clear an in-flight gpu one    ##
+## clear regardless of outcome below : a reply arrived, the request this    ##
+## guard was tracking is no longer in flight either way                     ##
+## [ see coding.resolve_model_path's own comment for why this flag exists ] ##
+## -- per-backend now, so a cpu reply doesn't clear an in-flight gpu one    ##
 <coding.model_path_request_in_flight>->{$backend} = FALSE;
 
 my $response_text = $reply->{'data'} // '';
@@ -61,8 +61,8 @@ unless ( defined $model_path && length $model_path ) {
 );
 
 ## cpu writes its own backend-scoped slots; gpu keeps writing the shared ##
-## <inference.model.*> keys exactly as before [ other code reads those   ##
-## directly today ]                                                      ##
+## <inference.model.*> keys exactly as before                            ##
+## [ other code reads those directly today ]                             ##
 if ( $backend eq 'cpu' ) {
     <inference.backend.cpu.path>        = $model_path;
     <inference.backend.cpu.mmproj_path> = $entry->{'mmproj_path'} // '';
@@ -72,11 +72,11 @@ if ( $backend eq 'cpu' ) {
     <inference.model.is_vision>   = $entry->{'is_vision'}   // 0;
 }
 
-## re-trigger spawn if this backend's server is not yet running [ race with ##
-## deferred timer ] -- per-backend now, via <inference.gpu_pid> /           ##
-## <inference.cpu_pid>. the needs_respawn check [ mmproj became available   ##
-## after initial spawn ] stays gpu-only : cpu model config has no           ##
-## mmproj/vision path currently                                             ##
+## re-trigger spawn if this backend's server is not yet running             ##
+## [ race with deferred timer ] -- per-backend now, via <inference.gpu_pid> ##
+## / <inference.cpu_pid>. the needs_respawn check                           ##
+## [ mmproj became available after initial spawn ] stays gpu-only : cpu     ##
+## model config has no mmproj/vision path currently                         ##
 my $gpu_pid       = <inference.gpu_pid> // 0;
 my $cpu_pid       = <inference.cpu_pid> // 0;
 my $backend_pid   = $backend eq 'cpu' ? $cpu_pid : $gpu_pid;
@@ -96,10 +96,10 @@ if ( not $backend_pid or $needs_respawn ) {
     <[coding.async_spawn_inference_servers]>;
 
     ## cancel deferred spawn timer only once BOTH backends are settled : a  ##
-    ## cpu-first reply must not cancel a timer the gpu side [ or vice versa ##
-    ## ] may still need. 'settled' = genuinely spawned, or that backend is  ##
-    ## not enabled at all. re-read the pids after the spawn call above --   ##
-    ## it may have just set them                                            ##
+    ## cpu-first reply must not cancel a timer the gpu side                 ##
+    ## [ or vice versa ] may still need. 'settled' = genuinely spawned, or  ##
+    ## that backend is not enabled at all. re-read the pids after the spawn ##
+    ## call above -- it may have just set them                              ##
     my $spawn_params = <coding.spawn_params> // {};
 
     ## normalize enabled flags to match async_spawn_inference_servers ##
@@ -160,8 +160,8 @@ if ( not $backend_pid or $needs_respawn ) {
 
 return TRUE;
 
-#,,..,,,.,,,,,..,,...,,,.,,..,,..,,,.,,,,,...,..,,...,..,,,,,,,,,,,,.,..,,,,,,
-#HH67CUFIJBCZZO6OOB2CNPS72MFSMHXTQXUF7ZUE2VCBVWPW7D5PJQEVUXVTW5OTOU4MGWJMYF6DG
-#\\\|UPQHEGHYQDGBLDZM26IUQ2JOLPID2XEIIKCFPYYP2FOPUGCGEIZ \ / AMOS7 \ YOURUM ::
-#\[7]VDLSUISP7Z4ROIFYAOCBNAERKLA3M7OZZK4FUHG2ODKEAH6RH4DI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,.,,,,..,,,,,,,,,,,,,,,.,,..,..,,...,...,,.,,...,...,.,,,.,.,
+#FCT7HVOIXLSDKL6EQE6LQCHBOCOPZ7UPQ6EJMIRGAH7LOI2MTA4J2EQAADVZ74QTPPRRJCFHYZ3P2
+#\\\|D6YUZTENYZ5AIHHLZKSTWNLATZ7XA74QCX7QMBJ24XXOHJSN4LQ \ / AMOS7 \ YOURUM ::
+#\[7]UWGJNVMSXLNS4OPWBP4AK2PXELPQEZEB5IBNNMNSDXLSLAAEA4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,17 +24,18 @@ my $model_id = $state->{'model_id'} // '';
 my $elapsed  = $now - ( $state->{'started'} // $now );
 
 ## overall watchdog : bounded, never unbounded. worst case per prompt is ~2 ##
-## probe attempts + tier1 [ 1 initial attempt + configurable extra strict-  ##
-## hint rounds, coding.cfg.self_test_tier1_extra_rounds ], each try up to 2 ##
-## http attempts [ 1 transport retry ] at the 90s timeout, plus gaps - all  ##
-## prompts + slack. a state machine phase with no ceiling is an unbounded   ##
-## wait wearing a costume. self_test_max_total is derived from the same     ##
-## extra-rounds knob ONCE at coding.init_code, not recomputed here, so this ##
-## and coding.handler.verify_inference_startup's fallback-resume ceiling    ##
-## always agree -- an independent recompute in either module risks exactly  ##
-## the premature-resume race fixed in 4c3cf0e73 [ confirmed live 2026-08-07 ##
-## : a 120s fallback ceiling fired mid-retry on prompt 2 and force-resumed  ##
-## the task queue before self-test had actually concluded ]                 ##
+## probe attempts + tier1 [ 1 initial attempt + configurable extra          ##
+## strict-hint rounds, coding.cfg.self_test_tier1_extra_rounds ], each try  ##
+## up to 2 http attempts [ 1 transport retry ] at the 90s timeout, plus     ##
+## gaps - all prompts + slack. a state machine phase with no ceiling is an  ##
+## unbounded wait wearing a costume. self_test_max_total is derived from    ##
+## the same extra-rounds knob ONCE at coding.init_code, not recomputed      ##
+## here, so this and coding.handler.verify_inference_startup's              ##
+## fallback-resume ceiling always agree -- an independent recompute in      ##
+## either module risks exactly the premature-resume race fixed in 4c3cf0e73 ##
+## [ confirmed live 2026-08-07 : a 120s fallback ceiling fired mid-retry on ##
+## prompt 2 and force-resumed the task queue before self-test had actually  ##
+## concluded ]                                                              ##
 my $max_total = <coding.cfg.self_test_max_total> // 1200;
 if ( $elapsed > $max_total and $state->{'phase'} ne qw| done | ) {
     ## liveness gate [ task : backend-aware timeout scaling, 2026-08-27 ] : ##
@@ -47,8 +48,8 @@ if ( $elapsed > $max_total and $state->{'phase'} ne qw| done | ) {
     ## stalled stream can never inflate it ] ; the per-chunk stall watcher  ##
     ## [ coding.handler.http_io ] stays the fast path for genuine silence.  ##
     ## the abort below remains bounded - the outer cap IS the bound - and   ##
-    ## still fires the moment the stream stalls or dies, or once even the [ ##
-    ## generous ] cap is exceeded                                           ##
+    ## still fires the moment the stream stalls or dies, or once even the   ##
+    ## [ generous ] cap is exceeded                                         ##
     my $skip_abort = FALSE;
     my $http_state = $state->{'http_state'};
     if ( $state->{'in_flight'} and ref $http_state eq qw| HASH | ) {
@@ -83,16 +84,17 @@ if ( $elapsed > $max_total and $state->{'phase'} ne qw| done | ) {
     }    ## !skip_abort ##
 }
 
-## helper : fire one async probe request [ probe or tier1 ] through         ##
-## coding.self_test.async_probe. acquires the backend lock first - only     ##
-## when FREE, never queued : a queued pseudo-id would later be handed to    ##
-## coding.async.send_request by backend_release, which has no task for it [ ##
-## task spec, step 2 ]. a lock held by a model SWEEP placeholder [ sweep: ] ##
-## is the one exception : this probe is part of that sweep candidate's own  ##
-## cycle, so it proceeds WITHOUT acquiring -- the sweep lock already covers ##
-## the backend [ and the probe's own release then degrades to a guarded     ##
-## no-op ]. returns FALSE when the lock is held by anything else - the      ##
-## caller re-tries on the next tick [ watchdog bounds the total wait ]      ##
+## helper : fire one async probe request [ probe or tier1 ] through       ##
+## coding.self_test.async_probe. acquires the backend lock first - only   ##
+## when FREE, never queued : a queued pseudo-id would later be handed to  ##
+## coding.async.send_request by backend_release, which has no task for it ##
+## [ task spec, step 2 ]. a lock held by a model SWEEP placeholder        ##
+## [ sweep: ] is the one exception : this probe is part of that sweep     ##
+## candidate's own cycle, so it proceeds WITHOUT acquiring -- the sweep   ##
+## lock already covers the backend                                        ##
+## [ and the probe's own release then degrades to a guarded no-op ].      ##
+## returns FALSE when the lock is held by anything else - the caller      ##
+## re-tries on the next tick [ watchdog bounds the total wait ]           ##
 my $fire_request = sub {
     my ( $kind, $prompt_text ) = @_;
 
@@ -107,17 +109,17 @@ my $fire_request = sub {
 
     ## a sweep-held lock does NOT block a self-test probe : this probe IS   ##
     ## part of that sweep candidate's own cycle, and the sweep lock already ##
-    ## gives the backend everything the probe lock exists for [ real tasks  ##
-    ## stay queued, backend_idle stays non-idle ]. acquiring on top of it   ##
-    ## is impossible anyway -- backend_acquire would push this probe_id     ##
-    ## onto the queue, and the sweep's backend_release would then           ##
+    ## gives the backend everything the probe lock exists for               ##
+    ## [ real tasks stay queued, backend_idle stays non-idle ]. acquiring   ##
+    ## on top of it is impossible anyway -- backend_acquire would push this ##
+    ## probe_id onto the queue, and the sweep's backend_release would then  ##
     ## auto-dispatch it via coding.async.send_request, which only knows     ##
     ## REAL task ids [ the exact hazard poll_probe's own never- queued      ##
     ## discipline exists to avoid ]. skip the acquire entirely : the        ##
     ## probe's own $finish release degrades to a guarded no-op, and the     ##
     ## sweep lock keeps covering the whole candidate cycle. the granted     ##
-    ## token is kept for async_probe's $finish release [ undef under a      ##
-    ## sweep lock : that release is then a guarded no-op ]                  ##
+    ## token is kept for async_probe's $finish release                      ##
+    ## [ undef under a sweep lock : that release is then a guarded no-op ]  ##
     my $probe_token;
     if ( !defined $bs->{'lock'} ) {
         my $probe_acq
@@ -224,8 +226,8 @@ if ( $state->{'phase'} eq qw| probe | ) {
         );
 
         ## on an http_5xx grab whatever the server itself said right before ##
-        ## the request failed [ coding.self_test.helper.                    ##
-        ## capture_server_tail ]                                            ##
+        ## the request failed                                               ##
+        ## [ coding.self_test.helper.  capture_server_tail ]                ##
         my $server_tail = '';
         if ( $err =~ m{^http_5\d\d$} ) {
             $server_tail
@@ -264,9 +266,10 @@ if ( $state->{'phase'} eq qw| probe | ) {
         finish_reason => $result->{'finish_reason'} // '',
         ttft          => $ttft,
         total         => $ttft,
-        ## live t/s measured during THIS probe's stream [ coding.async.     ##
-        ## stream_tps ] - finally gives coding.self_test.archive's tps slot ##
-        ## a real producer [ was silently 0 since it existed ]              ##
+        ## live t/s measured during THIS probe's stream        ##
+        ## [ coding.async. stream_tps ] - finally gives        ##
+        ## coding.self_test.archive's tps slot a real producer ##
+        ## [ was silently 0 since it existed ]                 ##
         tps => <[coding.async.stream_tps]>->(
             qw| get_tps |, $state->{'http_state'} // {}
         ) // 0,
@@ -473,8 +476,8 @@ if ( $state->{'phase'} eq qw| record | ) {
     ## over a generic transport label when both signals are present, since  ##
     ## it's the more actionable of the two. empty-answer is checked before  ##
     ## content_mismatch because "returned nothing" and "returned the wrong  ##
-    ## word" are different signals that a bare tier1_reason [ both read     ##
-    ## missing_token:X ] can't otherwise distinguish                        ##
+    ## word" are different signals that a bare tier1_reason                 ##
+    ## [ both read missing_token:X ] can't otherwise distinguish            ##
     my $failure_class = '';
     if ( !$passed ) {
         my $resource_re = qr{
@@ -580,13 +583,13 @@ if ( $state->{'phase'} eq qw| done | ) {
 
     ## per-prompt failure_class [ already computed above, per prompt :      ##
     ## resource_suspected / transport / empty_answer / content_mismatch /   ##
-    ## other ] was previously discarded here -- collapsing a timeout-       ##
-    ## driven transport failure and a genuinely-wrong content_mismatch into ##
-    ## the identical bare "2/3 passed" detail string made it impossible to  ##
-    ## tell "this model is basically fine, just slow" from "this model      ##
-    ## gives wrong answers" without re-reading raw logs.  fold the          ##
-    ## breakdown into detail so a later fix-vs-delete decision has it       ##
-    ## without that -- confirmed live 2026-09-17, per the user              ##
+    ## other ] was previously discarded here -- collapsing a timeout-driven ##
+    ## transport failure and a genuinely-wrong content_mismatch into the    ##
+    ## identical bare "2/3 passed" detail string made it impossible to tell ##
+    ## "this model is basically fine, just slow" from "this model gives     ##
+    ## wrong answers" without re-reading raw logs.  fold the breakdown into ##
+    ## detail so a later fix-vs-delete decision has it without that --      ##
+    ## confirmed live 2026-09-17, per the user                              ##
     ##                                                                      ##
     ## empty_answer sub-classification, same session, live example :        ##
     ## finish_reason=length with substantial reasoning content (10135       ##
@@ -632,8 +635,8 @@ if ( $state->{'phase'} eq qw| done | ) {
     ## a new self-test [ eg the seed-retry respawn path ]. per-backend slot ##
     ## since 2026-08-27 [ task : coding-self-test-true-parallelization ] :  ##
     ## a concurrent self-test on ANOTHER backend keeps its own slot set and ##
-    ## is unaffected ; the per-backend guard watcher [                      ##
-    ## coding.helper.self_test_guard_watcher ] fires on this write and      ##
+    ## is unaffected ; the per-backend guard watcher                        ##
+    ## [  coding.helper.self_test_guard_watcher ] fires on this write and   ##
     ## wakes a same-backend waiter the instant the slot clears              ##
     <coding.self_test_probe_in_flight>->{$backend} = FALSE;
     $event->w->cancel if defined $event->w and $event->w->is_active;
@@ -652,8 +655,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,,.,,..,,.,,...,,..,.,,,,..,.,,,..,,.,.,,.,,..,,...,...,.,.,,,,,..,,,.,,..,,
-#GN5ZKYAH7RUQWNBYTPTQIMFPL3IJ2NLJLSPJOK4EO3S33MBMJJBRAWEXXTYET344CO6N2MYOTO2AI
-#\\\|6LOIA4BXBTCS45GKQ4OGCXBBONKQDAK3ZE7UCCLHOLHED53MLYL \ / AMOS7 \ YOURUM ::
-#\[7]VWEWXDQY5FL3OYIDRIZLCOJYAGLQDNN7DKJ2F6KQ7ZOPJW72GICI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,.,,,,,,.,,,.,,.,.,,,,,,,.,.,,,..,,...,...,.,,,,,.,,..,,,,,.,,,
+#FLC5VPQ56NYX7DWS2ITCYZBGB6SESPBVDWCSFHDQP7KNMZM3RSOU4GUU3DJFRZCP3H7FHZEIPSUCQ
+#\\\|4N53LQUPTQE25JKQIT7KAWFEN3NVTAGSJ2DWALA6KUUSH33WHGY \ / AMOS7 \ YOURUM ::
+#\[7]A2I5JZ2LOEH6DFIDQQTDKRKIX2P5J67SASGHFS2MDDR6OEGGSAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

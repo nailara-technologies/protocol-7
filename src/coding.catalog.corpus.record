@@ -86,11 +86,12 @@ my $line = <[format.json.encode]>->(
     }
 );
 
-## format.json.encode is pretty-printed [ ->pretty(1), shared with other   ##
-## callers and not ours to change ] so literal newlines are collapsed to   ##
-## keep the one-object-per-line jsonl contract -- safe, since JSON forbids ##
-## a raw newline inside a string literal. same fix as                      ##
-## coding.idiom.corpus.record needed after its own live run                ##
+## format.json.encode is pretty-printed                                  ##
+## [ ->pretty(1), shared with other callers and not ours to change ] so  ##
+## literal newlines are collapsed to keep the one-object-per-line jsonl  ##
+## contract -- safe, since JSON forbids a raw newline inside a string    ##
+## literal. same fix as  coding.idiom.corpus.record needed after its own ##
+## live run                                                              ##
 $line =~ s|\s*\n\s*| |g;
 
 ## base.file.append likewise not guaranteed loaded on a fresh start -- ##
@@ -120,8 +121,8 @@ if ( not $append_ok ) {
 
 return { 'mode' => qw| true |, 'data' => $path };
 
-#,,,,,,.,,,,,,,..,..,,...,,,,,,,.,,,.,.,,,...,..,,...,..,,..,,.,.,,,.,,,,,,,.,
-#K7VDBONA42I6F67EZMH2YNPLG2WSE2AHOD2H5YJR4FU5PORYIJIVBASBDNTF3DPDOTVTTHKZVM7WU
-#\\\|OBZUVW3SQJFDNXVRZFERBHSYJWUEHJU74ELJV5SN3IOMNOVUCMR \ / AMOS7 \ YOURUM ::
-#\[7]T4YPSC6T6PYN25HJGQH7RV77NNV5BOMO3KY2LXX7WMDFDEQ77IDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,.,,,,,...,...,..,,,,,,.,,,..,,..,,...,..,,.,,,..,,..,,.,.,,,,,
+#ZKCSDSF7A2PZATU4DLSVFBUGVFODES6D4ID3TTWPZF6M4GMTJ235YVC4Q7OYPJLKD2KCTWUG27BFW
+#\\\|6VUJ7GLXMYYHYSDKY4B32P72ZU35ZBHP4EL3NWM7VAIZX4XRSKF \ / AMOS7 \ YOURUM ::
+#\[7]ACLE5XDAIZYGL2YTFOFYPDUPU26ISRO5ZCQ2KRGBSZ4Q5ACYNECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

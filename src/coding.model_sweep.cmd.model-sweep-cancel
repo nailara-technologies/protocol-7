@@ -49,22 +49,22 @@ for my $backend (@backends) {
     my $total  = scalar( @{ $report->{'candidates'} // [] } );
 
     ## dropping the in-memory state is sufficient : poll_sweep's next tick  ##
-    ## sees the missing state and cancels its own timer [ existing          ##
-    ## self-stop path ]. the IN-FLIGHT candidate, if any, is deliberately   ##
-    ## NOT aborted : poll_switch has its own independent timer and its own  ##
-    ## model_status.record call, so that candidate's verdict can still land ##
-    ## after cancel returns -- cancel means "no further candidates", not    ##
-    ## "nothing more will be written". for the same reason                  ##
+    ## sees the missing state and cancels its own timer                     ##
+    ## [ existing self-stop path ]. the IN-FLIGHT candidate, if any, is     ##
+    ## deliberately NOT aborted : poll_switch has its own independent timer ##
+    ## and its own model_status.record call, so that candidate's verdict    ##
+    ## can still land after cancel returns -- cancel means "no further      ##
+    ## candidates", not "nothing more will be written". for the same reason ##
     ## <coding.self_test_switch_in_progress> is NOT cleared here : the      ##
     ## in-flight cycle clears it itself when it resolves [ clearing early   ##
-    ## would wrongly un-suppress monitor_inference_startup's auto-          ##
-    ## self-test mid-cycle ]  the in-flight candidate's backend lock must   ##
-    ## be released HERE : the switch cycle itself is deliberately left      ##
-    ## running to land its verdict [ see below ], but with the sweep state  ##
-    ## gone no poll_sweep tick will ever reach its finished-advancing       ##
-    ## release -- a lock left held would wedge this backend for every sweep ##
-    ## and real task behind it [ guarded no-op via backend_release's holder ##
-    ## check when idle, and never touches a real task's lock : the id is    ##
+    ## would wrongly un-suppress monitor_inference_startup's auto-self-test ##
+    ## mid-cycle ]  the in-flight candidate's backend lock must be released ##
+    ## HERE : the switch cycle itself is deliberately left running to land  ##
+    ## its verdict [ see below ], but with the sweep state gone no          ##
+    ## poll_sweep tick will ever reach its finished-advancing release -- a  ##
+    ## lock left held would wedge this backend for every sweep and real     ##
+    ## task behind it [ guarded no-op via backend_release's holder check    ##
+    ## when idle, and never touches a real task's lock : the id is          ##
     ## sweep-specific ]                                                     ##
     if ($had_state) {
         my $held_switch_id = $state->{'switch_id'} // '';
@@ -82,8 +82,8 @@ for my $backend (@backends) {
     delete <coding.model_sweep_breaker>->{$backend};
 
     ## drain deferred pinned-model switches : an abandoned run is the same ##
-    ## dead-end for a deferred pin as a finished one [ drain site : cancel ##
-    ## ]                                                                   ##
+    ## dead-end for a deferred pin as a finished one                       ##
+    ## [ drain site : cancel ]                                             ##
     <[coding.helper.drain_model_pin_deferrals]>->($backend);
 
     push @lines,
@@ -106,8 +106,8 @@ if ($changed) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,,,,,,,.,,,.,.,.,..,,..,,.,.,,..,..,,,,,,.,.,...,...,,.,,,..,.,,,...,,,,,
-#IEUO2HITRYZ2JOJYCOMESAM34DKUY2WQUHETZGSPTBZIYI3A7Z35S23UJ2UFN6OHKGHEV6KYDOLK2
-#\\\|WGZI46AKFPDM4SYK3KUYLFOXKDL3IU42CWTIHKGK5LVLDQV5SBM \ / AMOS7 \ YOURUM ::
-#\[7]CPOS73YKMMBTTOONTO7XY74U7DHYS4RQWZV3MLEJ3GJJOC6NV6AA 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,,.,,,,,,.,.,.,,,,.,,,,,,..,,.,.,...,...,...,.,,,,.,,,,.,...,
+#W52BD6MG2BOXE6NU5WV6Q3Z2BEPQ5TZMS5OEEOM42XVGM4DLX6WR746MWSB2IYNF32YMDVJGIWXOU
+#\\\|4FIV6EVOZ3Y2G63WJM62QOW2T5CGKPKEDTFMNCT4S5YZD2HDVPU \ / AMOS7 \ YOURUM ::
+#\[7]NSWNCYOBVMUAYNJZXQWC3SVQISYCJISXQSQTCEN6EGSWMLAZLSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

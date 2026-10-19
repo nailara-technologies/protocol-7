@@ -7,22 +7,23 @@
 #           backends [ cpu, remote ] get generous ceilings while fast ones
 #           keep their tight failure-detection windows
 
-## modes :  update  : feed one chunk-arrival observation [ called from      ##
-## coding.handler.http_io after the parse loop ]  get_cap : current         ##
-## absolute outer cap in seconds [ live-derived once the minimum-sample     ##
-## floor is met, static per-backend  fallback before that, FROZEN at last   ##
-## good value while the stream is stalled -- never recomputed through a     ##
-## stall ]  get_tps : last measured live tokens/sec [ undef before min      ##
-## samples ] is_alive: the SAME liveness signal coding.handler.http_timeout ##
-## and the stall watcher use, shared so the definitions cannot  drift apart ##
+## modes :  update  : feed one chunk-arrival observation                  ##
+## [ called from coding.handler.http_io after the parse loop ]  get_cap : ##
+## current absolute outer cap in seconds [ live-derived once the          ##
+## minimum-sample floor is met, static per-backend  fallback before that, ##
+## FROZEN at last good value while the stream is stalled -- never         ##
+## recomputed through a stall ]  get_tps : last measured live tokens/sec  ##
+## [ undef before min samples ] is_alive: the SAME liveness signal        ##
+## coding.handler.http_timeout and the stall watcher use, shared so the   ##
+## definitions cannot  drift apart                                        ##
 
 my $mode  = shift // '';
 my $state = shift;
 
 ## liveness : chunk[s] received AND last activity within the stall window. ##
-## identical to the check the stall watcher [ coding.handler.http_io,      ##
-## re-armed per chunk ] implicitly maintains - this is the one signal the  ##
-## whole timeout stack keys on                                             ##
+## identical to the check the stall watcher                                ##
+## [ coding.handler.http_io, re-armed per chunk ] implicitly maintains -   ##
+## this is the one signal the whole timeout stack keys on                  ##
 my $stream_alive = sub {
     my ($st) = @ARG;
     return FALSE if !ref $st;
@@ -60,12 +61,12 @@ my $context_size = sub {
 };
 
 ## [re]compute live tps + derived cap. ONLY ever called while the stream is ##
-## alive [ per-chunk from update, or from get_cap after its own liveness    ##
-## gate ] - running this against a stalled stream would divide a frozen     ##
-## token count by an ever-growing elapsed time, driving tps toward zero and ##
-## the cap toward infinity, which is exactly backwards : a stalled stream   ##
-## must keep its last good cap and let the [ short, per-chunk ] stall       ##
-## watcher kill it                                                          ##
+## alive                                                                    ##
+## [ per-chunk from update, or from get_cap after its own liveness gate ] - ##
+## running this against a stalled stream would divide a frozen token count  ##
+## by an ever-growing elapsed time, driving tps toward zero and the cap     ##
+## toward infinity, which is exactly backwards : a stalled stream must keep ##
+## its last good cap and let the [ short, per-chunk ] stall watcher kill it ##
 my $recompute = sub {
     my ($st)        = @ARG;
     my $tps_st      = $st->{'tps'} // return $static_cap->($st);
@@ -80,16 +81,17 @@ my $recompute = sub {
     my $elapsed = <[base.time]>->(3) - $tps_st->{'first_token_time'};
     return $tps_st->{'cap'} // $static_cap->($st) if $elapsed <= 0;
 
-    ## ~1 token per streamed SSE delta chunk [ llama.cpp servers emit one ##
-    ## data line per generated token ] - chunk count is the cheap proxy   ##
+    ## ~1 token per streamed SSE delta chunk                                ##
+    ## [ llama.cpp servers emit one data line per generated token ] - chunk ##
+    ## count is the cheap proxy                                             ##
     my $live_tps = $tps_st->{'token_count'} / $elapsed;
     my $margin   = <coding.cfg.round_cap_margin> // 1.3;
 
-    ## cap = time to fill the model's full context at the currently       ##
-    ## observed generation rate, plus margin - deliberately generous, its ##
-    ## only job is being a last-resort backstop scaled to real throughput ##
-    ## and model size, NOT tracking normal request duration [ that is the ##
-    ## per-request extension interval's job, one layer down ]             ##
+    ## cap = time to fill the model's full context at the currently         ##
+    ## observed generation rate, plus margin - deliberately generous, its   ##
+    ## only job is being a last-resort backstop scaled to real throughput   ##
+    ## and model size, NOT tracking normal request duration                 ##
+    ## [ that is the per-request extension interval's job, one layer down ] ##
     my $cap   = int( ( $context_size->($st) / $live_tps ) * $margin );
     my $floor = $static_cap->($st);
     $cap = $floor if $cap < $floor;
@@ -134,8 +136,8 @@ if ( $mode eq qw| is_alive | ) {
 
 return { mode => qw| false |, data => "unknown mode '$mode'" };
 
-#,,..,,,.,.,,,..,,...,.,.,,.,,.,.,.,,,,..,,..,..,,...,...,.,.,..,,...,,..,...,
-#JPHA54BPMJ2NNDAE4MZDO7WCGJZ35XEJIBQALQ5V2D2U2QCXCDROASQYC5XQL5WJXIY5B6WJKATAO
-#\\\|DNUGVENZQYQPI674XGHEKDIFKSJQ4DNKOQS5AFFILAYM5TD54WQ \ / AMOS7 \ YOURUM ::
-#\[7]YJ2AT3ZLWXVLQVUVJN5K6DSONUFRLT6MZ6SXENUAQ3TFBGSQRKCY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,.,,,.,,,,,,.,,.,,,,,.,,,,,,..,..,,...,...,..,,,.,,..,,,.,,.,.,
+#3KZLTB4FMTQX774DMCACYUC73CI5FZPNQRFPZYKBSDVZWMN6NAV4LBFIO2KDQXL3MOFE3PXS3PCSG
+#\\\|5VIEBICVS3LSE3ATJ2KQRGZEDC72625OPYNLIGS4OH2TMLBRPDU \ / AMOS7 \ YOURUM ::
+#\[7]7265D2VLDLGIBC5XDAZQWUI5SOSFZGVCT5HEUXLMBZCQTGQT6SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

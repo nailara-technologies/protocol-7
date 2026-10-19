@@ -12,16 +12,16 @@ my $model_id = $params->{'model_id'} // '';
 ## still-working request past 30s. the client giving up and disconnecting   ##
 ## surfaces server-side as a cancelled task ["srv stop: cancel task"],      ##
 ## which we then see as http_500 - not a crash, a timeout mismatch. BUT:    ##
-## duration alone doesn't fully explain it - a 69.27s success and a still-  ##
-## failing-past-120s run in the same session mean pushing this further has  ##
-## diminishing returns. suspected real cause: this client uses stream=false ##
-## [ one silent read for the whole generation ], while the proven-stable    ##
-## async path [ coding.async.http_client ] streams - a stall/idle cutoff    ##
-## independent of total duration is the more likely culprit than total wait ##
-## time. 90s as a reasonable middle ground pending that experiment - not    ##
-## chasing the timeout further for now [ ondemand zenki don't have          ##
-## heartbeat/restart yet, so blocking isn't an active hazard today, but     ##
-## shouldn't be pushed needlessly high either ]                             ##
+## duration alone doesn't fully explain it - a 69.27s success and a         ##
+## still-failing-past-120s run in the same session mean pushing this        ##
+## further has diminishing returns. suspected real cause: this client uses  ##
+## stream=false [ one silent read for the whole generation ], while the     ##
+## proven-stable async path [ coding.async.http_client ] streams - a        ##
+## stall/idle cutoff independent of total duration is the more likely       ##
+## culprit than total wait time. 90s as a reasonable middle ground pending  ##
+## that experiment - not chasing the timeout further for now [ ondemand     ##
+## zenki don't have heartbeat/restart yet, so blocking isn't an active      ##
+## hazard today, but shouldn't be pushed needlessly high either ]           ##
 ##                                                                          ##
 ## UPDATE 2026-07-31 [ async transport rewrite ] : hypothesis CONFIRMED -   ##
 ## with stream=true the http_500s stopped entirely ; the old 500s were      ##
@@ -34,20 +34,21 @@ my $model_id = $params->{'model_id'} // '';
 ## coding.handler.http_io actually catches hung connections now ], but 90s  ##
 ## turned out too low for this class of reasoning-heavy model on its own    ##
 ## merits -- confirmed live: a genuinely-passing tier1 reformat took        ##
-## ttft=118.26s, well past the old 90s soft ceiling, hitting the extend-    ##
-## to-777s path [ coding.handler.http_timeout ] as routine noise for an     ##
-## ordinary successful request, not an actual problem                       ##
+## ttft=118.26s, well past the old 90s soft ceiling, hitting the            ##
+## extend-to-777s path [ coding.handler.http_timeout ] as routine noise for ##
+## an ordinary successful request, not an actual problem                    ##
 ##                                                                          ##
 ## UPDATE 2026-08-27 [ task : backend-aware timeout scaling, item 7 ] : 127 ##
 ## stays a LITERAL default, deliberately. since the same-day http_timeout   ##
 ## rewrite this value is only the FIRST trip interval of the per-request    ##
 ## liveness re-check, no longer a hard cap : a live stream is extended in   ##
-## place repeatedly [ up to the auto-derived outer cap,                     ##
-## coding.async.stream_tps ] regardless of where the first trip lands, and  ##
-## a hung stream is killed by the 77s stall watcher long before any ceiling ##
-## matters. deriving the first trip from a backend-aware base was           ##
-## considered and rejected : it would only delay the first liveness         ##
-## re-check on fast backends [ the common case ] for zero correctness gain  ##
+## place repeatedly                                                         ##
+## [ up to the auto-derived outer cap,  coding.async.stream_tps ]           ##
+## regardless of where the first trip lands, and a hung stream is killed by ##
+## the 77s stall watcher long before any ceiling matters. deriving the      ##
+## first trip from a backend-aware base was considered and rejected : it    ##
+## would only delay the first liveness re-check on fast backends            ##
+## [ the common case ] for zero correctness gain                            ##
 my $timeout = $params->{'timeout'} // 127;
 my $backend = $params->{'backend'} // 'gpu';
 my $url     = $params->{'url'}
@@ -70,10 +71,10 @@ return {
 ## ON THE SAME BACKEND would race that backend's probe state machine [ same ##
 ## exposure class as the verify_inference_startup stacked-timer bug -       ##
 ## multiple paths each scheduling their own lifecycle with no cancellation  ##
-## ] per-backend hash slot since 2026-08-27 [ task :                        ##
-## coding-self-test-true-parallelization ] : distinct backends self-test in ##
-## parallel now, each guarded independently - a slow cpu cycle can no       ##
-## longer hold gpu's availability hostage to race-order luck                ##
+## ] per-backend hash slot since 2026-08-27                                 ##
+## [ task :  coding-self-test-true-parallelization ] : distinct backends    ##
+## self-test in parallel now, each guarded independently - a slow cpu cycle ##
+## can no longer hold gpu's availability hostage to race-order luck         ##
 return { mode => qw| false |, data => 'self-test already in progress' }
     if <coding.self_test_probe_in_flight>->{$backend};
 
@@ -108,25 +109,27 @@ my @prompts = (
             max_words    => 2,
             must_contain => qw| cat |,
             ## tier1 reformat nudge : common failure mode is naming the     ##
-            ## eaten animal because it's still physically "there" [ a body  ##
-            ## / remains ] - only surfaced as a follow-up challenge on a    ##
-            ## wrong first answer, never in the base prompt [ that would    ##
-            ## hand over the answer up front ]. short + Socratic rather     ##
-            ## than explanatory : a prior, longer "consider: when one       ##
-            ## animal eats the other..." version was confirmed live to do   ##
-            ## nothing - the model just reformatted its wrong answer to fit ##
-            ## the word limit instead of reconsidering it                   ##
+            ## eaten animal because it's still physically "there"           ##
+            ## [ a body / remains ] - only surfaced as a follow-up          ##
+            ## challenge on a wrong first answer, never in the base prompt  ##
+            ## [ that would hand over the answer up front ]. short +        ##
+            ## Socratic rather than explanatory : a prior, longer           ##
+            ## "consider: when one animal eats the other..." version was    ##
+            ## confirmed live to do nothing - the model just reformatted    ##
+            ## its wrong answer to fit the word limit instead of            ##
+            ## reconsidering it                                             ##
             ##                                                              ##
             ## second sentence added 2026-09-17, per the user, after a live ##
-            ## sweep failure [ 6VMKRJA:LCBQUPA ] rambled through escape-    ##
-            ## route and mortality-timeframe caveats instead of answering - ##
-            ## reframes "be concise" as a reasoning instruction [ collapse  ##
-            ## to the statistically dominant outcome, discard the low-      ##
-            ## probability edge cases as outliers ] rather than a bare      ##
-            ## format constraint, on the same theory that made the first    ##
-            ## sentence work : models that ramble past a word limit anyway  ##
-            ## are often not failing to be short, they're failing to decide ##
-            ## which branch of their own reasoning is the actual answer     ##
+            ## sweep failure [ 6VMKRJA:LCBQUPA ] rambled through            ##
+            ## escape-route and mortality-timeframe caveats instead of      ##
+            ## answering - reframes "be concise" as a reasoning instruction ##
+            ## [ collapse to the statistically dominant outcome, discard    ##
+            ## the low-probability edge cases as outliers ] rather than a   ##
+            ## bare format constraint, on the same theory that made the     ##
+            ## first sentence work : models that ramble past a word limit   ##
+            ## anyway are often not failing to be short, they're failing to ##
+            ## decide which branch of their own reasoning is the actual     ##
+            ## answer                                                       ##
             mismatch_hint =>
                 q{Are you certain? "Remaining" can only be one, by }
                 . 'definition. Treat edge cases [escape routes, indefinite '
@@ -149,14 +152,15 @@ my @prompts = (
         ## format constraint from the start, without needing any reformat   ##
         ## round at all. NOT designed to be adversarial or to sometimes     ##
         ## fail on purpose : id 3 participates in the same all_passed /     ##
-        ## switch-model accept-reject gate as prompts 1-2 [ see             ##
-        ## coding.self_test.handler.poll_switch ], so it must stay a fair,  ##
-        ## normally-passing check like prompt 1, not a probe engineered to  ##
-        ## flip pass/fail - that distinction is what keeps this additive    ##
-        ## rather than a new way to spuriously reject a model switch. does  ##
-        ## NOT reuse prompt_id 2 : coding.helper.trigger_backend_self_      ##
-        ## test's seed-restart-on-failure gate covers prompt_ids 2 AND 3 [  ##
-        ## 2026-09-21 ], and coding.self_test.archive keys its per-prompt   ##
+        ## switch-model accept-reject gate as prompts 1-2                   ##
+        ## [ see coding.self_test.handler.poll_switch ], so it must stay a  ##
+        ## fair, normally-passing check like prompt 1, not a probe          ##
+        ## engineered to flip pass/fail - that distinction is what keeps    ##
+        ## this additive rather than a new way to spuriously reject a model ##
+        ## switch. does NOT reuse prompt_id 2 :                             ##
+        ## coding.helper.trigger_backend_self_ test's                       ##
+        ## seed-restart-on-failure gate covers prompt_ids 2 AND 3           ##
+        ## [ 2026-09-21 ], and coding.self_test.archive keys its per-prompt ##
         ## store by prompt_id, so a collision would either wrongly trigger  ##
         ## that restart loop or silently overwrite prompt 2's own record    ##
         expected          => qw| cat |,
@@ -166,11 +170,11 @@ my @prompts = (
             must_contain => qw| cat |,
             ## same Socratic mismatch_hint prompt 2 carries [ 2026-09-21 ] :
             ## without it this variant's tier1 strict round only had generic
-            ## format nudges, so a wrong 'mouse' answer came back unchanged [
-            ## 25x content_mismatch in the durable stats ] and the miss had no
-            ## in-conversation recovery at all. fires only AFTER a wrong first
-            ## answer, so the primed-answer measurement itself stays intact --
-            ## same layering as prompt 2
+            ## format nudges, so a wrong 'mouse' answer came back unchanged
+            ## [ 25x content_mismatch in the durable stats ] and the miss had
+            ## no in-conversation recovery at all. fires only AFTER a wrong
+            ## first answer, so the primed-answer measurement itself stays
+            ## intact -- same layering as prompt 2
             mismatch_hint =>
                 q{Are you certain? "Remaining" can only be one, by }
                 . 'definition. Treat edge cases [escape routes, indefinite '
@@ -204,11 +208,11 @@ my $probe_id = <[base.gen_id]>->(<coding.self_test_probe_state>);
 
 <coding.self_test_probe_in_flight>->{$backend} = TRUE;
 
-## stashed on the probe's own state so an external canceller [ spawn_     ##
-## smart's force-switch path ] can cancel THIS timer directly at the same ##
-## moment it deletes the state, instead of leaving it to fire once more,  ##
-## find no state, and log a level-0 "stopping timer" line for what is a   ##
-## routine, expected switch-cancel -- confirmed live 2026-09-18           ##
+## stashed on the probe's own state so an external canceller                ##
+## [ spawn_ smart's force-switch path ] can cancel THIS timer directly at   ##
+## the same moment it deletes the state, instead of leaving it to fire once ##
+## more, find no state, and log a level-0 "stopping timer" line for what is ##
+## a routine, expected switch-cancel -- confirmed live 2026-09-18           ##
 <coding.self_test_probe_state>->{$probe_id}{'timer'} = <[event.add_timer]>->(
     {   'interval' => 0.5,
         'repeat'   => TRUE,
@@ -220,8 +224,8 @@ my $probe_id = <[base.gen_id]>->(<coding.self_test_probe_state>);
 
 return { mode => qw| deferred | };
 
-#,,,,,.,,,..,,.,,,.,.,.,.,...,,,.,,..,,..,..,,..,,...,...,...,..,,...,.,.,...,
-#7PGZKV65OAH5WJUBZK7VETCYWNXTFAQMZIA4RIRTFIKWAHD2H5SU2T7KXMWIM36CP3UF3LZGQ6Y52
-#\\\|6CZV4YLYP37JE57PPNXWWFP7GU3TYPLNINPJGM7GFM3SMP4NR7S \ / AMOS7 \ YOURUM ::
-#\[7]RWEXWPZJZJT63T62OCIHGL4PSHNSVUKKHBISKXJIWBROD4IF2AAY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,.,,,,.,,...,.,.,...,.,,,,..,..,,...,...,.,,,.,.,,.,,,,.,...,
+#6AXMEDPZZJWVFJVGKUASTJGP7VEY3O4OENGCJNL6R2RGLQWVT7RNW76DUPZHMVHPWFJN7ETNRW5UC
+#\\\|EONWJSVUHHQZDO2OTOLV7D4FSODJWWJP4O6LIAAOJVI6PT3JATW \ / AMOS7 \ YOURUM ::
+#\[7]SYSIAB2MIDMAMMBO5JZIMYCKAMHMLEYH7MZUQSFKTBOELPZHF2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

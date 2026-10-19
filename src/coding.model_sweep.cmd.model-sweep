@@ -7,17 +7,18 @@
 my $params = shift             // {};
 my $args   = $params->{'args'} // '';
 
-## extract filter + yield-opt-out + restart tokens using substitutive       ##
-## extraction, order-independent. :restart: is the explicit, auditable      ##
-## opt-in for the DESTRUCTIVE path [ discard an existing paused/orphaned    ##
-## cursor and start completely fresh ] -- the safe path [ resume a          ##
-## matching-filter, non-paused cursor automatically ] stays implicit, as it ##
-## already did before this flag existed. previously the only way to discard ##
-## a stale cursor was deleting state/model_sweep_cursor.yaml by hand        ##
-## outside the zenka's own command interface. deliberately does NOT         ##
-## override an ACTIVELY RUNNING in-memory sweep [ that still requires       ##
-## model-sweep-cancel first -- :restart: is scoped to disk-cursor cleanup,  ##
-## not live-timer teardown, per explicit user direction ]                   ##
+## extract filter + yield-opt-out + restart tokens using substitutive      ##
+## extraction, order-independent. :restart: is the explicit, auditable     ##
+## opt-in for the DESTRUCTIVE path [ discard an existing paused/orphaned   ##
+## cursor and start completely fresh ] -- the safe path                    ##
+## [ resume a matching-filter, non-paused cursor automatically ] stays     ##
+## implicit, as it already did before this flag existed. previously the    ##
+## only way to discard a stale cursor was deleting                         ##
+## state/model_sweep_cursor.yaml by hand outside the zenka's own command   ##
+## interface. deliberately does NOT override an ACTIVELY RUNNING in-memory ##
+## sweep [ that still requires model-sweep-cancel first -- :restart: is    ##
+## scoped to disk-cursor cleanup, not live-timer teardown, per explicit    ##
+## user direction ]                                                        ##
 my $re_test_failed  = ( $args =~ s| *:re-test-failed: *| | );
 my $re_test_success = ( $args =~ s| *:re-test-success: *| | );
 my $no_yield        = ( $args =~ s| *:no_yield: *| | );
@@ -135,8 +136,8 @@ for my $backend (@backends) {
                 phase      => qw| idle |,
                 state      => qw| running |,
                 ## an explicit :no_yield: re-arms the opt-out ; without the ##
-                ## token the cursor's own flag carries through [ it is      ##
-                ## meant to survive a zenka restart ]                       ##
+                ## token the cursor's own flag carries through              ##
+                ## [ it is meant to survive a zenka restart ]               ##
                 no_yield => $no_yield
                 ? TRUE
                 : ( $existing->{'no_yield'} // FALSE ),
@@ -305,8 +306,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,,.,,.,,,..,,..,,..,..,,,..,...,,,.,,,,,,.,,..,,...,..,,..,,,,.,,.,,..,,,,.,
-#H4B4NND6YA5ROGM4G3CRBBK36EJQ67F6J5WUJPRUU5KBRIL4LLEG5JQL4YR5RDXI3PRCCAQK5JGJU
-#\\\|C5NGS7VOJSVAKOCR2CTFJOR4A4URV4GDUX4OPFBBKGP6C66QVTE \ / AMOS7 \ YOURUM ::
-#\[7]KFHBX3PHOML7OONYWS3IKIZ2IHZXBSQU7OQ4SAJQ4KX6S3AKBGCA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,.,.,,,,,..,,,,,,,.,,,,.,,,.,..,,...,..,,.,,,.,.,,..,.,,,,.,,
+#2D36VEOCYXIVX2NNPD667IEUORJVTSVB63KOEXW5WC4JFOZNGD3IZ4WDLLQLGTTB6X7FTCRJO3ZCO
+#\\\|BTBJV2X2NIBFF7INOGFCDYFYS7G6YTBLEGMNHUONXOS7DSQFMT7 \ / AMOS7 \ YOURUM ::
+#\[7]ROA4JU56TNDG2XLBRJMFXPQTDURSTDBEW3V4NJAKUIR5HZPXIKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

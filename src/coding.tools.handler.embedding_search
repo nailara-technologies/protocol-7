@@ -5,25 +5,25 @@
 # param = { domain => '...', query => '...', top => N }
 
 ##      generic cosine-similarity lookup over                               ##
-##      data/embeddings/<domain>.vec [ committed output of                  ##
-##      bin/dev/train-embedding ] -- same core technique                    ##
-##      openvas.enrich.finding already uses for its own security            ##
-##      domains, but exposed here as a coding-zenka tool and                ##
+##      data/embeddings/<domain>.vec                                        ##
+##      [ committed output of bin/dev/train-embedding ] -- same core        ##
+##      technique openvas.enrich.finding already uses for its own           ##
+##      security domains, but exposed here as a coding-zenka tool and       ##
 ##      parameterized by domain instead of hardcoded to one use case.       ##
 ##      new domains need no code change here : dropping a new               ##
 ##      <name>.vec file into data/embeddings/ makes it queryable            ##
 ##      immediately.                                                        ##
 ##                                                                          ##
-##      today's domains : cisa/cwe/mitre [ security-intel word              ##
-##      vectors, openvas-specific vocab ] and codebase-depgraph [           ##
-##      module-name vectors trained on dependency co-occurrence via         ##
-##      bin/dev/dep-graph + bin/dev/depgraph-corpus -- similarity here      ##
-##      means "similar dependency PROFILE", not "calls/is-called-by" [      ##
-##      that's the exact- graph 'module_deps' tool's job, a different,      ##
-##      complementary query ]. documentation/sourcecode domains are         ##
-##      future work : need their own corpus-builder + a                     ##
-##      train-embedding run each, this tool needs no change to pick         ##
-##      them up once they exist.                                            ##
+##      today's domains : cisa/cwe/mitre                                    ##
+##      [ security-intel word vectors, openvas-specific vocab ] and         ##
+##      codebase-depgraph [ module-name vectors trained on dependency       ##
+##      co-occurrence via bin/dev/dep-graph + bin/dev/depgraph-corpus       ##
+##      -- similarity here means "similar dependency PROFILE", not          ##
+##      "calls/is-called-by" [ that's the exact- graph 'module_deps'        ##
+##      tool's job, a different, complementary query ].                     ##
+##      documentation/sourcecode domains are future work : need their       ##
+##      own corpus-builder + a train-embedding run each, this tool          ##
+##      needs no change to pick them up once they exist.                    ##
 ##                                                                          ##
 ##      query tokens are split on whitespace only, not word-boundaries      ##
 ##      -- module-name vocab tokens contain dots/dashes/underscores         ##
@@ -147,8 +147,8 @@ $output .= join( "\n",
 
 return { 'content' => $output };
 
-#,,.,,.,,,.,,,..,,,.,,,.,,,..,,,,,.,.,,,,,,,,,..,,...,...,.,.,...,,,.,,,.,,,,,
-#LOISLW4KBWFCY2O4RQGFW5R343YYYJBDL7LRIA7UFJWR53MMFNLKJICZCHFXTRAIGG3JMKAM47LZO
-#\\\|YUJTUGKQ35L3ZAW22KTPCLDK23A62XBVQP47NW6BSEYCZHFL5VU \ / AMOS7 \ YOURUM ::
-#\[7]BIJDDJVCD4DAL2EZF3ANH2S6BH6TU65J4UKCU655YGCYULCD76AA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,.,,,.,,.,,,,.,,..,,.,,,.,,,,.,,..,,...,..,,.,.,,..,.,.,...,.,.,
+#HRPDOZZFMANQB6OOAKHXMCRQTJPP44DOZOJ5JRNECGU3CMNAVZCYG6AA2WLTLXA5FA7EHINIA4NX6
+#\\\|QH6B7EP4Y26B2MDQECGEPRJLDNTAPI5DZ22IDXEPIP3VFM4XEE6 \ / AMOS7 \ YOURUM ::
+#\[7]CEAVQUB6FVI4C4RAMMQIE33CXB3RIQXZALRPAWPXZ6JORMPTPEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
