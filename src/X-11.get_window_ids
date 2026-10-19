@@ -15,9 +15,10 @@ state $type_utf8   //= $X->InternAtom( qw| UTF8_STRING |, 1 );
 my @window_ids;
 
 ## InternAtom( ..., 1 ) [ only-if-exists ] returns 0 [ None ] when no      ##
-## client has created the atom yet [ eg. a freshly started display, before ##
-## any window manager has run ] -- querying property 0 is a protocol error ##
-## [ BadAtom ], not simply an empty/missing property                       ##
+## client has created the atom yet                                         ##
+## [ eg. a freshly started display, before any window manager has run ] -- ##
+## querying property 0 is a protocol error [ BadAtom ], not simply an      ##
+## empty/missing property                                                  ##
 ##                                                                         ##
 ## ListProperties only needs a valid window [ $root is never invalid ], no ##
 ## atom is passed in, so it cannot itself raise BadAtom -- check           ##
@@ -46,8 +47,8 @@ if ( $client_list and $client_list ne qw| None | ) {
 
 return sort { $a <=> $b } @window_ids;
 
-#,,,.,,,.,,,.,,..,,,.,...,,,,,.,,,...,,,,,,,,,..,,...,...,.,.,..,,...,,.,,...,
-#L2IRKVFLYT6XZDSQ2W4VR6MDUFZWP6CV7ZQX2HPBASS7DXPMDA5JNXCKBFPNUTV5DZVT3BQZ6F4KK
-#\\\|7LDF3XXM65NKYOT7O5HRETT5DFQQGJL3V2JSWTKSXANFY2CPGWS \ / AMOS7 \ YOURUM ::
-#\[7]NAN6MABQDRGD3BZ6XSUU5MELTDIXA6C2DLVO6GJIMN3JEDN7S6AA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,..,,...,.,,,.,,,,,,,,.,,...,,.,,..,,...,.,.,.,,,,,,,.,.,,..,.,.,
+#NMTNXGKHYRI5UA47U5FEPUGTQJ7J7UB5PWYFHZUB7X4VHZSIVSTEXYNPREF5XR5FW5TW6RNYGNZM4
+#\\\|VPZGKVTJ2O774P6JJASZJRRS6VOGP7QYWJOR5YT6E4ARWH6U54Q \ / AMOS7 \ YOURUM ::
+#\[7]4USUK3LWJRJE4RZBT42JSFUTCJDO4T6ZTP5A7YXQ7NVIVUGY46BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

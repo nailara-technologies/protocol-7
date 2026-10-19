@@ -33,14 +33,14 @@ my $after_count = scalar @{ <X-11.monitors> // [] };
 ## silently accepted-but-never-shown after a monitor topology churn [ the   ##
 ## master 'notifications' toggle, HKCU ToastEnabled -- separate from focus  ##
 ## assist/dnd -- getting left disabled ; confirmed live 2026-08-24, not     ##
-## confirmed to be CAUSED by the topology change itself, but the check-     ##
-## then-fix recovery is a no-op when already enabled, so firing it here is  ##
-## cheap insurance ]. only relevant on a WSLg host with the 'powershell'    ##
-## windows-bridge zenka available at all -- most deployments of this        ##
-## codebase are plain linux desktops with no windows host to bridge to, and ##
-## 'powershell' is on-demand with a short [147s] idle timeout, so an        ##
-## unconditional call here would wake-and-drop it for nothing on every one  ##
-## of those. auto-detected when unset, overridable either way via           ##
+## confirmed to be CAUSED by the topology change itself, but the            ##
+## check-then-fix recovery is a no-op when already enabled, so firing it    ##
+## here is cheap insurance ]. only relevant on a WSLg host with the         ##
+## 'powershell' windows-bridge zenka available at all -- most deployments   ##
+## of this codebase are plain linux desktops with no windows host to bridge ##
+## to, and 'powershell' is on-demand with a short [147s] idle timeout, so   ##
+## an unconditional call here would wake-and-drop it for nothing on every   ##
+## one of those. auto-detected when unset, overridable either way via       ##
 ## X-11.notify_recover.enabled -- base.cfg_bool defaults an undef input to  ##
 ## FALSE rather than passing undef through, so definedness is checked       ##
 ## before it, not after, to still fall through to auto-detection when unset ##
@@ -66,8 +66,8 @@ if ($notify_recover_enabled) {
     }
 }
 
-#,,,,,...,,..,...,..,,.,,,...,,..,,.,,,.,,,.,,..,,...,...,,..,,..,.,,,.,,,,.,,
-#BP3PYQUYM7PQ5VNVHJAY6CM7ICXREX5DH3N55JKS64JGCBD6L2TAHMNZLXULTST2P3DIGA54TVFB4
-#\\\|5CRYIL4RRFLT4AE6OHVZGVUYTP77L7PTGGKTGHPBLC7WAFNSFIB \ / AMOS7 \ YOURUM ::
-#\[7]F3F4LARLET6PABPITQV6FJNV3TBDUTM4OXAQ65YDJQ75JIYYWWDI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,..,,,..,,.,,,,.,..,,...,.,,,,,.,..,,...,...,...,,..,,,,,,..,,,.,
+#IDMQMF4OXZHQCVERX6JNLPWY3JFX3EJO2KDT7H62R72D3GFFP74ERIETII4VEZRRRMK3LTE3XZ6E6
+#\\\|BKHJQQNWAES2ROF6GHC7PJRNTRSUPKOIARAKTTRRJB3BRIA5265 \ / AMOS7 \ YOURUM ::
+#\[7]4YXXDLYKH6NLVJAV4AVBZ62HRVSF4EIBFQRZ7D22T5PGS2G7NGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -52,9 +52,9 @@ if ( $X11_start_mode eq qw| xorg | ) {
 ## before X-11.init_code applies a mode override ]                          ##
 my $x11_unix_dir = qw| /tmp/.X11-unix |;
 
-## under WSLg, /tmp/.X11-unix is its own dedicated read-only tmpfs mount [  ##
-## used to expose the host display's socket ] -- chmod alone cannot succeed ##
-## there regardless of privilege, it must be remounted rw first             ##
+## under WSLg, /tmp/.X11-unix is its own dedicated read-only tmpfs mount ##
+## [ used to expose the host display's socket ] -- chmod alone cannot    ##
+## succeed there regardless of privilege, it must be remounted rw first  ##
 if ( open( my $mounts_fh, '<', '/proc/mounts' ) ) {
     while ( my $mount_line = <$mounts_fh> ) {
         my @field = split( ' ', $mount_line );
@@ -86,8 +86,8 @@ if ( defined $x11_unix_stat and ( $x11_unix_stat->mode & 07777 ) != 01777 ) {
 ##  dropping root priviledges to configured user  ##
 return <[base.root.drop_privs]>->($X11_user_name);
 
-#,,,.,,,.,,,.,...,.,,,.,.,.,.,...,,,.,.,.,,..,..,,...,...,.,.,..,,...,...,.,,,
-#HENLFWRXUMP27GL56P6Y7SZS6QGXLBJBERIDMXSWFG2YQON6AVT5MCBJYOBH6BMLEARD7D2HNZX3I
-#\\\|VZL6WDBSBNP6UMFIMP4H6QWJY3TF6OCJ6SXL763RVTVDH7WPX67 \ / AMOS7 \ YOURUM ::
-#\[7]PEZN5TWB3LZML6ISAK4AUHICW3TRAMSGYCQMGLFSIZD6VCDMPWBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,...,.,.,,..,..,,,.,,,,,,.,.,...,..,,...,..,,...,,.,,.,.,.,.,.,.,
+#K5ZHAF6CXCQTKS2EM2ZW5SOLPDXNS2JLN5A5DC53TN3J3N7ZBJGFECUPNDOQEA7NZEQRA6WRLVQDE
+#\\\|FWZHL6JHIP5BXPMFDJJZLR2D6CLXR63C5LHD6NNPORXH5YBISWT \ / AMOS7 \ YOURUM ::
+#\[7]V26UTMLTZ4OJM2RNZRWPDIAJAFBQUHARL2C6KXBYQYTL7ZHNL4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

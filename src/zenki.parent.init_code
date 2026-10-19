@@ -15,18 +15,18 @@
     //= ( $UID == 0 ? 1 : 0 );              ## auto-start v7-zenki as root ##
 <zenki.cfg.cube_socket_path> //= '/var/run/.7/UNIX';    ## cube socket dir ##
 
-## a standalone console invocation has no cube-issued zenka key, so it    ##
-## authenticates over the unix link instead -- but under this zenka's OWN ##
-## identity [ cfg/zenki/cube/auth.zenki : ':unix:<unix-admin>' alongside  ##
-## ':zenka:', the coding \ amos-term \ mpv precedent ], not as the human  ##
-## user.  that keeps its blast radius at exactly what                     ##
-## 'access.cmd.usr.zenki' grants, instead of inheriting the admin's '**   ##
-## ..*.**' wildcard from access.users                                     ##
-##                                                                        ##
-## '<zenka>[<unix-user>]' -- the subname is a routing label only [ split  ##
-## off before any access decision by plugin.auth.unix ] and keeps a       ##
-## short-lived front-door session addressable apart from the resident,    ##
-## v7-zenki managed instance of the same name                             ##
+## a standalone console invocation has no cube-issued zenka key, so it      ##
+## authenticates over the unix link instead -- but under this zenka's OWN   ##
+## identity [ cfg/zenki/cube/auth.zenki : ':unix:<unix-admin>' alongside    ##
+## ':zenka:', the coding \ amos-term \ mpv precedent ], not as the human    ##
+## user.  that keeps its blast radius at exactly what                       ##
+## 'access.cmd.usr.zenki' grants, instead of inheriting the admin's '**     ##
+## ..*.**' wildcard from access.users                                       ##
+##                                                                          ##
+## '<zenka>[<unix-user>]' -- the subname is a routing label only            ##
+## [ split off before any access decision by plugin.auth.unix ] and keeps a ##
+## short-lived front-door session addressable apart from the resident,      ##
+## v7-zenki managed instance of the same name                               ##
 <zenki.unix_user> //= $ENV{'USER'} // scalar getpwuid($EUID);
 <zenki.auth_name> //= sprintf( qw| zenki[%s] |, <zenki.unix_user> );
 
@@ -35,9 +35,9 @@
 <zenki.running.cube>  //= {};    ## cube info ##
 <zenki.running.zenki> //= {};    ## other zenki ##
 
-## note: dependency resolution is handled by v7-zenki's existing system [ ##
-## see v7-zenki.zenka.cmd.start and the per zenka start.cfg files ] -- we ##
-## integrate with it rather than duplicating the logic                    ##
+## note: dependency resolution is handled by v7-zenki's existing system     ##
+## [ see v7-zenki.zenka.cmd.start and the per zenka start.cfg files ] -- we ##
+## integrate with it rather than duplicating the logic                      ##
 ##
 ## two integration modes:
 ## 1. inside v7-zenki : direct call to v7-zenki.zenka.cmd.start
@@ -57,8 +57,8 @@
 
 0;
 
-#,,,.,...,,,.,.,.,,.,,.,,,,..,...,,.,,.,.,..,,..,,...,...,.,,,,,.,.,,,...,,,.,
-#RC3GFGUK6UKV5EXIXCEFLYQHHUWOYFPRY7D5E4X6YMSDMIJSQGZ4527KTBAW3FMZTK4LD24B7JM6A
-#\\\|ACHVBGEPJJBNMNSUJNTGAOC7HNHK5QPQDYQPHSA6LVSR3ZKY2WG \ / AMOS7 \ YOURUM ::
-#\[7]VO5CJOXJLKC7SG5HISX3HYQ7XZJVLAQAVTKDCVZNHKN623G7FYBY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,.,.,,,...,,..,,,,,...,,.,,..,,..,,...,...,..,,,..,...,,,.,,.,,
+#XIGD3YM3HKNSBCXASCJYCWDRJXFIKNHN7NBFEHMCC64YCLWNIU2GKCCBIWFW5CPBMAMSHEXRCJDJ6
+#\\\|OJYLDZDJ5KWPXJ4TBXOSO56QMRDMGFYQPRYA56MSK34ZPW4FNHW \ / AMOS7 \ YOURUM ::
+#\[7]YYBTZ3GR5P7F6RC56GR2ZVBSJEBMWY4Y32CFY7VZ27NF3P3CBADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

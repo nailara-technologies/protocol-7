@@ -10,17 +10,19 @@
 ## the classic sample-editor look) and composites it as a FOREGROUND on top ##
 ## of whatever background the earlier stages produced. different signature  ##
 ## from post_process (needs pcm + an image, not just an image), so it isn't ##
-## folded into that family -- see topic-audio-render-rotational-depth-      ##
-## stack.md for the full reasoning that led here.                           ##
+## folded into that family -- see                                           ##
+## topic-audio-render-rotational-depth-stack.md for the full reasoning that ##
+## led here.                                                                ##
 ##                                                                          ##
-## min/max envelope per pixel column [ same downsampling approach real      ##
-## sample editors use ], drawn on a genuinely transparent channels=>4 layer ##
-## [ NOT a black-filled layer blended at reduced opacity -- that darkens    ##
-## the entire background wherever the trace ISN'T drawn too, confirmed by   ##
-## direct pixel comparison during prototyping -- only per-pixel alpha       ##
-## leaves untouched background pixels identical ].  color defaults to the   ##
-## project's own phosphor-green console color [ p7_fg_0003, rgb 9,170,94,   ##
-## see bin/Protocol-7 ] rather than an arbitrary choice.                    ##
+## min/max envelope per pixel column                                        ##
+## [ same downsampling approach real sample editors use ], drawn on a       ##
+## genuinely transparent channels=>4 layer [ NOT a black-filled layer       ##
+## blended at reduced opacity -- that darkens the entire background         ##
+## wherever the trace ISN'T drawn too, confirmed by direct pixel comparison ##
+## during prototyping -- only per-pixel alpha leaves untouched background   ##
+## pixels identical ].  color defaults to the project's own phosphor-green  ##
+## console color [ p7_fg_0003, rgb 9,170,94, see bin/Protocol-7 ] rather    ##
+## than an arbitrary choice.                                                ##
 ##                                                                          ##
 ## pure overlay core : reads/rewrites only the given path plus the pcm      ##
 ## array already in memory, no protocol-7 data or code path access          ##
@@ -96,8 +98,8 @@ return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
 
 return ( TRUE, $img_path );
 
-#,,,.,,..,,.,,.,,,..,,..,,,.,,,,,,,,,,.,.,,,.,..,,...,...,.,.,...,..,,..,,,,,,
-#A62ZEYKDCCHMJ4CZEGONC7PDZMA2CB5J45O667QLDDMUKYMYYU6QTRBAPSMDME2JDUUU5WF3B63YY
-#\\\|AZ5GLIBC4ODE6EKZCPZ6QDMIG7B44PWCC26MDJFZZY7JWQVN4LK \ / AMOS7 \ YOURUM ::
-#\[7]PQ33GRYBKSVCKEIMEROH2RDAT7MNTRWRQKKJW573CKE55PU7IMDI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,,,.,.,,,..,,,,.,...,,,.,,,,,..,,...,...,..,,...,...,.,,,...,
+#R6N7HWE2VVWKYS2H2ZWIPQO22JCJYOUEKWPOLUFPZINYPKWTKEEAAWDGBBHDUSMQ7QGWB2Z3EP6AI
+#\\\|KRQSX2XC4OZRUWJW7CYKMXACMXTVKH2V6PZJZHYZZEG2FL54SO7 \ / AMOS7 \ YOURUM ::
+#\[7]ODBQTA4WOZE7WC6DL7NGH4QMQ5TVG57ZZITEOX63Y4A6YXK2XGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -112,12 +112,12 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 <X-11.pool.query_timeout> //= 2;        ## seconds ##
 <X-11.pool.ping_timeout>  //= 1;        ## seconds ##
 
-## silence bad-drawable protocol errors : dead window XIDs queried after a  ##
-## zenka shuts down return false via eval [ X-11.cmd.get_geometry ], this   ##
-## blacklist suppresses the warn log before it reaches process-x11- error [ ##
-## the $SIG{__WARN__} handler in bin/Protocol-7 checks this ] a stale       ##
-## pre-array-ification hashref may still be sitting in %data from before    ##
-## this shape existed [ reload doesn't reset %data ] -- normalize           ##
+## silence bad-drawable protocol errors : dead window XIDs queried after a ##
+## zenka shuts down return false via eval [ X-11.cmd.get_geometry ], this  ##
+## blacklist suppresses the warn log before it reaches process-x11- error  ##
+## [ the $SIG{__WARN__} handler in bin/Protocol-7 checks this ] a stale    ##
+## pre-array-ification hashref may still be sitting in %data from before   ##
+## this shape existed [ reload doesn't reset %data ] -- normalize          ##
 $data{'sig_warn_blacklist'} = []
     unless ref $data{'sig_warn_blacklist'} eq 'ARRAY';
 push $data{'sig_warn_blacklist'}->@*,
@@ -130,8 +130,8 @@ push $data{'sig_warn_blacklist'}->@*,
 
 0;
 
-#,,,.,,,,,,,,,.,.,,.,,,..,.,,,.,.,.,.,,,.,,.,,..,,...,...,,.,,,,.,,,.,...,...,
-#BJSWZ7PYWIPUK5LT6DY2INTZZ5UCSIQVCXSW3FTBPYNLTQ5HGWLRXJBLUPJXZ6VSWSMEYEBXT6OGY
-#\\\|PRO7TFETBC6H2QQG23KSX5TLW6NVYLEQXXYH7G52VB7YBWBOKQQ \ / AMOS7 \ YOURUM ::
-#\[7]LED33XS6GBYZZNFHTB6RDAAYGHQ3SNERHLJ76SIMU2XVLE7HTSCI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,,.,,.,,,...,,.,,.,,,,.,,,.,,..,,...,...,,,,,,,.,,,,,..,,..,,
+#AH35Q6RI33XMIWFWHBJL77WQMZ5YM6GHBW2UDXRRDAF3N3BMW3U5HQSHP5YIC4HJG2A5GK54SUHTK
+#\\\|YUYQWJ4PJAPG2NV6ZPQSG7WB5JP7YXQI4LVITXMZKFYS7M7X7FG \ / AMOS7 \ YOURUM ::
+#\[7]532FYGJZACPWBKPJNTQEK5Q5HOLOIVSJ746T6WYPKXNYNNDU7KBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
