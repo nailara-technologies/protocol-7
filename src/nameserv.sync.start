@@ -10,10 +10,13 @@
 my $peers = <nameserv.cfg.sync.peers> // '';
 <[nameserv.sync.peers.start]>->($peers) if length $peers;
 
+## a grant-set change re-pulls once the zones it newly covers ##
+<[nameserv.sync.grants.renew]>;
+
 return TRUE;
 
-#,,.,,,.,,,..,.,.,.,,,,.,,.,,,,,,,,..,...,,,,,..,,...,..,,...,,,,,...,.,,,.,.,
-#3O5OLFTTPMFKQQX2I3IC3YUPS5D4MNR4D3VHW6IYHHKK5QYYO6GIR3FMNGZANH5UA3W5HNGLK2BO2
-#\\\|JROCODU6A5P45WOFKR2J3CP4AMVDKATIJRM6NRUD4AYRGIIFCZR \ / AMOS7 \ YOURUM ::
-#\[7]WWHX4RNLPBTBPLWCNULRLLFBUFFNMMIBFLYHD46RVKWB7XUKVCBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,..,,,,,,..,,.,.,...,.,,,..,,..,,..,,...,...,.,.,..,,...,,,.,,.,,
+#3S6VH3GA2WPBRK55AC6HD4QUCR2H7YZFPAMIXEOOUMWCNONKXKHRLSXTIYYBQ7VQOFPS3XAG4LSSO
+#\\\|4JFLF4TIKOU7C4D2INWFGG2XKJG3RDC5D4ZUPYVQWDX6IXVW75S \ / AMOS7 \ YOURUM ::
+#\[7]GUGTFXFFFXW23ZDMR6JCN22IUTRCVC2HF6M6NOR643WIG3327MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

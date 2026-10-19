@@ -32,13 +32,15 @@ if ( $mode =~ m|^left| ) {
     my $spaces = $field_len - length($string);
     my $s_left = int( $spaces / 2 );
     $s_left += $offset if defined $offset;
-    $s_left = 0       if $s_left < 0;
+    ## upper bound first : a string longer than the field has negative ##
+    ## $spaces, the floor must win [ else ' ' x negative warns ]       ##
     $s_left = $spaces if $s_left > $spaces;
+    $s_left = 0       if $s_left < 0;
     return pack( "A$field_len", join( '', ' ' x $s_left, $string ) );
 }
 
-#,,,,,.,,,...,.,.,,,,,,,.,,,,,,..,.,,,,,,,,,,,..,,...,...,,..,,..,..,,..,,..,,
-#JHRC5BMDYMXDTJKX6HTD3DB6GXLTSG2Z3AEPJRRTV3X4SS5HSDL2RCMIVHFL4WEAG7E6HQDJRYP6W
-#\\\|3DK2VYXIVUH2DPEVSMDHCZQQCUHZKCNTRZNFOLZSFZBRUIUR7MG \ / AMOS7 \ YOURUM ::
-#\[7]X2HJXOY7OFCQWBVGO3G5ANGJQPNF7FA35DY4HAOYIC43EZEQJMDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,..,,,.,,,.,,..,,.,,,,..,..,,..,,...,..,,.,.,,,,,.,.,..,,,.,,
+#VLVGSKYHNKM2PUNTRNC4IPYJQE4JG3KUMSTKH3AGFWON6TL23UMBRX2GLADEP3SBE666C7YN7WRVY
+#\\\|HI3VCHLNRZEGCQP6R245PEAWSWHZNLZBVMWDNSIGNGRSY6M34XI \ / AMOS7 \ YOURUM ::
+#\[7]LGL7IYJNNJ2V636JJWR2XP4ICQCI7TFZMCDO24C4IEQZ5HBOAGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

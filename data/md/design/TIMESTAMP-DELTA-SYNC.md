@@ -80,8 +80,23 @@ sync.writer.<fingerprint> = name:_acme-challenge.acme.protocol-7.network
 
 - `zone:` = any name in the zone ; `name:` = exactly that name [ and only
   txt ] -- a host's letsencr gets its challenge names, nothing else.
+- a `zone:` item with a `*` label covers the acme challenge subzones
+  below a domain without covering the domain itself :
+  `zone:acme.*.example.org` = exactly zones `acme.<one or more
+  labels>.example.org` [ acme.a.example.org, acme.a.b.example.org ] --
+  never acme.example.org itself, never example.org, never a look-alike
+  [ acme.example.org.evil, acmex.example.org, acme.example.orgx ],
+  never an empty middle label [ acme..example.org ]. case-insensitive,
+  trailing dots tolerated. `zone:acme.example.org` stays exact.
 - an entry from an unknown writer, or outside its grant, is dropped and
-  logged [ level 1, once per writer and zone ]. fail-closed.
+  logged [ level 1, once per writer and zone ]. fail-closed. the refused
+  zone is remembered [ `nameserv.sync.refused_zones` ] : when the grant
+  set changes [ config reload \ reinit ], every remembered zone the new
+  grants cover but the old ones did not is pulled once from every
+  configured peer -- the same pull `sync-pull <host> <port> <zone>`
+  starts [ `nameserv.sync.grants.renew` ]. the pull cursor itself still
+  advances past refused entries : re-pulling permanently refused junk on
+  every pull is not an option.
 - the local nameserv signs its own changes [ `set-record`, `add-txt`,
   `remove-txt`, `ensure-zone` ] with its host's key ; the grant for the
   own key is implicit only for zones the host holds as primary.
@@ -199,7 +214,18 @@ sync.writer.<host-root key id> = name:_acme-challenge.acme.protocol-7.network
 ```
 
 tombstones are checked like records [ a `name:` grant cannot delete
-anything else ].
+anything else ]. a `zone:` item may carry one `*` label with the
+semantics above [ `nameserv.sync.grants.zone_match` ].
+
+**no lost refusals** : refused zones are remembered and a grant-set
+change re-pulls every remembered zone the new grants cover but the old
+ones did not, once, from every configured peer
+[ `nameserv.sync.grants.renew` ]. the sync position still advances past
+a refused entry [ otherwise permanently refused junk re-pulls forever ] ;
+the grant change is the one bounded moment to recover.
+
+tests : bin/test-scripts/test-nameserv-sync-grants.pl [ grant patterns
+and the grant-change re-pull decision ].
 
 **stored bytes** : every record and tombstone written locally is
 normalised, then signed ; the store keeps `body` [ the exact signed bytes,
@@ -260,8 +286,8 @@ reviewed line by line ] ; 3b = signing, verifying, grants, accept rules.
 - tombstone_keep vs. peers that are offline for weeks [ full fetch is
   fine for zones ; for larger data a checksum tree like N7FS is needed ].
 
-#,,..,,..,,,,,,,,,..,,,..,,,.,.,.,.,.,...,,,.,..,,...,...,,,,,.,.,,.,,.,,,.,.,
-#KYGYOWFFW2A2X4FDBBDNSVASFA7R5ADNGZF65SUWAQFL6ZVFFHPWW6QCFLJJR3C3ERWDZBRDHVBUK
-#\\\|ETX3N7OBXQDOROWVW57E2UAHLLB5EOYGS5M6IVTBT2SY3GRNGBU \ / AMOS7 \ YOURUM ::
-#\[7]3SG2HDE3XRH6XMYHMGCL677MBVLPI4LZ7JWGAPP6HNXGVZTXKUAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,...,,.,,.,.,,,,,.,.,.,,,,..,..,,...,..,,,..,,..,,,,,...,,.,,
+#QGP37PS2OKKF6B2TKU3T2SNWBFNAWOXI24XJHIT5XT3UF45O7WJ2I6ZQTNQ5XCFSGPUVYOT5BIBBO
+#\\\|YR4EOL3GX7NJBXOWIT5UDWQ5A2CNC5OHHC65UHIVU6ZFQAHHZ5A \ / AMOS7 \ YOURUM ::
+#\[7]G7SAOFB7C6EXGZ6LHR7FEU27HKDP36O3DKFNCBNAPN4RCQDKEKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
