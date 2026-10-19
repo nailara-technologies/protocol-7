@@ -19,10 +19,10 @@
 
 <log.files> //= {};
 
-## scan + repair zero-byte gaps left by a prior host crash / abrupt WSL  ##
-## shutdown catching an fsync-less idle-close window [ see               ##
-## p7-log.handler.close_log ] -- safe here : no live file handle is open ##
-## yet, and p7-log is the exclusive writer of these files                ##
+## scan + repair zero-byte gaps left by a prior host crash / abrupt WSL    ##
+## shutdown catching an fsync-less idle-close window                       ##
+## [ see  p7-log.handler.close_log ] -- safe here : no live file handle is ##
+## open yet, and p7-log is the exclusive writer of these files             ##
 <[p7-log.startup.repair_nul_gaps]>;
 
 ## write-rate telemetry [ p7-log.handler.rate_tick ] -- the real settle ##
@@ -36,14 +36,14 @@
     }
 );
 
-## kick off the legacy-gap sweep poll -- no-op after the first ever sweep [ ##
-## gated by a persisted marker file, see the module itself ]                ##
+## kick off the legacy-gap sweep poll -- no-op after the first ever sweep ##
+## [ gated by a persisted marker file, see the module itself ]            ##
 <[p7-log.startup.legacy_gap_sweep]>;
 
 return FALSE;
 
-#,,..,,,,,...,,,.,,.,,.,.,,,,,..,,,,,,,,.,,,.,..,,...,...,.,,,.,,,...,,.,,...,
-#KABVFS7TYOEH3O6IHE6CH6PVXATKFPLA5FVLZLN5AJ6TEIGQA5X2JLYK6SDDJSJY7Y44EXVXYYCS2
-#\\\|3ZOIP2ZSNZ5YRNJVHDRQC7AWS4K4QQITBMOS6DEQN7QJSJ3DMTB \ / AMOS7 \ YOURUM ::
-#\[7]ETCJR5YZ5GXKMVTMVK66TTNSU3SQCD4YOPMC346SFYTLDYGRFUAI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,..,,,,,,.,,,,,,.,.,...,.,,,.,.,..,,...,..,,...,.,,,,,.,,.,,...,
+#K22JBBHNBBUQV4S26PHGO6RHU6WUNCSHJ3BAVEPRZJW5YJ2RAMPEBHVVGQKCCGUQDDMX3E2UIYCTE
+#\\\|26KDIK2C3BNZKBAUDNQD6QIIJ5ZVA23QNHUHAEO3ILT5SBPFVZZ \ / AMOS7 \ YOURUM ::
+#\[7]EG6F2KUXTKNYFVGHPMCY7H5FK32V5QQISKQ4HF5ZDSS44QVLUWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

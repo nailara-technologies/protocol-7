@@ -58,8 +58,8 @@ my $default_mode = qw| ntime-b32 |;
 
 ## host-namespacing comes from our own node name, not the wire identity [ ##
 ## SOURCE_ZENKA no longer carries a hostname prefix - see base.handler.   ##
-## command - so $node_zenka alone would collide across hosts in a multi-  ##
-## host network ]                                                         ##
+## command - so $node_zenka alone would collide across hosts in a         ##
+## multi-host network ]                                                   ##
 my $log_file = join qw| . |, <system.node.name>, $node_zenka, $buffer_name;
 
 ##[  input  ]##
@@ -116,8 +116,8 @@ return { 'mode' => qw| true |, 'data' => sprintf 'wrote %u bytes', $msg_len }
 <[base.log]>->( 0, $err_msg );
 return { 'mode' => qw| false |, 'data' => $err_msg };
 
-#,,,,,,..,...,...,,..,.,,,,,,,,..,...,...,.,,,..,,...,...,,..,,,.,..,,.,.,..,,
-#JHS6TMMCNVLXCBNMOSH6QQW75O45STRRDOQUMS2V24KR7FEA3GJIUXZQCFKALI4OMQ5M6YEWKAGCO
-#\\\|ZB6VWMEOEH6UQPT6GUBDUB5GP6IMX3EZXL45R7JN6ULGG7QYHJ2 \ / AMOS7 \ YOURUM ::
-#\[7]UPPKV66MIGBPK5N37I3FTGAY7CRUV6Y3P755VFKI6LKABH4XM4BY 7  DATA SIGNATURE ::
+#,,..,..,,..,,,,.,,.,,,.,,,.,,,..,..,,.,.,,.,,..,,...,...,..,,...,,,.,.,,,,,.,
+#MU3IKB32ELIZTM6EUA33IOPW3C5VWRHNNSX7OBCC5AQNG7HCK54GNXT3UM3EC46Z5BV5MS7SDAPM4
+#\\\|NIWFMALCCMPEE7PLCR7L2Z7JNECQFDRGIMATX2OYKY4XDS5ORYH \ / AMOS7 \ YOURUM ::
+#\[7]TEK6FZJ7JZL3GMMRYUFIP6OW4TZD4XPH7OXNT2ZWKD3RB7PNQODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

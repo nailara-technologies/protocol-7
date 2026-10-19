@@ -35,18 +35,19 @@ if (    defined $mode->{'task_id'}
     return TRUE;    ## suppress the raw "task not found" error ##
 }
 
-## coding.task-append resumed a completed/failed task from saved history [  ##
-## coding.cmd.task-append's own "resumed from $status" reply shape ] -- the ##
-## listener registration from the ORIGINAL submit was already deleted when  ##
-## that round reached a terminal state [ coding.async.state_machine         ##
-## deregisters on STATE_COMPLETE/STATE_ERROR ], so without a fresh          ##
-## subscribe-session here the resumed round streams successfully server-    ##
-## side but nothing ever reaches this tab -- confirmed live 2026-09-14 :    ##
-## "task X resumed from completed [...]" logged, inference completed [1106  ##
-## chunks], nothing displayed. only fires on the RESUMED reply shape, not   ##
-## the plain "message queued" shape used for an already-active task -- that ##
-## task's listener is still alive, and subscribing again would register a   ##
-## SECOND handle, doubling every future chunk.                              ##
+## coding.task-append resumed a completed/failed task from saved history     ##
+## [ coding.cmd.task-append's own "resumed from $status" reply shape ] --    ##
+## the listener registration from the ORIGINAL submit was already deleted    ##
+## when that round reached a terminal state                                  ##
+## [ coding.async.state_machine deregisters on STATE_COMPLETE/STATE_ERROR ], ##
+## so without a fresh subscribe-session here the resumed round streams       ##
+## successfully server-side but nothing ever reaches this tab -- confirmed   ##
+## live 2026-09-14 : "task X resumed from completed [...]" logged,           ##
+## inference completed [1106 chunks], nothing displayed. only fires on the   ##
+## RESUMED reply shape, not the plain "message queued" shape used for an     ##
+## already-active task -- that task's listener is still alive, and           ##
+## subscribing again would register a SECOND handle, doubling every future   ##
+## chunk.                                                                    ##
 if (    defined $mode->{'task_id'}
     and length $mode->{'task_id'}
     and $text =~ m|^task \Q$mode->{'task_id'}\E resumed from| ) {
@@ -58,15 +59,16 @@ if (    defined $mode->{'task_id'}
     return TRUE;    ## suppress the raw resume ack, same as the initial one
 }
 
-## a rewind/redo boundary-hit reply is expected UI feedback [ "you're       ##
-## already at the edge" ], not a real error worth permanently scrolling the ##
-## content area next to the actual conversation -- confirmed live           ##
-## 2026-09-14 : hitting it repeatedly pushed real transcript content out of ##
-## view and forced the user to rewind/redo again just to clear it. flash it ##
-## in the status bar instead [ nshell.render.viewport / nshell.handler.     ##
-## flash_expire ] -- split mode only, there's no separate pinned row in     ##
-## flat mode, so let those fall through to the normal content_print path    ##
-## there unchanged, same as before this existed                             ##
+## a rewind/redo boundary-hit reply is expected UI feedback                 ##
+## [ "you're already at the edge" ], not a real error worth permanently     ##
+## scrolling the content area next to the actual conversation -- confirmed  ##
+## live 2026-09-14 : hitting it repeatedly pushed real transcript content   ##
+## out of view and forced the user to rewind/redo again just to clear it.   ##
+## flash it in the status bar instead                                       ##
+## [ nshell.render.viewport / nshell.handler. flash_expire ] -- split mode  ##
+## only, there's no separate pinned row in flat mode, so let those fall     ##
+## through to the normal content_print path there unchanged, same as before ##
+## this existed                                                             ##
 if (    defined $mode->{'task_id'}
     and length $mode->{'task_id'}
     and (  $text eq "already at the earliest round for $mode->{'task_id'}"
@@ -110,14 +112,15 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
         .= "coding.subscribe-session $task_id\n";
 }
 
-## redraw the input line [ + status bar, which reads mode->{task_id} fresh ##
-## every render ] right now -- this is the exact moment that data changes, ##
-## proven to execute since auto-subscribe depends on this same bind having ##
-## happened. deliberately NOT waiting on the STRM open event to trigger    ##
-## this: it's not that open/close go unobserved client-side -- they don't, ##
-## nshell.handler.strm_reply handles both directly [ 'open' prints "[      ##
-## stream started ]" and fires its own viewport redraw once $stream_opened ##
-## is set ] -- it's that THIS hook never sees them at all.                 ##
+## redraw the input line                                                   ##
+## [ + status bar, which reads mode->{task_id} fresh every render ] right  ##
+## now -- this is the exact moment that data changes, proven to execute    ##
+## since auto-subscribe depends on this same bind having happened.         ##
+## deliberately NOT waiting on the STRM open event to trigger this: it's   ##
+## not that open/close go unobserved client-side -- they don't,            ##
+## nshell.handler.strm_reply handles both directly [ 'open' prints         ##
+## "[ stream started ]" and fires its own viewport redraw once             ##
+## $stream_opened is set ] -- it's that THIS hook never sees them at all.  ##
 ## nshell.handler.command_reply diverts every STRM-cmd reply straight to   ##
 ## strm_reply at its own top, before reaching the plugin-dispatch block    ##
 ## that calls on_reply -- so open/close structurally never reach this      ##
@@ -131,8 +134,8 @@ if ( $state_ref->{'split_active'} ) {
 
 return TRUE;
 
-#,,..,.,,,..,,,,.,,,,,.,.,,..,,.,,,..,.,.,,.,,..,,...,...,,,,,,..,..,,,..,...,
-#5BQNGH25G5FK52VNTBUZINDXNEYQ7OZX57DMKFVRK4KHLIF4WAJQ6ZRJK7LIW47O52GKKPHQLIZDG
-#\\\|VXDM5R4UGJJVIK64MBNSJHIZGQOQVKYJNXMUQTGIO7KRLTKB56O \ / AMOS7 \ YOURUM ::
-#\[7]6KDJZ6V63A3DUAV64TAB47I3ZNPPXEL5QDIM65GP3KFORVOEWWDA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,.,.,,,,,,,,,.,,,...,.,,,..,,..,,...,..,,..,,,.,,.,.,.,,,,,,,
+#VZMSPRHLRENUCZQKYDVX7M3RMIJ3Y7GMGQZVRVDBR75FBCIEYYLGGB2O72JI2SMEFLXVIFOX7H5HS
+#\\\|2JUFKBUSPWSYUV4V5TWOQNLHCIA5OK5U7WMQV74SGNQZ76PCACU \ / AMOS7 \ YOURUM ::
+#\[7]O5FIKLHEP24AOTFFEN625JBGFI2TBZNLVTOY7577MWJ53XVXHUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

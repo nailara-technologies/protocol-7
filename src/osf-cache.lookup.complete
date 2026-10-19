@@ -119,8 +119,8 @@ if ( length( $state->{'on_done'} // '' ) ) {
             = { 'mode' => qw| size |, 'data' => $formatted->{'data'} // '' };
     }
 
-    ## reply first, then clean up [ cmd_reply deletes the <base.cmd_reply> ##
-    ## entry itself ]                                                      ##
+    ## reply first, then clean up                              ##
+    ## [ cmd_reply deletes the <base.cmd_reply> entry itself ] ##
     if ( length( $state->{'reply_id'} // '' ) ) {
         <[base.callback.cmd_reply]>->( $state->{'reply_id'}, $reply );
     }
@@ -134,8 +134,8 @@ delete <osf-cache.lookup.pending>->{$lookup_id};
 
 return;
 
-#,,..,.,,,.,.,...,,..,.,.,,,,,,..,,,,,,,,,,.,,.,.,...,...,.,,,.,,,.,.,,.,,.,,,
-#ILAE37S5KZ3X2F64ACZFGJQSK7TE6KTW4Q25CFNJIG7LWYKSYC7HS532IQR6QQHMXTVYZZDV33PFQ
-#\\\|RD7Z7JPKOX3BQLXFIJAAAXHDFG7NJXRELTYQIG24OM5KZNA3KVE \ / AMOS7 \ YOURUM ::
-#\[7]7HGYTJZIDMQ4YVTBZTJDQRG4IE53BGWHZN7UMEBUV2XRIQRZPSAY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,..,,,..,,,,,,,.,..,,,,,,.,,,...,.,.,...,...,.,.,,,,,,..,...,,..,
+#2YXQGMCCQ4VQKANAB5THRVH7NZINCKGD3M6KYDOMLVZQKAHOIXQIJGFZ754VT6MXPCUVJ25CILHEA
+#\\\|DW2Q625C76QKT3JDEJIN6NU5EMDHPZWDMX3QOCGAPEOOTAIXFAJ \ / AMOS7 \ YOURUM ::
+#\[7]TWOLL36CHQ5OTO5MLD3DNFELLAL4VPVAYXJSBXTP7MVZCAW4KKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

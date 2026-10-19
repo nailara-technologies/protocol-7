@@ -71,30 +71,30 @@ my @copy_sources = qw [
 
 ];
 
-## data/control-vectors/lora-out exclusion added 2026-09-13 -- these are    ##
-## trained-model reference artifacts (adapter_config.json, tokenizer.       ##
-## json, etc), not source. exclusion patterns in @copy_sources apply even   ##
-## when update-signatures is handed an EXPLICIT file list [ e.g.  the       ##
-## staged set during a commit ] -- that path bypasses this file's own       ##
-## INCLUSION globs entirely and signs any named file that exists, so only   ##
-## an exclusion here actually stops it. caught live: a signed               ##
-## adapter_config.json/tokenizer.json gets an AMOS7 footer appended after   ##
-## the closing JSON, breaking any strict `json.load()` on it [ had to strip ##
-## a temp copy before every GGUF conversion this session ];                 ##
-## adapter_model.safetensors is a strict length-checked format that flatly  ##
-## refuses to load at all once a footer is appended -- the .safetensors     ##
-## half is already gitignored [ base.source.collect_file_ list filters      ##
-## staged paths through git check-ignore ], but the small json/tokenizer    ##
-## files ARE deliberately tracked in git [ real, useful reference           ##
-## artifacts, same as the first lora attempt's adapter ] and were never     ##
-## excluded from signing specifically until now                             ##
-##                                                                          ##
-## data/control-vectors/results exclusion added same session, same reason:  ##
-## the raw generation-response json files run_gens.sh/run_gens_ lora.sh     ##
-## save (results/ and results-lora/, matched by the same substring since    ##
-## "results-lora" begins with "results") were ALSO getting signed --        ##
-## score.py's own json.load() on a signed response file would break the     ##
-## same way lora_to_gguf.py's did on a signed adapter_config.json           ##
+## data/control-vectors/lora-out exclusion added 2026-09-13 -- these are   ##
+## trained-model reference artifacts (adapter_config.json, tokenizer.      ##
+## json, etc), not source. exclusion patterns in @copy_sources apply even  ##
+## when update-signatures is handed an EXPLICIT file list                  ##
+## [ e.g.  the staged set during a commit ] -- that path bypasses this     ##
+## file's own INCLUSION globs entirely and signs any named file that       ##
+## exists, so only an exclusion here actually stops it. caught live: a     ##
+## signed adapter_config.json/tokenizer.json gets an AMOS7 footer appended ##
+## after the closing JSON, breaking any strict `json.load()` on it         ##
+## [ had to strip a temp copy before every GGUF conversion this session ]; ##
+## adapter_model.safetensors is a strict length-checked format that flatly ##
+## refuses to load at all once a footer is appended -- the .safetensors    ##
+## half is already gitignored [ base.source.collect_file_ list filters     ##
+## staged paths through git check-ignore ], but the small json/tokenizer   ##
+## files ARE deliberately tracked in git [ real, useful reference          ##
+## artifacts, same as the first lora attempt's adapter ] and were never    ##
+## excluded from signing specifically until now                            ##
+##                                                                         ##
+## data/control-vectors/results exclusion added same session, same reason: ##
+## the raw generation-response json files run_gens.sh/run_gens_ lora.sh    ##
+## save (results/ and results-lora/, matched by the same substring since   ##
+## "results-lora" begins with "results") were ALSO getting signed --       ##
+## score.py's own json.load() on a signed response file would break the    ##
+## same way lora_to_gguf.py's did on a signed adapter_config.json          ##
 
 if ( not chdir(<system.root_path>) ) {
     <[base.s_warn]>
@@ -105,8 +105,8 @@ if ( not chdir(<system.root_path>) ) {
     return <[base.source.collect_file_list]>->( \@copy_sources );
 }
 
-#,,,,,.,,,...,,,.,,,.,...,,,.,,,.,,..,,,.,...,..,,...,...,.,.,,,.,...,..,,,,,,
-#JYJK2EB3QR5A6JTNR37CUGM5MTFI5Z6XVQPHTFBB56DO4Q4SPYFOCNTRXZYD4ECNBDZ3OIS4YFC4M
-#\\\|5WV66WMM6Y4LWEVNFKNA75ONYAPYAJZLJOW2UNCEZKR2M3NJM2R \ / AMOS7 \ YOURUM ::
-#\[7]TDPPYVQ3FSXTBMQUSZ22IBZOTZ774BGSJ3RB56ILQ7BCOUUDEKCI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,...,...,.,,,..,,...,.,,,.,.,,,,,..,,...,...,.,.,...,,,.,,..,...,
+#YKCKAJLYJKJJNUDWIXUFGXQR4UQKDX7TBT452V5C5U3U72RRDM4OBGWZSDWJWZHVMXSLLVQTVPYAC
+#\\\|EUHVRXHCK44ICDNT273VV6WKSJNLENGQULTPYYZ3L3NOMUGDWPT \ / AMOS7 \ YOURUM ::
+#\[7]LBUIQASN6COGRTGSKGRSXELWXIJH5DRERH2BFGATPVNE7YXAC4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

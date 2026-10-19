@@ -11,9 +11,10 @@
 ## style the ONE placeholder byte .render leaves behind at the cursor
 ## position, instead of .render resolving it itself. neither generic caller
 ## can compute this on its own : editor.control.get_cursor returns an offset
-## into the RAW STORED buffer, while a plugin field's displayed text [ via
-## get_display_value -> display_override -> this plugin's own .render ] is a
-## restructured string with no positional relationship to that offset at all
+## into the RAW STORED buffer, while a plugin field's displayed text
+## [ via get_display_value -> display_override -> this plugin's own .render ]
+## is a restructured string with no positional relationship to that offset at
+## all
 ## -- the exact reason editor.ui.ascii_frame.render_form's own cursor_bearing
 ## already excludes plugin fields from its generic overlay in the first place.
 ## a plugin without this sub simply gets no cursor styling from either caller
@@ -54,8 +55,8 @@ my $char = substr( $text, $c, 1 );
 return '' if $char eq "\n";
 return $char;
 
-#,,,,,.,.,.,,,,..,,..,..,,.,,,,.,,...,.,,,,,,,..,,...,...,...,...,.,,,.,.,,..,
-#GK4S2DWWAKDSLDWZTOAAXTFVTL6NYVIKJ75VHKWKATR5ARFQJ6EVRFLC2R6IJDMGS25BQKBVV5LCI
-#\\\|UBAVKV6AURHFOBTLF5RBBBAGZRV67K4EC5SOAUM7XFFJLAJDBWR \ / AMOS7 \ YOURUM ::
-#\[7]YNHHYEQR3NGLVWY5YDUPC5TLTCSXPYSLIKCIF7FWE5T7FXUBECDY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,,,.,.,.,,,,,...,.,,,.,.,,.,,..,,...,...,.,,,.,.,,,.,...,,,,,
+#CFF7XC5JKCC626YTJS7ZPQQRDOXELMCV2ZDFXKCDTIIYN4B5CCFJNB5I6OMIZCYYDIU3G4S3HEIDI
+#\\\|YSBVKEBTNCEJQXIHBAGDDQOAVA6TIBO63MM325SIAEHYTHULIVJ \ / AMOS7 \ YOURUM ::
+#\[7]SNZ6J3PBDABVO7YM57TDQ5WIHDHNGAVUJ45EH7BHD7CLTF55UMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

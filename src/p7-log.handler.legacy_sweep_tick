@@ -166,8 +166,9 @@ if ( not defined $read_len ) {
 }
 
 if ( $read_len == 0 ) {
-    ## EOF -- finalize any carried trailing zero run [ genuinely ends here, ##
-    ## no more chunks coming ], then commit or discard                      ##
+    ## EOF -- finalize any carried trailing zero run                  ##
+    ## [ genuinely ends here, no more chunks coming ], then commit or ##
+    ## discard                                                        ##
     if ( $cur->{'carry'} > 0 ) {
         $cur->{'runs'}++;
         print { $cur->{'out_fh'} } $gen_notice->( $cur->{'carry'} );
@@ -263,8 +264,8 @@ if ( index( $buf, "\x00" ) == -1 ) {
 $reschedule->();
 return TRUE;
 
-#,,,.,.,,,...,..,,.,,,,,.,..,,.,,,,,,,,,,,.,,,..,,...,...,,,,,...,..,,,,.,...,
-#ZPGKEILPNZT3XHODQ76U6YKMPHM2EC5BBJGIYHO2SLTH7ECPXCFFG4XQ3FGUR365W7O246XDD2IMY
-#\\\|SBMTSQNAYYBDVPEKCUFDZIWN3IR3HLFDY6MOUM3WZZYZM7Z5FQC \ / AMOS7 \ YOURUM ::
-#\[7]DUFGFQFG4B6QDPPZVF6SVTBUYSROI4HRLIZOITORIXC2O34RYIDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,...,,,,,,.,,...,.,,,,.,,,.,,..,,...,...,...,...,,..,,,.,,..,
+#ERWAS2IPF6JX2ILIYU42ZLAXBGPTFETY6HGTR7C6LA7YAZVWAQ47V26SNTQTYIHFAERCWACRNYN6E
+#\\\|O3I2LBGDTQIOO7CAU7LPOSEXRNKTC4UIT6CNHRJBJCDVPN6ELIA \ / AMOS7 \ YOURUM ::
+#\[7]U7AG5YLUHZVOJTX32WFTFNENEHXODJZNOMYGCQQSXPDIFRJBESDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -122,9 +122,10 @@ $code{'base.handler.end_code'} = sub {
     ## separator/input rows' actual screen content on the real terminal if  ##
     ## never cleared -- must run on every exit path, not just a clean       ##
     ## Tab-cycle-back, or the user's terminal stays broken and/or shows     ##
-    ## leftover debris after nshell exits [ Ctrl+C included, this hook      ##
-    ## covers both ]. pass the reserved-row count so the rows' content gets ##
-    ## erased too, not just the scroll boundary reset                       ##
+    ## leftover debris after nshell exits                                   ##
+    ## [ Ctrl+C included, this hook covers both ]. pass the reserved-row    ##
+    ## count so the rows' content gets erased too, not just the scroll      ##
+    ## boundary reset                                                       ##
     my $_nshell_state_exit = <nshell.state> // {};
     if ( $_nshell_state_exit->{'split_active'} ) {
         AMOS7::TERM::scroll_region_clear(
@@ -146,8 +147,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,..,,,,,.,.,,,.,,.,,,..,,.,,,,.,.,,,,.,,..,,..,,...,...,,.,,...,.,.,,..,,,.,
-#32LGMF2OLUX2EGDU6PZMUNOJEXLPWQ4VQM6VLYVDUOROV6NWCDT6666Y3ODWOVZKR5JIEEUYGHVRO
-#\\\|Y4IMRSL6AY2PP5DLN3SFL5NVCNVNQ7SD2MMRC6I4HXCUPKTRWZK \ / AMOS7 \ YOURUM ::
-#\[7]ZL7WOEOAW3DVRIR5MG5NX4VRAUKUNZKBH543TGHOTVI3WQWWSWCY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,,,,,.,.,,.,,..,,,..,,,,,...,..,,...,...,..,,,,.,,..,,..,,,,,
+#FE5KNW6EJ4I6RIXSNJWJ2YFR3UODXHNMEZCTOPERULAHFE26W5ROYEEBCOPBIGPQ73QVAIMX3XKBK
+#\\\|BP37SSJS4RRSIQKOXVKFW34RGPLPHSNKW3XY4RSYRA7MHBVSHVY \ / AMOS7 \ YOURUM ::
+#\[7]DDQRUNQOIUKSNR45YN3ZNBKY5LWU6LVWSAQLBSX5IO77TOCYOWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

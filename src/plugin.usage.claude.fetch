@@ -73,10 +73,10 @@ $provider->{'pending'}->{$req_id} = {
     'retried'   => $retried,
 };
 
-## max_tokens=0 is the normal, reliable, genuinely free path here [ live-   ##
-## verified : 200 OK, zero generation, full anthropic-ratelimit-* header    ##
-## set every time ]. count_tokens carries no rate-limit headers at all on   ##
-## this api, so it is not probed first -- and unlike the standalone         ##
+## max_tokens=0 is the normal, reliable, genuinely free path here [         ##
+## live-verified : 200 OK, zero generation, full anthropic-ratelimit-*      ##
+## header set every time ]. count_tokens carries no rate-limit headers at   ##
+## all on this api, so it is not probed first -- and unlike the standalone  ##
 ## bin/dev/usage-external there is deliberately NO automatic max_tokens=1   ##
 ## escalation : an unattended zenka must never spend real tokens on its own ##
 my $request_body = <[format.json.encode]>->(
@@ -103,10 +103,10 @@ my $state = <[clients.https.post]>->(
 
 undef $token;
 
-## request never started and no callback was scheduled [ malformed url or  ##
-## missing handler ] : complete it here. the response handler deletes the  ##
-## pending entry, so a late callback for a genuinely scheduled failure can ##
-## never double-report                                                     ##
+## request never started and no callback was scheduled                   ##
+## [ malformed url or missing handler ] : complete it here. the response ##
+## handler deletes the pending entry, so a late callback for a genuinely ##
+## scheduled failure can never double-report                             ##
 if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
     <[event.add_idle]>->(
         {   'handler' => qw| plugin.usage.claude.handler.response |,
@@ -123,8 +123,8 @@ if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
 
 return $req_id;
 
-#,,,,,.,.,.,,,.,.,...,,.,,.,,,..,,,,,,,,,,.,.,..,,...,...,..,,,.,,,.,,...,,..,
-#TLFOC463GWZJ73OLJNOHWV3RAVVRG7XL6GAY3A3BUHTPHJJTAVLMZYNMSAZAMCIBYQTJO2WTWMXGA
-#\\\|4POTGMQJ7ZC2OM7R4HBEFMQRAWNXBIXF2DD7REP4PZZ5DU25CV3 \ / AMOS7 \ YOURUM ::
-#\[7]QH2IIKUFDWFVSJFA3HKHC4X4YMF7DFWVKKDOXTL246OB4YTTT4DY 7  DATA SIGNATURE ::
+#,,,,,...,...,,,,,.,.,.,,,,..,,.,,.,.,..,,,..,..,,...,...,.,,,,..,,,.,.,,,.,.,
+#DCIDO66OTE3PWKAQOUS4T4CNAWZVGJTFSOXZZFEXNJ257AQKJ2FB6PY6COU4Y56BU4A6UKYZLQMCO
+#\\\|VVLACVFFNEER7I2DRS42VVWKTTGYICYRWGRLZ4UZVNMBFZT7NT2 \ / AMOS7 \ YOURUM ::
+#\[7]RQQUI6ZZMGLXA3BJDBLHYOHKCNIYEX2JCPXYSMUMLIBF4VGHBCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

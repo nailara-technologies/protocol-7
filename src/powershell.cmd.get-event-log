@@ -51,10 +51,11 @@ if ( defined $level and length $level ) {
     }
 }
 
-## LogName is deliberately NOT included here -- the PS script supplies it ##
-## separately as $log.LogName [ the canonical-cased name from -ListLog's  ##
-## own result ], not this raw caller-supplied value, to sidestep any case ##
-## mismatch between -ListLog's matching and -FilterHashtable's            ##
+## LogName is deliberately NOT included here -- the PS script supplies it  ##
+## separately as $log.LogName                                              ##
+## [ the canonical-cased name from -ListLog's own result ], not this raw   ##
+## caller-supplied value, to sidestep any case mismatch between -ListLog's ##
+## matching and -FilterHashtable's                                         ##
 my $filter_entries
     = sprintf( "StartTime=(Get-Date).AddMinutes(-%d)", $minutes_back );
 
@@ -62,8 +63,8 @@ $filter_entries .= sprintf( "; Level=%d", $level_num )
     if defined $level_num;
 
 ## single line, semicolon-joined -- NOT a multi-line heredoc. confirmed live,
-## 2026-08-28: a multi-line -Command script (real newlines) reliably fails [
-## exit 1, empty stdout+stderr, no diagnosable error at all ] when passed
+## 2026-08-28: a multi-line -Command script (real newlines) reliably fails
+## [ exit 1, empty stdout+stderr, no diagnosable error at all ] when passed
 ## through open3's array-form exec to powershell.exe -- the WSL-to-Windows
 ## interop layer that marshals argv into a single Win32 command line does not
 ## survive embedded newlines inside one argument intact. the identical script
@@ -109,14 +110,15 @@ return { 'mode' => qw| false |, 'data' => 'no events found' }
 
 if ( defined $pattern and length $pattern ) {
 
-    ## a Safe-compartment-compiled qr// [ base.eval.comp_regex uses Safe to
-    ## sandbox the pattern string ] does NOT compose with an outer m//i --
-    ## confirmed live, 2026-08-28: the object stringifies to a normal- looking
-    ## (?^:...) pattern, and a case-EXACT match against it works fine, but the
-    ## 'i' on the enclosing m// is silently ignored once the pattern is a
-    ## Safe::RootN::Regexp rather than a plain Regexp. the fix is embedding
-    ## case-insensitivity in the PATTERN TEXT itself before compilation, not
-    ## relying on the outer match's flag.
+    ## a Safe-compartment-compiled qr//
+    ## [ base.eval.comp_regex uses Safe to sandbox the pattern string ] does
+    ## NOT compose with an outer m//i -- confirmed live, 2026-08-28: the
+    ## object stringifies to a normal- looking (?^:...) pattern, and a
+    ## case-EXACT match against it works fine, but the 'i' on the enclosing
+    ## m// is silently ignored once the pattern is a Safe::RootN::Regexp
+    ## rather than a plain Regexp. the fix is embedding case-insensitivity in
+    ## the PATTERN TEXT itself before compilation, not relying on the outer
+    ## match's flag.
     my $err_str;
     my $regex_filter
         = <[base.eval.comp_regex]>->( "(?i)$pattern", \$err_str );
@@ -135,8 +137,8 @@ if ( defined $pattern and length $pattern ) {
 
 return { 'mode' => qw| size |, 'data' => join( "\n", @out_lines ) . "\n" };
 
-#,,.,,,,.,..,,,,.,,..,..,,,.,,...,..,,.,,,.,.,..,,...,..,,.,.,,..,,.,,,,.,...,
-#XDGWQ5LMLWGSJIDB2F2KZSVLD6E3B5FN5O3TRMVKDMJMZ3C3V7DMKJDOJQSP3RXKU6U5BGIZ7DPXE
-#\\\|GIR5Q74CCG4L6ALRQCKBHAPXH7LNBNN3Y5E5F3LUZ6TWAJQAZD2 \ / AMOS7 \ YOURUM ::
-#\[7]3B6XYIVIXAMJC33NP4AVEXAO24E5XDMLK7YORC2CSNQRBFEDEAAY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,..,,,.,,..,,.,,,,.,..,,..,,,.,,..,,...,...,...,..,,.,,,,,.,.,,,
+#U566SJHWU3KJD723IFJPTWXKJYELJPXCAAT45M5BSI2VEZ5G2MJKXW7FLR4SRTDJCUQ5WQWBU7T3A
+#\\\|RIUZH2KSU2WZZD6I2QSF2G73WRZVRSOFNGB2LRFEFCHM52XCZEU \ / AMOS7 \ YOURUM ::
+#\[7]74DZ26OX44KXOK53IQXJIDUBDPYBGWESIM43DW64LNZZ3N4HPKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

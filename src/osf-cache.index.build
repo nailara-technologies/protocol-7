@@ -59,8 +59,8 @@ foreach my $inrelease_path ( sort grep { m{_InRelease$} and -f $ARG }
 
     foreach my $rel_path ( sort keys %{ $ir->{'data'}{'files'} } ) {
 
-        ## only uncompressed Packages indexes are read [ apt stores them ##
-        ## plain in the list dir ]                                       ##
+        ## only uncompressed Packages indexes are read ##
+        ## [ apt stores them plain in the list dir ]   ##
         next unless $rel_path eq qw| Packages | or $rel_path =~ m{/Packages$};
 
         my $entry     = $ir->{'data'}{'files'}->{$rel_path};
@@ -126,8 +126,8 @@ return {
     }
 };
 
-#,,,.,,.,,...,,..,...,..,,.,.,,,,,.,,,..,,.,.,.,.,...,...,..,,...,,,,,,.,,,.,,
-#CKSIJANLH6KTSNB4H3K34APF4A2PW2RAWZ6HJCH6XGYLQ5JLU3SXUUAYUQXOLH5OVOBQQW2OEDJBA
-#\\\|YTHRPXIMLCEBU72LHAGNQKUMIBDBMDK2X5RFES4KFAKLBYYWXA3 \ / AMOS7 \ YOURUM ::
-#\[7]X2XNCWVYVFX6UONIP2SLDAONBGHQ3YGUNVYHNDVTLJGRFNBT74AY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,,.,,..,,,,.,,,,,.,.,,..,..,,.,.,...,...,,,,,,.,,.,,,,,.,,,.,
+#QVU33WSYREDOSOG62GT3CNV4XIO4H4HTFEGNN53CQFUHQYHIXRCHE6DCRYNJJG3BZQXBFE4ZYM5Y6
+#\\\|NWOQI7X2EVXQAEDY5A3XMXBLTCWQJ7ISUEM66FRPNGD463QEEDE \ / AMOS7 \ YOURUM ::
+#\[7]AY3OY24MOGMOYKT3OM6IBMOTGUTVN2NX6X7ZLGTRKEGPISTFEODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

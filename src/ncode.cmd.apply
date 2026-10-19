@@ -3,9 +3,10 @@
 # name  = ncode.cmd.apply
 # descr = apply fixes by checksum ID from pending store
 
-## accept a ready hashref [ programmatic call ] or a cube-dispatch call ##
-## object carrying plain-text 'args' [ p7c usage: <fix_id> | --session  ##
-## <root> ], mirroring the usage hints ncode.cmd.suggest prints out     ##
+## accept a ready hashref [ programmatic call ] or a cube-dispatch call  ##
+## object carrying plain-text 'args'                                     ##
+## [ p7c usage: <fix_id> | --session <root> ], mirroring the usage hints ##
+## ncode.cmd.suggest prints out                                          ##
 my $raw    = shift // {};
 my $params = {};
 if (    ref $raw eq qw| HASH |
@@ -199,8 +200,8 @@ foreach my $fix_id (@fix_ids) {
         my $root    = <system.root_path>;
         my $ptd_bin = "$root/bin/dev/ptd";
 
-        ## use the zenka's own writable scratch dir [                      ##
-        ## /var/protocol-7/ncode/ by default ] instead of the target's     ##
+        ## use the zenka's own writable scratch dir                        ##
+        ## [  /var/protocol-7/ncode/ by default ] instead of the target's  ##
         ## directory -- sidesteps the whole taeki-owned-directory write    ##
         ## problem entirely, and comes with collision-safe random naming + ##
         ## v7-registered auto-cleanup                                      ##
@@ -294,9 +295,9 @@ foreach my $fix_id (@fix_ids) {
         );
     } else {
         ## revert -- same chmod-child grant dance as the write path above;  ##
-        ## in practice $content never differs from $original here today [   ##
-        ## verify/step/syntax checks all run before any real write ], but a ##
-        ## future multi-step flow could reach this with a real partial      ##
+        ## in practice $content never differs from $original here today     ##
+        ## [ verify/step/syntax checks all run before any real write ], but ##
+        ## a future multi-step flow could reach this with a real partial    ##
         ## write already on disk, so keep it correct                        ##
         my $revert_ok = 1;
         if ( $content ne $original ) {
@@ -371,8 +372,8 @@ $summary .= ", $out_of_scope_count out of scope" if $out_of_scope_count;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,..,,,,,,.,,...,,,,,,..,,,.,.,,,,,,,,,,,..,,.,.,...,...,,,,,..,,,,,,,..,.,,,
-#TSW5GKMTQUEPTMBTVA3O4PFUXXS6UQUGGFHT5BDHHRR5V35MEAXDKWAEQIXQBB563JXAJHQSKZOKG
-#\\\|S67UVPA37BPCOI6CGRNGRJW3A5Q525Q7BYLJDEEOS6KUTYAKQEN \ / AMOS7 \ YOURUM ::
-#\[7]ZMVCXEPBNJGGC4BLVCAN7EJKFBRXT7Q5DSTYRWXWNW34DXTRCOAI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,,,,,,.,,...,...,,.,,,,.,,.,,.,.,...,..,,...,...,,..,,,,,.,,,
+#5SO4FEHARTOQVBH6NDCTJYTYTOR3CQB4OPJ6TMCH4UBGZTBVZXDHQBHQH2B2COTXGLAJIWWTI74TK
+#\\\|TBI6IO6GCAVWN7PKJTGRDWUTMWILBBTWCMYFFUK3QTRJ7ECOA4U \ / AMOS7 \ YOURUM ::
+#\[7]GZ7PRIGG6G6PWRNR7SXP4YRPGOAR7NWJJRISVVQMLLENYWYN42AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -65,9 +65,8 @@ for my $dir ( $session_base, "$session_base/active", "$session_base/expired" )
     if ( not $is_root ) {
         <[base.logs]>->(
             1,
-            'plugin.web.auth : session store %s has wrong '
-                . 'owner/group/mode and not root : cannot fix [ auth fail '
-                . 'closed ]',
+            'plugin.web.auth : session store %s has wrong owner/group/mode '
+                . 'and not root : cannot fix [ auth fail closed ]',
             $dir
         );
         return FALSE;
@@ -96,8 +95,8 @@ if ( not <plugin.web.auth.warned_old_store> and -d "$old_base/active" ) {
 
 return TRUE;
 
-#,,.,,,,.,,..,...,.,.,.,.,,,,,.,,,.,,,.,,,,,.,..,,...,...,.,,,,.,,,.,,,,,,,..,
-#T27N5PFJX5LOMS3GU53D54BRY4OUO2PBQJOSJNPRZQ4AAY43O3NJFUMGVLQPWVCBWL6TOXRSWDHV2
-#\\\|B5FWLLDNAB27ICTNMULK32XJFMCX3VCV5LLLXAVV3ZUU7HFHHV7 \ / AMOS7 \ YOURUM ::
-#\[7]J5FN6UULVTZLZ7U7JLZS47D4Q7UWLOMY4PIYQHCH65QLYAH3SEBI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,.,..,,,,.,,..,.,,,,,,,.,.,,,.,..,,...,...,.,,,.,.,.,,,.,,,,..,
+#DXSHAJYBU7LJKQWWAF3WXW74YKPZYXQ26KIULYMA2HWXEAQTTEYSUXT6AMP6EDTKP2EOA34M2TALO
+#\\\|YW7L5HUNY2VYMO7LSZLSWZBOE5KZTSRXKQO2MW6WL6APGNYDBNC \ / AMOS7 \ YOURUM ::
+#\[7]4ZQDCYFXPCD356AS5T7YOVILWMBSGEJ2K3VMDEQ2DK7NJZXUXGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

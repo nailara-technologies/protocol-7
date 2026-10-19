@@ -34,17 +34,17 @@ if ($had_task_id) {
             .= "coding.abort-inference $mode->{'task_id'}\n";
     }
 
-    ## this is routinely a no-op [ e.g. Ctrl+C between rounds, nothing      ##
-    ## streaming ] -- suppress the raw wire reply either way. MUST live on  ##
-    ## shared nshell state, not the mode object : this function switches    ##
-    ## display_mode_index back to shell SYNCHRONOUSLY below, but the        ##
-    ## abort-inference reply only arrives LATER [ async ] -- by then        ##
-    ## nshell.handler.command_reply would be looking at the shell mode [ no ##
-    ## plugin at all ], never at this coding-session mode object, so a flag ##
-    ## stored here would simply never get checked. confirmed live           ##
-    ## 2026-09-14 : "no active inference task" still printed on an idle     ##
-    ## Ctrl+C despite this flag existing, because it was on the wrong       ##
-    ## object.                                                              ##
+    ## this is routinely a no-op                                            ##
+    ## [ e.g. Ctrl+C between rounds, nothing streaming ] -- suppress the    ##
+    ## raw wire reply either way. MUST live on shared nshell state, not the ##
+    ## mode object : this function switches display_mode_index back to      ##
+    ## shell SYNCHRONOUSLY below, but the abort-inference reply only        ##
+    ## arrives LATER [ async ] -- by then nshell.handler.command_reply      ##
+    ## would be looking at the shell mode [ no plugin at all ], never at    ##
+    ## this coding-session mode object, so a flag stored here would simply  ##
+    ## never get checked. confirmed live 2026-09-14 : "no active inference  ##
+    ## task" still printed on an idle Ctrl+C despite this flag existing,    ##
+    ## because it was on the wrong object.                                  ##
     <nshell.state>->{'suppress_next_wire_reply'} = TRUE;
 }
 
@@ -55,8 +55,8 @@ $mode->{'buffer'} = '';
 
 return { 'claimed' => TRUE };
 
-#,,,,,.,,,,.,,,,.,.,,,.,.,.,,,...,.,,,,,,,,.,,.,.,...,...,...,...,..,,.,,,,,.,
-#2GXWL6733DUKH64UYGZC2737LJJ6NS2VE5XOQGBTQ3I2ZMMWYG3CM63TJAPTY464LWLDTTMPFUIPC
-#\\\|IBBZZLZXCNXGXX3ZTT53H5C2CVN74ZB3WYGC7K74URS6SJ3YDQ6 \ / AMOS7 \ YOURUM ::
-#\[7]2JPOIKSVGPYGJNQ7KVQ5R2FEUCN4TM3LDPCZMFHBSCIXWANXIQAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,,,,,..,,,,,,,..,,..,.,.,.,,,.,.,...,..,,...,,,.,.,,,.,,,.,.,
+#KUOIQP66ZEFALCTUDIX5DOFUYISMPNSQEBBIINRFN7DZPHBLM2L7FK7A7ZK76UAQCLEKH5PMUNE3U
+#\\\|SABCAUIQQTAY63LI2HLR74MDOGKUEO7VZ3C5JAGTNNKW5TF2K3L \ / AMOS7 \ YOURUM ::
+#\[7]NCCXWCFKNTLZ5GIEGP3TMPZULB6UJSGJ5L5C24MO6PEWKYPCQEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

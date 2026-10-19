@@ -66,8 +66,8 @@ if ( defined $wait_reply_id ) {
     );
 }
 
-## record blocked/failed outcome in valued tree [ only if linked to a node ##
-## ]                                                                       ##
+## record blocked/failed outcome in valued tree ##
+## [ only if linked to a node ]                 ##
 if ( length( $task->{'node_id'} // '' ) ) {
     <[valued.tree.record_outcome]>
         ->( { 'node_id' => $task->{'node_id'}, 'outcome' => 'blocked' } );
@@ -77,8 +77,8 @@ if ( length( $task->{'node_id'} // '' ) ) {
 
 return { 'mode' => 'true', 'data' => "failed $task_id" };
 
-#,,,.,.,.,...,,.,,.,.,,,.,...,..,,,,.,...,.,.,..,,...,..,,,,.,.,,,...,.,,,,,.,
-#FGIYI4SQWCWLRCWHNSYHKKYUXM73OP7WITL4R4MV3BGPR7ZRSZBAOM4HBFGF5WE6VQ7BGXOWEPPZM
-#\\\|TQRHFUQINDGMBF7ONSCX5VVNUSK267Y5NSGJVLNUKBRGFHB5DR6 \ / AMOS7 \ YOURUM ::
-#\[7]75O7KULFA2FB4XAWIXZEFLVWPOKS7CZWLEAGLXRN4D2VHVXSFYBA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,.,.,,,.,.,,,.,...,..,,...,,..,..,,...,...,,,,,,.,,,,.,.,,,...,
+#G444QUTNBOPNJFGVFO2LVFZQYCA6QNKOJRO6DMYWTYS2FOXICEAGFIOG4XHVG2P3CHZR5PEFFZ5II
+#\\\|7XCVWL6QBECQWSFPLCZ4FQ7OUD7WODFRKZ53LTRHJCYMOWFOJMQ \ / AMOS7 \ YOURUM ::
+#\[7]LLYWHVRYFY5U5Y6KSUUXUO6I73OOJVWHMNJEWXNOZYQYEKIP4SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,8 +17,8 @@ $provider->{'enabled'} //= TRUE;
 ## usage.query reuses THIS SAME value both as the individual https request
 ## timeout [ clients.https.get inside plugin.usage.kimi.fetch ] AND as the
 ## overall allowed time for the whole query [ usage.handler.query_timeout ].
-## a plain successful request is fast [ well under 8s ], but the expired-
-## token path does a full refresh-and-retry cycle inside that same window --
+## a plain successful request is fast [ well under 8s ], but the expired-token
+## path does a full refresh-and-retry cycle inside that same window --
 ## original request + up to ~18s for plugin.usage.kimi.refresh_token to spawn
 ## kimi and let it actually finish writing a fresh credential file + the
 ## retried request. 8s [ or even 10s, tried and still too tight live
@@ -34,14 +34,15 @@ $provider->{'last_time'} //= 0;
 $provider->{'cred_rel_dir'} //= '.kimi-code/credentials';
 
 ## kimi cli binary, same relative-to-home convention -- a bare 'kimi' open3
-## call failed live 2026-09-15 [ "exec of kimi failed : No such file or
-## directory" ]. confirmed cause : bin/Protocol-7 deliberately cleans
-## $ENV{PATH} at startup, so it never carries the ~/.kimi-code/bin entry an
-## interactive shell's .bashrc/.profile adds -- this relative path is the real
-## fix, not a fallback for an unconfirmed guess [ see
-## plugin.usage.kimi.refresh_token : it still tries file.which first, but that
-## hits the exact same cleaned-PATH wall and will always come up empty here,
-## so this is what actually does the work every time ]
+## call failed live 2026-09-15
+## [ "exec of kimi failed : No such file or directory" ]. confirmed cause :
+## bin/Protocol-7 deliberately cleans $ENV{PATH} at startup, so it never
+## carries the ~/.kimi-code/bin entry an interactive shell's .bashrc/.profile
+## adds -- this relative path is the real fix, not a fallback for an
+## unconfirmed guess [ see  plugin.usage.kimi.refresh_token : it still tries
+## file.which first, but that hits the exact same cleaned-PATH wall and will
+## always come up empty here, so this is what actually does the work every
+## time ]
 $provider->{'cli_rel_path'} //= '.kimi-code/bin/kimi';
 
 $provider->{'base_url'} //= $ENV{'KIMI_CODE_BASE_URL'}
@@ -77,8 +78,8 @@ if ($reinit) {
 
 0;
 
-#,,..,.,,,.,.,,,,,..,,,,,,,,,,,.,,,..,.,.,,..,..,,...,...,,,.,...,,,,,,,.,,..,
-#UML4BUKICRTHKZRJ6MWO2BOF7OGTLOND5O6H4TZM6LQKMY2ANLI5ATQDPXUATOYNNFGQ2BR3B6JWK
-#\\\|UBFUQO44VMS5UIYISQZACHLENH624OVLMXQMOKN3HE6T4BFVDTT \ / AMOS7 \ YOURUM ::
-#\[7]GLWAQ7TLQTTHVTFUN7LVXGIJKRR6EEVEP5QAWWGWNTO5KAJVCEBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,,,,..,,.,,..,,..,,.,,,,,.,,.,,..,,...,...,...,..,,.,,,...,..,,
+#JHJBG2I2NRJ2DHCRF3EGMOIHTNXU36X4SOCD3PN63GZMNNQRGMU3IQXD3U4TKKNQCGSFRHSPEL54S
+#\\\|KNLXRWBXJVZFMCYPHKYIHTULBDJRJFJY6U6HYNVOXQVVJM3GXEC \ / AMOS7 \ YOURUM ::
+#\[7]IJMQNFE3KMEKRJRQWZNAJJSNHT6LNB3VSDWFNGBY3H6VT2PUDIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

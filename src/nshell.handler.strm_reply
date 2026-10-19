@@ -16,13 +16,15 @@ return FALSE unless $cmd =~ m|^STRM\b|;
 ## get or initialise nshell stream state
 my $nshell_streams = <nshell.streams> //= {};
 
-## right-align a structural status line [ round/state markers, stream open  ##
-## lifecycle ] so only the actual model-output payload stays left- heavy in ##
-## the content area -- visible-length-aware [ counts the plain text, not    ##
-## the ansi bytes wrapped around it ], reserves one column same as this     ##
-## renderer's other pending-wrap guards. violet [ p7_fg_0000 ], restoring   ##
-## the ambient payload blue [ p7_fg_0004 ] afterward rather than leaving a  ##
-## bare reset -- see the chunk branch below for why that matters            ##
+## right-align a structural status line                                     ##
+## [ round/state markers, stream open lifecycle ] so only the actual        ##
+## model-output payload stays left- heavy in the content area --            ##
+## visible-length-aware                                                     ##
+## [ counts the plain text, not the ansi bytes wrapped around it ],         ##
+## reserves one column same as this renderer's other pending-wrap guards.   ##
+## violet [ p7_fg_0000 ], restoring the ambient payload blue [ p7_fg_0004 ] ##
+## afterward rather than leaving a bare reset -- see the chunk branch below ##
+## for why that matters                                                     ##
 my $right_align_status = sub {
     my $visible_text = shift // '';
     my ($term_w) = AMOS7::TERM::terminal_size();
@@ -117,14 +119,14 @@ if ( $args eq qw| open | ) {
     ## payload text has always relied on the terminal's persistent SGR      ##
     ## state rather than carrying its own color code. a bare reset with     ##
     ## nothing after it drops that state to the terminal's own undecorated  ##
-    ## default, so every chunk printed after this marker [ live AND on a    ##
-    ## later buffer replay ] loses its color -- confirmed live 2026-09-14 : ##
-    ## "the payload is suddenly unstyled gray" after a round marker fired.  ##
-    ## right-aligned via the same $right_align_status helper the stream-    ##
-    ## open lines above use -- covers tool-call transitions too [ the event ##
-    ## name in "round N : $from --$event--> $to" is e.g. 'tool_call' ], so  ##
-    ## every structural/status line pushes right while the payload itself   ##
-    ## stays left-heavy                                                     ##
+    ## default, so every chunk printed after this marker                    ##
+    ## [ live AND on a later buffer replay ] loses its color -- confirmed   ##
+    ## live 2026-09-14 : "the payload is suddenly unstyled gray" after a    ##
+    ## round marker fired.  right-aligned via the same $right_align_status  ##
+    ## helper the stream-open lines above use -- covers tool-call           ##
+    ## transitions too [ the event name in "round N : $from --$event-->     ##
+    ## $to" is e.g. 'tool_call' ], so every structural/status line pushes   ##
+    ## right while the payload itself stays left-heavy                      ##
     if ($chunk_data =~ s{\[\[ (round \d+ : .+?) \]\]}
                          {$right_align_status->("⟦ $1 ⟧")}e
     ) {
@@ -132,15 +134,15 @@ if ( $args eq qw| open | ) {
     }
 
     ## never assume ambient SGR state survives to here -- same failure      ##
-    ## shape as the round-marker fix above [ and command_reply's payload    ##
-    ## branch ] : nshell.init_code sets p7_fg_0004 once at startup and      ##
-    ## nothing guarantees it's still active by the time an arbitrary chunk  ##
-    ## prints, so carry the color explicitly instead of relying on whatever ##
-    ## happened to run before this chunk. confirmed live 2026-09-14 :       ##
-    ## coding.dump's STRM-SIZE chunks [ plain Dumper text, carrying no      ##
-    ## color of their own -- unlike model-output which had never actually   ##
-    ## exercised this path before today's STRM-SIZE fix ] printed fully     ##
-    ## uncolored                                                            ##
+    ## shape as the round-marker fix above                                  ##
+    ## [ and command_reply's payload branch ] : nshell.init_code sets       ##
+    ## p7_fg_0004 once at startup and nothing guarantees it's still active  ##
+    ## by the time an arbitrary chunk prints, so carry the color explicitly ##
+    ## instead of relying on whatever happened to run before this chunk.    ##
+    ## confirmed live 2026-09-14 : coding.dump's STRM-SIZE chunks [ plain   ##
+    ## Dumper text, carrying no color of their own -- unlike model-output   ##
+    ## which had never actually exercised this path before today's          ##
+    ## STRM-SIZE fix ] printed fully uncolored                              ##
     <[nshell.render.content_print]>->( $colors{'p7_fg_0004'}
             . $chunk_data . "\e[0m"
             . $colors{'p7_fg_0004'} );
@@ -191,8 +193,8 @@ if ($stream_opened) {
 
 return TRUE;
 
-#,,,,,,.,,.,,,,,,,.,.,.,,,,..,..,,.,,,,,,,...,..,,...,...,.,.,.,.,,,,,,,,,,,,,
-#L6OSPE67D2T5TAOYKIREHIQH6BP7M5WTKU5CRLWYS5M4ONLNMVSEVP4DJBCJO5IUK6GSUE7R7PY6M
-#\\\|QXBVMFHPJVCW52Z23QZHZGZCW2OUC7R57R3YBJZLD7QBL2D2WNN \ / AMOS7 \ YOURUM ::
-#\[7]WKSNFT7XXFSQWJZSVHF6ZB25XZURZWGIJCFIFMTT3Y3AANTDKWDA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,.,.,.,,..,,..,,.,,,..,..,,,,,,..,,...,...,,,.,..,,,,,,.,,,.,,,
+#A2DWNPEYVQXDUSOAIWZMSTUYTH67K5JBACZRLROGAEO6NXZLRHFLS6H72FAOHUFHLMTI2XU4VPR2E
+#\\\|OZIGPQNJ2IEJT5ADW4RTYU6NUCKJ7NUO75PPEHFIMS7HCWJ7UCO \ / AMOS7 \ YOURUM ::
+#\[7]FVHRLAFAADBOZCJR3RKTQU7OZTGNFFSJ4I5ANQKXQWXVGBIY2GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

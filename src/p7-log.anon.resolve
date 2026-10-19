@@ -21,8 +21,8 @@ return FALSE if $token !~ m|^[A-Z2-7]{8,13}$|;
     <[file.zenka_dir.data_path]>;
 my $table_path = <p7-log.anon.table_path>;
 
-## one table under one key : plaintext, FALSE [ not in it ], undef [ error ##
-## ]                                                                       ##
+## one table under one key : plaintext, FALSE [ not in it ], undef ##
+## [ error ]                                                       ##
 my $scan = sub {
     my ( $path, $key32 ) = @ARG;
     return FALSE if not -r $path;
@@ -83,8 +83,8 @@ foreach my $archived ( sort glob( catfile( $table_dir, 'table.*.bin' ) ) ) {
 
 return FALSE;
 
-#,,..,,..,.,.,,..,...,..,,.,.,,.,,..,,...,,.,,..,,...,...,.,,,.,,,.,.,,,.,.,,,
-#4UMXHRUWGGHR3QRXA7MBF3LR2JHEOVFVN3HFMF6A6VFPHAW5HUT2XNNRS242HXUV5DFY3GCQ2HC6W
-#\\\|LRTPHU7ZO7NNQLUTSHTB4CBTZZR7UW33JY4VBRUDNVZICD35CPH \ / AMOS7 \ YOURUM ::
-#\[7]JJBWR2RONUOINA2GWVF4ULCWWPZXFLC6YCFEIU5OOL3TNUKGA4AQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,.,,,.,,,,.,,..,,..,...,...,.,,,..,,...,...,,,,,,,.,.,.,,,,,...,
+#4SV6FWX6U3SCSK4GWKUSWVGUWVJ7DT5MYEPWUF2AAMJWTJCSUYICVXEBA7AXAEUJDKV77YCHL3OIK
+#\\\|4RTUGNIRGVN4LRR6I4VDSZC3I3U7TZFQANJP6RWMC2BBU3L6HQD \ / AMOS7 \ YOURUM ::
+#\[7]QAP3KFCUO6LTVUJMJMKP3CM3GHZQG7SFYXAKNUD4RDZOANMH6QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

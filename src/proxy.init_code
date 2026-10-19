@@ -16,9 +16,10 @@ map { <[base.perlmod.autoload]>->($ARG) } qw| HTTP::Request URI YAML::XS |;
 ## load selector rules ##
 <[proxy.selector.load]>;
 
-## only the proxy zenka itself owns the listen socket — other zenki that    ##
-## load the proxy module namespace [ e.g. cred-mesh, for subscribe_rotation ##
-## side effect ] must not bind a duplicate SO_REUSEPORT listener on 8118    ##
+## only the proxy zenka itself owns the listen socket — other zenki that  ##
+## load the proxy module namespace                                        ##
+## [ e.g. cred-mesh, for subscribe_rotation side effect ] must not bind a ##
+## duplicate SO_REUSEPORT listener on 8118                                ##
 my $is_proxy_zenka = ( <system.zenka.name> // '' ) eq qw| proxy |;
 
 ## start listener only once — not re-run on reinit ##
@@ -72,8 +73,8 @@ if ( $is_proxy_zenka and defined <proxy.listen_sock> ) {
 
 0;
 
-#,,.,,,,.,...,,,.,...,,,,,.,.,,..,,.,,,.,,...,..,,...,..,,.,,,,,,,,..,,.,,..,,
-#JBKQR5CNJB6CDZTCIXEY355STPVJ7LLMELWAX5HZRT3V3XZ5TTQ5W3PQZWSAIQHHLUYIDHGQEXDYW
-#\\\|ZDPY3VJP62R7FGFI46MYCIHO3BBIJNDJIOSSG5BEXEE3QDPKJGO \ / AMOS7 \ YOURUM ::
-#\[7]ZKPCAU2RWABZ7VCD6WLUHXB5C3BHQAQKTDDO6MDOQS6MFNSPBWCY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,..,,,.,,..,,,,,,,,,,.,,,.,.,..,,...,..,,.,,,,,,,.,.,...,.,,,
+#XUAZQF3BE5YMTNIZT2X3GOSG3PC33SMJ5C5SY3MNI6VYDNGFPKOU6ZVMHKX2QGPQIAG4GY4K7EMW2
+#\\\|JCMBUKTEKOWUGJXJA6Z6FFIYZIUHJ6U2Q73FN2ZORAKTCEMY32E \ / AMOS7 \ YOURUM ::
+#\[7]4TUD4OE3UTMCW24G3TJB2WJBZ3LU5XW2EQERXNCZS6SWDYH3UAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

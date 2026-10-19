@@ -5,11 +5,11 @@
 
 my $caller = <system.zenka.name> // qw| storchencam |;
 
-## force=1 : always opens the interactive placement ui [ rather than        ##
-## instantly re-serving the saved profile ], but still seeds it from that   ##
-## same saved profile - so calling reposition again before a window is ever ##
-## opened continues from the last commit instead of resetting to a          ##
-## blank/default position each time                                         ##
+## force=1 : always opens the interactive placement ui                     ##
+## [ rather than instantly re-serving the saved profile ], but still seeds ##
+## it from that same saved profile - so calling reposition again before a  ##
+## window is ever opened continues from the last commit instead of         ##
+## resetting to a blank/default position each time                         ##
 <[protocol-7.route-send]>->(
     {   'command'   => 'window-place.coords',
         'call_args' => { 'args'    => sprintf 'caller=%s force=1', $caller },
@@ -22,8 +22,8 @@ return {
     'data' => sprintf( 'repositioning requested [caller=%s]', $caller )
 };
 
-#,,..,.,,,...,...,...,,.,,.,,,,,.,..,,,,.,..,,..,,...,...,,,,,,..,,.,,.,,,,.,,
-#ZX3UZIKNA66IHHDAIWHHAJNPJSZGSRK3AQOJ4D6UZLXH5KLU2QKEHMLWZAABLJ2MXYMK4TJRJWKWC
-#\\\|G4S5KASM3JILJ2YKJGFD3H5FIPAXHFTHZHBXIXS4WN3RWABXJPP \ / AMOS7 \ YOURUM ::
-#\[7]3GXHUHR46IRX4S4LZA67CJOZ6UIEVTBWKVTOB76RXEFUCPXZXEDA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,,,.,.,.,..,,.,.,,,.,..,,,.,,..,,...,..,,...,...,,..,.,.,...,
+#HV7R2ZMZXMOWZNYEQHI742F66XWLTJCPSCKOCRBW6WS254QHDYHLJ6UNXPTKEN6L3JHVLT45T774Y
+#\\\|GPOOI63PXX7SB2AW67RD5OM4BKIQ5HY2FUIEEL6ZRHND7QJ45SR \ / AMOS7 \ YOURUM ::
+#\[7]WZ2O7LUATN32YVHYADPTLRABYEXBCJFXIEQRW6QPVUSB34DNQICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

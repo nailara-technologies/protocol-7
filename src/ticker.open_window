@@ -212,11 +212,11 @@ $window->signal_connect(
     }
 );
 
-## generic button/wheel events: always emitted on ticker.events for       ##
-## external listeners [LMB info popup, continuous-mode RMB menu, wheel-   ##
-## driven HUD, etc.]. RMB additionally toggles top/bottom in notify mode, ##
-## mirroring the swap-edge top/bottom switch already available in         ##
-## continuous mode.                                                       ##
+## generic button/wheel events: always emitted on ticker.events for        ##
+## external listeners                                                      ##
+## [LMB info popup, continuous-mode RMB menu, wheel-driven HUD, etc.]. RMB ##
+## additionally toggles top/bottom in notify mode, mirroring the swap-edge ##
+## top/bottom switch already available in continuous mode.                 ##
 my %button_name = ( 1 => qw| left |, 2 => qw| middle |, 3 => qw| right | );
 
 $window->signal_connect(
@@ -291,13 +291,14 @@ $window->signal_connect(
         ## here, so a ConfigureWindow issued immediately races with         ##
         ## Weston's own initial-placement handshake and gets clobbered even ##
         ## with a short sleep. defer to a one-shot timer so the display has ##
-        ## time to settle, recompute the profile geometry [picks up correct ##
-        ## monitor offsets], then double-apply the move as in swap_profile. ##
-        ## startup initial placement now happens pre-show_all from the      ##
-        ## geo_ready snapshot [ ticker.startup_coordinates ], which Weston  ##
-        ## honors at map time. skip the post-map settle/move correction in  ##
-        ## that case -- a post-map cross-output move only gets clamped and  ##
-        ## would clobber the correct initial placement.                     ##
+        ## time to settle, recompute the profile geometry                   ##
+        ## [picks up correct monitor offsets], then double-apply the move   ##
+        ## as in swap_profile.  startup initial placement now happens       ##
+        ## pre-show_all from the geo_ready snapshot                         ##
+        ## [ ticker.startup_coordinates ], which Weston honors at map time. ##
+        ## skip the post-map settle/move correction in that case -- a       ##
+        ## post-map cross-output move only gets clamped and would clobber   ##
+        ## the correct initial placement.                                   ##
         if ( defined <x11.coordinates.left>
             and not defined <ticker.startup_coordinates> ) {
 
@@ -562,12 +563,12 @@ my $update_input_shape = sub {
 $window->signal_connect( 'configure-event' => $update_input_shape );
 $window->signal_connect( 'size-allocate'   => $update_input_shape );
 
-## initial placement BEFORE show_all, from geo_ready's snapshot -- Weston  ##
-## honors a client move issued before map but clamps/centers a post-map    ##
-## cross-output move [ the centered-on-wrong-monitor regression ]. mirrors ##
-## protocol-7-menu's pre-show_all gravity+default_size+move. set-window-   ##
-## profile [ above ] may have recomputed wrong coords from an unsettled    ##
-## GDK; the snapshot is geo_ready's correct rect, so use it here.          ##
+## initial placement BEFORE show_all, from geo_ready's snapshot -- Weston   ##
+## honors a client move issued before map but clamps/centers a post-map     ##
+## cross-output move [ the centered-on-wrong-monitor regression ]. mirrors  ##
+## protocol-7-menu's pre-show_all gravity+default_size+move.                ##
+## set-window-profile [ above ] may have recomputed wrong coords from an    ##
+## unsettled GDK; the snapshot is geo_ready's correct rect, so use it here. ##
 if ( defined <ticker.startup_coordinates> ) {
     my $sc = <ticker.startup_coordinates>;
     $window->set_gravity('north-west');
@@ -603,8 +604,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,,.,...,..,,.,,,...,,.,,,,,,,,,,...,,.,,,,,,..,,...,...,,..,...,.,.,,,,,,..,
-#4PTCM25MWQQU72ZDSALKDFSGNR4RGX6Y7LWKAG7FXFKNECVL5WOSK3EILMGUIEHGRYSAXURIACXSO
-#\\\|G3BWZTFELLNUKHHRUE434Y5X4GFSVG2CFFJXHIXZQLKIAYMUTSC \ / AMOS7 \ YOURUM ::
-#\[7]UKESG6LS54CCJNPG7KMOWXDLLLSETIFRVIOCSSH5OCNICOIGCOCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,.,.,..,,,,,,,.,,..,,...,,,.,..,,...,...,.,,,...,,..,,.,,,,.,
+#FQGCEQ35OD6WO5ZZ6V7UGXCIF5GABN2AM33NMS4KDWI4WQENCAEWLJHZ6EAHHIHK3CQDAQNNG6BTC
+#\\\|YO67WUOVF77EL4PRJX5KNZNW27QQYXTGMQTQ7LGVJWD67UFFWKW \ / AMOS7 \ YOURUM ::
+#\[7]WBYCW7NEP4K22VOGX6KPXAIKCBJFYGQZVAARNMOWRNBY7M4HUCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,9 +36,9 @@ if ( not $image->read( 'file' => $rdata ) ) {
     return;
 }
 
-## screenshot zenka is the only caller permitted to reach this command [   ##
-## enforced in cube/access.zenki ], so the full-resolution intermediate is ##
-## ours alone to clean up - no cleanup command needed on the powershell    ##
+## screenshot zenka is the only caller permitted to reach this command     ##
+## [ enforced in cube/access.zenki ], so the full-resolution intermediate  ##
+## is ours alone to clean up - no cleanup command needed on the powershell ##
 ## side. both zenki run on the same host, so this is a plain unlink rather ##
 ## than a cross-host transfer; safe once the bytes are loaded into memory  ##
 unlink($rdata)
@@ -46,9 +46,9 @@ unlink($rdata)
 
 my ( $left, $top, $right, $bottom ) = @$coords;
 
-## all-zero coords is grab_region's own "whole window" convention [ matches ##
-## Imager::Screenshot's screenshot() semantics ] - skip the crop entirely   ##
-## rather than ask Imager to crop to a zero-size rect                       ##
+## all-zero coords is grab_region's own "whole window" convention          ##
+## [ matches Imager::Screenshot's screenshot() semantics ] - skip the crop ##
+## entirely rather than ask Imager to crop to a zero-size rect             ##
 my $cropped;
 if ( $left == 0 and $top == 0 and $right == 0 and $bottom == 0 ) {
     $cropped = $image;
@@ -124,8 +124,8 @@ if ( not $write_ok ) {
 
 return;
 
-#,,..,.,,,,,.,,.,,,..,...,..,,.,.,,..,...,,..,..,,...,...,,.,,,.,,,,,,...,,..,
-#Q23HT4NCYGDDSL5YS3PAE72353ZQHOESI32JAWA4MPAQK7SVJRHHMVB5Y75VHWKKGJQBEO65ZFZDE
-#\\\|DLJRBA7VOJWYOF7OBBVK4RSAKJXMWQ5Y4JEYKEWUSR2ZFGFMC3Z \ / AMOS7 \ YOURUM ::
-#\[7]KKD34NCENIY7EPUAJJHS3SIXVZFEBVRO723FX5VLPH2DCJ3CAQCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,,.,,,,,,,,.,,.,,..,,.,,,...,..,,...,...,,,.,,,.,,.,,,,.,,,,,
+#ZPZSK4OIIYBJYNRIS5ITHEZ5V3SD52UBROQ5ALR3FBTJYBQK35H72T6C36HO7XECC3IZXCYRP4ZWA
+#\\\|TEKEHM54PZ3UHR25PPX4D74X54NNKEKVXDC5ZUCAZRK5UOGECBH \ / AMOS7 \ YOURUM ::
+#\[7]S3DMD6NVTFOMMRXXDDGMWW4U2IXTHI7NMLTN3EAOQGWTRYJK42AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

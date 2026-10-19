@@ -6,11 +6,11 @@
 
 ##    backend control path decision [ host survey 2026-07-29 ] :            ##
 ##                                                                          ##
-##    - ospd-openvas cli : not installed and not packaged on this host [    ##
-##    apt-cache search empty ] -- rejected as control path                  ##
+##    - ospd-openvas cli : not installed and not packaged on this host      ##
+##    [ apt-cache search empty ] -- rejected as control path                ##
 ##    - greenbone community container : docker 28.5.2 running, network      ##
-##    reachable -- selected as backend [ provides gvmd, ospd-openvas and    ##
-##    the community nvt feed ]                                              ##
+##    reachable -- selected as backend                                      ##
+##    [ provides gvmd, ospd-openvas and the community nvt feed ]            ##
 ##    - gvm-tools : not installed but pip-installable [ pypi reachable,     ##
 ##    26.0.7 available ] -- selected as control path : GMP protocol over    ##
 ##    the gvmd unix socket exposed by the container                         ##
@@ -176,8 +176,8 @@ foreach my $finding ( sort { $b->{'severity'} <=> $a->{'severity'} }
 
 return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,..,.,.,..,,,,,,...,,.,,.,,,.,,,.,.,,..,,.,,.,.,...,...,,..,,,,,,..,.,,,..,,
-#FE7UFQZU5BFJKO23HWI5SYKHZUB2LA4J6YEMWMHQ65RQDXCA6TKPCOMGBC47FBBJUR73Q53NY7FC4
-#\\\|5KD2TA5CSHXRM2KOVCAHUGEYO2DJXK4PYQV5M6YWQODRS44C3E5 \ / AMOS7 \ YOURUM ::
-#\[7]EAMSQUIJP3KBCBG7JY46VXQDMHMU5SHQ3SXSKWQ2MMZ6SVCZVYCQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,,,,,,,,,,,,,,,.,.,.,,,.,,,,.,,.,.,...,...,...,..,,,.,,,,.,,,.,
+#DZQ6LEAUKDDBJSLJJY3F35FFI4BG6GDDCAZZJNFMH3VJRRBC2KLDLDGQCWZJPQQUY7PYFTTI6SPUM
+#\\\|D2HTR5OBZ2NP33LHQAMTQ54MSEQ5KJ735RTWGANHHSSFBFGZMTM \ / AMOS7 \ YOURUM ::
+#\[7]JEOURB327R2UTLC6OTVW5YXN3OD4U23E4GQI5YKIJRRY5VY3BICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

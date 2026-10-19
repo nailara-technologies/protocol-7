@@ -24,12 +24,12 @@ if ( not $window->get_visible or <ticker.is-iconified>-- ) {
 
     ## the cursor may already be resting where the ticker is about to       ##
     ## appear [e.g. notify mode's top-strip]. without this, check_pointer's ##
-    ## swap-edge cursor_over check [ ($inside||$event_inside) && not        ##
-    ## defined swap_left_at ] treats that as a fresh edge-arrival on the    ##
-    ## very first poll and immediately swaps/dismisses the ticker before    ##
-    ## it's seen. seed swap_left_at as if the cursor had just left, so a    ##
-    ## real enter-notify is required [same as on subsequent shows] before a ##
-    ## swap-out can trigger.                                                ##
+    ## swap-edge cursor_over check                                          ##
+    ## [ ($inside||$event_inside) && not defined swap_left_at ] treats that ##
+    ## as a fresh edge-arrival on the very first poll and immediately       ##
+    ## swaps/dismisses the ticker before it's seen. seed swap_left_at as if ##
+    ## the cursor had just left, so a real enter-notify is required         ##
+    ## [same as on subsequent shows] before a swap-out can trigger.         ##
     <ticker.mouse.swap_left_at> = <[base.ntime]>;
     <[base.log]>->( 1, 'showing window' );
 
@@ -91,8 +91,8 @@ if ( defined <x11.id> ) {
 
 $window->queue_draw();
 
-#,,.,,...,,..,,,.,,.,,,,,,.,.,...,.,,,,..,,..,..,,...,...,.,.,...,.,.,,,,,,,,,
-#3ZCWLK44TIKWMFAMD246IN7OYZM4Q65AFB5BARGWRLOHL6THUPRNUBYMZKXP2DQNB6TPJR6PNLVQQ
-#\\\|NYWELV4CPS7UZXCCEIWTBV7PZG7HB7XOGA4IXP3SXXJGNMVQOWA \ / AMOS7 \ YOURUM ::
-#\[7]TSVHHNHA7F46UEWD6Y2ISU7LABIQNUFMYVMANB7YPRSU5LIX4GBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,..,,,.,,,,,,.,.,,.,,,.,,,..,..,,...,...,.,.,.,.,,,.,,,.,...,
+#O6YT3VBTZAJRRG7VU32ZTWVU2VTARY5GPMSIKN75AI5UZXMGEARC64ZP7GM7DFC6KCM7ZJJQTC32S
+#\\\|MW7L7XCZ4KVABQKQG3DCHVIRKYI4R5JFEOIAYRPQFEVUPIWJ2ZZ \ / AMOS7 \ YOURUM ::
+#\[7]4EO2W3A3G5N2LMWMDA2DJV23XMCV5L5HIYKHRKL3WOP3T4A7NGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,9 +27,9 @@ my %request = (
     'params'  => { 'req_key' => $req_key },
 );
 
-## proxy is a caller decision here : bypass_proxy = direct connection [    ##
-## matching what no_proxy does for the lwp path ], otherwise the proxy env ##
-## vars, same as the ua path's env_proxy                                   ##
+## proxy is a caller decision here : bypass_proxy = direct connection    ##
+## [ matching what no_proxy does for the lwp path ], otherwise the proxy ##
+## env vars, same as the ua path's env_proxy                             ##
 if ( not <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
     $request{'proxy'} = $ENV{'https_proxy'} // $ENV{'http_proxy'} // '';
 }
@@ -49,8 +49,8 @@ if ( not defined $state ) {
 
 return $state;
 
-#,,,,,.,.,,.,,,,.,,.,,...,...,,,,,,,,,.,,,,,.,..,,...,...,...,,,,,.,.,...,...,
-#33P7VJ7AQD654E7RSYI33JAKYLHTQCUFOP2CVERET3RVLRZ4LKJZGA5ASW22WJJ2KZZIMKSHEG7PO
-#\\\|GVMRNUEENHFSWQ7MBJ3Z4BPV65TO3QZH7NXXSBB5DGZOZAX7LW6 \ / AMOS7 \ YOURUM ::
-#\[7]HFIVIIE75XTHPQBVWVM7HFOMVAEU4V55NSIONF3SQ666U3UXFACI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,..,,,.,,.,,,...,..,,,.,,..,,,,.,..,,...,...,..,,,,,,,..,,,,,,,.,
+#BJSKVCTHPE2TO75EX3TBJHIYFXYTKQK26GKFWHMCK236R5V4UQED76XFLGLHQ3CDXZYMRPXW2IICU
+#\\\|7K5WXXUT3DWOD3UXFV3W3SC66YLWJ54KPUKUH4A5R26RVHYRVKD \ / AMOS7 \ YOURUM ::
+#\[7]GOSDG23H6AZSKXUUBV4WUAELIB66XLBRH3SW6Q2WZW6ESVR4I6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

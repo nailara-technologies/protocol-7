@@ -569,12 +569,12 @@ if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
 my $signed_data_str = substr( $footer_as_string, 0, 163 );
 my $signature_str   = $signature_footer_data->{'signature'};
 
-## undef [ not 0 ] means verify_sign could not even attempt the check [ no  ##
-## public key loaded ] -- distinct from a real 0/false result, which means  ##
-## it checked and the signature is cryptographically wrong. collapsing both ##
-## into the same value [ the old '? 1 : 0' coercion below ] made the log    ##
-## claim a negative determination [ 'not valid' ] that was never actually   ##
-## made when the real cause was simply "couldn't check"                     ##
+## undef [ not 0 ] means verify_sign could not even attempt the check       ##
+## [ no public key loaded ] -- distinct from a real 0/false result, which   ##
+## means it checked and the signature is cryptographically wrong.           ##
+## collapsing both into the same value [ the old '? 1 : 0' coercion below ] ##
+## made the log claim a negative determination [ 'not valid' ] that was     ##
+## never actually made when the real cause was simply "couldn't check"      ##
 my $sig_valid;
 eval {
     $sig_valid = <[crypt.C25519.verify_sign]>->(
@@ -644,8 +644,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-#,,,.,.,.,...,.,.,.,,,.,.,.,.,,,.,,,.,.,.,.,.,..,,...,...,...,,.,,.,,,,..,,,.,
-#4HNFMGJUHTLTOGSREAABWZQWNA5Q5364AVXDCMOBV7S4CJUOXFSUVQBWRKI5NPFHU63YC3PJZMEX6
-#\\\|KXU2YMR27TKSQTLE6TVIEYSIX2NQAK7YMQLN4O5UR74R7NRET4X \ / AMOS7 \ YOURUM ::
-#\[7]VJMWHV4L3L4STD5EBA3DBMTIKSF6KKACP23G5XUSD6NA3MUDRMDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,.,.,..,,,..,..,,.,.,,.,,...,..,,...,...,.,.,...,,..,,..,,..,
+#LJRCUM5CO5BELGMF5MZQ55ILIYBG4I7Q3XF4FHAW76CY37ZNTAZN2OMFS775LTYH2FZFJX3EQVYXS
+#\\\|ZVEYBTG6E2FXWSN4BYZ3H54KQIHJFK6IRPYFZNEBQ6PJ3722OLP \ / AMOS7 \ YOURUM ::
+#\[7]FZUNDCIX4ZT2G3RSTUYRD7X777K7K5YLURYKWNGZVUDX3WSWHQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

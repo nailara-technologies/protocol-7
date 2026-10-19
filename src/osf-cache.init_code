@@ -45,8 +45,8 @@ my $state_file
 <osf-cache.cfg.scan_slice>     //= 4;
 <osf-cache.cfg.lookup_timeout> //= 5;    ## seconds [ peer lookup ] ##
 
-## stage 4b : peer discovery also asks these external links  [ ##
-## space-separated names, //= '' : the local cube only ]       ##
+## stage 4b : peer discovery also asks these external links ##
+## [ space-separated names, //= '' : the local cube only ]  ##
 <osf-cache.cfg.remote_links> //= '';
 
 ## stage 3 : segment fetch + verify ##
@@ -59,9 +59,9 @@ my $state_file
 <osf-cache.cfg.file_mode>   //= qw| 0644 |;       ## fetched files [ apt ] ##
 
 ## a cache dir inside this zenka's own data dir [ per-subname peers ] is ##
-## created here, still as root, owned by the zenka user [ web.init_code  ##
-## pattern ]. never outside the data dir [ the apt archive cache is the  ##
-## system's, not ours ]                                                  ##
+## created here, still as root, owned by the zenka user                  ##
+## [ web.init_code pattern ]. never outside the data dir                 ##
+## [ the apt archive cache is the system's, not ours ]                   ##
 my $data_dir  = <[file.zenka_dir.data_path]>;
 my $cache_dir = <osf-cache.cfg.cache_dir>;
 if ( index( $cache_dir, "$data_dir/" ) == 0 and not -d $cache_dir ) {
@@ -79,8 +79,8 @@ if ( index( $cache_dir, "$data_dir/" ) == 0 and not -d $cache_dir ) {
 
 0;
 
-#,,..,.,,,.,.,.,.,...,,,,,...,,.,,,..,...,..,,.,.,...,...,..,,.,,,.,.,..,,,..,
-#L6L37WFP3IL54E5NUGTNNKGJWNWKEYE5NYALFW3TTBUWOTULSPXBX3ZZS2GAWMYHTAE22AYXTCFQA
-#\\\|EC4TWH65EM2YHGJLWJTGTKZJAVYLPCPPZNFAIGNSGLUSTYZFLDA \ / AMOS7 \ YOURUM ::
-#\[7]5Y77IDKNOC25WQUTRNG3GNAM4OKT3OV5MXBCVQUMMGHOZB2NTUBY 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,,,.,..,,,,.,..,,,,,,.,.,,.,,.,.,...,...,,..,,..,.,.,,,,,..,,
+#QRTMSM65UXQL5H663GGKOUVROLADLZTGMK27NCHQWRX4TEITE2YJSSULOMD74KWK7FLAEWUAXLFWQ
+#\\\|I3Z4R5XOKWJH4Y5IYC75FG4GSM27IZSBCGTZKG2QADEQU7WQI4K \ / AMOS7 \ YOURUM ::
+#\[7]FNGBKRJP6SHUU3YITKCW2E4BMGLDXMI4IPJD4X5KXRQS4EMQPCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,17 +5,17 @@
 
 my $state_ref = <nshell.state> //= {};
 
-## ordered mode list -- index 0 is always plain nshell [ no scroll region,  ##
-## full screen ]. later modes are added here as they get built [ one entry  ##
-## per subscribed coding session eventually, a remote nshell connection,    ##
-## etc ] -- Tab always just advances the index, no redesign needed when the ##
-## list grows past 2. 'plugin' names a plugin.nshell.* module implementing  ##
-## the on_submit/on_reply hooks for that mode [ absent = plain raw-command  ##
-## tab, no special routing ]. 'buffer' accumulates everything printed while ##
-## this mode is active [ nshell.render.content_print appends to it ], so    ##
-## switching back to a backgrounded mode can replay what happened while it  ##
-## wasn't focused -- generic, not coding-zenka-specific : any future mode   ##
-## gets this for free                                                       ##
+## ordered mode list -- index 0 is always plain nshell                      ##
+## [ no scroll region, full screen ]. later modes are added here as they    ##
+## get built [ one entry per subscribed coding session eventually, a remote ##
+## nshell connection, etc ] -- Tab always just advances the index, no       ##
+## redesign needed when the list grows past 2. 'plugin' names a             ##
+## plugin.nshell.* module implementing the on_submit/on_reply hooks for     ##
+## that mode [ absent = plain raw-command tab, no special routing ].        ##
+## 'buffer' accumulates everything printed while this mode is active        ##
+## [ nshell.render.content_print appends to it ], so switching back to a    ##
+## backgrounded mode can replay what happened while it wasn't focused --    ##
+## generic, not coding-zenka-specific : any future mode gets this for free  ##
 my $modes = $state_ref->{'display_modes'} //= [
     { 'name' => qw| shell | },
     {   'name'    => qw| session |,
@@ -33,8 +33,8 @@ my $next_index = ( $index + 1 ) % scalar( @{$modes} );
 ## screen content too, not just the scroll boundary, so nothing survives as ##
 ## visual debris [ pass the reserved-row count the CURRENT mode used ].     ##
 ## only non-shell modes hold a scroll region today, but this stays correct  ##
-## once a second non-shell mode exists too [ session -> session also tears  ##
-## down and re-sets, not a no-op ]                                          ##
+## once a second non-shell mode exists too                                  ##
+## [ session -> session also tears down and re-sets, not a no-op ]          ##
 AMOS7::TERM::scroll_region_clear( $state_ref->{'split_reserved_rows'} // 0 )
     if $state_ref->{'split_active'};
 
@@ -85,11 +85,11 @@ if ( $new_mode->{'name'} eq qw| shell | ) {
     ## content instead of replacing it -- confirmed live 2026-09-14         ##
     AMOS7::TERM::content_area_clear($content_bottom);
 
-    ## replay this mode's own accumulated buffer [ e.g. what happened while ##
-    ## it was backgrounded ] into the freshly-cleared content area -- the   ##
-    ## cursor is already parked at (content_bottom, 1) by content_area_     ##
-    ## clear above, so a plain print lands in the right place with no extra ##
-    ## jump                                                                 ##
+    ## replay this mode's own accumulated buffer                          ##
+    ## [ e.g. what happened while it was backgrounded ] into the          ##
+    ## freshly-cleared content area -- the cursor is already parked at    ##
+    ## (content_bottom, 1) by content_area_ clear above, so a plain print ##
+    ## lands in the right place with no extra jump                        ##
     my $replay = $new_mode->{'buffer'} // '';
     if ( length $replay ) {
         print $replay;
@@ -97,8 +97,8 @@ if ( $new_mode->{'name'} eq qw| shell | ) {
         ## same modular tail-length math as nshell.render.content_print,    ##
         ## kept in sync deliberately -- including content_pending_wrap : an ##
         ## exact-width replay tail leaves the real cursor pending-wrap same ##
-        ## as a live chunk would, and the NEXT background print [           ##
-        ## content_print ] relies on that flag to avoid CUPing back onto    ##
+        ## as a live chunk would, and the NEXT background print             ##
+        ## [ content_print ] relies on that flag to avoid CUPing back onto  ##
         ## this just-replayed row's own start column. the buffer holds      ##
         ## ansi-wrapped chunks [ strm_reply color codes ], so the tail must ##
         ## be measured on stripped text -- same ansi-drift fix as           ##
@@ -131,14 +131,14 @@ if ( $new_mode->{'name'} eq qw| shell | ) {
 
 $state_ref->{'display_mode_index'} = $next_index;
 
-## force an immediate render of the current input line [ + separator, if ##
-## the new mode has one ] at its new spot                                ##
+## force an immediate render of the current input line      ##
+## [ + separator, if the new mode has one ] at its new spot ##
 <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
 
 return TRUE;
 
-#,,..,.,,,,,.,..,,..,,,,.,,.,,.,,,,.,,,.,,,,.,..,,...,...,.,.,.,,,...,...,.,.,
-#2R3BGSNUVNPVJWJSI2QGPSGH5RETB5IVWDAXD4DE4OCP4CVAHRYAG7MADNFVJEQDUM5YYIJLJ2ZBW
-#\\\|LWFB6LN4DMHJAWYH6GGW4W2HEQK5PB5I6OW5MGYX4GAM3VH7KA7 \ / AMOS7 \ YOURUM ::
-#\[7]ZRPJWNBRZA7OOYSXVKMBFGOURDRGDVZRVKZCIOVWJO35OILXTSDY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,,,,,,,...,...,,..,,,.,,,,,.,.,..,,...,.,.,.,,,.,.,..,,,.,,.,,,
+#HI7WBFJIFUCS6BP5EHIO3AN77N7EDYRPEAJ3Z2XAFJYK72RPIALRTBHYP2PRWIFZ5NOIMWREE4JJU
+#\\\|L5RRHPVYB6RXQFUDVOO7FWXMBCMILTE5ZOYM336T5APHNLQ56J2 \ / AMOS7 \ YOURUM ::
+#\[7]NR6G3W76AGEGMKF6Q7GVL3YFOMTRWL3OJUROXCDBJQ2SACLOP6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

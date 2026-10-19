@@ -10,21 +10,21 @@
 ##      domain's skipgram word vectors [ data/embeddings/<domain>.vec,      ##
 ##      committed output of bin/dev/train-embedding ] are queried for       ##
 ##      nearest neighbors of the finding : CVE ids extracted from oid       ##
-##      / name plus the finding name words form the query [ mean            ##
-##      vector ].  neighbor tokens that map to a protocol file on disk      ##
-##      [ name = filepath convention : data/protocols/<domain>/<id>,        ##
-##      no registry ] are loaded and attached as enrichment context. a      ##
-##      finding CVE id with a protocol file in the domain is attached       ##
-##      as a direct hit [ score 1.0 ] independent of the neighbor           ##
-##      ranking.                                                            ##
+##      / name plus the finding name words form the query                   ##
+##      [ mean vector ].  neighbor tokens that map to a protocol file       ##
+##      on disk [ name = filepath convention :                              ##
+##      data/protocols/<domain>/<id>, no registry ] are loaded and          ##
+##      attached as enrichment context. a finding CVE id with a             ##
+##      protocol file in the domain is attached as a direct hit             ##
+##      [ score 1.0 ] independent of the neighbor ranking.                  ##
 ##                                                                          ##
 ##      the .vec export is queried instead of the .bin model : the          ##
 ##      .bin files are ~2.4 GB each and gitignored, the committed .vec      ##
 ##      files carry the same trained input vectors, so pure-perl            ##
 ##      cosine over .vec yields the same neighbors as `fasttext nn          ##
 ##      <domain>.bin` for in-vocab tokens without loading gigabytes         ##
-##      into a zenka [ cross- validated live against the cisa .bin,         ##
-##      2026-07-29 ].                                                       ##
+##      into a zenka                                                        ##
+##      [ cross- validated live against the cisa .bin, 2026-07-29 ].        ##
 ##                                                                          ##
 ##      per-domain graceful degradation [ the documented fallback ] :       ##
 ##      a domain whose model export or protocol dir is missing [ nvt :      ##
@@ -33,11 +33,11 @@
 ##      the finding -- the finding is attached as-is and that domain        ##
 ##      alone is marked status 'pending'. remaining domains still           ##
 ##      enrich normally.  a live domain with zero vocabulary overlap        ##
-##      is marked 'no-vocab-match' [ distinct from 'pending' : the          ##
-##      domain exists ].                                                    ##
+##      is marked 'no-vocab-match'                                          ##
+##      [ distinct from 'pending' : the domain exists ].                    ##
 ##                                                                          ##
-##      parsed vectors are memoized per zenka process [ per-scan reuse      ##
-##      ].                                                                  ##
+##      parsed vectors are memoized per zenka process                       ##
+##      [ per-scan reuse ].                                                 ##
 
 my $finding = shift;
 
@@ -230,8 +230,8 @@ return {
 #  signature debt :: written during an afk session; cannot be signed here.
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
 
-#,,.,,,..,..,,,,,,,,,,,,,,.,.,.,,,.,.,,,.,...,..,,...,...,...,.,,,,,.,,.,,.,,,
-#X5VF5GX2THL7RRYGZR4BS5UK2JHZSMOFEHACIULPFLYEBT62BNCZ567SMI2F2BDUEOP377S3NPYZE
-#\\\|NVSDNVVR6PTM73GVZBFHJNDXOGGLW6NZGYWESV4VASYXHET437V \ / AMOS7 \ YOURUM ::
-#\[7]TKYG5T2LOUCP65CPDV3JQLRY2JRUAXD4SLKPXE5YSGWNESJ3EADY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,,.,,..,,.,,,.,.,,,.,.,,,.,,,..,,...,...,.,,,,,,,.,.,,.,,..,,
+#CEUQTKDRK5KXFGLKHTN3HPBQOZBLXUVBKQJVGERH3YWG6NFMW42VMXWWYWLOE2IJPREVROYQVKYQE
+#\\\|QCUT6GIM7KRSTCAMYCTJECZ5MQXURT7YDBUYMVQ6JABW5ZWTMG2 \ / AMOS7 \ YOURUM ::
+#\[7]NYDF4V54L53DOMF2WTAN2PNOIG52V5BXFAAH45IKQ7B4KNGGOMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

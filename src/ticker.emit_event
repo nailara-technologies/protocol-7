@@ -8,8 +8,9 @@
 
 my $event_name = shift // return;
 
-## WSLg/XWayland frequently delivers duplicate GTK events [enter/leave,    ##
-## button-press, scroll]; drop an immediate repeat of the same event name. ##
+## WSLg/XWayland frequently delivers duplicate GTK events               ##
+## [enter/leave, button-press, scroll]; drop an immediate repeat of the ##
+## same event name.                                                     ##
 my $now = <[base.time]>->(3);
 if (    defined <ticker.event.last_name>
     and <ticker.event.last_name> eq $event_name
@@ -46,8 +47,8 @@ foreach my $listener ( @{$listeners} ) {
 
 <ticker.event.listeners> = \@keep;
 
-#,,..,,,,,.,.,.,.,,,,,,.,,..,,,,,,,..,.,,,.,.,..,,...,...,,.,,,,.,...,.,,,..,,
-#YFIAPNOU7ZHDIGTCGZF2KA2GB4ZLNRSBL7HNPDPQTFTEUWCLAZZY532GHPXAMJHYBLQCRB2NACKSI
-#\\\|U5GFGDVIN44SKBTBUGFREJGVDHYPJ62ZJAALZOXN2JO43DW4YPD \ / AMOS7 \ YOURUM ::
-#\[7]AWV2XJI5TDGJM4BV7XLOICHOKMXUURUQLXPD3BW3RFCWXEDFOKBQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,...,.,,,,..,,..,,,.,,..,,,.,,.,,..,,...,...,.,,,..,,.,.,,..,...,
+#QZVI4HY5ZWSL3YW7FCCASU6ZSAIOYCI66WE2CZZNOJX4IXZ2YVRQX7ST232VOINE3J56TRNLFCG4C
+#\\\|LP2TO5WEDLWGE4SPUZVEIO75QORQTMV2VA33SCRQODVM3DLOORE \ / AMOS7 \ YOURUM ::
+#\[7]ZW2NCL46C5B3B347ELBRYQDBHCGAKY3QKPKT66JV4EHXPE52JEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,8 +23,9 @@ my $stage_files = $command_params =~ s| *:stage: *| |;
 ## guesses, but removing is still the user's explicit choice
 my $strip_fragments = $command_params =~ s| *:strip: *| |;
 
-## :workers=N: overrides the parallel-worker count [ default : auto, based ##
-## on cpu count, see below ]. :workers=1: forces the plain sequential path ##
+## :workers=N: overrides the parallel-worker count                       ##
+## [ default : auto, based on cpu count, see below ]. :workers=1: forces ##
+## the plain sequential path                                             ##
 my $workers_override;
 $workers_override = $1
     if $command_params =~ s| *:workers=(\d+): *| |;
@@ -32,9 +33,9 @@ $workers_override = $1
 ## :inlist: treats the remaining params as candidates to intersect against ##
 ## the authoritative signed corpus [ sourcecode.source_path_set_up ],      ##
 ## rather than as a stand-alone file set -- exclusion patterns and corpus  ##
-## membership are honoured, so e.g. a staged file under an excluded path [ ##
-## test-fixtures, cfg/backup, ... ] is silently skipped instead of getting ##
-## a signature footer appended for nothing. see                            ##
+## membership are honoured, so e.g. a staged file under an excluded path   ##
+## [ test-fixtures, cfg/backup, ... ] is silently skipped instead of       ##
+## getting a signature footer appended for nothing. see                    ##
 ## sourcecode.console.verify-p7-signatures for the matching flag           ##
 my $restrict_to_corpus = $command_params =~ s| *:inlist: *| |;
 $command_params =~ s,^ *| *$,,;
@@ -357,8 +358,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,..,,..,,,,,..,,,.,,,,.,..,,..,,...,...,..,,..,,...,...,...,,,.,...,,,,,,..,
-#4Z5AAMG6WOD3PW7IEULVHOQ42RHR7ZANTHD7GPR6Q3IHB43KRIRFNSEUGRNYXO5WS3CQP2X634ED2
-#\\\|2P6GAYKCYSCBDVHBZGFOW6JJA53NLX623VZUCO3VUFJFPAXJUPV \ / AMOS7 \ YOURUM ::
-#\[7]EYVGOSRQCNRJ7PWH7YPJAKPNJELBTDGZXEEBEHI47D2H6ZDUFUBA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,..,,..,,,.,,,..,,.,,,..,.,.,..,,...,...,.,.,,,.,,,,,...,...,
+#2E46IXX7DXRM5FJDCKZCWHQHOCMXT4KRLRPBOCVM2O3ZVFT7I4UGHTMJ54TRSPKAKK2LEA4FO73LM
+#\\\|EHRHDMYBVZ5GHWULGB3QB3VFYAJPHANCJTQBYR7JE4TEUFQKTQA \ / AMOS7 \ YOURUM ::
+#\[7]H5EW64UWLOARCXHRNDQHKEFGW4VTWHXD5DZS53EBDWJFSBH7UQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

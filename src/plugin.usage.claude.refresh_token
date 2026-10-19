@@ -91,20 +91,21 @@ my $provider = <usage.provider.claude>;
 ## single slot : never stack two refresh children on top of each other -- but
 ## a caller arriving while one is already in flight still needs to know when
 ## THAT cycle finishes, not fire its own uncoordinated fallback. ported from
-## plugin.usage.kimi.refresh_token's identical fix [ found live 2026-09-17 on
-## the kimi side ] : plugin.usage.claude.handler.response used to treat this
-## branch's FALSE return as "nothing will ever call me back" and fired an
-## immediate retry fetch of its own -- which almost always raced the
-## already-running refresh child [ a real claude startup cycle takes the full
-## ~15-18s this module's own timeout accounts for ] and reported a false
-## "refresh already attempted and did not help" error moments before the SAME
-## in-flight refresh would have succeeded on its own [ confirmed live
-## 2026-09-23 as usage.status's 401-then-immediate-success symptom ]. queuing
-## onto the existing cycle's on_done list instead means every waiter [ the
-## original starter, a proactive-watchdog trigger, any number of reactive 401s
-## that land while it's running ] gets notified exactly once, when the one
-## real refresh actually completes -- TRUE now means "on_done WILL fire, now
-## or later", not "I personally started a child"
+## plugin.usage.kimi.refresh_token's identical fix
+## [ found live 2026-09-17 on the kimi side ] :
+## plugin.usage.claude.handler.response used to treat this branch's FALSE
+## return as "nothing will ever call me back" and fired an immediate retry
+## fetch of its own -- which almost always raced the already-running refresh
+## child [ a real claude startup cycle takes the full ~15-18s this module's
+## own timeout accounts for ] and reported a false "refresh already attempted
+## and did not help" error moments before the SAME in-flight refresh would
+## have succeeded on its own [ confirmed live 2026-09-23 as usage.status's
+## 401-then-immediate-success symptom ]. queuing onto the existing cycle's
+## on_done list instead means every waiter [ the original starter, a
+## proactive-watchdog trigger, any number of reactive 401s that land while
+## it's running ] gets notified exactly once, when the one real refresh
+## actually completes -- TRUE now means "on_done WILL fire, now or later", not
+## "I personally started a child"
 if ( ref $provider->{'refresh_state'} eq qw| HASH | ) {
     <[base.logs]>->(
         1,
@@ -170,14 +171,14 @@ if ( not defined $pid ) {
 
 if ( $pid == 0 ) {
     ## make the pty's slave side this process' real controlling terminal, then
-    ## exec -- claude sees an actual terminal, not a pipe [ see the module
-    ## note above on why that distinction matters here ]
+    ## exec -- claude sees an actual terminal, not a pipe
+    ## [ see the module note above on why that distinction matters here ]
     $pty->make_slave_controlling_terminal();
     my $slave = $pty->slave;
 
     ## a freshly allocated pty starts at 0x0 unless something sizes it -- same
-    ## floor pty.spawn applies, for the same reason [ several tui frameworks
-    ## refuse to render properly otherwise ]
+    ## floor pty.spawn applies, for the same reason
+    ## [ several tui frameworks refuse to render properly otherwise ]
     my ( $min_rows, $min_cols ) = ( 24, 80 );
     $slave->clone_winsize_from( \*STDIN ) if -t STDIN;
     my ( $rows, $cols ) = $slave->get_winsize();
@@ -256,8 +257,8 @@ $provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,..,.,,,,..,..,,,,,,...,..,,..,,.,.,,.,,.,,,..,,...,...,,..,,,.,,.,,,.,,,,.,
-#N67I4GTEX7NDLDNIT2JBXUGVGM7NTWKE3AHCWPJUELFTVVAMTIYUDWOJG2BS3DU4NLHJIG74KCRLO
-#\\\|GCMEBMGJVR52HSIVURIWNTEFFCA7JFQKY7AXNYCXVDUHIN253CC \ / AMOS7 \ YOURUM ::
-#\[7]TQ34IPXMPWDEVXNMP24NT7BAJZP6Z33R7DIBCJEFCHKYKBWGUUBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,..,,...,,,,,,,.,,..,.,,,,.,,..,,...,...,,.,,,.,,...,,,,,,.,,
+#KO6OCGUYYVYASYM7TGIROXUW7QW74W63M4EDQLY2VBJ5CD22SVGFKIHASRJAQYI74LY5BE6TXPTYC
+#\\\|CCGJ5KFGH66YW6D3L56MBIZ2ZEAJJZXXQGION63J5KJEAISZWKX \ / AMOS7 \ YOURUM ::
+#\[7]KLFH6FVJIEQNCYOW72WJDT4HQQXFAJ3YBELIMHABB4GKRUM2NQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

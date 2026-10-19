@@ -12,13 +12,14 @@
 ## record's own $fields hash [ plugin.user-edit.registry.post_init's by_key
 ## lookup, consulted by form.schema_from_record's per-field loop and
 ## form.handler.stdin_key's Right-entry trigger ].  this plugin's one field is
-## SYNTHESISED in schema_from_record instead [ key/identity data is not record
-## data ], already carrying plugin =>  'plugin.user-edit.key-details' on its
-## own field_def -- and keeping 'identity_key' OUT of by_key is exactly what
-## keeps stdin_key's plugin-mode entry trigger from ever firing on it.  this
-## tab_info exists for the registry's bookkeeping/discovery only.
-## registry.post_init tolerates a missing pinned_keys [ '( ... // [] )' ], so
-## no registry change was needed for this shape.
+## SYNTHESISED in schema_from_record instead
+## [ key/identity data is not record data ], already carrying plugin =>
+## 'plugin.user-edit.key-details' on its own field_def -- and keeping
+## 'identity_key' OUT of by_key is exactly what keeps stdin_key's plugin-mode
+## entry trigger from ever firing on it.  this tab_info exists for the
+## registry's bookkeeping/discovery only.  registry.post_init tolerates a
+## missing pinned_keys [ '( ... // [] )' ], so no registry change was needed
+## for this shape.
 ##
 ## q|..|, NOT qw|..| : qw splits on WHITESPACE, so qw| key details | would
 ## collapse into label => 'key' plus a stray 'details' key -- the same trap
@@ -26,8 +27,8 @@
 ## applied here to the label itself
 return { qw| label | => q| key details |, };
 
-#,,,.,,,,,,,,,...,,,,,...,,,,,.,.,,..,...,...,..,,...,..,,,,,,,..,,,.,,,.,.,.,
-#ZI6Y2JLNF3FQNA3W5HMUXZMUBZB5HELBH2VAPKFRBXMFRQTVAZLT5DLJEBZB7ZPJYIJZJUQFJ5YV2
-#\\\|56O4FIYH63HITTIE6GKNNUKEN7EEUZ6Z32AXFRQIS7K76LQ765R \ / AMOS7 \ YOURUM ::
-#\[7]MMCHHHB2YQALQDCRZOD56W6FZI3U6AJERMM7AHBDO6EWJM4PCYCI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,.,.,,,,,,,,,...,...,,,.,..,,..,,...,...,...,...,..,,...,,..,
+#2YUHWS4VP6KYFAXOAZEOZPOSYOVOFTJ5Q7ASHWWTG6VSU7G27TYPJZ46DOKNWXLKER4QNGVAJANFI
+#\\\|G5QMPQY3RH2ZHOGQ7NYIVLT4AS2MV2PQTWKTLKHDMVABKTRYZ7X \ / AMOS7 \ YOURUM ::
+#\[7]ST6MNMP2D3TVGYG36GAWIUN7UANOAB4SRYJNM2SPU2W3DKPZTICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
