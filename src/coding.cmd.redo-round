@@ -23,8 +23,8 @@ return { 'mode' => qw| false |, 'data' => 'task_id required' }
 
 my $task = <coding.task.queue>->{$task_id};
 
-## buffer names use T- prefix; queue keys use task- prefix : normalize [ ##
-## same normalization coding.cmd.task-append applies ]                   ##
+## buffer names use T- prefix; queue keys use task- prefix : normalize ##
+## [ same normalization coding.cmd.task-append applies ]               ##
 if ( !defined $task and $task_id =~ s|^T-|task-|i ) {
     $task = <coding.task.queue>->{$task_id};
 }
@@ -95,8 +95,8 @@ return {
         . "[${\scalar @{$messages}} messages]\n\n$replay\n"
 };
 
-#,,.,,.,,,,,.,,,,,,,,,.,,,,.,,,.,,,.,,..,,,,.,.,.,...,..,,..,,.,.,,..,.,,,,,,,
-#O6B3SVODJYHEHU7MTS2LN2P23NVZMDGOTXKQEYZ6JLYQTNKUCYPCWKOICEWQH5KPZBA7LSIMSSZT4
-#\\\|VWBGZUKZ2YO5BNRV7Q7AALELYV42KYWYC54EXAFWZTNUEQEY63H \ / AMOS7 \ YOURUM ::
-#\[7]VAP3ZUKJQYSSNCRBLK2WG5YG7QVWWN4BABXMWOOGYZCHQLZPHKDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,,,,,,,,,,..,.,,,,..,..,,.,,,.,.,...,...,...,.,.,,,,,,.,,.,.,
+#E3LJ7OES7KU6DM5ZWZ3G5VQVJ4NDZYDEKI6ILLXXCRX25QDTAFFDRGRX5PDOBNQSWNV3CHN2YKRMS
+#\\\|JRKJ3J6A7JNN6UQ36NTQLVFGYIALJ3T4YEPQGLV63TZGLCPH5CK \ / AMOS7 \ YOURUM ::
+#\[7]BAJZYJDD6UTMBA4O2KALL6HQJUAON6DSUI5HIWJT76PQAJFXO2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

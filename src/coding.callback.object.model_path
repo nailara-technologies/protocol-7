@@ -8,8 +8,9 @@ my $object_id = shift;
 return undef unless exists <dependency.object>->{$object_id};
 
 ## backend comes from the dependency object's own field : gpu stays on the ##
-## shared <inference.model.path> slot [ zero blast radius on existing      ##
-## readers ], cpu gets its own <inference.backend.cpu.path> slot           ##
+## shared <inference.model.path> slot                                      ##
+## [ zero blast radius on existing readers ], cpu gets its own             ##
+## <inference.backend.cpu.path> slot                                       ##
 my $backend = <dependency.object>->{$object_id}->{'backend'} // 'gpu';
 my $path
     = $backend eq 'cpu'
@@ -18,8 +19,8 @@ my $path
 
 return length($path) ? TRUE : FALSE;
 
-#,,.,,,.,,,,.,,,,,...,,..,,,,,,,,,..,,,,,,..,,..,,...,...,.,.,..,,,..,..,,,,,,
-#GDTNOZF2NAGALYU5RVP3JMNJ5AQ2FRBQP5CZFVX345KEDI56VLRMG2DD3LOIYYS33PGHU7FW67EX2
-#\\\|NCA4MDZTDIY6OAACLAZHJQXIGCXTRDLJHC6T5APCMJXSANRYOWE \ / AMOS7 \ YOURUM ::
-#\[7]XIOIEU5UT7LLGCF2JVMCJ2WLBUF42ILYJPLPN4SITN2C5E4DR2BA 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,.,,,...,,,,,,..,..,,...,...,..,,...,.,.,,,.,.,,,...,,.,,..,,
+#MFS4M45BKLAUT3HA6DVNTOKNXO6P3MYDJCGAANKWPJIPY3CP3RPNIUEY7PWNTEBWSVL5A2UHX5R36
+#\\\|XWUOQXHXTMUFCCUEPC5YREJ34DBTZCFI4BXMWSRUU6DRZCE6MU3 \ / AMOS7 \ YOURUM ::
+#\[7]6LDHDTJKNRNHRGNVXCGHBEAL4B36DM2TJNNABHFLDHR2BWVEJCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

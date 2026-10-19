@@ -3,10 +3,11 @@
 # name  = coding.handler.lora_train_stdout
 # descr = parse train_lora.py's single-line JSON progress events on stdout
 
-## JSON::XS only -- never JSON::PP, see data/ai-mem/claude/bug-fetch-files- ##
-## huggingface-four-real-bugs-2026-09-10.md : clients.https.init_code       ##
-## already loads JSON::XS in this process, and JSON::PP's decode_json has a ##
-## different prototype -- loading both collides                             ##
+## JSON::XS only -- never JSON::PP, see                                        ##
+## data/ai-mem/claude/bug-fetch-files-huggingface-four-real-bugs-2026-09-10.md ##
+## : clients.https.init_code already loads JSON::XS in this process, and       ##
+## JSON::PP's decode_json has a different prototype -- loading both            ##
+## collides                                                                    ##
 
 my $event = shift;
 
@@ -28,9 +29,9 @@ for my $line ( split m|\n|, $buf ) {
 
     my $parsed = eval { JSON::XS::decode_json($line) };
     if ( !defined $parsed or ref $parsed ne qw| HASH | ) {
-        ## not every stdout line is guaranteed to be our json [ a library ##
-        ## under the hood can still write a stray line ] -- log raw and   ##
-        ## move on rather than dying on a malformed line                  ##
+        ## not every stdout line is guaranteed to be our json               ##
+        ## [ a library under the hood can still write a stray line ] -- log ##
+        ## raw and move on rather than dying on a malformed line            ##
         <[base.logs]>->( 2, '[lora_train.stdout] %s', $line );
         next;
     }
@@ -76,8 +77,8 @@ for my $line ( split m|\n|, $buf ) {
     }
 }
 
-#,,.,,.,.,,..,.,.,..,,.,,,.,.,...,..,,.,.,.,.,..,,...,..,,,..,,..,,..,,,.,.,,,
-#X2BZ756LJJ5TX4IN2KQ7TR5LI4SF4RIZIJCAOVLHSREMLO4ST5NP2LEZI3ONBSGFDNO4UC47TTHJU
-#\\\|DMP6B5ASW2GE7EALNVTWDRAB3YAOBNNLVNO3EAT475TMYGURYCM \ / AMOS7 \ YOURUM ::
-#\[7]3HD7DDHGN6NZJ23X7AJBK6AM7H4XVAW2K4OFARHFDTLC7LQJEKAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,,,,,,.,,.,,,.,,..,,...,,.,,..,,...,..,,,,.,.,.,.,,,.,.,...,
+#5KGBPR6HXF4MFQB55VEA75VVB3MNE4LESJGMMW2J5SOSNXQB46Q62EDO4RYHPWUKLJYCDTUGWMYCK
+#\\\|SWQM65TH63ATKJFNBQW66QIXEL2MQLAUXRTSNODJJF6O6N2VGWH \ / AMOS7 \ YOURUM ::
+#\[7]DXLTFMS6F6UG67V5WKZ7MCWFQI77ONWO4MHITK2R5SMNB45SUGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

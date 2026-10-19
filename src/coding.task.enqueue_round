@@ -17,11 +17,11 @@ my $task = <coding.task.queue>->{$task_id};
 return { success => FALSE, error => "task not found: $task_id" }
     unless defined $task;
 
-## acquire backend lock or queue : backend_release wakes us if busy. a    ##
-## round continuation inside the holder's own callback chain presents the ##
-## current token [ via lock_ctx ] and re-enters ; a token-less caller [   ##
-## task-append, timers, complete's recovery / parent-resume ] is a fresh  ##
-## acquire and queues while the lock is held -- even by this same task    ##
+## acquire backend lock or queue : backend_release wakes us if busy. a     ##
+## round continuation inside the holder's own callback chain presents the  ##
+## current token [ via lock_ctx ] and re-enters ; a token-less caller      ##
+## [ task-append, timers, complete's recovery / parent-resume ] is a fresh ##
+## acquire and queues while the lock is held -- even by this same task     ##
 my $backend = ( <coding.async.task_state>->{$task_id} // {} )->{'backend'}
     // qw| gpu |;
 my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
@@ -32,9 +32,10 @@ my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
     $lock_result->{'acquired'} ? 'acquired' : 'queued'
 );
 
-## proceed immediately if lock acquired [ backend_release handles the   ##
-## queued case ] : send inside a lock context presenting the token just ##
-## granted, async.request's own acquire re-enters and rotates it        ##
+## proceed immediately if lock acquired                                     ##
+## [ backend_release handles the queued case ] : send inside a lock context ##
+## presenting the token just granted, async.request's own acquire re-enters ##
+## and rotates it                                                           ##
 if ( $lock_result->{'acquired'} ) {
     local <coding.async.lock_ctx> = {
         'task_id' => $task_id,
@@ -43,8 +44,8 @@ if ( $lock_result->{'acquired'} ) {
     };
     my $sent = <[coding.async.send_request]>->($task_id);
 
-    ## send_request bailed before a request took the lock over [ token ##
-    ## unchanged ] : release instead of leaking it                     ##
+    ## send_request bailed before a request took the lock over ##
+    ## [ token unchanged ] : release instead of leaking it     ##
     my $bs = ( <coding.state.backend> // {} )->{$backend} // {};
     if (    ref $sent eq qw| HASH |
         and not $sent->{'success'}
@@ -67,8 +68,8 @@ return {
     deferred => TRUE,
 };
 
-#,,,.,.,,,...,.,,,.,.,,..,,,,,,..,,..,,.,,..,,..,,...,...,.,.,..,,.,,,,.,,.,,,
-#7QNCGWAAA7HYOOFRDENEIL5PX4XEHEW4AAZMBZLUQDLE673MN3RVZHFAHK5W4B4NUW2EG5ORENRGS
-#\\\|YB2IFXZ5SNTEKQJZ2CYS2VEXUJNEPA3FTD2ESLJL4KU2PKLMMUK \ / AMOS7 \ YOURUM ::
-#\[7]QZVUAUTRJQVI5GQZIMM35WK5ZQNNE3YJTBWUGTBPACZZK6UIGUCY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,.,,.,,,...,,.,,.,,,.,,,,,.,.,.,..,,...,..,,...,,..,...,,,.,,.,,
+#J37XAQ7NYZQZ7BZOEITTIXQYF7MYM74YNQDJVRPXPZSEZ4R447WMQQ4IRRH5POWRSSOC5FCGKHZBQ
+#\\\|D2FRS2AS7OQWFSFFSU7XWLF3YXZGSYONAG3BKVLPO5GPYCKPRAZ \ / AMOS7 \ YOURUM ::
+#\[7]A3BDSNFWV4RUM3SOGTFCVSWFLSOCPQYFJQH7K7QTX4LEVNJQQ2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

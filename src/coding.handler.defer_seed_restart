@@ -45,16 +45,16 @@ if ( !defined $srv or ( $srv->{'pid'} // 0 ) != ( $defer->{'pid'} // -1 ) ) {
 if ( $now - ( $defer->{'started'} // $now ) > 120 ) {
     ## liveness-aware [ task : backend-aware timeout scaling, item 5 ] :    ##
     ## before giving up, check WHO holds the backend lock. for a self-test  ##
-    ## probe the lock value IS the probe_id [ poll_probe acquires the lock  ##
-    ## with its probe_id ] : if that probe's in-flight request is still     ##
-    ## streaming [ the shared coding.async.stream_tps/is_alive signal ] and ##
-    ## under its own auto-derived outer cap, the backend is SLOW, not stuck ##
-    ## - keep waiting for the probe to complete or stall rather than        ##
-    ## abandoning the seed retry at a flat 120s [ still bounded : the cap   ##
-    ## is frozen on stall and poll_probe's watchdog settles the probe       ##
-    ## regardless ]. a lock held by anything else [ a real task ] keeps the ##
-    ## flat ceiling - bounding the wait on task traffic is this ceiling's   ##
-    ## whole job                                                            ##
+    ## probe the lock value IS the probe_id                                 ##
+    ## [ poll_probe acquires the lock with its probe_id ] : if that probe's ##
+    ## in-flight request is still streaming                                 ##
+    ## [ the shared coding.async.stream_tps/is_alive signal ] and under its ##
+    ## own auto-derived outer cap, the backend is SLOW, not stuck - keep    ##
+    ## waiting for the probe to complete or stall rather than abandoning    ##
+    ## the seed retry at a flat 120s [ still bounded : the cap is frozen on ##
+    ## stall and poll_probe's watchdog settles the probe regardless ]. a    ##
+    ## lock held by anything else [ a real task ] keeps the flat ceiling -  ##
+    ## bounding the wait on task traffic is this ceiling's whole job        ##
     my $bs   = ( <coding.state.backend> // {} )->{$backend} // {};
     my $lock = $bs->{'lock'}                                // '';
     my $pst
@@ -115,9 +115,9 @@ if ( defined $bs->{'lock'} or scalar @{ $bs->{'queue'} // [] } ) {
     return TRUE;
 }
 
-## idle : same restart recipe as the old synchronous path [ confirmed live ##
-## ] - spawn_servers_deferred only spawns what ISN'T already running, so   ##
-## mark for restart and clear the cached pid first                         ##
+## idle : same restart recipe as the old synchronous path              ##
+## [ confirmed live ] - spawn_servers_deferred only spawns what ISN'T  ##
+## already running, so mark for restart and clear the cached pid first ##
 <[base.logs]>->(
     0,
     '[defer_seed_restart] backend=%s idle : '
@@ -139,8 +139,8 @@ delete <coding.awaiting_resources>
 
 return $finish->();
 
-#,,,,,,,.,,,,,..,,.,.,.,,,.,.,,.,,,.,,,,.,.,.,..,,...,...,.,.,,,.,..,,.,.,,,.,
-#JH7VVKEEAHDBN4S2XMSNZUMCVCK4WHBMUYVDJOMUO6CBZ7OLWTGJWHQC5ULN4PDM7JK5PIX53R6XY
-#\\\|VBTCXIMTDSJKOYCJBBDNNS3BOWQMDYD72QQQ24RD3UJNIHXMHJ7 \ / AMOS7 \ YOURUM ::
-#\[7]5NQZ33C4OGJI5AT42Z5DNBLMYIQKNQ7TX3IK7ZKPXGP63AZ6UACI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,..,,,,.,,,.,,,.,.,,,,.,,..,,,.,,..,,...,...,.,.,.,,,..,,,,.,,,,,
+#HEYPKNTDM4SKFXFGNJG7YMH3HSCFJYTEDDSUT5OAXZHECSFG3DN5ERYREYHML6UQGJ35GZUVTXWIQ
+#\\\|BEWPBQJTSRFLTHF4JE36XJ4AUNUULBYC7RHGUWOHJCDOVLFOHLG \ / AMOS7 \ YOURUM ::
+#\[7]QDIQJIAVLZXDXRVGNFN5DGLJLCZRQIEERMCJR3LMW3PSLSPLUYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

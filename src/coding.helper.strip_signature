@@ -9,7 +9,8 @@
 
 my $content_ref = shift;
 
-return FALSE unless ref $content_ref eq qw| SCALAR | and defined $$content_ref;
+return FALSE
+    unless ref $content_ref eq qw| SCALAR | and defined $$content_ref;
 
 ## '#,,..' rule, base32 lines, 'DATA SIGNATURE ::', '#::::' terminator ##
 return FALSE
@@ -22,8 +23,8 @@ $$content_ref =~ s|\n+\z|\n|;
 
 return TRUE;
 
-#,,..,.,.,,,,,,.,,.,,,.,.,,..,,..,...,,.,,,.,,..,,...,...,..,,,,.,...,...,..,,
-#NWHAJBCR6BW4OSFROIO336EXOXVPLGZ5NNIY27EIHRCJQS5MXTMWOVQN5HZJYRSQX2F3A2VSR242K
-#\\\|JPSZFIB47POMOA6G2QOW66P2VJSXWEUWEKL5TSMOLSJP2I4UJUY \ / AMOS7 \ YOURUM ::
-#\[7]4KQO6IXQC3SAOKY7UKT7EKIWVYOD75CAJ3P4OFX5OM2L73NKT4CQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,,,,,.,.,,,.,.,.,.,,,,,,,,,.,..,,...,...,,,,,.,,,,,.,,.,,.,,,
+#ND2DOWHDHL5KDZE7PEXCQNUIWI63FWSG6CJTUFOB3L2QK2YDIYEH6IKWGERM5PKB6WD27TQMULLY6
+#\\\|AOZH7MRELH6EYBCZNMKQGPILTH7BJRSCSTFPQ3C7UZSRQXYO6VN \ / AMOS7 \ YOURUM ::
+#\[7]6YNITSMR2OKR5ABIQB6VGSNXQCBHC4U6TNZO75RDX6IY37DTUADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,10 +23,11 @@ if ( $aref_active->@* ) {
         my $model   = $task->{'execution'}->{'model_used'} // '?';
         my $started = $task->{'execution'}->{'started'}    // 0;
 
-        ## 'started' is stamped via base.ntime [ network-time units, see    ##
-        ## coding.task.execute ], not a plain base.time epoch - subtracting ##
-        ## it straight from base.time() produced nonsense [ e.g. a huge     ##
-        ## negative elapsed ]. base.ntime.delta_seconds converts correctly  ##
+        ## 'started' is stamped via base.ntime                          ##
+        ## [ network-time units, see coding.task.execute ], not a plain ##
+        ## base.time epoch - subtracting it straight from base.time()   ##
+        ## produced nonsense [ e.g. a huge negative elapsed ].          ##
+        ## base.ntime.delta_seconds converts correctly                  ##
         my $elapsed
             = $started ? int( <[base.ntime.delta_seconds]>->($started) ) : 0;
         my $desc = $task->{'request'}->{'description'} // '';
@@ -67,8 +68,8 @@ $output_str .= "\n";
 
 return { 'mode' => qw| size |, 'data' => $output_str };
 
-#,,.,,,..,..,,,,,,,,.,.,,,,.,,,,.,,.,,,.,,,,,,.,.,...,...,.,.,,.,,,..,,,.,,,,,
-#GS3SNT4U2IFJEX77TZRWEQ2JHBRYOQ4PIATSOCLNPHBMPLNCLMQ6FRAANHQD757DEVCGPAYBD73JU
-#\\\|KIR65NFJRDBLMKAQW72VIY5ZSNGIFA6M6VSD67XI3YE4W7YEFCD \ / AMOS7 \ YOURUM ::
-#\[7]LYBJCQI6VNGWGGH2HNCE3DG4SYSGHYWHLSHF6TQAKJOAVKMD2MCI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,.,,.,,.,,,,..,,..,,.,,.,,,,..,.,.,...,.,.,...,..,,.,,,.,.,,,,,
+#QMSXZ254SJKTCLPMJ7UPDSXM5PPLJRE3VFYRYHOXPJMIR62XH2YZT34LWHLD25DKL3YWNNHFMDKYS
+#\\\|ZSG5OW7WEUB73YIFT5FU2VSIKYQ3SAVV7PT5BE7JQCJFEIXG56P \ / AMOS7 \ YOURUM ::
+#\[7]TRJ65ITCY3MVI5RXPMEYAE6ESXZUUPKMVHPMKBAOCYPWSUMWE6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

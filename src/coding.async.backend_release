@@ -4,12 +4,13 @@
 # param = task_id, backend, token | 'force'
 # descr = release backend lock and dispatch next queued task if any
 
-## only the holder's CURRENT token frees the lock [ see the header of      ##
-## coding.async.backend_acquire ]. a stale connection of this same task    ##
-## presents an older token and is skipped. callers that must release       ##
-## unconditionally [ task end, user stop / cancel, sweeps / batches ] pass ##
-## 'force' -- force skips the token check only, never the holder check : a ##
-## release never frees a lock another task holds                           ##
+## only the holder's CURRENT token frees the lock                           ##
+## [ see the header of coding.async.backend_acquire ]. a stale connection   ##
+## of this same task presents an older token and is skipped. callers that   ##
+## must release unconditionally                                             ##
+## [ task end, user stop / cancel, sweeps / batches ] pass 'force' -- force ##
+## skips the token check only, never the holder check : a release never     ##
+## frees a lock another task holds                                          ##
 
 my ( $task_id, $backend, $token ) = @ARG;
 $backend //= qw| gpu |;
@@ -98,8 +99,8 @@ if ( defined $next ) {
         $next, $backend
     );
     ## acquire for next task with a fresh token, then resume its request ##
-    ## inside a lock context presenting that token [ async.request's     ##
-    ## acquire re-enters and rotates it ]                                ##
+    ## inside a lock context presenting that token                       ##
+    ## [ async.request's acquire re-enters and rotates it ]              ##
     my $handoff_token = ++$bs->{'token_counter'};
     $bs->{'lock'}       = $next;
     $bs->{'lock_token'} = $handoff_token;
@@ -116,8 +117,8 @@ if ( defined $next ) {
         <[coding.async.send_request]>->($next);
     };
 
-    ## send_request bailed before any request took the lock over [ its ##
-    ## token is still the handoff token ] : don't leak it              ##
+    ## send_request bailed before any request took the lock over ##
+    ## [ its token is still the handoff token ] : don't leak it  ##
     if (    ref $sent eq qw| HASH |
         and not $sent->{'success'}
         and ( $bs->{'lock'}       // '' ) eq $next
@@ -137,8 +138,8 @@ if ( defined $next ) {
 
 return TRUE;
 
-#,,.,,,..,,,,,,,,,.,.,,.,,,..,.,,,.,,,,,,,.,.,..,,...,...,..,,.,.,,,.,.,,,,,.,
-#PNHYIIJPQ3SFN4ODD7R3L6ZTJCFCFXCZBSDKOZKVGQ2EPVUSPHYHOO5USY4D7T3B54GJPP3FT4RXS
-#\\\|A2Z5HXCBJDPAIRSJ5J6UXUFK2MVGJXIYUPMXKUYF3K2LQ6WJ56W \ / AMOS7 \ YOURUM ::
-#\[7]CF5TIHDXY5PTAXGFG4IPHRONR6FVCH7DRTZCBJ5KAGMF6Y4E7GCY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,,,..,,.,,,,,.,,.,,,,,,..,,.,.,..,,...,...,...,,.,,,.,,.,,,...,
+#FWLZSRQW4D5MBRG3SLX5YNFZT23ZA4KIOU6CVRBE4PPFIUYTUNPFA4BQ5EGBLKZ4POSXMEF74IJ6U
+#\\\|ANCUQJSVPXK5IXZX7RDLN25KHKPLJ4M72G4NRVTFT565K73WAHS \ / AMOS7 \ YOURUM ::
+#\[7]QS6JF35PHV7KV7VMDGJJ4Q6HNXTN3VOQWSH74B5ZTUYZE66RM6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

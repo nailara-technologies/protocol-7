@@ -78,14 +78,14 @@ if ( defined $abort_match ) {
     return;
 }
 
-## degenerate repetition check : cheap regex against a bounded tail window  ##
-## regardless of total accumulated length - catches a model looping on its  ##
-## own output while technically still "alive" [ chunks flowing ], a case    ##
-## the total-duration timeout no longer catches early on its own now that   ##
-## it extends whenever the stream shows activity [ see                      ##
-## coding.handler.http_timeout ]. lives here rather than per-caller so both ##
-## self-test's probes [ no task_id, no abort patterns configured ] and real ##
-## tasks get it uniformly                                                   ##
+## degenerate repetition check : cheap regex against a bounded tail window ##
+## regardless of total accumulated length - catches a model looping on its ##
+## own output while technically still "alive" [ chunks flowing ], a case   ##
+## the total-duration timeout no longer catches early on its own now that  ##
+## it extends whenever the stream shows activity                           ##
+## [ see  coding.handler.http_timeout ]. lives here rather than per-caller ##
+## so both self-test's probes [ no task_id, no abort patterns configured ] ##
+## and real tasks get it uniformly                                         ##
 my $choice0
     = ref( $data->{'choices'} ) eq qw| ARRAY |
     ? $data->{'choices'}[0] // {}
@@ -125,13 +125,13 @@ if ( length $piece ) {
             ## pattern-based abort match                             ##
             $callbacks->{'on_abort'}->($state);
         } elsif ( exists $callbacks->{'on_error'} ) {
-            ## no task machinery [ eg self-test probes ] : report through   ##
-            ## on_error same as any other stream failure - self_test.run's  ##
-            ## own retry classification treats this as non-retryable [      ##
-            ## correctly - see coding.handler.http_timeout's history ], and ##
-            ## for the cat-test prompt specifically it flows straight into  ##
-            ## monitor_inference_startup's existing seed-restart path the   ##
-            ## same as any other prompt-2 failure                           ##
+            ## no task machinery [ eg self-test probes ] : report through  ##
+            ## on_error same as any other stream failure - self_test.run's ##
+            ## own retry classification treats this as non-retryable       ##
+            ## [ correctly - see coding.handler.http_timeout's history ],  ##
+            ## and for the cat-test prompt specifically it flows straight  ##
+            ## into monitor_inference_startup's existing seed-restart path ##
+            ## the same as any other prompt-2 failure                      ##
             $callbacks->{'on_error'}->('degenerate_stream');
         }
         <[coding.async.http_cleanup]>->($state);
@@ -147,8 +147,8 @@ if ( exists $callbacks->{'on_chunk'} ) {
 
 return;
 
-#,,,,,,,.,,..,..,,.,.,,,.,,,.,.,,,.,,,...,..,,.,.,...,...,..,,..,,...,,.,,...,
-#JIEKGKOX2IN44MKOUIVKAI46MGTPI3PQ4QN2GXKWDY6YDDKIFELAGMHTYT4WDWBM46AXQWQIZ3LU4
-#\\\|PFGLQBMIILY2IT2MHMXF2AMMDHLMTUF3RCJZYX6VFMN2WDVYZHB \ / AMOS7 \ YOURUM ::
-#\[7]RS43WLXPXHTYZUK3Y7O2FYNXIJT5CVCRXFX2ZXYHAA2DL33WJWBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,.,.,..,,,.,,,.,,,,,,...,,.,,.,.,...,...,.,.,.,,,,..,...,.,,,
+#4ZUR65HFW35BJQ2U42SYLFY44BAG3HCP5NKCGW66SX5NTFDKG5MHTXWTKAKJQBDHRRLIECR6PWBLQ
+#\\\|U42NV566PI2OIZADBCJ2XJYHSXEQYH27WUQWAGNY65CALKULYPO \ / AMOS7 \ YOURUM ::
+#\[7]HYZ5MFECA5HT5KWBEYAOM36PZGKK7EJET46TT7OYJWDFPQLO26CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

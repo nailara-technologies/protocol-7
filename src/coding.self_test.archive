@@ -23,10 +23,10 @@ $store->{'passed'}    = $result->{'passed'}    // FALSE;
 $store->{'answer'}    = $result->{'answer'}    // '';
 $store->{'prompt_id'} = $result->{'prompt_id'} // 0;
 
-## full per-prompt detail, keyed by prompt_id so a multi-prompt run [ eg    ##
-## prompt 1 + prompt 2 ] doesn't overwrite itself in the flat fields above  ##
-## - used by coding.self_test.cmd.self-test-detail to show exactly what was ##
-## sent/received on each tier1 reformat attempt                             ##
+## full per-prompt detail, keyed by prompt_id so a multi-prompt run       ##
+## [ eg prompt 1 + prompt 2 ] doesn't overwrite itself in the flat fields ##
+## above - used by coding.self_test.cmd.self-test-detail to show exactly  ##
+## what was sent/received on each tier1 reformat attempt                  ##
 $store->{'prompts'}{ $result->{'prompt_id'} // 0 } = {
     prompt             => $result->{'prompt'}             // '',
     answer             => $result->{'answer'}             // '',
@@ -103,8 +103,8 @@ if ( length $anomaly ) {
 
 return { mode => qw| true |, data => 'archived' };
 
-#,,,.,.,,,...,..,,,.,,,..,.,.,.,,,...,...,,,,,..,,...,...,..,,..,,,,,,,,,,,..,
-#NV4B45W5LP5LQYIM4UQLQ3XKXWQT7UQI6DPMNL4G6K4RGNIEG5TNB3SJAXDC72IUAHU47TF4ATBCS
-#\\\|O7O5E6CYC2YWJHVW56Y7AMJ6Q2BYRHL6TTIOOBZNZSLEJZJ77L6 \ / AMOS7 \ YOURUM ::
-#\[7]UOE6UEVXIU43WM5U5NEC5OOX6KNA53CUQ2W3J2JOJC55Y4VP22AI 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,,,.,..,,,,,,,..,.,.,..,,...,..,,...,.,.,...,...,...,,,,,.,.,
+#UDZDFJLWSPBCC6266LWOZOQL5QLIYX6T6VGF3HHHRXF7MKLV3XRFOP3J2BNKRHR6ERAB4AI4IVSIG
+#\\\|5QB63ZP6FZRMNPHOCDRYTJ3436J44OKFENG37RSQRXBXS2MNAYF \ / AMOS7 \ YOURUM ::
+#\[7]FDA7WHYWVIAB645PSGITIOS4R76NBQXYYMLS76EFIO3MOY7EV2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

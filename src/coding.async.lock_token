@@ -5,10 +5,11 @@
 # descr = backend lock token presented by the current synchronous call chain
 
 ## <coding.async.lock_ctx> is set with 'local' around a lock holder's own  ##
-## synchronous call chain [ async.request's callbacks, enqueue_round and   ##
-## the release handoff ]. anything that runs from a timer, a command or    ##
-## another task's callback sees no matching context and gets undef : it is ##
-## a fresh caller, not the holder's continuation                           ##
+## synchronous call chain                                                  ##
+## [ async.request's callbacks, enqueue_round and the release handoff ].   ##
+## anything that runs from a timer, a command or another task's callback   ##
+## sees no matching context and gets undef : it is a fresh caller, not the ##
+## holder's continuation                                                   ##
 
 my ( $task_id, $backend ) = @ARG;
 $backend //= qw| gpu |;
@@ -20,8 +21,8 @@ return undef unless ( $ctx->{'backend'} // '' ) eq $backend;
 
 return $ctx->{'token'};
 
-#,,,,,,,.,,..,.,.,.,,,,.,,,.,,.,.,.,,,..,,.,,,..,,...,...,..,,,,,,,,.,,..,,,,,
-#L2K22MNKGF67F2UUJMAOKYJUUJYXN7P6UBHWSPFLPOENQSNIJWWTC6KBF2LNEK3RN5XPWK4CANWJO
-#\\\|OMEBBOJNBYSRIYVWL6RK34API5XPXJFN4HNXYX32GLQ7CZI5FSZ \ / AMOS7 \ YOURUM ::
-#\[7]P3DM345GGRWKONYP2GWQIS3MKFU2HHBQAZM2HQZFAXLIZ4SCXYAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,,,...,,,.,,,,,,.,,.,.,,.,,,.,,..,,...,..,,,.,,,,,,.,.,,,.,,..,
+#FSJS6TCSGT6CPVQTDWNMCZY4KDBY2K55B2W3FOKXFT6JVKL2HUK4Y5GJMWY7PVD73XGNSB65NZTWU
+#\\\|QSGDAAKVJDBVXDL4VIBHYIWIDXPTRSKPQ645BZYGIUCOEH4CMRI \ / AMOS7 \ YOURUM ::
+#\[7]3FNGUU2DSSXKDSR4EH7KTLBPHIQ7JOY2IQ2KOSW2Q7FVAFN76EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

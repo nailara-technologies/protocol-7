@@ -110,14 +110,14 @@ my $format_result = sub {
     return { mode => qw| size |, data => $summary };
 };
 
-## helper: dispatch deferred tier-2 judgment if any results need it.       ##
-## shared by the restore-success AND restore-timeout/crash paths - a       ##
-## captured self_test result with needs_tier2 entries should still get     ##
-## judged even if the restore itself never confirmed ready, rather than    ##
-## silently dropping it. tier2_judge/apply_tier2 already degrade to an     ##
-## 'ambiguous' verdict (-> anomaly follow_up) on a failed inference call,  ##
-## so this is safe to attempt unconditionally. confirmed live 2026-06-21 [ ##
-## restore exceeded even the raised 300s timeout ].                        ##
+## helper: dispatch deferred tier-2 judgment if any results need it.      ##
+## shared by the restore-success AND restore-timeout/crash paths - a      ##
+## captured self_test result with needs_tier2 entries should still get    ##
+## judged even if the restore itself never confirmed ready, rather than   ##
+## silently dropping it. tier2_judge/apply_tier2 already degrade to an    ##
+## 'ambiguous' verdict (-> anomaly follow_up) on a failed inference call, ##
+## so this is safe to attempt unconditionally. confirmed live 2026-06-21  ##
+## [ restore exceeded even the raised 300s timeout ].                     ##
 my $apply_pending_tier2 = sub {
     my ($result) = @_;
     return $result if !$result or ref $result->{'data'} ne qw| HASH |;
@@ -193,11 +193,12 @@ if ( $phase eq qw| switching | ) {
             $target_model, $backend_pid
         );
 
-        ## run calibration against the target model : ASYNC [ 2026-07-31  ##
-        ## transport rewrite ] - self_test.run returns immediately and    ##
-        ## delivers its result to this continuation from the probe state  ##
-        ## machine's 'done' phase ; the switch state machine waits in the ##
-        ## new 'testing' phase below instead of blocking                  ##
+        ## run calibration against the target model : ASYNC              ##
+        ## [ 2026-07-31 transport rewrite ] - self_test.run returns      ##
+        ## immediately and delivers its result to this continuation from ##
+        ## the probe state machine's 'done' phase ; the switch state     ##
+        ## machine waits in the new 'testing' phase below instead of     ##
+        ## blocking                                                      ##
         my $test_url
             = $backend eq qw| cpu |
             ? sprintf( 'http://127.0.0.1:%d',
@@ -212,9 +213,9 @@ if ( $phase eq qw| switching | ) {
                 on_done  => sub {
                     my ($result) = @ARG;
 
-                    ## the switch state may be gone [ testing-timeout     ##
-                    ## fallback already moved on ] - only act while still ##
-                    ## in the testing phase                               ##
+                    ## the switch state may be gone                         ##
+                    ## [ testing-timeout fallback already moved on ] - only ##
+                    ## act while still in the testing phase                 ##
                     my $st = <coding.self_test_switch_state>->{$switch_id};
                     return
                         if !defined $st
@@ -229,9 +230,10 @@ if ( $phase eq qw| switching | ) {
 
         if ( !ref $run_started
             or $run_started->{'mode'} ne qw| deferred | ) {
-            ## the run refused to start [ eg another self-test already in ##
-            ## flight ] : do not hang the switch waiting for a callback   ##
-            ## that never comes - restore with an error                   ##
+            ## the run refused to start                                     ##
+            ## [ eg another self-test already in flight ] : do not hang the ##
+            ## switch waiting for a callback that never comes - restore     ##
+            ## with an error                                                ##
             $state->{'error'} = sprintf 'self-test did not start: %s',
                 ( ref $run_started ? $run_started->{'data'} : undef )
                 // 'no reply';
@@ -257,18 +259,19 @@ if ( $phase eq qw| switching | ) {
 
         ## neither MODEL-STATUS-TRACKING.md's 3 named write sites nor any  ##
         ## other code path records a crash\timeout hit HERE -- a candidate ##
-        ## that dies while switching INTO it for self-test [ the exact     ##
-        ## failure a model-sweep run needs recorded ] previously vanished  ##
-        ## with no trace in coding.model_status, confirmed live 2026-09-17 ##
+        ## that dies while switching INTO it for self-test                 ##
+        ## [ the exact failure a model-sweep run needs recorded ]          ##
+        ## previously vanished with no trace in coding.model_status,       ##
+        ## confirmed live 2026-09-17                                       ##
         if ( length $target_model ) {
             my $detail = sprintf 'switch failed: %s', $reason;
             if ($is_crashed) {
-                ## crash-class tag [ task : test-iteration state machine ] ##
-                ## derived from the existing ready_logged flag [           ##
-                ## monitor_inference_startup:85 ] + sigchld's exit_status  ##
-                ## -- zero new instrumentation. crash_before_ready : never ##
-                ## reached the ready transition ; crash_after_ready : was  ##
-                ## serving, died mid-request                               ##
+                ## crash-class tag [ task : test-iteration state machine ]  ##
+                ## derived from the existing ready_logged flag              ##
+                ## [ monitor_inference_startup:85 ] + sigchld's exit_status ##
+                ## -- zero new instrumentation. crash_before_ready : never  ##
+                ## reached the ready transition ; crash_after_ready : was   ##
+                ## serving, died mid-request                                ##
                 my $srv = ( <coding.inference_servers> // {} )->{$backend}
                     // {};
                 my $crash_class
@@ -320,11 +323,12 @@ if ( $phase eq qw| testing | ) {
         ## any fixed number either undershoots a slow backend or dilates    ##
         ## the stuck-probe detection window, while the shared liveness      ##
         ## signal distinguishes exactly those two cases. while the probe's  ##
-        ## in-flight request is still streaming [ coding.async.stream_tps/  ##
-        ## is_alive ] and under its own outer cap, wait WITH it instead of  ##
-        ## forcing a restore that would switch the model out from under a   ##
-        ## productive self-test. max_wait stays the bound for a probe that  ##
-        ## is stalled or never calls back [ genuinely stuck ]               ##
+        ## in-flight request is still streaming                             ##
+        ## [ coding.async.stream_tps/ is_alive ] and under its own outer    ##
+        ## cap, wait WITH it instead of forcing a restore that would switch ##
+        ## the model out from under a productive self-test. max_wait stays  ##
+        ## the bound for a probe that is stalled or never calls back        ##
+        ## [ genuinely stuck ]                                              ##
         my $skip_timeout = FALSE;
         my $probe_states = <coding.self_test_probe_state> // {};
         for my $id ( keys %{$probe_states} ) {
@@ -466,8 +470,8 @@ return $finish->(
     }
 );
 
-#,,,,,,..,,,,,,,.,.,.,..,,,,,,,..,,,.,.,.,.,,,..,,...,..,,...,...,..,,.,.,,.,,
-#RGRI5D4CNHO27EIPUHL5FRQSZTNSMU7LJ5ZE2EPUK5VBW3TBES4PAVMSC6N44GAL7F7OYBSHFMX72
-#\\\|GSDWPSRUDRXIDLIQ6DJWMU6KHG2N6OKXRBH2UIKMDGUVCVTX5MF \ / AMOS7 \ YOURUM ::
-#\[7]LEMFWP2I5FS77WM4VAZZJJZ4M4MI2CW4HA2HTXVGYSRVNZBYOYDQ 7  DATA SIGNATURE ::
+#,,,,,...,...,.,,,.,,,..,,...,,,,,.,.,.,,,,.,,..,,...,...,..,,..,,,,.,,,,,,..,
+#42MAXD5CWMXVR45EGKRRLBG7LSEXH655DNDB4IBK573G3OTQ36RR7QKPA73GOYVJNKXEVEBRETOJU
+#\\\|SRXW6456CDVIZ3ZSWKDE2OH72Q2FOBIOW2MPEH3L7XUESZN5AWU \ / AMOS7 \ YOURUM ::
+#\[7]3TXI5EUCFHQSEYDHEKO5MZ7TW6TOMMH3V2WVPRMDNFOHWGY6SSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

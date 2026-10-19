@@ -48,15 +48,16 @@ if ( $step eq qw| init | ) {
 
     my $structural_reason = ( $check->{'data'} // 'mismatch' );
 
-    ## did the ORIGINAL answer already contain every required token ?       ##
-    ## tier0's word_count check short-circuits on over_word_limit BEFORE    ##
-    ## ever testing must_contain, so structural_reason alone can't tell us  ##
-    ## this - a verbose-but-substantively-correct answer [ eg "The cat.     ##
-    ## Because it ate the mouse." ] and a genuinely wrong one both produce  ##
-    ## over_word_limit. check independently : only a genuine content        ##
-    ## problem should ever see the mismatch_hint challenge - confirmed      ##
-    ## live: appending it to a purely format-only reformat second-guessed   ##
-    ## an already-correct answer and flipped it to wrong during the restate ##
+    ## did the ORIGINAL answer already contain every required token ?      ##
+    ## tier0's word_count check short-circuits on over_word_limit BEFORE   ##
+    ## ever testing must_contain, so structural_reason alone can't tell us ##
+    ## this - a verbose-but-substantively-correct answer                   ##
+    ## [ eg "The cat. Because it ate the mouse." ] and a genuinely wrong   ##
+    ## one both produce over_word_limit. check independently : only a      ##
+    ## genuine content problem should ever see the mismatch_hint challenge ##
+    ## - confirmed live: appending it to a purely format-only reformat     ##
+    ## second-guessed an already-correct answer and flipped it to wrong    ##
+    ## during the restate                                                  ##
     my $content_already_correct = FALSE;
     {
         my $must_param = $constraint->{'must_contain'};
@@ -86,15 +87,16 @@ if ( $step eq qw| init | ) {
     ## constraint is word_count -- extracting the matching token is a       ##
     ## deterministic string op, not a second real inference call that can   ##
     ## independently fail for reasons unrelated to content [ confirmed live ##
-    ## 2026-08-27 : a verbose-but-content-correct answer ["The cat. The     ##
-    ## mouse is now a snack."] failed self-test because the tier1 reformat  ##
-    ## request twice spent its whole reply on reasoning and emitted no      ##
-    ## final content -- the seed-retry safety net recovered it, but the     ##
-    ## round-trip was never needed at all ]. only word_count : that's the   ##
-    ## constraint this failure mode was observed against, and the single-   ##
-    ## scalar must_contain shape check_constraint's word_count branch reads ##
-    ## makes a whole-token extraction unambiguous. numeric/sprintf/exact    ##
-    ## keep going through tier1 unchanged - not the same simple shape       ##
+    ## 2026-08-27 : a verbose-but-content-correct answer                    ##
+    ## ["The cat. The mouse is now a snack."] failed self-test because the  ##
+    ## tier1 reformat request twice spent its whole reply on reasoning and  ##
+    ## emitted no final content -- the seed-retry safety net recovered it,  ##
+    ## but the round-trip was never needed at all ]. only word_count :      ##
+    ## that's the constraint this failure mode was observed against, and    ##
+    ## the single-scalar must_contain shape check_constraint's word_count   ##
+    ## branch reads makes a whole-token extraction unambiguous.             ##
+    ## numeric/sprintf/exact keep going through tier1 unchanged - not the   ##
+    ## same simple shape                                                    ##
     if ( $content_already_correct and $type eq qw| word_count | ) {
         my $must_scalar = $constraint->{'must_contain'} // $expected;
         if ( length $must_scalar
@@ -188,9 +190,9 @@ if ( $step eq qw| init | ) {
             . 'nothing but the short phrase itself, no explanation.';
     };
 
-    ## append the constraint's optional reasoning nudge [ never $expected ##
-    ## itself ] to a base/strict hint - same scope rule as $base_hint /   ##
-    ## $strict_hint : guides logic, never states the answer               ##
+    ## append the constraint's optional reasoning nudge                     ##
+    ## [ never $expected itself ] to a base/strict hint - same scope rule   ##
+    ## as $base_hint / $strict_hint : guides logic, never states the answer ##
     my $with_mismatch_hint = sub {
         my ($hint) = @ARG;
         return $hint if $content_already_correct;    ## format-only fix, ##
@@ -380,8 +382,8 @@ return {
     eval    => { mode => qw| false |, data => "unknown evaluate step $step" },
 };
 
-#,,,,,.,,,,,,,.,.,,,.,...,,..,...,.,.,...,...,..,,...,..,,,..,,..,...,,.,,.,,,
-#QWLYIN4C63K3TQV3I6XE6KCMWSWMMNSEX5KS6LYVZ5RP3W6GK5W7GMD5NQLBBR7TVCI2YXFPBCOX6
-#\\\|636WPRXIQKTBWORLRA5IHAKSBPBDH4PF2UH657MGLOU7CQW3MQY \ / AMOS7 \ YOURUM ::
-#\[7]Q47YLQDCGQXXOAHLIAYXXUVP43JBS3HRX565G4PNGEIJIQBBUKDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,,..,.,,,,,.,.,,,.,.,.,.,,,,,..,,...,...,.,.,.,,,,..,.,.,.,.,
+#RO3WPZ34XILG7PSM3257EN7KRZ43XZMMMJLC3VRYJ6OWG736TWZVWZNGERD6PNOLEK2ED3BEASMZK
+#\\\|KJ7Z2UIFO34GWJC3QDXLGK6TLFMS54JAEZYLGF4SZA2AD6HLGOM \ / AMOS7 \ YOURUM ::
+#\[7]LNMX235WAIRO22EJSVCPJHY2MJ2HNWMR2ODXF37UGSZETI5JMICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

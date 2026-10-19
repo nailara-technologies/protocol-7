@@ -43,13 +43,13 @@ if ( !defined $load_1min or $load_1min !~ m{^\d+(?:\.\d+)?$} ) {
     return TRUE;
 }
 
-## default 2.0 picked from a genuine idle-floor measurement on this host : ##
-## 0.11-0.18 with both sweeps paused and no tasks running [ 2026-09-17 ]   ##
-## versus ~8 under dual gpu+cpu sweep load [ same measure-before-          ##
-## defaulting discipline as the task zenka's gpu-temp precedent -- its     ##
-## initial 45C guess was wrong, floor was 59-61C ] -- override with a      ##
-## coding.cfg.cold_loadavg_threshold config line if the host's idle floor  ##
-## changes                                                                 ##
+## default 2.0 picked from a genuine idle-floor measurement on this host :  ##
+## 0.11-0.18 with both sweeps paused and no tasks running [ 2026-09-17 ]    ##
+## versus ~8 under dual gpu+cpu sweep load [ same measure-before-defaulting ##
+## discipline as the task zenka's gpu-temp precedent -- its initial 45C     ##
+## guess was wrong, floor was 59-61C ] -- override with a                   ##
+## coding.cfg.cold_loadavg_threshold config line if the host's idle floor   ##
+## changes                                                                  ##
 my $threshold = <coding.cfg.cold_loadavg_threshold> //= 2.0;
 
 return TRUE if $load_1min >= $threshold;
@@ -89,8 +89,8 @@ for my $backend (@backends) {
 
 return TRUE;
 
-#,,..,,,.,..,,,.,,,,,,.,,,,,,,,,.,,,,,...,,..,..,,...,...,,..,.,.,..,,,,.,,,.,
-#2DNVWFBNORIGVWF63VSYB4C7ET7QSDWUDVU4UDNITXY2YT7H4WFT5GXXMFE7EDZDH3UKMQAW4TQLW
-#\\\|VENXFXUWLTRBVKUFJX62SBETIYASSZOSWHFMSWSEIZFBO5YCO7X \ / AMOS7 \ YOURUM ::
-#\[7]DRNN3JD6Q2PIM2ICJYLWOW4EUWAGRB25H6BEI3URCZCB54SGY4BY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,..,...,,..,.,,,,,,,...,...,.,,,..,,...,...,..,,,.,,,,,,...,,..,
+#HWSNC6WV4ERE4N323HXCP6QMEIZ5Q4P4KT7EQZFVHXTA3HAKOIRMGUPHYTS37JFH3SULO2VBFTLEM
+#\\\|KRID6TMX3VQLEWH22BILZ47KSAWVRVYISUMXIOZ4JCOPZ53EB2J \ / AMOS7 \ YOURUM ::
+#\[7]V5NKUM7DSX6XEAC3AV7WHWEUB7GJAGNRLOAYMBD4RJ7GCW54PMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,10 +10,10 @@ my $amos_id = $params->{'amos_id'} // '';
 my $backend = $params->{'backend'} // 'gpu';
 my $port    = $params->{'port'}    // ( $backend eq 'gpu' ? 8000 : 8001 );
 
-## on_done threaded through from the original spawn_smart call [ same    ##
-## {handler,params} shape as plugin.usage.kimi.refresh_token ] -- this   ##
-## reply handler is the terminal point of the amos-path-async branch, so ##
-## the caller's callback fires HERE instead of being a dead end          ##
+## on_done threaded through from the original spawn_smart call             ##
+## [ same {handler,params} shape as plugin.usage.kimi.refresh_token ] --   ##
+## this reply handler is the terminal point of the amos-path-async branch, ##
+## so the caller's callback fires HERE instead of being a dead end         ##
 my $on_done = $params->{'on_done'};
 $on_done = undef unless ref $on_done eq qw| HASH |;
 
@@ -88,8 +88,8 @@ $dispatch_on_done->( ( $result && $result->{'success'} ) ? TRUE : FALSE );
 
 return $result;
 
-#,,,,,,,,,...,.,,,...,..,,,,,,,.,,,,,,,,.,...,.,.,...,...,.,.,,..,,..,.,.,,..,
-#BW5VJ7UPM3S232D3XWSFIQHH6IEQRGZ5HW54LVVJN5LECCDPNHXLL72N2XWLJV3RXJ2POIGEO2RIQ
-#\\\|CTQUXTWQ4LVK3FV4E5MTCJKUXUFTEOBSL5NCCD7B4YBTZKI3SRS \ / AMOS7 \ YOURUM ::
-#\[7]PR44J6DJY2RLSGSHAOQUW6DJDKMRJ2MUAW6WRZQ62RKNZQO2DGAY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,.,,,..,,.,,,..,,,..,,,,,.,.,.,.,...,...,.,.,.,.,...,..,,,.,,
+#KSEZT32EO7THTBLVITANQJ2MNRGY2WV26FXBRYTFF7C43WAWZDVKIFLKZFD5STRHF5H5EUWA5ZUEO
+#\\\|RAPO77FTO32A2A6RMRAMGHH2QZR6CYJ4MV2JKKI2BMKLQUYEFFL \ / AMOS7 \ YOURUM ::
+#\[7]JEOEGWDZXR3LVH243QE6NFQ7R3DPNC5N3C2GDRUCYSNBXF2IPUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,12 +19,13 @@ my $event = shift->w;
 my ( $backend, $guard_ref ) = @{ $event->data // [] };
 return if !length( $backend // '' );
 
-## fires on EVERY write to this backend's guard slot [ set TRUE and clear   ##
-## FALSE both count - poll => 'w' ] : only a cleared slot has work for us.  ##
-## the watcher is edge-triggered on the next event loop tick and a burst of ##
-## synchronous writes coalesces into ONE firing [ same semantics as         ##
-## jobqueue.handler.queue_counter ], so all state is re-derived from        ##
-## <coding.self_test_retry_pending> here, never assumed from the firing     ##
+## fires on EVERY write to this backend's guard slot                      ##
+## [ set TRUE and clear FALSE both count - poll => 'w' ] : only a cleared ##
+## slot has work for us.  the watcher is edge-triggered on the next event ##
+## loop tick and a burst of synchronous writes coalesces into ONE firing  ##
+## [ same semantics as jobqueue.handler.queue_counter ], so all state is  ##
+## re-derived from <coding.self_test_retry_pending> here, never assumed   ##
+## from the firing                                                        ##
 return if <coding.self_test_probe_in_flight>->{$backend};
 
 my $pending = delete <coding.self_test_retry_pending>->{$backend};
@@ -40,11 +41,12 @@ my $tested_pid
     ? ( $pending->{'tested_pid'} // 0 )
     : 0;
 
-## the watcher got there first : cancel this backend's safety-net timeout   ##
-## so it cannot fire stale after the backend got its real turn. if the      ##
-## re-trigger below loses the race AGAIN [ something else grabbed this      ##
-## backend's slot first ], the contention path re-arms a FRESH timer itself ##
-## - so cancel unconditionally, not only on success                         ##
+## the watcher got there first : cancel this backend's safety-net timeout  ##
+## so it cannot fire stale after the backend got its real turn. if the     ##
+## re-trigger below loses the race AGAIN                                   ##
+## [ something else grabbed this backend's slot first ], the contention    ##
+## path re-arms a FRESH timer itself - so cancel unconditionally, not only ##
+## on success                                                              ##
 my $safety_timer = delete <coding.self_test_retry_timer>->{$backend};
 $safety_timer->cancel
     if defined $safety_timer
@@ -74,8 +76,8 @@ if ( !defined $srv
 ## backend; on the off chance it loses anyway, the normal contention path ##
 ## re-registers pending state [ plus a fresh safety timer ]. resume_queue ##
 ## is NOT passed : the trigger defaults it to                             ##
-## coding.helper.resume_task_queue_for_backend for the backend [ var      ##
-## watcher handlers cannot carry closures ]                               ##
+## coding.helper.resume_task_queue_for_backend for the backend            ##
+## [ var watcher handlers cannot carry closures ]                         ##
 <[coding.helper.trigger_backend_self_test]>->(
     {   'backend'    => $backend,
         'server'     => $srv,
@@ -85,8 +87,8 @@ if ( !defined $srv
 
 return;
 
-#,,,,,...,.,,,,..,,.,,,,,,.,.,,.,,..,,..,,,,,,.,.,...,...,,..,,,.,,..,,.,,,..,
-#RJUWKPSWALN2TVUGLL5ANYP3KEIRWJCN2FYNJILPFMVJDNN4LLBF4LIRCFTXVAZGAEMTV34H42RXU
-#\\\|ZZLR6WUGTY2WQ2VOQFOBGPREJNM7L5JB3L2C6O7HN5XYCX3C2Q3 \ / AMOS7 \ YOURUM ::
-#\[7]5O7XAL3CSQN76WU2HAM5MFMH44QSXZIEGHOXHQVOKVBFWJRJN4CQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,.,.,.,.,,,...,,,,,.,.,..,,..,,.,.,...,..,,,.,,,,,,.,.,.,,,,,,,
+#XER2QP6XNWC5SYEWAPT3D2N3FIX2LBJMPK7VND3NUBRHCVAIWOMB3RKHW56P2IO43FLQLFWWEQJFW
+#\\\|52LMU22YTTQJQUB572TJEGQISJOK6363BZXBBG75DIIK5NQAHO2 \ / AMOS7 \ YOURUM ::
+#\[7]HDDKBKERWCJIQTVOSSGG4IEJTEJOZDADPH7KWAE5KGYNIBILOYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

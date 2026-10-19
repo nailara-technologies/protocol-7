@@ -88,9 +88,9 @@ if ( $replace_all and $count > 1 ) {
         . substr( $content, $idx + length($old_string) );
 }
 
-## idiom conformance gate [ config-gated, inert unless                    ##
-## coding.cfg.idiom_gate is set ] : may auto-repair the replaced body, or ##
-## refuse the write entirely                                              ##
+## idiom conformance gate                                             ##
+## [ config-gated, inert unless  coding.cfg.idiom_gate is set ] : may ##
+## auto-repair the replaced body, or refuse the write entirely        ##
 my $idiom = <[coding.idiom.check_write]>->(
     {   'path'    => $path,
         'content' => $new_content,
@@ -114,9 +114,10 @@ if ( !-w $abs_path and defined $chmod_fh ) {
     if ( -w $abs_path ) {
         $mode_restore = $cur_mode;
     } elsif ( defined $gw_reply and $gw_reply eq qw| ok | ) {
-        ## gw changed the mode but we still cannot write [ e.g. coding  ##
-        ## zenka lacks admin group ] : revert so no permission drift is ##
-        ## left behind when content falls through to staging            ##
+        ## gw changed the mode but we still cannot write                 ##
+        ## [ e.g. coding zenka lacks admin group ] : revert so no        ##
+        ## permission drift is left behind when content falls through to ##
+        ## staging                                                       ##
         printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $abs_path;
         <[coding.chmod_child.readline]>;    ## consume restore reply ##
     }
@@ -124,9 +125,9 @@ if ( !-w $abs_path and defined $chmod_fh ) {
 
 if ( -w $abs_path ) {
     <[file.write_encoded]>->( $norm_encoding, $abs_path, \$new_content );
-    ## note the write for the catalog-retrieval corpus [ inert unless   ##
-    ## coding.cfg.catalog_harvest is enabled ] -- after the write, so a ##
-    ## refused or failed write is never tracked                         ##
+    ## note the write for the catalog-retrieval corpus                     ##
+    ## [ inert unless coding.cfg.catalog_harvest is enabled ] -- after the ##
+    ## write, so a refused or failed write is never tracked                ##
     <[coding.catalog.track_write]>->( { 'target' => $path } );
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
@@ -149,8 +150,8 @@ return sprintf "staged replace in %s [ -%d +%d chars, "
     . "no write access ]\nstaged at : %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,,.,,.,,.,.,.,,,,..,,,,,,,.,.,.,.,,,,..,,,,,..,,...,...,.,,,.,,,..,,,,,,...,
-#FNECDLS7KAK7TLX4LF3MEN7GCX4P4CLLBWNWCPIH2FS7IFEJO4XXS3CEQA5LYEB22TO5BUC2GWW5S
-#\\\|JR6MYP7EGOIMD5NB5QO6JIOHCDRSUZIP7EQ7GCIF3FVVLXMQRWU \ / AMOS7 \ YOURUM ::
-#\[7]4WLIFOEI5COOZPYJ2GCYQ6DG7GW3LAPTDEZEQWU5HCDMFK75EYBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,..,..,,.,.,...,,.,,,,.,..,,...,..,,...,...,..,,,,,,.,.,,..,,,,,
+#BKYKY27MDEQJSZY7NCLFKG7SS7TMIJ7KE37STUA7G7SVOW6RBDWZZKWCRFKGQMF7HQ4TOVMYMLGJK
+#\\\|3FGTLWWEOLTRVMU6DWJSG42QEG6ATHNE636RO6ZR4JYHKRDEAYY \ / AMOS7 \ YOURUM ::
+#\[7]Y24F7OBHEECRK2FG3CADSW6T5PIUGXZKDQZTX4KGOUONKKSGNCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

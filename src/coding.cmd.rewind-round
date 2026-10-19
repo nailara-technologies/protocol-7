@@ -26,8 +26,8 @@ return { 'mode' => qw| false |, 'data' => 'task_id required' }
 
 my $task = <coding.task.queue>->{$task_id};
 
-## buffer names use T- prefix; queue keys use task- prefix : normalize [ ##
-## same normalization coding.cmd.task-append applies ]                   ##
+## buffer names use T- prefix; queue keys use task- prefix : normalize ##
+## [ same normalization coding.cmd.task-append applies ]               ##
 if ( !defined $task and $task_id =~ s|^T-|task-|i ) {
     $task = <coding.task.queue>->{$task_id};
 }
@@ -89,10 +89,11 @@ return { 'mode' => qw| false |, 'data' => "failed to navigate $task_id" }
 ## navigation never completes a round ] accumulated stale handles that      ##
 ## broke a LATER real round's actual content streaming. the plain reply     ##
 ## text already renders multi-line content cleanly through the normal       ##
-## single-command-reply path [ nshell.handler.command_reply's content_      ##
-## print branch ] -- no persistent listener state needed for this at all.   ##
-## coding.cmd.restream still exists standalone for an explicit, one-off     ##
-## "resync my view" ask -- just no longer auto-called from here.            ##
+## single-command-reply path                                                ##
+## [ nshell.handler.command_reply's content_ print branch ] -- no           ##
+## persistent listener state needed for this at all.  coding.cmd.restream   ##
+## still exists standalone for an explicit, one-off "resync my view" ask -- ##
+## just no longer auto-called from here.                                    ##
 my $replay
     = <[coding.round_chain.format_node_for_display]>->( $task_id, $node );
 
@@ -114,8 +115,8 @@ return {
         . "[${\scalar @{$messages}} messages]\n\n$replay\n"
 };
 
-#,,,,,.,.,..,,,.,,.,.,..,,,,,,.,,,.,,,..,,,,,,.,.,...,...,...,,..,,.,,.,,,.,.,
-#HVJYUIXEMLIITRTW2JSELLQMS4F5HGGLGQLTIBPX4K6Y3DYDYAUO6TGFKR5OX65HIRYXJX5557CHI
-#\\\|QJAPFO2PEIBKWAOVE7OKQ53SZSQPKULDYJADVBMHC7X6Q66ZIOR \ / AMOS7 \ YOURUM ::
-#\[7]6AHXVF6VJBBC2RIZAFBGBLND62POXE4644KMTTYBGVHN2JJSF4CI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,.,,.,.,,..,.,.,,,,,,..,...,,..,.,.,...,...,,.,,,,,,..,,,,.,,..,
+#AS4CTJWREQSMHAS2K4XYN4HCIES4MTVJ7WQZ7OR2NVYMZC26BCKXQOXMSVWKMBFXNKAILVUFGBAM2
+#\\\|3VVCSOS2HZBLAWATU27LFGMES3K5FEVITGTLVHWQFM4EDL2HLCF \ / AMOS7 \ YOURUM ::
+#\[7]E2KZC7WX6Q4XTOVY76VS7O56JBMY5AVVRH3YTH4DIZAYJ6Q3FQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

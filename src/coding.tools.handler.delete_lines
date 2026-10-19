@@ -46,9 +46,10 @@ if ($apply) {
         if ( -w $abs_path ) {
             $mode_restore = $cur_mode;
         } elsif ( defined $gw_reply and $gw_reply eq qw| ok | ) {
-            ## gw changed the mode but we still cannot write [ e.g. coding  ##
-            ## zenka lacks admin group ] : revert so no permission drift is ##
-            ## left behind when content falls through to staging            ##
+            ## gw changed the mode but we still cannot write              ##
+            ## [ e.g. coding zenka lacks admin group ] : revert so no     ##
+            ## permission drift is left behind when content falls through ##
+            ## to staging                                                 ##
             printf {$chmod_fh} "restore %04o %s\n", $cur_mode, $abs_path;
             <[coding.chmod_child.readline]>;    ## consume restore reply ##
         }
@@ -83,8 +84,8 @@ if ($apply) {
 return sprintf "preview: would delete %d line%s [ %d..%d ]",
     $count, $count == 1 ? '' : 's', $from_n, $to_n;
 
-#,,,.,...,,,.,,,,,..,,.,.,,,,,..,,,.,,.,.,,..,..,,...,.,.,...,..,,.,,,,,.,.,,,
-#5WVFEPOB6YYNUPMJDEIAIXAPHMDITROF2BR35CXCKOAOGHCF7QRL4YG47N4O4TUBYFKMHXU5T4BG4
-#\\\|AD7BGDYYRJM2ZSKKHR6B63GBQWS7DZIXU6LNABHS5NVLX2NLB5H \ / AMOS7 \ YOURUM ::
-#\[7]HLOTXX5LY2HXFPMHNYD7IAB725OUY3GL5KGIH4BGW4YVHZPTLMCA 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,...,.,.,..,,,..,,,,,.,,,..,,..,,...,...,..,,,,,,.,,,.,.,.,,,
+#YN3EDG6JW5BXJTN3WL3SDSB7KP7ZSGLC7WBBWLHMQKR4PC3PCAIDLMGHVCFPELDSNIUNGNWM6XTLQ
+#\\\|ZZWGIKPLS4LTTRXK5QT7F42NN6JCEDTXWUAQG2PVLQR37ZKJADK \ / AMOS7 \ YOURUM ::
+#\[7]7DC6GPKIKSAAQULJ5RJ274HYGDW6SC4WEDKOO7YVGUM33K5KKACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

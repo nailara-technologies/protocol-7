@@ -54,16 +54,17 @@ map { <[base.perlmod.autoload]>->($_) }
         = 90 * ( 2 + $tier1_tries_per_prompt );    ## + probe's 2 tries ##
     ## prompt count here MUST track @prompts in coding.self_test.run [ no   ##
     ## shared single source of truth - this runs at init, before that array ##
-    ## is ever in scope ] - currently 3 [ math, unprimed cat/mouse, primed  ##
-    ## cat/mouse ]. under-counting this silently re-opens the same          ##
-    ## premature-timeout race 4c3cf0e73 fixed, just with a longer run       ##
+    ## is ever in scope ] - currently 3                                     ##
+    ## [ math, unprimed cat/mouse, primed cat/mouse ]. under-counting this  ##
+    ## silently re-opens the same premature-timeout race 4c3cf0e73 fixed,   ##
+    ## just with a longer run                                               ##
     my $prompt_count = 3;
     <coding.cfg.self_test_max_total>
         //= $prompt_count * $per_prompt_worst_case + 80;
 }
 
-## resolve drop_privs args [ secondary admin group for project file access ##
-## ]                                                                       ##
+## resolve drop_privs args                           ##
+## [ secondary admin group for project file access ] ##
 my $assume_admin
     = <[base.cfg_bool]>->( <coding.cfg.assume_admin_group> // FALSE );
 <coding.cfg.drop_privs_user> = <system.amos-zenka-user>;
@@ -98,10 +99,10 @@ if ( defined <system.root_path> and -d <system.root_path> . '/.git' ) {
 
     ## libgit2 [ Git::Native ] ignores GIT_CONFIG_COUNT but honors         ##
     ## GIT_CONFIG_GLOBAL -- without it, libgit2 >= 1.7 hard-refuses the    ##
-    ## foreign-owned repo [ GIT_EOWNER 'repository path is not owned by    ##
-    ## current user' ], breaking every native git path in this zenka.  the ##
-    ## git binary reads GIT_CONFIG_GLOBAL too, so the same file satisfies  ##
-    ## both mechanisms                                                     ##
+    ## foreign-owned repo                                                  ##
+    ## [ GIT_EOWNER 'repository path is not owned by current user' ],      ##
+    ## breaking every native git path in this zenka.  the git binary reads ##
+    ## GIT_CONFIG_GLOBAL too, so the same file satisfies both mechanisms   ##
     my $safe_cfg = sprintf '%s/cfg/git/safe-directory.config',
         <system.root_path>;
     $ENV{'GIT_CONFIG_GLOBAL'} = $safe_cfg if -f $safe_cfg;
@@ -134,12 +135,12 @@ if ( defined <system.root_path> and -d <system.root_path> . '/.git' ) {
     TRUE, 0750, FALSE, 0700, 'observations'
 );
 
-## catalog corpus dir : same self-healing pattern as ext-pkg.init_code [ ##
-## init runs as root under v7, before drop_privs ] -- create if missing, ##
-## then chown to the zenka user so catalog.corpus writes by the          ##
-## dropped-privilege zenka succeed on a fresh deploy without any manual  ##
-## mkdir/ACL step [ the bug class fixed live 2026-09-09 with a one-time  ##
-## setfacl, which does not reapply itself ]                              ##
+## catalog corpus dir : same self-healing pattern as ext-pkg.init_code     ##
+## [ init runs as root under v7, before drop_privs ] -- create if missing, ##
+## then chown to the zenka user so catalog.corpus writes by the            ##
+## dropped-privilege zenka succeed on a fresh deploy without any manual    ##
+## mkdir/ACL step [ the bug class fixed live 2026-09-09 with a one-time    ##
+## setfacl, which does not reapply itself ]                                ##
 my $catalog_corpus_dir = <coding.cfg.catalog_corpus_dir>
     // sprintf qw| %s/data/catalog-corpus |, <system.root_path> // '';
 
@@ -227,9 +228,9 @@ if ( defined $saved_status_ref && length $saved_status_ref->$* ) {
 <coding.inference_servers> //= {};
 
 ## async model-switch state [ spawn_smart fully async since 2026-09-18 ] :
-## per-backend guard telling inference_server_sigchld a kill was deliberate [
-## same shape as <coding.draining> / <coding.lora_training_in_progress> ] and
-## the stashed spawn-completion state consumed by
+## per-backend guard telling inference_server_sigchld a kill was deliberate
+## [ same shape as <coding.draining> / <coding.lora_training_in_progress> ]
+## and the stashed spawn-completion state consumed by
 ## coding.helper.complete_pending_switch
 <coding.switching_backend> //= {};
 <coding.pending_switch>    //= {};
@@ -382,8 +383,8 @@ if ($gpu_busy) {
 );
 <[base.logs]>->( 2, '[init] registered memory_gpu callback' );
 
-## register self-test pending callback [ blocks backends during model ##
-## switch ]                                                           ##
+## register self-test pending callback     ##
+## [ blocks backends during model switch ] ##
 <[dependency.setup]>->(
     'self_test_pending',
     { 'callback' => $code{'coding.callback.object_self_test_pending'} }
@@ -417,8 +418,8 @@ if ( not $already_initialized ) {
         }
     );
 
-    ## create self-test pending dependency [ blocks backends during model ##
-    ## switch ]                                                           ##
+    ## create self-test pending dependency     ##
+    ## [ blocks backends during model switch ] ##
     <coding.dep.gpu_self_test_pending> = <[dependency.add_object]>->(
         {   'type'        => 'self_test_pending',
             'description' => 'No self-test model switch in progress'
@@ -579,8 +580,8 @@ if ( not ref $ptd_opts eq qw| ARRAY | or not @$ptd_opts ) {
 my @missing_dispatch;
 my @undefined_dispatch;
 
-## tools handled directly in coding.tools.dispatch  [ not via handler ##
-## modules ]                                                          ##
+## tools handled directly in coding.tools.dispatch ##
+## [ not via handler modules ]                     ##
 my %dispatch_table_tools = map { $_ => 1 } qw(
     list_files search_code dep_graph ncode_search ncode_search_context
     edit_file record_question record_suggestion
@@ -627,8 +628,8 @@ if ( not @missing_dispatch and not @undefined_dispatch ) {
     );
 }
 
-## fetch fresh model discovery from models zenka  [ init_reports fires when
-## cube is ready to route ]
+## fetch fresh model discovery from models zenka
+## [ init_reports fires when cube is ready to route ]
 if ( not $already_initialized ) {
     <system.init_reports> //= [];
     push(
@@ -658,8 +659,8 @@ if ( not $already_initialized ) {
         }
     );
 
-    ## scratchpad rescue sweep : startup one-shot [ inference servers need ##
-    ## time to come up ] + hourly repeat                                   ##
+    ## scratchpad rescue sweep : startup one-shot                 ##
+    ## [ inference servers need time to come up ] + hourly repeat ##
     <[event.add_timer]>->(
         {   'after'   => 180,
             'repeat'  => FALSE,
@@ -730,8 +731,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,,.,,,.,,,,,,.,,,.,.,...,..,,,,,,.,,,,,.,.,.,...,...,,..,,,,,,.,,.,,,.,.,
-#EZJ3UJ4WCEDOPU624SG6K6TLVJDAZ6QBW4I6HOTWFSAU2SUYP3WVWQLXD7YGVFDNFQJG6XTZZWF3Y
-#\\\|PPAKYY2GQSYT3OVNCRGCCAJCPXSNBMQG3J4UCH42AIQOMEMWBFW \ / AMOS7 \ YOURUM ::
-#\[7]EDUMITIMO4HOOLOQURDQLEXKKHJLB5EKDHU5RS5V3HMIFI2AUWBI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,.,,.,,,...,.,.,...,...,,..,.,.,...,...,.,.,...,...,.,.,...,
+#6ZIXS3XC7IKOASNQMFWF5RR7JK3WJO6NPT3ABEQCIU2OUWOJIZLEDKVOCWS473D2TMRD3MUU4FCI6
+#\\\|Q5XPKNVAOHMMBGAFNKBQ3H42RYL4TR2A4YPV5ZRBWAEXKUJSOZV \ / AMOS7 \ YOURUM ::
+#\[7]YYY4GARCYX5MRMPRACI5JQ7EIDKTGPNJ4URPOJ5FKWB23PF37MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

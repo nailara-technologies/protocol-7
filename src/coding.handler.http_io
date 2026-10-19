@@ -145,12 +145,12 @@ if ( $state->{'headers_parsed'} ) {
         <[coding.handler.http_io_parse_line]>->( $1, $state, $callbacks );
         return if $state->{'abort_triggered'};
     }
-    ## process remaining buffer if it looks like a complete SSE data line [ ##
-    ## handles responses that arrive without trailing newline ]             ##
+    ## process remaining buffer if it looks like a complete SSE data line ##
+    ## [ handles responses that arrive without trailing newline ]         ##
     if ( length( $state->{'buffer'} )
         and $state->{'buffer'} =~ m|^data:\s*(\{.+)| ) {
-        ## verify it's complete JSON before consuming [ avoid partial reads ##
-        ## ]                                                                ##
+        ## verify it's complete JSON before consuming ##
+        ## [ avoid partial reads ]                    ##
         my $maybe_json = $1;
         $maybe_json =~ s|\r$||;
         my $test = eval { $state->{'json_decoder'}->decode($maybe_json) };
@@ -177,8 +177,8 @@ if ( $state->{'headers_parsed'} ) {
 
 return;
 
-#,,,.,.,.,.,.,...,,,,,,.,,.,.,.,,,,.,,..,,,..,.,.,...,...,...,,,,,.,.,,,,,,..,
-#U7FQCSK4VV7L57TMU5FO2XY7BVR5KN5D3OESAFE3Y2RJMSQSQTDK5MLMLBFVG2BTJOI5GPMUSML5A
-#\\\|FBKOYYOMXT5Y23V5K2LH5RQQ3AVCJ4CKJMQR5ND75HQHG3JKPOQ \ / AMOS7 \ YOURUM ::
-#\[7]SQSLKWB47JG73UPLPO2JMTQT5KMTMQZ3CQIEN5YNZBHXY3VNMWCY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,..,.,.,.,.,,,,,.,.,.,,,,..,.,,,.,.,...,...,..,,.,,,,,.,..,,.,.,
+#M375YXYPI6HYCK4T3FAQQI4JYD66KJZKZGUYVQJK76E2BU7NNJZ3QZA4BARBTUWYYJPCHR3HHUB5A
+#\\\|UHHUTSABVQVPANZR6AHU7TX4UOWN6T7LFVGBP377THD5WAEWKDQ \ / AMOS7 \ YOURUM ::
+#\[7]CWSSFLJCUVIITNVHFMT2DRYJMACU6AVNC6L4SPAJKYEQNKET7ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

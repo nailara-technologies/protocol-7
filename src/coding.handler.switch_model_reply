@@ -8,8 +8,8 @@ my $reply_data   = $reply->{'data'}   // '';
 my $reply_params = $reply->{'params'} // {};
 
 ## request identity travels with THIS reply via 'params' - not shared ##
-## globals, see coding.cmd.switch-model for why [ race condition fix, ##
-## confirmed live 2026-06-21 ]                                        ##
+## globals, see coding.cmd.switch-model for why                       ##
+## [ race condition fix, confirmed live 2026-06-21 ]                  ##
 my $checksum = $reply_params->{'checksum'};
 unless ( defined $checksum ) {
     <[base.logs]>->( 1, "[switch_model_reply] no pending switch request" );
@@ -19,13 +19,13 @@ unless ( defined $checksum ) {
 
 ## coding.self_test.handler.poll_switch has no direct signal from this      ##
 ## handler -- it only detects failure by polling                            ##
-## <coding.inference_servers>->{$backend}{'status'} for 'crashed' [ or its  ##
-## own max_wait timeout, default 300s ]. every early bail-out below used to ##
-## leave that status untouched, so a switch that can never succeed [ model  ##
-## file missing, unparseable reply ] still sat out the FULL timeout before  ##
-## poll_switch gave up -- confirmed live 2026-09-19 against a sweep         ##
-## candidate whose file had already been deleted. reuses the exact same     ##
-## signal coding.handler.monitor_inference_startup already sets for         ##
+## <coding.inference_servers>->{$backend}{'status'} for 'crashed'           ##
+## [ or its own max_wait timeout, default 300s ]. every early bail-out      ##
+## below used to leave that status untouched, so a switch that can never    ##
+## succeed [ model file missing, unparseable reply ] still sat out the FULL ##
+## timeout before poll_switch gave up -- confirmed live 2026-09-19 against  ##
+## a sweep candidate whose file had already been deleted. reuses the exact  ##
+## same signal coding.handler.monitor_inference_startup already sets for    ##
 ## "spawned, then died before ready" -- same generic "this backend's switch ##
 ## attempt is dead" meaning to poll_switch, even though nothing here ever   ##
 ## actually spawned a process. only fires for a concrete gpu/cpu backend -- ##
@@ -39,14 +39,14 @@ my $mark_switch_dead = sub {
 
 ## models zenka error replies are plain "error: ..." strings, not YAML -- a ##
 ## lookup failure's own text [ "error: model not found: X:Y" ] embeds a     ##
-## second ": ", which YAML::XS genuinely rejects [ "mapping values are not  ##
-## allowed in this context" ] -- catch this BEFORE attempting the parse so  ##
-## the real reason [ not found / file missing ] surfaces instead of a       ##
-## cryptic YAML parser exception. sweep-driven candidates hit this          ##
-## routinely for stale/deleted checksums [ same reduced-severity signal as  ##
-## inference_server_sigchld's sweep-aware restart ceiling ] -- a real,      ##
-## interactively-issued switch-model failing this way is still worth level  ##
-## 0                                                                        ##
+## second ": ", which YAML::XS genuinely rejects                            ##
+## [ "mapping values are not allowed in this context" ] -- catch this       ##
+## BEFORE attempting the parse so the real reason                           ##
+## [ not found / file missing ] surfaces instead of a cryptic YAML parser   ##
+## exception. sweep-driven candidates hit this routinely for stale/deleted  ##
+## checksums [ same reduced-severity signal as inference_server_sigchld's   ##
+## sweep-aware restart ceiling ] -- a real, interactively-issued            ##
+## switch-model failing this way is still worth level 0                     ##
 if ( $reply_data =~ m{^error:\s*(.+?)\s*$} ) {
     ## capture BEFORE the model_sweep_state lookup below : $1 is fragile    ##
     ## and the intervening <...> tag access clobbered it here, confirmed    ##
@@ -153,8 +153,9 @@ my $mark_backend_updated = sub {
 ## value, so the unless($gpu_ok){ try cpu } fallback moved into gpu's       ##
 ## on_done callback [ coding.handler.switch_model_auto_gpu_done ]. The      ##
 ## terminal on_done handlers also take over clearing <coding.switch_model_  ##
-## active> -- the in-flight marker must cover the whole kill-wait-plus-     ##
-## respawn window, which now extends past this reply handler's return.      ##
+## active> -- the in-flight marker must cover the whole                     ##
+## kill-wait-plus-respawn window, which now extends past this reply         ##
+## handler's return.                                                        ##
 if ( $backend eq qw| auto | ) {
     ## try gpu first : fall back to cpu inside gpu's on_done callback if ##
     ## the gpu spawn reports failure [ e.g. resource-insufficient ]      ##
@@ -196,8 +197,8 @@ if ( $backend eq qw| auto | ) {
 
 return TRUE;
 
-#,,,,,.,.,,,,,,,,,,,,,,,,,.,.,.,,,,,,,,.,,.,.,.,.,...,...,...,.,,,..,,,,,,,,,,
-#LPQLNKCXB4I3TY6QIENYRF5VUN55JKO5JZN4JZKCJBGFQVFL3YAM5S4RDJXMWENX7HOMZA2YOH64K
-#\\\|GYGBHNYJQVPHYPXZ2CEA7QQDVW3BR25AQX7TK4ZR4YBBLIPNU3R \ / AMOS7 \ YOURUM ::
-#\[7]SFDDRW5APKZVEHRLRGR2AIJTVQWRUXOREL5ADMSC2ZCJO3SRUKCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,..,,,.,,.,,,.,.,,.,,...,..,,,..,.,.,...,.,,,..,,..,,.,.,,.,,..,,
+#4SBVX44S6DNE52VKYAYM5RKUA7XUVXRKRY7Y5WJ5U74LBWHNE3XBAKUJPQLZWKISMPHAPMP66YWHO
+#\\\|LFQIVHEQI6Q7POI6XHM3JGREUON6ZUIVELDCRCPFDUBF73NKBPD \ / AMOS7 \ YOURUM ::
+#\[7]5BQWW3REF2E5IRPKEVGLMHQL66MGCSYW4QALMBONT5T2RMIYGEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

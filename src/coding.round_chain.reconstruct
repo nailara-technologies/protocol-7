@@ -37,13 +37,14 @@ while ( defined $cursor ) {
     $cursor = $by_checksum{ $cursor->{'parent'} };
 }
 
-## sequential fold, genesis to target : each compaction node masks          ##
-## everything currently held with round in [masks_from, its own round) and  ##
-## replaces it with its own summary delta, THEN later nodes keep            ##
-## accumulating on top. folding [ rather than looking only at the single    ##
-## most recent compaction node ] is what makes nested compaction correct -- ##
-## a second compaction can re-mask a round range that includes a prior      ##
-## compaction's own summary round, collapsing it in turn                    ##
+## sequential fold, genesis to target : each compaction node masks         ##
+## everything currently held with round in [masks_from, its own round) and ##
+## replaces it with its own summary delta, THEN later nodes keep           ##
+## accumulating on top. folding                                            ##
+## [ rather than looking only at the single most recent compaction node ]  ##
+## is what makes nested compaction correct -- a second compaction can      ##
+## re-mask a round range that includes a prior compaction's own summary    ##
+## round, collapsing it in turn                                            ##
 my @entries;    ## { round => N, delta => [...] } ##
 for my $n (@path) {
     if ( ( $n->{'type'} // '' ) eq qw| compaction | ) {
@@ -57,8 +58,8 @@ my @messages = map { @{ $ARG->{'delta'} } } @entries;
 
 return \@messages;
 
-#,,,,,..,,.,,,,,,,,,,,.,,,...,,,.,.,.,.,,,,,.,.,.,...,...,.,,,,,.,...,,.,,,,.,
-#N4SPWKWMOIHSKYHSFI3ZLDBKBOPTEVD2WJT33U73CCOHZ2IXYNAWXO7WYFMFMYWIWCW7MQZQVPVP4
-#\\\|CICXZX3TYLB3OEWBEBCKJUCEHQX4JSKPHICVQYFIMF66NVCOXPH \ / AMOS7 \ YOURUM ::
-#\[7]PD27PT6D3NXF7DRCFNIWNTW6S2XINRUBF57626AZ6BBKYBGH5UDY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,,,.,,,,,,,,,...,.,,,,..,,.,,.,.,...,..,,.,,,,..,,..,,..,,,,,
+#GXBM2CB2ORJPWF6VFHD2UVQV52FAX56SLKCXATQFW2WFMZIVAFCGMNEOWRY5EZQJT2HYS5YAAZSCS
+#\\\|ZW3VGXML4KK2U2ETIQUUH7WQC7CVXW7CZKIISKGZFKRLJMLKNZB \ / AMOS7 \ YOURUM ::
+#\[7]7JUGVBT5YQXA4YMZ6MDFVW2QN6WSNHWHNXB2SKCERS5RGHO3XGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
