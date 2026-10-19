@@ -3,13 +3,14 @@
 # name  = v7-zenki.pid-files.global.clean-up
 # descr = clean up globally registered pid files
 
-## removes pid files registered in the on-disk registry [ symlinks + owner  ##
-## sidecars ] -- called at v7-zenki teardown and at v7-zenki startup.       ##
-## differs from v7-zenki.tmp-paths.global.clean-up : no fixed user          ##
-## whitelist [ too narrow : zenki run as different users ] -- the owner uid ##
-## recorded at report time [ sidecar next to the registry link ] must equal ##
-## the file's CURRENT owner uid [ lstat ] or the unlink is refused.         ##
-## regular files only, never a symlink [ skipped, never unlinked through ]  ##
+## removes pid files registered in the on-disk registry                     ##
+## [ symlinks + owner sidecars ] -- called at v7-zenki teardown and at      ##
+## v7-zenki startup.  differs from v7-zenki.tmp-paths.global.clean-up : no  ##
+## fixed user whitelist [ too narrow : zenki run as different users ] --    ##
+## the owner uid recorded at report time                                    ##
+## [ sidecar next to the registry link ] must equal the file's CURRENT      ##
+## owner uid [ lstat ] or the unlink is refused.  regular files only, never ##
+## a symlink [ skipped, never unlinked through ]                            ##
 
 <v7-zenki.pid_files>         //= {};
 <v7-zenki.dirpath.pid_files> //= qw| /var/run/.7/v7-zenki/pid_files |;
@@ -68,9 +69,9 @@ foreach my $remove_path_link (@unlink_path_symlink) {
         next;    ##  skipping path , is gone  ##
     }
 
-    ## a symlink as registered path : skipped with a warning [ never     ##
-    ## unlinked through ] -- registration rejects symlinks, so this is a ##
-    ## post-registration replacement [ suspicious ]                      ##
+    ## a symlink as registered path : skipped with a warning                ##
+    ## [ never unlinked through ] -- registration rejects symlinks, so this ##
+    ## is a post-registration replacement [ suspicious ]                    ##
     if ( -l $remove_path ) {
         <[base.s_warn]>->(
             'registered pid file path is a symlink, skipping : %s',
@@ -151,8 +152,8 @@ foreach my $remove_path_link (@unlink_path_symlink) {
 
 return $number_files_cleaned;
 
-#,,,.,..,,.,.,.,.,...,.,,,,,.,.,.,..,,..,,..,,..,,...,..,,,,.,,,,,,.,,,..,.,.,
-#5TPLA5AMDDO6R3QFDEDQJQ4CFO2OYFPABIIZYBSE5HKKUTOMNFS3DZK4Z4OSFF2LCUNAFKDTTNCQU
-#\\\|BOVDMFTHJKQGUK64GMSYEHFXTP7MVE543ODYRMBYJ4DMDKTXNAY \ / AMOS7 \ YOURUM ::
-#\[7]S4LL353YIUYDDQFOWFQ3CSPRRHXNJCIHULDEHTEYCP5VLTF22ABI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,..,.,,,,..,,.,,,.,,,,,,,,,,.,.,..,,...,...,..,,,.,,.,,,,,,,,..,
+#7GG7B4TUIAUP4K7ZIPFUFOUNQLO4JHMTSS5O34YBFDDYF3JESN3MXCX5F76CGWYRVRCNYPJ4WAYWO
+#\\\|VRVFXLZGTWICLTII525K3XBWSBRJQRWKW7DNPBYFKUESQUK52O6 \ / AMOS7 \ YOURUM ::
+#\[7]ELC6H5B2ALYRGEUGSRV5LITIKQ2LU7YJFARGBQRURU3Y3XNOKECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

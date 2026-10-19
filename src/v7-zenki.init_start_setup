@@ -43,14 +43,16 @@ foreach my $zenka_ref ( @{$zenki_init_code} ) {
             push( @config_code, $config_element );    # [zenka] config section
         }
     }
-    ## reset this zenka's whole config-file-domain subtree before          ##
-    ## rebuilding it from @config_code below -- everything under           ##
-    ## zenki.config.<name> is declared file-domain [ only ever written by  ##
-    ## this loading pass ], so a full clear immediately followed by a full ##
-    ## rebuild in the same iteration is safe : it prevents a stale value   ##
-    ## from a previously-differently-shaped directive [ e.g. a key that    ##
-    ## used to be a leaf scalar, now nested deeper ] from surviving a      ##
-    ## reload and breaking autovivification on the new, deeper assignment  ##
+    ## reset this zenka's whole config-file-domain subtree before           ##
+    ## rebuilding it from @config_code below -- everything under            ##
+    ## zenki.config.<name> is declared file-domain                          ##
+    ## [ only ever written by this loading pass ], so a full clear          ##
+    ## immediately followed by a full rebuild in the same iteration is safe ##
+    ## : it prevents a stale value from a previously-differently-shaped     ##
+    ## directive                                                            ##
+    ## [ e.g. a key that used to be a leaf scalar, now nested deeper ] from ##
+    ## surviving a reload and breaking autovivification on the new, deeper  ##
+    ## assignment                                                           ##
     <v7-zenki.start_setup.zenki.config>->{$zenka_name} = {};
     <[base.execute_zenka_code]>->(
         <[base.parser.config]>->(
@@ -82,8 +84,8 @@ foreach my $zenka_ref ( @{$zenki_init_code} ) {
     }
 }
 
-#,,..,.,,,,..,.,,,,..,..,,,.,,...,..,,,,,,.,,,..,,...,...,...,,..,,,,,..,,.,.,
-#G3WT6D6WWPLLWA5HTMMZTNOAVAC2VTT3SHURF7K3GEZYHBNCOXNAVRBKDY3BNWTTLJ4CKZDU5D6LY
-#\\\|MI2CY3Q5GPAXS7EIU7WSSIXFBK2JX76YZT7TDA2LKYPT6VW6VMU \ / AMOS7 \ YOURUM ::
-#\[7]OJI2Z62ETPIZAOBHHI5MKUI7HCZYJWGGTSISTZHJOHTGN3F2IGBI 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,.,..,,.,.,...,...,,.,,.,,,,,.,..,,...,..,,...,..,,,..,,.,,.,.,
+#RKMTIDGZ2LFE5LIN4VICDNM7KOEWW4EY77HC4KIJSQ5IRSMCOQLE6NCVJUTXHEWOGV45JI7HYIXZS
+#\\\|RFQVJ7KLRBU7PPR75W7DXSLUAWPC5QQZW46JY3LHSAAD7L4MA2I \ / AMOS7 \ YOURUM ::
+#\[7]7DQOXCM5W6WDP23GOOTHQXCA7HROS3QCX5ILHL3UP67CPMYFEKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

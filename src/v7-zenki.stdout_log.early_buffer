@@ -31,8 +31,8 @@ if ( $action eq qw| add | ) {
             my $cur = $idx++;
             ## skip startup + version markers [ indices 1, 2 ] ##
             next if $cur == 1 or $cur == 2;
-            ## parse : TIMESTAMP LEVEL MSG  [ plain format from ##
-            ## base.buffer.add_line ]                           ##
+            ## parse : TIMESTAMP LEVEL MSG                ##
+            ## [ plain format from base.buffer.add_line ] ##
             if ( $line =~ m|^\S+ (-?\d+) (.+)$|s ) {
                 say {$fh}
                     <[base.log.format_entry]>->( $1, $2, $zenka_prefix );
@@ -55,8 +55,8 @@ if ( $action eq qw| add | ) {
 
 return FALSE;
 
-#,,.,,.,.,,.,,.,.,,..,,,,,..,,,,.,.,,,.,.,,,.,.,.,...,.,.,...,.,.,.,.,.,.,,..,
-#3U63VS5WGZ3IYB7FAGLMCCMRS2KARWR2GBVPFE7JNDSHHIKOWOHVG77GAJHMLANUN7QM6C4VBKXQO
-#\\\|H44UTMFAAKBITCDL42IIIQI3DMUAH4PDNBKKY3BCVQV4KEFT575 \ / AMOS7 \ YOURUM ::
-#\[7]K4WIUD7OMIGHD3G5NYYFV5U57VHLAS2K52JRLZUKVNDAIX43CKCI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,.,.,,,,,,,,.,,,,,,.,,,,.,,..,,.,.,...,...,,,.,..,,.,,,...,..,,
+#LFFOPYH4ARIXIBQIMOSJTLHXQ5Z5U6377BDQDTNEIJ4UJWFLFOIJUDCLFZFEMSUWN3RZJJUHRLEKC
+#\\\|TCEGP3ML6SPQ2M4PXEVB3TLA3JZAUZTCFLDQSKNOKUI7M2TATRD \ / AMOS7 \ YOURUM ::
+#\[7]6YC7SRU34TFUX2THFYBPMCDI3W46B4E4JGIINVIZQIVUTEHVAEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

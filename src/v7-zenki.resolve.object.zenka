@@ -50,16 +50,17 @@ if ( <[v7-zenki.start_count]>->($zenka_name) ) {
         . 'queued, waiting on its own dependencies'
 );
 
-## recursion => 1 forces implicit start-mode in zenka.cmd.start [ see its   ##
-## own start_mode ternary ] regardless of the ambient call context this     ##
-## hook runs under -- respects <v7-zenki.zenka.manually_stopped> and stays  ##
-## quiet in the log, matching a passive background self-heal rather than an ##
-## explicit user-requested start                                            ##
+## recursion => 1 forces implicit start-mode in zenka.cmd.start             ##
+## [ see its own start_mode ternary ] regardless of the ambient call        ##
+## context this hook runs under -- respects                                 ##
+## <v7-zenki.zenka.manually_stopped> and stays quiet in the log, matching a ##
+## passive background self-heal rather than an explicit user-requested      ##
+## start                                                                    ##
 return
     <[zenka.cmd.start_once]>->( { 'args' => $zenka_name, 'recursion' => 1 } );
 
-#,,,.,,.,,...,..,,.,.,..,,..,,.,.,.,.,.,.,,.,,..,,...,...,.,.,...,,,.,,..,.,.,
-#FLA3H33ZIMI4WOEMEOAWJELRJTSAQFWU7YLW55TVXILVWBSQUZKKU3XDCIH4QTY7GUV7GY4DLKNE6
-#\\\|WAPVJJEUHQ77ES63MIAJW4ICDWGQXSA354I6XWGMHORM4YZTJ6J \ / AMOS7 \ YOURUM ::
-#\[7]WOXOK2TRN3OL6UUTLLCYCMLYFGIKPUWPM44ED5W5OKOA4CVBS4BI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,.,.,,..,.,,,,..,..,,,,.,.,,,..,,...,...,..,,,.,,.,.,,..,...,
+#DDIXOJBGOBBYC6BIH2UVDAMOFLWXBWXCSV6D4B34NVQNV2KWZOHISL2JQGPTZLHS3IJQFGMSLLI46
+#\\\|QZAOA7SF3LFDGSY3V2ZP5VZ3TMA6TXO2GENUP6XKL6YTYKBABWG \ / AMOS7 \ YOURUM ::
+#\[7]7YTVE5I5VBSBVTHNZFTBLB4KJXYFEVT5FVT2ILDUYNER44C3V6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

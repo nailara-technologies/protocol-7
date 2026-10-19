@@ -18,8 +18,8 @@ unless ( defined $zenka_sid and $zenka_sid =~ m|^\d+$| ) {
     };
 }
 
-## find instance by cube_sid [ same resolution as
-## v7-zenki.zenka.cmd.restart_own-zenka ]
+## find instance by cube_sid
+## [ same resolution as  v7-zenki.zenka.cmd.restart_own-zenka ]
 my $instance_id;
 foreach my $id (<[v7-zenki.instance_ids]>) {
     my $instance = <v7-zenki.zenka.instance>->{$id};
@@ -77,14 +77,14 @@ unless ( ref $zenka_config eq qw| HASH |
 ## bookkeeping for this call is unaffected either way and collapses on its  ##
 ## own once the terminated zenka's session closes -- but our own local      ##
 ## pending-reply entry isn't touched by anything else, so we clean it up    ##
-## ourselves here instead of leaving it open forever [ 'deferred' means     ##
-## 'reply later', and we never will ]                                       ##
+## ourselves here instead of leaving it open forever                        ##
+## [ 'deferred' means 'reply later', and we never will ]                    ##
 delete <base.cmd_reply>->{ $call->{'reply_id'} };
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,,,,,..,.,,,..,,,,.,,..,...,..,,.,,,...,..,,...,..,,,,,,...,...,.,.,,,,,
-#2CBGG5I6O7PTXTIH6YRUWL2FHB3IYR6KZ4NNLYCDMTVPVSVGMVTVGH7ZIMNU7ZSG6K2PM4VRXREQW
-#\\\|NO73PGWT62U64C5EVN6VYPDPIYF7HFTOBRLWAEBADDSFKO6RP55 \ / AMOS7 \ YOURUM ::
-#\[7]7FISXEDOCBH3DR3UJPBYSEHLZHUPZGG22AY7474IVWV5CVWSZKCY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,,.,,.,.,.,.,,.,,...,...,...,..,,...,...,,,.,..,,.,.,,..,.,,,
+#Z4SOUD5LVRB5324KRVMXSXU75ZBBBTKL5YYOCE3NEYNAINOHLU5KPPLW5TWJMFGQ2EE35AFDW7AZS
+#\\\|CJJYXXSECLNC6DNXVAUDHAO75TZVFQPDJCAKFRRPZFO2E6X5IZ2 \ / AMOS7 \ YOURUM ::
+#\[7]7VINZV3IX44NGTWBB2KRUW6I44VFXJJT5QOPNZFUIQIMGNXCMYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,8 +6,8 @@
 
 ## called by v7-zenki.init_restart_timer only. error path = the instance is ##
 ## in status 'error' at that moment [ set synchronously by change_status :  ##
-## heartbeat \ start timeout, crash, startup error ]. a manual restart [    ##
-## zenka.instance.restart ] arrives with status 'restart' : never gated     ##
+## heartbeat \ start timeout, crash, startup error ]. a manual restart      ##
+## [ zenka.instance.restart ] arrives with status 'restart' : never gated   ##
 
 my $instance_id = shift;
 my $instance    = <v7-zenki.zenka.instance>->{$instance_id} // return FALSE;
@@ -16,8 +16,9 @@ my $instance    = <v7-zenki.zenka.instance>->{$instance_id} // return FALSE;
 ## is never gated, init_restart_timer then drops the stale deferral       ##
 return FALSE if ( $instance->{'status'} // '' ) ne qw| error |;
 
-## already deferred [ second caller of the same error, eg. startup error + ##
-## process end ] : stays deferred, nothing new to log                      ##
+## already deferred                                                       ##
+## [ second caller of the same error, eg. startup error + process end ] : ##
+## stays deferred, nothing new to log                                     ##
 return TRUE if defined $instance->{'pressure_deferred_restart'};
 
 return FALSE
@@ -27,10 +28,10 @@ return FALSE if ( <v7-zenki.pressure.level> // '' ) ne qw| critical |;
 
 my $zenka_name = $instance->{'zenka_name'} // qw| ? |;
 
-## cube : the message router -- while it is down no manual command [ p7c  ##
-## v7-zenki.restart \ .pressure ] reaches v7-zenki, and heartbeats of all ##
-## other zenki fail through it [ 'is-cube' is set only once it connected, ##
-## the name covers a crash before that ]                                  ##
+## cube : the message router -- while it is down no manual command          ##
+## [ p7c v7-zenki.restart \ .pressure ] reaches v7-zenki, and heartbeats of ##
+## all other zenki fail through it [ 'is-cube' is set only once it          ##
+## connected, the name covers a crash before that ]                         ##
 if ( $instance->{'is-cube'} or $zenka_name eq qw| cube | ) {
     <[base.logs]>->(
         1, ": '%s' restart not deferred [ message router ]", $zenka_name
@@ -71,8 +72,8 @@ $instance->{'pressure_deferred_restart'} = { 'since' => <[base.time]>->(3) };
 
 return TRUE;
 
-#,,,,,,,,,,,,,,,,,.,.,.,,,,..,..,,.,,,...,,..,..,,...,...,,,,,,..,..,,.,.,,,.,
-#YOCD7FBDCIFLDB2DPDGI3AGGESVXQRFXT7CHL3HKWQTPN3PJTT7H5EFSJY7BASDYCTTR6AB6HTDK6
-#\\\|4ZIHXVYPTZISIVS23GF4YWWE7SHPD37KJDRRHY6IKDPX2IIULL7 \ / AMOS7 \ YOURUM ::
-#\[7]GKWM3VZ4WUGGX6V7KWP6JQKV5UGZ3MHER3VXK55U222OEU7PLSCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,...,,.,,...,...,.,.,,..,...,,.,,..,,...,.,.,.,,,...,..,,,,.,,..,
+#5G4U5VHVJQFI7ZQFBZ74KOHREBYFD3UDXEEIU5B2SEFH53ONP6CB6DXREW6KZAOSYRMGVOS5TM4AG
+#\\\|4Z4RXYRIWRDHQBRHIAB7OKGTGTPKG2TCN7LFIHOQK5NZUMWIMDA \ / AMOS7 \ YOURUM ::
+#\[7]NN6GLWJSTKKK6F6AUNH3DA3CBBEUSLPQJOCJ4SYI5723NGNJFEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

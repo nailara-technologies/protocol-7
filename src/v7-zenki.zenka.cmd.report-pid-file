@@ -167,8 +167,8 @@ my $pid_files_aref
 push( $pid_files_aref->@*, $pid_file )
     if not grep { $ARG eq $pid_file } $pid_files_aref->@*;
 
-## register global [ survives a v7-zenki restart, like tmp-paths.global ] [ ##
-## owner uid \ gid recorded in the registry for the deletion re-check ]     ##
+## register global [ survives a v7-zenki restart, like tmp-paths.global ] ##
+## [ owner uid \ gid recorded in the registry for the deletion re-check ] ##
 <[v7-zenki.pid-files.global.register]>->( $pid_file, $stat_uid, $stat_gid );
 
 my $str_len = 52 - length <system.node.name>;
@@ -179,8 +179,8 @@ my $pid_file_str = <[base.parser.ellipse_center]>->( $pid_file, $str_len );
 ##  reporting success  ##
 return { 'mode' => qw|true|, 'data' => sprintf "registered '%s'", $pid_file };
 
-#,,..,,..,...,.,,,,,,,...,,,,,.,.,,,.,,,,,,.,,..,,...,...,.,.,,.,,.,.,.,,,,,.,
-#5XKIG3X3GROJT7SBKJUMSR4CCN6U6PLWUCXDOU2RQK73P5T6TNGJA6QIDP3HMAOHYVMENWCA3D6D6
-#\\\|FW4L5GA6USPOSW7VUX6EHAUBTV6YCHU7NGG5SYWJHA546MPIRQ7 \ / AMOS7 \ YOURUM ::
-#\[7]N2ACMVJSAWEG5TSY5FYA2SFX56L5C3HSZYHUTEGQKTKPYU4RYKBI 7  DATA SIGNATURE ::
+#,,.,,...,...,..,,...,.,,,...,,..,...,...,,.,,..,,...,...,...,,,,,,.,,.,,,,.,,
+#WZNA7C2JKFX7MPSIFVM4U7TVMRV263TJR4TWAR3S6CHY7RHP2NGXJUP5WSTSKKPX5O2Y7H7K5IREU
+#\\\|575MK3F4BM7ZNKSNUVQGSUEIJYPCO5J6SMEXJQDFYWTEMTCLRHW \ / AMOS7 \ YOURUM ::
+#\[7]JIDNUWRCRPORRVNZ4UBEWQ36VLPCJ7O22OH3LJKNZ4KPWVHRU6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

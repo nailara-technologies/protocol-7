@@ -241,15 +241,15 @@ if ( exists $init_result_data->{'start_mode'}
 
         my $prepare_code = qw| %ENV=(); |;
 
-        ## resolve the display for THIS zenka's own subname group [not a  ##
-        ## flat global] -- e.g. tile[xvfb-0000] gets the xvfb-0000 X-11   ##
-        ## instance's display, not whichever X-11 instance last replied.  ##
-        ## resolves synchronously here: v7's own process always takes the ##
-        ## local fast path in base.zenki.resolve_primary_sid [no real     ##
-        ## network round-trip, callback fires before this returns].       ##
-        ## <x11.display> used to be a flat scalar [pre-multi-instance]; a ##
-        ## running v7 process that hasn't been restarted since may still  ##
-        ## hold that old value -- coerce rather than crash dereferencing. ##
+        ## resolve the display for THIS zenka's own subname group            ##
+        ## [not a flat global] -- e.g. tile[xvfb-0000] gets the xvfb-0000    ##
+        ## X-11 instance's display, not whichever X-11 instance last         ##
+        ## replied.  resolves synchronously here: v7's own process always    ##
+        ## takes the local fast path in base.zenki.resolve_primary_sid       ##
+        ## [no real network round-trip, callback fires before this returns]. ##
+        ## <x11.display> used to be a flat scalar [pre-multi-instance]; a    ##
+        ## running v7 process that hasn't been restarted since may still     ##
+        ## hold that old value -- coerce rather than crash dereferencing.    ##
         <x11.display> = {} if ref(<x11.display>) ne qw| HASH |;
 
         my $display;
@@ -286,10 +286,10 @@ if ( exists $init_result_data->{'start_mode'}
             );
         }
 
-        ## %ENV is wiped above for exec-external zenki [ clean environment ##
-        ## ]; env_include lets a zenka's v7-init config whitelist          ##
-        ## additional keys to copy through from the live v7 process's own  ##
-        ## environment                                                     ##
+        ## %ENV is wiped above for exec-external zenki                      ##
+        ## [ clean environment ]; env_include lets a zenka's v7-init config ##
+        ## whitelist additional keys to copy through from the live v7       ##
+        ## process's own environment                                        ##
         my $env_include_str = $init_result_data->{'env_include'};
         if ( defined $env_include_str and length $env_include_str ) {
             my @included;
@@ -400,16 +400,17 @@ $io->blocking(0);
 $instance->{'console-output'} = IO::Select->new();
 $instance->{'console-output'}->add($io);    ## <-- [ can_read ] ##
 
-## prio 0 : live-swept 0/1/2/3/4/-1/5 under full backend start [-vvvq] : 0  ##
-## settled fastest, 1-4 all settled but slower, 5 and -1 both confirmed     ##
-## broken. -1 [ "bypass the queue, invoke immediately" per Event.pm docs ]  ##
-## reentrantly starved v7's own init-code-push step [ live hang at          ##
-## "awaiting init-code on stdin" ] -- unlike base.handler.write's /         ##
-## output_buffer's -1 usage, which is safe only because those are           ##
-## repeat=>FALSE one-shot EAGAIN retries, not a fitting model for this      ##
-## long-lived repeating drain. the prior 'prio => 5' sat inert for 11 years ##
-## [ masked by the base.event.add_io prio-copy-paste bug ] until the        ##
-## wrapper fix made it real and exposed the starvation the other way        ##
+## prio 0 : live-swept 0/1/2/3/4/-1/5 under full backend start [-vvvq] : 0 ##
+## settled fastest, 1-4 all settled but slower, 5 and -1 both confirmed    ##
+## broken. -1 [ "bypass the queue, invoke immediately" per Event.pm docs ] ##
+## reentrantly starved v7's own init-code-push step                        ##
+## [ live hang at "awaiting init-code on stdin" ] -- unlike                ##
+## base.handler.write's / output_buffer's -1 usage, which is safe only     ##
+## because those are repeat=>FALSE one-shot EAGAIN retries, not a fitting  ##
+## model for this long-lived repeating drain. the prior 'prio => 5' sat    ##
+## inert for 11 years                                                      ##
+## [ masked by the base.event.add_io prio-copy-paste bug ] until the       ##
+## wrapper fix made it real and exposed the starvation the other way       ##
 <[event.add_io]>->(
     {   'fd'      => $io,
         'handler' => qw| v7-zenki.handler.zenka_output |,
@@ -462,8 +463,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,.,,.,,,,.,,,,,,,.,,,,,,.,.,,.,,,..,,,.,...,..,,...,...,...,..,,,,.,,.,,,.,,
-#XI4EYMNO45A62TXZ2DYDMQ45RYLKA57J2BCTMKCCBDXQ3RXXKUYA2FDOQO47VJOYEMJCTPVGBJZIY
-#\\\|55JLUFTSDIWY7JZWP2DMSCS3ZSZSO3ZIPWPECBPRATWNM6XHSRR \ / AMOS7 \ YOURUM ::
-#\[7]CVPUMJGS2GL3FF5V5SBYNU4DJIQPQHOXMASZJTZAJPOJU7EREADI 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,,,,.,,,..,.,,,...,.,.,,,.,,,.,..,,...,..,,.,.,...,...,..,,...,
+#A25H327QO2WEOCWCIAX56OROYLXMF4PQBOQOVOP7N7N7PNVGMGKX4I2MW2CXCYBO7KC47PCB24LFQ
+#\\\|SS6MCUOYWC5PCIKBE7KOYVF3LD5CN3ZTQDBH5YYZFQRDP4CZIAH \ / AMOS7 \ YOURUM ::
+#\[7]L6TDA3UJKZ2VRL3LUH5AJYP6WUEZ6DRHWIAH7YSBCDJ6RPBWQEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

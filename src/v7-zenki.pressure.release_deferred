@@ -3,9 +3,10 @@
 # name  = v7-zenki.pressure.release_deferred
 # descr = per sample : run deferred restarts \ held starts the curve allows
 
-## called by v7-zenki.handler.pressure_sample after every sample [ no own   ##
-## timer ]. state lives on the instance \ job hashes [ ids get reused ], so ##
-## a terminated instance or a removed job simply drops out here             ##
+## called by v7-zenki.handler.pressure_sample after every sample        ##
+## [ no own timer ]. state lives on the instance \ job hashes           ##
+## [ ids get reused ], so a terminated instance or a removed job simply ##
+## drops out here                                                       ##
 
 my $instances = <v7-zenki.zenka.instance>      // {};
 my $jobs      = <jobqueue.joblist.by_id>       // {};
@@ -123,8 +124,8 @@ foreach my $instance_id (@held) {
 
 return 0;
 
-#,,,.,.,,,..,,.,,,,,.,,,.,,,,,,..,.,,,,,,,.,.,..,,...,...,...,,.,,,..,,,.,,..,
-#G3LTNJTMPMSZMNMY4AN2E6ELXZBLMPMEZZWZWZVDIZROWECNLJJWZHSBQDCK7QZMSQXBILSNY3JT4
-#\\\|5TBRDGQCVUTFTEOYHLNVOKWJXAQFG6PEHTEGR4MQIUCIKHRBW3J \ / AMOS7 \ YOURUM ::
-#\[7]OSTISOCDDK6WZNZOAYN6C5CY6NOOBSMMLKY7OHOPVX4Q3NYI6WDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,,,,,,,,..,.,,,,,.,,.,,,,.,.,.,..,,...,...,,,.,.,.,...,...,,,.,
+#JLY6X7UIFQXF3J3TA4NX7ZILCIZE5OQ5LZ27URE4R6VP52F5YDZJWQIQSJNWKQC3Y274TDQVT2BUQ
+#\\\|OJLZB27IUDICBGQ5Z6PXWB2CQVAUM773UAAQS73KIGUOC4BM3HX \ / AMOS7 \ YOURUM ::
+#\[7]SOWJ6GH6WH6IMCVAT5UNPAPEROJGYPRCJU5J63ZL6ZWMBZM754CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

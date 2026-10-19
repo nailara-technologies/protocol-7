@@ -23,11 +23,11 @@ if ( not $cube_connected ) {
 <v7-zenki.registered_at_cube> //= {};    ## dedup table [ per v7 process ] ##
 my $registered_ref = <v7-zenki.registered_at_cube>;
 
-## one-time seed from legacy <v7-zenki.ondemand_zenki> array [ migrate prior
-## path ] .., only when this is the first call after deploying this module ;
-## the cube (re)start path explicitly wipes the dedup before calling, so
-## seeding then is suppressed via that wipe leaving an empty hash and the
-## seed-flag unset.,
+## one-time seed from legacy <v7-zenki.ondemand_zenki> array
+## [ migrate prior path ] .., only when this is the first call after deploying
+## this module ; the cube (re)start path explicitly wipes the dedup before
+## calling, so seeding then is suppressed via that wipe leaving an empty hash
+## and the seed-flag unset.,
 <v7-zenki.registered_at_cube_seeded> //= FALSE;
 if ( not <v7-zenki.registered_at_cube_seeded>
     and ref(<v7-zenki.ondemand_zenki>) eq qw| ARRAY | ) {
@@ -78,8 +78,8 @@ foreach my $zenka_name (@new_names) {
 
 return 0;
 
-#,,.,,,,.,,.,,,,,,.,,,...,..,,...,,..,..,,,.,,..,,...,...,,,,,.,.,.,,,,,,,.,.,
-#L7A2EHXY2HBOFMTZD4IXQZQX3JXXB6DHZGNKBZ2T2QTUVGPA3BQOKLODFPS5LT2XUOJVP7O5T2KQ4
-#\\\|5KTGLY2JVMLO55ALHH5KPRSELX5YWH4OTWB2YOCQBLBJPRZ2FS4 \ / AMOS7 \ YOURUM ::
-#\[7]O465BIROLS27ZVKF5NGLRKXZGQKYLETER73MBFESGRWWWGNAO4DI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,..,,..,,,.,,...,,,.,.,,,...,,.,,..,,...,...,,..,.,.,,,.,,..,,.,,
+#C2OVNF7C6ECHRZLP62MEVYGHXSIQCSM5DF6CAJM4EVD3VYBAGEBIIBB5M3QSSM46CPMLTEO7G3FGQ
+#\\\|BLLH4YDX4STKMW6JSE2VY2LNEU72GHZM5TYHANENWVEBFKE4GSP \ / AMOS7 \ YOURUM ::
+#\[7]TVV7GAIX2DS2RFAWBJR5RJN7KEZTG5U5VU2MROEFOKBJSSO65MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
