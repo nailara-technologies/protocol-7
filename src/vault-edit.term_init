@@ -4,9 +4,9 @@
 # descr = put the terminal into raw non-blocking mode for the interactive
 #         cred-mesh browser
 
-## mirrors user-edit.term_init / nshell.term_init : Linux::Termios2 [ linux-
-## native, no XS build issues ], O_NONBLOCK on STDIN so sysread never stalls
-## the event loop, original termios saved for vault-edit.term_restore.
+## mirrors user-edit.term_init / nshell.term_init : Linux::Termios2
+## [ linux-native, no XS build issues ], O_NONBLOCK on STDIN so sysread never
+## stalls the event loop, original termios saved for vault-edit.term_restore.
 
 my $tty_fd = fileno(STDIN);
 return FALSE if not defined $tty_fd or $tty_fd < 0;
@@ -20,8 +20,8 @@ return TRUE if defined <vault-edit.term.orig_termios>;
 ## go regardless -- editor.input.next_key wants raw BYTES anyway, it does its
 ## own utf-8 assembly.
 ##
-## STDOUT/STDERR ALSO need it dropped here, which is nshell's pattern [
-## nshell.init_code : `map { binmode($ARG) } (*STDIN, *STDOUT, *STDERR)` ],
+## STDOUT/STDERR ALSO need it dropped here, which is nshell's pattern
+## [ nshell.init_code : `map { binmode($ARG) } (*STDIN, *STDOUT, *STDERR)` ],
 ## NOT user-edit's [ user-edit deliberately keeps STDOUT encoded, because its
 ## output is always a locally-rendered, already-utf8-flagged Perl string ].
 ## vault-edit is in nshell's situation, not user-edit's : `$reply->{'data'}`
@@ -64,8 +64,8 @@ push <callbacks.end_code>->@*, qw| vault-edit.term_restore |;
 
 return TRUE;
 
-#,,..,..,,.,,,,,,,...,..,,...,.,,,,,,,,,,,,,,,..,,...,...,,,,,,.,,.,.,,..,...,
-#TZDCLK7DPZ5HDFETOFEYE2KRTTWZP2U2LYYR4DSSXUJL24FZ4YRNKNXQSXBVGXNONIMUNIILGQVVQ
-#\\\|Q5DSVHQ2TALVXDUI73DS5COVNUQWUC6CXMXV46VBKOP2SIAB57O \ / AMOS7 \ YOURUM ::
-#\[7]NLLEYJ6R6NVZK2GJPKIHA4PEPQDF66WJA44JM5YSH75YZXAQVECY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,..,,.,,.,,,,,.,..,,,..,,,.,,.,,..,,...,..,,,,,,.,.,.,,,..,,.,.,
+#EB6GAS5HEPQTKRRVWWYVCAG6LVXDBESUDRX3FPKVSIEHDFGVHN6WCD4JIHMVBZW4FUEBPUWACZGBC
+#\\\|ZOIZXUQ4ISFVABOAZ3DT2A3RKXKYLTGTIPPKWC5ZOJKMMQDRY5R \ / AMOS7 \ YOURUM ::
+#\[7]LCRIQIN4G2F3AQRPREH2GWVXUGV67RCNRY46XCZ2HEKHEJ7THEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

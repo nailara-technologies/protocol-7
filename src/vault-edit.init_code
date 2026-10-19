@@ -5,9 +5,9 @@
 
 <[base.logs]>->( 2, 'vault-edit zenka initialized' );
 
-## raw terminal mode for the interactive browser [ vault-edit.term_init /
-## .term_restore ] -- linux-native, no XS build issues, API-compatible with
-## POSIX::Termios [ nshell/user-edit precedent ]
+## raw terminal mode for the interactive browser
+## [ vault-edit.term_init / .term_restore ] -- linux-native, no XS build
+## issues, API-compatible with POSIX::Termios [ nshell/user-edit precedent ]
 <[base.perlmod.load]>->('Linux::Termios2');
 
 ## resolve the invoking Unix user, for the start file's  system.auth-user =
@@ -34,8 +34,8 @@
 <vault-edit.last_render>       = undef;   ## for vault-edit.cmd.char-add    ##
 
 ## last VEFOCUS trailer seen [ vault-edit.handler.reply / .render_chrome ] --
-## undef until the first ui-show reply lands ; left untouched (not reset) on
-## a reply that carries none [ an error, or a grant/approve prompt frame ],
+## undef until the first ui-show reply lands ; left untouched (not reset) on a
+## reply that carries none [ an error, or a grant/approve prompt frame ],
 ## since neither of those actually changed which view is showing
 <vault-edit.focus_view>  = undef;
 <vault-edit.focus_row>   = undef;
@@ -49,9 +49,10 @@
 <vault-edit.help_visible> = FALSE;
 <vault-edit.hint_seen>    = FALSE;
 
-## the last body vault-edit.render_chrome wrapped [ post header/VEFOCUS-strip,
-## pre-chrome ], cached specifically so vault-edit.repaint can redraw the
-## CURRENT screen with a new help_visible state without a network round trip
+## the last body vault-edit.render_chrome wrapped
+## [ post header/VEFOCUS-strip, pre-chrome ], cached specifically so
+## vault-edit.repaint can redraw the CURRENT screen with a new help_visible
+## state without a network round trip
 <vault-edit.last_body> = undef;
 
 ## array of decoded keys, not bytes -- keeps backspace correct on multi-byte
@@ -60,8 +61,8 @@
 
 return TRUE;
 
-#,,.,,,.,,.,.,.,,,..,,...,...,...,...,...,,,,,..,,...,...,,,.,,..,.,,,...,,,,,
-#LN7SMV6QPP63BAV2TP6GKP4SF4SHA2GT7BI6GRPGAJ6YTSQLBAVYDZD5YGMSUY3PJWUMP2W643OTY
-#\\\|46VPYFP2X2LB2ZFVFEZZVXVLKUXDTWS3AYER45PZJSTIK2IGVQN \ / AMOS7 \ YOURUM ::
-#\[7]ZRBD7WBWKJFMXJDBFR6VAAF7LNYEFIMUEJ4OS2WI4C3NBMJSN2CY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,,,,.,,.,.,,,,,...,,,.,,.,,,,,,..,,...,..,,...,..,,..,,..,,.,.,
+#WKM6GZ2H7IZZU34MQKOAB52OHURSWWVNPDO7Q5CMOHZ3A34FZEQCMNI64CSDJOYPLCZY7NX2WCTNA
+#\\\|MZB5FYDPKPS47V4OSZJGNFZIVPX2YMCLWKP4VWWQZN7VQ7VJMC2 \ / AMOS7 \ YOURUM ::
+#\[7]RS27HZBYL775C2N6JTKY4I2U7SQJWCHZKHKRWBOBSSDIUU7TGGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

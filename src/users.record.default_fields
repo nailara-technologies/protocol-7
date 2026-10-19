@@ -4,10 +4,10 @@
 # descr = default field set for a new host-system record
 
 ## the single authority for what a freshly created host-system record
-## contains.  the settings payload is deliberately open [ users-zenka.yaml
-## defines no field list ], so this is the ONE place that decides the starting
-## shape -- an installer provisioning a node's 'root' account calls this same
-## module, with no user-edit involved.
+## contains.  the settings payload is deliberately open
+## [ users-zenka.yaml defines no field list ], so this is the ONE place that
+## decides the starting shape -- an installer provisioning a node's 'root'
+## account calls this same module, with no user-edit involved.
 ##
 ## returns a FRESHLY BUILT hashref on every call and is deliberately not
 ## cached in a <users.record.default_fields> variable : callers write into the
@@ -20,11 +20,11 @@
 ## own envelope fields, not a "field" in the editable sense at all ] plus
 ## whichever OPTIONAL fields the user actually chooses to add. this was a real
 ## behaviour change, not just a config move : user-edit.form.
-## schema_from_record refuses a record with zero editable fields [ "record has
-## no editable scalar fields", returns undef ], which used to be impossible to
-## hit from a freshly create-default'd record -- every one always had
-## contact+location, guaranteeing a non-empty schema.  a genuinely empty
-## record hits that guard immediately now, and editor.control.create
+## schema_from_record refuses a record with zero editable fields
+## [ "record has no editable scalar fields", returns undef ], which used to be
+## impossible to hit from a freshly create-default'd record -- every one
+## always had contact+location, guaranteeing a non-empty schema.  a genuinely
+## empty record hits that guard immediately now, and editor.control.create
 ## independently refuses an empty field list too even if schema_from_record's
 ## own guard were bypassed -- so user-edit.handler.value_get_reply needed a
 ## real bootstrap path for the interactive case [ chain the field-options
@@ -35,8 +35,8 @@
 ## same companion fix.
 return {};
 
-#,,..,.,,,..,,...,.,.,.,.,.,.,,,.,..,,,,,,,.,,..,,...,...,,..,,..,,.,,,,,,.,,,
-#PEYR3QB7YSRKTK3GBPN6BURNOPWX75GX4COOYMUZG3PFRFI23A2V4K6QV27X7R47PZIGBE6JFCZF4
-#\\\|GCOOLR2R3EZG6QTGITB6ET3KXJMX4TSWU5L3KRIJRU4EGRX43MM \ / AMOS7 \ YOURUM ::
-#\[7]EMJ5PD4QX5IUNIQMKSXTQ4TCU7D36BH32DWNABLBFKIPG2Q6S6CA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,,.,,,,,.,.,.,.,.,.,,,,,.,.,..,,...,...,.,,,.,,,.,.,.,.,,.,,
+#5JKAU5UTXJXYBF4HTLDMQUEBKJ4DIQRGFRNUWW3UHIZNKGDQULY5ICQXM52MIFPHHAV4IXB5JNLNQ
+#\\\|GQCP75FAUAO4DRSLLWZP6WZC3V67VMZTBOLLDPYJWVV5YU3AFNE \ / AMOS7 \ YOURUM ::
+#\[7]QMXVV3PMY7WQK3JZVLVUNUKZEHJYNA564EMB7OQEQ6AEVDTVTYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

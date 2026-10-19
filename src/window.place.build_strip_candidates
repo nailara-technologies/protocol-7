@@ -5,14 +5,15 @@
 # descr = build an ordered top/bottom-strip candidate list across ALL given
 #         monitors, for window.place.find_safe_position to try in order
 
-## a same-monitor candidate list [ eg just the alternate strip + previous ##
-## profile ] can't help if the WHOLE monitor it's anchored to becomes     ##
-## unavailable - this expands that to cycle through every known monitor   ##
-## too, reusing window.profile.calculate per monitor [ which already      ##
-## accepts screen_x/screen_y offsets and returns absolute coordinates ].  ##
-## ordering: preferred monitor first, preferred profile first within each ##
-## monitor - so the common case [ same monitor, alternate edge ] is still ##
-## tried before falling through to other monitors.                        ##
+## a same-monitor candidate list                                            ##
+## [ eg just the alternate strip + previous profile ] can't help if the     ##
+## WHOLE monitor it's anchored to becomes unavailable - this expands that   ##
+## to cycle through every known monitor too, reusing                        ##
+## window.profile.calculate per monitor [ which already accepts             ##
+## screen_x/screen_y offsets and returns absolute coordinates ].  ordering: ##
+## preferred monitor first, preferred profile first within each monitor -   ##
+## so the common case [ same monitor, alternate edge ] is still tried       ##
+## before falling through to other monitors.                                ##
 
 my ( $monitors, $preferred_profile, $preferred_index ) = @ARG;
 
@@ -65,8 +66,8 @@ for my $mon_idx (@ordered_indices) {
 
 return \@candidates;
 
-#,,,,,,..,..,,..,,.,.,...,.,.,,,,,.,,,...,..,,..,,...,...,..,,..,,.,,,,..,,..,
-#P2R7LNJ3XLSAZD2YGCTIDH3XIILF6QVWJSJ2XPYAHSKEXDD7IH3B6UUS5WHIVPROBSS4GTVLFFKBS
-#\\\|CFIRVDFTRIPRR3KHE7C2MGSRWIWLX3VEPQHFHMA6XNXTFXLDJWA \ / AMOS7 \ YOURUM ::
-#\[7]YRJTGATKNIIF4DL4IWSIWCBCI345L2XVHGKCUNM76Y2PBBIC4SDA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,..,,...,,,.,...,,,,,...,..,,..,,...,...,.,.,,,.,,..,,.,,,..,
+#RSROZXEQWWOB7DGKV3TY35IPLPMJNU5CAP47WTGQQEIT6JPM4QVPQCLVYYOCYEDR36U3O46WOG57C
+#\\\|7NTJ4VEV4H2EFK6NIKMQJ2JFFPZU2FA4BYSXBERN2G46JPYVSAV \ / AMOS7 \ YOURUM ::
+#\[7]LSGFLSISHURKGWFH7TN6O7EY6GY5USQUCNQEQZTH4WE3GZOEM4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

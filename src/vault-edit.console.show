@@ -30,8 +30,8 @@ if ( not defined $cube_sid ) {
 
 if ( not -t STDIN and not <vault-edit.mode.no_tty_debug> ) {
     ## NOTE : no quoted token directly after '<<' -- "<< 'show' .." parses as
-    ## a heredoc opener and breaks the module [ user-edit.console.start's own
-    ## note, same trap ]
+    ## a heredoc opener and breaks the module
+    ## [ user-edit.console.start's own note, same trap ]
     print "\n  << vault-edit needs a terminal [ "
         . "use -no-tty when piped/scripted ] >>\n\n";
     return FALSE;
@@ -59,11 +59,12 @@ if ( not <vault-edit.mode.no_tty_debug> ) {
 ## shape '<view> session_id=NNN'.  a bare call sends just  'session_id=NNN'
 ## with nothing in front of it, that regex silently fails to match, and
 ## cred-mesh initializes focus under the EMPTY-STRING session key instead of
-## ours -- found live : ui-show itself still "worked" [ it has no
-## missing-session_id guard, so an empty key just renders fine ], but every
-## subsequent interactive-* call [ whose own session_id regex has no such
-## whitespace requirement ] correctly used OUR real session_id and found no
-## focus there, i.e. always "no active ui focus"
+## ours -- found live : ui-show itself still "worked"
+## [ it has no missing-session_id guard, so an empty key just renders fine ],
+## but every subsequent interactive-* call
+## [ whose own session_id regex has no such whitespace requirement ] correctly
+## used OUR real session_id and found no focus there, i.e. always "no active
+## ui focus"
 <[vault-edit.send_action]>
     ->( sprintf( 'ui-show %s', length($view) ? $view : qw| overview | ) );
 
@@ -73,8 +74,8 @@ if ( not <vault-edit.mode.no_tty_debug> ) {
 
 return TRUE;
 
-#,,,,,,..,...,,,.,..,,.,.,,,,,,,,,,..,.,,,...,..,,...,...,..,,..,,.,,,.,,,,,.,
-#BL2OCMVNFAWH336W74ZUCK6S2WF2KJPT4MCFUWPSHCLMJ7OJI6HY452KFNUNATNHXRHD7J2UWV6EK
-#\\\|4KQWHL5U24COYIN4KL664AM5UD3FSDXWWTJQPWFQMDTJ2W47RVQ \ / AMOS7 \ YOURUM ::
-#\[7]J5TPMENMV7SI3Z2S6BRCTFXNVA3LSDLTSZBP7DGEVYYWE57NKACA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,,,,,...,..,,.,.,...,,,,,,,.,..,,...,..,,.,,,..,,,,.,.,.,,,.,
+#PUKEYCSJHYYBXZXDI3KDTWCCCE46VPR2ME6GEQSCRHQEVKE6DQWUXSXNJNZI4R7MKRQJ7G2LXDAZ6
+#\\\|SPZDU33XQMNWCIAWGTDVMJQFLUWQD32UQN33CDT7FHBIHKXFDPD \ / AMOS7 \ YOURUM ::
+#\[7]NVUSGCYSDVU3Z25LJ35ZB4YILCTNQSSBJX6MJ4FBAX3OYNFQLSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

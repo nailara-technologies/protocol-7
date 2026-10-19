@@ -185,18 +185,19 @@ if (<web-browser.cfg.no_memory_cache>) {
 
 <web-browser.gtk_obj.web_context> = $web_context;
 
-## local self-signed services [ e.g. Nessus's own web UI before a real cert ##
-## is configured ] are rejected by default -- opt-in only, never the        ##
-## default, since this disables TLS validation entirely.                    ##
+## local self-signed services                                        ##
+## [ e.g. Nessus's own web UI before a real cert is configured ] are ##
+## rejected by default -- opt-in only, never the default, since this ##
+## disables TLS validation entirely.                                 ##
 $web_context->set_tls_errors_policy('WEBKIT_TLS_ERRORS_POLICY_IGNORE')
     if ( <web-browser.cfg.ignore_tls_errors> // qw| no | ) eq qw| yes |;
 
-## proxy_setup needs web_context to exist, which it only does from this    ##
-## point on -- calling it here (rather than as its own standalone start-   ##
-## file step before open_window ever runs) is what makes the NO_PROXY /    ##
-## CUSTOM proxy mode actually apply, instead of being silently skipped by  ##
-## its own not-yet-defined-context guard. Must run before init_view below, ##
-## since that's what starts making real network requests.                  ##
+## proxy_setup needs web_context to exist, which it only does from this     ##
+## point on -- calling it here (rather than as its own standalone           ##
+## start-file step before open_window ever runs) is what makes the NO_PROXY ##
+## / CUSTOM proxy mode actually apply, instead of being silently skipped by ##
+## its own not-yet-defined-context guard. Must run before init_view below,  ##
+## since that's what starts making real network requests.                   ##
 <[web-browser.proxy_setup]>;
 
 # will use initialized web context
@@ -335,8 +336,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,,.,.,,,..,,,.,,..,,.,,,,..,.,.,,..,.,,,,,,,..,,...,..,,,..,..,,..,,,,.,,,.,
-#ZBH6L5GGZHEYY26DJQCI4ISMLK7FG6VT2YUSPVR4FDS62YTCYW7GX5SWGUFE6DYUWKZHOZPMAXJF2
-#\\\|DGHENU5FZCUEGMQZWQY6RUZGMV7ITN4ZNIQJXI6VEOM6JM4GLXS \ / AMOS7 \ YOURUM ::
-#\[7]FJFO2AG67J4GW7NQ33242P5UGRHGZXJXLF4RJTCMYAS4MGBQLUBI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,..,,..,,,.,,,,.,,,.,,..,,.,,..,,...,...,.,.,..,,...,...,..,,
+#EMASIUJGCYOAZYMAASR4LEJ3N66UT652FHN436T5UQVQZBB4ZFKVUI2KC44FQAFO6W3SG3JAUM5HU
+#\\\|T7ABGNMQ4SP2TMZKYXCFP7EVTDAA7KAPOV6KKU75DT2OKIRYSUA \ / AMOS7 \ YOURUM ::
+#\[7]DO6XRJ3G6DO2XX54PH4WAOD445ES63ASCOMWNVUSKH5ZDAKO6ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

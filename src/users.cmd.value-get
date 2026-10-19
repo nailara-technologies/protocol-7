@@ -54,11 +54,11 @@ if ( not defined $record ) {
 ## users.record.sorted_fields are shown in the same canonical order they are
 ## WRITTEN in [ users.record.build ] -- a record saved before that
 ## normalisation landed [ or one whose fields are mid-edit ] still has its
-## old/arbitrary insertion order, and re-sorting on every READ too [ rather
-## than only after the next write ] is what makes 'show' agree with a fresh
-## submit immediately, without requiring a no-op re-save first.  a read-side
-## copy only : this must never WRITE the reordered arrays back, or a plain
-## 'get' would have a silent side effect on stored state
+## old/arbitrary insertion order, and re-sorting on every READ too
+## [ rather than only after the next write ] is what makes 'show' agree with a
+## fresh submit immediately, without requiring a no-op re-save first.  a
+## read-side copy only : this must never WRITE the reordered arrays back, or a
+## plain 'get' would have a silent side effect on stored state
 my @sorted_fields = grep { ref $record->{'fields'}{$ARG} eq qw| ARRAY | }
     <[users.record.sorted_fields]>;
 
@@ -77,8 +77,8 @@ return {
     'data' => $yaml_str
 };
 
-#,,,.,.,,,.,,,.,,,,,,,,,.,..,,.,.,..,,..,,,,.,..,,...,.,.,.,,,...,.,,,.,.,,.,,
-#DB4KIW3VWO7AO5TY6PYFZPEX4JHMPGELOLQPCVLGYGUKUAEKV46QUZY66NC4F6H7FPBXCYB2ELU2Q
-#\\\|KXW7BRO52764TDRTCW3KO2I3SGPD3X75BJRRIRVAYUGYGKBZKLU \ / AMOS7 \ YOURUM ::
-#\[7]G5N2NFJEEPMHD55CNSKV43TK7MOOWOICCXH6TZDEKSQ6WRPIIIAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,.,.,,,,.,,,.,,.,.,.,,,,.,,,..,..,,...,..,,,..,..,,,..,,.,,..,,
+#3F3DRICVSNN3YLZ6422QOFGNGVMTDR6BMIJC2PTFGFZZSCJVSCBZ3JA6CJGEMXV6V623NXO3WRABS
+#\\\|MCERK4A2VQTQL4S6FUUGMKQT6RAPDWRHNABRE27DNKN7X22TGSS \ / AMOS7 \ YOURUM ::
+#\[7]OS3T46CNTCDTDN72TBJNLNIDF3GYHJZQAWYA7UCDZSHTLD324MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,12 +6,13 @@
 ## poll-based hover + drag fallback for wslg/xwayland: gtk enter/leave and ##
 ## motion events can be lost for this undecorated rgba keep-above window   ##
 ## until a button-press forces pointer association - and even the first    ##
-## button-held drag's motion can be starved the same way [ the 'first drag ##
-## only focuses' bug ]. this recurring timer queries the pointer directly  ##
-## and either drives the active drag geometry [ via apply_drag, with the   ##
-## screen-relative position used as root coords ] or, while not dragging,  ##
-## updates the resize-region hover cursor - so both proximity feedback and ##
-## the very first drag work without relying on motion-notify delivery.     ##
+## button-held drag's motion can be starved the same way                   ##
+## [ the 'first drag only focuses' bug ]. this recurring timer queries the ##
+## pointer directly and either drives the active drag geometry [ via       ##
+## apply_drag, with the screen-relative position used as root coords ] or, ##
+## while not dragging, updates the resize-region hover cursor - so both    ##
+## proximity feedback and the very first drag work without relying on      ##
+## motion-notify delivery.                                                 ##
 
 my $event   = shift;
 my $watcher = $event->w;
@@ -38,8 +39,8 @@ if ( not defined $window or not $window->get_visible ) {
 
 ## force a redraw every tick so the HUD readout keeps refreshing from live ##
 ## position/size during a compositor-driven move/resize grab -- weston     ##
-## appears to only request a repaint at the start/end of such a grab [     ##
-## visually stretching the last frame as a live preview in between ], so   ##
+## appears to only request a repaint at the start/end of such a grab       ##
+## [ visually stretching the last frame as a live preview in between ], so ##
 ## 'draw' alone doesn't fire often enough on its own.                      ##
 $window->queue_draw;
 
@@ -94,8 +95,8 @@ eval {
 
 return;
 
-#,,,.,..,,.,,,.,,,,..,,..,,.,,.,,,.,.,.,,,,,,,.,.,...,...,,,,,,,.,.,,,,..,.,,,
-#OMOGNGFDCQJ7SA3LHVHP6IJPPAMOOTHALGQAFGEKANALWOVCQN53I47YPOKYYF6PH6VRI5J7DASCK
-#\\\|KBKY2NHC2CRYPCC5N5LH45R5Q3QIGYTOZVMW5QLEB2LFIPCF45M \ / AMOS7 \ YOURUM ::
-#\[7]XCLTOKAOQQDVN37LXXH7SXZFAVD2Z7BG5IWAB7TKY7LW4BJHX4AI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,...,.,,,,,.,.,,,...,.,.,,,.,.,,,.,.,...,...,..,,,,.,,.,,...,.,,,
+#GVULQ54AL4TOB2DMGE5IEIQLA2UTJYGDWDCUVB5SICZ62WQSR7YGG7IG6DONCJCLTLN37OAIBQHWU
+#\\\|NQ7JMH5O6LXI3UTA7NO6QL3TH7RFTXMG3D54TSFD2LLWGHOY7VQ \ / AMOS7 \ YOURUM ::
+#\[7]LM4BAGZUA26P22TCCJGTGYB3ZTVMB3TY4C5SM27J4DDCKEKRXUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

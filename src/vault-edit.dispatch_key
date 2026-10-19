@@ -9,15 +9,15 @@
 ## back in here with "\e", exactly as if it had decoded normally ] -- factored
 ## out specifically so those two call sites can never drift apart
 ##
-## returns TRUE if a routed call to cred-mesh was just sent [ the caller
-## should stop draining further keys until the reply arrives ], FALSE
-## otherwise
+## returns TRUE if a routed call to cred-mesh was just sent
+## [ the caller should stop draining further keys until the reply arrives ],
+## FALSE otherwise
 
 my $key = shift // return FALSE;
 
-## emergency exit, unconditional : vault-edit.term_init turns ISIG off [ so
-## ctrl-c reaches here as a key, not a signal ], which means without this a
-## stuck session has no way out except killing the process from elsewhere.
+## emergency exit, unconditional : vault-edit.term_init turns ISIG off
+## [ so ctrl-c reaches here as a key, not a signal ], which means without this
+## a stuck session has no way out except killing the process from elsewhere.
 ## checked before the pending-prompt branch so it works from any state
 if ( $key eq "\x03" ) {
     <[vault-edit.quit]>;
@@ -64,11 +64,11 @@ if (<vault-edit.pending>) {
 
 ## navigation / action mode ##
 
-## normalize SS3 arrow keys [ \eOA .. \eOD ] to their CSI form [ \e[A ..  \e[D
-## ] : some terminals send SS3 when application cursor key mode [ DECCKM ] is
-## on -- %key_verb below only ever matches CSI  [ nshell.read_from_buffer
-## precedent -- missed on the first pass here, which is exactly why plain
-## arrow keys did nothing in the first live test ]
+## normalize SS3 arrow keys [ \eOA .. \eOD ] to their CSI form [ \e[A ..
+## \e[D ] : some terminals send SS3 when application cursor key mode
+## [ DECCKM ] is on -- %key_verb below only ever matches CSI  [
+## nshell.read_from_buffer precedent -- missed on the first pass here, which
+## is exactly why plain arrow keys did nothing in the first live test ]
 state %ss3_arrow_map = (
     "\eOA" => "\e[A",
     "\eOB" => "\e[B",
@@ -79,12 +79,11 @@ $key = $ss3_arrow_map{$key} // $key;
 
 ## key-hints block toggle [ user-edit's own Ctrl-? convention, same byte --
 ## editor.input.parse_key_spec's 'Ctrl+?'/'Ctrl+/' both decode to 0x1f ] --
-## purely LOCAL state, no round trip to cred-mesh : it has no idea this
-## block exists, so repainting it just re-wraps the last known body through
+## purely LOCAL state, no round trip to cred-mesh : it has no idea this block
+## exists, so repainting it just re-wraps the last known body through
 ## vault-edit.render_chrome with the flipped state
 if ( $key eq "\x1f" ) {
-    <vault-edit.help_visible>
-        = <vault-edit.help_visible> ? FALSE : TRUE;
+    <vault-edit.help_visible> = <vault-edit.help_visible> ? FALSE : TRUE;
     <[vault-edit.repaint]>;
     return FALSE;
 }
@@ -102,8 +101,8 @@ state %key_verb = (
 
     ## the only way OUT of a detail card [ '?' above ] once inside one --
     ## without this, select_view has no key binding at all and a detail card
-    ## is a dead end short of quitting the whole browser [ found reviewing
-    ## the new key-hints line vault-edit.render_chrome now always shows :
+    ## is a dead end short of quitting the whole browser [ found reviewing the
+    ## new key-hints line vault-edit.render_chrome now always shows :
     ## advertising '?' without ever advertising a way back makes the hint
     ## itself the trap ]
     'o' => 'interactive-select-view overview',
@@ -121,8 +120,8 @@ if ( defined $key_verb{$key} ) {
 ## unrecognised key while browsing : ignored ##
 return FALSE;
 
-#,,,.,,..,,,,,.,,,,..,,..,,,.,,..,,,,,,.,,,,.,..,,...,...,...,.,.,,,.,.,.,.,,,
-#JHUEUCIRSL23XCQNTRRRWHMMNLZ5NCDGC6D3N7HDTNFFCEIJNESE7TVQSYVPSPXYIYKYX7CXCMJES
-#\\\|ECVBFIC6RM2QPZZ44QZMMAWZOOPKXUEYWJH7KIFBU77LL25QVWA \ / AMOS7 \ YOURUM ::
-#\[7]X3M5N6OODW5JEWVTKD2P4BYJEWR274X527EGGPSWK6IABYNJ6KCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,,,,..,,,,,,..,...,,..,.,.,,,.,..,,...,...,..,,,,.,..,,..,,.,.,
+#22NKOHZ6CT5ESOQ7G5567CINNLLA5WP62MV4P3CDVWNWBJSX2GT4BTDMRGXP3MP5ICMPLPYWTOVIC
+#\\\|NPRXLPKAKFRXNACZJBKNO5DMODLXDF2YFUUBI2IGDVF5JI4NSWF \ / AMOS7 \ YOURUM ::
+#\[7]TQUL4CXVMYNWYQ5T4DUZT63QB2EBPB75QVBJ7HWHX2DF3RAX7MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
