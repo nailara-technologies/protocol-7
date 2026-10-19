@@ -20,8 +20,8 @@ map { <[base.perlmod.autoload]>->($ARG) }
 ## enable proxy from environment variables (HTTP_PROXY / HTTPS_PROXY) ##
 <site-yaml.ua>->env_proxy;
 
-## bypass proxy for known direct-access domains [ configurable, default ##
-## false ]                                                              ##
+## bypass proxy for known direct-access domains ##
+## [ configurable, default false ]              ##
 if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
     <site-yaml.ua>->no_proxy(qw| stepstone.de www.stepstone.de |);
 }
@@ -52,8 +52,8 @@ if ( @{$queue} ) {
 
 <[base.logs]>->( 1, 'site-yaml ready' );
 
-#,,..,..,,.,,,,,,,,.,,,,,,.,,,.,.,.,,,...,,,,,.,.,...,...,..,,.,,,,.,,,..,,,.,
-#WPJ5JTRE6IILYR32LXBSO7YLUDSQTZQMAEPBEFSUSNP732VBTWVUCDBWAQ5RWUDDDEFG3NFLWI5JU
-#\\\|CN3WG2T5HIJWLPH35VL7RSDDCW372CRKZ23ONJTATHH72CA4IY3 \ / AMOS7 \ YOURUM ::
-#\[7]X4KMIZ3HHN6BOALYBYKWJJ6QNRX2BCBSDZVRLOWHAH5PCJIRR2BI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,.,,...,,,.,.,.,,..,,,.,...,,..,.,.,...,...,.,,,.,.,,..,...,,..,
+#AHRQQSII2SLGUZGFMJDFYDUSFVX5SXDMTMTUGDFRTMQFYIMUBBELHOFT5P7SBJEQKPIU6LB5K67YI
+#\\\|DXOP5T5F6FZJ4VJNRMXCRCKGKQ2KNUSNGERNWCA2AQV4ONJKNFG \ / AMOS7 \ YOURUM ::
+#\[7]R2CXMVJZHPLTDG7BADGEJ7JM4TFI3SMPLZ2ROR7INDW553J27KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,10 +51,11 @@ if ( defined $llm_result and ref $llm_result eq qw| HASH | ) {
     }
 }
 
-## keyword fallback for intent when llm unavailable or failed -- via the   ##
-## shared pattern registry [ data/yaml/pattern-registry/smtpd-classify.    ##
-## yaml ], same trigger position as the prior inline chain: only runs when ##
-## the llm path above didn't already set intent                            ##
+## keyword fallback for intent when llm unavailable or failed -- via the ##
+## shared pattern registry                                               ##
+## [ data/yaml/pattern-registry/smtpd-classify. yaml ], same trigger     ##
+## position as the prior inline chain: only runs when the llm path above ##
+## didn't already set intent                                             ##
 if ( not defined $parsed->{'intent'} ) {
 
     ## flatten to one line : the engine matches per-line after splitting on ##
@@ -109,8 +110,8 @@ if (    $parsed->{'action_required'}
 
 return $parsed;
 
-#,,,,,..,,,.,,,..,,,.,,,.,...,,..,,..,,,.,.,.,.,.,...,...,...,,,.,,,.,,,,,.,,,
-#L727FC2AQIT5RP2AYBIAEFOGFPYAUZNHFCDRCLRNH6IJGHQZPBFDI6LO4PACAGQHPBJ5PYIGZMJ4A
-#\\\|ZPBRCDOVOXAXIOAQLDDGUAUR4SMBCNB3HYUUPHTMDJI3M2UKZQV \ / AMOS7 \ YOURUM ::
-#\[7]DSAPY6X53YMRBDCXLEPVCFCWLZUU6A36U4JNCTBN2UEXGMRWYMAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,,,.,,..,.,.,,.,,..,,.,,,,,,,.,.,...,...,,,.,,,,,...,...,...,
+#XUPEDVDUAC7OCWC3A4FOMD46PJMBKNODSLQNFFAVIVJBBIIR2BYZBUEVFEFQ4WFKGYW3BCEFRFI7Y
+#\\\|YISUYDHTE3LENKDQCTUOZ4MXLFWYQX7H623YNZOLLBHCI2Y6R6A \ / AMOS7 \ YOURUM ::
+#\[7]S4BL5R75FYR5WBJL3YOGCM23YDFUFHZZV7OOOHN6N2WNH5SS34DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

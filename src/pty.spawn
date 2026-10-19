@@ -67,10 +67,10 @@ if ( $pid == 0 ) {
     $pty->make_slave_controlling_terminal();
     my $slave = $pty->slave;
 
-    ## inherit the real terminal's size when there is one [ e.g. this whole
-    ## thing was itself launched interactively ], then enforce the floor
-    ## regardless -- a zenka-spawned child has no terminal of its own to
-    ## inherit from, so it always falls through to the floor
+    ## inherit the real terminal's size when there is one
+    ## [ e.g. this whole thing was itself launched interactively ], then
+    ## enforce the floor regardless -- a zenka-spawned child has no terminal
+    ## of its own to inherit from, so it always falls through to the floor
     $slave->clone_winsize_from( \*STDIN ) if -t STDIN;
     my ( $rows, $cols ) = $slave->get_winsize();
     $slave->set_winsize( $min_rows, $min_cols, 0, 0 )
@@ -172,8 +172,8 @@ return {
     'reaped_by' => $reaped_by,
 };
 
-#,,,,,..,,,,,,.,.,...,,.,,,..,,.,,.,.,,.,,.,.,.,.,...,...,.,.,.,.,,,,,..,,,..,
-#KIFLBPBHTOQASP2A6WYJTIT6MUAZ3UOJYOLZMX4PPH3XLDCFOYNU4L6MRKCEEUHB5QMAKY77HNSWW
-#\\\|VGLKRODWWM27INK6FNYFTKD5VNV2YBAAVRHBQVZ57Q6VMZGJJB5 \ / AMOS7 \ YOURUM ::
-#\[7]VM3JS5DUSSN64FEJ4YE6R44NTXZZOPPJNEGWQMNPZASZ4GUBVGAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,.,,.,.,,,,,,,,,,..,,,,,,,.,.,.,.,.,...,...,...,,,.,,,,,.,.,,,.,
+#BEIZBK6YYHUT7TS7HOA5BBPVCWDYXSAVIXR3XWPOJOUFOZ5AMIXBMITNXYA7EQWHYAO77G3ZWTM7W
+#\\\|T4XDMJWTUXF6K75ZIEMYM63CMJHS6E4C4CO2OUQUSWHUA4DGB2W \ / AMOS7 \ YOURUM ::
+#\[7]6HTTMCT54Q23BHOTVKVPVGRSKZD6MY6OF7XBBMTWZ5BIPEJSC6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

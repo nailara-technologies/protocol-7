@@ -3,9 +3,10 @@
 # name  = powershell.plugin.screenshot-capture.invoke
 # descr = capture the windows host's screen via .NET GDI directly into this zenka's var dir; returns the linux-side png path
 
-## mixed-case names are discouraged project-wide [ same reasoning behind  ##
-## BASE32 over BASE64 ]; a high-resolution network timestamp also doubles ##
-## as a natural collision-free sort key, unlike a random suffix           ##
+## mixed-case names are discouraged project-wide                           ##
+## [ same reasoning behind BASE32 over BASE64 ]; a high-resolution network ##
+## timestamp also doubles as a natural collision-free sort key, unlike a   ##
+## random suffix                                                           ##
 my $screenshot_dir = <[file.zenka_dir.data_path]> . '/screenshot';
 my ( $linux_abs, $rel_path );
 while ( not defined $linux_abs or -e $linux_abs ) {
@@ -52,8 +53,8 @@ return undef if not defined $raw_out;
 
 return $linux_abs;
 
-#,,..,..,,..,,.,.,,,,,,,,,...,,,,,,,,,,,,,..,,..,,...,...,.,.,..,,,,,,..,,...,
-#BNEGZCLWKKCQGMCUQS5GCT6HH25T7DH34C7SDNHAFMYY6URXNOH3PAJCPRXHIWAISOPGA3VBSEADM
-#\\\|5BBHSRDIOSVJGVBDR76RXEQGJD4N6IU3534TFZIAQ3WS3XR7HQH \ / AMOS7 \ YOURUM ::
-#\[7]SKP4W2DXYYO6CWO5OMQV4Z4HBWNVSZLTO57CY44PNXB6SA6RXQCY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,,.,,,..,.,.,,,,,.,,,.,.,,.,,..,,...,...,,.,,,,.,,.,,,.,,.,.,
+#BLB645CF2BDPFQJHSXF52NBZPTQUR4EFMOCY2OJLEYM2WWJCIIQXIH2VC6G53MWO6ZO5DZTZ7HZAW
+#\\\|VSBDRCMVKFBMWTFVTCWRHWASHG23P5STSPAPMXWYVQE2GLLNNYP \ / AMOS7 \ YOURUM ::
+#\[7]E6DEMALY5WDST3FEK2TLGCTBRO3XLFIQOCET73TJKALTEZUQI4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

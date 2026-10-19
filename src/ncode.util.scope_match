@@ -9,8 +9,9 @@ my $app       = shift // {};
 
 return TRUE if ref $app ne qw| HASH |;
 
-## resolve the scope stack [ legacy single-string namespace is treated as a ##
-## one-entry stack ] ; no scope at all means unconstrained                  ##
+## resolve the scope stack                                                 ##
+## [ legacy single-string namespace is treated as a one-entry stack ] ; no ##
+## scope at all means unconstrained                                        ##
 my $scope = $app->{'scope'};
 if ( ref $scope ne qw| ARRAY | or not @$scope ) {
     $scope = [];
@@ -40,8 +41,8 @@ if ( $glob =~ s|\.\*$|| ) {
 ## plain entry : prefix match [ same semantics as the legacy check ] ##
 return $namespace =~ m|^\Q$glob\E| ? TRUE : FALSE;
 
-#,,,,,,,.,.,,,,..,..,,.,,,..,,.,.,,.,,.,.,,.,,..,,...,...,...,...,.,,,,.,,.,.,
-#ACDCCQPWVVJ2GRJ3ZHBFQDTPMLJZ4ZPODILSKKN5FUIL6HHG2RFBGG5OIBPFX6ZKDCNLBBYLUPPQW
-#\\\|BBHAH57W7FJ4HZYY5X4KLG5JIORTCTRVFGZQ3WQXAJIG6LD6Z5J \ / AMOS7 \ YOURUM ::
-#\[7]N6U7MUTPEYQD7GZIQ7CCX4HPSGURKN7WTOP7XUMFPAAMUKXO5OCI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,,.,,...,.,,,,,,,,..,,,,,.,,,..,,...,...,,,.,..,,,,,,,.,,.,,,
+#OJA3NBCGTOYVHU6FCMDE5FDQDU36S252FGESXYLJLA3YGTVCRMR2BTJFJFMA52YBM4YUC6WRXBTKQ
+#\\\|YPCYKLX3SOSQXOKRLVU34VYGZXK66A37LNUFDJOBUME6EG4YUFY \ / AMOS7 \ YOURUM ::
+#\[7]FODJYQMSXKGRKLUS3T5UPVWHYQATRCOFNDGSAGW3BX5IHIGX3MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

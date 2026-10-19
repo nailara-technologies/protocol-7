@@ -2,10 +2,11 @@
 
 # name = powershell.init_code
 
-## v7 spawns zenki with a hardcoded, sanitized PATH [ bin/Protocol-7,
-## $ENV{'PATH'} reset ] that excludes the windows interop mount, so `which`
-## never finds it here even though it resolves fine in an interactive shell.
-## fall back to the standard WSL2 mount location instead of relying on PATH.
+## v7 spawns zenki with a hardcoded, sanitized PATH
+## [ bin/Protocol-7, $ENV{'PATH'} reset ] that excludes the windows interop
+## mount, so `which` never finds it here even though it resolves fine in an
+## interactive shell.  fall back to the standard WSL2 mount location instead
+## of relying on PATH.
 <powershell.cfg.exe_path> //= <[file.which]>->('powershell.exe')
     // '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe';
 
@@ -13,11 +14,12 @@ if ( not -x <powershell.cfg.exe_path> ) {
     warn 'powershell.exe not found or not executable <{C1}>';
 }
 
-## v7 itself runs as a boot-time root process [ no interactive WSL login
-## session ], so WSL_DISTRO_NAME is never present in its environment to begin
-## with - inheriting it from v7 down to this zenka is not possible.
-## /etc/wsl-distribution.conf [ defaultName ] is filesystem-based install-time
-## state and does not depend on process environment at all.
+## v7 itself runs as a boot-time root process
+## [ no interactive WSL login session ], so WSL_DISTRO_NAME is never present
+## in its environment to begin with - inheriting it from v7 down to this zenka
+## is not possible.  /etc/wsl-distribution.conf [ defaultName ] is
+## filesystem-based install-time state and does not depend on process
+## environment at all.
 if ( not defined <powershell.cfg.wsl_distro> ) {
     my $distro = $ENV{'WSL_DISTRO_NAME'};
 
@@ -232,8 +234,8 @@ PS_SETUP
 
 0;
 
-#,,..,...,,.,,,,,,..,,,.,,...,,.,,.,,,.,.,..,,..,,...,...,,.,,,,,,,.,,,,,,,..,
-#XDHKEKX3KP7SF3RAMJKB73ZQMDWHK6AHD3HY77ZPEKTJY56HSXJB3HRZBD4YMLANCFQYRV5X46FZ6
-#\\\|BN6OP4XB7IPB73BHC3AFYE3BWDFLPAQSEXCVL3R655BBWPSICHC \ / AMOS7 \ YOURUM ::
-#\[7]NL2YBAEON623HICUCJBE7VOZJ32JWKG3YA6Q4ZGE5KUURIOKQIAQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,,,.,..,,...,.,,,.,.,,..,..,,..,,...,...,,,,,.,,,.,,,...,...,
+#F5R5LPJR4EP2H5GPXUWNVU7CWAUZVYXV3MSH6RYFMYKOJZAMZBP2LPHADQMXU6POTBYJLA3BLJ7EA
+#\\\|VPEYQ6RESTE47GIMRNT3KIUHGVGVJYRLBANMPJSGMFSGMZNW5LL \ / AMOS7 \ YOURUM ::
+#\[7]ZU7YQSBGAGONKMXNB2NKQTDUUJHJVNYDO5IQKD46DFDNE7H4Y6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

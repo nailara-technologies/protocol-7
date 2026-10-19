@@ -4,13 +4,14 @@
 # descr = 'trust' \ 'owner trust' rows, recomputed on every render
 # param = $editor_state, $field
 
-## user-edit's live-render pattern [ address-cluster.resolve_state reads the
-## current value on every render ] : host-edit.source.value_get computes the
-## trust columns ONCE, when the record loads, so a pin written by add host or
-## a newly typed owner did not show until the form was reopened [ found live,
-## pri and atom ].  recomputed here from the saved record with the form's
-## current values over it [ host-edit.flow.form_values ] -- every flow step
-## repaints, so the pin shows the moment it is written
+## user-edit's live-render pattern
+## [ address-cluster.resolve_state reads the current value on every render ] :
+## host-edit.source.value_get computes the trust columns ONCE, when the record
+## loads, so a pin written by add host or a newly typed owner did not show
+## until the form was reopened [ found live, pri and atom ].  recomputed here
+## from the saved record with the form's current values over it
+## [ host-edit.flow.form_values ] -- every flow step repaints, so the pin
+## shows the moment it is written
 
 my ( $editor_state, $field ) = @ARG;
 
@@ -26,8 +27,8 @@ my $columns = <[host-edit.trust.pin_state]>->( $name, \%fields );
 
 return ref $columns eq qw| HASH | ? $columns->{$field} // '' : '';
 
-#,,..,.,.,,..,,,.,,.,,.,,,.,,,.,,,.,.,,..,.,.,..,,...,...,...,,,,,,..,..,,.,.,
-#O5ZSLLIFTWVMDDUNDAUXZZF4SLXXKMYBDB6J5XMYTEYJTRIEU6TQ2J324CK5US54Y6RKUFQ5BV3VI
-#\\\|C5DXPITR7K6KNIBI6V4MHFEAUJL7YHVATG23RM5WIPMMTY54PKY \ / AMOS7 \ YOURUM ::
-#\[7]7EG4IVJ5QA7YFIU6SFVHNBLYMZSMAIV7NE4XK3OWOWDU6XYPXIDA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,.,.,.,,,,,,,,,.,,,,.,,.,.,,,.,..,,...,...,..,,,,.,...,...,,,,,
+#XTQFJGXJ4HVO6PWQNXRLYYGA5CTIN6GHQP3IYCWGAPVDMT6HMZEV5PQBR2L3D5VZFSWRKRUJAXKCE
+#\\\|DHNQFLWT7WI5NJ4432RUNGUBIDQAFX2JI5ZIXO46NBR3RQUMXZS \ / AMOS7 \ YOURUM ::
+#\[7]DPCDL6L5ZJFLY7RNGRQ7UI4KZBB74BY2KIFB3IHMZWXA3VQTXWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

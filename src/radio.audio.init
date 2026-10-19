@@ -9,10 +9,10 @@ delete <radio.audio.reinit_watcher>;
 ## NOT deferred via <system.init_reports>: that channel only ever flushes   ##
 ## once, around the initial connect event -- fine for the startup-timer     ##
 ## path here [ own connection is long up by t=2.0s ], but this module is    ##
-## also re-invoked live at runtime [ via                                    ##
-## radio.audio.handler.player_offline, long after startup ], where a queued ##
-## item would never be picked up again. direct route-send is correct here   ##
-## in both cases.                                                           ##
+## also re-invoked live at runtime                                          ##
+## [ via  radio.audio.handler.player_offline, long after startup ], where a ##
+## queued item would never be picked up again. direct route-send is correct ##
+## here in both cases.                                                      ##
 <[protocol-7.route-send]>->(
     {   'command'   => 'v7-zenki.notify_online',
         'call_args' => { 'args' => 'mpv[audio-0]' },
@@ -41,8 +41,8 @@ delete <radio.audio.reinit_watcher>;
 
 <[base.logs]>->( 2, '[radio.audio] waiting for mpv[audio-0] ...' );
 
-#,,.,,,.,,,,,,.,.,.,,,...,,.,,..,,,,.,,,.,...,.,.,...,...,.,,,..,,,.,,,,.,,,,,
-#M55K3BFLY3R46FAFO6A67MMAHDUZFQSL7ILQTPRCMXARH3MAZDUIXZAZHHLGGAVXYEVJK4MDULUDE
-#\\\|FV3TQYRZEASFWZ53NWLOYAAKREKOUJRRW5FGNAU2MJJQMLVKMAE \ / AMOS7 \ YOURUM ::
-#\[7]YAIMX7ME54HBJDSFYAXYYQA5DBZQKR2UPNI3ILO2BGEE2YH6OWDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,..,,,,,,,,.,.,,,,..,..,,,.,,.,.,...,...,,,,,.,,,.,.,...,,,,,
+#3R4A6ITLBS6A6DXISR2UA6G44JMRJ5K4FOQESURZH35TWRYPLHYAB7K2NMWWDA2GJFWLGNVMVVHUA
+#\\\|HT7J2SG7CGZAUMACHMTABD325M6PQQIZIS7NHBYOSSUWI6N7ETR \ / AMOS7 \ YOURUM ::
+#\[7]GI7NAUF2NB7X42NIQOMNXDXZNLLV6TUMD6DDNXBXFQJYYEQWAKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -45,12 +45,13 @@ if ( $state_ref->{'split_active'} ) {
         if ( length $replay ) {
             print $replay;
 
-            ## same modular tail-length math as nshell.render.content_print, ##
-            ## kept in sync deliberately : this sets the SAME content_col /  ##
-            ## content_pending_wrap pair that function reads on its very     ##
-            ## next call, so an exact-width replay tail here has to leave    ##
-            ## the same pending-wrap flag behind or the next live chunk      ##
-            ## after a resize reproduces the row-edge overwrite bug fresh.   ##
+            ## same modular tail-length math as                             ##
+            ## nshell.render.content_print, kept in sync deliberately :     ##
+            ## this sets the SAME content_col / content_pending_wrap pair   ##
+            ## that function reads on its very next call, so an exact-width ##
+            ## replay tail here has to leave the same pending-wrap flag     ##
+            ## behind or the next live chunk after a resize reproduces the  ##
+            ## row-edge overwrite bug fresh.                                ##
             my $tail_len;
             if ( $replay =~ m{\n([^\n]*)\z} ) {
                 $tail_len = length($1);
@@ -97,8 +98,8 @@ if ( defined $state_ref->{'editor'} ) {
     <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
 }
 
-#,,.,,.,,,..,,.,,,,,,,.,.,,.,,..,,...,,..,.,.,..,,...,.,,,.,.,,.,,,,,,,..,,,.,
-#OIV7ZB4ULLMU4VSNZEZPCCEZQ4ZWRB23LCUFVWTYXJ7UBEN3PMNWNZS3BE6BO7DZDAMHPYB7WGTLS
-#\\\|LYZVZWPAYUGRJANKGWGL737ZKVZGJQVSB6XVDI2LLM3GZICFJFL \ / AMOS7 \ YOURUM ::
-#\[7]WKLGGRGIYMICCE6LXRW2BNZVH4L66PD4OJUIIQ4DWWSPYW6OBQBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,.,.,,.,,..,,,,,,.,,,,,,,...,..,,...,...,.,,,...,...,,.,,...,
+#IBZLCLV57SDX563GD6LY4ASVNG737S5EK6SRDXABZV5YEYMAIDXKWZQBZK7VVJNTR2W6TSADK4GDE
+#\\\|BC3NUF5H6P2472KRSKFWJW74XNOFYCBVCQ6TS7EC4B6FAKBYEZM \ / AMOS7 \ YOURUM ::
+#\[7]6PCBIFFJ3CFUB5XL4BINMYMN35L6AWGX3VFJHZ7T4VXY5VAL4GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

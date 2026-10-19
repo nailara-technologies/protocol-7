@@ -38,8 +38,8 @@ if ( $result =~ s|^:B32:||i ) {
 return { 'mode' => 'false', 'data' => 'result content required' }
     unless length $result;
 
-## origin context : optional, b32-wrapped json [ ##
-## session_id/client/focus/path ]                ##
+## origin context : optional, b32-wrapped json ##
+## [  session_id/client/focus/path ]           ##
 my $origin = {};
 if ( length $origin_raw ) {
     my $origin_str = $origin_raw;
@@ -76,8 +76,8 @@ my $notify_key = sprintf( '%s|%s', $source, $focus // '' );
 
 return { 'mode' => 'true', 'data' => "stored $chk" };
 
-#,,..,,,,,.,,,,,,,,,,,.,,,,.,,,.,,..,,,,.,...,..,,...,...,.,.,,,,,..,,,.,,,,.,
-#VFLQ6TT3JV6VTQG6U6LUVMH2DPCR72AWB3UK3SRKTNC7WHCDZPKWAF5C5I6OM62FFEV555OJ5S3SA
-#\\\|QWKB5YXPCVAUALLJQK7K5LWSMX7RNGWLGE2WQES7F7KQHFRL7MR \ / AMOS7 \ YOURUM ::
-#\[7]M5XP5AGGKPMIKFQ6O43V72OQC5KLPFFSLZYDQARWDKKZNYO5LYCY 7  DATA SIGNATURE ::
+#,,,,,..,,...,,..,..,,,.,,,..,,.,,..,,,.,,...,..,,...,..,,,,.,..,,,.,,,.,,..,,
+#VSC2LQSSQ7SBBRWR5GA77WYPEC6TJJRN7KLLTNIKPWQYLPWH5FV27TPXTWH7XW6IUF5LMRB4B3BF2
+#\\\|65SGSHTRFGT7OJEQHYKUHNIHZ6NV4JS2KP7PSMD7EVUQOB5GQUI \ / AMOS7 \ YOURUM ::
+#\[7]VAIC6DPMPTCOGF43MD5WC5ZFMB7YXD6X3RFEPK4QXUKXFXRTUMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

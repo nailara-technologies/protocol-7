@@ -19,9 +19,10 @@ my $offline_status_timeout = <nodes.local-network.offline_status_timeout>;
 
 <nodes.local-network.online-hosts> //= {};    ## added in reply handler ##
 
-## host-root trust carried along the discover route [ data/md/design/   ##
-## HOST-ROOT-DELEGATION.md ] : stash it so the node entry built by the  ##
-## details reply carries it ; no trust decisions are taken in nodes yet ##
+## host-root trust carried along the discover route                         ##
+## [ data/md/design/ HOST-ROOT-DELEGATION.md ] : stash it so the node entry ##
+## built by the details reply carries it ; no trust decisions are taken in  ##
+## nodes yet                                                                ##
 if ( $status eq qw| online | and defined $trust ) {
     $root_fp = undef if defined $root_fp and $root_fp eq qw| - |;
     <nodes.local-network.host-trust> //= {};
@@ -99,8 +100,8 @@ if ( not exists <nodes.local-network.online-hosts>->{$name} ) {
 
 }
 
-#,,,,,,.,,.,.,.,.,,..,.,,,...,..,,,..,,,,,..,,..,,...,...,.,.,,,.,...,...,...,
-#7VU62CD67HHFCLXMQM4FEQ45DY4QVC6IHTOQGHYIWXMH5QDAM4WICUYSKSKYN2JYKS6D4A6O36N3W
-#\\\|AZJFB67XWHFZOQFAMBA6SUDINY4HKC7XF2ZU2NGXFOBOHOUAU6U \ / AMOS7 \ YOURUM ::
-#\[7]FKJSZYFK5KT7FYHDJGV6N3T6BIFNJTOTHOKK6H6OK6BJ7Q7O7UDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,,,,..,.,,,..,,...,,,.,,.,,,,.,..,,...,...,...,,,.,,..,..,,.,,,
+#ZKJHYL5PANHXDTQTMB7DXOWEBLOWUH5IZWKMYXV2H4XBCUTRJMBC6WC7OX2I6I22VGZIZH3MOSYYU
+#\\\|QXJCLI42IOINLSBE7H5H7HE24EDMLKH44MNWS2HDD5RJLPODYQX \ / AMOS7 \ YOURUM ::
+#\[7]J3ORLMDBVUQI3PXTHUQ37D2H3DMFMS4KTPRTWNSW67DTCALA7ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -107,13 +107,14 @@ my $candidates = <[window.place.build_strip_candidates]>->(
 my $safe = <[window.place.find_safe_position]>->( <x11.id>, $candidates );
 
 if ( defined $safe and defined $safe->{'profile'} ) {
-    ## a fallback candidate landed somewhere real - the window is visible  ##
-    ## and correctly placed there, just not at the ORIGINALLY requested    ##
-    ## profile. raise it and leave fade/visibility state alone instead of  ##
-    ## forcing keep_below + opacity=1 below, which would push a correctly- ##
-    ## placed, fully-opaque window BEHIND other windows - confirmed live   ##
-    ## this looked identical to "stuck invisible, needs a restart" even    ##
-    ## though the window was technically fine, just hidden behind others.  ##
+    ## a fallback candidate landed somewhere real - the window is visible ##
+    ## and correctly placed there, just not at the ORIGINALLY requested   ##
+    ## profile. raise it and leave fade/visibility state alone instead of ##
+    ## forcing keep_below + opacity=1 below, which would push a           ##
+    ## correctly-placed, fully-opaque window BEHIND other windows -       ##
+    ## confirmed live this looked identical to "stuck invisible, needs a  ##
+    ## restart" even though the window was technically fine, just hidden  ##
+    ## behind others.                                                     ##
     <ticker.window.profile> = $safe->{'profile'};
 
     <[base.X-11.raise-window]>->(<x11.id>);
@@ -137,12 +138,13 @@ if ( defined $safe and defined $safe->{'profile'} ) {
         if <ticker.is_composited> and defined <ticker.obj.window>;
 }
 
-## resync tracked coordinates to GROUND TRUTH regardless of which branch  ##
-## above ran - confirmed live: trusting set-window-profile/find_safe_     ##
-## position's COMPUTED values [ rather than re-querying the window's REAL ##
-## position ] left ticker.handler.check_pointer's hover-detection box     ##
-## wrong, so it could never register the pointer as "outside" again no    ##
-## matter where the mouse actually was - the fade-stuck bug.              ##
+## resync tracked coordinates to GROUND TRUTH regardless of which branch   ##
+## above ran - confirmed live: trusting set-window-profile/find_safe_      ##
+## position's COMPUTED values                                              ##
+## [ rather than re-querying the window's REAL position ] left             ##
+## ticker.handler.check_pointer's hover-detection box wrong, so it could   ##
+## never register the pointer as "outside" again no matter where the mouse ##
+## actually was - the fade-stuck bug.                                      ##
 my $ground_truth = <[base.X-11.get_window_geometry]>->(<x11.id>);
 if ( defined $ground_truth ) {
     <x11.coordinates.left>  = $ground_truth->{'x'};
@@ -156,8 +158,8 @@ if ( defined $ground_truth ) {
 
 return FALSE;
 
-#,,,,,,,,,,,,,...,.,.,,,,,,,.,.,,,,.,,,.,,..,,..,,...,...,,..,.,,,...,,.,,.,.,
-#DHHTT75FJ2FCVZQ2JXVXT7FFFTDX7JRGMNZDG4LFWEOVPK62HWD6N76ID7OK5UTQJ6UYSJ6F5D622
-#\\\|T5NPQGRCBMGL7HJM2F4GUO5BW4MHLP7AH23ZDFQGGFULL2BQJDH \ / AMOS7 \ YOURUM ::
-#\[7]55EEWNGB6B5QMSXGEVHC5KMQUUMGSMCY4VCXHFFWHJZ7LIPFTKCI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,,,.,.,,,.,.,,,...,..,,,..,,,.,..,,...,...,,,.,,,,,,,,,.,.,.,,,
+#R33WQTSICSWCCHD2MZ52EXB3UX3LVRAI5N6HLOHOOPTELHIPR46BBDOBBHRAGWH3CL2AZJ7CCIHZY
+#\\\|IHNPTZIPWMQJTYJRZ5EXQVIEYKPMYUTNEYJ3XBQ2HIRC3BFIRUH \ / AMOS7 \ YOURUM ::
+#\[7]ALFBH6QVSJD7DYKEB54DQUUIDA66DB5MC45UHJ4AIXF4FZX2VCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

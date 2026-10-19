@@ -64,10 +64,10 @@ my $state = <[clients.https.get]>->(
 
 undef $token;
 
-## request never started and no callback was scheduled [ malformed url or  ##
-## missing handler ] : complete it here. the response handler deletes the  ##
-## pending entry, so a late callback for a genuinely scheduled failure can ##
-## never double-report                                                     ##
+## request never started and no callback was scheduled                   ##
+## [ malformed url or missing handler ] : complete it here. the response ##
+## handler deletes the pending entry, so a late callback for a genuinely ##
+## scheduled failure can never double-report                             ##
 if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
     <[event.add_idle]>->(
         {   'handler' => qw| plugin.usage.kimi.handler.response |,
@@ -84,8 +84,8 @@ if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
 
 return $req_id;
 
-#,,,,,.,,,,.,,,..,,.,,,.,,,.,,.,,,...,...,,.,,..,,...,...,.,.,,.,,.,.,.,,,,.,,
-#GT5PYHQOO2LNAQ7DIPEUZU4D5UWZQEUNQRBVE5745G4LUPVU3KII5BKVGUDOUFCH3MJQIAPJ34RCG
-#\\\|CCXNP62HOUB5TTI4BTWMN4IADHQIKK6BMHF75WOI75GAKEVRG4I \ / AMOS7 \ YOURUM ::
-#\[7]QL2CQWI3XCAISHYUJ3U4WE34QO3HHOL2EM3POWWAEWVBXRJAIIDA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,..,.,,,,,.,.,,,,..,.,.,,..,..,,..,,...,...,,,.,,,.,,,,,,.,,,..,
+#ARIUVN6IDJTGTSRF7Q67DBA5VQNV3HSSC2SWMWVGIR7O5S6B6WGQRCAFHGRGDLXPNNLS4DN7QO5MA
+#\\\|R63XSDX4J4532Z4K75CO6OZHPLDE2I6CSI3MXAOAAYZMB7ML7D7 \ / AMOS7 \ YOURUM ::
+#\[7]MZXOPPZ5DKIKC2BWYZAODL3G6QUWUZEBYYDEJGHDLGH27PBUBACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

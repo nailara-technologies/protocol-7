@@ -105,17 +105,18 @@ if ( <nshell.mode.no_tty_debug> && length <nshell.buffer.debug_input> ) {
                 ## terminal window this nshell was running in got closed ]. ##
                 ## a closed pty is reported "readable" forever, and every   ##
                 ## read attempt keeps returning 0 -- lumping this in with   ##
-                ## the plain would-block case below [ as this code used to  ##
-                ## ] never detects it, so the repeat=>TRUE stdin watcher    ##
-                ## just refires immediately, forever : a real, confirmed    ##
-                ## 100%-CPU busy loop, running 2+ days before it was        ##
-                ## noticed. same EOF-vs-would-block distinction             ##
-                ## user-edit.handler.stdin_key / vault-edit.handler.        ##
-                ## stdin_key already make for their own stdin readers --    ##
-                ## missing here specifically. nshell has no terminal left   ##
-                ## to serve once this fires, so it exits outright rather    ##
-                ## than just silencing the watcher and idling forever       ##
-                ## holding a now-pointless cube session open                ##
+                ## the plain would-block case below                         ##
+                ## [ as this code used to ] never detects it, so the        ##
+                ## repeat=>TRUE stdin watcher just refires immediately,     ##
+                ## forever : a real, confirmed 100%-CPU busy loop, running  ##
+                ## 2+ days before it was noticed. same EOF-vs-would-block   ##
+                ## distinction user-edit.handler.stdin_key /                ##
+                ## vault-edit.handler.  stdin_key already make for their    ##
+                ## own stdin readers -- missing here specifically. nshell   ##
+                ## has no terminal left to serve once this fires, so it     ##
+                ## exits outright rather than just silencing the watcher    ##
+                ## and idling forever holding a now-pointless cube session  ##
+                ## open                                                     ##
                 <[base.logs]>->(
                     0, 'nshell: stdin closed [ terminal gone ], exiting'
                 );
@@ -158,8 +159,8 @@ while ( length $input_chars ) {
             $state_ref->{'escape_buffer'} .= $next_key;
 
             ## Check if sequence is complete (arrow, page, function keys,
-            ## CSI-u [ kitty keyboard protocol / fixterms, e.g. \e[27;2u for
-            ## Shift+Escape -- see nshell.term_init ] )
+            ## CSI-u [ kitty keyboard protocol / fixterms, e.g.
+            ## \e[27;2u for Shift+Escape -- see nshell.term_init ] )
             last
                 if $state_ref->{'escape_buffer'}
                 =~ m{\e\[[A-Z]|\eO[A-Z]|\e\[[0-9;]*[~u]$};
@@ -176,9 +177,9 @@ while ( length $input_chars ) {
     }
 
     ## normalize SS3 arrow keys [ \eOA .. \eOD ] to their CSI form [ \e[A ..
-    ## \e[D ] : some terminals send SS3 when application cursor key mode [
-    ## DECCKM ] is on -- every dispatch site below only ever matches CSI, same
-    ## reasoning as the Home/End normalization above
+    ## \e[D ] : some terminals send SS3 when application cursor key mode
+    ## [ DECCKM ] is on -- every dispatch site below only ever matches CSI,
+    ## same reasoning as the Home/End normalization above
     state %ss3_arrow_map = (
         "\eOA" => "\e[A",
         "\eOB" => "\e[B",
@@ -396,8 +397,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,.,.,..,,...,,,,,,,.,.,.,.,,,..,,.,,,...,.,.,...,..,,.,.,...,..,,,..,.,,,
-#DZQE4IG7GVWCVJMXD5RYRBLMGM6VNA3DIBRX4GGRDDG3VL2U3437JZ45HEP3EGGFUSGA2OQFCCRNY
-#\\\|DSIPINWXZW35MS4QZPWD26S6L5UVMWOTIWWQOE2YVAQSKMIT6HY \ / AMOS7 \ YOURUM ::
-#\[7]OBDF6IRJIUMUCJ3U62ZSIWIUKBUFGRNXQGYVEL4LK3UJYZK3S6DY 7  DATA SIGNATURE ::
+#,,.,,..,,...,..,,..,,,,.,...,,..,,..,...,,.,,.,.,...,..,,.,,,,..,.,.,.,,,,,,,
+#PF7ISPAANNC5WZGHPTRCETHFH7Z5F5Y7I6JFUIUFZOI2IOM2J76GXWN36IBFZVXITGYNOYBEUQS5M
+#\\\|VCTDM2JDEDX2WGGMIMMACR6IR2F5RMT3YN5RME35UR2JFEFF7PI \ / AMOS7 \ YOURUM ::
+#\[7]SILC7ZNV7KEN2DEKGKTEZHR3QHXLVPL4IJ4TJDLTOWQMJ3V4N2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,20 +32,20 @@ $term_cols = 20 if $term_cols < 20;    ## minimum sanity
 my $state_ref   = <nshell.state>              //= {};
 my $view_offset = $state_ref->{'view_offset'} //= 0;
 
-## split-screen active : jump to the pinned input row first [ absolute      ##
-## positioning, not \r-relative ]. NO restore afterward -- the real         ##
-## terminal cursor is meant to stay exactly where this render leaves it,    ##
-## same as nshell's existing single-cursor convention (the drawn highlight  ##
-## IS the cursor, the real terminal cursor tracks it). restoring here was   ##
-## the actual bug behind "two cursors" after e.g. a `clear` command: it     ##
-## yanked the real cursor back to wherever it was BEFORE this render [ e.g. ##
-## top-left, post-clear ], leaving it disconnected from the drawn input     ##
-## line. content-push code (nshell.handler.strm_reply) is what needs to     ##
-## save/jump/restore AROUND itself when printing, not this function --      ##
-## background content shouldn't steal the visible cursor away from an       ##
-## active input line, but rendering the input line itself should always own ##
-## it. off by default, zero behaviour change unless split mode is on [      ##
-## nshell.display.cycle ]                                                   ##
+## split-screen active : jump to the pinned input row first                ##
+## [ absolute positioning, not \r-relative ]. NO restore afterward -- the  ##
+## real terminal cursor is meant to stay exactly where this render leaves  ##
+## it, same as nshell's existing single-cursor convention (the drawn       ##
+## highlight IS the cursor, the real terminal cursor tracks it). restoring ##
+## here was the actual bug behind "two cursors" after e.g. a `clear`       ##
+## command: it yanked the real cursor back to wherever it was BEFORE this  ##
+## render [ e.g. top-left, post-clear ], leaving it disconnected from the  ##
+## drawn input line. content-push code (nshell.handler.strm_reply) is what ##
+## needs to save/jump/restore AROUND itself when printing, not this        ##
+## function -- background content shouldn't steal the visible cursor away  ##
+## from an active input line, but rendering the input line itself should   ##
+## always own it. off by default, zero behaviour change unless split mode  ##
+## is on [ nshell.display.cycle ]                                          ##
 my $split_active = $state_ref->{'split_active'};
 
 if ($split_active) {
@@ -70,16 +70,17 @@ if ($split_active) {
             ? $modes->[ $state_ref->{'display_mode_index'} // 0 ]
             : undef;
 
-        ## a rewind/redo boundary-hit reply [ "nothing to redo", "already  ##
-        ## at the earliest round" ] is expected UI feedback, not an error  ##
-        ## worth permanently scrolling into the content area next to the   ##
-        ## real conversation -- plugin.nshell.coding-session.on_reply      ##
-        ## claims those replies and stashes one here instead of printing   ##
-        ## them, self-expiring : this render clears it once past its own   ##
-        ## 'expires' timestamp, and nshell.handler.flash_expire's one-shot ##
-        ## timer forces this same render to run even if no further reply/  ##
-        ## keypress would otherwise trigger one, so it actually disappears ##
-        ## on its own instead of lingering until the next rewind/redo      ##
+        ## a rewind/redo boundary-hit reply                                 ##
+        ## [ "nothing to redo", "already at the earliest round" ] is        ##
+        ## expected UI feedback, not an error worth permanently scrolling   ##
+        ## into the content area next to the real conversation --           ##
+        ## plugin.nshell.coding-session.on_reply claims those replies and   ##
+        ## stashes one here instead of printing them, self-expiring : this  ##
+        ## render clears it once past its own 'expires' timestamp, and      ##
+        ## nshell.handler.flash_expire's one-shot timer forces this same    ##
+        ## render to run even if no further reply/ keypress would otherwise ##
+        ## trigger one, so it actually disappears on its own instead of     ##
+        ## lingering until the next rewind/redo                             ##
         my $flash = $state_ref->{'flash'};
         if ( defined $flash
             and ( $flash->{'expires'} // 0 ) <= <[base.ntime]> ) {
@@ -87,14 +88,15 @@ if ($split_active) {
             $flash = undef;
         }
 
-        ## fill-then-anchor [ instead of frame_rule_line's anchor-then-fill ##
-        ## ] so the title stays pinned to the RIGHT edge and never moves -- ##
-        ## the task id, when present, is its own anchor immediately to the  ##
-        ## title's left, growing the fill leftward instead of shifting the  ##
-        ## title's own position  leading space : purely cosmetic symmetry   ##
-        ## with the trailing cap below -- unlike the trailing reserved      ##
-        ## column, there's no wrap- hazard argument for it, column 1 is     ##
-        ## always safe to write to                                          ##
+        ## fill-then-anchor                                                 ##
+        ## [ instead of frame_rule_line's anchor-then-fill ] so the title   ##
+        ## stays pinned to the RIGHT edge and never moves -- the task id,   ##
+        ## when present, is its own anchor immediately to the title's left, ##
+        ## growing the fill leftward instead of shifting the title's own    ##
+        ## position  leading space : purely cosmetic symmetry with the      ##
+        ## trailing cap below -- unlike the trailing reserved column,       ##
+        ## there's no wrap- hazard argument for it, column 1 is always safe ##
+        ## to write to                                                      ##
         my @elements = (
             {   'type'  => qw| anchor |,
                 'value' => ' ',
@@ -285,8 +287,8 @@ print "\x08" x $back if $back > 0;
 STDOUT->flush();
 return;
 
-#,,.,,,..,..,,.,,,.,,,...,,..,...,,,.,.,.,,,,,..,,...,...,,..,,,.,..,,,..,,..,
-#C3W66DM3LURSYRAEALQ7BBUDCBV36KY44FEA2ZK7YNMIC6YQ52QKIIUH3KYLBASWFEGTMXFACLZRS
-#\\\|IG5RCGTRMLUK3QBFES372UNVKR7C6B3YIZ4CAKY4ULIVJKREBPO \ / AMOS7 \ YOURUM ::
-#\[7]Y7QXTCVUVVJYAMSMIHMTSCTQTQ4N3NEAFYR64Z64FLBVQ5CUDEBA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,.,,..,..,,..,,,.,,,..,...,,.,,..,,...,..,,...,,,.,,,,,,.,,,.,,
+#HAVA6ITUBRMMWIDOPJLCW3E2GXWDWCXIFSAS7OL4QYQMTJTAWMRM2AOE7OU3RMGX5X7J6KLE6AEEM
+#\\\|EBBHMKAD5OGC23KSCCZKNVR5NBVVEOBSVVP6BVP4R2IQ3QGXGXI \ / AMOS7 \ YOURUM ::
+#\[7]WN7XT4KVN2ISWZ7S46A5XAGEF5EEEJVZ6ADUQMV25326YJMG7MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

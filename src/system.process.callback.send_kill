@@ -9,10 +9,10 @@ my $log_message = shift;
 
 <[base.log]>->( 0, $log_message );
 
-## TERM first, KILL only after a grace period -- matches v7-zenki.          ##
-## terminate_process's own pattern : no explicit liveness check before the  ##
-## follow-up KILL, kill() is a harmless no-op against an already-dead pid [ ##
-## same assumption v7-zenki.handler.process_kill_list already makes ]       ##
+## TERM first, KILL only after a grace period -- matches v7-zenki.         ##
+## terminate_process's own pattern : no explicit liveness check before the ##
+## follow-up KILL, kill() is a harmless no-op against an already-dead pid  ##
+## [ same assumption v7-zenki.handler.process_kill_list already makes ]    ##
 <process.TERM_chld.w_fh>->say("TERM $process_id");
 delete <process.table.top>->{$process_id};
 
@@ -23,8 +23,8 @@ delete <process.table.top>->{$process_id};
     }
 );
 
-#,,.,,...,..,,.,.,...,...,..,,,,.,...,,..,,,.,..,,...,...,,..,...,,,.,,.,,..,,
-#GKSQO2FIU7YTPTPJFNFQW3BREZO34W7TAVAVQR5JKJON4PMBMKHHUSN4PLANN74NDR4QWBYGILVTW
-#\\\|TAU4RTMMKR2ZLG3ZEEFK5BAH6NLBCN5QJ3DV4MHUOEFJPTHO22K \ / AMOS7 \ YOURUM ::
-#\[7]7I5BND77XZPJ643MGESVFVRZXEQMLU4I2WGCPRYQF3RVHC3ZCSDA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,,,.,.,.,..,,.,,,.,.,.,.,,,.,..,,...,...,.,,,.,,,,,.,,.,,..,,
+#TCTVV4GSUBQGU7H5THPFBSLI3DBZKXZOMS7Y5ZUYQ7JQPJMQQDH27V23NZI3FFOYOWXFKYT7VWVCO
+#\\\|XD3JKEHE6FBIA5T3H7XJ3D5C2KNOKHL44FPL732KZKCP57MVOM7 \ / AMOS7 \ YOURUM ::
+#\[7]YGFQRS5XRWPAQPN4QFE7QL5HXLJWNA4INUQL6MAAK5GMOUFHDGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

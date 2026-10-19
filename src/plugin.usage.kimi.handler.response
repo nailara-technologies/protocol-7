@@ -37,11 +37,11 @@ my $token_expired = defined $pending->{'expires_at'}
 ## plugin.usage.kimi.refresh_token -- kimi's own startup cycle renews its
 ## oauth token before it ever reaches a point that would cost a real inference
 ## token ] and retry ONCE, transparently, before ever bothering the caller
-## with an error. a second failure after the retry [ refresh itself failed, or
-## something other than expiry is wrong ] falls through to the normal error
-## report below, unchanged. the refresh is fully non-blocking since 2026-09-15
-## [ event watchers, not a select loop ] and the retry fetch is scheduled from
-## refresh_cleanup via the named on_done handler
+## with an error. a second failure after the retry
+## [ refresh itself failed, or something other than expiry is wrong ] falls
+## through to the normal error report below, unchanged. the refresh is fully
+## non-blocking since 2026-09-15 [ event watchers, not a select loop ] and the
+## retry fetch is scheduled from refresh_cleanup via the named on_done handler
 ## plugin.usage.kimi.refresh_retry -- the deferred query reply simply stays
 ## open until the retried fetch reports, same as before, but the event loop
 ## keeps serving other providers [ claude probes ] for the whole refresh
@@ -74,14 +74,14 @@ if ( not $result->{'ok'} and $token_expired and not $pending->{'retried'} ) {
     );
 
     ## fixed 2026-09-17 : refresh_token now queues onto an ALREADY-running
-    ## cycle instead of returning FALSE for it [ see its own single-slot-busy
-    ## branch ] -- TRUE covers that case too now, not just "I personally
-    ## started a child". FALSE here means a refresh genuinely could not be
-    ## attempted at all [ kimi binary not found, fork/pipe failure ] and our
-    ## on_done above will never fire on its own -- retry once anyway so this
-    ## cleanly falls through to the honest error report below on its second
-    ## 401, instead of the deferred query hanging on a callback that's never
-    ## coming
+    ## cycle instead of returning FALSE for it
+    ## [ see its own single-slot-busy branch ] -- TRUE covers that case too
+    ## now, not just "I personally started a child". FALSE here means a
+    ## refresh genuinely could not be attempted at all
+    ## [ kimi binary not found, fork/pipe failure ] and our on_done above will
+    ## never fire on its own -- retry once anyway so this cleanly falls
+    ## through to the honest error report below on its second 401, instead of
+    ## the deferred query hanging on a callback that's never coming
     if ( not $refresh_started ) {
         <[plugin.usage.kimi.refresh_retry]>->(
             {   'on_result' => $on_result,
@@ -270,8 +270,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,,,,.,,,,..,,,.,.,,,...,,,.,,..,..,,,,.,.,.,..,,...,...,...,,..,.,.,.,.,...,
-#YPBA7VXNSVFOKTXOBFGKWG26NBZ7LBHNHQZOV5WZIP2LYV4DFIDNQOPXPKPFTR5C3YHPBCJFOQON6
-#\\\|EDMHGURSQICVLYYSGRNDGTVUGSZ3TD2TRNSNBE54VABWC35VOUU \ / AMOS7 \ YOURUM ::
-#\[7]AZUQTRX34ANVCWUNNJR3WYEDNS7TRLIHC6HWI7UMCTE6EPEDFKAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,,,,..,,,,,,,,,,..,..,,,,.,...,..,,...,...,.,,,,..,..,,.,,,..,,
+#6WAIWBSC5NRYFLKADY2AFYIONNKBM6KMYOZORYQAQUSCVNNE2HBBO3LP7YPEZTYN6GD2Z4S3WGBDY
+#\\\|A6NEMYQ33HPW6GKY4ILKHRJQENGZKYWFRG6HR5UJ5GR4NNCZ6DC \ / AMOS7 \ YOURUM ::
+#\[7]2LGAGER3GOXQPQYPMTP6C6R6JARJWZDX5PJVDDM3FOMVTJNQCUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

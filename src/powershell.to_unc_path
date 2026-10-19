@@ -11,9 +11,10 @@ if ( not defined $linux_abs_path or $linux_abs_path !~ m|^/| ) {
     return undef;
 }
 
-## resolved at init time from $ENV{'WSL_DISTRO_NAME'} or, when v7 itself    ##
-## was started without it [ e.g. a manual 'sudo -s' root shell instead of a ##
-## systemd service ], from /etc/wsl-distribution.conf as a fallback         ##
+## resolved at init time from $ENV{'WSL_DISTRO_NAME'} or, when v7 itself ##
+## was started without it                                                ##
+## [ e.g. a manual 'sudo -s' root shell instead of a systemd service ],  ##
+## from /etc/wsl-distribution.conf as a fallback                         ##
 my $distro = <powershell.cfg.wsl_distro>;
 if ( not defined $distro or not length $distro ) {
     warn 'wsl distro name could not be determined <{C1}>';
@@ -24,8 +25,8 @@ if ( not defined $distro or not length $distro ) {
 
 return "\\\\wsl.localhost\\$distro$win_tail";
 
-#,,..,.,.,...,.,,,,..,.,,,,,,,...,,..,.,.,.,,,..,,...,...,.,.,..,,,..,,..,,..,
-#5XYSMEAU3XQFVQDYJN4TQHYCKHG6D5XVBZYSOTPA4IWFQBR3MJ5IZQMCY6OL4A7MYOPQJBD6OQFYU
-#\\\|YUQHLGS7NAXWVGSL22F2DP4CGED7JIHB5QFQGKP6T2E2GGKMS5R \ / AMOS7 \ YOURUM ::
-#\[7]C22YMLTAD5BUOW2M25CLHXBNNTMX2ZKGJ5N7I5HRI2SQWCMNIUDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,.,,,,,,,.,.,..,,..,,,..,.,,,..,,...,..,,.,.,.,.,...,,,.,,.,,
+#PYMQKCFVQCEIIRWM5WWHWH5HHVRYYINGVBA5KZRT4SYQSYKVQDRAILTJKZGDGKR5VQ5ZUV3BY2QKK
+#\\\|TETGRBVRMK7BPPJIOUPSFTCNHB72ALWHFHOWUCFMNLRF7NPWTNJ \ / AMOS7 \ YOURUM ::
+#\[7]QGZMTK4Z52JZTKRZAEO4VPCEIDNRKR2L3I35CBUFXDGRGTK2VABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -265,11 +265,11 @@ if (   not defined $present_checksum
 ## current \ updated source  'body-chksum'/'body-length' : stable body-only ##
 ## BMW digest + length, both captured before the footer was re-appended     ##
 ## above -- lets a caller detect if the file changed on disk between this   ##
-## read and a later write [ TOCTOU race, see                                ##
-## sourcecode.console.update-signatures ] by re-stripping a fresh read and  ##
-## comparing length first [ fails fast on truncation/trailing garbage,      ##
-## skipping the checksum entirely ], then the checksum, instead of blindly  ##
-## overwriting                                                              ##
+## read and a later write                                                   ##
+## [ TOCTOU race, see  sourcecode.console.update-signatures ] by            ##
+## re-stripping a fresh read and comparing length first [ fails fast on     ##
+## truncation/trailing garbage, skipping the checksum entirely ], then the  ##
+## checksum, instead of blindly overwriting                                 ##
 return {
     'mode'        => qw| size |,
     'data'        => $src_str,
@@ -277,8 +277,8 @@ return {
     'body-length' => $body_only_length
     }
 
-#,,..,,,.,,.,,...,...,.,,,..,,,.,,,,,,.,,,...,..,,...,...,...,,.,,,,,,.,.,,,,,
-#7ES234ZI3E3UGUPB5CZLGQ3Q7UHAUKVZLCQCH2WDET25YVUSHNTMS3PGETTGJF6RYH5U3OXJOL5JO
-#\\\|O64UCNMTB7GMVA7IRTRLEMCTAR2QPKL46JEWZND43RQ4OFUEVAS \ / AMOS7 \ YOURUM ::
-#\[7]AGD26DXSYSYPXZBRITRVEKOGDD3RIOFAXKWTDIK3KVOEGYJKY6AQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,..,,,,,,.,,,,.,,.,.,.,.,,,.,,,,,..,,...,...,,..,.,.,,,.,,..,.,,,
+#NUJ3T243WNB4SZBFTSK6CCAJ4RR2TQGOTGEWSH6G7HN6FJALHFUBN44DAVAEFILV5GA26BKLPQAZQ
+#\\\|KN6Q75SKJJOGA5V3LPSNGUZ2SQH6KXDZAFFLYAJ23WRALHE3BH7 \ / AMOS7 \ YOURUM ::
+#\[7]O5LET3YJSMU3TZIAZBKKGXQTLUCLY22DH2AZYX6ZWQ75IXV4YWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -76,17 +76,17 @@ my $ok        = TRUE;
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
 my @conflicts;
 
-## the resulting watermark for a single browser push, handed back so the    ##
-## caller can adopt it locally -- otherwise a same-browser follow-up push [ ##
-## e.g. hitting undo right after a stage move ] still carries the STALE     ##
-## pre-push base_last_modified and false-conflicts against its own write    ##
+## the resulting watermark for a single browser push, handed back so the  ##
+## caller can adopt it locally -- otherwise a same-browser follow-up push ##
+## [ e.g. hitting undo right after a stage move ] still carries the STALE ##
+## pre-push base_last_modified and false-conflicts against its own write  ##
 my $single_last_modified;
 
-## collect pending reverse-delete IDs so a batch push does not resurrect    ##
-## them also collect pending reverse-stage-change IDs : a browser stage     ##
-## push not yet round-tripped back into jobsite's own copy must not get     ##
-## clobbered by jobsite's batch, which was built from its own [ still older ##
-## ] on-disk view                                                           ##
+## collect pending reverse-delete IDs so a batch push does not resurrect ##
+## them also collect pending reverse-stage-change IDs : a browser stage  ##
+## push not yet round-tripped back into jobsite's own copy must not get  ##
+## clobbered by jobsite's batch, which was built from its own            ##
+## [ still older ] on-disk view                                          ##
 my %pending_delete;
 my %pending_stage_change;
 if ($is_batch) {
@@ -156,8 +156,9 @@ for my $job_data (@job_list) {
         ## on-disk view, which can still predate a browser-initiated stage  ##
         ## change already applied straight to this cache -- only skip the   ##
         ## clobber for a job that actually HAS an unconfirmed reverse-queue ##
-        ## entry still pending [ not yet round-tripped into jobsite's own   ##
-        ## copy ] ; self-corrects once jobsite drains the reverse queue.  [ ##
+        ## entry still pending                                              ##
+        ## [ not yet round-tripped into jobsite's own copy ] ;              ##
+        ## self-corrects once jobsite drains the reverse queue.  [          ##
         ## wall-clock last_modified comparison doesn't work here : jobsite  ##
         ## pushes their own writes re-stamp the cache's last_modified to    ##
         ## now too, so it drifts ahead of jobsite's frozen data-change time ##
@@ -195,9 +196,9 @@ for my $job_data (@job_list) {
         ## browser update : browser-owned fields only, queue reverse        ##
         ## stale-write guard : a stage push is only applied if the          ##
         ## browser's last known last_modified still matches the cache —     ##
-        ## otherwise the record moved [ pipeline advance or another browser ##
-        ## ] since this browser last saw it, and blindly applying would     ##
-        ## silently revert a newer state                                    ##
+        ## otherwise the record moved                                       ##
+        ## [ pipeline advance or another browser ] since this browser last  ##
+        ## saw it, and blindly applying would silently revert a newer state ##
         my $stage_conflict;
         if ( exists $job_data->{'stage'} ) {
             my $base_lm = $job_data->{'base_last_modified'} // '';
@@ -320,8 +321,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,.,...,,..,..,,.,,,.,.,,,,,,..,.,,,.,,,,,,,..,,...,...,,.,,.,,,,,.,,..,,,,,
-#K4VY2FM4BQPB3N5DWLFALSZYK256JMMADKCTFHICK47HGWR6BWHTMKPKBAOCQP5XY6PKBQT7BQ26K
-#\\\|UDKCN5HUYQ725NFKUAQR4ESESAKLEUHL2JX6N6NUM2GAYRGWUJ4 \ / AMOS7 \ YOURUM ::
-#\[7]A6PHQX4EYAWWN2IQJ4BWRIKM3KZJLADTCTXM7HTVP7HORRLE6WAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,,,,,,,,,,,.,,.,,.,.,..,,..,,..,,...,...,...,.,.,,,.,,,,,.,,,
+#2O5H3RQ46467QSJGG7YVA5VMW44FLRH7LUIJRY6DKBAW7S43Y7YKPAJS3XCQPGISM2ZWBEEKANVBS
+#\\\|IR4LOAH7MNWA2HXVLHAYUDLQUJCA5AUYC74M6HZKTQPDIYQT55C \ / AMOS7 \ YOURUM ::
+#\[7]DQEJLYQT5X463K63A2WUG7TBDXA3WAUCL7OH62HHJZAJZNEYXCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -33,12 +33,12 @@ if ( $sign_key_exists
     ## than relying on key_vars' now-removed first-explicit-caller hijack [
     ## which used to do this as an accidental side effect -- see
     ## bug-crypt-c25519-key-vars-base-identity-hijack.md ] to make later bare
-    ## crypt.C25519.sign_data calls [ e.g. via source.sign_data,
-    ## source.fill_source_template ] resolve to the right key.  MUST be an
-    ## unconditional override, not //= -- crypt.C25519.post_init's own bare
-    ## startup call already set base_key_name to '<user>.base' by the time
-    ## this runs, so //= would silently no-op and leave the wrong identity in
-    ## place
+    ## crypt.C25519.sign_data calls
+    ## [ e.g. via source.sign_data, source.fill_source_template ] resolve to
+    ## the right key.  MUST be an unconditional override, not //= --
+    ## crypt.C25519.post_init's own bare startup call already set
+    ## base_key_name to '<user>.base' by the time this runs, so //= would
+    ## silently no-op and leave the wrong identity in place
     <crypt.C25519.base_key_name> = $sigkey_name;
 
     ## also invalidate the full-hashref key_vars cache -- its own early-return
@@ -70,8 +70,8 @@ if ( $sign_key_exists
 
 return $success;
 
-#,,.,,.,.,..,,,,,,.,.,.,,,,.,,.,,,..,,.,,,,..,..,,...,...,...,...,...,.,,,..,,
-#SZHEVLMURX2LHTSYPSFG7Z4HNSYNKTIQMC66UTP7ZJWBYRAOFYQTRCT5UFJJZ223LSWCWQBEOMLJG
-#\\\|G3WRAYZLNIK7XK7IPJWGGZQH6XO57SZ72XF62NOL33KCLWIA3Q2 \ / AMOS7 \ YOURUM ::
-#\[7]AIQIO5SO2LQO27HB7Z66K4JJCT6BGIA7BV6BC5XGBOM74DOZX2CA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,.,.,,,.,..,,..,,,,.,,.,,...,..,,...,...,...,...,...,.,,,,..,
+#IGT2RSPWHZDLVV4Z65AIUX7WF4RQUISSRJPKZ7ZJOCRDSP3YNPZCXVRDUTNHPPPDPP6PCW4EGAZSS
+#\\\|FA6LGVYBSLNIEDCY6BBDOCEPPFRIHLKJJL63ZYBVNMBGPWLESDH \ / AMOS7 \ YOURUM ::
+#\[7]ZQLP34SWZ33DTZZ34E7DQWXN6CHGXIBA53V5TH5L6WQZC7QPTADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -58,8 +58,8 @@ my $holdings = <osf-cache.holdings>;
 return { 'mode' => qw| false |, 'data' => 'holdings not ready' }
     unless ref $holdings eq qw| HASH |;
 
-## only ANCHORED entries are served - an unanchored match is refused, ##
-## not silently upgraded to a holder                                   ##
+## only ANCHORED entries are served - an unanchored match is refused, not ##
+## silently upgraded to a holder                                          ##
 my ( $entry, $unanchored );
 foreach my $file ( @{ $holdings->{'files'} // [] } ) {
     next unless ( $file->{'digests'}{'bmw384'} // '' ) eq $bmw384;
@@ -71,7 +71,8 @@ foreach my $file ( @{ $holdings->{'files'} // [] } ) {
 }
 
 return { 'mode' => qw| false |, 'data' => "unknown bmw384 : $bmw384" }
-    unless ref $entry eq qw| HASH | or ref $unanchored eq qw| HASH |;
+    unless ref $entry eq qw| HASH |
+    or ref $unanchored eq qw| HASH |;
 
 return {
     'mode' => qw| false |,
@@ -123,11 +124,12 @@ return { 'mode' => qw| false |, 'data' => 'read failed' }
 
 return {
     'mode' => qw| true |,
-    'data' => sprintf '%d %d %s', $offset, $read, encode_b32r($buf)
+    'data' => sprintf '%d %d %s',
+    $offset, $read, encode_b32r($buf)
 };
 
-#,,,,,...,,..,,..,,..,.,.,.,,,..,,,.,,.,,,,,,,..,,...,...,...,...,.,,,,,.,..,,
-#32OYSKUD7OB5MMRJJK5SNCDU2BKGJFBYRENAUMWSVVXPWRD6ILHJ3NCXYGWB2BUABI6AAIMKDIHMQ
-#\\\|HGOYYNCC2WJJ3NWSFITMJAUDTXMUGD6GZD7PZCMP5SRH2K5HEZR \ / AMOS7 \ YOURUM ::
-#\[7]AQS4AQNQ7QSNHAPLEGSLZ5WNNR3JBRKFI7WFALQEAWAOCJTPMICI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,..,,...,,..,,,,,.,.,.,,,.,.,..,,...,...,.,,,,..,.,.,...,,.,,
+#DUWNQ5HTPOUPAN2PNSVGHJ3H6NVYQK6R4LHRFZGQ4GQNRE7PHYAW4RSV5LAKFL5LJGBROAZGU2MO6
+#\\\|3PG4WRYF2BQ2XBHPJ6D5HMB6ZAMY5G5V6NSYLDD47ZXLKH275YG \ / AMOS7 \ YOURUM ::
+#\[7]7GOIIY5ALIDVAL6QJBGICWDKQLBYTDQQJOFAKFAO3NLTZYBPDYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

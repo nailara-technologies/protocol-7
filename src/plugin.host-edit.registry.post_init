@@ -6,26 +6,29 @@
 
 ## 'registry' is itself just a <name> under the SAME plugin.host-edit.<name>.*
 ## convention every real plugin uses -- not a special-cased exception to it.
-## it is always present in this zenka's own plugins.load [ see
-## cfg/zenki/host-edit/zenka.v7 ], the baseline entry alongside whichever
-## THIRD-PARTY plugin.host-edit.<name> entries get added later, so it loads
-## through [load_plugins:...] exactly like every other plugin does rather than
-## through [load_modules:...] -- per cfg/zenki/user-edit/zenka.v7's own
-## plugin.user-edit.registry precedent : plugin-namespaced modules go through
-## [load_plugins:...], full stop, core-to-the-zenka or not.
+## it is always present in this zenka's own plugins.load
+## [ see  cfg/zenki/host-edit/zenka.v7 ], the baseline entry alongside
+## whichever THIRD-PARTY plugin.host-edit.<name> entries get added later, so
+## it loads through [load_plugins:...] exactly like every other plugin does
+## rather than through [load_modules:...] -- per
+## cfg/zenki/user-edit/zenka.v7's own plugin.user-edit.registry precedent :
+## plugin-namespaced modules go through [load_plugins:...], full stop,
+## core-to-the-zenka or not.
 ##
-## ONE PARENT collector, not a per-plugin post_init of its own [ the design
-## shape plugin.user-edit.registry.post_init established ] -- picked up
-## automatically by base.init_modules' generic *.pre_init / *.init_code /
+## ONE PARENT collector, not a per-plugin post_init of its own
+## [ the design shape plugin.user-edit.registry.post_init established ] --
+## picked up automatically by base.init_modules' generic *.pre_init /
+## *.init_code /
 ## *.post_init name-pattern walk, purely because of this module's own name.
-## that walk runs the three phases in a FIXED outer order [ base.init_
-## modules:9-22 ], so every loaded plugin's own plugin.host-edit.<name>.
-## init_code has already completed, unconditionally, before this ever fires
+## that walk runs the three phases in a FIXED outer order
+## [ base.init_ modules:9-22 ], so every loaded plugin's own
+## plugin.host-edit.<name>.  init_code has already completed, unconditionally,
+## before this ever fires
 ## -- no explicit ordering dependency to get wrong.
 ##
 ## <plugins.status> is the SAME registry base.load_plugins/base.reload_
-## plugins already maintain -- its keys are plugin NAME PREFIXES [
-## 'plugin.host-edit.actions', never a full subroutine name ], read here
+## plugins already maintain -- its keys are plugin NAME PREFIXES
+## [ 'plugin.host-edit.actions', never a full subroutine name ], read here
 ## rather than walked separately, so a plugin is discovered by the same list
 ## reload already trusts.  filtered to exclude 'plugin.host-edit.registry'
 ## itself -- the collector is not its own detail-tab plugin.
@@ -70,8 +73,8 @@ foreach my $plugin_name ( <[base.sort]>->( \@plugin_names ) ) {
     <form.plugin.registry.by_name>->{$plugin_name} = $tab_info;
 
     ## pinned_keys is an ARRAY : per design, a plugin may pin several related
-    ## keys and cross-reference between them itself -- the storage layer [
-    ## here ] never needs to understand any relationship between them, only
+    ## keys and cross-reference between them itself -- the storage layer
+    ## [ here ] never needs to understand any relationship between them, only
     ## record which plugin owns which key
     foreach my $pinned_key ( ( $tab_info->{'pinned_keys'} // [] )->@* ) {
 
@@ -105,8 +108,8 @@ foreach my $plugin_name ( <[base.sort]>->( \@plugin_names ) ) {
 
 0;
 
-#,,,.,.,.,,..,,.,,,,.,.,,,...,.,,,,.,,,,,,,..,..,,...,...,..,,...,...,...,,..,
-#KBLY37QXM7K6W2UTOOYZY2QE5J6G35WEIOTNENT6GOHY7U6TZB6VWUL5XKOF6454OVEJM5RYVXKAO
-#\\\|HJ3VXEHM3NZTAHI5NLE7ACC6LKMVMYN4MWC2WI2ECQP7KHEFBDR \ / AMOS7 \ YOURUM ::
-#\[7]RHN33BKNRLISZXEPK75RA2KDG5UBLEPCBHPAV4NSHVSKYTWGAUBA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,...,.,,,,..,.,,,.,,,,,,,,,.,..,,...,...,...,,..,,.,,.,,,,,,,
+#ZCYIJX5T7JUGHN6DMZGRJ4EQLQFWEBKX5K6O53JG5BJXH3WKHKLIJOZFREPWUDCJ64JMBE66WZ6JW
+#\\\|MXW74LWNYO2JX2QNCM44PAU4N52OGOAEBJC7G7AZFOSPXMCFX3X \ / AMOS7 \ YOURUM ::
+#\[7]PJJWBPJ3FQWXFV5E43WUBDYP3F4C7EJE6YNDPQC27VFIIZNNPUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

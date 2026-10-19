@@ -53,9 +53,9 @@ my $img_h = $pbuf->get_height();
 my $scr_w = $screen->get_width();
 my $scr_h = $screen->get_height();
 
-## positions are grouped by screen resolution: a position saved on one  ##
-## screen size [ eg. host display ] must never apply on another [ eg. a ##
-## small xephyr screen ], where it could fall off-screen                ##
+## positions are grouped by screen resolution: a position saved on one ##
+## screen size [ eg. host display ] must never apply on another        ##
+## [ eg. a small xephyr screen ], where it could fall off-screen       ##
 my $screen_key = sprintf( qw| %dx%d |, $scr_w, $scr_h );
 
 my $win_width = sprintf( qw|%.0f|, $scr_w * $scale_factor );
@@ -88,8 +88,8 @@ my $is_dragging = FALSE;
 my ( $drag_start_xr,    $drag_start_yr )    = ( 0, 0 );
 my ( $drag_win_start_x, $drag_win_start_y ) = ( 0, 0 );
 
-## forward-declared : real values assigned after saved-position load [
-## closures below capture these variables; declaration must precede them ]
+## forward-declared : real values assigned after saved-position load
+## [ closures below capture these variables; declaration must precede them ]
 my ( $win_x_cache, $win_y_cache ) = ( 0, 0 );
 
 ## button press handler : detect drag or menu zone
@@ -112,8 +112,8 @@ $window->signal_connect(
             return 0 unless $event->button == 1;
 
             ## Weston's XWM sends ConfigureNotify with WM-frame-relative
-            ## coords instead of root coords, so $win_x/y_cache may be wrong [
-            ## eg 230 when the actual root pos is 4635 ]. get_origin() calls
+            ## coords instead of root coords, so $win_x/y_cache may be wrong
+            ## [ eg 230 when the actual root pos is 4635 ]. get_origin() calls
             ## XTranslateCoordinates which returns the true root position.
             my $gdk_win = eval { $widget->get_window() };
             if ( defined $gdk_win ) {
@@ -149,8 +149,8 @@ $window->signal_connect(
         ## per-output boundary
         $widget->move( $new_x, $win_y_cache );
         $widget->move( $new_x, $new_y );
-        ## update X immediately; Y follows configure-event [ which now queries
-        ## get_origin() for true root coords ]
+        ## update X immediately; Y follows configure-event
+        ## [ which now queries get_origin() for true root coords ]
         $win_x_cache = $new_x;
         <protocol-7-menu.window.x> = $new_x;
         return 1;
@@ -248,10 +248,11 @@ if ( defined $saved_position ) {
 # [ must set position before window is mapped to window  manager ]
 $window->set_gravity('north-west');
 
-## sanitize against the real monitor rects : the default + restore clamps   ##
-## above only bound to the virtual screen, which has voids on offset multi- ##
-## monitor layouts -- an off-all-outputs position cannot map and hangs the  ##
-## compositor [ the top-right-of-virtual default landed in such a void ]    ##
+## sanitize against the real monitor rects : the default + restore clamps ##
+## above only bound to the virtual screen, which has voids on offset      ##
+## multi-monitor layouts -- an off-all-outputs position cannot map and    ##
+## hangs the compositor                                                   ##
+## [ the top-right-of-virtual default landed in such a void ]             ##
 ( $pos_x, $pos_y )
     = <[base.gtk.snap_to_monitor]>
     ->( $pos_x, $pos_y, $win_width, $win_height );
@@ -608,8 +609,8 @@ if ($use_transparency) {
 
 return 0;
 
-#,,,.,.,.,,,,,...,..,,,,.,.,,,,..,.,,,.,,,...,.,.,...,...,...,,,,,.,,,.,.,.,.,
-#RQZGUSETBZZ5CTNA3CLA4YGUR7MU4DO3UFURSDXWKKUYDEZIVR4FJXYAUS4WWOOM6WN4HQ2CBYQRE
-#\\\|TXAV62MODUKHIROZP6IMB2NGCT76IWXGVARG4OZRPMDGIR4R6SZ \ / AMOS7 \ YOURUM ::
-#\[7]QDVTPG3KZXTYDWZLVZCCBGQA7F24ZUH4DXEKMCV6KHLUI4YAYCBA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,..,,..,,,.,.,.,.,.,..,,.,.,,,.,.,.,...,.,.,,,,,.,.,,..,.,,,,,,,
+#WKMBSELUN3VKYYBFE7UOBPOTBPYDKSZSI33IZHJMU2A533SNDSWB65VHMZBA2X6IIU5HLS6VVQGMW
+#\\\|A5PGWGRB2VEFWSYQ5BZO6MGXNFLSBUEQJQXU4MDIPHIKYVVJONS \ / AMOS7 \ YOURUM ::
+#\[7]OSJLC2J7Q3X7U4M2L4CZ7UMIQHWW3ZQEGVL4VDZRQSXTQXXD54DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,11 +4,12 @@
 # descr = top n windows host processes by working-set memory
 # param = [count]
 
-## lists the top memory consumers on the actual windows host [ pid, name,
-## working-set in MB ] -- the per-process view that would have given advance
-## warning about a growing firefox [ or the wsl vm's vmmemWSL allocation ]
-## before it became host-wide pressure. pairs with  powershell.cmd.mem-used,
-## same motivation : see  data/tasks/powershell-host-memory-commands.md
+## lists the top memory consumers on the actual windows host
+## [ pid, name, working-set in MB ] -- the per-process view that would have
+## given advance warning about a growing firefox
+## [ or the wsl vm's vmmemWSL allocation ] before it became host-wide
+## pressure. pairs with  powershell.cmd.mem-used, same motivation : see
+## data/tasks/powershell-host-memory-commands.md
 
 my $args = $call->{'args'} // '';
 $args =~ s,^\s+|\s+$,,g;
@@ -100,8 +101,8 @@ for my $row (@rows) {
 
 return { 'mode' => qw| size |, 'data' => join( "\n", @table ) . "\n" };
 
-#,,,,,.,.,,.,,...,...,,..,,,.,...,,,.,,.,,,..,..,,...,...,..,,,.,,,.,,,,,,,,,,
-#HSHLJYI5XI45G4L5BJQDEUOUBK267BMXOFIULW6L4RQSKWPQBKG44QYLJ2MN374JIQC6XUPXLJXDQ
-#\\\|DYNQ5LUGGBBXZIUTULL77ATO3ZQWSWNFTNZD5WIAJDOJAI7AHON \ / AMOS7 \ YOURUM ::
-#\[7]PQSN27JOGMZ6CJWP7OCLWUXOMPAGQBGPBBZWDRFU2YYYQ3O3SWCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,.,,,,,,,,..,,,,,.,,,...,,..,..,,...,...,,,,,...,,,,,.,.,,,,,
+#L3LU2MH6COZPQDEHHQADFY2DOE3YYI7D6HDMR2OYER3MNRNL7SJNYDUKVFT2FGGG7B23WXEJR525U
+#\\\|WCG4WYROO4RT7ISOXZZPHQ73N5HXW6BU5Q3VG7YTZT7W3D52FPF \ / AMOS7 \ YOURUM ::
+#\[7]AETUPOYWJL5WFDIZ5PKHXPJKKGFLMCQ5IUBQF6J2TY3MFMG2PCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

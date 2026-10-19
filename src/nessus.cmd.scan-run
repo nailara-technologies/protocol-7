@@ -20,11 +20,12 @@
 ##    login + template resolution verified against the running nessusd,     ##
 ##    but scan CREATION is license-gated : POST /scans returns http 412     ##
 ##    'API is not available' because the trial license has                  ##
-##    scan_api:false [ server/properties, nessus_type 'Nessus               ##
-##    Professional' trial ]. pipeline is verified up to the license         ##
-##    boundary; a live scan requires a license with scan_api enabled [      ##
-##    paid tier ] -- the failure surfaces as a clean backend error,         ##
-##    never as fabricated findings.                                         ##
+##    scan_api:false                                                        ##
+##    [ server/properties, nessus_type 'Nessus Professional' trial ].       ##
+##    pipeline is verified up to the license boundary; a live scan          ##
+##    requires a license with scan_api enabled [ paid tier ] -- the         ##
+##    failure surfaces as a clean backend error, never as fabricated        ##
+##    findings.                                                             ##
 ##                                                                          ##
 ##    the wrapper stays thin by design : this module shells out to the      ##
 ##    python helper [ nessus.cfg.helper ] which drives the REST API and     ##
@@ -197,8 +198,8 @@ foreach my $finding ( sort { $b->{'severity'} <=> $a->{'severity'} }
 
 return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,.,,.,,,...,...,,.,,,,,,,,.,,.,,,,.,...,,,,,.,.,...,...,...,,.,,,,,,.,.,,,,,
-#FN4NEPRXJGF6QYHRC5KTCVFYUVWVMM6QF2UU6HT6VY2T2YAE7XWV4L6YQ4ECXCIHUZQD5R6DG2YRA
-#\\\|JCM4JJAJRHMPU6Z7RRPH6OQ4BEPTMXIDP5YRIRA6KECWDKLIUUJ \ / AMOS7 \ YOURUM ::
-#\[7]4RBVN3N5TA45A6AXE3UJZ2PJRUWO2MZUCNQFXKEIECGAN5SJS6CY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,...,..,,.,.,.,,,.,,,.,,,.,.,.,.,...,...,...,,.,,.,,,,,,,,,.,
+#IDHJHHGFB5P4XMA76CQ2Q3GUPCHLJN7AITD6UEWTH22YX5QT2EGA5OIJ6DFNJVIHIALLEECTZUIVE
+#\\\|W4VFPCBASPXZPBLAXTBMRTJW2QYWVM4MDBWWDT5HEGBLHBE3WCV \ / AMOS7 \ YOURUM ::
+#\[7]3L5HJU3FQ6CZJ2CG4Y3ZV5CYM7FSABPNKNVT3YYHN5RBUGCQV2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,8 +42,8 @@ if ( not defined $session->{'link_dh_shared_secret'} ) {
 $session->{'link_nonce_session_id'} //= $session_id;
 my $nonce_sid = $session->{'link_nonce_session_id'};
 
-## Derive encryption key : SHA256( shared_secret . pack('N', nonce_sid ) ) [
-## identical to the client-side 'derive-key' KDF, both ends must match ]
+## Derive encryption key : SHA256( shared_secret . pack('N', nonce_sid ) )
+## [ identical to the client-side 'derive-key' KDF, both ends must match ]
 use Digest::SHA qw| sha256 |;
 my $enc_key = sha256( $session->{'link_dh_shared_secret'} . pack qw| N |,
     $nonce_sid );
@@ -71,8 +71,9 @@ $session->{'link_write_counter'} = 0;    ## write-side frame counter
 ## the peer's - a frame's nonce never repeats across the two directions.   ##
 ## the ROLE in the link-upgrade decides it [ set by the end that answered  ##
 ## the upgrade, protocol.protocol-7.link-upgrade.init, or by a client      ##
-## handshake ] - session \ handle modes do not [ accepted tcp sessions are ##
-## handle mode 'input' ]. no role : refuse rather than guess               ##
+## handshake ] - session \ handle modes do not                             ##
+## [ accepted tcp sessions are handle mode 'input' ]. no role : refuse     ##
+## rather than guess                                                       ##
 my $link_role = $session->{'link_role'} // '';
 if ( $link_role ne qw| server | and $link_role ne qw| client | ) {
     <[base.logs]>->(
@@ -112,9 +113,10 @@ $code{$frame_handler_name} = sub {
     my $payload = shift;
     $payload = q|| if not defined $payload;
 
-    ## FAIL CLOSED : on an encrypted link not one plaintext byte may leave  ##
-    ## -- warn, shut the session down, send nothing [ as the output handler ##
-    ## does ] ; returning $payload here used to send it in clear            ##
+    ## FAIL CLOSED : on an encrypted link not one plaintext byte may leave ##
+    ## -- warn, shut the session down, send nothing                        ##
+    ## [ as the output handler does ] ; returning $payload here used to    ##
+    ## send it in clear                                                    ##
     my $fail_closed = sub {
         my $why = shift;
         <[base.s_warn]>->(
@@ -158,8 +160,8 @@ $code{$frame_handler_name} = sub {
 };
 $session->{'output'}->{'handler'} = $frame_handler_name;
 
-## Re-register the output buffer watcher with the encrypting write handler [
-## base.handler.write drains the buffer raw, encryption must wrap it ]
+## Re-register the output buffer watcher with the encrypting write handler
+## [ base.handler.write drains the buffer raw, encryption must wrap it ]
 if ( defined $session->{'watcher'}->{'output_buffer'} ) {
     $session->{'watcher'}->{'output_buffer'}->cancel
         if $session->{'watcher'}->{'output_buffer'}->is_active;
@@ -189,8 +191,8 @@ return TRUE;
 
 1;
 
-#,,.,,.,,,,.,,...,,..,,,,,.,,,,..,,,.,,,,,,.,,..,,...,..,,,..,,,,,.,,,..,,.,,,
-#4URMPFHC7JYP4FDNFMA5BWJYQIQMA4LVTPXVNC5332WUJEOARTDVKFLTHHXOBLDEXAJEPZ3SRDMZE
-#\\\|6V2H37DHW5IGI7T4AGZRYLDRKAXJSSWJMGNNN5GWICIH7G46JJ4 \ / AMOS7 \ YOURUM ::
-#\[7]F4G5KYV72YU7SX6CSV2FQL2K77AFNTBQ4UFRFSW2YWCIXONGLYDI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,.,..,,,,,,,,,,,..,..,,,..,.,.,..,,...,..,,.,,,,,,,.,,,.,,,.,.,
+#HIRUBAWH44GXTAWJ7YKYOTFXNW2ZARYXA67APH5NWISR3Q626246VNKD3HCKVZLNCJB2TAMQHNRXA
+#\\\|RBFAYQQVF6TNY5VE4OIOINF5NTHCKOXWKJ7CEJWQLDFURWCDKEF \ / AMOS7 \ YOURUM ::
+#\[7]UKFYJ4IOJNZI325VSPIMYQAF4V2LJSZW45F22IMZGB3UMWXUAYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

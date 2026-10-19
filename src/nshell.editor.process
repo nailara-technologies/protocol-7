@@ -6,10 +6,10 @@
 
 my ( $editor, $key, $colors ) = @ARG;
 
-## Tab cycles the display mode [ shell / coding-session / ... ] --          ##
-## intercepted here, before the editor engine, since Tab has no existing    ##
-## binding there [ confirmed : editor.control.process_key has no Tab branch ##
-## ]                                                                        ##
+## Tab cycles the display mode [ shell / coding-session / ... ] --       ##
+## intercepted here, before the editor engine, since Tab has no existing ##
+## binding there                                                         ##
+## [ confirmed : editor.control.process_key has no Tab branch ]          ##
 if ( $key eq "\t" ) {
     <[nshell.display.cycle]>;
     return undef;
@@ -19,11 +19,11 @@ if ( $key eq "\t" ) {
 ## first press, clear-leftover-buffer on a second press with nothing to    ##
 ## abort -- see plugin.nshell.coding-session.on_escape ]. only CLAIMED if  ##
 ## the plugin actually wants it -- otherwise falls through to the normal   ##
-## editor engine below unchanged, so Esc's existing meanings [ search-mode ##
-## cancel, VIEWING_HISTORY exit ] keep working when there is nothing       ##
-## coding-zenka-specific to do. avoids the historical "Esc needs pressing  ##
-## twice" class of bug from claiming a key the editor engine already       ##
-## handles itself.                                                         ##
+## editor engine below unchanged, so Esc's existing meanings               ##
+## [ search-mode cancel, VIEWING_HISTORY exit ] keep working when there is ##
+## nothing coding-zenka-specific to do. avoids the historical "Esc needs   ##
+## pressing twice" class of bug from claiming a key the editor engine      ##
+## already handles itself.                                                 ##
 if ( $key eq "\e" ) {
     my $state_ref = <nshell.state> // {};
     my $modes     = $state_ref->{'display_modes'};
@@ -115,15 +115,15 @@ if (   $key eq "\eOP"
     ## plugin wants it -- never disruptive either way ]                     ##
 }
 
-## Ctrl+C : let the current mode's plugin fully detach [ abort + forget     ##
-## task_id + clear buffer + switch back to shell mode ] -- see              ##
-## plugin.nshell.coding-session.on_ctrl_c. this is the "close this session" ##
-## action, distinct from Esc [ which deliberately keeps task_id bound so    ##
-## the conversation stays resumable via task-append ]. only CLAIMED when    ##
-## there's actually something bound/on-screen to detach from -- otherwise   ##
-## falls through to the editor engine's own 'signal' action below, which    ##
-## sends a real SIGINT, so Ctrl+C keeps its normal meaning everywhere else  ##
-## [ shell mode, an empty/idle session tab, etc ]                           ##
+## Ctrl+C : let the current mode's plugin fully detach                      ##
+## [ abort + forget task_id + clear buffer + switch back to shell mode ] -- ##
+## see plugin.nshell.coding-session.on_ctrl_c. this is the "close this      ##
+## session" action, distinct from Esc [ which deliberately keeps task_id    ##
+## bound so the conversation stays resumable via task-append ]. only        ##
+## CLAIMED when there's actually something bound/on-screen to detach from   ##
+## -- otherwise falls through to the editor engine's own 'signal' action    ##
+## below, which sends a real SIGINT, so Ctrl+C keeps its normal meaning     ##
+## everywhere else [ shell mode, an empty/idle session tab, etc ]           ##
 if ( $key eq "\x03" ) {
     my $state_ref = <nshell.state> // {};
     my $modes     = $state_ref->{'display_modes'};
@@ -238,8 +238,8 @@ if ( $action eq 'submit' ) {
         // 0;
     my $buffer = <[editor.control.get_value]>->( $editor, 'command' ) // '';
 
-    ## char-based editor state -> byte view for terminal output [ same bytes
-    ## as the old byte-based AMOS7::TERM path ]
+    ## char-based editor state -> byte view for terminal output
+    ## [ same bytes as the old byte-based AMOS7::TERM path ]
     my $prefix = substr( $buffer, 0, $cursor_pos );
     utf8::encode($prefix);
     $cursor_pos = length $prefix;
@@ -282,8 +282,9 @@ if ( $action eq 'submit' ) {
         ? $submit_result->{'values'}{'command'}
         : ''
     ) // '';
-    ## returned command crosses back into the byte world [ execution, history
-    ## file ] — same bytes the old editor_submit path returned
+    ## returned command crosses back into the byte world
+    ## [ execution, history file ] — same bytes the old editor_submit path
+    ## returned
     utf8::encode($result);
 
     ## editor_submit already reset the editor; reset viewport for next command
@@ -333,8 +334,8 @@ if ( $action eq 'submit' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,,.,...,...,,,,,,,,,,.,,,,.,..,,,,,,.,.,.,.,.,.,...,..,,...,,..,...,,.,,,,,,
-#EVJUQKWY4JPZJ7V5WDIMSX333LYPPSAD3S7BIHLUGFHOSKFPJ5KEJXLMXWEY75AMZQUQVJYGKONB2
-#\\\|FQPWVEG2EI6BAWD4RFQTK57U7RUOGFTGF3QSHTRFY2TSPIASZEG \ / AMOS7 \ YOURUM ::
-#\[7]BEEJIXBHZLLQ5UHZVGR25G464TFWOF2I2FXU3WDY57OHYESX7SCA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,..,,..,,...,.,,,..,,.,,,..,,...,.,.,...,...,...,,,,,,..,,,,,,,.,
+#C3OZ6LJOOEWCAMNGGEC52C2WJH5X4SZCOETHSELVBOHHSCC2VUJXMENUQ77WIB3C5OMJ4UTQKK6R6
+#\\\|N6I7SSHHMBKBJCYEFQFQFRN6QLWZZN6QCKFUEIR2UVCFMSK7F6Q \ / AMOS7 \ YOURUM ::
+#\[7]ZX4BBWXG74RH3Y6FKNSCYPHUNX6R64HB66N7WHCVJCV6XO5SLOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

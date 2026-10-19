@@ -20,12 +20,12 @@ my $params = shift // {};
 
 ## the refresh cycle can end without a new token [ cli too slow to reach its
 ## oauth refresh before the timeout -- seen on the kimi side 2026-09-30 under
-## critical memory pressure ]. claude's expiresAt is not trustworthy [ see
-## plugin.usage.claude.refresh_watchdog ] -- the signal here is whether the
-## credential file was REWRITTEN since the 401 [ refresh_since, from
-## handler.response ]. if not : ONE more cycle with a longer timeout [ queues
-## onto a running one ] before the retry.  bounded : attempt 2 always goes on
-## to the retry
+## critical memory pressure ]. claude's expiresAt is not trustworthy
+## [ see plugin.usage.claude.refresh_watchdog ] -- the signal here is whether
+## the credential file was REWRITTEN since the 401
+## [ refresh_since, from handler.response ]. if not : ONE more cycle with a
+## longer timeout [ queues onto a running one ] before the retry.  bounded :
+## attempt 2 always goes on to the retry
 my $attempt  = $params->{'attempt'} // 1;
 my $provider = <usage.provider.claude>;
 my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
@@ -65,8 +65,8 @@ if ( !$rewritten and $attempt < 2 ) {
 
 return TRUE;
 
-#,,..,..,,.,,,..,,,,.,,.,,,.,,.,.,.,.,,,,,,,.,..,,...,...,.,.,...,,..,.,,,,..,
-#PYQ3BUO2FVKKVVBSY7IQZPL5JS2JIKCCSFB6C5UF7UMSZBFGUMY45CAMVVOHFOKVIVQ5FUWPI5OFO
-#\\\|R3AKYA7OZ66SRYFPCSKZYFBKPQNGTPSCMWRE2HJLB54NZ5MJTPO \ / AMOS7 \ YOURUM ::
-#\[7]ZXMH7RKONFYPT6MJEMQZAUZW2S73SZWG5P4JW2DAB5FZJ6LU7MDY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,.,,,.,,,,,.,...,,.,,,.,,,..,..,,...,...,,.,,,.,,,..,,,.,,.,,
+#TZEMLIECOZ336F7ZEZ2N73KDMQ343NGRCYVV6CQW2N6JTGEPITH5QZIKUACANT3U2EVVG34EI2CLY
+#\\\|K2V2WWTW5DPZ7TMNHIRZ4BW6KAPL4NNGXUSBXLYQLBS67V4W33S \ / AMOS7 \ YOURUM ::
+#\[7]PLTMFIH4G35U63J57XPVU6MEDBVUV2P4X7XVXLJ2ZCL2ECKSSOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

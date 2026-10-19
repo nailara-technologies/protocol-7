@@ -6,12 +6,13 @@
 ## poll-based hover + drag fallback for wslg/xwayland: gtk enter/leave and ##
 ## motion events can be lost for this undecorated rgba keep-above window   ##
 ## until a button-press forces pointer association - and even the first    ##
-## button-held drag's motion can be starved the same way [ the 'first drag ##
-## only focuses' bug ]. this recurring timer queries the pointer directly  ##
-## and either drives the active drag geometry [ via apply_drag, with the   ##
-## screen-relative position used as root coords ] or, while not dragging,  ##
-## updates the resize-region hover cursor - so both proximity feedback and ##
-## the very first drag work without relying on motion-notify delivery.     ##
+## button-held drag's motion can be starved the same way                   ##
+## [ the 'first drag only focuses' bug ]. this recurring timer queries the ##
+## pointer directly and either drives the active drag geometry [ via       ##
+## apply_drag, with the screen-relative position used as root coords ] or, ##
+## while not dragging, updates the resize-region hover cursor - so both    ##
+## proximity feedback and the very first drag work without relying on      ##
+## motion-notify delivery.                                                 ##
 
 my $event   = shift;
 my $watcher = $event->w;
@@ -87,8 +88,8 @@ eval {
 
 return;
 
-#,,.,,...,,.,,..,,.,,,,,.,..,,..,,..,,,.,,,,,,..,,...,...,.,.,.,.,,..,,..,...,
-#B3GK5DOZDDXJ47BJM3BDFSASUEWFFNQ3TULDGNWN5UZQVRFES5HLS54BIMZKGD76RVBQFISF2RPKG
-#\\\|Z6SC4IXUKRDK6F56TAIGQYH7LQIBT47RXAIBPJYNNKS3VFBOFJZ \ / AMOS7 \ YOURUM ::
-#\[7]Y4CK7567XUJ62V43O6UYBGZFNMIX3TOOMHJMJLDSMRSKW7DFT4AI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,.,,,,,,.,,,...,,.,,..,,...,.,,,..,,...,...,.,,,..,,...,...,,..,
+#SF36ZRDN6FQTQ2AM3OIO24OHPUJW7GGE7I3IN3O6LC4PI3REDVQY66FVKIGEZQUUZ2FJWX2SDZGC2
+#\\\|3G3KXS5LIHGU6XWSPWCWU7EVFGR6JZQFAKAZVLYXYXJV44SRHNA \ / AMOS7 \ YOURUM ::
+#\[7]RD6H3YGBZFE4XAUKFEP4BRAAEN3QD2ZCV6SIIGCR2CC7UYE3SWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

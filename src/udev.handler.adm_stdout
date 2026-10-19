@@ -21,9 +21,9 @@ my $actions  = <udev.rules.actions>;
 
 my $bufsize = 4096;
 
-my $bytes
-    = <[base.s_read]>->( $read_fh,
-    \$data{'udev'}{'adm'}{'output'}{'buffer'}, $bufsize );
+my $bytes = <[base.s_read]>->(
+    $read_fh, \$data{'udev'}{'adm'}{'output'}{'buffer'}, $bufsize
+);
 
 if ( $bytes <= 0 ) {
     $event->cancel;
@@ -122,8 +122,8 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
     }
 }
 
-#,,,.,,.,,..,,.,,,.,,,.,.,,,.,...,.,,,,,.,..,,..,,...,...,,..,,.,,.,.,,,.,...,
-#GVPXR7LPGYKID5PD6FLW3DCG5IMD5RXJRTX5FKMVAITUW3YNX3EMYLIOI2WVPXGSK77KJYAFAXTLK
-#\\\|23JVFUW6T3YSWWPNMLAG2FMODFSVNSC6PD3HJP2UL637ERVSMCZ \ / AMOS7 \ YOURUM ::
-#\[7]6EBAR2XDXCARLTVYANVJSNYN7SIF7RBQPGKFDRESIWRAFFSQBMDY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,..,.,.,,,,,...,,..,.,,,,,.,.,,,..,,...,...,,,,,,,.,,,,,..,,.,,,
+#ERQTFPNXHKDJERURXYPD2WDXLIAE5BUHSOSUIIQ5GBSRL34GQ56DVS22CYVTGCXOXVYDIL22DSMAI
+#\\\|TYISNE535FN4LKN4A5LJUQUWHG3FE5BE7X3SKSDS7IFLAQB4A4N \ / AMOS7 \ YOURUM ::
+#\[7]X2A6OBMIU3CJOLWMVTSQJUXC26IYQASLKCYACZMCRGJGVYOUK4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

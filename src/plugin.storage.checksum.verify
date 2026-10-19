@@ -18,8 +18,9 @@ return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
 my $current_checksum;
 my $algorithm = $cached->{algorithm};
 
-## file content via filesum, never the .B32 variants [ those hash their ##
-## input string -> the path itself ] ; plain bmw = 384, osf-cache layer ##
+## file content via filesum, never the .B32 variants                       ##
+## [ those hash their input string -> the path itself ] ; plain bmw = 384, ##
+## osf-cache layer                                                         ##
 if ( $algorithm eq 'bmw' or $algorithm eq 'bmw-384' ) {
     $current_checksum = <[chk-sum.bmw.filesum]>->( 384, $path );
 } elsif ( $algorithm eq 'bmw-224' ) {
@@ -62,8 +63,8 @@ return {
     }
 };
 
-#,,..,,.,,,,.,...,..,,,..,,,,,,,.,.,,,,..,..,,.,.,...,...,,,,,,,.,,.,,...,,..,
-#2KIE5BWOATBZQHVRE5KTS5LCOAC66JBYI22ZJRW4UZDDIM7GEGEGCIHTP2R5RWAFZTEZEDEFM42QU
-#\\\|7OPPG3EB6474YEQUZUQWEG7K54TIFDQIL4L6PUAT67TAISC6MGL \ / AMOS7 \ YOURUM ::
-#\[7]E7AWRKMBYRDKURU7KOBJEP26C6AYF7T74ZJO3CV2ZUPB7TSYTGAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,..,,..,,,.,,.,.,,.,,,,.,...,.,.,...,...,.,,,...,,,.,..,,.,,,
+#7IUNOC4VQZVDB5QEGR2WPME325OKIH4JBYNYA5FRCNF223DE4YB25OAXREJDHEFESLIW2MFWG7TQO
+#\\\|B5OP4345V2O33ELILQHF5LX3AUDQ2U2COMI7EXYB4B3CNYCWVZ5 \ / AMOS7 \ YOURUM ::
+#\[7]I4EKV5WLRIQOYAQKYJWE4LXLMYBYOPB6OLYVCJFFA4746FM6VSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

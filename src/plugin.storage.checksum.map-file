@@ -45,8 +45,9 @@ return { 'mode' => 'false', 'data' => 'file not found' } unless -f $path;
 my $checksum;
 
 # Dispatch to correct BMW/AMOS checksum module
-## file content via filesum, never the .B32 variants [ those hash their ##
-## input string -> the path itself ] ; plain bmw = 384, osf-cache layer ##
+## file content via filesum, never the .B32 variants                       ##
+## [ those hash their input string -> the path itself ] ; plain bmw = 384, ##
+## osf-cache layer                                                         ##
 if ( $algorithm eq 'bmw' or $algorithm eq 'bmw-384' ) {
     $checksum = <[chk-sum.bmw.filesum]>->( 384, $path );
 } elsif ( $algorithm eq 'bmw-224' ) {
@@ -113,8 +114,8 @@ return {
     }
 };
 
-#,,,.,...,.,,,.,,,...,,.,,.,.,...,,..,,..,,,,,.,.,...,...,..,,,,.,..,,.,.,,,,,
-#WARMHLNNIM76KLIPEIYEJSG5ODAP6MXPSB37YXRQMVRGBTP6UMM2QWJI5EULWIOGS5M3D5XW3LDLA
-#\\\|SPQQ2ZONFPSMYPW3IQLHZVAZNYVBLD6E5LAIQUAT2W4N5LZRL6O \ / AMOS7 \ YOURUM ::
-#\[7]2HKOGTW3CQALYQ2UNIHGAV5SHISZ4EHDH2OZIFC7S3J7F4JXGKCY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,...,.,,,,..,,.,,,,.,,..,..,,...,.,.,...,...,..,,,,,,,.,,,,.,,,.,
+#OZWYHBBMOLBXCKMZ6MQ6NWZHRIJ42G73JQ5VYA4C7XCCPSCY3HCY3VENP6XTFA5STOPBIJKGNV3RO
+#\\\|UXDM5VUOD4RUEO4BCM47EBICMMZYEMQYR5AJ2IYNUFSTTO27NNK \ / AMOS7 \ YOURUM ::
+#\[7]UA6FDUWD434SPX55S4GXKZUSHKU3FDF2EGGB7G4QXOUNYLEXWYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,15 +13,15 @@ return unless defined $state_ref->{'flash'};
 ## nshell.render.viewport already re-checks expiry itself on every render  ##
 ## and clears a stale flash there too -- this timer's only job is to force ##
 ## that render to actually run, since nothing else may otherwise touch the ##
-## screen again before the user's next keystroke                          ##
+## screen again before the user's next keystroke                           ##
 delete $state_ref->{'flash'}
     if ( $state_ref->{'flash'}{'expires'} // 0 ) <= <[base.ntime]>;
 
 <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors )
     if $state_ref->{'split_active'} and defined $state_ref->{'editor'};
 
-#,,,.,,,,,,..,...,...,.,.,,,.,...,,,.,,,,,.,.,..,,...,...,,,.,,..,,,.,...,,..,
-#Z22UPZJKSDVXQVPMG6CCQN2TM2QDXNXWOK3HVZ7I3LLIWQJNH75MAOYH53BEOG7IY6SSR7V6MYDBW
-#\\\|ZDSI53RU4H2CT4ND7LVQ7VHSL6LWBPGQVXFZ2YONZ2EG65U5MC6 \ / AMOS7 \ YOURUM ::
-#\[7]KLUNEQAPEDOBHYK5LBCRGLQFROPKYMOZLGMXFIJ375AWXGAEN6CA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,.,.,,.,,,..,.,,,..,,,..,,,,,..,,...,..,,,..,,.,,...,.,.,.,.,
+#KXH6L5SARJQBZUDABFYOQSWZO354KE2ABYUTEQUXQNAFTLNSIUN2PYUGMG63BFMW4WZVEP7ML4QPQ
+#\\\|LH5Z5GQJPKKHJVMEA6R72IPFADOY6BZRF2JPK2ICNKXS6T2VTIW \ / AMOS7 \ YOURUM ::
+#\[7]7COD34F5TCDA6X3P642ZDVUXPOCYPQOYCTGHDALBBGSUH3OBQIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,9 +6,10 @@
 
 ## DISPLAY ONLY, self-record-only : the field def carrying this override is
 ## synthesised in form.schema_from_record ONLY when the open record is the
-## invoking Unix user's own, so whatever key state this zenka process holds [
-## its OWN session key, loaded by this zenka's bootstrap ] is only ever shown
-## next to that same user's own record -- never beside someone else's fields.
+## invoking Unix user's own, so whatever key state this zenka process holds
+## [ its OWN session key, loaded by this zenka's bootstrap ] is only ever
+## shown next to that same user's own record -- never beside someone else's
+## fields.
 ##
 ## data comes straight from crypt.C25519's in-process state, NOT from any
 ## keys.console.* module [ those print/say interactively to STDOUT, the wrong
@@ -55,8 +56,9 @@ my $key_name = <[crypt.C25519.key_vars]>->{'key_name'} // '';
 
 my $pubkey_reply = <[crypt.C25519.cmd.get-public-key]>;
 
-## mode 'false' is legitimate [ the session key somehow not loaded when     ##
-## render fired ] -- degrade to a short notice rather than dying mid-render ##
+## mode 'false' is legitimate                                               ##
+## [ the session key somehow not loaded when render fired ] -- degrade to a ##
+## short notice rather than dying mid-render                                ##
 if ( ref $pubkey_reply ne qw| HASH |
     or ( $pubkey_reply->{'mode'} // '' ) ne qw| true | ) {
     return sprintf(
@@ -96,16 +98,16 @@ if ( ref $field_def eq qw| HASH | and $field_def->{'identity_detail_mode'} ) {
     return $key_name;
 }
 
-## no leading/trailing space here -- render_form's generic body wrap [ q{
-## }.$value.q{ } ] plus its pad_l/pad_r framing already supply that for every
-## unfocused field ; adding it here too just stacked a third layer of padding
-## on top of the two already applied generically.  the single space BETWEEN
-## key_name and checksum stays -- that separates two real pieces of content,
-## not outer framing
+## no leading/trailing space here -- render_form's generic body wrap
+## [ q{ }.$value.q{ } ] plus its pad_l/pad_r framing already supply that for
+## every unfocused field ; adding it here too just stacked a third layer of
+## padding on top of the two already applied generically.  the single space
+## BETWEEN key_name and checksum stays -- that separates two real pieces of
+## content, not outer framing
 return sprintf( q|%s %s|, $key_name, $checksum );
 
-#,,..,...,,,,,,,,,.,.,...,,,,,.,.,,..,.,,,,..,..,,...,...,...,,,.,..,,.,,,..,,
-#ENVVYYWB4LPYPFUI33HITJJPIIW3NL5M3UDB2QTURQJNGMGWL5S5F2MCPDCBMCJ2ARUQZIXVZCZIK
-#\\\|EVFLALX3CAJK56P5FCEHSJT6A237KMDNFIBCOYLRG7SLBLM3TQO \ / AMOS7 \ YOURUM ::
-#\[7]HAWY6QQ5FCUTWRS34YEGHTYGZ7A553RYN2XG757YKWCSOMXKZYCQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,,,.,.,.,.,,,,,,,,.,,...,,..,..,,...,...,.,.,...,.,,,,,.,,,,,
+#5ED2YFYDGB6DTFIMHVD6TVEU6XLWG4NU2SU7KTOBOUWBS6EWFSLMKETBX27JGMWRS5KBXI5NWFGOI
+#\\\|WM2PE5EHNUBHZWZZLOA4RWQMVYSELHXOEOZJHSS47OFDIWTLL27 \ / AMOS7 \ YOURUM ::
+#\[7]5E6DKJ2SNNRKNJCB6HDCDXR2AP266WUIVRGHHEVNCMUEY4DQBEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

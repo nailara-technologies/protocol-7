@@ -75,8 +75,8 @@ my $flush = sub {
 };
 
 while ( my $line = <$fh> ) {
-    ## hash the raw line before any chomping [ sha512 for the repos whose ##
-    ## index anchors sha512-only entries ]                                ##
+    ## hash the raw line before any chomping                            ##
+    ## [ sha512 for the repos whose index anchors sha512-only entries ] ##
     $ctx->add($line);
     $ctx_512->add($line);
     chomp $line;
@@ -124,8 +124,8 @@ return {
     }
 };
 
-#,,,,,,,.,..,,,.,,.,.,,,,,..,,,,,,.,,,,,,,,,,,.,.,...,...,,..,,.,,,.,,,,,,...,
-#RBISTF4RGJZQL75VTOESYVDB63725H7ZME4P2NIAIV6B332TCPB6B7UJ64Z34QQUWGOAR6CPF7D62
-#\\\|WIZLLX67AMHUMLZIFX7BAOHATQV64FKIE53KO523SQTNNGIHYSD \ / AMOS7 \ YOURUM ::
-#\[7]7FL2ISPQZVJGJDC7TZL5NJ7VB4W5YGEJJV5UMU5AVHPUTD72K4CI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,..,,..,,...,,.,,..,,,..,...,,..,.,.,...,...,..,,...,,..,.,,,...,
+#E7YIZAHCMWKB4ICGMETIZMMXNIXUHYQWPPYIPDUNHEHADWSIGRBNAYVUTS6MWPWDQUWE5MIESUKVI
+#\\\|QC3PCFFMWVPHRRIUNUMZ4XZEGBQCPZD45Z6VT4LYX7NVWFVMMEE \ / AMOS7 \ YOURUM ::
+#\[7]5M5F5YCHPM5B3SFR7JHVEP346SUYZ2DGQIKMQXTN5OA5NI2VHYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

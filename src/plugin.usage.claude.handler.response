@@ -30,16 +30,17 @@ my $deliver = sub {
 my $headers = $result->{'headers'} // {};
 my $status  = $result->{'status'}  // 0;
 
-## a rejected local oauth token surfaces as a plain 401, never as a         ##
-## documented field in the body or headers -- confirmed live 2026-09-16 :   ##
-## the local credential file's own expiresAt claimed ~97 minutes of         ##
-## validity left while the api answered 401 regardless, so unlike           ##
-## plugin.usage.kimi.handler.response [ which checks a locally computed     ##
-## expiry ] this checks the actual http status. first failure on a 401 :    ##
-## refresh [ free -- see plugin.usage.claude.refresh_token -- claude code's ##
-## own startup cycle renews its oauth token before any prompt is ever       ##
-## submitted ] and retry ONCE, transparently, before bothering the caller   ##
-## with an error -- same pattern as plugin.usage.kimi.handler.response      ##
+## a rejected local oauth token surfaces as a plain 401, never as a       ##
+## documented field in the body or headers -- confirmed live 2026-09-16 : ##
+## the local credential file's own expiresAt claimed ~97 minutes of       ##
+## validity left while the api answered 401 regardless, so unlike         ##
+## plugin.usage.kimi.handler.response                                     ##
+## [ which checks a locally computed expiry ] this checks the actual http ##
+## status. first failure on a 401 : refresh [ free -- see                 ##
+## plugin.usage.claude.refresh_token -- claude code's own startup cycle   ##
+## renews its oauth token before any prompt is ever submitted ] and retry ##
+## ONCE, transparently, before bothering the caller with an error -- same ##
+## pattern as plugin.usage.kimi.handler.response                          ##
 if ( $status == 401 and not $pending->{'retried'} ) {
     <[base.logs]>->(
         1,
@@ -160,8 +161,8 @@ $provider->{'last_time'} = $now;
 
 return $deliver->( { 'ok' => TRUE, 'result' => $parsed } );
 
-#,,,,,...,,.,,.,.,,.,,,..,...,..,,,.,,..,,,,,,..,,...,...,...,..,,,,.,,.,,...,
-#HC3B3FL6KVQM74FUBCZBQ2IN2V66R6ORPRE2UR34SVZEROJWHJXL5W7NHQV5MC6YLH7PYGAX44B3G
-#\\\|BR4BIRZLBOO6UNEOAVAZLOU56JDM4DTONVED6KA3CT4QBDDO4BA \ / AMOS7 \ YOURUM ::
-#\[7]KCP5HVJCVYCIHGVIHDFBWOT7YTSLHR4HO6CJCBI5NKHV5N4DBYBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,,,.,.,.,.,,,.,...,,,,,,.,,...,..,,...,...,,..,...,,,,,.,.,,.,,
+#DIT5UIZTB73EEX2LVZC2RV7Z34V3HQUAIHR7V6TDYJ47MVL276Y4NCCTAN4C63IF6KIRM6F2TBJDO
+#\\\|DOFWTAOQPBHKNCZLNRGS7N2CKTIOXEITEK665SPKAIQC7FZT4OE \ / AMOS7 \ YOURUM ::
+#\[7]2DAJBHOXE3DOOU5QIXLHKCN3US66I6YWU4W33I7WIFQZYOLZAACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

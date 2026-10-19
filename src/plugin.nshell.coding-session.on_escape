@@ -29,27 +29,28 @@ if (    defined $mode->{'task_id'}
     ## first press since the last message was sent : always send the abort  ##
     ## -- this plugin runs inside the NSHELL zenka's own process, not the   ##
     ## coding zenka's, so <coding.task.active> here would only ever read    ##
-    ## nshell's own local, never-populated copy of that key [ per-zenka     ##
-    ## %data isolation ], not the coding zenka's real active-task list --   ##
-    ## an earlier version gated on that read and it was always empty, so    ##
-    ## the abort silently never got sent. coding.cmd.abort-inference        ##
-    ## already does this exact "is it still running" check correctly,       ##
-    ## server-side, with real data -- trust it, and let it harmlessly no-op ##
-    ## if nothing was actually running [ e.g. this press landed after       ##
-    ## natural completion ] rather than trying to guess here.               ##
+    ## nshell's own local, never-populated copy of that key                 ##
+    ## [ per-zenka %data isolation ], not the coding zenka's real           ##
+    ## active-task list -- an earlier version gated on that read and it was ##
+    ## always empty, so the abort silently never got sent.                  ##
+    ## coding.cmd.abort-inference already does this exact "is it still      ##
+    ## running" check correctly, server-side, with real data -- trust it,   ##
+    ## and let it harmlessly no-op if nothing was actually running          ##
+    ## [ e.g. this press landed after natural completion ] rather than      ##
+    ## trying to guess here.                                                ##
     my ($cube_sid) = keys <user.cube.session>->%*;
     if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
         $data{'session'}{$cube_sid}{'buffer'}{'output'}
             .= "coding.abort-inference $mode->{'task_id'}\n";
     }
 
-    ## this is routinely a no-op [ e.g. Esc between rounds, nothing      ##
-    ## streaming ] -- suppress the raw wire reply either way. lives on   ##
-    ## shared nshell state, not the mode object : nshell.handler.        ##
-    ## command_reply checks it directly, BEFORE looking at which mode is ##
-    ## even current -- on_ctrl_c needs this same flag to survive a       ##
-    ## synchronous mode switch back to shell before the async reply      ##
-    ## arrives, so both use the same mechanism rather than two           ##
+    ## this is routinely a no-op                                           ##
+    ## [ e.g. Esc between rounds, nothing streaming ] -- suppress the raw  ##
+    ## wire reply either way. lives on shared nshell state, not the mode   ##
+    ## object : nshell.handler.  command_reply checks it directly, BEFORE  ##
+    ## looking at which mode is even current -- on_ctrl_c needs this same  ##
+    ## flag to survive a synchronous mode switch back to shell before the  ##
+    ## async reply arrives, so both use the same mechanism rather than two ##
     <nshell.state>->{'suppress_next_wire_reply'} = TRUE;
 
     ## armed : the NEXT Esc press [ with nothing new typed meanwhile ]      ##
@@ -100,13 +101,14 @@ if ( defined $mode->{'task_id'} and length $mode->{'task_id'} ) {
     ##                                                                      ##
     ## NOT clearing the buffer or requesting a redraw here, unlike an       ##
     ## earlier version : confirmed live that wiping the screen BEFORE the   ##
-    ## command's own async reply arrives means a FAILED rewind [ "already   ##
-    ## at the earliest round" etc ] leaves nothing but that one bare error  ##
-    ## line on screen, with whatever was previously shown already gone --   ##
-    ## same "clear now, hope the reply fills it back in" mistake the abort  ##
-    ## branch above already avoids [ redraw => FALSE there too ]. leave the ##
-    ## display exactly as-is and let the eventual reply -- success or       ##
-    ## failure -- print via the normal content_print path instead.          ##
+    ## command's own async reply arrives means a FAILED rewind              ##
+    ## [ "already at the earliest round" etc ] leaves nothing but that one  ##
+    ## bare error line on screen, with whatever was previously shown        ##
+    ## already gone -- same "clear now, hope the reply fills it back in"    ##
+    ## mistake the abort branch above already avoids                        ##
+    ## [ redraw => FALSE there too ]. leave the display exactly as-is and   ##
+    ## let the eventual reply -- success or failure -- print via the normal ##
+    ## content_print path instead.                                          ##
     return { 'claimed' => TRUE, 'redraw' => FALSE };
 }
 
@@ -123,8 +125,8 @@ if ( length( $mode->{'buffer'} // '' ) ) {
 ## through to the normal editor engine unchanged                      ##
 return undef;
 
-#,,,,,...,.,,,...,..,,,,.,.,,,.,.,,..,,.,,.,,,..,,...,...,..,,,.,,,.,,,.,,.,,,
-#O4FKJAV76SQ65FWHN5NJREWMRXNLCWF7WCYSF7UB7IGLAOZKNI6YGG3EO66ZFVE2UHFQO5AWO5AIU
-#\\\|BEFGEJESJVGOZBZBJ3J6R2COPO4UMXDLAZ5WLB3JSENVVIBCK26 \ / AMOS7 \ YOURUM ::
-#\[7]KRPLVSZ4NT4HRJPGNBAYEYZK6IM6ZCTYWAWKNHPA2Q65SJSLGICA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,.,.,,,,,,.,,..,,.,.,,,.,.,.,..,,...,...,.,.,..,,,,.,.,.,.,,,
+#K74CYXQWFZIGMPMN342G3TZTWU5NWZD4FXGPGYIQPVIS6UPFJN33L2FUXY7PSR7QVF2N3UE3ZRRNK
+#\\\|XEGKF5BWUZYSIBN6JMVFWQ72BLS7FMLNX3TULJVB22MOIO3KN74 \ / AMOS7 \ YOURUM ::
+#\[7]LUKMOKJLNFRJW5SWIB7J6N7VMGFAXF35A66YR4V6RSLDD2UMRODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

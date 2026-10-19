@@ -42,8 +42,8 @@ return {
 return { 'mode' => qw| false |, 'data' => 'lookup needs a reply route' }
     unless length $reply_id;
 
-## the exact token checks cmd.has runs [ empty holdings : validation only, ##
-## the held map is not used here ]                                         ##
+## the exact token checks cmd.has runs                                 ##
+## [ empty holdings : validation only, the held map is not used here ] ##
 my $check = <[osf-cache.lookup.query_local]>->(
     {   'hashes'   => \@tokens,
         'holdings' => { 'files' => [] },
@@ -56,8 +56,9 @@ return { 'mode' => qw| false |, 'data' => $check->{'data'} }
 my %seen;
 my @anchors = grep { !$seen{$ARG}++ } map { lc $ARG } @tokens;
 
-## anchors unknown to the local index are never asked [ cannot verify a ##
-## size we do not know ] ; the known ones are still looked up           ##
+## anchors unknown to the local index are never asked                 ##
+## [ cannot verify a size we do not know ] ; the known ones are still ##
+## looked up                                                          ##
 my $index = <osf-cache.index> // {};
 my ( %expect, @known, @unknown );
 foreach my $anchor (@anchors) {
@@ -124,8 +125,8 @@ my $timer = <[event.add_timer]>->(
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,,.,,...,..,,...,,,.,..,,.,,,.,,,.,.,,.,,.,.,...,...,,..,...,.,.,,..,.,.,
-#6D7H23RS2OGYZZPLZHJ7JNH3K2RIQK64FV4TI5X2ASXEY5LLF72M4VFDJEQ42FE4B36TQA26KMBBI
-#\\\|Y73EWLSAR65X2T54SOCOFFKFQSUYNZU5RX5YT4GH34VRV2CMUUL \ / AMOS7 \ YOURUM ::
-#\[7]AIR2BOQQXDZPHQ6IXTPJ53HV6E4X4J2223JYPDNNCULNLTWT4ACI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,,,.,...,,,,,..,,...,,,,,,,,,.,.,...,...,.,,,,,.,,,.,,,,,.,.,
+#7WBPNILT4PL7ESUVUEUS2NT2W6HOLK6YWQJ47CRK7P7AUE7DS3RG46V4MYFH2MCCJ6VB4LILQQ3G4
+#\\\|GNESVCVFYYB4R4XLD267CJ7GRZ3IBSCYDPAZFS6AVCAGMSWK7V3 \ / AMOS7 \ YOURUM ::
+#\[7]Q2MAGFIZJQ3ZVLBD2B2EDY3EVHYSR74S2UVMEP7HMBDYEQXHUICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

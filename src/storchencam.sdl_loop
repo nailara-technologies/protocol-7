@@ -10,9 +10,9 @@ my $current_res_h = 480;
 $ENV{'DISPLAY'}         = <x11.display>;
 $ENV{'SDL_AUDIODRIVER'} = 'disk';
 
-## ParanoidAgent refuses to work through a proxy [ its own SSRF checks ##
-## become the proxy's job at that point ] - fall back to plain         ##
-## LWP::UserAgent when storchencam.http_proxy is configured            ##
+## ParanoidAgent refuses to work through a proxy                            ##
+## [ its own SSRF checks become the proxy's job at that point ] - fall back ##
+## to plain LWP::UserAgent when storchencam.http_proxy is configured        ##
 my $http;
 if ( length <storchencam.http_proxy> ) {
     $http = LWP::UserAgent->new();
@@ -357,8 +357,8 @@ while (1) {
     <[storchencam.util.loop_wait]>->(0.222);
 }
 
-#,,.,,,.,,.,.,.,.,...,,..,..,,,..,..,,.,,,,.,,..,,...,...,...,.,,,,..,..,,,..,
-#Z6BUB7GNWC6L4RB5YP7OMVTWQ3DXAMA6I65FAE4H2HUNPZFP4HHLHDUYYK6B64HWSZNMMVN7FQJDW
-#\\\|VTEVMY5JGI7I44IJQNXQYVIPAWBKNSTYSFIQV5HXHI25GR5EHLY \ / AMOS7 \ YOURUM ::
-#\[7]PJ5JUSYQO6EHTVKMSEWAKDF2LMNSHEBO5NQZE4V4FVDP56TPHOBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,...,,..,...,,..,..,,,,.,...,.,,,..,,...,...,,,.,.,.,.,,,,,.,.,,,
+#Q5HVU4BXV5KE3MIA2AXLDQEKXTCMEF4FOTINNTYOZY53YYBAFEHI766OOWDJJXDECPD5NSMZTH6JE
+#\\\|IBBSAWTKFOPUBW5U5GOM3D7YUMTKR37XBRHTXDUZOEJNRNNTWXF \ / AMOS7 \ YOURUM ::
+#\[7]QS26SNJXE66UVW7EWNU3LIRNGSONJPXLTF73Y2RQCUFQVM6FEYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

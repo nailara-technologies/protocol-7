@@ -14,8 +14,8 @@ return TRUE if not defined $inst;
 
 ## right-click dismisses, same as Escape  ungrab before close :             ##
 ## begin_move_drag may leave a compositor grab that weston does not release ##
-## on window destruction, blocking button-1 for all clients [ same hazard   ##
-## documented in protocol-7-menu.graphical-startup-init ]                   ##
+## on window destruction, blocking button-1 for all clients                 ##
+## [ same hazard documented in protocol-7-menu.graphical-startup-init ]     ##
 if ( $event->button == 3 ) {
     eval { Gtk3::Gdk::pointer_ungrab( $event->time ) };
     <[screen.setup.close]>->($id);
@@ -38,10 +38,11 @@ my $in_border
         || $ey > $h - $border );
 
 if ($in_border) {
-    ## hand the move to the compositor's interactive grab : the one         ##
-    ## mechanism that repositions reliably -- and crosses monitor seams --  ##
-    ## under this wslg/weston build [ see window.place.handler.button_press ##
-    ## ] mark the drag so button_release knows to persist the new position  ##
+    ## hand the move to the compositor's interactive grab : the one        ##
+    ## mechanism that repositions reliably -- and crosses monitor seams -- ##
+    ## under this wslg/weston build                                        ##
+    ## [ see window.place.handler.button_press ] mark the drag so          ##
+    ## button_release knows to persist the new position                    ##
     $inst->{'dragging'} = TRUE;
     $widget->begin_move_drag( $event->button, $event->x_root,
         $event->y_root, $event->time );
@@ -92,8 +93,8 @@ $inst->{'drag_start_geo'}     = {
 
 return TRUE;
 
-#,,,,,.,,,,,,,,..,..,,..,,.,,,,,.,,,,,,,.,,..,.,.,...,..,,..,,,,,,...,..,,,.,,
-#E7WIMHNI7Z7WCV4JNMH7643CP2CLAIBYKX36FB4BU522WGFGDR74PE66GM4E2A2SJRGFQ6O6HWNIE
-#\\\|FBWPYV2WGPKUKUGYVD7O6LILCUWTBHUEF7BSQJPUR5HCUOXR7KZ \ / AMOS7 \ YOURUM ::
-#\[7]DZWAZH7R7MEACTYFJQOIDYSLOFUAIQM2CKOHSYLQOQT27PAVHYCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,,..,..,,,..,.,.,,..,,..,,,.,.,.,...,...,,.,,.,,,..,,.,,,,..,
+#WHWSPTKBT7QNE6SMNHXDSA73RX6CXJHVV3YCLSPHASCKLSHX4JNQFGZ6A67Y2CT3BYKOCDQJSFCA2
+#\\\|PNF3N6A3TRYHFUQFWGYJKPMHPT26VJPYXWIZTYDBP2JF3D4T2Y7 \ / AMOS7 \ YOURUM ::
+#\[7]SWQ35NC3YSVQ3KFOP3BTJJSG54LKHSO2Z25PIHEES7AQ6X42WICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,8 +12,8 @@ print "\e[<1u\e[>4;0m";
 print "\e[0m\r\e[K";
 STDOUT->flush();
 
-## prefer tty_fd stored by term_init  [ fileno(STDIN) may be stale at exit
-## time ]
+## prefer tty_fd stored by term_init
+## [ fileno(STDIN) may be stale at exit time ]
 my $tty_fd = $main::data{'nshell'}{'tty_fd'} // fileno(STDIN);
 return FALSE if not defined $tty_fd or $tty_fd < 0;
 
@@ -41,8 +41,8 @@ if ( $fallback->getattr($tty_fd) ) {
 
 return TRUE;
 
-#,,..,,,,,.,,,,.,,,,.,.,,,...,,,,,,,.,,..,..,,..,,...,...,.,.,.,,,,.,,...,,.,,
-#LK263P6QHG6PWOJMYOGWJCCJ23QUIO4K4BUMZT32XUCNNPLDVWLJFDJE6ESQLE7LKHSV5ZLNTIHMA
-#\\\|YMJDGL33DCNTXHEDWTTUCUHT56TVT7QZX76AAWDOKZU22ZX42WN \ / AMOS7 \ YOURUM ::
-#\[7]RMWS6RUKA7TN5B25CZ5UZ5QOWVJS6NMRFQU5CDPQTGFZOAGWSSCY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,.,.,.,.,.,.,...,.,,,..,,,..,..,,...,...,,,.,,,,,.,.,,,,,.,,,
+#IRTOU67P4AK4LFAO6BIMAHTLNDBAOSMVTNYWVENLLGDISU7RNPHZXI776SKTQB4VSO73LOXRPPDDG
+#\\\|KS7IJAV5J7VBJ5C73IGNWGHMTMEUIXEBKD6ZJ7RPK45WCVCFZLR \ / AMOS7 \ YOURUM ::
+#\[7]MEWNOWND6QOTC2GQDP5WFMJ44AQ6KWKLO6WAKHG3PMITNZ4GZ2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
