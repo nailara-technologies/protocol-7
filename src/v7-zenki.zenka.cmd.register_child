@@ -4,14 +4,14 @@
 # param = <child-pid> <parent-pid> [ <child-name> ]
 # descr = associate process ID with its parent instance
 
-## parent_pid comes from the caller directly [ its own pid, since it is the
-## process that did the actual spawning ] rather than being re-derived here
-## via a live /proc/<pid>/status lookup : that lookup reflects the CURRENT
-## process tree, not the tree at spawn time, so an intermediate process
-## exiting during the async round trip through cube [ eg a transient shell
-## wrapping a piped-open spawn ] reparents the child to init before this code
-## ever runs, and the real relationship is gone for good by then -- trusting
-## the spawner's own identity sidesteps the race entirely
+## parent_pid comes from the caller directly
+## [ its own pid, since it is the process that did the actual spawning ]
+## rather than being re-derived here via a live /proc/<pid>/status lookup :
+## that lookup reflects the CURRENT process tree, not the tree at spawn time,
+## so an intermediate process exiting during the async round trip through cube
+## [ eg a transient shell wrapping a piped-open spawn ] reparents the child to
+## init before this code ever runs, and the real relationship is gone for good
+## by then -- trusting the spawner's own identity sidesteps the race entirely
 my $instance_id;
 my ( $child_pid, $parent_pid, $child_name )
     = split( m| +|, $call->{'args'}, 3 );
@@ -58,8 +58,8 @@ $instance->{'process'}->{'child'}->{$child_pid} = 1;
 
 return { 'mode' => qw| true |, 'data' => 'registered' };
 
-#,,,,,.,,,,..,..,,.,,,.,,,,..,.,,,...,..,,,,.,..,,...,...,...,...,,,.,.,,,.,.,
-#XZKVUO5NXCHXUVVDPLP2TMBJ3DQ3SDV6GT6EBRY4Q77IWUUOEIFEYOQU3H3CFGDGIG5QAKU2DEN7C
-#\\\|V5RCUT7VLTD7KCAC3XAPTWMWZMMAYLU5Y3B66RJPUJZ72DCNLPH \ / AMOS7 \ YOURUM ::
-#\[7]YMQMX74B2YQAVGGDFTOXPX7F5JUAPXLGVXW4SBFZHT2PLYGKJQBY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,...,.,,,...,,,.,,,,,..,,.,.,..,,...,...,...,...,...,,,.,.,,,
+#FLUFXPCKHYJZT6AVKHJELRPDN3EYG3M62GWG2TZNQOGDS5TT6KVLRUMC5LJV3BYTZZTB2IYF3V3I4
+#\\\|Z3M5DJ6BTEEEEAZB6EOZD7Z4QS4TRXFC4FGNRU7RQ3YJ6ILHC6J \ / AMOS7 \ YOURUM ::
+#\[7]JFBY7K66F3P64H5V63E46BZCUYIMIADN6UBEFOWNROZLIZ4G6OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

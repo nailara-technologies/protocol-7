@@ -6,14 +6,14 @@
 ## called from v7-zenki.handler.zenka_status on status 'error' only, when   ##
 ## the zenka opted in [ restart.keep_children ] : the registered children   ##
 ## of the instance are NOT terminated with it but move into                 ##
-## <v7-zenki.kept_children> for the next instance to claim by name [        ##
-## v7-zenki.zenka.cmd.claim-children ]. removal from <v7-zenki.child> and   ##
+## <v7-zenki.kept_children> for the next instance to claim by name          ##
+## [ v7-zenki.zenka.cmd.claim-children ]. removal from <v7-zenki.child> and ##
 ## the instance child registry is what excludes them from the /proc tree    ##
 ## sweep in terminate_process and from instance_child_pids ; orphan_pids    ##
-## skips kept pids explicitly. a one-shot grace timer per child [ default   ##
-## 120s, restart.keep_children_grace ] terminates it when unclaimed [       ##
-## v7-zenki.handler.kept_child_grace ]. a planned end moves them back first ##
-## [ v7-zenki.kept_children_reabsorb ]                                      ##
+## skips kept pids explicitly. a one-shot grace timer per child             ##
+## [ default 120s, restart.keep_children_grace ] terminates it when         ##
+## unclaimed [ v7-zenki.handler.kept_child_grace ]. a planned end moves     ##
+## them back first [ v7-zenki.kept_children_reabsorb ]                      ##
 
 my $instance_id = shift;
 return 0 if not defined $instance_id;
@@ -32,12 +32,14 @@ my $grace_secs   = $zenka_config->{'restart'}->{'keep_children_grace'}
 my $kept_count = 0;
 foreach my $pid ( sort { $a <=> $b } keys $child_href->%* ) {
 
-    ## already terminating [ drain \ force-kill paths signalled it before ##
-    ## the status changed ] : ends as today, not kept                     ##
+    ## already terminating                                                 ##
+    ## [ drain \ force-kill paths signalled it before the status changed ] ##
+    ## : ends as today, not kept                                           ##
     next if exists <v7-zenki.terminating.pid>->{$pid};
 
-    ## identity anchor : captured NOW from /proc [ the process is alive at ##
-    ## this point ] -- unreadable : gone, left to the usual sweep          ##
+    ## identity anchor : captured NOW from /proc                            ##
+    ## [ the process is alive at this point ] -- unreadable : gone, left to ##
+    ## the usual sweep                                                      ##
     my $identity = <[v7-zenki.sub-process.proc_identity]>->($pid);
     next if not defined $identity;
 
@@ -82,8 +84,8 @@ foreach my $pid ( sort { $a <=> $b } keys $child_href->%* ) {
 
 return $kept_count;
 
-#,,.,,,..,,,,,,..,,,.,.,.,.,.,,,,,.,.,.,.,..,,..,,...,...,..,,...,..,,...,,.,,
-#OOM72RMYMJPHQ5LQ4Y3IEKRN334YVZPFIHBMCCPIEC27FE2PUVDKOT6BI7M4DO537TLMTST5O6D4M
-#\\\|5KJH3E5ISH7UGS5FE6UIO2ZZHMN7UWNX2PW6KXK2IMWPIEUUJTF \ / AMOS7 \ YOURUM ::
-#\[7]L5F47JOSWBCFEPC3TNAFUJ4APSRKX55JQFFMP36ENAIR5NHFNSCY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,.,,,,.,...,,,.,.,.,.,.,,.,,...,..,,...,...,,,,,..,,.,.,...,...,
+#2ZX4MK2DTTUU73WMV2WNADCDMALBTAFM52ZVVDJ3BKXBDXJ6GTUM6NVJCITO4MGKQ5P5FJPZ3L2MS
+#\\\|AAGZDB3LMWNTYPJRWKU2BY2Q27Z7ZTKZ3RSPWKAT6YGUF6YC2X5 \ / AMOS7 \ YOURUM ::
+#\[7]ZS2MSBXZHZKRRR4GQZYP2EQLOCLO2HJYKHCCI4NLDTGE6TXQYUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -33,8 +33,8 @@ if ( exists $instance->{'cube_sid'} and exists $instance->{'root_sid'} ) {
     <[protocol-7.command.send.local]>
         ->( { 'command' => "${root_sid}.${cube_sid}.drain" } );
 
-    ## then pause new command delivery via cube backchannel  [ drain cmd
-    ## already queued — subsequent commands held as pre-init ]
+    ## then pause new command delivery via cube backchannel
+    ## [ drain cmd already queued — subsequent commands held as pre-init ]
     <[protocol-7.command.send.local]>->(
         {   'command'   => sprintf( qw| %d.unset-initialized |, $root_sid ),
             'call_args' => { 'args' => $cube_sid }
@@ -64,8 +64,8 @@ return {
     'data' => sprintf( 'drain signaled [timeout=%.1fs]', $drain_timeout )
 };
 
-#,,.,,,,.,,,.,.,,,..,,..,,,.,,,,.,...,.,.,..,,.,.,...,..,,.,.,.,,,,.,,.,.,..,,
-#Z6NIM5PAJZI4CTRAISTA2I7M6Z2IZKDQ4OBQK7UM25X6BMV5X67WWMM5IHDKPK2BFJGAFMALH6NLS
-#\\\|QMUFBH7574NIM4M2RPO46KOJKQV2YMCQBL4LWOBLUHVXJSRTMGE \ / AMOS7 \ YOURUM ::
-#\[7]E6QDMCRRH6CLMTEAC376BUAHEVOWZLWXLVWBU47PPZWCJOWU2IDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,.,,,,.,,,,.,,..,...,...,,.,,.,.,...,...,..,,..,,,,.,...,,..,
+#OS25HSPZEZMJDVMC5V3UP3PSHPBF4ITDL74DTPQRTGDIL4KGJN3TIMIVMMWZZQDQNEDFFQ5IVUMMM
+#\\\|LUVBB54JMNFWUYG6P5UUUBV253DMV5TL6B4APIRALQSJ36R6IH2 \ / AMOS7 \ YOURUM ::
+#\[7]WYFMYRIT7PIBOHEQORLYZEJVJUJECD3MZTXPOIXV4GL2OXIHJABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

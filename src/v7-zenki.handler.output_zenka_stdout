@@ -15,8 +15,9 @@ if ( defined <v7-zenki.stdout_log.fh> and fileno <v7-zenki.stdout_log.fh> ) {
 ## console output is untouched, every other zenka keeps using plain 'say'.  ##
 ## loop on syswrite instead of trusting a single buffered 'say' to complete ##
 ## -- a short/interrupted write here would previously drop the remainder of ##
-## a line silently. base.stdout.raw_fh gives an unlayered [ :raw ], redir-  ##
-## ectable write target -- see data/md/design/STDIO-MULTIPLEX-PROTOCOL.md   ##
+## a line silently. base.stdout.raw_fh gives an unlayered [ :raw ],         ##
+## redir-ectable write target -- see                                        ##
+## data/md/design/STDIO-MULTIPLEX-PROTOCOL.md                               ##
 my $raw_fh = <[base.stdout.raw_fh]>;
 
 my $out_str     = $line . "\n";
@@ -47,8 +48,8 @@ while ( defined $raw_fh and $str_offset < $out_len ) {
     ) if $write_tries > 1;
 }
 
-#,,.,,.,,,...,,..,,,.,,,.,..,,,,,,,,,,.,.,,,.,.,.,...,...,.,.,,,,,,.,,...,,..,
-#X6MEVJ6KY4HPQW6T3RHTR2HV3QWCBI2DNVN6KYJGMCCBFSK7BOMDGNIAI3D75REYPP6V64NEEYVTM
-#\\\|5OW2UWC62Y2AJNIMPHIPQB4IHNTXH52EZIKVJ37AN3QOSB5Y7EA \ / AMOS7 \ YOURUM ::
-#\[7]DKFGQFIWPAHMFYZYDQQSSWOSHY2BJUQQT6D746OHJDJ3ESWLTCAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,.,.,,,...,,.,,...,..,,,,.,.,,,.,.,...,...,...,.,.,,,.,.,.,,.,,
+#R56RTCZ3GIJNV2IY4246DPF2AXXQCQR5PAD53G2SMI2452AOIZSIQL3QFF4J6YCE4FBGPSERFLS46
+#\\\|WMMX5JO6BIXOHZFLMC4NGRRVNKS56ANQV3LIGEC3QNLQDJDVHVB \ / AMOS7 \ YOURUM ::
+#\[7]H34ZADSHYLHT5LT6X4OVXXLDCUZN6E5ULWFR26QO4KAITH6FAABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
