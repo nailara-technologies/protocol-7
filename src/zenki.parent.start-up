@@ -37,9 +37,9 @@ if ( $mode eq qw| resident | ) {
     ## its own [zenka.loop]. guarded here : unlike v7-zenki.call_ cmd,     ##
     ## base.call.console_command defaults an EMPTY command line to         ##
     ## 'commands' [ full listing ] instead of no-op'ing -- calling it      ##
-    ## unconditionally would reproduce the console-only-zenka dump-and-    ##
-    ## restart-loop trap this same sandbox found start_via_v7 walking into ##
-    ## for 'work' \ 'session', just from the other direction               ##
+    ## unconditionally would reproduce the console-only-zenka              ##
+    ## dump-and-restart-loop trap this same sandbox found start_via_v7     ##
+    ## walking into for 'work' \ 'session', just from the other direction  ##
     my $inline_command = <zenki.start-up.command_line> // <system.args>;
     <[base.call.console_command]>->($inline_command)
         if defined $inline_command and length($inline_command);
@@ -49,9 +49,9 @@ if ( $mode eq qw| resident | ) {
 
 ##                  .:[ one-shot console invocation ]:.                     ##
 ##                                                                          ##
-##                  this is the front door a plain user [                   ##
-##                  or an llm with no v7 access ] calls as                  ##
-##                  'Protocol-7 zenki <cmd> ..' --                          ##
+##                  this is the front door a plain user                     ##
+##                  [ or an llm with no v7 access ] calls                   ##
+##                  as 'Protocol-7 zenki <cmd> ..' --                       ##
 ##                  deliberately root independent, so no                    ##
 ##                  privilege drop happens at all and cube                  ##
 ##                  authenticates it over the unix link                     ##
@@ -90,8 +90,8 @@ return
     <[base.call.console_command]>
     ->( <zenki.start-up.command_line> // <system.args> );
 
-#,,,.,,,,,.,,,.,,,,,.,,.,,.,.,,.,,,.,,,..,.,.,..,,...,..,,...,,..,...,,,.,.,,,
-#IEVOIDIIIFCAZF5P2WCCYGLO2FOY23L4JAMM7DE3UG25L6X7DRZR2B6JK3CX3IKMK5BR4G5F2BNMA
-#\\\|3ER3LSVCHQ7HGIXRC75MPZUIRC2HNVBZC3EV6U6MBOAEEFIHMRQ \ / AMOS7 \ YOURUM ::
-#\[7]TH6FNDLRDHYNQ26E4KCGWRHGPTGFOQYEG3YZHQBFDBJ5FUXDRCAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,,,.,,,,.,,,..,...,.,.,.,,,.,,,..,,...,..,,.,,,.,.,.,,,,.,,...,
+#EEOWHBXDUVLCHETPCS7YSV4RUUWVSEFIRIH2CWAWYJZOGIKSRVGSQGELJXMFAFNSMXBFGSSJWH7OS
+#\\\|PUXQTMJRWRXSGPUUV2VGMSDE33YEXUF3ZLAS6YCMZCML6QMTXC6 \ / AMOS7 \ YOURUM ::
+#\[7]ZYNTLGXAUXQ6PZTVK5FM2ORF4AP3SPKKVARO7J45SUK4O2DW4GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

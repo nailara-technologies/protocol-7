@@ -39,11 +39,12 @@ if ( ++$server->{'poll_retries'} > $max_retries ) {
     return;
 }
 
-## cheap non-blocking pre-check first : a filesystem-namespace socket [ the ##
-## default for Xvfb ] tells us in a stat() call whether X11::Protocol->new  ##
-## even has a chance -- skip attempting the connect at all while it's not   ##
-## there yet. abstract-namespace sockets don't show up here [ fall through  ##
-## to the guarded connect below in that case, same as before ]              ##
+## cheap non-blocking pre-check first : a filesystem-namespace socket     ##
+## [ the default for Xvfb ] tells us in a stat() call whether             ##
+## X11::Protocol->new even has a chance -- skip attempting the connect at ##
+## all while it's not there yet. abstract-namespace sockets don't show up ##
+## here [ fall through to the guarded connect below in that case, same as ##
+## before ]                                                               ##
 my ($disp_num) = $display_str =~ m|^:(\d+)|;
 if ( defined $disp_num and not -S "/tmp/.X11-unix/X$disp_num" ) {
     <[base.logs]>->( 2, ": display %s socket not present yet", $display_str )
@@ -95,8 +96,8 @@ $server->{'connected'} = TRUE;
 ## resolve jobs waiting on this display ##
 <[jobqueue.check_dependencies]>;
 
-#,,,,,,..,,,.,.,.,,,.,,,.,..,,...,..,,,.,,,,.,..,,...,...,..,,,,.,,,,,..,,,.,,
-#E7B6FBSCNSJXPLL7ILNT2V33AX53U5UBHMGTO3KXGPXO72NU2PVAP2SKSV2CCWYWVR2L72CBMZOXQ
-#\\\|NQF63TIH6ZHNJD2M6TIIQIIMX6NDC6D46ZPDQKQXA52YXTUIAJP \ / AMOS7 \ YOURUM ::
-#\[7]73CHUCFE4DDQPHZF3MZAHY3WCBMN2537DZPH36X6DGSG5ICSPMBY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,,,,..,.,.,.,.,..,,.,,,..,,..,,..,,...,..,,.,,,...,,.,,,.,,,,.,
+#FHFUIEXK22NTAOJDNFNBWT52BH3PAGCFT5UU77OBHRHACP3Q55TWKLPBTCMGTHHS6F6Z6UNBKDND6
+#\\\|GSTEORH6ZUON3ZNOOHNYBK2GHA6XIZ5HXDMXARHWRTKTFPLDEBZ \ / AMOS7 \ YOURUM ::
+#\[7]QVHOVVLB27BH27MU4MGLB2EKABDMMVVLZRBCVLROQPNTLFR42ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

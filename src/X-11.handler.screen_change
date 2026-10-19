@@ -36,35 +36,36 @@ my $prev_monitor_count = scalar @{ <X-11.monitors> // [] };
 my $new_monitor_count = scalar @{ <X-11.monitors> // [] };
 
 ## a reconnect-on-every-notification approach was tried here to recover a   ##
-## separate visibility/compositing bug [ a window stuck un-composited after ##
-## a monitor topology change ], but X-11.job.finalize_server ties the RandR ##
-## subscription, the event_handler='queue' flag, and the keyboard IO        ##
-## watcher's file descriptor all to ONE specific connection object, none of ##
-## which carry over to a fresh connection or get re-registered              ##
-## automatically. the codebase's own existing reconnect mechanism [ see     ##
-## X-11.reconnect, called only from the connection's error_handler on a     ##
-## server crash ] doesn't solve this either - it deliberately exits the     ##
-## whole process on exhaustion so v7 restarts it through the full init      ##
-## chain, which is what actually re-registers everything correctly.         ##
-## removed after costing two live regressions for no confirmed benefit -    ##
-## only a full `v7-zenki.restart X-11` was ever shown to fix that bug.      ##
+## separate visibility/compositing bug                                      ##
+## [ a window stuck un-composited after a monitor topology change ], but    ##
+## X-11.job.finalize_server ties the RandR subscription, the                ##
+## event_handler='queue' flag, and the keyboard IO watcher's file           ##
+## descriptor all to ONE specific connection object, none of which carry    ##
+## over to a fresh connection or get re-registered automatically. the       ##
+## codebase's own existing reconnect mechanism [ see X-11.reconnect, called ##
+## only from the connection's error_handler on a server crash ] doesn't     ##
+## solve this either - it deliberately exits the whole process on           ##
+## exhaustion so v7 restarts it through the full init chain, which is what  ##
+## actually re-registers everything correctly.  removed after costing two   ##
+## live regressions for no confirmed benefit - only a full                  ##
+## `v7-zenki.restart X-11` was ever shown to fix that bug.                  ##
 
 ## monitor topology changed - windows that were on a now-vanished/restored ##
 ## screen need the wm to re-actualize their state [ same need as after a   ##
 ## set_geometry/move-window call, see X-11.cmd.set_geometry ]              ##
 <[X-11.WM.update]>;
 
-## a monitor disappearing leaves weston/WSLg with stale per-output          ##
-## placement state - confirmed live: any window placement whose Y falls     ##
-## within the now-removed monitor's former Y-range silently fails forever,  ##
-## with no recovery short of either a full Weston/WSLg restart or a host-   ##
-## side display topology re-push. fire that re-push automatically here.     ##
-## windows' own disconnect handling is its own multi-iteration, unsynced    ##
-## storm [ audio freeze, focus loss, repeated off/on ] - react on the FIRST ##
-## drop notification, not a debounced/settled one, to race ahead of it      ##
-## rather than wait it out. guarded by a cooldown so the later, still-      ##
-## arriving notifications from that SAME storm don't each re-trigger their  ##
-## own toggle and stack additional disruption on top.                       ##
+## a monitor disappearing leaves weston/WSLg with stale per-output         ##
+## placement state - confirmed live: any window placement whose Y falls    ##
+## within the now-removed monitor's former Y-range silently fails forever, ##
+## with no recovery short of either a full Weston/WSLg restart or a        ##
+## host-side display topology re-push. fire that re-push automatically     ##
+## here.  windows' own disconnect handling is its own multi-iteration,     ##
+## unsynced storm [ audio freeze, focus loss, repeated off/on ] - react on ##
+## the FIRST drop notification, not a debounced/settled one, to race ahead ##
+## of it rather than wait it out. guarded by a cooldown so the later,      ##
+## still-arriving notifications from that SAME storm don't each re-trigger ##
+## their own toggle and stack additional disruption on top.                ##
 if ( $new_monitor_count < $prev_monitor_count ) {
     my $cooldown_s = <X-11.display_switch.cooldown_s> // 10;
     my $now        = <[base.time]>->(3);
@@ -91,12 +92,12 @@ if ( $new_monitor_count < $prev_monitor_count ) {
     }
 }
 
-## debounced settle-check : notifications can stop arriving before the      ##
-## topology has actually reached its final state, leaving the registry      ##
-## stale with nothing left to trigger a rebuild [ see                       ##
-## X-11.handler.monitor_settle_check ]. reschedule on every notification so ##
-## only the LAST one in a burst fires the check, a few seconds after things ##
-## quiet down.                                                              ##
+## debounced settle-check : notifications can stop arriving before the ##
+## topology has actually reached its final state, leaving the registry ##
+## stale with nothing left to trigger a rebuild                        ##
+## [ see  X-11.handler.monitor_settle_check ]. reschedule on every     ##
+## notification so only the LAST one in a burst fires the check, a few ##
+## seconds after things quiet down.                                    ##
 <X-11.monitor_settle_timer>->cancel if defined <X-11.monitor_settle_timer>;
 <X-11.monitor_settle_timer> = <[event.add_timer]>->(
     {   'after'   => <X-11.monitor_settle_delay> // 4,
@@ -111,8 +112,8 @@ if ( $new_monitor_count < $prev_monitor_count ) {
     if <X-11.screen_change_listeners>
     and <X-11.screen_change_listeners>->@*;
 
-#,,.,,.,.,,,,,,,.,,,,,..,,,,,,,..,.,.,,,.,..,,..,,...,...,.,,,,.,,...,..,,.,.,
-#V3B3HI55FP7LHX2A7YA5YMI5DP55QFOP53YAELSVCI4HYV4SXGHJIEIAFY2UAVZ7MKUPUXXKNWVV6
-#\\\|XJZZVB5U3EJKPBPO665JSBWPOPUWUGMKMUM7AZPYPC5QVARBZSA \ / AMOS7 \ YOURUM ::
-#\[7]K3H5FTGQJEAL3EO5W5VU4LRWOA6WKU2PCOAO4R2NJ5D3LYFXBKAA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,..,,..,,,,,,.,.,.,,,..,,...,.,,,..,,...,...,..,,...,...,,.,,,,,,
+#35BKPRU24MU7FCWNO6NG5YSB4BUHMKIDU7DP6EZ4KIII45GFCE6HNJACATJCMYWW5ZTC7XHOED6ZW
+#\\\|S5IKJFJXD5QG7CMJJO3I3B3W6ETYBMUEZVD7XXX2LZG2FOFALYG \ / AMOS7 \ YOURUM ::
+#\[7]VMEHEHMUBZ47BVYZZZPLPMLFSYLPIBHH2JPIP6UQH6RVY4Y64WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

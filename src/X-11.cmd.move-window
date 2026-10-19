@@ -67,8 +67,8 @@ return { 'mode' => qw| false |, 'data' => 'X-11 connection not available' }
 my $target_id = $window_id + 0;
 
 ## fetch current geometry only when a relative ( + -prefixed ) delta is given;
-## bare negative values are absolute coordinates [ secondary monitor
-## above/left ]
+## bare negative values are absolute coordinates
+## [ secondary monitor above/left ]
 my $need_geom = ( defined $xarg and $xarg =~ m|^\+| )
     || ( defined $yarg and $yarg =~ m|^\+| );
 
@@ -135,8 +135,8 @@ if ( length $EVAL_ERROR ) {
 ## cross-output placement, but Weston's minimal xwm mishandled it and the   ##
 ## window vanished [ window 'did not open' ]. removed. cross-output runtime ##
 ## moves are clamped per-output under this WSLg/Weston build regardless;    ##
-## the real fix is monitor-correct INITIAL placement before show_all [ see  ##
-## screen-setup / protocol-7-menu ], not a runtime move.                    ##
+## the real fix is monitor-correct INITIAL placement before show_all        ##
+## [ see screen-setup / protocol-7-menu ], not a runtime move.              ##
 
 ## verify the move actually took effect - weston has been observed to       ##
 ## silently no-op a ConfigureWindow [ geometry left at the window's PRIOR   ##
@@ -172,15 +172,16 @@ my $mismatches_vs_intent = sub {
 my $actual     = $read_actual_geometry->();
 my @mismatches = @{ $mismatches_vs_intent->($actual) };
 
-## confirmed live: an immediate read right after ConfigureWindow can race   ##
-## ahead of Xwayland's own position bookkeeping [ which likely updates only ##
-## after an async round-trip to weston ] even when the move genuinely lands ##
-## a moment later - observed as alternating want/got pairs across separate, ##
-## seconds-apart calls that each individually succeed shortly after being   ##
-## checked. a brief recheck filters that transient case out while still     ##
-## catching the OTHER, persistent failure mode [ a Y-range genuinely        ##
-## unreachable due to output overlap - confirmed it does NOT self-correct,  ##
-## even across 0.15s-spaced retries in ticker.move_to_profile ].            ##
+## confirmed live: an immediate read right after ConfigureWindow can race  ##
+## ahead of Xwayland's own position bookkeeping                            ##
+## [ which likely updates only after an async round-trip to weston ] even  ##
+## when the move genuinely lands a moment later - observed as alternating  ##
+## want/got pairs across separate, seconds-apart calls that each           ##
+## individually succeed shortly after being checked. a brief recheck       ##
+## filters that transient case out while still catching the OTHER,         ##
+## persistent failure mode [ a Y-range genuinely unreachable due to output ##
+## overlap - confirmed it does NOT self-correct, even across 0.15s-spaced  ##
+## retries in ticker.move_to_profile ].                                    ##
 if (@mismatches) {
     <[base.sleep]>->(0.1);
     $actual     = $read_actual_geometry->();
@@ -193,8 +194,8 @@ if (@mismatches) {
 ## identically either way, which rules out "needs a nudge" or "needs a    ##
 ## remap to rebind" and points at weston caching/restoring this surface's ##
 ## last-known position rather than deciding placement fresh per           ##
-## ConfigureWindow or per map. the one thing confirmed to work [          ##
-## ticker.open_window's pre-show_all placement ] uses a brand-new,        ##
+## ConfigureWindow or per map. the one thing confirmed to work            ##
+## [ ticker.open_window's pre-show_all placement ] uses a brand-new,      ##
 ## never-before-mapped window/surface - a genuinely different code path   ##
 ## from moving an already-mapped window, so a fix here would need to      ##
 ## recreate the window rather than move it.                               ##
@@ -207,8 +208,8 @@ my $pos_str = join ' ', map {"$_=$configure{$_}"} sort keys %configure;
 <[base.logs]>->( 2, '[move-window] id=%s %s', $window_id, $pos_str );
 return { 'mode' => qw| true |, 'data' => $pos_str };
 
-#,,,.,,..,,..,,..,.,,,,..,.,.,,.,,..,,,..,.,.,.,.,...,...,...,,,,,,.,,..,,.,.,
-#F7XUSIZ3EXFFRGA3ZI37DHXJBO53KXCKZJUCFFCOFTU73Q37A7KQU4V336HOAXAKIQ6IDX3TPH2WW
-#\\\|RH4Q26GYOEQQRA7IMXOY4ELD5UPCH5ENKA34HL5J5OR2ESFXQRC \ / AMOS7 \ YOURUM ::
-#\[7]VO2ZVKXX4FB5QJAXL24QJ22NYYAUVIOJWZY5NSZLGBMSNK7KFMBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,..,,.,.,,..,...,,..,...,...,.,.,...,...,...,...,...,,,,,,.,,
+#DRNPHH5Q6GGSPFYXSUYR3CDWBIY67SM5RDMFSRRIPILHM3VKW3C3KJPXPSILYCFJTCX3E3EMUC7KY
+#\\\|GVGIRCYSBWFNEZ4RNAXKI34JNUX7U7HE4BI2HV2UN7VS2ZKGAHE \ / AMOS7 \ YOURUM ::
+#\[7]W5VR4VMTREM6PSQSFPPO7FBPPABHX76SJJTVKWPH4YM2J7QZOUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

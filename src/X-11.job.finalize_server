@@ -27,11 +27,11 @@ if ( defined $fh and defined $pid ) {
                 qw| pid     | => $pid,
                 qw| display | => $display_str,
 
-                ## known-benign chatter [ same 'log_whitelist' convention  ##
-                ## as openbox.start_wm ] -- demoted to level 3 instead of  ##
-                ## the normal level 2 passthrough, so a diagnostic session ##
-                ## at verbosity 2 sees only output that isn't already      ##
-                ## known-safe .,                                           ##
+                ## known-benign chatter                                     ##
+                ## [ same 'log_whitelist' convention as openbox.start_wm ]  ##
+                ## -- demoted to level 3 instead of the normal level 2      ##
+                ## passthrough, so a diagnostic session at verbosity 2 sees ##
+                ## only output that isn't already known-safe .,             ##
                 'log_whitelist' => [
                     qw| xkbcomp |,
                     'Multiple symbols for level \d+/group \d+ on key',
@@ -46,11 +46,11 @@ if ( defined $fh and defined $pid ) {
 
 <[base.logs]>->( 1, "[%s] : .. display ready .. :", $display_str );
 
-## auxiliary [ eg. xvfb ] display: build the minimal per-server window-     ##
-## management bundle [ WM, keyboard, extension flags ] so X-11.disp-ctl can ##
-## operate on it -- NOT the richer host-mode-specific setup below [         ##
-## screen-size fitting, background image, xrandr ], which only makes sense  ##
-## for a real primary display .,                                            ##
+## auxiliary [ eg. xvfb ] display: build the minimal per-server         ##
+## window-management bundle [ WM, keyboard, extension flags ] so        ##
+## X-11.disp-ctl can operate on it -- NOT the richer host-mode-specific ##
+## setup below [ screen-size fitting, background image, xrandr ], which ##
+## only makes sense for a real primary display .,                       ##
 <[X-11.helper.setup_display_wm]>->( $server, $display_str )
     unless $is_primary;
 
@@ -373,16 +373,17 @@ if (<X-11.window_enumeration>) {
 ## mirror the now-fully-populated globals onto $server too [ read-only,     ##
 ## after everything above has set them -- zero risk to the logic above ] so ##
 ## X-11.disp-ctl finds a consistent per-server bundle here exactly the same ##
-## shape as an auxiliary display's [ built in  X-11.helper.setup_display_wm ##
-## ], whether $display_str happens to be the primary or not .,              ##
+## shape as an auxiliary display's                                          ##
+## [ built in  X-11.helper.setup_display_wm ], whether $display_str happens ##
+## to be the primary or not .,                                              ##
 $server->{'wm'}            = <X-11.WM>;
 $server->{'kbd'}           = <X-11.kbd>;
 $server->{'has_randr'}     = <X-11.has_randr>;
 $server->{'has_dpms'}      = <X-11.has_dpms>;
 $server->{'is_composited'} = <X-11.is_composited>;
 
-#,,,,,,,.,,..,,.,,...,.,.,.,.,,.,,,..,...,,,.,..,,...,...,..,,.,.,..,,.,.,.,,,
-#YLSWVPNHRLR43G5ZBYYVAZE44VWFJGRPRTKCRGYXY3QK7M5CQYP32PXZG3PZKJBODKR3OWQ3F4NP4
-#\\\|RWGHYM5P3KFMDEWHINEEWPWP4LV6AWCCIFOLKLXS2NRN37JVLEN \ / AMOS7 \ YOURUM ::
-#\[7]P7V3YKSQLD2C33GCRYIZKDHU2ODVF6PSEZ7JHENJRGUCN6SHN2AA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,,..,..,,,,.,..,,,..,,,.,..,,..,,...,...,,,,,.,,,..,,,..,,,,,
+#7GTMPDXZPSQLHI63NN3SAN2DDYVIKRFIUJ6MVFMXPNUKLNLDYD4GUUFPU65MBSSAB3GP7Y5UKJ5LW
+#\\\|OA6PMARTFIWOCLXVO4NEIERA5UNKPJVS7T2VJKI7PB54MOBWC2Z \ / AMOS7 \ YOURUM ::
+#\[7]M3VH5HDTE43PHAA5JB2VJNYVBD747GQHNL67ACZDDNQIFEWLBQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

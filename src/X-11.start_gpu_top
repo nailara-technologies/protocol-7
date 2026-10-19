@@ -47,9 +47,9 @@ if ( $vendor eq 'nvidia' ) {
     <[X-11.start_gpu_metric_feed]>
         ->( { 'metric' => qw| power |, 'query_field' => qw| power.draw | } );
 
-    ## clock throttle reason bits [ hex ; thermal 0x20 \ 0x40, power cap ##
-    ## 0x04 \ 0x80, idle 0x01 ] -- averages of a bitmask mean nothing,   ##
-    ## consumers use the 1s value                                        ##
+    ## clock throttle reason bits                                         ##
+    ## [ hex ; thermal 0x20 \ 0x40, power cap 0x04 \ 0x80, idle 0x01 ] -- ##
+    ## averages of a bitmask mean nothing, consumers use the 1s value     ##
     <[X-11.start_gpu_metric_feed]>->(
         {   'metric'      => qw| throttle |,
             'query_field' => qw| clocks_throttle_reasons.active |
@@ -102,8 +102,8 @@ if ( $vendor eq 'nvidia' ) {
     );
 }
 
-#,,,.,,,,,...,,,.,,,.,.,.,,.,,.,.,...,.,,,,,,,.,.,...,...,.,.,,..,,,,,,.,,.,.,
-#5FPXTEQQ2QEJ7UN62TLEHOIQJK3MEIBFDIQIR36L3F5FTY4BUKCG2OWRY24Y6WORVZHKGJ3LEVZ3Y
-#\\\|DWEQ5G22LE5PAY667AYWD4KTWTKHGF2HG67GGMP3BRRRC2PS25W \ / AMOS7 \ YOURUM ::
-#\[7]2CLJUFPV7UDKL4GRBEUMKEABUF6NTOMVZBL7KNHMFCSYL7DYV4AA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,,,.,.,,,.,,,.,.,,,.,.,,,,.,,.,.,...,...,.,,,..,,,,,,..,,,..,
+#SX5JEL2YJTC63U6KLT5BCEQY4NBXCT7BS7A47MCMIY3P5ZG4HX33YP7FN7HEMP6ZMYSWUHFILDTP6
+#\\\|LMU35S34IHMTAZYMS6GDFGDRMXNCXWUVOU5JZBBR3LRLYFIPLA5 \ / AMOS7 \ YOURUM ::
+#\[7]3BK6TU5KHK62B3ZK6EXHKMXGMFRVECY7LI7VCAMLOE7P6AQPXOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

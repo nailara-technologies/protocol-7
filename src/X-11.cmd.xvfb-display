@@ -19,12 +19,12 @@ return { 'mode' => qw| false |, 'data' => 'invalid server-id' }
 my $display_str = ":$server_id";
 my $entry       = <X-11.servers>->{$display_str};
 
-## only a live, X11-connected xvfb-mode entry counts -- <X-11.servers> is ##
-## shared across all display modes, and 'connected' [ set once            ##
-## X-11.handler.display_poll's connect succeeds ] is a stronger guarantee ##
-## than just the process being alive [ that's what xvfb-status checks ]-- ##
-## this command's whole purpose is handing a client an address it can     ##
-## actually connect to right now .,                                       ##
+## only a live, X11-connected xvfb-mode entry counts -- <X-11.servers> is  ##
+## shared across all display modes, and 'connected'                        ##
+## [ set once X-11.handler.display_poll's connect succeeds ] is a stronger ##
+## guarantee than just the process being alive                             ##
+## [ that's what xvfb-status checks ]-- this command's whole purpose is    ##
+## handing a client an address it can actually connect to right now .,     ##
 return {
     'mode' => qw| false |,
     'data' => sprintf( 'no live xvfb server on %s', $display_str )
@@ -35,8 +35,8 @@ return {
 
 return { 'mode' => qw| true |, 'data' => $display_str };
 
-#,,,,,,.,,...,..,,,.,,,,.,,.,,,.,,,..,,,,,,.,,..,,...,...,,,,,..,,,..,,,.,..,,
-#NUKSEVEZ4SSHVLI3CQ7OL36CTVM2QWJH2TDY5E7KT5MN626CGUGFSBY634B3RR4BBADOPPWXFLZQU
-#\\\|2E5EO2HHEV2AC6JMJXKOSQ4Q7RUOS6IR67QH7CZP2CFE7V4TNM4 \ / AMOS7 \ YOURUM ::
-#\[7]AVD3UQ3FXCTCFRJ4EO57RXTZQIKTX6LLTO7IC6AJX5NV473SJEDY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,.,,,,..,.,,,,,.,..,,.,,,..,,..,,...,...,..,,.,.,.,,,.,,,,,.,
+#TMXUIZQP72NRS5FW4PNK6LNTRSESQLUDILNYENZTSUGSHZT2YBZDG6UOXEYJKVGAZR65UQIPRIQ6O
+#\\\|RJ5YMLCRRHRJPXOJFJKO7V6KBI6RR426UT5EUPNXOIM77ROQP23 \ / AMOS7 \ YOURUM ::
+#\[7]GTRVM6XE2V6BFFJ2H2POVBYO7H3UHUCFSLWO2RKTHNT5FJZTK4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
