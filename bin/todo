@@ -25,13 +25,15 @@ BEGIN {
     unshift @INC, $lib_pm if defined $lib_pm and -d $lib_pm;
 }
 
-use AMOS7::TERM qw| frame_border_line |;
+use AMOS7::TERM         qw| frame_border_line |;
 use AMOS7::TERM::Editor qw| edit_text |;
 use AMOS7::CHKSUM;
 use AMOS7::Assert::Truth;
-use Time::Local qw| timelocal |;    ## timelocal_posix needs 1.30, floor perl 5.32 has 1.28 ##
+## timelocal_posix needs 1.30, floor perl 5.32 has 1.28 ##
+use Time::Local qw| timelocal |;
 use Time::HiRes ();
 use Crypt::Misc qw| encode_b32r decode_b32r |;
+use Text::Wrap  ();
 
 my $root      = $ENV{'P7_ROOT'} // '';
 my $list_name = 'base';
@@ -346,9 +348,9 @@ sub item_has_details {
 }
 
 sub center_ellipse {
-    ## standalone port of bin/Protocol-7's p7_parser__ellipse_center [ same ##
-    ## shape as gen_id/chk3 above ] -- cuts chars from the center of the    ##
-    ## string and splices in '.,.', keeping total length at $len            ##
+    ## standalone port of bin/Protocol-7's p7_parser__ellipse_center        ##
+    ## [ same shape as gen_id/chk3 above ] -- cuts chars from the center of ##
+    ## the string and splices in '.,.', keeping total length at $len        ##
     my ( $str, $len ) = @_;
     return $str if length($str) <= $len;
 
@@ -617,17 +619,33 @@ sub draw_detail_rule {
 }
 
 sub draw_detail_content {
-    my ( $text, $dim ) = @_;
-    my $prefix = '  : ';
-    $text = ' ' if not length $text;
-    if ($TTY) {
-        if ($dim) {
-            say $C{dim} . $C{3} . $prefix . $text . $C{R};
+    my ( $text, $dim, $width ) = @_;
+    $width //= $TERM_WIDTH;
+    my $prefix     = '  : ';
+    my $text_width = $width - length($prefix) - 1;    ## right margin ##
+    $text_width = 1   if $text_width < 1;
+    $text       = ' ' if not length $text;
+
+    ## wrap plain text only -- ANSI is added per printed line, so      ##
+    ## Text::Wrap never counts invisible color codes towards the width ##
+    my @lines = ($text);
+    if ( $text =~ m{\S} ) {
+        local $Text::Wrap::columns   = $text_width;
+        local $Text::Wrap::separator = "\n";
+        local $Text::Wrap::huge      = qw| overflow |;
+        @lines = split m{\n}, Text::Wrap::wrap( '', '', $text );
+    }
+
+    for my $line (@lines) {
+        if ($TTY) {
+            if ($dim) {
+                say $C{dim} . $C{3} . $prefix . $line . $C{R};
+            } else {
+                say $C{0} . $prefix . $C{T} . $line . $C{R};
+            }
         } else {
-            say $C{0} . $prefix . $C{T} . $text . $C{R};
+            say $prefix . $line;
         }
-    } else {
-        say $prefix . $text;
     }
 }
 
@@ -660,12 +678,12 @@ sub draw_item_details {
         say '';
         draw_detail_rule( $width, 'task details' );
         say '';
-        draw_detail_content($_) for split "\n", $item->{details};
+        draw_detail_content( $_, 0, $width ) for split "\n", $item->{details};
         say '';
         draw_detail_rule($width);
     } elsif ($show_editor_hint) {
         say '';
-        draw_detail_content( '[ no details yet ]', 1 );
+        draw_detail_content( '[ no details yet ]', 1, $width );
     }
 
 }
@@ -718,7 +736,7 @@ sub cmd_list {
     ## per-row center-ellipsis truncation whenever $TTY -- only grow past   ##
     ## the real terminal width for the untruncated [ piped ] case, and only ##
     ## by however much content genuinely needs, not a flat pad that would   ##
-    ## push header/footer past the terminal and wrap them                  ##
+    ## push header/footer past the terminal and wrap them                   ##
     $width = $content_width if $content_width > $width;
 
     say "";
@@ -1093,8 +1111,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,..,...,,,.,,,,,,.,,,,,,...,.,.,.,,,.,,,...,..,,...,...,.,,,,,.,...,,,,,.,,,
-#F3OVMFJQ6LIGZP2WWI34ZY2ILASRVNUTNK2LQUMRS7ONCXK5N7YR6UYSJJUIODKBMMZAMM6OQAR7U
-#\\\|QJXXBUHGAV77TSATQ7CIA24PE2SIQPTLHPQ4Y5A75XDEBTMGOVD \ / AMOS7 \ YOURUM ::
-#\[7]OUBOCOEKOUDZOHUMVF723ZPSSR53ESMGNTK5YS6KDHHZPH5XNWDI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,.,,,,..,,.,,,.,,...,..,,,,.,..,,...,...,,..,,,.,,,.,.,.,,,,,
+#6VKSTNZGPJCIZETYIKTQ2KRPMXSLPFCR2DMCFKJB7SOW67S2IYAASLZTEBM44QSEDQFY7JP76AOZ2
+#\\\|HGVXW7PAYX24JECQ34Q7CP7STOMZAT5B2B4WUD7ESBDIUEK5WXK \ / AMOS7 \ YOURUM ::
+#\[7]24MOROOJYSBUVXA3J4WYQD6WATKV6CKIZMBFQIWHN45FDI2PUIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
