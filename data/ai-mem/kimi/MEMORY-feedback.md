@@ -69,3 +69,29 @@ when called on an already-stopped slideshow. Guarded with `( // 0 )`.
 #\\\|XE3PNLJSO7RQPL5RMGTLNT5A6QSTLIAEWP4QRRJWDYJYBPK5K4Z \ / AMOS7 \ YOURUM ::
 #\[7]UJVFEH5XEKM4IAUDMXF4VCWD2PXRZK3QODPT7KY23HX4DQ7GYADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## format-code -m dynamic-key false positive [ fixed 2026-10-20 , commit 24c51d384 ]
+
+step7 module-sugar rewrite rewrote `$code{ $var->{'handler'} }->(...)`
+to hardcoded `<[handler]>->(...)` — a recursive PPI find() counted the
+ONE quote token nested inside $var's own subscript and misread it as
+the literal %code key , silently dropping the vital variable part of a
+dynamic dispatch . the same damage was ALREADY COMMITTED earlier
+[ 6d495b6fa , src/base.X-11.handler.coordinates_timeout ] — `format-code
+-c` cannot catch this class : it compiles fine and only fails at
+runtime as a wrong call .
+
+verification heuristic [ user-contributed ] : every real P7 module
+name on disk is DOTTED , so any `<[word]>` sugar WITHOUT a dot is
+guaranteed damage or doc prose — sweep P7-header files for
+`<\[([a-zA-Z0-9_.-]+)\]>` and flag no-dot hits . the fix itself : the
+subscript's content must BE exactly one literal quote token [ one
+child statement whose only child is the quote ] , never merely CONTAIN
+one quote anywhere . regression harness : bin/test-scripts
+/test-format-code-module-sugar.pl [ convention : one test-format-code-*
+.pl per pass , `-n` for deterministic exact-line comparison ] .
+
+#,,,.,..,,.,,,,.,,,.,,,,,,.,,,,..,,,,,.,.,..,,..,,...,...,...,,,,,.,,,.,.,.,,,
+#FXWUXBSD2CBQQNZ7W5V6XARCCSH53ODLTYI2KBLTELPJOT6WR5JYQ66IY4E5FSY55XKLSPAE7DAX2
+#\\\|STEV7K6KEUD7AG33C6YQQU6A64STJAW3GZCYY6IDST2AQL23YR7 \ / AMOS7 \ YOURUM ::
+#\[7]2GJB3UALH5KHQLDERE5H3DJTH5LBXYO7GRVFI7G6XCNMOGPGCIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
