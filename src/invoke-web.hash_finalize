@@ -42,7 +42,7 @@ if ( not $skip_verify ) {
     $expected =~ s{^blake3:}{};
 
     return $fail->('hash verification did not complete [ staged file kept ]')
-        if not defined $digest or $digest !~ m{\A[0-9a-f]{64}\z};
+        if not defined $digest or $digest !~ m|\A[0-9a-f]{64}\z|;
 
     if ( $digest ne $expected ) {
         unlink($staged);
@@ -103,8 +103,8 @@ if ( defined $model and $model->{'present'} and $model->{'items'}->@* ) {
 
 return { 'ok' => TRUE, 'msg' => "model '$name' restored, items re-queued" };
 
-#,,,.,...,,,,,...,.,,,...,,.,,,,.,.,,,...,,.,,..,,...,...,.,.,,,.,,..,,,.,,,.,
-#BDPIQYJEAZ6Y7ZNYXVSWNZUTQT6YETIDYBDSAR3AAMTKFMODPZSJOE3LQOV34CI6LODEVI6AMT52Q
-#\\\|PGT5GDKUMXMBNZFVCAMKONYHBLFBBZ5I5VCZAGVMHWH54OWWNEV \ / AMOS7 \ YOURUM ::
-#\[7]27XNP3EWSXTKVZ65AGUCLI6CIZJCQ5GZEN6SI6I6MFLBQYYDU4CQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,,,...,,..,..,,,,.,,,.,,.,,.,,,..,,...,...,..,,.,,,,,.,,,.,.,,,
+#3E5JXSZZX6FC5FCJ2EAVEUAPSW6J22BRLA5AMPCLTX524EK6X7QR2QNKKFROCPIBRUCU2SNSA65LW
+#\\\|2IR5NY7YDXTDRGKSUKSVZUPEJVJMHAMRGNFEAUPXFCR65X3FZ25 \ / AMOS7 \ YOURUM ::
+#\[7]ZIGS4QGXA2AZZCWBVJ6UKRMM6LYLBTW5GBTANICTKE2NAXYDI4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

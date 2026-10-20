@@ -39,7 +39,7 @@ $job->{'timer'}->cancel
     if defined $job->{'timer'} and $job->{'timer'}->is_active;
 delete <invoke-web.hashverify.jobs>->{$name};
 
-if ( $digest !~ m{\A[0-9a-f]{64}\z} ) {
+if ( $digest !~ m|\A[0-9a-f]{64}\z| ) {
     <[base.logs]>->(
         0,
         "autofetch : %s : hash child gave no digest [ %s ]",
@@ -56,8 +56,8 @@ if ( $digest !~ m{\A[0-9a-f]{64}\z} ) {
 
 return;
 
-#,,,,,...,.,.,,,.,..,,,..,...,.,.,..,,..,,.,.,..,,...,...,.,,,,,,,,.,,.,,,.,,,
-#DLPKGZ32WGLONPCPQBZY6URYO3CLDXQBKMIW2IZFI736SLMTNWOSW2ZDZGFEUNCBAW3V2LUOTACK6
-#\\\|HC57RQECVY27FAYWEC2YFD6G6QCD5KCQ75Y5IY2WOXKKOYJNUWG \ / AMOS7 \ YOURUM ::
-#\[7]RVIKCLOTKNMNKVPJEAD3IPWZEWDEGBZKIEBIGV6AFYI3B5QREWCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,.,,,..,,..,,.,,,.,.,,,.,,,.,..,,...,...,,,,,...,.,.,.,,,.,,,
+#FPXSIO64LUVRDJV73F7KISVFLSNWBZPFLBJGJLHVU7N6TFI3CCMDNIXBKSC6BBVXRZUOKSPZVV654
+#\\\|CLQTAVPH2USY4J7UX33UTQWSCOZLAYLUSS6DQCYWXKB6GMI4W7T \ / AMOS7 \ YOURUM ::
+#\[7]DOTNIC5HJPCELEFFATADQNETYTUWYEB3TIMRUVBZEP2V2UJ4XWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
