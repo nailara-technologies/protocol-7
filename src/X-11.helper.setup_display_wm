@@ -42,7 +42,7 @@ $X->{'error_handler'} = sub {
 ## localize the SAME globals X-11.WM.update / X-11.pool.query already read ##
 ## -- reuses their existing, tested WM-scan + WSL/no-WM fallback logic     ##
 ## unchanged for this display, instead of duplicating it .,                ##
-local $data{'X-11'}{'obj'} = $X;
+local <X-11.obj> = $X;
 
 ## X11::WM::new($arg) only uses $arg as a display STRING to connect to if
 ## ref($arg) is false -- given a non-ref [ eg. this display's address string ]
@@ -50,7 +50,7 @@ local $data{'X-11'}{'obj'} = $X;
 ## PRIMARY's display, not this one. Must pass the actual connection object so
 ## it's reused directly, no second connection .,
 $server->{'wm'} = X11::WM->new($X);
-local $data{'X-11'}{'WM'} = $server->{'wm'};
+local <X-11.WM> = $server->{'wm'};
 
 <[X-11.WM.update]>;
 
@@ -110,8 +110,8 @@ $server->{'kbd'} = X11::Keyboard->new($X);
 
 return TRUE;
 
-#,,,.,.,.,.,,,..,,,.,,..,,.,,,..,,,.,,,..,...,..,,...,...,,,,,..,,.,,,,,,,.,,,
-#B2WYO62JTBNEOBQKPFMKR4EBNUDWQCZW3L63EZ3QQNDGHCDO4CEZJMX2Q3MUXH6BYEJ6FOEHXQXU2
-#\\\|MEHB42YOWA7D23ARHD5FYLD3EJROS25KWELRIZDFSMBZMNYFNNU \ / AMOS7 \ YOURUM ::
-#\[7]7GV6PE7DGIB3E4UJLUKTBA5GBLPX7KAUZPWOLSIXQIQRSN4XFUAQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,...,..,,,,,,,.,,..,,...,,,,,..,,...,...,.,,,,,.,,,.,,.,,..,,
+#UX2QBS4R4ZISGYTSCLBSSFLZWN7H3GGPO2F3INJTYJYRIVEBT26WVUT3XEHNAU4P7X57YXMBF4W5E
+#\\\|6AK7UIEORHTBLHOFUZJMJKCPVWXU35RW4Z6Y5PJ3Y3553DIOJEF \ / AMOS7 \ YOURUM ::
+#\[7]TMGKWTPZHIPATUZI54BMV2AMBOD3LLNFHDEDNQ6ZJJ4SVOTMOICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

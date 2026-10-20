@@ -96,10 +96,11 @@ my $klappt_re = qr{nicht\s+geklappt|klappt\s+(?:\S+\s+){0,6}nicht}i;
 ## 'leider'/'unfortunately' are the dominant real-world rejection signal  ##
 ## [ "Leider müssen wir Ihnen mitteilen..." ] but too generic to trust    ##
 ## alone -- "leider konnte ich Sie telefonisch nicht erreichen" [ a       ##
-## recruiter apologizing for a missed *phone call* while chasing a still- ##
-## pending skill-sheet request ] matched and misclassified a live, never- ##
-## answered lead as a rejection. require a decision-verb word to co-occur ##
-## anywhere in the same mail before trusting the generic apology word     ##
+## recruiter apologizing for a missed *phone call* while chasing a        ##
+## still-pending skill-sheet request ] matched and misclassified a live,  ##
+## never-answered lead as a rejection. require a decision-verb word to    ##
+## co-occur anywhere in the same mail before trusting the generic apology ##
+## word                                                                   ##
 my $leider_re  = qr{leider|unfortunately}i;
 my $verdict_re = qr{
       ## mitteilen / mitzuteilen / mitgeteilt [ separable ##
@@ -336,8 +337,8 @@ my @result = ( values %latest_by_nr, @unmatched );
 
 return \@result;
 
-#,,,.,,,,,,.,,,.,,...,,,,,,..,,,.,,.,,,..,.,.,.,.,...,...,..,,.,,,...,.,,,,..,
-#PS5IQ3IENKKNTUSZRRVZF2IK4KBL4TJU3K7FJ6K6ZB45C74QW3JHZJMQOUY5U4U33TED7W3H25CTU
-#\\\|WTFXQURTMSRV5TL2J3PTCAVJXXJIOMYVIYVP3NK4KGR3UVGXVNJ \ / AMOS7 \ YOURUM ::
-#\[7]XUL3YB26ZMSFKRFQGELQZ7AQ7XSLBKB76UYWJRBXOBN6K3O65GDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,,,,,.,.,.,...,...,,,,,,,,,.,,,.,.,...,...,,.,,,,,,..,,.,.,...,
+#IBFCKQ2MRQZSEQKL7OGPVE7OCVBHZRNYRSLF4QVJAFUSO2HYAKK2HT7B4AMPNXN5C6GC33JEANIYO
+#\\\|BGTRNVVS3C4NZVCV7ABFRW2FQPTCS7KLLZHF7N3QAEVWUON3NRU \ / AMOS7 \ YOURUM ::
+#\[7]P6RCWOQ2UN7ZUQ3QLSOPJ4AREOXSITIJQRMS4SPGZAVKIC4FEIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

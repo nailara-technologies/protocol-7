@@ -13,8 +13,7 @@ my $pid     = $server->{'pid'};
 
 <dbus.output_buffer> //= '';
 
-my $read_bytes
-    = <[base.s_read]>->( $read_fh, \$data{'dbus'}{'output_buffer'}, 4096 );
+my $read_bytes = <[base.s_read]>->( $read_fh, \<dbus.output_buffer>, 4096 );
 if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
     $event->cancel;
     close($read_fh);
@@ -68,8 +67,8 @@ while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,,,,.,.,.,,,.,,,,.,,.,.,.,,,.,.,.,,,.,,,.,,,..,,...,...,,.,,.,.,...,...,,.,,
-#4GIZFXOZNKW7C6JL7CBBPEWNDE6ITQB4DYNPFKF6IRIEGFULWAI6SJ3D44MOQOJ3ROR5G6C6T7UDA
-#\\\|FCIJPKMG4FH2NE3XIYM2VJD4ANBILAQRSRKLUZJ62EWMXYVVOM4 \ / AMOS7 \ YOURUM ::
-#\[7]3FVZUKZ3M33YESQAD5AVIPB7SQPAYXMOEYBYW2OGCOBQIIFEGUAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,.,,,,,,,.,.,.,...,,.,,.,.,,,,,..,,...,..,,,..,,,,,.,.,,.,,,,,,
+#KQIDMY24AEVZ2F7UYW5WKGCUAVFZVK34K26JFUXS4EO767YEYBQDHRCX2INAW4RSP3Q2JXHHBQIVG
+#\\\|6WMPHL3UBYTJGKCICEXWZJY5SGYVQGEVCJYUBSRIGSANMNGA3SH \ / AMOS7 \ YOURUM ::
+#\[7]WOZIBBNE2NUFBZZN7RQDK224PGYOFJNXZFDA26I25YI3G5TPTKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

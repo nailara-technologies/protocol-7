@@ -72,7 +72,7 @@ $data{'hosts'} //= {};
 };
 <[base.list.init]>->(
     {   qw| name |     => qw| resend-rqs |,
-        'key_ref'      => \$data{'discover'}{'resend-host-reqs'},
+        'key_ref'      => \<discover.resend-host-reqs>,
         'max_elements' => $max_nodes_entries    ## <-- implement limit [LLL]
     }
 );
@@ -101,7 +101,7 @@ $data{'hosts'} //= {};
 };
 <[base.list.init]>->(
     {   qw| name |     => qw| notify-rqs |,
-        'key_ref'      => \$data{'discover'}{'host-status-requests'},
+        'key_ref'      => \<discover.host-status-requests>,
         'max_elements' => 32    ## <-- implement limit [LLL]
     }
 );
@@ -129,8 +129,8 @@ if ( not exists <buffer.host-status> ) {
 
 0;
 
-#,,..,,..,.,,,..,,..,,,,.,,..,,,.,...,,.,,,.,,..,,...,...,..,,,,,,,,,,,..,..,,
-#SJZRQBKN35EZGD2F7563EWDTZPYAGH5DRN56ALBLAN4J5XSQER3FEE57PQRJICG4ADBE4ICW6I52U
-#\\\|JYCD5LZOYTR4C55LVQTAB3XHGGS6JJHGL2Y4RYQ3CDCABKZDVZP \ / AMOS7 \ YOURUM ::
-#\[7]44XFAFY24IWRWOJ7YGQEZGIJZF5XRHK52CLWY2PQCFCITDT3JECI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,..,,,,,,,,,,,,,,,..,,,.,,..,...,..,,...,..,,.,.,.,,,,.,,,,,,.,.,
+#2SVSGPGKUZAVEW6I6ZOFBO7DLXAGZYRRNL6FTMCJ3WZY52QBVQMSPNVKC6UK2MZJVTGPXROWW3MBI
+#\\\|HK3SMEJROYNZNV3HYJAOWQ7U3Z6NQ2TGVO73NRX3BRKHFRLYA55 \ / AMOS7 \ YOURUM ::
+#\[7]YCMWUMGSM6KK2MVTEQJALSMTM2XZRWMIV4O4WU7EMHEU4P77TEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
