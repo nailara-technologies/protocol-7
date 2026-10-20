@@ -1745,10 +1745,24 @@ sub step7_compact_module_call_sugar {
                 or not $code_sym->isa('PPI::Token::Symbol')
                 or $code_sym->content ne qw| $code |;
 
-            ## extract the lone key from the subscript ##
-            my $quotes = $subscript->find('PPI::Token::Quote');
-            next if not $quotes or @$quotes != 1;
-            my $key_tok = $quotes->[0];
+            ## extract the lone key from the subscript : its content must   ##
+            ## be EXACTLY one literal quote token , not merely CONTAIN      ##
+            ## exactly one quote anywhere [ $code{ $h->{'handler'} } holds  ##
+            ## one quote nested inside $h's own subscript -- a recursive    ##
+            ## find() still counts exactly one and used to read 'handler'   ##
+            ## as a literal module name , rewriting a dynamic dispatch into ##
+            ## a hardcoded call [ real false positive , 2026-10-20 ]        ##
+            my @sub_children
+                = grep { not $ARG->isa('PPI::Token::Whitespace') }
+                $subscript->children;
+            next if @sub_children != 1;
+            my $key_expr = $sub_children[0];
+            next if not $key_expr->isa('PPI::Statement');
+            my @key_parts
+                = grep { not $ARG->isa('PPI::Token::Whitespace') }
+                $key_expr->children;
+            next if @key_parts != 1;
+            my $key_tok = $key_parts[0];
             next if not is_quote_token($key_tok);
 
             my $quote_ch = substr( $key_tok->content, 0,  1 );
@@ -3019,8 +3033,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,,,,,.,,,,.,.,.,,,.,,,.,...,,,.,..,,,..,..,,...,...,.,.,.,.,,,,,..,,.,,,
-#HRJXDDUEUQMCOTLVU4CVZBYRUDVBOQROCIDZJIEFCF7PKCGJFRMDOJOYTJ4R4HHI3R7XSYOAWSPI2
-#\\\|EXET6EDZM32VBZIJSE7ZT564DO52ITLLNLGJPKBQMANG44MJFCH \ / AMOS7 \ YOURUM ::
-#\[7]TDQQTVGSNSCZKP5R5VYSXDYZDGNIAJWSAZHCZXHY2Z2J4FYWOWAY 7  DATA SIGNATURE ::
+#,,.,,..,,...,,..,...,,..,..,,.,,,,..,...,.,.,..,,...,..,,...,,..,,..,..,,,,,,
+#JXKWO4HVSSE7QB552IRQWCX64RLDQ6UC4YYDPXHIARFOCPXHIGATYGX4Z2SWRWRNBKEG5TPJT4XSC
+#\\\|4NZVNRDAH6XN32ZWCC42LPOLXSHXAV534K7MYGUQNJ2AKM3WO3I \ / AMOS7 \ YOURUM ::
+#\[7]H5SAUZ4PPCAY6SFSYA5ATHTBSC3SXS7DCGIA2BL4M2YS74JUIOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
