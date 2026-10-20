@@ -58,6 +58,9 @@ while ( $i < @ARGV ) {
 }
 @ARGV = @argv_clean;
 
+## decode argv bytes to characters [ stdout already has a :utf8 layer ] ##
+utf8::decode($_) for @ARGV;
+
 my $TODO_FILE
     = defined $ENV{'P7_TODO_FILE'} ? $ENV{'P7_TODO_FILE'}
     : length $root
@@ -246,6 +249,10 @@ sub load_data {
     my $content = <$fh>;
     close $fh;
 
+    ## yaml parsers reject raw utf-8 bytes in plain scalars -- decode to  ##
+    ## characters first; invalid content stays byte-wise [ legacy files ] ##
+    utf8::decode($content);
+
     my $data = eval { $yaml_load->($content) };
     $data = { items => [] } if not defined $data;
     $data->{items} //= [];
@@ -256,6 +263,7 @@ sub load_data {
     ## existing display codes don't needlessly churn on upgrade ]         ##
     my $dirty = 0;
     foreach my $item ( $data->{items}->@* ) {
+        decode_item_strings($item);
         next unless defined $item->{id} and $item->{id} =~ m{^\d+$};
         $item->{id} = delete( $item->{chk} ) // chk3( $item->{id} );
         $dirty = 1;
@@ -263,6 +271,23 @@ sub load_data {
     save_data($data) if $dirty;
 
     return $data;
+}
+
+sub decode_item_strings {
+    ## repair legacy byte-string fields [ entries stored before utf-8   ##
+    ## handling -- utf8::decode leaves genuinely non-utf-8 data as-is ] ##
+    my $item = shift;
+    for my $value ( values %$item ) {
+        if ( ref $value eq 'ARRAY' ) {
+            utf8::decode($_)
+                for grep { defined $_ and !utf8::is_utf8($_) } $value->@*;
+        } elsif ( defined $value
+            and !ref $value
+            and !utf8::is_utf8($value) ) {
+            utf8::decode($value);
+        }
+    }
+    return;
 }
 
 sub save_data {
@@ -275,7 +300,7 @@ sub save_data {
         File::Path::make_path($dir);
     }
 
-    open my $fh, '>', $TODO_FILE
+    open my $fh, '>:utf8', $TODO_FILE
         or die "cannot write todo file: $!\n";
     print $fh $yaml_dump->($data);
     close $fh;
@@ -844,6 +869,7 @@ sub cmd_edit {
         local $/;
         my $piped = <STDIN>;
         $piped = '' if not defined $piped;
+        utf8::decode($piped);
         $piped =~ s|\n+\z||;
         $text = $piped;
     } else {
@@ -881,6 +907,7 @@ sub cmd_details {
         local $/;
         my $piped = <STDIN>;
         $piped = '' if not defined $piped;
+        utf8::decode($piped);
         $piped =~ s|\n+\z||;
         $new_details = $piped;
 
@@ -888,8 +915,13 @@ sub cmd_details {
         die "interactive details editor requires a tty\n"
             if not $TTY;
 
+        ## the editor works on bytes [ sysread ] : hand initial text over ##
+        ## as bytes, decode the edited result back to characters          ##
+        my $initial = $item->{details} // '';
+        utf8::encode($initial) if utf8::is_utf8($initial);
+
         $new_details = edit_text(
-            {   text    => $item->{details},
+            {   text    => $initial,
                 title   => $item->{id},
                 summary => $item->{text},
                 label   => 'todo details',
@@ -899,6 +931,7 @@ sub cmd_details {
 
         ## interactive editor returns undef when aborted without saving ##
         return if not defined $new_details;
+        utf8::decode($new_details);
 
         say "\e[0K";    ## clear to end of line
         say "  ::: SIGINT ::: terminated..";
@@ -966,6 +999,7 @@ sub cmd_append {
         local $/;
         my $piped = <STDIN>;
         $piped = '' if not defined $piped;
+        utf8::decode($piped);
         $piped =~ s|\n+\z||;
         $new_segment = $piped;
     } else {
@@ -1111,8 +1145,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,.,,.,,..,,,..,.,,,,..,,.,,,.,,...,..,,,,.,..,,...,...,,..,,,.,,,.,.,.,,,,,
-#6VKSTNZGPJCIZETYIKTQ2KRPMXSLPFCR2DMCFKJB7SOW67S2IYAASLZTEBM44QSEDQFY7JP76AOZ2
-#\\\|HGVXW7PAYX24JECQ34Q7CP7STOMZAT5B2B4WUD7ESBDIUEK5WXK \ / AMOS7 \ YOURUM ::
-#\[7]24MOROOJYSBUVXA3J4WYQD6WATKV6CKIZMBFQIWHN45FDI2PUIBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,..,,,,,..,,.,,,.,.,,,.,..,,,..,..,,...,..,,.,.,,..,.,.,,,.,.,,,
+#FPM5VMEXOEJB4QX2ARIBKOGWPY6LRVGCZXSWRAONNCY5Z5L7QCDHTF746QCPYUZ62TXCZFAV4ZA5S
+#\\\|L4JNZJCH7H5VDPGZ67A3VD3V3C7NEQYQVU3YVLPRAJX5KMRJOBK \ / AMOS7 \ YOURUM ::
+#\[7]56Y2ZURRZGASZT2S4GPMYQKSOX3HUC6T3HJTM22OKSXV6IGRX4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
