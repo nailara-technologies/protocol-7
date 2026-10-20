@@ -166,7 +166,7 @@ binmode( $log_fh, ':encoding(UTF-8)' ); ## write character strings as utf-8 ##
 ## set up periodic rotation watcher [only once] ##
 if ( not defined <v7-zenki.watchers.stdout_log_rotate> ) {
     <v7-zenki.watchers.stdout_log_rotate> = <[event.add_var]>->(
-        {   'var'     => \$data{'v7-zenki'}{'stdout_log'}{'write_count'},
+        {   'var'     => \<v7-zenki.stdout_log.write_count>,
             'poll'    => qw| w |,    ## watch for writes ##
             'prio'    => 5,
             'repeat'  => TRUE,
@@ -185,8 +185,8 @@ push <callbacks.end_code>->@*, qw| v7-zenki.stdout_log.close |;
 
 return TRUE;
 
-#,,,.,..,,,..,,..,,,,,..,,,..,,..,...,.,,,,.,,..,,...,...,,,.,,,.,...,,..,...,
-#3M77E6SNWYF4Q234R2XGIPRDX7YYGKY2NWCCEO35KPESBBAICM5MC4GI4QOO6NPV2KBXKIQ33CXEO
-#\\\|6C6EME2YSHNOZKKITQTMXRLSWPWRQM2DK3ABMA6UY342AJCRJPS \ / AMOS7 \ YOURUM ::
-#\[7]ON677AMWETW3GPJDBPJXVSY3FYQUKDZTAD3UEBQDEKOAGRTIDIBQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,,,,,.,.,,,.,..,,.,,,.,.,,,.,..,,...,...,..,,,.,,...,,..,...,
+#HQ4XN6QY4J3A36P54O6SKFQLXGSNKSCEG35JAT7WKSF3NHPK2DPY7AKQVMH54HV2X6WZUOTRJFFOW
+#\\\|YWBDJQTYJO2JJCTHER53Q7XIELHBCSLN2RZIVUO7VGEA5KWQVD7 \ / AMOS7 \ YOURUM ::
+#\[7]ABRMRDOHLXJQVOMQL2BEHFDMGVLMAJASSOE5LHVSNPRLO77G54AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

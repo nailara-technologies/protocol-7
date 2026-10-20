@@ -11,7 +11,7 @@
 ## vault-edit.send_action's own note
 return FALSE if <vault-edit.busy>;
 
-my $buf_ref = \$data{'vault-edit'}{'input_buffer'};
+my $buf_ref = \<vault-edit.input_buffer>;
 
 while ( defined( my $key = <[editor.input.next_key]>->($buf_ref) ) ) {
     last if <[vault-edit.dispatch_key]>->($key);
@@ -36,8 +36,8 @@ if ( ( $buf_ref->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,.,,..,,...,,,,,..,,,,.,,..,..,,,,.,..,,,,.,..,,...,...,,..,,,,,,.,,,.,,,.,,
-#TP34WABIV4CQ5JNJQFDLKYAHQHAPRSAPWGOAEQVSQKSEYU47M3ZC2AXLIXSFYE6OYPU65ZBHVVEIY
-#\\\|GERFE3HLHHCMYNGIMQXFOZACEE65EDOJCTF4K6UWECDNIOJB6O2 \ / AMOS7 \ YOURUM ::
-#\[7]4KO4OS7RXZ52A2EP6XBHKEBQJUMS4RDYDAILNBNF47A4KA4QAODQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,...,..,,.,.,...,,..,,..,,,,,..,,...,...,,,,,.,,,..,,,..,..,,
+#ARMKCX7XMC5RHHZMJOSC3FIUFEFMIRZ3RRT3ZUTZPR4M46FPPT4IEKMDS3JQVMNNU7GANIGTXSVG6
+#\\\|6BI4X43RKXE6S24IOYV6JSXITZLW3FVUMSL5H2KXYH7M6BIKC6G \ / AMOS7 \ YOURUM ::
+#\[7]DO77E27D67KE26DTEYING5I556F2DV7YOR4W5LIB4DPOJWEOTOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
