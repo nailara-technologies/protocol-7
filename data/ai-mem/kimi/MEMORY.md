@@ -39,11 +39,12 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - **[MEMORY-reference.md](MEMORY-reference.md)** — durable how-to + settled rules.  
   open for: memory update tool details, `%code` presence / cross-namespace calls, module name
   swaps, command return style / deferred replies, perlmod load/autoload lessons, user-edit outbox
-  unlink choice.
+  unlink choice, format-code sugar passes + test harness convention.
 
 - **[MEMORY-feedback.md](MEMORY-feedback.md)** — gotchas, failure modes, and incidents.  
   open for: fork-child gotchas, iteration-counter quality rejection, `v7-zenki.terminate` deadlock,
-  `v7-zenki.reload init` live-network teardown.
+  `v7-zenki.reload init` live-network teardown, format-code -m dynamic-key false positive +
+  no-dot sugar sweep.
 
 - **[topic-model-batch-harness-and-self-test-findings.md](topic-model-batch-harness-and-self-test-findings.md)**
   — 2026-09-21: Event.pm silent watcher suspension, `event.add_timer` `data` vs `params`,
@@ -53,8 +54,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - **[MEMORY-completed.md](MEMORY-completed.md)** — explicitly-completed / resolved work.
 - **[MEMORY-archive.md](MEMORY-archive.md)** — stale chronological session log.
 
-#,,..,,..,,,.,.,,,...,,..,..,,...,,,.,.,.,..,,.,.,...,...,...,.,.,,..,...,...,
-#3ARYAXD6BWLSP2WXLXB5H5KHE2YPU5M3D5XBEUITC732PPRV25JBAUFCURF2HCODWBGLVYPXSSROS
-#\\\|2DU7QNMT3IM32A2W2CLW3667QEYU5YWBLNJCKFCPXWWXMB4EEJP \ / AMOS7 \ YOURUM ::
-#\[7]WNHBKA6KCPSX6DLAOJR4BHOC6JJJSIR3NUIYPCCBXRJBXHEV32BY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,.,..,,.,.,,.,,,,.,...,,..,,.,,.,.,...,...,.,,,,..,,.,,,,.,,,.,
+#YZ5PNGHZJ6QY3232KS7SFBPVASVWMVRC6KILCIBP6XGAQRZTA2GZWQGS6N5GVPLUO5LED7SAJ35DW
+#\\\|M3KDPFMEMM65UR4TGA7RWP7C45WDF2PQJ4M4RTAGNCJQZEM3ASR \ / AMOS7 \ YOURUM ::
+#\[7]IUSE36IXJPMXK7LLQYOFZRVS4J3MFA4B4ZRTOHYBFAAIHIT4H4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

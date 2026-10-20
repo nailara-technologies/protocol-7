@@ -76,3 +76,21 @@ outbox file is already an absolute path from `[VAR_P7]/outbox/<id>.yaml`
 #\\\|4YJJ7YXBDFNBQLPKVWMDCERO3OJV6VUVD77TF5PIQC7IWXHDWXT \ / AMOS7 \ YOURUM ::
 #\[7]RS4NAJVALM2X72IKKZ7S2SFATDBL5U6OHI6YLJLTL5WCVNR3QAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## format-code sugar passes + test harness convention (2026-10)
+
+`bin/format-code` opt-in passes : `-m` module-call sugar
+`$code{'a.b'}->()` -> `<[a.b]>->()` , `-d` data sugar
+`$data{'k0'}{'k1'}` -> `<k0.k1>` , `-p` postfix-deref
+`${<...>}` -> `->$*` , `-r` regex delimiter normalization to P7 style .
+`-m`/`-d`/`-p` ONLY engage on real P7 module text [ first line
+`## [:< ##` ] — standalone scripts and .pm files are untouched .
+`-n` skips perltidy for deterministic exact-line output . regression
+harness convention : one standalone `bin/test-scripts
+/test-format-code-<pass>.pl` per pass , File::Temp throwaway snippets
+run through the REAL binary , no repo files touched .
+
+#,,..,.,.,,.,,,.,,,,.,,.,,.,.,.,.,.,,,,.,,.,,,..,,...,..,,..,,.,.,.,.,.,.,.,.,
+#DTQW24U5T6OZAZ6AT4NZABS7DYTPQDOCP2ZFJGOLDIYCBKCLMUQRLCJVELKH3EF3MOEU4DVHYOYTM
+#\\\|RDG5BVOCAXCNCGL35M54PXPLB7EWI3DIR3CMDS6HQXH6DOJEPTS \ / AMOS7 \ YOURUM ::
+#\[7]IUEE73X2MYGN6GEEE77QBUNQ4KDA2DBHGD5VX5KV6AY34C2DVGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
