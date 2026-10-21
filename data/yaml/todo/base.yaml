@@ -1580,9 +1580,28 @@ items:
   - jobsite
   - web
   text: 'jobsite relay mode : a local jobsite mirrors the hub for a local httpd \ web [ outbound only ]'
+- added: 32DJHSEBMU
+  details: |-
+    found 2026-10-22 [ owner : the command only ever gets one line ] :
+    - p7c coding.submit "$(cat file)" with a multi-line prompt : p7c wrote the args into the line-based protocol as they were -> the FIRST line arrived as a complete coding.submit [ task EVMALLY : only the header sentence, it went searching the repo itself ], the rest broke the protocol [ "protocol mismatch" ]. the command cannot detect it -- the check belongs in the clients [ bin/c_src/p7c.c, p-7-r.c ] : refuse an argument containing \n \ \r with a clear message, or send it encoded the way the receiver expects [ bin/coding-task already base32r-encodes for this reason ]. stdin form [ echo | p7c coding.submit ] answered "work request required" that night -- check whether p7c forwards stdin at all
+    - the coding task wrote 6 helper scripts into <repo>/tmp/ [ removed with owner ok ] : task scratch files belong in the coding zenka's own var dir, never the repository tree
+    - coding.cmd.submit already refuses an empty prompt [ "work request required" ] and decodes a B32: prefix itself -> p7c only has to send B32:<base32r> for a multi-line argument. small : a whitespace-only prompt passes [ test \S, not length ] ; the second "work request required after decoding" check repeats the first condition and can never fire
+    - input forms [ owner 2026-10-22 ] : coding.cmd.summarize-context already takes :file: \ :path:<path> [ zenka reads it, relative to the repo root, encoding detected ], :B32:, multiline $call->{data} [ precedence ], plain args. coding.cmd.submit has only B32: + plain args -> one shared helper [ e.g. coding.input.resolve ] used by both, so p7c coding.submit :file:<path> works without encoding. :file: reads on the host the coding zenka runs on [ via p-7-r : a path on that host ]
+    - coding.cmd.ask-reply too [ owner ] : a third dialect -- param hash request \ question \ description + data appended as "Context:", literal \n unescaped, and base32 AUTO-DETECTED without a prefix [ any arg of only A-Z2-7 is decoded : a one-word all-caps prompt like REVIEW becomes garbage ] -> the shared helper serves submit, summarize-context and ask-reply alike, with explicit prefixes only [ :B32: \ B32:, :file: \ :path: ], multiline data, plain args
+    - one location = one policy [ owner 2026-10-22 ] : :file: as in summarize-context reads ANY file the coding zenka user can read and hands it to a model [ on a server : ~/.n/user-keys/*.private, readable /etc/protocol-7 files ] -- through a link identity an exfiltration path. the helper enforces : allowed roots for :file: [ repo tree + a configured task dir ; never key dirs or /etc/protocol-7 ; no symlink out of a root ], forms per caller [ :file: for local admin sessions only, never link identities like remote-fetch \ assess-worker ], each form enable \ disable in the coding config, size limits on decoded \ read input, one log line per :file: read [ caller, path, size ]
+    - split by who may read [ owner ] : files OUTSIDE the repo are read client-side with the caller's own permissions and sent as payload [ bin/coding-task -file already does this, base32r ] ; server-side :file: \ :path: is limited to the repository tree -- the zenka never reads a file on someone's behalf that they could not read themselves
+    - later expansions beyond the repo tree [ owner question 2026-10-22 ] : prefer a dedicated file-access zenka [ own unix user holding exactly the read rights it may hand out, own access list per caller ; coding asks it, never gains broad rights itself, the file zenka never talks to a model ] ; signatures for DELEGATION on top : a signed capability [ caller, path or prefix, purpose \ task id, expiry ; signed by an identity holding the right -- owner key or host-root ] checked by the file zenka -> rights travel across hosts or to a task for a while, no permanent grants. signatures checked inside coding alone would leave the broad rights in the coding process
+  done_at: null
+  id: J5F
+  priority: normal
+  status: open
+  tags:
+  - p7c
+  - coding
+  text: 'p7c \ p-7-r : an argument with a newline splits the protocol line ; coding task helpers land in the repo root'
 
-#,,,.,.,.,,..,,..,...,.,.,,,,,,.,,,,,,,,.,.,,,..,,...,...,.,.,,..,...,.,.,.,.,
-#UC3ODXST4T5A3XXRPHF7RGXCLIPFUN7SVODN2SNY7PVWBNOIDXMF7Y6GMBGTDSQN74SFFRPN3LJKO
-#\\\|GOBHUSLKOD2U54HXX5BT6DWAI5MUBJYS4IPLTYDUDKWOWUP32RN \ / AMOS7 \ YOURUM ::
-#\[7]4PAIB5LDSHOQVJWL5APVBGWEKQPJDJEWS4NVXRXPR3SMSRRXIWCA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,..,,..,..,,...,...,,,,,.,.,,,.,..,,...,...,.,,,...,...,,,.,,..,
+#MNAZH5H6ZVEQRPTDADOP4LQ5I4VI2ZCOFRQCKTXCCOVIRJ7XGG6KUCCPLDV3ID4EC6JBVHSDWSIKK
+#\\\|ZX7WPTFJGZQRMAU5ED4QKOKMOGYP4UT43CYTOM567FAXIJ5DAN7 \ / AMOS7 \ YOURUM ::
+#\[7]XRWUBDGKCINF35ANOH2NUDCUAXSJEZNM3GMNXMM5ZX4XOL33KACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
