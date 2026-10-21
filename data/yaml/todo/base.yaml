@@ -1334,6 +1334,8 @@ items:
     architecture [ 2026-10-21 ] : site-yaml [ fetching ] runs on delta + the new us nodes [ 1 core \ 512 mb each, outside the blocked ranges ] ; coding zenka [ assessment ] on pri or yourum. needs permanent p7 links between remotes : external.connect \ external.link.open already give encrypted named links [ auth-keypair v2 + pin ] and 'external.<name>.<zenka>.<cmd>' routing ; missing : a configured link list opened at startup, reconnect with backoff for named links [ exists only for orbital : external.orbital.schedule_retry ], per-node key + narrow access.cmd grants [ hub -> site-yaml.* only ].
     revised : build permanent links on host-edit records, not a separate external.cfg.links list [ data/md/design/HOST-SETUP.md ]. ssh IS the transport [ cube stays 127.0.0.1:42 ] ; record name = external link name ; pins name the host [ <name>_42 ]. supervisor keeps one link per record with a 'link' role : ssh forward [ host-edit.transport.ssh_forward_start ] -> external.link.open through it -> reconnect both with backoff. roles carry the split [ fetch : delta + us nodes ; assess : pri \ yourum ]. new trust point : an unattended ssh key on the hub -- restrict it on each node [ authorized_keys : restrict,port-forwarding,permitopen=127.0.0.1:42,command=/bin/false ].
     nodes zenka is the third layer : host-edit = what a host IS [ record ], external = the live link [ forward + link.open + reconnect ], nodes = whether it is UP [ nodes.cmd.host-status, today lan \ discover only -- the link supervisor reports linked remotes there too ; fetch failover reads it ]. reconcile the old trunk path first : nodes.cmd.add-tronk <name> <addr> <pkey> is an earlier permanent-link variant, its status side a stub [ nodes.parser.connection_status : 'not implemented' ] -- host records replace it, no third path.
+    dry run 2026-10-21 [ read-only ] : host-edit add-host flow is implemented + tested [ records 51, transport 25, flow 32, actions-tab 44 checks pass ] : connect [ ssh forward ] -> probe -> pin -> [ owner_key : fetch -> certify -> install ] -> done. it is ENROLLMENT : the forward is torn down at done \ error [ flow.step $stop ] -- the permanent-link supervisor is new code reusing ssh_forward_start + external.link.open. no saved host records yet [ /var/protocol-7/host-edit/hosts empty ] ; one atom draft [ 2026-10-09 : roles + link_user empty, transports 'tcp' though ssh is set ]. server pins already exist for atom, delta, pri, yourum [ p-7-r ] -> probe skips the pin step. unattended links run as the zenka user [ not taeki ] : it needs its own restricted ssh key + known_hosts.
+    correction : records DID exist [ hosts/pri.v7.ax.json since 2026-10-20 : name, ssh, ssh_port only ] -- the dry-run listing was cut by head. 2026-10-21 : atom record saved [ transports ssh, ssh_port set ] and add-host ran live : done : pinned [ key TWVQ6QL · atom.cube ]. still empty on both : roles, link_user.
   done_at: null
   id: 3W5
   priority: normal
@@ -1342,9 +1344,24 @@ items:
   - jobsite
   - infra
   text: "jobsite : stepstone.de WAF blocks both contabo servers' ip ranges ; only atom + delta can fetch"
+- added: 32C6P75MHY
+  details: |-
+    auto-detection candidates seen 2026-10-21 : ssh target + port from ~/.ssh/config [ Host alias -> HostName, Port ] ; an existing server pin [ ~/.n/remote-keys/servers/<host>_42 ] shown as already trusted ; addresses \ online state from the nodes zenka [ discover ] ; transports defaulting to ssh when the ssh field is set [ the atom draft still said tcp ]. records are sparse today [ pri : name + ssh only ] -- prefill instead of empty fields.
+    principle [ user 2026-10-21 ] : anything a user or admin already stated once is a source -- /etc/hosts, ~/.ssh/config + known_hosts, existing pins, discover \ nodes, dns, other host records. result oriented : offer the best candidate, prefilled ; a sanity filter drops invalid \ contradicting values [ name syntax, port range, a pin that disagrees ] and says why ; the user confirms, nothing applied silently.
+    why it matters [ user 2026-10-21 ] : setups often happen under time pressure that cuts clarity down to [ accept ] [ accept ] [ accept ]. the defaults must then BE the right answer [ the user's own earlier statements, filtered ] -- a correct setup by accepting, not by remembering.
+    term [ user 2026-10-21 ] : 'managed abstraction' [ layered ] -- each layer settles what it can know [ detection, sanity filter, defaults ], the user enters only where a real decision remains. under time pressure : stay on top and accept ; with time : open any layer and override. one system, depth chosen per moment.
+    ranking [ user 2026-10-21 ] : every candidate keeps its source [ file, earlier statement, agreeing pin ] -- context and references rank the options, best first with its reason shown ; never a flat, indifferent list.
+  done_at: null
+  id: Q7O
+  priority: low
+  status: open
+  tags:
+  - host-edit
+  - ui
+  text: 'host-edit : style + usability pass, offer what the host already knows [ after functionality ]'
 
-#,,,,,,,,,,.,,,.,,,.,,,..,,,,,,,.,.,.,,,.,.,.,..,,...,...,,,.,...,.,,,,,.,...,
-#3MTGGA4PPHSXGH3OPEO7FM2E42OH3OD6QN3N32EHWIIOTVHGP6UUHQHBU2YYXJJWNKGGDPM7Y3UM2
-#\\\|VGSD5GCXV3N7CJQRVCIIVPR7TSKTAN7GS4TBZ3UYHDTALM5PM65 \ / AMOS7 \ YOURUM ::
-#\[7]QZJEVWZFF7MB253UZTQGONWKPB2WST7PRI37YJ7O6N74RGW3ESAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,,..,...,,..,...,,..,.,.,,,.,..,,...,...,,..,,,,,...,..,,..,,
+#BKVXOETTPKLU56RJO7WYSN3RRN52O65SKYEEQANK6MEYJ2FM5GAASMAZ5RZ22J5LTRLQDYQ2WIR7Y
+#\\\|DVLBF7I4CYL2SUESSY4HDJO25WXOYB6UMYGMOTTZR5BNFUUODYJ \ / AMOS7 \ YOURUM ::
+#\[7]UMAUYC7G6GZADFUVG6ESTON5G3MORUJXKRZIENEZMW7SOJR4MIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

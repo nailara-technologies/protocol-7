@@ -26,12 +26,19 @@ package AMOS7::TERM::Editor;    #############################################
 ## callers are expected to have a utf-8 layer on.
 ##
 ## api :  edit_text( { text => $initial, title => $label, summary => $line,
-## label => 'details', hint => $extra_keys, width => $cols,  colors => \%C } )
-## returns the edited text, or undef when aborted.  editor_normalize_paste(
-## $text )   -> $text with \r\n / \r -> \n editor_deinterlace( \@lines,
-## $cursor_line ) -> [ \@lines, $changed ] read_editor_event( $reader,
-## \$aborted ) -> $key | { paste => $text } editor_make_reader() -> reader
-## hashref bound to STDIN
+## label => 'details', hint => $extra_keys, width => $cols,  colors => \%C,
+## on_save => sub ( $text ) { ... } } )  returns the edited text, or undef
+## when aborted.  editor_normalize_paste( $text )   -> $text with \r\n / \r ->
+## \n editor_deinterlace( \@lines, $cursor_line ) -> [ \@lines, $changed ]
+## read_editor_event( $reader, \$aborted ) -> $key | { paste => $text }
+## editor_make_reader() -> reader hashref bound to STDIN
+##
+## an optional on_save callback makes ctrl-s [ alias ctrl-o ] a real save : it
+## receives the current buffer, normalized exactly like the returned text. a
+## true return means saved [ the dirty flag clears ] ; a false return or a die
+## shows 'save failed : <reason>' and the buffer stays dirty. without on_save
+## the keys only explain that ctrl-x saves + quits -- nothing is ever claimed
+## saved.
 ##
 ## a reader is a hashref with two closures :
 ##   read   => sub ( $timeout ) -> single byte or undef
@@ -67,7 +74,7 @@ our $VERSION = qw| AMOS7::TERM::Editor-VERSION.5AANLBY |;
 
 use Fcntl       qw| F_SETFL O_NONBLOCK |;
 use Errno       qw| EAGAIN EINTR |;
-use POSIX       qw| TCSANOW ICRNL |;
+use POSIX       qw| TCSANOW ICRNL IXON |;
 use Time::HiRes qw| time |;
 
 sub _disable_icrnl {
@@ -77,6 +84,20 @@ sub _disable_icrnl {
     return if not defined $term;
     return if $term->getattr( fileno(STDIN) ) != 0;
     $term->setiflag( $term->getiflag & ~ICRNL );
+    $term->setattr( fileno(STDIN), TCSANOW );
+    return TRUE;
+}
+
+sub _disable_ixon {
+    ## ctrl-s must reach the editor as "\x13", never be swallowed as an xoff
+    ## flow-control byte. the ReadKey builds in use already clear ixon in
+    ## ReadMode(4), this makes it explicit
+    ## [ and safe against ReadKey changes ]. ReadMode(0) restores the saved
+    ## settings on every exit path, same as icrnl above
+    my $term = POSIX::Termios->new;
+    return if not defined $term;
+    return if $term->getattr( fileno(STDIN) ) != 0;
+    $term->setiflag( $term->getiflag & ~IXON );
     $term->setattr( fileno(STDIN), TCSANOW );
     return TRUE;
 }
@@ -466,6 +487,15 @@ sub editor_normalize_details {
     return @lines;
 }
 
+sub _save_error_reason {
+    ## one short line out of an on_save failure : first line, width-capped ##
+    my $reason = shift // 'unknown error';
+    $reason =~ s|\s+$||;
+    ($reason) = split m|\n|, $reason;
+    $reason = substr( $reason, 0, 40 ) . ' ..' if length($reason) > 40;
+    return $reason;
+}
+
 ##[ BRACKETED PASTE MODE ]####################################################
 
 sub paste_enable {
@@ -491,6 +521,7 @@ sub edit_text {
     my $label   = $params->{'label'}   // 'details';
     my $hint    = $params->{'hint'}    // '';
     my $width   = $params->{'width'};
+    my $on_save = $params->{'on_save'};
 
     my @lines = split m|\n|, $params->{'text'} // '', -1;
     @lines = ('') if !@lines;
@@ -548,6 +579,7 @@ sub edit_text {
     local $SIG{'CONT'} = sub {
         Term::ReadKey::ReadMode(4);
         _disable_icrnl();
+        _disable_ixon();
         paste_enable();
         print "\e[4 q";
         $resized = 1;         ## full redraw ##
@@ -556,7 +588,8 @@ sub edit_text {
 
     ## raw mode : ctrl-c is read as the byte \x03, not delivered as SIGINT ##
     Term::ReadKey::ReadMode(4);
-    _disable_icrnl();         ## keep pasted "\r\n" from becoming "\n\n" ##
+    _disable_icrnl();    ## keep pasted "\r\n" from becoming "\n\n" ##
+    _disable_ixon();     ## keep ctrl-s from being eaten as xoff ##
 
     ## bracketed paste : the terminal wraps pasted text in  "\e[200~" ... ##
     ## "\e[201~" so a multi-line paste arrives as one block               ##
@@ -740,11 +773,15 @@ sub edit_text {
                 }
             );
 
-            ## help line [ left pad, :: delimiter ] ##
+            ## help line [ left pad, :: delimiter ]  ctrl-s                ##
+            ## [ alias ctrl-o ] is only advertised when on_save gives it a ##
+            ## real target                                                 ##
+            my $save_hint = defined $on_save ? ' · ctrl-s save' : '';
             my $help_text
-                = ' · ctrl-x save+quit · ctrl-c abort · ctrl-o save · ctrl-w '
-                . 'del-word · ctrl-l del-line · ctrl-d de-interlace · '
-                . 'arrows · enter · del ·';
+                = ' · ctrl-x save+quit · ctrl-c abort'
+                . $save_hint
+                . ' · ctrl-w del-word · ctrl-l del-line · '
+                . 'ctrl-d de-interlace · arrows · enter · del ·';
             $help_text = ' · ' . $hint . ' ·' . $help_text
                 if length $hint;
             ## show status [ e.g. 'saved' ] on the LEFT so it survives ##
@@ -837,9 +874,25 @@ sub edit_text {
             if ( $key eq "\x03" ) {    ## Ctrl-C : abort ##
                 $aborted = 1;
                 last;
-            } elsif ( $key eq "\x0f" ) {    ## Ctrl-O : save ##
-                $dirty       = 0;
-                $last_status = 'saved';
+            } elsif ( $key eq "\x13" or $key eq "\x0f" ) {
+                ## Ctrl-S / Ctrl-O : save -- hand on_save a snapshot     ##
+                ## normalized exactly like the ctrl-x return value below ##
+                my $snapshot = join "\n", editor_normalize_details(@lines);
+                if ( defined $on_save ) {
+                    my $saved = eval { $on_save->($snapshot) };
+                    my $err   = $@;
+                    if ( $err or not $saved ) {
+                        $last_status
+                            = 'save failed : '
+                            . _save_error_reason( $err
+                                || 'save callback returned false' );
+                    } else {
+                        $dirty       = 0;
+                        $last_status = 'saved';
+                    }
+                } else {
+                    $last_status = 'no save target -- ctrl-x saves + quits';
+                }
             } elsif ( $key eq "\x18" ) {    ## Ctrl-X : save+quit ##
                 $dirty       = 0;
                 $last_status = 'saved';
@@ -1031,8 +1084,8 @@ sub edit_text {
 
 1;
 
-#,,..,.,.,..,,,.,,...,..,,.,,,.,.,...,,..,.,.,..,,...,..,,...,,.,,,.,,,,,,.,,,
-#3BCGNFKQF5XHFMOE5AHK5ZC47ISB4BIDYF3PL3EWK3GI4NQD7S6VIMGSVH6GBO2MTVCXWZ4B3CWK2
-#\\\|4NCM2IXLWAVA3JZ5ZZ7BGX5P6WIWYUTR44NKE5N2HRDOB6GR265 \ / AMOS7 \ YOURUM ::
-#\[7]QQ3SA3IZSXIPB42GYK5TK5NDFSSRVUE5ZQMJ7RHRYPW6MPGUOYCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,.,.,.,,,.,.,,,.,,..,,,.,,..,..,,...,...,.,,,.,,,.,.,.,,,.,,,
+#5D6FK4J4FDHSEVD5RJURPRTXCDWONXZJ6XKJ3QSIYFIVKX7OPIA35M4D4JWBIBBO5LNNEKND4XQQC
+#\\\|NR7YKTS3H3JEIWVB672JVUYBDLHF4I4DBTRC6IOWW7NUFGOGKO4 \ / AMOS7 \ YOURUM ::
+#\[7]LDGND23V44SKQB7FCTHWUEXWYYDXLTQOG2EFLBJJRG4DK2GQVSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
