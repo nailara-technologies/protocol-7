@@ -13,22 +13,29 @@ package AMOS7::TERM::Editor;    #############################################
 ##
 ## bracketed paste [ mode 2004 ] is enabled while the editor is open and
 ## disabled on every exit path, including abort, die and signals. a paste
-## arrives as one event : a hashref { paste => $text } holding the raw block.
-## line endings are normalised on insert [ "\r\n" and lone "\r" become "\n" ].
-## without bracketed paste, a "\r" immediately followed by "\n" still counts
-## as a single enter.
+## arrives as one event : a hashref { paste => $text } holding the decoded
+## block. line endings are normalised on insert
+## [ "\r\n" and lone "\r" become "\n" ]. without bracketed paste, a "\r"
+## immediately followed by "\n" still counts as a single enter.
+##
+## character contract : text, summary, title, label and hint are character
+## strings [ decoded ], and the edited result is returned as characters.  all
+## cursor and width math counts characters -- multibyte input is read as utf-8
+## and assembled into single characters. wide [ east-asian ] glyphs still
+## count as one, same as any other character. output goes to STDOUT, which
+## callers are expected to have a utf-8 layer on.
 ##
 ## api :  edit_text( { text => $initial, title => $label, summary => $line,
 ## label => 'details', hint => $extra_keys, width => $cols,  colors => \%C } )
 ## returns the edited text, or undef when aborted.  editor_normalize_paste(
 ## $text )   -> $text with \r\n / \r -> \n editor_deinterlace( \@lines,
 ## $cursor_line ) -> [ \@lines, $changed ] read_editor_event( $reader,
-## \$aborted ) -> $key | { paste => $raw } editor_make_reader() -> reader
+## \$aborted ) -> $key | { paste => $text } editor_make_reader() -> reader
 ## hashref bound to STDIN
 ##
 ## a reader is a hashref with two closures :
 ##   read   => sub ( $timeout ) -> single byte or undef
-##   ungetc => sub ( $byte )    -> push one byte back
+##   ungetc => sub ( $bytes )   -> push bytes back [ read again in order ]
 
 use v5.32.0;
 use utf8;
@@ -251,10 +258,8 @@ our $stdin_pushback;
 
 sub _stdin_read_byte {
     my $timeout = shift // 0;
-    if ( defined $stdin_pushback ) {
-        my $b = $stdin_pushback;
-        undef $stdin_pushback;
-        return $b;
+    if ( defined $stdin_pushback and length $stdin_pushback ) {
+        return substr( $stdin_pushback, 0, 1, '' );
     }
     my $r = '';
     vec( $r, fileno(STDIN), 1 ) = 1;
@@ -267,7 +272,7 @@ sub _stdin_read_byte {
 }
 
 sub _stdin_ungetc {
-    $stdin_pushback = $_[0];
+    $stdin_pushback = $_[0] . ( $stdin_pushback // '' );
     return;
 }
 
@@ -293,9 +298,9 @@ sub _read_paste_block {
 }
 
 sub read_editor_event {
-    ## reads one event from the reader : a plain key string [ single byte
-    ## or collected escape sequence ], a hashref { paste => $raw_block }
-    ## for bracketed paste, or undef on eof / abort.
+    ## reads one event from the reader : a plain key string
+    ## [ single character or collected escape sequence ], a hashref  { paste
+    ## => $text } holding the decoded paste block, or undef on eof / abort.
     my ( $reader, $aborted_ref ) = @_;
 
     my $first = $reader->{'read'}->(0);
@@ -308,6 +313,37 @@ sub read_editor_event {
         $reader->{'ungetc'}->($next)
             if defined $next and $next ne "\n";
         return "\n";
+    }
+
+    ## utf-8 lead byte : collect the continuation bytes                   ##
+    ## [ same short timeout pattern as escape sequences ] and decode to a ##
+    ## character                                                          ##
+    if ( $first =~ m{^[\xC2-\xF4]$} ) {
+        my $extra
+            = $first =~ m{^[\xC2-\xDF]$} ? 1
+            : $first =~ m{^[\xE0-\xEF]$} ? 2
+            :                              3;
+        my $bytes    = $first;
+        my $deadline = time() + 0.1;
+        while ( length($bytes) < $extra + 1 and time() < $deadline ) {
+            my $remain = $deadline - time();
+            $remain = 0.001 if $remain < 0.001;
+            my $next = $reader->{'read'}->($remain);
+            last if !defined $next;
+            ## not a continuation byte : it is the next key, not ours ##
+            if ( $next !~ m{^[\x80-\xBF]$} ) {
+                $reader->{'ungetc'}->($next);
+                last;
+            }
+            $bytes .= $next;
+        }
+        return $bytes
+            if length($bytes) == $extra + 1 and utf8::decode($bytes);
+
+        ## incomplete or invalid sequence : push the tail back, keep the ##
+        ## lead byte [ reads as its latin-1 character ]                  ##
+        $reader->{'ungetc'}->( substr( $bytes, 1 ) ) if length($bytes) > 1;
+        return $first;
     }
 
     return $first if $first ne "\e";
@@ -334,6 +370,7 @@ sub read_editor_event {
         ## bracketed paste start "\e[200~" : swallow the whole block ##
         if ( $seq =~ m{\x1b\[200~$} ) {
             my $paste = _read_paste_block( $reader, $aborted_ref );
+            utf8::decode($paste);    ## invalid content stays byte-wise ##
             return { paste => $paste };
         }
 
@@ -943,8 +980,8 @@ sub edit_text {
 
 1;
 
-#,,,.,,,.,,..,,,,,,..,..,,,..,.,,,,,.,...,,..,..,,...,...,...,.,,,,.,,,..,,.,,
-#FVWGK6552OIQYTWUNE7V2NOPPSIZ5H5X6C3XXVZWFW3PAVNJLAZ2XQE5IMSKS4UGPBU2UQPGEX75U
-#\\\|FZWCIKCECKR2OFF62LOYQWLNGAVWDRMUSSGJV2OS37TUM7AOTEK \ / AMOS7 \ YOURUM ::
-#\[7]MNVWG2LLMOIJPHWTNQS4CZAQM3MG5ENJKTRT5EHM4I3ND3BFCKBI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,..,,...,..,,..,,..,,,,,,...,,..,..,,...,...,,,,,,..,,,,,.,.,..,,
+#PA66ZOUBLRLMJKG2MHBFHJVZCA2PYRI5G2SCLSYTDDSE6F2SHSAF4IWIZQU5NBX6A5MRGAQJZO3YK
+#\\\|LJHFTBXRAR6IF4TXE5ILLH2ZKUET3KGOGNJDE4Q7RKNTIMR5HMC \ / AMOS7 \ YOURUM ::
+#\[7]EV47R4B6YU472P2IQTDX6KNEUJ3HVNK6GMP3EN3PSQFDOFSBBQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

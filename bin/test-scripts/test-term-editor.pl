@@ -60,13 +60,11 @@ sub lines_str {
 sub fake_reader {
     my $bytes   = shift;
     my $pos     = 0;
-    my $pending = undef;
+    my $pending = '';
     return {
         read => sub {
-            if ( defined $pending ) {
-                my $b = $pending;
-                undef $pending;
-                return $b;
+            if ( length $pending ) {
+                return substr( $pending, 0, 1, '' );
             }
             return undef if $pos >= length($bytes);
             my $b = substr( $bytes, $pos, 1 );
@@ -74,7 +72,7 @@ sub fake_reader {
             return $b;
         },
         ungetc => sub {
-            $pending = $_[0];
+            $pending = $_[0] . $pending;
         },
     };
 }
@@ -216,6 +214,33 @@ check( 'paste parser : plain bytes pass through',
 my $norm = editor_normalize_paste( $events[0] );
 check( 'paste parser : bytes readable after parse', $norm eq 'a' );
 
+@events = events_from_bytes("\xC3\xA9\xE2\x80\x94x");
+check(
+    'utf-8 : multibyte keys decode to single characters',
+    scalar @events == 3
+        && $events[0] eq "\x{e9}"
+        && $events[1] eq "\x{2014}"
+        && $events[2] eq 'x'
+);
+
+@events = events_from_bytes("\xE9ab");
+check(
+    'utf-8 : lone latin-1 lead byte keeps the following keys',
+    scalar @events == 3
+        && $events[0] eq "\xE9"
+        && $events[1] eq 'a'
+        && $events[2] eq 'b'
+);
+
+@events = events_from_bytes("\xE2\x80x");
+check(
+    'utf-8 : truncated sequence yields every byte as its own key',
+    scalar @events == 3
+        && $events[0] eq "\xE2"
+        && $events[1] eq "\x80"
+        && $events[2] eq 'x'
+);
+
 ##[ summary ]#################################################################
 
 say '';
@@ -224,8 +249,8 @@ say '';
 
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,,,..,,,,.,,,,,,,.,..,,,,.,,,,,,..,..,,,,.,..,,...,...,.,.,,,,,..,,,.,,,,,,
-#J5KFXGESDKVY2UJ5UROFA4PWLA6LHWTLZZQUIHE7L7VA64KO5B6MKDVFEUG2XDJOHVGOQFSLFWZ6Q
-#\\\|3ILHLCG5LRGKPHF6H3AWIRDUO6CLOJZEANHODFPLTRUR3QEBM6F \ / AMOS7 \ YOURUM ::
-#\[7]PMVK62ADWPAZMOJDGG5JGGPCZGZC6TZ2ICLNQ5RG763ANEPRT6AQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,...,,,,,...,,.,,,,,,.,.,,,.,,,,,..,,...,...,.,,,...,,,,,.,.,..,,
+#6SGRU7XNOB3L7X4SYYNMOHVXH5IL4IP5YKNQWUSBMIDFLHMXYNSCKROMZZFKOH5SAPMM255WN4N4S
+#\\\|TYX72KKUGIJ27TXCTKAKYX2SABNOY3JWG7L4SI7U6Z3WM4IN3GL \ / AMOS7 \ YOURUM ::
+#\[7]XEYVIWMJYC5OEFDQLDLIG26ICHLZVKGWW7JJW3BHODIBSGNVN2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
