@@ -45,6 +45,7 @@ package AMOS7::TERM::Editor;    #############################################
 ##   ungetc => sub ( $bytes )   -> push bytes back [ read again in order ]
 ## and optionally :
 ##   eof    => sub ()           -> true once the input is gone [ tty closed ]
+##   pending => sub ()          -> true when a byte is already waiting
 
 use v5.32.0;
 use utf8;
@@ -318,13 +319,24 @@ sub _stdin_ungetc {
     return;
 }
 
+sub _stdin_pending {
+    ## true when a byte is already waiting : pushed back, or on STDIN ##
+    ## [ select timeout 0 ]                                           ##
+    return TRUE if defined $stdin_pushback and length $stdin_pushback;
+    my $r = '';
+    vec( $r, fileno(STDIN), 1 ) = 1;
+    my $ready = select( $r, undef, undef, 0 );
+    return $ready > 0 ? TRUE : FALSE;
+}
+
 sub editor_make_reader {
     ## reader closure pair bound to STDIN [ the live editor input ]
     $stdin_eof = FALSE;
     return {
-        read   => \&_stdin_read_byte,
-        ungetc => \&_stdin_ungetc,
-        eof    => sub {$stdin_eof},
+        read    => \&_stdin_read_byte,
+        ungetc  => \&_stdin_ungetc,
+        eof     => sub {$stdin_eof},
+        pending => \&_stdin_pending,
     };
 }
 
@@ -332,13 +344,21 @@ sub _read_paste_block {
     ## read until the paste terminator "\e[201~" shows up at the tail
     my ( $reader, $aborted_ref ) = @_;
     ## idle timeout, not a total one : a large or slow paste keeps going as ##
-    ## long as bytes keep arriving                                          ##
+    ## long as bytes keep arriving  a terminator with more bytes already    ##
+    ## pending is content, not the end : the paste arrives as one burst, so ##
+    ## a real end is a terminator followed by an idle line. without this, a ##
+    ## literal "\e[201~" inside pasted text                                 ##
+    ## [ foot, urxvt and xterm with allowPasteControls let it through ]     ##
+    ## ends the paste early and the rest runs as editing keys               ##
     my $paste = '';
     while ( !$$aborted_ref ) {
         my $b = $reader->{'read'}->(2);
         last if !defined $b;
         $paste .= $b;
-        last if $paste =~ m{\x1b\[201~$};
+        next if $paste !~ m{\x1b\[201~$};
+        ## candidate end : accept only when nothing else is pending       ##
+        ## [ a reader without 'pending' keeps the first-terminator rule ] ##
+        last if !$reader->{'pending'} or !$reader->{'pending'}->();
     }
     $paste =~ s|\x1b\[201~$||;    ## strip terminator when complete ##
     return $paste;
@@ -1084,8 +1104,8 @@ sub edit_text {
 
 1;
 
-#,,.,,,.,,...,.,.,.,.,.,,,.,.,,,.,,..,,,.,,..,..,,...,...,.,,,.,,,.,.,.,,,.,,,
-#5D6FK4J4FDHSEVD5RJURPRTXCDWONXZJ6XKJ3QSIYFIVKX7OPIA35M4D4JWBIBBO5LNNEKND4XQQC
-#\\\|NR7YKTS3H3JEIWVB672JVUYBDLHF4I4DBTRC6IOWW7NUFGOGKO4 \ / AMOS7 \ YOURUM ::
-#\[7]LDGND23V44SKQB7FCTHWUEXWYYDXLTQOG2EFLBJJRG4DK2GQVSBY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,,,.,.,,,..,,,,,,,.,,..,,.,,,..,,...,..,,...,,..,,.,,.,,,.,,,
+#TMHF7Z5F4WERNVQEYLGMLAGTMCTG7KO5BAQWR7WDGZL3IFTJRLJBJ7JDUX45RPNE3XBJB4E6ODCZC
+#\\\|YIP2ULIISL76N3SBKUIXIRNDTASVRAQEIUAHCG52Z5JK6BKVRSQ \ / AMOS7 \ YOURUM ::
+#\[7]2EHW4TMUFVP34WIVTA4B42TIF3DSPF5SK4SCMJMWO77OBK247OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
