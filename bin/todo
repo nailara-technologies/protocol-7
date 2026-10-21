@@ -915,13 +915,9 @@ sub cmd_details {
         die "interactive details editor requires a tty\n"
             if not $TTY;
 
-        ## the editor works on bytes [ sysread ] : hand initial text over ##
-        ## as bytes, decode the edited result back to characters          ##
-        my $initial = $item->{details} // '';
-        utf8::encode($initial) if utf8::is_utf8($initial);
-
+        ## the shared editor speaks characters [ see Editor.pm header ] ##
         $new_details = edit_text(
-            {   text    => $initial,
+            {   text    => $item->{details},
                 title   => $item->{id},
                 summary => $item->{text},
                 label   => 'todo details',
@@ -931,7 +927,6 @@ sub cmd_details {
 
         ## interactive editor returns undef when aborted without saving ##
         return if not defined $new_details;
-        utf8::decode($new_details);
 
         say "\e[0K";    ## clear to end of line
         say "  ::: SIGINT ::: terminated..";
@@ -1145,8 +1140,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,.,.,,,,,,..,,,,,..,,.,,,.,.,,,.,..,,,..,..,,...,..,,.,.,,..,.,.,,,.,.,,,
-#FPM5VMEXOEJB4QX2ARIBKOGWPY6LRVGCZXSWRAONNCY5Z5L7QCDHTF746QCPYUZ62TXCZFAV4ZA5S
-#\\\|L4JNZJCH7H5VDPGZ67A3VD3V3C7NEQYQVU3YVLPRAJX5KMRJOBK \ / AMOS7 \ YOURUM ::
-#\[7]56Y2ZURRZGASZT2S4GPMYQKSOX3HUC6T3HJTM22OKSXV6IGRX4AQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,.,,,.,,.,,...,.,.,,..,.,,,..,,..,,...,...,.,.,..,,,,.,.,,,...,
+#OJEKBIHZ4AP2BCNQRB3B3UGYSREGBKZT4XDNDIFU22HHL7D3BFY3NU5PC3DGYYB4YM2CQEXX2PBFE
+#\\\|7CKYQZMZ6ORR7MJIMTSTBK5TJWNGJGEETBIYYNFG6N4TFYQ73LQ \ / AMOS7 \ YOURUM ::
+#\[7]RX3WTSIDNJQ3GAXGDWR2DN2CESRQG7RAJ3K5IIVHDKEFLWGZSWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
