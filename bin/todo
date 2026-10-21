@@ -898,6 +898,7 @@ sub cmd_details {
     die "item $id_str not found\n" if not defined $item;
 
     my $new_details;
+    my $saved_in_editor = 0;    ## set by the editor's ctrl-s [ on_save ] ##
     if (@_) {
         ## non-interactive : set details from command line ##
         $new_details = join ' ', @_;
@@ -916,25 +917,39 @@ sub cmd_details {
             if not $TTY;
 
         ## the shared editor speaks characters [ see Editor.pm header ] ##
+        ## on_save writes through the very same path the ctrl-x result  ##
+        ## takes below ; save_data dies on failure [ shown by editor ]  ##
         $new_details = edit_text(
             {   text    => $item->{details},
                 title   => $item->{id},
                 summary => $item->{text},
                 label   => 'todo details',
                 colors  => \%C,
+                on_save => sub {
+                    my $text = shift;
+                    $item->{details} = $text;
+                    save_data($data);
+                    $saved_in_editor = 1;
+                    return 1;
+                },
             }
         );
 
-        ## interactive editor returns undef when aborted without saving ##
-        return if not defined $new_details;
-
-        say "\e[0K";    ## clear to end of line
-        say "  ::: SIGINT ::: terminated..";
-
+        ## interactive editor returns undef when aborted : say so, and ##
+        ## whether an earlier ctrl-s save is what stays on disk        ##
+        if ( not defined $new_details ) {
+            say "\e[0K";    ## clear to end of line
+            say '  ::: SIGINT ::: terminated..'
+                . ( $saved_in_editor ? ' [ last ctrl-s save kept ]' : '' );
+            return;
+        }
     }
 
+    ## a ctrl-s save already wrote the text : still report it as saved ##
     my $details_changed
-        = ( ( $item->{details} // '' ) ne $new_details ) ? 1 : 0;
+        = ( ( $item->{details} // '' ) ne $new_details or $saved_in_editor )
+        ? 1
+        : 0;
 
     if ($details_changed) {
         $item->{details} = $new_details;
@@ -1140,8 +1155,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,,..,..,,.,.,,,.,,.,,...,.,.,,..,.,,,..,,..,,...,...,.,.,..,,,,.,.,,,...,
-#OJEKBIHZ4AP2BCNQRB3B3UGYSREGBKZT4XDNDIFU22HHL7D3BFY3NU5PC3DGYYB4YM2CQEXX2PBFE
-#\\\|7CKYQZMZ6ORR7MJIMTSTBK5TJWNGJGEETBIYYNFG6N4TFYQ73LQ \ / AMOS7 \ YOURUM ::
-#\[7]RX3WTSIDNJQ3GAXGDWR2DN2CESRQG7RAJ3K5IIVHDKEFLWGZSWCQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,,..,,.,,.,,,...,...,..,,.,.,..,,...,..,,...,,.,,,..,,,.,...,
+#DSQTNUSBAMYIE5KKWY3O63D32STKWFWBENNO2ZPSI4PNULUW4APH3CVVBSRCWF3KIBXIVPP4T2E2I
+#\\\|6T3ZC7QITH2YDJ44HAKSJIPPWMN6E4YZSPB7YSO23VFM3OPLTKA \ / AMOS7 \ YOURUM ::
+#\[7]T24TGGPWLWO7A5T76YG4ZL2G54OV6XNLSFZ7TAPGAKZ3MI65XACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

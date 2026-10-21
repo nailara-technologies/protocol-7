@@ -162,6 +162,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [single-dash-long-options](feedback-single-dash-long-options.md) — new options of our own tools : `-dry-run`, `-write`, never `--` ; say it in every dispatch brief [ 2026-10-18 ]
 - [self-reexec-tests-need-recursion-guard](feedback-self-reexec-tests-need-recursion-guard.md) — a self re-executing test with @ARG [ = @_ ] instead of @ARGV fork-chained and froze the host [ 2026-10-18 ] : env recursion guard always, review spawning before the first run, ulimit -u for unknown tests
 - [compare-against-old-behavior](feedback-compare-against-old-behavior.md) — delegated change to shared code : compare against HEAD too [ the truth fallback silently changed 1377 / 3040 long-number results on every host, 2026-10-18 ] ; prove which file loaded ; add an independent rule to the test
+- [perl-self-signal-and-pty-test-traps](feedback-perl-self-signal-and-pty-test-traps.md) — re-raising a signal inside its own perl handler is blocked [ use STOP for TSTP ] ; a lost pty reads as EIO not eof ; pty harnesses : orphaned pgrp discards TSTP, closed-master drain waits 0 s
 
 #,,.,,,.,,,..,,,,,.,.,.,,,...,,.,,.,,,,.,,.,.,..,,...,...,...,..,,,..,.,,,,,.,
 #7LE2BK4UQ5RUKQX7QWLXLNBIR2XONH62DQSG6BRKT2TPB35ATXEMHGU7EGYJ2DARMNR6URZTEAFLM
@@ -219,8 +220,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [nested-data-read-autovivifies-before-defaults](feedback-nested-data-read-autovivifies-before-defaults.md) — a nested `<a.b.c>` read before init_modules creates `<a.b>` as {} and cancels a whole-hash `//=` default [ v7-zenki zenka-dirs all undef 2026-10-11..15 via base.host.detect ] ; read early via `( <a.b> // {} )->{c}`, defaults per key
 
-#,,..,.,.,,,,,,,,,.,,,,..,,,,,...,...,,,.,.,,,..,,...,...,...,..,,,,,,,,,,.,.,
-#3MEXLEE2MXZI4CQZVNDIB7XZKWTU4LUJM45IKIBBAON2KUX37GTKIPMYS35YPYHVDUHLBV7SV7ZWI
-#\\\|W6LVSQ5F3O3UYMH5VGZYQ5W77WOV4GHIYK5KQYELAWUU3PAFGNS \ / AMOS7 \ YOURUM ::
-#\[7]HJV4OGSVPCAIAQ6EAIZNNV4I4U4HVRZFQ5NFHHD63BBI6JACWEAA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,,,,,.,,,,.,,.,,,,.,,...,..,,..,,...,...,.,.,,..,,.,,,,,,...,
+#D6LDLTZ2XFIUYWLN6MXOCRFK3L7XW5WCDSYMN5JD2MVIUYDHJOFOBXEOXFGZQG7II73ZSKN7KGOLU
+#\\\|XCE6A7FX62M3PCYUNNQLJLRHNQGTFZIZWC5KF6OIWKVQEYA3Z4U \ / AMOS7 \ YOURUM ::
+#\[7]VZKP7PM6UQPVDQ4MIYSES5XHE4P5NT2IE4FLCQZVFQJQZBB6T2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

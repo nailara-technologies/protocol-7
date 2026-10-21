@@ -10,7 +10,10 @@ use English;
 ## [ control bytes inside do not abort ], a closed tty ends the editor instead
 ## of spinning, suspend hands back a cooked tty and continue takes raw mode
 ## back, the cursor shape is reset after a ctrl-c abort, typed utf-8 arrives
-## as characters.  skipped when IO::Pty is not installed
+## as characters. save tests : ctrl-s [ and its ctrl-o alias ] calls on_save
+## with the normalized buffer and the editor keeps running, a false return or
+## a die shows the failure and the editor keeps running, without on_save no
+## 'saved' is ever claimed. skipped when IO::Pty is not installed
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -74,8 +77,48 @@ my $child_code = <<~'CHILD';
     close $fh;
     CHILD
 
+## a child with an on_save hook : every save appends the received text to
+## <result>.saves ; FAILME makes the callback return false, DIEME dies -- both
+## must surface as 'save failed' without ending the editor
+my $child_code_save = <<~'CHILD';
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    my $out      = shift;
+    my $save_log = "$out.saves";
+    { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
+    my $result = eval {
+        edit_text( { text => 'seed', title => 'T', summary => 's',
+            label => 'l',
+            on_save => sub {
+                my $text = shift;
+                open my $fh, '>>:utf8', $save_log or die "save log : $!";
+                print $fh "SAVE=<$text>\n";
+                close $fh;
+                die "boom : refused\n" if $text =~ m{DIEME};
+                return $text =~ m{FAILME} ? 0 : 1;
+            },
+        } );
+    };
+    open my $fh, '>:utf8', $out or die;
+    print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
+    close $fh;
+    CHILD
+
+sub read_file {
+    my $path = shift;
+    my $text = '';
+    if ( open my $fh, '<:utf8', $path ) {
+        local $INPUT_RECORD_SEPARATOR;
+        $text = <$fh>;
+    }
+    return $text;
+}
+
 sub run_case {
-    my ( $name, $script ) = @ARG;
+    my ( $name, $script, $code ) = @ARG;
+    $code //= $child_code;
     my $result_file = "$tmp_dir/result.$name";
     my $pty         = IO::Pty->new;
     $pty->set_winsize( 30, 100 ) if $pty->can('set_winsize');
@@ -89,7 +132,7 @@ sub run_case {
         open STDOUT, '>&', $slave;
         open STDERR, '>&', $slave;
         {
-            exec $EXECUTABLE_NAME, "-I$local_lib_path", '-e', $child_code,
+            exec $EXECUTABLE_NAME, "-I$local_lib_path", '-e', $code,
                 $result_file;
         }
         POSIX::_exit(127);
@@ -230,12 +273,94 @@ check( 'ctrl-c abort : returns undef', $result eq 'RESULT=<UNDEF>' );
 check( 'ctrl-c abort : cursor shape reset',
     rindex( $output, "\e[0 q" ) > rindex( $output, "\e[4 q" ) );
 
+## ctrl-s [ alias ctrl-o ] : on_save gets the normalized buffer, the editor ##
+## keeps running and advertises the save key                                ##
+( $result, $exited, $output ) = run_case(
+    qw| save |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, 'abc';
+        $drain->(0.3);
+        syswrite $pty, "\x13";    ## ctrl-s save ##
+        $drain->(0.5);
+        syswrite $pty, 'def';
+        $drain->(0.3);
+        syswrite $pty, "\x0f";    ## ctrl-o alias ##
+        $drain->(0.5);
+        syswrite $pty, "\x18";    ## ctrl-x quit ##
+    },
+    $child_code_save
+);
+my $saves = read_file("$tmp_dir/result.save.saves");
+check(
+    'ctrl-s + ctrl-o : on_save got each snapshot, editor kept running',
+    $result eq 'RESULT=<abcdefseed>'
+        && $exited
+        && $saves eq "SAVE=<abcseed>\nSAVE=<abcdefseed>\n"
+        && $output =~ m{· saved ·}
+        && $output =~ m{ctrl-s save}
+);
+
+## a failing on_save : the failure shows [ false return and die ], the ##
+## editor keeps running and ctrl-x still returns the buffer            ##
+( $result, $exited, $output ) = run_case(
+    qw| savefail |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, 'FAILME';
+        $drain->(0.3);
+        syswrite $pty, "\x13";    ## callback returns false ##
+        $drain->(0.5);
+        syswrite $pty, 'DIEME';
+        $drain->(0.3);
+        syswrite $pty, "\x13";    ## callback dies ##
+        $drain->(0.5);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_save
+);
+$saves = read_file("$tmp_dir/result.savefail.saves");
+check(
+    'failing on_save : failure shown, editor kept running',
+    $result eq 'RESULT=<FAILMEDIEMEXseed>'
+        && $exited
+        && $saves eq "SAVE=<FAILMEseed>\nSAVE=<FAILMEDIEMEseed>\n"
+        && $output =~ m{save failed : save callback returned false}
+        && $output =~ m{save failed : boom : refused}
+        && $output !~ m{· saved ·}
+);
+
+## without on_save : the save keys never claim 'saved', the hint points at ##
+## ctrl-x                                                                  ##
+( $result, $exited, $output ) = run_case(
+    qw| nosave |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\x13";
+        $drain->(0.5);
+        syswrite $pty, "\x0f";
+        $drain->(0.5);
+        syswrite $pty, "\x18";
+    }
+);
+check(
+    'no on_save : no saved claim, hint points at ctrl-x',
+    $result eq 'RESULT=<seed>'
+        && $exited
+        && $output =~ m{no save target -- ctrl-x saves \+ quits}
+        && $output !~ m{· saved ·}
+        && $output !~ m{ctrl-s save}
+        && $output !~ m{ctrl-o save}
+);
+
 say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,.,,,,,,,.,...,.,.,...,.,.,..,,,..,,,,,...,..,,...,...,...,.,.,,,,,,,,,,..,
-#4ILESMRAESMYDCY6VE7X3VFG65ZEXULU6WEJOWXLPEERBMID2FOXUL5ZZSDBIX2R7DMNXGX5WK44C
-#\\\|BA3QXZCW6HJWRNEL27CZMUG2A7PP7YHIA7FYCT7GEJI5WAUNCQE \ / AMOS7 \ YOURUM ::
-#\[7]3JSG7PGAAF3FW3IJLIHTSNOURXLE6PTAJ7CWXWSJFN66CLB3VWAQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,...,.,.,...,.,.,..,,,,,,...,..,,...,...,..,,,,.,.,,,.,,,...,
+#UE6C76V5MG7SZXU5UNWAW7P6D4J3ALYX7X7SHJCKOVNZHRVVANMO2JXEWHGOWLOEBSPDVUWQ2MSSC
+#\\\|LKJ4ZL5Q3XEEGYYOPHMJPAERCJRKWBC2W4DGCQKJMJTXJPDTUVU \ / AMOS7 \ YOURUM ::
+#\[7]SCBRSSN5OYJXLOQJBI2XCSEOPU7HPDTL7JJLBF5KOQJB2YZO2EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
