@@ -202,6 +202,38 @@ check(
     $result eq "RESULT=<PART-APART-B\x03\x0cTAILseed>" && $exited
 );
 
+## one burst holding a literal terminator in the middle, then the real one :
+## the whole burst is paste content, the real terminator ends it
+( $result, $exited ) = run_case(
+    qw| pasteterm |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[200~ONE\e[201~TWO\e[201~";
+        $drain->(0.5);
+        syswrite $pty, "\x18";
+    }
+);
+check( 'literal terminator mid-burst : content kept, real end ends the paste',
+    $result eq "RESULT=<ONE\e[201~TWOseed>" && $exited );
+
+## a paste followed by typed keys after a pause : the keys stay editing ##
+## keys, they are not swallowed into the paste                          ##
+( $result, $exited ) = run_case(
+    qw| pastekeys |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[200~ab\e[201~";
+        $drain->(0.6);
+        syswrite $pty, 'QZ';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    }
+);
+check(
+    'keys typed after a paste are not swallowed',
+    $result eq 'RESULT=<abQZseed>' && $exited
+);
+
 ## typed utf-8 : multibyte keys arrive as characters, a lone latin-1 byte ##
 ## does not swallow the keys after it                                     ##
 ( $result, $exited ) = run_case(
@@ -359,8 +391,8 @@ say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,..,,,.,..,,.,,,...,.,.,...,.,.,..,,,,,,...,..,,...,...,..,,,,.,.,,,.,,,...,
-#UE6C76V5MG7SZXU5UNWAW7P6D4J3ALYX7X7SHJCKOVNZHRVVANMO2JXEWHGOWLOEBSPDVUWQ2MSSC
-#\\\|LKJ4ZL5Q3XEEGYYOPHMJPAERCJRKWBC2W4DGCQKJMJTXJPDTUVU \ / AMOS7 \ YOURUM ::
-#\[7]SCBRSSN5OYJXLOQJBI2XCSEOPU7HPDTL7JJLBF5KOQJB2YZO2EAA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,,.,,,..,,.,,,.,,,.,,.,,,.,.,..,,...,..,,,.,,,,.,.,.,,,.,,..,
+#CC56VLXHDPKWF6TOY53DQKMDKAPLBNDWLQFPWVV2PEAFYYLMJSPR3ARD5DOPXN4JQVAIWP7MFCA7S
+#\\\|UD4F4EKDM52KCVGJUVIN4UL2VN4USSD5OYIJU5NHAIZHTAIH43W \ / AMOS7 \ YOURUM ::
+#\[7]NHKJFW3UAQIVDWEPSKEV3LZQPS6UT24YLWHCWYGQFX7RQBOTK6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

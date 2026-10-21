@@ -8,8 +8,9 @@ use English;
 ## [ crlf, lone cr, mixed ], de-interlace transform [ doubled breaks, original
 ## blank line, stop at even run, stop at two text lines, block above cursor
 ## untouched, whitespace-only counts as empty ], bracketed-paste parser on a
-## byte string fed through a fake reader
-## [ paste event, crlf collapse, escape sequences, lone cr ]
+## byte string fed through a fake reader with explicit burst pending [ paste
+## event, crlf collapse, escape sequences, lone cr,  literal terminator inside
+## the content ]
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -56,20 +57,31 @@ sub lines_str {
     return join '|', @{ $_[0] };
 }
 
-## fake reader over a byte string : read( $timeout ) -> byte or undef ##
+## fake reader over a list of burst byte strings : read( $timeout ) -> byte or
+## undef. pending is explicit, not timed : true while the current burst still
+## holds unread bytes [ plus the ungetc buffer ]. a flat string is one burst
 sub fake_reader {
-    my $bytes   = shift;
+    my @bursts  = ref $_[0] eq 'ARRAY' ? @{ $_[0] } : ( $_[0] );
+    my $burst_i = 0;
     my $pos     = 0;
     my $pending = '';
     return {
         read => sub {
-            if ( length $pending ) {
-                return substr( $pending, 0, 1, '' );
+            return substr( $pending, 0, 1, '' ) if length $pending;
+            while ( $burst_i <= $#bursts
+                and $pos >= length( $bursts[$burst_i] ) ) {
+                $burst_i++;
+                $pos = 0;
             }
-            return undef if $pos >= length($bytes);
-            my $b = substr( $bytes, $pos, 1 );
+            return undef if $burst_i > $#bursts;
+            my $b = substr( $bursts[$burst_i], $pos, 1 );
             $pos++;
             return $b;
+        },
+        pending => sub {
+            return 1 if length $pending;
+            return 0 if $burst_i > $#bursts;
+            return $pos < length( $bursts[$burst_i] ) ? 1 : 0;
         },
         ungetc => sub {
             $pending = $_[0] . $pending;
@@ -182,7 +194,7 @@ check(
         && $events[0]{'paste'} eq "line1\r\nline2"
 );
 
-@events = events_from_bytes("x\e[200~a\nb\e[201~y");
+@events = events_from_bytes( [ 'x', "\e[200~a\nb\e[201~", 'y' ] );
 check(
     'paste parser : keys around the paste stay separate',
     scalar @events == 3
@@ -190,6 +202,32 @@ check(
         && ref $events[1] eq 'HASH'
         && $events[1]{'paste'} eq "a\nb"
         && $events[2] eq 'y'
+);
+
+@events = events_from_bytes( ["\e[200~ab\e[201~cd\e[201~"] );
+check(
+    'paste parser : literal terminator inside the burst stays content',
+    scalar @events == 1
+        && ref $events[0] eq 'HASH'
+        && $events[0]{'paste'} eq "ab\e[201~cd"
+);
+
+@events = events_from_bytes( ["\e[200~ab\e[201~\e[201~"] );
+check(
+    'paste parser : content ending in a literal terminator keeps it',
+    scalar @events == 1
+        && ref $events[0] eq 'HASH'
+        && $events[0]{'paste'} eq "ab\e[201~"
+);
+
+@events = events_from_bytes( [ "\e[200~ab\e[201~", 'QZ' ] );
+check(
+    'paste parser : keys in a later burst are not swallowed',
+    scalar @events == 3
+        && ref $events[0] eq 'HASH'
+        && $events[0]{'paste'} eq 'ab'
+        && $events[1] eq 'Q'
+        && $events[2] eq 'Z'
 );
 
 @events = events_from_bytes("\r\n");
@@ -249,8 +287,8 @@ say '';
 
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,.,,,,,...,...,,,,,...,,.,,,,,,.,.,,,.,,,,,..,,...,...,.,,,...,,,,,.,.,..,,
-#6SGRU7XNOB3L7X4SYYNMOHVXH5IL4IP5YKNQWUSBMIDFLHMXYNSCKROMZZFKOH5SAPMM255WN4N4S
-#\\\|TYX72KKUGIJ27TXCTKAKYX2SABNOY3JWG7L4SI7U6Z3WM4IN3GL \ / AMOS7 \ YOURUM ::
-#\[7]XEYVIWMJYC5OEFDQLDLIG26ICHLZVKGWW7JJW3BHODIBSGNVN2AY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,..,,,.,,,.,,.,,,,,,,,..,.,.,..,,...,...,..,,,..,,..,.,,,,.,,
+#ENRQZQPSJDRQSOLZTZJ5YDNQZTLEWW3TM7IFVWJW6PNYBATITJKCYVNX5OUQKAIW4E2ZA7QTPDMIE
+#\\\|ZHWS56EJGJ24GBENGCPFBLPE3D5RCY7QBACUALRFQXFRHCIBYFO \ / AMOS7 \ YOURUM ::
+#\[7]TVCX7GALEZGITSKF3WHWWZCEVE65ER54IOP6NGK3EVRT6MHFZEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
