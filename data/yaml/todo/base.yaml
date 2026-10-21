@@ -1448,9 +1448,26 @@ items:
   - credentials
   - design
   text: 'credential layers map : p7-vault, credentials, cred-mesh, sessions, users \ user-edit, proxy \ transport -- who owns, who holds, who uses'
+- added: 32C75THZDU
+  details: |-
+    jobsite.taute.re cert issued 2026-10-21 22:26 after : yourum sync wait half-open [ 009fe1428 ], question echo lowercased -> 0x20 SERVFAIL at lets encrypt [ 42476f314 ]. left :
+    - letsencr parent logs an empty "ACME error:" -- the child sends the reason [ acme.fail ], the parent handler_enrollment_reply gets none ; the reason only lives in letsencr.child.show-buffer zenka
+    - child log lines never reach the zenka log file [ 0 ": acme :" lines ever ] -- level 1 child lines should land there
+    - explicit enrollments do not record failures in enroll-state.json : after the 3 short retries nothing retries [ pattern : file.zenka_dir.* like R4F ]
+    - yourum ipv6 down in both directions at times [ provider side ? config normal ] ; dn0110 AAAA points at it -- drop the AAAA at inwx while unstable ? [ owner decision ]
+    - child zone acme.jobsite.taute.re lists 4 NS, parent [ inwx ] 6 : add dn0110.v7.ax + dn1110.v7.ax to the zone NS set
+    - regression test : mixed-case query echoes the question as sent [ test-nameserv-txt real udp part ]
+  done_at: null
+  id: 6VV
+  priority: normal
+  status: open
+  tags:
+  - letsencr
+  - nameserv
+  text: letsencr \ nameserv leftovers from the jobsite cert [ 2026-10-21 ]
 
-#,,,.,.,.,,,,,.,,,,.,,,,.,.,,,,,,,.,,,,,,,.,.,..,,...,...,...,.,,,.,.,,.,,..,,
-#BBCAWMJ3GK432JYYYOYS7X3M3HEPJH5UDYD4JWFULOZI644RRXFZBUP7VGSQFCKXLBNO36KBAGQ64
-#\\\|MRZG53FR23OSDQI2HM4HSSHRBHYICVRHWCC6QGUBMN3YZIPKBQZ \ / AMOS7 \ YOURUM ::
-#\[7]EA3OYWUILCQEXYMHEUTRIMH45Y2ATEQHNZICO5RSM2NNF4PSU4CA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,.,,,,,,.,,,..,,.,,,,.,...,..,,..,,...,...,,..,,,,,,,,,.,,,,..,
+#5WEUW5MB6HLC6BPI25JKC4LGJBHWGNBTG6UFI2OXHR2ZI74Z22KFLRV47UT77LBAD7Y3YLGFGOJAA
+#\\\|KJXAGWRT3VPE6G6L6Z75X52KN6UDEMN5EAI24FNRO33XR6HQTIO \ / AMOS7 \ YOURUM ::
+#\[7]ZHSSYACD7XQASP4SKT3SM6RC47H7ZXPPXVOLXUVETQRSJFGFHCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
