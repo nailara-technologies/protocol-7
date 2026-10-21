@@ -1,0 +1,63 @@
+## [:< ##
+
+# name   = hints.server_pins
+# descr  = existing server pins as candidates for a host name
+# param  = $pins_dir $host_name
+# return = list of candidate hashrefs
+
+## the server pins ~/.n/remote-keys/servers/<host>_<port>.public name the host
+## a key was pinned for [ naming per auth.client.server_pin.check : the host
+## is lowercased, ':' becomes '_' in the file name ]. this layer reads NOTHING
+## but the directory listing : the key material inside a pin file is never
+## read or printed -- the pin EXISTING is the whole statement, a trust fact
+## the ranking layer weighs [ todo Q7O order : a statement confirmed by a 2nd
+## source ranks above a single statement ].
+##
+## per pin file two candidates : field 'addresses' value <host> and field
+## 'cube_port' value <port>, source = the pin file, note 'pinned server key'.
+## built through hints.candidate [ sanity-stamped ] like every other source.
+
+my ( $pins_dir, $host_name ) = @ARG;
+
+return () if not defined $pins_dir  or not -d $pins_dir;
+return () if not defined $host_name or not length $host_name;
+
+## same file-name derivation as auth.client.server_pin.check ##
+my $host_safe = lc $host_name;
+$host_safe =~ tr{:}{_};
+
+opendir( my $dir_fh, $pins_dir ) or return ();
+my @candidates;
+
+while ( my $entry = readdir($dir_fh) ) {
+    my ( $pin_host, $pin_port ) = $entry =~ m{\A(.+)_([0-9]+)\.public\z};
+    next if not defined $pin_host;
+    next if $pin_host ne $host_safe;
+    next if $pin_port < 1 or $pin_port > 65535;
+
+    my $pin_path = join( qw| / |, $pins_dir, $entry );
+    foreach my $candidate (
+        [ qw| addresses |, $host_name ],
+        [ qw| cube_port |, $pin_port ],
+    ) {
+        push @candidates,
+            <[hints.candidate]>->(
+            $candidate->[0],
+            $candidate->[1],
+            {   qw| file |    => $pin_path,
+                qw| line |    => 0,
+                qw| context | => $entry,
+            },
+            'pinned server key'
+            );
+    }
+}
+
+closedir($dir_fh);
+return @candidates;
+
+#,,,,,,..,.,,,,,.,,,,,.,,,.,.,..,,,..,..,,.,.,..,,...,..,,,,,,,,,,,,.,.,,,..,,
+#QO6ZPLLXP6NHQU737LQ3SGZ6OY5XM6Y3L5XNV5CVN7LYP7XHZA36LG3OBCYDB2ZJPUGVCC2URBRSW
+#\\\|ANGZXIGFS3E3UDHHYFAKGJY3TGYJE6PTH6ZPSLKB2QMCZWWBQCL \ / AMOS7 \ YOURUM ::
+#\[7]P6XORU2MKSGLN2AJLV3FTCNUYU7EIMRG7RPUD64Q2FNVXCVI3GBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

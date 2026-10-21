@@ -1371,9 +1371,29 @@ items:
   - claude
   - memory
   text: "sessions : automatic handovers when a session's token cache times out, reports for completed ones"
+- added: 32C7HT5DME
+  details: |-
+    found 2026-10-21 reading src/sourcecode.console.regen-checksum-symlinks + .undo-checksum-symlinks [ design : data/md/design/ASSIMILATION-DEPTHS.md, depth 2b ] :
+    1. paths : both read <sourcecode.path>->{version_root} + {source_dir} -- sourcecode.pre_init sets only work_tree, source_dir lives in <source.path> [ source.init_code ], version_root is defined NOWHERE -> both commands cannot run
+    2. dir lists stale and different : regen 'bin configuration modules', undo 'bin cfg modules' -- today bin cfg src ; derive from ONE list
+    3. undo finds links one level deep only [ file.all_links with a hashref = no recursion ] while regen links nested files [ cfg/zenki/*/.. ] -> the round trip leaves them as links ; its '../' strip + resolve against work_tree only works at depth 1 -- resolve each link relative to its own dir
+    4. both unlink first, then create : a failure in between leaves the path missing -- temp + rename, atomic per file
+    5. undo : m|^$version_root| unquoted [ \Q ] ; 'nothing to to' typo
+    6. regen checks source_root writable but writes into the version path, message names the other
+    7. git : warn when the work tree is a git repo [ git commits symlinks as links ] -- warn, do not refuse
+    test : full round trip on a temp work tree via -work-tree=<dir> [ nested files, duplicates, exec bits, a missing target with and without -force ]. expected to be replaced later by a native N7FS feature with version control coverage -- fix anyway.
+    resolved 2026-10-21 : REMOVED instead of fixed [ user ] -- non-functional, unused, its lessons kept in data/md/design/ASSIMILATION-DEPTHS.md 'history' ; last commit holding the modules : a0cad6995. base.file.* helpers stay [ shared by design ].
+  done_at: 32C7H4UYPM
+  id: TNJ
+  priority: normal
+  status: done
+  tags:
+  - sourcecode
+  - n7fs
+  text: 'sourcecode : fix the checksum-symlink pair [ regen \ undo-checksum-symlinks ], non-functional today'
 
-#,,,,,.,,,.,.,.,,,.,,,,.,,.,.,...,..,,,,.,,,,,..,,...,...,...,,..,,,,,,..,...,
-#7QTCUA4IMRQY5JTMIDCY5DIB6OU5XVF4LCUHMIIMEUI6JFSOFDU7VVEEULHCS76MWWZANQQ5VTARC
-#\\\|EEACLEI3XE7PISHH3IKK5PPGCFSZJAZM2PJHXMRF7P66RQKR24J \ / AMOS7 \ YOURUM ::
-#\[7]ZNDUMRYO6BGIU5THPIF4TH75SRMTSXKLXEQWFBHB3F7S4AZ4IOAY 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,,,.,,,.,.,,,,.,,,,,,.,.,,..,..,,...,..,,.,.,.,,,.,.,,,,,,..,
+#ZT7MHYQGNXRDL6GU56M73ZMRQV262ZMRYNDVNWOJ5HWHDDSYKVPCSVH7B6N5ZVQY3QR6LW52CPDTM
+#\\\|QP47UTIZCQJ67EGKQNZ7TK3WLER3WMPQ2H3SVY4AOLKWOU6J3KC \ / AMOS7 \ YOURUM ::
+#\[7]P2AK2IK6AEXQN3QQM2DRPZA7QIPT3AJEYGYJJJB2PVMZ6OAMNCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
