@@ -47,6 +47,24 @@ foreach my $s_id (
 
     my $dependencies = <[zenka.get_dependencies]>->($zenka_name);
 
+    ## optional dependencies disabled on this host : left out, said once ##
+    foreach my $optional (
+        split m|\s+|,
+        (   ( <v7-zenki.start_setup.zenki.config> // {} )->{$zenka_name} // {}
+        )->{'optional_dependencies'} // ''
+    ) {
+        next
+            if not length $optional
+            or not <[zenka.is_disabled]>->($optional);
+        <[base.logs]>->(
+            1,
+            ": optional dependency '%s' of '%s' skipped : disabled "
+                . 'on this host',
+            $optional,
+            $zenka_name
+        );
+    }
+
     if ( defined $dependencies ) {
         <[base.log]>->(
             2, ": zenka '$zenka_name' dependencies [ $dependencies ]"
@@ -153,8 +171,8 @@ foreach my $s_id (
     }
 }
 
-#,,,.,,.,,..,,..,,,.,,.,.,,,,,.,.,..,,.,,,,,.,..,,...,...,..,,,,.,.,,,..,,,.,,
-#QKSZ7YA3WIDGFF36FVDJ6JHKGV5HXV3BZNX2W6DGRT4WUQX3Q2FCRHK4BWDDXWRZ7OBFWEMNCXSWI
-#\\\|H56W7FTZW4LT5J4YONCZPPXQ2XM25KMUX6LMAINVWIHEQZNNHXJ \ / AMOS7 \ YOURUM ::
-#\[7]52FOQ7MOUDUIPTNB7UIZZ3N63C3V4W5VCDREMOZ5PMD55DODKIAY 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,,.,,.,.,.,.,,,,,,.,,,..,..,,..,,...,...,..,,,,.,,,,,,,.,,.,,
+#RSML6PCQ7OFXPTMIPXMCACBIDXWMVQ3D5YZK3FSD5U6Z75GI7LZ6TWB36CKFBFLCEAWKHZULKEJDO
+#\\\|JI6BTBOPHLZRJXDENVO7IVT32BJGTOWZ3KLQ7G6JONHLGIQIS4J \ / AMOS7 \ YOURUM ::
+#\[7]GX4QPH4X4PBTS6ZJIVBFQZH7MCVY6DPPY35XTWAWZX24VEF4FOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

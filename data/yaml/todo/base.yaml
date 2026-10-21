@@ -1465,9 +1465,28 @@ items:
   - letsencr
   - nameserv
   text: letsencr \ nameserv leftovers from the jobsite cert [ 2026-10-21 ]
+- added: 32DIBKVMMQ
+  details: |-
+    part 1 landed 2026-10-21 [ optional_dependencies key, left out where disabled ; a disabled hard dependency refuses the start with the reason -- cube answers the waiting on-demand caller ; external : discover optional ; test-v7-zenki-optional-dependencies.pl ]. part 2 [ owner 2026-10-21 ] :
+    - unavailable : a zenka that can never run on this host [ X-11 : no display \ server binary \ device ] says so at start and exits with a dedicated code + reason -> v7-zenki marks it unavailable [ no restart loop ], cleared on reload config or an explicit start. treated like disabled : optional dependents go on, hard dependents [ openbox tile ticker mpv web-browser dunst .. ] refused at once with the reason
+    - failed start [ crash, not unavailable ] : hard dependency keeps restart + backoff [ resolve hook ], the dependent fails past its start-up timeout with "dependency X did not come up" ; optional : go on without it, one log line
+    - lifecycle of an optional edge : regular start waits for it [ initialise with it ] ; it crashing \ stopping does NOT restart the dependent [ handler.zenka_status reverse loop : automatic dependency_exempt for that edge ] ; it coming back notifies the dependent [ status event \ hook ] to re-attach instead of a restart
+    - chain edges carry an optional mark that dependency.ok \ get_reverse respect
+    - the instance-level dependency_exempt [ headless mpv audio ] stays for single instances
+    - no flag for now ; a per-edge wait [ optional_dependencies.wait ] only if a real case needs it
+    - tests like test-v7-zenki-optional-dependencies.pl ; good kimi job
+    - notices [ owner 2026-10-21, harmony : returned-dependency TRUE ] : v7-zenki sends <dependent>.returned-dependency <name> to running zenki listing it in optional_dependencies when it comes online [ hard dependents restart as before ]. generic base.cmd.returned-dependency dispatches to a handler the zenka registered for that name [ e.g. <zenka>.dependency.returned.X-11 ], else one log line. opt-in per zenka : the command granted to v7-zenki in its zenka.v7 + the handler ; without the grant the notice is refused, nothing else changes. counterpart dependency-lost <name> on going down [ drop windows \ connections cleanly ] [ harmony TRUE ; the word order is inverted against returned-dependency -- the inverted forms checked the other way ]
+  done_at: null
+  id: B4C
+  priority: normal
+  status: open
+  tags:
+  - v7-zenki
+  - dependencies
+  text: 'v7-zenki optional dependencies, part 2 : unavailable state [ X-11 without display ], failed starts, no restart cascade for optional edges'
 
-#,,..,,,,,,..,.,.,,,,,,.,,,..,,.,,,,.,...,..,,..,,...,...,,..,,,,,,,,,.,,,,..,
-#5WEUW5MB6HLC6BPI25JKC4LGJBHWGNBTG6UFI2OXHR2ZI74Z22KFLRV47UT77LBAD7Y3YLGFGOJAA
-#\\\|KJXAGWRT3VPE6G6L6Z75X52KN6UDEMN5EAI24FNRO33XR6HQTIO \ / AMOS7 \ YOURUM ::
-#\[7]ZHSSYACD7XQASP4SKT3SM6RC47H7ZXPPXVOLXUVETQRSJFGFHCAA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,,.,,,.,,.,,,..,,.,,,,,,,,..,..,,...,...,.,.,...,.,.,,.,,,..,
+#FUNQJ5UYAUSFYLWFDV67HXUKJLWK4G7NYZXHAGYEG7FKDP5USKXHYRU63QD2BQCTUW2BXVDEAVVYY
+#\\\|5V4I5COVPACBX4HB62OBKC6TR2Y5GLPOLUN4PP6CP2S2MADJZI5 \ / AMOS7 \ YOURUM ::
+#\[7]QEDDU2VXGCOMEGJBRO7QGPZVOVTI5CY6DEISYD43ZOGTAEURKKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
