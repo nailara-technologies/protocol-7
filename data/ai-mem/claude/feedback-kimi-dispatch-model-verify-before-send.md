@@ -100,8 +100,10 @@ a careful review [ which caught the real defects in both stages anyway ].
 
 **2026-10-07 harness batches on k2.8 [ data point ]** : 5 jobs [ ok() sweep 18 files, 7 drifted harnesses, full 50-harness inventory, two regression tests ] took kimi 7d ~90% -> 100% ; all passed review, no real corrections. kimi stops at **100 steps** mid-task ["Max number of steps reached"] -- `kimi_continue` the same session with a status recap + "be economical with steps", it resumes fine. give it : harness-only scope, "never weaken a check, report real src bugs instead", cite-the-commit for drift, `timeout -k 5 N` + cleanup for forking harnesses, and a pre-fix run [ `git show <fix>~1:<file>` ] to prove a new regression test fails without the fix. gotcha on my side : `pkill -f <pattern>` inside a bash loop whose own command line contains <pattern> kills that shell [ exit 144, later commands silently skipped ].
 
-#,,.,,,,,,..,,,,,,,,.,..,,,,,,...,,,,,..,,,..,..,,...,...,,,.,..,,.,.,,..,.,.,
-#NH6HUVP5ALEQPTWPLIX545IIPNVZ7IKKYYSQCQDY5P5FVEQPM4ILBJ5NDRVXEJZ2WV2AMK4HSKGA2
-#\\\|PVU6FVHGL6GFRDE26H5PA7G2JAGDQKUGGO2X5W3QWSANKMK7FJQ \ / AMOS7 \ YOURUM ::
-#\[7]6S3T4SXNGGBO2XPNZRITPWDER4P7RADAZIF3WRVMHGQ5JCHTIGAA 7  DATA SIGNATURE ::
+**data point 2026-10-21** : small, tightly briefed k2.8 jobs [ one module + its tests, or an audit with a report ] cost ~1 % of the 7d window each -- five such jobs fit into the last ~5 %. brief = files, exact semantics, test cases, 'do not commit \ sign', report shape.
+
+#,,.,,,,,,,,.,,,.,...,,,,,,,.,.,.,..,,,,,,,,.,..,,...,...,,.,,,.,,...,.,,,.,.,
+#ZCZY5Y5S55U6EEJ75KAZOQUDWWDVZZH4CSI6FY64XDFRPJTWC4M3GMSF6P62NFRVTBCDP6UNKOZHO
+#\\\|DX6TN7CSJFMUJ2IH2QJGXXO4ISIRKXTSJ7POT25OT5A3GYZYJB4 \ / AMOS7 \ YOURUM ::
+#\[7]QUWGKGGQYC2BXCZNGURDS3FARVO6SRHPLLQDJMRIGJNWUBCCXIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
