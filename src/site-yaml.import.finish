@@ -21,10 +21,14 @@ my $summary = sprintf 'import queued : %03d new, %03d skipped, %s errors',
     $st->{'reply_id'}, { 'mode' => qw| size |, 'data' => $summary }
 );
 
+## an import that queued nothing may be the last thing a fetched-stream ##
+## waits for [ no check at subscribe : the imports arrive after it ]    ##
+<[site-yaml.outbox.check-terminate]>;
+
 return;
 
-#,,.,,.,.,,,.,..,,,,,,..,,.,,,...,,,,,..,,,.,,..,,...,...,...,..,,..,,,..,.,.,
-#IS4WGQKWRLVGALZRI3YS32DC67BRVTMNDGOOR3QDXV7FY5PWACY3NLLKOGUEWAEPRXUDVMEN4M7PS
-#\\\|BAZHJ35D373CGJVCWZHPW4BPPEZKT5FQMLZEBC2LPJ4P477P4DR \ / AMOS7 \ YOURUM ::
-#\[7]FFSNN6P4Z7KKFT3L34GQKJUCTOR6WQNUSB5FDDDKP4ESEOXAMADY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,,..,,..,,,.,.,.,.,,,,,,,..,,..,,...,...,...,,..,.,.,...,,,.,
+#XDHZXUWQEN4JOBOHC32Z673CNBLWDQZB4GYZEQWF57YC5BHCR6OTQZSBD57L3R7KU4T45PIP32R7Q
+#\\\|76YRAKP267LKSS2PCLRLOLQ5AX76K535TN6EFXXTT24T4TSBAS4 \ / AMOS7 \ YOURUM ::
+#\[7]LLQM5Q2BTMM3A2OHTRNUB654WKF5MWSO42LRD6RWVMVS2BN5LSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

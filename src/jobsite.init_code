@@ -282,10 +282,22 @@ my $job_count = scalar keys %{$tasks};
     }
 );
 
+## remote fetching : collect what the fetch host's outbox still holds ##
+## [ a backlog from before a restart, a stream that closed early ] -- ##
+## fetched.subscribe is idempotent, a reinit adds no second stream    ##
+my $fetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
+<[event.add_timer]>->(
+    {   'after'   => 6,
+        'repeat'  => FALSE,
+        'handler' => 'jobsite.fetched.subscribe',
+        'data'    => $fetch_zenka,
+    }
+) if $fetch_zenka ne qw| site-yaml |;
+
 TRUE;
 
-#,,.,,...,.,,,,,,,,.,,.,.,,,.,,..,,..,.,.,.,.,..,,...,..,,...,,,.,.,,,,,,,..,,
-#76HBGL5TYKBR7I4UOEWWGHTN4ME73EQY6WXCL7WSNP7DWTJNWKK3Z2JU337KJLKEAML6YTDVN3LLG
-#\\\|UMFFI7U6ATAYJ43MYTLZFUQMOICJ6U2PKZK4GQFBMJZJO7IGKF6 \ / AMOS7 \ YOURUM ::
-#\[7]G3XKIJKRZKCUULV4QI2SLPYBBBPLE7EW3ZVGW2QJQXEOEHYBAABA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,...,.,,,.,.,,,,,,,.,...,,,,,..,,...,...,...,..,,.,,,,.,,.,,,
+#NMSCFNDLTIQYVIKYQCTPHEJJESPKMJB6H2AGN64ZE6H54DUKHIYSKFSHDTHTXNG2KLAJXWJBBBGKI
+#\\\|PKMLGERB4XFBEZHHJESAT3CH4F4JV6BMTA2AZCMD6P47VXZBAV5 \ / AMOS7 \ YOURUM ::
+#\[7]6YUFKHNUBTQK2ZCS4BCCDAVHZNVABCBLD34GBP44SZ2YAY3NDKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

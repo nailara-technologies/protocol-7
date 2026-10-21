@@ -76,7 +76,6 @@ return unless length $url;
 
         ## success : route the fetched record to the configured handler ##
         if ( length $reply_handler ) {
-            <[base.logs]>->( 1, 'fetch: %s [route] q=%d', $id, $ql - 1 );
             my $payload = eval { JSON::encode_json($job) };
             if ( not defined $payload or $@ ) {
                 <[base.logs]>->(
@@ -89,6 +88,7 @@ return unless length $url;
                 <[base.logs]>->( 1, 'fetch: %s [hold] q=%d', $id, $ql - 1 );
                 <[site-yaml.outbox.write]>->( $id, $payload );
             } else {
+                <[base.logs]>->( 1, 'fetch: %s [route] q=%d', $id, $ql - 1 );
                 <[protocol-7.route-send]>->(
                     {   'command'   => $reply_handler,
                         'call_args' => { 'args' => $payload },
@@ -107,8 +107,8 @@ return unless length $url;
 
 return;
 
-#,,.,,..,,,,.,.,,,,,.,,..,,,.,.,,,,,.,...,,..,.,.,...,...,,..,...,...,.,,,.,.,
-#TCTCZLWCSFLN4TJEOYLXD5PGY226372AYI7HC3YREWTSACHT7XM3U7YSYRCFKAU7MWJFDRQP2HWQS
-#\\\|FPXF2XIVR7AWXPJ4NONNIHEBJY3RTLOUZZYQYV4BCW7HNZTY5FY \ / AMOS7 \ YOURUM ::
-#\[7]7JBUL5LIYLM6CZB7JJTP3RQLB6EX7RYQE7SOQ4NMMVQIMI7P4KBA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,...,.,,,,.,,...,..,,..,,,..,.,.,...,...,...,,.,,.,,,.,.,,..,
+#LNENSNRYRNMMMCTXLXIKKH4GXQWAQ2UYAONXU4A52QKQP4MKUSTUHFO27LB6HA2WTCKIG2ALKF2A2
+#\\\|IPKA4CKPS3RSBTCZNJK2VYZ6X466YOAB6QORZS4U5Y5XBT2SXP4 \ / AMOS7 \ YOURUM ::
+#\[7]TEWHTVQ7P43J44QLPFSXTSMKPK6XZN6RTTR4HJP7NGRGUF5AYGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
