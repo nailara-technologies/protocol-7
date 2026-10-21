@@ -14,7 +14,15 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
                          list show-buffer buffer-erase buffer-erase-level \
                          list-connections connect authorize-link revoke-link \
                          list-deps cur-pid src-ver rel-ver src-age \
-                         self.* self.*.has self.*.merkle self.*.segment
+                         self.* self.*.has self.*.merkle self.*.segment \
+                         *.site-yaml.import *.site-yaml.import-url \
+                         *.site-yaml.queue-depth \
+                         *.site-yaml.subscribe-fetched *.site-yaml.outbox-confirm
+
+## *.site-yaml.* : jobsite fetching through another host's site-yaml   ##
+## [ jobsite.cfg.fetch_zenka = external.<link>.site-yaml ] -- cube still ##
+## checks every caller [ access.cmd.usr.jobsite ], the remote cube the   ##
+## link identity [ access.cmd.usr.remote-fetch ]                         ##
 
 ## named encrypted links [ external.connect <name> <host[:port]> ] :
 ## the auth-keypair label this host authenticates as - the remote cube
@@ -32,8 +40,8 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
 
 [zenka.loop]
 
-#,,..,.,.,.,.,.,.,.,,,,,.,..,,.,,,,.,,.,.,..,,..,,...,...,,..,,.,,,,,,,,,,.,.,
-#7EGIPAATXI4EEE7JL6Y2MJVYRWKTTHFXDKUVCH35XUWYHQ73W5H4PMBKFVOWVQL3ETAFJETCGWY7A
-#\\\|LQYVTYDHGM74Q6JMQZ5TDFKQKKYO5O5KUIAQBFFOWGD35WDWVWA \ / AMOS7 \ YOURUM ::
-#\[7]LHCQA4BEIR3M3LUC24XDZJUUKQC47JBN4LBDP2WH3JMRMO27XIBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,...,,,,,...,.,,,..,,...,,..,.,,,..,,...,...,,.,,.,,,...,,,.,.,,,
+#WHP272RGFFSBYNQAQYBGJVHP4JRSMR3UXX2PNN7SNN7MOHQVV6TMSJDBO2ON5Q2L4JWBPLYN4H5XQ
+#\\\|NG7KCFDE6PJHB24ZX6IM2VOON7P6NADCPJYL5JONGH7UYZLZXNZ \ / AMOS7 \ YOURUM ::
+#\[7]XUJP2M2ER77K7JVHWYJ6RZFQJZHZSVQPCHXU4Z7SCBGWJ4CTTKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
