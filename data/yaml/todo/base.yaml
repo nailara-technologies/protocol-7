@@ -1071,6 +1071,13 @@ items:
     p7-vault holds ssh keys and passwords [ e.g. for the new servers ] -- new entry types beside login \ contact, a key entry keeps the private key encrypted like any secret field. later : zenki use them [ a remote link or deploy step asks the vault instead of reading ~/.ssh ] [ user, 2026-10-11 ].
 
     a 'server' entry type [ user, 2026-10-11 ] reusing the login fields : plus host, port, ssh user, host key fingerprint, a reference to the stored key [ or the key itself as a secret field ]. provider logins [ registrar, hosting panel ] are already imported as login entries, one by one.
+    types refinement + conversion [ owner, 2026-10-21, links 6C6 ] :
+    - today 4 types in AMOS7::Vault %TYPES : login, note, contact, file. secret fields are one global list by field NAME [ %SECRET : password totp body ] -> new types bring secret fields of their own [ private_key, psk, recovery codes ] : secret-ness per type + field
+    - new types from the credential layers map : server [ host port ssh_user host_key_fp key_ref password notes ], ssh-key [ private_key public_key fingerprint passphrase ], app-account [ android \ app logins ], api-token [ token scope expires ], provider \ registrar stays login
+    - conversion function : retype an entry with a field map [ login.url -> server.host, login.username -> server.ssh_user, password -> password, notes -> notes ] ; unmapped fields are KEPT [ the format already keeps unknown fields ] -> nothing lost, a later map can still place them
+    - it writes a new version, the old typed version stays in the history [ entry_versions ] -> reversible ; dry run lists every field move first
+    - batch by rule [ e.g. logins whose url is ssh:// or a known host-edit record name -> server ] : the provider logins imported one by one become typed in one pass
+    - the type list lines up with credentials.cmd.add whitelist + cred-mesh slot kinds -> one type vocabulary across the layers, not three
   done_at: null
   id: 5OT
   priority: normal
@@ -1258,6 +1265,14 @@ items:
     identity via the existing pinning design [ user 2026-10-12 ] : exit key 'proxy-exit' per host, delegated by host-root [ .dlg, like nameserv-sync \ cube S ], verified with trust.verify against the pinned host-root fingerprint [ ~/.n/remote-keys/servers/, first contact like server pins ]. adjust : leaf name must end in '.proxy-exit' [ host-root also delegates cube S and the sync key ]. client side signs with <user>.base, the exit grants key ids in host.cfg [ like sync writer grants ]. resumption cache keyed by pinned host-root fingerprint + exit key id : a pin change or new delegation drops it.
     parallelism [ user 2026-10-12 ] : two kinds. PATH : several links to the same exit [ two routes, later tcp + udt side by side ] -- same egress address, invisible to sites, safe : hot standby via resumption, optional striping. EXIT : different exits [ pri \ delta \ yourum ] -- different source addresses, breaks ip-bound sessions [ logins, cookies, rate limits, fraud checks ]. so exits are sticky per site by default [ selector rule state ], racing only for anonymous fetches. automatic pinning with expiry on trouble signals : 401 \ 403 \ 429, login redirects, captcha pages, a session cookie rejected after an exit change -> recorded in the visit log, the selector learns from it. https [ CONNECT ] shows no status codes : only connection-level signals [ resets, tls failures, timing ] -> https starts sticky, content signals only for plain http or sites whose template terminates in the proxy.
     STRM part shared with menu <-> vault agent : generic bidirectional channel, see B2K.
+    blocked ranges [ owner, 2026-10-21, see 3W5 ] : the reason the pri hysteria sits idle despite unlimited traffic and atom still carries the local proxy -- a few sites block or misbehave from the contabo ranges, video streaming included. consequences for the design :
+    - an exit carries attributes from its host-edit record : provider \ range class, location, traffic budget [ pri unlimited, atom 1 TB, delta + each us node 1 TB ]. block knowledge is keyed site x range class, not site x host : one refusal seen from pri marks yourum too, a new node of a known class inherits it
+    - default routing = distribution, not one exit : budget-weighted [ the cost weight above ] over the exits a site is NOT blocked from, sticky per site
+    - a site = its whole hostname group [ cdn \ media hosts of a streaming site ride the same exit as the page, or the session breaks ]
+    - streaming is the heavy part : weight by remaining monthly budget, keep a stream on one exit, prefer path parallelism [ same exit ] over spreading one stream across exits
+    - exit location matters beside the block : content region \ licensing follows the egress address -- a region-bound site needs an exit in its region even when a farther one is allowed
+    - capacity : two more nodes at delta's provider [ dallas, us east coast ] -> 3 TB for alternate routing instead of 1, also the fetch nodes of 3W5 : one node set, two uses
+    - transport under each exit unchanged : external link + STRM now, UDT under the link later [ PROTOCOL7_TRANSPORT_HIERARCHY.md, transport.handle.udt-tunnel ] ; hysteria stays until then
   done_at: null
   id: HS4
   priority: normal
@@ -1336,6 +1351,7 @@ items:
     nodes zenka is the third layer : host-edit = what a host IS [ record ], external = the live link [ forward + link.open + reconnect ], nodes = whether it is UP [ nodes.cmd.host-status, today lan \ discover only -- the link supervisor reports linked remotes there too ; fetch failover reads it ]. reconcile the old trunk path first : nodes.cmd.add-tronk <name> <addr> <pkey> is an earlier permanent-link variant, its status side a stub [ nodes.parser.connection_status : 'not implemented' ] -- host records replace it, no third path.
     dry run 2026-10-21 [ read-only ] : host-edit add-host flow is implemented + tested [ records 51, transport 25, flow 32, actions-tab 44 checks pass ] : connect [ ssh forward ] -> probe -> pin -> [ owner_key : fetch -> certify -> install ] -> done. it is ENROLLMENT : the forward is torn down at done \ error [ flow.step $stop ] -- the permanent-link supervisor is new code reusing ssh_forward_start + external.link.open. no saved host records yet [ /var/protocol-7/host-edit/hosts empty ] ; one atom draft [ 2026-10-09 : roles + link_user empty, transports 'tcp' though ssh is set ]. server pins already exist for atom, delta, pri, yourum [ p-7-r ] -> probe skips the pin step. unattended links run as the zenka user [ not taeki ] : it needs its own restricted ssh key + known_hosts.
     correction : records DID exist [ hosts/pri.v7.ax.json since 2026-10-20 : name, ssh, ssh_port only ] -- the dry-run listing was cut by head. 2026-10-21 : atom record saved [ transports ssh, ssh_port set ] and add-host ran live : done : pinned [ key TWVQ6QL · atom.cube ]. still empty on both : roles, link_user.
+    - 2026-10-21 : the same us nodes are the alternate proxy exits of HS4 [ blocked ranges, 3 TB budget ] -- one node set, two uses
   done_at: null
   id: 3W5
   priority: normal
@@ -1401,6 +1417,7 @@ items:
     - pending rotation state must survive a v7-zenki restart
     - 2026-10-21 pri store : 0 sessions, no sync_token anywhere -- first build this before minting the first machine token [ 3W5 links \ jobsite push ]
     - related stub : sessions zenka [ sessions.cmd.hold \ release \ secrets, key-holding child behind the attach/detach knock ] -- candidate holder for renewable machine tokens [ in memory instead of 0600 files ] and perhaps web.auth.secret itself. not session [ one-time setup-keys utility ]
+    - scope [ owner, 2026-10-21 ] : the sessions zenka is meant to understand native and related session types alike [ web.auth, link \ keypair sessions, held secrets, outside-sourced tokens such as usage ] with refined, p7-accessible logic for all of them -- classes, renewal and rotation live there, not per plugin
   done_at: null
   id: R4F
   priority: normal
@@ -1409,9 +1426,30 @@ items:
   - web-auth
   - security
   text: 'web.auth session classes + :when-gone: rotation : renewable tokens end freely [ early expiry ], interactive drain, hand-minted listed apart'
+- added: 32C7V2XWJY
+  details: |-
+    owner 2026-10-21 : p7-vault integration is the connecting step for proxy + cred-mesh \ credential fabric, likely with user-edit and the users zenka.
+    pieces that exist [ do not rebuild ] :
+    - p7-vault : what the person owns [ logins, server entries, ssh keys -- 5OT ], master key on the user machine [ VAULT-FORMAT.md ]
+    - credentials zenka : encrypted archive, per-credential authorized zenki, closed type whitelist [ memory project-credential-types-into-user-edit ]
+    - cred-mesh \ credential fabric : runtime slots zenki resolve, rotation strm, key_holder child [ CREDENTIAL-FABRIC-INTEGRATION-AND-UI.md ]
+    - sessions zenka [ stub ] : held secrets + key-holding child behind the attach \ detach knock ; scope R4F = all session types
+    - users zenka + user-edit : who [ identity, contact, rights ] and the console editor [ masked fields ]
+    - proxy \ transport : consumers -- profile entries carry credential refs [ atom.hysteria-auth, atom.udt-psk ], exits HS4, web logins WEB-UI-USER-LOGIN.md
+    first finding : TWO key-holding child implementations [ cred-mesh.key_holder.* and sessions.holder.* -- both fork a child, pipe ENCRYPT \ DECRYPT \ SIGN ] -> settle one holder before wiring more on either.
+    shape to decide : vault = source of truth the person grants from ; a grant provisions one entry into one runtime slot for named zenki [ scoped, revocable, visible in user-edit ] ; sessions = what is live ; users = whose. a server entry in the vault <-> host-edit record <-> HS4 exit attributes.
+    next : design doc before code.
+  done_at: null
+  id: 6C6
+  priority: normal
+  status: open
+  tags:
+  - credentials
+  - design
+  text: 'credential layers map : p7-vault, credentials, cred-mesh, sessions, users \ user-edit, proxy \ transport -- who owns, who holds, who uses'
 
-#,,.,,...,..,,.,,,...,,,,,,..,,..,,,,,,,,,..,,..,,...,...,,.,,..,,...,,,,,...,
-#XOQKWJ4K53KPB6RZKR7JZSSYBY2UKEER4XXOMS2TP52OSH7FY7L2TUKSWHG2O2VCTE4LLPNABUUUQ
-#\\\|E2QU2RKAMDMRY6EVDBEQE4JWYO5QERUGTJ43TPCJVHMV46BLRCU \ / AMOS7 \ YOURUM ::
-#\[7]PMEAMK4U7VIQSVEDKEXNCGG2JPZVFAPEHTN4JLJ54ZJBDLKD7UDY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,,.,,,.,,,,,,,.,.,.,,,.,.,,,..,,...,...,,,.,...,...,..,,,..,
+#EXX2OQSTFF2BI3EA67KHKFK5KPEO3XGQM47WRHZLLOCXUMM3PJ3R6F6H7UAUG6EGW5XKNIL4NGHY6
+#\\\|ZCWEMFPRBDTDEYGSFQ7J7TVGDIPVXU4N4UX74A47YLFGTBVTIH7 \ / AMOS7 \ YOURUM ::
+#\[7]5C4WIIM3BUPBPVWAYEAMY6PCV4ZMLYROXAX2LSRLHD2ETMVMBYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
