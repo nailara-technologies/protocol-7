@@ -1542,9 +1542,47 @@ items:
   - crypto
   - design
   text: 'p7-vault sealed import : remote hosts hand secrets to a locked vault [ ephemeral X25519 per item ]'
+- added: 32DJBYVNAE
+  details: |-
+    owner idea 2026-10-22 : 277 jobsite assessments queued on pri [ cpu backend, ttft 60-106 s ] ; the local coding zenka [ gpu ] and yourum could help.
+    - pull with leases : the queue stays on the hub [ durable, like the site-yaml outbox ] ; a worker claims a task with a lease [ ~15 min, renewed while working ], an expired lease returns the task ; results carry the task id, the first result wins [ duplicates harmless ]
+    - pull works from behind NAT : the desktop needs only an outgoing link to the hub
+    - model affinity : workers report loaded models + speed, tasks go to a worker that has the model [ no switch storms ] ; a gpu worker takes most
+    - access : a narrow link identity [ e.g. assess-worker ] allowed only queue-claim \ queue-renew \ queue-result, set up with external.authorize-link
+    - data : tasks carry the owner's profile \ cv text -- only authorized worker identities get tasks, workers keep it no longer than the task
+    - hooks : coding task model [ task.create, task.wait-done, coding.async.backend_acquire ], the outbox \ STRM pattern of 75ac5271c, the link work [ LINK-ZENKI-AND-TRANSPORTS ]
+    - first : find why pri's coding parks the first assessment in its depending queue [ handover 2026-10-22 item 1 ] -- a shared queue does not fix a stuck task
+  done_at: null
+  id: 2IA
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - jobsite
+  - design
+  text: 'shared assessment queue : coding zenki on several hosts [ pri, yourum, the local desktop ] pull tasks from the hub'
+- added: 32DJDGUYMY
+  details: |-
+    owner idea 2026-10-22 : a WSL httpd + web showing the same jobs as pri, with the local jobsite as the proxy -- it connects outward, so no inbound path to the desktop.
+    - exists : pri httpd serves GET /jobs.json [ web.jobs-data, all jobs ] and POST /jobs-sync [ web.jobs-sync, takes changes, answers with browser-side edits ], both auth.required + bearer token
+    - relay mode [ e.g. jobsite.cfg.upstream = https://jobsite.taute.re + token ] : pull jobs.json at an interval, push to the LOCAL web over loopback [ normal sync_url, exemption legit there ], forward local browser edits [ its own apply_reverse ] upstream to /jobs-sync -> pri jobsite takes them on its next cycle
+    - relay does no scan \ fetch \ assess : one upstream, never a second source of truth
+    - token : a renewable machine token [ R4F ], not a pasted 1-year one
+    - check first : how apply_reverse merges the same job edited on both UIs between two syncs [ last write \ per field ]
+    - alternative transport later : the p7 link instead of https [ LINK-ZENKI-AND-TRANSPORTS ]
+    - related : 2IA [ the desktop helping with assessments ]
+    - generalised [ owner 2026-10-22 ] : it then does not matter which jobsite fetched a job -- fetched jobs merge by their stable source id [ job-upsert ], so a local jobsite fetching through the home connection [ rarely blocked ] and delta fetching for pri meet in the same record. fetch location becomes a routing choice like an HS4 exit : home connection as fallback when server ranges are blocked, delta \ us nodes while the desktop is off. the hub [ pri ] keeps the canonical store + assessments ; EDITS [ status, notes, applied ] still settle at the hub only. relay mode grows a fetch-and-forward variant : fetch locally, upsert upstream [ like the outbox stream ]
+  done_at: null
+  id: 5WI
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - web
+  text: 'jobsite relay mode : a local jobsite mirrors the hub for a local httpd \ web [ outbound only ]'
 
-#,,.,,,,,,...,,,.,.,,,,,,,.,.,.,.,..,,..,,..,,..,,...,..,,.,.,,,,,,,.,.,,,,.,,
-#SXFD5GCYC4G2IWEPLC3SLFQLUE4NP6XLBYTQWR7AAB34OXPGTFNZ2NWG42GPBJ5M62BCUNNNW37CK
-#\\\|IKLCIPQ6H6RTQVQ7G4QOUH4FDQQGMZNA3CNVIV3QJBDDQDHQ4XQ \ / AMOS7 \ YOURUM ::
-#\[7]XAMRIEW5AYYAOUTZCHFQP7IYLR3DBBOFZER4WIBSHDROLCZHL2DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,...,.,.,,,,,,.,,,,,,,,.,.,,,..,,...,...,.,.,,..,...,.,.,.,.,
+#UC3ODXST4T5A3XXRPHF7RGXCLIPFUN7SVODN2SNY7PVWBNOIDXMF7Y6GMBGTDSQN74SFFRPN3LJKO
+#\\\|GOBHUSLKOD2U54HXX5BT6DWAI5MUBJYS4IPLTYDUDKWOWUP32RN \ / AMOS7 \ YOURUM ::
+#\[7]4PAIB5LDSHOQVJWL5APVBGWEKQPJDJEWS4NVXRXPR3SMSRRXIWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
