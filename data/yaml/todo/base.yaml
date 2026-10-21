@@ -1484,9 +1484,28 @@ items:
   - v7-zenki
   - dependencies
   text: 'v7-zenki optional dependencies, part 2 : unavailable state [ X-11 without display ], failed starts, no restart cascade for optional edges'
+- added: 32DIF27XAE
+  details: |-
+    owner idea 2026-10-21. execve keeps the pid : systemd sees no exit [ no Restart= cycle, no StartLimitBurst count, main pid unchanged ], pid files stay valid, works without a supervisor -- no restart-spawner [ it would become a new main pid ].
+    - first like teardown : stop every zenka in order, wait, REAP them [ else the new image inherits children \ zombies it does not know ]. later variant : keep zenki running and adopt them after exec [ claim-children \ report-pid-file ]
+    - before exec : sigprocmask to an empty mask [ the blocked mask is inherited -- an exec from a handler or masked section leaves SIGCHLD blocked : the 2026-10 lost-SIGCHLD failure ] ; handled signals back to default, ignored ones checked [ SIG_IGN survives exec ]
+    - fds : perl sets close-on-exec above $^F [ 2 ] ; only stdin \ out \ err [ journal ] pass ; check POSIX-opened \ inherited ones
+    - exec the recorded original command line as root [ $^X, $0, @ARGV saved at start-up ] : the new image reads current source, host.cfg and profile fresh [ no reload ordering issues ]
+    - exec only returns on failure : log, then start the zenki again or exit normally [ systemd restarts ] -- never stay half torn down
+    - teardown unchanged [ exit -> systemd restart ; :no-restart: stays down ] ; backend-restart is new, opt-in. name : harmony check
+    - more time = more graceful [ owner 2026-10-21 ] : no systemd TimeoutStopSec racing it, so : announce first [ reboot-warning style notice to sessions \ nshell ], let work drain [ coding tasks, letsencr orders, nameserv sync pulls, jobsite sync, file transfers -- per-zenka "busy" query with a cap ], then stop in reverse dependency order [ dependents before cube ] with a per-zenka grace before TERM \ KILL ; on-demand callers arriving meanwhile get "backend restarting" instead of a hang ; a deadline [ option ] bounds the whole drain
+    - :keep-zenki: [ owner 2026-10-21 ] : restore the same presence list after the restart. before the drain v7-zenki writes what runs [ name, subname, instance count, how it was started : autostart \ manual \ on-demand ] via file.zenka_dir.write into its var dir ; the new image, after init, starts the manual ones again in dependency order [ autostart covers the rest, on-demand ones wait for their first call ], refuses disabled \ unavailable ones with a log line, then unlinks the list. case 2026-10-21 : a teardown on pri left jobsite, coding, models down [ not in the remote-server autostart list ]. the same list could serve a plain teardown restart too [ systemd path ] -- the record survives the exit. differs from the adopt variant above : that one keeps processes alive, this one restarts the same set
+  done_at: null
+  id: FEQ
+  priority: normal
+  status: open
+  tags:
+  - v7-zenki
+  - restart
+  text: 'v7-zenki.backend-restart : teardown of the zenki, then execve itself [ same pid : systemd and non-systemd alike ]'
 
-#,,,,,..,,.,,,,.,,,.,,,.,,.,,,..,,.,,,,,,,,..,..,,...,...,.,.,...,.,.,,.,,,..,
-#FUNQJ5UYAUSFYLWFDV67HXUKJLWK4G7NYZXHAGYEG7FKDP5USKXHYRU63QD2BQCTUW2BXVDEAVVYY
-#\\\|5V4I5COVPACBX4HB62OBKC6TR2Y5GLPOLUN4PP6CP2S2MADJZI5 \ / AMOS7 \ YOURUM ::
-#\[7]QEDDU2VXGCOMEGJBRO7QGPZVOVTI5CY6DEISYD43ZOGTAEURKKBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,.,,,.,,,.,,,,.,...,...,,,,,...,..,,...,..,,.,.,.,,,.,.,..,,...,
+#IQPDPKJYM3HE5BQWDHJHA2CUQVXHC34Y6YJSJRAKHZMCFVVV2LQQRVRZ3F4NAJDRF5HBXMUB7GWA4
+#\\\|UBVZXO73YC5OC62GUI2ELHWGJKPQ4NTTM4LSAAYYOC6HVFFPK5U \ / AMOS7 \ YOURUM ::
+#\[7]3VNCN2QBR5FMY3FET3LPIMQWNJPF4C3IFOSGSIMZWG3SWNR4MUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

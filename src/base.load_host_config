@@ -35,10 +35,14 @@ return TRUE unless -f $host_cfg;
 
 <[base.logs]>->( 1, ': host overlay : %s', $host_cfg );
 
+## remembered : base.reload_config applies the overlay again after the ##
+## zenka's own keys, as at start-up [ else they win on a reload ]      ##
+<system.host_config.applied> = TRUE;
+
 return <[base.load_config_file]>->($host_cfg);
 
-#,,,,,...,...,.,.,,,,,.,.,,,,,,.,,,,.,.,,,..,,..,,...,...,...,..,,...,,..,,,.,
-#G2KI2HTIP3VZD3GETHMYHLZ5W3QUC4VRS7DAIK4K2ZH66S53ZR4SGCHLRPO2EZFSUI6HWTEP55YBK
-#\\\|IHRBVZEAPUGOMMUXNE6YJ7EOR563MITUD2JA2Z4SGCFYGSV7NC6 \ / AMOS7 \ YOURUM ::
-#\[7]JD4BFMEAKNIFIBN64DLYTI2OBL3M4CTU6BRMLUGQCUHUZXX3J6CI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,,,,.,,.,,,,,.,,.,,.,.,,,,,.,,,..,,...,...,.,,,.,,,,,.,...,.,.,
+#DJZYVAZCUAVOPLPNBX3SARIK2QKXQAWIAW2NAXN5ZKRVOTZDMK26W2H3RHM47Z75LFBAY3VL6H3MS
+#\\\|QYULRK64UBH3MOK6MNUBXKHUPW2Z4QQJR26XM7EIAQUY6KIMFB3 \ / AMOS7 \ YOURUM ::
+#\[7]DNOY4VMK5NJRPUNQ3DVOMLLP5SULFVF5W5EFXLMQOJ67WTA4FMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

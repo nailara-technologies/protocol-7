@@ -40,10 +40,16 @@ $success = 0
     if !<[base.reload_values]>->( '', <system.path.rel.cur_zenka_cfg> )
     or <base.parser.config.errors>;
 
+## the host overlay last, as at start-up : reload_values just re-applied ##
+## the zenka's own keys over it [ v7-zenki fell back from the host's     ##
+## remote-server profile to 'base' on pri, 2026-10-21 ]                  ##
+$success = 0
+    if <system.host_config.applied> and not <[base.load_host_config]>;
+
 return $success;
 
-#,,,.,,..,..,,,,,,..,,,,,,,.,,..,,.,.,,.,,.,.,..,,...,..,,,..,.,.,,.,,,,,,...,
-#R6OH6CWKVJGTHBGLKO2TW2EQ7U6LUC2VJ5LTFCQB2MBLXOFOL3LRWCEMN75RETG7ZQ7XLYWB4GVLG
-#\\\|UH7HLOZHQNGVLDVPXL5XKLMEW3CX4VR257UI2VJOILEKFZB3OPT \ / AMOS7 \ YOURUM ::
-#\[7]F2S4L33JX46JWYXMEDBJGX7DNX6IFPEQBLZRKEZTEH37UK7B3SDA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,,,,,.,,,...,,.,,.,,,,,.,...,..,,...,...,...,,,,,,,.,,,.,,.,,
+#MNLJQHS77RWIEY2LACQLVYDY24DZQN7Y4W5R4KFUZABSJ6PKB56JBN257QRFAOUNEHGUUMNG25POI
+#\\\|3MXBYN4YNTKZM3E5NJ2BGYESAEXGASZGLDRF3RG3FDUCJTBBBI6 \ / AMOS7 \ YOURUM ::
+#\[7]MOHKBLFXPK6U7C33FDCBAZOGUNI7Y2BELNTVED6BDA6VJJPQ3SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
