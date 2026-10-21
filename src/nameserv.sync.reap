@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = nameserv.sync.reap
-# descr = close idle sync connections [ waiting conns exempt ]
+# descr = close idle sync connections [ waits after 2 holds ]
 
 my $idle = <nameserv.cfg.sync.idle_timeout> // 390;    ## seconds ##
 
@@ -9,8 +9,18 @@ my $conns = <nameserv.sync.conns> // return TRUE;
 my $now   = time;
 
 for my $conn ( values %$conns ) {
-    ## holding next-data-timestamp ##
-    next if ref $conn->{'wait'} eq qw| HASH |;
+    ## holding next-data-timestamp : the peer re-arms after max_hold, a ##
+    ## wait held twice as long has no live peer behind it [ half-open ] ##
+    if ( ref $conn->{'wait'} eq qw| HASH | ) {
+        my $max_wait = 2 * ( <nameserv.cfg.sync.max_hold> // 390 );
+        next if $now - ( $conn->{'wait'}->{'started'} // $now ) < $max_wait;
+        <[base.logs]>->(
+            2,         ': sync wait held over %d s, closed [ %s ]',
+            $max_wait, $conn->{'peer'} // 'unknown'
+        );
+        <[nameserv.sync.conn.close]>->($conn);
+        next;
+    }
     next if $now - ( $conn->{'last_active'} // $now ) < $idle;
     <[base.logs]>->(
         2,
@@ -22,8 +32,8 @@ for my $conn ( values %$conns ) {
 
 return TRUE;
 
-#,,,,,,.,,..,,...,...,,,.,.,,,,,.,...,.,.,..,,..,,...,...,,,,,..,,,..,,,,,.,,,
-#LWAEED3H7ZOH2URH2LJGJL52K5UDQCSGSLWDG3ACAMK5FFLQYI5IVM7TENL34QKRJX744XNXPWGP6
-#\\\|VNAB5X2U3SVPHC7QCMGB2AXCPE7HAFUL427XL4CHED42TF73TTH \ / AMOS7 \ YOURUM ::
-#\[7]RXF3O3SDOQDLTNZ4UTLDMMG5JQVND573RMKKNGBQ7WP5KYONMSAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,..,,,,.,,,.,.,.,,,.,,.,,,.,,..,,...,...,,..,,,,,.,.,.,.,,,,,
+#UUUKJ5T4POU3I4UKLSFSBQ6WUSMCB7SAFOYVNQOVGBC42WD2TCTZTZ6WDLB6GBYMKCLPLX2W245ZW
+#\\\|UU76JU3C3PB7BK5JNMJN64IWPCAN3LIN3UOASBLXC4DRPF3US4D \ / AMOS7 \ YOURUM ::
+#\[7]OZY5UICTTRRBIAHPLHS2FFPVF5GYL3NZEUW75PV7ZNWY4Y3YHOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
