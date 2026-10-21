@@ -1,0 +1,226 @@
+## [:< ##
+
+# name   = hints.ssh_config
+# descr  = ssh config statements as candidates for a host name
+# param  = $path $host_name
+# return = list of candidate hashrefs
+
+## man ssh_config, as far as this layer needs it :
+## - keywords are case-insensitive, 'key value' and 'key=value' both
+## - 'Host' blocks carry patterns with '*' and '?' wildcards and '!' negation
+## -- the name matches when at least one positive pattern matches and no
+## negated one does [ host name comparison is folded to lowercase ]
+## - the FIRST obtained value of a keyword wins, file order, includes inline
+## where they appear
+## - 'Include' takes paths or globs; relative ones resolve against ~/.ssh
+## [ user config semantics ], '~/' is the home dir, expansion is depth-bounded
+## and loop-safe [ each canonical path parsed once ]. inside a Host or Match
+## block it is conditional : read only when that block applies
+## [ a skipped Match never includes ]
+## - '%h' in HostName is the asked name, '%%' a literal '%'
+## - 'Match' blocks are SKIPPED, not guessed : exec / localnetwork criteria
+## cannot be attributed to a host offline. when one carried a mapped keyword
+## [ HostName, Port, User ] the candidates from this parse carry a note saying
+## so.
+##
+## mapping : HostName -> addresses [ and the host half of ssh ], Port ->
+## ssh_port, User -> ssh_user.
+
+my ( $config_path, $host_name ) = @ARG;
+
+return () if not defined $config_path or not -f $config_path;
+return () if not defined $host_name   or not length $host_name;
+
+my $asked = lc $host_name;
+
+my $pattern_matches = sub {
+    my $pattern = lc( shift // '' );
+    my $name    = lc( shift // '' );
+    return FALSE if not length $pattern or not length $name;
+    my $regex = join '',
+        map { $_ eq '*' ? '.*' : $_ eq '?' ? '.' : quotemeta($_) }
+        split m{}, $pattern;
+    return $name =~ m{\A$regex\z} ? TRUE : FALSE;
+};
+
+my $block_matches = sub {
+    my $patterns = shift;
+    my $positive = FALSE;
+    foreach my $pattern (@$patterns) {
+        ## the '!' mark is tested on a COPY -- the array element must not be
+        ## mutated, block_matches runs once per keyword line
+        if ( $pattern =~ m{\A!} ) {
+            return FALSE
+                if $pattern_matches->( substr( $pattern, 1 ), $asked );
+        } else {
+            $positive = TRUE if $pattern_matches->( $pattern, $asked );
+        }
+    }
+    return $positive;
+};
+
+my %obtained;    ## keyword => { value, file, line, context } ##
+my $match_seen = FALSE;
+my %visited;     ## canonical path => 1 , include loop guard ##
+my $include_depth_max = 8;
+
+my $parse_file;
+$parse_file = sub {
+    my ( $path, $depth ) = @ARG;
+    return if $depth > $include_depth_max;
+    my $canon = $path;
+    my $stat  = File::stat::stat($canon);
+    $canon = join( ':', $stat->dev, $stat->ino ) if $stat;
+    return if $visited{$canon};
+    $visited{$canon} = 1;
+
+    open( my $fh, '<', $path ) or return;
+    my @host_patterns;    ## as written, '!' marks kept ; empty = global ##
+    my $have_host = FALSE;
+    my $in_match  = FALSE;
+    my $line_no   = 0;
+
+    while ( my $line = <$fh> ) {
+        $line_no++;
+        $line =~ s|\#.*$||;         ## comments ##
+        $line =~ s{^\s+|\s+$}{}g;
+        next if not length $line;
+
+        my ( $keyword, $argument )
+            = $line =~ m{\A([A-Za-z]+)(?:\s*=\s*|\s+)(.*?)\s*\z};
+        next if not defined $keyword;
+        $keyword  = lc $keyword;
+        $argument = '' if not defined $argument;
+
+        if ( $keyword eq qw| host | ) {
+            @host_patterns = grep {length} split m{[\s,]+}, $argument;
+            $have_host     = TRUE;
+            $in_match      = FALSE;
+            next;
+        } elsif ( $keyword eq qw| match | ) {
+            $in_match = TRUE;
+            next;
+        } elsif ( $keyword eq qw| include | ) {
+            ## conditional inclusion : only where the enclosing block ##
+            ## applies to the asked name                              ##
+            next if $in_match;
+            next if $have_host and not $block_matches->( \@host_patterns );
+            foreach my $spec ( grep {length} split m{[\s,]+}, $argument ) {
+                $spec =~ s|\A~/| ( $ENV{'HOME'} // '' ) . '/' |e;
+                $spec = join( '/', $ENV{'HOME'} // '', qw| .ssh |, $spec )
+                    if $spec !~ m{\A/};
+                foreach my $included ( @{ <[base.file.glob]>->($spec) } ) {
+                    $parse_file->( $included, $depth + 1 )
+                        if -f $included;
+                }
+            }
+            next;
+        }
+
+        if ($in_match) {
+            $match_seen = TRUE
+                if $keyword eq qw| hostname |
+                or $keyword eq qw| port |
+                or $keyword eq qw| user |;
+            next;
+        }
+
+        next
+            if $keyword ne qw| hostname |
+            and $keyword ne qw| port |
+            and $keyword ne qw| user |;
+        next if $have_host and not $block_matches->( \@host_patterns );
+
+        next if exists $obtained{$keyword};    ## first obtained wins ##
+
+        ## HostName tokens : '%h' the asked name, '%%' a literal '%' ##
+        $argument =~ s{%([%h])}{ $1 eq '%' ? '%' : $host_name }ge
+            if $keyword eq qw| hostname |;
+        $obtained{$keyword} = {
+            qw| value |   => $argument,
+            qw| file |    => $path,
+            qw| line |    => $line_no,
+            qw| context | => $have_host
+            ? 'Host ' . join( ' ', @host_patterns )
+            : 'global',
+        };
+    }
+    close($fh);
+};
+
+$parse_file->( $config_path, 0 );
+
+## one candidate per obtained statement, sources kept for the ranker ##
+my @candidates;
+
+if ( exists $obtained{'hostname'} ) {
+    my $o      = $obtained{'hostname'};
+    my $target = $o->{'value'};
+    $target = join( '@', $obtained{'user'}{'value'}, $target )
+        if exists $obtained{'user'};
+
+    push @candidates,
+        <[hints.candidate]>->(
+        qw| addresses |,
+        $o->{'value'},
+        {   file    => $o->{'file'},
+            line    => $o->{'line'},
+            context => $o->{'context'}
+        },
+        'ssh config HostName'
+        ),
+        <[hints.candidate]>->(
+        qw| ssh |,
+        $target,
+        {   file    => $o->{'file'},
+            line    => $o->{'line'},
+            context => $o->{'context'}
+        },
+        'ssh config HostName'
+            . (
+            exists $obtained{'user'}
+            ? ' composed with User'
+            : ''
+            )
+        );
+}
+
+push @candidates,
+    <[hints.candidate]>->(
+    qw| ssh_port |,
+    $obtained{'port'}{'value'},
+    {   file    => $obtained{'port'}{'file'},
+        line    => $obtained{'port'}{'line'},
+        context => $obtained{'port'}{'context'}
+    },
+    'ssh config Port'
+    ) if exists $obtained{'port'};
+
+if ( exists $obtained{'user'} ) {
+    push @candidates,
+        <[hints.candidate]>->(
+        qw| ssh_user |,
+        $obtained{'user'}{'value'},
+        {   file    => $obtained{'user'}{'file'},
+            line    => $obtained{'user'}{'line'},
+            context => $obtained{'user'}{'context'}
+        },
+        'ssh config User'
+        );
+}
+
+if ($match_seen) {
+    foreach my $candidate (@candidates) {
+        $candidate->{'note'} = join ' ; ',
+            grep {length}
+            ( $candidate->{'note'} // '', 'Match block skipped' );
+    }
+}
+
+return @candidates;
+
+#,,..,,,,,,..,,,.,.,,,.,.,.,,,,.,,,.,,..,,.,.,..,,...,...,.,.,,.,,...,..,,.,,,
+#TRK6T55YCY2PPSEVFW7FNZSFEPRSRLQL5QFLT2A67QXX44ABI3KWHQ4SBYHUYCQDNXBDWOORWRN3U
+#\\\|ZRETBVNDLRX47AI6QM46PBLPW7HMDBAIHMHLCMPCD3DCFPPEWLZ \ / AMOS7 \ YOURUM ::
+#\[7]HO63AA4MQHJII6J3QUPTTRSVE2T57X4TFEPKR3CLUT3S2BBKTGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
