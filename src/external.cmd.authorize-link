@@ -1,0 +1,144 @@
+## [:< ##
+
+# name  = external.cmd.authorize-link
+# param = <label> <cube-public-b32> <ssh-ed25519 public key>
+# descr = let another host's link in : ssh forward + cube key
+# note  = for a host that RECEIVES a link [ external.connect on the other
+#         side ]. writes, for this unix user [ the cube's ] :
+#         1. ~/.ssh/authorized_keys : the ssh key with FIXED restrictions
+#            restrict,port-forwarding,permitopen="127.0.0.1:<cube port>",
+#            command="/bin/false" -- forwarding to the cube port only, no
+#            shell. tagged 'p7-link:<label>' [ replaced on a re-run ]
+#         2. ~/.n/remote-keys/authorized/cube/<label>.public : the cube
+#            key the link authenticates with [ auth-keypair ]
+#         refused unless cfg/zenki/cube/access.users holds a narrow
+#         access.cmd.usr.<label> grant [ no '*' ] : no key ever gets in
+#         without an explicit command list. undo : revoke-link <label>
+
+my ( $label, $cube_b32, $ssh_type, $ssh_b64 ) = grep {length} split m|\s+|,
+    $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : authorize-link <label> '
+        . '<cube-public-b32> ssh-ed25519 <base64>'
+    }
+    if not defined $ssh_b64;
+
+return { 'mode' => qw| false |, 'data' => 'label : [a-z0-9-], 3..32' }
+    if $label !~ m|^[a-z0-9][a-z0-9-]{2,31}$|;
+
+my $cube_bin = eval { Crypt::Misc::decode_b32r($cube_b32) };
+return {
+    'mode' => qw| false |,
+    'data' => 'cube key : not a 32 byte b32 key'
+    }
+    if not defined $cube_bin
+    or length $cube_bin != 32;
+
+return { 'mode' => qw| false |, 'data' => 'ssh key : ssh-ed25519 only' }
+    if $ssh_type ne qw| ssh-ed25519 |
+    or $ssh_b64 !~ m|^[A-Za-z0-9+/]+={0,2}$|;
+
+## a narrow grant for the label must exist before any key gets in ##
+my $access_file
+    = catfile( <system.root_path>, qw| cfg zenki cube access.users | );
+my $grant;
+if ( open my $access_fh, '<', $access_file ) {
+    my $text = do { local $INPUT_RECORD_SEPARATOR = undef; <$access_fh> };
+    close $access_fh;
+    $text =~ s|\\\n\s*| |g;    ## continued lines ##
+    ($grant) = $text =~ m|^\s*access\.cmd\.usr\.\Q$label\E\s*=\s*([^\n#]*)|m;
+}
+return {
+    'mode' => qw| false |,
+    'data' => "no access.cmd.usr.$label grant in cube/access.users "
+        . '[ add the narrow command list first ]'
+    }
+    if not length( $grant // '' )
+    or $grant !~ m|\S|;
+return {
+    'mode' => qw| false |,
+    'data' => "access.cmd.usr.$label carries a wildcard : refused"
+    }
+    if $grant =~ m|\*|;
+
+my $home = ( getpwuid($EUID) )[7] // '';
+return { 'mode' => qw| false |, 'data' => 'no home directory' }
+    if not length $home or not -d $home;
+
+## 1. ssh : fixed restrictions, one tagged line per label ##
+my $port = <protocol-7.remote.default-port> // 42;
+my $tag  = "p7-link:$label";
+my $ssh_ln
+    = sprintf
+    'restrict,port-forwarding,permitopen="127.0.0.1:%d",command="/bin/false" '
+    . 'ssh-ed25519 %s %s',
+    $port, $ssh_b64, $tag;
+
+my $ssh_dir = "$home/.ssh";
+mkdir $ssh_dir, 0700 if not -d $ssh_dir;
+my $ak_file = "$ssh_dir/authorized_keys";
+my @kept;
+if ( open my $ak_fh, '<', $ak_file ) {
+    @kept = grep { not m|\s\Q$tag\E\s*$| } <$ak_fh>;
+    close $ak_fh;
+}
+my $ak_tmp = "$ak_file.p7-link.$PID";
+my $ok     = FALSE;
+if ( open my $out_fh, '>', $ak_tmp ) {
+    print {$out_fh} @kept, "$ssh_ln\n";
+    $ok
+        = close($out_fh)
+        && chmod( 0600, $ak_tmp )
+        && rename( $ak_tmp, $ak_file );
+}
+if ( not $ok ) {
+    my $error = "$OS_ERROR";
+    unlink $ak_tmp;
+    return {
+        'mode' => qw| false |,
+        'data' => "authorized_keys not written : $error [ nothing changed ]"
+    };
+}
+
+## 2. cube key : the label the link authenticates as ##
+my $cube_dir = catfile( <[crypt.C25519.key_vars]>->{'auth_dir'}, qw| cube | );
+<[file.make_path]>->( $cube_dir, 0700 ) if not -d $cube_dir;
+my $key_file = "$cube_dir/$label.public";
+my $key_tmp  = "$key_file.$PID";
+$ok = FALSE;
+if ( open my $key_fh, '>', $key_tmp ) {
+    print {$key_fh} "$cube_b32\n";
+    $ok
+        = close($key_fh)
+        && chmod( 0600, $key_tmp )
+        && rename( $key_tmp, $key_file );
+}
+if ( not $ok ) {
+    my $error = "$OS_ERROR";
+    unlink $key_tmp;
+    return {
+        'mode' => qw| false |,
+        'data' => "cube key not written : $error [ the "
+            . "ssh line IS in : revoke-link $label ]"
+    };
+}
+
+<[base.logs]>->(
+    0, '<< link authorized : %s [ ssh forward 127.0.0.1:%d + cube key ] >>',
+    $label, $port
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "link '$label' authorized : ssh forward to 127.0.0.1:$port "
+        . 'only, cube key in place [ the cube reads it on its next key '
+        . 'reload ]'
+};
+
+#,,,.,...,,.,,..,,...,,,.,..,,,,,,,,.,.,,,...,..,,...,...,...,,,,,,..,.,,,,.,,
+#SIXHXAEICHCEAJQ2W5TST6T3GAKQED3HOTYTNXIX7QNCG6FUJ3CLFI6U7LDZM5FNZ4OVPMUG73UUM
+#\\\|4XGT6W3PILB2FODXUETMJMVSUGXGJNZOXBAHZUMNQFVBKEKMGL3 \ / AMOS7 \ YOURUM ::
+#\[7]7TBVYIBIJZKEHTOICSILOY542Q7WJFBQMDI6NXNG3PFN5QEKSEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
