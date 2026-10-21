@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = site-yaml.cmd.subscribe-fetched
+# descr = STRM of fetched jobs : outbox backlog, then live
+# notes = unbounded STRM [ no default timeout on purpose ] : the stream stays
+#         open until the fetch queue is empty AND no import is running AND
+#         the outbox is empty [ every pushed record confirmed ] -- see
+#         site-yaml.outbox.check-terminate. each frame is one JSON line :
+#         {"name":"<outbox record name>","job":<job payload>}
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s{^\s+|\s+$}{}g;
+
+## caller identity / extra args are not trusted for anything here : the ##
+## frames simply flow back over this command's own reply session        ##
+
+my $h = <[base.stream.open]>->(
+    {   'sid'    => $call->{'session_id'},
+        'cmd_id' => $call->{'command_id'},
+        'type'   => qw| STRM |,
+        'total'  => undef,
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => 'stream open refused' }
+    unless defined $h;
+
+push @{ <site-yaml.fetched_streams> //= [] }, $h;
+
+<[base.logs]>->(
+    1, 'site-yaml.subscribe-fetched: stream open [ sid %d ]',
+    $call->{'session_id'}
+);
+
+## backlog first : every outbox record, oldest first ##
+my $outbox_dir = <[site-yaml.outbox.dir]>;
+
+if ( defined $outbox_dir and opendir my $dh, $outbox_dir ) {
+    my @files = sort grep {m|^[^.][^/]*\.json$|} readdir($dh);
+    closedir $dh;
+
+    for my $file (@files) {
+        my $path = "$outbox_dir/$file";
+        next if not open my $backlog_fh, '<', $path;
+        my $payload
+            = do { local $INPUT_RECORD_SEPARATOR = undef; <$backlog_fh> };
+        close $backlog_fh;
+        next if not defined $payload or not length $payload;
+
+        my $name  = $file =~ s|\.json$||r;
+        my $frame = sprintf qq|{"name":"%s","job":%s}| . "\n",
+            $name, $payload;
+
+        ## subscriber gone mid-backlog : clean up state, stop pushing ##
+        last if not <[base.stream.push]>->( $h, \$frame );
+    }
+}
+
+## everything may already be drained + confirmed : nothing to wait for ##
+<[site-yaml.outbox.check-terminate]>;
+
+return { 'mode' => qw| deferred | };
+
+#,,..,...,,,.,,.,,...,..,,,.,,,,,,..,,,,.,,,,,.,.,...,..,,.,.,,.,,.,.,,,.,,..,
+#32AITFUM3SJFA5RIO2ZKLK74ZRHFSJTJXV5H6BHEIL6Z4NL64MN5ZDLVBQSO2T4CI3DTX7PV4OYUI
+#\\\|5X6QGMO4NIGA6FR6KT4DFQ6GXT3LD2VCIKGTDUOFVQTRUD54S6D \ / AMOS7 \ YOURUM ::
+#\[7]EOCHCCKK3THGJLS2DCU5O7ABWINCYQEKM3C6RI3LGB6CJH6WJMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = site-yaml.outbox.write
+# descr = durably store one fetched job + fan it out to open fetched-streams
+# param = <job id> <json payload>
+# return = outbox record name [ without .json ] or undef on write error
+
+my ( $job_id, $payload ) = @ARG;
+
+return undef if not length( $job_id // '' ) or not defined $payload;
+
+my $outbox_dir = <[site-yaml.outbox.dir]> // return undef;
+
+## durable record : <ntime b32>-<job id>.json, atomic via temp + rename [   ##
+## the name only uses what outbox-confirm accepts -- an id with other       ##
+## characters [ another site, a url id ] could never be confirmed and would ##
+## hold its stream open ]                                                   ##
+( my $safe_id = $job_id ) =~ s|[^A-Za-z0-9._-]|_|g;
+my $name = sprintf '%s-%s', <[base.ntime.b32]>, $safe_id;
+my $file = "$outbox_dir/$name.json";
+my $temp = "$outbox_dir/.$name.$PROCESS_ID.tmp";
+
+my $out_fh;
+if ( not open $out_fh, '>', $temp ) {
+    <[base.logs]>->(
+        0,     'site-yaml.outbox: cannot write %s [ %s ]',
+        $temp, $!
+    );
+    return undef;
+}
+print {$out_fh} $payload;
+close $out_fh;
+
+if ( not rename $temp, $file ) {
+    <[base.logs]>->(
+        0, 'site-yaml.outbox: cannot rename %s to %s [ %s ]',
+        $temp, $file, $!
+    );
+    unlink $temp;
+    return undef;
+}
+
+## fan out to every open fetched-stream : one JSON line per frame ##
+my $streams = <site-yaml.fetched_streams> // [];
+if ( @{$streams} ) {
+    my $frame = sprintf qq|{"name":"%s","job":%s}| . "\n", $name, $payload;
+    my @alive;
+    for my $h ( @{$streams} ) {
+        if ( <[base.stream.push]>->( $h, \$frame ) ) {
+            push @alive, $h;
+        } else {
+            ## subscriber session gone : drop its handle ##
+            <[base.logs]>->(
+                1,
+                'site-yaml.outbox: fetched-stream '
+                    . 'subscriber gone [ sid %s ], handle dropped',
+                $h->{'sid'} // qw| ? |
+            );
+        }
+    }
+    <site-yaml.fetched_streams> = \@alive;
+}
+
+return $name;
+
+#,,..,.,.,.,.,.,,,,,.,,,,,,.,,,,.,,..,,.,,.,,,.,.,...,.,.,,.,,.,.,,,,,...,,.,,
+#JHGBDRJ3R7TM34CJUS2MNEN6RPNWFW7SXNBLF5GUTOFTRJHRSCCZULYHRAP2Z5F32QF6KBRVYOSGQ
+#\\\|X3XMGEBRWX3YHKNPQGTTNHWQF44ULESI6LGP6UP2I2KCEOXFQZU \ / AMOS7 \ YOURUM ::
+#\[7]AU2CKMC2RN3QCRD2OGGL3JI4WAGE6L2GWM57G4UJVFX42H7WWADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

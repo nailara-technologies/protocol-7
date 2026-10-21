@@ -1503,9 +1503,28 @@ items:
   - v7-zenki
   - restart
   text: 'v7-zenki.backend-restart : teardown of the zenki, then execve itself [ same pid : systemd and non-systemd alike ]'
+- added: 32DILKFHKI
+  details: |-
+    owner 2026-10-21 : five design sessions dispatched at once, no good way to learn when each is done. stop-gap that night : a background git ls-remote loop against hub, diffing heads every 3 min.
+    - claude_cloud_dispatch records each session [ id, url, start commit, title, capture file ] in a state file
+    - a watcher [ the git-watch zenka, or a small mcp-side loop ] lists hub heads on an interval [ ls-remote is cheap ], matches new branches to recorded sessions [ branch name \ first commit message \ start commit as merge base ], marks them done
+    - notice to the owner [ notify-osd \ nshell \ p7c event ] and to the dispatching agent [ an mcp tool claude_cloud_pending that returns finished ones, so a session can check instead of polling git itself ]
+    - optional : claude_cloud_status for a cloud id could also read the session state from the claude.ai api once that is reachable non-interactively
+    - a branch appearing is NOT done [ owner 2026-10-21 : sessions push several times in one session ] : track the head sha per branch, log every move, call it settled only after the head stayed unchanged for a quiet window [ 15 min that night ] -- or better a real end signal : the session's final commit carries a marker [ e.g. a "session-end" trailer the dispatch preamble asks for ], the watcher keys on that
+    - 2026-10-21 : marker added to the claude_cloud_dispatch preamble [ bin/mcp-server-p7 : last commit carries P7-Session-End: done \ blocked ; a correction after it carries it again, the newest marked head counts ]. note : the preamble already makes every session push an EMPTY dev/<topic> branch first [ push-path proof ], so a new branch is never a completion signal. watcher : fetch the dev branches, read the head commit trailers [ git log -1 --format=%(trailers:key=P7-Session-End) ]
+    - generalised [ owner 2026-10-21 ] : every pushed commit carries p7-session-status: in-progress \ paused \ blocked \ completed, optional p7-session-status-details: <one line> ; completed = the end marker, the newest pushed head counts [ a correction after completed carries it again ]. the watcher reports transitions [ paused \ blocked matter as much as completed ] -- replaces the P7-Session-End idea
+    - format checked 2026-10-21 : git accepts a space before the colon [ interpret-trailers --parse normalises "key : value" to "key: value" ], keys match case-insensitively, %(trailers:key=..,valueonly) returns the value with a trailing newline [ strip it or add separator= ]
+  done_at: null
+  id: CSR
+  priority: normal
+  status: open
+  tags:
+  - cloud
+  - notify
+  text: 'cloud session completion notice : a dispatched claude cloud session pushes a branch and nothing notices'
 
-#,,..,.,,,,,,,,.,,,.,,,.,,,,.,...,...,,,,,...,..,,...,..,,.,.,.,,,.,.,..,,...,
-#IQPDPKJYM3HE5BQWDHJHA2CUQVXHC34Y6YJSJRAKHZMCFVVV2LQQRVRZ3F4NAJDRF5HBXMUB7GWA4
-#\\\|UBVZXO73YC5OC62GUI2ELHWGJKPQ4NTTM4LSAAYYOC6HVFFPK5U \ / AMOS7 \ YOURUM ::
-#\[7]3VNCN2QBR5FMY3FET3LPIMQWNJPF4C3IFOSGSIMZWG3SWNR4MUCQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,...,.,.,...,,,.,,.,,.,,,...,..,,...,...,,.,,,..,,,.,...,,..,
+#U25VCLXNTSGCJ3T5TWUZ4CLPGF6W3DMPQ4O3ETUY72MSTF4B46V2Q4DITS3Q2OTOTOFR2DVLJCXC6
+#\\\|WUHKP25VGL6OZYHGCBCS5AC63VVVSPBNJXUMVIPWUBVJEP7GWKY \ / AMOS7 \ YOURUM ::
+#\[7]WWOST4FQUUVNJ7NJEXS3B3P6KCITAYSFUGG53MLP4RTZRLMBGMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

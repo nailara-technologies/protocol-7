@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = jobsite.fetched.subscribe
+# descr = ensure the fetched-jobs STRM subscription to a remote site-yaml
+# param = <fetch_zenka name>
+# notes = idempotent : sends <fetch_zenka>.subscribe-fetched only while no
+#         subscription is believed open. the reply handler
+#         jobsite.handler.fetched-stream registers the STRM consumer ;
+#         when the stream closes [ remote auto-terminate or peer gone ]
+#         the state is forgotten and the next import re-subscribes.
+#
+#         base.strm.subscribe is not used here on purpose : its publisher
+#         name validation accepts no dots, while the fetch zenka is a cube
+#         route like 'external.delta.site-yaml'.
+
+my $fetch_zenka = shift // '';
+
+return FALSE if not length $fetch_zenka;
+return FALSE if $fetch_zenka eq qw| site-yaml |;    ## local default ##
+
+return TRUE
+    if <jobsite.fetched.subscribed> or <jobsite.fetched.subscribing>;
+
+<jobsite.fetched.subscribing> = TRUE;
+
+<[protocol-7.route-send]>->(
+    {   'command' => $fetch_zenka . '.subscribe-fetched',
+        'reply'   => { 'handler' => qw| jobsite.handler.fetched-stream | },
+    }
+);
+
+return TRUE;
+
+#,,,,,,.,,,..,...,.,.,,..,..,,,,,,,,,,...,,,.,.,.,...,...,.,,,,..,,.,,.,,,,,,,
+#HNCYWMMYA4VKO5W6BGZNY6GCTPRT7Q36HWLGT5IIJRWBQYJHRK6KADXNXJRYEVANVS5DSNLWGVLVW
+#\\\|CA3BBLU6T2C36NBXUQD6URWUYKOIM5NFPOCXDWBIREW6NKBNPP6 \ / AMOS7 \ YOURUM ::
+#\[7]5LMKFCSDLOODG4B2C4ZIYEY2LY52TQ7FAIT7MU4JSIYKATRX5MDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

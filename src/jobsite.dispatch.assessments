@@ -148,9 +148,16 @@ for my $job_id ( keys %{$store} ) {
             if ref <jobs.store> eq 'HASH';
 
         <jobsite.tasks>->{$job_id}{'awaiting_desc_refetch'} = TRUE;
+        my $refetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
+        ## remote fetch : outbox transport, no route-send delivery ##
+        <[jobsite.fetched.subscribe]>->($refetch_zenka)
+            if $refetch_zenka ne qw| site-yaml |;
+        my $refetch_args = 'url=' . ( $job->{'url'} // '' );
+        $refetch_args .= ' handler=:hold:'
+            if $refetch_zenka ne qw| site-yaml |;
         <[protocol-7.route-send]>->(
-            {   'command'   => qw| site-yaml.import-url |,
-                'call_args' => { 'args' => 'url=' . ( $job->{'url'} // '' ) },
+            {   'command'   => $refetch_zenka . '.import-url',
+                'call_args' => { 'args' => $refetch_args },
                 'reply'     => {
                     'handler' => qw| jobsite.handler.desc-refetch-queued |,
                     'params'  => { 'job_id' => $job_id },
@@ -231,8 +238,8 @@ push <jobsite.assess_queue>->@*, @queue;
 
 return;
 
-#,,,,,,,,,.,,,...,...,.,.,.,.,,..,,.,,,.,,,,,,..,,...,...,..,,.,.,.,,,..,,,,,,
-#7BHY4QFNGPHGP67TCGDL7EM4VLQ2LWLA4ZM5HZO6WCQ2AE3KBV7C7QN74EL6Q7BBS7U4NKX46K6IW
-#\\\|CT35DO6W4Q53TW74AFGMSKC7GZ7SEXROPONXD3DSLXHEQ3HO5BC \ / AMOS7 \ YOURUM ::
-#\[7]YC5N6YQWDWMPIISJQ4WKZLLMMP6OYDD6KC5ZQPOMNCW7P4QYW6BI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,..,,.,,,..,,,,.,,,.,,,,,,,.,,,.,..,,...,..,,,.,,,..,,,.,..,,,,,,
+#7WT3AO6GFN7QFHMXQGQDYLRXLFY2YOFTEPYL6DEQ6D2BBDF32NGJT2WHQHKLS4L5OUB7TBBTSOSZY
+#\\\|RLZ53SHYOCN4GWSHUBEU4WG5Y4QTODXMR6KOBBCZHFHE2EHE5RE \ / AMOS7 \ YOURUM ::
+#\[7]NYSERU3A33VTBMKARDK7BXVRMYLGNR26O5MM5OE4U4NI75SVACDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

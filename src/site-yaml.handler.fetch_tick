@@ -83,6 +83,11 @@ return unless length $url;
                     0,   'fetch: %s json encode error: %s',
                     $id, $@ // '?'
                 );
+            } elsif ( $reply_handler eq qw| :hold: | ) {
+                ## durable outbox + STRM fan-out instead of a route-send : ##
+                ## the caller may sit on another host [ remote fetch ]     ##
+                <[base.logs]>->( 1, 'fetch: %s [hold] q=%d', $id, $ql - 1 );
+                <[site-yaml.outbox.write]>->( $id, $payload );
             } else {
                 <[protocol-7.route-send]>->(
                     {   'command'   => $reply_handler,
@@ -102,8 +107,8 @@ return unless length $url;
 
 return;
 
-#,,,,,..,,.,,,.,,,,,,,..,,.,,,,.,,,.,,.,.,.,.,.,.,...,...,,,,,..,,,..,.,,,...,
-#K7LOBZNA6GAH6Q54WU6DBO7WNNSAF4MFWXKYNFPEH3WFIKNFOYQJRA6D3SUZHENJM4YSSVQ3W3RWC
-#\\\|Q5QS36ZMYTUFML6HJ7F4MBKWZKLPUUN5OXIRCRTRHQLDUU3QRB6 \ / AMOS7 \ YOURUM ::
-#\[7]HL433WJKGMIZSM6HENN4IXJ5W2SQCYMSC454YN5P5FNW6RPC3KAY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,,,,,.,,..,,,.,.,,,,,.,...,,..,.,.,...,...,,..,...,...,.,,,.,.,
+#TCTCZLWCSFLN4TJEOYLXD5PGY226372AYI7HC3YREWTSACHT7XM3U7YSYRCFKAU7MWJFDRQP2HWQS
+#\\\|FPXF2XIVR7AWXPJ4NONNIHEBJY3RTLOUZZYQYV4BCW7HNZTY5FY \ / AMOS7 \ YOURUM ::
+#\[7]7JBUL5LIYLM6CZB7JJTP3RQLB6EX7RYQE7SOQ4NMMVQIMI7P4KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

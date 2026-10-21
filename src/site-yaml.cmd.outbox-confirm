@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = site-yaml.cmd.outbox-confirm
+# descr = confirm delivery of one outbox record : unlink it
+# param = <outbox record name> [ without .json ]
+# notes = 'already gone' replies true as well ; re-checks the fetched-stream
+#         auto-terminate condition after every confirm
+
+my $name = $call->{'args'} // '';
+$name =~ s{^\s+|\s+$}{}g;
+
+## no slashes / no parent traversal : plain record names only ##
+return { 'mode' => qw| false |, 'data' => 'invalid name' }
+    if not length $name or $name !~ m|^[A-Za-z0-9._-]+$|;
+
+my $outbox_dir = <[file.zenka_dir.data_path]> . '/outbox';
+
+unlink "$outbox_dir/$name.json";    ## already gone is a true confirm ##
+
+## every pushed record confirmed ? maybe nothing left to wait for ##
+<[site-yaml.outbox.check-terminate]>;
+
+return { 'mode' => qw| true |, 'data' => 'confirmed' };
+
+#,,,.,,,.,,,.,.,.,,,,,.,.,,,.,.,.,,.,,,,,,,.,,.,.,...,...,.,.,...,,..,.,.,.,,,
+#22YMFO7OBSWJLNBXXMF75YPQ2TO3F2KUXT6TVFWFEVY62BA6ULBVJESWAX63YM7SM3AYYYHLSWKAA
+#\\\|4Y6BJCHBCXEFG32FEUOTCVXTYLDKL3MYGB7O57FXHYEI3Q47BTF \ / AMOS7 \ YOURUM ::
+#\[7]B62PPY2WBLYIYP2AAFVHHAEESTH7NQEV6K43ZXNX5LWLH2G5LEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

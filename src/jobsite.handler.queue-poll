@@ -6,15 +6,16 @@
 <[base.logs]>->( 2, 'fetch: polling site-yaml queue depth' );
 
 <[protocol-7.route-send]>->(
-    {   'command' => qw| site-yaml.queue-depth |,
+    {   'command' => ( <jobsite.cfg.fetch_zenka> // qw| site-yaml | )
+            . '.queue-depth',
         'reply' => { 'handler' => qw| jobsite.handler.queue-depth-reply |, },
     }
 );
 
 return;
 
-#,,.,,..,,...,,,,,.,.,..,,..,,.,,,...,.,,,,..,..,,...,...,.,,,.,,,.,.,,..,,,,,
-#6SN7MQDDLLWEY5SDEWCG5BWTYK6Y4N3TQEX4PEHL6CCIIVPKHDWUCF4TFO2VDW5YK6T6PDGSV7SXS
-#\\\|22MUQCT7AMZVEEDDNO443RWNYZZJVGMNA42NOPDIJVU3NIYTUIT \ / AMOS7 \ YOURUM ::
-#\[7]WQ3XMLGE5JTZBGBVRIO2XFA2DLJNW22QEKRFEX2XBJSPZHETACAA 7  DATA SIGNATURE ::
+#,,..,,,.,...,...,,,,,,,,,...,,.,,.,.,,..,,..,..,,...,...,,,.,...,,.,,..,,.,.,
+#PHPSWQB3565XOMQECP72QPO6G2TTFCVJX47YOT7F6X43GRMBOWXHEJXZF46IXXQOTJQHVFQ6Y7GWA
+#\\\|QTRAEEKJZT6KQ6SMRYZYZUGZFLPS67EJXZJXK5WALAJ6Z6VEO4A \ / AMOS7 \ YOURUM ::
+#\[7]3KPJBYPL7HVGLJ5UKXURRRRAIQFSOW2EZZPW4MXILCZFGADKRWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,7 +32,9 @@ my $full_mode = $param{'full'} // 0;
 
 my $reply_handler = $param{'handler'} // $param{'reply_handler'} // '';
 if ( length $reply_handler ) {
-    my %allowed_handler = map { $ARG => 1 } qw| jobsite.job-upsert |;
+    ## :hold: routes the record into this zenka's own durable outbox [ see ##
+    ## site-yaml.handler.fetch_tick + site-yaml.cmd.subscribe-fetched ]    ##
+    my %allowed_handler = map { $ARG => 1 } qw| jobsite.job-upsert :hold: |;
     if ( not $allowed_handler{$reply_handler} ) {
         <[base.logs]>->(
             0, 'site-yaml.import: disallowed reply handler %s',
@@ -124,8 +126,8 @@ my $import_id = <[base.gen_id]>->( <site-yaml.import_state> //= {} );
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,.,,,..,...,...,.,,,,,.,,..,...,.,.,..,,.,.,...,..,,.,,,,..,,,.,,,,,...,
-#C3DAUYJ4HMJX4D6CTZOWA7CQYAF7ED66JIBSGXS6T42GCY7DYIBNDSI3SDPVJ7OKUX4LLUUBJLPE4
-#\\\|3PCLFPE4G2HD47LNRG6SMWZLMJGEIFHB5UFMEP2ZA4EVS3KAWEV \ / AMOS7 \ YOURUM ::
-#\[7]BB22RKUAZT4D4JW7OR4XVE4AB7ULRFKMI6L5LLTPETOLE62F7EBY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,...,,,,,.,,,,,.,,.,,,..,,.,,.,.,.,.,...,...,..,,,,.,...,,.,,,,.,
+#HITIVDMXXFNMJQSJDGNCC4ZUN3I3LJTPK3CCIKFBCDEJ4I2PIJOEKV26T7IHIMAZQWV52RSJLHBEI
+#\\\|ZD2CUYWRXQK5FLHSFNXVHRX2QBSFAYSBIGBUUGRBLQ6ZPX53RSY \ / AMOS7 \ YOURUM ::
+#\[7]4TQF3CMUYB2QMC5QIGE5RB3XG77TZTGEKAYVB6Z2HRCIMBWIXWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

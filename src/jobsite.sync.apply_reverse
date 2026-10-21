@@ -143,9 +143,16 @@ for my $entry ( @{$entries} ) {
         ## reassess never scores stale data when a fresher fetch was       ##
         ## possible                                                        ##
         <jobsite.tasks>->{$id}{'awaiting_refetch'} = $gen;
+        my $refetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
+        ## remote fetch : outbox transport, no route-send delivery ##
+        <[jobsite.fetched.subscribe]>->($refetch_zenka)
+            if $refetch_zenka ne qw| site-yaml |;
+        my $refetch_args = 'url=' . ( $job->{'url'} // '' );
+        $refetch_args .= ' handler=:hold:'
+            if $refetch_zenka ne qw| site-yaml |;
         <[protocol-7.route-send]>->(
-            {   'command'   => 'site-yaml.import-url',
-                'call_args' => { 'args' => 'url=' . ( $job->{'url'} // '' ) },
+            {   'command'   => $refetch_zenka . '.import-url',
+                'call_args' => { 'args' => $refetch_args },
                 'reply'     => {
                     'handler' => 'jobsite.handler.reassess-refetch-queued',
                     'params'  => { 'job_id' => $id, 'gen' => $gen },
@@ -212,8 +219,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,.,,,,.,..,,,,.,..,,,..,,,.,,..,.,.,,,,,.,,,..,,...,..,,..,,,.,,.,,,.,.,,,.,
-#OD7YPNVRS35AYCN7KMW36BGBGRKFFC5K7WNQM4S4Y4M424NZ7C33S2QCY25OKRKBIV2Q6EEMSNZJW
-#\\\|U66ML6DUGYURV2GCVC7T34MFJMIIYJZGMKS2KKWGUWOTNS6EK4I \ / AMOS7 \ YOURUM ::
-#\[7]S4TFT4TSUHSGDJ7IBC3HJU4O6KW5ZZS5KMVBEGHSF2KJZCD25UAI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,.,,.,.,,,,,...,.,.,.,.,,,.,..,,...,...,.,,,,..,,,.,.,,,,..,
+#IGEXSKSXKPXR7G3337LHFBFY5TPM5SYCYUZJY7WY4ZKW2J4FUUVDC5GK3DRNVNRZ5RLB3XZWDRUB6
+#\\\|MNMESGW6WGHEJXSGB2SQXARJUFW5P26JALQESB5VDVKCU7A256Y \ / AMOS7 \ YOURUM ::
+#\[7]OAMJ2XEQGDGWWDJAKTT24PC4F4MARFQH5FWLEWVCPZGOBLV5OUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

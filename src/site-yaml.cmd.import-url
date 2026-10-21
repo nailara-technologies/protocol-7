@@ -8,8 +8,9 @@
 #
 # seeds exactly one { id, url, reply_handler } entry into the fetch queue,
 # skipping the site-yaml.stepstone.search listing-page step entirely. the
-# reply handler is fixed to jobsite.job-upsert [ same allow-list as
-# site-yaml.cmd.import ].
+# reply handler defaults to jobsite.job-upsert ; an explicit handler=
+# parameter is accepted from the same allow-list as site-yaml.cmd.import
+# [ jobsite.job-upsert :hold: ].
 
 my $args_str = $call->{'args'} // '';
 $args_str =~ s{^\s+|\s+$}{}g;
@@ -47,12 +48,31 @@ for my $item ( @{$queue} ) {
     }
 }
 
+## reply handler : default jobsite.job-upsert ; :hold: diverts the fetched ##
+## record into this zenka's own durable outbox instead of a route-send     ##
+my $reply_handler = $param{'handler'} // $param{'reply_handler'} // '';
+if ( length $reply_handler ) {
+    my %allowed_handler = map { $ARG => 1 } qw| jobsite.job-upsert :hold: |;
+    if ( not $allowed_handler{$reply_handler} ) {
+        <[base.logs]>->(
+            0, 'site-yaml.import-url: disallowed reply handler %s',
+            $reply_handler
+        );
+        return {
+            'mode' => qw| false |,
+            'data' => 'disallowed ' . 'reply handler'
+        };
+    }
+} else {
+    $reply_handler = qw| jobsite.job-upsert |;
+}
+
 ## queue for async fetch with adaptive backoff [ handled by fetch_tick ] ##
 push <site-yaml.fetch_queue>->@*,
     {
     'id'            => $job_id,
     'url'           => $url,
-    'reply_handler' => qw| jobsite.job-upsert |,
+    'reply_handler' => $reply_handler,
     };
 
 ## start async fetch timer if not already running ##
@@ -67,8 +87,8 @@ my $summary = sprintf 'import-url queued: %s [%s]', $job_id, $url;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,.,,.,.,,..,...,...,,,,,...,..,,,.,,.,,,...,.,.,...,...,...,,,,,,,,,,,.,,,.,
-#WJOFGNR4Q5DVJOOISRH4MSQAQG23XTKX3K66UAY2J4SU2AUIHCJMPI5VYDW5RI65TTUPX6NF3Z6YG
-#\\\|KLHXRTULBFKCKUGGJ4IOVRVTODAIICOA5FBI2T4TSBBGUYZKRNJ \ / AMOS7 \ YOURUM ::
-#\[7]D4BV6ETIUIVYMZVCX7PZKOXZZTXONO6IHNGZWYL34GJ5NHGTBACY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,,,,,,,.,.,.,,,,..,,.,,,,,,,,.,.,.,...,..,,.,.,,..,.,.,...,..,,
+#GDQTPMWSBFHMBJFYZAVPFP6G52DSYZKNTSHPSZ3ODSHHCYFX7JJQVCPK2REVPJXCZHOFGCZS43OUE
+#\\\|U5FFFMPJGKBZ2YOPR2AU7AKMTJ5IQABPVAM7AMKYHWXKQ7GDK6N \ / AMOS7 \ YOURUM ::
+#\[7]Y6EZAZ6JQADEWYPAY36N4QJ2T7FLUG32HZXQL24PGFEOSZ2DTABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -383,27 +383,29 @@ my @external_tools = (
             . 'untrusted text ]. the prompt is prefixed with a fixed '
             . 'preamble telling the session to start from the named '
             . 'branch + commit, read CLAUDE.md, never merge to the '
-            . 'default branch, and finish with a pushed branch + '
-            . 'summary. refuses with a push-first error when the branch '
-            . 'has local commits the remote has not seen yet [ a cloud '
-            . 'session clones the remote and would silently miss them ]. '
-            . 'starts the claude process DETACHED [ own session via '
-            . 'setsid, stdin /dev/null, stdout+stderr to a capture file '
-            . 'under data/state/ named like the kimi capture files — the '
-            . 'process is never killed by this server and keeps running '
-            . 'after the tool returns, same async model as kimi_dispatch '
-            . ']. this call then polls that capture file for up to 60 s '
-            . '[ PROTOCOL_7_MCP_CLOUD_POLL overrides ] and returns AS '
-            . 'SOON AS a session id or claude.ai/code url is parsed ; on '
-            . 'timeout it returns status=starting with the capture-file '
-            . 'path + pid + whatever output exists — never an error just '
-            . 'for that. returns the session id + claude.ai/code url '
-            . 'parsed from the output with tolerant regexes [ the exact '
-            . 'output format is not guaranteed — when parsing finds '
-            . 'nothing, the raw output is returned with an explicit '
-            . 'not-parsed note, never a failure ], plus the raw output '
-            . 'itself. optional per-session tuning : after the session '
-            . 'id is parsed, each requested setting is sent as its own '
+            . 'default branch, and finish with a pushed branch whose '
+            . 'last commit carries the trailer p7-session-status : '
+            . 'completed + summary. refuses with a push-first error when '
+            . 'the branch has local commits the remote has not seen yet '
+            . '[ a cloud session clones the remote and would silently '
+            . 'miss them ]. starts the claude process DETACHED [ own '
+            . 'session via setsid, stdin /dev/null, stdout+stderr to a '
+            . 'capture file under data/state/ named like the kimi '
+            . 'capture files — the process is never killed by this '
+            . 'server and keeps running after the tool returns, same '
+            . 'async model as kimi_dispatch ]. this call then polls that '
+            . 'capture file for up to 60 s [ PROTOCOL_7_MCP_CLOUD_POLL '
+            . 'overrides ] and returns AS SOON AS a session id or '
+            . 'claude.ai/code url is parsed ; on timeout it returns '
+            . 'status=starting with the capture-file path + pid + '
+            . 'whatever output exists — never an error just for that. '
+            . 'returns the session id + claude.ai/code url parsed from '
+            . 'the output with tolerant regexes [ the exact output '
+            . 'format is not guaranteed — when parsing finds nothing, '
+            . 'the raw output is returned with an explicit not-parsed '
+            . 'note, never a failure ], plus the raw output itself. '
+            . 'optional per-session tuning : after the session id is '
+            . 'parsed, each requested setting is sent as its own '
             . 'follow-up message [ `claude -p "/<cmd>" --cloud '
             . '<session-id> --output-format json` — queues one message '
             . 'into the running session, exits right away, 60 s alarm ; '
@@ -4946,7 +4948,14 @@ sub tool_claude_cloud_dispatch {
         "note: push only to 'dev/<topic>', never to '$branch' ; do not "
         . 'merge to the default branch.',
         'finish with the pushed dev branch plus a summary of what changed.',
-        '',
+        'SESSION STATUS : every commit you push carries the trailer line '
+        . "'p7-session-status : <status>', status one of in-progress, "
+        . 'paused, blocked, completed -- optionally followed by the '
+        . "trailer 'p7-session-status-details : <one line>' [ where it "
+        . 'stands, why paused, what blocks it ].',
+        "'completed' ONLY on the last push once the task is done. a "
+        . "correction pushed after it carries 'completed' again -- the "
+        . 'newest pushed head is what counts.', '',
         'task :',
         $prompt;
 
@@ -5950,8 +5959,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,...,...,..,,,.,,,.,,,,,,,..,,..,.,.,.,,,..,,...,...,.,,,,..,,..,...,,.,,
-#MGYE4WIVP2NMU25K65AGMWXZKXLHH7F7Q65ZDICSFXVHL7TRD6CVM4NPH563BNT7F7K5DPHNGORQE
-#\\\|BS5VC735KJWSU4KXI6ONHNGSYJWEDV3D47XCNEFHXRD66GVRFI2 \ / AMOS7 \ YOURUM ::
-#\[7]C7XZ2GTRCDLYCLRSWJZTL45YYXLAXANCNRQ6IEJ6EMQG5BSTHYAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,,,..,,..,,,,.,.,.,,..,,..,...,..,,...,...,,..,,.,,,,,,.,,,,,.,
+#6EALRY2LRJ5QYPAM7SRLRM5ZSDZBCDBASTIP3KF6DYLLQIAIBVVBPFRXNOSSIS5XVKUNXASYSRS3K
+#\\\|JP6WSFR5KLQUIMVY5CU4WPLAQFKKHTFIYQV6XUNOT45HPKNAN2D \ / AMOS7 \ YOURUM ::
+#\[7]ZB64DYKCRGRLHL7TNHR4FSIREUMTJZXL6KF6YBWDDZEMWMTCDEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
