@@ -5,7 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
-- [project-2026-10-21-session-handover-editor-hints-assimilation](project-2026-10-21-session-handover-editor-hints-assimilation.md) — START HERE [ last b892e2707 ] : editor hardened + ctrl-s, coding model-pin hang fixed, hints.* layer [ 4 sources ], managed abstraction, ASSIMILATION-DEPTHS.md ; open : remotes nameserv \ letsencr steps, 3W5 remote links, Q7O ranking, YBX
+- [project-2026-10-22-session-handover-remote-fetch-link](project-2026-10-22-session-handover-remote-fetch-link.md) — START HERE [ last 7bbeca114 ] : remote fetch pri -> delta WORKS [ link by hand ], cert + nameserv 0x20 + sync fixes, optional deps, web secret rotated ; next : coding depending queue, permanent link, 3 cloud docs pending
+- [project-2026-10-21-session-handover-editor-hints-assimilation](project-2026-10-21-session-handover-editor-hints-assimilation.md) — previous [ superseded 2026-10-22 ] [ last b892e2707 ] : editor hardened + ctrl-s, coding model-pin hang fixed, hints.* layer [ 4 sources ], managed abstraction, ASSIMILATION-DEPTHS.md ; open : remotes nameserv \ letsencr steps, 3W5 remote links, Q7O ranking, YBX
 - [project-2026-10-18-session-handover-n7fs-truth-pri](project-2026-10-18-session-handover-n7fs-truth-pri.md) — previous [ superseded 2026-10-21 ] -- START HERE [ newest, last 3efcdabbd ] : bin/dependencies retired, N7FS v1 on base, truth fallbacks bit-identical, computed module versions, pri prepared for cpu inference ; open : pri model id switch + first coding start, `:` resolver, memory-cap task
 - [project-2026-10-15-session-handover-vault-secret-wipes](project-2026-10-15-session-handover-vault-secret-wipes.md) — START HERE : session 2026-10-14..15 [ last c0069d2d4, pushed ] -- p7-vault auto-lock \ saved + directory sync \ input timeout \ quit clear \ cursor, secret + password wipes [ COW, AMOS7::TERM reader rewrite, C25519 loaders ], IO::AIO stale-$@ poll bug, invented header removed ; e13135150 overstated the load_single bug [ see correction ] ; open : single-file key password check, vault import update
 - [project-2026-10-14-session-handover-history-rewrite-llm-identities](project-2026-10-14-session-handover-history-rewrite-llm-identities.md) — previous handover : session 2026-10-13..14 [ last 4d50a0b83, pushed ] -- third history rewrite [ one developer identity, llm metadata stripped ], llm identity hooks [ post-commit re-authors, pre-push refuses ], pii-audit patterns in /etc, pre-rewrite backups archived + reviewed, console color fix ; open : pii placeholders, sudo rm p7.bak.10010
@@ -211,8 +212,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [auth-watcher-add-incoming](project-2026-10-16-auth-watcher-add-incoming.md) — 2026-10-16 day [ superseded by session-handover-installer-cloud ; holds the PLAN steps 1-7 + style rules ] : taeki auth live on 4 servers, cube inotify re-read of authorized keys, dep-graph plugin scoping [ -954 eager subs ], p7-keys add-incoming ; OPEN : push+pull 716313a79 + pri incident test, unit pri\atom, 4ZW
 - [session-handover-installer-cloud](project-2026-10-17-session-handover-installer-cloud.md) — START HERE 2026-10-17 [ last 2faf44de7 ] : deps line done [ frame, tracked, backend, p7-install, p7-deps restyled ], cloud dispatch working [ pty, launch clone, push path ] ; OPEN : root runner, debs + signed repo, legacy scripts, cloud tool polish
 
-#,,..,,,,,..,,,.,,,,.,,.,,.,,,,.,,,.,,,.,,,.,,..,,...,...,.,,,,..,.,.,.,.,,,.,
-#ZQD6TOANDDC6TNCUH7H4C4ECZ5RMOS55C5VDT2TQRTJ5Z3BXBM4YYWMJVIE47KKWAXCYPJTKEDEL2
-#\\\|V76IYGCHXHK7LRPZ2ZPY6KYCC6GF5JZFUHUDC4CRHVCFQIKJSHQ \ / AMOS7 \ YOURUM ::
-#\[7]2344RGSW6FWMS45QVZGV32Q6ORXCEZEL35SM42NCKFR2BPBJ4KBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,..,,,..,..,,.,.,,..,...,,,.,..,,...,...,.,.,.,,,,..,.,,,,.,,
+#2QO2JW4OREUMFKJ4UXL2QUPRONMF6Q2AJGTWSMTIQRXA6WP2HHXQGPP4RV6BDZ6WTI6YTAPLG2F3U
+#\\\|VHF57R4MNNGNJSJZAMH5FHWOQVT5D7JZB2WHI6C2MCKV5QCQNJE \ / AMOS7 \ YOURUM ::
+#\[7]LGIXH7VU5TMAQ42R2UAKB2SWIEV7FRC725YZO7FZO5FQC3OJQEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
