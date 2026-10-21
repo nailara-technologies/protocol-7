@@ -95,6 +95,8 @@ compile_module( 'v7-zenki.zenka.is_disabled', '' );
 $code{'zenka.is_disabled'} = $code{'v7-zenki.zenka.is_disabled'};
 compile_module( 'v7-zenki.zenka.get_dependencies', '' );
 $code{'zenka.get_dependencies'} = $code{'v7-zenki.zenka.get_dependencies'};
+compile_module( 'v7-zenki.zenka.profile_refusal', '' );
+$code{'zenka.profile_refusal'} = $code{'v7-zenki.zenka.profile_refusal'};
 compile_module( 'v7-zenki.zenka.cmd.start', $cmd_header );
 $code{'zenka.cmd.start'} = $code{'v7-zenki.zenka.cmd.start'};
 compile_module( 'v7-zenki.zenka.cmd.start_once', $cmd_header );
@@ -165,18 +167,40 @@ ok( !length $EVAL_ERROR, 'cmd.start returns [ no die ]' )
 ok( ref $reply eq 'HASH' && ( $reply->{'mode'} // '' ) eq 'false',
     'external : refused' );
 ok( ( $reply->{'data'} // '' )
-        =~ m|dependency 'discover' is disabled on this host|,
+        =~ m|dependency 'discover' is in zenki.disabled of profile|,
     '  :.. the reason names the dependency'
 );
 ok( scalar( grep { ( $ARG->[1] // '' ) =~ m|not started| } @logged ),
     '  :.. logged' );
 
+say ':: a hard dependency outside the on-demand allow list refuses too';
+
+## delta 2026-10-21 : remote-server-lowram allows on demand only what ##
+## host.cfg lists -- nodes [ external's dependency ] was not listed   ##
+start_cfg( 'external', 'dependencies' => 'cube nodes' );
+profile(
+    'enabled'   => 'cube',
+    'on-demand' => 'external',
+    'disabled'  => 'discover'
+);
+$reply = eval {
+    $code{'v7-zenki.zenka.cmd.start'}->( { 'args' => 'external' } );
+};
+ok( !length $EVAL_ERROR, 'cmd.start returns [ no die ]' )
+    or say "    : $EVAL_ERROR";
+ok( ref $reply eq 'HASH' && ( $reply->{'mode'} // '' ) eq 'false',
+    'external : refused' );
+ok( ( $reply->{'data'} // '' )
+        =~ m|dependency 'nodes' is not in the on-demand allow list|,
+    '  :.. the reason names the dependency and the allow list'
+);
+
 say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,,.,,,,,.,.,,..,,,,,.,,,.,,,,.,,..,,...,..,,...,...,..,,,,.,...,.,.,,.,,
-#ZS5UMO46LJGPQUPIZIWZO4QNYPPPSCRDU2SIL3ZNQ7PNIYKLK6X7CTK5PUO4PNABA5QU63YB23QAU
-#\\\|O4PTKEYBUTE3AWKJIXSHKMM35BZJCQNNNNTZ47U2PQEUBVQ2IOF \ / AMOS7 \ YOURUM ::
-#\[7]7PZWRLQM6GKBC4WD2K7L6D66XPLWZ7OCG4EJTYXEHESPLP6RM4CQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,,.,,..,,.,.,...,...,..,,,,,,..,,...,...,,,.,...,,,,,.,.,,.,,
+#5HL7EI2XUT46G4FSXC2UM5GJ2POXWCTRZZXS5OUAVBH47PX5TU7IYZK7COKMQNZZPHOBALNLQM3VQ
+#\\\|BOE7UEG6W4LMCZIOOFOF3FNXHSVJDOVMS6WJXO5HJH7YJOTCQU2 \ / AMOS7 \ YOURUM ::
+#\[7]CRJMHEWW6GUTGD66O7FGFLZBA2I3XBRNXY5MG2V2HCQ462V6KCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

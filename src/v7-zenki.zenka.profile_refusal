@@ -1,0 +1,35 @@
+## [:< ##
+
+# name   = v7-zenki.zenka.profile_refusal
+# param  = <zenka name>
+# descr  = why the start profile refuses a zenka, or undef
+# return = reason string [ disabled \ not in the on-demand allow list ]
+#          or undef when the profile lets it start
+# note   = one rule for v7-zenki.zenka.cmd.start's own gate and for its
+#          dependencies [ a dependency the profile refuses never comes up :
+#          the dependent is refused with the reason, not left waiting ]
+
+my $zenka_name = shift // return undef;
+
+my $zenki_cfg = <v7-zenki.start_setup.globals.zenki> // {};
+my $profile   = <v7-zenki.cfg_data.start_profile>    // qw| ? |;
+
+return sprintf "in zenki.disabled of profile '%s'", $profile
+    if grep { $ARG eq $zenka_name } split m|\s+|,
+    $zenki_cfg->{'disabled'} // '';
+
+return
+    sprintf "not in the on-demand allow list of profile '%s' "
+    . '[ host.cfg : v7-zenki.host.zenki.on-demand ]', $profile
+    if defined $zenki_cfg->{'on-demand'}
+    and not grep { $ARG eq $zenka_name }
+    split( m|\s+|, $zenki_cfg->{'enabled'} // '' ),
+    split( m|\s+|, $zenki_cfg->{'on-demand'} );
+
+return undef;
+
+#,,,.,...,.,,,.,,,...,...,,,,,.,,,,,.,.,,,,,.,..,,...,...,.,.,,.,,,,,,.,.,,,,,
+#CFMMEH6ZRZBAF76UGP6KKJO4QBOP7DCATE2OQZFR5ZCIKLD7WCUML3ODBUUXDZLTLEMCKJVUTPBAK
+#\\\|QT63KYZKXCMLJKMOTD5CJBHBFFSF42LCJFEEADYVVBAQAP73PEJ \ / AMOS7 \ YOURUM ::
+#\[7]4GYYPT2UUY6IROVYJLHOE5JPXOQ5NJJGA44JXAPLG6A33YPIBECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
