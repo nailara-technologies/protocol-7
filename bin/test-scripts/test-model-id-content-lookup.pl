@@ -133,6 +133,26 @@ ok( $local->('XXXXXXX:BBBBBBB') eq 'AAAAAAA:BBBBBBB',
     'loaded server model counts as known'
 );
 
+## a content-only pin for a model this host has but does not serve right    ##
+## now [ another model loaded ] : the registry supplies the path half, else ##
+## switch-model refuses ':<content>' and the task parks for good            ##
+$data{'coding'}{'model_metadata'} = {
+    'DDDDDDD:EEEEEEE' => { 'amos' => 'DDDDDDD:EEEEEEE', 'available' => TRUE },
+    'FFFFFFF:EEEEEEE' =>
+        { 'amos' => 'FFFFFFF:EEEEEEE', 'available' => FALSE },
+    'yaml named' => { 'amos' => 'yaml named' },
+};
+ok( $local->(':EEEEEEE') eq 'DDDDDDD:EEEEEEE',
+    ':<content> not served -> registry id [ available first ]' );
+ok( $local->('EEEEEEE') eq 'DDDDDDD:EEEEEEE',
+    '<content> not served -> registry id'
+);
+ok( $local->(':GGGGGGG') eq ':GGGGGGG',
+    'content in neither served nor registry stays as given' );
+ok( $local->('XXXXXXX:BBBBBBB') eq 'AAAAAAA:BBBBBBB',
+    'served model still wins over the registry'
+);
+
 ## ---------------------------------------------------------------------- ##
 ## task model                                                             ##
 
@@ -152,8 +172,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,.,,,.,,..,,.,,.,.,,,,,...,.,,,,.,,...,..,,...,...,...,,,.,,.,,,,.,,.,,
-#EWANQ2FCJ5XNRWJYCVJSF3OAMDR4LWALGB6MEA7LXJREZNRMXBYP4TMEJ62JLWFME6PY5VBZIIX4Q
-#\\\|LK3PN3255GCIWMRWJI3EOLKKYGMCQG6J5B463R5XOGUNXFFO3DK \ / AMOS7 \ YOURUM ::
-#\[7]E2ZNPWRLISV3LYHNZGOCJHLACANCORKXHFVSVUY4CFX5BFEJIECY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,.,,,,,,..,,,,.,.,,,,,.,,..,..,,..,,...,...,,..,.,,,..,,,,.,.,.,
+#FAR4WECNEHA3IAXQBIGGBNRGTTV267C4YAXGYWSLPLIJRZFEP45P5AM5QTBBCPM434SFYX2EA3YXO
+#\\\|M3N42IITEASM6RD26J4J7GOEOWVJ22I5XQDZPOCT5HTXBBI4UE4 \ / AMOS7 \ YOURUM ::
+#\[7]C4LHW6BPK6AIUTMSAWW7QYA2GSEUZTHVFDIC3TRUWG34TS55TMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

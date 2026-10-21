@@ -87,9 +87,36 @@ if ($async_mode) {
     ## populated for auto-selected models ].                                ##
     my $pinned_model = $assembled->{'parsed'}->{'model'};
     if ( defined $pinned_model and length $pinned_model ) {
-        my $pin_backend  = $backend_info->{'backend'} // 'gpu';
-        my $defer_dep_id = <[coding.task.ensure_model_pinned]>
-            ->( { 'checksum' => $pinned_model, 'backend' => $pin_backend } );
+        my $pin_backend = $backend_info->{'backend'} // 'gpu';
+
+        ## a pin still lacking its path half names no model on this host ##
+        ## [ coding.mode.local_model_id found it nowhere ] : fail now,   ##
+        ## parking would wait for a switch that can never happen         ##
+        my $pin_error
+            = $pinned_model !~ m|^[A-Z2-7]{7}:[A-Z2-7]{7}$|i
+            ? "model pin $pinned_model : no such model in the registry"
+            : undef;
+
+        my $defer_dep_id;
+        $defer_dep_id
+            = <[coding.task.ensure_model_pinned]>
+            ->( { 'checksum' => $pinned_model, 'backend' => $pin_backend } )
+            if !defined $pin_error;
+        $pin_error = $defer_dep_id->{'error'}
+            if ref $defer_dep_id eq qw| HASH |;
+
+        if ( defined $pin_error ) {
+            <[base.logs]>->(
+                0,        '[model_pin] ' . 'task %s : %s',
+                $task_id, $pin_error
+            );
+            $task->{'execution'}->{'status'} = 'failed';
+            $task->{'execution'}->{'error'}  = $pin_error;
+            <[jobqueue.move_job]>->( $job_id, 'error' );
+            <[coding.task.fail]>->( $task_id, $pin_error );
+            return { success => FALSE, error => $pin_error };
+        }
+
         if ( defined $defer_dep_id ) {
             <[base.logs]>->(
                 1,
@@ -255,8 +282,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,..,.,.,,,,,,,.,.,,,,..,.,.,..,,..,,.,.,..,,.,.,...,..,,,,.,,,.,,,.,.,,,...,
-#IIVGAJLGNDH47BFUX5COJRMAEVYIVAWNTYS3PODTO5K6ZLMKZ67T2ZX5GZSBQUK6SUSW3W66IYKS6
-#\\\|BRJYGQI4QALWPKSSGNZKWWZ5ZWYDXTDI4RRKBB3QBJ6AY52R42U \ / AMOS7 \ YOURUM ::
-#\[7]NUHZWGJE7BREGZUYNFY4PA2ZUKQDLEP2DWON4BYCMVWVVDADNADY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,,,..,,,,.,,,.,,,,,,,,,,..,,..,.,.,...,...,,,,,,.,,,.,,.,.,,..,
+#5LUIV434P6EQX43SF4MWIKVJX63375K3Y6R2CSXCJNXWRFDLRRNHXVDAXE7SI3SW5LKGEVSXVA3KA
+#\\\|KNPK4HQ3HS7PRTS4XRUY35LFRRSPHVTYDJ5N4DYY3LOM4K7SVNL \ / AMOS7 \ YOURUM ::
+#\[7]V2UPJDCYWCYSCQN2YSM6OY72YSUD4NY2FNXPVGWEFPPYXPDJSKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

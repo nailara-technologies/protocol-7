@@ -3,7 +3,8 @@
 # name  = coding.mode.local_model_id
 # descr = map a model pin to the id this host knows : '<path>:<content>',
 #         ':<content>' or '<content>' -> the local '<path>:<content>' with
-#         the same content half, else the pin as given
+#         the same content half [ served first, then the registry ], else
+#         the pin as given
 # param = $model_id -> model id [ upper case ] | undef
 # note  = the path half differs between hosts [ same file under another
 #         parent dir ], the content half does not -- a repo pin written on
@@ -37,10 +38,29 @@ foreach my $known_id (@known) {
     return $known_id;
 }
 
+## not served right now : the registry knows the full id of every model on ##
+## this host -- a content-only pin for a model that is not loaded would    ##
+## else reach switch-model without its path half                           ##
+my $metadata    = <coding.model_metadata> // {};
+my @in_registry = sort { ( $b->[1] <=> $a->[1] ) or ( $a->[0] cmp $b->[0] ) }
+    map {
+    [ uc( $ARG->{'amos'} // '' ), ( $ARG->{'available'} // TRUE ) ? 1 : 0 ]
+    }
+    grep { uc( $ARG->{'amos'} // '' ) =~ m|^[A-Z2-7]{7}:\Q$content_part\E$| }
+    grep { ref $ARG eq qw| HASH | } values %$metadata;
+
+if (@in_registry) {
+    <[base.logs]>->(
+        2,         '[local_model_id] %s -> %s [ registry, same content ]',
+        $model_id, $in_registry[0][0]
+    ) if $in_registry[0][0] ne $model_id;
+    return $in_registry[0][0];
+}
+
 return $model_id;
 
-#,,,,,.,,,.,,,.,,,.,,,...,.,.,,.,,,..,,,.,,,,,..,,...,...,.,,,.,,,,..,.,.,,,.,
-#GQ4Y2M3XTO7AR547UP6H6DLROPDY4YGJ72GHTJXWJAMWPU73EWE3SZLI2SHR2WWJEP32ZXJVBYYP4
-#\\\|FTYE6LFNYISYWV2B75JSBWRWZJTWJLDWN7WAKT6IWJUAF2TEYJP \ / AMOS7 \ YOURUM ::
-#\[7]DQWZH6X3Z4QXRETDIVTAPVUVRTCURTXUEYAJCVJQN5QCLZGS3ODQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,...,,,.,.,.,.,,,.,.,.,,,,.,,..,,...,...,.,,,,,.,.,,,..,,,,,,
+#ZRWBCDYNXJCH47DSHDCA5WGCOFEK2P5NDTTNCPOQ4652PTGNLR5JSGMPB3T6CSVGPZHNJFRLKQCXY
+#\\\|ZGMU3VSXDXL7LAJNAU3SECJPUVUGTMFXO2GZI4LX3W2E7CHUVVO \ / AMOS7 \ YOURUM ::
+#\[7]LMOWKVQEOGOCOQM2ZXPELBKSG3M353PLUGXGTWSET7JF7Z3EKSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

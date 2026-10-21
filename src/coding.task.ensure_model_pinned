@@ -5,7 +5,8 @@
 #         mismatches, trigger a switch (once, guarded against redundant
 #         firing) and return a dependency object id the caller should
 #         re-queue the task against. returns undef if no defer is
-#         needed [ already correct, or no checksum given ].
+#         needed [ already correct, or no checksum given ], and a hashref
+#         { error => $text } when switch-model refuses the switch.
 
 my $params   = shift                 // {};
 my $checksum = $params->{'checksum'} // '';
@@ -108,23 +109,34 @@ unless ( <coding.model_switch_in_flight>->{$checksum} ) {
         1,         '[model_pin] switching to %s on %s for pinned task',
         $checksum, $backend
     );
-    eval {
+    ## switch-model refuses by reply, not by dying : an 'Error' reply never ##
+    ## starts a switch, so the in-flight guard would park the task for good ##
+    ## -- clear it and hand the refusal to the caller                       ##
+    my $switch_reply = eval {
         <[coding.cmd.switch-model]>
             ->( { 'args' => "$checksum backend=$backend" } );
-        1;
-    } or do {
-        my $err = $@ || 'unknown error';
+    };
+    my $refusal
+        = !defined $switch_reply ? ( $@ || 'unknown error' )
+        : ( ref $switch_reply eq qw| HASH |
+            and ( $switch_reply->{'data'} // '' ) =~ m|^Error| )
+        ? $switch_reply->{'data'}
+        : undef;
+    if ( defined $refusal ) {
+        $refusal =~ s{\s+$}{};
         <[base.logs]>->(
-            0, '[model_pin] switch-model call failed : %s', $err
+            0,         '[model_pin] switch to %s failed : %s',
+            $checksum, $refusal
         );
         delete <coding.model_switch_in_flight>->{$checksum};
-    };
+        return { 'error' => "model pin $checksum : $refusal" };
+    }
 }
 
 return $dep_id;
 
-#,,,,,,..,,,.,,,.,,,,,.,.,,..,.,.,.,,,.,,,.,,,..,,...,...,,.,,.,.,.,.,.,,,,,,,
-#MFTFYKSGM2XU5JIWVB4PGBLPCWTNCSKVYB6YCSLUWMPB3ME3FOZJPQMDPL3G52HSVBOJPM6MTSVFA
-#\\\|FQODISJ55SW67DL4TJRYRFLIIGUD43B2PIKWGUWY4XCE4Y4MEJI \ / AMOS7 \ YOURUM ::
-#\[7]DT7WWMQ6SBMRBJOCZ445T6TMZD5HKOYU6JRLBOU3LX4DBWUINCCA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,,..,.,.,,.,,,,,,..,,...,,..,..,,...,...,..,,..,,.,,,.,,,,,.,
+#CD3XUHWDY44QWSM7UNFDZV7NECI3F32DVJQCP4X65FPK77BYYCTVSU7C5CET5F2DD6NAKXL7J7WXU
+#\\\|AHXL7LNYW6CXZCVYEQNUXAUL5T2A4WZBIUAMJQ2RTMT33OA3M5N \ / AMOS7 \ YOURUM ::
+#\[7]V772P3QFM3GLAFC3OUIOZYRH3CDI4K7PO2O6Y3X724WLS2NN5EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
