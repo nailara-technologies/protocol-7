@@ -36,6 +36,8 @@ package AMOS7::TERM::Editor;    #############################################
 ## a reader is a hashref with two closures :
 ##   read   => sub ( $timeout ) -> single byte or undef
 ##   ungetc => sub ( $bytes )   -> push bytes back [ read again in order ]
+## and optionally :
+##   eof    => sub ()           -> true once the input is gone [ tty closed ]
 
 use v5.32.0;
 use utf8;
@@ -64,6 +66,7 @@ our $VERSION = qw| AMOS7::TERM::Editor-VERSION.5AANLBY |;
 ##[ DEPENDENCIES ]############################################################
 
 use Fcntl       qw| F_SETFL O_NONBLOCK |;
+use Errno       qw| EAGAIN EINTR |;
 use POSIX       qw| TCSANOW ICRNL |;
 use Time::HiRes qw| time |;
 
@@ -255,18 +258,36 @@ sub editor_deinterlace {
 ##[ KEY READER ]##############################################################
 
 our $stdin_pushback;
+our $stdin_eof;
 
 sub _stdin_read_byte {
     my $timeout = shift // 0;
     if ( defined $stdin_pushback and length $stdin_pushback ) {
         return substr( $stdin_pushback, 0, 1, '' );
     }
-    my $r = '';
+
+    ## a handled signal [ WINCH, CONT ] interrupts select and sysread :    ##
+    ## retry for the time left. taking EINTR as a timeout cut pastes short ##
+    ## and ran the rest as editing keys [ resize during a paste ]          ##
+    my $deadline = time() + $timeout;
+    my $r        = '';
     vec( $r, fileno(STDIN), 1 ) = 1;
-    my $ready = select( $r, undef, undef, $timeout );
-    return undef if !defined $ready or $ready <= 0;
+    my $ready;
+    while (1) {
+        my $remain = $deadline - time();
+        $remain = 0 if $remain < 0;
+        $ready  = select( my $rout = $r, undef, undef, $remain );
+        last if $ready >= 0 or $ERRNO != EINTR or $remain == 0;
+    }
+    return undef if $ready <= 0;
+
     my $b;
-    my $n = sysread( STDIN, $b, 1 );
+    my $n;
+    do { $n = sysread( STDIN, $b, 1 ) } while !defined $n and $ERRNO == EINTR;
+    ## eof or a read error [ EIO once the tty is gone ] : input is over ##
+    $stdin_eof = TRUE
+        if ( defined $n and $n == 0 )
+        or ( !defined $n and $ERRNO != EAGAIN );
     return undef if !defined $n or $n == 0;
     return $b;
 }
@@ -278,7 +299,12 @@ sub _stdin_ungetc {
 
 sub editor_make_reader {
     ## reader closure pair bound to STDIN [ the live editor input ]
-    return { read => \&_stdin_read_byte, ungetc => \&_stdin_ungetc };
+    $stdin_eof = FALSE;
+    return {
+        read   => \&_stdin_read_byte,
+        ungetc => \&_stdin_ungetc,
+        eof    => sub {$stdin_eof},
+    };
 }
 
 sub _read_paste_block {
@@ -511,9 +537,26 @@ sub edit_text {
         kill 'QUIT', $PID;
     };
 
+    ## job control : hand the shell a sane tty while stopped, take raw mode ##
+    ## back on continue [ the shell resets the tty meanwhile ]              ##
+    local $SIG{'TSTP'} = sub {
+        $sig_cleanup->();
+        ## perl blocks TSTP while its handler runs : a re-raised TSTP only ##
+        ## re-enters this handler. STOP cannot be blocked                  ##
+        kill 'STOP', $PID;    ## stops here until SIGCONT ##
+    };
+    local $SIG{'CONT'} = sub {
+        Term::ReadKey::ReadMode(4);
+        _disable_icrnl();
+        paste_enable();
+        print "\e[4 q";
+        $resized = 1;         ## full redraw ##
+        syswrite( $sig_w, 'c', 1 );
+    };
+
     ## raw mode : ctrl-c is read as the byte \x03, not delivered as SIGINT ##
     Term::ReadKey::ReadMode(4);
-    _disable_icrnl();    ## keep pasted "\r\n" from becoming "\n\n" ##
+    _disable_icrnl();         ## keep pasted "\r\n" from becoming "\n\n" ##
 
     ## bracketed paste : the terminal wraps pasted text in  "\e[200~" ... ##
     ## "\e[201~" so a multi-line paste arrives as one block               ##
@@ -773,6 +816,13 @@ sub edit_text {
                 }
                 if ( vec( $rout, fileno(STDIN), 1 ) ) {
                     $key = read_editor_event( $reader, \$aborted );
+
+                    ## readable but nothing to read : the tty is gone. ##
+                    ## abort like a hangup instead of spinning on eof  ##
+                    $aborted = 1
+                        if !defined $key
+                        and $reader->{'eof'}
+                        and $reader->{'eof'}->();
                 }
             }
 
@@ -953,6 +1003,7 @@ sub edit_text {
 
     Term::ReadKey::ReadMode(0);
     paste_disable();
+    print "\e[0 q";    ## cursor shape back on every exit path ##
     STDOUT->autoflush($old_autoflush);
 
     if ($eval_error) {    ## restore tty, then rethrow ##
@@ -980,8 +1031,8 @@ sub edit_text {
 
 1;
 
-#,,,.,,.,,..,,..,,...,..,,..,,..,,,,,,...,,..,..,,...,...,,,,,,..,,,,,.,.,..,,
-#PA66ZOUBLRLMJKG2MHBFHJVZCA2PYRI5G2SCLSYTDDSE6F2SHSAF4IWIZQU5NBX6A5MRGAQJZO3YK
-#\\\|LJHFTBXRAR6IF4TXE5ILLH2ZKUET3KGOGNJDE4Q7RKNTIMR5HMC \ / AMOS7 \ YOURUM ::
-#\[7]EV47R4B6YU472P2IQTDX6KNEUJ3HVNK6GMP3EN3PSQFDOFSBBQDY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,.,,...,..,,.,,,.,.,...,,..,.,.,..,,...,..,,...,,.,,,.,,,,,,.,,,
+#3BCGNFKQF5XHFMOE5AHK5ZC47ISB4BIDYF3PL3EWK3GI4NQD7S6VIMGSVH6GBO2MTVCXWZ4B3CWK2
+#\\\|4NCM2IXLWAVA3JZ5ZZ7BGX5P6WIWYUTR44NKE5N2HRDOB6GR265 \ / AMOS7 \ YOURUM ::
+#\[7]QQ3SA3IZSXIPB42GYK5TK5NDFSSRVUE5ZQMJ7RHRYPW6MPGUOYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
