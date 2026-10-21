@@ -1522,9 +1522,28 @@ items:
   - cloud
   - notify
   text: 'cloud session completion notice : a dispatched claude cloud session pushes a branch and nothing notices'
+- added: 32DIXBW2A4
+  details: |-
+    owner idea 2026-10-22, links 5OT 6C6. a host where the vault is NOT unlocked hands in a secret [ new server password, generated key ] ; a host where it is unlocked imports, rejects or ignores it.
+    - vault sync package carries an import PUBLIC key [ X25519 ] + key id ; its private half lives INSIDE the vault [ under the master key ] -- only an unlocked host can open items
+    - per item [ HPKE base \ sealed box shape ] : fresh ephemeral X25519 pair, shared secret with the import key, HKDF over [ ephemeral pub, import pub, label "p7-vault-import v1" ] -> item key, ChaCha20-Poly1305 with a random 12 byte nonce, metadata [ item id, type, source host, time, import key id ] as AAD ; synced item = ephemeral pub || nonce || ciphertext ; ephemeral private discarded at once -> a compromised remote holds nothing that opens past items. NOT a static sender key [ one key for all of a host's items, past items open once it leaks ]
+    - sender authenticity : item also signed [ labelled sig ] by the sending host's identity key [ host-root delegated, like nameserv-sync ] ; importer shows "from <host>, signed, pin ok"
+    - import : decrypt, write as a normal new-version vault entry, sync a tombstone so every copy is dropped. reject : tombstone + shred, nothing into the vault. ignore : local mark only, item stays in sync for another host
+    - plaintext never on the remote's disk : memory only while encrypting, secret_wipe after
+    - key rotation : key id per item, old import privates kept until no item names them ; replay : importer remembers imported item ids
+    - primitives exist : CryptX X25519 + ChaCha20-Poly1305 [ link-upgrade ], AMOS7::Vault versions + secret_wipe, the vault sync [ HTC ]
+  done_at: null
+  id: DKX
+  priority: normal
+  status: open
+  tags:
+  - vault
+  - crypto
+  - design
+  text: 'p7-vault sealed import : remote hosts hand secrets to a locked vault [ ephemeral X25519 per item ]'
 
-#,,,,,..,,..,,.,,,...,.,.,...,,,.,,.,,.,,,...,..,,...,...,,.,,,..,,,.,...,,..,
-#U25VCLXNTSGCJ3T5TWUZ4CLPGF6W3DMPQ4O3ETUY72MSTF4B46V2Q4DITS3Q2OTOTOFR2DVLJCXC6
-#\\\|WUHKP25VGL6OZYHGCBCS5AC63VVVSPBNJXUMVIPWUBVJEP7GWKY \ / AMOS7 \ YOURUM ::
-#\[7]WWOST4FQUUVNJ7NJEXS3B3P6KCITAYSFUGG53MLP4RTZRLMBGMDQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,,..,.,.,.,.,...,,,.,..,,.,,,,,.,..,,...,...,...,.,,,..,,...,.,,,
+#6EJYG4TGTZKUMVFX2D6OGTOMOSNQDZPXPIHOTYGPJRVLISXQWEUYHV3OSGSZTEQI4RJXEXR5KDMWQ
+#\\\|UWTF7MQMPMJT7Z5MDYWIXAOY4JVNRVP3AOWS5QC55R35BHMIUJI \ / AMOS7 \ YOURUM ::
+#\[7]52BWFRW7BC6MCVPC76LBO5ECMSPMBPQLXW6WSPC3C7MMKNPZZIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

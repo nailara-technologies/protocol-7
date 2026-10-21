@@ -4,8 +4,8 @@
 # param = <label>
 # descr = remove a link authorized with authorize-link
 # note  = drops the 'p7-link:<label>' line from ~/.ssh/authorized_keys and
-#         ~/.n/remote-keys/authorized/cube/<label>.public. an open link
-#         keeps its session until it closes or the cube reloads its keys
+#         ~/.n/remote-keys/authorized/cube/<label>.public [ the symlink ] with
+#         its pin in incoming/. an open link keeps its session until it closes
 
 my ($label) = grep {length} split m|\s+|, $call->{'args'} // '';
 
@@ -36,9 +36,12 @@ if ( open my $ak_fh, '<', $ak_file ) {
     }
 }
 
-my $key_file = catfile( <[crypt.C25519.key_vars]>->{'auth_dir'},
-    qw| cube |, "$label.public" );
-push @done, 'cube key' if -e $key_file and unlink $key_file;
+## the authorizing symlink first, then the pin it points at ##
+my $key_vars = <[crypt.C25519.key_vars]>;
+my $link = catfile( $key_vars->{'auth_dir'}, qw| cube |, "$label.public" );
+my $pin  = catfile( $key_vars->{'incoming_dir'}, "$label.public" );
+push @done, 'cube authorization' if ( -l $link or -e $link ) and unlink $link;
+push @done, 'cube key pin'       if -e $pin                  and unlink $pin;
 
 <[base.logs]>->(
     0,      '<< link revoked : %s [ %s ] >>',
@@ -52,8 +55,8 @@ return {
     : "link '$label' : nothing to revoke"
 };
 
-#,,.,,.,,,..,,,..,..,,.,,,,,,,.,,,,..,,.,,...,..,,...,...,,.,,,,,,,..,,.,,,.,,
-#N2SYY66HGP2ZE3HP2HRS2ICBA272GNC6JAUHT2GNLLWZQXUXC4UHKAODY65ZA6J7ATSBV2I5LSNPQ
-#\\\|3N3WVT32MHNQCWCBU2RF4Q4FYXN66FJRXCIP2FXOCV2DIWPQILZ \ / AMOS7 \ YOURUM ::
-#\[7]IJ5TNEP4LKCCM23THVV3OMLZGXFWAJUZ5V7EZGHYJBM43IPD44BQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,,,.,,,,.,,,,.,,,,,.,.,,,.,.,,,..,,...,..,,...,,.,,,,,,...,.,.,
+#FJPPL7ZJRZBR7AW4VMBHVWDOY5VLLZOFD5RFJ2LNZTO5F7XWCNN5ZQCWO2V5YJ4BMBZEYZWTHYKG6
+#\\\|YCDB6L6HSU3CDVJK4UXSHYMCQLSPD7KCOYE4GLD4YPSBHMTUMB4 \ / AMOS7 \ YOURUM ::
+#\[7]UNLKZXK6UBBTTIEQQ5PGCZYKSD32P5XICH3A7PPCDUZ7G752WIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
