@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = nameserv.reply.echo_question
+# param = <reply packet> <question of the query>
+# descr = put the asker's question into a shared reply
+# note  = a cached or shared upstream reply carries the case of whoever
+#         asked first ; resolvers with 0x20 case randomisation drop an
+#         echo that differs [ rfc 1035 : the question goes back as sent ].
+#         Net::DNS keeps it as $packet->{'question'} [ 1.36 + 1.57 ]
+
+my $reply    = shift // return undef;
+my $question = shift // return $reply;
+
+$reply->{'question'} = [
+    Net::DNS::Question->new(
+        $question->qname, $question->qtype, $question->qclass
+    )
+];
+
+return $reply;
+
+#,,,,,.,,,.,,,.,,,,.,,,,.,.,.,...,...,...,,..,..,,...,...,.,,,,.,,...,,.,,,,.,
+#H2SKU7YJYNO52ITGC5LNP7FKYH7M4T5N2SFXZW3KJVDQMTQMAMF6Z5MTSMNBRNBBOGHKL6TOA4G2E
+#\\\|ABRWLLYBDPFLPIMZRMYU4D2APMEBYDNI7VJCZQLGVIBON26OYI4 \ / AMOS7 \ YOURUM ::
+#\[7]ZDXIYDOCNMRXC4NFNAQB3PETQORXV7FI54OT5YWOL7OUE2XJ72BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

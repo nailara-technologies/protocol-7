@@ -28,8 +28,11 @@ my $qtype = $questions[0]->qtype();
 
 <[base.logs]>->( 3, ": dns query [ %s %s ]", $qname, $qtype );
 
-## create reply packet
-my $reply = Net::DNS::Packet->new( $qname, $qtype );
+## create reply packet : the question goes back exactly as received [ rfc  ##
+## 1035 ; resolvers with 0x20 case randomisation -- unbound, let's encrypt ##
+## -- drop a lowercased echo as spoofed : SERVFAIL ]                       ##
+my $reply = Net::DNS::Packet->new( $questions[0]->qname(),
+    $qtype, $questions[0]->qclass() );
 $reply->header->id( $packet->header->id );
 $reply->header->qr(1);    ## set as response
 $reply->header->aa(1);    ## authoritative answer
@@ -101,8 +104,8 @@ if ($zone_match) {
 
 return $reply;
 
-#,,..,,.,,...,,..,...,,.,,.,,,.,,,,..,,.,,.,,,..,,...,..,,...,...,.,,,,..,.,,,
-#XGGKW2UHRV2IKG5QKFO36IFJYRWQBKQFLOX7KOQWYFC76PBHZWC6UALJ3QZ7L74T6MNV4S22NYLHS
-#\\\|VYUZBXYXQCHJI4253XZVUPNA4AVNHRS7YB3X3SAOBHDKOEOOQCS \ / AMOS7 \ YOURUM ::
-#\[7]OJ4LIN7LHKS4TZFGHFU76CQZ6F23BUVYOO7XL254GTSVA3AHRCCA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,,,..,,,.,,..,,.,,,,,,,.,.,...,..,,...,...,..,,...,,.,,.,.,,..,
+#FUZ4Z76NDC3VLC27QDIOMEP4EJBEEV2K4CYQ32A4LQENETR2677XMRMJW2Y7JAAVMYVVCCQUOQR7C
+#\\\|23VJEQC7J77X4BRNZSURFCP5V4KM5L2MTT6CBWXS4AFBVXLWKIR \ / AMOS7 \ YOURUM ::
+#\[7]HOVU2IRI5LV22NQB27LHSBF7Y3VJR2TSSTOUUJUN3R4CIMRV2EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
