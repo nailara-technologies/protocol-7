@@ -81,17 +81,26 @@ for my $checksum ( sort keys %$deferred ) {
         1,         '[model_pin] draining deferred switch to %s on %s',
         $checksum, $backend
     );
-    eval {
+    ## a refusal comes back as an 'Error' reply, not a die ##
+    ## [ same as coding.task.ensure_model_pinned ]         ##
+    my $switch_reply = eval {
         <[coding.cmd.switch-model]>
             ->( { 'args' => "$checksum backend=$backend" } );
-        1;
-    } or do {
-        my $err = $@ || 'unknown error';
+    };
+    my $refusal
+        = !defined $switch_reply ? ( $@ || 'unknown error' )
+        : ( ref $switch_reply eq qw| HASH |
+            and ( $switch_reply->{'data'} // '' ) =~ m|^Error| )
+        ? $switch_reply->{'data'}
+        : undef;
+    if ( defined $refusal ) {
+        $refusal =~ s{\s+$}{};
         <[base.logs]>->(
-            0, '[model_pin] deferred switch-model call failed : %s', $err
+            0,         '[model_pin] deferred switch to %s failed : %s',
+            $checksum, $refusal
         );
         delete <coding.model_switch_in_flight>->{$checksum};
-    };
+    }
 }
 
 ## drop the per-backend hash once it has no entries left ##
@@ -100,8 +109,8 @@ delete <coding.model_pin_deferred>->{$backend}
 
 return TRUE;
 
-#,,,,,,,,,.,,,..,,,..,.,.,..,,...,..,,,,,,,,,,..,,...,...,...,,.,,..,,...,..,,
-#EVRV46PUXTHJ5HK762QAFNQDFPNIHPA5MKPT7BH6OHYS7XKV36NN2S43EFIHNFYYFCQUK4SHSVGZ4
-#\\\|7DZEQVVO27K43FBU4AOJV5XHURMV44B3HOZ2U4F2TCFBYVA5CGE \ / AMOS7 \ YOURUM ::
-#\[7]HCSTSEN4Q4P3U7HA7VXDTT2CTUBBVC3TQKGZR2KEKA6OVAYBNMCA 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,.,,,,,.,,,.,,..,...,,.,,...,..,,...,...,,..,,,,,,.,,.,,,,,,,
+#DXOZWYZ3C3VJLYO46PTJCYP7VZO52GMI7WZGU3CIUBRYXQPM5AM4T35JK2RE7ZG45PQCOQBC34JGG
+#\\\|3KCFF4WTELLOTF5BH3W2GEUZ5OJJUXSL5EOA2K52KW2NWTLY2YQ \ / AMOS7 \ YOURUM ::
+#\[7]GCAEXDHNFPY7YP7DPL6XJCSJSI3PZ5LWEERMNOO7PS73J5NDXCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
