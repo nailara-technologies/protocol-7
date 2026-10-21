@@ -9,8 +9,8 @@
 #            restrict,port-forwarding,permitopen="127.0.0.1:<cube port>",
 #            command="/bin/false" -- forwarding to the cube port only, no
 #            shell. tagged 'p7-link:<label>' [ replaced on a re-run ]
-#         2. ~/.n/remote-keys/authorized/cube/<label>.public : the cube
-#            key the link authenticates with [ auth-keypair ]
+#         2. ~/.n/remote-keys/incoming/<label>.public : the cube key pin,
+#            authorized by the symlink authorized/cube/<label>.public -> it
 #         refused unless cfg/zenki/cube/access.users holds a narrow
 #         access.cmd.usr.<label> grant [ no '*' ] : no key ever gets in
 #         without an explicit command list. undo : revoke-link <label>
@@ -102,22 +102,34 @@ if ( not $ok ) {
     };
 }
 
-## 2. cube key : the label the link authenticates as ##
-my $cube_dir = catfile( <[crypt.C25519.key_vars]>->{'auth_dir'}, qw| cube | );
-<[file.make_path]>->( $cube_dir, 0700 ) if not -d $cube_dir;
-my $key_file = "$cube_dir/$label.public";
-my $key_tmp  = "$key_file.$PID";
+## 2. cube key : the label the link authenticates as -- the auth-keypair    ##
+## convention : the pin in incoming/<label>.public, authorized by a SYMLINK ##
+## authorized/cube/<label>.public -> it [ a plain file loads but            ##
+## plugin.auth.auth-keypair.validate-incoming-tofu wants -l ]               ##
+my $key_vars     = <[crypt.C25519.key_vars]>;
+my $incoming_dir = $key_vars->{'incoming_dir'};
+my $cube_dir     = catfile( $key_vars->{'auth_dir'}, qw| cube | );
+for my $dir ( $incoming_dir, $cube_dir ) {
+    <[file.make_path]>->( $dir, 0700 ) if not -d $dir;
+}
+my $pin_file = "$incoming_dir/$label.public";
+my $pin_tmp  = "$pin_file.$PID";
+my $link     = "$cube_dir/$label.public";
 $ok = FALSE;
-if ( open my $key_fh, '>', $key_tmp ) {
+if ( open my $key_fh, '>', $pin_tmp ) {
     print {$key_fh} "$cube_b32\n";
     $ok
         = close($key_fh)
-        && chmod( 0600, $key_tmp )
-        && rename( $key_tmp, $key_file );
+        && chmod( 0600, $pin_tmp )
+        && rename( $pin_tmp, $pin_file );
+}
+if ($ok) {
+    unlink $link if -e $link or -l $link;
+    $ok = symlink( $pin_file, $link );
 }
 if ( not $ok ) {
     my $error = "$OS_ERROR";
-    unlink $key_tmp;
+    unlink $pin_tmp;
     return {
         'mode' => qw| false |,
         'data' => "cube key not written : $error [ the "
@@ -137,8 +149,8 @@ return {
         . 'reload ]'
 };
 
-#,,,.,...,,.,,..,,...,,,.,..,,,,,,,,.,.,,,...,..,,...,...,...,,,,,,..,.,,,,.,,
-#SIXHXAEICHCEAJQ2W5TST6T3GAKQED3HOTYTNXIX7QNCG6FUJ3CLFI6U7LDZM5FNZ4OVPMUG73UUM
-#\\\|4XGT6W3PILB2FODXUETMJMVSUGXGJNZOXBAHZUMNQFVBKEKMGL3 \ / AMOS7 \ YOURUM ::
-#\[7]7TBVYIBIJZKEHTOICSILOY542Q7WJFBQMDI6NXNG3PFN5QEKSEDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,...,...,,.,,,..,..,,,,,,,,.,..,,...,...,...,.,,,.,,,,..,,,.,
+#JDH6UZYNYW5C7MXUKMNZ2D4IR6VE3RGKEXMT2SEA5HFASE4N3UX4ZQE6WD636I7WDHLHQ3LMFUNPO
+#\\\|CCHIAQY2ATQAGODVO75B3PNETMVOLEWUXN2TBHEOT7CCXWJKLEA \ / AMOS7 \ YOURUM ::
+#\[7]ZQE4RZXCZBFSLDQXEZ6N2SHUO5EMUBRR3L7IH5L22M3243HGXYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
