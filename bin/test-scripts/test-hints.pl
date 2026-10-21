@@ -213,8 +213,8 @@ ok(
     ),
     'later Host block and Match block ports did not leak in'
 );
-ok( ( grep { $_->{'note'} =~ m{Match block skipped} } @atom ) > 0,
-    'Match blocks are noted as skipped, not guessed'
+ok( ( grep { defined $_->{'shadowed_by_match'} } @atom ) == 0,
+    'a Match AFTER the statement never shadows [ first value wins ]'
 );
 
 my $ssh = candidates_for( 'ssh', \@atom );
@@ -252,6 +252,69 @@ ok(
             and $fallback->[0]{'value'} eq 'other.example.org'
     ),
     'a name only the catch-all matches still gets Host * values'
+);
+
+##[ ssh config : skipped Match shadowing, position aware ]####################
+
+say ': ssh config match shadowing';
+
+my $match_config_path = File::Spec->catfile( $ssh_dir, qw| match.conf | );
+{
+    open( my $fh, '>', $match_config_path ) or die $!;
+    print {$fh} <<'EO_MATCH';
+Match host shadowed
+    Port 9999
+Host shadowed
+    HostName shadowed.example.org
+    Port 2022
+EO_MATCH
+    close($fh);
+}
+
+my @shadowed = $ssh_config->( $match_config_path, 'shadowed' );
+my $sh_ports = candidates_for( 'ssh_port',  \@shadowed );
+my $sh_addr  = candidates_for( 'addresses', \@shadowed );
+ok( ( scalar @$sh_ports == 1 and $sh_ports->[0]{'value'} eq '2022' ),
+    'the skipped Match value itself never becomes a candidate'
+);
+ok(
+    (   ref $sh_ports->[0]{'shadowed_by_match'} eq qw| HASH |
+            and $sh_ports->[0]{'shadowed_by_match'}{'file'} eq
+            $match_config_path
+            and $sh_ports->[0]{'shadowed_by_match'}{'line'} == 1
+    ),
+    'a Match BEFORE the statement shadowing its Port points at the Match'
+);
+ok( ( $sh_ports->[0]{'note'} // '' ) =~ m{skipped Match},
+    'the shadowed port candidate carries the note'
+);
+ok(
+    (   scalar @$sh_addr == 1
+            and not defined $sh_addr->[0]{'shadowed_by_match'}
+    ),
+    'a keyword the skipped Match does not set is not shadowed'
+);
+
+## the ssh target is user@host : an earlier Match setting User shadows it ##
+my $user_match_path = File::Spec->catfile( $ssh_dir, qw| user-match.conf | );
+{
+    open( my $fh, '>', $user_match_path ) or die $!;
+    print {$fh} "Match host um\n    User bob\nHost um\n   "
+        . " HostName um.example.org\n    User alice\n";
+    close($fh);
+}
+my @um      = $ssh_config->( $user_match_path, 'um' );
+my $um_ssh  = candidates_for( 'ssh',       \@um );
+my $um_addr = candidates_for( 'addresses', \@um );
+ok(
+    (           scalar @$um_ssh == 1
+            and $um_ssh->[0]{'value'} eq 'alice@um.example.org'
+            and ref $um_ssh->[0]{'shadowed_by_match'} eq qw| HASH |
+    ),
+    'an earlier Match setting User shadows the composed ssh target'
+);
+ok( not( defined $um_addr->[0]{'shadowed_by_match'} ),
+    '... but not the address [ hostname untouched ]'
 );
 
 ##[ ssh config : key=value, rejected port, Include ]##########################
@@ -464,8 +527,8 @@ if ( $fail_count == 0 ) {
 say sprintf '[ done ] %d passed, %d FAILED', $pass_count, $fail_count;
 exit 1;
 
-#,,,.,.,.,..,,...,...,..,,,,.,,,.,,,.,..,,..,,..,,...,...,,,.,..,,.,,,,,.,.,,,
-#MH7GIOWG6X5GBEMT72ALVLBTO6IIVL6M4RG7ZQI7AVYU5IPHBW6NUVSCRSOLQJKV77TELRXDIXSQC
-#\\\|GE5RQYSC2JKNCR2VNZP24LAQP2QVLRLB2LPMHEMBZSNP35F4JRV \ / AMOS7 \ YOURUM ::
-#\[7]7K3YW3JLATF3NGGNKAJ2EJYAXDB3OOW527CWJVFTHEJJOC5NTUDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,,.,,,.,,,..,,,,,,..,.,,,,.,,..,,...,..,,,.,,..,,.,.,,,,,.,.,
+#KK3WW5RFG3TLRDITUK3ODD4LXFH6XC24QBF4WD6DMCIFWHZR5PKBHL4VEU72MJAEW6LFW7GJU5OLE
+#\\\|3Z56WU5H42VEI2TVJM2RPMO2JINNMVWM3VFYCUNPQZGVCVWNNSH \ / AMOS7 \ YOURUM ::
+#\[7]TYT6AS7OZKKVEDK6VESU4FXAJQ4GA4JKFHEWY5RUBBR32P5WE6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

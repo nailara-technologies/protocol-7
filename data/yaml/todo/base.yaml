@@ -1351,6 +1351,8 @@ items:
     why it matters [ user 2026-10-21 ] : setups often happen under time pressure that cuts clarity down to [ accept ] [ accept ] [ accept ]. the defaults must then BE the right answer [ the user's own earlier statements, filtered ] -- a correct setup by accepting, not by remembering.
     term [ user 2026-10-21 ] : 'managed abstraction' [ layered ] -- each layer settles what it can know [ detection, sanity filter, defaults ], the user enters only where a real decision remains. under time pressure : stay on top and accept ; with time : open any layer and override. one system, depth chosen per moment.
     ranking [ user 2026-10-21 ] : every candidate keeps its source [ file, earlier statement, agreeing pin ] -- context and references rank the options, best first with its reason shown ; never a flat, indifferent list.
+    ranking design [ 2026-10-21, after hints.* d83925614 ] : a 'known, values unknown' marker [ e.g. a host only in a Match block ] never yields a value -- alone it offers the name low-ranked with the reason ; next to a defined value from another source it CORROBORATES and raises it. refinement 1 : a Match block BEFORE the Host block that set a keyword can override it [ first value wins ] -- lower confidence only for candidates whose keyword an earlier skipped Match sets [ hints.ssh_config must record which keywords + position, today the note goes on every candidate ]. refinement 2 : 'ssh -G <host>' is ssh's own effective config [ Match evaluated ] -- top source, BUT believed to run 'Match exec' commands too [ unverified : test first ] : use -G only when the config has no 'Match exec', else the parse + marker. order : ssh -G [ safe ] > statement confirmed by a 2nd source > single statement > match-only marker. pins are a TRUST check, not a value source : a disagreeing pin is a conflict to show, never outvoted.
+    verified 2026-10-21 [ OpenSSH 10.5p1 ] : 'ssh -G' DOES run 'Match exec' commands [ fixture touch-file appeared ; -G never connects ] and no option prevents it -> -G only on configs without 'Match exec'. refinement 1 landed in hints.ssh_config : candidates carry shadowed_by_match { file, line } only when an earlier skipped Match sets their keyword [ the ssh target : hostname or user ].
   done_at: null
   id: Q7O
   priority: low
@@ -1370,8 +1372,8 @@ items:
   - memory
   text: "sessions : automatic handovers when a session's token cache times out, reports for completed ones"
 
-#,,.,,..,,..,,.,,,.,,,.,,,...,...,...,..,,,,.,..,,...,.,.,,..,,.,,.,.,,..,,.,,
-#3DULP7ERDYI64IT6FGMIAGSFBMUSP6SY3TOX2KTN77KCHWUM5GLJ5RDRQBGKVRF7HSSXWRTSNFRDU
-#\\\|QC6BXJGA3EUTYODSPQ27DJL6CNN26X2PGA6HNECTYREC3R7LPXI \ / AMOS7 \ YOURUM ::
-#\[7]OLFPA6MRKCLDQISAZU6RIBRCO7U77LDUJKNEFAIC2EOPETCCB6BI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,.,,,,.,,.,.,...,..,,,,.,,,,,..,,...,...,...,,..,,,,,,..,...,
+#7QTCUA4IMRQY5JTMIDCY5DIB6OU5XVF4LCUHMIIMEUI6JFSOFDU7VVEEULHCS76MWWZANQQ5VTARC
+#\\\|EEACLEI3XE7PISHH3IKK5PPGCFSZJAZM2PJHXMRF7P66RQKR24J \ / AMOS7 \ YOURUM ::
+#\[7]ZNDUMRYO6BGIU5THPIF4TH75SRMTSXKLXEQWFBHB3F7S4AZ4IOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
