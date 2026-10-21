@@ -19,9 +19,13 @@
 ## [ a skipped Match never includes ]
 ## - '%h' in HostName is the asked name, '%%' a literal '%'
 ## - 'Match' blocks are SKIPPED, not guessed : exec / localnetwork criteria
-## cannot be attributed to a host offline. when one carried a mapped keyword
-## [ HostName, Port, User ] the candidates from this parse carry a note saying
-## so.
+## cannot be attributed to a host offline. each skipped Match records which
+## mapped keywords [ HostName, Port, User ] it sets and its position in the
+## parse [ a running statement counter, includes inline ]. a Match BEFORE the
+## statement a candidate was taken from that sets the SAME keyword shadows the
+## candidate [ first value wins, a later Match never shadows ] : the candidate
+## then carries a note and a shadowed_by_match { file, line } pointer at the
+## FIRST such Match.
 ##
 ## mapping : HostName -> addresses [ and the host half of ssh ], Port ->
 ## ssh_port, User -> ssh_user.
@@ -59,9 +63,11 @@ my $block_matches = sub {
     return $positive;
 };
 
-my %obtained;    ## keyword => { value, file, line, context } ##
-my $match_seen = FALSE;
-my %visited;     ## canonical path => 1 , include loop guard ##
+my %obtained;           ## keyword => { value, file, line, context, pos } ##
+my $stmt_no = 0;        ## running statement counter across the parse ##
+my @skipped_matches;    ## in parse order : { file, line, pos, keywords } ##
+my $open_match;         ## the skipped Match block currently recorded ##
+my %visited;            ## canonical path => 1 , include loop guard ##
 my $include_depth_max = 8;
 
 my $parse_file;
@@ -91,13 +97,25 @@ $parse_file = sub {
         next if not defined $keyword;
         $keyword  = lc $keyword;
         $argument = '' if not defined $argument;
+        $stmt_no++;
 
         if ( $keyword eq qw| host | ) {
+            push @skipped_matches, $open_match
+                if $open_match and keys %{ $open_match->{'keywords'} };
+            $open_match    = undef;
             @host_patterns = grep {length} split m{[\s,]+}, $argument;
             $have_host     = TRUE;
             $in_match      = FALSE;
             next;
         } elsif ( $keyword eq qw| match | ) {
+            push @skipped_matches, $open_match
+                if $open_match and keys %{ $open_match->{'keywords'} };
+            $open_match = {
+                qw| file |     => $path,
+                qw| line |     => $line_no,
+                qw| pos |      => $stmt_no,
+                qw| keywords | => {},
+            };
             $in_match = TRUE;
             next;
         } elsif ( $keyword eq qw| include | ) {
@@ -118,7 +136,7 @@ $parse_file = sub {
         }
 
         if ($in_match) {
-            $match_seen = TRUE
+            $open_match->{'keywords'}{$keyword} = 1
                 if $keyword eq qw| hostname |
                 or $keyword eq qw| port |
                 or $keyword eq qw| user |;
@@ -140,11 +158,15 @@ $parse_file = sub {
             qw| value |   => $argument,
             qw| file |    => $path,
             qw| line |    => $line_no,
+            qw| pos |     => $stmt_no,
             qw| context | => $have_host
             ? 'Host ' . join( ' ', @host_patterns )
             : 'global',
         };
     }
+    push @skipped_matches, $open_match
+        if $open_match and keys %{ $open_match->{'keywords'} };
+    $open_match = undef;
     close($fh);
 };
 
@@ -209,18 +231,45 @@ if ( exists $obtained{'user'} ) {
         );
 }
 
-if ($match_seen) {
-    foreach my $candidate (@candidates) {
-        $candidate->{'note'} = join ' ; ',
-            grep {length}
-            ( $candidate->{'note'} // '', 'Match block skipped' );
+## a skipped Match BEFORE the statement shadows a candidate when it sets ##
+## the same mapped keyword [ first value wins ; later never shadows ]    ##
+foreach my $keyword ( sort keys %obtained ) {
+    foreach my $shadow (@skipped_matches) {
+        next if $shadow->{'pos'} >= $obtained{$keyword}{'pos'};
+        next if not $shadow->{'keywords'}{$keyword};
+        $obtained{$keyword}{'shadowed_by_match'} = {
+            qw| file | => $shadow->{'file'},
+            qw| line | => $shadow->{'line'},
+        };
+        last;
     }
+}
+
+## the ssh target is composed as user@host : both keywords shadow it ##
+my %field_keywords = (
+    'addresses' => [qw| hostname |],
+    'ssh'       => [qw| hostname user |],
+    'ssh_port'  => [qw| port |],
+    'ssh_user'  => [qw| user |],
+);
+
+foreach my $candidate (@candidates) {
+    my ($shadow) = map { $obtained{$ARG}{'shadowed_by_match'} }
+        grep { exists( ( $obtained{$ARG} // {} )->{'shadowed_by_match'} ) }
+        @{ $field_keywords{ $candidate->{'field'} } // [] };
+    next if not defined $shadow;
+    $candidate->{'shadowed_by_match'} = $shadow;
+    $candidate->{'note'}              = join ' ; ',
+        grep {length} (
+        $candidate->{'note'} // '',
+        'keyword also set by an earlier skipped Match block'
+        );
 }
 
 return @candidates;
 
-#,,..,,,,,,..,,,.,.,,,.,.,.,,,,.,,,.,,..,,.,.,..,,...,...,.,.,,.,,...,..,,.,,,
-#TRK6T55YCY2PPSEVFW7FNZSFEPRSRLQL5QFLT2A67QXX44ABI3KWHQ4SBYHUYCQDNXBDWOORWRN3U
-#\\\|ZRETBVNDLRX47AI6QM46PBLPW7HMDBAIHMHLCMPCD3DCFPPEWLZ \ / AMOS7 \ YOURUM ::
-#\[7]HO63AA4MQHJII6J3QUPTTRSVE2T57X4TFEPKR3CLUT3S2BBKTGBY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,,,,,,,,.,,...,,.,,,.,,,..,.,,,..,,...,...,,.,,,,.,...,.,.,,.,,
+#6OBUV22FKFBMMSEJQL5JXL2PBH6TDVNXHQN3TDXWL5DGL3NAFLI5GFCPYZRXLKFQ6TORKQO5IA6OK
+#\\\|76J4A4OF72M7BNPJ6TGG3ZKVXPQVUQ7GY6DZI7S6JMXWYC5V2YC \ / AMOS7 \ YOURUM ::
+#\[7]YFY567LIV4DUGJOLMNI3PYGF35RC3I6TPUEGDI6N5XGMKXFD2MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
