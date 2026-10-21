@@ -3,6 +3,10 @@
 # name   = v7-zenki.zenka.get_dependencies
 # descr  = return zenka dependencies of specified zenka
 # return = <list_of_zenki> [ as space seperated string ]
+# note   = 'dependencies' always count. 'optional_dependencies' count
+#          like them where the zenka is not disabled on this host, and
+#          are left out where it is [ external : discover is lan
+#          multicast, disabled on servers ]
 
 my $zenka_name = shift;
 
@@ -10,10 +14,16 @@ return warn '<get_dependencies> expected zenka name {C1}'
     if not length( $zenka_name // '' );
 return undef if not exists <v7-zenki.start_setup.zenki.config>;
 my $config = <v7-zenki.start_setup.zenki.config>->{$zenka_name} || {};
-return $config->{'dependencies'}                                || undef;
 
-#,,..,.,,,,..,,.,,.,.,,..,.,,,,.,,,.,,,..,,,,,..,,...,...,.,.,.,,,..,,,..,,,,,
-#3KHPQAKX4DLUYWAZNTIMAEJEK5LSHAL2GQEOPUTBFBTYXJ5RSI4IWNT4XN6PLWDD6LHWTPQ3UTZWG
-#\\\|AR7SBPGIH4HEG7W4MGLKLF2245L5SAPKBQFB6RTLZDTHGWIS7DM \ / AMOS7 \ YOURUM ::
-#\[7]SPQCXNRFHC3ZZX25PYBJUUEDNOC4FXHN6NTRL6PYG3ODUE3J7YBY 7  DATA SIGNATURE ::
+my @dependencies = split m|\s+|, $config->{'dependencies'} // '';
+push @dependencies, grep { length and not <[zenka.is_disabled]>->($ARG) }
+    split m|\s+|, $config->{'optional_dependencies'} // '';
+@dependencies = grep {length} @dependencies;
+
+return @dependencies ? join( ' ', @dependencies ) : undef;
+
+#,,.,,,,.,.,.,,,.,...,,..,,,,,,,.,,.,,.,,,,.,,..,,...,...,,.,,.,,,..,,,..,,,.,
+#EI24ZZOWV3YPBBJ7P6INC6WUYJ2UIPMTOFLHQ5UY3PEEIACKS3ATVI3ZONPS6JYYWMVOKR2766OPK
+#\\\|K5LKJA44NJQP7ODKCJSFWJS5HWCQMV62EPTP6TH3ROU3AVA4GUQ \ / AMOS7 \ YOURUM ::
+#\[7]76CRMTWVERI7LN7L253UXYWXIDKBTTCPNEH6FPMEFMVNL6KPTOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

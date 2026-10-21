@@ -279,6 +279,26 @@ foreach my $dep_name (@dependencies) {
         my $reply = <[zenka.cmd.start_once]>->(
             { 'args' => $start_name_str, 'recursion' => $recursion + 1 } );
 
+        ## a dependency disabled on this host never comes up : refuse now ##
+        ## with the reason instead of a start that waits forever          ##
+        ## [ an on-demand caller gets the refusal as its answer ]         ##
+        if ( ( $reply->{'mode'} // '' ) eq qw| false |
+            and <[zenka.is_disabled]>->($dep_name) ) {
+            my $reason = sprintf "dependency '%s' is disabled on this host",
+                $dep_name;
+            <[base.logs]>->(
+                0,           "zenka '%s' not started : %s",
+                $zenka_name, $reason
+            );
+            return {
+                'mode' => qw| false |,
+                'data' => sprintf(
+                    "zenka '%s' not started : %s",
+                    $zenka_name, $reason
+                )
+            };
+        }
+
         <v7-zenki.zenka.auto_cleanup>->{$dep_name} = $LAST_PAREN_MATCH
             if $reply->{'data'} =~ m| id (\d+)$|;
     }
@@ -344,8 +364,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,,.,,..,...,..,,.,.,.,.,,,.,...,...,,,,,..,,..,,...,...,,..,.,,,.,,,..,,...,
-#YRJDUJ2U5OIQA5EKRRXEEQV2RTXDTJYSE5ZZZU3LSCYFBHKHPD42IZKFLRCPZGTKNZ4OEDMDQLTKO
-#\\\|55HTUJJ7P4OJDTJZXIWNJ4ZFRBEZ2F5XLELFLRKPIHRXSUXBMHC \ / AMOS7 \ YOURUM ::
-#\[7]G3B42EFACSQPEZXM5RA2NKDO5Q3G4JSFYV2IU4VGWK2CSFXELQDI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,,.,,,..,,,,,,..,.,,,,..,..,,..,,...,...,...,..,,,.,,,,.,,,,,
+#SMFD274ZAF27KEPJ2OQXH6ZUMXC2EOIBKZLRKDYV5H3UFPGGCNWLK47LZJSHBXMJXX5SEIYG74WWW
+#\\\|WGPR6EWMGLNPIURIXKW5Z5KY3MUY43JMXZVXCVAMNKHE2JWWF46 \ / AMOS7 \ YOURUM ::
+#\[7]NZMQLNMMQ5P2DUK5BZ7ADZDXCVNZX4O5JQW3S73V6ABVKMFK4KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
