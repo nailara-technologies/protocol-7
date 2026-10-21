@@ -20,17 +20,26 @@ my $pending = <nameserv.cache.in_flight> //= {};
 
 if ( exists $pending->{$key} ) {
     push @{ $pending->{$key}{'waiters'} },
-        { 'id' => $q->header->id, 'deliver' => $deliver };
+        {
+        'id'       => $q->header->id,
+        'question' => $questions[0],
+        'deliver'  => $deliver
+        };
     return TRUE;
 }
 
 <nameserv.stats>->{'cache_misses'}++;
 
 my $state = {
-    'key'          => $key,
-    'qname'        => lc $questions[0]->qname,
-    'qtype'        => $questions[0]->qtype,
-    'waiters'      => [ { 'id' => $q->header->id, 'deliver' => $deliver } ],
+    'key'     => $key,
+    'qname'   => lc $questions[0]->qname,
+    'qtype'   => $questions[0]->qtype,
+    'waiters' => [
+        {   'id'       => $q->header->id,
+            'question' => $questions[0],
+            'deliver'  => $deliver
+        }
+    ],
     'upstream_idx' => 0,
     'usevc'        => FALSE,    ## tcp retry flag for truncated replies ##
     'watcher'      => undef,
@@ -43,8 +52,8 @@ $pending->{$key} = $state;
 
 return <[nameserv.cache.forward.try]>->($state);
 
-#,,,.,...,..,,,,.,.,.,,.,,,.,,...,,..,,,,,..,,..,,...,...,...,.,,,,..,,,,,...,
-#CAHXE7XWRFLM3FILEL225VH5BARSNDLYXFMLXAFMPXPW62Y5NHCSO2CCORDTHOTASZNVPBCWNHW4S
-#\\\|B2FFBINNNZU2SGB5MO624TOZLU2RDMPOZ2OSCGDRHD6NTYP2E4N \ / AMOS7 \ YOURUM ::
-#\[7]YWKRXLAIXD7ZNYMHKRSQR7JQG5HV6KQYLA4D7QDELPQGIYSC3MAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,...,,..,,..,...,.,,,..,,,.,,..,,...,...,.,.,,.,,,,.,,,.,,,.,
+#EJW6STKEK3AISKCNS3WRM4Q5SATAOEWWD2TVN2TXYLT5KEHEFLL5GYVUY4SFHGTJLPFLHFA64HSBK
+#\\\|3L2YKOIROONPAKS5EVMIA432YYEAFRJNY43SW5WPNYM7GCCM56Z \ / AMOS7 \ YOURUM ::
+#\[7]CN7IVJ5GISID6VMV3M4ABW5LTDMV6EHSNJZ6GSOTYALETLQJPCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

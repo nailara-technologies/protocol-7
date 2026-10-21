@@ -29,6 +29,7 @@ if ( defined $pkt ) {
         my $copy = eval { Net::DNS::Packet->new( \$pkt->data(65535) ) };
         next unless defined $copy;
         $copy->header->id( $waiter->{'id'} );
+        <[nameserv.reply.echo_question]>->( $copy, $waiter->{'question'} );
         $waiter->{'deliver'}->($copy);
     }
 } else {
@@ -37,6 +38,7 @@ if ( defined $pkt ) {
         my $fail
             = Net::DNS::Packet->new( $state->{'qname'}, $state->{'qtype'} );
         $fail->header->id( $waiter->{'id'} );
+        <[nameserv.reply.echo_question]>->( $fail, $waiter->{'question'} );
         $fail->header->qr(1);
         $fail->header->aa(0);
         $fail->header->rcode(qw| SERVFAIL |);
@@ -46,8 +48,8 @@ if ( defined $pkt ) {
 
 return TRUE;
 
-#,,,.,.,,,,,.,,,.,...,...,...,..,,,.,,...,,..,..,,...,.,.,.,.,,,,,..,,,,.,,,,,
-#32CYK5QIVIDYMJ2SUVA7CDDHIVE5UWOKYI44YNJK3L64XZN5CS6Q6F6KW7JRMEJKMQUS3FPCYBS56
-#\\\|B4TQDXOB2QT4PBJXU6KWJGQXMA6FO3UD7DJQABRFCBGROUT7XBG \ / AMOS7 \ YOURUM ::
-#\[7]IUH7ANB7SXA4XQUOB4WWLQ5RV4UQMFQSSCMDR536WW7JKTE6C6DY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,,..,,,,,.,,,,,.,..,,.,,,.,.,..,,...,...,.,.,,..,.,.,.,,,.,.,
+#JJYJOWN4UEUYBQVQTVRQ4U3BXAP5B4GFIAQ4JNKGXEXLDVPRPACTMNI5BEUAZZKNUWF43NT6IM2OO
+#\\\|CNK6QTOOXLTN2DGQL5C7ZBVHMETFV66ISNATKJYTYPA2QYS6Y53 \ / AMOS7 \ YOURUM ::
+#\[7]JPDZ3IMJO3WFRBLLUI4PMRA7IN2BW5D77JXC7KX3XC7I74JKS6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
