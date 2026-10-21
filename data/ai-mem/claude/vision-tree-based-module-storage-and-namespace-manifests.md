@@ -60,6 +60,8 @@ itself.
 
 ## existing precedent, but for a different concern
 
+**REMOVED 2026-10-21** [ todo TNJ ] : the two modules below no longer exist -- last in `a0cad6995` ; what they taught lives in `data/md/design/ASSIMILATION-DEPTHS.md` [ 'history' ].
+
 `src/sourcecode.console.regen-checksum-symlinks` /
 `src/sourcecode.console.undo-checksum-symlinks` already implement a
 similarly-shaped structural transformation (registers source checksums
@@ -152,8 +154,8 @@ Don't start designing the flatten/expand mechanism or the tree-storage
 layout unprompted; this was explicitly still being thought through, not
 handed over as a task.
 
-#,,.,,,..,,,,,,..,.,,,.,,,,..,,,,,..,,,,.,,,,,..,,...,..,,...,,,,,..,,,,.,,,.,
-#5KACRY6BLXZTG6NX52LWPNT766VD4RJM4VLZHMPR2KJMQA4GEKXA5YPKKC5FSFLR23CFOEN2DKBIC
-#\\\|2MEGLSCCT4BVU2IRJAE7RAPI67HT7N37QQZUFHAO27O7SA67O2S \ / AMOS7 \ YOURUM ::
-#\[7]ZPB7HXVGMEQRUZMLH5M7COCP4AWOINBCOP4RTTTWWUBTXZNNOUDY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,..,,,..,,.,,,,.,..,,,.,,..,,..,,...,...,,..,.,,,.,.,..,,,..,
+#6J4AM4O6ZF2UZEUF6YD6N6FIJHTBSEOBTFTJB4W6RIRXNUH5N27PJGCSTANMNASTE4NT3RNL74XYY
+#\\\|C3XZPKWMCU24G5DALMU7V2RHBDWQRTYMVAEBCGUBNYJHTKMCF2M \ / AMOS7 \ YOURUM ::
+#\[7]YCBB4USKDS765GGZK5SJRHJCYYCZRBEFC5MVCYOCJDRD3XH5CMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

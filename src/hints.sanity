@@ -36,7 +36,7 @@ my $address_valid = sub {
     return $check =~ m|\A[A-Za-z0-9][A-Za-z0-9.-]{0,252}\z| ? TRUE : FALSE;
 };
 
-if ( $field eq qw| ssh_port | ) {
+if ( $field eq qw| ssh_port | or $field eq qw| cube_port | ) {
     return ( FALSE, 'port out of range [ 1..65535 ]' )
         if $value !~ m|\A[0-9]{1,5}\z|
         or $value < 1
@@ -52,6 +52,10 @@ if ( $field eq qw| ssh_port | ) {
 } elsif ( $field eq qw| ssh_user | ) {
     return ( FALSE, 'user not valid' )
         if $value !~ m|\A[A-Za-z0-9_][A-Za-z0-9._-]{0,63}\z|;
+} elsif ( $field eq qw| known_host | ) {
+    ## corroboration only : the value is the asked name, never a new value ##
+    return ( FALSE, 'name not valid' )
+        if $value !~ m|\A[A-Za-z0-9][A-Za-z0-9.-]{0,252}\z|;
 } elsif ( $field eq qw| addresses | or $field eq qw| name | ) {
     return ( FALSE, 'address not valid' )
         if $field eq qw| addresses | and not $address_valid->($value);
@@ -64,8 +68,8 @@ if ( $field eq qw| ssh_port | ) {
 
 return TRUE;
 
-#,,,,,,,.,,..,.,,,..,,..,,,,,,.,.,..,,...,..,,..,,...,...,,,,,,,.,.,.,,,,,.,.,
-#XURVGI2OV5RKBUDTW7HY3DS5DZI63B4PQMQFXTQJOYXZDJ5PVWDR4ZJNBVIYWGIJIJTHQ4CUUCRJ2
-#\\\|XGR26RVG4LOZPZX7YP36VHMWLNIOKVSQWE2LRENNYMBPZYLIXO2 \ / AMOS7 \ YOURUM ::
-#\[7]VDEWYLRFHXGP5VEWM4NI4Y5WFSYG6GYYWH7TNZNFE5K7336GE2BI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,,.,,,,.,,..,...,...,...,...,..,,...,.,.,,.,,,.,,,,,,...,,,,,
+#2H7ZMNTZ6WN5DDSDCTH2KYNK46AN5J4XKA6VO7CH6ETJC2DDK4ODKWKQFENCQDIRDDHFPE6AZOMBW
+#\\\|DUDWBOHSOO3NUVWU4ZUMEVJ6L5BI55VFVQNVEK524ZJXSWIRPGK \ / AMOS7 \ YOURUM ::
+#\[7]JNBKPUUPYTXIT4VINEW42BCAAJYC2LANKLDG6S7L2XWAJE6FD6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

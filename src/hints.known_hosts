@@ -1,0 +1,169 @@
+## [:< ##
+
+# name   = hints.known_hosts
+# descr  = does ssh already know this host [ known_hosts entries as candidates ]
+# param  = $path $host_name [ $port ]
+# return = list of candidate hashrefs
+
+## man sshd 'SSH_KNOWN_HOSTS FILE FORMAT', as far as this layer needs it :
+## - 'hostnames keytype base64-key [ comment ]', '#' comments to end of line
+## - hostnames : comma-separated names, '*' and '?' patterns, '!' negation [
+## within one hostnames field a negated pattern that matches kills the entry,
+## else at least one positive match is needed ]
+## - '[host]:port' is the non-22 port form ; a name without brackets is the
+## port-22 identity
+## - hashed entries '|1|salt|hash' : base64 salt and HMAC-SHA1 of the name
+## with the salt as key [ Digest::SHA hmac_sha1 ] ; for a non-22 port the
+## '[host]:port' string is what gets hashed. without Digest::SHA hashed
+## entries are skipped, never guessed
+## - markers '@cert-authority' and '@revoked' ; a matching '@revoked' entry is
+## a conflict marker, never a positive
+##
+## the layer yields NO value for the record : one 'known_host' candidate per
+## matching entry, value = the asked name, note = key type + plain or hashed +
+## qualifiers, so a ranking layer can CORROBORATE an address \ ssh candidate.
+## a port given while only a different-port entry matches : the candidate
+## keeps a note saying so and must not count as known.
+##
+## candidates are built through hints.candidate [ sanity-stamped ] like every
+## other source ; a revoked entry is stamped conflicting afterwards.
+
+my ( $known_hosts_path, $host_name, $port_asked ) = @ARG;
+
+return () if not defined $known_hosts_path or not -f $known_hosts_path;
+return () if not defined $host_name        or not length $host_name;
+
+my $asked = lc $host_name;
+
+$port_asked = undef
+    if defined $port_asked
+    and ( $port_asked !~ m|\A[0-9]{1,5}\z|
+    or $port_asked < 1
+    or $port_asked > 65535 );
+
+my $digest_ok = eval {
+    require Digest::SHA;
+    require MIME::Base64;
+    Digest::SHA->import(qw| hmac_sha1 |);
+    MIME::Base64->import(qw| decode_base64 encode_base64 |);
+    1;
+};
+
+my $pattern_matches = sub {
+    my $pattern = lc( shift // '' );
+    my $name    = lc( shift // '' );
+    return FALSE if not length $pattern or not length $name;
+    my $regex = join '',
+        map { $_ eq '*' ? '.*' : $_ eq '?' ? '.' : quotemeta($_) }
+        split m{}, $pattern;
+    return $name =~ m{\A$regex\z} ? TRUE : FALSE;
+};
+
+## names a hashed entry could hold for the asked host : the name as asked ##
+## and its lowercase form, plus the '[host]:port' form for a non-22 port  ##
+my @hashed_names = ( $host_name, $asked );
+push @hashed_names, sprintf( qw| [%s]:%s |, $asked, $port_asked )
+    if defined $port_asked and $port_asked != 22;
+my %hashed_name_seen;
+@hashed_names = grep { not $hashed_name_seen{$ARG}++ } @hashed_names;
+
+open( my $fh, '<', $known_hosts_path ) or return ();
+my @candidates;
+my $line_no = 0;
+
+while ( my $line = <$fh> ) {
+    $line_no++;
+    $line =~ s|\#.*$||;
+    $line =~ s{^\s+|\s+$}{}g;
+    next if not length $line;
+
+    my @field  = split m{\s+}, $line;
+    my $marker = '';
+    if ( @field and $field[0] =~ m{\A\@} ) {
+        $marker = shift @field;
+        next
+            if $marker ne qw| @cert-authority |
+            and $marker ne qw| @revoked |;
+    }
+    next if scalar @field < 3;    ## hostnames keytype base64-key ##
+    my $hostnames = shift @field;
+    my $keytype   = shift @field;
+
+    my ( $matched, $negated, $entry_port ) = ( FALSE, FALSE, undef );
+
+    if ( $hostnames =~ m{\A\|1\|} ) {
+        next if not $digest_ok;
+        my ( undef, undef, $salt, $hash ) = split m{\|}, $hostnames, 4;
+        next if not defined $salt or not defined $hash;
+        my $salt_raw = eval { decode_base64($salt) };
+        next if not defined $salt_raw or not length $salt_raw;
+        foreach my $hashed_name (@hashed_names) {
+            next
+                if encode_base64( hmac_sha1( $hashed_name, $salt_raw ), '' )
+                ne $hash;
+            $matched    = TRUE;
+            $entry_port = $hashed_name =~ m{\A\[.*\]:([0-9]+)\z} ? $1 : 22;
+            last;
+        }
+    } else {
+        foreach my $token ( split m{,}, $hostnames ) {
+            my $negate = $token =~ s{\A!}{} ? TRUE : FALSE;
+            my ( $t_name, $t_port ) = ( $token, 22 );
+            ( $t_name, $t_port ) = ( $1, $2 )
+                if $token =~ m{\A\[(.+)\]:([0-9]+)\z};
+            next if not $pattern_matches->( $t_name, $asked );
+            if ($negate) { $negated = TRUE; last }
+            $matched    = TRUE;
+            $entry_port = $t_port if not defined $entry_port;
+        }
+    }
+
+    next if $negated or not $matched;
+
+    ## note : key type, plain or hashed, then qualifiers ##
+    my $form = $hostnames =~ m{\A\|1\|} ? qw| hashed | : qw| plain |;
+    my @note = ( $keytype, "$form entry" );
+    push @note, qw| cert-authority | if $marker eq qw| @cert-authority |;
+
+    if ( $marker eq qw| @revoked | ) {
+        push @note, qw| revoked |;
+        my $revoked = <[hints.candidate]>->(
+            qw| known_host |,
+            $host_name,
+            {   qw| file |    => $known_hosts_path,
+                qw| line |    => $line_no,
+                qw| context | => $hostnames,
+            },
+            join( ', ', @note )
+        );
+        $revoked->{'conflicting'} = TRUE;
+        push @candidates, $revoked;
+        next;
+    }
+
+    if (    defined $port_asked
+        and defined $entry_port
+        and $entry_port != $port_asked ) {
+        push @note, "entry for port $entry_port, asked port $port_asked";
+    }
+
+    push @candidates,
+        <[hints.candidate]>->(
+        qw| known_host |,
+        $host_name,
+        {   qw| file |    => $known_hosts_path,
+            qw| line |    => $line_no,
+            qw| context | => $hostnames,
+        },
+        join( ', ', @note )
+        );
+}
+
+close($fh);
+return @candidates;
+
+#,,..,,,.,,,,,.,.,,,,,,,.,.,,,,..,.,.,...,,..,..,,...,...,,,.,,..,,,.,,,,,,,,,
+#X6HE3CCSRBDG2NESXLPVQN6ZXSAORSSHYMXG2KZJM6YJNXEH2WFOUI6XQBLUADJCMZZNN4I6TPOIO
+#\\\|R7D44CON2PKRJL4VNHFWBOD44KWJF4EP2NPSGJ6XKEKBHQN2H25 \ / AMOS7 \ YOURUM ::
+#\[7]UN2Y6BTXLNCE32XBGI366B7UXVIGNEERM4J6WOLKEZQU4GSROWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
