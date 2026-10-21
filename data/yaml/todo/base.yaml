@@ -1391,9 +1391,27 @@ items:
   - sourcecode
   - n7fs
   text: 'sourcecode : fix the checksum-symlink pair [ regen \ undo-checksum-symlinks ], non-functional today'
+- added: 32C7R5OXBI
+  details: |-
+    found 2026-10-21 [ rotation command v7-zenki.rotate-web-auth-secret ] :
+    - a leaked web.auth.secret alone forges nothing : tokens carry 32 prng bytes, the store keeps only their hash. the secret = the switch that ends all sessions -> rotation is hygiene, seamless by default
+    - session record gets a class at mint : interactive [ login, ttl 24h ] | renewable:<holder> | manual [ hand-minted, pasted ]
+    - rotation : renewable end freely [ = early expiry ], interactive drain [ :when-gone:, epoch event re-checks, <= one ttl ] or :force-now:, manual listed apart [ need re-mint ]
+    - renewal path for machine tokens [ jobsite sync today : hand-minted 1y, pasted into jobsite host.cfg, no renewal, silent failure at expiry ] : holder fetches its token over an authenticated p7 link, renews at ~2/3 ttl and on 401, keeps it 0600 in its var dir -> short ttls
+    - pending rotation state must survive a v7-zenki restart
+    - 2026-10-21 pri store : 0 sessions, no sync_token anywhere -- first build this before minting the first machine token [ 3W5 links \ jobsite push ]
+    - related stub : sessions zenka [ sessions.cmd.hold \ release \ secrets, key-holding child behind the attach/detach knock ] -- candidate holder for renewable machine tokens [ in memory instead of 0600 files ] and perhaps web.auth.secret itself. not session [ one-time setup-keys utility ]
+  done_at: null
+  id: R4F
+  priority: normal
+  status: open
+  tags:
+  - web-auth
+  - security
+  text: 'web.auth session classes + :when-gone: rotation : renewable tokens end freely [ early expiry ], interactive drain, hand-minted listed apart'
 
-#,,..,..,,...,.,,,,,.,,,.,.,,,,.,,,,,,.,.,,..,..,,...,..,,.,.,.,,,.,.,,,,,,..,
-#ZT7MHYQGNXRDL6GU56M73ZMRQV262ZMRYNDVNWOJ5HWHDDSYKVPCSVH7B6N5ZVQY3QR6LW52CPDTM
-#\\\|QP47UTIZCQJ67EGKQNZ7TK3WLER3WMPQ2H3SVY4AOLKWOU6J3KC \ / AMOS7 \ YOURUM ::
-#\[7]P2AK2IK6AEXQN3QQM2DRPZA7QIPT3AJEYGYJJJB2PVMZ6OAMNCBY 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,...,,,,,,..,,..,,,,,,,,,..,,..,,...,...,,.,,..,,...,,,,,...,
+#XOQKWJ4K53KPB6RZKR7JZSSYBY2UKEER4XXOMS2TP52OSH7FY7L2TUKSWHG2O2VCTE4LLPNABUUUQ
+#\\\|E2QU2RKAMDMRY6EVDBEQE4JWYO5QERUGTJ43TPCJVHMV46BLRCU \ / AMOS7 \ YOURUM ::
+#\[7]PMEAMK4U7VIQSVEDKEXNCGG2JPZVFAPEHTN4JLJ54ZJBDLKD7UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
