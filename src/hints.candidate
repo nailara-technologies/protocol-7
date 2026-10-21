@@ -1,0 +1,45 @@
+## [:< ##
+
+# name   = hints.candidate
+# descr  = build one candidate record, sanity-stamped [ managed-abstraction ]
+# param  = $field $value $source [ $note ] -- $source : file, line, context
+# return = candidate hashref
+
+## every detection source [ ssh config, hosts file, pins, ... ] states what it
+## found through this one shape, so a later layer can rank and explain without
+## knowing the sources :
+##
+## { field, value,  source => { file, line, context [ e.g. 'Host atom' ] },
+## note }
+##
+## an invalid value does not vanish : hints.sanity's refusal becomes a
+## 'rejected => <reason>' stamp instead [ todo Q7O : the layer says WHY ].
+
+my ( $field, $value, $source, $note ) = @ARG;
+
+my $candidate = {
+    qw| field |  => $field // '',
+    qw| value |  => ( defined $value and ref $value eq '' ) ? $value : undef,
+    qw| source | => {
+        qw| file | =>
+            ( ref $source eq qw| HASH | ? $source->{'file'} : undef ) // '',
+        qw| line | =>
+            ( ref $source eq qw| HASH | ? $source->{'line'} : undef ) // 0,
+        qw| context | =>
+            ( ref $source eq qw| HASH | ? $source->{'context'} : undef )
+            // '',
+    },
+};
+
+$candidate->{'note'} = $note if defined $note and length $note;
+
+my ( $valid, $reason ) = <[hints.sanity]>->($candidate);
+$candidate->{'rejected'} = $reason if not $valid;
+
+return $candidate;
+
+#,,,,,,,,,,,,,.,,,..,,...,...,,.,,,,.,,.,,.,,,..,,...,...,,.,,,..,,..,,.,,...,
+#Q2UU6S6PT2IWOHSXFGY3QEAFKBO4CZ6VUVNAWFEG6VHRGBLMOTQWUXYOW3NISWXKGMT4TGEY5AKCI
+#\\\|5COUCHZS2KHK24CGQRHBABUSBRE3L75EADSOH6G6FW7JXDYH6PG \ / AMOS7 \ YOURUM ::
+#\[7]UONHY5GJ7BAIS72SXEXT24XPJ5AVRENVVYVFP5IZ2Z6UXRDUG4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

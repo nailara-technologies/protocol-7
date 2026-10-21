@@ -1,0 +1,78 @@
+## [:< ##
+
+# name   = hints.etc_hosts
+# descr  = /etc/hosts statements as candidates for a name or an address
+# param  = $path $name_or_address
+# return = list of candidate hashrefs
+
+## one admin statement per line : address, then the names it answers to, '#'
+## comments to end of line, ipv4 and ipv6. asked for a NAME the layer returns
+## address candidates [ field 'addresses' ] ; asked for an ADDRESS it returns
+## name candidates [ field 'name' ] -- the cross references a ranking layer
+## can weigh against ssh config, pins and dns.  deliberately standalone [ not
+## download.util.read_hosts, that one is tied to the download UserAgent
+## package ] and no Config::Hosts needed.
+
+my ( $hosts_path, $query ) = @ARG;
+
+return () if not defined $hosts_path or not -f $hosts_path;
+return () if not defined $query      or not length $query;
+
+## '||', not 'or' : 'or' binds looser than '=' and drops the ipv6 test ##
+my $query_is_address
+    = ( $query =~ m|\A(?:\d{1,3}\.){3}\d{1,3}\z| || $query =~ m{:} )
+    ? TRUE
+    : FALSE;
+
+open( my $fh, '<', $hosts_path ) or return ();
+my @candidates;
+my $line_no = 0;
+
+while ( my $line = <$fh> ) {
+    $line_no++;
+    $line =~ s|\#.*$||;
+    $line =~ s{^\s+|\s+$}{}g;
+    next if not length $line;
+    my ( $address, @names ) = split m{\s+}, $line;
+    next if not defined $address or not @names;
+
+    if ($query_is_address) {
+        next if lc $address ne lc $query;
+        foreach my $name (@names) {
+            push @candidates,
+                <[hints.candidate]>->(
+                qw| name |,
+                $name,
+                {   file    => $hosts_path,
+                    line    => $line_no,
+                    context => join( ' ', $address, @names )
+                },
+                '/etc/hosts name for address'
+                );
+        }
+    } else {
+        foreach my $name (@names) {
+            next if lc $name ne lc $query;
+            push @candidates,
+                <[hints.candidate]>->(
+                qw| addresses |,
+                $address,
+                {   file    => $hosts_path,
+                    line    => $line_no,
+                    context => join( ' ', $address, @names )
+                },
+                '/etc/hosts address for name'
+                );
+            last;
+        }
+    }
+}
+close($fh);
+
+return @candidates;
+
+#,,..,..,,...,,.,,,.,,,,,,,.,,.,.,.,,,,,,,,,,,..,,...,...,.,.,.,,,.,,,...,,..,
+#MPSDF5IDH4OIT4IXODX3LG4HY5QGPBVX6DRQX3MS6LDEX4YHYXEXT4BKA24GYLBNE4DOHEHR4VNPU
+#\\\|LV2K2W5XCUE3I6UDW4YPCQUUEPJ4E54B3C2B74JCAZDMEXEKIGY \ / AMOS7 \ YOURUM ::
+#\[7]XPDCJPJJYJNZQ4HJMO6UNRA7775LBXCLATAWFEJAWXO7AZNITUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

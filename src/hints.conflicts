@@ -1,0 +1,46 @@
+## [:< ##
+
+# name   = hints.conflicts
+# descr  = mark contradicting candidates for one field [ kept, not dropped ]
+# param  = \@candidates
+# return = list of candidates
+
+## contradicting statements are BOTH kept and stamped 'conflicting' with a
+## note -- e.g. two different ports for one host [ todo Q7O : nothing is
+## silently resolved at this layer, the ranking layer picks one and shows the
+## other as the disagreement it is ].
+
+my ($candidates) = @ARG;
+
+return () if ref $candidates ne qw| ARRAY |;
+
+my %distinct;    ## field => { value => 1 } , non-rejected candidates only ##
+foreach my $candidate (@$candidates) {
+    next if ref $candidate ne qw| HASH |;
+    next if defined $candidate->{'rejected'};
+    my $field = $candidate->{'field'} // '';
+    next if not length $field;
+    $distinct{$field}{ $candidate->{'value'} // '' } = 1;
+}
+
+foreach my $candidate (@$candidates) {
+    next if ref $candidate ne qw| HASH |;
+    next if defined $candidate->{'rejected'};
+    my $field = $candidate->{'field'} // '';
+    next if not length $field;
+    next if scalar keys %{ $distinct{$field} } < 2;    ## one voice : fine ##
+    $candidate->{'conflicting'} = TRUE;
+    my $mark = "conflicts with another candidate for '$field'";
+    $candidate->{'note'}
+        = ( defined $candidate->{'note'} and length $candidate->{'note'} )
+        ? join( ' ; ', $candidate->{'note'}, $mark )
+        : $mark;
+}
+
+return @$candidates;
+
+#,,..,,,,,.,.,..,,,.,,.,.,.,.,.,,,,..,,..,...,..,,...,...,,..,,,,,.,.,,.,,,..,
+#OXE3VIK6YTFNXCK3QWLWPQPWFY34V64G5M25VSEFOMC7KBHZS4OZSHSW6OTGF23AEDJPQWHUMY6C2
+#\\\|S3OYYATJ7BLZD637OWNANFWG52CGKIAAJV3DI546V5G4BLWIPQK \ / AMOS7 \ YOURUM ::
+#\[7]2SRZP2JGIJITLMIXL65BJAD2G2P5XTRRDP264SXECO5LBSUMRGAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
