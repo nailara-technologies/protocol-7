@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = jobsite.fetched.frame
+# descr = one subscribe-fetched STRM frame : upsert the job, confirm the
+#         remote outbox record
+# param = one JSON line : {"name":"<outbox record>","job":<job payload>}
+# notes = the job runs through the exact code path site-yaml's route-send
+#         used to deliver [ jobsite.cmd.job-upsert with the json payload as
+#         args ] -- a duplicate delivery is harmless, upsert merges by id
+
+my $line = shift // '';
+return if not length $line;
+
+my $frame = eval { JSON::decode_json($line) };
+if ( $@ or ref $frame ne qw| HASH | ) {
+    <[base.logs]>->(
+        0,
+        'jobsite.fetched.frame: bad frame [ %s ]',
+        $@ // 'not json'
+    );
+    return;
+}
+
+my $job  = $frame->{'job'};
+my $name = $frame->{'name'} // '';
+return if ref $job ne qw| HASH |;
+
+my $payload = eval { JSON::encode_json($job) };
+if ( not defined $payload or $@ ) {
+    <[base.logs]>->(
+        0, 'jobsite.fetched.frame: json encode error [ %s ]',
+        $@ // '?'
+    );
+    return;
+}
+
+## same delivery shape as site-yaml's route-send [ call_args args ] ##
+my $upsert = $code{'jobsite.cmd.job-upsert'}->( { 'args' => $payload } );
+
+## confirm only a stored job : on a refusal the record stays in the remote ##
+## outbox and comes again with the next subscription                       ##
+if ( ref $upsert ne qw| HASH | or ( $upsert->{'mode'} // '' ) ne qw| true | )
+{
+    <[base.logs]>->(
+        0,     'jobsite.fetched.frame: upsert refused [ %s ] : %s',
+        $name, ref $upsert eq qw| HASH | ? $upsert->{'data'} // '?' : '?'
+    );
+    return;
+}
+
+## confirm durable delivery : drop the remote outbox record ##
+if ( length $name and $name =~ m|^[A-Za-z0-9._-]+$| ) {
+    <[protocol-7.route-send]>->(
+        {   'command' => ( <jobsite.cfg.fetch_zenka> // qw| site-yaml | )
+                . '.outbox-confirm',
+            'call_args' => { 'args' => $name },
+        }
+    );
+}
+
+return;
+
+#,,..,,..,..,,..,,.,.,,,.,,,,,...,,,,,,,.,,..,.,.,...,...,,.,,,,,,.,.,,,.,,,,,
+#O2DSCZ3GVAS5M74GPSJD4QCYHI6CGX47RXBYYK5HPIQFEIMLBJVWFVVW3XTYSZLUTA7ZQ5S6EICYM
+#\\\|XTY7N4HM2YUR4A7MMRKUQ25OVVWMA6F2HV65LHBMJE3BCMNGG4G \ / AMOS7 \ YOURUM ::
+#\[7]OE2FI4HY7LNZHU6IWFW5LYV7YEQFFOY7BHY7CF6JWOAJIS3P2GBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

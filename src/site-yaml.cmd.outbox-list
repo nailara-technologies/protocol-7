@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = site-yaml.cmd.outbox-list
+# descr = list outbox records {name,size} [ diagnostic ]
+#
+# notes = 'size' mode reply auto-fragments via STRM-SIZE if large, no
+#         manual chunking ; names are returned without the .json suffix,
+#         matching site-yaml.cmd.outbox-confirm semantics
+
+<[base.perlmod.autoload]>->('JSON::XS');
+
+my $outbox_dir = <[file.zenka_dir.data_path]> . '/outbox';
+
+my @records;
+if ( -d $outbox_dir and opendir my $dh, $outbox_dir ) {
+    my @files = sort grep {m|^[^.][^/]*\.json$|} readdir($dh);
+    closedir $dh;
+
+    for my $file (@files) {
+        my $size = -s "$outbox_dir/$file";
+        next if not defined $size;
+        my $name = $file =~ s|\.json$||r;
+        push @records, { 'name' => $name, 'size' => $size };
+    }
+}
+
+return { 'mode' => 'size', 'data' => JSON::XS::encode_json( \@records ) };
+
+#,,.,,,.,,.,,,.,,,..,,,,.,,,.,..,,,.,,...,,,,,.,.,...,...,,..,,,,,...,,.,,,.,,
+#ZFU7BRXPGJTE2TEYNQXXVKEBRIMAUEYULQIGZ2LKYYA3QIPZW3IKNWBBUVGXSBHLZ4IE45LBGOU6K
+#\\\|LBFJ4T56JCUO7AIYTXXS3QE443YN26ADFAF7737A7ZQUXIUOXCJ \ / AMOS7 \ YOURUM ::
+#\[7]HAPSROGFC3BN2JBSBK6QQZDECP2W3NU6P373FKBZHD2J46BVVSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

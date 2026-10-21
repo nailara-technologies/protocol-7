@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = site-yaml.outbox.check-terminate
+# descr = auto-terminate open fetched-streams once everything is delivered
+# notes = closes every stream in <site-yaml.fetched_streams> when the fetch
+#         queue is empty AND no import is running AND the outbox is empty
+#         [ every pushed record confirmed ]. called after each outbox
+#         confirm and when the fetch queue drains. STRM carries no default
+#         timeout on purpose -- completion, not age, ends these streams.
+
+my $outbox_dir = <[file.zenka_dir.data_path]> . '/outbox';
+
+my @pending;
+if ( -d $outbox_dir ) {
+    if ( opendir my $dh, $outbox_dir ) {
+        @pending = grep {m|^[^.][^/]*\.json$|} readdir($dh);
+        closedir $dh;
+    }
+}
+
+return FALSE if @pending;    ## unconfirmed records ##
+return FALSE if @{ <site-yaml.fetch_queue>       // [] };   ## fetches due  ##
+return FALSE if keys %{ <site-yaml.import_state> // {} };   ## scanning ##
+
+my $streams = <site-yaml.fetched_streams> // [];
+return TRUE if not @{$streams};
+
+<[base.logs]>->(
+    1,
+    'site-yaml: fetched-streams auto-terminated [ %d stream%s ]',
+    scalar @{$streams},
+    @{$streams} == 1 ? '' : 's'
+);
+
+for my $h ( @{$streams} ) {
+    <[base.stream.close]>->($h);
+}
+<site-yaml.fetched_streams> = [];
+
+return TRUE;
+
+#,,,.,.,,,...,.,.,,,.,,,,,,,,,.,,,,..,.,.,,..,.,.,...,...,,.,,.,,,.,.,.,.,,,,,
+#VF3E5L6DAEAZ7RRL37KI6P2XOKUPFPAMKOSUUO2RWTZYU3WSIRNK6ZB5NV7BFKEESVVH4QPRDECTY
+#\\\|AL7HRJIXRUUYTVG7T66JDFE67HF6IQGPOQEYCW3DZJJEW4OXU2H \ / AMOS7 \ YOURUM ::
+#\[7]WWTR65IA7Q5QRHTZ6SRO4XC4R4YO5I6C4V5YBXYZTMIWTAYQCWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

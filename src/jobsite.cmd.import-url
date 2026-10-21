@@ -71,9 +71,18 @@ if ( $chk->{'is_blocked'} ) {
 
 <[base.logs]>->( 1, 'jss.import-url: queueing %s [%s]', $job_id, $url );
 
+my $fetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
+
+## remote fetch : durable outbox transport instead of route-send delivery ##
+<[jobsite.fetched.subscribe]>->($fetch_zenka)
+    if $fetch_zenka ne qw| site-yaml |;
+
+my $url_args = sprintf 'url=%s', $url;
+$url_args .= ' handler=:hold:' if $fetch_zenka ne qw| site-yaml |;
+
 <[protocol-7.route-send]>->(
-    {   'command'   => qw| site-yaml.import-url |,
-        'call_args' => { 'args' => "url=$url" },
+    {   'command'   => $fetch_zenka . '.import-url',
+        'call_args' => { 'args' => $url_args },
         'reply'     => {
             'handler' => qw| jobsite.handler.import-url-reply |,
             'params'  => { 'id' => $job_id, 'url' => $url },
@@ -87,8 +96,8 @@ return {
         . "fetch, lands as 'new' on success ]",
 };
 
-#,,,,,.,,,...,..,,,.,,..,,.,.,,,,,,.,,,.,,,..,..,,...,...,,.,,,.,,,..,,,.,.,.,
-#UFCU7M3Y4SL3HSBSABMJSF4XBWQXHJJOJAA3Z25YUQH3DJHJQHTC5I2HA7WNG55A7TLQDEMV676R6
-#\\\|OCF42P3IW74RSIIMO2LM7ZHMPPMSBFY3YWRVVJKX7W7I33G5RI3 \ / AMOS7 \ YOURUM ::
-#\[7]KUXTVWE7B4HJP2PD67LANSJ5PDYF2ZMWBD5CRM7MR563CMV4QCBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,,,,,,,.,.,..,,..,,,,,,,,,,,,,,..,,...,...,,..,..,,..,,,.,,,.,,
+#LS3K5X5NPHELV2H65GYQMYZJXUMTTTAVEOKZQNDML2Y2IRT56INUHFG2R6SXRRM5LVKOGP4S3WHKC
+#\\\|WNIUGS37Q7T7NOI4T5YE53FE3ERPCMJZU5YXVGPU4IETXDBIIYG \ / AMOS7 \ YOURUM ::
+#\[7]KH3DHR7KTZE5SEB3V7H3HNF3FFB7DHNJZWOZKVOPEW4SGJ3OLABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

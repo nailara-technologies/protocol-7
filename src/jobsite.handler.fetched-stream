@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = jobsite.handler.fetched-stream
+# descr = reply handler for <fetch_zenka>.subscribe-fetched : register the
+#         STRM consumer that feeds each frame to jobsite.fetched.frame
+
+my $reply = shift // {};
+
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        0,
+        'jobsite.fetched-stream: subscribe refused : %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    <jobsite.fetched.subscribing> = FALSE;    ## next import retries ##
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if ( $reply->{'args'} // '' ) ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+my $registered = <[strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            ## whole lines only : a frame split across stream chunks stays ##
+            ## in the buffer until its newline arrives                     ##
+            while ( $lc->{'buf'} =~ s|^([^\n]*)\n|| ) {
+                my $line = $1;
+                next if not length $line;
+                <[jobsite.fetched.frame]>->($line);
+            }
+        },
+        'on_eof' => sub {
+            ## stream closed [ remote auto-terminate or peer gone ] : just ##
+            ## forget it -- the next import re-subscribes                  ##
+            <jobsite.fetched.subscribed>  = FALSE;
+            <jobsite.fetched.subscribing> = FALSE;
+            <[base.logs]>->(
+                1, 'jobsite.fetched-stream: closed [ cmd_id=%d ]', $cmd_id
+            );
+        },
+    }
+);
+
+return if not $registered;
+
+<jobsite.fetched.subscribed>  = TRUE;
+<jobsite.fetched.subscribing> = FALSE;
+
+<[base.logs]>->(
+    1, 'jobsite.fetched-stream: consumer registered [ cmd_id=%d ]', $cmd_id
+);
+
+return;
+
+#,,,.,,,,,.,,,...,.,.,,.,,.,.,,.,,..,,,,,,,.,,.,.,...,..,,,,,,.,,,,,.,,,.,.,,,
+#WLTX7QB36FJR46XWKU44VOJCBGYU7HK5LOKSQ23KCZM7S4WSKB6P5KJQTQQLUUFUMME7I4KUY2PL2
+#\\\|KBQZ2CMBD4KL7V67KDQ277IMLG5FUJHUMLPSUCKC3Y4T26GCC3W \ / AMOS7 \ YOURUM ::
+#\[7]IE5O2RXWIJVBTEPWAGRW36XKAOWSVCKOQZMY3A7G5GZIMB5G7KBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

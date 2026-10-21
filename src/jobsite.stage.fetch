@@ -108,9 +108,21 @@ if ( defined <jobsite.queue_poll_timer> ) {
     <jobsite.queue_poll_timer> = undef;
 }
 
+my $fetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
+
+## remote fetch through another host's site-yaml : results travel back    ##
+## through that zenka's durable outbox + subscribe-fetched STRM transport ##
+<[jobsite.fetched.subscribe]>->($fetch_zenka)
+    if $fetch_zenka ne qw| site-yaml |;
+
 for my $cat ( sort keys %cat_urls ) {
-    my $args_str = sprintf
-        'url=%s handler=%s skip=%s block_file=%s full=%d',
+    my $args_str = $fetch_zenka ne qw| site-yaml |
+        ? sprintf 'url=%s handler=:hold: skip=%s full=%d',
+        $cat_urls{$cat}, $skip_ids,
+        ( $full_mode ? 1 : 0 )
+        ## no block_file : the remote host cannot read our local paths ; ##
+        ## the checksum list may travel inline later                     ##
+        : sprintf 'url=%s handler=%s skip=%s block_file=%s full=%d',
         $cat_urls{$cat},
         qw| jobsite.job-upsert |,
         $skip_ids,
@@ -118,7 +130,7 @@ for my $cat ( sort keys %cat_urls ) {
         ( $full_mode ? 1 : 0 );
 
     <[protocol-7.route-send]>->(
-        {   'command'   => qw| site-yaml.import |,
+        {   'command'   => $fetch_zenka . '.import',
             'call_args' => { 'args' => $args_str },
             'reply'     => {
                 'handler' => qw| jobsite.handler.fetch-done |,
@@ -131,8 +143,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <jobsite.fetch_pending> = scalar keys %cat_urls;
 
-#,,,,,,,,,...,...,,..,.,.,.,,,...,,.,,.,,,,,,,..,,...,...,.,,,...,,..,,.,,..,,
-#LQ76CFE7RHDILF3NMMNETQ4KGAEAL4HEKYTXZIAJRNN5F73WYSJP2WKOYXQ4KXRFZ64XMDWYXCASQ
-#\\\|4A4CMKK7QL3OCMFN25N6PNVNI3U6AF2ENSWTOYV7KFZP5JZDIKO \ / AMOS7 \ YOURUM ::
-#\[7]JNPLNSDOGUDKO4ZY7QPFXNCSUVNGBSAHHXCPE35VL7MBPBBNCMDY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,..,,..,,..,,,,,,.,,,,..,..,,,.,,..,,...,..,,.,,,.,,,,..,.,,,,..,
+#LBGRETT3AFGMMCGS7HRUBXTFDKB4ZVECOE3VVOAYOW2S66W55JIGHP2LEBL4RH2Y6RRMVQPMM22LG
+#\\\|KYGLXNWU7G6RMABKGFLKN2BCNBO6UPEB3XJ257RJB2KPYTV5JBK \ / AMOS7 \ YOURUM ::
+#\[7]IK2JJC7FCXY7BRTXHJAI4OSLGBZIVNGSTYY3DWS5H67RV6E3MMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

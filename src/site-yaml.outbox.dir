@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = site-yaml.outbox.dir
+# descr = return this zenka's fetched-jobs outbox dir [ created mode 0750 ]
+
+my $outbox_dir = <[file.zenka_dir.data_path]> . '/outbox';
+
+if ( not -d $outbox_dir and not mkdir $outbox_dir, 0750 ) {
+    <[base.logs]>->(
+        0,           'site-yaml.outbox: cannot create %s [ %s ]',
+        $outbox_dir, $!
+    );
+    return undef;
+}
+
+return $outbox_dir;
+
+#,,.,,,.,,.,.,..,,..,,,.,,,.,,,..,,.,,..,,,,,,.,.,...,...,..,,..,,...,,,,,,.,,
+#KMWLMRC5Z6JSZPAGI3NSA66M57LO3DLN4IR5S2TBGKWNXATRULRIK52E6AFUCLLCMPIUS6LIEK47Y
+#\\\|75B6LNMK2A5WZ7JUO3K2BDE25IGULTKHKRXL6CJAIOJIFBEEH27 \ / AMOS7 \ YOURUM ::
+#\[7]SBIES3SUOR3QJBMKD7EMGGTFF7BIHPEOQV6QIZCXE66PU3JCAADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
