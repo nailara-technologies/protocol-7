@@ -1325,9 +1325,26 @@ items:
   - vault
   - tools
   text: 'pre-import sorter : files from source paths into type subdirectories of a target [ copy, or move ]'
+- added: 32C6JLPCBM
+  details: |-
+    found 2026-10-21 : stepstone.de answers both contabo-hosted servers with a WAF block [ provider ip ranges, not per-host ] ; atom and delta fetch fine.
+    consequence : site fetches for stepstone must run from atom or delta, not from pri [ the planned jobsite hub ] -- route those fetches there.
+    plan considered : add backup servers next to delta, same provider class as delta [ ~2.50 \ month each ] : dallas next, then us east coast. three machines cost the same as atom does now, and spread latency across the us -- useful if a public website draws visitors.
+    open : which other job sites block the same ranges ; whether fetch routing to an allowed host can be automatic [ per-site fetch-host list ]
+    architecture [ 2026-10-21 ] : site-yaml [ fetching ] runs on delta + the new us nodes [ 1 core \ 512 mb each, outside the blocked ranges ] ; coding zenka [ assessment ] on pri or yourum. needs permanent p7 links between remotes : external.connect \ external.link.open already give encrypted named links [ auth-keypair v2 + pin ] and 'external.<name>.<zenka>.<cmd>' routing ; missing : a configured link list opened at startup, reconnect with backoff for named links [ exists only for orbital : external.orbital.schedule_retry ], per-node key + narrow access.cmd grants [ hub -> site-yaml.* only ].
+    revised : build permanent links on host-edit records, not a separate external.cfg.links list [ data/md/design/HOST-SETUP.md ]. ssh IS the transport [ cube stays 127.0.0.1:42 ] ; record name = external link name ; pins name the host [ <name>_42 ]. supervisor keeps one link per record with a 'link' role : ssh forward [ host-edit.transport.ssh_forward_start ] -> external.link.open through it -> reconnect both with backoff. roles carry the split [ fetch : delta + us nodes ; assess : pri \ yourum ]. new trust point : an unattended ssh key on the hub -- restrict it on each node [ authorized_keys : restrict,port-forwarding,permitopen=127.0.0.1:42,command=/bin/false ].
+    nodes zenka is the third layer : host-edit = what a host IS [ record ], external = the live link [ forward + link.open + reconnect ], nodes = whether it is UP [ nodes.cmd.host-status, today lan \ discover only -- the link supervisor reports linked remotes there too ; fetch failover reads it ]. reconcile the old trunk path first : nodes.cmd.add-tronk <name> <addr> <pkey> is an earlier permanent-link variant, its status side a stub [ nodes.parser.connection_status : 'not implemented' ] -- host records replace it, no third path.
+  done_at: null
+  id: 3W5
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - infra
+  text: "jobsite : stepstone.de WAF blocks both contabo servers' ip ranges ; only atom + delta can fetch"
 
-#,,..,,..,,..,.,.,,,,,..,,,..,,..,,,.,.,.,,,,,..,,...,..,,...,,,,,,,.,.,.,,,,,
-#HSPWHPIUG4645OFRMSAIEKGTZZOTPQA3MFXU6QLMQF4KTWVQDURDWCEWX2ZC7QEVBKKWFBROORQ3E
-#\\\|2HKYDRIISXVAPOCU7JD6ZVMDYRTKVKGRCLVITBROSPNXHA5A5P4 \ / AMOS7 \ YOURUM ::
-#\[7]HWUXJWWD3V6FHV3QYW6FJ4JLVTQY4S6PXWCQBOV7FE5I5BR2GOAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,,.,,,..,,,,,,,.,.,.,,,.,.,.,..,,...,...,,,.,...,.,,,,,.,...,
+#3MTGGA4PPHSXGH3OPEO7FM2E42OH3OD6QN3N32EHWIIOTVHGP6UUHQHBU2YYXJJWNKGGDPM7Y3UM2
+#\\\|VGSD5GCXV3N7CJQRVCIIVPR7TSKTAN7GS4TBZ3UYHDTALM5PM65 \ / AMOS7 \ YOURUM ::
+#\[7]QZJEVWZFF7MB253UZTQGONWKPB2WST7PRI37YJ7O6N74RGW3ESAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
