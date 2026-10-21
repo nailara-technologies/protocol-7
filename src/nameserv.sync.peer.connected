@@ -34,6 +34,16 @@ syswrite $peer->{'sock'},
 
 $peer->{'state'} = qw| waiting |;
 
+## bounded hold : a silent half-open socket would wait forever   ##
+## [ conn_timer slot : peer.release cancels it with the socket ] ##
+$peer->{'conn_timer'} = <[event.add_timer]>->(
+    {   after   => <nameserv.cfg.sync.max_hold> // 390,
+        handler => qw| nameserv.sync.peer.handler.hold-timeout |,
+        data    => $key,
+        desc    => "sync peer hold [ $key ]"
+    }
+);
+
 $peer->{'watcher'} = <[event.add_io]>->(
     {   fd      => $peer->{'sock'},
         poll    => 'r',
@@ -45,8 +55,8 @@ $peer->{'watcher'} = <[event.add_io]>->(
 
 return TRUE;
 
-#,,,,,,..,,..,.,.,,.,,,.,,,,,,...,,,,,,..,,,,,..,,...,...,,.,,,..,,,.,...,...,
-#DUVZA6MIB7S76WTKB6MGDJBN66XWLG5DFWSXOTSCD7BYUCVTANG2AGSEEGJBOTOQCYKVK2MZD6OPW
-#\\\|PV3XRZUOKWLFYYH3APJCOMGANOCQNFNF4EWTLZC6BNN5K2MHZ6B \ / AMOS7 \ YOURUM ::
-#\[7]RUV5ZO5OOKIFCCRXQ2O3IP6ECYJ2KWFNDPFETGSFMQTJUCLRESAI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,..,,.,,,.,,...,.,,,,.,,,,.,,..,..,,...,...,.,.,,,,,,..,,..,.,,,
+#6XXW6KPRPNEIXW5STBZGQUA5VCFB6XXRYNCXQZAFUXLDKFBTGUJYHWCRRS324GDO2IN7QUTQOFPAS
+#\\\|NLT4BGGDWWSG4URD7NX66YEZURSUDKC5G2QCX23GGVJYDRVCLZK \ / AMOS7 \ YOURUM ::
+#\[7]UIEH7764SKKYT2G3RSSU7BZJOQ4DGBT3R63Z3DO5245JM2YY6GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

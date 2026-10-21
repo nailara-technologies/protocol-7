@@ -94,8 +94,9 @@ if ( $command eq qw| last-data-timestamp | ) {
         ## hold the connection : nameserv.sync.notify re-checks the ##
         ## predicate on every record change and completes the reply ##
         $conn->{'wait'} = {
-            'zone'  => ( length $zone ? $zone : undef ),
-            'since' => $since
+            'zone'    => ( length $zone ? $zone : undef ),
+            'since'   => $since,
+            'started' => time
         };
     }
 
@@ -105,8 +106,8 @@ if ( $command eq qw| last-data-timestamp | ) {
 
 return TRUE;
 
-#,,.,,,..,,,.,,.,,,,,,.,,,.,.,.,,,,.,,..,,,,.,..,,...,...,..,,.,,,..,,,,.,.,.,
-#JVPHRNKZES6DJWBMJX53JYSGHKO5NIRINFTLI5PBI5PDM4FGFPACWCIVS363DXEB537DREVWBJE4K
-#\\\|EYLSVSPSZMDX5XOJ5IZHFQO6ANSVUU7DH7RJXB73VAELDI5DCU6 \ / AMOS7 \ YOURUM ::
-#\[7]G7Q7TCP6M6U3DXFIQE6FLWMF5AAH7KICARJBULA2VYVY7ABHUUDI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,..,,.,,,...,,..,.,,,.,.,,,.,..,,...,...,...,.,,,,,.,,,.,.,.,
+#7JRE7H7ROM7XAFWKYK6PLPTTFASAK6C7NHQYMMDRIKLRUSG7P4XZTNNGZ3NAFAAJH44EPBB4C7QXM
+#\\\|U4QNBHEQFCQLN7WWETIL3HLRJ4UULHW4WW4FT6XMJQJ4YUINSFS \ / AMOS7 \ YOURUM ::
+#\[7]K2OE6QANKI3IZ27RKSVINOAUCJKCHAEHTZHUFFQ46ZCCP5PGHIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

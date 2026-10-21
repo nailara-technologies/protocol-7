@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = nameserv.sync.peer.handler.hold-timeout
+# descr = a held long-poll stayed silent too long : reconnect
+# note  = a peer that vanished without a fin [ restart, nat or route
+#         change ] leaves a half-open socket that never reads : the wait
+#         is bounded and re-armed. not a failure [ no backoff ] -- the
+#         new wait carries the same 'since', so changes in between come
+#         back at once
+
+my $key = shift->w->data;
+
+my $peers = <nameserv.sync.peers> // return;
+my $peer  = $peers->{$key}        // return;
+
+return FALSE if $peer->{'state'} ne qw| waiting |;
+
+<[base.logs]>->(
+    2,    ': sync peer %s : no answer in %d s, reconnecting',
+    $key, <nameserv.cfg.sync.max_hold> // 390
+);
+
+<[nameserv.sync.peer.release]>->($key);
+<[nameserv.sync.peer.arm]>->($key);
+
+return TRUE;
+
+#,,.,,,,.,...,,,,,,,.,,..,...,..,,.,,,,,.,..,,..,,...,...,...,.,,,.,,,.,.,,,,,
+#IXWG4NWNSXKAKANFDPR5XYCMUJNC4HXFMLISJKBN33MI5QZMRSYE64U454DXHMGLIXZFLT4Y3JPKO
+#\\\|CP5KAFGC42I3C7G5M6IRLJM2ZJDPU46O6LPOG5DFL6USYN4W753 \ / AMOS7 \ YOURUM ::
+#\[7]OO6TBPJSUVT6TVY7NBTPMDQQPJNGWOHSW4CXPZS7DHSXDFQU4SBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
