@@ -91,6 +91,8 @@ $code{'zenka.get_dependencies'} = sub { die "GATE PASSED\n" };
 ## is NOT shifted                                                          ##
 my $cmd_header = q{my $call = {}; if ( ref( $ARG[0] ) eq 'HASH' ) }
     . q{{ $call = $ARG[0] } else { $call->{'args'} = $ARG[0] }};
+compile_module( 'v7-zenki.zenka.profile_refusal', '' );
+$code{'zenka.profile_refusal'} = $code{'v7-zenki.zenka.profile_refusal'};
 compile_module( 'v7-zenki.zenka.cmd.start', $cmd_header );
 $code{'zenka.cmd.start'} = $code{'v7-zenki.zenka.cmd.start'};
 compile_module( 'v7-zenki.zenka.cmd.start_once', $cmd_header );
@@ -226,8 +228,7 @@ SKIP: {
         close $fh;
         ok( $src
                 =~ m{if not \$ignore_disabled\s+and not <\[zenka\.is_enabled\]>},
-            'forced start : enrol line guarded '
-                . 'by the flag [ source check ]'
+            'forced start : enrol line guarded by the flag [ source check ]'
         );
         last SKIP;
     }
@@ -239,8 +240,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,,,,,..,.,.,,,,,,..,,.,,.,,,.,.,.,.,,.,,..,,...,...,.,.,,..,.,,,...,.,,,
-#RTSHS6IYHEMYTQ7TKGP3VAONI6OCPMSZMHRPC5W4KWMGYGAQXDCDB4ESMG4D24QZ3TXCQ42UVY3YO
-#\\\|MOB6B3VLNHSQCMZHTM7RESROP4DSYHWDGTJPK2DZ4AVPVMF6QXH \ / AMOS7 \ YOURUM ::
-#\[7]6PFTYHXTTQ2WKBUAS7Q3DA7RDIFKRAWN4CQ3TAGPWE4JIHHQE6DA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,...,.,.,.,,,,.,,,..,.,.,,.,,..,,...,...,...,,..,,.,,,,,,.,.,
+#7DEIJY22MND3ZK6C2TPRKK3GWUG5HPTYGGQ3QAMVJFQMM3DR7HWQR7DNVDLDNPJRMVJYRMJQKNISW
+#\\\|HTWUACRPR2SU2FS3JW5XYUAXPT4R7I7QQRK4CITL3DVZS4RA3FS \ / AMOS7 \ YOURUM ::
+#\[7]6PMICVB3JBIA5YUDX63ZP6WPFOPLJMKTZ4LXD47ZKWGFONHBW6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -214,21 +214,7 @@ delete <v7-zenki.zenka.manually_stopped>->{$zenka_name}
 ## always started [ until 2026-10-15 ]                                      ##
 if ( not $ignore_disabled
     and ( $call->{'mode'} // '' ) ne qw| concurrent-handover | ) {
-    my $zenki_cfg = <v7-zenki.start_setup.globals.zenki> // {};
-    my $profile   = <v7-zenki.cfg_data.start_profile>    // qw| ? |;
-
-    my $reason;
-    if ( grep { $ARG eq $zenka_name } split m|\s+|,
-        $zenki_cfg->{'disabled'} // '' ) {
-        $reason = sprintf "in zenki.disabled of profile '%s'", $profile;
-    } elsif (
-        defined $zenki_cfg->{'on-demand'} and !grep { $ARG eq $zenka_name }
-        split( m|\s+|, $zenki_cfg->{'enabled'} // '' ),
-        split( m|\s+|, $zenki_cfg->{'on-demand'} )
-    ) {
-        $reason = sprintf "not in the on-demand allow list of profile '%s' "
-            . '[ host.cfg : v7-zenki.host.zenki.on-demand ]', $profile;
-    }
+    my $reason = <[zenka.profile_refusal]>->($zenka_name);
     if ( defined $reason ) {
         <[base.logs]>->(
             1,           ": zenka '%s' not started -- %s",
@@ -279,13 +265,15 @@ foreach my $dep_name (@dependencies) {
         my $reply = <[zenka.cmd.start_once]>->(
             { 'args' => $start_name_str, 'recursion' => $recursion + 1 } );
 
-        ## a dependency disabled on this host never comes up : refuse now ##
-        ## with the reason instead of a start that waits forever          ##
-        ## [ an on-demand caller gets the refusal as its answer ]         ##
+        ## a dependency the start profile refuses never comes up         ##
+        ## [ disabled, or not in the on-demand allow list ] : refuse now ##
+        ## with the reason instead of a start that waits forever         ##
+        ## [ an on-demand caller gets the refusal as its answer ]        ##
+        my $dep_refusal = <[zenka.profile_refusal]>->($dep_name);
         if ( ( $reply->{'mode'} // '' ) eq qw| false |
-            and <[zenka.is_disabled]>->($dep_name) ) {
-            my $reason = sprintf "dependency '%s' is disabled on this host",
-                $dep_name;
+            and defined $dep_refusal ) {
+            my $reason = sprintf "dependency '%s' is %s", $dep_name,
+                $dep_refusal;
             <[base.logs]>->(
                 0,           "zenka '%s' not started : %s",
                 $zenka_name, $reason
@@ -364,8 +352,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,,,,..,,..,,,,,,,.,,,..,,,,,,..,.,,,,..,..,,..,,...,...,...,..,,,.,,,,.,,,,,
-#SMFD274ZAF27KEPJ2OQXH6ZUMXC2EOIBKZLRKDYV5H3UFPGGCNWLK47LZJSHBXMJXX5SEIYG74WWW
-#\\\|WGPR6EWMGLNPIURIXKW5Z5KY3MUY43JMXZVXCVAMNKHE2JWWF46 \ / AMOS7 \ YOURUM ::
-#\[7]NZMQLNMMQ5P2DUK5BZ7ADZDXCVNZX4O5JQW3S73V6ABVKMFK4KDY 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,..,,,,,..,,,..,..,,,,.,.,,,..,,...,...,...,.,.,,,,,.,.,,.,,
+#MXHVWMHSVIGSQBBFHAGFEM2GUXL3K6YA4SECTMVV7WB72M4L6UHBNPBS522D6JJ7I6H7S5G6CANNM
+#\\\|ZGMK7GY4TRN7Y77D32MSELUWBOFS3L2JRHFT7LLVD7WHY22AVSG \ / AMOS7 \ YOURUM ::
+#\[7]ATWQW47WMQF2YEXAGYMIBJ5V5TWINBKICSWA7AHIGWAYGTBFWABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
