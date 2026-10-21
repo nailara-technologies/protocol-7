@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = external.cmd.revoke-link
+# param = <label>
+# descr = remove a link authorized with authorize-link
+# note  = drops the 'p7-link:<label>' line from ~/.ssh/authorized_keys and
+#         ~/.n/remote-keys/authorized/cube/<label>.public. an open link
+#         keeps its session until it closes or the cube reloads its keys
+
+my ($label) = grep {length} split m|\s+|, $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'usage : revoke-link <label>' }
+    if not defined $label or $label !~ m|^[a-z0-9][a-z0-9-]{2,31}$|;
+
+my $home = ( getpwuid($EUID) )[7] // '';
+my $tag  = "p7-link:$label";
+my @done;
+
+my $ak_file = "$home/.ssh/authorized_keys";
+if ( open my $ak_fh, '<', $ak_file ) {
+    my @lines = <$ak_fh>;
+    close $ak_fh;
+    my @kept = grep { not m|\s\Q$tag\E\s*$| } @lines;
+    if ( @kept != @lines ) {
+        my $ak_tmp = "$ak_file.p7-link.$PID";
+        if ( open my $out_fh, '>', $ak_tmp ) {
+            print {$out_fh} @kept;
+            if (    close($out_fh)
+                and chmod( 0600, $ak_tmp )
+                and rename( $ak_tmp, $ak_file ) ) {
+                push @done, 'ssh line';
+            } else {
+                unlink $ak_tmp;
+            }
+        }
+    }
+}
+
+my $key_file = catfile( <[crypt.C25519.key_vars]>->{'auth_dir'},
+    qw| cube |, "$label.public" );
+push @done, 'cube key' if -e $key_file and unlink $key_file;
+
+<[base.logs]>->(
+    0,      '<< link revoked : %s [ %s ] >>',
+    $label, join( ', ', @done ) || 'nothing found'
+) if @done;
+
+return {
+    'mode' => qw| true |,
+    'data' => @done
+    ? "link '$label' revoked : " . join( ', ', @done )
+    : "link '$label' : nothing to revoke"
+};
+
+#,,.,,.,,,..,,,..,..,,.,,,,,,,.,,,,..,,.,,...,..,,...,...,,.,,,,,,,..,,.,,,.,,
+#N2SYY66HGP2ZE3HP2HRS2ICBA272GNC6JAUHT2GNLLWZQXUXC4UHKAODY65ZA6J7ATSBV2I5LSNPQ
+#\\\|3N3WVT32MHNQCWCBU2RF4Q4FYXN66FJRXCIP2FXOCV2DIWPQILZ \ / AMOS7 \ YOURUM ::
+#\[7]IJ5TNEP4LKCCM23THVV3OMLZGXFWAJUZ5V7EZGHYJBM43IPD44BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
