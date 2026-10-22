@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = jobsite.dispatch.release_slot
+# param = job_id
+# descr = release the assessment slot a job holds, continue the chain
+# return = TRUE when the job held the slot, FALSE when it was released
+#          already
+
+## one chain runs a batch : one job in flight, its reply dispatches the    ##
+## next. the job holding the slot is the one whose watchdog timer is armed ##
+## [ dispatch.next \ dispatch.repair ], or an orphan rewired after a       ##
+## restart [ timers are not persisted ]. a reply arriving after the        ##
+## watchdog released the slot used to count down and dispatch again, and   ##
+## every such reply started one more chain -- on a cpu-only server coding  ##
+## held several hundred duplicate assessments [ 2026-10-23 ]. such a reply ##
+## is recorded by its handler, but releases nothing here                   ##
+
+my $job_id = shift // '';
+
+my $timer   = delete <jobsite.assess_timer>->{$job_id};
+my $rewired = delete( ( <jobsite.tasks>->{$job_id} // {} )->{'rewired'} );
+
+if ( not $timer and not $rewired ) {
+    <[base.logs]>->(
+        1, 'job %s : slot already released [ watchdog ], no dispatch',
+        $job_id
+    );
+    return FALSE;
+}
+eval { $timer->cancel } if $timer;
+
+<[jobsite.dispatch.consume_slot]>;
+<[jobsite.state.persist]>;
+<[jobsite.dispatch.next]>;
+
+return TRUE;
+
+#,,.,,,.,,.,.,,,,,.,,,.,,,..,,,.,,...,,..,.,,,..,,...,...,...,,..,.,,,..,,,.,,
+#2FCULVKRH5NB6QUZO33YKYDOMHSYBEUC4BNDCCO76FJVCNS73HCKTCJ4EGUMJJE5AFHSWGVHZ7MR6
+#\\\|YZBEJKFCQPNNL6JMHAIXV5JH5QJTASIY23SOAP7K7SEHL22UMPT \ / AMOS7 \ YOURUM ::
+#\[7]WRHH3QJCV6RMUCGYJIOT6AUW6W3ITDKYRTBYAKSS4ZHSW2PIG2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

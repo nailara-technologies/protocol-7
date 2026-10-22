@@ -71,8 +71,14 @@ if ( $type eq 'word_count' ) {
             $trimmed, $must, $competing
             )
             : undef;
-        return { mode => qw| false |, data => "named_competing:$competing" }
-            if defined $named and $named eq $competing;
+        ## '' : both named as remaining ##
+        return {
+            mode => qw| false |,
+            data => length $named
+            ? "named_competing:$competing"
+            : 'named_both'
+            }
+            if defined $named and lc $named ne lc $must;
     }
     return { mode => qw| true |, data => $folded };
 }
@@ -93,8 +99,8 @@ if ( $type eq 'sprintf' ) {
 
 return { mode => qw| false |, data => "unknown_constraint_type:$type" };
 
-#,,..,.,.,.,,,..,,.,,,,..,,.,,.,,,...,,,,,.,.,..,,...,...,,.,,,,.,.,,,.,,,,..,
-#54UV627GMC27TRSJ3OWRKOFNZTT53URX3G3LUIVX4LNYYHHWN36GIPPR7BD6X2EQO62QLKMEUGMFQ
-#\\\|X3YKKLJGDOJ2FC46BLXPQDSIEEHS3CEPCWMDEWTPY6V5IHPVGXJ \ / AMOS7 \ YOURUM ::
-#\[7]AIGY5SMJIYQYLOVCDCXFL5ZFOVBJ54IPUDXTF63P2Z2UZ7RS56BI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,,..,.,,,,,,,.,.,...,,,,,.,,,..,,...,...,,..,,,,,..,,.,.,,.,,
+#XT64WBSUZ45KCWJ7MHDXWAKJFYWJ23PN62MOYTOBYGUHZUWVYQAAA62J5EDIORABIX4BA2QE3F2SO
+#\\\|T5KHNJYUMAS5DS2F27OADZSPVRK6RP5BCUW6D7SUP2T3ACDK3EU \ / AMOS7 \ YOURUM ::
+#\[7]QQ76I4FWMJS5YNKBM7MFDXJS6ZK4NLPY3PF7HP2FKHUTDYUV4ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

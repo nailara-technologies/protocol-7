@@ -3,8 +3,8 @@
 # name  = coding.self_test.named_candidate
 # descr = which of two candidate answers a reply names [ deterministic ]
 # param = answer, expected token, competing token
-# return = the token the reply names, undef when it names neither or
-#          stays unclear
+# return = the token the reply names, '' when it names both as
+#          remaining, undef when it names neither or stays unclear
 
 ## a token anywhere in the reply is not the answer it gives : "The         ##
 ## remaining animal is the mouse. You put a cat and .." contains 'cat' and ##
@@ -31,12 +31,18 @@ foreach my $sentence ( split m{(?<=[.!?])\s+|\n+}, $answer ) {
     return $expected  if !$names_competing;
     return $competing if !$names_expected;
 
+    ## "both the cat and the mouse remain" names no single one : '' ##
+    ## [ a wrong answer to callers ; it had passed, 2026-10-23 ]    ##
+    my $remain_re
+        = qr{(?:^|\W)(?:remain\w*|left|surviv\w*|stays?|still)(?:\W|$)}i;
+    return ''
+        if $sentence  =~ m{(?:^|\W)both(?:\W|$)}i
+        and $sentence =~ $remain_re;
+
     my %named;
-    foreach my $clause ( split m{[,;:]|\s[-\x{2013}\x{2014}]+\s}, $sentence )
-    {
-        next
-            if $clause
-            !~ m{(?:^|\W)(?:remain\w*|left|surviv\w*|stays?|still)(?:\W|$)}i;
+    foreach my $clause ( split m{[,;:]|\s[-\x{2013}\x{2014}]+\s|\s+and\s+}i,
+        $sentence ) {
+        next if $clause !~ $remain_re;
         my $e = $has->( $clause, $expected );
         my $c = $has->( $clause, $competing );
         $named{$expected}  = TRUE if $e and !$c;
@@ -47,8 +53,8 @@ foreach my $sentence ( split m{(?<=[.!?])\s+|\n+}, $answer ) {
 
 return undef;
 
-#,,..,...,,,,,,..,,.,,.,.,,.,,,..,.,,,,..,,.,,..,,...,..,,...,,,.,.,,,,..,,,.,
-#FCGJR7KTGNWCSVLUGXY4PJ5IUUII6YDNIRW4IIPSEFPWTQMVDF7NHP3S5SQTZ7FO5I3T3VID5IBKE
-#\\\|NAFM4ZAANLSEP2RPD7BHPMVVQ5KEQLISDV3A3NSSLXHOHGEHIS6 \ / AMOS7 \ YOURUM ::
-#\[7]PEURP5PE3QOHEW5CKBJZ7NHDSQ5QXQM3P224TRFVA2XA6KNLXWCI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,,..,,,,,,..,.,.,..,,...,.,.,..,,...,...,.,.,,,.,,.,,..,,,.,,
+#IIZCT5UB456S6KESHO4BPQ4TFVCYJULGF6VSXJ6N3SG77OHXVJ6KNLEIUE6HWOYTCLX3AKJJ7ZUQ6
+#\\\|J47WSU3IZR3OOR5CXBAZFZ7S7RQ5ZKBT335MPL6DNPECYHHMBQX \ / AMOS7 \ YOURUM ::
+#\[7]4PT3XEMWGLNDQTFJU7WS4DJA5FHHDNL6XMIOKYLDELXTJP5IKUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

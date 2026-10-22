@@ -5,9 +5,8 @@
 
 my $call = shift // {};
 
-my $mode     = $call->{'mode'} // '';
-my $raw      = $call->{'data'} // '';
-my $task_id  = ref $raw ? $raw->$* : $raw;
+## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
+my ( $mode, $task_id ) = <[base.reply.mode_text]>->($call);
 my $job_id   = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
 my $attempt  = $call->{'params'}{'attempt'}                      // 0;
 my $cur_attt = ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0;
@@ -33,12 +32,12 @@ if ( lc($mode) eq qw| false | ) {
         0,       'jss.task-created: failed for job %s: %s',
         $job_id, $task_id
     );
-    if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
-        eval { $timer->cancel };
-    }
-    <jobsite.pending_count>--;
-    <jobsite.pending_count> = 0 if <jobsite.pending_count> < 0;
-    <[jobsite.dispatch.next]>;    ## continue with next job
+    ## the stage dispatch.assessments set is freed, a rescan skips 'queued' ##
+    my $rec = <jobsite.tasks>->{$job_id} // {};
+    $rec->{'stage'} = 'timeout'
+        if ( $rec->{'stage'} // '' ) =~ m{^(?:queued|assessing)$};
+    <[jobsite.state.persist]>;
+    <[jobsite.dispatch.release_slot]>->($job_id);    ## continue with next job
     return;
 }
 
@@ -74,8 +73,8 @@ my %protected_stage
     }
 );
 
-#,,,,,.,.,,..,...,,,.,,..,,..,,..,...,..,,,.,,..,,...,...,.,.,,,.,,..,,..,.,,,
-#QR2CWAJLCO4CJDA2T4FN7NZVVV7IA4E4QY5FKEN6MLMRGXBPRRXYSTHNJT2YFJ7USKVR75SUGZ46W
-#\\\|FX76OXFOY3EMTGLKTXXA5FNBVLU6F73YNYLRXJPGFEZXIUIF4YL \ / AMOS7 \ YOURUM ::
-#\[7]BPHGFX55PUTYGK4VJAUPJ6AJYSVSP6P55VJ67JOHYTFFV5AP6MAY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,.,,,,,.,,,,..,..,,.,,,,..,...,..,,...,...,.,.,...,.,,,.,,,.,,,
+#AE3ICTZXPFASRNAKBQTJXYPFVU3YXJBXJMC6VJCSMMGISJ4PJSFEEXD5EFJIYFUQL22M7IQZDRRGC
+#\\\|6EEQ3ZXSWPSNQOXBIA6IODQ5PF6XZOGOEXDGM2DK4U4IGWC4DCK \ / AMOS7 \ YOURUM ::
+#\[7]ULXQPHE5A4NKRNMKHP77W2IEUDM4DBB4WVW7MARBO6PUERHMCQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

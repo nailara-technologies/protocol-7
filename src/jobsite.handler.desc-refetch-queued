@@ -11,10 +11,9 @@
 
 my $call = shift // {};
 
-my $mode     = lc( $call->{'mode'} // '' );
-my $raw      = $call->{'data'} // '';
-my $data_str = ref $raw ? $raw->$* : $raw;
-my $job_id   = $call->{'params'}{'job_id'} // '';
+## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
+my ( $mode, $data_str ) = <[base.reply.mode_text]>->($call);
+my $job_id = $call->{'params'}{'job_id'} // '';
 
 return if $mode ne qw| false |;
 return if $data_str =~ m{already queued}i;
@@ -50,8 +49,8 @@ $job->{'status'}            = qw| review |;
 
 return;
 
-#,,,.,,.,,.,,,,,,,,..,,,,,,,.,.,.,.,,,,.,,.,.,..,,...,...,..,,..,,...,.,.,..,,
-#5ATVZSIO26CWWMSBCCM7VFV2GH6LMECUUJRQHKYXIDYFEG6B3E45C3Y7NCNBDO2TV3BZA7XGYA7B2
-#\\\|ZBQ7APZXVGYTQ2AF6HC3TID7CA2MYGPQJBKW55U2FNBXWLEHG3R \ / AMOS7 \ YOURUM ::
-#\[7]COAXO2XRC4BELYAO7TKCTGHD2ASLUHXEUOWMRCLM4VKQHRIYUGBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,,..,,.,,,.,,,,,,,,.,,,.,,,,,..,,...,...,...,,.,,.,,,,,,,.,.,
+#7HR4STOGGV55S3B432DFCCSRP5SR2GCCDTXFGXF6RKSOQ37KNHAQWCJ4OTRUDN2RV4KS63CDKXZAS
+#\\\|EBBI44WLIKOJ4QSR4RZXXO7PWIJLWE5KOI6N5YUNIDBQDXTYVST \ / AMOS7 \ YOURUM ::
+#\[7]DGFNTCDCZJ5ZHYROUDGK6IUTBFB22C5YAIJD2ZZW66OCNUB2BWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

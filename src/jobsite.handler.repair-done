@@ -5,9 +5,8 @@
 
 my $call = shift // {};
 
-my $mode    = $call->{'mode'} // '';
-my $raw     = $call->{'data'} // '';
-my $result  = ref $raw ? $raw->$* : $raw;
+## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
+my ( $mode, $result ) = <[base.reply.mode_text]>->($call);
 my $job_id  = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
 my $task_id = $call->{'params'}{'task_id'} // '';
 my $attempt = $call->{'params'}{'attempt'} // 0;
@@ -15,11 +14,7 @@ my $attempt = $call->{'params'}{'attempt'} // 0;
 my $job_rec = <jobsite.tasks>->{$job_id};
 if ( not defined $job_rec ) {
     <[base.logs]>->( 0, 'jss.repair-done: unknown job %s', $job_id );
-    if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
-        eval { $timer->cancel };
-    }
-    <jobsite.pending_count>--;
-    <[jobsite.dispatch.next]>;
+    <[jobsite.dispatch.release_slot]>->($job_id);
     return;
 }
 
@@ -63,22 +58,25 @@ if ( lc($mode) eq qw| false | ) {
         0,        'jss.repair-done: repair task %s failed for job %s',
         $task_id, $job_id
     );
-    if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
-        eval { $timer->cancel };
-    }
     ## hard infra failure [ repair task itself errored, no result at all ]  ##
     ## : do NOT touch stage/status, same convention as assess-done's        ##
     ## sibling branch -- status='assessed' is a legacy dead end             ##
     ## plugin.web.jobs purges on every restart, and this job never got a    ##
     ## real score/text at all, so it must not be evicted out of wherever it ##
-    ## already sits                                                         ##
+    ## already sits  a pipeline-owned stage is freed though, as in          ##
+    ## assess-done : left at 'assessing' the next rescan skipped the job    ##
+    ## for good                                                             ##
     $job_rec->{'repair_failed'} = TRUE;
     my $job_f = <[jobsite.job.read]>->($job_id) // {};
     $job_f->{'repair_failed'} = TRUE;
     <[jobsite.job.write]>->( $job_id, $job_f );
-    <jobsite.pending_count>--;
+    if ( ( $job_rec->{'stage'} // '' ) =~ m{^(?:queued|assessing)$} ) {
+        $job_rec->{'stage'}          = 'timeout';
+        $job_rec->{'task_id'}        = '';
+        $job_rec->{'repair_task_id'} = '';
+    }
     <[jobsite.state.persist]>;
-    <[jobsite.dispatch.next]>;
+    <[jobsite.dispatch.release_slot]>->($job_id);
     return;
 }
 
@@ -263,23 +261,12 @@ if ( $validation->{'is_valid'} ) {
     <[jobsite.job.write]>->( $job_id, $job_e );
 }
 
-if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
-    eval { $timer->cancel };
-}
-
-<jobsite.pending_count>--;
-
-if ( <jobsite.pending_count> <= 0 ) {
-    <jobsite.pending_count> = 0;
-    <jobsite.cycle>         = 'idle';
-    <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
-}
-
+## a late reply releases nothing : see jobsite.dispatch.release_slot ##
 <[jobsite.state.persist]>;
-<[jobsite.dispatch.next]>;
+<[jobsite.dispatch.release_slot]>->($job_id);
 
-#,,..,,,.,.,.,,,.,.,.,,..,,,,,...,,.,,..,,.,,,..,,...,...,...,.,.,,,.,..,,,.,,
-#OXVEM2G2QBLCSGHNVGR5LTPYTYSARYVTLZGZXC35BUGA2MFNTO2K7GXQXDQCTQZBP7MBBMI3JJYEU
-#\\\|6KOE334PTNUN5QUPNCH6GV4UTPUFLVTOJ2THUN3BHKJ255ZX5OO \ / AMOS7 \ YOURUM ::
-#\[7]UPSPXB46NYBSYKC5VSYOYJ6XHBWG775HBKTV47ACPMVAQTDJFUDQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,.,,,,,,,,.,,,.,.,.,..,,,,,,,,,,..,,...,...,..,,,,,,,,.,,,.,,.,,
+#OMDWNE7DM72BB6DHOJGDZMP7W7USR6WROCNMEBCPTD2TXPB2QVXKCB5TIMXSN7ZDTEXOHGFTUD5JG
+#\\\|T4FIAX2X4GSDZQ66NMKYQ2J5MAVF4LPENIYETLGVAESPINQLONS \ / AMOS7 \ YOURUM ::
+#\[7]O6MWKUZB3OF2JEPPH4Y77HNXE5ZT6R2KQ3JLX27K3QFAROGDJUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,9 +5,8 @@
 
 my $call = shift // {};
 
-my $mode     = $call->{'mode'} // '';
-my $raw      = $call->{'data'} // '';
-my $data_str = ref $raw ? $raw->$* : $raw;
+## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
+my ( $mode, $data_str ) = <[base.reply.mode_text]>->($call);
 my $category = $call->{'params'}{'category'} // '';
 
 chomp($data_str);    ## strip trailing \n ##
@@ -83,8 +82,8 @@ if ( <jobsite.pending_count> == 0 ) {
     <[jobsite.sync.push]>->( undef, FALSE );
 }
 
-#,,..,..,,.,,,...,.,.,.,.,,,,,..,,...,,,.,.,,,..,,...,...,,..,..,,..,,,..,,.,,
-#RNLUIBEG6UCLA5MEO7SAU56YL5NYEFB4ALNOQ4TGUJM6T7YGNU7QV6QK5LO4X5KSGSIDFI5KHMKOK
-#\\\|FTIQ4MHQIJCPNZV4ITBLPOMYGOSRBQL3XEI3MTSGU7VAG2YDLQS \ / AMOS7 \ YOURUM ::
-#\[7]H7G3DAHLJVSPC3XBHRDHHWADHXZ3MAYBFB326P7QXRCETTKJ6EAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,.,,..,,...,,,.,,,,,...,.,.,..,,..,,...,...,.,,,,.,,,..,.,.,,.,,
+#JEZ65DPUMT5J2W5K3HRY6VOU3OJ3VXN4OR7GCGMMBB5BFJZP5VHOSOW6BZYO4URDEI6IUJWFLGYNS
+#\\\|UT7P2XA7XVP2IAGLUYJ6OOKLSKYQAMILGVI2O4ZW2QTYMNLFZ3N \ / AMOS7 \ YOURUM ::
+#\[7]H7BWG5NOHR76FR526MNBOJ2G23UVTGNC7RVJIT5AZJX3NW3YMODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

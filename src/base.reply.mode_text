@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = base.reply.mode_text
+# descr = mode and text of a reply handler call, whatever the reply shape
+# param = $call [ the hash a route-send reply handler receives ]
+# return = ( mode [ lower case : true, false, size .. ], text [ string ] )
+
+## a reply handler gets { sid, cmd, call_args, params [, data ] } : SIZE \  ##
+## STRM replies carry 'data' [ a scalar ref ], a single line TRUE \ FALSE   ##
+## reply only cmd + call_args.args. handlers reading 'mode' \ 'data' took   ##
+## every FALSE reply for an empty success -- jobsite sent a repair for each ##
+## assessment a coding restart had failed, and gave up on the second        ##
+## [ 2026-10-23 ]. 'mode' \ 'data' still come first, for a hand-built call  ##
+
+my $call = shift // {};
+
+my $mode = lc( $call->{'mode'} // $call->{'cmd'} // '' );
+my $raw  = $call->{'data'}
+    // ( ref $call->{'call_args'} eq qw| HASH | ? $call->{'call_args'} : {} )
+    ->{'args'} // '';
+my $text = ref $raw eq qw| SCALAR | ? ( $raw->$* // '' ) : $raw;
+
+return ( $mode, $text );
+
+#,,,,,.,.,..,,.,,,,.,,,,.,,,,,,,.,.,,,,,,,,,,,..,,...,...,,.,,,.,,.,.,.,,,,,.,
+#AP5P3PZXZ7X4QPPL7BXPHY52AL36SOAQNWOTNNNIQ3M57Z7YV2NSDUKMUQ5JBSLLHOCNHHDBJ5NGA
+#\\\|E3W46OSRRWOU66JXXU5RE2S6W4OFKJFOGR6OPF2QKC37TFIPSAK \ / AMOS7 \ YOURUM ::
+#\[7]7TE2GQMLYG3326JM3WRFJXPSJDMRZFR4L6GDSFY3POFCU3XB7QCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
