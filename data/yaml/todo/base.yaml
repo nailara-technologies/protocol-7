@@ -1593,6 +1593,7 @@ items:
     - one location = one policy [ owner 2026-10-22 ] : :file: as in summarize-context reads ANY file the coding zenka user can read and hands it to a model [ on a server : ~/.n/user-keys/*.private, readable /etc/protocol-7 files ] -- through a link identity an exfiltration path. the helper enforces : allowed roots for :file: [ repo tree + a configured task dir ; never key dirs or /etc/protocol-7 ; no symlink out of a root ], forms per caller [ :file: for local admin sessions only, never link identities like remote-fetch \ assess-worker ], each form enable \ disable in the coding config, size limits on decoded \ read input, one log line per :file: read [ caller, path, size ]
     - split by who may read [ owner ] : files OUTSIDE the repo are read client-side with the caller's own permissions and sent as payload [ bin/coding-task -file already does this, base32r ] ; server-side :file: \ :path: is limited to the repository tree -- the zenka never reads a file on someone's behalf that they could not read themselves
     - later expansions beyond the repo tree [ owner question 2026-10-22 ] : prefer a dedicated file-access zenka [ own unix user holding exactly the read rights it may hand out, own access list per caller ; coding asks it, never gains broad rights itself, the file zenka never talks to a model ] ; signatures for DELEGATION on top : a signed capability [ caller, path or prefix, purpose \ task id, expiry ; signed by an identity holding the right -- owner key or host-root ] checked by the file zenka -> rights travel across hosts or to a task for a while, no permanent grants. signatures checked inside coding alone would leave the broad rights in the coding process
+    - PROGRESS 2026-10-22 [ 7c3231a56 + 90da4d578, live-tested local ] : p7c \ p-7-r send an argument with a linebreak in multi-line mode [ not B32 : the mode existed ] ; dot-stuffing for lines of dots alone ; capture non-greedy, one strict head, a refused head drops its packet [ ignore_ml_packet ] ; coding.input.decode [ plain \ B32: \ :file: , no guessing, repo tree only, realpath, size limit, a log line per read ] in submit \ summarize-context \ ask-reply ; summarize-context path= confined, mcp-server-p7 sends :B32:. STILL OPEN : forms per caller [ :file: never for link identities ] + per-form enable in the coding config, the configured task dir root, excluded paths inside the tree, whitespace-only prompt, task scratch files into coding's var dir. the file-access zenka = `files` [ design : data/md/design/FILES-ZENKA.md on dev/files-zenka-design ]
   done_at: null
   id: J5F
   priority: normal
@@ -1602,8 +1603,8 @@ items:
   - coding
   text: 'p7c \ p-7-r : an argument with a newline splits the protocol line ; coding task helpers land in the repo root'
 
-#,,,.,,.,,,..,,.,,,,.,,,.,,..,...,,,.,,,.,,,,,..,,...,..,,,..,..,,.,.,...,.,,,
-#Q3JY2HNC52ARC27Y5JKAOSW25QL54GDOJ7XZ5IOVMBQEKZYU27KWBDRCKECQKPBH34TKK5J2STHK6
-#\\\|UJBC73FD7POEEBX6AH5AT5NXJY4IHWH65G6U4VSCB2WBTXYF6XW \ / AMOS7 \ YOURUM ::
-#\[7]ZBASA2AXENDDIQ4BZHU2NCU5XEJI3UW3FVBGJSBKBQ5LQFPMZCCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,.,,,.,,.,.,.,,,.,.,.,.,,.,,,..,..,,...,...,,.,,,..,,.,,,..,...,
+#JKHV5IRCQ5TZUFMXBNLAR4I7KZ37OAYT33AOBK7RISNLB4TANYFAYKHMCIQZ5ARWVTVFKUTJ6E3ZS
+#\\\|NZQR5NPHHXUGF4J7E5UG6AC36HDM4X26T4EVLMTEI24PIZQ3K4C \ / AMOS7 \ YOURUM ::
+#\[7]Y6UDUGFC22Q4Z4NVVZ3AE57OPQVEUVQZL5RTB2BB2DCLNIWSOKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
