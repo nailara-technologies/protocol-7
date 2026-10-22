@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = coding.self_test.named_candidate
+# descr = which of two candidate answers a reply names [ deterministic ]
+# param = answer, expected token, competing token
+# return = the token the reply names, undef when it names neither or
+#          stays unclear
+
+## a token anywhere in the reply is not the answer it gives : "The         ##
+## remaining animal is the mouse. You put a cat and .." contains 'cat' and ##
+## passed the cat riddle [ 2026-10-23 ], and a correct "the mouse is gone, ##
+## the cat remains" names the wrong one first. the first sentence naming a ##
+## candidate decides ; holding both, the clause with a remain word decides ##
+## ; else unclear, left to the callers' own checks                         ##
+
+my ( $answer, $expected, $competing ) = @ARG;
+$answer //= '';
+return undef if !length( $expected // '' ) or !length( $competing // '' );
+
+my $has = sub {
+    my ( $hay, $needle ) = @ARG;
+    return $hay =~ m{(?:^|[^a-z0-9])\Q$needle\E(?:[^a-z0-9]|$)}i
+        ? TRUE
+        : FALSE;
+};
+
+foreach my $sentence ( split m{(?<=[.!?])\s+|\n+}, $answer ) {
+    my $names_expected  = $has->( $sentence, $expected );
+    my $names_competing = $has->( $sentence, $competing );
+    next              if !$names_expected and !$names_competing;
+    return $expected  if !$names_competing;
+    return $competing if !$names_expected;
+
+    my %named;
+    foreach my $clause ( split m{[,;:]|\s[-\x{2013}\x{2014}]+\s}, $sentence )
+    {
+        next
+            if $clause
+            !~ m{(?:^|\W)(?:remain\w*|left|surviv\w*|stays?|still)(?:\W|$)}i;
+        my $e = $has->( $clause, $expected );
+        my $c = $has->( $clause, $competing );
+        $named{$expected}  = TRUE if $e and !$c;
+        $named{$competing} = TRUE if $c and !$e;
+    }
+    return keys %named == 1 ? ( keys %named )[0] : undef;
+}
+
+return undef;
+
+#,,..,...,,,,,,..,,.,,.,.,,.,,,..,.,,,,..,,.,,..,,...,..,,...,,,.,.,,,,..,,,.,
+#FCGJR7KTGNWCSVLUGXY4PJ5IUUII6YDNIRW4IIPSEFPWTQMVDF7NHP3S5SQTZ7FO5I3T3VID5IBKE
+#\\\|NAFM4ZAANLSEP2RPD7BHPMVVQ5KEQLISDV3A3NSSLXHOHGEHIS6 \ / AMOS7 \ YOURUM ::
+#\[7]PEURP5PE3QOHEW5CKBJZ7NHDSQ5QXQM3P224TRFVA2XA6KNLXWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
