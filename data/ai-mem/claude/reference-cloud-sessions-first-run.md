@@ -83,3 +83,15 @@ N7FS added as three follow-ups ]
 #\\\|3JMEVITW7RK22EMOTXAMVVMZI7RDNMDLPSLAVYEEREEI23QJYDR \ / AMOS7 \ YOURUM ::
 #\[7]WMIMVQXVRSEBZIZTRBHC5YJU77MF3JCCPUTXCLJ73YYJZD4PK2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- a design brief must name the EXISTING neighbours to read : the files
+  design [ 2026-10-22 ] missed the data zenka [ shm mmap, lock_memory,
+  signed permissions, fuse ], storage [ P7REF, checksum plugins, 9P
+  client, map-dirs ] and plan-9 [ 9P server ] -- the owner pointed at
+  them afterwards. before briefing : ls src | cut -d. -f1 | uniq for
+  zenki whose names touch the topic, and list their design docs
+
+#,,.,,,..,...,,,.,,,,,.,.,,..,,,.,...,..,,...,..,,...,...,...,.,.,...,.,,,..,,
+#LVCQ4IW3KITT5TDUTVYVQNHNR4NNRPY4FN7P4JUJ52KT74XAGC7N5Q7XWNVHB4OVQOAVYUIKP66JY
+#\\\|FPWNSAHDERUSX6AXILDPRUZAPOGXNM54WRSP6CKB5VII7OYTTVE \ / AMOS7 \ YOURUM ::
+#\[7]2KPEDY5L4ZOIPSH4K6IWG3VLSVTNPU4KVJPRKITXOJGXMTNO4YDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
