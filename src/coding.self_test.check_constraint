@@ -61,6 +61,18 @@ if ( $type eq 'word_count' ) {
     if ( length $must ) {
         return { mode => qw| false |, data => "missing_token:$must" }
             if !$contains_token->( $trimmed, $must );
+
+        ## containing the token is not naming it : the competing answer ##
+        ## named instead fails [ coding.self_test.named_candidate ]     ##
+        my $competing = $constraint->{'competing'} // '';
+        my $named
+            = length $competing
+            ? <[coding.self_test.named_candidate]>->(
+            $trimmed, $must, $competing
+            )
+            : undef;
+        return { mode => qw| false |, data => "named_competing:$competing" }
+            if defined $named and $named eq $competing;
     }
     return { mode => qw| true |, data => $folded };
 }
@@ -81,8 +93,8 @@ if ( $type eq 'sprintf' ) {
 
 return { mode => qw| false |, data => "unknown_constraint_type:$type" };
 
-#,,,,,,,,,.,.,,,,,,.,,,,,,..,,,..,,,.,,,,,,..,..,,...,...,...,...,.,.,,.,,,,,,
-#S3RDUUU3HEMXLOVBTUA4WPZQOCSSNQSCQPO4BPM4KWUOYUP2VGXHR2D2CDHAQVJV5GAMAYWEJSJTQ
-#\\\|5GHY2JQNBPXNA4EO6YHQMLUWMG3MCL4KA2MZCSH33EUM4552MBU \ / AMOS7 \ YOURUM ::
-#\[7]P7UBJYDQNG6Y6OOFY4FC3T3PLROCA4ZRF55IAZTWVZTLUEF72ACY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,..,,.,,,,..,,.,,.,,,...,,,,,.,.,..,,...,...,,.,,,,.,.,,,.,,,,..,
+#54UV627GMC27TRSJ3OWRKOFNZTT53URX3G3LUIVX4LNYYHHWN36GIPPR7BD6X2EQO62QLKMEUGMFQ
+#\\\|X3YKKLJGDOJ2FC46BLXPQDSIEEHS3CEPCWMDEWTPY6V5IHPVGXJ \ / AMOS7 \ YOURUM ::
+#\[7]AIGY5SMJIYQYLOVCDCXFL5ZFOVBJ54IPUDXTF63P2Z2UZ7RS56BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

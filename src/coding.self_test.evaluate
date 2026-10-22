@@ -72,6 +72,20 @@ if ( $step eq qw| init | ) {
                 $folded !~ m{(?:^|[^a-z0-9])\Q$needle\E(?:[^a-z0-9]|$)}
             } @required;
         }
+
+        ## a reply naming the competing answer is wrong even when it      ##
+        ## contains the required token [ "The remaining animal is the     ##
+        ## mouse. You put a cat .." passed, 2026-10-23 ] ; one naming the ##
+        ## required token is right however it explains. unclear replies   ##
+        ## keep the containment result above                              ##
+        my $competing = $constraint->{'competing'} // '';
+        if ( length $competing and @required == 1 ) {
+            my $named = <[coding.self_test.named_candidate]>->(
+                $answer, $required[0], $competing
+            );
+            $content_already_correct = lc $named eq lc $required[0]
+                if defined $named;
+        }
     }
 
     ## tier 1 : same-context reformat request to the same model, up to two ##
@@ -382,8 +396,8 @@ return {
     eval    => { mode => qw| false |, data => "unknown evaluate step $step" },
 };
 
-#,,,,,,,.,,..,,..,,..,.,,,,,.,.,,,.,.,.,.,,,,,..,,...,...,.,.,.,,,,..,.,.,.,.,
-#RO3WPZ34XILG7PSM3257EN7KRZ43XZMMMJLC3VRYJ6OWG736TWZVWZNGERD6PNOLEK2ED3BEASMZK
-#\\\|KJ7Z2UIFO34GWJC3QDXLGK6TLFMS54JAEZYLGF4SZA2AD6HLGOM \ / AMOS7 \ YOURUM ::
-#\[7]LNMX235WAIRO22EJSVCPJHY2MJ2HNWMR2ODXF37UGSZETI5JMICY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,.,,,...,.,.,...,,.,,,.,,,,.,..,,...,...,...,..,,,,,,,,,,,,.,
+#F72FG46MZR4KPFCIWQZ77K2MEIB3QENOS6PJNHL6TZT32OT365FX6QOM4QGEACVQBLBWA3N7MO6LG
+#\\\|AIEEQMLVUYNMRGG44TW4B4JUUKLIL7DLO2TNPBBE32R5J7LATIF \ / AMOS7 \ YOURUM ::
+#\[7]4QFB5X3NG75AH2MKSDASWJHHZI3E2CDO3GHDS5BPFHU24E5PMGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
