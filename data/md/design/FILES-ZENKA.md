@@ -873,6 +873,38 @@ in it. no stage invents an N7FS feature inside files.
     format step [ recommended ], epoch release, or a disk per period ?
     who signs a tombstone -- the store key, which format 1 does not use
     yet ?
+    - **owner answer 2026-10-22** : two removal paths.
+      - **unreferenced -> garbage, reclaimed later** : a node no live
+        record references goes into a garbage state. its bytes stay and
+        it can be re-referenced. it is reclaimed [ released + tombstone ]
+        only when space is needed [ low-water mark, oldest unreferenced
+        first ] or after a max age. a reclaim is the moment the tombstone
+        is written, so union sync only learns of reclaimed nodes.
+      - **instant purge** : release + tombstone at once, for content that
+        must be gone now.
+    - **re-reference only by content** [ design note ] : a new attach
+      whose bytes hash to a garbage node's `C` revives that node [ plain
+      dedup : the caller proved it holds the content ]. a revive by `C`
+      alone would be the oracle and deputy that `:n7fs:` refuses on files'
+      own disk [ section 7 ] : only an owner \ admin path in file-view
+      [ 'recover', like the note.* xz-trash ] may do that.
+    - **never recoverable needs crypto-shredding** [ design note ] :
+      overwriting bytes is no proof on SSDs, journaling or copy-on-write
+      filesystems, and backups of `/N7FS` keep them. so 'additionally
+      protected' content is stored encrypted under a RANDOM key per
+      attachment, the key held outside the disk and outside its backups
+      [ keys zenka \ vault ]. purge = shred the key + release the node ;
+      the remaining bytes are noise everywhere, backups included.
+    - **protected content is never deduplicated** : a random key gives
+      unique ciphertext, so one node per attachment, and one holder's
+      purge can never destroy another holder's copy. for protected content
+      `C` is over the ciphertext and the plaintext id is never stored
+      [ this settles question 13 for that class ; convergent encryption
+      stays possible for the plain class only ].
+    - **purge with other holders** [ plain class ] : a purge removes the
+      caller's references only ; bytes another live record names stay.
+      an owner \ admin purge may force-revoke every handle on that `C`
+      first [ logged, each holder's file-view shows 'purged by owner' ].
 15. **records as content nodes** [ as designed, no format step ] or a
     dedicated N7FS record kind with its own magic and key word [ a
     format step, but readers can then tell records from content ] ? and
@@ -883,6 +915,178 @@ in it. no stage invents an N7FS feature inside files.
 17. **attach per start or once** : the host setup attaches files' disk
     once [ as designed ], or files attaches and detaches with every
     on-demand start [ a mount record each time ] ?
+18. **security levels, layered unlock** [ owner 2026-10-22, later stage ] :
+    desktops get security levels, and higher levels add entropy to unlock
+    attachment groups in layers. a shape that fits the rest of this
+    design :
+    - **keys follow the group tree** : a member's key is wrapped by its
+      group's key ; a group at level n is wrapped by the level-n key,
+      derived from the level n-1 key plus that level's own entropy
+      [ phrase, token, presence ]. level n opens only with every level
+      below it.
+    - **shredding a group or level key** makes its whole subtree
+      unrecoverable in one step [ the purge of question 14, per layer ].
+    - **dropping a desktop level** zeroizes the unwrapped keys of that
+      level and above ; handles into those groups fail closed until the
+      level is unlocked again.
+    - **where unwrapping happens** : the entropy is entered on the
+      desktop, so level keys belong to the vault agent in the user's own
+      process [ CREDENTIAL-LAYERS ], never held by files' uid beyond one
+      fetch. open : does files decrypt for the target, or does the target
+      receive a per-fetch unwrapped key and decrypt itself [ end to end :
+      files never sees plaintext of protected groups ] ?
+    - open : are these the same level numbers as
+      UI-SHOW-SECURITY-LEVELS [ what a caller may see ], or a separate
+      scale for unlock strength ?
+    - **owner answers 2026-10-22** :
+      - **nesting solves hosted storage** : each layer adds protection
+        without breaking a chain. this holds because layers wrap KEYS,
+        never content [ envelope encryption ] : content is encrypted once
+        under its own key, adding or removing a layer re-wraps that key
+        only, so the ciphertext, `C`, the node path and every record chain
+        naming it stay unchanged. a host can hold an outer layer for
+        availability work without reaching the inner ones. a layer that
+        re-encrypted content would change `C` and break the chains.
+      - **end to end is the default** : files hands out ciphertext + a
+        per-fetch wrapped key ; the target decrypts. a user desktop
+        session is just another target zenka. a FUSE mount decrypting
+        generically is the deliberate plaintext exit : every process of
+        that uid reads it and plaintext reaches the page cache, so a level
+        drop must unmount and flush, not only zeroize keys.
+      - **encryption in the base.file.* abstractions** for all sources
+        [ local, N7FS, remote, files handles ], in one place. conditions :
+        opaque key handles issued by the vault agent, never raw keys
+        through the api ; fail closed [ a protected source without a key
+        is an error, never ciphertext returned as content ] ; chunked AEAD
+        with nonces derived from the chunk index and a final-chunk flag
+        [ random access for FUSE, no reorder \ truncation, no nonce reuse
+        by construction -- the link-upgrade nonce reuse of 2026-10-05 is
+        the reason to fix this in the format ].
+      - **in-process access** [ owner ] : a Tie'd handle \ scalar or a
+        memory mapping for the decrypted form, where setting up the
+        mapping is protected again [ a key handle from the vault agent,
+        bound to that process and fetch ]. plaintext then exists in that
+        process only, never on a filesystem other processes see -- the
+        middle ground between end to end and FUSE.
+        - tie : READ \ SEEK decrypt the chunks they touch [ chunk n \
+          size ] ; only ciphertext reaches the page cache.
+        - mapping : decrypt-on-fault needs userfaultfd and C ; practical
+          is the ciphertext mapped [ File::Map ] + an anonymous buffer
+          for plaintext, mlock'ed [ no swap ] and MADV_DONTDUMP [ no core
+          dumps ] -- the two leak paths of a memory-only design.
+        - UNTIE \ close \ a level drop zeroize the chunk cache. honest
+          limit : perl copies strings freely, so zeroizing in pure perl is
+          best effort ; a guarantee needs the plaintext buffer in XS \ C
+          managed memory, handing out only the bytes read.
+      - **reuse the data zenka** [ owner : the infrastructure exists ;
+        not read when this design was written ] :
+        - `data.mount.shm.*` : SHM \ file mappings via Sys::Mmap, paged
+          with an index -- the base for the decrypted mapping.
+        - `data.mount.shm.lock.memory` [ AMOS7::SHM::lock_memory ] : the
+          no-swap part already exists.
+        - `data.mount.shm.permission.*` : signed sticky permissions in the
+          mapping header [ to, branch, rights, expiry ; owner key ; group
+          and path pattern checks ] -- close to section 9's capabilities :
+          one capability format for both, not two.
+        - mounts : `data.mount.fuse.*` exists, but
+          ALTERNATIVE-MOUNTING-OPTIONS.md finds perl Fuse tied to FUSE 2
+          [ glibc conflict ] and recommends 9P [ `plan-9` zenka ] -- the
+          generic decrypting mount is 9P first. NESTED-MOUNT-CHAINS.md
+          gives the nested address grammar the layers can use.
+        - **owner answer** : both. zenki that speak files' interface
+          fetch from files directly ; zenki that need the extended
+          services [ mappings, mounts, decrypted views ] go through the
+          data zenka, which holds a scoped handle and maps \ decrypts.
+          files stays rights + records ; plaintext of protected groups
+          never enters files' uid.
+      - **reuse the storage zenka + plan-9** [ owner pointer ] :
+        - `storage.cmd.p7ref` + P7REF-STORAGE.md : the unified reference
+          syntax `p7://<type>:<address>[@<authority>][|<segment>]` ,
+          with `p7://checksum:<…>` for content. files' ids should be
+          P7REF types, not a syntax of their own : `C` as a checksum
+          reference [ which grants nothing by itself, as section 2
+          requires ], and a new `files` type for handles `H`.
+        - `plugin.storage.checksum` [ map \ lookup \ verify ] and
+          `storage.cmd.lookup-checksum` : a checksum -> files index that
+          already exists -- files.index \ search [ section 10 ] build on
+          it instead of a new index.
+        - `storage.9p.*` : a full 9P client ; `plan-9` runs a 9P SERVER
+          [ plan-9.server, export-directory ]. the decrypting mount =
+          plan-9 exporting a data-zenka view, no FUSE.
+        - `storage.map-dirs.*` : an IO::AIO mmapped virtual tree -- a
+          candidate for how file-view and data present the group tree.
+      - **keys, index, fs, udev** [ owner pointer ] :
+        - `keys` [ standalone, interactive console ] : passphrase key
+          archives [ enc-key, user_key_archive, decrypt-archive ],
+          seed-file entropy keys [ gen-file-seed-key ], backups with
+          rollback, `:pass-env:` passphrases. the 'outside the disk'
+          key store of question 14 and the level entropy of 18 use these
+          formats and this console for setup and recovery ; the serving
+          side stays the vault agent [ keys never runs as a daemon ].
+        - `index` : trie addresses, lookup, search, feed-dir, persist,
+          `contributions` per content checksum -- files.index feeds it
+          with `C` [ stage 6 ], its own non-repo feed-dir reads retire.
+        - `fs` : mount \ unmount \ re-mount \ is_mounted,
+          get_filesystems -- the mount authority. files' N7FS disk on
+          removable media and the plan-9 9P export [ `mount -t 9p` on the
+          desktop side ] are mounted through fs, never by files or data.
+        - `udev` : udevadm events matched against rules -> actions. a
+          device arriving is a natural trigger : attach an N7FS disk from
+          a known medium, and a hardware token as the entropy factor of a
+          security level [ question 18 ] -- its removal drops the level.
+        - **N7FS automounts** [ owner ] : udev sees the medium, fs mounts
+          it, N7FS attaches the disk. the disk is recognized by its N7FS
+          identity [ signed disk record, witness ], never by label or
+          filesystem uuid [ both are trivially copied ]. an unknown disk
+          or a witness that is not `current` is not attached [ or only
+          read-only, for import -- the owner's choice ]. here a mount
+          record per plug-in is right : each plug-in IS travel, unlike the
+          on-demand starts of question 17. removal detaches the disk, and
+          handles into it fail closed until it returns.
+19. **actions triggered by a signed disk, code included** [ owner
+    2026-10-22 : signed disks and their states make automatic
+    functionality safe, e.g. updating an appliance with a signed upgrade
+    stick ]. conditions for code from a disk :
+    - **a signed disk is not authorized code** : the disk record proves
+      which disk it is. a payload that runs carries its OWN signature by
+      an identity holding that action's right [ owner \ release key ],
+      with a distinct label [ e.g. `p7 upgrade v1` ] -- otherwise any
+      signed data stick could execute.
+    - **anti-rollback** : the payload's signed version must be newer than
+      the installed one [ the signed src-ver numbers ] -- an old, validly
+      signed stick must not bring back a vulnerable version.
+    - **target binding** : the payload names the appliance class \ host
+      record it is for.
+    - **verify, copy, verify the copy, run the copy** : a hostile medium
+      can answer a second read differently. apply through the existing
+      upgrade path with rollback ; never execute from the medium, never
+      pass disk content through a shell.
+    - **below the signatures** : mounting runs the kernel's filesystem
+      parser on untrusted bytes -> the first look mounts
+      `ro,nosuid,nodev,noexec`, the normal mount only after the disk
+      record verified ; udev rules act on the mass-storage class only
+      [ a device posing as a keyboard is outside what signatures cover ].
+    - **owner : a fully signed checksum tree** guards against changes,
+      additions and removals. today format 1 covers changes only [ nodes
+      are content-addressed, the store key signs state + meta records ] :
+      nothing signs the SET of nodes, so an added or removed node goes
+      unseen. the same gap is why `src/base.list.subroutines` exists : a
+      deleted module restored by an attacker keeps its still valid
+      signature, only the signed SET refuses it. a signed root over the
+      whole node set [ checksum tree, as N7FS-SPEC's tree structures
+      suggest ; a format step ] closes that, and then :
+      - **verify on every read** against the tree instead of verify-then-
+        trust : a medium answering a second read differently fails that
+        read -- the copy step above becomes optional.
+      - **the root as the authorization** : the release key signs the
+        root with the upgrade label and a version -> the whole disk is
+        the payload ; anti-rollback lives in the signed root.
+      - **below the filesystem** : the kernel parses the filesystem
+        before any tree inside it is checked. the full answer is block
+        level verification, dm-verity style [ `veritysetup`, a signed
+        root hash over the raw blocks ] : the filesystem parser only ever
+        sees authenticated blocks. until then the
+        `ro,nosuid,nodev,noexec` first look stays.
 
 ## not in this design
 
@@ -892,8 +1096,8 @@ is a separate design if wanted ] ; the STRM unknown-total extension ;
 the N7FS format steps themselves [ release, references, stream writes,
 record kinds ] -- named here as gaps, designed in N7FS.
 
-#,,,,,.,.,..,,,,.,.,,,,,,,..,,,,.,,,,,.,.,..,,..,,...,...,..,,,,.,..,,...,..,,
-#W5RYMILC6SJ7HDTCENDJP7ED2NUQ6GURMY6EIZSUZD7BJLLF3VE4O5ZW6UJ6HQIRHYU4CITVAGBCU
-#\\\|B7BKRDFDTI3XYNYXFAGUVG3AE3AAFULMNDZGROLWZ5DRSWA6FWJ \ / AMOS7 \ YOURUM ::
-#\[7]XWTG3KB6NZARCUWBEHP446CVORZGXP7M5C575XFVDG46LUUJ7IDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,,,,,...,,..,...,..,,..,,,.,,..,,...,.,,,.,,,..,,,,.,..,,.,,,
+#7O2UI3OCNTCUHC4UMG2TVIOGSVVOIBHZR7CLPSRGQLPAHCLA22JHKZ6PTPZ2IQXT4I734E37BEQNE
+#\\\|BUJZYSBCW2HHXGWX34BMPMLCHVWPPA3OEQ754MZEIA5UHKEOQMS \ / AMOS7 \ YOURUM ::
+#\[7]5XEWLZPYQG352ZMMCTCO7AI6YLLXEEM6JFVXAWFEIIEZC56XMYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
