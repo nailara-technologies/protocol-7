@@ -191,6 +191,9 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
     ## trigger dependency recheck for jobs waiting on health-ready server ##
     <[jobqueue.check_dependencies]>;
 
+    ## the lock queues waited too : nothing else hands them the lock ##
+    <[coding.async.backend_dispatch_next]>->($ARG) for qw| gpu cpu |;
+
     return TRUE;
 }
 
@@ -262,6 +265,10 @@ if ( $restart_count >= $max_attempts ) {
             . '[ startup failed, restart budget exhausted ]'
     );
 
+    ## and the lock queues : their tasks fail on the dead server instead of ##
+    ## waiting for a resume that already happened                           ##
+    <[coding.async.backend_dispatch_next]>->($ARG) for qw| gpu cpu |;
+
     return FALSE;
 }
 
@@ -284,8 +291,8 @@ if ( $restart_count >= $max_attempts ) {
 
 return FALSE;
 
-#,,,.,,,,,,,.,.,.,.,,,.,,,..,,..,,,,.,,,,,.,.,..,,...,...,...,,.,,,,.,.,,,.,.,
-#3BLWJLVZNXHYPU4KVQPPOSCTMQS7RMZXKSXE7CD2VZSLRN52S73D236YU6ANFV4LEHUEIJV3QOMHG
-#\\\|7VOYCXDGH2UOL67DH2WQTF2AX3IE6QKIZD2VGWDFY7VGMRJPWTX \ / AMOS7 \ YOURUM ::
-#\[7]6WZ3IB6FBTTOZHJVQSLEQV7ALZMSTBRNRWSUJMKHKUJSSFHQ3SCY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,.,,.,,,,,,,.,,...,..,,,,,,..,,..,,...,...,,..,..,,..,,,,,,,,,,
+#HXWYLIHESUTX3KNBYD3RCJLDMONAABBOOYCTLGB7TEIUMOKPYDHETIYES52AB4LPCFXYDILUNFQJ6
+#\\\|FI7DLBOXW3WTLS2QBA53SUYZ65BDJV4OQZQLXQT33JOIXMUR3CC \ / AMOS7 \ YOURUM ::
+#\[7]MK7M3A5ATUGJIQEYXSKR3DZT2DD5KKOXRANMLK5CAP6KOLIGFSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

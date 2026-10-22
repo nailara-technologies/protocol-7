@@ -42,11 +42,18 @@ my $status = $server->{'status'} // 'starting';
 ## hard-fail a waiting job; 'crashed' waits through recovery like           ##
 ## 'starting' does                                                          ##
 return FALSE if $status eq qw| failed |;
+
+## ready answers before its self-test concluded : monitor_inference_    ##
+## startup sets 'ready' and pauses the queue for that test in the same  ##
+## handler. reporting ready here let jobqueue start a real task in that ##
+## tick, it took the lock ahead of the probe and the test never ended   ##
+## [ 2026-10-23 ]. wait while paused ; every resume rechecks            ##
+return undef if <coding.task.queue_paused>;
 return TRUE  if $status eq qw| ready |;
 return undef;    ## still starting / crashed / restarting ##
 
-#,,.,,,,.,..,,..,,...,.,.,.,,,,.,,,,,,..,,,,.,.,.,...,...,,.,,,,,,...,.,.,.,,,
-#FJ7NMT5LK2OFGZUIN2BYHEKWD2WTA6T4XJ4K66S47FYYYOBPGVNCDGTIPSLSSINST3XTOMBTES4CY
-#\\\|7GPHRDOBRFKOB53PYWOOLN3ZIZ7IKHE4A4DLNVPB46JMUL3TWCW \ / AMOS7 \ YOURUM ::
-#\[7]JDQ4FOWYX73TUYLN37DCAFSHCZUJEJWU6A5YXNI6KWOQEUPTWYDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,..,,,,.,,,,,,,.,.,,,,..,,..,.,.,...,...,.,.,,.,,..,,.,,,..,,
+#IW6JQATXZ2DCEGV3DN2P3Y37MI3KZHMNROIQKFHUBVFFO6VGASMDM5DILA7BQ3FGESZSN7RXAQUX6
+#\\\|ZMG3V6XXFGGEYB5PYJT3VPWA5W27GUC4HDUUC7B7PU6KW2YT7EA \ / AMOS7 \ YOURUM ::
+#\[7]EPP6BHZY6HDHF5GYTQX5MBC42LQ52FXQ22P3LCQQZSIXURDAZIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
