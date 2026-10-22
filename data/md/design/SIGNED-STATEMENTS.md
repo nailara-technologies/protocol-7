@@ -22,7 +22,7 @@ mode A \ mode B ], ZENKA-IDENTITY-COMPONENT.md [ vouching edges,
 lineage vs membership ], FILES-ZENKA.md [ records, manifests, section 9
 capabilities, open question 19 ].
 
-## what exists [ read 2026-10-22, base 49a2f5d3 ]
+## what exists [ read 2026-10-22, base ae50788b ]
 
 - **the footer** [ `source.fill_source_template`, `source.init_code`
   `sign_template`, `source.create_harmonic_footer` ] : five lines of 78
@@ -71,7 +71,7 @@ capabilities, open question 19 ].
   verification [ corrected in review : an earlier draft said it verifies
   nothing ]. it knows no statements yet.
 - **`src/base.list.subroutines`** : a perl module returning 6200 module
-  NAMES, exactly the 6200 files of `src/` at 49a2f5d3. it is written by
+  NAMES, exactly the 6200 files of `src/` at ae50788b. it is written by
   `sourcecode.console.update-sub-list`, read by
   `sourcecode.console.subroutine-list` and loaded early by the
   `sourcecode`, `work` and `template` zenki. **nothing enforces it at
@@ -724,8 +724,8 @@ the example below is complete and consistent but cut to 5 members [ the real
 statement lists all 6200 ]. **real values** : the signer is the sourcecode
 public key from `bin/Protocol-7` [ `base.protocol-7.source-key`, key id
 `2B2Z7RK33UXXAFH7X7BNEI7A27V6JMGCKS4QWZU76URYYH5UYF3LFENHBSLBIJWUOMHPKOXDU24SC` ],
-the member ids are BMW-384 of the files at 49a2f5d3 [ they change on every
-re-sign ], `src-ver` is `cfg/protocol-7.src-ver` at 49a2f5d3, and the ntime
+the member ids are BMW-384 of the files at ae50788b [ they change on every
+re-sign ], `src-ver` is `cfg/protocol-7.src-ver` at ae50788b, and the ntime
 was computed 2026-10-22 03:18 utc. **example values** : the member count of 5
 and `version : 1`. `footer : full` is the label's minimum. the footer is the
 `sign_template` of `source.init_code` with the def 1 slots filled -- real
@@ -911,7 +911,7 @@ each is a label table entry, not a new format.
 7. **`src-ver` vs `version`** : keep both [ proposal ], or make the
    statement version the src-ver counter ?
 8. **load-time cost** : enforcing the set hashes all of `src/` [ 15.4 MB at
-   49a2f5d3 ] at each zenka start, or only the modules a zenka loads
+   ae50788b ] at each zenka start, or only the modules a zenka loads
    [ proposal ] -- measure before choosing.
    - **owner answer** : sign SIZE and checksum per member -> ONE
      signature check for the whole set, then only fast per-module checks.
@@ -962,8 +962,8 @@ each is a label table entry, not a new format.
 - the network witness [ N7FS-SPEC section 4 ]
 - unlinkable credentials [ their own design ]
 
-#,,,.,,,,,,,,,...,,,,,,..,,..,...,,..,,.,,,,,,..,,...,...,..,,,,,,.,.,.,,,...,
-#45RLUTXUAUHUMV2S4KRH7RJICSLLXLFZ7GCSXKML2RL42ISSQU3G5CNYUNVJ3K6AKIE7NGZT6OHE4
-#\\\|SYENSROLVEAMK7ULNLMTRKLAMIA6GXD4WZN34RVWM3IIDUBBS4J \ / AMOS7 \ YOURUM ::
-#\[7]YPJB25OLPEJVSQBMOMPOPFCOR3UGPWOODZVUORZPI2FE4JGREWAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,,..,,..,,,.,,,,,,,,,,..,..,,..,,...,...,,,.,..,,,..,,..,,.,,
+#NQSCEOYI5A7UCDDAHUX2BNSZAFPKC4766BC3ZXDTY67HU5RMJZFGECJYING4RJ5MNRED6NWQGV276
+#\\\|OPPW5FYPASBK3Y6JTAWINMEQXHGCG7YFL36IDPVTJU544EKMF2W \ / AMOS7 \ YOURUM ::
+#\[7]UOZ6IEDMYK4U3GWHGKQDLEMZYECBZTNRCWK472JHBLV5NKKXG4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

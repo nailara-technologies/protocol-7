@@ -57,14 +57,14 @@ provider hash); `init_code` itself only re-arms `if ($reinit)`,
 cancelling the previously-stored handle first so a reload never
 leaves two timers running. See `src/usage.startup` +
 `plugin.usage.kimi.init_code`/`plugin.usage.claude.init_code` for the
-landed reference implementation (commit `65c081b7b`).
+landed reference implementation (commit `e22b2d56f`).
 
 related: [[init-code-return-values]] — a different `base.init_modules`
 gotcha (return-value semantics, not execution timing), same general
 area of the codebase worth knowing together.
 
-#,,.,,,.,,...,.,.,,,.,,,,,.,,,,.,,,.,,,.,,,,,,..,,...,...,,,,,,.,,,..,,.,,...,
-#WVMAQBVCHENRTK6QVW2SWHOCHRDDZUOUIZV3NV4B767ERUYWO6WMHCTLI6KQIUZOFIHKBY2GLGO3K
-#\\\|DU4FGNCUBNIN3S5KXXZIZTWFJNWXHZRKJOAWJDHUZYH23B7AF3P \ / AMOS7 \ YOURUM ::
-#\[7]LORJ3L5GKM5GGXCD533CQB7JCKMB6UVPH3RK2JUS25XB2OXMPQDA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,,,,,...,,,,,,,,,,,,,,,,,.,.,..,,...,...,..,,.,,,.,,,,,.,.,.,
+#HHADW6FWWYROAUGNUIJQ3K4EC7LH3QR7GWM4NB6PG4SWVDORHKHVC7Q2SX4GX55CQRJ3M7PUUSMLU
+#\\\|ALURHSK5QF5YPEZUWQAWGRX7VCYM2J7PERC3FPFHL3FBTUN77OQ \ / AMOS7 \ YOURUM ::
+#\[7]B44GY5ZW4UVCT6LO2FDVK2J5KD5FLUKC27DOWVHF4GXAS7OXY6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

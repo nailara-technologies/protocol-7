@@ -181,7 +181,7 @@ leave module signing to `bin/Protocol-7 sourcecode update-signatures`.
 
 ---
 
-## status [ 2026-08-25 ] — DONE, landed in `7abd5d52a`. dispatched to
+## status [ 2026-08-25 ] — DONE, landed in `7cfeeddea`. dispatched to
 ## kimi (model=k2.7) after dispatch-template-param.md, validated: added
 ## create_template only to kimi_dispatch/claude_dispatch (not the
 ## _continue variants), placed after auto_summarize and before the
@@ -210,8 +210,8 @@ prompt: |
   use $ARG not @_, lowercase comments, bracket annotations [ like this ].
   $ROOT_PATH is defined at the file top — do not redefine it.
 
-#,,,,,.,,,...,..,,..,,,,.,,,,,,..,..,,,,.,.,.,..,,...,..,,...,,.,,,.,,..,,.,.,
-#CTPTHMXJAMY2EOIM3MGDSOZAQWW4Q3BGMN35LDQ6YUSQLPHK6JCJ4SY3N6KTB276ASXZLGOZUOEGI
-#\\\|AHIECHNKGYNNXAZVR4732U7LPECPRLNBFRF7XEW6MNM6D47RR5K \ / AMOS7 \ YOURUM ::
-#\[7]GXAYHHNAH62LMBH7YJN3ZHC56IQ3UCXZ543H3P2DXFYD5PKOFQBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,.,,,..,,..,,..,..,,,,,,,,.,,,,,..,,...,..,,...,,,.,,.,,...,.,,,
+#4ONYXEOYBDGOYYM573QEGEL3NSVZ4VTAM2LR2CVXCF3XXRKKIPRXMAX7KQILH6IOLGXH2YL3UOW2C
+#\\\|ICSJMUUPLRKIPERWARV7H4JMADF5LLGLE5IIOO6PZGUUOTQ3M67 \ / AMOS7 \ YOURUM ::
+#\[7]BMEEUYPI5CHSESIK3R5GHTZKMHFY77CWUWZNFMGGHCGKUX3DLABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

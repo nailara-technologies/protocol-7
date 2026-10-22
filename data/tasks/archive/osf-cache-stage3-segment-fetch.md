@@ -1,6 +1,6 @@
 # osf-cache stage 3 : single-source segment fetch + verify
 
-follows stage 2c [ `525215377`, `0190f1de0`, live : main + `osf-cache[peer]`,
+follows stage 2c [ `69aef4a1b`, `1f496c661`, live : main + `osf-cache[peer]`,
 lookup via `<sid>.lookup` works ]. design : `data/md/design/OSF-CACHE-ZENKA.md`
 [ acquisition flow steps 3-5, `## hash layers` ].
 
@@ -113,8 +113,8 @@ files touched, test output, the B32 functions used and how decode is
 checked, every exit path of fetch and its cleanup, what only a live run
 can confirm.
 
-#,,..,..,,,,,,,,,,...,,..,...,,,.,...,.,.,.,,,..,,...,...,.,.,,..,...,,,.,.,,,
-#CRELXJDIPVRUHHIYT4JXOMB6ZSKS27XIUIBAHWCB6Y3OAMXSAATLUP4XF7CPWELK7I4TT2DTAW4GO
-#\\\|FDKZWYAE2DTE7JHQ5W2NFE25WQL2Q5JF2J5UK4GUIB5DG2BQDDO \ / AMOS7 \ YOURUM ::
-#\[7]GBC7WOVMMZMBLRCJTFIR5WZN435RG2STS44SMVCE7445XHEY3QCQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,..,,...,.,.,,,,,,,,,..,,.,.,..,,...,...,...,,..,.,,,...,,.,,
+#646AFJT5MP47U6D2L7IDWNMSGO4LL42ATPUZ4O5OACADHFIIQGYESSQZQFH4MVMQTNSFRACF2SFQ6
+#\\\|VHSN4KMRBPSJKDEWFGOIHBYZIBAQI5UIRRZBIQPFYY773KC33D2 \ / AMOS7 \ YOURUM ::
+#\[7]NMFUPLXWID3P2PUJS2HSC2KWLVFRQRZUTLRPOOZHEJW5RF7ZMQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

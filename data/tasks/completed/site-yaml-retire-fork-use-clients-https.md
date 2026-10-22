@@ -15,7 +15,7 @@ both now resolved by other work landed today:
    failing the whole time regardless of forking, because of Akamai's
    ALPN-based bot mitigation (`LWP` is HTTP/1.1-only, cannot be fixed).
 
-Both are now solved by `clients.https.request`/`.get` (commits `ef7558078`
+Both are now solved by `clients.https.request`/`.get` (commits `3cbc2ef08`
 — real HTTP/2 support, and the proxy-CONNECT-tunnel commit landed right
 after it — read both task files for full background, this task assumes
 that context). `clients.https.get` is genuinely non-blocking with **no
@@ -267,8 +267,8 @@ prompt: |
   use $ARG not @_ where the file already does; lowercase comments; bracket
   annotations [ like this ]; do not touch the trailing signature blocks.
 
-#,,,,,,..,,,.,..,,.,.,,.,,,,.,,,,,..,,,..,,,.,..,,...,...,.,.,..,,...,..,,...,
-#REPJ7KG6MNO427ZBSXNQVVW2HGRJRGUJPYQCQPRAVA5HMTBS3D6QVBXV6NWYTTWP3IXEOLWYJXK52
-#\\\|6V2Z64NLNNT6TJJ4OWGDS5C56PQHINIKJWFPSQ6X6WNJ3ZGDBEZ \ / AMOS7 \ YOURUM ::
-#\[7]HJUEIK3RQVBQK4YEFHL3SZCJH6ANQI7RORUXU2IQZHFLQ44SFYCA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,,,,,,,,,.,.,...,.,,,,.,,.,,,..,,...,...,...,,,.,..,,,.,,.,,,
+#2ANFTSYLR7SNEVUQLK6T6KCMNUHH27C7AUSUFSVONHFH6DGEICKZZSJCSCQZYWLK7U5CGRJQFKNHI
+#\\\|COXNL4K6WR5LTUH6EQLYURRAUWWUBNI5P77VRGU2NIJT6MZOAT7 \ / AMOS7 \ YOURUM ::
+#\[7]7DC7ABD4JJQXVXKCFAE4OLB7WX4BIZMAHYDF2M4NOGDUYTGTFOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

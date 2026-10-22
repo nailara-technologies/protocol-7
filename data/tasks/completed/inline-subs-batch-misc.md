@@ -76,7 +76,7 @@ after all 7 new modules are created and source files updated:
   `/dev/shm/.7/STDOUT/NIW7OAQ` if you need to watch reload output live
 
 ## status [ 2026-06-13 ] — DONE, landed same commit as this task file
-## (`0476f2c98`): all 7 target modules exist and are registered in
+## (`5e28cc8d1`): all 7 target modules exist and are registered in
 ## `src/base.list.subroutines`; no `sub _*` inline helpers remain in
 ## `src/download.*`, `src/letsencr.*`, `src/source.*`, `src/space.*`,
 ## or `src/work.*`; dep-graph regenerated. re-verified 2026-08-25.
@@ -93,8 +93,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 `[ word ]` annotations, `$ARG`/`@ARG` not `$_`/`@_`, one-sub-per-file
 [ no inline `sub {}` helpers ]. keep `# descr =` lines under 55 chars.
 
-#,,,,,...,,,.,,,,,,..,,,,,.,,,,,.,.,,,,..,,..,..,,...,...,.,,,...,,.,,,,.,.,,,
-#PLZGQFQY74AGMN4Q6BRLCYMS2U32ZBG2WACTGN43KBRIHLXCCVP7GYYEV2HEHCWBTARNDJCAJX2BK
-#\\\|G2JGKMYUXISND4DWPJ7CD636HNNFGG5FLLM44UQLNPGYLLRZKWR \ / AMOS7 \ YOURUM ::
-#\[7]OZYREBBIURN2FHOBFZTGMWNYHV5KVVCD2JDZPRPXWS6FMJRMEYDY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,.,,,.,,,.,,,,..,.,.,...,,.,,..,,...,...,,..,.,.,,.,,,,,,..,,
+#WGCY4QXHSEGIN372QLKOPPMKMZK4M2EJO6Q7HMCTL66ZN7CXI33OXQQW4NLKN67I5RGHXO6V56PL4
+#\\\|QBKJZ754NDTHB6KHN2CID5YZNSXBBCYAXZP662XHYAJYWFUCSW7 \ / AMOS7 \ YOURUM ::
+#\[7]Q6CISGUBXJXVXP4VOMV5EMFO376IHWZWUEKHFWRBIIIT5S2FY2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

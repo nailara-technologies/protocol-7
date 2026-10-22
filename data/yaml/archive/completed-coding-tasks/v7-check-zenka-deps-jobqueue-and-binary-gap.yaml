@@ -5,7 +5,7 @@ estimated_rounds: 22
 
 context: |
   Follow-on to this session's debian/sys-deps async apt-install pipeline
-  work (commit 1907f42dc: base.debian.install_package's apt_child branch
+  work (commit 362f45cb8: base.debian.install_package's apt_child branch
   is now jobqueue-serialized via debian.apt_enqueue_install/apt_pump/
   job.apt_install/handler.apt_child_output, one install in flight at a
   time, package names sanitized before shell interpolation; sys-deps.cmd.
@@ -134,7 +134,7 @@ issues_to_fix:
       raw file itself (strips the P7 header/signature footer, then
       `eval`s the body) using a hardcoded path -- this custom parsing is
       exactly what had the stale modules/->src/ path bug fixed earlier
-      this session (commit 1907f42dc's predecessor fix). Per user: this
+      this session (commit 362f45cb8's predecessor fix). Per user: this
       should collapse to ONE canonical accessor everything routes
       through, specifically so the underlying data source can be
       flexibly upgraded or re-routed later (e.g. if base.
@@ -240,8 +240,8 @@ verification: |
      access.zenki grant that neither static syntax-checking nor diff
      review can catch
 
-#,,.,,,.,,,,,,.,,,,..,.,,,.,.,,,.,.,,,,,,,,,.,..,,...,.,.,,..,,..,,,.,,,,,,,,,
-#EVUJGXLLZRYJ2FWHKOQQMEA363RTZXYPJY3H7A3OXMG2TU24NDMJI4P5AXQD2PD4LTBNLHY47667S
-#\\\|IXSAMS2KFDTIWXNN6PKT3YGA7J6LFW3IL53PAQCVNCCYYMUMJVF \ / AMOS7 \ YOURUM ::
-#\[7]6WHMAYQBK3XCXCRHY2LFAKX6SVZSI6ZQM5F3TISXFFRKMHGIC4AQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,..,,,,,..,,.,.,..,,,,,,..,,,,.,..,,...,...,..,,..,,...,...,,..,
+#CTJWUUHRHSWC3MITDLQGTT57QKG77GCGPRHE4O7RL4VHUWMLEFGJID4MVP4JUQYHCANYQWPVJBC3U
+#\\\|KWRGX2BDZLENDJQNXF64OELYE7UGNKJU65Z3RO6BCQNHRWAZJSB \ / AMOS7 \ YOURUM ::
+#\[7]5PDRCBY7T7TL52EAENOCZCIB2P67KOVLOJWJCZBQORIYBWVGECAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

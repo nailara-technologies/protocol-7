@@ -12,7 +12,7 @@ metadata:
 2026-06-12 right after a kimi dispatch did an elaborate git-stash
 baseline comparison ([[feedback-kimi-reload-baseline-noise]]) to check
 whether a `reload` error was pre-existing. Zenka was `v7` at the time;
-renamed to `v7-zenki` 2026-08-31/09-02 (commits bd98e1c17/e410ea153) —
+renamed to `v7-zenki` 2026-08-31/09-02 (commits b81fa7d10/0132064de) —
 still the same live socket-id (`NIW7OAQ` confirmed live 2026-09-05),
 just the zenka's own name changed. Re-verify the socket-id is still
 current with `ls -la /dev/shm/.7/STDOUT/` before trusting it in a new
@@ -30,8 +30,8 @@ any stale `v7.<cmd>` references in an older reference doc the task
 points at (translate to `v7-zenki.<cmd>`) since kimi has no way to know
 about the rename on its own.
 
-#,,,.,.,.,,.,,..,,,,,,,,.,,..,.,.,..,,,.,,..,,..,,...,...,.,.,,,.,...,,..,..,,
-#4PTE5BLXL7AYMBRB6BTLGCNEN644KRNUPQ2U7JJKGMDLZM6IVRWILECSKVOLFHJIYC3MDE3MVPP4O
-#\\\|NV7FDSNHIE3CUC2NIZGV777W3K5JDVJW4XIXO4OVMFUVNRXJ35M \ / AMOS7 \ YOURUM ::
-#\[7]FS2XAUBAODNBPVGYLQFAL2JFTU3LOQPSU2B5GYJ43Z7DYOEJ56BI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,...,..,,.,.,...,..,,.,,,,,.,..,,...,...,,..,,,.,,..,..,,,,.,
+#HE4PRJHLQBB3FQHQ3N4BIFK77B2IZD7M42ABR4ZJ242BC3QHFLVNQ2AZDDB6HGOFTFAFDFCXIZGI6
+#\\\|FKDWLQDQKBTENPR5ICWWGOPZOQCP445AVSIFVQ3O5B2GG4QYNTM \ / AMOS7 \ YOURUM ::
+#\[7]B7XXHA23BJXMPW2GF465OQHVDOZ4OWMTCNLU57POVFALAO5P4OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

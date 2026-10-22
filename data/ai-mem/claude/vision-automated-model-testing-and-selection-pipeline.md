@@ -99,7 +99,7 @@ without checking which one is still true when that work starts.
 
 **CORRECTION, 2026-09-17, later same day**: `MODEL-STATUS-TRACKING.md`
 is NOT an open next step -- it was fully built the same day it was
-designed (`a994013a6` + `f23a68c44`, both 2026-08-27), just never marked
+designed (`faff2a420` + `0d5e09684`, both 2026-08-27), just never marked
 done in the doc itself, which is why it read as still-open three weeks
 later. Confirmed live: `p7c coding.model-status` / `coding.model-sweep-
 status` are real, working, already-populated commands. **The actual gap
@@ -124,8 +124,8 @@ ADAPTERS.md`'s adapter split -- but verify each topic's real
 implementation state live before treating the doc's own checklist as
 current, per the correction above.
 
-#,,,.,...,.,,,,..,,..,.,,,.,,,...,.,.,.,.,...,..,,...,...,..,,,..,,.,,,.,,,..,
-#DPYSM4K6VE4PQ746EBEMPCGJ3BTKNTK7CD5IAXSTOKJP5FWM3R6AJCKPAMD5LSO4NXHQ75JYMOOC6
-#\\\|O5MF4IUORQBV2HRSWGUIEWGK4II35VGZQVADKLS5NT3UM3LL5JK \ / AMOS7 \ YOURUM ::
-#\[7]MFU4A2IYCEKQYWNO32VVQ7VDMYEWJINQO2AWLYKEVEKVKVUFK2BA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,,,,,...,,,,,...,.,.,,..,,.,,..,,...,...,.,.,,.,,,,.,.,.,..,,
+#GAWG3F2TFC55N7KKGWP5CXUOSZ4AZSAMRRS3U2OXC3LQ2E2IQJM64NGZLEUWFQXCUXNLGT47VWYCE
+#\\\|LNHZVV6QKRJYBVYQ422VBTS3C25AR5LRSLQ4IEAWJCJESA3NVSR \ / AMOS7 \ YOURUM ::
+#\[7]ZCS4ELQZXUDGC53WNMYXNN565SNBODHFTQFNUJF6PBX5BZYSAYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -109,11 +109,11 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   hygiene work. New `bin/dev/fix-tag-drift` script + `commit-map` root-cause-split method fixed 124/127,
   deleted 3 genuinely-abandoned-release tags rather than force-matching them.
 - [plan-9/storage 9P subsystem, 2026-08-22](project-plan-9-storage-9p-subsystem-status.md) — LANDED
-  a15af0830: `storage.9p.*`/`plan-9.*` taken from "never worked since written 2026-03-27" to fully
+  5aeee76e7: `storage.9p.*`/`plan-9.*` taken from "never worked since written 2026-03-27" to fully
   live-verified real-directory 9P2000 server+client (new `plan-9` zenka, v7/cube-integrated). Root
   cause was [[feedback-use-constant-vs-data-tree-const]] on both sides at once; also fixed cube
   command-name leading-digit rejection, unwired event loop, socket-vs-fd send bug, `File::stat`
-  shadowing on new real-dir export code. **Same-day follow-up LANDED c349c5601**: opt-in write
+  shadowing on new real-dir export code. **Same-day follow-up LANDED c6f5a9310**: opt-in write
   support (`:rw:` + `:symlinks: reject|contained|allow` on `plan-9.cmd.export-directory`, all
   default to the safe/restrictive option), new `storage.9p.read`/`.write`/`.read-file`/`.write-file`
   client primitives (none existed before — client was read-metadata-only), and live verification of
@@ -140,8 +140,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
 - [coding zenka resilience session, 2026-09-23](project-coding-async-backend-acquire-reentrancy-race.md) —
-  LANDED across 6 commits (`0a641ec1e`, `c93bb499d`, `4ba3aa170`, `6a0d8def8`, `2a648f002`,
-  `8284e080c`, `a420e338c`): reverted a prior session's UTF-8-misdiagnosed encoding-default changes
+  LANDED across 6 commits (`9bb9e16bb`, `c6ffb3a0c`, `a9a2d4189`, `dbed8c6a7`, `bdd0680aa`,
+  `dde091f0f`, `5381b0d14`): reverted a prior session's UTF-8-misdiagnosed encoding-default changes
   (would have corrupted `cred-mesh` credential blobs on next write, caught before any real write
   occurred); found and fixed the ACTUAL root cause — `coding.async.backend_acquire`'s reentrancy
   guard letting two independent callers race a task's in-flight round, see the linked file for
@@ -167,8 +167,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   sweep cursor paused mid-run (`cpu : paused [ circuit-breaker ] : idx=3/90`), resumable once the
   binary issue is fixed.
 
-#,,,.,.,.,,..,.,,,,..,..,,,.,,,..,.,,,,,,,,..,..,,...,...,.,,,,,.,.,,,...,.,,,
-#W3PC3JHE3FANDDX3UIMPMJJGDOSAI2CNVOOENWA7JRPFUHSKQIFBGV66GH4DCHECLVQRLPVIK65CW
-#\\\|6LIKRP3KDE2D3SV3SHKCMIUMT772OGR6XB23ZGZCCEZKCHKZAZE \ / AMOS7 \ YOURUM ::
-#\[7]UQDCHFDDVL6XXY3CLY6MZCZAZABSRU6SIKLVNE6THE4MTHV6DCDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,,,,.,,...,...,...,,..,..,,...,..,,...,...,,.,,.,,,,.,,.,.,,,,,
+#6S5BIZTBOBCCAWLK54I76L6MP7QHIDNRZQHPBYGIBRXAN3U25VTVVANUGENYXDLGGYDW4OFX2AIOS
+#\\\|JSEFQJL66J6ATXYQRRXVVT6KOH66TLBPOD33IJJKCRCT4VDZOSD \ / AMOS7 \ YOURUM ::
+#\[7]ICKCCFRXSKIFARKEX4KY3FO3PGPSWCFGLVFWZ5POF5JK64H232BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

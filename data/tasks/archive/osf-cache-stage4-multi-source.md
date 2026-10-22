@@ -1,6 +1,6 @@
 # osf-cache stage 4 : merkle tree + multi-source segment fetch
 
-follows stage 3 [ `292df1fbe`, `70db2d411`, `1a0d3d14d`, live : the
+follows stage 3 [ `27f797635`, `52f0723a9`, `a85b40b3d`, live : the
 `osf-cache[peer]` instance fetched igt-gpu-tools from main, 32 segments,
 byte-identical ]. design : `data/md/design/OSF-CACHE-ZENKA.md` [ `## hash
 layers`, the streaming \ merkle paragraph, acquisition flow 3-5 ].
@@ -153,8 +153,8 @@ files touched, full test output, the exact leaf \ inner hash
 construction, how the quorum rule is applied, every exit path of fetch
 and its cleanup, what only a live run can confirm.
 
-#,,,.,.,.,,,,,,,.,.,.,.,.,.,.,,,.,.,.,.,.,,,,,..,,...,...,.,,,.,,,.,.,,,.,.,,,
-#MTKLR7NYOXBJSPQNT43QXZFTLF2AVBA4UPDQBYS7IWAYE67GT3HPHZEE47VYXOPYUDK5LLA3EIFT2
-#\\\|VY75LNQW2YUJHRVIPJGUY5ZJINNUGWJ2CLBLZGZNCSJKGLS6W7Z \ / AMOS7 \ YOURUM ::
-#\[7]AILJ67JV2VLJONCLUFOBHF6QT6355CLUUBJ4KTYZABKXHXQSBIDA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,.,.,,..,,.,,...,,,.,..,,,,.,..,,...,...,...,,,.,...,...,..,,
+#IN4F65BWJ35ZJUZWQW5E6LWZQSMHN4PS4QWXXBMBOGEPB7FVFGY4GJT6ABEFA3YGRURYSIPJMDTQE
+#\\\|A3BXNS464WMAFVOSJ664HTQ7B6AOD5WQOJ2YXA2A2XVVDVNBCT3 \ / AMOS7 \ YOURUM ::
+#\[7]HS3LRSLJAOTPSO6EM7DJW4OB6EJDAXRHK64V44QRL7KKGASI4UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

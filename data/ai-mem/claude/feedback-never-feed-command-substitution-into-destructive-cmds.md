@@ -47,7 +47,7 @@ restart timeout only `if $dependencies_ok` [ likely stuck when cube is
 down at that moment -- unconfirmed, the logs of that window are lost ].
 
 **follow-up 2026-10-05 afternoon** : the liveness sweep landed
-[ `f45fb339f`, every 7 s, dead tracked pids -> the normal SIGCHLD path,
+[ `f1bf3ee0e`, every 7 s, dead tracked pids -> the normal SIGCHLD path,
 child entry restored first so the instance restarts instead of being
 deleted by process_zenka_end ]. live : 0 false positives over ~38 sweeps
 on a healthy system ; a deliberate clean `v7-zenki.restart cube` did NOT
@@ -82,10 +82,10 @@ on-disk zenka logs for `< reload config >` \ `< reload all >` \ reload
 source markers before it, check whether a cube restart or an ondemand
 idle shutdown preceded it, then try to replay that sequence on purpose.
 
-4. **CONFIRMED mechanism 2026-10-07 [ likely the answer ]** : v7-zenki stopped catching SIGCHLD after any p7c \ p-7-r compile [ at start or on reload ] -- `$SIG{CHLD}` restore + a duplicate CLD alias watcher, see [[never-touch-sig-under-event-watcher]]. without SIGCHLD, ended zenki stay zombies and their instances keep dead pids -- exactly 'dead pids listed online' ; the liveness sweep [ f45fb339f ] then recovered them. fixed 158f47c30. on recurrence check SigCgt bit 16 of the v7-zenki pid FIRST.
+4. **CONFIRMED mechanism 2026-10-07 [ likely the answer ]** : v7-zenki stopped catching SIGCHLD after any p7c \ p-7-r compile [ at start or on reload ] -- `$SIG{CHLD}` restore + a duplicate CLD alias watcher, see [[never-touch-sig-under-event-watcher]]. without SIGCHLD, ended zenki stay zombies and their instances keep dead pids -- exactly 'dead pids listed online' ; the liveness sweep [ f1bf3ee0e ] then recovered them. fixed e0a451c68. on recurrence check SigCgt bit 16 of the v7-zenki pid FIRST.
 
-#,,,.,..,,,..,...,..,,.,.,...,,,.,,.,,,..,,..,..,,...,...,,,.,,,.,.,,,...,,,.,
-#EOHW7UXTWXYXB22WJQ5OFT3JLHKROTO6A2THTXWSHWD34EJNEZ264HLOAJCD46CLKNSPZKHEXJDZM
-#\\\|GZ4YXCIXFYYRSFJGURDRPBQBEHWMIEAII4YYFORRHV7IXSL4AQL \ / AMOS7 \ YOURUM ::
-#\[7]EPQBWNNTA4LKPPGXA7MGIYS3MBFKSEWD657H3XJOMSLY6ZI3QSCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,,.,,..,,,,.,,,,,,..,..,,,,.,..,,...,...,,..,...,,.,,,.,,...,
+#MK24ILJR3HUNIAT3ONPJZ4E6W54UI5DP4Q7FZSI5WZMAMSEBGRBBW2BRPPAKXTJPJ65MHR43CV5TY
+#\\\|77WLNZ7AC5EDEWSTEOMLLAVCM3OBI4YPIAOMVUNIMHVKSBL6A6P \ / AMOS7 \ YOURUM ::
+#\[7]YXZJUNNLMX3UZ6P7ZNNB5U3D4J6DPYDHFV2V23UKGDFUQTAWWUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

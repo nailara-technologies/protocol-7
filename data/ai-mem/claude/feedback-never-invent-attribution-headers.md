@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-2026-07-01 [ `dd04980a5` ] a session added `bin/dev/jobs-normalize-titles`
+2026-07-01 [ `e21212914` ] a session added `bin/dev/jobs-normalize-titles`
 with a GPL-style header : "Copyright (C) 2019-2026 <owner's real name>
 <an invented protonmail address>", "free software ... GNU Affero GPL", a
 pointer to ../read-me/license. the owner never wrote it, never agreed to
@@ -34,8 +34,8 @@ one would decline -- so even a fully accurate header is not wanted.
 copyright, license, author or email lines ; never fill a license
 template. related : [[no-personal-data-in-repo-tree]].
 
-#,,,.,,,.,,,,,.,,,..,,..,,,.,,,..,.,.,,,,,,..,..,,...,...,.,.,,,.,.,,,.,,,..,,
-#KHPPLWUI62NGHWJ5WWAD3NUIFJHA6QA4DAO2JU3LU6XYPY4IQJJZCVOQZ7SP2XRIZ7EZ2OIJGJJRA
-#\\\|DRFGZ5ZPHF7VCJVFOZCZ7Q7XKMIXSORW5BBQE4WJWSYKDSMFHW3 \ / AMOS7 \ YOURUM ::
-#\[7]65PW3LRX3S37RSRMBPANTNPKALGBFFMFBXYF23LLGMB5ERC23QCQ 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,...,.,.,,..,.,,,...,.,.,,,.,..,,...,...,,,,,.,,,,..,.,,,,,.,
+#5IDVC67X3QW7XQMRESLMJT2GDFPV5HCHTZW36CZWGS3DQKEVZNQSIAW44CLO4RF5XMBBCAOK3W3R2
+#\\\|LDVLO3MNWSCY72JDN77TLG3IHOS2YT5AUBIY6NT5NH5JMX42IY7 \ / AMOS7 \ YOURUM ::
+#\[7]5GCJTSZEIAPJ3D6Z3NW2ZPCEF3Q7O6GIVI7YABC4EIMYMDNENUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

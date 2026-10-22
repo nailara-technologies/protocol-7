@@ -14,7 +14,7 @@ AUTH-LINK-BINDING.md [ the bound link a grant travels over ], todo Y7O
 [ vault agent, per-zenka grants, menu approvals ], HOST-SETUP.md + todo 3W5
 [ host records, permanent links ], todo HS4 [ proxy exits ].
 
-## today : what the code does [ read 2026-10-21, base 4df3fad1 ]
+## today : what the code does [ read 2026-10-21, base 07239e1f ]
 
 the layers exist, but they do not connect, and some of them overlap :
 
@@ -373,8 +373,8 @@ code, config or todo changes ; the vault agent's protocol [ Y7O \ B2K ] ;
 HS4's exit attribute fields ; the ssh-agent protocol in the holder ;
 rotation at external providers.
 
-#,,.,,,.,,...,...,,,,,...,,.,,..,,.,.,.,.,,..,..,,...,...,,..,..,,.,,,.,.,,,,,
-#CMOKDDP7UX2SQJ47BBD3TIG6NUJNHGT6DAA3KOZ6TA33GRH2XS6PFWGOTJKFI6ECWHWGU7U6GJMTO
-#\\\|5CCWQFZNKEJZCJOFANL55XWHQZBV5ELU2TN42CYG6AG3PXSBMVE \ / AMOS7 \ YOURUM ::
-#\[7]4XA3KFTSYLHV3MVWZTZS6UKOEGHLSP2ABHIERTZIJFSWCSGOGUDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,,,,,..,,.,,,,.,,,.,,..,,,.,..,,...,...,,,,,..,,.,,,...,,..,
+#HSH4XE3W34F4E7S3N2KNEWQETVIKJU2V5ME2Y56M35V2WDHME2KFRXF2FSNWD6KK5BA7J2EBVCKNO
+#\\\|2SLWW4YTEC6KFE4UC6MJ4THP7SBUVGZPS4YJXGP34BG5BFSJSSW \ / AMOS7 \ YOURUM ::
+#\[7]XO522WW4T2KYYW7TTRQCZCQCYGBFNNXEESR4OBQYIAUITL7PDADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

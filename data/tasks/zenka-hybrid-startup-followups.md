@@ -6,7 +6,7 @@ open decisions that are still open on 2026-09-30. read `CLAUDE.md` and the
 design file first.
 
 already resolved, do not redo : the `plugin.auth.unix` peer-user
-tautology the design lists last -- fixed 2026-09-20 [ b1d114e0a ].
+tautology the design lists last -- fixed 2026-09-20 [ 5afa981f2 ].
 
 ## 1. no "safe to manage" marker [ highest value ]
 
@@ -24,7 +24,7 @@ have a start.cfg got it from models not knowing the difference.
 
 inventory 2026-09-30 [ zenka.v7 ending in `console_command` ] :
 configure, keys, sourcecode, user-edit, vault-edit -- no start.cfg,
-correct. **session, work -- have one** [ both arrived with 3b9543e4f,
+correct. **session, work -- have one** [ both arrived with bd06d6b77,
 the 2026-08-21 `zenka-startup.v7` -> `start.cfg` rename ; nothing refers
 to them ] : both removed 2026-09-30 [ user's go ].
 
@@ -63,8 +63,8 @@ per item : findings with file:line, a proposal, test on mod-test \ a
 copy of a console-only zenka. item 2 may be fixed directly [ small,
 verifiable ] ; items 1 and 3 need the user's choice first.
 
-#,,,,,,..,.,,,,..,,.,,,,,,,..,.,.,,..,,,,,,,.,.,.,...,...,,.,,...,.,.,,,.,,.,,
-#QFUD7ETPLPXSUHNFNW4NJCDWB5YUXCNLEQSMMGYYTS6PUDDGAS4MQ5DBSQ6Z4O6EQ2ASPS55KNELM
-#\\\|I7COH62PVSGEMRJDBKF7T2BTHI6R3UTVGZA5INGGLOKL456EOHI \ / AMOS7 \ YOURUM ::
-#\[7]GEXKP7SPEIZPRGSLEE43SCYJ624WJSYFXA4Q2VGICD23ONA6ZOBA 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,,.,,,,,,,..,,..,,,,,.,.,.,,,.,.,...,...,..,,.,,,.,,,..,,...,
+#XROXR5BSQUB2IM2AKTML22WQ4FFPYYE5KQGH27ARVMBQAPFVV66V4HSLLNSPVJNH6NC75BFZCC5B4
+#\\\|JDYUKQYU5IR3AXOT6AQQVLFPINL7ZS6A4MY7AZD2FXQQMS5VEGJ \ / AMOS7 \ YOURUM ::
+#\[7]HUKEPPP4CZK4QO3C5UVOWKWRZH4E45ZGFQEQI5E6WQYQXA77TIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

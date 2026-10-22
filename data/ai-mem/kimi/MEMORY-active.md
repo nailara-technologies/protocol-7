@@ -10,8 +10,8 @@ The checksum-native, zero-git batch harness (`model_batch.*` +
 candidate switch, real task via queue machinery, honest context-exhausted
 verdict, capture+record, revert (POSIX ACLs grant protocol-7 write on the
 taeki-owned tree), reverify, restore, clean finish. Landed commits:
-`62e58f86c`, `5ef2172bd`, `5f181e72a`, `7361e26be` (memory),
-`b4e696067` (flat spellings). Full findings in
+`9ca7c89ce`, `dd18f9111`, `1667a019b`, `f8b37b2a4` (memory),
+`b767bf5c7` (flat spellings). Full findings in
 `topic-model-batch-harness-and-self-test-findings.md`.
 
 Lesson added there: `reload source` registers changed files under their full
@@ -124,7 +124,7 @@ offline-safe/restart-clean subscription wrapper, six modules swapped to
 `<a.b.c>`-splits-on-every-dot gotcha, runtime-load marker side effect,
 adoption steps : see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
-## coding git tools repair (Sept 2026, committed c578a8fd8)
+## coding git tools repair (Sept 2026, committed 85c8b28f9)
 
 four stacked bugs had the history tools returning 'no recent changes'
 since March: Git::Wrapper --oneline parser death behind a silent eval;
@@ -150,7 +150,7 @@ log() has one — NEVER pass --oneline to Git::Wrapper::log, it forces
 --pretty=medium and dies 'unhandled:'). Do NOT reintroduce native diff
 calls per-request until traced.
 
-## event-callback reload-safety takeover (Sept 2026, committed f2597139c)
+## event-callback reload-safety takeover (Sept 2026, committed f7d2bbdd8)
 
 finished the claude session's survey after it hit weekly limit: named-handler
 conversions landed for httpd.handler.shm_write (new httpd.handler.shm_replay_sweep,
@@ -189,7 +189,7 @@ see [reference-ntime-x4200-and-cube-cross-zenka-access.md](reference-ntime-x4200
 ## nshell split-mode streaming garble (Sept 2026, FIXED + live-verified)
 
 coding-session streaming prints chunks at garbled positions: content_print's
-column tracking counts ANSI bytes as columns; 6c4e7c1b2's per-chunk color
+column tracking counts ANSI bytes as columns; b2b35ac28's per-chunk color
 wrapper (~24 non-printing bytes/chunk) makes content_col drift ~24/token chunk.
 replay/rewind/redo fine (single plain print, no per-chunk CUP). fix: strip CSI
 before length() in content_print + display.cycle tail math.
@@ -351,8 +351,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,.,,,,,,,..,..,,...,,,,,.,,,.,.,...,,,.,,..,..,,...,..,,..,,..,,.,.,,,,,,,.,
-#KJ5BQ6T7RPZ4EHIKPRGH5RZKCOO6YJK5IYGC5MODLNGTGDDKES4UZQSPEKNXIIMHU2XJY2J4PLI54
-#\\\|A3JRZEFQUSULPI52PSL5RZIW76O3S3NP2OZ5SHV46AAP4ZKEGRG \ / AMOS7 \ YOURUM ::
-#\[7]HV3QNH7UGHH6I3AABGDI5FL2SPWP3DWCCTNUUJMNR3BDMDFAUYDA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,...,..,,,,.,.,.,.,.,...,,,,,...,..,,...,...,,..,...,.,,,,,.,.,.,
+#7ED5N3O3JDRLGWFNRM3W2G56OU2FCRXNTSTQVYH425CKMLDMBUQTQPOQUA2BLVXLULAFNPU3YF4DQ
+#\\\|OHMODTSPU2XZC35K44DL3XH3GPNSCKQER32VNPOMG3SYF4J3ELP \ / AMOS7 \ YOURUM ::
+#\[7]CXFZH2D4B3LRZDSOXHEAYXLB4CKY4ZFYF3G7S32IBXJDUW25D2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

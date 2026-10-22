@@ -5,7 +5,7 @@ metadata:
   type: reference
 ---
 
-Durable lessons from repairing the coding zenka's git tools (committed c578a8fd8, 2026-09-16).
+Durable lessons from repairing the coding zenka's git tools (committed 85c8b28f9, 2026-09-16).
 
 ## safe.directory needs TWO mechanisms, not one
 
@@ -65,8 +65,8 @@ user signs + stages -> commit (with version bump) -> user rebuilds the bundle vi
 `hub base` (github nailara-technologies). ext-bundle remote is the bundle FILE --
 read-only; pushing to it fails by design.
 
-#,,,.,..,,,.,,,,,,..,,,..,...,,..,,..,,..,,,,,..,,...,...,...,.,.,...,.,,,.,.,
-#VAJQJIROD6R4SMXJMZGN35JL5DJEJXWGDWCG7NL7VOXNO4UM3N7I7JMH23BD4WHDLAMXZBFS3DBSG
-#\\\|WIGQXHYRDHSTSXXJ3MB4I2ZMHXACM5Z7C7Q4PZQTEOQDMBRQOKW \ / AMOS7 \ YOURUM ::
-#\[7]NNE7R2HQRRETRVIK4INKPZ7QVJFK4FULHCQ5LEVPTEHP4OGVXKAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,,,,,.,,,.,,.,,,,.,,..,...,.,.,..,,...,...,.,,,.,.,.,.,,,,,..,,
+#672BVJSDZ6LDCNBD7RJ3VXH7AV6RCV2XABBJORAQZAAMLCS2WXU3O6UFFY3HEXFINRSKXHMKDSXZI
+#\\\|QAQMKR3QVKN6JS5DBGBPP3FTZNXMIDPC3VN3ZKJTNPFVGPUENGS \ / AMOS7 \ YOURUM ::
+#\[7]VS4IS3HABMNAYDK4NRIJLPTOLMZQNSWAMBD5VHSNZU6RFWU5OAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

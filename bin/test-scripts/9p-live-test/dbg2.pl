@@ -21,7 +21,7 @@ sub P9C { $CONST{+shift} // die "const $_[0]" }
 );
 sub load_mod { my($n)=@_; open(my $fh,'<',"/data/projects/protocol-7/src/$n") or die; my $s=do{local $/;<$fh>}; close $fh;
  $s=~s/\n#,.*\z//s; $s=~s/<plan-9\.protocol\.constants\.(\w+)>/P9C('$1')/g; $s=~s/<\[([\w.\-]+)\]>/\$code{'$1'}/g;
- ## data-tree sugar <a.b.c> => $data{'a'}{'b'}{'c'} [ format-code pass 4921a3c21 ] ##
+ ## data-tree sugar <a.b.c> => $data{'a'}{'b'}{'c'} [ format-code pass 075ca4d33 ] ##
  $s=~s{<([a-z0-9-]+(?:\.[a-z0-9_-]+)+)>}{"\$data" . join '', map { '{\'' . $_ . '\'}' } split m{\.}, $1}ge;
  $s=~s/\@ARG/\@_/g;
  my $c=eval "sub { $s }"; die "$n: $@" if $@; $code{$n}=$c; }
@@ -67,8 +67,8 @@ $res=$code{'storage.9p.readdir'}->($conn,0);
 print "readdir entries: [",join(",",@{$res->{data}}),"]\n";
 kill 9,$pid; waitpid($pid,0);
 
-#,,..,...,.,,,,..,...,..,,,,,,.,,,.,,,,..,.,.,..,,...,..,,,,.,,,.,.,,,...,.,.,
-#FKNRT3MLPYCGSSL2YSOXS5TTJ5LKKA43PNI46ZTSONMG4RE7WTV73V32F4HFQ7VPWZGJIRDAABCQC
-#\\\|KP3QVV3ELMU26QG3TP4YY4VCDN75RWK7O244WP3PSXHWU7H6VUK \ / AMOS7 \ YOURUM ::
-#\[7]AE3NUVONMDPQJBCTN6YIQCPYBV22CHEVHDLG2AW7BHE7K2NSMOCY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,.,,.,,,.,.,..,,.,.,,..,..,,,.,,..,,...,...,...,..,,,..,,,.,,.,,
+#ANWWQ57INQPAOTPRHPLQ5RV24R2DLB3POD2G5JPAZG33N4QX776QFSMHJOCPPVUPAPXZBYA7JKRME
+#\\\|UHCV4I7R5DXNCGBHSHLKZWRWWHJPFI7JDXBF2MDUTZIRUZ2ZCK6 \ / AMOS7 \ YOURUM ::
+#\[7]VNPHPTQMOMT5U37ATQDDOT2L7HF2XGWTHBM5GUDYZ4I7YIBL52BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -105,7 +105,7 @@ authority.
 harmony base.path.epoch-chksum
 ```
 
-## status [ 2026-08-25 ] — DONE, landed in `7abd5d52a`. dispatched to
+## status [ 2026-08-25 ] — DONE, landed in `7cfeeddea`. dispatched to
 ## kimi (model=k3-256k, domain warranted stronger reasoning than the
 ## mechanical dispatch-param tasks above). validated against all five
 ## semantic rules and the acceptance-criteria list by reading the actual
@@ -128,8 +128,8 @@ harmony base.path.epoch-chksum
 ## left to the human as instructed; base.list.subroutines was updated by
 ## the signing process itself when this landed, not by kimi.
 
-#,,,.,.,.,...,,,,,.,.,,.,,...,,.,,,..,.,.,,,,,..,,...,...,,,,,,,.,...,,,.,,,,,
-#4T5SFFMCPC3Y3KTRBIH4CJGWPFMH22OKHN7CMERM2PXFEJCJANSTG4JJMPQ5OWFFDVSYP6YP3SVQQ
-#\\\|G7KVSKWAQEF45BQCAX4L3GCHFYXTFYAPJJPHKTIQ2SXLKICNX52 \ / AMOS7 \ YOURUM ::
-#\[7]OXE7ZKJOAIPM4RZ7IGMJ3CMJZPZSCFBKTR4KEKWQ7MVOKQNHT4AY 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,..,,,.,,.,,...,,.,,..,,,,.,.,,,..,,...,...,,.,,...,..,,,..,..,,
+#UZLODH6FH6M6BU2ULUG352EIR7JD766XDF43PVBDD7DIE2FWIHVEBWBTABTK4IOLTUVH7FG5XSDHC
+#\\\|WPIEU7IAFR2YTN7XGA4HTHCCEUYFJRWI52IV7TROPPBPVCRB2AC \ / AMOS7 \ YOURUM ::
+#\[7]3BFMAFTJNYLOMTLH3XFQKWR5I5Q7NHZCGIJZREZXW4VIZBC3OGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

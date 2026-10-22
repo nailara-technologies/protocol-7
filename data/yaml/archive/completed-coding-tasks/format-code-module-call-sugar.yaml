@@ -5,7 +5,7 @@ estimated_rounds: 14
 
 context: |
   Follow-up to data/yaml/archive/completed-coding-tasks/format-code-spaceless-split-and-data-key-sugar.yaml
-  (already landed, commit 9e906dbf3) which added an opt-in -d flag to
+  (already landed, commit edb8051ee) which added an opt-in -d flag to
   bin/format-code compacting nested $data{'a'}{'b'} chains into <a.b>
   sugar. This task adds the sibling transformation for the OTHER P7 sugar
   form: subroutine-call sugar.
@@ -61,7 +61,7 @@ issues_to_fix:
     files:
       - bin/format-code (new step function + option-parsing wiring)
     precedent: |
-      step6_compact_data_sugar (bin/format-code, added in commit 9e906dbf3)
+      step6_compact_data_sugar (bin/format-code, added in commit edb8051ee)
       is the direct structural model: PPI-based token walk, is_quote_token
       reuse, bareword-shape validation, single-line-only rewrites, replace
       from end-of-line backward so earlier positions stay valid. This new
@@ -115,8 +115,8 @@ verification: |
   4. Confirm running format-code WITHOUT the new flag on the same files
      produces no module-call-sugar changes at all.
 
-#,,..,,,.,,..,.,,,,,,,,..,.,.,,.,,,,.,,,.,,.,,..,,...,..,,.,.,,.,,,..,,..,,,,,
-#ZIYMUW7XB7OVS2PNGYYKKS27TRFRT5CWHPKIVSZB4NXUGVRBXCUP4IG4YG2QKGCYTM64OTI4BFKAG
-#\\\|5D4KB43ZBPPNWJWEV3UVGVBXOGLY7VREALTOWLWV7FFSP3E6ZQT \ / AMOS7 \ YOURUM ::
-#\[7]KAHAY5FKZV6LCWUF7YQN6TXWGPDR6TSQ6M6RDSVVNBGV7BZH2CDY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,..,,,,,.,,,,,,,.,.,.,.,.,,,.,.,..,,...,..,,...,.,.,,,.,,,,,.,.,
+#LMFUS44OET2MHGQFKCQEPOGX4XPGGQC5IB4SBPKEZ7ANLS7RBWGVEDNW37LYVG5AINI3XXRA4SCQE
+#\\\|PGABDC7STG63ER4HD6FYTTCWGVJLMQ6GU3YSTXOAXBNX2NAVWFF \ / AMOS7 \ YOURUM ::
+#\[7]CWVHQHUGO635I5UH2IYJO3KETUMLHPMZRAKRG74XNH2HBXX5BCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

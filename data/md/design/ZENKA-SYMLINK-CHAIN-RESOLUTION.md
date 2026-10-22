@@ -30,7 +30,7 @@ forms, the remainder of the basename being the zenka name:
 p7-<zenka>            current form, installed by
                       <[v7-zenki.install_zenka_symlinks]> into
                       /usr/local/bin/ [ v7-zenki.cfg.zenka_symlink_dir ]
-v7.<zenka>            deprecated form, superseded by bd98e1c17
+v7.<zenka>            deprecated form, superseded by b81fa7d10
 Protocol-7.<zenka>    interpreter-name form
 ```
 
@@ -322,8 +322,8 @@ launcher name survives to the zenka, and is absent exactly when there
 was no launcher. the same probe confirms `<system.start.launcher_chain>`
 arrives as a live array reference.
 
-#,,,.,.,,,,,.,,,,,,.,,,,,,...,.,,,,..,,,,,..,,..,,...,...,...,..,,,..,,..,,..,
-#VYAQMZKPO3UQLVHJGDJXL3U3F54JVSHJZXX77VJJO7NKWESWZOOFCIDO5ATAXBGMRLTBC5JIFH3HC
-#\\\|ASW2QGZQOQFA2HAQJKM3XBM3UQTV2RB6ULMQGINM4IRNH3BVYBF \ / AMOS7 \ YOURUM ::
-#\[7]RB7JU7BKOHCYV3LHYANW4ZHQZIFL3IUZG7ONN7Z4MCWEF3JNTSBA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,..,,...,..,,...,,,.,.,,,.,,,,.,,..,,...,..,,..,,..,,,..,,.,,.,,,
+#MXETPVHWT2NWOORXC4K33IFVTCGOZORSIHMWXFAC5INSUOOILGVNEISM7NVXOBEJDFAZMQYSG3BFA
+#\\\|KHTD47VXAHIXN3J7RAGWZ26QIM6COCWGSS2KSYWPNWE2SU7MOPD \ / AMOS7 \ YOURUM ::
+#\[7]FZZ7QPPDTC3KQBZHMSOMDEZDLIJSPRVCUXJERX4HS4QUTBUUFADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,11 +1,11 @@
 ---
 name: project-2026-10-03-session-handover-osf-os-pkg-space
-description: handover of the 2026-10-02/03 marathon session [ ~22 commits, ends 2d877e547 ] -- what landed [ trit\symmetry\chunker\condenser\os-pkg install\osf-cache stage 1 ], open next steps per area, and the workflow lessons [ sign-complete check, kimi review split ]
+description: handover of the 2026-10-02/03 marathon session [ ~22 commits, ends de60a4ca2 ] -- what landed [ trit\symmetry\chunker\condenser\os-pkg install\osf-cache stage 1 ], open next steps per area, and the workflow lessons [ sign-complete check, kimi review split ]
 metadata:
   type: project
 ---
 
-session 2026-10-02 -> 10-03, last commit `2d877e547`. start a fresh
+session 2026-10-02 -> 10-03, last commit `de60a4ca2`. start a fresh
 session from here ; this note + the task files carry the state.
 
 ## landed [ code ]
@@ -73,8 +73,8 @@ session from here ; this note + the task files carry the state.
 - after a kimi job : run its tests yourself, `bin/format-code -c`, read the
   core module, and check its claims against the real numbers
 
-#,,,,,,,,,,,,,,,.,,,,,,..,...,,,,,.,.,,,,,,.,,..,,...,...,.,.,.,,,,,,,..,,.,.,
-#QIEOFG7ILIRNTOHMOVJAVOI5XLZMMZNRFJJZI3ULIBORPKOTW7BN335UNBSU5FTQA66RASJ7AWEKU
-#\\\|FHKCJPKOP55LOCFS7GQOMULXBVND5FMZZWI76X2WPUTY5RJPEW5 \ / AMOS7 \ YOURUM ::
-#\[7]GMSRNZ7OFPPNUR4WXH4BFU66FB7BJHFKM6IFIE55SJMXOHLIYEAY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,,,,..,.,,,..,,,.,,..,,,.,,,,,,..,,...,..,,.,.,,.,,,.,,.,,,,.,,
+#2Z5LGECD5W2P6DXEX7HI6HBANELTUUIISN6QKKAHRKS3FGTA752KLWKIW2ZWUX6LNUP4KYKNUYOG2
+#\\\|DK36HGSAQIFOJ75FLZ65ODDLYCH5PBTKZOUAVGTIAX7OPIGKSE3 \ / AMOS7 \ YOURUM ::
+#\[7]VCRC6G4H7UCWWDX64MXNGR56XRH6C2OXL475JAKSYH46OEK6OCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

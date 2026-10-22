@@ -25,7 +25,7 @@ specific commands needed (`eval-code get set`, not a broad wildcard) to the
 zenka's `access.cmd.usr.cube` line, then a full `v7-zenki.terminate` + `v7-zenki.start` (this
 whitelist, like others, is startup-only, not `reload`-refreshed — see
 [[topic-gtk-wsl-window-positioning]]'s sibling note on this pattern
-elsewhere). Landed for `graphics-matrix`, commit `158f966fb`.
+elsewhere). Landed for `graphics-matrix`, commit `c271c84f0`.
 
 **2. A long synchronous loop inside one `eval-code` call blocks the WHOLE
 event loop and can get the zenka TERM-killed.** First attempt: 638 phash
@@ -88,8 +88,8 @@ across the shell-user/zenka-user boundary, (5) for any *-hash-based
 duplicate/similarity work specifically, treat exact hash as ground truth and
 perceptual hash as a candidate filter only.
 
-#,,,.,,.,,.,.,.,.,,.,,.,.,.,,,.,,,...,...,,,,,..,,...,...,...,.,,,.,,,,.,,.,,,
-#2K2RWC4Y7Y2VXORZSCEZJ6WQ7AFGZJA47L7CD5KIBLEEIZQQUXQ3YDNDJ3Q2PHV2OQL3HRNAE6BME
-#\\\|VOSOGW3QPRXYBYLUM3SXYT4R355WT5YRDN6JB65TLVOZIHKXJ65 \ / AMOS7 \ YOURUM ::
-#\[7]SL2US4MEL5EA4RF4CCC7DSEZK7E7O6BIOYJQ2UHNMLKVP7GL5MDA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,,,.,,,,,,.,,,,.,.,.,.,.,..,,..,,...,...,.,.,..,,..,,..,,,,,,
+#R2U76ANTWH5MZHVLD3AXC3GAKX42MB2VPU4J2OVZ7CPTE4HAXSUGX2R4OTVNNF2DW33KVJEDKO5X4
+#\\\|5HDXKXTOZK53INNS42GQSXBH5HK6WA3O5N7URS34VQUWGNKIRMQ \ / AMOS7 \ YOURUM ::
+#\[7]ISIHAOVSET3JP5NP2LGQIYRMBYNG4EVCD6XFBPSTT5F3Y3JY6EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

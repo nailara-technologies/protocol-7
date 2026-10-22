@@ -37,7 +37,7 @@ discovered after dispatch, at any point, use `session_catchup(client:
 "kimi")` to find the session UUID and `kimi_continue` with the corrected
 model -- do not `TaskStop` and re-dispatch.
 
-**ROOT-CAUSE FIXED 2026-09-17, same session, commit `375224991`**: the bare
+**ROOT-CAUSE FIXED 2026-09-17, same session, commit `24cc02bc8`**: the bare
 `k3` alias now means the 256k-ceiling variant; the expensive full-context
 one is now explicitly named `k3-1m`. This wasn't just a config tweak --
 per the user, it fixes the actual mechanism behind every recurrence below.
@@ -102,8 +102,8 @@ a careful review [ which caught the real defects in both stages anyway ].
 
 **data point 2026-10-21** : small, tightly briefed k2.8 jobs [ one module + its tests, or an audit with a report ] cost ~1 % of the 7d window each -- five such jobs fit into the last ~5 %. brief = files, exact semantics, test cases, 'do not commit \ sign', report shape.
 
-#,,.,,,,,,,,.,,,.,...,,,,,,,.,.,.,..,,,,,,,,.,..,,...,...,,.,,,.,,...,.,,,.,.,
-#ZCZY5Y5S55U6EEJ75KAZOQUDWWDVZZH4CSI6FY64XDFRPJTWC4M3GMSF6P62NFRVTBCDP6UNKOZHO
-#\\\|DX6TN7CSJFMUJ2IH2QJGXXO4ISIRKXTSJ7POT25OT5A3GYZYJB4 \ / AMOS7 \ YOURUM ::
-#\[7]QUWGKGGQYC2BXCZNGURDS3FARVO6SRHPLLQDJMRIGJNWUBCCXIDY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,..,,,,,,.,,,,.,...,..,,,,.,,..,..,,...,...,...,.,.,.,,,,,,,..,,
+#DPNOESVJ7ACGP3Y7QZN4IDTXFH3OL6Z7CMEYL4CDOGUEZMAKKWSBBC4WFMKS253AN5DGRIFH7YDTC
+#\\\|XKKIEZIDPUSEPHIFNRUYOQRL3NS2KGT5Q4FZ2ZSYMRJEIOZ3ETX \ / AMOS7 \ YOURUM ::
+#\[7]AIGCXH76RVHXCWH6YN2QTKNTULUHYEIRXUF4RM74DJA5M4XJEQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -65,7 +65,7 @@ style ] and `data/ai-mem/claude/reference-per-target-log-levels.md` first.
 
 ## status [ 2026-09-24, same day ]
 
-- steps 1-4 + 6 done [ 184e84fa6 .. 13c6fbd6f ] : stats per instance,
+- steps 1-4 + 6 done [ b8f2fe3a2 .. b0e0f7d5c ] : stats per instance,
   `v7-zenki.list heartbeat`, outliers logged '3:1' + counted
 - step 5 was ALREADY in place : `cfg/logging-configuration`
   `log.level.cmd-offset.heart = +1` moves heartbeat routing lines to
@@ -74,8 +74,8 @@ style ] and `data/ai-mem/claude/reference-per-target-log-levels.md` first.
 - idea : a devmod command showing heartbeat traffic TEMPORARILY [ offset
   to 0 for n seconds, then restored ], like `discover.cmd.show-temp-echo`
 
-#,,.,,,,,,...,.,.,.,.,...,,,,,,..,.,,,..,,,..,..,,...,...,,,,,.,,,.,,,..,,,..,
-#ODWBM4ZKCMSMIIZFDHHEYFCFB66SFURIFXFA63MIZU4FTBS7VSJBBHSLGDLG74XNEVKJHLGM77UCC
-#\\\|F5BHENUSERZPUXODWP3TGUY66RPXYJ5RLFUNMNLWDOR5EC7XIGX \ / AMOS7 \ YOURUM ::
-#\[7]KGVT4VNAXRWH5KKOKBAZBP336XC6T5X45YAHBUFE2AE3F3TEWQCI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,,,,,.,.,,,.,,,..,,.,,,...,,,,,..,,...,..,,..,,,,.,...,.,.,.,,,
+#EUIHMKN4OUBXARMUKJEQ7TTCD3YAE7VUFPD6JWEXFRHSA3L6KKZ7UPBXIKOUBZBRRSSU665QT6SG4
+#\\\|5JYQK6TH7YIG6UCGL3MEIGYYCPXHJLP3W5QKEX6TZVMYJKQUX2R \ / AMOS7 \ YOURUM ::
+#\[7]EDRBSPZUGZFKVQ5MKPZMXPQYKPXPIWSQT46BH5EFTW6CLY6TDUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

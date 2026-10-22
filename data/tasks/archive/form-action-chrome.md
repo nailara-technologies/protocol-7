@@ -1,6 +1,6 @@
 # form.action.send + form.chrome [ lane B2a ]
 
-**base : 10fd97352**. small, focused lane -- stay well under the step
+**base : da5a50396**. small, focused lane -- stay well under the step
 limit : read the few files named, batch edits.
 
 ## read first
@@ -50,8 +50,8 @@ limit : read the few files named, batch edits.
 - `qw| a b |` is a LIST ; `<word>` needs a dot ; local ok() ($;$)
 - do NOT commit ; write `data/tasks/form-action-chrome.report.md`
 
-#,,.,,.,,,.,.,..,,...,,.,,...,.,,,,,,,,,.,,.,,..,,...,...,.,.,,..,,,.,...,..,,
-#HOKN6DATER7ZNTOGMJQRBCRC6NGFMEPRE7UGDQ3JTNILMGSXFPPZCJJHGIRSFLILE5TV5EEF5WO3E
-#\\\|QV4RFXVADQ5LKIZSF4VQL5G2LVYDDVI6XUN7EQLTCYSPO7DBWX2 \ / AMOS7 \ YOURUM ::
-#\[7]FL3HIVSZDHCXNSMZHS2HAKO5TVDQE5VYNOSSOYUTVMXVPLBLMSDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,.,.,,,,..,,,.,..,,.,.,,.,,,..,..,,...,...,.,.,...,.,,,,.,,..,,
+#QPL35QV7SBWTEQBHBZKB2JU435MXMHMELO5ORNDHFKAYJBQX7XCRWWH4ENGHBBK2JGYOHNBGC3TV4
+#\\\|GZLUZTE5RFAFI4T4ULHGSS5EA75NG6ZNB4MK75MOJYMCDZVNB5U \ / AMOS7 \ YOURUM ::
+#\[7]YVW6WNCK2HWFNYO4QJU7U2JXGLMRXKH33LABHXQCQFWBM4GDGEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,7 +42,7 @@ before trusting any "duplicate line" observation from that output.
 **Second, distinct manifestation confirmed 2026-09-05**: a task-archiving
 scan matched a token-similarity hit to a commit that turned out to be a
 task file's own creation commit — but the SAME commit message/timestamp/
-diff also appeared under a genuinely DIFFERENT hash (`2bb49505b` vs
+diff also appeared under a genuinely DIFFERENT hash (`3f8187d37` vs
 `6f599d8c8`, both "Add coding task specs: netfilter, infra-orchestration,
 appmgr, nameserv dynamic-dns", same second, both real commit objects via
 `git show`). This is NOT the pager/color-loss case above — these are two
@@ -56,8 +56,8 @@ against this repo's commit history, prefer comparing (timestamp +
 message) over hash alone, or verify a suspicious match by hand rather
 than trusting a single-hash exclusion.
 
-#,,..,.,,,,,,,,,.,,,.,,,.,.,,,.,,,.,.,,..,,,,,..,,...,...,.,.,,,,,...,,.,,..,,
-#TZPOSCI37FEDMHMM77CEV2PH6ZDAMMM7GRGHPAD5DWTE4OCZCTRP6N63SYKG5CKLK6AAPGABWQEES
-#\\\|ARGMIMCKAHTBS6LQIKD4NHXUZAQVCWPE52WUEIUH7LAT2PVR47O \ / AMOS7 \ YOURUM ::
-#\[7]WIK2YWJ6SN37BJWAAZTACHLMZ4F2O5EULQIAB7MWQ4QOVOP6XIDY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,,,,,,,,...,,..,,,,,..,,,,,,..,,...,...,.,,,..,,,,.,,,,,..,,
+#7MJDKEFR6VRGDE63R35HCHTNMNNTAJGVEBK4AO74KATOIQWK3VL4MD7XHSA5XTNDMK7G6XJ37MLCM
+#\\\|DDSBNVY3S6GVKO7J6DLRZ726DMZKGQPAFQN5LR4XM75B3AVVUWS \ / AMOS7 \ YOURUM ::
+#\[7]Z5K2JREJ2EMYTA6YLM5VBXH24KMZJOSBATTMT7VX4JL3QFKIICBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

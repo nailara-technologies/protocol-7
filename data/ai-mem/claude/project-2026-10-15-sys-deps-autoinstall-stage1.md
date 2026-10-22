@@ -1,11 +1,11 @@
 ---
 name: project-2026-10-15-sys-deps-autoinstall-stage1
-description: 68bc74a82 : sys_deps start condition [ zenka start waits for declared deps, per-host opt-in auto_install_deps ] ; root apt child had a root-shell hole [ shell string, names checked only in the unprivileged parent ] -- fixed ; v7-zenki probes must never require \ AptPkg in-process. stage 2 [ bootstrap before Event ] open
+description: ce14adf3d : sys_deps start condition [ zenka start waits for declared deps, per-host opt-in auto_install_deps ] ; root apt child had a root-shell hole [ shell string, names checked only in the unprivileged parent ] -- fixed ; v7-zenki probes must never require \ AptPkg in-process. stage 2 [ bootstrap before Event ] open
 metadata:
   type: project
 ---
 
-**landed 2026-10-15 [ 68bc74a82, kimi k2.8 + review ]** : condition type
+**landed 2026-10-15 [ ce14adf3d, kimi k2.8 + review ]** : condition type
 `sys_deps.<zenka>` [ v7-zenki.callback \ resolve.object.sys_deps ] on every
 start path ; apt via debian.install-packages, cpan via debian.install-cpan
 [ same serialized queue, the ROOT apt child ] ; failed -> degraded start,
@@ -32,7 +32,7 @@ REQUIREs the module [ loads it + its signal handlers into v7-zenki ] and
 v7-zenki uses `probe_module_file` \ `probe_apt_fresh` ; test asserts it.
 the sys-deps zenka still uses the old ones [ follow-up ].
 
-**stage 2 LANDED + verified live 2026-10-15** [ 5e34d2039, 060ead8bf ] :
+**stage 2 LANDED + verified live 2026-10-15** [ 0dec5b1ed, 5ad6acb0e ] :
 v7-zenki.pre_init sets base.perlmod.auto_install for the init phase [ root
 + host opt-in ] -> base.init_code's autoload('Event') installs libevent-perl
 synchronously [ base.perlmod.install, direct apt-get path ] ; post_init
@@ -45,8 +45,8 @@ watchers_pending, set up by add-queue once Event is loaded, early lines
 kept. lesson : remove the real dependency and restart -- stubs hid it.
 appmgr policy later. see [[project-2026-10-15-forensics-restart-loop-cube-ids]].
 
-#,,..,...,,,.,,,.,,..,,,,,..,,,,.,.,,,...,.,,,..,,...,...,,.,,,.,,.,,,.,,,,.,,
-#4I6MH5FRVOMEC53DKZC7EJYEUVQXUL66YC7X5LW3RVS6GHXK4GKUJGF5WAHCVIMA2EA62BNYFCCNO
-#\\\|KMHEZPVVZKMQ3KWMUEISRRWROKJKR3T7PSUK7DGZA44DVQPCE5Q \ / AMOS7 \ YOURUM ::
-#\[7]OLFYWM7FH3B6PVOVSCU5HD453T7R6BKGINYHQ4XRD4PXGUKUVMBI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,.,,,.,..,,,,.,,.,,,,,,,,.,.,,,..,,...,...,...,,..,,.,,.,.,.,,,
+#FU72T44EL55ZEXAK4MM25HBV4YJBZZQ6VC56CXKZNAH6JILZ45FJILSLKTRT6766OLD3FAM42MD4W
+#\\\|KXU422JWG3LBMWQCWY4NLCR6KQK3AM7RD5G55MQJLCGOQ5ART5Q \ / AMOS7 \ YOURUM ::
+#\[7]RC7H5CDYUD4ZJKSXYWXD55MIXK3GJP5YUFFL5QP4HXB2FPZSZEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

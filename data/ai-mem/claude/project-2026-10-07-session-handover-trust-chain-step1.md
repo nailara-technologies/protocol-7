@@ -1,26 +1,26 @@
 ---
 name: project-2026-10-07-session-handover-trust-chain-step1
-description: handover of the 2026-10-06 -> 07 session [ last 79a4da935, pushed ] -- trust chain step 1 landed : auth-keypair v2 mutual binding [ replayable auth + unproven server + relayed auth closed ], host-root delegation with root-held keys, discover carries the .dlg ; p-7-r shell injection + argv secrets fixed ; NOT live-checked yet
+description: handover of the 2026-10-06 -> 07 session [ last 207560382, pushed ] -- trust chain step 1 landed : auth-keypair v2 mutual binding [ replayable auth + unproven server + relayed auth closed ], host-root delegation with root-held keys, discover carries the .dlg ; p-7-r shell injection + argv secrets fixed ; NOT live-checked yet
 metadata:
   type: project
 ---
 
-session 2026-10-06 evening -> 2026-10-07, last commit `79a4da935` [ base,
+session 2026-10-06 evening -> 2026-10-07, last commit `207560382` [ base,
 pushed to hub ]. previous : [[project-2026-10-06-session-handover-security-sweep]].
 worked as parallel lanes [ background Agents + kimi + one web session ]
 -- [[feedback-fill-5h-windows-with-prepared-parallel-dispatch]].
 
 ## landed
 
-- `a79712581` **auth-keypair v2 + link-upgrade mutual binding**
+- `afd71cec7` **auth-keypair v2 + link-upgrade mutual binding**
   [ `data/md/design/AUTH-LINK-BINDING.md` ] -- closes
   [[project-2026-10-06-auth-keypair-replayable]] : server nonce, labelled
   sigs, sessions PENDING until the client signs the link transcript,
   server proof ; p-7-r : secrets off argv [ stdin ], no shell [ server
   replies could inject commands ], no plaintext temp files ; p7c's
   half-built link-upgrade removed
-- `938a36732` gen_keys keeps a caller's secret exactly [ letsencr ]
-- `3053508de` + `b00126000` **host-root delegation**
+- `084c229f2` gen_keys keeps a caller's secret exactly [ letsencr ]
+- `2a238bc86` + `51492d62f` **host-root delegation**
   [ `data/md/design/HOST-ROOT-DELEGATION.md` ] -- host-root was NEVER
   created before [ [[project-2026-10-06-host-root-never-created-root-held-keys]] ] ;
   root-held keys in `user-keys/root/`, resolver `crypt.C25519.key_path`,
@@ -28,7 +28,7 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
   `protocol-7.base.dlg` [ name `<system.node.name>.cube`, 30 d,
   not_before -300 s ], 4th select field, clients pin the host-root
   FINGERPRINT [ 77 chars ], keys zenka knows root-held keys
-- `79a4da935` **discover carries the .dlg** [ trust pinned \ offered \
+- `207560382` **discover carries the .dlg** [ trust pinned \ offered \
   unverified \ invalid, drop on invalid \ changed root, adaptive flood log
   level ] + e2e test [ real server vs real client, 54 ]
 - tests : binding 155, delegation 186, keys 121, discover 33, e2e 54,
@@ -72,7 +72,7 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 #\[7]GKDHLZOZP23UDNYTFXO7T2FG7BN4VV3CGMKY4SZHUZHUN4DEZ6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**status 2026-10-07 [ next session ] :** 1. live check DONE on this host [ root/, .dlg, fingerprint 77, pins via p-7-r + external.self ] -- discover trust + atom \ remote servers still open [ needs a 2nd host ]. 2. DONE [ both .base keys rotated ]. 3. Digest::BMW : already in the cryptography profile [ nothing to do ] ; encoding-upgrade guard : 7d3851cad ; %signatures : dead cluster removed [ load_all_signatures, key_signatures_list, verify_key_signature, the global, post_init's readerless {root} glob ] ; sign-key \ remove-signature \ .ks .sk .rq helpers KEPT -- migrate to trust.statement with step 4 ; name_from_skey_name is live [ key_name_to_skey round-trip ]. nodes trust transitions : DONE [ discover notifies nodes on every trust change, invalid on a changed root -- test-discover-delegation 38 ; live check needs a 2nd host ].
+**status 2026-10-07 [ next session ] :** 1. live check DONE on this host [ root/, .dlg, fingerprint 77, pins via p-7-r + external.self ] -- discover trust + atom \ remote servers still open [ needs a 2nd host ]. 2. DONE [ both .base keys rotated ]. 3. Digest::BMW : already in the cryptography profile [ nothing to do ] ; encoding-upgrade guard : 3039cd599 ; %signatures : dead cluster removed [ load_all_signatures, key_signatures_list, verify_key_signature, the global, post_init's readerless {root} glob ] ; sign-key \ remove-signature \ .ks .sk .rq helpers KEPT -- migrate to trust.statement with step 4 ; name_from_skey_name is live [ key_name_to_skey round-trip ]. nodes trust transitions : DONE [ discover notifies nodes on every trust change, invalid on a changed root -- test-discover-delegation 38 ; live check needs a 2nd host ].
 
 #,,,.,...,,..,.,,,.,,,...,,,.,...,.,,,..,,,..,..,,...,..,,.,.,,,,,,.,,,.,,,.,,
 #ALIFG3E2AQGWYPOLRKPFA2527E6MOCLWRABEQTTWDJQY3KB6WFN32IQXDN2SNWCVEM3T2LQTVL6SA
@@ -90,8 +90,8 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 
 **added 2026-10-07 [ user ] :** optional self-propagation of statements in either direction [ a node proves its chain standalone after a connect, signer offline ] -- section 'later : self-propagating statements' in TRUST-CHAIN-STEP2.md.
 
-#,,,,,,,.,,.,,,,.,,..,,.,,..,,...,,..,,.,,,.,,..,,...,...,..,,...,...,.,,,,.,,
-#RZGNBUDWZYUB3DFQ6ADE4NEWKDUJIIYNTVDPASRIGRJK3G44TAMZ4EFHH7A6NA2UOCZTCY2WDJA5M
-#\\\|U4NDNTL6UKG7P4TME2MWFS4KM2HFGXG55YLXXLZGD6A4LKCRP6G \ / AMOS7 \ YOURUM ::
-#\[7]DDEWJA3XY5LAL2MIZUGC5KHZNHIOZI4LTHH5IEYVATCL7EJWZABQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,...,,..,,,.,..,,,,.,,..,...,,,.,..,,...,...,.,,,.,,,.,.,.,,,,,.,
+#YL5MRG26AFNISR2VBSQE3BXFU42GDM2TN25BQYY3G5TCVW2EZTVZKVQ7C7IQRTTTNHFFXISH4K33M
+#\\\|LSA66PS4P7DUAGK6D7C6MOODDABKCW5J5LA7U3AADEU57A3O7XM \ / AMOS7 \ YOURUM ::
+#\[7]6BFSDC4X4HZEO3YJQAQO3UEJHIH4QHIC24JUEIPF55YNMCZR54BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

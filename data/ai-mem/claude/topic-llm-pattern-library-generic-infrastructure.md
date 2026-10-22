@@ -54,7 +54,7 @@ named), not a one-off built into a single zenka.
    dispatch got stuck hunting for a zenka-restart command because its
    own memory (`data/ai-mem/kimi/*.md`) still referenced the pre-rename
    `v7.restart <zenka>` syntax (renamed to `v7-zenki.restart` in commits
-   d555d3dfc / bd98e1c17). application 3, if it existed, would have
+   98cc4619c / b81fa7d10). application 3, if it existed, would have
    caught "restart the zenka" in the dispatch prompt and surfaced the
    correct current command automatically, rather than the dispatch
    discovering the staleness the hard way mid-task. see
@@ -80,8 +80,8 @@ pattern of recurring need is clearer.
 
 [[reference-v7-zenki-terminate-clean-zenka-and-child-stop]]
 
-#,,,.,..,,.,.,,..,,..,,.,,..,,.,,,,..,,,.,,,,,..,,...,...,,,.,..,,.,.,,,,,,,.,
-#GC65LXFDSOD3M7DRBQ6RLCHLBQAQEKEGED6MXGHAYETGNSQRDBUFVWQE2GA6LCWM5CLYWDNZONWZM
-#\\\|QTMQR6MHHN4T7K4Y55U3VWABPE5QYD5WCDAYACX3SWZ3R3RHQJK \ / AMOS7 \ YOURUM ::
-#\[7]3CBEXQ4MNFSNDBEB7VDO36P4PG35UU5D7M27ASR4GKME7FTSQCDQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,,,,.,,,.,,,.,,.,,,,,.,,,.,,,,,..,,...,...,.,.,,..,,,,,.,,,..,,
+#2L3UJEQFBSGXY2LKSUCARDWGE3QYTCZGWQMNMAAOMJBWPK2XF3NBKDIZX5G77DTPD7O7JXVULHNLE
+#\\\|YDNSYFLULGZZD3V4Y74EPVOBXBNZ3MY6QTBDTXCUVEWLFGN6LOT \ / AMOS7 \ YOURUM ::
+#\[7]ILYSRKBRNQ2SO5ZBJ3FHLZJTGVRKGBGRBOX5EO4U4UWAZJBL3YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

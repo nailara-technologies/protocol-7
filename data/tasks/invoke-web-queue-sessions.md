@@ -1,7 +1,7 @@
 # invoke-web : put a render session aside, pursue a new idea, resume
 
 idea [ user, 2026-09-29 ]. not built. read `CLAUDE.md` first. builds on the
-queue control of f33be59cd [ queue-order, queue-interactive, queue-front ;
+queue control of b98be89ab [ queue-order, queue-interactive, queue-front ;
 `invoke-web.queue.db` ].
 
 ## the need
@@ -61,8 +61,8 @@ items are done, and experiments often take many rounds.
 - cold mode : reuse the task zenka's cold-queue sweep directly, or only its
   shape [ it serves the coding task queue ] ; which signals it combines
 
-#,,,.,,,.,,,.,..,,...,,,,,,..,.,.,...,,..,,,,,..,,...,...,.,.,.,,,,.,,.,.,.,,,
-#UUTCCHNCPV5QYWY7NO2FXLVGPU52DUZ3RFCQSG45YRJ6CQ36O6NSEUZCC33XQNR3KERR7I7IT5ZRS
-#\\\|WE2WM5LD4QNIB6TMI7ILIUQWPERNXJTVBXW3T2LR2PRWAB7T5AZ \ / AMOS7 \ YOURUM ::
-#\[7]RE7HRDHKVRLTS4COV4NNGTXJZKKX4JENKMAKPXRWX3J6RVMWQUAI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,..,,.,,,,,,,.,.,.,.,.,.,..,,..,,...,..,,..,,,.,,,,.,..,,.,.,
+#CPSFWX7GSFE6VLJJ36ZERAOTRWUFMSHVM252DDO2Q4SNM4KPKOT4HWLGMMG3NWMKUDTELSSVZRNDM
+#\\\|HOOLA6QDO7BOX4DBFORKQOWLZNCG6AFA7AOI2B2XJC4PVKKYM4H \ / AMOS7 \ YOURUM ::
+#\[7]LTBLDH7C2OCW2ZSVATOIB3DIYJLWJKMO56E3QOZQA3KN2VBRWWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

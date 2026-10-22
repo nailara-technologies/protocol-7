@@ -9,7 +9,7 @@
 ## context
 
 found 2026-08-26 while fixing the `coding`/`models` on-demand deadlock (see
-`data/ai-mem/claude/` session notes and commit `c8cd075d0`, "dependency:
+`data/ai-mem/claude/` session notes and commit `4b905ee4c`, "dependency:
 generic resolve hook for self-healing unmet dependencies").
 
 after that fix landed, live-testing turned up a second, related gap:
@@ -78,7 +78,7 @@ opt-out.
 
 separately worth confirming empirically as part of this task: does
 `v7-zenki.zenka.instance.stop`'s idle-term path (which forces status to
-`shutdown`, see `data/ai-mem/claude/` notes on commit `15309a68a3f`) hit
+`shutdown`, see `data/ai-mem/claude/` notes on commit `8b0d47aaa72`) hit
 this same block? the condition checks `$status ne 'starting'` etc. using
 whatever status was passed to `v7-zenki.handler.zenka_status` BEFORE the
 shutdown-flag override later in the same function -- so on a quick read it
@@ -113,7 +113,7 @@ behavior so nothing existing changes silently:
 - consulted only in the reverse-dependency cascade block above: skip
   `zenka.instance.restart` for a dependent whose edge to the now-unhealthy
   dependency is `soft`. `dependency.ok`'s own forward check (does MY
-  dependency chain resolve) and the new resolve-hook from `c8cd075d0` are
+  dependency chain resolve) and the new resolve-hook from `4b905ee4c` are
   unaffected either way -- a soft dependency still gets the same "try to
   cascade-start it on failure" treatment, it just doesn't forcibly restart
   the DEPENDENT side when the dependency degrades.
@@ -136,15 +136,15 @@ the same shape -- worth having, not worth interrupting other work for.
 - unit-level: a fake `hard`-declared pair still restarts the dependent on
   simulated failure (regression guard); a fake `soft`-declared pair does
   not restart the dependent on the same simulated failure, but the
-  resolve-hook from `c8cd075d0` still fires for the soft edge.
+  resolve-hook from `4b905ee4c` still fires for the soft edge.
 - live: reproduce the original `coding`/`models` shape with a throwaway
   soft-declared pair of on-demand zenki, confirm stopping the dependency
   no longer restarts the dependent, and that the dependent still recovers
   contact once the dependency comes back (same mechanism validated live
   today: reload + resolve hook cascade-start).
 
-#,,,,,,,,,...,.,,,..,,,.,,,..,.,.,,,.,,.,,.,,,..,,...,...,...,.,,,...,,,.,,.,,
-#YVO37DVYQCCYW3FTDFHTK4RBS4THTXERDB2KCN3SDXHUAINNKT6Q4P4ZUA6HKKS7ZI3TPNHDFC5IW
-#\\\|NGCTC7P6HDNQZHZSLRL6QTACE445RLWL4R4DZEV3BAPISJS5ADL \ / AMOS7 \ YOURUM ::
-#\[7]JL7MRFGXZSIMLBWWUKZRHG7EZ23NN2ZCH2FSULITXR4Y4MLGGIAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,..,,,,,,,..,,,,,,..,.,.,.,.,,.,,..,,...,...,,..,,..,,..,,.,,,..,
+#FIFC4HOZ5NUPZDQNBBOIOTPAVL63I5VJHOFX4MM7SB6D4S4OINVKPNSUYCQ3K2EFW4FMZCF7KTMLI
+#\\\|MQJVDRPAXVAEPMBA2ABUT5TYFLY554N547ZBA3XG6OE3S6KHXML \ / AMOS7 \ YOURUM ::
+#\[7]XDLEIGZDK2FMWP6FJUJ5OAWPWLMVSTUUTHZCKCDXMSZ5CAC6PQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

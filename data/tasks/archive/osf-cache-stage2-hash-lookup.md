@@ -1,7 +1,7 @@
 # osf-cache stage 2 : hash lookup [ offline part ]
 
 design : `data/md/design/OSF-CACHE-ZENKA.md` [ stage 2 : who holds H ?
-no transfer yet ]. stage 1 landed in `2d877e547` :
+no transfer yet ]. stage 1 landed in `de60a4ca2` :
 `osf-cache.debian.read_inrelease` \ `read_packages` \
 `holdings.scan_apt_cache`, `bin/dev/osf-holdings`,
 `bin/test-scripts/test-osf-cache-debian.pl`.
@@ -174,8 +174,8 @@ j. tests : update all sections ; add a sha512-only fixture pair
    %code under the short `chk-sum.bmw.*` names the modules call ] and imports `encode_b32r` from
    `Crypt::Misc` into main.
 
-#,,..,,.,,,,,,,..,..,,,.,,...,.,,,,.,,.,.,,..,..,,...,...,.,.,,.,,,,.,..,,.,,,
-#TII6FRWFVKY7BPIGDF5754OJEUHZVGIROL6EJLJC55BDR36IQZDUBWCCXRC3W42HILBQ4BZC7OQZ6
-#\\\|OZBLFWK7WW4JH7ZWHTNJCZHHCQCO4HQNHGXZ65MPP2VTSTSFJHS \ / AMOS7 \ YOURUM ::
-#\[7]THOJUPANHP7KWXEPHLXUNBD5DLU7DMFTS5SLEOG4S6ODJJ5RQSBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,,,.,..,,,,.,...,.,,,,.,,...,..,,...,...,.,,,..,,,,,,,,.,,.,,
+#MKMYTFALRPRZAE6LINLL7YOX3RORT7VYKSZ25RITNUE267GXKFLO4ZSFMC3W4QSNSM5EPCIOQKN3Y
+#\\\|SVF6UY3ZHTT3I2ALJJEYDJGPWZFUDWSSHDNFRPLPRHC5NHJ3TBZ \ / AMOS7 \ YOURUM ::
+#\[7]MAZSONUUMZOHFNTVYIBUIY2TKT5RQMCYI5CTQP52OGXL57U6CSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

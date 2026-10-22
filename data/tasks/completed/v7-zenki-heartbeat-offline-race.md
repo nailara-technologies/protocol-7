@@ -25,7 +25,7 @@ bounded : at most one short re-check [ e.g. 1s ], no loop.
 `v7-zenki.process_zenka_end`, `v7-zenki.handler.children_left`, the stdout
 \ stderr eof handling of zenka pipes, and
 data/ai-mem/claude/feedback-llm-fix-regressions-pattern.md [ the pressure
-extension in heartbeat_response_timeout from bbd54d402 must keep working ].
+extension in heartbeat_response_timeout from 3dab70d60 must keep working ].
 
 
 ## done [ 2026-09-30, kimi ]
@@ -79,7 +79,7 @@ error counting moved after it to l.95-96 ] : on a FALSE
   restarted within the 1s ] -> dropped ; same pid still online with no
   session -> real problem, falls through to the unchanged error path.
 no base.* module touched. heartbeat_response_timeout untouched -> the
-pressure extension from bbd54d402 keeps working. pid_alive untouched
+pressure extension from 3dab70d60 keeps working. pid_alive untouched
 [ its get_children caller relies on '-d /proc' semantics ; the zombie
 check is local to the handler instead ].
 
@@ -114,8 +114,8 @@ reloaded or restarted [ task rules ], so the fix has not run in production
 yet ; the 'process changed during re-check' guard branch exists by
 construction only.
 
-#,,.,,,,,,,,.,,.,,,,,,.,.,...,,,,,.,.,.,,,,..,...,...,.,.,...,.,.,...,,..,.,.,
-#4RED5JLOSOQVOCUW56GTGSUMXYOHHOA2JVXOF247PZOG33T7D7FQ5JDNLPRXN5REVT76MSA7DNODA
-#\\\|XSBRB6A4RMP4KU5JY2NKPETFHRVJLCU77Q2EFJRL3OPT4VBOPDN \ / AMOS7 \ YOURUM ::
-#\[7]I7PDCSPFZ4QAEUOTWL25N3NJ5KYPTMTZY35Y6AGOZ6BKA2ETQMBI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,..,,,,.,,,.,,,,,,.,,.,,,,..,.,.,...,...,...,,,.,,,,,,,.,,..,...,
+#LNFOY5API55YY5HVYLYSTE6COCR7IIFNTE6CZCWUKQL3OLT3RO5PG6VVAQI3AT5PA6QGLQKYJ47LM
+#\\\|C3DEQII2GTKMC7GO7IAHOYGQEAYWTIJ3M6NCX5LXCWCPGLLYAER \ / AMOS7 \ YOURUM ::
+#\[7]GDHG7DAQYUPR5RLZ47EZHFMMCINMOSJ7LKMHQNHHBMO2Y6FG7WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

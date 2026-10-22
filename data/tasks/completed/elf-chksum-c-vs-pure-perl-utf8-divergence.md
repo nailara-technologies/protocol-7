@@ -140,7 +140,7 @@ models over the input whenever multi-byte UTF-8 appears:
   step per full character, e.g. é = one step, value 233).
 - compiled-C: manually walks **raw bytes**, decoding multi-byte sequences
   itself via `utf8_to_uvchr_buf` + explicit `u8_len` tracking (this is the
-  code the `66f5e1336` "fix infinite-loop on malformed UTF-8" commit,
+  code the `f1cf9c645` "fix infinite-loop on malformed UTF-8" commit,
   2026-07-26, touched — real, unrelated-to-tonight, already-landed fix,
   confirmed via unchanged `.inl` source MD5 comparison against a still-
   intact pre-tonight cached build for a related sub).
@@ -417,8 +417,8 @@ my $c = elf_chksum("caf\xc3\xa9X", 0, 7, 13);
 ## lead byte) onward.
 ```
 
-#,,,.,.,,,.,,,..,,..,,,.,,...,..,,,,.,,,,,,,,,.,.,...,...,.,.,.,,,.,.,.,.,.,,,
-#YCIGWVKB3CVBASMJ3PC6KLS2BZEL4KK5PVBLTH2MBLPQWCWVNBDC2IVH3N36ZFEGKO4MRFVDF2ZBA
-#\\\|2HYQRPEJXEXPKDMI5K6JI4QOSDVVDADM4E4LRZIH6JE7L3FWHFC \ / AMOS7 \ YOURUM ::
-#\[7]57E7O6XXGD5LFKYFVAP76KY54DUHVEYFAB7XGEB2DVENSAHXZSBY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,..,,.,,,,.,.,.,.,,,,,.,..,,.,.,.,.,...,...,,,.,..,,..,,...,...,
+#KR6MHRGMU3265Z2JHAB3AU2DV4I7FJZJZ2JASWMJEATR6Z5UWTE6M4XNJOHBQG4HTMVO36RAZAUHI
+#\\\|H6ARIA7VGALVTSKV3PNGVPMPWX7HUVUSISIJQTANNZBOWDEDTYU \ / AMOS7 \ YOURUM ::
+#\[7]APD5NVYKKW5P6IYLWLZVD6MOPXIVFGHVNMXEWIQCMELLAMA7ZWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

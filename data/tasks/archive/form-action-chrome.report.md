@@ -1,6 +1,6 @@
 # form.action.send + form.chrome [ lane B2a ] -- report
 
-base : 10fd97352. done per data/tasks/form-action-chrome.md.
+base : da5a50396. done per data/tasks/form-action-chrome.md.
 
 ## what was built
 
@@ -67,8 +67,8 @@ vault-edit NOT migrated, per the lane.
    the lane rules.
 3. no zenka restarted, no form submitted, no commit.
 
-#,,,,,,.,,...,.,.,...,...,,,,,.,,,,,,,,,.,,,,,..,,...,...,...,,,,,,,.,,.,,...,
-#PEFKGZFRB3OCGZPX5RDLQDH7ZYRVQM3T5SMYLSQWWF4W6IA66TDLD6JS54TOTDTC5IXEZFZS4OGJK
-#\\\|QXMKKNQZQIYRKHDG3TTIHSC3TZWNW75FSOELRR7CYWUG6MZPXAF \ / AMOS7 \ YOURUM ::
-#\[7]RPLCJPEKT2QRJLN63VNQMYPKRO3QLPWEWSVSCICOJXRMJZVHZGAI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,,..,,.,,...,...,..,,...,...,..,,...,...,,,.,..,,...,,,.,.,.,
+#3CHM5B6Q3WX7HXSYM7H6Y6HMS7P75U3AHGVWI5LIVM6LTZYXCQYJ6T6SGHGM2T7QJGQJFG5NLOQAE
+#\\\|472R3B7PQZ2CZTKGLRALHBOPYRNYND35Q5B4S5JT2FXO7KNE2LV \ / AMOS7 \ YOURUM ::
+#\[7]WC5NAHA6OROAK7IEGUQLBGN4RRW5PMVLVEF2DMHDAWWVDXSQUSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

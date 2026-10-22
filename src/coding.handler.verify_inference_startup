@@ -39,7 +39,7 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
     ## self-test was legitimately still retrying prompt 2 after a 90s       ##
     ## timeout [ well within self-test's own bounded budget ], and forced   ##
     ## the queue open mid-self-test - exactly the premature-resume this     ##
-    ## guard exists to prevent [ commit f9d9ecba5 ].                        ##
+    ## guard exists to prevent [ commit 69d8cff40 ].                        ##
     ##                                                                      ##
     ## the bound is no longer a separately-derived wall-clock number [ task ##
     ## : backend-aware timeout scaling, item 3 ] : poll_probe's watchdog    ##
@@ -105,7 +105,7 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
 
             ## noteworthy, throttled : deferring PAST the old flat ceiling ##
             ## means a live round is being correctly waited out - the      ##
-            ## f9d9ecba5-class premature resume would have fired here      ##
+            ## 69d8cff40-class premature resume would have fired here      ##
             if (    $live_wait
                 and !$give_up
                 and $probe_elapsed > $self_test_budget + 120
@@ -284,8 +284,8 @@ if ( $restart_count >= $max_attempts ) {
 
 return FALSE;
 
-#,,,,,..,,,.,,..,,,.,,..,,,..,...,...,,,.,.,,,..,,...,...,.,.,...,.,,,.,.,..,,
-#HGKWEWVE7NE456CBCHE37BT5FJ3IPKWIBIJ6DL4BQHDAX7JHQHXDXSKUDG52QZJT5RA3F5EKNDOU6
-#\\\|AIJKNLSRVPMQRMSIADPNQKMH7PQL7VTTNBE55HC2ZMH7TJ6XGUP \ / AMOS7 \ YOURUM ::
-#\[7]GLPYMXMKSUOPRUCVLN5ZHGQCTXIHV6LEZUELUSEXRC7TRMGQL4DI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,.,,,.,,,..,,..,,,,.,,,,,.,.,..,,...,...,...,,.,,,,.,.,,,.,.,
+#3BLWJLVZNXHYPU4KVQPPOSCTMQS7RMZXKSXE7CD2VZSLRN52S73D236YU6ANFV4LEHUEIJV3QOMHG
+#\\\|7VOYCXDGH2UOL67DH2WQTF2AX3IE6QKIZD2VGWDFY7VGMRJPWTX \ / AMOS7 \ YOURUM ::
+#\[7]6WZ3IB6FBTTOZHJVQSLEQV7ALZMSTBRNRWSUJMKHKUJSSFHQ3SCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

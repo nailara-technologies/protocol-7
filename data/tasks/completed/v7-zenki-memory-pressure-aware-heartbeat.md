@@ -61,8 +61,8 @@ over a threshold + a short-term load value, not a single reading ].
 ## state 2026-09-30 [ pieces 1, 2, 3, 6 done ]
 
 - done : sampler + levels [ 180535263 ], elevated from avg60, leave after 13
-  samples, short level log [ bbd54d402 ], heartbeat extension under
-  pressure [ bbd54d402 -- extends 3x \ 6x 17s at the moment the timeout
+  samples, short level log [ 3dab70d60 ], heartbeat extension under
+  pressure [ 3dab70d60 -- extends 3x \ 6x 17s at the moment the timeout
   fires, also when the latest avg10 already crosses critical ], verified
   live 2026-09-30 [ 'heartbeat late under critical memory pressure --
   waiting [ 1 \ 6 ]' instead of a restart ]
@@ -303,10 +303,10 @@ shows the gate lines, per-sample release runs without errors ].
    one per sample, `held starts` shows the rest with origin autostart
 
 archived [ 2026-10-11 ] : pieces 1, 2, 3, 6 landed [ 180535263 .. ], pieces
-4 + 5 [ restart gate + start gate ] as 3839a90f7.
+4 + 5 [ restart gate + start gate ] as 133c8cd56.
 
-#,,,.,,..,,.,,,,.,,,,,,..,.,.,,..,,,.,,,.,,.,,.,.,...,...,...,,..,..,,,.,,,..,
-#44KPO2VU4SRINHGFHZPVK7BYR6W7EMTREIHZMFGYGKLNJLNAEUNFBAXLROJHLUIKKB4273V7Q4RVW
-#\\\|CBOMDPNFIB6VV7PP5MJQWHNIQVSA7Q4XLLV3K7DGLJNGVPVTT3M \ / AMOS7 \ YOURUM ::
-#\[7]F63EACKIHVIKMQ3NCD7LOGKOBXC2N4IRS3J3LMT7SHK5LTFOFQDA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,.,,,,,,.,,,.,,,.,,,..,,,,,,.,.,.,.,...,...,.,.,..,,,,,,,..,,.,,
+#KT5VC6IZ5BK6I25CRFMTV7DXF4BJ7M3IGZJAZOSPI4CDOWZII2U3OGF6FGFZSUIXHJYPN5OQMSPLI
+#\\\|FTG4HIVXBHG6SPHWCIMN2CRVRU7HL4G4TUNMDOHVUBZYWPOKI7B \ / AMOS7 \ YOURUM ::
+#\[7]UMDI6H5EBDVQ6E4PJUCJUH2OH3OOMQVRJPVL2TRUASSC4A4CFMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
