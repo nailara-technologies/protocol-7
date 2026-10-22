@@ -237,6 +237,9 @@ members : <count>                    <- always the last header line
   - `content <bmw>` : bytes with that BMW-384 [ a file, an N7FS node ]
   - `statement <bmw>` : another statement, by its id
   - `key <pub>` : a public key
+  - `file <name> <size> <bmw>` : a named file of that decimal byte size
+    and BMW-384 [ name and size required -- a size compare refuses
+    before any hashing ; the module set's kind, open question 8 ]
 - the body ends with exactly one LF after the last member line [ after
   `members : 0` when empty ]. the sign run then adds the separator LF
   and the footer
@@ -706,7 +709,9 @@ label `p7 module set v1` :
 - signer : the sourcecode key, `role : function` [ anchor on day one ]
 - label fields : `src-ver : <cfg/protocol-7.src-ver line>` [ ties the set
   to the source version ]
-- members : one `content <module name> <bmw>` per file of `src/`. the
+- members : one `file <module name> <size> <bmw>` per file of `src/`
+  [ owner answer to open question 8 ; the example below still shows the
+  earlier `content` lines ]. the
   bmw is over the WHOLE module file, footer included [ the N7FS content
   id ]. module names unique. the set does not list itself [ it lives in
   `data/statements/`, not in `src/` ].
@@ -879,6 +884,18 @@ each is a label table entry, not a new format.
    a new signer starts a new state key, so the witness needs one
    'successor' rule : a statement by the old key naming the new one
    lets its last version carry over.
+   - **owner answer 2026-10-22** : yes. today the sign runs go through
+     the `sourcecode` or the `work` zenka [ `update-signatures` \
+     `sig-update`, `commit`, `version-sign-commit` ], with either the
+     `proto-7.sourcecode` key [ needs the user's passphrase ] or a
+     temporary key [ `test-sign-with-temp-key` ]. delegated or temporary
+     llm \ coding session keys are planned, not built beyond the llm
+     development key [ `work.import-dev-key`,
+     `sourcecode.verify-dev-signatures` ]. consequence for the label
+     policy : `p7 module set v1` accepts the sourcecode anchor ; temporary
+     keys only for test sets [ their own subject, never `protocol-7 src` ] ;
+     session keys enter later as `p7 delegation v1` subjects under a name
+     the policy lists, with a short `not-after` -- no format change.
 2. **removal and history** : after `remove`, should statements the
    witness accepted BEFORE the removal stay valid on that host ?
    proposal : no -- re-sign instead ; it is simpler and backdating-proof.
@@ -896,6 +913,20 @@ each is a label table entry, not a new format.
 8. **load-time cost** : enforcing the set hashes all of `src/` [ 15.4 MB at
    49a2f5d3 ] at each zenka start, or only the modules a zenka loads
    [ proposal ] -- measure before choosing.
+   - **owner answer** : sign SIZE and checksum per member -> ONE
+     signature check for the whole set, then only fast per-module checks.
+     so v1 gets a fourth member kind, `file <name> <size> <bmw>` [ name
+     and size required ; added before the first statement is signed, so
+     v1 is still unchanged once in use ], and the module set lists
+     `file` members instead of `content`. at load :
+     the set's footer is verified once ; per module a size compare
+     [ free, refuses most tampering before any hashing ] and the member
+     checksum. the per-module Ed25519 footers need no verify at load at
+     all. the per-module checksum must stay collision resistant
+     [ BMW-384 ] : a faster non-cryptographic sum would make the set's
+     signature only as strong as that sum. combined with 'only the
+     modules a zenka loads', the cost is one signature plus the hashing
+     of the loaded modules.
 9. **footer type names** : `full` \ `form`.
 10. **label rights by name** : the policy maps labels to certified NAME
     patterns [ e.g. `<owner>.release.*` ]. enough, or should a delegation
@@ -904,8 +935,16 @@ each is a label table entry, not a new format.
 11. **the AMOS7 library** : `data/lib-path/pm/` [ parser, verifier,
     `AMOS7::*` ] stays outside the module set. a `p7 lib set v1` over it,
     signed like the module set, or trusted base as now ?
+    - **owner answer** : a `p7 lib set v1` makes sense too. the verifier
+      itself lives there, so the lib set is checked by the loader in
+      `bin/Protocol-7` [ the trusted base shrinks to that file + its
+      anchors ].
 12. **path classes** : `data/lib-path/pm/` and `cfg/zenki/*/zenka.v7`
     execute -- `CODE` [ proposal ] although they are not under `src\ bin` ?
+    - **owner answer** : `CODE`. `zenka.v7` start files are already
+      filtered code : they are translated directly into perl, beyond
+      being able to call code anyway. path class code : `src`, `bin`,
+      `data/lib-path/pm`, `cfg/zenki/*/zenka.v7`.
 13. **CODE row layout versions** : an in-row marker [ proposal :
     position 2, `:` = layout 1 ] or a new kind word per layout ? and is
     the harmonic coordinate fixed at signing [ signed ] or set in transit
@@ -923,8 +962,8 @@ each is a label table entry, not a new format.
 - the network witness [ N7FS-SPEC section 4 ]
 - unlinkable credentials [ their own design ]
 
-#,,,,,.,,,,,,,..,,,,,,,.,,..,,.,,,,,.,...,.,,,..,,...,...,.,,,.,,,...,..,,..,,
-#64IJXZEU2A4LW3WYFKGW6O2JMPFPKYFM24GEZEO2UORCC4QJME7HDX6N3TZUU33G5MEJTR2UWE5RK
-#\\\|UQV7XAKVTTBJ3ZQVR2EV2ODJXESGL4S563K4AR3SX4AE3O67S6E \ / AMOS7 \ YOURUM ::
-#\[7]YE5MHQCPQGL7RAN2YJUHTHXRITJXVEFC343CC5JN7BMR24XNL2BY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,,,,,,..,,..,...,,..,,.,,,,,,..,,...,...,..,,,,,,.,.,.,,,...,
+#45RLUTXUAUHUMV2S4KRH7RJICSLLXLFZ7GCSXKML2RL42ISSQU3G5CNYUNVJ3K6AKIE7NGZT6OHE4
+#\\\|SYENSROLVEAMK7ULNLMTRKLAMIA6GXD4WZN34RVWM3IIDUBBS4J \ / AMOS7 \ YOURUM ::
+#\[7]YPJB25OLPEJVSQBMOMPOPFCOR3UGPWOODZVUORZPI2FE4JGREWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
