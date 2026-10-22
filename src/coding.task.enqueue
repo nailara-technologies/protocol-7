@@ -57,8 +57,13 @@ push $aref_pending->@*, $task_id;
 my $priority
     = <[coding.helper.task_priority]>->( $task->{type} // 'general', $task );
 
-## determine which inference server to depend on ##
-my $routed_to = $task->{'analysis'}->{'routed_to'} // 'gpu';
+## determine which inference server to depend on : without a routing        ##
+## decision the gpu, unless its backend is off or not configured [ a        ##
+## cpu-only host parked every such task on a gpu server that never starts : ##
+## pri, 2026-10-22 ] -- 'auto' [ cfg_bool undef ] keeps the gpu             ##
+my $gpu_enabled = <[base.cfg_bool]>->(<inference.backend.gpu.enabled>);
+my $routed_to   = $task->{'analysis'}->{'routed_to'}
+    // ( defined $gpu_enabled && !$gpu_enabled ? 'cpu' : 'gpu' );
 my $dep_object_id
     = $routed_to eq 'cpu'
     ? ( <coding.dep.cpu_server> // 0 )
@@ -85,8 +90,8 @@ return {
     message    => "task enqueued: $task_id"
 };
 
-#,,.,,...,...,..,,...,..,,,.,,,.,,,..,,.,,.,.,..,,...,...,,.,,.,.,...,,,.,.,.,
-#FNTZJWEALJIY64FEIL6FZJY4MLDEH47JECMBSDT6RBRVAJAKIKK2MWA2TLO7V7MLC3ONVQIIKIQTI
-#\\\|WTIW2S4FFGIGTNOHPFTFELGPDJ4GEJZFF5WTQWI5MCG3TJA2HZK \ / AMOS7 \ YOURUM ::
-#\[7]4NLWVOJMWTEH3IWQQCECWKJRCTJJWRW4RDF7JQAJUJO4XENSFICY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,,,.,.,,.,,,,,,,,.,..,,,..,,,.,..,,...,.,.,,.,,,..,..,,...,.,,,
+#WQWWUJA2G36IUQA2VEMQYBL7HTNGNTQXF7D6DYQK565DVSLLZ6HFHA27JA76LTYIB6TN65X6YCMWM
+#\\\|PKFNK3ESHTHP76MW3TD2TJHBAO4XQ6CFCRZFPU4LT3VRHG3CUGH \ / AMOS7 \ YOURUM ::
+#\[7]P5SMQGWTDJND3JQQGSEZIZOE2QSTUCKEOLI5FAJUKJMOIICRPOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
