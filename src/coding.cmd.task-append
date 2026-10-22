@@ -81,7 +81,7 @@ if ( $status eq qw| completed | or $status eq qw| failed | ) {
     ## rebuild async state for the resumed conversation  routed_to is the ##
     ## lock namespace [ async.request:22 acquires under it ]              ##
     ## execution.backend is only the hardware key [ task.execute:111 ]    ##
-    my $prev_backend = $task->{'analysis'}->{'routed_to'} // 'gpu';
+    my $prev_backend = <[coding.helper.task_backend]>->($task);
     ## next round after the real last one [ saved by async.complete ] ; ##
     ## message count only as fallback for records saved before that     ##
     my $saved_round = $task->{'execution'}->{'round'};
@@ -145,8 +145,8 @@ return {
     'data' => "cannot append to task $task_id [status:$status]"
 };
 
-#,,..,,,,,.,.,..,,,.,,,,.,.,.,,,,,.,.,,.,,.,.,..,,...,...,.,.,.,,,..,,...,,,.,
-#MOYBUOF6ITQWUZOY3EKLRO5CDYQ4TNK22C3C62QEHQ7XILROEISLKHTANLUPT2J2IOQZ3RQLZ7AZW
-#\\\|WRART47RQ5AOCYURN5XGXNLPW3UHX6TVE3K6LSR2YRYPE26HHQL \ / AMOS7 \ YOURUM ::
-#\[7]XQNWTNGZB65YYTMPNXU2S5NBNKEEW4I6LVKXJ4USXMOTTNMRXUAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,.,,..,.,.,.,.,,,.,,,,,,.,,,,,,..,,...,...,,,.,,,.,,.,,,..,,,,,
+#NZOJR6J76DGDWUKHY36KCC7L5G5ZRIGR4RSWA7AU2RGFYJI2ZLA7OYXOWBZIIWBGQAQD4DJWBEAHU
+#\\\|5XBHYPHBGVEUQYMNXJZIS3PTHTZYM4CANRSLGXU3BUCYV5JCXIR \ / AMOS7 \ YOURUM ::
+#\[7]ZLDU563QUXBDIL46BDIGLHLSLFQDVWSDBKIVOZTYB74GIQTOZQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

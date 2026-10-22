@@ -57,20 +57,10 @@ push $aref_pending->@*, $task_id;
 my $priority
     = <[coding.helper.task_priority]>->( $task->{type} // 'general', $task );
 
-## determine which inference server to depend on : without a routing      ##
-## decision the gpu, unless its backend is switched off [ a cpu-only host ##
-## parked every such task on a gpu server that never starts : a server,   ##
-## 2026-10-22 ] -- unset means on, as in coding.init_code ; 'auto'        ##
-## [ cfg_bool undef ] keeps the gpu                                       ##
-my $gpu_enabled
-    = <[base.cfg_bool]>->( <inference.backend.gpu.enabled> // TRUE );
-## routed_to also holds SERVICE names [ single-llm, consensus-voting, .. ] ##
-## from coding.routing.decide_service : only cpu \ gpu name a backend,     ##
-## anything else takes the default [ single-llm parked every jobsite       ##
-## assessment on the absent gpu after the first fix ]                      ##
-my $routed_to = $task->{'analysis'}->{'routed_to'} // '';
-$routed_to = defined $gpu_enabled && !$gpu_enabled ? 'cpu' : 'gpu'
-    if $routed_to !~ m{^(?:cpu|gpu)$};
+## determine which inference server to depend on [ coding.helper.           ##
+## task_backend : routed_to may hold a service name, a cpu-only host parked ##
+## every task on a gpu server that never starts, 2026-10-22 ]               ##
+my $routed_to = <[coding.helper.task_backend]>->($task);
 my $dep_object_id
     = $routed_to eq 'cpu'
     ? ( <coding.dep.cpu_server> // 0 )
@@ -97,8 +87,8 @@ return {
     message    => "task enqueued: $task_id"
 };
 
-#,,,.,..,,.,,,.,,,,,.,,,,,,..,...,,.,,.,.,.,.,..,,...,...,,,.,..,,,,.,,..,,,,,
-#2R5KVUOINPBG7SIOTGFQOPPWFYU53TDQLMPO7MIPUV7TY3RL3C4ROFEGKAXKVCEVMLWL4HPXIYYVM
-#\\\|4OICZP2GBWG7XWL5OO3PV6DMULUW3CLCWT7XNWKTQVR5Q3UKOEL \ / AMOS7 \ YOURUM ::
-#\[7]HXY2PLAMEQWRK2RM34RJKDIBH5BO4JQCPZMLQREMPRTTBDSW52AI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,.,,,..,,.,,,...,,..,..,,,,.,..,,...,...,..,,,..,...,,,.,..,,
+#3HT7PFKX677NH6OQWGBVGXOVE7UQHPVOJUH236HTYMOBZS6FJJF7NUDARHZYBB3BRUJ4JXWSK4K2M
+#\\\|CYV57VL7WCID4YVVNK6I6WTJBB4TJNDCL63ZE7STDU66JAOVCSM \ / AMOS7 \ YOURUM ::
+#\[7]V3TPOW2JYDRG7FPLOF6JWZFLLRONCXJSTYB523GMPUSBO6OIQSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

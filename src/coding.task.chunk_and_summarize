@@ -72,7 +72,7 @@ $task->{'metadata'} //= {};
 $task->{'metadata'}->{'chunked_summary_state'} = $chunk_state;
 
 ## create async state for parent so coding.async.complete can resume it ##
-my $backend = $task->{'analysis'}->{'routed_to'} // qw| gpu |;
+my $backend = <[coding.helper.task_backend]>->($task);
 <[coding.async.state_machine]>->(
     qw| init |,
     $task_id,
@@ -205,8 +205,8 @@ $parent_state->{'pending_subtask'}         = $child_task_id;
 
 return { success => TRUE, mode => qw| deferred |, task_id => $task_id };
 
-#,,,,,,,,,...,.,,,,..,.,,,,,,,..,,,,,,,,,,...,.,.,...,..,,,..,,,.,...,.,,,,,,,
-#K4T6QMTLCH27AIRRCL23UAQR6XF576F2ZIKPWUXPPZEM5YAIAV3CYAMORCULGBRKZYWSA3677SWAY
-#\\\|GV4SOMQMJ664RAWAPLFK4FEL5442XLAGG3CXFGHHXDUPZQYHB2S \ / AMOS7 \ YOURUM ::
-#\[7]J234G5UCTIQ2HUIE5DRIBIOJM6BPZFPFYSFY7NCNKDJOQZ5JDKAY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,..,,.,.,,.,,,,,,...,.,.,.,.,.,.,...,...,,,.,.,,,,..,,,,,...,
+#LIQHQ5KRWASRFGSTNT3W6OD37SVJX7LOU4O56PR7LHJF4DFXXMYH77U6BTVX75NEXNGR2I53A2YNY
+#\\\|KYBOYQEHUNLS7ECIBIOHZXXNL2ZRTGXXZIVGS7N5GZ7BJSCXYVX \ / AMOS7 \ YOURUM ::
+#\[7]DTD3VIRHNBPTTIY5W2PXBRIN3WXWVAVBGYMHUABZ7W46L4SWEIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

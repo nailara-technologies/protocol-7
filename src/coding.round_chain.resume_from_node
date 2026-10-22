@@ -18,8 +18,8 @@ my ( $task_id, $prev_round, $messages ) = @ARG;
 my $task = <coding.task.queue>->{$task_id};
 return undef unless defined $task;
 
-my $prev_backend = $task->{'analysis'}->{'routed_to'} // qw| gpu |;
-my $prev_tools   = $task->{'execution'}->{'tools'}    // [];
+my $prev_backend = <[coding.helper.task_backend]>->($task);
+my $prev_tools   = $task->{'execution'}->{'tools'} // [];
 
 ## if tools weren't saved (pre-fix completions), re-assemble them now ##
 ## [ mirrors coding.cmd.task-append ]                                 ##
@@ -63,8 +63,8 @@ push $aref_active->@*, $task_id
 
 return TRUE;
 
-#,,,,,,,,,,,,,...,,.,,,.,,,,,,,,.,,,,,,,.,,,.,.,.,...,...,...,,,.,,,,,...,,,,,
-#XZ4KQTRA3NOTEGJCU7P6MDENIFOXQK347ANXCSHPXSELL6IUZZ2LIGB7JWS2L6H76GW5J4XTVZAUW
-#\\\|YBUFV2RTGG4QWL2RGYVN5YEY2EE3RZIFIOPGA3KULKMMPR6JO26 \ / AMOS7 \ YOURUM ::
-#\[7]DMPL7B6Q56RKQEXYJK4PPQUPUW2HGZA23PYRZNKNYHHOXGA4GSDA 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,.,.,,,,,.,.,.,.,.,,,,.,,,,.,.,.,...,...,...,,..,.,.,,,.,,.,,
+#33KLJAUC6NKIKNXZPGKEPSCIGY3OJD3SRNPKPETAZEI75BV5HXRB6LHAHI2VG5BEX473VOWLSTKD2
+#\\\|RHUVLUWPCSCAU22I6RVI4H7EGXL4YYAXABRZFFTLYJKYQW6XTO5 \ / AMOS7 \ YOURUM ::
+#\[7]BUQEWVKHNWEDELGTL7FCS4KXXUEE3Z6Q2R5FL3W67TTHJP6JV4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

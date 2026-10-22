@@ -25,11 +25,8 @@ for my $task_id ( keys %{ <coding.task.queue> // {} } ) {
     my $st = $task->{'execution'}{'status'} // '';
     next if $st eq qw| completed | or $st eq qw| failed |;
     next if defined <coding.task.parent>->{$task_id};
-    ## routed_to may be single-llm etc : only cpu means the cpu server ##
-    my $task_backend
-        = ( $task->{'analysis'}{'routed_to'} // '' ) eq qw| cpu |
-        ? qw| cpu |
-        : qw| gpu |;
+    ## routed_to may be single-llm etc : coding.helper.task_backend ##
+    my $task_backend = <[coding.helper.task_backend]>->($task);
     next if $task_backend ne $backend;
     my $model = <[coding.mode.task_model]>->($task);
     $wanted++ if !defined $model or $model eq $loaded;
@@ -37,8 +34,8 @@ for my $task_id ( keys %{ <coding.task.queue> // {} } ) {
 
 return $wanted;
 
-#,,,.,,..,..,,,,.,,..,.,.,,,,,.,.,.,.,.,,,.,.,..,,...,..,,...,,,,,,.,,,..,,.,,
-#OVB3RVWMWQKLNIW6V5PHIEXZBZNSGVQ6SM6BWUYJ3GKJ7MNB3IULLXCXNAKMZDB7TPXYZQQPXXNDE
-#\\\|5S3C5NLGST5BMD6QMESWXW5RDTCFB6QOK5A3WZWPYHCMLHCRGOA \ / AMOS7 \ YOURUM ::
-#\[7]BLPJLX5ATVON3AMUJZLHOEHK3DQ3NPKL2G34HSVLUYYM6BLMUKBY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,.,,,.,...,,,.,.,.,..,,,..,..,,..,,...,...,...,,.,,.,,,..,,...,
+#PACU6JBQ5N3MCFDTHWK2IKL5M6AGFELAUL66J5HERYOC5XWWPERTSWVCRWPSKN455HHPHOUAIVSYY
+#\\\|LHYZTAPUQOSSEKGSREM2T5RNHNCZEBQPQHN4UV7KZFMVPGXJ3QH \ / AMOS7 \ YOURUM ::
+#\[7]LPUBMFRQUAVM64RTG7GCI4JTAJCKZRVKN4BKESGTKUSPH2TL2OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = coding.helper.task_backend
+# descr = the inference backend [ cpu \ gpu ] a task runs on
+# param = $task [ hashref ]
+# return = 'cpu' | 'gpu'
+
+## one place for a question asked in many : analysis.routed_to holds ##
+## SERVICE names too [ single-llm, consensus-voting -- coding.routing. ##
+## decide_service ], so reading it as a backend sent every assessment ##
+## of a cpu-only server to the absent gpu [ 2026-10-22 ]. order :      ##
+##   execution.backend   the backend coding.task.execute selected      ##
+##   analysis.routed_to  only when it names cpu \ gpu                  ##
+##   default             gpu, unless its backend is switched off       ##
+##                       [ unset = on, as coding.init_code ; 'auto'    ##
+##                       keeps the gpu ]                               ##
+
+my $task = shift // {};
+
+foreach my $backend ( $task->{'execution'}->{'backend'},
+    $task->{'analysis'}->{'routed_to'} ) {
+    return $backend if defined $backend and $backend =~ m{^(?:cpu|gpu)$};
+}
+
+my $gpu_enabled
+    = <[base.cfg_bool]>->( <inference.backend.gpu.enabled> // TRUE );
+
+return defined $gpu_enabled && !$gpu_enabled ? qw| cpu | : qw| gpu |;
+
+#,,.,,.,.,,.,,,,,,...,...,,.,,,,,,..,,.,.,,,,,..,,...,...,.,,,...,,,,,..,,..,,
+#2TVIBPOBO7IYTD2QXSWLGMJSCWJJHZYBEGTXVP24H4F73MCXKRKECDVNL7DACMGZM7JWTZKJIYLXK
+#\\\|PZZU5JV2XVDX65DJXWS7F3ANUHB4ZC2RRWUSBFNG7EU2ETTKT3C \ / AMOS7 \ YOURUM ::
+#\[7]XLWTCGIXUZW2MGKIHYYPSMPY7KOQJAE6GNELV75MSCHTWDTF5CCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
