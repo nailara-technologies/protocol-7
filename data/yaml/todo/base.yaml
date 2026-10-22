@@ -1643,9 +1643,20 @@ items:
   - coding
   - self-test
   text: 'coding startup self-test blocks the backend for an hour+ on a cpu-only host [ pri : prompt 2 ttft 635 s ]'
+- added: 32DL5CGHCM
+  details: 'placement [ owner pointer 2026-10-22 ] : this is auto-install STAGE 3. existing : stage 2 = v7-zenki.pre_init bootstrap [ root, synchronous before the loop, core modules, switched off in post_init ] ; the async sys_deps start condition = pre-start gate [ v7-zenki.callback.object.sys_deps -> sys_deps.probe -> handler.deps_install_reply \ debian ]. stage 3 = a NON-root zenka at run time : reuse the sys_deps state machine [ missing -> installing -> ok \ failed, install_timeout, retry_after ] and its debian reply handler, entered by the zenka request instead of the pre-start probe -- and refresh the cached state on that path'
+  done_at: null
+  id: 4WM
+  priority: normal
+  status: open
+  tags:
+  - v7-zenki
+  - deps
+  - security
+  text: 'missing perl module at run time : the zenka asks v7-zenki, which verifies against the declared markers and installs through debian, start-up held meanwhile'
 
-#,,..,,.,,...,,..,.,,,,..,..,,..,,,.,,.,,,.,,,..,,...,...,..,,.,,,.,.,.,.,,..,
-#4QFRH5KIKZZ4LCXRDPQGIFQVAI4ZGUZQFP24EH7ZWIZCTRT7OEIXI7644DZRGNKXB6VKUIN4X2AZU
-#\\\|2LYPZIH5E5YZXA33HDEVA7HELVRPXUHKRE7PBYB5SCX26H2ETAQ \ / AMOS7 \ YOURUM ::
-#\[7]LA7MDU4VYUFAMNHNFV5S4KSCYR6GE6L27VPA4WGAGVYB6P72X6CA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,.,,,.,.,,,,.,,..,,.,,,,..,,,,,..,,...,...,..,,.,.,.,,,,.,,.,.,
+#QUQUZEQ5QU5IZVM6HKHBUPUUS43MBOHOYZK2CLYA2BXXTOFRDUWMAC4WU6K32VTTFRPNLUAXWMNBA
+#\\\|LMAATQEFMKXKEYWSTUQIDJBGF72WHHUYXZCHUP662IOM33EE4KU \ / AMOS7 \ YOURUM ::
+#\[7]IVTXT4F6JCOOYZS7VMYEOXKR3FSTUNXXND4PMLJFERVZ5DSSKCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
