@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-found 2026-10-04 on the first live start of osf-cache [ `13fddb42a` ] :
+found 2026-10-04 on the first live start of osf-cache [ `040d59fc9` ] :
 100 green standalone checks, then four failures only the zenka showed.
 
 `bin/Protocol-7` sets, and every module compiled inside it inherits :
@@ -36,8 +36,8 @@ parse files. related : [[use-format-code-not-perl-c]], [[init-code-runs-before-d
 
 **2026-10-07 [ host-root live run ] :** two runtime-only bugs passed 6 harnesses [ bare list `lstat` under File::stat ; `sysread` on the default :utf8 layer ]. harnesses now compile modules with `$runtime_pragmas = q{no bytes; use File::stat; use open qw| :encoding(UTF-8) |;}` in the eval string [ test-host-root-delegation, -keys-root-held, -host-root-keygen, -discover-delegation, -auth-link-binding(-e2e) ] -- mutation-checked : both bugs now FAIL. GOTCHA : a harness's top-level `use bytes` is LEXICAL and leaks into string-eval'd modules ; under it `sysread` on a :utf8 handle silently works -> it masked the bug. the runtime only has bytes.pm LOADED, not in effect. pragmas go inside the eval, so the test file's own stat calls stay CORE.
 
-#,,,.,.,,,,,.,.,,,...,,,.,...,,..,.,,,...,,..,..,,...,...,...,,..,,.,,,..,,.,,
-#BESPQ5VQTVU7XU7DBACNAU5BPC7IWZHK6ZMO7JOUV6J33YUY4AFRNPDCU2BH4NZHV7O4MP6G2FEV6
-#\\\|FXGVQ6C4IECOU2N3AWDOXNQD7QQGS7V4YHTSGBCGIM7A5L7QMON \ / AMOS7 \ YOURUM ::
-#\[7]M5T2GTFFOVW37G6GTOAI2F3DKMXINRBDBCE37HNW7AYJRCNVXMBA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,...,,,.,.,.,,,.,..,,,,,,...,,,,,..,,...,...,.,.,,,,,,,.,,..,,,.,
+#TSXW7CJCJYYTTIYJAOCXZP5FDCBNGFUVKQEGRSKM4WRRBVTKZFI2M6RGJOZEBU4HXHMNZNK24ZTGQ
+#\\\|UTN5RG3GAMJG5DP27U6MRDAODULVDB7YALCB3MLLE2OPFVTW54H \ / AMOS7 \ YOURUM ::
+#\[7]F5DJTMMX65PIJMEC6ORLVYRM2AV35HUALRGKL3FZQRW2QJCPTSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

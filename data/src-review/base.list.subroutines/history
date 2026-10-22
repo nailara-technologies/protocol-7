@@ -1,634 +1,634 @@
 # module  : base.list.subroutines
 # source  : git log [ 9383 commits, color.ui=false verified ]
 # filter  : files>=100 OR mechanical-subject regex [ see data/tasks/coding-history-disentanglement.md ]
-# alias   : historical modules/<name> and base-code/<name> counted as this file [ 62c6b7341, 8a46ac4b3 renames ]
+# alias   : historical modules/<name> and base-code/<name> counted as this file [ f0cbcb805, 8a46ac4b3 renames ]
 
 ## genuine commits [ 818 ] ##
 
-2026-09-09 27cc53514 module-catalog embedding: leakage confirmed, retired; real harvesting instrumentation built
-2026-09-09 e2aed8f79 coding: idiom conformance gate -- scan/repair/harvest, control-vector and LoRA paths closed out
-2026-09-08 3e82ac761 coding: add embedding_search tool, generic nearest-neighbor lookup
-2026-09-08 c6d59d0d4 coding: hybrid/partial GPU offload + two real bugs fixed live
-2026-09-07 87c1af324 cred-mesh/vault-edit: UX pass on the raw-payload browser, verified live
-2026-09-07 407739de7 cred-mesh: new vault-edit console zenka + two real framework bugs fixed
-2026-09-06 196783e12 X-11: subname display routing, X11::WM::new() bug, quiet extension probes
-2026-09-06 e66225329 X-11: disp-ctl + xvfb-display, let window commands target any display
-2026-09-06 1cbdced4e data/tasks: archive coding-self-test-true-parallelization and keyring-phase1
-2026-09-05 733c65133 models: consolidate discover/discover_files/clear-registry into one command
-2026-09-02 d80a7db1e zenki: root-independent front-door, start relay wiring, hybrid on-demand startup
-2026-09-02 d555d3dfc v7: rename 'stop' command to 'terminate' [v7.terminate, v7.terminate-implicit]
-2026-08-31 1907f42dc kimi-web: fix never-loaded namespace + 8-file args-parsing crash + session bugs; debian/sys-deps: async apt-install pipeline
-2026-08-31 61f2a454f radio: fix jingle-stuck-forever, add mpv playback watchdog, fix dropped startup notify + reconnect backoff defeated by flapping
-2026-08-31 b349b62f3 clients.https: fix h1.1 fallback decode gap, jobsite: gate bad descriptions
-2026-08-30 c62c21415 implemented '[base.]path-template.amos-ntime-dec' subroutine..,
-2026-08-30 00a9ee9f6 clients.https.h2: fix double-encoded UTF-8 body, use base.str.eval_error
-2026-08-30 ef7558078 clients.https: real HTTP/2 support via Protocol::HTTP2
-2026-08-30 c4b20148a base: surface v7.register_child failures instead of silent fire-and-forget
-2026-08-29 b26d6ac9e web-browser: guard against stale async snapshot completions crashing GTK loop
-2026-08-29 12da911ca web-browser: fix headless-mode memory leak (stale swap_views draw-signal)
-2026-08-29 cde657e4b powershell: get-event-log zenka command, WSL/interop gotchas documented
-2026-08-28 ed38cfa72 templates + X-11 + web-browser/content: spectrum skin, xvfb fixes, capture-slideshow race fix
-2026-08-27 109dd864e coding: auto backend selection with live GPU->CPU fallback at startup
-2026-08-27 a994013a6 coding: per-(checksum,backend) model status tracking + model-status command
-2026-08-27 9de5757c4 coding: derive absolute self-test/http timeout cap from live tokens/sec
-2026-08-26 fbead73e5 coding: var-watcher self-test wake, gpu foreign-process fix, log fix
-2026-08-26 8ac7fe7c0 registry: sync module-dependency-graph/subroutines listing for prior commits
-2026-08-26 2c14ec14b httpd.classify: phase 1 request-pattern classification (observation only)
-2026-08-26 da0684451 keyring: phase 1 namespace key derivation (keyed BLAKE2b chain)
-2026-08-26 e44f729b4 fix inline_elf checksum divergence and keys-zenka .secret handling bugs
-2026-08-25 7abd5d52a mcp-server-p7: add template/create_template dispatch params; new base.path.epoch-chksum module; archive base-parser-list-width task
-2026-08-24 6bce63f4e fix windows-toast recovery, dbus socket leak, and several menu/screen-setup bugs
-2026-08-24 7f220f290 stand up dunst as a parallel notification backend, fully styled
-2026-08-24 d11291320 add native windows toast notifications via the powershell zenka
-2026-08-23 e98f0bb53 add keys zenka commands for incoming/authorized client-key management
-2026-08-22 f1417db73 add 9P Twstat support (rename + resize) and fix cube reply-mode contract
-2026-08-22 e673e0fd7 fix 9P port-default drift, add shared config, and amos-term startup bugs
-2026-08-22 7705beb70 add 9P Tcreate/Tremove support (plan-9 server + storage client)
-2026-08-22 c349c5601 add opt-in write support and verify recursive export for the 9P subsystem
-2026-08-22 fd296ad89 fix storage 9P client integration: constants, protocol bugs, routing, mount/umount
-2026-08-22 5d811b2f7 spdx cleanup batches 3-4: last src/ files, plus retire phantom base32 duplicate
-2026-08-20 deaafb399 adding pre_init-code routine for creating '[base.]path-template' module
-2026-08-20 16159b490 implemented a 'base.squote' format wrapper subroutine.,
-2026-08-19 5bf722767 fixed silent task-drop under coding.task.queue_paused, jobsite pending_count leak, list-tasks elapsed display
-2026-08-16 76e883982 user-edit: add vertical viewport, fix one-line flicker, top padding when header scrolled
-2026-08-16 2c02d59f4 user-edit: land key delete (kimi K2.7), fix pre-existing unload_key crash
-2026-08-16 5842a07c1 user-edit: land key rename (kimi K2.7), fix last_result status-freeze bug
-2026-08-16 cf106738f user-edit: event-loop-safe in-frame prompt primitive, fix loader deferred-compile bugs
-2026-08-16 24f71a3b9 user-edit: key-actions tab (create), plus rescue fixes and two path-keyword bugs
-2026-08-15 85fb6b8e6 user-edit: user_keys field -- other C25519 keys, checksum lookup left broken
-2026-08-15 0f829570a user-edit: key details tab (self-record-only) + immediate field-order sort on add
-2026-08-14 9858f2680 users: add users.cmd.remove, close the no-delete gap for host-system records
-2026-08-14 c532e7ce3 editor: close masked-field cursor/leftover-star leaks, fix collapse wording
-2026-08-14 6e368f1d3 editor: variable-length star masking for masked fields
-2026-08-14 d4cf1327e sessions: named secret-holder + user-edit cross-zenka round trip
-2026-08-14 f677b4246 sessions: real C25519/Ed25519 identity for the key-holding child
-2026-08-14 1ee5e0527 sessions: ship first key-holding child (spawn/detach/attach, mlock'd key)
-2026-08-13 9bb4eefa2 new-zenki: scaffold empty sessions zenka, register with cube
-2026-08-13 3f405125d user-edit: collapse plain scalar fields to a char-count summary too
-2026-08-13 990e9b1ac user-edit: collapse multiline fields to a line-count summary when unfocused
-2026-08-13 99b332843 address-cluster: full cursor styling parity via a deferred placeholder
-2026-08-13 ff651ba36 user-edit: bound the add-a-field cycler to a fixed scroll window
-2026-08-13 bb981955b user-edit: complete address-cluster plugin -- real editing logic + fixes
-2026-08-13 00034160e user-edit: address-cluster plugin scaffold + two core plugin-tab fixes
-2026-08-13 da74f615f user-edit: fix multiline width-explosion bug with a non-destructive viewport
-2026-08-13 f599ddce0 user-edit: add address multiline field; fix add_field flag propagation
-2026-08-13 1fce4b62b user-edit: multiline support for the note field
-2026-08-13 116c24d72 user-edit: make contact and location optional, add zero-field bootstrap path
-2026-08-13 9b8f01433 user-edit: plugin detail-tab rendering/dispatch (phase_2)
-2026-08-13 e34a099d5 user-edit: plugin detail-tab discovery infrastructure (phase_1 start)
-2026-08-12 6f3377e3e user-edit: fix Del-removal windowing regression, resort on row exit, per-entry Del
-2026-08-12 b60bbc394 user-edit: cap list-field height with PgUp/PgDn/Left-Right windowed scroll
-2026-08-12 1cc776eed mpv: surface audio-only playback failures at log level 0
-2026-08-12 1e9d3fb0e user-edit: pad the add-field row's internal name to fit its real content
-2026-08-12 42c70c5c0 user-edit: fields come off again, and the frame stops moving sideways
-2026-08-12 4a73b67dc editor: collapsible LIST field type, and form alignment/hint refinements
-2026-08-12 605c179bf user-edit: create-admin flow, colours, cursor forms, Esc and clear-on-exit
-2026-08-12 25112dd56 editor: masked field type, and base.ask -> base.term.ask
-2026-08-10 852a87878 users zenka: phase-1 host-system CRUD skeleton (value-get/value-set/value-all)
-2026-08-10 80bcffbe4 mpv: event-driven ipc-socket startup + batch deferred send_command
-2026-08-10 31585c5b5 updated user-edit zenka subroutine lists
-2026-08-10 b8168cc6a user-edit: add draft storage primitives (write/load/clear)
-2026-08-10 46a49fb94 user-edit: add local outbox write/list/clear primitives
-2026-08-10 6e43185b8 add user-edit console zenka phase 1 skeleton
-2026-08-09 b82a776cf coding-zenka: fallback-chain search widening + ask_user_* interaction tools
-2026-08-09 5a0244d52 amos-term: interaction plugin type, timeout-degrade timer, hot-reload watcher
-2026-08-09 51c4741b9 protocol-7-menu: add dialog-type registry, input-choice dialog, pending-question indicator
-2026-08-07 b3b5f39b2 jobsite: exported_stage dedup tracking + repair tooling, UI fixes
-2026-08-07 f9d9ecba5 coding: fix premature queue-resume race, honest soft-ceiling timeouts, degenerate-stream detection
-2026-08-06 ca491ca4b jobsite: fix reassess stage-clobbering + salary refetch
-2026-08-06 065c1e8e3 feat(httpd,jobsite,web): shm streaming payload pipeline for large authenticated POSTs
-2026-08-04 d9d4aa36e feat(amos-term): interaction plugin prototype, fix real SHM bugs found along the way
-2026-08-04 63867b5bb feat(kimi): add model listing/switching via kimi-web's config API
-2026-08-04 f585971b4 fix(kimi): stop reconnect from orphaning tool approvals, two bugs
-2026-08-03 2d919cc17 feat(jobsite): add periodic evidence-dossier reporting pipeline
-2026-08-01 3c4fc4bfa feat(p7-log): chunked, resumable mid-file zero-byte gap sweep
-2026-08-01 be8da6928 updating subroutine lists and dependency markers.,
-2026-08-01 99537ef54 fix(mpv,radio): non-seekable restore-seek guard + safe radio shutdown fade
-2026-07-31 a33483ae4 feat(mpv): state snapshot/restore across restart + pulse idle-suspend fix
+2026-09-09 c6bc6f246 module-catalog embedding: leakage confirmed, retired; real harvesting instrumentation built
+2026-09-09 21cf8e3ed coding: idiom conformance gate -- scan/repair/harvest, control-vector and LoRA paths closed out
+2026-09-08 dde08d4c8 coding: add embedding_search tool, generic nearest-neighbor lookup
+2026-09-08 a08600978 coding: hybrid/partial GPU offload + two real bugs fixed live
+2026-09-07 2c64f3e43 cred-mesh/vault-edit: UX pass on the raw-payload browser, verified live
+2026-09-07 f6365f71e cred-mesh: new vault-edit console zenka + two real framework bugs fixed
+2026-09-06 846ec12bf X-11: subname display routing, X11::WM::new() bug, quiet extension probes
+2026-09-06 fb343c8d0 X-11: disp-ctl + xvfb-display, let window commands target any display
+2026-09-06 be66ded72 data/tasks: archive coding-self-test-true-parallelization and keyring-phase1
+2026-09-05 ca63b2d2c models: consolidate discover/discover_files/clear-registry into one command
+2026-09-02 ed548c5af zenki: root-independent front-door, start relay wiring, hybrid on-demand startup
+2026-09-02 98cc4619c v7: rename 'stop' command to 'terminate' [v7.terminate, v7.terminate-implicit]
+2026-08-31 362f45cb8 kimi-web: fix never-loaded namespace + 8-file args-parsing crash + session bugs; debian/sys-deps: async apt-install pipeline
+2026-08-31 e8d55cc0d radio: fix jingle-stuck-forever, add mpv playback watchdog, fix dropped startup notify + reconnect backoff defeated by flapping
+2026-08-31 925062b59 clients.https: fix h1.1 fallback decode gap, jobsite: gate bad descriptions
+2026-08-30 7492faf76 implemented '[base.]path-template.amos-ntime-dec' subroutine..,
+2026-08-30 7aa2310f9 clients.https.h2: fix double-encoded UTF-8 body, use base.str.eval_error
+2026-08-30 3cbc2ef08 clients.https: real HTTP/2 support via Protocol::HTTP2
+2026-08-30 726dda8a1 base: surface v7.register_child failures instead of silent fire-and-forget
+2026-08-29 fdaa46b76 web-browser: guard against stale async snapshot completions crashing GTK loop
+2026-08-29 0c4054df7 web-browser: fix headless-mode memory leak (stale swap_views draw-signal)
+2026-08-29 7de3c1f93 powershell: get-event-log zenka command, WSL/interop gotchas documented
+2026-08-28 d9ca830b5 templates + X-11 + web-browser/content: spectrum skin, xvfb fixes, capture-slideshow race fix
+2026-08-27 ca2fd6e48 coding: auto backend selection with live GPU->CPU fallback at startup
+2026-08-27 faff2a420 coding: per-(checksum,backend) model status tracking + model-status command
+2026-08-27 824103919 coding: derive absolute self-test/http timeout cap from live tokens/sec
+2026-08-26 52f8122c1 coding: var-watcher self-test wake, gpu foreign-process fix, log fix
+2026-08-26 a8c2c0bf2 registry: sync module-dependency-graph/subroutines listing for prior commits
+2026-08-26 8220fa69e httpd.classify: phase 1 request-pattern classification (observation only)
+2026-08-26 59e8923c6 keyring: phase 1 namespace key derivation (keyed BLAKE2b chain)
+2026-08-26 521f5f867 fix inline_elf checksum divergence and keys-zenka .secret handling bugs
+2026-08-25 7cfeeddea mcp-server-p7: add template/create_template dispatch params; new base.path.epoch-chksum module; archive base-parser-list-width task
+2026-08-24 fc1542555 fix windows-toast recovery, dbus socket leak, and several menu/screen-setup bugs
+2026-08-24 a2dec5cb1 stand up dunst as a parallel notification backend, fully styled
+2026-08-24 6b425d5a2 add native windows toast notifications via the powershell zenka
+2026-08-23 ee7b99d78 add keys zenka commands for incoming/authorized client-key management
+2026-08-22 74828243c add 9P Twstat support (rename + resize) and fix cube reply-mode contract
+2026-08-22 2f0d9112f fix 9P port-default drift, add shared config, and amos-term startup bugs
+2026-08-22 27df0eb15 add 9P Tcreate/Tremove support (plan-9 server + storage client)
+2026-08-22 c6f5a9310 add opt-in write support and verify recursive export for the 9P subsystem
+2026-08-22 980604b86 fix storage 9P client integration: constants, protocol bugs, routing, mount/umount
+2026-08-22 46248ee4d spdx cleanup batches 3-4: last src/ files, plus retire phantom base32 duplicate
+2026-08-20 e6391dbfe adding pre_init-code routine for creating '[base.]path-template' module
+2026-08-20 5439b4ca3 implemented a 'base.squote' format wrapper subroutine.,
+2026-08-19 c145ad4ab fixed silent task-drop under coding.task.queue_paused, jobsite pending_count leak, list-tasks elapsed display
+2026-08-16 0f26e76a0 user-edit: add vertical viewport, fix one-line flicker, top padding when header scrolled
+2026-08-16 abb4d61e7 user-edit: land key delete (kimi K2.7), fix pre-existing unload_key crash
+2026-08-16 5022f9da0 user-edit: land key rename (kimi K2.7), fix last_result status-freeze bug
+2026-08-16 0fe1009b9 user-edit: event-loop-safe in-frame prompt primitive, fix loader deferred-compile bugs
+2026-08-16 f0f18d32a user-edit: key-actions tab (create), plus rescue fixes and two path-keyword bugs
+2026-08-15 7aed9b522 user-edit: user_keys field -- other C25519 keys, checksum lookup left broken
+2026-08-15 ead0ff560 user-edit: key details tab (self-record-only) + immediate field-order sort on add
+2026-08-14 2ac2af176 users: add users.cmd.remove, close the no-delete gap for host-system records
+2026-08-14 9f8c219a8 editor: close masked-field cursor/leftover-star leaks, fix collapse wording
+2026-08-14 03afbf47f editor: variable-length star masking for masked fields
+2026-08-14 669e57c92 sessions: named secret-holder + user-edit cross-zenka round trip
+2026-08-14 c2cd61ae0 sessions: real C25519/Ed25519 identity for the key-holding child
+2026-08-14 28e5f77d3 sessions: ship first key-holding child (spawn/detach/attach, mlock'd key)
+2026-08-13 b3b203a68 new-zenki: scaffold empty sessions zenka, register with cube
+2026-08-13 c1565b6a4 user-edit: collapse plain scalar fields to a char-count summary too
+2026-08-13 4922915d8 user-edit: collapse multiline fields to a line-count summary when unfocused
+2026-08-13 ff6b86415 address-cluster: full cursor styling parity via a deferred placeholder
+2026-08-13 6279a07bf user-edit: bound the add-a-field cycler to a fixed scroll window
+2026-08-13 15db8263f user-edit: complete address-cluster plugin -- real editing logic + fixes
+2026-08-13 e0ffde22e user-edit: address-cluster plugin scaffold + two core plugin-tab fixes
+2026-08-13 fd406be9c user-edit: fix multiline width-explosion bug with a non-destructive viewport
+2026-08-13 f0a5eb113 user-edit: add address multiline field; fix add_field flag propagation
+2026-08-13 ba2e784c0 user-edit: multiline support for the note field
+2026-08-13 cdd951dc6 user-edit: make contact and location optional, add zero-field bootstrap path
+2026-08-13 a3c9ddf24 user-edit: plugin detail-tab rendering/dispatch (phase_2)
+2026-08-13 622d959ff user-edit: plugin detail-tab discovery infrastructure (phase_1 start)
+2026-08-12 99aeaaff6 user-edit: fix Del-removal windowing regression, resort on row exit, per-entry Del
+2026-08-12 3b82c8246 user-edit: cap list-field height with PgUp/PgDn/Left-Right windowed scroll
+2026-08-12 6b2d0193f mpv: surface audio-only playback failures at log level 0
+2026-08-12 432ce3425 user-edit: pad the add-field row's internal name to fit its real content
+2026-08-12 6ee2ef872 user-edit: fields come off again, and the frame stops moving sideways
+2026-08-12 c7d561e0c editor: collapsible LIST field type, and form alignment/hint refinements
+2026-08-12 ed98ebea9 user-edit: create-admin flow, colours, cursor forms, Esc and clear-on-exit
+2026-08-12 25973d9ba editor: masked field type, and base.ask -> base.term.ask
+2026-08-10 b5883929d users zenka: phase-1 host-system CRUD skeleton (value-get/value-set/value-all)
+2026-08-10 4828f8a15 mpv: event-driven ipc-socket startup + batch deferred send_command
+2026-08-10 fe47f2f20 updated user-edit zenka subroutine lists
+2026-08-10 58eb31456 user-edit: add draft storage primitives (write/load/clear)
+2026-08-10 88339d1b9 user-edit: add local outbox write/list/clear primitives
+2026-08-10 ceffed148 add user-edit console zenka phase 1 skeleton
+2026-08-09 a43ff69ee coding-zenka: fallback-chain search widening + ask_user_* interaction tools
+2026-08-09 e661f9913 amos-term: interaction plugin type, timeout-degrade timer, hot-reload watcher
+2026-08-09 1d5655833 protocol-7-menu: add dialog-type registry, input-choice dialog, pending-question indicator
+2026-08-07 493be54fa jobsite: exported_stage dedup tracking + repair tooling, UI fixes
+2026-08-07 69d8cff40 coding: fix premature queue-resume race, honest soft-ceiling timeouts, degenerate-stream detection
+2026-08-06 4988f2b0d jobsite: fix reassess stage-clobbering + salary refetch
+2026-08-06 1210a2197 feat(httpd,jobsite,web): shm streaming payload pipeline for large authenticated POSTs
+2026-08-04 bb7a55401 feat(amos-term): interaction plugin prototype, fix real SHM bugs found along the way
+2026-08-04 a705c886b feat(kimi): add model listing/switching via kimi-web's config API
+2026-08-04 d532df504 fix(kimi): stop reconnect from orphaning tool approvals, two bugs
+2026-08-03 27e265d38 feat(jobsite): add periodic evidence-dossier reporting pipeline
+2026-08-01 716bf3e52 feat(p7-log): chunked, resumable mid-file zero-byte gap sweep
+2026-08-01 426a98665 updating subroutine lists and dependency markers.,
+2026-08-01 0d04f7343 fix(mpv,radio): non-seekable restore-seek guard + safe radio shutdown fade
+2026-07-31 d22e185c9 feat(mpv): state snapshot/restore across restart + pulse idle-suspend fix
 2026-07-31 380008006 coding: fix self-test spurious-pass/restart-race bugs, redesign cat-riddle prompt
-2026-07-31 8b409b4da rename(forensics): sweep.run/investigate.finding -> hyphenated, close the routing hole
-2026-07-31 c125181c8 rename(ext-pkg): package.ensure -> package-ensure, dot-containing command name
-2026-07-31 b15b9f264 rename(calc): drop .cmd. from val's private bigrat helpers
-2026-07-31 fc013d83c rename(build): recipe.run -> recipe-run, dot-containing command name
-2026-07-31 7f3f27c03 feat(ncode): pattern-learning phase 2 -- namespace scope-stack + apply status-gate parity
-2026-07-29 9ec5face1 docs(memory,tasks): nessus license-gate finding + close remaining signature debt
-2026-07-29 a5c5b89b5 nessus zenka : scaffold + scan-run module [ live test : license-gated backend ]
-2026-07-29 695cae411 fix(base,forensics): protocol-mismatch permanent-failure detection + when-present root cause
-2026-07-29 2bb459745 fix(openvas,build): missing cube auth grant + scan.run naming
-2026-07-29 c3c8728d0 fix(openvas): $call injection requires .cmd. filename segment; drop unused access.zenki files
-2026-07-29 ef62ef0bd updating subroutine list
-2026-07-27 53b8c4aca audio: version the renderer, add style dispatcher
-2026-07-27 a8986b744 loader: fix v7.reload init crash from swap_subs destructive wipe
-2026-07-25 7314cedea v7: fix 11yr-inert zenka_output prio starvation, harden devmod-trace/relay writes
-2026-07-25 89991361e event.del_io -> base.event.del_io: fix namespace violation found via httpsd false-positive
-2026-07-24 7c7bd5e2c ncode: fix pattern-review command collision + vacuous apply bug; format-code: fix exclusion filter + column-aligned comment parsing
-2026-07-24 b7dd61a10 ncode: pattern-learning approval gate (phase 1) + fix orphaned dep profile
-2026-07-24 f8d8503a8 fix write_with_perms group-write bug; ncode.cmd.apply: track pattern stats, harden revert path
-2026-07-23 1bc2cd220 base: add show-access-nested; inline-nested wrap-width + framing fixes
-2026-07-23 de4efb2ca format: add format.inline-nested encode/decode
-2026-07-23 386d969e8 base: add show-access-kv, a kv_block-format clone of show-access
-2026-07-23 50d0e5734 format: add kv_block encode/decode, a precise successor to show-access output
-2026-07-23 ac2d92be9 jobsite: cross-browser trash-watermark sync + click debounce fixes
-2026-07-23 3fe54222d jobsite: fix reassess content-loss, stale error flags, dropdown reopen bug; add trash-history read endpoint
-2026-07-23 9de78315a p7-log: add anon.resolve-line for full-line token reconstruction
-2026-07-23 5dd1e03a5 p7-log: log anonymization phase 1 (checksum-indexed encrypted table)
-2026-07-21 b33f04be4 feat: task-zenka cold-queue GPU-cooldown trigger + atomic zenka_dir writes
-2026-07-21 a91a75d3d feat: wire base.strm.subscribe's publisher-restart re-affirm
-2026-07-21 5002ee847 feat: dependency-restart reconnect primitive (v7.notify_restart + base.zenka.on_restart)
-2026-07-20 a4027adb5 sys-deps: retire debian/session dependency mechanisms, fix ondemand registry wipe
-2026-07-20 49ab3f82d v7: remove orphaned v7.post_init_code module
-2026-07-20 e681c6f94 coding: add vision-model :switch: for idle-gated model switching
-2026-07-19 3f4ad9520 coding: add vision-model command to report loaded gpu model's vision support
-2026-07-19 2ce0b5b2a strm: swap base.strm.* into strm.* namespace, unify pre_init
-2026-07-19 058d7630c coding zenka: native scratchpad rescue/categorize/sweep tools
-2026-07-18 1ed229646 base.stream.frame.detect.grammar: resolve tier-2 frame lock
-2026-07-18 4c3412968 base.stream: implement 3+1 bit sub-bit frame encoding (tier 1 of 2)
-2026-07-17 a42243b6c ncode: privilege-separated .git write access (protocol-7:taeki) + fix git -C bug
-2026-07-17 d5c6bcb32 web-browser: multi-window waypoint fan-out via subname groups
-2026-07-17 279ed721e web-browser: direct value-injection replay via __p7SetState + waypoints
-2026-07-16 01fe17f72 web-browser: verify= wiring, replay-synth curves, visualization.html fixture
-2026-07-16 242b0ae5c coding: adaptive round timeout ceiling, stream-stall detection, manual restart
-2026-07-16 cf94275b6 web-browser: input capture/replay + convergence-poll commands (K3 dispatch)
-2026-07-16 1b80a5b9f cred-mesh: fix rotation-subscription registration, naming, and payload encoding
-2026-07-16 d458e9f58 cred-mesh: fix rotation-subscription to use a real cross-zenka route
-2026-07-16 cc9db0591 sourcecode: add normalize-endline-state command, close sourcecode-normalize-endline-paths
-2026-07-16 20e9dce7a addding wind command [speed + direction] to weather zenka
-2026-07-15 ae5339cf2 tasks: move 9 more verified-completed items; add coding queue diagnostics + parallel GPU temp feed
-2026-07-14 1fedcc9f1 X-11: concurrent multi-instance support via generic sid resolver + display ranges
-2026-07-13 8a349f078 jobsite: fix pending_count leak on delete-during-assess, city/industry sync drop, applied-tab click bug
-2026-07-13 0e49159a5 web-browser: generic param-capture graphing (graph-params command)
-2026-07-12 acbf6da0f web-browser: JS console-capture pipeline + zoom-jump debug instrumentation
-2026-07-11 d07768732 web-browser: add set-zoom command, fix visualization dropdown styling
-2026-07-11 e98f81152 x-11: dual-connection pool with query-reroute + health-oracle ping
-2026-07-11 6749f9e36 x-11: harden xrandr + gpu-top probes against driver-level wedges
-2026-07-10 ff029bbf0 storchencam: wire into dynamic window-placement infrastructure
-2026-07-09 c40741121 impressive: wire into dynamic window-placement infrastructure
-2026-07-02 39c65974f coding: add abort-inference — AMOS-checksum abort-pattern registry + streaming abort
-2026-07-02 26f430981 jobsite: fix sync watermark, stale tombstones, and index scan-order data loss
-2026-07-01 5dec9b602 jobsite: self-heal assessment dispatch race + fix orphaned duplicate job files
-2026-07-01 2e0255e88 jobsite: remove title-based checksum dedup, keep company blacklist + URL dedup
-2026-07-01 15c53d695 jobs web UI: glassy button/checkbox restyle + sync export panels; jobsite: protect user-owned stages from repair trash + fix trash index scan + add rescue command
-2026-06-30 f6652d6de improve pre-fetch blocklist with source-id extraction
-2026-06-30 1eee34149 add pre-fetch field-block skip for site-yaml imports
-2026-06-29 21b958dba docs: add two-stage delete to kimi memory and declare Xz/UnXz deps
-2026-06-29 065f879dd jobsite: migrate job IDs and file ops to VAX encoding
-2026-06-28 6b73b1178 screen-change: rename *.cmd.screen-change → *.screen-change + ungrab fix
-2026-06-28 84aacd298 screen-change: STRM subscription + geometry refresh on topology change
-2026-06-27 5d2b56f49 screen-setup: minimap drag/resize with intent layer + move permission fix
-2026-06-27 5f36a17b8 screen-setup: window rect overlay + PNG snapshot; web-browser: opacity-mask raise fix
-2026-06-27 10689af07 window-place: fix move/resize offset and quiet position logs
-2026-06-27 fa9fc00ec jobsite: fix fetch cycle never reaching assessment
-2026-06-26 1116310ba powershell: pointer-stream via WH_MOUSE_LL hook + SHM coords
-2026-06-25 ce2369116 web-browser: profiles, drag-scroll, snapshot, reload-safe init, no decorations
-2026-06-25 139b8b151 mpv: position save/restore + hybrid settle-poll on window move
-2026-06-25 589422ae6 protocol-7-menu: cycle corner candidates on startup before falling back to random
-2026-06-25 b71a87b88 ticker: subscribe to screen-change for void recovery, fix startup retry + read_file race
-2026-06-25 8682fb3a5 orbital: replace unconditional 13s poll-everyone with per-producer STRM push
-2026-06-25 c8d34a79a jobsite/site-yaml: cross-zenka stray-job recovery + base.chk-sum.amos prefix fixes
-2026-06-24 b4b80c85f window placement: generic safe-position recovery + screen-change wiring fixes
-2026-06-24 87fb0989a ticker: bounded fallbacks for tile-dependent startup
-2026-06-24 d5905b981 screen-setup: new display-layouts zenka — scaled monitor-layout minimap
-2026-06-24 4d8889438 X-11: rename get_wm_name -> get-wm-name; document window-place drag/resize findings
-2026-06-24 89719f0f0 docs: regenerate module dependency graph and subroutine list
-2026-06-22 04f3e7c10 AMOS7::SHM: phase 4 part B — TTL safety-net sweep for crashed writers
-2026-06-22 9a05b78fe AMOS7::SHM: phase 4 part A — cleanup-on-graceful-exit, creator-owned only
-2026-06-22 bc47ae10b AMOS7::SHM: phase 3 — feedback channel + FIFO notify, live-verified
-2026-06-22 1ebf317a7 AMOS7::SHM: phase 2 — paging abstraction, live-verified
-2026-06-21 fae8d57f0 task/coding/mcp: summary-tree phase 1 — content-addressed cache + relay
-2026-06-21 e19c2eca2 MCP/session_catchup: direct lookup, tail_chars, VRAM-safe context
-2026-06-21 26a8542f9 coding self-test: generic result_constraint + tiered escalation (tier-0/1/2)
-2026-06-21 b83d935a6 coding self-test: add deterministic check_constraint module
-2026-06-21 08b88dd65 feat: complete task-level model pinning, fix await_resources watchdog bug
-2026-06-21 bdde631b2 fix: switch-model race condition, model_id staleness, blocking-poll bug
-2026-06-21 c75053f0f refactor: extract _percentile_95 helper out of coding.self_test.multiplier
-2026-06-21 0aa23c16e fix: X-11 WM.update race, mpv window-id IPC, coding self-test cycle
-2026-06-19 c503fd2b9 select-region zenka + cube alias/auth fixes from select-region rollout
-2026-06-19 801e36804 screenshot zenka: rename get_region_color -> return-region-color, tune idle timeouts
-2026-06-19 f3a61f435 powershell: new zenka — windows-host screenshot capture via .NET GDI
-2026-06-19 dded68a51 X-11: async monitor registry via RANDR — replaces xrandr subprocess + GDK virtual-desktop
-2026-06-18 37ad88432 mpv: enforce window position via X-11.wait_visible after startup
-2026-06-18 d77526a9f mpv/window-place: profile clear + reposition commands
-2026-06-18 61556a4c2 X-11: playlist-update rename; command_aliases tile fix; ncode TTY auto-detect; memory sync
-2026-06-18 c44ea3724 X-11: multi-server jobqueue architecture; tile display awareness; mpv cmd rename
-2026-06-18 d3874bcaf mpv: async startup + jobqueue/dependency integration; deferred send_command
-2026-06-17 b2c422703 mpv: p7-blue OSC theme, idle logo, centered title, EGL 1px fix
-2026-06-17 eec5bea1f chksum: nested addressing, signal-cancel patterns, amos-chksum -nest upgrade
-2026-06-17 446f79e50 design: embedding track, visual generation, dream layer, synesthetic space
-2026-06-16 2e8d70e7c X-11: screen-change subscriber registry + tile integration
-2026-06-16 9cc358184 X-11: RANDR screen-change subscription for host mode
-2026-06-16 401af57a9 window.geometry: multi-monitor aware geometry resolution for mpv
-2026-06-16 fcb4512c0 window-place/tile: secure reply routing + tile intent-first placement API
-2026-06-16 0d3e7ba6d X-11: WSL/no-WM fallback + underscore-to-hyphen rename pass
-2026-06-16 16db8b9fb X-11: add get-xwindows cmd + GDK_BACKEND=x11 for v7-launched GTK zenki
-2026-06-16 aaea4fc54 transport: async credential resolution via route-send + reply handler
-2026-06-15 488632c97 tile: shorten command names now that zenka itself is named tile
-2026-06-15 69a4ce078 fix: window-place hover/drag reliability + cursor sizing under WSLg
-2026-06-15 2d4cc19c1 feat: window-place mouse-wheel resize, corner-bracket frame, bottom-right HUD
-2026-06-15 f27189f4c feat: rename window.place zenka to window-place, fix gtk startup hang
-2026-06-14 d7a97eed5 feat: credential-fabric ui interactive selection + slot actions (phase 2)
-2026-06-14 c00283950 ticker: add ticker.events listener registry, mouse click/scroll events, fix notify self-dismiss
-2026-06-14 4bffb341b ticker: add ticker.dismiss command (immediate + :fade: variants)
-2026-06-14 b4fd04b56 ticker: notify mode reliably switches to top-strip and back
-2026-06-14 233a7ade8 Add ticker notify display mode (dismiss-on-hover, one-shot)
-2026-06-14 98318461a ticker: split select_monitor into internal helper and protocol-correct cmd wrapper
-2026-06-14 32fa02406 ticker: fix swap-edge startup placement and stabilize edge swap
-2026-06-14 a8d26d892 ticker: add configurable monitor selection for swap mode
-2026-06-13 d83fa3fb7 ticker: make swap-edge work under WSLg with override-redirect popup
-2026-06-13 e6935c6d4 ticker: robust hover detection and input-shape fixes for WSLg/XWayland
-2026-06-13 f9e3d3542 ticker: WSL/Wayland fixes, mouse fade avoidance, and window.place zenka
-2026-06-13 70f81161f feat: extract final 7 inline helper subs (reenc-msg/remote-cam/storchencam/workspace-transfer)
-2026-06-13 0476f2c98 feat: extract 3 more inline helper subs (download/graphics-matrix/web-browser)
-2026-06-12 3bf99616a refactor: extract inline subs from tree.sort.trunk.* and branch.space.*
-2026-06-12 8213d3ada feat: exact-rational truncated calc output + stdio encode helper extraction
-2026-06-12 710c5f490 feat: zenka-side stdio multiplex emitter (connect/emit_eout/emit_str/emit_num)
-2026-06-12 c479bb1e2 refactor: extract base.stdio.frame.decode helper subs into sibling modules
-2026-06-12 4acfb37af feat: v7-side stdio multiplex demux/listener/scope handler
-2026-06-12 0d85762b8 feat: harmonized epoch_v7 uses 0/1 suffix, drops <> wrapper
-2026-06-11 7d42ba8b8 feat: stdio multiplex unix-socket transport (listen/connect/emit)
-2026-06-11 3c2fdb3d6 fix: models registry available-filter, double MCP summarization timeouts, buffer-list alignment
+2026-07-31 a70846996 rename(forensics): sweep.run/investigate.finding -> hyphenated, close the routing hole
+2026-07-31 8730c4022 rename(ext-pkg): package.ensure -> package-ensure, dot-containing command name
+2026-07-31 35548c35d rename(calc): drop .cmd. from val's private bigrat helpers
+2026-07-31 9cf0a2090 rename(build): recipe.run -> recipe-run, dot-containing command name
+2026-07-31 eaf60f7c1 feat(ncode): pattern-learning phase 2 -- namespace scope-stack + apply status-gate parity
+2026-07-29 b51b86709 docs(memory,tasks): nessus license-gate finding + close remaining signature debt
+2026-07-29 eedc59ef9 nessus zenka : scaffold + scan-run module [ live test : license-gated backend ]
+2026-07-29 d59829230 fix(base,forensics): protocol-mismatch permanent-failure detection + when-present root cause
+2026-07-29 5bc85aaae fix(openvas,build): missing cube auth grant + scan.run naming
+2026-07-29 c7292718e fix(openvas): $call injection requires .cmd. filename segment; drop unused access.zenki files
+2026-07-29 967eaa009 updating subroutine list
+2026-07-27 a473d68a5 audio: version the renderer, add style dispatcher
+2026-07-27 04e3d3c98 loader: fix v7.reload init crash from swap_subs destructive wipe
+2026-07-25 22f5a00e7 v7: fix 11yr-inert zenka_output prio starvation, harden devmod-trace/relay writes
+2026-07-25 b5b8d6c8d event.del_io -> base.event.del_io: fix namespace violation found via httpsd false-positive
+2026-07-24 0aad3be0c ncode: fix pattern-review command collision + vacuous apply bug; format-code: fix exclusion filter + column-aligned comment parsing
+2026-07-24 268e84322 ncode: pattern-learning approval gate (phase 1) + fix orphaned dep profile
+2026-07-24 40e5a4245 fix write_with_perms group-write bug; ncode.cmd.apply: track pattern stats, harden revert path
+2026-07-23 ab49f2ddc base: add show-access-nested; inline-nested wrap-width + framing fixes
+2026-07-23 bd644033d format: add format.inline-nested encode/decode
+2026-07-23 a800ae896 base: add show-access-kv, a kv_block-format clone of show-access
+2026-07-23 ea5adbdc1 format: add kv_block encode/decode, a precise successor to show-access output
+2026-07-23 d3f579cb8 jobsite: cross-browser trash-watermark sync + click debounce fixes
+2026-07-23 90ee7adc6 jobsite: fix reassess content-loss, stale error flags, dropdown reopen bug; add trash-history read endpoint
+2026-07-23 21704b900 p7-log: add anon.resolve-line for full-line token reconstruction
+2026-07-23 237f45edd p7-log: log anonymization phase 1 (checksum-indexed encrypted table)
+2026-07-21 83b285add feat: task-zenka cold-queue GPU-cooldown trigger + atomic zenka_dir writes
+2026-07-21 08f1f5f58 feat: wire base.strm.subscribe's publisher-restart re-affirm
+2026-07-21 b4b1366e8 feat: dependency-restart reconnect primitive (v7.notify_restart + base.zenka.on_restart)
+2026-07-20 13f83ff01 sys-deps: retire debian/session dependency mechanisms, fix ondemand registry wipe
+2026-07-20 fe9c5546f v7: remove orphaned v7.post_init_code module
+2026-07-20 1298aded1 coding: add vision-model :switch: for idle-gated model switching
+2026-07-19 84631f9b1 coding: add vision-model command to report loaded gpu model's vision support
+2026-07-19 aa9092188 strm: swap base.strm.* into strm.* namespace, unify pre_init
+2026-07-19 b5d68f26d coding zenka: native scratchpad rescue/categorize/sweep tools
+2026-07-18 688a1ec16 base.stream.frame.detect.grammar: resolve tier-2 frame lock
+2026-07-18 96bb88d9a base.stream: implement 3+1 bit sub-bit frame encoding (tier 1 of 2)
+2026-07-17 a8b792f11 ncode: privilege-separated .git write access (protocol-7:taeki) + fix git -C bug
+2026-07-17 6fa2db770 web-browser: multi-window waypoint fan-out via subname groups
+2026-07-17 f756f5922 web-browser: direct value-injection replay via __p7SetState + waypoints
+2026-07-16 ed29192b1 web-browser: verify= wiring, replay-synth curves, visualization.html fixture
+2026-07-16 6100b04f2 coding: adaptive round timeout ceiling, stream-stall detection, manual restart
+2026-07-16 bf955c8df web-browser: input capture/replay + convergence-poll commands (K3 dispatch)
+2026-07-16 fe2df759b cred-mesh: fix rotation-subscription registration, naming, and payload encoding
+2026-07-16 376347629 cred-mesh: fix rotation-subscription to use a real cross-zenka route
+2026-07-16 39732a16a sourcecode: add normalize-endline-state command, close sourcecode-normalize-endline-paths
+2026-07-16 591000e3e addding wind command [speed + direction] to weather zenka
+2026-07-15 bf9becf5f tasks: move 9 more verified-completed items; add coding queue diagnostics + parallel GPU temp feed
+2026-07-14 086d81a8d X-11: concurrent multi-instance support via generic sid resolver + display ranges
+2026-07-13 e14cfcf00 jobsite: fix pending_count leak on delete-during-assess, city/industry sync drop, applied-tab click bug
+2026-07-13 bb7776ba6 web-browser: generic param-capture graphing (graph-params command)
+2026-07-12 bb2f94500 web-browser: JS console-capture pipeline + zoom-jump debug instrumentation
+2026-07-11 4392bc694 web-browser: add set-zoom command, fix visualization dropdown styling
+2026-07-11 41b02850d x-11: dual-connection pool with query-reroute + health-oracle ping
+2026-07-11 6f44149b7 x-11: harden xrandr + gpu-top probes against driver-level wedges
+2026-07-10 c4bff25e1 storchencam: wire into dynamic window-placement infrastructure
+2026-07-09 756d730dd impressive: wire into dynamic window-placement infrastructure
+2026-07-02 cf314158d coding: add abort-inference — AMOS-checksum abort-pattern registry + streaming abort
+2026-07-02 c8e0d320a jobsite: fix sync watermark, stale tombstones, and index scan-order data loss
+2026-07-01 23ec9a005 jobsite: self-heal assessment dispatch race + fix orphaned duplicate job files
+2026-07-01 eb3277dc7 jobsite: remove title-based checksum dedup, keep company blacklist + URL dedup
+2026-07-01 b45efaf06 jobs web UI: glassy button/checkbox restyle + sync export panels; jobsite: protect user-owned stages from repair trash + fix trash index scan + add rescue command
+2026-06-30 fb18ea00f improve pre-fetch blocklist with source-id extraction
+2026-06-30 736b5da19 add pre-fetch field-block skip for site-yaml imports
+2026-06-29 c87093daf docs: add two-stage delete to kimi memory and declare Xz/UnXz deps
+2026-06-29 28672a88c jobsite: migrate job IDs and file ops to VAX encoding
+2026-06-28 5a8c2afae screen-change: rename *.cmd.screen-change → *.screen-change + ungrab fix
+2026-06-28 6571f2450 screen-change: STRM subscription + geometry refresh on topology change
+2026-06-27 3caaa6e29 screen-setup: minimap drag/resize with intent layer + move permission fix
+2026-06-27 f343f1b9b screen-setup: window rect overlay + PNG snapshot; web-browser: opacity-mask raise fix
+2026-06-27 0bb078504 window-place: fix move/resize offset and quiet position logs
+2026-06-27 4ad8669fb jobsite: fix fetch cycle never reaching assessment
+2026-06-26 183b0ef66 powershell: pointer-stream via WH_MOUSE_LL hook + SHM coords
+2026-06-25 88a874ac3 web-browser: profiles, drag-scroll, snapshot, reload-safe init, no decorations
+2026-06-25 471c85ba3 mpv: position save/restore + hybrid settle-poll on window move
+2026-06-25 dba083445 protocol-7-menu: cycle corner candidates on startup before falling back to random
+2026-06-25 8ce0efc28 ticker: subscribe to screen-change for void recovery, fix startup retry + read_file race
+2026-06-25 8af2b3c4c orbital: replace unconditional 13s poll-everyone with per-producer STRM push
+2026-06-25 c0a24b89f jobsite/site-yaml: cross-zenka stray-job recovery + base.chk-sum.amos prefix fixes
+2026-06-24 f9d4f3bcc window placement: generic safe-position recovery + screen-change wiring fixes
+2026-06-24 48e3008a5 ticker: bounded fallbacks for tile-dependent startup
+2026-06-24 305e8d4f6 screen-setup: new display-layouts zenka — scaled monitor-layout minimap
+2026-06-24 4fa0a528e X-11: rename get_wm_name -> get-wm-name; document window-place drag/resize findings
+2026-06-24 fca59b80e docs: regenerate module dependency graph and subroutine list
+2026-06-22 ee274ac9a AMOS7::SHM: phase 4 part B — TTL safety-net sweep for crashed writers
+2026-06-22 ceb867e5f AMOS7::SHM: phase 4 part A — cleanup-on-graceful-exit, creator-owned only
+2026-06-22 44db6824e AMOS7::SHM: phase 3 — feedback channel + FIFO notify, live-verified
+2026-06-22 39bd9cee6 AMOS7::SHM: phase 2 — paging abstraction, live-verified
+2026-06-21 0a758404c task/coding/mcp: summary-tree phase 1 — content-addressed cache + relay
+2026-06-21 ac7c74d60 MCP/session_catchup: direct lookup, tail_chars, VRAM-safe context
+2026-06-21 703e98e2c coding self-test: generic result_constraint + tiered escalation (tier-0/1/2)
+2026-06-21 133b7b0c4 coding self-test: add deterministic check_constraint module
+2026-06-21 8dc2db9d6 feat: complete task-level model pinning, fix await_resources watchdog bug
+2026-06-21 721a7735f fix: switch-model race condition, model_id staleness, blocking-poll bug
+2026-06-21 01f38c08e refactor: extract _percentile_95 helper out of coding.self_test.multiplier
+2026-06-21 fa61ba77d fix: X-11 WM.update race, mpv window-id IPC, coding self-test cycle
+2026-06-19 039abeffc select-region zenka + cube alias/auth fixes from select-region rollout
+2026-06-19 45cc20a6b screenshot zenka: rename get_region_color -> return-region-color, tune idle timeouts
+2026-06-19 0e4db6493 powershell: new zenka — windows-host screenshot capture via .NET GDI
+2026-06-19 dc104321a X-11: async monitor registry via RANDR — replaces xrandr subprocess + GDK virtual-desktop
+2026-06-18 1ac8c772a mpv: enforce window position via X-11.wait_visible after startup
+2026-06-18 0f614accc mpv/window-place: profile clear + reposition commands
+2026-06-18 0ea6325a3 X-11: playlist-update rename; command_aliases tile fix; ncode TTY auto-detect; memory sync
+2026-06-18 dfb2d312b X-11: multi-server jobqueue architecture; tile display awareness; mpv cmd rename
+2026-06-18 019f971a4 mpv: async startup + jobqueue/dependency integration; deferred send_command
+2026-06-17 387cef268 mpv: p7-blue OSC theme, idle logo, centered title, EGL 1px fix
+2026-06-17 a581f59c8 chksum: nested addressing, signal-cancel patterns, amos-chksum -nest upgrade
+2026-06-17 21a6adc63 design: embedding track, visual generation, dream layer, synesthetic space
+2026-06-16 d48b3f9c4 X-11: screen-change subscriber registry + tile integration
+2026-06-16 2b7d184d2 X-11: RANDR screen-change subscription for host mode
+2026-06-16 fa98c5351 window.geometry: multi-monitor aware geometry resolution for mpv
+2026-06-16 ae39b8d68 window-place/tile: secure reply routing + tile intent-first placement API
+2026-06-16 cb8b747f6 X-11: WSL/no-WM fallback + underscore-to-hyphen rename pass
+2026-06-16 05b42906b X-11: add get-xwindows cmd + GDK_BACKEND=x11 for v7-launched GTK zenki
+2026-06-16 43773781c transport: async credential resolution via route-send + reply handler
+2026-06-15 b180c3991 tile: shorten command names now that zenka itself is named tile
+2026-06-15 7fee05d1e fix: window-place hover/drag reliability + cursor sizing under WSLg
+2026-06-15 be4a9f913 feat: window-place mouse-wheel resize, corner-bracket frame, bottom-right HUD
+2026-06-15 277c743bb feat: rename window.place zenka to window-place, fix gtk startup hang
+2026-06-14 ceab5794a feat: credential-fabric ui interactive selection + slot actions (phase 2)
+2026-06-14 3a3495235 ticker: add ticker.events listener registry, mouse click/scroll events, fix notify self-dismiss
+2026-06-14 c76f82a95 ticker: add ticker.dismiss command (immediate + :fade: variants)
+2026-06-14 ccdb621a8 ticker: notify mode reliably switches to top-strip and back
+2026-06-14 f15675031 Add ticker notify display mode (dismiss-on-hover, one-shot)
+2026-06-14 5942f60c8 ticker: split select_monitor into internal helper and protocol-correct cmd wrapper
+2026-06-14 eb16814ae ticker: fix swap-edge startup placement and stabilize edge swap
+2026-06-14 938699e1f ticker: add configurable monitor selection for swap mode
+2026-06-13 504d8f797 ticker: make swap-edge work under WSLg with override-redirect popup
+2026-06-13 7d3e71010 ticker: robust hover detection and input-shape fixes for WSLg/XWayland
+2026-06-13 dd594ded5 ticker: WSL/Wayland fixes, mouse fade avoidance, and window.place zenka
+2026-06-13 b34dc6041 feat: extract final 7 inline helper subs (reenc-msg/remote-cam/storchencam/workspace-transfer)
+2026-06-13 5e28cc8d1 feat: extract 3 more inline helper subs (download/graphics-matrix/web-browser)
+2026-06-12 025be4396 refactor: extract inline subs from tree.sort.trunk.* and branch.space.*
+2026-06-12 68524b779 feat: exact-rational truncated calc output + stdio encode helper extraction
+2026-06-12 dce9442ed feat: zenka-side stdio multiplex emitter (connect/emit_eout/emit_str/emit_num)
+2026-06-12 696bddcda refactor: extract base.stdio.frame.decode helper subs into sibling modules
+2026-06-12 271bd0bb2 feat: v7-side stdio multiplex demux/listener/scope handler
+2026-06-12 835059a08 feat: harmonized epoch_v7 uses 0/1 suffix, drops <> wrapper
+2026-06-11 e0190fdea feat: stdio multiplex unix-socket transport (listen/connect/emit)
+2026-06-11 d2e065892 fix: models registry available-filter, double MCP summarization timeouts, buffer-list alignment
 2026-06-10 597509663 docs: dep-graph regen for base.ui/base.slot + design ideation capture
-2026-06-10 6224ae66b feat: coding zenka — model self-selection context template
-2026-06-09 50d1c38ea feat: route.bmw384 — signature indexer + namespace coordinate verification
-2026-06-08 d9edebf7f feat: credential_fabric — phase-1 read-only UI frames + boot fixes + inline-sub extraction
-2026-06-08 0a232cf7d feat: credential_fabric — register console .cmd. commands + grant admin access
-2026-06-07 a4a75f1b5 feat: credential fabric — wire proxy + transport + fabric end to end
-2026-06-06 68ba67a69 fix: extract inline sub context.provider.frame.bottom_sentinel + data-start timeout 77→13s
-2026-06-06 8531783bf feat: proxy zenka skeleton — HTTP/CONNECT proxy at 127.0.0.1:8118
-2026-06-06 280304b04 feat: transport-selector — priority list with graceful degradation
-2026-06-06 c76389dc0 feat: credential-fabric zenka — tiered store + detached key-holder child
-2026-06-06 3f562e120 feat: iris negotiation-window — floor budget urgency overlay
-2026-06-06 39e850410 feat: iris boundary mode — stained glass gap boundaries with threshold slider
-2026-06-06 3ad8c7910 feat: iris temporal mode — radial=time, hue encodes module age
-2026-06-06 94e5ad75e feat: iris separator-pulse UI toggle — sep button + 100ms auto-refresh
-2026-06-06 48dedba03 feat: iris cascade-warning + memory context cache via zenka_dir
-2026-06-06 e86247ef4 feat: iris dimension-rotator — vertical floor-depth view + H/V toggle
+2026-06-10 e93da8ba1 feat: coding zenka — model self-selection context template
+2026-06-09 8f1cc61a7 feat: route.bmw384 — signature indexer + namespace coordinate verification
+2026-06-08 4b59cd11d feat: credential_fabric — phase-1 read-only UI frames + boot fixes + inline-sub extraction
+2026-06-08 0707747c5 feat: credential_fabric — register console .cmd. commands + grant admin access
+2026-06-07 a98d580c7 feat: credential fabric — wire proxy + transport + fabric end to end
+2026-06-06 28aca9e2b fix: extract inline sub context.provider.frame.bottom_sentinel + data-start timeout 77→13s
+2026-06-06 143da5f15 feat: proxy zenka skeleton — HTTP/CONNECT proxy at 127.0.0.1:8118
+2026-06-06 3506a8f37 feat: transport-selector — priority list with graceful degradation
+2026-06-06 cb3b11325 feat: credential-fabric zenka — tiered store + detached key-holder child
+2026-06-06 431b537d5 feat: iris negotiation-window — floor budget urgency overlay
+2026-06-06 76be709f4 feat: iris boundary mode — stained glass gap boundaries with threshold slider
+2026-06-06 37e5b0661 feat: iris temporal mode — radial=time, hue encodes module age
+2026-06-06 445664014 feat: iris separator-pulse UI toggle — sep button + 100ms auto-refresh
+2026-06-06 191c4f94a feat: iris cascade-warning + memory context cache via zenka_dir
+2026-06-06 aed060369 feat: iris dimension-rotator — vertical floor-depth view + H/V toggle
 2026-06-06 909736059 feat: coding zenka tool search_memory — memory tree lookup mid-task
-2026-06-05 9cb9f5534 fix: rename memory.cmd.search.summarize → memory.cmd.digest
-2026-06-05 815804aca feat: memory.cmd.search.summarize — deferred prose digest via coding zenka
-2026-06-05 2dc3cddde feat: memory.tree IDF search attribute — rarity-weighted scoring pass
-2026-06-05 6d35ee6b2 feat: memory.cmd.focus + memory.cmd.search commands
-2026-06-05 f951e4f8c feat: index-mem.init_code — disable visual-wheel on focused memory index instance
-2026-06-05 f47e62647 feat: memory index integration + chat MCP ascii-frame upgrade
-2026-06-04 8c783b34e feat: ascii-frame idiom convergence — corner-pinning spring + margin/vertical-padding/self-invalidating cache
-2026-06-04 940672ba8 feat: ascii frame plugin-slot status bar + variable border width
-2026-06-04 8547767d0 feat: memory tree flow-weighting + frame cosmetics + module/whitelist hardening
-2026-06-03 3eaaddb99 feat: memory zenka — focus-weighted memory tree system
-2026-06-03 0ca120fc9 feat: v7 — auto-register ondemand zenki at cube on init + reload
-2026-06-03 9d4cbefe1 feat: memory zenka — full implementation with bug fixes
-2026-06-02 1ed0b9d33 context.provider.frame + ascii.frame.render.color + nshell color/cursor fixes
-2026-06-02 3ddb65433 ascii.frame.load + ascii.frame.from_mockup — complete the namespace entry points
-2026-06-01 1760de7ef coding :twin: drain + spawn resilience — fully working
-2026-06-01 142ac389c twin drain: cube backchannel + web.cmd.drain + restore on failure
-2026-06-01 d604e4320 feat: dynamic rolling-window chunk size from coding.context-size
-2026-05-31 220d92bd9 feat: iris route-commitment + coding_summarize + task-archiving task designs
-2026-05-31 0518ec5a4 feat: web auth plugin + atom job import script
-2026-05-31 bec706ccf feat: web plugin status-dir layout (phase 2) — mirrors jobsite structure
-2026-05-31 b1bb115fd feat: jobsite progress bar, scan-state slim, reset enc_error/rep-err
-2026-05-31 8be2f2db3 doc: memory maintenance — session-67 delta, status-dir layout, checksum store
-2026-05-30 06b2300b5 fix: jobsite dedup false positives + reset for off-memory jobs
-2026-05-30 50b2f9368 refactor: extract inline _synthetic_zenka_node sub to own module
-2026-05-30 c14d95d3e feat: httpd web-relay STRM + jobs sync UTF-8 fix + manual-sync command
-2026-05-29 06964a3b8 feat: jobsite.cmd.reset — reset jobs to status=new with filter params
-2026-05-28 c73d09043 fix: inference server crash bugs + reasoning namespace + CUDA 12.9 build
-2026-05-27 fe782f650 feat: index schema v4 cube + idle watcher fix + persist guard + cmd.replace/remove
-2026-05-26 71292d71a feat: schema v3 cube storage, chunked persist, v7 restart fix
-2026-05-26 1ab486350 feat: index unified tick dispatcher + per-job state isolation
-2026-05-26 3c8645a10 feat: index contribution vector store — checksum-keyed N-gram delta maps
-2026-05-25 c0d260af6 feat: index persist/restore — xz-compressed .zxps via zenka_dir
-2026-05-25 d230197fa feat: reasoning.tree.* namespace foundation — node/insert/lookup/traverse/narrate/summarize/render
-2026-05-25 0ba08b469 feat: index persist/restore — Storable save/load, auto-restore on startup, archive completed tasks
-2026-05-25 11f1c1f9b feat: index lookup + search — trie traversal, prefix search, cmd handlers
-2026-05-25 4f6d6f95b feat: index zenka — async feed-dir via idle watcher
-2026-05-25 f3ab033ce feat: index zenka — numerical language deduplication tree
-2026-05-24 56951d830 feat: Z.Y.X coordinate ordering, mask/canvas structure, holographic device reasoning
-2026-05-23 7d2b56c27 feat: X-11 nvidia GPU monitoring + STRM subscription + MCP external commands + reasoning template
-2026-05-23 098689031 fix: Fuse→Filesys::Fuse3 migration + remove install_fuse2.sh
-2026-05-23 daa845434 fix: debian zenka + task zenka startup + sys-deps install delegation
-2026-05-23 d2df0d5ba feat: sys-deps zenka + AMOS7::deps::* shared library + bin/os-pkg + v7 pre-start dep check
-2026-05-22 0f8dee4c1 feat: space.* + branch.space/clock/ntime + DATA/TREE protocol + fixes
-2026-05-21 875f45596 memory: session 43 complete — branch namespace full + conceptual layer
-2026-05-21 edbd46b33 feat: branch.* namespace — 44 modules, zenka config, dump improvements
-2026-05-21 31d492533 feat: iris ledger mode + BMW384 jobsite grouping + X-11 wait skip + diff --no-color
-2026-05-21 7c90e2d37 feat: kimi-web session cache + web-browser JS migration + living background design
-2026-05-21 782c95113 feat: reasoning.branch.* orchestration + letsencr rate limit detection
-2026-05-21 17bc89879 feat: web-browser running — JSC introspection, GTK map signal, window commands
-2026-05-21 6fa5f7918 feat: window.gtk.* namespace + web-browser window profile + startup fixes
-2026-05-20 6d01cc2ec feat: credentials v2 + kimi-web STRM multiplexer + signature strip fix
-2026-05-20 d598e846d feat: credentials zenka — encrypted site credential store with zenka authorization
-2026-05-20 24f5f7306 feat: window.* placement profiles + bin/todo + memory sync
-2026-05-20 d998bdf9e feat: web-browser WebKit2 repair, X-11 reliability, display stack fixes
-2026-05-20 b73e396f6 feat: fetch-files zenka complete — cmd wrappers, start file, memory
-2026-05-20 7f4ab2d68 fix: fetch-files zenka startup errors + start file corrections
-2026-05-19 40053b52f fix: site-yaml loads jobsite.job — upsert now calls job.write + stamps last_modified
-2026-05-19 9905614d4 feat: ntime-based incremental sync — batch push, last_modified stamps, reverse filtering
-2026-05-19 36857ac4b fix: clients.http[s].pre_init for SOCK_STREAM — use () form, compile-time scope
-2026-05-19 a9b72fd77 feat: clients.http.* + clients.https.* async http client namespaces
-2026-05-18 6651272c9 fix: web-relay reply handler — jobs endpoint working end-to-end
-2026-05-18 7ad83451d refactor: move web.jobs.* to plugin.web.jobs.* — keep web zenka generic
-2026-05-18 a408cbdbd feat: plugin.web.* migrated to web zenka — httpd now thin proxy via route-send SIZE pattern
-2026-05-18 fc6b84bde feat: oscilloscope uses route-send SIZE pattern to index zenka — proper P7 cross-zenka relay
-2026-05-18 a05e6cea0 feat: zulum stream export — pre_init creates dir, 200ms JSON export, oscilloscope reads streams.json
-2026-05-18 5259fb853 feat: iris oscilloscope mode — 13 zulum streams as live concentric rings, auto-refresh 500ms
-2026-05-17 390d5abec feat: vortex mode (renamed from alpha-density); cube space transition mask design captured
-2026-05-17 602110b40 feat: iris alpha-density mode — node brightness from angle_bits population density
-2026-05-17 2dc6abb6c feat: iris subtractive translucency — off/bi/ccw/cw mode, arc-opacity-map, UI buttons
-2026-05-17 d6532fac1 feat: route curve visualization — flying elements on BMW384 grid paths
-2026-05-17 ee3fa9589 feat: iris 63-ring spoke labels — namespace63 mode with darksun . at position 27
-2026-05-17 689df365f feat: iris logo overlay — nailara at the darksun (position 27) across all 7 wheel modes
-2026-05-17 30fd8b87a rename: nodes.cmd.add-trunc → nodes.cmd.add-tronk (correct spelling)
-2026-05-16 59b861c05 feat: iris.v7.ax — BMW384 iris mode-switcher vhost with live SVG endpoint
-2026-05-16 441fd475b feat: BMW384 iris — 6 visualization modes + line-wrap cleanup
-2026-05-16 306ed94d1 feat: route.bmw384 signature indexer + pre_init swap_subs + ask-reply wire.prompt logging
-2026-05-15 637f1332d jobs: cache-based bidirectional sync + kimi init fix + POST body fix
-2026-05-15 2be560d4d httpd: route registry + plugin.web.jobs cleanup + client sync rewrite
-2026-05-15 c868167e1 plugin.web.jobs: implement sync endpoint + rewrite init/state modules
-2026-05-14 447aafb1c kimi: extract flush_on_acquisition inline sub — eliminates redefined warning, fixes hashref iteration bug
-2026-05-14 0d0dbe0e0 jobsite: per-element YAML storage + kimi sudo auto-decline — one file per job, index.yaml, store.yaml migration; kimi rejects sudo approvals with message
-2026-05-14 e53dce74b kimi zenka: watcher-based state machine — ws_status watcher, task queue, dispatch_next_task, status cmd
-2026-05-14 8a43ffe7d mcp-server-p7: chat tools as named subs, , pure-perl do() module note; kimi state machine task file; AMOS7::P7 loader vision memory
-2026-05-14 ced97e121 base.language: three-layer detection system (heuristic → wordlist → inference)
-2026-05-14 f1a428753 base.language.encoding_map: expanded character map, design doc update, signed
-2026-05-13 47451f11a job-site-scan: shared prompt builder + show-prompt command + memory update
-2026-05-13 21eac2863 fetch queue with adaptive backoff + clean logging
-2026-05-13 e51d92645 job-site-scan: proxy env fix, pagination, rate-limiting delays, encoding repair, ghost queue fix
-2026-05-12 f5eb8ea09 job-site-scan repair pipeline + coding zenka event loop safety + proxy config fix
-2026-05-11 67ac0b22c docs+jobs: README vision update, job-site-scan search expansion, state.load fix
-2026-05-11 90db99b2b feat: German translation pass for review-stage job reasons
-2026-05-10 951297710 feat: clear-tasks cmd + buffer-erase for models, scalar-ref data deref in models handlers
-2026-05-10 ac2cdd0d9 fix: use timer+rewire-all for orphan recovery, drop event.once
-2026-05-10 d8c465c70 feat: rewire orphaned task.wait-done on restart for assessing jobs
-2026-05-10 f97d43e79 feat: sequential task dispatch + lc(mode) eq false checks in jss handlers
-2026-05-10 63813191b fix: cmd_reply with reply_id + string modes, rename cmd.list → cmd.list-jobs
-2026-05-10 502453c4f feat: job-site-scan coordinator zenka with event-driven state machine
-2026-05-10 621b508e0 feat: site-yaml zenka — stepstone job scraping, store, and web template
-2026-05-09 e1f362865 fix: cross-zenka deferred reply for task.summarize via route-send
-2026-05-09 c8bc21159 fix: enqueue_round use backend_acquire+send_request, drop polling timer
-2026-05-09 0e8c4c9cf fix: rename valued.cmd.list → valued.cmd.valued-nodes to avoid shadowing base list
-2026-05-09 5a1736558 feat: coding state machine — replace backend_busy polling with lock queue
-2026-05-09 98fbdf420 fix: move base.yaml.load_keyword_path → format.yaml, remove yaml pre_init redundancy
-2026-05-09 b9f3be9f9 feat: task tree foundation — history archive, tree fields, passive deps
-2026-05-09 4a7aa9d72 feat: base.file.encoding + summarize-context file/b32 input variants
-2026-05-09 509627280 fix: chmod child pipe sync + summarize_context modules
-2026-05-09 d2e55d1de feat: remove blocking inference path + perltidy formatting + session 15 artifacts
-2026-05-08 f7be9707e feat: consensus_query tool + :review: task type
-2026-05-08 26922ed86 feat: task pipeline e2e — in_progress, valued tree, wait-done deferred
-2026-05-08 26d3b198f feat: task.end_code — auto-saves handover.txt on zenka shutdown via callbacks.end_code
-2026-05-08 30967ff41 fix: line-edit staging messages clarified; test.iteration.hello mode true; mode true/size memory note
-2026-05-08 ada6493b1 feat: task.cmd.start, valued.cmd.query; fix line-edit file.read, detect_loop slice, backend busy-loop
-2026-05-08 211d3f627 feat: task.cmd.handover — queue state packager for session handover
-2026-05-08 a6112c2ee feat: line-addressed edit tools — replace_line, delete_lines, insert_line
-2026-05-08 6ef8bbeed fix: crash restart watcher pattern, queue pause/resume, path sanitization in task spec
-2026-05-07 e65bb0a8c feat: valued.tree.persist + restore — tree survives zenka restarts
-2026-05-07 938e3ee3b feat: iteration.template.delta — issue-to-patch classifier, 2 fixes applied
-2026-05-07 598f32f00 feat: valued.cmd.list — sushi coder result, 3 minor fixes applied
-2026-05-07 fa66255e1 feat: valued.cmd.list — priority-sorted node listing command
-2026-05-07 17fafac39 feat: iteration loop controller — init/loop/finish, wires score+valued tree+retry
-2026-05-07 af1f5af8e feat: iteration.score_result — criteria scoring + retry/advance/escalate verdict
-2026-05-07 3ed87deca feat: valued.tree.top_n — priority-sorted node listing with parent/type filter
-2026-05-07 be512eea2 feat: task.cmd.next — gradient-sorted autonomous work routing
-2026-05-07 24b6c899a feat: valued.tree.record_outcome + coding zenka task for state machine integration
-2026-05-07 be84af908 feat: valued tree load + resolve — seed yaml becomes live gradient
-2026-05-07 ae5fb1f51 feat: valued tree primitive + task tree seed structure
-2026-05-07 3f47480ad fix: restore large-stream write resilience — EAGAIN/IO-watcher + UTF-8 byte counts
-2026-05-07 85536418b coding zenka: perltidy tool, module_convention_check, configurable options
-2026-05-07 810693b9c coding zenka: regex_replace tool family + column fixes
-2026-05-07 c4c6ba6e3 coding zenka: subtask queue drain, SIGCHLD handler, retry logic, think-block extraction, task_file_search, tool enhancements
-2026-05-05 c5205fb57 coding zenka: data-start timeout for inference streaming, verify_inference_startup dependency recheck, jobqueue.check_dependencies guards removed
-2026-05-04 b20384e9b implemented base.file.write_encoded with mandatory encoding parameter..,
-2026-05-03 467e2a572 coding: extract inline subs from ncode.regex.expand + ncode.transform.wave
-2026-05-03 d30713699 coding: oneline-summary inference command + filter + no_tools/max_rounds/system task flags
-2026-05-02 c610d75bd coding: 77m idle timeout + 47m/63m buffer save/drop lifecycle
+2026-06-05 88a49b851 fix: rename memory.cmd.search.summarize → memory.cmd.digest
+2026-06-05 0d254054c feat: memory.cmd.search.summarize — deferred prose digest via coding zenka
+2026-06-05 d527459f0 feat: memory.tree IDF search attribute — rarity-weighted scoring pass
+2026-06-05 8a46771ce feat: memory.cmd.focus + memory.cmd.search commands
+2026-06-05 217dec3d3 feat: index-mem.init_code — disable visual-wheel on focused memory index instance
+2026-06-05 e2bf88210 feat: memory index integration + chat MCP ascii-frame upgrade
+2026-06-04 a340099d9 feat: ascii-frame idiom convergence — corner-pinning spring + margin/vertical-padding/self-invalidating cache
+2026-06-04 a11d3f959 feat: ascii frame plugin-slot status bar + variable border width
+2026-06-04 c3a62ec1e feat: memory tree flow-weighting + frame cosmetics + module/whitelist hardening
+2026-06-03 65cc79dcc feat: memory zenka — focus-weighted memory tree system
+2026-06-03 ef4f48348 feat: v7 — auto-register ondemand zenki at cube on init + reload
+2026-06-03 8aedb297a feat: memory zenka — full implementation with bug fixes
+2026-06-02 be3152a72 context.provider.frame + ascii.frame.render.color + nshell color/cursor fixes
+2026-06-02 9a5d201fa ascii.frame.load + ascii.frame.from_mockup — complete the namespace entry points
+2026-06-01 564606dd6 coding :twin: drain + spawn resilience — fully working
+2026-06-01 a68edda99 twin drain: cube backchannel + web.cmd.drain + restore on failure
+2026-06-01 8bf53ce3b feat: dynamic rolling-window chunk size from coding.context-size
+2026-05-31 aeb886ba5 feat: iris route-commitment + coding_summarize + task-archiving task designs
+2026-05-31 59fbaef7d feat: web auth plugin + atom job import script
+2026-05-31 73add7ae1 feat: web plugin status-dir layout (phase 2) — mirrors jobsite structure
+2026-05-31 6e9ae1cb1 feat: jobsite progress bar, scan-state slim, reset enc_error/rep-err
+2026-05-31 ef6c04941 doc: memory maintenance — session-67 delta, status-dir layout, checksum store
+2026-05-30 4352d8d01 fix: jobsite dedup false positives + reset for off-memory jobs
+2026-05-30 16aab2145 refactor: extract inline _synthetic_zenka_node sub to own module
+2026-05-30 14c0d6e83 feat: httpd web-relay STRM + jobs sync UTF-8 fix + manual-sync command
+2026-05-29 cec72fc9e feat: jobsite.cmd.reset — reset jobs to status=new with filter params
+2026-05-28 0a0279a71 fix: inference server crash bugs + reasoning namespace + CUDA 12.9 build
+2026-05-27 2c2821b80 feat: index schema v4 cube + idle watcher fix + persist guard + cmd.replace/remove
+2026-05-26 5e7e77d89 feat: schema v3 cube storage, chunked persist, v7 restart fix
+2026-05-26 7c6b184ab feat: index unified tick dispatcher + per-job state isolation
+2026-05-26 a31aa26a3 feat: index contribution vector store — checksum-keyed N-gram delta maps
+2026-05-25 0ffb7ac4d feat: index persist/restore — xz-compressed .zxps via zenka_dir
+2026-05-25 4669f01c2 feat: reasoning.tree.* namespace foundation — node/insert/lookup/traverse/narrate/summarize/render
+2026-05-25 673b7e573 feat: index persist/restore — Storable save/load, auto-restore on startup, archive completed tasks
+2026-05-25 c8471b5d0 feat: index lookup + search — trie traversal, prefix search, cmd handlers
+2026-05-25 da001f312 feat: index zenka — async feed-dir via idle watcher
+2026-05-25 283e3868b feat: index zenka — numerical language deduplication tree
+2026-05-24 1f9baaf7b feat: Z.Y.X coordinate ordering, mask/canvas structure, holographic device reasoning
+2026-05-23 7f47025c2 feat: X-11 nvidia GPU monitoring + STRM subscription + MCP external commands + reasoning template
+2026-05-23 28b846f58 fix: Fuse→Filesys::Fuse3 migration + remove install_fuse2.sh
+2026-05-23 4e90440d4 fix: debian zenka + task zenka startup + sys-deps install delegation
+2026-05-23 7b4f06ff0 feat: sys-deps zenka + AMOS7::deps::* shared library + bin/os-pkg + v7 pre-start dep check
+2026-05-22 869110d1e feat: space.* + branch.space/clock/ntime + DATA/TREE protocol + fixes
+2026-05-21 713ef4b04 memory: session 43 complete — branch namespace full + conceptual layer
+2026-05-21 752e9d301 feat: branch.* namespace — 44 modules, zenka config, dump improvements
+2026-05-21 17f530590 feat: iris ledger mode + BMW384 jobsite grouping + X-11 wait skip + diff --no-color
+2026-05-21 2e236fce8 feat: kimi-web session cache + web-browser JS migration + living background design
+2026-05-21 3b9f72a04 feat: reasoning.branch.* orchestration + letsencr rate limit detection
+2026-05-21 fa838e67e feat: web-browser running — JSC introspection, GTK map signal, window commands
+2026-05-21 cc1ffe898 feat: window.gtk.* namespace + web-browser window profile + startup fixes
+2026-05-20 dafc67c13 feat: credentials v2 + kimi-web STRM multiplexer + signature strip fix
+2026-05-20 88b8a5acd feat: credentials zenka — encrypted site credential store with zenka authorization
+2026-05-20 8d002f33c feat: window.* placement profiles + bin/todo + memory sync
+2026-05-20 41a47819c feat: web-browser WebKit2 repair, X-11 reliability, display stack fixes
+2026-05-20 72ae3752c feat: fetch-files zenka complete — cmd wrappers, start file, memory
+2026-05-20 80e7bf8b6 fix: fetch-files zenka startup errors + start file corrections
+2026-05-19 6d0fa09bc fix: site-yaml loads jobsite.job — upsert now calls job.write + stamps last_modified
+2026-05-19 6fd774cf6 feat: ntime-based incremental sync — batch push, last_modified stamps, reverse filtering
+2026-05-19 0c6ea07bd fix: clients.http[s].pre_init for SOCK_STREAM — use () form, compile-time scope
+2026-05-19 7e901a24b feat: clients.http.* + clients.https.* async http client namespaces
+2026-05-18 6b7127619 fix: web-relay reply handler — jobs endpoint working end-to-end
+2026-05-18 436a5c23b refactor: move web.jobs.* to plugin.web.jobs.* — keep web zenka generic
+2026-05-18 07c7edb52 feat: plugin.web.* migrated to web zenka — httpd now thin proxy via route-send SIZE pattern
+2026-05-18 ba55adf73 feat: oscilloscope uses route-send SIZE pattern to index zenka — proper P7 cross-zenka relay
+2026-05-18 b580bfeac feat: zulum stream export — pre_init creates dir, 200ms JSON export, oscilloscope reads streams.json
+2026-05-18 42174f9b9 feat: iris oscilloscope mode — 13 zulum streams as live concentric rings, auto-refresh 500ms
+2026-05-17 7df3cc053 feat: vortex mode (renamed from alpha-density); cube space transition mask design captured
+2026-05-17 9e35a1f16 feat: iris alpha-density mode — node brightness from angle_bits population density
+2026-05-17 f15074c26 feat: iris subtractive translucency — off/bi/ccw/cw mode, arc-opacity-map, UI buttons
+2026-05-17 6f06c4317 feat: route curve visualization — flying elements on BMW384 grid paths
+2026-05-17 32bcaefb2 feat: iris 63-ring spoke labels — namespace63 mode with darksun . at position 27
+2026-05-17 95e967ec9 feat: iris logo overlay — nailara at the darksun (position 27) across all 7 wheel modes
+2026-05-17 c6c354bab rename: nodes.cmd.add-trunc → nodes.cmd.add-tronk (correct spelling)
+2026-05-16 8313836dd feat: iris.v7.ax — BMW384 iris mode-switcher vhost with live SVG endpoint
+2026-05-16 824e68f3b feat: BMW384 iris — 6 visualization modes + line-wrap cleanup
+2026-05-16 40c8f2560 feat: route.bmw384 signature indexer + pre_init swap_subs + ask-reply wire.prompt logging
+2026-05-15 b94864386 jobs: cache-based bidirectional sync + kimi init fix + POST body fix
+2026-05-15 8cc056121 httpd: route registry + plugin.web.jobs cleanup + client sync rewrite
+2026-05-15 61eebf6f9 plugin.web.jobs: implement sync endpoint + rewrite init/state modules
+2026-05-14 0747cfedb kimi: extract flush_on_acquisition inline sub — eliminates redefined warning, fixes hashref iteration bug
+2026-05-14 fe9b65c03 jobsite: per-element YAML storage + kimi sudo auto-decline — one file per job, index.yaml, store.yaml migration; kimi rejects sudo approvals with message
+2026-05-14 7536d1b6e kimi zenka: watcher-based state machine — ws_status watcher, task queue, dispatch_next_task, status cmd
+2026-05-14 154645ad4 mcp-server-p7: chat tools as named subs, , pure-perl do() module note; kimi state machine task file; AMOS7::P7 loader vision memory
+2026-05-14 c62e6a087 base.language: three-layer detection system (heuristic → wordlist → inference)
+2026-05-14 54f868dc5 base.language.encoding_map: expanded character map, design doc update, signed
+2026-05-13 10bcf14cf job-site-scan: shared prompt builder + show-prompt command + memory update
+2026-05-13 932e0c847 fetch queue with adaptive backoff + clean logging
+2026-05-13 b0733e39e job-site-scan: proxy env fix, pagination, rate-limiting delays, encoding repair, ghost queue fix
+2026-05-12 14bfe5cb9 job-site-scan repair pipeline + coding zenka event loop safety + proxy config fix
+2026-05-11 b1384496f docs+jobs: README vision update, job-site-scan search expansion, state.load fix
+2026-05-11 c9cec75a4 feat: German translation pass for review-stage job reasons
+2026-05-10 8516b023e feat: clear-tasks cmd + buffer-erase for models, scalar-ref data deref in models handlers
+2026-05-10 5d5eeae3d fix: use timer+rewire-all for orphan recovery, drop event.once
+2026-05-10 4784884ba feat: rewire orphaned task.wait-done on restart for assessing jobs
+2026-05-10 08bbd176b feat: sequential task dispatch + lc(mode) eq false checks in jss handlers
+2026-05-10 d60cf44e5 fix: cmd_reply with reply_id + string modes, rename cmd.list → cmd.list-jobs
+2026-05-10 e9d95a6d9 feat: job-site-scan coordinator zenka with event-driven state machine
+2026-05-10 59bff9bad feat: site-yaml zenka — stepstone job scraping, store, and web template
+2026-05-09 3151b8815 fix: cross-zenka deferred reply for task.summarize via route-send
+2026-05-09 a3a3f721a fix: enqueue_round use backend_acquire+send_request, drop polling timer
+2026-05-09 7dec79465 fix: rename valued.cmd.list → valued.cmd.valued-nodes to avoid shadowing base list
+2026-05-09 f897602c2 feat: coding state machine — replace backend_busy polling with lock queue
+2026-05-09 0d1ebca8d fix: move base.yaml.load_keyword_path → format.yaml, remove yaml pre_init redundancy
+2026-05-09 77623bc2c feat: task tree foundation — history archive, tree fields, passive deps
+2026-05-09 bc081b9c2 feat: base.file.encoding + summarize-context file/b32 input variants
+2026-05-09 daf6df48b fix: chmod child pipe sync + summarize_context modules
+2026-05-09 fd0f5bf49 feat: remove blocking inference path + perltidy formatting + session 15 artifacts
+2026-05-08 a73188347 feat: consensus_query tool + :review: task type
+2026-05-08 1d84325a1 feat: task pipeline e2e — in_progress, valued tree, wait-done deferred
+2026-05-08 e5924d44f feat: task.end_code — auto-saves handover.txt on zenka shutdown via callbacks.end_code
+2026-05-08 af3e6ef99 fix: line-edit staging messages clarified; test.iteration.hello mode true; mode true/size memory note
+2026-05-08 6fcc7d7aa feat: task.cmd.start, valued.cmd.query; fix line-edit file.read, detect_loop slice, backend busy-loop
+2026-05-08 810d89486 feat: task.cmd.handover — queue state packager for session handover
+2026-05-08 1295edac6 feat: line-addressed edit tools — replace_line, delete_lines, insert_line
+2026-05-08 eb8524b7f fix: crash restart watcher pattern, queue pause/resume, path sanitization in task spec
+2026-05-07 1c211731d feat: valued.tree.persist + restore — tree survives zenka restarts
+2026-05-07 5a96a0fcb feat: iteration.template.delta — issue-to-patch classifier, 2 fixes applied
+2026-05-07 290d8f018 feat: valued.cmd.list — sushi coder result, 3 minor fixes applied
+2026-05-07 84565bc11 feat: valued.cmd.list — priority-sorted node listing command
+2026-05-07 5b1cc200d feat: iteration loop controller — init/loop/finish, wires score+valued tree+retry
+2026-05-07 2cf823d12 feat: iteration.score_result — criteria scoring + retry/advance/escalate verdict
+2026-05-07 3787ce106 feat: valued.tree.top_n — priority-sorted node listing with parent/type filter
+2026-05-07 11a52663a feat: task.cmd.next — gradient-sorted autonomous work routing
+2026-05-07 29ee5dd1f feat: valued.tree.record_outcome + coding zenka task for state machine integration
+2026-05-07 644320a9a feat: valued tree load + resolve — seed yaml becomes live gradient
+2026-05-07 ab2169d6d feat: valued tree primitive + task tree seed structure
+2026-05-07 b441a16ef fix: restore large-stream write resilience — EAGAIN/IO-watcher + UTF-8 byte counts
+2026-05-07 c5e6ce7bc coding zenka: perltidy tool, module_convention_check, configurable options
+2026-05-07 365087f76 coding zenka: regex_replace tool family + column fixes
+2026-05-07 b103ae23e coding zenka: subtask queue drain, SIGCHLD handler, retry logic, think-block extraction, task_file_search, tool enhancements
+2026-05-05 3fa5b44cc coding zenka: data-start timeout for inference streaming, verify_inference_startup dependency recheck, jobqueue.check_dependencies guards removed
+2026-05-04 8c29a6502 implemented base.file.write_encoded with mandatory encoding parameter..,
+2026-05-03 8189082d2 coding: extract inline subs from ncode.regex.expand + ncode.transform.wave
+2026-05-03 fa6f9e7a3 coding: oneline-summary inference command + filter + no_tools/max_rounds/system task flags
+2026-05-02 3782aa2dc coding: 77m idle timeout + 47m/63m buffer save/drop lifecycle
 2026-05-02 824768439 coding: per-task buffers + reasoning_content fixes
-2026-05-02 a54076c2e ncode: add cmd.search with context lines + fix gen-sub-whitelist for namespaces
-2026-05-01 8afd19b1d coding: llama-server process group management + http timeout logging
-2026-04-30 6b1a6b4d2 coding: fix server pipe blocking and centralize spawn guard
-2026-04-30 0caf5fe0c coding: add task-append command for message injection and task resumption
-2026-04-30 137fb8bca coding: fix subtask deadlock, double-spawn race, timeout recovery
-2026-04-28 7e6d4db25 coding zenka: implement round-based task scheduling + subtask spawning
-2026-04-28 1ae41dc3e coding zenka: fix async inject-message wiring + add task management commands
-2026-04-28 3334e6f9a algorithm profile system for chk-sum namespace
-2026-04-28 e4a72a729 graphics-matrix: harmonic voxel space phases 1-3 — coords, ray-table, density grid
-2026-04-27 3b95af88f cursor address: wire visualization selX/Y/Z to graphics-matrix via POST /cursor
-2026-04-27 c321c8452 attention state machine: plugin.web.attention.* skeleton + /attention.json
-2026-04-26 8912ad9a9 graphics-matrix: harmonic voxel space — coords, rays, density, visualization
-2026-04-26 f8db1ea1e index zenka: harmonic trie write/lookup/cluster/correlate
-2026-04-26 f1bf02199 orbital nav phase 2: /orbital.json?context=<p7ref> endpoint
-2026-04-26 7fb96204b orbital viz: channel palette, inject-orbital, kimi approval fix, trail dedup
-2026-04-26 e413974dc orbital p7ref propagation — nodes push to discover + mcast pipeline
-2026-04-26 17cac3c26 discover.orbital : init_code + startup p7ref fetch
-2026-04-26 249137fd3 httpd/web : POST /context handler — force Connection: close
-2026-04-26 d12a788c2 nodes/nameserv : expose orbital-position + discover-nodes as routable commands
-2026-04-26 c428a31e4 orbital → graphics-matrix bridge — nodes as cells, glow/channel/graph in visualization
-2026-04-26 0d325fc65 httpd : vhost install infrastructure + shared path params
-2026-04-26 6d0e73a3d web.space : template resolver — intent-aware visualization layer selection
-2026-04-26 8b89b6aa9 web.space : live orbital data endpoint — /orbital.json on space.v7.ax
-2026-04-26 9dd7ae062 external : orbital connect layer — discover → trunc → link-upgrade wired together
-2026-04-26 fd206f5b0 nameserv : DNS rhizome layer — TXT/SRV publishing + outbound discovery
-2026-04-26 0edcf3028 discover : orbital relay layer — broadcast + receive P7REF, instant satellite relay
-2026-04-25 fc64df772 radio : stream-log + jingle-log observability buffers
-2026-04-25 e315f5ab8 nshell : STRM protocol support — stream chunks written raw to stdout
-2026-04-25 db117027e radio : resilience refactor — reconnect, gap-fill pacing, mpv offline, jingle duration
-2026-04-24 fc6d6d20b renamed mpv commands ['s|_|-|']: get-speed set-speed get-volume set-volume
-2026-04-24 15871ef63 renamed mpv zenka command : 'mpv.is_idle' --> 'mpv.is-idle'.,
-2026-04-24 9d2a26389 radio : stream relay + STRM cancel propagation fixes
-2026-04-24 87c0d8c2a radio : phase 4 + STRM local consumer fixes [ mpv audio background ]
-2026-04-24 bb6181653 httpd : radio stream bridge [ plugin.httpd.radio ]
-2026-04-24 c48f8e092 base : local STRM consumer primitive + recv-test dev tool
-2026-04-23 b857fbdbd radio : phase 3 — keep-library accumulation + gap filler
-2026-04-23 1916e21cb radio : phase 2 — jingle detection + skip/keep commands
-2026-04-23 2444eb13a radio : phase 1 — ICY stream reader + unbounded STRM relay
-2026-04-23 22d7093f2 base : event.add_idle + base.stream-file idle-driven streaming
-2026-04-23 af3ff5504 base : base.curve.* generic curve system + mpv audio fade refactor
-2026-04-18 6b804598a plugin.web.space.grid: index grid data endpoint [ section 5.1 kimi ]
-2026-04-17 3b60b7554 web: response content-type override + .tmpl routing + log cleanup
-2026-04-16 9acf98bc3 web: template pipeline + space plugin + pattern_split capture group fix
-2026-04-16 7ca712977 graphics-matrix: similarity graph — 7 modules, cluster visibility (kimi task 6)
-2026-04-16 f9a51cd28 graphics-matrix: lattice cell storage — 7 modules, glow bridge (kimi task 5)
+2026-05-02 a097a2221 ncode: add cmd.search with context lines + fix gen-sub-whitelist for namespaces
+2026-05-01 c32757279 coding: llama-server process group management + http timeout logging
+2026-04-30 b7963d7c3 coding: fix server pipe blocking and centralize spawn guard
+2026-04-30 3f405f573 coding: add task-append command for message injection and task resumption
+2026-04-30 466437e0b coding: fix subtask deadlock, double-spawn race, timeout recovery
+2026-04-28 3ae403d1a coding zenka: implement round-based task scheduling + subtask spawning
+2026-04-28 17b819240 coding zenka: fix async inject-message wiring + add task management commands
+2026-04-28 d214975fb algorithm profile system for chk-sum namespace
+2026-04-28 142df2acb graphics-matrix: harmonic voxel space phases 1-3 — coords, ray-table, density grid
+2026-04-27 141165c9f cursor address: wire visualization selX/Y/Z to graphics-matrix via POST /cursor
+2026-04-27 b2ca2a292 attention state machine: plugin.web.attention.* skeleton + /attention.json
+2026-04-26 83be42990 graphics-matrix: harmonic voxel space — coords, rays, density, visualization
+2026-04-26 62bc4fe79 index zenka: harmonic trie write/lookup/cluster/correlate
+2026-04-26 0cf31f8ae orbital nav phase 2: /orbital.json?context=<p7ref> endpoint
+2026-04-26 a63eccb90 orbital viz: channel palette, inject-orbital, kimi approval fix, trail dedup
+2026-04-26 8d0327bdb orbital p7ref propagation — nodes push to discover + mcast pipeline
+2026-04-26 e20465473 discover.orbital : init_code + startup p7ref fetch
+2026-04-26 65f0fe213 httpd/web : POST /context handler — force Connection: close
+2026-04-26 fe48b1e18 nodes/nameserv : expose orbital-position + discover-nodes as routable commands
+2026-04-26 fa72fee18 orbital → graphics-matrix bridge — nodes as cells, glow/channel/graph in visualization
+2026-04-26 ea7a08bfc httpd : vhost install infrastructure + shared path params
+2026-04-26 93f1814f2 web.space : template resolver — intent-aware visualization layer selection
+2026-04-26 f0c14475d web.space : live orbital data endpoint — /orbital.json on space.v7.ax
+2026-04-26 1aa6d0b03 external : orbital connect layer — discover → trunc → link-upgrade wired together
+2026-04-26 835a13736 nameserv : DNS rhizome layer — TXT/SRV publishing + outbound discovery
+2026-04-26 b08e019dc discover : orbital relay layer — broadcast + receive P7REF, instant satellite relay
+2026-04-25 32a9898b6 radio : stream-log + jingle-log observability buffers
+2026-04-25 6a31d6ca5 nshell : STRM protocol support — stream chunks written raw to stdout
+2026-04-25 740132059 radio : resilience refactor — reconnect, gap-fill pacing, mpv offline, jingle duration
+2026-04-24 88f644d48 renamed mpv commands ['s|_|-|']: get-speed set-speed get-volume set-volume
+2026-04-24 b06769314 renamed mpv zenka command : 'mpv.is_idle' --> 'mpv.is-idle'.,
+2026-04-24 2f5a2bc2f radio : stream relay + STRM cancel propagation fixes
+2026-04-24 62887576e radio : phase 4 + STRM local consumer fixes [ mpv audio background ]
+2026-04-24 0c0275250 httpd : radio stream bridge [ plugin.httpd.radio ]
+2026-04-24 1f3182570 base : local STRM consumer primitive + recv-test dev tool
+2026-04-23 d62120ea5 radio : phase 3 — keep-library accumulation + gap filler
+2026-04-23 5d56bd810 radio : phase 2 — jingle detection + skip/keep commands
+2026-04-23 6b7d2a0c4 radio : phase 1 — ICY stream reader + unbounded STRM relay
+2026-04-23 c81d14585 base : event.add_idle + base.stream-file idle-driven streaming
+2026-04-23 177677e99 base : base.curve.* generic curve system + mpv audio fade refactor
+2026-04-18 101e73838 plugin.web.space.grid: index grid data endpoint [ section 5.1 kimi ]
+2026-04-17 4ea866b60 web: response content-type override + .tmpl routing + log cleanup
+2026-04-16 9f3943886 web: template pipeline + space plugin + pattern_split capture group fix
+2026-04-16 02761de41 graphics-matrix: similarity graph — 7 modules, cluster visibility (kimi task 6)
+2026-04-16 d6c0d2e99 graphics-matrix: lattice cell storage — 7 modules, glow bridge (kimi task 5)
 2026-04-16 914711579 graphics-matrix: address resolution layer — 5 modules, 6 addressing schemes (kimi task 4)
-2026-04-12 147d55a4c graphics-matrix: glow intensity layer — 4 modules (kimi task 2)
-2026-04-12 3fbcf3217 graphics-matrix: cursor namespace bridge — 7 modules (kimi task 1)
-2026-04-11 355723092 invoke zenka: invoke.ai image generation API client
+2026-04-12 d04a92651 graphics-matrix: glow intensity layer — 4 modules (kimi task 2)
+2026-04-12 29aa9ce40 graphics-matrix: cursor namespace bridge — 7 modules (kimi task 1)
+2026-04-11 48a28c7c4 invoke zenka: invoke.ai image generation API client
 2026-04-10 241664597 invoke-web zenka: process manager for invoke.ai web server
-2026-04-10 a5c768144 terminal: curses widget layer + model manager app (ui step 1)
+2026-04-10 29481b8f1 terminal: curses widget layer + model manager app (ui step 1)
 2026-04-10 587759937 models: export/import adapter (step 4) + footer + config fixes
-2026-04-10 6347b4113 models: unified discover + cmd fixes (steps 3 + bugfixes)
-2026-04-10 007c4c4fd models: lmstudio storage adapter + cmd wrappers (step 2)
-2026-04-08 2c0c8e56c models: storage adapter invoke + cmd wrappers (step 1)
-2026-04-06 8a4f414a2 kimi task queue: create 10 missing modules, fix active-list cleanup
-2026-04-05 1780e1067 file_rename and remove_file tools with path escape protection and trash backup
-2026-04-05 bb88738fe JSON tool call parsing: models emitting {"name": "tool", "arguments": {...}} in content
-2026-04-05 dcf2302dd Notes tools expansion: 5 new backends + handlers + definitions (tag, recent, filter, history, merge)
-2026-04-05 a35cd99e8 note_update tool: replace note section content
-2026-04-05 6829cfec0 note_delete tool + read_file budget increase + compaction limit 32K
-2026-04-04 3a4c30bb7 XML tool call parsing, context compaction, reasoning_content fallback
-2026-04-04 fe09e3db4 Fix async tool loop: jinja-safe tool_calls, retry, shared sanitization
-2026-04-04 c3ea83dbc fix(async): timer callback extracts data from watcher object
-2026-04-04 166f3e788 fix(async): tool execution loop - correct message history and task completion
-2026-04-03 db5be355e Async HTTP streaming: state machine, callbacks, and PLACEHOLDER stub fixes
-2026-04-03 f6d6763e2 async HTTP streaming with state machine and tool execution loop
-2026-04-03 df1f0ef00 Phase 2: Async streaming HTTP client for task multiplexing
-2026-04-03 30c7a5585 Add coding.cmd.async-test for manual async flow testing
-2026-04-03 175b16bdb Phase 1: Async foundation for task multiplexing
-2026-04-03 0cc68708e Add coding.stop-task command for cooperative task cancellation
-2026-04-03 fc8384a57 Add coding.inject-message and coding.wait-done commands
-2026-04-03 e0cb71be3 Add git_restore_file, strip_trailing_spaces, and write_with_perms tools
-2026-04-03 50428cc7d Add chunked edit support to edit_file tool
-2026-04-02 63c9f6ba6 add git wrapper to enforce signature policy
-2026-04-02 2b948f049 update coding.tools.yaml test results - all tools working
-2026-04-02 1583ec102 fix: move file.* modules to base.file.* namespace
-2026-04-02 0832b6fa2 fix: rename file.zenka_dir.data_path to base.file.zenka_dir.data_path
-2026-04-02 966787562 fix coding zenka: tool dispatch error handling, init return code, handler loading
-2026-04-02 99af501a7 Add decode_base32 tool and fix base32 padding detection
-2026-04-02 e404d6bd2 Fix exclusion patterns and add model output observation buffer
-2026-04-02 2d9aa9ec2 Add coding.cmd.match-template for debugging template selection
-2026-04-02 5e057f9ac Add compaction debugging command and fix file wrapper modules
-2026-04-02 defcd6645 Add file wrapper modules, validation system, and self-improvement templates
-2026-04-02 ca40e1ea6 Add note.search module and document note system in system prompt
-2026-04-02 f3b8f54d5 Add transport plugin architecture, note system, and fix startup bug
-2026-04-01 37152fde5 Add inference server crash detection and auto-restart
-2026-04-01 42e93963e Clean up placeholder signatures and add footer cleanup template
-2026-04-01 4f415bdea Add kimi-web zenka for sub-agent spawning and parallel inference
-2026-04-01 301fba5fc Vision system overhaul: shared HTTP backend, OOM protection, adaptive polling, and mmproj detection fixes
-2026-03-30 8cfc435a1 improved error resilience in 'coding.tools.handler.tree_read'
-2026-03-30 9096b16c1 Add tree tools, P7 commands, and 4 autonomous task templates
-2026-03-30 709f2badd Remove 12 remaining pager inline subs, create 4 missing util modules
-2026-03-30 19159dfd3 Modernize pager namespace: unwrap return sub, fix headers, rename command
-2026-03-29 03e16df03 Extract 6 inline subs from plugin.storage.visual.proximity-calc [autonomous]
-2026-03-29 4cb278846 Add task lifecycle tools and passive observation collection for coding zenka
-2026-03-29 24cde245c Add list_inline_subs tool, add replace_all to replace_in_file
-2026-03-29 1cbcc3602 Extract 6 inline subs from plugin.storage.checksum.cluster.* [autonomous]
-2026-03-29 0ae76090e Add replace_in_file and validate_module_format tools, wire into extraction template
-2026-03-29 90de72dd8 Extract context.* inline subs, harden coding zenka paths and security
-2026-03-29 6e884cd0d Clean up model-edited identify_patterns: fix APIs, style, data structure
-2026-03-29 4816c8fdd Default edit_file to apply=true so model writes edits directly
-2026-03-28 fcf3ffd26 Extract 10 tool handlers into modules, fix compaction token counting and git ownership
-2026-03-28 b29adc0bf Add clear-applied command, truncate error logs, use eval_error cleanup
-2026-03-28 9c9852d70 Auto-clear staged edits between tasks, add staged-clear command
-2026-03-28 b3a028082 Add privileged chmod child for apply-staged, fix File::stat in init_code
-2026-03-28 f9cf660dd Add staged-diff/apply-staged commands, fix edit accumulation
-2026-03-28 1c0d95833 Add coding.cmd.clear-cache for disk+memory inference cache clearing
-2026-03-28 a9156cf15 Nested context template system with recursive resolution and budget-aware assembly
-2026-03-28 4c214d13d Resolve all undefined routine warnings for clean coding zenka startup
-2026-03-28 197dad1e5 Tool calling infrastructure for local model interaction + B32 binary table design
-2026-03-28 5f771e9fa Storage layout v0.3 with B32 timestamps, prompt assembly extraction, show-prompt command
-2026-03-27 8b83b5088 File visibility for local model code review — phase 2
-2026-03-27 877793f01 System prompt + v7-syn parser switch + inference plugin module loading
-2026-03-27 fd8d95716 Inference cache plugin — checksum-addressed LLM result storage
-2026-03-27 71a5ba39e Add Context Awareness Tree — network-wide parallel consciousness
-2026-03-27 a2a614637 Add Claude catch-up handover document for post-token-reset review
-2026-03-27 455ffe68b Storage mapping plugins with checksum-based deduplication
-2026-03-27 7185b7d87 Storage 9P client integration with advanced filtering
-2026-03-27 569da0eea 9P client implementation for mounting remote filesystems
-2026-03-27 79ef43f74 deps: add FUSE and Lua dependencies for amos-term
-2026-03-26 68e421732 amos-term: fix buffer operations and SHM owner ID length
-2026-03-26 460a3b55d docs: update Kimi MEMORY.md with amos-term fixes and deferred mode warning
-2026-03-26 1712ad54c amos-term: fix command execution and hash dereference syntax
-2026-03-26 4e4383bd9 feat(amos-term): add window command wrappers for testing
-2026-03-26 8a7d46752 refactor(amos-term): rename modules to use hyphens for routing
-2026-03-26 cc1f7a39e fix(amos-term): complete missing modules and fix compile warnings
-2026-03-26 287036554 feat(amos-term): Phase 5 FUSE filesystem integration
-2026-03-26 4a5fb5733 chore(signatures): sign updated files for amos-term integration
-2026-03-26 0fa09154c feat(amos-term): Phase 2-4 implementation - 3D terminal with pattern matching
-2026-03-26 eda0a7c16 fix(amos-term): remove blank line in qw[] to resolve Perl warning
-2026-03-25 dcbabfbda Add visual layer integration: data.mount-visual, opencv zenka plan, inter-zenka access
-2026-03-25 b58f9ca1f Add graphics-matrix visual similarity infrastructure with assert-similarity command
-2026-03-25 0053f2e84 context-tree: complete checksum-addressed holographic knowledge infrastructure
-2026-03-25 1f90c18dc Extract inline subs from ncode.regex.assess, fix base.log in 3 more modules
-2026-03-25 65b4fe4a3 Add context.cmd.review, regenerate context whitelist to 542 subs
-2026-03-25 c5bac9e47 Add ncode.cmd.transform and ncode.cmd.tool_list — command interface complete
-2026-03-25 116325c37 Add ncode.transform.handler.wave_reply — complete self-refinement loop
-2026-03-25 904a0f283 Add ncode.transform.wave, fix kimi base32r decode order
-2026-03-25 2251d0ca2 Add ncode.regex.expand — pattern library growth with capacity management
-2026-03-25 0473e57bc Add ncode.regex.assess — diff-to-regex pattern extraction with harmonic confidence
-2026-03-25 e544518e8 Add context zenka config, fix v7 start-by-name crash, memory-sync fetch/publish
-2026-03-25 98519c0c4 Add ncode foundation: regex engine init, load, apply, save + seed patterns
-2026-03-25 89a71bacd Add review pipeline, step group architecture, ncode zenka design
-2026-03-25 02ed2425e Add dep-graph modules: Kosaraju SCC, topological sort, budget bin-packing
-2026-03-25 faa540170 Add context.delegate.handler.result — async reply callback
-2026-03-25 9d02e89ff Add context.* phase-E: caching, cross-zenka sharing, kimi handover
-2026-03-25 d25530a5a Add context.* phase-D: role-fluid delegation layer
-2026-03-25 874183bae Add context.* phase-C: compaction, priority, pattern modules + batch review design
-2026-03-24 c75d007b4 Add context.* phase-B providers, task.result cmd access, kimi style update
-2026-03-24 74952a998 Add context.* phase-A modules, templates, design doc, task.result command
-2026-03-24 29b37d1c4 Move io.ip.ssl.* modules to io.ssl.ip.* namespace, extract inline sub
-2026-03-24 0e0f70d96 Kimi session management, api child, task dispatch gate, UTF-8 SIZE fix
-2026-03-23 9d088fa2b Fix nested .cmd. seeding in dep-graph, move bmw-L13 to cube namespace
-2026-03-23 49cd40ecb Move repair-chain to child command for non-blocking AIA fetch
-2026-03-23 3ed0db42c Add certificate chain validation and AIA repair for letsencr zenka
-2026-03-23 2535ca451 Extract 6 inline subroutines from llm.service.* into separate P7 modules
-2026-03-22 80eccd3fa Implement non-blocking SSL accept for httpsd, fix kimi-generated code review issues
-2026-03-22 360492f05 Fix char-add debug infrastructure, implement Ctrl+O cycling with deferred preload display
-2026-03-22 2156eb8f5 Fix v7 notify_online deref, kimi session liveness, nshell history navigation
-2026-03-22 192a0d5a2 Kimi reconnect resilience: init retry, preserve pending prompts, truncate approval logs
-2026-03-20 e819ff6a3 Add tool approval handling to kimi zenka for autonomous task execution
-2026-03-20 0fa9e3855 Add task continuation for multi-turn backend sessions
-2026-03-20 0cfdc1798 Integrate jobqueue into models zenka for task dispatch
-2026-03-20 dff5a9161 Replace task polling with event-driven dispatch across models and kimi zenki
-2026-03-20 f85880818 Fix kimi task-poll: async callback chain + param→args IPC fix
-2026-03-20 a2b855581 Add models zenka task polling with async callback chain
+2026-04-10 c038fd915 models: unified discover + cmd fixes (steps 3 + bugfixes)
+2026-04-10 4d3026159 models: lmstudio storage adapter + cmd wrappers (step 2)
+2026-04-08 2b4f5feb3 models: storage adapter invoke + cmd wrappers (step 1)
+2026-04-06 765400fa5 kimi task queue: create 10 missing modules, fix active-list cleanup
+2026-04-05 c66a7b9c2 file_rename and remove_file tools with path escape protection and trash backup
+2026-04-05 78629b317 JSON tool call parsing: models emitting {"name": "tool", "arguments": {...}} in content
+2026-04-05 f2c64f96d Notes tools expansion: 5 new backends + handlers + definitions (tag, recent, filter, history, merge)
+2026-04-05 3393ea47c note_update tool: replace note section content
+2026-04-05 9f8c77ecd note_delete tool + read_file budget increase + compaction limit 32K
+2026-04-04 ce1be945e XML tool call parsing, context compaction, reasoning_content fallback
+2026-04-04 f4167d913 Fix async tool loop: jinja-safe tool_calls, retry, shared sanitization
+2026-04-04 354764e40 fix(async): timer callback extracts data from watcher object
+2026-04-04 9ab98a3f6 fix(async): tool execution loop - correct message history and task completion
+2026-04-03 46060a1bc Async HTTP streaming: state machine, callbacks, and PLACEHOLDER stub fixes
+2026-04-03 f34232e49 async HTTP streaming with state machine and tool execution loop
+2026-04-03 47e147069 Phase 2: Async streaming HTTP client for task multiplexing
+2026-04-03 cea464515 Add coding.cmd.async-test for manual async flow testing
+2026-04-03 c3f3330f4 Phase 1: Async foundation for task multiplexing
+2026-04-03 d5cb2caf6 Add coding.stop-task command for cooperative task cancellation
+2026-04-03 75464051d Add coding.inject-message and coding.wait-done commands
+2026-04-03 b0d763b3e Add git_restore_file, strip_trailing_spaces, and write_with_perms tools
+2026-04-03 29c70d99c Add chunked edit support to edit_file tool
+2026-04-02 529a30c65 add git wrapper to enforce signature policy
+2026-04-02 b8e650310 update coding.tools.yaml test results - all tools working
+2026-04-02 c217692b6 fix: move file.* modules to base.file.* namespace
+2026-04-02 a23277b9c fix: rename file.zenka_dir.data_path to base.file.zenka_dir.data_path
+2026-04-02 fefb3bf8a fix coding zenka: tool dispatch error handling, init return code, handler loading
+2026-04-02 03e76467d Add decode_base32 tool and fix base32 padding detection
+2026-04-02 1306b42b4 Fix exclusion patterns and add model output observation buffer
+2026-04-02 df54e03ec Add coding.cmd.match-template for debugging template selection
+2026-04-02 cb03327b4 Add compaction debugging command and fix file wrapper modules
+2026-04-02 8eff007a9 Add file wrapper modules, validation system, and self-improvement templates
+2026-04-02 63392e125 Add note.search module and document note system in system prompt
+2026-04-02 16303d48a Add transport plugin architecture, note system, and fix startup bug
+2026-04-01 b0779cc31 Add inference server crash detection and auto-restart
+2026-04-01 8d72a023b Clean up placeholder signatures and add footer cleanup template
+2026-04-01 5ed4a9514 Add kimi-web zenka for sub-agent spawning and parallel inference
+2026-04-01 4a765dade Vision system overhaul: shared HTTP backend, OOM protection, adaptive polling, and mmproj detection fixes
+2026-03-30 6667bbc00 improved error resilience in 'coding.tools.handler.tree_read'
+2026-03-30 ce2804ad1 Add tree tools, P7 commands, and 4 autonomous task templates
+2026-03-30 052a9a3de Remove 12 remaining pager inline subs, create 4 missing util modules
+2026-03-30 7f20f89a7 Modernize pager namespace: unwrap return sub, fix headers, rename command
+2026-03-29 1b7e8b908 Extract 6 inline subs from plugin.storage.visual.proximity-calc [autonomous]
+2026-03-29 34c78391a Add task lifecycle tools and passive observation collection for coding zenka
+2026-03-29 08634594a Add list_inline_subs tool, add replace_all to replace_in_file
+2026-03-29 b31f966c9 Extract 6 inline subs from plugin.storage.checksum.cluster.* [autonomous]
+2026-03-29 7db44e7f2 Add replace_in_file and validate_module_format tools, wire into extraction template
+2026-03-29 209fdd306 Extract context.* inline subs, harden coding zenka paths and security
+2026-03-29 848c3cb81 Clean up model-edited identify_patterns: fix APIs, style, data structure
+2026-03-29 868cd0cb5 Default edit_file to apply=true so model writes edits directly
+2026-03-28 b5b1ff5a5 Extract 10 tool handlers into modules, fix compaction token counting and git ownership
+2026-03-28 80078e1c5 Add clear-applied command, truncate error logs, use eval_error cleanup
+2026-03-28 62bc17b23 Auto-clear staged edits between tasks, add staged-clear command
+2026-03-28 16a9a5042 Add privileged chmod child for apply-staged, fix File::stat in init_code
+2026-03-28 ef508186d Add staged-diff/apply-staged commands, fix edit accumulation
+2026-03-28 966581652 Add coding.cmd.clear-cache for disk+memory inference cache clearing
+2026-03-28 d82d48254 Nested context template system with recursive resolution and budget-aware assembly
+2026-03-28 778f20984 Resolve all undefined routine warnings for clean coding zenka startup
+2026-03-28 7da155b9f Tool calling infrastructure for local model interaction + B32 binary table design
+2026-03-28 394a072ee Storage layout v0.3 with B32 timestamps, prompt assembly extraction, show-prompt command
+2026-03-27 c4b846ed1 File visibility for local model code review — phase 2
+2026-03-27 e4ad7a9f6 System prompt + v7-syn parser switch + inference plugin module loading
+2026-03-27 a6e4cc078 Inference cache plugin — checksum-addressed LLM result storage
+2026-03-27 ad8e5c52d Add Context Awareness Tree — network-wide parallel consciousness
+2026-03-27 8868a5618 Add Claude catch-up handover document for post-token-reset review
+2026-03-27 72a6cec49 Storage mapping plugins with checksum-based deduplication
+2026-03-27 a89411e76 Storage 9P client integration with advanced filtering
+2026-03-27 18b960360 9P client implementation for mounting remote filesystems
+2026-03-27 28c69908c deps: add FUSE and Lua dependencies for amos-term
+2026-03-26 2e87f2bb2 amos-term: fix buffer operations and SHM owner ID length
+2026-03-26 3a1d47fa1 docs: update Kimi MEMORY.md with amos-term fixes and deferred mode warning
+2026-03-26 416a35a30 amos-term: fix command execution and hash dereference syntax
+2026-03-26 a9ec97a29 feat(amos-term): add window command wrappers for testing
+2026-03-26 a877e6657 refactor(amos-term): rename modules to use hyphens for routing
+2026-03-26 2650b1dd1 fix(amos-term): complete missing modules and fix compile warnings
+2026-03-26 66a933e29 feat(amos-term): Phase 5 FUSE filesystem integration
+2026-03-26 852fa844d chore(signatures): sign updated files for amos-term integration
+2026-03-26 54ad5ccc0 feat(amos-term): Phase 2-4 implementation - 3D terminal with pattern matching
+2026-03-26 326c3c6f2 fix(amos-term): remove blank line in qw[] to resolve Perl warning
+2026-03-25 3c09216c8 Add visual layer integration: data.mount-visual, opencv zenka plan, inter-zenka access
+2026-03-25 03101ef9f Add graphics-matrix visual similarity infrastructure with assert-similarity command
+2026-03-25 06fd554cc context-tree: complete checksum-addressed holographic knowledge infrastructure
+2026-03-25 c931d8f53 Extract inline subs from ncode.regex.assess, fix base.log in 3 more modules
+2026-03-25 8d7efe4bb Add context.cmd.review, regenerate context whitelist to 542 subs
+2026-03-25 7c93139c7 Add ncode.cmd.transform and ncode.cmd.tool_list — command interface complete
+2026-03-25 3cf3cf987 Add ncode.transform.handler.wave_reply — complete self-refinement loop
+2026-03-25 127214601 Add ncode.transform.wave, fix kimi base32r decode order
+2026-03-25 142e7ea68 Add ncode.regex.expand — pattern library growth with capacity management
+2026-03-25 0660f6fa1 Add ncode.regex.assess — diff-to-regex pattern extraction with harmonic confidence
+2026-03-25 d092740e0 Add context zenka config, fix v7 start-by-name crash, memory-sync fetch/publish
+2026-03-25 591608f01 Add ncode foundation: regex engine init, load, apply, save + seed patterns
+2026-03-25 0d1a0b328 Add review pipeline, step group architecture, ncode zenka design
+2026-03-25 5a8a31f75 Add dep-graph modules: Kosaraju SCC, topological sort, budget bin-packing
+2026-03-25 e0be89629 Add context.delegate.handler.result — async reply callback
+2026-03-25 fbf335485 Add context.* phase-E: caching, cross-zenka sharing, kimi handover
+2026-03-25 e259a1c81 Add context.* phase-D: role-fluid delegation layer
+2026-03-25 b65c78a55 Add context.* phase-C: compaction, priority, pattern modules + batch review design
+2026-03-24 e2bf02950 Add context.* phase-B providers, task.result cmd access, kimi style update
+2026-03-24 41469a233 Add context.* phase-A modules, templates, design doc, task.result command
+2026-03-24 63d8944d2 Move io.ip.ssl.* modules to io.ssl.ip.* namespace, extract inline sub
+2026-03-24 2815d80ba Kimi session management, api child, task dispatch gate, UTF-8 SIZE fix
+2026-03-23 cf76d7f15 Fix nested .cmd. seeding in dep-graph, move bmw-L13 to cube namespace
+2026-03-23 9e7f80d59 Move repair-chain to child command for non-blocking AIA fetch
+2026-03-23 246f03893 Add certificate chain validation and AIA repair for letsencr zenka
+2026-03-23 aabe7ebca Extract 6 inline subroutines from llm.service.* into separate P7 modules
+2026-03-22 25ce6bec3 Implement non-blocking SSL accept for httpsd, fix kimi-generated code review issues
+2026-03-22 431e79979 Fix char-add debug infrastructure, implement Ctrl+O cycling with deferred preload display
+2026-03-22 f46e0bf94 Fix v7 notify_online deref, kimi session liveness, nshell history navigation
+2026-03-22 bcd6fa36d Kimi reconnect resilience: init retry, preserve pending prompts, truncate approval logs
+2026-03-20 e99ccba46 Add tool approval handling to kimi zenka for autonomous task execution
+2026-03-20 247bd0fb9 Add task continuation for multi-turn backend sessions
+2026-03-20 0b279a2a7 Integrate jobqueue into models zenka for task dispatch
+2026-03-20 a6d736752 Replace task polling with event-driven dispatch across models and kimi zenki
+2026-03-20 73b444605 Fix kimi task-poll: async callback chain + param→args IPC fix
+2026-03-20 bd449fa3f Add models zenka task polling with async callback chain
 2026-03-20 819765673 Add task zenka + kimi auto-pickup integration
-2026-03-19 74db2e06c add httpsd request capture infrastructure for crash diagnosis
-2026-03-18 2784fadc7 fix(p7_load_code): initial namespace loads no longer use staging swap
-2026-03-17 837e2b21b Add task zenka scaffold: startup config, access wiring, yaml task loader
-2026-03-16 e8edba6b6 Extract inline subs from coding.task.intake into separate modules
-2026-03-15 48017c9c4 extract .pm subdirectory modules into flat P7 modules
-2026-03-15 bae804376 Add decoder.cmd.replay for level-6-D3 buffer readback
-2026-03-15 ff9e850c1 Add decoder.cmd.reset and decoder.cmd.stream-list
-2026-03-15 dbdcf7d85 Add decoder.cmd.inject for manual bit string injection
-2026-03-15 09dc54bae Add decoder.cmd.show-level5 and show-level6 readback commands
-2026-03-15 5790693ca Tier 4: D13-collection decode with float-division entropy preservation
-2026-03-15 7af036fc4 Add decoder.cmd.harmony with command access configuration
-2026-03-15 b7135d5ae Tier 3: Decoder Level 6 — Linguistic Projection
-2026-03-12 580248631 feat: Decoder inspection surface — per-stream isolation and query commands
-2026-03-12 ecf495964 feat: Add async job system to decoder zenka — reduce-entropy command
-2026-03-11 60436ea07 feat: cube-13 zulum-13 entropy switch matrix with jump routing
-2026-03-10 97962a234 Wire zulum entropy streams to decoder via cube-routed commands
-2026-03-10 d6b746e77 feat: Add zulum.cmd.step for testing entropy generation
-2026-03-10 83d39a37b feat: lm-vision HTTP backend + backend selection (Tier 4.2)
-2026-03-10 efdf13a74 feat: INDEXCUBE Phase 2 - routing stack primitives
-2026-03-10 765d0cb4a feat: Inline file expansion for multi-model chat (Tier 3.2)
-2026-03-10 4051fcca0 feat: Zulum + Decoder Phase 1 - 13 entropy streams and level-5 accumulator
-2026-03-10 d25edafa9 fix+maint: Fix AMOS7::CHKSUM init race and clean up kimi's unsigned commits
-2026-03-08 5666f68a8 style: Update base callbacks and subroutine list
-2026-03-07 4b3db24dd Add GGUF model discovery with metadata extraction and registry improvements
-2026-03-04 438894e4e feat: integrate dynamic context templates into models backends
-2026-03-04 bcc1e6158 fix(work): clean up work zenka — standalone-only, remove obsolete cmd modules
-2026-03-03 7cac1ea35 web: add template caching, content scanning, skin/menu modules
-2026-03-02 e0a6b3ba9 kimi: add kimi-web websocket client zenka
-2026-03-01 0461ff570 feat(weather): full access config cleanup with acc_str.prefixed mechanism
-2026-02-27 d462fc9c5 feat(v7): implement stdout log redirection with early buffer replay
-2026-02-26 97038c5bf nshell: implement viewport overflow, SIGWINCH resize, and terminal restore
-2026-02-24 3e2f1580d data zenka: shm-self-test command and constant extraction
-2026-02-24 0c61905bc data.mount.shm: add lock.unlock module and fix init_code return value
-2026-02-23 4e288fd9d fix data hook system - use @ARG for non-cmd modules
-2026-02-23 6df812e7f implement data zenka core hash resolution
-2026-02-22 1c205b585 base.cmd.list: add optional regex pattern filter parameter
-2026-02-22 83fbd7e9c models: integrate chat with coding's memory-aware inference pipeline
-2026-02-22 7a99e33e4 inference: memory-aware dependency-based server spawning
-2026-02-21 91697c028 Add coding task queue with deferred replies
-2026-02-21 30f4a18cd implemented [ timer based ] $data{'source'}->%* hash clean-up
-2026-02-21 071df19fb Add memory-aware spawning, state persistence, and on-demand zenki config
-2026-02-21 b97d0a054 Add coding zenka backend adapter and update integration guide
-2026-02-20 96f083595 Implement models.memory persistent storage with collision-free checksums
-2026-02-20 6059a50bc Implement model backend routing for multi-model chat
-2026-02-20 7e7c25b0f Add models chat and request commands to access permissions
-2026-02-18 cdf5c140b Fix: non-blocking socket writes to prevent event loop stall
-2026-02-17 b36a8baa7 Add v7.restart_own-zenka and httpsd deferred SSL socket activation
-2026-02-17 e77f5d9d1 Implement certificate directory setup in httpsd and letsencr init
-2026-02-15 4128e2613 Fix ACME certificate download JSON parsing error
-2026-02-15 c831f06ac Create dedicated ACME challenge file handler and fix routing
-2026-02-15 6b8c47dd1 Implement complete ACME HTTP-01 challenge workflow with vhost management
-2026-02-15 174ff98ba Implement httpd vhost management: add, delete, index creation
-2026-02-15 c059da601 Add base.file.remove_tree utility module
-2026-02-13 3d78333c1 Fix: Replace anonymous subroutines with generic temp file cleanup callback
-2026-02-12 febd05975 Implement async reply-id pattern for ACME challenge coordination
-2026-02-12 48ca29a79 Refactor renewal check to use proper async pattern with handlers
-2026-02-12 dffdce4a8 Add base.file.path.validate for path traversal prevention
-2026-02-11 6353b2af9 Add RS256 (RSA 2048-bit) support for ACME account registration
-2026-02-11 42340fca8 Rename algorithm query command to fit regex pattern
-2026-02-11 0fdffd201 Add command to query ACME server for supported signature algorithms
-2026-02-11 97eaa0899 Fix ACME POST blocking and improve logging visibility
-2026-02-10 6e592f797 implement HTTPSD-Letsencr graceful startup coordination
+2026-03-19 c06f8a2e3 add httpsd request capture infrastructure for crash diagnosis
+2026-03-18 d71d92458 fix(p7_load_code): initial namespace loads no longer use staging swap
+2026-03-17 e9979f767 Add task zenka scaffold: startup config, access wiring, yaml task loader
+2026-03-16 15f279276 Extract inline subs from coding.task.intake into separate modules
+2026-03-15 2ba819b10 extract .pm subdirectory modules into flat P7 modules
+2026-03-15 cae2c35d6 Add decoder.cmd.replay for level-6-D3 buffer readback
+2026-03-15 2f20bdc94 Add decoder.cmd.reset and decoder.cmd.stream-list
+2026-03-15 509c9026f Add decoder.cmd.inject for manual bit string injection
+2026-03-15 d8cce58c5 Add decoder.cmd.show-level5 and show-level6 readback commands
+2026-03-15 b4034f071 Tier 4: D13-collection decode with float-division entropy preservation
+2026-03-15 8e1e35d2f Add decoder.cmd.harmony with command access configuration
+2026-03-15 0d401ad37 Tier 3: Decoder Level 6 — Linguistic Projection
+2026-03-12 f4a45aa36 feat: Decoder inspection surface — per-stream isolation and query commands
+2026-03-12 55024cd97 feat: Add async job system to decoder zenka — reduce-entropy command
+2026-03-11 5e0c3f4a1 feat: cube-13 zulum-13 entropy switch matrix with jump routing
+2026-03-10 c1e7fd870 Wire zulum entropy streams to decoder via cube-routed commands
+2026-03-10 4a9541791 feat: Add zulum.cmd.step for testing entropy generation
+2026-03-10 84e693e8f feat: lm-vision HTTP backend + backend selection (Tier 4.2)
+2026-03-10 eab455a35 feat: INDEXCUBE Phase 2 - routing stack primitives
+2026-03-10 3d397ae03 feat: Inline file expansion for multi-model chat (Tier 3.2)
+2026-03-10 4460c8b1a feat: Zulum + Decoder Phase 1 - 13 entropy streams and level-5 accumulator
+2026-03-10 2d7f3b22f fix+maint: Fix AMOS7::CHKSUM init race and clean up kimi's unsigned commits
+2026-03-08 d5626820e style: Update base callbacks and subroutine list
+2026-03-07 4682194e4 Add GGUF model discovery with metadata extraction and registry improvements
+2026-03-04 31446b23f feat: integrate dynamic context templates into models backends
+2026-03-04 551da215b fix(work): clean up work zenka — standalone-only, remove obsolete cmd modules
+2026-03-03 9934f82be web: add template caching, content scanning, skin/menu modules
+2026-03-02 13f338b2e kimi: add kimi-web websocket client zenka
+2026-03-01 a217f2dce feat(weather): full access config cleanup with acc_str.prefixed mechanism
+2026-02-27 6964e4d44 feat(v7): implement stdout log redirection with early buffer replay
+2026-02-26 5815fb073 nshell: implement viewport overflow, SIGWINCH resize, and terminal restore
+2026-02-24 3c33c215c data zenka: shm-self-test command and constant extraction
+2026-02-24 b93637c82 data.mount.shm: add lock.unlock module and fix init_code return value
+2026-02-23 c2c59ba5a fix data hook system - use @ARG for non-cmd modules
+2026-02-23 5831ae2fb implement data zenka core hash resolution
+2026-02-22 45375df17 base.cmd.list: add optional regex pattern filter parameter
+2026-02-22 91c7528b0 models: integrate chat with coding's memory-aware inference pipeline
+2026-02-22 e80f291f9 inference: memory-aware dependency-based server spawning
+2026-02-21 02c8bde38 Add coding task queue with deferred replies
+2026-02-21 197380420 implemented [ timer based ] $data{'source'}->%* hash clean-up
+2026-02-21 3d1fe666d Add memory-aware spawning, state persistence, and on-demand zenki config
+2026-02-21 04dc661a6 Add coding zenka backend adapter and update integration guide
+2026-02-20 d32a8c085 Implement models.memory persistent storage with collision-free checksums
+2026-02-20 105ea9b90 Implement model backend routing for multi-model chat
+2026-02-20 ee984770b Add models chat and request commands to access permissions
+2026-02-18 2ebef3eb0 Fix: non-blocking socket writes to prevent event loop stall
+2026-02-17 16629522c Add v7.restart_own-zenka and httpsd deferred SSL socket activation
+2026-02-17 caf39e5c7 Implement certificate directory setup in httpsd and letsencr init
+2026-02-15 c309cf506 Fix ACME certificate download JSON parsing error
+2026-02-15 9d7e77a25 Create dedicated ACME challenge file handler and fix routing
+2026-02-15 35cd167be Implement complete ACME HTTP-01 challenge workflow with vhost management
+2026-02-15 8c584d907 Implement httpd vhost management: add, delete, index creation
+2026-02-15 adb4d616f Add base.file.remove_tree utility module
+2026-02-13 0f0c140d5 Fix: Replace anonymous subroutines with generic temp file cleanup callback
+2026-02-12 68bc48570 Implement async reply-id pattern for ACME challenge coordination
+2026-02-12 0cec18289 Refactor renewal check to use proper async pattern with handlers
+2026-02-12 fdfbc8de2 Add base.file.path.validate for path traversal prevention
+2026-02-11 9d50d082c Add RS256 (RSA 2048-bit) support for ACME account registration
+2026-02-11 f29b74f87 Rename algorithm query command to fit regex pattern
+2026-02-11 111d7b978 Add command to query ACME server for supported signature algorithms
+2026-02-11 44970f03e Fix ACME POST blocking and improve logging visibility
+2026-02-10 78cce6b34 implement HTTPSD-Letsencr graceful startup coordination
 2026-02-01 060c0d0f7 Implement terminal output escaping with hybrid named/octal escape encoding
 2026-02-01 5869694d4 Refactor hook interface: extract operations, eliminate redundancy
 2026-01-30 d9d97cc6a Implement Ctrl+O debug infrastructure with debug-input buffer
@@ -826,40 +826,40 @@
 
 ## bulk/mechanical commits touching this module [ 52, flagged, excluded above ] ##
 
-2026-09-02 bd98e1c17 [count=703] v7 -> v7-zenki: rename the management zenka's identity across src, cfg, and core binary
-2026-09-01 0e33c0ae7 [count=139] debian: pause/resume ondemand idle-timer across apt installs, re-enable heartbeat
-2026-09-01 856947101 [count=140] v7: route apt-installs through jobqueue bridge, fix binary-dependency gap, consolidate known_dependencies access
-2026-08-24 15309a68a [count=142] add v7.idle-term: let heartbeat-enabled on-demand zenki idle-timeout cleanly
-2026-08-20 62c6b7341 [count=11428] rename modules/ to src/, fix source signing error-state propagation
-2026-08-12 12cd91fcb [count=129] session subnames: '<user>[<subname>]' for unix auth, shared with zenka auth
-2026-08-10 47e5feef5 [count=128] link-upgrade: apply negotiated encryption to actual traffic (was handshake-only)
-2026-08-10 3aa86b073 [count=132] base.log.forced_console: fix v7 verify-instance handshake under silenced console
-2026-07-24 f7e067f04 [count=119] base: consolidate show-access onto inline-nested, retire kv variants
-2026-07-23 4e362bc42 [count=121] format: move inline-nested under base.* for default zenki availability
-2026-07-22 6d8b37cc3 [count=140] zenka: configurable bare-name routing modes + admin override + STRM guard
-2026-07-20 c3f58de03 [count=268] base: add undef-sub detection/reporting + auth.client split for cross-namespace calls
-2026-07-09 bd29a6939 [count=120] ondemand: watchdog reconcile for stuck starting-flag race, restart-disabled give-up tolerance
-2026-06-26 20cef492f [count=163] powershell: AMOS7::SHM pointer-stream grants, hook flush/keepalive + menu distance-aware opacity
-2026-06-15 fc3a043e2 [count=217] tile: rename tile-groups zenka to tile across config and modules
-2026-06-15 d54009f08 [count=231] refactor: rename credential_fabric zenka to cred-mesh
-2026-06-13 2e2f48699 [count=114] feat: ui.caller.security-level resolver + base.session.user helper
-2026-06-13 6559e43f8 [count=112] feat: split base.handler.command into reply-dispatch + routing modules
-2026-06-11 ef01e0dd9 [count=119] feat: ui-show security-levels — field map, level filtering, caller resolver
-2026-06-11 d804be206 [count=138] refactor: extract base.ui.* into ui.* namespace
-2026-06-10 959442fae [count=137] feat: dep-graph self-healing whitelist + console-fold-tree design
-2026-05-19 eb1233654 [count=110] refactor: move time commands to cube.cmd.*; add cube.cmd.delta-time; leaner per-zenka whitelists
-2026-05-16 2fa11a6c2 [count=131] refactor: rename base.bmw384.* → route.bmw384.* namespace
-2026-05-16 cfc24e014 [count=110] feat: BMW384 route discovery + visual wheel + kimi result history + task-file deferred return
-2026-05-16 2bf3e56bf [count=119] feat: BMW384 field geometry primitives + kimi.task-file command
-2026-05-14 6d66f6978 [count=157] jobsite: rename zenka from job-site-scan — cleaner namespace across all 34 modules, config, /etc/, /var/
-2026-04-20 19192d851 [count=121] base : stream wrapper API + STRM receiver fix + mod-test stream test commands
-2026-04-19 199f0d643 [count=111] base : STRM-SIZE stream-cancel infrastructure + cube capability-path fixes
-2026-03-30 38d754c14 [count=111] Extract 18 inline subs, fix compilation errors, remove .disabled modules
-2026-03-27 c84b22b27 [count=145] 9P (Plan 9) protocol server implementation for amos-term buffer export
-2026-03-17 a727d4946 [count=114] v7 concurrent restart + ext-bin exit code + cmd descr fix
-2026-03-16 d8c1388de [count=109] fix: signature endline state encoding — correct state 7/6 for 0-newline and empty bodies
-2026-03-15 5d6f56faf [count=109] fix: runtime module loading, whitelist reload, sig_NUM53 devmod, .\7 ordering
-2026-03-02 9ab53cb02 [count=188] base: swap protocol-7 namespace via pre_init + fix export check
+2026-09-02 b81fa7d10 [count=703] v7 -> v7-zenki: rename the management zenka's identity across src, cfg, and core binary
+2026-09-01 a1ec3463f [count=139] debian: pause/resume ondemand idle-timer across apt installs, re-enable heartbeat
+2026-09-01 16b70d4b0 [count=140] v7: route apt-installs through jobqueue bridge, fix binary-dependency gap, consolidate known_dependencies access
+2026-08-24 8b0d47aaa [count=142] add v7.idle-term: let heartbeat-enabled on-demand zenki idle-timeout cleanly
+2026-08-20 f0cbcb805 [count=11428] rename modules/ to src/, fix source signing error-state propagation
+2026-08-12 6964aea4b [count=129] session subnames: '<user>[<subname>]' for unix auth, shared with zenka auth
+2026-08-10 940b0418f [count=128] link-upgrade: apply negotiated encryption to actual traffic (was handshake-only)
+2026-08-10 c86f01b4a [count=132] base.log.forced_console: fix v7 verify-instance handshake under silenced console
+2026-07-24 525a53bfb [count=119] base: consolidate show-access onto inline-nested, retire kv variants
+2026-07-23 176449c06 [count=121] format: move inline-nested under base.* for default zenki availability
+2026-07-22 2b5803af3 [count=140] zenka: configurable bare-name routing modes + admin override + STRM guard
+2026-07-20 9039e0f02 [count=268] base: add undef-sub detection/reporting + auth.client split for cross-namespace calls
+2026-07-09 dfa2b34aa [count=120] ondemand: watchdog reconcile for stuck starting-flag race, restart-disabled give-up tolerance
+2026-06-26 5fd450e9e [count=163] powershell: AMOS7::SHM pointer-stream grants, hook flush/keepalive + menu distance-aware opacity
+2026-06-15 89d8b4883 [count=217] tile: rename tile-groups zenka to tile across config and modules
+2026-06-15 fd30e237d [count=231] refactor: rename credential_fabric zenka to cred-mesh
+2026-06-13 8115b508e [count=114] feat: ui.caller.security-level resolver + base.session.user helper
+2026-06-13 963d72bd3 [count=112] feat: split base.handler.command into reply-dispatch + routing modules
+2026-06-11 7736ba75f [count=119] feat: ui-show security-levels — field map, level filtering, caller resolver
+2026-06-11 6034005fa [count=138] refactor: extract base.ui.* into ui.* namespace
+2026-06-10 3e5a8507c [count=137] feat: dep-graph self-healing whitelist + console-fold-tree design
+2026-05-19 0821bfe10 [count=110] refactor: move time commands to cube.cmd.*; add cube.cmd.delta-time; leaner per-zenka whitelists
+2026-05-16 a7a805389 [count=131] refactor: rename base.bmw384.* → route.bmw384.* namespace
+2026-05-16 44877f73f [count=110] feat: BMW384 route discovery + visual wheel + kimi result history + task-file deferred return
+2026-05-16 ef43a7c3e [count=119] feat: BMW384 field geometry primitives + kimi.task-file command
+2026-05-14 0b84906ab [count=157] jobsite: rename zenka from job-site-scan — cleaner namespace across all 34 modules, config, /etc/, /var/
+2026-04-20 e41fb024f [count=121] base : stream wrapper API + STRM receiver fix + mod-test stream test commands
+2026-04-19 4d678a19c [count=111] base : STRM-SIZE stream-cancel infrastructure + cube capability-path fixes
+2026-03-30 a86c83591 [count=111] Extract 18 inline subs, fix compilation errors, remove .disabled modules
+2026-03-27 997881001 [count=145] 9P (Plan 9) protocol server implementation for amos-term buffer export
+2026-03-17 39931cf26 [count=114] v7 concurrent restart + ext-bin exit code + cmd descr fix
+2026-03-16 fa0f10abc [count=109] fix: signature endline state encoding — correct state 7/6 for 0-newline and empty bodies
+2026-03-15 255ad7e3c [count=109] fix: runtime module loading, whitelist reload, sig_NUM53 devmod, .\7 ordering
+2026-03-02 eeab6cbba [count=188] base: swap protocol-7 namespace via pre_init + fix export check
 2026-01-29 8708ca671 [count=112] Add ownership and permission handling to dependency registration modules
 2026-01-07 9b67fe346 [count=127] zenka 'image-batch' renamed to 'batch-vision'
 2026-01-07 1f00ffc93 [count=105] renamed zenka again : 'llama-vision' --> 'lm-vision'
@@ -879,8 +879,8 @@
 2021-08-20 dbcad95ae [count=1802] changed syntax of file headers and protocol banner [ displaying version ]
 2021-07-28 5f3993991 [count=151] renamed module 'debug' to 'devmod'
 
-#,,,,,,.,,,,,,.,.,.,.,,,.,.,.,,..,...,.,.,,.,,..,,...,...,,..,.,,,..,,,,,,,.,,
-#KGJRB5KCREJIMDAJJCDF4GUMWCJXQM644W3OFJXL6O5AGL53YJCHBX4K5GRTADAMW5S4X2U3WAD64
-#\\\|TCWVE2GD2RNKXXR4EIHNTPFWVDMX6EIVMN3KZSVFIMFVHFCSDQP \ / AMOS7 \ YOURUM ::
-#\[7]HLWRJD6JBFTGTL6EPC75OCOO3YLO5UB6O6EL7BQDO23PV6ANCEBI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,,..,..,,,.,,,,,,.,.,,..,...,..,,...,...,.,.,,.,,.,,,.,.,,..,
+#TBOJ6BXNBKG3L6XFZYMANMY4SBWQ7EFPDQB7GZ4JGTEVZZ45SOR2MEXZ5XHA5HOGFJN574HVTR6AQ
+#\\\|HWSOT43PMED2THMFI2SVYDLP37YO5RBD3KQCVAMWUS6D7Z7BBPU \ / AMOS7 \ YOURUM ::
+#\[7]WTGK2227S4G7K5I37HZY2Q2XM66M4PUL3QXJYYLBZCAMAIO7TABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

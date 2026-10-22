@@ -163,7 +163,7 @@ my $ok_cpu_1 = $code{'base.dependency.ok'}->($root_cpu);
 ok( ( not $ok_cpu_1 ), 'dependency.ok(root_cpu) FALSE [ unresolved ]' );
 ok( scalar(@send_calls) == 0,
     'dependency.ok is pure -- the resolve hook never '
-        . 'fires there [ regression c8cd075d0, fixed 2026-09-30 ]'
+        . 'fires there [ regression 4b905ee4c, fixed 2026-09-30 ]'
 );
 $code{'base.dependency.ok_resolve'}->($root_cpu);
 ok( scalar(@send_calls) == 1, 'exactly one send fired' );
@@ -434,8 +434,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,.,.,...,..,,,.,,.,.,,,,,,..,,..,,.,,...,..,,...,..,,..,,...,,..,,.,,,,.,
-#BK45CAGQULPYRHMYGXOVZ6HUYB7I43DOI7JHQVTOKE2AZKORJUP7CMKJIV672UO6ER6PWV4R4X2XI
-#\\\|2HVG2YNERU5MNPAEAONDDAJ66UTZTS2AGRLZIA5UTEH2F4Q2RCF \ / AMOS7 \ YOURUM ::
-#\[7]6QZVOKP2GHJMSH3GJAKEPZN372ISVEKT6QTHE52JEKZK2FMDN6CQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,..,,..,,..,,,.,,,,,,,,.,,,.,..,,...,..,,...,,,,,,.,,.,,,,,.,
+#SYWPAXXU467LWGBQ3LPKMDVM3ZHFJ2FMWFNK7NBYD7IKE2ZPENONRAJMYDEGQLFVL7PJHYX65DAPK
+#\\\|2DDIFUGGWL4BGLWMWV6V733M6AELUNF6H4P7BCJ266GRVHSLIJS \ / AMOS7 \ YOURUM ::
+#\[7]MVJ67NX5LT6GBGIZ2YKQZLQCWQIOJPL2ZFJ7F3QHO43A5HRLDMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

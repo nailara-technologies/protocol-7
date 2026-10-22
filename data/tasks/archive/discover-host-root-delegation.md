@@ -1,6 +1,6 @@
 # discover : host packets carry the host-root delegation [ web session ]
 
-**base commit : `b00126000`** [ pushed ]. this task needs NO running
+**base commit : `51492d62f`** [ pushed ]. this task needs NO running
 backend : implement against the code + spec, test with stubs only.
 
 ## context [ read first ]
@@ -89,8 +89,8 @@ packet ; host_details output. use the spec's test vector keys.
 `data/tasks/discover-host-root-delegation.report.md` : files changed,
 what was retired \ kept + why, test output, open questions.
 
-#,,.,,.,.,.,,,,,,,..,,.,.,.,.,...,,.,,.,,,,.,,..,,...,.,.,,..,.,.,,.,,.,.,.,.,
-#QHQPAWXQCY7KAQTNV3X65TZR2NXPR3B6OOUE24UXLO6QAS2XWBQ6RZM45FAAF5VAJ6BFWDQBZRVIM
-#\\\|JWEVHKT3GTRT3NJZR2ZV3FEMMM4UMHYZOQYH5F4JGQ2YLFDNGTB \ / AMOS7 \ YOURUM ::
-#\[7]TU5ZWOSSJER5MEXMWTJ4T4DR5P5IHOLBDKS3FZ3PTASIHOW76OAA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,.,.,,,.,.,.,..,,,.,,,,.,.,.,..,,...,.,.,..,,.,,,,,,,,..,...,
+#CG3NAUDDSQYVQTG2ZH7YMG7JGJUUKCXEWKNKAGILO52SNEG34ESRF6CJF3KL2MELEYN5DGTO54O5U
+#\\\|APJDZ6SG43WH7AFKT6SCLFZX5X5OVMZC5SI75SSGRZSVSOKQMRP \ / AMOS7 \ YOURUM ::
+#\[7]BPUVM3D7P43Y5VZHXLO5CUVDOMB26UTBI6CHLMZEWA3XW4IRF4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

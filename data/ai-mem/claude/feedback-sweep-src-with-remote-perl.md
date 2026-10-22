@@ -8,7 +8,7 @@ metadata:
 2026-10-08 : `trust.statement` \ `auth.binding.message` used `{1,65535}` ; perl 5.36 [ a remote ]
 caps {n,m} at 65534 [ 32766 below 5.30 ] and refuses to compile the module, 5.42 [ dev host ]
 accepts it. every local suite passed, the remote had no delegation [ .dlg ] and broken
-auth-keypair logins. fixed `0031fb73d`.
+auth-keypair logins. fixed `cc089d8e2`.
 
 **Why:** the test suites only ever run under the dev host's perl ; version-dependent compile
 failures are invisible here and only show as "module not loaded" downstream on the remote.
@@ -26,8 +26,8 @@ failures are invisible here and only show as "module not loaded" downstream on t
 - after a remote source update, still check its zenka STDOUT log
   [ `/dev/shm/.7/STDOUT/*`, lines without "no errors" ].
 
-#,,..,...,..,,,..,.,,,.,.,..,,.,,,.,,,.,.,,.,,..,,...,...,.,,,,,,,..,,.,.,.,,,
-#XZADN7QLUALA45SWHEAO4YCBY5ODUFHVMCBFQ6KBOAU7E66GTIIVQ3OESEONUBD2NGLQFEM5UZQLI
-#\\\|3LYBATGPW2ZRQITNFE4UVEZ7LVAN7D636BH5SX4QP4AQA5EFSL5 \ / AMOS7 \ YOURUM ::
-#\[7]HDWVTUOLTS7U7WPR7EQAVXXRBYP4KW3JDH53TGGKS6ILVTXXDWDY 7  DATA SIGNATURE ::
+#,,,.,...,..,,,.,,,.,,,,.,...,.,,,,,,,...,,,.,..,,...,...,,,,,.,,,,..,,..,,..,
+#5SV6KA3VG5WGNKTBY7WIJEBKDJU7FZHJDNJA5Y4YJ5673KMXGAETWT2KJ3LJ4H55W2YJXHCHJAY2K
+#\\\|BRLODLKUL47I7LIOGRZK3LQJIRZTO67CAQ55GJQN7ZCXVUJYLES \ / AMOS7 \ YOURUM ::
+#\[7]VBVOT4F55G2MY25CX4I6TBAB25U7MYAFD6ODKDHARAEGBIETXYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

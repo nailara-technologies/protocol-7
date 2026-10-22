@@ -1,38 +1,38 @@
 ---
 name: project-2026-10-22-session-handover-j5f-multiline-files
-description: START HERE -- session 2026-10-22 [ evening ] handover [ last 18211bbe6, all pushed ] : J5F multi-line args in p7c \ p-7-r + coding.input.decode, multi-line parser fixes, message templates ; designs FILES-ZENKA [ files \ file-view, N7FS ] and SIGNED-STATEMENTS [ v1 signed lists ] in base, owner answers recorded ; todos FKS VWF
+description: START HERE -- session 2026-10-22 [ evening ] handover [ last adcff4bee, all pushed ] : J5F multi-line args in p7c \ p-7-r + coding.input.decode, multi-line parser fixes, message templates ; designs FILES-ZENKA [ files \ file-view, N7FS ] and SIGNED-STATEMENTS [ v1 signed lists ] in base, owner answers recorded ; todos FKS VWF
 metadata:
   type: project
 ---
 
 previous : [[project-2026-10-22-session-handover-remote-fetch-link]] [ its
 open items 1, 2, 4, 6 still stand ; item 3 : all six cloud docs landed in
-7120e0197 ]. budget at the end : claude 7d ~25 %, kimi 7d ~8 %, cloud
+3a06655c4 ]. budget at the end : claude 7d ~25 %, kimi 7d ~8 %, cloud
 credits 22 of 100 [ expire 2026-11-05 ; after that cloud sessions draw
 the regular session budget ].
 
 ## landed [ pushed, live-tested on this host only ]
 
-- 7c3231a56 J5F : p7c \ p-7-r send an argument with a linebreak in
+- a7f46506a J5F : p7c \ p-7-r send an argument with a linebreak in
   MULTI-LINE mode [ '<cmd>+', empty header, args as body, '.' -- the mode
   existed, B32 was not needed ] ; dot-stuffing ONLY for lines of dots
   alone [ hand-typed '.foo' passes ; owner : compat with old remotes is
   no issue, update them in a loop -- pick the best form ]
-- 7c3231a56 base.handler.command : capture NON-GREEDY [ a pipelined 2nd
+- a7f46506a base.handler.command : capture NON-GREEDY [ a pipelined 2nd
   packet was swallowed ] ; inner strip + incomplete check take the
   capture's strict head [ replies frame with SIZE \ STRM, never '+' ;
   '(id)cmd' without a blank is the route form ]
-- 7c3231a56 coding.input.decode : plain \ B32: \ :file: , no base32
+- a7f46506a coding.input.decode : plain \ B32: \ :file: , no base32
   guessing, :file: repo tree only [ realpath, tree check before existence,
   256K \ summarize 4M ] ; submit \ summarize-context \ ask-reply use it ;
   summarize-context path= confined ; mcp-server-p7 summarize-file reads
   client-side and sends :B32: [ active after an MCP server restart ]
-- 90da4d578 a refused '+' head drops its packet [ stripped to its '.'
+- 198c82f6a a refused '+' head drops its packet [ stripped to its '.'
   line, else session ignore_ml_packet until it arrives ] -- before, its
   body ran as single-line commands ; replies \ logs as templates A6ZTSCY
   KA4I2BY OAZPKOI H7KA5EY M2MLE6A ; param syntax reply APPENDED [ '='
   overwrote waiting replies ]
-- bd32643ca strip re-sign [ kimi left a signature fragment ]
+- c98d323ba strip re-sign [ kimi left a signature fragment ]
 - todo J5F : PROGRESS line, remaining items listed there
 
 ## deploy notes
@@ -45,7 +45,7 @@ the regular session budget ].
 - devmod for tests : `p7c v7-zenki.devmod-enable coding` [ SIGNUM53, no
   restart ] -> `coding.receive-multiline` echoes ; `devmod-clear` after
 
-## design : files + file-view [ 5df195c78, answers 49a2f5d3e ]
+## design : files + file-view [ afb1ca66f, answers ae50788b9 ]
 
 - data/md/design/FILES-ZENKA.md [ in base, dev branch deleted ] : `files`
   [ name decided : `file.*` is the base.file.* alias space ] holds read
@@ -69,7 +69,7 @@ the regular session budget ].
   lock_memory, signed permissions, fuse ], storage [ P7REF, checksum
   plugins, 9P client ], plan-9 [ 9P server ], keys, index, fs, udev
 
-## design : signed statements [ 9d045c003, answers 18211bbe6 ]
+## design : signed statements [ 8e0260ef1, answers adcff4bee ]
 
 - data/md/design/SIGNED-STATEMENTS.md : the stalled 'clean signature
   trees' question [ format + location ]. v1 = text + the AMOS7 footer,
@@ -99,8 +99,8 @@ the regular session budget ].
   storage, plan-9 until the owner pointed ] ; verify a design doc's claims
   about code before relying on them [ the pre-commit claim was wrong ]
 
-#,,,,,.,,,.,,,,.,,...,...,,.,,.,.,.,,,,,,,.,,,..,,...,...,...,,..,.,.,..,,,.,,
-#Z5HCJLOCU2AFV2GKFNVD2EI66MNDH4J4CV6PL5DTMGEOKR7FZN6IA4TLG3GMUYJWMRI7LU5T3347W
-#\\\|MSVWXDKNJCURTU26XJGHLLZ3PSWH2HTOBZJIZ7WYAOORWEJ52BL \ / AMOS7 \ YOURUM ::
-#\[7]IC5WZXOEZ4JA2STAI7NLAZQQNOPQBGTLWMHFPMIJENJI5MCAKMCI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,..,..,,.,.,..,,,,,,..,,.,.,,,,,..,,...,...,.,.,,..,,,,,.,.,,,,,
+#2X4XGB4PSOCE4FOAMK6V4SF7NSJYLQBQDKRM7PAZFXG2HD32T4ASEKFC4UEUW4MO7334OPF6FP57M
+#\\\|54LGRXBGKYTHBVHVQZIWDGEQALRFQ665EM3F3KI334YXOOBVKPR \ / AMOS7 \ YOURUM ::
+#\[7]Q4N55XGOHRYZMYJGDTTZN6UK4YNWGKW4HBOBEGXO2VRNMQU3FUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

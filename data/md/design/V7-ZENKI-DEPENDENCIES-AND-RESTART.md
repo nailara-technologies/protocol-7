@@ -12,9 +12,9 @@ they share one question : who restarts what, and when must nothing be
 restarted at all. part B's drain uses part A's reverse order and its
 'refused with a reason' answers.
 
-## where things stand [ base 4df3fad10 ]
+## where things stand [ base 07239e1f7 ]
 
-part 1 of B4C landed in `39e0342b6` :
+part 1 of B4C landed in `e12d9b6ac` :
 
 - start.cfg key `optional_dependencies` : counts like `dependencies`
   where the zenka is not disabled on this host, left out where it is
@@ -255,7 +255,7 @@ execve keeps the pid :
 - it works without any supervisor -- a restart-spawner process would
   become a new main pid, so there is none
 - the new image reads current source, `host.cfg` and the profile fresh :
-  no reload ordering issues [ the overlay order fixed in `4df3fad10`
+  no reload ordering issues [ the overlay order fixed in `07239e1f7`
   is the start-up order by construction ]
 
 ### B1 : sequence
@@ -501,7 +501,7 @@ display ; `backend-restart` under systemd [ `systemctl show -p MainPID
 ## references
 
 - todos B4C, FEQ : `data/yaml/todo/base.yaml`
-- part 1 : commit `39e0342b6`
+- part 1 : commit `e12d9b6ac`
 - `src/v7-zenki.zenka.get_dependencies`, `src/v7-zenki.set_up_zenka_dependencies`,
   `src/v7-zenki.zenka.cmd.start`, `src/v7-zenki.zenka.start`,
   `src/v7-zenki.handler.zenka_status`, `src/v7-zenki.resolve.object.zenka`,
@@ -517,8 +517,8 @@ display ; `backend-restart` under systemd [ `systemctl show -p MainPID
   `cfg/zenki/mpv/start.cfg`, `data/lib-path/systemd/system/Protocol-7.service`
 - `bin/test-scripts/test-v7-zenki-optional-dependencies.pl`
 
-#,,..,...,,.,,..,,,.,,,.,,.,,,..,,,.,,,.,,,,.,..,,...,...,..,,...,...,,,,,,,.,
-#DYWFQLEB6PSRPJERGUZK6RZJDMNCOUEMAOABURW4C5YGBUQFQRQRJHD6V5KKFQ7KS6SWRZJT4QFZ4
-#\\\|ODGG7AVFCVOEZIYOI62QNUBXKLVF3WEKEIVCYKQOQWLUUK237HP \ / AMOS7 \ YOURUM ::
-#\[7]453P7KIODOFQ3EGKHRJ25BI3TZBJDLEKGL3W3YA5FHDFLGSOCUAY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,.,.,,.,,,.,,.,.,,.,,.,,,,..,..,,...,...,..,,...,,..,.,.,,,.,
+#2WPMLPRTNJ7XL75GYH2KMMARFOLXH2UTDIUBGWGOM5WP5ZNREKHI7ZUE63OL35VEGORKES6MUFMDM
+#\\\|QGBL4RX3LP5L67VQICHZAL3HIN3W3SUXAQJ257YDRB4PVPWDZP7 \ / AMOS7 \ YOURUM ::
+#\[7]QX3MZUEYWLLGKZSTIMIBMZ63OKGOQ2BFLEGOC6XCIAAV5SKPIKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

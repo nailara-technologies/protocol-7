@@ -116,12 +116,12 @@ caught by `bin/format-code -c` or diff review**:
 
 Live-verified via `v7-zenki.reload` (clean) and an `X-11` zenka restart
 (clean, `openbox` restarted with it, no regression). Committed
-`acc8cf1ad`. The `qsort`/`bsearch` List::MoreUtils warning candidate was
+`cb4108729`. The `qsort`/`bsearch` List::MoreUtils warning candidate was
 deliberately NOT added to the blacklist -- root-causing it remains
 preferred and stays open, per this task's own out-of-scope note.
 
-#,,.,,,,,,...,...,.,.,.,,,,.,,...,,,,,.,,,...,..,,...,...,..,,...,..,,,..,,,,,
-#OCQFDN7ER33Z3CJDLFSDHCG4CZ2NUSNOZYJUB2WJOPA6NANK73LKP7QRRA44SRKK6VL44NRIO46WG
-#\\\|WDPBXSC4YT2SXKEFBPRVYSO2TELEPMIZNS5ZH3RAZ4L5NUCVIB7 \ / AMOS7 \ YOURUM ::
-#\[7]Z7NE3TYI33JCHDQ6HIS2DKAERXUDWLXSL3Y5X2ODVLONASQEYWCI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,,..,,.,,,.,,.,.,,,.,,..,,,,,..,,...,...,,..,..,,.,,,,,,,,..,
+#GMG3ACQGDPJIDKELSWESYO6TCDS7ERIYGPH2KS2ETC2OLJ7H6H5NPLNJDGQAMLXY4REIN5TOPRJSM
+#\\\|I2HTTLQ634S7XQDHBIRMMS5HLJ6SSIV5GF6CX7QWWVM5XGHZ7QJ \ / AMOS7 \ YOURUM ::
+#\[7]BUFH5ZE7WWWU7YCRCMSGJVLM7VVBCWDHRRIOQMFYA2DNQTB6J2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = task: formal state machine + control commands for test iteration
-# descr = coding.model-sweep [ already implemented, `f23a68c44`/`aca4730f8` --
+# descr = coding.model-sweep [ already implemented, `0d5e09684`/`f8de24dc3` --
 #         see "already shipped" below ] currently has no pause/cancel, no
 #         visible "this is actively crash-looping" status, and no
 #         distinction between an infra-level failure and a genuine
@@ -52,7 +52,7 @@ to the design doc's description of them.
    cutoff (`:87-97`) never fired because `coding.spawn_inference_server`
    replaced `<coding.inference_servers>->{$backend}` wholesale on every
    spawn [ including crash-triggered respawns ], silently dropping
-   `restart_count` each time. fixed and landed same session (`34a5cddf2`)
+   `restart_count` each time. fixed and landed same session (`40d62a4c2`)
    -- not part of this task's scope, already done. **but for 30 minutes,
    neither `coding.model-sweep-status` nor `coding.model-status` showed
    any sign this was happening** -- both backends read `idle` the
@@ -138,7 +138,7 @@ actually true.
 
 **`coding.model-sweep-resume <backend> [filter] [:force:]`** --
 distinct from `cmd.model-sweep`'s existing auto-resume-on-restart path
-(`:66-114`, landed `aca4730f8`): that path only fires when
+(`:66-114`, landed `f8de24dc3`): that path only fires when
 `<coding.model_sweep_state>->{$backend}` is undefined (post-restart,
 in-memory state gone). a `paused` sweep still has that in-memory state
 defined, so plain `p7c coding.model-sweep cpu` against it hits the
@@ -148,7 +148,7 @@ class this task targets. fix required alongside the new resume
 command: that refusal message must distinguish `running` from
 `paused` and, when `paused`, point at `model-sweep-resume` instead of
 just refusing. resume re-arms the timer from the persisted cursor.
-same filter-matching rule `aca4730f8` already established for the
+same filter-matching rule `f8de24dc3` already established for the
 restart case: refuse on a filter mismatch. additionally: **refuse a
 resume when the persisted `state` is `paused` with a non-empty
 `paused_reason` (a circuit-breaker trip, see #4) unless `:force:` is
@@ -333,8 +333,8 @@ as `paused_reason` and surfaced verbatim by `model-sweep-status`
 - `coding-cpu-and-hybrid-offload-path.md` -- prior CPU-spawn work; the
   still-open segfault root cause lives here, not in this task.
 
-#,,.,,..,,.,,,,,.,,..,,,.,,..,,.,,,.,,.,,,..,,..,,...,...,,.,,,,.,.,,,,.,,...,
-#EJYQ5OEK3TPN46BTD4DRBEWHPBNN74J6RSFSU3WK2YQY7FNP3APZWP324RDJ6V76C4K3RDEGDL7US
-#\\\|AUQORHH4X3WYSAUOSJPH3DXDUGBSOSIFPJ72RG3XVBIOTAXGUPO \ / AMOS7 \ YOURUM ::
-#\[7]63A77FOWICF6LXF3LHK2V5BWGGS4EOOEWOYF6NDKTT3CEFPXRYCI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,.,.,.,,,,,,,,,.,.,,,..,,,..,..,,...,...,...,,,,,,,.,.,,,.,,,
+#67QZQ5OT5RXOZL2RAX7H2GKOYOJDRID3BO2AQDWSBN5RGLRS4XQCG7UMCTPRSHX46J5B7ZKDAGXH6
+#\\\|F4FHGR5NKINMLWADOZCAW37QDPYW7FGXRS3DPCI2VDG3KETIOA7 \ / AMOS7 \ YOURUM ::
+#\[7]SRHU5K7ZQU6DCSCMICTRO5P3GUSX3M4LXN4Z774UCBJLN6RPAKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-17-session-handover-installer-cloud
-description: START HERE -- session 2026-10-16..17 [ last 2faf44de7, pushed ] : deps line done [ core-perl frame, tracked, backend::debian, p7-install, p7-deps in house style + real exit codes ], cloud dispatch tool working [ pty, launch clone, push path ], 2 cloud sessions merged ; OPEN : step 4 root runner, step 7 debs + signed repo, legacy scripts, cloud tool polish
+description: START HERE -- session 2026-10-16..17 [ last 5c09e923b, pushed ] : deps line done [ core-perl frame, tracked, backend::debian, p7-install, p7-deps in house style + real exit codes ], cloud dispatch tool working [ pty, launch clone, push path ], 2 cloud sessions merged ; OPEN : step 4 root runner, step 7 debs + signed repo, legacy scripts, cloud tool polish
 metadata:
   type: project
 ---
@@ -8,27 +8,27 @@ metadata:
 follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
 1-7 ; this entry records what of them landed ].
 
-## landed [ all pushed, servers on c27b5a7b4 or later for p7-install ]
+## landed [ all pushed, servers on 4df0463c6 or later for p7-install ]
 
-- plan step 1 [ 2804a43ea ] : AMOS7::TERM::Frame core perl ; p7-deps \
+- plan step 1 [ 2a2663571 ] : AMOS7::TERM::Frame core perl ; p7-deps \
   AMOS7::deps load on core perl + data/lib-path/pm ; YAML::Tiny copied.
-- step 5 [ 527b46808, 62362bbc7 ] : AMOS7::deps::tracked [ dedup, atomic,
+- step 5 [ bb06337e4, 3062eb968 ] : AMOS7::deps::tracked [ dedup, atomic,
   DIRECTORY lock -- without it 8 writers lost 30 of 40 ] ; every install
   path records [ os-pkg, perlmod stage 2 ] ; sys-deps probes fresh.
-- step 3 [ 937216116 ] : AMOS7::deps::backend::debian, os_package
+- step 3 [ 640858520 ] : AMOS7::deps::backend::debian, os_package
   dispatches by family [ \A[a-z0-9_]+\z checked before require ],
   'manual' for unknown families, detect_os knows nixos.
 - steps 2 + 6 from cloud sessions [ squash-imported, reviewed ] :
-  bin/p7-install [ c27b5a7b4 ] ; p7-deps on the Frame helpers, '::' under
-  ':::[ section ]' [ 6cc72cbfb ] ; included profiles count in check,
-  list fits the terminal [ 2faf44de7 ]. style rules : see the previous
+  bin/p7-install [ 4df0463c6 ] ; p7-deps on the Frame helpers, '::' under
+  ':::[ section ]' [ 86f32f13d ] ; included profiles count in check,
+  list fits the terminal [ 5c09e923b ]. style rules : see the previous
   entry, step 6 DECIDED. p7-deps check \ install exit 1 on missing \
   failed [ owner : keep ] ; NO_COLOR only when non-empty [ p7-vault too ].
 - cloud tooling in bin/mcp-server-p7 : claude_cloud_dispatch \ _status \
   _result -- see [[reference-cloud-sessions-first-run]].
 - legacy install script : the unit via p7-deps install-service [ the
   plain cp left 'changed on disk' on delta ].
-- list rendering [ 2804a43ea ] : base.parser.list sizes columns with the
+- list rendering [ 2a2663571 ] : base.parser.list sizes columns with the
   align offset ; separator = longest line + 2 [ 1 past 80 ].
 
 ## open
@@ -90,7 +90,7 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
   .yaml [ variants, magic_words, style_prompts ], data/yaml/gfx/
   background-provenance.yaml [ distance \ sharing ]. further image imports
   WAIT for the checksum storage [ 2026-10-18 : N7FS root \ disk-id \
-  addressing DECIDED, 129fe04f3, data/yaml/todo/base.yaml N7FS entry --
+  addressing DECIDED, 216b62509, data/yaml/todo/base.yaml N7FS entry --
   next = the assimilate command ; owner : fix that first, too many good
   kittens for the repository ] -- candidates stay in invoke : the running
   kitten re-render [ R2G.. source, seed batch pick #2, eye fix good, as a
@@ -105,8 +105,8 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
   compositing, re-feeding, prompt categories in
   data/tasks/images-elfdb-feature-collection.md.
 
-#,,,,,,..,..,,..,,.,,,,,.,.,.,,.,,,,,,,.,,...,..,,...,...,,,.,.,.,.,,,...,...,
-#D6X7OYEJR6AT37GXPAAHTXX6CGFWTQ5XGSRUNSPXPNHXIAA4HSIFCE2FSVRYKYNEGO6ZE6H6VKREC
-#\\\|4I5RAPC4KRKUCEZ54LDSGLX42DCGTJ6BJSQ7LHNDR4MHXB45J4K \ / AMOS7 \ YOURUM ::
-#\[7]4GG5LF34PD334JC6ZRKLGTR65GJDOSNWSBGPCRLSBQ6GIASX4ABA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,.,,,,,,,..,..,,.,.,,..,,,,,,..,..,,...,...,.,,,.,,,,,,,.,,,,,,,
+#AC7XGR3RWY77OZ7IGV3ZTO4IQCL26N3O3DUF6ANG4HK6COKQVNZ5XQXWCYHYUN4UFBLXXH265KAEU
+#\\\|JRNRZYEA5E5OWGXW4WSRMYR7ZA4LAYYJ7AGQDRTKY4NEHR2TPLK \ / AMOS7 \ YOURUM ::
+#\[7]5EEKSOFWNNZBO6SBIMUMZBBZVS62FZEAQ4Z5B3FTRS5T3HHKIKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

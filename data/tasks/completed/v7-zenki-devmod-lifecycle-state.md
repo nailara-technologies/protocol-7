@@ -168,7 +168,7 @@ devmod state, never anyone else's, regardless of what params it passes.
 ## open, not yet investigated
 
 - ~~removing `devmod` from `modules.load` on zenki like `coding`~~ —
-  done 2026-09-20, `cfg/zenki/coding/zenka.v7`, commit `9f4f9a205`.
+  done 2026-09-20, `cfg/zenki/coding/zenka.v7`, commit `5cab1edd4`.
   live-tested end to end by the owner: enable -> restart -> still
   enabled; devmod-clear -> restart -> stays disabled. both directions
   confirmed working against the real running zenka, not just read.
@@ -213,8 +213,8 @@ escalate to root."
   namespace-wildcard-permissions.md`, the permission-mask side of this
   same devmod-hardening effort, implemented 2026-09-20.
 
-#,,,.,,.,,,..,.,.,,.,,,,,,,,,,.,,,,.,,,.,,.,.,..,,...,...,...,,..,...,,.,,...,
-#CGSSKUMSRRKPS7U3D5MXLTN75BXKXZK3R7OSCJPQKIQW6ZYXFSHG7OSYNWEWX3F6D7GFKMBPND2B6
-#\\\|Q75XZ5FMETGX3NXCINUTFKMRMVX37FD5JS6G3ZF7PWCWLFAMYBU \ / AMOS7 \ YOURUM ::
-#\[7]ST34IQ3UL4MTN5B6VRFV43T4ZHVCKQYDUGK7SHVSHNST66YHKIBQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,,,,,...,..,,,,,,.,.,,.,,,,.,..,,...,...,.,.,,,.,.,.,,,.,...,
+#R26OPD52FVZNVY65UYFNGKUSAR3FYWCSYED3UGJL5H6QOA57AO37ABAEB4B535UFR75QRKRHYNONW
+#\\\|UKQPNPYPADQSE5MUY2EBHCCEAUE6RSWRWERXFVZEJKTFFJWEGDA \ / AMOS7 \ YOURUM ::
+#\[7]3OH2L2257UV5JQYZDLV4IMNGV4RVUPJHGXE6GO7PUUYJSAPMRCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

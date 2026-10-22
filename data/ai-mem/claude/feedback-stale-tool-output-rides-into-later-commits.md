@@ -9,7 +9,7 @@ metadata:
 the format-code `-d`/`-m`/`-p`/`-r` expansion work, see
 [[topic-format-code-bugs-fixed]] for full context):
 
-1. **42 files with a missing `->`** (fixed in `baeec4c36`): an early,
+1. **42 files with a missing `->`** (fixed in `461826185`): an early,
    pre-fix exploratory run of the `-d` step (before the trailing-arrow-
    insertion bug was fixed) had already compacted some real `$data{}{}`
    chains into the broken `<key.path> {$var}` form (missing arrow). That
@@ -52,8 +52,8 @@ of this mistake happened in the same session (see
 where "already fixed" was said too early because only a single-line
 variant had actually been tested).
 
-#,,,,,,,,,..,,...,,.,,,,.,.,,,,,.,.,,,,.,,.,,,..,,...,...,,.,,...,..,,,.,,,,,,
-#B3WZBWUZBMEECYCEOF6G6V7E5LQCEL5MAPXP6WSDQNGHFLVJFJ4KODPFIQEJQKK5UWUYPBFZBXVE2
-#\\\|INV2NNQZMDF3F5XMFNWHMSUMUEHNKK7S36BE32BFRQEHHAD6LC6 \ / AMOS7 \ YOURUM ::
-#\[7]36UTZSE74ZRS56DLN4H532D2LE5SEN7LGSUZIIKA7HIZJOZUX2BY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,..,,,..,...,..,,.,.,.,.,,,,,,,.,..,,...,...,.,,,...,..,,...,,,.,
+#J53Q26C3ZBQZIORVY433GAC4UOLHCIB2REJOHAQNYZIAJH6QBBJVRP52ER337T36WPNARZ3CODA24
+#\\\|USBUTPNDZL33AG464J4UUA5DAYK6KVVY625VIWPQOFC24XJ6I7N \ / AMOS7 \ YOURUM ::
+#\[7]VUPYXYG6NQQT34LM7BMJVQJMMQECSA4TFK4OER336QRMZ4W5E4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

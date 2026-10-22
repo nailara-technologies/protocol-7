@@ -11,7 +11,7 @@ the pre-commit hook refuses `git commit --amend` with "version mismatch [ expect
 
 **How to apply:** before asking for a signed version, `git add` every changed file without a signature block [ bin/c_src/*.c, data/web-root/** pages, other unsigned files ] myself ; after the commit check `git status --short` is empty. if one slipped through and the commit is unpushed : stage it, `AMEND=1 git commit --amend --no-edit`.
 
-**2026-10-07, later : the sign run stages MORE than intended and rewrites what it stages.** it stages every modified signed file -- including a kimi \ subagent's half-finished edits still in progress [ happened : 7 unreviewed harness files staged next to my 2 ]. and it reformats with `format-code -r`, which changed code meaning [ `s/\@ARG/\@_/g` -> `s|@ARG|@_|g`, committed uncompilable in 9775e28a2 ; format-code fixed in a8d0af487 ]. so after "signed" : `git status --short`, `git restore --staged` anything not reviewed [ it then needs re-signing in its own batch ], and run `perl -c` \ the harness on the STAGED content right before committing -- a check done before the sign run does not cover what gets committed. better : don't ask for a sign while an agent is still editing.
+**2026-10-07, later : the sign run stages MORE than intended and rewrites what it stages.** it stages every modified signed file -- including a kimi \ subagent's half-finished edits still in progress [ happened : 7 unreviewed harness files staged next to my 2 ]. and it reformats with `format-code -r`, which changed code meaning [ `s/\@ARG/\@_/g` -> `s|@ARG|@_|g`, committed uncompilable in d97bc51ff ; format-code fixed in 9a8d002cf ]. so after "signed" : `git status --short`, `git restore --staged` anything not reviewed [ it then needs re-signing in its own batch ], and run `perl -c` \ the harness on the STAGED content right before committing -- a check done before the sign run does not cover what gets committed. better : don't ask for a sign while an agent is still editing.
 
 #,,,,,.,.,...,...,,.,,..,,,,,,,,,,,,.,,..,...,..,,...,...,...,.,,,,,.,.,,,,.,,
 #QNYKLY6KVU7PD5HJQUSBKJHJU3XTF4QXMAJNON3SF6QBIQFNEGOEHFKWGHGGCFSOFY52ZNNRANKSI
@@ -19,12 +19,12 @@ the pre-commit hook refuses `git commit --amend` with "version mismatch [ expect
 #\[7]NQX3BNHYEEH6EDUXU6IICUFCODFAZ5X3MOG46ZC2XE4KLNXBLUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**Recurred 2026-10-08 :** `ad3adad18` pushed with only the version files -- the jobs.vhost
+**Recurred 2026-10-08 :** `d9bd34ed0` pushed with only the version files -- the jobs.vhost
 index.html change [ unsigned web-root page ] stayed unstaged. right before EVERY commit run
 `git -c color.ui=false status --short` and treat any ` M` [ unstaged ] line as a stop.
 
-#,,,.,.,.,...,,,.,,..,,..,..,,,,.,...,,..,,.,,..,,...,...,...,,..,,,,,...,,,.,
-#CIFTWOGFFVKR72HP6WQGV7L4ZDHPFP4AV6SG6RRQXAQS2AFZIMHW7QDPBDGCYTMP4SKOZEFEY5BB4
-#\\\|GJVWPK4KKNB7JHHLFE5F3LD4U7J4N3QGRAPD7V3SPDJQ2C5M2MK \ / AMOS7 \ YOURUM ::
-#\[7]B4LOMDDX3KQJTWYWLNM3ZVKVAGRTMCSVFHUZY42FXSA67B5ZXEDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,,,.,,..,,.,,,,,,...,..,,,.,,..,,...,..,,...,,,,,..,,,..,.,.,
+#7ZAK3SKQPJTHUF6P7NTKSCCOACLF7HGAHEF5A6XQZR3OKEIYVXZMLY4KCLER3KLPGXWMP3R75PVTO
+#\\\|BH6JINGLIVQMCZFLOVDU6O225AYENV5MSHETXHF6NBAXBNKGSZD \ / AMOS7 \ YOURUM ::
+#\[7]M6UMC6TCJZL7IFFHSE5HUEH2BGAGROJEXCIIJ3C4UFZWSRHXOGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

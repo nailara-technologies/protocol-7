@@ -22,12 +22,12 @@ metadata:
 - Event.pm hooks [ `Event->add_hooks` ] can't be removed from a running loop :
   instrumentation installed that way needs a zenka restart to go away
 
-**Why:** cost several round trips in the 70ms-stall session [ f9dc4d36d ].
+**Why:** cost several round trips in the 70ms-stall session [ 9bedf3c4c ].
 **How to apply:** runtime experiments on cube -> devmod-enable + set, not
 config edits. see [[reload-success-doesnt-guarantee-new-file-loaded]].
 
-#,,.,,...,,,,,..,,...,..,,,,,,,.,,..,,,.,,,..,..,,...,...,...,...,...,..,,...,
-#DRHNSJNZEEUMJ5OGT5T2W5BUKLWVNZB4PJTMMABSHBEQEO3TOEVODUZKJTDSUCDGVL6SR37ODNDUM
-#\\\|TASXZOJRU5UVNQRFYFPVGPTPIDLZA3OEBWBJIKDAMD3VZMT4SUS \ / AMOS7 \ YOURUM ::
-#\[7]X2HIVYD5N3N7H5CEM5DPDSNX75PSBS2LF3NRRFSW44RMVCQDHQBY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,.,,,,.,,,,.,.,,,.,,,,..,.,,,..,,...,...,,..,..,,,,,,..,,..,,
+#5F6KGS5BC5GHYSAHUXLX3CZY2QWDCVVYVDFFIOTRDAGHO3GZJKDZ4OAUTMWL2SHKIKECF3OOC5JJI
+#\\\|3HLHMM3B4YNPIM4JA5SIYDR6FETFDZSGMT6E664JS2HEMSMM7KD \ / AMOS7 \ YOURUM ::
+#\[7]DZFQXP5E44AQ5YHUULSJ2GBHIYAQXCNZ34TVTVNYYG7KOANKT2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

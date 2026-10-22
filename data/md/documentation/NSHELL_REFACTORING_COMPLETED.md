@@ -497,15 +497,15 @@ and redo are pure pointer navigation, no inference triggered:
   call, not coding-session-specific)
 
 ### Commits
-- `93a328ddc` — split-screen scroll-region mode, toggled with Tab
-- `4cf730d6c` — multi-mode split-screen display, cycled with Tab
-- `72934a50a` — coding-session chat plugin, resize-aware split screen
-- `3db21d041` — round-chain population (`append`/`reconstruct`), wired
+- `bc713051c` — split-screen scroll-region mode, toggled with Tab
+- `42dd440e9` — multi-mode split-screen display, cycled with Tab
+- `76d45c56d` — coding-session chat plugin, resize-aware split screen
+- `89baa4dce` — round-chain population (`append`/`reconstruct`), wired
   into `state_machine` + `async.complete`
 - `725833105` — `rewind-round` — non-destructive fork via
   `round_chain_current` tip pointer
-- `1d22f0105` — wire round-chain rewind/redo into Esc/F1/Shift-Esc
-- `9221f46ea` — silently resubmit when a pinned coding-session task id
+- `13ab63187` — wire round-chain rewind/redo into Esc/F1/Shift-Esc
+- `72ab9bddd` — silently resubmit when a pinned coding-session task id
   is gone
 
 ### Known, Deliberate Scope Gaps (not bugs)
@@ -516,8 +516,8 @@ and redo are pure pointer navigation, no inference triggered:
 - A verbose-vs-summary toggle for tool-call output on replay (currently
   always full detail, by design) is a separate, not-yet-built feature
 
-#,,..,..,,.,,,.,,,..,,,..,,,.,.,.,,,,,,,.,.,,,..,,...,...,,..,,,,,,,,,,..,,,,,
-#C4ARNFPNMHEOWQQG6IKU2J6ZOC72MVVAU5NCPFBV4X4W6D4ZZOTSKIBNCZ4S63TBJ5XUCS5VBDHSQ
-#\\\|BZIXMXPP5FJ5UWNPPZLTVL4L7574DUPUFWW2RSDS7MDI6KHKBXQ \ / AMOS7 \ YOURUM ::
-#\[7]2L5CAKO7KPJ6OGAOSQ3QW5ATPUZETI6XAHTZ5VER6ME6FZFNIMBQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,...,.,.,..,,.,.,.,.,,,,,.,.,..,,...,...,...,...,,..,,,,,..,,
+#JSNTFDG6G5V7DDTVIGKWQEBKM5YDOML73234EEL7SXMFPEPQES5O35CSK7TU2HX57TS4OPNDIOSF4
+#\\\|ETRCZOYULFLTTQVN73NOU45M54DMPCLKCZCYKLAZL5VAIPQR5U2 \ / AMOS7 \ YOURUM ::
+#\[7]QCTMEWIV4Z3GUI7RCJUH4KQUY7ISW2VYJVOYFAONM32SQMX27QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

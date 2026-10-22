@@ -2,9 +2,9 @@
 
 session findings from implementing the model-batch-test harness live and chasing
 the "lost" self-test restart protocol. all three fixes committed:
-`62e58f86c` (raw candidates, filesum warn split, manifest `-r` guard),
-`5ef2172bd` (honest context-exhausted reporting, iteration-scorer guard,
-module-level submit pipeline), `5f181e72a` (seed gate covers prompt 3,
+`9ca7c89ce` (raw candidates, filesum warn split, manifest `-r` guard),
+`dd18f9111` (honest context-exhausted reporting, iteration-scorer guard,
+module-level submit pipeline), `1667a019b` (seed gate covers prompt 3,
 verify timer `params`→`data`, prompt 3 mismatch_hint).
 
 ## failure classes worth remembering
@@ -43,7 +43,7 @@ verify timer `params`→`data`, prompt 3 mismatch_hint).
 
 - gate: `coding.helper.trigger_backend_self_test` on_done, failure of
   **prompt_id 2 OR 3** (extended 2026-09-21; was prompt-2-only since its
-  introduction 2026-07-21 `5469bd72b`). cap `coding.cfg.self_test_seed_retry_max`
+  introduction 2026-07-21 `1e58417bd`). cap `coding.cfg.self_test_seed_retry_max`
   (default 2) per model_id, reset on any clean pass.
 - restart is deferred via `coding.handler.defer_seed_restart` until backend
   lock free + queue empty (bounded 120s); a fresh seed derives automatically
@@ -53,8 +53,8 @@ verify timer `params`→`data`, prompt 3 mismatch_hint).
   gained the hint 2026-09-21; without it `'mouse'` survived both rounds,
   25x content_mismatch in durable stats) → seed restart for persistent misses.
 - the perceived "protocol disappeared" was a coverage gap, not a dropped
-  feature: prompt 3 (added 2026-08-08 `ba7beab49`) was outside the gate, and
-  the sharpened mismatch_hint (`ba668683e`, 2026-09-17) drove prompt-2
+  feature: prompt 3 (added 2026-08-08 `fbd976cbb`) was outside the gate, and
+  the sharpened mismatch_hint (`8f037e620`, 2026-09-17) drove prompt-2
   content failures to zero (14 fails ever, all empty_answer/transport).
 
 ## context-overflow messaging
@@ -95,13 +95,13 @@ checks) covers the full cycle.
   compare in physical-backend key space (`cpu` : everything-else-is-gpu),
   never raw routed_to.
 - **batch start drain gate** : refuse while the backend queue non-empty or
-  lock held [ committed e962cf194 ].
+  lock held [ committed e51051393 ].
 - **owner commits mid-batch drift the tree** -> harness freezes (by design);
   reset = cancel + delete baseline-manifest.yaml + fresh start. do not
   resume a batch whose baseline predates tree commits.
 - first real 3-candidate x 2-task batch completed cleanly : verdicts
   completed / error(loop detector) / timeout(budget-exceeded) with wall+tps
-  per cell, tree byte-clean, model restored. commits 4f7ae9ec2 etc.
+  per cell, tree byte-clean, model restored. commits 9a6d1713a etc.
 
 #,,..,..,,,..,...,...,.,,,,,.,,,.,,.,,...,,,.,..,,...,...,..,,...,,.,,,.,,,..,
 #5BMAASPPILIIV2NYKTOKC36XARP6GHWRGM47FYBDMW23VBMPALLURQQBQZA4QNOUY4G4WT2DI3HCI
@@ -145,8 +145,8 @@ checks) covers the full cycle.
   KPQUUPA 124.7 t/s, OFSQC4I 44.7, P5IDYUA 29.7(budget-exceeded),
   OP2DASA 24.6, YYZYSXQ 21.4, P27KMTQ 18.1, JLHTPVA 16.9, PYVB6CA 6.2.
 
-#,,.,,,,,,.,,,...,.,,,..,,.,,,,.,,,,,,..,,.,.,..,,...,..,,.,,,,..,,..,...,...,
-#CX7KD5KTY6NXOFLIUEGKRF35AC3FHBI4SLCIQTRQOKLD6EBJJ5KCXMHTOKVMTYT6ETNVF354UFBHK
-#\\\|LYA4AW7PEA4FEDYJFKUWSLYGW4YJZJL4KB3I6NNBC7N6CEIEBRF \ / AMOS7 \ YOURUM ::
-#\[7]GGLEMU776MVU3XEOASJMGGDDEZUF3IZJFHFUSUUQAG7EPWIBX4BY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,.,.,.,,,.,,,...,.,.,...,...,..,,...,...,.,,,...,,..,,,.,,,.,
+#FMDIKXN27CN54P3MTWF7P47U7O4M73QETZIERI2AYCLJ7KH42AU7PBJS224NABNDR5HNHXWWRCCDY
+#\\\|H7DYGJ5QNDMWJ2WD4FQFDN2HBMS5AB2GRPBFAIDMCY22YQTE5XT \ / AMOS7 \ YOURUM ::
+#\[7]A27EKMSJTOBRWF2INIDQIPZRFD6MCPW3L5HILZJK5Y2MI3TG3OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

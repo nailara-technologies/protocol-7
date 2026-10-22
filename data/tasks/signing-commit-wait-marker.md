@@ -1,7 +1,7 @@
 # signing \ pre-commit : wait for a running signing pass instead of racing it
 
 brief [ 2026-10-03 ]. a commit can go through while signing is still in
-progress [ user switches tabs, says "staged" ; `d38405554` only came out
+progress [ user switches tabs, says "staged" ; `7bd872518` only came out
 complete because the signing zenka finished first ]. the pre-commit hook
 already refuses bad signatures — it should **pause until signing is really
 complete, then proceed**. interim guard : memory note in
@@ -111,8 +111,8 @@ interrupting.
   waiting for the longer one [ its marker is untouched ]
 - no marker -> hook behaves exactly as today
 
-#,,,,,..,,.,.,.,.,,..,,,.,,,.,,..,...,,.,,,.,,..,,...,...,.,,,,,,,,,.,,..,,,.,
-#JHARPYA6ZC5PGRKQTBVU7TCQGKVAHTIJ6R7FSZV3QIWKEZNGGL3BM5UH5OOGRMBWJHZPE5TL4ZZ6W
-#\\\|2CN2ZDLXZ6DZBF6JWX7G7QAJHBES6VJMDBM3POUOX5VOG6FHCCG \ / AMOS7 \ YOURUM ::
-#\[7]ZN3UV6NFZMW2NHV4UGXBKJSPIDCIXFRYVZ66MGHAANARGNZOH2AQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,,.,,,,,,,,.,...,.,,,,..,,,,,..,,...,...,.,,,,.,,,.,,,.,,.,.,
+#2BARMUAMLGTEWPLU7HS4EZTDBE26FE2GAHMSLY4X75WRRBM2FKX5DIKVN42MEPPLXB52AOM4O3PKI
+#\\\|N4QYLBDETRQEU4HR2VHV427EXX6LXNXV7HDVYT6OAGXHASZ3NIC \ / AMOS7 \ YOURUM ::
+#\[7]RBNOBZGTZDOXDLJLGYBBL2FT4FDES6Z2E7VS6RXMEDVIYNN2FOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

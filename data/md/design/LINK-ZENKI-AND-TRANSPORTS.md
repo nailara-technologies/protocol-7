@@ -308,7 +308,7 @@ work makes `ssh-w` the default when `ssh` is filled ]
 `src/ssh.*` + `cfg/zenki/ssh` : a working transport candidate, its
 strength the heartbeat-based fast recovery [ owner 2026-10-22 ].
 history : deleted in 561cf8e9a [ 2021-09-16, 'deleted ssh zenka',
-connection resets ], recovered in acc6cb94b [ 2026-02-23 ]. the recovery
+connection resets ], recovered in f01b9a9df [ 2026-02-23 ]. the recovery
 message names the cause : blocking socket writes stalling the event loop,
 fixed in '2D64177A' -- that hash exists in no ref, so the cause is
 UNVERIFIED and this design does not count it as fixed. [ this clone is
@@ -632,8 +632,8 @@ where no second host is needed ; a real `delta` for the ssh and v6 parts.
 9. **ssh zenka** : once `ssh2` exists, retire the password bridge and its
    profiles, or keep both ?
 
-#,,.,,,,,,.,.,,..,,,,,...,.,.,,,,,,.,,,,.,..,,..,,...,..,,.,.,...,,,.,,,,,,,.,
-#N2WK2X6H77MINJEQZRGDC25GPXK7N6O4IA6JDZEZMJ4OI7P4PT6C7LBWF4MX527AXT2LMAXRZZBYW
-#\\\|ZPYG3W6CC6DMG4S3VVVDRSTKFRMYKCHTIZBL32Y3E3J2GQLBAS7 \ / AMOS7 \ YOURUM ::
-#\[7]664SJAPYX5JLFM2WWG7QV2SMXBCVSCNZFLFY6Z34MRDVRPPIRQBA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,,.,,.,,,.,,,,.,,,..,..,,.,.,..,,...,...,..,,.,.,,,,,.,.,.,.,
+#BNNDRQG33PPFMPQKMUTN47WZULJVBHWEZASDEJFBQI6KX6OPM5N5YGHTENBFVLILJANWNXZMVVM4S
+#\\\|S6T7Y24NQJENCP4TOA4KXTZXN4KB7FQFQY6M7Z7AELXQMDUSTGM \ / AMOS7 \ YOURUM ::
+#\[7]A65AH5YYX3KOYOLQRR7MF6EUPJGAHHXIKSOSD3E5DLGOOLGX4QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

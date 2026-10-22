@@ -5,8 +5,8 @@ metadata:
   type: feedback
 ---
 
-found 2026-09-30 : `aa2235630` [ log request into one-shot init_reports ],
-`c8cd075d0` [ resolve hook inside the pure dependency.ok ], `184e84fa6`
+found 2026-09-30 : `94f90886f` [ log request into one-shot init_reports ],
+`4b905ee4c` [ resolve hook inside the pure dependency.ok ], `b8f2fe3a2`
 [ latency outliers at level 1 ], plus an old never-built "check if already
 online" in v7-zenki's own log branch. common shape : a fix for ONE observed
 case changed a generic path [ base.*, dependency.*, a shared handler ] on an
@@ -37,8 +37,8 @@ starting generic changes before explaining why other zenki worked ].
   similar, but the files ARE re-read -- cause open, see
   data/tasks/v7-zenki-start-setup-runtime-reload.md ]
 
-#,,.,,.,,,..,,...,..,,..,,.,.,.,.,,,.,,,.,,,.,..,,...,...,...,...,.,.,,,.,..,,
-#EACEFM7YLXJD3KXMRBKKKB7KOMBAOTQMKPANXVRHCES5FEQDT2UB2CLQ5ZKYAWJPLATFMIS6BJPHY
-#\\\|NUTWGMTCIUBLEQPI6XG65ZC6VCGJ54JOLD7K6K26HAKUC3SGX7R \ / AMOS7 \ YOURUM ::
-#\[7]PG3B2O3ZU6QUWBRXSDXDBNR6FCD4VRYXJ4ENKVO7TIIKALPQYYAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,,..,.,.,..,,.,.,,..,...,,.,,..,,...,...,...,.,.,..,,,.,,,,.,
+#B6LZOQRNUDV6IDQANRO7DVCVA72YZWNGLJUDKQTSVVMEEN7SMYWUHXASM3LHDDUG4DTQHUU5IYHNY
+#\\\|DX4AYZQF6RIQYAPREOTXJIDDCVXBR4GHMT3I6IFM2TQOJLMKU3H \ / AMOS7 \ YOURUM ::
+#\[7]4PBPLZKMLIK57QG57ZNZ7YD6BHFJSHVNIFXVNUPNGMXG7WPLDCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

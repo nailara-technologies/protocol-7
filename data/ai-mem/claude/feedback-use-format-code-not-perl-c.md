@@ -45,7 +45,7 @@ reference memory doesn't mention `format-code` as the better default, and vice v
 memories keep getting missed, consider: always run `bin/format-code -c` FIRST for any `src/*` edit
 in this project, full stop, before considering `p7-module-syntax-check` at all.
 
-**strict since 2026-09-29 [ 1191a2fd4 ].** format-code -c used to skip
+**strict since 2026-09-29 [ bac64f2ab ].** format-code -c used to skip
 `use strict` and passed two modules the zenka compiler rejected [ `stat(_)`,
 a `my $fh` declared inside an `if` condition ]. it now compiles P7 modules
 the way the loader does : `use strict`, the loader's imports [ File::stat
@@ -67,8 +67,8 @@ valid` : strip ANSI, `grep "^::\[\|^    " | grep -v "syntax valid"` must
 print nothing. format-code itself caught it fine [ same perl 5.42.3 as
 bin/Protocol-7 ].
 
-#,,,.,.,,,,,.,,..,.,,,...,.,,,...,...,.,.,.,.,..,,...,...,,..,..,,,,,,..,,..,,
-#XNAHT3TROTHVS3WJWDK5KI4XGM25VEM6R3WGTXVJRU7GUZ4BHAKOLIC3J6VDSA6HM2JWHKHOUVMEM
-#\\\|FFRW23Z5KJIOQKOGPBTYYE4EDJRDZDCV537V72KIWUDAPGG53PJ \ / AMOS7 \ YOURUM ::
-#\[7]WQQIINUBKPFCVA4G2GRWW4YEPWHJC47TPTJVUT6ZP5PQ63ZYIEDY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,.,.,,,..,,.,.,.,,,,.,,,,,,.,,,..,,...,...,...,.,.,..,,,,.,.,,,
+#UZHYBW2JHEVDZGWB3MSG6IVKS3IXPYZUFAOSIR3B4TYAHWOFVPTJDDNW64R6OXON43CAZEWDRK33M
+#\\\|VKI4HNATXUBDRMOCXM3MWYUD3KJM67OTZYTXWPTZ6TSKU6KMHCW \ / AMOS7 \ YOURUM ::
+#\[7]GMA4EDTNJ4WID2JCRYCC3JIIHPEKBKDYA67SDZV2RUVNZYRO7CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

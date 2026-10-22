@@ -90,7 +90,7 @@ verification ] ; signing is for commit hygiene / pre-commit.
 
 ## confirmed landed, committed, and genuinely useful, 2026-09-17
 
-signed and committed as `5e2b8251f`. Put to real use the same day it
+signed and committed as `b1b87f36a`. Put to real use the same day it
 was needed again: while diagnosing a cpu/gpu model-sweep segfault storm
 (`[[project-wsl2-shared-ram-constrains-concurrent-inference]]`), `p7c
 powershell.mem-used` and `p7c powershell.mem-top-proc` gave the exact
@@ -101,8 +101,8 @@ exhaustion. Exactly the "advance warning that would have helped before
 tonight's crash" framing from the original incident, now validated on a
 second, unrelated incident.
 
-#,,.,,...,...,..,,,,,,.,,,,,.,,.,,,,,,.,,,,..,..,,...,...,,..,,..,.,,,,.,,,.,,
-#A544ZBGDWQOZ2UFIAF27GJVFALDJATFAIEDJZG2YSPNIRVBWCSAJ2Y3BF4YMHOGBRX7EZGBG5GPNS
-#\\\|4XOIKYSMYFXXR276L5LGBGIHWGO44HSCZWJ6WCVAVGGZVEM6UJZ \ / AMOS7 \ YOURUM ::
-#\[7]VVVRPNTVMU2L7IZ7TMDWM6VWQX27SLCDXE75CHFAITL6MKVZCAAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,.,,,,,,,,..,...,.,,,,..,,,,,..,,...,...,,.,,,.,,,.,,...,.,,,
+#AER7P7FIQQOC5RS2HNW4LCQBGDL5L4DTJQWFJHLYE5RSYE4LPACVCY4BGPRVQOIWKKJ4F6MV2PNMC
+#\\\|ORROAQQ4BW3LE5GZ5OMSJIAXKUBE2SXXTNHQ7RKMALDXAXPFYDY \ / AMOS7 \ YOURUM ::
+#\[7]PJIZVKFMFOFGNWBG7Z5JXTYENQCSPCII2U7TZGHGVIPYM7C4MACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

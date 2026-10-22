@@ -16,7 +16,7 @@ with a `.secret` file that couldn't migrate the same way — leading to
 new `keys.backup.*` infrastructure AND a THIRD independent 2021-era bug
 in `crypt.C25519.load_keypair` (unrelated to `inline_elf`, a copy-paste
 wrong-file-read + unconditional prefix-strip). All fixed, verified
-against a real key, committed (`e44f729b4` + `8c86e8764`). Full account
+against a real key, committed (`521f5f867` + `a833fd4ec`). Full account
 of that final stretch is in `data/ai-mem/claude/feedback-cpanm-
 triggered-inline-elf-utf8-boundary-bug.md`'s "FULLY CLOSED" section —
 read that for the complete, current picture rather than treating this
@@ -312,8 +312,8 @@ weak lead; test only after H1 and H1a are eliminated.
 Do not attempt any fix (source edit, .so rebuild, cache clear) before
 step 1 completes — the current cache state is diagnostic evidence.
 
-#,,,,,,,,,,..,,..,...,...,,..,..,,,.,,...,,,,,..,,...,...,.,.,..,,...,.,.,,,.,
-#O47AVW5UAKVCDOVMTS3PLFD5ANHLLBHTLEOVRJ65YDEL7JXYSRPZKGUFIRLOFCG243S4HHDZ3QYCU
-#\\\|ZESL2T4SPFWO5IEYV4TIYVCJOIXNN7ZGQODXU7DZT4AGWRNLEFE \ / AMOS7 \ YOURUM ::
-#\[7]K7EKJNXEHPFUAR2X4ZYJNMBYHQNFVYAJWDZJAZV5BZMPBS7T4MDI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,,..,,..,,,.,,,.,.,,,.,,,...,..,,...,...,.,,,.,.,,.,,,..,...,
+#PJUZGXCNP7WRE6JHUY5Z64K7G4N3PFBE3DML7UZIROACRY3GPAJCQFHZWMI2PFIGJYSH72LP5APDC
+#\\\|GSSS5NNPRZZ6MNNIPKPVNV3N7G7TT277VO2MBFCYHANCW4KWIRV \ / AMOS7 \ YOURUM ::
+#\[7]E5PT4EZIIIISCWZXNHJTAMWCWSE33QKWYUJIISCVS6437QQTEODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-found 2026-10-21 while hardening AMOS7::TERM::Editor [ dc221d40c ] :
+found 2026-10-21 while hardening AMOS7::TERM::Editor [ 19d1e54dc ] :
 
 - **perl blocks a signal while its own handler runs** : `local $SIG{TSTP} = 'DEFAULT'; kill TSTP => $$` inside the TSTP handler only queues it -- it re-enters the handler after return [ loop, never stops ]. stop with `kill STOP => $$` [ cannot be blocked ] ; a CONT handler re-applies raw mode. HUP \ TERM handlers that set a NON-local `'DEFAULT'` then re-raise do work [ pending signal fires after return with default action ]
 - **a lost tty reads as EIO, not eof** : `sysread` on a pty slave whose master closed usually returns undef + EIO, only sometimes 0 -- an eof check on `$n == 0` alone passes once and spins the next time [ race ]. treat any error except EINTR \ EAGAIN as input gone
@@ -17,8 +17,8 @@ found 2026-10-21 while hardening AMOS7::TERM::Editor [ dc221d40c ] :
 
 **Why:** each of these produced a wrong verdict in one session [ false pass, false hang, a fix that looked broken ]. **How to apply:** for any terminal \ signal code [ Editor.pm, nshell, p7-vault ], test on a real pty with `bin/test-scripts/test-term-editor-pty.pl` as the template ; related : [[never-touch-sig-under-event-watcher]]
 
-#,,.,,..,,...,,..,...,,..,,.,,,,.,.,.,.,.,,,.,..,,...,..,,...,.,,,.,,,.,,,,..,
-#SCF7BMTGIFAIRJSIV64Z2HALMYMAXVVDRZCQHCJVCIOLKIX2A4GYRTA5FBODPA7RNG5MO77IIKTUK
-#\\\|VZOC4DFJ2AVLCKAGFWNT3YTGD77PD2ERQL2CDCRVY2NQYVSLHN7 \ / AMOS7 \ YOURUM ::
-#\[7]ULU6JTV4VOHP463BFSJDFPHVZGEV4JG5CGC74TFA7SYVHOHRXKAI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,..,,...,,.,,,..,..,,.,.,,,,,,.,,..,,...,...,.,.,..,,.,,,.,,,,,.,
+#4W2DRWLM4IYEO4ZZIJE67HVEAM5CWQZQCVSX2Z7IY6LTAC74ZXU3LTEJKURQKZ36JLLLXZ3QDAIQ4
+#\\\|HN2LZU56FEKXESYMHBTJZID3XO4XA76PCFN4HZUFLHIZEHWBAB7 \ / AMOS7 \ YOURUM ::
+#\[7]GUGBDHISHNEE3JG2VEP3ORD2WII7OKKSGQJOHUQ3FEO5VYRIJQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

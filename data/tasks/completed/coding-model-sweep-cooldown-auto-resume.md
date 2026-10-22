@@ -137,7 +137,7 @@ observable), confirm the new watcher correctly auto-resumes once below
 threshold. `bin/format-code -c` on every touched/new file. leave the
 tree uncommitted, report back with what changed and how it was verified.
 
-## status [ 2026-09-17 ] — DONE, live-verified, committed `08aacf057`
+## status [ 2026-09-17 ] — DONE, live-verified, committed `15f5ad8fd`
 
 kimi (k2.8) landed cleanly on first pass: new
 `coding.model_sweep.handler.cooldown_resume` watcher + timer in
@@ -148,8 +148,8 @@ and the positive path (low loadavg -> auto-resumes, advances on its
 own, manually-paused backend left untouched). Existing
 `task.handler.cold-queue-sweep` (task zenka) confirmed untouched.
 
-#,,,.,...,,,.,..,,,.,,,.,,...,.,,,,.,,,,,,...,.,.,...,.,.,,,,,,..,,.,,.,.,.,,,
-#CEIGOMFHUSQG3GCA7WT2RR36WDNHXDVBYG5GKIKGCVPCEOFADDK4V6JFFDFP7QHH5O25OG4MUQMK4
-#\\\|4HWAUANTK2ML24EMAKH44BVYO5L3NHGRWOCBT2NCTRJEYA47DAE \ / AMOS7 \ YOURUM ::
-#\[7]MTEYETYUJH2IK6N2USQGJJCZUOWGQBKMDZJLMNBSFUSAXY57JWDA 7  DATA SIGNATURE ::
+#,,..,,..,...,.,,,..,,,,.,.,.,.,.,..,,,.,,,..,.,.,...,...,..,,,..,.,.,..,,,.,,
+#MJHJFT6VF2YIWAM4RBLGDGBX4WJSC6O6TM6XYZRWEO5OGCKKQJRDRTIHUVYJDVM2GBKKYA6DRHTUQ
+#\\\|K2OCV7FB225TD3SEWU5XI36EZTWBYTQGQ3TWCKD4FQ425QRSY6Q \ / AMOS7 \ YOURUM ::
+#\[7]GO6Q7Y2CSECMWV5DDQPG2U3I7H4ZHN7D3N3MVMVE7AT6253GCYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

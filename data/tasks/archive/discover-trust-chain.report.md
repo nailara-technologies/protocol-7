@@ -1,6 +1,6 @@
 # discover : HOST packets carry the delegation CHAIN -- implementation report
 
-implemented 2026-10-08 against base @ ab197b01c. no zenka restarted, no
+implemented 2026-10-08 against base @ 705e196ba. no zenka restarted, no
 running process touched, nothing committed. stubs-only testing via
 `bin/test-scripts/test-discover-delegation.pl`.
 
@@ -103,8 +103,8 @@ untouched.
    per the task letter [ adoption requires owner trust ] -- a pinned new
    root therefore needs the pin removed \ rewritten out of band first.
 
-#,,,,,,..,.,,,.,.,.,,,,..,.,.,.,,,.,,,,,,,.,.,..,,...,.,.,,..,...,,,,,,.,,,,.,
-#PDRUBU6VB3YDJERXQK2NWGWVUHK5VSI7YTIHTSBQP5DCIH3V3VG27MBNO57JV5LS2JYVH2B5AKEJ6
-#\\\|V7LPOM3HJ3CE554QHH43AHHDNRGGQXJJ2DLWBY3BBNYYA45LHMQ \ / AMOS7 \ YOURUM ::
-#\[7]RJLCA56GIDQGW7GZBJ7HYEMW6XXMKGYB2IBZ6WKXVUXZFR5MR6CI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,..,,,,,,,..,.,,,...,.,.,...,..,,...,.,.,.,.,.,.,,,.,..,,,..,
+#S4LYJJWFEHLWSSCG4CMJMJG4TJBX7L5KESPO45KTMKNIZVBE2MHODA77UDTN6ALABMB46I44OPX6K
+#\\\|ZJGIR4DQPM6M4PIHS5MXRIKEBATJ6NDUUEJZJX4NMTVSWVAJMHT \ / AMOS7 \ YOURUM ::
+#\[7]FF5RU442X56SO2I3PJ32BMIUMFUMUS42YDKKN3JRKY4T7CRSA6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

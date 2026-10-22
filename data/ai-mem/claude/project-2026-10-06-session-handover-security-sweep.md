@@ -1,44 +1,44 @@
 ---
 name: project-2026-10-06-session-handover-security-sweep
-description: handover of the 2026-10-04 -> 06 session [ last effa88565, release AMOS7-v6.13.5 ] -- osf-cache stages 3 \ 4 \ 4b live incl. holders behind encrypted external links ; security : link-upgrade nonce reuse, fail-open frame writer, PRNG seeded without OS entropy -- all fixed ; v7-zenki liveness sweep ; host-root replaces the old shared key ; trust chain = design only
+description: handover of the 2026-10-04 -> 06 session [ last 5e50c3445, release AMOS7-v6.13.5 ] -- osf-cache stages 3 \ 4 \ 4b live incl. holders behind encrypted external links ; security : link-upgrade nonce reuse, fail-open frame writer, PRNG seeded without OS entropy -- all fixed ; v7-zenki liveness sweep ; host-root replaces the old shared key ; trust chain = design only
 metadata:
   type: project
 ---
 
-session 2026-10-04 evening -> 2026-10-06, last commit `effa88565`, release
-**AMOS7-v6.13.5** [ tag on `d13c8426b`, source 3XYPZNFNJI-9777.0, pushed ].
+session 2026-10-04 evening -> 2026-10-06, last commit `5e50c3445`, release
+**AMOS7-v6.13.5** [ tag on `ac8212359`, source 3XYPZNFNJI-9777.0, pushed ].
 previous handover : [[project-2026-10-04-session-handover-osf-cache-stage2]].
 
 ## landed
 
-- **osf-cache stage 3** [ `292df1fbe` ] : segment serving + fetch + verify
+- **osf-cache stage 3** [ `27f797635` ] : segment serving + fetch + verify
   [ kimi k2.8 ; review added a request `seq` against late replies ] ; live
-  needed the `segment` grant on the CUBE user line [ `70db2d411` ]
+  needed the `segment` grant on the CUBE user line [ `52f0723a9` ]
 - lookup answers known anchors, lists unknown ones ; nothing known -> false
-  [ `1a0d3d14d` ]
-- **stage 4** [ `ee5d0ced0`, kimi k3 ] : binary merkle tree [ 64 KiB leaves,
+  [ `a85b40b3d` ]
+- **stage 4** [ `700d98ae1`, kimi k3 ] : binary merkle tree [ 64 KiB leaves,
   bmw384, \x00 \ \x01 prefixes, odd promoted ], root agreement [ all asked
   agree, quorum //= 5/7 ], parallel multi-source fetch, bad holder excluded ;
   live via `osf-cache[peer2]` ; apt archive names with epoch `%3a`
-  [ `f241ad67a` ], fetched files 0644 [ `f8baa8243` ]
-- **stage 4b** [ `cc0064040`, kimi k2.8 ] : holders as route prefixes
+  [ `c71dd5bed` ], fetched files 0644 [ `98dcaec84` ]
+- **stage 4b** [ `766c2ae70`, kimi k2.8 ] : holders as route prefixes
   [ `<sid>` \ `external.<link>.<sid>` ], `osf-cache.cfg.remote_links`,
   live : 4 holders [ 2 local + 2 via `external.self` ], 12 segments, 0.7 s
-- **external links** [ `36b4de65d`, `1a0bd0346` ] : real Perl client
+- **external links** [ `5a7de93a4`, `1d94dc799` ] : real Perl client
   handshake [ replaced a stub ], `external.connect <name> <host[:port]>`
   -> encrypted session registered under the name -> `external.<name>.<zenka>.<cmd>`
 - **security** :
   - link-upgrade reused key + nonce across directions -> direction word in
-    the nonce, `link_role` [ `350049c97` ] -- [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]]
+    the nonce, `link_role` [ `6ee54aa8e` ] -- [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]]
   - frame writer FAILED OPEN [ plaintext on cipher failure ] -> fails
-    closed [ `effa88565`, found by kimi's test task ]
+    closed [ `5e50c3445`, found by kimi's test task ]
   - `base.prng` seeded only from PID + ms time [ CryptX `new($seed)` uses
     no OS entropy ] -> OS-seeded fortuna + BMW-512 pool added + continuous
-    `add_entropy` [ `1c47377cf`, `f40c8d0db` ] -- [[project-2026-10-06-prng-seeded-without-os-entropy]]
-  - `v7-zenki.restart` \ `terminate` refuse any unknown name [ `36f4a271a` ]
-- **v7-zenki liveness sweep** [ `f45fb339f` ] : dead tracked pids fed
+    `add_entropy` [ `422078b01`, `d641ecf41` ] -- [[project-2026-10-06-prng-seeded-without-os-entropy]]
+  - `v7-zenki.restart` \ `terminate` refuse any unknown name [ `f05b888d3` ]
+- **v7-zenki liveness sweep** [ `f1bf3ee0e` ] : dead tracked pids fed
   through SIGCHLD, child entry restored ; live : no false positives
-- **host-root** [ `59d353676` ] : random per-host root created by
+- **host-root** [ `0d7ab0284` ] : random per-host root created by
   v7-zenki's first start ; the older shared-key path purged entirely
 - tests : `test-prng-entropy.pl` [ 13 ], `test-v7-liveness-sweep.pl`
   [ 24 ], `test-link-upgrade-client.pl` [ 35 ], osf-cache harness [ 228+ ]
@@ -84,8 +84,8 @@ previous handover : [[project-2026-10-04-session-handover-osf-cache-stage2]].
 - kimi's test tasks find real bugs [ the fail-open writer ] -- worth
   dispatching test-only tasks for code verified only live
 
-#,,.,,,.,,,..,,..,.,,,..,,,,,,,.,,...,,,.,.,,,..,,...,...,,,.,.,,,..,,,,.,...,
-#VUYLZXZCMVX7GPL7ARW53EFN5GV55BKWOTBBUBFKUO2N6NXJKDK4BYGJEBPPUJJXSWALAXCINHJZ2
-#\\\|RLUM3C6AQQVLXR5MVPABMUXX5EZ5A75OB4B57ZRGISPFB4XLDU5 \ / AMOS7 \ YOURUM ::
-#\[7]ZF6K2FMUGZBC4HTQPNMLL2D2VVRATXWA5WLZEIA6OL5KO7WMBEDQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,,.,,,,.,,..,,,.,.,.,,..,.,.,...,..,,...,...,,,.,,..,...,,..,...,
+#RMGB7M4ETKHHEL4DBTBPMPNXQVXKHDPFYJKNY4QAUSUNUT2MB6R42EEGBWO55CIXB6FQYWMNHB5US
+#\\\|7PVBP64SITFFZDEH236UUG5BVGKWSLKTX7EE4Y45FKBOLLJW4N7 \ / AMOS7 \ YOURUM ::
+#\[7]VXQIDFZ6HPFGZLJRG3GL4KLGTV5RRLV5ZZXPANH74HQOLUNBXMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

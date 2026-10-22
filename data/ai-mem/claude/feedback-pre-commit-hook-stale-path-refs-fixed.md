@@ -9,7 +9,7 @@ metadata:
 edits take effect immediately, no reinstall step) had three leftover
 `modules`/`configuration` literals from before the [[zenka-naming-cleanup]]
 era renames (`modules/`→`src/`, `configuration/`→`cfg/`), fixed in
-commit `317319a5d`:
+commit `d82c636ff`:
 - loaded `sourcecode.source_path_set_up` from the old `modules/` path,
   so the `open()` silently failed and `@sig_exclude_paths` was always
   empty — no exclusion ever worked
@@ -57,8 +57,8 @@ needed, simply because they didn't contain any triggering pattern.
 Don't assume "it's under `data/tasks/`" means it will be checked —
 check the content shape first.
 
-#,,,.,,,.,.,,,..,,...,.,.,.,,,...,..,,.,,,,.,,..,,...,...,..,,,,.,..,,,.,,.,.,
-#N54CHBTBJX3UYHFINAWX27Z76HSPHBC4DEIOK5PESEOA6CJWHG2CCEAE4XXOPJYRQISEH7U3PSCL2
-#\\\|UHZFILHNE2S6MGQXDDJZV6FSRT3CPYZU6JLUUPILXPFJQGKTRKD \ / AMOS7 \ YOURUM ::
-#\[7]TKW3HYSJRRXJGUPS5FZQWBONUNPYYGBPB4A77S2EMRGPA3WOEEAI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,,..,,,.,,,,,.,.,,.,,.,,,,,,,..,,...,...,..,,..,,,..,,,.,.,,,
+#BOXVL7PG4PBZMV4VKP3TU72OLIAINQXP23X7LGX66J2HNPYFG3FUUQCCLTP3TDHYQ2VXRI2OCGA26
+#\\\|VDY6EMQI42HM33DFOOSNBELA5CV5BCUHMTWRQ25ACUB4MEBXWHB \ / AMOS7 \ YOURUM ::
+#\[7]QXWFASOMXB2TIJWCZ5G2GI2X5GKLLAXSEFLOHDA24VDWMD34SODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

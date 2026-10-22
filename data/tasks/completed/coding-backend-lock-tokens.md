@@ -15,12 +15,12 @@ closing after the next round was sent [ deliberate : see the comment in
 caller the holder" can't be answered by task_id. four fixes on 2026-09-24
 were all this bug class :
 
-- `6d278dfcd` stale error / timeout callbacks acting on the newer round ;
+- `cb898daf9` stale error / timeout callbacks acting on the newer round ;
   patched with `lock_seq` [ stamped in async.request ] + optional `$req_seq`
   arg to `backend_release`
-- `18230dd03` lock handed to a queued task that had already finished
-- `b0d892f2e` paused task kept the lock
-- the REVERTED `c93bb499d` : tried to make reentrancy smarter via
+- `c2a520ca7` lock handed to a queued task that had already finished
+- `98ab68212` paused task kept the lock
+- the REVERTED `c6ffb3a0c` : tried to make reentrancy smarter via
   `task_state` existence -- broke every multi-round task. do not repeat : read
   the memory file's correction first
 
@@ -33,7 +33,7 @@ must release unconditionally [ user stop / cancel / sweeps ] pass an explicit
 instead of "same task_id". this replaces the `lock_seq` patch rather than
 adding to it.
 
-## callers to enumerate [ as of 64d86ef9f ]
+## callers to enumerate [ as of a8b1c45d9 ]
 
 for EACH : what does it rely on the lock FOR, does it have a token in hand,
 should it be token-checked or `force`. [ lesson from
@@ -84,8 +84,8 @@ status : implemented, syntax-checked [ `bin/format-code -c` ], reflowed,
 offline-simulated. NOT yet live-verified -- the five checks above are the
 local session's job, fixes go onto this branch before signing.
 
-archived [ 2026-09-28 ] : landed as fd6c09f30, in use since 2026-09-24
-without a stuck lock. `coding.lock-status` [ edd73e616 ] verified live under
+archived [ 2026-09-28 ] : landed as 05d332f29, in use since 2026-09-24
+without a stuck lock. `coding.lock-status` [ b72401c8c ] verified live under
 contention [ holder + token + queue ]. the five checks above were not run
 one by one -- if a lock problem shows up, start from `p7c coding.lock-status`
 and the "what to watch" list below.
@@ -146,7 +146,7 @@ check stays ].
 | `coding.async.chunk_handler` backend-switch release | freeing the OLD backend when model selection moves the task | ctx [ runs in on_chunk ] | token-checked via `lock_token( task, old_backend )` ; the new backend is a fresh acquire [ ctx backend differs ] |
 | `coding.async.chunk_handler` model-selection / tool-call-reminder send_request | next round on the same connection chain | ctx | re-enter via async.request |
 | `coding.async.round_soft_restart` | freeing the lock before the retry timer re-dispatches | new 3rd param | token-checked with `$callbacks->{lock_token}` from `coding.handler.http_timeout` [ already stale-seq filtered ] ; **force** from `coding.cmd.restart-round` [ user command ] |
-| `coding.callback.http_complete` [ 5 releases ] | freeing after the round ended / before its own re-enqueue | ctx [ on_complete closure ] | token-checked via `lock_token`. the trailing / early-return releases after a continuation are now no-ops by rotation [ this was the 6d278dfcd class ] |
+| `coding.callback.http_complete` [ 5 releases ] | freeing after the round ended / before its own re-enqueue | ctx [ on_complete closure ] | token-checked via `lock_token`. the trailing / early-return releases after a continuation are now no-ops by rotation [ this was the cb898daf9 class ] |
 | `coding.callback.http_error` [ 3 releases ] | freeing before retry timer / before failing | ctx [ on_error closure ; also reached from http_complete's no-data forward, same ctx ] | token-checked via `lock_token` |
 | `coding.callback.retry_request` [ timer ] | -- no release ; its send_request acquires | none | fresh [ lock was released by http_error / soft restart before the timer was armed ] |
 | `coding.tools.handler.subtask_spawn` | parent gives the backend to its child while waiting | ctx [ tool runs inside the parent's on_chunk / on_complete chain ] | token-checked via `lock_token( parent, backend )`. **risk** : a direct `coding.call-tool subtask_spawn` from a command has no ctx -> release skipped, child would queue behind the parent ; watch in live checks |
@@ -193,8 +193,8 @@ it found one real bug [ `qw| release force |` in scalar context ], fixed.
 - `lock ... [handoff, ..]` followed by `handoff to X not taken` : expected
   only for tasks finished / paused while queued
 
-#,,.,,..,,...,,,,,,,,,,.,,,,.,.,,,...,..,,.,,,..,,...,...,.,.,.,,,.,,,,,.,...,
-#VCGRCEOVWP5RDAJTAUFMTZAH7TZCBSXZXFAH7W6FU2DGAFG62E52INLB4RM5APVB22ECF32TNHY6A
-#\\\|QTJ2CQ2GX6ZY4R6AS2NQBVN6KZZ6A5B2HN3AX76CGCC7GHNH5LD \ / AMOS7 \ YOURUM ::
-#\[7]7MGUMYKTCSLWFVQWICUWCYEHSOM4ZWBUCNW52A27VY733TM7D6BQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,,..,,,.,,..,,.,,.,.,..,,...,,.,,..,,...,...,.,.,,,.,,,,,.,.,.,,,
+#GEBTV7EGNPHTTO4OXCSKMACUIY3MKJQH7H7VLGBP2HG6J4D3ARADTI2LTKJ4MJHZCXCVEHTW5EIM2
+#\\\|ICKR7ZE7E6R6UKAUXLJYV6L4T3X7TQQXH2HFEFHE7EO63WQSOEX \ / AMOS7 \ YOURUM ::
+#\[7]NZ65JBWA4PD52QAHYMS7XX56US5HCPF73YP6JD3TZWBIGOSZTCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 # osf-cache stage 2c : peer lookup [ same host first ]
 
-follows stage 2b [ committed `13fddb42a`, running live ]. design :
+follows stage 2b [ committed `040d59fc9`, running live ]. design :
 `data/md/design/OSF-CACHE-ZENKA.md` [ acquisition flow step 2 : who
 holds H ? ]. goal : one osf-cache instance asks the OTHER osf-cache
 instances for anchors and merges the answers. no transfer yet.
@@ -95,8 +95,8 @@ files touched, test output, how the session list is obtained, the
 access form chosen and why, the deferred-reply mechanics used, and
 everything that only a live run can confirm.
 
-#,,,.,.,.,.,,,,.,,,,.,,,.,,,.,,.,,,..,,..,.,,,..,,...,.,.,.,,,,..,..,,,,,,...,
-#RHVWM4VJ3LSZWLJDEHAFVTKP7PXVDYLOIY3WYNX4HJTJVT2IPV7K7ZUKKJS5YKJIWNDOJWJKDVC7U
-#\\\|CGWAA5Y56L3QDG4ZJF5YYFLR74TVNG5LDNEYG2QCF25PR4UODG6 \ / AMOS7 \ YOURUM ::
-#\[7]JXAV2LJTWN722C5D3OYFF2M7D4QPNFLFAZ2MNZCVMZGYNK54FQCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,.,,,,,.,,,.,.,.,,,,,,..,..,,..,,...,..,,.,.,..,,..,,,..,.,.,
+#Y4OWDK3ZHPQTFQF3UV7MANXGZ3MDRDOMXWW26IHWZNAUGN3NDVV4OX22AJ7L4H2JQNYGB6IKCM3U4
+#\\\|TIRGNYBPLOHRS4NRMYVJ6OCPTRW7Y2QHKSTILAN2XORK36YKHKV \ / AMOS7 \ YOURUM ::
+#\[7]Q5IYSVK7ROKTY2FZDPZWCRCOLIPPBFOEKMBOA4KIPASKJRHF3GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

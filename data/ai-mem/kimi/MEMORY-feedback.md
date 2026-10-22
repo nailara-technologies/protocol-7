@@ -28,7 +28,7 @@ inside; use a combined restart [ stops AND starts ] or don't touch it.
 
 **rename update (2026-09-09)**: `v7` zenka renamed to `v7-zenki`, and
 `v7.stop`/`v7.stop-implicit` renamed to `v7-zenki.terminate`/
-`v7-zenki.terminate-implicit` [ commits d555d3dfc, bd98e1c17 ]. the
+`v7-zenki.terminate-implicit` [ commits 98cc4619c, b81fa7d10 ]. the
 LESSON above is unchanged, but the commands are now `v7-zenki.terminate
 <zenka>` [ still dangerous on your own zenka, same deadlock risk ] and
 `v7-zenki.restart <zenka>` [ `src/v7-zenki.zenka.cmd.restart`, still a
@@ -69,14 +69,14 @@ when called on an already-stopped slideshow. Guarded with `( // 0 )`.
 #\\\|XE3PNLJSO7RQPL5RMGTLNT5A6QSTLIAEWP4QRRJWDYJYBPK5K4Z \ / AMOS7 \ YOURUM ::
 #\[7]UJVFEH5XEKM4IAUDMXF4VCWD2PXRZK3QODPT7KY23HX4DQ7GYADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-## format-code -m dynamic-key false positive [ fixed 2026-10-20 , commit 24c51d384 ]
+## format-code -m dynamic-key false positive [ fixed 2026-10-20 , commit b79ca628b ]
 
 step7 module-sugar rewrite rewrote `$code{ $var->{'handler'} }->(...)`
 to hardcoded `<[handler]>->(...)` — a recursive PPI find() counted the
 ONE quote token nested inside $var's own subscript and misread it as
 the literal %code key , silently dropping the vital variable part of a
 dynamic dispatch . the same damage was ALREADY COMMITTED earlier
-[ 6d495b6fa , src/base.X-11.handler.coordinates_timeout ] — `format-code
+[ 2b0d77980 , src/base.X-11.handler.coordinates_timeout ] — `format-code
 -c` cannot catch this class : it compiles fine and only fails at
 runtime as a wrong call .
 
@@ -90,8 +90,8 @@ one quote anywhere . regression harness : bin/test-scripts
 /test-format-code-module-sugar.pl [ convention : one test-format-code-*
 .pl per pass , `-n` for deterministic exact-line comparison ] .
 
-#,,,.,..,,.,,,,.,,,.,,,,,,.,,,,..,,,,,.,.,..,,..,,...,...,...,,,,,.,,,.,.,.,,,
-#FXWUXBSD2CBQQNZ7W5V6XARCCSH53ODLTYI2KBLTELPJOT6WR5JYQ66IY4E5FSY55XKLSPAE7DAX2
-#\\\|STEV7K6KEUD7AG33C6YQQU6A64STJAW3GZCYY6IDST2AQL23YR7 \ / AMOS7 \ YOURUM ::
-#\[7]2GJB3UALH5KHQLDERE5H3DJTH5LBXYO7GRVFI7G6XCNMOGPGCIAI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,.,...,,..,,..,...,,..,,,,,...,..,,...,...,,.,,,.,,.,.,,,,,...,
+#C7HDMUOGWBBS7KL6EFSCXKIL75VGENYJEDMYRAD2NKIA4EATCCAOGELUJDBWONWG3DV7S2OMOCPBE
+#\\\|T54MVTLXJ6H422LUMZ2I253JGCQSPFTVF4RDHAVEVATGH57IRKU \ / AMOS7 \ YOURUM ::
+#\[7]QD4FB3OR5WU7RVGIJ6OWLZ5WO575OP6WWBPTKOJIMH6FHFBHRACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

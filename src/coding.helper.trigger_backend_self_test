@@ -65,7 +65,7 @@ my $run_started = <[coding.self_test.run]>->(
             ## forever on a genuinely broken model: caps at                 ##
             ## coding.cfg.self_test_seed_retry_max attempts per model_id,   ##
             ## reset on any clean self-test pass. prompt 3 was added        ##
-            ## 2026-08-08 [ ba7beab49 ] but this gate was never extended -- ##
+            ## 2026-08-08 [ fbd976cbb ] but this gate was never extended -- ##
             ## a riddle miss landing on prompt 3 only silently completed    ##
             ## 2/3 with no restart [ found live 2026-09-21 : this model     ##
             ## misses the primed variant alone ~18% of runs, 25x            ##
@@ -248,7 +248,7 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
             ## callback below re-checks the holding probe's liveness before ##
             ## firing and re-arms another window instead of force-resuming  ##
             ## the queue mid-round                                          ##
-            ## [ the premature-resume class of f9d9ecba5 ]. the fixed       ##
+            ## [ the premature-resume class of 69d8cff40 ]. the fixed       ##
             ## derivation stays the arming value : the window's length is   ##
             ## not load-bearing for correctness any more, only the liveness ##
             ## decision at fire time is                                     ##
@@ -367,8 +367,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,,.,,,.,,..,...,,.,,,.,,,..,,,,,.,,,,,,,,,.,..,,...,...,.,.,...,,.,,...,,.,,
-#BQXHXSHMOTJ5XLQHGTADZRQATSWHTGKRRDLQCHI6GJF26ZIBK6FU3CDYDKBAJPZA765S573LQLY62
-#\\\|XIQMRPBCBCOO7KP3FYCZ5LMKCKHVUAYTMIFJTESWGWQSBMC6GFO \ / AMOS7 \ YOURUM ::
-#\[7]ZLKMMTQKLWEEXY6IKLLISDDAQVCHVKTK77DEWQB462FEVZRFOWAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,...,.,,,,..,..,,..,,,,,,.,,,..,,...,...,,,.,,,.,,,.,.,,,.,.,
+#7HBQ76H2SW5WN4WEE6TXZOAPPIDB6ZYI3HIQY6M2324RGPP7FXO26GWPP3LW5BXW5UTQMAHZXIHYI
+#\\\|KLFVFAKD6H6HCNQY5B64P64SPBU3UEHMPO4P64DKDLLQETG2FWY \ / AMOS7 \ YOURUM ::
+#\[7]XBTL34WACPUGCF5IGH2ZCIVAA42LKYE23QIWHDX6DFZQ5AI7Z4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

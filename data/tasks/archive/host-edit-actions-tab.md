@@ -1,6 +1,6 @@
 # host-edit actions tab [ lane B2c-ui ]
 
-**base : 72e837763** [ host-edit.flow.* landed ]. small lane : read the
+**base : 76a6c289c** [ host-edit.flow.* landed ]. small lane : read the
 named files, mirror the existing plugin, batch edits.
 
 ## read first
@@ -56,8 +56,8 @@ a live flow would write REAL pins into the user's pin store. so :
 - `qw| a b |` is a LIST ; local ok() ($;$) ; do NOT commit
 - write `data/tasks/host-edit-actions-tab.report.md`
 
-#,,..,.,,,.,.,...,,..,,,,,,.,,,..,,..,,,,,.,.,..,,...,...,.,.,..,,.,.,,,.,...,
-#CFPBTHCY5545CKWPEE636D3IZOSIOF6GPQ5K4RAFNJTBLG76HKB7EPW5OE4P5LN25ONNHOB44X5N6
-#\\\|5SUBCDM4ZEQZYSRCA3653UCLWSXZOFQUCG6SFWG67I4YORSM4WQ \ / AMOS7 \ YOURUM ::
-#\[7]GY7WP3XXTE2GRWINMM3VGLCVIM66JFNDTAAH4HA5CYIVVKZILYDA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,,,,,,..,.,.,,.,,.,.,,,,,.,,,..,,...,...,...,,..,,,,,.,,,,..,
+#UKYATK2V4ET3LLDKA4DBQPE2XHNLUVXO3IOKJYVBQL6TM2ARJCZ2UEB25RKDIWM4MHHSTH53O6F4G
+#\\\|DR7XR4VTH3K6K5JALD67JXO4IUXNINZ2ZAAIAYGQI5K23VFGIPJ \ / AMOS7 \ YOURUM ::
+#\[7]FJNSVXYUKLUGVW3FJZIZGOP2B2XEYYECCXZZBONUNQ3RLHVWRIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

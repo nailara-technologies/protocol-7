@@ -7,15 +7,15 @@ metadata:
 ---
 
 **Landed this session** (chronological, all committed, all pushed):
-`ba668683e` self-test cat-riddle hint, `34a5cddf2` restart_count
-infinite-loop fix, `2f03086a9` usage credential freshness check,
-`ab845c26f` model-sweep state machine (pause/resume/cancel + circuit
-breaker), `1dcf7e472` usage refresh-decision diagnostics, `375224991`
+`8f037e620` self-test cat-riddle hint, `40d62a4c2` restart_count
+infinite-loop fix, `32241cdf0` usage credential freshness check,
+`74bb231db` model-sweep state machine (pause/resume/cancel + circuit
+breaker), `8f3ec75a7` usage refresh-decision diagnostics, `24cc02bc8`
 kimi model-alias rename (bare `k3` now means `k3-256k`, old target is
-`k3-1m`), `350e281f2` sweep-aware crash-restart ceiling +
-restart_count model-change reset, `d4b14869e` model-sweep
+`k3-1m`), `804cfec00` sweep-aware crash-restart ceiling +
+restart_count model-change reset, `15397e41f` model-sweep
 task-priority coordination (`ensure_model_pinned` defers, sweep
-`yielding` state), `65c081b7b` proactive credential-refresh watchdog.
+`yielding` state), `e22b2d56f` proactive credential-refresh watchdog.
 See `git log` for exact order/hashes, this list is for topic recall
 not a substitute for it.
 
@@ -73,8 +73,8 @@ implementation, both caught real bugs in first drafts):
 `data/tasks/coding-sweep-task-priority-coordination.md`. Both fully
 implemented and committed, not open work.
 
-#,,.,,,.,,,,.,.,.,,.,,...,,,,,,,,,,,.,..,,,,,,..,,...,...,.,,,,.,,.,,,,.,,,.,,
-#WGSKMDP5XEXOBPWIWFLSBLPDPVA4W6XOHT5SZ36P7AVFAG34A5SIGPFKKP4O6DEJUF2R46Q3N46D2
-#\\\|JO6Y67OMF2DPICXYYEI3ANHJ7Y4NZJTGITY2VM65OND7EPCN4YS \ / AMOS7 \ YOURUM ::
-#\[7]BW4LQ2MRFEIVYEFW5CUNHI7G25PJX2DGHOEEID6TJ6PUOIR4ZGAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,..,,.,.,,,,,,..,,,,,,,.,,..,..,,...,...,,.,,,,,,,.,,.,.,,.,,
+#CPEKHEKKYMFRQQKQ3BTSWRBWAHNHS6JUCAC2ETMJZ4RUMGSU6NC22CKOBM5ADAQ2WHVILD5EV3ZBS
+#\\\|5KLZIHAKIS6TM2ILLHJSYCPVXB4CRH7V2CGNGMJLX3JTKAADET7 \ / AMOS7 \ YOURUM ::
+#\[7]IV5DXJUXJLWRDXSHEG4KLNROD7FFT6UJNCTEWPOR6DWOQJZMEMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

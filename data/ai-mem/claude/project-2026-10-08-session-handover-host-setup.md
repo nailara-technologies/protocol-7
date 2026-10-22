@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-08-session-handover-host-setup
-description: handover of the 2026-10-07 -> 08 session [ last 477742cb5, pushed up to 19d6a7222 ] -- trust chain step 2 complete + live, key id rename, key trash \ undo-remove, host-edit zenka with the full add-host flow [ ssh forward -> probe -> pin -> certify -> install ] ; next = the first REAL add-host run [ the fanless backup host ]
+description: handover of the 2026-10-07 -> 08 session [ last aca8a66a5, pushed up to 8176469e3 ] -- trust chain step 2 complete + live, key id rename, key trash \ undo-remove, host-edit zenka with the full add-host flow [ ssh forward -> probe -> pin -> certify -> install ] ; next = the first REAL add-host run [ the fanless backup host ]
 metadata:
   type: project
 ---
@@ -37,7 +37,7 @@ designs : `data/md/design/TRUST-CHAIN-STEP2.md`, `data/md/design/HOST-SETUP.md`.
   [ ::yes:: ], base.disable_console_command [ + disable_command listing
   fix ], keys list shows servers\ + owners\ pins, known\ retired
 
-- `:pass-env:` [ ff7ce4d13 + this commit ] : certify-host \ get-sp-pub-key \
+- `:pass-env:` [ a44bdf5df + this commit ] : certify-host \ get-sp-pub-key \
   gen-pwd-keyfile read PROTOCOL_7_KEY_PASSPHRASE \ PROTOCOL_7_KEY_SEED from
   the environment ONLY with the tag [ read once, deleted ; key creation
   keeps the 13 char floor ] -- scripts + tests : bin/test-scripts/
@@ -88,8 +88,8 @@ designs : `data/md/design/TRUST-CHAIN-STEP2.md`, `data/md/design/HOST-SETUP.md`.
 - never probe a destructive command [ remove known: shredded a live pin,
   restored byte-exact ] -- the fix [ key trash ] landed the same session
 
-#,,.,,.,.,.,,,..,,...,,..,..,,,,,,,.,,,.,,,,,,..,,...,...,..,,,,,,,,.,...,.,,,
-#YGXLVAPTNLQKSLJKE5F4M2KH3XQO2YTXABSMVRU2YW45QRMVGYV2V3KECUSEIS3H2WBCHFPN6LML2
-#\\\|V4XA6KQEUOFLJCWG2ZNOZPMZCGRJFTNV3JTDATA2E5FQ2OEURA4 \ / AMOS7 \ YOURUM ::
-#\[7]CPFP33CPO5DPFBCKAIT2MWUMJMGCR4CS42FD2N47X3FLS35BJQAI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,,.,,..,,,,.,.,.,...,,,,,,,,,..,,...,...,...,...,,..,...,.,.,
+#AKKNAC3VJBHP4PJ52BBQSQWU7M4YBYEFSDSI2XH5FYMDHVFXVTR6DCYLFBGWH6ENPILVAY6TJA5FO
+#\\\|ZZVNA6NG5PGL6GFC6EJZJHOJGL2YIA3D4BEERGJ3SQORQQXBVBU \ / AMOS7 \ YOURUM ::
+#\[7]VREB6O4DCA4AHT72OO4N6FEHHLQ53HCVFMEQOSV5RVJN7AJNSIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

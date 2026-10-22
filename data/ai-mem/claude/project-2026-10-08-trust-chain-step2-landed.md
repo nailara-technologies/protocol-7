@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-08-trust-chain-step2-landed
-description: trust chain step 2 LANDED 2026-10-08 [ ab197b01c wire + pins, 9d5d315c9 tools + discover ] -- NOT live-checked yet [ needs a v7-zenki restart ] ; next : live check, then host-edit zenka + resilient initial transports [ user direction ]
+description: trust chain step 2 LANDED 2026-10-08 [ 705e196ba wire + pins, 8db8e58a5 tools + discover ] -- NOT live-checked yet [ needs a v7-zenki restart ] ; next : live check, then host-edit zenka + resilient initial transports [ user direction ]
 metadata:
   type: project
 ---
@@ -11,12 +11,12 @@ design : `data/md/design/TRUST-CHAIN-STEP2.md` [ decisions + 'direction' ].
 
 ## landed
 
-- `ab197b01c` : `trust.chain` [ the ONE field \ .dlg parser + order flip ],
+- `705e196ba` : `trust.chain` [ the ONE field \ .dlg parser + order flip ],
   .dlg = chain [ leaf first, one per line ], auth_select sends the chain
   only while it verifies [ else the leaf alone ], `trust.pin_decide` +
   helper twin [ shared trust-pin-vectors.pl ], name-bound host pins
   [ line 1 fp, 2 name, 3 since ], forward-only rotation, distrust param
-- `9d5d315c9` : p7-keys certify-host \ accept-owner \ owner-pin \
+- `8db8e58a5` : p7-keys certify-host \ accept-owner \ owner-pin \
   owner-unpin \ owner-pins \ distrust \ undistrust ;
   `p7c v7-zenki.delegation-issue` ; discover chain + 'owner' trust [ kimi
   k2.8, reviewed, 69 tests ]
@@ -40,7 +40,7 @@ the gap [ a certified sibling answering on another host's address ].
    .dlg -> owner-pin -> p-7-r 'owner-certified', since = owner
    not_before ; backed out with owner-unpin \ undo-remove \ drop-owner,
    .dlg back to the 284 char leaf ] -- found 0640 under umask, missing
-   drop-owner, trash same-second order [ fixed d682d7a5e ]. the REAL
+   drop-owner, trash same-second order [ fixed 458af6b4e ]. the REAL
    owner key setup waits for the host-edit zenka [ user ]
 2. second host [ atom ] : discover owner trust, rotation, step 1 leftovers
 3. `describe` waits for an inline documentation format [ user ] ; arg
@@ -69,7 +69,7 @@ entry [ no damage ] -- the fix landed in the same session.
 
 ## host setup [ data/md/design/HOST-SETUP.md ]
 
-landed `e6877c0f8` : form.* engine [ kimi, user-edit output byte-
+landed `aac82c0d8` : form.* engine [ kimi, user-edit output byte-
 identical ], v7-zenki.owner-statement install \ drop, v7-zenki.backend.*,
 p-7-r -host, keystore.* [ keys.* sub-namespaces drag keys.init_code into
 any loading zenka -- it resets <system.amos-zenka-user> : never load
@@ -112,11 +112,11 @@ init recompiles p-7-r ; SigCgt bit 16 stayed set ] -- no restart needed.
   line [ `#,,.,,..` 75-81 chars ] above the real block -- the sign run
   signs over it, the user's length check flags only the long ones. check
   every new kimi file : `awk '/^#[,.]+$/ && length($0)!=78'` [ 16 cleaned
-  2026-10-08, f0720dab3 ]. kimi lanes hit the 100 step limit mid-task
+  2026-10-08, 18d391853 ]. kimi lanes hit the 100 step limit mid-task
   [ resume with kimi_continue ] -- size task files small up front
 
-#,,..,..,,,..,,..,..,,,..,.,,,..,,,,,,,..,.,,,..,,...,...,...,,,,,,.,,.,.,..,,
-#FLUMLN5A4K43PSFI3DMCRR2YEWOK2IGCPXXHI625ZWLF3DSF7Z7FVLOBN3ZLBGUCDXQNVF3DC3MLA
-#\\\|BGNVX37HVWEUCM6UMQU4IQKHCOYILS7N54QG5PHK5JY7AOELSM5 \ / AMOS7 \ YOURUM ::
-#\[7]5ADNPMDNKJ54C7J46F4CJQJXRYUPF33IPOT3XWECFJ6CA2HGFKDI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,.,..,,.,.,,..,...,,,.,...,.,.,..,,...,...,..,,..,,,.,,,.,,..,,
+#HZD7AM4FDV7BLTOI3JTUHMGL5Z762SIGG47M3NTCY3X56OG5ZQM4DLD5PWSFRYKM4MKWHUUNNM3OM
+#\\\|EMJJWWGAQWGWUQD4K6LGSKMKBJZOBYK64FTGMFY5OA2D53GRQT3 \ / AMOS7 \ YOURUM ::
+#\[7]6WP2COE5UFEWYKPBWLYWA4QZ4DNRATTG45KKNXPKWLUDZRHSK6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

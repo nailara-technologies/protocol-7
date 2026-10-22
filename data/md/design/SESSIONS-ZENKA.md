@@ -10,7 +10,7 @@ classes, renewal and rotation live there, not per plugin. builds on
 `v7-zenki.rotate-web-auth-secret` [ landed 2026-10-21 ] and the sessions
 stub [ cfg/zenki/sessions ].
 
-## what exists [ read from the source, 4df3fad10 ]
+## what exists [ read from the source, 07239e1f7 ]
 
 - **web.auth tokens** `plugin.web.auth.create_session` : token =
   `chk-sum.amos( node_id ntime user_id secret entropy )`, entropy = 32
@@ -370,8 +370,8 @@ one value read back ].
 - should `:when-gone:` wait for the epoch boundary or also re-check on
   each logout [ `destroy_session` -> notify ] for a faster run
 
-#,,.,,.,,,,,.,.,.,..,,...,,,.,.,,,..,,,,.,,,.,..,,...,...,,..,,..,.,,,,..,...,
-#A73YMVI2ZIZ67SJ5X2ABGRLKRVZ33AUEGAXV3FCVWJSW3GFNIMFJMICW3JLH7PHZGKJ4TNJTOUQFK
-#\\\|5G4EWPVFNEKHQBWHUCTATZYZDBUHO5LPUT7HQRUPWBWN73ROSZI \ / AMOS7 \ YOURUM ::
-#\[7]4LTAZXYKEVRM3LIUQPHHYNDV6M6EPO3HT3FLCVNYG44WEV27UEDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,...,,.,,,..,,,.,.,.,,,.,,.,,..,,...,...,..,,...,,.,,...,,.,,
+#XHPIIQ6F67UH5INCOSQOVFRIMJWCPAZKUOPBLTNMRT42MIUJ77PK7QUQKC5QK3HYJS6EBGJRMS62C
+#\\\|5CRXORCC7L7GHS3RKS7RDTHRVKL4ZB77GS63I6LUZHB3JHMSY5P \ / AMOS7 \ YOURUM ::
+#\[7]GDVPFFAGRDTJ7PQ5GJ3YYQ4HBJWOFZQC2OKG5JCQSPXARDGG2WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

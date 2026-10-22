@@ -673,7 +673,7 @@ sub p7_syntax__perl_c {
 ##[ SIGNATURE FRAGMENT ABOVE THE FOOTER ]#####################################
 
 ## a leftover directly ABOVE a file's real signature footer
-## [ found 2026-10-09 in 56 files, 9f69cc3dc ] : a lone separator line, a
+## [ found 2026-10-09 in 56 files, f8feb982d ] : a lone separator line, a
 ## separator + an agent's '#PLACEHOLDER ..' line, a whole placeholder block
 ## starting  '#,,PLACEHOLDER', or a separator + '</content>' -- each followed
 ## by a blank line and then the real footer.  the sign tool's own stub passes
@@ -789,8 +789,8 @@ sub p7_syntax__swapped_calls {
 
 return 5;  ###################################################################
 
-#,,..,,.,,...,,..,..,,,,,,.,,,,,,,..,,.,,,.,,,..,,...,..,,...,,..,,..,,..,..,,
-#A65T2JIYLQYMGNMWOVLR5MK5EFFWNGK4YHVOJTCA2KLO5YBW4DUZYY7RLSBD4O2JIOU3VZHLBETOA
-#\\\|4TIFCC2LNGTEDMN46MVFUYWUCDFATMM4CVTZT5KQCWKWNSMDPRP \ / AMOS7 \ YOURUM ::
-#\[7]2LQCNWHLVAGJW5MEEWGLUGSHMQVRFVYATQXDWMJPPLRMBKMFNMDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,.,,,,,.,.,,,...,,,.,.,.,.,,,..,,...,...,..,,,.,,...,,..,,..,
+#WOXT7LQ4VDEBP4GCS4S5UP7CXL7E3VSJH7K7LNKTVHV6S2IB6Q2ZS67DXKFOTQROZU3OLHOB742UM
+#\\\|2UXVTASWOOGKGKUXVOGCJ5A5KEISPTA44L6T3XOGFN52OAFNOTO \ / AMOS7 \ YOURUM ::
+#\[7]M5C3QWATYS55XFWJHZRE77V5XZ4MMX7ZM2IV2JTXVURPWE4VSCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

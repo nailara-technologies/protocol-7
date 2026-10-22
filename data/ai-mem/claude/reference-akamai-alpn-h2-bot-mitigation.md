@@ -77,7 +77,7 @@ this, not a proxy or DNS issue — verify with a minimal ALPN test
 (`IO::Socket::SSL::start_SSL` + explicit `SSL_alpn_protocols`) before
 chasing anything else.
 
-This project's `clients.https.request`/`.get` (as of commit `ef7558078` +
+This project's `clients.https.request`/`.get` (as of commit `3cbc2ef08` +
 the proxy-CONNECT commit right after it) already handles all of this
 correctly — offers `h2` in ALPN unconditionally, speaks real HTTP/2 framing
 when negotiated, supports proxy `CONNECT` tunneling, and decompresses
@@ -88,8 +88,8 @@ the above.
 see [[site-yaml-async-fetch-fork-memory-risk]] for the incident this was
 found chasing, and [[topic-site-yaml-zenka]] for broader context.
 
-#,,.,,,..,,..,,.,,,,,,,.,,,.,,...,,.,,.,,,.,.,.,.,...,..,,.,.,,,,,...,...,,.,,
-#GAETSNNKY7URZY245AMAKAC2NABJZFW4SHNOFCIPC6XD6QQ7M52IWZ2OFDGENTKNRVAC46XNBOM2E
-#\\\|4AQZSPJFIVTR52DNS55KBHCB37RI4UFRC7MNZC3O26ZBNFPIZJ7 \ / AMOS7 \ YOURUM ::
-#\[7]L7PPID45WUW3J4SGSN2CKOJISV6YLW43HQC23TZITU74VJFB46CY 7  DATA SIGNATURE ::
+#,,..,.,.,...,...,,,,,,..,.,.,...,..,,.,,,,.,,.,.,...,...,,.,,...,,.,,.,.,,..,
+#EIAUBH2XNS7ZCC73VOQFV7EBXZSSMIPJIZ6EX4XSE3573DKHOWGNWLB7RMI5JNDCAUC2AJZMPHVTQ
+#\\\|GX6WIOSKFXKM7UT3XNI6BIK7XPWISN5RHAKKQRDFRGMWINVYREG \ / AMOS7 \ YOURUM ::
+#\[7]7DTGP74AA2FRINOJI6WRA33Z34RAFLQVY7CV677DFWYQBGCVR2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

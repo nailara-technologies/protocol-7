@@ -17,14 +17,14 @@ SCRATCH repo, never the live one [ pre-rewrite ids, llm author emails ].
 review result 2026-10-14 [ content check against live HEAD, not patch-ids --
 earlier rewrites changed those ] : side branches \ stashes \ loose files are
 landed in other form, superseded, or must stay out [ 3 job-assessment files
-with personal names ]. only the diff-modified fix was re-applied [ 4d50a0b83 ].
+with personal names ]. only the diff-modified fix was re-applied [ a7ebe55b2 ].
 
 **Why:** the user's pre-git decade lost and duplicated work across parallel
 directory copies -- check copies for stashes \ branches \ dirty files before
 deleting, and keep one archive instead of scattered copies.
 
-#,,,.,,,,,,.,,,,,,,..,.,,,,.,,,,.,..,,,.,,.,.,..,,...,...,..,,,..,...,..,,,..,
-#IWNNMCZRXWYRXTNTEUOK2RF4LL3ENH6YY6SZ3NMXV5L2UF7PZXPEU6HY3RM3J37ERZ4C2RT33VVIA
-#\\\|3GFAON327LHALDP2SNSV2PQ3A4NN75LTVM5JFMCATOOPVWRZBLU \ / AMOS7 \ YOURUM ::
-#\[7]GA5OUGVNOW3XLT2QG6MGBYU5C7SVMT2SSDDZXOLFRCTKB4WLF2DA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,..,,.,,,..,,,,,,.,,..,,,,.,.,,,..,,...,...,.,.,..,,...,,,,,...,
+#XC3KVKL4KHDAZJUSKWMJ44OHF5A3C5DJSKV7QIV2XGJYFWM3KQTC472CE5NUNSIZL6UM77JZ7MGJK
+#\\\|S56EG47N6DZNDTKM5N2GHOLN4RLI6HTVLFYXOHWVXHMPA7AAQDC \ / AMOS7 \ YOURUM ::
+#\[7]CUECFR6G5YVHK3PFMZ5ZYB5FOTM2GKJHA3DV63FFRDA7666VGWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 # tests : host-root key creation [ crypt.C25519 ]
 
-ONE test-only script for code verified only live [ `59d353676`,
+ONE test-only script for code verified only live [ `0d7ab0284`,
 2026-10-05 ]. no change to anything under `src/` or `cfg/` -- if a test
 reveals a real bug, STOP, describe it in the report [ inputs, expected,
 actual ], do not fix it.
@@ -79,8 +79,8 @@ write `data/tasks/tests-host-root-keygen.report.md` : full script
 output, what each check proves, anything that looked like a real bug
 [ described, not fixed ]. write it as soon as the script passes.
 
-#,,.,,.,,,,,,,,,.,.,.,,,,,,,.,.,.,..,,..,,.,,,..,,...,..,,...,,.,,.,,,..,,,,,,
-#OZU2NHO4UKNTOMXKFMWVTPUWN2OEGRR7X3CJ7UJTJPMS4RVBLPFPSIB4FRDSOF2B5GAJALEUSM5XY
-#\\\|JXFQ4SXY3WFXW5RK3XU2ZYMO56X3ERINTOYSGGUXLWJPPWMGRMP \ / AMOS7 \ YOURUM ::
-#\[7]54UIKCSBT3WLH4POQQG5QJQHDSCXRVNFRYEKQP3BGPQ3KV7KB6DI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,..,,,.,,..,...,,.,,,.,,.,,,...,..,,...,...,...,,..,,..,,..,,.,,
+#U6WD557DNSHKTCHSBR7RVK65HVBLSTGQKRNDVR7FZKH5J6PLGPBGWBHCG5CUY3M3RQ2K4VWLX3MYC
+#\\\|VMUGVO7YTL26MXU4E7FVEWXJAKUG22LILMW3HOHM3DIOKDKOIFZ \ / AMOS7 \ YOURUM ::
+#\[7]4DOW7S7UQCHSDZSZG6I473DD6VTQYMI2UOJLTKP5GWVLTVHLO6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

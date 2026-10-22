@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-06-host-root-never-created-root-held-keys
-description: FOUND 2026-10-06 : host-root [ 59d353676 ] was NEVER created on any host -- crypt.C25519.post_init returns early when auto_load_keys is off and v7-zenki sets it 0 [ every start profile ]. v7-zenki runs as ROOT, cube as protocol-7. decided : root-held keys in `<backend key dir>/root/` [ root 0700 \ 0600, checked on every read ], host-root signs cube's S [ .dlg ], clients pin the host-root fingerprint ; 3 lanes dispatched
+description: FOUND 2026-10-06 : host-root [ 0d7ab0284 ] was NEVER created on any host -- crypt.C25519.post_init returns early when auto_load_keys is off and v7-zenki sets it 0 [ every start profile ]. v7-zenki runs as ROOT, cube as protocol-7. decided : root-held keys in `<backend key dir>/root/` [ root 0700 \ 0600, checked on every read ], host-root signs cube's S [ .dlg ], clients pin the host-root fingerprint ; 3 lanes dispatched
 metadata:
   type: project
 ---
@@ -43,9 +43,9 @@ related : [[project-2026-10-06-auth-keypair-replayable]],
 - then retire `crypt.C25519.sign_keys` \ `.sig.*` [ raw-pubkey sig shape ]
 - add a "next consumers" section to HOST-ROOT-DELEGATION.md after lane 1
 - 2026-10-07 : discover lane DISPATCHED to a web session [ task
-  `data/tasks/archive/discover-host-root-delegation.md`, commit 8244f9fa8, branch
+  `data/tasks/archive/discover-host-root-delegation.md`, commit e1713a064, branch
   `discover-host-root-delegation` ] -- review the branch + sign locally
-- landed : 3053508de + b00126000 [ node name, not_before -300 s ] ; NOT
+- landed : 2a238bc86 + 51492d62f [ node name, not_before -300 s ] ; NOT
   live-checked yet [ v7-zenki restart -> root/host-root.*, protocol-7.base.dlg ]
 
 #,,,,,.,,,,,.,,.,,,,,,,.,,,..,...,,,.,,..,.,,,..,,...,...,,..,,,,,.,.,...,.,.,
@@ -77,10 +77,10 @@ test 916a35658 ; web session 435ff591b + review 05e79435b ] :
 #\[7]FHDIXZC3O6HSB3ATEQ646HKBXVT3QLV4OBY7C4WXVF4YN3MRUIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**LIVE 2026-10-07 [ 7a3cb68f8 ] :** first root run of v7-zenki failed twice on runtime-only bugs the harnesses miss [ File::stat object `lstat` -> ownership rule refused a correct root/ ; `sysread` on the runtime's default :utf8 layer in delegation.issue ] + p7-log lacked crypt.C25519 in modules.load. after the fix : host-root written to root/, delegation `protocol-7.base -> <node>.cube` issued by the 1-min retry after `v7-zenki.reload` [ no restart ], `.dlg` 0644 next to S. cube reads .dlg per select [ no cube restart ]. LIVE PASSED same day : `p-7-r 127.0.0.1:42 list sessions` as taeki -> delegation verified, host-root pinned [ ~/.n/remote-keys/servers/127.0.0.1_42.public ], ip.tcp session ; re-run against the pin OK. open : wrong-host-root refusal only covered by the e2e test.
+**LIVE 2026-10-07 [ ce380ec8d ] :** first root run of v7-zenki failed twice on runtime-only bugs the harnesses miss [ File::stat object `lstat` -> ownership rule refused a correct root/ ; `sysread` on the runtime's default :utf8 layer in delegation.issue ] + p7-log lacked crypt.C25519 in modules.load. after the fix : host-root written to root/, delegation `protocol-7.base -> <node>.cube` issued by the 1-min retry after `v7-zenki.reload` [ no restart ], `.dlg` 0644 next to S. cube reads .dlg per select [ no cube restart ]. LIVE PASSED same day : `p-7-r 127.0.0.1:42 list sessions` as taeki -> delegation verified, host-root pinned [ ~/.n/remote-keys/servers/127.0.0.1_42.public ], ip.tcp session ; re-run against the pin OK. open : wrong-host-root refusal only covered by the e2e test.
 
-#,,,.,,,.,,,.,..,,.,,,,,.,,..,.,.,..,,,..,.,.,..,,...,.,.,..,,,..,..,,.,,,,,.,
-#RH6F3NA3JUX2TGLFB7VMA33FZJJPASQGSIAC3IHFQJYVV4Z7GOBZI3M6LRU6SQCXJGQOQLF4AGERO
-#\\\|5TI4UADD6VHVPHHOFKNSAY42A2VIGA6KUO2ZA4CLYLCSKE75UN3 \ / AMOS7 \ YOURUM ::
-#\[7]HWYKBSH5W5K22AJISAZQNH43OVU5PY7GIOMVOPBZWLLO3I2MOCBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,...,,.,,...,.,,,,,.,,,,,,.,,.,.,..,,...,..,,...,.,,,,,.,.,,,,..,
+#EFRXIFOSTELYXD7JDRXWKX2ZQEOXWOKORWT4MGPDRFAYNXWLU6FGIJURR76554DZ3EQGA5TGSASFW
+#\\\|U7NGFVWBYTHXDXI4IAUTMRAR6OLMN4JKUNIUHBXYRUUI2XL3RT6 \ / AMOS7 \ YOURUM ::
+#\[7]OMR3JKW3REKYIQDXO6ZBONYGGSKKTZNA6B2GDIHLGDOO6VQNJQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

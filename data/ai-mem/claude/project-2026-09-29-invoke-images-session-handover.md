@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-**state [ 2026-09-30 ~20:00 ]** : last commit 69971e9f1.
+**state [ 2026-09-30 ~20:00 ]** : last commit b29c8d8d8.
 invoke.ai rendering [ start_paused = startup ], coding zenka can
 run next to it [ Qwen3.8-9B -ngl 27 + invoke.ai fit, critical pressure but
 stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
@@ -27,7 +27,7 @@ stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
 - pressure sampler [ `p7c v7-zenki.pressure` ] ; heartbeat timeout extended
   under pressure [ 3x \ 6x ] instead of an error restart -- verified live
 - report-pid-file : removed only on planned ends -> crash detection
-- keep-children [ 1eb8ba2a3 ] : opt-in `restart.keep_children` in
+- keep-children [ 7a0f43f12 ] : opt-in `restart.keep_children` in
   start.cfg ; on status error the registered children survive, a new
   instance claims them [ `v7-zenki.claim-children` ], grace 120s. tested
   live on mod-test [ keep, grace expiry, claim ]. invoke-web opted in --
@@ -36,21 +36,21 @@ stable -- a coding \ invoke.ai feedback loop is feasible on this host ].
   cause is open : data/tasks/v7-zenki-start-setup-runtime-reload.md ]
 
 **regressions fixed this night** [ method : [[feedback-llm-fix-regressions-pattern]] ] :
-- `aa2235630` [ 07-18 ] log send-buffer request in one-shot init_reports ->
-  most zenki lost their p7-log files. fixed 6c4f43467, see
-  [[feedback-log-send-buffer-regression-aa2235630]]
-- `c8cd075d0` [ 08-26 ] resolve hook inside dependency.ok -> pure checks
+- `94f90886f` [ 07-18 ] log send-buffer request in one-shot init_reports ->
+  most zenki lost their p7-log files. fixed 7cc562717, see
+  [[feedback-log-send-buffer-regression-94f90886f]]
+- `4b905ee4c` [ 08-26 ] resolve hook inside dependency.ok -> pure checks
   [ zenka stop, `list dependency` ] cascade-started dependencies of
-  non-running zenki. fixed 1eb8ba2a3 : dependency.ok pure, start paths call
+  non-running zenki. fixed 7a0f43f12 : dependency.ok pure, start paths call
   dependency.ok_resolve
-- `184e84fa6` [ 09-24 ] heartbeat latency outliers at log level 1 every few
+- `b8f2fe3a2` [ 09-24 ] heartbeat latency outliers at log level 1 every few
   seconds. now only >= 1s, level 2
 - v7-zenki's OWN log branch never checked "already online" [ old gap ] :
   stuck after any pause while p7-log stayed online. fixed [ 5s resume timer ]
 - usage kimi \ claude : a refresh cycle ending without a token failed the
-  retry at once. now one more 30s cycle [ 84469ff88 ]
+  retry at once. now one more 30s cycle [ a5716933d ]
 - plus : p7 syntax translator read y- \ s- \ m- .. key segments as quote
-  operators [ kimi, f0c392e7c ] ; list-context stat() under File::stat in
+  operators [ kimi, ee1cb200e ] ; list-context stat() under File::stat in
   8 modules ; `<[base.file.*]>` calls in 12 modules ; `not` \ `or`
   precedence bugs in my own code [ 3x ]
 
@@ -60,41 +60,41 @@ syntax only. named subs in bin/Protocol-7's main:: are a transitional state
 to convert : data/tasks/bin-protocol-7-main-subs-to-modules.md
 
 **done since ~11:00 2026-09-30** :
-- kimi review of 1eb8ba2a3 \ 6c4f43467 \ 4254bd5e7 \ 84469ff88 : one real
+- kimi review of 7a0f43f12 \ 7cc562717 \ 5c387b6b1 \ a5716933d : one real
   finding -- power-x11 never set `<system.zenka.initialized>` [ no
   get_session_id, no init-done:TRUE ] -> its log send-buffer never resumed.
-  fixed 05a0d65da : `[init-done:TRUE]` in its zenka.v7, plus
+  fixed 3244c024e : `[init-done:TRUE]` in its zenka.v7, plus
   `base.callback.run_initialized` [ runs `<system.callbacks.initialized>`
   once, from verify-instance AND init-done:TRUE ; in all load-early lists ]
 - kimi's "hybrid zenki [ nshell, user-edit, vault-edit ] lose logs too" was
   NOT real : the send-buffer's first idle send fires only at [zenka.loop],
   after init-done:TRUE set initialized. nshell logs as its SESSION name ->
   `<host>.taeki.zenka.log`, not `nshell` [ I searched the wrong name ]
-- format-code `use warnings` + sub wrap committed [ 51393e8dc ] ; 5 real
+- format-code `use warnings` + sub wrap committed [ 2e3fbf519 ] ; 5 real
   multi-word qw bugs -> data/tasks/multi-word-qw-as-string.md
 - start.cfg reload loss REPRODUCED : a removed dependency survives a
   v7-zenki reload [ `p7c v7-zenki.list dependency` ], gone after restart ->
-  task file updated d94e4685a. `v7-zenki.drop-dependency <zenka>` is the
+  task file updated dbf571a5c. `v7-zenki.drop-dependency <zenka>` is the
   manual override [ drops it from ALL chains ]
 
 **done ~18:00-19:30** [ a v7-zenki reload is enough for all of these ] :
-- f294ddd86 start.cfg dependency changes applied by a RELOAD [ post_init
+- f6f57c795 start.cfg dependency changes applied by a RELOAD [ post_init
   rebuilt chains only for added zenki ; now all, every run ]
-- 59b54bfb6 channels \ osd-logo \ power : start.on-demand [ idle timeout
+- 34d2684fd channels \ osd-logo \ power : start.on-demand [ idle timeout
   without it = error restart loop ] ; osd-logo is started \ ended by tile
-- 8b128ed77 heartbeat FALSE `client not present` between a zenka end and
+- 5e613c479 heartbeat FALSE `client not present` between a zenka end and
   sig_chld no longer an error [ kimi ]
-- 3839a90f7 pressure pieces 4 + 5 : restart gate [ critical, max 300s ;
+- 133c8cd56 pressure pieces 4 + 5 : restart gate [ critical, max 300s ;
   manual \ cube \ log target \ kept children exempt ] + start gate [ max
-  45s ] [ claude opus dispatch -- aliases now 5.5 \ fable 5.1, 29d732661 ;
+  45s ] [ claude opus dispatch -- aliases now 5.5 \ fable 5.1, fe3e9d37b ;
   pass max_budget ~15 for opus ]
-- 3e6dcea8a multi-word qw ; 30d46fefb format-code .chk. out of src
+- 9a55e4fa5 multi-word qw ; 66e11f7a3 format-code .chk. out of src
 
 **done ~19:30-20:00** : task files from design docs [ research-first ] --
 v7-zenki-hot-self-restart, signed-command-interface, authorization-buffer,
 nested-cube-network-segmentation, dream-idle-generation-first-step,
 repo-pii-leak-prevention, zenka-hybrid-startup-followups. session \ work
-start.cfg removed [ 69971e9f1 -- console-only zenki have NO start.cfg,
+start.cfg removed [ b29c8d8d8 -- console-only zenki have NO start.cfg,
 that is the marker ; user rule ]
 
 **open, in this order** :
@@ -118,8 +118,8 @@ mod-test, and which regressions were found.
 **How to apply:** start here for invoke-web, v7-zenki keep-children \
 pressure \ pid files, the log send-buffer, dependencies or usage refresh.
 
-#,,..,,,.,.,.,,.,,.,.,.,.,,..,.,.,,,.,.,,,,,.,..,,...,..,,.,.,..,,,.,,,,.,.,.,
-#LTAUXQVFFLPCH25CJQJUD3OFNWYXFJXFYDHGQGDTBLZLS74OK4HKB6PDCS6TFEGSMNXBJG6FHH5FO
-#\\\|H7E42J6HE4BTDGU5FIURNMVMEE4SQQWW76I4VJPYEDRTFFOJ4TS \ / AMOS7 \ YOURUM ::
-#\[7]5B5OE2C4MODDFF4UXBKV3QOXCJWKYI3HTY7KRGBGBICUFTVN66DI 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,.,,,.,,..,.,,,,.,,.,.,..,,.,,,..,,...,...,..,,,,,,,,.,,,,,..,,
+#M7RPTABE5KATF73VOPD622PQRLIZNOD7NPCU73PHY6GYD7GJY7WSX4CWEPGPWTWLAOF2V4ZONEJHM
+#\\\|5DJK6KJVRORYBOLNQ4QR32KGJMXLGRJMRJ2TSYOX6GUCWU3YMUQ \ / AMOS7 \ YOURUM ::
+#\[7]R7K2277ROC3L4JSNMUUIR4YU2XJZ65P2HYCR7QLUC4XN7PV5BOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -87,7 +87,7 @@ sub load_mod {
     $src =~ s|<plan-9\.protocol\.constants\.(\w+)>|P9C('$1')|g;
     $src =~ s|<\[([\w.\-]+)\]>|\$code{'$1'}|g;
     ## data-tree sugar <a.b.c> => $data{'a'}{'b'}{'c'} -- the repo-wide   ##
-    ## format-code pass 4921a3c21 converted $data{'storage'}{'9p'}{...}     ##
+    ## format-code pass 075ca4d33 converted $data{'storage'}{'9p'}{...}     ##
     ## chains in these modules to <storage.9p....> sugar                   ##
     $src =~ s{<([a-z0-9-]+(?:\.[a-z0-9_-]+)+)>}{
         "\$data" . join '', map { '{\'' . $_ . '\'}' } split m{\.}, $1 }ge;
@@ -205,8 +205,8 @@ if ( $pid == 0 ) {
 }
 print qq[server daemon entering accept loop\n];
 
-#,,..,,,,,...,..,,,,.,,.,,.,.,,,,,.,.,.,.,...,..,,...,...,..,,.,.,,,,,...,,..,
-#2OTQGLIUHQEUUAITEFG67HM7MEN7JUELWFQI246FBNPUFOI2UMXLEWKWRY7Q32SXDB7776CG7WNJI
-#\\\|BRYFNQ2TO2A4VCI7ZVZ6VMKEIBQMFP4D6ZPBWTPITBXWRZF5OD6 \ / AMOS7 \ YOURUM ::
-#\[7]O7V4WX4SMWY4QBHTCPOMZN6QZG6OHZMRW5QW5ZCQESUBVPHUU6DA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,.,,,.,,,..,,.,,,.,,.,,,,,.,,.,,..,,...,...,.,,,...,...,..,,,.,,
+#AQBMBTVEQ3XOWMRMT6EAKCGUWWLLPCVPVZFO2W2ROZHY4EDII2W5FNGSOYP4QAAMOHCID7GNOPVIG
+#\\\|2LYWD2MZN7N5DPCG35NJESKL7N4DIE7I52YXRT5UJI6TAWPX6IS \ / AMOS7 \ YOURUM ::
+#\[7]URSPCT54W4TV6KRNC46MRJETB3GMBN6MCCLGJBNX4RDZJ2VU3AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

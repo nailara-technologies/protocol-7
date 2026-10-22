@@ -1,6 +1,6 @@
 ---
 name: feedback-test-claimed-bug-effect-before-reporting
-description: before naming a bug's user-visible symptoms [ in a report or a commit message ], reproduce them -- 2026-10-15 load_single stored a reference : I reported 'enc-key-chksum sums SCALAR(0x..)' and 'a wrong password stays loaded as FALSE', both false [ a consumer dereferences, FALSE was unreachable ] and pushed in e13135150's message
+description: before naming a bug's user-visible symptoms [ in a report or a commit message ], reproduce them -- 2026-10-15 load_single stored a reference : I reported 'enc-key-chksum sums SCALAR(0x..)' and 'a wrong password stays loaded as FALSE', both false [ a consumer dereferences, FALSE was unreachable ] and pushed in 1e6fe8766's message
 metadata:
   type: feedback
 ---
@@ -23,8 +23,8 @@ defect" and "possible effect, not verified". a regression test is only one
 if it FAILS on the old code -- run it there. related :
 [[security-fix-verify-both-code-paths-not-just-symptom]].
 
-#,,,,,,.,,,.,,.,,,,,.,,..,,..,,..,,.,,,.,,.,,,..,,...,...,,..,.,.,,,,,..,,.,,,
-#6D2PDE4AB6RO57T4GVTOHWHIVPCK3PMVATEUCUPHT4HAGY7KA7XQ4LTA44LYBGOGNNRAP35AU2LWA
-#\\\|345YGSSP5TB4JG22WLRVLDGCFAZASHDVEVFBBT3VBEOB7WLCMWP \ / AMOS7 \ YOURUM ::
-#\[7]3WPFL2DN4LIBYSJD4UFTZDXFS5KL5UNIQFLLERXW2AQEYKDYZYBY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,,,.,.,,.,,.,,,,.,,.,,,..,,,..,..,,...,...,..,,.,.,...,,.,,.,.,
+#BHLXVGXXEAQJDNZF2XLLL3L2MBH4KAVB2XDWTWDWZ5GH7UBJ7YLGKIJRF4M3RPUS42AH3TNY7SW3W
+#\\\|5KIZ4RNTNIYRY3PSZLESAPALCSRQUABNS4NGOGVWINHCYXTQQHY \ / AMOS7 \ YOURUM ::
+#\[7]ZFMXM2V6VSGBOYZ7CF4WHCSYC2F7HCWEETWSPL4JXAPP6GCGPCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

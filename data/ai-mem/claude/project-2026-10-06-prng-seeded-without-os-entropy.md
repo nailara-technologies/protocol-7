@@ -53,7 +53,7 @@ entropy for embedded systems that boot with identical entropy.
   the brute-forced seed and tests every position [ the unknown call count
   adds only ~log2(count) bits ]
 
-## fix [ done 2026-10-06 : 1c47377cf + the add_entropy restructure ]
+## fix [ done 2026-10-06 : 422078b01 + the add_entropy restructure ]
 
 1. `base.prng.entropy_pool` [ new ] : BMW-512 [ user's choice, not SHA ]
    over OS entropy [ Crypt::Misc::random_bytes + /dev/urandom read
@@ -102,7 +102,7 @@ related : [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]],
 #\[7]MFZQ5E6QNY6MLUJR33FN3XE4O2EZ7WYBYD4QCOPCUNEWNT5FWIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**2026-10-07 regeneration :** `taeki.base` regenerated [ `p7-keys remove taeki.base` + `p7-keys create -U taeki.base`, unencrypted as before -- p-7-r signs non-interactively ] ; cube's pin `remote-keys/incoming/taeki.public` replaced as protocol-7 + cube `reload plugins` [ needed 3c9775089 : authorized keys were load-once ] -> p-7-r login verified. `protocol-7.base` still OPEN : it is now cube's S [ .dlg ], test-auth-keypair [ symlink ] AND the p7-log anon key -> rotate : p7-log reloaded FIRST [ adopts table.bin under the current key id, table.bin.key ], `p7-keys rename protocol-7.base protocol-7.base-anon-<date>`, `p7-keys create -U protocol-7.base`, `p7c p7-log.archive-anon-table protocol-7.base-anon-<date>` [ checks the key id, refuses a wrong name ], restart v7-zenki -> .dlg reissued. store refuses a table written under another key [ no silent mixing ].
+**2026-10-07 regeneration :** `taeki.base` regenerated [ `p7-keys remove taeki.base` + `p7-keys create -U taeki.base`, unencrypted as before -- p-7-r signs non-interactively ] ; cube's pin `remote-keys/incoming/taeki.public` replaced as protocol-7 + cube `reload plugins` [ needed dcafd0ccf : authorized keys were load-once ] -> p-7-r login verified. `protocol-7.base` still OPEN : it is now cube's S [ .dlg ], test-auth-keypair [ symlink ] AND the p7-log anon key -> rotate : p7-log reloaded FIRST [ adopts table.bin under the current key id, table.bin.key ], `p7-keys rename protocol-7.base protocol-7.base-anon-<date>`, `p7-keys create -U protocol-7.base`, `p7c p7-log.archive-anon-table protocol-7.base-anon-<date>` [ checks the key id, refuses a wrong name ], restart v7-zenki -> .dlg reissued. store refuses a table written under another key [ no silent mixing ].
 
 #,,,.,,,,,..,,,,,,,..,,..,.,,,..,,.,,,.,,,.,.,..,,...,...,...,,.,,,.,,...,,,,,
 #J3KD2BJK4XLGT2PTVL4E3IPBSI5I7HXCEVHOJBYUEXBDJUVTAPXWJHRIFRQX4WI4X2I32M47ARQD6
@@ -120,10 +120,10 @@ related : [[project-2026-10-05-link-upgrade-nonce-reuse-fixed]],
 #\[7]DK2SIQAPMRJ3EAVQOW4ZKAITH6ZJDLXMNAJVHFANBFCJX6PJOSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**since 8af54c356 :** the TOFU pin step is `sudo -u protocol-7 p7-keys re-pin cube:<user> <key name | base32 pub>` [ keeps a .bak, no cube reload ] -- not yet run against the real key dirs.
+**since 1c83b60cd :** the TOFU pin step is `sudo -u protocol-7 p7-keys re-pin cube:<user> <key name | base32 pub>` [ keeps a .bak, no cube reload ] -- not yet run against the real key dirs.
 
-#,,.,,..,,.,.,,.,,,,,,..,,,,.,,.,,,..,,,,,..,,..,,...,.,.,.,.,,.,,,..,..,,,,,,
-#G5O2RHQXIZZSCJB32VYKXYDPECYBWH323JPJ5OZ656VJ252CEIOL7BWETI5DJZNCOJPSZNYAPNJJC
-#\\\|5OSV2JZ3YMKPNVY62XZAZJZB2NTU6IURAE2JYZAYP7I5CJHKDOW \ / AMOS7 \ YOURUM ::
-#\[7]F64OE4SN3SOLTFHS3XAGTN2SW4YFQ4LJLGOPNK36OU6HVXSY7SDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,,,.,.,,,,,,,,,.,,,..,,...,...,..,,...,...,..,,,,.,,,,,,,,,..,,
+#2DG33KTJKEOHCTLTEIDLLEBK6JSISHLZUS6RQMXHJ2CLYONDHDS37VQH4AINN5WBKBTFRPAQ6MMXY
+#\\\|ITALB6HUP53T7F2Z3PQZ6WHUKJBMFRFT5JNWOO6FNBL2U4KORK7 \ / AMOS7 \ YOURUM ::
+#\[7]MCP55LKG4CXCDEGCU67WJ4OBLOB4NUJAORKKM5PGUPVN2ZRZXSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-09-session-handover-remote-rollout
-description: handover of the 2026-10-08 -> 09 session [ 0031fb73d .. ee45a2381, pushed ] -- remotes upgraded + host-root pinned [ both remotes ], perl floor 5.32 with a floor-perl check, yaml wrappers everywhere, letsencr auto-enrollment [ staging first ], form \ host-edit ui fixes, signature fragment cleanup + :strip: ; next = first real enrollment
+description: handover of the 2026-10-08 -> 09 session [ cc089d8e2 .. 377564d7b, pushed ] -- remotes upgraded + host-root pinned [ both remotes ], perl floor 5.32 with a floor-perl check, yaml wrappers everywhere, letsencr auto-enrollment [ staging first ], form \ host-edit ui fixes, signature fragment cleanup + :strip: ; next = first real enrollment
 metadata:
   type: project
 ---
@@ -19,14 +19,14 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
   YAML::XS ; load_str encodes first ] ; format.yaml in 13 more zenki's modules.load.
 - **letsencr** : repeats vhost discovery once httpd is online [ v7-zenki.notify_online ] ;
   only FQDN vhosts become domains, no implicit www alt name ; one log line per result ;
-  **automatic enrollment** [ 8a53d61a7 ] : discovered domains w\o cert [ or
+  **automatic enrollment** [ b6e3750c7 ] : discovered domains w\o cert [ or
   cfg.enroll_domains ], dns + http-01 self-test in the CHILD, async [ deferred reply ],
   2 per check, backoff 1 h .. 24 h, 'pending' guard, state `enroll-state.json` ;
   `cfg.enroll_staging = yes` -> staging server + separate account, staging certs NOT
   installed ; renewals stay on production. VERIFIED live on staging [ zenki.v7.ax via
   `install-vhosts :nocert:` : discovery -> dns -> async self-test -> staging cert ] ;
   default since then `enroll_staging = no` [ production ].
-  **interface check** [ 650b89ec7 ] : the dns check pins to this host's OWN public
+  **interface check** [ 931650d7d ] : the dns check pins to this host's OWN public
   interface addresses [ `letsencr.parent.local_public_addresses` ] -- only names resolving
   HERE qualify, no network fetch ; no public address [ nat \ dev box ] = enrollment skips,
   unless `letsencr.cfg.public_addresses` is set [ servers behind port forwarding ].
@@ -47,9 +47,9 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
   the ssh forward ; the pins equal their `p7c host-root-id`.
 - **signatures** : 56 files carried agent leftovers above the real footer [ lone
   separator, PLACEHOLDER line \ block, '</content>' ] -- stripped with one ncode pattern
-  [ 9f69cc3dc ]. the rule lives in `AMOS7::Protocol::P7Syntax p7_syntax__sig_fragment_rx` ;
+  [ f8feb982d ]. the rule lives in `AMOS7::Protocol::P7Syntax p7_syntax__sig_fragment_rx` ;
   `update-signatures` reports fragments, `:strip:` removes them, the pre-commit hook warns
-  [ not blocking ] ; AI-COLLABORATION-GUIDE names every variant [ ee45a2381 ].
+  [ not blocking ] ; AI-COLLABORATION-GUIDE names every variant [ 377564d7b ].
 - **tests** : `test-form-stdin-key.pl` [ kimi, 29 : tab-row entry, plugin keys, ctrl-c ],
   `test-form-width-cap.pl`, `test-letsencr-enroll.pl` [ 74 ], host-edit flow \ records \
   actions-tab extended.
@@ -71,15 +71,15 @@ previous : [[project-2026-10-08-session-handover-host-setup]].
 
 1. first PRODUCTION enrollment after the pull : the issued-staging domains become
    candidates again -> watch `:: letsencr.status` for the installed certs.
-   dev box probing third-party hosts : SOLVED by the interface check [ 650b89ec7 ] ;
+   dev box probing third-party hosts : SOLVED by the interface check [ 931650d7d ] ;
    *.bak-* install backups no longer served \ listed, special-use names [ .local etc. ]
    get no acme order [ 66420497c ] ; staging certs log as `staging`, not `success`.
    a staging-test host behind nat needs `letsencr.cfg.public_addresses`.
 2. pull on both remotes : they run the version before the enrollment claim, the form
    key changes and `:strip:` [ check the zenka STDOUT log afterwards ].
 
-#,,..,...,,..,.,,,..,,,,.,...,.,,,..,,.,,,,,.,..,,...,...,,,,,...,,.,,,,.,,,,,
-#PWC45JT3JWYHJR3ANIA7D7MNF22YMD5XOOIM2AMUGN57FKHAXYEZ5Q2PA5SDQ7L4YNZOX4F23ABGY
-#\\\|7JQTP5REPO4OTPK3QO4VFWBESHRWM6LNQ3MGDDOQO3KSZAI5XG4 \ / AMOS7 \ YOURUM ::
-#\[7]4W6R4F7DVUQZPFW32MMETBBCP5YJVSR47CLNY2LGBIB5XS5OQUDY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,.,,,.,.,,..,,,.,,..,,..,,,,,..,,...,...,.,,,..,,,..,,..,.,,,
+#J5RACPF4ZSNIDPVWJBD6436E2TVRLQ3XG7C2DEKTVSLDS6B7UFLOGUE65KAUXNI34F35FPVGLSZPC
+#\\\|ICS64ZHG6QA3LGX46FXJSP6YOMC342YPEIRN34OXHDGSJUBGCI4 \ / AMOS7 \ YOURUM ::
+#\[7]WQR2YYWFHCX5ISTQJTL5JZGKUA3O5FRX76DGENLXKZJ3P422FOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
