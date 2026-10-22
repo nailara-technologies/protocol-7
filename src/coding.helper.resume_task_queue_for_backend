@@ -29,10 +29,13 @@ if ( $dep_id_ready && exists <dependency.object>->{$dep_id_ready} ) {
 
 <[jobqueue.check_dependencies]>;
 
+## the lock queues waited too : nothing else hands them the lock ##
+<[coding.async.backend_dispatch_next]>->($ARG) for qw| gpu cpu |;
+
 return TRUE;
 
-#,,.,,,.,,,,,,,.,,.,.,.,,,,,,,,.,,.,.,,..,,..,..,,...,...,..,,,..,.,.,,,,,,..,
-#O2W2KJ2C4J5TEV33TXZ7PSUOXYTQLJ5OZV36F3CXFDPO2V6KYIBU64LIY7L3DO5GAOB3XOLNJY5KE
-#\\\|FAK254AV4Z27R7AYFU5L5OCFGMQ2DOKGZXG7ZAUVDSUJDZ6TXNN \ / AMOS7 \ YOURUM ::
-#\[7]SYUBWK36EHTWYAHQ55RFSEQRYDHYGL6WYJHJ4AXLS6WTXE6RWACQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,..,,,,.,,.,,,.,,.,.,,,,,,,.,..,,...,...,.,.,..,,,,.,,.,,,,,,
+#OVGRMG4JIUMNY62LDMV7X7ISTUIG4QRAAJD75AY3BWCRGAB42LPBOCYGVRVNSX4F4BBHN2TP5HW3K
+#\\\|WNVJUSSH4323TZPYVFYH24WB44KYSCIM24CGIMH36DRBHBJ5L6Y \ / AMOS7 \ YOURUM ::
+#\[7]S3GEIXVZXHFXPBOUBQGJXFGVI6A7W7RLK3WGIR6LAVDP73RZBYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

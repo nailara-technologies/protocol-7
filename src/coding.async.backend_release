@@ -77,69 +77,16 @@ delete $bs->{'lock_token'};
     $task_id, $backend
 );
 
-## dequeue next waiting task and resume it : skip entries whose task has    ##
-## already finished [ task_state deleted by async.complete -- eg aborted or ##
-## failed while queued ]. handing the lock to one of those leaked it        ##
-## permanently : send_request bails with "no state" and never releases      ##
-my $next;
-while ( defined( $next = shift @{ $bs->{'queue'} // [] } ) ) {
-    last if exists <coding.async.task_state>->{$next};
-    <[base.logs]>->(
-        1,     'backend_release: dropping finished task %s from %s queue',
-        $next, $backend
-    );
-    <[base.logs]>->(
-        1, 'lock %s: %s#%s -> free [drop %s finished]',
-        $backend, $rel_holder, $rel_token, $next
-    );
-}
-if ( defined $next ) {
-    <[base.logs]>->(
-        1,     'backend_release: dispatching next queued task %s [%s]',
-        $next, $backend
-    );
-    ## acquire for next task with a fresh token, then resume its request ##
-    ## inside a lock context presenting that token                       ##
-    ## [ async.request's acquire re-enters and rotates it ]              ##
-    my $handoff_token = ++$bs->{'token_counter'};
-    $bs->{'lock'}       = $next;
-    $bs->{'lock_token'} = $handoff_token;
-    <[base.logs]>->(
-        '2:1',    'lock %s: %s#%s -> %s#%d [handoff, %s]',
-        $backend, $rel_holder, $rel_token, $next, $handoff_token, $rel_reason
-    );
-    my $sent = do {
-        local <coding.async.lock_ctx> = {
-            'task_id' => $next,
-            'backend' => $backend,
-            'token'   => $handoff_token
-        };
-        <[coding.async.send_request]>->($next);
-    };
-
-    ## send_request bailed before any request took the lock over ##
-    ## [ its token is still the handoff token ] : don't leak it  ##
-    if (    ref $sent eq qw| HASH |
-        and not $sent->{'success'}
-        and ( $bs->{'lock'}       // '' ) eq $next
-        and ( $bs->{'lock_token'} // 0 ) == $handoff_token ) {
-        <[base.logs]>->(
-            1,     'backend_release: handoff to %s not taken [%s], releasing',
-            $next, $sent->{'error'} // 'unknown'
-        );
-        <[coding.async.backend_release]>->( $next, $backend, $handoff_token );
-    }
-} else {
-    <[base.logs]>->(
-        '2:1',    'lock %s: %s#%s -> free [%s]',
-        $backend, $rel_holder, $rel_token, $rel_reason
-    );
-}
+## hand the lock to the next queued task [ none while the queue is paused : ##
+## its resume dispatches -- see coding.async.backend_dispatch_next ]        ##
+<[coding.async.backend_dispatch_next]>->(
+    $backend, $rel_holder, $rel_token, $rel_reason
+);
 
 return TRUE;
 
-#,,,.,,,.,,.,,,,,,..,,.,,,,,.,,.,,,,,,..,,.,.,..,,...,...,...,,.,,,.,,.,,,...,
-#FWLZSRQW4D5MBRG3SLX5YNFZT23ZA4KIOU6CVRBE4PPFIUYTUNPFA4BQ5EGBLKZ4POSXMEF74IJ6U
-#\\\|ANCUQJSVPXK5IXZX7RDLN25KHKPLJ4M72G4NRVTFT565K73WAHS \ / AMOS7 \ YOURUM ::
-#\[7]QS6JF35PHV7KV7VMDGJJ4Q6HNXTN3VOQWSH74B5ZTUYZE66RM6CI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,..,,,,,,..,,,.,,.,,,,.,,,,,,,,,..,,...,...,...,..,,.,,,,,,,,,.,
+#7NJOBR2JLK7OOBVOTCB7PQKOP2CLDNAU4A7O6A3VBVYK7MROT2YTNSJQZXB4RIJC27N2E7MYZWODM
+#\\\|BWHBZORKCKYH2TQLXQGU4UJ6O7KRQ5SAKUMWVV6DOAD6RJMYSGF \ / AMOS7 \ YOURUM ::
+#\[7]GNSNAGAD3YFJQRMFQTVRTOGPE752KQS77FRNHCJZSM3QOS6XRWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
