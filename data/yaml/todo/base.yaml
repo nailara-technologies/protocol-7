@@ -1675,9 +1675,20 @@ items:
   - pins
   - ssh
   text: p-7-r follows ssh aliases to an existing pin [ default on, switchable ] -- label aliases like srv-U reuse the pin of the same endpoint
+- added: 32DNTX5GMI
+  details: 'coding.async.http_client scales the data-start timeout by est_prompt_tokens / prefill rate ; the rate was one gpu figure [ 1200 \ s ] -> every 4.6K token assessment on a cpu-only server [ srv-U ] hit the 120 s floor, retried once, failed [ 2026-10-22 ]. stop-gap : coding.cfg.prefill_tokens_per_sec_cpu [ default 15 ]. clean : llama-server sends timings [ prompt_n, prompt_ms, prompt_per_second ] in the final streamed chunk -- keep a per-backend, per-model running rate [ like coding.async.stream_tps for decode ], use it for the scaling, keep the configured value only as the first-run default'
+  done_at: null
+  id: WFC
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - inference
+  - timeouts
+  text: measure the prefill rate per backend from the server timings instead of a configured guess [ data-start timeout ]
 
-#,,,,,,.,,,.,,,.,,,.,,,.,,.,,,,..,,,.,,,.,,..,..,,...,..,,...,,,,,,..,..,,..,,
-#VGNPUO7SKC2ML77MPLJOIJ26ZCSFD3HNSCD3X64AMTA6X27RUACIG4HLPWA4NZDRSP4XYDCHPLQ5A
-#\\\|GLJXBYDBVMTLS5Q2YB6V2X5EBPTRRD4AG3DPPZGHGUYX5SP6EKC \ / AMOS7 \ YOURUM ::
-#\[7]S6YVRIE2ZRITBZXPCRR3MQH5TLI3HX7DXSON3BBXFEJCSISOLIAI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,,.,,,,,,,,,,,..,...,..,,,..,..,,...,...,,..,,,.,,..,,,,,.,,,
+#NTSH2VZZNT5IQPWMMWYWGGPECFRVBQGDCCYU2E2WPIGBHX3NFBIMHA3K5CZ42HZZTERBCKIKGJFOG
+#\\\|AKJXFNYHWBOEE33ZUGNKT5L4HYT575GLKAP3QBNFRYJEPLIKVSO \ / AMOS7 \ YOURUM ::
+#\[7]SI4ZHLYC5LL3CQDKH3Y6OCGCELD4YMCGWBYM2VF3KBUGVOZKFMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,10 +29,18 @@ my $body_str = ref($body) ? $json->encode($body) : $body;
 ## whole prompt is prefilled, and prefill of 15K+ tokens routinely exceeds ##
 ## a short flat budget under queue contention. floor stays as configured   ##
 ## [ short prompts really do start in a couple seconds ]                   ##
-my $chars_per_token        = 3.2;
-my $est_prompt_tokens      = int( length($body_str) / $chars_per_token );
-my $prefill_tokens_per_sec = <coding.cfg.prefill_tokens_per_sec> // 1200;
-my $prefill_margin_sec     = <coding.cfg.prefill_margin_sec>     // 5;
+my $chars_per_token   = 3.2;
+my $est_prompt_tokens = int( length($body_str) / $chars_per_token );
+## the rate is per backend : 1200 tokens \ s is a gpu figure -- a cpu       ##
+## backend prefills a 4.6K token assessment prompt in minutes, not seconds, ##
+## and every one hit the 120 s floor and was cut off                        ##
+## [ a cpu-only server, 2026-10-22 ]. coding.cfg.prefill_tokens_per_sec_cpu ##
+## [ default 15 ] ; measuring it from the server timings is todo            ##
+my $prefill_tokens_per_sec
+    = ( $callbacks->{'backend'} // '' ) eq qw| cpu |
+    ? ( <coding.cfg.prefill_tokens_per_sec_cpu> // 15 )
+    : ( <coding.cfg.prefill_tokens_per_sec> // 1200 );
+my $prefill_margin_sec = <coding.cfg.prefill_margin_sec> // 5;
 my $scaled_timeout_sec
     = int( $est_prompt_tokens / $prefill_tokens_per_sec )
     + $prefill_margin_sec;
@@ -215,8 +223,8 @@ return {
     state   => $state,
 };
 
-#,,,.,,,,,,.,,,.,,,,.,,.,,..,,.,,,.,,,..,,,,,,.,.,...,...,...,.,.,...,,,,,,..,
-#PXT427W4XXEATCHHFKVZWUASXKXJKKGLGGJ4757XAPRQZNMIHG7XH6DOMV5UDE4IL7PQBMCFRZFX6
-#\\\|DEBY4DE2HZSTJKEWCBTNBQ2V6A64PKJ5J3PW7FSBASTQSHI6QE6 \ / AMOS7 \ YOURUM ::
-#\[7]ZPOZWI7BOJ2MX7EK3BKYOO3UAKND7QILMXCQS5ZQKFXKI2YJLAAA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,.,,,,..,.,,,,,.,,,,,.,.,,.,,.,.,...,...,..,,.,.,...,..,,,..,
+#35OX4FSRXATCMF4Q36TXVA6GXRJJA2WCOPZJ3UMFL5MUZXPDRA3NWDDIMVLPJB7Z7V3NFITIOCVAS
+#\\\|7NUM3AABZ2W6DV7VUCB2PEYZIC3VXY5HSGF3IMSUJJNKKMCCG6Q \ / AMOS7 \ YOURUM ::
+#\[7]IPRX3MCMCYG5JMBKUWNEQGI2HS2UKBRV74IBFVHZKRD5WUBFBOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
