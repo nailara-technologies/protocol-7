@@ -5,6 +5,17 @@ metadata:
   type: feedback
 ---
 
+## 2026-10-22 : v7-zenki `reload source` left v7-zenki unable to start zenki
+
+on all four remotes the new start code called `<[zenka.profile_refusal]>` ;
+after `v7-zenki.reload source` the short `zenka.*` name of that routine was
+missing [ 'subroutine zenka.profile_refusal not defined' ] -- pull-git,
+on-demand starts and restarts all go through it. `v7-zenki.reload init`
+restored it. where the short names are made was not found.
+**after deploying v7-zenki code : `reload init`, then one harmless start
+[ pull-git ] as the test.** also : new message templates load on `reload
+init` \ `reload all` only [ sprint_t sends nothing otherwise ].
+
 ## 2026-10-16 : `reload plugins` never runs init_code
 
 base.reload_plugins = base.load_code over <plugins.status> : recompile
@@ -174,8 +185,8 @@ not just as a fallback for when something looks wrong.
 
 **Restart-only changes are defects [ 2026-09-24, per user ]**: the only remaining reason a zenka needs a restart for a code or config change is a handler that is neither registered reload-safe nor reinstalled in an init phase. when such an instance is found, fix it [ make it reload-safe or reinstall it at init ] rather than accepting the restart -- the goal is that no zenka ever needs a restart just for code or config changes.
 
-#,,..,,,.,.,.,...,,,,,,,,,..,,,,.,...,,.,,..,,...,...,..,,...,.,.,,..,.,.,,,.,
-#W24FVSGAM2CCPFP5K2GLDIW3OVRJIAO5JPATSOZUKZTUW5IVTAWYY4W2FO422UIAC5EUQEKZZQ7JK
-#\\\|QTVFQLKYL5VCRMCVGCPUSZK537B6EJLX5UOE7NLB3ZHCBEEHC4J \ / AMOS7 \ YOURUM ::
-#\[7]36COU3G64LJSBHB3GSDXEGOIBSQTCBLQ62EQMC3M5R3RQOKJHWBA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,,,.,,,,,,..,,,.,,.,,,.,,.,.,...,...,...,..,,.,.,..,,.,.,...,
+#AWNTSFC63S664HSVVLMYW2IDTY3OGYEDBDWWEZLVRLNRAGL3D4K6RQAYU4QDE7I3AC2XB4WNLHENO
+#\\\|AWDGPEUBPH75RKGMK7IGUMG63SYLD3IWZC2VRVLWPVPHJIN3PXA \ / AMOS7 \ YOURUM ::
+#\[7]KSSHZMV3LYS5OPQTHQ5WR7UCXJWCMTCGBHLAUPUYUGVS6WU6DMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

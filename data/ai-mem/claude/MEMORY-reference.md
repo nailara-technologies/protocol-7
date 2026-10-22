@@ -8,6 +8,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 ## Reference
 - [cloud-sessions-first-run](reference-cloud-sessions-first-run.md) — claude --cloud needs a terminal [ script ], agents \ logs see only local sessions, a session must prove its push path first [ remote w/ write access, real history, empty dev/<topic> pushed ] ; results only as a pushed branch ; follow-ups into a running \ completed session [ claude -p --cloud <id> ] are cheap -- extend over re-dispatch
 - [list-subroutines-signed-set-membership](reference-list-subroutines-signed-set-membership.md) — why base.list.subroutines exists : a restored deleted file keeps its valid signature, only the signed SET refuses it ; any replacement [ signed tree root ] must keep set signing
+- [host-and-domain-labels](reference-host-and-domain-labels.md) — live server \ wanted domain names never in tracked text : derived labels srv-<x> \ dom-<x>, NO stored map ; amos-chksum -T<d>%s -T<p>-<d>%s -T<P>-<d>%s -L1,<d> [ order fixed ], depth = digit + offset, freeze rule ; legacy srv-U srv-F srv-V srv-A
 - [usage-pools-fast-mode](reference-usage-pools-fast-mode.md) — fast mode uses the normal plan limits, only Fable is billed via usage credits ; fast \ k2.7-fast = spend a closing window, never a default ; cloud effort low on purpose
 - [pre-rewrite-backups-archive](reference-pre-rewrite-backups-archive.md) — 2026-10-14 : 9 old ../p7.bak.* copies archived [ bundle + stashes as refs/saved-stash/NN + loose-file tar ] in /mnt/ext-xfs-data/repository/pre-rewrite-backups/ ; reviewed, nothing left to import ; restore into a scratch repo only, never push [ old ids, llm emails ]
 - [zenki-status-command](reference-zenki-status-command.md) — `p7c v7-zenki.list zenki` = status of all zenki ; there is no v7-zenki.status [ a poll loop on it spammed the console 2026-10-11 ]
@@ -111,8 +112,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 
-#,,,.,...,...,.,.,.,,,,,.,..,,,..,...,..,,,,.,..,,...,.,.,,,.,,,.,,.,,..,,..,,
-#QIQO2XTUDLF72U3G26AIUKEIA4CBNKMKL6WKIVU4BN7V7DNOCPQMF4KH6F7UNRHNAAV22IRD2QGRG
-#\\\|RVGTY6S4JG5I3KSO6POH6STFJFX4XKN4BTLDQCBXCU5EFOC3MDS \ / AMOS7 \ YOURUM ::
-#\[7]CT3O7MQJT6LCSPB4LXECW6536UO764UYJNULLWAFD2EYRBQFUOAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,,,,,,,..,,..,,,..,.,,,...,.,.,..,,...,...,.,.,..,,,.,,..,,,,.,
+#HZAYUSJMWXEHDBA7ORCC7ZQVIY4J7H65Y3VCF2RMN3TGNEIO6QEYGXOZYF326CFRGIPDUAJ4VLBB4
+#\\\|CEIQCU5IXTP3P7LFWVRMLDWIVG3MDCTQPLQXKZ76AAK4ETYSQP3 \ / AMOS7 \ YOURUM ::
+#\[7]KX2QHDX7JCW3YAHACIFL6VKJNXA3TBT3NLCVVN2ANPCCDFQJOMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
-- [project-2026-10-22-session-handover-j5f-multiline-files](project-2026-10-22-session-handover-j5f-multiline-files.md) — START HERE [ last adcff4bee ] : J5F multi-line p7c + coding.input.decode, parser fixes, templates ; designs FILES-ZENKA + SIGNED-STATEMENTS in base, answers recorded ; todos FKS VWF
+- [project-2026-10-22-session-handover-j5f-multiline-files](project-2026-10-22-session-handover-j5f-multiline-files.md) — START HERE [ last 1c52db2c1, history REWRITTEN ] : J5F multi-line p7c + coding.input.decode, parser fixes, templates ; designs FILES-ZENKA + SIGNED-STATEMENTS ; cpu-only assessment stall fixed [ CHECK srv-U completed > 0 first ] ; commit messages relabelled srv-<x> ; todos FKS VWF T3I C6U 4WM RMI
 - [project-2026-10-22-session-handover-remote-fetch-link](project-2026-10-22-session-handover-remote-fetch-link.md) — previous handover [ last b6a6ed425 ] : remote fetch pri -> delta WORKS [ link by hand ], cert + nameserv 0x20 + sync fixes, optional deps, web secret rotated ; next : coding depending queue, permanent link, 3 cloud docs pending
 - [project-2026-10-21-session-handover-editor-hints-assimilation](project-2026-10-21-session-handover-editor-hints-assimilation.md) — previous [ superseded 2026-10-22 ] [ last b4815589c ] : editor hardened + ctrl-s, coding model-pin hang fixed, hints.* layer [ 4 sources ], managed abstraction, ASSIMILATION-DEPTHS.md ; open : remotes nameserv \ letsencr steps, 3W5 remote links, Q7O ranking, YBX
 - [project-2026-10-18-session-handover-n7fs-truth-pri](project-2026-10-18-session-handover-n7fs-truth-pri.md) — previous [ superseded 2026-10-21 ] -- START HERE [ newest, last 106b7a331 ] : bin/dependencies retired, N7FS v1 on base, truth fallbacks bit-identical, computed module versions, pri prepared for cpu inference ; open : pri model id switch + first coding start, `:` resolver, memory-cap task
@@ -213,8 +213,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [auth-watcher-add-incoming](project-2026-10-16-auth-watcher-add-incoming.md) — 2026-10-16 day [ superseded by session-handover-installer-cloud ; holds the PLAN steps 1-7 + style rules ] : taeki auth live on 4 servers, cube inotify re-read of authorized keys, dep-graph plugin scoping [ -954 eager subs ], p7-keys add-incoming ; OPEN : push+pull d5ce1a7cb + pri incident test, unit pri\atom, 4ZW
 - [session-handover-installer-cloud](project-2026-10-17-session-handover-installer-cloud.md) — START HERE 2026-10-17 [ last 5c09e923b ] : deps line done [ frame, tracked, backend, p7-install, p7-deps restyled ], cloud dispatch working [ pty, launch clone, push path ] ; OPEN : root runner, debs + signed repo, legacy scripts, cloud tool polish
 
-#,,,,,.,.,,..,,.,,...,...,,,.,,..,,,.,.,,,,,,,..,,...,...,..,,.,.,,,.,.,,,,,,,
-#XMT2MKNN2FEV6TVU6GYWYJA7523IT44EY45KGROCQFZ32UHYMKUUXVWOH6C7TVPTYACA6V674QZMS
-#\\\|WJEM5NO4GST5LKJV3P5FFVTVFVPAEJ2LBHWZZO2BTWIPYQYHTM4 \ / AMOS7 \ YOURUM ::
-#\[7]WEZHII6IBSTKDWZ5LTCOT5RUB2PKDDU2YV6URPPKQWSOEYGO7ECY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,..,,,..,,,.,..,,.,.,..,,...,..,,...,...,.,,,.,,,,,.,.,,,.,,,
+#WMUOAMPAALTL7SZZLNN4I7TAC6TNQAB4NCADE7KKN34TXBEIYAVLBQPORRJM5RZN4CS5KACU7N4SI
+#\\\|ZDD2VZ72DFCTSWEYFBF5IATAWQWL62XZGNWR5T3PNKBMNHQGLME \ / AMOS7 \ YOURUM ::
+#\[7]QZ3CABM4D2OLMWQO3VWTNEMPFKN7EFCU4FELDKAMRDDE73XNKMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
