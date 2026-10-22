@@ -65,7 +65,7 @@ if ( length $guiding_message ) {
 }
 
 ## inherit parent's backend routing ##
-my $routed_to = $parent_task->{'analysis'}->{'routed_to'} // 'gpu';
+my $routed_to = <[coding.helper.task_backend]>->($parent_task);
 
 ## apply caller-pinned backend if provided with reason ##
 if ( length $preferred_model ) {
@@ -235,8 +235,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,,,,...,,,.,.,,,.,,,,..,,,.,,,.,,,,,..,,,,,,..,,...,...,,,.,...,.,.,,,.,,,.,
-#EAJKRRYTTLZ7AATEMXEEKLVFONWWPEFEYCEHMVIRW27TVEVEEGLFH7EQKHGDPLSBQG7EFPANICUSO
-#\\\|VU7UO7NE5UW7LXL2EITV3XXDC67Z3YIKKBKWODLM5HB6IZREOO5 \ / AMOS7 \ YOURUM ::
-#\[7]DOAU3NKAAAH45HWWWMCXHLX742E67RQM2JMAHT3SZMHNON252KBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,.,,..,.,,,,,,,,..,,,.,,.,,...,..,,...,...,..,,.,.,,,,,,,.,...,
+#S5VUXO3O5Y7UMUCIWBFJCED5SKJGR6ZG7TD4Z3XOBEDB57F7QJ7IDM6NP4MD77BBCMDTDIQTBWGFW
+#\\\|VCK6BX5ZRRB6KXFDFXLFZY6MG7F4GT3ME4XVBAFIPLMDIGUUG4N \ / AMOS7 \ YOURUM ::
+#\[7]OJNMUOAX5NN7WYDU4LFNUK23WT77C3SJGOPQ2XCQSXT6AM4PM4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

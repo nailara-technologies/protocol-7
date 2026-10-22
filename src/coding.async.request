@@ -18,8 +18,10 @@ my $task = <coding.task.queue>->{$task_id};
 return { success => FALSE, error => "task not found: $task_id" }
     unless defined $task;
 
-## determine backend ##
-my $backend = $task->{'analysis'}->{'routed_to'} // qw| gpu |;
+## determine backend [ coding.helper.task_backend : the one coding.task.   ##
+## execute selected first -- routed_to may hold a service name, which sent ##
+## every assessment of a cpu-only server to the absent gpu port ]          ##
+my $backend = <[coding.helper.task_backend]>->($task);
 my $port
     = $backend eq qw| cpu |
     ? ( <inference.backend.cpu.port> // 8001 )
@@ -233,8 +235,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,,,.,,,,.,,,.,,...,.,,,,..,.,.,.,,,.,,,,..,..,,...,...,,..,...,,,,,,,,,,..,
-#B2YVOIHOGMJK3MBBC4OTQDEV25R6MBGV2CF73VKQQV7QY32E6A67CZXNUXIX2RJXBGBO7XPUKJFIK
-#\\\|3F5ANIV2SVAI6AQEEYSM23YWJDYJSZFLJN7ER36OVBO5OUHO6RR \ / AMOS7 \ YOURUM ::
-#\[7]TMCH6Q2MHWLF7VHG5XX6GSWICRZWM4SXVYEI22IGQPCB4SO75GDY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,.,,,.,,.,,,,.,,..,,,..,,,,,..,,..,,...,.,.,.,,,..,,...,.,,,..,,
+#2J5NKKKL5OKPZLIQQN5BQHIZKAMUTNURLCNFM3B2U2E25FA2HWJ3TH5AFX3A67DYO52ZWEOY7J6BK
+#\\\|4JI7L2V6U7IOWZ5RH333PF4L7OUQMG7SIXGWKK3GFNZULHT3CZ5 \ / AMOS7 \ YOURUM ::
+#\[7]6BPUSJDUPJ4SQ6DWL6NIJETC4FAHNKGVZRJM3RLAJWNBJUIULGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

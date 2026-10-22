@@ -141,9 +141,13 @@ if ($async_mode) {
 
     ## Build request body  cap max_tokens to avoid KV overflow ##
     ## [ full body includes tools ]                            ##
-    my $max_tokens_cfg = <inference.model.max_tokens>       // 4096;
-    my $routed_to_be   = $task->{'analysis'}->{'routed_to'} // 'gpu';
-    my $srv_key_be     = $routed_to_be eq qw| cpu | ? qw| cpu | : qw| gpu |;
+    my $max_tokens_cfg = <inference.model.max_tokens> // 4096;
+    ## the backend select_backend chose above -- analysis.routed_to may ##
+    ## hold a service name [ single-llm ], not a backend                ##
+    my $srv_key_be
+        = ( $backend_info->{'backend'} // '' ) eq qw| cpu |
+        ? qw| cpu |
+        : qw| gpu |;
     my $backend_info_r = <coding.inference_servers>->{$srv_key_be} // {};
     my $n_ctx          = $backend_info_r->{'n_ctx'}
         // <inference.model.context_length> // 7777;
@@ -282,8 +286,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,..,,,.,.,.,.,,,..,,,,.,,,.,,,,,,,,,,..,,..,.,.,...,...,,,,,,.,,,.,,.,.,,..,
-#5LUIV434P6EQX43SF4MWIKVJX63375K3Y6R2CSXCJNXWRFDLRRNHXVDAXE7SI3SW5LKGEVSXVA3KA
-#\\\|KNPK4HQ3HS7PRTS4XRUY35LFRRSPHVTYDJ5N4DYY3LOM4K7SVNL \ / AMOS7 \ YOURUM ::
-#\[7]V2UPJDCYWCYSCQN2YSM6OY72YSUD4NY2FNXPVGWEFPPYXPDJSKDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,,,.,.,.,,..,,,.,.,,,.,.,,.,,.,.,...,...,,,.,,,.,..,,...,.,,,
+#FQ2H7NN2A42Q7EUOTNMTL2WVRVSMCYUMXITIBZQWPBKWZOTXNKJQYE2TIRBTWI4LB6FPOB7YTFNBC
+#\\\|GGNKAMYPHWHBMFPB2BN2ATHRIVAYLE3IDZXAV5ZBCHMR53ZW6IN \ / AMOS7 \ YOURUM ::
+#\[7]NEAVA3RVRHKRKQ77BCR3QCLTV42P26NNVFUWJZ5FXFRQNI7UHGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
