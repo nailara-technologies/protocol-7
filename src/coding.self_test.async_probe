@@ -61,6 +61,22 @@ my $body = {
     dry_penalty_last_n => <[coding.helper.dry_last_n]>->($backend),
 };
 
+## reasoning as the backend's real work runs it : coding.cfg.              ##
+## self_test_thinking = auto [ default ] -> off on the cpu backend [ its   ##
+## tasks send /no_think ; reasoning held a server's self-test for an hour, ##
+## prompt 2 ttft 635 s, 2026-10-22 ], the model default on the gpu         ##
+## [ the think-block stripping below is part of what is tested there ] ;   ##
+## yes \ no force it                                                       ##
+my $thinking_cfg = lc( <coding.cfg.self_test_thinking> // qw| auto | );
+my $thinking
+    = $thinking_cfg eq qw| auto |
+    ? ( $backend eq qw| cpu | ? FALSE : undef )
+    : <[base.cfg_bool]>->($thinking_cfg);
+$body->{'chat_template_kwargs'}
+    = {
+    'enable_thinking' => $thinking ? JSON::PP::true() : JSON::PP::false() }
+    if defined $thinking;
+
 my $acc     = { content => '', reasoning => '', finish_reason => '' };
 my $settled = FALSE;    ## on_error and on_complete can BOTH fire : guard ##
 
@@ -158,8 +174,8 @@ $finish->( { mode => qw| false |, data => 'request_failed' } )
 
 return $http;
 
-#,,..,.,,,,.,,.,,,.,.,,.,,.,,,.,.,,,.,,.,,.,,,..,,...,...,.,.,.,.,.,,,.,.,.,,,
-#5YNRTBAMHEHJKH77ECPFIG7TNLYRTSF67QKIMMSIFRFXADUSSE6AY6C3M3EM3MDI2KLJOQFJ3S272
-#\\\|5UIMPORFCCTWF5UVZCDE7VP3S2AZ33TZGNXDBOFCX5MR66XLTSV \ / AMOS7 \ YOURUM ::
-#\[7]KE2NLMK7IUAU52KW73OYVIP5EZM5C42WTLO5ANW6WDOSZRE4IOCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,,..,...,,,.,.,.,.,.,,,.,.,.,..,,...,...,..,,.,.,.,,,,,,,,,.,
+#ZPYCWQ6EMQKVKLJWEZIQUCLV5U6MPREUCF6S2RKLXBZ4ATD3NB2FWJBYHOGI64G6UP7VSZELQGRYY
+#\\\|X5JMM64NBLXLRK44QV7MLUAD6YURH2H7T3AA3LSPLN6NO7RPFZH \ / AMOS7 \ YOURUM ::
+#\[7]SYMEO74SADOZSLS6BNFN5YEOXAZCZROTY4OD2O47M3KDWBENX2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

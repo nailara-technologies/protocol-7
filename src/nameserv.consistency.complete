@@ -115,7 +115,7 @@ if ( $kind eq qw| a | or $kind eq qw| aaaa | ) {
     my $short    = $state->{'ptr_short_host'} // '';
 
     ## accepted : a dn name, the host name, or any name whose first label ##
-    ## equals the short host name [ 'pri' -> 'pri.v7.ax' ]                ##
+    ## equals the short host name [ 'host' -> 'host.example.org' ]        ##
     my $known = grep { $expected{$ARG} } @names;
     $known
         ||= grep { length $short and ( split m|[.]|, $ARG, 2 )[0] eq $short }
@@ -134,8 +134,8 @@ if ( $kind eq qw| a | or $kind eq qw| aaaa | ) {
 
 return TRUE;
 
-#,,.,,...,..,,,,.,,.,,,.,,,..,,,,,,.,,,.,,,,.,..,,...,...,.,,,,..,.,.,,,.,..,,
-#IHCXSIXG66VB3BWVUNZAZFKLLZ3LJIT3QRXTUNRWM47APJWDXYNHNRATKC2OUL7NRXBEP3F2NT6BM
-#\\\|TLOD4PUIZUA63OQIOELOCI4UGEQZDBSTEEDEVE74ZMQUPZGTCID \ / AMOS7 \ YOURUM ::
-#\[7]42PUBMRGMR3PWOPF4ZL2TPLOEP4G7BABY234FGT2UQM7D6ORBEAA 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,,,,,.,..,,...,,.,,..,,.,.,,..,..,,...,...,,..,.,.,,,,,,,.,.,.,
+#LT7D5IWET5W67X6RQ25PQM6F6BSKCB66665TRIIPRCWYDSFYJJGRFFTJY5S6SFQHBTREGEXAVABJ2
+#\\\|NWKMWPQSO2QQ7LBBZSGULYFP4EFIKJOB4KEHR6YUA4T24T2ERPG \ / AMOS7 \ YOURUM ::
+#\[7]FBG5S5H7DRBPKUAVTHPOTQWORJPVTYHF5KAWF46ELSYLU5TBFKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
