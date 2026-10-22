@@ -64,8 +64,13 @@ my $priority
 ## [ cfg_bool undef ] keeps the gpu                                       ##
 my $gpu_enabled
     = <[base.cfg_bool]>->( <inference.backend.gpu.enabled> // TRUE );
-my $routed_to = $task->{'analysis'}->{'routed_to'}
-    // ( defined $gpu_enabled && !$gpu_enabled ? 'cpu' : 'gpu' );
+## routed_to also holds SERVICE names [ single-llm, consensus-voting, .. ] ##
+## from coding.routing.decide_service : only cpu \ gpu name a backend,     ##
+## anything else takes the default [ single-llm parked every jobsite       ##
+## assessment on the absent gpu after the first fix ]                      ##
+my $routed_to = $task->{'analysis'}->{'routed_to'} // '';
+$routed_to = defined $gpu_enabled && !$gpu_enabled ? 'cpu' : 'gpu'
+    if $routed_to !~ m{^(?:cpu|gpu)$};
 my $dep_object_id
     = $routed_to eq 'cpu'
     ? ( <coding.dep.cpu_server> // 0 )
@@ -92,8 +97,8 @@ return {
     message    => "task enqueued: $task_id"
 };
 
-#,,..,,,,,,.,,,.,,,,.,.,.,,.,,.,,,,,.,,..,.,,,..,,...,..,,,..,,,,,,,.,..,,,,.,
-#OH5ASXCLBQYMHLNEHI2TEE6LIXGCO22HH37PM2OW3VLDYR5UXJ4MUOQQZ3N2GL4677HHCTJMJPSKE
-#\\\|HAZ24Q5VW7HNACEHD52VWLKQDPAEPDRMNZVZJ3SOD4E55HNC7IG \ / AMOS7 \ YOURUM ::
-#\[7]EARSGB35IDMKPR2U7GAIM6YLZWSZP33B62UCZHB2WXJCWIX3F2BI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,,,.,,,,,,..,...,,.,,.,.,.,.,..,,...,...,,,.,..,,,,.,,..,,,,,
+#2R5KVUOINPBG7SIOTGFQOPPWFYU53TDQLMPO7MIPUV7TY3RL3C4ROFEGKAXKVCEVMLWL4HPXIYYVM
+#\\\|4OICZP2GBWG7XWL5OO3PV6DMULUW3CLCWT7XNWKTQVR5Q3UKOEL \ / AMOS7 \ YOURUM ::
+#\[7]HXY2PLAMEQWRK2RM34RJKDIBH5BO4JQCPZMLQREMPRTTBDSW52AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
