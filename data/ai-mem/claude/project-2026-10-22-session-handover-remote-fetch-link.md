@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-22-session-handover-remote-fetch-link
-description: START HERE -- session 2026-10-21..22 handover [ last 7bbeca114 ] : jobsite cert + nameserv fixes, web secret rotation, optional dependencies, remote fetch pri -> delta over an encrypted link WORKS [ 279 new jobs ] ; open : coding 'depending' queue on pri, link not yet permanent, 3 cloud design docs pending
+description: previous handover -- session 2026-10-21..22 handover [ last 7bbeca114 ] : jobsite cert + nameserv fixes, web secret rotation, optional dependencies, remote fetch pri -> delta over an encrypted link WORKS [ 279 new jobs ] ; open : coding 'depending' queue on pri, link not yet permanent, 3 cloud design docs pending
 metadata:
   type: project
 ---
@@ -89,8 +89,8 @@ minus 6 design sessions [ expire 2026-11-05 ].
   proof ] and sometimes a claude/<topic>-<suffix> branch too : a new branch
   is never 'done'
 
-#,,..,,,,,...,,..,.,,,,,,,,..,,,,,,,.,,.,,,,.,..,,...,..,,,,.,,..,,.,,...,,..,
-#NH7HVCKGQMHJNKSW7RQQ4YLK2JO3PMTQLCXV3XLSE5OI4DKMBMCHOIECP55IKTA4OWZY7N55TGAMU
-#\\\|K6SJQUXGFSYMNFTZ2ASLHQHEZTUGTJXSWDZK4NHS3BP3MSVADBD \ / AMOS7 \ YOURUM ::
-#\[7]RJWYPVITPMLKDVTXEVEZQ7AV56SRQW4RNGCWYE4IXEL6CSKPFOCA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,.,.,...,,,,,.,,,.,,,.,,,,,,,..,,...,...,..,,.,,,,,,,,,,,..,,
+#JL3LZGUVZ2OW3AY2FVS24WU7MDYQIWKX7LJO47MVVLWVRLEVRM5IYWJW64EJ7G5AAK54CJWGKD3AY
+#\\\|UEGFCK47V7TR5OCPIWUGWGCTA6DIR4XACN3VNBLF73YAF3LEGDM \ / AMOS7 \ YOURUM ::
+#\[7]DL32CNX5R3PYDGFIEPTDD36UFFZ7RF3SUU5OXMWYZRGIJ4NDSCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
