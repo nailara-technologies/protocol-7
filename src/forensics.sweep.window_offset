@@ -10,7 +10,7 @@
 # 64 KiB with ~log2( size / 64k ) timestamp decodes -- the sweep then
 # reads from there and latches at the first in-window line. decoding every
 # line from the start took minutes on a 140 MB log and blocked the zenka
-# past its heartbeat [ pri : killed and restarted ~7300 times, 2026-10 ]
+# past its heartbeat [ a server : killed and restarted ~7300 times, 2026-10 ]
 
 my ( $log_fh, $size, $cutoff ) = @ARG;
 
@@ -51,8 +51,8 @@ while ( $high - $low > 65536 ) {
 
 return $low;
 
-#,,,,,...,.,.,.,,,.,.,,,.,.,,,..,,..,,,,.,,.,,..,,...,...,...,,..,.,,,.,.,...,
-#4RMV2LUUGIFMRQHDS5NZSTNEUFEAQUECUILLFLUCPGJRYMSN3F25AXD6EYDYCF4TJBTCMF335GANW
-#\\\|4YUXC22EORAT4BCTJY6WQP4PS4FY4I6H4NWY2CMKC4OCRWLEPEK \ / AMOS7 \ YOURUM ::
-#\[7]UM4MMBIINW2C56LI426STOYH5NLENKKBKIQREZ2D7BVJ4PGQEGBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,,,..,,,,,,...,.,,,.,.,..,,...,..,,...,...,.,.,.,.,,,.,...,,,.,
+#IXXL4OFQHGO36AESMX3SZYS5QNYS2AG4KN6F3P4Y5GCDRCQZ6WJ3APXEURSPIEBO3ZDTCBTOHIUGE
+#\\\|2ZAXTACA3GPTCBVCV34EP5QGCAIVN6Y4US65BHAA5XBHEWWMOHU \ / AMOS7 \ YOURUM ::
+#\[7]NMZY75JIGNNA7SL6UVM4ETZHKOYMT5ZXEP2GC4LMO5XVRNZSIYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

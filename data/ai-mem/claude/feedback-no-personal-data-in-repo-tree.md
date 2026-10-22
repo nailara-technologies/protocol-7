@@ -27,8 +27,16 @@ public repo naming them invites domain grabbers. write "every domain
 added later" instead. owned domains [ protocol-7.network, v7.ax ] are
 public dns data anyway and fine to name.
 
-#,,,.,.,,,.,.,,,,,,,,,,..,..,,...,,,,,.,,,,..,..,,...,...,.,,,.,,,,,,,...,.,.,
-#YNPK4WYGVZYP4AFIZJ7XR7T574RXCTLBIWW6ZOKORWRP3RCQ2RI26XX2VPG4Y4ZEWAUZSNN3ERKHI
-#\\\|OSBZX2PQRZCGC6VV6SDR4RZECQUZOYQRMPBXUIZRQK4ELCQULXR \ / AMOS7 \ YOURUM ::
-#\[7]EWULEUX6SIN43ZLBD7ATDM7YVM6AA3SBCKHHKYSWSELTMLVKYCCI 7  DATA SIGNATURE ::
+**Host names stay out of CODE COMMENTS and commit messages too [ owner
+2026-10-22 ].** a session wrote `pri` into three src comments while fixing
+a cpu-only-host bug [ and five older comments had it, two with the full
+`<host>.v7.ax` ] ; the owner : even when harmless they become outdated
+[ servers get renamed ] and commit messages are already critical. write
+the CASE, not the host : "a cpu-only host", "a server", "a remote".
+live host names belong only in the conversation and in host.cfg.
+
+#,,,,,,.,,...,.,.,..,,...,,.,,,,,,..,,,.,,,,.,..,,...,...,...,.,,,..,,.,.,,,,,
+#AZXWLACE63NQV2OBBAR5IWWB23QH267ADCDB4OSSAOJOAJ5PLBK6E3GYE2SYARDFE43H44QITX6YY
+#\\\|SHDL3HPO6S42WALA3W6DHVKOAL4RFP52ECFTTYUQCYEI46REIPT \ / AMOS7 \ YOURUM ::
+#\[7]7RJ4MZDBYY2MQYI2PXEFO4K6VMQ3CUQM3SUPP4DAHT7NNFV4T4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
