@@ -130,12 +130,18 @@ my @prompts = (
             ## anyway are often not failing to be short, they're failing to ##
             ## decide which branch of their own reasoning is the actual     ##
             ## answer                                                       ##
+            ##                                                              ##
+            ## reworded 2026-10-23, per the user : a model diverges mostly  ##
+            ## because it expects a trick question that inverts the answer  ##
+            ## -- so the hint says it is none and points at the plain logic ##
+            ## of the room, not at statistical outliers. the riddle stays   ##
+            ## the inverted schroedinger box : the cat is the constant      ##
+            ## [ a cpu model without reasoning answered 'Mouse' twice ]     ##
             mismatch_hint =>
-                q{Are you certain? "Remaining" can only be one, by }
-                . 'definition. Treat edge cases [escape routes, indefinite '
-                . 'waiting] as low-probability outliers to discard, '
-                . 'not the substantive answer -- give the single, '
-                . 'statistically dominant outcome.',
+                q{Are you certain? It is not a trick question -- follow }
+                . 'the plain logic of what happens in the closed room while '
+                . 'you wait. "Remaining" can only be one, by '
+                . 'definition.',
         },
     },
     {   id   => 3,
@@ -176,11 +182,10 @@ my @prompts = (
             ## first answer, so the primed-answer measurement itself stays
             ## intact -- same layering as prompt 2
             mismatch_hint =>
-                q{Are you certain? "Remaining" can only be one, by }
-                . 'definition. Treat edge cases [escape routes, indefinite '
-                . 'waiting] as low-probability outliers to discard, '
-                . 'not the substantive answer -- give the single, '
-                . 'statistically dominant outcome.',
+                q{Are you certain? It is not a trick question -- follow }
+                . 'the plain logic of what happens in the closed room while '
+                . 'you wait. "Remaining" can only be one, by '
+                . 'definition.',
         },
     },
 );
@@ -224,8 +229,8 @@ my $probe_id = <[base.gen_id]>->(<coding.self_test_probe_state>);
 
 return { mode => qw| deferred | };
 
-#,,..,..,,,,.,..,,.,,,,.,,...,.,.,...,.,,,,..,..,,...,...,.,,,.,.,,.,,,,.,...,
-#6AXMEDPZZJWVFJVGKUASTJGP7VEY3O4OENGCJNL6R2RGLQWVT7RNW76DUPZHMVHPWFJN7ETNRW5UC
-#\\\|EONWJSVUHHQZDO2OTOLV7D4FSODJWWJP4O6LIAAOJVI6PT3JATW \ / AMOS7 \ YOURUM ::
-#\[7]SYSIAB2MIDMAMMBO5JZIMYCKAMHMLEYH7MZUQSFKTBOELPZHF2DI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,.,,,..,.,,,,..,,.,,...,,..,,,,,..,,...,..,,..,,,..,.,.,...,,,,,
+#6S2ZRXFGDP2BUGJ76X2CKWRWF4QZF3BAROLWRPGCQUZC33RCF3CA2K4F2H22TVJN5ERP2XVVJJBLK
+#\\\|PN2NNSUOXG27754LS4W3GI6IW5PQZRTNUM37OIDPWYHJ7BDUKCW \ / AMOS7 \ YOURUM ::
+#\[7]7XOEF7B3F64FAMGMCCXTI5GWLOBGCIF2OKUI45HNOD5WQ5Z43QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
