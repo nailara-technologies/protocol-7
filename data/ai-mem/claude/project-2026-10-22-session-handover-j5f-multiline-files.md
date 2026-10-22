@@ -120,6 +120,35 @@ the regular session budget ].
 - todos : T3I [ gpu.enabled = auto must detect ], C6U [ self-test holds a
   cpu backend for an hour+ ], 4WM [ stage 3 auto-install ]
 
+## night 2026-10-22 \ 23 : srv-U assessments run [ 65227edd8, 2b97a3aa6 ]
+
+- STALL CAUSE 3 \ 4 : routed_to holds service names [ coding.helper.
+  task_backend, de18b5af5 ] ; data-start timeout used the gpu prefill
+  rate [ cpu default 15 t\s, bbffc7bac ; measured on srv-U ~23 t\s, ttft
+  ~200 s for 4.6K tokens, output ~2.7 t\s ]
+- srv-U host.cfg : coding.cfg.round_soft_ceiling = 777 [ 384 cut every
+  first attempt ; an assessment takes ~8-9 min ] -- todo WFC sizes both
+  timeouts from measured rates later, plus metrics records
+- CRASH : self-test pause + 100 tasks on the cpu lock -> release ->
+  handoff -> send_request paused -> release .. nested -> deep recursion
+  warning = emergency exit 110 [ bin/Protocol-7 __WARN__ handler ], end
+  code killed llama. root race : inference_server dependency said ready
+  before the self-test ended, a task beat the probe. fixed 65227edd8 :
+  coding.async.backend_dispatch_next [ loop, none while paused ], resume
+  points kick both lock queues, dependency waits while paused. verified
+  live : self-test alone, then the queue resumed
+- jobsite.reset rep-err=1 done after the first completion [ 260 reset ]
+- OPEN : jobsite counts the result_len=0 assess-done of a coding restart
+  as assessed [ 41 -> 125 ] -- probably the source of the failures and
+  of 469 active vs 257 new
+- self-test riddle [ cat \ mouse, the cat is the constant ] : local gpu,
+  same model, reasoning off : plain 58 % cat, '[ logic riddle ]' title
+  37 %, 'pure logic riddle' 40 %, 'not a trick question' up front worse ;
+  in the follow-up hint it recovers 12 of 12 [ 08642a765 ]. answer check
+  now reads which animal is NAMED [ coding.self_test.named_candidate,
+  2b97a3aa6 ] : a reply naming mouse but echoing 'cat' had passed
+- prompt 3 fails on cpu without reasoning ; the queue resumes on fail too
+
 ## later the same day : history relabelled
 
 - owner : no server names in code comments or commit messages [ they go
@@ -150,9 +179,15 @@ the regular session budget ].
 - a design brief must name the existing neighbours [ files missed data,
   storage, plan-9 until the owner pointed ] ; verify a design doc's claims
   about code before relying on them [ the pre-commit claim was wrong ]
+- prompt tests on llama-server : pass a seed per request [ the server's
+  fixed --seed gave 8 identical answers ] and take 60 samples, 24 swung
+  one variant from 8 to 12 ; test on the local gpu, a cpu test request
+  waits behind the assessments' slot
+- any 'deep recursion' warning ends a zenka [ exit 110 ] -- a synchronous
+  handoff chain over a queue must be a loop
 
-#,,.,,.,.,,,.,.,,,.,.,.,.,,.,,.,.,,..,...,,,,,..,,...,...,,,,,..,,.,.,.,.,,,,,
-#2CYXTCGOA2KZZR6ZCBZZNI72CDG7AMAGZFGA7ZWR5VMYP6DN3CLBV3U5QIJNWC2V6PKLVNNAHBK6G
-#\\\|CVJP7V7DS4ZAHLGOT7EWFLW24QPQ7T57PKIZ2BGEAQB2Y2XVEKY \ / AMOS7 \ YOURUM ::
-#\[7]MQ25J3TVAOJG6ARAXVGJT56YU3JLYIVD4IX4C3TIVKVCOKWBL2BQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,.,,,...,.,.,...,.,.,..,,,,,,..,,...,...,,..,.,,,,,.,..,,,,.,
+#7B7YVVQONW4A6SQXB5USG5Q5L7KLFDCW4MT3TK42WTNXI2CVMEZMUNXXI3SD7PDJLQLJFUQZWYJWW
+#\\\|MRP6PKTM4NLFYW2ZNYKHZPOIVSK257JA6QTVXANNEUVK3XTXKGD \ / AMOS7 \ YOURUM ::
+#\[7]ODNO5JHGFUTP7GK2ITUMY62KAQ5EOSB4TRI5O7MJWRX6FRFJK2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

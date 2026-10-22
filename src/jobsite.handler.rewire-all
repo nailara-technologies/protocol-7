@@ -18,6 +18,10 @@ for my $entry ( @{$queue} ) {
 
     <[base.logs]>->( 2, 're-wiring job %s → task %s', $job_id, $task_id );
 
+    ## holds its slot : no watchdog timer survives a restart to say so ##
+    ## [ jobsite.dispatch.release_slot ]                               ##
+    <jobsite.tasks>->{$job_id}{'rewired'} = TRUE;
+
     <[protocol-7.route-send]>->(
         {   'command'   => 'task.wait-done',
             'call_args' => { 'args' => $task_id },
@@ -31,8 +35,8 @@ for my $entry ( @{$queue} ) {
 
 <jobsite.rewire_queue> = [];
 
-#,,,,,,..,.,,,.,.,,..,,,,,.,.,.,,,...,,.,,,,.,..,,...,...,..,,,,.,.,,,..,,...,
-#7MYMGY7CBKJHJKYQ624TO3KTMDFVN7HVN4JTMZNGEEPO4ZQJNHMNB4P6JHHPSM4OXY7HVA32IJRJK
-#\\\|QZL4MREG6TBTTZBTFETBVCNEN4L3HZQJZXDOLQC5Y6MWUKG6JD7 \ / AMOS7 \ YOURUM ::
-#\[7]IGE5ZUGEDHWELSLEH7NTRI473OUYDRRLO63LGHPDN7CJC5WRWOAI 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,.,...,.,,,,.,,.,.,..,,,..,,.,,..,,...,...,...,,,.,,,.,,.,,...,
+#3U24DTM4RWFZEBCFV2Z27XCRFWZIVFGMKPSHMVFJCWHYGKU745U7XBEV363MHTFNNCZAUA5NP2BPA
+#\\\|N3RH5RMKGMJUWN552N7BKW5S2DX5CD2SFGXNDGO76NBDQP2VKE5 \ / AMOS7 \ YOURUM ::
+#\[7]AGYZIUH2HNIACKAJVS6FTGMMK4S5G623LF6UPR3TYQIOFNBAD2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

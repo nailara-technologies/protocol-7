@@ -5,9 +5,8 @@
 
 my $call = shift // {};
 
-my $mode    = $call->{'mode'} // '';
-my $raw     = $call->{'data'} // '';
-my $result  = ref $raw ? $raw->$* : $raw;
+## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
+my ( $mode, $result ) = <[base.reply.mode_text]>->($call);
 my $job_id  = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
 my $task_id = $call->{'params'}{'task_id'} // '';
 my $attempt = $call->{'params'}{'attempt'} // 0;
@@ -23,27 +22,7 @@ my $attempt = $call->{'params'}{'attempt'} // 0;
 my $job_rec = <jobsite.tasks>->{$job_id};
 if ( not defined $job_rec ) {
     <[base.logs]>->( 0, ':assess-done: unknown job %s', $job_id );
-    if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
-        eval { $timer->cancel };
-    }
-    <jobsite.pending_count>--;
-    if ( <jobsite.pending_count> <= 0 ) {
-        <jobsite.pending_count> = 0;
-        <jobsite.cycle>         = 'idle';
-        <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
-        if (<jobsite.sync.push_in_progress>) {
-            ## current push already collected its job list; schedule ##
-            ## follow-up                                             ##
-            <jobsite.sync.push_after_assess> = TRUE;
-            <[base.logs]>->(
-                1, 'assess-done: sync push in progress, scheduling follow-up'
-            );
-        } else {
-            <[jobsite.sync.push]>->( undef, FALSE )
-                ;    ## push results to web immediately ##
-        }
-    }
-    <[jobsite.dispatch.next]>;
+    <[jobsite.dispatch.release_slot]>->($job_id);
     return;
 }
 
@@ -70,25 +49,30 @@ if ( lc($mode) eq qw| false | ) {
         0,        'assess-done: task %s failed for job %s',
         $task_id, $job_id
     );
-    ## hard infra failure [ no model result at all ] : flag it for the    ##
-    ## fehler tab, same as a validation-repair failure below, but do NOT  ##
-    ## touch stage/status -- unlike a real low score this carries no new  ##
-    ## information about the job, so evicting it out of wherever the user ##
-    ## placed it [ e.g. review ] would be pure data loss dressed up as a  ##
-    ## pipeline decision. status='assessed' is also a dead end : the web  ##
-    ## plugin purges that legacy status on every restart                  ##
-    ## [ see plugin.web.jobs.init_code ], so the job would eventually     ##
-    ## vanish from disk entirely                                          ##
-    if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
-        eval { $timer->cancel };
-    }
+    ## hard infra failure [ no model result at all ] : flag it for the     ##
+    ## fehler tab, same as a validation-repair failure below, but do NOT   ##
+    ## touch stage/status -- unlike a real low score this carries no new   ##
+    ## information about the job, so evicting it out of wherever the user  ##
+    ## placed it [ e.g. review ] would be pure data loss dressed up as a   ##
+    ## pipeline decision. status='assessed' is also a dead end : the web   ##
+    ## plugin purges that legacy status on every restart                   ##
+    ## [ see plugin.web.jobs.init_code ], so the job would eventually      ##
+    ## vanish from disk entirely                                           ##
+    ##                                                                     ##
+    ## a pipeline-owned stage is freed though, as the watchdog does : left ##
+    ## at 'assessing' the next rescan skipped the job for good -- every    ##
+    ## coding restart fails its tasks this way [ route collapsed ]         ##
     $job_rec->{'repair_failed'} = TRUE;
+    if ( ( $job_rec->{'stage'} // '' ) =~ m{^(?:queued|assessing)$} ) {
+        $job_rec->{'stage'}          = 'timeout';
+        $job_rec->{'task_id'}        = '';
+        $job_rec->{'repair_task_id'} = '';
+    }
     my $job_f = <[jobsite.job.read]>->($job_id) // {};
     $job_f->{'repair_failed'} = TRUE;
     <[jobsite.job.write]>->( $job_id, $job_f );
-    <jobsite.pending_count>--;
     <[jobsite.state.persist]>;
-    <[jobsite.dispatch.next]>;
+    <[jobsite.dispatch.release_slot]>->($job_id);
     return;
 }
 
@@ -168,9 +152,29 @@ if ( ref $parsed eq 'HASH' ) {
 my $validation
     = <[jobsite.validate.assessment]>->( $result, $reason, $summary );
 
+## the slot this reply's job holds : a repair keeps it                      ##
+## [ dispatch.repair re-arms the watchdog ] ; a late reply holding none     ##
+## must not start one, its watchdog would later release a slot nobody holds ##
+my $holds_slot = exists <jobsite.assess_timer>->{$job_id}
+    || $job_rec->{'rewired'};
+
+if (    not $validation->{'is_valid'}
+    and not $job_rec->{'repair_attempted'}
+    and not $holds_slot ) {
+    <[base.logs]>->(
+        1,
+        'job %s defects [%s] after its slot was released '
+            . ': no repair, the next rescan assesses it again',
+        $job_id,
+        join( ', ', $validation->{'defects'}->@* )
+    );
+    return;
+}
+
 if (    not $validation->{'is_valid'}
     and not $job_rec->{'repair_attempted'} ) {
     ## first defect : dispatch repair, do NOT decrement pending_count ##
+    delete $job_rec->{'rewired'};    ## the repair's watchdog holds it now ##
     $job_rec->{'repair_attempted'} = TRUE;
     <[base.logs]>->(
         1,       'job %s defects [%s] : dispatching repair',
@@ -349,33 +353,13 @@ if ($give_up) {
 ## add to checksum index for dedup on future scans ##
 <[jobsite.checksum.index]>->( qw| add |, $job );
 
-if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
-    eval { $timer->cancel };
-}
-
-<jobsite.pending_count>--;
-
-if ( <jobsite.pending_count> <= 0 ) {
-    <jobsite.pending_count> = 0;
-    <jobsite.cycle>         = 'idle';
-    <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
-    if (<jobsite.sync.push_in_progress>) {
-        ## current push already collected its job list; schedule follow-up ##
-        <jobsite.sync.push_after_assess> = TRUE;
-        <[base.logs]>->(
-            1, 'assess-done: sync push in progress, scheduling follow-up'
-        );
-    } else {
-        <[jobsite.sync.push]>->( undef, FALSE )  ## push updated job to web ##
-            ;    ## push results to web immediately ##
-    }
-}
-
+## a late reply [ the watchdog released the slot ] is stored above, but ##
+## releases nothing : see jobsite.dispatch.release_slot                 ##
 <[jobsite.state.persist]>;
-<[jobsite.dispatch.next]>
+<[jobsite.dispatch.release_slot]>->($job_id);
 
-#,,.,,..,,,..,,,.,.,,,,,,,,..,.,.,,.,,,,,,.,,,..,,...,...,..,,..,,,..,...,..,,
-#2ELG3VYBVSMX5X3IHJWXEB6YT7P6CBXDZRE5PUTMZFPVOVRYMNECF5RBGFLCTGQZ3UW6IYYWGKGKS
-#\\\|PT2A6YCZSC7FSFRMI4HU4FLAXLT64R6K6637TEBS6N6YN6Q2P44 \ / AMOS7 \ YOURUM ::
-#\[7]LIEZ5RQEF74J6FL3FNGSNRYF522AAFP42WGLXQA3EG3A7J43XUCY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,..,,,,.,,..,...,..,,,,.,,.,,,.,,..,,...,..,,.,,,.,,,..,,.,.,,,.,
+#WWZMBDTDGH5ARRLWHGDFXHJLD4HIEDRUWMXK2DRGRU3IDRXAD4XWBSGKHGXQAQM2OS62AZPCK666M
+#\\\|U7NWXRY6XBAM3AMBHVHACD2JM7FNIBASNZKT3QADTWCRHBYS6PO \ / AMOS7 \ YOURUM ::
+#\[7]G75W3RP3YAXGIONL7B6UYL2V6D7TKLMZUOWL5KUS7F4LLLUOE6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

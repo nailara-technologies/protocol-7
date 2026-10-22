@@ -5,9 +5,8 @@
 
 my $call = shift // {};
 
-my $mode   = $call->{'mode'} // '';
-my $raw    = $call->{'data'} // '';
-my $result = ref $raw ? $raw->$* : $raw;
+## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
+my ( $mode, $result ) = <[base.reply.mode_text]>->($call);
 my $job_id = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
 
 my $job_rec = <jobsite.tasks>->{$job_id};
@@ -34,8 +33,8 @@ if ( defined $job_rec and lc($mode) ne qw| false | and length $result ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;    ## proceed to next job in queue
 
-#,,,,,.,,,,,,,.,,,.,,,,.,,,.,,...,,,.,.,,,..,,..,,...,...,...,..,,,.,,,,.,..,,
-#75YX7UZJKIOM4SFQ3E77HQTI3TRM2FGTQ6QKMIHRTNJKIT35MC7C2QAHJM5E6D2HYO3U6WWSPNJQW
-#\\\|TAKCJ5F6L5WRDHDSM6VJFQ2LZ5EBKAYVUG4YJZ26N734IKPDH7F \ / AMOS7 \ YOURUM ::
-#\[7]VGCNYLNR53N55WCFM7QNBCEL6ZVEYTBSABDZPWSA7QNOMXABWQAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,.,.,.,,,,..,...,,..,.,,,,,,,..,,...,.,.,,..,,.,,,,,,...,..,,
+#AYX42F3V4AFC47B7BEZ2B7QXEVABCZBLH4Y4QSHEEFAKM4CUELLGY3TL5MKNLJSIKYQ5UAD4ZU65K
+#\\\|FJR3ORX63TAKCGPBDBTLVIDADGPGKU3IL6L4WQNGNHAQ3RDZSLE \ / AMOS7 \ YOURUM ::
+#\[7]647IXEQUPNRRPQSDWLMQWNSL5DTRYPLQAXOBTVYZYKU66JLJUWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

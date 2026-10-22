@@ -9,10 +9,9 @@
 
 my $call = shift // {};
 
-my $mode     = lc( $call->{'mode'} // '' );
-my $raw      = $call->{'data'} // '';
-my $data_str = ref $raw ? $raw->$* : $raw;
-my $id       = $call->{'params'}{'id'} // '';
+## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
+my ( $mode, $data_str ) = <[base.reply.mode_text]>->($call);
+my $id = $call->{'params'}{'id'} // '';
 
 if ( $mode eq qw| false | ) {
     <[base.logs]>->(
@@ -25,8 +24,8 @@ if ( $mode eq qw| false | ) {
 
 return;
 
-#,,.,,,,,,.,.,...,..,,,,,,.,,,,,,,,.,,.,.,.,,,..,,...,..,,,..,..,,.,.,.,,,..,,
-#CUG5YOKOFTA745POJ4VNBQMMCKK4QPELCQXHZY4D24NWDR5NA5HGZYZJTHWS4BJYNW7HQZOPWHRFU
-#\\\|S75UHJAEIQEBXTND56MPS62IQR5BFESNMBI7KLGGLYFWPCJ2OZF \ / AMOS7 \ YOURUM ::
-#\[7]P2ZVLU3KIAQPT3VBNNTTOEYJLKFQYCF4HOQWCAWPG4LGQSF3M4AA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,..,,,.,...,,.,,,.,,..,,..,,..,,...,...,...,...,..,,.,,,.,.,
+#JUV6Y7BDJBK5I2JM2M35WNUURBEMSZHTCMPVAI2MADZ5T5Y7WGJHH6COXJFLRXKM5RTQXGDK7VSZ6
+#\\\|DBOKSH6X234D53FQSRE4EWWD5Z3KVOTDYUE5MUPEFJ4BOFAV6PK \ / AMOS7 \ YOURUM ::
+#\[7]ALBO3ZSGUJOKRSBDAHQU4BOJUCXJEU7AJSYRK44DFAYN7SRBA6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

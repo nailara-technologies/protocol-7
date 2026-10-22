@@ -5,9 +5,8 @@
 
 my $call = shift // {};
 
-my $mode     = $call->{'mode'} // '';
-my $raw      = $call->{'data'} // '';
-my $task_id  = ref $raw ? $raw->$* : $raw;
+## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
+my ( $mode, $task_id ) = <[base.reply.mode_text]>->($call);
 my $job_id   = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
 my $attempt  = $call->{'params'}{'attempt'}                      // 0;
 my $cur_attt = ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0;
@@ -34,14 +33,12 @@ if ( lc($mode) eq qw| false | ) {
     ## repair task itself never got created : no watcher will ever fire for ##
     ## this job, so it must be decremented here or it orphans pending_count ##
     ## forever [ mirrors task-created's false branch ]                      ##
-    if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
-        eval { $timer->cancel };
-    }
     <jobsite.tasks>->{$job_id}{'repair_failed'} = TRUE;
-    <jobsite.pending_count>--;
-    <jobsite.pending_count> = 0 if <jobsite.pending_count> < 0;
+    my $rec = <jobsite.tasks>->{$job_id};
+    $rec->{'stage'} = 'timeout'
+        if ( $rec->{'stage'} // '' ) =~ m{^(?:queued|assessing)$};
     <[jobsite.state.persist]>;
-    <[jobsite.dispatch.next]>;
+    <[jobsite.dispatch.release_slot]>->($job_id);
     return;
 }
 
@@ -66,8 +63,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
     }
 );
 
-#,,.,,.,.,...,.,.,.,,,,.,,.,.,...,,..,,..,..,,..,,...,...,,..,,,.,,,,,..,,...,
-#VXSDZP5HKCUCJ4HOHCJZ77YAQJNX3SQVX7MBUYKCPDVZTU3KARJB6UETOCZ46NTXBB4I2OVE2LW3W
-#\\\|PWIAZHJEQQWUESINBMIXBPRFRZ7TCYPLSKJX7XZTU3SLLZUAAWT \ / AMOS7 \ YOURUM ::
-#\[7]4N2HAFPI27QPN5RWEKTZ2BD2LFI7XL6DQCQTT7EGOGQJ4RYUB2DQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,,,.,..,,...,.,,,.,.,,,.,,.,,..,,...,...,..,,.,.,...,.,.,,,.,
+#TN6ZARCUCN5QEEFZKQUMA2WNNXDBZXQOQ3LDRSB5S2PIYWHRUPIATYTCBQ23QRWJEJLPKN6XQ5F4K
+#\\\|N6BRWZPAA22N5CGXC25SA7UX4UZPMU6Y26E3LWZTIPENL5RUQUU \ / AMOS7 \ YOURUM ::
+#\[7]UAYY77YXX472EIEWALRIHIQV5AFEVDSYIRLMAHOGJOLJCR7ZNUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

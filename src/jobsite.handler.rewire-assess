@@ -14,6 +14,10 @@ return if not length $job_id or not length $task_id;
     $job_id, $task_id
 );
 
+## holds its slot [ init_code counted it into pending_count ] : no watchdog ##
+## timer survives a restart to say so -- see  jobsite.dispatch.release_slot ##
+<jobsite.tasks>->{$job_id}{'rewired'} = TRUE;
+
 <[protocol-7.route-send]>->(
     {   'command'   => 'task.wait-done',
         'call_args' => { 'args' => $task_id },
@@ -24,8 +28,8 @@ return if not length $job_id or not length $task_id;
     }
 );
 
-#,,,.,.,.,,.,,,..,,..,,,,,,,,,,.,,,,,,.,.,...,..,,...,...,.,.,...,...,,..,.,,,
-#G6EG5T4P4UN7NURLQEVRLUBUGF3LGZR6XDX5XTMU2V5ORKZV72QK4UCZYIH6PBYFCDKGZ73ZDORY6
-#\\\|QI3W76PXJKCDOKX65RXEWQKB4MKFZUSVAWVWN7QKRNX6UCEUN7J \ / AMOS7 \ YOURUM ::
-#\[7]M54URJGTA5AYFTJUK46ELEZESPYCK6N5JYFKPYBRN7CR2RKIQQCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,,.,,.,,,,,.,,,,,..,,,.,,..,,..,,...,...,.,.,...,..,,.,.,,,.,
+#XAUQ5TNO4W3OJFHCO7EZ3S47ZLULKPLGYAAZKF6XAZIHAJV2AX2U3FK6ZWOUCJD55SVOUXT4S32IW
+#\\\|2EEBBY6JXJITMPZZKUFO3KZM4CXHDNVFIWE4BCMSU7EA4IKA2MS \ / AMOS7 \ YOURUM ::
+#\[7]PETY6PZ5IJZYZFHIJHOLZRPJ4CI4MBK4I6BLDL6ZGGHT3DBTACCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

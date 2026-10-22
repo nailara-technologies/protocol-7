@@ -14,11 +14,10 @@
 
 my $call = shift // {};
 
-my $mode     = lc( $call->{'mode'} // '' );
-my $raw      = $call->{'data'} // '';
-my $data_str = ref $raw ? $raw->$* : $raw;
-my $job_id   = $call->{'params'}{'job_id'} // '';
-my $gen      = $call->{'params'}{'gen'}    // 0;
+## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
+my ( $mode, $data_str ) = <[base.reply.mode_text]>->($call);
+my $job_id = $call->{'params'}{'job_id'} // '';
+my $gen    = $call->{'params'}{'gen'}    // 0;
 
 return if $mode ne qw| false |;
 return if $data_str =~ m{already queued}i;
@@ -46,8 +45,8 @@ delete <jobsite.tasks>->{$job_id}{'awaiting_refetch'};
 
 return;
 
-#,,,.,...,..,,.,,,.,,,,..,...,..,,.,.,..,,...,..,,...,..,,,..,.,.,.,,,,,.,...,
-#7PVSJOVQEVL6U5B62CQ4IQE3EPPCLBQGEFUW5IXEC2JCCVSHRIAA3A3E5BA4F46MSTEIVCX7OW2YO
-#\\\|46AELKGDRUNMBZQ6A3TSQJSPI7O2LLTTOIPMUC3YGZZHL7KTF5M \ / AMOS7 \ YOURUM ::
-#\[7]OWY5YQSXUIV65CMHHIYO5TBITYAU5BGJIC3D2LVGOVEMX42LKSBQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,,,.,,.,,,,.,.,,,,.,,,..,,..,..,,...,.,.,,.,,...,,,,,,..,,..,
+#HRNHBX2KCUSIPTDUZKUX3M3O736B3QSBIJGOTFNJE6FL2KMNUAHMEC7T6CGAPQAB7HO3D36WW5QOO
+#\\\|PHQHF6SKTBV4OP3L4OD3PBSFZMNXCIBLQFZUJ5JHASTQ77BEWIP \ / AMOS7 \ YOURUM ::
+#\[7]RWQH2SFVI7XNV5UMWHRCSBUZKOEDZMX5FDB5VJ7FU7YTFEDD3SDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
