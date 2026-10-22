@@ -67,3 +67,19 @@ default ].
 #\\\|SP3IKSDHV3ZS2D2C6ZWUPQTWPCNWMYOPUNCVKTMRWNODZ62HYSH \ / AMOS7 \ YOURUM ::
 #\[7]KCUWRUGSHTC5RFZ7OWEDC4TSAUCRH3U53N6YSLOFR67VOL3JD6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+2026-10-22 [ files zenka design, session_0144nuTG4WnXPyGWjw9tL3cB ] :
+follow-ups into a running OR completed session are cheap and effective
+[ owner : "those continued cloud sessions are quite efficient" ] --
+`claude -p "<message>" --cloud <session-id> --output-format json` run
+from the launch clone data/state/cloud-launch/protocol-7 queues one
+message and returns at once [ {"ok":true} ] ; the session keeps its read
+context and extends the same branch. prefer extending a design session
+over a new dispatch when the topic is the same [ there : file-view, groups,
+N7FS added as three follow-ups ]
+
+#,,,,,.,.,.,.,,,.,,..,.,,,,,.,.,,,..,,.,.,.,,,..,,...,...,,.,,.,.,,,.,,..,,..,
+#DI6XPJSQZ4NY3SMNZKFHKAPMFWE6FJYH7K75QACSDYTYV55B2VRVH2ZHCSDZPCI7BJ64QVXBBUHDA
+#\\\|3JMEVITW7RK22EMOTXAMVVMZI7RDNMDLPSLAVYEEREEI23QJYDR \ / AMOS7 \ YOURUM ::
+#\[7]WMIMVQXVRSEBZIZTRBHC5YJU77MF3JCCPUTXCLJ73YYJZD4PK2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
