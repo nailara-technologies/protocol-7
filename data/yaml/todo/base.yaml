@@ -1602,9 +1602,30 @@ items:
   - p7c
   - coding
   text: 'p7c \ p-7-r : an argument with a newline splits the protocol line ; coding task helpers land in the repo root'
+- added: 32DLNVORLU
+  details: 'FOUND 2026-10-22 in the SIGNED-STATEMENTS review : data/lib-path/pm/AMOS7/SHM.pm sign_permission [ ~439 ] = a 31-multiplier polynomial hash of the canonical permission string times the key length -- computable by anyone, no private key needed. used by data.mount.shm.permission.* via data.mount.shm.open. any writer of a mapping header can add permissions that verify. bounded by the unix rights on the segment, but it must not read as protection. FIX direction : SIGNED-STATEMENTS.md p7 capability v1 + p7 shm permissions v1 [ the header carries ONE statement id ], adoption step 7 ; until then either a real Ed25519 signature over the canonical string or refuse to treat header permissions as authority'
+  done_at: null
+  id: FKS
+  priority: high
+  status: open
+  tags:
+  - security
+  - shm
+  - data
+  text: 'AMOS7::SHM::sign_permission is a placeholder hash, not a signature : shm mapping permissions can be forged'
+- added: 32DLNVPDIY
+  details: 'FOUND 2026-10-22 [ SIGNED-STATEMENTS review ] : src/source.signature_valid takes a truth map [ 3rd arg ] and fills it with defaults [ lines 74-75 ], but the checks read its own $truth_check_settings [ e.g. line 354 ] -- a caller map has no effect. harmless today [ all callers use defaults ]. needed by the form footer type : honour the passed map for the TRUTH checks only ; the binding checks [ AMOS match, BMW match, Ed25519 ] stay outside it, never relaxable. also create_harmonic_footer : truth switches as a parameter for form signing'
+  done_at: null
+  id: VWF
+  priority: normal
+  status: open
+  tags:
+  - source
+  - signatures
+  text: source.signature_valid ignores a caller truth map [ prerequisite for the form footer type ]
 
-#,,,.,.,.,.,.,,.,,,.,,.,.,.,,,.,.,.,.,,.,,,..,..,,...,...,,.,,,..,,.,,,..,...,
-#JKHV5IRCQ5TZUFMXBNLAR4I7KZ37OAYT33AOBK7RISNLB4TANYFAYKHMCIQZ5ARWVTVFKUTJ6E3ZS
-#\\\|NZQR5NPHHXUGF4J7E5UG6AC36HDM4X26T4EVLMTEI24PIZQ3K4C \ / AMOS7 \ YOURUM ::
-#\[7]Y6UDUGFC22Q4Z4NVVZ3AE57OPQVEUVQZL5RTB2BB2DCLNIWSOKAQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,,.,,..,,,,,,.,,,...,,..,.,,,..,,...,...,..,,..,,.,,,,.,,,,,,
+#HZ7TYCENRA5GYSUAJZQTUD55JNG22ZOF6VEJSG627NI4T7HU6N5YA7HLYUEAGGJQPILEJAJ7ITKXU
+#\\\|YKSROOTP3ZA3JXIQOB7T2VPCEHF6JV7SIKZ7KVULTUPCBS2SCDX \ / AMOS7 \ YOURUM ::
+#\[7]UQZRWFSPZ63YJD7V24SZ6EIBPEXSNLHCCQAK5OMVC5YSPABMP2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
