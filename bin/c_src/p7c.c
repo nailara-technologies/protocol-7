@@ -117,9 +117,43 @@ int main( int argc, char * argv[] ) {
 
     /* prepare command string */
     int i;
-    int arglen = 2;
+
+    /* a linebreak inside the command word cannot be helped by multi-line
+       mode : refuse [ '+' only covers the arguments ] */
+    if ( strpbrk( argv[1], "\r\n" ) != NULL ) {
+        fprintf( stderr,
+            "<< command word contains a linebreak [ multi-line mode "
+            "covers arguments only ] >>\n" );
+        return 2;
+    }
+
+    /* multi-line mode [ src/base.handler.command MULTI-LINE ] : when any
+       argument holds a linebreak, the single-line form would split the
+       protocol, so the command goes out as '<cmd>+\n' + empty header +
+       the arguments as body + '.' line. the body carries the exact string
+       single-line mode would put after the command word [ args joined by
+       spaces ], so a command reads the same input from $call_args->{'data'}
+       as it would from $call_args->{'args'} -- modulo the framing-appended
+       trailing newline. body lines made of dots alone get one more '.', the
+       parser removes it again. */
+    int multiline_mode = 0;
+    for ( i = 2; i < argc; ++i ) {
+        if ( strpbrk( argv[i], "\r\n" ) != NULL ) {
+            multiline_mode = 1;
+            break;
+        }
+    }
+
+    /* base covers command '\n' NUL plus the multi-line framing overhead
+       [ '+', header-terminating blank line, final newline, ".\n" ] */
+    int arglen = 8;
     for ( i = 1; i < argc; ++i ) {
-        arglen += strlen( argv[i] ) + 1;
+        if ( multiline_mode && i > 1 ) {
+            /* every body line may gain one stuffing '.' [ worst case ] */
+            arglen += strlen( argv[i] ) * 2 + 1;
+        } else {
+            arglen += strlen( argv[i] ) + 1;
+        }
     }
     char * cmd_str = (char *) malloc( sizeof(char) * arglen );
     if( cmd_str == NULL ) {
@@ -127,12 +161,41 @@ int main( int argc, char * argv[] ) {
         exit(4);
     }
 
-    strcpy( cmd_str, argv[1] );
-    for ( i = 2; i < argc; ++i ) {
-        strcat( cmd_str, " " );
-        strcat( cmd_str, argv[i] );
+    if ( multiline_mode ) {
+        int at_line_start = 1;
+        sprintf( cmd_str, "%s+\n\n", argv[1] );
+        char *wp = cmd_str + strlen( cmd_str );
+        for ( i = 2; i < argc; ++i ) {
+            if ( i > 2 ) {
+                *wp++ = ' ';
+                at_line_start = 0;
+            }
+            for ( const char *p = argv[i]; *p; p++ ) {
+                if ( at_line_start && *p == '.' ) {
+                    /* stuff only a line made of dots alone [ the parser
+                       drops one dot from such lines ] : the line ends in
+                       this argument, a later one would add a space */
+                    const char *q = p;
+                    while ( *q == '.' )
+                        q++;
+                    if ( *q == '\n' || ( *q == '\0' && i == argc - 1 ) )
+                        *wp++ = '.';
+                }
+                *wp++ = *p;
+                at_line_start = ( *p == '\n' );
+            }
+        }
+        if ( ! at_line_start )
+            *wp++ = '\n';           /* terminate last body line */
+        strcpy( wp, ".\n" );       /* packet terminator line */
+    } else {
+        strcpy( cmd_str, argv[1] );
+        for ( i = 2; i < argc; ++i ) {
+            strcat( cmd_str, " " );
+            strcat( cmd_str, argv[i] );
+        }
+        strcat( cmd_str, "\n" );
     }
-    strcat( cmd_str, "\n" );
 
     /* prepare socket */
     if ( ( socket_fd = socket( AF_UNIX, SOCK_STREAM, 0 ) ) == -1 ) {

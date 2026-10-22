@@ -172,11 +172,14 @@ if (    $input->$* =~ m|^\(([^\)]*)\)[^\n]+\n|
 ## checking for multi-line commands ###
 
 if ( $input->$*
-    =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+[ \t]*\n([^\n]*\n)*\.\n),,o ) {
+    =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+[ \t]*\n(?:[^\n]*\n)*?\.\n),,o )
+{
+    ## non-greedy : ends at the first '.' line, a pipelined next packet ##
+    ## stays in the buffer [ greedy took all up to the last '.' line ]  ##
 
     ( my $multiline_cmd, $cmd ) = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
 
-    if ( $multiline_cmd !~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o ) {
+    if ( $multiline_cmd !~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+[ \t]*\n,,o ) {
         warn 'multiline cmd regex error';    ##  never happening  ##
         return 2;    ##  undefined state \ terminates connection  ##
     }
@@ -213,6 +216,12 @@ if ( $input->$*
         }
 
         if ( not $is_header ) {    ## body data ##
+            ## dot-stuffing removal : senders                              ##
+            ## [ p7c \ p-7-r \ base.format.multiline_command ] add one '.' ##
+            ## to body lines made of dots alone                            ##
+            ## [ the lone '.' terminator is taken above ] -- lines like    ##
+            ## '.foo' pass as typed                                        ##
+            $mcmd_line =~ s|^\.(\.+)$|$1|;
             $call_args->{'data'} .= sprintf "%s\n", $mcmd_line;
             next;
         }
@@ -259,7 +268,9 @@ if ( $input->$*
 
 ## incomplete multiple line command ##
 
-elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n,o ) {
+elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|)$re->{cmdp})\+[ \t]*\n,o ) {
+    ## same head as the complete-packet match above : what waits here is ##
+    ## what will be taken there [ replies frame with SIZE \ STRM ]       ##
 
     $event->w->start;    ##  restarting input buffer processing  ##
     return 1;            ## command not complete ###
@@ -1229,8 +1240,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,,,.,,,.,,..,...,,.,,...,,.,,..,,,..,,.,,..,,...,...,,,.,,,,,,,.,,..,..,,
-#HBFW4WNAYYWBK3S5HWI6AKR7HUSTJP3775JSRCAH2YFDHONC2SYCJVJQWJV3FYFKRE2IA6SKDBSY6
-#\\\|W6EBBQPCSAC7VGA3IPUWE3VXPYG5CHPQNT534SEQXYCOHRMSCSP \ / AMOS7 \ YOURUM ::
-#\[7]FOTRRWHVBSV72PS4ZAPHWIIZ5KYBDGGIHJLH6EH447XZ5ZG4JSCI 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,,.,,...,,,,,..,,.,,,,.,,,.,,..,,...,..,,,,.,,,.,.,.,,,.,,,.,
+#X6IJQQECBCCS2XQAXKPW3XX5DVJBZOIYMAZS5M2EIN6LEIGZHLXBRX3OCUFLXLCKWDZX5UDN7WVM4
+#\\\|H2HJNOC7UBFKHGHAG3RQWDBK2IYO4WMFHFC4YOW5CVSMLPYR34Z \ / AMOS7 \ YOURUM ::
+#\[7]JJVUXCJSFEDISI5IKEZ5GK23XCZTGCKCPK4FJ27H2QHDIG2IQMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

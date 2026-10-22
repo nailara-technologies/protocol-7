@@ -1,0 +1,123 @@
+## [:< ##
+
+# name  = coding.input.decode
+# descr = shared input decoder for coding commands [ explicit prefixes only ]
+# param = <hashref> { input => <string>, caller => <name>, max_size => <bytes> }
+
+##  one decode policy for every coding command that takes free-form input   ##
+##  [ coding.submit, coding.summarize-context, coding.ask-reply ] :          ##
+##    plain text           passes through unchanged                         ##
+##    B32: / :B32: <b32>   base32r payload [ Crypt::Misc, no guessing ]     ##
+##    :file: / :path: <p>  read a file, confined to the repository tree     ##
+##  prefix-less base32 auto-detection is deliberately gone : an all-caps    ##
+##  one-word prompt like REVIEW must stay REVIEW.                           ##
+
+my $p = shift;
+if ( not defined $p or ref $p ne qw| HASH | ) {
+    warn 'coding.input.decode : expected parameter hashref <{C1}>';
+    return { 'success' => FALSE, 'error' => 'internal : parameter error' };
+}
+
+my $input = $p->{'input'};
+
+return { 'success' => FALSE, 'error' => 'input required' }
+    if not defined $input or not length $input;
+
+my $caller = $p->{'caller'} // qw| unknown |;
+
+## size limit : decoded \ read input [ 256 KiB default, per-call override ] ##
+my $max_size = $p->{'max_size'} // <coding.cfg.input-max-size> // 262144;
+
+##[ :file: / :path: ]#########################################################
+
+if ( $input =~ s{^\s*:(?:file|path):[ \t]*(\S+)[ \t]*\s*$}{$1}s ) {
+    my $path = $1;
+
+    ## the zenka never reads a file on someone's behalf that they could not ##
+    ## read themselves : server-side file reads are confined to the         ##
+    ## repository tree [ realpath : symlink escapes land outside and are    ##
+    ## refused with everything else not under the root ]                    ##
+    my $root = <system.root_path> // '';
+    require Cwd;
+    my $real_root = length $root ? Cwd::realpath($root) : '';
+    $path = "$root/$path" if length $root and $path !~ m{^/};
+    my $real_path = Cwd::realpath($path) // '';
+
+    ## tree check first : outside the tree, existence is not answered  ##
+    ## [ realpath fails on a missing file, one answer for both cases ] ##
+    return {
+        'success' => FALSE,
+        'error'   => "refused : not found or not "
+            . "under the repository tree : $path"
+        }
+        if not length $real_root
+        or not length $real_path
+        or index( $real_path, "$real_root/" ) != 0;
+    return {
+        'success' => FALSE,
+        'error'   => "file not found : $path"
+        }
+        if not -f $real_path;
+    return {
+        'success' => FALSE,
+        'error'   => "refused : file too large [ limit ${max_size}B ] : $path"
+        }
+        if -s $real_path > $max_size;
+    return { 'success' => FALSE, 'error' => "not readable : $path" }
+        unless -r $real_path;
+
+    my $enc     = <[file.encoding]>->($real_path);
+    my $content = <[file.read]>->( $real_path, $enc );
+    return { 'success' => FALSE, 'error' => "failed to read : $path" }
+        unless defined $content;
+
+    ## one log line per file read [ caller, path, size ] ##
+    <[base.logs]>->(
+        2, '[input-decode] %s :file: %s [ %d bytes ]',
+        $caller, $real_path, -s $real_path
+    );
+
+    return { 'success' => TRUE, 'content' => $content, 'form' => qw| file | };
+}
+
+##[ B32: / :B32: ]############################################################
+
+if ( $input =~ s{^\s*:?B32:[ \t]*}{}s ) {
+    my $encoded = $input;
+    $encoded =~ s{[ \t\n\r]+$}{};
+    my $decoded = <[base.base32.decode]>->($encoded);
+    return {
+        'success' => FALSE,
+        'error'   => "invalid B32 payload [ caller $caller ]"
+        }
+        if not defined $decoded or not length $decoded;
+    return {
+        'success' => FALSE,
+        'error'   => "refused : decoded input too "
+            . "large [ limit ${max_size}B ]"
+        }
+        if length($decoded) > $max_size;
+    return {
+        'success' => TRUE,
+        'content' => $decoded,
+        'form'    => qw| b32 |
+    };
+}
+
+##[ plain text ]##############################################################
+
+return {
+    'success' => FALSE,
+    'error'   => "refused : input too large [ limit ${max_size}B ]"
+    }
+    if length($input) > $max_size;
+
+return { 'success' => TRUE, 'content' => $input, 'form' => qw| plain | };
+
+#,,.,,,,,,.,,.,,,.,,.,,.,.,,,.,.,,.,,.,.,.,..,,.,,,,,.,,.,,,..,,,.,,,,,..,,.,,,
+
+#,,,,,,.,,.,,,,,,,...,,,,,,..,,..,..,,,.,,,..,..,,...,...,..,,...,...,...,,.,,
+#KJM4GYMO45JV3EUD5GWJD3ONHOG4X7PAWWMT5WH7MU6VRV4KVRERSW5XFOAKOK7OCIBSLQYKEMUP6
+#\\\|Q3OZV3FWFDQZ62OWVSPRQOWCRBDHS25WSUKWTXY4TBWAWHS4UQB \ / AMOS7 \ YOURUM ::
+#\[7]T5WA4PXETBBGYAGTMSLICSZARVW33COF7HJS6IAKAM4WD7NLAQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

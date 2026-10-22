@@ -4207,11 +4207,18 @@ sub _do_summarize_file {
     $instruction //= 'summarize concisely';
     $max_tokens  //= 500;
 
-    ## coding zenka reads the file directly — content never enters mcp ##
-    ## context                                                         ##
-    my $focus   = '';
-    my $cmd_opt = "max_len=$max_tokens path=$path";
-    $cmd_opt .= " focus=$focus" if length $focus;
+    ## the zenka reads only inside the repo tree : this process reads the ##
+    ## file with the caller's own rights and sends it as ':B32:' content  ##
+    ## [ content still never enters the mcp client's context ]            ##
+    my $raw;
+    if ( open( my $fh, '<:raw', $path ) ) {
+        local $RS = undef;
+        $raw = <$fh>;
+        close $fh;
+    }
+    return undef if not defined $raw;
+    my $cmd_opt = sprintf 'max_len=%d :B32:%s', $max_tokens,
+        encode_b32r($raw);
     my ( $ok, $result ) = cube_command("coding.summarize-context $cmd_opt");
     return $ok ? $result : undef;
 }
@@ -5959,8 +5966,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,.,,,..,,.,,,..,,..,,,,.,.,.,,..,,..,...,..,,...,...,,..,,.,,,,,,.,,,,,.,
-#6EALRY2LRJ5QYPAM7SRLRM5ZSDZBCDBASTIP3KF6DYLLQIAIBVVBPFRXNOSSIS5XVKUNXASYSRS3K
-#\\\|JP6WSFR5KLQUIMVY5CU4WPLAQFKKHTFIYQV6XUNOT45HPKNAN2D \ / AMOS7 \ YOURUM ::
-#\[7]ZB64DYKCRGRLHL7TNHR4FSIREUMTJZXL6KF6YBWDDZEMWMTCDEDQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,..,,.,.,,,,,,,,,...,..,,,.,,..,,..,,...,...,,,.,,,.,,..,...,.,.,
+#FHT4BBBFKBHCTHEVZX7APQ4BJUXAED26SECPEVEBTE6KPRIOFJPRK4FWGCNKJZFMKJW6BVFLOM4UI
+#\\\|XGDADKANU6DRPXUS3TIPHOGA5THZZ2LSSDDWQNBQPDDMOGEWMEF \ / AMOS7 \ YOURUM ::
+#\[7]MILMFBXEG2S66BMJ2OISIPHNCXA4OPKQ6F5D63HL6LC45AUAYKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

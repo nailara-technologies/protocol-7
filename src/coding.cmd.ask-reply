@@ -4,40 +4,51 @@
 # descr = submit coding task, return full reply when complete
 # param = <request_string>
 
-# Handle both single-line and multiline modes
-my $request_str;
+# Resolve input through the shared decoder [ explicit prefixes only ]
+my $request_str = '';
 
-if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
-    $request_str //= $call->{'param'}->{'request'}
+my $param_request = '';
+if ( defined $call->{'param'} and ref $call->{'param'} eq qw| HASH | ) {
+    $param_request = $call->{'param'}->{'request'}
         // $call->{'param'}->{'question'}
         // $call->{'param'}->{'description'} // '';
-
-    if ( $request_str =~ m|^[2-7A-Z]+$| ) {
-        my $decoded = decode_b32r($request_str);
-        $request_str = $decoded if defined $decoded && length $decoded;
-    }
-
-    $request_str =~ s|\\n|\n|g;
-
-    if ( defined $call->{'data'} && length $call->{'data'} ) {
-        my $body = $call->{'data'};
-        if ( $body =~ m|^[2-7A-Z]+$| ) {
-            my $decoded = decode_b32r($body);
-            $body = $decoded if defined $decoded && length $decoded;
-        }
-        $body =~ s|\\n|\n|g;
-        $request_str .= "\nContext:\n" . $body;
-    }
-} else {
-    $request_str = $call->{'args'} // '';
-
-    ## Also check for base32r encoding in args
-    if ( $request_str =~ m|^[2-7A-Z]+$| ) {
-        my $decoded = decode_b32r($request_str);
-        $request_str = $decoded if defined $decoded && length $decoded;
-    }
 }
 
+if ( length $param_request ) {
+
+    ## param mode [ legacy multiline callers ] : the request key wins and the
+    ## data body is appended as context -- the branch below is what p7c \
+    ## p-7-r produce for a multi-line argument [ body = the args ]
+    $param_request =~ s|\\n|\n|g;    ## literal \n unescape [ legacy ] ##
+    my $decoded = <[coding.input.decode]>->(
+        {   'input'  => $param_request,
+            'caller' => qw| coding.cmd.ask-reply |
+        }
+    );
+    return { 'mode' => qw| false |, 'data' => $decoded->{'error'} }
+        unless $decoded->{'success'};
+    $request_str = $decoded->{'content'};
+
+    if ( defined $call->{'data'} and length $call->{'data'} ) {
+        $request_str .= "\nContext:\n" . $call->{'data'};
+    }
+} else {
+
+    ## single-line args OR multi-line mode body [ $call->{'data'} ] ##
+    my $raw
+        = ( defined $call->{'data'} and length $call->{'data'} )
+        ? $call->{'data'}
+        : $call->{'args'} // '';
+
+    my $decoded = <[coding.input.decode]>->(
+        {   'input'  => $raw,
+            'caller' => qw| coding.cmd.ask-reply |
+        }
+    );
+    return { 'mode' => qw| false |, 'data' => $decoded->{'error'} }
+        unless $decoded->{'success'};
+    $request_str = $decoded->{'content'};
+}
 return { 'mode' => qw| false |, 'data' => "work request required\n" }
     if !length($request_str);
 
@@ -111,8 +122,8 @@ my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,,..,.,,,,.,,,..,,..,.,,,,,,,.,.,.,.,,,.,.,.,...,...,.,.,,..,.,.,.,.,...,
-#JR7U64YGHYTJMHDCZ3TVVKIMJKOQ7LDH6LPMAMVYGUIDPNF2X662VI4AKR7WGTVORVOXFCSLYPBZM
-#\\\|AEYR5DUDGXNHFPU7JSPIBZ6QEE3CO42VBSOIZDDKJPMG66H7KSM \ / AMOS7 \ YOURUM ::
-#\[7]4J5MWDUHUGWLCY3RFDNKOGY3G7LMBODCIRPOX4IF3EJSSUK73SCY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,,,...,,,.,,,.,,,.,.,,,,..,...,.,.,...,...,,..,.,.,,..,.,.,.,,,
+#TRI3YZXSXMIMW7ZYOL5NXDXU4EVUQLUHASB3D4LBY6WC5KRH4RWJZFC3PSDVHXMFFYE5C3WDO4YSO
+#\\\|BKPZ25JOYC2EEW4YFEXB2HNA6GN3GGS6JQFOZSBXHWA3E6NN4VQ \ / AMOS7 \ YOURUM ::
+#\[7]MNW66RJQZAQUNAARP2GQMCU5V6MYO5MT7LNABPKORJYCCWUKOEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -75,7 +75,6 @@ base.list.init
 base.init_code
 base.init-done
 base.hide_list
-base.file.temp
 base.file.open
 base.file.glob
 base.file.copy
@@ -161,6 +160,7 @@ base.reverse-sort
 base.resolve_hash
 base.perlmod.load
 base.parser.align
+base.load_plugins
 base.load_modules
 base.list_matches
 base.init_modules
@@ -300,6 +300,7 @@ base.perlmod.pre_init
 base.perlmod.autoload
 base.parser.timestamp
 base.log.format_entry
+base.load_host_config
 base.load_config_file
 base.list.element.add
 base.file.remove_tree
@@ -405,6 +406,7 @@ base.buffer.erase_secure
 ui.render.tree.invalidate
 route.bmw384.visual.wheel
 route.bmw384.index.lookup
+plugin.web.auth.init_code
 jobqueue.priorities_table
 io.unix.socket.input.open
 httpsd.cmd.self_terminate
@@ -422,7 +424,6 @@ base.log.send-buffer.init
 base.load_runtime_modules
 base.is_defined_recursive
 base.handler.link-upgrade
-base.file.zenka_dir.write
 base.erase_buffer_content
 base.chk-sum.elf.pre_init
 base.chk-sum.bmw384.color
@@ -455,6 +456,7 @@ base.file.path.chksum.AMOS
 base.event.io_idle_restart
 base.check_dependency_dirs
 route.bmw384.route.as-curve
+plugin.web.auth.store.group
 net.read_linewise_estimated
 io.unix.socket.output.close
 io.ssl.ip.handshake.cleanup
@@ -486,19 +488,9 @@ route.bmw384.index.from-path
 route.bmw384.index.from-file
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
+plugin.web.auth.store.set-up
 plugin.web.auth.session.read
 plugin.web.auth.session.path
-plugin.web.auth.store.group
-plugin.web.auth.store.set-up
-plugin.web.auth.init_code
-plugin.web.auth.session.write
-plugin.web.auth.session.prune
-plugin.web.auth.handler.login
-plugin.web.auth.verify_session
-plugin.web.auth.handler.status
-plugin.web.auth.handler.logout
-plugin.web.auth.create_session
-plugin.web.auth.destroy_session
 io.unix.socket.input.connect
 httpsd.request_capture.write
 httpd.vhost.request_tls_cert
@@ -522,6 +514,9 @@ auth.client.server_pin.check
 route.bmw384.ledger.increment
 route.bmw384.ledger.decrement
 protocol.protocol-7.init_code
+plugin.web.auth.session.write
+plugin.web.auth.session.prune
+plugin.web.auth.handler.login
 httpsd.route_template_request
 httpsd.callback.reset-capture
 httpd.vhost_template_resolver
@@ -554,6 +549,10 @@ route.bmw384.visual.wheel-mode
 route.bmw384.visual.ring-label
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+plugin.web.auth.verify_session
+plugin.web.auth.handler.status
+plugin.web.auth.handler.logout
+plugin.web.auth.create_session
 httpsd.request_capture.collect
 httpsd.cmd.reload-certificates
 httpsd.calculate_restart_delay
@@ -577,6 +576,7 @@ auth.client.zenka.authenticate
 ascii.frame.render.border_line
 route.bmw384.visual.wheel.gauss
 route.bmw384.ledger.warning_map
+plugin.web.auth.destroy_session
 httpsd.cmd.list-cipher-profiles
 httpsd.callback.ssl_cert_select
 httpd.route.handler.iris-ledger
@@ -643,7 +643,6 @@ crypt.C25519.get_type_from_key_str
 base.zenki.resume_ondemand_timeout
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
-base.path-set-up.check-zenka-paths
 base.handler.link-upgrade.response
 base.handler.command.process_reply
 base.format.inline-nested.pre_init
@@ -727,8 +726,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,.,...,,,.,..,,,.,,,,.,,,.,,..,.,,,,,,,..,,...,..,,...,,..,,..,..,,.,,,
-#UJH3DXUZCJXHYMQZY4VKCHYFPP6N2UQS3DX3GXKHPB5CINPKDML37ST7VERIPBNRSILRRJ4TYTZ62
-#\\\|UXA7M7M4YBE3GIWZ3EILYH4J3O6PRR4IAURGPPQ67TYCGBLVPZB \ / AMOS7 \ YOURUM ::
-#\[7]TPTI6FX4RPRURYIOIHJLQMYBOIJ5CJB5TB5DFJW4AINNIS57XYAY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,,..,.,.,...,,,.,.,,,,,.,..,,..,,...,...,.,.,,,,,...,..,,.,,,
+#U7OGZ3JABKWSCDSTWKS5L3SETTUOLIRKLSGMBPM626BVV2KT45XMMTERJF4NSHSWHQOYZYFCJKUNQ
+#\\\|DQGQW52GU4ZUJVAAZU5JEY4EIWWRQZPZ67F7UV6QMJTEUZERLLD \ / AMOS7 \ YOURUM ::
+#\[7]XHXS23OZDN6XQL2ONHGK3GJR75CTGRXRZR3FFCHE7ONXINMEYSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
