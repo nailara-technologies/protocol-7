@@ -40,15 +40,21 @@ $target_cmdid_str = sprintf( qw| (%d) |, $target_cmd_id )
     if $target_cmd_id > 0;
 
 if ( defined $call_args->{'data'} ) {    ## has request body ##
-    my $last_data_pos = length( $call_args->{'data'} ) - 1;
-    if ( index( $call_args->{'data'}, "\n", $last_data_pos ) == -1 ) {
+    my $body = $call_args->{'data'};     ## copy : no caller-side mutation ##
+    my $last_data_pos = length($body) - 1;
+    if ( index( $body, "\n", $last_data_pos ) == -1 ) {
         warn 'request body not linefeed terminated <{C1}>';
-        $call_args->{'data'} .= "\n";
+        $body .= "\n";
     }
+
+    ## dot-stuffing : a body line made of dots alone gets one more '.' [ a ##
+    ## lone '.' terminates the packet ; base.handler.command strips it     ##
+    ## again ] -- other lines pass as typed, as in p7c \ p-7-r             ##
+    $body =~ s|^(\.+)$|.$1|mg;
 
     ## param header seperated by linefeed from request body ##
     return sprintf "%s%s+\n%s\n%s.\n",    ## data has linefeed ##
-        $target_cmdid_str, $cmd, $header, $call_args->{'data'};
+        $target_cmdid_str, $cmd, $header, $body;
 
 } else {    ## no request body present ##
 
@@ -57,8 +63,8 @@ if ( defined $call_args->{'data'} ) {    ## has request body ##
 
 }
 
-#,,.,,.,,,.,,,,,,,.,.,,.,,...,,..,,,.,,,.,,.,,..,,...,..,,...,.,,,,..,.,,,.,.,
-#3JI2GO6Z7HF35XFSX7NSHEPI5MJCT747HIF6Z5AXQWRE4GFB3ECV7HZ3ZJGRUGDQJICTWRI3XQAQE
-#\\\|KMBUT5KNXK3RQRJOXYEJIZQUVFXYYDLDDEKR23NTKPIBPERNKQE \ / AMOS7 \ YOURUM ::
-#\[7]SXPHZ7A4AWRNQKJORZA36KTVLE4ZIVDXYQIB7FUTRGJDLAZ7MSAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,.,...,,..,,,,,...,,,,,,,,,...,..,,...,...,,,.,.,,,.,,,.,.,...,
+#4IUNSK5KJA5CYHJPXMSOL3GD6TSX3VCKGSCRQYDSJMSXTHRHIYTXAJQJ2K5IB5RA5JOSF7MAG57LY
+#\\\|FQCJV6KYL2SKLU3BBEPT5C3KP7F7RTM7GCFGEPIA366UPX2HRXK \ / AMOS7 \ YOURUM ::
+#\[7]ZDNJ6RMOEJUWZREJYODMYKUO7F5ZTXOKABDNSDVDUVQS25JBE2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

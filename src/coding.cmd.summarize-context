@@ -35,33 +35,24 @@ $args_str =~ s{^\s+|\s+$}{}g;    ## trim remaining whitespace ##
 ## content: multiline data takes precedence, else remaining args ##
 my $content = $call->{'data'} // $args_str;
 
-## :file: / :path: keyword prefix : extract path only, no trailing options ##
-if ( $content =~ s{^:(?:file|path):(\S+).*}{} ) { $path = $1 }
+## summaries take larger input than prompts [ 4 MiB default ] ##
+my $max_size = <coding.cfg.summarize-max-size> // 4194304;
 
-## explicit :b32: prefix ##
-if ( $content =~ s|^:B32:||i ) {
-    my $decoded = decode_b32r($content);
-    $content = $decoded if defined $decoded and length $decoded;
-}
+## path=<path> option : same confined read as ':file:' [ repo tree only ; ##
+## outside it the caller reads the file and sends ':B32:' content ]       ##
+$content = ":file:$path" if length $path;
 
-## file path: detect encoding and slurp ##
-if ( length $path ) {
-    ## resolve relative paths against system root ##
-    $path = <system.root_path> . "/$path" if length $path and $path !~ m{^/};
-    return { mode => qw| false |, data => "file not found : $path" }
-        unless -e $path;
-    return { mode => qw| false |, data => "not readable : $path" }
-        unless -r $path;
-    my $enc = <[file.encoding]>->($path);
-    $content = <[file.read]>->( $path, $enc );
-    return { mode => qw| false |, data => "failed to read : $path" }
-        unless defined $content;
-}
-
-## base32 auto-detect on plain single-line args ##
-elsif ( $content =~ m|^[2-7A-Z]+=*$| ) {
-    my $decoded = decode_b32r($content);
-    $content = $decoded if defined $decoded and length $decoded;
+## shared input decoder : explicit prefixes only [ :B32:, :file:, :path: ] ##
+if ( length $content ) {
+    my $decoded = <[coding.input.decode]>->(
+        {   'input'    => $content,
+            'caller'   => qw| coding.cmd.summarize-context |,
+            'max_size' => $max_size
+        }
+    );
+    return { mode => qw| false |, data => $decoded->{'error'} }
+        unless $decoded->{'success'};
+    $content = $decoded->{'content'};
 }
 
 return { mode => qw| false |, data => 'content required' }
@@ -143,8 +134,8 @@ unless ($sent) {
 
 return { mode => qw| deferred | };
 
-#,,,,,.,,,..,,.,.,...,.,.,.,.,,..,,,,,.,.,.,.,..,,...,...,,..,,..,,,.,,,.,,.,,
-#72PJVNHPJWBBUXOHJ6XNSVUAOLKL6UTTFUWC5COTAERL4KD7HPNG47DQ7EMRWY5OJZG6XC4BWUHW6
-#\\\|7D4P7S23Q4MGUTB7KHWQGOQT64EZU7SYJMM6FIG4NQWIUACWYGY \ / AMOS7 \ YOURUM ::
-#\[7]HL4MYANLNHQNV3F3C2CC264NYVDXFNG7P37DHVESXUK6CCJXEMAI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,.,..,,,..,,,.,.,.,...,,.,,...,..,,...,...,...,.,,,,,.,,.,,,.,,
+#UKVLC34SPLPRNYC3GSQ6MAUEXJMEUFZEBMM4RDET3AQI3KPA6TQ364VP4CHEAKT4O6OWZLCLHEOHG
+#\\\|4ZK3HLLSIMA2JNJLKFKIAQENBN6YWG4LB3HVMVSK6YGSTJNAETG \ / AMOS7 \ YOURUM ::
+#\[7]Z2VS5WS75VTXBBC2LHGYHPRYYB6KTSIZEMSMKZRJSMW6YR67HIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

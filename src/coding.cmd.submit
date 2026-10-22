@@ -8,61 +8,50 @@
 return { 'mode' => qw| false |, 'data' => 'coding zenka is draining' }
     if <coding.draining>;
 
-# Handle both single-line and multiline modes
-my $request_str;
+# Resolve input through the shared decoder [ explicit prefixes only ]
+my $request_str = '';
 
-if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
-
-    # Multiline mode - parameters are in $call->{'param'}
-    # For now, we'll use the 'request' or 'question' parameter as the request
-    $request_str //= $call->{'param'}->{'request'}
+my $param_request = '';
+if ( defined $call->{'param'} and ref $call->{'param'} eq qw| HASH | ) {
+    $param_request = $call->{'param'}->{'request'}
         // $call->{'param'}->{'question'}
         // $call->{'param'}->{'description'} // '';
+}
 
-   # Auto-detect and decode BASE32-encoded parameters (pattern: ^[2-7A-Z]+=*$)
-    if ( $request_str =~ m|^[2-7A-Z]+=*$| ) {
-        my $decoded = decode_b32r($request_str);
-        if ( defined $decoded && length $decoded ) {
-            $request_str = $decoded;
+if ( length $param_request ) {
+
+    ## param mode [ legacy multiline callers ] : the request key wins and the
+    ## data body is appended as context -- the branch below is what p7c \
+    ## p-7-r produce for a multi-line argument [ body = the args ]
+    $param_request =~ s|\\n|\n|g;    ## literal \n unescape [ legacy ] ##
+    my $decoded = <[coding.input.decode]>->(
+        {   'input'  => $param_request,
+            'caller' => qw| coding.cmd.submit |
         }
-    }
+    );
+    return { 'mode' => qw| false |, 'data' => $decoded->{'error'} }
+        unless $decoded->{'success'};
+    $request_str = $decoded->{'content'};
 
-    # Unescape literal \n in parameters
-    $request_str =~ s|\\n|\n|g;
-
-    # If we have body data, append it to the request
-    if ( defined $call->{'data'} && length $call->{'data'} ) {
-
-        # Auto-detect and decode BASE32-encoded body data
-        my $body = $call->{'data'};
-        if ( $body =~ m|^[2-7A-Z]+=*$| ) {
-            my $decoded = decode_b32r($body);
-            if ( defined $decoded && length $decoded ) {
-                $body = $decoded;
-            }
-        }
-
-        # Unescape literal \n in body data
-        $body =~ s|\\n|\n|g;
-        $request_str .= "\nContext:\n" . $body;
+    if ( defined $call->{'data'} and length $call->{'data'} ) {
+        $request_str .= "\nContext:\n" . $call->{'data'};
     }
 } else {
 
-    # Single-line mode - request is in args
-    $request_str = $call->{'args'} // '';
+    ## single-line args OR multi-line mode body [ $call->{'data'} ] ##
+    my $raw
+        = ( defined $call->{'data'} and length $call->{'data'} )
+        ? $call->{'data'}
+        : $call->{'args'} // '';
 
-    # Handle B32: prefix for base32-encoded single-line requests
-    if ( $request_str =~ s|^B32:|| ) {
-        my $decoded = eval { decode_b32r($request_str) };
-        if ( defined $decoded && length $decoded ) {
-            $request_str = $decoded;
-        } else {
-            return {
-                'mode' => qw| false |,
-                'data' => "Failed to decode B32 payload\n"
-            };
+    my $decoded = <[coding.input.decode]>->(
+        {   'input'  => $raw,
+            'caller' => qw| coding.cmd.submit |
         }
-    }
+    );
+    return { 'mode' => qw| false |, 'data' => $decoded->{'error'} }
+        unless $decoded->{'success'};
+    $request_str = $decoded->{'content'};
 }
 
 return { 'mode' => qw| false |, 'data' => "work request required\n" }
@@ -143,8 +132,8 @@ return {
     'data' => $response
 };
 
-#,,.,,..,,.,,,...,,..,,,.,,..,.,.,,,,,.,.,,,,,..,,...,...,.,,,...,.,,,,,.,..,,
-#5INFYEYVH3JO4BJXMCO7JC4II5EGI3DX5TOW4YS7N45SIMKF4CYTQYERRM752MUBHDDITY753KOXM
-#\\\|ZONW6JYSY6RTMHW5WR3BOD442SSL5XBOSNMHK2VO6CQF5OEHUV5 \ / AMOS7 \ YOURUM ::
-#\[7]6XWQJ7ORDWNRFYCWVCNMOVJHY43UYGPWBTH2SKMAZ7QGOZMEFOCY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,,,.,..,,,,.,.,.,,,,,,.,,..,,..,,...,...,..,,,,.,...,,,,,..,,
+#F25F3OLZQU3XZ2K37BOB2GIEX7NEL5ZRY5DVJGZR4JEWWZZQGJRRZI2B23WWQJHIIPEYDVONWGA2C
+#\\\|ARRYHRYMXNC43G6EI5IWKISE5SX4TK3ADPVRNOF5VWEITYWTRFO \ / AMOS7 \ YOURUM ::
+#\[7]X6WUN5GMWE34V32ACWYMNDRO6ACRQSTO44ZLAK7SHPWHIVJYXQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
