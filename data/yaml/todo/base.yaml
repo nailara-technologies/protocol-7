@@ -1623,9 +1623,29 @@ items:
   - source
   - signatures
   text: source.signature_valid ignores a caller truth map [ prerequisite for the form footer type ]
+- added: 32DLZRHYB4
+  details: 'today auto counts as yes everywhere : coding.async_spawn_inference_servers:55 and coding.handler.model_path_reply:108 read auto as yes and try the gpu ; base.cfg_bool returns undef for auto, so coding.task.enqueue [ c360732b5 ] keeps the gpu for it. plan : resolve auto once in coding.init_code [ nvidia-smi answers \ a device exists ] into a definite value ; spawn, model_path_reply, init_code and enqueue read that value ; then inference.backend.gpu.enabled = auto as the coding/zenka.v7 default [ explicit yes \ no still win ; pri host.cfg = no stays valid ]. test live on the desktop [ its coding uses the gpu path ] before deploying'
+  done_at: null
+  id: T3I
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - inference
+  text: 'inference.backend.gpu.enabled = auto must DETECT : resolve once in coding.init_code, all readers use the result ; then auto as the default'
+- added: 32DLZRMIFM
+  details: 'pri 2026-10-22 : after a coding restart the self-test [ task 7511497, prompts #1..#3 ] holds the backend [ self_test_pending ] ; on the cpu backend prompt 1 ttft 46 s, prompt 2 ttft 635 s -- an hour+ before any assessment runs, after EVERY coding restart. options : a short cpu self-test profile [ one small prompt ], skip tier1 reformat on cpu, or run the self-test without blocking non-pinned tasks'
+  done_at: null
+  id: C6U
+  priority: normal
+  status: open
+  tags:
+  - coding
+  - self-test
+  text: 'coding startup self-test blocks the backend for an hour+ on a cpu-only host [ pri : prompt 2 ttft 635 s ]'
 
-#,,..,,,.,...,.,.,,.,,..,,,,,,.,,,...,,..,.,,,..,,...,...,..,,..,,.,,,,.,,,,,,
-#HZ7TYCENRA5GYSUAJZQTUD55JNG22ZOF6VEJSG627NI4T7HU6N5YA7HLYUEAGGJQPILEJAJ7ITKXU
-#\\\|YKSROOTP3ZA3JXIQOB7T2VPCEHF6JV7SIKZ7KVULTUPCBS2SCDX \ / AMOS7 \ YOURUM ::
-#\[7]UQZRWFSPZ63YJD7V24SZ6EIBPEXSNLHCCQAK5OMVC5YSPABMP2BY 7  DATA SIGNATURE ::
+#,,..,,.,,...,,..,.,,,,..,..,,..,,,.,,.,,,.,,,..,,...,...,..,,.,,,.,.,.,.,,..,
+#4QFRH5KIKZZ4LCXRDPQGIFQVAI4ZGUZQFP24EH7ZWIZCTRT7OEIXI7644DZRGNKXB6VKUIN4X2AZU
+#\\\|2LYPZIH5E5YZXA33HDEVA7HELVRPXUHKRE7PBYB5SCX26H2ETAQ \ / AMOS7 \ YOURUM ::
+#\[7]LA7MDU4VYUFAMNHNFV5S4KSCYR6GE6L27VPA4WGAGVYB6P72X6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

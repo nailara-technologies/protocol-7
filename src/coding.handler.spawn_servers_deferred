@@ -26,11 +26,20 @@ if ( $gpu_pid and kill( 0, $gpu_pid ) ) {
 <[coding.async_spawn_inference_servers]>;
 
 ## schedule fallback verification so jobqueue.check_dependencies is called ##
-## even if a stale watcher guard cancels the io monitor before it fires    ##
+## even if a stale watcher guard cancels the io monitor before it fires -- ##
+## on the backend that serves : the cpu where the gpu is switched off [    ##
+## verifying the absent gpu never resumed the queue on a cpu-only host :   ##
+## pri, 2026-10-22 : 54 jobs parked, none run ; as coding.task.enqueue ]   ##
+my $gpu_enabled
+    = <[base.cfg_bool]>->( <inference.backend.gpu.enabled> // TRUE );
 <[event.add_timer]>->(
     {   'after'   => 10.0,
         'handler' => qw| coding.handler.verify_inference_startup |,
-        'data'    => { 'backend' => qw| gpu | }
+        'data'    => {
+            'backend' => defined $gpu_enabled && !$gpu_enabled
+            ? qw| cpu |
+            : qw| gpu |
+        }
     }
 );
 
@@ -39,8 +48,8 @@ $event->w->stop if defined $event->w;
 
 return TRUE;
 
-#,,,,,,.,,.,.,,..,.,,,,..,,,,,,,,,..,,,.,,,,.,..,,...,..,,,.,,,,,,.,,,...,.,,,
-#GOVCIKTNPGVEORBDWOCZLO4ES3BYXML3LAMVK5Q7WD4ARG5SLWGSRMXY26QSUGKKDWT5UI6TWAX6W
-#\\\|QQE36PG5AWY3R3IRRI65VUSMNZMZPXDWT5VABROJB4WMQT4N4VO \ / AMOS7 \ YOURUM ::
-#\[7]IX6RZBTYHGJF6AXXADNPBISTJPYBLVICYZNDBVCCCJURMZLORKBI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,.,,,..,,,.,...,,,,,,,.,,.,,.,,,..,,...,...,.,.,...,,..,.,.,,..,
+#HTFPHINQCEK4W2H5KJUQXQDIVQPNTL77MODO6DRF6T5VJ6WZUYAA5KIVXEWAWDNDEB4YHF4NPYLXW
+#\\\|VGH5UVVFM6WP6L77VQ3LLLV32E5ZBJ5QNFW5E6BXY5RJ565NFR7 \ / AMOS7 \ YOURUM ::
+#\[7]FVRVK43XZNIP644OPY7L6NUZICTNZVZJDKFD2UWL4X46MUASOQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
