@@ -125,6 +125,16 @@ if ( defined $session->{'ignore_chars'} ) {
     }
 }
 
+## Handle a refused multi-line packet [ dropped up to its '.' line ] ##
+if ( $session->{'ignore_ml_packet'} ) {
+    if ( $input->$* =~ s,^(?:[^\n]*\n)*?\.\n,, ) {
+        delete $session->{'ignore_ml_packet'};
+    } else {    ## complete lines only, a partial last line waits ##
+        $input->$* =~ s,^.*\n,,s;
+    }
+    $buffer_length = bytes::length( $input->$* );
+}
+
 ##[ STOP WATCHER TO MODIFY INPUT BUFFER ##]###################################
 
 ##  stop the watcher to modify buffer without re-triggering  ##
@@ -232,19 +242,12 @@ if ( $input->$*
         my $param_seperator = qw| [=:] |;    ##  '=' | ':'  ##
 
         if ( $mcmd_line !~ m|$param_seperator| ) {    ### protocol error ###
-            <[base.logs]>->(    ## <-- back to log level 1 << ! >>
-                2,
-                "[%d] command parameter format syntax not valid",
-                $id
-            );
-            <[base.logs]>->(    ## <-- back to log level 1 << ! >>
-                2,
-                "[%d] :. parameter line : '%s' .:",
-                $id, $mcmd_line
-            );
-            $output->$* = sprintf
-                "%sFALSE error in [multi-line] command param syntax\n",
-                $cmd_id;
+            ## <-- back to log level 1 << ! >> ##
+            <[base.logt]>->( 2, qw| H7KA5EY |, $id );    ## syntax ##
+            <[base.logt]>->( 2, qw| M2MLE6A |, $id, $mcmd_line );
+
+            ## appended : '=' dropped replies still waiting in the output ##
+            $output->$* .= <[base.sprint_t]>->( qw| OAZPKOI |, $cmd_id );
 
             $event->w->start;    ##  restarting input buffer processing  ##
             return 0;            ## comand complete ##
@@ -274,6 +277,33 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|)$re->{cmdp})\+[ \t]*\n,o ) {
 
     $event->w->start;    ##  restarting input buffer processing  ##
     return 1;            ## command not complete ###
+}
+
+##[ REFUSED MULTI-LINE HEAD ]#################################################
+
+## a '+' head the strict matches above refuse                              ##
+## [ blank after '(id)', a reply word ] : the framing is lost and its body ##
+## must never run as single-line commands -- stripped up to its '.' line   ##
+## when buffered, else dropped until that line arrives                     ##
+## [ ignore_ml_packet, see above ]                                         ##
+
+elsif ( $input->$* =~ m,^(\(($re->{cmd_id})\)|) *$re->{cmdrp}\+[ \t]*\n,o ) {
+
+    my $err_id
+        = defined ${^CAPTURE}[1] ? sprintf( '(%s)', ${^CAPTURE}[1] ) : '';
+    $err_id = '' if $err_id =~ m|^\(0+\)$|;
+
+    if ( $input->$* !~ s,^[^\n]*\n(?:[^\n]*\n)*?\.\n,, ) {
+        $input->$* =~ s,^.*\n,,s;    ## a partial last line waits ##
+        $session->{'ignore_ml_packet'} = TRUE;
+    }
+
+    <[base.logt]>->( 2, qw| KA4I2BY |, $id );    ## head not valid ##
+
+    $output->$* .= <[base.sprint_t]>->( qw| A6ZTSCY |, $err_id );
+
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 0;            ## comand complete ##
 }
 
 ##[ RETURN \ INCOMPLETE 'SIZE' REPLY ]########################################
@@ -1240,8 +1270,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,...,,,,,..,,,.,,...,,,,,..,,.,,,,.,,,.,,..,,...,..,,,,.,,,.,.,.,,,.,,,.,
-#X6IJQQECBCCS2XQAXKPW3XX5DVJBZOIYMAZS5M2EIN6LEIGZHLXBRX3OCUFLXLCKWDZX5UDN7WVM4
-#\\\|H2HJNOC7UBFKHGHAG3RQWDBK2IYO4WMFHFC4YOW5CVSMLPYR34Z \ / AMOS7 \ YOURUM ::
-#\[7]JJVUXCJSFEDISI5IKEZ5GK23XCZTGCKCPK4FJ27H2QHDIG2IQMCA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,..,,,,,,,.,.,.,.,,,,.,,,,,,,..,..,,...,...,,..,,,,,,,.,,.,,.,.,
+#KIDSKA3FD7SRME4PEPEIBDVGEVUYQKUARDFPATRDSREALAGVNJ2HMOA66SDFLF6YSGUN3RSJEB4O2
+#\\\|ZNYED3IA6QDJ3CLCF7GNAMUA7SBM2KDSQHSVQBDZDFSK2SMZ4QL \ / AMOS7 \ YOURUM ::
+#\[7]XMAGQZQFS6WORWI7X5OP3CZX6OOUNFWP32KQU7BHIBAQFI4CTKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
