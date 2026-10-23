@@ -1,0 +1,113 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit
+# descr = login admission : per-source gate + fair queue
+# note  = login admission gate [ LOGIN-ADMISSION.md sections 2 + 3 ] :
+#         the per-source limit first [ immediate 429 with Retry-After
+#         during a source's own wait ], then the fair queue [ the reply
+#         stays deferred until a scheduler tick admits the request to the
+#         token check ] -- a source only ever slows itself down ; nobody
+#         is refused for someone else's traffic, and no shared budget
+#         exists that a stranger could use up
+# param = the web.cmd.auth-login call hash : args [ the request body ],
+#         peer_addr + peer_tls [ real socket facts passed by httpd --
+#         never a header ], auth_header, cookie_header, reply_id
+
+my $call = shift // {};
+my $cfg  = <[plugin.web.auth.admit.cfg]>;
+
+<[plugin.web.auth.admit.state_load]>;    ## lazy, first use only ##
+
+my $admit = $data{'plugin.web.auth'}{'admit'};
+my $now   = <[base.time]>->();
+
+my $entry = {
+    'reply_id'      => $call->{'reply_id'}      // 0,
+    'body'          => $call->{'args'}          // '',
+    'auth_header'   => $call->{'auth_header'}   // '',
+    'cookie_header' => $call->{'cookie_header'} // '',
+    'peer_tls'      => $call->{'peer_tls'}      // 0,
+    'enqueued'      => $now,
+    'src'           => '',
+    'groups'        => [],
+};
+
+## local invocation [ p7c web.auth-login ] carries no socket facts : ##
+## straight to the check, no queue, no source records                ##
+my $peer_addr = $call->{'peer_addr'} // '';
+if ( not length $peer_addr ) {
+    return {
+        'mode' => qw| size |,
+        'data' => <[plugin.web.auth.admit.check]>->($entry),
+    };
+}
+
+my ( $src, $groups ) = <[plugin.web.auth.admit.source]>->($peer_addr);
+
+## an address that will not parse is no excuse to skip the check : answered ##
+## at once, but nothing is recorded about it                                ##
+if ( not defined $src ) {
+    <[base.logs]>->(
+        1, 'plugin.web.auth.admit : unparseable peer [ %s ]', $peer_addr
+    );
+    return {
+        'mode' => qw| size |,
+        'data' => <[plugin.web.auth.admit.check]>->($entry),
+    };
+}
+
+$entry->{'src'}    = $src;
+$entry->{'groups'} = $groups;
+
+## section 2 : the per-source limit -- only ever slows its own source ##
+my $wait_until = <[plugin.web.auth.admit.wait_until]>->(
+    $admit->{'sources'}{$src} // {},
+    qw| login |, $now
+);
+if ( $wait_until > $now ) {
+    <[base.logs]>->(
+        2,    'plugin.web.auth.admit : %s in per-source wait [ %ds : 429 ]',
+        $src, $wait_until - $now
+    );
+    return {
+        'mode' => qw| size |,
+        'data' =>
+            <[plugin.web.auth.admit.envelope_429]>->( $wait_until - $now ),
+    };
+}
+
+## section 3 : per-source queue cap -- beyond it only this source gets 429, ##
+## nobody else is touched                                                   ##
+my $queued = scalar grep { $ARG->{'src'} eq $src } $admit->{'queue'}->@*;
+if ( $queued >= $cfg->{'queue_cap'} ) {
+    <[base.logs]>->(
+        2,    'plugin.web.auth.admit : %s at queue cap [ %d : 429 ]',
+        $src, $cfg->{'queue_cap'}
+    );
+    return {
+        'mode' => qw| size |,
+        'data' => <[plugin.web.auth.admit.envelope_429]>->(1),
+    };
+}
+
+push $admit->{'queue'}->@*, $entry;
+
+## scheduler timer [ one admitted check per tick, installed lazily ] ##
+my $timer = $admit->{'timer'};
+if ( not defined $timer or not $timer->is_active ) {
+    $admit->{'timer'} = <[event.add_timer]>->(
+        {   'interval' => 1 / $cfg->{'check_rate'},
+            'handler'  => qw| plugin.web.auth.admit.schedule |,
+            'data'     => {},
+            'desc'     => 'web-auth login admission scheduler',
+        }
+    );
+}
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,,..,,.,,..,,,.,,,,,,,,,,,..,..,,.,.,,,.,..,,...,...,,,.,..,,..,,,,.,,,.,
+#M6KSEUE5TM6VYXXC5HNW247DOXE5JITWMXMRFSG5XZ5K5RD6SL5OCF7GSU4I56U4AYCI4UL745MTG
+#\\\|VQDIDA4WUDUXO3QXPI2SAJRLXJRMUWA6A5LGFGVNMM2PS3WWKAA \ / AMOS7 \ YOURUM ::
+#\[7]BHILBMQXPZBM2J6KNQ7D46BG2TY24C4OWULVWVC24XSRXCBO2YAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

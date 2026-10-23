@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.logout
+# descr = POST /auth/logout through the admission gate
+# note  = POST /auth/logout through the admission gate [ one decision
+#         point : every token check is accounted ] -- a source in its
+#         per-source wait on the logout path gets an immediate 429 with
+#         Retry-After, and the session is NOT destroyed [ the wait
+#         precedes the check ] ; an unknown \ expired \ revoked token
+#         counts against the source [ same weights \ decay \ merge as
+#         login ] ; no token at all answers 400 without a record ; a
+#         valid token destroys the session, clears the cookie [ Secure
+#         per the relayed socket fact ], resets only the logout-path
+#         counter and joins the known lane -- never queued
+# param = call hash : peer_addr, peer_tls, auth_header, cookie_header,
+#         args [ the request body -- token may travel in the json ]
+# return = { mode size, data envelope } -- always answered at once
+
+my $call = shift // {};
+my $now  = <[base.time]>->();
+
+my ( $blocked, $src, $groups ) = <[plugin.web.auth.admit.gate]>->(
+    $call->{'peer_addr'} // '',
+    qw| logout |, $now
+);
+
+if ($blocked) {
+    return {
+        'mode' => qw| size |,
+        'data' => <[plugin.web.auth.admit.envelope_429]>->($blocked),
+    };
+}
+
+## token : json body, bearer header, p7_session cookie ##
+## [ handler.logout order ]                            ##
+my $token = '';
+my $body  = $call->{'args'} // '';
+if ( length $body ) {
+    my $payload = eval { JSON::XS::decode_json($body) } // {};
+    $token = $payload->{'token'}
+        if ref $payload eq qw| HASH |
+        and length( $payload->{'token'} // '' );
+}
+if ( not length $token
+    and ( $call->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
+    $token = $LAST_PAREN_MATCH;
+}
+if ( not length $token
+    and ( $call->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
+    $token = $LAST_PAREN_MATCH;
+}
+
+my ( $status, $body_out, $set_cookie );
+
+if ( not length $token ) {
+    ## nothing presented : no check ran, nothing is recorded ##
+    ( $status, $body_out ) = ( 400, '{"ok":false,"error":"logout failed"}' );
+
+} else {
+    my $ok = <[plugin.web.auth.destroy_session]>->($token);
+
+    if ($ok) {
+        $status   = 200;
+        $body_out = '{"ok":true}';
+        ## clear the cookie : Secure per the REAL socket fact, never a ##
+        ## header                                                      ##
+        $set_cookie
+            = sprintf(
+            'p7_session=; Max-Age=0; Path=/; HttpOnly; SameSite=Strict%s',
+            $call->{'peer_tls'} ? '; Secure' : '' );
+    } else {
+        ( $status, $body_out )
+            = ( 400, '{"ok":false,"error":"logout failed"}' );
+    }
+
+    ## a presented token WAS checked : the outcome counts [ logout path ] ##
+    <[plugin.web.auth.admit.record]>->(
+        $ok ? qw| success | : qw| failure |,
+        qw| logout |, $src // '', $groups // []
+    ) if defined $src;
+}
+
+my $envelope = { 'status' => $status, 'body' => $body_out };
+$envelope->{'set_cookie'} = $set_cookie if defined $set_cookie;
+
+return { 'mode' => qw| size |, 'data' => JSON::XS::encode_json($envelope) };
+
+#,,.,,.,.,,.,,.,,,,,,,..,,.,,,.,.,..,,,,,,.,.,..,,...,...,.,.,,,,,,,,,.,.,...,
+#37H5KXB674QBLR7E3VWPRETN4QFBLPMEXHKM2YNALLZMBPJBFROCI6LZM3GZLL4RCHNJAYTRBJWO6
+#\\\|MJZYZM2EYL3NJ2YDCREHJSMGPPN7FYHPB7YB3LXYETGQDKVADMK \ / AMOS7 \ YOURUM ::
+#\[7]3AXTXGMCINMNNIVSG2PINLDQJG6XGZA2XZHSSBWQLKEWHGAB2ACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

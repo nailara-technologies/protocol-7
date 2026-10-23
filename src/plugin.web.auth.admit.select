@@ -1,0 +1,163 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.select
+# descr = pick the next queued login request
+# note  = pick the next queued login request [ LOGIN-ADMISSION.md section
+#         3 ] : one request per group per turn, level by level [ top
+#         prefix, then mid prefix, then source ] ; priority between the
+#         siblings of a level : known sources first [ recent successful
+#         login ], then fewest decayed failures, then who waited longest ;
+#         a merged prefix [ heavy hitter ] is one bucket : its best-ranked
+#         source is picked directly, no per-source turns inside it
+# param = admission state hashref, now
+# return = queue entry hashref [ NOT dequeued ] or undef
+
+my $admit = shift // {};
+my $now   = shift // <[base.time]>->();
+my $cfg   = <[plugin.web.auth.admit.cfg]>;
+my $queue = $admit->{'queue'} // [];
+return undef if not @{$queue};
+
+## decayed failure weight of a source \ group node ##
+my $decayed = sub {
+    my $node = shift             // {};
+    my $w    = $node->{'weight'} // 0;
+    return 0 if $w <= 0;
+    my $age = $now - ( $node->{'weight_epoch'} // $now );
+    return $w if $age <= 0;
+    return $w * ( 0.5**( $age / $cfg->{'half_life'} ) );
+};
+
+## known lane : a successful login within the window ##
+my $is_known = sub {
+    my $node = shift               // {};
+    my $ok   = $node->{'ok_epoch'} // 0;
+    return ( $ok > 0 and $now - $ok < $cfg->{'known_window'} ) ? 1 : 0;
+};
+
+my $node_of = sub {
+    my $key = shift // '';
+    return $admit->{'groups'}{$key} // $admit->{'sources'}{$key} // {};
+};
+
+## rank compare : known first, then fewer failures, then longest wait ##
+my $rank_lt = sub {
+    my ( $a, $b ) = @ARG;    ## [ known, weight, wait ] -- lower is better ##
+    return $a->[0] < $b->[0] if $a->[0] != $b->[0];
+    return $a->[1] < $b->[1] if $a->[1] != $b->[1];
+    return $a->[2] < $b->[2];
+};
+
+## per-child oldest-wait maps, built from the queue ##
+my %wait_of;    ## key -> oldest enqueued epoch ##
+my %srcs_of;    ## mid -> { src => 1 } ##
+my %mids_of;    ## top -> { mid => 1 } ##
+my %tops;
+for my $e ( @{$queue} ) {
+    my ( $mid, $top ) = ( $e->{'groups'} // [] )->@*;
+    my $enq = $e->{'enqueued'} // $now;
+    for my $key ( $e->{'src'}, $mid, $top ) {
+        next if not length( $key // '' );
+        $wait_of{$key} = $enq
+            if not exists $wait_of{$key}
+            or $enq < $wait_of{$key};
+    }
+    $srcs_of{$mid}{ $e->{'src'} } = 1 if length( $mid // '' );
+    $mids_of{$top}{$mid} = 1 if length( $top // '' ) and length( $mid // '' );
+    $tops{$top}          = 1 if length( $top // '' );
+}
+
+my @tops = sort keys %tops;
+return undef if not @tops;
+
+## pick one child of a parent : one per group per turn [ the served set ##
+## survives across ticks ; a completed round starts a fresh one ]       ##
+my $pick_child = sub {
+    my ( $parent_key, @children ) = @_;
+    return undef if not @children;
+    my $served = $admit->{'served'}{$parent_key} //= {};
+    my @cand   = grep { not $served->{$ARG} } @children;
+    if ( not @cand ) {    ## round complete : fresh round ##
+        %{$served} = ();
+        @cand = @children;
+    }
+    my ( $best_key, $best_rank );
+    for my $key (@cand) {
+        my $node = $node_of->($key);
+        my $rank = [
+            $is_known->($node) ? 0 : 1,
+            $decayed->($node),
+            $wait_of{$key} // $now,
+        ];
+        if ( not defined $best_key or $rank_lt->( $rank, $best_rank ) ) {
+            ( $best_key, $best_rank ) = ( $key, $rank );
+        }
+    }
+    $served->{$best_key} = 1;
+    return $best_key;
+};
+
+## level 1 : among the top prefixes ##
+my $top = $pick_child->( qw| TOP |, @tops );
+return undef if not defined $top;
+
+## level 2 : among its mid prefixes ##
+my $mid = $pick_child->( $top, sort keys %{ $mids_of{$top} // {} } );
+return undef if not defined $mid;
+
+my @srcs = sort keys %{ $srcs_of{$mid} // {} };
+return undef if not @srcs;
+
+my $src;
+
+## merged prefix [ heavy hitter ] : one bucket -- the best-ranked source is ##
+## picked directly, no per-source turns inside the bucket ; the merge is    ##
+## re-evaluated here against DECAYED weights so a prefix whose failures     ##
+## faded out of view unmerges by itself                                     ##
+my $merged = FALSE;
+if ( $admit->{'merged'}{$mid} ) {
+    my $fail_src = $admit->{'fail_src'}{$mid} // {};
+    for my $s ( keys %{$fail_src} ) {
+        delete $fail_src->{$s}
+            if $decayed->( $admit->{'sources'}{$s} ) < $cfg->{'merge_eps'};
+    }
+    if ( keys %{$fail_src} < $cfg->{'merge_min'} ) {
+        delete $admit->{'merged'}{$mid};
+    } else {
+        $merged = TRUE;
+    }
+}
+
+if ($merged) {
+    my ( $best_key, $best_rank );
+    for my $key (@srcs) {
+        my $node = $node_of->($key);
+        my $rank = [
+            $is_known->($node) ? 0 : 1,
+            $decayed->($node),
+            $wait_of{$key} // $now,
+        ];
+        if ( not defined $best_key or $rank_lt->( $rank, $best_rank ) ) {
+            ( $best_key, $best_rank ) = ( $key, $rank );
+        }
+    }
+    $src = $best_key;
+
+} else {
+    ## level 3 : among the sources of the mid prefix ##
+    $src = $pick_child->( $mid, @srcs );
+}
+
+return undef if not defined $src;
+
+## the source's oldest queued request ##
+my ($entry) = sort { ( $a->{'enqueued'} // 0 ) <=> ( $b->{'enqueued'} // 0 ) }
+    grep { $ARG->{'src'} eq $src } @{$queue};
+
+return $entry;
+
+#,,,,,.,.,...,,,.,,,,,,,,,,,.,,,.,,.,,..,,,,,,..,,...,..,,,.,,,,.,,,.,,,.,.,.,
+#NJ5U2E5IINWV5RQC5TLUSUFKR7AUW2SHKBMBPIRGYJDB7EXPHR7SIW7LQCPVH7HEI6K5LWIZFB3DS
+#\\\|F7W2PY3EVD3RPF5X6KGX4N6LSSPOJFVYZFBBQD7F3JV72CNNRNM \ / AMOS7 \ YOURUM ::
+#\[7]MH5DGRSEHEJ3PFAOCC3ZWMS3M3V4TDTCJJAAGU5AOMNWNHPZFACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

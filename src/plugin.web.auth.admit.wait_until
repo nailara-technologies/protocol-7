@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.wait_until
+# descr = epoch until which a source waits on a path
+# note  = per-source limit [ LOGIN-ADMISSION.md section 2 ] : epoch until
+#         which a source waits on one check path [ 0 = no wait ] -- the
+#         first free_fails failures are free, then the wait doubles per
+#         failure [ 1 s, 2 s, 4 s .. capped at wait_cap ], counted from
+#         the last CHECKED failure on that path [ a 429 during the wait
+#         does not extend it ] -- the counters are per path : a success
+#         on one path must not clear another path's failure count
+# param = source state node [ hashref ], path [ login \ status \ logout \
+#         bearer ], now [ optional ]
+
+my $src_state = shift // {};
+my $path      = shift // qw| login |;
+my $now       = shift // <[base.time]>->();
+my $cfg       = <[plugin.web.auth.admit.cfg]>;
+
+my $fails = $src_state->{'fails'}{$path} // 0;
+return 0 if $fails <= $cfg->{'free_fails'};
+
+my $wait = 2**( $fails - $cfg->{'free_fails'} - 1 );
+$wait = $cfg->{'wait_cap'} if $wait > $cfg->{'wait_cap'};
+
+my $until = ( $src_state->{'last_fail'}{$path} // 0 ) + $wait;
+
+return $until > $now ? $until : 0;
+
+#,,.,,...,,.,,..,,,..,.,.,..,,,.,,...,,.,,..,,..,,...,...,..,,,..,,.,,,..,.,.,
+#JA4EPDGAYYVTCA3UHWIJSGSY76OCKMLYFCXPT2N4HKMY6QMCJY4K2MKUCWOUETRDHJW2TKEAGHM6A
+#\\\|LWR3I3TTEGY5LE4E4EVV4PQ44HMECUHFNY2TXDUB4TZSTUL43HE \ / AMOS7 \ YOURUM ::
+#\[7]ZZ5X5MEEFPOAIYC4MWAQXJFYXMUEYPB5FTL4FRZ3P3OEF23TGEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

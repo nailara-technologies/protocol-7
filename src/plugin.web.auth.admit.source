@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.source
+# descr = peer address to admission source key + groups
+# note  = map a real socket peer address to its admission source key and
+#         group chain [ LOGIN-ADMISSION.md section 3 : a source is an
+#         ipv4 address or the ipv6 /64 ; groups are the shared prefixes
+#         above it : /24 + /16 \ /48 + /32 ]
+# param = peer address string [ real socket peer only, never a header ]
+# return = ( source_key, [ mid_group, top_group ] ) -- undef when the
+#          address does not parse
+
+my $peer = lc( shift // '' );
+$peer =~ s|^::ffff:||;
+
+return undef if not length $peer;
+
+if ( index( $peer, ':' ) == -1 ) {
+
+    ## ipv4 : source = the address itself, groups /24 and /16 ##
+    return undef
+        if $peer !~ m|^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$|;
+    my ( $a, $b, $c, $d ) = ( 0 + $1, 0 + $2, 0 + $3, 0 + $4 );
+    return undef if $a > 255 or $b > 255 or $c > 255 or $d > 255;
+
+    return (
+        sprintf( 'v4/32:%d.%d.%d.%d', $a, $b, $c, $d ),
+        [   sprintf( 'v4/24:%d.%d.%d', $a, $b, $c ),
+            sprintf( 'v4/16:%d.%d',    $a, $b ),
+        ]
+    );
+}
+
+## ipv6 : source = the /64                                               ##
+## [ one host easily switches addresses inside its /64 ], groups /48 and ##
+## /32                                                                   ##
+state $socket_loaded = <[base.perlmod.load]>->(qw| Socket |);
+return undef if not $socket_loaded;
+
+my $packed = Socket::inet_pton( Socket::AF_INET6(), $peer );
+return undef if not defined $packed;
+
+my $hex = unpack qw| H* |, $packed;
+
+return (
+    sprintf( 'v6/64:%s', substr( $hex, 0, 16 ) ),
+    [   sprintf( 'v6/48:%s', substr( $hex, 0, 12 ) ),
+        sprintf( 'v6/32:%s', substr( $hex, 0, 8 ) ),
+    ]
+);
+
+#,,,.,,..,,,,,,..,...,,..,,..,,.,,,.,,,,,,,,.,..,,...,...,...,.,.,..,,..,,,..,
+#JT2Z7UIEASEH76AHT7MREV5AEE44VE6WOOEWDL7DCVYNNAABRNSKSJGOL4GLYB6ARPSOHTJJDT4TA
+#\\\|YTSN6ZMVO4VGXDVSAPA3F6BNUUIQDQNLGVS7WQQ7W4WBQVXXK6E \ / AMOS7 \ YOURUM ::
+#\[7]S5VIVDPNSEBUOWVZHJ4HW5DFIGWU4RL3ZUBLL6BKKXSOCJGXSEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

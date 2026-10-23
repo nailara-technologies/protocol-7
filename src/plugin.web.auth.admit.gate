@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.gate
+# descr = per-source gate for the non-login check paths
+# note  = the per-source admission gate for the non-login check paths
+#         [ /auth/status, /auth/logout, Bearer-protected routes :
+#         LOGIN-ADMISSION.md section 2 on all four paths ] -- a source in
+#         its per-source wait on the calling path gets an immediate 429,
+#         never queued [ the queue stays login-only ] ; without socket
+#         facts [ local p7c call ] or with an unparseable peer the gate
+#         passes and nothing is recorded
+# param = peer address string, path [ status \ logout \ bearer ],
+#         now [ optional ]
+# return = ( retry_after_seconds [ 0 = admitted ], source_key,
+#          [ mid_group, top_group ] )
+
+my $peer = shift // '';
+my $path = shift // qw| status |;
+my $now  = shift // <[base.time]>->();
+
+<[plugin.web.auth.admit.state_load]>;    ## lazy, first use only ##
+
+my $admit = $data{'plugin.web.auth'}{'admit'};
+return ( 0, undef, [] ) if not length $peer;
+
+my ( $src, $groups ) = <[plugin.web.auth.admit.source]>->($peer);
+return ( 0, undef, [] ) if not defined $src;
+
+my $wait_until = <[plugin.web.auth.admit.wait_until]>->(
+    $admit->{'sources'}{$src} // {},
+    $path, $now
+);
+if ( $wait_until > $now ) {
+    <[base.logs]>->(
+        2,
+        'plugin.web.auth.admit : %s in per-source wait on %s [ %ds : 429 ]',
+        $src, $path, $wait_until - $now
+    );
+    return ( $wait_until - $now, $src, $groups );
+}
+
+return ( 0, $src, $groups );
+
+#,,..,.,.,,..,..,,,.,,.,,,,,,,,,.,...,,,.,,..,..,,...,...,,,,,.,.,..,,..,,,.,,
+#4CMMJKC746RGHGOKMEIGDOGHVMK2UNGR7RSBGUYGURLGMVI2HNGL6JTWX5RT6DIH6LXC557VOC6WQ
+#\\\|3ZPOGT5KOM45TOBOF7MTIKTKAZLHNKYYFJDOCN2BG24JFVHYMVG \ / AMOS7 \ YOURUM ::
+#\[7]EMQ77DACVRHBZPB6WPBQN75OSSF5DM4DJGQMRAG6YYTJKDQE5KCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

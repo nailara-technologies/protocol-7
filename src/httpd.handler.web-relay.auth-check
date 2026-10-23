@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = httpd.handler.web-relay.auth-check
+# descr = bearer gate reply : fire the relay or answer
+# note  = intermediate reply handler for the bearer gate on protected
+#         routes : the web zenka's envelope decides -- 200 means the
+#         token verified and the source is admitted, so the ORIGINAL
+#         route relay fires [ the stored command + call args + reply
+#         handler ] ; 401 \ 400 \ 429 render the envelope as the HTTP
+#         answer directly [ never a held connection for a refused source ]
+
+my $reply = shift                       // {};
+my $relay = $reply->{'params'}{'relay'} // {};
+
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+
+my $envelope;
+$envelope = eval { JSON::XS::decode_json($text) }
+    if length $text and $mode =~ m{^(size|data|true)$};
+
+if (    ref $envelope eq qw| HASH |
+    and length( $envelope->{'body'} // '' )
+    and ( $envelope->{'status'} // 0 ) == 200 ) {
+
+    ## admitted : the original route relay goes out now ##
+    <[protocol-7.route-send]>->(
+        {   'command'   => $relay->{'command'}   // qw| web.request |,
+            'call_args' => $relay->{'call_args'} // {},
+            'reply'     => $relay->{'reply'}     // {},
+        }
+    );
+    return;
+}
+
+## refused [ or a broken reply ] : the envelope renderer answers ##
+return <[httpd.handler.web-relay.auth]>->($reply);
+
+#,,..,.,,,.,,,.,,,,,.,,.,,,,,,.,.,.,.,...,,,.,..,,...,.,.,.,,,.,,,.,.,,..,,,.,
+#2OROS7PTKBVRJJJQSVBGMQRKQOKXLUAK57BNH2QOYCUXL2EYRX75GY6RE6IV3LCH62IUV7KEEWWXA
+#\\\|MEM2BN6LZR7O3YKZQFVZ3NSWFAU4BAZVMVO6ECITIS54H4K5APY \ / AMOS7 \ YOURUM ::
+#\[7]UQ3NHB7BO3LKAVDPIQOZ7FFCBRRTPM26TIUEC4KEUPT5OWPDBSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

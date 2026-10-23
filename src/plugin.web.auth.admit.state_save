@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.state_save
+# descr = write the admission state to disk
+# note  = write the admission state [ failure weights, known sources ] to
+#         the shared web-auth store [ setgid group httpd, via
+#         file.make_path \ file.open ] ; throttled to save_every
+#         seconds unless forced -- a skipped save is caught up by a
+#         one-shot timer so the last change of a burst is never lost
+# param = force [ true : write now ]
+
+my $force = shift // FALSE;
+
+my $admit = $data{'plugin.web.auth'}{'admit'} // return FALSE;
+my $cfg   = <[plugin.web.auth.admit.cfg]>;
+my $now   = <[base.time]>->();
+
+if ( not $force ) {
+    my $last = $admit->{'last_save'} // 0;
+    if ( $now - $last < $cfg->{'save_every'} ) {
+        if ( not $admit->{'save_pending'} ) {
+            $admit->{'save_pending'} = TRUE;
+            <[event.add_timer]>->(
+                {   'after' => $cfg->{'save_every'} - ( $now - $last ),
+                    'desc'  => 'web-auth admit state save',
+                    'cb'    => sub {
+                        $admit->{'save_pending'} = FALSE;
+                        <[plugin.web.auth.admit.state_save]>->(TRUE);
+                    },
+                }
+            );
+        }
+        return TRUE;
+    }
+}
+
+$admit->{'last_save'} = $now;
+
+my $base = <[plugin.web.auth.session.path]>;
+my $dir  = join qw| / |, $base, qw| admission |;
+if ( not -d $dir ) {
+    if (not defined <[file.make_path]>->(
+            $dir, 02770,
+            <system.amos-zenka-user> // qw| protocol-7 |,
+            <[plugin.web.auth.store.group]>
+        )
+    ) {
+        <[base.s_warn]>->(
+            'plugin.web.auth.admit.state_save : cannot create %s', $dir
+        );
+        return FALSE;
+    }
+}
+
+my $yaml_str = eval {
+    YAML::XS::Dump(
+        {   'sources' => $admit->{'sources'} // {},
+            'groups'  => $admit->{'groups'}  // {},
+        }
+    );
+};
+if ( length $EVAL_ERROR ) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.admit.state_save : yaml dump error : %s',
+        <[base.str.eval_error]>
+    );
+    return FALSE;
+}
+
+my $file = "$dir/state.yaml";
+my $fh   = <[file.open]>->( $file, qw| :raw |, qw| > |, TRUE, 0660 );
+if ( not defined $fh ) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.admit.state_save : open failed [ %s ]', $file
+    );
+    return FALSE;
+}
+print {$fh} $yaml_str;
+close($fh)
+    or <[base.s_warn]>->('plugin.web.auth.admit.state_save : close error');
+
+## umask-proof, same as plugin.web.auth.session.write : readers run as     ##
+## other uid [ httpd, httpsd ]                                             ##
+## [ CORE::stat : File::stat is imported, a plain stat returns an object ] ##
+my $file_mode = ( CORE::stat $file )[2] // 0;
+if ( ( $file_mode & 07777 ) != 0660 and not chmod 0660, $file ) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.admit.state_save : chmod 0660 failed [ %s ]', $file
+    );
+}
+
+return TRUE;
+
+#,,.,,.,.,,.,,..,,,.,,,..,,,,,.,.,.,,,.,,,.,,,..,,...,...,...,.,.,,..,,,.,...,
+#Y7IYF3YCY7KR6MQ77W2ZNOKMTA5WIYKIMH7WN7CUH4IP7PCHLIQXLCV6BGCXM2OMZ7ZVFTAAARGS2
+#\\\|FJ6TQY5SNGXVFN4K2XCGJEQ4AJTCO4OURZPTTFFMRYDR4SJLS4W \ / AMOS7 \ YOURUM ::
+#\[7]JKSMS2K7PM7E22LK56AUBN5KQKNJ5VUX7W7PJ4WZTO4ONL6UCMBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

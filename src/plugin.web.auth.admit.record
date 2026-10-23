@@ -1,0 +1,125 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.record
+# descr = record a check outcome for its source and path
+# note  = record a login check outcome against its source and check path
+#         [ sections 2+3 ] failure : that path's fail count up [ drives
+#         the per-source wait on THAT path ], decaying weight added to the
+#         source [ 1.0 ], its mid prefix [ weight_mid ] and its top prefix
+#         [ weight_top ] ; enough distinct failing sources under one mid
+#         prefix merge it into one scheduling bucket
+#         success : the source's counter on THAT PATH is reset, its weight
+#         is cleared and its source + prefix chain is stamped known [ the
+#         known-source lane ] -- other paths' failure counts are untouched
+#         [ a success cannot launder another path's budget ]
+# param = 'success' \ 'failure', path [ login \ status \ logout \ bearer ],
+#         source key, [ mid_group, top_group ]
+
+my ( $result, $path, $src, $groups ) = @ARG;
+$path //= qw| login |;
+
+return FALSE if not length( $src // '' );
+$groups //= [];
+my ( $mid, $top ) = @{$groups};
+
+## the stored state is in memory before any record [ a record ahead of the ##
+## first load would be replaced by the older file snapshot ]               ##
+<[plugin.web.auth.admit.state_load]>;
+
+my $cfg   = <[plugin.web.auth.admit.cfg]>;
+my $admit = $data{'plugin.web.auth'}{'admit'} // return FALSE;
+my $now   = <[base.time]>->();
+
+## decay-then-return a state node [ lazy half-life decay on touch ] ##
+my $touch = sub {
+    my ( $table, $key ) = @_;
+    my $node = $admit->{$table}{$key} //= {};
+    my $age  = $now - ( $node->{'weight_epoch'} // $now );
+    if ( ( $node->{'weight'} // 0 ) > 0 and $age > 0 ) {
+        $node->{'weight'} *= 0.5**( $age / $cfg->{'half_life'} );
+        $node->{'weight'} = 0 if $node->{'weight'} < 0.0001;
+    }
+    $node->{'weight_epoch'} = $now;
+    return $node;
+};
+
+if ( $result eq qw| success | ) {
+
+    my $s = $touch->( qw| sources |, $src );
+
+    ## any failure count left anywhere : the success is real news ##
+    my $had_fails = grep { $_ > 0 } values %{ $s->{'fails'} // {} };
+    my $was_known = ( $s->{'ok_epoch'} // 0 ) > $now - $cfg->{'known_window'};
+
+    ## reset only the calling path's counter [ section 2 per path ] ##
+    $s->{'fails'}{$path}     = 0;
+    $s->{'last_fail'}{$path} = delete $s->{'last_fail'}{$path} // 0;
+    $s->{'weight'}           = 0;
+    $s->{'ok_epoch'}         = $now;
+    $s->{'groups'}           = [ $groups->@* ];
+
+    ## the source and its prefix chain join the known lane [ section 3 ] ##
+    for my $group_key ( $mid, $top ) {
+        next if not length( $group_key // '' );
+        $touch->( qw| groups |, $group_key )->{'ok_epoch'} = $now;
+    }
+
+    ## no longer a failing source : out of the merge view ##
+    if ( length( $mid // '' )
+        and ref $admit->{'fail_src'}{$mid} eq qw| HASH | ) {
+        delete $admit->{'fail_src'}{$mid}{$src};
+        if ( keys $admit->{'fail_src'}{$mid}->%* < $cfg->{'merge_min'} ) {
+            delete $admit->{'merged'}{$mid};
+        }
+        delete $admit->{'fail_src'}{$mid}
+            if not keys $admit->{'fail_src'}{$mid}->%*;
+    }
+
+    ## known sources matter : a forced save only when state CHANGED -- a ##
+    ## busy ui polling every 30 s must not force a disk write each poll  ##
+    <[plugin.web.auth.admit.state_save]>
+        ->( ( $had_fails or not $was_known ) ? TRUE : FALSE );
+    return TRUE;
+}
+
+## failure : weighted by distance, decaying over time [ section 3 ] ##
+
+my $s = $touch->( qw| sources |, $src );
+$s->{'fails'}{$path}     = ( $s->{'fails'}{$path} // 0 ) + 1;
+$s->{'last_fail'}{$path} = $now;
+$s->{'weight'} += 1;
+$s->{'groups'} = [ $groups->@* ];
+
+if ( length( $mid // '' ) ) {
+    $touch->( qw| groups |, $mid )->{'weight'} += $cfg->{'weight_mid'};
+
+    ## heavy-hitter merge : enough distinct failing sources under one   ##
+    ## prefix and the prefix becomes one scheduling bucket              ##
+    ## [ section 3 -- merging only when conspicuous, never in advance ] ##
+    $admit->{'fail_src'}{$mid}{$src} = 1;
+    if ( keys $admit->{'fail_src'}{$mid}->%* >= $cfg->{'merge_min'} ) {
+        if ( not $admit->{'merged'}{$mid} ) {
+            $admit->{'merged'}{$mid} = 1;
+            <[base.logs]>->(
+                1,
+                'plugin.web.auth.admit : prefix '
+                    . '%s merged [ %d failing sources ]',
+                $mid,
+                scalar keys $admit->{'fail_src'}{$mid}->%*
+            );
+        }
+    }
+}
+
+$touch->( qw| groups |, $top )->{'weight'} += $cfg->{'weight_top'}
+    if length( $top // '' );
+
+<[plugin.web.auth.admit.state_save]>;    ## throttled ##
+
+return TRUE;
+
+#,,..,,,,,,..,..,,.,,,,.,,...,.,,,,.,,,.,,,,.,..,,...,...,..,,.,,,..,,,,,,,,.,
+#ICUCIMQZ33R3KAFCYXGOJA2OSL7U523ZUR2XOICDYBT3RFY6C6ACMRVH4JWRBMVMS7LBLULAJDAI4
+#\\\|RGBZ6DBB6MR2AVZ2VDRHXM6DJL5BRPGOWWFKFXQGSVAPGP7AL7Z \ / AMOS7 \ YOURUM ::
+#\[7]C4AFLOTIXQKQ6LQY4HWFIFCYVTYBAOEKJJ5KWNE3JTBMPMPI6MBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

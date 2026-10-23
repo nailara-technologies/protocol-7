@@ -12,14 +12,16 @@
 ##       need [base.white-list.register:'plugin.name'] in the start file.
 ##       plugins under the loaded namespace (plugin.httpd.*) work as-is.
 
-## web auth endpoints : direct httpd handlers [ the login cookie flags   ##
-## need the real socket context ] -- login verifies a pre-shared token   ##
-## and sets the p7_session cookie [ HttpOnly, SameSite=Strict, Secure on  ##
-## TLS ]; token minting is admin-only : p7c web.auth-issue <user> [ -ttl  ##
-## <s> ] -- the ui shows a paste-token prompt on any 401 from /jobs*     ##
-GET   /auth/status   plugin.web.auth.handler.status
-POST  /auth/login    plugin.web.auth.handler.login
-POST  /auth/logout   plugin.web.auth.handler.logout
+## web auth endpoints -- every token check is relayed to the web      ##
+## zenka's admission gate [ LOGIN-ADMISSION.md section 2 on all four    ##
+## paths : login holds in the fair queue, status \ logout \ bearer      ##
+## answer at once, never queued ] ; the real socket facts travel in the ##
+## call, never a header. token minting is admin-only : p7c             ##
+## web.auth-issue <user> [ -ttl <s> ] -- the ui shows a paste-token     ##
+## prompt on any 401 from /jobs*                                        ##
+GET   /auth/status   httpd.route.handler.web-status
+POST  /auth/login    httpd.route.handler.web-login
+POST  /auth/logout   httpd.route.handler.web-logout
 
 ## job pipeline api -- auth.required since 2026-10 [ these routes are    ##
 ## served on a PUBLIC host : bearer token [ jobsite push, minted via      ##
@@ -66,8 +68,8 @@ POST  /iris/negotiate httpd.route.handler.iris-negotiate
 POST  /cursor       plugin.web.space.handler.cursor_update
 POST  /context      httpd.route.handler.context
 
-#,,..,,,,,,.,,..,,,,.,,.,,.,,,.,.,,.,,,..,,.,,..,,...,..,,,,.,,.,,,,.,...,,..,
-#NX4PDPP2N57KZQUXTL5GOJ4ZR5RO6EQK5WXU5ONPXYJFMATMGO2OCLUAUVNKIZLRHXM73Y7P6DRKU
-#\\\|N5I2WTQVWLNF6RYQ5GNSTO4YQFX5VGVM7PMT4LNFEKQEC6W65W3 \ / AMOS7 \ YOURUM ::
-#\[7]V7ZAWTKDOAUSRZRESLAYBJODSWNJ2D5NE64TZTQEB6L2THS5XYAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,.,,..,..,,.,.,,,.,...,...,.,,,..,,...,...,..,,,,,,.,.,..,,,,,,
+#Z4CGLDW74VGPXORWRXF3LNMBJJHBESEENKDI2SXG53S5ZBYO5WHN6FTSZXWQCXSDQSVFDB4BHIJZO
+#\\\|NZXINJMKQL2ZR6NP26Q76PRWO5HHGOVROLE2XB7U64UAMJTBBOG \ / AMOS7 \ YOURUM ::
+#\[7]ZFUMICRD3JEST6P4JWRA6FNVBMIVGUQO3TQXFAPRCGFFRFBSZWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

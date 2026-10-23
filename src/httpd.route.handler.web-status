@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = httpd.route.handler.web-status
+# descr = GET /auth/status through the admission gate
+# note  = GET /auth/status : refuse plaintext first [ stays first ], then
+#         ask the web zenka's admission gate [ web.auth-status ] -- the
+#         real socket facts [ peer address, tls ] are passed explicitly,
+#         never a header ; the answer arrives at once [ 200 session info,
+#         401, or 429 with Retry-After ] -- never queued
+#         [ LOGIN-ADMISSION.md section 2 on all four paths ]
+
+my $id      = shift;
+my $args    = shift // {};
+my $session = $data{'session'}->{$id};
+
+## no token over plain http [ plugin.web.auth.refuse_plaintext ] ##
+return 2 if <[plugin.web.auth.refuse_plaintext]>->($id);
+
+my $headers = $session->{'http'}->{'request'}->{'headers'} // {};
+
+## real socket facts : the admission source and the gate itself come from ##
+## these, never from a header                                             ##
+my $peer_addr = $session->{'http'}->{'request'}->{'client'}->{'addr'} // '';
+my $peer_fh   = $session->{'handle'};
+my $peer_tls  = ( ref $peer_fh and $peer_fh->isa('IO::Socket::SSL') ) ? 1 : 0;
+
+$session->{'http'}->{'close'} = TRUE;
+
+##  replace input watcher : keep EOF detection, disable timeout  ##
+if ( defined $session->{'watcher'}{'input_handler'} ) {
+    my $fd = $session->{'watcher'}{'input_handler'}->fd;
+    $session->{'watcher'}{'input_handler'}->cancel;
+    $session->{'watcher'}{'input_handler'} = Event->io(
+        'fd'     => $fd,
+        'cb'     => sub { &{ $code{'base.handler.read'} } },
+        'poll'   => qw| r |,
+        'prio'   => 1,
+        'repeat' => FALSE,
+        'data'   => $id,
+        'desc'   => sprintf( '[%d] input handler [ no timeout ]', $id ),
+    );
+}
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| web.auth-status |,
+        'call_args' => {
+            'args'          => q||,
+            'peer_addr'     => $peer_addr,
+            'peer_tls'      => $peer_tls,
+            'auth_header'   => $headers->{'authorization'} // '',
+            'cookie_header' => $headers->{'cookie'}        // '',
+        },
+        'reply' => {
+            'handler' => qw| httpd.handler.web-relay.auth |,
+            'params'  => { 'http_sid' => $id },
+        },
+    }
+);
+
+return 0;    # [ deferred : the reply handler writes the response ]
+
+#,,,.,...,,..,.,,,..,,...,,,,,,.,,,..,,..,.,.,..,,...,...,,..,...,,,.,,.,,,,.,
+#G2ARD3CLG53TQXR3MRSUSJQZI3BADPI2P43P3E5TR7IM6L4LU36DWK3BC42NFQUAMPNEHLKYPVVHU
+#\\\|QBWLRG5AWRV3Y4KJFW4LTL4B57F6XDVSZPJWJCKBO2JDU2VYKYT \ / AMOS7 \ YOURUM ::
+#\[7]74XJRG53WOXKSI6XZWKQRYMLS6YFSAJS76LPTGHDJ4UEJZNDQGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

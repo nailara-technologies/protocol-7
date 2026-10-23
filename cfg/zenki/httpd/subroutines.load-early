@@ -290,6 +290,7 @@ base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
+plugin.web.auth.admit
 jobsite.state.persist
 jobsite.index.rebuild
 jobsite.fetched.frame
@@ -439,6 +440,7 @@ route.bmw384.route.vortex
 route.bmw384.route.direct
 route.bmw384.index.lookup
 plugin.web.auth.init_code
+plugin.web.auth.admit.cfg
 jobsite.util.fix_encoding
 jobsite.util.build_prompt
 jobsite.removed_log.prune
@@ -468,6 +470,7 @@ base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 auth.client.distrust_list
 protocol.sftp.read_ssh_env
+plugin.web.auth.admit.gate
 jobsite.sync.token_for_url
 jobsite.sync.apply_reverse
 jobsite.removed_log.append
@@ -501,6 +504,7 @@ route.bmw384.index.register
 route.bmw384.cmd.index-path
 route.bmw384.cmd.find-route
 plugin.web.auth.store.group
+plugin.web.auth.admit.check
 net.read_linewise_estimated
 jobsite.validate.assessment
 jobsite.util.description_ok
@@ -539,6 +543,12 @@ protocol.amos_term.init_code
 plugin.web.auth.store.set-up
 plugin.web.auth.session.read
 plugin.web.auth.session.path
+plugin.web.auth.admit.status
+plugin.web.auth.admit.source
+plugin.web.auth.admit.select
+plugin.web.auth.admit.record
+plugin.web.auth.admit.logout
+plugin.web.auth.admit.bearer
 plugin.web.auth.admin_caller
 plugin.httpd.radio.init_code
 jobsite.handler.task-created
@@ -547,6 +557,7 @@ jobsite.dispatch.assessments
 io.unix.socket.input.connect
 httpd.vhost.request_tls_cert
 httpd.route.handler.iris-svg
+httpd.handler.web-relay.auth
 httpd.handler.template_reply
 httpd.handler.iris-svg.relay
 httpd.handler.acme_challenge
@@ -580,6 +591,8 @@ jobsite.dispatch.arm_watchdog
 httpd.vhost_template_resolver
 httpd.vhost.dns_matches_local
 httpd.route.handler.web-relay
+httpd.route.handler.web-login
+httpd.handler.web-relay.login
 httpd.benchmark.start_request
 format.yaml.load_keyword_path
 crypt.C25519.key_name_to_skey
@@ -612,11 +625,14 @@ plugin.web.auth.verify_session
 plugin.web.auth.handler.status
 plugin.web.auth.handler.logout
 plugin.web.auth.create_session
+plugin.web.auth.admit.schedule
 jobsite.handler.repair-created
 jobsite.handler.new-job-settle
 jobsite.handler.fetched-stream
 jobsite.handler.assess-timeout
 httpd.vhost.handler.cert_reply
+httpd.route.handler.web-status
+httpd.route.handler.web-logout
 httpd.route.handler.iris-route
 httpd.route.handler.iris-pulse
 httpd.handler.shm_replay_sweep
@@ -657,6 +673,9 @@ route.bmw384.visual.wheel.metric
 route.bmw384.visual.wheel.ledger
 plugin.web.auth.secure_transport
 plugin.web.auth.refuse_plaintext
+plugin.web.auth.admit.wait_until
+plugin.web.auth.admit.state_save
+plugin.web.auth.admit.state_load
 httpd.handler.web_template_reply
 httpd.handler.web-relay.response
 httpd.diagnostic.track_operation
@@ -701,9 +720,11 @@ protocol.amos-chksum.ext-cmd.modes
 protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
+plugin.web.auth.admit.envelope_429
 jobsite.handler.stray-job-exported
 jobsite.handler.assess-watch-reply
 httpd.route.handler.iris-negotiate
+httpd.handler.web-relay.auth-check
 httpd.handler.input.body_remainder
 httpd.classify.cmd.reload-patterns
 crypt.C25519.load_keys_from_secret
@@ -799,8 +820,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,...,,,.,...,...,...,.,,,,.,,,..,,,,,...,..,,...,...,.,,,,..,,..,..,,,,,,
-#X2TORK6YEXKOVMJOLVBFBYIEWZXUM3ASZQQJVWXFFDYS4566IYJIKQTDQI5SSPPQ5O3FLLUQTCKAE
-#\\\|QBZ2WPQGHKXHHZACDC2SAEOZSH44LTO2OKZU25KJEKBY3JEAWOG \ / AMOS7 \ YOURUM ::
-#\[7]2YADLN5GCQMYREMKDG3HHYLDABZAKGU2VB66HJHNH2ORN25RV6AQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,,,.,,,,,,..,..,,.,,,.,.,,,.,..,,...,...,...,,.,,...,.,,,.,.,
+#CVX65WH3OBGHSN32Z6F3F4BRRAX7Z2FFQPPC43VV6RCSML5COJ5SMHP3NGLZ733OSCFCY763HLBS6
+#\\\|U7POCETE65OAPVFFOS6GWLL5SAPESA6GWNFX772KYSU3TP6QMHJ \ / AMOS7 \ YOURUM ::
+#\[7]SRJA3UHKNC63EBHJMRB22XCQDZ5ZW2SALYR5QDLSPPGSJB2ABIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

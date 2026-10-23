@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.envelope_429
+# descr = the 429 envelope for the httpd reply handler
+# note  = the 429 envelope string for the httpd reply handler
+#         [ httpd.handler.web-relay.login ] : status, Retry-After and a
+#         short json body -- sent at once, never a held connection
+# param = retry_after [ seconds ]
+
+my $retry_after = shift // 1;
+$retry_after = 1 if $retry_after < 1;
+$retry_after = int( $retry_after + 0.5 );    ## whole seconds on the wire ##
+
+return JSON::XS::encode_json(
+    {   'status'      => 429,
+        'retry_after' => $retry_after,
+        'body'        => '{"ok":false,"error":"too many requests"}',
+    }
+);
+
+#,,,,,..,,.,.,,,,,.,.,...,,..,...,,,.,...,..,,..,,...,...,.,,,,,.,,..,,,.,,,,,
+#6IZMHMXPRV6FHQKW5REIL6ZRKT3KER2756UPXX2HSBEJIHOAB6H4VZEXVAF6JT4U5MGKCV74XUQNY
+#\\\|VJREFAGV5JBZBIASDTE556YSFQS64DXGEGAPYM337ZHS6F2L4WM \ / AMOS7 \ YOURUM ::
+#\[7]BCQ6GJKBLKU3KUUS2KTWUDPNJ5WJWU3EU345E3GOAACDM2XH46BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
