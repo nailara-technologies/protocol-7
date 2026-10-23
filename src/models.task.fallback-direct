@@ -21,7 +21,9 @@ my $job_id     = $params->{'job_id'}     // '';
 ## prepend :next: for fresh session per task ##
 $prompt = ':next: ' . $prompt;
 
-## base32r encode prompt for safe ipc ##
+## base32r encode prompt for safe ipc : marked ':B32:', receivers no longer ##
+## guess [ coding.input.decode ] -- unmarked, coding read its :simple: \    ##
+## :no_tools: markers in still encoded text [ 2026-10-23 ]                  ##
 my $encoded = eval { Crypt::Misc::encode_b32r($prompt) };
 if ( $@ or not defined $encoded or not length $encoded ) {
     <[base.logs]>->( 0, ': fallback-direct: base32r encode failed' );
@@ -35,6 +37,7 @@ if ( $@ or not defined $encoded or not length $encoded ) {
     <[jobqueue.move_job]>->( $job_id, qw| error | );
     return FALSE;
 }
+$encoded = ':B32:' . $encoded;
 
 ## extract zenka name from target command ##
 ( my $zenka_name = $target_cmd ) =~ s{\..*}{};
@@ -73,8 +76,8 @@ if ( $sent <= 0 ) {
 
 return TRUE;
 
-#,,,,,.,.,.,,,,..,..,,.,.,,.,,.,.,...,..,,,,.,..,,...,...,...,.,,,...,,,.,,..,
-#ZQG2HGJQ44E3XMYQ6UHXVKZ7DSEK3FI4KBTHSU2LXS6Q4T225GNYZHE7SIQ4W6QTHMG3FQ5RBOQ24
-#\\\|OPVZXW32OF66H3ABAVKF42T6LY7GZQSY7JLTN73PBMCLQBCZLCU \ / AMOS7 \ YOURUM ::
-#\[7]PHK5TARW2TW3ZXSXLPDEDXHWGNFEWCMJH2UFKQU5Z2NKJAQGZCBA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,.,,,.,.,,..,.,,,..,,.,,,,,,,..,,...,...,..,,...,,,.,...,.,.,
+#7SKEWRDIREIAWWRL3WYCNGMXQAO534AVVSAFKDJOEQ7E6QGQNNDMIX7GEBJMQLR6XXONL4N2EMFLY
+#\\\|CBYLISPIR57TTQ5CRUYZUA77PLEAZCHRU2A3NQ5ACJMUAF7CQPQ \ / AMOS7 \ YOURUM ::
+#\[7]Z3U2CARSLI6C64EMLQOVXVYUEGBCBADUTTKU5S5ECDBKMEMSTQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

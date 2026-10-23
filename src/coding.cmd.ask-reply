@@ -52,12 +52,14 @@ if ( length $param_request ) {
 return { 'mode' => qw| false |, 'data' => "work request required\n" }
     if !length($request_str);
 
-## detect simple/no-tools mode from :simple: or :no_tools: marker
+## detect simple/no-tools mode from :simple: or :no_tools: marker [ :next:  ##
+## first, it leads a models prompt ; :no_tools: at the start of any line -- ##
+## models puts its task tag before the description ]                        ##
+$request_str =~ s{^:next:\s*}{}i;
 my $simple_mode   = FALSE;
 my $no_tools_mode = FALSE;
-if ( $request_str =~ s{:simple:\s*}{}i )    { $simple_mode   = TRUE }
-if ( $request_str =~ s{^:no_tools:\n?}{}i ) { $no_tools_mode = TRUE }
-$request_str =~ s{^:next:\s*}{}i;
+if ( $request_str =~ s{:simple:\s*}{}i )     { $simple_mode   = TRUE }
+if ( $request_str =~ s{^:no_tools:\n?}{}im ) { $no_tools_mode = TRUE }
 
 # Parse and analyze task
 my $intake_result = <[coding.task.intake]>->($request_str);
@@ -122,8 +124,8 @@ my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,..,,,..,,,,,...,,,.,,,.,,,.,.,,,,..,...,.,.,...,...,,..,.,.,,..,.,.,.,,,
-#TRI3YZXSXMIMW7ZYOL5NXDXU4EVUQLUHASB3D4LBY6WC5KRH4RWJZFC3PSDVHXMFFYE5C3WDO4YSO
-#\\\|BKPZ25JOYC2EEW4YFEXB2HNA6GN3GGS6JQFOZSBXHWA3E6NN4VQ \ / AMOS7 \ YOURUM ::
-#\[7]MNW66RJQZAQUNAARP2GQMCU5V6MYO5MT7LNABPKORJYCCWUKOEAQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,,,...,.,.,..,,,..,...,,.,,,.,,.,.,...,...,.,,,..,,..,,.,,,.,.,
+#VIC5QRRGLE5LFYRK7WAZBXMS5KT3AAMUSZEAJLFTHJTSPZQUXKJPFAMMNAFVOYP6VVZ6OFGRMT5KY
+#\\\|NH4N7L3MKYR7N3OXUBWE7Z2SVKX3ESJTG3QC22NUUHW742UZNL4 \ / AMOS7 \ YOURUM ::
+#\[7]6I4O6UZRKV3I75C3CUQ4CKF5CH76N2F2XDJ24NIPHZKVDEHKF6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

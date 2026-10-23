@@ -81,8 +81,9 @@ unless ( length($encoded_prompt) ) {
 # Submit to coding via ask-reply command
 # The reply will come to coding_result_forward which will call our handler
 my $sent_count = <[protocol-7.command.send.local]>->(
-    {   'command'   => qw| cube.coding.ask-reply |,
-        'call_args' => { 'args' => $encoded_prompt },
+    {   'command' => qw| cube.coding.ask-reply |,
+        ## marked : coding no longer guesses base32 [ coding.input.decode ] ##
+        'call_args' => { 'args' => ':B32:' . $encoded_prompt },
         'reply'     => {
             'handler' => 'models.handler.coding_result_forward',
             'params'  => {
@@ -118,8 +119,8 @@ if ( $sent_count <= 0 ) {
 
 return;
 
-#,,.,,,..,,..,,,,,,,.,,.,,,,,,,..,...,,,.,,..,..,,...,...,,,,,,..,..,,,,,,,.,,
-#M5D4A4LPTHRJMBDTYH3KSTFPL4PUMMSSQ5XW5HTRHU6A574JWPJCE633VSFBC5437YUZWKZKGTKRE
-#\\\|ESWK7K5RJCLGIDOGPG57IMH6IJ5H6Q34XED77KQHHIKZCRIYDRO \ / AMOS7 \ YOURUM ::
-#\[7]YLH2V52GWNEG4T5MZ5J7SLE5MBELNUQPRWIWPKFLFS5AS3DGCKDI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,.,.,,,..,,..,,,.,,,.,,.,.,,.,,..,,...,...,,.,,.,,,.,.,,,.,,.,,
+#DDDRT6NDLS3LL46RGUOHZZT6BQT7OPVNNYYT3ULMFGZVIMLYJKEILMJXN5LXOBQR37HV2B6KGPZCQ
+#\\\|X3OM2GABZ6NKTCOUVDKDU2TGV5VRK4TCRP5K5AAKE2L7O4EXBJ2 \ / AMOS7 \ YOURUM ::
+#\[7]A5FYCQZ7C4NBYMIXLJLSP2EXGMV2AH3U2SXMKZGDXUPAPAFUJWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
