@@ -146,7 +146,10 @@ if ( exists $code{'crypt.C25519.sign_data'} ) {
 my $auth_token = <jobsite.sync.url_tokens>->{$url} // '';
 $headers->{'Authorization'} = "Bearer $auth_token" if length $auth_token;
 
-<[clients.http.post]>->(
+## https targets [ another host's web ] need the tls client ##
+my $post = $url =~ m{^https://}i ? 'clients.https.post' : 'clients.http.post';
+
+$code{$post}->(
     {   'url'     => $url,
         'body'    => $body,
         'headers' => $headers,
@@ -159,8 +162,8 @@ $headers->{'Authorization'} = "Bearer $auth_token" if length $auth_token;
     }
 );
 
-#,,..,,..,..,,.,,,.,.,.,.,.,.,,,.,.,,,...,...,..,,...,.,.,...,.,,,..,,...,,,,,
-#3OWI3EZYKGNZTKUEORDQI4DSLQP7OJFQ7PHAT6U6EPKJOY6EEVFJRHJHF3ZOC2QRDRAH67WMNOJR2
-#\\\|DNPUZHSC25IKQRPCIRXNA2HKAZ6YYTJY4MB2FEGIO4HMKXWZOKW \ / AMOS7 \ YOURUM ::
-#\[7]UICLQQJ6DVVX6A5AZFYKSUIX2SEMAV6AMQ57N2EWOUNKKBI5UGBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,..,,,,.,,,,,..,,..,,.,,,.,.,,,.,..,,...,...,..,,.,.,.,.,,.,,,,,,
+#2KCRZT2IWJ5NHG7D6W2UM3CH74GWOFXTP7GEGIMTNQXMOK6IKNG7LTC7ZSMQ2X3NW2GUS3HE5YDRU
+#\\\|KNDLXYGO6QLYLBQWA45I6FLVVYOVJ4W5QVASUDJ6LOQFX4RJC6N \ / AMOS7 \ YOURUM ::
+#\[7]IULEVQDRMI5FOWULA2VJPWDHIHPTYRQZIM22Z2ECKFQKXZ2CNKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
