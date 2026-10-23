@@ -971,6 +971,7 @@ return [ qw[
         web.cmd.auth-status
         web.cmd.auth-revoke
         web.cmd.auth-logout
+        web.cmd.auth-bearer
         web.assets.registry
         web.assets.register
         web-browser.js_call
@@ -1539,6 +1540,7 @@ return [ qw[
         power-x11.open_window
         plugin.web.space.grid
         plugin.web.jobs.stats
+        plugin.web.auth.admit
         plan-9.protocol.error
         plan-9.protocol.codec
         plan-9.client.version
@@ -2777,6 +2779,7 @@ return [ qw[
         power.cmd.get_device_addr
         plugin.web.jobs.init_code
         plugin.web.auth.init_code
+        plugin.web.auth.admit.cfg
         plugin.web.attention.json
         plugin.usage.claude.fetch
         plan-9.server.handle_walk
@@ -3057,6 +3060,7 @@ return [ qw[
         plugin.web.jobs.state.load
         plugin.web.jobs.cache.path
         plugin.web.content.dirlist
+        plugin.web.auth.admit.gate
         plugin.web.attention.blend
         plugin.storage.p7ref.parse
         plugin.storage.p7ref.index
@@ -3362,6 +3366,7 @@ return [ qw[
         plugin.web.jobs.store.prune
         plugin.web.jobs.cache.write
         plugin.web.auth.store.group
+        plugin.web.auth.admit.check
         plugin.web.attention.states
         plugin.usage.kimi.init_code
         plugin.storage.p7ref.search
@@ -3678,6 +3683,12 @@ return [ qw[
         plugin.web.auth.store.set-up
         plugin.web.auth.session.read
         plugin.web.auth.session.path
+        plugin.web.auth.admit.status
+        plugin.web.auth.admit.source
+        plugin.web.auth.admit.select
+        plugin.web.auth.admit.record
+        plugin.web.auth.admit.logout
+        plugin.web.auth.admit.bearer
         plugin.web.auth.admin_caller
         plugin.usage.kimi.refresh_io
         plugin.storage.p7ref.resolve
@@ -3773,6 +3784,7 @@ return [ qw[
         httpsd.request_capture.write
         httpd.vhost.request_tls_cert
         httpd.route.handler.iris-svg
+        httpd.handler.web-relay.auth
         httpd.handler.template_reply
         httpd.handler.iris-svg.relay
         httpd.handler.acme_challenge
@@ -4047,6 +4059,8 @@ return [ qw[
         httpd.vhost_template_resolver
         httpd.vhost.dns_matches_local
         httpd.route.handler.web-relay
+        httpd.route.handler.web-login
+        httpd.handler.web-relay.login
         httpd.benchmark.start_request
         host-edit.transport.free_port
         host-edit.record.name_is_host
@@ -4257,6 +4271,7 @@ return [ qw[
         plugin.web.auth.handler.status
         plugin.web.auth.handler.logout
         plugin.web.auth.create_session
+        plugin.web.auth.admit.schedule
         plugin.web.attention.pop_state
         plugin.web.attention.init_code
         plugin.usage.kimi.refresh_reap
@@ -4357,6 +4372,8 @@ return [ qw[
         httpsd.cmd.reload-certificates
         httpsd.calculate_restart_delay
         httpd.vhost.handler.cert_reply
+        httpd.route.handler.web-status
+        httpd.route.handler.web-logout
         httpd.route.handler.iris-route
         httpd.route.handler.iris-pulse
         httpd.handler.shm_replay_sweep
@@ -4771,6 +4788,9 @@ return [ qw[
         plugin.web.space.index.init_code
         plugin.web.auth.secure_transport
         plugin.web.auth.refuse_plaintext
+        plugin.web.auth.admit.wait_until
+        plugin.web.auth.admit.state_save
+        plugin.web.auth.admit.state_load
         plugin.usage.kimi.refresh_finish
         plugin.usage.claude.refresh_reap
         plugin.storage.checksum.map-file
@@ -5184,6 +5204,7 @@ return [ qw[
         plugin.web.space.orbital.init_code
         plugin.web.space.index.cmd.rebuild
         plugin.web.jobs.removed_log.append
+        plugin.web.auth.admit.envelope_429
         plugin.web.attention.cmd.set-state
         plugin.user-edit.example.init_code
         plugin.usage.kimi.refresh_watchdog
@@ -5244,6 +5265,7 @@ return [ qw[
         httpsd.discover_active_certificate
         httpsd.check_certificate_available
         httpd.route.handler.iris-negotiate
+        httpd.handler.web-relay.auth-check
         httpd.handler.input.body_remainder
         httpd.classify.cmd.reload-patterns
         graphics-matrix.cmd.filter-rep-col
@@ -6223,8 +6245,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,...,,.,,,,.,..,,,..,...,,,.,..,,..,,,,.,.,.,...,...,,..,,,,,.,,,,.,,,,.,
-#CZ6RCNT7WBFCFCEU47AQVULLOPR5VKAYVJDEXG4OHYBN4B37J2YB7BMYAUHSOZKNBX7JN2UGAEZJA
-#\\\|TNOZAQ6QBY2CIEG7BHXHNU4CE4CIXCOSOZ4DCXBIQRMMQLFP76I \ / AMOS7 \ YOURUM ::
-#\[7]ZKSBPDQHKNR6DXD7U4RQON4KQ7CFE5WHQBVE5FWMUERM7TUZZOBA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,..,,..,,.,,,.,.,,..,.,.,,..,,..,.,.,...,...,,..,,,.,...,..,,.,.,
+#Z6KAO72KNH4QN4I27RQVEEXLZNNJZTUVD6QSULKPL3UUYSCP4RZQRK7B5IKK56WVB5UYHCHD3KKMY
+#\\\|RWNAF3I677FXKZW4GRWKYHC5B3VKWGTH7AFQPFTW25HXDGKQSOX \ / AMOS7 \ YOURUM ::
+#\[7]4TPZ5AS2FFPGNH37B4FW6V2RATHF2WRV2BSAAWW5DIE4EM4FZWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

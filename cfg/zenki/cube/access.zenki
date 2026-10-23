@@ -92,6 +92,11 @@
             ##   web.jobs-data web.jobs-sync  cfg/zenki/httpd/routes relays       ##
             ##   web.context  src/httpd.route.handler.context:13 [ POST /context ] ##
             ##   web.request  src/httpd.route.handler.web-relay:51 route default  ##
+            ##   web.auth-login  src/httpd.route.handler.web-login [ POST         ##
+            ##   /auth/login -> the admission queue, LOGIN-ADMISSION.md ]         ##
+            ##   web.auth-status web.auth-logout web.auth-bearer                  ##
+            ##   src/httpd.route.handler.web-status \ web-logout \ web-relay    ##
+            ##   [ the admission gate on the other three check paths ]            ##
             ## web.auth-issue is deliberately NOT here [ admin-only :              ##
             ## cfg/zenki/cube/access.users ] -- a compromised httpd can no longer  ##
             ## mint tokens. httpsd authenticates as user 'httpsd' : its own grant  ##
@@ -99,6 +104,8 @@
             access.cmd.usr.httpsd =  web.process_template_ipc \
                                      web.jobs-data web.jobs-sync \
                                      web.context web.request \
+                                     web.auth-login web.auth-status \
+                                     web.auth-logout web.auth-bearer \
                                      jobsite.list-trashed jobsite.rescue-http \
                                      jobsite.import-url-http \
                                      jobsite.get-prefs jobsite.set-prefs
@@ -106,6 +113,8 @@
             access.cmd.usr.httpd  =  web.process_template_ipc \
                                      web.jobs-data web.jobs-sync \
                                      web.context web.request \
+                                     web.auth-login web.auth-status \
+                                     web.auth-logout web.auth-bearer \
                                      jobsite.list-trashed jobsite.rescue-http \
                                      jobsite.import-url-http \
                                      jobsite.get-prefs jobsite.set-prefs \
@@ -510,8 +519,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,.,,.,.,.,,,,,,,,..,,..,,,,,...,..,,,,.,,.,,.,.,...,...,..,,,,.,.,.,,,,,,,.,
-#5PFCBXQSRBKJK7AOTZGF6AX5XC4SVT2364XM4U43E5C3EH7247MKDQ7GPNUKOOZSVFXKBE6GXV4G4
-#\\\|DTKLIOGRHO6XTDPLANOXLQJLSX2NPYMGVF26XSOUIV6RUZ3HDPM \ / AMOS7 \ YOURUM ::
-#\[7]H43NORHZF3S5XJJFTOPA44MUK2DZ3V2JATOIEHQJAURFFTGNBOCQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,,.,,.,,,,,,,..,,,.,,.,.,,.,,.,.,.,.,...,...,,.,,,,,,.,.,,,.,,,.,
+#6G3EE7QQPNKJEM3PVHBA3XO7LCBS4KOWKD24EHQUHTCV5P72RV7MZL262SOOFJSCS2B3NSJW6YDKA
+#\\\|WHSQNM4F7FYDCXKFI7NJJVFL5UFNPRASESOJUCOHNUHXF3WYVGD \ / AMOS7 \ YOURUM ::
+#\[7]R5VQB7CQRT25FZIYJ5I35F22KCGBOP6PEDAQJSCMBSCI2UAAJSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

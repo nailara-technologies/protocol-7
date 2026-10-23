@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.check
+# descr = token check for an admitted login request
+# note  = run the token check for an admitted login request and build the
+#         reply envelope for httpd [ status, body, set_cookie ] ; records
+#         the outcome against the request's source [ success resets it,
+#         failure adds decaying weight to it and its prefix groups ]
+# param = queue entry hashref [ body, auth_header, cookie_header,
+#         peer_tls, src, groups ]
+# return = envelope json string [ the caller delivers it ]
+
+my $entry = shift // {};
+my $now   = <[base.time]>->();
+
+## extract token : json body, bearer header, p7_session cookie ##
+## [ same order as plugin.web.auth.handler.login ]             ##
+my $token = '';
+if ( length( $entry->{'body'} // '' ) ) {
+    my $payload = eval { JSON::XS::decode_json( $entry->{'body'} ) } // {};
+    $token = $payload->{'token'}
+        if ref $payload eq qw| HASH |
+        and length( $payload->{'token'} // '' );
+}
+if ( not length $token
+    and ( $entry->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
+    $token = $LAST_PAREN_MATCH;
+}
+if ( not length $token
+    and ( $entry->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
+    $token = $LAST_PAREN_MATCH;
+}
+
+my $login_session;
+$login_session = <[plugin.web.auth.verify_session]>->($token)
+    if length $token;
+
+my ( $status, $body, $set_cookie );
+
+if ( not length $token ) {
+    ( $status, $body ) = ( 401, '{"ok":false,"error":"token required"}' );
+
+} elsif ( defined $login_session ) {
+    $status = 200;
+    $body   = sprintf(
+        '{"ok":true,"token_hash":"%s","user_id":"%s","node_id":"%s"}',
+        $login_session->{'token_hash'} // '',
+        $login_session->{'user_id'}    // '',
+        $login_session->{'node_id'}    // '',
+    );
+
+    ## session cookie : HttpOnly + SameSite=Strict always, Secure when the  ##
+    ## request arrived over tls [ the flag is a real socket fact, passed by ##
+    ## httpd -- never a header ]                                            ##
+    my $max_age = ( $login_session->{'expires_at_epoch'} // 0 ) - $now;
+    $max_age = 0 if $max_age < 0;
+    $set_cookie
+        = sprintf(
+        'p7_session=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=Strict%s',
+        $token, $max_age, $entry->{'peer_tls'} ? '; Secure' : '' );
+
+} else {
+    ( $status, $body ) = ( 401, '{"ok":false,"error":"invalid token"}' );
+}
+
+## record the outcome [ source-less calls : nothing to record ] ##
+if ( length( $entry->{'src'} // '' ) ) {
+    <[plugin.web.auth.admit.record]>->(
+        $status == 200 ? qw| success | : qw| failure |,
+        qw| login |, $entry->{'src'}, $entry->{'groups'} // []
+    );
+}
+
+my $envelope = { 'status' => $status, 'body' => $body };
+$envelope->{'set_cookie'} = $set_cookie if defined $set_cookie;
+
+return JSON::XS::encode_json($envelope);
+
+#,,,.,..,,...,..,,,..,.,.,,,,,.,.,,,,,..,,,..,..,,...,...,...,...,,..,,,,,,,.,
+#X6MCBNSMAQHP6OEFNJVIPLOVDLSPWP27P7VLY7KSITN727W2QLKJHBGHGD6KURSYGJSOZRBPX7VDC
+#\\\|XBXYKPOPOI6JGIHCYK7NDSMOV4AHF5HCYW7MIOD2U4SWDKZRT4F \ / AMOS7 \ YOURUM ::
+#\[7]TD7KSQ2CSHIHQ644YS7WE57EXFJFUP4RJLMFIM3B3FYNRY5JYGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

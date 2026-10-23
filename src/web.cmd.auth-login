@@ -1,12 +1,14 @@
 ## [:< ##
 
 # name  = web.cmd.auth-login
-# descr = auth login endpoint wrapper for web zenka
+# descr = auth login endpoint : through the admission queue
+# note  = [ plugin.web.auth.admit -- per-source limit + fair queue,
+#         LOGIN-ADMISSION.md sections 2 + 3 ]
 
-return <[plugin.web.auth.handler.login]>->(@ARG);
+return <[plugin.web.auth.admit]>->(@ARG);
 
-#,,,.,.,.,...,.,.,,,.,...,.,,,,..,.,.,.,,,.,.,..,,...,...,..,,.,,,.,.,,.,,,,.,
-#WBJ4EIHBEF4LJ4LP7UJTZIG7F57VSB4A3YMTAAZADDIPYQZDPKHISKRQQREQJBV32IQIEBAHT5DTO
-#\\\|CHKJT2UUEYWH5Z2THESYREURUPYO7MND33IDRKQXMZQRC5OVNVE \ / AMOS7 \ YOURUM ::
-#\[7]XFAXJA22LD6NHVJRHKRG2Z7WW2GOG6QWZ7E4RUXJAKF665YD5CBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,...,...,.,,,...,,,.,.,,,,.,,,.,,..,,...,...,...,...,,,.,.,.,,,.,
+#3RYDSX2XK7RESQOS5OZDGBSTFUWIB7W5D3XIRQXNFJTENZDH2P67XSATR4RTDMUZ2JVWN46QHFWMU
+#\\\|DO3FE2ER3CZMB5QLWI2DBD6PW7WJSNDQ5HPH27J4Z4B7LGVJRWH \ / AMOS7 \ YOURUM ::
+#\[7]KH25FQESC3525IQTH6AN7VN72ZUTJEQWERNPIOFKI6USNRFXLCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

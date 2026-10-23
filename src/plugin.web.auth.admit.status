@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.status
+# descr = GET /auth/status through the admission gate
+# note  = GET /auth/status through the admission gate [ one decision
+#         point : every token check is accounted ] -- a source in its
+#         per-source wait on the status path gets an immediate 429 with
+#         Retry-After ; a PRESENTED token that fails verification counts
+#         against the source [ same weights \ decay \ merge as login ] ;
+#         no token at all answers 401 without a record [ a logged-out
+#         browser polling is not an attack ] ; a valid token answers the
+#         session info, resets only the status-path counter and joins
+#         the known lane -- never queued
+# param = call hash : peer_addr, peer_tls, auth_header, cookie_header
+# return = { mode size, data envelope } -- always answered at once
+
+my $call = shift // {};
+my $now  = <[base.time]>->();
+
+my ( $blocked, $src, $groups ) = <[plugin.web.auth.admit.gate]>->(
+    $call->{'peer_addr'} // '',
+    qw| status |, $now
+);
+
+if ($blocked) {
+    return {
+        'mode' => qw| size |,
+        'data' => <[plugin.web.auth.admit.envelope_429]>->($blocked),
+    };
+}
+
+## token : bearer first, then the p7_session cookie ##
+## [ verify_session order ]                         ##
+my $token = '';
+if ( ( $call->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
+    $token = $LAST_PAREN_MATCH;
+}
+if ( not length $token
+    and ( $call->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
+    $token = $LAST_PAREN_MATCH;
+}
+
+my ( $status, $body );
+
+if ( not length $token ) {
+    ## nothing presented : no check ran, nothing is recorded ##
+    ( $status, $body ) = ( 401, '{"ok":false,"error":"unauthorized"}' );
+
+} else {
+    my $session_data = <[plugin.web.auth.verify_session]>->($token);
+
+    if ( defined $session_data ) {
+        $status = 200;
+        $body   = JSON::XS::encode_json(
+            {   'ok'      => JSON::XS::true(),
+                'session' => {
+                    'user_id'    => $session_data->{'user_id'}    // '',
+                    'node_id'    => $session_data->{'node_id'}    // '',
+                    'created_at' => $session_data->{'created_at'} // '',
+                    'last_seen'  => $session_data->{'last_seen'}  // '',
+                }
+            }
+        );
+    } else {
+        ( $status, $body ) = ( 401, '{"ok":false,"error":"unauthorized"}' );
+    }
+
+    ## a presented token WAS checked : the outcome counts [ status path ] ##
+    <[plugin.web.auth.admit.record]>->(
+        $status == 200 ? qw| success | : qw| failure |,
+        qw| status |, $src // '', $groups // []
+    ) if defined $src;
+}
+
+return {
+    'mode' => qw| size |,
+    'data' =>
+        JSON::XS::encode_json( { 'status' => $status, 'body' => $body } ),
+};
+
+#,,,.,,,,,..,,,,.,,..,.,,,,.,,.,,,,.,,,..,,,.,..,,...,...,.,.,..,,,..,..,,,..,
+#DHSYAWK4TX6EE44LQ3GFYNS66ROP7VP5NB3QP7WIEQ36PAET4B6PGXEOMTGNQXPWEUPYMSD5Q7NDU
+#\\\|BPQOKR6GI2TO4J3EOBGX5CJ2K3RZ7PDWZCJKABUBBFYOFM554LO \ / AMOS7 \ YOURUM ::
+#\[7]2XEUEN4EFQFTH7ZXGZWZ6RY6ZYXFNG2ZWHRMH7XC26BM5OR3LKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = httpd.handler.web-relay.auth
+# descr = reply handler for the gated auth relays
+# note  = generic reply handler for the admission-gated auth relays
+#         [ web.auth-status, web.auth-logout, and the refused answers of
+#         web.auth-bearer ] : the web zenka's envelope [ status, body,
+#         retry_after, set_cookie ] becomes the HTTP answer -- 200, 401,
+#         400, or an immediate 429 with Retry-After [ never a held
+#         connection for a refused source ]
+
+my $reply    = shift                          // {};
+my $http_sid = $reply->{'params'}{'http_sid'} // return;
+
+my $session = $data{'session'}->{$http_sid};
+if ( ref $session ne qw| HASH | ) {
+    return <[base.logs]>->(
+        1, '[%d] client already gone.. [web-relay.auth]', $http_sid
+    );
+}
+
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+
+my $envelope;
+$envelope = eval { JSON::XS::decode_json($text) }
+    if length $text and $mode =~ m{^(size|data|true)$};
+
+if ( ref $envelope ne qw| HASH | or not length( $envelope->{'body'} // '' ) )
+{
+    <[base.logs]>->(
+        1,         '[%d] bad auth admission reply [ mode %s ] : 502',
+        $http_sid, $mode
+    );
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.send_error_page]>->( $http_sid, 502 );
+    $session->{'flush_shutdown'} = TRUE;
+    return;
+}
+
+my $status = $envelope->{'status'} // 502;
+my $body   = $envelope->{'body'};
+
+my $header = {
+    'Content-Type'   => qw| application/json |,
+    'Content-Length' => length($body),
+    'Connection'     => qw| close |,
+};
+$header->{'Retry-After'} = $envelope->{'retry_after'}
+    if defined $envelope->{'retry_after'};
+$header->{'Set-Cookie'} = $envelope->{'set_cookie'}
+    if defined $envelope->{'set_cookie'};
+
+$session->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->( $status, $header );
+$session->{'buffer'}->{'output'} .= $body;
+$session->{'flush_shutdown'} = TRUE;
+
+return;
+
+#,,.,,,,.,,,.,.,,,.,.,...,,,,,.,,,,..,,..,,,,,..,,...,...,...,,,,,.,,,,.,,,..,
+#BAAUO7EOFX3QEFQ7NFVHZ3HVMQUFRNUWLWIXFNPA7VQERC5XVTPZKXVMYPU5YT6OR6YCFRYVW6U7W
+#\\\|IQU5YGHEABWKTRI3IPGR6KYEZIMCJORYGSAYDODZBPMV2KKLLBF \ / AMOS7 \ YOURUM ::
+#\[7]SPWQMZDXDTSZTGYIHP4647PGTXFD6N6KEGXIUMVH7JG7YDTQRGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

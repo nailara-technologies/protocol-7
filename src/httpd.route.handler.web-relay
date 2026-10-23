@@ -1,16 +1,22 @@
 ## [:< ##
 
 # name  = httpd.route.handler.web-relay
-# descr = relay HTTP request to web zenka via route-send STRM pattern
-#         generic handler : command and args from route config
+# descr = relay HTTP request to web zenka [ route-send STRM ]
+# note  = relay HTTP request to web zenka via route-send STRM pattern
+#         generic handler : command and args from route config ;
+#         auth.required routes check their token through the web zenka's
+#         admission gate [ web.auth-bearer : gate + verify + record in
+#         one round trip -- a refused source gets 429 \ 401 at once,
+#         never queued ; the real socket facts travel in the call,
+#         never a header ]
 
 my $id      = shift;
 my $args    = shift // {};
 my $session = $data{'session'}->{$id};
 
 ## route-level auth gating ##
+my $auth_exempt = FALSE;
 if ( $args->{'auth.required'} ) {
-    my $exempt    = FALSE;
     my $peer_addr = $session->{'http'}->{'request'}->{'client'}->{'addr'}
         // '';
     if ( length $peer_addr and $args->{'auth.exempt-loopback'} ) {
@@ -24,38 +30,27 @@ if ( $args->{'auth.required'} ) {
         my $norm_addr = lc $peer_addr;
         $norm_addr =~ s|^::ffff:||;
         if ( $norm_addr eq qw| 127.0.0.1 | or $norm_addr eq qw| ::1 | ) {
-            $exempt = TRUE;
+            $auth_exempt = TRUE;
         } else {
             my $exempt_peers = <web.auth.exempt_peers> // '';
             if ( length $exempt_peers ) {
                 my %exempt_peer = map { $ARG => TRUE }
                     split m|[\s,]+|, $exempt_peers;
-                $exempt = TRUE if $exempt_peer{$norm_addr};
+                $auth_exempt = TRUE if $exempt_peer{$norm_addr};
             }
         }
     }
     ## a token travels only over tls or loopback : refused before it is  ##
     ## checked [ plugin.web.auth.secure_transport ] -- exempt peers send ##
     ## none                                                              ##
-    if ( not $exempt and not <[plugin.web.auth.secure_transport]>->($id) ) {
+    if (    not $auth_exempt
+        and not <[plugin.web.auth.secure_transport]>->($id) ) {
         <[base.logs]>->(
             1,   '[%d] auth required for %s over plain http : refused',
             $id, $args->{'command'} // '(unknown)'
         );
         $session->{'http'}->{'close'} = TRUE;
         return <[httpd.send_error_page]>->( $id, 403 );
-    }
-    if ( not $exempt ) {
-        my $auth_session = <[plugin.web.auth.verify_session]>->($session);
-        if ( not defined $auth_session ) {
-            <[base.logs]>->(
-                1,   '[%d] auth required for %s : unauthorized',
-                $id, $args->{'command'} // '(unknown)'
-            );
-            $session->{'http'}->{'close'} = TRUE;
-            return <[httpd.send_error_page]>->( $id, 401 );
-        }
-        $session->{'auth_session'} = $auth_session;
     }
 }
 
@@ -111,24 +106,73 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
     );
 }
 
-<[protocol-7.route-send]>->(
-    {   'command'   => $command,
-        'call_args' => $call_args,
-        'reply'     => {
-            'handler' => qw| httpd.handler.web-relay.strm_open |,
-            'params'  => {
-                'http_sid'     => $id,
-                'content_type' => $args->{'content_type'}
-                    // qw| application/json |,
-            },
+## the original route relay spec : used directly, or by the auth gate reply ##
+## handler after the token verified [ httpd.handler.web-relay .auth-check ] ##
+my $relay_spec = {
+    'command'   => $command,
+    'call_args' => $call_args,
+    'reply'     => {
+        'handler' => qw| httpd.handler.web-relay.strm_open |,
+        'params'  => {
+            'http_sid'     => $id,
+            'content_type' => $args->{'content_type'}
+                // qw| application/json |,
         },
+    },
+};
+
+## auth.required : the token check runs in the web zenka                   ##
+## [ one decision point, accounted on the bearer path ] ; no token         ##
+## presented at all is answered right here -- nothing was checked, nothing ##
+## is recorded                                                             ##
+if ( $args->{'auth.required'} and not $auth_exempt ) {
+    my $headers   = $session->{'http'}->{'request'}->{'headers'} // {};
+    my $peer_addr = $session->{'http'}->{'request'}->{'client'}->{'addr'}
+        // '';
+    my $peer_fh = $session->{'handle'};
+
+    my $presented
+        = ( ( $headers->{'authorization'} // '' ) =~ m|^Bearer\s+\S+|i )
+        || ( ( $headers->{'cookie'} // '' ) =~ m|\bp7_session=\S| );
+
+    if ( not $presented ) {
+        <[base.logs]>->(
+            1,   '[%d] auth required for %s : unauthorized',
+            $id, $args->{'command'} // '(unknown)'
+        );
+        return <[httpd.send_error_page]>->( $id, 401 );
     }
-);
 
-return 0;    # [ deferred : reply handler writes response ]
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| web.auth-bearer |,
+            'call_args' => {
+                'peer_addr' => $peer_addr,
+                'peer_tls'  =>
+                    ( ref $peer_fh and $peer_fh->isa('IO::Socket::SSL') )
+                ? 1
+                : 0,
+                'auth_header'   => $headers->{'authorization'} // '',
+                'cookie_header' => $headers->{'cookie'}        // '',
+            },
+            'reply' => {
+                'handler' => qw| httpd.handler.web-relay.auth-check |,
+                'params'  => {
+                    'http_sid' => $id,
+                    'relay'    => $relay_spec,
+                },
+            },
+        }
+    );
 
-#,,.,,,.,,,,.,,,,,,.,,.,.,,,.,..,,.,.,,,,,,,.,..,,...,...,.,.,,..,.,,,,..,,,,,
-#KDUPS6S55OGKN24YNIPR2NLVPZQN4IP4M5IYIJVKEFQTHO3WKJOOYSG4M44EMUTYQSLT2MO3PO2SK
-#\\\|MMCZBD26GMWIECRY33VXWFQ5VEJBZJJRBS7YC6O5IZ5WMGJSKBU \ / AMOS7 \ YOURUM ::
-#\[7]44HBEBLBQ42FWDISQW37SJT5IV722RSU5WXKPUVJYDF5Y3EBGQAI 7  DATA SIGNATURE ::
+    return 0;    # [ deferred : auth-check fires the original relay ]
+}
+
+<[protocol-7.route-send]>->($relay_spec);
+
+return 0;        # [ deferred : reply handler writes response ]
+
+#,,..,,,,,...,...,,..,..,,.,.,...,.,,,,.,,.,.,..,,...,..,,...,...,,..,,.,,...,
+#RLLA2NDKVVVSW5D6Z2Y3HNZX4GEM6XL7VP7HIHFTLYUQ6IM37Z5E5GMSZL44O4EZZU3H6UFVTCQRY
+#\\\|3B4YXE2MW3CDA66O7FK4LLZ2WTGQOVQYPN4K4F2IXUEKKZHX6JJ \ / AMOS7 \ YOURUM ::
+#\[7]YCJ3FXVSYRXBFVTA5N3GGJ3HAWAAA46JAWJPICYPD6KD54K3C6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

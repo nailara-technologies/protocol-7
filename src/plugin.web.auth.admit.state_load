@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.state_load
+# descr = load the admission state from disk
+# note  = load the admission state [ failure weights, known sources ] from
+#         the shared web-auth store [ survives a web zenka restart --
+#         LOGIN-ADMISSION.md section 5 ] ; lazy, on first use ; the merge
+#         view [ failing sources per prefix ] is rebuilt from the loaded
+#         source weights
+
+my $admit = $data{'plugin.web.auth'}{'admit'} //= {};
+return TRUE if $admit->{'state_loaded'};
+
+$admit->{'sources'}  //= {};
+$admit->{'groups'}   //= {};
+$admit->{'queue'}    //= [];
+$admit->{'served'}   //= {};
+$admit->{'merged'}   //= {};
+$admit->{'fail_src'} //= {};
+
+my $file = join qw| / |, <[plugin.web.auth.session.path]>,
+    qw| admission state.yaml |;
+
+if ( -f $file ) {
+    my ( $yaml, $yaml_err ) = <[format.yaml.load_file]>->($file);
+    if ( ref $yaml eq qw| HASH | ) {
+        $admit->{'sources'} = $yaml->{'sources'}
+            if ref $yaml->{'sources'} eq qw| HASH |;
+        $admit->{'groups'} = $yaml->{'groups'}
+            if ref $yaml->{'groups'} eq qw| HASH |;
+
+        ## rebuild the in-memory merge view from the loaded weights ##
+        my $cfg = <[plugin.web.auth.admit.cfg]>;
+        for my $src ( keys $admit->{'sources'}->%* ) {
+            my $s = $admit->{'sources'}{$src};
+            next if ( $s->{'weight'} // 0 ) <= 0;
+            my ($mid) = ( $s->{'groups'} // [] )->@*;
+            next if not length( $mid // '' );
+            $admit->{'fail_src'}{$mid}{$src} = 1;
+        }
+        for my $mid ( keys $admit->{'fail_src'}->%* ) {
+            $admit->{'merged'}{$mid} = 1
+                if keys $admit->{'fail_src'}{$mid}->%* >= $cfg->{'merge_min'};
+        }
+    } else {
+        <[base.s_warn]>->(
+            'plugin.web.auth.admit : state file '
+                . '%s unreadable [ %s ] : starting empty',
+            $file,
+            $yaml_err // 'not a hash'
+        );
+    }
+}
+
+$admit->{'state_loaded'} = TRUE;
+
+return TRUE;
+
+#,,,,,..,,,..,...,,,,,,..,,,,,...,..,,...,..,,..,,...,...,...,,,.,,,.,.,.,,.,,
+#Z3HU4HXXRYW454MMANAS6DDBNZTXMSH3W7XN2U3XV6LSX7BNJCMMCLN3EZNFBAMVVZVM4JOM2DTG2
+#\\\|6OYLA6RSZWVLWKTOPST4SOJYKW6UCQT3JDZIIIHYUVHXEVKVUSD \ / AMOS7 \ YOURUM ::
+#\[7]D2JWPM225BJ5JZHCY6WE7VYVAHIXGNULAPMJN6CWUCULVW4THMBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

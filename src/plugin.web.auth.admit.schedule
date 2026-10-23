@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.schedule
+# descr = admission scheduler tick [ timer handler ]
+# note  = scheduler tick [ timer handler, installed on the first queued
+#         login, cancelled when the queue drains ] : one check admitted
+#         per tick [ check_rate per second ] ; stale entries are answered
+#         429 ; a source that entered its per-source wait while queued is
+#         answered 429 instead of being checked [ section 2 applies at
+#         admission time too ]
+
+my $event = shift;
+
+my $admit = $data{'plugin.web.auth'}{'admit'} // return;
+my $queue = $admit->{'queue'} //= [];
+my $cfg   = <[plugin.web.auth.admit.cfg]>;
+my $now   = <[base.time]>->();
+
+my $reply_429 = sub {
+    my ( $entry, $retry_after ) = @ARG;
+    return if not $entry->{'reply_id'};
+    <[base.callback.cmd_reply]>->(
+        $entry->{'reply_id'},
+        {   'mode' => qw| size |,
+            'data' => <[plugin.web.auth.admit.envelope_429]>->($retry_after),
+        }
+    );
+    return;
+};
+
+## drop stale entries [ the http client is long gone ] with a 429 -- they ##
+## never held a check slot, only queue memory                             ##
+if ( @{$queue} ) {
+    my @keep;
+    for my $e ( @{$queue} ) {
+        if ( $now - ( $e->{'enqueued'} // $now ) > $cfg->{'entry_ttl'} ) {
+            $reply_429->( $e, 1 );
+            next;
+        }
+        push @keep, $e;
+    }
+    $queue->@* = @keep;
+}
+
+my $entry;
+$entry = <[plugin.web.auth.admit.select]>->( $admit, $now ) if @{$queue};
+
+if ( not defined $entry ) {    ## queue drained : stop the scheduler ##
+    $admit->{'served'} = {};    ## round markers die with the queue   ##
+    delete $admit->{'timer'};
+    $event->w->cancel if ref $event and $event->can(qw| w |);
+    return;
+}
+
+## dequeue it ##
+$queue->@* = grep { "$ARG" ne "$entry" } @{$queue};
+
+## a source that entered its per-source wait while queued : 429, no check ##
+## [ its turn is spent ]                                                  ##
+if ( length( $entry->{'src'} // '' ) ) {
+    my $wait_until = <[plugin.web.auth.admit.wait_until]>->(
+        $admit->{'sources'}{ $entry->{'src'} } // {},
+        qw| login |, $now
+    );
+    if ( $wait_until > $now ) {
+        <[base.logs]>->(
+            2,
+            'plugin.web.auth.admit : %s entered '
+                . 'its wait while queued [ %ds : 429 ]',
+            $entry->{'src'},
+            $wait_until - $now
+        );
+        $reply_429->( $entry, $wait_until - $now );
+        return;
+    }
+}
+
+## admitted : run the token check, deliver the envelope ##
+my $envelope = <[plugin.web.auth.admit.check]>->($entry);
+if ( $entry->{'reply_id'} ) {
+    <[base.callback.cmd_reply]>->(
+        $entry->{'reply_id'}, { 'mode' => qw| size |, 'data' => $envelope }
+    );
+}
+
+return;
+
+#,,.,,,.,,,,,,,,.,,.,,...,,..,,.,,,,.,.,,,.,.,..,,...,...,..,,.,,,,,.,.,.,.,,,
+#VYUSHQ5X7JXW42EJBWVIXNA7A7IFYXVMA7APU2KJWHLOAVTVSW5YOSSFD2AFTGG3473NVBT23Z26Q
+#\\\|UJS2ZUFJKKKLOU7P7D5F7CSJ7CRVY3E332IQTKS24URIS54JVJZ \ / AMOS7 \ YOURUM ::
+#\[7]NPA254EWXHPVL3UH2J3X6CPRSVJIJEUAK2OLF6EMQU5NIWFQ4ICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

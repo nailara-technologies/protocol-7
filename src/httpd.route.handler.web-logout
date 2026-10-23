@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = httpd.route.handler.web-logout
+# descr = POST /auth/logout through the admission gate
+# note  = POST /auth/logout : refuse plaintext first [ stays first ], then
+#         ask the web zenka's admission gate [ web.auth-logout ] -- the
+#         real socket facts [ peer address, tls ] and the body travel in
+#         the call, never a header ; the answer arrives at once [ 200 +
+#         cookie cleared, 400, or 429 with Retry-After ] -- never queued
+#         [ LOGIN-ADMISSION.md section 2 on all four paths ]
+
+my $id      = shift;
+my $args    = shift // {};
+my $session = $data{'session'}->{$id};
+
+## no token over plain http [ plugin.web.auth.refuse_plaintext ] ##
+return 2 if <[plugin.web.auth.refuse_plaintext]>->($id);
+
+my $body = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
+    // '';
+$session->{'http'}->{'body'}    = '';
+$session->{'buffer'}->{'input'} = '';
+
+my $headers = $session->{'http'}->{'request'}->{'headers'} // {};
+
+## real socket facts : the admission source and the cookie's Secure flag ##
+## both come from these, never from a header                             ##
+my $peer_addr = $session->{'http'}->{'request'}->{'client'}->{'addr'} // '';
+my $peer_fh   = $session->{'handle'};
+my $peer_tls  = ( ref $peer_fh and $peer_fh->isa('IO::Socket::SSL') ) ? 1 : 0;
+
+## body goes as unicode chars [ base.s_write re-encodes on the wire ] ##
+utf8::decode($body) if length($body) and not utf8::is_utf8($body);
+
+$session->{'http'}->{'close'} = TRUE;
+
+##  replace input watcher : keep EOF detection, disable timeout  ##
+if ( defined $session->{'watcher'}{'input_handler'} ) {
+    my $fd = $session->{'watcher'}{'input_handler'}->fd;
+    $session->{'watcher'}{'input_handler'}->cancel;
+    $session->{'watcher'}{'input_handler'} = Event->io(
+        'fd'     => $fd,
+        'cb'     => sub { &{ $code{'base.handler.read'} } },
+        'poll'   => qw| r |,
+        'prio'   => 1,
+        'repeat' => FALSE,
+        'data'   => $id,
+        'desc'   => sprintf( '[%d] input handler [ no timeout ]', $id ),
+    );
+}
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| web.auth-logout |,
+        'call_args' => {
+            'args'          => $body,
+            'peer_addr'     => $peer_addr,
+            'peer_tls'      => $peer_tls,
+            'auth_header'   => $headers->{'authorization'} // '',
+            'cookie_header' => $headers->{'cookie'}        // '',
+        },
+        'reply' => {
+            'handler' => qw| httpd.handler.web-relay.auth |,
+            'params'  => { 'http_sid' => $id },
+        },
+    }
+);
+
+return 0;    # [ deferred : the reply handler writes the response ]
+
+#,,,,,.,.,,,.,..,,.,.,,,.,,..,.,,,..,,.,.,.,.,..,,...,...,,.,,,,.,.,.,,..,,,,,
+#D4L6HJNT2ZYGZK5RMZN265ABKTI23LOKTPPAM3ZG6LCJKG5ONJA65Z2ZUNJBWQEP7IK3DV3MU5HCO
+#\\\|LR7WERZOEIOEZOKGAH52HVFNJVSS6AVQWWIGCS5QVZHED73Q7E7 \ / AMOS7 \ YOURUM ::
+#\[7]YSHBIVC5URPYSHEELZ52NFMWB62LP5CWXH3R5FKEUZT4UJNKRUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

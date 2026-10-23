@@ -1,12 +1,14 @@
 ## [:< ##
 
 # name  = web.cmd.auth-logout
-# descr = auth logout endpoint wrapper for web zenka
+# descr = auth logout endpoint : through the admission gate
+# note  = [ plugin.web.auth.admit.logout -- per-source limit + failure
+#         records on the logout path, LOGIN-ADMISSION.md section 2 ]
 
-return <[plugin.web.auth.handler.logout]>->(@ARG);
+return <[plugin.web.auth.admit.logout]>->(@ARG);
 
-#,,..,.,.,...,.,.,,.,,.,.,.,,,,,,,...,.,.,,,.,..,,...,..,,..,,,,.,..,,..,,,,.,
-#RSYEXZOI7PDCZEZAMH6XT6ML4YZCLWYS7THLZUJPPVZ24NOPGZREODPZE5HWMTD2V4CYIBH4RDNSK
-#\\\|B53TQBXE5GVQZC4FAYH4DCXENJRFVQOVC5GQJXSSRXEXQPCBPSH \ / AMOS7 \ YOURUM ::
-#\[7]YP5JO6JHXK4G6HT7A543ONCSCQKX4LP2CRTV5YP57P5BBNTCOGCA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,,,,.,,.,.,,,,,...,.,,,.,,,..,,.,.,...,..,,.,.,,,,,,.,,,,,,,,.,
+#2BECHRKLQB36BEHSMJXJW4CTBPS32J4HQB2VTIUTDGRWX3CELWMPQXO5O5HIVZCNOJU37TPHHJK3G
+#\\\|RO6EMO5SKVFTQ5YBVX55Q5LNJC6S5WLWLWWX5WMN2WS6GKV3V5N \ / AMOS7 \ YOURUM ::
+#\[7]MJCM4Z4PHGVJM7U455PVR5D3JGJYRPXBUYIXYDY4WDH43X6Y76AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
