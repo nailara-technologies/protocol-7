@@ -201,8 +201,10 @@ foreach my $_dir ( split qw| / |, $path ) {
     ## setgid parent inherits the bit and the group, and a chmod by a user  ##
     ## outside that group CLEARS it [ kernel rule ] -- the web zenka's      ##
     ## token dirs lost it, their files then got its own group and httpsd    ##
-    ## could not read them [ 2026-10-23 ]                                   ##
-    if ( ( ( stat $current_path )[2] & 07777 ) != $current_mode
+    ## could not read them [ 2026-10-23 ]. CORE::stat : bin/Protocol-7      ##
+    ## imports File::stat, a plain stat returns an object                   ##
+    ## [ was undef here ]                                                   ##
+    if ( ( ( CORE::stat $current_path )[2] & 07777 ) != $current_mode
         and not chmod( $current_mode, $current_path ) ) {
         <[base.s_warn]>->(
             'chmod[ %04o ] : [ %s ] <{C1}>',
@@ -240,8 +242,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,.,,,.,,,.,,,,.,,,.,,,.,...,.,,,...,,.,,,..,..,,...,...,..,,,.,,,.,,,.,,...,
-#OMDYN25CHCWMYPXW565SYGDFWDRW5PFOWQUR77EXDUSG6XUSEFMLX7LR2KJFZOH6QBX5OCCDPLFGE
-#\\\|EYUQBGGWC72Z23OLC34ZQWULHPZ7LTEFJN3YMTY4O5JPA7ZWGVT \ / AMOS7 \ YOURUM ::
-#\[7]3U3LLSC7FS2B4SWTMC3X7ZNAMPYB5LWYBWZ4EIWM4PLUJLL2O4CQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,.,,,,.,,,,,,..,,,,,,.,,,..,...,..,,...,...,...,.,,,,..,...,,.,,
+#RH7VHBYDLYNWAKNJLT4WQJW6ZLR46SHFSFWETOCR5AH3NNLATFPSJEYNI4L4PJHPSMPY7ANB5KA2I
+#\\\|AYDSDB6ODOGY6UJ2GUXGT7CS5BRM4BYQHKCRED3TVYCXRYQ4PNJ \ / AMOS7 \ YOURUM ::
+#\[7]IAQNHUYV6E7ATYGGMQJCQFAYMOGT6TCYXE7FKEFYS777UU3SYUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
