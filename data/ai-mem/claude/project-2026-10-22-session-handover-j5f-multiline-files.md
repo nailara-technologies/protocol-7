@@ -204,9 +204,13 @@ the regular session budget ].
   web \ site-yaml with :twin: [ site-yaml lacks drain : todo ]
 - local coding still runs pre-0b6be8dbe code [ base.base32.decode error ]
   -- restart when the owner says [ reloads the gpu model ]
-- todos in order : 6CJ extension [ kimi ], 5M3 stock repair [ me, ssh ],
-  O3O salary unit, M3K local gpu interim, 3MK multi-host design,
-  MUZ labels outside src, drain, TDA, 5W7, BPS
+- NEXT SESSION, in order : ZYH [ local gpu models claims from srv-U's task
+  queue : models.cfg.task_zenka, link local -> srv-U, grants ; restart
+  local coding first ], 5M3 stock repair [ ssh ], QLK [ export date is
+  equal on both -- 1 vs 9 entries come from differing job data : compare
+  the 9 ], 6CJ extension [ kimi session above, after its 5h reset ], O3O
+  salary unit, M3K, 3MK multi-host, MUZ labels outside src, drain, TDA,
+  5W7, BPS
 
 ## later the same day : history relabelled
 
@@ -246,8 +250,8 @@ the regular session budget ].
 - any 'deep recursion' warning ends a zenka [ exit 110 ] -- a synchronous
   handoff chain over a queue must be a loop
 
-#,,,.,...,,,,,.,.,.,,,,..,..,,,..,,,,,,.,,,,.,..,,...,...,..,,,,.,..,,...,.,,,
-#4DG2S7HCTHWIWIVX3DUV6YNRVPZE6AKR3F3UQR46MUFLBPKCOP3GBEDHDMO7IG4R5FKAXCQNQ7UDE
-#\\\|7PJ4J6X7N3HQPS2GCSDOWPVCWVDABTAMVN3D2L3RXZN6PHP73J4 \ / AMOS7 \ YOURUM ::
-#\[7]6XRHH2IPWVFM3P6JJBLU5H3URGDUHE65WHRPWPFWRYOFMMRADQCA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,,,,,..,,,..,...,..,,.,,,,.,,..,,...,...,.,,,.,,,.,.,,,.,.,.,
+#LKXCCQQOLSAUBZZJDYGXOSDFNWBQ4ZXQ3ESUYOFRLMB6R6H6VW2Q5X4M3ES6ESKUDFV7P6E524PD4
+#\\\|XFCRNIZ3RP3HCC4OX6IE4HNQV6SXZPSREAUKXKDMPJ5FR2AKVA2 \ / AMOS7 \ YOURUM ::
+#\[7]A5I77PYH6A6AKUCEZ6OB7NGLGAH4LIGDRNHWNBQIZZUWXZ7WH6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
