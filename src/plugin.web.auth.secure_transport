@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = plugin.web.auth.secure_transport
+# param = <http session id>
+# descr = TRUE when a token may travel on this connection : a tls socket,
+#         or a real loopback peer [ the traffic never leaves the host ]
+
+## real socket facts only, never a header                                ##
+## [ X-Forwarded-Proto would let any client claim tls ] -- the same tls  ##
+## check as the login cookie's Secure flag, the same loopback rule as    ##
+## auth.exempt-loopback [ httpd.route.handler.web-relay ]. a token over  ##
+## plain http was read by anyone on the path : login and /jobs* answered ##
+## there too [ 2026-10-23, data/md/design/LOGIN-ADMISSION.md section 0 ] ##
+
+my $http_sid = shift                         // return FALSE;
+my $session  = $data{'session'}->{$http_sid} // return FALSE;
+
+my $handle = $session->{'handle'};
+return TRUE if ref $handle and $handle->isa('IO::Socket::SSL');
+
+my $peer_addr
+    = lc( $session->{'http'}->{'request'}->{'client'}->{'addr'} // '' );
+$peer_addr =~ s|^::ffff:||;
+
+return ( $peer_addr eq qw| 127.0.0.1 | or $peer_addr eq qw| ::1 | )
+    ? TRUE
+    : FALSE;
+
+#,,..,.,.,,,,,,,,,...,.,.,..,,..,,.,.,.,,,.,,,..,,...,...,,,.,,,,,.,,,,,.,,,.,
+#QWDHPPIKIZ5DLNUY362YBRCU3XLPVGSCNP27GNJNSUWU3EQODGSZTTDTL2M367IYQNTQPSB7BAN3Q
+#\\\|22QOVRBS2CMYWM3PNTM64IB233NSFKYUIE3JCB5UTUIY277LAFW \ / AMOS7 \ YOURUM ::
+#\[7]4K6DB4JZ4PLFK4P34IEPF6ZIMV67C6XLBKUVJARLR2WSOI7BZSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

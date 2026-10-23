@@ -2,14 +2,18 @@
 
 # name  = plugin.web.auth.destroy_session
 # descr = invalidate session (logout) — move to expired bucket
-# param = token string or token_hash string
+# param = token string or token_hash string, then qw| hash | when the
+#         first one already is the hash
 
-my $input = shift // '';
+## the caller says which it passes : this guessed by length, and a BMW-L13 ##
+## token is 13 characters like its hash -- a logout would have taken the   ##
+## token for a hash and revoked nothing [ 2026-10-23 ]                     ##
+my ( $input, $form ) = @ARG;
+$input //= '';
 return FALSE if not length $input;
 
 my $token_hash;
-if ( length $input == 13 and $input =~ m|^[A-Z0-9]+$| ) {
-    ## already a BMW-L13 hash ##
+if ( ( $form // '' ) eq qw| hash | ) {
     $token_hash = $input;
 } else {
     $token_hash = <[chk-sum.bmw.L13-str]>->($input);
@@ -80,8 +84,8 @@ if ( unlink($active_file) ) {
     return FALSE;
 }
 
-#,,,,,.,.,,.,,,.,,.,,,,,.,,,,,.,,,,,,,...,,..,..,,...,...,.,.,.,,,,.,,.,.,...,
-#WYYHRN4NNUT6CZCIIIDGXRMWRB3OTUZGI2H73IBEEWTBSVNE2OVGCW5RRUATLWK7ZWRAOY7ZJDTVK
-#\\\|LXKAA44RH2Y6HCK2OFCEIEALSGWQ6C6OUHXKYHXRQR5BRAZMCGY \ / AMOS7 \ YOURUM ::
-#\[7]CHL4XVRDUBCG5NQXNVBKCJGC5PGVUY3PWTFZHK55DFML6626ASAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,...,,..,..,,...,.,,,.,.,.,,,..,,...,...,.,.,,,.,,.,,..,,.,.,
+#DNM7HBXNCRFFWZEMMBGPC62XUTJ33BQI6KA4DJSV453ANLWFFQ7FXT7XR2GY4NJYTVNK7TTN4XKEI
+#\\\|EDCLUYGBLW34LGYSW443WQ3W72O57AW6MNJ33BV74VUXTWFT7PO \ / AMOS7 \ YOURUM ::
+#\[7]2N7PZNOLGQZC2YR46E3ZWPBXIFLBGBD3MGVD4XC7C5PE4YQNVQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

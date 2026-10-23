@@ -76,7 +76,7 @@ my $now     = time;
 my $expires = $session_data->{'expires_at_epoch'} // 0;
 
 if ( $expires > 0 and $now > $expires ) {
-    <[plugin.web.auth.destroy_session]>->($token_hash);
+    <[plugin.web.auth.destroy_session]>->( $token_hash, qw| hash | );
     return undef;
 }
 
@@ -88,8 +88,8 @@ $session_data->{'last_seen_epoch'} = $now;
 
 return $session_data;
 
-#,,,,,,,,,,,.,..,,.,,,.,.,...,,,,,.,,,,..,.,.,..,,...,...,..,,,.,,,..,,.,,.,,,
-#BPZBLG7RO7WD4CP36A7QBBC3VUTVQDKLRL6C7QN2TIUF35FKI3NF53AQJVMLIKBU5QIQIAYX37XHA
-#\\\|QY7TXZTBBYSXKTOCRLE2SELXO3D6F7VWMDVNYPNP5Y2ZZQJLIGT \ / AMOS7 \ YOURUM ::
-#\[7]C7NITCX22FSRGSF6LB6JTLB7AK462F5M4XHYCFC5M5ZA2FKSIYDQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,,.,,...,,,,,..,,,.,,.,.,,.,,,..,..,,...,.,.,,..,,.,,,..,.,.,,..,
+#XIKXZBWXIEIOBXMTGO4SQPNAZNXCNWEXRVBXMBA2XZKIDSEFVAWI26DF6SDMSI3XTAOTJ62OFTIUO
+#\\\|N7RIS4QEJ3TSYUVSRWN5VEKQZ5XTJBA2CSRMX6EKYNTG4AYL2OD \ / AMOS7 \ YOURUM ::
+#\[7]XETHRTMKK37PNTSSGUKXIZKI2ZRP52SP7BTNE2C7624LGHRYSSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

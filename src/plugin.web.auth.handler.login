@@ -7,6 +7,9 @@ my $id       = shift;
 my $zenka    = <system.zenka.name> // qw| web |;
 my $is_httpd = ( $zenka eq qw| httpd | or $zenka eq qw| httpsd | );
 
+## no token over plain http [ plugin.web.auth.refuse_plaintext ] ##
+return 2 if $is_httpd and <[plugin.web.auth.refuse_plaintext]>->($id);
+
 my ( $http_sid, $body, $headers );
 
 if ($is_httpd) {
@@ -102,8 +105,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,,,.,.,,,,,.,.,...,,.,,,..,.,,,.,.,,..,,,.,..,,...,...,,.,,,,,,.,,,,..,,,.,
-#TMHQKYSW4GJOUQQMGXM3GHBKCLUV7GVTEKPC2IOH5UP4ZGZFQYY4SVCTTPO2IJHLHH2KYRFLSTGZU
-#\\\|6ER7J3RVUV7MHRUN6EG4M56EOABI7H3AL6UNN3JCDZ76U4DVCU7 \ / AMOS7 \ YOURUM ::
-#\[7]HGWU6QRER452YUAYHW6DSXB5OS4BA3WIBTDBOO4ZNXZOL4UH2YAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,..,,...,.,,,.,,,.,.,,.,,,..,..,,...,...,,,.,,.,,.,.,..,,,,.,
+#2RYSEEQTUKBQGFTEHLNRQDISRGT3E62XUXXGI6D234C4K4NOBIPDYJDOPIDTB77JIIO32MUYFCAV4
+#\\\|KKGGLSPTNRJNO6BHRXGOUVH2P5CBJRYEVNNMQ7J6NW5EW5BCTM4 \ / AMOS7 \ YOURUM ::
+#\[7]2DEA6362WXHLZMZ5I7YOX5HVEBM3VFVAWLCWP3PKAPMS27GE6CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

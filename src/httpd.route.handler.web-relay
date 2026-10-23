@@ -34,6 +34,17 @@ if ( $args->{'auth.required'} ) {
             }
         }
     }
+    ## a token travels only over tls or loopback : refused before it is  ##
+    ## checked [ plugin.web.auth.secure_transport ] -- exempt peers send ##
+    ## none                                                              ##
+    if ( not $exempt and not <[plugin.web.auth.secure_transport]>->($id) ) {
+        <[base.logs]>->(
+            1,   '[%d] auth required for %s over plain http : refused',
+            $id, $args->{'command'} // '(unknown)'
+        );
+        $session->{'http'}->{'close'} = TRUE;
+        return <[httpd.send_error_page]>->( $id, 403 );
+    }
     if ( not $exempt ) {
         my $auth_session = <[plugin.web.auth.verify_session]>->($session);
         if ( not defined $auth_session ) {
@@ -116,8 +127,8 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
 
 return 0;    # [ deferred : reply handler writes response ]
 
-#,,.,,,.,,,..,,,.,,..,,..,,.,,..,,...,,..,...,..,,...,...,...,,..,,..,.,,,,,,,
-#ZICUZZFOBWJCZBX6HR5KKGOZOK6VJX3H6K3HAX27SJTSPQKRNF3QOEK2MA2EDCVNOQEWCY6KLV63I
-#\\\|EA3KNXCMHWLIJQJ2GFDWGAAUZBQRQKLJGNFAPOKEQF564CXPNBW \ / AMOS7 \ YOURUM ::
-#\[7]G6UQGCQVE6WNKKU4IRP2OLJDC77KCU6HM5OEPM22R2XRI3X6USCA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,,.,,.,.,,,.,..,,.,.,,,,,,,.,..,,...,...,.,.,,..,.,,,,..,,,,,
+#KDUPS6S55OGKN24YNIPR2NLVPZQN4IP4M5IYIJVKEFQTHO3WKJOOYSG4M44EMUTYQSLT2MO3PO2SK
+#\\\|MMCZBD26GMWIECRY33VXWFQ5VEJBZJJRBS7YC6O5IZ5WMGJSKBU \ / AMOS7 \ YOURUM ::
+#\[7]44HBEBLBQ42FWDISQW37SJT5IV722RSU5WXKPUVJYDF5Y3EBGQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
