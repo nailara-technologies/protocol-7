@@ -148,6 +148,20 @@ the regular session budget ].
   now reads which animal is NAMED [ coding.self_test.named_candidate,
   2b97a3aa6 ] : a reply naming mouse but echoing 'cat' had passed
 - prompt 3 fails on cpu without reasoning ; the queue resumes on fail too
+- jobsite [ 61b4e60e9 ] : TRUE \ FALSE reply handlers get { sid, cmd,
+  call_args, params } -- no mode \ data. base.reply.mode_text ; jobsite.
+  dispatch.release_slot [ only the slot holder counts down \ dispatches ].
+  live on srv-U : ONE assessment in flight [ was 469 ], no FATAL
+- JMG [ f920dbb6a ] : watchdog asks task.show, re-arms up to 24 x 777 s.
+  5UC : kimi reviewed 15 handlers, 10 defects, kimi fixed 8 [ checked ],
+  cred-mesh [ dialog answers were dropped ] + ncode by me
+- ncfg [ 78e44abba ] : base.parse_ncfg_code level stack, repeats merge,
+  raw sections 'name [ n bytes ]' after an empty line, '\#' ;
+  base.format.ncfg writer ; base.load_section_code uses the parser ; 124
+  files parse identically ; all four v7-zenki reload init clean.
+  ncode.cmd.transform answers ncfg [ .cmd. data must be a STRING --
+  structures in a plain routine, ncode.transform.run ]. todo FMC
+- srv-U host.cfg has coding.cfg.round_soft_ceiling = 777 [ manual ]
 
 ## later the same day : history relabelled
 
@@ -186,8 +200,8 @@ the regular session budget ].
 - any 'deep recursion' warning ends a zenka [ exit 110 ] -- a synchronous
   handoff chain over a queue must be a loop
 
-#,,.,,..,,,.,,.,.,.,,,...,.,.,...,.,.,..,,,,,,..,,...,...,,..,.,,,,,.,..,,,,.,
-#7B7YVVQONW4A6SQXB5USG5Q5L7KLFDCW4MT3TK42WTNXI2CVMEZMUNXXI3SD7PDJLQLJFUQZWYJWW
-#\\\|MRP6PKTM4NLFYW2ZNYKHZPOIVSK257JA6QTVXANNEUVK3XTXKGD \ / AMOS7 \ YOURUM ::
-#\[7]ODNO5JHGFUTP7GK2ITUMY62KAQ5EOSB4TRI5O7MJWRX6FRFJK2DQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,,,,,,,,..,,.,,,.,,,..,..,,,,.,..,,...,...,.,,,,.,,,..,...,...,
+#7IJNEDSFJH5C42GQG56MC6V37UZVK52EJKYYKHWNB4VG6HAYS2IOWIRXPIY5V77MTROQW3NEXM5XU
+#\\\|ZIKAJYVZ74GSZV4NRX7RH3TI3PWRUPDQACBM6LU77H2PTVCQPVO \ / AMOS7 \ YOURUM ::
+#\[7]PSRJZD53ZLXDYEJ77YFGN5UUBJ7VBO5DBBQDAWPMA5OIQ5YXPMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
