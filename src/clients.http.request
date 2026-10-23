@@ -26,14 +26,31 @@ if ( not exists $code{$on_done} ) {
     return undef;
 }
 
+## https is clients.https.* : refused here, never plain http to port 443 ##
+## [ the peer's tls server only resets the connection -- a silent trap ] ##
+if ( $url =~ m{^https://}i ) {
+    <[base.logs]>->(
+        0, 'clients.http.request: https url, use clients.https : %s', $url
+    );
+    <[event.add_idle]>->(
+        {   'handler' => $on_done,
+            'params'  => {
+                'ok'     => FALSE,
+                'error'  => 'https url : clients.http is plain http only',
+                'params' => $params
+            },
+        }
+    );
+    return undef;
+}
+
 ## parse url : http only ##
-my ( $host, $port, $path )
-    = $url =~ m{^https?://([^/:]+)(?::(\d+))?(/.*)?\z}s;
+my ( $host, $port, $path ) = $url =~ m{^http://([^/:]+)(?::(\d+))?(/.*)?\z}s;
 if ( not defined $host ) {
     <[base.logs]>->( 0, 'clients.http.request: cannot parse url: %s', $url );
     return undef;
 }
-$port //= ( $url =~ m{^https://} ? 443 : 80 );
+$port //= 80;
 $path = '/' unless defined $path and length $path;
 
 ## connect ##
@@ -131,8 +148,8 @@ $state->{'timeout_watcher'} = $timeout_watcher;
 
 return $state;
 
-#,,..,..,,,,.,,..,,,.,...,.,,,,.,,..,,.,.,,,,,..,,...,...,.,,,..,,...,,,.,.,.,
-#NPUPNKSHBXXIKES2P5MEL2S3QX4TZREA2P4NCAPA7JXKTL4LX2SR4MPMOYAPM5E6BL2GI5ZJIALIE
-#\\\|FNBPTTXDDAKSMLMKR3N3JFZH3R5TOHS5ML3IO7GM6GXT25NCWFH \ / AMOS7 \ YOURUM ::
-#\[7]V23VMHNOS4NNEHK2FUJX6AIAQNWVJTLNFSDUBOOUTWFN6I64YSAY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,.,..,,..,,,,.,,.,,,.,,,,.,,..,..,,...,...,.,.,,,,,,,.,.,.,,.,,
+#JZZSGCN5PP6B7XSHSMPIXFU27HAG7QR6UACGA7DDHEU37574WFTJCTFEAOKYUO23R5II6NNGZGCKK
+#\\\|SXHMHTQ762VQTIPW6XCJJYNULPD62BHERT2JWEU6P4GMUJIAFUB \ / AMOS7 \ YOURUM ::
+#\[7]65CZEVC7LDBDWIRT6B4VNCTQN653SJ6CGKTMRBKQ7GBAPEGYAGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

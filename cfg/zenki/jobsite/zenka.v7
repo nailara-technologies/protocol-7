@@ -9,11 +9,11 @@ buffer.session.max_size = 795648
 system.zenka.verbosity.buffer = 1
 
 ## named search categories — space separated list of category keys
-jobsite.cfg.categories         = linux-sysadmin linux-developer devops \
-                                       platform-engineer security-engineer \
+jobsite.cfg.categories       =      linux-sysadmin linux-developer devops \
+                                      platform-engineer security-engineer \
                                        ki-infrastruktur backend-architect \
                                                       solutions-architect \
-                                                      security-architect
+                                                       security-architect
 
 ## per-category stepstone search urls
 jobsite.cfg.url.linux-sysadmin      = https://www.stepstone.de/jobs/linux-administrator/in-Offenburg
@@ -52,7 +52,8 @@ jobsite.cfg.sync_interval = 300
 ## site-yaml [ stepstone blocks this host's ip range ] and fetched jobs     ##
 ## travel back through its durable outbox + subscribe-fetched STRM          ##
 ## transport. default : unset == local site-yaml                            ##
-## jobsite.cfg.fetch_zenka = external.delta.site-yaml  ## set in /etc/protocol-7/jobsite/host.cfg
+### set in /etc/protocol-7/jobsite/host.cfg :
+## jobsite.cfg.fetch_zenka = external.delta.site-yaml
 
 ## seconds to wait for a dispatched assessment/repair task's reply before
 ## giving up on it and draining the next queue entry [ watchdog against a
@@ -68,7 +69,7 @@ jobsite.cfg.assess_watch_extensions = 24
 jobsite.cfg.trash_keep_epochs   = 1  ## recoverable compressed stage
 jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
 
-## httpd sync endpoint : repo default is a hub pushing to its own   ##
+## httpd sync endpoint : repo default is a hub pushing to its own    ##
 ## httpd [ loopback needs no auth token with auth.exempt-loopback ]. ##
 ## any other target [ several : sync_urls ] and its bearer token go  ##
 ## in /etc/protocol-7/jobsite/host.cfg :                             ##
@@ -76,7 +77,7 @@ jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
 ##   jobsite.cfg.sync_urls   = <url> [<url> ..]                      ##
 ##   jobsite.cfg.sync_token  = <token>   ## or per-url : ##
 ##   jobsite.cfg.sync_tokens = <url>=<token> [<url>=<token> ..]      ##
-## [ token : p7c web.auth-issue jobsite-push -ttl 31536000 ]        ##
+## [ token : p7c web.auth-issue jobsite-push -ttl 31536000 ]         ##
 jobsite.cfg.sync_url      = http://127.0.0.1/jobs-sync
 jobsite.cfg.sync_urls     =
 
@@ -108,12 +109,13 @@ access.cmd.usr.cube = heart subname name commands reload verify-instance \
 ## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
 access.devcmd.usr.cube = devmod:*
 
-modules.load = auth.client net protocol io.unix ui format.yaml jobsite clients.http devmod
+modules.load = auth.client net protocol io.unix ui format.yaml jobsite
+               clients.http clients.https devmod
 
 ## host-specific overrides [ base.load_host_config : /etc/protocol-7/  ##
 ## jobsite/host.cfg, 'key = value' on top of this file ] -- e.g. a     ##
 ## cpu-only host sets jobsite.cfg.assessment_model to the model its    ##
-## coding zenka serves [ data/tasks/coding-cpu-host-setup.md ]          ##
+## coding zenka serves [ data/tasks/coding-cpu-host-setup.md ]         ##
 [load_host_config]
 
 [load_modules:<modules.load>]
@@ -127,8 +129,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite clients.h
 
 [zenka.loop]
 
-#,,.,,.,,,,,.,,,,,,..,.,,,...,,.,,,..,.,.,,,.,..,,...,.,.,.,.,...,.,,,.,.,,.,,
-#OW3IAZVTNJV2QYTLXURFFFTTNHMGOL4C53JI3YWAOLIQHLY2VDATN2DAKYLUHQCEF4Z5PQFKLJ7VY
-#\\\|P6CRPMFKMHLPFOOEW2YJ2R5EDJAB55NL5VSMXDH2WLMRVY55DHI \ / AMOS7 \ YOURUM ::
-#\[7]TBN74KTF36V6Q2YFCWCSRB4LYNVDJXAHGK73VG6ZTENONK2P5ADY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,,..,,,,,.,.,,,,,,.,,,,.,.,.,..,,...,..,,..,,.,.,.,,,,,,,.,,,
+#EEVSSBXL6DLLLMUUFKBRYH7BPPWRQ3YP2IIVDKZYR4RV5LHS3M2ZHDUE2YEQD2Y2WPBQML744KH2E
+#\\\|VVLR6SNHRZYYIPBIONUEWH4SQRLMPAPQ2JL37H24PYCGKA57DIB \ / AMOS7 \ YOURUM ::
+#\[7]G46UFTXUKTNK5R3RZQSWWMZM3SRMTFXOCTFGWBMB5MSDYOQ75MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

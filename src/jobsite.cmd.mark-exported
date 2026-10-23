@@ -71,7 +71,9 @@ for my $url (@urls) {
     my $headers    = {};
     $headers->{'Authorization'} = "Bearer $auth_token"
         if length $auth_token;
-    <[clients.http.post]>->(
+    my $post
+        = $url =~ m{^https://}i ? 'clients.https.post' : 'clients.http.post';
+    $code{$post}->(
         {   'url'     => $url,
             'body'    => $body,
             'headers' => $headers,
@@ -89,8 +91,8 @@ return {
         . join( ', ', @urls ),
 };
 
-#,,..,,.,,,,.,.,,,.,.,,,,,,,,,.,.,.,,,..,,,,.,..,,...,...,.,.,...,..,,,.,,,.,,
-#4PHTVF5MPBCA2WHX5N3CDMH3NXQYJCYV4XHH36SLEWZ66NO66DFTWRJG3V4NF6XMUOVPDBFRP3AMC
-#\\\|GQEJ42Y6OZQ6ERIUFA2S3JGUQIK2FC5CXR6L6JCKGACFFJIK25T \ / AMOS7 \ YOURUM ::
-#\[7]OI6LRUT6IU5QTO6YZDD6XEIPLCV7VGD746SLB7PPTEW3FT3LO6DI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,,,,..,,,.,..,,..,,,,,,.,.,,.,,..,,...,...,.,.,,.,,.,.,.,,,.,.,
+#IGQOFS44QMA2UZMRX7GLQV5VPCEUZANU2644QLVSMEYDC6HZYE6SYQNFVDB3OKRLILPOXCDWF2IQI
+#\\\|ETCM4WXJVK6QN5K4GIBZULHCZ7UMBQBY3HFBBWSCV6CXDNJYA5W \ / AMOS7 \ YOURUM ::
+#\[7]VP3DW7M37IQI5W4M67GGFPXPDNBMJ5YL2XTRDXCLJ2MBZSGF5WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
