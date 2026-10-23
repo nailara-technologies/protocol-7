@@ -176,10 +176,11 @@ the regular session budget ].
   by hand [ the tool skips them by design ] ; 5734 files re-signed ;
   force push base + tags ; all four remotes fetch + reset --hard +
   restore-p7-permissions -> all at 1c52db2c1, clean
-- filter pitfalls found in the dry run : delta \ atom are ordinary words
-  [ delta only from 1a01f4240 on [ new node ], phrase excludes ; atom not after
-  _NET_* \ FIFO ], YOURUM upper case is the signature name, the todo
-  command `pri <id>` must stay -- and an inner regex match inside s///e
+- filter pitfalls found in the dry run : two of the names are ordinary
+  words [ one a host only from 1a01f4240 on [ new node ], phrase excludes ;
+  the other an x11 term after _NET_* \ FIFO ], YOURUM upper case is the
+  signature name, a todo command shares a name and must stay [ it also hid
+  one real host name, memory relabel 2026-10-23 ] -- and an inner regex match inside s///e
   reset $1 and would have DELETED the word [ save $1 first ]
 
 ## lessons
@@ -200,8 +201,8 @@ the regular session budget ].
 - any 'deep recursion' warning ends a zenka [ exit 110 ] -- a synchronous
   handoff chain over a queue must be a loop
 
-#,,,.,.,,,.,,,,,,,,,,,,..,,.,,,.,,,..,..,,,,.,..,,...,...,.,,,,.,,,..,...,...,
-#7IJNEDSFJH5C42GQG56MC6V37UZVK52EJKYYKHWNB4VG6HAYS2IOWIRXPIY5V77MTROQW3NEXM5XU
-#\\\|ZIKAJYVZ74GSZV4NRX7RH3TI3PWRUPDQACBM6LU77H2PTVCQPVO \ / AMOS7 \ YOURUM ::
-#\[7]PSRJZD53ZLXDYEJ77YFGN5UUBJ7VBO5DBBQDAWPMA5OIQ5YXPMCI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,..,,,,,,,,,,.,,,,..,,,.,,,,,..,,...,...,.,,,,.,,.,,,...,,..,
+#ZOEUQQVBXPDQCLGR4HYK4VNF4HLOYDVE5RXGCQY6MG37RCAK6HZJNCPG3LGSBHLFV2FTLOCNXRQT4
+#\\\|2ONZYTWTESNIWEMHIC27M22ZYZME6XF5VX7UED3532PWGSZ43ZR \ / AMOS7 \ YOURUM ::
+#\[7]K3SAANVKXDTFDNR62E5PRQH5G6MJTBNYWCFQROPD7J725A6ISYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

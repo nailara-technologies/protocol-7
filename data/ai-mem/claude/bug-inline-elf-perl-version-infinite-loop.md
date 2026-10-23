@@ -1,14 +1,14 @@
 ---
 name: bug-inline-elf-perl-version-infinite-loop
-description: "FULLY RESOLVED across atom+pri, both clean-started 2026-07-26: inline_elf's dangling-if (missing braces) let a malformed-UTF-8 decode with u8_len==0 spin while(len>0) forever at 100% CPU on Perl 5.42.2; unpacked into 4 more independent bugs found chasing the full boot end-to-end (ptd's P7-macro false-positive gap, .deps/profiles.yaml gaps for graphics-matrix/opencv, an httpsd ownership-sweep race clobbering web zenka's skins dir, a stale web.cmd.skin path). gdb backtrace on the hung process was the decisive diagnostic for bug #1; live -vvvq tracing + stat timing tests for #3."
+description: "FULLY RESOLVED across srv-F+srv-U, both clean-started 2026-07-26: inline_elf's dangling-if (missing braces) let a malformed-UTF-8 decode with u8_len==0 spin while(len>0) forever at 100% CPU on Perl 5.42.2; unpacked into 4 more independent bugs found chasing the full boot end-to-end (ptd's P7-macro false-positive gap, .deps/profiles.yaml gaps for graphics-matrix/opencv, an httpsd ownership-sweep race clobbering web zenka's skins dir, a stale web.cmd.skin path). gdb backtrace on the hung process was the decisive diagnostic for bug #1; live -vvvq tracing + stat timing tests for #3."
 metadata:
   type: feedback
 ---
 
-Landed 2026-07-26. Production host ("atom") froze on every zenka start at
+Landed 2026-07-26. Production host ("srv-F") froze on every zenka start at
 `crypt.C25519.gen_keys`'s session-key generation, 64.7s timeout, killed by
 v7. Worked fine on WSL dev machine. User had just `dist-upgrade`d + rebooted
-atom.
+srv-F.
 
 ## the bug
 
@@ -91,7 +91,7 @@ bit-string code.
 ## full resolution, verified across both hosts (2026-07-26)
 
 What started as this one bug turned into a full clean-upgrade pass across
-both `atom` and `pri` (a second production/remote host, freshly getting
+both `srv-F` and `srv-U` (a second production/remote host, freshly getting
 `basic-remote-server` + `graphics-matrix` installed for the first time).
 Chain of fixes, all landed and live-verified on real hardware (not just
 locally), in commit order:
@@ -103,7 +103,7 @@ locally), in commit order:
   now translate P7 macro syntax before `perl -c`, via a new
   dependency-free `AMOS7::Protocol::P7Syntax` module.
 - `cebd1f647` / `3f47cb3b3` / `d3be26a25` — `.deps/profiles.yaml` gaps
-  found installing fresh on `pri`: `graphics-matrix`/`opencv` were missing
+  found installing fresh on `srv-U`: `graphics-matrix`/`opencv` were missing
   `Graphics::Magick`/`Convert::Color`/`libgd-perl` entirely (only the much
   heavier `X11-Desktop` profile had them — deliberately did NOT pull that
   in for a headless box); renamed the misleadingly-named `development`
@@ -142,8 +142,8 @@ whole tree before declaring it fixed — near-identical logic gets
 hand-copied into a second module in this codebase, not always something a
 plain "who calls this function" search would surface.
 
-#,,.,,...,.,.,.,.,..,,.,.,,,,,,..,,.,,..,,.,.,..,,...,..,,,.,,.,,,,.,,.,.,...,
-#66PHVGASFNC5QV7QT6IEG74OBYMYQFRFNLG7UKFBWFUX7EOHOKUZJ2XJWHMHDJMTXICU7GA2GKIZU
-#\\\|HINKN7CXAMR26JWK3KOJNNTH6YENAEOIT4TEIFTRLOECCMUI6RT \ / AMOS7 \ YOURUM ::
-#\[7]M5CPT4AN24F7AR3ATLEDNZCCP7AUAHILRFNG37HMWI2CUAZR2MDI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,...,,,,,,,.,.,.,.,.,.,,,,,,,..,,...,..,,...,,..,.,.,.,.,...,
+#DSWED4XWWPEPZLCQ2LYWAX7DYD72N5TZHJHJAU7UBFA34NCFKZURYNUTTCECGCYGIC7WVV34BPDUQ
+#\\\|SWXBM54J2IPLXC3QY7VBI7DU6GKSWN34D7C7SGB4LTNSAJHL6RI \ / AMOS7 \ YOURUM ::
+#\[7]BV46JNMLF222SJTH5DDP7JWQTBBKYAJR4YWDCFE7K4L4LVKIKYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

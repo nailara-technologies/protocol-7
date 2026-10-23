@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-09-vault-ntime-landed
-description: LANDED 2026-10-09 53f52aac4 + 308118cb3 -- bin/p7-vault [ AMOS7::Vault, personal passwords \ notes \ contacts, standalone ], AMOS7::NTIME + bin/ntime [ ntime without backend ], format-code title box + bracket-aware reflow. open : real vault not created yet, backup command, sync, pri argon2 package
+description: LANDED 2026-10-09 53f52aac4 + 308118cb3 -- bin/p7-vault [ AMOS7::Vault, personal passwords \ notes \ contacts, standalone ], AMOS7::NTIME + bin/ntime [ ntime without backend ], format-code title box + bracket-aware reflow. open : real vault not created yet, backup command, sync, srv-U argon2 package
 metadata:
   type: project
 ---
@@ -58,8 +58,8 @@ vault file names use decimal.
 
 **open** :
 1. the user has not created the real vault yet -- right after, copy it to usb
-   + pri [ offered : `p7-vault backup <dest>` writing the recovery layout ]
-2. pri needs `libcrypt-argon2-perl` [ apt, user's call ]
+   + srv-U [ offered : `p7-vault backup <dest>` writing the recovery layout ]
+2. srv-U needs `libcrypt-argon2-perl` [ apt, user's call ]
 3. later : sync over protocol-7 \ the checksum storage layer, session agent,
    vault-edit form ui [ form.* drafts \ outbox write plaintext -- must be off
    for a vault source, char-add too ], totp display
@@ -71,8 +71,8 @@ format-code -c compiles .pm files inside a sub -- file-level `my` reads as
 "not available", use `our`. pkill -f with a pattern from my own command line
 kills my own shell.
 
-#,,.,,.,.,.,.,,,.,.,,,,,,,,,.,,,.,,,.,...,.,,,..,,...,...,...,,..,,,,,..,,,,.,
-#BNR6FU6IM2BG7XZ3HBGWNCGJN7OBJ5YZ5XSI3PAXDHLDYCK5ID4IW4BTS5IJVET5TSINS2FLUNQQK
-#\\\|YGSICVEZIWDBPZKX2TKACJFYOHVI4IBCJV7ECDFPULUVKVVC2RF \ / AMOS7 \ YOURUM ::
-#\[7]NKNJTUPN4YW3H5FT5J4AEJZGEILNMDASFYNTMU33OIQ2N4AEQGAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,..,,.,,,,,,,...,,.,,,.,,,..,..,,...,...,.,,,,.,,.,,,,.,,,..,
+#DDW7QCAZDCZKSXXYQ2AGEQJ5ABCS6R5OHBPZNEEVCHF7Y7EMRETLNPER4RWQDNASR2SPVNZ3YUCI6
+#\\\|JCPWB5VRUUOAPDPBXVPNRAVYUBTZJ3G6BBSNLEF4GAGGSUFRLHQ \ / AMOS7 \ YOURUM ::
+#\[7]UOI4KCBP4X6QHTOTQFO3ALVAWFN5Y7GEB54MJHDSXSLNMMIV5UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

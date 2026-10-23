@@ -51,7 +51,7 @@ appears there, regardless of how that value got there.
 
 **Second case, 2026-10-21 :** the same clobber hit the HOST OVERLAY.
 `reload config` re-applied the zenka's own keys [ `base.reload_values` ] after
-`/etc/protocol-7/<zenka>/host.cfg`, so pri's v7-zenki fell from the host's
+`/etc/protocol-7/<zenka>/host.cfg`, so srv-U's v7-zenki fell from the host's
 `load.start_setup = remote-server` back to `base` ; the next `reload init`
 loaded that profile and started debian, discover and a second external on a
 server. fixed : `base.load_host_config` sets `<system.host_config.applied>`,
@@ -59,8 +59,8 @@ server. fixed : `base.load_host_config` sets `<system.host_config.applied>`,
 after a v7-zenki `reload config`, check `load.start_setup` [ devmod : SIGNUM 53
 to v7-zenki, then `v7-zenki.dump load.start_setup` ] before any `reload init`.
 
-#,,,,,,,,,,.,,..,,.,,,,,,,.,,,..,,,..,,,.,.,.,..,,...,...,...,,,,,,.,,...,,,.,
-#LRYP434KFSDJZEF7XRIV27OM24NO7FPD6INYIUFOYM7H37SX2RKZAVBMJWSUJ2TZ4HE6QMR5PG2ZO
-#\\\|5SVHK5D4KYUWI6ZNCNLJDLAOC3O54FT4VRBU6V2MMQU7DHVFPAT \ / AMOS7 \ YOURUM ::
-#\[7]J264WSDTYM3GVKAAH77SVFXVTA7KXHD3EC5H2M4YBYFHWJCVOODY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,.,,..,...,,..,.,,,.,,,..,,,..,..,,...,..,,..,,,.,,,,.,...,.,,,
+#EO3EZXL3YBLJCVZSL5SX73ZYY5YMVDIZF4NPCH4PLC4HXXGYWHMGG3ELA5THUZZVVBAKLEDABA3EG
+#\\\|RVZTNRBDPWHCS5T4FQ5MZFE3DNJ4246PPPJWYFEBFPYH6WBEX27 \ / AMOS7 \ YOURUM ::
+#\[7]ZWAO2PYVX2DD3SR2X3AK2ZWOBDAGCUNIQPNCX4K4AUXHMIWUOIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

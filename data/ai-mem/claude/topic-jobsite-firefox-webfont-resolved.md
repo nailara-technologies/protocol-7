@@ -42,7 +42,7 @@ don't assert a causal link here without further testing; it's flagged as an open
 not an established part of the root-cause chain.
 
 **Still reproducing the original failure, useful as a live reference**:
-`https://pri.v7.ax/font.html` still shows the broken state — same mechanism: whatever font
+the font test page on srv-U [ /font.html ] still shows the broken state — same mechanism: whatever font
 name(s) that page declares aren't on this profile's font_allowlist. Not a separate bug, no
 need to debug the page or its HTTPS deployment — just add its font-family name(s) to the
 allowlist if/when that page needs to work too.
@@ -56,8 +56,8 @@ document fonts makes any amount of font-serving/CSS cleanup irrelevant until the
 is allowlisted — this is a profile-level permission problem, not a code problem, and no
 amount of WOFF2 optimization, path fixing, or CORS/caching header tweaking will resolve it.
 
-#,,,,,,..,...,,,,,...,,,,,.,.,,,,,,,,,,,.,,,,,..,,...,...,,.,,,..,,,.,,,,,,,,,
-#ZIXE2EJ4PPU4HYFJ3XI5AG7PR575T2ANQW56GMZZ3UUDRCULIPFTOLCE4CESZ4BFCQGWBXWKTCC3I
-#\\\|LQDHFABKUXAJFBO46WR6LP3MTAQVWXDVWFGGJVYBIJLHE4NOSXI \ / AMOS7 \ YOURUM ::
-#\[7]ARKMSVUTTVUOVVUADEFOIBTIGX5HAIVDP7OZ4HJ4PMAOODVQHGAQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,.,.,,.,,,.,,,.,,,.,,...,..,,..,,...,...,,.,,,.,,,..,..,,,,,,
+#H2UTXWKVGFO4TWITKWTT4QFR4TYJWGMVZRCG5YGFLHSL5QUU5QNJFVESROBHFGYVUP5YAGZS2AEYO
+#\\\|BD4ZAXCJNEH663TZ7RLYUN2JU2BLR3TGJQOW6UMLRSVMA7JUPDU \ / AMOS7 \ YOURUM ::
+#\[7]HPI4QFFHMA3GUV3YDIT222T2JRHUVCYKWCRYSWNKKLDWVECG6MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

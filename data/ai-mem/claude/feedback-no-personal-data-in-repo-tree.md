@@ -8,7 +8,7 @@ metadata:
 
 never write actual personal data (email addresses, specific personal file paths, etc.) into any file inside the git repository's working directory — **not even a gitignored file**. personal/sensitive data must live entirely outside the repo tree, referenced from repo-tracked code only via dynamic path-construction helpers or generic external path strings that carry no PII themselves.
 
-**Extends to infrastructure identifiers, and to memory files themselves — not just PII in source code.** 2026-08-23: while writing a [[topic-next-steps]] entry about long-lived httpd connections, named the actual hostname (`pri`) of a live public-facing deployment in `data/ai-mem/claude/topic-next-steps.md`. User: "that memory entry is too public for that form.." — `data/ai-mem/claude/*.md` is git-tracked and gets committed same as any src file (confirmed: prior commits in this same session included `MEMORY-active.md`/`project-*.md` diffs), so anything written there is exactly as exposed as hardcoding it in `src/`. A real hostname isn't PII in the strict email/personal-file sense this memory originally covered, but the same repo-exposure logic applies to it — and memory files are easy to forget are part of "the repo" since they don't read like code. Fixed by generalizing to "a live public-facing deployment host" — specific enough to be useful, carries no identifying value if the repo is ever shared/pushed.
+**Extends to infrastructure identifiers, and to memory files themselves — not just PII in source code.** 2026-08-23: while writing a [[topic-next-steps]] entry about long-lived httpd connections, named the actual hostname (`srv-U`) of a live public-facing deployment in `data/ai-mem/claude/topic-next-steps.md`. User: "that memory entry is too public for that form.." — `data/ai-mem/claude/*.md` is git-tracked and gets committed same as any src file (confirmed: prior commits in this same session included `MEMORY-active.md`/`project-*.md` diffs), so anything written there is exactly as exposed as hardcoding it in `src/`. A real hostname isn't PII in the strict email/personal-file sense this memory originally covered, but the same repo-exposure logic applies to it — and memory files are easy to forget are part of "the repo" since they don't read like code. Fixed by generalizing to "a live public-facing deployment host" — specific enough to be useful, carries no identifying value if the repo is ever shared/pushed.
 
 **Why:** during the jobcenter evidence-dossier work ([[project-jobsite-report-dossier]]), assistant hardcoded the user's two real email addresses as a regex default directly into `src/jobsite.report.mail_evidence_collect` (a tracked file). user stopped it immediately: "wait, you cannot write my personal email address into the public repository code.." First fix attempt used a `[load_config_file:'zenki/jobsite/local-secrets']` + gitignored file — user corrected again: "that will likely not work, because the path is outside the repository directory.." meaning even a gitignored file still physically sits inside the repo's working directory, which breaks the established pattern. Only the third attempt was accepted.
 
@@ -28,15 +28,15 @@ added later" instead. owned domains [ protocol-7.network, v7.ax ] are
 public dns data anyway and fine to name.
 
 **Host names stay out of CODE COMMENTS and commit messages too [ owner
-2026-10-22 ].** a session wrote `pri` into three src comments while fixing
+2026-10-22 ].** a session wrote `srv-U` into three src comments while fixing
 a cpu-only-host bug [ and five older comments had it, two with the full
 `<host>.v7.ax` ] ; the owner : even when harmless they become outdated
 [ servers get renamed ] and commit messages are already critical. write
 the CASE, not the host : "a cpu-only host", "a server", "a remote".
 live host names belong only in the conversation and in host.cfg.
 
-#,,,,,,.,,...,.,.,..,,...,,.,,,,,,..,,,.,,,,.,..,,...,...,...,.,,,..,,.,.,,,,,
-#AZXWLACE63NQV2OBBAR5IWWB23QH267ADCDB4OSSAOJOAJ5PLBK6E3GYE2SYARDFE43H44QITX6YY
-#\\\|SHDL3HPO6S42WALA3W6DHVKOAL4RFP52ECFTTYUQCYEI46REIPT \ / AMOS7 \ YOURUM ::
-#\[7]7RJ4MZDBYY2MQYI2PXEFO4K6VMQ3CUQM3SUPP4DAHT7NNFV4T4BQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,...,,,.,...,,..,...,.,,,,..,,,,,..,,...,...,,,.,...,...,...,.,.,
+#GDOZCCFIJPECGE22IODXY66RULTZWIKMSG3GYDHQXGSSFFOTDP7C5MAJ2Y7JOO4QR5R5KJT36MV4A
+#\\\|USCNR3BMBETWF4LHKIKNRFQHHQOPSMR62DGYBRTLMDMLOOAVQ4Z \ / AMOS7 \ YOURUM ::
+#\[7]2DKMBBSCJ6GK5APBK73OXEOLEIOSR7KHEFOLI6NUJPL6KVQFNCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,16 +23,16 @@ kimi 92 % ]. follows [[servers-dns01-host-config-2026-10-11]].
   letsencr.dns.alias_ns [ resolved once per order ], non-answering
   servers skipped, an answering one without the value blocks.
   query_txt_async takes ipv6. NOT yet seen live : next dns-01 renewal on
-  pri should log 'txt value on N servers'. letsencr is on-demand there.
+  srv-U should log 'txt value on N servers'. letsencr is on-demand there.
 - `67fc9f568` nameserv : dns over tcp [ rfc 7766, nameserv.answer shared,
   dns_tcp.* handlers, 77 conns \ 13 s idle \ 64k in \ 4 replies out ] +
-  udp replies truncated with tc. LIVE on pri \ delta \ yourum, v4 + v6.
-  pri : ufw 53/tcp opened. tcp binds only in init [ port 53 before
+  udp replies truncated with tc. LIVE on srv-U \ srv-V \ srv-A, v4 + v6.
+  srv-U : ufw 53/tcp opened. tcp binds only in init [ port 53 before
   drop_privs ] -> deploy = nameserv RESTART, not reload.
-- yourum : systemd-resolved held 127.0.0.53\54:53 tcp [ blocks the
+- srv-A : systemd-resolved held 127.0.0.53\54:53 tcp [ blocks the
   wildcard bind ] -> static /etc/resolv.conf [ provider resolvers, old
   copy in /root ], resolved stopped AND masked [ its monitor socket
-  re-activated it after disable --now ]. yourum also lost ipv6 after its
+  re-activated it after disable --now ]. srv-A also lost ipv6 after its
   02:32 reboot [ /etc/hostname change + dist-upgrade only ] ; a second
   reboot fixed it, provider panel address unchanged [ KUL closed ].
 - `0e73d9431` AMOS7::TERM::Editor : editor out of bin/todo, bracketed
@@ -50,7 +50,7 @@ kimi 92 % ]. follows [[servers-dns01-host-config-2026-10-11]].
 
 - try p7-vault scratchpad \ codes \ a first sync to a server copy [ copy
   vault.key.B32 there once by hand ].
-- point the hysteria client at pri [ unlimited traffic ] instead of atom
+- point the hysteria client at srv-U [ unlimited traffic ] instead of srv-F
   [ 1 TB limit ] -- no code needed.
 - cloud credit [ $94 of $100, expires 2026-11-05 ] : cloud sessions
   draw the PLAN, not the credit [ seen twice ]. plan : ignore it until
@@ -72,7 +72,7 @@ kimi 92 % ]. follows [[servers-dns01-host-config-2026-10-11]].
 - 4ZW : nameserv[cache] \ nameserv[cache-local] forwarding cache,
   loopback only, later dns over protocol-7 [ udt underneath ].
 - smaller : 4CJ expansion [ dns-01 from any host ], VDS parent delegation
-  check, delta's ipv6 ptr, ns ttl 93600.
+  check, srv-V's ipv6 ptr, ns ttl 93600.
 
 ## process notes from this session
 
@@ -82,12 +82,12 @@ kimi 92 % ]. follows [[servers-dns01-host-config-2026-10-11]].
   kimi's work in progress -> check `git status` and unstage unreviewed
   files before committing [ the sign tool checks on-disk changes, so no
   edits get lost ]. a new signed file is sometimes NOT staged : add it.
-- `p7c v7-zenki.restart <zenka>` on servers runs as root ; pri's checkout
+- `p7c v7-zenki.restart <zenka>` on servers runs as root ; srv-U's checkout
   is /usr/local/protocol-7 [ root-owned, pull with
   bin/admin/p7-git-pull--rebase as root ].
 
-#,,,,,.,.,,,.,,,.,.,,,,..,,..,,,.,,..,,,,,,,,,..,,...,..,,..,,.,.,,..,,,.,,,.,
-#NRUBVWMLHFOVI3HOWQ7DLRRHLXME7KMYOOWFE2FEEF64XP3OGDVISNT2JUJUKAKTMYNZNZNDB5XG6
-#\\\|UTGZLTK4Q4RY4R44N6KNZEMJZU6HP77A2HSVSOZ6TEC5GUQET4V \ / AMOS7 \ YOURUM ::
-#\[7]L7UHIG25IKX74UYSHW3WK6SEG72GLE2YSHZCG62D3ZPVRQHVDQAA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,...,,,,,,,.,,,.,.,,,,..,,.,,..,,...,...,..,,,,,,..,,.,,,,,,,
+#3BWW66VK76AYK5L365XFYD4RDRRYEFALX77GQU5BHX3RNNIVBET6RKVREEN4FYKXTNR3SHX3NPF24
+#\\\|NFO37RSUEDWVUTQBCMPBTVBXGVYSGQYMTBMJMOHFYBDGRYCIN43 \ / AMOS7 \ YOURUM ::
+#\[7]2HTZPDNNDRFNT2YNZQSPGQAVDHMGXVO4GWTU7JWFXDDRCFWRBSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

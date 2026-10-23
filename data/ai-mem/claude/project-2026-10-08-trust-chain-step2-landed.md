@@ -42,7 +42,7 @@ the gap [ a certified sibling answering on another host's address ].
    .dlg back to the 284 char leaf ] -- found 0640 under umask, missing
    drop-owner, trash same-second order [ fixed 458af6b4e ]. the REAL
    owner key setup waits for the host-edit zenka [ user ]
-2. second host [ atom ] : discover owner trust, rotation, step 1 leftovers
+2. second host [ srv-F ] : discover owner trust, rotation, step 1 leftovers
 3. `describe` waits for an inline documentation format [ user ] ; arg
    details live in `# note =` meanwhile ; keep `# param` short [ the
    command list column width follows the longest param ]
@@ -115,8 +115,8 @@ init recompiles p-7-r ; SigCgt bit 16 stayed set ] -- no restart needed.
   2026-10-08, 18d391853 ]. kimi lanes hit the 100 step limit mid-task
   [ resume with kimi_continue ] -- size task files small up front
 
-#,,,,,,,,,..,,.,.,..,,.,.,,..,...,,,.,...,.,.,..,,...,...,..,,..,,,.,,,.,,..,,
-#HZD7AM4FDV7BLTOI3JTUHMGL5Z762SIGG47M3NTCY3X56OG5ZQM4DLD5PWSFRYKM4MKWHUUNNM3OM
-#\\\|EMJJWWGAQWGWUQD4K6LGSKMKBJZOBYK64FTGMFY5OA2D53GRQT3 \ / AMOS7 \ YOURUM ::
-#\[7]6WP2COE5UFEWYKPBWLYWA4QZ4DNRATTG45KKNXPKWLUDZRHSK6CI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,...,.,.,.,.,,.,,,.,,,..,,,.,.,,,..,,...,..,,,.,,,.,,..,,,..,...,
+#6QNWWDYLM6RG4EUCABS5DXZ3ZKPT6I2RTBAG7I2OZ6LXRRMYYGFF3GUMZYYS5KIGZNHAWN3SNBKI4
+#\\\|DWD6TCINS5QQZY4NKQTXDCUO4TCUT5LZN6BCS5O3XKUUZC3YPY2 \ / AMOS7 \ YOURUM ::
+#\[7]ECA776V4HSAT23AAN2CUTUCA4XDTZKC3OSZANYJXJBSVQBJO3QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

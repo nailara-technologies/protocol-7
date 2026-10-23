@@ -1,6 +1,6 @@
 ---
-name: project-2026-10-18-session-handover-n7fs-truth-pri
-description: START HERE -- session 2026-10-18 handover [ last 106b7a331 ] : bin/dependencies retired, N7FS v1 on base, truth fallbacks bit-identical, computed AMOS7 module versions, pri prepared for cpu inference ; open : pri model switch + first coding start, memory-cap task, device db, the `:` model resolver
+name: project-2026-10-18-session-handover-n7fs-truth-srv-U
+description: START HERE -- session 2026-10-18 handover [ last 106b7a331 ] : bin/dependencies retired, N7FS v1 on base, truth fallbacks bit-identical, computed AMOS7 module versions, srv-U prepared for cpu inference ; open : srv-U model switch + first coding start, memory-cap task, device db, the `:` model resolver
 metadata:
   type: project
 ---
@@ -28,7 +28,7 @@ cloud credits $58 [ expire 2026-11-05 ].
   `AMOS7::<M>-VERSION.<amos>` over name + normalized source [ whitespace
   and comment-box markers ignored -> sign-run reflows keep versions ] ;
   $ALGORITHM_VERSION split ; $VERSION not exported.
-- **pri** : pulled via pull-git to dc2da9082 ; nameserv EDNS fix for
+- **srv-U** : pulled via pull-git to dc2da9082 ; nameserv EDNS fix for
   Net::DNS 1.36 [ udpsize ] live ; host.cfg coding \ system \ jobsite
   [ root:root 0644 ] with layers 1 + 3 [ context cap 32768, system zenka
   llama-server limit ] ; /data/models now 2775 ; Qwen3.8 9B Heretic
@@ -36,9 +36,9 @@ cloud credits $58 [ expire 2026-11-05 ].
 
 ## open, next steps
 
-1. pri : model ids are `<install-path part>:<content part>` -- the
+1. srv-U : model ids are `<install-path part>:<content part>` -- the
    host.cfg files still name 72T4WFI:TK55OIY [ did NOT resolve ]. find
-   the Qwen3.8 id on pri [ `p7c models.list models :QDBKEXY` ], set it
+   the Qwen3.8 id on srv-U [ `p7c models.list models :QDBKEXY` ], set it
    in coding [ model_id + path ] and jobsite host.cfg, restart those two,
    first coding start with a memory watch, one jobsite assessment
    [ data/tasks/coding-cpu-host-setup.md ].
@@ -59,8 +59,8 @@ lessons saved today : [[feedback-self-reexec-tests-need-recursion-guard]],
 [[feedback-single-dash-long-options]], host updates via pull-git
 [ [[feedback-no-manual-modifications-on-hosts]] ].
 
-#,,..,...,,.,,..,,,.,,,,.,..,,,.,,..,,,.,,.,.,..,,...,...,,,,,.,.,,..,,.,,.,,,
-#T742XM3NJILK6LXZTYGA5M2BE7XXS35263SEFPSUJTHJV4FCKLEDEVSYW5OB63D7M563JOEY57HO4
-#\\\|MF4VYW3BB7EPYEOED2RYTQ3OAGUDSPRBNZQPSPE4MEWHOMLUC3Y \ / AMOS7 \ YOURUM ::
-#\[7]IYSRYJKNB5XIIP3PVCPZ3GBKSWP7DM5N5VIRDRHEL4SO7SXIJEBA 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,,,.,,,..,,..,,.,,,..,,,.,,...,..,,...,...,..,,,.,,.,,,.,,,..,,
+#UBY36HXQEYMQM4ACASEH3ESMCYXE3HC7L67C6BA2NLYF2QWXQFFEALFB7UMZPMNCV4R7H236SAF6Q
+#\\\|DWAAYTJLJ7V27SYUDQV3UAUSSGXHV3M56XBO2AV6EZHU2YBFPTI \ / AMOS7 \ YOURUM ::
+#\[7]KHFOHX6FATRCXPFJLEXI67ZZZZAXDFUFNOZHE7HO66UKJARZCEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

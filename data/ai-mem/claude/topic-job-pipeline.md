@@ -35,7 +35,7 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - Future: score_tech + score_location as separate fields (structure ready)
 
 **jobs.vhost — LIVE**:
-- Vhost: atom.protocol-7.network (46.101.115.180), TLS via letsencr
+- Vhost: srv-F, TLS via letsencr
 - Repo: `data/web-root/vhosts/jobs.vhost/` (domain not disclosed)
 - Manifest: `hostname_pattern: jobs.*` + `install_matching: yes` — resolves against
   deployed /var/httpd/jobs.* dirs at install time
@@ -50,7 +50,7 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - CSV export: applied/responded/rejected only
 - Export: `bin/dev/export-jobs-json [outfile]` — reads store.yaml → jobs.json
   prefers score_reason_de (legacy) then score_reason; to_unicode() fixes Latin-1/UTF-8
-- Update cycle: `perl bin/dev/export-jobs-json /tmp/jobs.json && scp ... atom:/var/httpd/jobs.*/`
+- Update cycle: `perl bin/dev/export-jobs-json /tmp/jobs.json && scp ... srv-F:/var/httpd/jobs.*/`
   (actual dir matched by wildcard — not kept in repo; personalized)
 
 **letsencr fix (session 22)**:
@@ -419,8 +419,8 @@ infers it correctly every time from a posting's text.
 `--noproxy '*'` first if any live-page fetch/debug against a job-board domain
 times out through the configured proxy.
 
-#,,.,,...,,,,,,,.,.,,,,,,,,.,,..,,,.,,..,,,..,..,,...,...,...,.,.,,..,.,,,,,.,
-#3SLBB3GONH352ZXV3GZCRUAVBI52TGKUXSXIEGEAQ4O46KUN6P7ZK6WJ3ALYL423CRCP2FPXYAJQE
-#\\\|KRJ3E2XMA2DUWLE5HYMY4MDKEF4NHH6KVJMOJ4TUCTQ4LA72QRU \ / AMOS7 \ YOURUM ::
-#\[7]7CU4UQUOQ3MUYOCXNTJNJP6ZMFAKUZWCPE2SLBWL37BVA5LLHUAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,,.,,,.,,,..,,,.,,.,,.,,,,.,,..,,...,...,,.,,.,.,,,.,...,,,.,
+#GW42XITG4C6UBP3AST7WOIPIADMJTHGXEJFE3NVYRIIJSTFL2WFKWTIAWAC3H6IA7GS5N2T2ODOSO
+#\\\|NU3BA65KNIR4AVLDKM5OVUXVXVP3XMXHWD2PCOZNRA2L2WU2JRQ \ / AMOS7 \ YOURUM ::
+#\[7]IZXNNAELLL2EL6L6TNLK47R7YATBVMDEJIBECZJ6GKOLX72SOKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

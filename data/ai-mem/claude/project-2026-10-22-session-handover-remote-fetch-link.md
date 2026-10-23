@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-22-session-handover-remote-fetch-link
-description: previous handover -- session 2026-10-21..22 handover [ last b6a6ed425 ] : jobsite cert + nameserv fixes, web secret rotation, optional dependencies, remote fetch pri -> delta over an encrypted link WORKS [ 279 new jobs ] ; open : coding 'depending' queue on pri, link not yet permanent, 3 cloud design docs pending
+description: previous handover -- session 2026-10-21..22 handover [ last b6a6ed425 ] : jobsite cert + nameserv fixes, web secret rotation, optional dependencies, remote fetch srv-U -> srv-V over an encrypted link WORKS [ 279 new jobs ] ; open : coding 'depending' queue on srv-U, link not yet permanent, 3 cloud design docs pending
 metadata:
   type: project
 ---
@@ -10,14 +10,14 @@ budget at the end : claude 7d ~15 % [ window resets ~2026-10-28 ], kimi 7d
 reset 2026-10-21 23:00 [ one k2.8 job used ], cloud credits ~$55 of 100
 minus 6 design sessions [ expire 2026-11-05 ].
 
-## landed [ all pushed, all deployed to pri yourum delta ]
+## landed [ all pushed, all deployed to srv-U srv-A srv-V ]
 
 - 74dec9f91 \ 8d1a010c0 : v7-zenki.rotate-web-auth-secret [ :force-now: \
   :no-restart: ; File::stat gotcha : stat list slice is undef in zenki ]
-  -- pri rotated 2026-10-21 22:27 [ 0 sessions ; the old secret leaked into
+  -- srv-U rotated 2026-10-21 22:27 [ 0 sessions ; the old secret leaked into
   the transcript earlier, now dead ]
 - d098e4a0e nameserv sync : bounded long-poll hold [ max_hold 390 ] +
-  reap half-open waits [ yourum sat on a dead v6 socket since 10-19 ]
+  reap half-open waits [ srv-A sat on a dead v6 socket since 10-19 ]
 - bd289c62a nameserv : echo the question exactly as received [ 0x20 ;
   lowercased echo = SERVFAIL at lets encrypt ] -> jobsite.taute.re cert
   issued 2026-10-21 22:26
@@ -25,7 +25,7 @@ minus 6 design sessions [ expire 2026-11-05 ].
   the start profile refuses [ disabled OR not in the on-demand allow list,
   v7-zenki.zenka.profile_refusal ] refuses the dependent ; external :
   discover optional
-- 07239e1f7 reload config re-applies the host overlay last [ pri fell
+- 07239e1f7 reload config re-applies the host overlay last [ srv-U fell
   from remote-server to base and started discover \ debian on a server ;
   see [[feedback-config-reload-clobber]] ]
 - aa8b39cb5 + b6a6ed425 remote fetch : jobsite.cfg.fetch_zenka, site-yaml
@@ -41,19 +41,19 @@ minus 6 design sessions [ expire 2026-11-05 ].
 
 ## live state
 
-- pri jobsite fetches through delta : host.cfg jobsite.cfg.fetch_zenka =
-  external.delta.site-yaml [ backup .bak-before-fetch-zenka ]. first run :
+- srv-U jobsite fetches through srv-V : host.cfg jobsite.cfg.fetch_zenka =
+  external.srv-V.site-yaml [ backup .bak-before-fetch-zenka ]. first run :
   630 records delivered, 1376 -> 1654 jobs, 279 new
 - the link is BY HAND : `ssh -4 -N -L 127.0.0.1:4243:127.0.0.1:42` as
-  protocol-7 on pri [ key ~protocol-7/.ssh/id_ed25519_link ] +
-  `external.connect delta 127.0.0.1:4243 remote-fetch`. a pri restart ends
-  both -- redo them [ -4 : pri <-> delta and pri <-> yourum ipv6 is broken ]
-- delta host.cfg : v7-zenki.host.zenki.on-demand += external site-yaml
+  protocol-7 on srv-U [ key ~protocol-7/.ssh/id_ed25519_link ] +
+  `external.connect srv-V 127.0.0.1:4243 remote-fetch`. a srv-U restart ends
+  both -- redo them [ -4 : srv-U <-> srv-V and srv-U <-> srv-A ipv6 is broken ]
+- srv-V host.cfg : v7-zenki.host.zenki.on-demand += external site-yaml
   nodes [ backup .bak-before-remote-fetch ]
 
 ## open, next steps
 
-1. **coding on pri** : jobsite dispatched [ task SP6GUHA, 277 remaining ],
+1. **coding on srv-U** : jobsite dispatched [ task SP6GUHA, 277 remaining ],
    coding moved the job into its 'depending' queue -- find what it waits on
    [ level-1 logs do not say ]. suspects : assessment_model OFSQC4I vs
    loaded KMUVFQQ [ model switch ], or a jobqueue dependency. backend is
@@ -76,8 +76,8 @@ minus 6 design sessions [ expire 2026-11-05 ].
    leftovers, 6C6 credential layers, DKX vault sealed import, CSR cloud
    completion notices, HS4 + 3W5 appends
 6. still open from before : web.auth-issue ui token [ owner runs it :
-   token must not pass the transcript ], retire the old jobs vhost on atom,
-   yourum ipv6 [ provider side ? ], todo Q7O \ YBX
+   token must not pass the transcript ], retire the old jobs vhost on srv-F,
+   srv-A ipv6 [ provider side ? ], todo Q7O \ YBX
 
 ## lessons
 
@@ -89,8 +89,8 @@ minus 6 design sessions [ expire 2026-11-05 ].
   proof ] and sometimes a claude/<topic>-<suffix> branch too : a new branch
   is never 'done'
 
-#,,,,,,..,...,.,.,..,,...,..,,.,.,..,,,.,,,.,,..,,...,...,,..,,.,,,..,,,.,,,.,
-#D3QEW5PGPGMKFPMQ56HOWRIE7F6X7SX7NRDXDBTMSBFRUM5EQLZHJGY2FEW4Z44ZJO7YBKGKFUQTO
-#\\\|J6JL4OV7R4Y4SNYW3TJ6Q5RU5ZT35GLVFG5E2ZFWJKXX63UR4AC \ / AMOS7 \ YOURUM ::
-#\[7]DPBZODGGSB2TUD56YC4ATJEKMVXXGWON3S3AJFSNZH7SADCVSOBI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,,,...,,..,.,,,.,,,,..,.,,,..,,..,,...,...,,.,,.,.,...,,..,...,
+#GGCR5ZLDE45LFWN7TJIITFVMX5LSB4UF3LAVCNYM2XSDYUXF5HAVF2QYK72FETAF5K2IVS6PM5AMW
+#\\\|RO4QXC3AWB5SNX2KWQMY6FJ3LJ6S5I522LDK5NNEEOBSJJ4KNO3 \ / AMOS7 \ YOURUM ::
+#\[7]HGBHFDWXGCUUBGAG3RVS6I2NS6FCHEYGUFI6DVM5TOHZZE36JCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -128,7 +128,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [ptd-vs-format-code-two-reasons-to-keep](feedback-ptd-vs-format-code-two-reasons-to-keep.md) — ptd skips reflow AND never loads PPI (~175ms), format-code does both; don't retire ptd assuming feature-parity means redundancy
 - [ptd-syntax-check](feedback-ptd-syntax-check.md) — use `ptd -c`, more P7-tolerant than `perl -c`; but it only catches fatal errors, NOT non-fatal warnings (e.g. a `0xFFFFFFFFFFFFFFFF` literal's "non-portable" warning) — after restarting the zenka, also check `<zenka>.show-buffer compile-errors` ("no such buffer" = clean); prefer `~0` over a literal max-value hex constant
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
-- [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
+- [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both srv-F+srv-U clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 - [check-local-session-log-before-kimi-continue-roundtrip](feedback-check-local-session-log-before-kimi-continue-roundtrip.md) — before paying for another kimi_continue round-trip to re-extract data a session already produced, check kimi-legacy -r session log, session_catchup, or coding.show-buffer first
 - [jobsite-candidate-preferences](feedback-jobsite-candidate-preferences.md) — steady income > top-of-market pay in salary advice/profile.txt tuning, but exploitative/unstable pay stays a hard line; anchor salary asks mid-upper-estimate, one number not a range; prefer jobsite.blacklist-add over profile.txt prose for settled company exclusions
 - [avoid-em-dash-external-writing](feedback-avoid-em-dash-external-writing.md) — no em-dashes in cover letters/emails/anything read by an external human, reads as an AI-generation tell; plain hyphen/comma/colon instead, default from the start
@@ -221,8 +221,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [nested-data-read-autovivifies-before-defaults](feedback-nested-data-read-autovivifies-before-defaults.md) — a nested `<a.b.c>` read before init_modules creates `<a.b>` as {} and cancels a whole-hash `//=` default [ v7-zenki zenka-dirs all undef 2026-10-11..15 via base.host.detect ] ; read early via `( <a.b> // {} )->{c}`, defaults per key
 
-#,,.,,,,.,.,,,.,.,,..,.,.,...,.,.,,..,.,.,,.,,..,,...,...,,.,,,.,,,..,.,,,..,,
-#BV4DLFL6OHV4Z2QDWEUO325V3KMT44QNC2P3VC3MYQVQCEMQ4QIW3RHVWWP52YWF5DUMZCM2PEOUY
-#\\\|G5FWBN3SK74PLMTYPN7LXAOH2XOITN43E3XACRELF6VVSE4XFX5 \ / AMOS7 \ YOURUM ::
-#\[7]COGUWD2YYAG2KHQ4GR4SGRKCTNO2XA7TULF377KHZLWJD4I5QUDI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,,,,.,,.,,,..,,..,,.,.,...,,.,,..,,...,.,.,...,..,,...,..,,.,.,
+#ZJHMHHFCPLMU5OA2RLO65NL5OSZSCMG3G2JX7DDF6NP3GW6L2GTE4IIEMQJP7LJY7ZUXZOZETQ64A
+#\\\|KA4JRSZBKB45JQM5UJQHEYCWOG3KFBC2JRQ4XPQE6VFNSUHLVP3 \ / AMOS7 \ YOURUM ::
+#\[7]VMM7LGWVMFNBGUWZNEVB757MR2ZDF2TT5GIDM7P26PQBMJKBIWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -71,7 +71,7 @@ designs : `data/md/design/TRUST-CHAIN-STEP2.md`, `data/md/design/HOST-SETUP.md`.
    goes for repair ] -- choose the authority key first ; ssh the host once
    by hand [ BatchMode needs known_hosts ] ; the user must be admin there
    for owner-statement install
-2. atom \ second-host checks : discover owner trust, rotation
+2. srv-F \ second-host checks : discover owner trust, rotation
 3. later : discover as a host-edit source [ offered hosts -> records ],
    the dns back channel, vault-edit onto form.action.send \ chrome
 
@@ -88,8 +88,8 @@ designs : `data/md/design/TRUST-CHAIN-STEP2.md`, `data/md/design/HOST-SETUP.md`.
 - never probe a destructive command [ remove known: shredded a live pin,
   restored byte-exact ] -- the fix [ key trash ] landed the same session
 
-#,,,.,,,.,...,.,,,,.,,..,,,,.,.,.,...,,,,,,,,,..,,...,...,...,...,,..,...,.,.,
-#AKKNAC3VJBHP4PJ52BBQSQWU7M4YBYEFSDSI2XH5FYMDHVFXVTR6DCYLFBGWH6ENPILVAY6TJA5FO
-#\\\|ZZVNA6NG5PGL6GFC6EJZJHOJGL2YIA3D4BEERGJ3SQORQQXBVBU \ / AMOS7 \ YOURUM ::
-#\[7]VREB6O4DCA4AHT72OO4N6FEHHLQ53HCVFMEQOSV5RVJN7AJNSIBA 7  DATA SIGNATURE ::
+#,,..,...,.,,,,..,..,,...,,..,,.,,,.,,..,,...,..,,...,...,.,.,,.,,,.,,..,,,..,
+#MQWRDU4R6J64NOZQWYUUKWS5YL7QIXWKZNEPZ4SUD4ZX2M3CVR2SI3IFVQFD2EXA35LTUSM3HK65E
+#\\\|ZNGYKS5LE2M2BX7LDC37GVYLWXOUX4C2JEHGZM4SJAHAK3CSHHJ \ / AMOS7 \ YOURUM ::
+#\[7]QN4TVUH6LRHEJ7NTVNZCU5YSMLU7LABFHTX2LFMFQXKSR5QFF2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

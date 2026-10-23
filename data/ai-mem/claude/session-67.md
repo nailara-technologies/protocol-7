@@ -123,7 +123,7 @@ All `?.` and `??` replaced with `&&`/ternary — mobile DuckDuckGo renders.
 
 ## import-atom-jobs script — DONE ✓ commit 142da4c44
 
-`bin/dev/import-atom-jobs <dir>` — merges atom flat-layout YAMLs into local status-dir store. Priority map tiebreaker. Prints imported/merged/skipped summary.
+`bin/dev/import-atom-jobs <dir>` — merges srv-F flat-layout YAMLs into local status-dir store. Priority map tiebreaker. Prints imported/merged/skipped summary.
 
 ## CSV/HTML import — DONE ✓
 
@@ -151,7 +151,7 @@ MCP tools in `bin/mcp-server-p7`. Claude CLI dispatch with `--dangerously-skip-p
 
 ## open items
 
-- atom browser localStorage extraction — pri server jobs dir empty; extract via DevTools and POST as reverse-sync batch
+- srv-F browser localStorage extraction — srv-U server jobs dir empty; extract via DevTools and POST as reverse-sync batch
 - multi-endpoint sync — after auth settled
 - web-sessions-distributed — lower priority
 - ~~nshell `(0)` on first command~~ **FIXED 2026-06-02** — orphaned route handler generated `(0)!TERM!` for prefix-less replies
@@ -166,8 +166,8 @@ MCP tools in `bin/mcp-server-p7`. Claude CLI dispatch with `--dangerously-skip-p
 - epoch distance: `int(<[base.ntime.epoch_dec]>)`
 - checksum sync-only pattern: title checksum in `applied/` → future same-title inherits `applied` without assessment
 
-#,,..,,.,,,..,.,,,...,,.,,,,,,,,.,,,,,,..,,.,,..,,...,...,.,.,,,,,.,.,..,,.,,,
-#ADQOAAP7UG4ZU2AYSTPWZV4DYQ6GSZPHE6UPIKNMKTEEDMQVK3JW5ITJREDTISLO3TNZ3YBVA3TD6
-#\\\|NA7UJUC7RFONB7UIO2GDH7G6FWJWQHUHXL67WQF6YCSCZXD5D2B \ / AMOS7 \ YOURUM ::
-#\[7]MS2CGXZRF5PT7QETLTWJL6XACMXY47JONW67CTFJJOFJ46O7VMDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,,,,..,,,.,,,,.,,,,,,,,,,.,,,,,,..,,...,...,,.,,,,.,...,,..,,,,,
+#3EJHCT7GH66D3G3SZQQAW5WC2ONTFYXNDDXE7BQF2TP4CWQ56AQBZMQQ2EIJQWL4Q7CKWX34X4PKK
+#\\\|XLHYM5EAMDURX3NR2MT5TDG6M6TG7HUMKYXZDJMUPPK6XI2GCEX \ / AMOS7 \ YOURUM ::
+#\[7]FA7EOCMA46JWL3U6O7VBWDH4TVON3RXSOBSDCDJZR3J3MBGDMUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,7 +42,7 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
    `p7c crypt.C25519.cmd.host-root-fingerprint` -> 77 chars ; re-open
    `external.self` -> one `pinned host-root ..` log ; `discover`
    host_details shows trust. remove any old 52-char pins under
-   `~/.n/remote-keys/servers/` first. then the same on atom \ remote
+   `~/.n/remote-keys/servers/` first. then the same on srv-F \ remote
    servers [ start profile differs, same v7-zenki config ]
 2. regenerate the `.base` placeholder keys [ weak-seed era, from the
    previous handover -- still open ]
@@ -72,7 +72,7 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 #\[7]GKDHLZOZP23UDNYTFXO7T2FG7BN4VV3CGMKY4SZHUZHUN4DEZ6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**status 2026-10-07 [ next session ] :** 1. live check DONE on this host [ root/, .dlg, fingerprint 77, pins via p-7-r + external.self ] -- discover trust + atom \ remote servers still open [ needs a 2nd host ]. 2. DONE [ both .base keys rotated ]. 3. Digest::BMW : already in the cryptography profile [ nothing to do ] ; encoding-upgrade guard : 3039cd599 ; %signatures : dead cluster removed [ load_all_signatures, key_signatures_list, verify_key_signature, the global, post_init's readerless {root} glob ] ; sign-key \ remove-signature \ .ks .sk .rq helpers KEPT -- migrate to trust.statement with step 4 ; name_from_skey_name is live [ key_name_to_skey round-trip ]. nodes trust transitions : DONE [ discover notifies nodes on every trust change, invalid on a changed root -- test-discover-delegation 38 ; live check needs a 2nd host ].
+**status 2026-10-07 [ next session ] :** 1. live check DONE on this host [ root/, .dlg, fingerprint 77, pins via p-7-r + external.self ] -- discover trust + srv-F \ remote servers still open [ needs a 2nd host ]. 2. DONE [ both .base keys rotated ]. 3. Digest::BMW : already in the cryptography profile [ nothing to do ] ; encoding-upgrade guard : 3039cd599 ; %signatures : dead cluster removed [ load_all_signatures, key_signatures_list, verify_key_signature, the global, post_init's readerless {root} glob ] ; sign-key \ remove-signature \ .ks .sk .rq helpers KEPT -- migrate to trust.statement with step 4 ; name_from_skey_name is live [ key_name_to_skey round-trip ]. nodes trust transitions : DONE [ discover notifies nodes on every trust change, invalid on a changed root -- test-discover-delegation 38 ; live check needs a 2nd host ].
 
 #,,,.,...,,..,.,,,.,,,...,,,.,...,.,,,..,,,..,..,,...,..,,.,.,,,,,,.,,,.,,,.,,
 #ALIFG3E2AQGWYPOLRKPFA2527E6MOCLWRABEQTTWDJQY3KB6WFN32IQXDN2SNWCVEM3T2LQTVL6SA
@@ -90,8 +90,8 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 
 **added 2026-10-07 [ user ] :** optional self-propagation of statements in either direction [ a node proves its chain standalone after a connect, signer offline ] -- section 'later : self-propagating statements' in TRUST-CHAIN-STEP2.md.
 
-#,,.,,..,,,,,,...,,..,,,.,..,,,,.,,..,...,,,.,..,,...,...,.,,,.,,,.,.,.,,,,,.,
-#YL5MRG26AFNISR2VBSQE3BXFU42GDM2TN25BQYY3G5TCVW2EZTVZKVQ7C7IQRTTTNHFFXISH4K33M
-#\\\|LSA66PS4P7DUAGK6D7C6MOODDABKCW5J5LA7U3AADEU57A3O7XM \ / AMOS7 \ YOURUM ::
-#\[7]6BFSDC4X4HZEO3YJQAQO3UEJHIH4QHIC24JUEIPF55YNMCZR54BI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,,.,...,,..,,,,,...,...,,,.,..,,...,...,.,,,.,.,..,,..,,,.,,
+#7N35FKVFO2JXWL6BGCVYAGNYVZ5NJEJTO7BYHFVKRP7X5POISAEB24VPJBRE32HWZOTSAWWKUEVHO
+#\\\|KRCCJGFJEEYJ5PANHJVM4EVXMTNU3ZWU2FWEIDU62PVQPD5JPPM \ / AMOS7 \ YOURUM ::
+#\[7]N7YVYBB34EALYKZW2GGT6EKHNBOJYAIW4X3RBESEC6U2BVSW7MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

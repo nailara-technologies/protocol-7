@@ -11,7 +11,7 @@ start path ; apt via debian.install-packages, cpan via debian.install-cpan
 [ same serialized queue, the ROOT apt child ] ; failed -> degraded start,
 retry_after 3600 ; install_timeout 1800 ; exempt `cube p7-log debian os-pkg`.
 OFF until a host sets `v7-zenki.cfg.auto_install_deps = yes` in
-/etc/protocol-7/v7-zenki/host.cfg -- none does yet [ yourum first ].
+/etc/protocol-7/v7-zenki/host.cfg -- none does yet [ srv-A first ].
 
 **security fix in the same commit** : `debian.start.apt_child` [ root,
 forked before drop_privs ] ran `'apt-get -fy install ' . join ...` as a SHELL
@@ -45,8 +45,8 @@ watchers_pending, set up by add-queue once Event is loaded, early lines
 kept. lesson : remove the real dependency and restart -- stubs hid it.
 appmgr policy later. see [[project-2026-10-15-forensics-restart-loop-cube-ids]].
 
-#,,.,,,..,,.,,,,.,,,.,..,,,,.,,.,,,,,,,,.,.,,,..,,...,...,...,,..,,.,,.,.,.,,,
-#FU72T44EL55ZEXAK4MM25HBV4YJBZZQ6VC56CXKZNAH6JILZ45FJILSLKTRT6766OLD3FAM42MD4W
-#\\\|KXU422JWG3LBMWQCWY4NLCR6KQK3AM7RD5G55MQJLCGOQ5ART5Q \ / AMOS7 \ YOURUM ::
-#\[7]RC7H5CDYUD4ZJKSXYWXD55MIXK3GJP5YUFFL5QP4HXB2FPZSZEBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,,..,,,,,,..,..,,.,.,.,.,...,..,,...,..,,..,,,.,,.,,,..,,...,
+#FVEY2UGMP7TFWLHBY4J7ZSTWPXBLSTBRLQFI4NHXHDEUABN3DUMKT4J3HKTZRGI2MRXXVZI5AP4Y6
+#\\\|MTLJJELKIOJS233UKYF7WZ73DTK6BCYLWKZMENQUHKLFN3DADVK \ / AMOS7 \ YOURUM ::
+#\[7]QTXZZWQOWIFSXWAT5V74GBUCAO7UBTAL4QGKMYWH6TJ7APVEVQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

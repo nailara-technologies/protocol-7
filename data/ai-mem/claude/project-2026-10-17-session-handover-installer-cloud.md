@@ -27,7 +27,7 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
 - cloud tooling in bin/mcp-server-p7 : claude_cloud_dispatch \ _status \
   _result -- see [[reference-cloud-sessions-first-run]].
 - legacy install script : the unit via p7-deps install-service [ the
-  plain cp left 'changed on disk' on delta ].
+  plain cp left 'changed on disk' on srv-V ].
 - list rendering [ 2a2663571 ] : base.parser.list sizes columns with the
   align offset ; separator = longest line + 2 [ 1 past 80 ].
 
@@ -105,8 +105,8 @@ follows [[project-2026-10-16-auth-watcher-add-incoming]] [ its plan steps
   compositing, re-feeding, prompt categories in
   data/tasks/images-elfdb-feature-collection.md.
 
-#,,,,,.,,,.,.,,.,,,,,,,..,..,,.,.,,..,,,,,,..,..,,...,...,.,,,.,,,,,,,.,,,,,,,
-#AC7XGR3RWY77OZ7IGV3ZTO4IQCL26N3O3DUF6ANG4HK6COKQVNZ5XQXWCYHYUN4UFBLXXH265KAEU
-#\\\|JRNRZYEA5E5OWGXW4WSRMYR7ZA4LAYYJ7AGQDRTKY4NEHR2TPLK \ / AMOS7 \ YOURUM ::
-#\[7]5EEKSOFWNNZBO6SBIMUMZBBZVS62FZEAQ4Z5B3FTRS5T3HHKIKAA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,.,,,,,,,,.,,,.,.,.,.,.,...,,,.,..,,...,...,..,,.,.,,,.,.,.,...,
+#QKD2V53BJY2XXWQWZQLVDP4Y7SEHSBH43IGXBN32KDO3AVGUBMWHMIEYTZBSMCQGMGIZZIPKJSAWM
+#\\\|F4VTXVTZQS7ZQOF3M4XGTQGKPHOXLTTMTHRCAYTI4IUWF7ENL7J \ / AMOS7 \ YOURUM ::
+#\[7]NA6MFHCGXW6KI3E6AM5L3KHUIRDK5U66LRF332S7G2LX5WCNM2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

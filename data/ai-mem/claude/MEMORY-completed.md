@@ -97,8 +97,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   base.strm.subscribe's own publisher-restart re-affirm gap (STRM, dispatched to kimi k3,
   independently re-verified) across two consecutive cred-mesh/proxy restart cycles.
 - [inline_elf Perl-version infinite loop + 4 more](bug-inline-elf-perl-version-infinite-loop.md) —
-  LANDED 30d990d9c..b2a137e64: started as one hang report on `atom` after a dist-upgrade to Perl
-  5.42.2, ended as a full clean-boot pass across `atom` and `pri` (5 independent bugs total: the
+  LANDED 30d990d9c..b2a137e64: started as one hang report on `srv-F` after a dist-upgrade to Perl
+  5.42.2, ended as a full clean-boot pass across `srv-F` and `srv-U` (5 independent bugs total: the
   inline_elf C bug itself + its dead-code dup, ptd/format-code's P7-macro perl-c false-positive gap,
   .deps/profiles.yaml gaps for graphics-matrix/opencv + a basic-remote-server profile rename, an
   httpsd/web skins-ownership race, a stale web.cmd.skin path). Both hosts clean-start/stop verified,
@@ -167,8 +167,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   sweep cursor paused mid-run (`cpu : paused [ circuit-breaker ] : idx=3/90`), resumable once the
   binary issue is fixed.
 
-#,,,.,,,.,...,,,,,,.,,...,...,...,,..,..,,...,..,,...,...,,.,,.,,,,.,,.,.,,,,,
-#6S5BIZTBOBCCAWLK54I76L6MP7QHIDNRZQHPBYGIBRXAN3U25VTVVANUGENYXDLGGYDW4OFX2AIOS
-#\\\|JSEFQJL66J6ATXYQRRXVVT6KOH66TLBPOD33IJJKCRCT4VDZOSD \ / AMOS7 \ YOURUM ::
-#\[7]ICKCCFRXSKIFARKEX4KY3FO3PGPSWCFGLVFWZ5POF5JK64H232BA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,.,,,,..,,..,,,.,,,.,.,.,.,,,..,,...,...,.,.,,,.,...,.,.,,.,,
+#KZHJ5TXHIPVDGGGXTAKWPYXECNF5UXEW7P2VEY5XHWAD6PF4VATLALFYXDEG4CVQJMWW3JKH2YT2C
+#\\\|WN3QUCGB24TKMN5URMDM66R3H5EQCHYPQCV7FIQ2ASRGCXSGABU \ / AMOS7 \ YOURUM ::
+#\[7]OVKBR4C3TI7HWIZ7VDOFX4GX7OJTA5REYMLK6VUCBBVHX7RKUCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

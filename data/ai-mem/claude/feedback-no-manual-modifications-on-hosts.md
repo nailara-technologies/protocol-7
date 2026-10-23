@@ -17,10 +17,10 @@ plain `git pull` [ 2026-10-18 ].** the pull-git set-up runs
 bin/admin/p7-git-pull--rebase as root : fetch, clears untracked files the
 incoming commits start tracking with the same content, `pull --rebase`,
 then bin/admin/restore-p7-permissions. a manual pull skips the last two
-steps. done wrong once on pri, then repaired by running pull-git.
+steps. done wrong once on srv-U, then repaired by running pull-git.
 
-#,,.,,,.,,,.,,,.,,..,,,,,,.,.,,..,.,,,,..,,..,..,,...,...,,..,.,,,,.,,,.,,.,.,
-#QLXLARYHIJMSNMPOFUI53MHW24WEZGMKAZ2YSKLNMSHMNRFVKXKLEQFGV6XD4TLWC32T2YC24EPTM
-#\\\|7C43VQT3FCKLCTWTSYI4SOM3AEWWZL52K2YUKOOI2YEE4AU5IBX \ / AMOS7 \ YOURUM ::
-#\[7]SH627V3TZE6N52FQ7ZOW7CSAUWJHNP5QKEICZOOQP2TIU5G47WAA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,.,.,,.,,,,.,.,.,...,,,.,,,.,..,,...,...,.,.,.,.,..,,,..,,.,,
+#HVS4R26BEUAMGGO47E2KT2JC2HJ3CD47IJ3TI5LVBME64SNGRULER44HYJIU3ZR4ELFAKLQSZA3YO
+#\\\|ZPAFITSUJXVY6BLBAL4K6XOQ3JE5EBI75DMTD4FNKP27NYC3G6Q \ / AMOS7 \ YOURUM ::
+#\[7]UV46YNLKL3EIGKQOQNHHMZ2AQAAMVGLTTCJGW2T4FWCTBYFGWSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

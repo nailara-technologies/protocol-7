@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-previous : [[project-2026-10-18-session-handover-n7fs-truth-pri]]. the
+previous : [[project-2026-10-18-session-handover-n7fs-truth-srv-U]]. the
 nameserv \ letsencr \ web-auth session in between [ claude 782d4de8 ] wrote
 no handover -- its open steps are below [ from a session_catchup summary ].
 budget at the end : claude 7d low [ fresh window ], kimi 7d ~98 % [ resets
@@ -52,26 +52,26 @@ budget at the end : claude 7d low [ fresh window ], kimi 7d ~98 % [ resets
 
 - `ssh -G` RUNS `Match exec` commands [ OpenSSH 10.5p1, fixture test ] --
   use -G as a source only on configs without Match exec
-- host-edit add-host works live over ssh : atom record saved with
-  transports ssh, `done : pinned` [ key TWVQ6QL ]. records : atom [ no roles
-  \ link_user ], pri [ name + ssh only ] ; delta \ yourum none [ pins exist ]
+- host-edit add-host works live over ssh : srv-F record saved with
+  transports ssh, `done : pinned` [ key TWVQ6QL ]. records : srv-F [ no roles
+  \ link_user ], srv-U [ name + ssh only ] ; srv-V \ srv-A none [ pins exist ]
 - the sign run regenerates base.list.subroutines, subroutines.load-early
   and the module dependency graph for new \ removed modules
 
 ## open, next steps
 
 1. **remotes [ user leads, from the 782d4de8 handover ]** : pull-git on
-   pri, yourum, delta ; on yourum + delta replace the exact acme.jobsite
+   srv-U, srv-A, srv-V ; on srv-A + srv-V replace the exact acme.jobsite
    grant with `zone:acme.*.<domain>` patterns, `nameserv.reload config` ;
    wait for the letsencr retry [ <= 15 min ], else
    `httpsd.reload-certificates` ; registrar records for jobsite :
-   `_acme-challenge.jobsite` CNAME + `acme.jobsite` NS ; on pri reload cube
+   `_acme-challenge.jobsite` CNAME + `acme.jobsite` NS ; on srv-U reload cube
    config, restart web \ httpd \ httpsd \ jobsite ; mint a ui token
    [ web.auth-issue ], check the 23 jobs, one real assessment ; retire the
-   old jobs vhost on atom
+   old jobs vhost on srv-F
 2. **todo 3W5** : stepstone WAF blocks both contabo servers -> site-yaml
-   [ fetching ] on delta + new us nodes [ dallas, then east coast ],
-   coding on pri \ yourum. permanent links = host-edit records [ roles,
+   [ fetching ] on srv-V + new us nodes [ dallas, then east coast ],
+   coding on srv-U \ srv-A. permanent links = host-edit records [ roles,
    link_user ] + a supervisor : ssh forward -> external.link.open ->
    reconnect with backoff ; nodes zenka reports up \ down ; resolve the old
    nodes.cmd.add-tronk path first ; unattended ssh key restricted
@@ -83,8 +83,8 @@ budget at the end : claude 7d low [ fresh window ], kimi 7d ~98 % [ resets
    the item ]
 5. editor audit leftovers : cosmetic only [ tiny terminals, alt-keys ]
 
-#,,..,,.,,,,.,.,,,,.,,,,,,,.,,,,,,,.,,,,,,,,.,..,,...,...,.,.,.,,,...,,,.,.,,,
-#BNMPGUY3ZBDI66OTDO7HJ4BEQOPFVPS4IEAXW75TS7J2TVTNYU6ZUOZ7B6LQHC3TSL4P56WC2XXTE
-#\\\|O4NVKM2V2ZJRVIRWTRVL2UKWSCAGWN62A7XRJVB25ABDZVMXWQZ \ / AMOS7 \ YOURUM ::
-#\[7]VDQT3J6SKKLA3BFM6EU3OEDCMUNNUISGPVJZ2JONWXLBPGUSNYCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,,,,,.,,,,,,,.,.,...,,.,,,..,..,,...,...,...,...,...,,,.,...,
+#3YGBZTUAMOPMTVVBYTJKO55XERPZT4DS3LHQQQA7KKOW6WNMKWIQKZHLVVO5C6JTDIWCHMPSF3SNO
+#\\\|TCD66KYFAZ62F7HQ4A2PPYKLKXUPEJRD2NOPRUO75JFO4KUYJYL \ / AMOS7 \ YOURUM ::
+#\[7]BYBGL2OG3N7YKLIP6VDSQNBTQXPMDZ4CTJM455JQEO5LJ5IDZGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
