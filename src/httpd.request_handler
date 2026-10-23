@@ -15,11 +15,21 @@ if ( $session->{'buffer'}{'input'} =~ m,^[^\r\n]{$max_uri_len}, ) {
     );
     <[httpd.send_error_page]>->( $id, 414 );
     return 2;    # Request-URI Too Long
-} elsif ( length( $session->{'buffer'}{'input'} ) >= $max_req_len ) {
+} elsif (
+    (     $session->{'buffer'}{'input'} =~ m{\r?\n\r?\n}s
+        ? $LAST_MATCH_START[0]
+        : length( $session->{'buffer'}{'input'} )
+    ) >= $max_req_len
+) {
+    ## measure the HEADER block only : once it is complete the buffer      ##
+    ## legitimately holds body bytes [ https binary mode reads up to 16 KB ##
+    ## per event, a larger POST false-triggered 413 ] -- the body is       ##
+    ## policed by max_post_size in httpd.http_post, oversized headers stay ##
+    ## refused here even when a blank line follows them                    ##
     <[base.logs]>->(
         0,   '[%d] maximum Request length [ %d bytes ] exceeded.',
         $id, $max_req_len - 1
-    );           # Request Entity Too Large
+    );    # Request Entity Too Large
     <[httpd.send_error_page]>->( $id, 413 );
     return 2;    # LLL: fix false positives..,
 }
@@ -192,8 +202,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,.,,...,..,,..,,.,.,,..,.,,,,,.,.,,,..,,,.,,..,,...,...,.,.,...,.,.,...,,,,,
-#OYNGTHHESQCUMTVNL4HCLYIE7EC7EG6H5I6YNYHG3LIGDJGHG5YIM5JF3P4O5AKRHMQL7Y2VCYOBC
-#\\\|7UKIG67FFYTH5XPTMPDGPBMRHX5KCZU22CSLTTJWDQWCKUP3BHS \ / AMOS7 \ YOURUM ::
-#\[7]CKR6U37V2P5D23KBKXLSMY5HQWRDVEF4UPMDXZ276ABGKIUCSIBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,,..,..,,,.,,,,.,..,,.,,,.,.,..,,...,...,.,.,.,.,...,,.,,.,,,
+#HGLIV5HMF6YOEBZ327KFZKSL63LGWZHVRZW6UGZGAINKD4HQC4LANSVVUWCKQSC5IU7YPDITKSQXO
+#\\\|GP5OYOQTHWYMAQ5L2SXVA2PT53S423LKKIYZCEKNA7M6YOW5B24 \ / AMOS7 \ YOURUM ::
+#\[7]UVJRD6XNCTCKVPQ54H44RW4YSPV6TYHPUK5Y6PMGBBVTXTJOP6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

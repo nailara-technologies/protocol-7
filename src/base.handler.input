@@ -111,9 +111,15 @@ if (    $len < <size.buffer.input>
     and not $session->{'shutdown'}
     and not $session->{'flush_shutdown'} ) {
 
-    ##  deferred restart [ when idle ]  ##
+    ## deferred restart [ when idle ]  --  never queue a replaced watcher ##
+    ## [ body accumulator \ streaming ] : the replacement restores it via ##
+    ## 'original_input_watcher' -- resurrecting it here makes it re-parse ##
+    ## buffered body bytes as a new request                               ##
+    ## [ premature 413 \ 414 and connection drop, https especially ]      ##
     <[event.io_idle_restart]>->($event)    ##  required ?  ##
-        if not $event->w->is_active;
+        if not $event->w->is_active
+        and ( not defined $session->{'watcher'}{'input_buffer'}
+        or $session->{'watcher'}{'input_buffer'} == $event->w );
 
     <watcher.io.transfer>->start
         if not <watcher.io.transfer>->is_active;
@@ -144,8 +150,8 @@ if ( $session->{'read-mode'} eq qw| linewise | ) {
         and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
 }
 
-#,,,.,,,,,,,.,,..,,,.,..,,.,,,,..,.,,,.,.,,.,,..,,...,...,..,,..,,,,,,.,.,...,
-#K7BXDBWPLADFLKFGQUPLRC66XZA5EJ32NAHEJDPKIWD5TGTNCQJHL7N4IC2KYOPZI46YCBKXIL5JW
-#\\\|ZY4JQBTMPHTTSH775RWX3TRZYCKEPUWMR3HKBO7FQIINGELUFKB \ / AMOS7 \ YOURUM ::
-#\[7]2WLRAVHEHS3SUBMNS4SPXLWDTQIIIILLQ46VWTNL7BOFRPKMEACA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,,,.,.,,,,..,.,,,.,.,,,.,...,..,,...,..,,...,...,,..,,..,,.,,
+#U22BEU4MY3KBIC3CWKE3PWQMMGM2VRJNW6OL5T2TFTLUIUYPY3P6VYPS3FGDKZ4NGFVZXP6H7BRIY
+#\\\|FWQWP5PK7CLEZRC35ALWBB3RTFTFUHBRAJYQLCDDEWDOQ5DMWGD \ / AMOS7 \ YOURUM ::
+#\[7]2FB3LLARX3I73CGLFUZMRZILDXR7VAMY6T4YDBYW6DWBSDMPQWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
