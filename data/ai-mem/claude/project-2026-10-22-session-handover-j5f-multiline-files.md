@@ -162,6 +162,19 @@ the regular session budget ].
   ncode.cmd.transform answers ncfg [ .cmd. data must be a STRING --
   structures in a plain routine, ncode.transform.run ]. todo FMC
 - srv-U host.cfg has coding.cfg.round_soft_ceiling = 777 [ manual ]
+- assessment speed [ 531e57a4a, 0b6be8dbe, 69785d21a ] : models sent
+  unmarked base32 -> ask-reply never saw :simple: \ :no_tools: ; now
+  ':B32:' everywhere [ kimi decodes before :next: ] ; coding.input.decode
+  called base.base32.decode [ the swapped name is base32.decode ] ;
+  prompt.assemble gives a no_tools task no tools [ the first request comes
+  from task.execute, not send_request ] ; the task tag goes last [ prompt
+  cache ]. srv-U : prompt 24.6K -> 12.6K chars, first token 200 s -> 52 s
+  from the 2nd assessment on, ~6 min per assessment [ was 8-10 ]. next
+  lever : output length [ ~800 tokens at 3.5 t\s ], owner's call
+- srv-A resolv.conf 'search .' [ backup .bak-2026-10-23 ] : its host name
+  domain's wildcard caught github.com [ no AAAA ] ; todo 5W7
+- labels are ssh aliases [ a second name on each Host line ] -- p-7-r
+  pins by HostName, the existing pins hold
 
 ## later the same day : history relabelled
 
@@ -201,8 +214,8 @@ the regular session budget ].
 - any 'deep recursion' warning ends a zenka [ exit 110 ] -- a synchronous
   handoff chain over a queue must be a loop
 
-#,,,,,,..,,,.,,.,,..,,,,,,,,,,.,,,,..,,,.,,,,,..,,...,...,.,,,,.,,.,,,...,,..,
-#ZOEUQQVBXPDQCLGR4HYK4VNF4HLOYDVE5RXGCQY6MG37RCAK6HZJNCPG3LGSBHLFV2FTLOCNXRQT4
-#\\\|2ONZYTWTESNIWEMHIC27M22ZYZME6XF5VX7UED3532PWGSZ43ZR \ / AMOS7 \ YOURUM ::
-#\[7]K3SAANVKXDTFDNR62E5PRQH5G6MJTBNYWCFQROPD7J725A6ISYCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,..,,..,,.,.,...,,,.,,,.,,,,,.,,,..,,...,.,,,.,.,..,,,,.,..,,..,,
+#POZ6MQJ4WDWOFIPBIL6DS4NGGU7GY5BBUHCVDMJLRZUKAN3JNI4F4YCXYE5O3EEWHGUM5VESJDC6O
+#\\\|VE4FRDFDVQGDLC6J2QMHYPH4X4DOWCFFXK5ESQFPOHMHJ4TMMKT \ / AMOS7 \ YOURUM ::
+#\[7]5N6TT5QB7G22UTBATW2DDTYH4BY63ZNYM6T2FIIJTDLVRK7O5CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
