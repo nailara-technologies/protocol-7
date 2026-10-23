@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = site-yaml.handler.drain_check
+# descr = drain poll : exit when idle or when the cap hits
+# note  = timer handler [ the EVENT arrives, its watcher carries the
+#         timer 'data' ] : re-runs the idle test of site-yaml.cmd.drain
+#         [ fetch queue + import_state + outbox records +
+#         fetched_streams ] ; idle -> cancel the timer and exit cleanly
+#         via base.exit ; <site-yaml.cfg.drain_cap> seconds [ default
+#         25 ] after the drain started -> exit anyway -- v7-zenki
+#         force-kills at drain_timeout 30 s ; the outbox is file-based,
+#         so even the cap exit cannot lose a record [ unconfirmed
+#         .json files stay for the new twin ]
+
+my $event = shift              // return;
+my $w     = eval { $event->w } // return;
+
+my $outbox_dir = <[file.zenka_dir.data_path]> . '/outbox';
+
+my @pending;
+if ( -d $outbox_dir and opendir my $dh, $outbox_dir ) {
+    @pending = grep {m|^[^.][^/]*\.json$|} readdir($dh);
+    closedir $dh;
+}
+
+my $remaining
+    = scalar(@pending)
+    + scalar( @{ <site-yaml.fetch_queue>       // [] } )
+    + scalar( keys %{ <site-yaml.import_state> // {} } )
+    + scalar( @{ <site-yaml.fetched_streams>   // [] } );
+
+my $cap     = <site-yaml.cfg.drain_cap> // 25;
+my $elapsed = <[base.time]>->() - ( <site-yaml.drain_start> // 0 );
+
+if ( $remaining == 0 or $elapsed >= $cap ) {
+    my $reason
+        = $remaining == 0
+        ? 'idle'
+        : sprintf 'drain cap %.0fs reached [ %d item%s left ]',
+        $cap, $remaining, $remaining == 1 ? '' : 's';
+    <[base.logs]>->( 'site-yaml drain : %s, exiting', $reason );
+
+    $w->cancel if eval { $w->is_active };
+    delete <site-yaml.drain_check_timer>;
+
+    <[base.exit]>->(0);
+} else {
+    <[base.logs]>->(
+        2,          'site-yaml drain : %d item%s remaining',
+        $remaining, $remaining == 1 ? '' : 's'
+    );
+}
+
+return TRUE;
+
+#,,,.,.,,,,,.,,,.,,,,,..,,,.,,,..,,,,,.,,,.,,,..,,...,..,,,,,,.,.,,,.,..,,.,.,
+#2GY4TTUJKR6XK6FZHX3537PMQ3GEKASSRY6NX47WMHQAOOQHBG3UV2LB5SCW7PXHXLXWLT2LGR2TA
+#\\\|TIG3ABGE7UEU3ZTFNXDI755YOGVLI7RTE3ZZVUFM7ODG6QUHO5N \ / AMOS7 \ YOURUM ::
+#\[7]FE4CT363L4VSBCO4PJPGCBWH223B4LEXI6TD4KEXK7PW6TS2BSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

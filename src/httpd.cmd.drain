@@ -1,0 +1,104 @@
+## [:< ##
+
+# name  = httpd.cmd.drain
+# descr = drain : stop accepting, exit when clients are done
+# note  = called via cube 'drain' during twin restart handover
+#         [ v7-zenki.zenka.cmd.drain-instance ] -- one shared drain for
+#         httpd + httpsd [ httpsd loads the httpd modules ] : finds the
+#         listen session by its socket handle [ <httpsd.sock> //
+#         <httpd.sock> ], cancels its accept watcher
+#         [ session 'watcher'.'input_handler' + 'input_error' ] and
+#         CLOSES the socket -- with SO_REUSEPort an open but unwatched
+#         socket would still take its share of new connections into a
+#         never-accepted backlog ; then counts live client sessions [
+#         those carrying an 'http' request hash -- the listen session
+#         and the cube link carry none ] ; when the count reaches zero,
+#         or <httpd.cfg.drain_cap> seconds later [ default 25, below
+#         the 30 s force-kill ] , exits cleanly via base.exit [ the way
+#         web.cmd.drain leaves ] ; streams : a session streaming to a
+#         client stays counted until its socket closes -- a stream
+#         outliving the cap is cut by the cap exit and the client
+#         retries against the new instance ; the drain reply goes out
+#         before the timer is armed
+
+my $sock = <httpsd.sock> // <httpd.sock> // undef;
+
+<[base.logs]>->(
+    'httpd draining : stopping accept [ %s ]',
+    defined <httpsd.sock> ? qw| httpsd | : qw| httpd |
+);
+
+##[ STOP ACCEPTING ]##########################################################
+
+## the listen socket is a session                                       ##
+## [ base.protocol.bind -> base.session.init ] : find it by its handle, ##
+## cancel its watchers, close the socket                                ##
+my $listen_sid;
+if ( defined $sock ) {
+    for my $sid ( keys %{ $data{'session'} // {} } ) {
+        my $s = $data{'session'}{$sid};
+        if (    ref $s eq qw| HASH |
+            and ref $s->{'handle'}
+            and $s->{'handle'} eq $sock ) {
+            $listen_sid = $sid;
+            last;
+        }
+    }
+}
+
+if ( defined $listen_sid ) {
+    my $watchers = $data{'session'}{$listen_sid}{'watcher'} // {};
+    for my $name (qw| input_handler input_error |) {
+        my $w = $watchers->{$name};
+        $w->cancel if ref $w and eval { $w->is_active };
+    }
+    <[base.logs]>->(
+        2, 'httpd drain : listen session %d unwatched', $listen_sid
+    );
+}
+
+if ( defined $sock ) {
+    close($sock);
+    delete $data{'handle'}{$sock};
+}
+
+<httpd.draining> = TRUE;
+
+##[ COUNT LIVE CLIENTS ]######################################################
+
+## live client sessions carry an 'http' request hash [               ##
+## httpd.request_handler line 29 -- true for httpsd too, its handler ##
+## delegates ] ; the listen session and the cube link never get one  ##
+my $remaining = scalar grep {
+            ref $data{'session'}{$_} eq qw| HASH |
+        and ref $data{'session'}{$_}{'http'} eq qw| HASH |
+} keys %{ $data{'session'} // {} };
+
+<[base.logs]>->(
+    'httpd draining : %d client session%s remaining',
+    $remaining, $remaining == 1 ? '' : 's'
+);
+
+<httpd.drain_start> = <[base.time]>->();
+
+if ( $remaining == 0 ) {
+    <[base.log]>->('httpd drain : no client sessions, exiting now');
+    <[base.exit]>->(0);
+} else {
+    <httpd.drain_check_timer> = <[event.add_timer]>->(
+        {   'after'    => 0.5,
+            'interval' => 0.5,
+            'handler'  => qw| httpd.handler.drain_check |,
+            'desc'     => 'httpd drain check',
+            'data'     => {},
+        }
+    );
+}
+
+return { 'mode' => qw| true |, 'data' => 'draining initiated' };
+
+#,,..,,,,,.,,,,,.,.,,,,,.,,.,,,..,.,.,,,,,,.,,..,,...,...,...,.,,,,..,,,,,.,,,
+#OHCE2YBNV4NBGLLHW5LOGTIHDL4MFAELKH4ZHC7P7JXUNMQKTVHVLLWVD7M2IZ662NOOXFYHRM3JE
+#\\\|OXZLTUBPZYDM5EQRT6BDDGSDQSX6RUOJC3KZTY7CLAAGSYDBBFX \ / AMOS7 \ YOURUM ::
+#\[7]CH65OO47G7G6GQQ5CECADJ6ZDLQTRX2PO5V5RW274GW35TC6OWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

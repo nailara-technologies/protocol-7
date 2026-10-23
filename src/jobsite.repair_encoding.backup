@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = jobsite.repair_encoding.backup
+# descr = tar.xz of every job file the sweep will change
+# note  = paths relative to the zenka data dir : restore with
+#         tar -xJf <backup> -C <var_P7>/jobsite
+
+my $run     = <jobsite.repair_encoding>;
+my $planned = $run->{'planned'} // [];
+
+my $zenka_dir = join qw| / |, <system.path.zenka-dirs>->{'var_P7'},
+    qw| jobsite |;
+my $backup_dir = "$zenka_dir/repair-encoding";
+
+if ( not -d $backup_dir ) {
+    my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
+    <[file.make_path]>->( $backup_dir, 0700, $p7_user, $p7_user );
+}
+return { 'ok' => FALSE, 'message' => "cannot create $backup_dir" }
+    if not -d $backup_dir;
+
+my $tar = Archive::Tar->new;
+for my $item ( $planned->@* ) {
+    my @stat = stat $item->{'abs_path'};
+    $tar->add_data(
+        $item->{'rel_path'},
+        $item->{'raw'},
+        {   'mode'  => @stat ? $stat[2] & 07777 : 0640,
+            'uid'   => $stat[4] // 0,
+            'gid'   => $stat[5] // 0,
+            'mtime' => $stat[9] // time,
+        }
+    );
+}
+
+my $tar_data = $tar->write;
+return { 'ok' => FALSE, 'message' => 'tar archive could not be built' }
+    if not defined $tar_data or not length $tar_data;
+
+my $compressed;
+IO::Compress::Xz::xz( \$tar_data, \$compressed )
+    or return { 'ok' => FALSE, 'message' => 'xz compression failed' };
+
+my $path    = sprintf '%s/backup-%s.tar.xz', $backup_dir, $run->{'run_id'};
+my $written = eval {
+    open my $fh, '>:raw', $path or die "$OS_ERROR\n";
+    chmod 0600, $path;
+    print {$fh} $compressed or die "$OS_ERROR\n";
+    close $fh               or die "$OS_ERROR\n";
+    TRUE;
+};
+return { 'ok' => FALSE, 'message' => "cannot write $path : $EVAL_ERROR" }
+    if not $written;
+
+## read it back : nothing gets changed without a usable backup ##
+my ( $stored, $unpacked ) = ( undef, undef );
+eval {
+    local $INPUT_RECORD_SEPARATOR;
+    open my $fh, '<:raw', $path or die "$OS_ERROR\n";
+    $stored = <$fh>;
+};
+IO::Uncompress::UnXz::unxz( \$stored, \$unpacked ) if defined $stored;
+
+my @entries = $tar->list_files;
+if (   not defined $unpacked
+    or $unpacked ne $tar_data
+    or @entries != $planned->@* ) {
+    return {
+        'ok'      => FALSE,
+        'message' => sprintf(
+            'backup %s failed verification [ %d entries, %d planned ]',
+            $path,
+            scalar @entries,
+            scalar $planned->@*
+        ),
+    };
+}
+
+<[base.logs]>->(
+    1,
+    'repair-encoding : backup of %d files : %s',
+    scalar @entries, $path
+);
+
+return { 'ok' => TRUE, 'path' => $path };
+
+#,,..,...,,,,,.,.,,..,...,.,.,.,,,,..,.,,,,..,..,,...,...,..,,,,.,...,,,,,.,,,
+#AGLYUCFYHXL67FYFCMZPMJ52VWATESFTMKYYSD5GCI6QVLJTOO3MLCF67YT76PD7M7XOOQMXEW7G2
+#\\\|C7BVPJEVICEGDSXGKNAH7W7YVNF3QFXSQAS5ULK6INZLGV3PJNJ \ / AMOS7 \ YOURUM ::
+#\[7]Y7Z5FJG74KCP6MWQKGHXNHGMSYHJUDFA75YUP2IMTSJE5VH7N4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

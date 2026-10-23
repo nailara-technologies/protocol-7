@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = jobsite.util.repair_mojibake
+# descr = lossless reversal of utf-8 read as latin-1
+# param = $string [ decoded text ]
+# note  = returns { state => clean|repaired|irreversible, text, passes }
+
+my $s = shift;
+
+return { 'state' => qw| clean |, 'text' => $s, 'passes' => 0 }
+    if not defined $s
+    or ref $s
+    or not length $s;
+
+## a utf-8 lead byte seen as a latin-1 char, then a continuation byte : in ##
+## the c1 range for any lead [ c1 controls are never in real text ], else  ##
+## only behind the leads of latin-1 \ ext-a, combining marks and specials  ##
+## -- a real 'ß' or 'é' before nbsp, '»' or '°' is text, not a lead        ##
+my $signature
+    = qr{[\xC2-\xF4][\x80-\x9F]|[\xC2-\xC5\xCC\xCD][\xA0-\xBF]|\xEF[\xA0-\xBF]{2}};
+
+## what a repaired german job text may hold : latin, combining marks, greek ##
+## \ cyrillic, punctuation \ currency \ symbols, specials, emoji            ##
+my $plausible
+    = qr{^[\x00-\x{4FF}\x{1E00}-\x{1EFF}\x{2000}-\x{2BFF}\x{FB00}-\x{FFFD}\x{1F000}-\x{1FAFF}]*\z};
+
+return { 'state' => qw| clean |, 'text' => $s, 'passes' => 0 }
+    if $s !~ $signature;
+
+## LEAVE_SRC : encode \ decode with a check flag clobber their input ##
+my $check = Encode::FB_CROAK() | Encode::LEAVE_SRC();
+
+my $text   = $s;
+my $passes = 0;
+
+## repeat while each pass is lossless [ multiple encodings ], cap 3 ##
+while ( $passes < 3 and $text =~ $signature ) {
+    my $fixed = eval {
+        my $octets = Encode::encode( qw| latin1 |, $text, $check );
+        Encode::decode( qw| UTF-8 |, $octets, $check );
+    };
+    last if not defined $fixed or $fixed eq $text;
+    last if $fixed !~ $plausible;    ## e.g. 'ß' + nbsp -> U+07E0 ##
+    $text = $fixed;
+    $passes++;
+}
+
+return { 'state' => qw| irreversible |, 'text' => $s, 'passes' => 0 }
+    if not $passes;
+
+return { 'state' => qw| repaired |, 'text' => $text, 'passes' => $passes };
+
+#,,,.,..,,,.,,,,,,.,.,,.,,..,,,,.,,.,,..,,.,.,..,,...,...,.,.,,..,.,.,...,,,,,
+#5CAZDFC7Y2FEKXLYI2E7FLKV7RXFEAXYDQW3ZR7H7NUPMASNNKWRDT5KLVOI3XOW5CPZGFMJMUVUY
+#\\\|WMMYI2635ET6TTBM5WGWQBBOCYJVFAYDDPTG2HZG6YWRGWE7WQQ \ / AMOS7 \ YOURUM ::
+#\[7]3IYVVNUJLWCT2YJGKEQ7HH3AQZKA7UW2QVTCUHK5SJIJ2P4N6GBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

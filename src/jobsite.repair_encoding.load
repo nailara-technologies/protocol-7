@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = jobsite.repair_encoding.load
+# descr = load one job : record, raw bytes, location
+# param = $job_id
+# note  = returns { loc, job, raw, abs_path, in_store, path_ok } or
+#         { skip => reason }
+
+my $job_id = shift // '';
+
+my $loc = <[jobsite.repair_encoding.location]>->(
+    $job_id, <jobsite.job.index>->{$job_id}
+);
+return { 'skip' => qw| unindexed | } if not defined $loc;
+
+## blocked stubs carry the url only, no text fields ##
+return { 'skip' => qw| blocked |, 'loc' => $loc }
+    if $loc->{'store'} eq qw| blocked |;
+
+my $abs_path = join qw| / |, <system.path.zenka-dirs>->{'var_P7'},
+    qw| jobsite |, $loc->{'rel_path'};
+
+my $raw = eval {
+    local $INPUT_RECORD_SEPARATOR;
+    open my $fh, '<:raw', $abs_path or die "$OS_ERROR\n";
+    <$fh>;
+};
+return { 'skip' => qw| unreadable |, 'loc' => $loc } if not defined $raw;
+
+## active jobs : the long-lived in-memory record is what sync.push and ##
+## set-status write back, repairing only the file would be undone      ##
+my $store = <jobs.store>;
+my $in_store
+    = $loc->{'store'} eq qw| active |
+    && ref $store eq qw| HASH |
+    && ref $store->{$job_id} eq qw| HASH |;
+
+my $job = $in_store ? $store->{$job_id} : <[jobsite.job.read]>->($job_id);
+return { 'skip' => qw| unreadable |, 'loc' => $loc }
+    if ref $job ne qw| HASH |;
+
+## the record must map to the file it came from : jobsite.job.write picks ##
+## its path from status [ + epoch ], a mismatch would move it             ##
+my $status = $job->{'status'} // qw| new |;
+my $target;
+if ( $status =~ m{^(?:blocked|deleted|trash)$} ) {
+    my $epoch = $job->{"${status}_epoch"} // $loc->{'epoch'} // '';
+    $target
+        = <[jobsite.repair_encoding.location]>->( $job_id, "$status:$epoch" );
+} else {
+    $target = <[jobsite.repair_encoding.location]>->( $job_id, $status );
+}
+my $path_ok = defined $target && $target->{'rel_path'} eq $loc->{'rel_path'};
+
+return {
+    'path_ok'  => $path_ok ? TRUE : FALSE,
+    'loc'      => $loc,
+    'job'      => $job,
+    'raw'      => $raw,
+    'abs_path' => $abs_path,
+    'in_store' => $in_store ? TRUE : FALSE,
+};
+
+#,,..,...,,.,,,..,...,,,.,,,,,,.,,.,.,,.,,...,..,,...,,..,...,,,.,,,.,,.,,.,.,
+#7YXQ7OMBKLXAQWIKPFQSNIBKWO7BW44Q3WR5DVL5MTDDEF52R6E52WRP6VQOEN4VAWZT7VPW3DFE4
+#\\\|IPURVR6TAL6PEIA2SRYKEC6NG5UC3WYCZ6XNVLGQ42CGKB73G34 \ / AMOS7 \ YOURUM ::
+#\[7]CLV6SYY3GMDEYSMW227S4OZUYD42DRROGWUVOYU7ULHMFU4SGEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

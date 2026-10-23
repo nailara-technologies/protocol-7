@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = site-yaml.cmd.drain
+# descr = drain : finish the running step, exit when idle
+# note  = called via cube 'drain' during twin restart handover --
+#         marks <site-yaml.draining> so site-yaml.fetch.schedule stops
+#         arming new ticks [ the fetch already in flight still
+#         completes : its result lands in the durable outbox or the
+#         fetched_streams, never in memory alone ] ; idle is the same
+#         test as site-yaml.outbox.check-terminate : fetch queue empty
+#         + import_state empty + outbox dir without unconfirmed records
+#         + no fetched_streams ; the outbox is file-based and a record
+#         is only removed on confirm, so a drain exit can never lose
+#         one -- the new twin resumes the queue from
+#         site-yaml.fetch.state ; when idle, or <site-yaml.cfg.drain_cap>
+#         seconds later [ default 25, below the 30 s force-kill ] ,
+#         exits cleanly via base.exit ; the reply goes out before the
+#         timer is armed
+
+<site-yaml.draining> = TRUE;
+
+my $outbox_dir = <[file.zenka_dir.data_path]> . '/outbox';
+
+my @pending;
+if ( -d $outbox_dir and opendir my $dh, $outbox_dir ) {
+    @pending = grep {m|^[^.][^/]*\.json$|} readdir($dh);
+    closedir $dh;
+}
+
+my $idle
+    = (     ( not @pending )
+        and not @{ <site-yaml.fetch_queue>       // [] }
+        and not keys %{ <site-yaml.import_state> // {} }
+        and not @{ <site-yaml.fetched_streams>   // [] } );
+
+<[base.logs]>->(
+    'site-yaml draining : %s',
+    $idle ? 'idle' : sprintf(
+        '%d outbox + %d queued + %d importing + %d streams',
+        scalar @pending,
+        scalar @{ <site-yaml.fetch_queue>       // [] },
+        scalar keys %{ <site-yaml.import_state> // {} },
+        scalar @{ <site-yaml.fetched_streams>   // [] },
+    )
+);
+
+<site-yaml.drain_start> = <[base.time]>->();
+
+if ($idle) {
+    <[base.log]>->('site-yaml drain : idle, exiting now');
+    <[base.exit]>->(0);
+} else {
+    <site-yaml.drain_check_timer> = <[event.add_timer]>->(
+        {   'after'    => 0.5,
+            'interval' => 0.5,
+            'handler'  => qw| site-yaml.handler.drain_check |,
+            'desc'     => 'site-yaml drain check',
+            'data'     => {},
+        }
+    );
+}
+
+return { 'mode' => qw| true |, 'data' => 'draining initiated' };
+
+#,,.,,,..,.,,,.,,,.,.,,,,,.,.,,,,,,,,,...,...,..,,...,...,...,,.,,.,,,,,,,,,.,
+#EHV6R5QYBMTAQDL3TLGNQA52SF2IL7MQEXY5TOUIL3CUQZENZYHIGCEL2CSH6DZB3DP436C3U4GDE
+#\\\|VF2T7WDQ3ECNZQP5SWY6I5RJ5G6JCSLI4XX7XIGTQA42NO53V5B \ / AMOS7 \ YOURUM ::
+#\[7]PQOGYVV4T3GHANXUF4WRHYRA4OOEUYOGF6OUZAUDJ3LBRMQ67UCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
