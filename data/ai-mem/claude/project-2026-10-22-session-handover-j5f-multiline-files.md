@@ -186,6 +186,27 @@ the regular session budget ].
   AMOS [ 2^35 ] -> L13. no shared budget anywhere [ owner : no dos lever ]
 - base.list.subroutines still lacks plugin.web.auth.admin_caller +
   web.cmd.auth-revoke [ the loader does not read it ]
+- LATER 2026-10-23 : a3e4dc4c8 steps 0+1 live [ 403 on plain http, L13
+  tokens, destroy_session takes qw| hash | ] ; d34eb7d82 site-yaml decoded
+  the fetched page twice [ the whole double encoding ] + bin/harmony
+  fixed point 124 -> 9 -> 4 -> 4 [ P7_HARMONY_CHAIN ] ; 653d8d14a failed
+  command args logged shortened
+- KIMI admission [ session 66d4c901-2c68-41e7-9795-2666a885c0de, k3 ] :
+  13 modules plugin.web.auth.admit.* + httpd.route.handler.web-login +
+  httpd.handler.web-relay.login + harness, 66/66 green -- UNSTAGED, not
+  signed. review found : only /auth/login is gated ; /auth/status,
+  /auth/logout and every protected route [ Bearer ] still test tokens
+  freely -> extension asked [ per-source gate + failure records on all
+  four paths, queue login-only ] ; kimi hit its 5h limit before starting.
+  then : entry_ttl 120 -> 124 [ owner ]
+- signing : the owner signs WITHOUT auto-staging now -- stage each commit
+  myself ; never stage kimi files before review. restart httpd \ httpsd \
+  web \ site-yaml with :twin: [ site-yaml lacks drain : todo ]
+- local coding still runs pre-0b6be8dbe code [ base.base32.decode error ]
+  -- restart when the owner says [ reloads the gpu model ]
+- todos in order : 6CJ extension [ kimi ], 5M3 stock repair [ me, ssh ],
+  O3O salary unit, M3K local gpu interim, 3MK multi-host design,
+  MUZ labels outside src, drain, TDA, 5W7, BPS
 
 ## later the same day : history relabelled
 
@@ -225,8 +246,8 @@ the regular session budget ].
 - any 'deep recursion' warning ends a zenka [ exit 110 ] -- a synchronous
   handoff chain over a queue must be a loop
 
-#,,.,,,.,,,..,,.,,.,,,...,,,.,.,.,..,,,,,,...,..,,...,...,..,,,..,.,.,,,,,.,,,
-#SKF2YMMDBLTGW7SA2GGRJ7OTBEBQMVAKWSS2IL2TQMMU4SNLZPPTQERYWBFV5EBWFGJD45PX7AXDE
-#\\\|JMXABUZYX2GLJ4T7ECI5LFDKIAXRDQRN653SDGXLEDWMQA4UVDI \ / AMOS7 \ YOURUM ::
-#\[7]OO62RNRYNIDRNBFYZ4JTPDKTRDFJUHLEKB3H36RGLNCQTBJURCBY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,.,,,,..,..,,,..,,,,,,.,,,,.,..,,...,...,..,,,,.,..,,...,.,,,
+#4DG2S7HCTHWIWIVX3DUV6YNRVPZE6AKR3F3UQR46MUFLBPKCOP3GBEDHDMO7IG4R5FKAXCQNQ7UDE
+#\\\|7PJ4J6X7N3HQPS2GCSDOWPVCWVDABTAMVN3D2L3RXZN6PHP73J4 \ / AMOS7 \ YOURUM ::
+#\[7]6XRHH2IPWVFM3P6JJBLU5H3URGDUHE65WHRPWPFWRYOFMMRADQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
