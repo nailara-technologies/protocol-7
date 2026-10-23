@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [file-stat-loaded-use-core-stat](feedback-file-stat-loaded-use-core-stat.md) — 2026-10-23 : bin/Protocol-7 loads File::stat -- `my @s = stat $p` in src is ONE object [ 5M3 owner \ mode restore never fired, backup tar mode 0 \ uid 0 ; only undef warnings showed it ] -> CORE::stat ; harnesses without File::stat pass anyway
 - [kimi-specs-forbid-stash-and-real-runs](feedback-kimi-specs-forbid-stash-and-real-runs.md) — 2026-10-16 : a parallel kimi task did a git stash round trip with unsigned work in the tree [ popped by luck ], another ran the real claude --cloud against the spec [ local, configured CLI : only its malformed form kept it from starting a billed session ] -- every spec forbids stash \ checkout \ reset \ restore and real outward runs ; check stash list + pending files after a parallel round
 - [verify-push-landed-before-deploy](feedback-verify-push-landed-before-deploy.md) — 2026-10-16 : "go ahead" came before the push, I tore down 4 servers on old code -- git fetch + compare @{u} first, gate the remote teardown on the pulled head ; p7-keys-only changes need a pull, no teardown
 - [stderr-buffered-in-zenki](feedback-stderr-buffered-in-zenki.md) — 2026-10-14 : zenka STDERR is buffered, log \ console output is STDOUT -- a color escape on STDERR lands late [ even at exit ] ; put terminal state on the text's stream, verify with a raw `script -qc` capture
@@ -221,8 +222,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [nested-data-read-autovivifies-before-defaults](feedback-nested-data-read-autovivifies-before-defaults.md) — a nested `<a.b.c>` read before init_modules creates `<a.b>` as {} and cancels a whole-hash `//=` default [ v7-zenki zenka-dirs all undef 2026-10-11..15 via base.host.detect ] ; read early via `( <a.b> // {} )->{c}`, defaults per key
 
-#,,..,,,.,.,,,.,,,,.,,.,,,..,,..,,.,.,...,,.,,..,,...,.,.,...,..,,...,..,,.,.,
-#ZJHMHHFCPLMU5OA2RLO65NL5OSZSCMG3G2JX7DDF6NP3GW6L2GTE4IIEMQJP7LJY7ZUXZOZETQ64A
-#\\\|KA4JRSZBKB45JQM5UJQHEYCWOG3KFBC2JRQ4XPQE6VFNSUHLVP3 \ / AMOS7 \ YOURUM ::
-#\[7]VMM7LGWVMFNBGUWZNEVB757MR2ZDF2TT5GIDM7P26PQBMJKBIWDA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,..,,,.,,,.,,.,,.,,,,..,,,.,,.,,..,,...,...,..,,.,,,,,.,,..,.,.,
+#3BHXBXARL55D7RIVEK6CVHBTMDXXRR35BSFGKYPHZ5MHNK6LWN7G2CZR6PFTEWO255U3KDR3OUZBG
+#\\\|FDACDNRBYPORRDX4OM6RBH3TIRJ2WJ34SFM3TKOBAVRHPFFNEF5 \ / AMOS7 \ YOURUM ::
+#\[7]SE2QL7MLDD6OEIKIBJFEAJGBHTUVAGMQSAVTOKUZS2WMRYRJLEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
