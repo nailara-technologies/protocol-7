@@ -197,7 +197,13 @@ foreach my $_dir ( split qw| / |, $path ) {
 
     $current_mode = oct $current_mode if $current_mode =~ m|^0|;
 
-    if ( not chmod( $current_mode, $current_path ) ) {
+    ## only when mkdir did not already give the mode : a new directory in a ##
+    ## setgid parent inherits the bit and the group, and a chmod by a user  ##
+    ## outside that group CLEARS it [ kernel rule ] -- the web zenka's      ##
+    ## token dirs lost it, their files then got its own group and httpsd    ##
+    ## could not read them [ 2026-10-23 ]                                   ##
+    if ( ( ( stat $current_path )[2] & 07777 ) != $current_mode
+        and not chmod( $current_mode, $current_path ) ) {
         <[base.s_warn]>->(
             'chmod[ %04o ] : [ %s ] <{C1}>',
             $param_mode, <[base.str.os_err]>
@@ -234,8 +240,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,,.,,,,,...,.,.,,,,,,,,,,.,,,.,,,..,...,,,.,..,,...,...,,,.,...,,.,,,..,,,,,
-#T2WU4SICLYHS2EMBTSP5BN36G6RIKGBW7BUOACLSECD7XWCRYRCRN5NBPGBPRAONWR65FLZEUQWJU
-#\\\|ESZN6V4764PK6OVGSLI475JI34KM74ZPRI2MKMJDIHECWT5VE42 \ / AMOS7 \ YOURUM ::
-#\[7]5DNZDQYEMGQMHIDTOHTDU2TNIDPGALK4UCA3AWYX5JMY2RRAKMCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,.,,,.,,,.,...,.,,,...,,.,,,..,..,,...,...,..,,,.,,,.,,,.,,...,
+#OMDYN25CHCWMYPXW565SYGDFWDRW5PFOWQUR77EXDUSG6XUSEFMLX7LR2KJFZOH6QBX5OCCDPLFGE
+#\\\|EYUQBGGWC72Z23OLC34ZQWULHPZ7LTEFJN3YMTY4O5JPA7ZWGVT \ / AMOS7 \ YOURUM ::
+#\[7]3U3LLSC7FS2B4SWTMC3X7ZNAMPYB5LWYBWZ4EIWM4PLUJLL2O4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

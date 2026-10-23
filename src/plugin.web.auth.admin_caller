@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = plugin.web.auth.admin_caller
+# param = <command name> [ e.g. web.auth-issue ]
+# descr = the calling user when the caller may run an admin-only web auth
+#         command, else undef [ refusal logged ]
+
+## the ambient caller must be the cube router [ which has already enforced ##
+## its own access table : see cfg/zenki/cube/access.users -- only admin    ##
+## template users carry the web.auth-* admin commands ] or a local user    ##
+## explicitly granted the command on THIS zenka. one gate for every such   ##
+## command [ web.auth-issue, web.auth-revoke ], so they cannot drift apart ##
+
+my $command = shift // '';
+
+my @client_sessions = grep {
+            defined $data{'session'}{$ARG}
+        and defined $data{'session'}{$ARG}{'mode'}
+        and $data{'session'}{$ARG}{'mode'} ne qw| server |
+} keys %{ $data{'session'} // {} };
+
+my $caller_user
+    = @client_sessions == 1
+    ? <[base.session.user]>->( $client_sessions[0] )
+    : '';
+
+return $caller_user
+    if length $caller_user
+    and length $command
+    and ( $caller_user eq qw| cube |
+    or $caller_user eq qw| root |
+    or <[base.has_access]>->( $caller_user, $command ) );
+
+<[base.logs]>->(
+    1,
+    '%s : refused [ caller=%s ]',
+    length $command     ? $command     : '?',
+    length $caller_user ? $caller_user : '(unknown)'
+);
+return undef;
+
+#,,,.,,.,,..,,.,,,.,,,,,.,.,,,.,.,.,.,,,,,,.,,..,,...,...,,,,,..,,.,,,...,.,.,
+#3M5PBBEGMURF2NU2ZP2P66GUZD77LDBN3B42WMLWSUUOD67FO6VOHGWJYBG7KVUQXJSQGWAKBDVJM
+#\\\|2AITQOK4WE7OH7ITYGW74A2VG4SJTBYNHETR5MCOJBYS3LTVCNI \ / AMOS7 \ YOURUM ::
+#\[7]L4DMZT3PMWYVH3UZS7BOV5MNBELZYIIEKVSPK74CLT3G5PI66ODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

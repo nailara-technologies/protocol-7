@@ -8,37 +8,10 @@
 
 my $args_str = ref $call eq qw| HASH | ? ( $call->{'args'} // '' ) : '';
 
-## admin gate : the ambient caller must be the cube router [ which has     ##
-## already enforced its own access table : see cfg/zenki/cube/access.users ##
-## -- only admin template users carry web.auth-issue ] or a local user     ##
-## explicitly granted web.auth-issue on THIS zenka                         ##
-my @client_sessions = grep {
-            defined $data{'session'}{$ARG}
-        and defined $data{'session'}{$ARG}{'mode'}
-        and $data{'session'}{$ARG}{'mode'} ne qw| server |
-} keys %{ $data{'session'} // {} };
-
-my $caller_user
-    = @client_sessions == 1
-    ? <[base.session.user]>->( $client_sessions[0] )
-    : '';
-
-my $admin = FALSE;
-if ( length $caller_user ) {
-    $admin = TRUE
-        if $caller_user eq qw| cube |
-        or $caller_user eq qw| root |
-        or <[base.has_access]>->( $caller_user, qw| web.auth-issue | );
-}
-
-if ( not $admin ) {
-    <[base.logs]>->(
-        1,
-        'web.auth-issue : refused [ caller=%s ]',
-        length $caller_user ? $caller_user : '(unknown)'
-    );
-    return { 'mode' => qw| false |, 'data' => 'denied : admin only' };
-}
+## admin gate : one check for every admin-only web auth command ##
+## [ plugin.web.auth.admin_caller ]                             ##
+return { 'mode' => qw| false |, 'data' => 'denied : admin only' }
+    if not defined <[plugin.web.auth.admin_caller]>->(qw| web.auth-issue |);
 
 ## parse : <user_id> [ -ttl <seconds> ] ##
 my @tokens  = split m|[ \t]+|, $args_str;
@@ -82,8 +55,8 @@ return {
     $result->{'expires_at_epoch'},
 };
 
-#,,,.,.,,,.,,,,,,,,,.,,..,..,,...,,.,,,,.,.,,,..,,...,...,..,,.,.,,..,..,,...,
-#2CHGQ2BR6Z64OBZDTNSYAAMNNU7G6VSCII6GRLQU2XK7S5NRUDFVHCRIFPWYTBJ4T3VYEUVENUN4C
-#\\\|P5C7EOD552PJYO7JHQMLFOVHAHU2QIHWWJNMI7FCUYKVX552LFR \ / AMOS7 \ YOURUM ::
-#\[7]4KDTE7BFLVM3OD3J5RHHWFGCPYJXVO2CZOUVEHXXG3LKUVYRMABY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,.,.,.,..,,..,,,.,,,.,,,,.,.,.,..,,...,...,...,,..,,,,,,.,,,,.,
+#ISJKHTXJXZN3CZXO7MWE5ZFYTXPSC47OVN23XEK6LUGVBKFLMWOA43L6YAWIIUP2ERJUFMZA5KDJC
+#\\\|XXEIBX7CLMUOF2POKFORY33LGY7TITP7HVS4LQ35YHPQGQBIQRZ \ / AMOS7 \ YOURUM ::
+#\[7]IGWFRXAP3CZ4KQLIB4REHWRTKFR6T2IYJVDOKRR7BUOKEW6JZ6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
