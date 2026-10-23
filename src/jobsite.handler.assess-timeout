@@ -28,34 +28,54 @@ if (    defined $job_rec
     return;
 }
 
-<[base.logs]>->(
-    0, 'jss.assess-timeout: job %s round-trip timed out after %ds, giving up',
-    $job_id, <jobsite.cfg.assess_timeout> // 600
-);
-
+## a slow backend is not a lost reply : a cpu-only server needs 8-9 min per ##
+## assessment, and giving up while coding still worked on the task made the ##
+## next rescan dispatch it a second time [ 2026-10-23 ]. ask task first ;   ##
+## the watchdog is re-armed meanwhile, so the job keeps its slot.           ##
+## jobsite.handler.assess-watch-reply decides, up to                        ##
+## jobsite.cfg.assess_watch_extensions rounds                               ##
 if ( defined $job_rec ) {
-    ## clear in-flight markers : lets a later rescan pick this job back up  ##
-    ## [ dispatch.assessments skips stage=~/queued|assessing|assessed|done/ ##
-    ## ] and blanks task_id/repair_task_id so a genuinely-late reply for    ##
-    ## the abandoned attempt mismatches cleanly in                          ##
-    ## assess-done/repair-done's own attempt guard instead of being         ##
-    ## processed twice                                                      ##
-    $job_rec->{'stage'}          = 'timeout';
-    $job_rec->{'task_id'}        = '';
-    $job_rec->{'repair_task_id'} = '';
-    $job_rec->{'repair_failed'}  = TRUE;
+    my $kind = $job_rec->{'watch_kind'} // qw| assess |;
+    my $task_id
+        = $kind eq qw| repair |
+        ? ( $job_rec->{'repair_task_id'} // '' )
+        : ( $job_rec->{'task_id'} // '' );
+    my $extensions = $job_rec->{'watch_extensions'}        // 0;
+    my $max_ext    = <jobsite.cfg.assess_watch_extensions> // 24;
+
+    if ( length $task_id and $extensions < $max_ext ) {
+        <[jobsite.dispatch.arm_watchdog]>->( $job_id, $attempt, $kind );
+        $job_rec->{'watch_extensions'} = $extensions + 1;
+        <[base.logs]>->(
+            1,
+            'jss.assess-timeout: job %s no reply '
+                . 'yet, asking task %s [ %d of %d ]',
+            $job_id,
+            $task_id,
+            $extensions + 1,
+            $max_ext
+        );
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'task.show',
+                'call_args' => { 'args' => $task_id },
+                'reply'     => {
+                    'handler' => 'jobsite.handler.assess-watch-reply',
+                    'params'  => {
+                        'job_id'  => $job_id,
+                        'attempt' => $attempt,
+                        'task_id' => $task_id,
+                    },
+                },
+            }
+        );
+        return;
+    }
 }
 
-my $job = <[jobsite.job.read]>->($job_id) // {};
-$job->{'repair_failed'} = TRUE;
-<[jobsite.job.write]>->( $job_id, $job );
+<[jobsite.dispatch.give_up]>->($job_id);
 
-<[jobsite.dispatch.consume_slot]>;
-<[jobsite.state.persist]>;
-<[jobsite.dispatch.next]>;
-
-#,,..,,,.,..,,.,.,.,.,.,.,.,,,,.,,,.,,.,.,.,.,..,,...,..,,..,,,.,,,..,..,,,.,,
-#ED56XLETGKRMS53NZ2C3ICYHE6EQRCEQX5QPL52IL2MBQYEEN6TN5D5V5B3JL2RXKQVVRLGWAJREU
-#\\\|TAQVLJDCUQX7AHPXB3RBIPN4NIE5KXPHBTMZWDTXA4O7FPCVJYF \ / AMOS7 \ YOURUM ::
-#\[7]ZLDZZTAI5MPKPLTV3U7GBKPAQQQTE4MUFISOORC4GWUAHUO44MCI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,.,,..,.,,,,,.,.,,,...,.,,,,.,,..,,...,...,,.,,,,.,,,,,..,,...,
+#WZYUONABCCHMZUWS5JJJUOB57ZF25XOBB4V2RSSIBL6OXPVWWRQA4PORT6HIJJFIRE4T2UR6XPT6I
+#\\\|KSCMBEVCY4XSJR6LAGIDYJV6KGCHBNAYKZIQD24MI7YZFOAJHKU \ / AMOS7 \ YOURUM ::
+#\[7]RFEPN5I65EE2CYWQZRRK5NVERDSSJIDYIS6AM6BVBLNOXEDWQ2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

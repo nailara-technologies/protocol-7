@@ -15,10 +15,10 @@ if ( not defined $client ) {
     return;
 }
 
-my $data_ref = $reply->{'data'};
-my $mode     = $reply->{'mode'} // '';
+## reply hash has no mode \ data keys [ base.reply.mode_text ]              ##
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 
-if ( $mode ne 'size' or not defined $data_ref or not length $data_ref ) {
+if ( $mode ne 'size' or not length $text ) {
     ## extraction failed: fall back to passthrough ##
     <[base.logs]>->(
         2,
@@ -31,7 +31,7 @@ if ( $mode ne 'size' or not defined $data_ref or not length $data_ref ) {
 }
 
 ## parse yaml result ##
-my ( $extracted, $yaml_err ) = <[format.yaml.load_str]>->($data_ref);
+my ( $extracted, $yaml_err ) = <[format.yaml.load_str]>->($text);
 if ( not defined $extracted or ref $extracted ne 'HASH' ) {
     <[base.logs]>->(
         2,
@@ -149,8 +149,8 @@ my $response
 
 return;
 
-#,,.,,.,,,,,.,,,.,.,,,...,.,.,,.,,,.,,.,.,...,..,,...,.,,,.,.,,,.,,,.,,..,,,.,
-#VKNLXWUGXEHDHLBBED3SPUZRJ6VZZZ6AD4JCSL6P6FEFRXKRAF4TMSZFEQ4BGFRPK7MSSGIRVVXAY
-#\\\|6T7N5PBOS7PD4SIFA6VDTRYDIWXK7BTHY7X5XCISQ435GZVNPI4 \ / AMOS7 \ YOURUM ::
-#\[7]QH3PUWYS5IMRKMEVQTBXW35UWQP77OM32HIERSC7WP3V6AUFTMCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,,,...,.,.,...,,,.,,,,,..,,...,..,,...,...,...,.,.,,,.,,,,,,..,
+#SWE4EKQBWSJVCRG5P2H4XXFSP5GA3WH23YX2CYHXP66L5DFQCNCOIQGEKO742UW2WUBRL3ZTEUUQ2
+#\\\|7QRHW5HVYXQGS2I7RKBPABJFSYJXWZIJ6LBPTBHI3B5LGA6GUOF \ / AMOS7 \ YOURUM ::
+#\[7]5JEGC2DQLBMPOS76SOCGPU2RGAGJFZCANV76EYHWTKGY6TMIKCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

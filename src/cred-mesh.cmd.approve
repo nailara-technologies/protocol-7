@@ -23,13 +23,13 @@ return { 'mode' => qw| false |, 'data' => 'unknown req_id' }
 
 my $domain = $pending->{'domain'};
 
-## synthesise a dialog-style reply and complete approval ##
+## synthesise the dialog's reply                                         ##
+## [ the route-send reply hash a TRUE answer of protocol-7-menu brings ] ##
+## and complete approval                                                 ##
 my $result = <[cred-mesh.handler.auth-relay-reply]>->(
-    {   'reply' => {
-            'params' => { 'req_id' => $req_id },
-            'mode'   => qw| true |,
-        },
-        'args' => { 'data' => $payload },
+    {   'cmd'       => qw| TRUE |,
+        'call_args' => { 'args'   => $payload },
+        'params'    => { 'req_id' => $req_id },
     }
 );
 
@@ -62,8 +62,8 @@ return {
 
 ## [ end ] ###################################################################
 
-#,,,,,,,,,...,,.,,,,,,,.,,..,,..,,,.,,,.,,..,,..,,...,...,...,,..,,.,,.,.,...,
-#4MM3C7W5SWBX4I24PD5I5NZ4ORFCYWYNC4UNTNMRTG7P32ZVPJDU4IW5LJXIZCVA4TPXBEI5H3BNS
-#\\\|4KGSJZWSF33QQEMAFZJY4UWEBZQYRK4AABBBIW3WATQORQS6AI3 \ / AMOS7 \ YOURUM ::
-#\[7]Z6EBWE4HRXCM6QFMZ7YPBIEPFLKIS42URRAQXVXJS5G22NXR4ODY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,,,,,,,,,.,.,,,..,,,..,,,.,.,.,..,,...,...,...,.,,,,.,,...,.,,,
+#H75BF4MSNVAL7QLOPKWW3IYSXTUZDYI3YBZL6WKX65LVTWQIH3MTBTHNW4MWLS7F4G3ZA4IGOFYGI
+#\\\|T342N3HCJ6E7D5HTIDONMQ2CUPUJLA35BWJT5TBUW2ZIJJCTRT4 \ / AMOS7 \ YOURUM ::
+#\[7]AIEZWCBGTZ77O4TQEFPLCDUNKQKOWZYJ3Q3IGGWPNWYQADLXN4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

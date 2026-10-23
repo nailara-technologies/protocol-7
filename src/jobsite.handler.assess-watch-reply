@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = jobsite.handler.assess-watch-reply
+# descr = the watchdog's task.show answer : keep waiting or give up
+
+## jobsite.handler.assess-timeout asked task about the job's task and     ##
+## re-armed the watchdog meanwhile. a task still pending, claimed or in   ##
+## progress keeps its slot ; done too, its wait-done reply is on the way. ##
+## failed, unknown or no answer : jobsite.dispatch.give_up                ##
+
+my $call = shift // {};
+
+my ( $mode, $text ) = <[base.reply.mode_text]>->($call);
+my $job_id  = $call->{'params'}{'job_id'}  // '';
+my $attempt = $call->{'params'}{'attempt'} // 0;
+my $task_id = $call->{'params'}{'task_id'} // '';
+
+## resolved meanwhile [ the real reply came ], or a newer dispatch ##
+my $job_rec = <jobsite.tasks>->{$job_id};
+return if not defined $job_rec;
+return if not exists <jobsite.assess_timer>->{$job_id};
+return if $attempt and $attempt != ( $job_rec->{'attempt'} // 0 );
+
+my ($status) = $text =~ m{^status\s*:\s*(\S+)}m;
+$status //= '';
+
+if (    $mode ne qw| false |
+    and $status =~ m{^(?:pending|claimed|in_progress|done)$} ) {
+    <[base.logs]>->(
+        1, 'jss.assess-watch : job %s task %s is %s, waiting on',
+        $job_id, $task_id, $status
+    );
+    return;
+}
+
+<[base.logs]>->(
+    1, 'jss.assess-watch : job %s task %s %s',
+    $job_id, $task_id, length $status ? "is $status" : "unknown [ $text ]"
+);
+<[jobsite.dispatch.give_up]>->($job_id);
+
+return;
+
+#,,.,,...,,..,,,.,,..,,,.,...,.,.,,,.,,.,,.,.,..,,...,...,.,.,...,.,.,...,.,.,
+#EW6D3VUYFCJXBFTLUGBR5XAT33JECYEAXVBPTQRYVC52P3AUAHVAJZOEB73T6K4XPQBWHJHML76PM
+#\\\|QHXYFPZ5KO7Y5KWVXKDG47FOLYWKEZUWKIXFCQS2WBFTEOLGG76 \ / AMOS7 \ YOURUM ::
+#\[7]GBB7HZQKH2OJ6GO3YSLJF4PFWUEDRFE5OTZTKL25J5KKWVAT2WAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

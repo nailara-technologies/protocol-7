@@ -59,6 +59,11 @@ jobsite.cfg.sync_interval = 300
 ## lost task.create/task.wait-done reply wedging cycle on 'assessing' ]
 jobsite.cfg.assess_timeout = 777
 
+## when it fires, task is asked first : a task still pending \ running \ done
+## re-arms the watchdog, up to this many times [ ~5 h at 777 s -- a cpu-only
+## server takes 8-9 min per assessment ] before giving up
+jobsite.cfg.assess_watch_extensions = 24
+
 ## two-stage delete retention (in V7 epochs)
 jobsite.cfg.trash_keep_epochs   = 1  ## recoverable compressed stage
 jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
@@ -121,8 +126,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite clients.h
 
 [zenka.loop]
 
-#,,,.,,,,,.,,,.,,,,..,,,,,...,,..,...,...,,.,,..,,...,...,.,.,.,.,..,,,.,,,,.,
-#LPZZQRG6P5CH3UFMR2C2KD3MUAGFKEJVUQPABX5LD4CCAYDRMIXVT7MSAQKBJKSRBHWWUVDGCVEOQ
-#\\\|5H4XZTUW5TYJ77NUJAA6PUZZAJVGXELQUGQBRPN6BHB6OBWTLKA \ / AMOS7 \ YOURUM ::
-#\[7]CTUSH6F5RDEGBI47752IRRR7AF4LI2UFZAOB32AR2DQVMJPN6CAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,,,.,,,,,,,,,,,.,.,..,,,,,,.,.,..,,...,...,,,,,,.,,,..,...,,,,,
+#VPQMTHK4OVPIJ2Q3NTSWT4D6OJRL76AYHIL47LUKBENNHBAO4UAF2YLCEUQG4GFANSI7TTUCXMNAG
+#\\\|5TOIY7DBQS4QQBSMHPTABE5MOIR3IIJ3HUDCSLFSXD2O5PK3JWW \ / AMOS7 \ YOURUM ::
+#\[7]6DIGDGHEA67RZGQ2DTIXDHD3PSYNUPGTFZQJVBDYQ5OSSMTHPQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,9 +5,8 @@
 
 my $reply = shift;
 
-my $raw    = $reply->{'data'} // '';
-my $data   = ref $raw ? $raw->$* : $raw;
-my $mode   = $reply->{'mode'}   // qw| unknown |;
+## reply hash has no mode \ data keys [ base.reply.mode_text ]              ##
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 my $params = $reply->{'params'} // {};
 
 my $task_id = $params->{'task_id'} // '';
@@ -24,7 +23,7 @@ my $collected;
 
 if ( exists $code{'context.delegate.collect'} ) {
     $collected = $code{'context.delegate.collect'}->(
-        {   'reply_data'   => $data,
+        {   'reply_data'   => $text,
             'reply_params' => $params,
             'reply_status' => $mode
         }
@@ -35,7 +34,7 @@ if ( exists $code{'context.delegate.collect'} ) {
         'mode' => $mode eq qw| false | ? qw| false | : qw| true |,
         'data' => {
             'status' => $mode eq qw| false | ? qw| error | : qw| complete |,
-            'result' => $data,
+            'result' => $text,
             'roles'  => $params->{'delegate_roles'} // {}
         }
     };
@@ -151,8 +150,8 @@ if ( length $job_id ) {
 
 return;
 
-#,,,.,,..,..,,,..,,.,,,.,,,.,,,.,,,..,,,,,.,,,..,,...,...,..,,.,.,,.,,.,.,.,,,
-#TWUFF2ZFSFQTTJA5KF5NL3VAVXPLPH6B2V7G4BAVST3ESLIY3DA5D6SJOSIA4MQZLJGYEQWSTUKPA
-#\\\|RJGUF3LYITTZRGGLLZWLN5A67JZ4DP5XZWJ5L37AOEOAYPYO462 \ / AMOS7 \ YOURUM ::
-#\[7]R6ARZNUCU2ORNN5K3MMFTPTCJVGVOWZALWFKROIK6UFCCGY4LGDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,.,,,.,,,,,,,.,,,,,.,..,,.,.,..,,...,...,.,.,,,.,,,.,,..,.,,,
+#U5AMXD2REBJDFTH6QNQV2QUMSI7S3HBIN37FC27PBLWPG2KBABZHKDS6IRDPI3PALMDQN5MORWUAC
+#\\\|DEIVPWIROQMXCWE6KV2ZUTDWGSCDJR4XDICQ5MHHNVOHGPXTQYU \ / AMOS7 \ YOURUM ::
+#\[7]JBQKYHQ4G4RXXN3TU2BW6DK3CTQES2DPCJFBLYGKOYENVF3HX2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

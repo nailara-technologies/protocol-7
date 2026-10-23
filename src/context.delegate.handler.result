@@ -5,13 +5,13 @@
 
 my $reply = shift;
 
-my $data   = $reply->{'data'}   // '';
-my $mode   = $reply->{'mode'}   // qw| unknown |;
+## reply hash has no mode \ data keys [ base.reply.mode_text ]              ##
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 my $params = $reply->{'params'} // {};
 
 ## collect and verify ##
 my $collected = $code{'context.delegate.collect'}->(
-    {   'reply_data'   => $data,
+    {   'reply_data'   => $text,
         'reply_params' => $params,
         'reply_status' => $mode
     }
@@ -72,8 +72,8 @@ if ( $collected->{'mode'} eq qw| true | ) {
 
 return TRUE;
 
-#,,.,,.,.,,,.,,..,..,,.,.,...,...,..,,,,,,,,.,..,,...,...,...,,,.,,.,,,,.,,,.,
-#5ZICBFTNDIK5WK6KQKMHCEG3AHNJ7R5TOP6IXKOB6GHUIVP3LGAICXPN77HGHIOSGIOGYYDQHPSZA
-#\\\|KEPNGYK4W7W6ZA6J3JUP5REBPPCZPZWXJAZ4GZQCCJX3D3K6W5M \ / AMOS7 \ YOURUM ::
-#\[7]FZRHCDZTW3KO6UNATDWA4WM4PEPHPPG6AE3NBCLAERGD7ZFB2UDY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,,,,.,,,,.,...,,,,,..,,,..,,..,..,,...,...,..,,,,,,,,.,.,,,...,
+#3ZJJWIFLFCGV5FNT74QK6CZOCNAOY2ZTGGTN7SSCTKXUFLSLLDZXKTFCEJRUFAMPIOBGL7USOPZ6K
+#\\\|LVACXAW6ULQZMNQ32X5JEGVBFO5Q6CMOIPI7M6BMNNSXOI27SOB \ / AMOS7 \ YOURUM ::
+#\[7]FLN7J2YM4FBDBWU377IUM64IERMJCVYLDREGI2KRVWFW5LGXWUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,18 +36,10 @@ my $attempt = 1 + ( ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0 );
     }
 );
 
-if ( my $old_timer = <jobsite.assess_timer>->{$job_id} ) {
-    eval { $old_timer->cancel };
-}
-<jobsite.assess_timer>->{$job_id} = <[event.add_timer]>->(
-    {   'after'   => <jobsite.cfg.assess_timeout> // 600,
-        'handler' => 'jobsite.handler.assess-timeout',
-        'data'    => { 'job_id' => $job_id, 'attempt' => $attempt },
-    }
-);
+<[jobsite.dispatch.arm_watchdog]>->( $job_id, $attempt, qw| repair | );
 
-#,,,.,...,..,,.,,,...,.,,,,.,,,,,,...,..,,,,,,..,,...,...,..,,,..,...,,,,,...,
-#E2OFSIZWAEAFN5O2N5OE5YSHC3SPLQFFDGXZHKS5OUZL6E6URPHF6E2G7GGYCN6LA2OE23JK4ALQO
-#\\\|AKIIKV6JQ2BQJ7DBCMZEC6OLHWN4DMZTB7UWJFGNBMYL6ARUHQN \ / AMOS7 \ YOURUM ::
-#\[7]VJMZI4H7T4ZE5JXOYC72ORM6CKDFLS66RJ7RJDVZUU3XENEOBACI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,.,.,.,,,,,,,.,,..,,,.,,,,,,,,,..,,...,..,,,..,,,,,.,,,...,,..,
+#L67ONOA5VHMPVLHPG4ZAPTCX5EZFEZZ34C4HVKH67RDHZG75326DOF36J5HTYSRBOGIUMTBI4SKQY
+#\\\|YR2EEWTA4ACZB7NLKRZXJTGNUKC3N2NE3HTSM5O6K2L4PVXWJXS \ / AMOS7 \ YOURUM ::
+#\[7]WG5GLHLLNRY552QNERHUZ7BI6IU35SW2N6THIT62NQ72L7QAMACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

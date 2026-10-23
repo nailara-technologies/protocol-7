@@ -5,9 +5,8 @@
 
 my $reply = shift;
 
-my $raw    = $reply->{'data'} // '';
-my $data   = ref $raw ? $raw->$* : $raw;
-my $mode   = $reply->{'mode'}   // qw| unknown |;
+## reply hash has no mode \ data keys [ base.reply.mode_text ]              ##
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 my $params = $reply->{'params'} // {};
 
 my $task_id    = $params->{'task_id'}    // '';
@@ -24,7 +23,7 @@ my $delegate   = $params->{'delegate'}   // {};
 
 ## handle failure ##
 if ( $mode eq qw| false | ) {
-    my $reason = $data // 'context not available';
+    my $reason = length $text ? $text : 'context not available';
     <[base.logs]>->(
         2, ':. delegate-online-reply: context not available [ %s ], fallback',
         $reason
@@ -96,8 +95,8 @@ if ( ref $do_result ne qw| HASH |
 
 return;
 
-#,,,,,,.,,...,.,.,..,,.,.,,..,,,.,..,,,,.,..,,..,,...,...,...,,,.,,,,,,,,,.,,,
-#M6VPL6L4HN27O3PUSAYE5EHSZ7A4E5BIG7GI44OXY5E2JHQFXI57ZKDLI5QOQDLWGF6YPSXES2QQE
-#\\\|6B5WRUUV3XKPDAECTSORARNBP2B46APCM3XZXJ6MZZ4UNYU4G2U \ / AMOS7 \ YOURUM ::
-#\[7]INXULX5S4WRVSRH3KKRBHMPPFG34AUL3SGVW6HNCENAHODH45IBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,,.,,,,,,...,...,,..,,.,,...,..,,...,...,,,.,..,,,..,,.,,,..,
+#XXB4BZV2WD55UJP4VJVV2YC2EEUQXCB33AQHEZE4QOIMT5CHCUVDE36VAXMIZVIED6CBXHRJKG4IU
+#\\\|TL2QNYYEB5YWWEJL4MAXSVIIIQC32X3NICDWA7ABAZTY5EZN4OG \ / AMOS7 \ YOURUM ::
+#\[7]5FPURQE4N4Y5CJJIUUD5ABSD6UVM6POYNQPDI55PBN2NMPRV3IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

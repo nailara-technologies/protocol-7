@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = jobsite.dispatch.arm_watchdog
+# param = job_id, attempt, kind [ 'assess' | 'repair' : which task is in
+#         flight, the one the watchdog asks task about ]
+# descr = arm a job's assessment watchdog [ it holds the job's slot ]
+
+## one place for dispatch.next and dispatch.repair : a fresh dispatch  ##
+## starts the extension count again [ jobsite.handler.assess-timeout ] ##
+
+my ( $job_id, $attempt, $kind ) = @ARG;
+return unless length( $job_id // '' );
+
+my $rec = <jobsite.tasks>->{$job_id} //= {};
+$rec->{'watch_kind'}
+    = ( $kind // '' ) eq qw| repair | ? qw| repair | : qw| assess |;
+delete $rec->{'watch_extensions'};
+
+if ( my $old_timer = <jobsite.assess_timer>->{$job_id} ) {
+    eval { $old_timer->cancel };
+}
+<jobsite.assess_timer>->{$job_id} = <[event.add_timer]>->(
+    {   'after'   => <jobsite.cfg.assess_timeout> // 600,
+        'handler' => 'jobsite.handler.assess-timeout',
+        'data'    => { 'job_id' => $job_id, 'attempt' => $attempt // 0 },
+    }
+);
+
+return TRUE;
+
+#,,.,,,,,,,..,..,,,,.,,.,,,.,,,,.,,..,,.,,.,.,..,,...,...,,..,.,.,,.,,,.,,,..,
+#D2BEPMSA6M3ICHSD4N5T62CILHE5B4LMQQE2BPKUDIKGJ6FYXRZGFOVGFUIGHHWYZ22HVSA2OSQ2C
+#\\\|ORZZM3WKPKFU7WHXEEHQU7IDCGZ3ZMATZK55MTFQHEU47WUI5QF \ / AMOS7 \ YOURUM ::
+#\[7]WL5KKVUO27MT5Z3MXMF3SBASKLRB2M36IVB3Y2TIGDSPPLDNC4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

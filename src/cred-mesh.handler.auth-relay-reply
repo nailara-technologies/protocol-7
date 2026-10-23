@@ -6,11 +6,15 @@
 #         on graphical-mode-failure, kick off console fallback.
 #         on cancellation, propagate failure and clear pending.
 
-my $params = shift              // {};
-my $reply  = $params->{'reply'} // {};
-my $args   = $params->{'args'}  // {};
+## the route-send reply hash { cmd, call_args, params } -- cred-mesh.cmd.   ##
+## approve builds the same. this read a hand-built { reply, args } shape    ##
+## only the console path sent, so every dialog answer had no req_id and was ##
+## dropped [ 2026-10-23 ] ; TRUE \ FALSE replies carry no mode \ data       ##
+## [ base.reply.mode_text ]                                                 ##
+my $call = shift // {};
+my ( $reply_mode, $reply_data ) = <[base.reply.mode_text]>->($call);
 
-my $req_id = $reply->{'params'}{'req_id'} // '';
+my $req_id = ( $call->{'params'} // {} )->{'req_id'} // '';
 
 return undef unless length $req_id;
 
@@ -18,10 +22,6 @@ my $pending = <cred-mesh.auth_relay_pending>->{$req_id};
 return undef if not defined $pending;
 
 my $domain = $pending->{'domain'};
-
-## parse reply mode and data ##
-my $reply_mode = $reply->{'mode'} // '';
-my $reply_data = $args->{'data'}  // '';
 
 ## mode true: user approved via dialog ##
 if ( $reply_mode eq qw| true | ) {
@@ -86,8 +86,8 @@ if (    $reply_mode eq qw| false |
 delete <cred-mesh.auth_relay_pending>->{$req_id};
 return { 'mode' => qw| false |, 'data' => 'auth relay failed' };
 
-#,,,.,,,,,.,.,,,.,...,,..,...,,..,,,.,.,,,..,,..,,...,...,.,,,...,,..,,,,,...,
-#DBC4FPNKGLD3Q6M2WNDKJF44V6QUZWJCLBJIU5KV5LTPBJPRONIGPOZKRCNF2MUTMEYESE45UEW4E
-#\\\|NCMOLS3V6GQ3NQIM72KSPIEDNT6V7XTV6O3NPITIZEWMVH5OVA7 \ / AMOS7 \ YOURUM ::
-#\[7]2URGFJWHKQMGHY7SGURLRPJR2YDKRCN3I4C5NGY2C6RWZAV6NACA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,.,,,...,.,,,,..,,..,,.,,,,.,..,,...,..,,...,.,.,,,.,..,,,.,,
+#EB2DEU44PHBCIPDXCTRNSRG7BE6Y5PQWUOG2GCATDVL6BUZ5RVJ47ZDPITPVF2MNRD4UHIK3XRHCW
+#\\\|YJPSLDQ5NDV2ECGTYN5ALK4RHGDEUOBLRIKDT2DFKOW4POVEKAX \ / AMOS7 \ YOURUM ::
+#\[7]R4SJWGZ7AIEWJMDI2FKOO5MWFVYVLHSPNFRCNBVQ6WUCXO45EUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
