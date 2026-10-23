@@ -49,16 +49,33 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
     );
 }
 
+## header values : a linebreak cannot come from the http parser, but strip ##
+## \r\n anyway -- send.local refuses to frame those                        ##
+my $auth_header   = $headers->{'authorization'} // '';
+my $cookie_header = $headers->{'cookie'}        // '';
+for my $value ( $auth_header, $cookie_header ) {
+    $value =~ s|[\r\n]+||g;
+}
+
+## the cube wire carries multi-line param lines + body                    ##
+## [  base.protocol-7.command.send.local ] : the socket facts travel as ' ##
+## key : value' header lines, the body after the empty line               ##
+my $call_args = {
+    'param' => {
+        'peer_addr'     => $peer_addr,
+        'peer_tls'      => $peer_tls,
+        'auth_header'   => $auth_header,
+        'cookie_header' => $cookie_header,
+    },
+};
+## the packet body ends in a linefeed [ base.format.multiline_command ] ; ##
+## the web side strips the last one again                                 ##
+$call_args->{'data'} = $body =~ s{(?<!\n)\z}{\n}r if length $body;
+
 <[protocol-7.route-send]>->(
     {   'command'   => qw| web.auth-login |,
-        'call_args' => {
-            'args'          => $body,
-            'peer_addr'     => $peer_addr,
-            'peer_tls'      => $peer_tls,
-            'auth_header'   => $headers->{'authorization'} // '',
-            'cookie_header' => $headers->{'cookie'}        // '',
-        },
-        'reply' => {
+        'call_args' => $call_args,
+        'reply'     => {
             'handler' => qw| httpd.handler.web-relay.login |,
             'params'  => { 'http_sid' => $id },
         },
@@ -67,8 +84,8 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
 
 return 0;    # [ deferred : the reply handler writes the response ]
 
-#,,,.,.,,,.,.,...,,..,,..,,,.,...,,,.,,.,,.,.,..,,...,...,...,..,,.,,,.,,,..,,
-#C5NOCUSBO25EUPY2PQLMTRPKLZZEI6DYV6MUTWUA5BGPKIETBSCWVAMMJSQIUXEXDSTOUAXLWZUFG
-#\\\|4K6EJ2653UNGJI55SWW7UMHNSHXOVAXYSO7J3DJS4LFVINHHMBW \ / AMOS7 \ YOURUM ::
-#\[7]EHOLNXBWZEL2SYVGNUWBKLRL44TLTFAUY7JXX274NSVOPSQED4CA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,,,...,,..,,,,,,.,,.,,,,,,,..,,..,,...,.,.,,,.,..,,.,.,..,,..,,
+#DSMM3NBOXXPE2D7DPWQQ4DVGEPKV4NNU26EBMX6SU4VHLYRVPL7HJ3NBH4NKHVVOWEK4O74ZJ6H5S
+#\\\|4RDS2HBVO6BH6HQK23V6HME7W6RUOPZPQ56FI4IRCXWB7MTDODR \ / AMOS7 \ YOURUM ::
+#\[7]K2NC6C7KK4UPUIB4MBAUYB3LONMWQCTLFWY77H4DGQJ25XWY52BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

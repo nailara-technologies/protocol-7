@@ -143,16 +143,26 @@ if ( $args->{'auth.required'} and not $auth_exempt ) {
         return <[httpd.send_error_page]>->( $id, 401 );
     }
 
+    ## header values : strip \r\n [ send.local refuses to frame them ] ##
+    my $auth_header   = $headers->{'authorization'} // '';
+    my $cookie_header = $headers->{'cookie'}        // '';
+    for my $value ( $auth_header, $cookie_header ) {
+        $value =~ s|[\r\n]+||g;
+    }
+
+    ## the socket facts travel as multi-line ' key : value' param lines ##
+    ## [ base.protocol-7.command.send.local ] ; no body for the check   ##
     <[protocol-7.route-send]>->(
         {   'command'   => qw| web.auth-bearer |,
             'call_args' => {
-                'peer_addr' => $peer_addr,
-                'peer_tls'  =>
-                    ( ref $peer_fh and $peer_fh->isa('IO::Socket::SSL') )
-                ? 1
-                : 0,
-                'auth_header'   => $headers->{'authorization'} // '',
-                'cookie_header' => $headers->{'cookie'}        // '',
+                'param' => {
+                    'peer_addr' => $peer_addr,
+                    'peer_tls'  => (
+                        ref $peer_fh and $peer_fh->isa('IO::Socket::SSL')
+                    ) ? 1 : 0,
+                    'auth_header'   => $auth_header,
+                    'cookie_header' => $cookie_header,
+                },
             },
             'reply' => {
                 'handler' => qw| httpd.handler.web-relay.auth-check |,
@@ -171,8 +181,8 @@ if ( $args->{'auth.required'} and not $auth_exempt ) {
 
 return 0;        # [ deferred : reply handler writes response ]
 
-#,,..,,,,,...,...,,..,..,,.,.,...,.,,,,.,,.,.,..,,...,..,,...,...,,..,,.,,...,
-#RLLA2NDKVVVSW5D6Z2Y3HNZX4GEM6XL7VP7HIHFTLYUQ6IM37Z5E5GMSZL44O4EZZU3H6UFVTCQRY
-#\\\|3B4YXE2MW3CDA66O7FK4LLZ2WTGQOVQYPN4K4F2IXUEKKZHX6JJ \ / AMOS7 \ YOURUM ::
-#\[7]YCJ3FXVSYRXBFVTA5N3GGJ3HAWAAA46JAWJPICYPD6KD54K3C6DA 7  DATA SIGNATURE ::
+#,,..,...,...,...,,.,,...,,,.,..,,,,.,..,,.,.,..,,...,...,.,.,,..,,.,,,,,,,.,,
+#5ONZAV3ORJDVVQ7EHPOP2AILLFCK3DETSF7U55EIX3SQ67RRWUXI52PBXI4G347HRC5JSHPD65QF2
+#\\\|EIGTEPBZNCSG4VMLB35EAGYZKQUXPKWCUQIVUM3RA3N72GYGBMN \ / AMOS7 \ YOURUM ::
+#\[7]XDICQBRNMFL6VZ6VNUIQOGJ7AEPRJ5663MERQZN3NDJZRYIAYUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

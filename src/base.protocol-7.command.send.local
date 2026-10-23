@@ -1,6 +1,15 @@
 ## [:< ##
 
-# name = base.protocol-7.command.send.local
+# name  = base.protocol-7.command.send.local
+# descr = local command send [ single + multi-line mode ]
+# note  = single-line when call_args carries only 'args' [ byte for
+#         byte as always ] ; multi-line packet via
+#         base.format.multiline_command when call_args holds 'param'
+#         [ hash ] or 'data' [ string ] and no 'args' [ the multi-line
+#         head has none : with args it stays single-line, param \ data
+#         dropped as before, logged ] ; param keys [a-z0-9_-] only, plain
+#         values, no linebreaks -- otherwise the send is refused
+#         [ log level 0, return 0 ] : never a broken frame
 
 my $cmd       = $ARG[0]->{'command'};
 my $call_args = $ARG[0]->{'call_args'};
@@ -48,6 +57,47 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*(\s.+)?)$|$2|go ) {
     my $reply_params  = $ARG[0]->{'reply'}{'params'};
 
     my $target_name = ${^CAPTURE}[0];
+
+    ##[ MULTI-LINE MODE \ REFUSALS ]##########################################
+
+    ## call_args with 'param' [ hash ] or 'data' [ string ] travels as a  ##
+    ## multi-line packet : '(<id>)<cmd>+' header lines ' key : value', an ##
+    ## empty line, the body, '.' -- anything else stays single-line       ##
+    my $has_multi = (
+        ref $call_args->{'param'} eq qw| HASH |
+            or defined $call_args->{'data'}
+    ) ? TRUE : FALSE;
+
+    ## the multi-line head carries no args : a call with args stays         ##
+    ## single-line as always, its param \ data dropped as before [ logged ] ##
+    my $multiline
+        = ( $has_multi and not length $call_args->{'args'} ) ? TRUE : FALSE;
+
+    <[base.logs]>->(
+        1, 'send.local: args set, param \ data not sent [ %s ]', $cmd
+    ) if $has_multi and not $multiline;
+
+    if ($multiline) {
+        my $param = $call_args->{'param'};
+        if ( ref $param eq qw| HASH | ) {
+            for my $key ( keys $param->%* ) {
+                my $val = $param->{$key} // '';
+                if (   $key !~ m|^[a-z0-9_-]+$|
+                    or ref $val
+                    or index( $key, "\n" ) >= 0
+                    or index( $val, "\n" ) >= 0
+                    or index( $val, "\r" ) >= 0 ) {
+                    <[base.logs]>->(
+                        0,
+                        'send.local: multiline param refused [ '
+                            . '%s ] : keys [a-z0-9_-], no linebreaks',
+                        $cmd
+                    );
+                    return 0;
+                }
+            }
+        }
+    }
 
     ## send to all clients with that session id or username [in group mode] ##
     my @send_sids;
@@ -142,6 +192,32 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*(\s.+)?)$|$2|go ) {
 
         $target_cmd_id =~ s|^([1-9]\d*)$|($1)|;
 
+        if ($multiline) {
+            my $command_string = <[base.format.multiline_command]>->(
+                $route->{'target'}->{'cmd_id'},
+                $cmd, $call_args
+            );
+            if ( not defined $command_string ) {
+                <[base.logs]>->(
+                    0, 'send.local: multiline build failed [ %s ]', $cmd
+                );
+                return 0;
+            }
+
+            ##  append packet to target buffer  ##
+            $data{'session'}{$target_sid}{'buffer'}{'output'}
+                .= $command_string;
+
+            ##  calculate and store average command line length  ##
+            <[base.session.calc_cmd_stats]>
+                ->( $target_sid, \$command_string );
+
+            $count++;
+
+            ###  set up timeout handler ?  ###  [LLL]
+            next;
+        }
+
         #            if ( $command_mode == 1 )    # single line command mode
         #            {
         my $args = '';
@@ -160,25 +236,6 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*(\s.+)?)$|$2|go ) {
         $count++;
 
         ###  set up timeout handler ?  ###  [LLL]
-
-        ##  }
-        ##  elsif ( $command_mode == 2 )    # multi line command mode
-        ##  {
-        ##      my $header = '';
-        ##      if ( defined $call_args->{'param'}
-        ##          and ref( $call_args->{'param'} ) eq
-        ##          'HASH' )    # prepare parameter header
-        ##      {
-        ##          my ( $key, $val );
-        ##          while (($key,$val) = each($call_args->{'param'}->%*))
-        ##          {
-        ##              $header .= $key . '=' . $val . "\n";
-        ##          }
-        ##      }
-        ##      $data{'session'}{$target_sid}{'buffer'}{'output'} .=
-        ##        $target_cmd_id . $cmd . "+\n" . $header . "\n"
-        ##        . $call_args->{'data'} . ".\n";
-        ##  }
     }
     return $count;
 } else {
@@ -186,8 +243,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*(\s.+)?)$|$2|go ) {
     return -2;
 }
 
-#,,..,...,.,.,,,.,...,..,,...,,..,.,,,..,,.,,,..,,...,..,,...,..,,,..,,.,,,,,,
-#ZITAGYBMJPUGKFCXVVKBUIVGRMEUF24UKANOJD63LBCEB7E3VYHMQFE2HVDAGUJD7FF3I4BG6QGGA
-#\\\|QIPPMWSIHRKEBQ572LS25H5KTIU2Y7BGICCZEOOBVT6HWZWP3XG \ / AMOS7 \ YOURUM ::
-#\[7]VEQOPMUE4DYOPQ4FAZIB3CPTS5YFBTALTTI3ZPSV4APYK23VK4BY 7  DATA SIGNATURE ::
+#,,..,...,...,..,,,.,,.,,,,.,,,,,,.,.,,,,,,,,,..,,...,..,,.,,,.,,,..,,,,.,,,.,
+#KWOBN4JWUSO36AKERSPFJ4F6GX7IIBJCL2R3FJZPQATM3EYIALXFCPHDNYZCB3GS2MRL2VEZVN7RQ
+#\\\|OZ7EDMHN3S4RB5DR7SVEXVJFNO7IY3WMI5AIYX54CK22AT67JQM \ / AMOS7 \ YOURUM ::
+#\[7]6LHJTHK7XDCKE577IEBORZDMSWIDPT2MZQQ575QDNDQZITA7OUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

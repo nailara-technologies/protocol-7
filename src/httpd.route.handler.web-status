@@ -41,14 +41,25 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
     );
 }
 
+## header values : a linebreak cannot come from the http parser, but strip ##
+## \r\n anyway -- send.local refuses to frame those                        ##
+my $auth_header   = $headers->{'authorization'} // '';
+my $cookie_header = $headers->{'cookie'}        // '';
+for my $value ( $auth_header, $cookie_header ) {
+    $value =~ s|[\r\n]+||g;
+}
+
+## the socket facts travel as multi-line ' key : value' param lines ##
+## [ base.protocol-7.command.send.local ] ; status has no body      ##
 <[protocol-7.route-send]>->(
     {   'command'   => qw| web.auth-status |,
         'call_args' => {
-            'args'          => q||,
-            'peer_addr'     => $peer_addr,
-            'peer_tls'      => $peer_tls,
-            'auth_header'   => $headers->{'authorization'} // '',
-            'cookie_header' => $headers->{'cookie'}        // '',
+            'param' => {
+                'peer_addr'     => $peer_addr,
+                'peer_tls'      => $peer_tls,
+                'auth_header'   => $auth_header,
+                'cookie_header' => $cookie_header,
+            },
         },
         'reply' => {
             'handler' => qw| httpd.handler.web-relay.auth |,
@@ -59,8 +70,8 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
 
 return 0;    # [ deferred : the reply handler writes the response ]
 
-#,,,.,...,,..,.,,,..,,...,,,,,,.,,,..,,..,.,.,..,,...,...,,..,...,,,.,,.,,,,.,
-#G2ARD3CLG53TQXR3MRSUSJQZI3BADPI2P43P3E5TR7IM6L4LU36DWK3BC42NFQUAMPNEHLKYPVVHU
-#\\\|QBWLRG5AWRV3Y4KJFW4LTL4B57F6XDVSZPJWJCKBO2JDU2VYKYT \ / AMOS7 \ YOURUM ::
-#\[7]74XJRG53WOXKSI6XZWKQRYMLS6YFSAJS76LPTGHDJ4UEJZNDQGCQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,,,.,.,.,...,,.,,...,,,,,,.,,..,,...,...,,,.,,.,,,,.,...,...,
+#GFWJTVVZCRRPRIHM7HZZGJMUR4JENWTDTWM37V4NCNMI3MKIMVWLH7E2ESXD6VBCKGZXRECB4TIOO
+#\\\|MHS5T33K2ZY25QN62ZBO6LEGQSKS6QVPCJQLX2LPITPQQL5WQOS \ / AMOS7 \ YOURUM ::
+#\[7]RPELTNF7QLC3OEEHQMHHPNWSLAH4TT544XQ2O6FWHSJQMEWD3CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
