@@ -95,18 +95,10 @@ my $attempt = 1 + ( ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0 );
 ## forever. cancel any stray leftover first : a freshly-queued entry        ##
 ## shouldn't have one, but a leaked timer here would otherwise keep ticking ##
 ## under a clobbered hash key                                               ##
-if ( my $old_timer = <jobsite.assess_timer>->{$job_id} ) {
-    eval { $old_timer->cancel };
-}
-<jobsite.assess_timer>->{$job_id} = <[event.add_timer]>->(
-    {   'after'   => <jobsite.cfg.assess_timeout> // 600,
-        'handler' => 'jobsite.handler.assess-timeout',
-        'data'    => { 'job_id' => $job_id, 'attempt' => $attempt },
-    }
-);
+<[jobsite.dispatch.arm_watchdog]>->( $job_id, $attempt, qw| assess | );
 
-#,,,.,,,,,,,,,.,.,,,,,,.,,...,,.,,,,.,.,,,,,.,..,,...,...,,.,,.,,,,,.,,,,,.,,,
-#BUFUNPRH4L7TOYHJC23YTC2J6NPR73DSS44ENUQ6I324ZLEE74MGZR73PKSSFYLN2VMU3BOXQXZBY
-#\\\|IUKHDHOPJAHTN5SYFRWGYFTEJXI67GFX45FP5HDO434HZ5AWB5F \ / AMOS7 \ YOURUM ::
-#\[7]KVAZIOQ6G6DXVOIL4HNR4AJ3LU32LDXPXT2XQ2QYFQPJ64AOSABY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,.,,.,,,,,,,,.,,,.,,..,,,.,,,..,..,,...,...,,.,,..,,.,.,,,,,,.,,
+#GWJQW2M3VKILDR2A4XXBM7E6FNQWRV2REWXOCTXFW7SU5DJI3AS2JZNUH6B54NLOXIRIEVAPTVTAQ
+#\\\|E42PRHMFVOI2XXWUKOYIOO6ZRQWZ4LKU67PYXPFPXCKD2XDOGPX \ / AMOS7 \ YOURUM ::
+#\[7]LVALNYNJGKKGPI2AXM3B4XBO52IJT2SONJDCORU6VTY36K2DHACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

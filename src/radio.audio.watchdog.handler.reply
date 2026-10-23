@@ -8,11 +8,11 @@ my $reply = shift;
 ##  player went offline for real while request was in flight  ##
 return if not <radio.audio.active>;
 
-my $mode = $reply->{'mode'} // qw| unknown |;
-my $data = $reply->{'data'} // '';
+## single line replies carry no mode \ data [ base.reply.mode_text ]        ##
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 
 ##  not idle [ or unreadable reply ] : reset streak and wait  ##
-if ( $mode ne qw| true | or $data ne qw| yes | ) {
+if ( $mode ne qw| true | or $text ne qw| yes | ) {
     <radio.audio.watchdog.idle_count> = 0;
     return;
 }
@@ -57,8 +57,8 @@ my $vol = <radio.audio.start_volume> // 70;
 
 0;
 
-#,,..,.,.,,,,,..,,,,,,,.,,.,.,,..,...,,,,,,,,,..,,...,...,,,.,..,,...,.,,,.,,,
-#LJ2SWS5OXGOY5GD7SIJTA5RCVCCFBTMXTX3NKAHBXFUB7WAIJW77GVPYRARNIV7BL43A4VYRY4LMY
-#\\\|UQEKX26CPY2SJV5IHGWEKYOOMK2XYVBQ6V4BCUTVCGBFFRYMXWG \ / AMOS7 \ YOURUM ::
-#\[7]3HRG46VUX46DCR5DNFLIY5MFGL5A7FIBKFPJGCPFONILLTU7TYBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,.,,,...,..,,,,.,...,,,,,,.,,..,,...,...,..,,.,,,,,,,,..,,,.,
+#66RHUGGL7MZZWSR3IPLW5C7MIRMPM6NGT5JGJWORQDKMZKZCM5FSLYWFCC2FZPESFX6XQ5HBZWCTC
+#\\\|AEBKQUQIPNMAMEL2VNODCX35AZSDUMESPDU72KQ7HA3QXKUCIRM \ / AMOS7 \ YOURUM ::
+#\[7]WBZTQ4UWZQ4IGTNPGW23NDXF3A633BY2KIZ47NV6KWP2YTEKPYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

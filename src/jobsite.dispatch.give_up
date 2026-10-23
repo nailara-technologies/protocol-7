@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = jobsite.dispatch.give_up
+# param = job_id
+# descr = abandon a job's in-flight assessment round trip, keep the queue
+#         draining
+
+## the watchdog's last step [ jobsite.handler.assess-timeout, after task ##
+## reported the task gone or failed, or the extensions ran out ]. the    ##
+## watchdog timer is cancelled here too : an extension re-armed it       ##
+
+my $job_id = shift // '';
+return unless length $job_id;
+
+if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
+    eval { $timer->cancel };
+}
+delete( ( <jobsite.tasks>->{$job_id} // {} )->{'rewired'} );
+my $job_rec = <jobsite.tasks>->{$job_id};
+
+<[base.logs]>->(
+    0,
+    'jss.give_up: job %s no reply after %ds [ %d checks ], giving up',
+    $job_id,
+    <jobsite.cfg.assess_timeout> // 600,
+    ( $job_rec // {} )->{'watch_extensions'} // 0
+);
+
+if ( defined $job_rec ) {
+    ## clear in-flight markers : lets a later rescan pick this job back up  ##
+    ## [ dispatch.assessments skips stage=~/queued|assessing|assessed|done/ ##
+    ## ] and blanks task_id/repair_task_id so a genuinely-late reply for    ##
+    ## the abandoned attempt mismatches cleanly in                          ##
+    ## assess-done/repair-done's own attempt guard instead of being         ##
+    ## processed twice                                                      ##
+    $job_rec->{'stage'}          = 'timeout';
+    $job_rec->{'task_id'}        = '';
+    $job_rec->{'repair_task_id'} = '';
+    $job_rec->{'repair_failed'}  = TRUE;
+}
+
+my $job = <[jobsite.job.read]>->($job_id) // {};
+$job->{'repair_failed'} = TRUE;
+<[jobsite.job.write]>->( $job_id, $job );
+
+<[jobsite.dispatch.consume_slot]>;
+<[jobsite.state.persist]>;
+<[jobsite.dispatch.next]>;
+
+#,,,.,.,.,.,,,,,.,,..,,,,,,,.,..,,,,,,,.,,..,,..,,...,...,,..,.,.,.,.,,.,,..,,
+#KOJFKH3YNM6YBP5MWV5ODKMT7KQ5TVCHZLFZSAAFUCEWQXG3PTHMWL35L5Z4DKEYABFDPBCAU5LPI
+#\\\|YL26NDAJ2WSR6YUEBCNTZUFU4LVMMBHBXQANCVD7AFSMDCAPIUY \ / AMOS7 \ YOURUM ::
+#\[7]FKZFXSI2MC7AC7UIANBEFOKYHF3CJYNXSA7Q2VMOCCFXQBR6YKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

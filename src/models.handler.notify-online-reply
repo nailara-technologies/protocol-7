@@ -12,10 +12,11 @@ my $job_id       = $reply_params->{'job_id'}     // '';
 my $target_cmd   = $reply_params->{'target_cmd'} // '';
 my $encoded      = $reply_params->{'encoded'}    // '';
 
-my $mode = $reply->{'mode'} // '';
+## single line replies carry no mode \ data [ base.reply.mode_text ]        ##
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 
 if ( $mode eq qw| false | ) {
-    my $reason = $reply->{'data'} // 'unknown';
+    my $reason = length $text ? $text : 'unknown';
     <[base.logs]>->(
         0,        ': task %s: backend not available [ %s ]',
         $task_id, $reason
@@ -68,8 +69,8 @@ if ( $sent <= 0 ) {
     <[jobqueue.move_job]>->( $job_id, qw| error | );
 }
 
-#,,,,,..,,,,,,,.,,,,.,..,,.,.,..,,,,,,,,.,..,,..,,...,...,.,.,...,,..,,,,,..,,
-#XTWDEGT2TBPQXKWURI5H2BXOAKFUBO6JPDQ7CNLSHQKDLW5GIZZ7EDGBVU2AP3IMBGDITRBOYSE72
-#\\\|PRED4PS2SNRJMBCJ7XY6TIAEESLMCHWG2SJG6VLIHKXHZFE6XB6 \ / AMOS7 \ YOURUM ::
-#\[7]UXBWWV6XBT327DQEGU5DZHVCVDICCKZ3X45MYFFLET4QKH3FOIDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,...,.,,,..,,..,,,..,.,,,.,.,..,,...,...,.,,,,.,,..,,.,,,.,,,
+#4JGM7C57UC4JU7HW6HSLGTFNJBTRTIZ7PMEBZ3OKZBV3VQSMWPUDNENSYIMH7I7GYMKHPCOR2IT5S
+#\\\|BNBCRIPURQYRKWGSO6GQJFPPN6JK5O5BWVO2QGT6BIPNPVD6CNH \ / AMOS7 \ YOURUM ::
+#\[7]VQ2VBIE4WIQY2NBLAG6YPVCTBD4P4QWMAHCNYYMP2LIX3ONUVWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
