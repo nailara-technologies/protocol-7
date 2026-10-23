@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = jobsite.repair_encoding.write_one
+# descr = repair write step : re-check one job, write it
+# param = $planned [ { job_id, index, rel_path, abs_path, raw } ]
+
+my $item  = shift // {};
+my $run   = <jobsite.repair_encoding>;
+my $id    = $item->{'job_id'};
+my $loc   = <[jobsite.repair_encoding.location]>->( $id, $item->{'index'} );
+my $stats = $run->{'stats'}{ $loc->{'store'} };
+
+my $skip = sub {
+    $stats->{'write_skipped'}++;
+    <[base.logs]>->( 1, 'repair-encoding : %s not written, %s', $id, shift );
+    return;
+};
+
+## unchanged since the backup was taken, else the backup is not it ##
+return $skip->('moved since the scan')
+    if ( <jobsite.job.index>->{$id} // '' ) ne $item->{'index'};
+
+my $loaded = <[jobsite.repair_encoding.load]>->($id);
+return $skip->( $loaded->{'skip'} )         if defined $loaded->{'skip'};
+return $skip->('status field != directory') if not $loaded->{'path_ok'};
+return $skip->('changed since the backup')
+    if $loaded->{'raw'} ne $item->{'raw'};
+
+my $job   = $loaded->{'job'};
+my $check = <[jobsite.repair_encoding.job]>->($job);
+return $skip->('nothing left to repair') if not $check->{'repaired'};
+
+my @stat = stat $item->{'abs_path'};
+
+$job->{$ARG} = $check->{'fixed'}{$ARG} for keys $check->{'fixed'}->%*;
+
+## epoch from the index : job.write would bucket a missing one under the ##
+## current epoch and move the file [ longer trash retention ]            ##
+if ( defined $loc->{'epoch'} ) {
+    $job->{'status'} //= $loc->{'status'};
+    $job->{ $loc->{'status'} . '_epoch' } //= $loc->{'epoch'};
+}
+
+if ( not <[jobsite.job.write]>->( $id, $job ) ) {
+    $stats->{'write_failed'}++;
+    <[base.logs]>->( 0, 'repair-encoding : write failed for %s', $id );
+    return;
+}
+$stats->{'written'}++;
+
+## keep owner and mode [ file.zenka_dir.write creates with 0640 ] ##
+if (@stat) {
+    my @now = stat $item->{'abs_path'};
+    if ( @now and ( $now[2] & 07777 ) != ( $stat[2] & 07777 ) ) {
+        chmod $stat[2] & 07777,
+            $item->{'abs_path'}
+            or <[base.logs]>->(
+            1,                   'repair-encoding : chmod %s : %s',
+            $item->{'abs_path'}, $OS_ERROR
+            );
+    }
+    if ( @now and ( $now[4] != $stat[4] or $now[5] != $stat[5] ) ) {
+        chown $stat[4], $stat[5],
+            $item->{'abs_path'}
+            or <[base.logs]>->(
+            1,                   'repair-encoding : chown %s : %s',
+            $item->{'abs_path'}, $OS_ERROR
+            );
+    }
+}
+
+return;
+
+#,,,.,,,,,,..,..,,.,.,..,,...,,.,,,.,,..,,...,..,,...,...,.,,,..,,...,.,.,.,.,
+#AWD4KCDWJ44RKF2RUIMSFQW2AS247TEIFLBNBCDFAVY7ANFPAIVZDRBVRIXGV654NZ4OKG4F53FSK
+#\\\|HAQJAE53S6T6LSF3EWOG65G6NVRSBDF34XLRB723WXJ2UZNOSOZ \ / AMOS7 \ YOURUM ::
+#\[7]KMHIAHVYFH3JDQXBVVADARPNK27OXXPBBGQBYHK2WS7HVDD65AAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

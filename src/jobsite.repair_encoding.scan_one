@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = jobsite.repair_encoding.scan_one
+# descr = repair scan step : count one job, plan its repair
+# param = $job_id
+
+my $job_id = shift // '';
+my $run    = <jobsite.repair_encoding>;
+
+my $loaded = <[jobsite.repair_encoding.load]>->($job_id);
+my $store  = ( $loaded->{'loc'} // {} )->{'store'} // qw| active |;
+my $stats  = $run->{'stats'}{$store};
+
+if ( defined $loaded->{'skip'} ) {
+    if ( $loaded->{'skip'} eq qw| blocked | ) {
+        $stats->{'checked'}++;
+    } elsif ( $loaded->{'skip'} eq qw| unreadable | ) {
+        $stats->{'unreadable'}++;
+    }
+    return;
+}
+
+$stats->{'checked'}++;
+
+my $check = <[jobsite.repair_encoding.job]>->( $loaded->{'job'} );
+$stats->{'irreversible'} += $check->{'irreversible'};
+return if not $check->{'repaired'};
+
+$stats->{'repairable'}++;
+$stats->{'strings'}    += $check->{'repaired'};
+$stats->{'multi_pass'} += $check->{'multi_pass'};
+
+## repairable, but job.write would put it elsewhere [ e.g. a blocked stub ##
+## store.prune moved into deleted/ as it is, still status blocked ]       ##
+if ( not $loaded->{'path_ok'} ) {
+    $stats->{'skipped'}++;
+    <[base.logs]>->(
+        1, 'repair-encoding : %s skipped, status field != directory', $job_id
+    );
+    return;
+}
+
+for my $example ( $check->{'examples'}->@* ) {
+    last if $run->{'examples'}->@* >= 5;
+    push $run->{'examples'}->@*,
+        { 'id' => $job_id, 'store' => $store, $example->%* };
+}
+
+## raw bytes kept for the backup and for the unchanged-since check ##
+push $run->{'planned'}->@*,
+    {
+    'job_id'   => $job_id,
+    'index'    => <jobsite.job.index>->{$job_id},
+    'rel_path' => $loaded->{'loc'}{'rel_path'},
+    'abs_path' => $loaded->{'abs_path'},
+    'raw'      => $run->{'apply'} ? $loaded->{'raw'} : undef,
+    };
+
+return;
+
+#,,,,,.,,,,..,..,,...,.,.,,..,.,.,.,,,...,,.,,..,,...,...,,,.,,,,,,.,,.,,,..,,
+#I7FBD75YDX4OAQMJLJT4YIUGPABH5JGXO5LFXMQOATI5EGKD2HHM6GURARFC5BGFWBVSUFNEOIZAA
+#\\\|QKAAGMF64X3SAFRC2L6EXADWJZACA26UJXVWQ75MQMHCEONAASC \ / AMOS7 \ YOURUM ::
+#\[7]F6RQZYWS7LS6PQHP27PTTLVF542HNM2N7UYLOZZP5JA4QDQVXWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

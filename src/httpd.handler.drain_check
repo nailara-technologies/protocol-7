@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = httpd.handler.drain_check
+# descr = drain poll : exit when idle or when the cap hits
+# note  = timer handler [ the EVENT arrives, its watcher carries the
+#         timer 'data' ] : recounts live client sessions [ the 'http'
+#         request hash ] ; zero remaining -> cancel the timer and exit
+#         cleanly via base.exit ; <httpd.cfg.drain_cap> seconds [
+#         default 25 ] after httpd.cmd.drain started -> exit anyway --
+#         v7-zenki force-kills at drain_timeout 30 s, the cap leaves
+#         headroom and a clean exit status
+
+my $event = shift              // return;
+my $w     = eval { $event->w } // return;
+
+my $remaining = scalar grep {
+            ref $data{'session'}{$_} eq qw| HASH |
+        and ref $data{'session'}{$_}{'http'} eq qw| HASH |
+} keys %{ $data{'session'} // {} };
+
+my $cap     = <httpd.cfg.drain_cap> // 25;
+my $elapsed = <[base.time]>->() - ( <httpd.drain_start> // 0 );
+
+if ( $remaining == 0 or $elapsed >= $cap ) {
+    my $reason
+        = $remaining == 0
+        ? 'all client sessions done'
+        : sprintf 'drain cap %.0fs reached [ %d session%s cut ]',
+        $cap, $remaining, $remaining == 1 ? '' : 's';
+    <[base.logs]>->( 'httpd drain : %s, exiting', $reason );
+
+    $w->cancel if eval { $w->is_active };
+    delete <httpd.drain_check_timer>;
+
+    <[base.exit]>->(0);
+} else {
+    <[base.logs]>->(
+        2,          'httpd drain : %d client session%s remaining',
+        $remaining, $remaining == 1 ? '' : 's'
+    );
+}
+
+return TRUE;
+
+#,,.,,.,,,.,.,.,.,...,,..,.,.,,..,.,,,,,.,,..,..,,...,...,...,..,,,,,,.,,,.,,,
+#E5T4GH3CXEPLKM4DL4XR7UDNBXSTUW3HXDITDLGVY6RS3ERQJR33ROGH7XKIFA6AUHCOM5IXQGXVO
+#\\\|4Q6ZAOWGI6JFQIANM23NRDZUZI3WWBWESKLU2J6EZVC2KCAT3VS \ / AMOS7 \ YOURUM ::
+#\[7]CNKY5JOYTIDUEWVUPOHZ5EC7NXABXZDMCSMLTGOMRDOGXRQNUOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

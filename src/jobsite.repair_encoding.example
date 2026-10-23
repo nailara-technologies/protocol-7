@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = jobsite.repair_encoding.example
+# descr = before \ after excerpt at the first repaired char
+# param = $before, $after
+# note  = control chars [ c0 \ c1 ] shown escaped, never raw [ csi = \x9B ]
+
+my ( $before, $after ) = map { $ARG // '' } @ARG;
+
+## length of the common prefix ##
+my $pos = 0;
+my $max = length($before) < length($after) ? length($before) : length($after);
+$pos++
+    while $pos < $max
+    and substr( $before, $pos, 1 ) eq substr( $after, $pos, 1 );
+
+my $start = $pos > 24 ? $pos - 24 : 0;
+
+my $excerpt = sub {
+    my ( $text, $width ) = @ARG;
+    my $part = substr( $text, $start, $width );
+    $part =~ s|([\x00-\x1F\x7F-\x9F])| sprintf '\x{%02X}', ord $1 |eg;
+    $part = "..$part" if $start > 0;
+    $part .= '..'     if $start + $width < length $text;
+    return $part;
+};
+
+return {
+    'before' => $excerpt->( $before, 72 ),
+    'after'  => $excerpt->( $after,  56 ),
+};
+
+#,,.,,,,.,.,,,,,.,..,,.,,,,,.,.,,,...,,,.,,.,,..,,...,...,...,..,,.,.,,,,,.,.,
+#WDEIEFVBGSRPTVBGYFGLICIXP2F3DW4BFJ55GC2SWFOAJES5YH5PCVVEO5LUUFE7Z2US73N34R6K4
+#\\\|EWD4EGOJT2ILFM324KJD73CX6QJQJWTQ2Z2WQ222KDPDQV6K5MK \ / AMOS7 \ YOURUM ::
+#\[7]W3PWJDKH5MU6IONOSVW7R5T2HVCLOO2RQCOVCRXMY6LEQUXLFQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

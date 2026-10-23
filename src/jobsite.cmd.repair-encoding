@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = jobsite.cmd.repair-encoding
+# descr = sweep the job stock for double encoding [ dry run ]
+# param = [ apply ]
+# note  = chunked over timer ticks, deferred reply with the report
+
+my $args = $call->{'args'} // '';
+$args =~ s{^\s+|\s+$}{}g;
+
+my $apply = FALSE;
+if ( $args eq qw| apply | ) {
+    $apply = TRUE;
+} elsif ( length $args and $args ne qw| dry | ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'usage : repair-encoding [ apply ] -- default is a dry run',
+    };
+}
+
+## one sweep at a time ##
+if ( ref <jobsite.repair_encoding> eq qw| HASH | ) {
+    my $run = <jobsite.repair_encoding>;
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            'repair-encoding already running [ %s, %s phase, %d \ %d ]',
+            $run->{'apply'} ? qw| apply | : 'dry run',
+            $run->{'phase'}, $run->{'pos'}, scalar $run->{'ids'}->@*
+        ),
+    };
+}
+
+<[base.perlmod.autoload]>->('Archive::Tar') if $apply;
+<[base.perlmod.autoload]>->('Time::HiRes');
+
+## index from the files on disk, not a possibly stale in-memory copy ##
+<[jobsite.job.index.build]>;
+my $index = <jobsite.job.index> // {};
+
+my %stats = map {
+    $ARG => {
+        'checked'       => 0,
+        'repairable'    => 0,
+        'strings'       => 0,
+        'irreversible'  => 0,
+        'multi_pass'    => 0,
+        'skipped'       => 0,
+        'unreadable'    => 0,
+        'written'       => 0,
+        'write_skipped' => 0,
+        'write_failed'  => 0,
+    }
+} qw| active deleted trash blocked |;
+
+<jobsite.repair_encoding> = {
+    'run_id'   => <[base.ntime.b32]>,
+    'apply'    => $apply,
+    'reply_id' => $call->{'reply_id'},
+    'phase'    => qw| scan |,
+    'ids'      => [ sort keys $index->%* ],
+    'pos'      => 0,
+    'stats'    => \%stats,
+    'examples' => [],
+    'planned'  => [],
+    'started'  => Time::HiRes::time(),
+};
+
+<[base.logs]>->(
+    1,
+    'repair-encoding : %s sweep over %d jobs started',
+    $apply ? qw| apply | : 'dry run',
+    scalar keys $index->%*
+);
+
+<[event.add_timer]>->(
+    {   'after'   => 0.01,
+        'handler' => 'jobsite.handler.repair-encoding-tick',
+        'data'    => { 'run_id' => <jobsite.repair_encoding>->{'run_id'} },
+    }
+);
+
+## the report is delivered by jobsite.repair_encoding.finish ##
+return { 'mode' => qw| deferred | };
+
+#,,,.,.,,,,.,,,.,,,,,,..,,.,.,..,,.,.,.,.,,..,..,,...,...,.,.,..,,,,,,,,,,,,.,
+#XM3M5PNEEUXN5VZU2UDZPSRPGAW6INAMQ2BZBH2FORL7BA7BDQBP2Z7PTNZBPYQLMLMZ6VMFF62XY
+#\\\|663PMA7QDFTXZTMX4UH2MZGXM7JNFGLYU6FNRUY5COAXR4KJCSR \ / AMOS7 \ YOURUM ::
+#\[7]OUFGYPDENNRNUGCE6B737LQKARMDBELGXY55KUE575IYX7VSVCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

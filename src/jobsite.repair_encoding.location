@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = jobsite.repair_encoding.location
+# descr = store, status, epoch and path from an index entry
+# param = $job_id, $index_status [ 'review' \ 'trash:<epoch>' ]
+# note  = same path rules as jobsite.job.read \ jobsite.job.write
+
+my ( $job_id, $index_status ) = @ARG;
+return undef
+    if not length( $job_id // '' )
+    or not length( $index_status // '' );
+
+my $enc_id = <[base.vax-int.encode]>->($job_id);
+
+if ( $index_status =~ m{^(blocked|deleted|trash):(.+)$} ) {
+    my ( $status, $epoch ) = ( $1, $2 );
+    return {
+        'store'    => $status,
+        'status'   => $status,
+        'epoch'    => $epoch,
+        'rel_path' => $status eq qw| trash |
+        ? "jobs/trash/$epoch/$enc_id.yxz.B32"
+        : "jobs/$status/$epoch/$enc_id.yaml",
+    };
+}
+
+return {
+    'store'    => qw| active |,
+    'status'   => $index_status,
+    'epoch'    => undef,
+    'rel_path' => "jobs/$index_status/$enc_id.yaml",
+};
+
+#,,.,,.,.,.,.,.,.,.,,,,..,,,,,...,...,.,,,,.,,..,,...,...,...,..,,.,.,,,.,..,,
+#SE64RARUAKIYX2RLOJH4TRENH6HGJBKK7DPT57MAXKUXZRMOYT3WGZL4HN2ABFH7LSDCWPMNJPSGS
+#\\\|PMB5OSHJOSSCED6R6MYLETSY7JR2IRF3DX72DNK27H4PFCLT4H2 \ / AMOS7 \ YOURUM ::
+#\[7]6M5ZANYVH5HP6OUXWPIVB7VPFZRE5Z6LODBNQV3VVGWVASGS42DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

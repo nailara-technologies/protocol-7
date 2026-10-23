@@ -37,6 +37,15 @@ if ( not @{$queue} ) {
     return;
 }
 
+## twin-restart drain : no new ticks once draining [ site-yaml.cmd.drain ##
+## waits for the in-flight step, then exits ; the new twin resumes the   ##
+## queue from site-yaml.fetch.state ]                                    ##
+if (<site-yaml.draining>) {
+    <[base.logs]>->( 1, 'fetch.schedule : draining, not rescheduling' );
+    <site-yaml.fetch_timer> = undef;
+    return;
+}
+
 ## schedule next tick ##
 <site-yaml.fetch_timer> = <[event.add_timer]>->(
     {   after   => $delay,
@@ -47,8 +56,8 @@ if ( not @{$queue} ) {
 
 return;
 
-#,,..,.,.,,,.,.,,,.,,,.,.,...,,,,,..,,,..,.,,,.,.,...,...,.,.,.,.,,,,,,.,,.,.,
-#JZK7RUESP2A22ZQEORINKT6BELLLOJT7KWJR7HOD4W3E2ARMCHRUAA45MUOZOUD5LW6K74I3ECCXY
-#\\\|RUMNACMFSKKPKS3ECIXWFW3YQKXLYAT7GRLVJKI5WP7A6H5SJLV \ / AMOS7 \ YOURUM ::
-#\[7]UGY2ZDV2R3C2LMZKLUDICNV5ULIEEQVYLLLGDGJ6XEIFBWIOF4BA 7  DATA SIGNATURE ::
+#,,..,.,.,...,,..,..,,,.,,,..,,.,,,.,,..,,...,.,.,...,...,,,.,.,.,..,,,..,,.,,
+#KKDJAHTQ43JHXOAR6KVTQWKJX6IGMKGNJIBST2MH6UYB6P56FQP7DOIX7V7TKGYDIE725JHYLAPHG
+#\\\|XOY4KNILQRZYI324DUF75VOEACWB6UTSGNC6FY4VAATDM3RWKEZ \ / AMOS7 \ YOURUM ::
+#\[7]4PR7TAJ3PQL4RTKPVESJYFSVAX2AKAMP3GP2MGMSQ7JPLOOJVCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = jobsite.repair_encoding.job
+# descr = check one job record for reversible mojibake
+# param = $job [ hash ref, not modified ]
+# note  = returns { fixed => { field => text }, repaired, irreversible, examples }
+
+my $job = shift // {};
+
+my $result = {
+    'fixed'        => {},
+    'repaired'     => 0,
+    'irreversible' => 0,
+    'multi_pass'   => 0,
+    'examples'     => [],
+};
+return $result if ref $job ne qw| HASH |;
+
+## text fields site-yaml.stepstone.job_from_html takes from the page ##
+my @fields = qw| title company city description industry |;
+
+for my $field (@fields) {
+    my $value = $job->{$field};
+    next if not defined $value or ref $value;
+
+    my $check = <[jobsite.util.repair_mojibake]>->($value);
+
+    if ( $check->{'state'} eq qw| irreversible | ) {
+        $result->{'irreversible'}++;
+    } elsif ( $check->{'state'} eq qw| repaired | ) {
+        $result->{'repaired'}++;
+        $result->{'multi_pass'}++ if $check->{'passes'} > 1;
+        $result->{'fixed'}{$field} = $check->{'text'};
+        push $result->{'examples'}->@*,
+            {
+            'field'  => $field,
+            'passes' => $check->{'passes'},
+            <[jobsite.repair_encoding.example]>
+                ->( $value, $check->{'text'} )->%*,
+            };
+    }
+}
+
+return $result;
+
+#,,..,,..,,,,,.,,,,.,,..,,,,.,,.,,,,.,,,.,.,.,..,,...,...,.,.,,,,,,,,,,,.,...,
+#IWSGDTLEOLWGOF7O6BDD7BEJ4UVZVMJGICHYZFGAT3W6C7PLEIAEUWDW2QBZ4CXJCIR4JB6G5YI66
+#\\\|TPIVF6HEYWAQ2FRM7V7XDUZZNR2PWCCUMKPBD2AS4UJ3MDHZ5QO \ / AMOS7 \ YOURUM ::
+#\[7]AQTLIENUVS46FZPHUETZ5WS5ZWDJMMAHXLYPEC7B4MEYO7PLJMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

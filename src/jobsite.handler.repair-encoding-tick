@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = jobsite.handler.repair-encoding-tick
+# descr = one time-boxed slice of the repair sweep, re-arm
+
+my $event = shift;
+
+my $wdata  = eval { $event->w->data } // {};
+my $run_id = $wdata->{'run_id'}       // '';
+
+my $run = <jobsite.repair_encoding>;
+return if ref $run ne qw| HASH | or $run->{'run_id'} ne $run_id;
+
+## ~50 ms of work per tick : job.write re-dumps index.yaml and globs on ##
+## every call, a fixed count per tick could stall the event loop        ##
+my $deadline = Time::HiRes::time() + 0.05;
+
+my $ids = $run->{'ids'};
+
+if ( $run->{'phase'} eq qw| scan | ) {
+    while ( $run->{'pos'} < $ids->@* and Time::HiRes::time() < $deadline ) {
+        <[jobsite.repair_encoding.scan_one]>->( $ids->[ $run->{'pos'}++ ] );
+    }
+    if ( $run->{'pos'} >= $ids->@* ) {
+        if ( $run->{'apply'} and $run->{'planned'}->@* ) {
+            my $backup = <[jobsite.repair_encoding.backup]>;
+            if ( not $backup->{'ok'} ) {
+                $run->{'error'} = $backup->{'message'};
+                return <[jobsite.repair_encoding.finish]>;
+            }
+            $run->{'backup'} = $backup->{'path'};
+            $run->{'phase'}  = qw| write |;
+            $run->{'pos'}    = 0;
+        } else {
+            return <[jobsite.repair_encoding.finish]>;
+        }
+    }
+} elsif ( $run->{'phase'} eq qw| write | ) {
+    my $planned = $run->{'planned'};
+    while ( $run->{'pos'} < $planned->@* and Time::HiRes::time() < $deadline )
+    {
+        <[jobsite.repair_encoding.write_one]>
+            ->( $planned->[ $run->{'pos'}++ ] );
+    }
+    return <[jobsite.repair_encoding.finish]>
+        if $run->{'pos'} >= $planned->@*;
+}
+
+## progress in the log for long sweeps [ every ~500 jobs ] ##
+my $total = $run->{'phase'} eq qw| write | ? $run->{'planned'}->@* : $ids->@*;
+if ( int( $run->{'pos'} / 500 ) > ( $run->{'logged'} // 0 ) ) {
+    $run->{'logged'} = int( $run->{'pos'} / 500 );
+    <[base.logs]>->(
+        2, 'repair-encoding : %s phase %d \ %d',
+        $run->{'phase'}, $run->{'pos'}, $total
+    );
+}
+$run->{'logged'} = 0 if $run->{'pos'} == 0;
+
+<[event.add_timer]>->(
+    {   'after'   => 0.01,
+        'handler' => 'jobsite.handler.repair-encoding-tick',
+        'data'    => { 'run_id' => $run_id },
+    }
+);
+
+return;
+
+#,,.,,,,.,...,,,,,,,.,.,,,...,,,,,,,.,.,,,...,..,,...,...,.,.,.,.,.,.,.,,,.,,,
+#UZQPFHKXNAQ4UFSPY6EDV6YIWPXAFX2QH6PM645SECWBZJCY5JG4KBFVCHMOQOTWRUGB22JGAYOJC
+#\\\|UYYBSOXN6XKLWMIOX2RUS65VT5WA34434EO57PJIYFP77OLNOYT \ / AMOS7 \ YOURUM ::
+#\[7]KXEWBFOMJSISER3V5KPC2UKQ6TVXB5DQVJE44KGBTIALUY5ZRKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

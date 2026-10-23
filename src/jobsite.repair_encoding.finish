@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = jobsite.repair_encoding.finish
+# descr = end the repair sweep : reindex, report, reply
+
+my $run = delete <jobsite.repair_encoding>;
+return if ref $run ne qw| HASH |;
+
+my $written = 0;
+$written += $ARG->{'written'} for values $run->{'stats'}->%*;
+
+## job.write keeps the index per job, a full rebuild settles the rest ##
+<[jobsite.job.index.build]> if $written;
+
+my @lines;
+push @lines, sprintf '%s : %d jobs indexed, %.1f s',
+    $run->{'apply'} ? qw| apply | : 'dry run',
+    scalar $run->{'ids'}->@*, Time::HiRes::time() - $run->{'started'};
+push @lines, "error : $run->{'error'} -- nothing written"
+    if defined $run->{'error'};
+push @lines, "backup : $run->{'backup'}" if defined $run->{'backup'};
+push @lines, '';
+
+for my $store (qw| active deleted trash |) {
+    my $s = $run->{'stats'}{$store};
+    push @lines,
+          sprintf '%-7s : %d checked, %d repairable [ %d strings, %d '
+        . 'multi-encoded, %d skipped : status != dir ], %d '
+        . 'strings not reversible, %d unreadable',
+        $store,
+        map { $s->{$ARG} }
+        qw| checked repairable strings multi_pass skipped
+        irreversible unreadable |;
+    push @lines,
+        sprintf '%-7s   %d written, %d not written, %d write errors',
+        '', map { $s->{$ARG} } qw| written write_skipped write_failed |
+        if $run->{'apply'} and not defined $run->{'error'};
+}
+push @lines, sprintf 'blocked : %d stubs [ url only, nothing to repair ]',
+    $run->{'stats'}{'blocked'}{'checked'};
+push @lines,
+    'web     : cache of jobsite [ plugin.web.jobs.* ], no own job '
+    . 'store -- repaired active jobs reach it with the next sync push';
+
+## counts in the log too, the reply may find its caller gone ##
+<[base.logs]>->( 1, 'repair-encoding : %s', $ARG ) for grep {length} @lines;
+
+if ( $run->{'examples'}->@* ) {
+    push @lines, '', 'examples :';
+    for my $ex ( $run->{'examples'}->@* ) {
+        push @lines,
+            sprintf( '  %s [ %s ] %s%s',
+            $ex->{'id'}, $ex->{'store'}, $ex->{'field'},
+            $ex->{'passes'} > 1 ? " [ $ex->{'passes'} passes ]" : '' ),
+            "    before : $ex->{'before'}",
+            "    after  : $ex->{'after'}";
+    }
+}
+
+push @lines, '', 'dry run only -- repair-encoding apply writes'
+    if not $run->{'apply'};
+
+my $report = join "\n", @lines;
+
+utf8::encode($report) if utf8::is_utf8($report);
+
+<[base.callback.cmd_reply]>->(
+    $run->{'reply_id'},
+    defined $run->{'error'}
+    ? { 'mode' => qw| false |,
+        'data' => "repair-encoding : $run->{'error'}"
+        }
+    : { 'mode' => qw| size |, 'data' => $report }
+) if defined $run->{'reply_id'};
+
+return;
+
+#,,,.,.,,,,,.,.,,,,.,,.,.,.,,,..,,,.,,,,,,,,.,..,,...,...,,.,,..,,...,,.,,..,,
+#J5IPAMLCUCPVZ7YI7CU7NEPOS64XIL6A72ORE2XGGMNZTMTI3UIFSI3EH4DL2H326G33ZGOBFK62A
+#\\\|EAA5HPWBF5MSVS2WSGEKYRMCMOB25B7AU6AQTEORTAEQUD7SXNG \ / AMOS7 \ YOURUM ::
+#\[7]F4Q2IIUNIUTOUM2OWZCWJSAPMQCIXEAWJE53R4UOZ4UWUJ24JMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

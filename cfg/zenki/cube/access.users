@@ -2,10 +2,13 @@
    .:[ cube command access permissions set-up ]:.
 
     ## << developer account permissions >> ## matches <system.admin-user>
-    ## web.auth-issue \ -revoke [ web session tokens ] are listed :         ##
+    ## web.auth-issue \ -revoke [ web session tokens ] and                  ##
+    ## jobsite.repair-encoding [ rewrites the job stock ] are listed :      ##
     ## admin-only, kept even when the ** wildcards above get disabled       ##
-    access.cmd.usr.<admin-user>  =   ** ..*.** web.auth-issue web.auth-revoke
-    access.cmd.usr.<unix-admin>  =   ** ..*.** web.auth-issue web.auth-revoke
+    access.cmd.usr.<admin-user>  =   ** ..*.** web.auth-issue web.auth-revoke \
+                                     jobsite.repair-encoding
+    access.cmd.usr.<unix-admin>  =   ** ..*.** web.auth-issue web.auth-revoke \
+                                     jobsite.repair-encoding
 
     ### adjust as required [ current : permissive ] ###
     access.cmd.usr.root          =   ** ..*.** ## [ bin/nshell + 'p7.nshell' ]
@@ -33,8 +36,8 @@
                                   site-yaml.subscribe-fetched \
                                   site-yaml.outbox-confirm
 
-#,,..,.,,,,..,,.,,...,..,,.,,,.,,,,.,,,,,,.,.,..,,...,...,.,.,,,.,,..,.,.,.,,,
-#Q6NT4GBA4IU5FTYM6IPXKOMWVPEREQX47JLTG45Y7X7SHWTPRRTPBECZWKYDY53USLNJD43MBW5KC
-#\\\|U6ZVTQSQZX2JC7K7K63S6UYXYXD736GDZNKZNPGB5QDNJF5HWSZ \ / AMOS7 \ YOURUM ::
-#\[7]KUSOOYJFNSDYGEWHH3DCDBS4RAVVDHFCP6ZHXDVSX6T73MUJIKBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,.,..,,..,,,.,,,,.,.,.,,,.,.,,,..,,...,...,,..,,,,,,,,,..,,.,.,
+#BBFVLA2WASCRWKQKJOFPJ3BJ4GIA3CTBNS2343E6XAI56R3P5OORM46TOI2T6VEEXQ5P5PKB4TRBE
+#\\\|TURW6SFTJYW6FHNFOIYZM4ELGN7EPES7QJGGTD6DVR3HNF7UWZW \ / AMOS7 \ YOURUM ::
+#\[7]HZE42254OI2EBHIKTWHONI4KM4MYBPZ2IBYVNW4PMVZKWCJYPQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
