@@ -12,8 +12,17 @@ my ($raw)
     );
 return "no json-ld block found: $url" if not defined $raw;
 
+## decode_json takes utf-8 OCTETS : the fetch delivers the page as raw      ##
+## bytes, and encoding them again first turned every umlaut \ dash into its ##
+## bytes as characters -- fÃ¼r, â\x80\x93 in every stored job               ##
+## [ 2026-10-23 ]. encode only text that really is decoded characters       ##
+my $octets = sub {
+    my $text = shift // '';
+    return utf8::is_utf8($text) ? Encode::encode( 'UTF-8', $text ) : $text;
+};
+
 my $d;
-eval { $d = JSON::decode_json( Encode::encode( 'UTF-8', $raw ) ) };
+eval { $d = JSON::decode_json( $octets->($raw) ) };
 return "json parse error: $@" if $@;
 
 return "unexpected type: $d->{'@type'}"
@@ -38,10 +47,7 @@ my ($salary_json)
 
 my $salary;
 if ( defined $salary_json ) {
-    eval {
-        $salary
-            = JSON::decode_json( Encode::encode( 'UTF-8', $salary_json ) );
-    };
+    eval { $salary = JSON::decode_json( $octets->($salary_json) ); };
 }
 
 my %job = (
@@ -71,8 +77,8 @@ if (    ref $salary eq qw| HASH |
 
 return \%job;
 
-#,,..,...,..,,,..,,,.,...,..,,...,.,,,..,,...,..,,...,...,...,,..,,,.,,.,,,,,,
-#DX4NBL3WVT3FHKS3PS4KO32OL5QYCZSEIISSXMSCWRDWOYO7J543RCHGENQMMOEIKVEGELQYWH5Y6
-#\\\|NFPGSLKOMM4LBG75DCE5I3UHZLP7JF6ZE5VW53NWM7Y7JRRJK4F \ / AMOS7 \ YOURUM ::
-#\[7]GYM4UOJJB6662ULS5JIWSBIEYISLNUFSRVWCDHB4IT2X3X5G3EDI 7  DATA SIGNATURE ::
+#,,,,,...,...,,,.,.,,,,,,,,,.,,..,,.,,.,.,.,.,..,,...,...,.,.,,,.,.,.,,..,...,
+#FBZ3HROHFPGORKCJF42TVEL6NGMQ6RUKZW3K65SZFUI5G6OGKEADW6WO3WILBSXNVAMSLONVQUS4C
+#\\\|6XJY7VT3AXPWQVUNJCNWYMPNQESML7OTZFDT4TQD6OPOQDKLRHQ \ / AMOS7 \ YOURUM ::
+#\[7]M6VKJSEJASCN2QB6R5M2MBBF7E7KBTE4CWY4VCH75DAQB6LMO6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

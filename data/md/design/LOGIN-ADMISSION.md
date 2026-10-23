@@ -136,6 +136,30 @@ one place for address knowledge, kept locally.
   local and instant, no prefetch needed
 - its city \ country data follows later the same way. other zenki may use
   it too [ smtpd, nameserv, log enrichment ]
+- **propagation between the geoloc zenki** [ owner, 2026-10-23 ] : one
+  server fetches the public table, its peers pull it over the zenka
+  network -- fast-wired neighbours first [ srv-U -> srv-A ]. modelled on
+  nameserv's zone sync [ 4CJ : a serving host, peers, a writer grant keyed
+  by host-root id ]. one outside download instead of one per server
+  [ tells the source less ], and every server decides on the same table
+  version [ two name servers must not answer one resolver differently ].
+  a table travels with its BMW checksum and the source's version ; a peer
+  keeps its previous table when a new one does not match
+- **every server may fetch, phase offset** [ owner ] : each has its own
+  slot in the interval [ from its host-root id, a checksum modulo the
+  interval, plus jitter ]. at its slot a server first asks its peers for a
+  newer version and takes that ; only when none has one does it fetch,
+  then passes it on. normally one download per interval [ whoever comes
+  first ] ; when one server's path to the source is blocked, the next slot
+  fetches instead -- a lazy fallback without failover logic. the newest
+  source version wins, so all servers converge on one
+- **a new version is announced at once** [ owner ] : whoever got it
+  notifies its peers [ version, source, BMW checksum -- not the table ] ;
+  a peer without it pulls right away and announces it to its own peers, so
+  the table spreads in minutes [ like a dns primary's NOTIFY ]. the slot
+  stays the fallback for an offline server or a lost notice. a notice is
+  only a cue : the peer checks what it pulls, a forged notice at most
+  triggers a pull that finds nothing new
 - a second table : prefix -> country [ \ continent ], from the RIRs'
   delegated statistics files [ public, no account, ranges per country ] --
   needed by the geo-aware name service [ section 7 ]
@@ -226,8 +250,8 @@ able to serve the name, ordered by a policy over :
   then compares against that user's sessions only ] -- not decided
 - the AS table source and its licence, checked before the first download
 
-#,,.,,,.,,.,,,.,.,.,,,...,,..,,,,,.,.,,..,,,,,..,,...,..,,.,,,.,.,,.,,,,.,.,.,
-#KIBDMZTTTNNNPBRYSDGXVUHKF673HUNZYOC3KTPPDLXR2SZQFFM4X46ULQUS4OWQ66A3N4WAFPWHG
-#\\\|MNLIHN2RPJJOW73M2EXBWMIXIPSSKFGFFX5YPGIXAXWM42DAR27 \ / AMOS7 \ YOURUM ::
-#\[7]F2J2H4SRGCN46WVJRU7OJOLXBSPELRYHX2YJFONMYFJ5OFQFVWAQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,,,,,.,...,,.,,,..,...,,,,,,.,,..,,...,..,,...,...,.,,,,.,,..,,
+#226MRKXPP5YV5PX6XNJ4KJSLHFAOUC76V4TSOWXEC3WC6YVHZYYAFRUQHANB3NEJKS55GKTVATIRK
+#\\\|HJOWU3YRD4KDBBO4L2XPT7Z26GPRKA5YG2IQJ3NFPBMJJXE5GL6 \ / AMOS7 \ YOURUM ::
+#\[7]XC6IEV522QBWPIIVZ5U3WCC5VQWEWYMUDROFKUQT74SDV2IETECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

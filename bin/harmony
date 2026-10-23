@@ -308,6 +308,17 @@ sub display_result {
 
     return if $status eq qw| false |;
 
+    ## the deeper truth ends at a value already in the chain : 124 -> 9 ->  ##
+    ## 4 -> 4 .. called itself with -N 4 for ever                           ##
+    ## [ a fixed point, every level a new process -- 2026-10-23 ]. the      ##
+    ## chain travels to the self-calls in the environment, so longer cycles ##
+    ## end the same way                                                     ##
+    my @chain = grep {length} split m|,|, $ENV{'P7_HARMONY_CHAIN'} // '';
+    push @chain, $check_string;
+    return
+        if grep { m|^-?\d+(?:\.\d+)?$| and $ARG == $num_val } @chain;
+    local $ENV{'P7_HARMONY_CHAIN'} = join ',', @chain;
+
     my $assertion_result = system( $PROGRAM_NAME, qw| -q |, $num_val ) >> 8;
     if ( $assertion_result == 0 ) {    ##  deeper truth .,
         my @run_args = ( $PROGRAM_NAME, '-C' . $option{'C'} );
@@ -324,8 +335,8 @@ sub display_result {
 
 sub int_exit { print $reset; exit(4) }
 
-#,,.,,,,,,,,.,...,.,.,.,,,,.,,,,,,..,,.,.,,.,,..,,...,...,...,.,,,.,.,..,,,,,,
-#TXZSHGW2DS7EQWUJS7K7XQI3R552X5T3XRKLRT3D44SIFDI26E7NSDVDYCX34Z2A4N2B73FJYC34A
-#\\\|5BM5RUODXY3D2P5CX5X4XPCJCZ5EYBRCZ7J2RUBBON2G6XT5B27 \ / AMOS7 \ YOURUM ::
-#\[7]7UPDYD6VWE3P6XG4NDKS6HJJKHQO6FXBAVHCWWOHTRUK7S3BYAAI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,,,.,,,.,.,,,.,,,,..,.,.,,.,,..,,...,...,,,,,,..,...,,,,,.,,,
+#OYR5IGOITGUT6UUXK4UKT7SYRPVXMMEZGENMC5US3AEZEF7LCGKY2MPYL2LNJ5FPR6JYVHYD6VTSA
+#\\\|5URZ3C7TX4F3LDEBKOBWZT6OV7NVL6S5GNOEMC36QZUN42YYR2Z \ / AMOS7 \ YOURUM ::
+#\[7]7UFPERVTGCCGNGYPAOVNY3RELN2OXPKYTJV7IUAWL4Z7MMO2YOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
