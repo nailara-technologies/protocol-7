@@ -64,8 +64,8 @@ having the gaps closed".
 
 ## per-host roots + fingerprint pinning [ user idea, 2026-10-05 ]
 
-- user : if atom used its root key to sign all further sub-keys, then
-  knowing atom's key checksum [ or the key in full ] closes the trust
+- user : if srv-F used its root key to sign all further sub-keys, then
+  knowing srv-F's key checksum [ or the key in full ] closes the trust
   chain, TOFU included ; on-demand resolution possible but adds latency
 - agreed shape : a REAL per-host root [ host-root ] signs
   `<host>.cube`, zenka keys, `<user>.base`, session link keys ; peers pin
@@ -86,7 +86,7 @@ having the gaps closed".
 ## upward chains, node groups, rings [ user vision, 2026-10-05 ]
 
 - user : "able to follow the chain upward.. like knowing whoever signed
-  atom's global root key.. ultimately we will have node groups securing
+  srv-F's global root key.. ultimately we will have node groups securing
   each of their members and cryptographic rings with re-keying when nodes
   join or leave"
 - upward : a key may have SEVERAL parents [ owner root, group keys ], each
@@ -511,8 +511,8 @@ related : [[project-cross-host-trust-bootstrap-gap]],
 [[project-keys-zenka-integration-direction]],
 [[users-zenka-unblocks-cross-host-testing]]
 
-#,,..,,..,,,,,..,,,..,,.,,,,,,.,,,.,.,.,.,.,.,..,,...,...,...,...,..,,,,,,...,
-#D3B5MTIWE3NEGZQX3DAF7CESUTNQT62AML2PHN47OKLXPOGZ6BOSMNWVOBJBDJLH3FPWY33N4HXAO
-#\\\|Q4MDOTSECPSMWXJ2WCTJTUEBBRQ26TTTQXDZ7I2KRETTFCVWUTD \ / AMOS7 \ YOURUM ::
-#\[7]EMC3ODYDD5P4AXWOJKMOFKBY2ZVMNU3FGDL47XE45O3TZGPDYQCI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,..,.,.,...,.,.,.,,,,,.,,,,,..,,...,...,.,.,.,,,.,,,,..,,..,
+#RDNC7TKO76TF4TMSMWV44255LYNUWGZQ3RR7E47PYF24KQSCFH3T6XIAW3RH2IVEQ7T6FDUYO3GIK
+#\\\|HBONBINZTSR25UD5YJUXJUOYQSZE5AR3ZAQNL37WSKBUC2T2UHD \ / AMOS7 \ YOURUM ::
+#\[7]EA43VG7PWBGPELTZIGCZCE37MJTZ73YZD3MH7KM6W34UJPWHI4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

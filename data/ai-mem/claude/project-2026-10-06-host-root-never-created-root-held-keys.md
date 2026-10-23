@@ -11,7 +11,7 @@ only `self`, `protocol-7.base`, `remote-fetch-client` ]. cause :
 `cfg/zenki/v7-zenki/zenka.v7:11` `crypt.C25519.auto_load_keys = 0` ->
 `crypt.C25519.post_init` returns before its host-root block. remote
 servers only differ by start profile [ `start-set-up.remote-server` vs
-`base` ] -> same result expected there ; atom unverified. the keygen test
+`base` ] -> same result expected there ; srv-F unverified. the keygen test
 lane drove post_init with autoload ON, so it could not catch it.
 
 **decided with the user** [ `data/md/design/HOST-ROOT-DELEGATION.md`
@@ -79,8 +79,8 @@ test 916a35658 ; web session 435ff591b + review 05e79435b ] :
 
 **LIVE 2026-10-07 [ ce380ec8d ] :** first root run of v7-zenki failed twice on runtime-only bugs the harnesses miss [ File::stat object `lstat` -> ownership rule refused a correct root/ ; `sysread` on the runtime's default :utf8 layer in delegation.issue ] + p7-log lacked crypt.C25519 in modules.load. after the fix : host-root written to root/, delegation `protocol-7.base -> <node>.cube` issued by the 1-min retry after `v7-zenki.reload` [ no restart ], `.dlg` 0644 next to S. cube reads .dlg per select [ no cube restart ]. LIVE PASSED same day : `p-7-r 127.0.0.1:42 list sessions` as taeki -> delegation verified, host-root pinned [ ~/.n/remote-keys/servers/127.0.0.1_42.public ], ip.tcp session ; re-run against the pin OK. open : wrong-host-root refusal only covered by the e2e test.
 
-#,,,.,,.,,,.,,...,,.,,...,.,,,,,.,,,,,,.,,.,.,..,,...,..,,...,.,,,,,.,.,,,,..,
-#EFRXIFOSTELYXD7JDRXWKX2ZQEOXWOKORWT4MGPDRFAYNXWLU6FGIJURR76554DZ3EQGA5TGSASFW
-#\\\|U7NGFVWBYTHXDXI4IAUTMRAR6OLMN4JKUNIUHBXYRUUI2XL3RT6 \ / AMOS7 \ YOURUM ::
-#\[7]OMR3JKW3REKYIQDXO6ZBONYGGSKKTZNA6B2GDIHLGDOO6VQNJQCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,.,,,.,..,,,..,,..,.,,,,,,,,,,,..,,...,...,,..,..,,...,,..,,,,,
+#CFNBAE5WBMBUYFZ2GNYFBZFSMHYLRYBPZ4RJVDSD4YGIVLKGHZPWZFDMOVEJSFPWJJ2WYWH7QUTDM
+#\\\|MPCZC3JCFEFHAVBTQ5HPLCOCYJM4A6EEFNZHQJUKTT3VLYLGDD5 \ / AMOS7 \ YOURUM ::
+#\[7]ELLLFWIJEWSGV23UTPXBRHRBSXXFIVY3EUS5CZ2UXDUYTXQDRQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

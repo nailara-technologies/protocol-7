@@ -45,7 +45,7 @@ previous handover : [[project-2026-10-04-session-handover-osf-cache-stage2]].
 
 ## next steps
 
-1. **host-root check** at the next v7-zenki start [ atom ; pri after its
+1. **host-root check** at the next v7-zenki start [ srv-F ; srv-U after its
    code update ] : `host-root.*` appears in /home/protocol-7/.n/user-keys/,
    public key random per host
 2. discard + regenerate the `.base` placeholder keys [ made with the weak
@@ -56,7 +56,7 @@ previous handover : [[project-2026-10-04-session-handover-osf-cache-stage2]].
    external links \ osf-cache [ today : own nodes \ localhost only ]
 4. 63K vs 64K leaf size : waits for the user's re-derivation of the 63 \ 64
    logic [ 1K header idea = 64512 payload ] -- osf-cache keeps 65536
-5. use **pri** [ ~10 GB more RAM ] once updated to current code
+5. use **srv-U** [ ~10 GB more RAM ] once updated to current code
 6. osf-cache stage 5 [ credits ] later ; routing-as-search later
 
 ## live facts
@@ -84,8 +84,8 @@ previous handover : [[project-2026-10-04-session-handover-osf-cache-stage2]].
 - kimi's test tasks find real bugs [ the fail-open writer ] -- worth
   dispatching test-only tasks for code verified only live
 
-#,,.,,..,,...,,.,,,,.,,..,,,.,.,.,,..,.,.,...,..,,...,...,,,.,,..,...,,..,...,
-#RMGB7M4ETKHHEL4DBTBPMPNXQVXKHDPFYJKNY4QAUSUNUT2MB6R42EEGBWO55CIXB6FQYWMNHB5US
-#\\\|7PVBP64SITFFZDEH236UUG5BVGKWSLKTX7EE4Y45FKBOLLJW4N7 \ / AMOS7 \ YOURUM ::
-#\[7]VXQIDFZ6HPFGZLJRG3GL4KLGTV5RRLV5ZZXPANH74HQOLUNBXMBY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,,.,,..,,,,,,..,,.,,,,.,,,.,,..,,...,...,...,,,.,,,.,,.,,,..,
+#6PJOXG2H7LP47YXJ3HY2QPDJVVHHIRB4LMWF2VUMOC6AOY2XI7FXGBFZ7HWVDTBQ3E2VI4MJV2V4U
+#\\\|QYEX223QUZAGB6NFJFISSL3E7UWI5AKHBALVDPRS24KSBTH2JYO \ / AMOS7 \ YOURUM ::
+#\[7]YVIWDEQYVVS22SQA6OHE7ZBHE45CXGHIBXMROS6XKPPO53NHJUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

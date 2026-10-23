@@ -1717,9 +1717,32 @@ items:
   tags:
   - ncode
   text: 'ncode transform : continue the waves after an llm wave [ remaining_waves -- wave_reply answers after the first deferred wave, ncode.transform.run returns at it ]'
+- added: 32D4544YB4
+  details: ''
+  done_at: null
+  id: TDA
+  priority: normal
+  status: open
+  tags:
+  - task
+  - models
+  text: 'a task whose claimer is gone stays in_progress : a models restart left GVK25BY claimed and the jobsite watchdog waited on it [ release or fail claimed tasks of a disconnected claimer ]'
+- added: 32D5BIXNLY
+  details: |-
+    owner 2026-10-23 : with a better subdomain management the main wildcard goes ; wildcards only where a subdomain means it [ e.g. checksums resolved under one subdomain ] -- the main zone then answers NXDOMAIN for unknown names
+    owner 2026-10-23 : the main wildcard is also the www. catch-all [ no www record wanted ]. when it goes : nameserv generates www as a CNAME to the apex from a zone option, not a hand-written entry ; httpd answers www. with a 301 to the bare domain
+    owner 2026-10-23 : the wildcard lives in the registrar zone [ inwx answers ; our nameserv serves letsencr only ]. the delegation switch is prepared [ 6 NS entries, 3 per domain, in a config template ] and waits until our zones cover every important entry, MX included. so : the www option + the reduced wildcards are part of that switch's checklist, the registrar wildcard stays until then
+  done_at: null
+  id: 5W7
+  priority: normal
+  status: open
+  tags:
+  - nodes
+  - dns
+  text: "short host names without a search domain : nodes [ or a similar zenka ] keeps /etc/hosts entries for the own hosts ; a check warns when the host name's domain has a wildcard and resolv.conf lacks 'search .' [ srv-A resolved github.com to the wildcard, 2026-10-23 ]"
 
-#,,.,,...,,,.,,..,,,,,..,,..,,...,,,.,...,.,.,..,,...,...,.,,,...,.,,,,..,,,,,
-#66TH45MBRMSSPJ6U5OGYNJREVV3SZ6KZGO7ZEBIQ66J6QIQPSEEUBFNLZPN5PXQLJKRQ5PGBE5SRU
-#\\\|326N3UYKDBIDNNSLAJNIU7L5J4KXWQ4TNIZYU6HRR53C64VKNTY \ / AMOS7 \ YOURUM ::
-#\[7]EZW4GGM2FKALVXMNYEY4I7JQ23PPPF4LBSUT5UDVEGPG5NWYMSBY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,.,,,.,,..,,,..,...,,..,.,.,,..,..,,...,...,...,,..,,,.,,..,,,,,
+#RRM7KHC7BFN54GSAWUGVPI54QZPCUQI3WEXHYNJBEYHL3LT2KZEPTZOH7CA3NMRZKVUUOV4EZLZ2U
+#\\\|UX3HYLYVITVUJDGAQM4SEX7BMCM44RRQ4A6Q6DTTUGR4CJX7RPO \ / AMOS7 \ YOURUM ::
+#\[7]6HEWZT4OMUIGP3NZ27RTZJYEWGWQHDKTV7FKSL2P243YDKYCGMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

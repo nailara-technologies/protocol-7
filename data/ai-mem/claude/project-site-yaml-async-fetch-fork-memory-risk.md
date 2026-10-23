@@ -1,6 +1,6 @@
 ---
 name: site-yaml-async-fetch-fork-memory-risk
-description: RESOLVED 2026-08-30 — fork-per-request retired entirely (was a real OOM risk on 1GB-RAM hosts like atom); site-yaml now calls clients.https.get directly, no fork/exec at all. Kept for the reasoning trail and the still-open cmd.fetch/LWP loose end
+description: RESOLVED 2026-08-30 — fork-per-request retired entirely (was a real OOM risk on 1GB-RAM hosts like srv-F); site-yaml now calls clients.https.get directly, no fork/exec at all. Kept for the reasoning trail and the still-open cmd.fetch/LWP loose end
 metadata:
   type: project
 ---
@@ -54,7 +54,7 @@ every SV (scalar value) as code executes, so even a child that only does one
 the parent's resident pages, not just the pages it "logically" needs. on a
 host with ample RAM this is invisible; on a memory-constrained host it is not.
 
-**the specific constraint:** the user runs a host ("atom", reachable over
+**the specific constraint:** the user runs a host ("srv-F", reachable over
 ssh) with only 1GB RAM, and has
 direct prior experience of memory-pressure crashes there — "these are the
 things that make it crash." site-yaml's fork-per-request design is exactly
@@ -189,15 +189,15 @@ site-yaml (or any other memory-constrained/on-demand zenka), check whether
 the `clients.https.request` proxy-CONNECT extension has landed yet. if not,
 treat the current fork-per-request worker as a known, deliberate stopgap —
 correct for correctness, not yet correct for footprint on low-RAM hosts
-like atom. when scoping the follow-up dispatch, point it at
+like srv-F. when scoping the follow-up dispatch, point it at
 `clients.https.request`/`clients.https.handler.handshake` as the precedent
 to extend, not at `coding.async.http_client` (wrong client, see SUPERSEDED
 note above) and not at a fresh chmod_child-exec build (fallback only).
 
 see [[topic-site-yaml-zenka]] for the broader site-yaml design context.
 
-#,,..,.,,,...,,,,,,..,...,,.,,..,,.,,,.,.,...,.,.,...,...,,.,,,,.,,,.,,,.,,,,,
-#4BMIPVJD26OLMJVVUOXVGBP5CSU6Y77NJ5IUEDIZ3M22JWS3ZERWAEJASUQ5QUMZNXWQCBWH67BKW
-#\\\|WGYVEC2E6FAVK4PQTEGQKFQAZ3MF7DZQVAGQC6NTTSL7XNIPMQ2 \ / AMOS7 \ YOURUM ::
-#\[7]TO723HO7W7XZDUGK2KY4J47MLAC5AZ7M53KAWXDXRT6V4BTSXWCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,.,,...,..,,.,,,,.,,,.,,.,.,,,,,.,.,...,...,...,.,,,,,.,,.,,,,,,
+#AWSPAETSWFVPZ2P3PH37YIRVLGBT7XMX45RZCGJWW7SZW4ISRJPKB2TP4QF6ZHHWPPXBCIGG2C7PC
+#\\\|7EVLRRMG7ETQMGK7W5L6YC3V5CIM7LN4YPFYHRKQCXZTFMNK2YO \ / AMOS7 \ YOURUM ::
+#\[7]XUA46BAN27GS7MFVWCX7ZRK43HXTGS25YRBPJXFZYOJGP7PQIACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

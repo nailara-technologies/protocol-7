@@ -76,7 +76,7 @@ handler):
 Also fixed same session, unrelated to the sweep but found via a side
 task: `.deps/profiles.yaml`'s `X11-Desktop` apt list was missing
 `libsdl-perl`, so `bin/p7-deps install` on a host with fewer packages
-preinstalled (the `atom` remote server) fell through to `cpanm`
+preinstalled (the `srv-F` remote server) fell through to `cpanm`
 building `SDL`/`Alien::SDL` from source against long-dead upstream
 tarball URLs, failing on a stale checksum. `libsdl-perl` (verified via
 `dpkg -L`) provides every `SDL::*` submodule the profile lists —
@@ -222,8 +222,8 @@ switch→self-test→restore state machine `poll_sweep`'s `start_candidate`
 already drives is reusable in principle, just not yet extracted into
 something a standalone command can call directly.
 
-#,,,,,,.,,,,,,,,,,,,.,,..,,,.,,,,,,,,,...,,..,.,.,...,...,,..,...,.,.,.,,,..,,
-#PYLOAJOB3PHVSZJNYZOFMIGJXF7CTOD64XX56HVZHRHONLKV2BP3PRCXPX3ICQPRBNF3EIEE63NWC
-#\\\|P3PB2DHIPFPJN72MBZ45QJASK7ECFI6KPBGCBXW2W7T5ZV4ZSEX \ / AMOS7 \ YOURUM ::
-#\[7]3T4Q4HHIVSYRYW7UIBHSDCZN5RZC27K2SIOFTAVIK6M77ILFZWAY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,,,.,,,.,...,,,.,,..,,..,...,.,.,...,...,..,,,..,,,.,,,,,...,
+#S2FAUTLFDGLQJWOCRD7KQLWVIGXNNAJ6GWNO55KPIRDCLEECLELUAPTG7NRE3QIFDDVQU4J3VICQU
+#\\\|ETLFZEITDEUTWRH5ERDWTHM6KEWW4QSYPZZRKEDAKCZUMEF434H \ / AMOS7 \ YOURUM ::
+#\[7]2YQNV5BREW4MXUCDPN4FLHKQJBZ3TJTN5IOCNVQUJ23XKMDAZEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

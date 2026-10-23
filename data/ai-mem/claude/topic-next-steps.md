@@ -486,7 +486,7 @@ what it should actually invoke.
 - import-atom-jobs script ✓ (142da4c44) bin/dev/import-atom-jobs
 - CSV/HTML import ✓ 47 applied, 3 interviewed, 16 apply imported
 - jobsite.status fix ✓ (4b930b439) index-based counts, base.sort
-- atom browser localStorage extraction ✓ DevTools key `jobs_[vhost]_v1` → POST reverse-sync batch
+- srv-F browser localStorage extraction ✓ DevTools key `jobs_[vhost]_v1` → POST reverse-sync batch
 - multi-endpoint sync — after auth settled
 - web-sessions-distributed — lower priority, task written
 
@@ -806,8 +806,8 @@ had more real-world exercise (today's fix covers case 1's underlying
 mechanism but hasn't been stress-tested; case 2 has no design yet beyond
 "probably AMOS7-level, not a bin/ shellout").
 
-#,,..,...,,.,,..,,,,.,..,,,,,,.,.,..,,,,,,.,.,..,,...,...,...,..,,,,,,,.,,.,,,
-#4JMIC7SY67QB42GVA2FNXGIGVG7NGCGFCDSGYAYO4KYY6ALSIEY5CLDGNMU3Z6C7GNM5IU6CWGHHI
-#\\\|XLHMN3ANBGRSBWHS3KE3BCXPSS4LIXJXLRVOKNFURKK3ZLALEAX \ / AMOS7 \ YOURUM ::
-#\[7]74P4K5VA3ZUQGEFYH6VXB3OJ6OT3NNN3742V2FFTHPLJBHMHKGCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,.,,,,,,...,,,,,,,,,,,,,...,.,.,..,,...,...,...,...,...,,..,.,,,
+#QOCRMC262ATST6PLKXZWBZMDN2FVNZIBKTQ7FYY4C4H6NW52OMXQERLYYJS4LOTMMNITO2VT7DOMI
+#\\\|HQINGVQFH72NSN7GWZ33VJEP2ZU2EUDY7J6736UPJH4BGTIC45G \ / AMOS7 \ YOURUM ::
+#\[7]F4EWWPJBIYEV7GO5LE4OHFF46ETVMCX5MJM64NOX6A7XWLU6AKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

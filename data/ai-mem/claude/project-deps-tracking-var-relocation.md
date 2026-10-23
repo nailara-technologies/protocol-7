@@ -1,6 +1,6 @@
 ---
 name: project-deps-tracking-var-relocation
-description: "base.register_pm_deps writes per-zenka dependency touch-files directly into tracked cfg/zenki/<zenka>/deps/p-mod/ -- causes real, live-reproduced failures (read-only root installs like atom's nshell, dev-repo ownership hijacking via the EUID==0 chown-fixup path, and inconsistent init_modules/drop_privs ordering across the 124 zenki with deps/ dirs); fix is relocating the write+read path to var/, not a new zenka. Also covers retiring src/base.known_dependencies; base.list.subroutines is NOT dead code (actively updated by sourcecode.console.update-sub-list), see correction inline."
+description: "base.register_pm_deps writes per-zenka dependency touch-files directly into tracked cfg/zenki/<zenka>/deps/p-mod/ -- causes real, live-reproduced failures (read-only root installs like srv-F's nshell, dev-repo ownership hijacking via the EUID==0 chown-fixup path, and inconsistent init_modules/drop_privs ordering across the 124 zenki with deps/ dirs); fix is relocating the write+read path to var/, not a new zenka. Also covers retiring src/base.known_dependencies; base.list.subroutines is NOT dead code (actively updated by sourcecode.console.update-sub-list), see correction inline."
 metadata:
   node_type: memory
   type: project
@@ -27,7 +27,7 @@ writable, just a silent drop + warning log.
 
 **Three distinct real problems, one root cause:**
 
-1. **Read-only root installs** — live-reproduced on host `atom`:
+1. **Read-only root installs** — live-reproduced on host `srv-F`:
    `/usr/local/protocol-7/cfg/zenki/nshell/deps/p-mod/` owned
    `root:root` 755; `taeki` (non-root) running `v7.nshell` hits `<< no
    write access to cfg/zenki/nshell/deps/p-mod >>`, `Event` never gets
@@ -194,8 +194,8 @@ retirement can follow once the `var/` relocation lands and (for
 list.subroutines specifically) once the BMW-for-all-files checksum
 system exists — don't retire either prematurely on its own.
 
-#,,.,,...,,.,,,,.,.,.,,..,...,,..,,.,,..,,,.,,..,,...,...,,.,,.,,,...,,.,,...,
-#DDVYQPZV75H3AFJXRBJP2FHMMQJIGZNQ7TJWWQ7TXSV7XQNJT267WQYM36UNUGY57UAGA2L4WWJ6M
-#\\\|ZQT7FCDH4DN5BHVEYL3XEASPFIZXOKZTHCOZEPEZBQTTBURBWRB \ / AMOS7 \ YOURUM ::
-#\[7]JWT3KLH4WVR3NXCSWMO5IH3NPUH4HIJ3QYHKSKUJALZRQAQCRKCY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,,,.,,,,,.,.,,,...,,.,,.,,,...,..,,...,...,.,.,.,.,...,.,.,.,,,
+#FNHQN33UKQ3WN2Q7RIVQDQATPIG2C32PACMBYEBMQC2VI7NW3S36J7E2REBFTNHHXOPPDNXNWMULO
+#\\\|XRQ6NWHW72LW4GCJJINUHI5WFLGLFGR2NZUMDNNWCKONIGT7T26 \ / AMOS7 \ YOURUM ::
+#\[7]COEARKDASHXNKG2KNTJXOOJVO4TYJ2QDM32NFP5P2YTIWX6EDCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -183,6 +183,12 @@ if ( ref $tools eq qw| ARRAY | and $tools->@* ) {
     $tools = undef;
 }
 
+## a no_tools task gets none : coding.async.send_request drops them for ##
+## later rounds, but the first request is built from this result by     ##
+## coding.task.execute -- a single-round assessment carried all tool    ##
+## definitions [ ~40 % of a cpu prefill, 2026-10-23 ]                   ##
+$tools = undef if $task->{'no_tools'};
+
 ## build template context for condition evaluation ##
 my $task_type = $task->{'metadata'}->{'raw_request'}->{'type'} // 'review';
 
@@ -380,8 +386,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,,.,,,.,.,.,,..,..,,.,.,,,,,,,.,.,.,.,,,,..,..,,...,...,..,,,,,,..,,...,...,
-#MSFE4S3LJAJIFHMOKPODL4EIRTUO3FQCMLXNAEXS7YG7A2LXJUQWQF5AM6PDDEECGEIDYXAV5JBB2
-#\\\|5RNUL5Z7YTHYTVEW2WIN67GH3MH2PDIMVBJJKYCYIZT2A3PRKVX \ / AMOS7 \ YOURUM ::
-#\[7]LX6XQLI73NHW5FDBSAAWRQXKUBADQCLPBO4AKLKGKLHQKL7LSMAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,.,,,.,.,,..,,,.,..,,..,,,,.,..,,...,...,.,,,.,.,..,,..,,.,,,
+#7FZ2REDQEIZC7IEM2SAOKBBXWM2X4CSYOCWCNZCJ6DORLOEXOZIPM7CDZQZ2V4JV4FJP5LWQFNBQY
+#\\\|IOL26MT2VISHEYYMDL46PJA7VA2FXR3H72K27D3X7GJJXMCXQWC \ / AMOS7 \ YOURUM ::
+#\[7]JA2PRII6BEMYSBC66P6PFUFTBS6ZOFVRIL4AD3CRGKGM22K5DUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

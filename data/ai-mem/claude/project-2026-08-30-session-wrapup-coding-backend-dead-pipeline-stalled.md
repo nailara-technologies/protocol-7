@@ -135,7 +135,7 @@ this exact failure mode, before reaching for gdb again.
   both landed, fork-per-request worker pattern mirroring `povray`, live
   log-confirmed non-blocking (`SIGCHLD`/reap cycle observed, `site-yaml.
   import` replies without hanging `heart`).
-- fork-per-request flagged as a real OOM risk on 1GB-RAM hosts (atom) — see
+- fork-per-request flagged as a real OOM risk on 1GB-RAM hosts (srv-F) — see
   [[site-yaml-async-fetch-fork-memory-risk]] for the full redesign note.
   Current best target: extend `clients.https.request` (already has a
   correct non-blocking TLS handshake via `IO::Socket::SSL`
@@ -149,8 +149,8 @@ this exact failure mode, before reaching for gdb again.
   mid-session, not left in any task file or dispatch prompt in its wrong
   form.
 
-#,,,.,,.,,..,,.,.,,..,,.,,...,.,.,.,.,,,,,.,.,.,.,...,...,..,,,.,,.,,,..,,,,.,
-#NL7U35DRCQEVAHMIAOPGHK6EG2CPWU5HDJF6EVMNAJ7J75HGZQTCLJHWOSM3YW4M5EYZEPOAWTOY2
-#\\\|MFAJH3ZARA52L5KOTJ4Z7N53U5Q6WJTRF7CUBO3ZN5BX3YL6FV7 \ / AMOS7 \ YOURUM ::
-#\[7]LLJYNSAOUKGUW4DUG3EP4FQTP4VYD7ELBFNOOYVPTBQWWPQH3ADA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,,,.,...,,.,,.,,,.,,,.,,,.,.,.,.,...,...,,.,,.,.,,,,,,.,,,,,,
+#BNYQRH7BOEXO6ZYAU3SRCAW4LZDVE74OHIAN5BR674IMEZRXYVFCOBW3EVJ35FZS5QTVHKQHWB67S
+#\\\|5LDTWIZQZMOGFFAYBWRQHAZJAW7X6MGIBFOCUVZXP6BMUQDMMTY \ / AMOS7 \ YOURUM ::
+#\[7]HH6BFBU3CPCHRJYJXUXZQCDP3A5SJAY5FPMPF64SAXXTR7OEX6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

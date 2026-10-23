@@ -7,7 +7,7 @@ metadata:
 
 previous : [[project-2026-10-09-session-handover-remote-rollout]].
 
-## landed [ all pushed ; pri + atom run 3X2YZXGSNY-9883.0 ]
+## landed [ all pushed ; srv-U + srv-F run 3X2YZXGSNY-9883.0 ]
 
 - **history rewrite** : the 3 qwen 2.2 backgrounds carried invokeai_metadata \
   invokeai_graph text chunks [ prompts, seed, models ]. stripped [ pixels
@@ -20,14 +20,14 @@ previous : [[project-2026-10-09-session-handover-remote-rollout]].
 - **letsencr acme flow on the event loop** [ data/tasks/letsencr-acme-async.md ] :
   the old child ran one blocking call [ LWP + sleep ] -- a route-send
   challenge set-up only left AFTER validation [ http-01 never really worked
-  for fresh names ; atom's protocol-7.network cert came from a reused authz ].
+  for fresh names ; srv-F's protocol-7.network cert came from a reused authz ].
   now `letsencr.child.acme.*` : order record, phase steps [ directory ->
   account -> new_order -> authz -> setup [ reply handler ] -> propagate ->
   respond -> poll -> finalize -> poll order -> download ], one order at a
   time [ queue ], nonce consumed on use, per-order deadline timer, fail
   answers once, reused authz logged at level 1. transport
   `letsencr.child.acme.request` on clients.https [ kimi, k3 ].
-  live : local staging [ failure path ] + atom production for the fresh
+  live : local staging [ failure path ] + srv-F production for the fresh
   `ui.data.v7.ax` [ full success path ]. old blocking modules removed.
   tests : test-letsencr-acme-flow 48, -acme-async 43, -enroll 74
 - **parent timers** : four used `delay` -> fired at once [ rate limits got
@@ -48,12 +48,12 @@ previous : [[project-2026-10-09-session-handover-remote-rollout]].
 
 1. letsencr retry off-by-one : first retry 900 s, not 300 [ attempt +1
    twice in handler_enrollment_reply ]
-2. pri refuses `taeki` through the ssh forward [ auth-keypair : user not
-   authorized ] -- pri + atom cube bind 127.0.0.1:42 BY DESIGN : dial
+2. srv-U refuses `taeki` through the ssh forward [ auth-keypair : user not
+   authorized ] -- srv-U + srv-F cube bind 127.0.0.1:42 BY DESIGN : dial
    `ssh -L <local>:127.0.0.1:42` + `p-7-r 127.0.0.1:<local> -host <name>`
 3. 10 dead letsencr modules [ listed in the acme-async task ]
 4. coding : cpu fallback keeps running once the gpu is back
-5. dns-01 live : zones, nameserv on pri + atom, cross-host route to the 2nd
+5. dns-01 live : zones, nameserv on srv-U + srv-F, cross-host route to the 2nd
    nameserv, inwx delegation [ user ], wildcard test
 6. outer cube \ ext-cube ; p-7-r starting the ssh forward from the host record
 7. later : dns knock, image surface addressing [ kitten first ]
@@ -68,8 +68,8 @@ previous : [[project-2026-10-09-session-handover-remote-rollout]].
 - commit hook : descr lines max 55 chars, message = title + empty line +
   `- ` bullets
 
-#,,..,..,,.,,,..,,,..,.,,,..,,..,,..,,...,,,.,..,,...,...,.,.,..,,,.,,.,.,,,.,
-#Y66XSCQ3R5JLN2U3DMC6JUNYYF5ZYM4437F5MT22C2CHQNNHTOU7II6GJKXAABQU6WLCN4WC6AJS4
-#\\\|QE4DLXTFHCA6IUBIMNE3DVW2RMCGJHDKL2XTGYKTMNATWRDUZ7S \ / AMOS7 \ YOURUM ::
-#\[7]LNC2ZTN6YLHJETNQ2X65TWF6STKGEXGHG5C6ELMBHY6HPY26NQDY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,,,.,,.,,..,,..,,,..,,,.,,,.,..,,...,...,..,,,,.,,,,,...,...,
+#HBUTQDLVJP65YQBAOXNDJYKSSHO7O23GXQEKVLS65ARHTSOWNTQ2A74KTZPF6URK2W53JALBG5WXY
+#\\\|ZHHBIHTWU4G5DFRLFCFRULYHFDYBDCYBWDAV2ZFZUHDCAFJOBCE \ / AMOS7 \ YOURUM ::
+#\[7]YGFYNB74D4KW7NOCORLGF4ZYOXU4JSUZUFA42URQOBPQ73AZSAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
