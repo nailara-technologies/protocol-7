@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = jobsite.job.trash
+# descr = move one job to the recoverable trash
+# param = <job id>
+# return = TRUE or ( FALSE, <why> ) in list context
+# note  = the web's delete [ jobsite.sync.apply_reverse ] and jobsite.
+#         delete share it : status trash + trash_epoch, an in-flight
+#         assessment task is failed. undo : jobsite.rescue
+
+my $id = shift // '';
+return wantarray ? ( FALSE, 'no job id' ) : FALSE if not length $id;
+
+my $job = <[jobsite.job.read]>->($id);
+return wantarray ? ( FALSE, 'not found' ) : FALSE if ref $job ne 'HASH';
+
+## stage 1 deletion: recoverable compressed trash ##
+$job->{'status'} = 'trash';
+$job->{'stage'}  = 'trash' if length( $job->{'stage'} // '' );
+$job->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
+<[jobsite.job.write]>->( $id, $job );
+
+## mid-assessment : the coding zenka may still be working this job's task.  ##
+## fail the generic task now so the task.wait-done watcher resolves instead ##
+## of leaving pending_count/cycle stuck forever.  grab the record before    ##
+## deleting it, but delete it FIRST so the async reply lands on             ##
+## assess-done's unknown-job path and doesn't re-write the job file we just ##
+## trashed                                                                  ##
+my $rec
+    = ( ref <jobsite.tasks> eq 'HASH' )
+    ? <jobsite.tasks>->{$id}
+    : undef;
+my $was_assessing
+    = ref $rec eq 'HASH' && ( $rec->{'stage'} // '' ) eq 'assessing';
+my $task_id = ref $rec eq 'HASH' ? $rec->{'task_id'} : undef;
+
+delete <jobsite.tasks>->{$id}
+    if ref <jobsite.tasks> eq qw| HASH |;
+
+if ( $was_assessing and length( $task_id // '' ) ) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.fail',
+            'call_args' => { 'args' => "$task_id job deleted" },
+        }
+    );
+    <[base.logs]>->(
+        1, 'jss.job.trash: aborted in-flight task %s for deleted job %s',
+        $task_id, $id
+    );
+}
+
+<[base.logs]>->( 1, 'jss.job.trash: trashed %s', $id );
+return TRUE;
+
+#,,,,,.,.,..,,.,,,...,,..,..,,,,.,..,,,,.,,.,,..,,...,..,,,.,,.,,,...,..,,,,.,
+#MOUE7RIKLMETTKXYIJPGTTEMFZKIQBL2J2MUHMTJJFMYVZCLNGHVYIV4FAFC3DOWFEWW6QYUTGC7S
+#\\\|RWXCNYWR2UQVUSO43XSTGLCCVZAICOY32PEZIKRDZCAJV6F4GS7 \ / AMOS7 \ YOURUM ::
+#\[7]MVVUH4ECIMDNXKL5E32HGVSNAQLKYT5P44L2NHEZFUQLH5UXMADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = jobsite.cmd.delete
+# descr = move jobs to the recoverable trash
+# param = <job id> [ <job id> .. ]
+# note  = the same step as the web's delete [ jobsite.job.trash ] ;
+#         undo with jobsite.rescue <job id>
+
+my @ids = grep {length} split m|[,\s]+|, $call->{'args'} // '';
+return { 'mode' => qw| false |, 'data' => 'usage: delete <job id> [ .. ]' }
+    if not @ids;
+
+my @lines;
+my $failed = 0;
+foreach my $id (@ids) {
+    my ( $ok, $why ) = <[jobsite.job.trash]>->($id);
+    push( @lines, $ok ? "trashed : $id" : "not trashed : $id [ $why ]" );
+    $failed++ if not $ok;
+}
+<[jobsite.state.persist]> if $failed < @ids;
+
+return {
+    'mode' => $failed ? qw| false | : qw| true |,
+    'data' => join( "\n", @lines ) . "\n"
+};
+
+#,,.,,,.,,,,.,,..,,,,,.,,,,,.,..,,...,,..,,,.,..,,...,...,..,,.,,,,,,,,,.,..,,
+#Y5PBM5MPOC7DISI7ZFHER3M7SUR4JPHPTMXEWMRMDJSYOFNIMZVYW6JRDHX6BW3EDS3IHYDHE5SWG
+#\\\|WNOJWGVVWFPCKH6J5KD5KKT4AIF4FCBXRJLD5ME4FFZWJ6RNXUY \ / AMOS7 \ YOURUM ::
+#\[7]YEAJGRUU2U5RG37R7OPL6V34ZMEOVYNEWTJSF33K32MVNDTMDWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

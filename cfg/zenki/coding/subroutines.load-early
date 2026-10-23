@@ -74,6 +74,7 @@ ui.render.tree
 note.tree.view
 note.summarize
 jobqueue.count
+iteration.loop
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -108,6 +109,7 @@ note.trash.list
 note.categorize
 net.read_binary
 ncode.init_code
+models.task.cmd
 git.native.open
 crypt.init_code
 context.compose
@@ -145,6 +147,7 @@ ncode.regex.save
 ncode.regex.load
 models.init_code
 jobqueue.add_job
+iteration.finish
 coding.task.fail
 coding.task.bury
 coding.init_code
@@ -228,6 +231,7 @@ pager.command.demo
 ncode.util.run_cmd
 ncode.regex.expand
 ncode.regex.assess
+models.task.remote
 jobqueue.init_code
 jobqueue.find_jobs
 git.parent.get_log
@@ -268,6 +272,9 @@ plugin.auth.twofish
 pager.sort.adaptive
 pager.export.binary
 ncode.transform.run
+models.task.startup
+models.task.execute
+models.task.enqueue
 models.conversation
 jobqueue.remove_job
 io.ip.tcp.init_code
@@ -382,6 +389,7 @@ pager.source.register
 pager.editor.get_line
 pager.buffer.prefetch
 pager.buffer.page.get
+models.task.subscribe
 models.parser.size_gb
 model_batch.spec.load
 model_batch.diff.text
@@ -438,6 +446,7 @@ base.cfg.profile.list
 base.balanced-average
 ascii.frame.slot.bind
 ascii.frame.init_code
+valued.node.remove_ref
 storage.9p.resize-path
 storage.9p.rename-path
 storage.9p.remove-path
@@ -447,9 +456,12 @@ pager.source.file-list
 pager.decode.direction
 pager.command-dispatch
 ncode.util.scope_match
+models.task.peek-claim
+models.task.parse-show
 model_batch.score.task
 model_batch.gate.check
 model_batch.blob.store
+iteration.score_result
 io.ip.tcp.output.close
 format.yaml.write_file
 crypt.C25519.sign_keys
@@ -480,6 +492,7 @@ coding.cmd.clear-cache
 coding.async.fail_task
 coding.analyze.process
 coding.abort.task_bind
+base.strm.local.cancel
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -503,6 +516,7 @@ protocol.sftp.init_code
 plugin.storage.checksum
 pager.filter.preference
 ncode.start.chmod_child
+models.task.dispatch-id
 jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
@@ -566,7 +580,9 @@ pager.encode.division-13
 pager.editor.integration
 pager.decode.division-13
 pager.buffer.page.resize
+models.task.pin-accepted
 models.storage.yaml_load
+models.handler.task-poll
 models.conversation.save
 models.conversation.load
 model_batch.verify.clean
@@ -632,6 +648,7 @@ storage.map-dirs.tree.del
 storage.map-dirs.tree.add
 reasoning.branch.register
 pager.view.true-int-color
+models.task.do-delegation
 models.invoke_participant
 models.checksum.from_path
 models.backend.api.invoke
@@ -683,6 +700,7 @@ base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 auth.client.distrust_list
+valued.tree.record_outcome
 storage.map-dirs.init_code
 protocol.sftp.read_ssh_env
 plugin.storage.p7ref.parse
@@ -691,6 +709,8 @@ pager.view.amos-data-pager
 pager.source.checksum-list
 ncode.chmod_child.readline
 models.parser.ellipse_name
+models.handler.task-stream
+models.handler.task-result
 models.conversation.create
 models.callback.send_reply
 model_batch.manifest.build
@@ -760,6 +780,9 @@ reasoning.threshold.crossed
 reasoning.branch.checkpoint
 plugin.storage.p7ref.search
 net.read_linewise_estimated
+models.task.subscribe-retry
+models.task.fallback-direct
+models.task.delegate_bridge
 models.parser.str.is_vision
 models.handler.llm_response
 models.conversation.compact
@@ -859,6 +882,7 @@ reasoning.branch.spawn_rescue
 protocol.protocol-7.init_code
 pager.view.amos-data-pager-56
 pager.util.editor.format_line
+models.handler.task-poll-step
 models.gguf.file.extract_name
 models.conversation.analytics
 models.checksum.from_metadata
@@ -921,6 +945,7 @@ protocol.amos-chksum.init_code
 plugin.storage.inference.store
 plugin.storage.checksum.verify
 plugin.storage.checksum.lookup
+models.handler.delegate_result
 models.gguf.file.name_diverges
 models.conversation.task_chain
 models.conversation.list_saved
@@ -1122,6 +1147,7 @@ plugin.storage.inference.init_code
 pager.util.editor.get_item_at_line
 pager.util.decode.decode_d13_state
 ncode.transform.handler.wave_reply
+models.handler.notify-online-reply
 models.gguf.file.extract_attention
 models.conversation.consensus_vote
 jobqueue.event.register_job_queues
@@ -1189,6 +1215,7 @@ protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 plugin.storage.visual.proximity-calc
 plugin.storage.visual.extract-floats
+models.handler.delegate-online-reply
 models.gguf.file.extract_layer_count
 models.callback.object_dispatch_slot
 graphics-3d.calc.cursor-translucency
@@ -1400,8 +1427,8 @@ llm.service.consensus_vote.encode_harmonic_certainty
 coding.vision-parser.handler.check_vision_completion
 coding.vision-parser.handler.check_extraction_completion
 
-#,,.,,..,,,,.,..,,,,.,,,,,...,.,.,,..,,.,,,.,,..,,...,...,.,,,,,.,.,,,...,,,,,
-#2BBVZA7UH6IWAHRZBXE5P3PEYD3WJWCR5KCLGM4ZEJ2IH5ZPZS65CIURUAZ3C2UMWXQQZR5NSGYY6
-#\\\|KQ7MVCMTLTA7P532T7XZDJ2RLE6OZCFNYM6BOCXF3LOK7OT2LDD \ / AMOS7 \ YOURUM ::
-#\[7]OZKF44P5VQGKJPVELFDPLZIN6XZG6K5RGVIEXRYYEVDGJGGCSUDA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,.,,,.,,..,..,,..,,..,,,..,...,..,,...,...,.,,,...,.,,,,.,,..,,
+#2X5J44ZTKHOMRJCKI37ADNAGXQWWOTHCFSRLNI7MZBL7HCYMHQUIKN57E7FGA7JX7N2IJ6AFLCFAS
+#\\\|C4SIGQDNJXXWRWWZFAI3A65PTATCF7QV5ZWOIWGGUTTM4LINN5Q \ / AMOS7 \ YOURUM ::
+#\[7]F6IEX633SKQVG74GXNSH6OYCP7W3Y44OFY76MFLPS7OPX2IOVUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
