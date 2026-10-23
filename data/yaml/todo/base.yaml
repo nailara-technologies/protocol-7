@@ -1829,7 +1829,9 @@ items:
   - restart
   text: "drain for :twin: restarts : only the public-facing zenki have it [ httpsd .. ] -- site-yaml refused cube's drain [ no perm ], v7-zenki force-terminated it after 30 s. add drain support + the access line to the zenki that get twin restarts"
 - added: 32D7BJOPDE
-  details: '2026-10-23 : the export date IS the same on both [ 1791932082, browser + server ] -- still 1 vs 9 export entries. so the job DATA differs [ stages \ timestamps changed on srv-U today, the local stock never learned of it ] : compare the 9 jobs between the stores [ stage, last_modified ], then the store sync [ 3MK ]'
+  details: |-
+    2026-10-23 : the export date IS the same on both [ 1791932082, browser + server ] -- still 1 vs 9 export entries. so the job DATA differs [ stages \ timestamps changed on srv-U today, the local stock never learned of it ] : compare the 9 jobs between the stores [ stage, last_modified ], then the store sync [ 3MK ]
+    2026-10-23 found : NO user state syncs between hosts -- export time [ JOBS_PREFS -> that host's jobsite.set-prefs, equal only by hand ], export marks [ exported_stage \ exported_at live only in the exporting host's web/jobs/*.yaml : local 9, pri 0 ], stage changes [ that host's jobsite only ]. a one-off copy desyncs at the next export -> real fan-out : every user change as a record { job, field, value, time, host }, newest-wins per field [ export time max-merge, marks keep batch epoch for undo ]. transport : the existing remote web endpoint is enough [ jobsite.cfg.sync_urls \ sync_tokens already push to several webs with per-url tokens, /jobs-sync is Bearer-gated + admission ] -- links [ ZYH ] optional. part of 3MK's reverse fan-out
   done_at: null
   id: QLK
   priority: normal
@@ -1883,8 +1885,8 @@ items:
   - protocol
   text: "letsencr parent -> child : param.public_addresses [ arrayref ] never reached the child -- route-send sent single-line, param dropped ; letsencr.child.cmd.verify-domain always saw [] . send.local now logs 'args set, param \\ data not sent' for these 5 callers [ process_new_domains, request-certificate, handler_enrollment_retry, handler_enroll_verify_reply, queue_renewal_requests ]. fix : domain as a param, addresses space-joined, no args -> multi-line"
 
-#,,..,.,.,,.,,.,,,..,,...,.,,,,,.,..,,,,.,,.,,..,,...,...,...,..,,.,,,.,,,..,,
-#TMBDWH2RULB36KCAX4BUL3IPZ6VWZS36GKZN7EBQG7KGQIMPPDVCXM5XJ6VJYY3KXKKRQL5G635FO
-#\\\|GGAS7XHVYI7NPRPUHV64GZVY6A6ZMXCSMXM3TEU4NWFHIRC5VET \ / AMOS7 \ YOURUM ::
-#\[7]AK7J46FQ7RW24PJPYRQZBGEFP7H3XXNWU7TVLKKB2B6O5GSI6UBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,,..,.,.,,.,,,.,,.,.,...,.,.,..,,...,...,..,,...,.,,,,.,,,..,
+#V64QYF6W3FDQ3SWDV2CFPGRNGDRMKFDMQ3GZ4DAMHVHW6KBCSWIMG4ILFP4VVC3GCK3NR4HQWDFCK
+#\\\|O7UWBZIRBN2QZ3MSGKKGZZKQC3GJAYMXVIZ67UEAKH36NRTSZKB \ / AMOS7 \ YOURUM ::
+#\[7]NXGGHDFWN3IE5IGTNPZELDQANHPBZ2MKIJC5BANU3S3U2ITJP2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
-- [project-2026-10-22-session-handover-j5f-multiline-files](project-2026-10-22-session-handover-j5f-multiline-files.md) — START HERE [ last 1c52db2c1, history REWRITTEN ] : J5F multi-line p7c + coding.input.decode, parser fixes, templates ; designs FILES-ZENKA + SIGNED-STATEMENTS ; cpu-only assessment stall fixed [ CHECK srv-U completed > 0 first ] ; commit messages relabelled srv-<x> ; todos FKS VWF T3I C6U 4WM RMI
+- [project-2026-10-23-session-handover-admission-drain-repair-zyh](project-2026-10-23-session-handover-admission-drain-repair-zyh.md) — START HERE [ last ca5b4e177 + uncommitted handover ] : 6CJ admission live, TQA drain, 5M3 applied srv-U, ZYH code in but waits for the managed link [ kimi 9979563b, resume on k2.8 ], QLK = no cross-host user state sync
+- [project-2026-10-22-session-handover-j5f-multiline-files](project-2026-10-22-session-handover-j5f-multiline-files.md) — previous handover [ last 1c52db2c1, history REWRITTEN ] : J5F multi-line p7c + coding.input.decode, parser fixes, templates ; designs FILES-ZENKA + SIGNED-STATEMENTS ; cpu-only assessment stall fixed [ CHECK srv-U completed > 0 first ] ; commit messages relabelled srv-<x> ; todos FKS VWF T3I C6U 4WM RMI
 - [project-2026-10-22-session-handover-remote-fetch-link](project-2026-10-22-session-handover-remote-fetch-link.md) — previous handover [ last b6a6ed425 ] : remote fetch srv-U -> srv-V WORKS [ link by hand ], cert + nameserv 0x20 + sync fixes, optional deps, web secret rotated ; next : coding depending queue, permanent link, 3 cloud docs pending
 - [project-2026-10-21-session-handover-editor-hints-assimilation](project-2026-10-21-session-handover-editor-hints-assimilation.md) — previous [ superseded 2026-10-22 ] [ last b4815589c ] : editor hardened + ctrl-s, coding model-pin hang fixed, hints.* layer [ 4 sources ], managed abstraction, ASSIMILATION-DEPTHS.md ; open : remotes nameserv \ letsencr steps, 3W5 remote links, Q7O ranking, YBX
 - [project-2026-10-18-session-handover-n7fs-truth-srv-U](project-2026-10-18-session-handover-n7fs-truth-srv-U.md) — previous [ superseded 2026-10-21 ] -- START HERE [ newest, last 106b7a331 ] : bin/dependencies retired, N7FS v1 on base, truth fallbacks bit-identical, computed module versions, srv-U prepared for cpu inference ; open : srv-U model id switch + first coding start, `:` resolver, memory-cap task
@@ -213,8 +214,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [auth-watcher-add-incoming](project-2026-10-16-auth-watcher-add-incoming.md) — 2026-10-16 day [ superseded by session-handover-installer-cloud ; holds the PLAN steps 1-7 + style rules ] : taeki auth live on 4 servers, cube inotify re-read of authorized keys, dep-graph plugin scoping [ -954 eager subs ], p7-keys add-incoming ; OPEN : push+pull d5ce1a7cb + srv-U incident test, unit srv-U\srv-F, 4ZW
 - [session-handover-installer-cloud](project-2026-10-17-session-handover-installer-cloud.md) — START HERE 2026-10-17 [ last 5c09e923b ] : deps line done [ frame, tracked, backend, p7-install, p7-deps restyled ], cloud dispatch working [ pty, launch clone, push path ] ; OPEN : root runner, debs + signed repo, legacy scripts, cloud tool polish
 
-#,,,,,.,.,,..,...,.,,,..,,..,,,,.,...,..,,,,.,..,,...,...,.,,,.,.,,,.,.,,,,,,,
-#H76WRU5PDDQ7INR5LMSAB6FCVT4WJESRXCF7EJT3FKZUEHJZ74IZTZQI26DHYW665BZO45CQBUWQA
-#\\\|QHVX6LAGMMRMLNILSX4MZXQKSDVDNFJNQPVQAMEWTFSCGAMXAKS \ / AMOS7 \ YOURUM ::
-#\[7]DDYHTK4PYD5FYLXYA2LNVSRTURA4NWI3LJ2ORCDJ3NJVX7KZSWCA 7  DATA SIGNATURE ::
+#,,..,...,..,,...,,,.,,,,,.,.,,,,,,,.,..,,..,,..,,...,..,,..,,,,,,,..,...,...,
+#Z2DOREPI34OYPWAJ67UDUCIJSG4QAFDKHXOLTO7J4V3Y5RRXM4PEP3PX6AUCA7MOYOEYRQCKL32IA
+#\\\|LHJMTJLW2GCJXT7QHB2DWHFP27ICQNPRCLJRPAQZZBFCENM3K75 \ / AMOS7 \ YOURUM ::
+#\[7]GE2YUFX46RDLKUGTEIDP6RHSMW4CADUFHGYGW2G4W7JAKFQIAYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
