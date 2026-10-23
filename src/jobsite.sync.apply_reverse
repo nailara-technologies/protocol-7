@@ -150,6 +150,27 @@ for my $entry ( @{$entries} ) {
         }
     }
 
+    ## export marks : newest-wins record pair, the mark time IS exported_at ##
+    ## [ the shared batch epoch of the export run, or the epoch an unmark   ##
+    ## happened at ] ; an older or equal record never clobbers a newer      ##
+    ## local mark, and a record without a time only lands where nothing is  ##
+    ## marked yet [ legacy migration entry ] ; undo = the web-side unmark   ##
+    ## flow, which arrives as exported_stage => undef with a fresh time     ##
+    if ( exists $entry->{'exported_stage'} ) {
+        my $inc_at = $entry->{'exported_at'};
+        my $inc_time
+            = ( defined $inc_at and $inc_at =~ m{^\d+$} ) ? $inc_at + 0 : 0;
+        my $cur_at = $job->{'exported_at'};
+        my $cur_time
+            = ( defined $cur_at and $cur_at =~ m{^\d+$} ) ? $cur_at + 0 : 0;
+        if ( $inc_time > $cur_time
+            or ( not length( $cur_at // '' ) and not $inc_time ) ) {
+            $job->{'exported_stage'} = $entry->{'exported_stage'};
+            $job->{'exported_at'}    = $inc_time;
+            $updated                 = 1;
+        }
+    }
+
     ## stage change also drives backend status so jobs don't stay in review ##
     ## forever                                                              ##
     if (    exists $entry->{'stage'}
@@ -177,8 +198,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,,.,..,,.,.,...,..,,.,,,.,,,.,,,,.,,.,.,...,..,,...,...,..,,..,,,..,.,,,,,,,
-#PCTQNUPBIF3P2KMTOXFAZVYNEV6ETHMMGYEOJM24RJXWCHML7MRFLSFGIJWGUWBY6ENFOTR36EMZU
-#\\\|ZLED4YOOY7CM7ZYXZAWXSB56SMP2OVOA2RBXMBK3WTMABUDASIA \ / AMOS7 \ YOURUM ::
-#\[7]NIGIVN66AVVXE43G3R5QCIVSJQOJYOZJD34JUBKI52DUSMSV2IDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,...,,..,,,,,,..,,.,,,.,,,,,,..,,...,...,,.,,.,,,,,,,,,,,...,
+#DJ6RVVRKMVHHIJQ3DET3ZAZPMAE3CFGIGBNEFJJ7NA4TVLT2ABZYN7LRBN5W7YRYY5PULSEOW72GE
+#\\\|LPHB4PI6ZSGFUT5JN57GLTRQLKOZLZJCM5ZQKC3BGIAIPHTDYR4 \ / AMOS7 \ YOURUM ::
+#\[7]TFN2QMHTIBBJLMRFFLW6GFBGMTVSPX7I6NVEKSVARQE2BOYSYSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

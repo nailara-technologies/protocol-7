@@ -81,9 +81,10 @@ push( @argv, qw| -6 | ) if $af eq '6';
 push( @argv, qw| -p |, $ssh_port ) if length $ssh_port;
 push( @argv, $target );
 
+## fully qualified : an import at run time comes too late for strict subs ##
 require Socket;
-Socket->import(qw| AF_UNIX SOCK_STREAM |);
-socketpair( my $parent, my $child, AF_UNIX, SOCK_STREAM, 0 )
+socketpair( my $parent, my $child, Socket::AF_UNIX(), Socket::SOCK_STREAM(),
+    0 )
     or return $refuse->("socketpair failed [ $OS_ERROR ]");
 
 my $pid = fork;
@@ -103,12 +104,22 @@ if ( $pid == 0 ) {
 }
 close($child);
 
+## autoflush like an IO::Socket : the handshake prints its request ##
+require IO::Handle;
+$parent->autoflush(1);
+
+## the handle registry, as io.ip.tcp.output.open fills it : base.session.
+## init needs the mode [ the link-upgrade sets the encryption later ]
+$data{'handle'}{$parent}{'link'}       = qw| ssh-w |;
+$data{'handle'}{$parent}{'mode'}       = qw| output |;
+$data{'handle'}{$parent}{'encryption'} = qw| none |;
+
 return wantarray
     ? ( $parent, { qw| pid | => $pid, qw| argv | => \@argv } )
     : $parent;
 
-#,,.,,,.,,.,,,,,,,,,.,,.,,,..,...,,,,,...,,,.,..,,...,..,,.,.,..,,,,,,..,,.,,,
-#IILTPBDYXQPLYULOG4JFF7IOOX3QKII4UETWUQNBX6WCKH47EEZ42BLBKY652I5CKMS4NBSPXJJRA
-#\\\|V4VJDK767HGSDUVEZWLUFNV4H7PZUEWYCVOEZUJFWNW3WPTDNES \ / AMOS7 \ YOURUM ::
-#\[7]GWSZUB7KDPKUZXAFRCWLHYNLVCKV4FMOJIFEFF2C6PSWIGJQAGBQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,,,.,.,..,,.,.,,.,,,..,,,,,,.,,..,,...,...,,.,,,,.,.,,,.,.,..,,
+#OSEEQPV2AQFXIS43DBBJ42OEZOFQCGCE7M2WTXHNLXW5N26B4YEQ3XCTNZPEBCKUQIAM24NILYBSE
+#\\\|767GEJFY7WKZU4IE6653Y7XA4YBKHTDDKDRRIDDISVFMABM37S6 \ / AMOS7 \ YOURUM ::
+#\[7]MCT2P2G4MO6MD3SKOW6V53XS7WQWQT43ZMVKU2WZ4G2IJE4RLGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

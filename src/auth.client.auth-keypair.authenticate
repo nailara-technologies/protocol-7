@@ -54,9 +54,12 @@ my $protocol_messages = <protocol.protocol-7.connect>;
 my $protocol_banner   = $protocol_messages->{'banner'};
 my $proto_msg_timeout = $protocol_messages->{'timeout'};
 
+## getpeername, not ->connected : a socketpair end                    ##
+## [ the ssh -W link transport ] is a plain handle, not an IO::Socket ##
+## object                                                             ##
 if (   not defined $backend_socket
     or not -S $backend_socket
-    or not $backend_socket->connected ) {
+    or not defined getpeername($backend_socket) ) {
     <[base.log]>->(
         0, 'auth.auth-keypair : cannot authenticate [ have no valid socket ]'
     );
@@ -205,8 +208,8 @@ return {
     qw| base_key_name | => $base_key_name,
 };
 
-#,,,,,.,,,,.,,,,.,,..,.,,,...,.,.,...,,.,,,,,,..,,...,...,.,.,...,,.,,,.,,,.,,
-#XWVOUVLWNQGQHM2NKBQXSVMXI4M2UENGQR7PV5ZULNU2BFAEBPDJ3Q7XF2CQUK3WAAAU667WXYS2Q
-#\\\|AHB3CB63N24YLAKD5YQ7P7G3ERE4L6CWAJGLZFKZYSXFFAALGL2 \ / AMOS7 \ YOURUM ::
-#\[7]5QT4DCFLX34ZWNG5ZYOS2AQAKRIFD5ODLYMF5HRJOEAMGMPM5OCA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,..,,,..,,..,,..,,.,,,..,,,,,..,,...,...,,.,,.,,,,,,,,,.,...,
+#XRJO3UJQIPCJCZPB3JEXXTXTRNUFBL5S332Y5MJNJEJOZUYFFIVE7DGQTOLQVEL55LSN4BM7VPJBI
+#\\\|NDXF2AJ46LMFHMEBG6UK7WN4D2QFXMJLAP6T2SXVLFCSNOKXA3A \ / AMOS7 \ YOURUM ::
+#\[7]MOKMUYKFP2HKFBWIUC2INFX47WAIIEVEMB2HFWR3A42MZQOQLECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

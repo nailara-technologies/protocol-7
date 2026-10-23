@@ -76,10 +76,19 @@ my $url   = $item->{'url'};
 my $since = $item->{'since'} // '';
 my $chunk = $item->{'chunk'};
 
+## carry the local client prefs on every batch [ and ping ] body so each    ##
+## receiving web can max-merge and hand them back : only last_export_at for ##
+## now [ QLK ] -- the rest of the prefs fan-out belongs to 3MK              ##
+my %prefs_out;
+my $export_at = <[jobsite.client_prefs.read]>->{'last_export_at'} // '';
+$prefs_out{'last_export_at'} = $export_at + 0
+    if $export_at =~ m{^\d+(?:\.\d+)?$};
+
 my $body = eval {
     JSON::XS::encode_json(
         {   'since' => $since,
             'jobs'  => $chunk,
+            ( %prefs_out ? ( 'prefs' => \%prefs_out ) : () ),
         }
     );
 } // '';
@@ -150,8 +159,8 @@ $headers->{'Authorization'} = "Bearer $auth_token" if length $auth_token;
     }
 );
 
-#,,,,,.,,,.,,,...,,,,,,.,,,,.,...,..,,.,,,,,.,..,,...,...,..,,.,.,,.,,,,,,.,,,
-#PZGYBJM4DTLJLHYTCOIF7TBCYG4NB4GHISFOFV6SWDXWDP762H4X6Z6KIDY2DXRVHOJ6PRNBJGA5I
-#\\\|URU44FOTPVJAPSVAARIZGJJN4HE7GYQ7EQXI65KVAPQMMPFBSJX \ / AMOS7 \ YOURUM ::
-#\[7]6PJEID3TMG6K2BXCATCLRBKLGW64OXLXIVATYQFWSQ4JCTTVWYDA 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,,,.,.,.,.,.,.,,,.,.,,,...,...,..,,...,.,.,...,.,,,..,,...,,,,,
+#3OWI3EZYKGNZTKUEORDQI4DSLQP7OJFQ7PHAT6U6EPKJOY6EEVFJRHJHF3ZOC2QRDRAH67WMNOJR2
+#\\\|DNPUZHSC25IKQRPCIRXNA2HKAZ6YYTJY4MB2FEGIO4HMKXWZOKW \ / AMOS7 \ YOURUM ::
+#\[7]UICLQQJ6DVVX6A5AZFYKSUIX2SEMAV6AMQ57N2EWOUNKKBI5UGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

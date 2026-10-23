@@ -127,6 +127,24 @@ int main( int argc, char * argv[] ) {
         return 2;
     }
 
+    /* stdin-body mode [ opt-in ] : a command word ending in '+' reads the
+       request body from stdin until EOF [ never decided by isatty ] and
+       turns the words after the command into ' key : value' header lines.
+       the '+' is stripped before the command goes on the wire. without
+       the trailing '+' nothing changes [ single-line or the
+       newline-in-argv mode below ]. an empty stdin sends an empty body. */
+    int stdin_body_mode = 0;
+    size_t cmd_word_len = strlen( argv[1] );
+    if ( argv[1][cmd_word_len - 1] == '+' ) {
+        if ( cmd_word_len == 1 ) {
+            fprintf( stderr,
+                "<< command word is only '+' [ nothing to send ] >>\n" );
+            return 2;
+        }
+        argv[1][cmd_word_len - 1] = '\0';    /* strip the '+' */
+        stdin_body_mode = 1;
+    }
+
     /* multi-line mode [ src/base.handler.command MULTI-LINE ] : when any
        argument holds a linebreak, the single-line form would split the
        protocol, so the command goes out as '<cmd>+\n' + empty header +
@@ -137,10 +155,75 @@ int main( int argc, char * argv[] ) {
        trailing newline. body lines made of dots alone get one more '.', the
        parser removes it again. */
     int multiline_mode = 0;
-    for ( i = 2; i < argc; ++i ) {
-        if ( strpbrk( argv[i], "\r\n" ) != NULL ) {
-            multiline_mode = 1;
-            break;
+    if ( ! stdin_body_mode )
+        for ( i = 2; i < argc; ++i ) {
+            if ( strpbrk( argv[i], "\r\n" ) != NULL ) {
+                multiline_mode = 1;
+                break;
+            }
+        }
+
+    unsigned char *stdin_body = NULL;   /* '+' mode body read from stdin */
+    size_t stdin_body_len = 0;
+
+    if ( stdin_body_mode ) {
+        /* header words : 'key=value' -> ' key : value' ; a word without
+           '=' [ or holding a linebreak ] would corrupt the framing --
+           refused before anything is read */
+        for ( i = 2; i < argc; ++i ) {
+            if ( strchr( argv[i], '=' ) == NULL ||
+                 strpbrk( argv[i], "\r\n" ) != NULL ) {
+                fprintf( stderr,
+                    "<< header word '%s' refused : multi-line headers "
+                    "are 'key=value' on one line >>\n", argv[i] );
+                return 2;
+            }
+        }
+
+        /* read the body from stdin until EOF [ any size, binary-safe up
+           to NUL ] */
+        size_t body_cap = 4096;
+        stdin_body = (unsigned char *) malloc( body_cap );
+        if ( stdin_body == NULL ) {
+            fprintf( stderr, "< malloc [stdin body] > %s\n",
+                strerror(errno) );
+            exit(4);
+        }
+        ssize_t body_read = 0;
+        for ( ;; ) {
+            if ( stdin_body_len == body_cap ) {    /* full : double it */
+                unsigned char *grown = realloc( stdin_body, body_cap * 2 );
+                if ( grown == NULL ) {
+                    fprintf( stderr, "< realloc [stdin body] > %s\n",
+                        strerror(errno) );
+                    exit(4);
+                }
+                stdin_body = grown;
+                body_cap *= 2;
+            }
+            body_read = read( STDIN_FILENO, stdin_body + stdin_body_len,
+                              body_cap - stdin_body_len );
+            if ( body_read <= 0 )
+                break;
+            stdin_body_len += body_read;
+        }
+        if ( body_read < 0 ) {
+            fprintf( stderr, "<< stdin read failed : %s >>\n",
+                strerror(errno) );
+            return 4;
+        }
+        if ( stdin_body_len > 0 && stdin_body[stdin_body_len - 1] != '\n' ) {
+            /* framing wants every body line newline-terminated */
+            if ( stdin_body_len == body_cap ) {
+                unsigned char *grown = realloc( stdin_body, body_cap * 2 );
+                if ( grown == NULL ) {
+                    fprintf( stderr, "< realloc [stdin body] > %s\n",
+                        strerror(errno) );
+                    exit(4);
+                }
+                stdin_body = grown;
+            }
+            stdin_body[stdin_body_len++] = '\n';
         }
     }
 
@@ -148,20 +231,59 @@ int main( int argc, char * argv[] ) {
        [ '+', header-terminating blank line, final newline, ".\n" ] */
     int arglen = 8;
     for ( i = 1; i < argc; ++i ) {
-        if ( multiline_mode && i > 1 ) {
+        if ( stdin_body_mode && i > 1 ) {
+            /* ' key : value\n' worst case */
+            arglen += strlen( argv[i] ) * 2 + 6;
+        } else if ( multiline_mode && i > 1 ) {
             /* every body line may gain one stuffing '.' [ worst case ] */
             arglen += strlen( argv[i] ) * 2 + 1;
         } else {
             arglen += strlen( argv[i] ) + 1;
         }
     }
+    if ( stdin_body_mode )
+        /* every body byte may gain one stuffing '.' [ worst case ] */
+        arglen += stdin_body_len * 2 + 4;
     char * cmd_str = (char *) malloc( sizeof(char) * arglen );
     if( cmd_str == NULL ) {
         fprintf( stderr, "< malloc [argv] > %s\n", strerror(errno) );
         exit(4);
     }
 
-    if ( multiline_mode ) {
+    if ( stdin_body_mode ) {
+        sprintf( cmd_str, "%s+\n", argv[1] );
+        char *wp = cmd_str + strlen( cmd_str );
+        for ( i = 2; i < argc; ++i ) {
+            const char *eq = strchr( argv[i], '=' );
+            *wp++ = ' ';
+            for ( const char *p = argv[i]; p < eq; p++ )
+                *wp++ = *p;                     /* key */
+            *wp++ = ' ';
+            *wp++ = ':';
+            *wp++ = ' ';
+            for ( const char *p = eq + 1; *p; p++ )
+                *wp++ = *p;                     /* value */
+            *wp++ = '\n';
+        }
+        *wp++ = '\n';           /* header \ body separator line */
+        int at_line_start = 1;
+        for ( size_t b = 0; b < stdin_body_len; b++ ) {
+            unsigned char c = stdin_body[b];
+            if ( at_line_start && c == '.' ) {
+                /* stuff only a line made of dots alone [ the parser
+                   drops one dot from such lines ] */
+                size_t q = b;
+                while ( q < stdin_body_len && stdin_body[q] == '.' )
+                    q++;
+                if ( q == stdin_body_len || stdin_body[q] == '\n' )
+                    *wp++ = '.';
+            }
+            *wp++ = c;
+            at_line_start = ( c == '\n' );
+        }
+        strcpy( wp, ".\n" );       /* packet terminator line */
+        free( stdin_body );
+    } else if ( multiline_mode ) {
         int at_line_start = 1;
         sprintf( cmd_str, "%s+\n\n", argv[1] );
         char *wp = cmd_str + strlen( cmd_str );

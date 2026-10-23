@@ -21,6 +21,22 @@ my $body_ok = ref $reply eq 'HASH' ? ( $reply->{'ok'} // FALSE ) : FALSE;
 if ( $ok and ref $reply eq 'HASH' and $body_ok ) {
     my $ntime   = $reply->{'ntime'}   // '';
     my $reverse = $reply->{'reverse'} // [];
+
+    ## web-side relayed prefs : adopt a newer last_export_at               ##
+    ## [ max-merge, same numeric-newest rule as jobsite.cmd.set-prefs ] so ##
+    ## an export run on any connected host becomes the since-last-export   ##
+    ## watermark everywhere [ QLK ]                                        ##
+    my $prefs_reply = $reply->{'prefs'};
+    if ( ref $prefs_reply eq 'HASH'
+        and $prefs_reply->{'last_export_at'} =~ m{^\d+(?:\.\d+)?$} ) {
+        my $prefs     = <[jobsite.client_prefs.read]>;
+        my $remote_at = $prefs_reply->{'last_export_at'} + 0;
+        if ( $remote_at > ( $prefs->{'last_export_at'} // 0 ) ) {
+            $prefs->{'last_export_at'} = $remote_at;
+            <[jobsite.client_prefs.write]>->($prefs);
+        }
+    }
+
     ## server ntime stored for reference; local cycle ntime used as filter ##
     ## watermark                                                           ##
     <jobsite.sync.last_remote_ntime> = $ntime if length $ntime;
@@ -51,8 +67,8 @@ if ( $ok and ref $reply eq 'HASH' and $body_ok ) {
 ## blocks the rest of the queue from being attempted this cycle         ##
 <[jobsite.sync.push_chunk]>;
 
-#,,,,,..,,,.,,.,,,,,,,...,..,,,,,,,,,,,..,..,,..,,...,...,,,,,...,...,,.,,.,.,
-#7UMZ5F6MT2ABC6PVDZZSGZT6S74JTYE3DCQ7U5S7IGWTJFGM6T2VR4ZZX6FHB756SQGC3FSEHX6HQ
-#\\\|A4BV55MZZKVJ4FW3UWTLS62EHQVYBUAUBAMRBXL5MKX4PNYGI4T \ / AMOS7 \ YOURUM ::
-#\[7]CSLWRZWCMTH3IHQYZLUH4WW6KIAQOPZ4DEWQRIRGWIAF3DUW3YCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,...,,..,.,.,,,,,..,,.,,,,..,..,,...,..,,..,,,,.,..,,,,.,.,,,
+#GJDPI545HLNM42S3GCG6DWZBDIIXODDY2RFVK2RPRERWIDC5YZCGZ7NROLGQWZENRRXS2QA5KK6JM
+#\\\|G2D5FX42S5BGJA52DZKG5SMQUWZC6A4IOJDRFYGCNITSMK3X5SQ \ / AMOS7 \ YOURUM ::
+#\[7]BUFXYUWF3O4AGR63JUOUJDDQ2TZ4ZQBRGYVW6PGUQ6IXRAGEEUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
