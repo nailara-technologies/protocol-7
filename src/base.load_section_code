@@ -1,14 +1,16 @@
 ## [:< ##
 
 # name  = base.load_section_code
-# args  = [target_hashref ,] <file_name> [,<file_name> [, <file_name>..]]
+# args  = [target_arrayref ,] <file_name> [,<file_name> [, <file_name>..]]
 # descr = load one or more 'section' code files, return array ref to structure
-# todo  = make more generic ( use recursion, allow arbitrary section syntax )
-# note: the way comments are stripped currently doesn't allow #'s in values!
 
-my $conf_path = <system.conf_path>;
-my $code_data = [];
-$code_data = shift @ARGV if ref $ARGV[0] eq qw| ARRAY |;
+## the files are matched under the config path and parsed into one        ##
+## structure by base.parse_ncfg_code -- this held a copy of that parser,  ##
+## with the same misplaced repeat check [ 2026-10-23 ]. the target, given ##
+## or new, collects all files : a section a later file repeats continues  ##
+
+my $conf_path       = <system.conf_path>;
+my $code_data       = ref $ARG[0] eq qw| ARRAY | ? shift : [];
 my @code_files      = @ARG;   ## file list data will be appended to $code_data
 my @match_filenames = <[file.match_files]>->(
     $conf_path, map { sprintf qw| %s$ |, $ARG } @code_files
@@ -24,72 +26,13 @@ foreach my $filename (@match_filenames) {
         <[base.logs]>->( 0, "cannot load config-file '%s'", $filename );
         return undef;
     }
-    my $line_num = 0;
-    $filename =~ s|^.*/||g;
-    my ( $section_ref, $sub_section_ref );
-    my ( $section, $sub_section, $sub_sub_section, $data_ref );
-    foreach my $line (@cfg_lines) {
-        $line_num++;
-        $line =~ s,(#.*|[ \t]*)+$,,g;
-        $line =~ s|^[ \t]+||;
-        next if $line eq '';
-        if ( $line =~ m|^\.: *([^:]*\S) *:\.$| ) {
-            $section = $LAST_PAREN_MATCH;
-            ( $sub_section, $sub_section_ref, $sub_sub_section )
-                = ( undef, undef, undef );
-            if ( !<[base.code_section_exists]>->( $section, $code_data ) ) {
-                $data_ref = [];
-                push @$code_data, { $section => $data_ref };
-            } else {
-                $data_ref
-                    = <[base.code_section_ref]>->( $code_data, $section );
-            }
-            $section_ref = $data_ref;
-        } elsif ( $line =~ m|^- *(.+)$| ) {
-            $sub_section     = $LAST_PAREN_MATCH;
-            $sub_sub_section = undef;
-            die "no parent section defined for sub-section "
-                . "'$sub_section' (file '$filename' line $line_num)"
-                if not defined $section;
-            if ( !<[base.code_section_exists]>->( $sub_section, $data_ref ) )
-            {
-                my $new_data_ref = [];
-                push @$section_ref, { $sub_section => $new_data_ref };
-                $data_ref = $new_data_ref;
-            } else {
-                $data_ref = <[base.code_section_ref]>->(
-                    $code_data, $section, $sub_section
-                );
-            }
-            $sub_section_ref = $data_ref;
-        } elsif ( $line =~ m|^: *([^:]*\S) *:$| ) {
-            $sub_sub_section = $LAST_PAREN_MATCH;
-            die "parent section missing for sub-sub-section "
-                . "'$sub_sub_section' (file '$filename' line $line_num)"
-                if not defined $section;
-            die "no parent sub-section defined for sub-sub-section "
-                . "'$sub_sub_section' (file '$filename' line $line_num)"
-                if not defined $sub_section;
-            if (not
-                <[base.code_section_exists]>->( $sub_sub_section, $data_ref )
-            ) {
-                my $new_data_ref = [];
-                push @$sub_section_ref, { $sub_sub_section => $new_data_ref };
-                $data_ref = $new_data_ref;
-            } else {
-                $data_ref = <[base.code_section_ref]>->(
-                    $code_data, $section, $sub_section, $sub_sub_section
-                );
-            }
-        } else {
-            push $data_ref->@*, $line;
-        }
-    }
+    ( my $cfg_name = $filename ) =~ s|^.*/||g;
+    <[base.parse_ncfg_code]>->( $cfg_name, $code_data, @cfg_lines );
 }
 return $code_data;
 
-#,,..,,,.,,,,,,,,,..,,,,,,,,.,.,,,...,,.,,,.,,..,,...,..,,...,.,.,,..,.,,,,,.,
-#TESTSNAAIAGVFRSJGSW6RNMFQJ5J6FNVETLATPRTBSVD3PJUGG7YEJJ67GMGRY5HYRJWVQQUXXCHQ
-#\\\|IIZX4URRB3ENL4U37BCZQDYFYLSA4U4ZPT4BY5W4WOT4F4NCQRO \ / AMOS7 \ YOURUM ::
-#\[7]PL43K5JIYFUUKOABFS3HB5YIQSE3ROUYSB4V3HGSAUTF32TS3UCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,.,,,..,.,.,,,.,.,.,.,.,,.,,.,,,..,,...,.,.,..,,,..,,..,,..,..,,
+#377OZZK4ZSTJCMIGITV4XTLVZMR53MY2H5FMVGN7JDHEOX6H2DUSPYQPJ57MWXCAFQZ354KPID6SY
+#\\\|D2PUNSTORHYVK4BLM6J3QRAANDZQZTXCZEQTEEMT5VCYEVE5RTJ \ / AMOS7 \ YOURUM ::
+#\[7]KQEFT2S5WEIEKIRIUC3GZ4HMEEKGG6WJPTMUS2Y2EEO7CXK44IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

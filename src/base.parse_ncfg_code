@@ -1,83 +1,121 @@
 ## [:< ##
 
 # name  = base.parse_ncfg_code
-# args  = <cfg_name>, [target_hashref ,] <@cfg_lines>
+# args  = <cfg_name>, [target_arrayref ,] <@cfg_lines>
 # descr = parse ncfg 'section' code files, return array ref to structure
-# todo  = make more generic [ use recursion, allow arbitrary section syntax ]
-# note: the way comments are stripped currently doesn't allow #'s in values.
+# note  = '\#' is a literal '#' in a line, an unescaped '#' starts a comment
 
-my $conf_path = <system.conf_path>;
-my $code_data = [];
+## structure : an ordered list of one-key hashes { name => [ items ] }, an  ##
+## item a line [ string, 'key = value' left as written ] or a nested        ##
+## section. three section markers, by level :  .: name :.  [ 1 ]     - name ##
+## [ 2 ]     : name :  [ 3 ]  a marker attaches to the innermost open level ##
+## above it, so ': v7-init :' may follow '.: section :.' directly. a name   ##
+## repeated at one level continues its first section [ the old helpers      ##
+## meant to, but looked in the wrong level and appended a second one,       ##
+## 2026-10-23 ]. a raw section [ 'name [ <n> bytes ]' ] takes the n bytes   ##
+## after the empty line below its header verbatim, comments included, as a  ##
+## scalar ref -- the protocol's multi-line form                             ##
+## [ header, empty line, body ]. lines before the first section [ a title ] ##
+## are skipped, as always                                                   ##
+
 my $cfg_name  = shift // die "expected <cfg_name> as first parameter";
-$code_data = shift(@ARGV) if ref( $ARGV[0] ) eq qw| ARRAY |;
+my $code_data = ref $ARG[0] eq qw| ARRAY | ? shift : [];
+my @cfg_lines = @ARG;
 
-my @cfg_lines = @_;  # parsed data will be appended to @{$code_data} array-ref
 if ( !@cfg_lines ) {
     <[log.error]>->("no data lines in ncfg '$cfg_name'");
-    return [];
+    return $code_data;
 }
+
+my @marker_re = (
+    undef,
+    qr{^\.: *([^:]*\S) *:\.$},    ## [ 1 ] .: name :. ##
+    qr{^- *(.+)$},                ## [ 2 ] - name     ##
+    qr{^: *([^:]*\S) *:$},        ## [ 3 ] : name :   ##
+);
+
+## the open levels, innermost last : [ level, item list ] ##
+my @open = ( [ 0, $code_data ] );
+
 my $line_num = 0;
-my ( $section_ref, $sub_section_ref );
-my ( $section, $sub_section, $sub_sub_section, $data_ref );
-foreach my $line (@cfg_lines) {
-    $line_num++;
-    $line =~ s{(#.*|[ \t]*)+$}{}g;
-    $line =~ s|^[ \t]+||;
+while ( $line_num < @cfg_lines ) {
+    my $line = $cfg_lines[ $line_num++ ];
+    $line =~ s{(?<!\\)#.*$}{};
+    $line =~ s{[ \t]+$}{};
+    $line =~ s{^[ \t]+}{};
+    $line =~ s{\\#}{#}g;
     next if $line eq '';
-    if ( $line =~ m|^\.: *([^:]*\S) *:\.$| ) {
-        $section = $1;
-        ( $sub_section, $sub_section_ref, $sub_sub_section )
-            = ( undef, undef, undef );
-        if ( !<[base.code_section_exists]>->( $section, $code_data ) ) {
-            $data_ref = [];
-            push( @$code_data, { $section => $data_ref } );
-        } else {
-            $data_ref = <[base.code_section_ref]>->( $code_data, $section );
-        }
-        $section_ref = $data_ref;
-    } elsif ( $line =~ m|^- *(.+)$| ) {
-        $sub_section     = $1;
-        $sub_sub_section = undef;
-        die "no parent section defined for sub-section "
-            . "'$sub_section' [ ncfg '$cfg_name' at line $line_num ]"
-            if not defined $section;
-        if ( !<[base.code_section_exists]>->( $sub_section, $data_ref ) ) {
-            my $new_data_ref = [];
-            push( @$section_ref, { $sub_section => $new_data_ref } );
-            $data_ref = $new_data_ref;
-        } else {
-            $data_ref = <[base.code_section_ref]>->(
-                $code_data, $section, $sub_section
-            );
-        }
-        $sub_section_ref = $data_ref;
-    } elsif ( $line =~ m|^: *([^:]*\S) *:$| ) {
-        $sub_sub_section = $1;
-        die "parent section missing for sub-sub-section "
-            . "'$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
-            if not defined $section;
-        die "no parent sub-section defined for sub-sub-section "
-            . "'$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
-            if not defined $sub_section;
-        if ( !<[base.code_section_exists]>->( $sub_sub_section, $data_ref ) )
-        {
-            my $new_data_ref = [];
-            push( @$sub_section_ref, { $sub_sub_section => $new_data_ref } );
-            $data_ref = $new_data_ref;
-        } else {
-            $data_ref = <[base.code_section_ref]>->(
-                $code_data, $section, $sub_section, $sub_sub_section
-            );
-        }
-    } else {
-        push( @$data_ref, $line );
+
+    my ( $level, $name );
+    foreach my $l ( 1 .. 3 ) {
+        next if $line !~ $marker_re[$l];
+        ( $level, $name ) = ( $l, $1 );
+        last;
     }
+
+    if ( not defined $level ) {
+        push $open[-1]->[1]->@*, $line if @open > 1;
+        next;
+    }
+
+    my $raw_bytes;
+    $raw_bytes = $2 if $name =~ s{^(.*?\S) *\[ *(\d+) *bytes? *\]$}{$1};
+
+    pop @open while $open[-1]->[0] >= $level;
+    my $parent = $open[-1]->[1];
+
+    if ( defined $raw_bytes ) {
+        die "raw section '$name' : expected an empty line below "
+            . "its header [ ncfg '$cfg_name' at line $line_num ]"
+            if $line_num < @cfg_lines and length $cfg_lines[$line_num];
+        $line_num++;
+
+        my $text = '';
+        my $size = sub {
+            my $bytes = $text;
+            utf8::encode($bytes) if utf8::is_utf8($bytes);
+            return length $bytes;
+        };
+        my $first = TRUE;
+        while ( $size->() < $raw_bytes ) {
+            die "raw section '$name' : file ends after "
+                . $size->()
+                . " of $raw_bytes bytes [ ncfg '$cfg_name' ]"
+                if $line_num >= @cfg_lines;
+            $text .= "\n" if not $first;
+            $text .= $cfg_lines[ $line_num++ ];
+            $first = FALSE;
+            $text .= "\n"
+                if $size->() < $raw_bytes and $line_num >= @cfg_lines;
+        }
+        die "raw section '$name' : "
+            . $size->()
+            . " bytes where $raw_bytes were announced "
+            . "[ ncfg '$cfg_name' at line $line_num ]"
+            if $size->() != $raw_bytes;
+
+        push $parent->@*, { $name => \$text };
+        next;
+    }
+
+    my ($section)
+        = grep { ref $ARG eq qw| HASH | and exists $ARG->{$name} }
+        $parent->@*;
+    if ( not defined $section ) {
+        $section = { $name => [] };
+        push $parent->@*, $section;
+    }
+    die "section '$name' repeats a raw section "
+        . "[ ncfg '$cfg_name' at line $line_num ]"
+        if ref $section->{$name} ne qw| ARRAY |;
+
+    push @open, [ $level, $section->{$name} ];
 }
 
 return $code_data;
 
-#,,.,,,.,,...,,..,,,.,...,,,,,.,.,...,.,.,,,.,..,,...,...,,..,,.,,...,.,,,.,.,
-#BIOY4ZYIBF7YMVXL6BO2HTCGBKHITC534KU532VNEJBVUVSZ67QPYQBK5UJIOVEPKMJB3MKKFHCHA
-#\\\|F3U2HBUCPYLD7Y5EU5QQTGZ6LVLYMVCGYSRBXT4XJO4TU2R725B \ / AMOS7 \ YOURUM ::
-#\[7]KN4KE3O2MLMNMRUOBLNSFLESZ4AO4O4GSS6V47H6KCTNQ7TINMAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,.,.,,,,,.,.,...,,..,,,.,,,.,..,,...,...,.,.,...,,.,,..,,...,
+#WKFGOMTK6ELA65GALLAQKS6HJ3AXQCWQV4HYKFBQDW6V2IPDYWINGZMT5TF2U5OZIOMLRWE6COQZ2
+#\\\|TQ3W4D7LBJ272FZSTFUNCHN76CHK5MDBHCJFWBMSAPONRBHRISA \ / AMOS7 \ YOURUM ::
+#\[7]MQRFJ3IQBTYWH6K2JFCZLN2I2KNMRRVQYMJBTTMPI2RFIZWSCSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

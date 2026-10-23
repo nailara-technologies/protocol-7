@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = base.format.ncfg
+# args  = <structure> [ an ordered list of one-key hashes, as
+#         base.parse_ncfg_code returns it ]
+# descr = write a structure as ncfg text, the parser reads it back the same
+# return = the text [ string ]
+
+## sections by level : .: name :. [ 1 ], - name [ 2 ], : name : [ 3 ], each ##
+## header followed by an empty line. a scalar ref is a raw section : its    ##
+## header names the byte count, the bytes follow the empty line verbatim.   ##
+## consecutive 'key = value' lines align their '=' as the cfg files do ; a  ##
+## '#' in a line is written '\#' [ the parser reads '#' as a comment ]      ##
+
+my $structure = shift // [];
+
+my @indent = (
+    ## [ header, items ] by level ##
+    [ 0, 0 ], [ 0, 2 ], [ 2, 6 ], [ 6, 8 ],
+);
+my @text;
+
+my $flush_lines = sub {
+    my ( $lines, $pad ) = @ARG;
+    return if not @$lines;
+    my $width = 0;
+    foreach my $line (@$lines) {
+        next               if $line !~ m{^([\w.\-]+)\s*=};
+        $width = length $1 if length $1 > $width;
+    }
+    foreach my $line (@$lines) {
+        ( my $out = $line ) =~ s{#}{\\#}g;
+        $out = sprintf '%-*s = %s', $width, $1, $2
+            if $width and $out =~ m{^([\w.\-]+)\s*=\s*(.*)$};
+        push @text, ( ' ' x $pad ) . $out;
+    }
+    push @text, '';
+    @$lines = ();
+};
+
+my $write;
+$write = sub {
+    my ( $items, $level ) = @ARG;
+    my @lines;
+    foreach my $item ( $items->@* ) {
+        if ( ref $item ne qw| HASH | ) {
+            push @lines, $item // '';
+            next;
+        }
+        $flush_lines->( \@lines, $indent[$level]->[1] );
+
+        die "ncfg has three section levels [ '"
+            . join( "', '", keys %$item ) . "' ]"
+            if $level >= 3;
+        my ($name) = keys %$item;
+        my $value = $item->{$name};
+        my $marker
+            = $level == 0 ? ".: $name%s :."
+            : $level == 1 ? "- $name%s"
+            :               ": $name%s :";
+        my $pad = ' ' x $indent[ $level + 1 ]->[0];
+
+        if ( ref $value eq qw| SCALAR | ) {
+            my $bytes = $value->$* // '';
+            utf8::encode($bytes) if utf8::is_utf8($bytes);
+            push @text,
+                $pad
+                . sprintf( $marker, sprintf ' [ %d bytes ]', length $bytes ),
+                '', $value->$* // '', '';
+            next;
+        }
+        push @text, $pad . sprintf( $marker, '' ), '';
+        $write->( $value // [], $level + 1 );
+    }
+    $flush_lines->( \@lines, $indent[$level]->[1] );
+};
+
+$write->( $structure, 0 );
+undef $write;    ## the closure holds itself ##
+
+return join "\n", @text;
+
+#,,.,,,,,,,,.,,,,,,,.,,..,.,,,,,.,,.,,...,.,,,..,,...,...,,,.,,.,,,,.,,,,,..,,
+#Q6SJRQGAZJ7M5W2ADZ75NJM4J5B32VEY3Z5N2WMGNI4GIU5UT6PVIZ5L2XU65VEOBRTYGBD3DLDYA
+#\\\|DVVMOP5YSXAOZBHAMA5S6I6GHVQVOZRAEO4OX3F5RCMJL67VQTW \ / AMOS7 \ YOURUM ::
+#\[7]LMR3CMWQS4PCXDD43LV6S7E2Q5JNCL5L4KQ6AHD7DSY3DNUXFIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

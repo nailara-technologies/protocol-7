@@ -5,10 +5,21 @@
 
 my $reply = shift;
 
-## extract reply components ##
-my $data   = $reply->{'data'}   // '';
-my $mode   = $reply->{'mode'}   // qw| unknown |;
+## extract reply components : TRUE \ FALSE replies carry no mode \ data ##
+## [ base.reply.mode_text ]                                             ##
+my ( $mode, $data ) = <[base.reply.mode_text]>->($reply);
 my $params = $reply->{'params'} // {};
+
+## a FALSE answer has no transform in it : the regex result stands ##
+if ( $mode eq qw| false | ) {
+    <[base.logs]>->(
+        1,
+        ':. ncode.transform.handler.wave_reply: llm '
+            . 'answered FALSE [ %s ], keeping the regex result :.',
+        $data
+    );
+    $data = '';
+}
 
 ## extract wave state from reply params ##
 my $wave_state = $params;
@@ -21,8 +32,10 @@ my $save_patterns  = $wave_state->{'save_patterns'}  // 1;
 my $regex_applied  = $wave_state->{'regex_applied'}  // 0;
 my $regex_flagged  = $wave_state->{'regex_flagged'}  // 0;
 
-## get reply_id for callback ##
-my $reply_id = $reply->{'reply_id'} // '';
+## get reply_id for callback : the command's own, carried in the wave state ##
+## [ a reply hash has no reply_id, the waiting caller never got its answer  ##
+## before 2026-10-23 ]                                                      ##
+my $reply_id = $wave_state->{'reply_id'} // '';
 
 ## decode LLM response (base32r encoded) ##
 my $llm_output = '';
@@ -125,26 +138,29 @@ my $wave_stats = {
     'patterns_added'     => $patterns_added
 };
 
-## build final result ##
-my $result = {
-    'mode' => qw| true |,
-    'data' => {
-        'output'     => $final_output,
-        'changed'    => $changed,
-        'wave_stats' => $wave_stats,
-        'candidates' => $candidates
-    }
-};
-
-## forward to caller's reply handler if specified ##
+## answer the waiting command : the same ncfg reply ncode.cmd.transform     ##
+## gives when no llm wave was needed [ ncode.transform.format_reply ] --    ##
+## the hash this sent went out as HASH(0x..) ; the waves after this one are ##
+## not continued yet [ remaining_waves, todo ]                              ##
 if ( length $reply_id ) {
-    <[base.callback.cmd_reply]>->( $reply_id, $result );
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| size |,
+            'data' => <[ncode.transform.format_reply]>->(
+                {   'output'      => $final_output,
+                    'changed'     => $changed,
+                    'total_stats' => { %$wave_stats, 'llm_calls' => 1 },
+                    'candidates'  => $candidates,
+                }
+            ),
+        }
+    );
 }
 
 return TRUE;
 
-#,,..,,,.,,,.,...,.,,,,,.,,.,,,,.,,..,,,.,,..,..,,...,...,.,.,,,.,.,.,,.,,,..,
-#YQQNQWNUAMMECDLRKD4KTEVEUAKQ5WWG2LZZFQLMSUK27DAAQVS7OTP35COOZDACI5KQVK5YCUCIA
-#\\\|NYQSLAXCFAQXTKYX62UHALX2QA7GTXILURRGL62INM5LG7SFQ6G \ / AMOS7 \ YOURUM ::
-#\[7]U7GXACN2NNGJ7DPNLDSZ3PP63FLIGZLFNYGM2YRV6QDBLQSMYQAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,...,,.,,..,,.,,,..,,,,,,.,.,.,.,..,,...,...,..,,,,,,...,,..,...,
+#MSUGYHDGRPYATBAXLNOAUX7IRPW36Y7URCHONEZMKSBXP4OLUXYEIZUBFEPHZRI6GR4WPEAKSO7CI
+#\\\|7FLKGCCFNBLDRJMR3QE2PS4I7MNKL4SMDJ6DF5LAVZGOZNSAJAH \ / AMOS7 \ YOURUM ::
+#\[7]334RBLO5EFUCZGXSKBYCN65L5UMYUERN47SJNCAUM2Z4YPXFV2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
