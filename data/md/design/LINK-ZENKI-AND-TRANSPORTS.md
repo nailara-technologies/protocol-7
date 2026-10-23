@@ -610,6 +610,9 @@ where no second host is needed ; a real `delta` for the ssh and v6 parts.
 
 ## open questions for the owner
 
+answered 2026-10-23 : 3 rename the record [ `pri`, the dotted name in
+`addresses` ] ; 4 `ssh-w` ; 6 always-on. 1 2 5 7 8 9 wait for stage 2.
+
 1. **cube name** : B [ the instance registers as `delta` ] or A
    [ `link[delta]` + an alias ] ? recommended B.
 2. **collisions** : validation both ways [ recommended ] or a reserved
@@ -632,8 +635,8 @@ where no second host is needed ; a real `delta` for the ssh and v6 parts.
 9. **ssh zenka** : once `ssh2` exists, retire the password bridge and its
    profiles, or keep both ?
 
-#,,,.,,,.,...,,..,,.,,.,,,.,,,,.,,,..,..,,.,.,..,,...,...,..,,.,.,,,,,.,.,.,.,
-#BNNDRQG33PPFMPQKMUTN47WZULJVBHWEZASDEJFBQI6KX6OPM5N5YGHTENBFVLILJANWNXZMVVM4S
-#\\\|S6T7Y24NQJENCP4TOA4KXTZXN4KB7FQFQY6M7Z7AELXQMDUSTGM \ / AMOS7 \ YOURUM ::
-#\[7]A65AH5YYX3KOYOLQRR7MF6EUPJGAHHXIKSOSD3E5DLGOOLGX4QBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,.,,,,,,..,...,,,.,...,...,,,,,..,,...,...,..,,.,.,.,,,.,.,.,,,
+#GGFEYLPR377VVVFGRUXDVKRWOXGWLD2K7TYUXU2I7YEQXEZYSCESTGSJTCLU5ACPVVMGHS5NPVDB2
+#\\\|NDM2B5TXWONLPTCDEA6LA2CTWIRMM6SG267AAHHT2X7BAHH74RA \ / AMOS7 \ YOURUM ::
+#\[7]YFVU5LJXMMGHYIGRV4NPJ7OGMRPMXMFSWIIRRF5SYMWDK2NUZ2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
