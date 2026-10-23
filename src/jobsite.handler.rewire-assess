@@ -4,7 +4,7 @@
 # descr = re-register task.wait-done for orphaned assessing job after restart
 
 my $call    = shift // {};
-my $job_id  = <[base.vax-int.decode]>->( $call->{'args'}{'job_id'} // '' );
+my $job_id  = ( $call->{'args'}{'job_id'} // '' );
 my $task_id = $call->{'args'}{'task_id'} // '';
 
 return if not length $job_id or not length $task_id;
@@ -28,8 +28,8 @@ return if not length $job_id or not length $task_id;
     }
 );
 
-#,,,.,,,.,,,.,,..,,.,,.,,,,,.,,,,,..,,,.,,..,,..,,...,...,.,.,...,..,,.,.,,,.,
-#XAUQ5TNO4W3OJFHCO7EZ3S47ZLULKPLGYAAZKF6XAZIHAJV2AX2U3FK6ZWOUCJD55SVOUXT4S32IW
-#\\\|2EEBBY6JXJITMPZZKUFO3KZM4CXHDNVFIWE4BCMSU7EA4IKA2MS \ / AMOS7 \ YOURUM ::
-#\[7]PETY6PZ5IJZYZFHIJHOLZRPJ4CI4MBK4I6BLDL6ZGGHT3DBTACCI 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,.,..,,,.,,..,,,,,,,,,,..,,,..,..,,...,...,,..,,.,,..,,...,...,
+#4IUSNVIW7THTT7AXJ4QHNGN72ESOEHGHTMAD4FNK2MN2CQFCAF25DF7UJSOPSIMWUZLU5EUPTPYES
+#\\\|TUTFDEUCYVCNTXJZWRFCV4B7JYPCHOI52YSD7JZ4T7UCTVOPUY3 \ / AMOS7 \ YOURUM ::
+#\[7]DCEKLHWNEQU3MQYKJPDCFBLUX5AO4DINBTJI4VWQDLG2BPTMW2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

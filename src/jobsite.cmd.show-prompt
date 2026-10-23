@@ -24,7 +24,7 @@ if ( $arg eq qw| list | ) {
     ) {
         my $j = $store->{$id};
         push @lines, sprintf "%s | %s | %s | %s",
-            <[base.vax-int.encode]>->($id), $j->{'status'} // 'new',
+            $id, $j->{'status'} // 'new',
             $j->{'company'} // '', $j->{'title'} // '';
     }
     return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
@@ -43,7 +43,7 @@ if ( $arg eq qw| new | ) {
         my $j = $store->{$id};
         next unless ( $j->{'status'} // '' ) eq 'new';
         push @lines, sprintf "%s | %s | %s",
-            <[base.vax-int.encode]>->($id), $j->{'company'} // '',
+            $id, $j->{'company'} // '',
             $j->{'title'} // '';
     }
     return {
@@ -53,7 +53,7 @@ if ( $arg eq qw| new | ) {
 }
 
 ## decode a specific job id if given ##
-my $dec_arg = <[base.vax-int.decode]>->($arg);
+my $dec_arg = $arg;
 
 ## latest job ##
 if ( $dec_arg eq qw| latest | ) {
@@ -74,8 +74,8 @@ my $prompt = <[jobsite.util.build_prompt]>->($job);
 
 return { 'mode' => 'size', 'data' => $prompt };
 
-#,,,,,,..,,.,,,.,,.,,,.,,,,,.,.,.,,,.,.,.,...,.,.,...,..,,...,.,,,..,,,.,,.,.,
-#5QAWYFAUCI35RLARB7HZS537IZWV7J66CRLIZOCMYFA4APYVHUO4J4L2TTQVLJULFN3NKARRMSQNS
-#\\\|PFTQCVVCXAMEJ6UJ2YVVABGRUQTB2KX5PPW52ATX7WT23JRIFQ2 \ / AMOS7 \ YOURUM ::
-#\[7]33ZO7QEUI3ANMEDXWRL2STQBTX2N2T2AT5ZYBIBUZQ7IFSK6GQDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,...,.,.,,.,,..,,..,,,..,.,.,.,.,...,.,.,,.,,...,,.,,,..,,.,,
+#AKNMDE6W2FLFJGDYCI7QK6BTY73UQ7ZDGA5F5763IQPO67HFVDQWTITIQBYXUMQWOQAISYWPVQWCU
+#\\\|QSEQ6N5B26CUKPN3ROK3X27OKIRV5IXKJWHBFB7KFS3B7JNYJZJ \ / AMOS7 \ YOURUM ::
+#\[7]7KL6I5C6COOG4YBXCN7JFHE3D4DJ4IL5D26PXRKYV2DK74ZE2EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

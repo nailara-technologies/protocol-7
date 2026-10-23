@@ -42,14 +42,9 @@ my $tasks = <jobsite.tasks> // {};
 ## build candidate list ##
 my @candidates;
 if ( defined $params{'job_id'} ) {
-    ## decode short encoded ids [ e.g. 'ZKP5U' ] to the raw numeric form    ##
-    ## <jobsite.tasks>/<jobsite.job.index>/job.read/job.write all key on -- ##
-    ## without this, a short id is used as-is under the wrong key, silently ##
-    ## creating a near-empty record that collides on disk with the real job ##
-    ## [ vax-int.encode of the real numeric id produces the same filename   ##
-    ## the bogus string-keyed write also lands on ]                         ##
-    push @candidates, map { <[base.vax-int.decode]>->($ARG) }
-        map { uc $ARG }
+    ## job ids are the encoded form everywhere [ e.g. 'ZKP5U' ] : the ##
+    ## index, the store, the task records and the file names agree    ##
+    push @candidates, map { uc $ARG }
         grep { length $ARG } split m|[,\s]+|, $params{'job_id'};
 } else {
     my %seen = map { $ARG => 1 } keys %{$tasks};
@@ -61,7 +56,7 @@ if ( defined $params{'job_id'} ) {
         if ( -d $status_dir and opendir my $dh, $status_dir ) {
             for my $fn ( readdir $dh ) {
                 next unless $fn =~ m{^([A-Z2-7]+)\.yaml$};
-                my $jid = <[base.vax-int.decode]>->($1);
+                my $jid = $1;
                 next if $seen{$jid};
                 push @candidates, $jid;
             }
@@ -109,7 +104,7 @@ for my $job_id (@candidates) {
 
     ## enc_error filter : scan raw file bytes for double-encoded marker ##
     if ( defined $check_encoding ) {
-        my $enc_id   = <[base.vax-int.encode]>->($job_id);
+        my $enc_id   = $job_id;
         my $job_file = do {
             my $idx_status = <jobsite.job.index>->{$job_id} // '';
             if ( $idx_status =~ m{^(blocked|deleted):(.+)$} ) {
@@ -134,7 +129,7 @@ for my $job_id (@candidates) {
     ## rep-err filter : check YAML field directly ##
     if ( exists $params{'rep-err'} ) {
         my $want     = <[base.cfg_bool]>->( $params{'rep-err'} );
-        my $enc_id   = <[base.vax-int.encode]>->($job_id);
+        my $enc_id   = $job_id;
         my $job_file = do {
             my $idx_status = <jobsite.job.index>->{$job_id} // '';
             $idx_status =~ m{^(blocked|deleted):(.+)$}
@@ -183,8 +178,8 @@ return {
     $n_protected ? " [$n_protected protected skipped]" : ''
 };
 
-#,,,,,,,.,.,,,,,.,,.,,,.,,,..,,,,,,..,.,.,,,.,..,,...,...,,,.,,,,,.,.,...,,.,,
-#OCVRPL5O4BVQKW3HRTQBRUBRO4XV65I7HHPBB5GHS23CJYPBT765FRYTZPMO6V7FXEUSISAWPU4OK
-#\\\|3N5GR3TRBHO6RTT2QCSYVCTRJVQNXJIE5V7REC5FZKXSFCKVZKZ \ / AMOS7 \ YOURUM ::
-#\[7]YRDUEKJPNMJXWVT6LMZHVKWSJBZDKUC6QWO3ZMOFNIPZ6NXIEIDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,.,,,.,,.,,,,..,..,,,.,,.,,,..,,..,,...,..,,,,,,...,.,.,.,,,,.,,
+#AHWIGMXQ3UPWI5KFZBRWNKO32YTSASPP6YU4ATZ32MTHZOWFSIFFSUFBTPNOV746FWNKKRACHXG6Q
+#\\\|EZRGP4I7JWCTLAXJKPOGID6P2II4BL7AEN2H4EKSQ46RHFOW3YO \ / AMOS7 \ YOURUM ::
+#\[7]4OO4NXTWHA5C6HVIHZHRAG5NZVT2JAUR53XO46HQXXTVWXR356DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

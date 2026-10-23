@@ -11,16 +11,16 @@ so these ids got encoded a second time [ V37Q, WYCAC ] : a shadow web card, an e
 apply/V37Q.yaml, a reassess on an empty description -> a hallucinated score 9, and the
 mainframe posting recurring with errors.
 
-**Why:** all stored ids are encoded since the switch [ pri : 2314 index + 81 web, 4-5
-chars ] ; the downstream encode \ decode calls are transition leftovers that guess.
+**Why:** all PERSISTED ids are encoded [ pri : 2314 index + 81 web, 4-5 chars ] but jobsite
+works NUMERIC in memory [ site-yaml sends the listing number, load_all decodes file names ] -- each round trip guesses.
 
 **How to apply:** encode once where the listing number comes from the site, pass ids
 through everywhere else [ jobsite \ site-yaml \ plugin.web.jobs.* ]. the owner rejected
 a length rule in base.vax-int \ bin/vax-int : generic tools [ `vax-int 42` = FI ].
 check a digit-only id by hand with `bin/vax-int -dq <id>`. moves jobsite toward generic.
 
-#,,,,,,,.,,..,.,,,,,.,.,,,,,.,,,.,,,.,,..,..,,..,,...,...,,,.,,.,,.,.,..,,...,
-#WUUDIVZYONFCWCOZFFIFDBV4UG3745AWHCRPEXBYXIIO3BQPBKMZU6RW75RJR3SKAMNGI75WQQKTA
-#\\\|EN2WY7J3LHSGYEXMTANN4FBFAXTVLAUEMS3B3EYFISJKPT7H3A4 \ / AMOS7 \ YOURUM ::
-#\[7]5T67OMYILMRVRJETFCCDG54NJWQBKFNQKHKJY2JIYFMAG4JDR2DY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,.,.,,.,,..,,,,.,,,,,...,,,,,..,,...,...,,,,,,,.,...,,.,,,,.,
+#YWTPL776ELKZMOEYZXZ4MV47QVO2YNQ4SVLIGKFKEOGPDKPR67DQCNU4N3JZZHNLWI7NTSQPENB64
+#\\\|NQW3P5UAZ2KFBKDAZGJIRQUMNG77PROMAXXRI3LKRYI5XO4SLRJ \ / AMOS7 \ YOURUM ::
+#\[7]KENNFV7NIVMUGCKHQKDSU4TNN7M24K4DEUVDUFBSOC6UZ4TH2ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

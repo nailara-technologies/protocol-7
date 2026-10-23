@@ -23,6 +23,10 @@ for my $href (@hrefs) {
     my ($job_id) = ( $href =~ m{--(\d+)-inline\.html} );
     next if not $job_id;
 
+    ## the listing number, encoded ONCE here [ vax-int ] -- the job id ##
+    ## everything downstream passes through unchanged                  ##
+    $job_id = <[base.vax-int.encode]>->($job_id);
+
     ## reconstruct full url
     my $job_url = "https://www.stepstone.de$href";
 
@@ -45,8 +49,8 @@ for my $href (@hrefs) {
 
 return \@jobs;
 
-#,,,.,,..,...,,,.,.,.,...,...,.,,,.,.,..,,..,,..,,...,...,..,,...,.,,,,,.,.,.,
-#WMCL6T7THI2DHT3SXKTPR6WQQMB3E3N3F2NWLQB46JOVULMRRX34KCNRBF7BP3OOVKGT6OUIJBQYW
-#\\\|HTIHKZKMGXHUDJKSB5NL6F6Y5I3XTIFFZTX4C7HGTXPNYO2QZLU \ / AMOS7 \ YOURUM ::
-#\[7]JWNC6KGRLXBYCGJPQKM2IBSCRX7BWWQP6BQSWESVUWBYYMZCEGBY 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,.,,,,,,,.,,.,,,,.,.,,,,,.,,,,,..,,...,...,..,,,,.,...,..,,.,,,
+#DEWOLXBUPWCGK4U7RGBS6GDI5PIXT7MVNN5OQXHK2F37AZOFNSUGXR3ATAEPJNNJL3NZP4GZXOZR2
+#\\\|ZJ5RIDE6VOKOK2CT55LHCN7NUFBVGDSAPIOZWDY7ADF5CP3YEXA \ / AMOS7 \ YOURUM ::
+#\[7]DKWGB7YC244DM4UBGMUIRJNV5NSZGOMVSZWXET23WW2UORSI5YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

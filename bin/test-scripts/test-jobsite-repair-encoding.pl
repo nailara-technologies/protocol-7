@@ -77,9 +77,6 @@ compile_module($ARG) for qw|
     jobsite.repair_encoding.location
     |;
 
-## base.vax-int.encode stand-in : the path rules are under test, not ids ##
-$code{'base.vax-int.encode'} = sub { return 'ID' . shift };
-
 sub repair { return $code{'jobsite.util.repair_mojibake'}->(shift) }
 
 ##[ fixtures ]################################################################
@@ -266,19 +263,16 @@ say ': file locations';
 
 my $loc = $code{'jobsite.repair_encoding.location'};
 is_str( $loc->( 7, 'review' )->{'rel_path'},
-    'jobs/review/ID7.yaml', 'active job path' );
+    'jobs/review/7.yaml', 'active job path' );
 is_str(
     $loc->( 7, 'trash:V7ABCDE' )->{'rel_path'},
-    'jobs/trash/V7ABCDE/ID7.yxz.B32',
+    'jobs/trash/V7ABCDE/7.yxz.B32',
     'packed trash path'
 );
 is_str( $loc->( 7, 'deleted:V7ABCDE' )->{'store'},
     'deleted', 'deleted store' );
-is_str(
-    $loc->( 7, 'blocked:V7ABCDE' )->{'rel_path'},
-    'jobs/blocked/V7ABCDE/ID7.yaml',
-    'blocked stub path'
-);
+is_str( $loc->( 7, 'blocked:V7ABCDE' )->{'rel_path'},
+    'jobs/blocked/V7ABCDE/7.yaml', 'blocked stub path' );
 
 ##[ 7 : sweep over a temporary store [ dry run, then apply ] ]################
 
@@ -445,11 +439,11 @@ open my $tar_fh, '<', \$tar_data;
 my $tar = Archive::Tar->new($tar_fh);
 is_str(
     join( ' ', sort $tar->list_files ),
-    'jobs/deleted/V7AAAAA/ID3.yaml '
-        . 'jobs/review/ID1.yaml jobs/trash/V7AAAAA/ID4.yxz.B32',
+    'jobs/deleted/V7AAAAA/3.yaml '
+        . 'jobs/review/1.yaml jobs/trash/V7AAAAA/4.yxz.B32',
     'apply : backup holds exactly the changed files'
 );
-ok( $tar->get_content('jobs/review/ID1.yaml') =~ m|\\x80|,
+ok( $tar->get_content('jobs/review/1.yaml') =~ m|\\x80|,
     'apply : backup holds the original bytes'
 );
 
@@ -494,8 +488,8 @@ if ($fail_count) {
 say ':: all tests passed';
 exit 0;
 
-#,,.,,,.,,..,,.,,,.,,,..,,,,.,.,.,...,..,,...,..,,...,.,.,..,,..,,.,.,...,.,,,
-#ZX34JPFWXAPKTXUVRMTU6BJATKTDHQUPHHOBQFLM2XXUBV7ZUIXPHKUHOHEEAT723H62DFNIZH3JE
-#\\\|7BUU3C6PN5ER5CPITKHUNIBJKCVGER6CG3GCX5IU7AZ47ADUKGN \ / AMOS7 \ YOURUM ::
-#\[7]JTZN2ED673WROT7VLC3PI6MCYXSEFVYDORAHOVVOAEJBGEEVJYAQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,...,.,,,..,,,,,,..,,..,,..,,..,,...,...,.,,,,..,,..,,.,,.,,,
+#SX2QSP7GYDIEU4X44TADWSWJBHBD27TFNC5C62VTQTSIVAENDDW7A6WWJA6XY3RXQ4N2GSNDPH5R6
+#\\\|VN3UTYHTEEBGGRBIADOVDFONMDPGMCYZQBNEJXI6EKHUBFGCGGF \ / AMOS7 \ YOURUM ::
+#\[7]ZJEMCDAJGKVWLHML2OFYCFDEDRD3A6X5NH3KXZ27MN5IIQFZREAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

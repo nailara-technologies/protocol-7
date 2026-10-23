@@ -46,10 +46,7 @@ for my $job_id (@ids) {
         next if defined $lm_num and $lm_num <= $since_num;
     }
 
-    my $j = {
-        %{ $jobs->{$job_id} },
-        'id' => <[base.vax-int.encode]>->($job_id)
-    };
+    my $j = { %{ $jobs->{$job_id} }, 'id' => $job_id };
     ## ui expects reason|summary as short aliases ##
     $j->{'reason'} = delete $j->{'score_reason'}
         if exists $j->{'score_reason'};
@@ -116,8 +113,8 @@ return {
     'content_type' => qw| application/json |
 };
 
-#,,.,,,,,,..,,..,,,,,,,.,,,.,,...,,,.,...,,,.,..,,...,...,...,..,,..,,..,,.,,,
-#I2GTTZNJ5P47JEOFU24CY5ACVQQB3J27JWSF5SCLORYX3PK7XDLT4IZ75K7SYA4FSU6I3DOOL4BKW
-#\\\|6WAIBRFO2YHVQ7DJZPBLO7XN6IZD5FWXTAR6K2CTNGP276XD4DA \ / AMOS7 \ YOURUM ::
-#\[7]MDAXJ6X7WOTGWNJFV6H42U2JJ3RFXDLP4U7XNQIFKFZ6EPWO4IAQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,.,,,.,,.,,,...,.,,,..,,,..,,.,,..,,...,...,,,,,,,,,,,.,.,.,,..,
+#AWEUUTWNZDDRJ4P2N6624EEH5FYDXJY5JDT6K5GWKGMVQW5IEDCUVFWUF3SBRHUFDGVXVXTE37XX6
+#\\\|BZWRZBRGUEWHS463Q4IZL6WCNIHEGY4K5B3FNC6JFIMTQHZDKTS \ / AMOS7 \ YOURUM ::
+#\[7]4ON3LXLTFKCJWFQKU4QZXGTWZ44ASZL6JALKGD5LBJP4KYTHNKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -93,7 +93,7 @@ if ($is_batch) {
     my $rev = <plugin.web.jobs.reverse> // [];
     for my $r ( @{$rev} ) {
         next if ref $r ne 'HASH';
-        my $rev_id = <[base.vax-int.decode]>->( $r->{'id'} // '' );
+        my $rev_id = ( $r->{'id'} // '' );
         next if not length $rev_id;
         $pending_delete{$rev_id} = 1
             if ( $r->{'action'} // '' ) eq 'delete';
@@ -102,9 +102,9 @@ if ($is_batch) {
 }
 
 for my $job_data (@job_list) {
-    my $job_id = <[base.vax-int.decode]>->( $job_data->{'id'} // '' );
+    my $job_id = ( $job_data->{'id'} // '' );
     next if not length $job_id;
-    my $enc_id = <[base.vax-int.encode]>->($job_id);
+    my $enc_id = $job_id;
 
     ## load cached record from memory or start fresh ##
     my $cached
@@ -234,8 +234,8 @@ for my $job_data (@job_list) {
             ## bump last_modified so delta queries on other browsers pick ##
             ## up this change                                             ##
             $cached->{'last_modified'} = <[base.ntime.b32]>;
-            <[plugin.web.jobs.reverse.queue]>->(
-                { 'id' => <[base.vax-int.encode]>->($job_id), %changed } );
+            <[plugin.web.jobs.reverse.queue]>
+                ->( { 'id' => $job_id, %changed } );
         }
 
         ## action entries (e.g. reassess, delete) bypass browser_fields and ##
@@ -243,7 +243,7 @@ for my $job_data (@job_list) {
         if ( exists $job_data->{'action'}
             and length( $job_data->{'action'} ) ) {
             <[plugin.web.jobs.reverse.queue]>->(
-                {   'id'     => <[base.vax-int.encode]>->($job_id),
+                {   'id'     => $job_id,
                     'action' => $job_data->{'action'}
                 }
             );
@@ -321,8 +321,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,.,,..,.,.,,.,,,,,,,,,,,,.,,.,,.,.,..,,..,,..,,...,...,...,.,.,,,.,,,,,.,,,
-#2O5H3RQ46467QSJGG7YVA5VMW44FLRH7LUIJRY6DKBAW7S43Y7YKPAJS3XCQPGISM2ZWBEEKANVBS
-#\\\|IR4LOAH7MNWA2HXVLHAYUDLQUJCA5AUYC74M6HZKTQPDIYQT55C \ / AMOS7 \ YOURUM ::
-#\[7]DQEJLYQT5X463K63A2WUG7TBDXA3WAUCL7OH62HHJZAJZNEYXCCY 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,,,,,.,,,.,,,,,.,,..,,,,,..,,..,,...,...,.,,,.,.,,,,,,.,,.,,,
+#GYRW2NCAXENIJJ3EEDYWWTJLIA3YWGCTZLSWV6GQ55PPZNOLWC6HWKVAOTVYKQKJJZEJMUKGFQ72A
+#\\\|T7YCCUSBVFKMO6YA75Z2P46HZ5VP4VSKEM5L6DLQKW44SO6IH6Q \ / AMOS7 \ YOURUM ::
+#\[7]5O6D63DT3RPKVL7M4UESINNFUFZGT4XAOOOSA5KZW4ZQNC4WHSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

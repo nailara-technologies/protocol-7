@@ -1832,6 +1832,7 @@ items:
   details: |-
     2026-10-23 : the export date IS the same on both [ 1791932082, browser + server ] -- still 1 vs 9 export entries. so the job DATA differs [ stages \ timestamps changed on srv-U today, the local stock never learned of it ] : compare the 9 jobs between the stores [ stage, last_modified ], then the store sync [ 3MK ]
     2026-10-23 found : NO user state syncs between hosts -- export time [ JOBS_PREFS -> that host's jobsite.set-prefs, equal only by hand ], export marks [ exported_stage \ exported_at live only in the exporting host's web/jobs/*.yaml : local 9, pri 0 ], stage changes [ that host's jobsite only ]. a one-off copy desyncs at the next export -> real fan-out : every user change as a record { job, field, value, time, host }, newest-wins per field [ export time max-merge, marks keep batch epoch for undo ]. transport : the existing remote web endpoint is enough [ jobsite.cfg.sync_urls \ sync_tokens already push to several webs with per-url tokens, /jobs-sync is Bearer-gated + admission ] -- links [ ZYH ] optional. part of 3MK's reverse fan-out
+    2026-10-23 owner : pri's report view shows 8 OLD entries with 'exclude sent' enabled -- the jobs of the last report sent to the jobcenter are not marked exported there [ marks only in the local web/jobs/ ]. the export marks [ exported_stage \ exported_at ] are the first records to fan out
   done_at: null
   id: QLK
   priority: normal
@@ -1884,9 +1885,19 @@ items:
   - letsencr
   - protocol
   text: "letsencr parent -> child : param.public_addresses [ arrayref ] never reached the child -- route-send sent single-line, param dropped ; letsencr.child.cmd.verify-domain always saw [] . send.local now logs 'args set, param \\ data not sent' for these 5 callers [ process_new_domains, request-certificate, handler_enrollment_retry, handler_enroll_verify_reply, queue_renewal_requests ]. fix : domain as a param, addresses space-joined, no args -> multi-line"
+- added: 32ENRUHOKM
+  details: ''
+  done_at: null
+  id: SN3
+  priority: normal
+  status: open
+  tags:
+  - test
+  - httpd
+  text: "bin/test-scripts/test-web-auth-gate.pl dies : 'Can't use an undefined value as a subroutine reference at httpd.route.handler.web-relay line 46' -- fails on HEAD 0c9478f48 too, likely since the 6CJ admission gate [ a stub the harness lacks ]"
 
-#,,,,,.,,,.,.,...,,..,.,.,,.,,,.,,.,.,...,.,.,..,,...,...,..,,...,.,,,,.,,,..,
-#V64QYF6W3FDQ3SWDV2CFPGRNGDRMKFDMQ3GZ4DAMHVHW6KBCSWIMG4ILFP4VVC3GCK3NR4HQWDFCK
-#\\\|O7UWBZIRBN2QZ3MSGKKGZZKQC3GJAYMXVIZ67UEAKH36NRTSZKB \ / AMOS7 \ YOURUM ::
-#\[7]NXGGHDFWN3IE5IGTNPZELDQANHPBZ2MKIJC5BANU3S3U2ITJP2CI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,..,.,,,,..,,,.,,,,,.,.,,..,..,,..,,...,...,,..,,.,,,..,...,.,,,
+#F2TU6FNPRQK5J72V3SYZXOFVHRI44G2INYJTWV2HTPFXX44EZCW43HF77ITFZFJ3TPJK5W4L4GIQE
+#\\\|DZYJLRID7MM5Z7APPVNSBS7GDVQVTEUKET6GIM5VGJDBICLNTAJ \ / AMOS7 \ YOURUM ::
+#\[7]4CALUI2INU2S6SMEE3AO3KH2BQET2AILRQSLH4DB5M4KCI6TRUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

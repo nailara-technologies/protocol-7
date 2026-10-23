@@ -22,7 +22,7 @@ for my $status (@active_statuses) {
     for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($dh) ) {
         my $enc_id = $fn;
         $enc_id =~ s|\.yaml$||;
-        my $job_id = <[base.vax-int.decode]>->($enc_id);
+        my $job_id = $enc_id;
         my ( $job, $yaml_err ) = <[format.yaml.load_file]>->("$dir/$fn");
         if ( defined $yaml_err ) {
             <[base.logs]>->(
@@ -48,7 +48,7 @@ for my $status (@epoch_statuses) {
         for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($edh) ) {
             my $enc_id = $fn;
             $enc_id =~ s|\.yaml$||;
-            my $job_id = <[base.vax-int.decode]>->($enc_id);
+            my $job_id = $enc_id;
             $index->{$job_id} = "$status:$epoch_dir";
         }
         closedir $edh;
@@ -61,8 +61,8 @@ for my $status (@epoch_statuses) {
 
 return <plugin.web.jobs.cache>;
 
-#,,..,,,.,,,.,,,,,,.,,,..,,.,,...,...,,.,,,.,,..,,...,..,,..,,,,.,.,.,,,.,,,.,
-#YXUDUEGXVQUUDUGTI6K5LDJZ6SBQ24PM7BCPPX2FH26MZQT37BP4MW4SYCKFIXUFLTTO6ARKC7FCG
-#\\\|MVSVNRQAOENUXWDUHQBOJ3SGYRBVGSKIELWTQE76BA6W4BANDNT \ / AMOS7 \ YOURUM ::
-#\[7]XVYNKWB5542VBYFQGV76WPD4WUCCJNPOVBXM73TYTEJ2H7TEIECA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,.,.,,,.,,,,,,,..,,.,.,...,..,,..,,...,...,...,...,,..,.,,,,,.,
+#S34FNU6AIRAY3UVSF6PAZ6WAXUWTSPI73X72IQIBSPPM2M6CHTBQ6ZPNNG736TX4RWRFNYF7AN2PQ
+#\\\|LZHCIW56CCZEEPDQWBUMY5NY45TJEIRC7ECFBDNNVI4TMRPIQLD \ / AMOS7 \ YOURUM ::
+#\[7]WGAKH56ANMRT5ZT7EENLRRYSWL3AYPS4J3W2UVEHSQWILUROTEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

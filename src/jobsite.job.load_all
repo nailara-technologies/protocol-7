@@ -27,7 +27,7 @@ for my $status (@epoch_statuses) {
         for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($edh) ) {
             my $enc_id = $fn;
             $enc_id =~ s|\.yaml$||;
-            my $job_id = <[base.vax-int.decode]>->($enc_id);
+            my $job_id = $enc_id;
             $index->{$job_id} = "$status:$epoch_dir";
         }
         closedir $edh;
@@ -45,7 +45,7 @@ if ( -d $trash_root ) {
         for my $fn ( grep { m|\.yxz\.B32$| && !m|^\.| } readdir($edh) ) {
             my $enc_id = $fn;
             $enc_id =~ s|\.yxz\.B32$||;
-            my $job_id = <[base.vax-int.decode]>->($enc_id);
+            my $job_id = $enc_id;
             $index->{$job_id} = "trash:$epoch_dir";
         }
         closedir $edh;
@@ -65,7 +65,7 @@ for my $status (@active_statuses) {
     for my $file (@files) {
         my $enc_id = $file;
         $enc_id =~ s|\.yaml$||;
-        my $job_id = <[base.vax-int.decode]>->($enc_id);
+        my $job_id = $enc_id;
 
         my $job_file = catfile( $dir, $file );
         my ( $job, $yaml_err ) = <[format.yaml.load_file]>->($job_file);
@@ -147,8 +147,8 @@ for my $id ( keys $tasks->%* ) {
 
 return \%jobs;
 
-#,,,,,,.,,,,,,.,,,,.,,,.,,,..,,..,...,,.,,,,.,..,,...,...,.,.,,,.,.,,,..,,,..,
-#B27J7YY5EM6TN4ZKPLLSXCMMB7PMIECWJTACLM4MSYB7ALCSELZARCRJZI34ZN3SOBIO4AC3BYOVA
-#\\\|OXKPH2ZDAHXMNFF7OK2BOZK24P6LXPLRG6IDOOPFYM6CZVIDHPU \ / AMOS7 \ YOURUM ::
-#\[7]6LBHJICOHCDSR472Q32DKRATNRBHURW5D2CLPAJMJA2S5OJ4CSAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,.,.,,,,,.,.,.,...,,,,,,.,,..,,..,,...,...,.,.,,..,..,,..,,,..,
+#2L7V7ZHIJHQXFYMA6K2A2Z4NMKLCCPLK435YATE46YLB363U5HJ4USSNMTFPUPRANKMRZTAS7Y2CM
+#\\\|MCNALTDW3SYOA3UPBXRXMTKEVR5AYTQJQWBVJODE7PB4PFWEHLT \ / AMOS7 \ YOURUM ::
+#\[7]JDXEDEKPD7UWKOZJ6ZRATYBGDYMDXPUWSBMIC7BZGII7UDY2VAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

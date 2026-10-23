@@ -12,11 +12,11 @@ my $jobs_dir = join qw| / |,
 for my $entry ( @{$entries} ) {
     next if ref $entry ne 'HASH';
 
-    my $id = <[base.vax-int.decode]>->( $entry->{'id'} // '' );
+    my $id = ( $entry->{'id'} // '' );
     next if not length $id;
 
     my $action = $entry->{'action'} // '';
-    my $enc_id = <[base.vax-int.encode]>->($id);
+    my $enc_id = $id;
 
     if ( $action eq 'delete' ) {
         my $job = <[jobsite.job.read]>->($id);
@@ -219,8 +219,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,..,.,,,.,.,.,,,,.,,.,.,,,,,...,.,.,.,.,,,.,..,,...,...,.,,,,..,,,.,.,,,,..,
-#IGEXSKSXKPXR7G3337LHFBFY5TPM5SYCYUZJY7WY4ZKW2J4FUUVDC5GK3DRNVNRZ5RLB3XZWDRUB6
-#\\\|MNMESGW6WGHEJXSGB2SQXARJUFW5P26JALQESB5VDVKCU7A256Y \ / AMOS7 \ YOURUM ::
-#\[7]OAMJ2XEQGDGWWDJAKTT24PC4F4MARFQH5FWLEWVCPZGOBLV5OUAQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,..,,,..,,..,,..,...,...,,.,,..,,...,...,,..,..,,..,,,,,,,,,,
+#64S5NH7LIDE7GCYA6UKLYIJT4VRZJEWIS2Q4VNPGATWNTKIIE6MGAFRVNZITRNZJB4LLVPMTQ24W6
+#\\\|XQWAPJGMQO5Z7K7PCQRAQDIMIFON5XLB3A7TCUDATBCYA4T6DX7 \ / AMOS7 \ YOURUM ::
+#\[7]JEGDV5GVM6L5YZ7PJH5UD5E4PWZUO2SMGTEUH4DXZFDCJRMMOGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

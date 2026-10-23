@@ -7,7 +7,7 @@ my $args = $call->{'args'} // '';
 $args =~ s{^\s+|\s+$}{}g;
 
 my ( $dimension, $job_id_in, $radius ) = split m|\s+|, $args, 3;
-my $job_id = <[base.vax-int.decode]>->( $job_id_in // '' );
+my $job_id = ( $job_id_in // '' );
 
 my @valid_dims = qw|
     location work-profile company-culture compensation
@@ -59,7 +59,7 @@ for my $rec ( @{$group} ) {
     push @lines,
         sprintf(
         '%-14s %3s %8s %6s  %s : %s (%s)',
-        <[base.vax-int.encode]>->( $rec->{'job_id'} ),
+        $rec->{'job_id'},
         $rec->{'arc'}  // '?',
         $rec->{'dist'} // '?',
         length($score) ? $score : '-',
@@ -71,8 +71,8 @@ for my $rec ( @{$group} ) {
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,,,,,,.,,,,,,,,,,.,,,..,..,,,..,.,.,.,.,...,..,,...,...,..,,.,.,,,.,,,.,,,,,
-#MWNSYFYXDTSI5IUNQVXXNW3RDATHVK3HO6VLVUWPQ33EGPKJCOVY6XZUKAGA34GXH4AFICHRNP23C
-#\\\|DXXVDP4IINXLZ2TF7KAPTCOFODRVRYKMX2MTGMJDMOC62H5C5JR \ / AMOS7 \ YOURUM ::
-#\[7]HOF5P3EOVAXZSNRMNH64YF63QS2ZC2DAEQLRJFGNV3ZZTFEUCIBI 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,.,,,,..,,..,.,,,,.,,,..,..,,..,,...,...,...,,.,,.,,,...,..,,
+#Y35USG4ZJIPSO64KWVLYLQO653J2LI7W7525ITTVC2N4SDKOSFVYIOFQ35VCK44HZ3J5EWODIAND6
+#\\\|OF4HP2PCU6ZR2N45SLKTQ3Y6WRQHT7J335MJUXYYSNUGUAAYLTX \ / AMOS7 \ YOURUM ::
+#\[7]S26QL4X4R6WUAATULZ3O6GIUMRXXL5JI2QZ5TGBOJ3YKZLG5EUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

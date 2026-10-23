@@ -5,16 +5,17 @@
 
 my $job = shift // {};
 
+## the job id IS the encoded listing number [ site-yaml.stepstone.* ] ##
 my $id = $job->{'id'} // '';
-return $id if $id =~ m{^\d+$} and $id > 1000000;
+return $id if length $id;
 
 my $url = $job->{'url'} // '';
-return $1 if $url =~ m{--(\d+)-inline\.html};
+return <[base.vax-int.encode]>->($1) if $url =~ m{--(\d+)-inline\.html};
 
 return '';
 
-#,,..,...,,..,,,.,.,.,,,,,,,.,,..,,..,,.,,,,,,.,.,...,...,...,,,,,...,,,.,,.,,
-#UKJUGI4MQ7F6M6PHUXR4ABX5ESBVS3ABFCODYBY7L42D3JCCE7ISDIWWTDMA4AHMDTKVTCFJHTNVA
-#\\\|DNPDFEOK5ZD6QTYAUPSBLRBMUN7WX7R6DRKC2X3H4FSSCGVIDC2 \ / AMOS7 \ YOURUM ::
-#\[7]MDJZKSM5GIGIAS4W2PLCTENQ7VRJ2ED62XSDZRI3FBWU6DVGGWAA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,,.,,...,..,,..,,..,,.,.,...,.,.,...,...,,.,,,..,...,.,.,,,,,
+#35XJQS53Z2HY65UOHVWPHFYNBHBKPTOTGU232ZEAT7VE3VRNQZTXORJKTOKPH6Q6XXYDMEDFY6UGI
+#\\\|BVRJ2IGRLM4D3DAD2YW5UMMXAWALMY24RVE5EPWQI7I66CJOTRK \ / AMOS7 \ YOURUM ::
+#\[7]E2QHMASAM4YDQ4YL2UH424SNTG7RKX3KD2O7WRM2ZNEDDDSRGYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

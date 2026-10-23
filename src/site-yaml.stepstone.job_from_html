@@ -28,8 +28,11 @@ return "json parse error: $@" if $@;
 return "unexpected type: $d->{'@type'}"
     if ( $d->{'@type'} // '' ) ne 'JobPosting';
 
-## extract numeric job id from url slug
+## extract the listing number from the url slug  the job id is the listing ##
+## number encoded ONCE here [ vax-int ] -- jobsite, its store and the web  ##
+## side pass it through unchanged                                          ##
 my ($job_id) = ( $url =~ m{--(\d+)-inline\.html} );
+$job_id = <[base.vax-int.encode]>->($job_id) if defined $job_id;
 
 ## strip HTML from description, decode entities
 my $desc = $d->{'description'} // '';
@@ -77,8 +80,8 @@ if (    ref $salary eq qw| HASH |
 
 return \%job;
 
-#,,,,,...,...,,,.,.,,,,,,,,,.,,..,,.,,.,.,.,.,..,,...,...,.,.,,,.,.,.,,..,...,
-#FBZ3HROHFPGORKCJF42TVEL6NGMQ6RUKZW3K65SZFUI5G6OGKEADW6WO3WILBSXNVAMSLONVQUS4C
-#\\\|6XJY7VT3AXPWQVUNJCNWYMPNQESML7OTZFDT4TQD6OPOQDKLRHQ \ / AMOS7 \ YOURUM ::
-#\[7]M6VKJSEJASCN2QB6R5M2MBBF7E7KBTE4CWY4VCH75DAQB6LMO6CY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,.,,,.,,,,.,,,.,...,,..,,,,,..,,...,...,.,,,.,,,,,.,.,,,...,
+#GVVFTOIKX2TKJAR6E5DVPR7YGWMR6YGWGMAXAQNPHQLZAYBKLPU7ZZE5KOTJM2C7UFAR2Q2IOW3ZY
+#\\\|Y2INRJQPKZGXJYZS57MCY3ZEE2VQQBCKMA5DKKGVCNE7VS6DSMO \ / AMOS7 \ YOURUM ::
+#\[7]ZU4P6RNHADOLQVXWNIH5ZSDVRS3ST7MEVI4TXWO7UB3XDD2YCYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
