@@ -21,6 +21,7 @@ if ( not length $requested_file_path ) {
     return undef;
 }
 
+my $created = FALSE;    ## this call created the file [ may remove it ] ##
 if ( $create and not -f $requested_file_path ) {    ##  create file  ##
     if ( not sysopen( my $fh, $requested_file_path, O_CREAT(), $perm ) ) {
         <[base.s_warn]>->(
@@ -35,6 +36,7 @@ if ( $create and not -f $requested_file_path ) {    ##  create file  ##
         );
         return undef;
     }
+    $created = TRUE;
 }
 
 if ( $mode eq qw| < | and not -f $requested_file_path ) {
@@ -44,6 +46,38 @@ if ( $mode eq qw| < | and not -f $requested_file_path ) {
     );
     return undef;
 }
+
+## write modes : the file's permissions are set BEFORE the open -- a        ##
+## truncating open came first and a failed chmod then refused the write     ##
+## with the content already gone, and removed even a file this call had not ##
+## created : httpsd updating a session the web zenka owns wiped the session ##
+## [ 2026-10-23 ]. a file that cannot get the permissions is refused        ##
+## untouched [ fail-closed ] ; only a file this call created is removed     ##
+## again                                                                    ##
+my $write_mode = index( $mode, qw| < | ) == -1;
+my $perm_set   = sub {
+    sprintf( '%#o', File::stat::stat($requested_file_path)->mode & 0777 ) eq
+        sprintf( '%#o', $perm )
+        or chmod( $perm, $requested_file_path );
+};
+my $refuse = sub {
+    <[base.logs]>->(
+        0, "< file.open > cannot chmod[%#o] file '%s' [ %s ] %s",
+        $perm, $requested_file_path, <[base.str.os_err]>,
+        scalar <[base.caller]>
+    );
+    if ( $created and index( $mode, qw| >> | ) == -1 ) {
+        unlink($requested_file_path)    ## remove file again ##
+            or <[base.s_warn]>->(
+            'unlink[%s] %s',
+            $requested_file_path, <[base.str.os_err]>
+            );
+    }
+    return undef;
+};
+
+my $existed = -f $requested_file_path;
+return $refuse->() if $write_mode and $existed and not $perm_set->();
 
 my $req_file_fh;
 if (not
@@ -56,35 +90,20 @@ if (not
     return undef;
 }
 
-if (index( $mode, qw| < | ) == -1   ##  when not read mode  ##
-    and                             ## update file permissions if different ##
-    sprintf( '%#o', File::stat::stat($requested_file_path)->mode & 0777 ) ne
-    sprintf( '%#o', $perm )
-) {
-    if ( not chmod( $perm, $requested_file_path ) ) {
-        <[base.logs]>->(
-            0,
-            "< file.open > cannot chmod[%#o] file '%s' [ %s ] %s",
-            $perm,
-            $requested_file_path,
-            <[base.str.os_err]>,
-            scalar <[base.caller]>
-        );
-        if ( index( $mode, qw| >> | ) == -1 ) {    ## when not append mode ##
-            unlink($requested_file_path)           ## remove file again ##
-                or <[base.s_warn]>->(
-                'unlink[%s] %s',
-                $requested_file_path, <[base.str.os_err]>
-                );
-        }
-        return undef;
+## the open itself created it [ no create flag ] : set the permissions now, ##
+## the file is this call's to remove                                        ##
+if ( $write_mode and not $existed ) {
+    $created = TRUE;
+    if ( not $perm_set->() ) {
+        close $req_file_fh;
+        return $refuse->();
     }
 }
 
 return $req_file_fh;
 
-#,,,,,.,,,.,.,,.,,,.,,...,...,.,,,..,,.,,,,.,,..,,...,...,,,.,.,,,...,...,,.,,
-#CMI5GJHMDW2BNNVGVJNI7UEFJRDIEMXDFDKIV2MGCQNS2Q3FLL2JTIKPO5JQ3SZ6EQAV45GYLABLK
-#\\\|RDRLN6LBMVNFPDGBJHU6IWGAFFATU2B5BWZZKBNFHKJWQGMWBRH \ / AMOS7 \ YOURUM ::
-#\[7]F62DDZVV5WCWUJOXGSGJRT2SY2IN2BNV2ELEEVPK6BZQILAOF2DY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,,..,.,,,.,,,,.,,,.,,,,.,,..,..,,...,..,,...,,,,,...,.,.,,,,,
+#7T5E4LTJ5NP3NJPPDV7J2CGICN4ZY6IULRIGAVXXQFM36O4JYSMBUXJ2NOPW6LPUAQV52ERTQFZRU
+#\\\|RTR2MAADPPYLRTWQEEW53SO6UD2CMDM2QYGKH7X5FY3IM3WC6FY \ / AMOS7 \ YOURUM ::
+#\[7]44WZMXOYKU6ZN5K566FREBKHY2GXRXLUPBTALZSFHL565QKMS2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

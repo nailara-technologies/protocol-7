@@ -29,9 +29,12 @@ if ($@) {
     return FALSE;
 }
 
-## direct write -- the shared store is zenka-independent [ web mints,  ##
-## httpd/httpsd touch last_seen on verify : both must read and write ] ##
-my $fh = <[file.open]>->( $file, qw| :raw |, qw| > |, TRUE, 0640 );
+## direct write -- the shared store is zenka-independent [ web mints,       ##
+## httpd/httpsd touch last_seen on verify : both must read and write ] 0660 ##
+## as below : file.open chmods a file whose mode differs, and only the      ##
+## owner may -- httpsd updating a session the web zenka minted got EPERM,   ##
+## its open failed and no login could record its session [ 2026-10-23 ]     ##
+my $fh = <[file.open]>->( $file, qw| :raw |, qw| > |, TRUE, 0660 );
 if ( not defined $fh ) {
     <[base.s_warn]>->(
         'plugin.web.auth.session.write : open failed [ %s ]', $file
@@ -42,18 +45,21 @@ print {$fh} $yaml_str;
 close($fh)
     or <[base.s_warn]>->('plugin.web.auth.session.write : close error');
 
-## umask-proof : readers run as other uid [ httpd, httpsd ] -- the file ##
-## MUST be group-readable/writable regardless of the writer's umask     ##
-chmod 0660,
-    $file
-    or <[base.s_warn]>->(
-    'plugin.web.auth.session.write : chmod 0660 failed [ %s ]', $file
+## umask-proof : readers run as other uid [ httpd, httpsd ] -- the file    ##
+## MUST be group-readable/writable regardless of the writer's umask.  only ##
+## when it is not yet : a chmod by a non-owner is EPERM even to the same   ##
+## mode [ CORE::stat : File::stat is imported ]                            ##
+my $file_mode = ( CORE::stat $file )[2] // 0;
+if ( ( $file_mode & 07777 ) != 0660 and not chmod 0660, $file ) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.session.write : chmod 0660 failed [ %s ]', $file
     );
+}
 
 return TRUE;
 
-#,,,.,,,.,...,,,,,,..,,,,,,,.,...,.,,,..,,,,,,..,,...,...,..,,,.,,...,.,,,,,.,
-#KHWK6DJRJ262CLD4SV4BVCL2CDJE7SN5YG7FC7ZHQSETJHSKHSQUV36DXZGPLF5EOWMU2BHNM7CYQ
-#\\\|UB4JVNFCSCZHN6FKD7A3DTIGC6JZCUTMGOMT6YAAVBDEZNNXAIM \ / AMOS7 \ YOURUM ::
-#\[7]SD6FU4KDPNHYNVBQW6AIG5CPBHGTHXT7XQ2VCTZSXRCB4IE44WCQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,.,.,,.,,..,,...,,..,...,,..,..,,...,...,...,,.,,,..,,,,,..,,
+#D45ABIOQ3PK2BVORNCG256YUP66GIRU32CH5P6FAL2GM7Q24ITSZJVFEPLGK7M62U5IJWQEKDYORI
+#\\\|6GXLPBCZLRFUHRQI5NQVNEWWYD6E4R3NMKOYVZ7BLV74LQ4QA5N \ / AMOS7 \ YOURUM ::
+#\[7]5ZUUWW7GAKVAZF3OB4WWQQNK254VZSZ7DO4DVF25FDJDTEU6ZEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
