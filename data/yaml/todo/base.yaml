@@ -1906,9 +1906,20 @@ items:
   - models
   - task
   text: 'jobsite dispatches assessments strictly one at a time [ dispatch.release_slot -> dispatch.next ] -- so a remote claimer [ ZYH : local models on external.pri.task, live 2026-10-23 ] never sees a second pending task. add jobsite.cfg.assess_parallel [ N tasks in flight, default 1 ] ; pending_count \ watchdog \ release_slot per job already. then the local gpu takes every 2nd job'
+- added: 32EOF5PALQ
+  details: ''
+  done_at: null
+  id: KEP
+  priority: normal
+  status: open
+  tags:
+  - net
+  - link
+  - dos
+  text: "address family memory for outgoing connects [ with link stage 3 'af = auto' ] : per destination + family remember connect success \\ failure [ ttl ~1 h ], order the addresses so a recently failed family goes last, first attempt with a short connect timeout [ happy eyeballs light ] -- one module for clients.http\\https.request, link transports, io.ip.tcp.output.open ; record 'af' stays a forced override. DoS-safe by design : only this process's OWN connect results count [ no failure reports from other zenki or the network ] ; a family is only ever DEMOTED [ tried later ], never removed -- every address is still tried, so failures on both families can never lock a destination out ; bounded table [ lru ], entries expire ; a success clears the mark at once"
 
-#,,.,,,..,..,,,,.,,,.,,.,,..,,,.,,.,.,.,.,...,..,,...,...,..,,,.,,,,.,,,.,,,.,
-#3USDSSPR2WLQVYKXZMSGFNN7LY6BNXQOWEJLBAZSM7DISMAQZRAYF55HRIXR5SC62L325ZR7V2VMO
-#\\\|7VOW7QJQXBOQVKLE3ZRF5XCJKJWTB3ZX4FKKOKTAC2ZLZ5EOCAP \ / AMOS7 \ YOURUM ::
-#\[7]GCIMMDQL4EDWZUYAWMZFH4GXTTKVBJJH2UJUQJQJ7TDUYW5ZS2AY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,..,,...,.,,,..,,,.,,,..,,,.,..,,...,...,..,,.,,,...,..,,...,
+#7QQU4HPUIWEHWOK2VICMVCAGABY2AO77N5XXVLO7FJFDOWRJYFBWZPBQB33WP5QSREZUN6A6P4N2W
+#\\\|BGVYOJNLEKX3U5RCF4GLT4OUQAF6HRM27YID2I3MOM64H74KOMF \ / AMOS7 \ YOURUM ::
+#\[7]KNHYVQFLTVU4AEEHSZN4NQL22OTF3U6R3QEHNXWFVZC27RV2PSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
