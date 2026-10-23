@@ -2,13 +2,17 @@
 
 # name  = plugin.web.auth.admit.gate
 # descr = per-source gate for the non-login check paths
-# note  = the per-source admission gate for the non-login check paths
-#         [ /auth/status, /auth/logout, Bearer-protected routes :
-#         LOGIN-ADMISSION.md section 2 on all four paths ] -- a source in
-#         its per-source wait on the calling path gets an immediate 429,
-#         never queued [ the queue stays login-only ] ; without socket
-#         facts [ local p7c call ] or with an unparseable peer the gate
-#         passes and nothing is recorded
+# note  = the per-source admission gate for /auth/status, /auth/logout
+#         and the Bearer-protected routes [ LOGIN-ADMISSION.md section
+#         2 on all four paths ] -- a source in its per-source wait on
+#         the calling path gets an immediate 429, never queued ; without
+#         socket facts [ local p7c call ] or with an unparseable peer
+#         the gate passes and nothing is recorded -- trust : the relayed
+#         param lines are believed ONLY because just httpd + httpsd
+#         hold the web.auth-* grants [ cfg/zenki/cube/access.zenki ] ;
+#         the admin users' '** ..*.**' wildcards in access.users cover
+#         them too [ local root-equivalents ] ; no other grant lists
+#         web.auth-* and no web.* wildcard exists
 # param = peer address string, path [ status \ logout \ bearer ],
 #         now [ optional ]
 # return = ( retry_after_seconds [ 0 = admitted ], source_key,
@@ -41,8 +45,8 @@ if ( $wait_until > $now ) {
 
 return ( 0, $src, $groups );
 
-#,,..,.,.,,..,..,,,.,,.,,,,,,,,,.,...,,,.,,..,..,,...,...,,,,,.,.,..,,..,,,.,,
-#4CMMJKC746RGHGOKMEIGDOGHVMK2UNGR7RSBGUYGURLGMVI2HNGL6JTWX5RT6DIH6LXC557VOC6WQ
-#\\\|3ZPOGT5KOM45TOBOF7MTIKTKAZLHNKYYFJDOCN2BG24JFVHYMVG \ / AMOS7 \ YOURUM ::
-#\[7]EMQ77DACVRHBZPB6WPBQN75OSSF5DM4DJGQMRAG6YYTJKDQE5KCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,,,.,.,.,.,.,,,.,...,,..,...,..,,...,...,..,,.,,,..,,,,,,.,,,
+#QXZE2NE7SRPVWFABW7746H3EY6I4U47B3XW7OG5AE64WR3BWIVTQNQ3RI7DXJ6DGQKIXLELGE4IXE
+#\\\|TPF4QC2YX3YSSBHFDWDH5WGZATHGCDHV5PSCGPQZOCCFSXMXIOL \ / AMOS7 \ YOURUM ::
+#\[7]IRF7GN5QIAF3KWJYLG356VQ457FMQKRRAPANDZZYK6IBMJVEG2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

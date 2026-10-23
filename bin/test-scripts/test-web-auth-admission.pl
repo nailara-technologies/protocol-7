@@ -53,6 +53,7 @@ BEGIN {
 }
 
 use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate |;
+use List::Util                qw| max |;   ## base.format.multiline_command ##
 use JSON::XS                  ();
 use YAML::XS                  ();
 use File::Path                ();
@@ -137,8 +138,27 @@ my $me = getpwuid($EFFECTIVE_USER_ID) // qw| protocol-7 |;
         push @log_calls, [ $level, sprintf( $fmt, @args ) ];
         return TRUE;
     },
-    'base.log'    => sub { return TRUE },
-    'base.s_warn' => sub {
+    'base.log'          => sub { return TRUE },
+    'base.reverse-sort' => sub {
+        my $hash = shift // {};
+        return reverse sort keys %{$hash};
+    },
+    'base.caller'    => sub { return ('main') },
+    'base.gen_id'    => sub { return 7 },
+    'base.route.add' => sub {
+        my $arg = shift;
+        return {
+            'source' => $arg->{'source'},
+            'target' => { 'cmd_id' => 7 },
+            'reply'  => $arg->{'reply'}
+        };
+    },
+    'base.zenki.resolve_routing_sids' => sub {
+        my ( $name, $undef, $sids ) = @ARG;
+        return @{$sids};
+    },
+    'base.session.calc_cmd_stats' => sub { return TRUE },
+    'base.s_warn'                 => sub {
         my ( $f, @a ) = @ARG;
         warn sprintf( $f, @a );
         return 0;
@@ -211,7 +231,12 @@ my $me = getpwuid($EFFECTIVE_USER_ID) // qw| protocol-7 |;
     },
 );
 
-$data{'system'}{'amos-zenka-user'} = $me;
+$data{'system'}{'amos-zenka-user'}               = $me;
+$data{'system'}{'zenka'}{'name'}                 = 'httpd';
+$data{'system'}{'zenka'}{'verbosity'}{'console'} = 3;
+$data{'system'}{'zenka'}{'verbosity'}{'buffer'}  = 3;
+$data{'base'}{'session'}{'uname'}{'server'}      = 'server';
+$data{'base'}{'session'}{'uname'}{'client'}      = 'client';
 
 my $fail_count = 0;
 
@@ -232,6 +257,8 @@ sub compile_module {
 
 for my $module (
     qw|
+    base.format.multiline_command
+    base.protocol-7.command.send.local
     plugin.web.auth.admit.cfg
     plugin.web.auth.admit.source
     plugin.web.auth.admit.wait_until
@@ -302,15 +329,130 @@ sub reset_state {
 
 my $next_reply_id = 1000;
 
-sub login_call {    ## one web.auth-login call as httpd relays it ##
+## the route-send stub delivers ONLY what the wire carries : the call_args ##
+## go through the REAL base.format.multiline_command                       ##
+## [ or the single-line join ] and are parsed back with the receiver's     ##
+## rules [ base.handler .command ] -- a fact passed as its own call_args   ##
+## key would be SILENTLY DROPPED, exactly like on the live cube            ##
+sub wire_deliver {
+    my $send = shift;
+    my $ca   = $send->{'call_args'} // {};
+    my $call = {};
+    if ( ref $ca->{'param'} eq 'HASH' or defined $ca->{'data'} ) {
+        ## build the multi-line packet inline [ mirrors base.format        ##
+        ## .multiline_command, which the p7 translator cannot compile here ##
+        ## ] : ' key : value' header lines [ key width right-aligned ],    ##
+        ## empty line, dot-stuffed LF-terminated body, '.' terminator --   ##
+        ## then parse it back with the receiver's rules                    ##
+        ## [ base.handler.command ]                                        ##
+        my $param = $ca->{'param'} // {};
+        my $maxw  = 0;
+        for my $k ( keys %{$param} ) {
+            my $l = length $k;
+            $maxw = $l if $l > $maxw;
+        }
+        my @lines;
+        for my $k ( reverse sort keys %{$param} ) {
+            my $v = $param->{$k} // '';
+            $v =~ s|[\r\n]+||g;    ## httpd strips these before send ##
+            push @lines, sprintf ' %*s : %s', $maxw, $k, $v;
+        }
+        if ( defined $ca->{'data'} ) {
+            my $body = $ca->{'data'};
+            $body .= "\n"
+                if index( $body, "\n", length($body) - 1 ) == -1;
+            chomp $body;
+            push @lines, q||;
+            for my $line ( split m|\n|, $body, -1 ) {
+                $line = ".$line" if $line =~ m|^\.+$|;    ## dot-stuff ##
+                push @lines, $line;
+            }
+            push @lines, qw| . |;
+        } else {
+            push @lines, q||, qw| . |;
+        }
+        my $ph   = {};
+        my $data = q||;
+        my $mode = 'header';
+        for my $line (@lines) {
+            if ( $mode eq 'header' ) {
+                $line =~ s{^[ \t]+|[ \t]+$}{}g;           ## receiver trims ##
+                if ( $line =~ m|^[ \t]*$| ) { $mode = 'body'; next }
+                my ( $k, $v ) = split m|[ \t]*[=:][ \t]*|, $line, 2;
+                $ph->{$k} = $v // q||;
+            } else {
+                last if $line eq qw| . |;
+                $line =~ s|^\.(\.+)$|$1|;    ## dot-stuffing removal ##
+                $data .= "$line\n";
+            }
+        }
+        $call->{'param'} = $ph;
+        $call->{'data'}  = $data;
+    } else {
+        $call->{'args'} = $ca->{'args'} // '';
+    }
+    return $call;
+}
+
+sub wire_call {
+    my ( $command, $call_args, $reply_id ) = @ARG;
+    my $call = wire_deliver(
+        { 'command' => $command, 'call_args' => $call_args } );
+    $call->{'reply_id'} = $reply_id // 0;
+    return $code{$command}->($call);
+}
+
+sub status_call {    ## one web.auth-status call as the wire delivers it ##
+    my ( $reply_id, $peer, %facts ) = @ARG;
+    return wire_call(
+        qw| web.cmd.auth-status |,
+        {   'param' => {
+                'peer_addr' => $peer,
+                'peer_tls'  => 1,
+                %facts
+            },
+        },
+        $reply_id
+    );
+}
+
+sub logout_call {    ## one web.auth-logout call as the wire delivers it ##
+    my ( $reply_id, $peer, %facts ) = @ARG;
+    my $body = delete $facts{'body'} // q||;
+    my $call_args
+        = { 'param' => { 'peer_addr' => $peer, 'peer_tls' => 1, %facts } };
+    $call_args->{'data'} = $body . "\n" if length $body;
+    return wire_call( qw| web.cmd.auth-logout |, $call_args, $reply_id );
+}
+
+sub bearer_call {    ## one web.auth-bearer call as the wire delivers it ##
+    my ( $reply_id, $peer, %facts ) = @ARG;
+    return wire_call(
+        qw| web.cmd.auth-bearer |,
+        {   'param' => {
+                'peer_addr' => $peer,
+                'peer_tls'  => 1,
+                %facts
+            },
+        },
+        $reply_id
+    );
+}
+
+sub login_call {    ## one web.auth-login call as the wire delivers it ##
     my ( $peer, $token ) = @ARG;
     my $reply_id = $next_reply_id++;
-    my $reply    = $code{'plugin.web.auth.admit'}->(
-        {   'reply_id'  => $reply_id,
-            'args'      => sprintf( '{"token":"%s"}', $token ),
-            'peer_addr' => $peer,
-            'peer_tls'  => 1,
-        }
+    my $reply    = wire_call(
+        qw| plugin.web.auth.admit |,
+        {   'param' => {
+                'peer_addr'     => $peer,
+                'peer_tls'      => 1,
+                'auth_header'   => q||,
+                'cookie_header' => q||,
+            },
+            'data' => sprintf( '{"token":"%s"}', $token ) . "\n",
+        },
+        $reply_id
     );
     return ( $reply_id, $reply );
 }
@@ -708,12 +850,17 @@ reset_state();
     my $sent = $route_sends[-1] // {};
     ok( ( $sent->{'command'} // '' ) eq qw| web.auth-login |,
         'relayed to web.auth-login' );
-    ok( ( $sent->{'call_args'}{'peer_addr'} // '' ) eq '198.51.100.7',
-        'real socket peer passed' );
-    ok( ( $sent->{'call_args'}{'peer_tls'} // -1 ) == 0,
+    ## the wire carries ONLY what send.local frames : the facts must arrive ##
+    ## as param lines, the body as data [ wire_deliver mirrors the real     ##
+    ## sender + receiver -- the scenario fails if the handler still puts    ##
+    ## them anywhere else ]                                                 ##
+    my $delivered = wire_deliver($sent);
+    ok( ( $delivered->{'param'}{'peer_addr'} // '' ) eq '198.51.100.7',
+        'real socket peer arrived as a param line' );
+    ok( ( $delivered->{'param'}{'peer_tls'} // -1 ) == 0,
         'plain socket : tls flag 0' );
-    ok( ( $sent->{'call_args'}{'args'} // '' ) eq '{"token":"abc"}',
-        'body passed' );
+    ok( ( $delivered->{'data'} // '' ) eq "{\"token\":\"abc\"}\n",
+        'body arrived as data' );
 
     ## plaintext refusal stays first ##
     $refuse_plaintext = TRUE;
@@ -762,12 +909,15 @@ say '11 : web.cmd.auth-login wrapper';
 
 reset_state();
 {
-    my $reply = $code{'web.cmd.auth-login'}->(
-        {   'reply_id'  => 4242,
-            'args'      => '{"token":"w1"}',
-            'peer_addr' => '203.0.113.55',
-            'peer_tls'  => 1,
-        }
+    my $reply = wire_call(
+        qw| web.cmd.auth-login |,
+        {   'param' => {
+                'peer_addr' => '203.0.113.55',
+                'peer_tls'  => 1,
+            },
+            'data' => '{"token":"w1"}',
+        },
+        4242
     );
     ok( ( $reply->{'mode'} // '' ) eq qw| deferred |,
         'wrapper queues through admission'
@@ -804,14 +954,7 @@ reset_state();
     my $peer = '203.0.113.20';
 
     ## no token at all : 401, nothing recorded ##
-    my $r = $code{'web.cmd.auth-status'}->(
-        {   'reply_id'      => 5001,
-            'peer_addr'     => $peer,
-            'peer_tls'      => 1,
-            'auth_header'   => q||,
-            'cookie_header' => q||,
-        }
-    );
+    my $r   = status_call( 5001, $peer, );
     my $env = eval { JSON::XS::decode_json( $r->{'data'} ) } // {};
     ok( ( $env->{'status'} // 0 ) == 401,              'no token : 401' );
     ok( ( $env->{'body'}   // '' ) =~ m|unauthorized|, 'no token : body' );
@@ -821,14 +964,8 @@ reset_state();
     ## six presented-but-invalid cookies are checked and recorded ##
     ## [ the 6th is checked : its failure OPENS the wait ]        ##
     for my $n ( 1 .. 6 ) {
-        my $rr = $code{'web.cmd.auth-status'}->(
-            {   'reply_id'      => 5010 + $n,
-                'peer_addr'     => $peer,
-                'peer_tls'      => 1,
-                'auth_header'   => q||,
-                'cookie_header' => "other=1; p7_session=guess$n",
-            }
-        );
+        my $rr = status_call( 5010 + $n, $peer,
+            cookie_header => "other=1; p7_session=guess$n", );
         my $ee = eval { JSON::XS::decode_json( $rr->{'data'} ) } // {};
         ok( ( $ee->{'status'} // 0 ) == 401,
             "bad cookie $n : checked [ 401, recorded ]" );
@@ -836,14 +973,8 @@ reset_state();
 
     ## the wait is open now : the 7th is gated, no check ##
     my $verify_before = scalar @verify_calls;
-    my $r7            = $code{'web.cmd.auth-status'}->(
-        {   'reply_id'      => 5017,
-            'peer_addr'     => $peer,
-            'peer_tls'      => 1,
-            'auth_header'   => q||,
-            'cookie_header' => 'p7_session=guess7',
-        }
-    );
+    my $r7
+        = status_call( 5017, $peer, cookie_header => "p7_session=guess7", );
     my $e7 = eval { JSON::XS::decode_json( $r7->{'data'} ) } // {};
     ok( ( $e7->{'status'} // 0 ) == 429,    'in wait : status answers 429' );
     ok( ( $e7->{'retry_after'} // 0 ) == 1, 'status 429 : Retry-After 1 s' );
@@ -868,14 +999,8 @@ reset_state();
         'created_at' => 'c12',
         'last_seen'  => 'l12',
     };
-    my $rv = $code{'web.cmd.auth-status'}->(
-        {   'reply_id'      => 5018,
-            'peer_addr'     => $peer,
-            'peer_tls'      => 1,
-            'auth_header'   => q||,
-            'cookie_header' => 'p7_session=live-cookie',
-        }
-    );
+    my $rv = status_call( 5018, $peer,
+        cookie_header => "p7_session=live-cookie", );
     my $ev = eval { JSON::XS::decode_json( $rv->{'data'} ) } // {};
     ok( ( $ev->{'status'} // 0 ) == 200, 'valid cookie : 200' );
     ok( ( $ev->{'body'}   // '' ) =~ m|"user_id":"u12"|,
@@ -897,13 +1022,7 @@ reset_state();
     my $peer = '203.0.113.21';
 
     ## no token at all : 400, nothing recorded ##
-    my $r = $code{'web.cmd.auth-logout'}->(
-        {   'reply_id'  => 5101,
-            'peer_addr' => $peer,
-            'peer_tls'  => 1,
-            'args'      => '{}',
-        }
-    );
+    my $r   = logout_call( 5101, $peer, body => "{}" );
     my $env = eval { JSON::XS::decode_json( $r->{'data'} ) } // {};
     ok( ( $env->{'status'} // 0 ) == 400, 'no token : 400' );
     ok( !defined( admit_state->{'sources'}{'v4/32:203.0.113.21'} ),
@@ -911,26 +1030,10 @@ reset_state();
 
     ## six bad tokens checked + recorded -> the source waits now ##
     for my $n ( 1 .. 6 ) {
-        $code{'web.cmd.auth-logout'}->(
-            {   'reply_id'      => 5110 + $n,
-                'peer_addr'     => $peer,
-                'peer_tls'      => 1,
-                'args'          => "{\"token\":\"bye$n\"}",
-                'cookie_header' => q||,
-                'auth_header'   => q||,
-            }
-        );
+        logout_call( 5110 + $n, $peer, body => "{\"token\":\"bye$n\"}" );
     }
     my $destroy_before = scalar @destroy_calls;
-    my $r7             = $code{'web.cmd.auth-logout'}->(
-        {   'reply_id'      => 5117,
-            'peer_addr'     => $peer,
-            'peer_tls'      => 1,
-            'args'          => '{"token":"bye7"}',
-            'cookie_header' => q||,
-            'auth_header'   => q||,
-        }
-    );
+    my $r7 = logout_call( 5117, $peer, body => "{\"token\":\"bye7\"}" );
     my $e7 = eval { JSON::XS::decode_json( $r7->{'data'} ) } // {};
     ok( ( $e7->{'status'} // 0 ) == 429, 'in wait : logout answers 429' );
     ok( scalar @destroy_calls == $destroy_before,
@@ -940,15 +1043,7 @@ reset_state();
     ## a valid token destroys the session + clears the cookie ##
     $now += 2;
     $destroy_ok{'good-bye'} = TRUE;
-    my $rv = $code{'web.cmd.auth-logout'}->(
-        {   'reply_id'      => 5118,
-            'peer_addr'     => $peer,
-            'peer_tls'      => 1,
-            'args'          => '{"token":"good-bye"}',
-            'cookie_header' => q||,
-            'auth_header'   => q||,
-        }
-    );
+    my $rv = logout_call( 5118, $peer, body => "{\"token\":\"good-bye\"}" );
     my $ev = eval { JSON::XS::decode_json( $rv->{'data'} ) } // {};
     ok( ( $ev->{'status'}     // 0 ) == 200, 'valid token : 200' );
     ok( ( $ev->{'set_cookie'} // '' ) =~ m|p7_session=; Max-Age=0|,
@@ -972,26 +1067,16 @@ reset_state();
     my $peer = '203.0.113.22';
 
     for my $n ( 1 .. 6 ) {
-        my $rr = $code{'web.cmd.auth-bearer'}->(
-            {   'reply_id'    => 5200 + $n,
-                'peer_addr'   => $peer,
-                'peer_tls'    => 1,
-                'auth_header' => "Bearer scan$n",
-            }
-        );
+        my $rr
+            = bearer_call( 5200 + $n, $peer, auth_header => "Bearer scan$n",
+            );
         my $ee = eval { JSON::XS::decode_json( $rr->{'data'} ) } // {};
         ok( ( $ee->{'status'} // 0 ) == 401,
             "bad bearer $n : checked [ 401, recorded ]" );
     }
 
     my $verify_before = scalar @verify_calls;
-    my $r7            = $code{'web.cmd.auth-bearer'}->(
-        {   'reply_id'    => 5207,
-            'peer_addr'   => $peer,
-            'peer_tls'    => 1,
-            'auth_header' => 'Bearer scan7',
-        }
-    );
+    my $r7 = bearer_call( 5207, $peer, auth_header => "Bearer scan7", );
     my $e7 = eval { JSON::XS::decode_json( $r7->{'data'} ) } // {};
     ok( ( $e7->{'status'} // 0 ) == 429, 'in wait : bearer answers 429' );
     ok( scalar @verify_calls == $verify_before, 'bearer 429 : no check ran' );
@@ -999,13 +1084,7 @@ reset_state();
     ## a valid token answers 200 and the counter resets ##
     $now += 2;
     $valid_tokens{'good-bearer'} = { 'user_id' => 'u14', 'node_id' => 'n14' };
-    my $rv = $code{'web.cmd.auth-bearer'}->(
-        {   'reply_id'    => 5208,
-            'peer_addr'   => $peer,
-            'peer_tls'    => 1,
-            'auth_header' => 'Bearer good-bearer',
-        }
-    );
+    my $rv = bearer_call( 5208, $peer, auth_header => "Bearer good-bearer", );
     my $ev = eval { JSON::XS::decode_json( $rv->{'data'} ) } // {};
     ok( ( $ev->{'status'} // 0 ) == 200, 'valid bearer : 200' );
     ok(
@@ -1026,66 +1105,32 @@ reset_state();
 
     ## five status failures -- a 6th would be checked, a 7th gated ##
     for my $n ( 1 .. 5 ) {
-        $code{'web.cmd.auth-status'}->(
-            {   'reply_id'      => 5300 + $n,
-                'peer_addr'     => $peer,
-                'peer_tls'      => 1,
-                'auth_header'   => q||,
-                'cookie_header' => "p7_session=s$n",
-            }
-        );
+        status_call( 5300 + $n, $peer, cookie_header => "p7_session=s$n", );
     }
 
     ## a valid bearer token succeeds : it must NOT clear the status ##
     ## failures [ nor the login failures ]                          ##
     $valid_tokens{'vip'} = { 'user_id' => 'u15', 'node_id' => 'n15' };
-    my $rb = $code{'web.cmd.auth-bearer'}->(
-        {   'reply_id'    => 5306,
-            'peer_addr'   => $peer,
-            'peer_tls'    => 1,
-            'auth_header' => 'Bearer vip',
-        }
-    );
+    my $rb = bearer_call( 5306, $peer, auth_header => "Bearer vip", );
     my $eb = eval { JSON::XS::decode_json( $rb->{'data'} ) } // {};
     ok( ( $eb->{'status'} // 0 ) == 200, 'valid bearer : 200' );
 
     ## the 6th status failure is still CHECKED [ status count is 5 ] : then ##
     ## the 7th is gated -- proof the bearer success did not reset the       ##
     ## status counter                                                       ##
-    my $r6 = $code{'web.cmd.auth-status'}->(
-        {   'reply_id'      => 5307,
-            'peer_addr'     => $peer,
-            'peer_tls'      => 1,
-            'auth_header'   => q||,
-            'cookie_header' => 'p7_session=s6',
-        }
-    );
+    my $r6 = status_call( 5307, $peer, cookie_header => "p7_session=s6", );
     my $e6 = eval { JSON::XS::decode_json( $r6->{'data'} ) } // {};
     ok( ( $e6->{'status'} // 0 ) == 401,
         '6th status failure ' . ': still checked' );
 
-    my $r7 = $code{'web.cmd.auth-status'}->(
-        {   'reply_id'      => 5308,
-            'peer_addr'     => $peer,
-            'peer_tls'      => 1,
-            'auth_header'   => q||,
-            'cookie_header' => 'p7_session=s7',
-        }
-    );
+    my $r7 = status_call( 5308, $peer, cookie_header => "p7_session=s7", );
     my $e7 = eval { JSON::XS::decode_json( $r7->{'data'} ) } // {};
     ok( ( $e7->{'status'} // 0 ) == 429,
         '7th status guess : gated -- the bearer success did not reset it' );
 
     ## and a success on the status path DOES clear the status wait ##
     $now += 2;
-    my $rs = $code{'web.cmd.auth-status'}->(
-        {   'reply_id'      => 5309,
-            'peer_addr'     => $peer,
-            'peer_tls'      => 1,
-            'auth_header'   => q||,
-            'cookie_header' => 'p7_session=vip',
-        }
-    );
+    my $rs = status_call( 5309, $peer, cookie_header => "p7_session=vip", );
     my $es = eval { JSON::XS::decode_json( $rs->{'data'} ) } // {};
     ok( ( $es->{'status'} // 0 ) == 200,
         'valid cookie after the wait : 200' );
@@ -1146,8 +1191,10 @@ reset_state();
     my $sent = $route_sends[-1] // {};
     ok( ( $sent->{'command'} // '' ) eq qw| web.auth-bearer |,
         'relayed to web.auth-bearer' );
-    ok( ( $sent->{'call_args'}{'peer_addr'} // '' ) eq '198.51.100.7',
-        'real socket peer passed' );
+    ## the socket facts survive the wire as param lines ##
+    my $delivered = wire_deliver($sent);
+    ok( ( $delivered->{'param'}{'peer_addr'} // '' ) eq '198.51.100.7',
+        'real socket peer arrived as a param line' );
 
     ## a 429 envelope answers at once : no original relay ##
     my $relay_params = $sent->{'reply'}{'params'} // {};
@@ -1217,29 +1264,14 @@ reset_state();
     my $peer = '203.0.113.24';
     my @modes;
     for my $n ( 1 .. 7 ) {
-        my $rs = $code{'web.cmd.auth-status'}->(
-            {   'reply_id'      => 5400 + $n,
-                'peer_addr'     => $peer,
-                'peer_tls'      => 1,
-                'cookie_header' => "p7_session=z$n",
-            }
-        );
+        my $rs = status_call( 5400 + $n, $peer,
+            cookie_header => "p7_session=z$n", );
         push @modes, $rs->{'mode'} // q||;
-        my $rl = $code{'web.cmd.auth-logout'}->(
-            {   'reply_id'  => 5410 + $n,
-                'peer_addr' => $peer,
-                'peer_tls'  => 1,
-                'args'      => "{\"token\":\"z$n\"}",
-            }
-        );
+        my $rl
+            = logout_call( 5410 + $n, $peer, body => "{\"token\":\"z$n\"}" );
         push @modes, $rl->{'mode'} // q||;
-        my $rb = $code{'web.cmd.auth-bearer'}->(
-            {   'reply_id'    => 5420 + $n,
-                'peer_addr'   => $peer,
-                'peer_tls'    => 1,
-                'auth_header' => "Bearer z$n",
-            }
-        );
+        my $rb = bearer_call( 5420 + $n, $peer,
+            auth_header => "Bearer " . "z$n", );
         push @modes, $rb->{'mode'} // q||;
     }
     ok( ( scalar grep { $ARG eq qw| deferred | } @modes ) == 0,
@@ -1258,6 +1290,173 @@ reset_state();
     );
 }
 
+##[ 18 : the wire itself : packet bytes, receiver parse, end-to-end ]#########
+
+say '18 : the wire : multi-line packet + receiver parse + status relay';
+
+reset_state();
+{
+    ## the exact packet bytes for one /auth/status relay [ cmd id 7 ] ##
+    my $param = {
+        'peer_addr'     => '198.51.100.7',
+        'peer_tls'      => 1,
+        'auth_header'   => q||,
+        'cookie_header' => 'p7_session=guess1',
+    };
+    my $packet = $code{'base.format.multiline_command'}
+        ->( 7, 'auth-status', { 'param' => $param } );
+    ok( defined $packet, 'packet built' );
+    ok( $packet =~ m|^\(7\)auth-status\+\n|,
+        'packet head : ' . '(7)auth-status+'
+    );
+    ok( $packet =~ m| cookie_header : p7_session=guess1\n|,
+        'packet : cookie_header line' );
+    ok( $packet =~ m| auth_header : \n|,
+        'packet : empty auth_header keeps \' key : \' with an empty value' );
+    ok( $packet =~ m|\n\.\n\z|, 'packet ends with the lone . line' );
+
+    ## receiver parse round trip : values arrive exactly, empty stays '' ##
+    my $call = wire_deliver(
+        {   'command'   => 'web.auth-status',
+            'call_args' => { 'param' => $param },
+        }
+    );
+    ok( ( $call->{'param'}{'cookie_header'} // '' ) eq 'p7_session=guess1',
+        'wire round trip : cookie_header exact' );
+    ok(
+        (   exists $call->{'param'}{'auth_header'}
+                and ( $call->{'param'}{'auth_header'} // 1 ) eq q||
+        ),
+        'wire round trip : empty auth_header arrives as empty string'
+    );
+    ok( ( $call->{'param'}{'peer_addr'} // '' ) eq '198.51.100.7',
+        'wire round trip : peer_addr exact' );
+
+    ## body dot-stuffing round trip : a line of dots survives ##
+    my $body_call = wire_deliver(
+        {   'command'   => 'web.auth-login',
+            'call_args' => {
+                'param' => { 'peer_addr' => '192.0.2.1', 'peer_tls' => 1 },
+                'data'  => "{\"token\":\"x\"}\n..\n",
+            },
+        }
+    );
+    ok( ( $body_call->{'data'} // '' ) eq "{\"token\":\"x\"}\n..\n",
+        'wire round trip : body + dot-stuffed line exact'
+    );
+
+    ## end to end : the REAL route handler -> wire -> web.auth-status ##
+    $data{'session'}{70} = {
+        'buffer' => { 'input' => q||, 'output' => q|| },
+        'http'   => {
+            'request' => {
+                'uri'     => '/auth/status',
+                'headers' => {
+                    'authorization' => q||,
+                    'cookie'        => 'p7_session=wire-guess',
+                },
+                'client' => { 'addr' => '198.51.100.9' },
+            },
+        },
+        'handle'  => bless( {}, 'FakeSock' ),
+        'watcher' => { 'input_handler' => FakeIOWatcher->new() },
+    };
+    my $ret = $code{'httpd.route.handler.web-status'}->( 70, {} );
+    ok( $ret == 0, 'status route handler : deferred' );
+    my $live = wire_deliver( $route_sends[-1] );
+    my $ans
+        = $code{'web.cmd.auth-status'}->( { %{$live}, 'reply_id' => 5501 } );
+    my $env = eval { JSON::XS::decode_json( $ans->{'data'} ) } // {};
+    ok( ( $env->{'status'} // 0 ) == 401,
+        'end to end over the wire : bad cookie checked [ 401 ]' );
+    ok(
+        (   admit_state->{'sources'}{'v4/32:198.51.100.9'}{'fails'}{'status'}
+                // 0
+        ) == 1,
+        'end to end over the wire : failure recorded'
+    );
+}
+
+##[ 19 : send.local : multi-line branch, refusals, single-line intact ]#######
+
+say '19 : send.local : multi-line send, refusals, single-line unchanged';
+
+reset_state();
+{
+    $data{'user'}{'web'}{'session'} = { 900 => 1 };
+    $data{'session'}{900} = {
+        'mode'          => 'client',
+        'user'          => 'httpd',
+        'authenticated' => 'yes',
+        'buffer'        => { 'output' => q|| },
+    };
+
+    my $call_args = {
+        'param' => {
+            'peer_addr' => '192.0.2.1',
+            'peer_tls'  => 1,
+        },
+        'data' => "{\"token\":\"x\"}\n",
+    };
+    my $count = $code{'base.protocol-7.command.send.local'}->(
+        {   'command'   => 'web.auth-login',
+            'call_args' => $call_args,
+            'reply'     => { 'handler' => 'dev.null' },
+        }
+    );
+    my $expected = $code{'base.format.multiline_command'}
+        ->( 7, 'auth-login', $call_args );
+    ok( $count == 1, 'multi-line send : one command sent' );
+    ok( ( $data{'session'}{900}{'buffer'}{'output'} // '' ) eq $expected,
+        'multi-line send : buffer holds the multiline packet'
+    );
+    ok( ( $data{'session'}{900}{'buffer'}{'output'} // '' )
+            =~ m|\(7\)auth-login\+\n|,
+        'multi-line send : packet head framed'
+    );
+
+    ## single-line : byte for byte as before ##
+    $data{'session'}{900}{'buffer'}{'output'} = q||;
+    my $sl_count = $code{'base.protocol-7.command.send.local'}->(
+        {   'command'   => 'web.request',
+            'call_args' => { 'args'    => 'ping' },
+            'reply'     => { 'handler' => 'dev.null' },
+        }
+    );
+    ok(
+        (           $sl_count == 1
+                and $data{'session'}{900}{'buffer'}{'output'} eq
+                "(7)request ping\n"
+        ),
+        'single-line send : unchanged bytes'
+    );
+
+    ## refusals : nothing on the wire, zero returned ##
+    for my $case (
+        [ 'bad key chars',            { 'Bad Key'   => 'x' } ],
+        [ 'linebreak in value',       { 'peer_addr' => "a\nb" } ],
+        [ 'carriage return in value', { 'peer_addr' => "a\rb" } ],
+    ) {
+        my ( $label, $bad_param ) = @{$case};
+        $data{'session'}{900}{'buffer'}{'output'} = q||;
+        my $rc = $code{'base.protocol-7.command.send.local'}->(
+            {   'command'   => 'web.auth-login',
+                'call_args' => { 'param'   => $bad_param },
+                'reply'     => { 'handler' => 'dev.null' },
+            }
+        );
+        ok( ( $rc == 0 and $data{'session'}{900}{'buffer'}{'output'} eq q|| ),
+            "refused : $label"
+        );
+    }
+    ok(
+        (   scalar grep { $ARG->[0] == 0 and $ARG->[1] =~ m|refused| }
+                @log_calls
+        ) >= 3,
+        'refusals logged at level 0'
+    );
+}
+
 say q||;
 if ($fail_count) {
     say "FAILED : $fail_count test(s)";
@@ -1266,8 +1465,8 @@ if ($fail_count) {
 say 'all tests passed';
 exit 0;
 
-#,,..,,..,.,.,.,,,.,.,.,,,,..,.,.,.,.,.,.,,.,,..,,...,..,,..,,,..,..,,,,.,.,,,
-#2DK4QQBFMPNFYLLPBKCFARCFGRBG4SXQTQ35GAVQH2BORLGPMK3RZT4DGNWKOCU4K2D2YAQQ4VD4O
-#\\\|JCTKKGXMRG42G5IFJSIYRP7ZTPSEILDC3NAFQ6ZWMVJZAFKTJNR \ / AMOS7 \ YOURUM ::
-#\[7]NNLMJB3EQF32QB7KPOTY5FAUNSD4J3YPJKPI2VOUNZ3MI4QTYMAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,.,,,.,.,,,.,.,.,,,,..,,..,.,.,..,,...,...,.,,,,..,...,,.,,.,,,
+#57Z556WLE3EHLG3TIZYCCE6V4IMQX7O6HIMYIAN2FHV2XPC7GZW25HROJDOYVIOBVYX5U7ODC2MJ4
+#\\\|TAHLLAT6SFBFMMKSUUGIB3UHS66FQJZRXSSFCXXLI4Z7Y2PAHMN \ / AMOS7 \ YOURUM ::
+#\[7]SBUKDIBAMYQO5I2YT5TUXMDTJSN3XQOXB2NDK3DC7HMG4AWKYKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

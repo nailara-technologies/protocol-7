@@ -11,14 +11,16 @@
 #         browser polling is not an attack ] ; a valid token answers the
 #         session info, resets only the status-path counter and joins
 #         the known lane -- never queued
-# param = call hash : peer_addr, peer_tls, auth_header, cookie_header
+# param = call hash : param = the relayed socket facts [ peer_addr,
+#         peer_tls, auth_header, cookie_header ]
 # return = { mode size, data envelope } -- always answered at once
 
-my $call = shift // {};
-my $now  = <[base.time]>->();
+my $call  = shift // {};
+my $now   = <[base.time]>->();
+my $param = $call->{'param'} // {};
 
 my ( $blocked, $src, $groups ) = <[plugin.web.auth.admit.gate]>->(
-    $call->{'peer_addr'} // '',
+    $param->{'peer_addr'} // '',
     qw| status |, $now
 );
 
@@ -32,11 +34,11 @@ if ($blocked) {
 ## token : bearer first, then the p7_session cookie ##
 ## [ verify_session order ]                         ##
 my $token = '';
-if ( ( $call->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
+if ( ( $param->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
     $token = $LAST_PAREN_MATCH;
 }
 if ( not length $token
-    and ( $call->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
+    and ( $param->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
     $token = $LAST_PAREN_MATCH;
 }
 
@@ -78,8 +80,8 @@ return {
         JSON::XS::encode_json( { 'status' => $status, 'body' => $body } ),
 };
 
-#,,,.,,,,,..,,,,.,,..,.,,,,.,,.,,,,.,,,..,,,.,..,,...,...,.,.,..,,,..,..,,,..,
-#DHSYAWK4TX6EE44LQ3GFYNS66ROP7VP5NB3QP7WIEQ36PAET4B6PGXEOMTGNQXPWEUPYMSD5Q7NDU
-#\\\|BPQOKR6GI2TO4J3EOBGX5CJ2K3RZ7PDWZCJKABUBBFYOFM554LO \ / AMOS7 \ YOURUM ::
-#\[7]2XEUEN4EFQFTH7ZXGZWZ6RY6ZYXFNG2ZWHRMH7XC26BM5OR3LKCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,..,...,,..,,..,.,,,.,.,,..,.,.,..,,...,...,...,...,.,,,.,,,.,,,
+#5EG7YQEOFTM7BZW2EMIZW3BGA2RE6SV2V3EREQWVHK5JS2Z5HABH3PZAIJSYCLDHSABZEIDMUS2LK
+#\\\|TCSSYGA3Q4GCF7JSWTJPBLL3RATOJ4LMHVVPGY5PE6GXA7BBVCR \ / AMOS7 \ YOURUM ::
+#\[7]WQPVD4ETBC574IG2HQFCZQM7KREM3G2ZCLMWO756Z7FGS5CTJQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

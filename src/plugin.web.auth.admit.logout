@@ -12,15 +12,18 @@
 #         valid token destroys the session, clears the cookie [ Secure
 #         per the relayed socket fact ], resets only the logout-path
 #         counter and joins the known lane -- never queued
-# param = call hash : peer_addr, peer_tls, auth_header, cookie_header,
-#         args [ the request body -- token may travel in the json ]
+# param = call hash : param = the relayed socket facts [ peer_addr,
+#         peer_tls, auth_header, cookie_header ], data = the body
 # return = { mode size, data envelope } -- always answered at once
 
-my $call = shift // {};
-my $now  = <[base.time]>->();
+my $call  = shift // {};
+my $now   = <[base.time]>->();
+my $param = $call->{'param'} // {};
+my $body  = $call->{'data'}  // $call->{'args'} // '';
+$body =~ s|\n\z||;
 
 my ( $blocked, $src, $groups ) = <[plugin.web.auth.admit.gate]>->(
-    $call->{'peer_addr'} // '',
+    $param->{'peer_addr'} // '',
     qw| logout |, $now
 );
 
@@ -34,7 +37,6 @@ if ($blocked) {
 ## token : json body, bearer header, p7_session cookie ##
 ## [ handler.logout order ]                            ##
 my $token = '';
-my $body  = $call->{'args'} // '';
 if ( length $body ) {
     my $payload = eval { JSON::XS::decode_json($body) } // {};
     $token = $payload->{'token'}
@@ -42,11 +44,11 @@ if ( length $body ) {
         and length( $payload->{'token'} // '' );
 }
 if ( not length $token
-    and ( $call->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
+    and ( $param->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
     $token = $LAST_PAREN_MATCH;
 }
 if ( not length $token
-    and ( $call->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
+    and ( $param->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
     $token = $LAST_PAREN_MATCH;
 }
 
@@ -67,7 +69,7 @@ if ( not length $token ) {
         $set_cookie
             = sprintf(
             'p7_session=; Max-Age=0; Path=/; HttpOnly; SameSite=Strict%s',
-            $call->{'peer_tls'} ? '; Secure' : '' );
+            $param->{'peer_tls'} ? '; Secure' : '' );
     } else {
         ( $status, $body_out )
             = ( 400, '{"ok":false,"error":"logout failed"}' );
@@ -85,8 +87,8 @@ $envelope->{'set_cookie'} = $set_cookie if defined $set_cookie;
 
 return { 'mode' => qw| size |, 'data' => JSON::XS::encode_json($envelope) };
 
-#,,.,,.,.,,.,,.,,,,,,,..,,.,,,.,.,..,,,,,,.,.,..,,...,...,.,.,,,,,,,,,.,.,...,
-#37H5KXB674QBLR7E3VWPRETN4QFBLPMEXHKM2YNALLZMBPJBFROCI6LZM3GZLL4RCHNJAYTRBJWO6
-#\\\|MJZYZM2EYL3NJ2YDCREHJSMGPPN7FYHPB7YB3LXYETGQDKVADMK \ / AMOS7 \ YOURUM ::
-#\[7]3AXTXGMCINMNNIVSG2PINLDQJG6XGZA2XZHSSBWQLKEWHGAB2ACI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,,,,,,,,,,..,,,.,,.,,..,,..,,..,,...,..,,,,,,,..,,,,,..,,.,,,
+#SEJ3YD4WAORTDUOPHDGHKBGXGS7J2TEZZII6TW5DOLJ6R4RL2OTO3UO2YM3H72JZVEBCKAW5AFMAA
+#\\\|OKES7PS3BJWXPW25R6HAHTQ47L2UHX2O2L52PB6ZJZYUS2S2Q52 \ / AMOS7 \ YOURUM ::
+#\[7]EXS2BQXJL4T5BBRGCF6JBKUW3P7UQKUYNQPUDKMDWN65L6LK5YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

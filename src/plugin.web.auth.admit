@@ -9,9 +9,10 @@
 #         token check ] -- a source only ever slows itself down ; nobody
 #         is refused for someone else's traffic, and no shared budget
 #         exists that a stranger could use up
-# param = the web.cmd.auth-login call hash : args [ the request body ],
-#         peer_addr + peer_tls [ real socket facts passed by httpd --
-#         never a header ], auth_header, cookie_header, reply_id
+# param = the web.cmd.auth-login call hash : param = the relayed socket
+#         facts [ peer_addr, peer_tls, auth_header, cookie_header ],
+#         data = the request body ; a local p7c call carries the raw
+#         token body as args instead -- no facts, no records ; reply_id
 
 my $call = shift // {};
 my $cfg  = <[plugin.web.auth.admit.cfg]>;
@@ -21,20 +22,27 @@ my $cfg  = <[plugin.web.auth.admit.cfg]>;
 my $admit = $data{'plugin.web.auth'}{'admit'};
 my $now   = <[base.time]>->();
 
+## relayed over the cube wire as multi-line param lines + body       ##
+## [ base.protocol-7.command.send.local ] ; the body arrives with a  ##
+## trailing linebreak per line [ base.handler.command ] -- strip one ##
+my $param = $call->{'param'} // {};
+my $body  = $call->{'data'}  // $call->{'args'} // '';
+$body =~ s|\n\z||;
+
 my $entry = {
-    'reply_id'      => $call->{'reply_id'}      // 0,
-    'body'          => $call->{'args'}          // '',
-    'auth_header'   => $call->{'auth_header'}   // '',
-    'cookie_header' => $call->{'cookie_header'} // '',
-    'peer_tls'      => $call->{'peer_tls'}      // 0,
+    'reply_id'      => $call->{'reply_id'} // 0,
+    'body'          => $body,
+    'auth_header'   => $param->{'auth_header'}   // '',
+    'cookie_header' => $param->{'cookie_header'} // '',
+    'peer_tls'      => $param->{'peer_tls'}      // 0,
     'enqueued'      => $now,
     'src'           => '',
     'groups'        => [],
 };
 
-## local invocation [ p7c web.auth-login ] carries no socket facts : ##
-## straight to the check, no queue, no source records                ##
-my $peer_addr = $call->{'peer_addr'} // '';
+## no peer fact : local call -- straight to the check, no queue, no source ##
+## records                                                                 ##
+my $peer_addr = $param->{'peer_addr'} // '';
 if ( not length $peer_addr ) {
     return {
         'mode' => qw| size |,
@@ -106,8 +114,8 @@ if ( not defined $timer or not $timer->is_active ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,..,,.,,..,,,.,,,,,,,,,,,..,..,,.,.,,,.,..,,...,...,,,.,..,,..,,,,.,,,.,
-#M6KSEUE5TM6VYXXC5HNW247DOXE5JITWMXMRFSG5XZ5K5RD6SL5OCF7GSU4I56U4AYCI4UL745MTG
-#\\\|VQDIDA4WUDUXO3QXPI2SAJRLXJRMUWA6A5LGFGVNMM2PS3WWKAA \ / AMOS7 \ YOURUM ::
-#\[7]BHILBMQXPZBM2J6KNQ7D46BG2TY24C4OWULVWVC24XSRXCBO2YAA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,..,,,.,,.,,,...,.,,,,.,,.,,,..,,...,...,,..,,,,,...,..,,,,.,
+#LPQMJQAJUXICVJ7ER7IY23YKIRYRLWGX2VDRPJMJRE67UIB6LZ2HECIIYP7QJ7HWEIHC7BW6ZXVCK
+#\\\|L3J6XX5HA7D3EJ7D2DBACFF3FJCPVJZA7BFBMNPK7RYGZRFRVFY \ / AMOS7 \ YOURUM ::
+#\[7]HQ3VJWYRLEQ62I5536DTZTWP3EH7BPVEB4IANR4CM6TV2YO7JABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

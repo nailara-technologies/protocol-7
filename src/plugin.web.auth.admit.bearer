@@ -12,14 +12,16 @@
 #         answers 401 without a record [ httpd shortcuts this case
 #         locally, so web never sees it ] ; a valid token answers 200 and
 #         httpd proceeds with the original route relay -- never queued
-# param = call hash : peer_addr, peer_tls, auth_header, cookie_header
+# param = call hash : param = the relayed socket facts [ peer_addr,
+#         peer_tls, auth_header, cookie_header ]
 # return = { mode size, data envelope } -- always answered at once
 
-my $call = shift // {};
-my $now  = <[base.time]>->();
+my $call  = shift // {};
+my $now   = <[base.time]>->();
+my $param = $call->{'param'} // {};
 
 my ( $blocked, $src, $groups ) = <[plugin.web.auth.admit.gate]>->(
-    $call->{'peer_addr'} // '',
+    $param->{'peer_addr'} // '',
     qw| bearer |, $now
 );
 
@@ -33,11 +35,11 @@ if ($blocked) {
 ## token : bearer first, then the p7_session cookie ##
 ## [ verify_session order ]                         ##
 my $token = '';
-if ( ( $call->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
+if ( ( $param->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
     $token = $LAST_PAREN_MATCH;
 }
 if ( not length $token
-    and ( $call->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
+    and ( $param->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
     $token = $LAST_PAREN_MATCH;
 }
 
@@ -77,8 +79,8 @@ return {
         JSON::XS::encode_json( { 'status' => $status, 'body' => $body } ),
 };
 
-#,,,,,.,.,..,,,.,,..,,,,.,,.,,,.,,,,,,...,..,,..,,...,...,,,.,,,.,.,,,.,.,..,,
-#OG56EGHA3VQHWJ273U4LURNPUWKKW47NFYCBBJTYI22JLK5SIE7MD46GFJEL27DSN5ORLPX3QZQ2S
-#\\\|PJYTTWIMTPS3EDIXQTUSFMPCQEAX5FJOX3SOYMYSG6PFFM3TY4E \ / AMOS7 \ YOURUM ::
-#\[7]AED4YPGXOCQCP233I2PJOOP27LZ6HRR2UEUCAFESXDZGGEGLX4CA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,.,.,..,,..,,,,.,...,.,,,,..,..,,...,...,,,,,...,.,,,.,.,.,,,
+#6CWEY62MLSPPME6GA7XPFRB5GQLPCRKRTD6TT2ASRNAYM3K4RZLMFYH56DD4XRK7TY776LAYUPBC2
+#\\\|4VRO277ZQQOQKOVFFD6LTQB2FYBP2GPJ6TJVMBJCKNKICBV6WD5 \ / AMOS7 \ YOURUM ::
+#\[7]DLGBDPW4CXFAHFAWEGO26OBHGQJDXZA2SAKZT5NERY2LCPIQMIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
