@@ -32,11 +32,19 @@ if ( $size_left <= 0 ) {    ##  no space left in buffer  ##
     return;
 }
 
+## errno cleared first : base.s_read returns 0 for would-block AND for end ##
+## of file -- only a fresh EAGAIN tells them apart                         ##
+## [ tls : a read event before a whole record is there, ssl want-read ]    ##
+local $OS_ERROR = 0;
 my $bytecount = <[base.s_read]>->(    ## limit : remaining buffer size ##
     $session->{'handle'}, \$session->{'buffer'}->{'input'}, $size_left
 );
 
-if ( $bytecount > 0 ) {
+if ( $bytecount == 0 and ( $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK} ) )
+{    ## nothing yet : keep the session, wait for the next read event ##
+    $session->{'last-bytes-read'} = 0;
+    return 1;
+} elsif ( $bytecount > 0 ) {
     $session->{'fh-last-read-error'} = FALSE;
     $session->{'last-bytes-read'}
         = $bytecount;    ## Track bytes read for SSL pending check ##
@@ -50,8 +58,8 @@ if ( $bytecount > 0 ) {
 
 return $return_code;
 
-#,,,.,...,,.,,,,,,...,.,,,,,.,.,.,...,,,,,,..,..,,...,...,...,.,,,...,.,,,.,,,
-#6DASQXTADNQIRM56FAJYMWQWSBTPURIHI5LM6GSTX2NJP7V5GKGW5H3B4FNKMW6TB3XJIOBLMKYEM
-#\\\|OOWKZEGOTLULQZFQ24SZMZBQRXEYDBVLP5K2E3PVBDHRHVOUIFX \ / AMOS7 \ YOURUM ::
-#\[7]IEFYUO3ZVNTC6MABYESXM2VEBSCXXAVSVFH6H57YKIFH5COHY6CQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,.,,,,..,,,.,,.,,...,...,.,,,..,,...,...,.,.,.,,,.,.,.,,,...,
+#KU7VLJ2PZ3TNWEH4UBO6DR6K62LG37WCRO3XZE6MKJGWBG3FYLGVS3UJZZZFVIH5SW44IXHHLFSVU
+#\\\|UAMAKWKDZCUHDKKCMOXUVHDXM5M7HAUDKSEOQ2B2TVT2VZWVLUT \ / AMOS7 \ YOURUM ::
+#\[7]RV3OUUUZTWD5J6D6CIFV7QRPDI6FU2TRKYIHDUILGVIO5CMCBGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
