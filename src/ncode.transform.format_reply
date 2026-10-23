@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = ncode.transform.format_reply
+# param = $result [ ncode.transform.run's data, or wave_reply's ], $mode
+#         [ apply | scan : scan leaves the code out ]
+# descr = a transform result as an ncfg reply [ base.format.ncfg ]
+# return = the reply text [ string ]
+
+## one form for both ways a transform answers : ncode.cmd.transform when it ##
+## ran through, ncode.transform.handler.wave_reply after an llm wave.  a    ##
+## 'transform' section holds changed, waves_completed and the counts, a raw ##
+## 'output' section the code, verbatim                                      ##
+
+my $result = shift // {};
+my $mode   = shift // qw| apply |;
+
+my $stats = $result->{'total_stats'} // $result->{'wave_stats'} // {};
+my @lines = (
+    sprintf( 'changed = %d', $result->{'changed'} ? 1 : 0 ),
+    sprintf( 'waves_completed = %d', $result->{'waves_completed'} // 1 ),
+    map { sprintf '%s = %d', $ARG, $stats->{$ARG} // 0 }
+        qw| regex_applied regex_flagged llm_calls |,
+);
+push @lines, sprintf 'pattern_candidates = %d',
+    scalar @{ $result->{'candidates'} }
+    if ref $result->{'candidates'} eq qw| ARRAY |;
+
+my $output    = $result->{'output'} // '';
+my @structure = ( { 'transform' => \@lines } );
+push @structure, { 'output' => \$output } if $mode ne qw| scan |;
+
+return <[base.format.ncfg]>->( \@structure );
+
+#,,,.,,,.,.,.,,,.,,,,,,,,,.,.,..,,,..,..,,...,..,,...,...,,..,,,,,,,,,..,,...,
+#K4T3WMSHB6X3O2AW4QDD5IET4B2AEOK5QREZ37LG3ORU4UMRQUEJME4P2GKSTY2EVVSVG5KJMR4IA
+#\\\|IIGJXZQEEG25RPGI3FHMHLHI6EO7GW4PY7WLNRQH7A4VA62PVQN \ / AMOS7 \ YOURUM ::
+#\[7]OI56SUX2TNJBCDIN66EWMBHELE43BR5C4OB2PN755SS3XWYCNUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

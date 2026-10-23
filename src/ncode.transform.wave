@@ -118,7 +118,11 @@ my $wave_state = {
     'regex_applied'  => $wave_stats->{'regex_applied'},
     'regex_flagged'  => $wave_stats->{'regex_flagged'},
     'llm_budget'     => $llm_budget,
-    'original_input' => $input
+    'original_input' => $input,
+
+    ## the command's reply id [ ncode.cmd.transform ] : wave_reply answers ##
+    ## the waiting caller with it                                          ##
+    'reply_id' => $params->{'reply_id'} // ''
 };
 
 my $sent = <[protocol-7.route-send]>->(
@@ -165,8 +169,8 @@ return {
     }
 };
 
-#,,..,,.,,,,.,,..,.,,,,,.,,,,,,..,.,.,,.,,..,,.,.,...,...,,.,,,,.,,..,,..,,..,
-#EG36OL36OHYLIAOUIP7G7YJLTWI5TRXVHJBPCLB53L265EYJSFCNIBIUAX6JQRSGVSITU2SQ5TEIA
-#\\\|CHTGEQMM6KMR5JGHKTPH4AT5TLHJPZI6FBXBYZ6K3B4MADXISAJ \ / AMOS7 \ YOURUM ::
-#\[7]GCCFS5EEBTRFLYPEVCK72RWR6HTUMRD52JCZ4POW4IPOVQXJB4CY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,...,,..,.,.,...,.,,,,.,,.,,,,..,.,.,...,...,.,.,.,.,,..,.,,,...,
+#MU7SLPROZOY4OH5G2C7JY6B4V6AHIVPORVDEYXYEZ4DR5EMMK5TTNG2NCWL2J57DKK7HHSOE7QQI6
+#\\\|NLE466FNV63JQUTR225AZRVSYLJZMIMS2WWEY2ED4I4O6RDY5SJ \ / AMOS7 \ YOURUM ::
+#\[7]MFESZIBKDKYYUWKPJRIWIW74F4O6B7KGPUGNJHFTXMLNERII5WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

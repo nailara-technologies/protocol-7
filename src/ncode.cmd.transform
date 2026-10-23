@@ -6,125 +6,32 @@
 #                                  namespace, target, waves, llm_cmd,
 #                                  llm_budget, mode } ]
 
-## extract parameters from call structure ##
-my $args  = $call->{'args'}  // '';
-my $param = $call->{'param'} // {};
+## the waves run in ncode.transform.run                                    ##
+## [ a structure, for internal callers ] ; a .cmd. answers a string -- the ##
+## hash this returned went out as HASH(0x..) [ 2026-10-23 ]. the reply is  ##
+## ncfg, the same one an llm wave answers later through the reply id       ##
 
-my $input      = $param->{'input'}      // '';
-my $file_type  = $param->{'file_type'}  // qw| module |;
-my $namespace  = $param->{'namespace'}  // '';
-my $target     = $param->{'target'}     // qw| p7-style |;
-my $waves      = $param->{'waves'}      // 1;
-my $llm_cmd    = $param->{'llm_cmd'}    // '';
-my $llm_budget = $param->{'llm_budget'} // 0;
-my $mode       = $param->{'mode'}       // qw| apply |;
+my $param = { %{ $call->{'param'} // {} } };
+$param->{'reply_id'} = $call->{'reply_id'};
 
-## validate input ##
-return { 'mode' => qw| false |, 'data' => 'input code required' }
-    unless length $input;
+my $run = <[ncode.transform.run]>->($param);
 
-## validate waves count ##
-$waves = 1  if $waves < 1;
-$waves = 10 if $waves > 10;    ## reasonable upper bound ##
-
-## initialize tracking ##
-my $current_input = $input;
-my $total_changed = 0;
-my $waves_done    = 0;
-my $total_stats   = {
-    'regex_applied' => 0,
-    'regex_flagged' => 0,
-    'llm_calls'     => 0
-};
-
-## process waves ##
-for ( my $wave_num = 1; $wave_num <= $waves; $wave_num++ ) {
-
-    ## call transform.wave ##
-    my $wave_result = <[ncode.transform.wave]>->(
-        {   'input'         => $current_input,
-            'file_type'     => $file_type,
-            'namespace'     => $namespace,
-            'target'        => $target,
-            'llm_cmd'       => $llm_cmd,
-            'llm_budget'    => $llm_budget,
-            'save_patterns' => 1
-        }
-    );
-
-    my $wave_mode = $wave_result->{'mode'} // qw| false |;
-
-    ## handle wave failure ##
-    if ( $wave_mode eq qw| false | ) {
-        return {
-            'mode' => qw| false |,
-            'data' => 'wave '
-                . $wave_num
-                . ' failed: '
-                . $wave_result->{'data'}
-        };
-    }
-
-    ## handle deferred (LLM dispatched) ##
-    if ( $wave_mode eq qw| deferred | ) {
-        my $wave_data = $wave_result->{'data'} // {};
-
-        ## accumulate stats so far ##
-        my $wave_stats = $wave_data->{'wave_stats'} // {};
-        $total_stats->{'regex_applied'} += $wave_stats->{'regex_applied'}
-            // 0;
-        $total_stats->{'regex_flagged'} += $wave_stats->{'regex_flagged'}
-            // 0;
-        $total_stats->{'llm_calls'} += 1 if $wave_stats->{'llm_dispatched'};
-
-        ## build deferred response with continuation state ##
-        my $remaining_waves = $waves - $wave_num;
-
-        return {
-            'mode'   => qw| deferred |,
-            'data'   => $wave_data->{'output'} // $current_input,
-            'params' => {
-                'remaining_waves' => $remaining_waves,
-                'total_stats'     => $total_stats,
-                'waves_completed' => $waves_done,
-                'total_changed'   => $total_changed,
-                'original_input'  => $input
-            }
-        };
-    }
-
-    ## wave completed successfully ##
-    my $wave_data = $wave_result->{'data'}  // {};
-    my $output    = $wave_data->{'output'}  // $current_input;
-    my $changed   = $wave_data->{'changed'} // 0;
-
-    ## accumulate stats ##
-    my $wave_stats = $wave_data->{'wave_stats'} // {};
-    $total_stats->{'regex_applied'} += $wave_stats->{'regex_applied'} // 0;
-    $total_stats->{'regex_flagged'} += $wave_stats->{'regex_flagged'} // 0;
-    $total_stats->{'llm_calls'}     += 1 if $wave_stats->{'llm_applied'};
-
-    $total_changed ||= $changed;
-    $waves_done    = $wave_num;
-    $current_input = $output;
-
-    ## early exit if no changes this wave and no flagged items ##
-    last if not $changed and not $wave_stats->{'regex_flagged'};
-}
-
-## build final result ##
+return { 'mode' => qw| deferred | } if $run->{'mode'} eq qw| deferred |;
 return {
-    'mode' => qw| true |,
-    'data' => {
-        'output'          => $current_input,
-        'changed'         => $total_changed,
-        'waves_completed' => $waves_done,
-        'total_stats'     => $total_stats
+    'mode' => qw| false |,
+    'data' => $run->{'data'} // 'transform ' . 'failed'
     }
+    if $run->{'mode'} ne qw| true |;
+
+return {
+    'mode' => qw| size |,
+    'data' => <[ncode.transform.format_reply]>->(
+        $run->{'data'}, $param->{'mode'} // qw| apply |
+    ),
 };
 
-#,,.,,.,,,,..,...,,,.,,,.,...,,,.,,,,,,.,,,..,..,,...,...,.,,,,..,,,.,..,,,,.,
-#EPOX3XUNHUDDM6RWUVUDFVP52CI62GA5DCDXETUIDUELVDXONH7L6GG6RA5IW5QUCUUII63I4UGFS
-#\\\|PLR6GOCW6DSU2MHAOQPVPIE6FPL4ZKAPSIEFMXBFD3LN63QCZSH \ / AMOS7 \ YOURUM ::
-#\[7]FZILPA2ZMMGZUQ4AP7DD2KBKZSDPAZDZFNJ2WB26BXJJPGXY2KAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,,,,,.,,..,,.,,...,.,,,,..,,.,,..,,...,...,...,.,,,,,,,..,,,..,
+#OZNEXOUGVOUOA6V6HKHEHJXOUBB64AZSV65777MURNLTUAE2HQFFAMBGTYEOZ4ESLELQXQY65BG4Y
+#\\\|P3PXCVEWYXE7FSI7G2HQHRD5ZKDIQWWRZX3WI3HEQDIOJT2KPUH \ / AMOS7 \ YOURUM ::
+#\[7]XMOMANVVK7V5SX7GP72SDOD5EYIYCOGSUK4NPZ3HAQFAY5CQBKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
