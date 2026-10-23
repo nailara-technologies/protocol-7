@@ -146,24 +146,27 @@ if ( exists $code{'crypt.C25519.sign_data'} ) {
 my $auth_token = <jobsite.sync.url_tokens>->{$url} // '';
 $headers->{'Authorization'} = "Bearer $auth_token" if length $auth_token;
 
-## https targets [ another host's web ] need the tls client ##
-my $post = $url =~ m{^https://}i ? 'clients.https.post' : 'clients.http.post';
+## https targets [ another host's web ] need the tls client -- both calls ##
+## static : the subroutine whitelist only sees <[name]> calls             ##
+my $post_args = {
+    'url'     => $url,
+    'body'    => $body,
+    'headers' => $headers,
+    'timeout' => 32,
+    'on_done' => qw| jobsite.handler.sync-response |,
+    'params'  => {
+        'url'        => $url,
+        'chunk_size' => scalar $chunk->@*,
+    },
+};
+if ( $url =~ m{^https://}i ) {
+    <[clients.https.post]>->($post_args);
+} else {
+    <[clients.http.post]>->($post_args);
+}
 
-$code{$post}->(
-    {   'url'     => $url,
-        'body'    => $body,
-        'headers' => $headers,
-        'timeout' => 32,
-        'on_done' => qw| jobsite.handler.sync-response |,
-        'params'  => {
-            'url'        => $url,
-            'chunk_size' => scalar $chunk->@*,
-        },
-    }
-);
-
-#,,.,,.,.,.,.,..,,,,.,,,,,..,,..,,.,,,.,.,,,.,..,,...,...,..,,.,.,.,.,,.,,,,,,
-#2KCRZT2IWJ5NHG7D6W2UM3CH74GWOFXTP7GEGIMTNQXMOK6IKNG7LTC7ZSMQ2X3NW2GUS3HE5YDRU
-#\\\|KNDLXYGO6QLYLBQWA45I6FLVVYOVJ4W5QVASUDJ6LOQFX4RJC6N \ / AMOS7 \ YOURUM ::
-#\[7]IULEVQDRMI5FOWULA2VJPWDHIHPTYRQZIM22Z2ECKFQKXZ2CNKAA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,,.,,,..,...,,,,,,,.,.,.,..,,..,,...,...,.,,,...,.,.,,,.,.,.,
+#ZKXWVZRHFN2HUGEMBZ2QK7XCIGWEXRABUVGEWR4CMG4HP2T4YXNYMUPXFZQEKKHWKBD57S62IOCFM
+#\\\|6D7Q6DQFFMHRONDPOFCCXFKPXLMS3ISRLQZO4WALUTD3LY5MZKN \ / AMOS7 \ YOURUM ::
+#\[7]LEKSCLTZEGS4MEZFIZEK57EQ5SMAWHGJA7ENJ5K2LTG6JD4IYUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

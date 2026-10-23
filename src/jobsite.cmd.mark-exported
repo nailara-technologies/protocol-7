@@ -71,17 +71,21 @@ for my $url (@urls) {
     my $headers    = {};
     $headers->{'Authorization'} = "Bearer $auth_token"
         if length $auth_token;
-    my $post
-        = $url =~ m{^https://}i ? 'clients.https.post' : 'clients.http.post';
-    $code{$post}->(
-        {   'url'     => $url,
-            'body'    => $body,
-            'headers' => $headers,
-            'timeout' => 15,
-            'on_done' => qw| jobsite.handler.mark-exported-response |,
-            'params'  => { 'url' => $url, 'id' => $id_in, 'stage' => $stage },
-        }
-    );
+    ## both calls static : the subroutine whitelist sees <[name]> only ##
+    my $post_args = {
+        'url'     => $url,
+        'body'    => $body,
+        'headers' => $headers,
+        'timeout' => 15,
+        'on_done' => qw| jobsite.handler.mark-exported-response |,
+        'params'  => { 'url' => $url, 'id' => $id_in, 'stage' => $stage },
+    };
+    if ( $url =~ m{^https://}i ) {
+        <[clients.https.post]>->($post_args);
+    } else {
+        <[clients.http.post]>->($post_args);
+    }
+
 }
 
 return {
@@ -91,8 +95,8 @@ return {
         . join( ', ', @urls ),
 };
 
-#,,.,,.,.,...,.,,,,..,,,.,..,,..,,,,,,.,.,,.,,..,,...,...,.,.,,.,,.,.,.,,,.,.,
-#IGQOFS44QMA2UZMRX7GLQV5VPCEUZANU2644QLVSMEYDC6HZYE6SYQNFVDB3OKRLILPOXCDWF2IQI
-#\\\|ETCM4WXJVK6QN5K4GIBZULHCZ7UMBQBY3HFBBWSCV6CXDNJYA5W \ / AMOS7 \ YOURUM ::
-#\[7]VP3DW7M37IQI5W4M67GGFPXPDNBMJ5YL2XTRDXCLJ2MBZSGF5WBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,.,,,,,,,,,,,,.,,...,,..,..,,..,,...,...,.,.,.,,,,.,,.,.,.,.,
+#XVWCVKX423OK4HSNU5UWWRZR3TKEUZ5CYEPYTMRXSVZJYYEOJSQIGWTSOMDQPJB562PPXOEV5GWD6
+#\\\|UWMTQYGBBTUVG2F5G3JVHNHH4GNNDL55EBLG7IT72ARSD3ZTJ33 \ / AMOS7 \ YOURUM ::
+#\[7]MNSE2PQXGDNB42DKF4SBFJHZ2FHHXQ67BF7PIAMWZUL3XNOAZMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
