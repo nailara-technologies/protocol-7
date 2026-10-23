@@ -111,9 +111,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
+- [twin-restart-and-local-proxy](reference-twin-restart-and-local-proxy.md) — `v7-zenki.restart :twin: <zenka>` restarts without a gap ; a 502 from this shell can be the owner's local proxy, not the server
 
-#,,,.,.,,,,,.,,,,,,,,,..,,..,,,..,.,,,...,.,.,..,,...,...,.,.,..,,,.,,..,,,,.,
-#HZAYUSJMWXEHDBA7ORCC7ZQVIY4J7H65Y3VCF2RMN3TGNEIO6QEYGXOZYF326CFRGIPDUAJ4VLBB4
-#\\\|CEIQCU5IXTP3P7LFWVRMLDWIVG3MDCTQPLQXKZ76AAK4ETYSQP3 \ / AMOS7 \ YOURUM ::
-#\[7]KX2QHDX7JCW3YAHACIFL6VKJNXA3TBT3NLCVVN2ANPCCDFQJOMBI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,...,,.,,.,,,.,,,,..,..,,.,.,..,,...,..,,,..,.,,,...,...,,..,
+#BQDUNQAUFAPTFTML7QP3CE4GF4Q27SDM5T5UKJ2TFIUVBIGR6UQF46656PTOMAREYG2EPDRRM3U4Y
+#\\\|HARQNZMI3KFF7YCR2SX6DPS2AHIBSTKQULXYSFS5SMEF4F2AMSI \ / AMOS7 \ YOURUM ::
+#\[7]55OAKHZPP5QDJ42PJD7BPXUOLOPFYAPWPZN4VUWUZO3IBSJOK2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
