@@ -1745,10 +1745,10 @@ items:
     owner 2026-10-23 : geoloc zenki propagate their tables between servers [ one fetches, peers pull -- fast-wired neighbours first, srv-U -> srv-A ] ; modelled on nameserv zone sync 4CJ ; table + BMW checksum + source version, a peer keeps its previous table on mismatch. design section 4
     owner 2026-10-23 : every geoloc zenka may fetch, in phase-offset slots [ host-root id checksum mod interval + jitter ] ; at its slot first ask peers for a newer version, fetch only if none -- a blocked path to the source falls back to the next slot by itself ; newest source version wins
     owner 2026-10-23 : a new table version is announced to the peers at once [ version, source, checksum ] ; they pull and pass the notice on -- the slot is only the fallback ; a notice is a cue, the pull is checked
-  done_at: null
+  done_at: 32EL3UHCOI
   id: 6CJ
   priority: normal
-  status: open
+  status: done
   tags:
   - web
   - auth
@@ -1768,10 +1768,10 @@ items:
   text: "nameserv answers by region [ us server for north america, the german one for europe .. ] : geoloc country table [ RIR delegated stats, local ], EDNS Client Subnet when present else the resolver's address, short ttl + ecs scope, fallback server -- after the delegation switch [ 5W7 ] ; data/md/design/LOGIN-ADMISSION.md section 7"
 - added: 32D6PD4OLQ
   details: ''
-  done_at: null
+  done_at: 32EL3UH7HQ
   id: 5M3
   priority: normal
-  status: open
+  status: done
   tags:
   - jobsite
   - site-yaml
@@ -1820,10 +1820,10 @@ items:
   text: 'host names left outside src : cfg comments [ cfg/zenki/jobsite/zenka.v7 line 55 ], data/tasks/*.md [ jobsite-sync-multiplex.md ] -- sweep cfg/ and data/tasks/ like the memory relabel, labels instead'
 - added: 32D6X7FEAM
   details: ''
-  done_at: null
+  done_at: 32EL3UHSOM
   id: TQA
   priority: normal
-  status: open
+  status: done
   tags:
   - v7-zenki
   - restart
@@ -1849,9 +1849,42 @@ items:
   - task
   - gpu
   text: "models claims from a configurable task zenka [ models.cfg.task_zenka, e.g. external.srv-U.task ] : the local gpu models then claims srv-U's assessment tasks beside srv-U's own [ task.claim is atomic : no double work ] ; needs an external link local -> srv-U + grants for task.claim \\ complete \\ queue + the task notice ; restart local coding first [ old code ]. before 5M3"
+- added: 32EK546DG4
+  details: ''
+  done_at: null
+  id: RTY
+  priority: normal
+  status: open
+  tags:
+  - mail
+  - task
+  - gpu
+  - models
+  text: "mail queue assessments as a second task workload for the gpu workers [ local + yourum, beside the job assessments from srv-U's task queue -- ZYH ] : ncode style pattern db as accelerator, the model only for what the patterns leave open ; feasibility proven by the owner, mail volume is low. after ZYH works end to end"
+- added: 32ELBV5JOE
+  details: ''
+  done_at: null
+  id: H2N
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - assessment
+  - sync
+  text: "assessment history per job [ with 3MK : data/tasks/jobsite-sync-multiplex.md ] : 1. a job keeps a LIST of assessments [ score, text, model key, host, time ], the current verdict plus refs [ checksum, model, score, reason : merged \\ reviewed \\ re-assessed ] to the replaced ones. 2. replaced results packed per job [ jobs/assessments/<id>/<checksum>.yxz.B32, the jobs trash pattern ] + jobsite.assessment-history \\ assessment-restore [ restore moves the displaced verdict in too ]. 3. after jobsite.cfg.assessment_trash_epochs [ default 2 ] they move on into the regular trash and its prune ; the refs stay in the job record [ agreement statistics per model pair survive the text ]. 4. merge : same side of jobsite.cfg.threshold and < jobsite.cfg.merge_gap [ 2 ] apart -> fixed rule, preferred model's text ; otherwise status review + a :review: task that sees both and writes its own verdict. keep a small sample of deliberate double assessments after partitioning [ model drift check, yourum's smaller model ]"
+- added: 32ELP2OOCI
+  details: ''
+  done_at: null
+  id: 3RS
+  priority: normal
+  status: open
+  tags:
+  - letsencr
+  - protocol
+  text: "letsencr parent -> child : param.public_addresses [ arrayref ] never reached the child -- route-send sent single-line, param dropped ; letsencr.child.cmd.verify-domain always saw [] . send.local now logs 'args set, param \\ data not sent' for these 5 callers [ process_new_domains, request-certificate, handler_enrollment_retry, handler_enroll_verify_reply, queue_renewal_requests ]. fix : domain as a param, addresses space-joined, no args -> multi-line"
 
-#,,.,,...,.,,,,.,,,.,,..,,,..,,.,,...,...,,,.,..,,...,...,.,.,.,.,...,,..,..,,
-#A7TAL5VOOMZWIIJACT53S3KXXJPHMKGLYWCYLIAETRSHOAYMROBS4FEDKQ7BTHZ5YPPG6O4MRU6EQ
-#\\\|65QEKC7O2CID7CWXGTF2TMAT4G3VJNFXCKWUELBHN3YXU3TWD6R \ / AMOS7 \ YOURUM ::
-#\[7]C73OTNAWXJS5BUI4POELQWX5B2V5MIOH4GSRRDETAUBUPMO2OIAI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,,,..,,...,.,,,,,.,..,,,,.,,.,,..,,...,...,...,..,,.,,,.,,,..,,
+#TMBDWH2RULB36KCAX4BUL3IPZ6VWZS36GKZN7EBQG7KGQIMPPDVCXM5XJ6VJYY3KXKKRQL5G635FO
+#\\\|GGAS7XHVYI7NPRPUHV64GZVY6A6ZMXCSMXM3TEU4NWFHIRC5VET \ / AMOS7 \ YOURUM ::
+#\[7]AK7J46FQ7RW24PJPYRQZBGEFP7H3XXNWU7TVLKKB2B6O5GSI6UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

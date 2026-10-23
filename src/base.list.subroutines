@@ -325,6 +325,7 @@ return [ qw[
         httpd.init_code
         httpd.http_post
         httpd.http_head
+        httpd.cmd.drain
         hints.etc_hosts
         hints.conflicts
         hints.candidate
@@ -460,7 +461,6 @@ return [ qw[
         index.cmd.decode
         httpsd.post_init
         httpsd.init_code
-        httpsd.cmd.drain
         httpd.serve_file
         httpd.new_header
         httpd.cmd.vhosts
@@ -1008,6 +1008,7 @@ return [ qw[
         smtpd.cmd.list-mail
         site-yaml.init_code
         site-yaml.cmd.fetch
+        site-yaml.cmd.drain
         signal.cancel.match
         sessions.cmd.status
         sessions.cmd.pubkey
@@ -2861,8 +2862,8 @@ return [ qw[
         impressive.process_subcfg
         impressive.cmd.reposition
         image2html.base.init_code
-        httpsd.cmd.self_terminate
         httpd.system.memory_stats
+        httpd.handler.drain_check
         httpd.base.size.normalize
         host-edit.trust.pin_state
         host-edit.flow.passphrase
@@ -3144,7 +3145,6 @@ return [ qw[
         image2html.child.init_code
         httpsd.reload_certificates
         httpsd.load-cipher-profile
-        httpsd.handler.drain_check
         httpd.vhost.read_manifests
         httpd.handler.acme_request
         httpd.classify.cmd.history
@@ -3439,11 +3439,13 @@ return [ qw[
         jobsite.validate.assessment
         jobsite.util.description_ok
         jobsite.report.extract_text
+        jobsite.repair_encoding.job
         jobsite.handler.repair-done
         jobsite.handler.fetch-drain
         jobsite.handler.assess-done
         jobsite.cmd.unmark-exported
         jobsite.cmd.set-export-time
+        jobsite.cmd.repair-encoding
         jobsite.cmd.import-url-http
         jobsite.cmd.blacklist-stats
         jobsite.chksum.branch-color
@@ -3768,6 +3770,8 @@ return [ qw[
         keys.console.drop-authorized
         keys.console.decrypt-archive
         keys.console.create-stub-key
+        jobsite.util.repair_mojibake
+        jobsite.repair_encoding.load
         jobsite.handler.task-created
         jobsite.handler.rescan-timer
         jobsite.dispatch.assessments
@@ -3950,6 +3954,7 @@ return [ qw[
         sourcecode.console.test-cycle
         source.create_harmonic_footer
         site-yaml.util.field-checksum
+        site-yaml.handler.drain_check
         site-yaml.cmd.list-stray-jobs
         site-yaml.async_fetch.request
         site-yaml.async_fetch.headers
@@ -4345,6 +4350,8 @@ return [ qw[
         kimi-web.cmd.get-session-state
         kimi-web.cmd.dispatch_parallel
         keys.console.gen-file-seed-key
+        jobsite.repair_encoding.finish
+        jobsite.repair_encoding.backup
         jobsite.handler.translate-done
         jobsite.handler.repair-created
         jobsite.handler.new-job-settle
@@ -4607,6 +4614,7 @@ return [ qw[
         keystore.trash.purge_candidates
         jobsite.report.mime_decode_body
         jobsite.report.evidence_collect
+        jobsite.repair_encoding.example
         jobsite.handler.pending-changed
         invoke-web.handler.stats_record
         invoke-web.handler.render_check
@@ -4838,6 +4846,8 @@ return [ qw[
         kimi.handler.process-queued-task
         kimi-web.internal.http_post_sync
         keys.console.keys-backup-archive
+        jobsite.repair_encoding.scan_one
+        jobsite.repair_encoding.location
         jobsite.handler.import-url-reply
         invoke-web.handler.win_mem_reply
         invoke-web.cmd.requeue-cancelled
@@ -5054,6 +5064,7 @@ return [ qw[
         kimi-web.cmd.read-session-context
         keys.pack_format.user_key_archive
         keys.console.downgrade-enc-status
+        jobsite.repair_encoding.write_one
         jobsite.handler.stray-jobs-listed
         jobsite.handler.queue-depth-reply
         invoke-web.handler.fetch_watchdog
@@ -5576,6 +5587,7 @@ return [ qw[
         kimi.handler.reconnect_grace_timeout
         kimi-web.handler.batch_timeout_check
         jobsite.report.mail_evidence_collect
+        jobsite.handler.repair-encoding-tick
         invoke-web.handler.claim_child_reply
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
@@ -6245,8 +6257,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,.,,.,,,..,,..,,.,,,.,.,,..,.,.,,..,,..,.,.,...,...,,..,,,.,...,..,,.,.,
-#Z6KAO72KNH4QN4I27RQVEEXLZNNJZTUVD6QSULKPL3UUYSCP4RZQRK7B5IKK56WVB5UYHCHD3KKMY
-#\\\|RWNAF3I677FXKZW4GRWKYHC5B3VKWGTH7AFQPFTW25HXDGKQSOX \ / AMOS7 \ YOURUM ::
-#\[7]4TPZ5AS2FFPGNH37B4FW6V2RATHF2WRV2BSAAWW5DIE4EM4FZWBA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,...,.,,,,.,,,..,...,.,,,,.,,,,,,.,.,...,..,,,,,,.,.,,,,,,,,,,,.,
+#M6PQZZN6Y37V3LNU3O6A4TX5HYQVQIJG7DQR6CM7VMJHOPMHAYXAH3SVRSOXEQRUNTAXQZS2DSDAQ
+#\\\|RFYELDSWFEPU57JTJIY3JVJV7V6FPZ2IMOBHXL4YM2LHDB7UBCS \ / AMOS7 \ YOURUM ::
+#\[7]MFV4GS64FYYZGP3MRCNFLUAFLBMZXYMXHQYFQ3XZVUQ2VNIKIICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

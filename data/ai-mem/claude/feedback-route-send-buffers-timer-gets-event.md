@@ -34,8 +34,10 @@ also : base.event.* is swapped to event.* at pre_init -- call `<[event.add_timer
 result is used in the same call, every timer handler's first arg, and that tests deliver
 replies explicitly and pass Event-shaped objects [ see test-letsencr-enroll.pl ].
 
-#,,,.,.,.,...,.,,,,,,,.,,,.,.,..,,,..,..,,.,,,..,,...,...,.,.,,.,,...,,,.,.,.,
-#2F4C3J7PMOR37CQ6Z6QASGGIQOAWO6ZYATLPY2EZPRYNXQFEXWPR5BETDBVARQBC4YVFQR2HHTNA4
-#\\\|EJ6PKJDH2LSDQK5IC7NNCETAQ3N2OUUQXVP2F5QXVNSJFLR4OPQ \ / AMOS7 \ YOURUM ::
-#\[7]UOHEV2BEECJDEW2LTQTITAPQYBUM4ZJOXXMWM3M7IU4AVHAK6ECQ 7  DATA SIGNATURE ::
+- 2026-10-23 : the cube wire carries ONLY call_args->{args} [ base.protocol-7.command.send.local:152 ] -- extra call_args keys [ peer_addr, headers .. ] vanish. 6CJ admission [ 231f0dc7b ] passed 122 stubbed checks and was inert live. pack side data into args [ json ] ; a route-send stub must deliver args only
+
+#,,.,,,,,,.,,,.,,,.,.,,..,..,,.,,,,,.,.,.,..,,..,,...,...,,,.,..,,..,,,.,,,..,
+#3ABHLKZ2562EDGJLQHGXOREVACHYFJRZ37QI7FSJSSZXLWN7NXTYTCVM4FDJAB2QZUJKIYPZSNINQ
+#\\\|JHRL7M3OWBSN7ZG4XKNRYKV47UBE3DWK6SMCAVHUP7HI6YH6Y7H \ / AMOS7 \ YOURUM ::
+#\[7]VIJCS3CCOXVVDN6BB6ZPGQ7SKPJJ7ZWTVPDZISZON3VYCMROBOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
