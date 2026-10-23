@@ -1,0 +1,133 @@
+## [:< ##
+
+# name  = models.task.parse-show
+# descr = task.show text -> model, prompt, backend command
+# note  = task.show reply text -> model, prompt and backend command
+# param = <task_id> <details>
+# return = { status, model, prompt, target_cmd [ undef : no backend ],
+#            iteration [ TRUE when task.show lists 'iteration : true' ],
+#            model_pin [ ':model:<key>:' registry key, upper case \ undef ] }
+# notes = shared by the 'show' [ claimed first ] and 'peek' [ remote : not
+#         claimed yet ] steps of models.handler.task-poll-step
+
+my $task_id = shift // '';
+my $details = shift // '';
+
+## parse description, context, and history from task details
+my ( $description, $context, $status ) = ( '', '', '' );
+my $iteration = FALSE;
+my @history_turns;
+my $in_history = FALSE;
+my $current_turn;
+
+## parse only the task.show header lines (stop after 'result :' field)
+my $in_header = TRUE;
+foreach my $line ( split( m|\n|, $details ) ) {
+    if ( $line =~ m{^---\s*history\s*---}i ) {
+        $in_history = TRUE;
+        $in_header  = FALSE;
+        next;
+    }
+    if ($in_history) {
+        if ( $line =~ m{^turn\s+\d+\s*:\s*(.*)$}i ) {
+            $current_turn = { 'prompt' => $1, 'result' => '' };
+            push @history_turns, $current_turn;
+        } elsif ( $line =~ m{^\s+result\s*:\s*(.*)$}i
+            and defined $current_turn ) {
+            $current_turn->{'result'} = $1;
+        }
+        next;
+    }
+    ## stop header parsing once we hit the result line  (everything after is
+    ## task content, not task metadata)
+    if ( $in_header and $line =~ m{^result\s*:\s*}i ) {
+        $in_header = FALSE;
+        next;
+    }
+    next unless $in_header;
+
+    ## require space before ':' to match task.show header format only
+    if ( $line =~ m{^description\s+:\s+(.*)$}i ) {
+        $description = $1;
+    } elsif ( $line =~ m{^context\s+:\s*(.*)$}i ) {
+        $context = $1;
+    } elsif ( $line =~ m{^status\s+:\s*(\S+)}i ) {
+        $status = $1;
+    } elsif ( $line =~ m{^iteration\s+:\s*true\b}i ) {
+        $iteration = TRUE;
+    }
+}
+
+## unescape newlines escaped by task.show for protocol safety
+$description =~ s{\\n}{\n}g;
+$context     =~ s{\\n}{\n}g;
+
+## a ':model:<registry key>:' pin [ jobsite assessments ] : read only, the ##
+## prompt keeps it -- results stay attributable to the pinned model        ##
+my ($model_pin) = $description =~ m|:model:((?:[A-Z2-7]{7})?:[A-Z2-7]{7}):|i;
+$model_pin = uc $model_pin if defined $model_pin;
+
+## determine model from :name: prefix in description [ @name fallback ]
+my $model = <models.task.default_model> // 'kimi';
+if ( $description =~ s{^:([a-z0-9\-]+):\s*}{}i ) {
+    $model = $1;
+} elsif ( $description =~ s{^\@(\S+)\s*}{} ) {
+    $model = $1;
+}
+## :review: prefix → auto-route to local model with review-cycle template ##
+## rewrite description so coding.prompt.assemble picks the right template ##
+if ( $model eq 'review' ) {
+    $model       = 'local';
+    $description = "review-cycle $description";
+}
+
+## build prompt with conversation history for multi-turn tasks
+my $prompt = '';
+
+if (@history_turns) {
+    $prompt .= sprintf "[task %s] [continuation turn %d]\n",
+        $task_id, scalar(@history_turns) + 1;
+    foreach my $turn (@history_turns) {
+        my $t_prompt = $turn->{'prompt'} // '';
+        ## strip model prefix from history prompts
+        $t_prompt =~ s{^:[a-z0-9\-]+:\s*}{}i;
+        $t_prompt =~ s{^\@\S+\s*}{};
+        $prompt .= sprintf "user: %s\nassistant: %s\n\n",
+            $t_prompt, $turn->{'result'} // '';
+    }
+    $prompt .= sprintf "user: %s", $description;
+} else {
+    $prompt = $description;
+}
+
+$prompt .= "\n\n$context" if length $context;
+
+## a single task's tag goes LAST : the text before it is then the same from ##
+## task to task [ an assessment's preamble and profile ], and the backend   ##
+## reuses its prompt cache for it -- in front it cut every prefix at the    ##
+## first line [ 2026-10-23 ]. a continuation keeps it as the heading of its ##
+## turns                                                                    ##
+$prompt .= sprintf "\n\n[task %s]", $task_id if not @history_turns;
+
+## model to backend command mapping
+my %backend_cmd = (
+    'kimi'      => 'kimi.ask-reply',
+    'kimi-code' => 'kimi.ask-reply',
+    'llama'     => 'coding.ask-reply',
+    'local'     => 'coding.ask-reply',
+);
+
+return {
+    'status'     => $status,
+    'model'      => $model,
+    'prompt'     => $prompt,
+    'target_cmd' => $backend_cmd{$model},
+    'iteration'  => $iteration,
+    'model_pin'  => $model_pin,
+};
+
+#,,,,,..,,.,.,,,.,...,...,,..,.,,,,..,...,...,..,,...,...,...,..,,..,,,,,,,.,,
+#RS4ZYLTKPKX7VFLPLQUFSL7F2EQTJ4Z4VLGHOVCHWTV7OXD66VIDHYS73XJPLKLLJQP4U3N72EWIG
+#\\\|STTURKFG5BNAVUYF54Y5UGZK4HTPA4GXIZFXRADW56YD5JYG7WW \ / AMOS7 \ YOURUM ::
+#\[7]SE3OZHHPZAXKW3SS2RB7ROXA22P7ILANLE7TNN2HGENOPMTCQ4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

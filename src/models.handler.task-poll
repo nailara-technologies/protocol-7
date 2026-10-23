@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = models.handler.task-poll
+# descr = remote task tick : keep the stream, poll for work
+# note  = remote task zenka tick : keep the notice stream, poll for work
+# notes = timer handler [ models.task.startup ]. the poll also covers tasks
+#         created while the link or the stream was down. one '.next' in
+#         flight at a time -- one unanswered for 90 s means the link is
+#         presumed down : the slot is freed and the notice stream dropped
+#         too [ a link gone without a STRM close frame never calls its
+#         on_eof ], the next subscribe follows the backoff
+
+return FALSE if not <[models.task.remote]>;
+
+my $state   = <models.task.stream> //= {};
+my $sent_at = <models.task.poll.sent_at>;
+
+if ( defined $sent_at and time - $sent_at >= 90 ) {
+    <models.task.poll.sent_at> = $sent_at = undef;
+
+    <[base.logs]>->(
+        1, ': task poll : no answer ' . 'in 90 s, link presumed down'
+    );
+
+    if ( $state->{'subscribed'} ) {
+        <[strm.local.cancel]>->( $state->{'cmd_id'} )
+            if defined $state->{'cmd_id'};
+        $state->{'subscribed'} = FALSE;
+        $state->{'cmd_id'}     = undef;
+        <[models.task.subscribe-retry]>;
+    }
+}
+
+## notice stream : [re]subscribe once its backoff allows ##
+<[models.task.subscribe]>;
+
+## fallback poll ##
+return TRUE if defined $sent_at;
+
+<models.task.poll.sent_at> = time;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command' => <[models.task.cmd]>->(qw| next |),
+        'reply'   => {
+            'handler' => 'models.handler.task-poll-step',
+            'params'  => { 'step' => 'poll-next' }
+        }
+    }
+);
+
+if ( not $sent or $sent <= 0 ) {
+    <models.task.poll.sent_at> = undef;
+    <[base.logs]>->(
+        1,
+        ': task poll : %s not routed',
+        <[models.task.cmd]>->(qw| next |)
+    );
+}
+
+return TRUE;
+
+#,,.,,,,,,..,,.,.,...,..,,,,.,..,,,,,,.,.,,,,,..,,...,..,,.,,,..,,,,,,..,,..,,
+#BJPXGRSXSROA27G22V22NDUU7GBU2BYUKNKPFMXQTPNGWHUC7QG7OYCMI3E5LFQL3S22P334NTJKU
+#\\\|KQRNEGBNIEU6USB6Z5KKHV6XZKRK4PUK3VPPNT4EI62VWLJS7A3 \ / AMOS7 \ YOURUM ::
+#\[7]OBXQG4XHYPROVDHFMEHRO3VHJFH7WJYPY7NDC4B2HSMQFRWMLQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

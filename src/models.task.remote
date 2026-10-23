@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = models.task.remote
+# descr = TRUE when tasks come from a remote task zenka
+# note  = TRUE when tasks come from a task zenka other than the local one
+# notes = remote mode : peek before claim [ models.task.dispatch-id ], the
+#         notice stream + fallback poll [ models.task.startup ]
+
+my $task_zenka = <models.cfg.task_zenka> // qw| task |;
+$task_zenka =~ s{^\s+|\s+$}{}g;
+
+return ( length $task_zenka and $task_zenka ne qw| task | ) ? TRUE : FALSE;
+
+#,,..,...,.,.,..,,.,.,.,,,.,.,,..,...,,,,,,.,,..,,...,.,.,,,.,.,,,,.,,..,,..,,
+#MPXULP7NQYXQIVUXJJGBQ4X3IN57GRTPJ4YLNZXV7UDHYMWZGS7GDQBR6QD7AYN5LJTECLLZ3NTXA
+#\\\|XEKV6UP5UQCKKKREKNDAG63IVW3W4NNEZQ5I55OCA2XKMSQ5AHW \ / AMOS7 \ YOURUM ::
+#\[7]LJJHDJEZNA7QWQBDE7QZXBIDQBTSQAF4W7U74QT25FMVM45KZ6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

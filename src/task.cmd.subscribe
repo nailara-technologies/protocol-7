@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = task.cmd.subscribe
+# descr = STRM of new task notices : one id per line
+# note  = STRM of new task notices : one line per new or continued task id
+# notes = unbounded STRM [ no default timeout on purpose ], modelled on
+#         site-yaml.cmd.subscribe-fetched : open until the subscriber goes.
+#         task.cmd.create \ task.cmd.continue push each id to every open
+#         stream [ task.notice.push ] beside the local models.task-notify ;
+#         a models zenka on another host [ models.cfg.task_zenka ] peeks and
+#         claims from it. no backlog : the subscriber polls 'next' for that
+
+## caller identity / extra args are not trusted for anything here : the ##
+## frames simply flow back over this command's own reply session        ##
+
+my $h = <[base.stream.open]>->(
+    {   'sid'    => $call->{'session_id'},
+        'cmd_id' => $call->{'command_id'},
+        'type'   => qw| STRM |,
+        'total'  => undef,
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => 'stream open refused' }
+    unless defined $h;
+
+push @{ <task.notice_streams> //= [] }, $h;
+
+<[base.logs]>->(
+    1, 'task.subscribe: notice stream open [ sid %d, %d open ]',
+    $call->{'session_id'}, scalar @{<task.notice_streams>}
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,,.,.,.,.,.,,,.,,,.,.,.,,,.,,.,,,,.,,.,,,,.,..,,...,.,,,,.,,..,,..,,,.,,,,.,
+#OFGGHZXMP3DQ43TX2LTD2LDQMDGBDWGSZLF4ADYAJ2KAIVMFUFQ2CUJSOFZMAFSMQSOYYBYGBG43K
+#\\\|WZKVVLGV2TL7DSYMZW4IWK576SGIGQ5KMK5XE465IIQAGOJ6J3L \ / AMOS7 \ YOURUM ::
+#\[7]CNJYUOGQIPD4VIZ7K4XZWRJLETHJMR4DNBEEUSHMSXOOY5N7O2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = models.handler.task-stream
+# descr = reply handler for the task notice STRM
+# note  = reply handler for <task_zenka>.subscribe : register the STRM
+#         consumer that feeds each announced task id to the peek chain
+# notes = same shape as jobsite.handler.fetched-stream. each frame is one
+#         line with a new task id -> models.task.dispatch-id [ remote : peek,
+#         claim only what this host serves ]
+
+my $reply = shift // {};
+
+my $state = <models.task.stream> //= {};
+
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        0,
+        ': task notice stream : subscribe refused : %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    $state->{'since'} = undef;
+    <[models.task.subscribe-retry]>;
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if ( $reply->{'args'} // '' ) ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+my $registered = <[strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            ## whole lines only : a frame split across stream chunks stays ##
+            ## in the buffer until its newline arrives                     ##
+            while ( $lc->{'buf'} =~ s|^([^\n]*)\n|| ) {
+                my $line = $1;
+                $line =~ s{^\s+|\s+$}{}g;
+                next if not length $line;
+
+                if ( $line !~ m|^[A-Z0-9]{7}$| ) {
+                    <[base.logs]>->(
+                        1,
+                        ': task notice stream : frame ignored [ %s ]',
+                        substr( $line, 0, 42 )
+                    );
+                    next;
+                }
+
+                <[base.logs]>->( 2, ': task notice : %s', $line );
+                <[models.task.dispatch-id]>->($line);
+            }
+        },
+        'on_eof' => sub {
+            ## stream closed [ task zenka restart or peer gone ] : the poll ##
+            ## tick resubscribes after the backoff. a close for an older    ##
+            ## stream [ dropped after a silent link ] leaves the newer one  ##
+            return
+                if ( $state->{'cmd_id'} // -1 ) != $cmd_id;
+            $state->{'subscribed'} = FALSE;
+            $state->{'since'}      = undef;
+            $state->{'cmd_id'}     = undef;
+            <[models.task.subscribe-retry]>;
+            <[base.logs]>->(
+                1, ': task notice stream : closed [ cmd_id=%d ]', $cmd_id
+            );
+        },
+    }
+);
+
+if ( not $registered ) {
+    $state->{'since'} = undef;
+    <[models.task.subscribe-retry]>;
+    return;
+}
+
+$state->{'subscribed'} = TRUE;
+$state->{'cmd_id'}     = $cmd_id;
+$state->{'since'}      = undef;
+$state->{'delay'}      = undef;     ## backoff starts over ##
+
+<[base.logs]>->(
+    1, ': task notice stream : consumer registered [ cmd_id=%d ]', $cmd_id
+);
+
+return;
+
+#,,..,.,.,.,.,,,,,,.,,,,.,.,.,...,..,,...,...,..,,...,..,,.,,,,,.,,.,,..,,...,
+#OHAD7NKAGFFQL3EZIG2QWXV5Q3AD3Q5EML6OMD67UYUVC62JRKRJ7RV4VWOGJ6BEBRYWDWJSXOP6I
+#\\\|YPFZLWB3ZTB3PRNDSODUNWFFKBMNDASNPFEEUKNCFEKLUHGSSSM \ / AMOS7 \ YOURUM ::
+#\[7]JWNLTB7K5GUZPTYWLEUIGWM37OXLSGGO2LOKSIB2F2PK6AOSYIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

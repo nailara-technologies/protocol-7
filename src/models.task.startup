@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = models.task.startup
+# descr = arm the remote task notice stream + fallback poll timer
+# notes = called from cfg/zenki/models/zenka.v7 after the privilege drop
+#         and from models.init_code on a reload only [ $reinit ]. a
+#         local task zenka [ default 'task' ] arms nothing : it notifies
+#         models.task-notify itself. the timer's first tick subscribes,
+#         every tick polls '<task_zenka>.next' and retries a dropped or
+#         unanswered subscription [ models.task.subscribe ]
+
+## a reload re-arms : cancel the running timer, never two side by side ##
+my $old_timer = <models.task.poll.timer>;
+$old_timer->cancel if defined $old_timer and $old_timer->is_active;
+<models.task.poll.timer> = undef;
+
+return FALSE if not <[models.task.remote]>;
+
+my $interval = <models.cfg.task_poll_interval> // 30;
+$interval = 30 if $interval !~ m|^\d+$| or $interval < 5;
+
+<models.task.poll.timer> = <[event.add_timer]>->(
+    {   'after'    => 3,
+        'interval' => $interval,
+        'repeat'   => TRUE,
+        'handler'  => qw| models.handler.task-poll |,
+    }
+);
+
+<[base.logs]>->(
+    1, ': remote task zenka %s : notice stream + %d s poll armed',
+    <models.cfg.task_zenka>, $interval
+);
+
+return TRUE;
+
+#,,,,,,,.,,.,,.,.,.,.,...,,,.,,..,,..,,,,,,..,..,,...,..,,..,,,,,,..,,,,.,,..,
+#F6EZUMJYETDCTPJYNSADPWWT4HULJ6EGC62UGMKET4ADYNSOOUHPNA2JMMU53YVCSBXK4FRDUCPXU
+#\\\|N2DNYZW5UEY2GU4HPTC5NZDUF7KZ6MOTJSPODIK33HOFE4NV5HV \ / AMOS7 \ YOURUM ::
+#\[7]J52JUOOLISIKPG2WR2XYNYRHKNQKEOEIFUQH6XGG5DUCUZH3CWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

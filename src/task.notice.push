@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = task.notice.push
+# descr = push a new task id to every open notice stream
+# note  = push a new task id to every open notice stream [ task.subscribe ]
+# param = <task_id>
+# return = number of streams the id reached
+# notes = closed handles [ subscriber session gone ] are pruned here
+
+my $task_id = shift // '';
+
+return 0 if not length $task_id;
+
+my $streams = <task.notice_streams> // [];
+return 0 if not @{$streams};
+
+my $frame = "$task_id\n";
+my @alive;
+
+for my $h ( @{$streams} ) {
+    if ( <[base.stream.push]>->( $h, \$frame ) ) {
+        push @alive, $h;
+    } else {
+        ## subscriber session gone : drop its handle ##
+        <[base.logs]>->(
+            1,
+            ':. task notice stream subscriber gone [ sid %s ], dropped',
+            $h->{'sid'} // qw| ? |
+        );
+    }
+}
+
+<task.notice_streams> = \@alive;
+
+<[base.logs]>->(
+    2, ':. task notice %s pushed to %d stream%s',
+    $task_id,
+    scalar @alive,
+    @alive == 1 ? '' : 's'
+);
+
+return scalar @alive;
+
+#,,.,,,.,,.,,,..,,,.,,,,,,,,,,,..,,,,,.,.,,..,..,,...,...,...,,,.,.,,,.,,,...,
+#7IXQ6O2745GMH2R5VC7JCE5LXVDZPXHX5Q7QGJJEA2YBATLCNMLIVS7DMBRHF3TV7ULHNEYV276GK
+#\\\|R64VP2RBENV4HVBDKECFARENCIY4DVT3HF2E73KDD3XMM3E5BFK \ / AMOS7 \ YOURUM ::
+#\[7]AGSRKOKGGLD7H6QGTVM33OVFJ3JX47HGO7OKFHO34NBRFUB74QCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

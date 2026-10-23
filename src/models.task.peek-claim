@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = models.task.peek-claim
+# descr = remote task : check its model pin, then claim
+# note  = remote task, model served here : check its ':model:' pin, then
+#         claim it [ step 'peek-claimed' of models.handler.task-poll-step ]
+# param = { task_id, model, prompt, target_cmd, model_pin }
+# notes = a pin this host does not serve without a swap leaves the task
+#         pending for its owner [ a foreign pin would make the local gpu
+#         server kill + respawn per task ] -- logged once per pinned key.
+#         loaded models unknown : asks coding.inference-status first
+
+my $peek    = shift              // {};
+my $task_id = $peek->{'task_id'} // '';
+my $pin     = $peek->{'model_pin'};
+
+my $accepted = <[models.task.pin-accepted]>->($pin);
+
+if ( $accepted == UNKNOWN ) {
+    my $sent = <[protocol-7.route-send]>->(
+        {   'command' => qw| coding.inference-status |,
+            'reply'   => {
+                'handler' => 'models.handler.task-poll-step',
+                'params'  => { %{$peek}, 'step' => 'peek-models' }
+            }
+        }
+    );
+    return TRUE if $sent and $sent > 0;
+
+    ## not routed : known as nothing for 60 s, no retry storm ##
+    <models.task.local_models> = { 'at' => time, 'ids' => [] };
+    $accepted = FALSE;
+}
+
+if ( not $accepted ) {
+    my $skipped = <models.task.pin_skipped> //= {};
+    <[base.logs]>->(
+        $skipped->{$pin}++ ? 3 : 1,
+        ': remote tasks pinned to %s left pending : '
+            . 'not served here without a swap [ first : %s ]',
+        $pin,
+        $task_id
+    );
+    return FALSE;
+}
+
+<[protocol-7.route-send]>->(
+    {   'command'   => <[models.task.cmd]>->(qw| claim |),
+        'call_args' => {
+            'args' => sprintf '%s %s',
+            $task_id, <models.cfg.task_agent> // qw| models |
+        },
+        'reply' => {
+            'handler' => 'models.handler.task-poll-step',
+            'params'  => {
+                'step'       => 'peek-claimed',
+                'task_id'    => $task_id,
+                'model'      => $peek->{'model'},
+                'prompt'     => $peek->{'prompt'},
+                'target_cmd' => $peek->{'target_cmd'}
+            }
+        }
+    }
+);
+
+return TRUE;
+
+#,,,.,,.,,..,,,,.,.,.,..,,.,.,.,.,...,.,,,,,.,..,,...,...,..,,...,.,.,..,,,..,
+#TXAZG5IPVNES3XG56H7RTS7QP7UEU5ZSNEVV5I67K5WAACFH4SBECMQAAEAYZQPZL34YYNHYJHEJY
+#\\\|73ZUNU2OC3WAYL7IRPIBP63QOHEBDJK7EHE5XVSODC3QAJR2MZV \ / AMOS7 \ YOURUM ::
+#\[7]QO2FAOHMLEM5FBGJGXVLNMA7H4C5QGOXXE6S73QANEAUDURHW4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
