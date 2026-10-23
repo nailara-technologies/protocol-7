@@ -42,10 +42,11 @@ my %tracking = (
     %$reply_params
 );
 
-## dispatch via route-send ##
+## dispatch via route-send : the payload marked ':B32:', receivers no ##
+## longer guess [ coding.input.decode, kimi.cmd.ask-reply ]           ##
 my $sent = <[protocol-7.route-send]>->(
     {   'command'   => $target_cmd,
-        'call_args' => { 'args' => $encoded },
+        'call_args' => { 'args' => ':B32:' . $encoded },
         'reply'     => {
             'handler' => $reply_handler,
             'params'  => \%tracking
@@ -80,8 +81,8 @@ return {
     }
 };
 
-#,,..,.,.,.,.,,..,,..,,,,,.,.,,,.,,.,,,,.,,,.,..,,...,...,...,,..,,,,,,,,,.,,,
-#JPU4WARXBW4A2ECRJDPPFGB4WGB6QV5BVPKWL76XSKI7MN634DQW6VHTQWWA4O7NN7B4YLYOYPLQK
-#\\\|SMPCG6EMTRE7CP64DS2POABWDZM4I4SGGYI32UBLCQSYAT3KZL7 \ / AMOS7 \ YOURUM ::
-#\[7]IXASLQGUGVNSZAVWOORYSZMZKMT64R2YHPJIHQKNOI3REXS3HSCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,,,,,...,.,,,.,,,,,.,,.,,..,,..,,...,...,...,...,,,,,,..,.,,,
+#E3HWLH5YBDMC5T2VSGEQHFGGMFNSDUYQBGFLRXQW6B6ICBVFUDBTVTSBEPHRWFXRPEKFWOTDNBWYW
+#\\\|PXKROK6OOJLQATYAMCTY6FCMQTNBZ7WSIK6HE2CPLUQX35TSFOX \ / AMOS7 \ YOURUM ::
+#\[7]MTC3V6L5FVCDTDGYGSFLIBV6PDTOTEWXDJKMZMCGNMBNSNAU2GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

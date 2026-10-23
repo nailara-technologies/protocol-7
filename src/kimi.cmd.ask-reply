@@ -19,14 +19,18 @@ unless ( length $prompt ) {
     return { 'mode' => qw| false |, 'data' => 'prompt required' };
 }
 
-## check for :next: prefix : fresh session before dispatch
-my $wants_next = $prompt =~ s{^:next:\s*}{};
-
-## decode base32r if the string looks encoded
-if ( $prompt =~ m{^[2-9A-Z]+$} ) {
+## decode base32r FIRST : a ':B32:' payload [ models, context ] or, from   ##
+## older callers, a string that looks encoded. ':next:' travels inside the ##
+## payload [ models.task.fallback-direct ] and was never seen while this   ##
+## checked it before decoding [ 2026-10-23 ]                               ##
+my $b32_marked = $prompt =~ s{^\s*:?B32:[ \t]*}{};
+if ( $b32_marked or $prompt =~ m{^[2-9A-Z]+$} ) {
     my $decoded = eval { Crypt::Misc::decode_b32r($prompt) };
     $prompt = $decoded if defined $decoded and length $decoded;
 }
+
+## check for :next: prefix : fresh session before dispatch
+my $wants_next = $prompt =~ s{^:next:\s*}{};
 
 if ($wants_next) {
     ## store deferred FIRST : before any calls that might trigger event loop
@@ -149,8 +153,8 @@ if ( defined $task_id ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,.,,,..,.,,,...,,.,,.,.,,,,,,..,,..,,.,,.,.,...,...,...,,..,..,,,,,,..,,
-#L76SZOVRJGHLJ3D2I2VPLHAC2VCDKEH7XHJLCPICMKCOJOGIV7DMKCGTUZ65GKZS3IKIXCRYTQBGM
-#\\\|3AJABJXYBTVY55DCPFOLENDLMCXUXM5YIQPAMXYRMME6WZCDAW7 \ / AMOS7 \ YOURUM ::
-#\[7]5ONC3564DJHYTB5HZEO57G6TZJZN3S6SFI3RMEABGVYZEZVGH4AA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,..,,,,,,.,,,..,,.,.,,,,,,..,..,,.,.,...,...,..,,.,,,..,,,,,,.,.,
+#URZU27ZEE4CVII65TUB3ATQFNWSCFMTY4R2V332XZOIHZELXJGT4P6EFV237HB22FF4RI3FWRWDUG
+#\\\|DHQIVSZDDFQVSRMXPG4CZVFIBUXAAG7O3HFQ5MW7TG3EX63PG4C \ / AMOS7 \ YOURUM ::
+#\[7]4BAWNXKISKU4IMCDVAXSZ7DZYXPD7RWZCPZQQTQVXB24BCCMNWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

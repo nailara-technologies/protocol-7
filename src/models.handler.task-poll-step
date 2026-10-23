@@ -151,10 +151,17 @@ if ( $step eq 'show' ) {
         }
         $prompt .= sprintf "user: %s", $description;
     } else {
-        $prompt = sprintf "[task %s]\n%s", $task_id, $description;
+        $prompt = $description;
     }
 
     $prompt .= "\n\n$context" if length $context;
+
+    ## a single task's tag goes LAST : the text before it is then the same ##
+    ## from task to task [ an assessment's preamble and profile ], and the ##
+    ## backend reuses its prompt cache for it -- in front it cut every     ##
+    ## prefix at the first line [ 2026-10-23 ]. a continuation keeps it as ##
+    ## the heading of its turns                                            ##
+    $prompt .= sprintf "\n\n[task %s]", $task_id if not @history_turns;
 
     ## model to backend command mapping
     my %backend_cmd = (
@@ -242,8 +249,8 @@ if ( $step eq 'check-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,.,,.,,,.,,,,,.,,.,,,,.,.,,,...,...,.,,,,,.,.,.,...,...,,.,,...,..,,,.,,.,,,
-#IWBK5COVMZN2W5ZT55INGVHK4SOARKYDW4M3CATHZNXGTS35T5NA3RRA7VOQFE4W3RFZ6J6JY2CSM
-#\\\|RTIO7PDDEOU77N7AEGMTIRY3L7WGLMUC447NAC7W5QPBVA3Z4MI \ / AMOS7 \ YOURUM ::
-#\[7]ZHWLS7T2I3ZDRDBIMCXQ5GEB7266HYGZHMKEX5C2X2MDKETS5UBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,.,,..,.,.,,..,...,,,,,.,,,.,.,.,.,...,...,...,...,.,,,,.,,..,,
+#WRPBEIYISM5TV3CEHMGGXB4BEYIBWSZFJVXR5GZWNKTAJ53KBEDRC44LW63NI5M5XAP2ZNI2WHLSO
+#\\\|GUNXMIUYO4G2BCEVIXRDGIGRRE5UDOXXVQC4DAT7VKHI7IM2QPU \ / AMOS7 \ YOURUM ::
+#\[7]J7HQAPHI3DKPEQ6BY2H6PFURYXPFO3IUH227DBQMNCRYVCSV7CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
