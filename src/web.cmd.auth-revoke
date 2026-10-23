@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = web.cmd.auth-revoke
+# descr = revoke web session tokens [ admin only ] :
+#         web.auth-revoke <user_id | token hash>
+# note  = a user id revokes all of that user's active sessions, a token
+#         hash [ 13 chars, the session's directory name ] exactly one.
+#         each goes through plugin.web.auth.destroy_session [ the expired
+#         bucket, pruned later ] -- the same path as a logout
+
+my $args_str = ref $call eq qw| HASH | ? ( $call->{'args'} // '' ) : '';
+
+return { 'mode' => qw| false |, 'data' => 'denied : admin only' }
+    if not defined <[plugin.web.auth.admin_caller]>->(qw| web.auth-revoke |);
+
+my ($target) = split m|[ \t]+|, $args_str;
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: web.auth-revoke <user_id | token hash>'
+    }
+    if not defined $target
+    or $target !~ m|^[\w.+-]+$|;
+
+my $active_dir = <[plugin.web.auth.session.path]> . '/active';
+opendir my $dh, $active_dir
+    or return { 'mode' => qw| false |, 'data' => 'no session store' };
+my @hashes = grep { m|^[A-Z0-9]{13}$| and -d "$active_dir/$ARG" } readdir $dh;
+closedir $dh;
+
+my $by_hash = $target =~ m|^[A-Z0-9]{13}$| ? TRUE : FALSE;
+my @matched
+    = $by_hash
+    ? grep { $ARG eq $target } @hashes
+    : grep {
+    ( ( <[plugin.web.auth.session.read]>->($ARG) // {} )->{'user_id'} // '' )
+        eq $target
+    } @hashes;
+
+my $revoked = grep { <[plugin.web.auth.destroy_session]>->($ARG) } @matched;
+
+<[base.logs]>->(
+    1, 'web.auth-revoke : %s -> %d of %d session%s revoked',
+    $target, $revoked, scalar @matched, @matched == 1 ? '' : 's'
+);
+
+## nothing to revoke is no failure ; a match that stayed is ##
+my $ok = ( $revoked or not @matched ) ? TRUE : FALSE;
+
+return {
+    'mode' => $ok ? qw| true | : qw| false |,
+    'data' => @matched
+    ? sprintf( '%d of %d session%s revoked [ %s ]',
+        $revoked, scalar @matched, @matched == 1 ? '' : 's', $target )
+    : sprintf( 'no active session for %s', $target ),
+};
+
+#,,.,,,,.,,..,.,,,.,,,..,,..,,,,,,.,.,,,.,,..,..,,...,.,.,.,.,.,.,,..,..,,.,.,
+#XKVPC2E2QJEVVR5KUSVSRCTJELZTLXPLMKLNASZ7TLHYUYYBO3BE4U3K4TJWG26Q36GL2IK37FMOS
+#\\\|LYHY2R5WSJDBBPO6RU2QXYPKRV3K4IZJYGCFE7E3PLTOIKP7SAA \ / AMOS7 \ YOURUM ::
+#\[7]M643ILV6XRZZWHV4TOTR6JQTAAEAIQALBFMM2NIIYNMAQQCYYWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
