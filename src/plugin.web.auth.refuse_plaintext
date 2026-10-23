@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = plugin.web.auth.refuse_plaintext
+# param = <http session id>
+# descr = answer 403 on a connection a token must not travel on, before
+#         any token is read ; TRUE when it answered [ the handler returns ]
+
+## for the /auth/* handlers of httpd \ httpsd [ login, logout, status ] :   ##
+## the same json form as their own answers. the token in such a request is  ##
+## already exposed -- refusing does not unsee it, but no session is made or ##
+## confirmed from it [ plugin.web.auth.secure_transport ]                   ##
+
+my $http_sid = shift // return FALSE;
+
+return FALSE if <[plugin.web.auth.secure_transport]>->($http_sid);
+
+my $json_str = '{"ok":false,"error":"https required"}';
+
+<[base.logs]>->(
+    1, '[%d] auth request over ' . 'plain http : refused', $http_sid
+);
+
+$data{'session'}->{$http_sid}->{'buffer'}->{'input'} = '';
+$data{'session'}->{$http_sid}->{'http'}->{'close'}   = 1;
+$data{'session'}->{$http_sid}->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->(
+    403,
+    {   'Content-Type'   => qw| application/json |,
+        'Content-Length' => length($json_str),
+        'Connection'     => qw| close |,
+    }
+    ) . $json_str;
+
+return TRUE;
+
+#,,.,,,,.,,..,...,,,.,.,,,,.,,...,,,.,.,.,...,..,,...,...,...,...,.,,,,,.,.,,,
+#ST6TZVMYVGR2IAC5CSJE55MMZMJ3D7DVT56SL5G66N26W2KOTKMHXMU6J7CNECATOZLG5LF4SBY7Y
+#\\\|HF7QMTA2264HPCFCDVUEBGF7JYO3GEBO2SF373XZ3BSQDQ2SPZ3 \ / AMOS7 \ YOURUM ::
+#\[7]QAKBLVJISQYU5RL4AWD37TOXJ2JMBCII4RXBWXFSFQ6NOVLBE2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

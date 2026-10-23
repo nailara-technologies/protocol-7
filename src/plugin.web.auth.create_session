@@ -27,9 +27,14 @@ my $ntime   = <[base.ntime.b32]> // '';
 ## public fields [ q1 of data/tasks/web-ui-user-login.md stage 0 ]        ##
 my $entropy = unpack qw| H* |, <[base.prng.bytes]>->(32) // '';
 
-## token = AMOS checksum of (node_id + ntime + user_id + secret + entropy) ##
-## -- old tokens stay valid : only the hash is stored                      ##
-my $token = <[chk-sum.amos]>->("$node_id $ntime $user_id $secret $entropy");
+## token = BMW-L13 of (node_id + ntime + user_id + secret + entropy) : 13   ##
+## base32 characters, 2^65 values -- the AMOS checksum it was gave 7, a     ##
+## 2^35 space a scan could reach                                            ##
+## [ 2026-10-23, data/md/design/LOGIN- ADMISSION.md section 1 ]. old tokens ##
+## stay valid : only the hash of a token is stored, and the login hashes    ##
+## whatever it is given                                                     ##
+my $token
+    = <[chk-sum.bmw.L13-str]>->("$node_id $ntime $user_id $secret $entropy");
 return undef if not defined $token;
 
 my $token_hash = <[chk-sum.bmw.L13-str]>->($token);
@@ -69,8 +74,8 @@ return {
     'expires_at_epoch' => $session_data->{'expires_at_epoch'},
 };
 
-#,,,,,.,.,..,,,.,,,,.,..,,,.,,,,.,,,.,,..,.,,,..,,...,...,.,.,,,,,,..,...,,..,
-#GSAZ23NAONDAKQTQ2ODRPL27KYIAKPPQW46AVYCZM5IOQIVN6S6GE6ZTRFAJW5DETEAJTBYGTIROU
-#\\\|OCXTL25LIXDATPIGOK43PQO6URZJJSEJ54SGCYOKIX5SBMI377M \ / AMOS7 \ YOURUM ::
-#\[7]CFGCDEJ37CP5EYES6U52VGSABBLB7BSB56IF4H4BC6456PDZRIDI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,.,,,,.,,...,.,,,...,,,,,,..,,,.,..,,...,..,,..,,...,.,,,,,,,,,,,
+#7QIYYE2NLW63N36QO3OZ23U32AMTM432LPZKFVCB6KRW3PBRPBESHLFNNF26IXTJYMGWMCIE7Y3FA
+#\\\|VWPBPS3RXDKH2O4GODUPS2LTCAWO7Y7MSRZIGKZJ57Z3JGYZD6B \ / AMOS7 \ YOURUM ::
+#\[7]NVO4GNEYPRXEXNB44M5CZGFPJHIPVHUR7IWPUU36HXQPOPOJ5MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

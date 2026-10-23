@@ -36,11 +36,15 @@ my @matched
         eq $target
     } @hashes;
 
-my $revoked = grep { <[plugin.web.auth.destroy_session]>->($ARG) } @matched;
+my $revoked
+    = grep { <[plugin.web.auth.destroy_session]>->( $ARG, qw| hash | ) }
+    @matched;
 
 <[base.logs]>->(
-    1, 'web.auth-revoke : %s -> %d of %d session%s revoked',
-    $target, $revoked, scalar @matched, @matched == 1 ? '' : 's'
+    1,       'web.auth-revoke : %s -> %d of %d session%s revoked',
+    $target, $revoked,
+    scalar @matched,
+    @matched == 1 ? '' : 's'
 );
 
 ## nothing to revoke is no failure ; a match that stayed is ##
@@ -49,13 +53,17 @@ my $ok = ( $revoked or not @matched ) ? TRUE : FALSE;
 return {
     'mode' => $ok ? qw| true | : qw| false |,
     'data' => @matched
-    ? sprintf( '%d of %d session%s revoked [ %s ]',
-        $revoked, scalar @matched, @matched == 1 ? '' : 's', $target )
+    ? sprintf(
+        '%d of %d session%s revoked [ %s ]',
+        $revoked,
+        scalar @matched,
+        @matched == 1 ? '' : 's', $target
+        )
     : sprintf( 'no active session for %s', $target ),
 };
 
-#,,.,,,,.,,..,.,,,.,,,..,,..,,,,,,.,.,,,.,,..,..,,...,.,.,.,.,.,.,,..,..,,.,.,
-#XKVPC2E2QJEVVR5KUSVSRCTJELZTLXPLMKLNASZ7TLHYUYYBO3BE4U3K4TJWG26Q36GL2IK37FMOS
-#\\\|LYHY2R5WSJDBBPO6RU2QXYPKRV3K4IZJYGCFE7E3PLTOIKP7SAA \ / AMOS7 \ YOURUM ::
-#\[7]M643ILV6XRZZWHV4TOTR6JQTAAEAIQALBFMM2NIIYNMAQQCYYWBI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,..,,..,,,,.,..,,,..,.,,,,.,,...,..,,...,...,,,.,,..,..,,,.,,...,
+#ALYHKX5KHNUXKHRTHTVURTLB34SD2MTQSZ4MHSHOKQUP2QUIYPRBWESGJ6L7L5QN3DZKKXJOU6FXU
+#\\\|UWLDYLBZBN4TWRFXMY2LMMHK75JRCQVM7DNWTCQC2NVH4G46FZT \ / AMOS7 \ YOURUM ::
+#\[7]SPG4X4NZJYTERXOVLGJ7F5RQ2GOJIQGTM4TLECUYBK37J5COKKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
