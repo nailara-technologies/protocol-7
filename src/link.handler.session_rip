@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = link.handler.session_rip
+# descr = a managed link's session closed under us
+# param = <Event> [ base.session.check.close : w->data is the sid ]
+#
+# fast death detection [ the design's 'no orphans' and liveness rows ] :
+# the remote cube restart, a revoke-link, a dead path noticed by ssh's
+# ServerAlive -- all of them close the session and land HERE long before
+# the next heartbeat timeout. only supervised, still-'up' links act ;
+# teardowns already detached the sid from <link.sids>, so a rip arriving
+# mid-teardown finds nothing [ the retry is scheduled once, by the side
+# that saw the death first ].
+
+my ($event) = @ARG;
+
+my $sid = $event->w->data;
+return FALSE if not defined $sid;
+
+my $name = <link.sids>->{$sid} // return FALSE;
+delete <link.sids>->{$sid};
+
+my $entry = <external.links>->{$name} // return FALSE;
+return FALSE if ( $entry->{'state'} // '' ) ne qw| up |;
+
+<[base.logs]>->(
+    1,     ': link %s : session %d closed, reconnecting',
+    $name, $sid
+);
+
+return <[link.supervisor.link_down]>->( $name, qw| session closed |, FALSE );
+
+#,,,.,...,,,,,,..,...,...,.,.,...,...,,,.,.,,,..,,...,...,.,,,,..,,..,,.,,,,.,
+#UIVCCKP5DB7TSWTCUEMY6XYH6ORJXQGRAAZHDZZDKRCEXN4JB6ZQRK7Z4MFNKJJCIMQ5XFVJEASFO
+#\\\|OYA5YTUCSZZEAMIU2AQ32C76HQNQROJFUCF4YFC2Z63UTJRK5XF \ / AMOS7 \ YOURUM ::
+#\[7]FJPCIKK2R7D2DM6PPESZFOLUKEL7WGCNTR5DJDURNHHDOCNBTGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

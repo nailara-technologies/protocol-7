@@ -348,6 +348,28 @@ if ($give_up) {
     delete $job_rec->{'repair_attempted'};
 }
 
+## the description-check flags                                              ##
+## [ jobsite.dispatch.assessments, desc-refetch-queued ] were never cleared ##
+## : a job flagged earlier kept its 'fehler' badge after a later reassess   ##
+## succeeded. clear them on a clean pass whose description now passes the   ##
+## same check -- a bad one keeps the flag, a hallucinated score must not    ##
+## hide it                                                                  ##
+if ( not $give_up and <[jobsite.util.description_ok]>->($job)->{'ok'} ) {
+    for my $flag (
+        qw| desc_check_failed desc_check_reason
+        desc_refetch_attempted |
+    ) {
+        delete $job->{$flag};
+        delete $job_rec->{$flag};
+
+        ## the persistent store too : job-upsert's preserve list would ##
+        ## bring the flag back on the next re-upsert of the posting    ##
+        delete <jobs.store>->{$job_id}{$flag}
+            if ref <jobs.store> eq 'HASH'
+            and ref <jobs.store>->{$job_id} eq 'HASH';
+    }
+}
+
 <[jobsite.job.write]>->( $job_id, $job );
 
 ## add to checksum index for dedup on future scans ##
@@ -358,8 +380,8 @@ if ($give_up) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.release_slot]>->($job_id);
 
-#,,..,.,.,,,.,..,,,,.,,..,...,..,,,,.,,.,,,.,,..,,...,..,,.,,,.,,,..,,.,.,,,.,
-#WWZMBDTDGH5ARRLWHGDFXHJLD4HIEDRUWMXK2DRGRU3IDRXAD4XWBSGKHGXQAQM2OS62AZPCK666M
-#\\\|U7NWXRY6XBAM3AMBHVHACD2JM7FNIBASNZKT3QADTWCRHBYS6PO \ / AMOS7 \ YOURUM ::
-#\[7]G75W3RP3YAXGIONL7B6UYL2V6D7TKLMZUOWL5KUS7F4LLLUOE6BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,,.,,,..,...,.,.,,,,,.,,,,,,,..,,...,...,.,.,,,,,,,.,.,,,.,,,
+#MMOJDLJ536LR6LTKBVOMTFUQGULQMMCZSRD3UEX4GVZU4ELKRHEJR2QX7FBENLIRNSM6KQUNSSQOQ
+#\\\|GRIBTPC37GDR4V2ZQ25FAR3QUPV6F6TJLSV7OULDLO7EVSPYJRJ \ / AMOS7 \ YOURUM ::
+#\[7]NI4BY3XDO3KA65T4LOBSK2IJWKWPMPYYIDFBF7VJZ4ML5NSUKWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -635,8 +635,86 @@ answered 2026-10-23 : 3 rename the record [ `pri`, the dotted name in
 9. **ssh zenka** : once `ssh2` exists, retire the password bridge and its
    profiles, or keep both ?
 
-#,,,,,.,.,..,,,,.,,,,,,..,...,,,.,...,...,,,,,..,,...,...,..,,.,.,.,,,.,.,.,,,
-#GGFEYLPR377VVVFGRUXDVKRWOXGWLD2K7TYUXU2I7YEQXEZYSCESTGSJTCLU5ACPVVMGHS5NPVDB2
-#\\\|NDM2B5TXWONLPTCDEA6LA2CTWIRMM6SG267AAHHT2X7BAHH74RA \ / AMOS7 \ YOURUM ::
-#\[7]YFVU5LJXMMGHYIGRV4NPJ7OGMRPMXMFSWIIRRF5SYMWDK2NUZ2AQ 7  DATA SIGNATURE ::
+## stage 1 how-to : the ZYH worker's link to pri [ 2026-10-23 ]
+
+built under `link.*`, loaded by external. per the owner's answers :
+the record is a PLAIN name [ 3 : `pri`, the dotted name lives in
+`addresses` ], the transport is `ssh-w` [ 4 ], external is always-on
+[ 6 : in `start-set-up.base`, `start.on-demand` dropped from its
+start.cfg -- less code than gating the on-demand queue ].
+
+### 1. the record, on the worker
+
+host-edit is a form zenka : there is no non-interactive record-set
+command yet, so :
+
+    p7-host-edit start pri
+
+`pri` does not exist yet -> answer `y` at the offer-create prompt,
+then set these fields in the form :
+
+    addresses  = pri.v7.ax          # the dotted name lives here
+    ssh        = <p7-user>@<pri-ssh-host>
+    ssh_port   = <pri ssh port>
+    transports = ssh-w
+    af         = 4
+    link_user  = task-worker
+    roles      = link fetch
+
+submit, then read back :
+
+    p7-host-edit show-form pri
+
+the add-host flow's probe/pin steps stay untouched : the supervisor
+pins on the first managed connect, named `pri_42` [ the record + the
+remote cube port -- never after the dial address ].
+
+a by-hand pin to keep [ e.g. delta's `127.0.0.1_4243` on pri ] goes in
+the record's `pin_from` field, `<host>_<port>` without `.public` : it
+moves onto `<record>_<port>` once, or must hold the same key id when
+that pin exists. nothing is moved without it -- with several links a
+by-hand pin cannot be told apart, a wrong guess pins the wrong key.
+
+a link name is one segment [ no dots ] : the supervisor refuses a
+dotted record with role `link`. records are written 0640, group = the
+zenka user's group [ hosts/ setgid 02750 ] : external reads them as
+the zenka user, host-edit writes them as the invoking user. records
+written before need it once by hand [ `chgrp -R protocol-7` + `chmod`
+on /var/protocol-7/host-edit ].
+
+### 2. authorize the worker on pri [ the receiving side ]
+
+two public keys leave the worker : its cube key [ the b32 public half
+of the protocol-7 user's `<user>.base` ] and its unattended ssh key
+[ `ssh-ed25519`, the protocol-7 user's own -- never the owner's ].
+on pri, once both are at hand :
+
+    p7c external.authorize-link task-worker <cube-b32> ssh-ed25519 <b64>
+
+the worker's protocol-7 user also needs pri's ssh host key in its
+`known_hosts` : ssh runs with `BatchMode=yes`, an unknown host key
+fails as a transport error and the link backs off forever. seed it once
+by hand as that user [ `sudo -u protocol-7 ssh <p7-user>@pri.v7.ax
+true`, compare the fingerprint ].
+
+refused until `access.cmd.usr.task-worker` exists in
+cfg/zenki/cube/access.users [ landed with this stage, next to
+remote-fetch ]. undo :
+
+    p7c external.revoke-link task-worker
+
+### 3. both sides up
+
+external starts with the always-on set and opens the link at once ;
+the supervisor log line names the session. heartbeats every 4.7 s
+keep it, transport failures back off [ 0.5 s doubling to 30 s ],
+trust failures stop at state `refused` and are logged -- never a
+retry spin, never a re-pin. routing is unchanged :
+`external.pri.task.<cmd>` from any authorized caller [ models' grant
+for `external.*.task.*` landed in cfg/zenki/cube/access.zenki ].
+
+#,,,,,,.,,.,.,..,,,,,,...,,,,,,..,..,,,,,,,,.,..,,...,..,,.,,,,,,,.,,,.,.,.,,,
+#23CFACS6GYCRMBWFKF726DN2ESMPD4LVOCJWUDGRXYFVXVFT5BMCGNEWIOX2S2ITVAU7OGLGVHVQU
+#\\\|X7MFD6ZIUOL5ZD7VEUCV4AECR4D2L64NREAHCMKEXCBAIMNS7FV \ / AMOS7 \ YOURUM ::
+#\[7]NHCVPVMBWPO66NF45VYGGV2KKWUH632WMK6R6QJKAJKDR32ZVSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

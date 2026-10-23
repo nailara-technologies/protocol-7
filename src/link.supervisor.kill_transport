@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = link.supervisor.kill_transport
+# descr = stop an unused transport child after a failed session
+# param = <transport info hashref> [ // empty ]
+# note  = the mirror of the teardown's child handling for the narrow
+#         case where the transport opened a stream but link.session.open
+#         failed over it : the fd closes [ eof at the child ], TERM
+#         covers the rest. the pid was never stored in the link entry,
+#         so reap it here.
+
+my ($info) = @ARG;
+
+return TRUE if ref $info ne qw| HASH |;
+
+my $pid = $info->{'pid'} // return TRUE;
+kill qw| TERM |, $pid;
+foreach my $try ( 1 .. 20 ) {    ## WNOHANG == 1 [ bounded reap ] ##
+    my $reaped = waitpid( $pid, 1 );
+    last if $reaped == $pid;
+    select( undef, undef, undef, 0.05 );
+}
+kill qw| KILL |, $pid if kill 0, $pid;
+waitpid( $pid, 1 );
+
+return TRUE;
+
+#,,,.,.,.,..,,...,.,.,,,,,.,.,..,,...,...,,..,..,,...,..,,.,.,,..,,,,,..,,,,.,
+#LPKDOWRN322MMG4DS2GNNTOW26LXDRKFWPZQ5UJNHXD7RTXY5HCZZWFTNSKA2PACKZJNAR4Z3M7OO
+#\\\|PPUFGT55GC7WDRSLVBV5WDLF4BVMAJZN7G5P2WVFF5RCTC5ILIY \ / AMOS7 \ YOURUM ::
+#\[7]VDZTAMW77ZHILVOQ653GENUVLIVGAEJQCGPJ2A4IA4XQH727HYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

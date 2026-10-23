@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = link.handler.heartbeat_reply
+# descr = a link heartbeat came back : the path is alive
+# param = <reply hashref> [ sid, cmd, call_args, params ]
+#
+# cancels the heartbeat timeout, records the rtt and resets the backoff
+# counter -- the design resets the backoff 'after a connect that held
+# one full heartbeat', and this reply is exactly that proof. the state
+# stays 'up' [ nothing else to do until the next tick ].
+
+my ($reply) = @ARG;
+
+my $name = $reply->{'params'}{'name'} // '';
+return FALSE if not length $name;
+
+my $entry = <external.links>->{$name} // return FALSE;
+
+my $timers  = <link.supervisor.timers> // {};
+my $watcher = delete $timers->{$name}{'hb_timeout'};
+$watcher->cancel if defined $watcher and $watcher->can(qw| cancel |);
+
+if ( length( $entry->{'hb_sent'} // '' ) ) {
+    $entry->{'last_rtt'} = time - delete $entry->{'hb_sent'};
+}
+$entry->{'attempts'} = 0;
+$entry->{'state'}    = qw| up |;
+
+return TRUE;
+
+#,,.,,,..,,.,,.,.,,,,,,..,,,,,...,,..,,.,,,..,..,,...,..,,.,,,.,.,...,,,,,,..,
+#5OR4NF4WDH66JRLLY4Z5IL7LRJKTTDXA3LXWUEU6MB64VCFIULV6JPSXFJPKMYRJ65Z7GKQCT7ISO
+#\\\|CNJ5Q2WJQ4D76Y3I3TJTWMHDRJO5QNGB5XMYIX3H5MHNWUBDK7D \ / AMOS7 \ YOURUM ::
+#\[7]MBF6RWFPW5UXV7XDDTLVN6XS6TPLXGBXICVTJSQYQHI7T43K2UCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

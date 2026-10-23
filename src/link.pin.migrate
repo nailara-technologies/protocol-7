@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = link.pin.migrate
+# descr = move a by-hand forward pin onto the record name once
+# param = <record name> <cube port> <pin_from>
+# return = TRUE or ( FALSE, <why> ) in list context
+#
+# stage 1 item 6 of LINK-ZENKI-AND-TRANSPORTS.md : the by-hand link
+# pinned the dial address [ servers/127.0.0.1_<forward port>.public ],
+# the managed link pins the RECORD [ '<record>_<cube port>.public' ].
+# the record's 'pin_from' field names the by-hand pin to adopt [ e.g.
+# '127.0.0.1_4243' ] -- never guessed : a by-hand pin of ANOTHER host
+# moved onto this record would pin the wrong key for good.
+#
+# - no pin_from -> TRUE, nothing moves [ first contact pins normally ]
+# - pin_from gone -> TRUE [ moved already, or never there ]
+# - target missing -> rename pin_from onto the record name [ ONCE, no
+#   new TOFU ]
+# - both exist -> the key ids [ first line ] must MATCH, else refuse [
+#   stop and log -- an operator resolves it, the code never re-pins ]
+
+my ( $name, $port, $pin_from ) = @ARG;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( FALSE, $reason ) : FALSE;
+};
+
+return $refuse->('record name not valid')
+    if not defined $name
+    or $name !~ m|\A[a-z0-9][a-z0-9._-]{0,62}\z|;
+return $refuse->('port not valid')
+    if not defined $port
+    or $port !~ m|\A[0-9]{1,5}\z|
+    or $port < 1
+    or $port > 65535;
+
+$pin_from //= '';
+return TRUE if not length $pin_from;
+return $refuse->('pin_from not valid [ <host>_<port>, no .public ]')
+    if $pin_from !~ m|\A[A-Za-z0-9][A-Za-z0-9._-]{0,252}_[0-9]{1,5}\z|;
+
+my $home_dir = <[base.get_homedir]>;
+return $refuse->('no home directory') if not length $home_dir;
+
+my $pin_dir = join( qw| / |, $home_dir, qw| .n remote-keys servers | );
+my $source  = sprintf '%s/%s.public',    $pin_dir, $pin_from;
+my $target  = sprintf '%s/%s_%d.public', $pin_dir, $name, $port;
+
+return TRUE if $source eq $target;
+return TRUE if not -f $source;
+
+## the key id : the pin file's first line [ see auth.client.server_pin ] ##
+my $key_id_of = sub {
+    my $path = shift;
+    open( my $fh, '<', $path ) or return undef;
+    my $first = <$fh>;
+    close($fh);
+    return undef if not defined $first;
+    chomp($first);
+    return length $first ? $first : undef;
+};
+
+if ( -f $target ) {
+    my $target_id = $key_id_of->($target)
+        // return $refuse->("pin $target unreadable [ fail closed ]");
+    my $source_id = $key_id_of->($source)
+        // return $refuse->("pin $source unreadable [ fail closed ]");
+    return TRUE if $source_id eq $target_id;
+    <[base.logs]>->(
+        0,
+        '<< link pin %s contradicts %s [ key ids '
+            . 'differ ] : stopping, resolve by hand >>',
+        $source,
+        $target
+    );
+    return $refuse->("pin $source key id differs from $target");
+}
+
+rename $source, $target
+    or return $refuse->("cannot move $source to $target [ $OS_ERROR ]");
+
+<[base.logs]>->(
+    0, '<< by-hand link pin %s moved to %s [ trust kept, no new TOFU ] >>',
+    $source, $target
+);
+return TRUE;
+
+#,,,,,,,,,.,.,,,.,,.,,,,,,..,,...,,,.,,,.,.,,,..,,...,...,,.,,.,,,.,,,.,.,.,.,
+#GOHXA4N3U5YZZYJRGVIGZTHFCNIKKWNU6LYVGBG5ZSFXNSVW4Z3XXNSOI3PP7HLWKM7YQD6HPNUTC
+#\\\|4QQE4X2Z77Y52J4LL3TIC2DBXYCL7LKPCE63SHFE53VRZ2FHHOR \ / AMOS7 \ YOURUM ::
+#\[7]6MU4BT3RQO7CUFHTZCBPAXDU4VE265HGQJXCIR3JGRQ45MJBQABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

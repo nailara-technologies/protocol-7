@@ -264,8 +264,9 @@ ok( uc( $info->{'cmd'} ) eq qw| TRUE |, 'create_default replied TRUE' );
 
 my $record_path = File::Spec->catfile( $hosts_dir, qw| zz-test.json | );
 ok( -f $record_path, 'zz-test.json exists under the hosts dir' );
-ok( ( File::stat::stat($record_path)->mode & 07777 ) == 0600,
-    'record file mode is 0600' );
+ok( ( File::stat::stat($record_path)->mode & 07777 ) == 0640,
+    'record file mode is 0640 [ group : link supervisor ]'
+);
 my @leftover_tmp
     = ( glob("$hosts_dir/.*.tmp.*"), glob("$hosts_dir/*.tmp.*") );
 ok( scalar @leftover_tmp == 0,
@@ -398,8 +399,8 @@ ok( $envelope->{'fields'}{'name'} eq 'zz-test',
 );
 ok( $envelope->{'created'} == $created,
     'created timestamp preserved across the update' );
-ok( ( File::stat::stat($record_path)->mode & 07777 ) == 0600,
-    'update kept the 0600 mode' );
+ok( ( File::stat::stat($record_path)->mode & 07777 ) == 0640,
+    'update kept the 0640 mode' );
 my @leftover_upd = glob("$hosts_dir/*.tmp.*");
 ok( scalar @leftover_upd == 0, 'no temp file left behind after the update' );
 
@@ -442,8 +443,8 @@ ok( $payload->{'fields'}{'trust'} eq sprintf(
 ok( $payload->{'fields'}{'owner_trust'} eq 'owner pin test-owner present',
     'owner pin presence detected' );
 
-## the RECORD's pin wins over another host's pin at the same address [ ##
-## p-7-r -host names a tunnelled pin after the record ]                ##
+## the RECORD's pin wins over another host's pin at the same address ##
+## [ p-7-r -host names a tunnelled pin after the record ]            ##
 {
     my $record_pin
         = File::Spec->catfile( $servers_dir, qw| zz-test_42.public | );
@@ -538,8 +539,8 @@ if ( $fail_count == 0 ) {
 say sprintf '[ done ] %d passed, %d FAILED', $pass_count, $fail_count;
 exit 1;
 
-#,,.,,,..,,,,,...,,,,,...,.,,,.,,,,.,,.,,,...,..,,...,...,,..,,..,.,,,,..,,,.,
-#W2SSL3VZL4TMCLWAG4SXTOTVA5COL35TIXQYZZOUEEWGR4SORHH5WMS4HKGHU4BFQBUET7WWS3NNE
-#\\\|KFC7FR2C7SMEPF5Z42LM4MDY5IMMZ7K6L66KJOSQBEPMLDWEQCT \ / AMOS7 \ YOURUM ::
-#\[7]SHRPIHUUPGHKPDJ7E7BFIFBZFMZGK56A25PUY4LKP24K62CGGYDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,.,,..,,..,.,,,...,,,,,..,,,..,..,,...,...,.,.,,,.,,,.,..,,.,.,
+#CZGHENLUK635MQNXL26R22IGI4JKQ2CVNR5ATINXABAAFBEDWGGOD2TGDOHAWKDVG6K2CH4TNGZSS
+#\\\|QLIMEBTUQFQ4TIDEWPHSNESU4LNMJXWAN5ILCQWOJV434K6OMO5 \ / AMOS7 \ YOURUM ::
+#\[7]I7FLMT6OMQB5YXMSFSE2P52LMLAV7LBIJ5HB6ZH62KT52DRJOKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

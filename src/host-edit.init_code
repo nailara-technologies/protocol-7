@@ -107,10 +107,21 @@ my $hosts_dir = <[base.path.resolve_keywords]>->(qw| [VAR_P7]/hosts |);
 mkdir $hosts_dir, 0750
     if defined $hosts_dir and not -d $hosts_dir;
 
+## group = the zenka user's group, setgid : the external zenka's link  ##
+## supervisor reads hosts/ [ link.records.list ] -- best-effort, a dir ##
+## owned by another user stays as it is                                ##
+my $zenka_gid
+    = ( getpwnam( <system.amos-zenka-user> // qw| protocol-7 | ) )[3];
+foreach my $dir ( grep {defined} $data_dir, $hosts_dir ) {
+    next if not -d $dir or not -o $dir or not defined $zenka_gid;
+    chown -1, $zenka_gid, $dir;
+    chmod 02750, $dir;
+}
+
 return TRUE;
 
-#,,,,,,..,,,,,.,.,.,.,,..,,,,,,..,..,,..,,...,..,,...,...,.,.,..,,...,.,,,.,.,
-#5F62CUGLT675IXCRATIZVWL5UCVLGERES7HIVXOZORP3IWHELMJQRQLXRS57AKRHPRT5EOPC4SKK2
-#\\\|LLJESBPAW2BFJPEXCXNQLGVTPJD5LDWTVWXQMLCYXQM3EVYYIB5 \ / AMOS7 \ YOURUM ::
-#\[7]AHXKLBYSKM5GXUE7UZ26UFBJNQC7U5SZLJPV4P7DUZTNW4XG5YCI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,.,,,,,.,.,,..,,.,,,.,,..,,..,,..,,...,..,,...,,,,,...,..,,.,.,
+#AB5SRMZFKDHMZDBS5TSBMK2LJRN6SWIYLC2SPMQDDKXVQAFO4UXLDL4GL5WRULSZWZUFRRDM7ZCFU
+#\\\|OXOPVONRZTMZGOS6JT7VW4RMAFYDOA2JD47RTA5E6QEEG26VJ2L \ / AMOS7 \ YOURUM ::
+#\[7]A4SJGEO6KZXTLJH76XKAUAOLCQNC5Y5DCQOWLASL2D5SX6U6J4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

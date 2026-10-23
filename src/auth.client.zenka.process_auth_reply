@@ -1,9 +1,22 @@
 ## [:< ##
 
 # name  = auth.client.zenka.process_auth_reply
+#
+# param = <backend_socket> [, <success_message> [, <result hashref> ] ]
+# note  = the optional result hashref is an OUT-param for the link
+#         supervisor's failure classes [ LINK-ZENKI-AND-TRANSPORTS.md ] :
+#         on failure 'class' is set to trust [ refusal, auth_methods,
+#         protocol mismatch -- the far end spoke and declined ] or
+#         transport [ connection lost, timeout -- the stream died ].
 
 my $backend_socket  = shift;
 my $success_message = shift // 'success., =), cube authorized session.';
+my $result_out      = shift;
+
+my $fail_class = sub {
+    $result_out->{'class'} = shift if ref $result_out eq qw| HASH |;
+    return undef;
+};
 
 my $protocol_messages  = <protocol.protocol-7.connect>;
 my $protocol_banner    = $protocol_messages->{'banner'};
@@ -18,6 +31,8 @@ if (   not defined $backend_socket
         'cannot authenticate [ expecting valid socket ] '
             . <[base.caller]>->(1)
     );
+    return $fail_class->(qw| transport |)
+        if ref $result_out eq qw| HASH |;
     return undef;
 }
 
@@ -28,7 +43,7 @@ if ( my $answer = readline($backend_socket) ) {
     if ( not defined $answer ) {
         <[base.log]>->( 0, '[X] connection lost :|' );
         <[base.logs]>->( 2, '::: [ %s ]', $plugin );
-        return undef;
+        return $fail_class->(qw| transport |);
     } elsif ( $answer eq 'AUTH_TRUE =)' ) {
         <[base.logs]>->( 1, '[*] %s',     $success_message );
         <[base.logs]>->( 2, '::: [ %s ]', $plugin );
@@ -36,7 +51,7 @@ if ( my $answer = readline($backend_socket) ) {
     } elsif ( $answer eq 'AUTH_ERROR `>:|' ) {
         <[base.log]>->( 0, '[#] authentication error >:|' );
         <[base.logs]>->( 2, '::: [ %s ]', $plugin );
-        return undef;
+        return $fail_class->(qw| trust |);
     } elsif ( $answer =~ m|^AUTH_ERROR (\S.*)$| ) {
         ## a refusal with its reason                                     ##
         ## [ auth-keypair : not authorized, TOFU mismatch, .. ] -- not a ##
@@ -44,30 +59,31 @@ if ( my $answer = readline($backend_socket) ) {
         my $reason = substr( $1 =~ s{[^\x20-\x7e]}{}gr, 0, 120 );
         <[base.logs]>->( 0, '[#] authentication refused : %s', $reason );
         <[base.logs]>->( 2, '::: [ %s ]',                      $plugin );
-        return undef;
+        return $fail_class->(qw| trust |);
     } elsif ( $answer eq '>:| timeout' ) {
         <[base.log]>->( 0, '[#] authentication timeout :|' );
         <[base.logs]>->( 2, '::: [ %s ]', $plugin );
-        return undef;
+        return $fail_class->(qw| transport |);
     } elsif ( $answer eq ':| auth_methods' ) {
         <[base.log]>->( 0, '[#] server side auth nethods error :|' );
         <[base.logs]>->( 2, '::: [ %s ]', $plugin );
-        return undef;
+        return $fail_class->(qw| trust |);
     } elsif ( $answer eq '>:| auth_methods' ) {
         <[base.log]>->( 0, '[#] client side auth nethods error :|' );
         <[base.logs]>->( 2, '::: [ %s ]', $plugin );
-        return undef;
+        return $fail_class->(qw| trust |);
     } else {    ##  >:[ speak protocol ? .., ##
         <[base.logs]>->( 0, '[#] protocol mismatch :| [ %s ]', $plugin );
         <[base.logs]>->( 0, '::: \'%s\'',                      $answer );
-        return undef;
+        return $fail_class->(qw| trust |);
     }
 } else {
-    <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
+    <[base.log]>->( 0, '[X] connection lost :|' )
+        and return $fail_class->(qw| transport |);
 }
 
-#,,..,,,.,,..,...,...,.,.,,.,,...,,,.,...,,..,..,,...,...,,.,,.,,,,.,,,.,,..,,
-#E4YHKVGLKUWXGHW3N2SV5R34E5PVMCWT6NXHR4PEM53WR2BAN5UCSJUTMRA3K73EYXGUBQNKCXLBU
-#\\\|2N2YSE7PQ5PNC6J7WQAIPBPPECPMN35WHJN55QCI6CXL2IUXIMN \ / AMOS7 \ YOURUM ::
-#\[7]CDU7R3YEXASHUX2ZKM3VD4AFBJEGM32NSFA3DNCCHPKKHJBTKGBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,.,.,,..,,..,,.,,.,,,.,.,,..,..,,...,...,...,,.,,.,,,,,.,.,.,
+#ITNLEARZLYCWHBZA7KTU2H3OBI2XZYSAIP4K765L7YQTBYRPWMGSCU25WG3KUPS47UQG7ZICQZL6W
+#\\\|AUGM2OTQAC3GZBEASLBGDZ27LYSA4AGOXEE6DKQ7SKBEYSPBQK2 \ / AMOS7 \ YOURUM ::
+#\[7]YE4JLLFLNOXLVGBTEJMULGVH654N7K4DN2H732K5Y4P4D5JKSQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

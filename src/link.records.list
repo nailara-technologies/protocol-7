@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = link.records.list
+# descr = host records carrying a given role
+# param = <role> [ e.g. qw| link | ]
+# return = list of { name, fields } envelopes
+#
+# the supervisor's scan [ LINK-ZENKI-AND-TRANSPORTS.md stage 1 ] : every
+# host record with role 'link' becomes a managed link. records live in
+# host-edit's own var dir [ HOST-SETUP.md decision 2 :
+# /var/protocol-7/host-edit/hosts/<name>.json ] -- read HERE, not through
+# host-edit.record.* : [VAR_P7] resolves per-zenka, so host-edit's
+# modules loaded into external would look in external's dir. names are
+# re-validated with the host-edit.record.name_valid rule [ mirrored
+# below ] before touching disk ; unreadable \ unparseable records are
+# logged and skipped, never fatal.
+
+my ($role) = @ARG;
+
+my @found;
+
+my $var_p7 = <system.path.zenka-dirs>->{'var_P7'} // '';
+return \@found if not length $var_p7;
+
+my $hosts_dir = join( qw| / |, $var_p7, qw| host-edit hosts | );
+return \@found if not -d $hosts_dir;
+
+opendir( my $dir_h, $hosts_dir ) or do {
+    <[base.logs]>->(
+        0,          '<< link records : cannot open %s : %s >>',
+        $hosts_dir, <[base.str.os_err]>
+    );
+    return \@found;
+};
+my @files = sort { $a cmp $b } readdir($dir_h);
+closedir($dir_h);
+
+foreach my $file (@files) {
+    next if $file !~ m|\A([a-z0-9][a-z0-9._-]{0,62})\.json\z|;
+    my $name = $1;
+    my $path = "$hosts_dir/$file";
+
+    open( my $fh, '<', $path ) or do {
+        <[base.logs]>->(
+            0,     '<< link records : cannot read %s : %s >>',
+            $path, <[base.str.os_err]>
+        );
+        next;
+    };
+    my $json_str = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+    close($fh);
+
+    my $envelope = <[format.json.decode]>->($json_str);
+    if (   ref $envelope ne qw| HASH |
+        or ref $envelope->{'fields'} ne qw| HASH | ) {
+        <[base.logs]>->(
+            1, ': link records : %s not parseable, skipped', $path
+        );
+        next;
+    }
+
+    my $roles = $envelope->{'fields'}{'roles'};
+    next if ref $roles ne qw| ARRAY |;
+    next if not grep { $_ eq $role } @$roles;
+
+    $envelope->{'name'} = $name;
+    push( @found, $envelope );
+}
+
+return \@found;
+
+#,,.,,,..,.,.,..,,.,,,,..,,..,,,,,..,,,,.,,.,,..,,...,.,.,,.,,,.,,.,.,,..,,,.,
+#65NUPA6OWLR5SMJS7PTKWX3APEJ4NSV4SBTM3BDCHQMGC6NEYLN3J753NJILELR4BFWTGKCMJXZYK
+#\\\|NMTSXVXJLICGSQF7VJBBWMJ6NVZ6TISKVK7SC6CLFNVQLKWWB7A \ / AMOS7 \ YOURUM ::
+#\[7]B7AMS4YSG2TEHYVWDBOPDVXAQG4PNJLX46DUY7RRKUEXBGYNX6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

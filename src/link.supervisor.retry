@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = link.supervisor.retry
+# descr = schedule the next connect cycle for a managed link
+# param = <name> <class : trust | transport>
+#
+# the design's backoff : 0.5 s doubling to 30 s, reset after a connect
+# that held one full heartbeat [ the heartbeat reply resets the attempt
+# counter, not this module ]. trust failures [ 'refused' ] retry only at
+# the 30 s cap -- never a retry spin, never a re-pin. a small jitter
+# keeps several hubs from hitting one node in step.
+
+my ( $name, $class ) = @ARG;
+
+return FALSE if not length $name;
+
+my $entry  = <external.links>->{$name} // return FALSE;
+my $timers = <link.supervisor.timers> //= {};
+
+$entry->{'attempts'} = ( $entry->{'attempts'} // 0 ) + 1;
+
+my $cap  = <link.cfg.backoff_max> // 30;
+my $wait = $cap;
+if ( ( $class // '' ) ne qw| trust | ) {
+    my $initial = <link.cfg.backoff_initial> // 0.5;
+    my $double  = $initial * 2**( $entry->{'attempts'} - 1 );
+    $wait = $double < $cap ? $double : $cap;
+}
+$wait += rand( <link.cfg.jitter> // 0.5 );
+
+my $watcher = <[event.add_timer]>->(
+    {   qw| after |   => $wait,
+        qw| desc |    => "link supervisor retry [$name]",
+        qw| handler | => qw| link.supervisor.connect |,
+        qw| data |    => { qw| name | => $name }
+    }
+);
+$timers->{$name}{'retry'} = $watcher;
+
+return TRUE;
+
+#,,..,,..,,,,,.,,,,.,,,..,..,,.,,,..,,,.,,...,..,,...,...,.,,,...,.,.,.,.,,.,,
+#MPT7W24SVAI6Y7CJ6GUY4T6VFZZOADH3H5G22F63WPRG7LIKUI6U54IZNBN6EMNMK4HSZXZ7K4DQM
+#\\\|S554DLLIWZQK3IZHIIJMG73A6IADTV4W4OKPQ5IYWBFVN37TOQC \ / AMOS7 \ YOURUM ::
+#\[7]4LJKBY2P4DEP7XXZRCR6TTBXLYMUATMVHKB2GN67ZE74DZBN5UBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

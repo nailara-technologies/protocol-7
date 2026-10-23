@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = link.session.handshake_class
+# descr = classify a link-upgrade handshake error
+# param = <error text from protocol.protocol-7.link-upgrade.handshake>
+# return = qw| trust | or qw| transport |
+#
+# the design's failure classes [ LINK-ZENKI-AND-TRANSPORTS.md 'liveness,
+# reconnect, failure classes' ] applied to the handshake's ( 0, { error }
+# ) shapes : silence and send failures mean the stream died [ transport
+# -- retry after backoff ] ; every refusal or cryptographic failure means
+# the far end spoke and declined the binding [ trust -- fail closed, no
+# re-pin ].
+
+my $error = shift // '';
+
+return qw| transport |
+    if $error =~ m{^no \S+ answer$}o
+    or $error =~ m{^send failed}o;
+
+return qw| trust |;
+
+#,,..,..,,,,.,..,,...,,.,,..,,,,.,,,.,,..,,,,,..,,...,.,,,...,.,,,...,,.,,,..,
+#476NEBGEXIINA4YMYAJSOLN3U4V2EC4RTSHLE6RTOI6YPCHZSJPXLFAH5KZX622T3XOIQXSEW6AQ2
+#\\\|XDRJKVZGCFZ7EI6VWQS4F6NEMUSSNZPMRWKC4GOTB5ZFDMDWXKQ \ / AMOS7 \ YOURUM ::
+#\[7]7YBZ2JK2O46X7YHRAXV7WJUUAB6OQBXZG7H5HZFUFHIVCTUXY6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

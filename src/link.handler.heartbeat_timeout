@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = link.handler.heartbeat_timeout
+# descr = no heartbeat reply within link.cfg.timeout
+# param = <Event> [ the timer carries { name } ]
+#
+# the design : a heartbeat timeout closes the session AND the transport,
+# then reconnects [ link.supervisor.link_down schedules the backoff ].
+# only a still-'up' link acts : a teardown that already ran leaves the
+# state 'down' and this fires into nothing.
+
+my ($event) = @ARG;
+
+my $name = $event->w->data->{'name'} // '';
+return FALSE if not length $name;
+
+my $entry = <external.links>->{$name} // return FALSE;
+return FALSE if ( $entry->{'state'} // '' ) ne qw| up |;
+
+<[base.logs]>->(
+    0,     '<< link %s : heartbeat timeout after %d s : reconnecting >>',
+    $name, <link.cfg.timeout> // 10
+);
+
+return <[link.supervisor.link_down]>->( $name, qw| heartbeat timeout | );
+
+#,,.,,..,,..,,.,.,,,,,,..,..,,.,,,,,.,,.,,,..,..,,...,...,,..,.,.,...,,..,...,
+#U3Z6VTIQGHZB5A5JMIN475NZ4REODQ2VONLHJNX5B6RP57ZFV2R3ESCSJCM2W2AOEBI45FGUJC2CI
+#\\\|GIQ53S6CBZQLFDNHGDFWEFPDKP2QBVBXG7MATU4SVPFEUQKF3UQ \ / AMOS7 \ YOURUM ::
+#\[7]UBZB6XX4R7SWFDEM7J6EVR23WBEXESZO43TID6VMSVPIJED3B6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = link.transport.ssh-w.open
+# descr = open a record's cube stream through ssh -W
+# param = record envelope [ { name, fields } ]
+# return = <fd> [, { pid, argv } ] or ( undef, <why> ) in list context
+#
+# data/md/design/LINK-ZENKI-AND-TRANSPORTS.md 'idea 2 : transports' :
+# 'ssh -W 127.0.0.1:<cube port> <ssh target>' on one end of a socketpair
+# is the link -- the model bin/c_src/p-7-r.c already uses for ':::'.
+# argv is a LIST [ never a shell ], every value checked like
+# host-edit.transport.ssh_forward_start : a target may not start with
+# '-' [ no option injection ]. BatchMode : no password prompt inside the
+# zenka ; ConnectTimeout bounds a v6 path that drops packets ;
+# ServerAliveInterval \ CountMax free the fd of a dead ssh hop. the
+# record's 'af' adds '-4' \ '-6' [ // 'auto' : no flag ]. the child's
+# stdio IS the socketpair end : when this zenka dies the pair closes, ssh
+# sees eof on stdio and exits -- never an orphan [ the design's
+# comparison table ]. ssh's stderr stays attached to the zenka's log.
+# the ssh binary is <link.cfg.ssh_bin> // 'ssh' [ tests swap it ].
+
+my ($record) = @ARG;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('record envelope not valid')
+    if ref $record ne qw| HASH |
+    or ref $record->{'fields'} ne qw| HASH |;
+
+my $name   = $record->{'name'} // '';
+my $fields = $record->{'fields'};
+
+return $refuse->('record name not valid')
+    if $name !~ m|\A[a-z0-9][a-z0-9._-]{0,62}\z|;
+
+my $target = $fields->{'ssh'} // '';
+return $refuse->('ssh target not valid')
+    if not length $target
+    or $target !~ m{ \A
+        [A-Za-z0-9_] [A-Za-z0-9._-]{0,63}              ## user or host ##
+        (?: @ [A-Za-z0-9] [A-Za-z0-9.-]{0,252} )?     ## @host        ##
+        \z }x;
+
+my $af = $fields->{'af'} // qw| auto |;
+return $refuse->('af not valid')
+    if $af ne qw| auto |
+    and $af ne '4'
+    and $af ne '6';
+
+my ( undef, $cube_port ) = <[link.record.cube_port]>->($fields);
+return $refuse->('no cube port in addresses')
+    if not defined $cube_port;
+
+my $ssh_port = $fields->{'ssh_port'} // '';
+if ( length $ssh_port ) {
+    return $refuse->('ssh port not valid')
+        if $ssh_port !~ m|\A[0-9]{1,5}\z|
+        or $ssh_port < 1
+        or $ssh_port > 65535;
+}
+
+my $ssh_bin = <link.cfg.ssh_bin> // qw| ssh |;
+my @argv    = (
+    $ssh_bin,
+    qw| -W |,
+    sprintf( '127.0.0.1:%d', $cube_port ),
+    qw| -o |,
+    qw| BatchMode=yes |,
+    qw| -o |,
+    sprintf( 'ConnectTimeout=%d', <link.cfg.ssh_connect_timeout> // 10 ),
+    qw| -o |,
+    sprintf( 'ServerAliveInterval=%d', <link.cfg.ssh_alive_interval> // 30 ),
+    qw| -o |,
+    sprintf( 'ServerAliveCountMax=%d', <link.cfg.ssh_alive_count> // 3 ),
+);
+push( @argv, qw| -4 | ) if $af eq '4';
+push( @argv, qw| -6 | ) if $af eq '6';
+push( @argv, qw| -p |, $ssh_port ) if length $ssh_port;
+push( @argv, $target );
+
+require Socket;
+Socket->import(qw| AF_UNIX SOCK_STREAM |);
+socketpair( my $parent, my $child, AF_UNIX, SOCK_STREAM, 0 )
+    or return $refuse->("socketpair failed [ $OS_ERROR ]");
+
+my $pid = fork;
+if ( not defined $pid ) {
+    my $error = "$OS_ERROR";
+    close($parent);
+    close($child);
+    return $refuse->("fork failed [ $error ]");
+}
+if ( $pid == 0 ) {
+    close($parent);
+    open( STDIN,  '<&', $child ) or CORE::exit(127);
+    open( STDOUT, '>&', $child ) or CORE::exit(127);
+    close($child);
+    exec {$ssh_bin} @argv;
+    CORE::exit(127);
+}
+close($child);
+
+return wantarray
+    ? ( $parent, { qw| pid | => $pid, qw| argv | => \@argv } )
+    : $parent;
+
+#,,.,,,.,,.,,,,,,,,,.,,.,,,..,...,,,,,...,,,.,..,,...,..,,.,.,..,,,,,,..,,.,,,
+#IILTPBDYXQPLYULOG4JFF7IOOX3QKII4UETWUQNBX6WCKH47EEZ42BLBKY652I5CKMS4NBSPXJJRA
+#\\\|V4VJDK767HGSDUVEZWLUFNV4H7PZUEWYCVOEZUJFWNW3WPTDNES \ / AMOS7 \ YOURUM ::
+#\[7]GWSZUB7KDPKUZXAFRCWLHYNLVCKV4FMOJIFEFF2C6PSWIGJQAGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
