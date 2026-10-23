@@ -155,7 +155,7 @@ if ($use_iteration) {
             );
 
             <[protocol-7.route-send]>->(
-                {   'command'   => 'task.fail',
+                {   'command'   => <[models.task.cmd]>->(qw| fail |),
                     'call_args' =>
                         { 'args' => "$task_id iteration escalated: $reason" }
                 }
@@ -172,7 +172,7 @@ if ($use_iteration) {
                 $task_id, $mode
             );
             <[protocol-7.route-send]>->(
-                {   'command'   => 'task.fail',
+                {   'command'   => <[models.task.cmd]>->(qw| fail |),
                     'call_args' =>
                         { 'args' => "$task_id unknown iteration mode" }
                 }
@@ -195,8 +195,8 @@ return <[models.task.fallback-direct]>->(
     }
 );
 
-#,,,,,,,,,,,,,,,,,,..,,,,,..,,.,.,..,,...,...,..,,...,...,,..,.,,,..,,,,,,,,,,
-#XYO46UII5XDYG3MIYPB4NPH6MKC7GAETYIK2XOA4FQ6TOH3YC7TZKFFMRNSQ6S53O4Q2V356XSOFY
-#\\\|23AUWIMJB2IS7K57FRJNI2OGLDTKN6MQLVEEXUITMT4QRB4FC3Y \ / AMOS7 \ YOURUM ::
-#\[7]UGT7KB2NUWNE2GLDHLL4XG2BETXIN5JTOFGVEKQGC3FTYEURTKAA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,,,,,,,.,,,.,,,,,,,,,,.,,,..,..,,...,...,.,.,,..,..,,,..,,,.,
+#GYQ4P7JYCC6QO47IUWYVM4XONBYQAIJXMMLHMPNEV22OBWAUBC32ROMFLSKQJ3COCFAH2UICQ47OQ
+#\\\|AFU3SPV73YVS4NIKZLURSZJTUFK3R423SBGC6DKR4LNJMGYKQ2R \ / AMOS7 \ YOURUM ::
+#\[7]O27QMG6ZIFW3RGTHNDABZGOG57UF3D625JVHR6VPKJOEBUSQY6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

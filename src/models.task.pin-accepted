@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = models.task.pin-accepted
+# descr = is a remote task's model pin served here
+# note  = is a remote task's ':model:' pin one this host serves without a
+#         model swap
+# param = <pin> [ registry key '<path>:<content>' \ ':<content>' ]
+# return = TRUE accepted, FALSE not served here, UNKNOWN : the local coding
+#          zenka's loaded models are not known [ or older than 60 s ]
+# notes = models.cfg.task_models [ space separated registry keys ] set :
+#         those keys. empty : the models the local coding zenka has loaded
+#         [ coding.inference-status, cached in <models.task.local_models> ].
+#         compared by the content half : the path half differs between
+#         hosts for the same file, coding.mode.local_model_id maps a pin
+#         the same way -- the pin itself is never rewritten
+
+my $pin = uc( shift // '' );
+
+return TRUE if not length $pin;    ## no pin : any loaded model will do ##
+
+my ($pin_content) = $pin =~ m|([A-Z2-7]{7})$|;
+return FALSE if not defined $pin_content;
+
+my @keys;
+my $task_models = <models.cfg.task_models> // '';
+
+if ( $task_models =~ m|\S| ) {
+    @keys = split m|\s+|, uc $task_models;
+} else {
+    my $local = <models.task.local_models> // {};
+    return UNKNOWN
+        if not defined $local->{'at'}
+        or time - $local->{'at'} > 60;
+    @keys = @{ $local->{'ids'} // [] };
+}
+
+foreach my $key (@keys) {
+    my ($key_content) = $key =~ m|([A-Z2-7]{7})$|;
+    return TRUE if defined $key_content and $key_content eq $pin_content;
+}
+
+return FALSE;
+
+#,,.,,,..,,,,,,,,,...,,,,,.,.,..,,,.,,.,.,.,.,..,,...,...,.,,,...,.,.,,..,..,,
+#I4VUTHO42IUAQHUDEX33VAPUGOIGER5P7TXULUHOLO4G3IYWHVJJS5YDM3TMLX27QX57PPWRZRF3E
+#\\\|HBA6QZE7TQ4OCNZWDJ4Y634YSVYHAK6RSL6NDD4LCJJH3ZSR42T \ / AMOS7 \ YOURUM ::
+#\[7]C5ZI26C4WWZBRPS5762IDFGTKOSZPEPVY3S7H3L7QGRQDUL4JMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

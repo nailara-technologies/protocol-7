@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = models.task.subscribe-retry
+# descr = schedule the next notice subscribe [ backoff ]
+# note  = schedule the next notice stream subscribe [ doubling backoff ]
+# notes = 30 s, doubling up to 300 s ; reset by a registered stream
+#         [ models.handler.task-stream ]. the poll tick does the retry
+
+my $state = <models.task.stream> //= {};
+
+my $delay = $state->{'delay'} // 30;
+
+$state->{'retry_at'} = time + $delay;
+$state->{'delay'}    = $delay * 2 > 300 ? 300 : $delay * 2;
+
+<[base.logs]>->( 2, ': task notice stream : next subscribe in %d s', $delay );
+
+return $delay;
+
+#,,..,,..,.,,,,..,,,.,...,,,.,.,,,.,,,,,,,...,..,,...,...,,.,,.,.,.,.,,.,,,.,,
+#I236SWHKZWJ3DOGSG4JWI62PGY3KKXLB23LYERMSNDVTIAZKLVHEFOSKPTVPC7Q3UNR7YD75Z4THC
+#\\\|WZCRHLYRNNERKQDFSJBBG5GW3KZ22ITCL4UX765YJTUM6W7BHDF \ / AMOS7 \ YOURUM ::
+#\[7]ISQ2LNWJKKHWRDEO4Y46NMI2YVNWL33SIDVDMUGBQ6YN6HQQVCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

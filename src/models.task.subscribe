@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = models.task.subscribe
+# descr = open the task notice stream when none is open
+# note  = open the '<task_zenka>.subscribe' notice stream when none is open
+# notes = idempotent. the reply handler models.handler.task-stream registers
+#         the STRM consumer ; a refusal, a closed stream or no answer within
+#         90 s retries with backoff [ models.task.subscribe-retry ]
+
+return FALSE if not <[models.task.remote]>;
+
+my $state = <models.task.stream> //= {};
+
+return TRUE if $state->{'subscribed'};
+
+if ( defined $state->{'since'} ) {
+    return TRUE if time - $state->{'since'} < 90;
+
+    <[base.logs]>->(
+        1, ': task notice stream : subscribe unanswered, retrying later'
+    );
+    $state->{'since'} = undef;
+    <[models.task.subscribe-retry]>;
+}
+
+return FALSE if time < ( $state->{'retry_at'} // 0 );
+
+$state->{'since'} = time;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command' => <[models.task.cmd]>->(qw| subscribe |),
+        'reply'   => { 'handler' => qw| models.handler.task-stream | },
+    }
+);
+
+if ( not $sent or $sent <= 0 ) {
+    $state->{'since'} = undef;
+    <[models.task.subscribe-retry]>;
+    <[base.logs]>->(
+        1,
+        ': task notice stream : %s not routed',
+        <[models.task.cmd]>->(qw| subscribe |)
+    );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,,,,.,,,,,,,,,,,..,,,.,,,..,,..,,..,,,.,,.,,..,,...,...,,,.,,,,,.,.,,..,,,.,
+#Q7XNS5FV53HUHA6MFEHG7U5VJQIKGCQYRQX543QVS2ZMPQSN4TQBC5VHJQBRQUVTGJF3MOI27VVJE
+#\\\|BLGTIH2GTUFLUNDSQSNJKCC655B3EJVFIGV6NA57BYITFYAL47C \ / AMOS7 \ YOURUM ::
+#\[7]OPW6OLEY3HB6C6LHHGFZGNLFW6J62L3EO7XOVX7GKHTYVTCN2YDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

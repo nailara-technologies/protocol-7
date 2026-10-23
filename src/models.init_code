@@ -229,6 +229,16 @@ unless ( exists <models.registry> ) {
 <models.task.default_model> //= 'kimi';
 <models.task.jobs>          //= {};       ## job_id to task_id mapping
 
+## task zenka to claim from [ zenka.v7 \ host.cfg ] : 'task' = the local ##
+## one, an external route makes this host serve another host's tasks     ##
+<models.cfg.task_zenka>  //= 'task';
+<models.cfg.task_agent>  //= 'models';
+<models.cfg.task_models> //= '';    ## remote pins accepted [ empty : loaded ]
+
+## remote task zenka : a reload re-arms notice stream + poll -- the boot    ##
+## arms them from zenka.v7 after the privilege drop [ models.task.startup ] ##
+<[models.task.startup]> if $reinit;
+
 ## register dispatch_slot dependency type for sequential task execution ##
 ## [ callback returns TRUE when no task is actively being dispatched ]  ##
 <[dependency.setup]>->(
@@ -250,8 +260,8 @@ unless ( exists <models.registry> ) {
 
 return 0;    ## module initialization successful
 
-#,,.,,,.,,,,,,.,,,,..,...,,,.,...,.,,,..,,,.,,..,,...,...,..,,.,,,,,.,,.,,.,,,
-#772E5SGI5YJESBIAGZFKGD3OACTOKLKVNV5RZMZEGQOJBDKSOWBSCAXAYAA6GPG56MMZV4SDANPUI
-#\\\|TDHK2YWAFCTF24FTARHXVPIWELMVNPZ7EPGT56DFL7EACXNYS3J \ / AMOS7 \ YOURUM ::
-#\[7]T57MAWOBZCHWOUGMMSFU3MKUCMMJLV7MFKF5ZZQLOUWCG2SFCEAI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,,.,,..,,..,,,.,,...,,,.,,,.,..,,...,...,.,.,..,,,..,...,.,,,
+#TTCYAX2J3UZDK4YYGR3GF6WIRG3FBSAUNL3VQ66ZVEAPYSGFNV65QUJQEOEEOQMS3APYEZN2FJRV4
+#\\\|NTPI2ABGETXZN5EFGUFVEYOH44QX2ZRXVUVFQZUO3PEEMWVL2DD \ / AMOS7 \ YOURUM ::
+#\[7]OQS7NKWJ4WNRM4N6W6EWGJFX7K6GH3PIAR2OWE7FDDJAABUAQUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

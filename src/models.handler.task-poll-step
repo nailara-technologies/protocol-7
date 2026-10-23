@@ -2,6 +2,9 @@
 
 # name  = models.handler.task-poll-step
 # descr = async callback chain for task claim and dispatch
+# notes = local task zenka : claimed -> show -> enqueue. remote task zenka
+#         [ models.task.remote ] : peek -> peek-claimed -> enqueue, see
+#         models.task.dispatch-id
 
 my $reply  = shift;
 my $cmd    = $reply->{'cmd'}       // '';
@@ -11,6 +14,14 @@ my $rdata  = ref $raw ? $raw->$* : $raw;
 my $params = $reply->{'params'} // {};
 
 my $step = $params->{'step'} // '';
+
+## task.show \ task.queue reply text [ SIZE or single line TRUE ] ##
+my $reply_text = '';
+if ( $cmd eq 'SIZE' ) {
+    $reply_text = $rdata;
+} elsif ( $cmd eq 'TRUE' ) {
+    $reply_text = $args->{'args'} // '';
+}
 
 ## ======================================================================
 ## step: claimed : verify claim result, fetch task details
@@ -30,13 +41,13 @@ if ( $step eq 'claimed' ) {
     );
 
     <[protocol-7.route-send]>->(
-        {   'command'   => 'task.start',
+        {   'command'   => <[models.task.cmd]>->(qw| start |),
             'call_args' => { 'args' => $task_id }
         }
     );
 
     <[protocol-7.route-send]>->(
-        {   'command'   => 'task.show',
+        {   'command'   => <[models.task.cmd]>->(qw| show |),
             'call_args' => { 'args' => $task_id },
             'reply'     => {
                 'handler' => 'models.handler.task-poll-step',
@@ -58,120 +69,20 @@ if ( $step eq 'show' ) {
 
     my $task_id = $params->{'task_id'} // '';
 
-    ## extract task details text
-    my $details = '';
-    if ( $cmd eq 'SIZE' ) {
-        $details = $rdata;
-    } elsif ( $cmd eq 'TRUE' ) {
-        $details = $args->{'args'} // '';
-    }
-
-    if ( not length $details ) {
+    if ( not length $reply_text ) {
         <[base.logs]>->( 0, ': empty task details for %s', $task_id );
         <[protocol-7.route-send]>->(
-            {   'command'   => 'task.fail',
+            {   'command'   => <[models.task.cmd]>->(qw| fail |),
                 'call_args' => { 'args' => "$task_id empty task details" }
             }
         );
         return;
     }
 
-    ## parse description, context, and history from task details
-    my ( $description, $context ) = ( '', '' );
-    my @history_turns;
-    my $in_history = FALSE;
-    my $current_turn;
+    my $parsed = <[models.task.parse-show]>->( $task_id, $reply_text );
+    my $model  = $parsed->{'model'};
 
-    ## parse only the task.show header lines (stop after 'result :' field)
-    my $in_header = TRUE;
-    foreach my $line ( split( m|\n|, $details ) ) {
-        if ( $line =~ m{^---\s*history\s*---}i ) {
-            $in_history = TRUE;
-            $in_header  = FALSE;
-            next;
-        }
-        if ($in_history) {
-            if ( $line =~ m{^turn\s+\d+\s*:\s*(.*)$}i ) {
-                $current_turn = { 'prompt' => $1, 'result' => '' };
-                push @history_turns, $current_turn;
-            } elsif ( $line =~ m{^\s+result\s*:\s*(.*)$}i
-                and defined $current_turn ) {
-                $current_turn->{'result'} = $1;
-            }
-            next;
-        }
-        ## stop header parsing once we hit the result line  (everything after
-        ## is task content, not task metadata)
-        if ( $in_header and $line =~ m{^result\s*:\s*}i ) {
-            $in_header = FALSE;
-            next;
-        }
-        next unless $in_header;
-
-        ## require space before ':' to match task.show header format only
-        if ( $line =~ m{^description\s+:\s+(.*)$}i ) {
-            $description = $1;
-        } elsif ( $line =~ m{^context\s+:\s*(.*)$}i ) {
-            $context = $1;
-        }
-    }
-
-    ## unescape newlines escaped by task.show for protocol safety
-    $description =~ s{\\n}{\n}g;
-    $context     =~ s{\\n}{\n}g;
-
-    ## determine model from :name: prefix in description [ @name fallback ]
-    my $model = <models.task.default_model> // 'kimi';
-    if ( $description =~ s{^:([a-z0-9\-]+):\s*}{}i ) {
-        $model = $1;
-    } elsif ( $description =~ s{^\@(\S+)\s*}{} ) {
-        $model = $1;
-    }
-    ## :review: prefix → auto-route to local model with review-cycle    ##
-    ## template rewrite description so coding.prompt.assemble picks the ##
-    ## right template                                                   ##
-    if ( $model eq 'review' ) {
-        $model       = 'local';
-        $description = "review-cycle $description";
-    }
-
-    ## build prompt with conversation history for multi-turn tasks
-    my $prompt = '';
-
-    if (@history_turns) {
-        $prompt .= sprintf "[task %s] [continuation turn %d]\n",
-            $task_id, scalar(@history_turns) + 1;
-        foreach my $turn (@history_turns) {
-            my $t_prompt = $turn->{'prompt'} // '';
-            ## strip model prefix from history prompts
-            $t_prompt =~ s{^:[a-z0-9\-]+:\s*}{}i;
-            $t_prompt =~ s{^\@\S+\s*}{};
-            $prompt .= sprintf "user: %s\nassistant: %s\n\n",
-                $t_prompt, $turn->{'result'} // '';
-        }
-        $prompt .= sprintf "user: %s", $description;
-    } else {
-        $prompt = $description;
-    }
-
-    $prompt .= "\n\n$context" if length $context;
-
-    ## a single task's tag goes LAST : the text before it is then the same ##
-    ## from task to task [ an assessment's preamble and profile ], and the ##
-    ## backend reuses its prompt cache for it -- in front it cut every     ##
-    ## prefix at the first line [ 2026-10-23 ]. a continuation keeps it as ##
-    ## the heading of its turns                                            ##
-    $prompt .= sprintf "\n\n[task %s]", $task_id if not @history_turns;
-
-    ## model to backend command mapping
-    my %backend_cmd = (
-        'kimi'      => 'kimi.ask-reply',
-        'kimi-code' => 'kimi.ask-reply',
-        'llama'     => 'coding.ask-reply',
-        'local'     => 'coding.ask-reply',
-    );
-
-    my $target_cmd = $backend_cmd{$model};
+    my $target_cmd = $parsed->{'target_cmd'};
 
     if ( not defined $target_cmd ) {
         <[base.logs]>->(
@@ -179,7 +90,7 @@ if ( $step eq 'show' ) {
             $model, $task_id
         );
         <[protocol-7.route-send]>->(
-            {   'command'   => 'task.fail',
+            {   'command'   => <[models.task.cmd]>->(qw| fail |),
                 'call_args' =>
                     { 'args' => "$task_id no backend for model $model" }
             }
@@ -196,11 +107,144 @@ if ( $step eq 'show' ) {
     <[models.task.enqueue]>->(
         {   'task_id'    => $task_id,
             'model'      => $model,
-            'prompt'     => $prompt,
+            'prompt'     => $parsed->{'prompt'},
             'target_cmd' => $target_cmd
         }
     );
 
+    return;
+}
+
+## ======================================================================
+## step: peek : remote task zenka, details BEFORE the claim -- a task for a
+## model this host does not serve stays pending for its owner.  nothing here
+## fails a task : it is not ours until the claim succeeds
+## ======================================================================
+
+if ( $step eq 'peek' ) {
+
+    my $task_id = $params->{'task_id'} // '';
+
+    if ( not length $reply_text ) {
+        <[base.logs]>->(
+            1,        ': peek %s : no task details [ %s ], left alone',
+            $task_id, $cmd eq 'FALSE' ? $args->{'args'} // 'FALSE' : $cmd
+        );
+        return;
+    }
+
+    my $parsed = <[models.task.parse-show]>->( $task_id, $reply_text );
+    my $model  = $parsed->{'model'};
+
+    if ( $parsed->{'status'} ne 'pending' ) {
+        <[base.logs]>->(
+            2,        ': peek %s : %s, not pending -- left alone',
+            $task_id, length $parsed->{'status'} ? $parsed->{'status'} : '?'
+        );
+        return;
+    }
+
+    ## served here : the local backend only [ local, llama, review ] ##
+    my $target_cmd = $parsed->{'target_cmd'} // '';
+    if ( $target_cmd ne 'coding.ask-reply' ) {
+        <[base.logs]>->(
+            2,        ': peek %s : model %s not served here, left pending',
+            $task_id, $model
+        );
+        return;
+    }
+
+    ## the iteration loop reads models' own data, never a remote queue ##
+    <[base.logs]>->(
+        1, ': peek %s : iteration flag ignored for a remote task', $task_id
+    ) if $parsed->{'iteration'};
+
+    ## ':model:' pin check, then the claim ##
+    <[models.task.peek-claim]>->(
+        {   'task_id'    => $task_id,
+            'model'      => $model,
+            'prompt'     => $parsed->{'prompt'},
+            'target_cmd' => $target_cmd,
+            'model_pin'  => $parsed->{'model_pin'}
+        }
+    );
+    return;
+}
+
+## ======================================================================
+## step: peek-models : coding.inference-status answered -- the models the
+## local coding zenka has loaded, then the pin check again
+## ======================================================================
+
+if ( $step eq 'peek-models' ) {
+
+    my @ids;
+    my $status
+        = length $reply_text ? eval { YAML::XS::Load($reply_text) } : undef;
+
+    if ( ref $status eq qw| HASH | ) {
+        foreach my $backend (qw| gpu cpu |) {
+            my $id = uc( ( $status->{$backend} // {} )->{'model_id'} // '' );
+            push @ids, $id if $id =~ m|^(?:[A-Z2-7]{7})?:?[A-Z2-7]{7}$|;
+        }
+    } else {
+        <[base.logs]>->(
+            1,
+            ': coding.inference-status : no usable answer [ %s ]',
+            $cmd eq 'FALSE' ? $args->{'args'} // 'FALSE' : $cmd
+        );
+    }
+
+    ## set even when empty : no new question for 60 s ##
+    <models.task.local_models> = { 'at' => time, 'ids' => \@ids };
+
+    <[base.logs]>->(
+        2,
+        ': local coding serves [ %s ]',
+        join( ' ', @ids ) || 'none'
+    );
+
+    my %peek = %{$params};
+    delete $peek{'step'};
+    <[models.task.peek-claim]>->( \%peek );
+    return;
+}
+
+## ======================================================================
+## step: peek-claimed : claim answered -- start and enqueue the prompt the
+## peek already built. a refused claim = another worker took it
+## ======================================================================
+
+if ( $step eq 'peek-claimed' ) {
+
+    my $task_id = $params->{'task_id'} // '';
+
+    if ( $cmd ne 'TRUE' ) {
+        <[base.logs]>->(
+            1, ': claim %s refused [ %s ] : taken elsewhere, left alone',
+            $task_id, $args->{'args'} // $cmd
+        );
+        return;
+    }
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => <[models.task.cmd]>->(qw| start |),
+            'call_args' => { 'args' => $task_id }
+        }
+    );
+
+    <[base.logs]>->(
+        1,        ': task %s claimed remotely, enqueueing for %s backend',
+        $task_id, $params->{'model'}
+    );
+
+    <[models.task.enqueue]>->(
+        {   'task_id'    => $task_id,
+            'model'      => $params->{'model'},
+            'prompt'     => $params->{'prompt'},
+            'target_cmd' => $params->{'target_cmd'}
+        }
+    );
     return;
 }
 
@@ -211,12 +255,7 @@ if ( $step eq 'show' ) {
 if ( $step eq 'check-next' ) {
 
     ## parse queue output for first pending task id
-    my $queue_text = '';
-    if ( $cmd eq 'SIZE' ) {
-        $queue_text = $rdata;
-    } elsif ( $cmd eq 'TRUE' ) {
-        $queue_text = $args->{'args'} // '';
-    }
+    my $queue_text = $reply_text;
 
     if ( not length $queue_text or $queue_text =~ m{^no tasks found} ) {
         <[base.log]>->( 2, ': no pending tasks in queue' );
@@ -233,24 +272,41 @@ if ( $step eq 'check-next' ) {
 
     <[base.logs]>->( 1, ': auto-dispatching next pending task %s', $next_id );
 
-    ## claim via same async chain as task-notify
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'task.claim',
-            'call_args' => { 'args' => "$next_id models" },
-            'reply'     => {
-                'handler' => 'models.handler.task-poll-step',
-                'params'  => { 'step' => 'claimed', 'task_id' => $next_id }
-            }
-        }
-    );
+    ## claim via same async chain as task-notify [ remote : peek first ] ##
+    <[models.task.dispatch-id]>->($next_id);
+    return;
+}
+
+## ======================================================================
+## step: poll-next : remote fallback poll, '<task_zenka>.next' answered "<id>
+## [<assignee>] <description> (priority N)" or FALSE when empty
+## ======================================================================
+
+if ( $step eq 'poll-next' ) {
+
+    <models.task.poll.sent_at> = undef;    ## poll answered ##
+
+    my ($next_id) = $reply_text =~ m|^([A-Z0-9]{7})\s|;
+
+    if ( not defined $next_id ) {
+        <[base.logs]>->(
+            2,
+            ': task poll : nothing pending [ %s ]',
+            $cmd eq 'FALSE' ? $args->{'args'} // 'FALSE' : $cmd
+        );
+        return;
+    }
+
+    <[base.logs]>->( 2, ': task poll : peeking %s', $next_id );
+    <[models.task.dispatch-id]>->($next_id);
     return;
 }
 
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,,.,.,,,,..,.,.,,..,.,.,,..,...,,,,,.,,,.,.,.,.,...,...,...,...,.,,,,.,,..,,
-#WRPBEIYISM5TV3CEHMGGXB4BEYIBWSZFJVXR5GZWNKTAJ53KBEDRC44LW63NI5M5XAP2ZNI2WHLSO
-#\\\|GUNXMIUYO4G2BCEVIXRDGIGRRE5UDOXXVQC4DAT7VKHI7IM2QPU \ / AMOS7 \ YOURUM ::
-#\[7]J7HQAPHI3DKPEQ6BY2H6PFURYXPFO3IUH227DBQMNCRYVCSV7CBA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,,.,,..,,.,.,.,,,..,,,,.,,,.,.,.,...,...,.,.,.,,,.,.,.,,,,,,,
+#7V7HZTMOSDP7E2VTN55XZCWICADIHRSBOID347AA57PPRDUU2JEYZ2F3R5MVFWMIFA77YVLXIVWQW
+#\\\|NNFG75RXEJDJTT5EVR7IO4FTHHDOMSXHVZI5S4ROMRWAH4TYR4I \ / AMOS7 \ YOURUM ::
+#\[7]G4W44WWCYRUA3MRFSZJE45HYY7ORHKRUUH7HLTSPZ44GHKRWGCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

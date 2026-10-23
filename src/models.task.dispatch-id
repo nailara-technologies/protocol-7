@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = models.task.dispatch-id
+# descr = start the claim chain for an announced task id
+# note  = start the claim chain for a task id the task zenka announced
+# param = <task_id>
+# notes = local task zenka : claim -> start -> show -> enqueue [ unchanged ].
+#         remote task zenka : show first ['peek'], claim only when the model
+#         is one this host serves -- a task for another model stays pending
+#         for the owning host, it is never claimed or failed from here
+
+my $task_id = shift // '';
+
+return FALSE if not length $task_id;
+
+if ( not <[models.task.remote]> ) {
+    return <[protocol-7.route-send]>->(
+        {   'command'   => <[models.task.cmd]>->(qw| claim |),
+            'call_args' => {
+                'args' => sprintf '%s %s',
+                $task_id, <models.cfg.task_agent> // qw| models |
+            },
+            'reply' => {
+                'handler' => 'models.handler.task-poll-step',
+                'params'  => { 'step' => 'claimed', 'task_id' => $task_id }
+            }
+        }
+    );
+}
+
+return <[protocol-7.route-send]>->(
+    {   'command'   => <[models.task.cmd]>->(qw| show |),
+        'call_args' => { 'args' => $task_id },
+        'reply'     => {
+            'handler' => 'models.handler.task-poll-step',
+            'params'  => { 'step' => 'peek', 'task_id' => $task_id }
+        }
+    }
+);
+
+#,,..,..,,,,.,..,,,,.,..,,.,.,,,,,,,.,,,,,,..,..,,...,...,..,,,,,,,.,,.,,,...,
+#WLJ5NT6L7Z6NAHSVCCYSUWVFYMBW7Z2MB7GPF2FSVXFW7HAKZNM3EBNNW425ORP6EZRNRTV3V6YW4
+#\\\|KDOJOTEF322XS73TWYWCXBYNEWPOQ3YCTY3FRTJHWY5TWWFNPPY \ / AMOS7 \ YOURUM ::
+#\[7]H3SMSWF3Z4PUBLKQ2L4FDDXLGCIGFWRMOOR7HWVMVJQEDAGM5IDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

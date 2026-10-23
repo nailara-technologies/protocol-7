@@ -102,10 +102,13 @@ my $sent = <[protocol-7.route-send]>->(
     $task_id, $sent ? 'ok' : 'not delivered'
 );
 
+## and to every notice stream [ a models zenka on another host ] ##
+<[task.notice.push]>->($task_id);
+
 return { 'mode' => 'true', 'data' => "continued $task_id" };
 
-#,,.,,,,.,.,.,..,,,,.,,,,,...,.,,,,.,,.,.,.,.,.,.,...,.,,,,..,,,.,..,,...,,..,
-#Q5PIG7Z466DMDK22BAJPA3ID43SSM7PWBTTJG6YTW3FMMFB6HAFHQFCSRWALUFJSBJFLANAPJEWD2
-#\\\|L6XHDECJ4WPXCJKVRLZNDXLCBYCBQXHIOKNFBKD2DUPWX3YDRM6 \ / AMOS7 \ YOURUM ::
-#\[7]ZXBYHA2UR6FYG3XI5SJKJYPGSQLVWACFWQXYWHRFEBRRZRP4T4AI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,,.,,,,.,..,,.,.,..,,,..,,..,.,.,...,...,,..,,,,,...,.,,,,,.,
+#RSK4D74N7Z3DEZLMNNDY7VUE4QADO5LR2PFIB25V3N2OPJYUAZAUUIBOW7W3NBEBR6UNH7S2OU46I
+#\\\|YKJ3LFYQUXMJD3D4KJQC4NUF7ERXFFTOFJI24OSSFTAFRL7OCBX \ / AMOS7 \ YOURUM ::
+#\[7]VVMHYMQFQWNQWDN352FBLGM6TAS75N4IXRMWTT3WCO3PCGV276AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
