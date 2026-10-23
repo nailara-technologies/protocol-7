@@ -31,7 +31,7 @@ for my $status ( keys %epoch_statuses ) {
         for my $fn ( grep { $ARG =~ $file_re && !m|^\.| } readdir($edh) ) {
             my $enc_id = $fn;
             $enc_id =~ s|$file_re||;
-            my $id = <[base.vax-int.decode]>->($enc_id);
+            my $id = $enc_id;
             $index->{$id} = "$status:$epoch_dir";
         }
         closedir $edh;
@@ -47,7 +47,7 @@ for my $status (@active_statuses) {
     for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($dh) ) {
         my $enc_id = $fn;
         $enc_id =~ s|\.yaml$||;
-        my $id = <[base.vax-int.decode]>->($enc_id);
+        my $id = $enc_id;
         $index->{$id} = $status;
     }
     closedir $dh;
@@ -63,8 +63,8 @@ for my $status (@active_statuses) {
 
 return $index;
 
-#,,.,,..,,,.,,,.,,...,,..,.,,,.,,,,..,,,,,..,,..,,...,.,.,.,.,,,.,,.,,,,.,..,,
-#ALG6UCHAXKJZVGREV7F3Q7P3SAQJG5BXXSSZOTSKAJDMDB2MQWQGFCY6Y5OHVQ25YQHEN3VH7T7V2
-#\\\|REDA24DDN3H4QVSIU5GMG6T5B56MJBIW2T7X4Q4CUMLWZ6NZOHN \ / AMOS7 \ YOURUM ::
-#\[7]DDY6WRUQTHXHBOPCHY42Z4WIKPPG4RWXU7FOLUCRK5RVD5PPCGCI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,,,,.,,...,,.,,.,.,,.,,.,,,..,,..,,...,...,..,,...,,.,,,.,,..,,
+#7DVFCALG4ANLULSQBRSMEVB6NPJER6UIUUZLI3SAP7T2O2JH7QYJT4ZHKAFZ5VCMDMOZIWVPN3PRM
+#\\\|7664ITWPQ2OTEKP37KK3YHGLFFXHRZL2J4V44FKRQQ5L7CHKFZ3 \ / AMOS7 \ YOURUM ::
+#\[7]JUL2KDGGIFNNB4D6UJ7FNT5CIJKCZ26MSVT6JPLTLUDU4GTUU4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

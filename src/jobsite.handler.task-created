@@ -7,7 +7,7 @@ my $call = shift // {};
 
 ## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
 my ( $mode, $task_id ) = <[base.reply.mode_text]>->($call);
-my $job_id   = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
+my $job_id   = ( $call->{'params'}{'job_id'} // '' );
 my $attempt  = $call->{'params'}{'attempt'}                      // 0;
 my $cur_attt = ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0;
 
@@ -73,8 +73,8 @@ my %protected_stage
     }
 );
 
-#,,.,,,.,,.,,,.,.,,,,,.,,,,..,..,,.,,,,..,...,..,,...,...,.,.,...,.,,,.,,,.,,,
-#AE3ICTZXPFASRNAKBQTJXYPFVU3YXJBXJMC6VJCSMMGISJ4PJSFEEXD5EFJIYFUQL22M7IQZDRRGC
-#\\\|6EEQ3ZXSWPSNQOXBIA6IODQ5PF6XZOGOEXDGM2DK4U4IGWC4DCK \ / AMOS7 \ YOURUM ::
-#\[7]ULXQPHE5A4NKRNMKHP77W2IEUDM4DBB4WVW7MARBO6PUERHMCQAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,,,.,,,...,..,,,..,,,.,.,,,,,,,..,,...,...,.,.,..,,,.,,,..,,,,,
+#HKADKU7VEBXCNQB3P7H4YW4VWO4W7OB2LIBEJTZOGSCNUZ5Z23N3MEAXGN5GO4WMF6B44VBDHZ3HG
+#\\\|WLL7NZPXA6L2LZWSUQLXED5JSQ6ZBXYXDKBIU7WRAHNEAW6SD2R \ / AMOS7 \ YOURUM ::
+#\[7]F6EIBNPLHJEPGGXEC326SSNCGATI5H3XULISABEQYMSCBF7T56CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

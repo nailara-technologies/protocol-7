@@ -19,10 +19,6 @@ if ( $op eq qw| load | ) {
     return if ref $loaded ne 'HASH';
 
     my $queue = $loaded->{'queue'} // [];
-    for my $item ( @{$queue} ) {
-        next if ref $item ne 'HASH';
-        $item->{'id'} = <[base.vax-int.decode]>->( $item->{'id'} // '' );
-    }
 
     <site-yaml.fetch_delay>     = $loaded->{'delay'}     // 1.5;
     <site-yaml.fetch_delay_min> = $loaded->{'delay_min'} // 0.5;
@@ -41,13 +37,12 @@ if ( $op eq qw| load | ) {
 }
 
 if ( $op eq qw| save | ) {
-    my $queue = [];
-    for my $item ( @{ <site-yaml.fetch_queue> // [] } ) {
-        my $enc_item = { %{$item} };
-        $enc_item->{'id'}
-            = <[base.vax-int.encode]>->( $enc_item->{'id'} // '' );
-        push @{$queue}, $enc_item;
-    }
+    ## ids are the encoded job ids already [ site-yaml.stepstone.* ] ##
+    my $queue = [
+        map {
+            { %{$ARG} }
+        } @{ <site-yaml.fetch_queue> // [] }
+    ];
 
     my $payload = {
         'delay'     => <site-yaml.fetch_delay>     // 1.5,
@@ -72,8 +67,8 @@ if ( $op eq qw| save | ) {
 
 return FALSE;
 
-#,,,,,,.,,...,..,,..,,,,.,..,,...,,,,,.,,,.,,,.,.,...,...,..,,.,.,,,,,.,.,...,
-#UCHP3V3U3IRAVWDZCKDL7JUE473ETXTGFS3ZD3MXXFBMKBTXTPY5WJFUFR2UELRH6YDIX2I6YPK2K
-#\\\|GORADDL7NFNT53XHZOKXQYB3LVNYAS5YN4IAGBKMXLBLHTETY3N \ / AMOS7 \ YOURUM ::
-#\[7]VRYIAABLBCUI52SFPNEVGA62P7CUSYYNYDA7GE2DYMQSM6MYP4AY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,...,,,.,..,,,.,,,,,,..,,,,.,.,.,...,...,,.,,.,,,.,,,..,,,..,
+#X7CSWDLKD7WMVQATVELYJKEAVQG5Y7C35J4VZORWOBQLTHIGIDTCJ4JL5QY3QMF7RJZYD73OQPHOY
+#\\\|NY2JIYKYTN5UNPQZ5MP3I3WSEFA4TK4FFHYM5ERXQHVP6WMTQ6A \ / AMOS7 \ YOURUM ::
+#\[7]GZTA7KFXRLQA47FQNB3EHQABFYK5PUBTGLDXBUJOSQVT4R3IICDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

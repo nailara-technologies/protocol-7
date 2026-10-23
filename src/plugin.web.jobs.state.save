@@ -12,7 +12,7 @@ return FALSE if ref $delta ne 'HASH';
 ## locate job via index ##
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
 my $status    = <plugin.web.jobs.index>->{$id} // '';
-my $enc_id    = <[base.vax-int.encode]>->($id);
+my $enc_id    = $id;
 
 my $job_file;
 if ( $status =~ m{^(blocked|deleted):(.+)$} ) {
@@ -45,8 +45,8 @@ for my $field (qw| stage notes date_applied |) {
 
 return <[plugin.web.jobs.cache.write]>->( $id, $job );
 
-#,,,.,,..,...,,.,,...,...,,,,,,.,,.,.,,,,,.,,,..,,...,...,,,.,,..,,..,..,,,..,
-#GEJKTAQRLAMXOM7GNTKNRN22TI72G4C4BTLZUGKAAW2TRDOR7BJ64RWQL7R56EL6PYUXCREGIBHFO
-#\\\|F5SCZR24TCTUOWKIHJQBVMVM2UWTLOYFFERJAJLMGI2MAWMO7YP \ / AMOS7 \ YOURUM ::
-#\[7]QEKQSRNGLUPE3E3IEGOG5GACDFJNEKHJ5GDRW4BRKZX7ZW7J2QAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,,.,,,.,,,.,...,.,.,.,,,,,.,..,,...,...,...,...,,.,,,,.,..,,
+#IGLK3KVB7ZXXJM5JQU2QEDXFCI6HNJHCYRPVI3M7QLD34WJOIQ6M4ZGTKTIXBX2B5P5HTNDCT4AOE
+#\\\|BNFMKJXHPDM6GYVTLLDQDTAXSOKJQBEC7L5J3ZLCNBSICGVZ6YQ \ / AMOS7 \ YOURUM ::
+#\[7]TA73HUEYV4ZQAIRHB7PQRABVLAJFYE36LDF3ZF4N7PTAKBS3AGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

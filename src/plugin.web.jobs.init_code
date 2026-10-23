@@ -103,7 +103,7 @@ for my $status (
     for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($dh) ) {
         my $enc_id = $fn;
         $enc_id =~ s|\.yaml$||;
-        my $id = <[base.vax-int.decode]>->($enc_id);
+        my $id = $enc_id;
         $active_id{$id} = $status if length $id;
     }
     closedir $dh;
@@ -114,7 +114,7 @@ for my $status (
 if (%active_id) {
     my @stale = grep { not exists $active_id{$_} } keys %{$loaded};
     for my $id (@stale) {
-        my $enc_id    = <[base.vax-int.encode]>->($id);
+        my $enc_id    = $id;
         my $st_status = <plugin.web.jobs.index>->{$id} // '';
         my $st_path   = '';
         if ( $st_status =~ m{^(blocked|deleted):(.+)$} ) {
@@ -146,7 +146,7 @@ for my $id ( keys %active_id ) {
     next if not $need_city and not $need_date_added;
 
     my $status  = $active_id{$id};
-    my $enc_id  = <[base.vax-int.encode]>->($id);
+    my $enc_id  = $id;
     my $js_file = "$jobsite_root/$status/$enc_id.yaml";
     next if not -f $js_file;
 
@@ -239,8 +239,8 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
 
 0;
 
-#,,.,,,,.,...,.,,,.,,,...,,..,.,,,...,.,.,,.,,..,,...,...,.,.,..,,.,,,...,,,.,
-#7NUZBFFM3ETUJKZUE43GAJHZDE2EW3ONCSYWN6UOD4GWZZMYYS7LYLJGQ3CQKTCXTZZ4H4KK5SOWW
-#\\\|7XY5MKL65JG7DB5YCILY5RZORIIYIE2LO3ASYBJH5D3KDGJ6K6A \ / AMOS7 \ YOURUM ::
-#\[7]74H4K3KXUREWUXDIXEIIAVJUK32R2HAEYJB767HGMJLK2CTFKICA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,..,.,,,.,.,,,.,,..,.,,,...,,..,..,,...,..,,,.,,,.,,.,.,.,,,.,,,
+#WLFGOC5VOZR2E2W6CR6QZKF2UULBKFUT6AL73LJN5HRXHUX6N5ESNXMPSVMITKXI35NQFXEB4JKBQ
+#\\\|QLH5NYI3Z7O3CVVZIBUQUKH3SV5WUWIGF624ISYB6DONN2SCRJK \ / AMOS7 \ YOURUM ::
+#\[7]ZA3H5Y4GJRMGRHQ3KQCT2ONUIPCKD72QY4UBFDI7HCEDPRWDNGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

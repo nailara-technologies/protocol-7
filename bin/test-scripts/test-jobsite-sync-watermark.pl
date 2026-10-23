@@ -102,7 +102,6 @@ $code{'base.ntime_BASE32_to_numerical'} = sub {
     my $ntime = shift // '';
     return length $ntime ? 0 + $ntime : 0;
 };
-$code{'base.vax-int.encode'}  = sub { return "VAX$ARG[0]" };
 $code{'jobsite.job.load_all'} = sub {
     return {
         1 => { 'last_modified' => '2' },
@@ -170,7 +169,7 @@ $data{'jobsite'}{'sync'}{'last_ntime'}->{$URL_A} = '3';
 $code{'jobsite.sync.push'}->( undef, FALSE );
 
 my $ids = pushed_ids();
-ok( join( ' ', sort $ids->{$URL_A}->@* ) eq 'VAX2 VAX3',
+ok( join( ' ', sort $ids->{$URL_A}->@* ) eq '2 3',
     'known watermark -> only jobs changed since then'
 );
 
@@ -189,7 +188,7 @@ ok( ( $data{'jobsite'}{'sync'}{'last_ntime'}->{$URL_A} // '' ) eq '3',
     'legacy global watermark migrated to the single configured url'
 );
 $ids = pushed_ids();
-ok( join( ' ', sort $ids->{$URL_A}->@* ) eq 'VAX2 VAX3',
+ok( join( ' ', sort $ids->{$URL_A}->@* ) eq '2 3',
     'migrated watermark -> incremental push, not a ping'
 );
 
@@ -204,7 +203,7 @@ $data{'jobsite'}{'cfg'}{'sync_urls'} = $URL_A;
 $code{'jobsite.sync.push'}->( undef, FALSE );
 
 $ids = pushed_ids();
-ok( join( ' ', sort $ids->{$URL_A}->@* ) eq 'VAX1 VAX2 VAX3',
+ok( join( ' ', sort $ids->{$URL_A}->@* ) eq '1 2 3',
     'fresh url receives every job once' );
 
 ## ---------------------------------------------------------------------- 4 ##
@@ -225,10 +224,10 @@ $code{'jobsite.sync.push'}->( undef, FALSE );
 ok( ( $data{'jobsite'}{'sync'}{'last_ntime'}->{$URL_A} // '' ) ne '3',
     'global watermark NOT attributed to any url' );
 $ids = pushed_ids();
-ok( join( ' ', sort $ids->{$URL_A}->@* ) eq 'VAX1 VAX2 VAX3',
+ok( join( ' ', sort $ids->{$URL_A}->@* ) eq '1 2 3',
     'new url in a multi-url set gets a full push'
 );
-ok( join( ' ', sort $ids->{$URL_B}->@* ) eq 'VAX3',
+ok( join( ' ', sort $ids->{$URL_B}->@* ) eq '3',
     'known url still pushes incrementally'
 );
 
@@ -245,8 +244,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,.,,,,,,,,,.,,,,,,.,,,,.,,,.,...,,,.,.,.,..,,...,...,,.,,,,.,.,.,,..,,..,
-#6EVNWY7NUN3X4YHWPWJ44TV5XKA6XWD47OO4FIHGNAIMDHGZRZC6H2KDV2AXPLB3LWR573PAAYX4A
-#\\\|HYI3VCZAK57WM2BOW5WNDNN56ECWOU5SSRV7NBRV3LV5C2TMYU5 \ / AMOS7 \ YOURUM ::
-#\[7]FMJEWSWT65HQ4SYXQ2FUBVGHBO5IMFBOXE675E45MPOJFLDKM4BY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,.,.,.,.,,,.,..,,,,.,.,,,,,,,..,,...,..,,...,.,.,..,,..,,.,.,
+#B7UD74WGYRTEDWUVNQYIZBUEJUOSG5HCNLY7SHDNO25OX46EHSZZX2HE224WO6K64HNSF53IKNRHI
+#\\\|MPXAKF57GQHIXXLAK7YMHSFN7VQENI23UEFDQC65LPNWB4V3NM7 \ / AMOS7 \ YOURUM ::
+#\[7]DGFBZ2Q4RDWDIVYREBHSAIRAVDUKVT4BXIYJTSFVYMAH3HLSE2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

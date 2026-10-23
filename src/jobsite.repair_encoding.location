@@ -10,7 +10,7 @@ return undef
     if not length( $job_id // '' )
     or not length( $index_status // '' );
 
-my $enc_id = <[base.vax-int.encode]>->($job_id);
+my $enc_id = $job_id;
 
 if ( $index_status =~ m{^(blocked|deleted|trash):(.+)$} ) {
     my ( $status, $epoch ) = ( $1, $2 );
@@ -31,8 +31,8 @@ return {
     'rel_path' => "jobs/$index_status/$enc_id.yaml",
 };
 
-#,,.,,.,.,.,.,.,.,.,,,,..,,,,,...,...,.,,,,.,,..,,...,...,...,..,,.,.,,,.,..,,
-#SE64RARUAKIYX2RLOJH4TRENH6HGJBKK7DPT57MAXKUXZRMOYT3WGZL4HN2ABFH7LSDCWPMNJPSGS
-#\\\|PMB5OSHJOSSCED6R6MYLETSY7JR2IRF3DX72DNK27H4PFCLT4H2 \ / AMOS7 \ YOURUM ::
-#\[7]6M5ZANYVH5HP6OUXWPIVB7VPFZRE5Z6LODBNQV3VVGWVASGS42DA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,.,,,,,,..,,,.,..,,,..,,,.,.,,,..,,...,...,,,,,.,,,,,,,.,.,...,
+#4X6RONRVHQOOTLKHD22UMJBKTCYVNDLVODM5RPCG2HQ4BD7YLI7TIHGVFVXBRYWIWS3ULE77EGZAG
+#\\\|64VA65YXT7DTGPR527YN4BRUPVRMEWDPROK5VMYMWYNRBE6X3UI \ / AMOS7 \ YOURUM ::
+#\[7]EWJM7XBHQCEIFNGIQXACV7DTW6EFRCN2N5DV5GFKJX3ZIOSBDUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

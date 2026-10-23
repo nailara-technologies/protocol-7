@@ -72,7 +72,7 @@ for my $job_id ( keys %{$store} ) {
         ## at new/<enc_id>.yaml since we just loaded it from there, so      ##
         ## remove it directly instead of trusting the index's single-slot   ##
         ## memory of the old location                                       ##
-        my $enc_id   = <[base.vax-int.encode]>->($job_id);
+        my $enc_id   = $job_id;
         my $new_path = join( '/',
             <system.path.zenka-dirs>->{'var_P7'},
             qw| jobsite jobs new | )
@@ -238,8 +238,8 @@ push <jobsite.assess_queue>->@*, @queue;
 
 return;
 
-#,,.,,,,.,,.,,..,,.,,,..,,,,.,,,.,,,,,,,.,,,.,..,,...,..,,,.,,,..,,,.,..,,,,,,
-#7WT3AO6GFN7QFHMXQGQDYLRXLFY2YOFTEPYL6DEQ6D2BBDF32NGJT2WHQHKLS4L5OUB7TBBTSOSZY
-#\\\|RLZ53SHYOCN4GWSHUBEU4WG5Y4QTODXMR6KOBBCZHFHE2EHE5RE \ / AMOS7 \ YOURUM ::
-#\[7]NYSERU3A33VTBMKARDK7BXVRMYLGNR26O5MM5OE4U4NI75SVACDA 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,...,...,...,,,,,...,.,.,..,,..,,...,...,..,,..,,..,,.,.,,.,,
+#VOY6JCHAPJWPTYLIFNCA55URJIOLZXMHJBQZXC6SKVPBIVJWILGENEUJ32LYVYV4YM7RA6CXEBLHO
+#\\\|5ATTSHSNPBCH3DH67RW5RXSZCDXLGPYS23M6MNVJO6SKXDTX3KO \ / AMOS7 \ YOURUM ::
+#\[7]HBLCXMLMOZXWDRXB3QB5ZVWL7QIBB6UICC4EC4KUHDKT76DNTGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

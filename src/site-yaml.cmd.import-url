@@ -31,6 +31,9 @@ my ($job_id) = (
             --(\d+)-inline\.html(?:[?#]\S*)?$}xi
 );
 
+## the listing number becomes the job id : encoded ONCE here [ vax-int ] ##
+$job_id = <[base.vax-int.encode]>->($job_id) if defined $job_id;
+
 if ( not defined $job_id ) {
     <[base.logs]>->( 0, 'site-yaml.import-url: rejected url [ pattern ]' );
     return {
@@ -87,8 +90,8 @@ my $summary = sprintf 'import-url queued: %s [%s]', $job_id, $url;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,.,,,,..,,,,,,,,,.,.,.,,,,..,,.,,,,,,,,.,.,.,...,..,,.,.,,..,.,.,...,..,,
-#GDQTPMWSBFHMBJFYZAVPFP6G52DSYZKNTSHPSZ3ODSHHCYFX7JJQVCPK2REVPJXCZHOFGCZS43OUE
-#\\\|U5FFFMPJGKBZ2YOPR2AU7AKMTJ5IQABPVAM7AMKYHWXKQ7GDK6N \ / AMOS7 \ YOURUM ::
-#\[7]Y6EZAZ6JQADEWYPAY36N4QJ2T7FLUG32HZXQL24PGFEOSZ2DTABI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,,,,,..,,.,.,.,.,,.,,,..,..,,.,.,...,...,...,,..,,,,,,,,,,..,
+#7VSNKP4DCZBQELX7MKJGS2I53QYDJSO2ZX63RH7XZSCOO55MGXYLMXGFTGFKRLNAGM2RBQHWLJJHS
+#\\\|ZTEV7X2U7YK4OMHO76I2D36ZKCW37IZAUAGYFNOEEPGWR3DWKB3 \ / AMOS7 \ YOURUM ::
+#\[7]5SK62HJI4MUJDJSXRIRMJZ34Q62IO2A2OZA5ATPICBPVY63P3EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -68,7 +68,7 @@ if ( -d $trash_root ) {
 
             my $enc_id = $stub_fn;
             $enc_id =~ s|\.yxz\.B32$||;
-            my $job_id = <[base.vax-int.decode]>->($enc_id);
+            my $job_id = $enc_id;
 
             $job->{'status'} = 'deleted';
             $job->{'stage'}  = 'deleted' if length( $job->{'stage'} // '' );
@@ -210,7 +210,7 @@ if ( -d $deleted_root ) {
             my $full   = "$dir/$fn";
             my $enc_id = $fn;
             $enc_id =~ s{\.(yaml|yxz\.B32)$}{};
-            my $job_id = <[base.vax-int.decode]>->($enc_id);
+            my $job_id = $enc_id;
             unlink $full;
             delete <jobsite.job.index>->{$job_id}
                 if length $job_id;
@@ -235,8 +235,8 @@ return {
     'deleted_pruned' => $deleted_pruned,
 };
 
-#,,.,,,,,,,.,,..,,,,.,.,,,,.,,,,.,,..,.,.,.,,,..,,...,...,,,.,...,.,.,.,,,,,,,
-#ZKA5CM37CB4SLN7J7KSN7YEVWMTSMMJBLXJLZE6HKADZD4ZBKKSF3ZNOWYASXCNH4QTKPQIPNV6UG
-#\\\|BKETR4R6QOUMYSKN2URY27U5VBSV2CS6PX54ID7YMUA2RO4OGNR \ / AMOS7 \ YOURUM ::
-#\[7]XNAMW2UM46A55YV4R33QSJW4BMG7OQV5CIPNHG4RENLAADTUCCBI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,..,,.,.,.,,,,,,,,,.,,,.,,..,..,,...,...,...,..,,.,.,,..,,.,,
+#RTXSXWXDOJ5YHCOUHY34QVS4IM2GBMXUZFC32VK3ENN6X3INLL4UZNTIKEXUTBJG5O6XYI6ZWADPK
+#\\\|5UKPWNGGLK2NRKFVSASPHZAEMIAD3LIRZPVJMIQ54Z5XHANIGWK \ / AMOS7 \ YOURUM ::
+#\[7]WJCTIOY3T4PUD45TTERKFHLHRRDECJNAJUSUUOYAC3WK7CJF7IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

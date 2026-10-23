@@ -17,7 +17,7 @@ $id_in =~ s{^\s+|\s+$}{}g;
 return { 'mode' => 'false', 'data' => 'usage: unmark-exported <id>' }
     if not length $id_in;
 
-my $job_id = <[base.vax-int.decode]>->($id_in);
+my $job_id = $id_in;
 return { 'mode' => 'false', 'data' => "could not decode id: $id_in" }
     if not length $job_id;
 
@@ -26,7 +26,7 @@ my @urls = split m|\s+|,
 return { 'mode' => 'false', 'data' => 'no sync_url configured' }
     if not @urls;
 
-my $enc_id = <[base.vax-int.encode]>->($job_id);
+my $enc_id = $job_id;
 my $body   = eval {
     JSON::XS::encode_json(
         {   'id'             => $enc_id,
@@ -61,8 +61,8 @@ return {
         . join( ', ', @urls ),
 };
 
-#,,,,,,.,,..,,,,.,...,.,,,,,,,,,.,,,.,,,.,..,,..,,...,...,...,.,,,,,.,..,,,,,,
-#T7HQN5ILGKZ2YQBB3JP4EE4T5VZRV7FTV6YMD7MHEJNINY6CNSUA24MZPKVLHRCKILV2CBVYPR4RC
-#\\\|UXLZTGJ56SDR3GASHHR5EXS4CJF3YQLPUUCPX5JX4L7OBYQV432 \ / AMOS7 \ YOURUM ::
-#\[7]P6DLBCWFAWWPURPGV6VFAW5KIMEAPS7NQKUMWAC3J7XRLTLFZODA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,,.,,,,.,,,,,...,,..,,..,,,.,..,,...,...,.,,,,,,,,,,,...,.,.,
+#5RSKS4Y5PWF2I4ZNTPSVIVKNPKDRNWE4QCZOWRMAPK3I2FJZJM6LDZIOATMYA7M25GEDCJAEMCEEO
+#\\\|O5MDCGRIDIUZ5PZWUKFDXFXNHP3DUZAPVPE4VZKDADRGWGWMVZY \ / AMOS7 \ YOURUM ::
+#\[7]U7BA4YBUIHK66PIXXFVYK465RFTFKYWUCJE4VKXXA43SZUGO6MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

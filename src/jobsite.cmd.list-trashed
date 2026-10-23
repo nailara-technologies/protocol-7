@@ -26,7 +26,7 @@ for my $id ( keys %{$idx} ) {
     my $st = $idx->{$id} // '';
     next unless $st =~ m{^trash:(.+)$};
     my $epoch    = $1;
-    my $enc_id   = <[base.vax-int.encode]>->($id);
+    my $enc_id   = $id;
     my $abs_path = "$jobs_root/trash/$epoch/$enc_id.yxz.B32";
     my $fstat    = File::stat::stat($abs_path);
     next unless $fstat;
@@ -43,7 +43,7 @@ for my $c (@candidates) {
     next unless ref $job eq 'HASH';
     push @array,
         {
-        'id'         => <[base.vax-int.encode]>->( $c->{'id'} ),
+        'id'         => $c->{'id'},
         'title'      => $job->{'title'}   // '',
         'company'    => $job->{'company'} // '',
         'city'       => $job->{'city'}    // '',
@@ -71,8 +71,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,,,,.,,...,,.,,,.,,,.,,.,.,.,,,,,.,...,,,.,..,,...,...,,.,,...,,..,.,,,.,.,
-#YQ73JV2TRQGOW2LU3V3YUGFYXM2FGWOFPLHP3LNZSFPQ4WMOOX6RFLN2QBVUFOXQI7NQZC5PECNSW
-#\\\|RE6JHBCXQORYAYNMSCBCGBYQLHHX2E6SWLTBAACAKAWZGQGFL4M \ / AMOS7 \ YOURUM ::
-#\[7]O3PRSYWSQWAPCYJ6W3FBARHD3FYSSRESKA7JY5JF3RXAHWCH2WBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,..,,,..,...,,,,,,,,,,,.,...,,.,,..,,...,...,,..,,,,,,..,..,,.,,,
+#2HCIXOKY57YLSUET55B3TNPDMMSWBJWAID5KBNZ4OW3G6RTOBJXBAPQFZS3K7NCGF5E5K5L5SUWN4
+#\\\|VIVSDTDQDF7YJZ2CFGF56QJUJIJDH2IY2PZVOOS755OJNQJ5L53 \ / AMOS7 \ YOURUM ::
+#\[7]W5X6H5BSOVYRYEMMJSTC24HNZHMKV6Q77ILWYRF6TZ725JSCREAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

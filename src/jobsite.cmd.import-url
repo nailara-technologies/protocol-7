@@ -31,6 +31,9 @@ my ($job_id) = (
             --(\d+)-inline\.html(?:[?#]\S*)?$}xi
 );
 
+## the listing number becomes the job id : encoded ONCE here [ vax-int ] ##
+$job_id = <[base.vax-int.encode]>->($job_id) if defined $job_id;
+
 return {
     'mode' => qw| false |,
     'data' => 'not a stepstone job posting url',
@@ -96,8 +99,8 @@ return {
         . "fetch, lands as 'new' on success ]",
 };
 
-#,,,.,.,.,,.,,,,,,,,,,.,.,..,,..,,,,,,,,,,,,,,..,,...,...,,..,..,,..,,,.,,,.,,
-#LS3K5X5NPHELV2H65GYQMYZJXUMTTTAVEOKZQNDML2Y2IRT56INUHFG2R6SXRRM5LVKOGP4S3WHKC
-#\\\|WNIUGS37Q7T7NOI4T5YE53FE3ERPCMJZU5YXVGPU4IETXDBIIYG \ / AMOS7 \ YOURUM ::
-#\[7]KH3DHR7KTZE5SEB3V7H3HNF3FFB7DHNJZWOZKVOPEW4SGJ3OLABA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,,,,..,,,,.,..,,...,...,,.,,..,,...,...,.,,,.,.,,.,,..,,,..,
+#CPPKTJ2CV7OYMC7FVAEG53DD5W3U7VZWTHTT4RQQN7SZ2VWSQ2EZLWYUMIQ6EXBNSXVYMX6OSCTWY
+#\\\|PGMFMJ2M4XFH72RVXSOHJU2Q664KPLKZOACU3K3HTLCB4HFNUBK \ / AMOS7 \ YOURUM ::
+#\[7]TOOZ23WPADPOFLFITEW3Y3CAZ6IKKEN7BXG3LY53ZWDH2ONJAIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

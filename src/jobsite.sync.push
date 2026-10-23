@@ -109,7 +109,7 @@ for my $url (@urls) {
             push @changed,
                 {
                 %{$job},
-                'id'                => <[base.vax-int.encode]>->($id),
+                'id'                => $id,
                 'repair_attempted'  => $job->{'repair_attempted'}  // FALSE,
                 'repair_failed'     => $job->{'repair_failed'}     // FALSE,
                 'desc_check_failed' => $job->{'desc_check_failed'} // FALSE,
@@ -134,7 +134,7 @@ for my $url (@urls) {
         next if $real_last_ntime_num and $rn_num <= $real_last_ntime_num;
 
         my $enc_id = $entry->{'id'} // '';
-        my $dec_id = <[base.vax-int.decode]>->($enc_id);
+        my $dec_id = $enc_id;
         my $cur_idx
             = length($dec_id) ? ( <jobsite.job.index>->{$dec_id} // '' ) : '';
         ( my $cur_base_status = $cur_idx ) =~ s{:.+$}{};
@@ -208,8 +208,8 @@ my $log_level = $total_jobs ? 1 : 2;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,,,,,.,,.,.,,,,,.,.,,,.,..,,..,,,,.,,..,,,.,..,,...,.,.,..,,,,.,,,.,.,.,,,.,
-#BT4IK3GHEDRCNG5BNFDECWAKAIXUHDDOTMLJ7THHUCHLSIOUJU3PKD4O2TLRZBDCAFCMRAOH7X2NA
-#\\\|5RURVDTFULGQG3IZG64VPOU5RFBX247Y3AFOMCCA3WOBTG7CYJE \ / AMOS7 \ YOURUM ::
-#\[7]HX4BE7DO2AKCWBQZBOIA6VZCAPFCDEO4PMDR3LNPVINW3GCKA2DQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,,,.,,,,.,,,..,,.,,.,.,,,,,.,,,..,,...,...,,,,,,..,,..,,,.,.,,,
+#2DBJEKHDDYIXCJOVHW2ZYSA7RXP6CZHQUYUE32WA4IKAOIAXPTFTT3ZZKC3AY6LY22K6ECD36D6FE
+#\\\|TS65EC5PLXNNXCNKG3IKJY7RG4WINNJFFZKJ76BW2DMZ3K5COIS \ / AMOS7 \ YOURUM ::
+#\[7]7MMBHFSTXE4CAY2VORLPXSU74BQRGJ3T5JMLQN5QBHXOKYLPFGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
