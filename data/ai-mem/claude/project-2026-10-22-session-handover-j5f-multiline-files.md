@@ -175,6 +175,17 @@ the regular session budget ].
   domain's wildcard caught github.com [ no AAAA ] ; todo 5W7
 - labels are ssh aliases [ a second name on each Host line ] -- p-7-r
   pins by HostName, the existing pins hold
+- web login [ 00374a453 .. 89288f588 ] : https cut bodies at a tls record
+  [ base.ssl.write took EAGAIN \ SSL_WANT_WRITE for an error ] ; token
+  dirs lost setgid [ make_path chmod, then File::stat shadowed the fix --
+  CORE::stat ] ; file.open truncated, failed its chmod and UNLINKED a file
+  it had not created [ httpsd wiped a fresh session ]. web.auth-revoke ;
+  login works end to end [ 1.4 MB jobs.json over https ]
+- NEXT : todo 6CJ \ data/md/design/LOGIN-ADMISSION.md, step 0 first :
+  login + token requests answer over plain http today. tokens are 7 char
+  AMOS [ 2^35 ] -> L13. no shared budget anywhere [ owner : no dos lever ]
+- base.list.subroutines still lacks plugin.web.auth.admin_caller +
+  web.cmd.auth-revoke [ the loader does not read it ]
 
 ## later the same day : history relabelled
 
@@ -214,8 +225,8 @@ the regular session budget ].
 - any 'deep recursion' warning ends a zenka [ exit 110 ] -- a synchronous
   handoff chain over a queue must be a loop
 
-#,,.,,,,.,.,,,..,,..,,.,.,...,,,.,,,.,,,,,.,,,..,,...,.,,,.,.,..,,,,.,..,,..,,
-#POZ6MQJ4WDWOFIPBIL6DS4NGGU7GY5BBUHCVDMJLRZUKAN3JNI4F4YCXYE5O3EEWHGUM5VESJDC6O
-#\\\|VE4FRDFDVQGDLC6J2QMHYPH4X4DOWCFFXK5ESQFPOHMHJ4TMMKT \ / AMOS7 \ YOURUM ::
-#\[7]5N6TT5QB7G22UTBATW2DDTYH4BY63ZNYM6T2FIIJTDLVRK7O5CDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,.,,.,,,...,,,.,.,.,..,,,,,,...,..,,...,...,..,,,..,.,.,,,,,.,,,
+#SKF2YMMDBLTGW7SA2GGRJ7OTBEBQMVAKWSS2IL2TQMMU4SNLZPPTQERYWBFV5EBWFGJD45PX7AXDE
+#\\\|JMXABUZYX2GLJ4T7ECI5LFDKIAXRDQRN653SDGXLEDWMQA4UVDI \ / AMOS7 \ YOURUM ::
+#\[7]OO62RNRYNIDRNBFYZ4JTPDKTRDFJUHLEKB3H36RGLNCQTBJURCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
