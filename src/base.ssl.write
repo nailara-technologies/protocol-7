@@ -35,20 +35,47 @@ if ( utf8::is_utf8( $write_string_ref->$* ) ) {
 ## see base.s_read for the read-side counterpart of this same guard
 binmode( $write_fh, ':raw' );
 
+## one tls record per call [ 16 KiB ] ; a write openssl could not finish   ##
+## must be repeated with the same length, even when the output buffer grew ##
+## meanwhile -- that pending length is kept per handle                     ##
+my $handle_data = $data{'handle'}{$write_fh} //= {};
+$write_len = 16384 if $write_len > 16384;
+$write_len = $handle_data->{'ssl_retry_len'}
+    if defined $handle_data->{'ssl_retry_len'}
+    and $handle_data->{'ssl_retry_len'}
+    <= length( $write_string_ref->$* ) - $str_offset;
+
 ## Use syswrite for SSL sockets  syswrite(FILEHANDLE, SCALAR, LENGTH, OFFSET)
 ## writes LENGTH bytes from SCALAR starting at OFFSET For SSL sockets, OpenSSL
 ## handles the encryption automatically.
 my $size_written
     = syswrite( $write_fh, $write_string_ref->$*, $write_len, $str_offset );
 
-## Convert undef (error) to -1 for consistency with IO::AIO behavior syswrite
-## returns actual bytes written on success, undef on error
-$size_written //= -1;
+if ( defined $size_written ) {
+    delete $handle_data->{'ssl_retry_len'};
+    return $size_written;    ## [ bytes written ] ##
+}
 
-return $size_written;    ## [ returns bytes written, or -1 on error ] ##
+## a full send buffer is not an error : a non-blocking IO::Socket::SSL      ##
+## answers undef with EAGAIN \ SSL_WANT_WRITE [ or WANT_READ ]. as -1 the   ##
+## caller closed the session -- every https response larger than the kernel ##
+## buffer broke off at a record boundary                                    ##
+## [ 81920 of 125229 bytes, 2026-10-23 ]. 0 is 'socket full' to it, as      ##
+## base.s_write reports                                                     ##
+my $ssl_error = $IO::Socket::SSL::SSL_ERROR // 0;
+if (   $!{EAGAIN}
+    or $!{EWOULDBLOCK}
+    or $ssl_error == IO::Socket::SSL::SSL_WANT_WRITE()
+    or $ssl_error == IO::Socket::SSL::SSL_WANT_READ() ) {
+    $handle_data->{'ssl_retry_len'} = $write_len;
+    return 0;
+}
 
-#,,,.,,..,,..,,.,,,..,..,,,,,,.,.,,,,,.,,,...,..,,...,..,,...,.,.,.,.,,..,,..,
-#JBMWIWRLZCQXVAVFFPD2HSECYOI5ELFFGYFBHYMYUBXJXHCBDJNRYSSC3CSBHIOJQ32RFD2THP7LM
-#\\\|RBN5WQ4Y5J76DZGSVYH4XYH4VHNUSQAVUQQ4RGLFQXUPOZDLQUS \ / AMOS7 \ YOURUM ::
-#\[7]OEJC7AF6OHOFMKCGGYQLOKPSBK5MW5XDAIKHW62ZMGJDTOEVC2CQ 7  DATA SIGNATURE ::
+delete $handle_data->{'ssl_retry_len'};
+return -1;    ## [ a real error ] ##
+
+#,,.,,...,,.,,.,.,...,,.,,.,.,.,.,.,,,.,,,,.,,..,,...,...,,.,,,..,..,,.,,,..,,
+#YRJRSDBIOPZVEIAU2QH5PRMSETX345QRKUPHAWTYMEYZ7W2AN6UCXZYFNDR7R3PKDTUXKCSK4PAR6
+#\\\|3EYCPMT3U3EGEUNT77CVSZGGTZM44OP24MBMQEWCERKT5IDHZVE \ / AMOS7 \ YOURUM ::
+#\[7]BUHYJ6ZHHKPKN6F5HXGWRBKY3LGOSNAYX4OB2B66W4ZSMDPII6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
