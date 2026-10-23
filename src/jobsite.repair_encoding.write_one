@@ -30,7 +30,7 @@ my $job   = $loaded->{'job'};
 my $check = <[jobsite.repair_encoding.job]>->($job);
 return $skip->('nothing left to repair') if not $check->{'repaired'};
 
-my @stat = stat $item->{'abs_path'};
+my @stat = CORE::stat $item->{'abs_path'};
 
 $job->{$ARG} = $check->{'fixed'}{$ARG} for keys $check->{'fixed'}->%*;
 
@@ -50,7 +50,7 @@ $stats->{'written'}++;
 
 ## keep owner and mode [ file.zenka_dir.write creates with 0640 ] ##
 if (@stat) {
-    my @now = stat $item->{'abs_path'};
+    my @now = CORE::stat $item->{'abs_path'};
     if ( @now and ( $now[2] & 07777 ) != ( $stat[2] & 07777 ) ) {
         chmod $stat[2] & 07777,
             $item->{'abs_path'}
@@ -71,8 +71,8 @@ if (@stat) {
 
 return;
 
-#,,,.,,,,,,..,..,,.,.,..,,...,,.,,,.,,..,,...,..,,...,...,.,,,..,,...,.,.,.,.,
-#AWD4KCDWJ44RKF2RUIMSFQW2AS247TEIFLBNBCDFAVY7ANFPAIVZDRBVRIXGV654NZ4OKG4F53FSK
-#\\\|HAQJAE53S6T6LSF3EWOG65G6NVRSBDF34XLRB723WXJ2UZNOSOZ \ / AMOS7 \ YOURUM ::
-#\[7]KMHIAHVYFH3JDQXBVVADARPNK27OXXPBBGQBYHK2WS7HVDD65AAY 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,.,,,,,.,.,,.,,,,.,,,.,.,.,,..,..,,...,...,.,.,,..,,.,,.,,,...,
+#HUEWJYVJRBKSQTLH2T6N7SPKMAY3YIIVAMF7GVRFXAMAWVEAPQ4BTAMFBWAVA7LGXLAJYW47B3EJU
+#\\\|QEJFBTJEFIUBRR2FXF7WRPTWHCPQV2E2U5NPZN3ZOQMC5JUSUAF \ / AMOS7 \ YOURUM ::
+#\[7]OWKMEGZWRA7EKZCEOQESGWR6KCYXFXHR2HWNKJNFDMI3QJSOQMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
