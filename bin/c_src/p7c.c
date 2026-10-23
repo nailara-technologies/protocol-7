@@ -92,7 +92,10 @@ int main( int argc, char * argv[] ) {
         exit(2);
     }
 
-    for (int i = 1; i < argc; i++) {
+    /* options only BEFORE the command word : argv[1] is the command, so
+       only it can be an option -- words after it belong to the command
+       [ e.g. 'web.auth-issue <user> -ttl <s>' ] */
+    for (int i = 1; i < argc && i < 2; i++) {
         if (argv[i][0] == '-') {
            if (argv[i][1] == 'd')
            {
