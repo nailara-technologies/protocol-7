@@ -93,6 +93,7 @@ base.calc_gauss
 ui.estimate.cost
 trust.pin_decide
 plugin.auth.unix
+link.pin.migrate
 jobqueue.add_job
 base.stream.push
 base.stream.open
@@ -119,6 +120,8 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+link.session.open
+link.records.list
 jobqueue.move_job
 jobqueue.exec_job
 base.stream.close
@@ -142,6 +145,8 @@ base.chk-sum.amos
 ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
+format.json.encode
+format.json.decode
 external.link.open
 external.init_code
 base.reload_values
@@ -180,6 +185,7 @@ base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
 io.ip.tcp.input.open
+format.yaml.pre_init
 external.cmd.connect
 base.route.init_code
 base.root.drop_privs
@@ -205,11 +211,15 @@ base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
+link.supervisor.start
+link.supervisor.retry
+link.record.cube_port
 jobqueue.get_next_job
 jobqueue.get_job_data
 io.ip.tcp.output.open
 io.ip.tcp.input.close
 format.yaml.load_file
+format.json.init_code
 crypt.C25519.pre_init
 crypt.C25519.keyfiles
 crypt.C25519.key_vars
@@ -250,6 +260,7 @@ base.comp-int.is_valid
 base.cfg.profile.apply
 auth.client.owner_pins
 protocol.sftp.init_code
+link.supervisor.connect
 jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
@@ -279,6 +290,8 @@ base.auth.set_zenka_key
 ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
+link.supervisor.teardown
+link.handler.session_rip
 io.unix.socket.init_code
 external.cmd.revoke-link
 crypt.C25519.verify_sign
@@ -301,6 +314,8 @@ base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 base.buffer.erase_secure
 ui.render.tree.invalidate
+link.transport.ssh-w.open
+link.supervisor.link_down
 jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.root_key_dir
@@ -365,6 +380,8 @@ base.chk-sum.amos.init_code
 auth.client.zenka.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
+link.session.handshake_class
+link.handler.heartbeat_reply
 io.unix.socket.input.connect
 external.orbital.push_update
 crypt.C25519.keystr_is_valid
@@ -409,6 +426,9 @@ auth.client.unix.authenticate
 ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+link.supervisor.kill_transport
+link.supervisor.heartbeat_send
+link.handler.heartbeat_timeout
 crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
 crypt.C25519.key_bin_checksums
@@ -529,8 +549,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,.,,.,,.,,,...,,.,,..,,.,,,..,,,,,,,,.,..,,...,..,,,..,..,,..,,.,.,..,,
-#2AKBJ6FYMDZNN26LPIVH7OMXOXPFQN3GSIF7JJAK24FJHXSOZEFPNMDVJNUCQ7TTZD4FIB5TLF5TA
-#\\\|DCD7SUYTN2P5FQ5O5FBFHCQYM4YCQKMUZCRDQWIQAOAS4P6PVV6 \ / AMOS7 \ YOURUM ::
-#\[7]IYI5XJNKGD3LAJBW2MDVGSJ5BZ7VU5SP54V4SRQQWDRR64V6EIBI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,,.,,,..,,..,,,,,.,.,,,,,,,,,..,,...,...,...,,..,.,,,.,.,,,.,
+#MDWWM4OS3TQWL7U46AJXFJAQLHX3OTTUNMF66RBGIRL2U2NTFLOSQI664ZZL3LJJQB6GOB3AZ26G6
+#\\\|44UAB2DHC7ZAXD64HEHGRD6VII2HDY3U2J6BXHCZW3IIT5YGOEK \ / AMOS7 \ YOURUM ::
+#\[7]PQAUZWIEFUBFXS5XLWDWRN6IVRCHXCPFTOI2K5ZAF4MED543GOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

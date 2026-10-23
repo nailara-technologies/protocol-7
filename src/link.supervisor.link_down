@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = link.supervisor.link_down
+# descr = tear a managed link down and schedule its retry
+# param = <name> <why>
+#
+# closes the session AND the transport [ the design : a heartbeat
+# timeout frees both ], then schedules the backoff retry. the state is
+# set before the teardown so a session rip arriving mid-teardown sees
+# the link already down [ the rip handler only acts on 'up' links ].
+# <shutdown_session> // true : a rip call passes false, the session is
+# closing already [ v7-zenki.handler.cube_session_close's shape : a rip
+# never calls base.session.shutdown on its own session ].
+
+my ( $name, $why, $shutdown_session ) = @ARG;
+$shutdown_session //= TRUE;
+
+return FALSE if not length $name;
+
+my $entry = <external.links>->{$name} // return FALSE;
+return FALSE if not $entry->{'supervised'};
+return FALSE if ( $entry->{'state'} // '' ) ne qw| up |;
+
+$entry->{'state'} = qw| down |;
+
+<[base.logs]>->( 1, ': link %s : down [ %s ]', $name, $why // '?' );
+
+<[link.supervisor.teardown]>->( $name, $shutdown_session );
+
+<[link.supervisor.retry]>->( $name, qw| transport | );
+
+return TRUE;
+
+#,,,.,,,.,,,,,,..,,.,,.,,,.,.,,,,,,..,.,.,,..,..,,...,...,.,,,,..,,,.,..,,,.,,
+#VEMO5ICE3RGV5Z247DCG45QUW34GLGIACCQQMRCPSYHL62X5CGJWUDNNGNFVLFN4DS3MH4PL5K5KS
+#\\\|AVKPCZJIFIKAJOUXYFF4ZB2KZO57WIHBP7F6EQ7OXS76ZZIMKQL \ / AMOS7 \ YOURUM ::
+#\[7]TEJACVJJLUBPXOPNHIWW6DQXJKBJQTFIXUOP6O6ZUKHD3NVC3YBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

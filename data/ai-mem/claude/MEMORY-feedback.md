@@ -227,3 +227,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|FDACDNRBYPORRDX4OM6RBH3TIRJ2WJ34SFM3TKOBAVRHPFFNEF5 \ / AMOS7 \ YOURUM ::
 #\[7]SE2QL7MLDD6OEIKIBJFEAJGBHTUVAGMQSAVTOKUZS2WMRYRJLEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [vax-int-digit-only-encoded-ids](feedback-vax-int-digit-only-encoded-ids.md) — base32 job ids can be all digits [ 65454 = listing 14580215 ] ; vax-int `^\d+$` guess re-encodes them [ V37Q shadow, hallucinated 9 ] ; fix = encode once at the site boundary, no guessing downstream, never a length rule in the generic tools [ `vax-int 42` = FI ]
+
+#,,,,,,..,,..,.,,,,,.,,..,,,,,,.,,,.,,,.,,,..,..,,...,...,...,,,.,,.,,,..,...,
+#Z4BAWYJXFCQQAU3R2KPJXJ2RXM46V4IDRXCKS5IWWOGBJFFV63NFJXDGOIDOE5PQFYDDTLA2KLK6M
+#\\\|U3PTK4IJI4RSE5ZKQZRPAITUZIJSFWRSNXHQCOMFOPM3IMAFJQG \ / AMOS7 \ YOURUM ::
+#\[7]NMF2DTSAPNA6BA7NM3NFP6NWK7IAKOIYEOPS24P74PZVSNDXBCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

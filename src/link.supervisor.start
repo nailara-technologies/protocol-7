@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = link.supervisor.start
+# descr = scan link records and open the managed links
+# note  = stage 1 of LINK-ZENKI-AND-TRANSPORTS.md : runs AFTER
+#         [root.drop_privs] [ cfg/zenki/external/zenka.v7 ] -- it reads
+#         pins under the zenka user's home and forks ssh children.
+#         external.init_code re-arms it on a reload [ $reinit runs
+#         unprivileged then ]. idempotent : a link already up keeps its
+#         session, only its heartbeat is re-armed.
+
+<[base.logs]>->( 2, ': link supervisor : scanning host records ..' );
+
+my $records = <[link.records.list]>->(qw| link |);
+
+<[base.logs]>->(
+    2,
+    ': link supervisor : %d link record%s',
+    scalar @$records,
+    scalar @$records == 1 ? '' : 's'
+);
+
+<link.supervisor.timers> //= {};
+<external.links>         //= {};
+
+foreach my $record (@$records) {
+    my $name = $record->{'name'};
+
+    my $entry = <external.links>->{$name} //= {};
+    $entry->{'supervised'} = TRUE;
+
+    ## already up : keep the session, re-arm the heartbeat only ##
+    if (    length( $entry->{'sid'} // '' )
+        and $entry->{'state'} eq qw| up |
+        and exists $data{'session'}{ $entry->{'sid'} } ) {
+        <[link.supervisor.heartbeat_send]>->($name);
+        next;
+    }
+
+    <[link.supervisor.connect]>->($name);
+}
+
+return scalar @$records;
+
+#,,,.,,,.,,.,,.,,,,,,,.,,,,,.,.,.,.,.,,..,.,.,..,,...,...,..,,,.,,.,.,..,,.,,,
+#5SOX3B3YFD72XRGCNG5GIFJEAMUD4HTJ26QLE7I66T46JQKHDMOPDODGZSIFHJCWXY3SNDWJGQS7I
+#\\\|P4C4YBP4ZTX2H6QEUBXW643N5IFEZBLNTSI4PMHWFOSCHG64TTX \ / AMOS7 \ YOURUM ::
+#\[7]6EBNFMYDMNFQ5VYSOXKYGDNL5JJSEMWBEHCUP2JS72JBXVMT6AAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

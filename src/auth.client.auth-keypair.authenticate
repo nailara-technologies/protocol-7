@@ -6,6 +6,9 @@
 #         banner-read + select-method + auth-line + reply-parse shape
 # param = <backend_socket> <as_username> <session_key_name> <base_key_name>
 #         { host, port } [ the server key pin : auth.client.server_pin.check ]
+#         [, <result hashref> ] [ optional out-param : on failure the
+#         'class' key is set to trust | transport -- the link
+#         supervisor's failure classes, LINK-ZENKI-AND-TRANSPORTS.md ]
 # return = the binding context [ a hash ref : server_nonce, server_pub,
 #          username, base_key_name -- raw bytes ] for protocol.protocol-7.
 #          link-upgrade.handshake, undef on any failure
@@ -14,11 +17,19 @@
 # [ HOST-ROOT-DELEGATION.md ] : the select reply is 'TRUE <S_pub b32>
 # <server_nonce b32> <delegation b32>' ; the delegation of S_pub is
 # verified under the pinned host-root BEFORE the auth line is sent ;
-# auth_sig signs auth.binding.message 'auth'
+# auth_sig signs auth.binding.message 'auth'. failure classes :
+# transport [ dead stream, no banner, bad select reply, auth timeout ]
+# vs trust [ pin \ delegation refused, AUTH refused, local key ] --
+# transport failures are worth a retry, trust failures are not.
 
 my ($backend_socket, $as_username, $session_key_name,
-    $base_key_name,  $server_id
+    $base_key_name,  $server_id,   $result_out
 ) = @ARG;
+
+my $fail_class = sub {
+    $result_out->{'class'} = shift if ref $result_out eq qw| HASH |;
+    return undef;
+};
 
 if ( not defined $backend_socket ) {
     warn 'socket param undefined, cannot '
@@ -49,7 +60,7 @@ if (   not defined $backend_socket
     <[base.log]>->(
         0, 'auth.auth-keypair : cannot authenticate [ have no valid socket ]'
     );
-    return undef;
+    return $fail_class->(qw| transport |);
 }
 
 my $read_len = max( map {length} $protocol_banner, $proto_msg_timeout );
@@ -61,7 +72,7 @@ if ( $bytes_read <= 0 ) {
     <[base.logs]>->(
         0, 'auth.auth-keypair : [#] network error [ nothing read ]'
     );
-    return undef;
+    return $fail_class->(qw| transport |);
 }
 
 if ( $banner_string !~ $re_proto_banner ) {
@@ -69,7 +80,7 @@ if ( $banner_string !~ $re_proto_banner ) {
         0,
         '[#] protocol mismatch [ no valid connection banner \ auth-keypair ]'
     );
-    return undef;
+    return $fail_class->(qw| transport |);
 }
 
 <[base.logs]>->( 2, '[*] Protocol 7 banner detected.,' );
@@ -101,7 +112,7 @@ if ( not defined $delegation_b32 ) {
             . 'server key + nonce + delegation ] : %.160s',
         $select_reply // '<none>'
     );
-    return undef;
+    return $fail_class->(qw| transport |);
 }
 
 my $server_pub   = eval { Crypt::Misc::decode_b32r($server_pub_b32) };
@@ -114,7 +125,7 @@ if (   not defined $server_pub
     <[base.logs]>->(
         0, '[#] select auth-keypair failed [ server key \\ nonce not valid ]'
     );
-    return undef;
+    return $fail_class->(qw| trust |);
 }
 
 ## the host-root pin + delegation decide BEFORE anything is signed or sent ##
@@ -126,7 +137,7 @@ if (ref $server_id ne qw| HASH |
     )
 ) {
     <[base.logs]>->( 0, '[#] server key not accepted, auth-keypair aborted' );
-    return undef;
+    return $fail_class->(qw| trust |);
 }
 
 ## ensure the local session/base identity keys exist, generating and
@@ -180,9 +191,10 @@ my $sig_b32    = Crypt::Misc::encode_b32r($sig_bin);
 ## plugin.auth.auth-keypair's own success line is literally "AUTH_TRUE =)",
 ## the exact same string auth.client.zenka.process_auth_reply already checks
 ## for -- genuinely reusable as-is, not zenka-specific despite its namespace
-return undef
+return $fail_class->(qw| trust |)
     if not defined <[auth.client.zenka.process_auth_reply]>->(
-    $backend_socket, 'success., =), auth-keypair authorized session.'
+    $backend_socket, 'success., =), auth-keypair authorized session.',
+    $result_out
     );
 
 ## binding PENDING on the server : the link-upgrade must follow at once ##
@@ -193,8 +205,8 @@ return {
     qw| base_key_name | => $base_key_name,
 };
 
-#,,..,.,,,..,,...,...,,,,,..,,...,.,.,...,,..,..,,...,...,..,,,..,,.,,.,,,..,,
-#LUEQMXDXCPUQ4OCPGXXFCDAJZEWL22AXT6OT6VKBJTKW57EG5YVQWEZESPMYELMNIMVOPZSYUFSX4
-#\\\|HQSYOAITDPUNTBOTRT2LLSLIWKK4HZJIRHIWQ7DGACXPO4LQCDW \ / AMOS7 \ YOURUM ::
-#\[7]Z5X34OKSQCI2ILV2ASC33AVDNNRKS4CJIMWPJS7DOOJAOD47I2CQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,.,,..,.,,,...,.,.,...,,.,,,,,,..,,...,...,.,.,...,,.,,,.,,,.,,
+#XWVOUVLWNQGQHM2NKBQXSVMXI4M2UENGQR7PV5ZULNU2BFAEBPDJ3Q7XF2CQUK3WAAAU667WXYS2Q
+#\\\|AHB3CB63N24YLAKD5YQ7P7G3ERE4L6CWAJGLZFKZYSXFFAALGL2 \ / AMOS7 \ YOURUM ::
+#\[7]5QT4DCFLX34ZWNG5ZYOS2AQAKRIFD5ODLYMF5HRJOEAMGMPM5OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

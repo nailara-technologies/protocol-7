@@ -1,0 +1,130 @@
+## [:< ##
+
+# name  = link.session.open
+# descr = auth-keypair + link-upgrade over an open stream
+# param = { fd, pin_host, pin_port, as_user [, name, target_host,
+#           target_port ] }
+# return = { mode => true, data => <session id> } or
+#          { mode => false, data => <why>, class => trust | transport }
+#
+# the session half of a link [ data/md/design/LINK-ZENKI-AND-TRANSPORTS.md
+# stage 1 ] : everything after a transport handed over a connected byte
+# stream to the remote cube. runs auth-keypair v2 as <as_user> with this
+# unix user's '<user>.base' key [ the server key pin is checked under
+# '<pin_host>_<pin_port>' -- the RECORD name + remote cube port, never
+# the dial address ], then the link-upgrade handshake bound to that auth,
+# then base.session.init + state 1 + state 3 [ link_role client ]. the
+# blocking part is only this setup ; commands afterwards are event-driven.
+# <name> names the client session [ //= <pin_host> ] :
+# '<name>.<rest>' routes over it. failure classes [ the design's
+# 'liveness, reconnect, failure classes' ] : trust [ pin mismatch,
+# delegation refused, AUTH refused, binding failed ] vs transport [ dead
+# stream, timeout ] -- transport failures are worth a retry, trust
+# failures are not. a die from here closes <fd> first, then re-dies [ the
+# caller evals ].
+
+my $args     = shift               // {};
+my $fd       = $args->{'fd'}       // undef;
+my $pin_host = $args->{'pin_host'} // '';
+my $pin_port = $args->{'pin_port'} // '';
+my $as_user  = $args->{'as_user'}  // '';
+my $name     = $args->{'name'}     // $pin_host;
+
+return {
+    'mode'      => qw| false |,
+    'data'      => 'fd, pin_host, pin_port and ' . 'as_user required',
+    qw| class | => qw| trust |
+    }
+    if not defined $fd
+    or not length $pin_host
+    or $pin_port !~ m{^\d+$}o
+    or not length $as_user;
+
+my $target_host = $args->{'target_host'} // $pin_host;
+my $target_port = $args->{'target_port'} // $pin_port;
+my $target      = "$target_host:$target_port";
+
+my $base_key_name = sprintf qw| %s.base |, $ENV{'USER'} // getpwuid($EUID);
+
+## the class out-param : auth.client.auth-keypair.authenticate records WHY ##
+## it failed [ transport : dead stream, banner, timeout .. ; trust : pin   ##
+## mismatch, AUTH refused .. ] -- see its header                           ##
+my $auth_result = {};
+my $binding     = eval {
+    <[auth.client.auth-keypair.authenticate]>->(
+        $fd, $as_user, $name,
+        $base_key_name,
+        {   qw| host | => $pin_host,
+            qw| port | => $pin_port
+        },
+        $auth_result
+    );
+};
+if ( length $EVAL_ERROR ) {
+    close($fd);
+    die $EVAL_ERROR;
+}
+if ( ref $binding ne qw| HASH | ) {
+    close($fd);
+    return {
+        'mode'  => qw| false |,
+        'data'  => "auth-keypair as $as_user failed [ $target ]",
+        'class' => $auth_result->{'class'} // qw| trust |
+    };
+}
+
+my ( $upgraded, $link ) = eval {
+    <[protocol.protocol-7.link-upgrade.handshake]>->(
+        $fd, { 'timeout' => 5, 'binding' => $binding }
+    );
+};
+if ( length $EVAL_ERROR ) {
+    close($fd);
+    die $EVAL_ERROR;
+}
+if ( not $upgraded ) {
+    close($fd);
+    my $error = $link->{'error'} // 'unknown';
+    return {
+        'mode'  => qw| false |,
+        'data'  => "link-upgrade failed : $error [ $target ]",
+        'class' => <[link.session.handshake_class]>->($error)
+    };
+}
+
+## the session NAME is the link name : '<name>.<rest>' routes over it ##
+my $id = <[base.session.init]>->( $fd, qw| protocol-7 client |, $name );
+if ( not defined $id ) {
+    close($fd);
+    return {
+        'mode'  => qw| false |,
+        'data'  => 'cannot register session',
+        'class' => qw| transport |
+    };
+}
+
+## authenticated already [ we were the client ] : straight to state 1, then ##
+## the encrypted state 3                                                    ##
+<[base.session.init_state]>->( $id, 1 );
+
+if (
+    not <[protocol.protocol-7.link-upgrade.client_activate]>->( $id, $link ) )
+{
+    <[base.session.shutdown]>->($id);
+    return {
+        'mode'  => qw| false |,
+        'data'  => 'encryption ' . 'activation failed',
+        'class' => qw| trust |
+    };
+}
+
+## routable : route_to_target skips sessions not marked authenticated ##
+$data{'session'}{$id}{'authenticated'} = qw| yes |;
+
+return { 'mode' => qw| true |, 'data' => $id };
+
+#,,.,,,..,,..,,,,,,..,,,,,,..,.,,,.,,,,..,,,,,..,,...,..,,,.,,...,,,.,.,,,.,.,
+#K6DAZCPAU6Q3OH3FI6BELGCC7F3FDYX47Q35NUDGXP3TKROBS4NLDPLNUETJ25OANZLNOQOEPS7Z4
+#\\\|UHMVVOU4CKWRN7HIF7EI2OVYK5VQSDKMRVYFD5FWJVHSMNO2VJL \ / AMOS7 \ YOURUM ::
+#\[7]Q5C3N6IILLJMKRR4UBFYCF2OV5WPKBKFKVXC2UPHWHN26OJXAABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

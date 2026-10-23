@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = link.supervisor.heartbeat_send
+# descr = send the link heartbeat and arm its timeout
+# param = <name> | <Event> [ interval timer re-invocation ]
+#
+# a bare 'heart' to the remote cube over the link session, every
+# <link.cfg.heartbeat_interval> [ // 4.7 s, the ssh zenka's number ] :
+# the repeating interval watcher is armed here, once per 'up' phase.
+# the reply [ link.handler.heartbeat_reply ] proves the whole path and
+# resets the backoff ; no reply within <link.cfg.timeout> [ // 10 s ]
+# tears the link down [ link.handler.heartbeat_timeout ]. route-send
+# only buffers : the reply arrives through the registered reply
+# handler, never through this call.
+
+my $arg = shift // '';
+
+my $name = $arg;
+if ( ref $arg ) {    ## interval timer : the Event arrives ##
+    my $data_h = $arg->w->data;
+    $name = $data_h->{'name'} // '';
+}
+
+return FALSE if not length $name;
+
+my $entry = <external.links>->{$name} // return FALSE;
+return FALSE if ( $entry->{'state'} // '' ) ne qw| up |;
+
+my $sid = $entry->{'sid'} // '';
+return FALSE if not length $sid or not exists $data{'session'}{$sid};
+
+my $timers = <link.supervisor.timers> //= {};
+
+## the repeating interval watcher [ armed once per 'up' phase ] ##
+my $hb_watcher = $timers->{$name}{'hb'};
+if (   not defined $hb_watcher
+    or not $hb_watcher->can(qw| is_active |)
+    or not $hb_watcher->is_active ) {
+    $timers->{$name}{'hb'} = <[event.add_timer]>->(
+        {   qw| interval | => ( <link.cfg.heartbeat_interval> // 4.7 ),
+            qw| desc |     => "link heartbeat [$name]",
+            qw| handler |  => qw| link.supervisor.heartbeat_send |,
+            qw| data |     => { qw| name | => $name }
+        }
+    );
+}
+
+## one heartbeat in flight : drop this tick if the timeout still waits ##
+return FALSE
+    if defined $timers->{$name}{'hb_timeout'}
+    and $timers->{$name}{'hb_timeout'}->can(qw| is_active |)
+    and $timers->{$name}{'hb_timeout'}->is_active;
+
+my $sent = <[protocol-7.command.send.local]>->(
+    {   'command'   => sprintf( '%d.heart', $sid ),
+        'call_args' => { qw| args | => '' },
+        'reply'     => {
+            qw| handler | => qw| link.handler.heartbeat_reply |,
+            qw| params |  => { qw| name | => $name }
+        }
+    }
+);
+
+if ( not defined $sent or $sent < 1 ) {
+    ## the session died under us : treat it like a heartbeat timeout ##
+    <[base.logs]>->( 1, ': link %s : heartbeat could not be sent', $name );
+    <[link.supervisor.link_down]>->( $name, qw| heartbeat send failed | );
+    return FALSE;
+}
+
+$entry->{'hb_sent'} = time;
+
+$timers->{$name}{'hb_timeout'} = <[event.add_timer]>->(
+    {   qw| after |   => ( <link.cfg.timeout> // 10 ),
+        qw| desc |    => "link heartbeat timeout [$name]",
+        qw| handler | => qw| link.handler.heartbeat_timeout |,
+        qw| data |    => { qw| name | => $name }
+    }
+);
+
+return TRUE;
+
+#,,,.,,,.,,,.,...,..,,,.,,.,,,...,.,,,..,,.,.,..,,...,...,.,.,...,.,,,..,,,,.,
+#PUCPGSEZQAJW6ILVLYR26S4LXS4BNKIXTTHKRETIDBSXBLXQP2RQMY5UTA5OM7MK2EDZDTZOZKDA4
+#\\\|ZIXMA5UDQCIVHF2M3AOWOHJ6DWHYG2DFP3IHQJGB6ER7IDNWQ2T \ / AMOS7 \ YOURUM ::
+#\[7]X54L6MK26MCO45OLLSTKIBG7NHGZFVSV26OJVOASVT3UTLZVEYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

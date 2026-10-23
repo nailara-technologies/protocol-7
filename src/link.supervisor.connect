@@ -1,0 +1,232 @@
+## [:< ##
+
+# name  = link.supervisor.connect
+# descr = one connect cycle for a managed link
+# param = <record name> | <Event> [ timer re-invocation ]
+#
+# transport -> pin continuity -> link.session.open -> heartbeat arm.
+# the record's 'transports' list is tried in order [ first that opens a
+# stream wins ] ; an empty list defaults to 'ssh-w' when the record has
+# an 'ssh' target, else 'tcp' [ the design's default ]. failure classes
+# [ 'liveness, reconnect, failure classes' ] :
+#
+# - trust [ pin mismatch, AUTH refused, binding failed, unknown
+#   transport, no link identity ] -> state 'refused', log level 0,
+#   retry only at the 30 s cap, never re-pin
+# - transport [ connect refused \ timeout, ssh exit, eof ] -> state
+#   'down', backoff 0.5 s doubling to 30 s + jitter
+#
+# a success marks the session with a rip_handler [ fast death
+# detection -- the heartbeat alone would take one timeout ] and arms the
+# heartbeat interval timer. blocking : the connect and the auth +
+# upgrade exchange block this zenka's loop for seconds [ the same shape
+# external.cmd.connect already runs from a timer ] -- one link per
+# attempt keeps it bounded.
+
+my $arg = shift // '';
+
+my $name = $arg;
+if ( ref $arg ) {    ## timer handler invocation : the Event arrives ##
+    my $data_h = $arg->w->data;
+    $name = $data_h->{'name'} // '';
+}
+
+return FALSE if not length $name;
+
+my ($found)
+    = grep { $ARG->{'name'} eq $name }
+    <[link.records.list]>->(qw| link |)->@*;
+
+my $entry = <external.links>->{$name} //= {};
+$entry->{'supervised'} = TRUE;
+$entry->{'state'} //= qw| connecting |;
+
+## cancel anything pending from a previous cycle ##
+<[link.supervisor.teardown]>->( $name, FALSE );
+
+if ( not defined $found ) {
+    <[base.logs]>->(
+        0, '<< link %s : record gone, supervision stops >>', $name
+    );
+    $entry->{'state'} = qw| refused |;
+    return FALSE;
+}
+my $fields = $found->{'fields'};
+
+## the link name routes as ONE dotted segment                               ##
+## [ 'external.<name>.<cmd>' -- '*' in access rules matches one segment ] : ##
+## a dotted record name [ e.g. a host name ] cannot be a link               ##
+if ( $name !~ m|\A[0-9A-Za-z][0-9A-Za-z_-]{0,31}\z| ) {
+    <[base.logs]>->(
+        0,
+        '<< link %s : a link name must be one '
+            . 'segment [ no dots, <= 32 chars ] : refused >>',
+        $name
+    );
+    $entry->{'state'} = qw| refused |;
+    return FALSE;
+}
+
+my ( $cube_host, $cube_port ) = <[link.record.cube_port]>->($fields);
+if ( not defined $cube_port ) {
+    <[base.logs]>->(
+        0, '<< link %s : no cube address in the record : refused >>', $name
+    );
+    $entry->{'state'} = qw| refused |;
+    return FALSE;
+}
+
+## 1. pin continuity : the by-hand pin named by the record's pin_from moves ##
+## onto the record name ONCE [ link.pin.migrate ] -- a contradiction is a   ##
+## trust failure : stop and log, never a new TOFU                           ##
+my ( $pin_ok, $pin_why )
+    = <[link.pin.migrate]>->( $name, $cube_port, $fields->{'pin_from'} );
+if ( not $pin_ok ) {
+    <[base.logs]>->(
+        0,     '<< link %s : pin continuity refused : %s >>',
+        $name, $pin_why
+    );
+    $entry->{'state'} = qw| refused |;
+    <[link.supervisor.retry]>->( $name, qw| trust | );
+    return FALSE;
+}
+
+## 2. who we authenticate as ##
+my $as_user = $fields->{'link_user'} // <external.cfg.link_user> // '';
+if ( not length $as_user ) {
+    <[base.logs]>->(
+        0,
+        '<< link %s : no link_user in the record '
+            . 'and no external.cfg.link_user : refused >>',
+        $name
+    );
+    $entry->{'state'} = qw| refused |;
+    <[link.supervisor.retry]>->( $name, qw| trust | );
+    return FALSE;
+}
+
+## 3. transports, in order [ first stream wins ] ##
+my @transports = @{ $fields->{'transports'} // [] };
+@transports = length( $fields->{'ssh'} // '' ) ? qw| ssh-w | : qw| tcp |
+    if not scalar @transports;
+
+my $fd;
+my $transport_info;
+my $fail_class;
+my $fail_why;
+
+foreach my $transport (@transports) {
+    if ( $transport eq qw| ssh-w | ) {
+        ( $fd, $transport_info ) = <[link.transport.ssh-w.open]>->($found);
+    } elsif ( $transport eq qw| tcp | ) {
+        if ( defined $cube_host and defined $cube_port ) {
+            $fd = <[base.open]>
+                ->( qw| ip.tcp output |, $cube_host, $cube_port );
+            $transport_info = {} if defined $fd;
+        }
+    } else {
+        <[base.logs]>->(
+            0,     '<< link %s : unknown transport \'%s\' in the record >>',
+            $name, $transport
+        );
+        $fail_class //= qw| trust |;
+        $fail_why   //= "unknown transport '$transport'";
+        next;
+    }
+
+    if ( not defined $fd ) {
+        my $why
+            = ref $transport_info eq qw| HASH |
+            ? sprintf( 'ssh-w : %s', $transport_info->{'why'} // 'no stream' )
+            : sprintf(
+            '%s : no stream to %s:%s',
+            $transport,
+            $cube_host // '?',
+            $cube_port // '?'
+            );
+        <[base.logs]>->(
+            2, ': link %s : transport %s failed [ %s ]',
+            $name, $transport, $why
+        );
+        $fail_class //= qw| transport |;
+        $fail_why   //= $why;
+        next;
+    }
+
+    ## 4. the session half : auth + link-upgrade, pin = '<record>_<port>' ##
+    my $result = <[link.session.open]>->(
+        {   qw| fd |          => $fd,
+            qw| name |        => $name,
+            qw| pin_host |    => $name,
+            qw| pin_port |    => $cube_port,
+            qw| as_user |     => $as_user,
+            qw| target_host | => $cube_host // $name,
+            qw| target_port | => $cube_port
+        }
+    );
+
+    if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
+        my $sid = $result->{'data'};
+        $entry->{'sid'}           = $sid;
+        $entry->{'host'}          = $cube_host // $name;
+        $entry->{'port'}          = $cube_port;
+        $entry->{'user'}          = $as_user;
+        $entry->{'state'}         = qw| up |;
+        $entry->{'since'}         = time;
+        $entry->{'transport'}     = $transport;
+        $entry->{'transport_pid'} = $transport_info->{'pid'};
+        $entry->{'transport_fd'}  = $fd;
+        $entry->{'fail_why'}      = undef;
+
+        ## fast death detection : the rip handler fires on close ##
+        $data{'session'}{$sid}{'rip_handler'}
+            = qw| link.handler.session_rip |;
+        <link.sids>->{$sid} = $name;
+
+        <[base.logs]>->(
+            1, ': link %s : up over %s [ session %d, pin %s_%s ]',
+            $name, $transport, $sid, $name, $cube_port
+        );
+
+        <[link.supervisor.heartbeat_send]>->($name);
+        return TRUE;
+    }
+
+    my $class = ref $result eq qw| HASH | ? $result->{'class'} : qw| trust |;
+    my $why   = ref $result eq qw| HASH | ? $result->{'data'}  : 'no result';
+    <[base.logs]>->(
+        2, ': link %s : session over %s failed [ %s ]',
+        $name, $transport, $why
+    );
+
+    close($fd);
+    <[link.supervisor.kill_transport]>->($transport_info);
+
+    $fail_class //= $class;
+    $fail_why   //= $why;
+}
+
+## 5. nothing worked : classify the cycle ##
+$entry->{'fail_why'} = $fail_why;
+if ( defined $fail_class and $fail_class eq qw| trust | ) {
+    $entry->{'state'} = qw| refused |;
+    <[base.logs]>->(
+        0,     '<< link %s : refused [ %s ] -- retry at the cap >>',
+        $name, $fail_why // 'trust failure'
+    );
+} else {
+    $entry->{'state'} = qw| down |;
+    <[base.logs]>->(
+        1,     ': link %s : down [ %s ]',
+        $name, $fail_why // 'transport failure'
+    );
+}
+<[link.supervisor.retry]>->( $name, $fail_class // qw| transport | );
+
+return FALSE;
+
+#,,.,,..,,...,..,,...,,.,,,..,.,,,...,.,.,,.,,..,,...,...,,,.,..,,...,,.,,.,.,
+#NA4RGRJGRWZRWNAZUNNDQLGEBTUUDPCYY2DELJSHSXV3YDOZLDC6TFTJGAT6MG62Z4E2SOWDQT7O2
+#\\\|DRK3UOHWL3PPO3RDTWUEN7EVTLDK3OYAOZ5HAQPGLQCXUI7SY5M \ / AMOS7 \ YOURUM ::
+#\[7]2G57C65ENXVB6RHT4NS7XRAH34BBCII6D3KKX2ZPWUEQE2OA2YCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

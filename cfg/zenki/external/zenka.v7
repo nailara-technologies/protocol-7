@@ -5,7 +5,7 @@
 [load_config_file:'shared-params']
 
 modules.load           = auth.client auth.binding net protocol io.unix io.ip ui \
-                         crypt.C25519 trust external   ## devmod
+                         crypt.C25519 trust format.json external link   ## devmod
 
 ## self.* : routes cube to the named link [ test ] -- '*' is ONE dotted
 ## segment [ base.parser.access_conf ], so osf-cache's '<sid>.<cmd>' over
@@ -17,7 +17,10 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
                          self.* self.*.has self.*.merkle self.*.segment \
                          *.site-yaml.import *.site-yaml.import-url \
                          *.site-yaml.queue-depth \
-                         *.site-yaml.subscribe-fetched *.site-yaml.outbox-confirm
+                         *.site-yaml.subscribe-fetched *.site-yaml.outbox-confirm \
+                         *.task.claim *.task.start *.task.show \
+                         *.task.complete *.task.fail *.task.queue \
+                         *.task.next *.task.subscribe
 
 ## *.site-yaml.* : jobsite fetching through another host's site-yaml   ##
 ## [ jobsite.cfg.fetch_zenka = external.<link>.site-yaml ] -- cube still ##
@@ -30,6 +33,9 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
 ## [ unset : connect needs an explicit <as-username> ]
 # external.cfg.link_user = <label>
 
+## *.task.* : a remote task worker's claims through a managed link [ the ##
+## task-worker grant on the REMOTE cube decides what really runs ]     ##
+
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -38,10 +44,16 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
 [base.net.connect:'unix']
 [base.get_session_id]
 
+## managed links [ stage 1 of LINK-ZENKI-AND-TRANSPORTS.md ] : host     ##
+## records with role 'link' open here and stay supervised [ heartbeat  ##
+## + backoff ] -- AFTER the privilege drop : forks ssh children, reads ##
+## pins under the zenka user's ~/.n                                     ##
+[link.supervisor.start]
+
 [zenka.loop]
 
-#,,,,,.,,,,.,,...,,,,,...,.,,,..,,...,,..,.,,,..,,...,...,,.,,.,,,...,,,.,.,,,
-#WHP272RGFFSBYNQAQYBGJVHP4JRSMR3UXX2PNN7SNN7MOHQVV6TMSJDBO2ON5Q2L4JWBPLYN4H5XQ
-#\\\|NG7KCFDE6PJHB24ZX6IM2VOON7P6NADCPJYL5JONGH7UYZLZXNZ \ / AMOS7 \ YOURUM ::
-#\[7]XUJP2M2ER77K7JVHWYJ6RZFQJZHZSVQPCHXU4Z7SCBGWJ4CTTKBY 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,..,,,,,,,,.,,,.,.,.,...,,..,..,,...,..,,,..,,..,.,.,,,.,,.,,
+#XNF3HUQ7AJD7QO5PCTL5ONHXESSCFV4S5XIK6CLDTNYB6ZQE5ZFRGVYV2VHDQCPT7QGBFPDFIFGUI
+#\\\|P5N3C6NQ27UKO6WE3TYNKLIP7GX2MMVN4X3ULHLHJLAAXNSY3AF \ / AMOS7 \ YOURUM ::
+#\[7]ZSPCDND4PYENRCEVHM3L4YOMWF5O6WPBBECGVTPWNACQ73V7JIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

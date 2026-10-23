@@ -3,6 +3,19 @@
 # name  = external.init_code
 # descr = initialize generic transport registry for external plugins
 
+my $reinit = shift // TRUE;   ### provided by 'base.init_modules' [TRUE|FALSE]
+
+## link supervisor knobs [ the ssh zenka's numbers as defaults,          ##
+## LINK-ZENKI-AND-TRANSPORTS.md 'liveness, reconnect, failure classes' ] ##
+<link.cfg.heartbeat_interval>  //= 4.7;
+<link.cfg.timeout>             //= 10;
+<link.cfg.backoff_initial>     //= 0.5;
+<link.cfg.backoff_max>         //= 30;
+<link.cfg.jitter>              //= 0.5;
+<link.cfg.ssh_connect_timeout> //= 10;
+<link.cfg.ssh_alive_interval>  //= 30;
+<link.cfg.ssh_alive_count>     //= 3;
+
 ## transport registry - populated by plugin.external.* modules ##
 <external.transports> = {
 
@@ -76,10 +89,16 @@ if ( <external.cfg.auto_connect> > 0 ) {
     }
 }
 
+return TRUE if not $reinit;
+
+## a reload runs unprivileged [ init_code ran before [root.drop_privs] at ##
+## boot, so the supervisor is invoked from zenka.v7 after the drop ]      ##
+<[link.supervisor.start]>;
+
 return TRUE;
 
-#,,,.,,.,,,.,,..,,,,.,,,,,...,..,,,,.,.,,,,,.,.,.,...,...,,,.,,.,,.,,,.,.,,,.,
-#DLNOBXRNXNPNLBXXTJ5YDB3SXADRAD7SYDYMKXWUA2XNG3SCID35WDCFGIL44LDDH57OD5KGXYVWC
-#\\\|JNXD2IRC2SHFGP25MBDNZX57I65FMYDD44ANQM5ZUF3XVIQ2BPK \ / AMOS7 \ YOURUM ::
-#\[7]VIGI4ZW7BJW7CPU55UZ4RJJ6ZZOPS2J3VV3YAOGESW47A272WGCI 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,,,,,.,.,.,,.,,..,,...,..,,.,.,.,.,...,...,,.,,...,.,,,...,,.,,
+#7AH4DR4ASQXVYMDFU6XBXQXWGGBMOMELDYRHH2HJXYW2OPQAAXQXSMNCORJO3RPTLWZSJ527FUHB2
+#\\\|AIFSAJ5X5TBI6X63IWS5RZICURYPTLHEGS66N3GLOV4EURCLPAM \ / AMOS7 \ YOURUM ::
+#\[7]KO5ST4EC3WKJZIE2CRFHJIPAWJ7X6OKDETYRQ3EHTUSKHM5RYUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

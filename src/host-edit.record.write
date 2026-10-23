@@ -1,7 +1,9 @@
 ## [:< ##
 
 # name  = host-edit.record.write
-# descr = write one host record envelope as local json, temp + rename, 0600
+# descr = write one host record as json, temp + rename
+# note  = mode 0640, group = the zenka user's group [ the external
+#         zenka's link supervisor reads the records ]
 # param = $name, $envelope_href
 # return = TRUE | FALSE [ , $error ]
 
@@ -10,8 +12,10 @@
 ## missing instead of intact-old-or-intact-new
 ## [ same reasoning as base.file.zenka_dir.write ].  the temp file is created
 ## in the SAME directory as the target, so rename() stays on one filesystem,
-## and is chmod 0600 before the rename -- host records hold link metadata
-## [ ssh user@host, ports ], never secrets, but the store is still private.
+## and is chmod 0640 before the rename -- host records hold link metadata
+## [ ssh user@host, ports ], never secrets ; group = the zenka user's group so
+## the external zenka's link supervisor can read them
+## [ the console runs as the invoking unix user, external as the zenka user ].
 
 my ( $name, $envelope ) = @ARG;
 
@@ -51,7 +55,12 @@ if ( not close($fh) ) {
     return ( FALSE, sprintf 'close failed : %s', $err );
 }
 
-chmod 0600, $tmp_path
+## group first : chmod after chown, a chown may clear mode bits ##
+my $zenka_gid
+    = ( getpwnam( <system.amos-zenka-user> // qw| protocol-7 | ) )[3];
+chown -1, $zenka_gid, $tmp_path if defined $zenka_gid;
+
+chmod 0640, $tmp_path
     or do {
     my $err = <[base.str.os_err]>;
     unlink $tmp_path;
@@ -66,8 +75,8 @@ if ( not rename $tmp_path, $resolved_path ) {
 
 return ( TRUE, undef );
 
-#,,,.,..,,.,,,..,,.,,,..,,,..,..,,.,,,..,,.,,,..,,...,...,,,,,.,,,...,.,.,,,.,
-#G6UIMZDCAQFY77NPEDYKUTY4H4R64BQ27E6BKREJQR5STWY7KUHHHDXHJKPWVAEUNHWV2WOLGKJMS
-#\\\|MY3KOSBLHQ6EVRQD5AEUBI6B7LIGOGULHY7FWTCBDGRTIFVTC5O \ / AMOS7 \ YOURUM ::
-#\[7]FIP2RKVGIKPTP5YZSFTRCSF7OE3Q3ZBNCJQWR22USDC7KCQX4MDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,.,,,.,,,,.,,,,,...,..,,..,,...,..,,...,...,...,,,.,,..,,.,,.,.,
+#LJ6VWYXRJVIGGR7SW2IIDFY6NYCMWVBPYBYCWVDRMWYAG56HQRHPTTFPGMO6A7NYHSVVOSPQMTX2M
+#\\\|BZIXOCT26NUTQWUQTU447LIAGVKGLBAFYNEPH2KEMTR3SB5GGOT \ / AMOS7 \ YOURUM ::
+#\[7]L4SAWCOEFMYK6HQSSQHBUGF6V7L5WA2M3QZOAUH3NOF4LO5P64AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

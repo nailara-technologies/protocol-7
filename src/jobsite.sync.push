@@ -100,18 +100,20 @@ for my $url (@urls) {
             ? ( <[base.ntime_BASE32_to_numerical]>->($mod) // 0 )
             : 0;
         if ( not $last_ntime_num or $mod_num > $last_ntime_num ) {
-            ## explicit false default : the web cache only clears a stale   ##
-            ## repair_failed/repair_attempted flag on `exists`, so a job    ##
-            ## whose on-disk record has no such key [ e.g. it never failed, ##
-            ## or a later clean pass deleted the key ] must still push a    ##
-            ## real false value here, or a flag set by an earlier failed    ##
-            ## cycle stays stuck on the web side forever                    ##
+            ## explicit false default : the web cache only clears a stale  ##
+            ## repair_* \ desc_check_* flag on `exists`, so a job whose    ##
+            ## on-disk record has no such key [ e.g. it never failed, or a ##
+            ## later clean pass deleted the key ] must still push a real   ##
+            ## false value here, or a flag set by an earlier failed cycle  ##
+            ## stays stuck on the web side forever                         ##
             push @changed,
                 {
                 %{$job},
-                'id'               => <[base.vax-int.encode]>->($id),
-                'repair_attempted' => $job->{'repair_attempted'} // FALSE,
-                'repair_failed'    => $job->{'repair_failed'}    // FALSE,
+                'id'                => <[base.vax-int.encode]>->($id),
+                'repair_attempted'  => $job->{'repair_attempted'}  // FALSE,
+                'repair_failed'     => $job->{'repair_failed'}     // FALSE,
+                'desc_check_failed' => $job->{'desc_check_failed'} // FALSE,
+                'desc_check_reason' => $job->{'desc_check_reason'} // '',
                 };
         }
     }
@@ -206,8 +208,8 @@ my $log_level = $total_jobs ? 1 : 2;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,,.,.,.,.,,,,,.,,..,,..,,,.,,,.,...,.,.,,,.,..,,...,...,...,.,.,,.,,,.,,,,.,
-#SAOMOKSYMPM3FNXTXONNQPLW2MPVXOAUE76GXSVR4JV6MCIPHCR5TROF6VZXL4KAOINOSLAS33MLY
-#\\\|7U42FLH2FPBKQ3GQHGEDQW6LTAIN3QRBSYBUBCIKLO4C3Q3JOKN \ / AMOS7 \ YOURUM ::
-#\[7]CB5I4URWYR5UXB4OEIMRLKJX4R66DFASFPZN6N3V5XYZQLXPPIBA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,,,.,.,,,.,..,,..,,,,.,,..,,,.,..,,...,.,.,..,,,,.,,,.,.,.,,,.,
+#BT4IK3GHEDRCNG5BNFDECWAKAIXUHDDOTMLJ7THHUCHLSIOUJU3PKD4O2TLRZBDCAFCMRAOH7X2NA
+#\\\|5RURVDTFULGQG3IZG64VPOU5RFBX247Y3AFOMCCA3WOBTG7CYJE \ / AMOS7 \ YOURUM ::
+#\[7]HX4BE7DO2AKCWBQZBOIA6VZCAPFCDEO4PMDR3LNPVINW3GCKA2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

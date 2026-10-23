@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = link.record.cube_port
+# descr = the remote cube address + port of a host record
+# param = record fields hashref
+# return = ( <host>, <port> ) or ( undef, undef )
+#
+# HOST-SETUP.md 'host record' : 'addresses' is a 'host[:port]' list, the
+# port is the cube port the pin is named after. the FIRST address
+# decides [ tried in order ] ; a missing port falls back to
+# <protocol-7.remote.default-port> // 42 [ the external.cmd.connect
+# default ]. a dotted address may carry its port after the LAST colon ;
+# an undotted value without a port is a bare host.
+
+my ($fields) = @ARG;
+
+return ( undef, undef ) if ref $fields ne qw| HASH |;
+
+my $addresses = $fields->{'addresses'};
+return ( undef, undef ) if ref $addresses ne qw| ARRAY |;
+
+my $first = $addresses->[0] // '';
+return ( undef, undef ) if not length $first;
+
+my ( $host, $port );
+if ( index( $first, ':' ) > 0 ) {
+    ( $host, $port ) = split m{:}, $first, 2;
+} else {
+    $host = $first;
+}
+$port = <protocol-7.remote.default-port> // 42
+    if not defined $port
+    or not length $port
+    or $port !~ m{^\d+$}o;
+
+return ( $host, $port );
+
+#,,..,,,,,,,,,.,,,..,,...,,.,,.,,,..,,...,..,,..,,...,...,..,,...,.,.,,.,,,..,
+#7RPNFW3SX6NHA22DWN3TSPDGPCKLXYMS22NJZM3LFLDXUOPG3KOJTBWLE3UNTVGSKHGCHBRSWI6LK
+#\\\|Q77WEF6PAGD4LK3VXLZLJZDRCIENPGOW4EGLHNZSSK34EAX62S7 \ / AMOS7 \ YOURUM ::
+#\[7]XX67GU65MPLL5NXGWVQVZLWRFWU4DNSWKUPILYHV2DJ2LJACPMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

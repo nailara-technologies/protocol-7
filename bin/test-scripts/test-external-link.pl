@@ -157,6 +157,8 @@ $code{'base.session.shutdown'} = sub {
     return;
 };
 
+compile_module('link.session.open');
+compile_module('link.session.handshake_class');
 compile_module('external.link.open');
 my $open = $code{'external.link.open'};
 
@@ -539,8 +541,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,,,.,.,,..,,.,,..,,,,,,..,,..,,,.,,,..,..,,...,...,..,,,,,,,,,,,..,.,.,
-#C7NAISEPXQINNVV3MWNLO6MQMBNFZIHLPI6FUIIHQ5K5UQKJAEZBFGSEDU4FRT7ATXKCU7D7S4WXO
-#\\\|ED5C2IXQT6LH5E7LEJHIBTJG2PCVK3YRLGAGOJ2GLNB3R7A5Y6Q \ / AMOS7 \ YOURUM ::
-#\[7]PCAJQZWRGCL4R5EX5MHINYXJZMPE7XOECXDHBZVCQPUKDN4VUABI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,,,.,,,.,.,.,.,.,.,.,,..,.,.,..,,...,...,...,,,.,.,,,,,.,,..,
+#QXARMZJ7AQH73VAMRCAYVNC3YPRWNF24QTERVATBGHTQAY66QM4GN72SZ7FUX75DDZCQROFL42ESO
+#\\\|3DAG3A5LWFYNFLDYF6MNJNXUB3YLQMMXRL2OIQESE57Z747M67Z \ / AMOS7 \ YOURUM ::
+#\[7]SKTW2DZ6AIZO4ZEHWKGS3YG4KO2RQRSNBZWEJJO5HO4YOBSG2CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
