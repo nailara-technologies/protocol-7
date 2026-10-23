@@ -1741,7 +1741,10 @@ items:
   - dns
   text: "short host names without a search domain : nodes [ or a similar zenka ] keeps /etc/hosts entries for the own hosts ; a check warns when the host name's domain has a wildcard and resolv.conf lacks 'search .' [ srv-A resolved github.com to the wildcard, 2026-10-23 ]"
 - added: 32D6BEPXII
-  details: ''
+  details: |-
+    owner 2026-10-23 : geoloc zenki propagate their tables between servers [ one fetches, peers pull -- fast-wired neighbours first, srv-U -> srv-A ] ; modelled on nameserv zone sync 4CJ ; table + BMW checksum + source version, a peer keeps its previous table on mismatch. design section 4
+    owner 2026-10-23 : every geoloc zenka may fetch, in phase-offset slots [ host-root id checksum mod interval + jitter ] ; at its slot first ask peers for a newer version, fetch only if none -- a blocked path to the source falls back to the next slot by itself ; newest source version wins
+    owner 2026-10-23 : a new table version is announced to the peers at once [ version, source, checksum ] ; they pull and pass the notice on -- the slot is only the fallback ; a notice is a cue, the pull is checked
   done_at: null
   id: 6CJ
   priority: normal
@@ -1763,9 +1766,61 @@ items:
   - geoloc
   - dns
   text: "nameserv answers by region [ us server for north america, the german one for europe .. ] : geoloc country table [ RIR delegated stats, local ], EDNS Client Subnet when present else the resolver's address, short ttl + ecs scope, fallback server -- after the delegation switch [ 5W7 ] ; data/md/design/LOGIN-ADMISSION.md section 7"
+- added: 32D6PD4OLQ
+  details: ''
+  done_at: null
+  id: 5M3
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - site-yaml
+  - encoding
+  text: "repair the double-encoded job stock [ cause fixed in site-yaml.stepstone.job_from_html : it encoded the fetched page's raw bytes again before decode_json ] : jobsite plain files, the packed trash, the web zenka's copy -- title, company, city, description ; reverse only where latin1-encode + utf8-decode works losslessly [ jobsite.util.fix_encoding ], backup first ; YAML::XS escapes C1 bytes as \\x80 -- detect on the loaded strings, not the raw file"
+- added: 32D6PKXELQ
+  details: ''
+  done_at: null
+  id: O3O
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - site-yaml
+  - salary
+  text: "salary unit : build_prompt calls every estimate 'jährlich brutto', 14 of 668 stored estimates are monthly-sized [ min 2476 ] and skewed their scores. read baseSalary + unitText [ MONTH \\ YEAR \\ HOUR ] from the JobPosting block too ; keep CESalary's period field [ store the whole block of the next page that has one, to learn its key ] ; size only as a marked fallback [ < ~15000 is not yearly ] ; the prompt states the unit as given ; reassess the 14"
+- added: 32D6TAGGIA
+  details: ''
+  done_at: null
+  id: M3K
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - coding
+  - gpu
+  text: "interim : assess srv-U's backlog on the local gpu [ one host at a time ] -- local jobsite assesses the same job set [ same site-yaml source ], pushes via jobsite.cfg.sync_urls to the remote https /jobs-sync with a jobsite-push token [ local host.cfg only ] ; srv-U's jobsite pauses assessing meanwhile [ find \\ add the switch ]. after kimi's admission queue"
+- added: 32D6TAGXCI
+  details: ''
+  done_at: null
+  id: 3MK
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - multi-host
+  text: "build multi-jobsite assessment per data/tasks/jobsite-sync-multiplex.md 'concurrent assessment' : partition by checksum over the present hosts, lease, staggered scans, presence heartbeat [ announced absence, lease as fallback ] ; plus the reverse fan-out"
+- added: 32D6TAHHDE
+  details: ''
+  done_at: null
+  id: MUZ
+  priority: normal
+  status: open
+  tags:
+  - labels
+  text: 'host names left outside src : cfg comments [ cfg/zenki/jobsite/zenka.v7 line 55 ], data/tasks/*.md [ jobsite-sync-multiplex.md ] -- sweep cfg/ and data/tasks/ like the memory relabel, labels instead'
 
-#,,.,,,.,,,.,,.,.,,.,,.,.,,,,,,..,.,.,,,,,,,,,..,,...,...,,.,,.,.,.,.,...,,.,,
-#I3USA7GDPF6V5YU6CTQY72ZJT74SXY2SHD2FF4N6Q3USF2JAYH4U27L7E3262JVYWDCV6NT3X5UA6
-#\\\|NWZRZMWZZ5VQGPXSLS6DX3JYJUNABNIYDGFCHOJL4FVYYI52OQS \ / AMOS7 \ YOURUM ::
-#\[7]KR3P2GTVREKEFQL6KMWS2KP2ARA7X2JOYG757U4IBRUV7CF5FQAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,..,,.,,,.,.,,..,...,...,,.,,..,,...,...,.,.,,,.,...,,,.,.,,,
+#OFKSU5J4ERNA7GRXU6DAOHHVG74NK6ZIARCLK67XNQ62UB7CWOUOYDDJ7V7T4R43BQZSQVMBUIGDO
+#\\\|YQNLH3YQQMN66P4GUFCRTBKNHV6PBU7SUH3M4HEMQ7Y66XGIWTC \ / AMOS7 \ YOURUM ::
+#\[7]ZCEJA7QSFRJBRHT5MTLXZOK6ALDWWI2MNWR5STUDCVQTEWZUKQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
