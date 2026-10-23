@@ -128,6 +128,7 @@ jobsite.init_code
 jobsite.cmd.reset
 jobqueue.move_job
 jobqueue.exec_job
+clients.http.post
 base.stream.close
 base.session.user
 base.session.init
@@ -155,6 +156,7 @@ jobsite.cmd.status
 jobsite.cmd.rescue
 jobsite.cmd.reject
 jobsite.cmd.delete
+clients.https.post
 base.strm.pre_init
 base.reload_values
 base.reload_config
@@ -196,6 +198,7 @@ base.file.init_code
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.event.add_idle
 base.diff.hash_keys
 base.calc_unix_path
 jobsite.stage.review
@@ -205,6 +208,8 @@ io.ip.tcp.input.open
 format.yaml.pre_init
 format.yaml.load_str
 format.yaml.dump_str
+clients.http.request
+clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
 base.reply.mode_text
@@ -245,6 +250,8 @@ format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.key_path
 crypt.C25519.gen_keys
+clients.https.request
+clients.https.cleanup
 base.session.shutdown
 base.reload_whitelist
 base.register_pm_deps
@@ -296,6 +303,7 @@ io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.key_exists
+clients.http.handler.io
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -328,6 +336,7 @@ io.unix.socket.init_code
 crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
+clients.https.handler.io
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -359,6 +368,8 @@ jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.root_key_dir
 crypt.C25519.load_keypair
+clients.https.stall_reset
+clients.https.decode_body
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -388,6 +399,7 @@ jobsite.client_prefs.write
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.encrypted_key
+clients.https.stream.chunk
 base.warnings.from_bitmask
 base.session.split_subname
 base.session.check.flushed
@@ -420,6 +432,9 @@ jobsite.chksum.branch-color
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
+clients.https.stream.finish
+clients.https.h2.handler.io
+clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -444,6 +459,7 @@ jobsite.dispatch.assessments
 io.unix.socket.input.connect
 crypt.C25519.delegation_file
 crypt.C25519.compare_keypair
+clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -467,6 +483,8 @@ format.yaml.load_keyword_path
 crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
+clients.https.handler.timeout
+clients.https.h2.send_request
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.prng.handler.add_entropy
@@ -511,6 +529,7 @@ jobsite.report.evidence_collect
 jobsite.repair_encoding.example
 jobsite.handler.pending-changed
 crypt.C25519.decrypt_secret_key
+clients.https.handler.handshake
 base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
@@ -626,8 +645,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,..,.,,,,,,,,,,,,,.,...,,,,,,,,,.,.,.,.,..,,...,...,.,.,...,..,,.,,,..,,
-#X6XWPWUNQNTUGLBYP2SZGQN3NQDXPUR5ACW44OQ2G54X35VBSGDQM2BNOU2FTEMTEM3C3JQXN4C4G
-#\\\|JVTGT2JFOSSTDS3M6CJ3O2B7QWJJIK3BRJVSTVL3YZMHJZ3LITJ \ / AMOS7 \ YOURUM ::
-#\[7]BZH7B7A5IRHTH3LCFEOMUNJT2IHYEAM5HDLO6SQXQKIB5RVRR6AY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,.,.,..,,..,,,,,,.,,,.,,,,,,,..,,...,...,,..,...,..,,...,,..,
+#ZIA6VRCTOXC3MIVQBG6NXYN2TN7H5X3KAQFGDFPBOIM3Z4W324WOCZMQFXRLAKNLDANBZVFRQWDCG
+#\\\|BWVXUVY4WAEAHP7X7V75CFHBGDBI7DIN6X2TS2COYRL7XOWJXQ3 \ / AMOS7 \ YOURUM ::
+#\[7]UIY7KWUAF65XTQC6D5XUX3O3Q4BVWNKODBYH2GAAWZQDKQSM3GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
