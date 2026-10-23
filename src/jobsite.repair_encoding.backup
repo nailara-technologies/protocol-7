@@ -21,7 +21,7 @@ return { 'ok' => FALSE, 'message' => "cannot create $backup_dir" }
 
 my $tar = Archive::Tar->new;
 for my $item ( $planned->@* ) {
-    my @stat = stat $item->{'abs_path'};
+    my @stat = CORE::stat $item->{'abs_path'};
     $tar->add_data(
         $item->{'rel_path'},
         $item->{'raw'},
@@ -84,8 +84,8 @@ if (   not defined $unpacked
 
 return { 'ok' => TRUE, 'path' => $path };
 
-#,,..,...,,,,,.,.,,..,...,.,.,.,,,,..,.,,,,..,..,,...,...,..,,,,.,...,,,,,.,,,
-#AGLYUCFYHXL67FYFCMZPMJ52VWATESFTMKYYSD5GCI6QVLJTOO3MLCF67YT76PD7M7XOOQMXEW7G2
-#\\\|C7BVPJEVICEGDSXGKNAH7W7YVNF3QFXSQAS5ULK6INZLGV3PJNJ \ / AMOS7 \ YOURUM ::
-#\[7]Y7Z5FJG74KCP6MWQKGHXNHGMSYHJUDFA75YUP2IMTSJE5VH7N4DI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,,.,,,,.,...,..,,.,,,,,.,,,.,..,,...,...,...,...,,,,,.,.,...,
+#V2LFIVAWOB7VEC24LECI33MQJCU2XTFQKMGZFOJXLKS3MVUSVZ6QO3YIPDGSX5VUAYXLQSGOV2FME
+#\\\|K63E32WSUGCV5Z7BWCWN2ATUMTIMMTR7WPXIQ5JA4KOJMV4ENB5 \ / AMOS7 \ YOURUM ::
+#\[7]QSGKMKONERQSURCDWUF7VUARRPRTSW2DGRCGIGMNDXOIFZFCAEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
