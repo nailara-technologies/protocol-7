@@ -857,7 +857,13 @@ int main( int argc, char * argv[] ) {
         exit(2);
     }
 
+    /* options only BEFORE the command word : the first word without a
+       '-' is the host, the second the command -- from there on every word
+       belongs to the command [ e.g. 'web.auth-issue <user> -ttl <s>' ] */
+    int positional = 0;
     for (int i = 1; i < argc; i++) {
+        if (argv[i][0] != '-' && ++positional == 2)
+            break;
         if (argv[i][0] == '-') {
            if (argv[i][1] == 'v' && argv[i][2] == '\0') {
                 verbose = 1;
