@@ -911,6 +911,14 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
                                 $id, $err_str, $caller
                             );
                             my $params = $call_args->{'args'} // '';
+
+                            ## a base32 prompt is tens of kilobytes : the ##
+                            ## whole of it filled the console             ##
+                            ## [ 2026-10-23 ]                             ##
+                            $params
+                                = <[base.parser.center_ellipse_string]>->(
+                                $params, 96
+                                ) if length $params > 96;
                             my $msg = sprintf '[%d]  \\\\\\ <%s>', $id, $cmd;
                             $msg .= sprintf " [ '%s' ]", $params
                                 if length $params;
@@ -1270,8 +1278,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,...,,,.,,..,,,,,,,.,.,.,.,,,,.,,,,,,,..,..,,...,...,,..,,,,,,,.,,.,,.,.,
-#KIDSKA3FD7SRME4PEPEIBDVGEVUYQKUARDFPATRDSREALAGVNJ2HMOA66SDFLF6YSGUN3RSJEB4O2
-#\\\|ZNYED3IA6QDJ3CLCF7GNAMUA7SBM2KDSQHSVQBDZDFSK2SMZ4QL \ / AMOS7 \ YOURUM ::
-#\[7]XMAGQZQFS6WORWI7X5OP3CZX6OOUNFWP32KQU7BHIBAQFI4CTKBY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,...,,.,,,..,..,,..,,...,,.,,.,,,..,,...,...,...,,..,,,.,,..,.,,,
+#T6A3TMFRXM6XXFIHO4KQHUSBIBDGH6XZZ5I7EVF7GYRW2543XXZMBUADY3IN5DHK3TDUDNTY436QE
+#\\\|NLWFY2IEB3JKWD424ESSIK2CHST6WJKQODWHNNRY2M643PRHVLQ \ / AMOS7 \ YOURUM ::
+#\[7]LXKJ25RICXO4DWX4W46YJQE4IRL6X2AX7O6ZKQBB6LEFMSYTPMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
