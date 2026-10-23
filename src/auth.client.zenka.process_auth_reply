@@ -25,7 +25,7 @@ my $protocol_error_msg = $protocol_messages->{'protocol_error'};
 
 if (   not defined $backend_socket
     or !-S $backend_socket
-    or !$backend_socket->connected ) {
+    or !defined getpeername($backend_socket) ) {    ## socketpair-safe ##
     <[base.log]>->(
         0,
         'cannot authenticate [ expecting valid socket ] '
@@ -82,8 +82,8 @@ if ( my $answer = readline($backend_socket) ) {
         and return $fail_class->(qw| transport |);
 }
 
-#,,..,.,.,.,.,,..,.,.,,..,,..,,.,,.,,,.,.,,..,..,,...,...,...,,.,,.,,,,,.,.,.,
-#ITNLEARZLYCWHBZA7KTU2H3OBI2XZYSAIP4K765L7YQTBYRPWMGSCU25WG3KUPS47UQG7ZICQZL6W
-#\\\|AUGM2OTQAC3GZBEASLBGDZ27LYSA4AGOXEE6DKQ7SKBEYSPBQK2 \ / AMOS7 \ YOURUM ::
-#\[7]YE4JLLFLNOXLVGBTEJMULGVH654N7K4DN2H732K5Y4P4D5JKSQAY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,,.,,,.,,...,,.,,..,,..,,,,,,..,,...,...,..,,...,...,,,,,,,,,
+#WQ4HJLZAWBEWEJVP32NEVWN7CU6APGCZYRSYW4FQNA2TI7DBXGYAPNDJEANCTMPGXKHSZSXPZTJGI
+#\\\|LR3YOEMNGLRYPJLA7MZXPPBISNLEO5EZCLM7OZZBBHVGLEUU4WI \ / AMOS7 \ YOURUM ::
+#\[7]JBIDVSXGNVPJAR3LCPQRUDTRJFU3WIHPP7N3HJF5WQBEA3UTLQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

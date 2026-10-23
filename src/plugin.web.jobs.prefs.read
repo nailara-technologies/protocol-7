@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = plugin.web.jobs.prefs.read
+# descr = load web-side jobs prefs relay copy [ small numeric map ]
+
+my $cache_dir  = <[plugin.web.jobs.cache.path]>;
+my $prefs_file = "$cache_dir/jobs-prefs.yaml";
+return {} if not -f $prefs_file;
+
+my ( $saved, $yaml_err ) = <[format.yaml.load_file]>->($prefs_file);
+if ( defined $yaml_err ) {
+    <[base.logs]>->(
+        0,           '[web.jobs.prefs] parse error in %s : %s',
+        $prefs_file, $yaml_err
+    );
+    return {};
+}
+return ref $saved eq qw| HASH | ? $saved : {};
+
+#,,,,,,,,,.,,,...,,..,.,,,,,,,..,,,.,,.,,,,.,,..,,...,...,,,,,,..,,..,,,,,.,.,
+#V3V5JU3DBJSDLBYJD6ECUUBJIP2WP5FO7MHYDW47EPDHX64I7IYZE46YXR5WRDRURAJHSNQ2PDPGY
+#\\\|FUNVSM6QDV3JRTVYQGPJBV3OM4M27TFYCDOICRZDI55HD4ZUAAU \ / AMOS7 \ YOURUM ::
+#\[7]5OVWP75MRXWUKUN326CBTFY74A4HV77CLCRFO3CFEBKQZMGIPCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

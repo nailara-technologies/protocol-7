@@ -54,8 +54,10 @@ my @pipeline_fields = qw| title company url score score_reason score_summary
     fetched_at status stage description blocked_epoch checksum_hit
     assertions city industry country postal_code repair_attempted repair_failed
     desc_check_failed desc_check_reason |;
-my @browser_fields
-    = qw| stage notes date_applied exported_stage exported_at stage_changed_at |;
+## exported_stage \ exported_at deliberately NOT browser fields : they are ##
+## a newest-wins record pair handled further below                         ##
+## [ mark time = the exported_at batch epoch itself ]                      ##
+my @browser_fields = qw| stage notes date_applied stage_changed_at |;
 
 my $since    = '';
 my @job_list = ();
@@ -69,6 +71,24 @@ if ( ref $payload->{'jobs'} eq qw| ARRAY | ) {
 } else {
     ## single update from browser ##
     @job_list = ($payload);
+}
+
+## jobsite pushes its client prefs so every connected host converges on the ##
+## newest value ; only last_export_at for now [ QLK ] -- the rest of the    ##
+## prefs fan-out belongs to 3MK. max-merge into the web-side relay copy,    ##
+## exactly the jobsite.cmd.set-prefs numeric-newest rule                    ##
+if ($is_batch) {
+    my $inc_prefs = $payload->{'prefs'};
+    if ( ref $inc_prefs eq qw| HASH |
+        and $inc_prefs->{'last_export_at'} =~ m{^\d+(?:\.\d+)?$} ) {
+        my $prefs  = <[plugin.web.jobs.prefs.read]>;
+        my $inc_at = $inc_prefs->{'last_export_at'} + 0;
+        my $cur_at = $prefs->{'last_export_at'} // 0;
+        if ( $inc_at > $cur_at ) {
+            $prefs->{'last_export_at'} = $inc_at;
+            <[plugin.web.jobs.prefs.write]>->($prefs);
+        }
+    }
 }
 
 my $mem       = <[plugin.web.jobs.cache.read_all]>;
@@ -192,6 +212,36 @@ for my $job_data (@job_list) {
         if ( not $user_owned_stage{ $cached->{'stage'} // '' } ) {
             $cached->{'stage'} = $derived;
         }
+
+        ## export marks ride the batch as ordinary job keys once a jobsite  ##
+        ## has learned them [ reverse entry or local mark-exported ] :      ##
+        ## merge newest-wins on exported_at -- a record without a time only ##
+        ## lands where nothing is marked yet [ legacy migration push ] ;    ##
+        ## applied marks queue a reverse entry so THIS host's jobsite       ##
+        ## learns marks that arrived over the batch path                    ##
+        if ( exists $job_data->{'exported_stage'} ) {
+            my $inc_at = $job_data->{'exported_at'};
+            my $inc_time
+                = ( defined $inc_at and $inc_at =~ m{^\d+$} )
+                ? $inc_at + 0
+                : 0;
+            my $cur_at = $cached->{'exported_at'};
+            my $cur_time
+                = ( defined $cur_at and $cur_at =~ m{^\d+$} )
+                ? $cur_at + 0
+                : 0;
+            if ( $inc_time > $cur_time
+                or ( not length( $cur_at // '' ) and not $inc_time ) ) {
+                $cached->{'exported_stage'} = $job_data->{'exported_stage'};
+                $cached->{'exported_at'}    = $inc_time;
+                <[plugin.web.jobs.reverse.queue]>->(
+                    {   'id'             => $job_id,
+                        'exported_stage' => $job_data->{'exported_stage'},
+                        'exported_at'    => $inc_time,
+                    }
+                );
+            }
+        }
     } else {
         ## browser update : browser-owned fields only, queue reverse        ##
         ## stale-write guard : a stage push is only applied if the          ##
@@ -222,7 +272,41 @@ for my $job_data (@job_list) {
             }
         }
 
+        ## export marks : newest-wins record pair, the mark time IS         ##
+        ## exported_at [ the shared batch epoch of the export run ] ; an    ##
+        ## unmark arrives as a null pair and is stamped with the reception  ##
+        ## epoch -- an older push [ stale browser, slower host ] must never ##
+        ## clobber a newer local mark                                       ##
         my %changed;
+        if ( exists $job_data->{'exported_stage'} ) {
+            my $mark_stage = $job_data->{'exported_stage'};
+            my $mark_at    = $job_data->{'exported_at'};
+            my $mark_time
+                = ( defined $mark_at and $mark_at =~ m{^\d+$} )
+                ? $mark_at + 0
+                : time;
+            my $cur_at = $cached->{'exported_at'};
+            my $cur_time
+                = ( defined $cur_at and $cur_at =~ m{^\d+$} )
+                ? $cur_at + 0
+                : 0;
+            if ( $mark_time > $cur_time ) {
+                $cached->{'exported_stage'} = $mark_stage;
+                $cached->{'exported_at'}    = $mark_time;
+                $changed{'exported_stage'}  = $mark_stage;
+                $changed{'exported_at'}     = $mark_time;
+            } else {
+                <[base.logs]>->(
+                    1,
+                    '[web.jobs.sync] export mark '
+                        . 'rejected %s : incoming=%d <= local=%d',
+                    $job_id,
+                    $mark_time,
+                    $cur_time
+                );
+            }
+        }
+
         for my $f (@browser_fields) {
             next if $f eq 'stage' and $stage_conflict;
             if ( exists $job_data->{$f} ) {
@@ -296,12 +380,24 @@ if ($is_batch) {
 
 my $current_ntime = <[base.ntime.b32]>;
 
+## hand the merged prefs back on the batch path so the pushing jobsite      ##
+## [ and through it every other connected host ] adopts a newer export time ##
+## it has not seen yet                                                      ##
+my %prefs_out;
+if ($is_batch) {
+    my $web_prefs = <[plugin.web.jobs.prefs.read]>;
+    my $export_at = $web_prefs->{'last_export_at'};
+    $prefs_out{'last_export_at'} = $export_at + 0
+        if defined $export_at and $export_at =~ m{^\d+(?:\.\d+)?$};
+}
+
 my $rb = eval {
     JSON::XS::encode_json(
         {   'ok'        => $ok ? JSON::XS::true() : JSON::XS::false(),
             'reverse'   => \@reverse,
             'ntime'     => $current_ntime,
             'conflicts' => \@conflicts,
+            ( %prefs_out ? ( 'prefs' => \%prefs_out ) : () ),
             (   defined $single_last_modified
                 ? ( 'last_modified' => $single_last_modified )
                 : ()
@@ -321,8 +417,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,...,,,.,.,.,,,,,.,,,.,,,,,.,,..,,,,,..,,..,,...,...,.,,,.,.,,,,,,.,,.,,,
-#GYRW2NCAXENIJJ3EEDYWWTJLIA3YWGCTZLSWV6GQ55PPZNOLWC6HWKVAOTVYKQKJJZEJMUKGFQ72A
-#\\\|T7YCCUSBVFKMO6YA75Z2P46HZ5VP4VSKEM5L6DLQKW44SO6IH6Q \ / AMOS7 \ YOURUM ::
-#\[7]5O6D63DT3RPKVL7M4UESINNFUFZGT4XAOOOSA5KZW4ZQNC4WHSBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,.,,,..,.,.,,..,,,,,.,,,,,,,.,,,..,,...,...,,..,,,,,.,.,,..,...,
+#LKGUO7JNPNCXXOFPVEAV7JJGS6XHNNX6WTNVRI6NYME7AI5KNHWWYKM2BGFE72UKNVIHU2B7MDKRC
+#\\\|SUVP7XPICO4PMUNLM3YMBYQYC2UXKXNTV6ELVMRT4JN6CKLR3OT \ / AMOS7 \ YOURUM ::
+#\[7]G7OS6RY5ZYUXFQOX3EXHKX3GSNTGMVQFE6YCQPMKBWOWYUQYVKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

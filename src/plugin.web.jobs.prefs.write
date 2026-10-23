@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = plugin.web.jobs.prefs.write
+# descr = persist web-side jobs prefs relay copy
+
+my $prefs = shift // {};
+return FALSE if ref $prefs ne qw| HASH |;
+
+my $yaml = eval { YAML::XS::Dump($prefs) };
+if ( $EVAL_ERROR or not defined $yaml ) {
+    <[base.logs]>->(
+        0,
+        '[web.jobs.prefs] serialize error : %s',
+        $EVAL_ERROR // 'unknown'
+    );
+    return FALSE;
+}
+
+my $cache_dir  = <[plugin.web.jobs.cache.path]>;
+my $prefs_file = "$cache_dir/jobs-prefs.yaml";
+my $tmp_file   = "$prefs_file.tmp";
+eval { YAML::XS::DumpFile( $tmp_file, $prefs ) };
+if ( $EVAL_ERROR or not -f $tmp_file ) {
+    <[base.logs]>->(
+        0,
+        '[web.jobs.prefs] write error : %s',
+        $EVAL_ERROR // 'unknown'
+    );
+    return FALSE;
+}
+rename $tmp_file,
+    $prefs_file
+    or <[base.logs]>->(
+    0, '[web.jobs.prefs] rename %s -> %s failed : %s',
+    $tmp_file, $prefs_file, $OS_ERROR
+    );
+return -f $prefs_file ? TRUE : FALSE;
+
+#,,,.,.,.,.,,,..,,..,,,,,,,..,,.,,,.,,,.,,,.,,..,,...,...,...,..,,,..,..,,..,,
+#GOLHZYHNLWXTBA6JENFXU5S6CDFFPDEC2OE3DL3QTV4DD4AO7GKGLQQSYLPWQNNQ3XDPXGZ7LA3KG
+#\\\|X2ARU4VNMTWGBJWSFBPZ6CIJ4CF7LVV73AGYFEGKE2WJOVRVXWC \ / AMOS7 \ YOURUM ::
+#\[7]OQ5Y3JVMXXWKFTCRWQFSS4OI6IVDLDFSQ5XVGAOHVPCHKCQPGKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

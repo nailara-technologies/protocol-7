@@ -39,7 +39,10 @@ if (    length( $sid // '' )
 
 ## transport child + stream ##
 my $fd = delete $entry->{'transport_fd'};
-close($fd) if defined $fd;
+if ( defined $fd ) {
+    delete $data{'handle'}{$fd};
+    close($fd);
+}
 
 my $pid = delete $entry->{'transport_pid'};
 if ( defined $pid ) {
@@ -55,8 +58,8 @@ if ( defined $pid ) {
 
 return TRUE;
 
-#,,..,...,,,,,.,.,.,,,,,,,,,,,.,.,,,,,..,,,.,,..,,...,...,.,.,,,,,...,,..,,,.,
-#EEKSSPPEFPHYEP22FBQOMQKNCF4RMHEHV6MQ44UZJZO5XN34DDWPR7733BL237UFCBITOAOH2A5PK
-#\\\|R2ZQTA7F3MMI5AOYJUZHPWZJAYQ4VX7UDZHY72TFSTLYDAXD22I \ / AMOS7 \ YOURUM ::
-#\[7]QACOVJKKPDXH3OBBDQ6ZI6TUQ4OWWRBDJ734N2C7YQ2EJMRYOSBI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,...,,,.,..,,.,.,.,.,.,.,,,,,..,,...,...,...,..,,,.,,,,.,..,,
+#OQL2EMHTKAIORIGLUBRNRYXLDWQPZVYTALQQTZHMAHLYSSCAAWRS2C4XJUTLJGU7VGYR5Z4RMQTQK
+#\\\|7VBZGMXMC5DUJI3U33TKYG7OZBMFOIBLFORV2KDZIZ2VHRKTAUY \ / AMOS7 \ YOURUM ::
+#\[7]RGEXEVHXFQVSWJ6ZSNCXQY7FJBIUXDFRY32QPLUQVJ6KAEVQ3IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
