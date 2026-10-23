@@ -85,7 +85,7 @@ if ( $input =~ s{^\s*:(?:file|path):[ \t]*(\S+)[ \t]*\s*$}{$1}s ) {
 if ( $input =~ s{^\s*:?B32:[ \t]*}{}s ) {
     my $encoded = $input;
     $encoded =~ s{[ \t\n\r]+$}{};
-    my $decoded = <[base.base32.decode]>->($encoded);
+    my $decoded = <[base32.decode]>->($encoded);
     return {
         'success' => FALSE,
         'error'   => "invalid B32 payload [ caller $caller ]"
@@ -114,8 +114,8 @@ return {
 
 return { 'success' => TRUE, 'content' => $input, 'form' => qw| plain | };
 
-#,,..,,,,,.,,,...,,.,,..,,.,.,,.,,,.,,,..,,,,,..,,...,...,..,,..,,,..,...,..,,
-#U2GHC5A5PDFHUDHWQN6LRFUPLUKYUXEA2CHGCYFBIS46EUOA5GJWAVUG6X2BLB5RBZ6XMTG2BYBEW
-#\\\|SFPQNB2Q7OSCLJPOZ2JJTA7SF635KKGYIB7W6YODTKDLDBW4E4V \ / AMOS7 \ YOURUM ::
-#\[7]QR645XDFPBKOHLX2OB5A7Q4PKKBJUFZZKXPXKPLZRQHF7M3ITQBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,.,,,.,,,.,.,..,,,,.,,.,,,,,,..,,...,..,,..,,,,.,..,,...,,,.,
+#3C7ZMV233IJ3WW4HZO5C6BVQ7V237A664NFP7BW3W5XOAOUKDWCC4KISI7TAJFQSFUSSP4V4NBAQC
+#\\\|ZM56WJIRBH4G6VIY727D7PU32YIQ3XD2SLZMWLVTQ5ZOXHGSGK3 \ / AMOS7 \ YOURUM ::
+#\[7]PA5JKDWSUDZKR77ETUTDALA6DOFC563DMDOHA3HQ32Q7OG26GYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
