@@ -639,9 +639,13 @@ answered 2026-10-23 : 3 rename the record [ `pri`, the dotted name in
 
 built under `link.*`, loaded by external. per the owner's answers :
 the record is a PLAIN name [ 3 : `pri`, the dotted name lives in
-`addresses` ], the transport is `ssh-w` [ 4 ], external is always-on
-[ 6 : in `start-set-up.base`, `start.on-demand` dropped from its
-start.cfg -- less code than gating the on-demand queue ].
+`addresses` ], the transport is `ssh-w` [ 4 ], external starts at boot
+[ 6 : `start.on-demand` dropped from its start.cfg -- less code than
+gating the on-demand queue ]. CHANGED 2026-10-24 [ owner ] : no longer
+in `start-set-up.base` -- a fresh host opens no connection to other
+hosts ; a host with link records enables it in
+`/etc/protocol-7/host-config/v7-zenki.cfg` :
+`v7-zenki.host.zenki.enable = external`.
 
 ### 1. the record, on the worker
 
@@ -713,8 +717,8 @@ retry spin, never a re-pin. routing is unchanged :
 `external.pri.task.<cmd>` from any authorized caller [ models' grant
 for `external.*.task.*` landed in cfg/zenki/cube/access.zenki ].
 
-#,,,,,,.,,.,.,..,,,,,,...,,,,,,..,..,,,,,,,,.,..,,...,..,,.,,,,,,,.,,,.,.,.,,,
-#23CFACS6GYCRMBWFKF726DN2ESMPD4LVOCJWUDGRXYFVXVFT5BMCGNEWIOX2S2ITVAU7OGLGVHVQU
-#\\\|X7MFD6ZIUOL5ZD7VEUCV4AECR4D2L64NREAHCMKEXCBAIMNS7FV \ / AMOS7 \ YOURUM ::
-#\[7]NHCVPVMBWPO66NF45VYGGV2KKWUH632WMK6R6QJKAJKDR32ZVSAA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,.,,,,.,,,.,,,.,,,,,,.,.,...,..,,...,...,.,,,,.,,...,,,,,..,,
+#7VUQIN722E7SEYMBFFYJKWMA36XUQ5ANO6LR2DDGVTG6ZA6D3VHIQB4R6REIVWQI33MSEJKMHDVOK
+#\\\|7W6XORGHEGH65DDNGXY2OIM4HVKFN3A5QJSVXLAKQNI7N3NA4MR \ / AMOS7 \ YOURUM ::
+#\[7]ZTK32V6QURRPFDC3CP45LLADY3CF6XCD7KG6BWHN4GSJLAPIF4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
