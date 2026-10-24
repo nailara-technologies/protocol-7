@@ -83,7 +83,16 @@ tool-call hang does not block it.
   overlay for every zenka [ 11 of 127 today ]
 - the local-modifications commit used to carry host grants ; it is gone,
   /etc/protocol-7 is meant to replace it
-- BUILT [ uncommitted at writing ] : overlays move to
+- LANDED 463db3371, DEPLOYED all four servers [ srv-F, srv-V, srv-A,
+  srv-U in that order : copy -> pull -> `systemctl restart Protocol-7`
+  -> verify -> old files to /root/p7-host-cfg-backup-2026-10-24/ ].
+  live : every zenka logs the host-config path [ httpd \ models log no
+  level-1 line in that phase -- proven by behavior ], a protocol-7-owned
+  probe overlay REFUSED on srv-F, srv-A's link up with the grant only in
+  srv-U's host-config/cube.cfg, srv-A coding spawned cpu in the 8G scope.
+  LOCAL box NOT migrated [ needs root : owner runs the scratchpad script ]
+  -- until then local jobsite + models overlays are NOT applied after a
+  restart [ the local gpu stops claiming srv-U tasks ]. overlays move to
   /etc/protocol-7/host-config/<zenka>.cfg [ root:root 0755 dir,
   base.host.config_dir ], fail-closed base.host.trusted_file [ root \
   tree owner != zenka user, no g\o write up to '/' ], /etc/protocol-7
@@ -105,13 +114,14 @@ tool-call hang does not block it.
 ## open
 
 - srv-U reboot test of the swap ; optional mem_max 14G + linger on srv-U
-- commit the runtime marker cfg/zenki/jobsite/deps/src-used/clients.https
-  [ untracked on srv-U, in use ] ; devmod.cmd.* markers removed on srv-U
+- clients.https marker committed [ 463db3371 ; the untracked copy on
+  srv-U blocked the pull once : a `pull && restart` chain without set -e
+  restarted on the OLD code -- harmless, old files were still in place ]
 - systemd-networkd-wait-online fails on srv-A since at least 10-18
   [ pre-existing ]
 
-#,,,.,.,.,,..,,,,,,.,,.,.,,,,,,,.,,..,,,.,..,,..,,...,...,..,,.,.,,.,,..,,...,
-#CENTFZIZDB6RUPBU6HZMEHB7SKPAR4EXHG5A6ORQ3VY7W4VU56JMXKD7EV2L2Q54V45LQODO7EMCO
-#\\\|V2OZCB4MM2VLJFF7JGYSOK6273YD6USJC3TCQVAFWDDHZFBNM7J \ / AMOS7 \ YOURUM ::
-#\[7]VPTGFPIIONOFYUW5PCJFCZKWDY5VU3AJO33FUUDQOR7XTBLLGUCA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,.,.,,,.,..,,...,..,,...,,..,..,,...,..,,...,,..,,,,,.,.,..,,
+#TT552AQ7E3Z3ALCAAEPHAO3UCA7MKBJCM4ZAIJCJMSW7YSBDKWP77M5PO7LIRANMF7FTORIIZ7CFC
+#\\\|7KKWHSCIBTUAS4X7GPPJAMU3CJWQGPDIWXTWBWY3AFBILOQTHDD \ / AMOS7 \ YOURUM ::
+#\[7]MMGM5UQA7BW7HWXCI7WYDOHI7TZVYJK3E44JLVSNUZEPJJQALEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
