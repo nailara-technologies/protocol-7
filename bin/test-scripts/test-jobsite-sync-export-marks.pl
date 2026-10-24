@@ -24,6 +24,10 @@ use bytes;
 ## - last_export_at rides every batch body as prefs, max-merges into the    ##
 ## web-side relay copy and is handed back in the response for the pushing   ##
 ## jobsite to adopt [ numeric-newest, same rule as  jobsite.cmd.set-prefs ] ##
+## - sync_url_roles [ 2026-10-24 incident ] : a 'marks' url only ever       ##
+## receives export-mark records + prefs -- never job state, never removal   ##
+## signals ; the web side ignores everything but marks in a batch flagged   ##
+## role=marks, even from a stale or misconfigured sender                    ##
 
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -107,7 +111,9 @@ $data{'plugin'}{'web'}{'jobs'}
 my $mem = {};          ## web cache content for cache.read_all             ##
 my @posted;            ## captured clients.http.post arguments             ##
 my @logged;            ## captured log lines                               ##
+my @captured_queue;    ## captured jobsite.sync.push_queue chunks          ##
 my %job_store;         ## jobsite-side job records                          ##
+my $job_stock    = {}; ## jobsite.sync.push source stock                    ##
 my $client_prefs = {}; ## jobsite-side client prefs blob                    ##
 
 $code{'base.logs'} = sub { push @logged, [@ARG]; return };
@@ -162,7 +168,10 @@ $code{'jobsite.client_prefs.write'} = sub {
     return TRUE;
 };
 $code{'jobsite.state.persist'} = sub { return TRUE };
-$code{'clients.http.post'}     = sub {
+$code{'jobsite.job.load_all'}  = sub {
+    return { map { $ARG => { %{ $job_stock->{$ARG} } } } keys %{$job_stock} };
+};
+$code{'clients.http.post'} = sub {
     my $call = shift // {};
     push @posted, $call;
     return TRUE;
@@ -176,7 +185,9 @@ compile_module($_)
     for qw| plugin.web.jobs.prefs.read plugin.web.jobs.prefs.write
     plugin.web.jobs.reverse.queue plugin.web.jobs.reverse.flush
     jobsite.sync.apply_reverse jobsite.handler.sync-response
+    jobsite.sync.token_for_url jobsite.sync.role_for_url jobsite.sync.push
     jobsite.sync.push_chunk plugin.web.jobs.sync |;
+my $push_chunk_cref = $code{'jobsite.sync.push_chunk'};
 
 ## ---------------------------------------------------------------------- ##
 ## helpers                                                                ##
@@ -471,6 +482,188 @@ ok( !exists $posted_body->{'prefs'},
     'no prefs key while the local blob has none' );
 
 ## ------------------------------------------------------------------------- ##
+say "\n :. sync_url_roles : a marks url receives marks + prefs only";
+
+my $URL_OWNER = 'http://192.0.2.60/jobs-sync';
+my $URL_MARKS = 'http://192.0.2.61/jobs-sync';
+
+## capture the queue instead of sending chunks ##
+$code{'jobsite.sync.push_chunk'} = sub {
+    my $queue = $data{'jobsite'}{'sync'}{'push_queue'} // [];
+    push @captured_queue, [
+        map {
+            {%$ARG}
+        } $queue->@*
+    ];
+    delete $data{'jobsite'}{'sync'}{'push_queue'};
+    delete $data{'jobsite'}{'sync'}{'push_urls'};
+    $data{'jobsite'}{'sync'}{'push_in_progress'} = FALSE;
+    return;
+};
+
+$job_stock = {
+    'J10' => {
+        'last_modified'  => '5',
+        'status'         => 'review',
+        'stage'          => 'review',
+        'exported_stage' => 'applied',
+        'exported_at'    => 7000
+    },
+    'J11' => {
+        'last_modified' => '5',
+        'status'        => 'apply',
+        'stage'         => 'to_apply'
+    },    ## no export mark ##
+};
+$data{'jobsite'}{'cfg'}{'sync_urls'}      = "$URL_OWNER $URL_MARKS";
+$data{'jobsite'}{'cfg'}{'sync_url_roles'} = "$URL_MARKS=marks";
+$data{'jobsite'}{'removed_log'}
+    = [ { 'id' => 'J12', 'ntime' => '9' } ];    ## removal signal ##
+$data{'jobsite'}{'sync'} = {};    ## fresh watermarks : full push ##
+
+$code{'jobsite.sync.push'}->( undef, FALSE );
+
+my %chunks_by_url;
+for my $item ( map { $ARG->@* } @captured_queue ) {
+    push $chunks_by_url{ $item->{'url'} }->@*, $item;
+}
+my @owner_jobs = map { $ARG->{'chunk'}->@* } $chunks_by_url{$URL_OWNER}->@*;
+my @marks_jobs = map { $ARG->{'chunk'}->@* } $chunks_by_url{$URL_MARKS}->@*;
+
+my ($j10_owner) = grep { $ARG->{'id'} eq 'J10' } @owner_jobs;
+ok( defined $j10_owner
+        && ( $j10_owner->{'stage'} // '' ) eq 'review'
+        && exists $j10_owner->{'repair_attempted'},
+    'owner url still receives the full job state'
+);
+ok(
+    (   grep { $ARG->{'id'} eq 'J12' && $ARG->{'status'} eq 'trash' }
+            @owner_jobs
+    ) == 1,
+    'owner url still receives removal signals'
+);
+ok( scalar @marks_jobs == 1 && $marks_jobs[0]{'id'} eq 'J10',
+    'marks url gets only the marked job [ no whole-stock resend ]'
+);
+ok( scalar @marks_jobs
+        && join( ' ', sort keys %{ $marks_jobs[0] } ) eq
+        'exported_at exported_stage id',
+    'marks url record carries marks only'
+);
+ok( ( grep { $ARG->{'id'} eq 'J12' } @marks_jobs ) == 0,
+    'marks url never receives removal signals'
+);
+ok( ( $data{'jobsite'}{'sync'}{'url_roles'}{$URL_MARKS} // '' ) eq 'marks'
+        && ( $data{'jobsite'}{'sync'}{'url_roles'}{$URL_OWNER} // '' ) eq
+        'owner',
+    'roles resolved per url [ owner stays the default ]'
+);
+
+## ------------------------------------------------------------------------- ##
+say "\n :. push_chunk flags a marks batch on the wire";
+
+@posted                                = ();
+$client_prefs                          = { 'last_export_at' => 6000 };
+$data{'jobsite'}{'sync'}{'url_roles'}  = { $URL_MARKS => 'marks' };
+$data{'jobsite'}{'sync'}{'url_tokens'} = {};
+$data{'jobsite'}{'sync'}{'push_queue'} = [
+    {   'url'   => $URL_MARKS,
+        'since' => '',
+        'chunk' => [ $marks_jobs[0] ],
+    }
+];
+$push_chunk_cref->();
+my $marks_body = JSON::XS::decode_json( $posted[0]{'body'} );
+ok( ( $marks_body->{'role'} // '' ) eq 'marks',
+    'marks body carries the explicit role field'
+);
+ok( ( $marks_body->{'prefs'}{'last_export_at'} // 0 ) == 6000,
+    'marks body still carries the prefs' );
+
+@posted                                = ();
+$data{'jobsite'}{'sync'}{'url_tokens'} = {};
+$data{'jobsite'}{'sync'}{'push_queue'} = [
+    {   'url'   => $URL_OWNER,
+        'since' => '',
+        'chunk' => [],
+    }
+];
+$push_chunk_cref->();
+my $owner_body = JSON::XS::decode_json( $posted[0]{'body'} );
+ok( !exists $owner_body->{'role'},
+    'owner body carries no role field [ unchanged ]' );
+
+## ------------------------------------------------------------------------- ##
+say "\n :. web side : a marks batch may only touch marks + prefs";
+
+reset_web_state();
+@logged = ();
+$resp   = web_response(
+    {   'since' => '',
+        'role'  => 'marks',
+        'jobs'  => [
+            {   'id'             => 'J20',
+                'status'         => 'applied',
+                'stage'          => 'applied',
+                'title'          => 'Stale Stock Job',
+                'exported_stage' => 'applied',
+                'exported_at'    => 8000
+            }
+        ],
+    }
+);
+ok( !exists $mem->{'J20'},
+    'marks batch never plants a job the web does not hold' );
+
+$mem->{'J21'} = {
+    'id'            => 'J21',
+    'status'        => 'review',
+    'stage'         => 'review',
+    'last_modified' => '1'
+};
+@logged = ();
+$resp   = web_response(
+    {   'since' => '',
+        'role'  => 'marks',
+        'jobs'  => [
+            {   'id'             => 'J21',
+                'status'         => 'applied',       ## ignored ##
+                'stage'          => 'applied',       ## ignored ##
+                'exported_stage' => 'interviewed',
+                'exported_at'    => 8100
+            }
+        ],
+    }
+);
+ok( ( $mem->{'J21'}{'status'} // '' ) eq 'review'
+        && ( $mem->{'J21'}{'stage'} // '' ) eq 'review',
+    'job state untouched by a marks batch'
+);
+ok( ( $mem->{'J21'}{'exported_stage'} // '' ) eq 'interviewed'
+        && ( $mem->{'J21'}{'exported_at'} // 0 ) == 8100,
+    'mark merged newest-wins'
+);
+ok( ( $mem->{'J21'}{'last_modified'} // '' ) ne '1',
+    'mark merge re-stamps last_modified for browser deltas'
+);
+ok( scalar( grep { exists $_->{'exported_stage'} } $resp->{'reverse'}->@* )
+        == 1,
+    'mark re-queued as reverse entry'
+);
+my @ignore_logs = grep { $ARG->[1] =~ m{marks batch : ignoring} } @logged;
+ok( scalar @ignore_logs == 1, 'non-mark fields logged once per batch' );
+
+$resp = web_response(
+    {   'since' => '',
+        'role'  => 'marks',
+        'jobs'  => [],
+        'prefs' => { 'last_export_at' => 8600 },
+    }
+);
+ok( ( $resp->{'prefs'}{'last_export_at'} // 0 ) == 8600,
+    'marks batch still max-merges prefs' );
+
+## ------------------------------------------------------------------------- ##
 ## summary                                                                   ##
 
 my @struct_warnings
@@ -483,8 +676,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,.,,.,.,...,,.,,,,.,..,,.,,,..,,,..,,,,,..,,...,...,.,.,,,.,,,,,,,.,,.,,
-#IZJZPSGNVGNSGR3PSABSONAXRKOPRTKW44OXTROICDP4AR4QJJMHDTQDK52IFC2JQTDULOZ4NGWHC
-#\\\|L7ZF2ZZIVA6FCIFUW7I6K5E3E2TVI7S63LGKZS3BDHG6H4JDEGM \ / AMOS7 \ YOURUM ::
-#\[7]FJFKA7UFFSWQLZP6K4GH5GW4QM2VMBLIJLGMPSLGTMNZDE7IVOCA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,,,,,..,,,..,.,.,,,.,...,.,.,..,,...,...,,..,..,,..,,,..,..,,
+#A6LFPXPIHDRFTCIUB3WMQNPTEUVFGRKXJINEO6T6Q5AC6P3GEG3B4T2QLXVNOQ34IWACHUAME4UGU
+#\\\|GRTBF5X7VFM4MDWG3P3CIMDMWXK7HPJIZTSKRUCJTO5YTBTBBKI \ / AMOS7 \ YOURUM ::
+#\[7]Z47SLSZRHQJSKAW6ULFPGA7PJNA6GSY24YHGWR4VQEKSRWVU2IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

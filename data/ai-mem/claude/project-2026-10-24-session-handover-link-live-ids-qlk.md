@@ -1,0 +1,74 @@
+---
+name: project-2026-10-24-session-handover-link-live-ids-qlk
+description: START HERE -- session 2026-10-23/24 handover : link pri live over ssh-w, job ids encoded once [ vax-int guesses removed ], jobsite.delete, QLK marks reach pri's web but a foreign jobsite clobbered pri's web cache -> local jobsite + httpd STOPPED until sync_url_roles [ kimi af4bd962 ]
+metadata:
+  type: project
+---
+
+previous : [[project-2026-10-23-session-handover-admission-drain-repair-zyh]].
+budget at the end : claude 7d ~75 %, kimi 7d ~66 %.
+
+## landed [ pushed, hub/base, deployed to pri unless noted ]
+
+- 0c9478f48 link stage 1 [ kimi + review fixes : pin_from, no dotted link
+  names, host records 0640 group protocol-7 ] + jobsite desc_check flags
+  cleared on a clean pass
+- 8e66ecb63 job ids : encoded ONCE where site-yaml parses the listing
+  number, every other vax-int call in jobsite \ site-yaml \ web.jobs gone
+  [ digit-only encoded ids : 65454 = listing 14580215, see
+  [[feedback-vax-int-digit-only-encoded-ids]] ] -- delta pulled too
+- 33272a6a0 jobsite.delete \ jobsite.job.trash [ the web's delete as cli ]
+- a541450f8 link runtime fixes [ live : `link pri : up over ssh-w`, pin
+  pri_42 ] ; QLK export marks newest-wins + last_export_at max-merge ;
+  p7c \ p-7-r 'cmd+' reads the body from stdin
+- a68850a8e p7c \ p-7-r : options only before the command word
+- 396c6a875 + d15a11e36 https POST bodies > 16 KB [ 413 \ 414 guard,
+  idle-restart of a replaced watcher, would-block read kept the session ]
+- 59e625ae2 + fbcf554f9 + 00ec9a53d jobsite sync to https urls through
+  clients.https [ static calls ; modules.load continuation ]
+
+## live state
+
+- local : /etc/protocol-7/host-edit records group protocol-7 ; record
+  hosts/pri.json [ role link, ssh-w, af 4, link_user task-worker ] ;
+  protocol-7 user has its own ssh key + pri in known_hosts ; pri has
+  `authorize-link task-worker` ; /etc/protocol-7/models/host.cfg :
+  models.cfg.task_zenka = external.pri.task [ claims work, but pri's
+  jobsite dispatches ONE task at a time -> todo assess_parallel ]
+- local /etc/protocol-7/jobsite/host.cfg : sync_urls loopback + pri's
+  https jobs-sync, token web.auth-issue jobsite-push [ 1 year ]
+- LOCAL JOBSITE AND LOCAL HTTPD ARE TERMINATED ON PURPOSE : its pushes
+  overwrote pri's web cache [ stale stages, dropped entries ]. pri's own
+  jobsite stayed correct, a full pri sync restored the active jobs. the
+  owner deletes the 22 leftover web-only cards [ 18 skipped batch, HWWN4
+  WYCAC YDO5S 65454 ] in pri's ui
+
+## open, in order
+
+1. kimi af4bd962-e607-493b-b80e-24d4ee04b310 : jobsite.cfg.sync_url_roles
+   [ owner | marks ] -- review, sign, deploy, then set pri's url to role
+   marks in local host.cfg [ sudo : the file is protocol-7's ], restart
+   local httpd + jobsite, check pri's report view, close QLK
+2. todos added : assess_parallel [ ZYH needs >1 task in flight ],
+   progress overcount after deletes, address family memory [ DoS-safe ],
+   web-auth-gate harness broken on HEAD
+3. kimi noted : bodies between size.buffer.input [ ~237 KB ] and
+   max_post_size [ 1 MB ] stall the https body accumulator
+4. older queue unchanged : 3MK, yourum 3rd worker, RTY, H2N
+
+## lessons
+
+- harness stubs hid FIVE live link bugs [ runtime import, ->connected on
+  a socketpair, no autoflush, no handle registry entry, reloads ] -- the
+  first live run is the test
+- `reload source` does not rerun init : a key-form change needs a restart
+- a sync url is a write grant over another host's web, not a mirror
+- never parse a secret with a length guess : a 13-char token printed in
+  the fallback branch [ revoked + re-minted ]
+- see [[feedback-whitelist-static-calls-and-v7-rewrap]]
+
+#,,,.,.,,,,.,,,,.,..,,.,,,..,,..,,,..,,,.,.,.,..,,...,...,...,,,.,,,.,,,.,,,,,
+#EXQYA7TD6R4QA3VOJLAYZGY5B5MDNVSNPABTK6FKTAWJKIRHYW4HY5GR37LHR5S5E2D6UTM7GXPAI
+#\\\|2DHXWN7ZI4WMCP5JG53NSLNR7AYHQZ53QELIGYJVYUVZNTYIVYT \ / AMOS7 \ YOURUM ::
+#\[7]IVKB3CT4EJGDHFSB6NZQATYKGAWLZ6F3APQJLFH7HJIIYBGMFQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

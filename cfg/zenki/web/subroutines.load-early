@@ -152,6 +152,7 @@ jobsite.job.trash
 jobsite.init_code
 jobqueue.move_job
 jobqueue.exec_job
+clients.http.post
 base.stream.close
 base.session.user
 base.session.init
@@ -184,6 +185,7 @@ ui.fields.fallback
 jobsite.state.load
 jobsite.job.rescue
 index.restore.cube
+clients.https.post
 base.strm.pre_init
 base.reload_values
 base.reload_config
@@ -233,6 +235,7 @@ base.file.init_code
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.event.add_idle
 base.diff.hash_keys
 base.calc_unix_path
 web.assets.by_status
@@ -246,6 +249,8 @@ io.ip.tcp.input.open
 format.yaml.pre_init
 format.yaml.load_str
 format.yaml.dump_str
+clients.http.request
+clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
 base.reply.mode_text
@@ -287,6 +292,8 @@ format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.key_path
 crypt.C25519.gen_keys
+clients.https.request
+clients.https.cleanup
 base.session.shutdown
 base.reload_whitelist
 base.register_pm_deps
@@ -343,6 +350,7 @@ io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.key_exists
+clients.http.handler.io
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -380,6 +388,7 @@ io.unix.socket.init_code
 crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
+clients.https.handler.io
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -404,6 +413,7 @@ plugin.web.auth.admit.cfg
 plugin.web.attention.json
 jobsite.util.fix_encoding
 jobsite.util.build_prompt
+jobsite.sync.role_for_url
 jobsite.removed_log.prune
 jobsite.fetched.subscribe
 jobsite.cmd.blacklist-add
@@ -412,6 +422,8 @@ jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.root_key_dir
 crypt.C25519.load_keypair
+clients.https.stall_reset
+clients.https.decode_body
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -452,6 +464,7 @@ jobsite.client_prefs.write
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.encrypted_key
+clients.https.stream.chunk
 base.warnings.from_bitmask
 base.session.split_subname
 base.session.check.flushed
@@ -484,6 +497,9 @@ io.unix.socket.output.close
 index.cube.load_compartment
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
+clients.https.stream.finish
+clients.https.h2.handler.io
+clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -521,6 +537,7 @@ io.unix.socket.input.connect
 index.cube.format.dir_offset
 crypt.C25519.delegation_file
 crypt.C25519.compare_keypair
+clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -547,6 +564,8 @@ format.yaml.load_keyword_path
 crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
+clients.https.handler.timeout
+clients.https.h2.send_request
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.prng.handler.add_entropy
@@ -599,6 +618,7 @@ plugin.web.auth.destroy_session
 plugin.web.attention.push_state
 jobsite.handler.pending-changed
 crypt.C25519.decrypt_secret_key
+clients.https.handler.handshake
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
@@ -753,8 +773,8 @@ plugin.web.space.orbital.handler.gm_state_strm_open
 plugin.web.space.orbital.handler.external_strm_open
 plugin.web.space.orbital.handler.discover_strm_open
 
-#,,,,,,,,,..,,...,.,.,,..,,,,,,,,,..,,,,,,,,,,..,,...,...,...,.,,,...,.,,,..,,
-#Z4FF2QXL4DWD2D5W3WRPWJR277CMNLVBABBM2QUI6DPDUHUFXEPWYWL4H2EKEJOHDUP33DCPOIGNO
-#\\\|PUC7PLJPDSG57YOFDRTY33ITXH2IQAXSELTCO333HPPFJGYLIX6 \ / AMOS7 \ YOURUM ::
-#\[7]GN6UWGNTQOKN65D4WQEH2K455KT7JDISGWMLJPDD5KRBKGJ6UMBA 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,.,,,,,.,,,.,.,.,.,.,,,,.,,..,,..,,...,...,..,,,,.,..,,..,,.,,,
+#H7RJD42NFBT53UVYGG6XNOAYWMKTOVMGZAYW4QYB25V6I5IYIM5ZUFXXFCKGKHEMHBHXPYXD2SYJC
+#\\\|NUROWKKK7N6IGS75E7LJVHOS4MS5LQIY374UU2FRCPN5NSBGYY2 \ / AMOS7 \ YOURUM ::
+#\[7]E3M7BEK774F7QSQAIXWGK6KLNEABI5E5FHR7QYPZPP57EBXAUICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

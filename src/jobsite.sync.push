@@ -67,6 +67,15 @@ for my $url (@urls) {
         );
     }
 
+    ## sync role for this url [ host config jobsite.cfg.sync_url_roles ] :  ##
+    ## 'owner' [ default ] is today's full behaviour ; a 'marks' url only   ##
+    ## ever receives export-mark records + prefs -- never job fields, never ##
+    ## removal signals [ 2026-10-24 incident : a stale jobsite overwrote    ##
+    ## another host's web state it did not own ]                            ##
+    my $role = <[jobsite.sync.role_for_url]>->($url);
+    <jobsite.sync.url_roles> //= {};
+    <jobsite.sync.url_roles>->{$url} = $role;
+
     ## no per-url watermark -> FULL push : a newly added backend must       ##
     ## receive every job once [ the legacy global watermark migrates to the ##
     ## single configured url above, and cannot be attributed when several   ##
@@ -100,21 +109,37 @@ for my $url (@urls) {
             ? ( <[base.ntime_BASE32_to_numerical]>->($mod) // 0 )
             : 0;
         if ( not $last_ntime_num or $mod_num > $last_ntime_num ) {
-            ## explicit false default : the web cache only clears a stale  ##
-            ## repair_* \ desc_check_* flag on `exists`, so a job whose    ##
-            ## on-disk record has no such key [ e.g. it never failed, or a ##
-            ## later clean pass deleted the key ] must still push a real   ##
-            ## false value here, or a flag set by an earlier failed cycle  ##
-            ## stays stuck on the web side forever                         ##
-            push @changed,
-                {
-                %{$job},
-                'id'                => $id,
-                'repair_attempted'  => $job->{'repair_attempted'}  // FALSE,
-                'repair_failed'     => $job->{'repair_failed'}     // FALSE,
-                'desc_check_failed' => $job->{'desc_check_failed'} // FALSE,
-                'desc_check_reason' => $job->{'desc_check_reason'} // '',
-                };
+            if ( $role eq qw| marks | ) {
+                ## marks url : export-mark record ONLY, and only for jobs ##
+                ## that actually carry a mark -- the whole stock is never ##
+                ## resent, not even on a full push to a fresh marks url   ##
+                next
+                    if not exists $job->{'exported_stage'}
+                    and not exists $job->{'exported_at'};
+                push @changed,
+                    {
+                    'id'             => $id,
+                    'exported_stage' => $job->{'exported_stage'},
+                    'exported_at'    => $job->{'exported_at'},
+                    };
+            } else {
+                ## explicit false default : the web cache only clears a     ##
+                ## stale repair_* \ desc_check_* flag on `exists`, so a job ##
+                ## whose on-disk record has no such key [ e.g. it never     ##
+                ## failed, or a later clean pass deleted the key ] must     ##
+                ## still push a real false value here, or a flag set by an  ##
+                ## earlier failed cycle stays stuck on the web side forever ##
+                push @changed,
+                    {
+                    %{$job},
+                    'id'               => $id,
+                    'repair_attempted' => $job->{'repair_attempted'} // FALSE,
+                    'repair_failed'    => $job->{'repair_failed'}    // FALSE,
+                    'desc_check_failed' => $job->{'desc_check_failed'}
+                        // FALSE,
+                    'desc_check_reason' => $job->{'desc_check_reason'} // '',
+                    };
+            }
         }
     }
 
@@ -125,6 +150,7 @@ for my $url (@urls) {
     ## status before forwarding, since a rescued job is active again and a ##
     ## stale 'trash' signal would otherwise clobber its real data          ##
     for my $entry ( @{ <jobsite.removed_log> // [] } ) {
+        next if $role eq qw| marks |;    ## a marks url owns no job state ##
         next if ref $entry ne 'HASH';
         my $rn_str = $entry->{'ntime'} // '';
         my $rn_num
@@ -208,8 +234,8 @@ my $log_level = $total_jobs ? 1 : 2;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,.,,.,,,,..,,,,,.,,,,.,,,..,,.,,.,.,,,,,.,,,..,,...,...,,,,,,..,,..,,,.,.,,,
-#2DBJEKHDDYIXCJOVHW2ZYSA7RXP6CZHQUYUE32WA4IKAOIAXPTFTT3ZZKC3AY6LY22K6ECD36D6FE
-#\\\|TS65EC5PLXNNXCNKG3IKJY7RG4WINNJFFZKJ76BW2DMZ3K5COIS \ / AMOS7 \ YOURUM ::
-#\[7]7MMBHFSTXE4CAY2VORLPXSU74BQRGJ3T5JMLQN5QBHXOKYLPFGBY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,..,,.,,.,,,,.,,.,.,.,.,,,,,.,,,..,,...,..,,..,,.,.,...,,..,...,
+#32DXK66DIJNKL7X2M7GV4MXP75XY67ADVMEBNFDBCD3U3OX4ZZ737SMQLZNGYIWJK23RJQ6QUUGMM
+#\\\|JJIUEPUL5HJSBVMVB2VJHX4WDIHBENEDNR3O7GMCRJHWNW43T27 \ / AMOS7 \ YOURUM ::
+#\[7]4GZFY6GMYKSXDU6NNRWV7SW6U7NVVY34IWC62NOY4UJJFDV4QMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

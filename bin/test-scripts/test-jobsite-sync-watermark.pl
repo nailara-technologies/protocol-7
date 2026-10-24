@@ -128,7 +128,8 @@ my @perl_warnings;
 local $SIG{__WARN__} = sub { push @perl_warnings, @ARG };
 
 ## real modules under test ##
-compile_module($_) for qw| jobsite.sync.token_for_url |;
+compile_module($_)
+    for qw| jobsite.sync.token_for_url jobsite.sync.role_for_url |;
 compile_module( 'jobsite.sync.push', $module_prefix );
 
 ## ---------------------------------------------------------------------- ##
@@ -244,8 +245,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,.,.,...,,,.,.,.,.,.,,,.,..,,,,.,.,,,,,,,..,,...,..,,...,.,.,..,,..,,.,.,
-#B7UD74WGYRTEDWUVNQYIZBUEJUOSG5HCNLY7SHDNO25OX46EHSZZX2HE224WO6K64HNSF53IKNRHI
-#\\\|MPXAKF57GQHIXXLAK7YMHSFN7VQENI23UEFDQC65LPNWB4V3NM7 \ / AMOS7 \ YOURUM ::
-#\[7]DGFBZ2Q4RDWDIVYREBHSAIRAVDUKVT4BXIYJTSFVYMAH3HLSE2AQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,...,,,.,.,,,.,,,,.,,,,.,.,.,.,.,..,,...,..,,..,,,,.,,.,,,..,..,,
+#7OFIXMPDB6AHJ3OP23E5EWDUGLFG4A2DIJ7ALC7YVWMYTL26QIU53DKQ5QEUCS7BGPPDMWZY6LAJA
+#\\\|5S4ECY5MMM3AO3K6M4ORI7NGT7TRML37E3VM4ZHWAJGOEBLBBVF \ / AMOS7 \ YOURUM ::
+#\[7]FLMK7KT26CDOPS5AMMBEP47SJ6CY2YA2IQPRY4ICO75TNCN4DEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
