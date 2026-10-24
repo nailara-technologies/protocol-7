@@ -20,8 +20,12 @@ my $name = sprintf '%s-%s', <[base.ntime.b32]>, $safe_id;
 my $file = "$outbox_dir/$name.json";
 my $temp = "$outbox_dir/.$name.$PROCESS_ID.tmp";
 
+## raw : the payload is json OCTETS [ encode_json ] -- the zenka's default ##
+## :encoding(UTF-8) layer encoded them a second time on disk, and the      ##
+## backlog read decoded them into a character string that the stream sent  ##
+## in its internal utf-8 form : every umlaut double-encoded [ 2026-10-24 ] ##
 my $out_fh;
-if ( not open $out_fh, '>', $temp ) {
+if ( not open $out_fh, '>:raw', $temp ) {
     <[base.logs]>->(
         0,     'site-yaml.outbox: cannot write %s [ %s ]',
         $temp, $!
@@ -63,8 +67,8 @@ if ( @{$streams} ) {
 
 return $name;
 
-#,,..,.,.,.,.,.,,,,,.,,,,,,.,,,,.,,..,,.,,.,,,.,.,...,.,.,,.,,.,.,,,,,...,,.,,
-#JHGBDRJ3R7TM34CJUS2MNEN6RPNWFW7SXNBLF5GUTOFTRJHRSCCZULYHRAP2Z5F32QF6KBRVYOSGQ
-#\\\|X3XMGEBRWX3YHKNPQGTTNHWQF44ULESI6LGP6UP2I2KCEOXFQZU \ / AMOS7 \ YOURUM ::
-#\[7]AU2CKMC2RN3QCRD2OGGL3JI4WAGE6L2GWM57G4UJVFX42H7WWADI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,...,,.,,,.,,,..,..,,.,.,,.,,.,.,.,.,...,...,..,,,.,,.,,,,..,.,.,
+#MD6HK2YXHOPZWVRLXV3FFBDBHQYR33SA36GPHF25GU5VXZAVM34UWS745QZFZYS2DLAQM2QTPZW2C
+#\\\|TTHFQ27PVNNE7ASXIWA2IX77E7WEC5CORINFSRNJ7IX7VYO6Y7C \ / AMOS7 \ YOURUM ::
+#\[7]TDPZ66RD7UCU6WRALEBBJJDB6PG5DIOF34RUZUKWSI4J5MVP6OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
