@@ -234,3 +234,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|U3PTK4IJI4RSE5ZKQZRPAITUZIJSFWRSNXHQCOMFOPM3IMAFJQG \ / AMOS7 \ YOURUM ::
 #\[7]NMF2DTSAPNA6BA7NM3NFP6NWK7IAKOIYEOPS24P74PZVSNDXBCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [whitelist-static-calls-and-v7-rewrap](feedback-whitelist-static-calls-and-v7-rewrap.md) — no `$code{$var}->()` [ whitelist sees `<[name]>` only ] ; a wrapped .v7 line without its `\` drops out of the key -- check staged .v7 + whitelist after signing
+
+#,,,.,,.,,.,,,..,,,..,..,,.,.,,.,,...,...,,,,,..,,...,...,.,.,,..,,,.,,,.,,,.,
+#RHJP4U4GPFM34GGCDUQDPBBPBWRVWW4DZYJPG5T22J2XYEVVGHR27YU44UDDQQ3FWZMXTKRCSFOJ4
+#\\\|LG34I56O4KZ6A7BH2OXHHVNYZBFACGJGPKMVH4VMKFNCSAQQZOB \ / AMOS7 \ YOURUM ::
+#\[7]M2T2M4S5HDIRSZIS6ZH3KMMP6IRUVVIIVFZ7BRWPBAUXPJPU2IBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
