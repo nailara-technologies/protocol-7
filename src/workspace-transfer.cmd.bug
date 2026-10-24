@@ -19,7 +19,7 @@ if ( $cmd eq 'list' ) {
         return;
     }
 
-    open my $fh, '<', $bug_file or do {
+    open my $fh, '<:encoding(UTF-8)', $bug_file or do {
         <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -53,7 +53,7 @@ if ( $cmd eq 'list' ) {
     # Read existing bugs to get next ID
     my $next_id = 1;
     if ( -f $bug_file ) {
-        open my $fh, '<', $bug_file or do {
+        open my $fh, '<:encoding(UTF-8)', $bug_file or do {
             <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
             <[base.exit]>->(qw| 0110 |);
         };
@@ -66,7 +66,7 @@ if ( $cmd eq 'list' ) {
         close $fh;
     }
 
-    open my $fh, '>>', $bug_file or do {
+    open my $fh, '>>:encoding(UTF-8)', $bug_file or do {
         <[base.logs]>->( 0, 'cannot write BUGS.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -89,7 +89,7 @@ if ( $cmd eq 'list' ) {
         return;
     }
 
-    open my $fh, '<', $bug_file or do {
+    open my $fh, '<:encoding(UTF-8)', $bug_file or do {
         <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -114,7 +114,7 @@ if ( $cmd eq 'list' ) {
                 last if $lines[$j] =~ m|^- \[|;    # Next bug
             }
 
-            open my $out, '>', $bug_file or do {
+            open my $out, '>:encoding(UTF-8)', $bug_file or do {
                 <[base.logs]>->( 0, 'cannot write BUGS.md: %s', $! );
                 <[base.exit]>->(qw| 0110 |);
             };
@@ -142,8 +142,8 @@ if ( $cmd eq 'list' ) {
     say "Run 'bug help' for usage";
 }
 
-#,,..,,,.,,.,,..,,.,.,,.,,,,,,...,.,.,.,.,...,..,,...,...,..,,,,.,..,,.,.,,,,,
-#KFPMMPLOVS2BUWTC56VVBQ7UY5IDCD5TPY6P5YVEULEISW7HGMUB4BOF7GXIQFEPG6ODZFKVWWLWY
-#\\\|RNKXSZ4PTVQ7XZH2Z65YSB6XI55NCF3M6LHQMTI4JWMHKPO5CG4 \ / AMOS7 \ YOURUM ::
-#\[7]HYKLDYJO7SMRITY6M4INGJJRQP6BF6C7UKNX5YXBJOG2RKLYDUAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,,,.,.,.,,,,,,,,.,,,.,,.,.,,.,,..,,...,...,.,.,..,,...,,.,,..,,
+#FM25BHRDDPLWX34B4XRWNNJGU2CQ5KO5T2JY34R3JTMOOFZY6HF4CAIOONER3PFNJ3T4SUJHH642I
+#\\\|MHUIEM7G23O75MPTRGWP7EUECULPWRZ4B7NQFAFMFQ4ODBQ2G6B \ / AMOS7 \ YOURUM ::
+#\[7]PXB2U247FDKMCD3HTH5JVO4UIQN534XTUD2GWCSPWJU3EPD36IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

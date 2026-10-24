@@ -38,7 +38,7 @@ if ( $cmd eq 'list' ) {
     say "$blacklight .:[ ${neon_red}BUG TRACKER${blacklight} ]:.$reset";
     say "";
 
-    open my $fh, '<', $bug_file or do {
+    open my $fh, '<:encoding(UTF-8)', $bug_file or do {
         <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -84,7 +84,7 @@ if ( $cmd eq 'list' ) {
     # Read existing bugs to get next ID
     my $next_id = 1;
     if ( -f $bug_file ) {
-        open my $fh, '<', $bug_file or do {
+        open my $fh, '<:encoding(UTF-8)', $bug_file or do {
             <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
             <[base.exit]>->(qw| 0110 |);
         };
@@ -97,7 +97,7 @@ if ( $cmd eq 'list' ) {
         close $fh;
     }
 
-    open my $fh, '>>', $bug_file or do {
+    open my $fh, '>>:encoding(UTF-8)', $bug_file or do {
         <[base.logs]>->( 0, 'cannot write BUGS.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -125,7 +125,7 @@ if ( $cmd eq 'list' ) {
         return;
     }
 
-    open my $fh, '<', $bug_file or do {
+    open my $fh, '<:encoding(UTF-8)', $bug_file or do {
         <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -150,7 +150,7 @@ if ( $cmd eq 'list' ) {
                 last if $lines[$j] =~ m|^- \[|;    # Next bug
             }
 
-            open my $out, '>', $bug_file or do {
+            open my $out, '>:encoding(UTF-8)', $bug_file or do {
                 <[base.logs]>->( 0, 'cannot write BUGS.md: %s', $! );
                 <[base.exit]>->(qw| 0110 |);
             };
@@ -191,8 +191,8 @@ if ( $cmd eq 'list' ) {
     say "";
 }
 
-#,,,,,...,..,,,..,.,.,,,.,,..,.,.,,,,,,,,,,..,..,,...,..,,...,..,,.,,,,..,,..,
-#YTCRCVQXG3BDLH6DRGINFY7B5GQFLCHKRS2R3YNEPERPXZKJNDQJDX7XPZOTUBOWKV4RIWXYZI6D6
-#\\\|7EDYRW2ECXXXA7DSP7UE63T4AF7CXTWBJLVASQVDMQUDYAV4NES \ / AMOS7 \ YOURUM ::
-#\[7]D6QDMROKXCJBILF7ICF5GOSLPFVYZIZCJUIEG7XRXYKJVJSNSEAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,,..,...,,.,,..,,,,,,,..,,,,,..,,...,...,.,.,.,,,,..,..,,...,
+#JMV24TVJXW72TFBFPVTI5QN5M3QJYXA4EZBQR6N7BFNRQ5ADY7TH4GJDDDJXC77BCU5FD7EKAOQAI
+#\\\|UQNKRZ4OTO5MA4AF4UJNNAERWUBNRJPZEGFK3UYTPGBJJ6H2OJA \ / AMOS7 \ YOURUM ::
+#\[7]A2MY45WSTI5CBDFEVGMIJYD6MCEDQEKBK5KWTZUJWCREL3TXVEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

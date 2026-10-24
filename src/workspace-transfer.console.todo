@@ -39,7 +39,7 @@ if ( $cmd eq qw| list | ) {
     say "$blacklight .:[ ${TRUE_blue}TODO LIST${blacklight} ]:.$reset";
     say "";
 
-    open my $fh, '<', $todo_file or do {
+    open my $fh, '<:encoding(UTF-8)', $todo_file or do {
         <[base.logs]>->( 0, 'cannot read TODO.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -75,7 +75,7 @@ if ( $cmd eq qw| list | ) {
     my $desc      = join( ' ', @args );
     my $timestamp = scalar( localtime() );
 
-    open my $fh, '>>', $todo_file or do {
+    open my $fh, '>>:encoding(UTF-8)', $todo_file or do {
         <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -97,7 +97,7 @@ if ( $cmd eq qw| list | ) {
         return;
     }
 
-    open my $fh, '<', $todo_file or do {
+    open my $fh, '<:encoding(UTF-8)', $todo_file or do {
         <[base.logs]>->( 0, 'cannot read TODO.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -113,7 +113,7 @@ if ( $cmd eq qw| list | ) {
                 $lines[$i] =~ s|\n$||;
                 $lines[$i] .= " (completed: " . scalar( localtime() ) . ")\n";
 
-                open my $out, '>', $todo_file or do {
+                open my $out, '>:encoding(UTF-8)', $todo_file or do {
                     <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
                     <[base.exit]>->(qw| 0110 |);
                 };
@@ -156,8 +156,8 @@ if ( $cmd eq qw| list | ) {
     say "";
 }
 
-#,,.,,.,.,..,,..,,...,.,.,,,,,,,,,.,.,,,,,...,..,,...,...,..,,..,,,.,,.,,,,..,
-#M3QS6W5VYHJNDAFRVGEIFUCRFOYBJI344LTLPBX3BQIP5DM3PMGLELOM3AP3X2P5VJZFYB5URMF2G
-#\\\|IHZYLKITWZUV5CKSK2CATPD2M3OULRYDRNWYUNYT5DKMDD5JMC3 \ / AMOS7 \ YOURUM ::
-#\[7]JL4CY6VS45S6C2BVLPVV2OTDNN6QGMQEVIIAYNSDTGOY5CEUG2DI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,.,,,.,,,,,,,,.,,,,.,,,.,..,,..,,...,.,.,.,.,.,.,,..,..,,..,,
+#AVJTG6NHKBFSCMBSWHDAJ3GA6Z33AJXBDBOFVPD2EGQUXF4CIWCFCS7XZPLPDDLLI7M7YXEPCX7WY
+#\\\|P4N33HTDLMERZKJ7JWYXYXGA24LOPLN2BHV3I6RWGWGL5TFXVBM \ / AMOS7 \ YOURUM ::
+#\[7]F65DZLQXYKMCJWZRTTGAMVL6PHDCYM2VPVREWJ6WKTIADJMPDOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
