@@ -44,7 +44,8 @@ minus 6 design sessions [ expire 2026-11-05 ].
 - srv-U jobsite fetches through srv-V : host.cfg jobsite.cfg.fetch_zenka =
   external.srv-V.site-yaml [ backup .bak-before-fetch-zenka ]. first run :
   630 records delivered, 1376 -> 1654 jobs, 279 new
-- the link is BY HAND : `ssh -4 -N -L 127.0.0.1:4243:127.0.0.1:42` as
+- [ SUPERSEDED 2026-10-24 : now a managed link, see
+  [[project-2026-10-24-delta-link-managed]] ] the link WAS by hand : `ssh -4 -N -L 127.0.0.1:4243:127.0.0.1:42` as
   protocol-7 on srv-U [ key ~protocol-7/.ssh/id_ed25519_link ] +
   `external.connect srv-V 127.0.0.1:4243 remote-fetch`. a srv-U restart ends
   both -- redo them [ -4 : srv-U <-> srv-V and srv-U <-> srv-A ipv6 is broken ]
@@ -89,8 +90,8 @@ minus 6 design sessions [ expire 2026-11-05 ].
   proof ] and sometimes a claude/<topic>-<suffix> branch too : a new branch
   is never 'done'
 
-#,,.,,...,,,,,.,,,...,,..,.,,,.,,,,..,.,,,..,,..,,...,...,,.,,.,.,...,,..,...,
-#GGCR5ZLDE45LFWN7TJIITFVMX5LSB4UF3LAVCNYM2XSDYUXF5HAVF2QYK72FETAF5K2IVS6PM5AMW
-#\\\|RO4QXC3AWB5SNX2KWQMY6FJ3LJ6S5I522LDK5NNEEOBSJJ4KNO3 \ / AMOS7 \ YOURUM ::
-#\[7]HGBHFDWXGCUUBGAG3RVS6I2NS6FCHEYGUFI6DVM5TOHZZE36JCDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,,,,,,,.,,..,,,.,.,.,,,.,,,,,..,,...,..,,.,.,.,.,,,,,.,.,.,,,
+#6ABSRYZ4DJX4MU4URI3WTN5D4URO3VSVUG2YH3FADFR5DB6DV4YDM6KOZ6GQQQ53V7UNV5EGNLOQE
+#\\\|DQG5GIQTFLUCZCX2GWABYP6JKOA4ATZSRAMVWDHSYOJMYTUTR4E \ / AMOS7 \ YOURUM ::
+#\[7]TAQSG7T4TFIS7GIYHD7O7BH5JOKK5F7TJ45AXGM7HEHJ3HEWXWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
