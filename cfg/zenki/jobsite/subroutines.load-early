@@ -98,6 +98,7 @@ plugin.auth.unix
 jobsite.job.read
 jobsite.cmd.scan
 jobqueue.add_job
+clients.http.get
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -128,6 +129,7 @@ jobsite.init_code
 jobsite.cmd.reset
 jobqueue.move_job
 jobqueue.exec_job
+clients.https.get
 clients.http.post
 base.stream.close
 base.session.user
@@ -252,6 +254,7 @@ crypt.C25519.key_path
 crypt.C25519.gen_keys
 clients.https.request
 clients.https.cleanup
+clients.http.pre_init
 base.session.shutdown
 base.reload_whitelist
 base.register_pm_deps
@@ -277,6 +280,8 @@ jobsite.cmd.group-jobs
 jobsite.checksum.index
 format.yaml.write_file
 crypt.C25519.sign_data
+clients.https.pre_init
+clients.http.init_code
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -303,6 +308,7 @@ io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.key_exists
+clients.https.init_code
 clients.http.handler.io
 base.templates.pre_init
 base.strip_chksum_lines
@@ -355,6 +361,7 @@ base.buffer.erase_secure
 ui.render.tree.invalidate
 jobsite.util.fix_encoding
 jobsite.util.build_prompt
+jobsite.sync.role_for_url
 jobsite.report.mail_split
 jobsite.removed_log.prune
 jobsite.fetched.subscribe
@@ -645,8 +652,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,.,,,.,,...,.,.,..,,..,,,,,,.,,,.,,,,,,,..,,...,...,,..,...,..,,...,,..,
-#ZIA6VRCTOXC3MIVQBG6NXYN2TN7H5X3KAQFGDFPBOIM3Z4W324WOCZMQFXRLAKNLDANBZVFRQWDCG
-#\\\|BWVXUVY4WAEAHP7X7V75CFHBGDBI7DIN6X2TS2COYRL7XOWJXQ3 \ / AMOS7 \ YOURUM ::
-#\[7]UIY7KWUAF65XTQC6D5XUX3O3Q4BVWNKODBYH2GAAWZQDKQSM3GDY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,,..,..,,,..,,,,,...,,.,,..,,..,,...,...,.,.,,..,,,,,.,.,.,,,
+#QJO2T7425TP7ZIGMAYGPXMO3REH2AN73XQK3JQ6JD5GHVAH26N3YCY24VHMS4AZ2STTYQ7ECYLO3I
+#\\\|7EGCZ4RPYWNJMVOOLMVZ5YGWHHTYSLFKYU5FZ37PZSSIIMAMXXY \ / AMOS7 \ YOURUM ::
+#\[7]YS4BZCXRCTVR5HBYAXGNMC5QBL3PHS2OWV7UILREWHC7M44PUKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

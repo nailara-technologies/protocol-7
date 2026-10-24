@@ -77,6 +77,11 @@ jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
 ##   jobsite.cfg.sync_urls   = <url> [<url> ..]                      ##
 ##   jobsite.cfg.sync_token  = <token>   ## or per-url : ##
 ##   jobsite.cfg.sync_tokens = <url>=<token> [<url>=<token> ..]      ##
+##   jobsite.cfg.sync_url_roles = <url>=owner|marks [<url>=<role> ..] ##
+## [ roles : owner [ default ] = full sync behaviour ; marks = export ##
+##   marks + prefs ONLY, never job state or removal signals -- for    ##
+##   a url whose web belongs to a DIFFERENT jobsite, e.g. forwarding  ##
+##   export marks to a host that does not own this stock ]            ##
 ## [ token : p7c web.auth-issue jobsite-push -ttl 31536000 ]         ##
 jobsite.cfg.sync_url      = http://127.0.0.1/jobs-sync
 jobsite.cfg.sync_urls     =
@@ -129,8 +134,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite \
 
 [zenka.loop]
 
-#,,,.,..,,,.,,..,,,.,,,,.,.,,,,,,,..,,,.,,.,.,..,,...,...,..,,.,.,,..,...,,..,
-#7AOGLWXH3GBZ7GF3BEOKB55ILEV27YHHRINZUHCBUMX4GZ5HYLZRB6ZFWIXSVKBWI7FLMP4OPULLW
-#\\\|FEPJMXND67JDLKKXKPLSRHR6BJQ3SN2UZCGZSSJZZMDSQBRGA52 \ / AMOS7 \ YOURUM ::
-#\[7]UJXNQIYP5H5244TZ4FCRIHQINAHV5WWEM73MDU5763MZ7BRITCDI 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,...,,.,,,.,,..,,,..,,,.,...,..,,...,...,,.,,,,.,,,,,,.,,,.,,
+#M7K2ODWHYIHKA3MFR7G3BFMJZBG7A7TWKHCGHUULWAAVXHAH2SV4EYNGMYV36MAGHWREH2RGYON3M
+#\\\|WLPFBLIIHERS7FGXM4NA6GWCIC3H7VEWMRY6GVWC3C7BA4RT2KI \ / AMOS7 \ YOURUM ::
+#\[7]GNJTJNJJM7T4TITTW57ABJPG2WCTALRGZ6VXMLHVPCJCURWWSCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

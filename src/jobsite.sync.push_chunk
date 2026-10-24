@@ -51,6 +51,7 @@ if ( not defined $item ) {
     my $reverse = delete <jobsite.sync.push_reverse> // [];
     delete <jobsite.sync.push_queue>;
     delete <jobsite.sync.url_tokens>;
+    delete <jobsite.sync.url_roles>;
     <jobsite.sync.push_in_progress> = FALSE;
     <[jobsite.state.persist]>;
     my $log_level = scalar $reverse->@* ? 1 : 2;
@@ -76,6 +77,13 @@ my $url   = $item->{'url'};
 my $since = $item->{'since'} // '';
 my $chunk = $item->{'chunk'};
 
+## batch role                                                               ##
+## [ resolved once per cycle in jobsite.sync.push, keyed by url  ] : a      ##
+## 'marks' url announces itself in the body so the receiving web applies    ##
+## export marks + prefs ONLY, whatever else a stale or misconfigured sender ##
+## may have put into the chunk [ defense in depth, web side re-checks ]     ##
+my $role = <jobsite.sync.url_roles>->{$url} // '';
+
 ## carry the local client prefs on every batch [ and ping ] body so each    ##
 ## receiving web can max-merge and hand them back : only last_export_at for ##
 ## now [ QLK ] -- the rest of the prefs fan-out belongs to 3MK              ##
@@ -88,7 +96,8 @@ my $body = eval {
     JSON::XS::encode_json(
         {   'since' => $since,
             'jobs'  => $chunk,
-            ( %prefs_out ? ( 'prefs' => \%prefs_out ) : () ),
+            ( $role eq qw| marks | ? ( 'role'  => qw| marks | ) : () ),
+            ( %prefs_out           ? ( 'prefs' => \%prefs_out ) : () ),
         }
     );
 } // '';
@@ -165,8 +174,8 @@ if ( $url =~ m{^https://}i ) {
     <[clients.http.post]>->($post_args);
 }
 
-#,,,,,...,,.,,,,.,,.,,,..,...,,,,,,,.,.,.,..,,..,,...,...,.,,,...,.,.,,,.,.,.,
-#ZKXWVZRHFN2HUGEMBZ2QK7XCIGWEXRABUVGEWR4CMG4HP2T4YXNYMUPXFZQEKKHWKBD57S62IOCFM
-#\\\|6D7Q6DQFFMHRONDPOFCCXFKPXLMS3ISRLQZO4WALUTD3LY5MZKN \ / AMOS7 \ YOURUM ::
-#\[7]LEKSCLTZEGS4MEZFIZEK57EQ5SMAWHGJA7ENJ5K2LTG6JD4IYUAA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,..,,.,,,..,,..,,,,.,.,,,,,,,,.,,..,,...,...,,.,,,..,,,,,...,,.,,
+#CWPUOBBWUKX622YYUKCHJODVEQA374GWPPGRSZMQOEST623JSZOM2ZYS3ZARXIXXFQWSOYD4G2K6O
+#\\\|4RL7UCSUMVT5FRA7CBPJLNCJKIS2XRO4FNYMEIYHOFESKZAW6XK \ / AMOS7 \ YOURUM ::
+#\[7]JG6BYZE54FTYSVOUMJH24GRRRTJ43FGOU62KQXQMALIU2UZ7LKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

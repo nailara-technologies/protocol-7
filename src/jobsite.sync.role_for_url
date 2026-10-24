@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = jobsite.sync.role_for_url
+# descr = resolve the sync role for a sync url [ host config ]
+# param = url string
+#
+# config [ /etc/protocol-7/jobsite/host.cfg ] :
+#   jobsite.cfg.sync_url_roles = <url>=<role> [<url>=<role> ..]
+#
+# roles : owner [ default for every url ] = today's full behaviour
+#         marks = export marks + prefs only, never job state or removals
+
+my $url = shift // '';
+return qw| owner | if not length $url;
+
+## per-url mapping [ space separated url=role pairs ] ##
+my $map_str = <jobsite.cfg.sync_url_roles> // '';
+if ( length $map_str ) {
+    for my $pair ( split m|\s+|, $map_str ) {
+        my ( $map_url, $map_role ) = split m|=|, $pair, 2;
+        next unless defined $map_url and length $map_url;
+        next unless $map_url eq $url;
+        return ( defined $map_role and $map_role eq qw| marks | )
+            ? qw| marks |
+            : qw| owner |;
+    }
+}
+
+## no mapping for this url : full behaviour ##
+return qw| owner |;
+
+#,,,,,,,.,..,,,,,,,.,,,..,.,.,,,,,.,,,..,,,,,,..,,...,...,..,,,,.,,.,,..,,,.,,
+#XD6Q5M2JC3ZZVE4KGTWD233DY7REIIRBWLIUWIP4MOKMVIQUK2SZLCKCDBUBYP7NEXAMBOFELK3H6
+#\\\|MNVSTN2S5KYWKV73X2K2MKUW2NURWJNUGL6IAG2T46C566PLOKQ \ / AMOS7 \ YOURUM ::
+#\[7]LN37TWFW7SN75QI733B6W4F6WP57P5QCJJ45LCWNO7CP7GWJQWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

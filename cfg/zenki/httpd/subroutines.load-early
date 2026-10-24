@@ -158,6 +158,7 @@ jobqueue.move_job
 jobqueue.exec_job
 httpd.json.encode
 httpd.json.decode
+clients.http.post
 base.stream.close
 base.session.user
 base.session.init
@@ -191,6 +192,7 @@ httpd.serve_static
 httpd.http_options
 format.json.encode
 format.json.decode
+clients.https.post
 base.strm.pre_init
 base.reload_values
 base.reload_config
@@ -244,6 +246,7 @@ base.file.init_code
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.event.add_idle
 base.diff.hash_keys
 base.curve.register
 base.calc_unix_path
@@ -259,6 +262,8 @@ httpd.benchmark.init
 format.yaml.pre_init
 format.yaml.load_str
 format.yaml.dump_str
+clients.http.request
+clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
 base.reply.mode_text
@@ -309,6 +314,8 @@ format.json.init_code
 crypt.C25519.key_vars
 crypt.C25519.key_path
 crypt.C25519.gen_keys
+clients.https.request
+clients.https.cleanup
 base.session.shutdown
 base.reload_whitelist
 base.register_pm_deps
@@ -375,6 +382,7 @@ httpd.cmd.update-vhosts
 crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.key_exists
+clients.http.handler.io
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -414,6 +422,7 @@ httpd.classify.cmd.stats
 crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
+clients.https.handler.io
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -439,6 +448,7 @@ plugin.web.auth.init_code
 plugin.web.auth.admit.cfg
 jobsite.util.fix_encoding
 jobsite.util.build_prompt
+jobsite.sync.role_for_url
 jobsite.removed_log.prune
 jobsite.fetched.subscribe
 jobsite.cmd.blacklist-add
@@ -450,6 +460,8 @@ httpd.handler.drain_check
 httpd.base.size.normalize
 crypt.C25519.root_key_dir
 crypt.C25519.load_keypair
+clients.https.stall_reset
+clients.https.decode_body
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -482,6 +494,7 @@ httpd.vhost.read_manifests
 httpd.handler.acme_request
 httpd.classify.cmd.history
 crypt.C25519.encrypted_key
+clients.https.stream.chunk
 base.warnings.from_bitmask
 base.session.split_subname
 base.session.check.flushed
@@ -518,6 +531,9 @@ httpd.benchmark.end_request
 httpd.base.file.nonblocking
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
+clients.https.stream.finish
+clients.https.h2.handler.io
+clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -561,6 +577,7 @@ httpd.handler.iris-svg.relay
 httpd.handler.acme_challenge
 crypt.C25519.delegation_file
 crypt.C25519.compare_keypair
+clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -595,6 +612,8 @@ format.yaml.load_keyword_path
 crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
+clients.https.handler.timeout
+clients.https.h2.send_request
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.prng.handler.add_entropy
@@ -660,6 +679,7 @@ httpd.handler.download_transfer
 httpd.cmd.remove-acme-challenge
 httpd.benchmark.collect_metrics
 crypt.C25519.decrypt_secret_key
+clients.https.handler.handshake
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
@@ -817,8 +837,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,..,,.,,,,,.,,.,,,,,,,.,,..,,...,,.,,,,.,..,,...,...,,,.,...,,,.,,,,,...,
-#E74RMFRYGV2JRUNQQJENDCHIJLNWHV2IJ2LPFHX45NR4LEFTHKSIEGUTOLZOKO2GMSFIWNGY3IBKG
-#\\\|NNXIJSBKIABD7FPRDRMBSCLPGEEBZFK56B5DXBJTYLF6GXXHTD2 \ / AMOS7 \ YOURUM ::
-#\[7]GFXZV36IZWFXL5546V4CS2YYVIAD2Z6QXJH2GKCJM3NZSQTWCQBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,,.,,,..,,,,,,..,,,,,,..,,..,..,,...,...,...,.,,,..,,..,,..,,
+#MFBJ5O5TWRYH7EP7OA7XAKZY234OVOOVPPVO4TERNBYZ6KOZVATRFCRCYTCQZMBUMUK7JFC2FD6TE
+#\\\|PVZN6AOV6NFA6BQBCWCAAZNKUYIN5KIKOVAG2LVVNJ7CVLGO63B \ / AMOS7 \ YOURUM ::
+#\[7]VTOZYVN34TCIS5OASTVYO6UUASQTMZI4MBV6ZTUTLW3BRTN3DWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

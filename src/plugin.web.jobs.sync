@@ -73,6 +73,29 @@ if ( ref $payload->{'jobs'} eq qw| ARRAY | ) {
     @job_list = ($payload);
 }
 
+## explicit batch role : a batch flagged 'marks' may ONLY touch the        ##
+## exported_stage \ exported_at record pair + prefs -- whatever else it    ##
+## carries is ignored, logged once per batch [ 2026-10-24 incident : a     ##
+## stale jobsite pushed full job state + removal signals into a web it did ##
+## not own, clobbering stages and dropping cache entries ]                 ##
+my $is_marks_batch = FALSE;
+if ( $is_batch and ( $payload->{'role'} // '' ) eq qw| marks | ) {
+    $is_marks_batch = TRUE;
+    my $extra_fields = grep {
+        ref $ARG eq qw| HASH |
+            && grep {
+                   $_ ne 'id'
+                && $_ ne 'exported_stage'
+                && $_ ne 'exported_at'
+            }
+            keys %{$ARG}
+    } @job_list;
+    <[base.logs]>->(
+        1, '[web.jobs.sync] marks batch : ignoring %d non-mark field%s',
+        $extra_fields, <[base.cnt_s]>->($extra_fields)
+    ) if $extra_fields;
+}
+
 ## jobsite pushes its client prefs so every connected host converges on the ##
 ## newest value ; only last_export_at for now [ QLK ] -- the rest of the    ##
 ## prefs fan-out belongs to 3MK. max-merge into the web-side relay copy,    ##
@@ -126,13 +149,23 @@ for my $job_data (@job_list) {
     next if not length $job_id;
     my $enc_id = $job_id;
 
+    ## marks batch : never plant a record this web does not already hold :  ##
+    ## a marks url owns no job state here, it may only update marks on jobs ##
+    ## that exist [ skips the pending-delete and terminal-state removal     ##
+    ## paths below as well, via the shared guards ]                         ##
+    next if $is_marks_batch and ref $mem->{$job_id} ne qw| HASH |;
+
+    ## set when the export-mark merge below actually lands, so a marks ##
+    ## batch only rewrites the record it really changed                ##
+    my $mark_merged = FALSE;
+
     ## load cached record from memory or start fresh ##
     my $cached
         = ref $mem->{$job_id} eq qw| HASH | ? { %{ $mem->{$job_id} } } : {};
 
     ## skip jobs the browser already asked to delete but jobsite has not ##
     ## yet processed; remove any resurrected on-disk copy as well        ##
-    if ( $is_batch and $pending_delete{$job_id} ) {
+    if ( $is_batch and not $is_marks_batch and $pending_delete{$job_id} ) {
         my $old_status = <plugin.web.jobs.index>->{$job_id} // '';
         my $old_path   = '';
         if ( $old_status =~ m{^(blocked|deleted):(.+)$} ) {
@@ -152,7 +185,8 @@ for my $job_data (@job_list) {
     ## jobsite batch push signalling a transition into a terminal state :  ##
     ## minimal payload [ id + status only ], prune the cache entry instead ##
     ## of caching a stale record that would otherwise never get corrected  ##
-    if ( $is_batch
+    if (    $is_batch
+        and not $is_marks_batch
         and ( $job_data->{'status'} // '' ) =~ m{^(blocked|deleted|trash)$} )
     {
         my $old_status = <plugin.web.jobs.index>->{$job_id} // '';
@@ -185,33 +219,38 @@ for my $job_data (@job_list) {
         ## on every cycle and would treat every job as permanently stale ]  ##
         my $jobsite_stale = $pending_stage_change{$job_id} ? TRUE : FALSE;
 
-        ## jobsite push : update pipeline fields, keep browser fields ##
-        for my $f (@pipeline_fields) {
-            next if $jobsite_stale and ( $f eq 'stage' or $f eq 'status' );
-            $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
+        if ( not $is_marks_batch ) {
+            ## jobsite push : update pipeline fields, keep browser fields ##
+            for my $f (@pipeline_fields) {
+                next
+                    if $jobsite_stale and ( $f eq 'stage' or $f eq 'status' );
+                $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
+            }
+
+            ## jobsite only guarantees 'status'; derive UI 'stage' from ##
+            ## status (preserve browser/user-owned stages: applied,     ##
+            ## rejected, etc.)                                          ##
+            my $status          = $cached->{'status'} // '';
+            my %status_to_stage = (
+                'assessed' => 'review',     ## legacy assessed → review tab ##
+                'apply'    => 'to_apply',
+            );
+            my %user_owned_stage
+                = map { $ARG => 1 }
+                qw| to_apply applied interviewed responded rejected skipped archived delete |;
+            my $derived = $status_to_stage{$status} // $status;
+            if ( not $user_owned_stage{ $cached->{'stage'} // '' } ) {
+                $cached->{'stage'} = $derived;
+            }
         }
 
-        ## force cache.write below to stamp a fresh local time : jobsite ##
-        ## only forwards jobs it considers changed, so every batch entry ##
-        ## here is a real update -- carrying over a stale cached value   ##
-        ## would re-trigger the same watermark race last_modified was    ##
-        ## dropped from @pipeline_fields to avoid                        ##
+        ## force cache.write below to stamp a fresh local time : jobsite  ##
+        ## only forwards jobs it considers changed, so every batch entry  ##
+        ## here is a real update -- carrying over a stale cached value    ##
+        ## would re-trigger the same watermark race last_modified was     ##
+        ## dropped from @pipeline_fields to avoid ; the same applies to a ##
+        ## marks-batch mark merge so browser deltas pick the mark up      ##
         delete $cached->{'last_modified'};
-
-        ## jobsite only guarantees 'status'; derive UI 'stage' from status ##
-        ## (preserve browser/user-owned stages: applied, rejected, etc.)   ##
-        my $status          = $cached->{'status'} // '';
-        my %status_to_stage = (
-            'assessed' => 'review',     ## legacy assessed → review tab  ##
-            'apply'    => 'to_apply',
-        );
-        my %user_owned_stage
-            = map { $ARG => 1 }
-            qw| to_apply applied interviewed responded rejected skipped archived delete |;
-        my $derived = $status_to_stage{$status} // $status;
-        if ( not $user_owned_stage{ $cached->{'stage'} // '' } ) {
-            $cached->{'stage'} = $derived;
-        }
 
         ## export marks ride the batch as ordinary job keys once a jobsite  ##
         ## has learned them [ reverse entry or local mark-exported ] :      ##
@@ -234,6 +273,7 @@ for my $job_data (@job_list) {
                 or ( not length( $cur_at // '' ) and not $inc_time ) ) {
                 $cached->{'exported_stage'} = $job_data->{'exported_stage'};
                 $cached->{'exported_at'}    = $inc_time;
+                $mark_merged                = TRUE;
                 <[plugin.web.jobs.reverse.queue]>->(
                     {   'id'             => $job_id,
                         'exported_stage' => $job_data->{'exported_stage'},
@@ -351,8 +391,10 @@ for my $job_data (@job_list) {
         }
     }
 
-    ## delete already removed the on-disk record; do not recreate it ##
-    if (not( exists $job_data->{'action'}
+    ## delete already removed the on-disk record; do not recreate it ; a ##
+    ## marks batch only rewrites a record whose mark actually merged     ##
+    if (( not $is_marks_batch or $mark_merged )
+        and not( exists $job_data->{'action'}
             and $job_data->{'action'} eq 'delete' )
     ) {
         my $wrote = <[plugin.web.jobs.cache.write]>->( $job_id, $cached );
@@ -417,8 +459,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,,,...,.,.,,.,,,..,.,.,,..,,,,,.,,,,,,,.,,,..,,...,...,,..,,,,,.,.,,..,...,
-#LKGUO7JNPNCXXOFPVEAV7JJGS6XHNNX6WTNVRI6NYME7AI5KNHWWYKM2BGFE72UKNVIHU2B7MDKRC
-#\\\|SUVP7XPICO4PMUNLM3YMBYQYC2UXKXNTV6ELVMRT4JN6CKLR3OT \ / AMOS7 \ YOURUM ::
-#\[7]G7OS6RY5ZYUXFQOX3EXHKX3GSNTGMVQFE6YCQPMKBWOWYUQYVKBI 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,.,.,.,,,.,...,,,.,,.,,,.,,.,,,..,,...,...,,..,,..,,.,,.,,,,.,,
+#3IEFM6MMHLXYJEYOBPJAT7E2KRAYSTBX5TZA7O6DVS37PHJPTNCUUNUUME35XGSVGRCTDG4WU66Z2
+#\\\|ZERLQXJGZIN7BWSA3PPNS6TEVSSQP2AUCNDE7CVGITPJIAKRRWI \ / AMOS7 \ YOURUM ::
+#\[7]ZQX2KPMX7GIXGSLLKZJUF7RX7QIMC26TYT5SKJL2EIAIBMKV7EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
