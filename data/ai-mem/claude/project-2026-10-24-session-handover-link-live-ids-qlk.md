@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-24-session-handover-link-live-ids-qlk
-description: START HERE -- session 2026-10-23/24 handover : link pri live over ssh-w, job ids encoded once [ vax-int guesses removed ], jobsite.delete, QLK marks reach pri's web but a foreign jobsite clobbered pri's web cache -> local jobsite + httpd STOPPED until sync_url_roles [ kimi af4bd962 ]
+description: START HERE -- session 2026-10-23/24 handover : link pri live over ssh-w, job ids encoded once, QLK closed [ marks role + receiver-side foreign = marks-only ], distributed assessment live [ task zenki list, assess_parallel 2, local gpu 47 t/s claims pri's tasks, :no_tools: guard ]
 metadata:
   type: project
 ---
@@ -27,7 +27,24 @@ budget at the end : claude 7d ~75 %, kimi 7d ~66 %.
 - 59e625ae2 + fbcf554f9 + 00ec9a53d jobsite sync to https urls through
   clients.https [ static calls ; modules.load continuation ]
 
-## live state
+- 914a58249 + 161294d2b sync url roles + the receiver decides [ a
+  foreign peer's batch is marks-only ] -- QLK CLOSED, pri's export table ok
+- c40bc28c0 models task zenki list, jobsite assess_parallel, cpu server
+  nice 11, negative cpu threads ; b7b0f476e foreign tasks only with
+  ':no_tools:' as first line ; 34811df51 startup scan of local queues
+  [ orphaned local tasks claimed ], no valued.resolve on empty node
+
+## live state [ end of session ]
+
+- local httpd + jobsite RUN again [ pri's url role marks ] ; local models
+  task_zenka = 'task external.pri.task' ; pri jobsite assess_parallel = 2
+  [ backup host.cfg.bak-before-assess-parallel ]
+- open live check : the next pri assessments -- the 2nd slot should go to
+  the local gpu [ 47 t/s vs pri cpu ~3 ]
+- todo coding seed-retry : a failed cat self-test leaves pri's cpu at
+  restart_needed, jobs wait in 'depending' -- a coding restart frees it
+
+## live state [ earlier in the session ]
 
 - local : /etc/protocol-7/host-edit records group protocol-7 ; record
   hosts/pri.json [ role link, ssh-w, af 4, link_user task-worker ] ;
@@ -45,10 +62,9 @@ budget at the end : claude 7d ~75 %, kimi 7d ~66 %.
 
 ## open, in order
 
-1. kimi af4bd962-e607-493b-b80e-24d4ee04b310 : jobsite.cfg.sync_url_roles
-   [ owner | marks ] -- review, sign, deploy, then set pri's url to role
-   marks in local host.cfg [ sudo : the file is protocol-7's ], restart
-   local httpd + jobsite, check pri's report view, close QLK
+1. DONE : sync_url_roles + receiver rule, QLK closed. next : yourum as
+   3rd worker [ same model fits : 6.6 GB of 10 free ; model file, coding
+   + models, link to pri, assess_parallel 3 ], the coding seed-retry bug
 2. todos added : assess_parallel [ ZYH needs >1 task in flight ],
    progress overcount after deletes, address family memory [ DoS-safe ],
    web-auth-gate harness broken on HEAD
@@ -67,8 +83,8 @@ budget at the end : claude 7d ~75 %, kimi 7d ~66 %.
   the fallback branch [ revoked + re-minted ]
 - see [[feedback-whitelist-static-calls-and-v7-rewrap]]
 
-#,,,.,.,,,,.,,,,.,..,,.,,,..,,..,,,..,,,.,.,.,..,,...,...,...,,,.,,,.,,,.,,,,,
-#EXQYA7TD6R4QA3VOJLAYZGY5B5MDNVSNPABTK6FKTAWJKIRHYW4HY5GR37LHR5S5E2D6UTM7GXPAI
-#\\\|2DHXWN7ZI4WMCP5JG53NSLNR7AYHQZ53QELIGYJVYUVZNTYIVYT \ / AMOS7 \ YOURUM ::
-#\[7]IVKB3CT4EJGDHFSB6NZQATYKGAWLZ6F3APQJLFH7HJIIYBGMFQAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,,,,,...,.,,,,,,,,..,.,.,,,.,..,,...,..,,..,,.,.,,.,,.,,,.,.,
+#NBVAJ3F5CZT3JVGP6IPW6M7M3NB34OMNKPWNZZI7GLGLFICZJQ7KP6EBDI7T5OFTUZHYFHANSGXPI
+#\\\|LQGMXWGXLSO2YQ5W25VTL7S4Q3LSL5V7YWYN2C6Z4U6ILEX43PW \ / AMOS7 \ YOURUM ::
+#\[7]X6GGO2HQHTA5CJAECTF7ZM3LK6W4DWZV7MHFQPHO6S3HIEWRSCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

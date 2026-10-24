@@ -22,22 +22,20 @@ my $entry  = { 'job_id' => $id, 'desc' => $prompt, 'gen' => $gen };
 <jobsite.assess_queue> //= [];
 unshift <jobsite.assess_queue>->@*, $entry;    ## front of queue ##
 
-## dispatch now only if nothing else is in flight -- an in-flight chain's   ##
-## own assess-done -> dispatch.next will pick up this entry otherwise, same ##
-## contract as dispatch.assessments/apply_reverse's original reassess       ##
-## dispatch                                                                 ##
-my $was_idle = ( <jobsite.cycle> // 'idle' ) ne 'assessing';
+## dispatch.next fills up to jobsite.cfg.assess_parallel slots and does     ##
+## nothing when they are full -- calling it while a chain runs no longer    ##
+## starts a second chain, it uses a free slot                               ##
+## [ the old idle-only guard kept a reassess waiting behind a running job ] ##
 <jobsite.cycle> = 'assessing';
-<[jobsite.dispatch.next]>
-    if $was_idle;
+<[jobsite.dispatch.next]>;
 
 <[base.logs]>->(
     1,   '[job:%s] reassess resumed after refetch [ gen %d ]',
     $id, $gen
 );
 
-#,,,.,,,.,,,,,,..,,.,,,.,,.,.,..,,..,,...,,,.,..,,...,..,,,.,,,,.,,,,,,,,,..,,
-#3UQQENECWD2SUUB6EQMHIMEC2RO4G32TNHS7RUOHKSRN7FUAPLWQ4OCXVV6SWV7FCXB7ZBNZHFYXO
-#\\\|AYQHBJAHIMLK76LRHROUOBNOBSJC4B4DRVJ6NHDNAYUW2FLHJIO \ / AMOS7 \ YOURUM ::
-#\[7]MKUHUOC3QRSEK5MYP3UK3EVPTLVP6EFHGJSXRFLFAL7KBA4PAWDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,,,,,,.,,,,.,...,,.,,,,,,,,.,..,,...,...,..,,.,.,.,,,.,.,,,,,
+#AO7A6MF24A6OZVO6K67Q4QNELPMHF755HRBDHRSHTQYHIAWRTXGIC5WC35AHCEUYLK56OPT4FLY62
+#\\\|V63XFXKOTUJMQ2E3MLUIOY437NUFK7SZK65GIRODHGBR7O3GKO3 \ / AMOS7 \ YOURUM ::
+#\[7]M5VXB5G4QWISSNPD6T3KBJ6E5T5AAKZLK2MTZANUZ2IKIPTKE2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
