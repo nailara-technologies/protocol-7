@@ -53,8 +53,8 @@ v7-zenki.cfg.install_workflow_shortcuts = yes   # [yes|no] p7.<shorthand> links
 #v7-zenki.cfg.auto_install_deps  =  yes    ## wait for + install declared deps
 v7-zenki.cfg.sys_deps.retry_after = 3600   ## secs before a 'failed' zenka
                                            ## re-probes + re-installs
-## an install that never answers counts as failed after this [ secs ] :  ##
-## the zenka then starts without, degraded                               ##
+## an install that never answers counts as failed after this [ secs ] : the ##
+## zenka then starts without, degraded                                      ##
 #v7-zenki.cfg.sys_deps.install_timeout = 1800
 ## never gated : the install path itself [ routing, logging, installers ] ##
 #v7-zenki.cfg.sys_deps.exempt = cube p7-log debian os-pkg
@@ -73,9 +73,10 @@ v7-zenki.cfg.zenka_stdout_redir = yes # ::enabled::
 [base.host.detect]
 [load_config_file_if_present:'cfg-dir:host-config/host.detected']
 
-## per-host overrides [ /etc/protocol-7/host-config/v7-zenki.cfg, optional ] : ##
-## e.g. 'load.start_setup = remote-server-lowram' -- the start profile    ##
-## without a local-modifications commit                                    ##
+## per-host overrides                                                       ##
+## [ /etc/protocol-7/host-config/v7-zenki.cfg, optional ] : e.g.            ##
+## 'load.start_setup = remote-server-lowram' -- the start profile without a ##
+## local-modifications commit                                               ##
 [load_host_config]
 
 [root.check_system_user:<system.amos-zenka-user>]
@@ -85,16 +86,16 @@ v7-zenki.cfg.zenka_stdout_redir = yes # ::enabled::
 
 [init-done] ## declare initialization completed ##
 
-## host-root delegates cube's S [ <backend key dir>/<S>.dlg ] now and ##
-## daily -- after init, never from init_code [ HOST-ROOT-DELEGATION ] ##
+## host-root delegates cube's S [ <backend key dir>/<S>.dlg ] now and daily ##
+## -- after init, never from init_code [ HOST-ROOT-DELEGATION ]             ##
 [v7-zenki.delegation.startup]
 
 [v7-zenki.call_cmd:<system.args>]
 
 [zenka.loop]
 
-#,,..,..,,..,,.,.,..,,,,.,,,,,,,,,,,,,..,,.,,,..,,...,...,..,,,,,,...,,,.,..,,
-#4V7F4T3D4NVRGYH7KESO6TIJZTX7UMPGKYTQR52DWE7MMDMBHAO7O3E4AFVS4OWVXEECKVLYCV2UW
-#\\\|INFEOQLMHO3TXEFANUDBG4UVOOOGWETBD57O7CDAKKA2WNARK4N \ / AMOS7 \ YOURUM ::
-#\[7]HAZ3GUEV7RGGMTNWFLNZYT5LGIWBJH56XOHA6YKQYINAZFINBCCA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,.,.,,.,,.,,,,,.,,.,,,.,,...,..,,...,...,.,,,.,.,.,,,,,.,...,
+#KFCF6D2BJHAOYEEXSTJWET4PBRJQSTCDN2Y2SQRTJOZRHS7JTLA4HVI4S6XQSPFZSAGB3ZVJSK2JS
+#\\\|GXORZ33MB74ZPW6SPIFD5XJKLGHFHTICIVCO22T2OZ3UQQRKXRH \ / AMOS7 \ YOURUM ::
+#\[7]YSHVBF64P7OKJ2JEED3ZI6RML6UPQMTFTDD6OBUHCFW7STVMQICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,25 +4,25 @@
 [load_config_file:'shared-params']
 
 ## dns server configuration
-## public, one dual-stack socket [ v4 through v4-mapped addresses ] ; a ##
-## host without ipv6 falls back to 0.0.0.0 by itself [ like httpd ].     ##
-## authoritative only [ REFUSED outside its zones -- no open resolver ]. ##
-## a desktop where systemd-resolved holds :53 sets                       ##
-## 'nameserv.bind.addr = 127.0.0.1' in /etc/protocol-7/host-config/nameserv.cfg ##
+## public, one dual-stack socket [ v4 through v4-mapped addresses ] ; a     ##
+## host without ipv6 falls back to 0.0.0.0 by itself [ like httpd ].        ##
+## authoritative only [ REFUSED outside its zones -- no open resolver ].  a ##
+## desktop where systemd-resolved holds :53 sets  'nameserv.bind.addr =     ##
+## 127.0.0.1' in /etc/protocol-7/host-config/nameserv.cfg                   ##
 nameserv.bind.addr = 0:0:0:0:0:0:0:0
 nameserv.bind.port = 53
 nameserv.zone_dir  = '/var/protocol-7/nameserv/zones'
 
-## dns over tcp [ rfc 7766 ] : connections beyond the limit are closed ##
-## at once, idle ones after the timeout [ seconds, reset per query ]    ##
+## dns over tcp [ rfc 7766 ] : connections beyond the limit are closed at ##
+## once, idle ones after the timeout [ seconds, reset per query ]         ##
 # nameserv.cfg.tcp.max_connections = 77
 # nameserv.cfg.tcp.idle_timeout    = 13
 
-## forwarding dns cache [ loopback clients only -- never an open        ##
-## resolver ] : an authoritative REFUSED + rd + loopback client is     ##
-## answered from the cache, a miss is forwarded [ rd = 1 ] to the      ##
-## upstreams below ; without them the resolv.conf nameservers are      ##
-## used, loopback addresses excluded -- the cache never asks itself    ##
+## forwarding dns cache [ loopback clients only -- never an open resolver ] ##
+## : an authoritative REFUSED + rd + loopback client is answered from the   ##
+## cache, a miss is forwarded [ rd = 1 ] to the upstreams below ; without   ##
+## them the resolv.conf nameservers are used, loopback addresses excluded   ##
+## -- the cache never asks itself                                           ##
 # nameserv.cfg.cache.enabled          = no
 # nameserv.cfg.cache.max_ttl          = 86400
 # nameserv.cfg.cache.max_negative_ttl = 900
@@ -67,15 +67,15 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml \
 ## register with cube (required for command routing)
 [get_session_id]
 
-## the sync key, as the backend user [ created once, never regenerated ] ##
-## -- after the cube session : a new key asks v7-zenki for its delegation ##
+## the sync key, as the backend user [ created once, never regenerated ] -- ##
+## after the cube session : a new key asks v7-zenki for its delegation      ##
 [nameserv.sync.key.ensure]
 
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,,.,..,,.,,,,,,,,,,,,..,,,,,.,,,...,...,...,..,,...,...,..,,,,,,,..,...,,,,,
-#ZOOCLEO2F3Z2E7XKDZYUYXCDCXJD4J3VZBRQHZKEHVMUVMCANBMS4RTBIKJZHHZNTXYQTYDGV5SL4
-#\\\|UTB34Y73UODSQT2QQO6D2QAAQOADONDK7F5UXIKXARM3LYD3WMZ \ / AMOS7 \ YOURUM ::
-#\[7]PEFHVR7I2YNQY35CCR3B76NWYZV5VJKYLEDJG7SE7W56E5TUFQDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,.,,,,,,,.,.,,,.,,,.,...,...,..,,...,...,,..,.,.,..,,,..,..,,
+#PI35Q22F5T2UWEOTL6AMTTICSEDIQO7ANPHIXA5EFOL44UXMFIA7I3JL6AQD5MJPWITPNPXOMKDKQ
+#\\\|WWN5WFQXLEURCKCBCY4R7ZYYRYXSYHY6KXRLQMVRYRFQFURO3VQ \ / AMOS7 \ YOURUM ::
+#\[7]FXJOTIITW2K4L7ZJFAPF5L5IH5Q7LPXMBKRDEYVOMI6F64YYSGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

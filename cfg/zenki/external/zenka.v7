@@ -22,10 +22,10 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
                          *.task.complete *.task.fail *.task.queue \
                          *.task.next *.task.subscribe
 
-## *.site-yaml.* : jobsite fetching through another host's site-yaml   ##
-## [ jobsite.cfg.fetch_zenka = external.<link>.site-yaml ] -- cube still ##
-## checks every caller [ access.cmd.usr.jobsite ], the remote cube the   ##
-## link identity [ access.cmd.usr.remote-fetch ]                         ##
+## *.site-yaml.* : jobsite fetching through another host's site-yaml        ##
+## [ jobsite.cfg.fetch_zenka = external.<link>.site-yaml ] -- cube still    ##
+## checks every caller [ access.cmd.usr.jobsite ], the remote cube the link ##
+## identity [ access.cmd.usr.remote-fetch ]                                 ##
 
 ## named encrypted links [ external.connect <name> <host[:port]> ] :
 ## the auth-keypair label this host authenticates as - the remote cube
@@ -33,8 +33,8 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
 ## [ unset : connect needs an explicit <as-username> ]
 # external.cfg.link_user = <label>
 
-## *.task.* : a remote task worker's claims through a managed link [ the ##
-## task-worker grant on the REMOTE cube decides what really runs ]     ##
+## *.task.* : a remote task worker's claims through a managed link       ##
+## [ the task-worker grant on the REMOTE cube decides what really runs ] ##
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -44,16 +44,16 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
 [base.net.connect:'unix']
 [base.get_session_id]
 
-## managed links [ stage 1 of LINK-ZENKI-AND-TRANSPORTS.md ] : host     ##
-## records with role 'link' open here and stay supervised [ heartbeat  ##
-## + backoff ] -- AFTER the privilege drop : forks ssh children, reads ##
-## pins under the zenka user's ~/.n                                     ##
+## managed links [ stage 1 of LINK-ZENKI-AND-TRANSPORTS.md ] : host records ##
+## with role 'link' open here and stay supervised [ heartbeat + backoff ]   ##
+## -- AFTER the privilege drop : forks ssh children, reads pins under the   ##
+## zenka user's ~/.n                                                        ##
 [link.supervisor.start]
 
 [zenka.loop]
 
-#,,,,,,..,...,..,,..,,,,,,,,.,,,.,.,.,...,,..,..,,...,..,,,..,,..,.,.,,,.,,.,,
-#XNF3HUQ7AJD7QO5PCTL5ONHXESSCFV4S5XIK6CLDTNYB6ZQE5ZFRGVYV2VHDQCPT7QGBFPDFIFGUI
-#\\\|P5N3C6NQ27UKO6WE3TYNKLIP7GX2MMVN4X3ULHLHJLAAXNSY3AF \ / AMOS7 \ YOURUM ::
-#\[7]ZSPCDND4PYENRCEVHM3L4YOMWF5O6WPBBECGVTPWNACQ73V7JIBY 7  DATA SIGNATURE ::
+#,,.,,..,,...,..,,,,.,,,,,.,,,.,.,,.,,,,.,...,..,,...,...,..,,..,,.,.,,..,...,
+#TCJHZUSOPB4D6LYGKDPWTHLVVI37JBATT4HK7ULU4YJTVXKCOLU44NHUQ7G75EFZVPF67DLILCHPU
+#\\\|DZ6HJ7BWCEN3MO5FPAKEPNSWU6F7BT4LHCC4ORVZ5XOWSF4DBY7 \ / AMOS7 \ YOURUM ::
+#\[7]JGDBUDULTM7BYRCLZQ3FDSW4VOCGLIMLPB2OGCGO7YLGSSMMRKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

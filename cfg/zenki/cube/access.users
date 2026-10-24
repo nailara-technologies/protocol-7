@@ -2,9 +2,9 @@
    .:[ cube command access permissions set-up ]:.
 
     ## << developer account permissions >> ## matches <system.admin-user>
-    ## web.auth-issue \ -revoke [ web session tokens ] and                  ##
-    ## jobsite.repair-encoding [ rewrites the job stock ] are listed :      ##
-    ## admin-only, kept even when the ** wildcards above get disabled       ##
+    ## web.auth-issue \ -revoke [ web session tokens ] and             ##
+    ## jobsite.repair-encoding [ rewrites the job stock ] are listed : ##
+    ## admin-only, kept even when the ** wildcards above get disabled  ##
     access.cmd.usr.<admin-user>  =   ** ..*.** web.auth-issue web.auth-revoke \
                                      jobsite.repair-encoding
     access.cmd.usr.<unix-admin>  =   ** ..*.** web.auth-issue web.auth-revoke \
@@ -20,36 +20,36 @@
     access.cmd.usr.notify-warn   =   notify.warn
 
     ## remote auth-keypair peer identities [ narrow, per-identity grants -- ##
-    ## a peer's blast radius is exactly the commands listed here, never     ##
-    ## the admin's ** ..*.** wildcard above ] ##
+    ## a peer's blast radius is exactly the commands listed here, never the ##
+    ## admin's ** ..*.** wildcard above ]                                   ##
     access.cmd.usr.test-auth-keypair = users.remote-get link-upgrade list \
                                        osf-cache.has osf-cache.merkle \
                                        osf-cache.segment
 
-    ## a jobsite on another host fetching through this host's site-yaml   ##
-    ## [ jobsite.cfg.fetch_zenka = external.<link>.site-yaml ] : inert     ##
-    ## unless this cube authorizes a key under the label 'remote-fetch'    ##
-    ## [ ~/.n/remote-keys/authorized/cube/remote-fetch.public ]            ##
+    ## a jobsite on another host fetching through this host's site-yaml ##
+    ## [ jobsite.cfg.fetch_zenka = external.<link>.site-yaml ] : inert  ##
+    ## unless this cube authorizes a key under the label 'remote-fetch' ##
+    ## [ ~/.n/remote-keys/authorized/cube/remote-fetch.public ]         ##
     access.cmd.usr.remote-fetch = link-upgrade site-yaml.import \
                                   site-yaml.import-url \
                                   site-yaml.queue-depth \
                                   site-yaml.subscribe-fetched \
                                   site-yaml.outbox-confirm
 
-    ## a remote node's task worker claiming tasks through this host [    ##
-    ## the ZYH worker link ] : inert unless a key is authorized under the  ##
-    ## label 'task-worker' [ ~/.n/remote-keys/authorized/cube/            ##
-    ## task-worker.public ]                                                ##
+    ## a remote node's task worker claiming tasks through this host         ##
+    ## [ the ZYH worker link ] : inert unless a key is authorized under the ##
+    ## label 'task-worker'                                                  ##
+    ## [ ~/.n/remote-keys/authorized/cube/task-worker.public ]              ##
     access.cmd.usr.task-worker = link-upgrade task.claim task.start \
                                  task.show task.complete task.fail \
                                  task.queue task.next task.subscribe
 
-    ## one host's link grant [ a label per host, named after it ] : in the ##
-    ## receiving host's /etc/protocol-7/host-config/cube.cfg, never here  ##
-    ## -- authorize-link keeps ONE key per label [ a re-run replaces it ] ##
+    ## one host's link grant [ a label per host, named after it ] : in the  ##
+    ## receiving host's /etc/protocol-7/host-config/cube.cfg, never here -- ##
+    ## authorize-link keeps ONE key per label [ a re-run replaces it ]      ##
 
-#,,,.,...,.,,,,.,,,..,...,.,.,...,...,.,.,.,.,..,,...,...,,,.,.,.,,,.,.,.,,..,
-#ONK37CDYQ6KVWCOKYKEMAG3RIKM576LKOL4ZYN63L3V6BYLHQQOBUYO2O3FAPQXWS2QIWMXHTO7EE
-#\\\|3A3YEEWL7NPCGC3FMGV5PXVZ5DKJTPTGEZY2BRGUQ4PFZO5N6AG \ / AMOS7 \ YOURUM ::
-#\[7]EXXFIXFXLAU5XNS7UOCDJ6IL5FC6GMBBW5QRR6FXUWFTF7DIG4CA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,,..,.,,,...,,.,,,,.,,.,,,.,,..,,...,...,.,,,,,,,,,.,.,.,,,.,
+#YYSBHYTMKFJWFBCDRWXO66VXA4Y6JQBAJQFV4MQPGXN6WEHL6KBMPGR2PU5FFR3W56AKKE5US7FS4
+#\\\|S5DEG2JCVHW273VI4Q2BKFQRLEVIYDXJYXZNIU37CA3NVYB76NY \ / AMOS7 \ YOURUM ::
+#\[7]G7EJB3MMROOFD743HXOR3PFGG6WOUNXF5TCMZRFA7DUHSMUQ6MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,8 +8,8 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       name cur-pid hostname report-X-11-error \
                       abort-reboot reenable-reboot
 
-## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
-## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## devmod commands : only reachable while devmod is loaded on THIS zenka ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
 access.devcmd.usr.cube = devmod:*
 
 system.cleanup_on_startup = 1  # [ .., perform cleanup tasks from list in ]
@@ -46,22 +46,22 @@ mem.oom_terminate_backstop = 8 # [sec.] escalation only : how long to wait
                                #   exceed v7-zenki.timeout.kill_list [ 2s
                                #   default ], terminate's own internal grace
 
-## custom process rules example [ also matches zenki named <servername>.httpd ]
+## custom process rules example
+## [ also matches zenki named <servername>.httpd ]
 #process.limits.httpd.max_mem = 4.7 # [%]
 #process.limits.httpd.seconds = 37  # [s] duration of condition
 #process.limits.httpd.action  = kill
 ##
 
 ## [ per-host overlay : /etc/protocol-7/host-config/system.cfg, optional ] ##
-## see base.load_host_config : host-level keys like                  ##
-## process.limits.<name>.* belong THERE [ by role, not hostname ],  ##
-## not into a local edit of this file. the name matches the process ##
-## fname \/* the first cmndline token [ /proc comm is 15 chars --   ##
-## 'llama-server' fits ]. max_mem is PERCENT OF TOTAL RAM [ rss ],  ##
-## seconds is the condition duration before action.                ##
-## example : bound a runaway cpu inference server on a ram-tight     ##
-## host [ 23 GB total, 14 G cgroup cap -> ~61 %, backstop set just  ##
-## above so the two layers do not fight ] :                          ##
+## see base.load_host_config : host-level keys like                         ##
+## process.limits.<name>.* belong THERE [ by role, not hostname ], not into ##
+## a local edit of this file. the name matches the process fname \/* the    ##
+## first cmndline token [ /proc comm is 15 chars -- 'llama-server' fits ].  ##
+## max_mem is PERCENT OF TOTAL RAM [ rss ], seconds is the condition        ##
+## duration before action.  example : bound a runaway cpu inference server  ##
+## on a ram-tight host [ 23 GB total, 14 G cgroup cap -> ~61 %, backstop    ##
+## set just above so the two layers do not fight ] :                        ##
 #process.limits.llama-server.max_mem = 65  # [% of total ram]
 #process.limits.llama-server.seconds = 13
 #process.limits.llama-server.action  = kill
@@ -88,8 +88,8 @@ modules.load = auth.client net protocol io.unix ui system
 
 [zenka.loop]
 
-#,,..,,,,,,,,,...,,.,,.,,,,.,,,.,,,,,,,.,,,..,..,,...,..,,.,,,...,,,,,...,..,,
-#4L4QU5WM2DOYYPZB7HPUBSZVGYMY74RYZTR74BESONC2UX7AEM4UYYXPRT26FR4QQKVM23ZSTYYSI
-#\\\|E4LVYFYE3K5SSARRAE6MOZI4OCV5OZQ2CE7MKZ5JVNEW6SP7YMB \ / AMOS7 \ YOURUM ::
-#\[7]NWFLL5NQGHO5LHFED7Q5SFN4RQTXJWCR6OCEL7SONYY3ZZZJGGAQ 7  DATA SIGNATURE ::
+#,,..,...,...,...,,,,,,,.,.,,,..,,,,.,,,.,..,,..,,...,...,...,..,,,..,,.,,,,,,
+#VGLPLEVGSTHDTIE3N64757K47TJAGGJAZVZ2HQKQPH2D3EXFOK7TG2QUUZFJJ5LQGXG27VCMX3YOQ
+#\\\|IE7HMJVVMIGMKNCQ4ZBQ3LNHYK7D5MPP7KL7PFLOTZJ2YCTYQLE \ / AMOS7 \ YOURUM ::
+#\[7]VVS7UVNUCBDB3IO3SBSRYU4A3BFHLRGUMKMHS6K5NVFT5JJOOOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

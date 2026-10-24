@@ -11,9 +11,9 @@ access.cmd.usr.parent = commands reload show-buffer show-access verbosity \
                         loaded-configs update_current update_forecast \
                         get-station-id request-data
 
-## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
-## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
-## exact names only : system.access.wildcards.allow = 0 strips 'devmod:*' ##
+## devmod commands : only reachable while devmod is loaded on THIS zenka   ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant. exact ##
+## names only : system.access.wildcards.allow = 0 strips 'devmod:*'        ##
 access.devcmd.usr.parent = get dump echo
 
 acc_str.prefixed = [base.parser.prefix_str:'child.',<access.cmd.usr.parent>]
@@ -27,9 +27,9 @@ access.cmd.usr.cube = commands heart verify-instance reload name \
                       location temp desc clouds humid wind present \
                       <acc_str.prefixed> ## <-- include cube to child list
 
-## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
-## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
-## exact names only : system.access.wildcards.allow = 0 strips 'devmod:*' ##
+## devmod commands : only reachable while devmod is loaded on THIS zenka   ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant. exact ##
+## names only : system.access.wildcards.allow = 0 strips 'devmod:*'        ##
 access.devcmd.usr.cube = get dump <acc_str.devcmd_prefixed>
 
                       # reload command currently disabled
@@ -60,7 +60,8 @@ weather.tile_scale = 1   # autoscale to weather tile size in tile-groups set up
 
 weather.current_cond_delay = 15 # display 'current' page longer [ 3 tile setup ]
 
-## tile setup html snipplets are ./data/html/templates/weather/content.*.part ##
+## tile setup html snipplets are                ##
+## ./data/html/templates/weather/content.*.part ##
 
 weather.tile.setup.1 = current.city current.conditions current.today \
                        forecast_hours.hours_1 \
@@ -115,8 +116,8 @@ modules.load = auth.client net protocol io.unix io.ip ui weather.base
 
 [zenka.loop]  ## processing \ serving network commands
 
-#,,,,,.,,,.,,,..,,.,.,...,,,,,,.,,,,,,,.,,..,,..,,...,...,,,.,.,,,.,,,,.,,,.,,
-#GLMVKOOXIIV2WKGYZT6FVL7QPZZ26O4MHMPHY2ACVPVGXUBTX5KPGJUMGGHDT2OCHM34MKK4AP57S
-#\\\|6XQSVEZWRLEKDY5JNZTVCFB4LKK5GNOBD3TIDWR42V7JAZZQHLO \ / AMOS7 \ YOURUM ::
-#\[7]KGKGOMVMXDDC74UZFCJ6TE4RZY7RE2LU3DXEXA7YZYA4IUD66EDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,,,,,.,,,,,...,,.,,.,,,,.,,.,.,..,,...,.,.,..,,...,..,,...,...,
+#LHWXVSIVNKD4KVP4BOYIFTB7TNKNBCRJO3ECJ4DKRRUCQLLYPFVJ6EAVOXP5W3QINIFOLPTS5W4MQ
+#\\\|CPYWLY6UNC7EF5DQCSCQA2TQBQGGQEDCPZPZWDTKAGAM272776C \ / AMOS7 \ YOURUM ::
+#\[7]XEE27TVXSGTETWKWCV65AXP45L6KZTICX6EJD3UAICC27JDCKUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

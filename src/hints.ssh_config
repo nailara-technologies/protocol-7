@@ -127,7 +127,7 @@ $parse_file = sub {
                 $spec =~ s|\A~/| ( $ENV{'HOME'} // '' ) . '/' |e;
                 $spec = join( '/', $ENV{'HOME'} // '', qw| .ssh |, $spec )
                     if $spec !~ m{\A/};
-                foreach my $included ( @{ <[base.file.glob]>->($spec) } ) {
+                foreach my $included ( @{ <[file.glob]>->($spec) } ) {
                     $parse_file->( $included, $depth + 1 )
                         if -f $included;
                 }
@@ -268,8 +268,8 @@ foreach my $candidate (@candidates) {
 
 return @candidates;
 
-#,,..,,,,,,,,,.,,,,,,,,.,,...,,.,,,.,,,..,.,,,..,,...,...,,.,,,,.,...,.,.,,.,,
-#6OBUV22FKFBMMSEJQL5JXL2PBH6TDVNXHQN3TDXWL5DGL3NAFLI5GFCPYZRXLKFQ6TORKQO5IA6OK
-#\\\|76J4A4OF72M7BNPJ6TGG3ZKVXPQVUQ7GY6DZI7S6JMXWYC5V2YC \ / AMOS7 \ YOURUM ::
-#\[7]YFY567LIV4DUGJOLMNI3PYGF35RC3I6TPUEGDI6N5XGMKXFD2MDQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,,,.,..,,.,,,,..,,.,,..,,.,.,..,,...,...,,.,,...,,,.,.,,,...,
+#7Z5ZUOZZ7Y3Q2EWYJJHOIEDASFDUQ7LOD2UY6N663MCUZUTFFUIIKP2DFW2WZFAQR7QABCGEFV3DI
+#\\\|L7334ZQJJKTWHPQQY3D2TR7YT77CYVN37DCOU33J5BKGTSHUGBB \ / AMOS7 \ YOURUM ::
+#\[7]G7GN7JQH2AJD4FFWKSPQTE4EA2RRKRJDH6CKFV5VWZRMB63QRSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

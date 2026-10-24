@@ -1,10 +1,11 @@
 
 .:[ usage tracking zenka : account quota and rate-limit values ]:.
 
-## runs as the admin unix user [ same privilege model as the 'powershell' ##
-## zenka ] because the provider credentials it reads at query time live in ##
-## that user's home directory : the parsed numbers are what other zenki    ##
-## get to see, never anything credential-shaped                            ##
+## runs as the admin unix user                                             ##
+## [ same privilege model as the 'powershell' zenka ] because the provider ##
+## credentials it reads at query time live in that user's home directory : ##
+## the parsed numbers are what other zenki get to see, never anything      ##
+## credential-shaped                                                       ##
 
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
@@ -52,19 +53,19 @@ plugins.load = plugin.usage.claude plugin.usage.kimi
 
 [base.get_session_id]
 
-## explicit post-drop callback, same pattern the 'universal' zenka uses    ##
-## for its own after-drop setup [ [universal.startup], called after        ##
-## base.net.connect there too ] -- arms both providers' proactive refresh  ##
-## watchdogs here, genuinely after drop_privs, rather than from inside     ##
-## plugin.usage.kimi/claude.init_code [ which runs during init_modules,    ##
-## before the drop, and whose own timer-arm read the wrong credential      ##
-## directory on a fresh boot as a result -- see usage.startup's own note ] ##
+## explicit post-drop callback, same pattern the 'universal' zenka uses for ##
+## its own after-drop setup [ [universal.startup], called after             ##
+## base.net.connect there too ] -- arms both providers' proactive refresh   ##
+## watchdogs here, genuinely after drop_privs, rather than from inside      ##
+## plugin.usage.kimi/claude.init_code [ which runs during init_modules,     ##
+## before the drop, and whose own timer-arm read the wrong credential       ##
+## directory on a fresh boot as a result -- see usage.startup's own note ]  ##
 [usage.startup]
 
 [zenka.loop]
 
-#,,.,,...,..,,,,,,,,.,...,,..,..,,..,,.,.,...,..,,...,..,,...,,,,,.,,,,.,,,,,,
-#YBOMZSA24UKQRGARKMSXBAZV3F2DVNZEDU45XTYMDCAOHINHY57SYVPBAN4TDEKTLHYFZE2KQN56U
-#\\\|MBGENOIFU2UOAHHDRCNPV5C4MWS3DGQGJI4VEUSP562TESQHJS2 \ / AMOS7 \ YOURUM ::
-#\[7]XAWVEO47QLESUCLXMDWY2AQ6J4544LDLGQNQ7KCWWWHLTGNGW2AQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,,,.,,,.,...,,,,,,,,,,,.,.,.,..,,...,..,,.,,,,,,,...,.,.,,,,,
+#FNOFMXNTSX3OBWJOCJ4ED2ZU3INZWFFYPMMUEMPGOKTQDHJNTXPRHTRZY6IIQ7KF56L57W3TVW7US
+#\\\|C7DTPQVED437LIZXO6YMINUOZUWUMVI74H5Z2MFDLU42ZUG7FAD \ / AMOS7 \ YOURUM ::
+#\[7]W4RF2MAEYAYT4NRSTIFOA5W5AKXI4OCWXTGJKECBTOWZ62VQBCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

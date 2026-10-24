@@ -86,8 +86,8 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
 ##                    utf8-test-buffer utf8-stream-test \ ## <-- resolved =).
 ##                    test-strm test-strm-size            ## <-- resolved =).
 
-## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
-## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## devmod commands : only reachable while devmod is loaded on THIS zenka ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
 access.devcmd.usr.cube = devmod:*
 
 system.zenka.verbosity.buffer  = 1  ##  memory ring buffer verbosity   ##
@@ -100,8 +100,8 @@ crypt.C25519.autocreate-user-key = yes
 coding.cfg.assume_admin_group = yes  ## run with project owner's group      ##
 coding.cfg.allow_chmod_apply  = yes  ## chmod g+w target files during apply ##
 
-## round-based scheduling: each inference round is a discrete jobqueue job  ##
-## enables fair multiplexing across tasks and natural subtask trees         ##
+## round-based scheduling: each inference round is a discrete jobqueue job ##
+## enables fair multiplexing across tasks and natural subtask trees        ##
 coding.async.round_scheduling.enabled = yes    ## set to yes when proven    ##
 
 ## jinja: disable to work around new binary crash on tool calls ##
@@ -146,20 +146,21 @@ coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen
 ## match, logged clearly either way
 coding.jinja.arch_pattern = qwen35
 
-## reasoning effort [low|medium|high] : empty = model default [ no kwarg sent ] ##
-## low prevents runaway <think> spirals; use medium/high for complex tasks      ##
+## reasoning effort [low|medium|high] : empty = model default              ##
+## [ no kwarg sent ] low prevents runaway <think> spirals; use medium/high ##
+## for complex tasks                                                       ##
 coding.inference.reasoning_effort = medium
 # coding.jinja.convert_tool_role = yes ## testing..
 coding.jinja.convert_tool_role = false
 
-## GPU+CPU Dual Inference Configuration ##
-## rebuilt 2026-09-08 [ build 4876, fe215a8cc, 141 commits ahead of the    ##
-## prior 4735/9d07d8681 -- picks up new architecture support (qwen4exp,    ##
-## deepseek-v4, glm-5.2, bailingmoe3) that may fix some newly-downloaded   ##
-## models -- self-test PASS 3/3 confirmed live before promoting. the       ##
-## prior build's binary/libs [ -rebuild-out/ ] have since been deleted --  ##
-## re-run bin/build-scripts/llama-cpp/build-llama-server-cuda-flashattn.sh ##
-## against a known-good git commit if a rollback is ever needed ]          ##
+## GPU+CPU Dual Inference Configuration  rebuilt 2026-09-08 [ build 4876,   ##
+## fe215a8cc, 141 commits ahead of the prior 4735/9d07d8681 -- picks up new ##
+## architecture support (qwen4exp, deepseek-v4, glm-5.2, bailingmoe3) that  ##
+## may fix some newly-downloaded models -- self-test PASS 3/3 confirmed     ##
+## live before promoting. the prior build's binary/libs [ -rebuild-out/ ]   ##
+## have since been deleted -- re-run                                        ##
+## bin/build-scripts/llama-cpp/build-llama-server-cuda-flashattn.sh against ##
+## a known-good git commit if a rollback is ever needed ]                   ##
 inference.backend.lib_path = /data/source/ik_llama.cpp
 inference.backend.gpu.enabled = yes
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
@@ -167,10 +168,10 @@ inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes
 ##                                            [ Gemma3 Glitter is 2.21GB ] ##
 inference.backend.gpu.gpu_layers = 999  ## all layers : clamped to the model's real count at spawn [ was 33 : every model with more layers ran partly on the cpu ] ##
 
-## kv cache type for -ctk / -ctv : auto = f16, q8_0 only when f16 cannot ##
-## reach the context floor [ q8_0 halves the memory per token but cuts   ##
-## prompt processing ~10x on this build ]. f16 / q8_0 force a type ; f16 ##
-## is used anyway while a lora adapter is set                            ##
+## kv cache type for -ctk / -ctv : auto = f16, q8_0 only when f16 cannot    ##
+## reach the context floor [ q8_0 halves the memory per token but cuts      ##
+## prompt processing ~10x on this build ]. f16 / q8_0 force a type ; f16 is ##
+## used anyway while a lora adapter is set                                  ##
 coding.cfg.kv_cache_type = auto
 
 ## sliding window layers at window size [ --swa-compress, ik_llama ] : ##
@@ -182,18 +183,18 @@ coding.cfg.swa_compress = yes
 ## context floor [ inference.model.context_length ] needs [ --n-cpu-moe ] ##
 coding.cfg.moe_expert_offload = yes
 
-## ram kept free for everything else when weights sit in ram [ moe     ##
-## experts, partial layers ] : 4 GB -- loading an 18.7 GB model with   ##
-## 2 GB left pushed v7-zenki's memory pressure to critical [ swap, psi ] ##
+## ram kept free for everything else when weights sit in ram               ##
+## [ moe experts, partial layers ] : 4 GB -- loading an 18.7 GB model with ##
+## 2 GB left pushed v7-zenki's memory pressure to critical [ swap, psi ]   ##
 coding.cfg.cpu_ram_overhead_mb = 4096
 
 ## tools offered per task : core = a core set + load_tools for named groups ##
 ## [ coding.tools.groups ] ~3k tokens, all = every schema ~12k tokens       ##
 coding.cfg.tool_set = core
 
-## thinking budget per response in tokens [ -1 = unrestricted ] : at the  ##
-## budget the server ends the thinking block, the message is injected     ##
-## first [ a runaway thought for ~50k tokens without output ]             ##
+## thinking budget per response in tokens [ -1 = unrestricted ] : at the    ##
+## budget the server ends the thinking block, the message is injected first ##
+## [ a runaway thought for ~50k tokens without output ]                     ##
 coding.cfg.reasoning_budget         = 8192
 coding.cfg.reasoning_budget_message = thinking budget reached : act on what you have now.
 
@@ -201,8 +202,9 @@ coding.cfg.reasoning_budget_message = thinking budget reached : act on what you 
 ## its round once with a new seed before the task fails                  ##
 coding.cfg.whitespace_abort_retry = yes
 
-## every request carries its own seed [ logged, kept per round in the task ##
-## state, shown by task-info ] : a round can be replayed exactly           ##
+## every request carries its own seed                                   ##
+## [ logged, kept per round in the task state, shown by task-info ] : a ##
+## round can be replayed exactly                                        ##
 coding.cfg.request_seed = yes
 
 ## before a task fails for a loop, an isolated no-tools child judges it     ##
@@ -223,8 +225,8 @@ coding.cfg.mode.code.model       = UWEPZFQ:TG3Q7PA  ## 35b q3_k_m : new code ##
 coding.cfg.mode.code.max_rounds  = 40
 coding.cfg.mode.review.template  = code-review
 
-## a deferred mode switch fires anyway after this many seconds [ a stale ##
-## task must never block it for good ] ; drain timer interval            ##
+## a deferred mode switch fires anyway after this many seconds          ##
+## [ a stale task must never block it for good ] ; drain timer interval ##
 coding.cfg.mode_switch_max_wait = 1800
 coding.cfg.mode_drain_interval  = 5
 
@@ -234,32 +236,34 @@ coding.cfg.mode_drain_interval  = 5
 ## needed ]. enabled by default; set to 'no' to restore the old             ##
 ## fail-outright behaviour                                                  ##
 coding.cfg.partial_offload_enable = yes
-## below this many gpu layers, partial offload isn't worth attempting --    ##
-## fail outright instead [ tune down for very small/fast models ]           ##
+## below this many gpu layers, partial offload isn't worth attempting -- ##
+## fail outright instead [ tune down for very small/fast models ]        ##
 coding.cfg.partial_offload_min_layers = 4
 
 ## control vector [ inference-time steering toward p7 idioms via           ##
 ## cvector-generator, see data/tasks/coding-control-vector-p7-idioms.md ]  ##
 ## path to the .gguf + scale [ may be negative : sign-flipped direction ]  ##
-## and optional 1-based layer range [ README tip : works better above      ##
-## layer 10 ]. MODEL-SPECIFIC : regenerate whenever start_model changes -- ##
-## the loader only checks n_embd, nothing guards against a stale vector    ##
-## loading against the wrong model except the model id in the filename.    ##
-## applies to BOTH backends [ unlike -ngl : a control vector is            ##
-## backend-agnostic ]. all commented out = unchanged behavior              ##
+## and optional 1-based layer range                                        ##
+## [ README tip : works better above layer 10 ]. MODEL-SPECIFIC :          ##
+## regenerate whenever start_model changes -- the loader only checks       ##
+## n_embd, nothing guards against a stale vector loading against the wrong ##
+## model except the model id in the filename.  applies to BOTH backends    ##
+## [ unlike -ngl : a control vector is backend-agnostic ]. all commented   ##
+## out = unchanged behavior                                                ##
 # coding.cfg.control_vector = /data/projects/protocol-7/data/control-vectors/p7-idioms.OFSQC4I-QDBKEXY.mean.gguf  ## Qwen3.8 9B Heretic Uncensored ##
 # coding.cfg.control_vector_scale = 1.0
 # coding.cfg.control_vector_layer_start = 10
 # coding.cfg.control_vector_layer_end   = 31
 
-## lora adapter [ gradient-trained steering toward p7 idioms, see         ##
-## data/tasks/coding-lora-p7-idioms.md ] : path to the adapter .gguf +    ##
-## scale [ runtime effect = scale * alpha / rank, same convention as      ##
-## PEFT ]. MODEL-SPECIFIC : retrain whenever start_model changes -- the   ##
-## loader enforces architecture match [ qwen35 ] but not the fine-tune,   ##
-## so the model id stays in the filename. applies to BOTH backends        ##
-## [ a load-time adapter is backend-agnostic ]. all commented out =       ##
-## unchanged behavior                                                     ##
+## lora adapter [ gradient-trained steering toward p7 idioms, see       ##
+## data/tasks/coding-lora-p7-idioms.md ] : path to the adapter .gguf +  ##
+## scale                                                                ##
+## [ runtime effect = scale * alpha / rank, same convention as PEFT ].  ##
+## MODEL-SPECIFIC : retrain whenever start_model changes -- the loader  ##
+## enforces architecture match [ qwen35 ] but not the fine-tune, so the ##
+## model id stays in the filename. applies to BOTH backends             ##
+## [ a load-time adapter is backend-agnostic ]. all commented out =     ##
+## unchanged behavior                                                   ##
 # coding.cfg.lora_adapter = /data/projects/protocol-7/data/control-vectors/lora/p7-idioms-lora.OFSQC4I-QDBKEXY.gguf  ## Qwen3.8 9B Heretic Uncensored -- honest negative on `invoke`, see coding-lora-p7-idioms.md's 2026-09-10 validation section ##
 # coding.cfg.lora_adapter_scale = 1.0
 
@@ -284,28 +288,29 @@ coding.cfg.partial_offload_min_layers = 4
 # coding.cfg.idiom_corpus_dir = /data/projects/protocol-7/data/idioms/corpus
 
 ## catalog-retrieval harvesting                                             ##
-## [ see data/tasks/coding-catalog-retrieval-phase2.md ]                    ##
-## records one jsonl line per completed task : the first 200 chars of the   ##
-## task text paired with the src/ modules that task actually wrote. this    ##
-## is the query distribution the retrieval work needs and cannot            ##
-## synthesise -- both gate runs so far used commit messages, and the fixed  ##
-## leakage probe showed that population is contaminated [ 43% of recent     ##
-## commits wrote the descr line they were then asked to retrieve ].         ##
-## purely additive : it records, it changes no output and gates nothing.    ##
-## commented out = unchanged behavior, same discipline as the keys above    ##
+## [ see data/tasks/coding-catalog-retrieval-phase2.md ]  records one jsonl ##
+## line per completed task : the first 200 chars of the task text paired    ##
+## with the src/ modules that task actually wrote. this is the query        ##
+## distribution the retrieval work needs and cannot synthesise -- both gate ##
+## runs so far used commit messages, and the fixed leakage probe showed     ##
+## that population is contaminated [ 43% of recent commits wrote the descr  ##
+## line they were then asked to retrieve ].  purely additive : it records,  ##
+## it changes no output and gates nothing.  commented out = unchanged       ##
+## behavior, same discipline as the keys above                              ##
 coding.cfg.catalog_harvest = yes
 coding.cfg.catalog_corpus_dir = /data/projects/protocol-7/data/catalog-corpus
 
-## extra llama.cpp builds : a gpu model whose file name matches 'match'   ##
-## [ regex, case-insensitive ] spawns with that build's binary and lib    ##
-## path instead of inference.backend.gpu.binary -- prismml fork : ternary ##
-## bonsai pq2_0 \ ptq1_0 [ stock \ ik builds reject or garble them ]      ##
+## extra llama.cpp builds : a gpu model whose file name matches 'match'     ##
+## [ regex, case-insensitive ] spawns with that build's binary and lib path ##
+## instead of inference.backend.gpu.binary -- prismml fork : ternary bonsai ##
+## pq2_0 \ ptq1_0 [ stock \ ik builds reject or garble them ]               ##
 inference.runtime.prismml.binary = /data/source/prismml-llama.cpp/llama-server-cuda
 inference.runtime.prismml.lib_path = /data/source/prismml-llama.cpp
 inference.runtime.prismml.match = ternary-bonsai|PQ2_0|PTQ1_0
 
-## self-test reasoning : auto = off on the cpu backend [ its tasks run  ##
-## /no_think ], the model default on the gpu ; yes \ no force it        ##
+## self-test reasoning : auto = off on the cpu backend                  ##
+## [ its tasks run /no_think ], the model default on the gpu ; yes \ no ##
+## force it                                                             ##
 # coding.cfg.self_test_thinking = auto
 
 inference.backend.cpu.enabled = auto
@@ -333,7 +338,7 @@ inference.backend.gpu.model_id = <coding.cfg.start_model>
 inference.backend.cpu.model_id = <coding.cfg.start_model>
 
 inference.backend.cpu.threads = 8  ## Use system thread count ##
-## negative = relative to the cores [ -1 : all but one ] ##
+## negative = relative to the cores [ -1 : all but one ]                  ##
 ## cpu server niceness [ 0..19, default 11 ] : batch work yields to cube, ##
 ## httpsd and the links under contention -- the gpu server stays at 0     ##
 inference.backend.cpu.nice    = 11
@@ -347,13 +352,14 @@ inference.routing.fallback_on_timeout = yes  ## Try CPU if GPU times out ##
 ## Async Mode Configuration ##
 coding.async.enabled = 1  ## Use non-blocking HTTP streaming with tool execution loop ##
 
-## concurrent drain timeout: seconds to wait for in-flight inference before force-kill ##
+## concurrent drain timeout: seconds to wait for in-flight inference before ##
+## force-kill                                                               ##
 concurrent.drain_timeout = 300
 
-## context reduction on timeout-restart: step and floor values ##
-## ctx_recovery_ceiling is set at runtime by coding.callback.http_error : ##
-## a hard cap that spawn_inference_server enforces over auto-calc, so the ##
-## reduction actually takes effect on the restart that follows a timeout  ##
+## context reduction on timeout-restart: step and floor values              ##
+## ctx_recovery_ceiling is set at runtime by coding.callback.http_error : a ##
+## hard cap that spawn_inference_server enforces over auto-calc, so the     ##
+## reduction actually takes effect on the restart that follows a timeout    ##
 coding.cfg.ctx_timeout_step  = 7000
 coding.cfg.ctx_timeout_floor = 16000
 #coding.cfg.ctx_recovery_ceiling = 29000  ## [ runtime-managed, do not set here ]
@@ -361,48 +367,49 @@ coding.cfg.ctx_timeout_floor = 16000
 #
 ## [timeouts] streaming data begin and total request duration ##
 #
-## data-start floor : short prompts really do start streaming in <2s on   ##
-## local GPU. for larger prompts coding.async.http_client SCALES this up  ##
-## based on estimated prompt size — see prefill_tokens_per_sec/_margin    ##
+## data-start floor : short prompts really do start streaming in <2s on  ##
+## local GPU. for larger prompts coding.async.http_client SCALES this up ##
+## based on estimated prompt size — see prefill_tokens_per_sec/_margin   ##
 coding.http-timeouts.data-start = 120
 coding.http-timeouts.request-completed = 777
 
-## stall/inactivity timeout : fires on genuine silence [ no chunk for N   ##
-## seconds ], independent of total elapsed time — re-armed on every chunk ##
+## stall/inactivity timeout : fires on genuine silence                      ##
+## [ no chunk for N seconds ], independent of total elapsed time — re-armed ##
+## on every chunk                                                           ##
 coding.http-timeouts.stall = 77
 
-## adaptive ceiling : a round starts with this fast soft ceiling; hitting ##
-## it escalates the SAME round to the full request-completed ceiling      ##
-## above rather than failing it, and resets back to this value once a     ##
-## round completes cleanly — halves typical stuck-round recovery time     ##
-## without permanently punishing legitimately-slow rounds                 ##
+## adaptive ceiling : a round starts with this fast soft ceiling; hitting  ##
+## it escalates the SAME round to the full request-completed ceiling above ##
+## rather than failing it, and resets back to this value once a round      ##
+## completes cleanly — halves typical stuck-round recovery time without    ##
+## permanently punishing legitimately-slow rounds                          ##
 coding.cfg.round_soft_ceiling = 384
 
-## live t/s-derived absolute outer cap [ backend-aware timeout scaling,    ##
-## 2026-08-27 ] : the repeating liveness extend in coding.handler.         ##
-## http_timeout and the liveness-gated max_total watchdog in               ##
-## coding.self_test.handler.poll_probe are both bounded by                 ##
-## cap = ( n_ctx / live_tps ) * margin, measured from time-since-first-    ##
-## token [ TTFT excluded ] by coding.async.stream_tps and FROZEN the       ##
-## instant the stall-watch signal says stalled. until round_cap_min_samples##
-## post-first-token chunks have arrived, the static per-backend fallback   ##
-## below is used instead of the [ still noisy ] live estimate, and it      ##
-## remains the floor afterwards : the live value may only RAISE the cap    ##
-## [ a fast model must not get a tighter backstop than it had before ]     ##
+## live t/s-derived absolute outer cap [ backend-aware timeout scaling,     ##
+## 2026-08-27 ] : the repeating liveness extend in coding.handler.          ##
+## http_timeout and the liveness-gated max_total watchdog in                ##
+## coding.self_test.handler.poll_probe are both bounded by                  ##
+## cap = ( n_ctx / live_tps ) * margin, measured from time-since-first-     ##
+## token [ TTFT excluded ] by coding.async.stream_tps and FROZEN the        ##
+## instant the stall-watch signal says stalled. until round_cap_min_samples ##
+## post-first-token chunks have arrived, the static per-backend fallback    ##
+## below is used instead of the [ still noisy ] live estimate, and it       ##
+## remains the floor afterwards : the live value may only RAISE the cap     ##
+## [ a fast model must not get a tighter backstop than it had before ]      ##
 coding.cfg.round_cap_margin          = 1.3
 coding.cfg.round_cap_min_samples     = 32
 coding.cfg.round_cap_static.gpu      = 900
 coding.cfg.round_cap_static.cpu      = 5400
 coding.cfg.round_cap_static.default  = 2700
 
-## GPU-temp-aware timeout stretch : a thermally-throttled GPU is          ##
-## legitimately slower, not stalled, so the soft ceiling + stall timeout  ##
-## above both scale with coding.stretch.timeout_factor (continuous        ##
-## proportional feedback, recomputed on every temp reading in             ##
-## coding.handler.gpu_temp_update -- ramps up fast when over target,      ##
-## relaxes slowly when cooling, clamped to [1.0, 3.0]). Target below is   ##
-## tuned from observed behavior (slowdowns already seen around 80C in     ##
-## practice on this WSL setup), not a vendor spec number.                 ##
+## GPU-temp-aware timeout stretch : a thermally-throttled GPU is         ##
+## legitimately slower, not stalled, so the soft ceiling + stall timeout ##
+## above both scale with coding.stretch.timeout_factor (continuous       ##
+## proportional feedback, recomputed on every temp reading in            ##
+## coding.handler.gpu_temp_update -- ramps up fast when over target,     ##
+## relaxes slowly when cooling, clamped to [1.0, 3.0]). Target below is  ##
+## tuned from observed behavior (slowdowns already seen around 80C in    ##
+## practice on this WSL setup), not a vendor spec number.                ##
 coding.cfg.gpu_target_temp_c = 77
 
 ## prefill-time estimate used to scale the data-start timeout for large    ##
@@ -411,20 +418,20 @@ coding.cfg.gpu_target_temp_c = 77
 coding.cfg.prefill_tokens_per_sec = 600
 coding.cfg.prefill_margin_sec     = 5
 
-## cold-start grace : flat data-start timeout for the FIRST request to a  ##
-## freshly-(re)spawned server — model load / first-inference warmup adds  ##
-## latency independent of prompt size, and that first request is often    ##
-## small [ short initial prompt ], so prompt-size scaling alone would     ##
-## hand it the shortest timeout right when it needs the longest. cleared  ##
-## on first chunk received [ coding.callback.http_chunk ]                 ##
+## cold-start grace : flat data-start timeout for the FIRST request to a   ##
+## freshly-(re)spawned server — model load / first-inference warmup adds   ##
+## latency independent of prompt size, and that first request is often     ##
+## small [ short initial prompt ], so prompt-size scaling alone would hand ##
+## it the shortest timeout right when it needs the longest. cleared on     ##
+## first chunk received [ coding.callback.http_chunk ]                     ##
 coding.cfg.cold_start_data_start_timeout = 150
 
-## switch-model poll_switch per-phase timeout : the prior flat 120s        ##
-## covers spawn + disk load + ready, not just inference - a large model    ##
-## (9GB+) cold-loading from disk can outrun 120s outright, confirmed live  ##
+## switch-model poll_switch per-phase timeout : the prior flat 120s covers ##
+## spawn + disk load + ready, not just inference - a large model (9GB+)    ##
+## cold-loading from disk can outrun 120s outright, confirmed live         ##
 ## 2026-06-21 [ DVEAZIA:GPAKBLA switch timed out mid-load ]. raised, kept  ##
-## configurable rather than re-hardcoded - see feedback-ondemand-timeout-  ##
-## tiering ]                                                               ##
+## configurable rather than re-hardcoded - see                             ##
+## feedback-ondemand-timeout-tiering ]                                     ##
 coding.cfg.switch_model_max_wait = 300
 
 ## crash-restart attempt ceiling : regular operation vs sweep-driven  ##
@@ -438,37 +445,39 @@ coding.cfg.switch_model_max_wait = 300
 coding.cfg.crash_restart_max_attempts       = 5
 coding.cfg.sweep_crash_restart_max_attempts = 1
 
-## vision-model :switch: idle-wait bound : caller timeout defaults to   ##
-## this when omitted - bounds ONLY the wait-for-idle phase, the switch  ##
-## itself is governed by switch_model_max_wait above                    ##
+## vision-model :switch: idle-wait bound : caller timeout defaults to this  ##
+## when omitted - bounds ONLY the wait-for-idle phase, the switch itself is ##
+## governed by switch_model_max_wait above                                  ##
 coding.cfg.vision_switch_idle_timeout = 300
 
 ## vision model analyze_image :switch: and vision-model :switch: load when ##
 ## no id is given [ falls back to the first vision model in the registry ] ##
 coding.cfg.vision_model = 2HZQLFQ:LOYSD4A  ## Qwythos-9B-v2
 
-## Model Configuration ##
-## Context length: floor value — auto-calculated from VRAM, but never below this   ##
-## smaller models expand above this automatically; large models use this as a min  ##
-## lowered from 52000 : calculate_safe_context's own auto-calc for the current     ##
-## vision-capable default (ZDMAPAY:AR3OCKQ) came out to ~29020, but the 52000      ##
-## floor overrode it [ "user override" in the startup log ], and even 29020        ##
-## wouldn't have been fully safe -- calculate_safe_context accounts for the        ##
-## mmproj FILE size but not the vision encoder's separate runtime compute buffer   ##
-## [ observed failing: 558MB CUDA alloc OOM during vision warmup, only 188MB free  ##
-## at 52000 ]. 28000 tokens frees ~985MB of KV cache vs. 52000 [ 42KB/token *9B    ##
-## class KV estimate ], comfortably covering the missing margin. revisit per-model ##
-## if a future default is text-only and could again afford a much higher floor     ##
-##                                                                                 ##
-## raised 37777 -> 42500 [ 2026-09-02 ] : current default's mmproj_path is EMPTY   ##
-## on both backends [ confirmed live via coding.inference-status ], so no vision   ##
-## encoder is actually loaded right now -- the OOM risk above doesn't apply to     ##
-## this deployment as it currently stands. NOT because this model is text-only :   ##
-## lm-studio marks it a vision model, so mmproj discovery/install is broken/       ##
-## incomplete, a separate bug to fix (possibly a missing mmproj for the 27B        ##
-## variant). if that gets fixed, re-verify the vision-encoder compute-buffer       ##
-## margin at this floor before leaving it raised -- don't assume 42500 is safe     ##
-## once a real mmproj is loaded again                                              ##
+## Model Configuration  Context length: floor value — auto-calculated from  ##
+## VRAM, but never below this smaller models expand above this              ##
+## automatically; large models use this as a min lowered from 52000 :       ##
+## calculate_safe_context's own auto-calc for the current vision-capable    ##
+## default (ZDMAPAY:AR3OCKQ) came out to ~29020, but the 52000 floor        ##
+## overrode it [ "user override" in the startup log ], and even 29020       ##
+## wouldn't have been fully safe -- calculate_safe_context accounts for the ##
+## mmproj FILE size but not the vision encoder's separate runtime compute   ##
+## buffer [ observed failing: 558MB CUDA alloc OOM during vision warmup,    ##
+## only 188MB free at 52000 ]. 28000 tokens frees ~985MB of KV cache vs.    ##
+## 52000 [ 42KB/token *9B class KV estimate ], comfortably covering the     ##
+## missing margin. revisit per-model if a future default is text-only and   ##
+## could again afford a much higher floor                                   ##
+##                                                                          ##
+## raised 37777 -> 42500 [ 2026-09-02 ] : current default's mmproj_path is  ##
+## EMPTY on both backends [ confirmed live via coding.inference-status ],   ##
+## so no vision encoder is actually loaded right now -- the OOM risk above  ##
+## doesn't apply to this deployment as it currently stands. NOT because     ##
+## this model is text-only : lm-studio marks it a vision model, so mmproj   ##
+## discovery/install is broken / incomplete, a separate bug to fix          ##
+## (possibly a missing mmproj for the 27B variant). if that gets fixed,     ##
+## re-verify the vision-encoder compute-buffer margin at this floor before  ##
+## leaving it raised -- don't assume 42500 is safe once a real mmproj is    ##
+## loaded again                                                             ##
 inference.model.context_length = 42500
 ## inference.model.context_length = 37777 ## [ prior value : safe with a working mmproj loaded, see above ##
 ## inference.model.context_length = 52000 ## [ doubled for multi-round tool sessions -- unsafe for vision-capable defaults, see above ##
@@ -477,27 +486,28 @@ inference.model.context_length = 42500
 inference.model.temperature = 0.7
 inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 
-## anti-repetition sampling : NONE of this was previously sent anywhere --   ##
-## neither the per-request json body [ coding.async.send_request,            ##
-## coding.self_test.async_probe, coding.tools.http_inference_client ] nor    ##
-## the server spawn command line [ coding.spawn_inference_server ] ever set  ##
-## repeat_penalty/repeat_last_n/dry_* at all, so whatever anti-repetition    ##
-## behavior existed was purely whatever this ik_llama.cpp fork's own build-  ##
-## in default happens to be -- confirmed live 2026-09-18 : a degenerate      ##
-## paragraph-level repetition loop [ 677NSHI:3YLW3KI, self-test prompt 2 ]   ##
-## repeated the same several sentences verbatim, over and over, never        ##
-## terminating naturally. flat repeat_penalty mostly discourages immediate   ##
-## token-level repeats and needs a large repeat_last_n window to catch a     ##
-## whole-paragraph repeat ; DRY sampling [ merged into llama.cpp 2024 ] is   ##
-## specifically designed for exactly this shape [ detects a repeated multi-  ##
-## token sequence and penalizes continuing it ] -- both enabled together,    ##
-## conservative values chosen to avoid degrading normal generation quality   ##
-## 2026-10-24 : repeat_penalty 1.1 -> 1.0 [ off ] and dry_allowed_length     ##
-## 2 -> 64 -- an agent must COPY text exactly [ paths, old_string, code      ##
-## lines ] ; any sequence > 2 tokens seen earlier was penalized, so 9b,      ##
-## 14b and 35b all wrote mangled copies [ 'protocol -7', 'workspace-tr an    ##
-## sfer', old_string never matching ]. paragraph loops are far longer        ##
-## than 64 tokens : DRY still catches them                                   ##
+## anti-repetition sampling : NONE of this was previously sent anywhere --  ##
+## neither the per-request json body [ coding.async.send_request,           ##
+## coding.self_test.async_probe, coding.tools.http_inference_client ] nor   ##
+## the server spawn command line [ coding.spawn_inference_server ] ever set ##
+## repeat_penalty/repeat_last_n/dry_* at all, so whatever anti-repetition   ##
+## behavior existed was purely whatever this ik_llama.cpp fork's own        ##
+## build-in default happens to be -- confirmed live 2026-09-18 : a          ##
+## degenerate paragraph-level repetition loop                               ##
+## [ 677NSHI:3YLW3KI, self-test prompt 2 ] repeated the same several        ##
+## sentences verbatim, over and over, never terminating naturally. flat     ##
+## repeat_penalty mostly discourages immediate token-level repeats and      ##
+## needs a large repeat_last_n window to catch a whole-paragraph repeat ;   ##
+## DRY sampling [ merged into llama.cpp 2024 ] is specifically designed for ##
+## exactly this shape                                                       ##
+## [ detects a repeated multi-token sequence and penalizes continuing it ]  ##
+## -- both enabled together, conservative values chosen to avoid degrading  ##
+## normal generation quality 2026-10-24 : repeat_penalty 1.1 -> 1.0 [ off ] ##
+## and dry_allowed_length 2 -> 64 -- an agent must COPY text exactly        ##
+## [ paths, old_string, code lines ] ; any sequence > 2 tokens seen earlier ##
+## was penalized, so 9b, 14b and 35b all wrote mangled copies               ##
+## [ 'protocol -7', 'workspace-tr an sfer', old_string never matching ].    ##
+## paragraph loops are far longer than 64 tokens : DRY still catches them   ##
 inference.model.repeat_penalty = 1.0
 inference.model.repeat_last_n  = 256
 ## dry_multiplier = 0 disables DRY entirely ; 0.8 is llama.cpp's own commonly ##
@@ -510,10 +520,10 @@ inference.model.dry_penalty_last_n  = -1  ## -1 = full context window ##
 ## VRAM safety margin for context auto-calculation [calculate_safe_context]    ##
 ## safety = 30% of remaining VRAM, clamped to [min, max]                       ##
 coding.cfg.vram_safety_min_mb = 300   ## lower to allow larger context windows ##
-## raised 3000 -> 4000 : calculate_safe_context doesn't budget for a vision    ##
-## encoder's runtime compute buffer (only the mmproj file's static size),      ##
-## this margin is the practical place to absorb that gap for any current or    ##
-## future vision-capable default, not just the context_length floor above      ##
+## raised 3000 -> 4000 : calculate_safe_context doesn't budget for a vision ##
+## encoder's runtime compute buffer (only the mmproj file's static size),   ##
+## this margin is the practical place to absorb that gap for any current or ##
+## future vision-capable default, not just the context_length floor above   ##
 coding.cfg.vram_safety_max_mb = 4000  ## cap to reserve VRAM for other use     ##
 
 ## context ceiling for auto-calculation — 0 = uncapped (VRAM math decides) ##
@@ -529,15 +539,16 @@ inference.model.amos_id = <coding.cfg.start_model>
 
 ## not declared here : resolved at init via async network request to models ##
 ## zenka [ coding.resolve_model_path -> coding.handler.model_path_reply ] — ##
-## a placeholder value here would get re-applied [ clobbering the resolved  ##
-## path ] every time 'reload config'/'reload all' re-parses this file       ##
+## a placeholder value here would get re-applied                            ##
+## [ clobbering the resolved path ] every time 'reload config'/'reload all' ##
+## re-parses this file                                                      ##
 
 ## [ per-host overlay : /etc/protocol-7/host-config/coding.cfg, optional ]  ##
 ## see base.load_host_config : 'key = value' lines applied ON TOP of        ##
-## everything above on THIS host only, re-applied on 'reload config'.       ##
-## this is the intended home of host-specific values [ a cpu-only server,   ##
-## a remote gpu box ] -- the repo config stays host-agnostic, no hand       ##
-## edits on hosts.                                                          ##
+## everything above on THIS host only, re-applied on 'reload config'.  this ##
+## is the intended home of host-specific values                             ##
+## [ a cpu-only server, a remote gpu box ] -- the repo config stays         ##
+## host-agnostic, no hand edits on hosts.                                   ##
 ##                                                                          ##
 ## CAVEAT : <...> macros above were expanded at parse time, so a host.cfg   ##
 ## override of coding.cfg.start_model does NOT re-expand the keys that      ##
@@ -569,8 +580,8 @@ modules.load = auth.client net protocol io.unix io.ip ui jobqueue crypt.C25519 \
                ascii note pager format.yaml format.json ncode reasoning llm git \
                model_batch
 
-## storage plugins [ loaded separately via load_plugins ] ##
-## todo: consider generic auto-load mechanism for all zenki ##
+## storage plugins [ loaded separately via load_plugins ]  todo: consider ##
+## generic auto-load mechanism for all zenki                              ##
 plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [load_modules:<modules.load>]
@@ -591,8 +602,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,,.,,.,,,,..,,,,,.,.,,,.,,.,,,..,,..,..,,.,.,...,...,...,.,,,.,.,,..,,,,,
-#27UVFESUVVXU5XUZMULURDUZX27UU3AP6BGQ6JDWISOK7SMAYZRBMNDLEPFB6CKYC65VT2XGC3N36
-#\\\|RUINBMXDAMHOGJ2NUYUBFXDFQW4XDNZXA42AN2DMJCU64AKFTUS \ / AMOS7 \ YOURUM ::
-#\[7]7VYYF74ZF7RVFXK4A4GXWQKTDCFNDL4HYDF5AM3GFQ2YB7EX6UAY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,...,.,.,.,.,,,,,,,.,..,,..,,,,,,.,.,...,...,,,.,,,.,,.,,,,,,..,,
+#2UJQECC5JWUBGN4TVGUAOAI64JCKJJVDWRHTUHSJTWDJ7ABXM3P2556C7CYLCNUD7UHF7SU4V2M36
+#\\\|27AKUL5HFMHSQHWB4J46G72R5IMBPZWW3TVQNKLWKJKKRH67AYU \ / AMOS7 \ YOURUM ::
+#\[7]DQ3KDVMVAVN7DLAC7ZINMGD7REMIFJPRYPOMLQSZILAMMEHZI4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
