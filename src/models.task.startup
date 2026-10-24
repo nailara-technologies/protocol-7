@@ -1,21 +1,45 @@
 ## [:< ##
 
 # name  = models.task.startup
-# descr = arm the remote task notice streams + fallback poll timer
+# descr = arm remote streams + poll, scan local queues
 # notes = called from cfg/zenki/models/zenka.v7 after the privilege drop
 #         and from models.init_code on a reload only [ $reinit ], also
 #         from models.cmd.set-zenki after a run time list change. the
 #         local task zenka 'task' arms nothing : it notifies
-#         models.task-notify itself. the timer's first tick subscribes
-#         every listed remote zenka, every tick polls '<zenka>.next'
-#         and retries a dropped or unanswered subscription
-#         [ models.task.subscribe ] -- each zenka independent, one down
-#         never blocks the others
+#         models.task-notify itself -- so a restart loses every task
+#         created while models was down : one recovery scan of each
+#         listed local zenka's pending queue per startup heals it [ the
+#         check-next reply claims the first, each completion re-scans
+#         the rest ]. remote listed zenki need no scan : the notice
+#         stream + fallback poll cover them [ models.task.subscribe ]
 
 ## a reload re-arms : cancel the running timer, never two side by side ##
 my $old_timer = <models.task.poll.timer>;
 $old_timer->cancel if defined $old_timer and $old_timer->is_active;
 <models.task.poll.timer> = undef;
+
+## local listed task zenki have no stream + poll -- their notify fires at   ##
+## create time only, so a restart loses every task created while models was ##
+## down [ HWO live 2026-10-24 : two pinned assessments pending for 30+ min, ##
+## never notified after the restart ]. one recovery scan per startup : the  ##
+## check-next reply claims the first pending task, each task completion     ##
+## re-scans the queue                                                       ##
+foreach my $zenka (<[models.task.zenki]>) {
+    next if $zenka ne qw| task |;
+    my $scan = <[protocol-7.route-send]>->(
+        {   'command'   => sprintf( qw| %s.queue |, $zenka ),
+            'call_args' => { 'args' => qw| status=pending | },
+            'reply'     => {
+                'handler' => qw| models.handler.task-poll-step |,
+                'params'  => { 'step' => 'check-next', 'zenka' => $zenka }
+            }
+        }
+    );
+    <[base.logs]>->(
+        1, ': task zenka %s : pending recovery scan %s',
+        $zenka, ( $scan and $scan > 0 ) ? 'sent' : 'not routed'
+    );
+}
 
 return FALSE if not <[models.task.remote]>;
 
@@ -50,8 +74,8 @@ $interval = 30 if $interval !~ m|^\d+$| or $interval < 5;
 
 return TRUE;
 
-#,,.,,,.,,.,.,,.,,,,.,,.,,.,.,.,,,,,.,.,.,...,.,.,...,...,,..,,,.,.,.,.,,,,..,
-#MQTX2OAHMGCUK336VGUGRRVKKDVROOT5GROQQ62FHDYBOCLSYS5PPRCICBJSSV3KZTZZHFZXV4VBC
-#\\\|NUF3CIXRKORPOLUZGC3Y4GXYWX7HEDUBCAK2SYY6TVLZGVWIOKL \ / AMOS7 \ YOURUM ::
-#\[7]DY6O6J7HGOM5UPRL3XATUF2GQTHD4GGFXP5NOMFA7RKSSJBDR6BY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,...,.,.,.,,,.,,,,..,.,,,,,,,.,.,...,...,,..,..,,,..,,..,...,
+#2UR4NP5ZEUGBIEAEOCRV2JNXFTOWEFIGTH7PCK2ORNQAQQLK6K6UKNC2JINBDU6MSIP7R4NUROHAY
+#\\\|AX5AARMCXHQL2OMUYZHEDIPUCOX5EBGN5XG3CS3KKYXDFWYA2UL \ / AMOS7 \ YOURUM ::
+#\[7]K3F5TU436XIZJW44LGHPC2DZAF5KZDTXKHE235LXPCLFDWOOP2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
