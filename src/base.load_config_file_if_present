@@ -7,7 +7,9 @@
 #         decided ] : files outside the tree are optional -- a host
 #         without them runs on the defaults, git pull never touches them.
 #         cfg-dir: -> /etc/protocol-7, var-dir: -> /var/protocol-7 ;
-#         '<zenka>' in the path is this zenka's name
+#         '<zenka>' in the path is this zenka's name. applied only when
+#         base.host.trusted_file accepts it [ the zenka user cannot have
+#         written it ] -- refused at level 0 otherwise
 
 my $spec = shift // '';
 return TRUE if not length $spec;
@@ -20,12 +22,21 @@ $path =~ s|^var-dir:|( $dirs->{'var_P7'} // '/var/protocol-7' ) . '/'|e;
 
 return TRUE if index( $path, qw| / | ) != 0 or !-f $path;
 
+my ( $trusted, $why ) = <[base.host.trusted_file]>->($path);
+if ( not $trusted ) {
+    <[base.logs]>->(
+        0,     ': config layer %s REFUSED : %s [ nothing applied ]',
+        $path, $why
+    );
+    return TRUE;
+}
+
 <[base.logs]>->( 1, ': config layer : %s', $path );
 
 return <[base.load_config_file]>->($path);
 
-#,,,.,.,.,...,.,,,...,,,.,,..,,,,,...,.,,,,.,,..,,...,...,.,,,.,,,,,.,,..,..,,
-#UMZ33CJRP6RCIXNVQWQPATHJRIMPNRLCM47A7KLTOX3347AH3IQKJB6KZVLYREIWLZIMMTZENQMJC
-#\\\|SMPURT2HTFATLV5NJH5EXHLOCE4JXI7MIDGI534OHMZP3WUQICN \ / AMOS7 \ YOURUM ::
-#\[7]QYOZX7LMX346F6RMJPWKRV3PG3PNV27X2J5NGPTOKPOVTSC3XUBY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,,.,,...,...,.,.,.,.,.,,,..,,..,,...,...,..,,..,,..,,...,,..,
+#GANTHYGNVKN56ZJUJ2EK4TMUIA6GQKWWUIURVNK3JT7ITK6LWMMGEQQWECZ3MZHSA7NLXF5XD6OXC
+#\\\|XX3LROTZ6U4DPQNBA4GRJVXWYEORZQJGT7ULJXXVH67QKWBEXCB \ / AMOS7 \ YOURUM ::
+#\[7]P262VIEOJG6A4BS7OWR2CHWLEP4MMKHNZIOVIHTGZPBFMZPWQ2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

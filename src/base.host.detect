@@ -2,29 +2,23 @@
 
 # name  = base.host.detect
 # descr = write the host's detected facts once [ ram, cpus, ipv6 ]
-# note  = /var/protocol-7/host/detected.cfg : written, not recomputed on
-#         every start [ the reason for a choice stays visible and fixable ;
-#         delete the file to detect again ]. read by any zenka through
-#         [load_config_file_if_present:'var-dir:host/detected.cfg'].
+# note  = /etc/protocol-7/host-config/host.detected : written, not
+#         recomputed on every start [ the reason for a choice stays
+#         visible and fixable ; delete the file to detect again ]. read
+#         by any zenka through [load_config_file_if_present:'cfg-dir:
+#         host-config/host.detected'] -- root owned like the overlays
+#         [ base.host.config_dir ] : v7-zenki applies it as root.
 #         keys : host.mem_mb, host.cpus, host.ipv6 [ yes | no ]
 
-## [ read through '// {}' : this runs before base.pre_init, a nested read ##
-## would create an empty zenka-dirs hash and skip its defaults there ]    ##
-my $var_dir = ( <system.path.zenka-dirs> // {} )->{'var_P7'}
-    // '/var/protocol-7';
-my $dir  = "$var_dir/host";
-my $file = "$dir/detected.cfg";
+my $dir  = <[base.host.config_dir]>;
+my $file = "$dir/host.detected";
 
 ## facts are not secret : readable regardless of the service umask ##
-if ( $EFFECTIVE_USER_ID == 0 and -d $dir ) {
-    chmod 0755, $dir;
-    chmod 0644, $file if -f $file;
-}
+chmod 0644, $file if $EFFECTIVE_USER_ID == 0 and -f $file and !-l $file;
 
 return TRUE if -f $file;
-return TRUE if $EFFECTIVE_USER_ID != 0 and !-w $var_dir and !-w $dir;
-
-mkdir $dir, 0755 if !-d $dir;
+## written by root only : base.load_config_file_if_present refuses others ##
+return TRUE if $EFFECTIVE_USER_ID != 0 or !-d $dir;
 
 my $mem_mb = 0;
 if ( open my $fh, '<', '/proc/meminfo' ) {
@@ -66,8 +60,8 @@ if ( open my $out, '>', $file ) {
 
 return TRUE;
 
-#,,..,...,.,,,,,,,.,.,,.,,,,.,...,.,.,,,.,,.,,..,,...,...,,..,,,.,.,.,.,,,..,,
-#NWOBSIXGRTEALFJRR5CQV2FR4BWDQDTEU7MZ5K6PWF4W5VUWT47IYLYMNUKXDIUY7IFDTDVOIRQCU
-#\\\|LQORIXYJSWDUEUHWMOI2INT372A7G56L2FEEJODUKZAEGO6IBZI \ / AMOS7 \ YOURUM ::
-#\[7]GGIFCMTSTL2B2OPEBCMBN7JWBGZAG53MW3IMO6BO6T67EA6Q6OAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,...,..,,,..,,.,,.,.,,,.,.,.,,,,,..,,...,...,.,,,.,.,,,.,...,,,.,
+#A267VJ4R7QGAUVLULIADGNDDZALM73OOBICUTC3DBRHSMJUYD3HBOYFDONIG4ZTN7UHNAMM6BDP52
+#\\\|XWVKZACFVH4THV6GTS67Q6XVKGSWF7WFI7P6VEE2UHHZIZTHZOF \ / AMOS7 \ YOURUM ::
+#\[7]MY37WJEJB6RXZ4KNHJXYD3LDZALSWJIKKSFSRLII43JEQ623RSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

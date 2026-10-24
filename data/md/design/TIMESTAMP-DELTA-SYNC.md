@@ -70,7 +70,7 @@ entry signature from being valid as any other signed message.
 
 ## who may write what
 
-per host config [ `/etc/protocol-7/nameserv/host.cfg` or a pins file next
+per host config [ `/etc/protocol-7/host-config/nameserv.cfg` or a pins file next
 to the server pins in `~/.n/remote-keys/servers/` ] :
 
 ```
@@ -286,8 +286,8 @@ reviewed line by line ] ; 3b = signing, verifying, grants, accept rules.
 - tombstone_keep vs. peers that are offline for weeks [ full fetch is
   fine for zones ; for larger data a checksum tree like N7FS is needed ].
 
-#,,,,,,..,,,,,..,,...,,.,,.,.,,,,,.,.,.,,,,..,..,,...,..,,,..,,..,,,,,...,,.,,
-#QGP37PS2OKKF6B2TKU3T2SNWBFNAWOXI24XJHIT5XT3UF45O7WJ2I6ZQTNQ5XCFSGPUVYOT5BIBBO
-#\\\|YR4EOL3GX7NJBXOWIT5UDWQ5A2CNC5OHHC65UHIVU6ZFQAHHZ5A \ / AMOS7 \ YOURUM ::
-#\[7]G7SAOFB7C6EXGZ6LHR7FEU27HKDP36O3DKFNCBNAPN4RCQDKEKBA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,,..,.,.,,.,,...,...,...,.,.,..,,...,...,.,,,...,.,,,..,,..,,
+#WIJGWLTE45RX3ZUADE36MRVYJXYCSEWT5JXTYSKZMNGFQXTH7TWVWEGAKGVGNQIE2J6YLBBDR2A6C
+#\\\|ZDHJYRF54BAGAEH2Z6OPFNYAQRJYV5WZOOYKWDAHSR66BGY5UBZ \ / AMOS7 \ YOURUM ::
+#\[7]UNSHV5ESFFZXYYJMWSV2ALJSFG3MEU4N7DJG7OP6QHUCG6UU2KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

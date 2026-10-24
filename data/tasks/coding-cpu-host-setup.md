@@ -16,7 +16,7 @@ repo-side support landed with this checklist :
 `inference.backend.<backend>.mem_max` [ systemd-run MemoryMax scope ],
 `[load_host_config]` in the coding and system zenka start files [ per-host
 overlay ]. nothing below edits the repo on the host — host state lives in
-`/etc/protocol-7/<zenka>/host.cfg` [ see base.load_host_config ].
+`/etc/protocol-7/host-config/<zenka>.cfg` [ see base.load_host_config ].
 
 ## signatures note
 
@@ -31,7 +31,7 @@ leave files clean — signatures are added by the signing system automatically.
 | 2. cgroup hard limit | `systemd-run --scope -p MemoryMax=14G` via `inference.backend.cpu.mem_max` | 14G | even a wrong RAM estimate cannot grow llama-server past 14 GB rss — the cgroup oom-kills ONLY the server, not the name server |
 | 3. zenka watchdog | system zenka `process.limits.llama-server.max_mem` | 65 [% of total ram] | last-resort kill if the scope is off/unavailable [ e.g. systemd-run missing ] ; set just above the 14G/23GB ≈ 61 % cgroup so the two layers do not fight |
 
-## 1. host config overlay — /etc/protocol-7/coding/host.cfg
+## 1. host config overlay — /etc/protocol-7/host-config/coding.cfg
 
 plain `key = value` lines, applied on top of the repo config on THIS host
 only [ re-applied on 'reload config' ]. create the file with exactly:
@@ -105,7 +105,7 @@ systemd-run --user --scope --quiet --collect -p MemoryMax=1G \
   ladder. if the host has no systemd at all, leave `mem_max` out and rely on
   layers 1 + 3 [ spawn proceeds unscoped with a loud level-0 log ].
 
-## 4. system zenka watchdog — /etc/protocol-7/system/host.cfg
+## 4. system zenka watchdog — /etc/protocol-7/host-config/system.cfg
 
 ```
 ## bound a runaway cpu inference server : percent of TOTAL ram
@@ -163,16 +163,17 @@ ps -o pid,rss,cmd -C llama-server
 ## 6b. jobsite : point assessments at the model this host serves
 
 the repo pins `jobsite.cfg.assessment_model` to a gpu-host model. the
-jobsite zenka now loads `/etc/protocol-7/jobsite/host.cfg` too
+jobsite zenka now loads `/etc/protocol-7/host-config/jobsite.cfg` too
 [ `[load_host_config]`, 2026-10-18 ] -- as root :
 
 ```
-mkdir -p /etc/protocol-7/jobsite
+## the dir exists once any zenka started as root [ base.host.config_dir ]
 ## the same <amos>:<amos> model id as inference.model.amos_id in the
-## coding host.cfg above
-echo 'jobsite.cfg.assessment_model = <model id>' > /etc/protocol-7/jobsite/host.cfg
-## root:root 0644 like the other host.cfg files : read as root before
-## the privilege drop, and the zenka cannot loosen its own settings
+## coding overlay above
+echo 'jobsite.cfg.assessment_model = <model id>' > /etc/protocol-7/host-config/jobsite.cfg
+## root:root 0644 like the other overlays : the zenka cannot loosen its
+## own settings -- an overlay the zenka user could write is refused
+## [ base.host.trusted_file ]
 ```
 
 then restart the jobsite zenka [ `p7c v7-zenki.restart jobsite` -- check the
@@ -226,8 +227,8 @@ and use the smoke test.
 4. layer 2 assumes systemd v246+ [ pidfd scope placement, exec-in-place ] —
    ancient distros get the unscoped loud-log path instead.
 
-#,,,,,.,,,,..,.,.,,..,,,,,.,.,..,,,,,,,,.,.,,,..,,...,...,.,,,..,,..,,,,.,,,.,
-#PVH2FXZQHPU4I7TCRGZPIXRRBSBYP6JT2EDGZ3M2CSA6RRWKCTOFR6CVG5T7J2ES6IM2Z3VHMC3N6
-#\\\|DRLPQ2KPT4HZDSPMFVAXQKDPTVG54WAO27DPZTO42YDHUA5C3D3 \ / AMOS7 \ YOURUM ::
-#\[7]CXLFCRBI4745ZF5LX74WXBXOR7WQDAHU2RPTJI225MJWA6N2AOAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,...,,..,,.,,.,.,..,,,,.,...,..,,...,...,.,,,.,,,,..,,,.,,.,,
+#CULUWJYHOMROHXPQGJVK5H4YLNFONZSJ2D3M4DHOR6CZ4DBVN4WUFINIHY7KKQGUYVZGINMZCJXCI
+#\\\|JOHCFOFY5AJ5ZJWKBJR2HYU5AVXBGNZTP7KDAZLWFZRYNHPIGRA \ / AMOS7 \ YOURUM ::
+#\[7]M655Y7ZS3XEAAIFVO3KHET6B53QJVGQHLRFLBSUEBW4OM3B7HODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

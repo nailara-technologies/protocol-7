@@ -52,7 +52,7 @@ jobsite.cfg.sync_interval = 300
 ## site-yaml [ stepstone blocks this host's ip range ] and fetched jobs     ##
 ## travel back through its durable outbox + subscribe-fetched STRM          ##
 ## transport. default : unset == local site-yaml                            ##
-### set in /etc/protocol-7/jobsite/host.cfg :
+### set in /etc/protocol-7/host-config/jobsite.cfg :
 ## jobsite.cfg.fetch_zenka = external.delta.site-yaml
 
 ## seconds to wait for a dispatched assessment/repair task's reply before
@@ -78,7 +78,7 @@ jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
 ## httpd sync endpoint : repo default is a hub pushing to its own    ##
 ## httpd [ loopback needs no auth token with auth.exempt-loopback ]. ##
 ## any other target [ several : sync_urls ] and its bearer token go  ##
-## in /etc/protocol-7/jobsite/host.cfg :                             ##
+## in /etc/protocol-7/host-config/jobsite.cfg :                             ##
 ##   jobsite.cfg.sync_url    = http://<host>/jobs-sync               ##
 ##   jobsite.cfg.sync_urls   = <url> [<url> ..]                      ##
 ##   jobsite.cfg.sync_token  = <token>   ## or per-url : ##
@@ -140,8 +140,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite \
 
 [zenka.loop]
 
-#,,,.,,,.,.,.,,,.,.,,,.,.,,..,...,,..,..,,...,..,,...,...,..,,...,.,.,..,,,..,
-#FCHSIVIBZI5CHRBHSA5UB43RYT2FGJSTEXKO3MGIKWHJSKOTKA5TOH54L254IB57XPXKPKLNPJHXG
-#\\\|4RYWDYWZVVQKIRJOFKVFYSWXPJRFTFQ6ZAL7ZCMGFQEKFBID7G6 \ / AMOS7 \ YOURUM ::
-#\[7]GTZZWPQHQYNGCVVOYGMEI3ZH5WY7X5RKVBG75JWVQMFMPDYLMMBA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,.,.,.,,..,...,,,,,,,,,...,.,.,..,,...,...,..,,...,,..,,,.,.,,,
+#KWH4ID64P5CE7O2GEHVMQRRHPGXLF4V2Y7HACSIGFJBCWXHIH36KTV3JC7XXBR22K6TSEFZM6WD6G
+#\\\|ZAEM34JYLE4V27JWHFTAAXOF7EBZBINAH7FNTCBZI6K5MVPU22R \ / AMOS7 \ YOURUM ::
+#\[7]RBANEANSA2BIEE72OSBIBGMHT4ERVHBFLVGTWX2RPAD34N2GQAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

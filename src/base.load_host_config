@@ -2,36 +2,68 @@
 
 # name  = base.load_host_config
 # descr = apply the optional per-host overlay of the zenka config
-# note  = /etc/protocol-7/<zenka>/host.cfg -- 'key = value' lines that
-#         override the tree's config on THIS host only [ a public dns
-#         bind, an acme provider, paths ]. no file : nothing changes.
-#         used as '[load_host_config]' in a zenka.v7, after its own keys
-#         and before [load_modules] ; re-applied on 'reload config'.
-#         creates /etc/protocol-7/<zenka>/ when missing [ as root ]
+# note  = /etc/protocol-7/host-config/<zenka>.cfg -- 'key = value' lines
+#         that override the tree's config on THIS host only [ a public
+#         dns bind, an acme provider, paths, cube grants ]. no file :
+#         nothing changes. used as '[load_host_config]' in a zenka.v7,
+#         after its own keys and before [load_modules] ; re-applied on
+#         'reload config'. applied only when base.host.trusted_file
+#         accepts it [ root \ tree owner, no group \ other write up to
+#         '/' ] : the zenka user cannot write it. an old
+#         /etc/protocol-7/<zenka>/host.cfg [ zenka owned dir ] is never
+#         read and never moved -- logged until the admin moves it
 
 my $zenka_name = <system.zenka.name> // '';
 return TRUE unless length $zenka_name and $zenka_name =~ m|^[\w.-]+$|;
 
+my $cfg_dir = <[base.host.config_dir]>;
+( my $dir_name = $cfg_dir ) =~ s{^.*/}{};
+if ( $zenka_name eq $dir_name ) {
+    <[base.logs]>->(
+        0, ': zenka name %s is the host config dir : no overlay', $zenka_name
+    );
+    return TRUE;
+}
+
 my $etc_dir = ( <system.path.zenka-dirs> // {} )->{'etc_P7'}
     // '/etc/protocol-7';
-my $host_cfg = "$etc_dir/$zenka_name/host.cfg";
 
-## the directory exists on every host, the admin only fills in the file : ##
-## created here while still root [ this runs before root.drop_privs ],    ##
-## owned by the zenka user                                                ##
+## the zenka's own state dir exists on every host                    ##
+## [ zenka owned, no overlay in it ] : created here while still root ##
+## [ before root.drop_privs ]                                        ##
 if ( !-d "$etc_dir/$zenka_name" and $EFFECTIVE_USER_ID == 0 ) {
     if ( mkdir "$etc_dir/$zenka_name", 0750 ) {
         my $user = <system.amos-zenka-user> // qw| protocol-7 |;
         my ( $uid, $gid ) = ( getpwnam $user )[ 2, 3 ];
         chown $uid, $gid, "$etc_dir/$zenka_name" if defined $uid;
         <[base.logs]>->(
-            1, ': host overlay dir ' . 'created : %s',
+            1, ': zenka etc dir created : %s',
             "$etc_dir/$zenka_name"
         );
     }
 }
 
-return TRUE unless -f $host_cfg;
+my $old_cfg = "$etc_dir/$zenka_name/host.cfg";
+<[base.logs]>->(
+    0,
+    ': %s NOT applied : host overlays live in '
+        . '%s/%s.cfg now [ review it, then move it as root ]',
+    $old_cfg,
+    $cfg_dir,
+    $zenka_name
+) if -e $old_cfg;
+
+my $host_cfg = "$cfg_dir/$zenka_name.cfg";
+return TRUE unless -e $host_cfg or -l $host_cfg;
+
+my ( $trusted, $why ) = <[base.host.trusted_file]>->($host_cfg);
+if ( not $trusted ) {
+    <[base.logs]>->(
+        0,         ': host overlay %s REFUSED : %s [ nothing applied ]',
+        $host_cfg, $why
+    );
+    return TRUE;
+}
 
 <[base.logs]>->( 1, ': host overlay : %s', $host_cfg );
 
@@ -41,8 +73,8 @@ return TRUE unless -f $host_cfg;
 
 return <[base.load_config_file]>->($host_cfg);
 
-#,,,.,.,.,.,.,,,,,,.,,.,,,,,.,,.,,.,.,,,,,.,,,..,,...,...,.,,,.,,,,,.,...,.,.,
-#DJZYVAZCUAVOPLPNBX3SARIK2QKXQAWIAW2NAXN5ZKRVOTZDMK26W2H3RHM47Z75LFBAY3VL6H3MS
-#\\\|QYULRK64UBH3MOK6MNUBXKHUPW2Z4QQJR26XM7EIAQUY6KIMFB3 \ / AMOS7 \ YOURUM ::
-#\[7]DNOY4VMK5NJRPUNQ3DVOMLLP5SULFVF5W5EFXLMQOJ67WTA4FMCA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,,,,,.,.,,.,,,,,,..,,,,.,...,..,,...,..,,,..,..,,.,,,...,.,,,
+#KWRG5HPJ6K2WOLMAEOEZDHNBUW2QKKD6D532I52ML6E5EYHRENZRLCXLFCCJZKL2VTQXEFLFCSPI6
+#\\\|MH45LRAIV6JLYG2D5CBTNNO2BIDTZRMROQEPO7Y4JDQ6BUPRBTW \ / AMOS7 \ YOURUM ::
+#\[7]Z4XYLHXUVNAI2T2LQTR3VEI4XGBS3KD4VV3RPRS4CH32JDECH4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1174,7 +1174,7 @@ items:
   - bug
   text: 'cube : cancelled streams leak routes ; full id table blocks v7-zenki'
 - added: 3X4NFMPZNI
-  details: "start profiles stay generic ; a host's own choices [ e.g. srv-F : no nameserv \\ web \\ system ] go into /etc/protocol-7/v7-zenki/host.cfg as additions \\ removals on top of the selected profile [ incl. an automatic -lowram one ], so no host needs a profile edit in its local-modifications commit. found 2026-10-12 : the auto -lowram profile overrode srv-F's local edit of start-set-up.remote-server."
+  details: "start profiles stay generic ; a host's own choices [ e.g. srv-F : no nameserv \\ web \\ system ] go into /etc/protocol-7/host-config/v7-zenki.cfg as additions \\ removals on top of the selected profile [ incl. an automatic -lowram one ], so no host needs a profile edit in its local-modifications commit. found 2026-10-12 : the auto -lowram profile overrode srv-F's local edit of start-set-up.remote-server."
   done_at: null
   id: DYK
   priority: normal
@@ -1196,7 +1196,7 @@ items:
   - host
   text: 'debian zenka : host bootstrap [ mirror, suite, dist-upgrade, dependencies ]'
 - added: 3X4N7NUKJ4
-  details: "found 2026-10-12 : ipv6 between srv-A [ 2a02:c207 ] and srv-U [ 2a02:c206 ] does not route in either direction, both stacks work otherwise. nameserv.sync.peer.arm and nameserv.sync.client.start create ONE non-blocking IO::Socket::IP to the peer name : it takes the first address [ ipv6 ] and a connect stuck in SYN-SENT never falls back to ipv4 -- the peer loop stalls silently [ no log line ]. fix : resolve the name, try each address with a short connect timeout [ ipv6 first, then ipv4 ], remember the address that worked per peer, log once which family failed. then srv-A's /etc/protocol-7/nameserv/host.cfg goes back from 161.97.144.6 to srv-U [ comment there ]."
+  details: "found 2026-10-12 : ipv6 between srv-A [ 2a02:c207 ] and srv-U [ 2a02:c206 ] does not route in either direction, both stacks work otherwise. nameserv.sync.peer.arm and nameserv.sync.client.start create ONE non-blocking IO::Socket::IP to the peer name : it takes the first address [ ipv6 ] and a connect stuck in SYN-SENT never falls back to ipv4 -- the peer loop stalls silently [ no log line ]. fix : resolve the name, try each address with a short connect timeout [ ipv6 first, then ipv4 ], remember the address that worked per peer, log once which family failed. then srv-A's /etc/protocol-7/host-config/nameserv.cfg goes back from 161.97.144.6 to srv-U [ comment there ]."
   done_at: null
   id: YJP
   priority: normal
@@ -1949,8 +1949,8 @@ items:
   - inference
   text: "coding seed-retry leaves the cpu backend at status restart_needed : after a failed startup self-test [ cat-test 2/3 ] defer_seed_restart respawns the server, the new one runs healthy [ /health ok ] but no new self-test runs and the status stays restart_needed -- every job then waits in the 'depending' queue forever [ pri 2026-10-24, task NSRV3FA ]. the respawn must re-run monitor_startup \\ self_test and reset the status"
 
-#,,.,,.,.,.,.,.,.,,..,,..,,.,,,..,,.,,...,...,..,,...,...,,.,,,,.,.,.,,,.,,.,,
-#JPHA5TQ3TIRIFPGYDBDORKZ5DA34G2XPZZ46WLU3YDIHYPPABDWVNFCK5XWBZ7SPONW6DM4QLP3DQ
-#\\\|44Y2TXIM5KG5QQPCIGSSO5MVKJWWZF6L7Q7FLXVTZCPTAX2PTDV \ / AMOS7 \ YOURUM ::
-#\[7]QGUOAZHTTL7IO4GCUWVDJPNGLVCAA6KNHUBQULBDP27H65UCB4DY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,.,,...,..,,,..,,,,,.,,,,.,,...,..,,...,...,.,.,,.,,,,.,..,,,,.,
+#M7V5LSRKFPXMR47UGZ4FTMBW6EU7Z7CZY66SEG5ED2UZ2EQLAF3O5LUKTDAYER46H52RXLIJXOCSM
+#\\\|NPZCJS6H3YZM6P27HCP6WXXVXEMWYMNWS26HY6ETEGAMXBQ2OEZ \ / AMOS7 \ YOURUM ::
+#\[7]B3GMWYRDSTARMIK2ZYMI76564S7CEIUQ7CMD3PKK2D3PBYGS4QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

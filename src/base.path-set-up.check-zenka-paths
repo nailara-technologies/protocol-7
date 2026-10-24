@@ -44,8 +44,18 @@ if ($create_zenka_subdir) {    ## create temporary zenka output directory ##
     $paths_and_modes->{$zenka_write_dir} = $zenka_dir_mode;
 }
 
-my $zenka_config_dir
-    = catfile( <system.path.zenka-dirs.etc_P7>, <system.zenka.name> );
+my $etc_P7_dir       = <system.path.zenka-dirs.etc_P7>;
+my $zenka_config_dir = catfile( $etc_P7_dir, <system.zenka.name> );
+
+## the host overlay dir is no zenka dir [ base.host.config_dir ] : a zenka ##
+## of that name would own the overlays                                     ##
+if ( $zenka_config_dir eq <[base.host.config_dir]> ) {
+    <[base.logs]>->(
+        0, ': zenka name %s is the host config dir : no zenka etc dir',
+        <system.zenka.name>
+    );
+    $create_zenka_etc = FALSE;
+}
 if ($create_zenka_etc) {    ## create permanent zenka config dir ##
     $paths_and_modes->{$zenka_config_dir} = $etc_zenka_dirmode;
 }
@@ -144,6 +154,13 @@ foreach my $chk_path ( <[base.sort]>->($paths_and_modes) ) {
     if ( $chk_path eq $zenka_write_dir or $chk_path eq $zenka_config_dir ) {
         $uname = $current_zenka_username;
         ( $uid, $gid ) = ( $zenka_uid, $zenka_gid );
+    } elsif ( $chk_path eq $etc_P7_dir ) {
+        ## root owned : the zenka user may not rename the host overlay dir ##
+        ## [ base.host.config_dir ] -- set by root only, a zenka without   ##
+        ## root leaves it as it is                                         ##
+        next if $EFFECTIVE_USER_ID != 0;
+        $uname = qw| root |;
+        ( $uid, $gid ) = ( 0, $p7_gid );
     } else {
         $uname = $proto_7_user;
         ( $uid, $gid ) = ( $p7_uid, $p7_gid );
@@ -228,8 +245,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,..,,,,,...,..,,.,,,,,,,.,,,.,,,..,,...,,,,,..,,...,...,...,...,..,,,..,...,
-#X7TGEDTL2FBYBKUVB72ME7Q467HFMNCPKENO4NU27LU5YSNRO2ACQWR3234OWVASROZAOGLNMZ6EI
-#\\\|CZG6IX5QFJJPIIWSYVK5H7KWWOMKN33SIT5XOMMIJPCXELYC7IT \ / AMOS7 \ YOURUM ::
-#\[7]64Q65AKCXUKOR6WSEQANVHO5A2FOULQOA3HETUHJT7SKQJQOP2CI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,,,..,,...,,.,,..,,,,.,,..,,,,,..,,...,...,...,..,,,,.,...,,,,,
+#ZS3Y2G74I4FTHSYLBTPUIDGGK5NRLYB473X2HGEUUYXHM2ZVTHPJBR4TSSK6T72S6RMHJOETO6CMO
+#\\\|4AWDUCYL6H3JKJM3HJMOUZNQOMIPAZ2JKL4JUGKEOPESAEX6OAP \ / AMOS7 \ YOURUM ::
+#\[7]6BRTMTHHQMNCAFUSYASLSLET4QCGAHLAAQ4MSS6PWT634777JKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

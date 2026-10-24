@@ -20,13 +20,13 @@ if ( $args->{'auth.required'} ) {
     my $peer_addr = $session->{'http'}->{'request'}->{'client'}->{'addr'}
         // '';
     if ( length $peer_addr and $args->{'auth.exempt-loopback'} ) {
-        ## real socket peer ONLY [ never X-Forwarded-For : behind a proxy   ##
-        ## loopback would be everyone ]. auth.exempt-loopback spares        ##
-        ## 127.0.0.1 / ::1 plus any peers the operator listed in host       ##
-        ## config [ /etc/protocol-7/httpd/host.cfg :  web.auth.exempt_peers ##
-        ## = 192.0.2.42   -- full api access from that address; for set-ups ##
-        ## reaching the ui over a private LAN address instead of loopback   ##
-        ## [ e.g. a WSL host ]                                              ##
+        ## real socket peer ONLY [ never X-Forwarded-For : behind a proxy ##
+        ## loopback would be everyone ]. auth.exempt-loopback spares      ##
+        ## 127.0.0.1 / ::1 plus any peers the operator listed in host     ##
+        ## config [ /etc/protocol-7/host-config/httpd.cfg :               ##
+        ## web.auth.exempt_peers = 192.0.2.42   -- full api access from   ##
+        ## that address; for set-ups reaching the ui over a private LAN   ##
+        ## address instead of loopback [ e.g. a WSL host ]                ##
         my $norm_addr = lc $peer_addr;
         $norm_addr =~ s|^::ffff:||;
         if ( $norm_addr eq qw| 127.0.0.1 | or $norm_addr eq qw| ::1 | ) {
@@ -189,8 +189,8 @@ if ( $args->{'auth.required'} and not $auth_exempt ) {
 
 return 0;        # [ deferred : reply handler writes response ]
 
-#,,..,...,,,.,..,,,..,,,,,..,,.,.,,.,,,.,,.,,,..,,...,...,.,,,...,.,.,,..,,.,,
-#2JZXYFBYUXYPRHDHFCCUV35D3AK5UTYCOYC3KL3VEVDAASDTNAOCI5BC5GTR5CJKT2F62MZBZKDP2
-#\\\|SZHZGU465FRZSXJXSY7PXFANI32EV4UBFBUFUYDTWVSBOEHZLAC \ / AMOS7 \ YOURUM ::
-#\[7]NH2I6WCUFGMWLRHFYUPNY6XZ4D7L2BGRFUWLRSAF65OYPXDLG2CI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,,,,..,,..,...,.,.,,.,,.,.,,..,..,,...,...,.,,,,.,,,..,,.,,,..,
+#LDYNJBBS44W4J4FF2NIGC5USOHNHSESX5OODDJSGFD3H5N62NKDXN6VVXTCL7SVAZNH3VVPM7Q5YM
+#\\\|675ZBMXTNS2VMZLES7MB45SJ2SR6FVHTJJXL3HDM53H3Q57XBTA \ / AMOS7 \ YOURUM ::
+#\[7]GPSYJQ6UEH4CNFRL2SJL7QLLCNCOAK6HUPCTXEARHQWWLEWN62BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

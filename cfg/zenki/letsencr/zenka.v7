@@ -67,7 +67,7 @@ letsencr.challenge.type = http-01   # http-01 or dns-01
 ## pairs 'domain:alias' -- the registrar's zone carries                  ##
 ## _acme-challenge.<domain> CNAME _acme-challenge.<alias>, <alias> is    ##
 ## delegated to our nameserv [ no registrar credentials ] -- set both in ##
-## /etc/protocol-7/letsencr/host.cfg on the host that requests the cert  ##
+## /etc/protocol-7/host-config/letsencr.cfg on the host that requests the cert  ##
 # letsencr.dns.provider        = nameserv
 # letsencr.dns.challenge_alias = protocol-7.network:acme.protocol-7.network
 ## or one convention for every domain without its own pair : <prefix>.<domain> ##
@@ -84,7 +84,7 @@ letsencr.challenge.site_name = default   # default virtual host directory
 letsencr.ratelimit.enabled = 1
 letsencr.ratelimit.max-per-hour = 5
 
-## per-host overrides [ /etc/protocol-7/<zenka>/host.cfg, optional ] ##
+## per-host overrides [ /etc/protocol-7/host-config/<zenka>.cfg, optional ] ##
 [load_host_config]
 
 modules.load = auth.client net protocol io.unix io.ip ui clients.http \
@@ -100,8 +100,8 @@ modules.load = auth.client net protocol io.unix io.ip ui clients.http \
 
 [zenka.loop]
 
-#,,.,,,,.,,.,,.,,,.,.,,.,,.,.,,..,.,,,,,,,,..,..,,...,...,,,.,...,...,.,,,,.,,
-#KJLMRGU4X65GCR5G5A3JSEC2JMEG2R7SPVUQR2P6RIAZSQSKATAABPL36APN43EMQMT5IPVZQEL7W
-#\\\|QPTKTRWZK3BZE77XEUIQN7T7TDZVRQXES27NM47F2CUAVV3PKWA \ / AMOS7 \ YOURUM ::
-#\[7]YREAHTEGNMO6DPRMZKI7OEKQMYX2XUXQDAOOEKVQQAAGENH5NWBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,.,.,,.,,,.,,,..,,.,,,..,.,.,..,,...,...,...,.,,,..,,,,,,.,,,
+#WJMGTDO4SILFNCY7EWB3AX7OSU6VFEMFGN6PLB75W775CRPCJLOXBNG7IMEEICQIL5DTWRIMXSHLQ
+#\\\|4HK6ZMBYAGSOEH23IULMNAT75G6TYFNZOL5ANSOVLY2XR7LMSLV \ / AMOS7 \ YOURUM ::
+#\[7]UT5Z5X2EMHOKN5VJYEPTU67AH2CHVBZXFFKVGKSB3LU7DTSJJCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

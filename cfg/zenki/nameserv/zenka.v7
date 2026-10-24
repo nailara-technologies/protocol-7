@@ -8,7 +8,7 @@
 ## host without ipv6 falls back to 0.0.0.0 by itself [ like httpd ].     ##
 ## authoritative only [ REFUSED outside its zones -- no open resolver ]. ##
 ## a desktop where systemd-resolved holds :53 sets                       ##
-## 'nameserv.bind.addr = 127.0.0.1' in /etc/protocol-7/nameserv/host.cfg ##
+## 'nameserv.bind.addr = 127.0.0.1' in /etc/protocol-7/host-config/nameserv.cfg ##
 nameserv.bind.addr = 0:0:0:0:0:0:0:0
 nameserv.bind.port = 53
 nameserv.zone_dir  = '/var/protocol-7/nameserv/zones'
@@ -45,7 +45,7 @@ system.zenka.verbosity.buffer  = 2
 system.zenka.verbosity.console = 1
 
 ## required modules
-## per-host overrides [ /etc/protocol-7/<zenka>/host.cfg, optional ] ##
+## per-host overrides [ /etc/protocol-7/host-config/<zenka>.cfg, optional ] ##
 [load_host_config]
 
 ## crypt.C25519 : the sync key only, never the backend base key ##
@@ -74,8 +74,8 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml \
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,..,..,,,..,.,.,,..,,..,...,...,.,.,..,,,,.,..,,...,..,,,,,,.,,,.,.,.,,,,..,
-#CTXWZUBZWC4IV4S2IJCY6ZYUNTTIRMGNLUJPTBUHRA2HDAA5F5NFZCL7EGDFZDBEQASVPNWFRNWVS
-#\\\|3WDPPA7CSXCJEZDSGMY4WPRHO2GQARCIQRO2FCBDT5WNS3HSOHV \ / AMOS7 \ YOURUM ::
-#\[7]QGTQS4TIJTGRQ2RVJXWIUS44FOKGS3PVAAL2KPNR4DEZRINIIAAY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,,,,,,,,..,,,,,.,,,...,...,...,..,,...,...,..,,,,,,,..,...,,,,,
+#ZOOCLEO2F3Z2E7XKDZYUYXCDCXJD4J3VZBRQHZKEHVMUVMCANBMS4RTBIKJZHHZNTXYQTYDGV5SL4
+#\\\|UTB34Y73UODSQT2QQO6D2QAAQOADONDK7F5UXIKXARM3LYD3WMZ \ / AMOS7 \ YOURUM ::
+#\[7]PEFHVR7I2YNQY35CCR3B76NWYZV5VJKYLEDJG7SE7W56E5TUFQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

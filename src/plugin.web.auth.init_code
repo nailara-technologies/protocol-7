@@ -13,9 +13,9 @@ my $auth_cfg = {};
 $auth_cfg = <[format.yaml.load_file]>->($cfg_path) // {}
     if -f $cfg_path;
 
-## secret source : host config ONLY [ base.load_host_config :        ##
-## /etc/protocol-7/<zenka>/host.cfg 'web.auth.secret = ...' ] -- the ##
-## tracked auth.yaml must never carry a secret : refuse to honor one ##
+## secret source : host config ONLY [ base.load_host_config :               ##
+## /etc/protocol-7/host-config/<zenka>.cfg 'web.auth.secret = ...' ] -- the ##
+## tracked auth.yaml must never carry a secret : refuse to honor one        ##
 my $yaml_secret = $auth_cfg->{'secret'} // '';
 if ( length $yaml_secret ) {
     <[base.logs]>->(
@@ -49,8 +49,8 @@ $data{'plugin.web.auth'}{'cfg'} = $auth_cfg;
 
 0;
 
-#,,..,..,,.,,,,..,,..,...,,.,,,..,,,,,,,,,,..,..,,...,...,.,.,...,,.,,,.,,.,,,
-#AP5Z2OYWLBO7VDNBDQ2ERSJAC37BQJFBFSNFTCAFY2ROAZQV37XLC7LMAYIPIMLCTP3JNXMKDFELS
-#\\\|VSBR7KM4NIV7KM6PFTO7FPBSNDSI2STWPGAFFKI275XSXNAYVP2 \ / AMOS7 \ YOURUM ::
-#\[7]B5LSCJGZZPEJ5I5J5C67QQDDTCVDA2XZVTGQKFOJHGRQMO4Q3UAY 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,...,...,..,,.,,,,..,.,.,,..,..,,...,...,,.,,,,.,...,,,.,,..,
+#6LSUF5J2HMMLOKWRY3DC6HZV6K3MNEOYNFZTHCZJMFHTYMPCI7BCYLMPUF5FR2J6GTLN7EA5EJJXU
+#\\\|U3OZDC2NQVWFLYRBRVLAFETZDJAPFLKXTPKLTCSCNUQQALWYT4F \ / AMOS7 \ YOURUM ::
+#\[7]Z4TKK462Q54QVIC7NBY54GOSI5ERJEVFYC6HC22BI7CTWTEVEACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
