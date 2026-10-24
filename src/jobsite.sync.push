@@ -59,8 +59,12 @@ for my $url (@urls) {
     <jobsite.sync.url_tokens> //= {};
     <jobsite.sync.url_tokens>->{$url} = $auth_token;
     if ( not length $auth_token ) {
+        ## loopback needs none [ auth.exempt-loopback ] : level 2 there, a ##
+        ## remote url without a token is a misconfiguration : level 0      ##
+        my $loopback
+            = $url =~ m{^https?://(?:127\.0\.0\.1|\[::1\]|localhost)[:/]}i;
         <[base.logs]>->(
-            1,
+            $loopback ? 2 : 0,
             'jss.sync: no auth token configured '
                 . 'for %s : pushing unauthenticated',
             $url
@@ -234,8 +238,8 @@ my $log_level = $total_jobs ? 1 : 2;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,.,,..,,,,,,,..,,.,,.,,,,.,,.,.,.,.,,,,,.,,,..,,...,..,,..,,.,.,...,,..,...,
-#32DXK66DIJNKL7X2M7GV4MXP75XY67ADVMEBNFDBCD3U3OX4ZZ737SMQLZNGYIWJK23RJQ6QUUGMM
-#\\\|JJIUEPUL5HJSBVMVB2VJHX4WDIHBENEDNR3O7GMCRJHWNW43T27 \ / AMOS7 \ YOURUM ::
-#\[7]4GZFY6GMYKSXDU6NNRWV7SW6U7NVVY34IWC62NOY4UJJFDV4QMCQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,.,...,...,...,.,.,.,,,.,,,,..,..,,...,...,.,.,,..,,,,,.,,,.,.,
+#3WE65ZDCIG4ZZGXCZSIFOF7VNFC4HMFOY7EE5RHFGGCW3BMJUJOTSTD2HKKZEUPVEL2M7CFXJBIDY
+#\\\|LDWM2R64WV5YFOEIH6IKZIJXBBTDA7HKIRNBNJBAOU6ZKYNCBWW \ / AMOS7 \ YOURUM ::
+#\[7]JJKMYRKKRXSNVLXCFEISCLKGFQ65S4FNXFLGWGI73ETIZIT2BWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
