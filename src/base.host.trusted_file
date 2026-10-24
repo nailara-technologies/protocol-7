@@ -1,0 +1,59 @@
+## [:< ##
+
+# name   = base.host.trusted_file
+# descr  = may this host config file be applied [ fail closed ]
+# param  = <absolute path>
+# return = TRUE \ ( FALSE, <why> ) in list context
+# note   = a host config sets keys of a zenka that may run as root : only
+#          an account above the zenka user may have written it. the file
+#          [ regular, no symlink ] and every directory up to '/' : owned
+#          by root or by the tree owner [ the dev checkout's user, never
+#          the zenka user ], no group \ other write. else refused -- the
+#          caller logs it at level 0 and applies nothing
+
+my $path   = shift // '';
+my $refuse = sub { return wantarray ? ( FALSE, shift ) : FALSE };
+
+return $refuse->('not an absolute path') if index( $path, qw| / | ) != 0;
+return $refuse->('path not valid')       if $path =~ m{/\.\.?(/|$)};
+
+my %owner_ok  = ( 0 => TRUE );
+my $root_path = <system.root_path> // '';
+my $tree_stat = length $root_path ? File::stat::stat($root_path) : undef;
+if ( defined $tree_stat ) {
+    my $zenka_uid
+        = ( getpwnam( <system.amos-zenka-user> // 'protocol-7' ) )[2] // -1;
+    $owner_ok{ $tree_stat->uid } = TRUE if $tree_stat->uid != $zenka_uid;
+}
+
+return $refuse->('missing')            if not -e $path and not -l $path;
+return $refuse->('symlink')            if -l $path;
+return $refuse->('not a regular file') if not -f $path;
+
+my @check = ($path);
+( my $dir = $path ) =~ s{/[^/]+$}{};
+while ( length $dir ) {
+    push @check, $dir;
+    $dir =~ s{/[^/]*$}{};
+}
+push @check, qw| / |;
+
+foreach my $entry (@check) {
+    my $stat = File::stat::lstat($entry);
+    return $refuse->("$entry : cannot stat") if not defined $stat;
+    return $refuse->("$entry : symlink")     if -l $entry;
+    return $refuse->( sprintf '%s : owner uid %d', $entry, $stat->uid )
+        if not $owner_ok{ $stat->uid };
+    return $refuse->(
+        sprintf '%s : mode %#o, group \ other writable',
+        $entry, $stat->mode & 07777
+    ) if $stat->mode & 0022;
+}
+
+return TRUE;
+
+#,,..,.,,,..,,,..,,,.,..,,.,.,.,,,.,,,...,,,.,..,,...,...,...,,,,,,.,,,..,,,,,
+#6POC2CTVXJHO5YBIQO2ENQRT4KLVROM22BNL7IPYFRW2FPID5CITR7DAHXWQEKZKHMBQVDMWAWV5U
+#\\\|ONG2KHQ3RCP63CL4JRJY36N3QTOLCOMFH5Y6DOPUYIYLTV2OBTM \ / AMOS7 \ YOURUM ::
+#\[7]XKHRRQ7NATYFSCTNWWV7MI46GAG3GXILXP64YOSWKBV2DH4AH6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

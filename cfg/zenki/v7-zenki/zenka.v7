@@ -49,7 +49,7 @@ v7-zenki.cfg.zenka_symlink_dir       =  '/usr/local/bin'
 v7-zenki.cfg.install_workflow_shortcuts = yes   # [yes|no] p7.<shorthand> links
 
 ### ZENKA DEPENDENCY AUTO-INSTALL [ sys_deps start condition ] ###
-## hosts enable it in /etc/protocol-7/v7-zenki/host.cfg :
+## hosts enable it in /etc/protocol-7/host-config/v7-zenki.cfg :
 #v7-zenki.cfg.auto_install_deps  =  yes    ## wait for + install declared deps
 v7-zenki.cfg.sys_deps.retry_after = 3600   ## secs before a 'failed' zenka
                                            ## re-probes + re-installs
@@ -67,12 +67,13 @@ v7-zenki.cfg.zenka_stdout_redir = yes # ::enabled::
 
 # create protocol-7 user if required.,
 ## layered host config : cfg/ defaults < detected facts < host decisions ##
-## [ /var/protocol-7/host/detected.cfg : written once by base.host.detect, ##
-## delete it to detect again -- host.mem_mb, host.cpus, host.ipv6 ]        ##
+## [ /etc/protocol-7/host-config/host.detected : written once by          ##
+## base.host.detect, delete it to detect again -- host.mem_mb, host.cpus,  ##
+## host.ipv6 ]                                                             ##
 [base.host.detect]
-[load_config_file_if_present:'var-dir:host/detected.cfg']
+[load_config_file_if_present:'cfg-dir:host-config/host.detected']
 
-## per-host overrides [ /etc/protocol-7/v7-zenki/host.cfg, optional ] : ##
+## per-host overrides [ /etc/protocol-7/host-config/v7-zenki.cfg, optional ] : ##
 ## e.g. 'load.start_setup = remote-server-lowram' -- the start profile    ##
 ## without a local-modifications commit                                    ##
 [load_host_config]
@@ -92,8 +93,8 @@ v7-zenki.cfg.zenka_stdout_redir = yes # ::enabled::
 
 [zenka.loop]
 
-#,,..,...,.,,,,..,.,.,,..,...,...,,,.,,,,,..,,..,,...,...,.,.,..,,,,,,,,,,...,
-#YUKGDC7GLVUL2OANBCG57OARZORTSCGPXMDE4KKU5OUEMOZDEBPRKKFYVOMC2VGFH5IWGI4TLCJOU
-#\\\|XTRJYDSSCL4446BNHBOMEAZLBHIJCRVTFKGVP45DPI5VAUXQ7ZW \ / AMOS7 \ YOURUM ::
-#\[7]LXWLKJDUMZZQGPUOIWS6VLESVUVHJNXVUXUIB3P5TVHRZIA2OKBA 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,.,..,,,,.,,,,,,,,,,,,,..,,.,,,..,,...,...,..,,,,,,...,,,.,..,,
+#4V7F4T3D4NVRGYH7KESO6TIJZTX7UMPGKYTQR52DWE7MMDMBHAO7O3E4AFVS4OWVXEECKVLYCV2UW
+#\\\|INFEOQLMHO3TXEFANUDBG4UVOOOGWETBD57O7CDAKKA2WNARK4N \ / AMOS7 \ YOURUM ::
+#\[7]HAZ3GUEV7RGGMTNWFLNZYT5LGIWBJH56XOHA6YKQYINAZFINBCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -81,7 +81,7 @@ nothing a host relies on while the feature is off.
 5. **config** : `v7-zenki.cfg.auto_install_deps` keeps default no ; add a
    commented example line + the retry key to `cfg/zenki/v7-zenki/zenka.v7`
    [ or where the other v7-zenki.cfg keys are documented ] ; hosts enable
-   it in /etc/protocol-7/v7-zenki/host.cfg [ not your part ].
+   it in /etc/protocol-7/host-config/v7-zenki.cfg [ not your part ].
 
 ## rules
 
@@ -145,8 +145,8 @@ run it plus `test-dependency-resolve-hook.pl` [ must stay green ] and
 new \ changed files, test output [ last lines ], format-code result,
 anything you had to decide yourself.
 
-#,,,,,,,,,.,.,,,,,,,.,,,,,.,.,...,,,.,,..,,..,..,,...,...,..,,,,,,.,.,,..,...,
-#DUFAATAW3VQ2LMBQLGCSN46FFHCKS5E4JWHO5Y2QA6UPC464HWLFPHLSJ2EPT77ZMS6MJOEGIJBVQ
-#\\\|4TV7ZJBDLGB5FU732VESNEI3NF4765PZK7EXSVUOGJLP6NIGK2W \ / AMOS7 \ YOURUM ::
-#\[7]7QAOC3MSQM57QAEPRXMOBXCIZAXBSHFTRHFSWK3IFSPGGBFO34DA 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,..,,,.,,.,,,,..,,,,,...,.,.,..,,...,...,...,,,,,,,,,,.,,,..,
+#55JZDKEMRCQRSCPET3QCRNERBC4RDCTH6ZGCV5O3YRZPKQ6QZYET5D4D6H4STJN65MOCLZ4IBUMZM
+#\\\|X5O3XBEFNLKTELHX7P7RRNEPSOLFAUYZRTX5IA62QLPQWZPVVG7 \ / AMOS7 \ YOURUM ::
+#\[7]SH7EFCHAC7VVGNJFHQ6XMJVEF2WC2OZ4CEOZSFX7IIJYD26UXSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,52 @@
+## [:< ##
+
+# name   = base.host.config_dir
+# descr  = the directory of the host overlays [ admin owned ]
+# return = /etc/protocol-7/host-config
+# note   = the per-host layer that replaced the local-modifications
+#          commit : '<zenka>.cfg' overlays [ base.load_host_config ] and
+#          host.detected [ base.host.detect ]. zenka state stays in
+#          /etc/protocol-7/<zenka>/ [ zenka owned ] -- an overlay there
+#          could be replaced by the zenka user, so overlays never live
+#          in a zenka directory. 'host-config' is no zenka name
+#          [ refused in base.load_host_config + check-zenka-paths ].
+#          as root : /etc/protocol-7 root:<zenka group> 0755 and this
+#          directory root:root 0755 [ base.host.trusted_file checks both ]
+
+my $etc_dir = ( <system.path.zenka-dirs> // {} )->{'etc_P7'}
+    // '/etc/protocol-7';
+my $cfg_dir = "$etc_dir/host-config";
+
+return $cfg_dir if $EFFECTIVE_USER_ID != 0;
+
+my $user = <system.amos-zenka-user> // qw| protocol-7 |;
+my $gid  = ( getpwnam $user )[3]    // 0;
+
+my @fix = ( [ $etc_dir, 0, $gid, 0755 ], [ $cfg_dir, 0, 0, 0755 ] );
+foreach my $entry (@fix) {
+    my ( $dir, $uid, $dir_gid, $mode ) = $entry->@*;
+    ## refused by base.host.trusted_file, never followed ##
+    next if -l $dir;
+    if ( !-d $dir ) {
+        if ( not mkdir $dir, $mode ) {
+            <[base.logs]>->( 0, ': %s : mkdir [ %s ]', $dir, $OS_ERROR );
+            next;
+        }
+        <[base.logs]>->( 1, ': host config dir created : %s', $dir );
+    }
+    my $stat = File::stat::lstat($dir);
+    next if not defined $stat;
+    if ( $stat->uid != $uid or $stat->gid != $dir_gid ) {
+        chown $uid, $dir_gid, $dir
+            or <[base.logs]>->( 0, ': %s : chown [ %s ]', $dir, $OS_ERROR );
+    }
+    chmod $mode, $dir if ( $stat->mode & 07777 ) != $mode;
+}
+
+return $cfg_dir;
+
+#,,,.,,.,,..,,,,.,,.,,...,,..,,,.,...,,..,...,..,,...,...,,.,,,,,,,.,,.,.,,.,,
+#CHBPRGOFK5UYD7ULGQG2QVMXVNQD7YACJ6VCXNJ3WC7JT2U4MEBREAERBQOXPKW2XWQLNZF2IABHC
+#\\\|W7HN5ETHLVTA7BIRBWJRJDDHYK42MB5CLV3EJKUZHUZ2IZ7E6KW \ / AMOS7 \ YOURUM ::
+#\[7]M3LUQUWC5EIYTMVK2SVSJHG42UF6NHJ4T3QE63VXBNERDGW3RGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

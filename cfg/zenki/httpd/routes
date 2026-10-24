@@ -32,12 +32,12 @@ POST  /auth/logout   httpd.route.handler.web-logout
 ## the WSL host ] is NOT loopback : it either logs in via the ui prompt,  ##
 ## or the operator exempts that peer address in host config [ applies    ##
 ## only to routes carrying auth.exempt-loopback ] :                      ##
-##   /etc/protocol-7/httpd/host.cfg :                                    ##
+##   /etc/protocol-7/host-config/httpd.cfg :                                    ##
 ##     web.auth.exempt_peers = 192.0.2.42                                ##
 ##   [ full api access from that address -- use sparingly ]              ##
 ## a local hub pushing to 127.0.0.1 needs no token with the exemption    ##
 ## as enabled below ; a remote jobsite carries its own bearer token in   ##
-## /etc/protocol-7/jobsite/host.cfg [ jobsite.cfg.sync_token ]           ##
+## /etc/protocol-7/host-config/jobsite.cfg [ jobsite.cfg.sync_token ]           ##
 GET   /jobs.json    httpd.route.handler.web-relay  [command:web.jobs-data,auth.required=1,auth.exempt-loopback=1]
 POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync,command.foreign=web.jobs-sync-foreign,auth.required=1,auth.exempt-loopback=1]
 
@@ -68,8 +68,8 @@ POST  /iris/negotiate httpd.route.handler.iris-negotiate
 POST  /cursor       plugin.web.space.handler.cursor_update
 POST  /context      httpd.route.handler.context
 
-#,,.,,.,.,,,,,,,.,.,,,,..,,.,,,.,,.,.,,.,,,,,,..,,...,...,...,..,,.,,,..,,.,.,
-#DIVLZXQYU4SXDFKE2KMMYR5LD6EEFJ2XVCVGABSU5YHLL6VBI2YJZTD7FTXEEDVKN6JSCQ3M5HHX4
-#\\\|54E5B4RLZ4YSKZ2QVATTA2OLA7GWBCXM74JAM4XLQTHH524NUWX \ / AMOS7 \ YOURUM ::
-#\[7]LKEX7UGWV74XUJE5HGAVGOQHC765G3IXM5SXG43TVN5QHIXJRCDI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,..,,...,,,.,,.,,,,.,..,,,,,,.,,,..,,...,..,,...,..,,,,,,,..,,.,,
+#3CLCUV52OPADJCNGOQGUEVNAYBKKLZM3HGOAWMTJTOKPOSZS72GCFCQH77A63ZJKJDMKXBA5MDHCY
+#\\\|CARKIEROND2FEXMRTMZVQTGL33HOXYVDQ7AC6R7APA7FA3VTEBU \ / AMOS7 \ YOURUM ::
+#\[7]LZPER6HJ4BNQDIVWIWWPAAWNVZZISPQA7VEOWIZLGN2MJXFH2GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

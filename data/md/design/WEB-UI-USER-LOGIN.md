@@ -268,7 +268,7 @@ access.web.role.push   =  web.jobs-sync
 access.web.usr.jobsite-push  =  :push      ## the machine push token ##
 access.web.exempt            =  :write     ## loopback \ exempt_peers ##
 
-## /etc/protocol-7/httpd/host.cfg [ per deployment, NOT tracked ]
+## /etc/protocol-7/host-config/httpd.cfg [ per deployment, NOT tracked ]
 web.auth.rights.<user> = read | write
 ```
 
@@ -481,8 +481,8 @@ bright surfaces ]. `#auth-overlay` becomes a small tabbed box :
 - password reset by email : no mail flow ; resets are admin-issued.
 - multi-host session sharing beyond one host's shared dir.
 
-#,,..,,,,,.,.,..,,...,,,.,...,...,...,,,.,,,,,..,,...,...,..,,...,..,,,,.,,,,,
-#7BNBT4P6KHB5NXCDLLJVEJYVC4PR4FVSLOVIBJYPKYCG4YWCXEJATSC5B3ZY2VD4CD7CNPVWV7QBQ
-#\\\|FTM47P3HTHIPZQLIUT4QRXSJLXIMV67GBKEX74Y7E5ZA36X22LZ \ / AMOS7 \ YOURUM ::
-#\[7]POMHQYTXVFWUW4B75N4ZLHQ5QZE3OKYF7LW5AIO24RULSWAVMKDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,...,,.,,,,,,.,.,.,.,.,.,,..,.,.,..,,...,..,,..,,.,,,.,.,,..,,..,
+#E7UBFYHJZ7RJVODLK4LZJHMOYN55PPOEZEXKWKVEDZ6J5Q4TLNKR64MC3NMMISLQJIZZLJQWYVRF4
+#\\\|EZCJQDCQ2TD2V2WGBZ2ABBWDXJSPUDQ5FWVX6IMGTD5NHDX5CCE \ / AMOS7 \ YOURUM ::
+#\[7]KYBMZBALEBVPFQUA4LCVC257OVLW2WOJOLRYWJC223T7VFZDY2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

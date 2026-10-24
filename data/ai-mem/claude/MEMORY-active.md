@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [project-2026-10-24-srv-a-third-worker](project-2026-10-24-srv-a-third-worker.md) — srv-A = srv-U's 3rd cpu worker [ link label = host name, assess_parallel 3 ] ; twofish random-key swap srv-A + srv-U ; mem_max scope fixed for non-root [ 9406bea69 ] ; task.create+ double-encodes ; open : first live assessment, srv-U reboot test
 - [project-2026-10-24-local-model-edit-comparison](project-2026-10-24-local-model-edit-comparison.md) — 35b + 14b exact on a 4-line edit, 9b 1 of 4 + false 'done' ; cat test = safety avoidance ; edit_file indentation fix [ 3c9a18d32 ] ; open : coding tool hang, per-model sampler, dead handler.edit_file
 - [project-2026-10-24-delta-link-managed](project-2026-10-24-delta-link-managed.md) — pri -> delta fetch link SUPERVISED [ delta.json record + ssh-w, by-hand tunnel gone ] ; jobsite fetched stream retry [ 7390c154d ] ; `reload source` skips init_code -> `reload init`
 - [project-2026-10-24-session-handover-link-live-ids-qlk](project-2026-10-24-session-handover-link-live-ids-qlk.md) — START HERE : link pri live, ids encoded once, QLK closed, distributed assessment live [ local gpu claims pri tasks ], next yourum 3rd worker
@@ -217,8 +218,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [auth-watcher-add-incoming](project-2026-10-16-auth-watcher-add-incoming.md) — 2026-10-16 day [ superseded by session-handover-installer-cloud ; holds the PLAN steps 1-7 + style rules ] : taeki auth live on 4 servers, cube inotify re-read of authorized keys, dep-graph plugin scoping [ -954 eager subs ], p7-keys add-incoming ; OPEN : push+pull d5ce1a7cb + srv-U incident test, unit srv-U\srv-F, 4ZW
 - [session-handover-installer-cloud](project-2026-10-17-session-handover-installer-cloud.md) — START HERE 2026-10-17 [ last 5c09e923b ] : deps line done [ frame, tracked, backend, p7-install, p7-deps restyled ], cloud dispatch working [ pty, launch clone, push path ] ; OPEN : root runner, debs + signed repo, legacy scripts, cloud tool polish
 
-#,,..,,,.,,,,,.,,,.,.,..,,,.,,,.,,...,,,,,,..,..,,...,...,.,.,,,.,...,,,.,.,.,
-#DKTP2547CIIDPQYE4MKHSMOACJTHWE727HLKQA5OL2MK6X4IES72IJVD6WYWT5LFL5YZH2ZD4ANB4
-#\\\|2IZ3OSVSOHBRST3YJMFUVO4BFOZIYB6BWRF64LE565LDQDVC27J \ / AMOS7 \ YOURUM ::
-#\[7]WXIQZH5AKJMNNT6JQ5KDPQSYOF4ZWGUQPJ4NX67REMEMUF7LE6DA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,,.,,,,,,.,,,,,.,.,,,..,,.,.,..,,...,...,...,.,,,.,,,.,,,...,
+#OWVW62FLVMNC77K7MYQXBN46TBWB3JGR2JUDFH2HOWIPHD5NKDLCSZOFYM3OF5BDZOSE36PD6CUD4
+#\\\|V65CEOONKMM4OUYIXY7JJMOD2HABSATU3XILLBXIXW4XLLDMK5S \ / AMOS7 \ YOURUM ::
+#\[7]OECVNF4BKA3MHNYTWTAR7Y5GEJOCFCEONFTT5VGRBX5ODJ2R64AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
