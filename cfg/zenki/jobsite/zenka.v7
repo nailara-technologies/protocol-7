@@ -47,11 +47,11 @@ jobsite.cfg.rescan_interval = 7007  ## current ondemand timeout : 7200 ##
 ## seconds between sync pushes to httpd cache
 jobsite.cfg.sync_interval = 300
 
-## remote fetch zenka [ optional ] : when set to an external route like     ##
-## 'external.delta.site-yaml', scans + refetches run on THAT host's         ##
-## site-yaml [ stepstone blocks this host's ip range ] and fetched jobs     ##
-## travel back through its durable outbox + subscribe-fetched STRM          ##
-## transport. default : unset == local site-yaml                            ##
+## remote fetch zenka [ optional ] : when set to an external route like ##
+## 'external.delta.site-yaml', scans + refetches run on THAT host's     ##
+## site-yaml [ stepstone blocks this host's ip range ] and fetched jobs ##
+## travel back through its durable outbox + subscribe-fetched STRM      ##
+## transport. default : unset == local site-yaml                        ##
 ### set in /etc/protocol-7/host-config/jobsite.cfg :
 ## jobsite.cfg.fetch_zenka = external.delta.site-yaml
 
@@ -78,17 +78,17 @@ jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
 ## httpd sync endpoint : repo default is a hub pushing to its own    ##
 ## httpd [ loopback needs no auth token with auth.exempt-loopback ]. ##
 ## any other target [ several : sync_urls ] and its bearer token go  ##
-## in /etc/protocol-7/host-config/jobsite.cfg :                             ##
+## in /etc/protocol-7/host-config/jobsite.cfg :                      ##
 ##   jobsite.cfg.sync_url    = http://<host>/jobs-sync               ##
 ##   jobsite.cfg.sync_urls   = <url> [<url> ..]                      ##
 ##   jobsite.cfg.sync_token  = <token>   ## or per-url : ##
-##   jobsite.cfg.sync_tokens = <url>=<token> [<url>=<token> ..]      ##
+##   jobsite.cfg.sync_tokens = <url>=<token> [<url>=<token> ..]       ##
 ##   jobsite.cfg.sync_url_roles = <url>=owner|marks [<url>=<role> ..] ##
 ## [ roles : owner [ default ] = full sync behaviour ; marks = export ##
 ##   marks + prefs ONLY, never job state or removal signals -- for    ##
 ##   a url whose web belongs to a DIFFERENT jobsite, e.g. forwarding  ##
 ##   export marks to a host that does not own this stock ]            ##
-## [ token : p7c web.auth-issue jobsite-push -ttl 31536000 ]         ##
+## [ token : p7c web.auth-issue jobsite-push -ttl 31536000 ]          ##
 jobsite.cfg.sync_url      = http://127.0.0.1/jobs-sync
 jobsite.cfg.sync_urls     =
 
@@ -116,17 +116,17 @@ access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       mark-exported unmark-exported repair-encoding \
                       delete
 
-## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
-## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## devmod commands : only reachable while devmod is loaded on THIS zenka ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
 access.devcmd.usr.cube = devmod:*
 
 modules.load = auth.client net protocol io.unix ui format.yaml jobsite \
                                     clients.http clients.https  devmod
 
-## host-specific overrides [ base.load_host_config : /etc/protocol-7/  ##
-## jobsite/host.cfg, 'key = value' on top of this file ] -- e.g. a     ##
-## cpu-only host sets jobsite.cfg.assessment_model to the model its    ##
-## coding zenka serves [ data/tasks/coding-cpu-host-setup.md ]         ##
+## host-specific overrides [ base.load_host_config : /etc/protocol-7/       ##
+## jobsite/host.cfg, 'key = value' on top of this file ] -- e.g. a cpu-only ##
+## host sets jobsite.cfg.assessment_model to the model its coding zenka     ##
+## serves [ data/tasks/coding-cpu-host-setup.md ]                           ##
 [load_host_config]
 
 [load_modules:<modules.load>]
@@ -140,8 +140,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite \
 
 [zenka.loop]
 
-#,,,,,.,,,..,,,,.,.,.,,..,...,,,,,,,,,...,.,.,..,,...,...,..,,...,,..,,,.,.,,,
-#KWH4ID64P5CE7O2GEHVMQRRHPGXLF4V2Y7HACSIGFJBCWXHIH36KTV3JC7XXBR22K6TSEFZM6WD6G
-#\\\|ZAEM34JYLE4V27JWHFTAAXOF7EBZBINAH7FNTCBZI6K5MVPU22R \ / AMOS7 \ YOURUM ::
-#\[7]RBANEANSA2BIEE72OSBIBGMHT4ERVHBFLVGTWX2RPAD34N2GQAAY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,,,.,,,.,...,..,,...,,,.,..,,..,,...,..,,..,,,,.,,,,,...,.,.,
+#KISM3CXIPJC5Q3WEEFMNVZMB66ZLCVCHNPAHJTDKWXBQNM6E4AAVJ6XHX2QRXH7UIC4EEKS7U3OGW
+#\\\|CH3ZESLZ7JBYTJKTUXBHAQ5JWEG3VXV5SSB7BNLCLZISMZQVDSV \ / AMOS7 \ YOURUM ::
+#\[7]BZLQSFHYD4JS5NDIMDNCUEVPMRWLSFQNLT7OYHIEP2WFYKFWV4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,16 +9,16 @@ access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       spawn status detach attach sign pubkey stop \
                       hold release secrets
 
-## crypt.C25519 loaded for Crypt::Ed25519 + checksum-display helpers    ##
-## only -- the holder child calls Crypt::Ed25519 primitives directly,   ##
-## never crypt.C25519.gen_keys [ which loops on <[event.once]>, the     ##
-## same fork+Event.pm hazard sessions.holder.child's own header note    ##
-## documents ]. auto_load_keys=0 keeps crypt.C25519's own auto-load/    ##
-## auto-create machinery fully inert -- this zenka holds its OWN        ##
-## identity under /var/protocol-7/sessions/, not any user's ~/.n/       ##
-## user-keys/. deliberately NOT loading the full keys zenka family:     ##
-## keys.init_code unconditionally clobbers <system.amos-zenka-user>,    ##
-## which [root.drop_privs:<system.amos-zenka-user>] below depends on.   ##
+## crypt.C25519 loaded for Crypt::Ed25519 + checksum-display helpers only  ##
+## -- the holder child calls Crypt::Ed25519 primitives directly, never     ##
+## crypt.C25519.gen_keys [ which loops on <[event.once]>, the same         ##
+## fork+Event.pm hazard sessions.holder.child's own header note documents  ##
+## ]. auto_load_keys=0 keeps crypt.C25519's own auto-load/ auto-create     ##
+## machinery fully inert -- this zenka holds its OWN identity under        ##
+## /var/protocol-7/sessions/, not any user's ~/.n/user-keys/. deliberately ##
+## NOT loading the full keys zenka family: keys.init_code unconditionally  ##
+## clobbers <system.amos-zenka-user>, which                                ##
+## [root.drop_privs:<system.amos-zenka-user>] below depends on.            ##
 crypt.C25519.auto_load_keys = 0
 
 modules.load = auth.client net protocol io.unix sessions crypt.C25519
@@ -33,8 +33,8 @@ modules.load = auth.client net protocol io.unix sessions crypt.C25519
 
 [zenka.loop]
 
-#,,..,.,,,,.,,,,.,.,,,.,.,,.,,,,,,...,...,,.,,..,,...,...,...,.,,,,..,.,,,.,,,
-#IIJVXQ3EKJ5BUEAYWWLE5V2OL7RTSPVE7ZDMQQDFKJC7BJU564VKOMLWO4Y4BL24VGWV7GQ76Z33K
-#\\\|KZYZNJR2WQE2RBUFCV6PJYQRCNBZFOJJ2QGYXLDBMKNLQ3ML2DO \ / AMOS7 \ YOURUM ::
-#\[7]BOZ2Z73WAEITMZ54ZG64HTDKXGK7XHAD2N56PACVZWZA3E4VTIAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,,.,,,,.,..,,..,,,,.,,.,,.,.,..,,...,...,.,.,.,.,,,,,..,,.,.,
+#4PL7ILG63PJUHORYVYGLHQOVWL3I7RJVBNCDH4CELVWNE7TPXWNJ3BDTNF7V74VZFC542KKAHV46O
+#\\\|HBQZJZTELU55TKV7KZZP66XKIEPSXFDER6XEVZERB7EGXO6QBMZ \ / AMOS7 \ YOURUM ::
+#\[7]JGMXPOW54UUSYCJSGO654V2E63AGWPLPB3PSQTDLMJ7RAL5ZYMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

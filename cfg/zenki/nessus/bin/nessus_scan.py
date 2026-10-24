@@ -79,8 +79,9 @@ class NessusClient:
             fail('cannot reach nessus at %s [ nessusd down? ] : %s' % (
                 self.base_url, exc.reason))
         except OSError as exc:
-            ## transient socket failures [ reset during server state      ##
-            ## transitions ] reported as clean errors, not tracebacks     ##
+            ## transient socket failures                                   ##
+            ## [ reset during server state transitions ] reported as clean ##
+            ## errors, not tracebacks                                      ##
             fail('connection error on %s %s : %s' % (method, path, exc))
 
     def login(self, username, password):

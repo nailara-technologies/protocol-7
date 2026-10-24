@@ -42,40 +42,42 @@ access.cmd.usr.cube = heart verify-instance commands reload show-access \
                       adapter-lmstudio-repair adapter-export adapter-import \
                       app-models
 
-## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
-## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## devmod commands : only reachable while devmod is loaded on THIS zenka ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
 access.devcmd.usr.cube = devmod:* test_discover test_api_limit \
                           test_api_fallback test_end_to_end_local
 
-## task zenki the task dispatch claims from : a space separated LIST  ##
-## [ 'task' = the local one, default ]. a single name works exactly   ##
-## as before. an external route [ 'external.<link>.task' ] makes this  ##
-## host take that host's tasks for the models it serves itself [ local,##
-## llama, review ] : peek before claim, a notice stream and a poll per ##
-## listed zenka [ models.task.startup ], each independent -- one down  ##
-## never blocks the others. set per host in /etc/protocol-7/models/    ##
-## host.cfg -- the link and its grants come first ; change the list at ##
-## run time with 'models.set-zenki <list>'                             ##
+## task zenki the task dispatch claims from : a space separated LIST        ##
+## [ 'task' = the local one, default ]. a single name works exactly as      ##
+## before. an external route [ 'external.<link>.task' ] makes this host     ##
+## take that host's tasks for the models it serves itself                   ##
+## [ local, llama, review ] : peek before claim, a notice stream and a poll ##
+## per listed zenka [ models.task.startup ], each independent -- one down   ##
+## never blocks the others. set per host in /etc/protocol-7/models/         ##
+## host.cfg -- the link and its grants come first ; change the list at run  ##
+## time with 'models.set-zenki <list>'                                      ##
 models.cfg.task_zenka = task
 ## claimer name sent as task.claim's 2nd arg ##
 models.cfg.task_agent = models
-## remote task zenka : a task pinned to a model [ ':model:<key>:', jobsite ##
-## assessments ] is claimed only for these registry keys [ space        ##
-## separated, compared by the content half ]. empty : only a pin equal  ##
-## to a model the local coding zenka has loaded [ coding.inference-     ##
-## status ] -- anything else stays pending for its owner, never re-     ##
-## pinned, never a gpu server swap per task                              ##
+## remote task zenka : a task pinned to a model                             ##
+## [ ':model:<key>:', jobsite assessments ] is claimed only for these       ##
+## registry keys [ space separated, compared by the content half ]. empty : ##
+## only a pin equal to a model the local coding zenka has loaded            ##
+## [ coding.inference-status ] -- anything else stays pending for its       ##
+## owner, never re-pinned, never a gpu server swap per task                 ##
 models.cfg.task_models =
 ## remote task zenka : seconds between '<task_zenka>.next' polls ##
 models.cfg.task_poll_interval = 30
-## in-flight claim limit : at most N tasks of our own claimed \ started  ##
-## but not completed \ failed [ 0 = unlimited ]. unset [ default ] : one  ##
-## claim per ready local backend serving the task's pin [ coding.infer- ##
-## ence-status ] -- a models at capacity leaves tasks pending for other  ##
-## hosts' models, and claims the next when one of its own completes     ##
+## in-flight claim limit : at most N tasks of our own claimed \ started but ##
+## not completed \ failed [ 0 = unlimited ]. unset [ default ] : one claim  ##
+## per ready local backend serving the task's pin                           ##
+## [ coding.inference-status ] -- a models at capacity leaves tasks pending ##
+## for other hosts' models, and claims the next when one of its own         ##
+## completes                                                                ##
 models.cfg.task_max_claims =
-## seconds a claim may hold its slot without completing [ default 1800, ##
-## min 60 ] : a stuck or externally failed task frees its slot after it ##
+## seconds a claim may hold its slot without completing                   ##
+## [ default 1800, min 60 ] : a stuck or externally failed task frees its ##
+## slot after it                                                          ##
 models.cfg.task_claim_ttl = 1800
 
 [load_host_config]
@@ -101,16 +103,16 @@ models.task.default_model = local
 #
 [get_session_id]
 
-## remote task zenka only : notice stream + fallback poll, armed after ##
-## the privilege drop [ a reload re-arms from models.init_code ]       ##
+## remote task zenka only : notice stream + fallback poll, armed after the ##
+## privilege drop [ a reload re-arms from models.init_code ]               ##
 [models.task.startup]
 
 ## Enter Event Loop
 #
 [zenka.loop]
 
-#,,.,,,.,,,.,,...,,..,.,,,...,.,.,,,,,,,,,...,..,,...,...,,..,.,.,...,,.,,,.,,
-#WTCKKZFH2MURX7HXVW46ML73AZJNGS6VW5VK4APKDXZF6CLJZSH4MBNOR53CJAJ3UY6VDWAY7XT5U
-#\\\|JINVK6S5BX46LE5OXOH3BK72OCXKFFSIDGCFEMZ6YMGMTUMQ3XD \ / AMOS7 \ YOURUM ::
-#\[7]ZI2EMHOQTY2LRMTYN5AKOMAUFA53BBY7C6A35E4T6XJKI2YOVKAI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,..,,.,.,,.,,,,,,..,,.,,,,.,,..,,...,...,.,,,..,,,..,.,.,,.,,
+#NB7EWRCZ2B56HEFINTKQHLLGBRLBR7MYRPB7VQOKXI4IRTUSYG5EGSGI4O66CIHQQPLZUZCZMNLJW
+#\\\|J7KVED3CCTZAUUZX2KZ6DTKFHKGJSAK7NZGUIZN6MKZHJ2HQBTW \ / AMOS7 \ YOURUM ::
+#\[7]US5HDPQTCZ5CBKS3XUESZPZXTFKIG5HCTZFC57TIT6QZCEJAGWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

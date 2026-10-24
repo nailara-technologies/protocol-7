@@ -67,17 +67,18 @@ httpsd.system.group   =  httpd
 max.connections     =  1024
 httpsd.timeout      =  14
 
-##  httpd request pattern classification [ phase 1 : observation only ] ##
-##  deliberately opt-in : no state, no timers, zero cost while disabled ##
-##  [ human-reviewed before enabling on the live deployment ]           ##
+## httpd request pattern classification [ phase 1 : observation only ] ##
+## deliberately opt-in : no state, no timers, zero cost while disabled ##
+## [ human-reviewed before enabling on the live deployment ]           ##
 # httpd.classify.enabled         =  1
 # httpd.classify.ring_size       =  64
 # httpd.classify.peer_ttl        =  3600
 # httpd.classify.max_peers       =  10000
 # httpd.classify.expire_interval =  300
 
-## host-specific overrides [ base.load_host_config : /etc/protocol-7/  ##
-## httpsd/host.cfg ] -- the same web.auth.secret as httpd and web     ##
+## host-specific overrides                                               ##
+## [ base.load_host_config : /etc/protocol-7/host-config/httpsd.cfg ] -- ##
+## the same web.auth.secret as httpd and web                             ##
 [load_host_config]
 
 [load_modules:<modules.load>]
@@ -98,8 +99,8 @@ httpsd.timeout      =  14
 
 [zenka.loop]
 
-#,,,.,...,.,,,...,.,,,,..,,..,,,,,,.,,.,,,,,.,..,,...,...,..,,,..,,.,,,,.,,,.,
-#BT6X5EY6QPKTBYFB4IFPH22CLIEBBSWUIT6MBKIW2NFCCRW223IKBL4A3J5YO2T3DHBUZWDBGPX6C
-#\\\|FHS3HMR6EUBQBI5XPXOC6F3BB2MGBLJMDKE2GQFA7P47ILGM4GO \ / AMOS7 \ YOURUM ::
-#\[7]NEE6R43D2TWQRI4YC3NH3UZ3P64PPV7C7ELX7LM3HSS7GC5GMWDA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,...,.,,,,,.,,..,,..,.,,,,,,,.,.,..,,...,...,.,.,..,,,.,,,,,,..,,
+#ATJC3R4JARKY75NYCAL7BQQB2EOCSEDG53TCOZJ2QWPDYOFMUEJBI235BCJJX72L4VORPQHDISMCI
+#\\\|GM345PO562R5DLJJOTSZFANTFCC3C66OGCL5JZ7BJR57ZMLMAMX \ / AMOS7 \ YOURUM ::
+#\[7]7FIWJODBY4H5Z4L22FCXPY6BP2C72J6VPPOKVP5CQS3VQKTPLIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,39 +29,39 @@ modules.load  =  auth.client net protocol io.unix ui terminal editor \
 [load_modules:<modules.load>]
 [init_modules]
 
-## keys is loaded for its CODE [ pins, trust ], not its console commands ##
-## -- they would only clutter 'commands' here                          ##
+## keys is loaded for its CODE [ pins, trust ], not its console commands -- ##
+## they would only clutter 'commands' here                                  ##
 [base.disable_console_command:'keys.*','test-secret-roundtrip']
 
-## authenticate as the invoking Unix user, not a zenka credential   ##
-## [ nshell/start + user-edit precedent : personal interactive ]    ##
-## [ console, not a managed zenka session -- system.auth-user set  ] ##
-## [ by host-edit.init_code during init_modules above ]            ##
-## '<unix-user>[host-edit]' — the subname makes this console       ##
-## addressable separately from any other zenka running as the same ##
-## unix user [ e.g. nshell or user-edit ].  built in host-edit.    ##
-## init_code, since '[host-edit]' written literally here would be  ##
-## read as a command invocation by the parser                      ##
+## authenticate as the invoking Unix user, not a zenka credential        ##
+## [ nshell/start + user-edit precedent : personal interactive ]         ##
+## [ console, not a managed zenka session -- system.auth-user set  ]     ##
+## [ by host-edit.init_code during init_modules above ]                  ##
+## '<unix-user>[host-edit]' — the subname makes this console addressable ##
+## separately from any other zenka running as the same unix user         ##
+## [ e.g. nshell or user-edit ].  built in host-edit.init_code, since    ##
+## '[host-edit]' written literally here would be read as a command       ##
+## invocation by the parser                                              ##
 system.auth-user = <host-edit.auth_name>
 
 [base.net.connect:'unix']
 
-## authenticates as Unix user above, not via cube session id --  ##
+## authenticates as Unix user above, not via cube session id --   ##
 ## [base.get_session_id] intentionally NOT called [ nshell/start  ##
 ## precedent, same reasoning ]                                    ##
 
 [base.call.console_command:<system.args>]
 
-## HYBRID LOOP MODE [ resolved, same as user-edit ] : there is     ##
-## deliberately NO [zenka.loop] here.  console commands that need  ##
-## the event loop -- the local record source defers its replies on ##
-## a 0 s timer, and the reply handler must run inside the loop --  ##
-## call [init-done:TRUE] + [zenka.loop] THEMSELVES as their last   ##
-## step [ see form.console.show-form ].  per-command, not per-     ##
-## zenka, because 'commands' and 'describe' must print and exit    ##
+## HYBRID LOOP MODE [ resolved, same as user-edit ] : there is deliberately ##
+## NO [zenka.loop] here.  console commands that need the event loop -- the  ##
+## local record source defers its replies on a 0 s timer, and the reply     ##
+## handler must run inside the loop -- call [init-done:TRUE] + [zenka.loop] ##
+## THEMSELVES as their last step [ see form.console.show-form ].            ##
+## per-command, not per-zenka, because 'commands' and 'describe' must print ##
+## and exit                                                                 ##
 
-#,,,,,,,.,,,.,,..,,..,.,.,...,,.,,...,,..,,,.,..,,...,...,,..,..,,,,,,...,.,.,
-#VGPIYUZQ3LFJK57VPTUOAEYZ344OQCJTU3FV2LU6BALLOMEIMGAVTKLCEPCQLBD7I2MF2WS7BQJ72
-#\\\|GILTCUELRTALE3MT2LF4HI73XSJEX5LVPQSMTHMGAZRSTNI2CQ3 \ / AMOS7 \ YOURUM ::
-#\[7]AGWPEKTSO6HJGXKI4AUIPA5IQZP632765FIJV7TJJQUFZUJBD4DQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,.,..,,,..,.,.,,,.,.,,,,..,,..,..,,...,...,...,,.,,.,.,,,,,,,,,
+#K6L6CEDL2B37XX7KCNJUVRW4G6B7MEA2TPW7V45D3HRY6KWCGSKETGR5NNPV7M6NP2WGOEP56PWRQ
+#\\\|RQFJV7YGIBHQSSWO2IMD3NUVHVMMDA4EGSQXO7MSTEPIKXV3Q2Q \ / AMOS7 \ YOURUM ::
+#\[7]N5LSDPUH7SEEZD6AFHEVB663TCPCD5L3CNL5KZ5GIEPWN7KDPGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

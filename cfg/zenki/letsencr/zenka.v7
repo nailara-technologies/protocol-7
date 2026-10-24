@@ -14,8 +14,8 @@ access.cmd.usr.cube = commands heart verify-instance name reload src-age \
                       request-certificate revoke-certificate query-algos \
                       child.* ## <-- routes cube to child
 
-## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
-## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## devmod commands : only reachable while devmod is loaded on THIS zenka ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
 access.devcmd.usr.cube = devmod:*
 
 ## parent to child commands ##
@@ -24,10 +24,10 @@ access.cmd.usr.parent =  status renew force-renew inst-self-signed \
                          src-age show-access show-buffer buffer-erase \
                          buffer-erase-level verbosity request-certificate \
                          renew-certificate repair-chain verify-domain ## reload
-##                       reload command is currently disabled : drops commands!
+## reload command is currently disabled : drops commands!
 
-## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
-## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
+## devmod commands : only reachable while devmod is loaded on THIS zenka ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
 access.devcmd.usr.parent = devmod:*
 
 access.cmd.usr.child = cube.httpd.setup-acme-challenge \ ## <-- child to cube
@@ -64,17 +64,20 @@ letsencr.cache.timeout = 86400  # 24 hours
 ## Challenge Configuration
 letsencr.challenge.type = http-01   # http-01 or dns-01
 ## dns-01 : provider [ nameserv | inwx | cloudflare ] and per-domain alias ##
-## pairs 'domain:alias' -- the registrar's zone carries                  ##
-## _acme-challenge.<domain> CNAME _acme-challenge.<alias>, <alias> is    ##
-## delegated to our nameserv [ no registrar credentials ] -- set both in ##
-## /etc/protocol-7/host-config/letsencr.cfg on the host that requests the cert  ##
+## pairs 'domain:alias' -- the registrar's zone carries                    ##
+## _acme-challenge.<domain> CNAME _acme-challenge.<alias>, <alias> is      ##
+## delegated to our nameserv [ no registrar credentials ] -- set both in   ##
+## /etc/protocol-7/host-config/letsencr.cfg on the host that requests the  ##
+## cert                                                                    ##
 # letsencr.dns.provider        = nameserv
 # letsencr.dns.challenge_alias = protocol-7.network:acme.protocol-7.network
-## or one convention for every domain without its own pair : <prefix>.<domain> ##
+## or one convention for every domain without its own pair : ##
+## <prefix>.<domain>                                         ##
 # letsencr.dns.challenge_alias_prefix = acme
-## name servers written into a newly created alias subzone [ nameserv ensure-zone ] ##
-## -- also the servers asked for the txt value before the challenge is answered,  ##
-## unless letsencr.dns.nameserv.addresses lists them [ not answering : skipped ]  ##
+## name servers written into a newly created alias subzone                  ##
+## [ nameserv ensure-zone ] -- also the servers asked for the txt value     ##
+## before the challenge is answered, unless letsencr.dns.nameserv.addresses ##
+## lists them [ not answering : skipped ]                                   ##
 # letsencr.dns.alias_ns = dn0000.protocol-7.network dn0000.v7.ax
 letsencr.challenge.timeout = 300     # 5 minutes for challenge completion
 letsencr.challenge.site_dir = /var/httpd/  # document root for challenges
@@ -100,8 +103,8 @@ modules.load = auth.client net protocol io.unix io.ip ui clients.http \
 
 [zenka.loop]
 
-#,,.,,.,,,,.,,,.,,.,.,,.,,,.,,,..,,.,,,..,.,.,..,,...,...,...,.,,,..,,,,,,.,,,
-#WJMGTDO4SILFNCY7EWB3AX7OSU6VFEMFGN6PLB75W775CRPCJLOXBNG7IMEEICQIL5DTWRIMXSHLQ
-#\\\|4HK6ZMBYAGSOEH23IULMNAT75G6TYFNZOL5ANSOVLY2XR7LMSLV \ / AMOS7 \ YOURUM ::
-#\[7]UT5Z5X2EMHOKN5VJYEPTU67AH2CHVBZXFFKVGKSB3LU7DTSJJCBY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,.,,.,,,...,..,,.,,,,,.,..,,.,,,..,,...,...,,.,,,..,.,,,.,,,...,
+#DTDTXWF6CDAJL7LKYPRCERKN5DZ5YJY6UAOMT7X2VVSIZUB3LF6PEJMTWCXJ42SBMHS5BN23SA734
+#\\\|Z2S23OGKFZUGWK7U7CIZQNOKGZDFR2F45JZUOOJZ7PHZ2KU4BLL \ / AMOS7 \ YOURUM ::
+#\[7]OO3HQGRRY54CWK35BWMABI5JDPPKIBDT6ERIOBCIQBKD52LLRGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

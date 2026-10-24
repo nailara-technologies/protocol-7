@@ -25,10 +25,10 @@ plugins.load = plugin.user-edit.registry plugin.user-edit.example \
                plugin.user-edit.key-actions
 [load_plugins:<plugins.load>]
 
-## deliberately NOT nshell's trailing '*' [ which enables everything for   ##
-## devmod debugging ] : user-edit's only reason to be reachable at all is  ##
-## char-add, the no-tty form driver, and char-add itself refuses unless    ##
-## the form was opened with '-no-tty'                                      ##
+## deliberately NOT nshell's trailing '*'                                 ##
+## [ which enables everything for devmod debugging ] : user-edit's only   ##
+## reason to be reachable at all is char-add, the no-tty form driver, and ##
+## char-add itself refuses unless the form was opened with '-no-tty'      ##
 access.cmd.usr.cube  =  commands heart verify-instance char-add
 
 ## user_keys field : max chars a key NAME shortens to via base.parser.
@@ -68,11 +68,12 @@ user-edit.cfg.user_keys_display_type = detail
 ## when unset here
 # user-edit.cfg.identity_key_name_threshold = 20
 
-## two families were missing from the original keys-clone [ keys is fully ##
-## standalone and needs neither ] : 'ui' provides base.event.* — without  ##
-## it base.zenka.loop dies on an undefined event.loop — and format.yaml   ##
-## is called directly by ascii.frame.load and by the outbox/draft modules ##
-## [ nshell/start loads both explicitly for exactly these reasons ]       ##
+## two families were missing from the original keys-clone                  ##
+## [ keys is fully standalone and needs neither ] : 'ui' provides          ##
+## base.event.* — without it base.zenka.loop dies on an undefined          ##
+## event.loop — and format.yaml is called directly by ascii.frame.load and ##
+## by the outbox/draft modules                                             ##
+## [ nshell/start loads both explicitly for exactly these reasons ]        ##
 modules.load  =  auth.client net protocol io.unix ui terminal editor \
                                  crypt.C25519 ascii.frame format.yaml \
                                  format.json keys form user-edit
@@ -80,14 +81,14 @@ modules.load  =  auth.client net protocol io.unix ui terminal editor \
 [load_modules:<modules.load>]
 [init_modules]
 
-## authenticate as the invoking Unix user, not a zenka credential   ##
-## [ nshell/start precedent : personal interactive console, not a ] ##
-## [ managed zenka session -- system.auth-user set by user-edit.  ] ##
-## [ init_code during init_modules above ]                          ##
-## '<unix-user>[user-edit]' — the subname makes this console addressable ##
-## separately from any other zenka running as the same unix user [ e.g.  ##
-## nshell ].  built in user-edit.init_code, since '[user-edit]' written   ##
-## literally here would be read as a command invocation by the parser     ##
+## authenticate as the invoking Unix user, not a zenka credential           ##
+## [ nshell/start precedent : personal interactive console, not a ]         ##
+## [ managed zenka session -- system.auth-user set by user-edit.  ]         ##
+## [ init_code during init_modules above ]  '<unix-user>[user-edit]' — the  ##
+## subname makes this console addressable separately from any other zenka   ##
+## running as the same unix user [ e.g. nshell ].  built in                 ##
+## user-edit.init_code, since '[user-edit]' written literally here would be ##
+## read as a command invocation by the parser                               ##
 system.auth-user = <user-edit.auth_name>
 
 [base.net.connect:'unix']
@@ -98,17 +99,17 @@ system.auth-user = <user-edit.auth_name>
 
 [base.call.console_command:<system.args>]
 
-## HYBRID LOOP MODE [ resolved ] : there is deliberately NO [zenka.loop] ##
-## here.  console commands that need the event loop -- anything talking  ##
-## to the users zenka, where the reply arrives asynchronously and needs  ##
-## command/reply processing -- call [init-done:TRUE] + [zenka.loop]      ##
-## THEMSELVES as their last step [ see form.console.show-form ].    ##
-## per-command, not per-zenka, because 'commands' and 'describe' must    ##
-## print and exit : a [zenka.loop] at this level would hang them, and    ##
-## plain 'v7-zenki.user-edit' would never return to the shell                  ##
+## HYBRID LOOP MODE [ resolved ] : there is deliberately NO [zenka.loop]    ##
+## here.  console commands that need the event loop -- anything talking to  ##
+## the users zenka, where the reply arrives asynchronously and needs        ##
+## command/reply processing -- call [init-done:TRUE] + [zenka.loop]         ##
+## THEMSELVES as their last step [ see form.console.show-form ].            ##
+## per-command, not per-zenka, because 'commands' and 'describe' must print ##
+## and exit : a [zenka.loop] at this level would hang them, and plain       ##
+## 'v7-zenki.user-edit' would never return to the shell                     ##
 
-#,,.,,.,.,.,,,,,.,...,...,,.,,,..,.,,,,.,,.,.,..,,...,...,..,,,,,,,,.,..,,..,,
-#5E7LEZWXLSYDQ6NEXLLYFJY36XPVSUJAZ44EP7XDI7XMQAJCOUOPBY5RLVRHLEWEKA67GWTUD5PKG
-#\\\|KZCKEAQD4REWCCADN4CLM6CXADNGEPFB4QI47BFNTETNSRLSFKS \ / AMOS7 \ YOURUM ::
-#\[7]A2UJ4UD4ZU624POIYZWKHFBDR3IYS7IQJC2U7VPJYZC5SR7UHICY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,...,,.,,,,,,,,,,,,.,,,,,.,,,..,,...,..,,.,,,.,,,,.,,..,,..,,
+#5CR6WCQAZ44UDZH2U6IPK6XJVHPYQPV7O5TJ4ZDFFHWFACUUKKAFUJQF3CL6IZBZ622BF36BB2KVW
+#\\\|DRULSA5M6VPISBY2YOEYM3KY52NZ5MIZFNF4UAO44RVPRSU5HIE \ / AMOS7 \ YOURUM ::
+#\[7]U7H62DDS4OFBQYA3UN7YJMNOFEHOUJNWPNWA6YFX3H7IJFGTEYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,11 +10,11 @@ system.zenka.verbosity.console = 1
 access.cmd.usr.cube = commands heart verify-instance name reload src-age \
                       list show-buffer buffer-erase buffer-erase-level \
                       status src-ver show-access report-to-forensics
-                      ## scan-run intentionally not network-exposed :    ##
-                      ## openvas.cmd.scan-run is called directly via     ##
-                      ## <[openvas.cmd.scan-run]> module syntax ..,      ##
-                      ## phase 2 exposes report-to-forensics [ enrich +  ##
-                      ## forensics handoff ]                             ##
+                      ## scan-run intentionally not network-exposed :       ##
+                      ## openvas.cmd.scan-run is called directly via        ##
+                      ## <[openvas.cmd.scan-run]> module syntax .., phase 2 ##
+                      ## exposes report-to-forensics                        ##
+                      ## [ enrich + forensics handoff ]                     ##
 
 ## backend control path [ see src/openvas.cmd.scan-run header for reasoning ]
 ## greenbone community containers provide gvmd + ospd-openvas + nvt feed ..
@@ -30,12 +30,12 @@ openvas.cfg.scan_timeout  = 14400           ## 4h max per scan
 ## zenka data dir [ scan result yaml written here ]
 openvas.cfg.data_dir      = <system.root_path>/data/openvas
 
-## phase 2 : per-finding enrichment via security-intel embedding domains ##
-## [ data/tasks/completed/openvas-agent.md task 2.1 ]                    ##
-## domains are queried against the committed skipgram vector exports     ##
-## [ data/embeddings/<domain>.vec ] ; a domain without a trained model   ##
-## or protocol dir [ nvt : unbuilt feed-sync ; cve : deferred ] degrades ##
-## to per-domain status 'pending', the finding is attached as-is         ##
+## phase 2 : per-finding enrichment via security-intel embedding domains   ##
+## [ data/tasks/completed/openvas-agent.md task 2.1 ]  domains are queried ##
+## against the committed skipgram vector exports                           ##
+## [ data/embeddings/<domain>.vec ] ; a domain without a trained model or  ##
+## protocol dir [ nvt : unbuilt feed-sync ; cve : deferred ] degrades to   ##
+## per-domain status 'pending', the finding is attached as-is              ##
 openvas.cfg.enrich.domains         = cve mitre cwe cisa nvt
 openvas.cfg.enrich.embeddings_dir  = <system.root_path>/data/embeddings
 openvas.cfg.enrich.protocols_dir   = <system.root_path>/data/protocols
@@ -61,8 +61,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml openvas
 
 [zenka.loop]
 
-#,,,.,.,.,.,.,.,,,.,.,,..,.,,,,,.,,..,.,.,,..,.,.,...,..,,,,.,.,.,,,,,,.,,,,,,
-#GSEH3PKCV6SOKVFFLEDFBENGU3Q4MTQPH67QR46UTU5MODUUYT3RWFZTAD6PAWLQ4KT4ZYSTYLQNQ
-#\\\|3DEFK7YKQKO25NWQQBAQKPQOX4XLWOXELRITL7VKXUSSSXDZWRW \ / AMOS7 \ YOURUM ::
-#\[7]XDJE3MIBI7ACNJFMCASB3YH2QB4UGO2KP4PS3JSJKGXN7T3KZ2CI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,..,,.,,,..,,.,.,.,,,,,,,,.,,.,.,...,...,..,,,,.,...,,,.,,..,
+#X2D22VFZLWH7CGCHOJ7Q7I54KDMB6IYN3HSKBV45GJIX53XU2CASMBY3ONJA2MN54DOPHYVN5UNZO
+#\\\|7ZDO74UKKA6COOBSH6HCO65ZAVVV2OWJII4PHQIMRW75GNYJTZY \ / AMOS7 \ YOURUM ::
+#\[7]KFM7NBE2KRXHMUL6F2HYQB666TO5DDHQCUXJIJCJ7VUOILLGJYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

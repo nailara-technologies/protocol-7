@@ -29,10 +29,10 @@ access.cmd.usr.cube = name commands heart subname reload verify-instance play \
                       clear-profile reposition snapshot-save snapshot-restore \
                       src-ver src-age
 
-## devmod commands : only reachable while devmod is loaded on THIS zenka  ##
-## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant       ##
-## command/pipe-cmd-raw are mpv's own raw control-pipe passthrough --    ##
-## same risk class as devmod's eval-code, same gate                      ##
+## devmod commands : only reachable while devmod is loaded on THIS zenka   ##
+## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant        ##
+## command/pipe-cmd-raw are mpv's own raw control-pipe passthrough -- same ##
+## risk class as devmod's eval-code, same gate                             ##
 access.devcmd.usr.cube = devmod:* command pipe-cmd-raw
 
 modules.load = auth.client net protocol io.unix io.ip ui set-up.json chk-sum mpv \
@@ -43,7 +43,7 @@ mpv.network.skip_proxy = yes  ### ignore proxy variables from %ENV ? ###
 
 mpv.restore_last_position = yes ## restore last saved window position on  ####
                                 ## startup instead of re-querying placement ##
-                                ## zenka — set to 0 to always ask fresh   ####
+                                ## zenka — set to 0 to always ask fresh     ##
 
 mpv.restore_on_startup = 1   ## replay saved player state [ properties,    ##
                              ## position, pause ] from state/snapshot.yaml ##
@@ -77,8 +77,8 @@ mpv.ao = pulse,sdl
 ## WSLg's native bridge -- no manual pulseaudio.exe needed ##
 [set_env:'PULSE_SERVER','unix:/mnt/wslg/PulseServer']      ##
 ## [mpv.pulse.disable_idle_suspend] moved into mpv.init_code -- this runs ##
-## before [init_modules], too early for base.exec.with_timeout's POSIX/  ##
-## IPC::Open3 dependencies [see module descr] ##
+## before [init_modules], too early for base.exec.with_timeout's POSIX/   ##
+## IPC::Open3 dependencies [see module descr]                             ##
 
 mpv.xmode.xnest.vo  = x11
 mpv.xmode.nxagent.vo = sdl
@@ -184,28 +184,29 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [mpv.startup.init]
 
-## must run before [zenka.loop] : base.session.send_init_reports [ armed in ##
-## base.net.connect ] withholds ALL pending reports -- including whatever   ##
-## tells v7 this instance exists -- until <system.zenka.initialized> is     ##
-## true, which only this call sets. v7's own startup handshake              ##
-## [ verify-instance ] depends on that report arriving, and                 ##
-## mpv.startup.job.fork_player [ pushed onto system.callbacks.initialized   ##
-## by mpv.startup.init above ] only runs once v7 sends verify-instance.     ##
-## deferring this call [ eg. to mpv.startup.handler.socket_ready, after the ##
-## player's own control socket opens ] deadlocks : the fork that would      ##
-## open the socket never happens because v7 never hears from this instance  ##
-## in the first place. mpv.startup.handler.socket_ready also (harmlessly)   ##
-## calls base.async.get_session_id again once the socket is up; the         ##
-## 'already have a cube sid' guard in base.handler.whoami_reply makes that  ##
-## second call a no-op.                                                     ##
+## must run before [zenka.loop] : base.session.send_init_reports            ##
+## [ armed in base.net.connect ] withholds ALL pending reports -- including ##
+## whatever tells v7 this instance exists -- until                          ##
+## <system.zenka.initialized> is true, which only this call sets. v7's own  ##
+## startup handshake [ verify-instance ] depends on that report arriving,   ##
+## and  mpv.startup.job.fork_player                                         ##
+## [ pushed onto system.callbacks.initialized by mpv.startup.init above ]   ##
+## only runs once v7 sends verify-instance.  deferring this call [ eg. to   ##
+## mpv.startup.handler.socket_ready, after the player's own control socket  ##
+## opens ] deadlocks : the fork that would open the socket never happens    ##
+## because v7 never hears from this instance in the first place.            ##
+## mpv.startup.handler.socket_ready also (harmlessly) calls                 ##
+## base.async.get_session_id again once the socket is up; the 'already have ##
+## a cube sid' guard in base.handler.whoami_reply makes that second call a  ##
+## no-op.                                                                   ##
 [base.get_session_id]
 
 # [mpv.get_optional_playlist:<mpv.playlist_type>]
 
 [zenka.loop]
 
-#,,,,,,.,,,..,...,,.,,,,.,,,,,,.,,..,,,,,,,..,..,,...,...,..,,,..,.,,,...,.,.,
-#VYHICR3UA4ISNCZYKYAOFDLMRL43SQSGQS7RBDEWAD7BSYGU7M3S5VOUSSJ7AFE46YJTNZR4G43AU
-#\\\|B7NHEX3V6R7MTSAC6D7ZOKPNCEEM6QQBWXQMJMZXAFNZOGL35GM \ / AMOS7 \ YOURUM ::
-#\[7]SE4P7UTNJVTNNA733RHVTE65GIYMGMFTTOW6EUVQUOLUR3S626DQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,.,.,,,...,.,,,,.,,,,.,...,...,..,,...,.,.,.,.,.,.,...,.,.,,,,,
+#YER2Q3PORVSKMO4DYKAS53X5HS5VFXJQ6R7RM7ZRBEXZGETOKKP2N5FHBTKLFLS23UABHTA6OHJEI
+#\\\|5WF2F5YRBB5O4F5QH7MSMYV7GVBQF5J5NPRRXDJK3HNYIER2B7V \ / AMOS7 \ YOURUM ::
+#\[7]QINJETK547GO2LMEYIETXHS5BLDGCLZAUD5O74V53XSEOGNLECCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

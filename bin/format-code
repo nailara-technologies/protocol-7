@@ -84,14 +84,32 @@ my $module_sugar = FALSE;
 my $postfix_deref_sugar = FALSE;
 ##  opt-in normalize m// , s/// and =~ /.../ regex delimiters to P7 style  ##
 my $regex_style = FALSE;
+## -report : a check run [ -c ] that prints only files needing action -- ##
+## the all-clear lines stay away, one summary line at the end            ##
+my $report_mode = FALSE;
+## -parsed : print each module as the -c check compiles it           ##
+## [ the P7 sugar translated, line numbers unchanged ] , framed like ##
+## bin/Protocol-7 -core-subs -- nothing is checked or written        ##
+my $parsed_mode = FALSE;
+my %reported;    ## files with a finding [ -report summary ] ##
 
 while ( @ARGV and defined $ARGV[0] and $ARGV[0] =~ m|^-| ) {
     my $opt = $ARGV[0];
-    if    ( $opt eq qw| -c | )       { $check_only = TRUE; shift @ARGV; }
-    elsif ( $opt eq qw| -diff | )    { $diff_only  = TRUE; shift @ARGV; }
-    elsif ( $opt eq qw| -n | )       { $no_ptd     = TRUE; shift @ARGV; }
-    elsif ( $opt eq qw| :noutf8: | ) { $no_utf8    = TRUE; shift @ARGV; }
-    elsif ( $opt eq qw| -d | or $opt eq qw| -data-sugar | ) {
+    if    ( $opt eq qw| -c | )      { $check_only  = TRUE; shift @ARGV; }
+    elsif ( $opt eq qw| -parsed | ) { $parsed_mode = TRUE; shift @ARGV; }
+    elsif ( $opt eq qw| -report | ) {
+        ( $check_only, $report_mode ) = ( TRUE, TRUE );
+        shift @ARGV;
+    } elsif ( $opt eq qw| -diff | ) {
+        $diff_only = TRUE;
+        shift @ARGV;
+    } elsif ( $opt eq qw| -n | ) {
+        $no_ptd = TRUE;
+        shift @ARGV;
+    } elsif ( $opt eq qw| :noutf8: | ) {
+        $no_utf8 = TRUE;
+        shift @ARGV;
+    } elsif ( $opt eq qw| -d | or $opt eq qw| -data-sugar | ) {
         $data_sugar = TRUE;
         shift @ARGV;
     } elsif ( $opt eq qw| -m | or $opt eq qw| -module-sugar | ) {
@@ -106,6 +124,26 @@ while ( @ARGV and defined $ARGV[0] and $ARGV[0] =~ m|^-| ) {
     } else {
         last;
     }
+}
+
+if ($parsed_mode) {
+    die ":\n:: usage : format-code -parsed <file> ..\n:\n" if not @ARGV;
+    foreach my $file_path (@ARGV) {
+        open( my $src_fh, qw| < |, $file_path )
+            or die ":\n:: \l$OS_ERROR :: $file_path\n:\n";
+        my $src = do { local $RS = undef; <$src_fh> };
+        close $src_fh;
+        my $p7         = is_p7_module_text($src);
+        my $translated = $p7 ? p7_syntax__translate($src) : $src;
+        ( my $name = $file_path ) =~ s{^.*/}{};
+        $translated               =~ s{\n?\z}{\n};
+        $translated               =~ s{^(?=.)}{    }mg;
+        printf "\n##\n#   :: %s : '%s' ::\n##\n\n## .::[ %s ]:.\n#  ::\n\n",
+            ( $p7 ? qw| parsed | : qw| unchanged | ), $file_path, $name;
+        print $translated;
+        print "\n#  .\n## ::.\n";
+    }
+    exit 0;
 }
 
 ##[ exclusion pattern [ same as ptd ] ]##
@@ -178,10 +216,18 @@ map {
         if not( -e $ARG or -l $ARG )
 } @clean_argv;
 
+## files under cfg/ take the line based cfg mode                          ##
+## [ see preprocess_cfg_text ] , decided first so is_perl_code never sees ##
+## them                                                                   ##
+my %cfg_mode;
+
 ## remaining check : does it actually look like perl/P7 module code [   ##
 ## starts with '## [:< ##' , a shebang , 'package ...;' , or is a .pm ] ##
-my @files = grep { is_perl_code($ARG) }
-    uniq sort { length $a <=> length $b } reverse sort @clean_argv;
+my @files = grep {
+    my $is_cfg = is_cfg_file($ARG);
+    $cfg_mode{$ARG} = TRUE if $is_cfg;
+    defined $is_cfg ? $is_cfg : is_perl_code($ARG)
+} uniq sort { length $a <=> length $b } reverse sort @clean_argv;
 
 ## "expected [perl] file name[s]." is a usage error -- reserve it for the   ##
 ## case nothing was even passed in [ @ARGV empty ]. when args WERE given    ##
@@ -261,6 +307,11 @@ if ($check_only) {
 while ( my $file_path = shift @files ) {
     show_progress( $file_path, $file_count - scalar @files, $file_count );
     $progress_line_open = TRUE;
+
+    if ( $cfg_mode{$file_path} ) {
+        format_cfg_file($file_path);
+        next;
+    }
 
     my $orig_text = slurp_file($file_path);
     my $new_text  = eval { preprocess_source( $orig_text, $file_path ) };
@@ -425,7 +476,14 @@ while ( my $file_path = shift @files ) {
         ## short init file ; a circularly-'use'd .pm redefining its own     ##
         ## subs under a bare 'perl -c' -- see real_syntax_errors ] --       ##
         ## terse, uncolored, no [file:line] tag or box : worth knowing      ##
-        ## about, not worth looking anything like a real error              ##
+        ## about, not worth looking anything like a real error -report :    ##
+        ## benign notes need no action -- not printed                       ##
+        @benign_once = () if $report_mode;
+        ## an open progress line is closed first [ as color_msg does ] ##
+        if ( @benign_once and $progress_line_open ) {
+            print "\n";
+            $progress_line_open = FALSE;
+        }
         for my $line (@benign_once) {
             if ( $line =~ m{Name "([^"]+)" used only once} ) {
                 print "${TRUE_color}:: used once : '$1'\n:$reset\n";
@@ -479,8 +537,17 @@ while ( my $file_path = shift @files ) {
     close $fh;
 }
 
+if ($report_mode) {
+    my $count = scalar keys %reported;
+    print "\n" if $progress_line_open;
+    $progress_line_open = FALSE;
+    printf "%s:\n::[ %s%d of %d files need action %s]:.\n",
+        $blacklight, ( $count ? $NEON_orange : $NEON_green_yellow ),
+        $count, $file_count, $blacklight;
+}
+
 say "\n$blacklight:$reset";
-exit 0;
+exit( $report_mode and %reported ? 1 : 0 );
 
 ##[ is this a P7 module [ i.e. one the <[...]>/<...> sugar actually gets   ]##
 ##[ expanded for ] , not a plain standalone script/library that merely    ]##
@@ -681,6 +748,170 @@ sub preprocess_source {
     ## sugar-expanding pre-parser                                          ##
     $result = step9_normalize_regex_delimiters($result) if $regex_style;
     return $result;
+}
+
+##[ cfg mode : line based pass over the full-line '##' blocks of a cfg file ]##
+
+## cfg/ files are not perl : no PPI, no perltidy, no quote / sugar / regex  ##
+## steps -- only steps 10, 4 and 5 , on lines that start with '##'. every   ##
+## other line passes through as is : key = value lines                      ##
+## [ inline trailing comments included ], '.: section :.' lines, single '#' ##
+## lines, '###' and '##=' rules and the signature footer                    ##
+sub preprocess_cfg_text {
+    my $text = shift;
+
+    my @lines     = split m{(?<=\n)}, $text;    ## keep trailing newlines ##
+    my $sig_start = detect_signature_start( \@lines );
+
+    my %skip;    ## line-number [ 1-based ] => reason ##
+    mark_pod_regions( \@lines, \%skip );
+    for my $i ( 0 .. $#lines ) {
+        my $line = $lines[$i];
+        ## a line ending in '\' and the one it continues into ##
+        if ( $line =~ m{\\\s*\z} ) {
+            $skip{ $i + 1 } = $skip{ $i + 2 } = 'continuation';
+        }
+        ## widths are counted in characters , a tab or a carriage return ##
+        ## would break that count or the line ending on rebuild          ##
+        $skip{ $i + 1 } = 'tab or cr' if $line =~ m{\t|\r};
+        ## an inner ' ## ' separates fields [ '## << title >> ## note' ] -- ##
+        ## joined into the paragraph below it that structure would be lost  ##
+        $skip{ $i + 1 } = 'inner closer'
+            if $line =~ m{^\s*\#\#\ .*?\S\s+\#\#\s+\S};
+    }
+
+    my @out;
+    my $lnum = 1;
+    while ( $lnum <= scalar @lines ) {
+        my $line = $lines[ $lnum - 1 ];
+
+        if (   ( defined $sig_start and $lnum >= $sig_start )
+            or $skip{$lnum}
+            or $line !~ m{^\s*\#\#} ) {
+            push @out, $line;
+            $lnum++;
+            next;
+        }
+
+        ##  step 10 : title box frames sized to their title line  ##
+        if ( my $box = step10_size_title_box( \@lines, $lnum, \%skip ) ) {
+            push @out, @{$box};
+            $lnum += 3;
+            next;
+        }
+
+        ##  step 4 : realign a contiguous block of '##  text  ##' lines  ##
+        my $block_len = comment_block_length( \@lines, $lnum, \%skip );
+        ## the signature footer never joins a block ##
+        $block_len = $sig_start - $lnum
+            if defined $sig_start and $lnum + $block_len > $sig_start;
+        if ( $block_len >= 2
+            or ( $block_len == 1 and length_no_nl($line) > LINE_MAX ) ) {
+            push @out, @{ cfg_comment_block( \@lines, $lnum, $block_len ) };
+            $lnum += $block_len;
+            next;
+        }
+
+        ##  step 5 : normalize a '##[ title ]###...' fill-bar to LINE_MAX  ##
+        my $bar_fixed = step5_normalize_bracket_bar($line);
+        push @out, $bar_fixed // $line;
+        $lnum++;
+    }
+
+    my $result = join( '', @out );
+    ## steps 4 and 5 always end a line with "\n" -- a file without a final ##
+    ## newline keeps it that way                                           ##
+    $result =~ s{\n\z}{} if length $text and $text !~ m{\n\z};
+    return $result;
+}
+
+##[ cfg mode : one '##' block -> step4 , unless the block is structure ]##
+
+## cfg comments carry more structure than prose , found on the cfg/ dry run ##
+## -- loose lines without any closer are one note per line and stay as      ##
+## written , a single over-long one still wraps. a commented-out entry      ##
+## [ key = value or cmd:arg ] or an indented line                           ##
+## [ 3+ spaces after the marker : hanging list indents , centered titles ]  ##
+## protects the block like a column table , only its closers get aligned. a ##
+## tight closed first line above lines closed at one other column is a      ##
+## title of its own , not the paragraph's first words. a stray single '#'   ##
+## closer , a result line ending in '\' or in an opening ' [' , or one past ##
+## LINE_MAX where the block fit keeps the block as it was                   ##
+sub cfg_comment_block {
+    my ( $lines, $lnum, $block_len ) = @_;
+    my @block = @{$lines}[ $lnum - 1 .. $lnum + $block_len - 2 ];
+
+    ## a lone '[ remark ]' line opens no block [ comment_block_line_parts ] ##
+    if ( not comment_block_line_parts( $block[0] ) ) {
+        return [ $block[0] ] if $block_len == 1;
+        return [
+            $block[0],
+            @{ cfg_comment_block( $lines, $lnum + 1, $block_len - 1 ) }
+        ];
+    }
+    return \@block
+        if $block_len == 1 and length_no_nl( $block[0] ) <= LINE_MAX;
+
+    my @parts
+        = map { comment_block_line_parts( $block[$ARG], 1 ) } 0 .. $#block;
+
+    ## a stray single '#' closer [ '## .. ] #' ] is no closer step4 knows ##
+    return \@block if grep { $ARG->{content} =~ m{(?:^|\s)\#\z} } @parts;
+
+    ## loose lines : one note per line ##
+    if ( not grep { $ARG->{has_close} } @parts ) {
+        return \@block if $block_len >= 2;
+        return step4_align_comment_block( $lines, $lnum, $block_len );
+    }
+
+    ## commented-out entries , indented structure : closers only ##
+    my $cfg_entry_re = qr{^(?:[\w.\-<>]+\s*=(?:\s|$)|\[[\w.\-]+[:\]])};
+    return align_block_closers( \@block )
+        if grep { $ARG->{content} =~ $cfg_entry_re or $ARG->{lead_pad} >= 2 }
+        @parts;
+
+    ## a title line of its own : loose above a closed line , or tight above ##
+    ## lines that are all loose or all closed at one other column           ##
+    if ( $block_len >= 2 ) {
+        my @columns = map { closer_column($ARG) } @block;
+        my %rest_columns
+            = map { ( $ARG // -1 ) => 1 } @columns[ 1 .. $#columns ];
+        my $is_title
+            = not defined $columns[0]
+            ? defined $columns[1]
+            : (     $block[0] =~ m|\S #{2,}\s*\z|
+                and length_no_nl( $block[0] ) <= LINE_MAX
+                and keys %rest_columns == 1
+                and not exists $rest_columns{ $columns[0] } );
+        return [
+            $block[0],
+            @{ cfg_comment_block( $lines, $lnum + 1, $block_len - 1 ) }
+            ]
+            if $is_title;
+    }
+
+    ## a wrapped line ending in an opening ' [' : the group was wider than ##
+    ## the line , step4 breaks it after the bracket                        ##
+    my $open_end_re = qr{\s\[\s*(?:\#{2,}\s*)?\z};
+    my $result      = step4_align_comment_block( $lines, $lnum, $block_len );
+    my $block_fits  = not grep { length_no_nl($ARG) > LINE_MAX } @block;
+    my $block_open  = grep     { $ARG =~ $open_end_re } @block;
+    return \@block
+        if grep {
+               m|\\\s*(?:#{2,}\s*)?\z|
+            or ( $block_fits and length_no_nl($ARG) > LINE_MAX )
+            or ( not $block_open and $ARG =~ $open_end_re )
+        } @{$result};
+    return $result;
+}
+
+##[ the column of a line's closing '##' [ 0-based ] , undef without one ]##
+sub closer_column {
+    my $line  = shift;
+    my $parts = comment_block_line_parts( $line, 1 );
+    return undef if not $parts or not $parts->{has_close};
+    return undef if $line !~ m|^(.*?\S)([ ]*)#{2,}[ ]*(\r?\n)?\z|;
+    return length($1) + length($2);
 }
 
 ##[ shared : does line $lnum start/continue a '##  text  ##' comment block ]##
@@ -886,7 +1117,10 @@ sub step4_align_comment_block {
     ## alignment even if the lines were correctly kept separate ]           ##
     my $column_align_re   = qr{\S\s{3,}\S};
     my $column_line_count = grep { $ARG =~ $column_align_re } @content_parts;
-    return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
+    ## text stays as written, only the closing '##' column gets aligned ##
+    ## [ see align_block_closers ]                                      ##
+    return align_block_closers(
+        [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ] )
         if $column_line_count >= 2;
 
     ## a symmetric box                                                      ##
@@ -1028,6 +1262,63 @@ sub step4_align_comment_block {
         for my $part (@wrapped_lines) {
             push @out, length($part) ? "$indent## $part\n" : "$indent##\n";
         }
+    }
+    return \@out;
+}
+
+##[ step 4 helper : align the closing '##' of a protected column block ]##
+
+## a column-aligned block [ see step4 ] keeps its text and inner spacing ##
+## exactly as written -- only the padding before each closing '##'       ##
+## changes, so all closers sit one column past the widest line           ##
+## [ the widest line keeps its own gap ]. applied only when at least     ##
+## half of the lines already close, a line without a closer gets none    ##
+## added. a line already at the target column is kept byte for byte ;    ##
+## if any line would exceed LINE_MAX the block stays untouched           ##
+sub align_block_closers {
+    my $block = shift;
+
+    ## '[ ]*' , not '\s*' : the line break must stay in its own capture ##
+    my $closer_re = qr{^(.*?\S)([ ]*)(\#{2,})[ ]*(\r?\n)?\z};
+    my ( @rows, $close_count, $widest );
+    for my $line ( @{$block} ) {
+        my $parts = comment_block_line_parts( $line, 1 );
+        my $row   = { line => $line };
+        if ( $parts and $parts->{has_close} and $line =~ $closer_re ) {
+            @{$row}{qw| body gap closer nl |}
+                = ( $1, length($2), $3, $4 // '' );
+            $row->{body_len} = length( $row->{body} );
+            $close_count++;
+        } else {
+            ( my $text = $line ) =~ s{\s+\z}{};
+            $row->{body_len} = length($text);
+        }
+        $widest = $row->{body_len}
+            if not defined $widest
+            or $row->{body_len} > $widest;
+        push @rows, $row;
+    }
+    return $block if ( $close_count // 0 ) * 2 < scalar @rows;
+
+    ## the widest line's own gap [ 1 when it has no closer itself ] ##
+    my ($gap) = sort { $b <=> $a }
+        map { $ARG->{gap} }
+        grep { defined $ARG->{closer} and $ARG->{body_len} == $widest } @rows;
+    $gap = 1 if not $gap;
+
+    my @out;
+    for my $row (@rows) {
+        if ( not defined $row->{closer}
+            or $row->{body_len} + $row->{gap} == $widest + $gap ) {
+            push @out, $row->{line};
+            next;
+        }
+        my $rebuilt
+            = $row->{body}
+            . ( ' ' x ( $widest + $gap - $row->{body_len} ) )
+            . $row->{closer};
+        return $block if length($rebuilt) > LINE_MAX;
+        push @out, $rebuilt . $row->{nl};
     }
     return \@out;
 }
@@ -2951,6 +3242,13 @@ sub color_msg {
     my $color      = shift // $NEON_orange;
     my $file_color = shift // $color;    ## lets a caller decouple the two ##
 
+    ## -report : the all-clear messages print nothing , the progress line ##
+    ## stays open for the next file ; everything else is a finding        ##
+    if ($report_mode) {
+        return '' if $err_msg =~ m{^(?:syntax valid|cfg ok|no diff)$};
+        $reported{$file_path} = TRUE;
+    }
+
     ## wrap a long reason the same way base.wrap_text wraps zenki log lines ##
     ## : practical necessity, not cosmetic -- the compacted perl -c detail  ##
     ## from join_real_errors routinely runs well past LINE_MAX on its own,  ##
@@ -2994,12 +3292,81 @@ sub is_perl_code {
             or $first_line =~ m|^package .+;(\s*#.*)?$|
             or $file       =~ m|\.pm$|;
     }
-    print color_msg( 'skipping config.,', $file, $blacklight )
-        and return FALSE
-        if $is_code
-        and index( abs_path($file), qw| /cfg/ |, 0 ) != -1;
     close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     return $is_code;
+}
+
+##[ cfg mode file check : undef when not under cfg/ , TRUE for a text file ]##
+##[ with a '##' line , FALSE otherwise [ skipped quietly ]                  ]##
+
+## binary safe : a NUL byte or an invalid utf8 sequence skips the file ,  ##
+## the lenient decode in slurp_file would turn those into U+FFFD on write ##
+## back                                                                   ##
+sub is_cfg_file {
+    my $file = shift;
+    my $abs  = abs_path($file) // return undef;
+    return undef if index( $abs, qw| /cfg/ |, 0 ) == -1;
+    return FALSE if not -f $file or -z $file;
+
+    open( my $fh, qw| < |, $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
+    binmode $fh, qw| :raw |;
+    local $/;
+    my $data = <$fh>;
+    close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
+
+    return FALSE if index( $data, "\0", 0 ) != -1;
+    return FALSE if $data !~ m{^[ \t]*\#\#}m;
+    if ( not $no_utf8 ) {
+        my $copy = $data;
+        return FALSE
+            if not
+            eval { Encode::decode( 'UTF-8', $copy, Encode::FB_CROAK() ) };
+    }
+    return TRUE;
+}
+
+##[ cfg mode : -c reports , -diff shows , otherwise rewrite when changed ]##
+sub format_cfg_file {
+    my $file_path = shift;
+
+    my $orig_text = slurp_file($file_path);
+    my $new_text  = preprocess_cfg_text($orig_text);
+
+    if ($diff_only) {
+        if ( $new_text ne $orig_text ) {
+            my ( $tmp_fh, $tmp_path ) = tempfile( SUFFIX => qw| .fmt.cfg | );
+            binmode $tmp_fh, qw| :raw |;
+            print {$tmp_fh} ( $no_utf8 ? $new_text : encode_utf8($new_text) );
+            close $tmp_fh;
+            system( 'ccdiff', $file_path, $tmp_path );
+            unlink $tmp_path;
+        } else {
+            print color_msg( 'no diff', $file_path, $NEON_green_yellow );
+        }
+        return;
+    }
+
+    if ($check_only) {
+        if ( $new_text ne $orig_text ) {
+            print color_msg(
+                'would reflow', $file_path,
+                $NEON_orange,   $NEON_green_yellow
+            );
+        } else {
+            print color_msg( 'cfg ok', $file_path, $NEON_green_yellow );
+        }
+        return;
+    }
+
+    return if $new_text eq $orig_text;    ##  nothing changed , skip  ##
+
+    open my $fh, '>', $file_path or do {
+        warn color_msg( lcfirst $OS_ERROR, $file_path );
+        return;
+    };
+    binmode $fh, qw| :raw |;
+    print $fh( $no_utf8 ? $new_text : encode_utf8($new_text) );
+    close $fh;
 }
 
 sub sig_stop {
@@ -3033,8 +3400,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,..,,...,,..,...,,..,..,,.,,,,..,...,.,.,..,,...,..,,...,,..,,..,..,,,,,,
-#JXKWO4HVSSE7QB552IRQWCX64RLDQ6UC4YYDPXHIARFOCPXHIGATYGX4Z2SWRWRNBKEG5TPJT4XSC
-#\\\|4NZVNRDAH6XN32ZWCC42LPOLXSHXAV534K7MYGUQNJ2AKM3WO3I \ / AMOS7 \ YOURUM ::
-#\[7]H5SAUZ4PPCAY6SFSYA5ATHTBSC3SXS7DCGIA2BL4M2YS74JUIOBY 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,,,,,..,,,,,,,..,.,.,,.,,..,,..,,...,...,...,,..,.,,,.,.,..,,
+#D5QRJGIVATJXYHQABLUUMTK2DPGVV7DA5BGMMC745ETJV7EJDZOMWQJQ725RHJUOVVC4HE64LXD3Q
+#\\\|XJJKDWX3KN64JKCWJXCA6DI4R6J55ISN6HCCQ44RKN22X7PR2GR \ / AMOS7 \ YOURUM ::
+#\[7]4CN2WTVBHUKS5UNECFQK6BIZI6YTAWYDNOZ2UGKANJP2AK3UX2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

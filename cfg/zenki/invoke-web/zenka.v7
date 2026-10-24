@@ -8,48 +8,49 @@
 invoke-web.run_user = <system.admin-user>
 system.zenka-user.current = <invoke-web.run_user>   ## <-- not 'protocol-7' ##
 
-##  invoke.ai installs besides the main one [ variants ] : env = conda env  ##
-##  below the run user's miniconda3, root = invoke.ai root dir relative to  ##
-##  the run user's home. one runs at a time [ same port ] ; `variant` lists ##
-##  \ switches, `start <name>` switches + starts. a variant has its OWN db, ##
-##  models and outputs -- never point root at the main install's           ##
+## invoke.ai installs besides the main one [ variants ] : env = conda env  ##
+## below the run user's miniconda3, root = invoke.ai root dir relative to  ##
+## the run user's home. one runs at a time [ same port ] ; `variant` lists ##
+## \ switches, `start <name>` switches + starts. a variant has its OWN db, ##
+## models and outputs -- never point root at the main install's            ##
 invoke-web.variants.qwen21.env   = invokeai-qwen21
 invoke-web.variants.qwen21.root  = .invokeai-qwen21
 invoke-web.variants.qwen21.descr = qwen-image 2.1 fork by krakotay
 
-##  queue at an invoke.ai start [ its processor starts resumed ] : yes =  ##
-##  paused until resume ; startup = paused only while starting, resumed  ##
-##  after it ; no = untouched                                            ##
+## queue at an invoke.ai start [ its processor starts resumed ] : yes = ##
+## paused until resume ; startup = paused only while starting, resumed  ##
+## after it ; no = untouched                                            ##
 invoke-web.start_paused = startup
 
 ##  interactive queue mode at ready : new items jump to the front  ##
 invoke-web.queue_interactive_start = yes
 
-##  start memory guard [ invoke.ai takes ~9 GB RAM while loading ] :     ##
-##  start waits until at least this much RAM \ VRAM is free             ##
+## start memory guard [ invoke.ai takes ~9 GB RAM while loading ] : start ##
+## waits until at least this much RAM \ VRAM is free                      ##
 invoke-web.start.min_free_ram_mb  = 8192
 invoke-web.start.min_free_vram_mb = 4096
 
-##  drain : once the queue is done and invoke.ai idle this long [ output ##
-##  lines, db writes from ui use ], stop it and end the zenka [ 0 = off ]  ##
+## drain : once the queue is done and invoke.ai idle this long        ##
+## [ output lines, db writes from ui use ], stop it and end the zenka ##
+## [ 0 = off ]                                                        ##
 invoke-web.drain.idle_after         = 4620
 invoke-web.drain.paused_counts_idle = no
 
-##  autofetch : a render failing on a missing model fetches it through the ##
-##  fetch-files zenka [ off | ask = log a confirm hint for fetch-missing | ##
-##  on ; yes \ no as usual ] -- default off. max_gb : per-model size limit ##
-##  [ 0 = no limit ] ; timeout : watchdog for a lost fetch reply           ##
+## autofetch : a render failing on a missing model fetches it through the ##
+## fetch-files zenka [ off | ask = log a confirm hint for fetch-missing | ##
+## on ; yes \ no as usual ] -- default off. max_gb : per-model size limit ##
+## [ 0 = no limit ] ; timeout : watchdog for a lost fetch reply           ##
 invoke-web.autofetch.mode    = off
 invoke-web.autofetch.max_gb  = 0
 invoke-web.autofetch.timeout = 7200
 
-##  image index : local primary in the zenka data dir [ state/image-index.db ],  ##
-##  lazy external backup copy [ empty = off ]                                   ##
+## image index : local primary in the zenka data dir                   ##
+## [ state/image-index.db ], lazy external backup copy [ empty = off ] ##
 invoke-web.index.backup_path = /mnt/ext-xfs-data/p7-images/image-index.db
 
-##  invoke.ai output : ring buffer 'invokeai' [ show-buffer invokeai ],  ##
-##  persisted by p7-log ; the transport file in /var/run/.7/invoke-web  ##
-##  is truncated once read beyond output.trim_mb                        ##
+## invoke.ai output : ring buffer 'invokeai' [ show-buffer invokeai ],   ##
+## persisted by p7-log ; the transport file in /var/run/.7/invoke-web is ##
+## truncated once read beyond output.trim_mb                             ##
 buffer.invokeai.log_cmd  = p7-log.append
 buffer.invokeai.max_size = 262144
 invoke-web.output.trim_mb = 16
@@ -82,8 +83,8 @@ access.cmd.usr.cube = heart verify-instance commands reload \
 ## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
 access.devcmd.usr.cube = devmod:*
 
-##  memory guard callbacks cross-loaded from the coding zenka [ same    ##
-##  dependency objects gate its inference server spawns ]               ##
+## memory guard callbacks cross-loaded from the coding zenka    ##
+## [ same dependency objects gate its inference server spawns ] ##
 modules.load = auth.client net protocol io.unix ui invoke-web clients.http \
                format.json \
                image.analyze \
@@ -101,8 +102,8 @@ modules.load = auth.client net protocol io.unix ui invoke-web clients.http \
 
 [zenka.loop]
 
-#,,..,.,.,,,,,.,,,.,,,.,.,.,.,,.,,,,.,,,,,,..,..,,...,...,...,.,,,,,,,,.,,.,,,
-#IK7CQHTOPA4XHSYHFYU7YTS6SM45CIVY53M25KXWZSR5YHG7MPGMI5M7PU2DQBETHGD5RCX6IKWZO
-#\\\|MOKZQA4RCVKGYSV56LRZ64CGKVBULV74XLU7ETYLDW6AP422MSM \ / AMOS7 \ YOURUM ::
-#\[7]CV2NPRKE6CO75RDZEXMZERUM3T6PFBPHGFMHBJQKJLQC67RPN4DQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,.,,,,.,,..,,.,,,,,,,.,.,..,,..,,...,..,,.,,,...,,..,.,.,.,.,
+#4SDB7H2OMKQY4XGJ5KMG4DROUJWJVVNPUP5VJCAMJ3MUJGT6HF4REBAKS7FZJIUL6I3FSUDIRIWQO
+#\\\|FLMFOZ4YFICLB7DW5GUOKFBL2MIMGGVWADRVLYKH3SSLXJIEKRM \ / AMOS7 \ YOURUM ::
+#\[7]3ERRUR45SV6DO6FRWDEAZNGI3AL4F3IVI4JD7JKO3MKF72W5LGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

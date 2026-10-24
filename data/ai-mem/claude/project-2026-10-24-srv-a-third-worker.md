@@ -124,6 +124,23 @@ tool-call hang does not block it.
   config [ the *-edit zenki ]
 - external.list links \ orbital landed 5bf4b5d95, all four servers
 
+## format-code [ 2026-10-25 ]
+
+- cfg mode + align-only [ cloud branch dev/format-code-cfg-mode, 8 of
+  100 cloud credits ] ; sweep of 78 cfg files locally, step4 join slips
+  fixed by hand [ 'path/ x', 'infer-ence', 'host-edit.  init_code' ,
+  lost sentence breaks ] -- the join rules are shared with src mode, fix
+  them there [ open ]
+- -report [ only files needing action + 'N of M' summary, exit 1 ] and
+  -parsed [ the module as the -c check compiles it, framed like
+  Protocol-7 -core-subs ]
+- src/download.init_code:52 'uninitialized value in integer addition'
+  in the -c check : the BASE tool reports it too, the module is
+  unchanged since the src/ rename and runs fine -- NOT today's commits.
+  only -c compiles [ a plain \ sign run never shows it ], so since when
+  is unknown ; cause open [ perl 5.42.3 vs a compile-time cpan module :
+  compare under the 5.32 floor perl ]
+
 ## open
 
 - srv-U reboot test of the swap ; optional mem_max 14G + linger on srv-U
@@ -133,8 +150,8 @@ tool-call hang does not block it.
 - systemd-networkd-wait-online fails on srv-A since at least 10-18
   [ pre-existing ]
 
-#,,,.,..,,.,,,...,,,,,...,,,.,,.,,,.,,,,,,.,.,..,,...,...,.,.,,,.,,,,,,,,,,,,,
-#KWZKLNUHQX4LIPIZSGPU7POUAZL3BDGASPCVNRN25MVH2B7VJ6RKTTNG3JFQ6346ZZGW252OPOD3Q
-#\\\|6YK5U3COJQUYHU3OK2Q3UPG7EPVSGSV3C7IDYVXO2IH4J7L6ORX \ / AMOS7 \ YOURUM ::
-#\[7]4RFWHYVKX3KYQDTYQQDFFJF3YMK7LTBYYGDGQTFFVFXPYCI5DICI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,.,,,,,,.,.,...,,..,..,,,.,,,.,,..,,...,...,.,,,.,.,,.,,.,,,.,.,
+#SU2ML4DBFAUCVJYMNJESXR7KH4KOR2Y3RXNIAQHCJUI4CPJETSGB6EXDW4NR6ECOTI3OGOCCZEGEC
+#\\\|ZNX43KE267PZEXGJYDABI5LOWKIZFNKD2INLHGDXXVPEAL2Q7JW \ / AMOS7 \ YOURUM ::
+#\[7]PEVWMYZBHJ4AJAK55IASQ4NBAAWNQZ7PDDJ2ZRK5ZFI6KXTD7SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
