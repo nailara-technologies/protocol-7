@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [sampler-penalties-break-exact-copy](feedback-sampler-penalties-break-exact-copy.md) — DRY [ short allowed length ] + repeat_penalty make agent models mangle every copied path \ old_string [ 'protocol -7' ] : 9b 14b 35b all failed a 4-line edit until repeat_penalty 1.0 + dry_allowed_length 64 [ 35b3dbe6a ]. outlier fixes go PER MODEL, never into global inference.model.* ; check the sampler before blaming model or tool
 - [zenka-open-default-utf8-layer](feedback-zenka-open-default-utf8-layer.md) — every plain open() in src/* carries :encoding(UTF-8) [ bin/Protocol-7 `use open`, deliberate ] : files holding OCTETS [ encode_json, bodies, binary ] need '>:raw' \ '<:raw' on write AND read -- 2026-10-24 site-yaml outbox double-encoded 58 jobs [ 8b2384420 ] ; check bytes on disk, a layered round trip hides it
 - [changed-established-behavior-silently](feedback-changed-established-behavior-silently.md) — 2026-10-11 : switched the unit to Restart=on-failure as a side effect and called it intended ; teardown = restart was the user's habit. never change restart \ start \ default semantics silently -- name old vs new, ask, add new behavior as opt-in [ :no-restart: ]
 - [unix-auth-identity-bypass-fixed](project-2026-09-20-unix-auth-identity-bypass-fixed.md) — FIXED 2026-09-20 (`5afa981f2`, v5.99.1): `plugin.auth.unix`'s unix-socket auth never actually checked the claimed identity against the real kernel-verified peer user (`$client_uname` computed but only used in logs) — any local unix account could claim any configured `auth.setup.usr` alias, including the admin/owner, just by setting `$USER` before invoking `p7c`. Confirmed live cross-account (`another` authenticated as `unix-taeki`). Fixed by comparing against `$client_uname` instead of the allowed-list value compared to itself; template resolution (`<admin-user>` etc.) preserved. Reload gotcha hit again: needed bare `reload plugins` sent to cube, not `reload source` (excludes `plugin.*`) — see [[reload-success-doesnt-guarantee-new-file-loaded]] just below.
@@ -82,8 +83,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,.,.,,,,,.,.,,..,...,..,,,,,,...,,..,,.,,..,,...,...,...,.,,,..,,...,,.,,
-#QISAOX6CCQBBZ7GSMRQZGSMVKYVSSA5LGOIC6XWKJUOCBYVVTLYCIIR5OJCJ5DWCXIAK5WWO3XWJM
-#\\\|P4AXDEPMKIAIKVYO3GWYFIA6JFPV4SH5RUNCK26NNWDW3JKWUC4 \ / AMOS7 \ YOURUM ::
-#\[7]C3BPS5QWBAQT6MESDBFMA5HMTC2H6LOUJX53F3YULK5ZY5RHOICQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,,..,...,,..,,,.,...,,..,,,,,..,,...,.,.,.,,,,,,,...,,.,,..,,
+#QZEZVFKJK3LKLKU7OYGKRDHCXDHBG62OHCN2HCM2NOSLAA3RMI2BUGIK5UMD2MY7BK3CU7KOGZSSS
+#\\\|CXSOFZDYQD6QSWFGSI5SSWDBNRV6KAYKWTH5SMCA5Q3XTDP74G5 \ / AMOS7 \ YOURUM ::
+#\[7]UROUTDKPK27QS3FIP7QMTHAYSUKSC57VJJKEGX5XSULAU4GP6AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
