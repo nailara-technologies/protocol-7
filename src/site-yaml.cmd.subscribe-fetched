@@ -41,7 +41,8 @@ if ( defined $outbox_dir and opendir my $dh, $outbox_dir ) {
 
     for my $file (@files) {
         my $path = "$outbox_dir/$file";
-        next if not open my $backlog_fh, '<', $path;
+        ## raw : octets as site-yaml.outbox.write stored them ##
+        next if not open my $backlog_fh, '<:raw', $path;
         my $payload
             = do { local $INPUT_RECORD_SEPARATOR = undef; <$backlog_fh> };
         close $backlog_fh;
@@ -58,8 +59,8 @@ if ( defined $outbox_dir and opendir my $dh, $outbox_dir ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,.,.,.,..,,,,.,.,,,,..,...,...,...,..,,.,.,...,...,...,,..,,,,,,,,,.,,,
-#XL7E2JS4SVK522RXB3XWE626SGCTIF6AHOTC3KLPQZA774H2XKGVBCZNFOLC3NOCKKRWGSK74VJ7S
-#\\\|Z2A6RCK7JKEMRFWFKGNWKXKGGAOKBFF2OLFYL4NTQEBAE3L4FRX \ / AMOS7 \ YOURUM ::
-#\[7]O5GM4C53FUM7AXZP7J6DC4BAEQDDMAIOL7NXZYRJR5H35GOANGDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,..,,.,,,...,...,,.,,.,.,,..,,,.,.,.,...,...,,,.,,,.,.,,,,..,..,,
+#GGQU7XFWCGYYP4G7OXUHOIO5FVZTMB4D6HAH7BBYFRCMA34UXEUZI5VD6BUIMIWYPRCNTETGYMDTG
+#\\\|SJWS4UP6JLNZB3BHXKXDQYTV7VQCOTUGGGUSX2PY24QWML4CKAB \ / AMOS7 \ YOURUM ::
+#\[7]KWLEKQNSHP4NAXLSK6Y7W4IEDBUC2HD72NJ7VGHXZGGDGGHLC4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
