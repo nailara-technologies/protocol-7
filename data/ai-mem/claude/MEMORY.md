@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [zenka-open-default-utf8-layer](feedback-zenka-open-default-utf8-layer.md) — every plain open() in src/* carries :encoding(UTF-8) [ bin/Protocol-7 `use open`, deliberate ] : files holding OCTETS [ encode_json, bodies, binary ] need '>:raw' \ '<:raw' on write AND read -- 2026-10-24 site-yaml outbox double-encoded 58 jobs [ 8b2384420 ] ; check bytes on disk, a layered round trip hides it
 - [changed-established-behavior-silently](feedback-changed-established-behavior-silently.md) — 2026-10-11 : switched the unit to Restart=on-failure as a side effect and called it intended ; teardown = restart was the user's habit. never change restart \ start \ default semantics silently -- name old vs new, ask, add new behavior as opt-in [ :no-restart: ]
 - [unix-auth-identity-bypass-fixed](project-2026-09-20-unix-auth-identity-bypass-fixed.md) — FIXED 2026-09-20 (`5afa981f2`, v5.99.1): `plugin.auth.unix`'s unix-socket auth never actually checked the claimed identity against the real kernel-verified peer user (`$client_uname` computed but only used in logs) — any local unix account could claim any configured `auth.setup.usr` alias, including the admin/owner, just by setting `$USER` before invoking `p7c`. Confirmed live cross-account (`another` authenticated as `unix-taeki`). Fixed by comparing against `$client_uname` instead of the allowed-list value compared to itself; template resolution (`<admin-user>` etc.) preserved. Reload gotcha hit again: needed bare `reload plugins` sent to cube, not `reload source` (excludes `plugin.*`) — see [[reload-success-doesnt-guarantee-new-file-loaded]] just below.
 - [prng-seeded-without-os-entropy](project-2026-10-06-prng-seeded-without-os-entropy.md) — FOUND 2026-10-06: `base.prng.reseed` seeds Fortuna ONLY from PID + ms time + srand-seeded perl rand ; CryptX uses no OS entropy when given a seed [ verified ] -> all `base.prng` draws [ gen_keys secrets, chars-anum incl. cube.key ] bounded by a ~2^20-2^30 seed. draws add no entropy [ replayable ]. FIXED same day : `base.prng.entropy_pool` [ BMW-512 over OS entropy + optional machine data, truth-filtered ], gen_keys mixes /dev/random ; test bin/test-scripts/test-prng-entropy.pl. sourcecode key unaffected [ passphrase + file entropy ] ; .base keys REGENERATED 2026-10-07 [ taeki.base + protocol-7.base, anon table archived, live-checked ] -- CLOSED
@@ -81,8 +82,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,.,,.,,,,,,,..,,..,,..,,,.,,,.,,.,.,..,,..,,...,...,...,,.,,,.,,...,,,.,
-#WFAJDWXSUXDXXMIXM3OCHIHDDJEP6OTCIZC3M7H45ZWP4BWA6EUJYTJIXZO7FB2DG4AAWNUXLFRGI
-#\\\|IN6CQ2XVEO2C25ADALLC7FKZLSAURNQK36FLHQPBBLS5HWG2VBY \ / AMOS7 \ YOURUM ::
-#\[7]SJZFM5K2YJRJRTE64AWMG7RTUF4W4OSMJLYX7TEFY54AJNOAFEAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,,..,...,..,,,,,,...,,..,,.,,..,,...,...,...,.,,,..,,...,,.,,
+#QISAOX6CCQBBZ7GSMRQZGSMVKYVSSA5LGOIC6XWKJUOCBYVVTLYCIIR5OJCJ5DWCXIAK5WWO3XWJM
+#\\\|P4AXDEPMKIAIKVYO3GWYFIA6JFPV4SH5RUNCK26NNWDW3JKWUC4 \ / AMOS7 \ YOURUM ::
+#\[7]C3BPS5QWBAQT6MESDBFMA5HMTC2H6LOUJX53F3YULK5ZY5RHOICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
