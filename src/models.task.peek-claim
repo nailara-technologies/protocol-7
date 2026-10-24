@@ -8,7 +8,9 @@
 # notes = a pin this host does not serve without a swap leaves the task
 #         pending for its owner [ a foreign pin would make the local gpu
 #         server kill + respawn per task ] -- logged once per pinned key.
-#         loaded models unknown : asks coding.inference-status first
+#         loaded models unknown : asks coding.inference-status first.
+#         the in-flight capacity gate [ models.task.claim-ok ] applies
+#         to foreign zenki too : at capacity the task stays pending
 
 my $peek    = shift              // {};
 my $task_id = $peek->{'task_id'} // '';
@@ -63,6 +65,31 @@ if ( not $accepted ) {
     return FALSE;
 }
 
+## in-flight capacity : the same limit as the local path -- a host must not ##
+## over-claim from a foreign zenka either. at capacity the task stays       ##
+## pending for another host. backend count unknown : ask coding first, the  ##
+## 'peek-models' reply re-runs this check with fresh data                   ##
+my $gate = <[models.task.claim-ok]>->( $pin // '' );
+if ( $gate == UNKNOWN ) {
+    my $asked = <[protocol-7.route-send]>->(
+        {   'command' => qw| coding.inference-status |,
+            'reply'   => {
+                'handler' => 'models.handler.task-poll-step',
+                'params'  => { %{$peek}, 'step' => 'peek-models' }
+            }
+        }
+    );
+    return TRUE if $asked and $asked > 0;
+    return FALSE;    ## no answer : left pending, nothing claimed ##
+}
+
+if ( not $gate ) {
+    <[base.logs]>->(
+        1, ': task %s left pending : claim capacity reached', $task_id
+    );
+    return FALSE;
+}
+
 <[protocol-7.route-send]>->(
     {   'command'   => <[models.task.cmd]>->( qw| claim |, $task_id ),
         'call_args' => {
@@ -84,8 +111,8 @@ if ( not $accepted ) {
 
 return TRUE;
 
-#,,..,,..,..,,,..,,..,,,.,,..,..,,.,,,.,,,,,.,..,,...,...,..,,.,.,,,,,.,,,,..,
-#SUSOAAJ7M2XX7DFH643MHWD3ZETJMBJEAKGJSGIAZ6YFTZONNMRYDXPDWSDLK7YTMRAIKMZHFSFAK
-#\\\|F7PEWAY2VJYAHK3ORD3TE5IQSJKHI6MO47H5RWQPWXDEGEKNXII \ / AMOS7 \ YOURUM ::
-#\[7]ZPGGF6K5TCCQVJIY3YD7Q57BMYATM7DBVYLP2KUGY67WMVU2UIAY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,...,.,.,,.,,..,,,,,,,.,,.,.,,,,,..,,...,..,,..,,.,.,...,...,,..,
+#BEBZ7OG5SUJCXH3J7USSD4DTK4SAMN7644N5V3W5GXORWCMWD4G3IQWHE2PLWBWCHQXBCBPSTK5UY
+#\\\|Q7XJFIKNQL44BP6HBSKXEOT5JGFP3XZPBSCZARMP2K5RZLNCKKD \ / AMOS7 \ YOURUM ::
+#\[7]O7FHCE4QHP3TURDNGF5DRKU6D7FQJJIM4537FW2XAOXGUAMCMCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

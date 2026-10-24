@@ -40,6 +40,8 @@ if ( $step eq 'claimed' ) {
         2, ': claimed %s, starting + fetching details', $task_id
     );
 
+    <models.task.claimed>->{$task_id} = time;    ## in-flight count ##
+
     <[protocol-7.route-send]>->(
         {   'command'   => <[models.task.cmd]>->( qw| start |, $task_id ),
             'call_args' => { 'args' => $task_id }
@@ -178,35 +180,29 @@ if ( $step eq 'peek' ) {
 
 if ( $step eq 'peek-models' ) {
 
-    my @ids;
-    my $status
-        = length $reply_text ? eval { YAML::XS::Load($reply_text) } : undef;
-
-    if ( ref $status eq qw| HASH | ) {
-        foreach my $backend (qw| gpu cpu |) {
-            my $id = uc( ( $status->{$backend} // {} )->{'model_id'} // '' );
-            push @ids, $id if $id =~ m|^(?:[A-Z2-7]{7})?:?[A-Z2-7]{7}$|;
-        }
-    } else {
-        <[base.logs]>->(
-            1,
-            ': coding.inference-status : no usable answer [ %s ]',
-            $cmd eq 'FALSE' ? $args->{'args'} // 'FALSE' : $cmd
-        );
-    }
-
-    ## set even when empty : no new question for 60 s ##
-    <models.task.local_models> = { 'at' => time, 'ids' => \@ids };
-
-    <[base.logs]>->(
-        2,
-        ': local coding serves [ %s ]',
-        join( ' ', @ids ) || 'none'
-    );
+    ## coding.inference-status answered -- the models the local coding ##
+    ## zenka has loaded, then the pin + capacity checks again          ##
+    <[models.task.set-local-models]>->($reply_text);
 
     my %peek = %{$params};
     delete $peek{'step'};
     <[models.task.peek-claim]>->( \%peek );
+    return;
+}
+
+## ======================================================================   ##
+## step: capacity-models : coding.inference-status answered the local claim ##
+## gate -- cache the loaded models, then the dispatch again                 ##
+## =======================================================================  ##
+
+if ( $step eq 'capacity-models' ) {
+
+    <[models.task.set-local-models]>->($reply_text);
+
+    <[models.task.dispatch-id]>->(
+        $params->{'task_id'} // '',
+        $params->{'zenka'}   // ''
+    );
     return;
 }
 
@@ -237,6 +233,8 @@ if ( $step eq 'peek-claimed' ) {
         1,        ': task %s claimed remotely, enqueueing for %s backend',
         $task_id, $params->{'model'}
     );
+
+    <models.task.claimed>->{$task_id} = time;    ## in-flight count ##
 
     <[models.task.enqueue]>->(
         {   'task_id'    => $task_id,
@@ -313,8 +311,8 @@ if ( $step eq 'poll-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,,.,,..,,..,.,.,..,,,,.,,.,,.,.,.,,,,,.,...,.,.,...,...,,..,,.,,.,.,,,.,..,,
-#J63ZQJA6HT2ZNWP6QRH7GWOUPPOHSL4GBSNMX5XZACZALF3VL57RKMALNFD3XZT7MHNJG3XLVMML6
-#\\\|KQWZFU2NBH5HJPX6QRPEENIL5JKFNKMDOXDQ2KGELGPOGF4FLF6 \ / AMOS7 \ YOURUM ::
-#\[7]M4JVSBPDHTBDI6SIYIR5NTTY67S3YCB5AGUCWCNJWNT6NFPPWKCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,,..,,,,,,..,,.,,.,,,,,.,.,.,.,.,...,...,.,,,,,.,,..,,,,,,,,,
+#J62F4VIEWT37IMBLPQSKC4ATDTODA5X55BDGQSTDA6HU5NSGDXQ5GH6DGHWUN7C2H66JBXPIMMBRA
+#\\\|J3KIUYWYZXRPSNX3FNTLTJPCJMDUL2KDOWKLWG3QJJW3MTSWM6S \ / AMOS7 \ YOURUM ::
+#\[7]5N6GID5CGBAK5D6QOQSTHZ7JMZAXD3DMO7OHT6BEHDHUUWWWSGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,6 +51,7 @@ if ( $collected->{'mode'} ne qw| true | ) {
 
     ## fail the task ##
     if ( length $task_id ) {
+        <[models.task.release-claim]>->($task_id);
         <[protocol-7.route-send]>->(
             {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
                 'call_args' => { 'args' => "$task_id $error" }
@@ -138,7 +139,8 @@ if ( length $job_id ) {
     delete <models.task.jobs>->{$job_id};
 }
 
-## trigger next task processing ##
+## release the in-flight claim slot, then trigger next task processing ##
+<[models.task.release-claim]>->($task_id);
 <[protocol-7.route-send]>->(
     {   'command'   => <[models.task.cmd]>->( qw| queue |, $task_id ),
         'call_args' => { 'args' => qw| status=pending | },
@@ -154,8 +156,8 @@ if ( length $job_id ) {
 
 return;
 
-#,,,.,...,...,...,.,,,..,,.,.,.,,,,,,,,.,,.,.,..,,...,...,..,,..,,..,,,,,,.,.,
-#HCTGDU5J3KLPJGBVVPDO3MGOXB2E6M5XMMHWNWI5IU7VPS237Y5D4FXWPA4ULMMYGXFD5NAGTSBVG
-#\\\|J5YASQXYDXILKDG2QTM2MB7QWM4IWCJCPNQNINBPKBUF25DLBCH \ / AMOS7 \ YOURUM ::
-#\[7]KUUBI67Y4MZK62KVUD7U6CBTZAUNZSSRLB3MAIRR57TS3IZQISBA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,,,,,.,,,,..,...,,..,.,.,.,,,..,,...,...,,..,.,,,.,.,,.,,.,.,
+#WVCTTW3VSXIBY46PJVVICXWR7OUOFRYIWJ635H4KDIBZHOFHHL7ROAHXKAJYPJAZ3WFFNLEF6LLV4
+#\\\|CX44QHCYUA4FAKWFD6YYQAN7TW34RR3OCYNKIUWEESMSFUVJ5UE \ / AMOS7 \ YOURUM ::
+#\[7]2DVWKVDKJ3747VFSN5UFGCE5EZJCSKPG7FSXHDE7CSVWRQA4IQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

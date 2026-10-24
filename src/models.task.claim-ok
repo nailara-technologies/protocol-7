@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = models.task.claim-ok
+# descr = may this host claim another task
+# note  = capacity gate for new claims : TRUE below the in-flight
+#         limit, FALSE at capacity [ task stays pending for another
+#         host ], UNKNOWN when the ready-backend count is not known
+# param = <model pin> [ '' = unpinned ]
+# notes = limit : models.cfg.task_max_claims [ 0 = unlimited, unset =
+#         default ]. default : one in-flight claim per ready local
+#         backend serving the pin [ coding.inference-status, cached in
+#         <models.task.local_models> for 60 s ] -- a host with one cpu
+#         backend holds at most one task, the gpu host takes the rest
+
+my $pin = uc( shift // '' );
+
+## a claim that never completes must not hold its slot for ever [ a job ##
+## stuck in coding's 'depending' queue, a task failed by its owner that ##
+## this host never hears of ] : claims older than the ttl are dropped   ##
+my $claimed = <models.task.claimed> //= {};
+my $ttl     = <models.cfg.task_claim_ttl> // 1800;
+$ttl = 1800 if $ttl !~ m|^\d+$| or $ttl < 60;
+foreach my $claimed_id ( keys %{$claimed} ) {
+    next if time - ( $claimed->{$claimed_id} // 0 ) <= $ttl;
+    <[base.logs]>->(
+        0,           ': claim of task %s expired after %d s : slot freed',
+        $claimed_id, $ttl
+    );
+    delete $claimed->{$claimed_id};
+}
+my $in_flight = scalar keys %{$claimed};
+
+my $max = <models.cfg.task_max_claims> // '';
+if ( length $max and $max =~ m{^\d+$} ) {
+    return TRUE if $max == 0;    ## 0 = unlimited ##
+    return $in_flight < $max ? TRUE : FALSE;
+}
+
+## default : one claim per ready local backend serving the pin ##
+my $local = <models.task.local_models> // {};
+return UNKNOWN
+    if not defined $local->{'at'}
+    or time - $local->{'at'} > 60;
+
+my @ids = @{ $local->{'ids'} // [] };
+if ( length $pin ) {
+    my ($pin_content) = $pin =~ m|([A-Z2-7]{7})$|;
+    if ( defined $pin_content ) {
+        @ids = grep {
+            my ($id_content) = m|([A-Z2-7]{7})$|;
+            defined $id_content and $id_content eq $pin_content;
+        } @ids;
+    }
+}
+
+return $in_flight < scalar(@ids) ? TRUE : FALSE;
+
+#,,..,..,,,..,..,,.,.,,.,,.,.,.,.,,,,,,.,,,,.,.,.,...,...,,.,,,,,,,.,,,,.,,.,,
+#I526GLDZQQVTVOTJKX4HAHZYD6TDUBCMXPDS2ZBQLQTVJSUXJ427RCYC4PP646JJZKNSWLM57KNHC
+#\\\|NRIBN3LSX6WIOGYYHVEC3P7NOHOCCKSEORVFCDUAQDNQYDBTIAZ \ / AMOS7 \ YOURUM ::
+#\[7]5C6NLKN5D37LR42ETHCJJORSTZLQXDL4IKKFTAZGAVQZ3NIDJ4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,7 +12,9 @@
 #         remote task zenka : show first ['peek'], claim only when the
 #         model is one this host serves -- a task for another model
 #         stays pending for the owning host, it is never claimed or
-#         failed from here
+#         failed from here. every claim passes the in-flight capacity
+#         gate [ models.task.claim-ok ] : at capacity the task stays
+#         pending for another host
 
 my $task_id = shift // '';
 my $zenka   = shift // '';
@@ -37,6 +39,37 @@ if ( scalar keys %{$source} > 1024 ) {
 $source->{$task_id} = { 'zenka' => $zenka, 'at' => time };
 
 if ( $zenka eq qw| task | ) {
+
+    ## capacity gate : claim only while below the in-flight limit     ##
+    ## [ models.task.claim-ok ] -- backend count unknown : ask coding ##
+    ## first, the 'capacity-models' reply re-runs this dispatch       ##
+    my $gate = <[models.task.claim-ok]>->('');
+    if ( $gate == UNKNOWN ) {
+        my $asked = <[protocol-7.route-send]>->(
+            {   'command' => qw| coding.inference-status |,
+                'reply'   => {
+                    'handler' => qw| models.handler.task-poll-step |,
+                    'params'  => {
+                        'task_id' => $task_id,
+                        'zenka'   => $zenka,
+                        'step'    => 'capacity-models'
+                    }
+                }
+            }
+        );
+        return TRUE if $asked and $asked > 0;
+        <[base.logs]>->(
+            1, ': task %s left pending : backend capacity unknown', $task_id
+        );
+        return FALSE;
+    }
+    if ( not $gate ) {
+        <[base.logs]>->(
+            1, ': task %s left pending : claim capacity reached', $task_id
+        );
+        return FALSE;
+    }
+
     return <[protocol-7.route-send]>->(
         {   'command'   => <[models.task.cmd]>->(qw| claim |),
             'call_args' => {
@@ -65,8 +98,8 @@ return <[protocol-7.route-send]>->(
     }
 );
 
-#,,,,,,..,...,..,,,,,,.,.,,,,,.,.,.,.,,..,.,.,.,.,...,..,,.,.,...,,..,,..,,,,,
-#LMS4BQF6MREEUFR7LV76N3ZZ2CWVY3XUTUFAR6HTZLGXB76AFAAPN73EGVCH2WNQMT2VXIRZP56RG
-#\\\|ITLLCEUEZ2TGH653RDBN3HSP642OIYYN4GWD66TF7SJ5LGYVFHR \ / AMOS7 \ YOURUM ::
-#\[7]NC5HH4MNVHHJABJNFKEBQNEV7XS3ZJ6BNHN5KL5QRAEICDGXOKCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,.,,,.,,,.,.,.,,,,.,,,..,..,,..,,.,.,...,...,,.,,...,,,,,...,,,.,
+#BQFTBP4UNATM26T5YJXJLS7TZD2NQ3BDFHYYVOCI5IGGYORQQOYRKRPEKUQFCVEFU42RTQJM5WTZ4
+#\\\|L663GLFLVJVFTPHD4WIWHP5SGLUWN7GPIHFWDNS2I7OIG4HC34X \ / AMOS7 \ YOURUM ::
+#\[7]E5HSU6N42ACKHQRBOP5BIIHRPHBFEEMMVQZSKVTPQU6JWHIVNUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
