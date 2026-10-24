@@ -111,6 +111,19 @@ tool-call hang does not block it.
 - test-v7-zenki-host-zenki.pl : 1 failure already on HEAD ['without
   host.cfg keys nothing changes'] -- not this change
 
+## start profiles [ owner, 2026-10-24 ]
+
+- external left start-set-up.base [ it came in with 0c9478f48 as a side
+  effect, never decided ] : a fresh host must not look like it already
+  has connections to other hosts. new start-set-up.minimal = cube p7-log
+  [ p7-log : without it no log reaches a file ]. a host with link
+  records enables external in host-config/v7-zenki.cfg
+  [ v7-zenki.host.zenki.enable = external ] -- srv-A had it, srv-U added
+  [ its delta fetch link was DOWN after the restart : remote-server never
+  started external at boot ]. owner : balance with fast, intuitive
+  config [ the *-edit zenki ]
+- external.list links \ orbital landed 5bf4b5d95, all four servers
+
 ## open
 
 - srv-U reboot test of the swap ; optional mem_max 14G + linger on srv-U
@@ -120,8 +133,8 @@ tool-call hang does not block it.
 - systemd-networkd-wait-online fails on srv-A since at least 10-18
   [ pre-existing ]
 
-#,,,.,,..,,.,,,,,,.,.,,,.,..,,...,..,,...,,..,..,,...,..,,...,,..,,,,,.,.,..,,
-#TT552AQ7E3Z3ALCAAEPHAO3UCA7MKBJCM4ZAIJCJMSW7YSBDKWP77M5PO7LIRANMF7FTORIIZ7CFC
-#\\\|7KKWHSCIBTUAS4X7GPPJAMU3CJWQGPDIWXTWBWY3AFBILOQTHDD \ / AMOS7 \ YOURUM ::
-#\[7]MMGM5UQA7BW7HWXCI7WYDOHI7TZVYJK3E44JLVSNUZEPJJQALEBQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,...,,,,,...,,,.,,.,,,.,,,,,,.,.,..,,...,...,.,.,,,.,,,,,,,,,,,,,
+#KWZKLNUHQX4LIPIZSGPU7POUAZL3BDGASPCVNRN25MVH2B7VJ6RKTTNG3JFQ6346ZZGW252OPOD3Q
+#\\\|6YK5U3COJQUYHU3OK2Q3UPG7EPVSGSV3C7IDYVXO2IH4J7L6ORX \ / AMOS7 \ YOURUM ::
+#\[7]4RFWHYVKX3KYQDTYQQDFFJF3YMK7LTBYYGDGQTFFVFXPYCI5DICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
