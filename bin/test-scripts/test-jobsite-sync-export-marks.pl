@@ -663,6 +663,41 @@ $resp = web_response(
 ok( ( $resp->{'prefs'}{'last_export_at'} // 0 ) == 8600,
     'marks batch still max-merges prefs' );
 
+say "\n :. web side : a foreign peer's "
+    . "batch is marks-only, whatever it claims";
+
+## web.cmd.jobs-sync-foreign sets the flag                                  ##
+## [ the relay picks that command for a peer that is not exempt ] -- here a ##
+## batch WITHOUT a role                                                     ##
+$mem->{'J22'} = {
+    'id'            => 'J22',
+    'status'        => 'review',
+    'stage'         => 'review',
+    'last_modified' => '1'
+};
+$data{'web'}{'jobs'}{'sync_foreign'} = TRUE;
+$resp = web_response(
+    {   'since' => '',
+        'jobs'  => [
+            {   'id'             => 'J22',
+                'status'         => 'applied',
+                'stage'          => 'applied',
+                'exported_stage' => 'applied',
+                'exported_at'    => 8200
+            },
+            { 'id' => 'J23', 'status' => 'new', 'title' => 'Foreign Job' },
+        ],
+    }
+);
+$data{'web'}{'jobs'}{'sync_foreign'} = FALSE;
+ok( ( $mem->{'J22'}{'stage'} // '' ) eq 'review',
+    'foreign batch without a role cannot change job state'
+);
+ok( ( $mem->{'J22'}{'exported_at'} // 0 ) == 8200,
+    'foreign batch still merges the export mark'
+);
+ok( !exists $mem->{'J23'}, 'foreign batch plants no job' );
+
 ## ------------------------------------------------------------------------- ##
 ## summary                                                                   ##
 
@@ -676,8 +711,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,.,,..,.,,,,,,,..,,,..,.,.,,,.,...,.,.,..,,...,...,,..,..,,..,,,..,..,,
-#A6LFPXPIHDRFTCIUB3WMQNPTEUVFGRKXJINEO6T6Q5AC6P3GEG3B4T2QLXVNOQ34IWACHUAME4UGU
-#\\\|GRTBF5X7VFM4MDWG3P3CIMDMWXK7HPJIZTSKRUCJTO5YTBTBBKI \ / AMOS7 \ YOURUM ::
-#\[7]Z47SLSZRHQJSKAW6ULFPGA7PJNA6GSY24YHGWR4VQEKSRWVU2IAY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,,,..,,.,.,,.,,,.,,...,,.,,,.,,..,,...,...,,.,,.,,,...,.,.,,,,,
+#24OCGGBQRLTMRJKA7BY7WNDFAW2T22WOK6YLLUCQE5DPKQGEMVI4IDMEMNZQDJVMY2SELYMY2ONK4
+#\\\|PNBS6OMUOIU6TGXFDFBYNBAECRU56PWOPB6W7NPH5DWTNJXU2MP \ / AMOS7 \ YOURUM ::
+#\[7]TP74PYLI4Z6YDENG2Z5Z2D7P3O2HZMRGIK3JRKUKPST7GBFRF4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
