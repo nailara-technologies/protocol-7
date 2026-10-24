@@ -45,7 +45,7 @@ if ( not $accepted ) {
 }
 
 <[protocol-7.route-send]>->(
-    {   'command'   => <[models.task.cmd]>->(qw| claim |),
+    {   'command'   => <[models.task.cmd]>->( qw| claim |, $task_id ),
         'call_args' => {
             'args' => sprintf '%s %s',
             $task_id, <models.cfg.task_agent> // qw| models |
@@ -65,8 +65,8 @@ if ( not $accepted ) {
 
 return TRUE;
 
-#,,,.,,.,,..,,,,.,.,.,..,,.,.,.,.,...,.,,,,,.,..,,...,...,..,,...,.,.,..,,,..,
-#TXAZG5IPVNES3XG56H7RTS7QP7UEU5ZSNEVV5I67K5WAACFH4SBECMQAAEAYZQPZL34YYNHYJHEJY
-#\\\|73ZUNU2OC3WAYL7IRPIBP63QOHEBDJK7EHE5XVSODC3QAJR2MZV \ / AMOS7 \ YOURUM ::
-#\[7]QO2FAOHMLEM5FBGJGXVLNMA7H4C5QGOXXE6S73QANEAUDURHW4CY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,,.,,,,,,.,,,,..,.,,,,,.,,..,..,,...,...,,,.,,..,,,,,,..,,..,
+#BV57IZUPFUMTL6PLK3CUV7YZVI3BREHMVQTBXWP2GJYR22XQWJWSCU237FKPTYBGWYNYNIDKL4PQG
+#\\\|RQB3RDH2MKXZB4HMLQDVJQNF5EAE2YOC6FBPCMKWKO4J43PKQLZ \ / AMOS7 \ YOURUM ::
+#\[7]VCBM4WVSCYVVWW3FQSREIFFA2BRAORPQQKCGP7VFZFRH6MDKSCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

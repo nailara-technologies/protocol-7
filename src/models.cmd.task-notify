@@ -12,14 +12,14 @@ unless ( length $task_id ) {
 <[base.logs]>->( 2, ': task-notify: new task %s', $task_id );
 
 ## claim the task via async callback chain                             ##
-## [ a remote task zenka : peek first, see models.task.dispatch-id ]   ##
+## [ remote source zenka : peek first, see models.task.dispatch-id ]   ##
 ## [ jobqueue handles serialization : no active_id guard needed here ] ##
-<[models.task.dispatch-id]>->($task_id);
+<[models.task.dispatch-id]>->( $task_id, qw| task | );
 
 return { 'mode' => 'true', 'data' => "claiming $task_id" };
 
-#,,,,,.,,,,,.,..,,.,.,.,,,,..,,.,,,,.,..,,.,,,.,.,...,...,..,,.,.,...,,,.,.,,,
-#6AH6SPLSVFLTGJ4JZRYDZIGDJIMBWGU2KR4WSPYNFZEOMFB5J7FPSZEWIPKQVEIEGJVV5O7XUNU4A
-#\\\|HJKECZG3Q2NFMT22FAJHS5DK45XTZ7TUDB52AUFVH4IIENYIRBW \ / AMOS7 \ YOURUM ::
-#\[7]V4IGUVKBUCDC2Z6UN4YPL4GAHZ5PZ6W4YKJ3SRF37E42WX23KSCY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,,..,...,.,.,,.,,,,.,.,,,.,.,.,.,...,...,...,,,,,,..,.,,,.,.,
+#VPWK2XPERUZJOAPIJYRWNR2SBASJ375PDI6LPITDEPNMQGEG35MZFYNE2OIEVBMUYD6RUOFDVOXUM
+#\\\|YO6CP7WBGSLPMPQBY5T4M437YUFRGPHS5CRPMO3EGZCQU7KBUHS \ / AMOS7 \ YOURUM ::
+#\[7]AAOGSRHWNV2VB7E4E3BFV6YZRUZ65QJZ22JLYSP5YVWHC6VUSEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

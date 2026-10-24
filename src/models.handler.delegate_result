@@ -52,7 +52,7 @@ if ( $collected->{'mode'} ne qw| true | ) {
     ## fail the task ##
     if ( length $task_id ) {
         <[protocol-7.route-send]>->(
-            {   'command'   => <[models.task.cmd]>->(qw| fail |),
+            {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
                 'call_args' => { 'args' => "$task_id $error" }
             }
         );
@@ -103,7 +103,8 @@ if ( length $task_id ) {
         my $full_result = "$safe_result $meta";
 
         <[protocol-7.route-send]>->(
-            {   'command'   => <[models.task.cmd]>->(qw| complete |),
+            {   'command' =>
+                    <[models.task.cmd]>->( qw| complete |, $task_id ),
                 'call_args' => { 'args' => "$task_id $full_result" }
             }
         );
@@ -118,7 +119,7 @@ if ( length $task_id ) {
             $task_id, $warnings
         );
         <[protocol-7.route-send]>->(
-            {   'command'   => <[models.task.cmd]>->(qw| fail |),
+            {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
                 'call_args' =>
                     { 'args' => "$task_id verification failed: $warnings" }
             }
@@ -139,19 +140,22 @@ if ( length $job_id ) {
 
 ## trigger next task processing ##
 <[protocol-7.route-send]>->(
-    {   'command'   => <[models.task.cmd]>->(qw| queue |),
+    {   'command'   => <[models.task.cmd]>->( qw| queue |, $task_id ),
         'call_args' => { 'args' => qw| status=pending | },
         'reply'     => {
             'handler' => qw| models.handler.task-poll-step |,
-            'params'  => { 'step' => qw| check-next | }
+            'params'  => {
+                'step'  => qw| check-next |,
+                'zenka' => <[models.task.zenka-of]>->($task_id)
+            }
         }
     }
 );
 
 return;
 
-#,,.,,,..,,.,,,,.,,.,,,,,,...,...,,,,,.,.,..,,..,,...,...,...,...,,.,,.,,,.,.,
-#TB2C5J5NRZZD6RPDDBDLG4O2DHFBI3T2T42A22YUNZUXOJIAYXY7745AABOJ4BLGXLOUFTHVMIJPU
-#\\\|LJ5DWRMPKEZK2LYDQDQJH6VZJASSDLNLTJUGL5BIR3HU7JEYJJV \ / AMOS7 \ YOURUM ::
-#\[7]KWAFGXSB5EPBV55445USZZL2BDUNLOAE5WHFUFINPDNMQGDHI2AY 7  DATA SIGNATURE ::
+#,,,.,...,...,...,.,,,..,,.,.,.,,,,,,,,.,,.,.,..,,...,...,..,,..,,..,,,,,,.,.,
+#HCTGDU5J3KLPJGBVVPDO3MGOXB2E6M5XMMHWNWI5IU7VPS237Y5D4FXWPA4ULMMYGXFD5NAGTSBVG
+#\\\|J5YASQXYDXILKDG2QTM2MB7QWM4IWCJCPNQNINBPKBUF25DLBCH \ / AMOS7 \ YOURUM ::
+#\[7]KUUBI67Y4MZK62KVUD7U6CBTZAUNZSSRLB3MAIRR57TS3IZQISBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

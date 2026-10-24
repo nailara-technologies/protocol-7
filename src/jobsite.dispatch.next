@@ -1,104 +1,132 @@
 ## [:< ##
 
 # name  = jobsite.dispatch.next
-# descr = dispatch next assessment task from queue
+# descr = dispatch assessment tasks from queue, up to N in flight
+# notes = keeps up to <jobsite.cfg.assess_parallel> assessments in flight
+#         [ default 1 = the old strictly serial chain ] : each in-flight
+#         job holds its slot through its watchdog timer
+#         [ <jobsite.assess_timer>->{job} ] or a rewired orphan flag,
+#         released by jobsite.dispatch.release_slot \ give_up, which
+#         re-invoke this module to refill
+
+my $parallel = <jobsite.cfg.assess_parallel> // 1;
+$parallel = 1 if $parallel !~ m|^\d+$| or $parallel < 1;
+
+## in-flight = jobs holding an armed watchdog or a rewired orphan slot ##
+my $armed     = { map { $ARG => 1 } keys %{ <jobsite.assess_timer> // {} } };
+my $in_flight = scalar keys %{$armed};
+for my $held_id ( keys %{ <jobsite.tasks> // {} } ) {
+    $in_flight++
+        if ( <jobsite.tasks>->{$held_id}{'rewired'} // 0 )
+        and not $armed->{$held_id};
+}
 
 my $queue = <jobsite.assess_queue> // [];
 
-my ( $entry, $job_id, $desc );
-while ( @{$queue} ) {
-    $entry  = shift @{$queue};
-    $job_id = $entry->{'job_id'};
+while ( $in_flight < $parallel ) {
 
-    ## a stale duplicate can pile up in the queue if this job was already   ##
-    ## dispatched/decided/re-queued by the time its turn comes around again ##
-    ## [ e.g. a re-entrant dispatch.assessments call, or a repeated         ##
-    ## reassess request from the browser ] -- skip it instead of re-running ##
-    ## a job that's no longer pending. two independent checks, either is    ##
-    ## fatal:                                                               ##
-    ## - terminal state : the job left the pool entirely [ trash/deleted/   ##
-    ## blocked are the only statuses that mean "no longer assessable",      ##
-    ## unlike the old check this does NOT require status=='new', since a    ##
-    ## reassess entry's target is never 'new' to begin with ]               ##
-    ## - stale generation : queue_gen was bumped by a newer enqueue for     ##
-    ## this same id [ dispatch.assessments or apply_reverse's reassess      ##
-    ## branch both stamp it ] since this entry was built, so a fresher      ##
-    ## entry for the same job supersedes it                                 ##
-    my $current     = <[jobsite.job.read]>->($job_id) // {};
-    my $cur_status  = $current->{'status'}            // '';
-    my $entry_gen   = $entry->{'gen'}                 // 0;
-    my $current_gen = ( <jobsite.tasks>->{$job_id} // {} )->{'queue_gen'}
-        // 0;
+    my ( $entry, $job_id, $desc );
+    while ( @{$queue} ) {
+        $entry  = shift @{$queue};
+        $job_id = $entry->{'job_id'};
 
-    if ( $cur_status =~ m{^(?:trash|deleted|blocked)$} ) {
-        <[base.logs]>->(
-            1,       '[job:%s] skipping stale queue entry, status=%s',
-            $job_id, $cur_status
-        );
-        <[jobsite.dispatch.consume_slot]>;
-        next;
+        ## a stale duplicate can pile up in the queue if this job was       ##
+        ## already dispatched/decided/re-queued by the time its turn comes  ##
+        ## around again [ e.g. a re-entrant dispatch.assessments call, or a ##
+        ## repeated reassess request from the browser ] -- skip it instead  ##
+        ## of re-running a job that's no longer pending.  two independent   ##
+        ## checks, either is fatal:                                         ##
+        ## - terminal state : the job left the pool entirely [ trash/       ##
+        ## deleted/blocked are the only statuses that mean "no longer       ##
+        ## assessable", unlike the old check this does NOT require          ##
+        ## status=='new', since a reassess entry's target is never 'new' to ##
+        ## begin with ]                                                     ##
+        ## - stale generation : queue_gen was bumped by a newer enqueue for ##
+        ## this same id [ dispatch.assessments or apply_reverse's reassess  ##
+        ## branch both stamp it ] since this entry was built, so a fresher  ##
+        ## entry for the same job supersedes it                             ##
+        my $current     = <[jobsite.job.read]>->($job_id) // {};
+        my $cur_status  = $current->{'status'}            // '';
+        my $entry_gen   = $entry->{'gen'}                 // 0;
+        my $current_gen = ( <jobsite.tasks>->{$job_id} // {} )->{'queue_gen'}
+            // 0;
+
+        if ( $cur_status =~ m{^(?:trash|deleted|blocked)$} ) {
+            <[base.logs]>->(
+                1,       '[job:%s] skipping stale queue entry, status=%s',
+                $job_id, $cur_status
+            );
+            <[jobsite.dispatch.consume_slot]>;
+            next;
+        }
+        if ( $entry_gen and $entry_gen != $current_gen ) {
+            <[base.logs]>->(
+                1,
+                '[job:%s] skipping stale queue entry, '
+                    . 'superseded by newer enqueue [ gen %d -> %d ]',
+                $job_id,
+                $entry_gen,
+                $current_gen
+            );
+            <[jobsite.dispatch.consume_slot]>;
+            next;
+        }
+
+        $desc = $entry->{'desc'};
+        last;
     }
-    if ( $entry_gen and $entry_gen != $current_gen ) {
-        <[base.logs]>->(
-            1,
-            '[job:%s] skipping stale queue entry, '
-                . 'superseded by newer enqueue [ gen %d -> %d ]',
-            $job_id,
-            $entry_gen,
-            $current_gen
-        );
-        <[jobsite.dispatch.consume_slot]>;
-        next;
+
+    if ( not defined $desc ) {
+        <[base.logs]>->( 1, 'assessment queue empty, waiting for results' )
+            if $in_flight == 0;
+        last;
     }
 
-    $desc = $entry->{'desc'};
-    last;
+    <[base.logs]>->(
+        1,       '[job:%s] dispatching assessment [ remaining : %d ]',
+        $job_id, scalar $queue->@*
+    );
+
+    ## encode multiline args as base32 to avoid protocol framing issues    ##
+    ## :no_tools: prefix signals coding zenka to skip tool use (assessment ##
+    ## only)                                                               ##
+    my $encoded
+        = ':B32:'
+        . encode_b32r( Encode::encode( 'UTF-8', ":no_tools:\n$desc" ) );
+
+    ## attempt token : bumped for every fresh dispatch of this job,         ##
+    ## threaded through the whole task.create/task.wait-done round trip via ##
+    ## reply params -- lets a late reply from an attempt the watchdog       ##
+    ## already gave up on be recognized and ignored instead of              ##
+    ## double-decrementing pending_count                                    ##
+    my $attempt
+        = 1 + ( ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0 );
+    <jobsite.tasks>->{$job_id}{'attempt'} = $attempt;
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'task.create',
+            'call_args' => { 'args' => $encoded },
+            'reply'     => {
+                'handler' => 'jobsite.handler.task-created',
+                'params'  => { 'job_id' => $job_id, 'attempt' => $attempt },
+            },
+        }
+    );
+
+    ## watchdog : if the task.create/task.wait-done round trip never       ##
+    ## replies [ lost reply, dropped task, backend wedge -- see            ##
+    ## data/tasks/jobsite-assessment-cycle-stuck-no-watchdog.md ], give up ##
+    ## on it and keep the queue draining instead of stalling               ##
+    ## cycle=assessing forever. cancel any stray leftover first : a        ##
+    ## freshly-queued entry shouldn't have one, but a leaked timer here    ##
+    ## would otherwise keep ticking under a clobbered hash key             ##
+    <[jobsite.dispatch.arm_watchdog]>->( $job_id, $attempt, qw| assess | );
+
+    $in_flight++;
 }
 
-if ( not defined $desc ) {
-    <[base.logs]>->( 1, 'assessment queue empty, waiting for results' );
-    return;
-}
-
-<[base.logs]>->(
-    1,       '[job:%s] dispatching assessment [ remaining : %d ]',
-    $job_id, scalar $queue->@*
-);
-
-## encode multiline args as base32 to avoid protocol framing issues    ##
-## :no_tools: prefix signals coding zenka to skip tool use (assessment ##
-## only)                                                               ##
-my $encoded
-    = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', ":no_tools:\n$desc" ) );
-
-## attempt token : bumped for every fresh dispatch of this job, threaded    ##
-## through the whole task.create/task.wait-done round trip via reply params ##
-## -- lets a late reply from an attempt the watchdog already gave up on be  ##
-## recognized and ignored instead of double-decrementing pending_count      ##
-my $attempt = 1 + ( ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0 );
-<jobsite.tasks>->{$job_id}{'attempt'} = $attempt;
-
-<[protocol-7.route-send]>->(
-    {   'command'   => 'task.create',
-        'call_args' => { 'args' => $encoded },
-        'reply'     => {
-            'handler' => 'jobsite.handler.task-created',
-            'params'  => { 'job_id' => $job_id, 'attempt' => $attempt },
-        },
-    }
-);
-
-## watchdog : if the task.create/task.wait-done round trip never replies [  ##
-## lost reply, dropped task, backend wedge -- see                           ##
-## data/tasks/jobsite-assessment-cycle-stuck-no-watchdog.md ], give up on   ##
-## it and keep the queue draining instead of stalling cycle=assessing       ##
-## forever. cancel any stray leftover first : a freshly-queued entry        ##
-## shouldn't have one, but a leaked timer here would otherwise keep ticking ##
-## under a clobbered hash key                                               ##
-<[jobsite.dispatch.arm_watchdog]>->( $job_id, $attempt, qw| assess | );
-
-#,,,,,...,..,,,.,,.,,,,,,,,.,,,.,,..,,,.,,,..,..,,...,...,,.,,..,,.,.,,,,,,.,,
-#GWJQW2M3VKILDR2A4XXBM7E6FNQWRV2REWXOCTXFW7SU5DJI3AS2JZNUH6B54NLOXIRIEVAPTVTAQ
-#\\\|E42PRHMFVOI2XXWUKOYIOO6ZRQWZ4LKU67PYXPFPXCKD2XDOGPX \ / AMOS7 \ YOURUM ::
-#\[7]LVALNYNJGKKGPI2AXM3B4XBO52IJT2SONJDCORU6VTY36K2DHACA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,..,,.,.,,,,,.,.,.,,,.,,,..,,..,,...,...,,,.,,,.,.,.,,.,,,.,,
+#YUCN4YZRBAQEZ6AT3KMGGE2DRUZDTL6OR7MGPNIODPNC3GGTTVPCNX5K6MLAIQXNSPLW4SD33UHFA
+#\\\|IBGVTBO53O4L4T2RE6MGFOGK3426JITXG42AE72JDTWVONZMPGG \ / AMOS7 \ YOURUM ::
+#\[7]4VBCOSIV67TPYYCGMHBWQEWJY2DPIRJPIDNGOATNVO4Q7OOFQ4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

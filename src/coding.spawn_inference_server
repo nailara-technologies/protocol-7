@@ -37,6 +37,26 @@ my $binary   = $params->{'binary'} // (
     : ( <inference.backend.cpu.binary> // "$lib_path/llama-server-cpu" )
 );
 my $threads = $params->{'threads'} // 8;
+
+## a negative thread count is relative to the cores : -1 = all but one ##
+## [ leaves a core to cube \ httpsd \ the link under full load ]       ##
+if ( $threads =~ m|^-\d+$| ) {
+    my $cores = 0;
+    if ( open my $cpu_fh, '<', '/proc/cpuinfo' ) {
+        while (<$cpu_fh>) { $cores++ if m|^processor\s*:| }
+        close $cpu_fh;
+    }
+    $cores ||= 8;
+    $threads = $cores + $threads;
+    $threads = 1 if $threads < 1;
+}
+
+## cpu inference is batch work : a niced server yields to the latency bound ##
+## zenki [ cube runs at -13 ] -- only under contention, an idle host still  ##
+## gives it every cycle. the gpu server stays at 0                          ##
+## [ its cpu threads feed the gpu ]                                         ##
+my $nice = $backend eq qw| cpu | ? ( <inference.backend.cpu.nice> // 11 ) : 0;
+$nice = 0 if $nice !~ m|^\d{1,2}$| or $nice > 19;
 ## live config first : <coding.spawn_params> is filled once by init_code, a ##
 ## config reload alone would keep spawning with the old value               ##
 my $gpu_layers
@@ -1103,6 +1123,9 @@ if ( $pid == 0 ) {
     ## CHILD : setpgid before exec is the whole point of not using open3 ##
     POSIX::setpgid( 0, 0 );
 
+    ## the exec'd server inherits it : no race with a later setpriority ##
+    setpriority( 0, 0, $nice ) if $nice;
+
     close $out_r;
     close $err_r;
     close $stat_r;
@@ -1292,8 +1315,8 @@ return {
     'port'    => $port
 };
 
-#,,..,,,.,,..,,,.,,,,,,..,...,,,.,,,,,,..,,,,,..,,...,...,,,.,,,,,.,,,.,,,,..,
-#XGKMZJPJLRT2UHAZHEKSLJG3EDASNRF22IQBCFZJVD7P6LCGHMNCEKOYW5V5YISZ2QQ737K7NJ6US
-#\\\|RLDU65HYH3EGVDMRFSOEICKTPZOUSBU74HLF5KCAT76PCVIGZYJ \ / AMOS7 \ YOURUM ::
-#\[7]P5YZ6H7XML7UYBZIZ3BAC3IW7OKLBVQQS6Z5BXL6PJYCH7INPSAA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,.,,,,,,.,.,,..,,,,,...,,.,,..,,..,,...,...,,.,,,,,,,,.,,,,,,,,,
+#H5CWMHG444OQOIOEVGLAO6GKHBNQ3TUFI37MLL7Z5WHHP76LTR4F36VU6SDRWQ3Y26CQP33DDK7SG
+#\\\|VEXJQOQ7AOW43AKEZTM6MTK6YWOPHRXMNZDIYG3CKFT3DX6EWOQ \ / AMOS7 \ YOURUM ::
+#\[7]QBYKWTIRH4IL6RJBHRV4QEAXWD6NGYMTIOJVKVEABRWBAU3EVAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

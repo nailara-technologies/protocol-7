@@ -6,14 +6,15 @@
 # return = TRUE when the job held the slot, FALSE when it was released
 #          already
 
-## one chain runs a batch : one job in flight, its reply dispatches the    ##
-## next. the job holding the slot is the one whose watchdog timer is armed ##
-## [ dispatch.next \ dispatch.repair ], or an orphan rewired after a       ##
-## restart [ timers are not persisted ]. a reply arriving after the        ##
-## watchdog released the slot used to count down and dispatch again, and   ##
-## every such reply started one more chain -- on a cpu-only server coding  ##
-## held several hundred duplicate assessments [ 2026-10-23 ]. such a reply ##
-## is recorded by its handler, but releases nothing here                   ##
+## a batch runs with up to <jobsite.cfg.assess_parallel> jobs in flight  ##
+## [ default 1 = one chain ]. the job holding a slot is the one whose    ##
+## watchdog timer is armed [ dispatch.next \ dispatch.repair ], or an    ##
+## orphan rewired after a restart [ timers are not persisted ]. a reply  ##
+## arriving after the watchdog released the slot used to count down and  ##
+## dispatch again, and every such reply started one more chain -- on a   ##
+## cpu-only server coding held several hundred duplicate assessments     ##
+## [ 2026-10-23 ]. such a reply is recorded by its handler, but releases ##
+## nothing here                                                          ##
 
 my $job_id = shift // '';
 
@@ -35,8 +36,8 @@ eval { $timer->cancel } if $timer;
 
 return TRUE;
 
-#,,.,,,.,,.,.,,,,,.,,,.,,,..,,,.,,...,,..,.,,,..,,...,...,...,,..,.,,,..,,,.,,
-#2FCULVKRH5NB6QUZO33YKYDOMHSYBEUC4BNDCCO76FJVCNS73HCKTCJ4EGUMJJE5AFHSWGVHZ7MR6
-#\\\|YZBEJKFCQPNNL6JMHAIXV5JH5QJTASIY23SOAP7K7SEHL22UMPT \ / AMOS7 \ YOURUM ::
-#\[7]WRHH3QJCV6RMUCGYJIOT6AUW6W3ITDKYRTBYAKSS4ZHSW2PIG2AA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,.,,..,,,,,,.,.,..,,.,,,..,,..,,...,...,..,,,,.,..,,.,,,.,,,
+#4S753QXO3VM7MR6JMTTYLQR2BZ35LPG6TWEJYVVEBRNUTBRJX2DG2D52P3LQRSX5I6PLSNQ7YC3XK
+#\\\|SK6FAOJIOMQU7ZZCKE3A7G5KDAB4UX4P47GURE3F7KCEGBTIC2N \ / AMOS7 \ YOURUM ::
+#\[7]A6OHLGBP65N4WAQS7YZK7US7VPWHVCAVDL5A6USNU4CXIAM74KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

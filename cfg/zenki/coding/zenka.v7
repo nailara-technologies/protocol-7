@@ -205,7 +205,7 @@ coding.cfg.whitespace_abort_retry = yes
 ## state, shown by task-info ] : a round can be replayed exactly           ##
 coding.cfg.request_seed = yes
 
-## before a task fails for a loop, an isolated no-tools child judges it    ##
+## before a task fails for a loop, an isolated no-tools child judges it     ##
 ## from the task text, its last steps and the files it wrote [ todo X33 ] : ##
 ## DONE completes the task, NOT_LOOP continues it, LOOP fails it            ##
 coding.cfg.loop_verdict = yes
@@ -333,6 +333,10 @@ inference.backend.gpu.model_id = <coding.cfg.start_model>
 inference.backend.cpu.model_id = <coding.cfg.start_model>
 
 inference.backend.cpu.threads = 8  ## Use system thread count ##
+## negative = relative to the cores [ -1 : all but one ] ##
+## cpu server niceness [ 0..19, default 11 ] : batch work yields to cube, ##
+## httpsd and the links under contention -- the gpu server stays at 0     ##
+inference.backend.cpu.nice    = 11
 
 ## Routing Configuration ##
 inference.routing.prefer_gpu = yes  ## Use GPU when available ##
@@ -423,8 +427,8 @@ coding.cfg.cold_start_data_start_timeout = 150
 ## tiering ]                                                               ##
 coding.cfg.switch_model_max_wait = 300
 
-## crash-restart attempt ceiling : regular operation vs sweep-driven ##
-## [ coding.handler.inference_server_sigchld /                       ##
+## crash-restart attempt ceiling : regular operation vs sweep-driven  ##
+## [ coding.handler.inference_server_sigchld /                        ##
 ## coding.handler.verify_inference_startup ]. a sweep candidate is    ##
 ## ALMOST EXPECTED to hit a model-pinned crash -- the full 5-attempt  ##
 ## ladder [ up to 125s backoff ] wastes real sweep wall-clock time on ##
@@ -522,10 +526,10 @@ inference.model.amos_id = <coding.cfg.start_model>
 ## a placeholder value here would get re-applied [ clobbering the resolved  ##
 ## path ] every time 'reload config'/'reload all' re-parses this file       ##
 
-## [ per-host overlay : /etc/protocol-7/coding/host.cfg, optional ]        ##
+## [ per-host overlay : /etc/protocol-7/coding/host.cfg, optional ]         ##
 ## see base.load_host_config : 'key = value' lines applied ON TOP of        ##
-## everything above on THIS host only, re-applied on 'reload config'.      ##
-## this is the intended home of host-specific values [ a cpu-only server,  ##
+## everything above on THIS host only, re-applied on 'reload config'.       ##
+## this is the intended home of host-specific values [ a cpu-only server,   ##
 ## a remote gpu box ] -- the repo config stays host-agnostic, no hand       ##
 ## edits on hosts.                                                          ##
 ##                                                                          ##
@@ -581,8 +585,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,,,.,,.,,...,,,.,,,.,,.,,,.,,.,,,,..,,,,,.,.,...,.,.,..,,.,.,,,.,..,,.,,,
-#QEFQSRQCJBNXFOB7YPHU2LEFQ7L6IGRD3VQGL5ZSPJ773M7IGDNY4ZVHVHZZBT5Y43U4VKBC5IMNS
-#\\\|ASTYIW22M4XNM2JJQ6K6XRJ77MFUFYJR36VWFYWJZLG5PKSZJEA \ / AMOS7 \ YOURUM ::
-#\[7]DHU6FQ3ONOCZWTHD2JYG5N36ICKV4V6ADZ3OQMOUZOHNV2GSTCDY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,.,,..,,,..,,,,,,,,,,,,,.,,,...,.,.,...,..,,...,..,,,,,,..,,,.,,
+#W6JQ27SNHVZAIORLNK4B54355X2F3HPTNXIXT6AKJJPJNZ5YCZXVWY4OHOFHYZNVSJ5UDUQ6M74LI
+#\\\|2UXQDU5YV4XXRJXXLK764ETUTYJEJAS4LA43SYXG7B5BOTJCVC2 \ / AMOS7 \ YOURUM ::
+#\[7]PRRAOZBB44B65CD3XWJ43AVCQRZ25BZ3P22JIPWCJKVTJPIMREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = models.task.zenka-of
+# descr = source task zenka of a task id [ list fallback ]
+# note  = the task zenka a task id was announced on -- remembered per
+#         task id in <models.task.source> so every command for the task
+#         routes back to its own zenka
+# param = <task_id>
+# notes = unknown id [ or no id at all ] : the first listed task zenka
+#         [ models.task.zenki ] -- the same route a single name config
+#         used before
+
+my $task_id = shift // '';
+
+if ( length $task_id ) {
+    my $source = <models.task.source>->{$task_id};
+    return $source->{'zenka'}
+        if ref $source eq qw| HASH |
+        and length( $source->{'zenka'} // '' );
+}
+
+my ($first) = <[models.task.zenki]>;
+
+return $first;
+
+#,,.,,...,..,,..,,,,.,,,.,...,.,,,...,,,,,..,,.,.,...,...,...,,,,,..,,,..,..,,
+#JIHTCXTSJ2HACHNCL2ZDIFQES3EXOKNGIGH3ZNFLHKWJRXBZ6RTK3OCHNSIVVEBRG5BXMTWUKZXI6
+#\\\|DZPIKFMXU3U2JCQRX7HQUAWQZZFUWVC2YHMIDJ25ZWQ3EWVNW6H \ / AMOS7 \ YOURUM ::
+#\[7]QUHPSTNLXMEAHA5FDSRNCALPABO72Q3JNEIU7G5DGJE4LOADNWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

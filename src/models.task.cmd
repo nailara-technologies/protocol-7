@@ -3,21 +3,22 @@
 # name  = models.task.cmd
 # descr = route name : <task_zenka>.<cmd>
 # note  = route name of a task zenka command : '<task_zenka>.<cmd>'
-# param = <cmd>
-# notes = <models.cfg.task_zenka> //= 'task' [ the local task zenka ] ; an
-#         external route like 'external.<link>.task' makes this host claim
-#         another host's tasks [ see models.task.remote ]
+# param = <cmd> [ <task_id> ]
+# notes = routes by the task's remembered source zenka [ models.task.
+#         zenka-of ] so claims, start, complete and fail always go back
+#         to the zenka the task came from. no task id : the first listed
+#         task zenka [ models.task.zenki ] -- a single name config routes
+#         exactly as before
 
-my $cmd = shift // '';
+my $cmd     = shift // '';
+my $task_id = shift // '';
 
-my $task_zenka = <models.cfg.task_zenka> // qw| task |;
-$task_zenka =~ s{^\s+|\s+$}{}g;
-$task_zenka = qw| task | if not length $task_zenka;
+my $zenka = <[models.task.zenka-of]>->($task_id);
 
-return sprintf '%s.%s', $task_zenka, $cmd;
+return sprintf '%s.%s', $zenka, $cmd;
 
-#,,.,,.,.,,.,,.,.,,..,..,,.,.,...,...,,..,...,..,,...,...,...,.,,,.,,,...,,,,,
-#CZ56GS72FQVNSRGLSEPKGYKLC6O7J334OQ2LWNTBVJA2AAMXDL6IRLC5UOIPIR4SD5XVACPAWEXCW
-#\\\|AXHJWIKSL3757YWWLXVCMQ4IIIJMGVCKSRWANGOTWEJO7BTV23U \ / AMOS7 \ YOURUM ::
-#\[7]LY2JDCOOEDAA74YLZHGT65DZGOAGHDEMMVY7JYMKFBPKQNJJKEAA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,..,,.,.,,,.,...,,,.,...,,,.,.,.,...,...,.,,,.,,,,..,,..,,.,,
+#OXCK5RWRCVSJCQTRKH6O777KTGHZEIG6YPP22DFNWUUXYIXN4AKZ7VHAXJFT57Z467AWWMXJZPK6I
+#\\\|T4WUFCOI7XAV327LMDAHJBM7GQ3VEVYVH7UBVGVESGERLNHRH3W \ / AMOS7 \ YOURUM ::
+#\[7]XKIL2SOKJPSOEO4UQQWN6FXP6JTZCZJYFHDXIJYBI4S4KFEH6ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

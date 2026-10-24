@@ -1833,10 +1833,10 @@ items:
     2026-10-23 : the export date IS the same on both [ 1791932082, browser + server ] -- still 1 vs 9 export entries. so the job DATA differs [ stages \ timestamps changed on srv-U today, the local stock never learned of it ] : compare the 9 jobs between the stores [ stage, last_modified ], then the store sync [ 3MK ]
     2026-10-23 found : NO user state syncs between hosts -- export time [ JOBS_PREFS -> that host's jobsite.set-prefs, equal only by hand ], export marks [ exported_stage \ exported_at live only in the exporting host's web/jobs/*.yaml : local 9, pri 0 ], stage changes [ that host's jobsite only ]. a one-off copy desyncs at the next export -> real fan-out : every user change as a record { job, field, value, time, host }, newest-wins per field [ export time max-merge, marks keep batch epoch for undo ]. transport : the existing remote web endpoint is enough [ jobsite.cfg.sync_urls \ sync_tokens already push to several webs with per-url tokens, /jobs-sync is Bearer-gated + admission ] -- links [ ZYH ] optional. part of 3MK's reverse fan-out
     2026-10-23 owner : pri's report view shows 8 OLD entries with 'exclude sent' enabled -- the jobs of the last report sent to the jobcenter are not marked exported there [ marks only in the local web/jobs/ ]. the export marks [ exported_stage \ exported_at ] are the first records to fan out
-  done_at: null
+  done_at: 32EPXB75KA
   id: QLK
   priority: normal
-  status: open
+  status: done
   tags:
   - jobsite
   - sync
@@ -1927,9 +1927,20 @@ items:
   - jobsite
   - ui
   text: "jobsite.progress overcounts after deletes : jobsite.job.trash [ web delete \\ jobsite.delete ] drops the task record but the queue entry keeps its pending_count slot until dispatch reaches and skips it [ dispatch.consume_slot ] -- owner saw 17 remaining with 2 real, dropping fast. fix : job.trash removes the job's queued entry and releases its slot at once [ same consume_slot path, cycle -> idle at 0 ]"
+- added: 32EPXCEMLM
+  details: ''
+  done_at: null
+  id: HWO
+  priority: normal
+  status: open
+  tags:
+  - models
+  - task
+  - zyh
+  text: "models.cfg.task_zenka as a LIST of task zenki [ e.g. 'task external.pri.task', later fed dynamically over a channel ] : since ZYH live 2026-10-24 local models polls only external.pri.task, so local jobsite's own tasks are never claimed [ 'peek BYQSQFQ : no task details, left alone', the local cycle hangs in assessing ]. claim from every listed zenka, peek \\ subscribe per entry ; with assess_parallel on pri this is the gpu accelerator path"
 
-#,,,,,.,.,.,,,,,.,.,.,.,,,,..,..,,...,,,.,.,.,..,,...,..,,,,,,,.,,...,.,,,,.,,
-#BTW37QE45BKHRR3RM4QW5A33PJIYTDYEGQ7UTG2ZLKY3PY76N2FFR7FSE5XT2R3R44RBP7RP3KH7K
-#\\\|SPUJ4ZVJKTFA43XCQP6NUUA3JQJWTMNOXWGS2PJWEMGFLUBZESU \ / AMOS7 \ YOURUM ::
-#\[7]BE4FTKU64JULNEKEF5ASPMPY7A5IXAVVDD5VWRMSVIFLHWTRAABA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,.,,,,.,,,.,..,,.,,,.,.,...,...,..,,...,...,..,,.,,,,,,,.,.,.,,,
+#232GLCKJV5DCLQJAGJJYIPQ4GYFSUZPD7VXQG72B3XDNOUHZIFXKWTW36M5WT3QP4CKDWRRXWQW5S
+#\\\|DXZ6VJUNSGZ6MUHV7OBSNOS22NVBEJXZNRXYLJTTB5E4XRFHOMR \ / AMOS7 \ YOURUM ::
+#\[7]IUDQ54KDP5ESVWZQIXS6XILI77QJS2OT74TJDWPIGSAWBL2IBYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

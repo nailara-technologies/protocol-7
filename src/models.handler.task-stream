@@ -1,25 +1,30 @@
 ## [:< ##
 
 # name  = models.handler.task-stream
-# descr = reply handler for the task notice STRM
-# note  = reply handler for <task_zenka>.subscribe : register the STRM
+# descr = reply handler for a task notice STRM
+# note  = reply handler for <zenka>.subscribe : register the STRM
 #         consumer that feeds each announced task id to the peek chain
 # notes = same shape as jobsite.handler.fetched-stream. each frame is one
-#         line with a new task id -> models.task.dispatch-id [ remote : peek,
-#         claim only what this host serves ]
+#         line with a new task id -> models.task.dispatch-id with the
+#         stream's zenka as the task source [ remote : peek, claim only
+#         what this host serves ]. per listed zenka : one down never
+#         blocks the others
 
 my $reply = shift // {};
 
-my $state = <models.task.stream> //= {};
+my $zenka = $reply->{'params'}{'zenka'} // '';
+
+return if not length $zenka;
+
+my $state = <models.task.streams>->{$zenka} //= {};
 
 if ( $reply->{'cmd'} eq qw| FALSE | ) {
     <[base.logs]>->(
-        0,
-        ': task notice stream : subscribe refused : %s',
-        $reply->{'call_args'}->{'args'} // 'unknown error'
+        0,      ': task notice stream %s : subscribe refused : %s',
+        $zenka, $reply->{'call_args'}->{'args'} // 'unknown error'
     );
     $state->{'since'} = undef;
-    <[models.task.subscribe-retry]>;
+    <[models.task.subscribe-retry]>->($zenka);
     return;
 }
 
@@ -44,15 +49,14 @@ my $registered = <[strm.local.register]>->(
 
                 if ( $line !~ m|^[A-Z0-9]{7}$| ) {
                     <[base.logs]>->(
-                        1,
-                        ': task notice stream : frame ignored [ %s ]',
-                        substr( $line, 0, 42 )
+                        1, ': task notice stream %s : frame ignored [ %s ]',
+                        $zenka, substr( $line, 0, 42 )
                     );
                     next;
                 }
 
-                <[base.logs]>->( 2, ': task notice : %s', $line );
-                <[models.task.dispatch-id]>->($line);
+                <[base.logs]>->( 2, ': task notice %s : %s', $zenka, $line );
+                <[models.task.dispatch-id]>->( $line, $zenka );
             }
         },
         'on_eof' => sub {
@@ -64,9 +68,10 @@ my $registered = <[strm.local.register]>->(
             $state->{'subscribed'} = FALSE;
             $state->{'since'}      = undef;
             $state->{'cmd_id'}     = undef;
-            <[models.task.subscribe-retry]>;
+            <[models.task.subscribe-retry]>->($zenka);
             <[base.logs]>->(
-                1, ': task notice stream : closed [ cmd_id=%d ]', $cmd_id
+                1,      ': task notice stream %s : closed [ cmd_id=%d ]',
+                $zenka, $cmd_id
             );
         },
     }
@@ -74,7 +79,7 @@ my $registered = <[strm.local.register]>->(
 
 if ( not $registered ) {
     $state->{'since'} = undef;
-    <[models.task.subscribe-retry]>;
+    <[models.task.subscribe-retry]>->($zenka);
     return;
 }
 
@@ -84,13 +89,14 @@ $state->{'since'}      = undef;
 $state->{'delay'}      = undef;     ## backoff starts over ##
 
 <[base.logs]>->(
-    1, ': task notice stream : consumer registered [ cmd_id=%d ]', $cmd_id
+    1,      ': task notice stream %s : consumer registered [ cmd_id=%d ]',
+    $zenka, $cmd_id
 );
 
 return;
 
-#,,..,.,.,.,.,,,,,,.,,,,.,.,.,...,..,,...,...,..,,...,..,,.,,,,,.,,.,,..,,...,
-#OHAD7NKAGFFQL3EZIG2QWXV5Q3AD3Q5EML6OMD67UYUVC62JRKRJ7RV4VWOGJ6BEBRYWDWJSXOP6I
-#\\\|YPFZLWB3ZTB3PRNDSODUNWFFKBMNDASNPFEEUKNCFEKLUHGSSSM \ / AMOS7 \ YOURUM ::
-#\[7]JWNLTB7K5GUZPTYWLEUIGWM37OXLSGGO2LOKSIB2F2PK6AOSYIBY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,,.,,,,,,.,.,.,.,..,,...,.,.,.,.,...,...,.,,,..,,,,,,.,.,,.,,
+#GFZPQVQCRPAOOI2IZDB2C56D22NIMEE3CPVLIN6GQ5EBO3LHRGNETAQIC3IVEPLW6MGN4RW5DYEZA
+#\\\|LRJR537EH7Y5SFQISHL52N2YNCJ24AMR3VYXYVZJQS7F6FRVTZM \ / AMOS7 \ YOURUM ::
+#\[7]WGOI4YM2SQKSU7T2ULH73VKFQXWUYBTXA63XXVKQTJJ27S46W4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
