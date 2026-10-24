@@ -34,13 +34,18 @@ budget at the end : claude 7d ~75 %, kimi 7d ~66 %.
   ':no_tools:' as first line ; 34811df51 startup scan of local queues
   [ orphaned local tasks claimed ], no valued.resolve on empty node
 
+- 363a759d2 reassess \ appended batch fill a free slot at once ;
+  bb37d4893 claim limit [ task_max_claims, default one per ready backend
+  serving the pin ] + claim ttl 1800 s ; e2d628f30 models' grant for
+  coding.inference-status ; 3af43f0cf slot reserved at claim SEND
+- LIVE CONFIRMED : pri cpu 3.5 t/s + local gpu 39.4 t/s in parallel on
+  pri's tasks [ the gpu claims pri's 2nd slot over the link ]
+
 ## live state [ end of session ]
 
 - local httpd + jobsite RUN again [ pri's url role marks ] ; local models
   task_zenka = 'task external.pri.task' ; pri jobsite assess_parallel = 2
   [ backup host.cfg.bak-before-assess-parallel ]
-- open live check : the next pri assessments -- the 2nd slot should go to
-  the local gpu [ 47 t/s vs pri cpu ~3 ]
 - todo coding seed-retry : a failed cat self-test leaves pri's cpu at
   restart_needed, jobs wait in 'depending' -- a coding restart frees it
 
@@ -65,9 +70,10 @@ budget at the end : claude 7d ~75 %, kimi 7d ~66 %.
 1. DONE : sync_url_roles + receiver rule, QLK closed. next : yourum as
    3rd worker [ same model fits : 6.6 GB of 10 free ; model file, coding
    + models, link to pri, assess_parallel 3 ], the coding seed-retry bug
-2. todos added : assess_parallel [ ZYH needs >1 task in flight ],
-   progress overcount after deletes, address family memory [ DoS-safe ],
-   web-auth-gate harness broken on HEAD
+2. todos open : progress overcount after deletes, address family memory
+   [ DoS-safe ], web-auth-gate harness broken on HEAD, coding seed-retry
+   leaves restart_needed ; NEW idea : a check that every route-send
+   command of a zenka has its cube grant [ see lessons ]
 3. kimi noted : bodies between size.buffer.input [ ~237 KB ] and
    max_post_size [ 1 MB ] stall the https body accumulator
 4. older queue unchanged : 3MK, yourum 3rd worker, RTY, H2N
@@ -81,10 +87,13 @@ budget at the end : claude 7d ~75 %, kimi 7d ~66 %.
 - a sync url is a write grant over another host's web, not a mirror
 - never parse a secret with a length guess : a 13-char token printed in
   the fallback branch [ revoked + re-minted ]
-- see [[feedback-whitelist-static-calls-and-v7-rewrap]]
+- see [[feedback-whitelist-static-calls-and-v7-rewrap]] -- also : a NEW
+  route-send command needs its access.zenki grant, stub tests never show
+  the refusal [ models -> coding.inference-status, e2d628f30 ] ; the
+  refusal is logged by CUBE, the caller only sees an empty answer
 
-#,,..,.,.,.,.,,.,,,,,,...,.,,,,,,,,..,.,.,,,.,..,,...,..,,..,,.,.,,.,,.,,,.,.,
-#NBVAJ3F5CZT3JVGP6IPW6M7M3NB34OMNKPWNZZI7GLGLFICZJQ7KP6EBDI7T5OFTUZHYFHANSGXPI
-#\\\|LQGMXWGXLSO2YQ5W25VTL7S4Q3LSL5V7YWYN2C6Z4U6ILEX43PW \ / AMOS7 \ YOURUM ::
-#\[7]X6GGO2HQHTA5CJAECTF7ZM3LK6W4DWZV7MHFQPHO6S3HIEWRSCBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,...,,,.,.,.,,..,,,.,.,,,..,,,..,..,,...,...,..,,.,.,,..,..,,...,
+#JR3MCGJ3VQ4TJL66VUAELG252T7S3BZRGSVGML7OTBZ6NLDFT3NWT6FICRP7SG3NUM5W34U6JDQIY
+#\\\|EDRMCU66XKCTLB47VSTATCW2L3BZ2KO2FEAEQOJHZ4YCABMFAXP \ / AMOS7 \ YOURUM ::
+#\[7]KM5LDWSMFVIKLY7R6QQTD7JAB2ZJXJCMREB4WSURDDSBFPZN2KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,10 +22,15 @@ the signing run regenerates it, a lost '\' only when the zenka loads its config.
 variable ] ; after a signing run, diff the STAGED .v7 [ every wrapped line ends
 in '\' ] and grep the regenerated whitelist for every newly called module before
 committing.
+- e2d628f30 [ same day ] : kimi's claim limit called coding.inference-status
+  from models -- no grant in cfg/zenki/cube/access.zenki, cube refused it
+  [ logged by CUBE only ], models saw an empty answer and claimed nothing.
+  when a change adds a route-send command : grep the caller zenka's
+  access.cmd.usr.<zenka> for it before committing.
 related : [[amend-env-and-unsigned-files-staging]], [[use-format-code-not-perl-c]].
 
-#,,.,,..,,...,.,,,..,,,..,,.,,...,,,,,,,.,,.,,..,,...,...,,,.,..,,..,,...,.,.,
-#SHV7UQKWAXCMDEV6TICFZD3DIUW4F43S74OXZWCIVEJGXKFMY6L74PJLI7HH4KLO2YKM5QJHILMRI
-#\\\|ONSO3CKVFH4FVRIZTQIZLSL22PISJY7LPQSUPKPEPB3HIHBAUAE \ / AMOS7 \ YOURUM ::
-#\[7]CD5KZPXSQBIOWDDELLR6534Q7LZIWH42AVSWPPK7LE32F62LSICA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,..,,.,,,..,,.,.,.,,,...,..,,..,,..,,...,...,,,,,.,,,,.,,...,...,
+#PSOS563XFAL2D2BX36NX7DGKVZFL4MJ3SEDRDNSCM4ONKLBXGNLCMRGHOCGN2S7B25JJCEC3RYCXC
+#\\\|77IJQZ2AH7G6367JUJF3XV4IGM4UN72CFD2LPHKRUTYR3SFBZ3D \ / AMOS7 \ YOURUM ::
+#\[7]LQD3MDLXHNATRN2JJOWJ3Q4AGQYIBP7PUSEFGMTY4YLI3UHN6CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
