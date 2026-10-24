@@ -23,7 +23,15 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
         0,      ': task notice stream %s : subscribe refused : %s',
         $zenka, $reply->{'call_args'}->{'args'} // 'unknown error'
     );
-    $state->{'since'} = undef;
+
+    ## a refusal ends an OPEN stream too [ a dropped link answers with      ##
+    ## 'command route collapsed', never an eof ] -- else 'subscribed' stays ##
+    ## set and the notices never resume [ the poll still works ]            ##
+    <[strm.local.cancel]>->( $state->{'cmd_id'} )
+        if defined $state->{'cmd_id'};
+    $state->{'subscribed'} = FALSE;
+    $state->{'cmd_id'}     = undef;
+    $state->{'since'}      = undef;
     <[models.task.subscribe-retry]>->($zenka);
     return;
 }
@@ -95,8 +103,8 @@ $state->{'delay'}      = undef;     ## backoff starts over ##
 
 return;
 
-#,,..,.,,,,..,,..,,.,,,,,,.,.,.,.,..,,...,.,.,.,.,...,...,.,,,..,,,,,,.,.,,.,,
-#GFZPQVQCRPAOOI2IZDB2C56D22NIMEE3CPVLIN6GQ5EBO3LHRGNETAQIC3IVEPLW6MGN4RW5DYEZA
-#\\\|LRJR537EH7Y5SFQISHL52N2YNCJ24AMR3VYXYVZJQS7F6FRVTZM \ / AMOS7 \ YOURUM ::
-#\[7]WGOI4YM2SQKSU7T2ULH73VKFQXWUYBTXA63XXVKQTJJ27S46W4BY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,.,,.,,,.,,,..,,..,,..,,.,,,,,,,.,.,...,...,,.,,,,.,,..,,,.,...,
+#KF7OGAPO4GWPKN62LRZPOMYX5USSSF6VY3UI2WFYOH74NQC34I53ZOMJ4N5NGAGPFYDXFTAPKWJSA
+#\\\|KJHBWRTZWSAEK3XXPRGT627O3YTIFQEK2JDK6KFJXUQDSZTHV5Z \ / AMOS7 \ YOURUM ::
+#\[7]SDB6RHAE3QKA75YAF6ZMKQUFFNJ3AFOJZXFEADF5WKCWI4SUEEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

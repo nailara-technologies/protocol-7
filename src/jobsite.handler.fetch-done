@@ -20,6 +20,15 @@ if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->( 1, ':. %s .: %s', $data_str, $category );
 }
 
+## the cycle's import outcome for jobsite.status [ a fetch host gone fails ##
+## every category, the cycle itself still looks normal ]                   ##
+<jobsite.fetch_cycle> //= { 'replies' => 0, 'failed' => 0 };
+<jobsite.fetch_cycle>->{'replies'}++;
+if ( lc($mode) eq qw| false | ) {
+    <jobsite.fetch_cycle>->{'failed'}++;
+    <jobsite.fetch_cycle>->{'why'} = $data_str;
+}
+
 ## accumulate total items queued in site-yaml across all category replies ##
 if ( lc($mode) ne qw| false | ) {
     my ($n_new) = $data_str =~ m|(\d+) new|;
@@ -32,6 +41,9 @@ if ( lc($mode) ne qw| false | ) {
 <jobsite.fetch_pending>--;
 
 return if <jobsite.fetch_pending> > 0;
+
+<jobsite.last_fetch> = delete <jobsite.fetch_cycle>;
+<jobsite.last_fetch>->{'at'} = time;
 
 my $total_queued = delete <jobsite.fetch_total_queued> // 0;
 
@@ -82,8 +94,8 @@ if ( <jobsite.pending_count> == 0 ) {
     <[jobsite.sync.push]>->( undef, FALSE );
 }
 
-#,,.,,,,.,.,,,,.,,..,,...,,,.,,,,,...,.,.,..,,..,,...,...,.,,,,.,,,..,.,.,,.,,
-#JEZ65DPUMT5J2W5K3HRY6VOU3OJ3VXN4OR7GCGMMBB5BFJZP5VHOSOW6BZYO4URDEI6IUJWFLGYNS
-#\\\|UT7P2XA7XVP2IAGLUYJ6OOKLSKYQAMILGVI2O4ZW2QTYMNLFZ3N \ / AMOS7 \ YOURUM ::
-#\[7]H7BWG5NOHR76FR526MNBOJ2G23UVTGNC7RVJIT5AZJX3NW3YMODA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,,..,...,,,.,,..,.,,,,,.,,,,,..,,...,..,,..,,,.,,,..,,,,,,,.,
+#2R7R7NXYMXD4KMHIAHLWWEDOYJ4IHTL4AWCPWGWOUJ5U5YEP7UPLHACVMJSZKRWS5GXSU257A2A74
+#\\\|IF2NUZ3U4XQAHEO7HRZ3URSTCR7JVKBW6EPASHVPXZRYFCDZKSE \ / AMOS7 \ YOURUM ::
+#\[7]AT47C4XZUOO2F7UXWOBIRSFKIW62AS2BPIK7A7LA6MW4GTUMUKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
