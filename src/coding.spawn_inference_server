@@ -1036,7 +1036,8 @@ if ( length $mem_max_cfg ) {
     }
 }
 
-my $systemd_run = '';
+my $systemd_run       = '';
+my $scope_runtime_dir = '';
 if ( length $mem_scope ) {
     ## cached absolute path : searched once per process, only when found -- ##
     ## a miss is re-attempted on every spawn so a later-fixed PATH recovers ##
@@ -1055,19 +1056,16 @@ if ( length $mem_scope ) {
         <coding.systemd_run_path> = $systemd_run if length $systemd_run;
     }
 
-    if ( length $systemd_run ) {
-        ## non-root : the user manager owns the scope [ needs a working ##
-        ## user bus + enabled linger, see                               ##
-        ## data/tasks/coding-cpu-host-setup.md]                         ##
-        my @scope_user = $EFFECTIVE_USER_ID ? qw| --user | : ();
-        <[base.logs]>->(
-            1, '[spawn_inference_server] %s mem scope : MemoryMax=%s via %s',
-            $backend, $mem_scope, $systemd_run
-        );
-        unshift @cmd, $systemd_run, @scope_user,
-            qw| --scope --quiet --collect |,
-            '-p', "MemoryMax=$mem_scope";
-    } else {
+    ## non-root : the user manager owns the scope [ needs a working user   ##
+    ## bus + enabled linger, see data/tasks/coding-cpu-host-setup.md ].    ##
+    ## drop_privs points XDG_RUNTIME_DIR at the zenka's home, where        ##
+    ## systemd-run --user finds no bus : the child gets the real one [ the ##
+    ## session bus 'bus' or, without one, the manager's own                ##
+    ## 'systemd/private' -- systemd-run falls back to it ]                 ##
+    my $user_bus_dir
+        = $EFFECTIVE_USER_ID ? "/run/user/$EFFECTIVE_USER_ID" : '';
+
+    if ( not length $systemd_run ) {
         <[base.logs]>->(
             0,
             '[spawn_inference_server] %s mem_max configured [ %s ] but '
@@ -1077,6 +1075,35 @@ if ( length $mem_scope ) {
             $mem_scope
         );
         $mem_scope = '';
+    } elsif ( length $user_bus_dir
+        and not -S "$user_bus_dir/bus"
+        and not -S "$user_bus_dir/systemd/private" ) {
+        <[base.logs]>->(
+            0,
+            '[spawn_inference_server] %s mem_max configured [ %s ] but no '
+                . 'user bus at %s [ loginctl enable-linger ] : spawning '
+                . 'WITHOUT hard memory limit',
+            $backend,
+            $mem_scope,
+            $user_bus_dir
+        );
+        $mem_scope = '';
+    } else {
+        my @scope_user = $EFFECTIVE_USER_ID ? qw| --user | : ();
+        $scope_runtime_dir = $user_bus_dir;
+        <[base.logs]>->(
+            1,
+            '[spawn_inference_server] %s mem scope '
+                . ': MemoryMax=%s MemorySwapMax=0 via %s',
+            $backend,
+            $mem_scope,
+            $systemd_run
+        );
+        ## no swap inside the scope : at the limit the server is killed, ##
+        ## never pushed into swap -- swap stays for the other zenki      ##
+        unshift @cmd, $systemd_run, @scope_user,
+            qw| --scope --quiet --collect |,
+            '-p', "MemoryMax=$mem_scope", '-p', 'MemorySwapMax=0';
     }
 }
 
@@ -1125,6 +1152,9 @@ if ( $pid == 0 ) {
 
     ## the exec'd server inherits it : no race with a later setpriority ##
     setpriority( 0, 0, $nice ) if $nice;
+
+    ## the user bus systemd-run --user needs [ child only ] ##
+    $ENV{'XDG_RUNTIME_DIR'} = $scope_runtime_dir if length $scope_runtime_dir;
 
     close $out_r;
     close $err_r;
@@ -1315,8 +1345,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,...,.,,,,.,,,,,,.,.,,..,,,,,...,,.,,..,,..,,...,...,,.,,,,,,,,.,,,,,,,,,
-#H5CWMHG444OQOIOEVGLAO6GKHBNQ3TUFI37MLL7Z5WHHP76LTR4F36VU6SDRWQ3Y26CQP33DDK7SG
-#\\\|VEXJQOQ7AOW43AKEZTM6MTK6YWOPHRXMNZDIYG3CKFT3DX6EWOQ \ / AMOS7 \ YOURUM ::
-#\[7]QBYKWTIRH4IL6RJBHRV4QEAXWD6NGYMTIOJVKVEABRWBAU3EVAAA 7  DATA SIGNATURE ::
+#,,..,,.,,...,...,.,,,...,,.,,,.,,,,,,.,,,...,..,,...,..,,,,.,,,,,,,,,.,,,,.,,
+#CSSQVQBLZ4BB7Q7P65RQ5UMVXYAM446MFCNMA4FEKS4LZYVHJK2DWO7NG4FRRU3FYNSBEPGDCWEPK
+#\\\|GGTQSPYD4DTEIW43NSR5QMS5C6BNES3BSOGK7474YZAYWYOLLS4 \ / AMOS7 \ YOURUM ::
+#\[7]TSJMVKCWRL227HMLVOPSOM3YZANL7C26LY5GZ5V26ZFWC7OEOMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

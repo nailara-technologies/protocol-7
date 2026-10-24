@@ -91,7 +91,14 @@ systemd-run --user --scope --quiet --collect -p MemoryMax=1G \
 ```
 
 - `SCOPE-OK` → layer 2 armed. the spawn log will show
-  `cpu mem scope : MemoryMax=14G via /usr/bin/systemd-run`.
+  `cpu mem scope : MemoryMax=14G MemorySwapMax=0 via /usr/bin/systemd-run`.
+- the zenka's own XDG_RUNTIME_DIR is its home [ base.root.drop_privs ] :
+  the spawn hands the child `/run/user/<uid>` and spawns unscoped with a
+  level-0 log when neither `bus` nor `systemd/private` is there. the pre-flight above must run
+  with `XDG_RUNTIME_DIR=/run/user/$(id -u)` set.
+- `MemorySwapMax=0` : on a host with swap the server is killed at the
+  limit instead of being pushed into swap [ swap stays for the other
+  zenki ].
 - failure [ "Failed to connect to bus" ] → fix the user bus
   [ `XDG_RUNTIME_DIR` set for the zenka service session ] BEFORE starting
   the coding zenka; without it every spawn burns the 5-attempt crash-restart
@@ -219,8 +226,8 @@ and use the smoke test.
 4. layer 2 assumes systemd v246+ [ pidfd scope placement, exec-in-place ] —
    ancient distros get the unscoped loud-log path instead.
 
-#,,.,,,,,,...,,.,,,..,,.,,.,.,.,.,,.,,,,,,,,.,..,,...,...,...,,,.,,,,,,.,,..,,
-#I24KC74DVV7HLKIWN7RTD3K4OGJIY7OHYP3ULGLUURK62OPBFRFLIHGB7WWHMXN7A66AXBW3BF7A4
-#\\\|W722UD35NQ7HRITNLLFR3Q6QVDJJYNT7PJVFQG4DOKAMENXWUFO \ / AMOS7 \ YOURUM ::
-#\[7]HDZZYFS5OUSTDXFZ2EG3LSREHN6R2W4JCPUDDC7Y7QWOJSG4YMBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,.,,..,,,,,.,.,..,,,,,,,,.,.,,,..,,...,...,.,,,..,,..,,,,.,,,.,
+#PVH2FXZQHPU4I7TCRGZPIXRRBSBYP6JT2EDGZ3M2CSA6RRWKCTOFR6CVG5T7J2ES6IM2Z3VHMC3N6
+#\\\|DRLPQ2KPT4HZDSPMFVAXQKDPTVG54WAO27DPZTO42YDHUA5C3D3 \ / AMOS7 \ YOURUM ::
+#\[7]CXLFCRBI4745ZF5LX74WXBXOR7WQDAHU2RPTJI225MJWA6N2AOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
