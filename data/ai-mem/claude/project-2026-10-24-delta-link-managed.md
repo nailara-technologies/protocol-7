@@ -37,12 +37,19 @@ same refusal reset in models.handler.task-stream.
 gotcha : `reload source` does NOT re-run init_code -- the stuck state
 needed `jobsite.reload init` [ then 1687 -> 1743 jobs ].
 
+## encoding [ 8b2384420 ]
+backlog-delivered jobs arrived double-encoded [ DÃ¼sseldorf ] : the site-yaml
+outbox wrote encode_json octets through the default UTF-8 layer. outbox
+write \ backlog read now :raw ; 58 jobs repaired on pri [ backup
+repair-encoding/backup-32E6H2E6ACCKWNQ.tar.xz ] ; 2 trash reasons [ SIZN2,
+ACU54 ] keep model-echoed mojibake. rule : [[zenka-open-default-utf8-layer]].
+
 open : the mid-stream drop recovery [ stream OPEN when the link drops ] is
 not live-tested yet -- the cycle was assessing ; check the next scan's log
 for refused -> 'next subscribe in 30 s' -> consumer registered.
 
-#,,.,,..,,,..,,,.,..,,..,,,,.,,.,,...,...,..,,..,,...,...,..,,,,,,.,,,..,,,,,,
-#ZOAD6EYOH7BNGAMDQJMHZLYPRL77YAXLHNYLDDKPE4BA2WVQLGAMJBFTS7NF5AX7VAJTCCG56H6K6
-#\\\|MPXPCHHZGJ6FEXWYI7ZXTLXC42VVYG7UY3XI4KP4B7T4B4VKK3V \ / AMOS7 \ YOURUM ::
-#\[7]YNM77O2HMBWSE6AZ275MNKNRBSPIZUK3ECPZTE7UTXTKDCPBKGBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,..,,,.,,.,.,...,,,,,,..,...,,,.,..,,...,...,,,.,,.,,...,,,,,,,.,
+#7LPPO2R55X3MVTICDWBEVLAJVGCVFUYXMMXN3D6B725PALI3EFQL53X7FYPEQOJK74HVXKXPHZB42
+#\\\|PKTYWPOP4RTE2VRUH6BHHYYMJXBFH2RPXEC5DQAADDSCP3RZRNZ \ / AMOS7 \ YOURUM ::
+#\[7]UYSFAWWCVO3VCJUVI2YMSGJS4ORPVGBCUOKAOV4J4MBGZLI7PEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
