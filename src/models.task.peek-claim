@@ -14,6 +14,25 @@ my $peek    = shift              // {};
 my $task_id = $peek->{'task_id'} // '';
 my $pin     = $peek->{'model_pin'};
 
+## a FOREIGN task [ another host's task zenka : external.<link>.task ] runs ##
+## under this host's security context -- claimed only as a pure inference   ##
+## task [ ':no_tools:' line ], never with local tool access                 ##
+## [ file writes, commands on another host's instructions ]. no description ##
+## at all : refused too [ fail closed ]                                     ##
+my $source = <[models.task.zenka-of]>->($task_id) // '';
+if ( $source =~ m|\.|
+    and ( $peek->{'prompt'} // '' ) !~ m|\A:no_tools:\s*$|m ) {
+    my $refused = <models.task.tools_refused> //= {};
+    <[base.logs]>->(
+        $refused->{$source}++ ? 3 : 0,
+        ': foreign task %s from %s left pending : no '
+            . ':no_tools: marker [ tool use stays with its own host ]',
+        $task_id,
+        $source
+    );
+    return FALSE;
+}
+
 my $accepted = <[models.task.pin-accepted]>->($pin);
 
 if ( $accepted == UNKNOWN ) {
@@ -65,8 +84,8 @@ if ( not $accepted ) {
 
 return TRUE;
 
-#,,..,,..,.,.,...,,.,,,,,,.,,,,..,.,,,,,.,,..,..,,...,...,,,.,,..,,,,,,..,,..,
-#BV57IZUPFUMTL6PLK3CUV7YZVI3BREHMVQTBXWP2GJYR22XQWJWSCU237FKPTYBGWYNYNIDKL4PQG
-#\\\|RQB3RDH2MKXZB4HMLQDVJQNF5EAE2YOC6FBPCMKWKO4J43PKQLZ \ / AMOS7 \ YOURUM ::
-#\[7]VCBM4WVSCYVVWW3FQSREIFFA2BRAORPQQKCGP7VFZFRH6MDKSCBQ 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,,..,,,.,,..,..,,.,,,.,,,,,.,..,,...,...,..,,.,.,,,,,.,,,,..,
+#SUSOAAJ7M2XX7DFH643MHWD3ZETJMBJEAKGJSGIAZ6YFTZONNMRYDXPDWSDLK7YTMRAIKMZHFSFAK
+#\\\|F7PEWAY2VJYAHK3ORD3TE5IQSJKHI6MO47H5RWQPWXDEGEKNXII \ / AMOS7 \ YOURUM ::
+#\[7]ZPGGF6K5TCCQVJIY3YD7Q57BMYATM7DBVYLP2KUGY67WMVU2UIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
