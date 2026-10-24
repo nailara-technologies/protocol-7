@@ -7,33 +7,79 @@
 #         subscription is believed open. the reply handler
 #         jobsite.handler.fetched-stream registers the STRM consumer ;
 #         when the stream closes [ remote auto-terminate or peer gone ]
-#         the state is forgotten and the next import re-subscribes.
+#         the state is forgotten and the next import re-subscribes. a
+#         refusal [ link down, 'command route collapsed' when it drops ],
+#         a send that does not route or a subscribe unanswered for 90 s
+#         retries with backoff [ jobsite.fetched.subscribe-retry ] -- the
+#         backlog held in the remote outbox flows once the link is back,
+#         not at the next scan.
 #
 #         base.strm.subscribe is not used here on purpose : its publisher
 #         name validation accepts no dots, while the fetch zenka is a cube
 #         route like 'external.delta.site-yaml'.
 
 my $fetch_zenka = shift // '';
-$fetch_zenka = $fetch_zenka->w->data if ref $fetch_zenka;  ## startup timer ##
+if ( ref $fetch_zenka ) {    ## startup \ retry timer : the Event arrives ##
+    $fetch_zenka = $fetch_zenka->w->data;
+
+    ## the retry timer that fired is spent : a reschedule from here must ##
+    ## not find it still pending [ subscribe-retry keeps a pending one ] ##
+    <jobsite.fetched.retry_timer> = undef;
+}
 
 return FALSE if not length $fetch_zenka;
-return FALSE if $fetch_zenka eq qw| site-yaml |;           ## local default ##
+return FALSE if $fetch_zenka eq qw| site-yaml |;    ## local default ##
 
-return TRUE
-    if <jobsite.fetched.subscribed> or <jobsite.fetched.subscribing>;
+## subscribed counts only while its consumer is registered : a consumer ##
+## gone without an eof [ or set before cmd_id was kept ] re-subscribes  ##
+if (<jobsite.fetched.subscribed>) {
+    my $cmd_id = <jobsite.fetched.cmd_id>;
+    return TRUE
+        if defined $cmd_id
+        and exists( ( <base.strm.local> // {} )->{$cmd_id} );
 
-<jobsite.fetched.subscribing> = TRUE;
+    <jobsite.fetched.subscribed> = FALSE;
+    <jobsite.fetched.cmd_id>     = undef;
+}
 
-<[protocol-7.route-send]>->(
+## subscribing holds the send time : a reply lost with a silent link never ##
+## arrives, the subscribe is retried after 90 s                            ##
+if (<jobsite.fetched.subscribing>) {
+    return TRUE if time - <jobsite.fetched.subscribing> < 90;
+
+    <[base.logs]>->(
+        1, 'jobsite.fetched-stream: subscribe unanswered, retrying later'
+    );
+    <jobsite.fetched.subscribing> = FALSE;
+    <[jobsite.fetched.subscribe-retry]>->($fetch_zenka);
+    return FALSE;
+}
+
+<jobsite.fetched.subscribing> = time;
+
+my $sent = <[protocol-7.route-send]>->(
     {   'command' => $fetch_zenka . '.subscribe-fetched',
-        'reply'   => { 'handler' => qw| jobsite.handler.fetched-stream | },
+        'reply'   => {
+            'handler' => qw| jobsite.handler.fetched-stream |,
+            'params'  => { 'fetch_zenka' => $fetch_zenka }
+        },
     }
 );
 
+if ( not $sent or $sent <= 0 ) {
+    <jobsite.fetched.subscribing> = FALSE;
+    <[base.logs]>->(
+        1, 'jobsite.fetched-stream: %s.subscribe-fetched not routed',
+        $fetch_zenka
+    );
+    <[jobsite.fetched.subscribe-retry]>->($fetch_zenka);
+    return FALSE;
+}
+
 return TRUE;
 
-#,,.,,,,.,,.,,..,,,,,,.,.,,,.,,..,.,.,,,.,,.,,.,.,...,...,.,,,,.,,,..,,,,,,.,,
-#WLKMZCAJQ5DUVAA4ZK32LZSPZROHDXZHEGZCPSN54T7BIFHWA3QFXTBG55H6VRDJKN4URONPROCSQ
-#\\\|HMXPLBM6EVEQRNC7P6N7PTLQTQFBAUY23DTLC6NJUEQDLTYFHTY \ / AMOS7 \ YOURUM ::
-#\[7]QJLCW7LLUV3W7Y2FEJ227ZVBMCK2T25IQ3V6UFVF6ZOZO7YGCGAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,,,,,.,,,,,,..,,.,,,.,,,..,..,,.,.,...,...,.,.,,,,,,,.,,,.,...,
+#VZEEPGR56QB7SSYH76MF7FDUOPTFSQRSWOL4LMF3TM2DC76BFGCTMCP57DLP62X5FJIBAQZJ2V2IC
+#\\\|7UVTJEXJQBPIF2CLEJ6YL2BLIXTLLLEKLJWCSBHW5AXM25VIJXE \ / AMOS7 \ YOURUM ::
+#\[7]I5AJPC7NFCLV2IENADA6OFELDYPY2SMKTWAIIVCV3CZTSLMY3MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

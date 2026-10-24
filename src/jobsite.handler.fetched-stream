@@ -6,13 +6,31 @@
 
 my $reply = shift // {};
 
+## a reply to a subscribe sent before a reload carries no params ##
+my $fetch_zenka = $reply->{'params'}{'fetch_zenka'}
+    // <jobsite.cfg.fetch_zenka> // '';
+
 if ( $reply->{'cmd'} eq qw| FALSE | ) {
+
+    ## a refusal ends an OPEN stream too : a dropped link answers the      ##
+    ## subscribe with 'command route collapsed', never with an eof -- drop ##
+    ## its consumer, or 'subscribed' stays set and nothing ever            ##
+    ## re-subscribes [ the outbox on the fetch host never drains ]         ##
+    <[strm.local.cancel]>->(<jobsite.fetched.cmd_id>)
+        if defined <jobsite.fetched.cmd_id>;
+    <jobsite.fetched.cmd_id>      = undef;
+    <jobsite.fetched.subscribed>  = FALSE;
+    <jobsite.fetched.subscribing> = FALSE;
+
+    ## the first refusal of a streak at level 0, its retries quieter ##
+    <jobsite.fetched.last_refusal> = $reply->{'call_args'}->{'args'}
+        // 'unknown error';
     <[base.logs]>->(
-        0,
+        defined <jobsite.fetched.retry_delay> ? 2 : 0,
         'jobsite.fetched-stream: subscribe refused : %s',
-        $reply->{'call_args'}->{'args'} // 'unknown error'
+        <jobsite.fetched.last_refusal>
     );
-    <jobsite.fetched.subscribing> = FALSE;    ## next import retries ##
+    <[jobsite.fetched.subscribe-retry]>->($fetch_zenka);
     return;
 }
 
@@ -38,7 +56,10 @@ my $registered = <[strm.local.register]>->(
         },
         'on_eof' => sub {
             ## stream closed [ remote auto-terminate or peer gone ] : just ##
-            ## forget it -- the next import re-subscribes                  ##
+            ## forget it -- the next import re-subscribes. a close for an  ##
+            ## older stream leaves the newer one                           ##
+            return if ( <jobsite.fetched.cmd_id> // -1 ) != $cmd_id;
+            <jobsite.fetched.cmd_id>      = undef;
             <jobsite.fetched.subscribed>  = FALSE;
             <jobsite.fetched.subscribing> = FALSE;
             <[base.logs]>->(
@@ -48,10 +69,17 @@ my $registered = <[strm.local.register]>->(
     }
 );
 
-return if not $registered;
+if ( not $registered ) {
+    <jobsite.fetched.subscribing> = FALSE;
+    <[jobsite.fetched.subscribe-retry]>->($fetch_zenka);
+    return;
+}
 
-<jobsite.fetched.subscribed>  = TRUE;
-<jobsite.fetched.subscribing> = FALSE;
+<jobsite.fetched.cmd_id>       = $cmd_id;
+<jobsite.fetched.subscribed>   = TRUE;
+<jobsite.fetched.subscribing>  = FALSE;
+<jobsite.fetched.retry_delay>  = undef;     ## backoff starts over ##
+<jobsite.fetched.last_refusal> = undef;
 
 <[base.logs]>->(
     1, 'jobsite.fetched-stream: consumer registered [ cmd_id=%d ]', $cmd_id
@@ -59,8 +87,8 @@ return if not $registered;
 
 return;
 
-#,,,.,,,,,.,,,...,.,.,,.,,.,.,,.,,..,,,,,,,.,,.,.,...,..,,,,,,.,,,,,.,,,.,.,,,
-#WLTX7QB36FJR46XWKU44VOJCBGYU7HK5LOKSQ23KCZM7S4WSKB6P5KJQTQQLUUFUMME7I4KUY2PL2
-#\\\|KBQZ2CMBD4KL7V67KDQ277IMLG5FUJHUMLPSUCKC3Y4T26GCC3W \ / AMOS7 \ YOURUM ::
-#\[7]IE5O2RXWIJVBTEPWAGRW36XKAOWSVCKOQZMY3A7G5GZIMB5G7KBY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,.,,,...,...,,.,,,..,.,.,,.,,.,.,...,...,,.,,.,.,,,.,,.,,,,,,
+#FFM2EW57EZBCUJOKCPPAUPKHBZOP2XJOSMFJRRQAEMARW5RIL4NKZL7WVIDGNV2JB43PF5H4C2DBM
+#\\\|2HH3J3E45QSJKBRVYS6R6ZVEQXS5NUJITKDCQU2JLRR47QEV4N4 \ / AMOS7 \ YOURUM ::
+#\[7]L4TLOV4V65CRTMXQTKKIHQ42YGMBGFGOAV7ZE667XCVEIMMZ24BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

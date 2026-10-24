@@ -25,6 +25,35 @@ push @lines, sprintf ' :  cycle        : %s', <jobsite.cycle> // qw| idle |;
 push @lines, sprintf ' :  last scan    : %s', $age;
 push @lines, sprintf ' :  total        : %d', $total;
 push @lines, sprintf ' :  threshold    : %s', <jobsite.cfg.threshold> // 7;
+
+## the fetch path : a fetch host out of reach fails every import while the ##
+## cycle itself still reads 'idle' and a fresh 'last scan'                 ##
+my $fetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
+if ( $fetch_zenka ne qw| site-yaml | ) {
+    push @lines, ' :';
+    push @lines, sprintf ' :  fetch via    : %s', $fetch_zenka;
+
+    my $retry = <jobsite.fetched.retry_timer>;
+    my $stream
+        = <jobsite.fetched.subscribed>  ? qw| open |
+        : <jobsite.fetched.subscribing> ? qw| subscribing |
+        : ( defined $retry
+            and $retry->can(qw| is_active |)
+            and $retry->is_active ) ? sprintf( 'retrying [ refused : %s ]',
+        <jobsite.fetched.last_refusal> // '?' )
+        : 'closed [ next import subscribes ]';
+    push @lines, sprintf ' :  stream       : %s', $stream;
+}
+
+my $fetch = <jobsite.last_fetch>;
+if ( ref $fetch eq qw| HASH | ) {
+    my $outcome
+        = $fetch->{'failed'}
+        ? sprintf( '%d of %d imports FAILED [ %s ]',
+        $fetch->{'failed'}, $fetch->{'replies'}, $fetch->{'why'} // '?' )
+        : sprintf( '%d imports ok', $fetch->{'replies'} );
+    push @lines, sprintf ' :  last fetch   : %s', $outcome;
+}
 push @lines, ' :';
 for my $st ( <[base.sort]>->( keys %counts ) ) {
     push @lines, sprintf ' :  %-12s : %d', $st, $counts{$st};
@@ -33,8 +62,8 @@ push @lines, ' :.';
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) . "\n" };
 
-#,,..,,.,,...,,,,,,,.,.,.,..,,,,,,.,.,..,,,..,..,,...,...,..,,.,,,,..,,,.,,,.,
-#RHXU5ZXJBM4CHFU4LMQFY5LJHIX5SU5RF5OLCHWBQ3WYDJ23PKSDHFTPJFTG2O4NH2OWZXJAIRA5S
-#\\\|3MYZTKUP3FKSKKPZ6XHJVL2T4N3FUMZU36EF52SMRS3ZNQNS3DF \ / AMOS7 \ YOURUM ::
-#\[7]KR4XYOC47WLHQVU4D2HM7HTUMFOMVBOXGJUKDJ6T3T5KTT7VROAY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,,..,.,.,..,,,,,,...,..,,...,..,,...,..,,,,,,.,,,.,.,,,,,.,.,
+#I2BGXOO43OKUY7YLTRMOPBCTQNYZICMQ5S6AYJGUN4XRWDVFQDBCXGOC7AYPG633VVIGK655NCZKU
+#\\\|B2L2VARJQJAO36X7NKYBVI7GU66JWYFLY452ROTIA3BCZGWOWTC \ / AMOS7 \ YOURUM ::
+#\[7]QIMZUT47KARTK47CXX4TKSCUYUDNNJNFSD7OPVMALKR2ND3HVSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

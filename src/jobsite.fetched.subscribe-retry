@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = jobsite.fetched.subscribe-retry
+# descr = schedule the next fetched-jobs subscribe [ backoff ]
+# param = <fetch_zenka name>
+# notes = 30 s, doubling up to 300 s [ models.task.subscribe-retry's
+#         numbers ] ; reset by a registered stream
+#         [ jobsite.handler.fetched-stream ]. one retry timer at a time :
+#         a pending one is kept, never a second
+
+my $fetch_zenka = shift // '';
+
+return FALSE if not length $fetch_zenka;
+return FALSE if $fetch_zenka eq qw| site-yaml |;    ## local default ##
+
+my $pending = <jobsite.fetched.retry_timer>;
+return TRUE
+    if defined $pending
+    and $pending->can(qw| is_active |)
+    and $pending->is_active;
+
+my $delay = <jobsite.fetched.retry_delay> // 30;
+<jobsite.fetched.retry_delay> = $delay * 2 > 300 ? 300 : $delay * 2;
+
+<jobsite.fetched.retry_timer> = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'repeat'  => FALSE,
+        'desc'    => 'jobsite fetched-stream subscribe retry',
+        'handler' => 'jobsite.fetched.subscribe',
+        'data'    => $fetch_zenka,
+    }
+);
+
+<[base.logs]>
+    ->( 2, 'jobsite.fetched-stream: next subscribe in %d s', $delay );
+
+return TRUE;
+
+#,,..,...,,.,,,,,,,..,,..,,,,,.,.,,..,.,.,...,..,,...,...,..,,.,,,,..,,,.,,.,,
+#CWDHHSY5NU6VM2XVD476F3HK37SZESIOZWVJEMXXFTYUTDHJK43FEDNRSFEPQL3PRYGTKMG6YNZS6
+#\\\|P2G62LISTDUZ22DSVNYAH646PWJUHCVER63QM2CE5URXRBMDSF6 \ / AMOS7 \ YOURUM ::
+#\[7]WEY5G54AOFOMOADAQT5MNMI2UGFLEM4IRHFDRMAPAS3XGLAG54BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
