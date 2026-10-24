@@ -128,16 +128,23 @@ $code{'event.add_timer'} = sub {
 sub TestTimer::cancel    { $_[0]->{'active'} = 0; return }
 sub TestTimer::is_active { return $_[0]->{'active'} }
 
-$code{'models.task.parse-show'} = sub {
+my $parse_show_stub = sub {
     my ( $task_id, $text ) = @ARG;
     return $parse_show_plan{$task_id} // {};
 };
+$code{'models.task.parse-show'} = $parse_show_stub;
 
 my @enqueued;
 $code{'models.task.enqueue'} = sub {
     push @enqueued, shift;
     return TRUE;
 };
+
+## the live HWO case wants the REAL parse-show : ':no_tools:' first line + ##
+## ':model:' pin handling. compiled here, swapped in for the section, the  ##
+## stub restored after                                                     ##
+my $real_parse_show = compile_module('models.task.parse-show');
+$code{'models.task.parse-show'} = $parse_show_stub;
 
 my @perl_warnings;
 local $SIG{__WARN__} = sub { push @perl_warnings, @ARG };
@@ -154,7 +161,8 @@ compile_module($_)
 ## .cmd. modules get 'my $call' from the runtime's compiled-in command ##
 ## header [ bin/Protocol-7 ] : mirror it with an our-scoped $call the  ##
 ## harness sets before each invocation                                 ##
-compile_module( 'models.cmd.set-zenki', $module_prefix . "\nour \$call;" );
+compile_module( 'models.cmd.set-zenki',   $module_prefix . "\nour \$call;" );
+compile_module( 'models.cmd.task-notify', $module_prefix . "\nour \$call;" );
 
 ## ---------------------------------------------------------------------- ##
 ## helpers                                                                ##
@@ -282,7 +290,7 @@ my $peek_send = $sent[0];
 $parse_show_plan{$PRI_ID} = {
     'status'     => 'pending',
     'model'      => 'local',
-    'prompt'     => 'assess this',
+    'prompt'     => ":no_tools:\nassess this",
     'target_cmd' => 'coding.ask-reply',
     'model_pin'  => 'AAA:ABC2DEF'
 };
@@ -308,7 +316,7 @@ $code{'models.task.dispatch-id'}->( $PRI_ID, $PRI_ZENKA );
 $parse_show_plan{$PRI_ID} = {
     'status'     => 'pending',
     'model'      => 'foreign',
-    'prompt'     => 'assess this',
+    'prompt'     => ":no_tools:\nassess this",
     'target_cmd' => 'coding.ask-reply',
     'model_pin'  => 'AAA:ABC2DEF'
 };
@@ -328,6 +336,28 @@ $code{'models.handler.task-poll-step'}
 @cmds = sent_commands();
 ok( scalar @cmds == 0,
     'pin not served here : left pending, nothing claimed or failed' );
+
+## b7b0f476e guard : a foreign task WITHOUT a :no_tools: first line is   ##
+## refused too [ tool use stays with its own host ] -- even when the pin ##
+## would be served                                                       ##
+reset_models_state();
+$data{'models'}{'cfg'}{'task_zenka'}  = "task $PRI_ZENKA";
+$data{'models'}{'cfg'}{'task_models'} = "OTHERZEN:ABC2DEF";
+
+$code{'models.task.dispatch-id'}->( $PRI_ID, $PRI_ZENKA );
+$peek_params = $sent[0]->{'reply'}{'params'};
+$parse_show_plan{$PRI_ID} = {
+    'status'     => 'pending',
+    'model'      => 'local',
+    'prompt'     => 'assess this with tools',
+    'target_cmd' => 'coding.ask-reply',
+    'model_pin'  => 'AAA:ABC2DEF'
+};
+@sent = ();
+$code{'models.handler.task-poll-step'}
+    ->( true_reply( 'pending task text', $peek_params ) );
+ok( scalar sent_commands() == 0,
+    'foreign task without :no_tools: : refused, left for its own host' );
 
 ## ---------------------------------------------------------------------- 4 ##
 ## : per-zenka poll + subscribe : one down never blocks the others          ##
@@ -493,6 +523,136 @@ $main::call = { 'args' => 'task;rm -rf' };
 my $bad = $code{'models.cmd.set-zenki'}->();
 ok( $bad->{'mode'} eq qw| false |, 'garbage list refused' );
 
+## ---------------------------------------------------------------------- 8 ##
+## : the live HWO case -- dotless local zenka first, a pinned :no_tools:    ##
+## task announced by the local task zenka, pin served here -> claimed [     ##
+## tasks like this stayed pending for 30+ min : created before the models   ##
+## restart, never notified again -- see section 9 ]                         ##
+
+say "\n :. local pinned :no_tools: task [ live case ]";
+
+reset_models_state();
+$data{'models'}{'cfg'}{'task_zenka'}     = "task $PRI_ZENKA";
+$data{'models'}{'cfg'}{'task_agent'}     = 'models';
+$data{'models'}{'task'}{'default_model'} = 'local';
+$code{'models.task.parse-show'}          = $real_parse_show;
+
+## the local task zenka announces a pinned local assessment ##
+$main::call = { 'args' => $LOCAL_ID };
+$code{'models.cmd.task-notify'}->();
+@cmds = sent_commands();
+ok( $cmds[0] eq 'task.claim',
+    'dotless local entry first : notify claims task.claim directly' );
+
+## claim answered TRUE : start + show on the local zenka ##
+my $live_claim_send = $sent[0];
+@sent = ();
+$code{'models.handler.task-poll-step'}->(
+    true_reply( "claimed $LOCAL_ID", $live_claim_send->{'reply'}{'params'} )
+);
+@cmds = sent_commands();
+ok( ( grep { $ARG eq 'task.start' } @cmds ),
+    'claimed : task started on the local zenka'
+);
+ok( ( grep { $ARG eq 'task.show' } @cmds ),
+    'claimed : details fetched from the local zenka'
+);
+
+## show answered [ real task.show header ] : enqueue, pin + marker kept ##
+my $live_show_send = ( grep { $ARG->{'command'} eq 'task.show' } @sent )[0];
+@sent = ();
+my $show_text
+    = "id          : $LOCAL_ID\nstatus      : claimed\ndescription "
+    . ": :no_tools:\\n:local: :simple: "
+    . ":model:OFSQC4I:QDBKEXY: assess this listing\ncontext  "
+    . "   :\nagent       : models";
+$code{'models.handler.task-poll-step'}->(
+    {   'cmd'       => qw| TRUE |,
+        'call_args' => { 'args' => $show_text },
+        'data'      => '',
+        'params'    => $live_show_send->{'reply'}{'params'}
+    }
+);
+ok( scalar @enqueued == 1, 'show : exactly one task enqueued' );
+ok( ( $enqueued[0]{'model'} // '' ) eq 'local',
+    'show : model resolved to local [ :local: backend ]'
+);
+ok( ( $enqueued[0]{'target_cmd'} // '' ) eq 'coding.ask-reply',
+    'show : served by the local coding backend' );
+ok( $enqueued[0]{'prompt'} =~ m|:model:OFSQC4I:QDBKEXY:|,
+    'show : the model pin stays in the prompt'
+);
+ok( $enqueued[0]{'prompt'} =~ m|\A:no_tools:|,
+    'show : :no_tools: first line kept for the backend'
+);
+
+$code{'models.task.parse-show'} = $parse_show_stub;    ## restore ##
+
+## ---------------------------------------------------------------------- 9 ##
+## : startup recovery scan -- tasks pending before the restart are never    ##
+## re-notified, the local entry has no stream + poll : startup scans the    ##
+## local queue once, check-next claims the first pending, each completion   ##
+## re-scans the rest                                                        ##
+
+say "\n :. startup recovery scan [ local queue ]";
+
+reset_models_state();
+$data{'models'}{'cfg'}{'task_zenka'} = "task $PRI_ZENKA";
+@timers                              = ();
+@sent                                = ();
+
+my $armed = $code{'models.task.startup'}->();
+
+ok( $armed == TRUE, 'mixed list : timer armed' );
+my $scan_send = ( grep { $ARG->{'command'} eq 'task.queue' } @sent )[0];
+ok( ( defined $scan_send ), 'startup scans the local pending queue' );
+ok( ( $scan_send->{'call_args'}{'args'} // '' ) eq 'status=pending',
+    'scan asks for pending tasks only' );
+ok( ( $scan_send->{'reply'}{'params'}{'step'} // '' ) eq 'check-next',
+    'scan reply feeds the check-next step' );
+ok( ( $scan_send->{'reply'}{'params'}{'zenka'} // '' ) eq 'task',
+    'scan is keyed to the local zenka' );
+ok( ( not grep {m{^$PRI_ZENKA\.queue$}} sent_commands() ),
+    'remote zenka gets no scan [ stream + poll cover it ]'
+);
+
+## queue answered : two pending local tasks -> first claimed locally ##
+@sent = ();
+$code{'models.handler.task-poll-step'}->(
+    {   'cmd'    => qw| SIZE |,
+        'data'   => "OFNVQAQ pending assess one\nBYQSQFQ pending assess two",
+        'params' => $scan_send->{'reply'}{'params'}
+    }
+);
+@cmds = sent_commands();
+ok( ( grep { $ARG eq 'task.claim' } @cmds ),
+    'check-next claims the first pending local task'
+);
+ok( ( not grep {m{^$PRI_ZENKA\.}} @cmds ),
+    'no remote command in the local recovery path'
+);
+
+## empty queue : nothing dispatched, no error ##
+@sent = ();
+$code{'models.handler.task-poll-step'}->(
+    {   'cmd'    => qw| SIZE |,
+        'data'   => '',
+        'params' => $scan_send->{'reply'}{'params'}
+    }
+);
+ok( scalar sent_commands() == 0, 'empty local queue : nothing dispatched' );
+
+## local-only config scans too [ startup returns FALSE, scan still sent ] ##
+reset_models_state();
+$data{'models'}{'cfg'}{'task_zenka'} = 'task';
+@timers                              = ();
+@sent                                = ();
+$armed                               = $code{'models.task.startup'}->();
+ok( $armed == FALSE, 'local only : nothing armed' );
+ok( ( grep { $ARG->{'command'} eq 'task.queue' } @sent ),
+    'local only : the pending scan still runs'
+);
+
 ## ---------------------------------------------------------------------- ##
 ## summary                                                                ##
 
@@ -506,8 +666,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,..,,..,,,..,.,.,,..,,,.,.,.,...,...,,,,,.,.,...,..,,...,,..,..,,..,,,.,,
-#ZN6PT6N25NKYMOPEMLJ7D7AE65SSNKCFDK672NLRX6ZQT5ZUETZYSB57HSKPMG7BLBWXH6DVOLB5G
-#\\\|UJ7IRX6DYZ3K646UYKSXP6ORZZYIAGVVCQE3WZNOOFXY5KYLGIQ \ / AMOS7 \ YOURUM ::
-#\[7]FGX65RBYUUTPN24YZTABBUF62YPZHQD3ITWTJVMUEQJLNYIMNEAA 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,..,,,,,,,..,,..,,,,,.,,,,,.,.,.,...,..,,.,,,...,.,.,..,,,,.,
+#DKEM7GSQRAHQF4AZQXIDCYSB3A4XUUK5TXCWLJQJKLUVDRPEIWVLZ7PH4MB4OVHR7KRZVPJNUO5FY
+#\\\|XQNUTUC5KTCFN2MY57ENUG54UTTEXMREN3RPVNTEQODLRZ2JIJ6 \ / AMOS7 \ YOURUM ::
+#\[7]PK6WLM37GGIUBUKOXVCSYHC44SLOKKXSXPZ2OIJMV6JPCRNQRUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,7 +30,12 @@ for my $task_id ( <task.queue.order>->@* ) {
     }
     next if $blocked;
 
-    my $priority = <[valued.resolve]>->( $task->{'node_id'} // '' ) // 0.0;
+    ## empty node_id : priority 0.0, valued.resolve would warn on '' ##
+    my $node_id = $task->{'node_id'} // '';
+    my $priority
+        = length $node_id
+        ? <[valued.resolve]>->($node_id) // 0.0
+        : 0.0;
 
     if ( $priority > $highest_priority ) {
         $highest_priority = $priority;
@@ -57,8 +62,8 @@ my $summary = sprintf(
 
 return { 'mode' => 'true', 'data' => $summary };
 
-#,,.,,.,,,...,..,,.,.,.,,,.,.,,..,,,,,..,,,,,,..,,...,...,...,,..,.,.,,.,,..,,
-#M6DI45FCKOT6ESSXGAMWGEM2HQN6ISILUHMUYKRUIC2DH334LWFIHFLBJ2TALNTFD2Q7LURK6RTAO
-#\\\|VEEYRFSWFXOMH3WJB4B6ACT6BK2IGMVOA2MHJMKUPD7WFDKKJ4D \ / AMOS7 \ YOURUM ::
-#\[7]HLQFFVUWSHLFPCDFQ56EGGTL3KTLCXN7Q6IZMRSXRO5DMRBTJGDI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,.,,,.,,.,,,,.,,,..,..,,,.,,,,.,..,,...,...,...,,..,,,.,,.,,...,
+#RBEOC3PVBVN6UQZAZNLYREERLICV2IRX7FY764BIVR4PIPVZOYWGZD24ENJZQNUOHVUWV3RXXRPEW
+#\\\|PIPVHX65SKYSL4XUZMTYS7F62K2KYGTRDVOAHRS2YELZ7HV2EM2 \ / AMOS7 \ YOURUM ::
+#\[7]BJ6FPBI7STOLT7LU4R2XCEQENBVQTJUKYTIH4P5H2EC6X5ZZFYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

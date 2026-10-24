@@ -41,7 +41,12 @@ my @pending;
 for my $task_id ( <task.queue.order>->@* ) {
     my $task = <task.queue>->{$task_id};
     next unless defined $task and ( $task->{'status'} // '' ) eq 'pending';
-    my $priority = <[valued.resolve]>->( $task->{'node_id'} // '' ) // 0.0;
+    ## empty node_id : priority 0.0, valued.resolve warns on '' ##
+    my $node_id = $task->{'node_id'} // '';
+    my $priority
+        = length $node_id
+        ? <[valued.resolve]>->($node_id) // 0.0
+        : 0.0;
     push @pending,
         { 'id' => $task_id, 'task' => $task, 'priority' => $priority };
 }
@@ -105,8 +110,8 @@ utf8::encode($handover);
     length $handover
 );
 
-#,,,.,...,...,,,,,,.,,,,,,.,.,.,,,.,,,,,.,,.,,..,,...,...,...,,.,,,.,,,..,,,.,
-#VVVQNEKD3DKZQWPVT5RLS5VOGUX2IUVQVAKK326367J22WBWS3XU2UCFVLGIILPFHDWMACMSLSJOO
-#\\\|EB42SFLPJF74UB4HKAWC6DHKR2LKYN34GVIGE2XTU2BJE2O7AJV \ / AMOS7 \ YOURUM ::
-#\[7]NJEMBFIK67B6G4NWDMLBT3TE52GHAIGPREOUY72A4ZBVR2ZF3MDY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,,,,,.,,,.,,,,..,,,,,..,,.,.,..,,...,...,,.,,,,,,,.,,,..,,,.,
+#WRSAPFAGBBE3EVUVUVGDPO6AYCFBIIAMZRGRGD6UF7PCQ3DXZ4HODRAGV66NZ2OHXOCIW4LIDMW3U
+#\\\|MGYLERWSSZL3C6ZURVM3ZNXAKB5JYQ4UQI7SEOUYQV47HDPPLKZ \ / AMOS7 \ YOURUM ::
+#\[7]OKKEX3YKEYV6KBGPEI4FQLFSWBXI2JXUMP7XUGS6ODM7IJWE2IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

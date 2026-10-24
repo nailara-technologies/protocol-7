@@ -82,8 +82,12 @@ if ( length $task_id ) {    ## single task handover ##
         next unless defined $task;
         next if $task->{'status'} ne 'pending';
 
-        my $priority = <[valued.resolve]>->( $task->{'node_id'} // '' )
-            // 0.0;
+        ## empty node_id : priority 0.0, valued.resolve warns on '' ##
+        my $node_id = $task->{'node_id'} // '';
+        my $priority
+            = length $node_id
+            ? <[valued.resolve]>->($node_id) // 0.0
+            : 0.0;
         push @pending_by_priority,
             {
             id       => $task_id,
@@ -171,8 +175,8 @@ if ( !length $handover ) {
 
 return { 'mode' => 'true', 'data' => $handover };
 
-#,,..,..,,,,.,,..,...,...,,,.,,,,,,.,,,..,.,.,..,,...,...,...,...,..,,,.,,,,.,
-#OA5O26QBPUNZ46O2ZQBANIUCK66K3M7MKWUINF3ZFQUHPNGLYVFLK7QPPPFT7LWVAUOMHBTB6C4A2
-#\\\|4XQMIHTR46PJIVOY3W2NPRHBTALTO4UZIIBHIIGZL7I26I6T5PK \ / AMOS7 \ YOURUM ::
-#\[7]MDCQGWMFSFTVWO4EW7BTPXDSQCUTXJEDQ5I74DRHRJMPWP225AAI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,,,,,,.,,,,,,.,,,,..,.,.,.,,,..,,...,..,,.,.,...,,..,,..,...,
+#4EOYZUTCH5AY5IDCB2S23YSDGBKOMY5NYHDA344G4KHAL4AN567WFU5R573DVN3HX32DGJI7Z43ZQ
+#\\\|4W6GCE75OTIDKTYTS2YNMGY4CRPVCUN7VGCGMVJG5RVXDJRDABZ \ / AMOS7 \ YOURUM ::
+#\[7]CHQMETGGA3GOCSG5WGKSXDALVBXQAZ5TURE4MG2P7GZG4B4GC4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
