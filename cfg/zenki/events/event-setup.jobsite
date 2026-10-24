@@ -1,0 +1,55 @@
+
+# name  = events-setup.jobsite
+# descr = letsencr events + an hourly jobsite scan [ the scanning host ]
+
+.: events :.
+
+    enabled = letsencr-renewal forensics dist-upgrade jobsite-scan
+
+    - letsencr-renewal
+
+      : action :
+        type       = zenka-present
+        zenka-name = letsencr
+
+    - forensics
+
+      : action :
+        type       = zenka-present
+        zenka-name = forensics
+
+    - dist-upgrade
+
+      : action :
+        type       = zenka-present
+        zenka-name = dist-upgrade
+
+    ## starts jobsite on demand and scans at once -- after a reboot, a  ##
+    ## crash or a manual stop it is back within the hour. a scan still  ##
+    ## running refuses the next [ 'cycle already active' ]              ##
+    - jobsite-scan
+
+      : action :
+        type    = send-command
+        command = jobsite.scan
+
+
+.: timetable :.
+
+  - forensics
+    at  =  04:07
+
+  - dist-upgrade
+    at  =  03:47
+
+  - letsencr-renewal
+    at  =  HH:05:47
+
+  - jobsite-scan
+    at  =  HH:13:07
+
+#,,.,,...,..,,,..,.,.,..,,,,.,..,,.,,,.,,,,,,,..,,...,...,..,,,..,..,,.,.,,,.,
+#6AQC4G2QWMPJI3I642RDUE2XQV6KJQYPOQ5SERVP2EWUAMQTQ2NXAQHDBM3WOT2Z22NBK4DAFU2KQ
+#\\\|Y6N6E7VOVTONJEWFZUEC42CV4YI3C3BLOTLWWYQW42V2DBFTTLM \ / AMOS7 \ YOURUM ::
+#\[7]JSCHKZMS4XUN63TCUIADMOYZTJ35THN4CCLNDNCXXB2SP4CTHODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

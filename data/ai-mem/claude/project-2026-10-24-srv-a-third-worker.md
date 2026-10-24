@@ -43,7 +43,11 @@ tool-call hang does not block it.
 - swap on the remotes : file + dm-crypt plain twofish-xts-plain64, 512 bit
   RANDOM key per boot [ /etc/crypttab cswap, /dev/mapper/cswap in fstab,
   modules-load.d/twofish-swap.conf, swappiness 10 ]. srv-A 4G reboot-
-  tested ; srv-U 8G live, NOT reboot-tested
+  tested ; srv-U 8G reboot-tested 2026-10-25 [ external now starts at boot via its overlay, both links back by themselves ] ; srv-V [ 2026-10-25 ] its
+  install-time sda3 partition, crypttab by-partuuid [ mkswap wipes the
+  fs UUID each boot ], initramfs RESUME=none [ it pointed at the old
+  UUID ], reboot-tested ; srv-F already had twofish random-key swap
+  [ /var/swap, retiring host -- left as is ]
 - memory entries name servers srv-<x>, never the host names
 
 ## found
@@ -143,15 +147,15 @@ tool-call hang does not block it.
 
 ## open
 
-- srv-U reboot test of the swap ; optional mem_max 14G + linger on srv-U
+- optional : mem_max 14G + linger on srv-U
 - clients.https marker committed [ 463db3371 ; the untracked copy on
   srv-U blocked the pull once : a `pull && restart` chain without set -e
   restarted on the OLD code -- harmless, old files were still in place ]
 - systemd-networkd-wait-online fails on srv-A since at least 10-18
   [ pre-existing ]
 
-#,,,.,.,.,...,,.,,,,,,.,.,...,,..,..,,,.,,,.,,..,,...,...,.,,,.,.,,.,,.,,,.,.,
-#SU2ML4DBFAUCVJYMNJESXR7KH4KOR2Y3RXNIAQHCJUI4CPJETSGB6EXDW4NR6ECOTI3OGOCCZEGEC
-#\\\|ZNX43KE267PZEXGJYDABI5LOWKIZFNKD2INLHGDXXVPEAL2Q7JW \ / AMOS7 \ YOURUM ::
-#\[7]PEVWMYZBHJ4AJAK55IASQ4NBAAWNQZ7PDDJ2ZRK5ZFI6KXTD7SBY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,.,,..,,..,,,.,,..,,.,,,,..,,.,,..,,...,...,...,,,.,.,.,...,,..,
+#O37TMHC7RI6T2WALF2YOHXW3TVIOKLIUSTSURRDVGSWEQIP2P5COZGUETAKKNNXS7PDHQSMZWJSUA
+#\\\|V43NKF2GKH7VMLJMFZT5B2GCZMQTJCK225BOGCYQOO6UYWSBHLX \ / AMOS7 \ YOURUM ::
+#\[7]4AT2QJ5MEQTTMMBTPUQIQT6XZGDON7NPEJKKB7TFBKY4GW5UKQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
