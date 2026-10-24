@@ -740,16 +740,26 @@ ok( ( grep { $ARG eq 'task.claim' } sent_commands() ),
     'freed slot claims the pending task on re-scan'
 );
 
-## re-try the foreign task now -> claimed ##
-@sent = ();
-$code{'models.task.peek-claim'}->(
-    {   'task_id'    => $PRI_ID,
-        'model'      => 'local',
-        'prompt'     => ":no_tools:\nassess this",
-        'target_cmd' => 'coding.ask-reply',
-        'model_pin'  => $PIN_SERVED
-    }
+## the slot is RESERVED at claim send : with capacity 1 the foreign task ##
+## must wait while the re-scanned local one holds it                     ##
+## [ the old reply-time count let both through in the same millisecond ] ##
+my %foreign_peek = (
+    'task_id'    => $PRI_ID,
+    'model'      => 'local',
+    'prompt'     => ":no_tools:\nassess this",
+    'target_cmd' => 'coding.ask-reply',
+    'model_pin'  => $PIN_SERVED
 );
+@sent = ();
+$code{'models.task.peek-claim'}->( {%foreign_peek} );
+ok( !( grep { $ARG eq "$PRI_ZENKA.claim" } sent_commands() ),
+    'slot reserved at claim send : the foreign task waits'
+);
+
+## the local one completes -> the foreign task claims ##
+$code{'models.task.release-claim'}->($SECOND_ID);
+@sent = ();
+$code{'models.task.peek-claim'}->( {%foreign_peek} );
 ok( ( grep { $ARG eq "$PRI_ZENKA.claim" } sent_commands() ),
     'after the release the foreign task claims too'
 );
@@ -813,8 +823,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,.,.,.,.,,..,,..,,.,,..,,,..,..,,.,,,.,.,.,.,...,..,,.,.,.,.,...,..,,...,
-#D4KRJL27FNISRTUOMZWNGMK7OCOJ667BABN2EUBR6VNBD6OOQTYIGKMLAZLSYNJTEWQCTKLPHGHMI
-#\\\|7XIZTL4WEM5YON7VNLY7DL6PKINQHIBXZNR76DU6I3SINZ73WPM \ / AMOS7 \ YOURUM ::
-#\[7]DXID4IGGY3T7EAU7J7YJ3UPJFGEIHCTHKLTAIMVEEXR27RN2MKAA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,.,.,...,.,,,..,,,,,,,.,,,,.,.,.,...,...,...,,..,.,,,,..,,,.,
+#LJFOHSA5AKHTAFC3SMJ472RLFOFESTKMBDMJUDNNXQPWW3WRAJTEATCMXRCVTHRZSOVL3NYT7ONQC
+#\\\|3ITN6P2N72WKWFY45GIQKGZHP4ZB5LPFCQGHCOSRSJCEXXKGLXV \ / AMOS7 \ YOURUM ::
+#\[7]OGAR4QFIJ4RNKFH6T7PMCKTAMP44AGWEPOQJFJHTQTTWZINSRIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -90,7 +90,12 @@ if ( not $gate ) {
     return FALSE;
 }
 
-<[protocol-7.route-send]>->(
+## reserve the slot NOW, not on the claim reply : two announcements in the ##
+## same millisecond both passed the gate before either reply came          ##
+## [ pri claimed both, the gpu stayed idle ] -- a refused claim frees it   ##
+<models.task.claimed>->{$task_id} = time;
+
+my $sent = <[protocol-7.route-send]>->(
     {   'command'   => <[models.task.cmd]>->( qw| claim |, $task_id ),
         'call_args' => {
             'args' => sprintf '%s %s',
@@ -108,11 +113,12 @@ if ( not $gate ) {
         }
     }
 );
+delete <models.task.claimed>->{$task_id} if not $sent;
 
 return TRUE;
 
-#,,..,,,,,.,,,...,.,.,,.,,..,,,,,,,.,,.,.,,,,,..,,...,..,,..,,.,.,...,...,,..,
-#BEBZ7OG5SUJCXH3J7USSD4DTK4SAMN7644N5V3W5GXORWCMWD4G3IQWHE2PLWBWCHQXBCBPSTK5UY
-#\\\|Q7XJFIKNQL44BP6HBSKXEOT5JGFP3XZPBSCZARMP2K5RZLNCKKD \ / AMOS7 \ YOURUM ::
-#\[7]O7FHCE4QHP3TURDNGF5DRKU6D7FQJJIM4537FW2XAOXGUAMCMCAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,,,.,..,,,.,,.,,,.,,,.,.,,.,,..,,...,.,.,.,,,..,,.,,,..,,.,.,
+#CJ5VI3K6WMUDJII3EHFKKMI4NG5V3M62JMKXJHOV2HINWPVVPIYB22EEUNPDF7UKSRSURKGO2ZVDO
+#\\\|RDDVTADE37MRZQXXLYJVHXEJDHC2UHMXZBAV5MKKLNLGDEHGRLF \ / AMOS7 \ YOURUM ::
+#\[7]DCPS762ZLA57OELMSIF3SFROOFEF6FVD7QXVRCJDSLELA5Q2E4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
