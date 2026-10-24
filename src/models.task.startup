@@ -11,7 +11,9 @@
 #         listed local zenka's pending queue per startup heals it [ the
 #         check-next reply claims the first, each completion re-scans
 #         the rest ]. remote listed zenki need no scan : the notice
-#         stream + fallback poll cover them [ models.task.subscribe ]
+#         stream + fallback poll cover them [ models.task.subscribe ].
+#         the claim count gate [ models.task.claim-ok ] is shared by the
+#         local and the remote path
 
 ## a reload re-arms : cancel the running timer, never two side by side ##
 my $old_timer = <models.task.poll.timer>;
@@ -24,22 +26,7 @@ $old_timer->cancel if defined $old_timer and $old_timer->is_active;
 ## never notified after the restart ]. one recovery scan per startup : the  ##
 ## check-next reply claims the first pending task, each task completion     ##
 ## re-scans the queue                                                       ##
-foreach my $zenka (<[models.task.zenki]>) {
-    next if $zenka ne qw| task |;
-    my $scan = <[protocol-7.route-send]>->(
-        {   'command'   => sprintf( qw| %s.queue |, $zenka ),
-            'call_args' => { 'args' => qw| status=pending | },
-            'reply'     => {
-                'handler' => qw| models.handler.task-poll-step |,
-                'params'  => { 'step' => 'check-next', 'zenka' => $zenka }
-            }
-        }
-    );
-    <[base.logs]>->(
-        1, ': task zenka %s : pending recovery scan %s',
-        $zenka, ( $scan and $scan > 0 ) ? 'sent' : 'not routed'
-    );
-}
+<[models.task.rescan]>;
 
 return FALSE if not <[models.task.remote]>;
 
@@ -74,8 +61,8 @@ $interval = 30 if $interval !~ m|^\d+$| or $interval < 5;
 
 return TRUE;
 
-#,,..,,.,,.,.,,,,,...,.,.,.,,,.,,,,..,.,,,,,,,.,.,...,...,,..,..,,,..,,..,...,
-#2UR4NP5ZEUGBIEAEOCRV2JNXFTOWEFIGTH7PCK2ORNQAQQLK6K6UKNC2JINBDU6MSIP7R4NUROHAY
-#\\\|AX5AARMCXHQL2OMUYZHEDIPUCOX5EBGN5XG3CS3KKYXDFWYA2UL \ / AMOS7 \ YOURUM ::
-#\[7]K3F5TU436XIZJW44LGHPC2DZAF5KZDTXKHE235LXPCLFDWOOP2AA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,.,.,.,,,.,..,,.,.,...,,,.,...,.,.,...,..,,...,,,.,,,,,.,,,...,
+#MSQ3YVYI5AUHMW5VP25YNG5RB5XR7ED7BFULIEUZVGTVHMJSM4ZOET4NDNIE76HS5TS3KABI37NYW
+#\\\|Y3TYKIP6OWBBJ7UYECRMR4EPXO6NBRYD7KUIHYAZ4M5WEFPN5E6 \ / AMOS7 \ YOURUM ::
+#\[7]JYRUNT5WRP7HVHS24VT7TJRF5Z5NEFTVTNH2E3VA6IK37O4FKECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

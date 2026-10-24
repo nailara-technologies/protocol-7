@@ -27,6 +27,7 @@ $prompt = ':next: ' . $prompt;
 my $encoded = eval { Crypt::Misc::encode_b32r($prompt) };
 if ( $@ or not defined $encoded or not length $encoded ) {
     <[base.logs]>->( 0, ': fallback-direct: base32r encode failed' );
+    <[models.task.release-claim]>->($task_id);
     <[protocol-7.route-send]>->(
         {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
             'call_args' => { 'args' => "$task_id encode error" }
@@ -63,6 +64,7 @@ if ( $sent <= 0 ) {
     <[base.logs]>->(
         0, ': fallback-direct: v7 not reachable [ job %s ]', $job_id
     );
+    <[models.task.release-claim]>->($task_id);
     <[protocol-7.route-send]>->(
         {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
             'call_args' => { 'args' => "$task_id v7 not reachable" }
@@ -76,8 +78,8 @@ if ( $sent <= 0 ) {
 
 return TRUE;
 
-#,,..,.,,,,,,,,..,...,,,.,.,.,,,.,.,,,,.,,,,,,..,,...,.,.,...,.,.,.,.,.,.,,,,,
-#2OPQOQE7XGPF5UXRCYCECGI3Y6XFRYUB7YU5VDFLTEAH6UBCUOACDIG7ZKA3NDQVKBQCYH4JY2C5C
-#\\\|UBKMPHVOADUNGHNWHT6UVAQCAWNHFRJJTEG47HH4OJGJ5ZO2U3D \ / AMOS7 \ YOURUM ::
-#\[7]TP6INDPHUIZ6D3VMS2N4OV2JRERZVOQZYMNAEDPVZOCBJ3BTPWAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,.,,,,..,.,,,,.,,.,,,.,.,..,,...,..,,...,...,,.,,,..,..,,..,,,..,
+#62OR5KFB7C6EGMMOCYMXEDZN56SKWPGLMOEYVLHXWI6E7A2GLOP2B2T57YPZUQJ4FLV6WW2IA2VGU
+#\\\|C2PGHFHROJQSK7FF2REJFCCBO753NTCDTBSSCDDWJ4HM3NRRACI \ / AMOS7 \ YOURUM ::
+#\[7]2QOV7IL3BECD3KV2B2Q2AYURTJFSHA7VQVSFEAPWEV26VNS4OUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

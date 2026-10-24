@@ -68,6 +68,15 @@ models.cfg.task_agent = models
 models.cfg.task_models =
 ## remote task zenka : seconds between '<task_zenka>.next' polls ##
 models.cfg.task_poll_interval = 30
+## in-flight claim limit : at most N tasks of our own claimed \ started  ##
+## but not completed \ failed [ 0 = unlimited ]. unset [ default ] : one  ##
+## claim per ready local backend serving the task's pin [ coding.infer- ##
+## ence-status ] -- a models at capacity leaves tasks pending for other  ##
+## hosts' models, and claims the next when one of its own completes     ##
+models.cfg.task_max_claims =
+## seconds a claim may hold its slot without completing [ default 1800, ##
+## min 60 ] : a stuck or externally failed task frees its slot after it ##
+models.cfg.task_claim_ttl = 1800
 
 [load_host_config]
 
@@ -100,8 +109,8 @@ models.task.default_model = local
 #
 [zenka.loop]
 
-#,,..,,.,,.,,,,,,,,..,,,,,..,,.,.,...,,,.,..,,..,,...,...,.,.,...,.,,,,,.,,..,
-#IYUURIXAQ56PVNUHCSXLQ54LU4V7G6YOW2NZQYZNFUCBUUKG675T6TBYXBMHOVB5ZIKM6O5FSIDFU
-#\\\|VKPZRSNT2X3OFYQL5TVDJKWHJ6DF7LKPYUKZMLATEL4EFIPGRCN \ / AMOS7 \ YOURUM ::
-#\[7]A4CHUT36Z4EKDO7JIPK2IM4MHNWDAUS3SCFY6ADXX5HAMFVBG2BY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,...,,..,.,,,...,.,.,,,,,,,,,...,..,,...,...,,..,.,.,...,,.,,,.,,
+#WTCKKZFH2MURX7HXVW46ML73AZJNGS6VW5VK4APKDXZF6CLJZSH4MBNOR53CJAJ3UY6VDWAY7XT5U
+#\\\|JINVK6S5BX46LE5OXOH3BK72OCXKFFSIDGCFEMZ6YMGMTUMQ3XD \ / AMOS7 \ YOURUM ::
+#\[7]ZI2EMHOQTY2LRMTYN5AKOMAUFA53BBY7C6A35E4T6XJKI2YOVKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = models.task.rescan
+# descr = re-scan listed local task queues for pending work
+# note  = one 'queue status=pending' per listed local task zenka --
+#         the check-next reply claims the first pending task and each
+#         task completion re-scans the rest
+# notes = recovery at startup [ models.task.startup ] and whenever a
+#         claim is released [ models.task.release-claim ]. remote
+#         listed zenki need no scan : their notice stream + fallback
+#         poll cover them
+
+foreach my $zenka (<[models.task.zenki]>) {
+    next if $zenka ne qw| task |;
+
+    my $scan = <[protocol-7.route-send]>->(
+        {   'command'   => sprintf( qw| %s.queue |, $zenka ),
+            'call_args' => { 'args' => qw| status=pending | },
+            'reply'     => {
+                'handler' => qw| models.handler.task-poll-step |,
+                'params'  => { 'step' => 'check-next', 'zenka' => $zenka }
+            }
+        }
+    );
+
+    <[base.logs]>->(
+        1, ': task zenka %s : pending re-scan %s',
+        $zenka, ( $scan and $scan > 0 ) ? 'sent' : 'not routed'
+    );
+}
+
+return TRUE;
+
+#,,..,.,,,.,,,,,,,...,.,.,,.,,...,,..,,,.,.,,,.,.,...,.,.,..,,,,.,.,.,,..,,.,,
+#VBTHYWC2N6X73MK54FUQ7SBQSHVZQYDTTL5LWPT6V7QID6ATFP4BGCSHBRIGFYTUBZL2SYDJE6K4W
+#\\\|CNEWMD565WIKXDYE5M73HYWN3Z3FOHUGUSVWR3Z7AUH5TELOHEU \ / AMOS7 \ YOURUM ::
+#\[7]OUN74OYITUJ7JALB2LCLSEPVSL3EBNKNRIWFMJL5MU6KHJUL6KBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

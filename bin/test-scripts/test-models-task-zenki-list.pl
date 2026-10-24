@@ -156,7 +156,8 @@ compile_module($_)
     models.task.peek-claim models.task.subscribe
     models.task.subscribe-retry models.handler.task-poll
     models.handler.task-poll-step models.handler.task-stream
-    models.task.startup |;
+    models.task.startup models.task.claim-ok models.task.release-claim
+    models.task.rescan models.task.set-local-models |;
 
 ## .cmd. modules get 'my $call' from the runtime's compiled-in command ##
 ## header [ bin/Protocol-7 ] : mirror it with an our-scoped $call the  ##
@@ -168,7 +169,8 @@ compile_module( 'models.cmd.task-notify', $module_prefix . "\nour \$call;" );
 ## helpers                                                                ##
 
 sub reset_models_state {
-    $data{'models'}      = { 'cfg' => { 'task_zenka' => 'task' } };
+    $data{'models'}
+        = { 'cfg' => { 'task_zenka' => 'task', 'task_max_claims' => 0 } };
     @sent                = ();
     @logged              = ();
     @timers              = ();
@@ -562,10 +564,9 @@ ok( ( grep { $ARG eq 'task.show' } @cmds ),
 my $live_show_send = ( grep { $ARG->{'command'} eq 'task.show' } @sent )[0];
 @sent = ();
 my $show_text
-    = "id          : $LOCAL_ID\nstatus      : claimed\ndescription "
-    . ": :no_tools:\\n:local: :simple: "
-    . ":model:OFSQC4I:QDBKEXY: assess this listing\ncontext  "
-    . "   :\nagent       : models";
+    = "id          : $LOCAL_ID\nstatus      : claimed\ndescription : "
+    . ":no_tools:\\n:local: :simple: :model:OFSQC4I:QDBKEXY: assess "
+    . "this listing\ncontext     :\nagent       : models";
 $code{'models.handler.task-poll-step'}->(
     {   'cmd'       => qw| TRUE |,
         'call_args' => { 'args' => $show_text },
@@ -654,6 +655,152 @@ ok( ( grep { $ARG->{'command'} eq 'task.queue' } @sent ),
 );
 
 ## ---------------------------------------------------------------------- ##
+## 10 : claim capacity -- at most one in-flight claim per ready local     ##
+## backend serving the pin [ default limit ], 0 = unlimited               ##
+
+say "\n :. claim capacity gate";
+
+my $SECOND_ID  = 'SECON7D';
+my $GPU_KEY    = 'OFSQC4I:QDBKEXY';
+my $PIN_SERVED = 'AAA:QDBKEXY';
+
+## warm backend knowledge : ONE ready backend serving the pin ##
+sub warm_one_backend {
+    $data{'models'}{'task'}{'local_models'}
+        = { 'at' => time, 'ids' => [$GPU_KEY] };
+    return;
+}
+
+## --- two announced, one backend -> one claimed, one left pending --- ##
+
+reset_models_state();
+delete $data{'models'}{'cfg'}{'task_max_claims'};    ## default limit ##
+$data{'models'}{'cfg'}{'task_zenka'} = "task $PRI_ZENKA";
+$data{'models'}{'cfg'}{'task_agent'} = 'models';
+warm_one_backend();
+
+$main::call = { 'args' => $LOCAL_ID };
+$code{'models.cmd.task-notify'}->();
+ok( ( grep { $ARG eq 'task.claim' } sent_commands() ),
+    'one backend : first announced task claimed'
+);
+
+## the claim succeeded -> counted in flight ##
+my $cap_claim_send
+    = ( grep { $ARG->{'command'} eq 'task.claim' } @sent )[0];
+$code{'models.handler.task-poll-step'}->(
+    true_reply( "claimed $LOCAL_ID", $cap_claim_send->{'reply'}{'params'} ) );
+ok( scalar keys %{ $data{'models'}{'task'}{'claimed'} } == 1,
+    'a TRUE claim reply counts the task in flight'
+);
+
+## second announcement : at capacity -> left pending, nothing sent ##
+@sent       = ();
+$main::call = { 'args' => $SECOND_ID };
+$code{'models.cmd.task-notify'}->();
+ok( scalar sent_commands() == 0,
+    'one backend : second task left pending at capacity' );
+
+## --- remote path : same limit, a foreign task is not over-claimed --- ##
+
+$data{'models'}{'cfg'}{'task_models'} = "OTHERZEN:QDBKEXY";
+$code{'models.task.dispatch-id'}->( $PRI_ID, $PRI_ZENKA );
+my $cap_peek_send = $sent[-1];
+$parse_show_plan{$PRI_ID} = {
+    'status'     => 'pending',
+    'model'      => 'local',
+    'prompt'     => ":no_tools:\nassess this",
+    'target_cmd' => 'coding.ask-reply',
+    'model_pin'  => $PIN_SERVED
+};
+@sent = ();
+$code{'models.handler.task-poll-step'}->(
+    true_reply( 'pending task text', $cap_peek_send->{'reply'}{'params'} ) );
+ok( ( not grep { $ARG eq "$PRI_ZENKA.claim" } sent_commands() ),
+    'remote path : pin served but at capacity -> left pending'
+);
+
+## --- completion -> the pending one claimed [ release + re-scan ] --- ##
+
+@sent = ();
+$code{'models.task.release-claim'}->($LOCAL_ID);
+ok( scalar keys %{ $data{'models'}{'task'}{'claimed'} } == 0,
+    'completion released the in-flight slot' );
+my $rescan_send = ( grep { $ARG->{'command'} eq 'task.queue' } @sent )[0];
+ok( ( defined $rescan_send ), 'release re-scans the local pending queue' );
+
+@sent = ();
+$code{'models.handler.task-poll-step'}->(
+    {   'cmd'    => qw| SIZE |,
+        'data'   => "$SECOND_ID pending assess two",
+        'params' => $rescan_send->{'reply'}{'params'}
+    }
+);
+ok( ( grep { $ARG eq 'task.claim' } sent_commands() ),
+    'freed slot claims the pending task on re-scan'
+);
+
+## re-try the foreign task now -> claimed ##
+@sent = ();
+$code{'models.task.peek-claim'}->(
+    {   'task_id'    => $PRI_ID,
+        'model'      => 'local',
+        'prompt'     => ":no_tools:\nassess this",
+        'target_cmd' => 'coding.ask-reply',
+        'model_pin'  => $PIN_SERVED
+    }
+);
+ok( ( grep { $ARG eq "$PRI_ZENKA.claim" } sent_commands() ),
+    'after the release the foreign task claims too'
+);
+
+## --- limit 0 -> unlimited, both claimed --- ##
+
+reset_models_state();
+$data{'models'}{'cfg'}{'task_zenka'}      = "task $PRI_ZENKA";
+$data{'models'}{'cfg'}{'task_agent'}      = 'models';
+$data{'models'}{'cfg'}{'task_max_claims'} = 0;
+warm_one_backend();
+
+$main::call = { 'args' => $LOCAL_ID };
+$code{'models.cmd.task-notify'}->();
+$main::call = { 'args' => $SECOND_ID };
+$code{'models.cmd.task-notify'}->();
+ok( scalar( grep { $ARG eq 'task.claim' } sent_commands() ) == 2,
+    'limit 0 [unlimited] : both tasks claimed' );
+
+## --- cold backend knowledge : the gate asks coding first --- ##
+
+reset_models_state();
+delete $data{'models'}{'cfg'}{'task_max_claims'};    ## default limit ##
+$data{'models'}{'cfg'}{'task_zenka'} = "task $PRI_ZENKA";
+$data{'models'}{'cfg'}{'task_agent'} = 'models';
+## no local_models cache ##
+
+$main::call = { 'args' => $LOCAL_ID };
+$code{'models.cmd.task-notify'}->();
+my $cold_ask
+    = ( grep { $ARG->{'command'} eq 'coding.inference-status' } @sent )[0];
+ok( ( defined $cold_ask ),
+    'cold cache : the gate asks coding.inference-status first' );
+ok( ( $cold_ask->{'reply'}{'params'}{'step'} // '' ) eq 'capacity-models',
+    'the answer re-runs the dispatch [ capacity-models step ]'
+);
+
+## an unusable answer caches 'none' -> task left pending, no crash ##
+@sent = ();
+$code{'models.handler.task-poll-step'}->(
+    {   'cmd'    => qw| FALSE |,
+        'data'   => '',
+        'params' => $cold_ask->{'reply'}{'params'}
+    }
+);
+ok( scalar sent_commands() == 0,
+    'no ready backend known : task left pending, nothing claimed' );
+ok( scalar keys %{ $data{'models'}{'task'}{'claimed'} } == 0,
+    'nothing counted on the refused path' );
+
+## ---------------------------------------------------------------------- ##
 ## summary                                                                ##
 
 my @struct_warnings
@@ -666,8 +813,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,.,...,.,,,..,,,,,,,..,,..,,,,,.,,,,,.,.,.,...,..,,.,,,...,.,.,..,,,,.,
-#DKEM7GSQRAHQF4AZQXIDCYSB3A4XUUK5TXCWLJQJKLUVDRPEIWVLZ7PH4MB4OVHR7KRZVPJNUO5FY
-#\\\|XQNUTUC5KTCFN2MY57ENUG54UTTEXMREN3RPVNTEQODLRZ2JIJ6 \ / AMOS7 \ YOURUM ::
-#\[7]PK6WLM37GGIUBUKOXVCSYHC44SLOKKXSXPZ2OIJMV6JPCRNQRUBA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,,..,,.,,..,,,..,..,,.,,,.,.,.,.,...,..,,.,.,.,.,...,..,,...,
+#D4KRJL27FNISRTUOMZWNGMK7OCOJ667BABN2EUBR6VNBD6OOQTYIGKMLAZLSYNJTEWQCTKLPHGHMI
+#\\\|7XIZTL4WEM5YON7VNLY7DL6PKINQHIBXZNR76DU6I3SINZ73WPM \ / AMOS7 \ YOURUM ::
+#\[7]DXID4IGGY3T7EAU7J7YJ3UPJFGEIHCTHKLTAIMVEEXR27RN2MKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = models.task.release-claim
+# descr = drop a finished task from the in-flight claim count
+# note  = releases the capacity slot a claimed \ started task held
+#         until its completion \ failure, then re-scans the local
+#         queues so the freed slot claims the next pending task
+# param = <task_id>
+# notes = called where a task is completed or failed for good
+#         [ models.handler.task-result, models.handler.delegate_result,
+#         models.task.fallback-direct ]. idempotent : an unknown id
+#         releases nothing and re-scans nothing
+
+my $task_id = shift // '';
+
+my $claimed = <models.task.claimed> // {};
+
+return FALSE
+    if not length $task_id
+    or not exists $claimed->{$task_id};
+
+delete $claimed->{$task_id};
+
+<[base.logs]>->(
+    2,
+    ': claim count %d after %s finished',
+    scalar keys %{$claimed}, $task_id
+);
+
+## capacity freed : re-scan the local queues -- the check-next reply claims ##
+## the first pending task. remote zenki need no scan : their notice stream  ##
+## + poll deliver the next task on their own                                ##
+<[models.task.rescan]>;
+
+return TRUE;
+
+#,,,,,,,.,,.,,.,.,,.,,.,.,.,,,...,.,.,.,,,.,,,.,.,...,...,.,.,,.,,,.,,...,..,,
+#VSLS5U7XOQQCDV2ZBL5VJSCLHUSAFWNZMYBCTROLLHXYHP4LCS3LGIRBCS3E7R62KVGWZECEHS2DS
+#\\\|HP4AEXI7YCAZZ33O7JZ44ITEKVTSYG4XPAWEKFQ6OMW7WFSYYOT \ / AMOS7 \ YOURUM ::
+#\[7]PFRPYHJVQEEGMTBHTRPGHDXUI3BLNOL7KNTZLFH476KC77FLNYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

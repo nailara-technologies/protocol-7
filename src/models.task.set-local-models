@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = models.task.set-local-models
+# descr = cache the local coding backends' loaded models
+# note  = parse a coding.inference-status reply and refresh
+#         <models.task.local_models> [ one id per ready backend,
+#         kept for 60 s ]
+# param = <reply text> [ yaml status or empty ]
+# return = arrayref of the ready backends' model ids
+# notes = shared by the 'peek-models' [ pin check re-run ] and
+#         'capacity-models' [ claim gate re-run ] steps of
+#         models.handler.task-poll-step. an unusable answer is
+#         cached as 'none' for 60 s on purpose : no retry storm
+
+my $text = shift // '';
+
+my @ids;
+my $status = length $text ? eval { YAML::XS::Load($text) } : undef;
+
+if ( ref $status eq qw| HASH | ) {
+    foreach my $backend (qw| gpu cpu |) {
+        my $id = uc( ( $status->{$backend} // {} )->{'model_id'} // '' );
+        push @ids, $id if $id =~ m|^(?:[A-Z2-7]{7})?:?[A-Z2-7]{7}$|;
+    }
+} else {
+    <[base.logs]>->(
+        1,
+        ': coding.inference-status : no usable answer [ %s ]',
+        length $text ? 'unparseable' : 'empty'
+    );
+}
+
+<models.task.local_models> = { 'at' => time, 'ids' => \@ids };
+
+<[base.logs]>->(
+    2,
+    ': local coding serves [ %s ]',
+    join( ' ', @ids ) || 'none'
+);
+
+return \@ids;
+
+#,,,,,.,,,...,...,.,,,,,.,..,,.,.,,..,.,,,...,.,.,...,...,...,...,.,,,,,.,,..,
+#KMWHER32KGJIZ5XHXBG7UMPQYFXVUDUMEHSMAZ4KAUJNYSWD3NDRFOGFTIOZ3DKXZM2NDDSEXKMRY
+#\\\|FKI6DWYD4ZQUICKNTP524VL7BSBLIQAGZ3LOMDJZSKW3PU7MENR \ / AMOS7 \ YOURUM ::
+#\[7]PXFMLJNQRXQ2FAVZIWDBAWFC5P6LXW6M45QSUJHWW7XUKMFJ54AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

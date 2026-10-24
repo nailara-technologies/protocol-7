@@ -88,6 +88,7 @@ if ( $job_outcome ne qw| error | ) {
 
             } elsif ( $mode eq qw| escalate | ) {
                 my $reason = $iter_result->{'data'} // 'escalation';
+                <[models.task.release-claim]>->($task_id);
                 <[protocol-7.route-send]>->(
                     {   'command' =>
                             <[models.task.cmd]>->( qw| fail |, $task_id ),
@@ -153,7 +154,9 @@ if ( defined $job_id ) {
 }
 <models.task.active_job> = undef;
 
-## check for next pending task in queue ##
+## release the in-flight claim slot, then check for next pending task in ##
+## queue                                                                 ##
+<[models.task.release-claim]>->($task_id);
 <[protocol-7.route-send]>->(
     {   'command'   => <[models.task.cmd]>->( qw| queue |, $task_id ),
         'call_args' => { 'args' => 'status=pending' },
@@ -169,8 +172,8 @@ if ( defined $job_id ) {
 
 return;
 
-#,,,.,,,.,..,,...,,,,,,..,,..,...,,,,,.,.,.,,,.,.,...,...,,,.,.,,,.,.,,.,,,,,,
-#SAU7NZ4LNVWSCTPPXB5IUKQ4C3LPU37ISQNCUZG6UBDVAVXJTDYSVY5HMJK3COV4GQLDPFJCKGEBI
-#\\\|67VSH2AYR43RK526MAQQYWZ65CBWZ4MMFFJA5V3QAJU5LFFMYX5 \ / AMOS7 \ YOURUM ::
-#\[7]TRHH3K647RUS7BGKG5ZJW3OTMBN7J6ORNKCB75S6IKB4MFFMPIBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,.,.,,,.,,,.,,..,,,,,.,.,,.,,.,.,...,...,,..,,.,,..,,...,,.,,
+#3NDTR562YB7W4QX73WTPCFK6QO2PGDF5LPBGLGHPXPYIULRX3VR7DSGBXMTJQ4XAHUBMKZUPHQVOC
+#\\\|36PZHTWZDISGFRCPQMCE4P3M7UKVG5GCXA3DUWFCXICT7ABCDQ3 \ / AMOS7 \ YOURUM ::
+#\[7]J4BCAM5N7CLWFYRZTOFLLWCPIFKFOWEETQFSE5OFTDLJJN6RQ2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
