@@ -39,7 +39,7 @@ POST  /auth/logout   httpd.route.handler.web-logout
 ## as enabled below ; a remote jobsite carries its own bearer token in   ##
 ## /etc/protocol-7/jobsite/host.cfg [ jobsite.cfg.sync_token ]           ##
 GET   /jobs.json    httpd.route.handler.web-relay  [command:web.jobs-data,auth.required=1,auth.exempt-loopback=1]
-POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync,auth.required=1,auth.exempt-loopback=1]
+POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync,command.foreign=web.jobs-sync-foreign,auth.required=1,auth.exempt-loopback=1]
 
 ## trash-history panel : lightweight recent-trash list + rescue, routed  ##
 ## straight to jobsite [ no per-job content ever lives in the web cache ] ##
@@ -68,8 +68,8 @@ POST  /iris/negotiate httpd.route.handler.iris-negotiate
 POST  /cursor       plugin.web.space.handler.cursor_update
 POST  /context      httpd.route.handler.context
 
-#,,.,,,.,,,,.,.,.,,..,..,,.,.,,,.,...,...,.,,,..,,...,...,..,,,,,,.,.,..,,,,,,
-#Z4CGLDW74VGPXORWRXF3LNMBJJHBESEENKDI2SXG53S5ZBYO5WHN6FTSZXWQCXSDQSVFDB4BHIJZO
-#\\\|NZXINJMKQL2ZR6NP26Q76PRWO5HHGOVROLE2XB7U64UAMJTBBOG \ / AMOS7 \ YOURUM ::
-#\[7]ZFUMICRD3JEST6P4JWRA6FNVBMIVGUQO3TQXFAPRCGFFRFBSZWCA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,.,,,,..,,.,,,.,,.,.,,.,,,,,,..,,...,...,...,..,,.,,,..,,.,.,
+#DIVLZXQYU4SXDFKE2KMMYR5LD6EEFJ2XVCVGABSU5YHLL6VBI2YJZTD7FTXEEDVKN6JSCQ3M5HHX4
+#\\\|54E5B4RLZ4YSKZ2QVATTA2OLA7GWBCXM74JAM4XLQTHH524NUWX \ / AMOS7 \ YOURUM ::
+#\[7]LKEX7UGWV74XUJE5HGAVGOQHC765G3IXM5SXG43TVN5QHIXJRCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

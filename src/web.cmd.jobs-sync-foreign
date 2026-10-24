@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = web.cmd.jobs-sync-foreign
+# descr = jobs sync from a foreign host : marks only
+# note  = httpd.route.handler.web-relay picks it for a peer that is not
+#         exempt [ not loopback, not web.auth.exempt_peers ] : a jobsite
+#         batch from another host may only touch the export marks + prefs
+#         [ plugin.web.jobs.sync marks mode ], whatever role it claims.
+#         single browser updates pass as before
+
+<web.jobs.sync_foreign> = TRUE;
+my @reply = eval { <[plugin.web.jobs.sync]>->(@ARG) };
+my $error = $EVAL_ERROR;
+<web.jobs.sync_foreign> = FALSE;
+die $error if length $error;
+
+return wantarray ? @reply : $reply[0];
+
+#,,.,,..,,,.,,,..,.,,,,.,,.,.,..,,,,,,,..,...,..,,...,...,.,,,...,,,,,,.,,,,,,
+#TVFIU2XVGURGK5OOZGJNC5X7RURZN5F7NNL2Z2CROQOQXWEQL75JYGXJB7DCPNXRTIPCRXLL2G4HS
+#\\\|2WYZFPRHOQOCLTVFT6YBQ55Q3KQLDGDAZBB6CZ4A4QBNYDRY3VA \ / AMOS7 \ YOURUM ::
+#\[7]GLJUZDAGG7B6RNFUZ64NY6SLOENMR6DO7GTRXNZ5TVKBOBHO3KBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

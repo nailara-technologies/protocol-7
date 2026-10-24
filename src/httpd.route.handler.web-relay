@@ -54,8 +54,16 @@ if ( $args->{'auth.required'} ) {
     }
 }
 
-my $command = $args->{'command'}           // qw| web.request |;
-my $body    = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
+my $command = $args->{'command'} // qw| web.request |;
+
+## a route may name a separate command for peers that are NOT exempt       ##
+## [ not this host's loopback \ exempt_peers ] : the receiver decides what ##
+## a foreign sender may change, not the sender's own config                ##
+## [ jobs-sync : only the web's own jobsite pushes full batches ]          ##
+$command = $args->{'command.foreign'}
+    if length( $args->{'command.foreign'} // '' )
+    and not $auth_exempt;
+my $body = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
     // '';
 $session->{'http'}->{'body'}    = '';
 $session->{'buffer'}->{'input'} = '';
@@ -181,8 +189,8 @@ if ( $args->{'auth.required'} and not $auth_exempt ) {
 
 return 0;        # [ deferred : reply handler writes response ]
 
-#,,..,...,...,...,,.,,...,,,.,..,,,,.,..,,.,.,..,,...,...,.,.,,..,,.,,,,,,,.,,
-#5ONZAV3ORJDVVQ7EHPOP2AILLFCK3DETSF7U55EIX3SQ67RRWUXI52PBXI4G347HRC5JSHPD65QF2
-#\\\|EIGTEPBZNCSG4VMLB35EAGYZKQUXPKWCUQIVUM3RA3N72GYGBMN \ / AMOS7 \ YOURUM ::
-#\[7]XDICQBRNMFL6VZ6VNUIQOGJ7AEPRJ5663MERQZN3NDJZRYIAYUBY 7  DATA SIGNATURE ::
+#,,..,...,,,.,..,,,..,,,,,..,,.,.,,.,,,.,,.,,,..,,...,...,.,,,...,.,.,,..,,.,,
+#2JZXYFBYUXYPRHDHFCCUV35D3AK5UTYCOYC3KL3VEVDAASDTNAOCI5BC5GTR5CJKT2F62MZBZKDP2
+#\\\|SZHZGU465FRZSXJXSY7PXFANI32EV4UBFBUFUYDTWVSBOEHZLAC \ / AMOS7 \ YOURUM ::
+#\[7]NH2I6WCUFGMWLRHFYUPNY6XZ4D7L2BGRFUWLRSAF65OYPXDLG2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

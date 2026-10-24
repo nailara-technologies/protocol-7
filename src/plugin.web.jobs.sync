@@ -79,7 +79,10 @@ if ( ref $payload->{'jobs'} eq qw| ARRAY | ) {
 ## stale jobsite pushed full job state + removal signals into a web it did ##
 ## not own, clobbering stages and dropping cache entries ]                 ##
 my $is_marks_batch = FALSE;
-if ( $is_batch and ( $payload->{'role'} // '' ) eq qw| marks | ) {
+if ($is_batch
+    and ( ( $payload->{'role'} // '' ) eq qw| marks |
+        or <web.jobs.sync_foreign> )
+    ) {    ## foreign peer : marks only, whatever the batch claims ##
     $is_marks_batch = TRUE;
     my $extra_fields = grep {
         ref $ARG eq qw| HASH |
@@ -459,8 +462,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,..,,..,,.,.,.,.,,,.,...,,,.,,.,,,.,,.,,,..,,...,...,,..,,..,,.,,.,,,,.,,
-#3IEFM6MMHLXYJEYOBPJAT7E2KRAYSTBX5TZA7O6DVS37PHJPTNCUUNUUME35XGSVGRCTDG4WU66Z2
-#\\\|ZERLQXJGZIN7BWSA3PPNS6TEVSSQP2AUCNDE7CVGITPJIAKRRWI \ / AMOS7 \ YOURUM ::
-#\[7]ZQX2KPMX7GIXGSLLKZJUF7RX7QIMC26TYT5SKJL2EIAIBMKV7EBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,...,,..,...,...,...,...,,,.,..,,...,...,.,.,.,,,...,.,,,.,,,
+#5IFCPNYRT2XIGJDBIZ3IRCOBJ45YYVTKCPMH6ZGNORJEOIGIWVG3HMRXOJTLGKD3J2MX3B4YJ5P6G
+#\\\|VQEKXKOLARR7VDGYW2M5DQWS4ALIEWAX4KYNJC3L2WWAZVSKEW4 \ / AMOS7 \ YOURUM ::
+#\[7]GVTFZ5OZBY7JA7EBP6KPXNLOIJKRDS7IB2IPHASG5CWRIKNOK2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
