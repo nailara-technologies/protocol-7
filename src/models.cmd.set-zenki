@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = models.cmd.set-zenki
+# descr = set the task zenki list at run time, re-arm streams
+# note  = replaces models.cfg.task_zenki with a new space separated list
+#         of task zenki and re-arms the notice streams + fallback poll
+#         [ models.task.startup ] -- the reload path re-reads the same
+#         way
+# notes = remembered task sources are cleared : ids may belong to other
+#         zenki under the new list. zenka of a removed entry loses its
+#         stream at once [ models.task.startup ]
+
+my $list = $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'zenki list required' }
+    if not length $list;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'only zenka names [ word chars, dots ] allowed'
+    }
+    if $list =~ m{[^A-Za-z0-9_.\s]};
+
+my @zenki = grep {length} split m|\s+|, $list;
+
+return { 'mode' => qw| false |, 'data' => 'empty zenki list' }
+    if not scalar @zenki;
+
+<models.cfg.task_zenka> = join ' ', @zenki;
+
+## sources remembered under the old list must not poison new routing ##
+<models.task.source> = {};
+
+<[base.logs]>->(
+    1,
+    ': task zenki set to [ %s ] : re-arming streams + poll',
+    join( ' ', @zenki )
+);
+
+my $armed = <[models.task.startup]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf '[ %s ] %s',
+    join( ' ', @zenki ),
+    $armed ? 'armed' : 'local only, nothing armed'
+};
+
+#,,,,,...,,,,,,.,,.,,,.,.,,..,,,.,,..,,,,,.,,,.,.,...,...,,..,...,,,.,,..,,..,
+#JVSUINHFF3RQ54RXL4EP4RUJKKA22RHORWVH2PYLMTIUTLT5PM7HXYJQOF725QTBOPUICYMV52VMA
+#\\\|FSC3UVKD3KU3AL2O6ZYHJHCG6HAGCKJXIAX3OW35VPCATYXNIMG \ / AMOS7 \ YOURUM ::
+#\[7]TMC6TSQIPQNGTXXEICQAF6XLMLVKK6RVCPFAZ25ND7NITAKA5ABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

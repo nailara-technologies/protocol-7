@@ -65,6 +65,12 @@ jobsite.cfg.assess_timeout = 777
 ## server takes 8-9 min per assessment ] before giving up
 jobsite.cfg.assess_watch_extensions = 24
 
+## assessment tasks in flight at once : dispatch.next fills up to N, each
+## in-flight job holds its slot through its watchdog until its reply [ or
+## timeout \ give_up ] releases it and refills one. default 1 = the old
+## strictly serial chain
+jobsite.cfg.assess_parallel = 1
+
 ## two-stage delete retention (in V7 epochs)
 jobsite.cfg.trash_keep_epochs   = 1  ## recoverable compressed stage
 jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
@@ -134,8 +140,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite \
 
 [zenka.loop]
 
-#,,..,,.,,...,.,,,...,,.,,,.,,..,,,..,,,.,...,..,,...,...,,.,,,,.,,,,,,.,,,.,,
-#M7K2ODWHYIHKA3MFR7G3BFMJZBG7A7TWKHCGHUULWAAVXHAH2SV4EYNGMYV36MAGHWREH2RGYON3M
-#\\\|WLPFBLIIHERS7FGXM4NA6GWCIC3H7VEWMRY6GVWC3C7BA4RT2KI \ / AMOS7 \ YOURUM ::
-#\[7]GNJTJNJJM7T4TITTW57ABJPG2WCTALRGZ6VXMLHVPCJCURWWSCBA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,.,.,,,.,.,,..,...,,..,..,,...,..,,...,...,..,,...,.,.,..,,,..,
+#FCHSIVIBZI5CHRBHSA5UB43RYT2FGJSTEXKO3MGIKWHJSKOTKA5TOH54L254IB57XPXKPKLNPJHXG
+#\\\|4RYWDYWZVVQKIRJOFKVFYSWXPJRFTFQ6ZAL7ZCMGFQEKFBID7G6 \ / AMOS7 \ YOURUM ::
+#\[7]GTZZWPQHQYNGCVVOYGMEI3ZH5WY7X5RKVBG75JWVQMFMPDYLMMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

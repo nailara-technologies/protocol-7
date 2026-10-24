@@ -22,7 +22,7 @@ if ( $mode eq qw| false | ) {
         $task_id, $reason
     );
     <[protocol-7.route-send]>->(
-        {   'command'   => <[models.task.cmd]>->(qw| fail |),
+        {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
             'call_args' =>
                 { 'args' => "$task_id backend $target_cmd not available" }
         }
@@ -59,7 +59,7 @@ if ( $sent <= 0 ) {
         $task_id, $target_cmd, $job_id
     );
     <[protocol-7.route-send]>->(
-        {   'command'   => <[models.task.cmd]>->(qw| fail |),
+        {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
             'call_args' =>
                 { 'args' => "$task_id route to $target_cmd failed" }
         }
@@ -69,8 +69,8 @@ if ( $sent <= 0 ) {
     <[jobqueue.move_job]>->( $job_id, qw| error | );
 }
 
-#,,,.,,.,,,.,,.,.,,,.,...,,,.,..,,,,.,,.,,,.,,..,,...,...,.,.,...,.,,,,.,,,,,,
-#PS3IIHJQU6CVJEULFSKRNJPBMMANDA34B2HY22YLSOGGKTKAE6LAKMWBC5HJZFHHAKCOPTBPTL7U6
-#\\\|ZVODUNT52CDNLZDZHIOVWIQTA5RKHY56AL7QOPKPLPBRNK2K4CC \ / AMOS7 \ YOURUM ::
-#\[7]O74R7L5X4UXDXPLIFLMOHXYZC46FXDZA3V3FEZCNZV2MZQGVD2AY 7  DATA SIGNATURE ::
+#,,..,,..,...,,.,,,,.,..,,..,,,..,.,,,,.,,.,,,..,,...,...,,..,,,,,,,,,...,,,,,
+#HSERXLADJ76TDP6GOTFIOXN2VESJDATWWWOC34FSQAMMORWQZWDSTHB63VV7HHJHSPI4JO2A4CKN6
+#\\\|4IHUWFTA6I3B2JU2K2S7CTYRW2LUJ5VOK2ESU4L4KDFT3RH2NAZ \ / AMOS7 \ YOURUM ::
+#\[7]J5K63RNSSCTBBTCZERWBODISXZS7NFUHYQTD4H7VHQJRZKLYXIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

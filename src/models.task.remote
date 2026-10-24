@@ -1,18 +1,18 @@
 ## [:< ##
 
 # name  = models.task.remote
-# descr = TRUE when tasks come from a remote task zenka
-# note  = TRUE when tasks come from a task zenka other than the local one
-# notes = remote mode : peek before claim [ models.task.dispatch-id ], the
-#         notice stream + fallback poll [ models.task.startup ]
+# descr = TRUE when any listed task zenka is remote
+# note  = TRUE when the task zenka list holds more than the local 'task'
+# notes = with a single external name this behaves exactly as before.
+#         remote mode per source zenka : peek before claim
+#         [ models.task.dispatch-id ], a notice stream + fallback poll
+#         for every listed remote zenka [ models.task.startup ]
 
-my $task_zenka = <models.cfg.task_zenka> // qw| task |;
-$task_zenka =~ s{^\s+|\s+$}{}g;
+my @zenki = <[models.task.zenki]>;
+return ( grep { $ARG ne qw| task | } @zenki ) ? TRUE : FALSE;
 
-return ( length $task_zenka and $task_zenka ne qw| task | ) ? TRUE : FALSE;
-
-#,,..,...,.,.,..,,.,.,.,,,.,.,,..,...,,,,,,.,,..,,...,.,.,,,.,.,,,,.,,..,,..,,
-#MPXULP7NQYXQIVUXJJGBQ4X3IN57GRTPJ4YLNZXV7UDHYMWZGS7GDQBR6QD7AYN5LJTECLLZ3NTXA
-#\\\|XEKV6UP5UQCKKKREKNDAG63IVW3W4NNEZQ5I55OCA2XKMSQ5AHW \ / AMOS7 \ YOURUM ::
-#\[7]LJJHDJEZNA7QWQBDE7QZXBIDQBTSQAF4W7U74QT25FMVM45KZ6CI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,...,...,,,,,.,.,.,,,..,,,,.,.,.,...,...,...,.,,,,.,,,.,,..,,
+#5TNOOYYTNQXE6B3FVSJUGC7EUXEBEDFD7V7O2LCZDGPESAFA4EVAOEM4HQXOR3ACSPQQSVKRJXDVS
+#\\\|4XAQUND2WXA35YPIRDWMETWFAKJDTYT46IJ2FMYBB26AXHYGYGX \ / AMOS7 \ YOURUM ::
+#\[7]JTP7L7LLAGT6O75J3MJFSBAIYEE53FGXCO7L7F7ZPHAW5KA3M6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -34,6 +34,10 @@ if ( $EFFECTIVE_USER_ID == 0 ) {
 ## fallback if cfg/zenki/jobsite/zenka.v7 doesn't set it ##
 <jobsite.cfg.assessment_model> //= 'ZDMAPAY:AR3OCKQ';
 
+## assessment tasks in flight at once [ dispatch.next fills up to N, ##
+## default 1 = the old strictly serial chain ]                       ##
+<jobsite.cfg.assess_parallel> //= 1;
+
 ## cycle-level state
 <jobsite.cycle>         = 'idle';
 <jobsite.last_scan>     = 0;
@@ -296,8 +300,8 @@ my $fetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
 
 TRUE;
 
-#,,,,,,.,,,..,,,.,...,.,,,.,.,,,,,,,.,...,,,,,..,,...,...,...,..,,.,,,,.,,.,,,
-#NMSCFNDLTIQYVIKYQCTPHEJJESPKMJB6H2AGN64ZE6H54DUKHIYSKFSHDTHTXNG2KLAJXWJBBBGKI
-#\\\|PKMLGERB4XFBEZHHJESAT3CH4F4JV6BMTA2AZCMD6P47VXZBAV5 \ / AMOS7 \ YOURUM ::
-#\[7]6YUFKHNUBTQK2ZCS4BCCDAVHZNVABCBLD34GBP44SZ2YAY3NDKCY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,.,.,,,,,,,,..,,,.,.,.,.,.,..,,..,,...,...,.,.,...,.,.,.,,,.,,,
+#AXATRZCSEFETDJGBOOHDLVYH2YMQFCYITQDQPZCNOIW3EQPVQ6XSQPMZBNHGG5EXPJ5U6B675AN5G
+#\\\|ZHCLC55E72K6YUEPGQAQK3NF6DJUJOIHZEPX2RLBZ5BT6EXSHMZ \ / AMOS7 \ YOURUM ::
+#\[7]KAX2PRQKQN6ODKUHBRNNDRPKYCU7ZNZFVFAQ72HY76GVHX5EHGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

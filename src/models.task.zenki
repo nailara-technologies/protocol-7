@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = models.task.zenki
+# descr = task zenki list : parsed models.cfg.task_zenka
+# notes = <models.cfg.task_zenka> is a space separated LIST of task zenki
+#         [ 'task' = the local one ]. a single name works exactly as
+#         before. empty or unset falls back to 'task'. duplicates are
+#         dropped, order kept [ the first entry is the fallback route
+#         for commands that carry no task id ]
+
+my $raw = <models.cfg.task_zenka> // qw| task |;
+
+my %seen;
+my @zenki = grep { length and not $seen{$ARG}++ } split m|\s+|, $raw;
+
+@zenki = qw| task | if not scalar @zenki;
+
+return @zenki;
+
+#,,.,,...,.,.,,,.,.,,,...,,.,,,,,,...,,,,,.,,,.,.,...,...,.,.,.,,,.,,,,,,,.,.,
+#3U2MZBFLEAPSWQOIQW3KKGRCLWEURBEOEWA3U5P4D5R2QR5ADLYIZAO5SRJPRPKTC2FZYQN27ZOKC
+#\\\|36VUSPWDOZ4X5FPESYZO5QUJ5GBJ5UDJU5O4WXIRYN4TUYEVWEY \ / AMOS7 \ YOURUM ::
+#\[7]A5D5O4BGG7WI7OIYM5A2BXMSWXO7AKSB5RFIR44NJBFWJQFU6WDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

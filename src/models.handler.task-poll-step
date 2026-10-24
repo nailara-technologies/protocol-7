@@ -41,13 +41,13 @@ if ( $step eq 'claimed' ) {
     );
 
     <[protocol-7.route-send]>->(
-        {   'command'   => <[models.task.cmd]>->(qw| start |),
+        {   'command'   => <[models.task.cmd]>->( qw| start |, $task_id ),
             'call_args' => { 'args' => $task_id }
         }
     );
 
     <[protocol-7.route-send]>->(
-        {   'command'   => <[models.task.cmd]>->(qw| show |),
+        {   'command'   => <[models.task.cmd]>->( qw| show |, $task_id ),
             'call_args' => { 'args' => $task_id },
             'reply'     => {
                 'handler' => 'models.handler.task-poll-step',
@@ -72,7 +72,7 @@ if ( $step eq 'show' ) {
     if ( not length $reply_text ) {
         <[base.logs]>->( 0, ': empty task details for %s', $task_id );
         <[protocol-7.route-send]>->(
-            {   'command'   => <[models.task.cmd]>->(qw| fail |),
+            {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
                 'call_args' => { 'args' => "$task_id empty task details" }
             }
         );
@@ -90,7 +90,7 @@ if ( $step eq 'show' ) {
             $model, $task_id
         );
         <[protocol-7.route-send]>->(
-            {   'command'   => <[models.task.cmd]>->(qw| fail |),
+            {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
                 'call_args' =>
                     { 'args' => "$task_id no backend for model $model" }
             }
@@ -228,7 +228,7 @@ if ( $step eq 'peek-claimed' ) {
     }
 
     <[protocol-7.route-send]>->(
-        {   'command'   => <[models.task.cmd]>->(qw| start |),
+        {   'command'   => <[models.task.cmd]>->( qw| start |, $task_id ),
             'call_args' => { 'args' => $task_id }
         }
     );
@@ -273,7 +273,8 @@ if ( $step eq 'check-next' ) {
     <[base.logs]>->( 1, ': auto-dispatching next pending task %s', $next_id );
 
     ## claim via same async chain as task-notify [ remote : peek first ] ##
-    <[models.task.dispatch-id]>->($next_id);
+    ## [ the queue just read belongs to the reply's source zenka ]       ##
+    <[models.task.dispatch-id]>->( $next_id, $params->{'zenka'} // '' );
     return;
 }
 
@@ -284,7 +285,14 @@ if ( $step eq 'check-next' ) {
 
 if ( $step eq 'poll-next' ) {
 
-    <models.task.poll.sent_at> = undef;    ## poll answered ##
+    ## poll answered : free exactly this zenka's slot ##
+    my $poll_zenka = $params->{'zenka'} // '';
+    if ( length $poll_zenka ) {
+        my $state = <models.task.streams>->{$poll_zenka} //= {};
+        $state->{'poll_sent_at'} = undef;
+    } else {
+        <models.task.poll.sent_at> = undef;    ## legacy in-flight reply ##
+    }
 
     my ($next_id) = $reply_text =~ m|^([A-Z0-9]{7})\s|;
 
@@ -298,15 +306,15 @@ if ( $step eq 'poll-next' ) {
     }
 
     <[base.logs]>->( 2, ': task poll : peeking %s', $next_id );
-    <[models.task.dispatch-id]>->($next_id);
+    <[models.task.dispatch-id]>->( $next_id, $poll_zenka );
     return;
 }
 
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,.,,,,,,..,,,..,,.,,..,,.,.,.,,,..,,,,.,,,.,.,.,...,...,.,.,.,,,.,.,.,,,,,,,
-#7V7HZTMOSDP7E2VTN55XZCWICADIHRSBOID347AA57PPRDUU2JEYZ2F3R5MVFWMIFA77YVLXIVWQW
-#\\\|NNFG75RXEJDJTT5EVR7IO4FTHHDOMSXHVZI5S4ROMRWAH4TYR4I \ / AMOS7 \ YOURUM ::
-#\[7]G4W44WWCYRUA3MRFSZJE45HYY7ORHKRUUH7HLTSPZ44GHKRWGCDA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,..,,,,.,,.,,.,.,.,,,,,.,...,.,.,...,...,,..,,.,,.,.,,,.,..,,
+#J63ZQJA6HT2ZNWP6QRH7GWOUPPOHSL4GBSNMX5XZACZALF3VL57RKMALNFD3XZT7MHNJG3XLVMML6
+#\\\|KQWZFU2NBH5HJPX6QRPEENIL5JKFNKMDOXDQ2KGELGPOGF4FLF6 \ / AMOS7 \ YOURUM ::
+#\[7]M4JVSBPDHTBDI6SIYIR5NTTY67S3YCB5AGUCWCNJWNT6NFPPWKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

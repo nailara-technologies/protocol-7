@@ -8,7 +8,11 @@
 ## slot from when the batch was enqueued, so that slot must be released   ##
 ## here or pending_count never reaches 0 and the cycle sticks on          ##
 ## 'assessing' forever, same failure class as                             ##
-## jobsite.handler.task-created's decrement                               ##
+## jobsite.handler.task-created's decrement. with parallel dispatch more  ##
+## than one release can race the drain -- the guard keeps the cycle-end   ##
+## [ 'all assessments complete, cycle=idle' ] exactly once                ##
+
+return if ( <jobsite.pending_count> // 0 ) <= 0;    ## already drained ##
 
 <jobsite.pending_count>--;
 if ( <jobsite.pending_count> <= 0 ) {
@@ -29,8 +33,8 @@ if ( <jobsite.pending_count> <= 0 ) {
     }
 }
 
-#,,,.,,..,.,.,.,,,,.,,,,,,,,,,,,.,...,,.,,,,,,..,,...,...,,,.,..,,...,,,,,,,.,
-#BDPHP5MGX4YZBBP6OVUTGAIOSYXPNDRDYQER2VNWXYWBFX4SO4Z6AXNWXNOMGILKVEYGMBWRPLJ6M
-#\\\|BYGGMETGBM5KDF4DF4JSYDUGPXD2NPUCHEVPIAND5BIDUYU6BTM \ / AMOS7 \ YOURUM ::
-#\[7]RXBOJ7UNASTYRRNP6TS6HCTGHQLDZHMLGGDP5PRBZEQQGG3PHUCQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,.,.,,,.,.,,,,,.,.,.,..,,..,,..,,...,...,...,..,,,..,,.,,..,,
+#PKF4G4T2XFKEABTIGXA2XED62TSC7K5HPYYF4PYPAQNMQDBOI3MBOKGILKZJ45DMRJZDOJ6J5TXI6
+#\\\|RK3ERJCRRIM7754AOZPD466NIGU5L2MRFFWKM6PAWBKMQKM24MQ \ / AMOS7 \ YOURUM ::
+#\[7]EECNYC4VUIPMG3XMZB66R3FZTE2XLAWIV6W5OXVC2G2TRQKZICAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

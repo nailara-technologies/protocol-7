@@ -1,15 +1,21 @@
 ## [:< ##
 
 # name  = models.task.subscribe
-# descr = open the task notice stream when none is open
-# note  = open the '<task_zenka>.subscribe' notice stream when none is open
-# notes = idempotent. the reply handler models.handler.task-stream registers
-#         the STRM consumer ; a refusal, a closed stream or no answer within
-#         90 s retries with backoff [ models.task.subscribe-retry ]
+# descr = open a task zenka's notice stream when none is open
+# note  = open the '<zenka>.subscribe' notice stream of one listed task
+#         zenka when none is open for it
+# param = <zenka>
+# notes = idempotent, per listed zenka [ models.task.zenki ] -- one
+#         zenka down never blocks the others. the reply handler
+#         models.handler.task-stream registers the STRM consumer ; a
+#         refusal, a closed stream or no answer within 90 s retries
+#         with backoff [ models.task.subscribe-retry ]
 
-return FALSE if not <[models.task.remote]>;
+my $zenka = shift // '';
 
-my $state = <models.task.stream> //= {};
+return FALSE if not length $zenka or $zenka eq qw| task |;
+
+my $state = <models.task.streams>->{$zenka} //= {};
 
 return TRUE if $state->{'subscribed'};
 
@@ -17,10 +23,11 @@ if ( defined $state->{'since'} ) {
     return TRUE if time - $state->{'since'} < 90;
 
     <[base.logs]>->(
-        1, ': task notice stream : subscribe unanswered, retrying later'
+        1, ': task notice stream %s : subscribe unanswered, retrying later',
+        $zenka
     );
     $state->{'since'} = undef;
-    <[models.task.subscribe-retry]>;
+    <[models.task.subscribe-retry]>->($zenka);
 }
 
 return FALSE if time < ( $state->{'retry_at'} // 0 );
@@ -28,26 +35,28 @@ return FALSE if time < ( $state->{'retry_at'} // 0 );
 $state->{'since'} = time;
 
 my $sent = <[protocol-7.route-send]>->(
-    {   'command' => <[models.task.cmd]>->(qw| subscribe |),
-        'reply'   => { 'handler' => qw| models.handler.task-stream | },
+    {   'command' => sprintf( qw| %s.subscribe |, $zenka ),
+        'reply'   => {
+            'handler' => qw| models.handler.task-stream |,
+            'params'  => { 'zenka' => $zenka }
+        }
     }
 );
 
 if ( not $sent or $sent <= 0 ) {
     $state->{'since'} = undef;
-    <[models.task.subscribe-retry]>;
+    <[models.task.subscribe-retry]>->($zenka);
     <[base.logs]>->(
-        1,
-        ': task notice stream : %s not routed',
-        <[models.task.cmd]>->(qw| subscribe |)
+        1,      ': task notice stream %s : %s.subscribe not routed',
+        $zenka, $zenka
     );
     return FALSE;
 }
 
 return TRUE;
 
-#,,,,,.,,,,,,,,,,,..,,,.,,,..,,..,,..,,,.,,.,,..,,...,...,,,.,,,,,.,.,,..,,,.,
-#Q7XNS5FV53HUHA6MFEHG7U5VJQIKGCQYRQX543QVS2ZMPQSN4TQBC5VHJQBRQUVTGJF3MOI27VVJE
-#\\\|BLGTIH2GTUFLUNDSQSNJKCC655B3EJVFIGV6NA57BYITFYAL47C \ / AMOS7 \ YOURUM ::
-#\[7]OPW6OLEY3HB6C6LHHGFZGNLFW6J62L3EO7XOVX7GKHTYVTCN2YDI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,..,,,,,,.,,,,,,..,,,..,,..,.,,,.,.,...,...,...,.,,,.,.,,,.,,,,,
+#3XFBMHY2E5PS25MLJF6LF2VJQTCHPDBCKTWQWNF6FZ2YDXP5BXEKLOK35BKYJ2FYC5QZ4J5FR4IVO
+#\\\|NOYXVQ45HQEHZV3KZVNPKVOUGKFDABWJQAYYXLJXFASP65JKKOJ \ / AMOS7 \ YOURUM ::
+#\[7]C5FULYZPKPVKKMPPPCOBUULAJI4UCRZGLYIUWR7LLO5MY7JMNMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

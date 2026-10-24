@@ -1,13 +1,16 @@
 ## [:< ##
 
 # name  = models.task.startup
-# descr = arm the remote task notice stream + fallback poll timer
+# descr = arm the remote task notice streams + fallback poll timer
 # notes = called from cfg/zenki/models/zenka.v7 after the privilege drop
-#         and from models.init_code on a reload only [ $reinit ]. a
-#         local task zenka [ default 'task' ] arms nothing : it notifies
-#         models.task-notify itself. the timer's first tick subscribes,
-#         every tick polls '<task_zenka>.next' and retries a dropped or
-#         unanswered subscription [ models.task.subscribe ]
+#         and from models.init_code on a reload only [ $reinit ], also
+#         from models.cmd.set-zenki after a run time list change. the
+#         local task zenka 'task' arms nothing : it notifies
+#         models.task-notify itself. the timer's first tick subscribes
+#         every listed remote zenka, every tick polls '<zenka>.next'
+#         and retries a dropped or unanswered subscription
+#         [ models.task.subscribe ] -- each zenka independent, one down
+#         never blocks the others
 
 ## a reload re-arms : cancel the running timer, never two side by side ##
 my $old_timer = <models.task.poll.timer>;
@@ -15,6 +18,18 @@ $old_timer->cancel if defined $old_timer and $old_timer->is_active;
 <models.task.poll.timer> = undef;
 
 return FALSE if not <[models.task.remote]>;
+
+my @remote = grep { $ARG ne qw| task | } <[models.task.zenki]>;
+
+## a set-zenki shrink drops the streams of zenki no longer listed ##
+my %listed = map { $ARG => 1 } @remote;
+foreach my $zenka ( keys %{ <models.task.streams> // {} } ) {
+    next if $listed{$zenka};
+    my $state = <models.task.streams>->{$zenka} // {};
+    <[strm.local.cancel]>->( $state->{'cmd_id'} )
+        if $state->{'subscribed'} and defined $state->{'cmd_id'};
+    delete <models.task.streams>->{$zenka};
+}
 
 my $interval = <models.cfg.task_poll_interval> // 30;
 $interval = 30 if $interval !~ m|^\d+$| or $interval < 5;
@@ -28,14 +43,15 @@ $interval = 30 if $interval !~ m|^\d+$| or $interval < 5;
 );
 
 <[base.logs]>->(
-    1, ': remote task zenka %s : notice stream + %d s poll armed',
-    <models.cfg.task_zenka>, $interval
+    1,
+    ': remote task zenki [ %s ] : notice stream + %d s poll armed',
+    join( ' ', @remote ), $interval
 );
 
 return TRUE;
 
-#,,,,,,,.,,.,,.,.,.,.,...,,,.,,..,,..,,,,,,..,..,,...,..,,..,,,,,,..,,,,.,,..,
-#F6EZUMJYETDCTPJYNSADPWWT4HULJ6EGC62UGMKET4ADYNSOOUHPNA2JMMU53YVCSBXK4FRDUCPXU
-#\\\|N2DNYZW5UEY2GU4HPTC5NZDUF7KZ6MOTJSPODIK33HOFE4NV5HV \ / AMOS7 \ YOURUM ::
-#\[7]J52JUOOLISIKPG2WR2XYNYRHKNQKEOEIFUQH6XGG5DUCUZH3CWCA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,,,.,,.,,.,.,.,,,,,.,.,.,...,.,.,...,...,,..,,,.,.,.,.,,,,..,
+#MQTX2OAHMGCUK336VGUGRRVKKDVROOT5GROQQ62FHDYBOCLSYS5PPRCICBJSSV3KZTZZHFZXV4VBC
+#\\\|NUF3CIXRKORPOLUZGC3Y4GXYWX7HEDUBCAK2SYY6TVLZGVWIOKL \ / AMOS7 \ YOURUM ::
+#\[7]DY6O6J7HGOM5UPRL3XATUF2GQTHD4GGFXP5NOMFA7RKSSJBDR6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -34,7 +34,7 @@ access.cmd.usr.cube = heart verify-instance commands reload show-access \
                       local_server local_discover substitute_template \
                       buffer-erase \
                       get_inference_endpoint scan-path-add \
-                      scan-path-del task-notify \
+                      scan-path-del task-notify set-zenki \
                       delete-model trash-list trash-rescue trash-prune \
                       protect unprotect list-protected \
                       adapter-discover adapter-resolve adapter-repair \
@@ -47,12 +47,15 @@ access.cmd.usr.cube = heart verify-instance commands reload show-access \
 access.devcmd.usr.cube = devmod:* test_discover test_api_limit \
                           test_api_fallback test_end_to_end_local
 
-## task zenka the task dispatch claims from : 'task' = the local one   ##
-## [ default ]. an external route [ 'external.<link>.task' ] makes this ##
-## host take that host's tasks for the models it serves itself [ local, ##
-## llama, review ] : peek before claim, a notice stream and a poll      ##
-## [ models.task.startup ]. set per host in /etc/protocol-7/models/     ##
-## host.cfg -- the link and its grants come first                       ##
+## task zenki the task dispatch claims from : a space separated LIST  ##
+## [ 'task' = the local one, default ]. a single name works exactly   ##
+## as before. an external route [ 'external.<link>.task' ] makes this  ##
+## host take that host's tasks for the models it serves itself [ local,##
+## llama, review ] : peek before claim, a notice stream and a poll per ##
+## listed zenka [ models.task.startup ], each independent -- one down  ##
+## never blocks the others. set per host in /etc/protocol-7/models/    ##
+## host.cfg -- the link and its grants come first ; change the list at ##
+## run time with 'models.set-zenki <list>'                             ##
 models.cfg.task_zenka = task
 ## claimer name sent as task.claim's 2nd arg ##
 models.cfg.task_agent = models
@@ -97,8 +100,8 @@ models.task.default_model = local
 #
 [zenka.loop]
 
-#,,,,,...,,,.,,,.,,,,,,..,,,.,...,,,.,,.,,.,,,..,,...,...,...,,,.,.,,,.,,,...,
-#HZZL7S3NQHKFCEAPQILM6MGWFVM5DY72SHO56Y6DGP7FRTWEQSNGMCESBHCUHHN6UAQ6VRO3VMXVY
-#\\\|FUZL6FTUQGLPU7AVRBB4GPJGAZIYLBQDFAEIBRSHIK3FVL7TDOO \ / AMOS7 \ YOURUM ::
-#\[7]XP2NKMUCSA3EC5KK5HSWXZRQNQBCCBKSZ7F664KLDFZLLT3IZAAY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,,,,..,,,,,..,,.,.,...,,,.,..,,..,,...,...,.,.,...,.,,,,,.,,..,
+#IYUURIXAQ56PVNUHCSXLQ54LU4V7G6YOW2NZQYZNFUCBUUKG675T6TBYXBMHOVB5ZIKM6O5FSIDFU
+#\\\|VKPZRSNT2X3OFYQL5TVDJKWHJ6DF7LKPYUKZMLATEL4EFIPGRCN \ / AMOS7 \ YOURUM ::
+#\[7]A4CHUT36Z4EKDO7JIPK2IM4MHNWDAUS3SCFY6ADXX5HAMFVBG2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

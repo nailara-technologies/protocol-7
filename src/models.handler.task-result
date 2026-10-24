@@ -36,7 +36,7 @@ if ( $cmd eq 'TRUE' ) {
     ## fail the task
     if ( length $task_id ) {
         <[protocol-7.route-send]>->(
-            {   'command'   => <[models.task.cmd]>->(qw| fail |),
+            {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
                 'call_args' => { 'args' => "$task_id $safe_error" }
             }
         );
@@ -89,7 +89,8 @@ if ( $job_outcome ne qw| error | ) {
             } elsif ( $mode eq qw| escalate | ) {
                 my $reason = $iter_result->{'data'} // 'escalation';
                 <[protocol-7.route-send]>->(
-                    {   'command'   => <[models.task.cmd]>->(qw| fail |),
+                    {   'command' =>
+                            <[models.task.cmd]>->( qw| fail |, $task_id ),
                         'call_args' => {
                             'args' => "$task_id iteration escalated: $reason"
                         }
@@ -123,14 +124,15 @@ if ( $job_outcome ne qw| error | ) {
             : $response;
         my $encoded_response = ':B32:' . <[base32.encode]>->( \$utf8_bytes );
         <[protocol-7.route-send]>->(
-            {   'command'   => <[models.task.cmd]>->(qw| complete |),
+            {   'command' =>
+                    <[models.task.cmd]>->( qw| complete |, $task_id ),
                 'call_args' => { 'args' => "$task_id $encoded_response" }
             }
         );
         <[base.logs]>->( 1, ': task %s completed via %s', $task_id, $model );
     } elsif ( length $task_id ) {
         <[protocol-7.route-send]>->(
-            {   'command'   => <[models.task.cmd]>->(qw| fail |),
+            {   'command'   => <[models.task.cmd]>->( qw| fail |, $task_id ),
                 'call_args' => { 'args' => "$task_id empty response" }
             }
         );
@@ -153,19 +155,22 @@ if ( defined $job_id ) {
 
 ## check for next pending task in queue ##
 <[protocol-7.route-send]>->(
-    {   'command'   => <[models.task.cmd]>->(qw| queue |),
+    {   'command'   => <[models.task.cmd]>->( qw| queue |, $task_id ),
         'call_args' => { 'args' => 'status=pending' },
         'reply'     => {
             'handler' => 'models.handler.task-poll-step',
-            'params'  => { 'step' => 'check-next' }
+            'params'  => {
+                'step'  => 'check-next',
+                'zenka' => <[models.task.zenka-of]>->($task_id)
+            }
         }
     }
 );
 
 return;
 
-#,,..,,.,,.,.,..,,...,.,,,,,.,.,.,..,,,.,,..,,.,.,...,...,.,,,...,,.,,,..,,..,
-#FRWTYWMZNYAEI7AGSNQ35DR7HIMNHEIPMXNH4PQQP4ABI5PNHPRV4IHHN5KJUG25IJWQXK4GEG5O4
-#\\\|Q5WXO2DJEKTUTWUWYAQNQ7KM4H3JGNSQ7RABVDSV4HZXNWQHR4O \ / AMOS7 \ YOURUM ::
-#\[7]EPI5LDUWHPTNFE73SKAN6ANS7TNFLSMBOJ6X7QJZKYTMGKMNBIDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,...,,,,,,..,,..,...,,,,,.,.,.,,,.,.,...,...,,,.,.,,,.,.,,.,,,,,,
+#SAU7NZ4LNVWSCTPPXB5IUKQ4C3LPU37ISQNCUZG6UBDVAVXJTDYSVY5HMJK3COV4GQLDPFJCKGEBI
+#\\\|67VSH2AYR43RK526MAQQYWZ65CBWZ4MMFFJA5V3QAJU5LFFMYX5 \ / AMOS7 \ YOURUM ::
+#\[7]TRHH3K647RUS7BGKG5ZJW3OTMBN7J6ORNKCB75S6IKB4MFFMPIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
