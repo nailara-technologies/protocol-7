@@ -132,10 +132,10 @@ p7c coding.call-tool <tool_name> [json_args]
 
 # Submit a task
 p7c coding.submit "prompt text"
-echo "prompt" | p7c coding.submit
+echo "prompt" | p7c coding.submit+          # stdin : the trailing + reads the body
 
 # Check task status/result
-p7c coding.get-result <task_id>
+p7c coding.get-result task-<id>       # the full id, with its task- prefix
 ```
 
 **Common Tools:**

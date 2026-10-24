@@ -17,7 +17,7 @@ if ( $cmd eq 'list' ) {
         return;
     }
 
-    open my $fh, '<', $todo_file or do {
+    open my $fh, '<:encoding(UTF-8)', $todo_file or do {
         <[base.logs]>->( 0, 'cannot read TODO.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -30,7 +30,7 @@ if ( $cmd eq 'list' ) {
     my $desc      = join( ' ', @args );
     my $timestamp = scalar( localtime() );
 
-    open my $fh, '>>', $todo_file or do {
+    open my $fh, '>>:encoding(UTF-8)', $todo_file or do {
         <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -49,7 +49,7 @@ if ( $cmd eq 'list' ) {
         return;
     }
 
-    open my $fh, '<', $todo_file or do {
+    open my $fh, '<:encoding(UTF-8)', $todo_file or do {
         <[base.logs]>->( 0, 'cannot read TODO.md: %s', $! );
         <[base.exit]>->(qw| 0110 |);
     };
@@ -65,7 +65,7 @@ if ( $cmd eq 'list' ) {
                 $lines[$i] =~ s|\n$||;
                 $lines[$i] .= " (completed: " . scalar( localtime() ) . ")\n";
 
-                open my $out, '>', $todo_file or do {
+                open my $out, '>:encoding(UTF-8)', $todo_file or do {
                     <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
                     <[base.exit]>->(qw| 0110 |);
                 };
@@ -94,8 +94,8 @@ if ( $cmd eq 'list' ) {
     say "Run 'todo help' for usage";
 }
 
-#,,,,,.,.,,..,..,,,..,,,.,.,.,.,,,,..,...,,,,,..,,...,...,..,,.,,,,,.,,..,.,.,
-#OEWP6IMSYBYVQPYQPBB7VER7AV3IMEKSDMESSTMZH3FD327XYYRKVAIGJFGKS2B466OJV6KY33PSY
-#\\\|E2DZOFZZBJBJNWZP3R5IWPZFB4UGJM3S4ZLAHH7GKJ5TZ7GQFWU \ / AMOS7 \ YOURUM ::
-#\[7]7IMFNGW56JBTZYYSOUYV7IAD22ZOJDTK3FLN33MEHSO4CLIHLWAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,,.,,,,.,..,,,.,,,,,,,..,,,.,..,,...,...,,,,,..,,.,,,...,,.,,
+#HYMN5JZQG5AL2TPQWUHFIPZWBADMCSPKG3HJ2EKESHXCC3KGMPKBCZ767SIAPNUCE5ZGMPGYHH6HU
+#\\\|TUXLIQJTISCT22VODO5CMPG2FLBLNU6VISIA3JRPCA3K3MQXOD7 \ / AMOS7 \ YOURUM ::
+#\[7]7EWWYBRCHOUS3ANXGGQJXD5OIBESF2CHFKGPISKJPXHBFC5LQEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

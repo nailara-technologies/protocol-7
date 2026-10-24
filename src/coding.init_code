@@ -161,6 +161,21 @@ if ( length $catalog_corpus_dir and $EFFECTIVE_USER_ID == 0 ) {
         ## repo dir owned by the login user -- the corpus dir alone needs  ##
         ## zenka ownership                                                 ##
         chown $uid, $gid, $catalog_corpus_dir if defined $uid;
+
+        ## the month files too : one written before the zenka ran as its    ##
+        ## own user [ 0640, login user ] refused every append after         ##
+        ## [ 'cannot append', 2026-10-24 ] -- regular files only, a link is ##
+        ## never followed                                                   ##
+        if ( defined $uid and opendir( my $corpus_dh, $catalog_corpus_dir ) )
+        {
+            foreach my $file ( readdir $corpus_dh ) {
+                next if $file !~ m|\A\d{4}-\d{2}\.jsonl\z|;
+                my $file_path = "$catalog_corpus_dir/$file";
+                next if -l $file_path or not -f _;
+                chown $uid, $gid, $file_path;
+            }
+            closedir $corpus_dh;
+        }
     }
 }
 
@@ -731,8 +746,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,.,,..,.,.,.,,,,.,,.,,,...,.,.,...,...,,..,.,.,...,...,.,.,...,...,.,.,...,
-#6ZIXS3XC7IKOASNQMFWF5RR7JK3WJO6NPT3ABEQCIU2OUWOJIZLEDKVOCWS473D2TMRD3MUU4FCI6
-#\\\|Q5XPKNVAOHMMBGAFNKBQ3H42RYL4TR2A4YPV5ZRBWAEXKUJSOZV \ / AMOS7 \ YOURUM ::
-#\[7]YYY4GARCYX5MRMPRACI5JQ7EIDKTGPNJ4URPOJ5FKWB23PF37MCY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,..,,,.,,,,,,,,.,,,.,...,.,.,.,.,...,...,...,.,.,,..,,,.,,.,,
+#GDQAG2U3ZE6ECM6OHPKKPR7T2VPJJYBOG7HMFTKP7ERQFJXIKJCITRKEO5QML3L4EIX2Z4WXCCN76
+#\\\|FYMYGQ5UUCAJ5TSLMPJMSXSC45HKYSOVEP3SFX67NSRUQBTW56F \ / AMOS7 \ YOURUM ::
+#\[7]P6T4GB5IGLIDFB6VYEG4TCX64B3NYV6A7TXYOK2XRGP74PRHWMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
