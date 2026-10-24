@@ -51,6 +51,62 @@ my $reinit = shift // TRUE;   ### provided by 'base.init_modules' [TRUE|FALSE]
 ## active orbital connections registry ##
 <external.connections> //= {};
 
+## named links [ supervised host records + by-hand external.connect ] ##
+<external.links> //= {};
+
+## 'external.list links' : every named link, its state and last error ##
+## [ by-hand links carry no state : shown as 'by-hand' ]              ##
+<list.links> = {
+    'var'      => qw| data |,
+    'key'      => qw| external.links |,
+    'sort_key' => 'alpha:key',
+    'descr'    => 'named links to other hosts [ supervised + by hand ]',
+    'mask'     => '<key>:link state:state transport:via sid:session '
+        . 'since:up_for attempts:retries last_rtt:rtt '
+        . 'fail_why:last_error',
+    'defaults' => { 'state' => qw| by-hand | },
+    'align'    => {
+        'link'      => qw| center |,
+        'state'     => qw| center |,
+        'transport' => qw| center |,
+        'sid'       => qw| center |,
+        'since'     => qw| right  |,
+        'attempts'  => qw| center |,
+        'last_rtt'  => qw| center |,
+        'fail_why'  => qw| left   |,
+    },
+    'filters' => { 'since' => qw| base.parser.duration | }
+};
+
+<[base.list.init]>->(
+    {   'name'         => qw| links |,
+        'key_ref'      => \<external.links>,
+        'max_elements' => 247
+    }
+);
+
+## 'external.list orbital' : the orbital connections, as list-connections ##
+<list.orbital> = {
+    'var'      => qw| data |,
+    'key'      => qw| external.connections |,
+    'sort_key' => 'alpha:key',
+    'descr'    => 'orbital connections',
+    'mask'     => '<key>:name p7ref:p7ref ip:ip status:status',
+    'align'    => {
+        'name'   => qw| center |,
+        'p7ref'  => qw| center |,
+        'ip'     => qw| center |,
+        'status' => qw| center |,
+    },
+};
+
+<[base.list.init]>->(
+    {   'name'         => qw| orbital |,
+        'key_ref'      => \<external.connections>,
+        'max_elements' => 247
+    }
+);
+
 ## auto-connect configuration ##
 <external.cfg.auto_connect> //= 0;
 
@@ -97,8 +153,8 @@ return TRUE if not $reinit;
 
 return TRUE;
 
-#,,,.,...,,..,.,,,,,.,.,.,,.,,..,,...,..,,.,.,.,.,...,...,,.,,...,.,,,...,,.,,
-#7AH4DR4ASQXVYMDFU6XBXQXWGGBMOMELDYRHH2HJXYW2OPQAAXQXSMNCORJO3RPTLWZSJ527FUHB2
-#\\\|AIFSAJ5X5TBI6X63IWS5RZICURYPTLHEGS66N3GLOV4EURCLPAM \ / AMOS7 \ YOURUM ::
-#\[7]KO5ST4EC3WKJZIE2CRFHJIPAWJ7X6OKDETYRQ3EHTUSKHM5RYUDY 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,,,.,,,.,,.,,..,,,,.,,,.,...,.,.,...,..,,...,...,,..,..,,,..,
+#NUVJSJRY7ATQHB24QXBXAZPBPRSBC5DS73MJHXQLF225J2YUO5QRKC2OGQPDYQEF66746LURYAV72
+#\\\|HYKET3RHRD7EKDIOE56IBULHQISQTJCUL4APMP2WNPBVXGIFAAJ \ / AMOS7 \ YOURUM ::
+#\[7]IQQ4HIU43USUY6QLELBCNTC5YO64AFZXIV37OIYZTNVLI5ZTJ2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
