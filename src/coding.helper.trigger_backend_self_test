@@ -94,6 +94,19 @@ my $run_started = <[coding.self_test.run]>->(
             ## in numeric gt (>)" ]. use a separate, non-colliding         ##
             ## top-level key instead                                       ##
             <coding.self_test_seed_retry_count> //= {};
+
+            ## the count covers ONE start episode                       ##
+            ## [ first spawn + its seed restarts ] : a self-test not    ##
+            ## following a seed restart of the same model               ##
+            ## [ model switch, zenka start, crash restart ] is a new    ##
+            ## episode and starts from zero -- the stale count of an    ##
+            ## earlier episode gave up at once, no retry [ 2026-10-24 ] ##
+            <coding.self_test_seed_retry_pending> //= {};
+            my $continues_episode
+                = delete <coding.self_test_seed_retry_pending>->{$backend}
+                // '';
+            delete <coding.self_test_seed_retry_count>->{$test_model_id}
+                if $continues_episode ne $test_model_id;
             ## batch-awareness : while a model batch owns the backend for  ##
             ## its candidate cycles, a seed-retry respawn kills the server ##
             ## under the batch's RUNNING task [ found live 2026-09-21 :    ##
@@ -367,8 +380,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,,.,.,,,,..,.,,,...,.,,,,..,..,,..,,,,,,.,,,..,,...,...,,,.,,,.,,,.,.,,,.,.,
-#7HBQ76H2SW5WN4WEE6TXZOAPPIDB6ZYI3HIQY6M2324RGPP7FXO26GWPP3LW5BXW5UTQMAHZXIHYI
-#\\\|KLFVFAKD6H6HCNQY5B64P64SPBU3UEHMPO4P64DKDLLQETG2FWY \ / AMOS7 \ YOURUM ::
-#\[7]XBTL34WACPUGCF5IGH2ZCIVAA42LKYE23QIWHDX6DFZQ5AI7Z4CI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,,,.,.,,..,...,,.,,,..,,..,.,.,..,,...,...,...,,..,,.,,.,.,.,,,
+#GOISM6TLMTGRARZGLQXFP7EJQCUDQKNY55LMAEUNOOJQHWMXGSF4M4SEDAWCXJDS2MCK5JYZ3J5QU
+#\\\|7CWD7GKRMGXEMAZW4TCZ5IPQ2M2TZ24RXCP42IWJNJHU3ZJ5OFJ \ / AMOS7 \ YOURUM ::
+#\[7]SQJGOGZTN2CZE2AO32C3OIW4Z2UWHK3IAHWEUOXEZKYPZODATUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
