@@ -33,6 +33,7 @@ if ( $step eq 'claimed' ) {
 
     if ( $cmd ne 'TRUE' ) {
         <[base.logs]>->( 2, ': task claim failed for %s', $task_id );
+        delete <models.task.claimed>->{$task_id};    ## reserved slot ##
         return;
     }
 
@@ -220,6 +221,7 @@ if ( $step eq 'peek-claimed' ) {
             1, ': claim %s refused [ %s ] : taken elsewhere, left alone',
             $task_id, $args->{'args'} // $cmd
         );
+        delete <models.task.claimed>->{$task_id};    ## reserved slot ##
         return;
     }
 
@@ -311,8 +313,8 @@ if ( $step eq 'poll-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,,.,,,,,,.,,..,,,..,,,,,,..,,.,,.,,,,,.,.,.,.,.,...,...,.,,,,,.,,..,,,,,,,,,
-#J62F4VIEWT37IMBLPQSKC4ATDTODA5X55BDGQSTDA6HU5NSGDXQ5GH6DGHWUN7C2H66JBXPIMMBRA
-#\\\|J3KIUYWYZXRPSNX3FNTLTJPCJMDUL2KDOWKLWG3QJJW3MTSWM6S \ / AMOS7 \ YOURUM ::
-#\[7]5N6GID5CGBAK5D6QOQSTHZ7JMZAXD3DMO7OHT6BEHDHUUWWWSGCI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,...,...,,.,,..,,...,,,.,,,.,...,.,.,...,...,..,,.,.,,,.,,..,..,,
+#CZ4V7WZV36E3ESCP5FDJ575VIKTKR6TVF7WT2W3WUNKYBCX3PWX53CZ443TKPFFPFWSRW2HJWISO2
+#\\\|ZRVVYREQ6QAT4JZJDM6BN2754VS2WAEICJZBRXRVRHRYTGAJBVN \ / AMOS7 \ YOURUM ::
+#\[7]C3XMYF5OIHUNCWQGCCAJ52XYFWIJY5U6XI2Q2B2RS5DIYKYCJUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

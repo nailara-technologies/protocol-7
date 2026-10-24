@@ -70,7 +70,13 @@ if ( $zenka eq qw| task | ) {
         return FALSE;
     }
 
-    return <[protocol-7.route-send]>->(
+    ## reserve the slot NOW, not on the claim reply : two announcements in ##
+    ## the same millisecond both passed the gate before either reply came  ##
+    ## [ pri claimed both, the gpu stayed idle ] -- a refused claim frees  ##
+    ## it                                                                  ##
+    <models.task.claimed>->{$task_id} = time;
+
+    my $sent = <[protocol-7.route-send]>->(
         {   'command'   => <[models.task.cmd]>->(qw| claim |),
             'call_args' => {
                 'args' => sprintf '%s %s',
@@ -82,6 +88,8 @@ if ( $zenka eq qw| task | ) {
             }
         }
     );
+    delete <models.task.claimed>->{$task_id} if not $sent;
+    return $sent;
 }
 
 return <[protocol-7.route-send]>->(
@@ -98,8 +106,8 @@ return <[protocol-7.route-send]>->(
     }
 );
 
-#,,,,,,,,,,.,,.,,,.,,,.,.,.,,,,.,,,..,..,,..,,.,.,...,...,,.,,...,,,,,...,,,.,
-#BQFTBP4UNATM26T5YJXJLS7TZD2NQ3BDFHYYVOCI5IGGYORQQOYRKRPEKUQFCVEFU42RTQJM5WTZ4
-#\\\|L663GLFLVJVFTPHD4WIWHP5SGLUWN7GPIHFWDNS2I7OIG4HC34X \ / AMOS7 \ YOURUM ::
-#\[7]E5HSU6N42ACKHQRBOP5BIIHRPHBFEEMMVQZSKVTPQU6JWHIVNUAQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,...,,..,...,,.,,...,...,.,.,.,.,...,...,..,,,..,,,.,,.,,,..,
+#HRRLTLJ74IGY5O6U2YRU6PR5YEJCU2NVHNQ32YBLTZQR5SSLCBNRASCXXGEYXGXL2VEXSWBNGVQ3M
+#\\\|65SR7LMGGUQ4YOFMRICD6RKN7HDAC3ZZ435OV36QNO7ZCGTFTXV \ / AMOS7 \ YOURUM ::
+#\[7]RPIPWPZAM7SUSL4ATKKNKLUSKBFAX6XZROTBQX3A33ZG56IJ6SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
