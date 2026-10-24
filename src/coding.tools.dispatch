@@ -568,8 +568,24 @@ my %dispatch = (
                 next;
             }
 
-            push @preview, sprintf "line %d: %s\n     --> %s", $ln, $actual,
-                $new;
+            ## old matched only TRIMMED and new brings no indentation of    ##
+            ## its own : keep the line's indentation -- a model copying a   ##
+            ## line without its leading whitespace de-indented it silently  ##
+            ## [ 2026-10-24, 4 of 4 lines of a correct edit ].  single-line ##
+            ## new only : a multi-line new sets its own                     ##
+            my $kept_indent = '';
+            if ( length $old_trim and $new !~ m|\n| and $new =~ m|^\S| ) {
+                my ($actual_indent) = $actual =~ m|^(\s*)|;
+                my ($old_indent)    = $old    =~ m|^(\s*)|;
+                if ( length $actual_indent and $old_indent ne $actual_indent )
+                {
+                    $new         = $actual_indent . $new;
+                    $kept_indent = ' [ indentation kept ]';
+                }
+            }
+
+            push @preview, sprintf "line %d: %s\n     --> %s%s", $ln, $actual,
+                $new, $kept_indent;
             $lines[ $ln - 1 ] = $new if $apply;
         }
         ## deleted lines are dropped after all edits : line numbers in one ##
@@ -756,8 +772,8 @@ return {
     'content' => $content,
 };
 
-#,,..,,..,,,.,.,.,,,,,.,.,,,.,..,,.,.,.,.,,..,..,,...,...,.,,,.,,,...,,..,...,
-#X6MBU2AW534OOQI26I4MCVRRJAMVG5QYW2SUPPLHKASCBE3BOQSZIJKRCVUC7EG7DZHMOH3COAAUC
-#\\\|OQBSSDIFUMNITLNMX732NLZLGDVXULSI4EIM3QJUWGB6DY25HT4 \ / AMOS7 \ YOURUM ::
-#\[7]ADAQV2UJT3G52PEFQNE2BD6QCOCGU3SLDRHM6WTXOJJE3NAXPOAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,..,,,.,,..,..,,...,,..,,,.,,.,,..,,...,...,.,,,,,,,.,.,..,,,,.,
+#QJRAHJQ6MM3YZGKGD2RY3PHI4HPJZSNKURPVACHG5VH7ZDQFMM6FQLWA2FABVEXUTXG24BEMSC4BQ
+#\\\|6QGHX6DATFCN7WTBXZ7ZVZLAOAGNH6G2ZRX3GGUE5K4TO52SL32 \ / AMOS7 \ YOURUM ::
+#\[7]DAJIBNRNRBLPQVLMQSAKD7K7V5VVJ5DZZQAQVI5WS3WWMLKZ7IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
