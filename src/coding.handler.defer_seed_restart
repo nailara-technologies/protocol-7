@@ -127,6 +127,11 @@ if ( defined $bs->{'lock'} or scalar @{ $bs->{'queue'} // [] } ) {
 );
 $srv->{'status'} = qw| restart_needed |;
 <inference.gpu_pid> = 0 if $backend eq qw| gpu |;
+
+## the next self-test on this backend continues THIS episode : its retry ##
+## count stands [ coding.helper.trigger_backend_self_test consumes it ]  ##
+<coding.self_test_seed_retry_pending> //= {};
+<coding.self_test_seed_retry_pending>->{$backend} = $model_id;
 delete <coding.awaiting_resources>
     if <coding.awaiting_resources>;
 
@@ -139,8 +144,8 @@ delete <coding.awaiting_resources>
 
 return $finish->();
 
-#,,,.,,,,,..,,..,,,,.,,,.,,,.,.,,,,.,,..,,,.,,..,,...,...,.,.,.,,,..,,,,.,,,,,
-#HEYPKNTDM4SKFXFGNJG7YMH3HSCFJYTEDDSUT5OAXZHECSFG3DN5ERYREYHML6UQGJ35GZUVTXWIQ
-#\\\|BEWPBQJTSRFLTHF4JE36XJ4AUNUULBYC7RHGUWOHJCDOVLFOHLG \ / AMOS7 \ YOURUM ::
-#\[7]QDIQJIAVLZXDXRVGNFN5DGLJLCZRQIEERMCJR3LMW3PSLSPLUYDA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,..,,.,,,,.,,.,,,.,,,...,..,,..,,...,..,,.,,,,,,,,,.,..,,.,.,
+#UWOGJFFEYTFBHA3UHERTITQI7AKWA4AGSQEL74VWJ47NTJZ7AXPUSNPXXPCKL6C4I2UDW536BJ2QQ
+#\\\|MOSAKCEF6YXLJNFLO2YAHXG7LYSHCWVW6K35MYR3J43PNWL7MK4 \ / AMOS7 \ YOURUM ::
+#\[7]J5PGB4GBBARD6CGHE2XPYRBT4LV2TPJ2KCB3HXI5KHTBWMTKFWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -168,17 +168,17 @@ inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes
 inference.backend.gpu.gpu_layers = 999  ## all layers : clamped to the model's real count at spawn [ was 33 : every model with more layers ran partly on the cpu ] ##
 
 ## kv cache type for -ctk / -ctv : auto = f16, q8_0 only when f16 cannot ##
-## reach the context floor [ q8_0 halves the memory per token but cuts    ##
+## reach the context floor [ q8_0 halves the memory per token but cuts   ##
 ## prompt processing ~10x on this build ]. f16 / q8_0 force a type ; f16 ##
 ## is used anyway while a lora adapter is set                            ##
 coding.cfg.kv_cache_type = auto
 
 ## sliding window layers at window size [ --swa-compress, ik_llama ] : ##
-## gemma4 = 40 of 48 layers in a 1024 window, ~16 KB per token f16    ##
+## gemma4 = 40 of 48 layers in a 1024 window, ~16 KB per token f16     ##
 ## instead of ~336 KB. archs without swa ignore it                     ##
 coding.cfg.swa_compress = yes
 
-## moe models : keep the expert weights of as many layers in ram as the    ##
+## moe models : keep the expert weights of as many layers in ram as the   ##
 ## context floor [ inference.model.context_length ] needs [ --n-cpu-moe ] ##
 coding.cfg.moe_expert_offload = yes
 
@@ -297,9 +297,9 @@ coding.cfg.catalog_harvest = yes
 coding.cfg.catalog_corpus_dir = /data/projects/protocol-7/data/catalog-corpus
 
 ## extra llama.cpp builds : a gpu model whose file name matches 'match'   ##
-## [ regex, case-insensitive ] spawns with that build's binary and lib     ##
-## path instead of inference.backend.gpu.binary -- prismml fork : ternary  ##
-## bonsai pq2_0 \ ptq1_0 [ stock \ ik builds reject or garble them ]       ##
+## [ regex, case-insensitive ] spawns with that build's binary and lib    ##
+## path instead of inference.backend.gpu.binary -- prismml fork : ternary ##
+## bonsai pq2_0 \ ptq1_0 [ stock \ ik builds reject or garble them ]      ##
 inference.runtime.prismml.binary = /data/source/prismml-llama.cpp/llama-server-cuda
 inference.runtime.prismml.lib_path = /data/source/prismml-llama.cpp
 inference.runtime.prismml.match = ternary-bonsai|PQ2_0|PTQ1_0
@@ -477,28 +477,34 @@ inference.model.context_length = 42500
 inference.model.temperature = 0.7
 inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 
-## anti-repetition sampling : NONE of this was previously sent anywhere --    ##
-## neither the per-request json body [ coding.async.send_request,             ##
-## coding.self_test.async_probe, coding.tools.http_inference_client ] nor     ##
-## the server spawn command line [ coding.spawn_inference_server ] ever set   ##
-## repeat_penalty/repeat_last_n/dry_* at all, so whatever anti-repetition     ##
-## behavior existed was purely whatever this ik_llama.cpp fork's own build-   ##
-## in default happens to be -- confirmed live 2026-09-18 : a degenerate       ##
-## paragraph-level repetition loop [ 677NSHI:3YLW3KI, self-test prompt 2 ]    ##
-## repeated the same several sentences verbatim, over and over, never         ##
-## terminating naturally. flat repeat_penalty mostly discourages immediate    ##
-## token-level repeats and needs a large repeat_last_n window to catch a      ##
-## whole-paragraph repeat ; DRY sampling [ merged into llama.cpp 2024 ] is    ##
-## specifically designed for exactly this shape [ detects a repeated multi-   ##
-## token sequence and penalizes continuing it ] -- both enabled together,     ##
-## conservative values chosen to avoid degrading normal generation quality    ##
-inference.model.repeat_penalty = 1.1
+## anti-repetition sampling : NONE of this was previously sent anywhere --   ##
+## neither the per-request json body [ coding.async.send_request,            ##
+## coding.self_test.async_probe, coding.tools.http_inference_client ] nor    ##
+## the server spawn command line [ coding.spawn_inference_server ] ever set  ##
+## repeat_penalty/repeat_last_n/dry_* at all, so whatever anti-repetition    ##
+## behavior existed was purely whatever this ik_llama.cpp fork's own build-  ##
+## in default happens to be -- confirmed live 2026-09-18 : a degenerate      ##
+## paragraph-level repetition loop [ 677NSHI:3YLW3KI, self-test prompt 2 ]   ##
+## repeated the same several sentences verbatim, over and over, never        ##
+## terminating naturally. flat repeat_penalty mostly discourages immediate   ##
+## token-level repeats and needs a large repeat_last_n window to catch a     ##
+## whole-paragraph repeat ; DRY sampling [ merged into llama.cpp 2024 ] is   ##
+## specifically designed for exactly this shape [ detects a repeated multi-  ##
+## token sequence and penalizes continuing it ] -- both enabled together,    ##
+## conservative values chosen to avoid degrading normal generation quality   ##
+## 2026-10-24 : repeat_penalty 1.1 -> 1.0 [ off ] and dry_allowed_length     ##
+## 2 -> 64 -- an agent must COPY text exactly [ paths, old_string, code      ##
+## lines ] ; any sequence > 2 tokens seen earlier was penalized, so 9b,      ##
+## 14b and 35b all wrote mangled copies [ 'protocol -7', 'workspace-tr an    ##
+## sfer', old_string never matching ]. paragraph loops are far longer        ##
+## than 64 tokens : DRY still catches them                                   ##
+inference.model.repeat_penalty = 1.0
 inference.model.repeat_last_n  = 256
 ## dry_multiplier = 0 disables DRY entirely ; 0.8 is llama.cpp's own commonly ##
 ## recommended starting point, not an aggressive value                        ##
 inference.model.dry_multiplier      = 0.8
 inference.model.dry_base            = 1.75
-inference.model.dry_allowed_length  = 2
+inference.model.dry_allowed_length  = 64
 inference.model.dry_penalty_last_n  = -1  ## -1 = full context window ##
 
 ## VRAM safety margin for context auto-calculation [calculate_safe_context]    ##
@@ -585,8 +591,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,.,,.,,,,.,,..,,,..,,,,,,,,,,,,,.,,,...,.,.,...,..,,...,..,,,,,,..,,,.,,
-#W6JQ27SNHVZAIORLNK4B54355X2F3HPTNXIXT6AKJJPJNZ5YCZXVWY4OHOFHYZNVSJ5UDUQ6M74LI
-#\\\|2UXQDU5YV4XXRJXXLK764ETUTYJEJAS4LA43SYXG7B5BOTJCVC2 \ / AMOS7 \ YOURUM ::
-#\[7]PRRAOZBB44B65CD3XWJ43AVCQRZ25BZ3P22JIPWCJKVTJPIMREAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,...,,,,,,,,,,,,,..,,,..,.,,,,.,,.,.,...,..,,.,,,,..,,.,,.,.,..,,
+#UTQEOXU5HZAELJCWZM52F46LKC6TUKF3XJV27NV5JOEBKJLR76EBPNNENVXIHYJBXY757MGA7CL7E
+#\\\|P4N4LFH7ONCXCAOTHTEERPNMR27JDBTQ35VX6GOOVJNAXMSAD6X \ / AMOS7 \ YOURUM ::
+#\[7]SRIEGRJ6IFBNRLA267CKTTETQUKN57DBNZIWKUT6LDG5DW2SAYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
