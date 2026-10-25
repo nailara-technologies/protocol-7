@@ -99,6 +99,10 @@ foreach my $id (@instances) {    # zenka name [ +subname ]
 
 <[base.logs]>->( 2, "startup notification request ['%s']", $query_copy );
 
+## register the waiter first : an instance starting and ending fast must still
+## find its waiter when the status arrives
+push <v7-zenki.zenka.notify_online>->{$query_copy}->@*, $reply_id;
+
 ## trigger start_once when :start: prefix was given
 if ($do_start) {
     <[base.logs]>->(
@@ -107,12 +111,10 @@ if ($do_start) {
     <[zenka.cmd.start_once]>->( { 'args' => $query_copy } );
 }
 
-push <v7-zenki.zenka.notify_online>->{$query_copy}->@*, $reply_id;
-
 return { 'mode' => qw| deferred | }
 
-#,,.,,..,,...,.,,,..,,..,,,,.,.,,,..,,,,,,.,.,..,,...,...,.,.,.,.,,.,,...,..,,
-#744KMY2NVVCKJSFSXTD5BLERT7RFIKLOC6MP2MFAOBLL4A7Q633BUG4XF5ZKQQ6W7M2HI3NVVYTK4
-#\\\|VBZDEFGWPOOROUXJBMD6UA6GGZSDY7RP7X7YP4PE4ZGFT3Y6Z4R \ / AMOS7 \ YOURUM ::
-#\[7]QZFG7C7XJCD24B45CN5WUAIIK6ETQC6KQQFRS6ELCTS64D55WSCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,,,.,.,,,,..,..,,,.,,.,,,,,.,..,,...,...,.,.,,,.,,..,..,,,,,,
+#YYK7DYJFHWJQDU7SX7DRFBQB67M7DKXQVMBDDYIY7WEGDL4AWTSB3V7JFJHSGIQVJ3FVHJYMZ5JPK
+#\\\|BD3AWIVZYFKAGPXRTUH6XLMXRUDC6EPCJSVRAPZUK6QEGTXXVEA \ / AMOS7 \ YOURUM ::
+#\[7]NJADG4DYT7RNREYGNU3TRFU26DV3I6TYDRLNDRJWFATA6K6PTKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,15 +1,62 @@
 ## [:< ##
 
 # name  = v7-zenki.zenka.cmd.start_once
-# param = <zenka-id|name>
+# param = [:wait-up:|:wait-down:] <zenka-id|name>
 # descr = start a new zenka instance [ if not present ]
+# note  = :wait-up: replies once its startup completed or failed,
+#         :wait-down: once it ended [ error end : FALSE + exit code ]
+
+my $args = $call->{'args'} // '';
+
+## optional wait flags [ before the zenka name ] : the waiter is registered
+## first, then the zenka is started ; without a flag the reply stays the
+## immediate start confirmation
+my $wait_up   = $args =~ s{^:wait-up:\s*}{};
+my $wait_down = $args =~ s{^:wait-down:\s*}{};
+
+if ( $wait_up or $wait_down ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'expected zenka-id or name parameter'
+        }
+        if not length $args;
+
+    if (    not defined <[zenka.get_id]>->($args)
+        and not defined <v7-zenki.zenka.instance>->{$args} ) {
+        my $rep_msg
+            = $args =~ <regex.base.iid>
+            ? "no such zenka instance ($args)"
+            : "no such zenka in setup [$args]";
+        return {
+            'mode' => qw| false |,
+            'data' => $rep_msg
+        };
+    }
+
+    ## :wait-up: resolves the already-present case [ instant TRUE ] and both
+    ## startup reply paths through the notify_online waiter list ; its :start:
+    ## registers the waiter before starting
+    if ($wait_up) {
+        my $call_copy = { $call->%* };
+        $call_copy->{'args'} = sprintf ':start: %s', $args;
+        return <[zenka.cmd.notify_online]>->($call_copy);
+    }
+
+    ## :wait-down: notify_offline waiter first, then start : a clean end
+    ## replies TRUE, an error end FALSE with the exit code
+    push( <v7-zenki.zenka.notify_offline>->{$args}->@*, $call->{'reply_id'} );
+    $call->{'args'} = $args;
+    $_[0]->{'once'} = 1;
+    <[zenka.cmd.start]>->(@ARG);
+    return { 'mode' => qw| deferred | };
+}
 
 $_[0]->{'once'} = 1;
 
 return <[zenka.cmd.start]>->(@ARG);
 
-#,,,.,.,.,.,,,.,,,...,.,,,,.,,.,,,...,,,,,...,..,,...,...,,.,,...,...,.,.,,..,
-#73EYVVEU37MO62WF7F3532YXJQ3AOXEFZG3RFP6IANTD53W26ES7CWM22NP5IZKPVKG4OL2Z3SIT2
-#\\\|KXLMHZGU5GNFAJ3J6JVUPUIB7Z3HRT74XLRMOEK7G2G34PG73J6 \ / AMOS7 \ YOURUM ::
-#\[7]4TFL52ID5FMS3BMRJSV2XPDJX66SMSB7VEKQPCIJ2VT6URU64GCY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,...,,,,,,,.,...,.,,,.,,,.,.,..,,...,...,...,..,,...,.,,,...,
+#J7J2JWHOWMCYBDX5WN6BK5PEQTYYWFPLYKOF67EVL7VCI73ZUOHPTUQSDHIR7TGGXHJAQVAYZWHDY
+#\\\|QDDC6ZNO5K3QB2OUEOT4VNGRFVSQPBMGORHCZHDLVIVYKWNLRCJ \ / AMOS7 \ YOURUM ::
+#\[7]WGIQ5SMO5YSQ243VOB7MBUHB5AOK2Y4CELVV3QGYWE2ADEYHA4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

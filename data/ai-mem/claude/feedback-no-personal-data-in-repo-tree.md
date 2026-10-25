@@ -35,8 +35,14 @@ a cpu-only-host bug [ and five older comments had it, two with the full
 the CASE, not the host : "a cpu-only host", "a server", "a remote".
 live host names belong only in the conversation and in host.cfg.
 
-#,,,,,,,.,..,,...,,,.,...,,..,...,.,,,,..,,,,,..,,...,...,,,.,...,...,...,.,.,
-#GDOZCCFIJPECGE22IODXY66RULTZWIKMSG3GYDHQXGSSFFOTDP7C5MAJ2Y7JOO4QR5R5KJT36MV4A
-#\\\|USCNR3BMBETWF4LHKIKNRFQHHQOPSMR62DGYBRTLMDMLOOAVQ4Z \ / AMOS7 \ YOURUM ::
-#\[7]2DKMBBSCJ6GK5APBK73OXEOLEIOSR7KHEFOLI6NUJPL6KVQFNCCA 7  DATA SIGNATURE ::
+
+**Memory naming [ 2026-10-24, owner ] :** memory entries name the servers
+srv-U \ srv-A \ srv-V \ srv-F, never their host names -- also in file
+names and descriptions. a link label that IS a host name lives only in the
+host's /etc/protocol-7/host-config/cube.cfg, never in the tree.
+
+#,,,,,,..,...,,,.,.,.,,..,,..,..,,,..,..,,.,.,..,,...,...,...,.,,,...,...,..,,
+#W6NHTHWADNIWB7CKYCMD5OHRAJIZEH657YC5ICGAV7BY4JLRH46ZX2LNXXNH7ECZGFPMALHXGBCLE
+#\\\|YS6DKIVQERJWACOCN663WQ3ACJWNO2L5USNNKWZR53STYUUMUZ4 \ / AMOS7 \ YOURUM ::
+#\[7]SDRCFZEPKGSG4BKCHJ4TS4V7DMJ7TY64P7MI6PWWWZXILVKXB4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
