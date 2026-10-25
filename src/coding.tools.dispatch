@@ -504,12 +504,25 @@ my %dispatch = (
         my @batch_edits = @$edit_list[ $start_idx .. $end_idx - 1 ];
         my $has_more    = $end_idx < $edit_count;
 
-        ## read current file [ prefer staged version for accumulation ] ##
+        ## read current file [ prefer staged version for accumulation ] ONE ##
+        ## normalized layer for staged read, working-tree read and the      ##
+        ## write below -- replace_in_file [ coding.tools.handler.* ] sets   ##
+        ## the precedent [ 2026-10-25 : staged copy read as :raw octets     ##
+        ## while $new is characters double-encoded every pre-existing       ##
+        ## non-ascii byte through the implicit UTF-8 layer ]                ##
+        my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+        return
+              'error: unsupported encoding : '
+            . $encoding
+            . ' [ supported are :raw, :bytes, '
+            . ':encoding(UTF-8), :encoding(<other>) ]'
+            unless length( $norm_encoding // '' );
         my $stage_name = $path;
         $stage_name =~ s|/|__|g;
-        my $stage_rel   = "staged/$stage_name";
-        my $content_ref = <[file.zenka_dir.load]>->($stage_rel);
-        $content_ref = <[file.slurp]>->($abs_path)
+        my $stage_rel = "staged/$stage_name";
+        my $content_ref
+            = <[file.zenka_dir.load]>->( $stage_rel, $norm_encoding );
+        $content_ref = <[file.slurp]>->( $abs_path, undef, $norm_encoding )
             unless defined $content_ref;
         return 'error: cannot read file' unless defined $content_ref;
         my @lines = split m|\n|, $content_ref->$*, -1;
@@ -620,7 +633,13 @@ my %dispatch = (
             }
 
             if ( -w $abs_path ) {
-                <[file.put]>->( $abs_path, \$new_content );
+                <[file.write_encoded]>->(
+                    $norm_encoding, $abs_path, \$new_content
+                );
+                ## drop any staged copy : the working tree is authoritative ##
+                ## from here on -- a stale staged copy would resurrect old  ##
+                ## lines on the next edit_file accumulation [ 2026-10-25 ]  ##
+                <[file.zenka_dir.unlink_file]>->( $stage_rel, TRUE );
                 ## note the write for the catalog-retrieval corpus         ##
                 ## [ inert unless coding.cfg.catalog_harvest is enabled ]. ##
                 ## THIS inline handler is the live edit_file path -- the   ##
@@ -643,7 +662,7 @@ my %dispatch = (
             }
             ## stage to zenka dir when no write access ##
             <[file.zenka_dir.write]>->(
-                $stage_rel, \$new_content, '>', 0664, qw| :encoding(UTF-8) |
+                $stage_rel, \$new_content, '>', 0664, $norm_encoding
             );
             <[base.logs]>->(
                 1, ':. edit_file: staged %s [ no write access ]', $path
@@ -772,8 +791,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,.,,,,.,,,..,,,.,,..,..,,...,,..,,,.,,.,,..,,...,...,.,,,,,,,.,.,..,,,,.,
-#QJRAHJQ6MM3YZGKGD2RY3PHI4HPJZSNKURPVACHG5VH7ZDQFMM6FQLWA2FABVEXUTXG24BEMSC4BQ
-#\\\|6QGHX6DATFCN7WTBXZ7ZVZLAOAGNH6G2ZRX3GGUE5K4TO52SL32 \ / AMOS7 \ YOURUM ::
-#\[7]DAJIBNRNRBLPQVLMQSAKD7K7V5VVJ5DZZQAQVI5WS3WWMLKZ7IBA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,.,,,.,.,.,,.,,.,,,...,,..,.,,,..,,...,...,,..,,,,,.,,,,.,,,..,
+#7SMJ7BEBGJEGCJVPO4JXLP5W2LHNWVFLJ6YNGYTOJMBTYZNCYRIS5YXNKNCHL33NYXOEADJRHA7TQ
+#\\\|KBVBBWHM7P4SJGVUFJB2DZQJJP4575SAUJDVDRI4IZCCUGED6CW \ / AMOS7 \ YOURUM ::
+#\[7]6TU45X5DLVC7IL2UCJJJEIFYXCXY3SPM57KUM6R5NAWSZFEPROCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,7 +41,11 @@ while (
     my $parsed = eval { JSON::PP->new->utf8(0)->decode($args_json) };
     next unless defined $parsed && ref $parsed eq qw| HASH |;
 
-    ## build structured tool call ##
+    ## build structured tool call  $args_json is a substring of the decoded ##
+    ## model content -- already a perl character string, so 'arguments'     ##
+    ## stays in character form                                              ##
+    ## [ the utf8(0) decode check above is the matching layer ]. consumers  ##
+    ## decode layer-aware : coding.async.tool_args_decode                   ##
     my $call_id = sprintf( 'jsoncall_%d_%d', $$, $call_idx );
     push @tool_calls,
         {
@@ -74,8 +78,8 @@ if (@tool_calls) {
 
 return \@tool_calls;
 
-#,,,,,,.,,,,.,,..,,,.,.,.,.,,,,,.,,,,,,,,,.,.,.,.,...,...,,,.,,.,,...,..,,,,,,
-#QK6WHM7PZQXLR33ARJB572GC6PNSMQ5XRBHLV2TW475FRNFC4KGBJFBKULJ4ADVF7XRJPDH7CVXRW
-#\\\|VPJ3PFOJF5F5EBG3K77SS6Z4UWRIVHEQB23ZQZPOKYQOFA4QDKN \ / AMOS7 \ YOURUM ::
-#\[7]DVTC2GLFMRZV4KZOJPRIPBQJOFILDYFCGNFGUXFFNZJ57OPEGYAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,,,,..,,,,,,,,,...,,.,,...,...,.,.,...,...,.,,,..,,.,.,,.,,...,
+#BST2VIV3D475CLHIVHZNTQRD6S6ICQM5JGRBI5KZPEIN3GPY6SDD6QWAS4Y7WGNTT36WUUUYRDKMA
+#\\\|2MQGFWTHIAXEZGVB2G2DIOALMQTPJGXYB2YDQ4YS6UZYFAMGFC6 \ / AMOS7 \ YOURUM ::
+#\[7]LDEAWPQ3PJYLDZQT43GYRLCGDPSNAAE2HHZIYZKEO5Y446VDZ6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
