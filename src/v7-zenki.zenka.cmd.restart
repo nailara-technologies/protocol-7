@@ -1,13 +1,29 @@
 ## [:< ##
 
 # name  = v7-zenki.zenka.cmd.restart
-# param = [:twin:] <zenka-name|instance>
+# param = [:twin:] [:wait-up:] <zenka-name|instance>
 # descr = restart one or more zenka instances
-# note  = prefix :twin: for concurrent zero-downtime restart with handover
+# note  = :twin: concurrent zero-downtime restart with handover
+# note  = :wait-up: registers a notify_online waiter first, then
+#         restarts [ starts a not-running zenka ] ; replies when the
+#         new instance startup completed [ TRUE ] or failed [ FALSE ]
 
 my $params = $call->{'args'} // '';
 
-my $twin_mode = ( $params =~ s{^:twin:\s+}{} ) ? 1 : 0;
+my $twin_mode = ( $params =~ s{^:twin:\s+}{} )    ? 1 : 0;
+my $wait_up   = ( $params =~ s{^:wait-up:\s+}{} ) ? 1 : 0;
+return {
+    'mode' => qw| false |,
+    'data' => ':wait-up: expects a single zenka name or instance'
+    }
+    if $wait_up and $params =~ m| +|;
+## a twin restart hands over between two instances : no single 'up' to wait
+## for, and its own refusals would leave the waiter dangling
+return {
+    'mode' => qw| false |,
+    'data' => ':wait-up: is not combined with :twin:'
+    }
+    if $wait_up and $twin_mode;
 return {
     'mode' => qw| false |,
     'data' => 'expected zenka name or instance id'
@@ -73,6 +89,12 @@ return {
         $unknown_name )
     }
     if $not_found;
+
+if ($wait_up) {
+    ## register the startup waiter before the restart : the reply comes when
+    ## the new instance is online [ or its startup failed ]
+    push <v7-zenki.zenka.notify_online>->{$params}->@*, $call->{'reply_id'};
+}
 
 map {
     my $zenka_id           = <v7-zenki.zenka.instance>->{$ARG}->{'zenka_id'};
@@ -196,6 +218,12 @@ return {
     }
     if not $setup_found and $not_found;
 
+if ($wait_up) {
+    ## nothing running : start it so the waiter gets its answer ##
+    <[zenka.cmd.start_once]>->( { 'args' => $params } ) if not $count;
+    return { 'mode' => qw| deferred | };
+}
+
 if ($count) {
     return { 'mode' => qw| true |, 'data' => $msg_str };
 } else {
@@ -205,8 +233,8 @@ if ($count) {
     };
 }
 
-#,,..,,,,,...,...,,.,,,..,..,,,..,...,.,.,.,,,..,,...,..,,,,,,.,.,,,,,..,,.,,,
-#NCWI6CQBKRNORCSCDBDGEUBPFPQJ62TOQDSWSVSLTZGHL7RFUZIKMXKFD3LZHYLIVJAYQ4VIPMT4I
-#\\\|3BG7GPQFHB6BWXI6NFAEAWBFKYI6S3LRQGK6SOGKAWFF4L7NOXI \ / AMOS7 \ YOURUM ::
-#\[7]NCRV6KQKW57QXNRFXKFF3IOCTODRLKDP6JI7B2I36CG7B2M3D4DY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,,.,,..,,,,.,...,.,.,,.,,,.,,..,,...,...,.,.,..,,,,.,,.,,.,.,
+#63I4NH4NBF5EAUWJXDWHZ4K7MMB6QTIBA6RRFA67CVSJDCKPTBI6HMI7AAMPFGIUWRXTRNWVMITA4
+#\\\|VGAEBV2BHWORTETN5THGNAT4RZYFPKVDUEE6BN6NYSUJEET5BYU \ / AMOS7 \ YOURUM ::
+#\[7]Q3CRKPIKBBDR5RAYVIHCAM37QQWQDN6A6QTSRLLCZ5C773U6MCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

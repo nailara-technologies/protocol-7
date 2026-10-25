@@ -21,7 +21,17 @@ if ( $wait_up or $wait_down ) {
         }
         if not length $args;
 
-    if (    not defined <[zenka.get_id]>->($args)
+    ## strip an optional [subname] for the set-up lookup
+    ## [ the way the notify commands do ] ; the waiter key keeps the full
+    ## string
+    my $lookup_name = $args;
+    my $zenka_subname;
+    my $re_sn = <regex.base.subname>;
+    $zenka_subname = ${^CAPTURE}[0]
+        if $lookup_name  !~ <regex.base.iid>
+        and $lookup_name =~ s|\[($re_sn)\]$||;
+
+    if (    not defined <[zenka.get_id]>->($lookup_name)
         and not defined <v7-zenki.zenka.instance>->{$args} ) {
         my $rep_msg
             = $args =~ <regex.base.iid>
@@ -55,8 +65,8 @@ $_[0]->{'once'} = 1;
 
 return <[zenka.cmd.start]>->(@ARG);
 
-#,,,,,,.,,,,,,,,,,...,,,,,,,.,...,.,,,.,,,.,.,..,,...,...,...,..,,...,.,,,...,
-#J7J2JWHOWMCYBDX5WN6BK5PEQTYYWFPLYKOF67EVL7VCI73ZUOHPTUQSDHIR7TGGXHJAQVAYZWHDY
-#\\\|QDDC6ZNO5K3QB2OUEOT4VNGRFVSQPBMGORHCZHDLVIVYKWNLRCJ \ / AMOS7 \ YOURUM ::
-#\[7]WGIQ5SMO5YSQ243VOB7MBUHB5AOK2Y4CELVV3QGYWE2ADEYHA4BQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,.,,..,,,,.,.,,,.,,,.,,,,,.,..,,..,,...,...,..,,...,...,.,,,,,.,
+#Z3DHEH6GRZX7WCDK2YXG7A3ZZ6Q4HSHMVWY2L3HOV5Q3LWO3NC63IBAQFBE6HVX4BUDCO23YJZW46
+#\\\|HQULFHMBOQV24BPVMXAVI52XWYQHVMCKVG22QKXFXKXV3A2RAV5 \ / AMOS7 \ YOURUM ::
+#\[7]MXIXFDS5NTBB7NELYGDHXXALWHGEKHIM47ZIHY3HAQTRD2F3X4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
