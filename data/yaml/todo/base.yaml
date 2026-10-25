@@ -586,14 +586,17 @@ items:
   - v7-zenka
   text: rename v7 'stop' command to 'terminate' [ v7-zenki.terminate ]
 - added: 3XBNFGOVOQ
-  details: currently bin/Protocol-7 resolves the zenka name by pattern-matching $PROGRAM_NAME text (Protocol-7.<name> or v7.<name>). follow the readlink() chain to the real Protocol-7 binary instead and take the last symlink name -- same mechanism the p7c binary auto-install already uses, more robust than text pattern matching. do after the v7-->p7- prefix rename lands.
+  details: |-
+    upgrade zenka-name resolution to follow the symlink chain [ after v7-->p7- rename ]
+
+    currently bin/Protocol-7 resolves the zenka name by pattern-matching $PROGRAM_NAME text (Protocol-7.<name> or v7.<name>). follow the readlink() chain to the real Protocol-7 binary instead and take the last symlink name -- same mechanism the p7c binary auto-install already uses, more robust than text pattern matching. do after the v7-->p7- prefix rename lands.
   done_at: 3XBPVQMFJU
   id: MPV
   priority: normal
   status: done
   tags:
   - v7-zenka
-  text: upgrade zenka-name resolution to follow the symlink chain [ after v7-->p7- rename ]
+  text: upgrade zenka-name resolution to follow the symlink chain
 - added: 3XBNFGO7FQ
   details: not just one global/user v7 zenka -- profile- or task-parameterized zenki that can self-terminate on completion, join zenki already present, or [ later ] roam across nodes while ensuring local infrastructure. needs flexible unix-domain-socket namespace/resolution instead of the current single-cube assumption, and more advanced dependency resolution.
   done_at: null
@@ -913,6 +916,8 @@ items:
   text: retry a round once after a whitespace degeneration abort
 - added: 3X3YJK6VPU
   details: |-
+    work-mode presets : nested modes pick model + settings, queue grouped by model
+
     presets as dotted config keys, nesting from the dots :
       coding.cfg.mode.default.model = <fablevibes>
       coding.cfg.mode.code.model    = <35b q3>
@@ -946,7 +951,7 @@ items:
   - routing
   - models
   - work-modes
-  text: 'work-mode presets : nested modes pick model + settings, queue grouped by model'
+  text: 'work-mode presets : nested modes pick model + settings'
 - added: 3X3Z32FPC4
   details: |-
     the remote vps got more resources [ 2026-10-11 : 23 GiB ram, 441 GB disk after growpart + online resize2fs, 8 vcpu at 2 GHz, no gpu, no swap yet ].
@@ -971,6 +976,8 @@ items:
   text: 'second inference host : benchmark + remote overnight batches'
 - added: 3X3Z32FYB4
   details: |-
+    jobsite assessment by a small model : quote-verified format + known-answer batch
+
     a small fast model [ 3-4b dense or a small moe ] for jobsite assessments, but one that does not fake [ confident judgements not taken from the ad, invented details ]. two cheap checks that measure it :
 
     - quote-verified format : every assessment point [ requirement met \ missing, location, contract type .. ] carries a short quote from the ad ; code checks that each quote really appears in the ad text. invented points fail mechanically -- the pass rate is a per-model faking score, deterministic, no second model
@@ -985,9 +992,11 @@ items:
   - jobsite
   - models
   - quality
-  text: 'jobsite assessment by a small model : quote-verified format + known-answer batch'
+  text: 'jobsite assessment by a small model : quote-verified + known-answer'
 - added: 3X3Z32GBAM
   details: |-
+    remote bug fixing : model traces + fixes on its own branch, user away [ ssh from a phone ]
+
     the user is away from home, a blocking bug shows up [ e.g. a ui running on the own server ]. over ssh from a phone the user tells the coding model to trace and fix it [ user idea 2026-10-11 ].
 
     - access : ssh into a terminal, nshell or p7c coding.submit .. -- phone ux = short commands, short replies ; a compact status command to check in from the phone
@@ -1020,7 +1029,7 @@ items:
   - forensics
   - coding
   - remote
-  text: 'remote bug fixing : model traces + fixes on its own branch, user away [ ssh from a phone ]'
+  text: 'remote bug fixing : model fixes its own branch [ ssh from phone ]'
 - added: 3X32FAGSEM
   details: |-
     move every service off the old low-power host onto the two new servers [ neighbors at the same provider, unlimited traffic between them ], make them resilient and convenient, then retire the old host [ user, 2026-10-11 ]. no host names or addresses in the tree : old host, new server 1 \ 2.
@@ -1133,14 +1142,17 @@ items:
   - v7-zenka
   text: 'v7-zenki.status : one compact, refined status view of the host'
 - added: 3X4L3H4ACQ
-  details: "ctrl-r finds nothing in a fresh session : history is in memory only [ bin/p7-vault, command lines only, never field values ]. plan : one file history.vlt.B32 in the vault dir, encrypted with the vault key through the entry cascade, new one-entry frame ; NOT an entry [ no version per save, not listed ]. loaded right after unlock, written once on exit \\ lock [ atomic, 0600 ]. normalised : whitespace collapsed, consecutive + global duplicates removed [ newest kept ], capped at 777 lines. never stored : lines with -p [ plain passphrase ], password-setting commands, field prompt input. purge : delete the file, or a new clear-history command [ 'history <filter>' already lists entry versions, so not 'history clear' ]. VAULT-FORMAT.md gets the file layout."
+  details: |-
+    p7-vault : encrypted, normalised command-line history [ ctrl-r across sessions ]
+
+    ctrl-r finds nothing in a fresh session : history is in memory only [ bin/p7-vault, command lines only, never field values ]. plan : one file history.vlt.B32 in the vault dir, encrypted with the vault key through the entry cascade, new one-entry frame ; NOT an entry [ no version per save, not listed ]. loaded right after unlock, written once on exit \ lock [ atomic, 0600 ]. normalised : whitespace collapsed, consecutive + global duplicates removed [ newest kept ], capped at 777 lines. never stored : lines with -p [ plain passphrase ], password-setting commands, field prompt input. purge : delete the file, or a new clear-history command [ 'history <filter>' already lists entry versions, so not 'history clear' ]. VAULT-FORMAT.md gets the file layout.
   done_at: null
   id: TK6
   priority: normal
   status: open
   tags:
   - vault
-  text: 'p7-vault : encrypted, normalised command-line history [ ctrl-r across sessions ]'
+  text: 'p7-vault : encrypted, normalised command-line history [ ctrl-r ]'
 - added: 3X4MFONAGI
   details: "on a fresh server with no vhost configured, httpsd requests a cert for the host's rdns name and serves it as the default vhost [ any unknown Host \\ SNI ] with the black page srv-U serves now. conditions : forward-confirmed rdns [ A\\AAAA of the rdns name = this host ] ; public reachable address only [ remote-server profiles or a detected host.public_ip ] ; never desktops [ CT logs tie name and host forever ] ; first start only, never when vhosts exist, host.cfg switch to disable ; wildcard later via dns-01 on our own name servers. own-domain detection [ skip provider domains, shared LE rate limit ] : decisive -- a TXT _protocol-7.<domain> with the owner \\ host-root key id, the owner statement's scope, NS of the domain = DN0000 \\ DN0110 \\ DN1110 ; scored only without a decisive signal -- for : domain configured on the host [ letsencr, vhosts, zones ], other known nodes use it, hostname -f agrees ; against : provider label patterns [ ip digits, vps, static, host-, ip- ], registrable domain on a provider list, shared by many unrelated addresses. state machine unknown -> candidate -> confirmed -> issued, re-evaluated when detected facts change ; scoring can only hold a cert back, never cause a request. lives next to base.host.detect \\ detected.cfg."
   done_at: null
@@ -1152,7 +1164,10 @@ items:
   - host
   text: "httpsd : default cert for the host's own name"
 - added: 3X4MXVVHDI
-  details: "2026-10-12 : interim, the desktop's existing taeki key in /root/.ssh/authorized_keys of the servers, keys only [ PermitRootLogin prohibit-password ]. root steps so far : host.cfg writes, ufw rules, git rebase repairs. replace by authenticated v7-zenki commands [ host.cfg set, firewall rule per sync peer ] or on-demand secrets managed by zenki ; then remove that line from /root/.ssh/authorized_keys on every host. root commands are announced before they run [ read-only checks excepted ]."
+  details: |-
+    drop root ssh access for the desktop key once zenki manage host steps natively
+
+    2026-10-12 : interim, the desktop's existing taeki key in /root/.ssh/authorized_keys of the servers, keys only [ PermitRootLogin prohibit-password ]. root steps so far : host.cfg writes, ufw rules, git rebase repairs. replace by authenticated v7-zenki commands [ host.cfg set, firewall rule per sync peer ] or on-demand secrets managed by zenki ; then remove that line from /root/.ssh/authorized_keys on every host. root commands are announced before they run [ read-only checks excepted ].
   done_at: null
   id: LGC
   priority: normal
@@ -1160,7 +1175,7 @@ items:
   tags:
   - security
   - servers
-  text: drop root ssh access for the desktop key once zenki manage host steps natively
+  text: drop root ssh access for the desktop key once zenki manage hosts
 - added: 3X4NBYNBM4
   details: |-
     FOUND 2026-10-12 on srv-F [ version 9883, cube up since 2026-10-09 10:44 ; devmod loaded into cube via kill -53, 'p7c dump session.9401704' ]. session 9401704 = v7-zenki : 21107 entries in session.9401704.route.* , 21090 of them also in stream_cancelled [ 22525 stream_cancelled in total, ~1 per 10 s ; forensics restarted 1525 times since cube start -- likely each run subscribes to a v7-zenki stream and dies ]. base.gen_id grows ids past max_ids 13747 [ id_length += count \ ( max_ids \ 5 ) ] : first 'exceeded max_ids' Sat 2026-10-10 20:25, ids reached 16-20 digits, base.handler.command:151 rejects them as command ids -> every command routed to v7-zenki unanswered [ p7c v7-zenki.* hangs ; cube-local commands still work ; the negative id in the log is a 20 digit id printed with %d ]. CAUSE : base.handler.command.process_reply ~436 'source gone : notify producer to stop' sends !TRM! and sets stream_cancelled but frees neither the producer session's route entry nor $data{route}{route_id} [ base.session.cancel_route does both ] ; stream_cancelled flags are never removed. FIX : free both there [ or reuse cancel_route ], drop stream_cancelled when the producer acknowledges \ the stream ends ; base.gen_id : validate max_ids \ num_range, and callers on the routing path must handle undef ; why forensics restarts every few minutes on srv-F [ memory pressure, 964 MB ] is a second item. remedy until fixed : restart the backend [ systemctl restart Protocol-7 ].
@@ -1185,6 +1200,8 @@ items:
   text: 'v7-zenki : per-host zenki.enabled \ disabled in host.cfg'
 - added: 3X4NRFENDU
   details: |-
+    debian zenka : host bootstrap [ mirror, suite, dist-upgrade, dependencies ]
+
     the steps a new server gets by hand today [ 2026-10-12, srv-A ] : git + clone to /usr/local/protocol-7, netselect-apt for the fastest mirror, switch to unstable [ sid ], bin/p7-deps dist-upgrade [ legacy bin/dependencies/ retired 2026-10-18 ], bin/p7-deps for the rest, the systemd unit. as debian zenka capabilities, each a command with a check mode : mirror select [ netselect-apt, result kept in host config ], suite switch [ deb822 aware : debian 13 keeps /etc/apt/sources.list.d/debian.sources, netselect-apt writes a classic sources.list -- one of them must be moved aside ], dist-upgrade, dependency profiles [ p7-deps ]. plus the sshd baseline every server got by hand : keys only, ClientAliveInterval 77 [ /etc/ssh/sshd_config.d/10-p7-keys-only.conf ]. goal : a reinstalled host comes back to its definition without a manual step [ 4EO, LGC ].
     also the time zone [ 2026-10-12 : srv-V came with America/New_York although Europe/Berlin was chosen at install -- the provider image overrode it ; set explicitly : timedatectl set-timezone Europe/Berlin, then restart the backend so every zenka uses it ].
   done_at: null
@@ -1194,7 +1211,7 @@ items:
   tags:
   - debian
   - host
-  text: 'debian zenka : host bootstrap [ mirror, suite, dist-upgrade, dependencies ]'
+  text: 'debian zenka : host bootstrap [ mirror, suite, dist-upgrade ]'
 - added: 3X4N7NUKJ4
   details: "found 2026-10-12 : ipv6 between srv-A [ 2a02:c207 ] and srv-U [ 2a02:c206 ] does not route in either direction, both stacks work otherwise. nameserv.sync.peer.arm and nameserv.sync.client.start create ONE non-blocking IO::Socket::IP to the peer name : it takes the first address [ ipv6 ] and a connect stuck in SYN-SENT never falls back to ipv4 -- the peer loop stalls silently [ no log line ]. fix : resolve the name, try each address with a short connect timeout [ ipv6 first, then ipv4 ], remember the address that worked per peer, log once which family failed. then srv-A's /etc/protocol-7/host-config/nameserv.cfg goes back from 161.97.144.6 to srv-U [ comment there ]."
   done_at: null
@@ -1233,7 +1250,10 @@ items:
   - claude
   text: 'cloud session bootstrap : backend + own signing key in one step'
 - added: 3X4ZRLGWDQ
-  details: 'resolved by a second reboot [ 2026-10-12 11:19 ] : router reachable again, dn0110 answers over ipv6 from srv-U. cause unknown ; only change before the first reboot was /etc/hostname [ cloud-init disabled, so no network effect ] + dist-upgrade'
+  details: |-
+    srv-A : no ipv6 since the 2026-10-12 02:32 reboot -- gateway fe80::1 does not answer neighbour discovery, config unchanged since 2025-12 [ provider side ? ]. dn0110 unreachable over ipv6
+
+    resolved by a second reboot [ 2026-10-12 11:19 ] : router reachable again, dn0110 answers over ipv6 from srv-U. cause unknown ; only change before the first reboot was /etc/hostname [ cloud-init disabled, so no network effect ] + dist-upgrade
   done_at: 3X4ZTFPAPQ
   id: KUL
   priority: normal
@@ -1241,25 +1261,31 @@ items:
   tags:
   - nameserv
   - network
-  text: 'srv-A : no ipv6 since the 2026-10-12 02:32 reboot -- gateway fe80::1 does not answer neighbour discovery, config unchanged since 2025-12 [ provider side ? ]. dn0110 unreachable over ipv6'
+  text: 'srv-A : no ipv6 since 2026-10-12 reboot -- gateway fe80::1 silent'
 - added: 3X4ZRLHDIM
-  details: 'landed 67fc9f568 [ 2026-10-12 ] : tcp 53 live on srv-U, srv-V, srv-A [ v4 + v6, checked from srv-U \ srv-V ]. srv-U : ufw 53/tcp opened. srv-A : systemd-resolved held 127.0.0.53\54:53 tcp [ blocks the wildcard bind ] -- static /etc/resolv.conf [ provider resolvers, old copy in /root ], resolved stopped + masked [ its sockets re-activated it ].'
+  details: |-
+    nameserv : dns over tcp refused on every server [ udp only ] -- needed for truncated replies [ large txt \ many records ]
+
+    landed 67fc9f568 [ 2026-10-12 ] : tcp 53 live on srv-U, srv-V, srv-A [ v4 + v6, checked from srv-U \ srv-V ]. srv-U : ufw 53/tcp opened. srv-A : systemd-resolved held 127.0.0.53\54:53 tcp [ blocks the wildcard bind ] -- static /etc/resolv.conf [ provider resolvers, old copy in /root ], resolved stopped + masked [ its sockets re-activated it ].
   done_at: 3X42BNNIJ4
   id: NRQ
   priority: normal
   status: done
   tags:
   - nameserv
-  text: 'nameserv : dns over tcp refused on every server [ udp only ] -- needed for truncated replies [ large txt \ many records ]'
+  text: 'nameserv : dns over tcp refused, needed for truncated replies'
 - added: 3X42BNNTEQ
-  details: "started as a sub-named instance : v7-zenki.start nameserv[cache] [ server ] or nameserv[cache-local] [ linux desktop ]. answers only loopback clients [ 127.0.0.0/8, ::1 -- enforced in code, never only by config : no open resolver ]. forward + cache to the configured upstream servers first [ ttl-honouring, negative cache ], full recursion only if ever needed. opt-in until proven : resolv.conf keeps a fallback upstream. later : dns tunnelled over protocol-7 [ the cache forwards through a zenka link instead of udp ]. context : srv-A's resolved stub blocked nameserv's tcp 53 bind [ NRQ ]."
+  details: |-
+    nameserv[cache] \ nameserv[cache-local] : forwarding dns cache instance [ replaces systemd-resolved on desktops and hosts ]
+
+    started as a sub-named instance : v7-zenki.start nameserv[cache] [ server ] or nameserv[cache-local] [ linux desktop ]. answers only loopback clients [ 127.0.0.0/8, ::1 -- enforced in code, never only by config : no open resolver ]. forward + cache to the configured upstream servers first [ ttl-honouring, negative cache ], full recursion only if ever needed. opt-in until proven : resolv.conf keeps a fallback upstream. later : dns tunnelled over protocol-7 [ the cache forwards through a zenka link instead of udp ]. context : srv-A's resolved stub blocked nameserv's tcp 53 bind [ NRQ ].
   done_at: null
   id: 4ZW
   priority: normal
   status: open
   tags:
   - nameserv
-  text: 'nameserv[cache] \ nameserv[cache-local] : forwarding dns cache instance [ replaces systemd-resolved on desktops and hosts ]'
+  text: 'nameserv[cache] \ nameserv[cache-local] : forwarding dns cache instance'
 - added: 3X42FANRJE
   details: |-
     idea 2026-10-12. the desktop browser talks to the local proxy zenka [ 127.0.0.1:8118, selector templates ] ; proxy asks transport for a route [ proxy.transport.select ] ; a new transport handle 'external-link' asks the local external zenka for a tunnel through an external.link.open session [ encrypted, keypair auth, link-upgrade ] to e.g. srv-U ; two STRM streams [ up \ down ] ; the remote side connects to the target and pumps both ways. external is the first user of transport. not tcp-in-tcp [ proxy ends the client connection, the exit opens a new one ] ; head-of-line between tunnels on one link remains -> UDT under the external link later [ plugin.external.udt, transport.handle.udt-tunnel ], nothing above changes. NEEDED : exit permission [ named link users only ; refuse loopback \ private \ link-local targets and the host's own ports by default -- no open relay ], backpressure over STRM [ a slow reader slows the remote read, bounded buffers ], lifecycle [ either side closes both streams, idle timeouts both ends ], tests with two local cubes. hysteria [ srv-F + srv-U, hand-written systemd ] stays until this works ; meanwhile clients use srv-U [ unlimited traffic ], srv-F [ 1 TB limit ] as fallback. transport quality probe : traffic-limit as a cost weight per link.
@@ -1286,6 +1312,8 @@ items:
   text: 'proxy -> external link tunnel : native hysteria replacement over STRM'
 - added: 3X42L4O2OA
   details: |-
+    p7-vault : file import \ export -- encrypted blob store, vault-managed metadata
+
     user idea 2026-10-12 : clone the notes feature for files. completes the alternative-desktop gap and gives redundancy for a move to a different location. LAYERS : a 'file' vault entry [ title, size, blob name, per import : host, path, mode, owner, mtime ] + a separate blob directory, deduplicated by checksum name. export suggests the recorded path for the current host, falls back to other hosts' paths ; restores mode + mtime, owner only as root [ warn otherwise ] ; never overwrites without asking. BLOB NAME : keyed checksum [ key derived from the vault key ] -- a plain content checksum lets anyone with the blob dir confirm that a known file is held. BLOBS : encrypted, streamed in chunks [ per-file key in the entry, chunk index in the aead data, last chunk flagged : no reorder, no truncation ], never held whole in memory. SYNC : blobs are write-once like entry versions -> the union sync covers them, a server can mirror the store. builds on part 2 [ notes editor, overview, 3-char codes, sync ]. VAULT-FORMAT.md gets the blob layout.
     later [ user 2026-10-12 ] : zenki read vault data directly [ AMOS7::Vault, no conversion needed ]. key stays with the user : an unlocked session serves requests over a local socket [ agent model, like ssh-agent ], grants per zenka and per entry type \ code [ like the sync writer grants ], nothing readable by default -- the vault key is never handed to a zenka [ zenki run as protocol-7, the vault is the user's ].
     protocol-7-menu integration [ user 2026-10-12 ] : grants are plain agent data, set without any exchange with the zenka. the menu shows pending requests [ 'zenka X asks for entry Y' : once \ always \ deny ], lists and revokes grants per zenka, and offers time-limited grants.
@@ -1300,9 +1328,12 @@ items:
   status: open
   tags:
   - vault
-  text: 'p7-vault : file import \ export -- encrypted blob store, vault-managed metadata'
+  text: 'p7-vault : file import \ export -- encrypted blob store'
 - added: 3X42NTUHBQ
-  details: "user 2026-10-12 : two STRM streams [ one per direction ] opened, authenticated and closed as one channel. built once, used by HS4 [ proxy <-> exit tunnel ] and by protocol-7-menu <-> vault agent [ Y7O : menu triggers mapped commands and answers pending requests ]. needs : backpressure [ a slow reader slows the sender, bounded buffers ], lifecycle [ either side closes both, idle timeouts ], channel ids that survive a reconnect where the user wants resumption [ HS4 session keys ]. tests with two local cubes. design together with HS4's STRM part."
+  details: |-
+    bidirectional STRM channel : generic primitive [ HS4 tunnel, menu <-> vault agent ]
+
+    user 2026-10-12 : two STRM streams [ one per direction ] opened, authenticated and closed as one channel. built once, used by HS4 [ proxy <-> exit tunnel ] and by protocol-7-menu <-> vault agent [ Y7O : menu triggers mapped commands and answers pending requests ]. needs : backpressure [ a slow reader slows the sender, bounded buffers ], lifecycle [ either side closes both, idle timeouts ], channel ids that survive a reconnect where the user wants resumption [ HS4 session keys ]. tests with two local cubes. design together with HS4's STRM part.
   done_at: null
   id: B2K
   priority: normal
@@ -1310,7 +1341,7 @@ items:
   tags:
   - strm
   - protocol
-  text: 'bidirectional STRM channel : generic primitive [ HS4 tunnel, menu <-> vault agent ]'
+  text: 'bidirectional STRM channel : generic primitive [ HS4 tunnel ]'
 - added: 3X44D3MSHQ
   details: 'user 2026-10-12, for the first sync of large archives [ 88 GB invoke outputs to srv-U ]. RATE : a configurable upload limit [ e.g. -r 4M or P7_VAULT_RATE ], throttled inside the push pipeline [ own token bucket, no external pv needed ], so the uplink stays usable. RESUME : blobs are chunked [ 1 MiB frames, each authenticated ] -> the remote keeps a partial upload under a temp name and reports its last complete frame offset ; the next sync continues from there instead of restarting the blob. a partial file never becomes a blob : renamed only when complete and its frames verify structurally [ last flag at eof ]. BACKGROUND : low priority [ nice \ ionice ], progress line [ bytes, rate, eta ], later scheduled by the events zenka [ e.g. nights, like dist-upgrade times in host.cfg ]. builds on the sync scaling of the archive-mode change.'
   done_at: null
@@ -1322,16 +1353,21 @@ items:
   - sync
   text: 'p7-vault sync : trickle upload [ rate limit, resumable, background ]'
 - added: 3X44FKMKNY
-  details: "user 2026-10-12 : get one file from an archive without it ever lying unencrypted on the remote. chunks decrypt independently [ keys from the chunk index ] and full frames have a fixed size [ 4 + 12 + 1048576 + 16 + 16 = 1048624 bytes after the 9-byte header ] -> frame i sits at 9 + i * 1048624. NEEDED : a member index recorded at import -a [ name, offset in the tar stream, size -- parsed from the tar headers as the stream passes ; stored encrypted with the entry or as its own small blob, 52k members ~ a few MB ]. export <archive> <member> [ dest ] : index lookup -> covering chunk range -> local seek, or ONE ssh range read from a remote copy [ dd offset \\ count on the encrypted blob ] -> decrypt locally -> cut the member's bytes -> write. a 5 MB png out of 88 GB = about 6 MB transferred, the remote only ever serves ciphertext. builds on archive mode ; related : HTC [ trickle upload ]."
+  details: |-
+    p7-vault : single file out of an archive, fetching only its chunks [ encrypted remote reads ]
+
+    user 2026-10-12 : get one file from an archive without it ever lying unencrypted on the remote. chunks decrypt independently [ keys from the chunk index ] and full frames have a fixed size [ 4 + 12 + 1048576 + 16 + 16 = 1048624 bytes after the 9-byte header ] -> frame i sits at 9 + i * 1048624. NEEDED : a member index recorded at import -a [ name, offset in the tar stream, size -- parsed from the tar headers as the stream passes ; stored encrypted with the entry or as its own small blob, 52k members ~ a few MB ]. export <archive> <member> [ dest ] : index lookup -> covering chunk range -> local seek, or ONE ssh range read from a remote copy [ dd offset \ count on the encrypted blob ] -> decrypt locally -> cut the member's bytes -> write. a 5 MB png out of 88 GB = about 6 MB transferred, the remote only ever serves ciphertext. builds on archive mode ; related : HTC [ trickle upload ].
   done_at: null
   id: C2H
   priority: normal
   status: open
   tags:
   - vault
-  text: 'p7-vault : single file out of an archive, fetching only its chunks [ encrypted remote reads ]'
+  text: 'p7-vault : single file out of an archive, fetching only its chunks'
 - added: 3X44HEMSI4
   details: |-
+    pre-import sorter : files from source paths into type subdirectories of a target [ copy, or move ]
+
     user 2026-10-12 : sort unsorted data before p7-vault import [ freeing the host \ wsl before the move ]. <sources...> -> <target>/<type>/ ; type by extension [ lowercased, jpeg -> jpg style aliases ], or by content [ mime type via file \ File::MimeInfo ] for files without or with a wrong extension. DEFAULT = dry run : prints the plan [ counts and sizes per type ], nothing touched until -go. copy by default, -move on request : same filesystem = rename, across filesystems = copy, verify [ checksum ], then delete the source. NEVER overwrite : an identical file [ same checksum ] at the target counts as a duplicate and is skipped [ with -move : the source is removed only after the match is verified ], a different one gets a numbered name. keeps mtime \ mode. writes a journal [ from -> to per file ] so a move can be undone. options : -x <glob> excludes [ as import -a ], -by ext|mime, -flat \ -keep-tree [ keep the relative source path below the type dir ]. then : p7-vault import -d \ -a per type dir.
     LANDED 1755b5295 [ 2026-10-12 ] as bin/p7-sort : dry run default, -go, -move [ verified across filesystems ], -by ext|mime, -x, -keep-tree, duplicates incl. numbered names, journal + -undo.
   done_at: 3X44LDMTJA
@@ -1341,9 +1377,11 @@ items:
   tags:
   - vault
   - tools
-  text: 'pre-import sorter : files from source paths into type subdirectories of a target [ copy, or move ]'
+  text: 'pre-import sorter : sort files into type subdirs of a target'
 - added: 32C6JLPCBM
   details: |-
+    jobsite : stepstone.de WAF blocks both contabo servers' ip ranges ; only srv-F + srv-V can fetch
+
     found 2026-10-21 : stepstone.de answers both contabo-hosted servers with a WAF block [ provider ip ranges, not per-host ] ; srv-F and srv-V fetch fine.
     consequence : site fetches for stepstone must run from srv-F or srv-V, not from srv-U [ the planned jobsite hub ] -- route those fetches there.
     plan considered : add backup servers next to srv-V, same provider class as srv-V [ ~2.50 \ month each ] : dallas next, then us east coast. three machines cost the same as srv-F does now, and spread latency across the us -- useful if a public website draws visitors.
@@ -1362,9 +1400,11 @@ items:
   tags:
   - jobsite
   - infra
-  text: "jobsite : stepstone.de WAF blocks both contabo servers' ip ranges ; only srv-F + srv-V can fetch"
+  text: "jobsite : stepstone.de WAF blocks both contabo servers' ip ranges"
 - added: 32C6P75MHY
   details: |-
+    host-edit : style + usability pass, offer what the host already knows [ after functionality ]
+
     auto-detection candidates seen 2026-10-21 : ssh target + port from ~/.ssh/config [ Host alias -> HostName, Port ] ; an existing server pin [ ~/.n/remote-keys/servers/<host>_42 ] shown as already trusted ; addresses \ online state from the nodes zenka [ discover ] ; transports defaulting to ssh when the ssh field is set [ the srv-F draft still said tcp ]. records are sparse today [ srv-U : name + ssh only ] -- prefill instead of empty fields.
     principle [ user 2026-10-21 ] : anything a user or admin already stated once is a source -- /etc/hosts, ~/.ssh/config + known_hosts, existing pins, discover \ nodes, dns, other host records. result oriented : offer the best candidate, prefilled ; a sanity filter drops invalid \ contradicting values [ name syntax, port range, a pin that disagrees ] and says why ; the user confirms, nothing applied silently.
     why it matters [ user 2026-10-21 ] : setups often happen under time pressure that cuts clarity down to [ accept ] [ accept ] [ accept ]. the defaults must then BE the right answer [ the user's own earlier statements, filtered ] -- a correct setup by accepting, not by remembering.
@@ -1379,9 +1419,12 @@ items:
   tags:
   - host-edit
   - ui
-  text: 'host-edit : style + usability pass, offer what the host already knows [ after functionality ]'
+  text: 'host-edit : style + usability pass [ after functionality ]'
 - added: 32C6VRVREA
-  details: "idea 2026-10-21 [ user ] -- managed abstraction applied to the model's own continuity [ ai-mem vision-managed-abstraction ]. phases : 1. cheap tail scan per session : completed \\ interrupted [ token limit, pending sign, open background job ] \\ handed over [ a later session picked it up -- most start with 'handing over' ] ; 2. lazy, newest first : handovers only for interrupted sessions nobody continued, completed ones get a short report later ; 3. trigger : idle past the cache ttl -> write the handover while the work is still the newest ; 4. issue-aware : summaries extract issue keys [ zenka, file, error text, commit hashes ] so an index answers 'what is open on letsencr' across sessions -- open \\ closed state could live in bin/todo. building blocks exist : session_catchup + its summary-tree cache, the local 9B, per-session scratchpads. first real use today : handover of a 311k session via session_catchup [ hung first on the model-pin bug, fixed cd20d4b70 ]."
+  details: |-
+    sessions : automatic handovers when a session's token cache times out, reports for completed ones
+
+    idea 2026-10-21 [ user ] -- managed abstraction applied to the model's own continuity [ ai-mem vision-managed-abstraction ]. phases : 1. cheap tail scan per session : completed \ interrupted [ token limit, pending sign, open background job ] \ handed over [ a later session picked it up -- most start with 'handing over' ] ; 2. lazy, newest first : handovers only for interrupted sessions nobody continued, completed ones get a short report later ; 3. trigger : idle past the cache ttl -> write the handover while the work is still the newest ; 4. issue-aware : summaries extract issue keys [ zenka, file, error text, commit hashes ] so an index answers 'what is open on letsencr' across sessions -- open \ closed state could live in bin/todo. building blocks exist : session_catchup + its summary-tree cache, the local 9B, per-session scratchpads. first real use today : handover of a 311k session via session_catchup [ hung first on the model-pin bug, fixed cd20d4b70 ].
   done_at: null
   id: YBX
   priority: normal
@@ -1389,9 +1432,11 @@ items:
   tags:
   - claude
   - memory
-  text: "sessions : automatic handovers when a session's token cache times out, reports for completed ones"
+  text: 'sessions : automatic handovers on token cache timeout + reports'
 - added: 32C7HT5DME
   details: |-
+    sourcecode : fix the checksum-symlink pair [ regen \ undo-checksum-symlinks ], non-functional today
+
     found 2026-10-21 reading src/sourcecode.console.regen-checksum-symlinks + .undo-checksum-symlinks [ design : data/md/design/ASSIMILATION-DEPTHS.md, depth 2b ] :
     1. paths : both read <sourcecode.path>->{version_root} + {source_dir} -- sourcecode.pre_init sets only work_tree, source_dir lives in <source.path> [ source.init_code ], version_root is defined NOWHERE -> both commands cannot run
     2. dir lists stale and different : regen 'bin configuration modules', undo 'bin cfg modules' -- today bin cfg src ; derive from ONE list
@@ -1409,9 +1454,11 @@ items:
   tags:
   - sourcecode
   - n7fs
-  text: 'sourcecode : fix the checksum-symlink pair [ regen \ undo-checksum-symlinks ], non-functional today'
+  text: 'sourcecode : fix the checksum-symlink pair [ non-functional ]'
 - added: 32C7R5OXBI
   details: |-
+    web.auth session classes + :when-gone: rotation : renewable tokens end freely [ early expiry ], interactive drain, hand-minted listed apart
+
     found 2026-10-21 [ rotation command v7-zenki.rotate-web-auth-secret ] :
     - a leaked web.auth.secret alone forges nothing : tokens carry 32 prng bytes, the store keeps only their hash. the secret = the switch that ends all sessions -> rotation is hygiene, seamless by default
     - session record gets a class at mint : interactive [ login, ttl 24h ] | renewable:<holder> | manual [ hand-minted, pasted ]
@@ -1429,9 +1476,11 @@ items:
   tags:
   - web-auth
   - security
-  text: 'web.auth session classes + :when-gone: rotation : renewable tokens end freely [ early expiry ], interactive drain, hand-minted listed apart'
+  text: 'web.auth session classes + :when-gone: token rotation'
 - added: 32C7V2XWJY
   details: |-
+    credential layers map : p7-vault, credentials, cred-mesh, sessions, users \ user-edit, proxy \ transport -- who owns, who holds, who uses
+
     owner 2026-10-21 : p7-vault integration is the connecting step for proxy + cred-mesh \ credential fabric, likely with user-edit and the users zenka.
     pieces that exist [ do not rebuild ] :
     - p7-vault : what the person owns [ logins, server entries, ssh keys -- 5OT ], master key on the user machine [ VAULT-FORMAT.md ]
@@ -1450,7 +1499,7 @@ items:
   tags:
   - credentials
   - design
-  text: 'credential layers map : p7-vault, credentials, cred-mesh, sessions, users \ user-edit, proxy \ transport -- who owns, who holds, who uses'
+  text: 'credential layers map : p7-vault, credentials, cred-mesh, sessions'
 - added: 32C75THZDU
   details: |-
     jobsite.taute.re cert issued 2026-10-21 22:26 after : srv-A sync wait half-open [ d098e4a0e ], question echo lowercased -> 0x20 SERVFAIL at lets encrypt [ bd289c62a ]. left :
@@ -1470,6 +1519,8 @@ items:
   text: letsencr \ nameserv leftovers from the jobsite cert [ 2026-10-21 ]
 - added: 32DIBKVMMQ
   details: |-
+    v7-zenki optional dependencies, part 2 : unavailable state [ X-11 without display ], failed starts, no restart cascade for optional edges
+
     part 1 landed 2026-10-21 [ optional_dependencies key, left out where disabled ; a disabled hard dependency refuses the start with the reason -- cube answers the waiting on-demand caller ; external : discover optional ; test-v7-zenki-optional-dependencies.pl ]. part 2 [ owner 2026-10-21 ] :
     - unavailable : a zenka that can never run on this host [ X-11 : no display \ server binary \ device ] says so at start and exits with a dedicated code + reason -> v7-zenki marks it unavailable [ no restart loop ], cleared on reload config or an explicit start. treated like disabled : optional dependents go on, hard dependents [ openbox tile ticker mpv web-browser dunst .. ] refused at once with the reason
     - failed start [ crash, not unavailable ] : hard dependency keeps restart + backoff [ resolve hook ], the dependent fails past its start-up timeout with "dependency X did not come up" ; optional : go on without it, one log line
@@ -1486,9 +1537,11 @@ items:
   tags:
   - v7-zenki
   - dependencies
-  text: 'v7-zenki optional dependencies, part 2 : unavailable state [ X-11 without display ], failed starts, no restart cascade for optional edges'
+  text: 'v7-zenki optional dependencies, part 2 : unavailable state handling'
 - added: 32DIF27XAE
   details: |-
+    v7-zenki.backend-restart : teardown of the zenki, then execve itself [ same pid : systemd and non-systemd alike ]
+
     owner idea 2026-10-21. execve keeps the pid : systemd sees no exit [ no Restart= cycle, no StartLimitBurst count, main pid unchanged ], pid files stay valid, works without a supervisor -- no restart-spawner [ it would become a new main pid ].
     - first like teardown : stop every zenka in order, wait, REAP them [ else the new image inherits children \ zombies it does not know ]. later variant : keep zenki running and adopt them after exec [ claim-children \ report-pid-file ]
     - before exec : sigprocmask to an empty mask [ the blocked mask is inherited -- an exec from a handler or masked section leaves SIGCHLD blocked : the 2026-10 lost-SIGCHLD failure ] ; handled signals back to default, ignored ones checked [ SIG_IGN survives exec ]
@@ -1505,9 +1558,11 @@ items:
   tags:
   - v7-zenki
   - restart
-  text: 'v7-zenki.backend-restart : teardown of the zenki, then execve itself [ same pid : systemd and non-systemd alike ]'
+  text: 'v7-zenki.backend-restart : teardown then execve itself [ same pid ]'
 - added: 32DILKFHKI
   details: |-
+    cloud session completion notice : a dispatched claude cloud session pushes a branch and nothing notices
+
     owner 2026-10-21 : five design sessions dispatched at once, no good way to learn when each is done. stop-gap that night : a background git ls-remote loop against hub, diffing heads every 3 min.
     - claude_cloud_dispatch records each session [ id, url, start commit, title, capture file ] in a state file
     - a watcher [ the git-watch zenka, or a small mcp-side loop ] lists hub heads on an interval [ ls-remote is cheap ], matches new branches to recorded sessions [ branch name \ first commit message \ start commit as merge base ], marks them done
@@ -1524,9 +1579,11 @@ items:
   tags:
   - cloud
   - notify
-  text: 'cloud session completion notice : a dispatched claude cloud session pushes a branch and nothing notices'
+  text: 'cloud session completion notice : pushed branch goes unnoticed'
 - added: 32DIXBW2A4
   details: |-
+    p7-vault sealed import : remote hosts hand secrets to a locked vault [ ephemeral X25519 per item ]
+
     owner idea 2026-10-22, links 5OT 6C6. a host where the vault is NOT unlocked hands in a secret [ new server password, generated key ] ; a host where it is unlocked imports, rejects or ignores it.
     - vault sync package carries an import PUBLIC key [ X25519 ] + key id ; its private half lives INSIDE the vault [ under the master key ] -- only an unlocked host can open items
     - per item [ HPKE base \ sealed box shape ] : fresh ephemeral X25519 pair, shared secret with the import key, HKDF over [ ephemeral pub, import pub, label "p7-vault-import v1" ] -> item key, ChaCha20-Poly1305 with a random 12 byte nonce, metadata [ item id, type, source host, time, import key id ] as AAD ; synced item = ephemeral pub || nonce || ciphertext ; ephemeral private discarded at once -> a compromised remote holds nothing that opens past items. NOT a static sender key [ one key for all of a host's items, past items open once it leaks ]
@@ -1543,9 +1600,11 @@ items:
   - vault
   - crypto
   - design
-  text: 'p7-vault sealed import : remote hosts hand secrets to a locked vault [ ephemeral X25519 per item ]'
+  text: 'p7-vault sealed import : ephemeral X25519 per item'
 - added: 32DJBYVNAE
   details: |-
+    shared assessment queue : coding zenki on several hosts [ srv-U, srv-A, the local desktop ] pull tasks from the hub
+
     owner idea 2026-10-22 : 277 jobsite assessments queued on srv-U [ cpu backend, ttft 60-106 s ] ; the local coding zenka [ gpu ] and srv-A could help.
     - pull with leases : the queue stays on the hub [ durable, like the site-yaml outbox ] ; a worker claims a task with a lease [ ~15 min, renewed while working ], an expired lease returns the task ; results carry the task id, the first result wins [ duplicates harmless ]
     - pull works from behind NAT : the desktop needs only an outgoing link to the hub
@@ -1562,9 +1621,11 @@ items:
   - coding
   - jobsite
   - design
-  text: 'shared assessment queue : coding zenki on several hosts [ srv-U, srv-A, the local desktop ] pull tasks from the hub'
+  text: 'shared assessment queue : coding zenki on several hosts pull from hub'
 - added: 32DJDGUYMY
   details: |-
+    jobsite relay mode : a local jobsite mirrors the hub for a local httpd \ web [ outbound only ]
+
     owner idea 2026-10-22 : a WSL httpd + web showing the same jobs as srv-U, with the local jobsite as the proxy -- it connects outward, so no inbound path to the desktop.
     - exists : srv-U httpd serves GET /jobs.json [ web.jobs-data, all jobs ] and POST /jobs-sync [ web.jobs-sync, takes changes, answers with browser-side edits ], both auth.required + bearer token
     - relay mode [ e.g. jobsite.cfg.upstream = https://jobsite.taute.re + token ] : pull jobs.json at an interval, push to the LOCAL web over loopback [ normal sync_url, exemption legit there ], forward local browser edits [ its own apply_reverse ] upstream to /jobs-sync -> srv-U jobsite takes them on its next cycle
@@ -1581,9 +1642,11 @@ items:
   tags:
   - jobsite
   - web
-  text: 'jobsite relay mode : a local jobsite mirrors the hub for a local httpd \ web [ outbound only ]'
+  text: 'jobsite relay mode : local jobsite mirrors the hub [ outbound only ]'
 - added: 32DJHSEBMU
   details: |-
+    p7c \ p-7-r : an argument with a newline splits the protocol line ; coding task helpers land in the repo root
+
     found 2026-10-22 [ owner : the command only ever gets one line ] :
     - p7c coding.submit "$(cat file)" with a multi-line prompt : p7c wrote the args into the line-based protocol as they were -> the FIRST line arrived as a complete coding.submit [ task EVMALLY : only the header sentence, it went searching the repo itself ], the rest broke the protocol [ "protocol mismatch" ]. the command cannot detect it -- the check belongs in the clients [ bin/c_src/p7c.c, p-7-r.c ] : refuse an argument containing \n \ \r with a clear message, or send it encoded the way the receiver expects [ bin/coding-task already base32r-encodes for this reason ]. stdin form [ echo | p7c coding.submit ] answered "work request required" that night -- check whether p7c forwards stdin at all
     - the coding task wrote 6 helper scripts into <repo>/tmp/ [ removed with owner ok ] : task scratch files belong in the coding zenka's own var dir, never the repository tree
@@ -1601,9 +1664,12 @@ items:
   tags:
   - p7c
   - coding
-  text: 'p7c \ p-7-r : an argument with a newline splits the protocol line ; coding task helpers land in the repo root'
+  text: 'p7c \ p-7-r : argument with newline splits the protocol line'
 - added: 32DLNVORLU
-  details: 'FOUND 2026-10-22 in the SIGNED-STATEMENTS review : data/lib-path/pm/AMOS7/SHM.pm sign_permission [ ~439 ] = a 31-multiplier polynomial hash of the canonical permission string times the key length -- computable by anyone, no private key needed. used by data.mount.shm.permission.* via data.mount.shm.open. any writer of a mapping header can add permissions that verify. bounded by the unix rights on the segment, but it must not read as protection. FIX direction : SIGNED-STATEMENTS.md p7 capability v1 + p7 shm permissions v1 [ the header carries ONE statement id ], adoption step 7 ; until then either a real Ed25519 signature over the canonical string or refuse to treat header permissions as authority'
+  details: |-
+    AMOS7::SHM::sign_permission is a placeholder hash, not a signature : shm mapping permissions can be forged
+
+    FOUND 2026-10-22 in the SIGNED-STATEMENTS review : data/lib-path/pm/AMOS7/SHM.pm sign_permission [ ~439 ] = a 31-multiplier polynomial hash of the canonical permission string times the key length -- computable by anyone, no private key needed. used by data.mount.shm.permission.* via data.mount.shm.open. any writer of a mapping header can add permissions that verify. bounded by the unix rights on the segment, but it must not read as protection. FIX direction : SIGNED-STATEMENTS.md p7 capability v1 + p7 shm permissions v1 [ the header carries ONE statement id ], adoption step 7 ; until then either a real Ed25519 signature over the canonical string or refuse to treat header permissions as authority
   done_at: null
   id: FKS
   priority: high
@@ -1612,9 +1678,12 @@ items:
   - security
   - shm
   - data
-  text: 'AMOS7::SHM::sign_permission is a placeholder hash, not a signature : shm mapping permissions can be forged'
+  text: 'AMOS7::SHM::sign_permission placeholder : permissions forgeable'
 - added: 32DLNVPDIY
-  details: 'FOUND 2026-10-22 [ SIGNED-STATEMENTS review ] : src/source.signature_valid takes a truth map [ 3rd arg ] and fills it with defaults [ lines 74-75 ], but the checks read its own $truth_check_settings [ e.g. line 354 ] -- a caller map has no effect. harmless today [ all callers use defaults ]. needed by the form footer type : honour the passed map for the TRUTH checks only ; the binding checks [ AMOS match, BMW match, Ed25519 ] stay outside it, never relaxable. also create_harmonic_footer : truth switches as a parameter for form signing'
+  details: |-
+    source.signature_valid ignores a caller truth map [ prerequisite for the form footer type ]
+
+    FOUND 2026-10-22 [ SIGNED-STATEMENTS review ] : src/source.signature_valid takes a truth map [ 3rd arg ] and fills it with defaults [ lines 74-75 ], but the checks read its own $truth_check_settings [ e.g. line 354 ] -- a caller map has no effect. harmless today [ all callers use defaults ]. needed by the form footer type : honour the passed map for the TRUTH checks only ; the binding checks [ AMOS match, BMW match, Ed25519 ] stay outside it, never relaxable. also create_harmonic_footer : truth switches as a parameter for form signing
   done_at: null
   id: VWF
   priority: normal
@@ -1622,9 +1691,12 @@ items:
   tags:
   - source
   - signatures
-  text: source.signature_valid ignores a caller truth map [ prerequisite for the form footer type ]
+  text: source.signature_valid ignores caller truth map [ footer prerequisite ]
 - added: 32DLZRHYB4
-  details: 'today auto counts as yes everywhere : coding.async_spawn_inference_servers:55 and coding.handler.model_path_reply:108 read auto as yes and try the gpu ; base.cfg_bool returns undef for auto, so coding.task.enqueue [ 919207a11 ] keeps the gpu for it. plan : resolve auto once in coding.init_code [ nvidia-smi answers \ a device exists ] into a definite value ; spawn, model_path_reply, init_code and enqueue read that value ; then inference.backend.gpu.enabled = auto as the coding/zenka.v7 default [ explicit yes \ no still win ; srv-U host.cfg = no stays valid ]. test live on the desktop [ its coding uses the gpu path ] before deploying'
+  details: |-
+    inference.backend.gpu.enabled = auto must DETECT : resolve once in coding.init_code, all readers use the result ; then auto as the default
+
+    today auto counts as yes everywhere : coding.async_spawn_inference_servers:55 and coding.handler.model_path_reply:108 read auto as yes and try the gpu ; base.cfg_bool returns undef for auto, so coding.task.enqueue [ 919207a11 ] keeps the gpu for it. plan : resolve auto once in coding.init_code [ nvidia-smi answers \ a device exists ] into a definite value ; spawn, model_path_reply, init_code and enqueue read that value ; then inference.backend.gpu.enabled = auto as the coding/zenka.v7 default [ explicit yes \ no still win ; srv-U host.cfg = no stays valid ]. test live on the desktop [ its coding uses the gpu path ] before deploying
   done_at: null
   id: T3I
   priority: normal
@@ -1632,9 +1704,12 @@ items:
   tags:
   - coding
   - inference
-  text: 'inference.backend.gpu.enabled = auto must DETECT : resolve once in coding.init_code, all readers use the result ; then auto as the default'
+  text: 'inference.backend.gpu.enabled=auto : detect once in coding.init_code'
 - added: 32DLZRMIFM
-  details: 'srv-U 2026-10-22 : after a coding restart the self-test [ task 7511497, prompts #1..#3 ] holds the backend [ self_test_pending ] ; on the cpu backend prompt 1 ttft 46 s, prompt 2 ttft 635 s -- an hour+ before any assessment runs, after EVERY coding restart. options : a short cpu self-test profile [ one small prompt ], skip tier1 reformat on cpu, or run the self-test without blocking non-pinned tasks'
+  details: |-
+    coding startup self-test blocks the backend for an hour+ on a cpu-only host [ srv-U : prompt 2 ttft 635 s ]
+
+    srv-U 2026-10-22 : after a coding restart the self-test [ task 7511497, prompts #1..#3 ] holds the backend [ self_test_pending ] ; on the cpu backend prompt 1 ttft 46 s, prompt 2 ttft 635 s -- an hour+ before any assessment runs, after EVERY coding restart. options : a short cpu self-test profile [ one small prompt ], skip tier1 reformat on cpu, or run the self-test without blocking non-pinned tasks
   done_at: null
   id: C6U
   priority: normal
@@ -1642,9 +1717,12 @@ items:
   tags:
   - coding
   - self-test
-  text: 'coding startup self-test blocks the backend for an hour+ on a cpu-only host [ srv-U : prompt 2 ttft 635 s ]'
+  text: coding startup self-test blocks backend for an hour+ on cpu-only host
 - added: 32DL5CGHCM
-  details: 'placement [ owner pointer 2026-10-22 ] : this is auto-install STAGE 3. existing : stage 2 = v7-zenki.pre_init bootstrap [ root, synchronous before the loop, core modules, switched off in post_init ] ; the async sys_deps start condition = pre-start gate [ v7-zenki.callback.object.sys_deps -> sys_deps.probe -> handler.deps_install_reply \ debian ]. stage 3 = a NON-root zenka at run time : reuse the sys_deps state machine [ missing -> installing -> ok \ failed, install_timeout, retry_after ] and its debian reply handler, entered by the zenka request instead of the pre-start probe -- and refresh the cached state on that path'
+  details: |-
+    missing perl module at run time : the zenka asks v7-zenki, which verifies against the declared markers and installs through debian, start-up held meanwhile
+
+    placement [ owner pointer 2026-10-22 ] : this is auto-install STAGE 3. existing : stage 2 = v7-zenki.pre_init bootstrap [ root, synchronous before the loop, core modules, switched off in post_init ] ; the async sys_deps start condition = pre-start gate [ v7-zenki.callback.object.sys_deps -> sys_deps.probe -> handler.deps_install_reply \ debian ]. stage 3 = a NON-root zenka at run time : reuse the sys_deps state machine [ missing -> installing -> ok \ failed, install_timeout, retry_after ] and its debian reply handler, entered by the zenka request instead of the pre-start probe -- and refresh the cached state on that path
   done_at: null
   id: 4WM
   priority: normal
@@ -1653,9 +1731,12 @@ items:
   - v7-zenki
   - deps
   - security
-  text: 'missing perl module at run time : the zenka asks v7-zenki, which verifies against the declared markers and installs through debian, start-up held meanwhile'
+  text: 'missing perl module at run time : zenka asks v7-zenki to install'
 - added: 32DNBSNDCE
-  details: 'rule : data/ai-mem/claude/reference-host-and-domain-labels.md. derive : <p>-<d><c>, <c> = amos-chksum -T<d>%s -T<p>-<d>%s -T<P>-<d>%s -L1,<d> <name> [ ORDER fixed ], depth from 0 until free, offset + length <= checksum length [ amos 7 ; bmw-L13 13 ], then length 2. legacy one-char srv labels = plain -L1, no template. check : name + label -> recompute with the label digit. input : the list of labels already given [ the freeze rule ]. later : a keyed variant for a host-list zenka [ hides names fully ]'
+  details: |-
+    one shared label function : derive + check srv- \ dom- labels [ prefix, algorithm amos 7 \ bmw-L13 13, length, depth ] -- template order and limits in one place
+
+    rule : data/ai-mem/claude/reference-host-and-domain-labels.md. derive : <p>-<d><c>, <c> = amos-chksum -T<d>%s -T<p>-<d>%s -T<P>-<d>%s -L1,<d> <name> [ ORDER fixed ], depth from 0 until free, offset + length <= checksum length [ amos 7 ; bmw-L13 13 ], then length 2. legacy one-char srv labels = plain -L1, no template. check : name + label -> recompute with the label digit. input : the list of labels already given [ the freeze rule ]. later : a keyed variant for a host-list zenka [ hides names fully ]
   done_at: null
   id: RMI
   priority: normal
@@ -1663,9 +1744,12 @@ items:
   tags:
   - labels
   - amos
-  text: 'one shared label function : derive + check srv- \ dom- labels [ prefix, algorithm amos 7 \ bmw-L13 13, length, depth ] -- template order and limits in one place'
+  text: 'one shared label function : derive + check srv- \ dom- labels'
 - added: 32DND3HGJM
-  details: 'owner 2026-10-22 : ssh aliases matching the labels [ Host <alias> srv-U ] ; p-7-r keys pins by the name as typed [ ~/.n/remote-keys/known\servers, <host>_<port> ] -> a new alias would start a fresh trust-on-first-use. design : no pin under the typed name -> ssh -G <name> resolves HostName + port -> a pin that ANOTHER alias already holds for exactly that endpoint is reused [ e.g. linked ]. never more : no pin for the endpoint = the normal TOFU prompt ; a different key = the normal mismatch error ; never replaces a pin, never accepts a new key silently. do NOT key all pins by the resolved address [ a changed HostName would then TOFU silently instead of warning ]. an option switches it off [ one pin per name ]. first : read how p-7-r \ p7-link-upgrade-helper and the host-root pin [ servers\ ] key and look up pins'
+  details: |-
+    p-7-r follows ssh aliases to an existing pin [ default on, switchable ] -- label aliases like srv-U reuse the pin of the same endpoint
+
+    owner 2026-10-22 : ssh aliases matching the labels [ Host <alias> srv-U ] ; p-7-r keys pins by the name as typed [ ~/.n/remote-keys/known\servers, <host>_<port> ] -> a new alias would start a fresh trust-on-first-use. design : no pin under the typed name -> ssh -G <name> resolves HostName + port -> a pin that ANOTHER alias already holds for exactly that endpoint is reused [ e.g. linked ]. never more : no pin for the endpoint = the normal TOFU prompt ; a different key = the normal mismatch error ; never replaces a pin, never accepts a new key silently. do NOT key all pins by the resolved address [ a changed HostName would then TOFU silently instead of warning ]. an option switches it off [ one pin per name ]. first : read how p-7-r \ p7-link-upgrade-helper and the host-root pin [ servers\ ] key and look up pins
   done_at: null
   id: 6LM
   priority: normal
@@ -1674,9 +1758,12 @@ items:
   - p-7-r
   - pins
   - ssh
-  text: p-7-r follows ssh aliases to an existing pin [ default on, switchable ] -- label aliases like srv-U reuse the pin of the same endpoint
+  text: p-7-r follows ssh aliases to an existing pin [ default on ]
 - added: 32DNTX5GMI
-  details: 'coding.async.http_client scales the data-start timeout by est_prompt_tokens / prefill rate ; the rate was one gpu figure [ 1200 \ s ] -> every 4.6K token assessment on a cpu-only server [ srv-U ] hit the 120 s floor, retried once, failed [ 2026-10-22 ]. stop-gap : coding.cfg.prefill_tokens_per_sec_cpu [ default 15 ]. clean : llama-server sends timings [ prompt_n, prompt_ms, prompt_per_second ] in the final streamed chunk -- keep a per-backend, per-model running rate [ like coding.async.stream_tps for decode ], use it for the scaling, keep the configured value only as the first-run default'
+  details: |-
+    measure prefill + output rate, time to first token per backend and model from the llama-server timings [ last stream chunk ] ; size the data-start timeout and the round soft ceiling from them instead of configured guesses [ a cpu-only server needed round_soft_ceiling 777 in host.cfg, 2026-10-23 ] ; keep the records timestamped for the metrics graphs
+
+    coding.async.http_client scales the data-start timeout by est_prompt_tokens / prefill rate ; the rate was one gpu figure [ 1200 \ s ] -> every 4.6K token assessment on a cpu-only server [ srv-U ] hit the 120 s floor, retried once, failed [ 2026-10-22 ]. stop-gap : coding.cfg.prefill_tokens_per_sec_cpu [ default 15 ]. clean : llama-server sends timings [ prompt_n, prompt_ms, prompt_per_second ] in the final streamed chunk -- keep a per-backend, per-model running rate [ like coding.async.stream_tps for decode ], use it for the scaling, keep the configured value only as the first-run default
   done_at: null
   id: WFC
   priority: normal
@@ -1686,9 +1773,9 @@ items:
   - inference
   - timeouts
   - metrics
-  text: measure prefill + output rate, time to first token per backend and model from the llama-server timings [ last stream chunk ] ; size the data-start timeout and the round soft ceiling from them instead of configured guesses [ a cpu-only server needed round_soft_ceiling 777 in host.cfg, 2026-10-23 ] ; keep the records timestamped for the metrics graphs
+  text: measure prefill + ttft per backend and model from llama-server timings
 - added: 32D4HZW6NE
-  details: ''
+  details: jobsite assess watchdog asks task for the task's state before giving up ; re-arm while pending \ in progress
   done_at: null
   id: JMG
   priority: normal
@@ -1697,9 +1784,9 @@ items:
   - jobsite
   - coding
   - timeouts
-  text: jobsite assess watchdog asks task for the task's state before giving up ; re-arm while pending \ in progress
+  text: jobsite watchdog re-arms on pending \ in progress before giving up
 - added: 32D4HZXOPE
-  details: ''
+  details: "review the 15 reply handlers outside jobsite reading 'mode' \\ 'data' : TRUE \\ FALSE replies carry neither [ base.reply.mode_text ]"
   done_at: null
   id: 5UC
   priority: normal
@@ -1707,18 +1794,18 @@ items:
   tags:
   - protocol
   - replies
-  text: "review the 15 reply handlers outside jobsite reading 'mode' \\ 'data' : TRUE \\ FALSE replies carry neither [ base.reply.mode_text ]"
+  text: review 15 reply handlers outside jobsite reading mode \ data keys
 - added: 32D4TH6NFU
-  details: ''
+  details: 'ncode transform : continue the waves after an llm wave [ remaining_waves -- wave_reply answers after the first deferred wave, ncode.transform.run returns at it ]'
   done_at: null
   id: FMC
   priority: normal
   status: open
   tags:
   - ncode
-  text: 'ncode transform : continue the waves after an llm wave [ remaining_waves -- wave_reply answers after the first deferred wave, ncode.transform.run returns at it ]'
+  text: 'ncode transform : continue the waves after an llm wave [ wave_reply ]'
 - added: 32D4544YB4
-  details: ''
+  details: 'a task whose claimer is gone stays in_progress : a models restart left GVK25BY claimed and the jobsite watchdog waited on it [ release or fail claimed tasks of a disconnected claimer ]'
   done_at: null
   id: TDA
   priority: normal
@@ -1726,9 +1813,11 @@ items:
   tags:
   - task
   - models
-  text: 'a task whose claimer is gone stays in_progress : a models restart left GVK25BY claimed and the jobsite watchdog waited on it [ release or fail claimed tasks of a disconnected claimer ]'
+  text: task stays in_progress when its claimer is gone [ release or fail ]
 - added: 32D5BIXNLY
   details: |-
+    short host names without a search domain : nodes [ or a similar zenka ] keeps /etc/hosts entries for the own hosts ; a check warns when the host name's domain has a wildcard and resolv.conf lacks 'search .' [ srv-A resolved github.com to the wildcard, 2026-10-23 ]
+
     owner 2026-10-23 : with a better subdomain management the main wildcard goes ; wildcards only where a subdomain means it [ e.g. checksums resolved under one subdomain ] -- the main zone then answers NXDOMAIN for unknown names
     owner 2026-10-23 : the main wildcard is also the www. catch-all [ no www record wanted ]. when it goes : nameserv generates www as a CNAME to the apex from a zone option, not a hand-written entry ; httpd answers www. with a 301 to the bare domain
     owner 2026-10-23 : the wildcard lives in the registrar zone [ inwx answers ; our nameserv serves letsencr only ]. the delegation switch is prepared [ 6 NS entries, 3 per domain, in a config template ] and waits until our zones cover every important entry, MX included. so : the www option + the reduced wildcards are part of that switch's checklist, the registrar wildcard stays until then
@@ -1739,9 +1828,11 @@ items:
   tags:
   - nodes
   - dns
-  text: "short host names without a search domain : nodes [ or a similar zenka ] keeps /etc/hosts entries for the own hosts ; a check warns when the host name's domain has a wildcard and resolv.conf lacks 'search .' [ srv-A resolved github.com to the wildcard, 2026-10-23 ]"
+  text: 'short host names : nodes keeps /etc/hosts entries, wildcard warning'
 - added: 32D6BEPXII
   details: |-
+    login admission per data/md/design/LOGIN-ADMISSION.md : no token without tls, BMW-L13 tokens, per source limit, fair prioritized queue with prefix \ AS levels [ no shared budget : no dos lever ], geoloc range table [ local, no per-visitor queries ], forensics reads the failure records
+
     owner 2026-10-23 : geoloc zenki propagate their tables between servers [ one fetches, peers pull -- fast-wired neighbours first, srv-U -> srv-A ] ; modelled on nameserv zone sync 4CJ ; table + BMW checksum + source version, a peer keeps its previous table on mismatch. design section 4
     owner 2026-10-23 : every geoloc zenka may fetch, in phase-offset slots [ host-root id checksum mod interval + jitter ] ; at its slot first ask peers for a newer version, fetch only if none -- a blocked path to the source falls back to the next slot by itself ; newest source version wins
     owner 2026-10-23 : a new table version is announced to the peers at once [ version, source, checksum ] ; they pull and pass the notice on -- the slot is only the fallback ; a notice is a cue, the pull is checked
@@ -1754,9 +1845,12 @@ items:
   - auth
   - security
   - geoloc
-  text: 'login admission per data/md/design/LOGIN-ADMISSION.md : no token without tls, BMW-L13 tokens, per source limit, fair prioritized queue with prefix \ AS levels [ no shared budget : no dos lever ], geoloc range table [ local, no per-visitor queries ], forensics reads the failure records'
+  text: 'login admission per design doc : tls + tokens + fair prioritized queue'
 - added: 32D6BGN2IE
-  details: 'owner 2026-10-23 : not only by region -- by load and other context too : health [ never answer a down server ], load [ weight down ], capacity weight per server, maintenance \ draining state, which server offers the service ; all from our own servers over the zenka network [ no privacy question ], collected continuously, never per query ; ttl = reaction time, several ordered answers bridge it. design section 7'
+  details: |-
+    nameserv answers by region [ us server for north america, the german one for europe .. ] : geoloc country table [ RIR delegated stats, local ], EDNS Client Subnet when present else the resolver's address, short ttl + ecs scope, fallback server -- after the delegation switch [ 5W7 ] ; data/md/design/LOGIN-ADMISSION.md section 7
+
+    owner 2026-10-23 : not only by region -- by load and other context too : health [ never answer a down server ], load [ weight down ], capacity weight per server, maintenance \ draining state, which server offers the service ; all from our own servers over the zenka network [ no privacy question ], collected continuously, never per query ; ttl = reaction time, several ordered answers bridge it. design section 7
   done_at: null
   id: BPS
   priority: normal
@@ -1765,9 +1859,9 @@ items:
   - nameserv
   - geoloc
   - dns
-  text: "nameserv answers by region [ us server for north america, the german one for europe .. ] : geoloc country table [ RIR delegated stats, local ], EDNS Client Subnet when present else the resolver's address, short ttl + ecs scope, fallback server -- after the delegation switch [ 5W7 ] ; data/md/design/LOGIN-ADMISSION.md section 7"
+  text: 'nameserv answers by region : geoloc + EDNS Client Subnet [ after 5W7 ]'
 - added: 32D6PD4OLQ
-  details: ''
+  details: "repair the double-encoded job stock [ cause fixed in site-yaml.stepstone.job_from_html : it encoded the fetched page's raw bytes again before decode_json ] : jobsite plain files, the packed trash, the web zenka's copy -- title, company, city, description ; reverse only where latin1-encode + utf8-decode works losslessly [ jobsite.util.fix_encoding ], backup first ; YAML::XS escapes C1 bytes as \\x80 -- detect on the loaded strings, not the raw file"
   done_at: 32EL3UH7HQ
   id: 5M3
   priority: normal
@@ -1776,9 +1870,9 @@ items:
   - jobsite
   - site-yaml
   - encoding
-  text: "repair the double-encoded job stock [ cause fixed in site-yaml.stepstone.job_from_html : it encoded the fetched page's raw bytes again before decode_json ] : jobsite plain files, the packed trash, the web zenka's copy -- title, company, city, description ; reverse only where latin1-encode + utf8-decode works losslessly [ jobsite.util.fix_encoding ], backup first ; YAML::XS escapes C1 bytes as \\x80 -- detect on the loaded strings, not the raw file"
+  text: repair double-encoded job stock [ backup first ]
 - added: 32D6PKXELQ
-  details: ''
+  details: "salary unit : build_prompt calls every estimate 'jährlich brutto', 14 of 668 stored estimates are monthly-sized [ min 2476 ] and skewed their scores. read baseSalary + unitText [ MONTH \\ YEAR \\ HOUR ] from the JobPosting block too ; keep CESalary's period field [ store the whole block of the next page that has one, to learn its key ] ; size only as a marked fallback [ < ~15000 is not yearly ] ; the prompt states the unit as given ; reassess the 14"
   done_at: null
   id: O3O
   priority: normal
@@ -1787,9 +1881,9 @@ items:
   - jobsite
   - site-yaml
   - salary
-  text: "salary unit : build_prompt calls every estimate 'jährlich brutto', 14 of 668 stored estimates are monthly-sized [ min 2476 ] and skewed their scores. read baseSalary + unitText [ MONTH \\ YEAR \\ HOUR ] from the JobPosting block too ; keep CESalary's period field [ store the whole block of the next page that has one, to learn its key ] ; size only as a marked fallback [ < ~15000 is not yearly ] ; the prompt states the unit as given ; reassess the 14"
+  text: 'salary unit : read baseSalary unitText, reassess 14 monthly estimates'
 - added: 32D6TAGGIA
-  details: ''
+  details: "interim : assess srv-U's backlog on the local gpu [ one host at a time ] -- local jobsite assesses the same job set [ same site-yaml source ], pushes via jobsite.cfg.sync_urls to the remote https /jobs-sync with a jobsite-push token [ local host.cfg only ] ; srv-U's jobsite pauses assessing meanwhile [ find \\ add the switch ]. after kimi's admission queue"
   done_at: null
   id: M3K
   priority: normal
@@ -1798,9 +1892,9 @@ items:
   - jobsite
   - coding
   - gpu
-  text: "interim : assess srv-U's backlog on the local gpu [ one host at a time ] -- local jobsite assesses the same job set [ same site-yaml source ], pushes via jobsite.cfg.sync_urls to the remote https /jobs-sync with a jobsite-push token [ local host.cfg only ] ; srv-U's jobsite pauses assessing meanwhile [ find \\ add the switch ]. after kimi's admission queue"
+  text: "interim : assess srv-U's backlog on the local gpu, one host at a time"
 - added: 32D6TAGXCI
-  details: ''
+  details: "build multi-jobsite assessment per data/tasks/jobsite-sync-multiplex.md 'concurrent assessment' : partition by checksum over the present hosts, lease, staggered scans, presence heartbeat [ announced absence, lease as fallback ] ; plus the reverse fan-out"
   done_at: null
   id: 3MK
   priority: normal
@@ -1808,18 +1902,18 @@ items:
   tags:
   - jobsite
   - multi-host
-  text: "build multi-jobsite assessment per data/tasks/jobsite-sync-multiplex.md 'concurrent assessment' : partition by checksum over the present hosts, lease, staggered scans, presence heartbeat [ announced absence, lease as fallback ] ; plus the reverse fan-out"
+  text: 'multi-jobsite concurrent assessment : partition by checksum, lease'
 - added: 32D6TAHHDE
-  details: ''
+  details: 'host names left outside src : cfg comments [ cfg/zenki/jobsite/zenka.v7 line 55 ], data/tasks/*.md [ jobsite-sync-multiplex.md ] -- sweep cfg/ and data/tasks/ like the memory relabel, labels instead'
   done_at: null
   id: MUZ
   priority: normal
   status: open
   tags:
   - labels
-  text: 'host names left outside src : cfg comments [ cfg/zenki/jobsite/zenka.v7 line 55 ], data/tasks/*.md [ jobsite-sync-multiplex.md ] -- sweep cfg/ and data/tasks/ like the memory relabel, labels instead'
+  text: 'host names left outside src : sweep cfg/ and data/tasks/ for labels'
 - added: 32D6X7FEAM
-  details: ''
+  details: "drain for :twin: restarts : only the public-facing zenki have it [ httpsd .. ] -- site-yaml refused cube's drain [ no perm ], v7-zenki force-terminated it after 30 s. add drain support + the access line to the zenki that get twin restarts"
   done_at: 32EL3UHSOM
   id: TQA
   priority: normal
@@ -1827,9 +1921,11 @@ items:
   tags:
   - v7-zenki
   - restart
-  text: "drain for :twin: restarts : only the public-facing zenki have it [ httpsd .. ] -- site-yaml refused cube's drain [ no perm ], v7-zenki force-terminated it after 30 s. add drain support + the access line to the zenki that get twin restarts"
+  text: 'drain for :twin: restarts : add drain support to public-facing zenki'
 - added: 32D7BJOPDE
   details: |-
+    export date is not synced between jobsite instances : the export table entries exist on both [ checked with the date slider maxed ], only the last export date differs -- so the default since-last-export view differs. sync the last export date ; the rest of the prefs belongs to the reverse fan-out in 3MK
+
     2026-10-23 : the export date IS the same on both [ 1791932082, browser + server ] -- still 1 vs 9 export entries. so the job DATA differs [ stages \ timestamps changed on srv-U today, the local stock never learned of it ] : compare the 9 jobs between the stores [ stage, last_modified ], then the store sync [ 3MK ]
     2026-10-23 found : NO user state syncs between hosts -- export time [ JOBS_PREFS -> that host's jobsite.set-prefs, equal only by hand ], export marks [ exported_stage \ exported_at live only in the exporting host's web/jobs/*.yaml : local 9, pri 0 ], stage changes [ that host's jobsite only ]. a one-off copy desyncs at the next export -> real fan-out : every user change as a record { job, field, value, time, host }, newest-wins per field [ export time max-merge, marks keep batch epoch for undo ]. transport : the existing remote web endpoint is enough [ jobsite.cfg.sync_urls \ sync_tokens already push to several webs with per-url tokens, /jobs-sync is Bearer-gated + admission ] -- links [ ZYH ] optional. part of 3MK's reverse fan-out
     2026-10-23 owner : pri's report view shows 8 OLD entries with 'exclude sent' enabled -- the jobs of the last report sent to the jobcenter are not marked exported there [ marks only in the local web/jobs/ ]. the export marks [ exported_stage \ exported_at ] are the first records to fan out
@@ -1840,9 +1936,9 @@ items:
   tags:
   - jobsite
   - sync
-  text: 'export date is not synced between jobsite instances : the export table entries exist on both [ checked with the date slider maxed ], only the last export date differs -- so the default since-last-export view differs. sync the last export date ; the rest of the prefs belongs to the reverse fan-out in 3MK'
+  text: 'jobsite : sync the last export date between instances'
 - added: 32D7BJO5GQ
-  details: ''
+  details: "models claims from a configurable task zenka [ models.cfg.task_zenka, e.g. external.srv-U.task ] : the local gpu models then claims srv-U's assessment tasks beside srv-U's own [ task.claim is atomic : no double work ] ; needs an external link local -> srv-U + grants for task.claim \\ complete \\ queue + the task notice ; restart local coding first [ old code ]. before 5M3"
   done_at: null
   id: ZYH
   priority: normal
@@ -1851,9 +1947,9 @@ items:
   - models
   - task
   - gpu
-  text: "models claims from a configurable task zenka [ models.cfg.task_zenka, e.g. external.srv-U.task ] : the local gpu models then claims srv-U's assessment tasks beside srv-U's own [ task.claim is atomic : no double work ] ; needs an external link local -> srv-U + grants for task.claim \\ complete \\ queue + the task notice ; restart local coding first [ old code ]. before 5M3"
+  text: models claims from configurable task zenka [ needs external link ]
 - added: 32EK546DG4
-  details: ''
+  details: "mail queue assessments as a second task workload for the gpu workers [ local + yourum, beside the job assessments from srv-U's task queue -- ZYH ] : ncode style pattern db as accelerator, the model only for what the patterns leave open ; feasibility proven by the owner, mail volume is low. after ZYH works end to end"
   done_at: null
   id: RTY
   priority: normal
@@ -1863,9 +1959,9 @@ items:
   - task
   - gpu
   - models
-  text: "mail queue assessments as a second task workload for the gpu workers [ local + yourum, beside the job assessments from srv-U's task queue -- ZYH ] : ncode style pattern db as accelerator, the model only for what the patterns leave open ; feasibility proven by the owner, mail volume is low. after ZYH works end to end"
+  text: mail queue assessments as second gpu workload [ after ZYH works ]
 - added: 32ELBV5JOE
-  details: ''
+  details: "assessment history per job [ with 3MK : data/tasks/jobsite-sync-multiplex.md ] : 1. a job keeps a LIST of assessments [ score, text, model key, host, time ], the current verdict plus refs [ checksum, model, score, reason : merged \\ reviewed \\ re-assessed ] to the replaced ones. 2. replaced results packed per job [ jobs/assessments/<id>/<checksum>.yxz.B32, the jobs trash pattern ] + jobsite.assessment-history \\ assessment-restore [ restore moves the displaced verdict in too ]. 3. after jobsite.cfg.assessment_trash_epochs [ default 2 ] they move on into the regular trash and its prune ; the refs stay in the job record [ agreement statistics per model pair survive the text ]. 4. merge : same side of jobsite.cfg.threshold and < jobsite.cfg.merge_gap [ 2 ] apart -> fixed rule, preferred model's text ; otherwise status review + a :review: task that sees both and writes its own verdict. keep a small sample of deliberate double assessments after partitioning [ model drift check, yourum's smaller model ]"
   done_at: null
   id: H2N
   priority: normal
@@ -1874,9 +1970,9 @@ items:
   - jobsite
   - assessment
   - sync
-  text: "assessment history per job [ with 3MK : data/tasks/jobsite-sync-multiplex.md ] : 1. a job keeps a LIST of assessments [ score, text, model key, host, time ], the current verdict plus refs [ checksum, model, score, reason : merged \\ reviewed \\ re-assessed ] to the replaced ones. 2. replaced results packed per job [ jobs/assessments/<id>/<checksum>.yxz.B32, the jobs trash pattern ] + jobsite.assessment-history \\ assessment-restore [ restore moves the displaced verdict in too ]. 3. after jobsite.cfg.assessment_trash_epochs [ default 2 ] they move on into the regular trash and its prune ; the refs stay in the job record [ agreement statistics per model pair survive the text ]. 4. merge : same side of jobsite.cfg.threshold and < jobsite.cfg.merge_gap [ 2 ] apart -> fixed rule, preferred model's text ; otherwise status review + a :review: task that sees both and writes its own verdict. keep a small sample of deliberate double assessments after partitioning [ model drift check, yourum's smaller model ]"
+  text: 'assessment history per job [ with 3MK ] : keep, pack, merge verdicts'
 - added: 32ELP2OOCI
-  details: ''
+  details: "letsencr parent -> child : param.public_addresses [ arrayref ] never reached the child -- route-send sent single-line, param dropped ; letsencr.child.cmd.verify-domain always saw [] . send.local now logs 'args set, param \\ data not sent' for these 5 callers [ process_new_domains, request-certificate, handler_enrollment_retry, handler_enroll_verify_reply, queue_renewal_requests ]. fix : domain as a param, addresses space-joined, no args -> multi-line"
   done_at: null
   id: 3RS
   priority: normal
@@ -1884,9 +1980,9 @@ items:
   tags:
   - letsencr
   - protocol
-  text: "letsencr parent -> child : param.public_addresses [ arrayref ] never reached the child -- route-send sent single-line, param dropped ; letsencr.child.cmd.verify-domain always saw [] . send.local now logs 'args set, param \\ data not sent' for these 5 callers [ process_new_domains, request-certificate, handler_enrollment_retry, handler_enroll_verify_reply, queue_renewal_requests ]. fix : domain as a param, addresses space-joined, no args -> multi-line"
+  text: 'letsencr parent -> child : send addresses as param, multi-line'
 - added: 32ENRUHOKM
-  details: ''
+  details: "bin/test-scripts/test-web-auth-gate.pl dies : 'Can't use an undefined value as a subroutine reference at httpd.route.handler.web-relay line 46' -- fails on HEAD 0c9478f48 too, likely since the 6CJ admission gate [ a stub the harness lacks ]"
   done_at: null
   id: SN3
   priority: normal
@@ -1894,9 +1990,9 @@ items:
   tags:
   - test
   - httpd
-  text: "bin/test-scripts/test-web-auth-gate.pl dies : 'Can't use an undefined value as a subroutine reference at httpd.route.handler.web-relay line 46' -- fails on HEAD 0c9478f48 too, likely since the 6CJ admission gate [ a stub the harness lacks ]"
+  text: test-web-auth-gate.pl dies at web-relay line 46 [ since 6CJ gate ]
 - added: 32EN5WGRH4
-  details: ''
+  details: 'jobsite dispatches assessments strictly one at a time [ dispatch.release_slot -> dispatch.next ] -- so a remote claimer [ ZYH : local models on external.pri.task, live 2026-10-23 ] never sees a second pending task. add jobsite.cfg.assess_parallel [ N tasks in flight, default 1 ] ; pending_count \ watchdog \ release_slot per job already. then the local gpu takes every 2nd job'
   done_at: null
   id: XNB
   priority: normal
@@ -1905,9 +2001,9 @@ items:
   - jobsite
   - models
   - task
-  text: 'jobsite dispatches assessments strictly one at a time [ dispatch.release_slot -> dispatch.next ] -- so a remote claimer [ ZYH : local models on external.pri.task, live 2026-10-23 ] never sees a second pending task. add jobsite.cfg.assess_parallel [ N tasks in flight, default 1 ] ; pending_count \ watchdog \ release_slot per job already. then the local gpu takes every 2nd job'
+  text: 'jobsite : assess_parallel config for N tasks in flight [ default 1 ]'
 - added: 32EOF5PALQ
-  details: ''
+  details: "address family memory for outgoing connects [ with link stage 3 'af = auto' ] : per destination + family remember connect success \\ failure [ ttl ~1 h ], order the addresses so a recently failed family goes last, first attempt with a short connect timeout [ happy eyeballs light ] -- one module for clients.http\\https.request, link transports, io.ip.tcp.output.open ; record 'af' stays a forced override. DoS-safe by design : only this process's OWN connect results count [ no failure reports from other zenki or the network ] ; a family is only ever DEMOTED [ tried later ], never removed -- every address is still tried, so failures on both families can never lock a destination out ; bounded table [ lru ], entries expire ; a success clears the mark at once"
   done_at: null
   id: KEP
   priority: normal
@@ -1916,9 +2012,9 @@ items:
   - net
   - link
   - dos
-  text: "address family memory for outgoing connects [ with link stage 3 'af = auto' ] : per destination + family remember connect success \\ failure [ ttl ~1 h ], order the addresses so a recently failed family goes last, first attempt with a short connect timeout [ happy eyeballs light ] -- one module for clients.http\\https.request, link transports, io.ip.tcp.output.open ; record 'af' stays a forced override. DoS-safe by design : only this process's OWN connect results count [ no failure reports from other zenki or the network ] ; a family is only ever DEMOTED [ tried later ], never removed -- every address is still tried, so failures on both families can never lock a destination out ; bounded table [ lru ], entries expire ; a success clears the mark at once"
+  text: address family memory for outgoing connects [ happy eyeballs light ]
 - added: 32EO3HXFCU
-  details: ''
+  details: "jobsite.progress overcounts after deletes : jobsite.job.trash [ web delete \\ jobsite.delete ] drops the task record but the queue entry keeps its pending_count slot until dispatch reaches and skips it [ dispatch.consume_slot ] -- owner saw 17 remaining with 2 real, dropping fast. fix : job.trash removes the job's queued entry and releases its slot at once [ same consume_slot path, cycle -> idle at 0 ]"
   done_at: null
   id: FVO
   priority: normal
@@ -1926,9 +2022,9 @@ items:
   tags:
   - jobsite
   - ui
-  text: "jobsite.progress overcounts after deletes : jobsite.job.trash [ web delete \\ jobsite.delete ] drops the task record but the queue entry keeps its pending_count slot until dispatch reaches and skips it [ dispatch.consume_slot ] -- owner saw 17 remaining with 2 real, dropping fast. fix : job.trash removes the job's queued entry and releases its slot at once [ same consume_slot path, cycle -> idle at 0 ]"
+  text: 'jobsite.progress overcounts after deletes : release slot on job.trash'
 - added: 32EPXCEMLM
-  details: ''
+  details: "models.cfg.task_zenka as a LIST of task zenki [ e.g. 'task external.pri.task', later fed dynamically over a channel ] : since ZYH live 2026-10-24 local models polls only external.pri.task, so local jobsite's own tasks are never claimed [ 'peek BYQSQFQ : no task details, left alone', the local cycle hangs in assessing ]. claim from every listed zenka, peek \\ subscribe per entry ; with assess_parallel on pri this is the gpu accelerator path"
   done_at: null
   id: HWO
   priority: normal
@@ -1937,9 +2033,9 @@ items:
   - models
   - task
   - zyh
-  text: "models.cfg.task_zenka as a LIST of task zenki [ e.g. 'task external.pri.task', later fed dynamically over a channel ] : since ZYH live 2026-10-24 local models polls only external.pri.task, so local jobsite's own tasks are never claimed [ 'peek BYQSQFQ : no task details, left alone', the local cycle hangs in assessing ]. claim from every listed zenka, peek \\ subscribe per entry ; with assess_parallel on pri this is the gpu accelerator path"
+  text: 'models.cfg.task_zenka as list : claim from every listed task zenka'
 - added: 32EYJHOWMU
-  details: ''
+  details: "coding seed-retry leaves the cpu backend at status restart_needed : after a failed startup self-test [ cat-test 2/3 ] defer_seed_restart respawns the server, the new one runs healthy [ /health ok ] but no new self-test runs and the status stays restart_needed -- every job then waits in the 'depending' queue forever [ pri 2026-10-24, task NSRV3FA ]. the respawn must re-run monitor_startup \\ self_test and reset the status"
   done_at: null
   id: VNN
   priority: normal
@@ -1947,10 +2043,10 @@ items:
   tags:
   - coding
   - inference
-  text: "coding seed-retry leaves the cpu backend at status restart_needed : after a failed startup self-test [ cat-test 2/3 ] defer_seed_restart respawns the server, the new one runs healthy [ /health ok ] but no new self-test runs and the status stays restart_needed -- every job then waits in the 'depending' queue forever [ pri 2026-10-24, task NSRV3FA ]. the respawn must re-run monitor_startup \\ self_test and reset the status"
+  text: 'cpu backend stuck at restart_needed after seed-retry : re-run self-test'
 
-#,,,.,.,.,...,,.,,...,..,,,..,,,,,.,,,,.,,...,..,,...,...,.,.,,.,,,,.,..,,,,.,
-#M7V5LSRKFPXMR47UGZ4FTMBW6EU7Z7CZY66SEG5ED2UZ2EQLAF3O5LUKTDAYER46H52RXLIJXOCSM
-#\\\|NPZCJS6H3YZM6P27HCP6WXXVXEMWYMNWS26HY6ETEGAMXBQ2OEZ \ / AMOS7 \ YOURUM ::
-#\[7]B3GMWYRDSTARMIK2ZYMI76564S7CEIUQ7CMD3PKK2D3PBYGS4QBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,.,,,,..,.,.,...,,.,,...,..,,..,,...,...,,.,,,,,,.,.,...,...,
+#EFEQS37UWQV7ORVZYIZEC4PBF2GQUC7YH4VDEHZ6NNFF77MXBNUIF45NKB6ZJRT2ZKJPOBARTQGMQ
+#\\\|UFS62QBEXLO5KFNQ4ZU2MDK4B3DVGNIS5I63BE7GVIC6XPTQIJX \ / AMOS7 \ YOURUM ::
+#\[7]3YZU7ZY2XKCVT7XXLJGEJQTRWMWJMFGPBHQ3PPH7RB7BGZ4FQYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
