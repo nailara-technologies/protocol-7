@@ -28,6 +28,9 @@ last commit 342104878 [ servers on 10fb5efad + comment-only 342104878 pending pu
   jobsite.scan [ srv-U events.load_config = jobsite, rescan_interval 0 ],
   verified by events.trigger_event
 
+- 08ab710b8 start_once :wait-up: \\ :wait-down: [ waiter first ], an error
+  end replies FALSE + exit code ; deploy : start_once :wait-down: pull-git
+
 ## live state
 
 - srv-A : cpu worker, link label = its host name, claims srv-U's
@@ -48,11 +51,15 @@ last commit 342104878 [ servers on 10fb5efad + comment-only 342104878 pending pu
    protocol.protocol-7.init_code ] ; test-v7-zenki-host-zenki.pl 1 old fail
 6. 9406bea69 names a host in message + diff [ owner : history rewrite? ] ;
    cloud branch dev/format-code-cfg-mode can be deleted
-7. older : tool-call hang in coding, per-model sampler, dead
+7. step-wise next : restart :wait-up:, terminate :wait-down:, then
+   notify_online :start: [ an observer with a start option, like the one
+   dropped from notify_offline ] ; design topic : who may start what
+   [ grants are per command, not per argument \\ target zenka ]
+8. older : tool-call hang in coding, per-model sampler, dead
    coding.tools.handler.edit_file, open-layer sweep, 3MK RTY H2N
 
-#,,..,.,,,,..,..,,.,.,,,.,...,,.,,,..,,,.,..,,..,,...,..,,...,.,,,.,,,...,.,.,
-#KZ7C7Z7KEBQ43S53XRBOFNV26VNGHDFZIMYZR43IUEGZKROBDUNH3DKKUE6JZZQ4MYKW7TVU6BXNS
-#\\\|NQR6KUBYUQ4A3VPSCSHRZ7CAXODNRSKKZUIGQRQU6K5CBHPUKJG \ / AMOS7 \ YOURUM ::
-#\[7]3ENMH5TGMLKSILMPIWPREHNLIX23JDNP3MRR6RNHYFO2EQ5NWCDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,.,..,,.,.,,,.,,,,,,,,,...,,,.,..,,...,...,...,.,.,,,.,,..,...,
+#LUHH7ZFLXIJ5I2QLLAWPE5ZCNBG7EWKSU5PTBDRNQXK5XHBDQLHHAIR4ZWRCUETCI7ER6PXLHWP5A
+#\\\|4SXGCWQDZLGMKJTHJWH7CJJ3C4ENSOWGTWKSQ4SVOGGS3JS2LTQ \ / AMOS7 \ YOURUM ::
+#\[7]EH3VA23TTJNABVIDFHAW5QBQA3VUHNUWDKLDF5FVIE72X7EJ7SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
