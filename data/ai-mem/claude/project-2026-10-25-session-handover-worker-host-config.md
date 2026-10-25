@@ -51,15 +51,18 @@ last commit 342104878 [ servers on 10fb5efad + comment-only 342104878 pending pu
    protocol.protocol-7.init_code ] ; test-v7-zenki-host-zenki.pl 1 old fail
 6. 9406bea69 names a host in message + diff [ owner : history rewrite? ] ;
    cloud branch dev/format-code-cfg-mode can be deleted
-7. step-wise next : restart :wait-up:, terminate :wait-down:, then
+7. step 2 DISPATCHED to kimi [ session f1b781d1-0e9b-4f20-b3e2-2beb566bd77a,
+   uncommitted in the tree when it ends ] : restart :wait-up:, terminate
+   :wait-down:, subname strip -- review its diff + test table, check no
+   access grant was added, then the owner's sign run. after that :
    notify_online :start: [ an observer with a start option, like the one
    dropped from notify_offline ] ; design topic : who may start what
    [ grants are per command, not per argument \\ target zenka ]
 8. older : tool-call hang in coding, per-model sampler, dead
    coding.tools.handler.edit_file, open-layer sweep, 3MK RTY H2N
 
-#,,,.,,,,,,,.,,,.,..,,.,.,,,.,,,,,,,,,...,,,.,..,,...,...,...,.,.,,,.,,..,...,
-#LUHH7ZFLXIJ5I2QLLAWPE5ZCNBG7EWKSU5PTBDRNQXK5XHBDQLHHAIR4ZWRCUETCI7ER6PXLHWP5A
-#\\\|4SXGCWQDZLGMKJTHJWH7CJJ3C4ENSOWGTWKSQ4SVOGGS3JS2LTQ \ / AMOS7 \ YOURUM ::
-#\[7]EH3VA23TTJNABVIDFHAW5QBQA3VUHNUWDKLDF5FVIE72X7EJ7SAI 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,,,.,,..,,,.,,..,,,.,,,.,,,,,..,,...,...,,..,..,,,,,,,..,.,.,
+#FPSO3GZ6XIIANWMU2CG2SBZ4SPTE7UGWNW7SGFF26LFWEFPM7BKS2YQSVWE3GDY5ZQ65UH3PSLOUW
+#\\\|WBARFORMXKPC7VIFO53F7O6CYDMFKVUKPO4QMOXZQ2WMYSAZF6E \ / AMOS7 \ YOURUM ::
+#\[7]DVXEI7NX25WYWLK2SXT3TWG7RFGES5TRBKGH65U3LCVORKC454CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

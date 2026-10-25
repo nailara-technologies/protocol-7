@@ -1,10 +1,13 @@
 ## [:< ##
 
 # name  = v7-zenki.zenka.cmd.terminate
-# param = <name[s]|instance[s]>
+# param = [:wait-down:] <name[s]|instance[s]>
 # descr = [manually] shutdown zenka instance[s]
+# note  = :wait-down: registers a notify_offline waiter first, then
+#         terminates ; replies once the instance is down
 
-my $params = $call->{'args'} // '';
+my $params    = $call->{'args'} // '';
+my $wait_down = ( $params =~ s{^:wait-down:\s+}{} ) ? 1 : 0;
 return {
     'mode' => qw| false |,
     'data' => 'expected zenka name or instance id'
@@ -69,6 +72,17 @@ return {
         $not_found_name )
     }
     if $not_found;
+
+if ($wait_down) {
+    if ( not @instance_ids ) {
+        return {
+            'mode' => qw| true |,
+            'data' => sprintf( 'zenka %s is not online.', $params )
+        };
+    }
+    ## register the shutdown waiter before terminating ##
+    push <v7-zenki.zenka.notify_offline>->{$params}->@*, $call->{'reply_id'};
+}
 
 ## de-duplicate : a name can be given more than once in the same command [  ##
 ## e.g. "terminate X-11 X-11" to target 2 distinct instances sharing one    ##
@@ -173,6 +187,9 @@ return {
     }
     if not $setup_found and $not_found;
 
+return { 'mode' => qw| deferred | }
+    if $wait_down and $count;
+
 if ($count) {
     return { 'mode' => qw| true |, 'data' => $msg_str };
 } else {
@@ -200,8 +217,8 @@ if ($count) {
     };
 }
 
-#,,.,,,,,,..,,...,.,,,.,.,...,.,,,..,,.,.,,,.,..,,...,...,...,..,,.,,,,..,.,,,
-#7WODGBDU22P24QXDI3PZ246DECPHYB4MXLH742R64KL5642ZT4NEK3EQB5Y5QKIBQKCM5KSASSE6K
-#\\\|43TUBXLZN4XWDCPCND7XMQRXN22FYACARRCTP2AECM2FQT52ANT \ / AMOS7 \ YOURUM ::
-#\[7]PY3K3CRXVJF6LHMJCHUERN7D572RWLTFWZOZNGHN6FP2GVKMT4CI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,...,,..,.,,,.,.,..,,,..,...,..,,...,...,..,,.,,,..,,.,.,,..,
+#JYMU57VZS6JT7L7TI64WU37WR5XVXU3TS64IFDPM3773C5NHXR7XA345TLPP2RR3NYTYTYONJYSDS
+#\\\|CSCBCZK7JA7ZM52IVQS5GWP6BAH75M4MGEC4AMQAT4C6D2ZCPC2 \ / AMOS7 \ YOURUM ::
+#\[7]JAK3DXTNDZJ5TBHPJAQ2J3JFQZLSMRRAV2TIR3VBZL7UH4IHHUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
