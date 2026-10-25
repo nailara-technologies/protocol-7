@@ -23,10 +23,15 @@ by controlled experiments [ Perl fork/exec repro of _kimi_fork_run ] :
   exec was never identified [ kimi CLI MCP-spawn env handling suspected ;
   kimi_cli pkg itself has no no_proxy code ] . the sanitizer makes the
   injection moot either way.
-- also observed : /etc/environment has a malformed `ALL_PROXY=socks5//…`
-  [ missing colon ] and .bashrc builds no_proxy dynamically with
-  `$(hostname -I …)` [ bare IPv6 on WSL ] — both are fine for httpx but
-  are landmines for stricter parsers.
+- RESOLVED 2026-10-25 [ owner ] : the literal `::1` entry in ~/.bashrc's
+  no_proxy builder was the v6 source at the head of the chain and was
+  removed :
+  `export no_proxy=localhost,127.0.0.1$(hostname -I 2>/dev/null | tr -s ' ' '\n' | sed '/^$/d; s/^/,/' | tr -d '\n')`
+  [ bare ::1 alone did not crash httpx in controlled tests — the exact
+  bracketing injector stayed unproven — but with .bashrc cleaned, the MCP
+  spawn env scrubbed, and _sanitize_agent_env live, every path is closed ].
+- RESOLVED 2026-10-25 [ owner ] : /etc/environment's malformed
+  `ALL_PROXY=socks5//10.0.110.7:1040` fixed to `socks5://10.0.110.7:1040`.
 
 **FIX APPLIED [ bin/mcp-server-p7, syntax-checked ]** : new
 `_sanitize_agent_env()` deletes every `^(https?|all|no)_proxy$`i var from
@@ -47,8 +52,8 @@ works for manual dispatches [ reads session state, spawns nothing ] ;
 kimi_continue MCP spawns and needs the same env treatment manually via
 `kimi-legacy -r <uuid>` until the restart.
 
-#,,,,,,..,,,,,,.,,.,.,,..,,.,,,,,,,,.,,,.,.,.,.,.,...,...,...,,,,,,,,,.,.,..,,
-#4T6RFLHZFWSYIDE272VUW23322OCVU7M32OCIRWZTQKZPJ5RL3GALAZ4TOAICCT4DEGCTFO7LD7YK
-#\\\|CHXCJ4NTSIQW7J5UQRMNGJSLNUHYVMEXOTX54N7YDU4N5V6EACF \ / AMOS7 \ YOURUM ::
-#\[7]HHJLJXAEDOKCRM2Q55Q4D6W5DROU6NP52IMFI6Q2FPX5NIWAUMDA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,..,,,,,,...,...,.,,,..,,...,.,,,.,.,...,...,...,..,,.,.,.,.,.,,,
+#WNA23LYYOXB6WHCQPZO7XYJNX32AQD4NWTXKEIJ4IPEYS6VPZZXJEJ4HTQZIP6UKJDKL5DT2A2JU2
+#\\\|3IBLXVVNEYP6HTVBKV3QBXNJQJR5TG6IKCY3A6SUJ2E5WERBKAN \ / AMOS7 \ YOURUM ::
+#\[7]BEQZZDRBYXXRJKVQIV56VQA43HHSD7KQTPWJHU2R7AS7QYUBIYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
