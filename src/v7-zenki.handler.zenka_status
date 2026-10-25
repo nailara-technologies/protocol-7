@@ -126,6 +126,12 @@ if (    ( $status eq qw| online | or $status eq qw| extbin | )
 }
 
 $instance->{'status'} = $status;
+
+## a running instance clears any remembered end state [ restart reuses the  ##
+## instance record : a stale 'terminated' must not shadow a later clean end ##
+## for notify_offline waiters ]                                             ##
+delete $instance->{'terminated'}
+    if $status eq qw| online | or $status eq qw| extbin |;
 <[base.logs]>->(
     "instance %d %-9s %8s --> %s",
     $instance_id,
@@ -197,6 +203,9 @@ if ( $old_status ne qw| error | and $status eq qw| error | ) {
     ## that path transitions straight to 'offline' before returning, so    ##
     ## nothing ever observes 'error' + stale restart_pending together      ##
     $instance->{'restart_pending'} = TRUE;
+    ## remember the outcome for notify_offline waiters [ an exit code ##
+    ## recorded by v7-zenki.process_zenka_end takes precedence ]      ##
+    $instance->{'terminated'} //= { 'status' => qw| error | };
     $instance->{'ondemand-consecutive-failures'}++;
     $instance->{'restart_delay'}
         = sprintf( '%.2f', $instance->{'restart_delay'} * 1.2 );
@@ -414,15 +423,26 @@ foreach my $name_or_id (@check_keys) {
         : sprintf( qw| '%s' |, $name_or_id );
     if ( exists <v7-zenki.zenka.notify_offline>->{$name_or_id}
         and $status eq qw| shutdown | ) {
-        map {
-            <[base.callback.cmd_reply]>->(
-                $ARG,
-                {   'mode' => qw| true |,
-                    'data' =>
-                        sprintf( 'instance %s is terminated', $name_str )
-                }
-            );
-        } <v7-zenki.zenka.notify_offline>->{$name_or_id}->@*;
+        ## an error end                                                     ##
+        ## [ recorded on the instance record before it reached 'shutdown' ] ##
+        ## replies FALSE with how it ended ; a clean end stays TRUE         ##
+        my $terminated = $instance->{'terminated'};
+        my $offline_reply
+            = ( defined $terminated
+                and $terminated->{'status'} eq qw| error | )
+            ? {
+            'mode' => qw| false |,
+            'data' => defined $terminated->{'exit'}
+            ? sprintf( 'instance %s terminated [ exit : %d ]',
+                $name_str, $terminated->{'exit'} )
+            : sprintf( 'instance %s terminated [ error ]', $name_str )
+            }
+            : {
+            'mode' => qw| true |,
+            'data' => sprintf( 'instance %s is terminated', $name_str )
+            };
+        map { <[base.callback.cmd_reply]>->( $ARG, $offline_reply ); }
+            <v7-zenki.zenka.notify_offline>->{$name_or_id}->@*;
         delete <v7-zenki.zenka.notify_offline>->{$name_or_id};
     }
     if ( exists <v7-zenki.zenka.notify_online>->{$name_or_id} ) {
@@ -670,8 +690,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,..,,,.,,,.,...,,.,,.,,,,,,,.,,,...,,,.,..,,..,,...,..,,,,,,.,.,,.,,.,.,...,
-#XPDNVQC26KMDDQIMIQRJADWJ4YUGBILTNOI6ZXG75G4KK73FXJSDP37MPY2T7P7VCVSYB3LMPVOLC
-#\\\|U2Z5WMXZLN33ZDTJWPH64KVSOWIIHA3NVDMSTNFDCOKQPXPL6I6 \ / AMOS7 \ YOURUM ::
-#\[7]4NDPBTD6HHGF6VCDFMHXR2I6HUJE72D3HGBG4INEH3PSUGMOFGAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,.,,..,,..,,.,.,.,.,.,,,,.,,,,.,..,,...,...,.,,,.,,,.,.,,,.,..,,
+#D63PIHOOTWUQYAXP2555TKOMLOOADEXVI3ACYKL5ZTPXBWQ5W4XQJBFL2PCJ3T4M6YDBXU4WJVX7C
+#\\\|MT63U57QOQDG3LMGGOFGFHKQLDC5SQZCTFOXTNSCKIDBHH3DN62 \ / AMOS7 \ YOURUM ::
+#\[7]4RLKG4ZY3M3RUMPZXZMCIEQB2SSIQB4LHXZYGJO5LBJ65RGVMGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

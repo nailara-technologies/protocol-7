@@ -5,10 +5,11 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [project-2026-10-25-session-handover-worker-host-config](project-2026-10-25-session-handover-worker-host-config.md) — START HERE : srv-A worker live, gpu offloading done, host-config overlays, encrypted swap everywhere, minimal profile, format-code cfg mode, hourly jobsite-scan ; next N7FS
 - [project-2026-10-24-srv-a-third-worker](project-2026-10-24-srv-a-third-worker.md) — srv-A = srv-U's 3rd cpu worker [ link label = host name, assess_parallel 3 ] ; twofish random-key swap srv-A + srv-U ; mem_max scope fixed for non-root [ 9406bea69 ] ; task.create+ double-encodes ; open : first live assessment, srv-U reboot test
 - [project-2026-10-24-local-model-edit-comparison](project-2026-10-24-local-model-edit-comparison.md) — 35b + 14b exact on a 4-line edit, 9b 1 of 4 + false 'done' ; cat test = safety avoidance ; edit_file indentation fix [ 3c9a18d32 ] ; open : coding tool hang, per-model sampler, dead handler.edit_file
 - [project-2026-10-24-delta-link-managed](project-2026-10-24-delta-link-managed.md) — pri -> delta fetch link SUPERVISED [ delta.json record + ssh-w, by-hand tunnel gone ] ; jobsite fetched stream retry [ 7390c154d ] ; `reload source` skips init_code -> `reload init`
-- [project-2026-10-24-session-handover-link-live-ids-qlk](project-2026-10-24-session-handover-link-live-ids-qlk.md) — START HERE : link pri live, ids encoded once, QLK closed, distributed assessment live [ local gpu claims pri tasks ], next yourum 3rd worker
+- [project-2026-10-24-session-handover-link-live-ids-qlk](project-2026-10-24-session-handover-link-live-ids-qlk.md) — previous handover : link pri live, ids encoded once, QLK closed, distributed assessment live [ local gpu claims pri tasks ], next yourum 3rd worker
 - [project-2026-10-23-session-handover-admission-drain-repair-zyh](project-2026-10-23-session-handover-admission-drain-repair-zyh.md) — START HERE [ last ca5b4e177 + uncommitted handover ] : 6CJ admission live, TQA drain, 5M3 applied srv-U, ZYH code in but waits for the managed link [ kimi 9979563b, resume on k2.8 ], QLK = no cross-host user state sync
 - [project-2026-10-22-session-handover-j5f-multiline-files](project-2026-10-22-session-handover-j5f-multiline-files.md) — previous handover [ last 1c52db2c1, history REWRITTEN ] : J5F multi-line p7c + coding.input.decode, parser fixes, templates ; designs FILES-ZENKA + SIGNED-STATEMENTS ; cpu-only assessment stall fixed [ CHECK srv-U completed > 0 first ] ; commit messages relabelled srv-<x> ; todos FKS VWF T3I C6U 4WM RMI
 - [project-2026-10-22-session-handover-remote-fetch-link](project-2026-10-22-session-handover-remote-fetch-link.md) — previous handover [ last b6a6ed425 ] : remote fetch srv-U -> srv-V WORKS [ link by hand ], cert + nameserv 0x20 + sync fixes, optional deps, web secret rotated ; next : coding depending queue, permanent link, 3 cloud docs pending
@@ -218,8 +219,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [auth-watcher-add-incoming](project-2026-10-16-auth-watcher-add-incoming.md) — 2026-10-16 day [ superseded by session-handover-installer-cloud ; holds the PLAN steps 1-7 + style rules ] : taeki auth live on 4 servers, cube inotify re-read of authorized keys, dep-graph plugin scoping [ -954 eager subs ], p7-keys add-incoming ; OPEN : push+pull d5ce1a7cb + srv-U incident test, unit srv-U\srv-F, 4ZW
 - [session-handover-installer-cloud](project-2026-10-17-session-handover-installer-cloud.md) — START HERE 2026-10-17 [ last 5c09e923b ] : deps line done [ frame, tracked, backend, p7-install, p7-deps restyled ], cloud dispatch working [ pty, launch clone, push path ] ; OPEN : root runner, debs + signed repo, legacy scripts, cloud tool polish
 
-#,,..,..,,,..,,,.,,.,,,,,,.,,,,,.,.,,,..,,.,.,..,,...,...,...,.,,,.,,,.,,,...,
-#OWVW62FLVMNC77K7MYQXBN46TBWB3JGR2JUDFH2HOWIPHD5NKDLCSZOFYM3OF5BDZOSE36PD6CUD4
-#\\\|V65CEOONKMM4OUYIXY7JJMOD2HABSATU3XILLBXIXW4XLLDMK5S \ / AMOS7 \ YOURUM ::
-#\[7]OECVNF4BKA3MHNYTWTAR7Y5GEJOCFCEONFTT5VGRBX5ODJ2R64AA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,,,.,,,.,...,,.,,,,.,...,,,.,..,,...,...,...,,,.,..,,...,.,,,
+#43KSOXGNIFC25ZKJS5IXZMF5PL65WSGFVGOS7SY4NCQFK3EIJQBU2XZJL3RSTFHV7B6J74GASIYJK
+#\\\|XAOKIYYE5FQ5F46YP4AYR3HVIFVJBFQFBWLE2A4STQZ5XMICQRR \ / AMOS7 \ YOURUM ::
+#\[7]64NAITVYMEXXAKDZSKIQHVNWJOZSE537SMCSFTZBWP3GOCDCDEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

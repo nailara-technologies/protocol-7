@@ -86,6 +86,11 @@ if (    defined $instance_id
         and defined $exit_val
         and $exit_val != 0 ) {
         $next_status = qw| error |;
+        ## remember the outcome for notify_offline waiters [ replied when   ##
+        ## the instance reaches 'shutdown' in v7-zenki.handler.zenka_status ##
+        ## ]                                                                ##
+        $instance->{'terminated'}
+            = { 'status' => qw| error |, 'exit' => $exit_val };
         <[base.logs]>->(
             0, "[terminated] : external binary : '%s' : [ exit : %d ]",
             $zenka_name, $exit_val
@@ -138,8 +143,8 @@ if (    defined $instance_id
 
 return TRUE;
 
-#,,.,,,,.,.,.,..,,.,.,.,.,,.,,,.,,.,.,..,,,,.,..,,...,..,,...,,.,,,,,,...,.,.,
-#AJZP6VLAG6AU6BE4B2EC4WOYUJLC54YUGYI5XJQWVAIG76JL4OFJAWLNZKO7LOJXHZNX5B7TGOSVU
-#\\\|RWRBV2N3QGN7TJBJYN3WMPJP3EBSWWL3OOVRCGUKQQGUCPL4ZWZ \ / AMOS7 \ YOURUM ::
-#\[7]22G7RNNXVZE4SP4CYSNGSG43DTS7P4QGHK2MUDOZ5VC7UJDT3YAA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,.,,,..,,,.,,...,..,,,.,,,,,,..,,...,...,..,,.,,,,.,,.,.,.,.,
+#JTDJOX6KHO5LQ2CO67KYG3P7XONWTHO3JUV74LIZJZUUEWPVZ6FA324QLNHHSR5W7VNUAOPM4NAB2
+#\\\|VS5IGXNSCGOGECOIWRXRDIBLCVI2GCV7NVP7KGUATNR3WVBT47Y \ / AMOS7 \ YOURUM ::
+#\[7]EHIKVGHI4DJHHA4HMMKXGW6CW62BEQF4M7GBNXWMSBZSXUZQN2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

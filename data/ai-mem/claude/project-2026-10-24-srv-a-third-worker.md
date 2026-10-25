@@ -123,7 +123,7 @@ tool-call hang does not block it.
   [ p7-log : without it no log reaches a file ]. a host with link
   records enables external in host-config/v7-zenki.cfg
   [ v7-zenki.host.zenki.enable = external ] -- srv-A had it, srv-U added
-  [ its delta fetch link was DOWN after the restart : remote-server never
+  [ its srv-V fetch link was DOWN after the restart : remote-server never
   started external at boot ]. owner : balance with fast, intuitive
   config [ the *-edit zenki ]
 - external.list links \ orbital landed 5bf4b5d95, all four servers
@@ -147,6 +147,10 @@ tool-call hang does not block it.
 
 ## open
 
+- srv-U jobsite-scan event VERIFIED 2026-10-25 by `events.trigger_event
+  <numeric id from events.list events>` [ events.trigger does not exist ] :
+  'sending jobsite.scan', jobsite cycle scanning. only the HH:13:07 timer
+  itself untested [ same mechanism as the other events ]
 - optional : mem_max 14G + linger on srv-U
 - clients.https marker committed [ 463db3371 ; the untracked copy on
   srv-U blocked the pull once : a `pull && restart` chain without set -e
@@ -154,8 +158,8 @@ tool-call hang does not block it.
 - systemd-networkd-wait-online fails on srv-A since at least 10-18
   [ pre-existing ]
 
-#,,..,,,.,.,,,,.,,..,,..,,,.,,..,,.,,,,..,,.,,..,,...,...,...,,,.,.,.,...,,..,
-#O37TMHC7RI6T2WALF2YOHXW3TVIOKLIUSTSURRDVGSWEQIP2P5COZGUETAKKNNXS7PDHQSMZWJSUA
-#\\\|V43NKF2GKH7VMLJMFZT5B2GCZMQTJCK225BOGCYQOO6UYWSBHLX \ / AMOS7 \ YOURUM ::
-#\[7]4AT2QJ5MEQTTMMBTPUQIQT6XZGDON7NPEJKKB7TFBKY4GW5UKQAA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,,,,,.,.,,,.,,,.,,..,,.,,..,,..,,...,..,,...,.,,,..,,,..,.,.,
+#TJ5QWIWMLHGWSWLMO2ARUAABKN3VCTKLVZECUVQL2Q7YBROSCA2DQPT5DFZKRCNDQUGACVFT6G77A
+#\\\|IPPTDZRRQBSQKHGFQ3FJRLBJYWNEAWVEBSDVWRCHGVDQCF7O7SF \ / AMOS7 \ YOURUM ::
+#\[7]ZVOLNF26YIJXQZX3SQU3GONMIVTL4NKCMZE66UFNSDBJFUO3WIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
