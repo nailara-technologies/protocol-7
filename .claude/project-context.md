@@ -18,7 +18,7 @@ These files exist to help future Claude instances (and other LLMs) understand th
 ## Quick Reference (Token-Efficient)
 
 **Structured YAML:** `data/yaml/project-context/system-architecture.yaml`
-- Core concepts (zenki, zenka, cube, v7)
+- Core concepts (zenki, zenka, cube, 'v7-zenki')
 - Directory structure and patterns
 - Module syntax (`<variable>`, `<[function]>`)
 - Command structure and common tools
