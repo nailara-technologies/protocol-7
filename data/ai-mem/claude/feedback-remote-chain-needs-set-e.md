@@ -14,23 +14,20 @@ commit. harmless only because the old overlay files were still in place.
 **Why:** a restart on the wrong code during a migration can leave a host
 without its config [ the new code ignores the old files ] -- silent.
 
-**How to apply [ owner, the project way ] :** pull through the ext-bin
-zenka `pull-git` [ remote-server profiles : exec-external
-p7-git-pull--rebase as root ] and wait for it exactly :
-`:: v7-zenki.start_once pull-git && :: v7-zenki.notify_offline pull-git
-&& <restart>` -- notify_offline replies once the zenka has shut down. TESTED
-2026-10-25 [ /bin/false vs /bin/true ext-bin entries ] : a non-zero exit
-goes extbin -> error -> shutdown [ level 0 log ] but notify_offline still
-answers TRUE, rc 0 -- the && chain does NOT stop on a failed pull [ only
-notify_online reports 'error' ]. until notify_offline replies false after
-an error exit, still check git log -1 before the restart.
-otherwise : remote deploy steps run under `set -e`, the pull without
-a pipe, restart only after `git log -1` shows the expected commit. check
-`git status --porcelain` for untracked files the pull would overwrite
-first. related : [[never-feed-command-substitution-into-destructive-cmds]].
+**How to apply [ the project way, 08ab710b8 ] :** one line per host :
+`:: v7-zenki.start_once :wait-down: pull-git && <restart>` -- pull-git is
+the ext-bin zenka of the remote-server profiles [ p7-git-pull--rebase as
+root ] ; :wait-down: registers the waiter first and replies when it ended :
+TRUE on a clean end, FALSE + 'exit : N' on an error end -> rc != 0 stops
+the chain [ tested : /bin/false rc 1, /bin/true rc 0, live on srv-F ].
+:wait-up: replies when a startup completed or failed. the old two-call
+form 'start_once ; notify_offline' races a fast ext-bin -- do not use it.
+notify_offline \ notify_online stay observers : no start option on a
+read-only command [ httpd holds notify_offline ]. related :
+[[never-feed-command-substitution-into-destructive-cmds]].
 
-#,,,.,.,,,.,,,,,,,...,..,,,.,,..,,.,.,,..,,..,..,,...,...,.,.,.,,,.,,,.,,,...,
-#JTKRVHK2ZBEBDKV2UQ5PUFY4242WNHXAOQEX6RSTVYUOQ7CJTUD5X3W44WCXQLNYPDY66ZZH3HF46
-#\\\|XLOMW5T7GXCXWPVFCVVHUMQ3ORUXGFMHCK2DLEHBIH5ZQRQ37TT \ / AMOS7 \ YOURUM ::
-#\[7]6BUBYISWC2AJAFIMW6TNR6ZXLR4CSCT22KVHLVGXBHZTLW4BI6AA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,.,,,.,,,...,..,,,,,,,,.,..,,..,,...,..,,...,..,,,..,,,.,,,,,
+#JIPPC5ABPEBT4ETUJPMQP6LT6KUAJRVDHKGXBECASH7D2WLTASPPYPZ5BLHJF5JN6QYJ2XGNWWMR2
+#\\\|IAEI4AXIGMQE24TMQBUV7P3RCIAVQN522ZRHJFZTSB2QDFKQT3K \ / AMOS7 \ YOURUM ::
+#\[7]DI3GPR72EBJBAERXWQTPUVC4EOULT5OPD6UFMAZEMCGZJHANEQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
