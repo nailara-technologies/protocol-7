@@ -59,3 +59,32 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 #\\\|M3KDPFMEMM65UR4TGA7RWP7C45WDF2PQJ4M4RTAGNCJQZEM3ASR \ / AMOS7 \ YOURUM ::
 #\[7]IUSE36IXJPMXK7LLQYOFZRVS4J3MFA4B4ZRTOHYBFAAIHIT4H4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-10-25 handover — coding tool-args encoding + mcp spawn env
+
+- fixed the coding-zenka tool-args utf-8 double-encoding class [ the
+  site-yaml-family bug that garbled a local model's edit of
+  data/tasks/completed/inline-subs-batch-4-final.md ] : commit 1a5fb0698.
+  three sites : xml/json producers now emit character strings via shared
+  coding.async.tool_args_decode ; state_machine stores arguments as
+  character JSON ; edit_file reads the staged copy with its write
+  encoding + drops it after write. regression test
+  bin/dev/tests/test-coding-tool-args-encoding.pl 12/12.
+- the task report was reworded to the actual fix state [ 12 callers on
+  <[workspace-transfer.util.chdir_workspace]>, workspace_transfer::
+  count 0 in src/ ] ; follow-up : live-run one workspace-transfer caller
+  once its ondemand zenka starts.
+- mcp-server-p7 gained _sanitize_agent_env [ strips all *_proxy vars
+  before every agent spawn ] : a bracketed [::1] in a child no_proxy
+  crashed httpx [ Invalid port ':1]' ] — see
+  [[bug-mcp-kimi-dispatch-proxy-env-crash]]. live-verified after restart.
+- open thread : WHO injects the bracketed [::1] upstream of the exec
+  [ kimi CLI MCP-spawn env suspected, not proven ] — the sanitizer makes
+  it moot; /etc/environment still has a malformed ALL_PROXY=socks5//…
+  and .bashrc builds no_proxy with bare $(hostname -I) IPv6 — both
+  landmines for stricter parsers.
+
+#,,..,,,.,.,.,,.,,.,,,..,,,..,...,...,...,.,.,..,,...,...,,..,,..,.,.,,.,,..,,
+#6SJXROH4Q7JP2BULPPA77N57GIZFVFWZAV4NDV32H2ZPT4O6KWNK4A5TWB42B764SP33RDVX3WWQM
+#\\\|T6FQZZ2WOZ4VCOQPXTILTNZL57BMR5DQKESV45XMCCAFQY2CN7K \ / AMOS7 \ YOURUM ::
+#\[7]NN2UAGDYDDPLR5UQL44LEVEZKXBTNHGASE4EGJPJC47OVD76DACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
