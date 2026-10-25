@@ -47,7 +47,13 @@ while (
         $params{$key} = $val;
     }
 
-    ## build structured tool call ##
+    ## build structured tool call  arguments as CHARACTER string          ##
+    ## [ utf8(0) ] -- not encode_json octets : the model content arriving ##
+    ## here is already decoded to characters, and octets would            ##
+    ## Latin-1-mangle on any utf8(0) consumer downstream                  ##
+    ## [ the 2026-10-25 double-encode : C3 A2 C2 80 C2 94 on disk ].      ##
+    ## consumers parse layer-aware [ coding.async.tool_args_decode ] so   ##
+    ## both forms work                                                    ##
     my $call_id = sprintf( 'xmlcall_%d_%d', $$, $call_idx );
     push @tool_calls,
         {
@@ -55,7 +61,7 @@ while (
         'type'     => 'function',
         'function' => {
             'name'      => $tool_name,
-            'arguments' => JSON::PP::encode_json( \%params ),
+            'arguments' => JSON::PP->new->utf8(0)->encode( \%params ),
         },
         };
 
@@ -80,8 +86,8 @@ if (@tool_calls) {
 
 return \@tool_calls;
 
-#,,.,,.,.,...,,.,,...,.,,,,,.,,.,,...,..,,.,,,.,.,...,...,.,.,.,.,,..,..,,,,,,
-#GQ7KY5XLYVGBQGXXPGMAEXZPUBSI5BLMR2MO2OCN73RROZRUAPI5P47UKSB6NIT72FHI6WZYVHY4Q
-#\\\|WK5CKQDJUDYN5R2PY7GEUR4MP5LGYY76HTMJULWD5BATRFLPUEP \ / AMOS7 \ YOURUM ::
-#\[7]AUTHNNJGMK7HHBHCSUL2MUUIJDKC46EPCQJQFFEUZ3JLDOEQK2BA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,...,,,,,..,,,.,,,..,,.,,,,,,..,,.,.,...,..,,...,..,,,.,,,.,,,..,
+#HOFDV4ZWEIANRP2X2GPWBZGKPEUKOZKU2BNQ3Z25CP6LZO6HF3ORF6STVS6NJX276AEU2DQHEDA42
+#\\\|QMYQKDKV4YXFDAVADGIUTIZ5WMA22ZXFWELGQTGN4C4OWRU2PTL \ / AMOS7 \ YOURUM ::
+#\[7]Y7LVX2ZOU6V7RWSSXVCKQA7MNCEBWF2O245TYH76C3BTFUE7MWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

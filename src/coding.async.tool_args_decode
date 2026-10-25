@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = coding.async.tool_args_decode
+# descr = decode a tool_call arguments JSON string to a hashref
+# purpose = shared by coding.async.tool_executor, coding.async.state_machine
+#           and the regression tests -- the parse step MUST live in one
+#           place so a test exercises the exact production code path
+
+my ( $args_str, $tool_name ) = @ARG;
+$args_str  //= '';
+$tool_name //= qw| ? |;
+
+## layer discipline [ bin/Protocol-7 `use open` default stays, but never   ##
+## inherited silently here -- this is in-memory json, not file io ] :      ##
+## tool-call 'arguments' arrive EITHER as UTF-8 octets                     ##
+## [ JSON::PP:: encode_json output on the xml/json content-parse path ] OR ##
+## as perl character strings [ api tool_calls path ] -- decode octet-aware ##
+## first [ JSON::PP::decode_json ] and fall back to character mode         ##
+## [ utf8(0) ] ; the exact pattern of coding.tools.dispatch lines 15-17    ##
+
+my $decode_layered = sub {
+    my $str = shift;
+    ## octet-aware first : UTF-8 octets from encode_json \ http bodies      ##
+    my $res = eval { JSON::PP::decode_json($str) };
+    ## fallback : perl character strings -- decode_json dies on wide chars  ##
+    $res = eval { JSON::PP->new->utf8(0)->decode($str) }
+        if not defined $res
+        or ref $res ne qw| HASH |;
+    return $res;
+};
+
+my $args = $decode_layered->($args_str);
+
+## repair common model JSON anti-patterns before retrying ##
+if ( not defined $args or ref $args ne qw| HASH | ) {
+    my $repaired = $args_str;
+    my $did_repair;
+
+    ## anti-pattern 1 : literal newlines|tabs inside string values model ##
+    ## emits raw \n instead of \\n -- fix by escaping within strings     ##
+    if ($repaired =~ s/("(?:[^"\\]|\\.)*")/
+        do { (my $s=$1) =~ s|(?<!\\)\n|\\n|g;
+                          $s =~ s|(?<!\\)\r|\\r|g;
+                          $s =~ s|(?<!\\)\t|\\t|g; $s }/ge
+    ) {
+        $did_repair = 'escaped literal whitespace in strings';
+    }
+
+    ## anti-pattern 2 : trailing comma before closing } or ] ##
+    $repaired =~ s|,(\s*[}\]])|$1|g
+        and $did_repair //= 'removed trailing comma';
+
+    ## anti-pattern 3 : illegal backslash escapes like \[ \# \< \$ valid ##
+    ## JSON escapes: \" \\ \/ \b \f \n \r \t \uXXXX                      ##
+    if ( $repaired =~ s|\\([^"\\\/bfnrtu])|'\\\\' . $1|ge ) {
+        $did_repair //= 'fixed illegal backslash escapes';
+    }
+
+    if ($did_repair) {
+        $args = $decode_layered->($repaired);
+
+        <[base.logs]>->(
+            1,          "tool_args_decode: repaired args for %s [%s]",
+            $tool_name, $did_repair
+        ) if defined $args;
+        $args_str = $repaired;
+    }
+}
+
+## handle concatenated JSON objects [ model error ] ##
+if ( ( not defined $args or ref $args ne qw| HASH | )
+    and $args_str =~ m|^\s*\{.*\}\s*\{|s ) {
+    ## multiple objects concatenated - try to extract first valid one ##
+    if ( $args_str =~ m{^\s*(\{.*?\})\s*(?:\{|\z)}s ) {
+        my $first_obj = $1;
+        $args = $decode_layered->($first_obj);
+        <[base.logs]>->(
+            1,
+            "tool_args_decode: extracted first JSON "
+                . "object from concatenated args for %s",
+            $tool_name
+        ) if defined $args;
+    }
+}
+
+## final error string for the caller's report [ undef on success ] ##
+my $err = ( not defined $args or ref $args ne qw| HASH | )
+    ? do {
+    my $e = $EVAL_ERROR // 'could not decode arguments JSON';
+    $e =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;    ## strip location ##
+    $e;
+    }
+    : undef;
+
+return ( $args, $args_str, $err );
+
+#,,,,,,,.,.,.,,.,,,..,.,,,.,.,...,...,...,,.,,..,,...,...,.,,,,.,,.,,,,..,,.,,
+#ULOPID2FN2XZGPOIKQRPYPZWMHPS3UJM2JD3JQZI25M43LOQHS4ZOK2Q7LNS4HCGJPHTIHCR35374
+#\\\|MZKQNTQK7TDUYP6BKP3S2RJBMSBLONEF2LPWRAC4KYF745SUCMP \ / AMOS7 \ YOURUM ::
+#\[7]YX3K6IRV3HJHGNFEQDH4JMUA5HYC7UYDSARGSE6L2RON37YW3YAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

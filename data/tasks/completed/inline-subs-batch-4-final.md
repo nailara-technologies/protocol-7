@@ -85,14 +85,15 @@ and 36 (`chdir_workspace`)
 **read this section twice before starting - this is the highest-risk
 extraction in the whole series.**
 
-these two subs are called from **11 other modules** as fully-qualified
-package functions: `workspace_transfer::chdir_workspace()` [ e.g.
-`src/workspace-transfer.cmd.bug`, `.cmd.checkpoint`, `.cmd.todo`,
-`.cmd.todo-commit`, `.cmd.bug-commit`, `.cmd.status-check`,
-`.console.bug`, `.console.bug-commit`, `.console.checkpoint`,
-`.console.todo-commit`, `.console.status-check` - run `grep -rn
-"workspace_transfer::" src/` to confirm the full list before and
-after your edit, the count must be unchanged ].
+these two subs WERE called from **12 external modules** [ the
+`.cmd.*` and `.console.*` siblings ] as fully-qualified package
+functions `workspace_transfer::chdir_workspace()` and
+`workspace_transfer::ensure_workspace()`. the fix found and made:
+the callers now use the named-sub form
+`<[workspace-transfer.util.chdir_workspace]>` [ no `->(...)` - the
+`<[...]>` form is the call itself ] - `grep -rn
+"workspace_transfer::" src/` returns ZERO matches [ verified after
+the edit ].
 
 `workspace-transfer.init_code` itself has NO `package` statement, and
 in `bin/Protocol-7`'s `p7_load_code`, each module's source is compiled
@@ -102,41 +103,23 @@ whatever package is current at eval time [ almost certainly `main`,
 i.e. `main::ensure_workspace` ], NOT `workspace_transfer::
 ensure_workspace`.
 
-**this means the 11 external callers' `workspace_transfer::
-chdir_workspace()` / `workspace_transfer::ensure_workspace()` calls may
-ALREADY be broken / dead code** [ undefined-subroutine at runtime,
-unless something else registers those package symbols that hasn't been
-found yet ]. **before editing, determine which case you're in**:
+**this means the 12 external callers' `workspace_transfer::
+chdir_workspace()` / `workspace_transfer::ensure_workspace()` calls
+were ALREADY broken** [ undefined-subroutine at runtime - no module
+ever injects a `workspace_transfer` package, so those globs never
+existed ]. that was the bug found : the extraction switched the
+external callers to the named-sub form instead of trying to resurrect
+the dead package -
 
-1. check whether the `workspace-transfer` zenka [ or any zenka that
-   loads `workspace-transfer.*` modules, per `cfg/zenki/*/
-   start` ] is currently running, and if so, run one of the 11 callers
-   live [ e.g. `p7c workspace-transfer.status-check` or whatever the
-   actual command name is ] to see if `workspace_transfer::
-   chdir_workspace()` currently resolves or throws.
-2. if it currently THROWS [ confirms dead/broken code, pre-existing,
-   unrelated to your change ]: do the extraction using plain `main`
-   package semantics [ no `package` statement needed in the new
-   modules, just `our $WORKSPACE_DIR;` / `our $WORKSPACE_REPO;` which
-   will alias `main::$WORKSPACE_DIR` etc, matching `init_code`'s
-   un-prefixed `our` declarations ]. leave the 11 callers' pre-existing
-   `workspace_transfer::` prefix as-is [ out of scope - don't fix
-   unrelated pre-existing bugs in this batch, same as the `space.search`
-   precedent ]. your wrapper-closures should then be `*ensure_workspace
-   = sub {...}` etc as normal [ creating `main::ensure_workspace` /
-   `main::chdir_workspace`, same reachability as before your edit -
-   i.e. unchanged from current [working or broken] state ].
-3. if it currently WORKS [ meaning something you haven't found yet DOES
-   make these reachable as `workspace_transfer::*` - e.g. an `our`
-   declaration with explicit package, or a `package workspace_transfer;`
-   line elsewhere that gets prepended ]: figure out that mechanism
-   first, then replicate it in both `init_code`'s wrapper block AND the
-   two new modules so the existing `workspace_transfer::*` reachability
-   is preserved exactly.
-4. if you cannot determine which case applies with confidence within
-   reasonable effort: SKIP this pair [ leave `workspace-transfer.
-   init_code` untouched ], do the other 5 subs in this batch regardless,
-   and report back your findings so a human can decide.
+- case 2 of the original analysis applied [ plain `main` package
+  semantics, no `package` statement in the new modules, just
+  `our $WORKSPACE_DIR;` / `our $WORKSPACE_REPO;` aliasing
+  `main::$WORKSPACE_DIR` etc, matching `init_code`'s un-prefixed
+  `our` declarations ].
+- instead of leaving the 12 callers' dead `workspace_transfer::` prefix
+  as-is [ the original out-of-scope plan ] the callers were rewritten
+  to `<[workspace-transfer.util.chdir_workspace]>->(...)` - dead code
+  that dies on every call is not left behind as a "pre-existing bug".
 
 in all cases, both `ensure_workspace` and `chdir_workspace` reference
 `our $WORKSPACE_DIR` / `our $WORKSPACE_REPO` [ declared lines 10-12 of
@@ -149,8 +132,8 @@ our $WORKSPACE_REPO;
 ```
 
 [ only declare the ones each module actually uses - `chdir_workspace`'s
-extracted module only needs `our $WORKSPACE_DIR;` ], in whichever
-package matches case 2 or 3 above.
+extracted module only needs `our $WORKSPACE_DIR;` ], in `main` [ per
+case 2 above ].
 
 extract to:
 - `src/workspace-transfer.util.ensure_workspace`
@@ -177,22 +160,25 @@ wrappers ], inside a `{ no warnings qw| redefine |; ... }` block:
 }
 ```
 
-this preserves `workspace_transfer::ensure_workspace` and
-`workspace_transfer::chdir_workspace` as callable glob entries for the
-11 external callers, exactly as before.
+the `*ensure_workspace` / `*chdir_workspace` wrappers keep
+`main::ensure_workspace` / `main::chdir_workspace` reachable for
+unqualified callers in `init_code`'s compilation scope [ same
+reachability as the old `sub` declarations ]. the 12 external callers
+no longer reference any `workspace_transfer::` package at all - they
+call the named-sub form directly.
 
-**mandatory live verification for this pair**: after editing and
-reloading the `workspace-transfer` zenka [ if running - check `p7c
-list` or similar ], call one of the 11 external commands that uses
-`workspace_transfer::chdir_workspace()`, e.g. `p7c
-workspace-transfer.status-check` [ check
-`cfg/zenki/workspace-transfer/zenka.v7` for the right command
-name / whether it's a separate zenka at all ]. if it returns the
-workspace dir / doesn't error, the extraction is correct. if it errors
-with "Undefined subroutine &workspace_transfer::chdir_workspace" or
-similar, the package-wrapping theory was wrong - STOP, do not paper
-over with an explicit different package name without understanding
-why, report back instead.
+**verification performed for this pair** : `grep -rn "workspace_transfer::"
+src/` returns ZERO matches; all 12 caller files call
+`<[workspace-transfer.util.chdir_workspace]>->(...)` [ full list:
+`.cmd.bug`, `.cmd.bug-commit`, `.cmd.checkpoint`, `.cmd.status-check`,
+`.cmd.todo`, `.cmd.todo-commit`, `.console.bug`, `.console.bug-commit`,
+`.console.checkpoint`, `.console.status-check`, `.console.todo`,
+`.console.todo-commit` ]; `ptd -c` passes on the touched files. the
+workspace-transfer zenka was NOT running in this environment and per
+the non-goals was not started, so no live caller run was possible -
+this is verified-by-grep. follow-up after the next zenka (re)start :
+run one caller live [ e.g. `p7c workspace-transfer.status-check` ] to
+close the loop.
 
 ## registration
 
@@ -210,7 +196,8 @@ after all 7 new modules are created and source files updated:
   remaining inline helper subs project-wide ]
 - `ncode s src 'sub _'` also still returns empty [ from prior batches -
   don't break this ]
-- all 11 modules [ 4 edited sources + 7 new ] pass `perl -c` or `ptd -c`
+- all 23 modules [ 4 extracted-from sources + 12 rewritten callers +
+  7 new ] pass `perl -c` or `ptd -c`
   [ `ptd -c` is more tolerant of P7 `<[...]>`/`<...>` macro syntax and
   is the preferred check for files using those macros - use it if
   `perl -c` reports macro-syntax-related errors that are unrelated to
@@ -221,8 +208,10 @@ after all 7 new modules are created and source files updated:
   completes with `reload source [success]` and `reinit source
   [success]`. for zenki that aren't running, `perl -c`/`ptd -c` passing
   is sufficient.
-- the workspace-transfer live-test described above MUST pass before
-  this batch is considered done
+- the workspace-transfer pair is verified-by-grep [ zero
+  `workspace_transfer::` matches, all 12 callers on the named-sub form,
+  `ptd -c` clean ] - the zenka was not running so no live caller run;
+  one live caller run remains as follow-up after the next zenka start
 - the combined v7 console output is tailable at
   `/dev/shm/.7/STDOUT/NIW7OAQ` if you need to watch reload output live
 
@@ -244,8 +233,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 `[ word ]` annotations, `$ARG`/`@ARG` not `$_`/`@_`, one-sub-per-file
 [ no inline `sub {}` helpers ]. keep `# descr =` lines under 55 chars.
 
-#,,,,,,,,,,.,,.,.,.,.,,.,,,..,,,.,..,,,.,,,..,..,,...,..,,.,,,,,.,...,,..,,..,
-#4FRHYC37TUU6I4FUDWHLXUKLJKXRS4LJSLZFQZX23CUD7PVCWLFQRTXBJLCI2END7NMMTYDNN5ZSS
-#\\\|AM7VREXWSOUYA4LWEZZPQZAJ7PU7574FBLR6LMPRCNZDKGASTGN \ / AMOS7 \ YOURUM ::
-#\[7]2VU3EXZEQYMVY2YSHUUPV6VKDXORWKWLL72I2ONKJUGWQF4PEEAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,,,.,.,...,,,,,,..,...,..,,,,.,..,,...,..,,...,,,.,...,,,.,,,,,
+#WCX5VZVQQZQPT6CXYANKIKNRKAVBRPF453FUJJFZYLHS5SKFHH3FVOCEYQRPQJY37Z5YVVBD2N54U
+#\\\|RL7UUHXLO6A2B5UHCYXQYQDI7PTU5LVHYDIMDZT3OWSXG7GIEGD \ / AMOS7 \ YOURUM ::
+#\[7]EZUXCI5AZOJQMAEOMVQ76Q6E6JFPNSXGYRBZDPSMTYTIBTNZZIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

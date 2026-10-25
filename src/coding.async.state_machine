@@ -310,18 +310,21 @@ elsif ( $action eq 'transition' ) {
             for my $tc ( @{$tool_calls} ) {
                 my $args = $tc->{'function'}->{'arguments'} // '{}';
                 if ( !ref $args && length $args ) {
-                    my $parsed
-                        = eval { JSON::PP->new->utf8(0)->decode($args) };
-                    ## handle concatenated json objects [ model error ] ##
-                    if ( !defined $parsed
-                        && $args =~ m|^\s*(\{.*?\})\s*\{|s ) {
-                        $parsed
-                            = eval { JSON::PP->new->utf8(0)->decode($1) };
-                    }
+                    ## layer-aware decode [ octets or characters ] -- see ##
+                    ## coding.async.tool_args_decode ; repairs and the    ##
+                    ## concatenated-object fallback live there            ##
+                    my ($parsed) = <[coding.async.tool_args_decode]>->(
+                        $args, $tc->{'function'}->{'name'}
+                    );
                     if ( defined $parsed && ref $parsed eq 'HASH' ) {
-                        ## re-encode as clean json string ##
+                        ## re-encode as CHARACTER json : the request body  ##
+                        ## is encoded exactly once by JSON::XS->new->utf8  ##
+                        ## in coding.async.http_client -- storing octets   ##
+                        ## here [ encode_json ] double-encoded the model's ##
+                        ## own past arguments on the next round            ##
+                        ## [ 2026-10-25 mojibake cascade ]                 ##
                         $tc->{'function'}->{'arguments'}
-                            = JSON::PP::encode_json($parsed);
+                            = JSON::PP->new->utf8(0)->encode($parsed);
                     } else {
                         $tc->{'function'}->{'arguments'} = '{}';
                     }
@@ -683,8 +686,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,.,,,,,.,.,,,...,...,...,,.,,,,.,,..,,,.,.,.,...,...,...,..,,,,.,,,.,.,,,
-#OQDI4KXIH3DGH7AN7H4P6UIMV67HBFQMIOV332EUBPFA4BJG7ESKKSVW3WI53UETU27ZHE5VIMDRE
-#\\\|57CAZO7KARGSLNGQZEUPK7UDTVPUZEZTPE2NRF3653H5BUERHOU \ / AMOS7 \ YOURUM ::
-#\[7]LCWWMSNO3VEETSNEGP46LT3HSDNTNC3JG26CARSFPQAKK4PCBEAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,,,.,.,.,,,,,,.,,.,.,.,,,,,.,.,.,...,...,.,.,...,,,,,,..,,,,,
+#I3DCV4QKCN5RJHKCHNB5CMV5GYAZWGQZMOMQ3VK7JNJ7MWMRPC54FHVQY5V2OLJUXFG737Z2M4BDS
+#\\\|243ISTB3H4STLMFB64LLUDDOYYGIGBKCPBAKS7RZGV4AQMKTWLR \ / AMOS7 \ YOURUM ::
+#\[7]FIVICBXDZ73SKCGOLSNQKKYO5SE7WBRF63WF4YF6T3T45QC6QQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

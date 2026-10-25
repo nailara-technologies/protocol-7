@@ -2634,6 +2634,20 @@ sub _checklist_instruction {
         . 'if any FAIL: output DISPATCH_NEEDED: <what to fix>';
 }
 
+## strip proxy vars from the environment BEFORE any agent spawn             ##
+## [ 2026-10-25 ] a bracketed IPv6 entry like [::1] in no_proxy crashes the ##
+## spawned agent's httpx client init [ Invalid port ':1]' — the else-branch ##
+## of httpx get_environment_proxies builds all://*[::1] ] ; a bare ::1 is   ##
+## fine, an empty env is fine [ both proven live ] , and api.kimi.com is    ##
+## reachable DIRECT from this host [ env -i run ok ] — so the children get  ##
+## no proxy vars at all                                                     ##
+sub _sanitize_agent_env {
+    for my $var ( keys %ENV ) {
+        delete $ENV{$var} if $var =~ m{^(?:https?|all|no)_proxy$}i;
+    }
+    return TRUE;
+}
+
 ## background kimi-legacy follow-up dispatch — forks and detaches, never
 ## blocks the mcp loop
 ## [ child stdio redirected away from the protocol channel ]
@@ -2651,7 +2665,7 @@ sub _dispatch_followup {
         return 0;
     }
     if ( $pid == 0 ) {
-        eval { make_path("$ROOT_PATH/data/state") };
+        _sanitize_agent_env();
         open( STDIN,  '<',  '/dev/null' );
         open( STDOUT, '>>', $log_path );
         open( STDERR, '>>', $log_path );
@@ -5213,6 +5227,7 @@ sub _cloud_fork_run {
         if ( $gpid == 0 ) {
             ## worker : own session, stdio to the capture file, then  ##
             ## straight into claude — never returns to perl code here ##
+            _sanitize_agent_env();
             POSIX::setsid();
             open( STDIN,  '<',  '/dev/null' );
             open( STDOUT, '>',  $tmp_out ) or POSIX::_exit(1);
@@ -5660,6 +5675,7 @@ sub _kimi_fork_run {
         if ( $gpid == 0 ) {
             ## worker : same stdio setup as _dispatch_followup, but ##
             ## stdout+stderr go to this dispatch's OWN capture file ##
+            _sanitize_agent_env();
             open( STDIN,  '<',  '/dev/null' );
             open( STDOUT, '>',  $tmp_out ) or POSIX::_exit(1);
             open( STDERR, '>&', \*STDOUT );
@@ -5966,8 +5982,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,...,..,,..,,.,.,,,,,,,,,...,..,,,.,,..,,..,,...,...,,,.,,,.,,..,...,.,.,
-#FHT4BBBFKBHCTHEVZX7APQ4BJUXAED26SECPEVEBTE6KPRIOFJPRK4FWGCNKJZFMKJW6BVFLOM4UI
-#\\\|XGDADKANU6DRPXUS3TIPHOGA5THZZ2LSSDDWQNBQPDDMOGEWMEF \ / AMOS7 \ YOURUM ::
-#\[7]MILMFBXEG2S66BMJ2OISIPHNCXA4OPKQ6F5D63HL6LC45AUAYKAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,..,,,,.,.,.,,.,,...,..,,,,,,,..,..,,...,...,...,,.,,.,.,.,.,,..,
+#C5NZZWT6I34BOZJWJGC54YWS4DSSKCJ5FKT2TLQESPUBRIKILPSDJJHLI6KT6J6FNS34CP4OC6XEE
+#\\\|5TKZ3LDWAKWJOS3PXPKM5XWMYKHR2GW72YJQVTWNZHVMOR3D6HB \ / AMOS7 \ YOURUM ::
+#\[7]OVIQITEH65EFPKCEQ26E2FSW7THWGEJ6TQCSUXNCDG6WEF54VKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

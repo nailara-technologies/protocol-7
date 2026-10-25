@@ -69,70 +69,25 @@ foreach my $tc (@$tool_calls) {
         $tool_name, $call_id
     );
 
-    ## parse arguments  use from_json -- args may be perl character strings ##
-    ## [ wide chars ] decode_json expects raw bytes and dies on             ##
-    ## utf8-flagged strings                                                 ##
-    my $args = eval { JSON::PP->new->utf8(0)->decode($args_str) };
-
-    ## repair common model JSON anti-patterns before retrying ##
-    if ( $EVAL_ERROR || !defined $args ) {
-        my $repaired = $args_str;
-        my $did_repair;
-
-        ## anti-pattern 1 : literal newlines|tabs inside string values ##
-        ## model emits raw \n instead of \\n -- fix by escaping within ##
-        ## strings                                                     ##
-        if ($repaired =~ s/("(?:[^"\\]|\\.)*")/
-            do { (my $s=$1) =~ s|(?<!\\)\n|\\n|g;
-                              $s =~ s|(?<!\\)\r|\\r|g;
-                              $s =~ s|(?<!\\)\t|\\t|g; $s }/ge
-        ) {
-            $did_repair = 'escaped literal whitespace in strings';
-        }
-
-        ## anti-pattern 2 : trailing comma before closing } or ] ##
-        $repaired =~ s|,(\s*[}\]])|$1|g
-            and $did_repair //= 'removed trailing comma';
-
-        ## anti-pattern 3 : illegal backslash escapes like \[ \# \< \$ ##
-        ## valid JSON escapes: \" \\ \/ \b \f \n \r \t \uXXXX          ##
-        if ( $repaired =~ s|\\([^"\\\/bfnrtu])|'\\\\' . $1|ge ) {
-            $did_repair //= 'fixed illegal backslash escapes';
-        }
-
-        if ($did_repair) {
-            $args = eval { JSON::PP->new->utf8(0)->decode($repaired) };
-
-            <[base.logs]>->(
-                1,          "tool_executor: repaired args for %s [%s]",
-                $tool_name, $did_repair
-            ) unless $EVAL_ERROR;
-            $args_str = $repaired;
-        }
-    }
-
-    ## handle concatenated JSON objects [ model error ] ##
-    if ( $EVAL_ERROR && $args_str =~ m|^\s*\{.*\}\s*\{|s ) {
-        ## multiple objects concatenated - try to extract first valid one ##
-        if ( $args_str =~ m{^\s*(\{.*?\})\s*(?:\{|\z)}s ) {
-            my $first_obj = $1;
-            $args = eval { JSON::PP->new->utf8(0)->decode($first_obj) };
-            <[base.logs]>->(
-                1,
-                "tool_executor: extracted first JSON "
-                    . "object from concatenated args for %s",
-                $tool_name
-            ) unless $EVAL_ERROR;
-        }
-    }
+    ## parse arguments : coding.async.tool_args_decode is layer-explicit -- ##
+    ## arguments arrive as UTF-8 octets [ xml/json content path ] or as     ##
+    ## perl character strings [ api path ] ; repairs and the                ##
+    ## concatenated-object fallback live in the shared module so the        ##
+    ## regression test exercises the exact production code path [ $args_str ##
+    ## above is not redeclared : the helper may return a repaired copy,     ##
+    ## which lands in $parsed_args_str ]                                    ##
+    my ( $args, $parsed_args_str, $args_err )
+        = <[coding.async.tool_args_decode]>->( $args_str, $tool_name );
+    $args_str = $parsed_args_str;
 
     ## malformed arguments -- skip dispatch and return parse error to model ##
     ## giving the model the exact error lets it fix its JSON rather than    ##
     ## retrying blindly with empty args                                     ##
-    if ( $EVAL_ERROR || ref $args ne qw| HASH | ) {
+    if ( ( defined $args_err and length $args_err )
+        or ref $args ne qw| HASH | ) {
         my $parse_err
-            = $EVAL_ERROR
-            ? <[base.str.eval_error]>
+            = defined $args_err && length $args_err
+            ? $args_err
             : "expected object, got " . ref($args);
         ## sanitize preview -- raw broken args in tool result crash Jinja ##
         my $args_preview = substr( $args_str, 0, 120 );
@@ -427,8 +382,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,.,,,.,.,.,.,.,..,,,..,..,,..,,,..,...,.,,,.,.,...,...,,..,...,,,,,,,.,.,.,
-#M66GICXJXKE6VD5Y3K3AYMCB7RU45P23HTEIMQP2HVD4WTON53OCIFDZTOQQTUBIRQI7QHTZGXIX2
-#\\\|DGT3EPXYW5XSRCDTYHBTFGXXOBO2CBW7UIC6PXEICLXTOC4FHE6 \ / AMOS7 \ YOURUM ::
-#\[7]EFDYIVXVTH7FICLLJKGFU763RMHWN3J5B2SJJGF7RARJU5SPB2CI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,,,.,,,,,,,.,,,,,,,,,.,,,.,.,.,.,...,...,,,.,,,,,,,,,.,,,.,.,
+#L4DX5LMCAAV6VDBMFL6N4ETOBRN4373EFITBKDHYLFXWDQKS5GF25DBGH3VDKROAF2U24TFC5AUTU
+#\\\|Q672Q52HIGN6HA2WNCQI4O5C36S5ZZ6KQDPHRR5C77RQ5ULGNV3 \ / AMOS7 \ YOURUM ::
+#\[7]T4NH6D2ASNRWHUVTNOVPBDFUX5JY2HFQBXYB6734QKMOIABLPICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
