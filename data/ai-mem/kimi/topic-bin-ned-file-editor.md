@@ -30,6 +30,11 @@ family [ structured form UI inside the running network ].
 - editor normalizes trailing whitespace + empty lines, so the file's
   own trailing-newline run is captured at load and restored on save;
   new files get one final newline; empty new buffer -> no file created.
+- follow-up : pgup \ pgdn [ \e[5~ \ \e[6~ ] page a visible content
+  height per press in the shared editor, wheel semantics [ down stops
+  at the last line, never grows ] ; hint + ned option list advertise
+  it ; 3 new pty cases [ page lands 22 rows down on a 30x100 pty,
+  EOF clamp + page back, page-up stays at top ]
 - no Event.pm / no inotify by design [ user question ] : save-time
   detection is complete; live watch is a UX feature that drags the
   editor library's private select loop into event plumbing. revisit
@@ -76,8 +81,8 @@ green : 22/22 pty + 26/26 unit.
   already exists as the client-side library family.
 - possible library hook for live external-change notification.
 
-#,,..,.,,,,..,,,,,.,.,,.,,,,.,.,.,,..,,..,..,,..,,...,...,.,.,,,.,.,.,.,.,,,.,
-#OBR63PTUEDKYYQYIZCLMW44KWM6WTST6IZWVK3ZAEEBPHTXX227EYMJNVDKN3AVJI4OLY5JY4YWRC
-#\\\|JFTG6LX5DQVR5YMYRUSX6DO3XNXD7OGGSLSZLDWVM3L74JGZLQU \ / AMOS7 \ YOURUM ::
-#\[7]CQLLAW46HB74K2HNDCEFLURZNAHMR2CPIM5QKV6NNWAXKPGRYCDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,.,,,,,,,..,,.,.,,..,.,.,,,.,..,,...,...,,,,,,,,,.,.,,.,,,,,,
+#N76XCF4IPGQ2XVVXXNTWJVG7M6BZRV3ZG3Y2C3OOTVRPZ6QC6CPXAFUTLD36UWHLDK3BGJPGCMMXA
+#\\\|V4MM77OETIPAS33Q3LEFGSIO7UCOK53UPX6X6Y2O2MJMSLIRUKL \ / AMOS7 \ YOURUM ::
+#\[7]XQG7O3NLO3SM3VJIKVNCDWMXOH35LVL7B2CHOWNT6F7GBILOKADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

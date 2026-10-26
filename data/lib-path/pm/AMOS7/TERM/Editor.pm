@@ -49,7 +49,11 @@ package AMOS7::TERM::Editor;    #############################################
 ## until it changes, the desktop selection itself is never touched. the
 ## mouse wheel scrolls like the arrow keys [ wheel tracking DECSET 1000 +
 ## SGR 1006 -- no dependency, terminals without mouse support ignore it ;
-## 'mouse => 0' or P7_EDITOR_NO_MOUSE opts out ].
+## 'mouse => 0' or P7_EDITOR_NO_MOUSE opts out ]. pgup \ pgdn
+## [ \e[5~ \ \e[6~ ] move a visible page per press with wheel semantics :
+## the down page stops at the last line instead of growing one at EOF
+## [ the arrow keys still grow ] ; the page size is the current content
+## height, so it follows terminal resizes.
 ##
 ## secrets hygiene [ keep in step with AMOS7::Vault ] : note lines are mlocked
 ## best-effort when IO::AIO is available [ optional -- a standalone copy
@@ -688,6 +692,7 @@ sub edit_text {
 
     my ( $cur_line, $cur_col ) = ( 0, 0 );
     my $first_visible = 0;
+    my $content_rows  = 1;    ## set by every redraw ; page keys read it ##
     my $dirty         = 0;
     my $aborted       = 0;
     my $resized       = 0;
@@ -837,8 +842,8 @@ sub edit_text {
             ## top border / summary / separator / top padding ##
             my $header_rows = 4;
             ## bottom padding / separator / help / bottom border ##
-            my $footer_rows  = 4;
-            my $content_rows = $rows - $header_rows - $footer_rows;
+            my $footer_rows = 4;
+            $content_rows = $rows - $header_rows - $footer_rows;
             $content_rows = 1 if $content_rows < 1;
 
             my $inner_width = $cols - 2;
@@ -1005,8 +1010,9 @@ sub edit_text {
                 = ' · ctrl-x save+quit · ctrl-c abort'
                 . $save_hint
                 . $paste_hint
-                . ' · ctrl-w del-word · ctrl-l del-line · '
-                . 'ctrl-d de-interlace · arrows · enter · del ·';
+                . ' · ctrl-w del-word · ctrl-l del-line · ctrl-d '
+                . 'de-interlace · arrows · enter · del · pgup \ pgdn '
+                . 'page ·';
             $help_text = ' · ' . $hint . ' ·' . $help_text
                 if length $hint;
             ## show status [ e.g. 'saved' ] on the LEFT so it survives ##
@@ -1137,6 +1143,12 @@ sub edit_text {
                 ## it never grows a line at EOF -- scrolling past the end
                 ## stops instead
                 $move_cursor->( $key->{'wheel'} eq qw| up | ? -1 : 1, 0 );
+            } elsif ( $key eq "\e[5~" or $key eq "\e[6~" ) {
+                ## page up \ down : one visible page per press, wheel
+                ## semantics -- the down page stops at the last line instead
+                ## of growing one at EOF
+                my $dir = $key eq "\e[5~" ? -1 : 1;
+                $move_cursor->( $dir, 0 ) for 1 .. $content_rows;
             } elsif ( $key eq "\e[C" ) {    ## right ##
                 $cur_col++;
                 if ( $cur_col > length( $lines[$cur_line] ) ) {
@@ -1370,8 +1382,8 @@ sub edit_text {
 
 1;
 
-#,,,,,,..,..,,,,,,,,.,,,,,,,,,,.,,.,,,,,.,.,,,..,,...,...,.,.,,..,,,,,,,.,..,,
-#DEORS3KDTNZFQ5VEGEEJ6STSHBRJK5ZTOQ22FXLKOWAHOQNJ3DGAACQQA4I3776SVQ7XP42C5GG4W
-#\\\|ZH4JLW2U3DGSYBOGUXLWMQZ5HVBZITUYNSFZ5CPA3ZZU4HJDT5B \ / AMOS7 \ YOURUM ::
-#\[7]WESJETW633LHE37NDYXAMOL5LXCKWLWBYWEVWVNLBY6YUSS6T6BA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,.,,,.,.,.,,..,,,,,,.,,,,.,...,..,,...,..,,,.,,.,.,,.,,,.,,,,,,
+#IP5EXAT2YTEECVKCRS733UFARFZZYTJTD3LOHG2EUCEUO4ENFKWNWZH4QGCL54AFSUPITMF4TNNTU
+#\\\|4OTN3KQIVLGMYYASJZIBXHC2WLHF24UA3SE34EJ6EMCQGF65DDH \ / AMOS7 \ YOURUM ::
+#\[7]CF7P3VWTOV3HDIDBDYDYEKCWKK7FXPQJR6LC6QRVMR5PMDOLFQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,9 @@ use English;
 ## as characters. save tests : ctrl-s [ and its ctrl-o alias ] calls on_save
 ## with the normalized buffer and the editor keeps running, a false return or
 ## a die shows the failure and the editor keeps running, without on_save no
-## 'saved' is ever claimed. skipped when IO::Pty is not installed
+## 'saved' is ever claimed. page keys : pgdn moves a visible page and stops at
+## the last line instead of growing one, pgup walks a page back and stays at
+## the top. skipped when IO::Pty is not installed
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -697,12 +699,89 @@ check(
         && $output !~ m{ctrl-o save}
 );
 
+## pgup \ pgdn : a 30-line seed on a 30x100 pty shows 22 content rows, so one
+## page-down lands the cursor on line 22 [ 0-based ] ; the down page stops at
+## the last line instead of growing one ; page-up walks a page back, from the
+## top it stays
+my $thirty_lines = join( "\n", map { sprintf 'l%02d', $_ } 1 .. 30 );
+
+my $child_code_pages = <<~"CHILD";
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    my \$out = shift;
+    { open my \$pid_fh, '>', "\$out.pid" or die; print \$pid_fh \$\$; }
+    my \$result = eval {
+        edit_text( { text => '$thirty_lines', title => 'T', label => 'l' } );
+    };
+    open my \$fh, '>:utf8', \$out or die;
+    print \$fh defined \$result ? "RESULT=<\$result>" : 'RESULT=<UNDEF>';
+    close \$fh;
+    CHILD
+
+my @paged = split "\n", $thirty_lines;
+
+( $result, $exited ) = run_case(
+    qw| pgdn |,
+    sub {
+        my ($pty) = @ARG;
+        syswrite $pty, "\e[6~";    ## page down ##
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, 'X';
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+$paged[22] = 'X' . $paged[22];
+my $expected = 'RESULT=<' . ( join "\n", @paged ) . '>';
+check( 'pgdn : one page down lands the cursor a content-height away',
+    $result eq $expected && $exited );
+
+( $result, $exited ) = run_case(
+    qw| pgstop |,
+    sub {
+        my ($pty) = @ARG;
+        syswrite $pty, "\e[6~";    ## page down twice : clamps at EOF ##
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\e[6~";
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\e[5~";    ## page back up one page ##
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, 'X';
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+@paged    = split "\n", $thirty_lines;
+$paged[7] = 'X' . $paged[7];
+$expected = 'RESULT=<' . ( join "\n", @paged ) . '>';
+check( 'pgdn stops at the last line, pgup walks a page back [ 29 - 22 = 7 ]',
+    $result eq $expected && $exited );
+
+( $result, $exited ) = run_case(
+    qw| pguphome |,
+    sub {
+        my ($pty) = @ARG;
+        syswrite $pty, "\e[5~";    ## page up from home stays at home ##
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, 'X';
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+$expected = 'RESULT=<X' . $thirty_lines . '>';
+check( 'pgup from the top stays', $result eq $expected && $exited );
+
 say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,.,,.,,.,,,,..,,..,,,,,..,,.,,,..,,,,,,,..,..,,...,...,...,...,.,,,.,,,,..,
-#WEAENOSRGIQE7PO7E2NE2QGIJ2YK4GW63K3NYLDF4ALNKHRN5JVDS4KQNQ5KO3EHJOZJKB6IEMFKU
-#\\\|VC2VIJLQER3SOEYTGBEUWMI623LET2DCSAAAPECE23SCVXBPYVR \ / AMOS7 \ YOURUM ::
-#\[7]SMVHEVACIJ4VG4UPJQH52MXTNGHXON63EO5KIZF65VHLCOU5PCAY 7  DATA SIGNATURE ::
+#,,..,...,,.,,...,..,,,.,,.,,,..,,.,,,,,.,,,,,..,,...,...,,..,.,,,.,,,,..,..,,
+#4WLV7JB72B6A7EVGSFBTWQ5B35ZOJLREVQEX74BAXZLCEAM2HEZVN6527ZB7MMAXLDNVK2CPEQBAW
+#\\\|TJ5TEGRUTFPSJ5DE3P22HGCZ6I62R3SBPGK76XN5ZSWV4OQMCYW \ / AMOS7 \ YOURUM ::
+#\[7]HSSUMXRDYXIYX2MWSNVMSYBUD2E7GVJVVVJMUOFW5S6Y4VGCPIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
