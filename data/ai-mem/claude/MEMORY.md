@@ -80,12 +80,12 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   algebra, checksum-addressing trinity, harmonic-mathematics / mod-13 vs Rodin, reference-bubble,
   network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy, write-access security.
 
-- **[MEMORY-completed.md](MEMORY-completed.md)** (8 pointers) — session archive & live status.
+- **[MEMORY-completed.md](MEMORY-completed.md)** (9 pointers) — session archive & live status.
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,.,,,...,,.,,,,,,,..,,..,..,,...,.,,,...,..,,...,..,,.,.,,.,,.,.,.,.,,..,
-#FHFZFSRLHEXHN2Q7X6HHTJ5LA7CLA5SEYQMR4DPTJT35QZ7COO2VK7HSFVA73UIKXR6MKRYTWV5YU
-#\\\|BDJMUBMUZOZLM7C3IC2OTQE3L4KUG5GG6NNATKORX7CTLCT7TKE \ / AMOS7 \ YOURUM ::
-#\[7]IZEKUVXJZO5TOZV4R6R6T46SRZQRC4HBW73ZY27X7G3LLK2HSAAQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,,.,,,,,,.,,,,.,,.,.,.,,,..,,..,,...,...,,.,,..,,,,,,.,.,,.,,
+#G5BMQZCBISL4EHSE54IS4DVXAHSAOETOSRABMBLECJN3CF7USQNRRGHUCZRRQFDEQ3UJ6VLY7VGP2
+#\\\|ZJAJNXZG3ZCTUUDTAWT7X2SG4SVSITMNII4W3GN34DA4JEO6P2Y \ / AMOS7 \ YOURUM ::
+#\[7]XUGN63MNI22GNHUKQSOE3GH4Y3E7QJNMH43SURFVWQGPMQOFIADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

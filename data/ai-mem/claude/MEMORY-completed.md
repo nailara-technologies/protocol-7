@@ -167,8 +167,19 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   sweep cursor paused mid-run (`cpu : paused [ circuit-breaker ] : idx=3/90`), resumable once the
   binary issue is fixed.
 
-#,,.,,,,,,...,...,.,,,,..,,..,,,.,,,.,.,.,.,,,..,,...,...,.,.,,,.,...,.,.,,.,,
-#KZHJ5TXHIPVDGGGXTAKWPYXECNF5UXEW7P2VEY5XHWAD6PF4VATLALFYXDEG4CVQJMWW3JKH2YT2C
-#\\\|WN3QUCGB24TKMN5URMDM66R3H5EQCHYPQCV7FIQ2ASRGCXSGABU \ / AMOS7 \ YOURUM ::
-#\[7]OVKBR4C3TI7HWIZ7VDOFX4GX7OJTA5REYMLK6VUCBBVHX7RKUCCI 7  DATA SIGNATURE ::
+- [condition-dependency type:name syntax + start-gate fix, 2026-10-26](project-2026-10-26-condition-dep-start-gate-colon-syntax.md) —
+  LANDED c790d7d58: `v7-zenki.zenka.cmd.start`'s dependency loop parsed every token as a zenka, so
+  a condition dep (`unix_group.httpsd` in letsencr) failed `start_once` and was then refused by
+  `zenka.profile_refusal` under any profile with an on-demand allow list (remote-server-lowram) —
+  `:ignore-disabled:` never applied to dependency refusals by design. cmd.start + cmd.restart now
+  skip `type:name` tokens with a registered `v7-zenki.callback.object.<type>`; the chain resolver
+  evaluates the callback and the job waits in 'depending'. Condition syntax switched '.' -> ':'
+  (`unix_group:httpsd`) — dots are p7's routing separator, colon the cfg qualifier; old dot spelling
+  now inert (hard switch). New 'condition dependencies' section in test-v7-zenki-start-gate.pl;
+  live-verified on delta (ondemand start included), user countersigned.
+
+#,,..,,.,,,,.,.,,,,,,,,,,,,,,,...,.,,,.,.,...,..,,...,...,,,,,.,.,.,,,,,.,,.,,
+#JWPZZG4KPHXNOYQLJXVVFFVUFO7CK2GLP7EYXAQDEZNUINESWLAWFPAPG6F3R7AX7P7WWUEQLS4XC
+#\\\|ZBBVR2OCUNMVLVA4WYT5MNZEWND5XPHCT4B3OMLKCSQHTWQS74N \ / AMOS7 \ YOURUM ::
+#\[7]WF3H4LTPMDDM2YSKNDTXTJS6B3FAASTMCSBK22ELMRBQUSOIZYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
