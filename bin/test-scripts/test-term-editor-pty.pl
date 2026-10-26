@@ -1019,6 +1019,67 @@ check(
     $result eq "RESULT=<a\nb\nc\nd\ne\nXf>" && $exited
 );
 
+## blank lines are file content : the ordered register keeps them, so a kill
+## run over a blank rebuilds the exact text -- dropping the blank collapsed
+## the gap and the next restore landed one line early
+my $child_code_blank = <<~'CHILD';
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    my $out = shift;
+    { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
+    my $result = eval {
+        edit_text( { text => "a\nb\nc\nd\n\ne\nf", title => 'T',
+            label => 'l' } );
+    };
+    open my $fh, '>:utf8', $out or die;
+    print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
+    close $fh;
+    CHILD
+
+( $result, $exited ) = run_case(
+    qw| blankup |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[<0;4;11M";    ## click line 6 [ f ], col 0 ##
+        $drain->(0.3);
+        syswrite $pty, "\x1c" for 1 .. 3;    ## kills f, blank, e ##
+        $drain->(0.4);
+        syswrite $pty, "\x0e" for 1 .. 3;
+        $drain->(0.4);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_blank
+);
+check(
+    'bottom-up kill over a blank restores the exact text',
+    $result eq "RESULT=<a\nb\nc\nd\n\ne\nXf>" && $exited
+);
+
+( $result, $exited ) = run_case(
+    qw| blankdown |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[<0;4;8M";    ## click line 3 [ d ], col 0 ##
+        $drain->(0.3);
+        syswrite $pty, "\x1c" for 1 .. 3;    ## kills d, blank, e ##
+        $drain->(0.4);
+        syswrite $pty, "\x0e" for 1 .. 3;
+        $drain->(0.4);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_blank
+);
+check(
+    'top-down kill over a blank restores the exact text',
+    $result eq "RESULT=<a\nb\nc\nd\n\nXe\nf>" && $exited
+);
+
 ( $result, $exited ) = run_case(
     qw| legacykill |,
     sub {
@@ -1097,8 +1158,8 @@ say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,..,,.,,..,,,,.,.,,,..,,...,,.,,.,.,.,.,.,.,..,,...,...,.,,,...,,..,..,,.,.,
-#DGOV5JNSFC2HDUZWOSUJUGATDU7I66KQY7PDRP2TSGUELLAOPABJQCERZJHWNN476UIJKVGFLIA6U
-#\\\|KXYXRTQMOKUJH2CNAAODNENUDNZNFZKBZOE6FH4BAW6BV6LBWJS \ / AMOS7 \ YOURUM ::
-#\[7]SWEZHEAOV2KJ4EJACXTPGL2XM24EXMHRGG4NK7HF53XYRMKY2MDI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,,,,,.,,,,,.,,..,.,,,...,,.,,..,,...,...,.,.,.,,,.,,,,..,,.,,
+#WZLG5SUHANLRFJ6WCJMWQMFQCV2BGJJEPB3Y5FL5CKCQAWZJARITJI2PN4C5TLQNE5RPMRCDUKNZY
+#\\\|EGWNNHE3RRMNAZQM66ZFBCFKHTOW4PXHTA53ZVX76WWW36EAC26 \ / AMOS7 \ YOURUM ::
+#\[7]ZQ62XVSZLWBOS7LHAGKTFAQZDTE3B7HDG2OEGPAO2MWCCVC6PYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

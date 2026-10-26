@@ -45,12 +45,14 @@ package AMOS7::TERM::Editor;    #############################################
 ## saved.
 ##
 ## ctrl-l removes a line onto a kill stack [ per editor session ] and
-## ctrl-v brings it back [ LIFO ] -- a simple line undo \ reorder.
-## ctrl-. [ \x0e, or CSI-u \e[46;5u ] restores IN ORDER and IN PLACE :
-## an ordered register records the kills [ prepending when a kill lands
-## above the previous one, so direction does not matter ], the run
-## rebuilds at the kill position in the ORIGINAL file order -- a tail
-## truncated top-down or bottom-up comes back exactly as it was ;
+## ctrl-v brings it back [ LIFO ] -- a simple line undo \ reorder ;
+## empty lines never enter this stack [ they have nothing to restore,
+## so they never bury a real kill ]. ctrl-. [ \x0e, or CSI-u \e[46;5u ]
+## restores IN ORDER and IN PLACE from a second register that keeps
+## EVERY line [ blanks are file content ] : an entry prepends when its
+## kill landed above the previous one [ bottom-up truncation ], so the
+## run rebuilds at the kill position in the ORIGINAL file order however
+## the kills were made ;
 ## terminals that give ctrl-, its own byte [ \x1c legacy, \e[44;5u
 ## CSI-u ] kill with it. a literal ',' \ '.' can never be bound --
 ## the terminal must send a distinguishable encoding. with an empty
@@ -1366,23 +1368,25 @@ sub edit_text {
                 if ( length $killed ) {
                     _mlock( \$killed );
                     push @kill_stack, $killed;
-                    ## the ordered register for ctrl+. : an entry PREPENDS
-                    ## when its kill landed above the previous one
-                    ## [ bottom-up truncation ], so the run always holds the
-                    ## ORIGINAL file order ; a fresh copy -- the registers and
-                    ## the buffer never share a scalar
-                    my $ordered = q{} . $killed;
-                    _mlock( \$ordered );
-                    if ( @fifo_run and $cur_line < $fifo_last_idx ) {
-                        unshift @fifo_run, $ordered;
-                    } else {
-                        push @fifo_run, $ordered;
-                    }
-                    $fifo_from = $cur_line
-                        if not defined $fifo_from
-                        or $cur_line < $fifo_from;
-                    $fifo_last_idx = $cur_line;
                 }
+                ## the ordered register for ctrl+. keeps EVERY line [ blanks
+                ## are file content : dropping them collapses the gap and the
+                ## next restore lands one line early, which reads as a reorder
+                ## ] ; an entry PREPENDS when its kill landed above the
+                ## previous one [ bottom-up truncation ], so the run always
+                ## holds the ORIGINAL file order ; a fresh copy -- the
+                ## registers and the buffer never share a scalar
+                my $ordered = q{} . $killed;
+                _mlock( \$ordered );
+                if ( @fifo_run and $cur_line < $fifo_last_idx ) {
+                    unshift @fifo_run, $ordered;
+                } else {
+                    push @fifo_run, $ordered;
+                }
+                $fifo_from = $cur_line
+                    if not defined $fifo_from
+                    or $cur_line < $fifo_from;
+                $fifo_last_idx = $cur_line;
                 splice @lines, $cur_line, 1;
                 @lines    = ('')    if !@lines;
                 $cur_line = $#lines if $cur_line > $#lines;
@@ -1582,8 +1586,8 @@ sub edit_text {
 
 1;
 
-#,,.,,,..,..,,,..,.,,,...,,,,,.,.,,.,,,,,,,,.,..,,...,...,..,,,,.,,.,,.,,,,,.,
-#QQKLOFXVX77J554D4SGOUOF7IA5RRXGP6OBQNXY4ZIMMIE4UOGNITPVQL6SM3KU7QGFCOQ5MNHT6A
-#\\\|N6YSV4IWR7KVMKDK6VEOQKKKABBE2OPR6KX3VJDF7E63XX3CIV6 \ / AMOS7 \ YOURUM ::
-#\[7]B3OTYC5PPKS2TMMSQQIS2ZTOA6AAXOXVKQW2TGOBBJ2FFEIXLOAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,,,..,,,,.,...,.,.,,.,,.,.,.,,,..,,...,...,,,,,,,.,,,.,,,.,,..,
+#DXYKTKTYPHUQMYBHYQO4K3DPW4HI6HTD25XKROG54KAJRBARMQKUL45CKQR2YRA4YQHNIYVH6VNCG
+#\\\|PRU67TE7AN4E6KD6K37BHRL7DF2MFM3DPH4R4ECGJGUYJ3DPZJR \ / AMOS7 \ YOURUM ::
+#\[7]HB6YO3GROMLV7EE52LZM7WWS5WMGOBD4MTSIF5WRZ46VIZIUYIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

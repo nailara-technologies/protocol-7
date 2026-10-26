@@ -68,6 +68,14 @@ family [ structured form UI inside the running network ].
   the run always holds the ORIGINAL file order regardless of kill
   direction ; registers keep independent scalar copies [ never share
   with the buffer ] ; editor pty suite at 39
+- follow-up 6 : EMPTY LINES are file content -- the ordered register
+  keeps every killed line incl. blanks [ the LIFO kill_stack keeps
+  its long-standing skip-empty design for todo \ vault ], so a kill
+  run over a blank rebuilds the exact text ; dropped blanks collapsed
+  the gap and the next restore landed one line early = the user's
+  reorder ; editor pty suite at 41. SAME expectation-lesson AGAIN :
+  the blank-up case was first written with the blank after e instead
+  of between d and e -- trace the buffer, THEN write the expectation
 - no Event.pm / no inotify by design [ user question ] : save-time
   detection is complete; live watch is a UX feature that drags the
   editor library's private select loop into event plumbing. revisit
@@ -114,8 +122,8 @@ green : 22/22 pty + 26/26 unit.
   already exists as the client-side library family.
 - possible library hook for live external-change notification.
 
-#,,,.,,.,,..,,,,,,,,,,...,.,.,,.,,.,,,...,,,.,..,,...,...,...,.,,,,,,,...,,,.,
-#BTBXTMBTDXDG6OPRCV3ACAWP3ETEQAJXZ62QXOZ2LG7JHW4M274VGW3FZIIB6NZYMG736VO7ILWAM
-#\\\|KJDYAPQCOONQSRZPPRQHYPRML7WSFCOPJKT6PA72DN5F5HK7BTP \ / AMOS7 \ YOURUM ::
-#\[7]WQJLPA7A4HEPSGTL456G6THC5MWXTHKRSHV4ETJHQJFYWJVR2CCY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,,.,,.,,,..,,.,,,...,.,,,,.,,..,,...,...,.,.,,,,,,,.,,.,,,.,,
+#2BLLYHAN44PPVR5NSIIONJ2NJT773RCF24K65XY7CLDEZSY5NM4HUDH2PCF6RWTCOSEXXSCLTH3P6
+#\\\|JU3NV44SEBJSL7ZQZ7TEX2YF6V743TIOZUFCHK3KSJJ5R7B2ZNH \ / AMOS7 \ YOURUM ::
+#\[7]DXEPCPV3ZIT3IGIW22O2JDOYJD44FT4QLFVHIS4E72YROABKX4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
