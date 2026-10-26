@@ -1301,9 +1301,146 @@ check(
         0 .. ( $#cursor_pos / 2 ) )
 );
 
-## the darkened selection covers the WHOLE wrapped block : with colors, the
-## head row and the continuation row both carry the bold-blue border while the
-## cursor sits on the continuation row [ padding stays purple ]
+## wrap mode : a wrapped block followed by a BLANK line collapses the pair
+## into ONE gap row -- the blank renders AS the dotted separator
+## [ trailing the prior box ], not an empty row stacked behind a drawn one ;
+## the hardware cursor on the line after the blank walks the same accounting
+## [ row 8 with the collapse, 9 with a drawn separator + empty row ]
+{
+    local $ENV{'SEED'} = ( 'a' x 150 ) . "\n\ntail";
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrapblank |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[B";    ## onto the blank ##
+            $drain->(0.2);
+            syswrite $pty, "\e[B";    ## onto 'tail'  ##
+            $drain->(0.3);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my $vis_blank = $output;
+$vis_blank =~ s{\e\[[0-9;?]*[A-Za-z]}{}g;
+@cursor_pos = $output =~ m{\e\[([0-9]+);([0-9]+)H\e\[\?25h}g;
+check(
+    'wrap mode : a blank after a wrapped '
+        . 'block IS the separator, not a second gap',
+    $result eq 'RESULT=<'
+        . ( 'a' x 150 )
+        . "\n\ntail>"
+        && $exited
+        && $vis_blank =~ m|^:(?:\xe2\x94\x84){20}[^\n]*\n:  tail|m
+        && grep( $cursor_pos[ $_ * 2 ] == 8 && $cursor_pos[ $_ * 2 + 1 ] == 4,
+        0 .. ( $#cursor_pos / 2 ) )
+);
+
+## wrap mode : the blank-as-separator rule plus the CLAMPED vertical cursor --
+## arrowing onto the blank from a far column now clamps the column to the
+## blank's length [ the horizontal offset never  propagates ], so the blank
+## stays the single dotted row, the hardware cursor sits at 7;4
+## [ 7;60 while padding still propagated the offset ], nothing phantom ever
+## renders, and the collapse restores on leave
+{
+    local $ENV{'SEED'} = ( 'a' x 150 ) . "\n\ntail";
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrapblankpad |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[F";    ## end of the long line [ 150 ] ##
+            $drain->(0.2);
+            syswrite $pty, "\e[B";    ## down onto the blank         ##
+            $drain->(0.3);
+            syswrite $pty, "\e[B\e[H";    ## 'tail', home [ col 0 ]     ##
+            $drain->(0.3);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my @pad_frames = split m{\e\[H\e\[2J}, $output, -1;
+my $mid_frame  = $pad_frames[-2] // '';
+$mid_frame =~ s{\e\[[0-9;?]*[A-Za-z]}{}g;
+my $end_frame = $pad_frames[-1] // '';
+$end_frame =~ s{\e\[[0-9;?]*[A-Za-z]}{}g;
+my $mid_seps = () = $mid_frame =~ m|^:(?:\xe2\x94\x84){20}|mg;
+@cursor_pos = $output =~ m{\e\[([0-9]+);([0-9]+)H\e\[\?25h}g;
+check(
+    'wrap mode : a blank the cursor passes through stays '
+        . 'the separator [ column clamps, nothing phantom ]',
+    $result eq 'RESULT=<' . ( 'a' x 150 ) . "\n\ntail>"
+        && $exited
+        && $mid_seps == 1
+        ## the pass clamps the column : 7;4 lands, 7;60 must not
+        && grep( $cursor_pos[ $_ * 2 ] == 7 && $cursor_pos[ $_ * 2 + 1 ] == 4,
+        0 .. ( $#cursor_pos / 2 ) )
+        && !
+        grep( $cursor_pos[ $_ * 2 ] == 7 && $cursor_pos[ $_ * 2 + 1 ] == 60,
+        0 .. ( $#cursor_pos / 2 ) )
+        && grep( $cursor_pos[ $_ * 2 ] == 8 && $cursor_pos[ $_ * 2 + 1 ] == 4,
+        0 .. ( $#cursor_pos / 2 ) )
+        && $output    !~ m|^:\xe2\x94\x8a[ ]+:$|m
+        && $end_frame =~ m|^:(?:\xe2\x94\x84){20}[^\n]*\n:  tail|m
+);
+
+## wrap mode : trailing blanks + the clamped cursor + NO growth at EOF.
+## Arrowing onto the trailing blanks clamps the column to their length
+## [ no phantom wrapped runs of padding, no 'variable box' ], and arrow-down
+## ON THE LAST LINE is a no-op [ it used to append a whitespace line per press
+## -- a final section growing past the file ].  The cursor stops at 9;4 ; a
+## fourth \e[B adds no frame at all, the roundtrip is untouched, and exactly
+## the one dotted row renders.
+{
+    local $ENV{'SEED'} = ( 'a' x 150 ) . "\n\n\n";
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wraptailpad |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[F";    ## end of the long line [ 150 ] ##
+            $drain->(0.2);
+            syswrite $pty, "\e[B" x 4;    ## across the blanks + past EOF ##
+            $drain->(0.4);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my @tail_frames = split m{\e\[H\e\[2J}, $output, -1;
+my $tail_frame  = $tail_frames[-1] // '';
+$tail_frame =~ s{\e\[[0-9;?]*[A-Za-z]}{}g;
+my $tail_seps = () = $tail_frame =~ m|^:(?:\xe2\x94\x84){20}|mg;
+@cursor_pos = $output =~ m{\e\[([0-9]+);([0-9]+)H\e\[\?25h}g;
+check(
+    'wrap mode : trailing blanks stay single rows, '
+        . 'down at EOF does not grow a final section',
+    $result eq 'RESULT=<' . ( 'a' x 150 ) . '>'
+        && $exited
+        ## no phantom continuation row [ ┊ then only spaces ] anywhere
+        && $output !~ m|^:\xe2\x94\x8a[ ]+:$|m
+        ## exactly the ONE separator [ the first trailing blank's ] in the
+        ## final frame
+        && $tail_seps == 1
+        ## the cursor walks the blanks clamped and STOPS : exactly five
+        ## movement pairs [ initial, end, three downs ] -- the fourth \e[B
+        ## moved nothing [ the exit cursor reposition is row 30 ]
+        && scalar(
+        grep { $cursor_pos[ $_ * 2 ] < 30 } 0 .. ( $#cursor_pos / 2 )
+        ) == 5
+        && grep( $cursor_pos[ $_ * 2 ] == 9 && $cursor_pos[ $_ * 2 + 1 ] == 4,
+        0 .. ( $#cursor_pos / 2 ) )
+);
+
+## the selected block darkens as ONE unit : with colors, the cursor's head row
+## AND its continuation row render dimmed [ segment and ┊ alike ] while the
+## ':' borders keep the bold-blue chrome ; the other line stays bright with
+## its purple border ; the dim resets before the trailing border
 my $child_code_wrapcolor = <<~'CHILD';
     use strict;
     use warnings;
@@ -1315,8 +1452,8 @@ my $child_code_wrapcolor = <<~'CHILD';
     my $out = shift;
     { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
     my $result = eval {
-        edit_text( { text => 'a' x 150, title => 'T', label => 'l',
-            colors => \%C, wrap => 1 } );
+        edit_text( { text => 'a' x 150 . "\n" . 'bb', title => 'T',
+            label => 'l', colors => \%C, wrap => 1 } );
     };
     open my $fh, '>:utf8', $out or die;
     print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
@@ -1337,13 +1474,18 @@ my $child_code_wrapcolor = <<~'CHILD';
 my @frames      = split m{\e\[H\e\[2J}, $output, -1;
 my $final_frame = $frames[-1] // '';
 check(
-    'wrap mode : the darkened selection covers the whole wrapped block',
-    $exited
-        && index( $final_frame, "\e[34m\e[1m:" . "\e[34m\e[1m  aaaa" ) >= 0
-        && index( $final_frame, "\e[34m\e[1m:\e[2m\e[34m" . "\xe2\x94\x8a" )
+    'wrap mode : the selected block darkens as one unit, others stay bright',
+    $result eq 'RESULT=<' . ( 'a' x 150 ) . "\nbb>"
+        && $exited
+        ## head row of the cursor's block : dim content, bold-blue border
+        && index( $final_frame, "\e[34m\e[1m:\e[2m\e[34m  aaaa" ) >= 0
+        ## continuation row : dim ┊ AND dim segment text
+        && index( $final_frame, "\e[34m\e[1m:\e[2m\e[34m\xe2\x94\x8a aaaa" )
         >= 0
-        && index( $final_frame,
-        "\xe2\x94\x8a" . "\e[0m\e[34m\e[1m" . " aaaa" ) >= 0
+        ## dim scoped : it resets before the trailing border
+        && index( $final_frame, "\e[0m\e[34m\e[1m:" ) >= 0
+        ## the other line keeps its purple border and bright text
+        && index( $final_frame, "\e[35m:\e[34m\e[1m  bb" ) >= 0
 );
 
 ## 'wrap_sep => 0' opts out : the historical plain fold, no dotted row
@@ -1420,8 +1562,8 @@ say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,.,,.,,,...,...,..,,.,,,,,.,,,,,..,,...,...,..,,...,...,...,,,,,,.,,,,.,,..,
-#ZBE4ITFZSBF2U66C2V2EYM77HDZE2YE6GWH32V4MFAXTXX555BJ6X2PRTLJ7B2MDNGITSASTZEBQK
-#\\\|BYECDX3NDGNYNSAHG3IW3UO6JM72TJBPKQCNWODSGS6PKMWVY2R \ / AMOS7 \ YOURUM ::
-#\[7]R7MY6UXG6DFHGGIGV64UGLH4C7CE53GPLUNITPJAHK33HM2ZXODA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,,,,,,..,,,.,...,,.,,...,,,,,..,,...,...,,..,.,.,,..,...,,,,,
+#TJ5OP42XGQHG2OZNURHYD5ROLBIM66UURFCVTXIHJTMR3ACVE7DCCFPL3ZBI7JYKXP2WNU46OA7HQ
+#\\\|7OC6KN6UUIA4RKGK7ONX4XC5MJES4E4VKD3EWCMCXNY2M4K25IJ \ / AMOS7 \ YOURUM ::
+#\[7]DTZUXAM7W24W7IQKMTQT6ADSL73WLNDB3SQZVX2G2HX6QAY7GABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
