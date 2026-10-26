@@ -46,7 +46,10 @@ package AMOS7::TERM::Editor;    #############################################
 ## [ wl-paste, xsel, xclip, powershell on wsl ] as lines above the cursor ;
 ## the hint line only advertises ctrl-v when something can actually be pasted.
 ## ctrl-y clears the registers -- the clipboard content stays unpasteable
-## until it changes, the desktop selection itself is never touched.
+## until it changes, the desktop selection itself is never touched. the
+## mouse wheel scrolls like the arrow keys [ wheel tracking DECSET 1000 +
+## SGR 1006 -- no dependency, terminals without mouse support ignore it ;
+## 'mouse => 0' or P7_EDITOR_NO_MOUSE opts out ].
 ##
 ## secrets hygiene [ keep in step with AMOS7::Vault ] : note lines are mlocked
 ## best-effort when IO::AIO is available [ optional -- a standalone copy
@@ -457,6 +460,25 @@ sub read_editor_event {
 
         last if $b =~ m{[A-Za-z~]};
     }
+
+    ## mouse reports [ wheel tracking ] : SGR \e[<btn;x;yM or legacy X10 \e[M
+    ## + 3 bytes -- both end the collection above. plain clicks are eaten here
+    ## [ never text ], wheel becomes a cursor move
+    if ( $seq =~ m{\x1b\[<(\d+);(\d+);(\d+)([Mm])} ) {
+        my $btn = $1;
+        return { wheel => qw| up | }   if $btn == 64;
+        return { wheel => qw| down | } if $btn == 65;
+        return '';
+    }
+    if ( $seq eq "\x1b[M" ) {    ## X10 : the 3 coordinate bytes follow ##
+        my @coord = map { $reader->{'read'}->(0.1) } 1 .. 3;
+        my $btn   = $coord[0];
+        return { wheel => qw| up | }
+            if defined $btn and $btn eq chr( 32 + 64 );
+        return { wheel => qw| down | }
+            if defined $btn and $btn eq chr( 32 + 65 );
+        return '';
+    }
     return $seq;
 }
 
@@ -630,6 +652,21 @@ sub paste_disable {
     return;
 }
 
+##[ MOUSE WHEEL ]#############################################################
+
+sub mouse_enable {
+    ## button-event reporting in SGR form : wheel arrives as \e[<64/65;x;yM.
+    ## press-only [ 1000h ] keeps terminal text selection working ; the
+    ## DECSETs are ignored wholesale by terminals without mouse support
+    print "\e[?1000h\e[?1006h";
+    return;
+}
+
+sub mouse_disable {
+    print "\e[?1000l\e[?1006l";
+    return;
+}
+
 ##[ INTERACTIVE EDITOR ]######################################################
 
 sub edit_text {
@@ -671,6 +708,38 @@ sub edit_text {
     ## never wiped -- other applications may hold it ]                      ##
     my $clip_cleared;
 
+    ## mouse wheel tracking : on unless asked off                       ##
+    ## [ 'mouse => 0' or the P7_EDITOR_NO_MOUSE escape hatch ]. no      ##
+    ## dependency -- terminals without mouse support ignore the DECSETs ##
+    ## wholesale                                                        ##
+    my $mouse_on
+        = ( $params->{'mouse'} // 1 ) && not $ENV{'P7_EDITOR_NO_MOUSE'};
+
+    ## cursor moves shared by the arrow keys and the wheel : the second arg ##
+    ## lets arrows grow a line at EOF while the wheel just stops            ##
+    my $move_cursor = sub {
+        my ( $dir, $extend ) = @ARG;
+        if ( $dir < 0 and $cur_line > 0 ) {
+            $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+            $cur_line--;
+            $dirty = 1
+                if editor_pad_line_to_col( \@lines, $cur_line, $cur_col );
+        } elsif ( $dir > 0 ) {
+            if ( $cur_line < $#lines ) {
+                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+                $cur_line++;
+                $dirty = 1
+                    if editor_pad_line_to_col( \@lines, $cur_line, $cur_col );
+            } elsif ($extend) {
+                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+                push @lines, ' ' x $cur_col;
+                $cur_line++;
+                $dirty = 1;
+            }
+        }
+        return;
+    };
+
     ## self-pipe : signal handlers write a byte here so select() wakes up, ##
     ## giving us event-driven resize/abort handling instead of polling.    ##
     pipe( my $sig_r, my $sig_w );
@@ -688,6 +757,7 @@ sub edit_text {
     ## restore tty + bracketed paste even when a signal kills us ##
     my $sig_cleanup = sub {
         paste_disable();
+        mouse_disable() if $mouse_on;
         eval { Term::ReadKey::ReadMode(0) };
         print "\e[0 m\e[?25h\e[0 q";
     };
@@ -720,6 +790,7 @@ sub edit_text {
         _disable_icrnl();
         _disable_ixon();
         paste_enable();
+        mouse_enable() if $mouse_on;
         print "\e[4 q";
         $resized = 1;         ## full redraw ##
         syswrite( $sig_w, 'c', 1 );
@@ -733,6 +804,7 @@ sub edit_text {
     ## bracketed paste : the terminal wraps pasted text in  "\e[200~" ... ##
     ## "\e[201~" so a multi-line paste arrives as one block               ##
     paste_enable();
+    mouse_enable() if $mouse_on;
 
     ## use a steady underscore cursor while editing ##
     print "\e[4 q";
@@ -1056,27 +1128,15 @@ sub edit_text {
 
             ## navigation [ free cursor : lines grow with spaces ] ##
             elsif ( $key eq "\e[A" ) {      ## up ##
-                if ( $cur_line > 0 ) {
-                    $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-                    $cur_line--;
-                    $dirty = 1
-                        if editor_pad_line_to_col( \@lines, $cur_line,
-                        $cur_col );
-                }
+                $move_cursor->( -1, 1 );
             } elsif ( $key eq "\e[B" ) {    ## down ##
-                if ( $cur_line < $#lines ) {
-                    $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-                    $cur_line++;
-                    $dirty = 1
-                        if editor_pad_line_to_col( \@lines, $cur_line,
-                        $cur_col );
-                } else {
-                    ## add a new line at EOF, padded to current column ##
-                    $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-                    push @lines, ' ' x $cur_col;
-                    $cur_line++;
-                    $dirty = 1;
-                }
+                $move_cursor->( 1, 1 );
+            } elsif ( ref $key eq 'HASH'
+                and defined $key->{'wheel'} ) {    ## mouse wheel ##
+                ## wheel up \ down = arrow up \ down ; unlike the down arrow
+                ## it never grows a line at EOF -- scrolling past the end
+                ## stops instead
+                $move_cursor->( $key->{'wheel'} eq qw| up | ? -1 : 1, 0 );
             } elsif ( $key eq "\e[C" ) {    ## right ##
                 $cur_col++;
                 if ( $cur_col > length( $lines[$cur_line] ) ) {
@@ -1278,6 +1338,7 @@ sub edit_text {
 
     Term::ReadKey::ReadMode(0);
     paste_disable();
+    mouse_disable() if $mouse_on;
     print "\e[0 q";    ## cursor shape back on every exit path ##
     STDOUT->autoflush($old_autoflush);
 
@@ -1309,8 +1370,8 @@ sub edit_text {
 
 1;
 
-#,,,,,,,.,.,.,,.,,,.,,,..,,,.,,,,,,..,,..,..,,..,,...,..,,.,.,,,,,..,,,.,,.,.,
-#MMWLNHA2VOSXUTXY64TPWG5646MGCKTQIUYQMNWVRLZPT7X7HFISCYJJADOJHGT4FTITLLNX3W7VA
-#\\\|WLBCJRYWFUOFXH33NXEX2DB7JSD7T5NJYGT4MAPEV2FKU54XEB3 \ / AMOS7 \ YOURUM ::
-#\[7]FGLTFOTCDU6PZQXFG5WDG7EBJMU7O5HB7AFZVU6JKZF6OYUA7UDY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,,,.,,,,,,,,,,.,,.,,,,,.,.,,,..,,...,...,.,.,,..,,,,,,,.,..,,
+#DEORS3KDTNZFQ5VEGEEJ6STSHBRJK5ZTOQ22FXLKOWAHOQNJ3DGAACQQA4I3776SVQ7XP42C5GG4W
+#\\\|ZH4JLW2U3DGSYBOGUXLWMQZ5HVBZITUYNSFZ5CPA3ZZU4HJDT5B \ / AMOS7 \ YOURUM ::
+#\[7]WESJETW633LHE37NDYXAMOL5LXCKWLWBYWEVWVNLBY6YUSS6T6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -489,6 +489,74 @@ check(
         && substr( $output, $v2_pos ) =~ m{ctrl-v paste}
 );
 
+## the mouse wheel scrolls like the arrow keys : SGR wheel reports move the
+## cursor [ down, down, up -> the typed char lands on 'two' ] and the tracking
+## DECSETs come on at start, off at exit
+( $result, $exited, $output ) = run_case(
+    qw| wheel |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[<65;10;5M";    ## wheel down ##
+        $drain->(0.3);
+        syswrite $pty, "\e[<65;10;5M";    ## wheel down ##
+        $drain->(0.3);
+        syswrite $pty, "\e[<64;10;5M";    ## wheel up   ##
+        $drain->(0.3);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_lines
+);
+check(
+    'mouse wheel : scrolls like the arrows, '
+        . 'tracking on at start / off at exit',
+    $result eq "RESULT=<one\nXtwo\nthree>"
+        && $exited
+        && index( $output, "\e[?1000h" ) >= 0
+        && rindex( $output, "\e[?1000l" ) > index( $output, "\e[?1000h" )
+);
+
+## legacy X10 wheel [ \e[M + 3 bytes ] moves the cursor the same way
+( $result, $exited, $output ) = run_case(
+    qw| wheelx10 |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[M" . chr( 32 + 65 ) . chr(42) . chr(37);
+        $drain->(0.3);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_lines
+);
+check(
+    'mouse wheel : legacy X10 reports scroll too',
+    $result eq "RESULT=<one\nXtwo\nthree>" && $exited
+);
+
+## plain clicks are eaten, never text : SGR press + release and an X10 click
+## land nowhere, typing right after stays clean
+( $result, $exited, $output ) = run_case(
+    qw| click |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[<0;5;3M";    ## SGR press   ##
+        $drain->(0.3);
+        syswrite $pty, "\e[<0;5;3m";    ## SGR release ##
+        $drain->(0.3);
+        syswrite $pty, "\e[M" . chr(32) . chr(42) . chr(37);   ## X10 click ##
+        $drain->(0.3);
+        syswrite $pty, 'Z';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    }
+);
+check(
+    'mouse clicks : eaten, never become text',
+    $result eq "RESULT=<Zseed>" && $exited
+);
+
 ## the tty goes away : the editor must end, not spin ##
 ( $result, $exited ) = run_case(
     qw| eof |,
@@ -633,8 +701,8 @@ say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,.,,.,,.,,,,,.,,.,,,..,.,,,,..,,,,,...,,..,..,,...,...,..,,,,,,,.,,,..,,.,,
-#47IK5H7IYPPVX4P3UBXGRNNPHUZAA3S7KBY7YP5UPSRXVLVRQ6BD2WTKZ6WMFKHRG7XTKKCVBDUDG
-#\\\|FWHLHBVQA43AOEHFSQBJCZ7257ZJQ52FEKWSKOIIBNNJPNATHG2 \ / AMOS7 \ YOURUM ::
-#\[7]C3UCNX55HTYCTNPYHMBKGLKYNJTWBFXOO2N57F2CB3PESUSM6UAI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,..,,..,,,,,..,,.,,,..,,,,,,,..,..,,...,...,...,...,.,,,.,,,,..,
+#WEAENOSRGIQE7PO7E2NE2QGIJ2YK4GW63K3NYLDF4ALNKHRN5JVDS4KQNQ5KO3EHJOZJKB6IEMFKU
+#\\\|VC2VIJLQER3SOEYTGBEUWMI623LET2DCSAAAPECE23SCVXBPYVR \ / AMOS7 \ YOURUM ::
+#\[7]SMVHEVACIJ4VG4UPJQH52MXTNGHXON63EO5KIZF65VHLCOU5PCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
