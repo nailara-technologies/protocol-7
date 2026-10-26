@@ -23,7 +23,14 @@ use English;
 ## rebuild their original order, \x1c \ \e[44;5u kill where the terminal gives
 ## ctrl-, its own byte, an empty register says so ; a truncated tail restores
 ## in place at the kill position ; modifyOtherKeys=1 is enabled while open and
-## disabled on exit. skipped when IO::Pty is not installed
+## disabled on exit. wrap mode [ wrap => 1 ] folds long lines into full-width
+## rows with a continuation marker instead of scrolling them sideways -- the
+## buffer roundtrips untouched, the hardware cursor lands on the continuation
+## row, pgdn pages by visual rows ; a CSI-u sequence arriving byte-wise with a
+## lagging final byte still kills [ never types its tail into the text ] ;
+## scroll mode clamps the tail window -- a shorter long line under a far-right
+## cursor never trips substr outside of string. skipped when IO::Pty is not
+## installed
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -1154,12 +1161,160 @@ check(
         && index( $output, "\e[>4;0m" ) >= 0
 );
 
+## an env-seeded child [ hermetic ] : the seed text and the wrap flag come
+## from the environment so each case drives its own geometry
+my $child_code_seed = <<~'CHILD';
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    $ENV{'P7_EDITOR_NO_CLIP'} = 1;
+    my $out = shift;
+    { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
+    my $result = eval {
+        edit_text( { text => $ENV{'SEED'} // 'seed', title => 'T',
+            label => 'l', wrap => $ENV{'WRAP'} ? 1 : 0 } );
+    };
+    open my $fh, '>:utf8', $out or die;
+    print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
+    close $fh;
+    CHILD
+
+## wrap mode [ 100-col pty -> vw 94 ] : a 150-char line folds into a head row
+## and a continuation row carrying the dim wrap marker, the shorter lines
+## render normally and the buffer roundtrips untouched [ view-only wrap ]
+{
+    local $ENV{'SEED'} = "head\n" . ( 'a' x 150 ) . "\ntail";
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wraprender |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my $visible = $output;
+$visible =~ s{\e\[[0-9;?]*[A-Za-z]}{}g;
+check(
+    'wrap mode : long line folds, continuation marker under the colon',
+    $result eq "RESULT=<head\n" . ( 'a' x 150 ) . "\ntail>"
+        && $exited
+        && $visible =~ m|^:\\ a{20}|m
+);
+
+## wrap mode : end-of-line on a 150-char line puts the cursor on the second
+## visual row at in-segment offset 56 [ row 6, col 60 on the 100-col pty ]
+{
+    local $ENV{'SEED'} = 'a' x 150;
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrapcursor |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[F";    ## end ##
+            $drain->(0.4);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my @cursor_pos = $output =~ m{\e\[([0-9]+);([0-9]+)H\e\[\?25h}g;
+check(
+    'wrap mode : hardware cursor lands on the continuation row',
+    $exited
+        && grep( $cursor_pos[ $_ * 2 ] == 6
+            && $cursor_pos[ $_ * 2 + 1 ] == 60,
+        0 .. ( $#cursor_pos / 2 ) )
+);
+
+## wrap mode : pgdn pages by visual rows -- 30 lines of 150 chars fold into 60
+## rows ; one page lands on line 11 [ row 26, col 4 ] and the buffer
+## roundtrips
+{
+    local $ENV{'SEED'} = join( "\n", ( 'a' x 150 ) x 30 );
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrappgdn |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[6~";    ## pgdn ##
+            $drain->(0.4);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+@cursor_pos = $output =~ m{\e\[([0-9]+);([0-9]+)H\e\[\?25h}g;
+check(
+    'wrap mode : pgdn pages by visual rows, buffer roundtrips',
+    $result eq 'RESULT=<'
+        . join( "\n", ( 'a' x 150 ) x 30 )
+        . '>'
+        && $exited
+        && grep( $cursor_pos[ $_ * 2 ] == 26
+            && $cursor_pos[ $_ * 2 + 1 ] == 4,
+        0 .. ( $#cursor_pos / 2 ) )
+);
+
+## a CSI-u ctrl-, arriving byte-wise with the final byte lagging past the
+## short escape deadline still kills -- the prefix stays in flight and the
+## tail never TYPES into the text
+{
+    local $ENV{'SEED'} = "one\ntwo\nthree";
+    local $ENV{'WRAP'} = 0;
+    ( $result, $exited, $output ) = run_case(
+        qw| splitcsi |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[44;5";
+            $drain->(0.25);        ## past the 0.1 s first deadline ##
+            syswrite $pty, "u";    ## the lagging final byte       ##
+            $drain->(0.4);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+check( 'split CSI-u delivery : the lagging byte completes the kill, not text',
+    $result eq "RESULT=<two\nthree>" && $exited );
+
+## scroll mode : the cursor far past a shorter long line
+## [ 100 chars under a 200-column cursor ] clamps the tail window instead of
+## tripping substr outside of string
+{
+    local $ENV{'SEED'} = ( 'a' x 200 ) . "\n" . ( 'b' x 100 );
+    local $ENV{'WRAP'} = 0;
+    ( $result, $exited, $output ) = run_case(
+        qw| scrollclamp |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[F";    ## end of the 200-char line ##
+            $drain->(0.4);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+check(
+    'scroll mode : a far-right cursor over a shorter long line stays silent',
+    $result eq 'RESULT=<' . ( 'a' x 200 ) . "\n" . ( 'b' x 100 ) . '>'
+        && $exited
+        && index( $output, 'substr outside of string' ) < 0
+);
+
 say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,.,.,,,..,,,..,,,,,.,,,,,.,,..,.,,,...,,.,,..,,...,...,.,.,.,,,.,,,,..,,.,,
-#WZLG5SUHANLRFJ6WCJMWQMFQCV2BGJJEPB3Y5FL5CKCQAWZJARITJI2PN4C5TLQNE5RPMRCDUKNZY
-#\\\|EGWNNHE3RRMNAZQM66ZFBCFKHTOW4PXHTA53ZVX76WWW36EAC26 \ / AMOS7 \ YOURUM ::
-#\[7]ZQ62XVSZLWBOS7LHAGKTFAQZDTE3B7HDG2OEGPAO2MWCCVC6PYAI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,.,,.,,,,,,..,,,,,,.,.,...,.,.,..,,...,...,...,...,.,.,..,,.,,,
+#OCWCLSOVJWJAPIGUCNO3BGRR6LGAZO2Z43IM333RE7AB22FSMYIDTUAQT5VG3QUDUN5TB2SY7JAYK
+#\\\|UTB7OKFL7ETUWUKJZCHH6W6Q2S3NQFTBSABLFGOEYBLXLHHIIVM \ / AMOS7 \ YOURUM ::
+#\[7]LFLCTDPLEQ2TZNKMY6ZSSMFLC4JYY7TDAVLV672URCCRRIKITKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

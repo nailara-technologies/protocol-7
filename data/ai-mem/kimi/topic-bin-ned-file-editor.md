@@ -128,8 +128,48 @@ green : 22/22 pty + 26/26 unit.
   already exists as the client-side library family.
 - possible library hook for live external-change notification.
 
-#,,,.,...,,..,.,,,,,,,,..,.,.,,.,,,.,,.,,,,.,,..,,...,...,..,,,,,,,.,,..,,.,.,
-#2YSJYS5WJQNQZA4A42P4ONNPCMTASBQ3RJ2JMYBSU6PSYHZ2VS4DCFD7DCAPKCVORLIHY7332WHCI
-#\\\|RBSVZCHIBIN7WBQ55R6M7LOK3JOBAR4ITL54ITR7QL6HRXUH5MV \ / AMOS7 \ YOURUM ::
-#\[7]ZEFUQEVJBQV74HSPWRYI5SYTLXT3CO6GXXPKGRJ34E2OBAT342AI 7  DATA SIGNATURE ::
+## editor wrap mode + regression fixes (2026-10-26)
+
+user reported two regressions + requested the old Text::Wrap-style
+behaviour back in the todo details editor.
+
+- **wrap mode [ NEW, library param `wrap => 1` ]** : view-only soft
+  wrap. the buffer keeps the raw lines and the saved file is never
+  re-flowed -- rendering folds long lines into full-width rows, a dim
+  green '\' under the ':' marks continuation rows. scroll mode
+  [ horizontal, `<`/`>` tail window ] stays the default. `bin/todo`
+  details editor passes `wrap => 1`; ned can opt in / toggle later.
+  user notes wrap is ESSENTIAL for message reading/writing too [ chat
+  clients write whole paragraphs as one line ]. internals:
+  `detail_editor_wrap_rows` + `detail_editor_draw_wrapped`; scroll,
+  hardware-cursor, click and pgup/pgdn all map visual rows back to raw
+  buffer positions; `$first_visible` counts visual rows in wrap mode,
+  logical lines in scroll mode.
+- **scroll-mode `substr outside of string` fix** : EVERY content row is
+  drawn with the CURSOR's column, so a shorter-but-longer-than-the-window
+  line under a far-right cursor computed a start past its own end. the
+  tail window is now clamped [ `Editor.pm` detail_editor_draw_line ].
+- **CSI-u reader hardening** : an in-flight `\e[digits;...` sequence gets
+  a 1 s collection deadline once its prefix is unambiguous [ was 0.1 s
+  flat ] -- a lagging final byte used to return the prefix as an inert
+  key and TYPE the tail into the text [ plausible ctrl-, / ctrl+.
+  'stopped working' vector on a loaded line ].
+- **the 28 MB padding flood** : wrap draw finished with
+  `say $pad while $drawn < $content_rows` -- `$drawn` never incremented,
+  a small buffer [ fewer rows than the window ] looped forever. the
+  pgdn case passed because its 60-row buffer never reached the padding
+  path. lesson : audit the loop variant on statement-modifier `while`.
+- **ctrl-, / ctrl+. regression NOT reproduced** : every known byte form
+  [ `^L`/`^N` legacy, `\x1c`, `\e[44;5u` / `\e[46;5u` CSI-u ] drives the
+  real bin/ned end-to-end on a pty; all 46 pty tests pass. pending the
+  user capturing the exact in-editor bytes with
+  `printf '\e[>4;1m'; cat -v` [ plain `cat -v` runs OUTSIDE the editor;
+  modifyOtherKeys=1 is enabled INSIDE and changes those encodings ].
+- suites after : 26/26 unit, 46/46 editor pty [ +5 : wrap render, wrap
+  cursor row, wrap pgdn, split CSI-u, scroll clamp ], 13/13 ned.
+
+#,,,.,.,.,,.,,..,,...,,,,,.,,,.,,,.,,,,,,,...,..,,...,..,,..,,,..,,.,,.,,,...,
+#2FEGBJ2UQ2VGH4APFLXWTQ6CUP3MKN4V3SJKJHYVX7IJI4NEIPQ7Y5CTXUWURQTXSOEVB5JBVTLBW
+#\\\|6O5W3F3XH2VP45W7NDOB4J4XVBZM3G5VI6ZE4GLWAFL45BSOSRD \ / AMOS7 \ YOURUM ::
+#\[7]YU6CGJ6HFWOPR3P2UGHK6I3G5Y4OYQESRHBEPTRMAZOI67E3KSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
