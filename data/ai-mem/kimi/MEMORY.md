@@ -34,7 +34,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: `routing_mode`, `strm.subscribe`, `session_catchup`, `bin/chat`, jobsite pipeline,
   duck.ai security task tree, coding self-test async transport, kimi `QuestionRequest` decline,
   amos-term interaction prototype, `source.extract_sig_body` fake-footer fix, audio spatial-purr,
-  ncode scope-stack phase 2, ascii.frame cursor marker.
+  ncode scope-stack phase 2, ascii.frame cursor marker, `AMOS7::TERM::Editor` hardening
+  [ scroll-free frame, kill stack + paste, mlock/wipe hygiene, pty test discipline ].
 
 - **[MEMORY-reference.md](MEMORY-reference.md)** — durable how-to + settled rules.  
   open for: memory update tool details, `%code` presence / cross-namespace calls, module name
@@ -83,8 +84,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   and .bashrc builds no_proxy with bare $(hostname -I) IPv6 — both
   landmines for stricter parsers.
 
-#,,..,,,.,.,.,,.,,.,,,..,,,..,...,...,...,.,.,..,,...,...,,..,,..,.,.,,.,,..,,
-#6SJXROH4Q7JP2BULPPA77N57GIZFVFWZAV4NDV32H2ZPT4O6KWNK4A5TWB42B764SP33RDVX3WWQM
-#\\\|T6FQZZ2WOZ4VCOQPXTILTNZL57BMR5DQKESV45XMCCAFQY2CN7K \ / AMOS7 \ YOURUM ::
-#\[7]NN2UAGDYDDPLR5UQL44LEVEZKXBTNHGASE4EGJPJC47OVD76DACI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,,,.,.,.,.,.,.,...,,,,,.,.,.,,,..,,...,...,..,,,.,,,.,,,..,...,
+#OHSRWH44Q75A5VTYC7CYBUMMQKKPSQGZEWUIX24BMGBY63BPISIWW27VL3UFG5OAKDNVQH2WUDYV6
+#\\\|OTHTTEIX2VSD7YWAUBFBIQHLMVES5VRSK5E7FJTHSLI5D2MSARY \ / AMOS7 \ YOURUM ::
+#\[7]JOXJN5X4D6D5YBDTR6UTDOASH7WVOWLIZ6GPDS6TU77J3HTEDSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
