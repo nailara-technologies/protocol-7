@@ -40,9 +40,14 @@ package AMOS7::TERM::Editor;    #############################################
 ## the keys only explain that ctrl-x saves + quits -- nothing is ever claimed
 ## saved.
 ##
-## ctrl-l removes a line onto a kill stack [ LIFO, per editor session ] and
-## ctrl-v brings lines back above the cursor -- a simple line undo \ reorder.
-## with an empty stack ctrl-v pastes the system clipboard
+## ctrl-l removes a line onto a kill stack [ per editor session ] and
+## ctrl-v brings it back [ LIFO ] -- a simple line undo \ reorder.
+## ctrl-. [ \x0e, or CSI-u \e[46;5u ] restores IN ORDER from the same
+## stack [ oldest first ], so kills rebuild their original order ;
+## terminals that give ctrl-, its own byte [ \x1c legacy, \e[44;5u
+## CSI-u ] kill with it. a literal ',' \ '.' can never be bound --
+## the terminal must send a distinguishable encoding. with an empty
+## stack ctrl-v pastes the system clipboard
 ## [ wl-paste, xsel, xclip, powershell on wsl ] as lines above the cursor ;
 ## the hint line only advertises ctrl-v when something can actually be pasted.
 ## ctrl-y clears the registers -- the clipboard content stays unpasteable
@@ -940,8 +945,8 @@ sub edit_text {
             if ( $frame_sig ne $drawn_sig ) {
                 $drawn_sig = $frame_sig;
 
-                ## draw frame : hide cursor during redraw to stop it flickering ##
-                ## at 1,1                                                       ##
+                ## draw frame : hide cursor during redraw to stop it ##
+                ## flickering at 1,1                                 ##
                 print "\e[?25l\e[H\e[2J";    ## hide cursor, clear ##
 
                 ## top border : .::[ .:. title .:. ]:::::::::::::::. ##
@@ -974,8 +979,8 @@ sub edit_text {
                     }
                 );
 
-                ## summary line [ left-aligned, 3-space left pad, 1-space right ##
-                ## pad, :: delimiter ]                                          ##
+                ## summary line [ left-aligned, 3-space left pad, 1-space ##
+                ## right pad, :: delimiter ]                              ##
                 my $max_summary = $inner_width - 4;
                 if ( length($summary) > $max_summary ) {
                     $summary
@@ -1066,9 +1071,9 @@ sub edit_text {
                     }
                 );
 
-                ## help line [ left pad, :: delimiter ]  ctrl-s                ##
-                ## [ alias ctrl-o ] is only advertised when on_save gives it a ##
-                ## real target                                                 ##
+                ## help line [ left pad, :: delimiter ]  ctrl-s           ##
+                ## [ alias ctrl-o ] is only advertised when on_save gives ##
+                ## it a real target                                       ##
                 my $save_hint = defined $on_save ? ' · ctrl-s save' : '';
                 my $paste_hint
                     = (
@@ -1076,15 +1081,15 @@ sub edit_text {
                         or ( defined $clip_at_start
                         and not defined $clip_cleared )
                     )
-                    ? ' · ctrl-v paste · ctrl-y clear'
+                    ? ' · ctrl-v paste · ctrl+. in-order · ctrl-y clear'
                     : '';
                 my $help_text
                     = ' · ctrl-x save+quit · ctrl-c abort'
                     . $save_hint
                     . $paste_hint
                     . ' · ctrl-w del-word · ctrl-l del-line · ctrl-d '
-                    . 'de-interlace · arrows · enter · del · pgup \ pgdn '
-                    . 'page ·';
+                    . 'de-interlace · arrows · enter · del · pgup \ '
+                    . 'pgdn page ·';
                 $help_text = ' · ' . $hint . ' ·' . $help_text
                     if length $hint;
                 ## show status [ e.g. 'saved' ] on the LEFT so it survives ##
@@ -1315,10 +1320,14 @@ sub edit_text {
                     splice @lines, $cur_line + 1, 1;
                     $dirty = 1;
                 }
-            } elsif ( $key eq "\x0c" ) {     ## Ctrl-L : delete line ##
-                ## onto the kill stack [ LIFO ], for ctrl-v to bring back ##
-                ## -- an empty line has nothing to restore, so it never   ##
-                ## buries a real kill                                     ##
+            } elsif ( $key eq "\x0c"
+                or $key eq "\x1c"
+                or $key eq "\e[44;5u" ) {
+                ## Ctrl-L [ and ctrl-, on terminals that give it a distinct
+                ## byte : \x1c legacy on kitty \ foot,
+                ## \e[44;5u with the CSI-u protocol ] : delete line onto the
+                ## kill stack -- an empty line has nothing to restore, so it
+                ## never buries a real kill
                 my $killed = $lines[$cur_line];
                 $killed =~ s| +$||;
                 if ( length $killed ) {
@@ -1400,6 +1409,22 @@ sub edit_text {
                         $last_status = 'nothing to paste';
                     }
                     _wipe( \$clip );
+                }
+            }
+
+            ## Ctrl+. [ \x0e, or CSI-u \e[46;5u from protocol terminals ] :
+            ## restore IN ORDER -- the same kill register read from the
+            ## bottom, so kills come back oldest-first ; each restore inserts
+            ## above the cursor and the cursor follows the restored line down,
+            ## repeated presses rebuild the original order. no clipboard
+            ## fallback [ that is ctrl-v ]
+            elsif ( $key eq "\x0e" or $key eq "\e[46;5u" ) {
+                if (@kill_stack) {
+                    splice @lines, $cur_line, 0, shift @kill_stack;
+                    $cur_line++;
+                    $dirty = 1;
+                } else {
+                    $last_status = 'nothing to restore';
                 }
             }
 
@@ -1496,8 +1521,8 @@ sub edit_text {
 
 1;
 
-#,,,,,...,.,,,.,,,,..,...,.,,,.,,,,,.,,,,,...,..,,...,...,,.,,,..,...,,,,,,.,,
-#2XQENX43YS7R6QUXE5HOB47MZIKQWBIN43TH6HQ4ZPW7AHENW47NGSYYGE5DYXJNEXBL67ZTRDO3I
-#\\\|CZ7RENUPMTNQ2EQYGHMVVYS7I7KBQB2QLJBIBOFXKXGHCNKGREG \ / AMOS7 \ YOURUM ::
-#\[7]SUYUB3MKVR63INF4X6OHO6NMW7P3EDKOXRMH7SKH6Y5UJLJFTUBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,...,,..,,,,,,..,.,.,,..,,.,,,,,,..,,...,...,..,,.,.,,.,,.,,,.,.,
+#3SORHCN5AZRZP62DPCYSXYKSP4FCO3752NBERF2HRJFTPQ6ZU2MZP2LHSWCYLV6HYY6XZ7A762AKY
+#\\\|ERHFQSRSX7INUGKO63NVYFOXGCQD3WWL5QABZPVBVSCCG725JEJ \ / AMOS7 \ YOURUM ::
+#\[7]WSI2E7OBENFURZICOKKFMYCG2RUAURVYOV62DDQ2S4AXCL5RIEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
