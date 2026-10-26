@@ -290,6 +290,205 @@ check(
         && $output !~ m{\x1bc}
 );
 
+## a child seeded with three lines and no clipboard [ hermetic ] : ctrl-l
+## pushes onto the kill stack, ctrl-v pops back above the cursor
+my $child_code_lines = <<~'CHILD';
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    $ENV{'P7_EDITOR_NO_CLIP'} = 1;
+    my $out = shift;
+    { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
+    my $result = eval {
+        edit_text( { text => "one\ntwo\nthree", title => 'T',
+            label => 'l' } );
+    };
+    open my $fh, '>:utf8', $out or die;
+    print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
+    close $fh;
+    CHILD
+
+## ctrl-l twice then ctrl-v twice : the last removed line comes back first,
+## the earlier one lands below it -- LIFO, and the hint shows once the stack
+## holds something
+( $result, $exited, $output ) = run_case(
+    qw| killstack |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\x0c";    ## ctrl-l : 'one' onto the stack ##
+        $drain->(0.3);
+        syswrite $pty, "\x0c";    ## ctrl-l : 'two' onto the stack ##
+        $drain->(0.3);
+        syswrite $pty, "\x16";    ## ctrl-v : 'two' back above      ##
+        $drain->(0.3);
+        syswrite $pty, "\x16";    ## ctrl-v : 'one' below it        ##
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_lines
+);
+check(
+    'ctrl-l \ ctrl-v : LIFO kill stack, the hint appears with content',
+    $result eq "RESULT=<two\none\nthree>"
+        && $exited
+        && $output =~ m{ctrl-v paste}
+        && $output =~ m{ctrl-y clear}
+);
+
+## ctrl-y with an empty stack and no clipboard : nothing moves, the status
+## line explains
+( $result, $exited, $output ) = run_case(
+    qw| ctrlvempty |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\x16";
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_lines
+);
+check(
+    'ctrl-v with nothing to paste : buffer unchanged, status explains',
+    $result eq "RESULT=<one\ntwo\nthree>"
+        && $exited
+        && $output =~ m{nothing to paste}
+);
+
+## ctrl-y empties the kill stack : a later ctrl-v finds nothing to restore
+( $result, $exited, $output ) = run_case(
+    qw| clearystack |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\x0c";    ## ctrl-l : 'one' onto the stack ##
+        $drain->(0.3);
+        syswrite $pty, "\x19";    ## ctrl-y : stack cleared         ##
+        $drain->(0.3);
+        syswrite $pty, "\x16";    ## ctrl-v : nothing to restore    ##
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_lines
+);
+my $cleared_at = rindex( $output, 'paste buffer cleared' );
+check(
+    'ctrl-y empties the kill stack : ctrl-v finds nothing',
+    $result eq "RESULT=<two\nthree>"
+        && $exited
+        && $output                        =~ m{paste buffer cleared}
+        && $output                        =~ m{nothing to paste}
+        && substr( $output, $cleared_at ) !~ m{ctrl-v paste}
+);
+
+## a child with a fake xsel on PATH [ DISPLAY set ] : ctrl-v pastes the
+## clipboard as lines above the cursor
+my $child_code_clip = <<~'CHILD';
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    my $out     = shift;
+    my $fakebin = "$out.fakebin";
+    mkdir $fakebin;
+    open( my $xf, '>', "$fakebin/xsel" ) or die;
+    print $xf "#!/bin/sh\nprintf 'clip1\\nclip2\\n'\n";
+    close $xf;
+    chmod 0755, "$fakebin/xsel";
+    $ENV{'PATH'}    = "$fakebin:$ENV{PATH}";
+    $ENV{'DISPLAY'} = ':0';
+    { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
+    my $result = eval {
+        edit_text( { text => 'X', title => 'T', label => 'l' } );
+    };
+    open my $fh, '>:utf8', $out or die;
+    print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
+    close $fh;
+    CHILD
+
+( $result, $exited, $output ) = run_case(
+    qw| clippaste |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\x16";
+        $drain->(0.5);
+        syswrite $pty, "\x18";
+    },
+    $child_code_clip
+);
+check(
+    'ctrl-v with an empty stack : the clipboard pastes as lines above',
+    $result eq "RESULT=<clip1\nclip2\nX>"
+        && $exited
+        && $output =~ m{pasted from clipboard}
+);
+
+## a child whose fake xsel reads a file the parent rewrites mid-run : ctrl-y
+## clears the registers -- the cleared clipboard content stays unpasteable,
+## changed content re-arms ctrl-v
+my $child_code_cleary = <<~'CHILD';
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    my $out     = shift;
+    my $fakebin = "$out.fakebin";
+    mkdir $fakebin;
+    open( my $xf, '>', "$fakebin/xsel" ) or die;
+    print $xf "#!/bin/sh\ncat \"\$P7_FAKE_CLIP\"\n";
+    close $xf;
+    chmod 0755, "$fakebin/xsel";
+    $ENV{'P7_FAKE_CLIP'} = "$out.clipcontent";
+    open( my $cf, '>', $ENV{'P7_FAKE_CLIP'} ) or die;
+    print $cf "v1a\nv1b\n";
+    close $cf;
+    $ENV{'PATH'}    = "$fakebin:$ENV{PATH}";
+    $ENV{'DISPLAY'} = ':0';
+    { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
+    my $result = eval {
+        edit_text( { text => 'X', title => 'T', label => 'l' } );
+    };
+    open my $fh, '>:utf8', $out or die;
+    print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
+    close $fh;
+    CHILD
+
+my $clip_file = "$tmp_dir/result.cleary.clipcontent";
+( $result, $exited, $output ) = run_case(
+    qw| cleary |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\x16";    ## ctrl-v : clipboard v1 pastes  ##
+        $drain->(0.4);
+        syswrite $pty, "\x19";    ## ctrl-y : registers cleared    ##
+        $drain->(0.4);
+        syswrite $pty, "\x16";    ## ctrl-v : same content, no     ##
+        $drain->(0.4);
+        open( my $cf, '>', $clip_file );
+        print {$cf} "v2a\nv2b\n";    ## clipboard content changes     ##
+        close $cf;
+        syswrite $pty, "\x16";       ## ctrl-v : v2 pastes            ##
+        $drain->(0.4);
+        syswrite $pty, "\x18";
+    },
+    $child_code_cleary
+);
+my $cleared_pos = rindex( $output, 'paste buffer cleared' );
+my $v2_pos      = rindex( $output, 'pasted from clipboard' );
+check(
+    'ctrl-y clears the registers ; a changed clipboard re-arms ctrl-v',
+    $result eq "RESULT=<v1a\nv1b\nv2a\nv2b\nX>"
+        && $exited
+        && $output =~ m{paste buffer cleared}
+        && $output =~ m{nothing to paste}
+        && $output =~ m{pasted from clipboard}
+        && $v2_pos > $cleared_pos
+        ## the hint hides after the clear, while the cleared clipboard   ##
+        ## content stays unpasteable ; it returns once a new paste lands ##
+        && substr( $output, $cleared_pos, $v2_pos - $cleared_pos )
+        !~ m{ctrl-v paste}
+        && substr( $output, $v2_pos ) =~ m{ctrl-v paste}
+);
+
 ## the tty goes away : the editor must end, not spin ##
 ( $result, $exited ) = run_case(
     qw| eof |,
@@ -332,11 +531,15 @@ check(
     $result eq 'RESULT=<Zseed>' && $exited
 );
 
-## ctrl-c abort : the cursor shape set on entry is reset ##
+## ctrl-c abort : the cursor shape set on entry is reset  the ctrl-c only ##
+## once the editor's frame is up : sent earlier it may arrive while the   ##
+## child still compiles [ cooked tty, ISIG on ] and the default SIGINT    ##
+## would kill perl before the editor's handlers exist                     ##
 ( $result, $exited, $output ) = run_case(
     qw| abort |,
     sub {
-        my ($pty) = @ARG;
+        my ( $pty, $pid, $drain ) = @ARG;
+        $drain->( 5, qr|ctrl-x save\+quit| );
         syswrite $pty, "\x03";
     }
 );
@@ -430,8 +633,8 @@ say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,.,,,,,,,..,..,,,,,,.,.,.,,,.,,,,,.,,,.,,,,,..,,...,...,..,,.,,,,.,,...,,.,,
-#RAI2HW6SLUNLTLIZEMES25Z5MMBLOAOYQT3R4VT263UIZ4IAMJGRXZ5AYGAIFT4WBHMMN3I455B6C
-#\\\|NXQUS3BNPNEDM5O23WSPJFSXGEI72ABIK73O55HSYHUF5BPFB5I \ / AMOS7 \ YOURUM ::
-#\[7]4XD5D344LBUUVAJAYN7YIEBQKERRVZ6NM7Q5L6S2EZGRDAGE6CAA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,,.,,,..,.,,,,..,,,,,...,,..,..,,...,...,..,,,,,,,.,,,..,,.,,
+#47IK5H7IYPPVX4P3UBXGRNNPHUZAA3S7KBY7YP5UPSRXVLVRQ6BD2WTKZ6WMFKHRG7XTKKCVBDUDG
+#\\\|FWHLHBVQA43AOEHFSQBJCZ7257ZJQ52FEKWSKOIIBNNJPNATHG2 \ / AMOS7 \ YOURUM ::
+#\[7]C3UCNX55HTYCTNPYHMBKGLKYNJTWBFXOO2N57F2CB3PESUSM6UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

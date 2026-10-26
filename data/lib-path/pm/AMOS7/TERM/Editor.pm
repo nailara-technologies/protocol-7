@@ -40,6 +40,14 @@ package AMOS7::TERM::Editor;    #############################################
 ## the keys only explain that ctrl-x saves + quits -- nothing is ever claimed
 ## saved.
 ##
+## ctrl-l removes a line onto a kill stack [ LIFO, per editor session ] and
+## ctrl-v brings lines back above the cursor -- a simple line undo \ reorder.
+## with an empty stack ctrl-v pastes the system clipboard
+## [ wl-paste, xsel, xclip, powershell on wsl ] as lines above the cursor ;
+## the hint line only advertises ctrl-v when something can actually be pasted.
+## ctrl-y clears the registers -- the clipboard content stays unpasteable
+## until it changes, the desktop selection itself is never touched.
+##
 ## a reader is a hashref with two closures :
 ##   read   => sub ( $timeout ) -> single byte or undef
 ##   ungetc => sub ( $bytes )   -> push bytes back [ read again in order ]
@@ -496,6 +504,43 @@ sub _display_sanitize {
     return $text;
 }
 
+sub _on_wsl {
+    state $cached = do {
+        my $rel = '';
+        if ( open my $fh, '<', '/proc/sys/kernel/osrelease' ) {
+            local $INPUT_RECORD_SEPARATOR;
+            $rel = <$fh> // '';
+        }
+        $rel =~ m{WSL} ? TRUE : FALSE;
+    };
+    return $cached;
+}
+
+sub _clipboard_read {
+    ## read-only clipboard access                                           ##
+    ## [ keep in step with bin/p7-vault's clipboard_tool ] : the first tool ##
+    ## that answers wins. returns the decoded text, undef when no tool      ##
+    ## answers or the selection is empty. P7_EDITOR_NO_CLIP is the test \   ##
+    ## escape hatch                                                         ##
+    return undef if $ENV{'P7_EDITOR_NO_CLIP'};
+    my @readers = (
+        $ENV{'WAYLAND_DISPLAY'} ? 'wl-paste -n 2>/dev/null' : (),
+        $ENV{'DISPLAY'}         ? 'xsel -bo 2>/dev/null' : (),
+        $ENV{'DISPLAY'}         ? 'xclip -selection clipboard -o 2>/dev/null'
+        : (),
+        _on_wsl()
+        ? 'powershell.exe -NoProfile -Command Get-Clipboard 2>/dev/null'
+        : (),
+    );
+    foreach my $cmd (@readers) {
+        my $out = qx|$cmd|;
+        next if $CHILD_ERROR or not defined $out or not length $out;
+        utf8::decode($out);
+        return $out;
+    }
+    return undef;
+}
+
 sub editor_leave_line {
     my ( $lines_ref, $line_idx ) = @_;
     return 0 if $line_idx < 0 or $line_idx > $#$lines_ref;
@@ -565,6 +610,22 @@ sub edit_text {
     my $aborted       = 0;
     my $resized       = 0;
 
+    ## the kill stack : ctrl-l pushes the removed line, ctrl-v pops it back ##
+    ## in above the cursor [ LIFO ]. per edit_text call on purpose : note   ##
+    ## lines are secrets, they must not linger in module state after the    ##
+    ## editor closes                                                        ##
+    my @kill_stack;
+
+    ## ctrl-v advertises itself only with something to paste : the kill   ##
+    ## stack fills as ctrl-l removes lines ; the clipboard counts when it ##
+    ## holds text at start [ probing it on every redraw would shell out ] ##
+    my $clip_at_start;
+
+    ## ctrl-y clears the registers : the clipboard content at that moment   ##
+    ## stays unpasteable until it changes [ the desktop selection itself is ##
+    ## never wiped -- other applications may hold it ]                      ##
+    my $clip_cleared;
+
     ## self-pipe : signal handlers write a byte here so select() wakes up, ##
     ## giving us event-driven resize/abort handling instead of polling.    ##
     pipe( my $sig_r, my $sig_w );
@@ -630,6 +691,11 @@ sub edit_text {
 
     ## use a steady underscore cursor while editing ##
     print "\e[4 q";
+
+    ## the clipboard probe happens only now : shelling out before the     ##
+    ## signal handlers \ raw mode above would leave an arriving ctrl-c to ##
+    ## the default die during the fork \ exec latency                     ##
+    $clip_at_start = _clipboard_read();
 
     ## make sure the drawn frame is visible before blocking for input ##
     my $old_autoflush = $OUTPUT_AUTOFLUSH;
@@ -810,9 +876,18 @@ sub edit_text {
             ## [ alias ctrl-o ] is only advertised when on_save gives it a ##
             ## real target                                                 ##
             my $save_hint = defined $on_save ? ' · ctrl-s save' : '';
+            my $paste_hint
+                = (
+                @kill_stack
+                    or ( defined $clip_at_start
+                    and not defined $clip_cleared )
+                )
+                ? ' · ctrl-v paste · ctrl-y clear'
+                : '';
             my $help_text
                 = ' · ctrl-x save+quit · ctrl-c abort'
                 . $save_hint
+                . $paste_hint
                 . ' · ctrl-w del-word · ctrl-l del-line · '
                 . 'ctrl-d de-interlace · arrows · enter · del ·';
             $help_text = ' · ' . $hint . ' ·' . $help_text
@@ -1008,12 +1083,18 @@ sub edit_text {
                     $dirty = 1;
                 }
             } elsif ( $key eq "\x0c" ) {     ## Ctrl-L : delete line ##
+                ## onto the kill stack [ LIFO ], for ctrl-v to bring back ##
+                ## -- an empty line has nothing to restore, so it never   ##
+                ## buries a real kill                                     ##
+                my $killed = $lines[$cur_line];
+                $killed =~ s| +$||;
+                push @kill_stack, $killed if length $killed;
                 splice @lines, $cur_line, 1;
                 @lines    = ('')    if !@lines;
                 $cur_line = $#lines if $cur_line > $#lines;
                 $cur_col  = 0;
                 $dirty    = 1;
-            } elsif ( $key eq "\x17" ) {     ## Ctrl-W : del word back ##
+            } elsif ( $key eq "\x17" ) {    ## Ctrl-W : del word back ##
                 if ( $cur_col > 0 ) {
                     my $start = $cur_col;
                     ## skip trailing whitespace ##
@@ -1045,6 +1126,51 @@ sub edit_text {
                     $cur_line = $#lines if $cur_line > $#lines;
                     $dirty    = 1;
                 }
+            }
+
+            ## Ctrl-V : paste lines above ##
+            elsif ( $key eq "\x16" ) {
+                ## the kill stack first                                    ##
+                ## [ LIFO : the last ctrl-l comes back first ], the system ##
+                ## clipboard when the stack is empty                       ##
+                if (@kill_stack) {
+                    splice @lines, $cur_line, 0, pop @kill_stack;
+                    $cur_line++;    ## stay on the text the cursor held ##
+                    $dirty = 1;
+                } else {
+                    my $clip = _clipboard_read();
+                    ## a cleared clipboard stays cleared until its content ##
+                    ## changes : the desktop selection itself is never     ##
+                    ## touched                                             ##
+                    if (    defined $clip
+                        and length $clip
+                        and ( not defined $clip_cleared
+                            or $clip ne $clip_cleared )
+                    ) {
+                        my @clip_lines = split m{\n},
+                            editor_normalize_paste($clip), -1;
+                        pop @clip_lines
+                            if @clip_lines > 1 and $clip_lines[-1] eq '';
+                        splice @lines, $cur_line, 0, @clip_lines;
+                        $cur_line += scalar @clip_lines;
+                        $dirty       = 1;
+                        $last_status = 'pasted from clipboard';
+                        ## the pasted content is known again : the hint ##
+                        ## comes back and repeated ctrl-v stays live    ##
+                        $clip_at_start = $clip;
+                        $clip_cleared  = undef;
+                    } else {
+                        $last_status = 'nothing to paste';
+                    }
+                }
+            }
+
+            ## Ctrl-Y : clear the paste registers ##
+            elsif ( $key eq "\x19" ) {
+                @kill_stack   = ();
+                $clip_cleared = _clipboard_read() // '';
+                $last_status  = 'paste buffer cleared';
+                $dirty        = 1;
             }
 
             ## paste [ one event, one redraw ] ##
@@ -1119,8 +1245,8 @@ sub edit_text {
 
 1;
 
-#,,.,,,,,,,,.,.,.,,..,.,,,..,,.,,,,.,,,.,,,..,..,,...,...,...,.,.,,,,,...,,..,
-#3JAQYU27WSZ25FDEFI5SQ5OY4B27BGE4QHQW4C3EJGXFEJ5EMDGWPKB4G5F7UF2QHLXOOINMTCH3K
-#\\\|C6LHOLVUXLCPK3IN3UHWFCICOUW3UZGVORGMMKLL2VYMQ6C3AJR \ / AMOS7 \ YOURUM ::
-#\[7]GIVKJPYUOBH6FHHKXLL3V35NV7FMAOUN4OZDSIUWGUF62JJHOECQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,.,.,.,,,.,.,...,,.,,,,,,,,.,..,,...,...,,,.,,..,,..,,..,.,,,
+#QKOXSITCMXWOKZSIMB3ZQBP4FM3QL4XTDA4YA6FQE4B3OAPQHI5HKFGJY4IX7E366PCHBFIVX43GU
+#\\\|5OWU7QUUD5KHEJVX2CDKU4QURJFX4BXYX64PDC4BVFNIFQTMHPL \ / AMOS7 \ YOURUM ::
+#\[7]UKRZZ5VGG2UT7EITPICWMIZ7FZACN6QEY4DYRX4BGYP4G7N664AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
