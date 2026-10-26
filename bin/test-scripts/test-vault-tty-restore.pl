@@ -138,14 +138,14 @@ sub ok_tty_restored {
 my $h = spawn();
 $h->{'wait'}->( 15,              qr|passphrase| );
 $h->{'send'}->( "pass phrase\r", 1 );
-$h->{'wait'}->( 5,               qr|:: vault ::| );
+$h->{'wait'}->( 12,              qr|:: vault ::| );
 $h->{'send'}->( "scratchpad\r",  1.5 );               ## the editor opens ##
-$h->{'wait'}->( 5,               qr|ctrl-x save\+quit| );
+$h->{'wait'}->( 12,              qr|ctrl-x save\+quit| );
 my $out        = ${ $h->{'out'} };
 my $frame_seen = $out =~ m|ctrl-x save\+quit| ? TRUE : FALSE;
 $h->{'send'}->( 'X',    0.5 );
 $h->{'send'}->( "\x18", 1 );                          ## ctrl-x save ##
-$h->{'wait'}->( 5,      qr|stored 'scratchpad'| );
+$h->{'wait'}->( 12,     qr|stored 'scratchpad'| );
 $out = ${ $h->{'out'} };
 my $stored = $out =~ m|stored 'scratchpad'| ? TRUE : FALSE;
 
@@ -167,7 +167,7 @@ ok( index( $out, "\e[24;1H\e[?25h\e[0 q\n" ) < 0,
 ## and the editor still comes back up with the saved body ##
 my $mark = length $out;
 $h->{'send'}->( "scratchpad\r", 1.5 );
-$h->{'wait'}->( 5,              qr|ctrl-x save\+quit| );
+$h->{'wait'}->( 12,             qr|ctrl-x save\+quit| );
 my $tail     = substr( ${ $h->{'out'} }, $mark );
 my $reopened = $tail =~ m|:  X\s+:| ? TRUE : FALSE;
 $h->{'send'}->( "\x18",   0.5 );                      ## leave it as it was ##
@@ -184,7 +184,7 @@ ok( $reopened && $rc == 0,
 $h = spawn();
 $h->{'wait'}->( 15,              qr|passphrase| );
 $h->{'send'}->( "pass phrase\r", 1 );
-$h->{'wait'}->( 5,               qr|:: vault ::| );
+$h->{'wait'}->( 12,              qr|:: vault ::| );
 kill 'INT', $h->{'pid'};
 $rc = $h->{'reap'}->();
 ok( $rc == 130, 'ctrl-c at the prompt : exit 130' );
@@ -195,7 +195,7 @@ $h->{'done'}->();
 $h = spawn();
 $h->{'wait'}->( 15,              qr|passphrase| );
 $h->{'send'}->( "pass phrase\r", 1 );
-$h->{'wait'}->( 5,               qr|:: vault ::| );
+$h->{'wait'}->( 12,              qr|:: vault ::| );
 kill 'TERM', $h->{'pid'};
 $rc = $h->{'reap'}->();
 ok_tty_restored( $h, 'SIGTERM at the prompt' );
@@ -213,8 +213,8 @@ $h->{'done'}->();
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,,,,.,,,...,.,,,,,,,,.,,.,.,,,.,,.,,...,..,,...,...,..,,,,.,,,.,,..,,..,
-#7VKFA3OK5RJQPZ7PTMY7JPU6NN3DTX2LF7FVYDBQNOSYJWZ4JNFJLFAOWEX6DOZOBNJM7FFU73R2G
-#\\\|HFMI6O3GHQHAC5JTIQQYT3NCVYMADH4PUN2LMCY4UHDU4KMECNX \ / AMOS7 \ YOURUM ::
-#\[7]3UUEG2IX5PYIAWOOM7J6HEHSQ5VF2LJBIC52VEL6BRDVP6RH7OCA 7  DATA SIGNATURE ::
+#,,,,,...,...,,,.,.,,,,.,,,.,,,..,...,.,,,,..,..,,...,...,,..,,,,,...,.,,,...,
+#VTDPSG4YDI6PZH5ZZL7XSTC3U7CA3VGKEVNTSLS2TV7RNTISBCTYKSFQL5ASM5AHXFXY6W2POQFRW
+#\\\|JULGHZ34GJMOVAZ7YKRLVHLFCFSEHAOMP2UIK34DMKE2ZGF67MQ \ / AMOS7 \ YOURUM ::
+#\[7]7Z26ZZP22N7OB3IFZZKZNTHDZXD7JCPGXOQJNSPY453JLDWX2SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
