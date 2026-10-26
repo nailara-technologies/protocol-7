@@ -11,8 +11,12 @@ package AMOS7::TERM::Editor;    #############################################
 ## Term::ReadKey, Time::HiRes and core modules. it never writes temp files
 ## [ secrets pass through it ].
 ##
-## bracketed paste [ mode 2004 ] is enabled while the editor is open and
-## disabled on every exit path, including abort, die and signals. a paste
+## bracketed paste [ mode 2004 ], mouse wheel tracking
+## [ DECSET 1000 + SGR 1006 ] and modifyOtherKeys=1 [ XTMODKEYS ] are enabled
+## while the editor is open and disabled on every exit path, including abort,
+## die and signals. modifyOtherKeys=1 makes only the keys without a legacy
+## ctrl byte [ ctrl-. ctrl-, .. ] arrive as CSI-u sequences -- every legacy
+## byte is untouched ; terminals without support ignore the mode.  a paste
 ## arrives as one event : a hashref { paste => $text } holding the decoded
 ## block. line endings are normalised on insert
 ## [ "\r\n" and lone "\r" become "\n" ]. without bracketed paste, a "\r"
@@ -42,8 +46,11 @@ package AMOS7::TERM::Editor;    #############################################
 ##
 ## ctrl-l removes a line onto a kill stack [ per editor session ] and
 ## ctrl-v brings it back [ LIFO ] -- a simple line undo \ reorder.
-## ctrl-. [ \x0e, or CSI-u \e[46;5u ] restores IN ORDER from the same
-## stack [ oldest first ], so kills rebuild their original order ;
+## ctrl-. [ \x0e, or CSI-u \e[46;5u ] restores IN ORDER and IN PLACE :
+## an ordered register records the kills [ prepending when a kill lands
+## above the previous one, so direction does not matter ], the run
+## rebuilds at the kill position in the ORIGINAL file order -- a tail
+## truncated top-down or bottom-up comes back exactly as it was ;
 ## terminals that give ctrl-, its own byte [ \x1c legacy, \e[44;5u
 ## CSI-u ] kill with it. a literal ',' \ '.' can never be bound --
 ## the terminal must send a distinguishable encoding. with an empty
@@ -706,6 +713,20 @@ sub mouse_disable {
     return;
 }
 
+## XTMODKEYS modifyOtherKeys=1 : keys that have no legacy ctrl byte
+## [ ctrl-. ctrl-, ctrl+; .. ] arrive as CSI-u sequences, e.g. \e[46;5u, which
+## the dispatch binds ; level 1 leaves every legacy byte [ ctrl-a .. ]
+## untouched ; terminals without support ignore the mode
+sub modify_other_keys_enable {
+    print "\e[>4;1m";
+    return;
+}
+
+sub modify_other_keys_disable {
+    print "\e[>4;0m";
+    return;
+}
+
 ##[ INTERACTIVE EDITOR ]######################################################
 
 sub edit_text {
@@ -738,6 +759,15 @@ sub edit_text {
     ## lines are secrets, they must not linger in module state after the    ##
     ## editor closes                                                        ##
     my @kill_stack;
+
+    ## the ordered view of the same kills, for ctrl+. : an entry prepends when
+    ## its kill landed above the previous one [ bottom-up  truncation ], so
+    ## the run always rebuilds the ORIGINAL file order regardless of kill
+    ## direction ; $fifo_from is the run's insertion point, $fifo_last_idx
+    ## tracks the direction
+    my @fifo_run;
+    my $fifo_from;
+    my $fifo_last_idx;
 
     ## ctrl-v advertises itself only with something to paste : the kill   ##
     ## stack fills as ctrl-l removes lines ; the clipboard counts when it ##
@@ -826,6 +856,7 @@ sub edit_text {
     my $sig_cleanup = sub {
         paste_disable();
         mouse_disable() if $mouse_on;
+        modify_other_keys_disable();
         eval { Term::ReadKey::ReadMode(0) };
         print "\e[0 m\e[?25h\e[0 q";
     };
@@ -859,6 +890,7 @@ sub edit_text {
         _disable_ixon();
         paste_enable();
         mouse_enable() if $mouse_on;
+        modify_other_keys_enable();
         print "\e[4 q";
         $resized   = 1;       ## full redraw ##
         $drawn_sig = '';      ## the shell may have repainted -- paint ##
@@ -874,6 +906,7 @@ sub edit_text {
     ## "\e[201~" so a multi-line paste arrives as one block               ##
     paste_enable();
     mouse_enable() if $mouse_on;
+    modify_other_keys_enable();
 
     ## use a steady underscore cursor while editing ##
     print "\e[4 q";
@@ -1333,6 +1366,22 @@ sub edit_text {
                 if ( length $killed ) {
                     _mlock( \$killed );
                     push @kill_stack, $killed;
+                    ## the ordered register for ctrl+. : an entry PREPENDS
+                    ## when its kill landed above the previous one
+                    ## [ bottom-up truncation ], so the run always holds the
+                    ## ORIGINAL file order ; a fresh copy -- the registers and
+                    ## the buffer never share a scalar
+                    my $ordered = q{} . $killed;
+                    _mlock( \$ordered );
+                    if ( @fifo_run and $cur_line < $fifo_last_idx ) {
+                        unshift @fifo_run, $ordered;
+                    } else {
+                        push @fifo_run, $ordered;
+                    }
+                    $fifo_from = $cur_line
+                        if not defined $fifo_from
+                        or $cur_line < $fifo_from;
+                    $fifo_last_idx = $cur_line;
                 }
                 splice @lines, $cur_line, 1;
                 @lines    = ('')    if !@lines;
@@ -1413,15 +1462,22 @@ sub edit_text {
             }
 
             ## Ctrl+. [ \x0e, or CSI-u \e[46;5u from protocol terminals ] :
-            ## restore IN ORDER -- the same kill register read from the
-            ## bottom, so kills come back oldest-first ; each restore inserts
-            ## above the cursor and the cursor follows the restored line down,
-            ## repeated presses rebuild the original order. no clipboard
-            ## fallback [ that is ctrl-v ]
+            ## restore IN ORDER and IN PLACE -- the ordered register rebuilds
+            ## at the kill position in the ORIGINAL file order, so a truncated
+            ## tail appends after the line it followed [ never prefixes it,
+            ## never upside down however the kills were made ] ; the cursor
+            ## follows the restored line. no clipboard fallback
+            ## [ that is ctrl-v ]
             elsif ( $key eq "\x0e" or $key eq "\e[46;5u" ) {
-                if (@kill_stack) {
-                    splice @lines, $cur_line, 0, shift @kill_stack;
-                    $cur_line++;
+                if (@fifo_run) {
+                    my $at = defined $fifo_from ? $fifo_from : $cur_line;
+                    splice @lines, $at, 0, shift @fifo_run;
+                    $cur_line  = $at;
+                    $fifo_from = $at + 1;
+                    if ( !@fifo_run ) {
+                        $fifo_from     = undef;
+                        $fifo_last_idx = undef;
+                    }
                     $dirty = 1;
                 } else {
                     $last_status = 'nothing to restore';
@@ -1430,11 +1486,14 @@ sub edit_text {
 
             ## Ctrl-Y : clear the paste registers ##
             elsif ( $key eq "\x19" ) {
-                _wipe( map { \$ARG } @kill_stack );
-                @kill_stack   = ();
-                $clip_cleared = _clipboard_read() // '';
-                $last_status  = 'paste buffer cleared';
-                $dirty        = 1;
+                _wipe( map { \$ARG } @kill_stack, @fifo_run );
+                @kill_stack    = ();
+                @fifo_run      = ();
+                $fifo_from     = undef;
+                $fifo_last_idx = undef;
+                $clip_cleared  = _clipboard_read() // '';
+                $last_status   = 'paste buffer cleared';
+                $dirty         = 1;
             }
 
             ## paste [ one event, one redraw ] ##
@@ -1482,14 +1541,16 @@ sub edit_text {
     ## secrets hygiene : the registers and the buffer copies never survive ##
     ## the editor -- the returned text is a join-made copy, it lives on as ##
     ## the caller's own [ pinned, so it stays swap-free as well ]          ##
-    _wipe( map { \$ARG } @kill_stack );
-    _wipe( \$clip_at_start, \$clip_cleared );
+    _wipe( map { \$ARG } @kill_stack, @fifo_run );
+    _wipe( \$clip_at_start,           \$clip_cleared );
     _wipe( map { \$ARG } @lines );
     @kill_stack = ();
+    @fifo_run   = ();
 
     Term::ReadKey::ReadMode(0);
     paste_disable();
     mouse_disable() if $mouse_on;
+    modify_other_keys_disable();
     print "\e[0 q";    ## cursor shape back on every exit path ##
     STDOUT->autoflush($old_autoflush);
 
@@ -1521,8 +1582,8 @@ sub edit_text {
 
 1;
 
-#,,,,,,,.,,.,,...,,..,,,,,,..,.,.,,..,,.,,,,,,..,,...,...,..,,.,.,,.,,.,,,.,.,
-#3SORHCN5AZRZP62DPCYSXYKSP4FCO3752NBERF2HRJFTPQ6ZU2MZP2LHSWCYLV6HYY6XZ7A762AKY
-#\\\|ERHFQSRSX7INUGKO63NVYFOXGCQD3WWL5QABZPVBVSCCG725JEJ \ / AMOS7 \ YOURUM ::
-#\[7]WSI2E7OBENFURZICOKKFMYCG2RUAURVYOV62DDQ2S4AXCL5RIEDI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,.,,,...,,,,,.,.,,.,,,,,,,,.,..,,...,...,..,,,,.,,.,,.,,,,,.,
+#QQKLOFXVX77J554D4SGOUOF7IA5RRXGP6OBQNXY4ZIMMIE4UOGNITPVQL6SM3KU7QGFCOQ5MNHT6A
+#\\\|N6YSV4IWR7KVMKDK6VEOQKKKABBE2OPR6KX3VJDF7E63XX3CIV6 \ / AMOS7 \ YOURUM ::
+#\[7]B3OTYC5PPKS2TMMSQQIS2ZTOA6AAXOXVKQW2TGOBBJ2FFEIXLOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
