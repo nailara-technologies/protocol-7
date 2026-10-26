@@ -27,6 +27,12 @@ layer: `61df8d2a8` (frame + signals), `80f4972c3` (kill stack / paste),
   read-only [ wl-paste / xsel / xclip / powershell-wsl ] ; ctrl-y clears both
   registers editor-locally [ desktop selection never wiped ] ; the hint only
   advertises with known-pasteable content and re-arms on a fresh paste.
+- **mouse wheel scrolls like the arrows** [ `fc78bca10` ] : DECSET 1000 +
+  SGR 1006, parsed in SGR + legacy X10 forms ; plain clicks eaten, never
+  text ; press-only keeps terminal selection working ; the wheel stops at
+  EOF [ the down arrow still grows a line -- shared `$move_cursor` ] ; no
+  dependency, terminals without mouse support ignore the DECSETs ;
+  `mouse => 0` / `P7_EDITOR_NO_MOUSE` opt out.
 - **secrets hygiene** : `_mlock` via OPTIONAL IO::AIO [ keep in step with
   `AMOS7::Vault::_mlock` : wide strings + memlock-quota fail silently ;
   encoding a copy is pointless -- mlock pins pages, the live buffer stays
@@ -405,8 +411,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,,.,.,,,,,,,,,.,..,,...,.,.,,.,,...,,..,.,.,..,,...,..,,..,,.,.,...,...,,,.,
-#65DFLRITTTXOV5GRIS3DEZ2C4GDLDPA3B5DOP7RF4FOBGWESQGN2C6K3TXUGN7DTIVTLCHRUPBZC4
-#\\\|IWTZW6WQOAYOTRYOZT7UQZMN2RNLBZDOWR6SA3ZJ4C7454TSWWN \ / AMOS7 \ YOURUM ::
-#\[7]6SFLM6366EPJS3QSD6IN2FECXDJJ6IUAEM7WK5Y53YRYQP7NKUDI 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,,,,.,,..,,,,.,,..,,,.,,..,,.,,..,,...,...,..,,,,.,,,.,..,,,,.,
+#GTZQXB34KIMPJKAFA35CK6ZCKKNUSJ6ZA7CJJLQC3AI6IF7DYTMSEQKFETVCAWIT6MO7NKCBZQ6MM
+#\\\|FJGCXUAEJF4MNEZHBMRDPD7OAKJ223CEM2OXEZENYWKUHTR3YWC \ / AMOS7 \ YOURUM ::
+#\[7]VMMWGJ2WZOFGAAWUCC6JWSAUBVZG6PXYZJ3DON3E5UUTTYWEUQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
