@@ -1,11 +1,11 @@
 ## [:< ##
 
 # name  = v7-zenki.callback.object.unix_user
-# descr = start condition : a unix user exists [ unix_user.<name> ]
-# note  = in a start.cfg : 'dependencies = cube unix_user.<name>' -- waits
-#         for a condition, not for a whole zenka [ e.g. letsencr needs the
-#         httpsd group, which appears when the httpsd zenka drops privs ;
-#         a hard dependency on httpsd would block a dns-01-only host ]
+# descr = start condition : a unix user exists [ unix_user:<name> ]
+# note  = in a start.cfg : 'dependencies = cube unix_user:<name>' -- waits
+#         for a condition, not for a whole zenka [ e.g. a zenka writing to
+#         a service account's directory starts once the account exists ;
+#         no root run or login needed to create it beforehand ]
 
 my $object_id = shift;
 return undef if not exists <dependency.object>->{$object_id};
@@ -20,8 +20,8 @@ return TRUE if defined scalar getpwnam($name);
 <[v7-zenki.condition.recheck_later]>;
 return FALSE;
 
-#,,,,,.,,,,,.,,,.,..,,,,.,.,.,,..,..,,,,.,,..,..,,...,...,.,.,,,.,,.,,..,,...,
-#XQRPQSU5EDNK5SU7JRBJKHTFEFEI3FEUWOAYEM7YR7PO5RONQWMTYDHI4F7QRKCLAM4YR7XZPA3NS
-#\\\|YVYEN25MRICUIHI5F45AJEBACG7JK4CTAHUNUCM6WEFWME2CVVZ \ / AMOS7 \ YOURUM ::
-#\[7]GX5HB2OZIF57KDX5VLNAP3UNFFCKJXCZUEUTOEWRVS3EUINXLCDI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,,,,.,,,,.,...,.,,,,,.,.,,,...,..,,...,...,.,.,.,.,,,.,,..,,,,,
+#6XSI3GJN2YF4HFE5ADGBVNIH6VOV5N2TUGTFO3NAZ7UT5MHHKLVNO6NZ2P2XEOUVZ2LY7CZG5WM4C
+#\\\|JUNLWZLBBMUQDJQ6IGIMWV7PC3DHIIIMXU3L64C4R4P66RNCEI2 \ / AMOS7 \ YOURUM ::
+#\[7]ELLM32ZTQOR745YR5CV3NLO2I4TFGV7HIW6WVLHAE3GKT27XS6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
