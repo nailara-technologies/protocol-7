@@ -8,14 +8,17 @@ use warnings;
 ##  debian.log.condense : standalone harness                         ##
 ###                                                                 ###
 
-## exercises the real translated module source against captured-style ##
-## apt-get \ dpkg output fixtures - no live zenka required :          ##
-## - fresh install : one condensed line per package, 'new' as old     ##
-## - upgrade : old -> new with remembered sizes                       ##
-## - failure : error lines survive verbatim and in order              ##
-## - conffile prompt : every prompt block line survives verbatim      ##
-## - dropped routine lines counted in one summary line                ##
-## - incremental mode [ 3 chunks + state ] == single call             ##
+## exercises the real translated module source against captured-style  ##
+## apt-get \ dpkg output fixtures - no live zenka required :           ##
+## - fresh install : one condensed line per package, 'new' as old      ##
+## - upgrade : old -> new with remembered sizes                        ##
+## - failure : error lines survive verbatim and in order               ##
+## - conffile prompt : every prompt block line survives verbatim       ##
+## - name lists : 'The following ... :' plus the wrapped package names ##
+## condense to one '.. N names : <what>' line                          ##
+## - repo lines without suite \ arch [ cuda-style ] still feed sizes   ##
+## - dropped routine lines counted in one summary line                 ##
+## - incremental mode [ 3 chunks + state ] == single call              ##
 
 use File::Spec;
 use Cwd     qw| abs_path |;
@@ -134,14 +137,13 @@ ok( ( $a->{'data'}{'header'} // '' ) eq
 
 lines_eq(
     $a->{'data'}{'lines'},
-    [   'The following NEW packages will be installed:',
-        '  hello',
+    [   '.. 1 names : NEW packages will be installed',
         '0 upgraded, 1 newly installed, 0 to remove and 840 not upgraded.',
         'Need to get 200 kB of archives.',
         'After this operation, 500 kB of additional disk space will be used.',
         'hello  new -> 2.12.3-1  77.4 kB',
         'goodbye  new -> 1.2-3  123 kB',
-        '.. 13 routine lines condensed',
+        '.. 15 routine lines condensed',
     ],
     'fresh install : exact condensed output'
 );
@@ -160,7 +162,7 @@ ok( ( $a_pkg{'goodbye'}{'old'} // '' ) eq qw| new |
         && ( $a_pkg{'goodbye'}{'size'} // '' ) eq '123 kB',
     'goodbye : new -> 1.2-3, size 123 kB'
 );
-ok( $a->{'data'}{'passthrough'} == 5, 'passthrough count is 5' );
+ok( $a->{'data'}{'passthrough'} == 3, 'passthrough count is 3' );
 
 ##[ 2 : upgrade - old -> new with remembered sizes ]##########################
 
@@ -170,8 +172,7 @@ my $b = condense( load_fixture('upgrade-3-pkgs.log') );
 
 lines_eq(
     $b->{'data'}{'lines'},
-    [   'The following packages will be upgraded:',
-        '  coreutils libssl3t64 zlib1g',
+    [   '.. 3 names : packages will be upgraded',
         '3 upgraded, 0 newly installed, 0 to remove and 837 not upgraded.',
         'Need to get 3577 kB of archives.',
         'After this operation, 1234 kB of '
@@ -179,7 +180,7 @@ lines_eq(
         'coreutils  9.4-3 -> 9.5-1  1442 kB',
         'libssl3t64  3.3.2-1 -> 3.3.2-2  2023 kB',
         'zlib1g  1.3-8 -> 1.3.1-1  112 kB',
-        '.. 14 routine lines condensed',
+        '.. 16 routine lines condensed',
     ],
     'upgrade : exact condensed output'
 );
@@ -217,13 +218,12 @@ lines_eq( \@c_error_got, \@c_error_expected,
     'failure : all error lines verbatim and in order' );
 
 my @c_dropped_expected = (
-    'The following NEW packages will be installed:',
-    '  broken-pkg',
+    '.. 1 names : NEW packages will be installed',
     '0 upgraded, 1 newly installed, 0 to remove and 840 not upgraded.',
     'Need to get 10.2 kB of archives.',
     'After this operation, 45.0 kB of additional disk space will be used.',
     @c_error_expected,
-    '.. 8 routine lines condensed',
+    '.. 10 routine lines condensed',
 );
 
 lines_eq( \@c_lines, \@c_dropped_expected,
@@ -335,8 +335,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,.,,,.,.,,..,.,.,,..,,..,,.,,,,,,,.,,,,,,..,,...,...,.,.,...,..,,,.,,,..,
-#4BBTZBPDVA3J4YMG2LHIWBJP4JMNVG752J63P67DGYRNK5DLKJZWO7KNHBO5EKKJE5EIP6IHYTNBA
-#\\\|MHB27ZDPJRXH5FKJ5WYJGZ27AWSZVOS5ITGETLJ7MBFI3RUDWEL \ / AMOS7 \ YOURUM ::
-#\[7]BWPKFVKMGLCOKGF5LDESYOUKEF6GUDGVBU2YH6FISGQHN52KIYBY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,.,.,,.,,,,.,,,,,...,,..,,,.,..,,...,,..,,,,,..,,...,,,,,.,.,
+#YOAYBZKGKNDOCYYBXJ7MDIADWZ35QMFH3DFFWCGXHKGT6DP43JK226XM544LO3EYGYG4GVCMPYJ7S
+#\\\|XR6B6K576SYHI3TWKGF3THN3IYKLYQGJROVPCIEQIRETRIPEQFN \ / AMOS7 \ YOURUM ::
+#\[7]ERJRA7BMXJXZAXKLMBNO4NHS3WDW67UAHQWZI5CSJDUENQNUCSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

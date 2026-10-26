@@ -64,6 +64,10 @@ my $TOOL = qw| p7-deps |;
 ##[ SIGNAL HANDLERS ]#########################################################
 
 $SIG{INT} = sub {
+    ## house clean-exit shape [ cf. AMOS7::Util::do_exit ] : '\b\b' erases ##
+    ## the echoed '^C', the reset sweeps stray attributes a child may have ##
+    ## left, then the framed error line on STDERR                          ##
+    print "\b\b\e[0m";
     print STDERR "\n", frame_error_line( $TOOL, 'interrupted by user' ), "\n";
     exit 130;
 };
@@ -603,20 +607,65 @@ sub run_dist_upgrade {
 
     banner($action);
 
-    my $result = AMOS7::deps::dist_upgr::run($action);
-
-    if ( defined $result->{log} and length $result->{log} ) {
-        print $result->{log};
-        print "\n" if $result->{log} !~ m|\n\z|;
-        say frame_column_line();
-    }
+    ## streamed : condensed lines arrive as they are produced, styled to  ##
+    ## match the rest of the report -- step headers as framed sections,   ##
+    ## package lines as status rows [ installed \ upgraded ], the '.. '   ##
+    ## meta lines as status rows ; errors and unknown lines stay verbatim ##
+    ## [ colours only on a terminal, plain rows in a pipe ]               ##
+    my $result = AMOS7::deps::dist_upgr::run(
+        $action,
+        {   'emit' => sub {
+                my $line = $_[0];
+                if ( $line =~ m{^:\.\s(.+)\s\.\.,$} ) {
+                    say frame_section_header($1);
+                } elsif ( $line =~ m|^(\S+)\s{2}(\S+) -> (\S+)\s{2}(\S+)$| ) {
+                    my ( $pkg, $old, $new, $size ) = ( $1, $2, $3, $4 );
+                    say frame_status_row(
+                        $pkg,
+                        $old eq qw| new | ? qw| installed | : qw| upgraded |,
+                        {   'detail' => sprintf '%s -> %s  %s',
+                            $old, $new, $size,
+                            'level' => qw| ok |
+                        }
+                    );
+                } elsif ( $line =~ m|^(\S+)\s{2}removed\s{2}(\S+)$| ) {
+                    say frame_status_row( $1, qw| removed |,
+                        { 'detail' => $2 } );
+                } elsif ( $line =~ m{^\.\. (\d+) names : (.+)$} ) {
+                    say frame_status_row( '..', $2,
+                        { 'detail' => sprintf '%d names', $1 } );
+                } elsif ( $line =~ m{^\.\. (\d+) routine lines condensed$} ) {
+                    say frame_status_row(
+                        '..',
+                        'routine lines condensed',
+                        { 'detail' => $1 }
+                    );
+                } else {
+                    ## everything apt said itself : framed rows so the      ##
+                    ## whole stream reads in the report's visual language [ ##
+                    ## errors in the warn color ; conffile prompts and      ##
+                    ## tallies keep their text intact in the status ]       ##
+                    my $level
+                        = $line  =~ m{^(?:Err:|E:|W:)}
+                        || $line =~ m{NO_PUBKEY|couldn't be verified}
+                        ? qw| warn |
+                        : qw| value |;
+                    say frame_status_row( qw| apt |, $line,
+                        { 'level' => $level } );
+                }
+            }
+        }
+    );
 
     print_rows(
-        $result->{ok}
+        $result->{'ok'}
         ? [ $action, 'complete', undef, 'ok' ]
-        : [ $action, 'completed with errors', undef, 'warn' ]
+        : [ $action,                  'completed with errors',
+            $result->{'failed_step'}, 'warn'
+        ]
     );
     say frame_column_line();
+    exit( $result->{'ok'} ? 0 : 1 );
 }
 
 ##[ INTROSPECTION COMMANDS ]##################################################
@@ -821,10 +870,10 @@ sub validate_zenka_declarations {
 
 ##[ HARDWARE DETECTION ]######################################################
 
-## read-only : suggests firmware \ hardware packages from kernel log      ##
-## failures, the loaded modules' modinfo firmware lists and the pci \ cpu ##
-## ids -- nothing is installed, no apt-get, no network. -write <name>    ##
-## saves the suggestions as a reviewable 'hw-<name>' profile              ##
+## read-only : suggests firmware \ hardware packages from kernel log        ##
+## failures, the loaded modules' modinfo firmware lists and the pci \ cpu   ##
+## ids -- nothing is installed, no apt-get, no network. -write <name> saves ##
+## the suggestions as a reviewable 'hw-<name>' profile                      ##
 
 sub cmd_detect_hw {
     my (@args) = @_;
@@ -1193,8 +1242,8 @@ sub show_help {
 EOL
 }
 
-#,,,.,,,,,,..,..,,.,.,.,.,,..,...,...,,.,,,,.,..,,...,...,..,,...,,.,,,.,,..,,
-#W4JW2BQF7DG7HYMUIYNTQJV6POSTT3SERO6WEEAXA6LWWLVYTQ6GVUYBVSTQIZFS3VIMBX5GR4DIQ
-#\\\|CEVMJGGKYKPXUEUFLWXWNLQILU2AHAXFCAYBLGJ2SAYXDK42TTU \ / AMOS7 \ YOURUM ::
-#\[7]UCZM5HSSPXPMBF64M7G5G23OHLEVF3FS2JNZ7MXVIVSVROVMZYCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,...,,.,,.,,,..,,.,,,,,,,.,.,..,,...,..,,.,.,.,.,.,.,.,,,,,,,
+#7KQKDCO3SOSXADKUZY2W3GSKL5ZIXRYXJJ3LW2YJNZ2TJON4N37CGSWMH74T7UM4OV6RFAPFVZURK
+#\\\|I6H47I5ET4FEX52OOXCUJN5T7OL4MPWT53Z3NXWL55QHT7AMPHC \ / AMOS7 \ YOURUM ::
+#\[7]3RKTR22ZXYIE4DBNMWZCKR2UDYDSU7SSVD4GNTWHOV53DMIOICBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

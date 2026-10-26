@@ -1,5 +1,5 @@
 package AMOS7::deps::dist_upgr;
-our $VERSION = qw| AMOS7::deps::dist_upgr-VERSION.XBZHHQA |;
+our $VERSION = qw| AMOS7::deps::dist_upgr-VERSION.VNLNKUG |;
 
 use strict;
 use warnings;
@@ -8,16 +8,32 @@ use English;
 use Exporter;
 use base qw| Exporter |;
 
+use AMOS7::deps::aptlog qw| condense |;
+
 our @EXPORT_OK = qw| run |;
 
 ##[ run ]#####################################################################
 
-sub run {
-    my ($action) = @_;
-    $action //= 'dist-upgrade';
+## action : apt-get action [ default dist-upgrade ]  opts   : emit -> code ref
+## receiving one condensed line per call [ default : print to STDOUT ]  sudo
+## -> command prefix [ default '' for root, 'sudo ' else ] path -> child PATH
+## [ default : the retired shell script's list ]
+##
+## streaming : every step's raw apt \ dpkg output passes through the
+## AMOS7::deps::aptlog condenser line by line and is emitted as produced --
+## nothing waits for a step to finish. errors and prompts pass through
+## verbatim. returns { ok, failed_step } : failed_step names the step that
+## ended the run [ undef on success ]
 
-    my $log = '';
-    my $ok  = 1;
+sub run {
+    my $action = shift // qw| dist-upgrade |;
+    my $opts   = shift // {};
+    $opts = {} if ref $opts ne qw| HASH |;
+
+    my $emit = $opts->{'emit'} // sub { say $_[0] };
+
+    my $ok          = 1;
+    my $failed_step = undef;
 
     ## Non-interactive environment ##
     local $ENV{'DEBIAN_FRONTEND'}          = 'noninteractive';
@@ -25,51 +41,68 @@ sub run {
     local $ENV{'UCF_FORCE_CONFMISS'}       = 'true';
     local $ENV{'UCF_FORCE_CONFOLD'}        = 'true';
     local $ENV{'PAGER'}                    = '/bin/true';
+    local $ENV{'PATH'}                     = $opts->{'path'}
+        // qw| /usr/sbin:/usr/bin:/sbin:/bin |;
 
-    my $sudo = ( $EUID == 0 ) ? '' : 'sudo ';
+    ## the non-interactive env travels INSIDE the command line : sudo's ##
+    ## env_reset strips caller-set %ENV, and a wiped parent env         ##
+    ## [ v7's exec-external ] never reaches this process to begin with  ##
+    my $env_prefix
+        = 'DEBIAN_FRONTEND=noninteractive '
+        . 'APT_LISTCHANGES_FRONTEND=none '
+        . 'UCF_FORCE_CONFMISS=true UCF_FORCE_CONFOLD=true '
+        . 'PAGER=/bin/true';
+
+    my $sudo = $opts->{'sudo'};
+    $sudo = ( $EUID == 0 ) ? '' : 'sudo ' unless defined $sudo;
 
     my @steps = (
         [   "dpkg recovery",
-            "${sudo}dpkg --force-confold --force-confdef "
+            "${sudo}$env_prefix dpkg --force-confold --force-confdef "
                 . "--force-confmiss --force-overwrite --configure -a"
         ],
-        [ "apt-fix install", "${sudo}apt-get -fy install" ],
+        [ "apt-fix install", "${sudo}$env_prefix apt-get -fy install" ],
         [   "$action (pass 1)",
-            "${sudo}apt-get -y -o Dpkg::Options::=--force-confold -o "
+            "${sudo}$env_prefix apt-get -y -o "
+                . "Dpkg::Options::=--force-confold -o "
                 . "Dpkg::Options::=--force-confdef -o "
                 . "Dpkg::Options::=--force-confmiss $action"
         ],
-        [ "pam-auth-update",       "${sudo}pam-auth-update --force" ],
+        [ "pam-auth-update", "${sudo}$env_prefix pam-auth-update --force" ],
         [ "cleanup mediainfo tmp", "rm -rf /var/cache/apt/mediainfo_tmp*" ],
-        [ "apt update",            "${sudo}apt-get update" ],
+        [ "apt update",            "${sudo}$env_prefix apt-get update" ],
         [   "$action (pass 2)",
-            "${sudo}apt-get -fy -o Dpkg::Options::=--force-confold -o "
+            "${sudo}$env_prefix apt-get -fy -o "
+                . "Dpkg::Options::=--force-confold -o "
                 . "Dpkg::Options::=--force-confdef -o "
                 . "Dpkg::Options::=--force-confmiss -o "
                 . "Dpkg::Options::=--force-overwrite $action"
         ],
         [   "clean and autoremove",
-            "${sudo}apt-get clean && ${sudo}apt-get -y --purge autoremove"
+            "${sudo}$env_prefix apt-get clean && "
+                . "${sudo}$env_prefix apt-get -y --purge autoremove"
         ],
     );
 
     for my $step (@steps) {
         my ( $name, $cmd ) = @$step;
-        $log .= ":. $name ..,\n";
+        $emit->( sprintf ':. %s ..,', $name );
 
-        my $output = `$cmd 2>&1`;
-        my $exit   = $?;
+        my $exit = _run_step( "$cmd 2>&1", $emit );
 
-        $log .= $output if defined $output;
-        $log .= "\n";
-
-        if ( $exit != 0 ) {
+        if ( not defined $exit ) {
+            $ok          = 0;
+            $failed_step = $name;
+            $emit->( sprintf ':. ERROR : %s could not execute', $name );
+            last;
+        } elsif ( $exit != 0 ) {
             ## Some steps are best-effort ##
             if ( $name =~ m{pam-auth-update|cleanup mediainfo} ) {
-                $log .= ":. $name failed (non-critical)\n";
+                $emit->( sprintf ':. %s failed (non-critical)', $name );
             } else {
-                $ok = 0;
-                $log .= ":. ERROR during $name\n";
+                $ok          = 0;
+                $failed_step = $name;
+                $emit->( sprintf ':. ERROR during %s', $name );
                 last;
             }
         }
@@ -78,13 +111,44 @@ sub run {
     ## Final cleanup ##
     system("rm -rf /var/cache/apt/mediainfo_tmp* /root/.cpanm");
 
-    return { ok => $ok, log => $log };
+    return { 'ok' => $ok, 'failed_step' => $failed_step };
+}
+
+## one step : shell line in, exit status out -- its output streams through ##
+## the condenser, condensed lines emitted as they are produced             ##
+sub _run_step {
+    my ( $cmd, $emit ) = @_;
+
+    my $pid = open( my $fh, '-|', $cmd );
+    return undef unless defined $pid;
+
+    ## the child may talk in tty progress protocol : status updates        ##
+    ## terminated by '\r' [ overwrite-in-place ] -- split on \r as well as ##
+    ## \n, skip the blank padding fragments                                ##
+    my %state;
+    while ( my $chunk = <$fh> ) {
+        foreach my $line ( split m{[\r\n]+}, $chunk ) {
+            next unless length $line;
+            my $result
+                = condense( { 'lines' => [$line], 'state' => \%state } );
+            $emit->($ARG) for @{ $result->{'data'}->{'lines'} };
+        }
+    }
+    close($fh);
+    my $exit = $?;
+
+    ## the dropped-routine-lines summary belongs to this step ##
+    my $result
+        = condense( { 'lines' => [], 'state' => \%state, 'final' => 1 } );
+    $emit->($ARG) for @{ $result->{'data'}->{'lines'} };
+
+    return $exit;
 }
 
 1;
 
-#,,,,,,..,,,,,,,,,,,,,,..,,.,,.,.,..,,.,,,,,.,..,,...,...,,..,,.,,,.,,,,.,..,,
-#AF6BJF3CTZ7PP3BJYHGOSW3X3IOCBPQKOULYUP4EWWPBIDGDLWUD7OHFQU6Y7272FICLIUVKH55WW
-#\\\|KNUDMNBAXF4P6UMY24ACMG2NGATAORPIFENL7Z6WZ2V5KJJXB5C \ / AMOS7 \ YOURUM ::
-#\[7]V6WACKNX6VBJRRA3SV7F7KZTGKDO7RWQZPQG2KUGKAYBRLE5KKCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,,,,..,..,,.,,,,..,..,,.,,,,..,.,.,...,...,,.,,,,.,.,.,..,,..,,
+#DZ5BULKH3FA7JV2GAR5MAXFJMNQUR75CRVV7FOH4VLG6SX42UGK43K56BGG7XTTVGOUPGSDS6JBPK
+#\\\|VVHECQ63UTSCGP2U7WGHTHMMMQ5O3KACJGFS2SM2HBPUK2A337Z \ / AMOS7 \ YOURUM ::
+#\[7]NK4VJHX2RY6AUXPLYV2A3L4LW3U5IALFOOUYOQC5BWVHU6KZCYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
