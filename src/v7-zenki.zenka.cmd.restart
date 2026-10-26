@@ -104,6 +104,12 @@ map {
     if ( defined $zenka_name and defined $zenka_dependencies ) {
 
         foreach my $dep_name ( split( m| +|, $zenka_dependencies ) ) {
+            ## condition deps [ unix_group:httpsd .. ] name a callback ##
+            ## object, not a zenka : nothing to start here             ##
+            next
+                if $dep_name =~ m|^([\w-]+):([\w-]+)$|
+                and exists $code{"v7-zenki.callback.object.$1"};
+
             delete <v7-zenki.zenka.manually_stopped>->{$dep_name}
                 and <[base.logs]>->(
                 0, "[restart] cleared manually stopped status [ %s ]",
@@ -233,8 +239,8 @@ if ($count) {
     };
 }
 
-#,,,,,,..,...,,..,,.,,..,,,,.,...,.,.,,.,,,.,,..,,...,...,.,.,..,,,,.,,.,,.,.,
-#63I4NH4NBF5EAUWJXDWHZ4K7MMB6QTIBA6RRFA67CVSJDCKPTBI6HMI7AAMPFGIUWRXTRNWVMITA4
-#\\\|VGAEBV2BHWORTETN5THGNAT4RZYFPKVDUEE6BN6NYSUJEET5BYU \ / AMOS7 \ YOURUM ::
-#\[7]Q3CRKPIKBBDR5RAYVIHCAM37QQWQDN6A6QTSRLLCZ5C773U6MCBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,.,.,,,.,,,.,,,.,.,.,.,,.,,...,..,,...,...,..,,...,..,,.,.,..,,
+#LVYKIRBS6SZAVJMKGYXOSKJHW567C346XOVQCVPFO7PD25D32NJJEV3OOKDOIECJDQOQ7OJ2GFPZO
+#\\\|C22DL5ZQEYACHETDEOT7RK474U6GMI2LUAJFDXVIJB6XY4CDFK6 \ / AMOS7 \ YOURUM ::
+#\[7]BKKK6VOAA4KYVOBABAJVNS4JOCUMF6N6L55X3AGI7APT4PQKYWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -239,6 +239,16 @@ my @dependencies
     ? split( m| +|, $a_dep_str )
     : ();
 foreach my $dep_name (@dependencies) {
+    ## condition dependencies [ unix_group:httpsd, unix_user:root .. ] name ##
+    ## a callback object, not a zenka : nothing to start here and nothing   ##
+    ## for the start profile to refuse -- the chain resolver evaluates the  ##
+    ## callback when the job's queue position is decided                    ##
+    ## [ dependency.ok_resolve ] ; the job waits in 'depending' until the   ##
+    ## condition holds                                                      ##
+    next
+        if $dep_name =~ m|^([\w-]+):([\w-]+)$|
+        and exists $code{"v7-zenki.callback.object.$1"};
+
     delete <v7-zenki.zenka.manually_stopped>->{$dep_name}
         and <[base.logs]>->(
         1, ': %s-zenka .: reset manually stopped status', $dep_name
@@ -352,8 +362,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,..,...,...,,,.,,..,,,,,..,,,..,..,,,,.,.,,,..,,...,...,...,.,.,,,,,.,.,,.,,
-#MXHVWMHSVIGSQBBFHAGFEM2GUXL3K6YA4SECTMVV7WB72M4L6UHBNPBS522D6JJ7I6H7S5G6CANNM
-#\\\|ZGMK7GY4TRN7Y77D32MSELUWBOFS3L2JRHFT7LLVD7WHY22AVSG \ / AMOS7 \ YOURUM ::
-#\[7]ATWQW47WMQF2YEXAGYMIBJ5V5TWINBKICSWA7AHIGWAYGTBFWABY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,.,..,,,.,,.,.,,.,,.,.,,..,,,,,..,,...,...,.,.,.,,,,..,..,,..,,
+#AMQPNS4DJNSODKOS2GQ5AQD3LE67KVABV4FI6ZGVGHTPSYZL2VVM46L6GX5JKYBXBG7ARUHU4CFFS
+#\\\|QFZIRGMX4JNUMJ4Q7OOTYIED7OYQ3X5IYIPZ2GKXXWP66QUJ5GN \ / AMOS7 \ YOURUM ::
+#\[7]ZATKWLZK5S56KWNMR5XXME7CRKEQKNB4AJPJWBJ7AEI7UDFMNEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

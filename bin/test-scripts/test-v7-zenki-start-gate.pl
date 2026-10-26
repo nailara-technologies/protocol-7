@@ -13,7 +13,9 @@ use bytes;
 ## on-demand allow list ; ':ignore-disabled:' overrides per call and does  ##
 ## not enrol the zenka in zenki.enabled ; a concurrent handover is exempt. ##
 ## REAL module ; anything past the gate stops at a zenka.get_dependencies  ##
-## stub. no zenka                                                          ##
+## stub. no zenka  'type:name' condition dependencies                      ##
+## [ unix_group:httpsd .. ] are never started as zenki and never           ##
+## profile-refused -- see the last section                                 ##
 
 use File::Spec;
 use Cwd     qw| abs_path |;
@@ -236,12 +238,78 @@ SKIP: {
         'forced start : dist-upgrade not added to zenki.enabled' );
 }
 
+say ':: condition dependencies [ type:name ]';
+
+## a 'type:name' dependency names a callback condition object, not a zenka :
+## never started as one, never profile-refused -- the chain resolver evaluates
+## the callback when the job's queue position is decided
+
+profile(
+    'enabled'   => 'cube p7-log',
+    'on-demand' => 'letsencr',
+    'disabled'  => 'discover'
+);
+$data{'v7-zenki'}{'start_setup'}{'zenki'}{'config'}{'smtpd'} = {};
+$data{'v7-zenki'}{'zenka'}{'setup'} = { 1 => { 'name' => 'letsencr' } };
+$code{'v7-zenki.callback.object.unix_group'} = sub {TRUE};
+$code{'zenka.get_dependencies'}              = sub {
+    my $name = shift;
+    return $data{'v7-zenki'}{'start_setup'}{'zenki'}{'config'}
+        ->{$name}{'dependencies'};
+};
+my @dep_started;
+$code{'zenka.cmd.start_once'} = sub {
+    my $call = shift;
+    my $name = $call->{'args'} // '';
+    push @dep_started, $name;
+    ## mirrors production : unknown zenka names fail the start ##
+    my $known = grep { $ARG eq $name }
+        keys $data{'v7-zenki'}{'start_setup'}{'zenki'}{'config'}->%*;
+    return {
+        'mode' => $known ? qw| true |           : qw| false |,
+        'data' => $known ? 'job queued [ID=99]' : "unknown zenka '$name'"
+    };
+};
+$stub_rest->();
+
+$data{'v7-zenki'}{'start_setup'}{'zenki'}{'config'}{'letsencr'}
+    = { 'dependencies' => 'cube unix_group:httpsd smtpd' };
+
+my $cond_reply = eval {
+    $code{'v7-zenki.zenka.cmd.start'}->( { 'args' => 'letsencr' } );
+};
+ok( ref $cond_reply eq qw| HASH |
+        && ( $cond_reply->{'mode'} // '' ) eq qw| true |
+        && $cond_reply->{'data'} =~ m|job queued|,
+    'condition dep + allow list : letsencr starts'
+);
+ok( ( grep { $ARG eq 'unix_group:httpsd' } @dep_started ) == 0,
+    'condition dep : never started as a zenka' );
+ok( ( grep { $ARG eq 'smtpd' } @dep_started ) == 1,
+    'plain zenka dep : still started through start_once'
+);
+
+## dot syntax is no longer a condition token -- it reads as a zenka name,
+## refused by the profile like any unknown dependency [ hard switch ]
+
+$data{'v7-zenki'}{'start_setup'}{'zenki'}{'config'}{'letsencr'}
+    = { 'dependencies' => 'cube unix_group.httpsd' };
+@dep_started = ();
+my $dot_reply = eval {
+    $code{'v7-zenki.zenka.cmd.start'}->( { 'args' => 'letsencr' } );
+};
+ok( ref $dot_reply eq qw| HASH |
+        && ( $dot_reply->{'mode'} // '' ) eq qw| false |
+        && $dot_reply->{'data'} =~ m|dependency 'unix_group\.httpsd'|,
+    'dot syntax : no longer parsed as a condition [ reads as a zenka name ]'
+);
+
 say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,..,,,..,,..,...,.,.,.,,,,.,,,..,.,.,,.,,..,,...,...,...,,..,,.,,,,,,.,.,
-#7DEIJY22MND3ZK6C2TPRKK3GWUG5HPTYGGQ3QAMVJFQMM3DR7HWQR7DNVDLDNPJRMVJYRMJQKNISW
-#\\\|HTWUACRPR2SU2FS3JW5XYUAXPT4R7I7QQRK4CITL3DVZS4RA3FS \ / AMOS7 \ YOURUM ::
-#\[7]6PMICVB3JBIA5YUDX63ZP6WPFOPLJMKTZ4LXD47ZKWGFONHBW6BQ 7  DATA SIGNATURE ::
+#,,..,,,,,...,..,,,,,,..,,.,.,,,,,.,.,,,.,,,.,..,,...,...,..,,,,,,.,,,.,,,.,.,
+#HDDLNKBUR4XMBY2XX5P4R27EWXGXUII73ZNLEMVKJ66U3R2WNLEW3OJYNSMXNWQPVQQVE7H6VUIBO
+#\\\|T5H4USAYTOI467INL4RQIFXB3CU7U27PI7YVGC6WND2CPHLC6YC \ / AMOS7 \ YOURUM ::
+#\[7]DHQ6MOQORRKOP6OVZ5S6WKTIEI2C7QGKI5RVU5QQXD36JMDF7MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

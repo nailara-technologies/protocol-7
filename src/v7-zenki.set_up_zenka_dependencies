@@ -72,7 +72,7 @@ foreach my $s_id (
 
         foreach my $dep_zenka_name ( split m| +|, $dependencies ) {
             my $object_id;
-            if ( $dep_zenka_name =~ m|^([\w\.]+)\.([\w-]+)$| ) {
+            if ( $dep_zenka_name =~ m|^([\w-]+):([\w-]+)$| ) {
                 my ( $type, $name ) = ( $1, $2 );
                 foreach my $id ( keys <dependency.object>->%* ) {
                     next if <dependency.object>->{$id}->{'type'} ne $type;
@@ -81,16 +81,16 @@ foreach my $s_id (
                         last;
                     }
                 }
-                ## a condition type with a callback [ unix_user, unix_group ##
-                ## .. : v7-zenki.callback.object.<type> ] gets its object   ##
-                ## on first use -- a start.cfg names the condition, nothing ##
-                ## else to set                                              ##
+                ## a condition type with a callback [ unix_user:name,     ##
+                ## unix_group:name .. : v7-zenki.callback.object.<type> ] ##
+                ## gets its object on first use -- a start.cfg names the  ##
+                ## condition, nothing else to set                         ##
                 if ( not defined $object_id
                     and exists $code{"v7-zenki.callback.object.$type"} ) {
                     $object_id = <[dependency.add_object]>
                         ->( { 'type' => $type, 'name' => $name } );
                     <[base.log]>->(
-                        2,     ": condition object : %s.%s",
+                        2,     ": condition object : %s:%s",
                         $type, $name
                     ) if defined $object_id;
                 }
@@ -163,7 +163,7 @@ foreach my $s_id (
             and exists $code{"v7-zenki.callback.object.$type"} ) {
             $object_id = <[dependency.add_object]>
                 ->( { 'type' => $type, 'name' => $name } );
-            <[base.log]>->( 2, ": condition object : %s.%s", $type, $name )
+            <[base.log]>->( 2, ": condition object : %s:%s", $type, $name )
                 if defined $object_id;
         }
         <[dependency.add]>->( $source_object, $object_id )
@@ -171,8 +171,8 @@ foreach my $s_id (
     }
 }
 
-#,,..,..,,,..,...,,.,,.,.,.,.,,,,,,.,,,..,..,,..,,...,...,..,,,,.,,,,,,,.,,.,,
-#RSML6PCQ7OFXPTMIPXMCACBIDXWMVQ3D5YZK3FSD5U6Z75GI7LZ6TWB36CKFBFLCEAWKHZULKEJDO
-#\\\|JI6BTBOPHLZRJXDENVO7IVT32BJGTOWZ3KLQ7G6JONHLGIQIS4J \ / AMOS7 \ YOURUM ::
-#\[7]GX4QPH4X4PBTS6ZJIVBFQZH7MCVY6DPPY35XTWAWZX24VEF4FOCA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,,,,,.,,..,,,..,.,,,...,,,,,..,,...,..,,.,,,,,,,,,,,,,,,,,.,
+#3FO6WPVOVJ2UAGJFCKLWZQJJBRVTKE2HZKAZWGRQ4LMXEXT67DZEFNAB5HOESINRXBWXELA3WG4I4
+#\\\|B4J5UWKG27BTOYLKIP2SDOIDDGRGSXVTKEJ7IQF7YNRYONONEZW \ / AMOS7 \ YOURUM ::
+#\[7]6UUADDIVHLY4RZXLUAXOGRHPDQ3MZ3KLMKKJYBPUJ5Z3T2762OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
