@@ -18,8 +18,11 @@ use English;
 ## the top. mouse : a left press positions the cursor, chrome clicks and
 ## releases stay inert, the wheel accelerates on a NON-LINEAR curve [ slow =
 ## line-per-tick, short medium rolls stay relative, a full roll pays pages,
-## fast = one collapsed page ] and a no-op tick at EOF repaints nothing.
-## skipped when IO::Pty is not installed
+## fast = one collapsed page ] and a no-op tick at EOF repaints nothing.  kill
+## register : ctrl+. [ \x0e or CSI-u \e[46;5u ] restores oldest-first so kills
+## rebuild their original order, \x1c \ \e[44;5u kill where the terminal gives
+## ctrl-, its own byte, an empty register says so. skipped when IO::Pty is not
+## installed
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -925,12 +928,94 @@ check(
     $result eq 'RESULT=<seed>' && $exited && $clears == 1
 );
 
+## the kill register restores in two disciplines : ctrl-v LIFO, ctrl+.
+## [ \x0e or CSI-u ] oldest-first so kills rebuild their original order ; \x1c
+## \ \e[44;5u kill where the terminal gives ctrl-, its own byte ; an empty
+## register says so
+( $result, $exited, $output ) = run_case(
+    qw| restoreorder |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\x0c";    ## kill one ##
+        $drain->(0.3);
+        syswrite $pty, "\x0c";    ## kill two ##
+        $drain->(0.3);
+        syswrite $pty, "\x0e";    ## restore in order : one ##
+        $drain->(0.3);
+        syswrite $pty, "\x0e";    ## then two : original order ##
+        $drain->(0.3);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_lines
+);
+check( 'ctrl+. restores oldest-first : kills rebuild the original order',
+    $result eq "RESULT=<one\ntwo\nXthree>" && $exited );
+
+( $result, $exited ) = run_case(
+    qw| legacykill |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\x1c";    ## legacy ctrl-, byte ##
+        $drain->(0.3);
+        syswrite $pty, "\x0e";
+        $drain->(0.3);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_lines
+);
+check(
+    'ctrl-, legacy \x1c kills into the same register',
+    $result eq "RESULT=<one\nXtwo\nthree>" && $exited
+);
+
+( $result, $exited ) = run_case(
+    qw| csiukill |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[44;5u";    ## CSI-u ctrl-, ##
+        $drain->(0.3);
+        syswrite $pty, "\e[46;5u";    ## CSI-u ctrl+. ##
+        $drain->(0.3);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_lines
+);
+check(
+    'CSI-u ctrl-, \ ctrl+. kill and restore',
+    $result eq "RESULT=<one\nXtwo\nthree>" && $exited
+);
+
+( $result, $exited, $output ) = run_case(
+    qw| restoreempty |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\x0e";    ## nothing to restore ##
+        $drain->(0.4);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_lines
+);
+check(
+    'ctrl+. on an empty register restores nothing and says so',
+    $result eq "RESULT=<Xone\ntwo\nthree>"
+        && $exited
+        && $output =~ m{nothing to restore}
+);
+
 say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,.,,.,.,,,.,.,,,.,.,.,,,,,.,,..,.,.,.,.,,,.,..,,...,...,,.,,,..,..,,,.,,.,,,
-#4ITQMQDX3QAETFFQFEUBQBGMAHJEY7ETJ7VXGJ5RTGSWM5WAGB4FZRVTDEKDUMZ54S2AH6GFQRIHG
-#\\\|AK7LNIHICCHNN3YWP4EWI2OS5CCQCWIMFU6PYIB3CK5PNY7KFFN \ / AMOS7 \ YOURUM ::
-#\[7]EME2MEV6FI75BDYS7VPV3XJXPVGWLY6QY27UW2LLGCCJBHN42SAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,.,.,.,,,,,.,,,.,,,.,.,..,,..,,..,,...,...,.,,,,..,,,,,,.,,..,,
+#KFX7RBNRXVSRKWRTBVFICXKCUNJBIVEUBVM5YSSTGJQDQAP6W2FTVECNQ27XBGGHMJSCERIXFVPMO
+#\\\|TACYG3IPFAJUGHEA62UGDRKH6F23OQ4OGOBTCOL5JGKSGC2QVTM \ / AMOS7 \ YOURUM ::
+#\[7]ZOF5G33LS4OSBEPBQJGPJNREFSSWJF2IMNFLJNFJS6YKYIVZ6AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

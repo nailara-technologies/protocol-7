@@ -44,6 +44,18 @@ family [ structured form UI inside the running network ].
   redraw signature gates repaints so no-op keys [ EOF tick, inert
   click, no-payout flush ] never flicker [ CONT clears it -- the
   shell may have repainted ] ; editor pty suite at 32 cases
+- follow-up 3 : ONE kill register, two disciplines -- ctrl+. [ \x0e
+  or CSI-u \e[46;5u ] restores OLDEST-first so kills rebuild their
+  original order [ ctrl-v stays LIFO ] ; \x1c + \e[44;5u kill where
+  the terminal gives ctrl-, its own byte ; the user's terminal sends
+  ^L for ctrl-, [ byte-identical to ctrl-l, unbindable ] and literal
+  ',' / '.' after reset -- the pair needs the terminal to emit a
+  distinguishable encoding [ kitty \ foot legacy \x1c, CSI-u when
+  registered ] ; editor-side protocol enabling [ modifyOtherKeys ]
+  parked as a possible follow-up. test-expectation lesson : a
+  restored line lands ABOVE the cursor and the buffer keeps the
+  un-killed lines -- trace the buffer state before writing the
+  expectation [ cost a long debug detour ] ; editor pty suite at 36
 - no Event.pm / no inotify by design [ user question ] : save-time
   detection is complete; live watch is a UX feature that drags the
   editor library's private select loop into event plumbing. revisit
@@ -90,8 +102,8 @@ green : 22/22 pty + 26/26 unit.
   already exists as the client-side library family.
 - possible library hook for live external-change notification.
 
-#,,,,,,..,,.,,,.,,...,..,,,,,,.,,,.,.,,.,,,,.,..,,...,...,.,.,,,,,,.,,.,,,,.,,
-#SZAVUL3II77U4UDD5MADRPGAMQHDYBV5FBQOE5F73GLYARL3JHUKCSPIAT6HKXD7Q4O3PVH5FW7NW
-#\\\|TSPZVOBSWO7CGVTGS3LYL6QMKRHZQDMIJDYFSUKN5SHNV7UWIX4 \ / AMOS7 \ YOURUM ::
-#\[7]VYU355ORKZIK2BBB52AGCQ5AW2UEVHFEPTTJ5BKKKZ5EYILUWABA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,,.,,.,,,..,,.,.,.,.,...,,..,..,,...,..,,,..,,..,.,.,,,.,,,,,
+#23Y34EAASMLW2Q6CCGO7ARDG35YTOB4D3LWD22WCYCLM5DNVVMVELBUV6B5HBJHTNJTM2QWWYHSIO
+#\\\|SFMDERLNJ7Q3ARA3TBXUOGNRZ5SMRSWQCWBSOFDTOB5Q764DPQT \ / AMOS7 \ YOURUM ::
+#\[7]Z2OUTETJHLZBY6UGTDJW7SNA47NL2ITMCXG3XJMAMMIXGNTXXOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
