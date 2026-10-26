@@ -21,8 +21,9 @@ use English;
 ## fast = one collapsed page ] and a no-op tick at EOF repaints nothing.  kill
 ## register : ctrl+. [ \x0e or CSI-u \e[46;5u ] restores oldest-first so kills
 ## rebuild their original order, \x1c \ \e[44;5u kill where the terminal gives
-## ctrl-, its own byte, an empty register says so. skipped when IO::Pty is not
-## installed
+## ctrl-, its own byte, an empty register says so ; a truncated tail restores
+## in place at the kill position ; modifyOtherKeys=1 is enabled while open and
+## disabled on exit. skipped when IO::Pty is not installed
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -951,7 +952,72 @@ check(
     $child_code_lines
 );
 check( 'ctrl+. restores oldest-first : kills rebuild the original order',
-    $result eq "RESULT=<one\ntwo\nXthree>" && $exited );
+    $result eq "RESULT=<one\nXtwo\nthree>" && $exited );
+
+## the user's scenario : truncate a tail
+## [ click to line 3, kill three lines to EOF ] then ctrl+. the tail back --
+## the run appends after the line it followed, nothing reorders
+( $result, $exited ) = run_case(
+    qw| tailrestore |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[<0;4;8M";    ## click line 3, col 0 ##
+        $drain->(0.3);
+        syswrite $pty, "\x1c" for 1 .. 3;    ## truncate to EOF ##
+        $drain->(0.4);
+        syswrite $pty, "\x0e" for 1 .. 3;    ## restore the tail ##
+        $drain->(0.4);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+@paged = split "\n", $thirty_lines;
+substr( $paged[5], 0, 0, 'X' );    ## cursor follows onto the tail ##
+$expected = 'RESULT=<' . ( join "\n", @paged ) . '>';
+check( 'truncated tail restores in place : no line reorders',
+    $result eq $expected && $exited );
+
+## bottom-up truncation : click the LAST line, kill up the file, then restore
+## -- the tail rebuilds in the ORIGINAL order, not the kill order
+## [ no upside-down tail ]
+my $six_lines      = "a\nb\nc\nd\ne\nf";
+my $child_code_six = <<~"CHILD";
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    my \$out = shift;
+    { open my \$pid_fh, '>', "\$out.pid" or die; print \$pid_fh \$\$; }
+    my \$result = eval {
+        edit_text( { text => '$six_lines', title => 'T', label => 'l' } );
+    };
+    open my \$fh, '>:utf8', \$out or die;
+    print \$fh defined \$result ? "RESULT=<\$result>" : 'RESULT=<UNDEF>';
+    close \$fh;
+    CHILD
+
+( $result, $exited ) = run_case(
+    qw| bottomup |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        syswrite $pty, "\e[<0;4;10M";    ## click line 5, col 0 ##
+        $drain->(0.3);
+        syswrite $pty, "\x1c" for 1 .. 3;    ## kills f, e, d ##
+        $drain->(0.4);
+        syswrite $pty, "\x0e" for 1 .. 3;    ## restore d, e, f ##
+        $drain->(0.4);
+        syswrite $pty, 'X';
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    },
+    $child_code_six
+);
+check(
+    'bottom-up truncated tail restores in the original order',
+    $result eq "RESULT=<a\nb\nc\nd\ne\nXf>" && $exited
+);
 
 ( $result, $exited ) = run_case(
     qw| legacykill |,
@@ -969,7 +1035,7 @@ check( 'ctrl+. restores oldest-first : kills rebuild the original order',
 );
 check(
     'ctrl-, legacy \x1c kills into the same register',
-    $result eq "RESULT=<one\nXtwo\nthree>" && $exited
+    $result eq "RESULT=<Xone\ntwo\nthree>" && $exited
 );
 
 ( $result, $exited ) = run_case(
@@ -988,7 +1054,7 @@ check(
 );
 check(
     'CSI-u ctrl-, \ ctrl+. kill and restore',
-    $result eq "RESULT=<one\nXtwo\nthree>" && $exited
+    $result eq "RESULT=<Xone\ntwo\nthree>" && $exited
 );
 
 ( $result, $exited, $output ) = run_case(
@@ -1010,12 +1076,29 @@ check(
         && $output =~ m{nothing to restore}
 );
 
+## modifyOtherKeys=1 [ XTMODKEYS ] : the editor enables it while open
+## [ ctrl-. ctrl-, arrive as CSI-u ] and disables it on every exit
+( $result, $exited, $output ) = run_case(
+    qw| modkeys |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        $drain->(0.3);
+        syswrite $pty, "\x18";
+    }
+);
+check(
+    'modifyOtherKeys enabled while open, disabled on exit',
+    $exited
+        && index( $output, "\e[>4;1m" ) >= 0
+        && index( $output, "\e[>4;0m" ) >= 0
+);
+
 say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,.,.,,,...,,,.,.,.,,,,,.,,,.,,,.,.,..,,..,,..,,...,...,.,,,,..,,,,,,.,,..,,
-#KFX7RBNRXVSRKWRTBVFICXKCUNJBIVEUBVM5YSSTGJQDQAP6W2FTVECNQ27XBGGHMJSCERIXFVPMO
-#\\\|TACYG3IPFAJUGHEA62UGDRKH6F23OQ4OGOBTCOL5JGKSGC2QVTM \ / AMOS7 \ YOURUM ::
-#\[7]ZOF5G33LS4OSBEPBQJGPJNREFSSWJF2IMNFLJNFJS6YKYIVZ6AAY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,.,.,,,..,,...,,.,,.,.,.,.,.,.,..,,...,...,.,,,...,,..,..,,.,.,
+#DGOV5JNSFC2HDUZWOSUJUGATDU7I66KQY7PDRP2TSGUELLAOPABJQCERZJHWNN476UIJKVGFLIA6U
+#\\\|KXYXRTQMOKUJH2CNAAODNENUDNZNFZKBZOE6FH4BAW6BV6LBWJS \ / AMOS7 \ YOURUM ::
+#\[7]SWEZHEAOV2KJ4EJACXTPGL2XM24EXMHRGG4NK7HF53XYRMKY2MDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -56,6 +56,18 @@ family [ structured form UI inside the running network ].
   restored line lands ABOVE the cursor and the buffer keeps the
   un-killed lines -- trace the buffer state before writing the
   expectation [ cost a long debug detour ] ; editor pty suite at 36
+- follow-up 4 : ctrl+. restores IN PLACE -- $fifo_from records the
+  kill index, the run rebuilds there [ a truncated tail appends after
+  the line it followed instead of prefixing it -- the user's reorder
+  bug ] ; modifyOtherKeys=1 [ \e[>4;1m ] enabled while open, disabled
+  on every exit path incl. CONT \ signals [ level 1 keeps all legacy
+  bytes, only ctrl-punct becomes CSI-u ] ; editor pty suite at 38
+- follow-up 5 : bottom-up truncation rebuilt the tail UPSIDE DOWN [
+  user report ] -- the ordered register now PREPENDS when a kill
+  lands above the previous one [ @fifo_run + $fifo_last_idx ], so
+  the run always holds the ORIGINAL file order regardless of kill
+  direction ; registers keep independent scalar copies [ never share
+  with the buffer ] ; editor pty suite at 39
 - no Event.pm / no inotify by design [ user question ] : save-time
   detection is complete; live watch is a UX feature that drags the
   editor library's private select loop into event plumbing. revisit
@@ -102,8 +114,8 @@ green : 22/22 pty + 26/26 unit.
   already exists as the client-side library family.
 - possible library hook for live external-change notification.
 
-#,,.,,,,.,.,.,..,,,.,,.,,,..,,.,.,.,.,...,,..,..,,...,..,,,..,,..,.,.,,,.,,,,,
-#23Y34EAASMLW2Q6CCGO7ARDG35YTOB4D3LWD22WCYCLM5DNVVMVELBUV6B5HBJHTNJTM2QWWYHSIO
-#\\\|SFMDERLNJ7Q3ARA3TBXUOGNRZ5SMRSWQCWBSOFDTOB5Q764DPQT \ / AMOS7 \ YOURUM ::
-#\[7]Z2OUTETJHLZBY6UGTDJW7SNA47NL2ITMCXG3XJMAMMIXGNTXXOAI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,,,,,,,...,.,.,,.,,.,,,...,,,.,..,,...,...,...,.,,,,,,,...,,,.,
+#BTBXTMBTDXDG6OPRCV3ACAWP3ETEQAJXZ62QXOZ2LG7JHW4M274VGW3FZIIB6NZYMG736VO7ILWAM
+#\\\|KJDYAPQCOONQSRZPPRQHYPRML7WSFCOPJKT6PA72DN5F5HK7BTP \ / AMOS7 \ YOURUM ::
+#\[7]WQJLPA7A4HEPSGTL456G6THC5MWXTHKRSHV4ETJHQJFYWJVR2CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
