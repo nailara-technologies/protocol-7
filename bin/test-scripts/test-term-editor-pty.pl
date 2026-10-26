@@ -15,7 +15,11 @@ use English;
 ## a die shows the failure and the editor keeps running, without on_save no
 ## 'saved' is ever claimed. page keys : pgdn moves a visible page and stops at
 ## the last line instead of growing one, pgup walks a page back and stays at
-## the top. skipped when IO::Pty is not installed
+## the top. mouse : a left press positions the cursor, chrome clicks and
+## releases stay inert, the wheel accelerates on a NON-LINEAR curve [ slow =
+## line-per-tick, short medium rolls stay relative, a full roll pays pages,
+## fast = one collapsed page ] and a no-op tick at EOF repaints nothing.
+## skipped when IO::Pty is not installed
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -537,8 +541,9 @@ check(
     $result eq "RESULT=<one\nXtwo\nthree>" && $exited
 );
 
-## plain clicks are eaten, never text : SGR press + release and an X10 click
-## land nowhere, typing right after stays clean
+## plain clicks never become text : an SGR press+release pair and an X10 click
+## land on the chrome here [ header rows ], stay inert, and typing right after
+## stays clean -- real positioning is covered by clickpos \ clickinert below
 ( $result, $exited, $output ) = run_case(
     qw| click |,
     sub {
@@ -547,17 +552,15 @@ check(
         $drain->(0.3);
         syswrite $pty, "\e[<0;5;3m";    ## SGR release ##
         $drain->(0.3);
-        syswrite $pty, "\e[M" . chr(32) . chr(42) . chr(37);   ## X10 click ##
+        syswrite $pty, "\e[M" . chr(32) . chr(42) . chr(36);   ## X10 click ##
         $drain->(0.3);
         syswrite $pty, 'Z';
         $drain->(0.3);
         syswrite $pty, "\x18";
     }
 );
-check(
-    'mouse clicks : eaten, never become text',
-    $result eq "RESULT=<Zseed>" && $exited
-);
+check( 'mouse clicks on the chrome : eaten, never become text',
+    $result eq "RESULT=<Zseed>" && $exited );
 
 ## the tty goes away : the editor must end, not spin ##
 ( $result, $exited ) = run_case(
@@ -776,12 +779,158 @@ check( 'pgdn stops at the last line, pgup walks a page back [ 29 - 22 = 7 ]',
 $expected = 'RESULT=<X' . $thirty_lines . '>';
 check( 'pgup from the top stays', $result eq $expected && $exited );
 
+## left click : a press positions the cursor by the content geometry
+## [ text starts at terminal col 4, content row 1 is row 5 ] ; chrome clicks
+## and release events stay inert
+( $result, $exited ) = run_case(
+    qw| clickpos |,
+    sub {
+        my ($pty) = @ARG;
+        syswrite $pty, "\e[<0;6;16M";    ## press col 6, row 16 ##
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, 'X';
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+@paged = split "\n", $thirty_lines;
+substr( $paged[11], 2, 0, 'X' );    ## line 11, col 2 ##
+$expected = 'RESULT=<' . ( join "\n", @paged ) . '>';
+check( 'left click positions the cursor [ line 11, col 2 ]',
+    $result eq $expected && $exited );
+
+( $result, $exited ) = run_case(
+    qw| clickinert |,
+    sub {
+        my ($pty) = @ARG;
+        syswrite $pty, "\e[<0;3;1M";     ## press on the header ##
+        select( undef, undef, undef, 0.2 );
+        syswrite $pty, "\e[<0;6;16m";    ## release elsewhere  ##
+        select( undef, undef, undef, 0.2 );
+        syswrite $pty, 'X';
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+$expected = 'RESULT=<X' . $thirty_lines . '>';
+check( 'clicks on the chrome and release events change nothing',
+    $result eq $expected && $exited );
+
+## wheel acceleration on a 30x100 pty [ content height 22 ] on a NON-LINEAR
+## curve : spaced ticks stay line-per-tick ; a medium roll pays nothing for
+## its first four ticks [ short rolls stay relative ], the fifth tick ramps to
+## a page ; a fast burst collapses to one page.  the payout lands after the
+## wheel pauses, so every case waits out the window before typing
+( $result, $exited ) = run_case(
+    qw| wheelslow |,
+    sub {
+        my ($pty) = @ARG;
+        for ( 1 .. 3 ) {
+            syswrite $pty, "\e[<65;10;10M";         ## wheel down ##
+            select( undef, undef, undef, 0.26 );    ## > window ##
+        }
+        select( undef, undef, undef, 0.35 );
+        syswrite $pty, 'X';
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+@paged = split "\n", $thirty_lines;
+substr( $paged[3], 0, 0, 'X' );
+$expected = 'RESULT=<' . ( join "\n", @paged ) . '>';
+check( 'wheel slow : three spaced ticks stay line-per-tick',
+    $result eq $expected && $exited );
+
+( $result, $exited ) = run_case(
+    qw| wheelsmall |,
+    sub {
+        my ($pty) = @ARG;
+        for ( 1 .. 4 ) {
+            syswrite $pty, "\e[<65;10;10M";
+            select( undef, undef, undef, 0.13 );    ## inside the window ##
+        }
+        select( undef, undef, undef, 0.35 );        ## window asserts    ##
+        syswrite $pty, 'X';
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+@paged = split "\n", $thirty_lines;
+substr( $paged[4], 0, 0, 'X' );    ## four ticks : relative, no page ##
+$expected = 'RESULT=<' . ( join "\n", @paged ) . '>';
+check( 'wheel medium, short roll : four ticks stay relative [ no page ]',
+    $result eq $expected && $exited );
+
+( $result, $exited ) = run_case(
+    qw| wheelmedium |,
+    sub {
+        my ($pty) = @ARG;
+        for ( 1 .. 5 ) {
+            syswrite $pty, "\e[<65;10;10M";
+            select( undef, undef, undef, 0.13 );    ## inside the window ##
+        }
+        select( undef, undef, undef, 0.35 );        ## window asserts    ##
+        syswrite $pty, 'X';
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+@paged = split "\n", $thirty_lines;
+substr( $paged[27], 0, 0, 'X' );    ## 5 lines + 1 page of 22 ##
+$expected = 'RESULT=<' . ( join "\n", @paged ) . '>';
+check( 'wheel medium, full roll : five ticks pay one page on assert',
+    $result eq $expected && $exited );
+
+( $result, $exited ) = run_case(
+    qw| wheelfast |,
+    sub {
+        my ($pty) = @ARG;
+        for ( 1 .. 6 ) {
+            syswrite $pty, "\e[<65;10;10M";
+            select( undef, undef, undef, 0.04 );    ## fast gaps ##
+        }
+        select( undef, undef, undef, 0.35 );
+        syswrite $pty, 'X';
+        select( undef, undef, undef, 0.3 );
+        syswrite $pty, "\x18";
+    },
+    $child_code_pages
+);
+@paged = split "\n", $thirty_lines;
+substr( $paged[28], 0, 0, 'X' );    ## 6 lines + 1 collapsed page ##
+$expected = 'RESULT=<' . ( join "\n", @paged ) . '>';
+check( 'wheel fast : a six-tick burst collapses to one page',
+    $result eq $expected && $exited );
+
+## a wheel tick at EOF moves nothing : the redraw gate must skip the repaint,
+## so the whole session carries exactly one clear-screen
+( $result, $exited, $output ) = run_case(
+    qw| wheeleof |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        $drain->(0.3);
+        syswrite $pty, "\e[<65;10;10M";    ## wheel down at the last line ##
+        $drain->(0.6);
+        syswrite $pty, "\x18";
+    }
+);
+my $clears = () = $output =~ m{\e\[2J}g;
+check(
+    'wheel at EOF : no movement, no repaint [ one clear total ]',
+    $result eq 'RESULT=<seed>' && $exited && $clears == 1
+);
+
 say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,..,...,,.,,...,..,,,.,,.,,,..,,.,,,,,.,,,,,..,,...,...,,..,.,,,.,,,,..,..,,
-#4WLV7JB72B6A7EVGSFBTWQ5B35ZOJLREVQEX74BAXZLCEAM2HEZVN6527ZB7MMAXLDNVK2CPEQBAW
-#\\\|TJ5TEGRUTFPSJ5DE3P22HGCZ6I62R3SBPGK76XN5ZSWV4OQMCYW \ / AMOS7 \ YOURUM ::
-#\[7]HSSUMXRDYXIYX2MWSNVMSYBUD2E7GVJVVVJMUOFW5S6Y4VGCPIAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,,,.,.,.,,,,,.,,..,.,.,.,.,,,.,..,,...,...,,.,,,..,..,,,.,,.,,,
+#4ITQMQDX3QAETFFQFEUBQBGMAHJEY7ETJ7VXGJ5RTGSWM5WAGB4FZRVTDEKDUMZ54S2AH6GFQRIHG
+#\\\|AK7LNIHICCHNN3YWP4EWI2OS5CCQCWIMFU6PYIB3CK5PNY7KFFN \ / AMOS7 \ YOURUM ::
+#\[7]EME2MEV6FI75BDYS7VPV3XJXPVGWLY6QY27UW2LLGCCJBHN42SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

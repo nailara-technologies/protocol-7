@@ -55,6 +55,16 @@ package AMOS7::TERM::Editor;    #############################################
 ## [ the arrow keys still grow ] ; the page size is the current content
 ## height, so it follows terminal resizes.
 ##
+## the wheel accelerates on a NON-LINEAR curve : every tick still moves one
+## line on the spot, and ticks arriving closer together than WHEEL_WINDOW form
+## a burst. a fast burst [ avg gap under WHEEL_FAST ] collapses to exactly one
+## page once the wheel pauses and the window asserts ; a medium burst pays
+## nothing for its first  WHEEL_MIN_TICKS - 1 ticks
+## [ short rolls stay relative navigation ], then ramps to up to
+## WHEEL_MAX_PAGES pages. a left mouse press positions the cursor [ content
+## geometry mapped from the click, clicks on the frame stay inert, past-EOL
+## clamps to the line end ].
+##
 ## secrets hygiene [ keep in step with AMOS7::Vault ] : note lines are mlocked
 ## best-effort when IO::AIO is available [ optional -- a standalone copy
 ## without it runs unlocked, past the memlock limit the rest does too ] and
@@ -77,6 +87,18 @@ use warnings;
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
+
+## wheel acceleration [ all in seconds ] : ticks arriving closer than
+## WHEEL_WINDOW form a burst -- every tick still moves one line on the spot,
+## and when the burst asserts [ the wheel paused for a window ] the
+## accumulated roll pays out as page jumps. a fast burst collapses to exactly
+## one page no matter its length ; a medium burst only pays past
+## WHEEL_MIN_TICKS [ the first lines of a roll stay relative navigation ],
+## then min( burst - threshold, WHEEL_MAX_PAGES ) pages
+use constant WHEEL_WINDOW    => 0.18;
+use constant WHEEL_FAST      => 0.07;
+use constant WHEEL_MIN_TICKS => 5;
+use constant WHEEL_MAX_PAGES => 2;
 
 use Exporter;
 use base qw| Exporter |;
@@ -467,11 +489,14 @@ sub read_editor_event {
 
     ## mouse reports [ wheel tracking ] : SGR \e[<btn;x;yM or legacy X10 \e[M
     ## + 3 bytes -- both end the collection above. plain clicks are eaten here
-    ## [ never text ], wheel becomes a cursor move
+    ## [ never text ] : the wheel becomes a cursor move, a left press becomes
+    ## a cursor position [ SGR release 'm' and other buttons stay inert ]
     if ( $seq =~ m{\x1b\[<(\d+);(\d+);(\d+)([Mm])} ) {
-        my $btn = $1;
+        my ( $btn, $cx, $cy, $kind ) = ( $1, $2, $3, $4 );
         return { wheel => qw| up | }   if $btn == 64;
         return { wheel => qw| down | } if $btn == 65;
+        return { click => [ $cx, $cy ] }
+            if $btn == 0 and $kind eq qw| M |;
         return '';
     }
     if ( $seq eq "\x1b[M" ) {    ## X10 : the 3 coordinate bytes follow ##
@@ -481,6 +506,11 @@ sub read_editor_event {
             if defined $btn and $btn eq chr( 32 + 64 );
         return { wheel => qw| down | }
             if defined $btn and $btn eq chr( 32 + 65 );
+        return { click => [ ord( $coord[1] ) - 32, ord( $coord[2] ) - 32 ] }
+            if defined $btn
+            and $btn eq chr(32)
+            and defined $coord[1]
+            and defined $coord[2];
         return '';
     }
     return $seq;
@@ -692,7 +722,8 @@ sub edit_text {
 
     my ( $cur_line, $cur_col ) = ( 0, 0 );
     my $first_visible = 0;
-    my $content_rows  = 1;    ## set by every redraw ; page keys read it ##
+    my $content_rows  = 1;     ## set by every redraw ; page keys read it ##
+    my $drawn_sig     = '';    ## empty forces the first paint           ##
     my $dirty         = 0;
     my $aborted       = 0;
     my $resized       = 0;
@@ -720,6 +751,12 @@ sub edit_text {
     my $mouse_on
         = ( $params->{'mouse'} // 1 ) && not $ENV{'P7_EDITOR_NO_MOUSE'};
 
+    ## wheel acceleration state [ per edit_text call, like the kill stack ] :
+    ## burst counting with a flush deadline the input wait honors, so a paused
+    ## wheel pays out its pages without a keypress
+    my ( $wheel_burst, $wheel_dir, $wheel_at, $wheel_accum, $flush_at )
+        = ( 0, 0, 0, 0, 0 );
+
     ## cursor moves shared by the arrow keys and the wheel : the second arg ##
     ## lets arrows grow a line at EOF while the wheel just stops            ##
     my $move_cursor = sub {
@@ -742,6 +779,27 @@ sub edit_text {
                 $dirty = 1;
             }
         }
+        return;
+    };
+
+    ## wheel burst payout : deliberately NON-LINEAR -- a fast burst
+    ## [ avg gap under WHEEL_FAST ] collapses to exactly one page no matter
+    ## its length ; a medium burst pays nothing for the first  WHEEL_MIN_TICKS
+    ## - 1 ticks [ short rolls stay relative  navigation ], then min( burst -
+    ## threshold, WHEEL_MAX_PAGES ) pages on a steep ramp
+    my $flush_wheel = sub {
+        return if $wheel_burst < 2 or not $wheel_dir;
+        my $avg   = $wheel_accum / ( $wheel_burst - 1 );
+        my $pages = 0;
+        if ( $avg < WHEEL_FAST ) {
+            $pages = 1;
+        } elsif ( $wheel_burst >= WHEEL_MIN_TICKS ) {
+            $pages = $wheel_burst - ( WHEEL_MIN_TICKS - 1 );
+            $pages = WHEEL_MAX_PAGES if $pages > WHEEL_MAX_PAGES;
+        }
+        $move_cursor->( $wheel_dir, 0 ) for 1 .. $pages * $content_rows;
+        ( $wheel_burst, $wheel_dir, $wheel_accum, $flush_at )
+            = ( 0, 0, 0, 0 );
         return;
     };
 
@@ -797,7 +855,8 @@ sub edit_text {
         paste_enable();
         mouse_enable() if $mouse_on;
         print "\e[4 q";
-        $resized = 1;         ## full redraw ##
+        $resized   = 1;       ## full redraw ##
+        $drawn_sig = '';      ## the shell may have repainted -- paint ##
         syswrite( $sig_w, 'c', 1 );
     };
 
@@ -869,214 +928,241 @@ sub edit_text {
                 $first_visible = $cur_line - $content_rows + 1;
             }
 
-            ## draw frame : hide cursor during redraw to stop it flickering ##
-            ## at 1,1                                                       ##
-            print "\e[?25l\e[H\e[2J";    ## hide cursor, clear ##
+            ## redraw gate : repaint only when something visual changed.  a
+            ## no-op key [ a wheel tick at EOF, an inert click, a burst that
+            ## paid nothing ] otherwise clears and repaints an identical frame
+            ## -- pure flicker
+            my $frame_sig = join ':', $dirty, $cur_line, $cur_col,
+                $first_visible, $cols, $rows, $last_status,
+                scalar @kill_stack,
+                ( defined $clip_at_start ? 1 : 0 ),
+                ( defined $clip_cleared  ? 1 : 0 );
+            if ( $frame_sig ne $drawn_sig ) {
+                $drawn_sig = $frame_sig;
 
-            ## top border : .::[ .:. title .:. ]:::::::::::::::. ##
-            say frame_border_line(
-                {   width    => $cols,
-                    reset    => $C->{R},
-                    elements => [
-                        {   type  => 'anchor',
-                            value => '.:[ ',
-                            color => $C->{0}
-                        },
-                        {   type  => 'anchor',
-                            value => '.:. ' . $title . ' .:.',
-                            color => $C->{T} . $C->{B},
-                        },
-                        {   type  => 'anchor',
-                            value => ' ]',
-                            color => $C->{0}
-                        },
-                        {   type  => 'fill',
-                            char  => ':',
-                            min   => 1,
-                            color => $C->{0}
-                        },
-                        {   type  => 'anchor',
-                            value => ':.',
-                            color => $C->{0}
-                        },
-                    ],
+                ## draw frame : hide cursor during redraw to stop it flickering ##
+                ## at 1,1                                                       ##
+                print "\e[?25l\e[H\e[2J";    ## hide cursor, clear ##
+
+                ## top border : .::[ .:. title .:. ]:::::::::::::::. ##
+                say frame_border_line(
+                    {   width    => $cols,
+                        reset    => $C->{R},
+                        elements => [
+                            {   type  => 'anchor',
+                                value => '.:[ ',
+                                color => $C->{0}
+                            },
+                            {   type  => 'anchor',
+                                value => '.:. ' . $title . ' .:.',
+                                color => $C->{T} . $C->{B},
+                            },
+                            {   type  => 'anchor',
+                                value => ' ]',
+                                color => $C->{0}
+                            },
+                            {   type  => 'fill',
+                                char  => ':',
+                                min   => 1,
+                                color => $C->{0}
+                            },
+                            {   type  => 'anchor',
+                                value => ':.',
+                                color => $C->{0}
+                            },
+                        ],
+                    }
+                );
+
+                ## summary line [ left-aligned, 3-space left pad, 1-space right ##
+                ## pad, :: delimiter ]                                          ##
+                my $max_summary = $inner_width - 4;
+                if ( length($summary) > $max_summary ) {
+                    $summary
+                        = substr( $summary, 0, $max_summary - 3 ) . ' .,';
                 }
-            );
+                my $sum_pad  = ' ' x ( $inner_width - length($summary) - 3 );
+                my $sum_line = $sum_pad . $summary . ' ';
+                say $C->{0} . ': '
+                    . $C->{T}
+                    . $C->{B}
+                    . $sum_line
+                    . $C->{0} . '::'
+                    . $C->{R};
 
-            ## summary line [ left-aligned, 3-space left pad, 1-space right ##
-            ## pad, :: delimiter ]                                          ##
-            my $max_summary = $inner_width - 4;
-            if ( length($summary) > $max_summary ) {
-                $summary = substr( $summary, 0, $max_summary - 3 ) . ' .,';
-            }
-            my $sum_pad  = ' ' x ( $inner_width - length($summary) - 3 );
-            my $sum_line = $sum_pad . $summary . ' ';
-            say $C->{0} . ': '
-                . $C->{T}
-                . $C->{B}
-                . $sum_line
-                . $C->{0} . '::'
-                . $C->{R};
+                ## separator [ :. label: .: ] ##
+                say frame_border_line(
+                    {   width    => $cols,
+                        reset    => $C->{R},
+                        elements => [
+                            {   type  => 'anchor',
+                                value => ':.',
+                                color => $C->{0}
+                            },
+                            {   type  => 'anchor',
+                                value => ' ' . $label . ': ',
+                                color => $C->{T}
+                            },
+                            {   type  => 'anchor',
+                                value => '.::',
+                                color => $C->{0}
+                            },
+                            {   type  => 'fill',
+                                char  => ':',
+                                min   => 1,
+                                color => $C->{0}
+                            },
+                            {   type  => 'anchor',
+                                value => ':',
+                                color => $C->{0}
+                            },
+                        ],
+                    }
+                );
 
-            ## separator [ :. label: .: ] ##
-            say frame_border_line(
-                {   width    => $cols,
-                    reset    => $C->{R},
-                    elements => [
-                        {   type  => 'anchor',
-                            value => ':.',
-                            color => $C->{0}
-                        },
-                        {   type  => 'anchor',
-                            value => ' ' . $label . ': ',
-                            color => $C->{T}
-                        },
-                        {   type  => 'anchor',
-                            value => '.::',
-                            color => $C->{0}
-                        },
-                        {   type  => 'fill',
-                            char  => ':',
-                            min   => 1,
-                            color => $C->{0}
-                        },
-                        {   type  => 'anchor',
-                            value => ':',
-                            color => $C->{0}
-                        },
-                    ],
+                ## top padding ##
+                say detail_editor_draw_line( '', $inner_width, 0, 0, $C );
+
+                ## content area ##
+                for my $i ( 0 .. $content_rows - 1 ) {
+                    my $line_idx = $first_visible + $i;
+                    my $line_text
+                        = ( $line_idx <= $#lines ) ? $lines[$line_idx] : '';
+                    my $is_cursor = ( $line_idx == $cur_line );
+                    say detail_editor_draw_line( $line_text, $inner_width,
+                        $is_cursor, $cur_col, $C );
                 }
-            );
 
-            ## top padding ##
-            say detail_editor_draw_line( '', $inner_width, 0, 0, $C );
+                ## bottom padding ##
+                say detail_editor_draw_line( '', $inner_width, 0, 0, $C );
 
-            ## content area ##
-            for my $i ( 0 .. $content_rows - 1 ) {
-                my $line_idx = $first_visible + $i;
-                my $line_text
-                    = ( $line_idx <= $#lines ) ? $lines[$line_idx] : '';
-                my $is_cursor = ( $line_idx == $cur_line );
-                say detail_editor_draw_line( $line_text, $inner_width,
-                    $is_cursor, $cur_col, $C );
-            }
+                ## footer separator ##
+                say frame_border_line(
+                    {   width    => $cols,
+                        reset    => $C->{R},
+                        elements => [
+                            {   type  => 'anchor',
+                                value => '::.',
+                                color => $C->{0}
+                            },
+                            {   type  => 'anchor',
+                                value => ' keys ',
+                                color => $C->{T}
+                            },
+                            {   type  => 'anchor',
+                                value => '.::',
+                                color => $C->{0}
+                            },
+                            {   type  => 'fill',
+                                char  => ':',
+                                min   => 1,
+                                color => $C->{0}
+                            },
+                            {   type  => 'anchor',
+                                value => '::',
+                                color => $C->{0}
+                            },
+                        ],
+                    }
+                );
 
-            ## bottom padding ##
-            say detail_editor_draw_line( '', $inner_width, 0, 0, $C );
+                ## help line [ left pad, :: delimiter ]  ctrl-s                ##
+                ## [ alias ctrl-o ] is only advertised when on_save gives it a ##
+                ## real target                                                 ##
+                my $save_hint = defined $on_save ? ' · ctrl-s save' : '';
+                my $paste_hint
+                    = (
+                    @kill_stack
+                        or ( defined $clip_at_start
+                        and not defined $clip_cleared )
+                    )
+                    ? ' · ctrl-v paste · ctrl-y clear'
+                    : '';
+                my $help_text
+                    = ' · ctrl-x save+quit · ctrl-c abort'
+                    . $save_hint
+                    . $paste_hint
+                    . ' · ctrl-w del-word · ctrl-l del-line · ctrl-d '
+                    . 'de-interlace · arrows · enter · del · pgup \ pgdn '
+                    . 'page ·';
+                $help_text = ' · ' . $hint . ' ·' . $help_text
+                    if length $hint;
+                ## show status [ e.g. 'saved' ] on the LEFT so it survives ##
+                ## narrow terminals; truncation keeps the leftmost part    ##
+                $help_text = "· $last_status · $help_text"
+                    if length $last_status;
+                $help_text = substr( $help_text, 0, $inner_width - 2 );
+                my $help_pad
+                    = ' ' x ( $inner_width - length($help_text) - 1 );
+                my $help = $help_pad . $help_text . '';
+                say $C->{0} . ':'
+                    . $C->{dim}
+                    . $C->{3}
+                    . $help
+                    . $C->{0} . '::'
+                    . $C->{R};
 
-            ## footer separator ##
-            say frame_border_line(
-                {   width    => $cols,
-                    reset    => $C->{R},
-                    elements => [
-                        {   type  => 'anchor',
-                            value => '::.',
-                            color => $C->{0}
-                        },
-                        {   type  => 'anchor',
-                            value => ' keys ',
-                            color => $C->{T}
-                        },
-                        {   type  => 'anchor',
-                            value => '.::',
-                            color => $C->{0}
-                        },
-                        {   type  => 'fill',
-                            char  => ':',
-                            min   => 1,
-                            color => $C->{0}
-                        },
-                        {   type  => 'anchor',
-                            value => '::',
-                            color => $C->{0}
-                        },
-                    ],
+                ## bottom border [ no trailing newline to avoid scrolling ] ##
+                print frame_border_line(
+                    {   width    => $cols,
+                        reset    => $C->{R},
+                        elements => [
+                            {   type  => 'anchor',
+                                value => ':',
+                                color => $C->{0}
+                            },
+                            {   type  => 'fill',
+                                char  => ':',
+                                min   => 1,
+                                color => $C->{0}
+                            },
+                            {   type  => 'anchor',
+                                value => ':',
+                                color => $C->{0}
+                            },
+                        ],
+                    }
+                );
+
+                ## position hardware cursor on the cursor line ##
+                my $cursor_row
+                    = $header_rows + ( $cur_line - $first_visible ) + 1;
+                my $vw = $inner_width - 6;
+                my $dcol;
+                if ( length( $lines[$cur_line] ) <= $vw ) {
+                    $dcol = $cur_col;
+                } elsif ( $cur_col < $vw - 1 ) {
+                    $dcol = $cur_col;
+                } else {
+                    $dcol = $vw - 2;
                 }
-            );
+                my $cursor_col = 4 + $dcol;    ## ':  ' puts text at col 4 ##
+                $cursor_col = $cols - 2 if $cursor_col > $cols - 2;
+                ## position and show cursor at the real edit point ##
+                print "\e[$cursor_row;${cursor_col}H\e[?25h";
+            }    ## redraw gate ##
 
-            ## help line [ left pad, :: delimiter ]  ctrl-s                ##
-            ## [ alias ctrl-o ] is only advertised when on_save gives it a ##
-            ## real target                                                 ##
-            my $save_hint = defined $on_save ? ' · ctrl-s save' : '';
-            my $paste_hint
-                = (
-                @kill_stack
-                    or ( defined $clip_at_start
-                    and not defined $clip_cleared )
-                )
-                ? ' · ctrl-v paste · ctrl-y clear'
-                : '';
-            my $help_text
-                = ' · ctrl-x save+quit · ctrl-c abort'
-                . $save_hint
-                . $paste_hint
-                . ' · ctrl-w del-word · ctrl-l del-line · ctrl-d '
-                . 'de-interlace · arrows · enter · del · pgup \ pgdn '
-                . 'page ·';
-            $help_text = ' · ' . $hint . ' ·' . $help_text
-                if length $hint;
-            ## show status [ e.g. 'saved' ] on the LEFT so it survives ##
-            ## narrow terminals; truncation keeps the leftmost part    ##
-            $help_text = "· $last_status · $help_text"
-                if length $last_status;
-            $help_text = substr( $help_text, 0, $inner_width - 2 );
-            my $help_pad = ' ' x ( $inner_width - length($help_text) - 1 );
-            my $help     = $help_pad . $help_text . '';
-            say $C->{0} . ':'
-                . $C->{dim}
-                . $C->{3}
-                . $help
-                . $C->{0} . '::'
-                . $C->{R};
-
-            ## bottom border [ no trailing newline to avoid scrolling ] ##
-            print frame_border_line(
-                {   width    => $cols,
-                    reset    => $C->{R},
-                    elements => [
-                        {   type  => 'anchor',
-                            value => ':',
-                            color => $C->{0}
-                        },
-                        {   type  => 'fill',
-                            char  => ':',
-                            min   => 1,
-                            color => $C->{0}
-                        },
-                        {   type  => 'anchor',
-                            value => ':',
-                            color => $C->{0}
-                        },
-                    ],
-                }
-            );
-
-            ## position hardware cursor on the cursor line ##
-            my $cursor_row
-                = $header_rows + ( $cur_line - $first_visible ) + 1;
-            my $vw = $inner_width - 6;
-            my $dcol;
-            if ( length( $lines[$cur_line] ) <= $vw ) {
-                $dcol = $cur_col;
-            } elsif ( $cur_col < $vw - 1 ) {
-                $dcol = $cur_col;
-            } else {
-                $dcol = $vw - 2;
-            }
-            my $cursor_col = 4 + $dcol;    ## ':  ' puts text at col 4 ##
-            $cursor_col = $cols - 2 if $cursor_col > $cols - 2;
-            ## position and show cursor at the real edit point ##
-            print "\e[$cursor_row;${cursor_col}H\e[?25h";
-
-            ## wait for input or a signal, then read one event ##
+            ## wait for input or a signal, then read one event ; a pending
+            ## wheel burst turns the wait into a deadline so the payout lands
+            ## without a keypress once the window asserts
             my $key;
             while ( !defined $key and !$aborted and !$resized ) {
                 my $rin = '';
                 vec( $rin, fileno(STDIN),  1 ) = 1;
                 vec( $rin, fileno($sig_r), 1 ) = 1;
 
-                my $n = select( my $rout = $rin, undef, undef, undef );
+                my $wait;
+                if ($flush_at) {
+                    $wait = $flush_at - time();
+                    $wait = 0.001 if $wait < 0.001;
+                }
+
+                my $n = select( my $rout = $rin, undef, undef, $wait );
                 next if !defined $n or $n < 0;
+                if ( $n == 0 ) {    ## burst window asserted ##
+                    $flush_wheel->();
+                    last;
+                }
 
                 if ( vec( $rout, fileno($sig_r), 1 ) ) {
                     my $sigbuf;
@@ -1139,10 +1225,38 @@ sub edit_text {
                 $move_cursor->( 1, 1 );
             } elsif ( ref $key eq 'HASH'
                 and defined $key->{'wheel'} ) {    ## mouse wheel ##
-                ## wheel up \ down = arrow up \ down ; unlike the down arrow
-                ## it never grows a line at EOF -- scrolling past the end
-                ## stops instead
-                $move_cursor->( $key->{'wheel'} eq qw| up | ? -1 : 1, 0 );
+                ## one line per tick, on the spot -- the burst pays out pages
+                ## when it asserts [ the wheel paused for a window ] ; a
+                ## direction change cashes the old burst in first
+                my $dir = $key->{'wheel'} eq qw| up | ? -1 : 1;
+                my $now = time();
+                $flush_wheel->()
+                    if $wheel_burst and $dir != $wheel_dir;
+                if ( not $wheel_burst
+                    or $now - $wheel_at > WHEEL_WINDOW ) {
+                    ( $wheel_burst, $wheel_accum, $wheel_dir )
+                        = ( 0, 0, $dir );
+                }
+                $wheel_accum += $now - $wheel_at if $wheel_burst;
+                $wheel_burst++;
+                $wheel_at = $now;
+                $flush_at = $now + WHEEL_WINDOW;
+                $move_cursor->( $dir, 0 );
+            } elsif ( ref $key eq 'HASH'
+                and defined $key->{'click'} ) {         ## left press ##
+                ## position the cursor : content row 1 is terminal row
+                ## header+1, text starts at col 4 [ ':  ' ] ; chrome clicks
+                ## stay inert, past-EOL clamps to the line end
+                my ( $cx, $cy ) = $key->{'click'}->@*;
+                my $line = $first_visible + $cy - 5;    ## header_rows = 4 ##
+                if (    $cy >= 5
+                    and $line <= $first_visible + $content_rows - 1 ) {
+                    $cur_line = $line > $#lines ? $#lines : $line;
+                    my $col = $cx - 4;
+                    $col = 0 if $col < 0;
+                    my $len = length $lines[$cur_line];
+                    $cur_col = $col > $len ? $len : $col;
+                }
             } elsif ( $key eq "\e[5~" or $key eq "\e[6~" ) {
                 ## page up \ down : one visible page per press, wheel
                 ## semantics -- the down page stops at the last line instead
@@ -1382,8 +1496,8 @@ sub edit_text {
 
 1;
 
-#,,..,,..,,,.,.,.,,,.,.,.,,..,,,,,,.,,,,.,...,..,,...,..,,,.,,.,.,,.,,,.,,,,,,
-#IP5EXAT2YTEECVKCRS733UFARFZZYTJTD3LOHG2EUCEUO4ENFKWNWZH4QGCL54AFSUPITMF4TNNTU
-#\\\|4OTN3KQIVLGMYYASJZIBXHC2WLHF24UA3SE34EJ6EMCQGF65DDH \ / AMOS7 \ YOURUM ::
-#\[7]CF7P3VWTOV3HDIDBDYDYEKCWKK7FXPQJR6LC6QRVMR5PMDOLFQCI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,,..,...,.,,,.,,,,,.,,,,,...,..,,...,...,,.,,,..,...,,,,,,.,,
+#2XQENX43YS7R6QUXE5HOB47MZIKQWBIN43TH6HQ4ZPW7AHENW47NGSYYGE5DYXJNEXBL67ZTRDO3I
+#\\\|CZ7RENUPMTNQ2EQYGHMVVYS7I7KBQB2QLJBIBOFXKXGHCNKGREG \ / AMOS7 \ YOURUM ::
+#\[7]SUYUB3MKVR63INF4X6OHO6NMW7P3EDKOXRMH7SKH6Y5UJLJFTUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

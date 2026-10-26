@@ -35,6 +35,15 @@ family [ structured form UI inside the running network ].
   at the last line, never grows ] ; hint + ned option list advertise
   it ; 3 new pty cases [ page lands 22 rows down on a 30x100 pty,
   EOF clamp + page back, page-up stays at top ]
+- follow-up 2 : left click positions the cursor [ content geometry,
+  chrome clicks + releases inert ] ; the wheel accelerates on a
+  NON-LINEAR curve [ window 180 ms ; fast avg-gap < 70 ms collapses
+  to one page ; medium rolls pay NOTHING for the first 4 ticks, then
+  min(burst-4, 2) pages -- short rolls stay relative per user tuning ;
+  payout lands when the wheel pauses via a select deadline ] ; a
+  redraw signature gates repaints so no-op keys [ EOF tick, inert
+  click, no-payout flush ] never flicker [ CONT clears it -- the
+  shell may have repainted ] ; editor pty suite at 32 cases
 - no Event.pm / no inotify by design [ user question ] : save-time
   detection is complete; live watch is a UX feature that drags the
   editor library's private select loop into event plumbing. revisit
@@ -81,8 +90,8 @@ green : 22/22 pty + 26/26 unit.
   already exists as the client-side library family.
 - possible library hook for live external-change notification.
 
-#,,.,,.,,,,.,,.,,,.,,,,,,,..,,.,.,,..,.,.,,,.,..,,...,...,,,,,,,,,.,.,,.,,,,,,
-#N76XCF4IPGQ2XVVXXNTWJVG7M6BZRV3ZG3Y2C3OOTVRPZ6QC6CPXAFUTLD36UWHLDK3BGJPGCMMXA
-#\\\|V4MM77OETIPAS33Q3LEFGSIO7UCOK53UPX6X6Y2O2MJMSLIRUKL \ / AMOS7 \ YOURUM ::
-#\[7]XQG7O3NLO3SM3VJIKVNCDWMXOH35LVL7B2CHOWNT6F7GBILOKADY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,.,,...,..,,,,,,.,,,.,.,,.,,,,.,..,,...,...,.,.,,,,,,.,,.,,,,.,,
+#SZAVUL3II77U4UDD5MADRPGAMQHDYBV5FBQOE5F73GLYARL3JHUKCSPIAT6HKXD7Q4O3PVH5FW7NW
+#\\\|TSPZVOBSWO7CGVTGS3LYL6QMKRHZQDMIJDYFSUKN5SHNV7UWIX4 \ / AMOS7 \ YOURUM ::
+#\[7]VYU355ORKZIK2BBB52AGCQ5AW2UEVHFEPTTJ5BKKKZ5EYILUWABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
