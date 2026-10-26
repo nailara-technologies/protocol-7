@@ -237,6 +237,14 @@ behaviour back in the todo details editor.
   palette contract settled meanwhile : purple = frame structure, dim
   TRUE blue = content guides [ wrap continuation ], phosphor green =
   RESERVED for selection modes.
+- **separators as segment containers** [ user vision, 2026-10-26 ] :
+  the blank-as-separator / dotted-rule machinery [ `$block_rows`
+  accounting -- one decorated boundary row that every visual-row
+  walk agrees on ] is directly reusable when the editor grows
+  TEMPLATE SYNTAX AWARENESS : functional segments [ code blocks,
+  frontmatter, sections ] can be visually contained exactly the
+  way wrapped blocks are now -- the segment logic lives in the
+  walk accounting, the chrome follows.
 - **SGR dim bleeds** [ caught by the user's eye ] : `\e[2m` persists
   until reset -- a dim-wrapped glyph must re-emit the content colors
   after it, else the whole rest of the row renders dimmed. scoped dim
@@ -258,8 +266,8 @@ behaviour back in the todo details editor.
   one-unit block dimming, wrapblank + wrapblankpad + wraptailpad the
   blank-as-separator and its padding stability ], 13/13 ned.
 
-#,,..,...,.,,,,,.,,,.,,,,,,..,,.,,,.,,,,.,..,,..,,...,..,,.,.,..,,,.,,..,,,,,,
-#RQSVZH62L4SPYLVT3HLNTVOMF6AHBG25EHXIIT6CZZFX63DMXULT4XPNLOKDS2MWLO7NVLWTCRGBI
-#\\\|DOCEHESI7RRELE2THFFJEDTBXR27QHZY2RTUWLF5QNWTCG5SG3E \ / AMOS7 \ YOURUM ::
-#\[7]X3USO433U5YZ4IPELN56QKO3FX533RJ6XSYU6HVLS67A3IOPYWCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,...,.,.,..,,,..,,..,..,,.,,,..,,...,...,..,,,..,.,,,,,,,,.,,
+#MB5LSTXYJ6IACMZ7YD5ICGZS3YGAKUUQYTPVWRFF6O4XRSACAFLTPSZCYJSBIQLRFZZTISXEALMYQ
+#\\\|6VI7CSZOLEGOPSMEKKZ6I5ZW5UVD5J27GGHSIQXJHMBWFMTTXDZ \ / AMOS7 \ YOURUM ::
+#\[7]QR3QPUG7JE6VESK2KYKB7G4VVZLF3E3QZNEJPFRIRX3LJTFV74BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
