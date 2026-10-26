@@ -26,11 +26,12 @@ use English;
 ## disabled on exit. wrap mode [ wrap => 1 ] folds long lines into full-width
 ## rows with a continuation marker instead of scrolling them sideways -- the
 ## buffer roundtrips untouched, the hardware cursor lands on the continuation
-## row, pgdn pages by visual rows ; a CSI-u sequence arriving byte-wise with a
-## lagging final byte still kills [ never types its tail into the text ] ;
-## scroll mode clamps the tail window -- a shorter long line under a far-right
-## cursor never trips substr outside of string. skipped when IO::Pty is not
-## installed
+## row, pgdn pages by visual rows ; a wrapped block is followed by a dim
+## dotted separator row [ wrap_sep => 0 opts out ] that every visual-row walk
+## counts ; a CSI-u sequence arriving byte-wise with a lagging final byte
+## still kills [ never types its tail into the text ] ; scroll mode clamps the
+## tail window -- a shorter long line under a far-right cursor never trips
+## substr outside of string. skipped when IO::Pty is not installed
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -1173,7 +1174,8 @@ my $child_code_seed = <<~'CHILD';
     { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
     my $result = eval {
         edit_text( { text => $ENV{'SEED'} // 'seed', title => 'T',
-            label => 'l', wrap => $ENV{'WRAP'} ? 1 : 0 } );
+            label => 'l', wrap => $ENV{'WRAP'} ? 1 : 0,
+            wrap_sep => ( $ENV{'WRAP_SEP'} // 1 ) } );
     };
     open my $fh, '>:utf8', $out or die;
     print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
@@ -1202,7 +1204,7 @@ check(
     'wrap mode : long line folds, continuation marker under the colon',
     $result eq "RESULT=<head\n" . ( 'a' x 150 ) . "\ntail>"
         && $exited
-        && $visible =~ m|^:\\ a{20}|m
+        && $visible =~ m|^:\xe2\x94\x8a a{20}|m
 );
 
 ## wrap mode : end-of-line on a 150-char line puts the cursor on the second
@@ -1261,6 +1263,111 @@ check(
         0 .. ( $#cursor_pos / 2 ) )
 );
 
+## wrap mode : a wrapped block is followed by a dim dotted separator row, and
+## the separator counts as a visual row -- the cursor on the line after a
+## wrapped block lands one row lower than the bare fold math
+## [ pin 9,60 with separators, 8,60 without ] ; the buffer roundtrips
+{
+    local $ENV{'SEED'} = ( 'a' x 150 ) . "\n" . ( 'b' x 150 );
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrapsep |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[B";    ## down to line 2 ##
+            $drain->(0.3);
+            syswrite $pty, "\e[F";    ## end ##
+            $drain->(0.4);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my $vis_sep = $output;
+$vis_sep =~ s{\e\[[0-9;?]*[A-Za-z]}{}g;
+@cursor_pos = $output =~ m{\e\[([0-9]+);([0-9]+)H\e\[\?25h}g;
+check(
+    'wrap mode : dotted separator row '
+        . 'after a wrapped block, cursor counts it',
+    $result eq 'RESULT=<'
+        . ( 'a' x 150 ) . "\n"
+        . ( 'b' x 150 )
+        . '>'
+        && $exited
+        && $vis_sep =~ m|^:(?:\xe2\x94\x84){20}|m
+        && grep( $cursor_pos[ $_ * 2 ] == 9
+            && $cursor_pos[ $_ * 2 + 1 ] == 60,
+        0 .. ( $#cursor_pos / 2 ) )
+);
+
+## the darkened selection covers the WHOLE wrapped block : with colors, the
+## head row and the continuation row both carry the bold-blue border while the
+## cursor sits on the continuation row [ padding stays purple ]
+my $child_code_wrapcolor = <<~'CHILD';
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    $ENV{'P7_EDITOR_NO_CLIP'} = 1;
+    my %C = ( T=>"\e[34m", 0=>"\e[35m", 3=>"\e[32m",
+        B=>"\e[1m", R=>"\e[0m", dim=>"\e[2m" );
+    my $out = shift;
+    { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
+    my $result = eval {
+        edit_text( { text => 'a' x 150, title => 'T', label => 'l',
+            colors => \%C, wrap => 1 } );
+    };
+    open my $fh, '>:utf8', $out or die;
+    print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
+    close $fh;
+    CHILD
+
+( $result, $exited, $output ) = run_case(
+    qw| wrapdarken |,
+    sub {
+        my ( $pty, $pid, $drain ) = @ARG;
+        $drain->(0.3);
+        syswrite $pty, "\e[F";    ## cursor onto the continuation row ##
+        $drain->(0.4);
+        syswrite $pty, "\x18";
+    },
+    $child_code_wrapcolor
+);
+my @frames      = split m{\e\[H\e\[2J}, $output, -1;
+my $final_frame = $frames[-1] // '';
+check(
+    'wrap mode : the darkened selection covers the whole wrapped block',
+    $exited
+        && index( $final_frame, "\e[34m\e[1m:" . "\e[34m\e[1m  aaaa" ) >= 0
+        && index( $final_frame, "\e[34m\e[1m:\e[2m\e[34m" . "\xe2\x94\x8a" )
+        >= 0
+        && index( $final_frame,
+        "\xe2\x94\x8a" . "\e[0m\e[34m\e[1m" . " aaaa" ) >= 0
+);
+
+## 'wrap_sep => 0' opts out : the historical plain fold, no dotted row
+{
+    local $ENV{'SEED'}     = "head\n" . ( 'a' x 150 ) . "\ntail";
+    local $ENV{'WRAP'}     = 1;
+    local $ENV{'WRAP_SEP'} = 0;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrapnosep |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my $vis_nosep = $output;
+$vis_nosep =~ s{\e\[[0-9;?]*[A-Za-z]}{}g;
+check(
+    "wrap mode : 'wrap_sep => 0' opts out of the separator row",
+    $exited && $vis_nosep !~ m|^:(?:\xe2\x94\x84){20}|m
+);
+
 ## a CSI-u ctrl-, arriving byte-wise with the final byte lagging past the
 ## short escape deadline still kills -- the prefix stays in flight and the
 ## tail never TYPES into the text
@@ -1313,8 +1420,8 @@ say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,.,,.,,..,,.,.,,.,,,,,,..,,,,,,.,.,...,.,.,..,,...,...,...,...,.,.,..,,.,,,
-#OCWCLSOVJWJAPIGUCNO3BGRR6LGAZO2Z43IM333RE7AB22FSMYIDTUAQT5VG3QUDUN5TB2SY7JAYK
-#\\\|UTB7OKFL7ETUWUKJZCHH6W6Q2S3NQFTBSABLFGOEYBLXLHHIIVM \ / AMOS7 \ YOURUM ::
-#\[7]LFLCTDPLEQ2TZNKMY6ZSSMFLC4JYY7TDAVLV672URCCRRIKITKDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,..,,.,,,,,.,,,,,..,,...,...,..,,...,...,...,,,,,,.,,,,.,,..,
+#ZBE4ITFZSBF2U66C2V2EYM77HDZE2YE6GWH32V4MFAXTXX555BJ6X2PRTLJ7B2MDNGITSASTZEBQK
+#\\\|BYECDX3NDGNYNSAHG3IW3UO6JM72TJBPKQCNWODSGS6PKMWVY2R \ / AMOS7 \ YOURUM ::
+#\[7]R7MY6UXG6DFHGGIGV64UGLH4C7CE53GPLUNITPJAHK33HM2ZXODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

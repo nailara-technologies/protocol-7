@@ -136,7 +136,8 @@ behaviour back in the todo details editor.
 - **wrap mode [ NEW, library param `wrap => 1` ]** : view-only soft
   wrap. the buffer keeps the raw lines and the saved file is never
   re-flowed -- rendering folds long lines into full-width rows, a dim
-  green '\' under the ':' marks continuation rows. scroll mode
+  TRUE blue `┊` [ U+250A ] under the ':' marks continuation rows.
+  scroll mode
   [ horizontal, `<`/`>` tail window ] stays the default. `bin/todo`
   details editor passes `wrap => 1`; ned can opt in / toggle later.
   user notes wrap is ESSENTIAL for message reading/writing too [ chat
@@ -165,11 +166,41 @@ behaviour back in the todo details editor.
   user capturing the exact in-editor bytes with
   `printf '\e[>4;1m'; cat -v` [ plain `cat -v` runs OUTSIDE the editor;
   modifyOtherKeys=1 is enabled INSIDE and changes those encodings ].
-- suites after : 26/26 unit, 46/46 editor pty [ +5 : wrap render, wrap
-  cursor row, wrap pgdn, split CSI-u, scroll clamp ], 13/13 ned.
+- **wrap separator [ `wrap_sep`, default ON with wrap ]** : a wrapped
+  block is followed by a dim dotted rule [ ':' + dim PURPLE `┄`
+  [ U+2504 quadruple dash horizontal ] + ':' ] -- a visual blank line
+  between paragraphs; none after the buffer's last line [ bottom
+  padding is gap enough ]. continuation rows carry a dim green `┊`
+  [ U+250A, the todo-list state-column glyph family ] under the ':' --
+  purple = structure between blocks, dim TRUE blue = content guide
+  [ green stays RESERVED for selection modes ]. the editor speaks utf-8
+  end to end, so box glyphs need no detection.
+  view-only, and the separator OCCUPIES a visual row : one
+  `$block_rows` closure [ wrap_rows + separator ]
+  serves every visual-row walk [ scroll fixup, drawing, hardware
+  cursor, clicks, paging ] so a separator never shifts a position.
+  pinned by a cursor case at row 9 vs 8 without. `wrap_sep => 0`
+  opts out. the cursor-row darkening is per LOGICAL line : the whole
+  wrapped block darkens together wherever the cursor sits inside it
+  [ pinned by the wrapdarken colors case ].
+- **box-drawing glyphs as future cursor language** [ user idea, parked ]
+  : the ┊/┄ family could mark alternate cursors for different editing
+  or parallelism modes -- keep them in mind when mode support lands.
+  palette contract settled meanwhile : purple = frame structure, dim
+  TRUE blue = content guides [ wrap continuation ], phosphor green =
+  RESERVED for selection modes.
+- **SGR dim bleeds** [ caught by the user's eye ] : `\e[2m` persists
+  until reset -- a dim-wrapped glyph must re-emit the content colors
+  after it, else the whole rest of the row renders dimmed [ the wrap
+  continuation rows looked 'highlighted' against the bright head row ].
+  scoped dim to the glyph : `dim . T . ┊ . R . T . B` ; pinned by the
+  wrapdarken case asserting the bright text right after the glyph.
+- suites after : 26/26 unit, 48/48 editor pty [ +7 : wrap render, wrap
+  cursor row, wrap pgdn, wrap separator + opt-out, split CSI-u, scroll
+  clamp ], 13/13 ned.
 
-#,,,.,.,.,,.,,..,,...,,,,,.,,,.,,,.,,,,,,,...,..,,...,..,,..,,,..,,.,,.,,,...,
-#2FEGBJ2UQ2VGH4APFLXWTQ6CUP3MKN4V3SJKJHYVX7IJI4NEIPQ7Y5CTXUWURQTXSOEVB5JBVTLBW
-#\\\|6O5W3F3XH2VP45W7NDOB4J4XVBZM3G5VI6ZE4GLWAFL45BSOSRD \ / AMOS7 \ YOURUM ::
-#\[7]YU6CGJ6HFWOPR3P2UGHK6I3G5Y4OYQESRHBEPTRMAZOI67E3KSDY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,,..,.,,,...,,,,,..,,.,.,..,,..,,...,.,.,,,.,,..,,,.,,.,,,.,,
+#B5APGNUZ6FVR54AI2JG5NERCAKFMOB5WOERFDLSDMHE7P7HQEMOBB3YG2TNFECEOVL2OBK3DNPP3A
+#\\\|VDUQYAZ3ZB6LC24B5X6CE7XBFU6W3SFW5344PW75NYGZ3N5DLWX \ / AMOS7 \ YOURUM ::
+#\[7]4EJLJ2AAS2VIGGFXNB6ZKBKAAMNAS7WOULTX3MISBXRDAVUY5UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
