@@ -104,8 +104,18 @@ after a successful decode ] ; `AMOS7::CHKSUM::ELF::elf_chksum` aliases
 arg 1 and inline_elf flips its utf8 flag -- pass `q{} . $bytes` copies.
 full session record : [topic-bin-ned-file-editor.md].
 
-#,,,.,.,,,,,,,.,.,...,,.,,.,.,...,,.,,,,,,...,..,,...,...,..,,...,..,,.,,,..,,
-#EOHNTOVHN2JUD4WMHCRUI7NTUIX7ZBLBFDNAJFF2NUI4YJFVG7XDG2QA6J3BDB32CPUTYDRRPHGUG
-#\\\|33WEH5B36DILONHDNPXLSCJRCQJOBVII5JHLNATXMXLWKAURQ36 \ / AMOS7 \ YOURUM ::
-#\[7]UT6DARVQVAO3S6E4QFB7WY4C62ECI7SI6FIEAMQ5Y57VTE3OKSBQ 7  DATA SIGNATURE ::
+## SGR dim bleeds until reset (2026-10-26)
+
+`\e[2m` [ dim ] persists until an SGR reset -- wrapping a glyph in
+`dim` and moving on re-renders EVERYTHING after it dimmed. caught when
+the editor's wrap continuation rows looked 'highlighted' against their
+own head row : the dim on the ┊ glyph leaked into the row's text.
+rule : scope decorative dim -- `dim . color . glyph . R . color`, never
+bare `dim . color . glyph`. pinned by the wrapdarken pty case.
+full session record : [topic-bin-ned-file-editor.md].
+
+#,,,.,..,,,,,,...,,.,,.,,,.,.,.,,,...,,,,,.,.,..,,...,...,,,,,,.,,.,.,...,,,,,
+#EEHDZ3DARJ6ROVSQGCXNN6VCXJQZETD6JKLAKIQJTJRH5SCFBQQGQODGMA3ZJ5OWZ5CJRAVSGYYBU
+#\\\|3KYBT3XJTCTWUYC25CTVWDX763FQQQAVR5LOVK33S2EPUPJL22V \ / AMOS7 \ YOURUM ::
+#\[7]MRSTVHRW7SNUEJ6XRRR456UPRJWHX3I3ETFA4BSUTI4JAIPNDSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

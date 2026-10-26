@@ -3,14 +3,19 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
-## editor wrap mode + scroll/csi-u fixes — handed over for sign (2026-10-26)
+## editor wrap mode + scroll/csi-u fixes — landed, separator follow-up ready (2026-10-26)
 
 two user-reported regressions + the wrap request, all in
 `AMOS7::TERM::Editor`: (1) NEW `wrap => 1` param — view-only soft wrap,
-dim '\' continuation marker, `bin/todo` details editor now uses it
-[ned opt-in later; wrap is essential for message paragraphs too] ;
-(2) scroll-mode `substr outside of string` — every row is drawn with
-the cursor's column, shorter long lines started past their end, tail
+dim TRUE blue '┊' [ U+250A, todo's state-column glyph, colored like
+its content ] continuation marker, `bin/todo` details editor now
+uses it
+[ned opt-in later; wrap is essential for message paragraphs too] plus a
+`wrap_sep` default-on dotted separator row between wrapped blocks
+[ occupies a visual row — one $block_rows closure serves every
+visual-row walk : scroll, cursor, clicks, paging ] ; (2) scroll-mode
+`substr outside of string` — every row is drawn with the cursor's
+column, shorter long lines started past their end, tail
 window now clamped ; (3) CSI-u collection hardened — in-flight
 `\e[digits;` gets a 1 s deadline, a lagging byte no longer TYPES into
 the text [ candidate vector for the reported ctrl-, / ctrl+.
@@ -19,8 +24,8 @@ through real bin/ned; pending the user's in-editor byte capture via
 `printf '\e[>4;1m'; cat -v` ]. debugging caught a 28 MB padding flood
 [say-while without incrementing the loop variant — pgdn tests passed
 because big buffers never reached the padding path]. suites green :
-26/26 unit + 46/46 editor pty [ +5 wrap / clamp / split-csi cases ] +
-13/13 ned. details in
+26/26 unit + 48/48 editor pty [ +7 wrap / separator / clamp /
+split-csi cases ] + 13/13 ned. details in
 [topic-bin-ned-file-editor.md](topic-bin-ned-file-editor.md).
 
 ## bin/ned — secure-by-default native file editor — landed (2026-10-26)
@@ -451,8 +456,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,,,,,,,,...,.,,,..,,.,,,,,.,,,.,,..,.,.,,,.,..,,...,..,,...,.,.,,,,,,.,,,.,,
-#4QNAW3CSF6XWY3PURHPNEEZFWAHS4H66D3GSCEVVM26LM5FZI2NK55L6UTXANBXZWR4IGJFNUZJVU
-#\\\|7PVGXBZAUPY5RJGPZ4WEKFPYQKM6B4VDEQF2RCA6JBCU6RK6EV5 \ / AMOS7 \ YOURUM ::
-#\[7]A7G6HOW7GFFADZIM5PNZCEUJSMIAMCHF5VJTK37FBNZ5DHV2ECBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,,,,,,..,,,.,...,.,.,.,,,,,,,..,,...,...,.,,,,.,,...,,.,,,.,,
+#BL3YWSXLFG67FVRV5RDBJRDQSBTE5NHX4ZA5KNZ26SETWPRSIM6CA2HFTX3R5HLBL5VHVZ4QVO4ES
+#\\\|64NZZX55QUKDGG6ETNF5SXBCIINBPYC4VQN2HUTUISSH5VNA43C \ / AMOS7 \ YOURUM ::
+#\[7]DEJBWAFB6PHTJ2CBWFKZYDEIE7HCIYT4MA5DUI3J3GUAKK3IAEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

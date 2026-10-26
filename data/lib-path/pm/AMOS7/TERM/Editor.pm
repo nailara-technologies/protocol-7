@@ -40,9 +40,11 @@ package AMOS7::TERM::Editor;    #############################################
 ## 'wrap => 1' turns long lines into full-width visual rows instead of
 ## scrolling them sideways [ the historical default ] : the wrap is view-only
 ## -- the buffer keeps the raw lines and the saved file is never re-flowed.
-## continuation rows carry a dim wrap marker under the ':'.  scrolling, the
-## hardware cursor, clicks and the page keys all map visual rows back to the
-## raw buffer position.
+## continuation rows carry a dim wrap marker under the ':', and a wrapped
+## block is followed by a dim dotted separator row
+## [ 'wrap_sep => 0' opts out ] -- a visual blank line between blocks. the
+## separator counts as a visual row, so scrolling, the hardware cursor, clicks
+## and the page keys all account for it.
 ##
 ## an optional on_save callback makes ctrl-s [ alias ctrl-o ] a real save : it
 ## receives the current buffer, normalized exactly like the returned text. a
@@ -619,8 +621,19 @@ sub detail_editor_draw_wrapped {
         $seg .= ' ' x ( $vw - length($seg) ) if length($seg) < $vw;
         my $left = $C->{T} . $C->{B} . '  ';
         if ( $i > 0 ) {
-            ## '\' under the ':' reads as "this row continues the line" ##
-            $left = $C->{dim} . $C->{3} . '\\' . $C->{T} . $C->{B} . ' ';
+            ## the dotted vertical under the ':' reads as "this row continues
+            ## the line" [ the same ┊ family todo list draws in its right-hand
+            ## state column, colored like the content it decorates -- dim TRUE
+            ## blue here ; the editor speaks utf-8 end to end, so box glyphs
+            ## are safe wherever it runs ]. dim is SCOPED to the glyph : it
+            ## resets before the segment text, else the whole continuation row
+            ## would render dimmed against the bright head row
+            $left
+                = $C->{dim}
+                . $C->{T} . '┊'
+                . $C->{R}
+                . $C->{T}
+                . $C->{B} . ' ';
         }
         push @rows,
               $border_color . ':'
@@ -857,6 +870,14 @@ sub edit_text {
     ## buffer keeps the raw lines, the file on disk is never re-flowed ##
     my $wrap = ( $params->{'wrap'} // 0 ) ? 1 : 0;
 
+    ## 'wrap_sep' [ default on with wrap ] : a logical line that folds onto
+    ## more than one row is followed by a dim dotted separator row -- a visual
+    ## blank line between wrapped blocks. view-only like the wrap itself ; the
+    ## separator counts as a visual row, so the scroll, the hardware cursor,
+    ## clicks and the page keys all account for it. none after the buffer's
+    ## last line : the bottom padding is gap enough
+    my $wrap_sep = $wrap ? ( $params->{'wrap_sep'} // 1 ) ? 1 : 0 : 0;
+
     ## wheel acceleration state [ per edit_text call, like the kill stack ] :
     ## burst counting with a flush deadline the input wait honors, so a paused
     ## wheel pays out its pages without a keypress
@@ -1035,6 +1056,19 @@ sub edit_text {
             ## as many rows as its soft-wrapped segments ]
             my $vw_wrap = $inner_width - 4;
             $vw_wrap = 4 if $vw_wrap < 4;
+            ## block rows : a line's wrapped rows plus its separator row.
+            ## EVERY visual-row walk
+            ## [ scroll fixup, drawing, the hardware cursor, clicks, paging ]
+            ## runs through this, so a separator never shifts a position
+            my $block_rows = sub {
+                my $idx  = shift;
+                my $rows = detail_editor_wrap_rows( $lines[$idx], $vw_wrap );
+                return $rows
+                    if not $wrap_sep
+                    or $rows <= 1
+                    or $idx >= $#lines;
+                return $rows + 1;
+            };
             if ( not $wrap ) {
                 if ( $cur_line < $first_visible ) {
                     $first_visible = $cur_line;
@@ -1043,9 +1077,7 @@ sub edit_text {
                 }
             } else {
                 my $cursor_vrow = 0;
-                $cursor_vrow
-                    += detail_editor_wrap_rows( $lines[$_], $vw_wrap )
-                    for 0 .. $cur_line - 1;
+                $cursor_vrow += $block_rows->($_) for 0 .. $cur_line - 1;
                 $cursor_vrow += int( $cur_col / $vw_wrap );
                 if ( $cursor_vrow < $first_visible ) {
                     $first_visible = $cursor_vrow;
@@ -1169,13 +1201,25 @@ sub edit_text {
                     my $row = 0;
                     my $li  = 0;
                     while ( $li <= $#lines
-                        and $row
-                        + detail_editor_wrap_rows( $lines[$li], $vw_wrap )
-                        <= $first_visible ) {
-                        $row += detail_editor_wrap_rows( $lines[$li],
-                            $vw_wrap );
+                        and $row + $block_rows->($li) <= $first_visible ) {
+                        $row += $block_rows->($li);
                         $li++;
                     }
+                    ## a wrapped block is followed by a dim dotted separator
+                    ## row [ view-only -- never after the buffer's last line,
+                    ## the bottom padding is gap enough ]. purple like the
+                    ## frame : the separator is structure between blocks, the
+                    ## dim blue ┊ stays the content-continuation guide [
+                    ## todo's state column colors the same glyph family like
+                    ## its content ] ; green stays reserved for selection
+                    ## modes. the horizontal quadruple dash is ┊'s sibling
+                    my $sep_row
+                        = $C->{0} . ':'
+                        . $C->{dim}
+                        . $C->{0}
+                        . ( '┄' x ( $inner_width - 2 ) )
+                        . $C->{0} . ':'
+                        . $C->{R};
                     my $drawn = 0;
                     while ( $drawn < $content_rows and $li <= $#lines ) {
                         my @wrows
@@ -1189,6 +1233,16 @@ sub edit_text {
                             $drawn++;
                         }
                         $row += scalar @wrows;
+                        if (    $wrap_sep
+                            and @wrows > 1
+                            and $li < $#lines ) {
+                            if (    $row >= $first_visible
+                                and $drawn < $content_rows ) {
+                                say $sep_row;
+                                $drawn++;
+                            }
+                            $row++;
+                        }
                         $li++;
                     }
                     while ( $drawn < $content_rows ) {
@@ -1307,11 +1361,10 @@ sub edit_text {
                     $cursor_col = 4 + $dcol;    ## ':  ' puts text at col 4 ##
                 } else {
                     ## the cursor's visual row holds the segment with the
-                    ## cursor; the column is the in-segment offset
+                    ## cursor; the column is the in-segment offset. the walk
+                    ## counts separator rows through $block_rows
                     my $cursor_vrow = 0;
-                    $cursor_vrow
-                        += detail_editor_wrap_rows( $lines[$_], $vw_wrap )
-                        for 0 .. $cur_line - 1;
+                    $cursor_vrow += $block_rows->($_) for 0 .. $cur_line - 1;
                     my $seg_start = int( $cur_col / $vw_wrap ) * $vw_wrap;
                     $cursor_vrow += int( $cur_col / $vw_wrap );
                     $cursor_row
@@ -1443,15 +1496,9 @@ sub edit_text {
                             $cur_line = $line > $#lines ? $#lines : $line;
                         } else {
                             my ( $row, $li ) = ( 0, 0 );
-                            while (
-                                    $li < $#lines
-                                and $row
-                                + detail_editor_wrap_rows( $lines[$li],
-                                    $vw_wrap ) <= $vrow
-                            ) {
-                                $row
-                                    += detail_editor_wrap_rows( $lines[$li],
-                                    $vw_wrap );
+                            while ( $li < $#lines
+                                and $row + $block_rows->($li) <= $vrow ) {
+                                $row += $block_rows->($li);
                                 $li++;
                             }
                             $cur_line = $li;
@@ -1471,18 +1518,14 @@ sub edit_text {
                     $move_cursor->( $dir, 0 ) for 1 .. $content_rows;
                 } else {
                     my $vrow = 0;
-                    $vrow += detail_editor_wrap_rows( $lines[$_], $vw_wrap )
-                        for 0 .. $cur_line - 1;
+                    $vrow += $block_rows->($_) for 0 .. $cur_line - 1;
                     $vrow += int( $cur_col / $vw_wrap );
                     my $target = $vrow + $dir * $content_rows;
                     $target = 0 if $target < 0;
                     my ( $row, $li ) = ( 0, 0 );
                     while ( $li < $#lines
-                        and $row
-                        + detail_editor_wrap_rows( $lines[$li], $vw_wrap )
-                        <= $target ) {
-                        $row += detail_editor_wrap_rows( $lines[$li],
-                            $vw_wrap );
+                        and $row + $block_rows->($li) <= $target ) {
+                        $row += $block_rows->($li);
                         $li++;
                     }
                     $cur_line = $li;
@@ -1773,8 +1816,8 @@ sub edit_text {
 
 1;
 
-#,,.,,.,,,,,,,.,.,,.,,,..,.,,,,..,,..,,.,,,,,,..,,...,...,,..,,,.,,.,,,.,,,.,,
-#EIWFCZ6T4N2VFLKZTHNYG3OIDYFFKNW5OUWK73G5ICNMFCRZIJ6LLY2FYQL2AZL7XOBI7CPSXG2PS
-#\\\|JDHK6LVZXPSHFS3OAJPRXMFQJDVQCATMUCBCFPV2YFO36HYQRWT \ / AMOS7 \ YOURUM ::
-#\[7]KULNGDR5A4QIBQ7CDLY7CJQ7MPVIG6EXJFGVPTNSX5WNN3FX2ODI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,.,,,,,,...,.,.,..,,..,,...,..,,..,,...,...,.,.,.,,,.,,,.,.,.,,,
+#KETLJZUQN6GICNAJDXO7M7IWKX2S4FUY4M76LKZG7LUQLTNA5V2OQFEAKKV52KSNDN4624OL2UBWI
+#\\\|MBCBBGJFHA7ZCLE4NP7ZZRRURHZGKMRBJ6DQWMUMIZLPBNTRAUO \ / AMOS7 \ YOURUM ::
+#\[7]WEW5INH654LDATBPHMWXFRNNNJWDZWOSVANTM4J3WFIUHP3BPWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
