@@ -114,8 +114,24 @@ rule : scope decorative dim -- `dim . color . glyph . R . color`, never
 bare `dim . color . glyph`. pinned by the wrapdarken pty case.
 full session record : [topic-bin-ned-file-editor.md].
 
-#,,,.,..,,,,,,...,,.,,.,,,.,.,.,,,...,,,,,.,.,..,,...,...,,,,,,.,,.,.,...,,,,,
-#EEHDZ3DARJ6ROVSQGCXNN6VCXJQZETD6JKLAKIQJTJRH5SCFBQQGQODGMA3ZJ5OWZ5CJRAVSGYYBU
-#\\\|3KYBT3XJTCTWUYC25CTVWDX763FQQQAVR5LOVK33S2EPUPJL22V \ / AMOS7 \ YOURUM ::
-#\[7]MRSTVHRW7SNUEJ6XRRR456UPRJWHX3I3ETFA4BSUTI4JAIPNDSCA 7  DATA SIGNATURE ::
+## free-cursor padding must not survive a vertical move (2026-10-26)
+
+the editor grows the current line with spaces past EOL [ free
+cursor ]. the trap : letting that horizontal offset PROPAGATE --
+`pad_line_to_col` on every line a vertical move enters turned
+scrolled-through short lines into multi-row space blocks [
+'variable boxes' ], and an `extend` branch appended whitespace
+lines on arrow-down at EOF [ 'scrolling outside the file grew a
+final section' ]. rule : vertical moves clamp the column to the
+entered line ; only the edited line may carry a pad, and every
+departure path [ arrows, pgdn, click ] strips it. user diagnosed
+this from behavior alone [ 'horizontal offsets' ] -- reproduce on
+a real pty with production colors before theorizing ; their
+mechanical reading of the symptom beat code reading twice.
+full session record : [topic-bin-ned-file-editor.md].
+
+#,,,,,.,,,,..,..,,,.,,,.,,..,,,.,,...,..,,,,,,..,,...,...,,..,.,.,...,,,,,,,.,
+#JWMPL6WXHA3VGN7VJKAEJ43RAOIEOY5CZBSUNO7YAWBELPBVRSOQMGUNTLJ4AIXWLXJII63SPRAP6
+#\\\|45KHEWMYLRHXFIFSIJJKJFVEE3K47CACVDENG7ANRYQNFZFQYCF \ / AMOS7 \ YOURUM ::
+#\[7]IT6OLB2IQSR2KHOFSELJRE5P3POCFRZ46PGKM34VW2MMU73QQQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

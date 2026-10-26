@@ -3,7 +3,37 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
-## editor wrap mode + scroll/csi-u fixes — landed, separator follow-up ready (2026-10-26)
+## wrap chrome round 2 — landed + user-confirmed (2026-10-26)
+
+the wrap-chrome follow-up landed as one commit [ `e4cbf4f69` ]
+after a heavily interactive debugging round, every part
+user-confirmed fixed : (1) **the selection language** — the
+cursor's whole wrapped block [ head + continuation rows ] darkens
+as ONE unit [ dim text AND dim ┊, the ':' borders keeping the
+bold TRUE-blue chrome ] ; the lesson : a border-color-only
+highlight never read as 'selection' to the user's eye — the dim
+was the language, restore it deliberately ; (2)
+**blank-as-separator collapse** — a buffer blank right after a
+wrapped block renders AS the dotted rule [ one gap row instead of
+two ] ; (3) **whitespace-only hygiene** — `_line_is_blank`
+everywhere [ never `eq ''` — the free cursor pads visited blanks
+with spaces ], and such lines never render padding as wrapped
+runs ; (4) **the root the user diagnosed** [ 'horizontal offsets'
+] : vertical moves PROPAGATED the column by padding every
+entered line [ phantom 'variable boxes' ] and arrow-down at EOF
+APPENDED whitespace lines [ 'scrolling outside the file grew a
+final section' ] — vertical moves now CLAMP the column to the
+entered line, down-at-EOF is a no-op, pgdn + click leave-line
+strips pads ; the horizontal free cursor on the edited line
+stays ; (5) **separator width contract** [ ':' + ┄ x inner + ':'
+= the content rows' span ; was 2 short ]. suites 26/26 unit +
+52/52 editor pty + 13/13 ned. **user vision noted** : the
+separator / block-containment machinery is reusable when the
+editor gains template syntax awareness — functional segments
+visually contained. pty-case anatomy in
+[topic-bin-ned-file-editor.md](topic-bin-ned-file-editor.md).
+
+## editor wrap mode + scroll/csi-u fixes — landed (2026-10-26)
 
 two user-reported regressions + the wrap request, all in
 `AMOS7::TERM::Editor`: (1) NEW `wrap => 1` param — view-only soft wrap,
@@ -456,8 +486,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,..,,,,,.,.,..,,,,,,,..,,,.,...,.,.,.,,,,,,,..,,...,...,.,,,,.,,...,,.,,,.,,
-#BL3YWSXLFG67FVRV5RDBJRDQSBTE5NHX4ZA5KNZ26SETWPRSIM6CA2HFTX3R5HLBL5VHVZ4QVO4ES
-#\\\|64NZZX55QUKDGG6ETNF5SXBCIINBPYC4VQN2HUTUISSH5VNA43C \ / AMOS7 \ YOURUM ::
-#\[7]DEJBWAFB6PHTJ2CBWFKZYDEIE7HCIYT4MA5DUI3J3GUAKK3IAEDY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,...,,,,,.,,,,,,,,,,,,.,,.,.,..,,...,...,.,,,,..,.,.,.,,,...,
+#BFYNPHV2VWIPJVXLDPGVX75F4LKWDQNXBP5H5FWDRCFXS752LFP4FJNTLLYTV6Q3ZWOE3PWPONDDO
+#\\\|YJG6QYAWNIMXI5RGJFJWRARBE53IEKEQ4KDT6CI7FABKJGEOAZY \ / AMOS7 \ YOURUM ::
+#\[7]QIQXESHZUEIPWHSMLI6JOPKFZWRMEPE6ABNOVXG4C4ZBJW724UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
