@@ -6,12 +6,22 @@ my $object_id = shift;
 
 return '--' if not exists <dependency.chain>->{$object_id};
 
-return join( ' ',
-    map { <dependency.object>->{$ARG}->{'zenka_name'} }
-        @{ <dependency.chain>->{$object_id} } );
+return join(
+    ' ',
+    map {
+        my $object = <dependency.object>->{$ARG};
+        ## condition objects [ unix_group:httpsd .. ] carry type+name, no ##
+        ## zenka_name : render them in their cfg syntax                   ##
+        defined $object->{'zenka_name'}
+            ? $object->{'zenka_name'}
+            : sprintf( '%s:%s',
+            $object->{'type'} // qw| ? |,
+            $object->{'name'} // qw| ? | )
+    } @{ <dependency.chain>->{$object_id} }
+);
 
-#,,,.,.,,,,,,,.,.,.,,,,,,,.,.,,.,,.,.,,..,,..,..,,...,...,..,,...,,.,,,.,,.,,,
-#J2SMCSM7LXKK2O7DZY7EI4SAICHDQR47PFXTYIKRQAFLEFRUQYZ4EEYPY3BDYHAONQTI6CZUNBQGG
-#\\\|SIQCCIGGLY6L6BSBZ3EPFIKDGEOCCLX5FQAJJYLOBUDQEQ7CZ3V \ / AMOS7 \ YOURUM ::
-#\[7]WGPSD7LDPFBSQWFZZMOUFAMFQDOLWEZ2ZFHDHKBRKJZM3Q4JQQDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,.,,.,,,,.,,,,.,,..,,..,,,,,..,,...,...,.,.,,,.,,,,,.,,,.,,,
+#APSB6SKUNANWFVQDCFAXA57HFWZLOJELBT4LO2BYH6C7UMT7XN53I6BUGBAJQPJNZFUHZLKI3RRPQ
+#\\\|GRIRWZSBOA4YLD64YYG5LJFW7Z66IC563K2NENDCYI5O3ODGTAN \ / AMOS7 \ YOURUM ::
+#\[7]25RUKFWBJYD4KOK3J3DN2BFCDMLIT52K4KNXAKZUCWFR4P7SK6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
