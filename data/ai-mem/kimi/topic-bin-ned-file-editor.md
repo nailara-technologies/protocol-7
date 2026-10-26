@@ -170,19 +170,67 @@ behaviour back in the todo details editor.
   block is followed by a dim dotted rule [ ':' + dim PURPLE `┄`
   [ U+2504 quadruple dash horizontal ] + ':' ] -- a visual blank line
   between paragraphs; none after the buffer's last line [ bottom
-  padding is gap enough ]. continuation rows carry a dim green `┊`
-  [ U+250A, the todo-list state-column glyph family ] under the ':' --
-  purple = structure between blocks, dim TRUE blue = content guide
-  [ green stays RESERVED for selection modes ]. the editor speaks utf-8
-  end to end, so box glyphs need no detection.
+  padding is gap enough ]. continuation rows carry a dim TRUE-blue
+  `┊` [ U+250A, the todo-list state-column glyph family ] under the
+  ':' -- purple = structure between blocks, dim TRUE blue = content
+  guide [ green stays RESERVED for selection modes ]. the editor
+  speaks utf-8 end to end, so box glyphs need no detection.
   view-only, and the separator OCCUPIES a visual row : one
   `$block_rows` closure [ wrap_rows + separator ]
   serves every visual-row walk [ scroll fixup, drawing, hardware
   cursor, clicks, paging ] so a separator never shifts a position.
   pinned by a cursor case at row 9 vs 8 without. `wrap_sep => 0`
-  opts out. the cursor-row darkening is per LOGICAL line : the whole
-  wrapped block darkens together wherever the cursor sits inside it
-  [ pinned by the wrapdarken colors case ].
+  opts out. the selected block darkens as ONE unit : every visual
+  row of the cursor's logical line [ head + continuations ] renders
+  with the text AND ┊ dimmed, the ':' borders keeping the bold
+  TRUE-blue chrome ; non-cursor lines stay bright [ pinned by the
+  wrapdarken colors case ]. **blank-after-block collapse** [ user
+  call, 2026-10-26 ] : when the buffer itself has an empty line
+  right after a wrapped block, that blank renders AS the separator
+  row [ `detail_editor_draw_wrapped` `$as_sep` ] and no separator
+  row is drawn after the block -- one gap row instead of two.
+  **stability rule [ user-reported flicker ]** : the test is
+  `_line_is_blank` [ whitespace-only counts ], NEVER `eq ''` -- the
+  free cursor PADS a blank it arrows through with spaces so the
+  column survives, and with `eq ''` the layout flipped per keypress
+  [ clicking jumps past, so it never showed ]. one shared
+  `$blank_as_sep` predicate drives `$block_rows`, the draw flag,
+  and the cursor in-block offset [ zeroed for the collapsed row :
+  it renders ONE row whatever the column, so the hw cursor sits ON
+  the dots at `4 + col % vw` ]. **full filter [ user-reported
+  phantom 'variable box' ]** : the generalization is that a
+  whitespace-only line NEVER renders its padding as a wrapped run
+  [ `detail_editor_draw_wrapped` collapses it to '' ; `$block_rows`
+  returns 1 for ANY blank line ; the offset guard keys on
+  `_line_is_blank`, not `$blank_as_sep` ] -- padding from cursor
+  passes [ arrows AND paging AND clicks ] used to grow multi-row
+  blocks of space rows that even collected a separator, esp. at
+  trailing `\n\n`. pinned by wrapblankpad and wraptailpad.
+- **the actual root : free-cursor PROPAGATION [ user-diagnosed :
+  'horizontal offsets' ]** : `move_cursor` used to
+  `editor_pad_line_to_col` EVERY line entered [ the column was
+  preserved across vertical moves ], so scrolling down from a long
+  line inflated each crossed line into a multi-row block ; and
+  arrow-down on the LAST line used to APPEND `' ' x $cur_col` lines
+  outright [ 'scrolling outside of the file grows a final section'
+  ]. fix : vertical moves CLAMP `$cur_col` to the entered line's
+  length [ the horizontal free-cursor stays on the line being
+  edited : the main loop still grows the CURRENT line past EOL and
+  `editor_leave_line` strips on leave ] , and the `extend` branch
+  is gone -- down-at-EOF is a no-op. the pgdn + click paths now
+  `editor_leave_line` too [ they jumped `$cur_line` directly,
+  stranding pads ]. the render filter above stays as paste-hygiene.
+  pinned by wrapblankpad [ cursor clamps to 7;4, never 7;60 ] and
+  wraptailpad [ exactly 5 movement pairs for End + 4 downs at EOF,
+  no phantom rows, buffer never grew ].
+- **separator width contract** [ user caught the rule 2 cols short ] :
+  the dotted rule spans ':' + '┄' x inner_width + ':' = inner + 2
+  display columns -- the SAME span as the content rows [ they carry
+  ':  ' .. '  :' around the segment ] and the frame border. an
+  earlier 'x ( inner - 2 )' left the rule's trailing ':' two columns
+  left of the frame edge ; both constructors [ the draw-loop
+  `$sep_row` and the `$as_sep` return in
+  `detail_editor_draw_wrapped` ] must stay in step.
 - **box-drawing glyphs as future cursor language** [ user idea, parked ]
   : the ┊/┄ family could mark alternate cursors for different editing
   or parallelism modes -- keep them in mind when mode support lands.
@@ -191,16 +239,27 @@ behaviour back in the todo details editor.
   RESERVED for selection modes.
 - **SGR dim bleeds** [ caught by the user's eye ] : `\e[2m` persists
   until reset -- a dim-wrapped glyph must re-emit the content colors
-  after it, else the whole rest of the row renders dimmed [ the wrap
-  continuation rows looked 'highlighted' against the bright head row ].
-  scoped dim to the glyph : `dim . T . ┊ . R . T . B` ; pinned by the
-  wrapdarken case asserting the bright text right after the glyph.
-- suites after : 26/26 unit, 48/48 editor pty [ +7 : wrap render, wrap
-  cursor row, wrap pgdn, wrap separator + opt-out, split CSI-u, scroll
-  clamp ], 13/13 ned.
+  after it, else the whole rest of the row renders dimmed. scoped dim
+  to the glyph for NON-cursor rows : `dim . T . ┊ . R . T . B` ;
+  cursor rows dim wholesale with the reset placed BEFORE the trailing
+  border so the frame keeps full strength.
+- **an accidental effect can become the user's selection language**
+  [ 2026-10-26 ] : the wrap-continuation dim-bleed read to the user
+  as "the line selection darkening", and they asked for the head row
+  to join it -- scoping the "bug" then read as "the selection is gone
+  fully". the border-color highlight alone never registered as
+  'selection' to their eye. lesson : before removing an unintended
+  rendering effect, check whether the user has adopted it as a
+  feature ; the deliberate form of it now lives in
+  `detail_editor_draw_wrapped` [ cursor block dimmed as one unit ].
+  wrapdarken pins : dim head + dim continuation incl. glyph, scoped
+  reset before the border, other line bright.
+- suites after : 26/26 unit, 52/52 editor pty [ wrapdarken pins the
+  one-unit block dimming, wrapblank + wrapblankpad + wraptailpad the
+  blank-as-separator and its padding stability ], 13/13 ned.
 
-#,,,.,..,,.,,,,.,,,..,.,,,...,,,,,..,,.,.,..,,..,,...,.,.,,,.,,..,,,.,,.,,,.,,
-#B5APGNUZ6FVR54AI2JG5NERCAKFMOB5WOERFDLSDMHE7P7HQEMOBB3YG2TNFECEOVL2OBK3DNPP3A
-#\\\|VDUQYAZ3ZB6LC24B5X6CE7XBFU6W3SFW5344PW75NYGZ3N5DLWX \ / AMOS7 \ YOURUM ::
-#\[7]4EJLJ2AAS2VIGGFXNB6ZKBKAAMNAS7WOULTX3MISBXRDAVUY5UAQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,.,,,.,,,,,,..,,.,,,.,,,,.,..,,..,,...,..,,.,.,..,,,.,,..,,,,,,
+#RQSVZH62L4SPYLVT3HLNTVOMF6AHBG25EHXIIT6CZZFX63DMXULT4XPNLOKDS2MWLO7NVLWTCRGBI
+#\\\|DOCEHESI7RRELE2THFFJEDTBXR27QHZY2RTUWLF5QNWTCG5SG3E \ / AMOS7 \ YOURUM ::
+#\[7]X3USO433U5YZ4IPELN56QKO3FX533RJ6XSYU6HVLS67A3IOPYWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

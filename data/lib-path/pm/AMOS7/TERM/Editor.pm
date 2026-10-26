@@ -40,9 +40,12 @@ package AMOS7::TERM::Editor;    #############################################
 ## 'wrap => 1' turns long lines into full-width visual rows instead of
 ## scrolling them sideways [ the historical default ] : the wrap is view-only
 ## -- the buffer keeps the raw lines and the saved file is never re-flowed.
-## continuation rows carry a dim wrap marker under the ':', and a wrapped
-## block is followed by a dim dotted separator row
-## [ 'wrap_sep => 0' opts out ] -- a visual blank line between blocks. the
+## the cursor's whole block [ head row + continuation rows ] darkens as one
+## selected unit ; other lines keep their bright text, continuation rows carry
+## a dim wrap marker under the ':', and a wrapped block is followed by a dim
+## dotted separator row  [ 'wrap_sep => 0' opts out ] -- a visual blank line
+## between blocks, except before a blank line of the buffer itself : that
+## empty line renders AS the separator, one gap row instead of two. the
 ## separator counts as a visual row, so scrolling, the hardware cursor, clicks
 ## and the page keys all account for it.
 ##
@@ -603,13 +606,38 @@ sub detail_editor_wrap_rows {
 sub detail_editor_draw_wrapped {
     ## soft-wrap rendering : one logical line becomes as many rows as its
     ## segments need [ never scrolled sideways ]. the buffer keeps the raw
-    ## line -- wrapping is view-only, the file is untouched. continuation rows
-    ## carry a dim wrap marker where the head row has its left pad
-    my ( $text, $width, $is_cursor, $cur_col, $C ) = @_;
+    ## line -- wrapping is view-only, the file is untouched. the cursor's
+    ## whole block [ head row + continuation rows ] darkens as ONE selected
+    ## unit ; other lines keep their bright text, continuation rows carry a
+    ## dim wrap marker where the head row has its left pad. a BLANK line [
+    ## whitespace-only counts -- the free cursor pads a visited blank with
+    ## spaces, and the rule must stay stable while it does ] that directly
+    ## follows a wrapped block renders AS the dotted separator row [ $as_sep ]
+    ## : the author's own blank line is the paragraph break, so it doubles as
+    ## the block separator instead of stacking an empty row behind a drawn
+    ## one. ANY other whitespace-only line is just one plain empty row -- it
+    ## never renders its padding as a wrapped run of space rows [ the free
+    ## cursor pads a visited blank so the column survives, and the layout must
+    ## not grow when it does ]
+    my ( $text, $width, $is_cursor, $cur_col, $C, $as_sep ) = @_;
     $text = _display_sanitize( $text // '' );
 
     my $vw = $width - 4;    ## room for ':  ' ... '  :' ##
     $vw = 4 if $vw < 4;
+
+    if ( $as_sep and _line_is_blank($text) ) {
+        my $b = $is_cursor ? $C->{T} . $C->{B} : $C->{0};
+        ## full inner run -- the content rows carry ':  ' ... '  :' around the
+        ## segment, so the dotted rule spans the same width
+        return
+              $b . ':'
+            . $C->{dim}
+            . $C->{0}
+            . ( '┄' x $width )
+            . $b . ':'
+            . $C->{R};
+    }
+    $text = '' if _line_is_blank($text);
 
     my $border_color = $is_cursor ? $C->{T} . $C->{B} : $C->{0};
     my @segments     = ( $text =~ m|(.{1,$vw})|g );
@@ -619,28 +647,48 @@ sub detail_editor_draw_wrapped {
     for my $i ( 0 .. $#segments ) {
         my $seg = $segments[$i];
         $seg .= ' ' x ( $vw - length($seg) ) if length($seg) < $vw;
-        my $left = $C->{T} . $C->{B} . '  ';
-        if ( $i > 0 ) {
-            ## the dotted vertical under the ':' reads as "this row continues
-            ## the line" [ the same ┊ family todo list draws in its right-hand
-            ## state column, colored like the content it decorates -- dim TRUE
-            ## blue here ; the editor speaks utf-8 end to end, so box glyphs
-            ## are safe wherever it runs ]. dim is SCOPED to the glyph : it
-            ## resets before the segment text, else the whole continuation row
-            ## would render dimmed against the bright head row
-            $left
-                = $C->{dim}
-                . $C->{T} . '┊'
+        if ($is_cursor) {
+            ## the selected block darkens together : dim wraps the whole row
+            ## content [ segment AND ┊ ], so the folded line still reads as
+            ## one selected unit ; the ':' borders keep the bold TRUE-blue
+            ## selection chrome and the ┊ inherits the row dim -- colored like
+            ## the content it decorates, which is what is being dimmed.  the
+            ## dim resets BEFORE the trailing border so the frame keeps full
+            ## strength [ the bleed lesson ]
+            my $pad = $i > 0 ? $C->{T} . '┊' . ' ' : $C->{T} . '  ';
+            push @rows,
+                  $border_color . ':'
+                . $C->{dim}
+                . $pad
+                . $seg . '  '
                 . $C->{R}
-                . $C->{T}
-                . $C->{B} . ' ';
+                . $border_color . ':'
+                . $C->{R};
+        } else {
+            my $left = $C->{T} . $C->{B} . '  ';
+            if ( $i > 0 ) {
+                ## the dotted vertical under the ':' reads as "this row
+                ## continues the line" [ the same ┊ family todo list draws in
+                ## its right-hand state column, colored like the content it
+                ## decorates -- dim TRUE blue here ; the editor speaks utf-8
+                ## end to end, so box glyphs are safe wherever it runs ]. dim
+                ## is SCOPED to the glyph : it resets before the segment text,
+                ## else the whole continuation row would render dimmed against
+                ## the bright head row
+                $left
+                    = $C->{dim}
+                    . $C->{T} . '┊'
+                    . $C->{R}
+                    . $C->{T}
+                    . $C->{B} . ' ';
+            }
+            push @rows,
+                  $border_color . ':'
+                . $left
+                . $seg . '  '
+                . $border_color . ':'
+                . $C->{R};
         }
-        push @rows,
-              $border_color . ':'
-            . $left
-            . $seg . '  '
-            . $border_color . ':'
-            . $C->{R};
     }
     return @rows;
 }
@@ -875,7 +923,12 @@ sub edit_text {
     ## blank line between wrapped blocks. view-only like the wrap itself ; the
     ## separator counts as a visual row, so the scroll, the hardware cursor,
     ## clicks and the page keys all account for it. none after the buffer's
-    ## last line : the bottom padding is gap enough
+    ## last line [ the bottom padding is gap enough ] and none before a blank
+    ## line [ whitespace-only counts ] -- a blank right after a wrapped block
+    ## renders AS the separator row : the author's own paragraph break doubles
+    ## as the block separator, one gap row instead of two. the whitespace
+    ## tolerance matters : the free cursor pads a blank it visits with spaces
+    ## so the column survives, and the layout must not flip when it does
     my $wrap_sep = $wrap ? ( $params->{'wrap_sep'} // 1 ) ? 1 : 0 : 0;
 
     ## wheel acceleration state [ per edit_text call, like the kill stack ] :
@@ -887,24 +940,21 @@ sub edit_text {
     ## cursor moves shared by the arrow keys and the wheel : the second arg ##
     ## lets arrows grow a line at EOF while the wheel just stops            ##
     my $move_cursor = sub {
-        my ( $dir, $extend ) = @ARG;
-        if ( $dir < 0 and $cur_line > 0 ) {
+        my $dir = shift;
+        ## vertical moves CLAMP the column to the entered line -- the
+        ## horizontal offset never propagates : padding every crossed line
+        ## with spaces used to grow phantom wrapped blocks
+        ## [ 'variable boxes' ] while scrolling, and arrow-down on the last
+        ## line used to append whitespace lines outright. the free cursor
+        ## stays for horizontal moves on the line being edited [ the main loop
+        ## still grows the CURRENT line past its end, and editor_leave_line
+        ## strips that pad when the cursor leaves ]
+        if (   ( $dir < 0 and $cur_line > 0 )
+            or ( $dir > 0 and $cur_line < $#lines ) ) {
             $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-            $cur_line--;
-            $dirty = 1
-                if editor_pad_line_to_col( \@lines, $cur_line, $cur_col );
-        } elsif ( $dir > 0 ) {
-            if ( $cur_line < $#lines ) {
-                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-                $cur_line++;
-                $dirty = 1
-                    if editor_pad_line_to_col( \@lines, $cur_line, $cur_col );
-            } elsif ($extend) {
-                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
-                push @lines, ' ' x $cur_col;
-                $cur_line++;
-                $dirty = 1;
-            }
+            $cur_line += $dir < 0 ? -1 : 1;
+            my $len = length $lines[$cur_line];
+            $cur_col = $len if $cur_col > $len;
         }
         return;
     };
@@ -924,7 +974,7 @@ sub edit_text {
             $pages = $wheel_burst - ( WHEEL_MIN_TICKS - 1 );
             $pages = WHEEL_MAX_PAGES if $pages > WHEEL_MAX_PAGES;
         }
-        $move_cursor->( $wheel_dir, 0 ) for 1 .. $pages * $content_rows;
+        $move_cursor->($wheel_dir) for 1 .. $pages * $content_rows;
         ( $wheel_burst, $wheel_dir, $wheel_accum, $flush_at )
             = ( 0, 0, 0, 0 );
         return;
@@ -1059,14 +1109,43 @@ sub edit_text {
             ## block rows : a line's wrapped rows plus its separator row.
             ## EVERY visual-row walk
             ## [ scroll fixup, drawing, the hardware cursor, clicks, paging ]
-            ## runs through this, so a separator never shifts a position
+            ## runs through this, so a separator never shifts a position.
+            ## blank-as-separator predicate : a BLANK line
+            ## [ whitespace-only counts ] right after a wrapped block renders
+            ## as the ONE dotted separator row [ see the draw below ] instead
+            ## of its own wrapped run. the free cursor pads a blank it visits
+            ## with spaces [ the column survives the move ], so the test must
+            ## stay true for whitespace-only -- the layout does not flip when
+            ## arrows pass through, and the padded blank never grows into a
+            ## wrapped run of space rows
+            my $blank_as_sep = sub {
+                my $idx = shift;
+                return
+                       $wrap_sep
+                    && $idx > 0
+                    && _line_is_blank( $lines[$idx] )
+                    && detail_editor_wrap_rows( $lines[ $idx - 1 ], $vw_wrap )
+                    > 1 ? 1 : 0;
+            };
+            ## block rows : a line's rendered rows [ its own wrapped rows, or
+            ## the ONE separator row for a blank-as-sep ], plus its separator
+            ## row. EVERY visual-row walk
+            ## [ scroll fixup, drawing, the hardware cursor, clicks, paging ]
+            ## runs through this, so a separator never shifts a position.  a
+            ## whitespace-only line is ALWAYS one rendered row
+            ## [ never a wrapped run of padding spaces ] ; no separator row
+            ## after a block whose NEXT line is blank
+            ## [ that blank renders AS the separator ], one gap row instead of
+            ## two
             my $block_rows = sub {
-                my $idx  = shift;
+                my $idx = shift;
+                return 1 if _line_is_blank( $lines[$idx] );
                 my $rows = detail_editor_wrap_rows( $lines[$idx], $vw_wrap );
                 return $rows
                     if not $wrap_sep
                     or $rows <= 1
-                    or $idx >= $#lines;
+                    or $idx >= $#lines
+                    or _line_is_blank( $lines[ $idx + 1 ] );
                 return $rows + 1;
             };
             if ( not $wrap ) {
@@ -1078,7 +1157,12 @@ sub edit_text {
             } else {
                 my $cursor_vrow = 0;
                 $cursor_vrow += $block_rows->($_) for 0 .. $cur_line - 1;
-                $cursor_vrow += int( $cur_col / $vw_wrap );
+                ## a whitespace-only cursor line renders ONE row whatever the
+                ## column [ its padding never becomes a wrapped run ] : the
+                ## in-block offset is always 0
+                my $seg_off = int( $cur_col / $vw_wrap );
+                $seg_off = 0 if _line_is_blank( $lines[$cur_line] );
+                $cursor_vrow += $seg_off;
                 if ( $cursor_vrow < $first_visible ) {
                     $first_visible = $cursor_vrow;
                 } elsif ( $cursor_vrow >= $first_visible + $content_rows ) {
@@ -1207,25 +1291,30 @@ sub edit_text {
                     }
                     ## a wrapped block is followed by a dim dotted separator
                     ## row [ view-only -- never after the buffer's last line,
-                    ## the bottom padding is gap enough ]. purple like the
-                    ## frame : the separator is structure between blocks, the
-                    ## dim blue ┊ stays the content-continuation guide [
-                    ## todo's state column colors the same glyph family like
-                    ## its content ] ; green stays reserved for selection
-                    ## modes. the horizontal quadruple dash is ┊'s sibling
+                    ## the bottom padding is gap enough ; and never before a
+                    ## BLANK line [ whitespace-only counts ], that blank
+                    ## renders AS the separator ].  purple like the frame :
+                    ## the separator is structure between blocks, the dim blue
+                    ## ┊ stays the content-continuation guide [ todo's state
+                    ## column colors the same glyph family like its content ]
+                    ## ; green stays reserved for selection modes. the
+                    ## horizontal quadruple dash is ┊'s sibling
                     my $sep_row
                         = $C->{0} . ':'
                         . $C->{dim}
                         . $C->{0}
-                        . ( '┄' x ( $inner_width - 2 ) )
+                        . ( '┄' x $inner_width )
                         . $C->{0} . ':'
                         . $C->{R};
                     my $drawn = 0;
                     while ( $drawn < $content_rows and $li <= $#lines ) {
+                        ## a blank line right after a wrapped block renders as
+                        ## the separator row itself
+                        ## [ $block_rows counts it as that one row too ]
                         my @wrows
                             = detail_editor_draw_wrapped( $lines[$li],
                             $inner_width, ( $li == $cur_line ),
-                            $cur_col, $C );
+                            $cur_col, $C, $blank_as_sep->($li) );
                         for my $r ( 0 .. $#wrows ) {
                             next if $row + $r < $first_visible;
                             last if $drawn >= $content_rows;
@@ -1235,7 +1324,8 @@ sub edit_text {
                         $row += scalar @wrows;
                         if (    $wrap_sep
                             and @wrows > 1
-                            and $li < $#lines ) {
+                            and $li < $#lines
+                            and not _line_is_blank( $lines[ $li + 1 ] ) ) {
                             if (    $row >= $first_visible
                                 and $drawn < $content_rows ) {
                                 say $sep_row;
@@ -1365,8 +1455,17 @@ sub edit_text {
                     ## counts separator rows through $block_rows
                     my $cursor_vrow = 0;
                     $cursor_vrow += $block_rows->($_) for 0 .. $cur_line - 1;
-                    my $seg_start = int( $cur_col / $vw_wrap ) * $vw_wrap;
-                    $cursor_vrow += int( $cur_col / $vw_wrap );
+                    ## the in-block segment offset ; a whitespace-only cursor
+                    ## line renders ONE row whatever the column
+                    ## [ its padding never becomes a wrapped run ] : the
+                    ## offset is 0, the in-segment column still lands on the
+                    ## row
+                    my $seg_off   = int( $cur_col / $vw_wrap );
+                    my $seg_start = $seg_off * $vw_wrap;
+                    $cursor_vrow
+                        += _line_is_blank( $lines[$cur_line] )
+                        ? 0
+                        : $seg_off;
                     $cursor_row
                         = $header_rows
                         + ( $cursor_vrow - $first_visible )
@@ -1456,9 +1555,9 @@ sub edit_text {
 
             ## navigation [ free cursor : lines grow with spaces ] ##
             elsif ( $key eq "\e[A" ) {      ## up ##
-                $move_cursor->( -1, 1 );
+                $move_cursor->(-1);
             } elsif ( $key eq "\e[B" ) {    ## down ##
-                $move_cursor->( 1, 1 );
+                $move_cursor->(1);
             } elsif ( ref $key eq 'HASH'
                 and defined $key->{'wheel'} ) {    ## mouse wheel ##
                 ## one line per tick, on the spot -- the burst pays out pages
@@ -1477,7 +1576,7 @@ sub edit_text {
                 $wheel_burst++;
                 $wheel_at = $now;
                 $flush_at = $now + WHEEL_WINDOW;
-                $move_cursor->( $dir, 0 );
+                $move_cursor->($dir);
             } elsif ( ref $key eq 'HASH'
                 and defined $key->{'click'} ) {    ## left press ##
                 ## position the cursor : content row 1 is terminal row
@@ -1487,7 +1586,8 @@ sub edit_text {
                 ## line and the segment it carries
                 my ( $cx, $cy ) = $key->{'click'}->@*;
                 if ( $cy >= 5 ) {
-                    my $vrow = $first_visible + $cy - 5;
+                    my $vrow      = $first_visible + $cy - 5;
+                    my $prev_line = $cur_line;
                     if ( $vrow <= $first_visible + $content_rows - 1 ) {
                         my $col = $cx - 4;
                         $col = 0 if $col < 0;
@@ -1504,6 +1604,10 @@ sub edit_text {
                             $cur_line = $li;
                             $col      = ( $vrow - $row ) * $vw_wrap + $col;
                         }
+                        ## leaving the previous line strips its pad
+                        $dirty = 1
+                            if $prev_line != $cur_line
+                            and editor_leave_line( \@lines, $prev_line );
                         my $len = length $lines[$cur_line];
                         $cur_col = $col > $len ? $len : $col;
                     }
@@ -1515,11 +1619,16 @@ sub edit_text {
                 ## of visual rows : land on the line holding the target row
                 my $dir = $key eq "\e[5~" ? -1 : 1;
                 if ( not $wrap ) {
-                    $move_cursor->( $dir, 0 ) for 1 .. $content_rows;
+                    $move_cursor->($dir) for 1 .. $content_rows;
                 } else {
                     my $vrow = 0;
                     $vrow += $block_rows->($_) for 0 .. $cur_line - 1;
-                    $vrow += int( $cur_col / $vw_wrap );
+                    ## a whitespace-only cursor line renders ONE row whatever
+                    ## the column [ its padding never becomes a wrapped run ]
+                    ## : the in-block offset is always 0
+                    my $seg_off = int( $cur_col / $vw_wrap );
+                    $seg_off = 0 if _line_is_blank( $lines[$cur_line] );
+                    $vrow += $seg_off;
                     my $target = $vrow + $dir * $content_rows;
                     $target = 0 if $target < 0;
                     my ( $row, $li ) = ( 0, 0 );
@@ -1528,6 +1637,8 @@ sub edit_text {
                         $row += $block_rows->($li);
                         $li++;
                     }
+                    ## leaving the current line strips its free-cursor pad
+                    $dirty    = 1 if editor_leave_line( \@lines, $cur_line );
                     $cur_line = $li;
                     my $col = ( $target - $row ) * $vw_wrap;
                     my $len = length $lines[$cur_line];
@@ -1816,8 +1927,8 @@ sub edit_text {
 
 1;
 
-#,,.,,.,,,,..,,.,,,,,,...,.,.,..,,..,,...,..,,..,,...,...,.,.,.,,,.,,,.,.,.,,,
-#KETLJZUQN6GICNAJDXO7M7IWKX2S4FUY4M76LKZG7LUQLTNA5V2OQFEAKKV52KSNDN4624OL2UBWI
-#\\\|MBCBBGJFHA7ZCLE4NP7ZZRRURHZGKMRBJ6DQWMUMIZLPBNTRAUO \ / AMOS7 \ YOURUM ::
-#\[7]WEW5INH654LDATBPHMWXFRNNNJWDZWOSVANTM4J3WFIUHP3BPWBI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,.,,,..,,..,...,..,,...,,,.,..,,..,,...,...,.,.,...,...,,,,,..,,
+#MTIHVWCB2HRNDBAPCHKM4BDCAHWQPAJODCLKAA3N474JETQSLTBSUJRZ4KQEKEJ66PU5CWJSNDKSG
+#\\\|ASMBSJVZUSOYFOKWBKDEY5OBJY7QHO4FW2B7YZ3EZ2IUAU5ASHD \ / AMOS7 \ YOURUM ::
+#\[7]A2O677W42I75G23SP2UQSWSIK3C3WQPSYYJMGLSGIL2B5YIAJYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
