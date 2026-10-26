@@ -176,10 +176,21 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   evaluates the callback and the job waits in 'depending'. Condition syntax switched '.' -> ':'
   (`unix_group:httpsd`) — dots are p7's routing separator, colon the cfg qualifier; old dot spelling
   now inert (hard switch). New 'condition dependencies' section in test-v7-zenki-start-gate.pl;
-  live-verified on delta (ondemand start included), user countersigned.
+  live-verified on delta (ondemand start included), user countersigned. Same-day follow-up:
+  `v7-zenki.parser.dependency_chain` joined 'zenka_name' for every chained object and warned on
+  condition objects — LANDED f8f14184f, renders them as `type:name`.
 
-#,,..,,.,,,,.,.,,,,,,,,,,,,,,,...,.,,,.,.,...,..,,...,...,,,,,.,.,.,,,,,.,,.,,
-#JWPZZG4KPHXNOYQLJXVVFFVUFO7CK2GLP7EYXAQDEZNUINESWLAWFPAPG6F3R7AX7P7WWUEQLS4XC
-#\\\|ZBBVR2OCUNMVLVA4WYT5MNZEWND5XPHCT4B3OMLKCSQHTWQS74N \ / AMOS7 \ YOURUM ::
-#\[7]WF3H4LTPMDDM2YSKNDTXTJS6B3FAASTMCSBK22ELMRBQUSOIZYAA 7  DATA SIGNATURE ::
+- [dist-upgrade streaming condenser, 2026-10-26](project-2026-10-26-dist-upgrade-streaming-condenser.md) —
+  LANDED 3dd8b8de8: the dist-upgrade zenka ran ~1.8s no-ops exiting 0 (backtick buffering +
+  help-fallback shape + sudo env_reset stripping DEBIAN_FRONTEND -> whiptail blue-screen blocks).
+  Extracted the condenser into AMOS7::deps::aptlog [src/debian.log.condense now a thin wrapper];
+  dist_upgr streams through it line-by-line [reader splits the tty `\r` progress protocol], env
+  vars travel inline (`sudo DEBIAN_FRONTEND=...`), {ok, failed_step} with exit 1 on failure ;
+  p7-deps styles the whole stream with TERM::Frame and uses the house `\b\b` SIGINT clean-exit.
+  Live-verified on delta: ~8s real run through v7, framed, unattended.
+
+#,,,.,,.,,..,,...,,,.,,,,,..,,,..,..,,.,.,,,,,..,,...,...,.,.,...,,..,...,,.,,
+#4BCQ65M43VDWECWLPZYSBWBG4PYVOFIMLCTIXWN4LIVWJMF4XRM5FBFNSHGOVJAC66BK5DHKZL6P6
+#\\\|NJKZNIXHLXMQ535AR3BQD4HBEH2G4WO2OZHIANFEGMTWUH225RQ \ / AMOS7 \ YOURUM ::
+#\[7]LG5MPMPYM5ZS6ZCYDX45QPGYF7KKH7TFHZDFNLRIPX7ZO2KNNUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
