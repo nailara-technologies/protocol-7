@@ -3,6 +3,55 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
+## AMOS7::TERM::Editor hardening — landed (2026-10-26)
+
+Three commits from a user-reported scratchpad bug hunt, each a separate
+layer: `61df8d2a8` (frame + signals), `80f4972c3` (kill stack / paste),
+`391ec237f` (secrets hygiene).
+
+- **scroll-free full-height frame** : the exit `\n` printed on the bottom row
+  scrolled the whole frame up one line -- the "empty line under the bottom
+  border". exit is now `CUP($rows;1)` without a newline ; both callers clear
+  the screen right after (todo always did ; p7-vault `note_editor` now does
+  too [ keep in step ]). content_rows = `$rows - 8` again, full height.
+- **control characters render inert** : payload bytes [ paste stowaways --
+  the user's was a TAB ] hit the terminal raw and broke frame geometry mid-scroll.
+  `_display_sanitize` shows `^I ^K ^[` / `<XX>` for C0+DEL / C1 ; the buffer
+  keeps the bytes. `bin/dev/scan-vault-control-chars.pl` finds them in any
+  note version [ the deleted-char lives on in history versions ].
+- **p7-vault signal regression** : `cursor_shell` had replaced the
+  echo-restoring SIGINT with bare `exit 130` -> `tty_restore()` [ readline
+  deprep + ReadMode 0 ] again on INT \ TERM \ HUP. END only fixed the cursor.
+- **kill stack + clipboard** : ctrl-l pushes [ LIFO, per-session, no empties ],
+  ctrl-v pops lines above the cursor [ undo + reorder ], clipboard fallback
+  read-only [ wl-paste / xsel / xclip / powershell-wsl ] ; ctrl-y clears both
+  registers editor-locally [ desktop selection never wiped ] ; the hint only
+  advertises with known-pasteable content and re-arms on a fresh paste.
+- **secrets hygiene** : `_mlock` via OPTIONAL IO::AIO [ keep in step with
+  `AMOS7::Vault::_mlock` : wide strings + memlock-quota fail silently ;
+  encoding a copy is pointless -- mlock pins pages, the live buffer stays
+  unlocked ] ; `_wipe` [ random x2 + truncate ] on every register / snapshot /
+  paste-scratch / buffer copy at discard + all exits incl. abort ; the
+  returned text is pinned for the caller. parked : preallocated mlocked
+  stack blocks.
+- **tests** : new `bin/test-scripts/test-vault-tty-restore.pl` [ 13 real-pty
+  checks : editor exit bytes, screen clear, echo/icanon after signals ] ;
+  `test-term-editor-pty.pl` at 19 cases [ controls, LIFO, hint gating,
+  fake-xsel clipboard, clear + re-arm ] ; pre-fix code fails each new case.
+
+**feedback lessons** :
+- "one line shorter than the terminal" was the TERMINAL EMULATOR adding an
+  unusable row in fullscreen [ btop showed it too ; resize/font change fixed
+  ALL apps ]. before chasing geometry in code : open `less`/`vim` and compare,
+  or `tput cup $LINES 0` + paint the last row.
+- pty tests must WAIT FOR THE EDITOR'S FRAME before ctrl-c : sent during
+  child compile [ cooked tty, ISIG ] the default SIGINT kills perl -- a
+  pre-existing race, wider under load. same class : clipboard probes belong
+  AFTER the editor's signal handlers + raw mode.
+- perl traps hit : `my` inside an `and`/`or` arg chain does not scope past
+  the first list operator ; `IO::AIO::aio_mlock` DIES on wide strings ;
+  `AMOS7::Vault::vault_open` returns `(handle, err)` -- list context.
+
 ## model batch harness — first full cycle complete (2026-09-21)
 
 The checksum-native, zero-git batch harness (`model_batch.*` +
@@ -351,8 +400,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,,,,.,.,.,.,...,..,,,,.,.,.,.,.,...,,,,,...,..,,...,...,,..,...,.,,,,,.,.,.,
-#7ED5N3O3JDRLGWFNRM3W2G56OU2FCRXNTSTQVYH425CKMLDMBUQTQPOQUA2BLVXLULAFNPU3YF4DQ
-#\\\|OHMODTSPU2XZC35K44DL3XH3GPNSCKQER32VNPOMG3SYF4J3ELP \ / AMOS7 \ YOURUM ::
-#\[7]CXFZH2D4B3LRZDSOXHEAYXLB4CKY4ZFYF3G7S32IBXJDUW25D2BA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,.,,,,.,,..,.,,,,,.,.,.,,,.,,.,,..,,...,...,,,.,,,.,,.,,,,,,.,,,
+#TXPRJUXPVBWJWJ2DUCHCOFSJHWYTDFIVTWZOTQEJSBSCNNE3MJFDEJ6CYVCHNQ63FZ3XX5JRCDR5K
+#\\\|7TLTLGLO3KJXTBTNJCST5JIUDFW7FZJLACX33LT2CSTPVRLIRCL \ / AMOS7 \ YOURUM ::
+#\[7]OYNBZQLYVZOA3EG22RZSCDWDCZGI2CZVO2MMSD64MSMU2TZCEMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
