@@ -90,8 +90,22 @@ one quote anywhere . regression harness : bin/test-scripts
 /test-format-code-module-sugar.pl [ convention : one test-format-code-*
 .pl per pass , `-n` for deterministic exact-line comparison ] .
 
-#,,,,,,,,,...,,,.,...,,..,,..,...,,..,,,,,...,..,,...,...,,.,,,.,,.,.,,,,,...,
-#C7HDMUOGWBBS7KL6EFSCXKIL75VGENYJEDMYRAD2NKIA4EATCCAOGELUJDBWONWG3DV7S2OMOCPBE
-#\\\|T54MVTLXJ6H422LUMZ2I253JGCQSPFTVF4RDHAVEVATGH57IRKU \ / AMOS7 \ YOURUM ::
-#\[7]QD4FB3OR5WU7RVGIJ6OWLZ5WO575OP6WWBPTKOJIMH6FHFBHRACA 7  DATA SIGNATURE ::
+## perl 5.42 traps -- constants in scalar context return COUNT (2026-10-26)
+
+verified on perl 5.42.3 : `use constant R => qw| a b c d |` used in
+SCALAR context yields `4` [ the element count ] , not the last element.
+any multi-word `qw| phrase |` constant silently becomes a number in
+scalar context -- v1 bin/ned printed `::: not saved : 4 :::` because
+the reason "constant" WAS the count. single-quoted strings for anything
+scalar-context. sibling traps from the same session :
+`Encode::decode/encode` CONSUME their source string unless
+`Encode::LEAVE_SRC` is in CHECK [ valid input too -- buffer goes empty
+after a successful decode ] ; `AMOS7::CHKSUM::ELF::elf_chksum` aliases
+arg 1 and inline_elf flips its utf8 flag -- pass `q{} . $bytes` copies.
+full session record : [topic-bin-ned-file-editor.md].
+
+#,,,.,.,,,,,,,.,.,...,,.,,.,.,...,,.,,,,,,...,..,,...,...,..,,...,..,,.,,,..,,
+#EOHNTOVHN2JUD4WMHCRUI7NTUIX7ZBLBFDNAJFF2NUI4YJFVG7XDG2QA6J3BDB32CPUTYDRRPHGUG
+#\\\|33WEH5B36DILONHDNPXLSCJRCQJOBVII5JHLNATXMXLWKAURQ36 \ / AMOS7 \ YOURUM ::
+#\[7]UT6DARVQVAO3S6E4QFB7WY4C62ECI7SI6FIEAMQ5Y57VTE3OKSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

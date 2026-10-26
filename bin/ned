@@ -1,0 +1,481 @@
+#!/usr/bin/perl
+use v5.32.0;
+use strict;
+use warnings;
+use English;
+use utf8;
+
+###       ###
+##   ned   ##
+###       ###
+
+##[ PROJECT ROOT ]############################################################
+
+BEGIN {
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir    = File::Spec->updir;
+    my $root_path = abs_path(
+        File::Spec->rel2abs( File::Spec->catdir( $RealBin, $up_dir ) ) );
+    $ENV{'P7_ROOT'} //= $root_path if defined $root_path and -d $root_path;
+
+    ## make the project-local AMOS7 pm tree loadable for standalone use ##
+    my $lib_pm = defined $root_path ? "$root_path/data/lib-path/pm" : undef;
+    unshift @INC, $lib_pm if defined $lib_pm and -d $lib_pm;
+}
+
+use AMOS7::TERM;    ## %p7_colors ##
+use AMOS7::TERM::Editor qw| edit_text |;
+use AMOS7::CHKSUM::ELF  qw| elf_chksum |;
+
+use Encode      qw| encode decode FB_CROAK |;
+use Fcntl       qw| O_RDONLY O_WRONLY O_CREAT O_EXCL |;
+use Time::HiRes ();
+
+##[ terminal width ]##########################################################
+
+my $TTY = -t STDIN && -t STDOUT;
+
+binmode( STDOUT, ':utf8' );
+
+my $TERM_WIDTH = 72;
+if ($TTY) {
+    my $cols = `tput cols 2>/dev/null`;
+    chomp $cols if defined $cols;
+    $TERM_WIDTH = int($cols)
+        if defined $cols
+        and $cols =~ m{^\d+$}
+        and $cols >= 40;
+}
+
+##[ color scheme ]############################################################
+
+## empty defaults off-tty [ keep in step with the editor's %default_colors ]
+my %C = (
+    T   => '',
+    0   => '',
+    3   => '',
+    B   => '',
+    R   => '',
+    dim => '',
+);
+if ($TTY) {
+    %C = (
+        T   => $AMOS7::TERM::p7_colors{'p7_fg_0004'},    ## TRUE blue (titles)
+        0   => $AMOS7::TERM::p7_colors{'p7_fg_0000'},    ## purple
+        3   => $AMOS7::TERM::p7_colors{'p7_fg_0003'},    ## phosphor green
+        B   => "\e[1m",                                  ## bold
+        R   => "\e[0m",                                  ## reset
+        dim => "\e[2m",                                  ## dim
+    );
+}
+
+##[ constants ]###############################################################
+
+## hard ceiling for the in-memory buffer [ full frame redraw per keystroke ]
+use constant SIZE_CAP => 10 * 1024 * 1024;
+
+## the change-guard checksum pair : AMOS-13 truth modes
+## [ keep in step with bin/harmony + bin/amos-chksum ]
+use constant ELF_MODES => ( 4, 7 );
+
+## on_save failure reasons are width-capped by the editor status line [ 40 ]
+## single-quoted strings : a multi-value constant returns its element COUNT in
+## scalar context on perl 5.42 -- never qw| a phrase | here
+use constant REASON_CHANGED  => 'file changed on disk';
+use constant REASON_REMOVED  => 'file removed';
+use constant REASON_APPEARED => 'file appeared on disk';
+
+##[ options / help ]##########################################################
+
+my $option_list = <<'EOL';
+
+    .: ned command line options :.
+
+    ned <path> .............  edit file [ atomic, secure by default ]
+
+    secure defaults :
+      - atomic save : temp file + rename [ never a partial target ]
+      - new files are mode 0600 [ existing modes are preserved ]
+      - no backup \ swap files are ever written
+      - change guard : the file's size, mtime and two elf checksums
+        [ modes 4 + 7 ] are recorded at load and re-verified
+        before every write -- an externally changed file is never
+        overwritten [ the edit is preserved in a rescue file ]
+      - strict utf-8 : malformed bytes refuse to load
+      - the file's trailing-newline run is restored on save [
+        the editor buffer itself normalizes trailing whitespace ]
+      - editor buffers and registers are wiped on every exit
+
+    files above 10 MiB are refused [ full-buffer editor ]
+
+    -options / help ........  show this option list
+
+    keys : arrows move - enter splits - ctrl-x saves + quits -
+    ctrl-c aborts - ctrl-s saves - ctrl-w deletes a word -
+    ctrl-l line to kill stack - ctrl-v paste back - ctrl-y
+    clears registers - the mouse wheel scrolls
+
+EOL
+
+sub list_options {
+    chomp( my $s = $option_list );
+    my @lines = split "\n", $s;
+    for my $l (@lines) {
+        $l =~ s|(\s?\W+\s?)|$C{0}$1$C{T}|g;
+        print "$C{T}$l$C{R}\n";
+    }
+    print "\n";
+}
+
+##[ small utilities ]#########################################################
+
+sub center_ellipse {
+    ## standalone port of bin/todo's copy of bin/Protocol-7's
+    ## p7_parser__ellipse_center -- cuts chars from the center, splices in
+    ## '.,.', keeping the total length at $len
+    my ( $str, $len ) = @_;
+    return $str if length($str) <= $len;
+
+    my $start_pos = int( $len / 2 ) - 1;
+    my $chars_cut = length($str) - $len + 3;
+    substr( $str, $start_pos, $chars_cut, '.,.' );
+    return $str;
+}
+
+sub _wipe_bytes {
+    ## best-effort overwrite of a byte string before it drops out of scope
+    ## [ keep in step with the editor's hygiene : random, then truncate ]
+    my $ref = shift;
+    return if not defined $ref or not defined $$ref;
+    $$ref = join '', map { chr int rand 256 } 1 .. length $$ref;
+    $$ref = '';
+    return;
+}
+
+sub status_pill {
+    my $text = shift;
+    say $C{T} . ' .:[ ' . $text . ' ]:. ' . $C{R};
+    return;
+}
+
+sub parent_dir {
+    ## the directory a path lives in : bare names live in the cwd, '/name'
+    ## lives at the root
+    my $path = shift;
+    return $path =~ m{^(.*)/[^/]*$} ? ( length $1 ? $1 : '/' ) : '.';
+}
+
+sub refuse {
+    ## one clean styled refusal line + the error exit code : die is not used
+    ## because a failed file test leaves $! set and die would adopt its value
+    ## as the exit status
+    say STDERR $C{T} . "  :: $_[0] ::" . $C{R};
+    exit 2;
+}
+
+##[ file state ]##############################################################
+
+## the load-time picture of the file : size, mtime, mode and the elf checksum
+## pair over the RAW BYTES [ never the decoded characters -- a decode \ encode
+## round trip is not guaranteed to reproduce bytes ] plus the decoded text
+## itself while the editor runs
+
+sub file_state_load {
+    my $path = shift;
+
+    my @stat = Time::HiRes::stat($path);
+    refuse( "$path above " . ( SIZE_CAP / 1024 / 1024 ) . " MiB -- refusing" )
+        if $stat[7] > SIZE_CAP;
+
+    sysopen my $fh, $path, O_RDONLY
+        or refuse("cannot read $path : $OS_ERROR");
+    my $raw = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+    close $fh;
+    $raw = '' if not defined $raw;
+
+    ## checksums run over the raw bytes FIRST : encode \ decode consume their
+    ## source string unless Encode::LEAVE_SRC is set
+    ## [ the elf pair must see the untouched bytes ]
+    my $state = {
+        exists => 1,
+        size   => $stat[7],
+        mtime  => $stat[9],
+        mode   => $stat[2] & 07777,
+    };
+    $state->{"elf$_"} = elf_chksum( q{} . $raw, 0, $_ ) for ELF_MODES;
+
+    my $text
+        = eval { decode( 'UTF-8', $raw, FB_CROAK | Encode::LEAVE_SRC ); };
+    refuse("$path is not valid utf-8 -- refusing to load")
+        if $EVAL_ERROR or not defined $text;
+    $state->{'text'} = $text;
+
+    ## the editor normalizes trailing empty lines away : the file's own
+    ## trailing-newline run is captured here and restored on every save
+    ## [ a new file gets one final newline ]
+    $state->{'trail_nl'} = $text =~ m|(\n+)\z| ? $1 : '';
+
+    return $state;
+}
+
+sub file_fingerprint_match {
+    ## re-read + re-hash : the authoritative comparison, immune to a forged
+    ## mtime [ only reached when size + mtime already matched ]
+    my ( $path, $state ) = @_;
+
+    sysopen my $fh, $path, O_RDONLY or return 0;
+    my $raw = do { local $INPUT_RECORD_SEPARATOR; <$fh> };
+    close $fh;
+    $raw = '' if not defined $raw;
+    return 0  if length($raw) != $state->{'size'};
+    for my $mode (ELF_MODES) {
+        return 0
+            if elf_chksum( q{} . $raw, 0, $mode ) ne $state->{"elf$mode"};
+    }
+    return 1;
+}
+
+sub file_changed_reason {
+    ## undef when the file is exactly as loaded, else a short reason
+    my ( $path, $state ) = @_;
+
+    if ( not $state->{'exists'} ) {
+        return -e $path ? REASON_APPEARED : undef;
+    }
+
+    return REASON_REMOVED if not -e $path;
+
+    my @stat = Time::HiRes::stat($path);
+    return REASON_CHANGED
+        if $stat[9] != $state->{'mtime'}
+        or $stat[7] != $state->{'size'};
+
+    return file_fingerprint_match( $path, $state )
+        ? undef
+        : REASON_CHANGED;
+}
+
+##[ atomic save ]#############################################################
+
+sub write_atomic {
+    ## guard first : an externally changed file is never overwritten
+    my ( $path, $text, $state ) = @ARG;
+    my $reason = file_changed_reason( $path, $state );
+    return ( 0, $reason ) if defined $reason;
+
+    ## restore the file's trailing-newline run
+    ## [ stripped by the editor's normalize ] so the bytes on disk round-trip
+    $text = $text . $state->{'trail_nl'};
+
+    my $raw = eval { encode( 'UTF-8', $text, FB_CROAK | Encode::LEAVE_SRC ) };
+    return ( 0, "encode failed : $EVAL_ERROR" ) if not defined $raw;
+
+    my $dir = parent_dir($path);
+
+    ## temp file in the target dir : O_EXCL + 0600, same filesystem, so the
+    ## closing rename is a true atomic replace
+    my $tmp = sprintf '%s/.ned-%d-%d.tmp', $dir, $PID, int rand 1e9;
+    sysopen my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600
+        or return ( 0, "temp file : $OS_ERROR" );
+
+    my $off    = 0;
+    my $len    = length $raw;
+    my $failed = '';
+    while ( $off < $len ) {
+        my $n = syswrite $fh, $raw, $len - $off, $off;
+        if ( not defined $n ) { $failed = "write failed : $OS_ERROR"; last }
+        $off += $n;
+    }
+    $fh->sync;
+    _wipe_bytes( \$raw );
+
+    if ( length $failed ) {
+        close $fh;
+        unlink $tmp;
+        return ( 0, $failed );
+    }
+
+    ## an existing file keeps its mode ; a new one stays 0600 ##
+    chmod $state->{'mode'}, $tmp if $state->{'exists'};
+
+    if ( not rename $tmp, $path ) {
+        my $err = $OS_ERROR;
+        close $fh;
+        unlink $tmp;
+        return ( 0, "rename failed : $err" );
+    }
+
+    ## best-effort directory sync so the rename itself survives a crash ##
+    if ( sysopen my $dh, $dir, O_RDONLY ) { $dh->sync; close $dh }
+
+    ## the new load-time picture, re-taken from the file itself : the
+    ## checksums always run over raw bytes, never the buffer
+    my @stat = Time::HiRes::stat($path);
+    if ( sysopen my $rfh, $path, O_RDONLY ) {
+        my $now_raw = do { local $INPUT_RECORD_SEPARATOR; <$rfh> };
+        close $rfh;
+        $now_raw          = '' if not defined $now_raw;
+        $state->{'size'}  = length $now_raw;
+        $state->{"elf$_"} = elf_chksum( q{} . $now_raw, 0, $_ ) for ELF_MODES;
+        _wipe_bytes( \$now_raw );
+    }
+    $state->{'exists'} = 1;
+    $state->{'mtime'}  = $stat[9];
+
+    return ( 1, '' );
+}
+
+##[ rescue file ]#############################################################
+
+sub write_rescue {
+    ## the change guard refused the save : the edit must not vanish with the
+    ## editor -- park it next to the target, 0600, and tell the user
+    my ( $path, $text ) = @ARG;
+    my $rescue = sprintf '%s.ned-rescue-%d-%d', $path, $PID, time;
+
+    my $raw = encode( 'UTF-8', $text, Encode::LEAVE_SRC );
+    sysopen my $fh, $rescue, O_WRONLY | O_CREAT | O_EXCL, 0600
+        or return undef;
+    syswrite $fh, $raw;
+    $fh->flush;
+    $fh->sync;
+    close $fh;
+    _wipe_bytes( \$raw );
+    return $rescue;
+}
+
+##[ preflight ]###############################################################
+
+sub preflight {
+    ## everything detectable before the editor opens, detected before it opens
+    ## : a refusal here costs nothing, the same refusal inside the frame costs
+    ## a full editing session
+    my $path = shift;
+
+    ## links resolve once, up front : the atomic rename must target the real
+    ## file, never replace the link with a regular file
+    if ( -l $path ) {
+        my $resolved = abs_path($path);
+        refuse("dangling link : $path") if not defined $resolved;
+        $path = $resolved;
+    }
+
+    if ( -e $path ) {
+        refuse("not a regular file : $path") if not -f $path;
+        refuse("not readable : $path")       if not -r $path;
+        refuse("not writable : $path")       if not -w $path;
+        my $dir = parent_dir($path);
+        refuse("directory not writable : $dir") if not -w $dir;
+    } else {
+        my $dir = parent_dir($path);
+        refuse("no such directory : $dir") if not -d $dir;
+        refuse("directory not writable : $dir")
+            if not -w $dir or not -x $dir;
+    }
+
+    return $path;
+}
+
+##[ main ]####################################################################
+
+my ( $arg, @extra ) = @ARGV;
+
+if ( @extra or not defined $arg ) {
+    if   ($TTY) { list_options() }
+    else        { print $option_list }
+    exit 2;
+}
+
+if ( $arg eq qw| -options | or $arg eq qw| help | or $arg eq qw| -h | ) {
+    if   ($TTY) { list_options() }
+    else        { print $option_list }
+    exit 0;
+}
+
+refuse('ned : interactive editor requires a tty') if not $TTY;
+
+my $path = preflight($arg);
+
+## not seen before : a fresh file starts from an empty buffer and a single
+## final newline [ the posix text-file convention ]
+my $state = {
+    exists   => 0,
+    size     => 0,
+    mtime    => 0,
+    mode     => 0600,
+    text     => '',
+    trail_nl => "\n",
+};
+$state = file_state_load($path) if -e $path;
+
+my $orig_text = $state->{'text'};
+
+my $title = $arg;
+$title = center_ellipse( $title, $TERM_WIDTH - 24 )
+    if length($title) > $TERM_WIDTH - 24;
+
+my $lines   = 1 + ( $orig_text =~ tr/\n// );
+my $summary = sprintf 'mode %04o · %d lines · %d B',
+    $state->{'mode'}, $lines, $state->{'size'};
+
+my $saved_via_ctrl_s = 0;    ## set by the editor's ctrl-s [ on_save ] ##
+
+my $edited = edit_text(
+    {   text    => $orig_text,
+        title   => $title,
+        summary => $summary,
+        label   => 'ned',
+        colors  => \%C,
+        on_save => sub {
+            my $text = shift;
+            my ( $ok, $reason ) = write_atomic( $path, $text, $state );
+            die "$reason\n" if not $ok;    ## status line shows it ##
+            $saved_via_ctrl_s = 1;
+            return 1;
+        },
+    }
+);
+
+## keep in step with both editor callers : the frame stays on screen after ##
+## a normal exit -- clear it before the feedback lines                     ##
+print "\e[H\e[2J" if defined $edited and $TTY;
+
+if ( not defined $edited ) {
+    say $C{T}
+        . '  ::: aborted ::: nothing written'
+        . ( $saved_via_ctrl_s ? ' [ last ctrl-s save kept ]' : '' )
+        . $C{R};
+    exit 1;
+}
+
+## compare against what the save would write : the buffer plus the restored
+## trailing-newline run [ an empty buffer keeps an empty comparison so a fresh
+## file exits without creating anything ]
+my $save_text = $edited . ( length $edited ? $state->{'trail_nl'} : '' );
+
+if ( $save_text eq $orig_text and not $saved_via_ctrl_s ) {
+    status_pill('unchanged');
+    exit 0;
+}
+
+my ( $saved, $reason ) = write_atomic( $path, $edited, $state );
+
+if ($saved) {
+    status_pill('saved');
+    exit 0;
+}
+
+## the guard refused : park the edit where the user can recover it ##
+my $rescue = write_rescue( $path, $save_text );
+say $C{T} . "  ::: not saved : $reason :::" . $C{R};
+say $C{T} . "  ::: edit preserved in $rescue :::" . $C{R}
+    if defined $rescue;
+exit 2;
+
+#,,..,..,,,,,,..,,,,.,,.,,,,.,,,,,..,,,,,,,,.,..,,...,...,...,,.,,..,,.,.,,,.,
+#EOKHCBXY2LBJV7TRGORW6D3OLSVMBYXS64VSXPTJUJ2VTW2C5EUNNAMHKFJYFUX2DPKBR3SOYSTAY
+#\\\|D7QSEHGMTJMVPZ4KYTLHTJ6O3O7XZMENNIJNWCJK2XBGOOWUXDC \ / AMOS7 \ YOURUM ::
+#\[7]PWIJKWW3DK4PWXXXMXXVBVW4LYC6SFY3AC6THJ3LVXLTFZLS2OCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
