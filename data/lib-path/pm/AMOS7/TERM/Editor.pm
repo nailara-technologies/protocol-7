@@ -451,6 +451,7 @@ sub read_editor_event {
 sub detail_editor_draw_line {
     my ( $text, $width, $is_cursor, $cur_col, $C ) = @_;
     $text //= '';
+    $text = _display_sanitize($text);
 
     my $vw = $width - 4;    ## room for ':  ' ... '  :' ##
     $vw = 4 if $vw < 4;
@@ -481,6 +482,18 @@ sub detail_editor_draw_line {
         . $display . '  '
         . $border_color . ':'
         . $C->{R};
+}
+
+sub _display_sanitize {
+    ## control characters in the payload [ a paste, an import ] would reach ##
+    ## the terminal as its own commands and break the frame -- render them  ##
+    ## visible and inert : ^K for VT, ^[ for ESC, ^? for DEL, <XX> for the  ##
+    ## C1 range. the buffer itself keeps the bytes                          ##
+    my $text = shift // '';
+    $text =~ s{\x7f}{^?}g;
+    $text =~ s{([\x00-\x09\x0b-\x1f])}{ '^' . chr( ord($1) + 64 ) }ge;
+    $text =~ s|([\x{80}-\x{9f}])| sprintf '<%02X>', ord($1) |eg;
+    return $text;
 }
 
 sub editor_leave_line {
@@ -536,10 +549,10 @@ sub edit_text {
     require_readkey();
 
     my $C       = _colors( $params->{'colors'} );
-    my $title   = $params->{'title'}   // '';
-    my $summary = $params->{'summary'} // '';
-    my $label   = $params->{'label'}   // 'details';
-    my $hint    = $params->{'hint'}    // '';
+    my $title   = _display_sanitize( $params->{'title'}   // '' );
+    my $summary = _display_sanitize( $params->{'summary'} // '' );
+    my $label   = $params->{'label'} // 'details';
+    my $hint    = $params->{'hint'}  // '';
     my $width   = $params->{'width'};
     my $on_save = $params->{'on_save'};
 
@@ -1095,17 +1108,19 @@ sub edit_text {
     my ( undef, $rows ) = Term::ReadKey::GetTerminalSize();
     $rows //= 24;
 
-    ## leave cursor on a fresh line below the frame, always visible, shape ##
-    ## reset                                                               ##
-    print "\e[$rows;1H\e[?25h\e[0 q\n\e[0 m";
+    ## the frame fills the terminal : park the cursor on the last row,     ##
+    ## shape reset -- no trailing newline, printing \n on the bottom row   ##
+    ## would scroll the whole frame up one line. callers are expected to   ##
+    ## clear \ scroll the screen right after [ both todo and p7-vault do ] ##
+    print "\e[$rows;1H\e[?25h\e[0 q\e[0 m";
 
     return $edit_result;
 }
 
 1;
 
-#,,.,,...,.,,,,,,,,,.,.,,,..,,,,,,,.,,..,,.,,,..,,...,..,,...,,..,,.,,.,,,.,,,
-#TMHF7Z5F4WERNVQEYLGMLAGTMCTG7KO5BAQWR7WDGZL3IFTJRLJBJ7JDUX45RPNE3XBJB4E6ODCZC
-#\\\|YIP2ULIISL76N3SBKUIXIRNDTASVRAQEIUAHCG52Z5JK6BKVRSQ \ / AMOS7 \ YOURUM ::
-#\[7]2EHW4TMUFVP34WIVTA4B42TIF3DSPF5SK4SCMJMWO77OBK247OCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,..,.,,,..,,.,,,,.,,,.,,,..,..,,...,...,...,.,.,,,,,...,,..,
+#3JAQYU27WSZ25FDEFI5SQ5OY4B27BGE4QHQW4C3EJGXFEJ5EMDGWPKB4G5F7UF2QHLXOOINMTCH3K
+#\\\|C6LHOLVUXLCPK3IN3UHWFCICOUW3UZGVORGMMKLL2VYMQ6C3AJR \ / AMOS7 \ YOURUM ::
+#\[7]GIVKJPYUOBH6FHHKXLL3V35NV7FMAOUN4OZDSIUWGUF62JJHOECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
