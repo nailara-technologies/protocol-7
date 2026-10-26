@@ -48,6 +48,12 @@ package AMOS7::TERM::Editor;    #############################################
 ## ctrl-y clears the registers -- the clipboard content stays unpasteable
 ## until it changes, the desktop selection itself is never touched.
 ##
+## secrets hygiene [ keep in step with AMOS7::Vault ] : note lines are mlocked
+## best-effort when IO::AIO is available [ optional -- a standalone copy
+## without it runs unlocked, past the memlock limit the rest does too ] and
+## every register \ scratch \ buffer copy is overwritten with random bytes
+## before it is dropped -- the registers never survive the editor.
+##
 ## a reader is a hashref with two closures :
 ##   read   => sub ( $timeout ) -> single byte or undef
 ##   ungetc => sub ( $bytes )   -> push bytes back [ read again in order ]
@@ -541,6 +547,44 @@ sub _clipboard_read {
     return undef;
 }
 
+## secrets hygiene [ keep in step with AMOS7::Vault ] : the note lines      ##
+## never reach swap -- their pages pinned best-effort when IO::AIO is there ##
+## [ optional : a standalone copy without it runs unlocked, and past the    ##
+## memlock limit the rest runs unlocked too ]. copies the editor is done    ##
+## with are overwritten before they are dropped                             ##
+
+sub _mlock {
+    my $sref = shift;
+    state $have_aio = eval { require IO::AIO; 1 };
+    return FALSE if not $have_aio or not length( ${$sref} // '' );
+    ## best effort : wide [ character ] strings make IO::AIO die, those stay
+    ## unlocked. no event loop here : flush waits for the request.  IO::AIO
+    ## takes a set $@ as a callback error and dies with it -- an earlier
+    ## failed eval must not surface here
+    my $locked = eval {
+        IO::AIO::aio_mlock( ${$sref}, 0, length ${$sref} );
+        local $EVAL_ERROR;
+        IO::AIO::flush();
+        1;
+    };
+    return $locked ? TRUE : FALSE;
+}
+
+## overwrite secrets in place twice with random bytes, then truncate
+## [ base.buffer.erase_secure ] -- the same length keeps the same buffer
+sub _wipe {
+    foreach my $sref (@ARG) {
+        next if not defined $sref or not ref $sref;
+        my $len = length( ${$sref} // '' );
+        next if not $len;
+        substr( ${$sref}, 0, $len,
+            pack q{C*}, map { int rand 256 } 1 .. $len )
+            for 1 .. 2;
+        ${$sref} = '';
+    }
+    return;
+}
+
 sub editor_leave_line {
     my ( $lines_ref, $line_idx ) = @_;
     return 0 if $line_idx < 0 or $line_idx > $#$lines_ref;
@@ -603,6 +647,7 @@ sub edit_text {
 
     my @lines = split m|\n|, $params->{'text'} // '', -1;
     @lines = ('') if !@lines;
+    _mlock( \$ARG ) foreach @lines;    ## the note never reaches swap ##
 
     my ( $cur_line, $cur_col ) = ( 0, 0 );
     my $first_visible = 0;
@@ -989,6 +1034,7 @@ sub edit_text {
                 if ( defined $on_save ) {
                     my $saved = eval { $on_save->($snapshot) };
                     my $err   = $@;
+                    _wipe( \$snapshot );
                     if ( $err or not $saved ) {
                         $last_status
                             = 'save failed : '
@@ -999,6 +1045,7 @@ sub edit_text {
                         $last_status = 'saved';
                     }
                 } else {
+                    _wipe( \$snapshot );
                     $last_status = 'no save target -- ctrl-x saves + quits';
                 }
             } elsif ( $key eq "\x18" ) {    ## Ctrl-X : save+quit ##
@@ -1088,7 +1135,10 @@ sub edit_text {
                 ## buries a real kill                                     ##
                 my $killed = $lines[$cur_line];
                 $killed =~ s| +$||;
-                push @kill_stack, $killed if length $killed;
+                if ( length $killed ) {
+                    _mlock( \$killed );
+                    push @kill_stack, $killed;
+                }
                 splice @lines, $cur_line, 1;
                 @lines    = ('')    if !@lines;
                 $cur_line = $#lines if $cur_line > $#lines;
@@ -1147,6 +1197,7 @@ sub edit_text {
                         and ( not defined $clip_cleared
                             or $clip ne $clip_cleared )
                     ) {
+                        _mlock( \$clip );
                         my @clip_lines = split m{\n},
                             editor_normalize_paste($clip), -1;
                         pop @clip_lines
@@ -1162,11 +1213,13 @@ sub edit_text {
                     } else {
                         $last_status = 'nothing to paste';
                     }
+                    _wipe( \$clip );
                 }
             }
 
             ## Ctrl-Y : clear the paste registers ##
             elsif ( $key eq "\x19" ) {
+                _wipe( map { \$ARG } @kill_stack );
                 @kill_stack   = ();
                 $clip_cleared = _clipboard_read() // '';
                 $last_status  = 'paste buffer cleared';
@@ -1177,6 +1230,8 @@ sub edit_text {
             elsif ( ref $key eq 'HASH' and defined $key->{'paste'} ) {
                 my $text  = editor_normalize_paste( $key->{'paste'} );
                 my @block = split m{\n}, $text, -1;
+                _wipe( \$text );    ## the normalized copy is done : the ##
+                ## block lines carry the content now ##
 
                 ## splice the block into the current line at the cursor ##
                 my $rest = substr( $lines[$cur_line], $cur_col );
@@ -1213,6 +1268,14 @@ sub edit_text {
 
     my $eval_error = $@;
 
+    ## secrets hygiene : the registers and the buffer copies never survive ##
+    ## the editor -- the returned text is a join-made copy, it lives on as ##
+    ## the caller's own [ pinned, so it stays swap-free as well ]          ##
+    _wipe( map { \$ARG } @kill_stack );
+    _wipe( \$clip_at_start, \$clip_cleared );
+    _wipe( map { \$ARG } @lines );
+    @kill_stack = ();
+
     Term::ReadKey::ReadMode(0);
     paste_disable();
     print "\e[0 q";    ## cursor shape back on every exit path ##
@@ -1240,13 +1303,14 @@ sub edit_text {
     ## clear \ scroll the screen right after [ both todo and p7-vault do ] ##
     print "\e[$rows;1H\e[?25h\e[0 q\e[0 m";
 
+    _mlock( \$edit_result ) if defined $edit_result;
     return $edit_result;
 }
 
 1;
 
-#,,,.,.,,,,.,,.,,,.,.,.,,,.,.,...,,.,,,,,,,,.,..,,...,...,,,.,,..,,..,,..,.,,,
-#QKOXSITCMXWOKZSIMB3ZQBP4FM3QL4XTDA4YA6FQE4B3OAPQHI5HKFGJY4IX7E366PCHBFIVX43GU
-#\\\|5OWU7QUUD5KHEJVX2CDKU4QURJFX4BXYX64PDC4BVFNIFQTMHPL \ / AMOS7 \ YOURUM ::
-#\[7]UKRZZ5VGG2UT7EITPICWMIZ7FZACN6QEY4DYRX4BGYP4G7N664AA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,,.,,,..,,,.,,,,,,..,,..,..,,..,,...,..,,.,.,,,,,..,,,.,,.,.,
+#MMWLNHA2VOSXUTXY64TPWG5646MGCKTQIUYQMNWVRLZPT7X7HFISCYJJADOJHGT4FTITLLNX3W7VA
+#\\\|WLBCJRYWFUOFXH33NXEX2DB7JSD7T5NJYGT4MAPEV2FKU54XEB3 \ / AMOS7 \ YOURUM ::
+#\[7]FGLTFOTCDU6PZQXFG5WDG7EBJMU7O5HB7AFZVU6JKZF6OYUA7UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
