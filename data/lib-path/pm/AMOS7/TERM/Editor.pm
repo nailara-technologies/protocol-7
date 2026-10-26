@@ -40,14 +40,19 @@ package AMOS7::TERM::Editor;    #############################################
 ## 'wrap => 1' turns long lines into full-width visual rows instead of
 ## scrolling them sideways [ the historical default ] : the wrap is view-only
 ## -- the buffer keeps the raw lines and the saved file is never re-flowed.
-## the cursor's whole block [ head row + continuation rows ] darkens as one
-## selected unit ; other lines keep their bright text, continuation rows carry
-## a dim wrap marker under the ':', and a wrapped block is followed by a dim
-## dotted separator row  [ 'wrap_sep => 0' opts out ] -- a visual blank line
-## between blocks, except before a blank line of the buffer itself : that
-## empty line renders AS the separator, one gap row instead of two. the
-## separator counts as a visual row, so scrolling, the hardware cursor, clicks
-## and the page keys all account for it.
+## the fold is WORD-AWARE by default
+## [ 'wrap_words => 0' for the historical fixed-width character fold ] : rows
+## break after eligible whitespace and the break is bracket-aware in the
+## bin/format-code sense -- a space touching a bracket counts the bracket into
+## the word, so bracketed groups move as one. the cursor's whole block
+## [ head row + continuation rows ] darkens as one selected unit ; other lines
+## keep their bright text, continuation rows carry a dim wrap marker under the
+## ':', and a wrapped block is followed by a dim dotted separator row
+## [ 'wrap_sep => 0' opts out ] -- a visual blank line between blocks, except
+## before a blank line of the buffer itself : that empty line renders AS the
+## separator, one gap row instead of two. the separator counts as a visual
+## row, so scrolling, the hardware cursor, clicks and the page keys all
+## account for it.
 ##
 ## an optional on_save callback makes ctrl-s [ alias ctrl-o ] a real save : it
 ## receives the current buffer, normalized exactly like the returned text. a
@@ -593,14 +598,64 @@ sub detail_editor_draw_line {
         . $C->{R};
 }
 
-sub detail_editor_wrap_rows {
-    ## visual rows one logical line occupies when soft-wrapped. the SANITIZED
-    ## form is what wraps [ control characters expand ], and an empty line
-    ## still takes one row
-    my ( $text, $vw ) = @ARG;
+sub detail_editor_wrap_segments {
+    ## the visual segments one logical line folds into
+    ## [ view-only -- the buffer keeps the raw line ]. WORD-AWARE
+    ## [ the wrap default ] breaks after the LAST ELIGIBLE whitespace inside
+    ## the window : words stay whole, rows go ragged right. eligibility
+    ## follows the bin/format-code rule -- a space TOUCHING a bracket counts
+    ## the bracket into the word, so '[ ' and ' ]' groups move as one instead
+    ## of orphaning a bracket at the row edge ; a space followed by a space is
+    ## also skipped [ runs break at their last space ]. no eligible space, or
+    ## a word longer than the window, still splits [ hard floor ]. FIXED-WIDTH
+    ## [ 'wrap_words => 0' ] packs characters full-width the historical way
+    my ( $text, $vw, $wordwise ) = @_;
     $text = _display_sanitize( $text // '' );
-    return 1 if length($text) <= $vw;
-    return int( ( length($text) + $vw - 1 ) / $vw );
+    return ('')                        if not length $text;
+    return ( $text =~ m|(.{1,$vw})|g ) if not $wordwise;
+    my @seg;
+    while ( length $text ) {
+        if ( length $text <= $vw ) {
+            push @seg, $text;
+            last;
+        }
+        ## the last ELIGIBLE whitespace in the window : search positions BELOW
+        ## vw -- a space sitting exactly AT the window edge would break AFTER
+        ## it into vw + 1 characters, one column over the frame, and the
+        ## terminal's own wrap then tears every row below
+        ## [ the 'scrolling glitch' ]. a space touching a bracket is not a
+        ## break opportunity
+        ## [ bin/format-code rule -- the brackets count into the word ], so
+        ## '[ ' and ' ]' groups move as one instead of orphaning a bracket at
+        ## the row edge ; a space followed by a space is skipped too
+        ## [ runs break at their last space ]
+        my ( $cut, $pos ) = ( -1, $vw - 1 );
+        while ( ( my $c = rindex( $text, ' ', $pos ) ) > 0 ) {
+            my $prev = substr( $text, $c - 1, 1 );
+            my $next = substr( $text, $c + 1, 1 );
+            if (    $prev !~ m![\[\{\(<]!
+                and $next !~ m![\]\}\)>]!
+                and $next ne ' ' ) {
+                $cut = $c;
+                last;
+            }
+            $pos = $c - 1;
+        }
+        if ( $cut <= 0 ) {    ## no eligible space : hard floor
+            push @seg, substr( $text, 0, $vw, '' );
+            next;
+        }
+        push @seg, substr( $text, 0, $cut + 1, '' );
+    }
+    return @seg;
+}
+
+sub detail_editor_wrap_rows {
+    ## visual rows one logical line occupies when soft-wrapped -- the segment
+    ## count. the SANITIZED form is what wraps [ control characters expand ],
+    ## and an empty line still takes one row
+    my ( $text, $vw, $wordwise ) = @_;
+    return scalar detail_editor_wrap_segments( $text, $vw, $wordwise );
 }
 
 sub detail_editor_draw_wrapped {
@@ -619,7 +674,7 @@ sub detail_editor_draw_wrapped {
     ## never renders its padding as a wrapped run of space rows [ the free
     ## cursor pads a visited blank so the column survives, and the layout must
     ## not grow when it does ]
-    my ( $text, $width, $is_cursor, $cur_col, $C, $as_sep ) = @_;
+    my ( $text, $width, $is_cursor, $cur_col, $C, $as_sep, $wordwise ) = @_;
     $text = _display_sanitize( $text // '' );
 
     my $vw = $width - 4;    ## room for ':  ' ... '  :' ##
@@ -640,7 +695,7 @@ sub detail_editor_draw_wrapped {
     $text = '' if _line_is_blank($text);
 
     my $border_color = $is_cursor ? $C->{T} . $C->{B} : $C->{0};
-    my @segments     = ( $text =~ m|(.{1,$vw})|g );
+    my @segments     = detail_editor_wrap_segments( $text, $vw, $wordwise );
     @segments = ('') if !@segments;
 
     my @rows;
@@ -877,9 +932,13 @@ sub edit_text {
     my $first_visible = 0;
     my $content_rows  = 1;     ## set by every redraw ; page keys read it ##
     my $drawn_sig     = '';    ## empty forces the first paint           ##
-    my $dirty         = 0;
-    my $aborted       = 0;
-    my $resized       = 0;
+    my $dirty = 0;    ## buffer revision : ++ at every mutation, 0 on save --
+    ## the redraw gate keys on it, so EVERY edit repaints [ a boolean misses
+    ## same-cursor mutations : delete never moved the cursor, so the second
+    ## press repeated the frame signature and skipped the redraw while the
+    ## buffer DID change ]
+    my $aborted = 0;
+    my $resized = 0;
 
     ## the kill stack : ctrl-l pushes the removed line, ctrl-v pops it back ##
     ## in above the cursor [ LIFO ]. per edit_text call on purpose : note   ##
@@ -931,6 +990,16 @@ sub edit_text {
     ## so the column survives, and the layout must not flip when it does
     my $wrap_sep = $wrap ? ( $params->{'wrap_sep'} // 1 ) ? 1 : 0 : 0;
 
+    ## 'wrap_words' [ default ON with wrap ] : the fold is WORD-AWARE -- rows
+    ## break after eligible whitespace, words stay whole, ragged right ;
+    ## eligibility follows the bin/format-code rule -- a space touching a
+    ## bracket counts the bracket into the word, so  '[ like this ]' and 'f(
+    ## a, b )' move as one instead of  orphaning a bracket at the row edge.
+    ## words longer than the window, or a window with no eligible space, still
+    ## split [ hard floor ]. 'wrap_words => 0' selects the historical
+    ## fixed-width character fold
+    my $wordwise = $wrap ? ( $params->{'wrap_words'} // 1 ) ? 1 : 0 : 0;
+
     ## wheel acceleration state [ per edit_text call, like the kill stack ] :
     ## burst counting with a flush deadline the input wait honors, so a paused
     ## wheel pays out its pages without a keypress
@@ -951,7 +1020,7 @@ sub edit_text {
         ## strips that pad when the cursor leaves ]
         if (   ( $dir < 0 and $cur_line > 0 )
             or ( $dir > 0 and $cur_line < $#lines ) ) {
-            $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+            $dirty++ if editor_leave_line( \@lines, $cur_line );
             $cur_line += $dir < 0 ? -1 : 1;
             my $len = length $lines[$cur_line];
             $cur_col = $len if $cur_col > $len;
@@ -1098,7 +1167,7 @@ sub edit_text {
             if ( $cur_col > length( $lines[$cur_line] ) ) {
                 $lines[$cur_line]
                     .= ' ' x ( $cur_col - length( $lines[$cur_line] ) );
-                $dirty = 1;
+                $dirty++;
             }
 
             ## vertical scroll : scroll mode tracks the first visible LINE,
@@ -1124,8 +1193,8 @@ sub edit_text {
                        $wrap_sep
                     && $idx > 0
                     && _line_is_blank( $lines[$idx] )
-                    && detail_editor_wrap_rows( $lines[ $idx - 1 ], $vw_wrap )
-                    > 1 ? 1 : 0;
+                    && detail_editor_wrap_rows( $lines[ $idx - 1 ],
+                    $vw_wrap, $wordwise ) > 1 ? 1 : 0;
             };
             ## block rows : a line's rendered rows [ its own wrapped rows, or
             ## the ONE separator row for a blank-as-sep ], plus its separator
@@ -1140,13 +1209,51 @@ sub edit_text {
             my $block_rows = sub {
                 my $idx = shift;
                 return 1 if _line_is_blank( $lines[$idx] );
-                my $rows = detail_editor_wrap_rows( $lines[$idx], $vw_wrap );
+                my $rows = detail_editor_wrap_rows( $lines[$idx], $vw_wrap,
+                    $wordwise );
                 return $rows
                     if not $wrap_sep
                     or $rows <= 1
                     or $idx >= $#lines
                     or _line_is_blank( $lines[ $idx + 1 ] );
                 return $rows + 1;
+            };
+            ## segment geometry for the cursor + click math : word-aware
+            ## segments are RAGGED, so the col -> segment map is a cumulative
+            ## walk, not division -- the segment index and start column
+            ## holding a buffer column, and the start column of a segment
+            ## index. a whitespace-only line is one empty segment
+            ## [ offset 0, start 0 ], matching the draw
+            my $seg_at_col = sub {
+                my ( $idx, $col ) = @_;
+                my @seg
+                    = detail_editor_wrap_segments( $lines[$idx], $vw_wrap,
+                    $wordwise );
+                my ( $which, $pos ) = ( 0, 0 );
+                for my $s (@seg) {
+                    last if $col < $pos + length $s;
+                    $pos += length $s;
+                    $which++;
+                }
+                if ( $which > $#seg ) {    ## at / past EOL : the cursor
+                    $which = $#seg;             ## sits ON the last segment,
+                    $pos -= length $seg[-1];    ## at its end
+                }
+                return ( $which, $pos );
+            };
+            my $seg_start_at = sub {
+                my ( $idx, $which ) = @_;
+                my ( $n,   $pos )   = ( 0, 0 );
+                for my $seg (
+                    detail_editor_wrap_segments(
+                        $lines[$idx], $vw_wrap, $wordwise
+                    )
+                ) {
+                    last if $n >= $which;
+                    $pos += length $seg;
+                    $n++;
+                }
+                return $pos;
             };
             if ( not $wrap ) {
                 if ( $cur_line < $first_visible ) {
@@ -1157,11 +1264,10 @@ sub edit_text {
             } else {
                 my $cursor_vrow = 0;
                 $cursor_vrow += $block_rows->($_) for 0 .. $cur_line - 1;
-                ## a whitespace-only cursor line renders ONE row whatever the
-                ## column [ its padding never becomes a wrapped run ] : the
-                ## in-block offset is always 0
-                my $seg_off = int( $cur_col / $vw_wrap );
-                $seg_off = 0 if _line_is_blank( $lines[$cur_line] );
+                ## which segment holds the cursor [ ragged segments : a
+                ## cumulative walk, not division ; a blank line is one empty
+                ## segment -> offset 0 ]
+                my ($seg_off) = $seg_at_col->( $cur_line, $cur_col );
                 $cursor_vrow += $seg_off;
                 if ( $cursor_vrow < $first_visible ) {
                     $first_visible = $cursor_vrow;
@@ -1314,7 +1420,7 @@ sub edit_text {
                         my @wrows
                             = detail_editor_draw_wrapped( $lines[$li],
                             $inner_width, ( $li == $cur_line ),
-                            $cur_col, $C, $blank_as_sep->($li) );
+                            $cur_col, $C, $blank_as_sep->($li), $wordwise );
                         for my $r ( 0 .. $#wrows ) {
                             next if $row + $r < $first_visible;
                             last if $drawn >= $content_rows;
@@ -1455,17 +1561,12 @@ sub edit_text {
                     ## counts separator rows through $block_rows
                     my $cursor_vrow = 0;
                     $cursor_vrow += $block_rows->($_) for 0 .. $cur_line - 1;
-                    ## the in-block segment offset ; a whitespace-only cursor
-                    ## line renders ONE row whatever the column
-                    ## [ its padding never becomes a wrapped run ] : the
-                    ## offset is 0, the in-segment column still lands on the
-                    ## row
-                    my $seg_off   = int( $cur_col / $vw_wrap );
-                    my $seg_start = $seg_off * $vw_wrap;
-                    $cursor_vrow
-                        += _line_is_blank( $lines[$cur_line] )
-                        ? 0
-                        : $seg_off;
+                    ## the in-block segment offset + its start column [ ragged
+                    ## segments : a cumulative walk, not division ; a blank
+                    ## line is one empty segment ]
+                    my ( $seg_off, $seg_start )
+                        = $seg_at_col->( $cur_line, $cur_col );
+                    $cursor_vrow += $seg_off;
                     $cursor_row
                         = $header_rows
                         + ( $cursor_vrow - $first_visible )
@@ -1602,10 +1703,13 @@ sub edit_text {
                                 $li++;
                             }
                             $cur_line = $li;
-                            $col      = ( $vrow - $row ) * $vw_wrap + $col;
+                            ## the clicked segment's start column + the x
+                            ## offset [ ragged : cumulative walk ]
+                            $col
+                                = $seg_start_at->( $li, $vrow - $row ) + $col;
                         }
                         ## leaving the previous line strips its pad
-                        $dirty = 1
+                        $dirty++
                             if $prev_line != $cur_line
                             and editor_leave_line( \@lines, $prev_line );
                         my $len = length $lines[$cur_line];
@@ -1623,11 +1727,9 @@ sub edit_text {
                 } else {
                     my $vrow = 0;
                     $vrow += $block_rows->($_) for 0 .. $cur_line - 1;
-                    ## a whitespace-only cursor line renders ONE row whatever
-                    ## the column [ its padding never becomes a wrapped run ]
-                    ## : the in-block offset is always 0
-                    my $seg_off = int( $cur_col / $vw_wrap );
-                    $seg_off = 0 if _line_is_blank( $lines[$cur_line] );
+                    ## which segment holds the cursor [ cumulative walk ; a
+                    ## blank line is one empty segment -> offset 0 ]
+                    my ($seg_off) = $seg_at_col->( $cur_line, $cur_col );
                     $vrow += $seg_off;
                     my $target = $vrow + $dir * $content_rows;
                     $target = 0 if $target < 0;
@@ -1640,7 +1742,9 @@ sub edit_text {
                     ## leaving the current line strips its free-cursor pad
                     $dirty    = 1 if editor_leave_line( \@lines, $cur_line );
                     $cur_line = $li;
-                    my $col = ( $target - $row ) * $vw_wrap;
+                    ## the landing segment's start column
+                    ## [ ragged : cumulative walk, not segment x vw ]
+                    my $col = $seg_start_at->( $li, $target - $row );
                     my $len = length $lines[$cur_line];
                     $cur_col = $col > $len ? $len : $col;
                 }
@@ -1649,13 +1753,13 @@ sub edit_text {
                 if ( $cur_col > length( $lines[$cur_line] ) ) {
                     $lines[$cur_line]
                         .= ' ' x ( $cur_col - length( $lines[$cur_line] ) );
-                    $dirty = 1;
+                    $dirty++;
                 }
             } elsif ( $key eq "\e[D" ) {    ## left ##
                 if ( $cur_col > 0 ) {
                     $cur_col--;
                 } elsif ( $cur_line > 0 ) {
-                    $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+                    $dirty++ if editor_leave_line( \@lines, $cur_line );
                     $cur_line--;
                     $cur_col = length( $lines[$cur_line] );
                 }
@@ -1669,7 +1773,7 @@ sub edit_text {
             elsif ( $key eq "\n" ) {                          ## enter ##
                 my $rest = substr( $lines[$cur_line], $cur_col );
                 $lines[$cur_line] = substr( $lines[$cur_line], 0, $cur_col );
-                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+                $dirty++ if editor_leave_line( \@lines, $cur_line );
                 splice @lines, $cur_line + 1, 0, $rest;
                 $cur_line++;
                 $cur_col = 0;
@@ -1678,23 +1782,23 @@ sub edit_text {
                 if ( $cur_col > 0 ) {
                     substr( $lines[$cur_line], $cur_col - 1, 1, '' );
                     $cur_col--;
-                    $dirty = 1;
+                    $dirty++;
                 } elsif ( $cur_line > 0 ) {
                     $dirty   = 1 if editor_leave_line( \@lines, $cur_line );
                     $cur_col = length( $lines[ $cur_line - 1 ] );
                     $lines[ $cur_line - 1 ] .= $lines[$cur_line];
                     splice @lines, $cur_line, 1;
                     $cur_line--;
-                    $dirty = 1;
+                    $dirty++;
                 }
             } elsif ( $key eq "\e[3~" ) {    ## delete ##
                 if ( $cur_col < length( $lines[$cur_line] ) ) {
                     substr( $lines[$cur_line], $cur_col, 1, '' );
-                    $dirty = 1;
+                    $dirty++;
                 } elsif ( $cur_line < $#lines ) {
                     $lines[$cur_line] .= $lines[ $cur_line + 1 ];
                     splice @lines, $cur_line + 1, 1;
-                    $dirty = 1;
+                    $dirty++;
                 }
             } elsif ( $key eq "\x0c"
                 or $key eq "\x1c"
@@ -1775,7 +1879,7 @@ sub edit_text {
                 if (@kill_stack) {
                     splice @lines, $cur_line, 0, pop @kill_stack;
                     $cur_line++;    ## stay on the text the cursor held ##
-                    $dirty = 1;
+                    $dirty++;
                 } else {
                     my $clip = _clipboard_read();
                     ## a cleared clipboard stays cleared until its content ##
@@ -1823,7 +1927,7 @@ sub edit_text {
                         $fifo_from     = undef;
                         $fifo_last_idx = undef;
                     }
-                    $dirty = 1;
+                    $dirty++;
                 } else {
                     $last_status = 'nothing to restore';
                 }
@@ -1868,7 +1972,7 @@ sub edit_text {
                 and $key ne "\e" ) {
                 substr( $lines[$cur_line], $cur_col, 0, $key );
                 $cur_col++;
-                $dirty = 1;
+                $dirty++;
             }
         }
 
@@ -1927,8 +2031,8 @@ sub edit_text {
 
 1;
 
-#,,..,,..,,,.,,.,,,..,,..,...,..,,...,,,.,..,,..,,...,...,.,.,...,...,,,,,..,,
-#MTIHVWCB2HRNDBAPCHKM4BDCAHWQPAJODCLKAA3N474JETQSLTBSUJRZ4KQEKEJ66PU5CWJSNDKSG
-#\\\|ASMBSJVZUSOYFOKWBKDEY5OBJY7QHO4FW2B7YZ3EZ2IUAU5ASHD \ / AMOS7 \ YOURUM ::
-#\[7]A2O677W42I75G23SP2UQSWSIK3C3WQPSYYJMGLSGIL2B5YIAJYCA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,.,,,,,.,,,.,,.,,,,,,,..,,,,,..,,...,...,...,,,.,,,.,,,,,.,,,
+#XNKSFZ5KEDJOSFK5NDKIUVSDFMU5I26OYGRLWEGUYMXMDPMICP4KM6Q5BDLACTR72JYMUPJJUUFL6
+#\\\|ABQ7W3J445GZX5BRBP7LIQY2OSRUJAEMD6Z42NEKN4LIZCULWZA \ / AMOS7 \ YOURUM ::
+#\[7]QV66OL2ZES4SNVJ6BWBNXOMF63THWSY7L54G4FEJ2BVI4TMDFCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
