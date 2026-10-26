@@ -3,6 +3,26 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
+## editor wrap mode + scroll/csi-u fixes — handed over for sign (2026-10-26)
+
+two user-reported regressions + the wrap request, all in
+`AMOS7::TERM::Editor`: (1) NEW `wrap => 1` param — view-only soft wrap,
+dim '\' continuation marker, `bin/todo` details editor now uses it
+[ned opt-in later; wrap is essential for message paragraphs too] ;
+(2) scroll-mode `substr outside of string` — every row is drawn with
+the cursor's column, shorter long lines started past their end, tail
+window now clamped ; (3) CSI-u collection hardened — in-flight
+`\e[digits;` gets a 1 s deadline, a lagging byte no longer TYPES into
+the text [ candidate vector for the reported ctrl-, / ctrl+.
+regression, which did NOT reproduce — all byte forms pass end-to-end
+through real bin/ned; pending the user's in-editor byte capture via
+`printf '\e[>4;1m'; cat -v` ]. debugging caught a 28 MB padding flood
+[say-while without incrementing the loop variant — pgdn tests passed
+because big buffers never reached the padding path]. suites green :
+26/26 unit + 46/46 editor pty [ +5 wrap / clamp / split-csi cases ] +
+13/13 ned. details in
+[topic-bin-ned-file-editor.md](topic-bin-ned-file-editor.md).
+
 ## bin/ned — secure-by-default native file editor — landed (2026-10-26)
 
 generic file-oriented editor combining the todo details + p7-vault
@@ -431,8 +451,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,.,,...,,,.,.,,,.,,,.,.,,,,,...,,,.,,.,,,,,,..,,...,...,..,,,,,,...,,,,,,.,,
-#YK6TMFZY2AIMGFQIKG4ZOOIS26SUNIY6IF5K2R345ZZ47OJDCXHULAXPXKV3CWONLJLCHMZEIWYI4
-#\\\|4SFKTUVXM3SQQPGLFUH6X5BBXR42ZAGB7E4DUO2PJHO65FPCBRQ \ / AMOS7 \ YOURUM ::
-#\[7]BWKYOY2SW227ZESPH5LH4G26NU6AQX2H2IWFQPRBIZKMUTLA6KDA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,..,,.,,,,,.,,,.,,..,.,.,,,.,..,,...,..,,...,.,.,,,,,,.,,,.,,
+#4QNAW3CSF6XWY3PURHPNEEZFWAHS4H66D3GSCEVVM26LM5FZI2NK55L6UTXANBXZWR4IGJFNUZJVU
+#\\\|7PVGXBZAUPY5RJGPZ4WEKFPYQKM6B4VDEQF2RCA6JBCU6RK6EV5 \ / AMOS7 \ YOURUM ::
+#\[7]A7G6HOW7GFFADZIM5PNZCEUJSMIAMCHF5VJTK37FBNZ5DHV2ECBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

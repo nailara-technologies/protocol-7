@@ -31,11 +31,18 @@ package AMOS7::TERM::Editor;    #############################################
 ##
 ## api :  edit_text( { text => $initial, title => $label, summary => $line,
 ## label => 'details', hint => $extra_keys, width => $cols,  colors => \%C,
-## on_save => sub ( $text ) { ... } } )  returns the edited text, or undef
-## when aborted.  editor_normalize_paste( $text )   -> $text with \r\n / \r ->
-## \n editor_deinterlace( \@lines, $cursor_line ) -> [ \@lines, $changed ]
-## read_editor_event( $reader, \$aborted ) -> $key | { paste => $text }
-## editor_make_reader() -> reader hashref bound to STDIN
+## wrap => 1, on_save => sub ( $text ) { ... } } )  returns the edited text,
+## or undef when aborted.  editor_normalize_paste( $text )   -> $text with
+## \r\n / \r -> \n editor_deinterlace( \@lines, $cursor_line ) ->
+## [ \@lines, $changed ]  read_editor_event( $reader, \$aborted ) -> $key | {
+## paste => $text } editor_make_reader() -> reader hashref bound to STDIN
+##
+## 'wrap => 1' turns long lines into full-width visual rows instead of
+## scrolling them sideways [ the historical default ] : the wrap is view-only
+## -- the buffer keeps the raw lines and the saved file is never re-flowed.
+## continuation rows carry a dim wrap marker under the ':'.  scrolling, the
+## hardware cursor, clicks and the page keys all map visual rows back to the
+## raw buffer position.
 ##
 ## an optional on_save callback makes ctrl-s [ alias ctrl-o ] a real save : it
 ## receives the current buffer, normalized exactly like the returned text. a
@@ -499,6 +506,13 @@ sub read_editor_event {
         }
 
         last if $b =~ m{[A-Za-z~]};
+
+        ## an in-flight CSI parameter sequence
+        ## [ ctrl-, \ ctrl+. as CSI-u, modified arrows .. ] may arrive
+        ## byte-wise over a loaded line : a short cut here returns the prefix
+        ## as an inert key and the lagging tail then TYPES into the text. once
+        ## the prefix is unambiguous, keep collecting far longer
+        $deadline = time() + 1 if $seq =~ m{^\x1b\[[0-9;]+$};
     }
 
     ## mouse reports [ wheel tracking ] : SGR \e[<btn;x;yM or legacy X10 \e[M
@@ -547,6 +561,12 @@ sub detail_editor_draw_line {
         $display = substr( $text, 0, $vw - 1 ) . '<';
     } else {
         my $start = $cur_col - $vw + 3;
+        ## every visible row receives the CURSOR's column : a shorter row
+        ## [ still longer than the window ] would start past its own end
+        ## [ substr outside of string ] -- clamp to the tail window
+        my $max_start = length($text) - $vw + 2;
+        $start   = $max_start if $start > $max_start;
+        $start   = 0          if $start < 0;
         $display = '<' . substr( $text, $start, $vw - 2 );
         if ( $start + $vw - 2 < length($text) ) {
             substr( $display, -1, 1, '>' );
@@ -566,6 +586,50 @@ sub detail_editor_draw_line {
         . $display . '  '
         . $border_color . ':'
         . $C->{R};
+}
+
+sub detail_editor_wrap_rows {
+    ## visual rows one logical line occupies when soft-wrapped. the SANITIZED
+    ## form is what wraps [ control characters expand ], and an empty line
+    ## still takes one row
+    my ( $text, $vw ) = @ARG;
+    $text = _display_sanitize( $text // '' );
+    return 1 if length($text) <= $vw;
+    return int( ( length($text) + $vw - 1 ) / $vw );
+}
+
+sub detail_editor_draw_wrapped {
+    ## soft-wrap rendering : one logical line becomes as many rows as its
+    ## segments need [ never scrolled sideways ]. the buffer keeps the raw
+    ## line -- wrapping is view-only, the file is untouched. continuation rows
+    ## carry a dim wrap marker where the head row has its left pad
+    my ( $text, $width, $is_cursor, $cur_col, $C ) = @_;
+    $text = _display_sanitize( $text // '' );
+
+    my $vw = $width - 4;    ## room for ':  ' ... '  :' ##
+    $vw = 4 if $vw < 4;
+
+    my $border_color = $is_cursor ? $C->{T} . $C->{B} : $C->{0};
+    my @segments     = ( $text =~ m|(.{1,$vw})|g );
+    @segments = ('') if !@segments;
+
+    my @rows;
+    for my $i ( 0 .. $#segments ) {
+        my $seg = $segments[$i];
+        $seg .= ' ' x ( $vw - length($seg) ) if length($seg) < $vw;
+        my $left = $C->{T} . $C->{B} . '  ';
+        if ( $i > 0 ) {
+            ## '\' under the ':' reads as "this row continues the line" ##
+            $left = $C->{dim} . $C->{3} . '\\' . $C->{T} . $C->{B} . ' ';
+        }
+        push @rows,
+              $border_color . ':'
+            . $left
+            . $seg . '  '
+            . $border_color . ':'
+            . $C->{R};
+    }
+    return @rows;
 }
 
 sub _display_sanitize {
@@ -788,6 +852,11 @@ sub edit_text {
     my $mouse_on
         = ( $params->{'mouse'} // 1 ) && not $ENV{'P7_EDITOR_NO_MOUSE'};
 
+    ## soft-wrap mode : 'wrap => 1'. off by default -- long lines then ##
+    ## scroll sideways the historical way. wrapping is view-only : the ##
+    ## buffer keeps the raw lines, the file on disk is never re-flowed ##
+    my $wrap = ( $params->{'wrap'} // 0 ) ? 1 : 0;
+
     ## wheel acceleration state [ per edit_text call, like the kill stack ] :
     ## burst counting with a flush deadline the input wait honors, so a paused
     ## wheel pays out its pages without a keypress
@@ -961,11 +1030,29 @@ sub edit_text {
                 $dirty = 1;
             }
 
-            ## vertical scroll ##
-            if ( $cur_line < $first_visible ) {
-                $first_visible = $cur_line;
-            } elsif ( $cur_line >= $first_visible + $content_rows ) {
-                $first_visible = $cur_line - $content_rows + 1;
+            ## vertical scroll : scroll mode tracks the first visible LINE,
+            ## wrap mode the first visible visual ROW [ one logical line spans
+            ## as many rows as its soft-wrapped segments ]
+            my $vw_wrap = $inner_width - 4;
+            $vw_wrap = 4 if $vw_wrap < 4;
+            if ( not $wrap ) {
+                if ( $cur_line < $first_visible ) {
+                    $first_visible = $cur_line;
+                } elsif ( $cur_line >= $first_visible + $content_rows ) {
+                    $first_visible = $cur_line - $content_rows + 1;
+                }
+            } else {
+                my $cursor_vrow = 0;
+                $cursor_vrow
+                    += detail_editor_wrap_rows( $lines[$_], $vw_wrap )
+                    for 0 .. $cur_line - 1;
+                $cursor_vrow += int( $cur_col / $vw_wrap );
+                if ( $cursor_vrow < $first_visible ) {
+                    $first_visible = $cursor_vrow;
+                } elsif ( $cursor_vrow >= $first_visible + $content_rows ) {
+                    $first_visible = $cursor_vrow - $content_rows + 1;
+                }
+                $first_visible = 0 if $first_visible < 0;
             }
 
             ## redraw gate : repaint only when something visual changed.  a
@@ -1064,13 +1151,51 @@ sub edit_text {
                 say detail_editor_draw_line( '', $inner_width, 0, 0, $C );
 
                 ## content area ##
-                for my $i ( 0 .. $content_rows - 1 ) {
-                    my $line_idx = $first_visible + $i;
-                    my $line_text
-                        = ( $line_idx <= $#lines ) ? $lines[$line_idx] : '';
-                    my $is_cursor = ( $line_idx == $cur_line );
-                    say detail_editor_draw_line( $line_text, $inner_width,
-                        $is_cursor, $cur_col, $C );
+                if ( not $wrap ) {
+                    for my $i ( 0 .. $content_rows - 1 ) {
+                        my $line_idx = $first_visible + $i;
+                        my $line_text
+                            = ( $line_idx <= $#lines )
+                            ? $lines[$line_idx]
+                            : '';
+                        my $is_cursor = ( $line_idx == $cur_line );
+                        say detail_editor_draw_line( $line_text,
+                            $inner_width, $is_cursor, $cur_col, $C );
+                    }
+                } else {
+                    ## walk visual rows from $first_visible : each logical
+                    ## line contributes its wrapped segments, the tail of an
+                    ## over-tall line straddles the window alone
+                    my $row = 0;
+                    my $li  = 0;
+                    while ( $li <= $#lines
+                        and $row
+                        + detail_editor_wrap_rows( $lines[$li], $vw_wrap )
+                        <= $first_visible ) {
+                        $row += detail_editor_wrap_rows( $lines[$li],
+                            $vw_wrap );
+                        $li++;
+                    }
+                    my $drawn = 0;
+                    while ( $drawn < $content_rows and $li <= $#lines ) {
+                        my @wrows
+                            = detail_editor_draw_wrapped( $lines[$li],
+                            $inner_width, ( $li == $cur_line ),
+                            $cur_col, $C );
+                        for my $r ( 0 .. $#wrows ) {
+                            next if $row + $r < $first_visible;
+                            last if $drawn >= $content_rows;
+                            say $wrows[$r];
+                            $drawn++;
+                        }
+                        $row += scalar @wrows;
+                        $li++;
+                    }
+                    while ( $drawn < $content_rows ) {
+                        say detail_editor_draw_line( '', $inner_width, 0, 0,
+                            $C );
+                        $drawn++;
+                    }
                 }
 
                 ## bottom padding ##
@@ -1124,7 +1249,8 @@ sub edit_text {
                     . $paste_hint
                     . ' · ctrl-w del-word · ctrl-l del-line · ctrl-d '
                     . 'de-interlace · arrows · enter · del · pgup \ '
-                    . 'pgdn page ·';
+                    . 'pgdn page'
+                    . ( $wrap ? ' · wrap' : '' ) . ' ·';
                 $help_text = ' · ' . $hint . ' ·' . $help_text
                     if length $hint;
                 ## show status [ e.g. 'saved' ] on the LEFT so it survives ##
@@ -1165,18 +1291,35 @@ sub edit_text {
                 );
 
                 ## position hardware cursor on the cursor line ##
-                my $cursor_row
-                    = $header_rows + ( $cur_line - $first_visible ) + 1;
-                my $vw = $inner_width - 6;
-                my $dcol;
-                if ( length( $lines[$cur_line] ) <= $vw ) {
-                    $dcol = $cur_col;
-                } elsif ( $cur_col < $vw - 1 ) {
-                    $dcol = $cur_col;
+                my ( $cursor_row, $cursor_col );
+                if ( not $wrap ) {
+                    $cursor_row
+                        = $header_rows + ( $cur_line - $first_visible ) + 1;
+                    my $vw = $inner_width - 6;
+                    my $dcol;
+                    if ( length( $lines[$cur_line] ) <= $vw ) {
+                        $dcol = $cur_col;
+                    } elsif ( $cur_col < $vw - 1 ) {
+                        $dcol = $cur_col;
+                    } else {
+                        $dcol = $vw - 2;
+                    }
+                    $cursor_col = 4 + $dcol;    ## ':  ' puts text at col 4 ##
                 } else {
-                    $dcol = $vw - 2;
+                    ## the cursor's visual row holds the segment with the
+                    ## cursor; the column is the in-segment offset
+                    my $cursor_vrow = 0;
+                    $cursor_vrow
+                        += detail_editor_wrap_rows( $lines[$_], $vw_wrap )
+                        for 0 .. $cur_line - 1;
+                    my $seg_start = int( $cur_col / $vw_wrap ) * $vw_wrap;
+                    $cursor_vrow += int( $cur_col / $vw_wrap );
+                    $cursor_row
+                        = $header_rows
+                        + ( $cursor_vrow - $first_visible )
+                        + 1;
+                    $cursor_col = 4 + ( $cur_col - $seg_start );
                 }
-                my $cursor_col = 4 + $dcol;    ## ':  ' puts text at col 4 ##
                 $cursor_col = $cols - 2 if $cursor_col > $cols - 2;
                 ## position and show cursor at the real edit point ##
                 print "\e[$cursor_row;${cursor_col}H\e[?25h";
@@ -1283,26 +1426,70 @@ sub edit_text {
                 $flush_at = $now + WHEEL_WINDOW;
                 $move_cursor->( $dir, 0 );
             } elsif ( ref $key eq 'HASH'
-                and defined $key->{'click'} ) {         ## left press ##
+                and defined $key->{'click'} ) {    ## left press ##
                 ## position the cursor : content row 1 is terminal row
                 ## header+1, text starts at col 4 [ ':  ' ] ; chrome clicks
-                ## stay inert, past-EOL clamps to the line end
+                ## stay inert, past-EOL clamps to the line end. in wrap mode
+                ## the clicked content row is a visual row : find the logical
+                ## line and the segment it carries
                 my ( $cx, $cy ) = $key->{'click'}->@*;
-                my $line = $first_visible + $cy - 5;    ## header_rows = 4 ##
-                if (    $cy >= 5
-                    and $line <= $first_visible + $content_rows - 1 ) {
-                    $cur_line = $line > $#lines ? $#lines : $line;
-                    my $col = $cx - 4;
-                    $col = 0 if $col < 0;
-                    my $len = length $lines[$cur_line];
-                    $cur_col = $col > $len ? $len : $col;
+                if ( $cy >= 5 ) {
+                    my $vrow = $first_visible + $cy - 5;
+                    if ( $vrow <= $first_visible + $content_rows - 1 ) {
+                        my $col = $cx - 4;
+                        $col = 0 if $col < 0;
+                        if ( not $wrap ) {
+                            my $line = $vrow;
+                            $cur_line = $line > $#lines ? $#lines : $line;
+                        } else {
+                            my ( $row, $li ) = ( 0, 0 );
+                            while (
+                                    $li < $#lines
+                                and $row
+                                + detail_editor_wrap_rows( $lines[$li],
+                                    $vw_wrap ) <= $vrow
+                            ) {
+                                $row
+                                    += detail_editor_wrap_rows( $lines[$li],
+                                    $vw_wrap );
+                                $li++;
+                            }
+                            $cur_line = $li;
+                            $col      = ( $vrow - $row ) * $vw_wrap + $col;
+                        }
+                        my $len = length $lines[$cur_line];
+                        $cur_col = $col > $len ? $len : $col;
+                    }
                 }
             } elsif ( $key eq "\e[5~" or $key eq "\e[6~" ) {
                 ## page up \ down : one visible page per press, wheel
                 ## semantics -- the down page stops at the last line instead
-                ## of growing one at EOF
+                ## of growing one at EOF. in wrap mode a page is a screenful
+                ## of visual rows : land on the line holding the target row
                 my $dir = $key eq "\e[5~" ? -1 : 1;
-                $move_cursor->( $dir, 0 ) for 1 .. $content_rows;
+                if ( not $wrap ) {
+                    $move_cursor->( $dir, 0 ) for 1 .. $content_rows;
+                } else {
+                    my $vrow = 0;
+                    $vrow += detail_editor_wrap_rows( $lines[$_], $vw_wrap )
+                        for 0 .. $cur_line - 1;
+                    $vrow += int( $cur_col / $vw_wrap );
+                    my $target = $vrow + $dir * $content_rows;
+                    $target = 0 if $target < 0;
+                    my ( $row, $li ) = ( 0, 0 );
+                    while ( $li < $#lines
+                        and $row
+                        + detail_editor_wrap_rows( $lines[$li], $vw_wrap )
+                        <= $target ) {
+                        $row += detail_editor_wrap_rows( $lines[$li],
+                            $vw_wrap );
+                        $li++;
+                    }
+                    $cur_line = $li;
+                    my $col = ( $target - $row ) * $vw_wrap;
+                    my $len = length $lines[$cur_line];
+                    $cur_col = $col > $len ? $len : $col;
+                }
             } elsif ( $key eq "\e[C" ) {    ## right ##
                 $cur_col++;
                 if ( $cur_col > length( $lines[$cur_line] ) ) {
@@ -1586,8 +1773,8 @@ sub edit_text {
 
 1;
 
-#,,.,,,,.,,,,,.,,,..,,,,.,...,.,.,,.,,.,.,.,,,..,,...,...,,,,,,,.,,,.,,,.,,..,
-#DXYKTKTYPHUQMYBHYQO4K3DPW4HI6HTD25XKROG54KAJRBARMQKUL45CKQR2YRA4YQHNIYVH6VNCG
-#\\\|PRU67TE7AN4E6KD6K37BHRL7DF2MFM3DPH4R4ECGJGUYJ3DPZJR \ / AMOS7 \ YOURUM ::
-#\[7]HB6YO3GROMLV7EE52LZM7WWS5WMGOBD4MTSIF5WRZ46VIZIUYIDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,,.,,,..,.,,,,..,,..,,.,,,,,,..,,...,...,,..,,,.,,.,,,.,,,.,,
+#EIWFCZ6T4N2VFLKZTHNYG3OIDYFFKNW5OUWK73G5ICNMFCRZIJ6LLY2FYQL2AZL7XOBI7CPSXG2PS
+#\\\|JDHK6LVZXPSHFS3OAJPRXMFQJDVQCATMUCBCFPV2YFO36HYQRWT \ / AMOS7 \ YOURUM ::
+#\[7]KULNGDR5A4QIBQ7CDLY7CJQ7MPVIG6EXJFGVPTNSX5WNN3FX2ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
