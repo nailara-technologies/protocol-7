@@ -1175,7 +1175,8 @@ my $child_code_seed = <<~'CHILD';
     my $result = eval {
         edit_text( { text => $ENV{'SEED'} // 'seed', title => 'T',
             label => 'l', wrap => $ENV{'WRAP'} ? 1 : 0,
-            wrap_sep => ( $ENV{'WRAP_SEP'} // 1 ) } );
+            wrap_sep   => ( $ENV{'WRAP_SEP'}   // 1 ),
+            wrap_words => ( $ENV{'WRAP_WORDS'} // 1 ) } );
     };
     open my $fh, '>:utf8', $out or die;
     print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
@@ -1437,6 +1438,195 @@ check(
         0 .. ( $#cursor_pos / 2 ) )
 );
 
+## WINCH reflow : the user confirmed this by eye at miniature sizes -- a
+## 150-char line on a 100-col pty folds into 2 rows with the cursor on the
+## second [ 6;60 ] ; shrink the pty to 60 cols mid-edit and the SAME buffer
+## refolds into 3 rows [ vw 54 : 54+54+42 ] with the cursor on the third at
+## in-segment col 42 -> 7;46 ; the frame redraws at the new width and the
+## buffer roundtrips raw [ wrapping is view-only ].  the harness delivers
+## WINCH explicitly : a setsid'd child has no controlling tty, so the kernel
+## would not generate it for the pty -- on a real terminal the resize delivers
+## it [ user-verified ]
+{
+    local $ENV{'SEED'} = 'a' x 150;
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrapwinch |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[F";    ## end, col 150 ##
+            $drain->(0.3);
+            $pty->set_winsize( 30, 60 ) if $pty->can('set_winsize');
+            kill 'WINCH', $pid;
+            $drain->(0.8);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my @winch_frames = split m{\e\[H\e\[2J}, $output, -1;
+my $winch_frame  = $winch_frames[-1] // '';
+## normalize to display columns : strip every SGR form incl. the '>' private
+## sequences and the space-separated DECSCUSR / cleanup forms, drop CR, and
+## swap 1-byte stand-ins for the multibyte glyphs and the middle dot
+## [ byte-string regexes ]
+$winch_frame =~ s{\e\[[0-9;?>]* ?[A-Za-z]}{}g;
+$winch_frame =~ s{\r}{}g;
+$winch_frame =~ s{\xe2\x94\x8a}{|}g;
+$winch_frame =~ s{\xe2\x94\x84}{-}g;
+$winch_frame =~ s{\xc2\xb7}{.}g;
+@cursor_pos = $output =~ m{\e\[([0-9]+);([0-9]+)H\e\[\?25h}g;
+check(
+    'wrap mode : WINCH reflows the fold, cursor follows the segment',
+    $result eq 'RESULT=<' . ( 'a' x 150 ) . '>'
+        && $exited
+        ## the resized frame is exactly 60 columns wide, never wider
+        && $winch_frame !~ m|^.{61,}$|m
+        && $winch_frame =~ m|^.{60}$|m
+        ## before : cursor on the 2nd row of 2 [ 6;60 ]
+        && grep( $cursor_pos[ $_ * 2 ] == 6
+            && $cursor_pos[ $_ * 2 + 1 ] == 60,
+        0 .. ( $#cursor_pos / 2 ) )
+        ## after : cursor on the 3rd row of 3 at col 46
+        && grep( $cursor_pos[ $_ * 2 ] == 7
+            && $cursor_pos[ $_ * 2 + 1 ] == 46,
+        0 .. ( $#cursor_pos / 2 ) )
+);
+
+## delete repaints EVERY press : the redraw gate used to key on a boolean
+## dirty flag plus the cursor position -- delete never moves the cursor, so
+## the second press repeated the frame signature and skipped the redraw while
+## the buffer DID change. '$dirty' is now a buffer revision
+## [ ++ at every mutation, 0 on save ], so every edit repaints : three deletes
+## on 'abc' from home paint three frames and leave an empty buffer
+{
+    local $ENV{'SEED'} = 'abc';
+    local $ENV{'WRAP'} = 0;
+    ( $result, $exited, $output ) = run_case(
+        qw| delredraw |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[H";    ## home [ col 0 ] ##
+            $drain->(0.2);
+            syswrite $pty, "\e[3~" x 3;    ## delete x 3   ##
+            $drain->(0.5);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my $del_clears = () = $output =~ m{\e\[H\e\[2J}g;
+check(
+    'delete : every press repaints [ buffer revision in the gate ]',
+    $result eq 'RESULT=<>'
+        && $exited
+        ## initial paint + one clear per delete [ the boolean gate painted the
+        ## initial frame + the FIRST delete only ]
+        && $del_clears >= 4
+);
+
+## word-aware fold [ the wrap default ] : rows break at ELIGIBLE whitespace
+## and words stay whole. bracket-awareness follows the bin/format-code rule --
+## a space touching a bracket counts the bracket into the word : here the '['
+## starts 6 columns before the window edge [ vw 94 ], so a naive fold orphans
+## it on the head row ; the eligible-space walk moves the WHOLE "[ 'x' ]"
+## group onto the continuation row instead
+{
+    local $ENV{'SEED'} = ( '1234567890 ' x 8 ) . "[ 'x' ] end";
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrapwords |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my $ww_vis = ( split m{\e\[H\e\[2J}, $output, -1 )[-1] // '';
+$ww_vis =~ s{\e\[[0-9;?>]* ?[A-Za-z]}{}g;
+check(
+    'wrap mode : word-aware fold keeps words and bracket groups whole',
+    $result eq 'RESULT=<' . ( '1234567890 ' x 8 ) . "[ 'x' ] end>"
+        && $exited
+        ## the whole bracket group sits on the continuation row
+        && $ww_vis =~ m|^:\xe2\x94\x8a \[ 'x' \] end|m
+        ## the head row carries no bracket at all [ no orphan ]
+        && $ww_vis !~ m|^:  .*\[|m
+        ## and no word is split : the continuation starts with the group,
+        ## never a bare word fragment
+        && $ww_vis !~ m|^:\xe2\x94\x8a \d|m
+);
+
+## 'wrap_words => 0' keeps the historical fixed-width character fold : the
+## same seed splits at the window edge [ continuation starts with the "] end"
+## remainder ], and End lands by the arithmetic position [ 6;9 ]
+{
+    local $ENV{'SEED'}       = ( '1234567890 ' x 8 ) . "[ 'x' ] end";
+    local $ENV{'WRAP'}       = 1;
+    local $ENV{'WRAP_WORDS'} = 0;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrapwordsfixed |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\e[F";    ## end ##
+            $drain->(0.4);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my $wf_vis = ( split m{\e\[H\e\[2J}, $output, -1 )[-1] // '';
+$wf_vis =~ s{\e\[[0-9;?>]* ?[A-Za-z]}{}g;
+@cursor_pos = $output =~ m{\e\[([0-9]+);([0-9]+)H\e\[\?25h}g;
+check(
+    "wrap mode : 'wrap_words => 0' keeps the fixed-width fold",
+    $result eq 'RESULT=<' . ( '1234567890 ' x 8 ) . "[ 'x' ] end>"
+        && $exited
+        ## fixed-width splits at the edge : the continuation starts with the
+        ## remainder, not the whole group
+        && $wf_vis =~ m|^:\xe2\x94\x8a \] end|m
+        && grep( $cursor_pos[ $_ * 2 ] == 6 && $cursor_pos[ $_ * 2 + 1 ] == 9,
+        0 .. ( $#cursor_pos / 2 ) )
+);
+
+## the window-edge trap : a space sitting EXACTLY at vw
+## [ 94 on the 100-col pty ] used to be a legal break target -- 'break after
+## it' made a vw + 1 character segment, one column PAST the frame, and the
+## terminal's own wrap ate the overflow and tore every row below
+## [ the user-reported 'scrolling glitch' on a real item ]. the break now
+## searches below vw ; every frame row is exactly 100 columns
+{
+    local $ENV{'SEED'} = ( 'a' x 94 ) . ' bbb';
+    local $ENV{'WRAP'} = 1;
+    ( $result, $exited, $output ) = run_case(
+        qw| wrapedge |,
+        sub {
+            my ( $pty, $pid, $drain ) = @ARG;
+            $drain->(0.3);
+            syswrite $pty, "\x18";
+        },
+        $child_code_seed
+    );
+}
+my $edge_vis = ( split m{\e\[H\e\[2J}, $output, -1 )[-1] // '';
+$edge_vis =~ s{\e\[[0-9;?>]* ?[A-Za-z]}{}g;
+$edge_vis =~ s{\r}{}g;
+$edge_vis =~ s{\xe2\x94\x8a}{|}g;
+$edge_vis =~ s{\xe2\x94\x84}{-}g;
+$edge_vis =~ s{\xc2\xb7}{.}g;
+check(
+    'wrap mode : a space at the window edge never overruns the frame',
+    $result eq 'RESULT=<' . ( 'a' x 94 ) . ' bbb>'
+        && $exited
+        && $edge_vis !~ m|^.{101,}$|m
+        && $edge_vis =~ m|^.{100}$|m
+);
+
 ## the selected block darkens as ONE unit : with colors, the cursor's head row
 ## AND its continuation row render dimmed [ segment and ┊ alike ] while the
 ## ':' borders keep the bold-blue chrome ; the other line stays bright with
@@ -1562,8 +1752,8 @@ say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,.,.,,,..,,,.,,,,,,,..,,,.,...,,.,,...,,,,,..,,...,...,,..,.,.,,..,...,,,,,
-#TJ5OP42XGQHG2OZNURHYD5ROLBIM66UURFCVTXIHJTMR3ACVE7DCCFPL3ZBI7JYKXP2WNU46OA7HQ
-#\\\|7OC6KN6UUIA4RKGK7ONX4XC5MJES4E4VKD3EWCMCXNY2M4K25IJ \ / AMOS7 \ YOURUM ::
-#\[7]DTZUXAM7W24W7IQKMTQT6ADSL73WLNDB3SQZVX2G2HX6QAY7GABY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,..,.,.,,,.,,.,,,.,,,.,,,.,,,..,..,,...,..,,,.,,.,.,,,.,...,.,.,
+#NSG3NQN4L3X4BQLR4Z45MHDG46KI7LV3DLMH7VZYKTVFHO4TU4KXDXRVDCXRAUD6LKJRR7UEOQUIS
+#\\\|TMGH6D7D2VK3VUW2TI34YULP26MOWFZPZJOIZ2XFRW3W6LLXEDY \ / AMOS7 \ YOURUM ::
+#\[7]R4VH24NBIRXXEMDOC4H7J2YO3TQTFPCQ4MSTG2AFT5HYBB5BNMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

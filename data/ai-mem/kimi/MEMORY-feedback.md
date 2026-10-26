@@ -130,8 +130,20 @@ a real pty with production colors before theorizing ; their
 mechanical reading of the symptom beat code reading twice.
 full session record : [topic-bin-ned-file-editor.md].
 
-#,,,,,.,,,,..,..,,,.,,,.,,..,,,.,,...,..,,,,,,..,,...,...,,..,.,.,...,,,,,,,.,
-#JWMPL6WXHA3VGN7VJKAEJ43RAOIEOY5CZBSUNO7YAWBELPBVRSOQMGUNTLJ4AIXWLXJII63SPRAP6
-#\\\|45KHEWMYLRHXFIFSIJJKJFVEE3K47CACVDENG7ANRYQNFZFQYCF \ / AMOS7 \ YOURUM ::
-#\[7]IT6OLB2IQSR2KHOFSELJRE5P3POCFRZ46PGKM34VW2MMU73QQQDI 7  DATA SIGNATURE ::
+## literal braces mis-parse under m{} delimiters (2026-10-26)
+
+a character class containing `{` or `}` written inside `m{...}`
+delimiters triggers 'Unescaped left brace ... passed through' and
+the match silently misbehaves [ the word-aware wrap's bracket
+eligibility test rejected EVERY candidate, so the fold fell back
+to hard splits -- caught only because a pty case asserted the
+bracket group stays whole ]. rule : when the pattern contains
+literal braces, use different delimiters [ `m![\{\}]!` ] or
+escape them -- and never ignore that warning.
+full session record : [topic-bin-ned-file-editor.md].
+
+#,,,,,,,,,.,.,...,,.,,.,,,,.,,,..,,,,,,.,,...,..,,...,...,.,.,.,,,,.,,,,.,,,.,
+#BM5PYSHGW3O5MTQHJPH2JO7WYEVAAKQPCULXWJ5XUHFC7MZWM5MMMJKFUUHNZMJU74MBQP5F7O5ZM
+#\\\|3VJ6VASPTJTI6U52HY7PKAYSO6XT33IEXG5TNAXBAW6JQM3FFMO \ / AMOS7 \ YOURUM ::
+#\[7]BSQZN2OJ7FD3X34XQMAYBFOHHYXRMEQ32IEVSXFJUBOCMIZHNUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

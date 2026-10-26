@@ -231,6 +231,47 @@ behaviour back in the todo details editor.
   left of the frame edge ; both constructors [ the draw-loop
   `$sep_row` and the `$as_sep` return in
   `detail_editor_draw_wrapped` ] must stay in step.
+- **WINCH reflow pinned** [ user-verified at miniature sizes, then
+  locked in as the wrapwinch pty case ] : 100 -> 60 cols mid-edit
+  refolds 150 chars 2 -> 3 rows [ vw 54 ] and the cursor follows to
+  7;46, frame redraws exactly at the new width. TWO harness lessons :
+  (1) the setsid'd child has NO controlling tty [ the parent opened
+  the slave before fork ], so the kernel never generates SIGWINCH
+  for the pty -- the script must `kill 'WINCH', \$pid` explicitly ;
+  on a real terminal the resize delivers it. (2) width assertions on
+  the raw byte string must normalize first : box glyphs are 3
+  bytes/1 col, '·' is 2 bytes/1 col, and the exit cleanup prints
+  space-separated SGR forms [ `\e[0 m`, DECSCUSR `\e[0 q` ] plus
+  `\e[>4;0m` that a naive `\e\[[0-9;?]*[A-Za-z]` strip misses --
+  use `\e\[[0-9;?>]* ?[A-Za-z]` and 1-byte stand-ins.
+- **word-aware fold [ `wrap_words`, default ON ]** [ user : 'mid-word
+  again is what i meant' ] : rows break at ELIGIBLE whitespace,
+  ragged right ; eligibility is BRACKET-AWARE in the bin/format-code
+  sense [ user pointer ] -- a space touching a bracket counts the
+  bracket into the word, so '[ 'x' ]' and 'f( a, b )' move as one ;
+  space-runs break at their last space ; no eligible space or a word
+  longer than the window splits [ hard floor ]. `'wrap_words => 0'`
+  selects the historical fixed-width fold [ wrapwordsfixed case ].
+  GEOMETRY : ragged segments break the `int(col / vw)` arithmetic --
+  `$seg_at_col` / `$seg_start_at` closures walk cumulative segment
+  lengths for the cursor offset, the click reverse-map and the pgdn
+  landing ; at/past EOL the cursor sits ON the last segment [ cap,
+  not one-past ]. a `%dirty` is a BUFFER REVISION [ ++ per mutation,
+  0 on save ] : the redraw gate used to miss same-cursor edits --
+  delete never moved the cursor, so its second press repeated the
+  frame signature and skipped the redraw [ user-found ; delredraw
+  case ]. the segment builder's bracket classes must NOT use m{}
+  delimiters -- literal braces mis-parse [ 'passed through' warning,
+  silently matched wrong, every candidate rejected ] : m![..]!.
+  **window-edge trap** [ user : 'scrolling glitch because of one of
+  the lines' ] : a space sitting EXACTLY at vw was a legal break
+  target -- 'break after it' yields vw + 1 chars, ONE column over
+  the frame, and the terminal's own autowrap eats the overflow and
+  tears every row below [ reads as a scrolling glitch ; the head row
+  loses its trailing ':' ]. the break search starts at vw - 1,
+  never vw. verified across vw 20..200 on the real 203-char line [
+  zero over-long segments ] ; pinned by wrapedge [ space at index
+  94, every frame row exactly 100 ].
 - **box-drawing glyphs as future cursor language** [ user idea, parked ]
   : the ┊/┄ family could mark alternate cursors for different editing
   or parallelism modes -- keep them in mind when mode support lands.
@@ -262,12 +303,14 @@ behaviour back in the todo details editor.
   `detail_editor_draw_wrapped` [ cursor block dimmed as one unit ].
   wrapdarken pins : dim head + dim continuation incl. glyph, scoped
   reset before the border, other line bright.
-- suites after : 26/26 unit, 52/52 editor pty [ wrapdarken pins the
-  one-unit block dimming, wrapblank + wrapblankpad + wraptailpad the
-  blank-as-separator and its padding stability ], 13/13 ned.
+- suites after : 26/26 unit, 57/57 editor pty [ + wrapwinch : WINCH
+  reflow 100->60, cursor follows ; + delredraw : every delete
+  repaints ; + wrapwords \ wrapwordsfixed : the word-aware fold ;
+  + wrapedge : a space at the window edge never overruns the frame ],
+  13/13 ned.
 
-#,,,,,,,.,,,.,,,,,...,.,.,..,,,..,,..,..,,.,,,..,,...,...,..,,,..,.,,,,,,,,.,,
-#MB5LSTXYJ6IACMZ7YD5ICGZS3YGAKUUQYTPVWRFF6O4XRSACAFLTPSZCYJSBIQLRFZZTISXEALMYQ
-#\\\|6VI7CSZOLEGOPSMEKKZ6I5ZW5UVD5J27GGHSIQXJHMBWFMTTXDZ \ / AMOS7 \ YOURUM ::
-#\[7]QR3QPUG7JE6VESK2KYKB7G4VVZLF3E3QZNEJPFRIRX3LJTFV74BY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,.,.,...,.,,,..,,,.,,.,,,,.,,..,,...,..,,.,.,,.,,.,,,,.,,,..,
+#G22RUU5UTOTMS3SPTA7O7GMBKO7ACZGZPHBAGXYJ572MVGPDLUG3QBH7OHYXXNZYBYCZ2RRJ5O672
+#\\\|YNQFDJKAJWAYUEUHY6H5I2UQMS6BP6KYZBCDTQI3HXOUSKGXMQS \ / AMOS7 \ YOURUM ::
+#\[7]64DKANWZUH637KM25QDXQQ7VAZKIHWEXIKAMEQ6XE4H7DVVWMGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
