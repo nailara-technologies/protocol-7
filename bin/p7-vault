@@ -1221,6 +1221,13 @@ sub cmd_add {
         say msg( 'refuse', 'a title is needed' );
         return FALSE;
     }
+    ## the plaintext record never outlives the command : password, body, ##
+    ## all of it, on every path from here [ save \ early return alike ]  ##
+    my $guard = wipe_on_exit(
+        map  { \$record{$ARG} }
+        grep { defined $record{$ARG} and not ref $record{$ARG} }
+            keys %record
+    );
     entry_save( $v, undef, \%record );
     say $C{g} . "  stored '$record{'title'}'" . $C{R};
     return TRUE;
@@ -1436,6 +1443,13 @@ sub cmd_edit {
         if ( length $value ) { $record{$field} = $value }
         else                 { delete $record{$field} }
     }
+    ## the plaintext record never outlives the command, on any path from ##
+    ## here -- %record is this command's own shallow copy                ##
+    my $guard = wipe_on_exit(
+        map  { \$record{$ARG} }
+        grep { defined $record{$ARG} and not ref $record{$ARG} }
+            keys %record
+    );
     entry_save( $v, $entry->{'id'}, \%record );
     say $C{g}
         . "  stored '$record{'title'}' [ the old version stays in history ]"
@@ -1451,6 +1465,12 @@ sub cmd_rm {
 
     my %record = ( %{ $entry->{'record'} }, deleted => 1 );
     delete $record{'updated'};
+    ## the plaintext copy [ body included ] never outlives the command     ##
+    my $guard = wipe_on_exit(
+        map  { \$record{$ARG} }
+        grep { defined $record{$ARG} and not ref $record{$ARG} }
+            keys %record
+    );
     entry_save( $v, $entry->{'id'}, \%record );
     say $C{g}
         . "  '$title' deleted [ older versions stay readable in history ]"
@@ -2552,9 +2572,16 @@ sub cmd_scratchpad {
             and lc( $ARG->{'record'}{'title'} // '' ) eq qw| scratchpad |
     } @{$list};
 
-    my $id     = $note ? $note->{'id'}                   : undef;
-    my $body   = $note ? $note->{'record'}{'body'} // '' : '';
-    my $edited = note_editor(
+    my $id   = $note ? $note->{'id'}                   : undef;
+    my $body = $note ? $note->{'record'}{'body'} // '' : '';
+    my $edited;
+    ## the plaintext copies never outlive the command : ours, the edited ##
+    ## result and the decrypted entry's own body alike                   ##
+    my @secrets = ( \$body, \$edited );
+    push @secrets, \$note->{'record'}{'body'} if $note;
+    my $guard = wipe_on_exit(@secrets);
+
+    $edited = note_editor(
         {   text   => $body,
             title  => 'scratchpad',
             label  => 'note body',
@@ -3637,8 +3664,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,..,..,,.,.,,.,,..,,,,.,,..,.,.,,..,,,.,,,.,..,,...,...,,.,,,..,,.,,,,,,,,,,
-#Z7YSJ744XRWVS6EB25VWELE2EJZXWFGJGY55FOTXHDG6NH47FKM6XVQNNMS52UEXYGWBYX6IAN4RK
-#\\\|PAPVE6JPJAOZ3CBLJOA2SMMFAZFNH7IKBLNXCHZW354TU5W2C3V \ / AMOS7 \ YOURUM ::
-#\[7]TQVZJGO2F5NOHAIFTAJ7HQQEJTOTCEYNKXLSCD5TYCCISEFNQODA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,,,.,,,,,.,,,,..,,.,,..,,,..,..,,...,...,.,.,.,.,,..,,,,,,,,,
+#DROM43PY5NW6BMVLSVHTJTXHPDMWAQ2KOCCOCDVJWUSOV6VICPO2BQHIQZPH4UPJCTGVRKG3ITW6I
+#\\\|DL74T3NJDSGLYS2GXAL7HQUS46P2QDAKFPLASNFEVUFB2ZRT425 \ / AMOS7 \ YOURUM ::
+#\[7]PMRCJCJWWTLAK4F2QQMCFUSGTPRPQMKNCBQR4BCUFAFNQGI53YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

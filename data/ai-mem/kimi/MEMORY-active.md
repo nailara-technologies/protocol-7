@@ -38,6 +38,11 @@ layer: `61df8d2a8` (frame + signals), `80f4972c3` (kill stack / paste),
   checks : editor exit bytes, screen clear, echo/icanon after signals ] ;
   `test-term-editor-pty.pl` at 19 cases [ controls, LIFO, hint gating,
   fake-xsel clipboard, clear + re-arm ] ; pre-fix code fails each new case.
+- **p7-vault residue closed same session** : `wipe_on_exit` guards on
+  cmd_scratchpad [ $body \ $edited \ the decrypted entry's own body ] and on
+  the record copies of cmd_add \ cmd_edit \ cmd_rm -- plaintext records no
+  longer outlive the commands [ the preallocated-stack-blocks idea turned out
+  already realized : kill entries are immutable and mlocked at push ].
 
 **feedback lessons** :
 - "one line shorter than the terminal" was the TERMINAL EMULATOR adding an
@@ -400,8 +405,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,.,,,.,,,.,,,.,,,,.,,..,.,,,,,.,.,.,,,.,,.,,..,,...,...,,,.,,,.,,.,,,,,,.,,,
-#TXPRJUXPVBWJWJ2DUCHCOFSJHWYTDFIVTWZOTQEJSBSCNNE3MJFDEJ6CYVCHNQ63FZ3XX5JRCDR5K
-#\\\|7TLTLGLO3KJXTBTNJCST5JIUDFW7FZJLACX33LT2CSTPVRLIRCL \ / AMOS7 \ YOURUM ::
-#\[7]OYNBZQLYVZOA3EG22RZSCDWDCZGI2CZVO2MMSD64MSMU2TZCEMBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,.,..,,...,.,.,,.,,...,,..,.,.,..,,...,..,,..,,.,.,...,...,,,.,
+#65DFLRITTTXOV5GRIS3DEZ2C4GDLDPA3B5DOP7RF4FOBGWESQGN2C6K3TXUGN7DTIVTLCHRUPBZC4
+#\\\|IWTZW6WQOAYOTRYOZT7UQZMN2RNLBZDOWR6SA3ZJ4C7454TSWWN \ / AMOS7 \ YOURUM ::
+#\[7]6SFLM6366EPJS3QSD6IN2FECXDJJ6IUAEM7WK5Y53YRYQP7NKUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
