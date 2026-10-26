@@ -67,9 +67,10 @@ binmode STDERR, ':encoding(UTF-8)';
 ## prompts must reach a reader before we block on its answer ##
 STDOUT->autoflush(1);
 
-## ctrl-c : a hidden prompt has echo off -- restore the terminal before
-## leaving, '\b\b' takes the echoed '^C' back off the line
-$SIG{'INT'} = sub {
+## a hidden prompt can leave the tty with echo off [ raw \ stty -echo ] and
+## readline holds its own mode -- hand the terminal back before leaving, also
+## from a signal : END restores the cursor style, this the tty mode
+sub tty_restore {
     ## readline holds the terminal in its own mode : hand it back first ##
     $main::READLINE->deprep_terminal
         if defined $main::READLINE
@@ -78,6 +79,13 @@ $SIG{'INT'} = sub {
         if ( defined &Term::ReadKey::ReadMode ) { Term::ReadKey::ReadMode(0) }
         else                                    { system qw| stty echo | }
     }
+    return;
+}
+
+## ctrl-c : a hidden prompt has echo off -- restore the terminal before
+## leaving, '\b\b' takes the echoed '^C' back off the line
+$SIG{'INT'} = sub {
+    tty_restore();
     print "\b\b  " . ( $main::C{'R'} // '' ) . "\n";
     exit 130;
 };
@@ -332,7 +340,7 @@ sub cursor_shell {
     return if not -t STDOUT;
     print "\e[4 q";    ## steady underline ##
     $CURSOR_CHANGED = TRUE;
-    $SIG{$ARG} = sub { exit 130 }
+    $SIG{$ARG} = sub { tty_restore(); exit 130 }
         foreach qw| INT TERM HUP |;
     return;
 }
@@ -1313,6 +1321,11 @@ sub note_editor {
         if not $have_editor;
     my $edited = AMOS7::TERM::Editor::edit_text($params);
     $LAST_INPUT = time;    ## editing is input : the editor has no timer ##
+    ## the editor leaves its full-screen frame on screen                 ##
+    ## [ the exit never scrolls ] -- clear it the way bin/todo's details ##
+    ## editor does [ keep in step ] so the feedback starts on a clean    ##
+    ## screen ; the abort path already cleared the screen itself         ##
+    print "\e[H\e[2J" if defined $edited and -t STDOUT;
     return $edited;
 }
 
@@ -3624,8 +3637,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,..,...,.,,,...,,,.,.,,,,..,,,.,.,.,...,..,,..,,...,...,..,,.,,,,,.,.,,,.,,,
-#L5L46TRGKUAWVLZ4UIS3S3DV64NM3T3HSHGYHDWTZOSANAUOMQGUJTENIWIUXYBGAT5MG5EAPY7HI
-#\\\|N7MRRBGSHK7U5KZVQ3HR7HA5JLUICFG4EAR3TYK3CWCW42HKPON \ / AMOS7 \ YOURUM ::
-#\[7]P7Y2563D5EGNID2G6SGT4EBYQ5ZTJLR5PGQLOAMXZCCL2N2AX2CQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,..,,,,.,,..,.,.,,..,,,.,,,.,..,,...,...,,.,,,..,,.,,,,,,,,,,
+#Z7YSJ744XRWVS6EB25VWELE2EJZXWFGJGY55FOTXHDG6NH47FKM6XVQNNMS52UEXYGWBYX6IAN4RK
+#\\\|PAPVE6JPJAOZ3CBLJOA2SMMFAZFNH7IKBLNXCHZW354TU5W2C3V \ / AMOS7 \ YOURUM ::
+#\[7]TQVZJGO2F5NOHAIFTAJ7HQQEJTOTCEYNKXLSCD5TYCCISEFNQODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

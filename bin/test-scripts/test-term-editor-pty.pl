@@ -106,6 +106,25 @@ my $child_code_save = <<~'CHILD';
     close $fh;
     CHILD
 
+## a child seeded with control characters in the payload
+## [ VT \x0b and a lone ESC ] : the buffer must keep the raw bytes, the drawn
+## frame must show them in caret notation -- raw they would act as terminal
+## commands and break the frame
+my $child_code_controls = <<~'CHILD';
+    use strict;
+    use warnings;
+    use AMOS7::TERM::Editor qw| edit_text |;
+    binmode STDOUT, ':utf8';
+    my $out = shift;
+    { open my $pid_fh, '>', "$out.pid" or die; print $pid_fh $$; }
+    my $result = eval {
+        edit_text( { text => "a\x0bb\x1bc", title => 'T', label => 'l' } );
+    };
+    open my $fh, '>:utf8', $out or die;
+    print $fh defined $result ? "RESULT=<$result>" : 'RESULT=<UNDEF>';
+    close $fh;
+    CHILD
+
 sub read_file {
     my $path = shift;
     my $text = '';
@@ -251,6 +270,26 @@ check(
         && $exited
 );
 
+## control characters in the payload : the frame shows them in caret notation,
+## never raw -- raw \x0b or ESC+c would act as terminal commands and break the
+## frame ; the buffer and the result keep the bytes as they are
+( $result, $exited, $output ) = run_case(
+    qw| controls |,
+    sub {
+        my ($pty) = @ARG;
+        syswrite $pty, "\x18";
+    },
+    $child_code_controls
+);
+check(
+    'controls : frame shows caret notation, the result keeps the bytes',
+    $result eq "RESULT=<a\x0bb\x1bc>"
+        && $exited
+        && index( $output, 'a^Kb^[c' ) >= 0
+        && $output !~ m{\x0b}
+        && $output !~ m{\x1bc}
+);
+
 ## the tty goes away : the editor must end, not spin ##
 ( $result, $exited ) = run_case(
     qw| eof |,
@@ -391,8 +430,8 @@ say '';
 say "=== $tests_passed / $tests_run tests passed ===";
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,,.,...,,.,,.,.,,.,,,..,,.,,,.,,,.,,.,,,.,.,..,,...,..,,,.,,,,.,.,.,,,.,,..,
-#CC56VLXHDPKWF6TOY53DQKMDKAPLBNDWLQFPWVV2PEAFYYLMJSPR3ARD5DOPXN4JQVAIWP7MFCA7S
-#\\\|UD4F4EKDM52KCVGJUVIN4UL2VN4USSD5OYIJU5NHAIZHTAIH43W \ / AMOS7 \ YOURUM ::
-#\[7]NHKJFW3UAQIVDWEPSKEV3LZQPS6UT24YLWHCWYGQFX7RQBOTK6CY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,,,,,.,.,.,,,.,,,,,.,,,.,,,,,..,,...,...,..,,.,,,,.,,...,,.,,
+#RAI2HW6SLUNLTLIZEMES25Z5MMBLOAOYQT3R4VT263UIZ4IAMJGRXZ5AYGAIFT4WBHMMN3I455B6C
+#\\\|NXQUS3BNPNEDM5O23WSPJFSXGEI72ABIK73O55HSYHUF5BPFB5I \ / AMOS7 \ YOURUM ::
+#\[7]4XD5D344LBUUVAJAYN7YIEBQKERRVZ6NM7Q5L6S2EZGRDAGE6CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

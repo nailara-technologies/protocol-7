@@ -939,8 +939,10 @@ sub cmd_details {
         ## whether an earlier ctrl-s save is what stays on disk        ##
         if ( not defined $new_details ) {
             say "\e[0K";    ## clear to end of line
-            say '  ::: SIGINT ::: terminated..'
-                . ( $saved_in_editor ? ' [ last ctrl-s save kept ]' : '' );
+            say $C{g}
+                . '  ::: SIGINT ::: terminated..'
+                . ( $saved_in_editor ? ' [ last ctrl-s save kept ]' : '' )
+                . $C{R};
             return;
         }
     }
@@ -1155,8 +1157,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,..,,..,,..,,,..,,.,,.,,,...,...,..,,.,.,..,,...,..,,...,,.,,,..,,,.,...,
-#DSQTNUSBAMYIE5KKWY3O63D32STKWFWBENNO2ZPSI4PNULUW4APH3CVVBSRCWF3KIBXIVPP4T2E2I
-#\\\|6T3ZC7QITH2YDJ44HAKSJIPPWMN6E4YZSPB7YSO23VFM3OPLTKA \ / AMOS7 \ YOURUM ::
-#\[7]T24TGGPWLWO7A5T76YG4ZL2G54OV6XNLSFZ7TAPGAKZ3MI65XACA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,..,,,.,,,,.,,,,,,.,,,,.,.,.,..,,...,...,...,,..,..,,,,,,,..,
+#BPJTAIGGMDLKUQVWQWGYNMRY6XQBRRRWFPBAJPSMYWFE4MRLMZH6UPSZGC35WI4U5F6HHUBFE7C6W
+#\\\|LFGRF67PTEYJSR3AZNYVIGGXLK4NCBKFEZVLCKUNT6TI7XUCNEI \ / AMOS7 \ YOURUM ::
+#\[7]4HV6DBDTNH2M7QIJWD5WMNBCDYCYQFZPWQAVLQSALWQH7G7SGQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
