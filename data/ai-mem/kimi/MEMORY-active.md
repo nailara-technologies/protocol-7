@@ -3,6 +3,23 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
+## bin/ned — secure-by-default native file editor — v1 landed, unsigned (2026-10-26)
+
+generic file-oriented editor combining the todo details + p7-vault
+scratchpad editor features around the UNTOUCHED `AMOS7::TERM::Editor`
+library. atomic temp+rename saves [ mode preserved / 0600 new ],
+preflight before the frame opens, change guard = size+mtime filter plus
+elf 4+7 checksums over raw bytes [ user's pick : pure-perl fallback ],
+refused saves park the edit in a 0600 rescue file. 12/12 pty tests in
+bin/test-scripts/test-ned-pty.pl ; editor suites still 22/22 + 26/26.
+three perl-5.42 traps cost most of the session [ scalar list-constant
+returns COUNT ; Encode consumes its source without LEAVE_SRC ;
+elf_chksum mutates arg 1's utf8 flag ] -- see
+[topic-bin-ned-file-editor.md](topic-bin-ned-file-editor.md) and the
+feedback entry. phase 2 [ discussed, not built ] : AMOS7::Vault
+envelope encryption + AMOS7::N7FS network fs. awaiting user sign +
+stage, then commit.
+
 ## AMOS7::TERM::Editor hardening — landed (2026-10-26)
 
 Three commits from a user-reported scratchpad bug hunt, each a separate
@@ -411,8 +428,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,..,.,,,...,,,,,,.,,..,,,,.,,..,,,.,,..,,.,,..,,...,...,..,,,,.,,,.,..,,,,.,
-#GTZQXB34KIMPJKAFA35CK6ZCKKNUSJ6ZA7CJJLQC3AI6IF7DYTMSEQKFETVCAWIT6MO7NKCBZQ6MM
-#\\\|FJGCXUAEJF4MNEZHBMRDPD7OAKJ223CEM2OXEZENYWKUHTR3YWC \ / AMOS7 \ YOURUM ::
-#\[7]VMMWGJ2WZOFGAAWUCC6JWSAUBVZG6PXYZJ3DON3E5UUTTYWEUQAY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,.,...,...,,,,,,,.,.,,,...,.,.,..,,...,...,.,.,.,.,.,.,,..,,,.,
+#TWGLZAB4G7CD5A7URWTXVDDEGZGXD46DZE4CFJNFPGERW4KETHBQNSBZGQ6XA7ERMXLVRD3EFSCXA
+#\\\|7CIRZ4L4GHV2ZNTSGZADKH6IJ3BTRGOGDFFYOMD3M733WFYZDA3 \ / AMOS7 \ YOURUM ::
+#\[7]I7NQ77FQTAQEXND6W7PNL2YD27U3UJXLCKHO4GAMNMUFXI22WWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

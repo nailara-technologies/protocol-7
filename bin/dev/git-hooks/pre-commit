@@ -289,6 +289,12 @@ unless ($skip_version_check) {
         print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : run "
             . "${bl}./bin/dev/update-version$rst$fg to fix\n";
         print STDERR "${fg}::\n";
+        print STDERR "${fg}:: ${ng}or${rst}${fg} : folding more staged work "
+            . "into the previous commit instead [ session "
+            . "records .., a second commit before the next bump "
+            . "] : ${bl}AMEND=1 git commit --amend$rst$fg skips "
+            . "this check\n";
+        print STDERR "${fg}::\n";
         print STDERR "${fg}:: ${no}hint${rst}${fg} : version "
             . "numbers ensure commits are properly tracked\n";
         print STDERR "${fg}::\n";
@@ -438,7 +444,7 @@ unless ($skip_signature_check) {
     ## thousand files failed with 'argument list too long' otherwise       ##
     my $max_args_len = 65536;
     my @batch;
-    my $batch_len = 0;
+    my $batch_len    = 0;
     my $verify_batch = sub {
         return if not @batch;
         my $verify_cmd
@@ -486,8 +492,8 @@ sub shell_quote {
     return "'$str'";
 }
 
-#,,.,,,..,.,,,,,,,,..,,.,,.,.,,.,,.,,,..,,,,,,..,,...,...,..,,,,.,.,.,...,...,
-#QQACCEEAAHGHLWSBM6H337GNZE33HD34VDSE5RCUDEE5KZ5SJL4UE6RBYN5BPASMBB3YBFHRSHDTY
-#\\\|J5DVMANXVTUYEANW2JCLZ2UOTLNCM5SSVCPKT54KUIB3KBFEWYI \ / AMOS7 \ YOURUM ::
-#\[7]K5N7WM37GVJPX2XDQB6NMGQTDLSVZJQO64XPF2CQOXJCQR2PNYCY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,,,..,,,,.,,,,,,.,,.,,,,,.,..,,..,,...,...,,.,,,..,..,,,..,,..,
+#2ZVIVDXRHGNLTR44CDJJY7LWQFXDLSKPOEZBHQYOJ34QCFJAM46MAHGQ4P47PEN5TWLANRQHYL6PM
+#\\\|MUVVHXSSHXN5MPJ6ENIYHZIJEXEZTY6F42Q7WXE26DP2ZW355IQ \ / AMOS7 \ YOURUM ::
+#\[7]3PTWTOXHAOUCUXNYW5A3RMK7CS2VYA7B5JSDZ2B5JPAHMV5L2ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
