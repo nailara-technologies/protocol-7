@@ -3,22 +3,25 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
-## bin/ned — secure-by-default native file editor — v1 landed, unsigned (2026-10-26)
+## bin/ned — secure-by-default native file editor — landed (2026-10-26)
 
 generic file-oriented editor combining the todo details + p7-vault
 scratchpad editor features around the UNTOUCHED `AMOS7::TERM::Editor`
 library. atomic temp+rename saves [ mode preserved / 0600 new ],
 preflight before the frame opens, change guard = size+mtime filter plus
 elf 4+7 checksums over raw bytes [ user's pick : pure-perl fallback ],
-refused saves park the edit in a 0600 rescue file. 12/12 pty tests in
-bin/test-scripts/test-ned-pty.pl ; editor suites still 22/22 + 26/26.
-three perl-5.42 traps cost most of the session [ scalar list-constant
-returns COUNT ; Encode consumes its source without LEAVE_SRC ;
-elf_chksum mutates arg 1's utf8 flag ] -- see
+refused saves park the edit in a 0600 rescue file. three perl-5.42
+traps cost most of the v1 session [ scalar list-constant returns COUNT
+; Encode consumes its source without LEAVE_SRC ; elf_chksum mutates
+arg 1's utf8 flag ] -- see
 [topic-bin-ned-file-editor.md](topic-bin-ned-file-editor.md) and the
 feedback entry. phase 2 [ discussed, not built ] : AMOS7::Vault
-envelope encryption + AMOS7::N7FS network fs. awaiting user sign +
-stage, then commit.
+envelope encryption + AMOS7::N7FS network fs. SIX editor follow-ups
+landed the same day [ pgup \ pgdn, click positioning, accelerating
+wheel, ctrl+. ordered in-place restore with blanks, modifyOtherKeys,
+flicker gate ] -- all library-side, so bin/todo + bin/p7-vault
+inherit them automatically [ smoke-verified end to end for todo ] ;
+suites at 41/41 editor pty + 26/26 unit + 13/13 ned.
 
 ## AMOS7::TERM::Editor hardening — landed (2026-10-26)
 
@@ -428,8 +431,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,,,,.,,,..,,,,.,...,...,,,,,,,.,.,,,...,.,.,..,,...,...,.,.,.,.,.,.,,..,,,.,
-#TWGLZAB4G7CD5A7URWTXVDDEGZGXD46DZE4CFJNFPGERW4KETHBQNSBZGQ6XA7ERMXLVRD3EFSCXA
-#\\\|7CIRZ4L4GHV2ZNTSGZADKH6IJ3BTRGOGDFFYOMD3M733WFYZDA3 \ / AMOS7 \ YOURUM ::
-#\[7]I7NQ77FQTAQEXND6W7PNL2YD27U3UJXLCKHO4GAMNMUFXI22WWBQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,,,.,,,.,.,,,,,...,,,.,,.,,,,,,..,,...,...,..,,,,,,...,,,,,,.,,
+#YK6TMFZY2AIMGFQIKG4ZOOIS26SUNIY6IF5K2R345ZZ47OJDCXHULAXPXKV3CWONLJLCHMZEIWYI4
+#\\\|4SFKTUVXM3SQQPGLFUH6X5BBXR42ZAGB7E4DUO2PJHO65FPCBRQ \ / AMOS7 \ YOURUM ::
+#\[7]BWKYOY2SW227ZESPH5LH4G26NU6AQX2H2IWFQPRBIZKMUTLA6KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

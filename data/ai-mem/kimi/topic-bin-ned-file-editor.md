@@ -76,6 +76,12 @@ family [ structured form UI inside the running network ].
   reorder ; editor pty suite at 41. SAME expectation-lesson AGAIN :
   the blank-up case was first written with the blank after e instead
   of between d and e -- trace the buffer, THEN write the expectation
+- porting question [ user ] : NOTHING to port -- every editor feature
+  is library-side, so bin/todo details + bin/p7-vault note_editor
+  inherit them all [ smoke-verified end to end for todo : frame,
+  edit, ctrl-x save through its own on_save ] ; only ned's file-driver
+  layer [ guard \ atomic save \ rescue ] is ned-specific. offered :
+  a permanent bin/todo details pty integration test [ not built ]
 - no Event.pm / no inotify by design [ user question ] : save-time
   detection is complete; live watch is a UX feature that drags the
   editor library's private select loop into event plumbing. revisit
@@ -122,8 +128,8 @@ green : 22/22 pty + 26/26 unit.
   already exists as the client-side library family.
 - possible library hook for live external-change notification.
 
-#,,.,,..,,.,.,..,,,.,,.,,,..,,.,,,...,.,,,,.,,..,,...,...,.,.,,,,,,,.,,.,,,.,,
-#2BLLYHAN44PPVR5NSIIONJ2NJT773RCF24K65XY7CLDEZSY5NM4HUDH2PCF6RWTCOSEXXSCLTH3P6
-#\\\|JU3NV44SEBJSL7ZQZ7TEX2YF6V743TIOZUFCHK3KSJJ5R7B2ZNH \ / AMOS7 \ YOURUM ::
-#\[7]DXEPCPV3ZIT3IGIW22O2JDOYJD44FT4QLFVHIS4E72YROABKX4CY 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,,,,,,,,..,.,.,,.,,,.,,.,,,,.,,..,,...,...,..,,,,,,,.,,..,,.,.,
+#2YSJYS5WJQNQZA4A42P4ONNPCMTASBQ3RJ2JMYBSU6PSYHZ2VS4DCFD7DCAPKCVORLIHY7332WHCI
+#\\\|RBSVZCHIBIN7WBQ55R6M7LOK3JOBAR4ITL54ITR7QL6HRXUH5MV \ / AMOS7 \ YOURUM ::
+#\[7]ZEFUQEVJBQV74HSPWRYI5SYTLXT3CO6GXXPKGRJ34E2OBAT342AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
