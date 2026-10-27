@@ -428,8 +428,7 @@ sub install_profile {
                 $failed += @{ $result->{failed} };
             }
         }
-        my $cpan_available = `which cpanm 2>/dev/null`;
-        my $cpan_cmd       = $cpan_available ? 'cpanm' : 'cpan';
+        ## cpanminus was ensured above -- cpanm is the only installer here ##
 
         for my $module (@to_install_cpan) {
             $row->( $module, 'installing' );
@@ -455,21 +454,41 @@ sub install_profile {
                 }
             }
 
-            if ( not length $installed_from ) {
-                my $cmd
-                    = ( $cpan_cmd eq 'cpanm' )
-                    ? "cpanm -n $module"
-                    : "cpan -T $module 2>&1 | grep -v 'Loading internal'";
+            ## a debian package satisfies the module : apt first, cpanm ##
+            ## only when the package is unavailable                     ##
+            ## [ no build toolchain needed on the host ]                ##
+            if ( not length $installed_from
+                and $resolved->{method} eq 'debian' ) {
+                my $result = install_apt( $resolved->{pkg} );
+                if ( @{ $result->{ok} } ) {
+                    $installed_from = 'apt';
+                } else {
+                    $failed += @{ $result->{failed} };
+                    $row->(
+                        $module, 'apt failed', 'falling back to cpan', 'warn'
+                    );
+                }
+            }
 
-                my $result = system($cmd);
-                $installed_from = 'cpan' if $result == 0;
+            if ( not length $installed_from ) {
+                ## quiet cpanm keeps the report clean ; on failure the tail ##
+                ## of its output is shown as framed rows                    ##
+                my $output = qx|cpanm -q -n $module 2>&1|;
+                if ( $CHILD_ERROR == 0 ) {
+                    $installed_from = 'cpan';
+                } else {
+                    my @lines = split m{\n}, $output // '';
+                    @lines = @lines > 5 ? @lines[ -5 .. -1 ] : @lines;
+                    $row->( 'cpanm', $ARG, undef, 'warn' )
+                        foreach grep {length} @lines;
+                }
             }
 
             if ( length $installed_from ) {
                 $row->( $module, 'installed', $installed_from, 'ok' );
             } else {
                 $failed++;
-                $row->( $module, 'failed', $cpan_cmd );
+                $row->( $module, 'failed', 'cpanm' );
             }
         }
     }
@@ -1258,8 +1277,8 @@ sub show_help {
 EOL
 }
 
-#,,.,,,..,...,.,,,..,,.,.,..,,...,..,,..,,.,.,..,,...,...,,.,,...,.,,,,,.,..,,
-#H3VSFEFY6YOL3FAJG3DNYQSIWPW3GZ7AHSBKLG7X3MNXWG6S2JTXBZ2DIE3RRPZIQNGWSRK2ZN3QS
-#\\\|BCFK5QSK5ROYRGTPNTTNXJDTB7OXWVUOC6SG5GB6U3LLJK7B776 \ / AMOS7 \ YOURUM ::
-#\[7]TA2HGZX3YTNQLM2NTG3DZPBSEDGOHAPJBTF65N6BZHHV2H5XCKAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,.,,,.,,,,,,,,,,,..,,.,,,...,..,,...,...,...,..,,...,...,,,,,
+#73ZORMLE6MCHOUSSUP5NCYEFIZZLFWETA2XYSPH5ID5HAMBN7JY2ARWGE2CRRAZ5LAHP63ZJPJFHM
+#\\\|RNLXZI5PY75J4YJYQ3ITD6YORRUCVQOMIAEZPXC54R7IC4RBW5B \ / AMOS7 \ YOURUM ::
+#\[7]F37TFXEWB7PYZWIHTMXCYYGK5NXTMO5FUEAH6IBC2KZWPAHXOYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
