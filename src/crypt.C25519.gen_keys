@@ -66,7 +66,7 @@ my $fresh_secret = sub {
         0, ": C25519 : no kernel random bytes for '%s' [ fortuna only ]",
         $name
     ) if not length $kernel;
-    require Digest::BMW;    ## known dependency - loaded here ##
+    <[base.perlmod.load]>->(qw| Digest::BMW |);    ## known dependency ##
     return Digest::BMW->new(256)
         ->add( <[base.prng.bytes]>->(32) . $kernel )
         ->digest;
@@ -117,8 +117,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,.,,,,,,.,.,,.,,,..,.,,,..,,..,,.,,,.,.,,,.,..,,...,...,.,,,,.,,...,...,.,.,
-#6KCZAINLY6JUFRJD6TLY4URHSX2OT6PVOAXAYL4KZKGMXQTYDM73MVYGOOIO6L4ZHOHF7AAI3S2X4
-#\\\|ACPQGJMGYSBTP466ONGTMFR6TPVYESZXKCS4OULZ64VQDER62KF \ / AMOS7 \ YOURUM ::
-#\[7]KPKU4OA6MC6BTCA4PEKKPM67YFSHNIZUWAUZMV7M4HVX2SNIAGAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,..,,,,,,,,,...,.,,,,,.,...,,,,,..,,...,...,.,,,..,,,..,...,.,.,
+#JNUKJCC44F5KGI7XMQNRDTC3WNF7LRGXDRAQLHV6UDPW2AUACTWNRAOS2SMUVOOTAF3QWSZO2H6TS
+#\\\|JZBVXNH2GUATFZPXSJNHX5EUVQEBZCVLD752YUJHNSHJFGZQHFM \ / AMOS7 \ YOURUM ::
+#\[7]PDBP5B2D3AIESM5KLPV62ITGQPEOHUY6ETKFHGQPUC6TSMGNWODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

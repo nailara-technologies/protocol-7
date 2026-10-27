@@ -5,14 +5,14 @@
 
 my $module_reinitialization = shift;
 
-## bootstrap install off again [ v7-zenki.pre_init ] : every init_code has ##
-## run, from here on a synchronous apt-get would block the event loop --   ##
-## missing deps are the sys_deps start condition's job [ async ]           ##
-if (    exists <v7-zenki.bootstrap>
-    and exists <v7-zenki.bootstrap>->{'auto_install_was'} ) {
-    <base.perlmod.auto_install>
-        = delete <v7-zenki.bootstrap>->{'auto_install_was'} // FALSE;
-}
+## bootstrap install off again                                           ##
+## [ v7-zenki.pre_init \ the bin-level standalone-start gate ] : every   ##
+## init_code has run, from here on a synchronous apt-get would block the ##
+## event loop -- missing deps are the sys_deps start condition's job     ##
+## [ async ]                                                             ##
+<base.perlmod.auto_install> = FALSE;
+delete <v7-zenki.bootstrap>->{'auto_install_was'}
+    if exists <v7-zenki.bootstrap>;
 
 ###  temporary path registration  ###
 ##
@@ -111,8 +111,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,,,,,,,,,,,,.,.,,..,,..,...,,.,,,.,,..,,,,,,..,,...,...,..,,..,,.,.,,..,,..,
-#IQ4ZYEJ4RUCLLYGYOFTCIEXAV57UCCL6AD6YH6OSON65OJAZ7WYYD2K27KPILDZ4RM56VW2SON5DI
-#\\\|NUGLXNS62LLQOIYH4SZNDPBYBZRI4KAJ4T57BN4QFH6UIEVJVMH \ / AMOS7 \ YOURUM ::
-#\[7]INDVFIOUQRIWRMOSKXTUFFLEVP35O5GXNOOCBEQSE7FUCD2R6QDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,.,,,.,.,,,,,,..,,.,,,,.,.,,,..,,...,...,.,,,...,,,,,,,,,,.,,
+#GJRQAMVMHBGIPCVUDLCC24YUT4PVB5BMDIRFGOD6PVUIGC2WRC3KT2KV3QSXHGZQFSSEOEZQJ4RYY
+#\\\|KXA2JBAAGBCLLWLPWE4QGAJ2JUBYTBUVPNXC5U2QZS4TMZOBYXH \ / AMOS7 \ YOURUM ::
+#\[7]4QHI3YSOUZTFWFED3OAYAN7BBPDGYVLHB4KHN4NKLEFEF3FSSYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

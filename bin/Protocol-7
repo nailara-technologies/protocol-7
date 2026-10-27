@@ -44,6 +44,10 @@ p7_init_exec();                 ##  main variable initialization  ##
 
 p7_early_whitelist_load();      ##  load sub whitelist before base module  ##
 
+##  standalone-start gate : the v7-zenki opt-in applies to every start  ##
+p7_auto_install_opt_in()
+    and $data{'base'}{'perlmod'}{'auto_install'} = TRUE;
+
 p7_load_code(qw| base |);       ## loading remaining base module routines ##
 
 ###                                               ###
@@ -106,6 +110,11 @@ if ( defined $zenkaname and length $zenkaname ) {
     my $node_name = $data{'system'}{'node'}{'name'};
 
     $code{'base.init'}->( sprintf qw| %s.%s |, $node_name, $zenkaname );
+
+    ## bootstrap auto-install window closed : init has run -- from here on ##
+    ## a synchronous apt-get would block the event loop [ the same bound   ##
+    ## v7-zenki.post_init sets on the v7-zenki start path ]                ##
+    $data{'base'}{'perlmod'}{'auto_install'} = FALSE;
 
 } else {
 
@@ -5613,6 +5622,25 @@ sub p7_store_original_source {
 }
 
 ##############################################################################
+sub p7_auto_install_opt_in {
+
+    ## standalone zenka starts have no v7-zenki.pre_init to set the        ##
+    ## auto_install flag -- the host overlay opt-in applies to every start ##
+    ## here [ root only ; v7-zenki.post_init \ the end of the standalone   ##
+    ## start switch the flag off again once init is done ]                 ##
+
+    return FALSE if $UID != 0 and $EUID != 0;
+
+    my $opted_in = FALSE;
+    eval {
+        require AMOS7::deps::autoinstall;
+        my ($state) = AMOS7::deps::autoinstall::status();
+        $opted_in = TRUE if $state eq qw| yes |;
+    };
+    return $opted_in;
+}
+
+##############################################################################
 sub p7_soft_require {    ##  require without %INC poisoning on failure  ##
 
     my $module  = shift;
@@ -6816,8 +6844,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,,,,..,,..,,.,,.,.,...,..,,,.,,.,,,,,.,..,,...,.,.,.,,,...,,,.,,..,..,,
-#25QVNJK63VWD6VS3SUZQJP2UTL56ADTLFDE6O4CPKOHHVDIFYXGJRYU3OE3IIZWW4HWW3A3UCRYUI
-#\\\|ADAJ2JZBOXI5HJGBAVOKXHWH3C2AKYFR2NGZNDTGQ7CIRS4HRVF \ / AMOS7 \ YOURUM ::
-#\[7]UZUA4QMPSPGV7LH7FXJNWYHP7TKRFEDADHU54MYS53DENAA2POBI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,...,,.,,...,.,,,.,.,...,..,,..,,...,..,,,,,,,,.,.,,,...,,..,
+#3Y6ATXO6QBRPXOOTQOJUDGEOIPS2QC7ZWGAEAQU4XTIJQDYH4TRSLWRM5WGWBSHKBPS5SMIK25EGI
+#\\\|SS5ADAEXJZVAWPQ7NAAWJA3KVJ5RWHKUAUCZETQVBKTGRNNHMMJ \ / AMOS7 \ YOURUM ::
+#\[7]OOT2SJ3RBUS4MSINWJQLGSGZ7LUVWWMKFJ7OUOUVTCLS76RRPGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
