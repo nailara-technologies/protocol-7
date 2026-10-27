@@ -2709,7 +2709,32 @@ sub p7_load_code {
 
         ## todo-list : compile to seperate hash, replace on full success ##
 
-        my $sub_cref            = eval($sub_code);    ##  compiling  ##
+        my $sub_cref;
+    COMPILE_ATTEMPT:
+        for my $compile_attempt ( 0 .. 1 ) {
+            $sub_cref = eval($sub_code);    ##  compiling  ##
+            last COMPILE_ATTEMPT
+                if ref $sub_cref eq qw| CODE | and not length $EVAL_ERROR;
+
+            ## auto-install modules named in 'cannot locate' compile errors [     ##
+            ## startup window only : base.perlmod.auto_install is switched off by ##
+            ## v7-zenki.post_init -- a synchronous install can never block the    ##
+            ## running event loop ]                                               ##
+            if (    $compile_attempt == 0
+                and $EVAL_ERROR =~ m{can.t locate (\S+?)\.pm}i
+                and $data{'base'}{'perlmod'}{'auto_install'} // FALSE
+                and not $data{'base'}{'perlmod'}{'compile-install-attempted'}
+                ->{$sub_name}++
+                and defined $code{'base.perlmod.install'} ) {
+                ( my $missing_module = $LAST_PAREN_MATCH ) =~ s|/|::|g;
+                $code{'log.error'}->(
+                    sprintf ': << auto-installing missing '
+                        . 'module %s [ required by %s ] >>',
+                    $missing_module, $sub_name
+                );
+                $code{'base.perlmod.install'}->($missing_module);
+            }
+        }
         my $compilation_success = ref $sub_cref eq qw| CODE | ? TRUE : FALSE;
         $compilation_success = FALSE if length $EVAL_ERROR;
 
@@ -6770,8 +6795,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,,,,,.,,..,...,,,,,,,.,,..,,,,,,,,,...,..,,...,...,.,.,,,.,..,,,.,,.,.,
-#FNRYKOWTQ2NWQ2RWDSGTJWCMUXNZYOMVPEEPCRC7GRGYJBP4OZ2HBCZRPHBSGNEHRLR7PS2LMD7BE
-#\\\|KEP4UTZ2BYXTZE44SUX3F7237M55L42SB7JJ6GOHF3QZ6Z3KTOA \ / AMOS7 \ YOURUM ::
-#\[7]3GT33GZ6BTBTX5BYYLQHGVGDTDXBEAAISHLEPSGZU3TSYVUDRWAA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,...,,,.,,,,,.,.,.,,,.,,,.,.,,,,,..,,...,...,...,,,,,,.,,,,,,...,
+#HQ23OB4SLVM36R5TDXBXA6XI5FVEARCBVCA3DGP2VIFBUJGAHYSUYA32KQR54AXBTKRYFTA6H4HS2
+#\\\|SRYXB5KZLBGZHHHIEBEZXWKH5NP4FRIJKOYUQZS7JACVML3GOPK \ / AMOS7 \ YOURUM ::
+#\[7]BVQVTWFAJBFTYHKFX6OOCIAPXGWUAGYRDVWDSWROHLGJ2CT6OKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
