@@ -5376,15 +5376,22 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
 
                             ##  BMW chksum  ##
                             my $sub_bmw_chksum = eval {
-                                require Digest::BMW;    ## no-op when loaded
+                                ## on demand [ opt-in ]
+                                p7_ensure_bmw_digest();
+                                ## encode_b32r [ idempotent ]
+                                p7_load_B32_routines();
                                 encode_b32r(
                                     Digest::BMW::bmw_256(
                                         $decomp_buffer_sref->$*
                                     )
                                 );
                             };
-                            $code{'base.error_exit.inline_loading'}
-                                ->( 'chksum calculation failed', $subroutine )
+                            $code{'base.error_exit.inline_loading'}->(
+                                sprintf( 'chksum calculation failed [ %s ]',
+                                    $code{'base.format_error'}
+                                        ->( $EVAL_ERROR, -1 ) ),
+                                $subroutine
+                                )
                                 if not defined $sub_bmw_chksum
                                 or not length $sub_bmw_chksum
                                 or length $EVAL_ERROR;
@@ -5549,12 +5556,45 @@ sub p7_store_original_source {
 }
 
 ##############################################################################
+sub p7_ensure_bmw_digest {
+
+    ## strategic on-demand install for the BMW digest : same policy as the  ##
+    ## bootstrap auto-install [ v7-zenki.pre_init ] -- root + the host      ##
+    ## opt-in [ v7-zenki.cfg.auto_install_deps ] that sets the auto_install ##
+    ## flag.  resolution order lives in base.perlmod.install                ##
+    ## [ debian -> pm-src -> cpanm ] ; when unavailable the callers fall    ##
+    ## back to core SHA-256 names                                           ##
+
+    return TRUE if defined &Digest::BMW::bmw_256;
+
+    ## plain load first : no-op once loaded, no gates -- the strategic    ##
+    ## install below is only for hosts that do not have the module at all ##
+    ## [ root + the host opt-in, same policy as v7-zenki.pre_init ]       ##
+    eval { require Digest::BMW };
+    return TRUE if defined &Digest::BMW::bmw_256;
+
+    if (    ( $UID == 0 or $EUID == 0 )
+        and ( $data{'base'}{'perlmod'}{'auto_install'} // FALSE )
+        and defined $code{'base.perlmod.install'} ) {
+        my $install_result
+            = eval { $code{'base.perlmod.install'}->(qw| Digest::BMW |); };
+        $code{'base.log'}->(
+            sprintf ': digest module Digest::BMW installed on demand [ %s ]',
+            $install_result->{'success'} ? qw| ok | : qw| failed |
+        ) if defined $code{'base.log'};
+    }
+
+    return defined &Digest::BMW::bmw_256 ? TRUE : FALSE;
+}
+
+##############################################################################
 sub p7_generate_subroutine_checksum {
     my ( $source_code, $sub_name ) = @ARG;
 
     # Calculate checksum using BMW algorithm
     my $checksum = eval {
-        require Digest::BMW;    ## no-op when already loaded ##
+        p7_ensure_bmw_digest();    ## <-- install on demand when permitted ##
+        p7_load_B32_routines();    ## <--    encode_b32r [ idempotent ]    ##
         encode_b32r( Digest::BMW::bmw_256($source_code) );
     };
 
@@ -6679,8 +6719,8 @@ __DATA__
 :
 :.
 
-#,,.,,...,,.,,...,..,,,.,,..,,.,.,.,,,..,,,,,,..,,...,...,.,.,..,,.,.,,,.,.,.,
-#EQ6QU32FEH2CJRJHBV6ILBRXWC54C57AA5FTJNGDLNJUGSJTNXHMVQGOTUYWXDMD4FPPCBKMSVIRI
-#\\\|YK6UBFBE2J6OD5VR5HWTH66YDQGJ7XUUH5BKSWQXTRBQDH6PWF3 \ / AMOS7 \ YOURUM ::
-#\[7]FDMAOYLCFHJLPTKQJDGDRWSP47LZNBSNFT2SKPBMCJ53OAP4J4CA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,.,.,,..,,.,,,,.,,.,,...,..,,..,,...,...,,..,.,,,.,,,.,.,,,.,
+#7VJC36KPO5U6GYY6XDKPMFANT2B3T2CMYJUJAWN3H6QBM43VHVC4ISZIK4VDBD7UATLEWBIBTL4O2
+#\\\|2L4AFSGMM6CQRCNFYX5RVJ4YDQM5MIU3UY4ZC3VMBGOKQAWTKLO \ / AMOS7 \ YOURUM ::
+#\[7]WERZHVYUZKDW7OCWMM2MKAQHMIEAVDMG5XKMORFWATRPP6J3QYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
