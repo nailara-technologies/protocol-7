@@ -97,23 +97,23 @@ reached` — GNOME's power plugin asking, logind complying.
    cannot wake from S3 regardless. That is acceptable for a host that must
    never sleep anyway.
 
-## Installer / provisioning integration notes
+## Installer / provisioning integration
 
-- Natural home: a `bin/p7-deps` step (e.g. `p7-deps host-power` or folded
-  into `install-service`), driven by the host profile — server profiles
-  apply everything, desktop profiles only the wakeup trim.
-- The gsettings part is the only user-session-dependent piece; everything
-  else is root-only and safe to run from the installer.
-- The ACPI device names (RP09/RP07/XHCI) are machine-specific — read
-  `/proc/acpi/wakeup` at runtime instead of hardcoding; disable everything
-  except the RTC (`AWAC`-class `platform:ACPI000E`) by default.
-- Detect the DE from the installed packages to pick the right
-  idle-suspend key (GNOME key shown above; KDE/XFCE have their own).
-- Keep the systemd mask unconditional — it is the backstop that makes the
-  whole thing robust against future config drift and distro updates.
+Implemented as `bin/p7-deps host-power` [ `AMOS7::deps::hostpower` ] —
+one command applies all of the above: masks the sleep targets, installs
+and enables the guard-based wakeup-disable oneshot [ device names read
+from `/proc/acpi/wakeup` at run time, RTC class excepted ], and sets the
+GNOME idle-suspend keys to `nothing` per logged-in session user [ a warn,
+not a failure, when no session bus is reachable ]. Testable against a
+temporary root via `P7_DEPS_SERVICE_ROOT` ; pure helpers covered by
+`bin/test-scripts/test-p7-deps-host-power.pl`.
 
-#,,,,,..,,,,,,.,,,..,,.,,,,.,,,,.,.,.,.,.,,.,,..,,...,..,,..,,,.,,.,.,.,.,.,.,
-#WNX4742XRXJFSAS45YI7RW5MK6SKY4MPXM7C2HVSF7Q4REDHARCXDERK7E5PPVCPJT7IDS47AZCHG
-#\\\|SRLPSSBIU6U3H22KOJWDDXKC7F7ZFJ5LGSP3JEZ6LAVUMRVYBWS \ / AMOS7 \ YOURUM ::
-#\[7]GHKGMXHUYG5NVMZG2UJC2GU5VQLO6QCAHKZDVFMSG3ZTSC32WGDA 7  DATA SIGNATURE ::
+Natural next steps : a host profile flag that runs it automatically after
+`install-service` on server-duty profiles, and DE detection beyond GNOME
+[KDE / XFCE keep their own idle-suspend keys].
+
+#,,,.,.,.,,,,,,..,..,,,.,,,.,,.,,,.,,,,..,.,,,..,,...,.,.,.,,,...,..,,,,,,,..,
+#TLAJKH6LFNGIQ2TAIKPZLR4YXPGSEHCI55DD3YDRLZRZJNI2FSZOG67OKNZAPD3PEDP33VK3VLTFI
+#\\\|KDBJQHNBRNUW5R7QXRV6OQWGZ6IFVZI7HBLWM2FRDEF37OUAZUW \ / AMOS7 \ YOURUM ::
+#\[7]2QXY6VEH5B4DDVZMF3YNWQ3HCYSOODBR6QNHRH6JPIG4HCPTRCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
