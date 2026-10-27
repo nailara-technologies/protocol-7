@@ -24,10 +24,10 @@ use warnings;
 ## installer [ git ls-remote is its only network call ].
 ##
 ## standalone on purpose : core perl only. a copy for a bare host needs this
-## file plus AMOS7.pm, AMOS7/TERM/Frame.pm and AMOS7/deps/debp.pm
-## [ as AMOS7/ beside it ] -- the repo layout works as it is. without
-## AMOS7/deps/tracked.pm a copy cannot read a recorded profile and the
-## 'minimal' default applies, as on a fresh host
+## file plus AMOS7.pm, AMOS7/TERM/Frame.pm, AMOS7/deps/debp.pm and
+## AMOS7/deps/aptlog.pm [ as AMOS7/ beside it ] -- the repo layout works as it
+## is. without AMOS7/deps/tracked.pm a copy cannot read a recorded profile and
+## the 'minimal' default applies, as on a fresh host
 ##
 ## env P7_INSTALL_ROOT prefixes the install path and the service targets
 ## [ test roots ; root is not needed then ]
@@ -46,7 +46,8 @@ use AMOS7::TERM::Frame qw|
     frame_column_line frame_title_banner frame_section_header
     frame_status_row frame_error_exit
     |;
-use AMOS7::deps::debp qw| probe_apt_fresh |;
+use AMOS7::deps::debp   qw| probe_apt_fresh |;
+use AMOS7::deps::aptlog qw| condense |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -182,16 +183,13 @@ sub step_base_packages {
     }
 
     {
-        local $ENV{'DEBIAN_FRONTEND'}          = qw| noninteractive |;
-        local $ENV{'APT_LISTCHANGES_FRONTEND'} = qw| none |;
-
         ## stale package lists on a fresh host : refresh first. a failed ##
         ## refresh is reported, the install may still work without it    ##
-        my $update_exit = run_cmd(qw| apt-get -q update |);
+        my $update_exit = run_apt_streamed(qw| apt-get -q update |);
         row( 'apt-get update', 'failed', "exit $update_exit" )
             if $update_exit != 0;
 
-        run_cmd( qw| apt-get -q -y install |, @missing );
+        run_apt_streamed( qw| apt-get -q -y install |, @missing );
     }
 
     ## the result is what dpkg says now, not apt-get's exit code ##
@@ -417,6 +415,93 @@ sub step_service_state {
     return TRUE;
 }
 
+##[ apt output : condensed and styled ]#######################################
+
+## list-form apt-get ; its raw output streams through the AMOS7::deps::aptlog
+## condenser line by line and is emitted as produced -- nothing waits for the
+## command to finish. the noninteractive env travels INSIDE the command line
+## [ a wiped caller env never reaches the child otherwise ].  returns the exit
+## code [ 127 : not run ]
+sub run_apt_streamed {
+    my (@cmd) = @ARG;
+
+    my @env_cmd = (
+        qw| env |,
+        qw| DEBIAN_FRONTEND=noninteractive |,
+        qw| APT_LISTCHANGES_FRONTEND=none |,
+        qw| UCF_FORCE_CONFFOLD=true |,
+        qw| UCF_FORCE_CONFMISS=true |,
+        qw| PAGER=/bin/true |,
+        @cmd
+    );
+
+    my $pid = open( my $fh, '-|' ) // return 127;
+    if ( $pid == 0 ) {
+        open( STDERR, '>&', \*STDOUT );
+        exec { $env_cmd[0] } @env_cmd;
+        exit 127;
+    }
+
+    ## apt talks tty progress on '\r' -- split both separators, skip the ##
+    ## blank padding fragments                                           ##
+    my %state;
+    while ( my $chunk = <$fh> ) {
+        foreach my $line ( split m{[\r\n]+}, $chunk ) {
+            next unless length $line;
+            my $result
+                = condense( { 'lines' => [$line], 'state' => \%state } );
+            apt_emit($ARG) for @{ $result->{'data'}->{'lines'} };
+        }
+    }
+    close($fh);
+    my $exit = $CHILD_ERROR == -1 ? 127 : $CHILD_ERROR >> 8;
+
+    ## the dropped-routine-lines summary belongs to this command ##
+    my $result
+        = condense( { 'lines' => [], 'state' => \%state, 'final' => 1 } );
+    apt_emit($ARG) for @{ $result->{'data'}->{'lines'} };
+
+    return $exit;
+}
+
+## one condensed apt line in, one framed row out -- the same styling
+## bin/p7-deps dist-upgrade emits ; errors and prompts stay verbatim
+sub apt_emit {
+    my ($line) = @ARG;
+    if ( $line =~ m{^:\.\s(.+)\s\.\.,$} ) {
+        say frame_section_header($1);
+    } elsif ( $line =~ m|^(\S+)\s{2}(\S+) -> (\S+)\s{2}(\S+)$| ) {
+        my ( $pkg, $old, $new, $size ) = ( $1, $2, $3, $4 );
+        say frame_status_row(
+            $pkg,
+            $old eq qw| new | ? qw| installed | : qw| upgraded |,
+            {   'detail' => sprintf '%s -> %s  %s',
+                $old, $new, $size,
+                'level' => qw| ok |
+            }
+        );
+    } elsif ( $line =~ m|^(\S+)\s{2}removed\s{2}(\S+)$| ) {
+        say frame_status_row( $1, qw| removed |, { 'detail' => $2 } );
+    } elsif ( $line =~ m{^\.\. (\d+) names : (.+)$} ) {
+        say frame_status_row( '..', $2,
+            { 'detail' => sprintf '%d names', $1 } );
+    } elsif ( $line =~ m{^\.\. (\d+) routine lines condensed$} ) {
+        say frame_status_row(
+            '..',
+            'routine lines condensed',
+            { 'detail' => $1 }
+        );
+    } else {
+        my $level
+            = $line  =~ m{^(?:Err:|E:|W:)}
+            || $line =~ m{NO_PUBKEY|couldn't be verified}
+            ? qw| warn |
+            : qw| value |;
+        say frame_status_row( qw| apt |, $line, { 'level' => $level } );
+    }
+    return TRUE;
+}
+
 ##[ helpers ]#################################################################
 
 ## a p7-deps command of the checkout ; dry run : reported, never run      ##
@@ -534,8 +619,8 @@ EOL
     return TRUE;
 }
 
-#,,,,,,.,,..,,,,.,,,.,.,,,.,.,,.,,.,.,,,.,...,..,,...,...,.,,,,..,.,.,..,,,,.,
-#U5VVMAMZLOP5Q2IPNG3QZMKCP2QD5O2V3SG5JDDQ7RBAOEJLBWROVQWBPANTYQWD6KCV74GXFRMTK
-#\\\|CFJKAUDOUHYRVWN4KR7TWQ5TEF4XXNSXBTBBEFQP3XJDJGFYNFJ \ / AMOS7 \ YOURUM ::
-#\[7]AK5RDSGQZRWJ2J3JLWMGDE4XIAQBK2N4Y7UQYKQELG6UJEH34QBY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,.,,,,,,,,,,,,,,,..,,.,,,..,.,.,..,,...,...,...,,,,,,,.,.,,,,,.,
+#HSHBBMAPXOIH6IAGLNLXSVS5TKXFITRW6EXRCTJK2ZBBMULHGIHDA3V3FYNV72QMXMV2B3LI2EKI4
+#\\\|4NEUOLBY52P5WVYVBVQQQWHFX77VKAZX4BB5WKVUIC5T62XAB2D \ / AMOS7 \ YOURUM ::
+#\[7]H3Z6TGASE6LGQWIKMGHSJIAJX5P6IAM57INQX4BT5XMJJ3EP5ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

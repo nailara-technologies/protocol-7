@@ -412,6 +412,22 @@ sub install_profile {
 
     ## install cpan modules ##
     if (@to_install_cpan) {
+        ## cpanm does the installs -- on a host without it cpanminus comes  ##
+        ## from apt first ; only when that fails the slow cpan shell is the ##
+        ## fallback                                                         ##
+        if ( not `which cpanm 2>/dev/null` ) {
+            $row->( 'cpanminus', 'installing', 'apt' );
+            my $result = install_apt(qw| cpanminus |);
+            if ( @{ $result->{ok} } ) {
+                $row->( 'cpanminus', 'installed', 'apt', 'ok' );
+            } else {
+                $row->(
+                    'cpanminus',            'unavailable',
+                    'falling back to cpan', 'warn'
+                );
+                $failed += @{ $result->{failed} };
+            }
+        }
         my $cpan_available = `which cpanm 2>/dev/null`;
         my $cpan_cmd       = $cpan_available ? 'cpanm' : 'cpan';
 
@@ -1242,8 +1258,8 @@ sub show_help {
 EOL
 }
 
-#,,..,..,,,..,,,.,...,,.,,.,,,..,,.,,,,,,,.,.,..,,...,..,,.,.,.,.,.,.,.,,,,,,,
-#7KQKDCO3SOSXADKUZY2W3GSKL5ZIXRYXJJ3LW2YJNZ2TJON4N37CGSWMH74T7UM4OV6RFAPFVZURK
-#\\\|I6H47I5ET4FEX52OOXCUJN5T7OL4MPWT53Z3NXWL55QHT7AMPHC \ / AMOS7 \ YOURUM ::
-#\[7]3RKTR22ZXYIE4DBNMWZCKR2UDYDSU7SSVD4GNTWHOV53DMIOICBQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,,,..,,.,.,..,,...,..,,..,,.,.,..,,...,...,,.,,...,.,,,,,.,..,,
+#H3VSFEFY6YOL3FAJG3DNYQSIWPW3GZ7AHSBKLG7X3MNXWG6S2JTXBZ2DIE3RRPZIQNGWSRK2ZN3QS
+#\\\|BCFK5QSK5ROYRGTPNTTNXJDTB7OXWVUOC6SG5GB6U3LLJK7B776 \ / AMOS7 \ YOURUM ::
+#\[7]TA2HGZX3YTNQLM2NTG3DZPBSEDGOHAPJBTF65N6BZHHV2H5XCKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
