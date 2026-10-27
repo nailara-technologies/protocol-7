@@ -29,19 +29,22 @@ if ( not @export and <[base.perlmod.loaded]>->($module_name) ) {
 
 eval { Module::Load::autoload( $module_name, @export ) };
 
-## a previously failed require leaves a stale %%INC entry -- the next    ##
-## attempt then dies with 'attempt to reload ... aborted', shadowing the ##
-## real problem and blocking auto-install : drop it and retry once       ##
-if ( length $EVAL_ERROR
-    and $EVAL_ERROR =~ m{attempt to reload \S+ aborted}i ) {
-    ( my $pm_file = "$module_name.pm" ) =~ s|::|/|g;
-    if ( exists $INC{$pm_file} ) {
-        delete $INC{$pm_file};
-        <[base.logs]>->(
-            2, ":. stale %%INC entry dropped [ %s ] .,", $pm_file
-        );
-        eval { Module::Load::autoload( $module_name, @export ) };
-    }
+## a previously failed require leaves a stale %%INC entry -- the next     ##
+## attempt then dies with 'attempt to reload ... aborted', shadowing the  ##
+## real problem and blocking auto-install. drop the poisoned entry        ##
+## [ named in the error itself -- nested requires poison their own ] and  ##
+## retry, bounded : a module with several broken deps heals one entry per ##
+## round                                                                  ##
+my $heal_rounds = 0;
+while ( length $EVAL_ERROR
+    and $EVAL_ERROR =~ m{attempt to reload (\S+?) aborted}i
+    and $heal_rounds < 3 ) {
+    my $poisoned = $LAST_PAREN_MATCH;
+    last if not exists $INC{$poisoned};
+    delete $INC{$poisoned};
+    <[base.logs]>->( 2, ":. stale %%INC entry dropped [ %s ] .,", $poisoned );
+    eval { Module::Load::autoload( $module_name, @export ) };
+    $heal_rounds++;
 }
 
 if ( not length $EVAL_ERROR ) {    # success #
@@ -143,8 +146,8 @@ if ( length $EVAL_ERROR ) {
 
 return TRUE;         ## true ##  [ module loaded ]
 
-#,,,.,,..,,,,,.,.,,,.,,..,...,,.,,.,.,,.,,,..,..,,...,...,...,...,,,,,.,,,,,.,
-#4JRCOC5OEN7CK24B75EXVXCGMKT6GRBVXWCAGW6ZFXWHY52UOK4WBP3II72EGSZYEQPO3RH34SBZ6
-#\\\|BWKNM5JRVQJHY6OWRBOHV6LTS5MDWBSYAEG6BWJ3TN7QCJKS7WO \ / AMOS7 \ YOURUM ::
-#\[7]JMXB7D2P7MVY3TNGWVFQZBNN7OUOWFFXNDQCTEUBS6F4NPELVUAI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,,,,,.,.,...,,,.,,..,...,,,.,..,,...,...,.,,,...,,,,,.,,,.,,,
+#4JSE5RDL4IV5M3OL2HN2I3UWXPKWA6UJRXLKRUBD45I5W7AATPX7MIVHAQET3CGO7OKUWUE7BHUT4
+#\\\|TPED7D5VWML565NM4ULXEGK5L367HIAHLROT65VVXYB5HJIBCOC \ / AMOS7 \ YOURUM ::
+#\[7]TN24LH3A6AXPXJXCVTPKN3RWLQRBZZTDHKRCN36TTR4JMUSZMOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
