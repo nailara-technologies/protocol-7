@@ -51,6 +51,7 @@ use AMOS7::deps::hw_detect qw| detect_hardware write_hw_profile |;
 use AMOS7::deps::debp      qw| probe_apt install_apt |;
 use AMOS7::deps::tracked   qw| record |;
 use AMOS7::deps::dist_upgr ();
+use AMOS7::deps::hostpower ();
 use AMOS7::TERM::Frame     qw|
     frame_column_line frame_title_banner frame_section_header
     frame_status_row frame_error_line frame_error_exit frame_option_list
@@ -164,6 +165,8 @@ if ( $cmd eq 'check' ) {
     exit( $all_ok ? 0 : 1 );
 } elsif ( $cmd eq 'detect-hw' ) {
     cmd_detect_hw(@ARGV);
+} elsif ( $cmd eq 'host-power' ) {
+    cmd_host_power();
 } elsif ( $cmd eq 'help' || $cmd eq '--help' || $cmd eq '-h' ) {
     show_help();
 } else {
@@ -1111,6 +1114,22 @@ sub cmd_check_service {
     return $all_ok;
 }
 
+## the azurum lessons as one command : mask the systemd sleep targets, install
+## + enable the ACPI wakeup-disable oneshot, set GNOME idle suspend to nothing
+## per session user [ a warn, not a failure ]
+sub cmd_host_power {
+    require_root_for_service();
+    banner('host power management');
+    say frame_section_header('suspend and wakeup');
+    my $result = AMOS7::deps::hostpower::run();
+    my $failed = print_service_report( $result->{'rows'},
+        $result->{'ok'}
+        ? [ 'host power', 'ok' ]
+        : [ 'host power', 'incomplete', undef, 'warn' ] );
+    say frame_column_line();
+    exit 1 if $failed;
+}
+
 ## the report rows [ part, status, detail ], then a result row below a '::' ##
 ## line when given -- returns the count of failed parts                     ##
 sub print_service_report {
@@ -1264,6 +1283,13 @@ sub show_help {
 
     none of the service commands starts, stops or restarts the service.
 
+    host-power ......................  keep a host awake : mask the systemd
+                                       sleep targets, install \ enable an
+                                       ACPI wakeup-disable oneshot [ RTC
+                                       stays enabled ], set GNOME idle
+                                       suspend to nothing per session user
+                                       [ warn, not failure, without a bus ]
+
     zenka-modules [zenka] ..........  perl modules the zenki declare
     zenka-packages [zenka] .........  os packages the zenki declare
     validate .......................  the zenka dependency declarations
@@ -1277,8 +1303,8 @@ sub show_help {
 EOL
 }
 
-#,,,.,.,,,,.,,..,,.,,,.,,,,,,,,,,,..,,.,,,...,..,,...,...,...,..,,...,...,,,,,
-#73ZORMLE6MCHOUSSUP5NCYEFIZZLFWETA2XYSPH5ID5HAMBN7JY2ARWGE2CRRAZ5LAHP63ZJPJFHM
-#\\\|RNLXZI5PY75J4YJYQ3ITD6YORRUCVQOMIAEZPXC54R7IC4RBW5B \ / AMOS7 \ YOURUM ::
-#\[7]F37TFXEWB7PYZWIHTMXCYYGK5NXTMO5FUEAH6IBC2KZWPAHXOYCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,..,,.,,,,,,,,.,,,.,,...,,..,..,,...,...,,.,,..,,.,.,..,,..,,
+#AS33O5C5PQWGYCVXCP5BNFVHUEFJXHNWCFEJ22FA7W3W7GB6Y7PVTYX6L2H3V3PUWKW3QVQ55D2YM
+#\\\|A6X4RT26JIEPXT3JH3YCUIXPWO3GYMNM37Y7K5KLZ2RKSLMCEEL \ / AMOS7 \ YOURUM ::
+#\[7]FOE2SYJPIIDYI6255HLITMYD54Y773VNTZKOSJXYDRZKDVECV4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
