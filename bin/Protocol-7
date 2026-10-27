@@ -3430,14 +3430,14 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
             if ($EVAL_ERROR) {
                 $code{'log.error'}->(": loading not successful [ $ARG ]");
                 ## give up assertions to not cause infinite loops ##
-                $data{'base'}{'perlmod'}{'loading-failed'}->{$ARG} = 1;
+                $data{'base'}{'perlmod'}{'loading-failed'}->{$ARG} = TRUE;
                 return 1;
             } else {
-                $data{'base'}{'perlmod'}{'loaded'}->{$ARG} = 1;
+                $data{'base'}{'perlmod'}{'loaded'}->{$ARG} = TRUE;
                 $code{'log.devmod'}->(": loaded perl module '$ARG'.,");
             }
         }
-    } (qw| Digest::Elf Math::BigFloat |);
+    } (qw| Math::BigFloat |);
     ##
 
     ##                                   ##
@@ -3529,13 +3529,27 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
 
         $elf_checksum = $code{'chk-sum.elf'}->( \$input_string );
 
-    } else {    ## use fallback algorithm [ different settings ] ##
+    } else {    ## true AMOS-13-ELF-7 from the AMOS7 module tree ##
 
-        $elf_checksum = Digest::Elf::elf($input_string);
+        state $amos_elf_load_attempted = FALSE;
+        if ( not $amos_elf_load_attempted ) {
+            ## soft : modulo 13 below carries when unavailable ##
+            eval { require AMOS7::CHKSUM::ELF };
+            $amos_elf_load_attempted = TRUE;
+        }
+        $elf_checksum = AMOS7::CHKSUM::ELF::elf_chksum( \$input_string )
+            if defined &AMOS7::CHKSUM::ELF::elf_chksum;
 
     }
 
-    if ( defined &AMOS7::Assert::Truth::true_int ) {
+    if ( not defined $elf_checksum ) {
+
+        ##  no elf checksum source available [ soft degraded ]  ##
+        $data{'base'}{'perlmod'}{'loading-failed'}{'AMOS7::CHKSUM::ELF'}
+            //= TRUE;
+        return TRUE;    ##  cannot assert : keeping flow alive  ##
+
+    } elsif ( defined &AMOS7::Assert::Truth::true_int ) {
 
         return TRUE
             if AMOS7::Assert::Truth::true_int($elf_checksum);    ## true ##
@@ -6722,8 +6736,8 @@ __DATA__
 :
 :.
 
-#,,.,,.,,,,,,,...,.,,,.,.,,,,,.,,,.,,,.,,,,,,,..,,...,...,,..,.,,,,..,.,.,.,,,
-#VILHIBBF3RCMDMO7KDMIJWJLR6HWLUUT3INSCYIAFFRPAUZEKDTI5F35XNZVQ7YSSJKQFLQEV7FNW
-#\\\|NLNPZMQ2MXK6HB6GDHXVVYTLU4LUR24C43DXFFJACCNOOTBZQXM \ / AMOS7 \ YOURUM ::
-#\[7]BGSF4WKOLFENFGWPAXDV4UNZVEDYI7QTARUQVWFCOFSB5OMAB4DQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,,,,.,,,,.,.,.,...,..,,,.,,,..,..,,...,...,.,,,..,,.,,,,,.,..,,
+#THOODRUAYO2EYR2GNEUTZJ5NVRV5QW7X2E7BKDIYSXIVLDYIBEQUYPDSN6T52RQV7D77QQ5FVRTD4
+#\\\|6D6MMA4O3YQ6GROBAKWXGP5TPUV6F7F2TLGMK46ZUZT63PQPKIB \ / AMOS7 \ YOURUM ::
+#\[7]FZ4MQQTA36XVQW6V65MY2NY7W6PY6IMUUZDBC4KNUB2PEGOR4ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
