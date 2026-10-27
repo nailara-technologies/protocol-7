@@ -18,13 +18,17 @@ use Cwd             qw| abs_path |;
 use File::Path      qw| make_path |;
 use List::MoreUtils qw| minmax |;
 
-use Digest::BMW qw| bmw_256 |;       ## path name generation ##
-use Crypt::Misc qw| encode_b32r |;
+## optional digest module : the core fallback below keeps this module    ##
+## loadable without it [ cf. the Inline/C guard further down ] -- path   ##
+## names stay printable and deterministic ; AMOS7::B32 is pure perl and  ##
+## byte-identical to Crypt::Misc, so no optional dependency for encoding ##
+use AMOS7::B32 qw| encode_b32r |;
+eval { require Digest::BMW; Digest::BMW->import(qw| bmw_256 |) };
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS7;                           ## error handling ##
-use AMOS7::FILE;                     ## get_homepath ##
+use AMOS7;          ## error handling ##
+use AMOS7::FILE;    ## get_homepath ##
 
 our $devmod_output_to_console = FALSE;    ##  display build warnings  ##
 
@@ -371,17 +375,30 @@ sub encoded_bmw_chksum {
     return warn_err( 'expecting subroutine source code', 0 )
         if not length $subroutine_source;
 
-    ## shortened BMW chksum for path name creation ##
-    my $bmw_checksum   = bmw_256( encode_b32r($subroutine_source) );
+    ## shortened BMW chksum for path name creation [ core SHA-256 fallback  ##
+    ## when the optional module is absent -- path names stay printable \    ##
+    ## deterministic ; AMOS7::B32 keeps the base32 form identical to the    ##
+    ## Crypt::Misc one, and hosts that later install Digest::BMW simply get ##
+    ## BMW-keyed names, old caches keyed on them stay untouched ]           ##
+    my $bmw_checksum   = _src_digest($subroutine_source);
     my $src_chksum_bin = sprintf qw| BMW=%s |, substr( $bmw_checksum, 0, 5 );
 
-    return encode_b32r($src_chksum_bin);  ## required printable char prefix ##
+    return encode_b32r($src_chksum_bin);    ## required printable prefix ##
+}
+
+## BMW-256 over the base32 form when available, core SHA-256 otherwise -- ##
+## both deterministic, so path names remain stable per host               ##
+sub _src_digest {
+    my $source = shift // '';
+    return bmw_256( encode_b32r($source) ) if defined &bmw_256;
+    require Digest::SHA;
+    return Digest::SHA::sha256_hex( encode_b32r($source) );
 }
 
 return TRUE ##################################################################
 
-#,,,,,.,,,,..,,.,,.,,,...,,..,,,,,,,,,.,,,.,.,..,,...,...,...,...,..,,,,,,..,,
-#OO7NOE3LJN4I3R4D6QVH52MOS3EQTWSIUJGQGBBP7RIMPD7SFBWWBYEJKYACFHLQ4A5FIW2KOVWWU
-#\\\|4ZDOIKVXDBFQ5LHVWU2GHFM2IGBNHV4XLQSK6GFKF3HJGRZNXZP \ / AMOS7 \ YOURUM ::
-#\[7]QKIKXCYMPWKMEWRWZHQI3FIT5JBP2GI3R2AJ7I4YUKSR55VCRKBI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,..,,.,,,,..,...,,,.,,..,,,.,,,.,..,,...,...,.,.,,.,,,.,,,..,.,,,
+#2ZHD433A4MBAZBJ34QXLGBNPW6YV5JIRM6WUTVVBE5FPP3O34SPP5U27GJ57OVYCY2U2EHA3RB3NY
+#\\\|G3VH56IZ6UDXXYJS6YTMQPEM5BSG5ID4BAULZUVTOTLSIIAHYVK \ / AMOS7 \ YOURUM ::
+#\[7]LETOFCTAWSMIR65XH55SASZH5MIQBIW4C65TIBJNF7AXQHLVJ4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
