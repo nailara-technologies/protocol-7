@@ -611,6 +611,11 @@ sub detail_editor_wrap_segments {
     ## [ 'wrap_words => 0' ] packs characters full-width the historical way
     my ( $text, $vw, $wordwise ) = @_;
     $text = _display_sanitize( $text // '' );
+    ## headless callers can hand in a zero or negative width
+    ## [ no tty -> terminal size 0 ] : the hard floor below would then strip
+    ## ZERO characters and spin forever
+    ## [ witnessed 2026-10-27 : wrap test at 99% cpu for 9h ]
+    $vw = 1                            if not defined $vw or $vw < 1;
     return ('')                        if not length $text;
     return ( $text =~ m|(.{1,$vw})|g ) if not $wordwise;
     my @seg;
@@ -2031,8 +2036,8 @@ sub edit_text {
 
 1;
 
-#,,.,,...,,,.,,.,,.,,,,,.,,,.,,.,,,,,,,..,,,,,..,,...,...,...,,,.,,,.,,,,,.,,,
-#XNKSFZ5KEDJOSFK5NDKIUVSDFMU5I26OYGRLWEGUYMXMDPMICP4KM6Q5BDLACTR72JYMUPJJUUFL6
-#\\\|ABQ7W3J445GZX5BRBP7LIQY2OSRUJAEMD6Z42NEKN4LIZCULWZA \ / AMOS7 \ YOURUM ::
-#\[7]QV66OL2ZES4SNVJ6BWBNXOMF63THWSY7L54G4FEJ2BVI4TMDFCBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,,,,,.,.,,,,,.,,,.,,,.,,.,,,,.,..,,...,...,.,,,,..,.,.,..,,,,.,
+#3JHZVOJZ3LHORD6XVBBEAVSDNWX7UXDXYUFHV5UA6JMLOJJ7QSW7TADM5SNCDUOKQO7ZSZMRD5TLK
+#\\\|QTTARXB4KVOHUVUHTGHSCJJZWC3YVDK76GXBV6NMI6DJB4FGEEB \ / AMOS7 \ YOURUM ::
+#\[7]3SFRSEWBTL3ZZ4V5HITFWWDG2E3D3SEEXRJ7NZAINXTEBXAQCSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
