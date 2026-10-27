@@ -37,9 +37,17 @@ fork for qwen 2.1 t2i , ik_llama.cpp , prismml-llama.cpp ].
 
 ## phase 1 : agent runtime chain [ most useful first ]
 
+**UPDATE 2026-10-27 [ late ] : `bin/p7-install` landed [ parallel session ] --
+the bare-to-service bootstrap exists : apt base -> checkout -> p7-deps
+profile -> systemd unit , idempotent , standalone core-perl. it covers
+the base layer through `.deps/profiles.yaml` [ apt+cpan ] -- so phase 1's
+tier-0 work below becomes 'what p7-install does NOT yet bootstrap', and
+the registries remain the audit\ensure view over it .**
+
 **1.1 os-pkg tier-0.** register `uv` and `nodejs`/`npm` [ apt ] -- nothing
 above tier 0 is resolvable on a fresh machine without them ; they are
 untracked anywhere today [ checked .deps/profiles.yaml , 2026-10-27 ].
+natural home : a tier-0 step\profile inside the p7-install path.
 
 **1.2 ext-pkg split of the mismatched kimi-cli entry.** today its check
 [`command -v kimi`] matches the *native* binary while its install
@@ -87,8 +95,8 @@ check-run over every registry [ fold into the coverage audit ] turns
 - ongoing version management [ tools own their updates ].
 - replacing any tool's own updater.
 
-#,,,.,.,,,...,,,,,,..,,,,,...,.,,,.,.,,,,,,..,..,,...,...,,..,...,..,,...,,..,
-#J3CKG7RJ3HOW6BRBZDSCKYLKHOC23V47PSJKZHTJCD7LUO3DCKACOTAZHJUHMNLALQ2ZV7RTTHAAE
-#\\\|WZS4GWL3WTTA66GT5DDMOBP5KVCMYUJHIU47HWUHL3SFSAKWJKH \ / AMOS7 \ YOURUM ::
-#\[7]4BIQHDZHLTG5SEG4VYHAOOT5GECZ4BC2GV35FCHX7T6R5N335SAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,...,..,,.,.,,.,,,,,,,.,,.,,,..,,...,...,.,.,..,,.,.,.,,,,,,,
+#DAR6ZF425ZA5M3WTLMBC5M7TTVQBFHURE3ET23XUG4W2IWT2HTJHE3UZWJ6AXWTIV5YSQS4UMJ64U
+#\\\|APZR6NR7SL637VVAVR4YAGNVGMLUZPRTZRLOQX2HTMJQR2MGP5E \ / AMOS7 \ YOURUM ::
+#\[7]TXH373PSAXFKRA7FPQEXE3CYXOTVONNR63FIXFG6JNXN4N3V3MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
