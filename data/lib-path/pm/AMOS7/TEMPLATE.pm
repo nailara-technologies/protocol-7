@@ -23,7 +23,7 @@ use vars qw| @EXPORT $VERSION |;
 
 @EXPORT = qw| template_is_true is_valid_tempate $VERSION |;
 
-our $VERSION = qw| AMOS7::TEMPLATE-VERSION.P5VOWKI |;
+our $VERSION = qw| AMOS7::TEMPLATE-VERSION.WKXDQ3I |;
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -477,8 +477,8 @@ sub TEMPLATE_exclusive_type {
 
 return TRUE ##################################################################
 
-#,,..,,,,,,,.,,,,,...,.,,,,..,,,.,...,...,,,,,..,,...,..,,,.,,,,,,.,.,,,,,...,
-#PKHH4INVLMXYE2723PRH5OFNM7CYQPHM3GFRW3I2RY4QEMJIXESDA5RVGHHVZ726NLOBIFI5WOSMI
-#\\\|Z6NKG3J6RWBJVKB6V4J3DGPJDJCY5LV3BSKC33SZFDQD54YGG35 \ / AMOS7 \ YOURUM ::
-#\[7]LHEPXEX7T3KNFKNUSNTFEYMBYUUTGRL4ZBUS32XAPPJOJ27PHUBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,.,.,,,..,,..,,,..,...,,,,,...,..,,...,...,...,,,.,,.,,..,,..,,
+#B4EWESUTMYPGIKCH72UIEVUJDPY37OLVW5XWCT5LL5CXFMSE2UATJKZXY3HWTI5JJGUUUMNN6MTYW
+#\\\|MRBGE5IT5ZDL3OOFYALFR4ZLLTJ2WV7MGWEYEJRAFUL3HTTSVGT \ / AMOS7 \ YOURUM ::
+#\[7]JETPGQ5RX5L4FIZMZ7QFRX77WG3ZCNKYEMUPRWE6HINYW3ASE2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

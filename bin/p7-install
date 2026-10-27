@@ -15,12 +15,12 @@ use warnings;
 ## 2. checkout .......... clone \ update /usr/local/protocol-7
 ## 3. dependencies ...... bin/p7-deps install <profile>
 ## 4. service unit ...... bin/p7-deps install-service
-## 5. boot start ........ bin/p7-deps enable-service [ --enable only ]
-## 6. service ........... systemctl start Protocol-7 [ --start only ]
+## 5. boot start ........ bin/p7-deps enable-service [ -enable only ]
+## 6. service ........... systemctl start Protocol-7 [ -start only ]
 ##
 ## every step looks first and acts only on what is missing -- a second run
 ## changes nothing. the service is never restarted, and started only with
-## --start when it is not running. --dry-run reads, writes nothing and runs no
+## -start when it is not running. -dry-run reads, writes nothing and runs no
 ## installer [ git ls-remote is its only network call ].
 ##
 ## standalone on purpose : core perl only. a copy for a bare host needs this
@@ -75,11 +75,10 @@ my %opt = (
 );
 
 Getopt::Long::Configure(qw| no_ignore_case |);
-Getopt::Long::GetOptions(
-    \%opt,    'profile=s', 'branch=s', 'repo=s',
-    'enable', 'start',     'dry-run',  'nc',
-    'help|h|options'
-) or frame_error_exit( $TOOL, 'unknown option [ --help lists them ]' );
+Getopt::Long::GetOptions( \%opt, 'profile=s', 'branch=s', 'repo=s',
+    'enable',            'start', 'dry-run', 'nc',
+    'auto-install-deps', 'no-auto-install-deps', 'help|h|options' )
+    or frame_error_exit( $TOOL, 'unknown option [ -options lists them ]' );
 
 frame_error_exit( $TOOL, sprintf 'unexpected argument [ %s ]', $ARGV[0] )
     if @ARGV;
@@ -92,7 +91,7 @@ if ( $opt{'help'} ) {
 }
 
 ## names go to git \ p7-deps as arguments -- nothing may read as an option ##
-## [ --profile is optional : without it the recorded profile decides ]     ##
+## [ -profile is optional : without it the recorded profile decides ]      ##
 frame_error_exit( $TOOL, "profile name not valid [ $opt{'profile'} ]" )
     if defined $opt{'profile'}
     and $opt{'profile'} !~ m|\A[\w][\w\-]*\z|;
@@ -123,11 +122,12 @@ say frame_title_banner(
 say frame_column_line();
 
 my @steps = (
-    [ 'base packages', \&step_base_packages ],
-    [ 'checkout',      \&step_checkout ],
-    [ 'dependencies',  \&step_dependencies ],
-    [ 'service unit',  \&step_service_unit ],
-    [ 'service state', \&step_service_state ],
+    [ 'base packages',       \&step_base_packages ],
+    [ 'checkout',            \&step_checkout ],
+    [ 'dependencies',        \&step_dependencies ],
+    [ 'auto-install opt-in', \&step_auto_install ],
+    [ 'service unit',        \&step_service_unit ],
+    [ 'service state',       \&step_service_state ],
 );
 
 foreach my $step (@steps) {
@@ -356,6 +356,28 @@ sub resolve_profile {
         return ( $recorded->[0]{'pkg'}, $detail );
     }
     return ( qw| minimal |, 'default, none recorded' );
+}
+
+##[ step 3.5 : auto-install opt-in ]##########################################
+
+## the per-host opt-in for the strategic dependency install
+## [ v7-zenki installs missing dependencies at zenka start ] -- off by
+## default.
+## -auto-install-deps opts in [ bin/p7-deps enable-auto-install ],
+## -no-auto-install-deps skips explicitly ; without either flag the step
+## reports the default and points at the flag
+sub step_auto_install {
+    if ( $opt{'no-auto-install-deps'} ) {
+        row( 'auto-install opt-in', 'skipped', '-no-auto-install-deps' );
+        return TRUE;
+    }
+    if ( not $opt{'auto-install-deps'} ) {
+        row( 'auto-install opt-in',
+            'off', 'default -- -auto-install-deps opts in' );
+        return TRUE;
+    }
+    return p7_deps_step( 'auto-install opt-in',
+        undef, qw| enable-auto-install | );
 }
 
 ##[ step 4 : service unit ]###################################################
@@ -602,16 +624,19 @@ sub print_help {
 
  bin/p7-install [ options ] .. installs protocol-7 [ as root ]
 
-    --profile <name> ...  p7-deps profile [ default : the recorded
-                          profile, else minimal ]
-    --branch <name> ....  branch to clone \\ follow [ default : base ]
-    --repo <url> .......  repository to clone
-    --enable ...........  enable the service unit [ boot start ]
-    --start ............  start the service when it is not running
-                          [ never a restart ]
-    --dry-run ..........  report what would be done, write nothing
-    -nc ................  no colours [ also with NO_COLOR, or no terminal ]
-    --help .............  this option list
+     -profile <name> .....  p7-deps profile [ default : the recorded
+                            profile, else minimal ]
+     -branch <name> ......  branch to clone \\ follow [ default : base ]
+     -repo <url> .........  repository to clone
+     -enable .............  enable the service unit [ boot start ]
+     -start ..............  start the service when it is not running
+                            [ never a restart ]
+     -dry-run ............  report what would be done, write nothing
+     -nc .................  no colours [ also with NO_COLOR, or no terminal ]
+     -auto-install-deps ..  host opt-in : v7-zenki installs missing
+                            dependencies at zenka start [ default : off ]
+     -no-auto-install-deps  explicit skip [ reports without changing ]
+     -options ............  this option list [ -h resolves here ]
 
  a second run changes nothing that is in place already.
 
@@ -619,8 +644,8 @@ EOL
     return TRUE;
 }
 
-#,,.,,...,,,,,,.,,,,,,,,,,,,,,,..,,.,,,..,.,.,..,,...,...,...,,,,,,,.,.,,,,,.,
-#HSHBBMAPXOIH6IAGLNLXSVS5TKXFITRW6EXRCTJK2ZBBMULHGIHDA3V3FYNV72QMXMV2B3LI2EKI4
-#\\\|4NEUOLBY52P5WVYVBVQQQWHFX77VKAZX4BB5WKVUIC5T62XAB2D \ / AMOS7 \ YOURUM ::
-#\[7]H3Z6TGASE6LGQWIKMGHSJIAJX5P6IAM57INQX4BT5XMJJ3EP5ODA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,.,,,,.,,,,.,,,,,,,,,..,,..,,..,,...,...,...,..,,,,.,..,,,.,,
+#E3PW46VMVA6CYMHGH5WKGV4PXLSRR4B7ZEFVUBNA6SY2Q5WAMDVFPKIUIGJZPEU3NWWW6KHVYS3TK
+#\\\|SPE5ZOBKHLFA6C36MDESDDVTSGJL7RKRMNRYCVLIM5IF3UPLGVT \ / AMOS7 \ YOURUM ::
+#\[7]Q6SETONBE6OGR7DRIBZUCKSOUSJPKEV4FLCAJANHUTYF2K5POMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

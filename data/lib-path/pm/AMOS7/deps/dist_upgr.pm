@@ -1,5 +1,5 @@
 package AMOS7::deps::dist_upgr;
-our $VERSION = qw| AMOS7::deps::dist_upgr-VERSION.VNLNKUG |;
+our $VERSION = qw| AMOS7::deps::dist_upgr-VERSION.2XHT55I |;
 
 use strict;
 use warnings;
@@ -48,8 +48,7 @@ sub run {
     ## env_reset strips caller-set %ENV, and a wiped parent env         ##
     ## [ v7's exec-external ] never reaches this process to begin with  ##
     my $env_prefix
-        = 'DEBIAN_FRONTEND=noninteractive '
-        . 'APT_LISTCHANGES_FRONTEND=none '
+        = 'DEBIAN_FRONTEND=noninteractive APT_LISTCHANGES_FRONTEND=none '
         . 'UCF_FORCE_CONFMISS=true UCF_FORCE_CONFOLD=true '
         . 'PAGER=/bin/true';
 
@@ -147,8 +146,8 @@ sub _run_step {
 
 1;
 
-#,,.,,.,,,.,.,,,,,,..,..,,.,,,,..,..,,.,,,,..,.,.,...,...,,.,,,,.,.,.,..,,..,,
-#DZ5BULKH3FA7JV2GAR5MAXFJMNQUR75CRVV7FOH4VLG6SX42UGK43K56BGG7XTTVGOUPGSDS6JBPK
-#\\\|VVHECQ63UTSCGP2U7WGHTHMMMQ5O3KACJGFS2SM2HBPUK2A337Z \ / AMOS7 \ YOURUM ::
-#\[7]NK4VJHX2RY6AUXPLYV2A3L4LW3U5IALFOOUYOQC5BWVHU6KZCYBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,..,,,.,,.,.,.,.,.,.,..,,..,,..,,.,.,...,...,...,.,.,..,,,..,,.,,
+#ECT5E4MVZWAYNNE4HPEJC2PXOHUXQK5GGLXESA24LOVF5HSMXQ5DVAESTNR2FCRRMK7DXPSGTXPPO
+#\\\|DDFIVSYTPWSYTJ3EOPI5BHDQ75K2VI5ZH2DU5HLSL6MGULBOS4Y \ / AMOS7 \ YOURUM ::
+#\[7]EBZQI5VTRWM4N42ZBQOSTM42FBB7TNQMQIDXYCIFL5GDDBEL2QBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
