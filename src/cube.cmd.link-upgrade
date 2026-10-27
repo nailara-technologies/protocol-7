@@ -63,7 +63,7 @@ if ( not <[base.session.init_state]>->( $session_id, 2 ) ) {
 }
 
 ## Get the ephemeral public key that was generated during state 2 init
-use Crypt::Misc;
+<[base.perlmod.load]>->(qw| Crypt::Misc |);
 my $ephemeral_pubkey = $session->{'link_ephemeral_pubkey'};
 
 unless ( defined $ephemeral_pubkey and length $ephemeral_pubkey == 32 ) {
@@ -81,8 +81,8 @@ return {
     'data' => "link-upgrade OK $pubkey_b32"
 };
 
-#,,,,,...,..,,,..,,..,,..,..,,.,,,,,,,...,.,,,..,,...,...,...,,.,,.,,,,,,,,,,,
-#35FAMF6LXNVO6KSHEJVQHCN7D6O3JZ35KIWNHX4CPZTDFDSQ5NB55EJJPFJUGPPALLTU4BSX7RTB4
-#\\\|N7YLZQPZBHV2JTZFMQJQBF3T2KLZWYHSWXVTNXNDUEAAYVXC32G \ / AMOS7 \ YOURUM ::
-#\[7]4COOUJTRBRGMIMJ2TXRPFLWJVMV2FRUHF2GERVIQFX5FPWVI5KCI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,..,...,...,...,.,.,..,,,..,.,.,..,,...,...,.,,,..,,..,,.,.,,,.,
+#5WHG6TLES5Y7FX3AKZJROGGPSTIZLOVKKG6HLYQJKNNR6JM22H6RUW7N7B66IK7ZXYKQCQXXMVPDG
+#\\\|JZEJ7SUWM34VT6TCAKFU3WQGX5NLXI6DU53PHLUIYNLSIZSPSYA \ / AMOS7 \ YOURUM ::
+#\[7]INNWUOV22QEFLICZ2SNBGL5W7S5HVECEA76L7JLE256YWBRBOGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

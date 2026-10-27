@@ -3,7 +3,7 @@
 # name  = kimi-web.init_code
 # descr = initialize kimi-web sub-agent spawner and registry
 
-use Socket qw| AF_UNIX SOCK_STREAM |;
+<[base.perlmod.load]>->( qw| Socket |, qw| AF_UNIX SOCK_STREAM | );
 
 ## ensure websocket frame parser is available ##
 <[base.perlmod.load]>->(qw| Protocol::WebSocket::Frame |);
@@ -42,8 +42,8 @@ for my $i ( 0 .. <kimi-web.agent.max_agents> - 1 ) {
 
 return TRUE;
 
-#,,,.,..,,,..,,.,,...,..,,.,.,.,.,..,,,,,,,..,.,.,...,...,,.,,,,,,,,,,,,.,...,
-#SQMENAWRZ4ELDNMZ6KQTXG5BG2VB3VJKNGSNOKRLYKW55RSJUKMTT5PMW7C2ABBHOXEZED2GRVYJM
-#\\\|A2OF273FKECONOP2SNYO5PD2AZKM45CKIJYDYWOAAJLESD6MKRB \ / AMOS7 \ YOURUM ::
-#\[7]SEW7CSYB6UJNQUXFYPVPVZMWSQ5FSL5GI3KLO4KZL7F37VNW4SDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,.,,,,,,...,...,,.,,,,.,.,,,.,.,.,.,...,...,..,,.,.,,,.,...,..,,
+#3DXHVYTCABY6FS2XWLMKECUFTDE7A235FJSUDZX7JNSEJURVW3PZSWGFOIUMEFUDIIXX4Z2T4WUCC
+#\\\|7VDSM5TDZEH2PV3Z67EVBR45ELDYS64J5XC5NXZ5MT5DA5ADOUY \ / AMOS7 \ YOURUM ::
+#\[7]6H4CMZF6WDJDZXOKIGD2IM4SHDE3CJKO7KFDCLTL7TNMTGOVMCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,7 +37,7 @@ if ( $$input =~ s|^link-upgrade\n|| ) {
     }
 
     ## Encode and send ephemeral pubkey to client
-    use Crypt::Misc;
+    <[base.perlmod.load]>->(qw| Crypt::Misc |);
     my $pubkey_b32 = Crypt::Misc::encode_b32r($ephemeral_pubkey);
     $session->{'buffer'}->{'output'} .= "$pubkey_b32\n";
 
@@ -61,8 +61,8 @@ return TRUE;
 #\[7]IZWWKXC23KQG56MSYB5HJZT5PL3N3ZIUGB7TRLHNQ76ZUHIJC4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,...,,,.,,..,,,.,..,,.,.,.,,,,,,,.,.,,.,,..,,...,..,,,..,,.,,.,,,,,.,,,,,
-#3XQI4NDPD7ABMN4IQQ6C53376PWIHRET4C2GGW5SXXOMDCKFI2JPYHN6X3KEUWMOLSKVUPRSTPEZ6
-#\\\|EQPCIYWW2SSFWHEBRNYN4F7YG27XOKLPPA7UI6ZKN5B7RZKNVOK \ / AMOS7 \ YOURUM ::
-#\[7]Q7DM4QEAXJZCQR7KSPCXYT4RR7MWD2YTYXW2IUO3GIABPIYB24CA 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,,,.,.,,,,,,,,,...,,,,,,..,,,,,..,,...,...,..,,..,,.,.,.,,,,..,
+#CWVPXURPYFGOWQTMI6MHUJLQRQTCHWDLN3VSAHSWXHNRHGWYL756E2N6YSA4SRBLEEG3YB33IFFXI
+#\\\|CQW3ZCXR47QNY6YZ7TTX2PGITS7QR6PYQTK3DPDEOR4IR6LQ5BA \ / AMOS7 \ YOURUM ::
+#\[7]ZDZX5VIJHFYTUPYJBGX6NZ5FMID2M5OJDBQDWLY7QPKQ2CGKYOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

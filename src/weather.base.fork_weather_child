@@ -2,7 +2,7 @@
 
 # name = weather.base.fork_weather_child
 
-use Socket;
+<[base.perlmod.load]>->(qw| Socket |);
 
 ( my $session_id ) = keys <user.cube.session>->%*;
 
@@ -12,8 +12,10 @@ use Socket;
 
 <[base.enable_list]>->('sessions');
 
-socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair. [ \l$OS_ERROR ]";
+socketpair(
+    my $child_pipe, my $parent_pipe, AF_UNIX(),
+    SOCK_STREAM(),  PF_UNSPEC()
+) || die "can't create socketpair. [ \l$OS_ERROR ]";
 map { binmode($ARG) } ( $child_pipe, $parent_pipe );     ## ipc pipe : raw ##
 map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
@@ -134,8 +136,8 @@ if ( !<weather.child.pid> ) {    ## child ##
 
 }
 
-#,,,.,,..,,,,,,,,,..,,..,,.,,,,,,,,,.,,.,,,,.,..,,...,...,..,,...,,.,,,..,.,,,
-#4LQSKLQC7IYHXF47NEDRTLY3YNLMVQ53IGKDIVVRWKNI7YEVO4ML3CZB6W7IKZSEYAO33QCG4JHFA
-#\\\|IAXBLADTIYBSXDJP4SUNCDG2WU5FHKUOVIASGESODCMIGVM4JFD \ / AMOS7 \ YOURUM ::
-#\[7]4I2BJPARDBJ5FNHLXHTVED7657W67QDKULGAFZN6AR7OU6VFIADA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,.,,,.,,.,,.,,,.,.,,,,,.,.,.,.,..,,...,...,.,.,.,.,..,,,.,,.,,,
+#OA6PWLVQJOD2PVH3SF5XWIVS7Q6H265JUMYEGKWH4I5KALPNHUP2XBRNVMAPXLHHDTIBK4SST3KJW
+#\\\|62W7FXRG3SHNN4EIWWLG2WD6VROAUXA4NKX6O2P4ABMZSGRDUWQ \ / AMOS7 \ YOURUM ::
+#\[7]62IVGNWIPP63CBPQ64PMOF36HTYLB7DQ6DGTEBMKA6GZDSZWAUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

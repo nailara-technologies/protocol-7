@@ -27,6 +27,9 @@ my $key_seed_passphrase = shift;    ##  optional  ##
 my $secret_key          = shift;    ##  optional  ##
 my $key_type_param      = shift;    ##  REQUIRED  ##
 
+## random_bytes \ encode_b32r ##
+<[base.perlmod.load]>->(qw| Crypt::Misc |);
+
 my $harmonic_public_keys = TRUE;    ##  public key truth requirement  ##
 
 ## Validate key type parameter
@@ -92,7 +95,7 @@ my ( $public_key, $private_key );
 
 if ( $key_type eq 'Ed25519' ) {
     ## Ed25519: Digital signatures
-    use Crypt::Ed25519;
+    <[base.perlmod.load]>->(qw| Crypt::Ed25519 |);
 
     my $TRUE = $harmonic_public_keys ? FALSE : TRUE;
 
@@ -116,7 +119,7 @@ if ( $key_type eq 'Ed25519' ) {
 
 } elsif ( $key_type eq 'Curve25519' ) {
     ## Curve25519: Diffie-Hellman key exchange
-    use Crypt::Curve25519;
+    <[base.perlmod.load]>->(qw| Crypt::Curve25519 |);
 
     $public_key  = Crypt::Curve25519::curve25519_public_key($secret_key);
     $private_key = $secret_key;    ## For Curve25519, private = secret
@@ -149,8 +152,8 @@ return ( $keys{'C25519'}->{$name}, $name );
 
 1;
 
-#,,.,,,.,,...,,..,,.,,,..,,..,,.,,...,.,.,..,,..,,...,..,,.,.,.,.,...,,.,,...,
-#7MTUL5BMVXSV2L5SFE7EHI2YFAYMUKPBPZYD4FOUJSRW7GLESIV5HJGK6X2CRCBTLDC75FOIMGQPG
-#\\\|BACMQADJQ5BOUMAGVBJVM3JMGLIDMHHCUIRZ3KM5SP636ON3GUT \ / AMOS7 \ YOURUM ::
-#\[7]EO7U64ZW56GGTHLL63GHVCIADP42GB6H4UBDVDDBY453VNMGZKAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,..,,,,,,.,,...,...,..,,.,,,,.,,..,,...,...,..,,.,.,,,,,,.,,,..,
+#MELTSGEE2TSIAI3QKY6QB6H3CNPIOZ74VTLDRRCUV46EBHJOKW62Q5P3277SKZ3QN6QYDQEIJWOYE
+#\\\|2YMGAMTCKLADZVLAPLHGJHQU7CHGM6RJMBHMIJQMEBPQGBKTEIU \ / AMOS7 \ YOURUM ::
+#\[7]F4ZMSDETCFLGCB4GUHJA76B6AC66KZ2E2GFM53LC6ABOVK76HWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

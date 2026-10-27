@@ -31,8 +31,8 @@ map { <[base.perlmod.autoload]>->($ARG) } qw[
 
 ## Phase 2: Async streaming support  Using Protocol-7 native event system, ##
 ## not AnyEvent::HTTP                                                      ##
-use Socket qw| SOCK_STREAM |;
-use Errno  qw| EAGAIN EWOULDBLOCK |;
+<[base.perlmod.load]>->( qw| Socket |, qw| SOCK_STREAM | );
+use Errno qw| EAGAIN EWOULDBLOCK |;
 
 map { <[base.perlmod.autoload]>->($_) }
     qw| IPC::Open3 FreezeThaw Fcntl Cwd IO::Compress::Xz |;
@@ -746,8 +746,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,,,.,..,,,..,..,,,.,,,,,,,,.,,,.,...,.,.,.,.,...,...,...,.,.,,..,,,.,,.,,
-#GDQAG2U3ZE6ECM6OHPKKPR7T2VPJJYBOG7HMFTKP7ERQFJXIKJCITRKEO5QML3L4EIX2Z4WXCCN76
-#\\\|FYMYGQ5UUCAJ5TSLMPJMSXSC45HKYSOVEP3SFX67NSRUQBTW56F \ / AMOS7 \ YOURUM ::
-#\[7]P6T4GB5IGLIDFB6VYEG4TCX64B3NYV6A7TXYOK2XRGP74PRHWMBI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,,,,,,,,,..,,.,,,..,,.,,,.,,,.,.,...,...,.,,,,,,,.,,,,..,...,
+#G7HV6XE2CRPEZC6IO3BIMDLTXWLTDJTHA6UP2MSXNW6LOZUY5OTEMDTYFRQ4CFQX7OE5OCJYQHJH2
+#\\\|GZYEWPF36QC7L67HMLV5I5YWKYSDJKUNL7WHHAES3DXW2HUM6Y2 \ / AMOS7 \ YOURUM ::
+#\[7]MH6FALXW7SQQMXLSKX6QSJ7SDP7AILQDXWGTDMHZINVTS3P2PYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
