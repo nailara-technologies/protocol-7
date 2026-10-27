@@ -100,8 +100,7 @@ check 'unit : literal $d for sh -c, not expanded',
     && index( $content, 'echo $d >' ) >= 0;
 check 'unit : guard does not match disabled lines',
     index( $content, 'disabled' ) == -1;
-check 'unit : oneshot with true tail',
-    $content =~ m{Type=oneshot}
+check 'unit : oneshot with true tail', $content =~ m{Type=oneshot}
     and $content =~ m{done; true'};
 check 'unit : multi-user install target',
     $content =~ m{WantedBy=multi-user\.target};
@@ -138,6 +137,18 @@ check 'run : would-disable row lists all three',
     { $ARG->[0] eq 'wakeup devices'
             and index( $ARG->[2], 'RP09 RP07 XHCI' ) >= 0 }
     @{ $result->{'rows'} } );
+check 'run : unit guards the disabled AR00 too [ boot-time list ]',
+    grep(
+    { $ARG->[0] eq 'wakeup devices' and index( $ARG->[2], 'AR00' ) >= 0 }
+    @{ $result->{'rows'} } );
+check 'run : unit content carries the full guard list', do {
+    open my $fh, '<',
+        File::Spec->catfile( $tmp, 'etc', 'systemd', 'system',
+        'p7-wakeup-disable.service' );
+    my $text = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> };
+    close($fh);
+    index( $text, 'for d in RP09 RP07 XHCI AR00' ) >= 0;
+};
 
 ## second run against the same root : unit unchanged, symlink ok ##
 
@@ -156,8 +167,8 @@ check 'run : second pass still ok', $again->{'ok'} == 1;
 printf "\n: %d checks passed, %d failed\n", $checks - $failed, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,..,..,,,.,,,,.,,,.,,,,,,.,,.,.,,,,,,.,,.,,,..,,...,..,,..,,,,.,,,.,,,,,..,,
-#YUPHNCPYQNW3TWDKSTAEOJQ7Q6JUJ62OV5OZQ3FCJ2NHL6DXP5WMFRI2Q6WG7M6IRUDCDN7CC3X6G
-#\\\|OLHE5CLUEAP2FLKKGQY5BANSZR2VGV3ZBPEFNQRLHYXKYJ3TJ2X \ / AMOS7 \ YOURUM ::
-#\[7]P2I6JJ4HZV32T2JBPJS6T5JZXWSGMK2LQEATB726E4OLI5ODVSCI 7  DATA SIGNATURE ::
+#,,..,,..,..,,..,,,,.,..,,,.,,..,,.,.,.,.,,,,,..,,...,..,,,..,,..,,..,...,...,
+#NZ4DYL4NAWPDAKDYDTFS7NL3PQGTV57JUOLALO3F2IKMA4BSOGPCB7IZPBZCFDBTE2TCXSPWZO7UU
+#\\\|2MVKWCVNHO6BZS55XLIDVWPB5UUJ57DTP3IZ6TR7AZIX36A5FZM \ / AMOS7 \ YOURUM ::
+#\[7]O25S6DTECLERFD35ZGYSTXDX477FLWQTUCYAJNYVBJE5WF6YN2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
