@@ -3635,7 +3635,10 @@ sub p7_load_B32_routines {    ## with pure Perl fallback
 
         ##  Try to load optimized Crypt::Misc version first
         ##
-        eval { use Crypt::Misc qw| decode_b32r encode_b32r | };
+        eval {
+            require Crypt::Misc;
+            Crypt::Misc->import(qw| decode_b32r encode_b32r |);
+        };
 
         if ( not $EVAL_ERROR and defined &encode_b32r ) {
             return TRUE;    ## Crypt::Misc loaded successfully ##
@@ -6719,8 +6722,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,.,,,,,..,,.,.,,..,,.,,,,.,,.,,...,..,,..,,...,...,,..,.,,,.,,,.,.,,,.,
-#7VJC36KPO5U6GYY6XDKPMFANT2B3T2CMYJUJAWN3H6QBM43VHVC4ISZIK4VDBD7UATLEWBIBTL4O2
-#\\\|2L4AFSGMM6CQRCNFYX5RVJ4YDQM5MIU3UY4ZC3VMBGOKQAWTKLO \ / AMOS7 \ YOURUM ::
-#\[7]WERZHVYUZKDW7OCWMM2MKAQHMIEAVDMG5XKMORFWATRPP6J3QYBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,.,,,.,.,,,,,.,,,.,,,.,,,,,,,..,,...,...,,..,.,,,,..,.,.,.,,,
+#VILHIBBF3RCMDMO7KDMIJWJLR6HWLUUT3INSCYIAFFRPAUZEKDTI5F35XNZVQ7YSSJKQFLQEV7FNW
+#\\\|NLNPZMQ2MXK6HB6GDHXVVYTLU4LUR24C43DXFFJACCNOOTBZQXM \ / AMOS7 \ YOURUM ::
+#\[7]BGSF4WKOLFENFGWPAXDV4UNZVEDYI7QTARUQVWFCOFSB5OMAB4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
