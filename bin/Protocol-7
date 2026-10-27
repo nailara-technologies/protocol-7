@@ -4605,7 +4605,7 @@ sub p7__log__devmod {
     if ( $code{'log.base_log_complete'}->() ) {
         map { $code{'base.log'}->( 2, $ARG ) } @ARG;
     } else {
-        if ( $data{'system'}{'zenka'}{'verbosity'}{'console'} > 1 ) {
+        if ( ( $data{'system'}{'zenka'}{'verbosity'}{'console'} // 0 ) > 1 ) {
             my $s_len;
             $s_len = $code{'base.log_hook'}->()
                 if defined $code{'base.log_hook'};
@@ -4622,7 +4622,8 @@ sub p7__log__devmod {
                 @{ $data{'system'}{'start'}{'zenka-buffer'} },
                 join( ' ', $code{'base.anum_log_time'}->(), 2, $ARG )
             )
-        } @ARG if $data{'system'}{'zenka'}{'verbosity'}{'buffer'} > 1;
+            } @ARG
+            if ( $data{'system'}{'zenka'}{'verbosity'}{'buffer'} // 0 ) > 1;
     }
 }
 
@@ -5392,32 +5393,49 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                                 != $loader_state->{'sub-src-lines'};
 
                             ##  BMW chksum  ##
-                            my $sub_bmw_chksum = eval {
-                                ## on demand [ opt-in ]
-                                p7_ensure_bmw_digest();
-                                ## encode_b32r [ idempotent ]
-                                p7_load_B32_routines();
-                                encode_b32r(
-                                    Digest::BMW::bmw_256(
-                                        $decomp_buffer_sref->$*
-                                    )
-                                );
-                            };
-                            $code{'base.error_exit.inline_loading'}->(
-                                sprintf( 'chksum calculation failed [ %s ]',
-                                    $code{'base.format_error'}
-                                        ->( $EVAL_ERROR, -1 ) ),
-                                $subroutine
-                                )
-                                if not defined $sub_bmw_chksum
-                                or not length $sub_bmw_chksum
-                                or length $EVAL_ERROR;
+                            ##
+                            ## verification requires the BMW digest : a    ##
+                            ## degraded host                               ##
+                            ## [ Digest::BMW absent, no opt-in install ]   ##
+                            ## cannot reproduce trailer checksums -- the   ##
+                            ## byte \ word \ line checks above still guard ##
+                            ## integrity, the signature itself is skipped  ##
+                            p7_ensure_bmw_digest();    ## on demand ##
+                            if ( defined &Digest::BMW::bmw_256 ) {
 
-                            $code{'base.error_exit.inline_loading'}->(
-                                'subroutine chksum mismatch', $subroutine
-                                )
-                                if $sub_bmw_chksum ne
-                                $loader_state->{'sub-src-chksum'};
+                                my $sub_bmw_chksum = eval {
+                                    ## encode_b32r [ idempotent ] ##
+                                    p7_load_B32_routines();
+                                    encode_b32r(
+                                        Digest::BMW::bmw_256(
+                                            $decomp_buffer_sref->$*
+                                        )
+                                    );
+                                };
+                                $code{'base.error_exit.inline_loading'}->(
+                                    sprintf(
+                                        'chksum calculation failed [ %s ]',
+                                        scalar $code{'base.format_error'}
+                                            ->( $EVAL_ERROR, -1 ) ),
+                                    $subroutine
+                                    )
+                                    if not defined $sub_bmw_chksum
+                                    or not length $sub_bmw_chksum
+                                    or length $EVAL_ERROR;
+
+                                $code{'base.error_exit.inline_loading'}->(
+                                    'subroutine chksum mismatch', $subroutine
+                                    )
+                                    if $sub_bmw_chksum ne
+                                    $loader_state->{'sub-src-chksum'};
+
+                            } else {
+                                warn ': BMW digest unavailable : skipping '
+                                    . "inline-subroutine signature "
+                                    . "verification .,\n"
+                                    if not $data{'base'}{'warned'}
+                                    {'bmw_chksum_verification_skipped'}++;
+                            }
 
                             ##  verifified  ##
                             $sub_source_line = $decomp_buffer_sref->$*;
@@ -5609,8 +5627,24 @@ sub p7_generate_subroutine_checksum {
     my ( $source_code, $sub_name ) = @ARG;
 
     # Calculate checksum using BMW algorithm
+    p7_ensure_bmw_digest();    ## <-- install on demand when permitted ##
+
+    if ( not defined &Digest::BMW::bmw_256 ) {
+        ## a degraded host cannot produce BMW trailer checksums that other ##
+        ## hosts would verify -- signing \ export is refused instead of    ##
+        ## silently writing an unverifiable signature                      ##
+        $code{'base.error_exit.inline_loading'}->(
+            sprintf(
+                'cannot calculate subroutine checksum [ %s '
+                    . '] : Digest::BMW unavailable on degraded host',
+                $sub_name // '?'
+            ),
+            $sub_name
+        );
+        return;
+    }
+
     my $checksum = eval {
-        p7_ensure_bmw_digest();    ## <-- install on demand when permitted ##
         p7_load_B32_routines();    ## <--    encode_b32r [ idempotent ]    ##
         encode_b32r( Digest::BMW::bmw_256($source_code) );
     };
@@ -6736,8 +6770,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,,,.,.,.,,,,.,,,,.,.,.,...,..,,,.,,,..,..,,...,...,.,,,..,,.,,,,,.,..,,
-#THOODRUAYO2EYR2GNEUTZJ5NVRV5QW7X2E7BKDIYSXIVLDYIBEQUYPDSN6T52RQV7D77QQ5FVRTD4
-#\\\|6D6MMA4O3YQ6GROBAKWXGP5TPUV6F7F2TLGMK46ZUZT63PQPKIB \ / AMOS7 \ YOURUM ::
-#\[7]FZ4MQQTA36XVQW6V65MY2NY7W6PY6IMUUZDBC4KNUB2PEGOR4ACY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,...,,,,,,,.,,..,,,,,,,,,...,..,,...,...,.,.,,,.,..,,,.,,.,.,
+#FNRYKOWTQ2NWQ2RWDSGTJWCMUXNZYOMVPEEPCRC7GRGYJBP4OZ2HBCZRPHBSGNEHRLR7PS2LMD7BE
+#\\\|KEP4UTZ2BYXTZE44SUX3F7237M55L42SB7JJ6GOHF3QZ6Z3KTOA \ / AMOS7 \ YOURUM ::
+#\[7]3GT33GZ6BTBTX5BYYLQHGVGDTDXBEAAISHLEPSGZU3TSYVUDRWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
