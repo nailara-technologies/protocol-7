@@ -52,6 +52,13 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   ambient `$call` hazard, self-test seed-restart gate coverage (prompts 2+3), prompt 3
   `mismatch_hint`, honest context-exhausted reporting, batch harness env blockers (open).
 
+- **[topic-host-power-management.md](topic-host-power-management.md)**
+  — 2026-10-27: `p7-deps host-power [awake|suspending]` implemented (AMOS7::deps::hostpower,
+  41-check harness) + `host_power:` profile pin (basic-remote-server -> awake) ;
+  wakeup-toggle / tmpfiles-dedupe / boot-time-guard-list / own-unit-upgrade gotchas ;
+  same-session p7-install upgrade (aptlog-styled apt output, cpanminus bootstrap,
+  debian-first resolution for cpan: entries).
+
 - **[MEMORY-completed.md](MEMORY-completed.md)** — explicitly-completed / resolved work.
 - **[MEMORY-archive.md](MEMORY-archive.md)** — stale chronological session log.
 
@@ -106,4 +113,32 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 #HO7YA2TZBDAYVXVQITCGEA2XRWVRMDMTM5GDEPYNYVU55ZNYCJCJX4NSW2DMJTGJMS3QM6GX2QRNC
 #\\\|U32LHPTFMEUI5HZSGRNSJQTLXC33X2B7JJEWZPVTLU4QP2I7YHR \ / AMOS7 \ YOURUM ::
 #\[7]WVR5VDFQ5YOXO5IJHQMA4TL26TXAKNNXGFILO7E2ST77XIERS6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-10-27 handover — azurum host power + p7-install upgrade
+
+- azurum kept suspending to S3 killing SSH : culprit chain GNOME gsd-power
+  idle-suspend -> logind -> systemd [ journalctl _COMM=systemd-logind names
+  the requester ]. hand fixes : mask the 4 sleep targets, gsettings
+  sleep-inactive-ac/battery-type 'nothing', guard-based wakeup-disable
+  oneshot. gotchas : /proc/acpi/wakeup writes TOGGLE ; systemd-tmpfiles
+  w-lines dedupe by path AND toggle -- unusable here .
+- implemented `bin/p7-deps host-power [awake|suspending]` [ AMOS7::deps::
+  hostpower , 41-check harness ] : awake masks targets + guards all non-RTC
+  wake devices + gnome keys ; suspending keeps manual/zenka suspend, keeps
+  firmware wake defaults, persists WakeOnLan via 50-p7-wol-*.link [ mac
+  matched , wired only ] . modes undo each other . `host_power:` key in
+  profiles.yaml runs after a clean install [ basic-remote-server pins
+  awake ] . commits 398741922..b7f23922c .
+- p7-install upgrade [ a92333739 , d8bc276d7 ] : apt output streams through
+  the aptlog condenser with framed rows ; cpanminus bootstrapped from apt ;
+  cpan: entries with a debian mapping install the .deb first [ fresh hosts
+  need no XS toolchain ] ; cpanm -q with framed failure tail . verified live
+  on azurum .
+- open : KDE/XFCE idle-suspend keys ; `host-suspend` counterpart for the
+  v7-zenka host power commands ; azurum wired-NIC WoL check once cabled .
+
+#,,,,,.,.,...,..,,...,,,.,.,,,,,.,...,,,,,,,,,...,...,...,...,,.,,.,.,...,..,,
+#ZG3RVVMDMUZREG45O3TFWYZKFBKXMBLIVSYO5BF5PEKAJLUO36ZLRUJPK257NUH4KBGGIPVYTIBG4
+#\\\|C372CCMUDSRURYNMY5BG255CJ24KGIJN7VHDJL5M5RSOHCNATZQ \ / AMOS7 \ YOURUM ::
+#\[7]44SPHFWEMHBRKBHU6QVEGPDER6SL5UJYIQHO2KMSJ5FZPW4N54AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

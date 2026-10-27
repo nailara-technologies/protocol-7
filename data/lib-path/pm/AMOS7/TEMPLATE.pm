@@ -14,7 +14,7 @@ use constant FALSE => 0;    ##  false  ##
 use Safe;
 use Encode;
 use Time::HiRes;
-use Crypt::Misc;
+use AMOS7::B32   qw| encode_b32r |;    ## pure-perl, Crypt::Misc-identical ##
 use Module::Load qw| autoload |;
 
 use Exporter;
@@ -361,8 +361,8 @@ sub configure_epoch_window_callback {
     my $window_radius          = shift // 1;
     my $sprintf_templates_aref = shift;
 
-    ## validate template logic  ##
-    ## [ same rules as  configure_exclusive_type_callback ]
+    ## validate template logic                              ##
+    ## [ same rules as  configure_exclusive_type_callback ] ##
 
     return error_exit('expected epoch number parameter')
         if not defined $current_epoch_num
@@ -394,16 +394,15 @@ sub configure_epoch_window_callback {
     }
 
     ##  mirror of base.ntime.epoch_timestamp encode path  ##
-    my $selected_encoded = Crypt::Misc::encode_b32r( pack qw| w |,
-        99999999 - $current_epoch_num );
+    my $selected_encoded
+        = encode_b32r( pack qw| w |, 99999999 - $current_epoch_num );
 
     my @epoch_window_list;
     foreach my $epoch_offset ( -$window_radius .. $window_radius ) {
         my $epoch_num = $current_epoch_num + $epoch_offset;
         next if $epoch_num < 0 or $epoch_num > 385279;
 
-        my $encoded
-            = Crypt::Misc::encode_b32r( pack qw| w |, 99999999 - $epoch_num );
+        my $encoded = encode_b32r( pack qw| w |, 99999999 - $epoch_num );
         push @epoch_window_list, $encoded;
     }
 
@@ -478,8 +477,8 @@ sub TEMPLATE_exclusive_type {
 
 return TRUE ##################################################################
 
-#,,,,,.,.,.,,,,..,,,,,.,,,,,.,.,,,.,.,.,,,..,,..,,...,..,,...,...,..,,..,,,,.,
-#USEMTTYUIAXHYFJQ66YY5L4LIPSQTZ5VMQHKXZPXHEDIF754L724TEB67EJDUCMCS4GRQGU2P4IAU
-#\\\|CKIWDWJK2A3KGNDACV2B6B35FHXZXD64SHHZI6YHKSRJMNAHFHH \ / AMOS7 \ YOURUM ::
-#\[7]Z6PL5SEUIDR2JE4YQI4OSJW6K3IVSZ6KB5HKQ6VREM6YNF3KV6AI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,,,...,.,,,,..,,,.,...,...,,,,,..,,...,..,,,.,,,,,,.,.,,,,,...,
+#PKHH4INVLMXYE2723PRH5OFNM7CYQPHM3GFRW3I2RY4QEMJIXESDA5RVGHHVZ726NLOBIFI5WOSMI
+#\\\|Z6NKG3J6RWBJVKB6V4J3DGPJDJCY5LV3BSKC33SZFDQD54YGG35 \ / AMOS7 \ YOURUM ::
+#\[7]LHEPXEX7T3KNFKNUSNTFEYMBYUUTGRL4ZBUS32XAPPJOJ27PHUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,3 +1,39 @@
+# Session Handover — 2026-10-27 [ azurum host power + p7-install upgrade ]
+
+memory : data/ai-mem/kimi/topic-host-power-management.md [ full detail ] ;
+read-me/md/docs/backlog/host-power-management.md [ runbook + design ]
+
+**done + live on azurum** : `bin/p7-deps host-power [awake|suspending]`
+[ AMOS7::deps::hostpower , 41-check harness test-p7-deps-host-power.pl ].
+awake = mask the 4 sleep targets + guard-based p7-wakeup-disable oneshot
+[ all non-RTC /proc/acpi/wakeup devices, toggle-safe ] + GNOME idle
+suspend -> nothing per session user. suspending = zenka \ user suspend
+stays available [ no masking ] , firmware wake defaults kept [ keyboard,
+nic ] , WakeOnLan persistent via 50-p7-wol-<iface>.link [ mac-matched,
+wired only ] . modes undo each other . `host_power:` profile key runs it
+after a clean install [ basic-remote-server pins awake ]. Hard-won
+gotchas [ all test-covered ] : /proc/acpi/wakeup writes TOGGLE not set ;
+systemd-tmpfiles w-lines dedupe by path AND toggle ; boot-time guard list
+must come from the whole device table [ firmware re-enables at boot ] ;
+own marked unit must be rewriteable [ upgrade path ] .
+
+**p7-install upgrade** [ verified live on azurum ] : base-packages apt
+runs stream through the AMOS7::deps::aptlog condenser with framed rows [
+port of the dist-upgrade styling ] ; p7-deps bootstraps cpanminus from apt ;
+cpan: profile entries with a debian mapping install the .deb first
+[ libevent-perl, libio-aio-perl, libjson-xs-perl on minimal -- no XS
+toolchain on fresh hosts ] ; cpanm runs -q , failure tail as warn rows .
+commits a92333739, d8bc276d7, 398741922, 06889b58e, b7f23922c.
+
+**next, any order**
+1. KDE \ XFCE idle-suspend keys [ DE detection beside GNOME ].
+2. `host-suspend` counterpart for the v7-zenka host power commands [
+   sleep state select + RTC wake alarm ] -- pairs with suspending mode.
+3. azurum wired-NIC WoL verification once cabled [ ethtool | grep Wake ].
+4. bare-host p7-install end-to-end [ fresh-clone path unseen live so far ].
+
+---
+
 # Session Handover — 2026-10-13 [ weekly budget ~99 % ]
 
 memory : data/ai-mem/claude/project-2026-10-12-gemma4-12b-agentic-batch-and-swa-planner.md [ full detail ]

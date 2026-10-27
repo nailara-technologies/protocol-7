@@ -1204,7 +1204,8 @@ sub p7_encode_ntime_to_B32 {
 
     ##  7 catches 0 prefix  ##
     $ntme[1] = sprintf qw| 7%s |, $ntme[1] if scalar @ntme == 2;
-    my $encoded_ntime = Crypt::Misc::encode_b32r( pack( qw| w* |, @ntme ) );
+    p7_load_B32_routines();    ## Crypt::Misc or pure-perl fallback ##
+    my $encoded_ntime = encode_b32r( pack( qw| w* |, @ntme ) );
 
     return $encoded_ntime;
 }
@@ -1222,7 +1223,8 @@ sub p7_ntime_BASE32_to_numerical {
         return undef;
     }
 
-    my $ntime_value = eval { Crypt::Misc::decode_b32r($tstamp) };
+    p7_load_B32_routines();    ## Crypt::Misc or pure-perl fallback ##
+    my $ntime_value = eval { decode_b32r($tstamp) };
 
     if ( not defined $ntime_value or length $EVAL_ERROR ) {
         warn 'network time not valid [ BASE32 '
@@ -3507,8 +3509,10 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
     state $load_already_attempted = FALSE;
     if (    not defined &AMOS7::Assert::Truth::is_true
         and not $load_already_attempted ) {    ## try only once ##
-        ## compile time [ never fails : pure-perl fallbacks ] ##
-        use AMOS7::Assert::Truth;
+        ## soft : the fallback chain below stays usable when a module on ##
+        ## the truth-check path is still missing -- p7-deps install      ##
+        ## completes it later [ 'never fails : pure-perl fallbacks' ]    ##
+        eval { require AMOS7::Assert::Truth };
         $data{'base'}{'perlmod'}{'loaded'}->{'AMOS7::Assert::Truth'} = TRUE
             if not length $EVAL_ERROR
             and defined &AMOS7::Assert::Truth::is_true;
@@ -5372,6 +5376,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
 
                             ##  BMW chksum  ##
                             my $sub_bmw_chksum = eval {
+                                require Digest::BMW;    ## no-op when loaded
                                 encode_b32r(
                                     Digest::BMW::bmw_256(
                                         $decomp_buffer_sref->$*
@@ -5548,8 +5553,10 @@ sub p7_generate_subroutine_checksum {
     my ( $source_code, $sub_name ) = @ARG;
 
     # Calculate checksum using BMW algorithm
-    my $checksum
-        = eval { encode_b32r( Digest::BMW::bmw_256($source_code) ); };
+    my $checksum = eval {
+        require Digest::BMW;    ## no-op when already loaded ##
+        encode_b32r( Digest::BMW::bmw_256($source_code) );
+    };
 
     if ( not defined $checksum or length $EVAL_ERROR ) {
         $code{'base.error_exit.inline_loading'}
@@ -6672,8 +6679,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,,,,,.,..,,...,.,,,.,.,,.,,,,.,.,.,,.,,..,,...,...,,.,,,.,,.,,,.,,,..,,
-#ER5VIUKU6JO3AEBNBQP3TTEJGN5PDKFG52UXD77TSIXVBSEIDB7PBRYFT5S6QQMDZN5O5MP5XWBKU
-#\\\|JPSETJWTA2YDT6IXILIVRJE5S6DATX5PGTCV5UVAXXWLINIDPEN \ / AMOS7 \ YOURUM ::
-#\[7]5RSBZWKGLOMS67LMZXZHZAKEONJBQWGK3PXETT4FCEQ4UESHZ4BI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,..,,,.,,..,,.,.,.,,,..,,,,,,..,,...,...,.,.,..,,.,.,,,.,.,.,
+#EQ6QU32FEH2CJRJHBV6ILBRXWC54C57AA5FTJNGDLNJUGSJTNXHMVQGOTUYWXDMD4FPPCBKMSVIRI
+#\\\|YK6UBFBE2J6OD5VR5HWTH66YDQGJ7XUUH5BKSWQXTRBQDH6PWF3 \ / AMOS7 \ YOURUM ::
+#\[7]FDMAOYLCFHJLPTKQJDGDRWSP47LZNBSNFT2SKPBMCJ53OAP4J4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
