@@ -232,10 +232,54 @@ PS_SETUP
     }
 }
 
+## usbipd.exe absolute-path resolution [ same PATH-refresh trap as       ##
+## powershell.exe above : a freshly winget-installed host tool is NOT on ##
+## PATH in any already-open process -- never rely on PATH here ] :       ##
+## machine-wide install first, per-user winget package second.           ##
+if ( not defined <powershell.cfg.usbipd_path> ) {
+    my @candidates = ('/mnt/c/Program Files/usbipd-win/usbipd.exe');
+
+    push(
+        @candidates,
+        glob(
+                  <powershell.cfg.local_appdata_wsl>
+                . '/Microsoft/WinGet/Packages/dorssel.usbipd-win*/usbipd.exe'
+        )
+    ) if defined <powershell.cfg.local_appdata_wsl>;
+
+    foreach my $candidate (@candidates) {
+        if ( -x $candidate ) {
+            <powershell.cfg.usbipd_path> = $candidate;
+            last;
+        }
+    }
+
+    warn 'usbipd.exe not found -- one-time host install '
+        . ': winget install dorssel.usbipd-win <{C1}>'
+        if not defined <powershell.cfg.usbipd_path>;
+}
+
+## cancel stale attach polls across source reload : the old timers would ##
+## otherwise keep firing pre-reload handler code ..,                     ##
+if ( defined <powershell.attach.pending> ) {
+    foreach my $busid ( keys <powershell.attach.pending>->%* ) {
+        my $entry = <powershell.attach.pending>->{$busid} // {};
+        $entry->{'timer'}->cancel if defined $entry->{'timer'};
+        <[base.callback.cmd_reply]>->(
+            $entry->{'reply_id'},
+            {   'mode' => qw| false |,
+                'data' =>
+                    sprintf( 'attach of %s interrupted by reload', $busid )
+            }
+        ) if defined $entry->{'reply_id'};
+    }
+    <powershell.attach.pending> = {};
+}
+
 0;
 
-#,,,.,..,,.,.,,,,,,,.,..,,...,.,,,.,.,,..,..,,..,,...,...,,,,,.,,,.,,,...,...,
-#F5R5LPJR4EP2H5GPXUWNVU7CWAUZVYXV3MSH6RYFMYKOJZAMZBP2LPHADQMXU6POTBYJLA3BLJ7EA
-#\\\|VPEYQ6RESTE47GIMRNT3KIUHGVGVJYRLBANMPJSGMFSGMZNW5LL \ / AMOS7 \ YOURUM ::
-#\[7]ZU7YQSBGAGONKMXNB2NKQTDUUJHJVNYDO5IQKD46DFDNE7H4Y6CQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,.,,.,,,,.,,,.,,..,...,,.,,,,.,..,,...,...,.,,,,,.,,.,,..,,..,,
+#ATSSFC6PHJAEWJNICXRT2GDWAT4PSIDB2JOVM5EMWGX5MRFTLYPZPP6ARL6MJ4UVJLO2VZWN5YDPU
+#\\\|TWC3YM4O3IAPKASRUIDFZOLP6A5JUVOT72R6S3S5FKS7KDK42Y7 \ / AMOS7 \ YOURUM ::
+#\[7]BK6E3GK5O6TA2TNG43NKV2U7YRNAS7HEUIEFQE7WWMAAIDIADEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

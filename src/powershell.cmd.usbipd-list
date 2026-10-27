@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = powershell.cmd.usbipd-list
+# descr = list host usb devices via usbipd [ busid, state ]
+
+## see data/tasks/powershell-zenka-usbipd-commands.md for motivation
+## [ exposing host usb devices to this wsl distro on demand ]. plugin shape
+## per powershell.cmd.mem-used : single-line semicolon-joined script
+## [ wsl-to-win32 argv marshalling does not survive embedded newlines ],
+## try/catch + 'P7ERR:' sentinel, { mode, data } reply. usbipd v3+ runs list
+## non-elevated. native exe stderr does not throw under
+## $ErrorActionPreference -- exit code is checked  explicitly instead, mapping
+## any failure to the P7ERR sentinel.
+
+my $usbipd = <powershell.cfg.usbipd_path>;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usbipd.exe not available on host -- one-time '
+        . 'install : winget install dorssel.usbipd-win'
+    }
+    if not defined $usbipd
+    or not length $usbipd
+    or not -x $usbipd;
+
+## wsl /mnt/c/... form -> win32 C:\... form for use inside the script ##
+( my $usbipd_win = $usbipd ) =~ s|^/mnt/([a-zA-Z])/|uc($1) . ':/'|e;
+$usbipd_win =~ s|/|\\|g;
+
+## script is built from concatenated fragments so no SOURCE line exceeds ##
+## the 79-col limit -- the EXECUTED string is still one single line      ##
+## [ no embedded newlines : win32 marshalling ]                          ##
+my $ps_script = sprintf(
+    q#$ErrorActionPreference = 'Stop'; try { #
+        . q#$out = & "%s" list 2>&1 | Out-String; #
+        . q#if ($LASTEXITCODE -ne 0) { #
+        . q#Write-Output ('P7ERR:' + $out.Trim()) } #
+        . q#else { Write-Output ('USBIPD=' + $out.Trim()) } } #
+        . q#catch { Write-Output ('P7ERR:' + $_.Exception.Message) }#,
+    $usbipd_win
+);
+
+my $raw_out = <[powershell.exec]>->($ps_script);
+
+return { 'mode' => qw| false |, 'data' => 'powershell.exec failed' }
+    if not defined $raw_out;
+
+return { 'mode' => qw| false |, 'data' => $1 }
+    if $raw_out =~ m|^P7ERR:(.+)|;
+
+return { 'mode' => qw| false |, 'data' => 'unexpected powershell output' }
+    if $raw_out !~ m|^USBIPD=(.*)|ms;
+
+my $out_str = $1;
+$out_str =~ s|\s+$||;
+
+## multi-line table output : 'size' mode [ buffer-style reply ] ##
+return { 'mode' => qw| size |, 'data' => $out_str };
+
+#,,,,,..,,...,...,.,,,,..,.,.,.,,,,.,,,.,,.,.,..,,...,...,...,,.,,...,.,,,..,,
+#623FYEM4UBMT6G3X2IH4TOGTMMRQBASFDX3RXT2TDT643FVTVF77GRTGVRPMCWCDBJU37TIBDY2UE
+#\\\|MQ36YTHXA5HTUY3IEGVHT3G6OETRIM5YA6OJKC4MUSCVASC2BZL \ / AMOS7 \ YOURUM ::
+#\[7]N6B62VZIZ7UV4BZJEARHIATQ6NTGR6LAPYYCN2G6IVWRYWONLUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

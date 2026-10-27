@@ -1,0 +1,128 @@
+## [:< ##
+
+# name  = powershell.cmd.usbipd-attach
+# descr = attach host usb device to this wsl distro via usbipd
+# param = <busid>   [ e.g. 1-4 -- see usbipd-list ]
+
+## see data/tasks/powershell-zenka-usbipd-commands.md. usbipd v5+ auto-selects
+## the wsl distribution [ bare --wsl ] : the device becomes available in all
+## wsl2 distributions, and passing one explicitly only earns a 'no longer
+## required' notice [ verified against usbipd 5.3.0 ].
+##
+## WHY Start-Process : the attach SUCCESS PATH stalls forever when the usbipd
+## process runs as a wsl-interop tether [ proven 2026-10-27 via an R4..R18
+## repro matrix : stdio/stdin/env/PATH/fds/signals/sessions/ intermediates all
+## exonerated ]. spawning via Start-Process -WindowStyle Hidden escapes it : a
+## fresh windows-side process , no console , no popups ]. the plugin then
+## POLLS `usbipd list` [ the plain exec path , which works fine ] until
+## Attached , or fails soft after 30s -- it can never wedge the zenka.  plugin
+## shape per powershell.cmd.mem-used : single-line script, try/catch +
+## 'P7ERR:' sentinel, { mode, data } reply.
+
+my $args = $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'busid required, e.g. 1-4' }
+    if not length $args;
+
+my $busid = ( split( m|\s+|, $args ) )[0];
+
+return { 'mode' => qw| false |, 'data' => 'invalid busid [ expected N-M ]' }
+    if $busid !~ m|^\d+-\d+$|;
+
+my $usbipd = <powershell.cfg.usbipd_path>;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usbipd.exe not available on host -- one-time '
+        . 'install : winget install dorssel.usbipd-win'
+    }
+    if not defined $usbipd
+    or not length $usbipd
+    or not -x $usbipd;
+
+## wsl /mnt/c/... form -> win32 C:\... form for use inside the script ##
+( my $usbipd_win = $usbipd ) =~ s|^/mnt/([a-zA-Z])/|uc($1) . ':/'|e;
+$usbipd_win =~ s|/|\\|g;
+
+## fire-and-forget : Start-Process spawns the attach windows-side          ##
+## [ hidden , no console , no popups ] -- the zenka only waits on the tiny ##
+## Start-Process confirmation , never on the attach negotiation .          ##
+## single-quoted -ArgumentList : no arg contains spaces , so PS 5.1 native ##
+## re-quoting cannot mangle anything .                                     ##
+my $ps_script
+    = sprintf( q#$ErrorActionPreference = 'Stop'; try { #
+        . q#Start-Process -FilePath "%s" #
+        . q#-ArgumentList 'attach','--wsl','--busid','%s' #
+        . q#-WindowStyle Hidden; Write-Output 'SPAWNED' } #
+        . q#catch { Write-Output #
+        . q#('P7ERR:' + $_.Exception.Message) }#,
+    $usbipd_win, $busid );
+
+my $raw_out = <[powershell.exec]>->($ps_script);
+
+return { 'mode' => qw| false |, 'data' => 'powershell.exec failed' }
+    if not defined $raw_out;
+
+return { 'mode' => qw| false |, 'data' => $1 }
+    if $raw_out =~ m|^P7ERR:(.+)|;
+
+return { 'mode' => qw| false |, 'data' => 'unexpected powershell output' }
+    if $raw_out !~ m|^SPAWNED\s*$|m;
+
+## ASYNC CONFIRMATION : a repeating timer                                   ##
+## [ powershell.handler.attach_ poll ] completes the deferred reply -- this ##
+## command never blocks the zenka command loop for the poll window . sync   ##
+## `usbipd list` polls [ ~1s each ] are an accepted interim ..,             ##
+my $ps_list = sprintf(
+    q#$out = & "%s" list 2>&1 | Out-String; #
+        . q#if ($LASTEXITCODE -ne 0) { #
+        . q#Write-Output ('P7ERR:' + $out.Trim()) } #
+        . q#else { Write-Output ('USBIPD=' + $out.Trim()) }#,
+    $usbipd_win
+);
+
+my $attach_re = sprintf( 'm|^%s\s+.*\bAttached\b|m', $busid );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'attach of %s already pending', $busid )
+    }
+    if exists <powershell.attach.pending>->{$busid};
+
+my $reply_id = $call->{'reply_id'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'deferred reply unavailable' }
+    if not length $reply_id;
+
+<powershell.attach.pending> //= {};
+
+my $state = {
+    'reply_id'  => $reply_id,
+    'busid'     => $busid,
+    'deadline'  => time + 30,
+    'ps_list'   => $ps_list,
+    'attach_re' => $attach_re
+};
+
+my $timer = <[event.add_timer]>->(
+    {   'interval' => 2,
+        'repeat'   => 1,
+        'handler'  => 'powershell.handler.attach_poll',
+        'data'     => $state,
+        'desc'     => "usbipd attach poll $busid"
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => 'timer setup failed' }
+    if not defined $timer;
+
+$state->{'timer'} = $timer;
+<powershell.attach.pending>->{$busid} = $state;
+
+return { 'mode' => qw| deferred |, 'data' => 'attach in progress' };
+
+#,,,.,,,,,.,,,,,,,...,..,,,..,..,,...,.,,,,,,,..,,...,...,.,.,,.,,...,...,..,,
+#H4UMBPTEHAKVTERFNOQVJX37IXUBY4YBPKNJ5VNAGHREPOPKERLTL7CZIUIDMEGKSYU2GROSXZHMI
+#\\\|QAF5CBZMZJ6ZV36DIMFWSJQZ7W34U5LF5J5DSSVGXLPDCDEHPY4 \ / AMOS7 \ YOURUM ::
+#\[7]IDJELJ6DIRFLFMQBUPUN5HFRC76PB7XEGTWM3H6E5DPFSR4X7OCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

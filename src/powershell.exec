@@ -20,15 +20,29 @@ if ( not defined $exe or not length $exe ) {
 my $out_fh = IO::Handle->new();
 my $err_fh = IO::Handle->new();
 
+## child stdin must EOF immediately : the zenka daemon's own stdin is a  ##
+## pipe that never closes , and host tools DO wait on stdin [ witnessed  ##
+## 2026-10-27 : usbipd v5 attach blocked forever inheriting it ] -- give ##
+## the child a pipe whose write end we drop right after spawn            ##
+my $stdin_r = IO::Handle->new();
+my $stdin_w = IO::Handle->new();
+pipe( $stdin_r, $stdin_w ) or do {
+    warn "failed to create stdin pipe [ $OS_ERROR ] <{C1}>";
+    return undef;
+};
+
 ## open3 only ends up imported into this process as a side effect of other
 ## framework code paths [ decompression, etc. ] running first; this zenka may
 ## never trigger those, so import it explicitly here too.
 <[base.perlmod.autoload]>->( 'IPC::Open3', qw| open3 | );
 
 my $ps_pid = eval {
-    open3( undef, $out_fh, $err_fh,
+    open3( $stdin_r, $out_fh, $err_fh,
         $exe, '-NoProfile', '-NonInteractive', '-Command', $ps_script );
 };
+
+close($stdin_w);
+close($stdin_r);
 
 my $spawn_err = <[base.str.eval_error]>;
 if ( not defined $ps_pid or length $spawn_err ) {
@@ -36,8 +50,40 @@ if ( not defined $ps_pid or length $spawn_err ) {
     return undef;
 }
 
-my @out_lines = $out_fh->getlines;
-my @err_lines = $err_fh->getlines;
+## drain BOTH streams CONCURRENTLY : sequential getlines deadlocks when the ##
+## child fills one pipe buffer while we block on the other                  ##
+## [ witnessed 2026-10-27 : get-event-log >64K output wedged the zenka ] .  ##
+## an IDLE timeout kills a silent child -- streamers keep flowing , wedges  ##
+## cannot survive .                                                         ##
+<[base.perlmod.autoload]>->( 'IO::Select', qw| IO::Select | );
+
+my $select    = IO::Select->new( $out_fh, $err_fh );
+my $out_str   = '';
+my $err_str   = '';
+my $last_read = time;
+
+while ( $select->count ) {
+    if ( time - $last_read > 60 ) {
+        kill 'TERM', $ps_pid;
+        <[base.waitpid]>->( $ps_pid, 0 );
+        close($out_fh) if $out_fh->opened;
+        close($err_fh) if $err_fh->opened;
+        warn 'powershell.exe idle timeout after 60s <{C1}>';
+        return undef;
+    }
+    foreach my $fh ( $select->can_read(1) ) {
+        my $chunk      = '';
+        my $read_count = sysread( $fh, $chunk, 16384 );
+        if ( defined $read_count and $read_count > 0 ) {
+            $last_read = time;
+            if   ( $fh == $out_fh ) { $out_str .= $chunk }
+            else                    { $err_str .= $chunk }
+        } else {
+            $select->remove($fh);
+        }
+    }
+}
+
 close($out_fh) if $out_fh->opened;
 close($err_fh) if $err_fh->opened;
 
@@ -45,20 +91,19 @@ close($err_fh) if $err_fh->opened;
 my $exit_code = $CHILD_ERROR >> 8;
 
 if ($exit_code) {
-    my $err_str = join( ' ', map { chomp; $ARG } @err_lines );
+    $err_str =~ s|\s+| |g;
     warn "powershell.exe exited $exit_code [ $err_str ] <{C1}>";
     return undef;
 }
 
 ## powershell.exe writes CRLF line endings regardless of host platform;
 ## normalize here so every plugin's output is plain \n, not \r\n.
-my $out_str = join( '', @out_lines );
 $out_str =~ s|\r\n|\n|g;
 
 return $out_str;
 
-#,,..,...,...,,..,,.,,,,.,..,,,.,,,.,,,.,,..,,..,,...,...,,,,,.,,,..,,..,,,,.,
-#TPQ5NOLO3EMQ3AMVRA67Z23VZWB4P3OHI7MI4BE5LMDJPGMBOQBDTJ3EFTJZ4EJ3Z44O7M3SKFKFU
-#\\\|U3Q5FIR4CTR6G653JLOIUU45XURO3ZTVQN77WJBR7V4N4WC3PFS \ / AMOS7 \ YOURUM ::
-#\[7]K5YD7HSQZ4MBODINNV3BHFZPQKGBE3J6VANRH6OXJPPVM2IDU4BA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,.,.,,,,,.,..,,,,,,...,...,,,.,..,,...,...,..,,.,.,..,,...,,,.,
+#U76A4BQUC3QEGS53XSIAOEELQHGFDHFPYZQANGB5ZKQHDTL2FPRPS54RZMBHFEQ3ZHAZNKFZL3NVO
+#\\\|UBB4L45AZLYDYUETQYN7DKNJWT4G5QK4TZL4JK5OL4FKQPK74G4 \ / AMOS7 \ YOURUM ::
+#\[7]HLWXGDOXGCGDDO7SMOQIS5GBQIT44WCBCDQOOTSX5OTRA7L5NQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

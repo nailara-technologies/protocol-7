@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = powershell.handler.attach_poll
+# descr = poll `usbipd list` for pending attach completion
+
+my $watcher = shift;
+my $state   = $watcher->data // return $watcher->cancel;
+
+my $busid    = $state->{'busid'} // return $watcher->cancel;
+my $reply_id = $state->{'reply_id'};
+
+my $pending = <powershell.attach.pending> // return $watcher->cancel;
+my $entry   = $pending->{$busid};
+
+## stale timer [ entry removed elsewhere ] ##
+return $watcher->cancel if not defined $entry;
+
+my $raw_out = <[powershell.exec]>->( $state->{'ps_list'} // '' );
+
+my $attached
+    = ( defined $raw_out and $raw_out =~ $state->{'attach_re'} ) ? 1 : 0;
+
+## keep polling until Attached or deadline ..,                          ##
+return if not $attached and time < $state->{'deadline'};
+
+$watcher->cancel;
+delete $pending->{$busid};
+
+my $reply;
+if ($attached) {
+    $reply = {
+        'mode' => qw| true |,
+        'data' => sprintf( 'device %s attached', $busid )
+    };
+} else {
+    $reply = {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            'attach of %s did not confirm ' . 'within 30s -- see usbipd-list',
+            $busid
+        )
+    };
+}
+
+<[base.callback.cmd_reply]>->( $reply_id, $reply );
+
+return;
+
+#,,,,,...,,,,,,.,,.,,,,..,.,,,,,,,...,,.,,,..,..,,...,.,.,...,...,,,.,,,,,.,,,
+#MWJCTQNFFTYST36FNXZ7O7IUADZB2K2K2GCIDBOOLN3OJ424OQQ4ZZ2H43OI72WUNFYWBEAPQZCYA
+#\\\|XZP6R3GS74CLDHYSTLR4ZQFC74EJ5LFWJ6HZ7L6KGYTWD2JS3PX \ / AMOS7 \ YOURUM ::
+#\[7]RER4YSFSDRHWEKNXARHPLJTDLDBC7NRKLETIQVGK2OO5UUURYKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
