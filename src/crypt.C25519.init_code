@@ -65,7 +65,16 @@ my $uc_name_regex = qr|[0-9A-Z_\-]+|;
 delete <crypt.C25519.regex>    ##  allow updates during reload  ##
     if <[base.is_defined_recursive]>->(qw| crypt.C25519.regex |);
 
-const <crypt.C25519.regex> => {    ## requires Const::Fast to be loaded ##
+## read-only when Const::Fast is available [ plain hash otherwise ] [ bare ##
+## 'const' without the import is a compile-time syntax error, so the call  ##
+## is runtime-guarded and prototype-bypassed ]                             ##
+my $set_c25519_readonly = sub {
+    return $ARG[1] if not defined &Const::Fast::const;    ## degraded ##
+    &Const::Fast::const( $ARG[0], $ARG[1] );
+    return $ARG[1];
+};
+
+<crypt.C25519.regex> = {    ## read-only below when Const::Fast loaded ##
     qw| key_name |           => qr|^$name_regex$|,
     qw| signature_key_name | => qr|^$uc_name_regex|,
     qw| key_sig |            => {
@@ -81,10 +90,12 @@ const <crypt.C25519.regex> => {    ## requires Const::Fast to be loaded ##
     qw| key_files | => qr|$re_keyfiles|
 };
 
+$set_c25519_readonly->( \<crypt.C25519.regex>, <crypt.C25519.regex> );
+
 delete <crypt.C25519.keys.sizetype>    ##  allow updates during reload  ##
     if <[base.is_defined_recursive]>->(qw| crypt.C25519.keys.sizetype |);
 
-const <crypt.C25519.keys.sizetype> => {    ## <- will be read-only [again]. ##
+<crypt.C25519.keys.sizetype> = {       ## <- read-only below [again]. ##
 
     ##  binary [ unencoded ] public or secret keys  ##
     ##
@@ -251,10 +262,15 @@ const <crypt.C25519.keys.sizetype> => {    ## <- will be read-only [again]. ##
     }
 };
 
+$set_c25519_readonly->(
+    \<crypt.C25519.keys.sizetype>,
+    <crypt.C25519.keys.sizetype>
+);
+
 0;
 
-#,,.,,,,,,,,.,.,.,,,,,,.,,,..,.,,,.,,,.,.,.,.,..,,...,.,.,..,,.,.,...,.,.,.,,,
-#QYA7NCQUE5YP7VPTSSRKZV2NPE6RZWM4LH3HN6YSAYSV2V5BLYMEWCKALDPBNUNRPN6NFZAPEZSJU
-#\\\|4YHBXJY6GZRLYC5NYUCR4SDQGMJKWBQUH5SGKJ5WJ7SEVBH5GTM \ / AMOS7 \ YOURUM ::
-#\[7]F3XZZ6IESATKDBPIWEXACGEVI7PEFXCTXLFTXFL44AB4U24BAQCI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,.,.,,,,,.,,,.,,,,,...,,,.,.,.,..,,...,...,,..,,,,,,.,,...,..,,
+#VRHBS4LYGIQMZLKDILYFWUNZI6VD2IXKI47W7EB7ATK6NPG6J4UV2QCVZNSEWT2GHFKB2M4WKJ3ZI
+#\\\|CXEGPN7H56LZEK7FNR66F3FZW4NTBLATMRCUWJZCKNTYV3A6LWV \ / AMOS7 \ YOURUM ::
+#\[7]FDQEQHIJ2PX46YUU64CRRLNNNAZ4VWPZRYSJCAMT6OLP4VDG5KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -59,13 +59,37 @@ if ( ref( $ARG[0] ) eq qw| SCALAR | ) {
 ## parameters  < input-data >, < start-csum >, < elf-mode >, ##
 ## [ shift-bits ], [shift-thrh.]                             ##
 
+##  module fast path [ soft : chain may be unavailable on degraded hosts ]  ##
+eval { require AMOS7::CHKSUM::ELF }
+    if not defined &AMOS7::CHKSUM::ELF::elf_chksum;
+
 return AMOS7::CHKSUM::ELF::elf_chksum(
     $$input_ref, $start_sum, $elf_mode,    ##  <--  make optional  ##  [LLL]
     $shift_bits, $overflow_threshold
-);
+) if defined &AMOS7::CHKSUM::ELF::elf_chksum;
 
-#,,,.,,..,.,,,,.,,..,,,,.,..,,,,.,,..,,.,,,.,,..,,...,...,,,.,..,,,,,,,,,,...,
-#XTB7ZEITGGNYNQHFA5BB44YGL7AP7EAWBK6VAIXUY3EUUOQPHXKH6DFVEXSRXPJYUEVOS5F3JPKBI
-#\\\|XOUD34ABIJLHCNA7IN6CXLZF7K52AI4FTY574CGNVHPXG2ARA2U \ / AMOS7 \ YOURUM ::
-#\[7]FRJRA5MEYJ6JMSHQ2L4A6NE7TGYSVL3FJ3IPVJEMWH4LF2RPOOBI 7  DATA SIGNATURE ::
+##  pure-perl fallback : AMOS7::INLINE src registry  ##
+state $amos_13_elf_fallback //= do {
+    eval { require AMOS7::INLINE::src::AMOS_13_ELF }
+        ? AMOS7::INLINE::src::AMOS_13_ELF::inline_elf()->{'fallback'}
+        : undef;
+};
+
+return <[base.s_warn]>->(
+    join( ' ',
+        'AMOS-13-ELF unavailable [ module and pure-perl ]',
+        $caller_level )
+) if not defined $amos_13_elf_fallback;
+
+no warnings 'utf8';    ##  deal silently with malformed UTF8  ##
+
+return sprintf qw| %09d |,
+    $amos_13_elf_fallback->(
+    $$input_ref, $start_sum, $elf_mode, $shift_bits, $overflow_threshold
+    );
+
+#,,,,,,,.,,,.,,.,,,,,,...,.,,,,,.,,,.,,,,,,,,,..,,...,.,.,..,,.,,,..,,,.,,,,.,
+#WQIFYF5VL2DQEPX26JTY43GZLXETYQE4PL23ETMTMK46QQ3SHNBQBRXGBSC7VTGOIMQ2TARHTLXS2
+#\\\|IDAR4IL6TDFDH6XERMYPZURNW3D2MGYY5DLHBVH74RGLNPS2BC4 \ / AMOS7 \ YOURUM ::
+#\[7]JYO5YQ5OXFHTMORJ57PZELMQU6N7LYMVLZI4QDPKC3IR3B7YJUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
