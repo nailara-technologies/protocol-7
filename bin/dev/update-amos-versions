@@ -18,9 +18,9 @@
 ## whitespace normalization [ defined once, here ] :                        ##
 ## 1. source split into lines  2. each line : every whitespace run becomes  ##
 ## one space [ tabs \ spaces, leading, trailing, internal ]  3. lines empty ##
-## after step 2 are dropped  4. lines joined with a single space            ##
-## [ also per line : leading and trailing runs of '#' -- the comment-box  ##
-## markers a reflow adds \ removes ; comment words still count ]          ##
+## after step 2 are dropped  4. lines joined with a single space [ also per ##
+## line : leading and trailing runs of '#' -- the comment-box markers a     ##
+## reflow adds \ removes ; comment words still count ]                      ##
 ## -> a format-code reflow [ ANY whitespace change ] must NOT change a      ##
 ## version ; only real source changes do  uniform form :                    ##
 ## AMOS7::<Module>-VERSION.<amos>                                           ##
@@ -159,8 +159,8 @@ foreach my $file_path ( sort @module_files ) {
     my $normalized = join ' ', grep {length} map {
         my $line = $ARG;
         $line =~ s{\s+}{ }g;
-        ## comment-box markers [ '## text ##' ] : a reflow moves words      ##
-        ## across lines and adds \ removes the end markers -- not content   ##
+        ## comment-box markers [ '## text ##' ] : a reflow moves words    ##
+        ## across lines and adds \ removes the end markers -- not content ##
         $line =~ s{^\s*#+\s*|\s*#+\s*$}{}g;
         $line
     } split "\n", $filtered;
@@ -184,9 +184,10 @@ foreach my $file_path ( sort @module_files ) {
             0, sprintf( qq{our \$VERSION = qw| %s |;\n}, $new_version ) );
     }
 
-    my $new_content = join '',
-        ( defined $footer_idx       ? @body                  : () ),
-        @lines[ defined $footer_idx ? $footer_idx .. $#lines : () ];
+    my $new_content
+        = defined $footer_idx
+        ? join( '', @body, @lines[ $footer_idx .. $#lines ] )
+        : join '', @body;
 
     open( my $out_fh, qw| >:raw |, $file_path ) or do {
         warn sprintf ':: cannot write %s [ %s ]', $file_path, $OS_ERROR;
@@ -308,8 +309,8 @@ if ( $check_mode and $changes_reported ) {
     exit 0;
 }
 
-#,,.,,...,.,,,,,,,,.,,.,.,...,...,...,,.,,...,..,,...,...,...,.,,,..,,,..,...,
-#6DS24LSWFUZQTS73DOOOFQFX7UJI2ZLUPHNN7CMJQMMQMTONZ2YVT7KYKCKFGXITXLN4UCWMCUXLK
-#\\\|LJMRDENMI656AZNY5N5XIT7RVP5K5CJS7YAJBZORMZGBAVFCUSA \ / AMOS7 \ YOURUM ::
-#\[7]2F4ZPW6BGEDVVCZBY5IPHPNCLOKUEGOSAWXOXQ5JX362QB46NCCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,.,.,...,,,,,,,.,...,.,.,.,.,..,,...,...,..,,.,,,...,,,.,...,
+#3IOV4UOJET2R2TNAAJ6LMV327I7M6IR5EVNSTW6FHGNTYIGD4JV4TTQWULYWIPYA7UQ6Q5LF2CW4C
+#\\\|I2AHUXNY53Z2MQTGUYTQJSTQHRYKSKKDXZYT5IEPUIMXDDQ6XW7 \ / AMOS7 \ YOURUM ::
+#\[7]NUUEBSEOJGMIPTKNLOBL5BQIOFQIR64YMDPLBYZZ4P7Z3IRON6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

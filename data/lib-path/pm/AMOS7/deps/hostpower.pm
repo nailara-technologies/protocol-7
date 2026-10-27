@@ -1,5 +1,5 @@
 package AMOS7::deps::hostpower;
-our $VERSION = qw| AMOS7::deps::hostpower-VERSION.LX9PMKJ |;
+our $VERSION = qw| AMOS7::deps::hostpower-VERSION.YIAPWKI |;
 
 use strict;
 use warnings;
@@ -529,8 +529,8 @@ sub _gnome_rows {
 
 1;
 
-#,,,.,,.,,...,,,.,,,,,,,,,..,,,.,,,.,,...,,.,,.,.,...,...,.,.,,..,...,,.,,,.,,
-#EBZN7FNJOZKVWANLJXIDUNEQBCBA4KMADDUFJIZMM4XAXHBAU5J3PV72NX3AMTLOG3R5PQCURU6LG
-#\\\|K4RDAHUKFAXMBCF53EWXWOB2XHOIAMYLRKSAMKXXRCHJQ7C5O7V \ / AMOS7 \ YOURUM ::
-#\[7]YCM6BHXECS2NATMYMEPOUZFBDK5SPGHH2L3OBIZ2EDRCIK4OTEDI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,.,,.,,,.,,.,,,,..,,,.,,.,,,..,.,.,...,...,,..,,,.,,.,,,,.,..,,
+#XJCIR53KPCN7JV3HJ6RFWZHXCR4ETTLMBYWVDU7WW22OGG6R6OKT3QBPTBMAPLDQQDDGI3X4CSUGW
+#\\\|LMAMRNCKW5RABE3DDTBZIIGLXDJKXCAFKCKWXHOBOW6VENEFGHB \ / AMOS7 \ YOURUM ::
+#\[7]T4PLXCDVUOXG4FIXA3JZHPHXBCYOWHNDNKPTZ4WSEIG7OS5UEAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32HJ3F52DA-10288.0 :::
+::: SOURCE-CODE VERSION :: 32HKBOVTPY-10289.0 :::
 
 # [ [nailara 'protocol seven' network](http://protocol-7.network/) ]
 
@@ -86,7 +86,21 @@ The `bin/p7-deps` tool provides both analysis and installation capabilities:
 ### Automatic Installation at Zenka Start
 
 A host can let v7-zenki install missing dependencies itself, per host and
-off by default. In `/etc/protocol-7/host-config/v7-zenki.cfg`:
+off by default. One command enables it [ root ]:
+
+```
+bin/p7-deps enable-auto-install
+```
+
+or at install time:
+
+```
+bin/p7-install -enable -auto-install-deps
+```
+
+Both merge the opt-in line into the host overlay
+`/etc/protocol-7/host-config/v7-zenki.cfg` [ other host settings are
+never touched ; `disable-auto-install` turns it off again ]:
 
 ```
 v7-zenki.cfg.auto_install_deps = yes
@@ -516,8 +530,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,.,.,,,,,,,,,.,.,,,..,,,.,,,..,.,.,,,.,..,,..,,...,...,,.,,.,.,,,,,...,,,.,
-#IP26AZGA2TLYIALXJYJLONG3667CO36TZZSX4FMZLML5OX4VTRCCDALYPS5I4RZLDONKG2Q7JJSGA
-#\\\|FS3C6QBNEVUKBVZAL2WNLBN2ZT4KIGSGOJHDGZGTIH2532O42HN \ / AMOS7 \ YOURUM ::
-#\[7]PP5MGOIV2QN7UGWPNLN5F4B5NZM4HHGDWCEBPKSIDDMI4YDKAOBI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,,,,,..,,,.,,,,.,,,.,.,,,...,..,,...,..,,.,,,.,.,..,,,,.,..,,
+#UC676YU2XC3P4LM4B5VXE7O73BBNHM2K7ZGOGQISTITTFIMCQVODH5QXD4DCFZ4WJ65OXEPD2HRO4
+#\\\|OCMG75RDQH4KTIRA6PPIEMHSUNACEDT7SSLFPCBR7BJLAWGXMNC \ / AMOS7 \ YOURUM ::
+#\[7]QW4KBVD7IRZH5645TZN3XIBTLAMF6CPNCJJH76VJGOS726CAVKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

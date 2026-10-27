@@ -61,7 +61,7 @@ warn_err(
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-$VERSION = qw| AMOS7::INLINE-VERSION.GQOQRCA |;
+$VERSION = qw| AMOS7::INLINE-VERSION.4U4T5NY |;
 
 return TRUE;    ## true ##
 
@@ -397,8 +397,8 @@ sub _src_digest {
 
 return TRUE ##################################################################
 
-#,,..,.,.,.,,,..,,.,,,,..,...,,,.,,..,,,.,,,.,..,,...,...,.,.,,.,,,.,,,..,.,,,
-#2ZHD433A4MBAZBJ34QXLGBNPW6YV5JIRM6WUTVVBE5FPP3O34SPP5U27GJ57OVYCY2U2EHA3RB3NY
-#\\\|G3VH56IZ6UDXXYJS6YTMQPEM5BSG5ID4BAULZUVTOTLSIIAHYVK \ / AMOS7 \ YOURUM ::
-#\[7]LETOFCTAWSMIR65XH55SASZH5MIQBIW4C65TIBJNF7AXQHLVJ4DY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,.,.,..,,,,.,.,,,,..,.,,,...,..,,...,...,,.,,,,,,..,,,,.,.,,,
+#2C36Q35SFU3SK22KDCXNVAGG4H6RP343IQYEMB3GIYRHMDQM6W6XMQRDLR4PPIP5S7EXXCRVBCTNW
+#\\\|PEWBQSHIBWNPOJW4MRJKCI2ZD5PTCFVFJ676SLO3QG7Y4CJNNZA \ / AMOS7 \ YOURUM ::
+#\[7]EBBEIS6NRGKL6VKOE5NSUGBDGEIORT6GXRJHLD2OP2S6WZZ4XWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

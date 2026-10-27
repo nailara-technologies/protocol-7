@@ -47,12 +47,13 @@ use AMOS7::deps::os_package qw|
     probe_os_pkg
     probe_binary
     |;
-use AMOS7::deps::hw_detect qw| detect_hardware write_hw_profile |;
-use AMOS7::deps::debp      qw| probe_apt install_apt |;
-use AMOS7::deps::tracked   qw| record |;
-use AMOS7::deps::dist_upgr ();
-use AMOS7::deps::hostpower ();
-use AMOS7::TERM::Frame     qw|
+use AMOS7::deps::hw_detect   qw| detect_hardware write_hw_profile |;
+use AMOS7::deps::debp        qw| probe_apt install_apt |;
+use AMOS7::deps::tracked     qw| record |;
+use AMOS7::deps::dist_upgr   ();
+use AMOS7::deps::hostpower   ();
+use AMOS7::deps::autoinstall ();
+use AMOS7::TERM::Frame       qw|
     frame_column_line frame_title_banner frame_section_header
     frame_status_row frame_error_line frame_error_exit frame_option_list
     frame_terminal_width frame_fit_width
@@ -160,6 +161,10 @@ if ( $cmd eq 'check' ) {
     cmd_enable_service(1);
 } elsif ( $cmd eq 'disable-service' ) {
     cmd_enable_service(0);
+} elsif ( $cmd eq 'enable-auto-install' ) {
+    cmd_auto_install(1);
+} elsif ( $cmd eq 'disable-auto-install' ) {
+    cmd_auto_install(0);
 } elsif ( $cmd eq 'check-service' ) {
     my $all_ok = cmd_check_service();
     exit( $all_ok ? 0 : 1 );
@@ -167,7 +172,10 @@ if ( $cmd eq 'check' ) {
     cmd_detect_hw(@ARGV);
 } elsif ( $cmd eq 'host-power' ) {
     cmd_host_power(@profile_args);
-} elsif ( $cmd eq 'help' || $cmd eq '--help' || $cmd eq '-h' ) {
+} elsif ( $cmd eq 'help'
+    || $cmd eq 'options'
+    || $cmd eq '-options'
+    || $cmd eq '-h' ) {
     show_help();
 } else {
     frame_error_exit(
@@ -1125,6 +1133,50 @@ sub cmd_enable_service {
     exit 1 if $failed;
 }
 
+## host opt-in for the strategic dependency install                         ##
+## [ root + the v7-zenki.cfg.auto_install_deps overlay line ] -- merges the ##
+## line into /etc/protocol-7/host-config/v7-zenki.cfg, never touching other ##
+## host settings ; verified against the trusted-file rules                  ##
+sub cmd_auto_install {
+    my ($enable) = @_;
+    frame_error_exit( $TOOL, 'needs root', { exit => 1 } )
+        if $EUID != 0 and $UID != 0;
+    banner( $enable ? 'enable auto-install'      : 'disable auto-install' );
+    say frame_section_header( $enable ? 'enable' : 'disable' );
+    my $method = $enable ? qw| enable | : qw| disable |;
+    my ( $ok, $message, $path ) = AMOS7::deps::autoinstall->can($method)->(
+        {   'etc'  => qw| /etc/protocol-7 |,
+            'tree' => $P7_ROOT
+        }
+    );
+    if ( not $ok ) {
+        say frame_status_row( 'host overlay', 'failed',
+            { 'detail' => $message, 'level' => qw| error | } );
+        say frame_column_line();
+        exit 1;
+    }
+    say frame_status_row( 'host overlay', $message );
+    my ( $state, $shown_path ) = AMOS7::deps::autoinstall::status();
+    my $state_str
+        = $state eq qw| yes | ? qw| enabled |
+        : $state eq qw| no |  ? qw| disabled |
+        :                       $state;
+    say frame_status_row( 'auto_install_deps', $state_str,
+        { 'detail' => $shown_path } );
+    my ( $trusted, $why )
+        = AMOS7::deps::autoinstall::trusted_chain( $path,
+        ( stat $P7_ROOT )[4] );
+    if ($trusted) {
+        say frame_status_row( 'trust chain', qw| ok | );
+    } else {
+        say frame_status_row( 'trust chain', 'refused',
+            { 'detail' => $why, 'level' => qw| warn | } );
+    }
+    say frame_status_row( 'effective', 'next zenka start' );
+    say frame_column_line();
+    exit( $trusted ? 0 : 1 );
+}
+
 sub cmd_check_service {
     banner('check service');
     say frame_section_header('service parts');
@@ -1317,6 +1369,12 @@ sub show_help {
     check-service ..................  read-only check of unit, links and
                                       unit state [ exit 1 : parts differ ]
 
+    enable-auto-install ............  host opt-in : v7-zenki installs missing
+    disable-auto-install ...........  dependencies at zenka start [ merges
+                                      v7-zenki.cfg.auto_install_deps into
+                                      /etc/protocol-7/host-config/v7-zenki.cfg
+                                      root only ; other settings untouched ]
+
     none of the service commands starts, stops or restarts the service.
 
     host-power [mode] ...............  keep a host's power behavior managed
@@ -1345,8 +1403,8 @@ sub show_help {
 EOL
 }
 
-#,,,,,,,,,.,,,,,,,..,,,.,,..,,.,,,,,,,,,,,.,,,..,,...,...,..,,,..,.,,,,..,,,.,
-#5LXONZGJG4LU3ZB2OY5CQUUHJMJYYGUF6KEKKYH7C7BIV2FNENXPFS67FWVQGBQ3RGGTY76CRNB4C
-#\\\|GRJMUGLDNRUKRVOXTUTCA4GU53NHF2U5GA5KACVMSEXOGM43U43 \ / AMOS7 \ YOURUM ::
-#\[7]WHZB5ASRTRQP55MQHRBJAH5XJDLJPW2FSOALZ6VKQ6WYUISOMOAY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,..,,,,,,,,,,.,,,..,,,..,.,.,,..,..,,...,...,,,,,...,,.,,.,,,,..,
+#NS63TVBYNECUX2UQD4WH2ITCJMUNH5X5R6RJOZB6VVMME5SFSPXRD63FV474W73YQYSSIKBP7CU32
+#\\\|BKLDOO5ZVAHMHSF73NATS4MTSBTZSZYBKGE4TAR2V77TVCVLYSW \ / AMOS7 \ YOURUM ::
+#\[7]I4THEU6ZWOTQETEDAB7OJWYLQI7HJ3GPMTI7GZSVUKAKMMDOE6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

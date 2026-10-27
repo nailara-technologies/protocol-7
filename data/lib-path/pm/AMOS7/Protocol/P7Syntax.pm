@@ -6,7 +6,7 @@ use strict;
 use English;
 use warnings;
 
-our $VERSION = qw| AMOS7::Protocol::P7Syntax-VERSION.AU4X3TQ |;
+our $VERSION = qw| AMOS7::Protocol::P7Syntax-VERSION.JL2KZTA |;
 
 use Exporter;
 use base qw| Exporter |;
@@ -566,13 +566,13 @@ sub p7_syntax__translate
 ##  the oldest perl the project supports is the 'use v5.NN' line of         ##
 ##  bin/Protocol-7. the syntax checkers [ bin/format-code -c, bin/dev/ptd ] ##
 ##  compile with the local perl AND with that floor perl when installed :   ##
-##  a newer perl accepts code an older one refuses to compile [ {1,65535}  ##
+##  a newer perl accepts code an older one refuses to compile [ {1,65535}   ##
 ##  : 5.42 compiles it, 5.36 and 5.28 do not -- 2026-10-08 ]                ##
 ##                                                                          ##
 ##  floor perl lookup [ first found ] :                                     ##
-##    $P7_FLOOR_PERL       path to the binary [ 'none' : local perl only ] ##
-##    ~/.local/perl-5.NN.*/bin/perl5.NN.*    [ -Dversiononly install ]     ##
-##    perl5.NN.* in PATH                                                   ##
+##    $P7_FLOOR_PERL       path to the binary [ 'none' : local perl only ]  ##
+##    ~/.local/perl-5.NN.*/bin/perl5.NN.*    [ -Dversiononly install ]      ##
+##    perl5.NN.* in PATH                                                    ##
 
 my ( $floor_resolved, $floor_minor, $floor_bin, $floor_noted );
 
@@ -789,8 +789,8 @@ sub p7_syntax__swapped_calls {
 
 return 5;  ###################################################################
 
-#,,.,,.,.,,.,,,..,.,,,,,.,.,,,...,,,.,.,.,.,,,..,,...,...,..,,,.,,...,,..,,..,
-#WOXT7LQ4VDEBP4GCS4S5UP7CXL7E3VSJH7K7LNKTVHV6S2IB6Q2ZS67DXKFOTQROZU3OLHOB742UM
-#\\\|2UXVTASWOOGKGKUXVOGCJ5A5KEISPTA44L6T3XOGFN52OAFNOTO \ / AMOS7 \ YOURUM ::
-#\[7]M5C3QWATYS55XFWJHZRE77V5XZ4MMX7ZM2IV2JTXVURPWE4VSCDI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,...,,.,,,.,,,,,,.,,,.,.,,..,..,,...,..,,.,,,...,..,,,,.,,,,,
+#N64ZY5ZXCN6HAMA6ESBDRN7AD4AAKBR4YC6WZN4XDFYLIOXYV3KHSBOPKOGUP5XBKRFTDIPTDRRVO
+#\\\|FN5DGUZVY6WDSEPACFSGTAQKOZAZXLJK2ZSCEXX3BKYF27DQH5V \ / AMOS7 \ YOURUM ::
+#\[7]OQUVWZJ7HC4AWH6D3KH3ZS46XY5ZTYZISTD7E5RZHX6AWEG5KEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
