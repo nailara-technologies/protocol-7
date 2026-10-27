@@ -1,0 +1,102 @@
+---
+# Task: Powershell Zenka usbipd Host Commands
+# Date: 2026-10-26
+# Status: pending
+# Context: WSL2 host needs USB devices exposed from windows side
+# Requirement doc: data/tasks/powershell-zenka-usbipd-commands.md
+
+task_metadata:
+  title: "usbipd list/attach/detach commands on the powershell zenka"
+  description: >
+    Add three commands to the existing powershell zenka [ the windows host
+    bridge ] wrapping usbipd.exe v3+ : usbipd-list, usbipd-attach,
+    usbipd-detach. Requirement and motivation are fully written in
+    data/tasks/powershell-zenka-usbipd-commands.md -- read it first.
+  priority: medium
+  category: "infrastructure"
+
+## -----------------------------------------------------------------------
+
+objective: >
+  Expose usbipd list / attach / detach as powershell zenka commands so any
+  protocol-7 consumer can attach a usb device to this WSL distro on demand.
+
+context:
+  zenka: powershell
+  start_file: cfg/zenki/powershell/zenka.v7
+  code_style: data/yaml/code-style/CONVENTIONS.yaml
+
+  existing_modules_to_read:
+    - src/powershell.cmd.mem-used        # THE pattern template -- copy shape
+    - src/powershell.exec                # how ps scripts are spawned
+    - src/powershell.init_code           # absolute-path exe resolution model
+                                         # [ powershell.cfg.exe_path ] and
+                                         # <powershell.cfg.wsl_distro>
+
+  files_to_create:
+    - src/powershell.cmd.usbipd-list
+    - src/powershell.cmd.usbipd-attach
+    - src/powershell.cmd.usbipd-detach
+
+  files_to_edit:
+    - src/powershell.init_code           # add <powershell.cfg.usbipd_path>
+                                         # absolute-path resolution
+    - cfg/zenki/powershell/zenka.v7      # add the three names to
+                                         # access.cmd.usr.*
+
+  environment_facts:
+    - usbipd-win is INSTALLED on the windows host [ verified 2026-10-26 ].
+    - usbipd v3+ syntax : `usbipd list`, `usbipd attach --wsl
+      --distribution <name> --busid X-Y`, `usbipd detach --busid X-Y`.
+    - list / attach / detach are non-elevated ; `bind` is NOT a command
+      here -- on an unbound busid usbipd-attach returns a clear error
+      naming bind as the one-time elevated manual step.
+    - wsl-to-win32 argv marshalling does NOT survive embedded newlines :
+      powershell scripts must be single-line, semicolon-joined [ see how
+      powershell.cmd.mem-used builds its heredoc and strips the trailing
+      newline ].
+    - P7 has no class hierarchy : there is no SUPER:: anywhere.
+    - loops use $ARG, never $_.
+
+steps:
+  - read data/tasks/powershell-zenka-usbipd-commands.md [ requirement ].
+  - read the context modules listed above ; copy the mem-used reply shape.
+  - extend src/powershell.init_code : resolve <powershell.cfg.usbipd_path>
+    mirroring the powershell.cfg.exe_path pattern -- first
+    `C:\Program Files\usbipd-win\usbipd.exe`, then the per-user winget
+    location under %LOCALAPPDATA%\Microsoft\WinGet\Packages\ . NEVER rely
+    on PATH lookup -- the windows PATH-refresh trap is why this exists.
+    Warn once when missing, same style as the powershell.exe warning.
+  - write the three command modules. All follow the mem-used pattern :
+    single-line script, try/catch + `P7ERR:` sentinel, `{ mode, data }`
+    reply.
+  - usbipd-list   : parse `usbipd list` output ; return the device table
+                    as the data payload [ plain text is fine ].
+  - usbipd-attach : args = busid ; run `usbipd attach --wsl
+                    --distribution <powershell.cfg.wsl_distro> --busid
+                    <busid>` ; unbound device -> clear error naming bind.
+  - usbipd-detach : args = busid ; run `usbipd detach --busid <busid>`.
+  - register usbipd-list usbipd-attach usbipd-detach in access.cmd.usr.*
+    in cfg/zenki/powershell/zenka.v7, matching the existing line format.
+  - do NOT run git commit -- leave all changes in the working tree.
+
+acceptance:
+  - perl -c passes on every new/edited src file.
+  - the zenka config diff matches the real access pattern of zenka.v7.
+  - reload the powershell zenka [ v7-zenki reload mechanism ] and exercise
+    usbipd-list : it returns the live device table from the host.
+    tail /dev/shm/.7/STDOUT/NIW7OAQ [ confirm socket freshness with ls -la
+    first ] for errors during reload and command runs.
+  - usbipd-attach / detach round-trip on an available busid, leaving the
+    device detached afterwards. If no suitable busid is present, report
+    that plainly instead of forcing it.
+
+signatures_note: |
+  do NOT add #,,.,,... stub at end of any file.
+  leave new files clean -- signing system adds the real 4-line footer.
+
+#,,..,..,,,..,,,.,.,.,.,,,.,,,,..,..,,...,...,..,,...,..,,..,,.,.,,.,,.,,,.,,,
+#IWVXLMI6KDKUKLH54Q4BMM4Q4Q5GQEGK3UWBG477EF2HCV6QFIBFYPHQAUOAMXBBPQJHBS3ZRA7KC
+#\\\|SWNNJWXBIEONXCIWE4HS4EDQDASDDBMNU3XAHNRLQEBYIUJVPOD \ / AMOS7 \ YOURUM ::
+#\[7]UKUXBRWUJBWQMGYJ3Y4V5Q2L5GRUB72WAOWZWETMPP2FM4LI7MAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

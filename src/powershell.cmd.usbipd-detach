@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = powershell.cmd.usbipd-detach
+# descr = detach a usb device from this wsl distro via usbipd
+# param = <busid>   [ e.g. 1-4 -- see usbipd-list ]
+
+## see data/tasks/powershell-zenka-usbipd-commands.md. detach is non-elevated
+## on usbipd v3+. plugin shape per powershell.cmd.mem-used : single-line
+## script, try/catch + 'P7ERR:' sentinel, { mode, data } reply.
+
+my $args = $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'busid required, e.g. 1-4' }
+    if not length $args;
+
+my $busid = ( split( m|\s+|, $args ) )[0];
+
+return { 'mode' => qw| false |, 'data' => 'invalid busid [ expected N-M ]' }
+    if $busid !~ m|^\d+-\d+$|;
+
+my $usbipd = <powershell.cfg.usbipd_path>;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usbipd.exe not available on host -- one-time '
+        . 'install : winget install dorssel.usbipd-win'
+    }
+    if not defined $usbipd
+    or not length $usbipd
+    or not -x $usbipd;
+
+## wsl /mnt/c/... form -> win32 C:\... form for use inside the script ##
+( my $usbipd_win = $usbipd ) =~ s|^/mnt/([a-zA-Z])/|uc($1) . ':/'|e;
+$usbipd_win =~ s|/|\\|g;
+
+## script is built from concatenated fragments so no SOURCE line exceeds ##
+## the 79-col limit -- the EXECUTED string is still one single line      ##
+## [ no embedded newlines : win32 marshalling ]                          ##
+my $ps_script
+    = sprintf( q#$ErrorActionPreference = 'Stop'; try { #
+        . q#$out = & "%s" detach --busid "%s" 2>&1 | Out-String; #
+        . q#if ($LASTEXITCODE -ne 0) { #
+        . q#Write-Output ('P7ERR:' + $out.Trim()) } #
+        . q#else { Write-Output ('USBIPD=' + $out.Trim()) } } #
+        . q#catch { Write-Output ('P7ERR:' + $_.Exception.Message) }#,
+    $usbipd_win, $busid );
+
+my $raw_out = <[powershell.exec]>->($ps_script);
+
+return { 'mode' => qw| false |, 'data' => 'powershell.exec failed' }
+    if not defined $raw_out;
+
+return { 'mode' => qw| false |, 'data' => $1 }
+    if $raw_out =~ m|^P7ERR:(.+)|;
+
+return { 'mode' => qw| false |, 'data' => 'unexpected powershell output' }
+    if $raw_out !~ m|^USBIPD=(.*)|ms;
+
+my $out_str = $1;
+$out_str =~ s|\s+$||;
+
+## usbipd detach exits silently on success -- never return an empty TRUE ##
+## reply [ the framework rejects it ]                                    ##
+return {
+    'mode' => qw| true |,
+    'data' => length $out_str ? $out_str : 'device detached'
+};
+
+#,,..,,..,,,,,,,,,,.,,.,,,.,,,,,.,,,,,,.,,.,,,..,,...,...,...,,..,..,,,,.,...,
+#4PTFJSS2PRMHSD2ZIALJGCKNUTHBQLMIRJVWYOIY4U2ZV3ND7LFF7XX5JQ2DHN6RYGFTZOQSFUMTO
+#\\\|A6UMLKECQP4JEWIEVLNOCDFOGI2H7WDOG3NQPPVRFCUWR4MI2XA \ / AMOS7 \ YOURUM ::
+#\[7]JBLXPQZBE64DJMH6BMHUXKZNAYJEDH66RYBNET66CMHX3P34OMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
