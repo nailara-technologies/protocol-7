@@ -84,8 +84,26 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   and .bashrc builds no_proxy with bare $(hostname -I) IPv6 — both
   landmines for stricter parsers.
 
-#,,,,,,..,.,,,.,,,.,.,.,.,.,.,...,,,,,.,.,.,,,..,,...,...,..,,,.,,,.,,,..,...,
-#OHSRWH44Q75A5VTYC7CYBUMMQKKPSQGZEWUIX24BMGBY63BPISIWW27VL3UFG5OAKDNVQH2WUDYV6
-#\\\|OTHTTEIX2VSD7YWAUBFBIQHLMVES5VRSK5E7FJTHSLI5D2MSARY \ / AMOS7 \ YOURUM ::
-#\[7]JOXJN5X4D6D5YBDTR6UTDOASH7WVOWLIZ6GPDS6TU77J3HTEDSAA 7  DATA SIGNATURE ::
+## 2026-10-27 handover — WSL usbipd host-USB + async powershell zenka
+
+- powershell zenka gained `usbipd-{list,attach,detach}` [ attach =
+  DEFERRED reply + poll timer ] + wedge-proof `powershell.exec`
+  [ concurrent drain , 60s idle timeout ] : commits c37c63580..54ae2453e.
+  full detail + the WSL-tETHER-STALL forensics [ 18-experiment matrix ,
+  Start-Process -WindowStyle Hidden escape , mechanism UNKNOWN ] :
+  [[project-2026-10-27-session-handover-usbipd-wsl]].
+- editor `detail_editor_wrap_segments` clamped to width >= 1 [ headless
+  zero-width spun 9h ] : 11cf1d92a.
+- LAST-BUG-STANDING lesson : qw|IO::Select| import list in a
+  base.perlmod.autoload call made init_code abort midway , silently
+  skipping later init sections — autoload importless modules with a
+  single arg ; follow-up : init-runner per-section error containment.
+- ops : zenka logs at /var/log/protocol-7/<host>.<zenka>.zenka.log +
+  /dev/shm/.7/STDOUT ring bypass wedged MCP ; p7c unusable from agent
+  bash [ silent hang ] ; kimi-legacy shim repaired [ uv python 3.13 ].
+
+#,,..,...,,,.,.,.,..,,,.,,..,,...,,,,,,.,,.,,,..,,...,...,.,.,.,.,...,..,,...,
+#HO7YA2TZBDAYVXVQITCGEA2XRWVRMDMTM5GDEPYNYVU55ZNYCJCJX4NSW2DMJTGJMS3QM6GX2QRNC
+#\\\|U32LHPTFMEUI5HZSGRNSJQTLXC33X2B7JJEWZPVTLU4QP2I7YHR \ / AMOS7 \ YOURUM ::
+#\[7]WVR5VDFQ5YOXO5IJHQMA4TL26TXAKNNXGFILO7E2ST77XIERS6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
