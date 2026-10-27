@@ -99,21 +99,35 @@ reached` — GNOME's power plugin asking, logind complying.
 
 ## Installer / provisioning integration
 
-Implemented as `bin/p7-deps host-power` [ `AMOS7::deps::hostpower` ] —
-one command applies all of the above: masks the sleep targets, installs
-and enables the guard-based wakeup-disable oneshot [ device names read
-from `/proc/acpi/wakeup` at run time, RTC class excepted ], and sets the
-GNOME idle-suspend keys to `nothing` per logged-in session user [ a warn,
-not a failure, when no session bus is reachable ]. Testable against a
-temporary root via `P7_DEPS_SERVICE_ROOT` ; pure helpers covered by
-`bin/test-scripts/test-p7-deps-host-power.pl`.
+Implemented as `bin/p7-deps host-power [ mode ]` [ `AMOS7::deps::hostpower` ]
+with two modes, pin-able per profile via `host_power:` in profiles.yaml
+[ runs automatically after a clean profile install ; `basic-remote-server`
+pins `awake` ] :
 
-Natural next steps : a host profile flag that runs it automatically after
-`install-service` on server-duty profiles, and DE detection beyond GNOME
-[KDE / XFCE keep their own idle-suspend keys].
+- **awake** [ default ] — server duty, the host never suspends: masks the
+  sleep targets, installs and enables the guard-based wakeup-disable
+  oneshot [ device names read from `/proc/acpi/wakeup` at run time, RTC
+  class excepted ], sets the GNOME idle-suspend keys to `nothing` per
+  session user [ a warn, not a failure, without a session bus ].
+- **suspending** — zenka \ user suspend duty: the v7-zenka's host power
+  commands [ poweroff, reboot, suspend ] must keep working, and the host
+  is expected to wake on keyboard or Wake-on-LAN. No target masking
+  [ manual `systemctl suspend` stays available ], firmware wake defaults
+  untouched, and WoL is made persistent via systemd `.link` files
+  [ `WakeOnLan=magic`, matched by MAC, wired NICs only ] plus an
+  immediate best-effort `ethtool`. A previous `awake` setup is undone
+  [ guard unit removed, p7 `.link` files dropped ] and vice versa.
 
-#,,,.,.,.,,,,,,..,..,,,.,,,.,,.,,,.,,,,..,.,,,..,,...,.,.,.,,,...,..,,,,,,,..,
-#TLAJKH6LFNGIQ2TAIKPZLR4YXPGSEHCI55DD3YDRLZRZJNI2FSZOG67OKNZAPD3PEDP33VK3VLTFI
-#\\\|KDBJQHNBRNUW5R7QXRV6OQWGZ6IFVZI7HBLWM2FRDEF37OUAZUW \ / AMOS7 \ YOURUM ::
-#\[7]2QXY6VEH5B4DDVZMF3YNWQ3HCYSOODBR6QNHRH6JPIG4HCPTRCAI 7  DATA SIGNATURE ::
+Testable against a temporary root via `P7_DEPS_SERVICE_ROOT` [ systemctl
+steps skipped, unit \ links \ `.link` files still written ] ; pure helpers
+covered by `bin/test-scripts/test-p7-deps-host-power.pl`.
+
+Natural next steps : DE detection beyond GNOME [ KDE / XFCE keep their own
+idle-suspend keys ], and a `host-suspend` counterpart command for the
+zenka side [ select the sleep state, set a RTC wake alarm ].
+
+#,,,.,,,.,.,,,,,,,.,.,.,.,...,.,,,.,.,,..,,,.,..,,...,...,..,,,..,,.,,,..,...,
+#UWU7K4M4LIS4QWXXJY7VNMQLVSJSVDVH6IL3OBAYFO2IWCUTGW72OIYYJQQ2LNTHLBHE5GLKHOZBY
+#\\\|WCJRJ4PG4AQ2EPBX6JPWYO4T7ZGCKXE7OBMF55D4KNZHOWCURNB \ / AMOS7 \ YOURUM ::
+#\[7]NLWPNN7BBNBDO5XKKV2RRX6G5ZN7C24PC23GEX36DI3PIM7GOQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
