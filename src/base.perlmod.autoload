@@ -29,6 +29,21 @@ if ( not @export and <[base.perlmod.loaded]>->($module_name) ) {
 
 eval { Module::Load::autoload( $module_name, @export ) };
 
+## a previously failed require leaves a stale %%INC entry -- the next    ##
+## attempt then dies with 'attempt to reload ... aborted', shadowing the ##
+## real problem and blocking auto-install : drop it and retry once       ##
+if ( length $EVAL_ERROR
+    and $EVAL_ERROR =~ m{attempt to reload \S+ aborted}i ) {
+    ( my $pm_file = "$module_name.pm" ) =~ s|::|/|g;
+    if ( exists $INC{$pm_file} ) {
+        delete $INC{$pm_file};
+        <[base.logs]>->(
+            2, ":. stale %%INC entry dropped [ %s ] .,", $pm_file
+        );
+        eval { Module::Load::autoload( $module_name, @export ) };
+    }
+}
+
 if ( not length $EVAL_ERROR ) {    # success #
     <[base.perlmod.register_loaded_module]>->($module_name);
     return TRUE;                   ## true ##
@@ -128,8 +143,8 @@ if ( length $EVAL_ERROR ) {
 
 return TRUE;         ## true ##  [ module loaded ]
 
-#,,,,,,..,,..,.,.,...,,,,,..,,,..,,.,,,,.,,,,,..,,...,..,,...,.,.,.,,,,.,,,,.,
-#SCKVTFO2MEZECTIFKHLJDLG3U2VH3EX567DSTAPDI5XDHO3PDELMMI6RGOWDWS2VNYARPLD4DZOEA
-#\\\|MLBK26WTXHP442NQYRWSRZ6YL4N63XK7ZRJK2RTLSJYEVFBBM2C \ / AMOS7 \ YOURUM ::
-#\[7]VTZXEVKMXQR4G4VQCIMGKQ7VF35CJ3ZFSX7OEFEREDU3XW4NYKAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,.,,,.,,..,...,,.,,.,.,,.,,,..,..,,...,...,...,...,,,,,.,,,,,.,
+#4JRCOC5OEN7CK24B75EXVXCGMKT6GRBVXWCAGW6ZFXWHY52UOK4WBP3II72EGSZYEQPO3RH34SBZ6
+#\\\|BWKNM5JRVQJHY6OWRBOHV6LTS5MDWBSYAEG6BWJ3TN7QCJKS7WO \ / AMOS7 \ YOURUM ::
+#\[7]JMXB7D2P7MVY3TNGWVFQZBNN7OUOWFFXNDQCTEUBS6F4NPELVUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
