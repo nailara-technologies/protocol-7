@@ -63,15 +63,21 @@ sub parse_wakeup {
 }
 
 ## the devices a wakeup-disable run should switch off : everything enabled
-## except the RTC -- ACPI000E covers AWAC and similar clock devices
+## except the RTC -- ACPI000E covers AWAC and similar clock devices the
+## devices a wakeup-disable run should switch off. default : currently enabled
+## ones [ the live read-back ]. with $include_disabled : every non-RTC device
+## in the table -- the boot-time unit must cover devices the firmware
+## re-enables after every reboot, not only the ones enabled right now
+## [ its grep guard skips the already-disabled ones ]
 sub select_wakeup_devices {
-    my ($devices) = @_;
+    my $devices          = shift;
+    my $include_disabled = shift // 0;
     $devices = [] unless ref $devices eq qw| ARRAY |;
 
     return [
         map { $ARG->{'name'} }
         grep {
-                    $ARG->{'enabled'}
+                    ( $ARG->{'enabled'} or $include_disabled )
                 and $ARG->{'sysfs'} !~ m{platform:ACPI000E}
                 and $ARG->{'name'} ne qw| AWAC |
         } @{$devices}
@@ -149,7 +155,11 @@ sub run {
 
     ##[ 2 : wakeup service ]##
 
-    my $devices    = parse_wakeup( _slurp($wakeup_f) );
+    my $devices = parse_wakeup( _slurp($wakeup_f) );
+    ## the unit guards every non-RTC device : the firmware re-enables them
+    ## after each reboot, so the boot-time list cannot come from the currently
+    ## enabled set alone [ read-back below stays  enabled-only ]
+    my $unit_list  = select_wakeup_devices( $devices, 1 );
     my $to_disable = select_wakeup_devices($devices);
     my $unit_name  = qw| p7-wakeup-disable.service |;
     my $unit_dir  = File::Spec->catdir( $prefix, 'etc', 'systemd', 'system' );
@@ -158,7 +168,7 @@ sub run {
     my $wants_dir = File::Spec->catdir( $prefix, 'etc', 'systemd', 'system',
         'multi-user.target.wants' );
     my $wants_link = File::Spec->catfile( $wants_dir, $unit_name );
-    my $content    = unit_content($to_disable);
+    my $content    = unit_content($unit_list);
 
     my $report = _write_if_differing( $unit_path, $content );
     push @rows, [ 'wakeup unit', $report->{'status'}, $unit_name ];
@@ -179,8 +189,8 @@ sub run {
         push @rows,
             [
             'wakeup devices',
-            @{$to_disable} ? 'would disable' : 'none enabled',
-            join( ' ', @{$to_disable} ), 'ok'
+            @{$unit_list} ? 'unit guards' : 'none to guard',
+            join( ' ', @{$unit_list} ), 'ok'
             ];
     } else {
         _run(qw| systemctl daemon-reload |)
@@ -196,10 +206,8 @@ sub run {
             join( ' ', @{$left} ),
             'warn'
             ]
-            : [
-            'wakeup devices',            'disabled',
-            join( ' ', @{$to_disable} ), 'ok'
-            ];
+            : [ 'wakeup devices', 'disabled',
+            join( ' ', @{$unit_list} ), 'ok' ];
     }
 
     ##[ 3 : GNOME idle suspend -- per logged-in session user ]##
@@ -357,8 +365,8 @@ sub _gnome_rows {
 
 1;
 
-#,,,.,.,.,..,,,..,.,.,..,,...,,.,,...,,,.,.,,,.,.,...,...,,..,,.,,,,.,,,,,..,,
-#4CF7DTSIM4ZNA3FWSGLJZVEVQE7M7WE2Z5PJWJLLNH73KYKRCCDBKEAKO2SLSRZU7CPWW5RAWP6EW
-#\\\|UG2F3QNWQJ2Z47BKDXYPPDFPR342TXARKFIJO24GXPM24FU4ZNX \ / AMOS7 \ YOURUM ::
-#\[7]GL2RVS33MYXGCDTN4CB4IF43URM2JVBXIOGHH3EE7NIP2445FODQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,...,,.,,,,.,,,,,.,.,...,,,,,.,.,...,..,,..,,...,,,.,,..,..,,
+#NKOSPVOLIKQN2AORL6BLDHM65GXJ7NVFLNJGWTJF6P6MPLFWZDASMWA5UZFS7ZLLSPMCMWGGW3ZJM
+#\\\|AVYJ2ZIZHGIVV5TQP6VR4Y6M2BQ4P7GKCTQR6NIJL7QTYYRPSEY \ / AMOS7 \ YOURUM ::
+#\[7]RKVXSBQMQIIPEPPKPZGTWN4KIRBNPF4L2CA2QMGYVQHT6S5AZEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
