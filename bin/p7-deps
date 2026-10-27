@@ -166,7 +166,7 @@ if ( $cmd eq 'check' ) {
 } elsif ( $cmd eq 'detect-hw' ) {
     cmd_detect_hw(@ARGV);
 } elsif ( $cmd eq 'host-power' ) {
-    cmd_host_power();
+    cmd_host_power(@profile_args);
 } elsif ( $cmd eq 'help' || $cmd eq '--help' || $cmd eq '-h' ) {
     show_help();
 } else {
@@ -509,6 +509,29 @@ sub install_profile {
     }
     say frame_column_line();
     update_cache( $profile_name, $failed ? 0 : 1 );
+
+    ## a profile may declare how the host's power behavior is managed   ##
+    ## [ host_power: awake | suspending in profiles.yaml ] -- runs only ##
+    ## when the profile installed cleanly                               ##
+    if ( not $failed and defined $profile->{host_power} ) {
+        my $mode = $profile->{host_power};
+        if ( $mode ne qw| awake | and $mode ne qw| suspending | ) {
+            $row->(
+                'host power', 'skipped', "unknown mode [ $mode ]", 'warn'
+            );
+        } else {
+            say frame_section_header("host power [ $mode ]");
+            my $result = AMOS7::deps::hostpower::run( { 'mode' => $mode } );
+            $row->( @{$ARG} ) foreach @{ $result->{'rows'} };
+            if ( $result->{'ok'} ) {
+                $row->( 'host power', 'ok', $mode, 'ok' );
+            } else {
+                $failed++;
+                $row->( 'host power', 'failed', $mode, 'warn' );
+            }
+            say frame_column_line();
+        }
+    }
     return $failed;
 }
 
@@ -1116,12 +1139,23 @@ sub cmd_check_service {
 
 ## the azurum lessons as one command : mask the systemd sleep targets, install
 ## + enable the ACPI wakeup-disable oneshot, set GNOME idle suspend to nothing
-## per session user [ a warn, not a failure ]
+## per session user [ a warn, not a failure ]  the azurum lessons as one
+## command. an optional mode word chooses the behavior [ default : awake ] :
+## awake ......... mask the systemd sleep targets, guard every non-RTC ACPI
+## wake source, GNOME idle suspend -> nothing  suspending .... manual \ zenka
+## suspend stays available, firmware wake defaults kept [ keyboard, nic ],
+## WakeOnLan made  persistent through systemd .link files
 sub cmd_host_power {
+    my (@args) = @_;
+    my $mode = @args ? $args[0] : qw| awake |;
+    frame_error_exit( $TOOL,
+        sprintf 'unknown host-power mode [ %s ] -- awake | suspending',
+        $mode )
+        if $mode ne qw| awake | and $mode ne qw| suspending |;
     require_root_for_service();
-    banner('host power management');
+    banner("host power management [ $mode ]");
     say frame_section_header('suspend and wakeup');
-    my $result = AMOS7::deps::hostpower::run();
+    my $result = AMOS7::deps::hostpower::run( { 'mode' => $mode } );
     my $failed = print_service_report( $result->{'rows'},
         $result->{'ok'}
         ? [ 'host power', 'ok' ]
@@ -1211,6 +1245,8 @@ sub load_profiles {
         } elsif ( $line =~ m{^    (includes|apt|cpan|cpan_fallback):$} ) {
             $current_section = $1;
             $profiles{$current_profile}{$current_section} = [];
+        } elsif ( $line =~ m|^    host_power: "?([\w-]+)"?$| ) {
+            $profiles{$current_profile}{host_power} = $1;
         } elsif ( $line =~ m|^      - (.+)$| ) {
             my $item = $1;
             $item =~ s|\s*#.*||;
@@ -1283,12 +1319,18 @@ sub show_help {
 
     none of the service commands starts, stops or restarts the service.
 
-    host-power ......................  keep a host awake : mask the systemd
-                                       sleep targets, install \ enable an
-                                       ACPI wakeup-disable oneshot [ RTC
-                                       stays enabled ], set GNOME idle
-                                       suspend to nothing per session user
-                                       [ warn, not failure, without a bus ]
+    host-power [mode] ...............  keep a host's power behavior managed
+                                       [ default mode : awake ] mask the
+                                       systemd sleep targets, install \
+                                       enable an ACPI wakeup-disable oneshot
+                                       [ RTC stays enabled ], GNOME idle
+                                       suspend -> nothing per session user
+                                       [ warn, not failure, without a bus ].
+                                       suspending : manual \ zenka suspend
+                                       stays available, firmware wake
+                                       defaults kept, WakeOnLan persistent
+
+    profiles may pin the mode per install : host_power: awake \ suspending
 
     zenka-modules [zenka] ..........  perl modules the zenki declare
     zenka-packages [zenka] .........  os packages the zenki declare
@@ -1303,8 +1345,8 @@ sub show_help {
 EOL
 }
 
-#,,,.,,,,,,..,,..,..,,.,,,,,,,,.,,,.,,...,,..,..,,...,...,,.,,..,,.,.,..,,..,,
-#AS33O5C5PQWGYCVXCP5BNFVHUEFJXHNWCFEJ22FA7W3W7GB6Y7PVTYX6L2H3V3PUWKW3QVQ55D2YM
-#\\\|A6X4RT26JIEPXT3JH3YCUIXPWO3GYMNM37Y7K5KLZ2RKSLMCEEL \ / AMOS7 \ YOURUM ::
-#\[7]FOE2SYJPIIDYI6255HLITMYD54Y773VNTZKOSJXYDRZKDVECV4BA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,..,,,.,,..,,.,,,,,,,,,,,.,,,..,,...,...,..,,,..,.,,,,..,,,.,
+#5LXONZGJG4LU3ZB2OY5CQUUHJMJYYGUF6KEKKYH7C7BIV2FNENXPFS67FWVQGBQ3RGGTY76CRNB4C
+#\\\|GRJMUGLDNRUKRVOXTUTCA4GU53NHF2U5GA5KACVMSEXOGM43U43 \ / AMOS7 \ YOURUM ::
+#\[7]WHZB5ASRTRQP55MQHRBJAH5XJDLJPW2FSOALZ6VKQ6WYUISOMOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,6 +20,7 @@ use warnings;
 
 use File::Spec;
 use File::Temp qw| tempdir |;
+use File::Path qw| make_path |;
 use Cwd        qw| abs_path |;
 use FindBin    qw| $RealBin |;
 
@@ -50,6 +51,15 @@ sub check {
         printf "  FAIL : %s\n", $label;
     }
     return;
+}
+
+sub _read {
+    my ($path) = @_;
+    open( my $fh, '<', $path ) or return '';
+    my $text = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> }
+        // '';
+    close($fh);
+    return $text;
 }
 
 ##[ fixtures ]################################################################
@@ -198,13 +208,73 @@ check 'run : foreign unit refused',
     @{ $foreign->{'rows'} } );
 check 'run : foreign unit keeps failing the run', $foreign->{'ok'} == 0;
 
+##[ suspending mode : no masks, wol .link files, guard unit removed ]#########
+
+my $net_root = File::Spec->catdir( $tmp, 'net' );
+foreach my $nic (
+    [ 'eth0',  'aa:bb:cc:dd:ee:01', 0 ],
+    [ 'wlan0', 'aa:bb:cc:dd:ee:02', 1 ],
+    [ 'lo',    '00:00:00:00:00:00', 0 ],
+    [ 'br0',   'aa:bb:cc:dd:ee:03', 0 ],
+) {
+    my $idir = File::Spec->catdir( $net_root, $nic->[0] );
+    make_path($idir);
+    if ( $nic->[2] ) { make_path( File::Spec->catdir( $idir, 'phy80211' ) ) }
+    symlink '/sys/devices/fake', File::Spec->catfile( $idir, 'device' )
+        unless $nic->[0] eq 'br0';
+    open my $fh, '>', File::Spec->catfile( $idir, 'address' )
+        or die $OS_ERROR;
+    print {$fh} $nic->[1], "\n";
+    close($fh);
+}
+
+my $suspend = run(
+    {   'mode'        => 'suspending',
+        'prefix'      => $tmp,
+        'wakeup_file' => $fake_proc,
+        'net_dir'     => $net_root
+    }
+);
+
+check 'suspending : run ok', $suspend->{'ok'} == 1;
+check 'suspending : sleep targets left alone',
+    grep( { $ARG->[0] eq 'sleep targets' and $ARG->[1] eq 'left alone' }
+    @{ $suspend->{'rows'} } );
+check 'suspending : wired nic gets a .link file',
+    -f File::Spec->catfile( $tmp, 'etc', 'systemd', 'network',
+    '50-p7-wol-eth0.link' );
+check 'suspending : wireless skipped',
+    not -f File::Spec->catfile( $tmp, 'etc', 'systemd', 'network',
+    '50-p7-wol-wlan0.link' );
+check 'suspending : loopback skipped',
+    not -f File::Spec->catfile( $tmp, 'etc', 'systemd', 'network',
+    '50-p7-wol-lo.link' );
+check 'suspending : bridge without device symlink skipped',
+    not -f File::Spec->catfile( $tmp, 'etc', 'systemd', 'network',
+    '50-p7-wol-br0.link' );
+check 'suspending : .link content magic + mac', do {
+    my $text = _read(
+        File::Spec->catfile(
+            $tmp, 'etc', 'systemd', 'network', '50-p7-wol-eth0.link'
+        )
+    );
+    index( $text, 'WakeOnLan=magic' ) >= 0
+        and index( $text, 'MACAddress=aa:bb:cc:dd:ee:01' ) >= 0;
+};
+check 'suspending : prior guard unit removed',
+    not -f File::Spec->catfile( $tmp, 'etc', 'systemd', 'system',
+    'p7-wakeup-disable.service' );
+check 'suspending : prior wants link removed',
+    not -l File::Spec->catfile( $tmp, 'etc', 'systemd', 'system',
+    'multi-user.target.wants', 'p7-wakeup-disable.service' );
+
 ##[ summary ]#################################################################
 
 printf "\n: %d checks passed, %d failed\n", $checks - $failed, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,,,,.,,,.,,..,,...,,.,,..,,..,,,.,,...,.,,,..,,...,..,,...,,.,,,,.,.,.,..,,
-#MGGDQBLCW7F22YHJ4EFCJBQ6FGV2ALWRX5XXWL4YFTTGPHTWNNCPKU7D2P3GQMWBZ5R67MCKZXNRY
-#\\\|QZEN4YKSNEPHJMHU3VQ5KS3CK7TRRWRHTKE5YKJTLXXAOWKUIUP \ / AMOS7 \ YOURUM ::
-#\[7]5JMWM3OYIH6EE4I3UNMSH42SHUWU5UZPPF5FD3MXZ5CYLZXAC2CQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,,.,,.,.,.,.,,.,,..,,,..,,.,,..,,...,...,.,,,,,.,,,.,,.,,,,.,
+#DT33GTUZPRUA6PUKB6LFY5TC6U67AVX624GERLRAIOCK7ASLU72PV7QJ7EG5SVGXC4ZP6ZTFXQAWO
+#\\\|VBBQVL7MZ6ABJJOBWJYPF7NNEYAE4E3XWN2RN4JPN6RMEUAP5JO \ / AMOS7 \ YOURUM ::
+#\[7]WMTMMMYV7X42PBW54LL26WP6KXX4EGFY4JKGHTIWYKKITSYKJACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
