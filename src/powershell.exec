@@ -54,8 +54,11 @@ if ( not defined $ps_pid or length $spawn_err ) {
 ## child fills one pipe buffer while we block on the other                  ##
 ## [ witnessed 2026-10-27 : get-event-log >64K output wedged the zenka ] .  ##
 ## an IDLE timeout kills a silent child -- streamers keep flowing , wedges  ##
-## cannot survive .                                                         ##
-<[base.perlmod.autoload]>->( 'IO::Select', qw| IO::Select | );
+## cannot survive . NB : no import list -- IO::Select is a class with no    ##
+## importable symbols ; a qw|..| list makes perlmod.autoload fail , which   ##
+## aborts init_code when this module loads during the LOCALAPPDATA probe    ##
+## [ 2026-10-27 : init died midway -> usbipd_path never resolved ]          ##
+<[base.perlmod.autoload]>->('IO::Select');
 
 my $select    = IO::Select->new( $out_fh, $err_fh );
 my $out_str   = '';
@@ -102,8 +105,8 @@ $out_str =~ s|\r\n|\n|g;
 
 return $out_str;
 
-#,,,.,,,.,,,.,.,.,.,,,,,.,..,,,,,,...,...,,,.,..,,...,...,..,,.,.,..,,...,,,.,
-#U76A4BQUC3QEGS53XSIAOEELQHGFDHFPYZQANGB5ZKQHDTL2FPRPS54RZMBHFEQ3ZHAZNKFZL3NVO
-#\\\|UBB4L45AZLYDYUETQYN7DKNJWT4G5QK4TZL4JK5OL4FKQPK74G4 \ / AMOS7 \ YOURUM ::
-#\[7]HLWXGDOXGCGDDO7SMOQIS5GBQIT44WCBCDQOOTSX5OTRA7L5NQCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,.,,,,,,,,,,..,,.,,..,,,,.,,,.,..,,...,...,.,,,,.,,,..,..,,..,,
+#HZE2YB7Z7YYJRODMXVJ4VF44P323QKMQIJ5RY5AXHZTASDI4UVUUEGE7FEZGD4QYSL2PENVIDLXD4
+#\\\|GPJFSYKOWLWP72YCH3FO5QZ47HYW5ZGZUV33DFR64GN3NMYJ6DB \ / AMOS7 \ YOURUM ::
+#\[7]3XYSOIJHEJ6M747QURAGC52MA6P2WKGMTR7QTPPTE2LVXMUQKSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
