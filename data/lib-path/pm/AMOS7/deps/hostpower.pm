@@ -262,15 +262,20 @@ sub _slurp {
 }
 
 ## write content when missing or differing ; report status ok | changed |
-## failed. a differing REGULAR file at the path is left alone and reported
+## failed. a differing file carrying our own unit marker [ an older run ] is
+## rewritten -- the upgrade path ; a FOREIGN regular file at the path is left
+## alone and reported
 sub _write_if_differing {
     my ( $path, $content ) = @_;
 
     if ( -e $path ) {
         my $existing = _slurp($path);
         return { 'status' => qw| ok | } if $existing eq $content;
+        my $own = index( $existing, 'Protocol-7 host power' ) >= 0;
         return { 'status' => qw| failed |, 'detail' => 'exists, differs' }
-            if not -l $path and -f _;    ##  leave a regular file alone  ##
+            if not $own
+            and not -l $path
+            and -f _;
     }
     if ( open( my $fh, '>', $path ) ) {
         print {$fh} $content;
@@ -365,8 +370,8 @@ sub _gnome_rows {
 
 1;
 
-#,,.,,,,,,,,,,,,,,...,,.,,,,.,,,,,.,.,...,,,,,.,.,...,..,,..,,...,,,.,,..,..,,
-#NKOSPVOLIKQN2AORL6BLDHM65GXJ7NVFLNJGWTJF6P6MPLFWZDASMWA5UZFS7ZLLSPMCMWGGW3ZJM
-#\\\|AVYJ2ZIZHGIVV5TQP6VR4Y6M2BQ4P7GKCTQR6NIJL7QTYYRPSEY \ / AMOS7 \ YOURUM ::
-#\[7]RKVXSBQMQIIPEPPKPZGTWN4KIRBNPF4L2CA2QMGYVQHT6S5AZEBY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,,,,.,,...,,,.,.,.,,..,.,.,,..,.,.,...,...,,.,,,..,,.,,,..,.,,,
+#EHUT7I6WB6SKUADG4AJMWI2HZ2UXWLUKOD5M77LCUXUF7AOGIB2AT7ZKNWJPVW4X2NE6V2JWD2FHO
+#\\\|JQWUQITQBY44JATIHSTZBKMTYAKCF5AQUY45IVCXJ6OFRDTERIE \ / AMOS7 \ YOURUM ::
+#\[7]WML3F3ADWV7TTIBWM25PUGPZU65V3PY2CCNNIBDOL6BKCSFKDWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
