@@ -162,13 +162,49 @@ check 'run : second pass unit ok [ not changed ]',
     @{ $again->{'rows'} } );
 check 'run : second pass still ok', $again->{'ok'} == 1;
 
+## upgrade path : an older own unit [ marker, shorter list ] is rewritten ##
+
+my $unit_path = File::Spec->catfile( $tmp, 'etc', 'systemd', 'system',
+    'p7-wakeup-disable.service' );
+{
+    open my $fh, '>', $unit_path or die $OS_ERROR;
+    print {$fh} "# Protocol-7 host power : stale unit\nfor d in RP09\n";
+    close($fh);
+}
+my $upgrade = run(
+    {   'prefix'      => $tmp,
+        'wakeup_file' => $fake_proc
+    }
+);
+check 'run : stale own unit rewritten',
+    grep( { $ARG->[0] eq 'wakeup unit' and $ARG->[1] eq 'changed' }
+    @{ $upgrade->{'rows'} } );
+check 'run : upgrade pass ok', $upgrade->{'ok'} == 1;
+
+## foreign file at the unit path is left alone ##
+
+{
+    open my $fh, '>', $unit_path or die $OS_ERROR;
+    print {$fh} "# somebody else's handcrafted unit\nExecStart=/bin/true\n";
+    close($fh);
+}
+my $foreign = run(
+    {   'prefix'      => $tmp,
+        'wakeup_file' => $fake_proc
+    }
+);
+check 'run : foreign unit refused',
+    grep( { $ARG->[0] eq 'wakeup unit' and $ARG->[1] eq 'failed' }
+    @{ $foreign->{'rows'} } );
+check 'run : foreign unit keeps failing the run', $foreign->{'ok'} == 0;
+
 ##[ summary ]#################################################################
 
 printf "\n: %d checks passed, %d failed\n", $checks - $failed, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,..,,..,..,,..,,,,.,..,,,.,,..,,.,.,.,.,,,,,..,,...,..,,,..,,..,,..,...,...,
-#NZ4DYL4NAWPDAKDYDTFS7NL3PQGTV57JUOLALO3F2IKMA4BSOGPCB7IZPBZCFDBTE2TCXSPWZO7UU
-#\\\|2MVKWCVNHO6BZS55XLIDVWPB5UUJ57DTP3IZ6TR7AZIX36A5FZM \ / AMOS7 \ YOURUM ::
-#\[7]O25S6DTECLERFD35ZGYSTXDX477FLWQTUCYAJNYVBJE5WF6YN2DI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,..,,...,,.,,..,,..,,,.,,...,.,,,..,,...,..,,...,,.,,,,.,.,.,..,,
+#MGGDQBLCW7F22YHJ4EFCJBQ6FGV2ALWRX5XXWL4YFTTGPHTWNNCPKU7D2P3GQMWBZ5R67MCKZXNRY
+#\\\|QZEN4YKSNEPHJMHU3VQ5KS3CK7TRRWRHTKE5YKJTLXXAOWKUIUP \ / AMOS7 \ YOURUM ::
+#\[7]5JMWM3OYIH6EE4I3UNMSH42SHUWU5UZPPF5FD3MXZ5CYLZXAC2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
