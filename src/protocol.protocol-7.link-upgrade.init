@@ -18,8 +18,8 @@ $session->{'link_role'} = qw| server |;
 
 ## Generate ephemeral Curve25519 keypair for this session  Use Crypt::Misc for
 ## key generation (for DH, not Ed25519 signatures)
-use Crypt::Misc;
-use Crypt::Curve25519;
+<[base.perlmod.load]>->(qw| Crypt::Misc |);
+<[base.perlmod.load]>->(qw| Crypt::Curve25519 |);
 
 my $ephemeral_secret = Crypt::Misc::random_bytes(32);
 my $ephemeral_public
@@ -83,8 +83,8 @@ return TRUE;
 
 1;
 
-#,,.,,,.,,...,...,...,,.,,,,.,,,.,...,,,.,,,,,..,,...,.,.,.,,,.,,,.,,,..,,.,.,
-#AY3IXBFVXHBW5GZUCUYBO5ROMSNNYOW5XUGRYRDQ6F5OAPHEBVX7XHUSB4GMDW2NVT3AH5P2ORMTE
-#\\\|PVMONIAEMGUYZKG22UBCQUM44CIT7CVPXSAF5D3I66QGDRTNNX2 \ / AMOS7 \ YOURUM ::
-#\[7]ISOGQKIJTDETOM4RXJYAKMK34XYN3LQOCWAVIR5EIAIILPPGKUBY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,,,.,.,,,,.,,..,,,,,,.,,,..,,..,,...,.,.,.,,,,.,,.,.,,.,,,.,,
+#PTSPJGFRAMEET6THJMHTTW5U2RK3FMHFHN64OTYNPUAGBHL3EHSIHKUXIC2HVMK6O7MEHAHRVQAYS
+#\\\|43446V67EALC64YDEAHY4D2PDMN3UWQKF4HLNGXTQMMZ3HAARPP \ / AMOS7 \ YOURUM ::
+#\[7]P5TYCAV2TYON223L4XLDN55KJ2RZHSTESQJPAGN2CMP6GN3RYGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

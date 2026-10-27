@@ -9,7 +9,7 @@ my $already_initialized = $reinit;
 my $first_init          = $already_initialized ? FALSE : TRUE;
 
 ## import socket constants ##
-use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;
+<[base.perlmod.load]>->( qw| Socket |, qw| AF_UNIX SOCK_STREAM PF_UNSPEC | );
 
 ## load crypto modules ##
 map { <[base.perlmod.load]>->($ARG) }
@@ -88,8 +88,8 @@ while ( my ( $cmd_name, $module_name ) = each %interactive_cmds ) {
 
 return 0;
 
-#,,..,,,.,,.,,...,,,.,.,,,.,,,,,,,..,,,.,,..,,..,,...,...,.,,,...,...,,.,,..,,
-#F7VZAH6HDG2XR6HYAFRYNWO7QJBFWBGBH2R4J2SDSG5TVBL5N4IXQNKFNX4RIG6UXTC5MFQIFATT4
-#\\\|23YDJ26TUK23PZS3XZW7TLCNLUAFUQQ3NMVQSCFYNDX4Y7JDFY6 \ / AMOS7 \ YOURUM ::
-#\[7]XP73HQH2SL4NTBASGDI5W2GGJ4V2XBSR7FV4HP6IUSZIXOWR6GBA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,,,.,,,,..,.,,,..,,,,,,,,.,,..,..,,...,...,,.,,...,.,.,,.,,.,,,
+#LDIENL5C4UI5DHLOOT3VIMF3OHGBPHQD77AZNAFKW37LZRLWFSH4A4LGA7HT6FM76HAHZSDORAARY
+#\\\|7RN725RTIN5MQOEZEXD6KMVFYUP4THFLPA6M7Q7CU75XAUNVILC \ / AMOS7 \ YOURUM ::
+#\[7]YEWIIDGYKIDYWIW5VTXQAC7MPICG65QOIZS2BX3BWUKPPS5NCUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

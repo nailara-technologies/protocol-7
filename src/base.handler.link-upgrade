@@ -105,7 +105,7 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
     ## Compute shared secret: DH(our_private, client_public)  Use
     ## Crypt::Curve25519 for proper Diffie-Hellman (not Ed25519 signatures)
-    use Crypt::Curve25519;
+    <[base.perlmod.load]>->(qw| Crypt::Curve25519 |);
     my $shared_secret
         = Crypt::Curve25519::curve25519_shared_secret(
         $ephemeral_keypair->{'secret'},
@@ -319,8 +319,8 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
 1;
 
-#,,..,.,.,.,,,...,.,.,.,,,,,.,,,,,,.,,.,,,,..,..,,...,...,.,.,.,.,,,.,...,.,.,
-#BWWVDXL2Z7YWLVY4XY25JR2UZ6XUOY7PHFAOP2AYAWYDCF34C2KX6725ML6E7QP2YUJSYVFCOGZ26
-#\\\|DBTQNLJ3QH3ZNZKN3WW453LTD57RB7YLCILPXX3PPRCLFRAD426 \ / AMOS7 \ YOURUM ::
-#\[7]MQ5SINOW2KHXBVGNSEXSOSIFGWWXND7V3CO5AILD6UV4Z2S2EACQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,...,..,,.,,,,,,,,,.,..,,,..,..,,...,...,,,,,,.,,,..,.,.,...,
+#Y2ZJLND5HEQMMPFBC52ZQPM4ZKQDQRIJTJKGRY2KSUVOOLFC2SGMPQM64MFGSMLPR7K6UW7TQRL22
+#\\\|TTTIYZEQJG3UJTLAPXAVYUSQ4AMG44XJZPT43JI4NUSNEDNW2EE \ / AMOS7 \ YOURUM ::
+#\[7]PITKTSVMMF52Y23MDGZMLS5D23G4II5LME6XT2PJDVE6W4H2MQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

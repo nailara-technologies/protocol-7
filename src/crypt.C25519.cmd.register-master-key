@@ -36,7 +36,7 @@ unless ( $username =~ m|^[a-zA-Z0-9._-]+$| ) {
 }
 
 ## Decode and validate pubkey
-use Crypt::Misc;
+<[base.perlmod.load]>->(qw| Crypt::Misc |);
 my $pubkey_bin = eval { Crypt::Misc::decode_b32r($pubkey_b32) };
 
 if ( $EVAL_ERROR or not defined $pubkey_bin ) {
@@ -82,8 +82,8 @@ return {
 #\[7]TEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEFGHIJKLMNO 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,.,.,,.,,...,...,,.,,,,,,,,.,.,,,..,,..,,..,,...,.,.,..,,.,.,..,,.,.,.,.,
-#3S5QBY5RN6BE6OC44ASHKUJJBBWSYJAFS7LYMDPFVR2RGJ5YZDB7JOMC3HL6V6CQMWC4GXHNWZH3I
-#\\\|POM4N7ERJHBCQ576O77ZEIQBBNTK2KX6BN2SZ3VSMPKN7OPVUOV \ / AMOS7 \ YOURUM ::
-#\[7]MZXXKOI5SGAB5MTKM4OEEFOJY6XBZ7F72GH62O4VPOMJSR6SFYAI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,,..,,..,,..,,,.,,..,..,,..,,..,,...,,.,,..,,,,.,,..,.,.,..,,
+#CQYHFXI32VHFIV7O7LCWKTAUSPJDQSA5QIEUPMY4TTXY4J7BQKFO72BRYL3YNEFFSGULYHRVGYKPO
+#\\\|IPLKUCTY6TFUHFTSZ74NI4LCZQGGQHI2JU4CNF53NN3SHU6BXNH \ / AMOS7 \ YOURUM ::
+#\[7]VSBZRCF7UCFYVCRIHVMYSH7RRAR2JTCXOLQ5OHZ6NPIUT3MYOWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

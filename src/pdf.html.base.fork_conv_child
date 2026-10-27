@@ -2,7 +2,7 @@
 
 # name = pdf.html.base.fork_conv_child
 
-use Socket;
+<[base.perlmod.load]>->(qw| Socket |);
 
 ( my $session_id ) = keys( <user.cube.session>->%* );
 
@@ -10,8 +10,10 @@ use Socket;
 
 <[base.log]>->( 1, 'forking PDF-conversion child..,' );
 
-socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair! [ \l$OS_ERROR ]";
+socketpair(
+    my $child_pipe, my $parent_pipe, AF_UNIX(),
+    SOCK_STREAM(),  PF_UNSPEC()
+) || die "can't create socketpair! [ \l$OS_ERROR ]";
 map { binmode($ARG) } ( $child_pipe, $parent_pipe );     ## ipc pipe : raw ##
 map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
@@ -86,8 +88,8 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
 
 }
 
-#,,,.,,.,,,,.,.,,,,,.,,.,,,,.,...,..,,,..,,,.,..,,...,...,..,,,,.,,,,,...,...,
-#DPFDBZ6QKLH2DI6FYRFMNGBRHZI7I7SQBK4CWGTI6FXUXIYX6FNIPLWZ7YR7RA2MWLESSMB6JE4PG
-#\\\|JGI5NFR2MDOOACLU53P5NKAJ53D7RXK26N7OXHDLY43OGVPSGWS \ / AMOS7 \ YOURUM ::
-#\[7]5RPRMJ3BXX3YZ75V3WKOBUQ55CI2XZABPIAH35A74JD7N3QEEIBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,,..,.,.,,..,,..,...,,..,...,..,,...,...,,,.,.,.,.,,,..,,...,
+#4A2IK7VYBL3MYERFPM2OL4MZLGTHFIGHLGZCX5V5G63SZ332R2AKLUZW52FGHV5YTUDMD74ASETJM
+#\\\|57LYYCOGIRFOYXLMI6MQMHGY6MBNR4DUCUNBZXVA62DJ7GZRRRI \ / AMOS7 \ YOURUM ::
+#\[7]BGV7UVJMU4XELGBPDFQX76LHY7LN4ELPN5NVGHZDSOB77VE76WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -81,8 +81,25 @@ Gap analysis and the strategic fix :
 - `2 broken` + `5 broken` subsystem compile reports are the useful
   degraded signal -- keep them visible, do not silence
 
-#,,.,,,..,,,,,..,,,..,,..,,,.,..,,,.,,.,,,,,.,..,,...,...,,,.,.,,,,..,,,,,,.,,
-#WJDTK3YLRXX4SN4BR3TZWGF4MHN7RAC7P4W4T3F6JPPLDZOV6ZFYZL6CPZNSZJHHZ2YK3KEQE5YI6
-#\\\|DU6ZPTTEM5WDNGKYFRCHOHHHHITR54ZYTFMUUGDJDH5WYP4W2SW \ / AMOS7 \ YOURUM ::
-#\[7]4QK7ZQTBKC2MO4YDQCA53YP3JPEYA5A3G7VZMFP37ZT45KR2AGCQ 7  DATA SIGNATURE ::
+## Bare 'use' census [ 2026-10-27 ]
+
+The azurum blockers + the Socket exception class are converted to
+`<[base.perlmod.load]>` [ 19 templates this round ]. A full sweep
+finds ~90 remaining bare 'use' sites in src/ :
+
+- core modules [ Fcntl POSIX File::Spec File::Copy File::Path
+  Digest::SHA IO::Socket::INET IO::Select IPC::Open3 Symbol
+  Time::HiRes JSON::PP Data::Dumper Cwd Config Errno ... ] --
+  can never be missing, low urgency ; convert for idiom
+  consistency when touched
+- NON-core, install-relevant : YAML::XS [ ~15 sites, on azurum's
+  missing list ], LWP::UserAgent, HTTP::Request, JSON, IPC::Run,
+  Text::Unidecode, Glib/Gtk3, Protocol::WebSocket::Frame --
+  these belong to the p7-deps profile work and should convert to
+  `<[base.perlmod.load]>` so they auto-install on opted-in hosts
+
+#,,.,,..,,,,,,.,.,.,.,..,,,,.,..,,,..,...,.,.,..,,...,...,.,.,...,...,,..,.,.,
+#ERTXDVSMBUW42XFEWKQ67GKYJAES4NQVNAJSAUCGE4673YL35QTEX4VB5SQ6YWEVRA4ZN3MFGTOEM
+#\\\|YOTIU5F5JTGJU2KRW4PSXARGMSG4WIV36WXSXICVFMW6JUXEPZ3 \ / AMOS7 \ YOURUM ::
+#\[7]V5Z4RXZWXUEPGKZYMIHR2ANNZ3FVH4CVNCFCAFNXVPN364UGVYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

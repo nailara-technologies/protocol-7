@@ -2,7 +2,7 @@
 
 # name = image2html.base.fork_conv_child
 
-use Socket;
+<[base.perlmod.load]>->(qw| Socket |);
 
 ( my $session_id ) = keys <user.cube.session>->%*;    ## first ##
 
@@ -10,8 +10,10 @@ use Socket;
 
 <[base.log]>->( 1, 'forking image conversion child..' );
 
-socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    || die "can't create socketpair! [ \l$OS_ERROR ]";
+socketpair(
+    my $child_pipe, my $parent_pipe, AF_UNIX(),
+    SOCK_STREAM(),  PF_UNSPEC()
+) || die "can't create socketpair! [ \l$OS_ERROR ]";
 map { binmode($ARG) } ( $child_pipe, $parent_pipe );     ## ipc pipe : raw ##
 map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
@@ -85,8 +87,8 @@ if ( !<image2html.child.pid> ) {    ## child ##
 
 }
 
-#,,,.,,.,,,..,.,,,.,.,,.,,..,,...,.,.,,.,,.,.,..,,...,...,...,,.,,..,,,.,,,.,,
-#BGTDXCNGGIRLNTMQ2IKIGDGKXK2I4YSB67NLBZT6OIKKX5VSVLICD3DEM2IM3MV7ELQ4OALMPPJLE
-#\\\|NA7ZN5FHRC643HKYW5EIX5OZ4AW6THVHHMA44JY2YJVZ7CMP6PT \ / AMOS7 \ YOURUM ::
-#\[7]Y3YEOF7TIWE5N6KCHR4Z4SHIQI6HSPN75GAJPZBELMIGEY3FQACY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,.,..,,,,,,,,,,.,,,.,.,,.,,,,.,..,,...,...,..,,,.,,,.,,,,.,,..,
+#2STNMW7N5LUCNZNQB544BYYOWN5NOZ72P2HNPCHFWMGB4EBDBXYL26LSQX65OWTYQHKL6VSO2CLRY
+#\\\|ZTMSJBHJNFGJOS6JO4J6UW7PB7ERVIBG6X5YUVZTNOTZBQTNLZ2 \ / AMOS7 \ YOURUM ::
+#\[7]QQMCFQ4G52JNCHML6VDTLVAHND4STBCF6PT6DTYTUD7SCG27J4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

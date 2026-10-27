@@ -31,9 +31,11 @@
 <[base.perlmod.load]>->( 'Time::Local',   qw| timegm_nocheck | );
 <[base.perlmod.load]>->( 'BSD::Resource', qw | getrlimit setrlimit | );
 
-## not loadable with Module::Load::[auto]load or Module::Runtime::use : ##
-use Const::Fast;   ## loading too late causes 'const' to be a syntax error! ##
-<[base.perlmod.register_loaded_module]>->('Const::Fast');
+## 'const' needs compile-time prototype visibility in any template using ##
+## the bareword -- none remain after the crypt.C25519 \ plan-9           ##
+## runtime-helper conversions ; the runtime import below keeps the       ##
+## prototype available from init time onward                             ##
+<[base.perlmod.load]>->( 'Const::Fast', qw| const | );
 
 <[base.perlmod.autoload]>->(
     'POSIX', qw[
@@ -333,8 +335,8 @@ if ( scalar(@INDEXCUBE) == 0 ) {
 
 return FALSE;
 
-#,,,.,,,,,,,,,..,,,,,,..,,..,,.,,,...,.,.,,,,,..,,...,...,,.,,.,,,...,,,.,...,
-#DVHTFE7RNVP3WENKZVJSV7SP5I4Z3MKAF44A6VFKL6C34W4TLRJND7AW4VMYZPMXF7EZQCBXBXQZA
-#\\\|PGBXEVWXNM24445KD3NFFGJJW2GX63H45N5SGFRLLH3MQVICDTA \ / AMOS7 \ YOURUM ::
-#\[7]DDPADWJ2SH7X4BUPGBRVXWORQM4IUD4QHER733H2FS2WS7JINQAQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,..,,.,,...,.,.,..,,...,...,,,,,..,,...,...,.,,,,,.,,,.,,,.,..,,
+#MYQF5PXDURSBTJ2TRLGXYEMPYYP24MYXBDZZBGECMMHA7WHO65F6YS4UJ33BDHRCAQ4NXDKTNCYYC
+#\\\|NXH6CMKNLAFFJ5GAS4XP3FL5HRUP6JMICVOOOLTIBV3LZUYI3BP \ / AMOS7 \ YOURUM ::
+#\[7]6RBLV2ZXC3VNVYYJHH4UBOMIHQBH4DLDFQOX3MVQWPEWQF7U2AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
