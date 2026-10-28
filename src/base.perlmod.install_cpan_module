@@ -13,21 +13,30 @@ return -2 if not length $cpanm_path;
 my $output = '';
 my $errors = '';
 
-open( my $cpanm_fh, '-|', $cpanm_path, '--quiet', '--notest', $module_name )
-    or do {
+## stderr joins the pipe : cpanm reports [ 'Successfully installed ..' ] ##
+## there, and an unstyled line on the console bypasses the zenka log     ##
+my $cpanm_pid = open( my $cpanm_fh, '-|' );
+if ( not defined $cpanm_pid ) {
     <[base.logs]>->( 0, ": failed to execute cpanm : %s", $! );
     <[base.buffer.add_line]>->(
         qw| perlmod-install |,
-        sprintf '  ✗ %s (exec failed: %s)',
+        sprintf '  ✗ %s [ exec failed : %s ]',
         $module_name, $!
     );
     return -1;
-    };
+} elsif ( $cpanm_pid == 0 ) {
+    open( STDERR, '>&', \*STDOUT );
+    { exec( $cpanm_path, '--quiet', '--notest', $module_name ) };
+    POSIX::_exit(127);    ## exec failed ##
+}
 
-## Capture output while process runs ##
+## capture output while process runs ##
 while (<$cpanm_fh>) {
     chomp;
     $output .= $_ . "\n";
+    if (m|^Successfully installed (\S+)|) {
+        <[base.logs]>->( 1, ": :. cpan : %s installed", $1 );
+    }
 }
 
 close($cpanm_fh);
@@ -49,8 +58,8 @@ if ( $exit_code != 0 and length $output ) {
 
 return $exit_code;
 
-#,,,.,..,,.,,,...,,,.,..,,.,.,..,,,,.,,,.,.,.,..,,...,...,.,,,,..,..,,,.,,,.,,
-#HO7FEUGVUDWAB7GCHKGCD4NIFDWHYQNK2SOM4IEOJVINTEC4P4GO23BQNOR72PTQAAXHHOA63RIBY
-#\\\|3E7YXOFKIZBTFVRFXKVWR36TT2D5BPHRTNQROSO42GO54Z3K532 \ / AMOS7 \ YOURUM ::
-#\[7]LYEEYUTI756WXPYFWTMYEZI3IHYN33J4UE4TCWGSI5ZWAJEMEYDI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,,.,,,,,,,,,,.,.,.,.,,..,,.,,..,,...,...,.,.,..,,.,.,,.,,,.,,
+#N4UK3NFT33NOCJDCBYNGJVIH666B7IQFBY35IMINEBBHK3ZTTAVVSI7KAGQKNKCFTXTJYSXBCJ3KU
+#\\\|4USQGCRHGWVDKQD5PAMTP2IH2NLKQJN7UWXQWHFZNINN5AIWXUE \ / AMOS7 \ YOURUM ::
+#\[7]CIIFOIIC52XSRYUK4CNMXFRBTTASUV7RFCMXP4KJMESBJ2DBWWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
