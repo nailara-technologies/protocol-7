@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32H3JGGTIA-10305.0 :::
+::: SOURCE-CODE VERSION :: 32H3JV4LFA-10306.0 :::
 
 # [ [nailara 'protocol seven' network](http://protocol-7.network/) ]
 
@@ -171,7 +171,7 @@ This installs:
 
 For a complete installation including desktop/GUI components:
 
-Run this command: `bin/p7-deps install protocol7-extended`
+Run this command: `bin/p7-deps install protocol-7-extended`
 
 The full installation adds:
 
@@ -530,8 +530,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,.,..,,.,,,...,..,,.,,,,..,.,,,,,,,.,,,...,..,,...,...,.,,,.,,,,.,,,,,,,,.,
-#46KD5ADU2BEQFEJXNYBH6EE3GGVHOPCYVNXQGBODL3DHRE7WTPEFO3ZDDTK2LXRK5FEN777XQDLHE
-#\\\|MB2W6NMEH7EWPBPPW47BQACRH5RGMVVNJHVZ2HLUJWVYJY4RZTH \ / AMOS7 \ YOURUM ::
-#\[7]RWU2S7RGV77QMPXXRMGPOTN6ONHHDARKE36GPZ4BOZBH2MYRWUBI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,.,...,,..,.,.,.,,,.,.,.,.,,.,,..,,...,..,,..,,,.,,.,,,,.,,.,.,
+#UQC3WWYZ4X3MST5KULAUG4VGEHITO7XWZQ5TNPDGDNQ74ZTQQYYSBXDJSCWYA46G7WGSNDIECNHS6
+#\\\|LS5XHLMGA4RYEJV55CBZM5O5JIT7P3A75CXIDW5INC5QN7HVCG6 \ / AMOS7 \ YOURUM ::
+#\[7]NBTZESJHY43RC5KT23QTRLDHV3RW7CD3VBYLCNGD2PVPQOX6FGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
