@@ -2068,9 +2068,24 @@ items:
   - vault
   - hints
   text: 'host-edit : hints prefill + vault-backed usr.<user>.cfg.hosts.* records [ azurum first ]'
+- added: 32H4V3GBMY
+  details: |-
+    sourcecode.console.test-sign-with-temp-key swaps a temp key in its OWN process, then says 'run sourcecode test-update-signatures' -- that command does not exist, and a second command would not see the swapped key anyway. test-sign-and-verify signs sequentially [ get-code-signed per file ], never the parallel worker path. proposal : a :temp-key: option on update-signatures itself [ throwaway key, same worker path ] -> worker-count benchmarks [ data/planning/sign-bench style ] and tests without the owner key. related : delegated signing for cloud remote sessions [ ai-mem topic-afk-dispatch-signing-key-system ], key exchange over dns [ TRUST-CHAIN-STEP2.md 'later : a dns back channel' ], throwaway time-locked worker keys [ VERSION-BRANCHES.md 'distributed re-signing' ].
+    temp keys keep a public key history : each throwaway key's PUBLIC half is recorded [ name, created, purpose ] when it signs, the secret is discarded. verification : a signature that fails under the owner key walks back through that history and tries the temp keys -- a match reports 'signed by temp key <name> [ <date>, <purpose> ]' instead of a plain failure, so bench \ test output stays explainable and nothing is mistaken for tampering ; no match stays a real failure. same history shape as the release chain [ VERSION-BRANCHES.md ].
+    the history works one way only : a temp key match never makes a file trusted, but it CAN make it untrusted -- a signature by a recorded temp key outside its time window [ or its recorded purpose \ scope ] marks the file as suspicious [ a kept or leaked throwaway key used later ] ; external actors who miss the key's window are caught exactly there.
+    the window closes early and exactly : the signing session ends with a signed 'complete' entry in its session log -- that timestamp, not the nominal time lock, is the key's real end ; any signature by that key dated after it is suspicious.
+    principle : immutable capability reduction -- a signed end timestamp of a key branch. from it on the branch can only lose capability, never regain it ; applies alike to release keys, distributed re-sign worker keys, temp keys and delegations [ VERSION-BRANCHES.md ].
+  done_at: null
+  id: PBS
+  priority: normal
+  status: open
+  tags:
+  - sourcecode
+  - signing
+  text: 'update-signatures :temp-key: -- benchmark \ test runs without the owner key ; test-sign-with-temp-key points at a missing test-update-signatures'
 
-#,,,.,,..,...,.,.,,..,.,,,.,,,..,,..,,,..,,,,,..,,...,...,.,.,.,,,,.,,,.,,.,.,
-#DP66GRAXRFXY6ANXTI27YXRKN2ANKYV7BB7YVSQHMORYRWBPID2KCJNK5YGBMUEMA5BLNUZ2NZT4S
-#\\\|5MM5VL4R3X2YEIU43LDDBYNTVUKOSMEK5UFITAIYLAMRAQSEAVX \ / AMOS7 \ YOURUM ::
-#\[7]FPNGWN5AZKWJ7QF2YYTH7FHECSSGEYGTZPQADYILNU2LGJYUBABI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,.,,,,.,,..,,,,.,.,,,,,.,.,.,..,,...,...,,.,,,,,,..,,,..,,..,
+#GI6CPU5I7ESXWUYSSU2NVEXLDMQARMV3RJZ5PDTLVYAUSICKXWZZNJOBZDWHTWRDKJVJBL2ECN6OY
+#\\\|NHER5KPESJ7P2DRBO252P3V2TWXLCACM3RR6UPK7L2KMF3KTATP \ / AMOS7 \ YOURUM ::
+#\[7]FQZ2PPDNQHJPJUTPIM7QM5PPJGPC4Q4BMHGNGEDB3VAVYNXZ7UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
