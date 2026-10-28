@@ -214,6 +214,15 @@ makes the user re-enter them [ ai-mem : declared-intent-survives-breakage ] :
 - **prefill** : `hints.*` [ ssh_config, etc_hosts, known_hosts,
   server_pins ] proposes the values ; nothing already stated is asked again
 
+- **each layer strips its established prefix** : the login panel lists
+  `usr.*` as names, unlocking `usr.taeki` makes it the session root
+  [ login = descending into the unlocked branch ], the config editor
+  roots at `cfg.` -- UI template trees follow the logic tree, and a
+  session reaches exactly the subtree its key unlocked
+- **terminal sessions too** : an nshell \ p7c session keeps a current
+  node like a working directory -- short relative paths in the most
+  probable context, full dotted paths as absolute ones
+
 first slice [ todo ] : host-edit prefills from hints.*, stores the record
 under `usr.<user>.cfg.hosts.<group>.<name>` in the vault ; azurum is the
 first host added this way.
@@ -224,8 +233,8 @@ first host added this way.
 - remove \ rename host [ through the key trash : pin + record together ]
 - several owners per host, roles driving osf-cache peers
 
-#,,..,..,,,..,,,,,,,,,,..,.,,,...,,.,,,.,,.,.,..,,...,...,..,,.,.,,,.,,.,,.,,,
-#7YWN76KSQQSHZ3LTQQGYQLF3JIHHUD35DGRKQPAFYCEGEMOSMW27CWJAESI5IIVC3IXZUCRF7UOVI
-#\\\|XIWTATVATBH76MOBLLACC756CMVBRFWPCC57X5Y4N3DV54SACHP \ / AMOS7 \ YOURUM ::
-#\[7]3UZCS3H6PIRPCUG63LNIA4J5YK32HGNU6RYNYPLZKHLWWZPN3SBQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,.,,,,,.,,,.,...,,..,.,,,,,,,..,,...,..,,,.,,.,.,,,,,,..,,.,,
+#EC67MVVNN4GHEHJZOCGKOFVWN3SF26KYFUXQRI7DI3PN64SJHAIQKMLBSR5EM76IYCWNZVAGREJF2
+#\\\|ISG4YSQ5SGU6L5T3KWE7NCTJQE7HE3BNKPH53VOC2VKDRKBAHDE \ / AMOS7 \ YOURUM ::
+#\[7]RXPCWOURY3C5QGV27RDR622RIPWMAXQV2RKU7WC62YT22ODEVCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
