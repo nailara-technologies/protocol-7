@@ -154,17 +154,20 @@ if ( $verify_mode eq 'strict' ) {
     $workers = $workers_override;
     if ( not defined $workers ) {
         $workers = 1;
-        my $parallel_verify_threshold   = 200;
-        my $parallel_verify_max_workers = 8;
+        my $parallel_verify_threshold = 200;
+
+        ## workers per cpu [ default 2, shared with update-signatures ] ##
+        <sourcecode.cfg.workers_per_cpu> //= 2;
         if ( $file_count >= $parallel_verify_threshold ) {
             my $cpu_count = 0;
             my $cpuinfo;
             if ( <[file.slurp]>->( '/proc/cpuinfo', \$cpuinfo ) ) {
                 $cpu_count++ while $cpuinfo =~ m|^processor\s*:|mg;
             }
-            $workers = $cpu_count > 1 ? $cpu_count : 1;
-            $workers = $parallel_verify_max_workers
-                if $workers > $parallel_verify_max_workers;
+            my $per_cpu = <sourcecode.cfg.workers_per_cpu>;
+            $per_cpu = 1
+                if $per_cpu !~ m|^\d+(\.\d+)?$| or $per_cpu <= 0;
+            $workers = int( ( $cpu_count || 1 ) * $per_cpu + 0.5 );
         }
     }
     $workers = 1           if $workers < 1;
@@ -349,8 +352,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,..,.,,,..,,...,,.,,.,,,,,.,,.,,,..,,,,,...,..,,...,...,..,,,,.,..,,,.,,,,.,
-#FZD4USZRH2VTYYYT7IZK6QNHFOJONKJPCMPBWVANWCYD6S33FZMNENQOJSNZ3BGZQOUZLJ5AVW3UC
-#\\\|VQ4AYCBNXNJNEBEXTXMVYODQGFWD4LSDWQ3YHW5QHAFEVN7UWQH \ / AMOS7 \ YOURUM ::
-#\[7]6B4PNCVR3T64QAAAQWQ3Y7JKEEA2EO5HTX2PJXQEWLMPOYZR44DY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,,.,,..,,.,,,,,.,.,.,,.,,.,,,..,,...,...,.,.,.,.,.,,,,,.,,,,,
+#G2IQSD5U5VOKTIKUPDNRBIHTAFPPYTIT7KQT76F4DBYR3AH3STJDT66YEZ2C6TDFCUMIVLVWKT57C
+#\\\|PUIPVTLYRKPKJOM5XVIXE5FOPJODKTSU64G3A3LI3WCLLDB6H3B \ / AMOS7 \ YOURUM ::
+#\[7]XG536VJSUT4YKLHTVLBXMZFDVKUH7OTPPVH2QYLFFUQRN5BRMGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

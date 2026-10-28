@@ -182,8 +182,12 @@ my @staged_paths;
 
 ## below this many files, forking workers just adds overhead for no real ##
 ## gain -- run the plain sequential path, unchanged behaviour            ##
-my $parallel_sign_threshold   = 200;
-my $parallel_sign_max_workers = 8;
+my $parallel_sign_threshold = 200;
+
+## workers per cpu [ default 2 : signing waits on i\o too, one worker per ##
+## cpu left half of the machine idle ] -- lower it to reduce the load     ##
+## [ shared with verify-p7-signatures ]                                   ##
+<sourcecode.cfg.workers_per_cpu> //= 2;
 
 my $workers = $workers_override;
 
@@ -195,9 +199,9 @@ if ( not defined $workers ) {
         if ( <[file.slurp]>->( '/proc/cpuinfo', \$cpuinfo ) ) {
             $cpu_count++ while $cpuinfo =~ m|^processor\s*:|mg;
         }
-        $workers = $cpu_count > 1 ? $cpu_count : 1;
-        $workers = $parallel_sign_max_workers
-            if $workers > $parallel_sign_max_workers;
+        my $per_cpu = <sourcecode.cfg.workers_per_cpu>;
+        $per_cpu = 1 if $per_cpu !~ m|^\d+(\.\d+)?$| or $per_cpu <= 0;
+        $workers = int( ( $cpu_count || 1 ) * $per_cpu + 0.5 );
     }
 }
 $workers = 1           if $workers < 1;
@@ -358,8 +362,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,,,,..,,,.,.,.,..,,..,,,.,,,..,,.,,,..,.,.,..,,...,...,.,.,,,.,,,,,...,...,
-#2E46IXX7DXRM5FJDCKZCWHQHOCMXT4KRLRPBOCVM2O3ZVFT7I4UGHTMJ54TRSPKAKK2LEA4FO73LM
-#\\\|EHRHDMYBVZ5GHWULGB3QB3VFYAJPHANCJTQBYR7JE4TEUFQKTQA \ / AMOS7 \ YOURUM ::
-#\[7]H5EW64UWLOARCXHRNDQHKEFGW4VTWHXD5DZS53EBDWJFSBH7UQCQ 7  DATA SIGNATURE ::
+#,,..,,..,...,...,,.,,,,,,,,.,,.,,.,,,,..,.,,,..,,...,...,.,.,,..,,,,,..,,,..,
+#LENF63CDZ6AVN2JC3SKMLWVGNQF6V7KCXPTGOAR4XIRAR7OQHUYSMSBKVRAFYVQ4XUFCDUWVKCRR4
+#\\\|XNXVTMR24Q4E5SS6KKOK57TWEPAXGLTN5LISFQOWJUZ52OYM23O \ / AMOS7 \ YOURUM ::
+#\[7]UGEMDXWNQEOYOP756EF6J6D6QM5XU5BM25EQHSX5ZCTGPA2MECBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
