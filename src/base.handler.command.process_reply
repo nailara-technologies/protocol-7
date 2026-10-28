@@ -1026,6 +1026,41 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
             unless exists $session->{'silent_reply_ignore'}
             and $session->{'silent_reply_ignore'};
 
+        ## route history : was this id issued, and what became of it ##
+        if ( <base.route_history.enabled>
+            and not $session->{'silent_reply_ignore'} ) {
+            my $issued
+                = ( <base.route_history.entries> // {} )->{"$id:$cmd_id"};
+            if ( defined $issued
+                and time - $issued->{'time'} <= <base.route_history.ttl> ) {
+                my $src_sid = $issued->{'src_sid'};
+                <[base.logs]>->(
+                    $ignore_log_level,
+                    "[%d] :. route history : issued %ds ago for sid "
+                        . "%d cmd %d [ route %s : %s ; source session : %s ]",
+                    $id,
+                    time - $issued->{'time'},
+                    $src_sid,
+                    $issued->{'src_cmd_id'},
+                    $issued->{'route_id'},
+                    exists $data{'route'}->{ $issued->{'route_id'} }
+                    ? 'still present, index entry lost'
+                    : 'removed',
+                    exists $data{'session'}->{$src_sid} ? 'present' : 'gone'
+                );
+            } else {
+                <[base.logs]>->(
+                    $ignore_log_level,
+                    "[%d] :. route history : id %d not issued for "
+                        . "this session in the last %ds [ %d routes kept ]",
+                    $id,
+                    $cmd_id,
+                    <base.route_history.ttl>,
+                    scalar keys( ( <base.route_history.entries> // {} )->%* )
+                );
+            }
+        }
+
         ## Handle single-line replies to unknown routes
         if ( $cmd =~ m,^(TRUE|FALSE|WAIT|GET|TERM)$, ) {
 
@@ -1318,8 +1353,8 @@ UNKNOWN_TYPE_HANDLED:
 
 return 0;    ##  command complete  ##
 
-#,,..,.,.,.,,,,,,,,.,,,..,.,.,,,,,,,.,,,,,.,,,..,,...,...,.,,,..,,,,.,...,,,.,
-#OTRRJSZ7VQY2RBR3EXYJHCL6MI7VZ3BE7E2NM3QOVY37EB5RYDC42ZEQNR6J2YBAXOF4GK4BUTVSO
-#\\\|SVQXZA7VAA7DNTQDMPPKBDVJLHZHZTBF5Q45SYKP46YOQS6YK2W \ / AMOS7 \ YOURUM ::
-#\[7]RMS46P7NIMYM3K5RTTWJKPUXO54B2COR6TNGOVYYX3AXYA3PBEAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,,,.,,..,,.,,.,.,,,.,,..,..,,..,,...,...,..,,..,,,..,,.,,.,.,
+#T75ED6ZFGABCZY3OQAQIEZQSAVCRAOONLZR7WD6SNNTWQ3MK4KP5SGOANOSK52PPR4BCK7SXLJZNO
+#\\\|A6GQLADGCSB4UIZN3KRZ75JB2ZT3ROR3BWGAGFSAIV6MTGV7X7S \ / AMOS7 \ YOURUM ::
+#\[7]4I57EDYOS6POESYI7HG46SM34JOAKDFBFYL6H2FCY4VNLC632SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
