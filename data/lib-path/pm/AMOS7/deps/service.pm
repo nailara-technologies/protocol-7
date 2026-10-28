@@ -294,7 +294,8 @@ sub _check_link {
 
 ##[ systemctl helpers ]#######################################################
 ##
-## list form only -- no shell. _systemctl_void discards stdout              ##
+## list form only -- no shell. _systemctl_void discards stdout and runs     ##
+## with -q [ the 'Created symlink' notices go to stderr ; errors stay ]     ##
 ## [ systemctl enable \ daemon-reload chatter ], _systemctl_capture returns ##
 ## the first output line                                                    ##
 ## [ a missing systemctl reads as disabled \ inactive ]                     ##
@@ -305,7 +306,7 @@ sub _systemctl_void {
     my $pid = fork() // return 0;
     if ( $pid == 0 ) {
         open( STDOUT, '>', File::Spec->devnull );
-        exec( qw| systemctl |, @args );
+        exec( qw| systemctl -q |, @args );
         exit 127;
     }
     waitpid( $pid, 0 );
@@ -368,8 +369,8 @@ sub _write_file {
 
 1;
 
-#,,..,,,.,..,,.,,,,.,,,.,,,,.,,,,,,..,,,.,..,,..,,...,...,,..,..,,,,,,.,,,,.,,
-#P42NGJIDE4AR3OO6BDSKKNVZISEHHQGNIHGOX23UYEA5UXHNHY2SADNCBW7TDUISQTKOHK3SCB556
-#\\\|F7PFSI346OTVNMJNIB5FWWYHSFXTSN6GLMA7HDJIFNHJODDFLFI \ / AMOS7 \ YOURUM ::
-#\[7]IJYMBB5QXMUJL2TYYACWJD5NGKQ3KOIUAAM2NAC63XXPF5KUAMCA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,,..,,..,...,,.,,,,.,,.,,,.,,..,,...,...,..,,..,,,,.,.,,,..,,
+#54NRQ36O5RMJJPPW4TPMXSR5UHCI4JP66TSB3DAMAGDBHX33AO4WIELIQ7UQNWBELOYHCZDMPF2VE
+#\\\|MLYL5NQUC4QMJ6XHOPTXMWAQ7PIIEAZ27CUNB7HW3YR65UHIY7A \ / AMOS7 \ YOURUM ::
+#\[7]YTHTJSEQ2IYBV73VUBUHMWPNLFLGTTPYLVN2LR7XYY3MOBLIV6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
