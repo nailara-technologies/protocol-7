@@ -186,8 +186,7 @@ my $parallel_sign_threshold = 200;
 
 ## workers per cpu [ default 2 : signing waits on i\o too, one worker per ##
 ## cpu left half of the machine idle ] -- lower it to reduce the load     ##
-## [ shared with verify-p7-signatures ]                                   ##
-<sourcecode.cfg.workers_per_cpu> //= 2;
+<sourcecode.cfg.sign_workers_per_cpu> //= 2;
 
 my $workers = $workers_override;
 
@@ -199,7 +198,7 @@ if ( not defined $workers ) {
         if ( <[file.slurp]>->( '/proc/cpuinfo', \$cpuinfo ) ) {
             $cpu_count++ while $cpuinfo =~ m|^processor\s*:|mg;
         }
-        my $per_cpu = <sourcecode.cfg.workers_per_cpu>;
+        my $per_cpu = <sourcecode.cfg.sign_workers_per_cpu>;
         $per_cpu = 1 if $per_cpu !~ m|^\d+(\.\d+)?$| or $per_cpu <= 0;
         $workers = int( ( $cpu_count || 1 ) * $per_cpu + 0.5 );
     }
@@ -362,8 +361,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,..,,..,...,...,,.,,,,,,,,.,,.,,.,,,,..,.,,,..,,...,...,.,.,,..,,,,,..,,,..,
-#LENF63CDZ6AVN2JC3SKMLWVGNQF6V7KCXPTGOAR4XIRAR7OQHUYSMSBKVRAFYVQ4XUFCDUWVKCRR4
-#\\\|XNXVTMR24Q4E5SS6KKOK57TWEPAXGLTN5LISFQOWJUZ52OYM23O \ / AMOS7 \ YOURUM ::
-#\[7]UGEMDXWNQEOYOP756EF6J6D6QM5XU5BM25EQHSX5ZCTGPA2MECBY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,,.,,,.,,.,,,...,,.,,,..,.,,,..,,...,...,,,.,.,.,,,,,...,,..,
+#LVA4WZ27I7SCXLO4OPITVK5U36Y2E2IN3KDUC3A7GZKY22TYGYJWZPPODZQRNNHRFSJYZ5ZF3HSPM
+#\\\|SJK523JHEUIXC5YO4Z55PTCK23TR6IQRYZEMR7ALADO7TNWIMES \ / AMOS7 \ YOURUM ::
+#\[7]NVQAOJ7VFQ2Y77G6OWTSAZYETGH5Y4G7ZE4AZAPEQUI6DB3FHACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
