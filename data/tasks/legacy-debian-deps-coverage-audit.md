@@ -13,7 +13,7 @@ run. classification per distinct action of each legacy script :
 
 | anchor | what it is |
 | --- | --- |
-| `.deps/profiles.yaml` | the dependency profiles `bin/p7-deps` loads [ minimal :6, runtime :20, network :53, cryptography :65, vault :78, X11-Desktop :94, tools :144, coding :154, zenka-common :159, graphics-matrix :223, opencv :234, basic-remote-server :248, ai-models :260, embeddings :287, amos-term :292, protocol7-extended :309 ] |
+| `.deps/profiles.yaml` | the dependency profiles `bin/p7-deps` loads [ minimal :6, runtime :20, network :53, cryptography :65, vault :78, X11-Desktop :94, tools :144, coding :154, zenka-common :159, graphics-matrix :223, opencv :234, basic-remote-server :248, ai-models :260, embeddings :287, amos-term :292, protocol-7-extended :324 ] |
 | `src/base.known_dependencies` | module-to-debian mapping + `pm_src` local source list + binary-to-package map [ perlmod section :8-402, binary map :410-427 ] |
 | `data/lib-path/pm/AMOS7/deps/module.pm` | `resolve_install` [ :155 ], `install_pm_src` [ :200 ] -- builds `data/lib-path/pm-src/*` copies in a tempdir |
 | `data/lib-path/pm/AMOS7/deps/debp.pm` | `probe_apt` [ :24 ], `install_apt` [ :74 ] -- list-form apt, noninteractive |
@@ -526,8 +526,8 @@ those are runtime-relevant : the undeclared `compton` / `unclutter` /
 `mediainfo` binaries and the `Curses` gap [ items 3 and 5 in the summary ].
 the rest are deb entries for from-source builds plus doc/config re-anchors.
 
-#,,..,.,,,,..,,,,,.,.,,.,,.,.,,,.,...,.,,,,.,,..,,...,...,...,,,.,...,.,.,...,
-#4WXTKCYCQ6NUR6NKG4CN4RLXPAG5YL7U774AMYPAVSDBAFZSNORVOWFPQIMZ3ISQMBO4CPRPPAQPE
-#\\\|SGADLSBKYNF62N3K6TRMQQYQBCO77DI4N6IKFYRPHXXCBKIRIPV \ / AMOS7 \ YOURUM ::
-#\[7]DL27TTADQKHNUFME3GOYUYT2OMYVOBGQM5WJO2RGPHFWT37BPGDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,,,...,,,.,.,.,.,,,...,,.,,,..,..,,...,...,,.,,.,.,,..,.,,,.,.,
+#67FB5QU5TEN4UOIQKTCXFC5J7WKM374Z34PYZH3XYSXAJAOSI2YDU4Q5SC4IPN34MTSVWSSNSDDAA
+#\\\|T5GHRUTHFT335FGIKAZF3JXKDGURC57QXWID4CQDJGMBCIWMZEU \ / AMOS7 \ YOURUM ::
+#\[7]BQMUYAWMUGY2F6DBTUPNHL2ADFYYNEY4L4UU3X2SAHMXF6K62MDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

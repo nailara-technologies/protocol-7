@@ -13,7 +13,7 @@ Protocol-7 is a Perl-based modular system with a unique architecture focused on 
 # Profile-based dependency management (current)
 bin/p7-deps list                   # Show available profiles
 bin/p7-deps install minimal      # Minimal / server install
-bin/p7-deps install protocol7-extended   # Full desktop install
+bin/p7-deps install protocol-7-extended   # Full desktop install
 ```
 
 ### Running the System
