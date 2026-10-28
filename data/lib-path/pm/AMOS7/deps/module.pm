@@ -6,6 +6,7 @@ use warnings;
 use English;
 
 use File::Spec;
+use POSIX      ();
 use File::Temp qw| tempdir |;
 use File::Find qw| find |;
 use File::Copy qw| copy |;
@@ -225,11 +226,40 @@ sub install_pm_src {
         ## recursive copy into the tempdir [ no files land in the tree ] ##
         _copy_tree( $src_path, $build_path ) or return 0;
 
-        my $exit = system( qw| cpanm --notest --quiet |, $build_path );
+        my $exit = _run_cpanm($build_path);
         return 0 if $exit != 0;
     }
 
     return 1;
+}
+
+## cpanm with stdout + stderr merged : lines go to $output_handler when a ##
+## caller set one [ a zenka log ], plain to STDOUT otherwise [ p7-deps ]  ##
+
+our $output_handler;
+
+sub _run_cpanm {
+    my ($build_path) = @_;
+
+    if ( ref $output_handler ne 'CODE' ) {
+        return system( qw| cpanm --notest --quiet |, $build_path );
+    }
+
+    my $pid = open( my $cpanm_fh, '-|' );
+    return -1 unless defined $pid;
+    if ( $pid == 0 ) {
+        open( STDERR, '>&', \*STDOUT );
+        { exec( qw| cpanm --notest --quiet |, $build_path ) };
+        POSIX::_exit(127);    ## exec failed ##
+    }
+
+    while ( my $line = <$cpanm_fh> ) {
+        chomp $line;
+        $output_handler->($line) if length $line;
+    }
+    close $cpanm_fh;
+
+    return $?;
 }
 
 sub _copy_tree {
@@ -257,8 +287,8 @@ sub _copy_tree {
 
 1;
 
-#,,..,...,,,.,..,,..,,..,,.,.,.,.,..,,...,,,,,.,.,...,...,...,,..,,..,.,.,,,.,
-#EBFE2YWQQFKLDG2QJSNPM5WYGFFXRPXDFFO6EMKKQPZ3SYWGOIJVCAEWBDPG3KSBSM3RZKVGPHROW
-#\\\|ZG2GPGFOIPEOTUKM7RYTBL7NAVMSYYM76QBEFITH6NQUMENKW57 \ / AMOS7 \ YOURUM ::
-#\[7]CRHVMYRT2RW2XODVHFNUFTZBNQT6V65R4FMUZ3HXKU2SEHX2M6DI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,...,,..,,,,,,.,,,..,.,.,.,,,,..,.,.,...,.,.,,..,,..,,..,,..,...,
+#DOPU3YKFRQ4IOGDUIR7OBBUFXN2HXAQQF4PU3NGJNOJIJOCJPBI2DAZQJ4KSKRGM7HBRXSD6OF6G4
+#\\\|47YOUEZ2RCK72TGI5R7MKHHQ5EZTXS5G6GR44O2TLZQMAWS6ZYG \ / AMOS7 \ YOURUM ::
+#\[7]X7F423K5MUDWRLCDYYIS3L7F46XFQUXZPNWWAFLG7URYY2H55UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

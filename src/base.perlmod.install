@@ -101,6 +101,16 @@ if (    @cpan_list
     );
 
     my $pm_src_ok = eval {
+        ##  cpanm lines go through the zenka log, not to the console  ##
+        no warnings qw| once |;
+        local $AMOS7::deps::module::output_handler = sub {
+            my $line = shift;
+            if ( $line =~ m|^Successfully installed (\S+)| ) {
+                <[base.logs]>->( 1, ": :. pm-src : %s installed", $1 );
+            } elsif ( $line !~ m|distributions? installed| ) {
+                <[base.logs]>->( 2, ": :  cpanm : %s", $line );
+            }
+        };
         AMOS7::deps::module::install_pm_src( <system.root_path>,
             $known_deps->{'pm_src'}->@* );
     };
@@ -202,8 +212,8 @@ if ( !@{ $result->{failed_deb} } and !@{ $result->{failed_cpan} } ) {
 
 return $result;
 
-#,,..,,.,,.,.,,.,,,..,,,.,..,,,..,..,,.,.,.,.,.,.,...,...,.,.,..,,,,,,.,.,..,,
-#APXMLOAJLQG6HTAQDRNLWEVEXKGPLJ32RHRAXZM7QS2RDPWBHUABGJ5VQBNJWHFOJG3ZQ7KXHC5E6
-#\\\|CBD46OOLZL2LM6DUTH5QNNYVNVBF3RXNSBWW2NUJLCHCUD6DP4W \ / AMOS7 \ YOURUM ::
-#\[7]IS55VHXKJ7UCUT5NGQQUXKWZLM43UZOK2BJLMZHEKC6EIK2AOKCA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,...,.,.,,,.,,.,,.,.,...,.,.,,.,,.,.,...,...,..,,,,,,.,,,.,.,,.,,
+#22MXONJJEVF57B573J5XHXJY3TZAIOEZOP5JGMLXJPFCTJZ6IW7Q36OM3OWMOLEMQKLXYY6S3OW7E
+#\\\|ENNXST6RBJY3JZM3B5YVA7S56SPTMZIKYU4T3R66BCRITEWQBXB \ / AMOS7 \ YOURUM ::
+#\[7]L2BKUIB64QPSWQ7LDDGVFXB3XYKV6ECSLPBV433I745L3KNTMOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
