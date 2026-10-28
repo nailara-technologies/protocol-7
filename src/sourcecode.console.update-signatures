@@ -224,11 +224,25 @@ if ( $workers <= 1 ) {
     ## round-robin sharding : disjoint shards keep the existing per-file   ##
     ## TOCTOU guard [ in sourcecode.sign_file_list ] valid unchanged -- no ##
     ## file is ever touched by more than one worker                        ##
-    my @shards   = map { [] } 1 .. $workers;
-    my $shard_ix = 0;
-    foreach my $path_rel (@source_paths) {
-        push $shards[ $shard_ix % $workers ]->@*, $path_rel;
-        $shard_ix++;
+    my @shards = map { [] } 1 .. $workers;
+
+    ## balanced by size : largest file first, always to the worker with ##
+    ## the fewest bytes so far -- round-robin left a long tail where a  ##
+    ## few workers still held large files while the others were idle   ##
+    my %file_size = map {
+        $ARG => -s ( m|^/| ? $ARG : catfile( $work_tree, $ARG ) ) // 0
+    } @source_paths;
+    my @shard_bytes = (0) x $workers;
+    foreach my $path_rel (
+        sort { $file_size{$b} <=> $file_size{$a} or $a cmp $b }
+        @source_paths
+    ) {
+        my $lightest = 0;
+        foreach my $w ( 1 .. $workers - 1 ) {
+            $lightest = $w if $shard_bytes[$w] < $shard_bytes[$lightest];
+        }
+        push $shards[$lightest]->@*, $path_rel;
+        $shard_bytes[$lightest] += $file_size{$path_rel};
     }
 
     my $run_tag = sprintf( qw| %d-%d |, $PID, time() );
@@ -361,8 +375,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,,,.,,,...,.,,,,.,,,.,,.,,,...,,.,,,..,.,,,..,,...,...,,,.,.,.,,,,,...,,..,
-#LVA4WZ27I7SCXLO4OPITVK5U36Y2E2IN3KDUC3A7GZKY22TYGYJWZPPODZQRNNHRFSJYZ5ZF3HSPM
-#\\\|SJK523JHEUIXC5YO4Z55PTCK23TR6IQRYZEMR7ALADO7TNWIMES \ / AMOS7 \ YOURUM ::
-#\[7]NVQAOJ7VFQ2Y77G6OWTSAZYETGH5Y4G7ZE4AZAPEQUI6DB3FHACQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,,,,,...,,..,,..,..,,.,,,,..,..,,...,...,,.,,..,,,,.,,.,,,.,,
+#4FNADAOJPKAY6FCHQX66YBLTCQGSBGFWFB2LWPIATB26QJJIX4VHBWY5S7OVDDZRDOIRTFJMPVH26
+#\\\|AJLQ4AYJZGGQ6YEUSAWFTED6XY53AOLCMULFAHRHJH2FHLVRUEY \ / AMOS7 \ YOURUM ::
+#\[7]ZPJVYW3WXC72J63CXVBEQ5WQVXR4473EYNP2NDOHSTNRQWI2RCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

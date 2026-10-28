@@ -190,11 +190,25 @@ if ( $workers <= 1 ) {
 
     <[base.logs]>->( 2, ': verifying with %d parallel workers..,', $workers );
 
-    my @shards   = map { [] } 1 .. $workers;
-    my $shard_ix = 0;
-    foreach my $path_rel (@source_paths) {
-        push $shards[ $shard_ix % $workers ]->@*, $path_rel;
-        $shard_ix++;
+    my @shards = map { [] } 1 .. $workers;
+
+    ## balanced by size : largest file first, always to the worker with ##
+    ## the fewest bytes so far -- round-robin left a long tail where a  ##
+    ## few workers still held large files while the others were idle   ##
+    my %file_size = map {
+        $ARG => -s ( m|^/| ? $ARG : catfile( $work_tree, $ARG ) ) // 0
+    } @source_paths;
+    my @shard_bytes = (0) x $workers;
+    foreach my $path_rel (
+        sort { $file_size{$b} <=> $file_size{$a} or $a cmp $b }
+        @source_paths
+    ) {
+        my $lightest = 0;
+        foreach my $w ( 1 .. $workers - 1 ) {
+            $lightest = $w if $shard_bytes[$w] < $shard_bytes[$lightest];
+        }
+        push $shards[$lightest]->@*, $path_rel;
+        $shard_bytes[$lightest] += $file_size{$path_rel};
     }
 
     my $run_tag = sprintf( qw| %d-%d |, $PID, time() );
@@ -353,8 +367,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,,,,,,.,,..,,..,.,,,,.,,.,,,.,,,,.,,.,,,.,,,..,,...,...,.,.,..,,,..,.,,,...,
-#GRRG6EUNC4SOUYAZYMPMWDE2WQX7DHZ6T2BGA6IOISDO76JZGFE36SX64IGPKYXMYJIXVILPSYFUU
-#\\\|2WXW2GBKOAVQQL4BJPEVNP4NOBQOVOVHPMFQLQNWU4JTMV2QBLY \ / AMOS7 \ YOURUM ::
-#\[7]WVQ5AWDE4SRFZLHWU7LWUNG7HUUKMD4Q2Z7J7PM3T6IF3MS6AMBQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,,,,,,,.,...,,.,,,.,,,,,,.,,,..,,...,...,.,,,,,.,,..,...,,,.,
+#FCW2DLCIOVZREGLX4BV6TLHN5FNUQMZ73SSHBGBAAUG43AWEZDEP7KC2FAH2ZD6Y6X7KPITJS6PK4
+#\\\|ORFUT2NRXX64D5CIUSPQO46XFZMAFLMIPXFIVD3POWE5W2CE7BY \ / AMOS7 \ YOURUM ::
+#\[7]XEKVCGP67TQUMK3ML3BVQCXUI7W7D5PFRS4DBJD3SYXP4JOH4MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
