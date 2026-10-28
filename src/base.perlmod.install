@@ -111,6 +111,9 @@ if (    @cpan_list
                 <[base.logs]>->( 2, ": :  cpanm : %s", $line );
             }
         };
+        ##  build dir : /var/protocol-7/<zenka>/pm-src.<rnd>  ##
+        local $AMOS7::deps::module::build_dir
+            = <[file.temp]>->( 'pm-src.' . 'X' x 13, undef, FALSE );
         AMOS7::deps::module::install_pm_src( <system.root_path>,
             $known_deps->{'pm_src'}->@* );
     };
@@ -212,8 +215,8 @@ if ( !@{ $result->{failed_deb} } and !@{ $result->{failed_cpan} } ) {
 
 return $result;
 
-#,,.,,,.,,.,.,...,.,.,,,.,,.,,.,.,...,.,.,,.,,.,.,...,...,..,,,,,,.,,,.,.,,.,,
-#22MXONJJEVF57B573J5XHXJY3TZAIOEZOP5JGMLXJPFCTJZ6IW7Q36OM3OWMOLEMQKLXYY6S3OW7E
-#\\\|ENNXST6RBJY3JZM3B5YVA7S56SPTMZIKYU4T3R66BCRITEWQBXB \ / AMOS7 \ YOURUM ::
-#\[7]L2BKUIB64QPSWQ7LDDGVFXB3XYKV6ECSLPBV433I745L3KNTMOBI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,..,,,.,,...,...,...,.,.,..,,,..,.,.,...,...,.,.,.,.,..,,,,,,..,,
+#YJHXL2SXKMBET7VSKIAFD2MIWK6PWUJX5JQD7NULWNTX6GYL4434XJIJZIJO4VV3PVK35XCWMDSK4
+#\\\|D274TRZEGAMABQAMNG3VZ44G5UWEAVKVVRHRLSNTWC2NCLWVJJW \ / AMOS7 \ YOURUM ::
+#\[7]23C77GZMRTU24RYI777RMSYEI4XHBTM47MKELUGEIRXGL77T32BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
