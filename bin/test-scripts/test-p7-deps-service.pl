@@ -176,7 +176,7 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
         File::Spec->catfile( $svc_root, 'usr', 'local', 'bin', 'nshell' ) )
         eq File::Spec->catfile( $root_path, 'bin', 'nshell' );
     check 'daemon-reload was called',
-        slurp($calls_log) =~ m|^daemon-reload$|m;
+        slurp($calls_log) =~ m|^(?:-q\s)?daemon-reload$|m;
 
     ## [ 2 ] a second run is all ok, no second daemon-reload ##
 
@@ -188,7 +188,8 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
     check 'second run reports all ok',
         ( scalar(@statuses) > 0 and not grep { $_ ne 'ok' } @statuses );
     ## the state read-back adds is-* \ show calls -- count the reloads only ##
-    my $reloads = sub { scalar( () = $_[0] =~ m|^daemon-reload$|mg ) };
+    my $reloads
+        = sub { scalar( () = $_[0] =~ m|^(?:-q\s)?daemon-reload$|mg ) };
     check 'no second daemon-reload',
         $reloads->( slurp($calls_log) ) == $reloads->($calls_before);
 
@@ -203,7 +204,7 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
     check 'unit content restored',         slurp($unit_path) eq $repo_unit;
     check 'daemon-reload after changed unit',
         (       slurp($calls_log) ne $calls_before
-            and slurp($calls_log) =~ m|^daemon-reload$|m );
+            and slurp($calls_log) =~ m|^(?:-q\s)?daemon-reload$|m );
     check 'unchanged links still ok on third run',
         $out =~ m|Protocol-7\ssymlink\s[.]+\sok|;
 
@@ -317,7 +318,7 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
         $out =~ m|systemctl\senable\s[.]+\sok|;
     check 'systemctl enable was called',
         (       slurp($calls_log) ne $calls_before
-            and slurp($calls_log) =~ m|^enable\sProtocol-7$|m );
+            and slurp($calls_log) =~ m|^(?:-q\s)?enable\sProtocol-7$|m );
 
     $calls_before = slurp($calls_log);
     ( $exit, $out ) = p7_deps(qw| disable-service |);
@@ -326,7 +327,7 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
         $out =~ m|systemctl\sdisable\s[.]+\sok|;
     check 'systemctl disable was called',
         (       slurp($calls_log) ne $calls_before
-            and slurp($calls_log) =~ m|^disable\sProtocol-7$|m );
+            and slurp($calls_log) =~ m|^(?:-q\s)?disable\sProtocol-7$|m );
 
     ## [ 7 ] nothing ever starts, stops or restarts the service ##
 
@@ -703,8 +704,8 @@ check 'missing unit logs exactly one level 0 line', level0_count(qr|^|) == 1;
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,,.,,..,,,.,.,.,...,,..,,,,,,.,,.,,,,..,..,,...,...,.,,,..,,,.,,..,,..,,
-#7A7SHHTG5HTXW256KPJOQMS2Q22XOP4GNSDPBE6FH5BHZ4JT2SBLV7IX6Z5NINSPCBC3SA53A4MLK
-#\\\|3POPGX4JA4PNWOMA332VZKUNDPLDBMAO35KXZFNYIUKYBDH5J67 \ / AMOS7 \ YOURUM ::
-#\[7]UNOV5TLW5LJJF2SINJOOKUAIV3GYOF3TJQAPL45K7V6SIC4CRICA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,...,...,,..,..,,,..,,.,,...,..,,...,..,,,,.,...,,,.,...,..,,
+#T52E2NL5OG5XYLIEMOKUOSA4RNP6ZO2ZLAJQ4JYSJNGKAAANVQZMZLB4EORXBGEZGT6SUSU5MPAJG
+#\\\|SHFHDKTNRBKQE77WRMDA4277O43J6O7R6LOH55BENZHPIGIWWNT \ / AMOS7 \ YOURUM ::
+#\[7]KDDDCFEOKL7YEWLGZI4SXP4H7JGRSN74BML6ICSLNTFS3CQ4NIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
