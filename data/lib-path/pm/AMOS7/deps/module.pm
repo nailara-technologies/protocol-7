@@ -10,7 +10,7 @@ use POSIX      ();
 use File::Temp qw| tempdir |;
 use File::Find qw| find |;
 use File::Copy qw| copy |;
-use File::Path qw| make_path |;
+use File::Path qw| make_path remove_tree |;
 
 use Exporter;
 use base qw| Exporter |;
@@ -220,13 +220,13 @@ sub install_pm_src {
         my $src_path = File::Spec->catdir( $pm_src_base, $src_dir );
         return 0 unless -d $src_path;
 
-        my $tmp_dir    = tempdir( CLEANUP => 1 );
+        my $tmp_dir    = _build_dir() // return 0;
         my $build_path = File::Spec->catdir( $tmp_dir, $src_dir );
 
         ## recursive copy into the tempdir [ no files land in the tree ] ##
-        _copy_tree( $src_path, $build_path ) or return 0;
-
-        my $exit = _run_cpanm($build_path);
+        my $copied = _copy_tree( $src_path, $build_path );
+        my $exit   = $copied ? _run_cpanm($build_path) : -1;
+        remove_tree($tmp_dir);
         return 0 if $exit != 0;
     }
 
@@ -262,6 +262,31 @@ sub _run_cpanm {
     return $?;
 }
 
+## build dirs live under /var/protocol-7, never in /tmp. a zenka passes its ##
+## base.file.temp path [ /var/protocol-7/<zenka>/.. ] as $build_dir ;       ##
+## standalone tools get /var/protocol-7/p7-deps/pm-src.<rnd>                ##
+## [ tempdir only when that is not writable ]. removed right after each     ##
+## build : a zenka drops privileges before exit and could not remove it any ##
+## more                                                                     ##
+
+our $build_dir;
+
+sub _build_dir {
+    if ( defined $build_dir and length $build_dir ) {
+        return undef if -e $build_dir;
+        make_path( $build_dir, { 'mode' => 0700 } ) or return undef;
+        return $build_dir;
+    }
+
+    my $var_base = qw| /var/protocol-7/p7-deps |;
+    if ( -d $var_base and -w $var_base
+        or eval { make_path( $var_base, { 'mode' => 0750 } ) } ) {
+        return tempdir( 'pm-src.' . 'X' x 13, 'DIR' => $var_base );
+    }
+
+    return tempdir();
+}
+
 sub _copy_tree {
     my ( $src, $dst ) = @_;
 
@@ -287,8 +312,8 @@ sub _copy_tree {
 
 1;
 
-#,,,,,,.,,,,.,...,,..,,,,,,.,,,..,.,.,.,,,,..,.,.,...,.,.,,..,,..,,..,,..,...,
-#DOPU3YKFRQ4IOGDUIR7OBBUFXN2HXAQQF4PU3NGJNOJIJOCJPBI2DAZQJ4KSKRGM7HBRXSD6OF6G4
-#\\\|47YOUEZ2RCK72TGI5R7MKHHQ5EZTXS5G6GR44O2TLZQMAWS6ZYG \ / AMOS7 \ YOURUM ::
-#\[7]X7F423K5MUDWRLCDYYIS3L7F46XFQUXZPNWWAFLG7URYY2H55UBY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,...,.,,,...,..,,.,.,.,,,,,.,.,,,.,.,...,...,,.,,.,.,..,,,..,,.,,
+#7AA6DA2XLDA37BUNJNJFDZZFN3MANBLTCSISYTVRE7E7E4MXIOSQAZZDWA3VBMGLHMA75YYFFU32U
+#\\\|MR7PZ2C5WJEBPVHTEYO33RCKG3GFM7XMGDWSFYXNH3WQZMDYG4Z \ / AMOS7 \ YOURUM ::
+#\[7]5KT7EQT5FKTPLIZ6Y55KY27VFO2TQTXW7XVZEIE76QD3W6JKFKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
