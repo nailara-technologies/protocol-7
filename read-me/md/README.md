@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32H3JV4LFA-10306.0 :::
+::: SOURCE-CODE VERSION :: 32H3LSMFHI-10307.0 :::
 
 # [ [nailara 'protocol seven' network](http://protocol-7.network/) ]
 
@@ -17,7 +17,7 @@
 ## Release Information
 
 - Detailed release history: [Release Versions](/read-me/project-identity/release-versions.md)
-- Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\\\// [AMOS7-v6.30.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v6.30.7)
+- Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\\\// [AMOS7-v6.48.9](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v6.48.9)
 ---
 
 ## 🌐 Topology Research Visualization
@@ -61,31 +61,28 @@ The system automatically tracks which modules each zenka uses and will register 
 
 ### Dependency Management with bin/p7-deps
 
-The `bin/p7-deps` tool provides both analysis and installation capabilities:
+`bin/p7-deps` installs and checks dependencies by profile
+[ `.deps/profiles.yaml` ] and from what the zenki declare
+[ `cfg/zenki/<zenka>/deps/` ] :
 
-**Analysis Commands:**
-- `bin/p7-deps list` - Show all dependencies from all sources
-- `bin/p7-deps check [profile]` - Check aggregated dependencies for a profile
-- `bin/p7-deps generate` - Generate YAML from Protocol-7 dependencies
+- `bin/p7-deps list` -- the profiles and what they hold
+- `bin/p7-deps install [<profile>..]` -- install profiles [ default : minimal ]
+- `bin/p7-deps check <profile>..` \ `status` -- read-only checks [ exit 1 : missing ]
+- `bin/p7-deps zenka-modules [zenka]` \ `zenka-packages [zenka]` \ `validate` --
+  the per-zenka declarations
+- `bin/p7-deps detect-hw [ -write <name> ]` -- firmware \ hardware packages
+  from the kernel log, saved as a `hw-<name>` profile
+- `bin/p7-deps host-power [mode]` -- keep a host awake [ sleep targets
+  masked ] or managed-suspending
+- `bin/p7-deps help` -- the full option list
 
-**Installation Commands:**
-- `bin/p7-deps install [profile]` - Install all dependencies (APT + CPAN)
-- `bin/p7-deps install-apt [profile]` - Install only Debian packages
-- `bin/p7-deps install-cpan [profile]` - Install only CPAN modules
-
-**Installation Options:**
-- `--dry-run` - Preview what would be installed without making changes
-- `--verbose` or `-v` - Show detailed output during installation
-
-**Features:**
-- Automatic root detection (skips sudo when running as root)
-- Aggregates dependencies from base.known_dependencies and all zenki configurations
-- Supports profile-based installation (default: protocol7_full)
-- Self-contained: no need for workspace-transfer repository
+each module resolves Debian package first, then a build from the sources
+the tree carries [ `data/lib-path/pm-src/`, e.g. `Digest::BMW` ], then
+CPAN [ `src/base.known_dependencies` holds the mapping ].
 
 ### Automatic Installation at Zenka Start
 
-A host can let v7-zenki install missing dependencies itself, per host and
+A host can let protocol-7 install missing dependencies itself, per host and
 off by default. One command enables it [ root ]:
 
 ```
@@ -95,7 +92,7 @@ bin/p7-deps enable-auto-install
 or at install time:
 
 ```
-bin/p7-install -enable -auto-install-deps
+bin/p7-install -auto-install-deps
 ```
 
 Both merge the opt-in line into the host overlay
@@ -106,79 +103,66 @@ never touched ; `disable-auto-install` turns it off again ]:
 v7-zenki.cfg.auto_install_deps = yes
 ```
 
-- **at every zenka start** [ autostart, on-demand, restart ] v7-zenki checks
-  the zenka's declared dependencies first ; missing ones are installed
-  [ Debian packages via apt, else CPAN ] and the zenka starts once they are
-  present
+- **every start form** is covered : v7-zenki's managed starts [ autostart,
+  on-demand, restart ] and a standalone `bin/Protocol-7 <zenka>` as root.
+  the install window is bounded to start-up [ init ] -- no running event
+  loop ever installs on its own
+- **at a managed zenka start** v7-zenki checks the zenka's declared
+  dependencies first ; missing ones are installed and the zenka starts once
+  they are present
+- **modules needed while code loads** [ `Digest::BMW`, the C25519 crypto,
+  `Inline::C`, the xz reader for the inline subroutines ] are installed at
+  the point they are missing ; until then the host runs **degraded but
+  operational** -- pure-perl fallbacks, the `xzcat` pipe, one notice line
+  instead of an error
 - **installs run as root** in one serialized queue [ the debian zenka's
   root apt child, forked before privileges are dropped ] ; package names
-  are re-validated there, never passed through a shell
-- **a failed install** starts the zenka anyway [ degraded, logged ] and is
-  retried after `v7-zenki.cfg.sys_deps.retry_after` [ 3600 s ] ; an install
-  that never answers counts as failed after
+  are re-validated there, never passed through a shell. their output goes
+  through the zenka log, styled like everything else
+- **a failed install** starts the zenka anyway [ degraded, logged with the
+  real reason ] and is retried after `v7-zenki.cfg.sys_deps.retry_after`
+  [ 3600 s ] ; an install that never answers counts as failed after
   `v7-zenki.cfg.sys_deps.install_timeout` [ 1800 s ]
-- **during v7-zenki's own start-up** Perl modules it needs itself [ e.g.
-  `Event` ] are installed directly, before the event loop exists
 - exempt from the check : `cube p7-log debian os-pkg`
   [ `v7-zenki.cfg.sys_deps.exempt` ]
 
 ## Installation
 
-### Recommended: Using bin/p7-deps
+### One command : bin/p7-install
 
-The easiest way to install Protocol-7 dependencies is using the built-in dependency manager:
+On a Debian host, `bin/p7-install` takes a bare system to a running
+service [ as root ] :
 
-**Preview what will be installed:**
 ```bash
-bin/p7-deps --dry-run install
+bin/p7-install -enable -start                      # minimal profile
+bin/p7-install -profile extended -enable -start
+bin/p7-install -profiles                           # the profiles to choose from
+bin/p7-install -dry-run                            # what it would do
 ```
 
-**Install all dependencies:**
-```bash
-bin/p7-deps install
-```
+1. **base packages** -- perl, build tools, git, ca-certificates, libcrypt-dev
+2. **checkout** -- clone \ fast-forward `/usr/local/protocol-7`
+3. **dependencies** -- `bin/p7-deps install <profile>` [ the profile is
+   recorded ; a later run without `-profile` uses it ]
+4. **auto-install opt-in** -- reported, set with `-auto-install-deps`
+5. **service unit** -- unit, install link, `Protocol-7` \ `nshell` symlinks
+6. **boot start \ service** -- only with `-enable` \ `-start`
 
-**Install only what you need:**
-```bash
-bin/p7-deps install-apt          # Debian packages only
-bin/p7-deps install-cpan         # CPAN modules only
-```
+every step looks first and acts only on what is missing : a second run
+changes nothing. the service is never restarted. `-options` lists every
+option.
 
-This approach:
-- Automatically detects if running as root
-- Aggregates all dependencies from zenki configurations
-- Provides clear status output with Protocol-7 styling
-- Optionally generates dependency reports for documentation
+### Profiles
 
-### Installing Dependencies [ profile-based ]
+- `minimal` -- everything a bare `bin/Protocol-7 cube` needs : the core
+  modules, the boot crypto [ `Digest::BMW`, `Crypt::Curve25519`,
+  `Crypt::Ed25519`, CryptX ], `Inline::C` + gcc, the xz reader
+- `basic-remote-server` -- a headless server [ minimal, runtime, network,
+  cryptography, tools, zenka-common, graphics-matrix, vault ]
+- `extended` -- the complete system : basic-remote-server plus
+  `X11-Desktop`, `ai-models` and `coding`
 
-Use `bin/p7-deps` -- the profile-based dependency installer [ see
-`bin/p7-deps list` for the available profiles ]:
-
-### Minimal Installation
-
-The minimal installation provides core functionality without GUI components.
-
-Run this command: `bin/p7-deps install minimal`
-
-This installs:
-
-- Core Perl modules and system packages for basic functionality
-- Requirements for 'v7-zenki', 'cube', 'p7-log', 'system', 'httpd', 'events' and some non-X11 zenki
-- Creates necessary symlinks and systemd service
-
-### Full Installation
-
-For a complete installation including desktop/GUI components:
-
-Run this command: `bin/p7-deps install protocol-7-extended`
-
-The full installation adds:
-
-- GUI-related packages (mpv, Xvfb, OpenBox, etc.)
-- Additional Perl modules for graphical zenki
-
-Note: For browser agent functionality, see additional dependencies in the browser agent dependencies script.
+`bin/p7-deps list` shows them all, with their package counts.
 
 ### Starting the System
 
@@ -468,6 +452,7 @@ Protocol-7 is a production-active multi-agent system with working HTTPS servers,
 
 ### Recent Developments
 
+- **Clean Bare-Host Install** [ 2026-10-28 ] : for the first time a fresh Debian host goes from nothing to a running, boot-enabled service with one command [ `bin/p7-install` ], and its zenki install what they miss on their own while staying operational in the meantime -- wanted for 25 years, now clean through the whole chain [ base packages, profile, auto-install, service ].
 - **Autonomous Coding Zenka**: A fully operational LLM orchestration agent that can read, edit, and improve its own Protocol-7 source code. Runs local inference servers asynchronously (non-blocking spawn with < 100ms init), maintains a tool-calling loop (50+ task templates, XML tool-call parsing, context compaction), and coordinates with external frontier models (Claude, Kimi) for complex multi-session tasks.
 - **Self-Modifying Infrastructure**: The coding zenka completed numerous autonomous extraction and refactoring tasks — inline sub extraction across 30+ modules, style enforcement, cross-namespace wiring — all applied via direct file write tools without human intervention.
 - **Multi-Model Consensus**: Local voting infrastructure exists (`llm.service.consensus_vote`, cubic-topology harmonic certainty aggregation, mock-response fallback if llama-cli isn't installed), but its model list is a stale hardcoded placeholder (Qwen2.5-7B, Mathstral-7B, Aya-23-8B) that predates the current model registry and isn't wired to it — see [`AUTONOMOUS-MODEL-MANAGEMENT.md`](./data/md/design/AUTONOMOUS-MODEL-MANAGEMENT.md) for the autonomous discovery/benchmarking/consensus system meant to replace it. Separately, a dedicated kimi zenka dispatches to external frontier models (Claude, Kimi) for tasks exceeding local model capability — that's task delegation to a single stronger model, not (yet) folded into the voting mechanism itself.
@@ -530,8 +515,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,,,.,.,...,.,.,...,,..,.,.,.,,,.,.,.,.,,.,,..,,...,..,,..,,,.,,.,,,,.,,.,.,
-#UQC3WWYZ4X3MST5KULAUG4VGEHITO7XWZQ5TNPDGDNQ74ZTQQYYSBXDJSCWYA46G7WGSNDIECNHS6
-#\\\|LS5XHLMGA4RYEJV55CBZM5O5JIT7P3A75CXIDW5INC5QN7HVCG6 \ / AMOS7 \ YOURUM ::
-#\[7]NBTZESJHY43RC5KT23QTRLDHV3RW7CD3VBYLCNGD2PVPQOX6FGCQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,,,,..,...,,,,,,.,,.,.,...,,,,,..,,...,..,,.,,,..,,,,.,.,.,,.,,
+#J7CBG2IEK7KXZLQZWWYPI4AMD6VRZX2BWFT6ATL6ZPIIDPQAQAIIC7VMNDMY2B5TTXOO4U55BIJCI
+#\\\|6W3EVQVLYVIIXOVSIV4TU46MPCLCQJU33M42IQ5H3O276ZFYZKX \ / AMOS7 \ YOURUM ::
+#\[7]UH7WNSSOGLAHZL4O33FUJHEI5SW4G27FRAAMHQIIRTWS62EBKIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

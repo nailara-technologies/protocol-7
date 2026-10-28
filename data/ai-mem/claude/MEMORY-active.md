@@ -218,9 +218,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [session-handover-deps-service-p7r](project-2026-10-16-session-handover-deps-service-p7r.md) — 2026-10-16 night [ superseded by auth-watcher-add-incoming ] : auto-install live on 4 servers, p7-deps service cmds, ::: over ssh -W, start gate, probe ; OPEN : taeki remote auth [ user runs ], push+deploy c9b156ce5, 4ZW live
 - [auth-watcher-add-incoming](project-2026-10-16-auth-watcher-add-incoming.md) — 2026-10-16 day [ superseded by session-handover-installer-cloud ; holds the PLAN steps 1-7 + style rules ] : taeki auth live on 4 servers, cube inotify re-read of authorized keys, dep-graph plugin scoping [ -954 eager subs ], p7-keys add-incoming ; OPEN : push+pull d5ce1a7cb + srv-U incident test, unit srv-U\srv-F, 4ZW
 - [session-handover-installer-cloud](project-2026-10-17-session-handover-installer-cloud.md) — START HERE 2026-10-17 [ last 5c09e923b ] : deps line done [ frame, tracked, backend, p7-install, p7-deps restyled ], cloud dispatch working [ pty, launch clone, push path ] ; OPEN : root runner, debs + signed repo, legacy scripts, cloud tool polish
+- [clean-bare-host-install-azurum](project-2026-10-28-clean-bare-host-install-azurum.md) — START HERE 2026-10-28 : azurum bare -> p7-install -> running service clean [ milestone, README updated ] ; boot-early deps, pm-src dirs in /var/protocol-7, styled installer output ; open : route-history verdict, discover peers [ wsl nat + owner root ], nodes orbital-p7ref spam
 
-#,,.,,,,,,,..,,.,,,,.,,,.,...,,.,,,,.,...,,,.,..,,...,...,...,,,.,..,,...,.,,,
-#43KSOXGNIFC25ZKJS5IXZMF5PL65WSGFVGOS7SY4NCQFK3EIJQBU2XZJL3RSTFHV7B6J74GASIYJK
-#\\\|XAOKIYYE5FQ5F46YP4AYR3HVIFVJBFQFBWLE2A4STQZ5XMICQRR \ / AMOS7 \ YOURUM ::
-#\[7]64NAITVYMEXXAKDZSKIQHVNWJOZSE537SMCSFTZBWP3GOCDCDEAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,,,.,...,,,.,..,,,.,,.,,,,..,..,,...,.,.,,,,,,..,,..,,.,,..,,
+#ACGNS4OB7NIJSY36SWT2U3VHU6TWE6BHLMCJWOU5RS6GANO76F3RUE6Y2ECYN4TFJ6S3R6ZHK7AHQ
+#\\\|5QVPMHMADIY2Z5MCKP2PD2USCF7CFHFKTJ4YZJGCIGUW64OE7RQ \ / AMOS7 \ YOURUM ::
+#\[7]LDFTIFJYFPDHTM5TIDENAIRRMZWAUVDBFTVYWTBUMN4KC2UQ6KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

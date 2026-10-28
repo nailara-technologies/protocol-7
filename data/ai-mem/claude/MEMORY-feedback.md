@@ -235,9 +235,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\[7]NMF2DTSAPNA6BA7NM3NFP6NWK7IAKOIYEOPS24P74PZVSNDXBCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [whitelist-static-calls-and-v7-rewrap](feedback-whitelist-static-calls-and-v7-rewrap.md) — no `$code{$var}->()` [ whitelist sees `<[name]>` only ] ; a wrapped .v7 line without its `\` drops out of the key ; a new route-send command needs its cube grant -- check staged .v7 + whitelist + grants after signing
+- [perl-loader-gotchas-require-path-inline-c-qw](feedback-perl-loader-gotchas-require-path-inline-c-qw.md) — string require needs 'Foo/Bar.pm' ; Inline::C dies on import [ load, not autoload ] ; '##' inside multi-line qw| | becomes list words
 
-#,,..,,.,,,.,,...,.,.,,,.,.,.,,.,,,,.,..,,,.,,..,,...,...,.,.,..,,,.,,,,.,..,,
-#AF3HORKO67HXW4EWNPGBALLI2ILWGVLXFJ7OONZGTRPKVKWR2H7HKNHDVVVCVL2IZKTVZONCNBDOE
-#\\\|HBO7PDDDVMGRX7XXDWAXKBZNGBZKV5JHU5JJ6EL6WVNIBY6WJ6B \ / AMOS7 \ YOURUM ::
-#\[7]L3KRAYZSGJRXLMSJFWP2AGO4QGAMCHLPVIGT4PKVMBINW3MCRGCA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,.,.,.,,,,,.,.,.,,..,,,,,...,..,,...,...,...,..,,,.,,.,,,.,,,
+#TJCV7UTS2VPM3A5SJJ7FOC5BTVARRQHSACFWY5L2IQ4Q4WTPZX6S6TPJGNCV7DE6BALB2M37HKBRM
+#\\\|N2DIOUA5FMVJ47VIHG7KPX6T2IOEJX2ISB765FWPQR2SOUCX6U6 \ / AMOS7 \ YOURUM ::
+#\[7]BBEQHKYR2XFC63V2O5VGF4ZNPY5J672JY33OC2THNBFPHD2HICCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
