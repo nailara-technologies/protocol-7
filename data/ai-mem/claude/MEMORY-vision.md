@@ -82,9 +82,10 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [managed-abstraction](vision-managed-abstraction.md) — BASE PRINCIPLE [ user 2026-10-21 ] : layered managed abstraction -- each layer settles what it can know [ detection from earlier statements, sanity filter, defaults ], user enters only where a real decision remains ; accept-accept-accept under time pressure still yields a correct setup ; the layering is what keeps it stable ; for inference zenki : layers prepare a refined situational summary, the model gets a clean context and just decides [ small models suffice, outcome predictable, inference replaces branching code ; pattern dbs keep the automatable parts ] ; identity + memory summaries the same : prior state presented refined, so a session CONTINUES instead of re-deriving
 - [resilient-model-availability](vision-2026-10-28-resilient-model-availability.md) — models survive a huggingface removal : ranked sources [ pirateface 7GU, peers, torrents low-trust ], hash-anchored acceptance, weighted reference counts + resource pools decide what the network caches [ extends OSF-CACHE-ZENKA ]
 - [declared-intent-survives-breakage](vision-2026-10-28-declared-intent-survives-breakage.md) — BASE PRINCIPLE [ user 2026-10-28 ] : declared intent outlives host \ server \ disk ; never silently dropped, visible while unfulfilled ; a user re-entering what they did not wipe = a gap. carriers : configure, settings zenka, p7-vault, N7FS
+- [entity-types-one-model](vision-2026-10-28-entity-types-one-model.md) — zenki = users = one entity model, native sub-branching ; triad zenki \ users \ llms, network as 4th, network instantiations as 5th ; one code path for all types
 
-#,,,,,.,,,.,.,,.,,,..,.,.,,,,,...,..,,,,,,.,,,..,,...,...,.,,,,..,,,,,,..,...,
-#PH4CSRN7JASOH554NGHYLCS65YKPN744GI7YKT2I56XBPDAKVYETTHWQMWVPBEBITCMRCNGWUPE34
-#\\\|SD6EI4JITITMTCG62GWNTE4JIY2C63DFFZQFONOGJT22JFM3YQQ \ / AMOS7 \ YOURUM ::
-#\[7]X7ZBGATHB47OF6SCSZKR2LVPZAOZL46VK4TO5UHBEJ4VQWZXSMBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,...,,,.,,,,,,.,,,..,..,,.,.,..,,...,..,,.,,,,.,,.,.,.,.,...,
+#Y3YK2ICBUUPI3A2VISWUWR7LXNAQ32ZIARCE64DGTCOLRUNWLR2APCW6HSEZZNQULZELWERWEFFGC
+#\\\|T5QKEVEII422HPKP6ERGQSNXOEVMCG5NBGX6BNJ73PXFZNCW747 \ / AMOS7 \ YOURUM ::
+#\[7]QT5F22WJM3N6GZPGH3EPGT7OSK7WK323GNIVTNSSCWO5HRWYS2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
