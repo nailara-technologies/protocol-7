@@ -657,7 +657,7 @@ sub is_empty_dir {
 sub print_help {
     my $help_str = <<"EOL";
 
- bin/p7-install [ options ] .. installs protocol-7 [ as root ]
+     bin/p7-install [ options ] .. installs protocol-7 [ as root ]
 
      -profile <name> .....  p7-deps profile [ default : the recorded
                             profile, else minimal ]
@@ -674,7 +674,7 @@ sub print_help {
      -no-auto-install-deps  explicit skip [ reports without changing ]
      -options ............  this option list [ -h resolves here ]
 
- a second run changes nothing that is in place already.
+     a second run changes nothing that is in place already.
 
 EOL
 
@@ -682,7 +682,8 @@ EOL
     ## or NO_COLOR [ AMOS7::TERM::Frame decides ]                         ##
     if ( AMOS7::TERM::Frame::frame_color_enabled() ) {
         my %C     = %AMOS7::C;
-        my @lines = split "\n", $help_str;
+        my @lines = split "\n", $help_str, -1;
+        pop @lines;    ##  the part after the final newline  ##
         map {s|(\s?\W+\s?)|$C{B01}$C{0}$1$C{B02}$C{T}|g} @lines;
         map { $ARG = "$C{B00}$C{0}$ARG$C{R}" } @lines;
         $help_str = join( "\n", @lines ) . "\n";
@@ -691,8 +692,8 @@ EOL
     return TRUE;
 }
 
-#,,..,...,,,,,,,,,,,.,..,,.,,,,.,,...,...,,,.,..,,...,...,...,,..,.,,,,,.,...,
-#A5NVIFBBVNLJIGSTATL5IQNYOCD2TUAVUHEXYKOSQNIKZM42WN4LGEXNZ3KKDHRA34P4LKH55E57S
-#\\\|YKSYBN2LK5FMNH52W753LYPDFOXBLHFMKDRRZTLTKT4YZWHKTZ3 \ / AMOS7 \ YOURUM ::
-#\[7]CHC75JEETEJQ3GEHV4MS6NRZ3AK3ZGFSZZLWCFV7DMRQC6DVGKDA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,..,,...,.,,,,,,,.,,,,.,,,.,,..,,...,...,...,...,,,,,,.,,...,
+#3K4RXJGI232OR2H3E77F5R75N3LGNXHHMAVBIKM2J6QVMATC2ZO2L6LYAP4JYR575XELDAL5SLQG2
+#\\\|L4LHA6Q3K5ZRRJ34SRSUOLKCCZH6QNHYCLFWG4V6Q533P7MNQ5U \ / AMOS7 \ YOURUM ::
+#\[7]KDVQVCTIF74HWGT7UBRFH4MPKKTXIB5PFUKBWWTEWH7P52CFUUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
