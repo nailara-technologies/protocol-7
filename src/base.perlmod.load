@@ -135,8 +135,8 @@ eval { Module::Load::load( $module_name, @export ) };    ##  trying again  ##
 
 if ( length $EVAL_ERROR ) {
     <[base.s_warn]>->(
-        "<< not able to automatically install perl module '%s' >>",
-        $module_name
+        "<< not able to automatically install perl module '%s' >> [ %s ]",
+        $module_name, <[base.format_error]>->( $EVAL_ERROR, -1 )
     );
     <[base.perlmod.unregister_loaded_module]>->($module_name);
     return FALSE;    ##  false  ##
@@ -146,8 +146,8 @@ if ( length $EVAL_ERROR ) {
 
 return TRUE;         ## true ##  [ module loaded ]
 
-#,,..,...,,,.,.,.,,,.,..,,,.,,,,.,...,,,.,.,,,..,,...,...,...,.,,,.,,,..,,...,
-#GOMU6C5BAWQ4XB476PO45PL6QYUWQ5AUNUNE2DN4OE2DRQOOA6FD7VMBP3WZN5PFPNBWDOJZKCZ42
-#\\\|5VL4Z2FKJF465RRQ3ZLJJ2I7G7VHYEZV4H43ELKHMVZT3XKF7KL \ / AMOS7 \ YOURUM ::
-#\[7]KZLRYYS2Z5P4Z2IQIL6M327JMJU2OZCOTDRMD7VQXL74HPWXN6BI 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,...,..,,..,,,.,,,,,,,..,..,,..,,...,...,...,,.,,...,..,,.,,,
+#JIUYZUAIPYHO4OZLWTGVUVJV2UXGAZ7T6Q5AL2H4JZSVJL3FZE3CFRZVP64BVSIIQNXONZNBR7HG4
+#\\\|RLLJW6NV6AFHX3BBFAEGTNETQSHWR7FR6PQGRUDJ3VVCH32XE76 \ / AMOS7 \ YOURUM ::
+#\[7]K2G6OWK7KTOAJ2WLP5K4DGZHW5GY4ORQYEE7FJ22UOBXZ7EA4ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
