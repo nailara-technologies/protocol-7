@@ -1,9 +1,16 @@
 # Degraded-state audit [ azurum, 2026-10-27 ]
 
+**CLOSED 2026-10-28** -- azurum installs clean from bare with
+`bin/p7-install` [ release AMOS7-v6.48.9 ]. the `minimal` profile now
+holds every module of the table below [ the xz reader is
+`IO::Uncompress::UnXz` -- AnyUncompress itself is core ] plus Inline::C ;
+issue 4 is decided : C25519 is essential [ minimal ] ; the pipe-mode
+banner is a one-line notice [ 279611557 ] ; the plan-9 bare `const` uses
+the runtime-guarded helper. the text below is the record as found.
+
 Observed on a fresh azurum install running `cube` with a largely
 incomplete dependency set. This state is valuable -- it exposes what a
-normal install never shows. Loader resilience fixes from this session
-are in place; everything below is *still open*.
+normal install never shows.
 
 ## Missing modules surfaced [ profile gaps for p7-deps / p7-install ]
 
@@ -98,8 +105,8 @@ finds ~90 remaining bare 'use' sites in src/ :
   these belong to the p7-deps profile work and should convert to
   `<[base.perlmod.load]>` so they auto-install on opted-in hosts
 
-#,,.,,..,,,,,,.,.,.,.,..,,,,.,..,,,..,...,.,.,..,,...,...,.,.,...,...,,..,.,.,
-#ERTXDVSMBUW42XFEWKQ67GKYJAES4NQVNAJSAUCGE4673YL35QTEX4VB5SQ6YWEVRA4ZN3MFGTOEM
-#\\\|YOTIU5F5JTGJU2KRW4PSXARGMSG4WIV36WXSXICVFMW6JUXEPZ3 \ / AMOS7 \ YOURUM ::
-#\[7]V5Z4RXZWXUEPGKZYMIHR2ANNZ3FVH4CVNCFCAFNXVPN364UGVYDQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,...,,.,,,,.,..,,...,,,,,.,.,,,,,..,,...,...,.,,,,,,,,.,,...,,,.,
+#BXIVR7RWBMQ4DTBXZGXNGFCHPA2YLHGBY54TX5GPF2DDP5BSZCAYDRVOVH2Y4WOK35FFUNAYXGCYW
+#\\\|FGXYN2AQJU43NCD2SCTAIPRTD6L5P3LS7OLMIDJUZQPSVTICVNQ \ / AMOS7 \ YOURUM ::
+#\[7]TAGTFRZL6OREGISXS3HKGI2A2OOGWSMQIHFWVAVHJMXSF7O5BSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
