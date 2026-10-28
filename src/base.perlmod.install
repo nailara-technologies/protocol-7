@@ -33,7 +33,7 @@ if ($lost_privileges) {
     );
     <[base.buffer.add_line]>->(
         qw| perlmod-install |,
-        sprintf '  (unprivileged: %s)',
+        sprintf '  [ unprivileged : %s ]',
         <system.zenka-user.current>
     );
 }
@@ -78,6 +78,62 @@ if (    <system.host.os.dist.name> eq qw | debian |
         my $deb_result = <[base.debian.install_package]>->(@deb_list);
         $result->{failed_deb} = \@deb_list if $deb_result;
         push @{ $result->{installed_deb} }, @deb_list if !$deb_result;
+    }
+}
+
+## pm-src builds : the tree carries sources that upstream debian cannot   ##
+## build and cloud hosts cannot reach cpan for -- tried before cpanm,     ##
+## matching the documented debian -> pm-src -> cpanm order                ##
+## [ the debian step above already installed any declared build headers ] ##
+if (    @cpan_list
+    and defined $known_deps->{'pm_src'}
+    and ref( $known_deps->{'pm_src'} ) eq qw| ARRAY |
+    and $known_deps->{'pm_src'}->@* ) {
+    <[base.logs]>->(
+        2,
+        ": pm-src build [ %s ] ...",
+        join( ', ', $known_deps->{'pm_src'}->@* )
+    );
+    <[base.buffer.add_line]>->(
+        qw| perlmod-install |,
+        sprintf 'pm-src build: %s',
+        join( ', ', $known_deps->{'pm_src'}->@* )
+    );
+
+    my $pm_src_ok = eval {
+        AMOS7::deps::module::install_pm_src( <system.root_path>,
+            $known_deps->{'pm_src'}->@* );
+    };
+
+    if ( $pm_src_ok
+        and not length $EVAL_ERROR ) {
+        ##  keep only the modules that still do not load  ##
+        my @still_missing;
+        foreach my $cpan_module (@cpan_list) {
+            my $loadable = eval {
+                ( my $pm_name = $cpan_module ) =~ s|::|/|g;
+                $pm_name .= qw| .pm |;
+                delete $INC{$pm_name};    ## drop stale entries from ##
+                require $pm_name;         ## earlier failed attempts ##
+                TRUE;
+            };
+            if ($loadable) {
+                push @{ $result->{'installed_cpan'} },
+                    sprintf '%s [pm-src]', $cpan_module;
+            } else {
+                ##  restore the stale-entry cleanup contract  ##
+                ( my $pm_name = $cpan_module ) =~ s|::|/|g;
+                delete $INC{ $pm_name . qw| .pm | };
+                push @still_missing, $cpan_module;
+            }
+        }
+        @cpan_list = @still_missing;
+    } else {
+        <[base.logs]>->(
+            1,
+            ":. pm-src build not successful [ %s ] -- cpanm next",
+            $EVAL_ERROR // qw| unknown reason |
+        );
     }
 }
 
@@ -146,8 +202,8 @@ if ( !@{ $result->{failed_deb} } and !@{ $result->{failed_cpan} } ) {
 
 return $result;
 
-#,,..,.,,,,..,.,,,...,,,.,,,.,,.,,,,,,,,.,.,,,.,.,...,...,.,,,.,.,,..,...,,,,,
-#HSGL64GWV4SV6R4PYI7QWQLCFIOOF5UZKO5NI5ASRPKHEDJYCEI2LY2SUYAK3FSRPEL3UQEZNGJ6M
-#\\\|3ANHNGRSUD7PHU5ILPVRWLMZ25PIAYN7TKEUJGLXHFYD2JWVO5E \ / AMOS7 \ YOURUM ::
-#\[7]GI76LHMIP4JZNM6EJWYLFMS4QXKW6L4ZVBMQ5G7KPONJCZIF3ICY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,.,,,..,,,.,..,,,..,..,,.,.,.,.,.,.,...,...,.,.,..,,,,,,.,.,..,,
+#APXMLOAJLQG6HTAQDRNLWEVEXKGPLJ32RHRAXZM7QS2RDPWBHUABGJ5VQBNJWHFOJG3ZQ7KXHC5E6
+#\\\|CBD46OOLZL2LM6DUTH5QNNYVNVBF3RXNSBWW2NUJLCHCUD6DP4W \ / AMOS7 \ YOURUM ::
+#\[7]IS55VHXKJ7UCUT5NGQQUXKWZLM43UZOK2BJLMZHEKC6EIK2AOKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
