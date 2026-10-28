@@ -221,35 +221,40 @@ if ( $workers <= 1 ) {
 
     <[base.logs]>->( 2, ': signing with %d parallel workers..,', $workers );
 
-    ## round-robin sharding : disjoint shards keep the existing per-file   ##
-    ## TOCTOU guard [ in sourcecode.sign_file_list ] valid unchanged -- no ##
-    ## file is ever touched by more than one worker                        ##
-    my @shards = map { [] } 1 .. $workers;
+    ## round-robin sharding : disjoint shards keep the existing per-file    ##
+    ## TOCTOU guard [ in sourcecode.sign_file_list ] valid unchanged -- no  ##
+    ## file is ever touched by more than one worker  chunks, not one share  ##
+    ## per worker : ~4 chunks per worker, balanced by size, largest first.  ##
+    ## a pool keeps $workers running and starts the next chunk whenever one ##
+    ## ends -- fixed shares left a long tail                                ##
+    ## [ size is a weak cost estimate ], small chunks shorten it to one     ##
+    my $chunk_count = $workers * 4;
+    $chunk_count = $file_count if $chunk_count > $file_count;
+    my @shards = map { [] } 1 .. $chunk_count;
 
-    ## balanced by size : largest file first, always to the worker with ##
-    ## the fewest bytes so far -- round-robin left a long tail where a  ##
-    ## few workers still held large files while the others were idle   ##
     my %file_size = map {
         $ARG => -s ( m|^/| ? $ARG : catfile( $work_tree, $ARG ) ) // 0
     } @source_paths;
-    my @shard_bytes = (0) x $workers;
-    foreach my $path_rel (
-        sort { $file_size{$b} <=> $file_size{$a} or $a cmp $b }
-        @source_paths
-    ) {
+    my @shard_bytes = (0) x $chunk_count;
+    foreach
+        my $path_rel ( sort { $file_size{$b} <=> $file_size{$a} or $a cmp $b }
+        @source_paths ) {
         my $lightest = 0;
-        foreach my $w ( 1 .. $workers - 1 ) {
-            $lightest = $w if $shard_bytes[$w] < $shard_bytes[$lightest];
+        foreach my $c ( 1 .. $chunk_count - 1 ) {
+            $lightest = $c if $shard_bytes[$c] < $shard_bytes[$lightest];
         }
         push $shards[$lightest]->@*, $path_rel;
         $shard_bytes[$lightest] += $file_size{$path_rel};
     }
+    my @chunk_order = sort { $shard_bytes[$b] <=> $shard_bytes[$a] }
+        grep { scalar $shards[$ARG]->@* } 0 .. $#shards;
 
     my $run_tag = sprintf( qw| %d-%d |, $PID, time() );
     my @worker_pid;
     my @worker_result_file;
 
-    foreach my $w ( 0 .. $#shards ) {
+    my $launch = sub {
+        my $w = shift;
 
         my $result_file
             = sprintf( qw| /tmp/p7-sourcecode-sign.%s.w%d.tmp |, $run_tag,
@@ -264,7 +269,7 @@ if ( $workers <= 1 ) {
             );
         }
 
-        if ( $pid == 0 ) {    ## child : sign this shard, report, exit ##
+        if ( $pid == 0 ) {    ## child : sign this chunk, report, exit ##
 
             my $result_href = <[sourcecode.sign_file_list]>->(
                 $shards[$w], $work_tree, $sign_verbosity, $w
@@ -295,9 +300,9 @@ if ( $workers <= 1 ) {
         ## SIGINT/SIGTERM shutdown -- same interrupt-safety the original ##
         ## single-process loop had via event.once, no new plumbing ]     ##
         push( <system.kill_list>->@*, $pid );
-        push @worker_pid,         $pid;
-        push @worker_result_file, $result_file;
-    }
+        $worker_pid[$w]         = $pid;
+        $worker_result_file[$w] = $result_file;
+    };
 
     ## poll for completion : DONE sentinel in the result file means        ##
     ## success. a dead pid with no sentinel means the worker crashed --    ##
@@ -305,12 +310,22 @@ if ( $workers <= 1 ) {
     ## reaps children asynchronously via its own Event watcher, racing any ##
     ## waitpid we'd do here, so pid-liveness + result-file content is the  ##
     ## only race-free signal available to the parent ]                     ##
-    my %pending = map { $ARG => 1 } 0 .. $#worker_pid;
+    my %pending;
     my %crashed;
     my @true_counts;
     my @written_counts;
 
-    while ( keys %pending ) {
+    while ( @chunk_order or keys %pending ) {
+
+        ##  top up the pool [ no new chunk once a worker crashed ]  ##
+        while ( @chunk_order and keys(%pending) < $workers and not %crashed )
+        {
+            my $w = shift @chunk_order;
+            $launch->($w);
+            $pending{$w} = 1;
+        }
+        @chunk_order = () if %crashed;
+
         foreach my $w ( <[base.sort]>->( keys %pending ) ) {
 
             my $report;
@@ -336,10 +351,10 @@ if ( $workers <= 1 ) {
     }
 
     ##  tidy the kill-list and result files now that every worker is gone ##
-    my %spawned_pid = map { $ARG => TRUE } @worker_pid;
+    my %spawned_pid = map { $ARG => TRUE } grep {defined} @worker_pid;
     <system.kill_list>->@*
         = grep { not $spawned_pid{$ARG} } <system.kill_list>->@*;
-    unlink grep {-f} @worker_result_file;
+    unlink grep { defined and -f } @worker_result_file;
 
     if (%crashed) {
         <[base.logs]>->(
@@ -375,8 +390,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,.,,,.,..,,.,.,,,,,...,,..,,..,..,,.,,,,..,..,,...,...,,.,,..,,,,.,,.,,,.,,
-#4FNADAOJPKAY6FCHQX66YBLTCQGSBGFWFB2LWPIATB26QJJIX4VHBWY5S7OVDDZRDOIRTFJMPVH26
-#\\\|AJLQ4AYJZGGQ6YEUSAWFTED6XY53AOLCMULFAHRHJH2FHLVRUEY \ / AMOS7 \ YOURUM ::
-#\[7]ZPJVYW3WXC72J63CXVBEQ5WQVXR4473EYNP2NDOHSTNRQWI2RCBI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,.,.,.,.,..,,..,,..,,,..,..,,..,,...,...,.,.,,,.,.,.,,,,,.,,,
+#U4XRDYYUIUQAIBASLKRXO7XJ5THJ3S6GUHJUV3BW3I7I5FHWFH2XAIEGOGDXKGHCBS5RVQ7YPJLYY
+#\\\|OQBNVBGVE44PXOX3XJOLK5WWAR6RJSTUNBMX4ULLJMBHI6CZARB \ / AMOS7 \ YOURUM ::
+#\[7]ZNVSBJP43CSB2O2C36HNJU53WWFMEXPNU5M52OUFE2RJ75EUUEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

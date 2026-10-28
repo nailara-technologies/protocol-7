@@ -190,32 +190,36 @@ if ( $workers <= 1 ) {
 
     <[base.logs]>->( 2, ': verifying with %d parallel workers..,', $workers );
 
-    my @shards = map { [] } 1 .. $workers;
+    ## chunks, not one share per worker : ~4 chunks per worker, balanced by ##
+    ## size, largest first ; a pool keeps $workers running and starts the   ##
+    ## next chunk whenever one ends [ see update-signatures ]               ##
+    my $chunk_count = $workers * 4;
+    $chunk_count = $file_count if $chunk_count > $file_count;
+    my @shards = map { [] } 1 .. $chunk_count;
 
-    ## balanced by size : largest file first, always to the worker with ##
-    ## the fewest bytes so far -- round-robin left a long tail where a  ##
-    ## few workers still held large files while the others were idle   ##
     my %file_size = map {
         $ARG => -s ( m|^/| ? $ARG : catfile( $work_tree, $ARG ) ) // 0
     } @source_paths;
-    my @shard_bytes = (0) x $workers;
-    foreach my $path_rel (
-        sort { $file_size{$b} <=> $file_size{$a} or $a cmp $b }
-        @source_paths
-    ) {
+    my @shard_bytes = (0) x $chunk_count;
+    foreach
+        my $path_rel ( sort { $file_size{$b} <=> $file_size{$a} or $a cmp $b }
+        @source_paths ) {
         my $lightest = 0;
-        foreach my $w ( 1 .. $workers - 1 ) {
-            $lightest = $w if $shard_bytes[$w] < $shard_bytes[$lightest];
+        foreach my $c ( 1 .. $chunk_count - 1 ) {
+            $lightest = $c if $shard_bytes[$c] < $shard_bytes[$lightest];
         }
         push $shards[$lightest]->@*, $path_rel;
         $shard_bytes[$lightest] += $file_size{$path_rel};
     }
+    my @chunk_order = sort { $shard_bytes[$b] <=> $shard_bytes[$a] }
+        grep { scalar $shards[$ARG]->@* } 0 .. $#shards;
 
     my $run_tag = sprintf( qw| %d-%d |, $PID, time() );
     my @worker_pid;
     my @worker_result_file;
 
-    foreach my $w ( 0 .. $#shards ) {
+    my $launch = sub {
+        my $w = shift;
 
         my $result_file = sprintf( qw| /tmp/p7-sourcecode-verify.%s.w%d.tmp |,
             $run_tag, $w );
@@ -259,14 +263,22 @@ if ( $workers <= 1 ) {
         }
 
         push( <system.kill_list>->@*, $pid );
-        push @worker_pid,         $pid;
-        push @worker_result_file, $result_file;
-    }
+        $worker_pid[$w]         = $pid;
+        $worker_result_file[$w] = $result_file;
+    };
 
-    my %pending = map { $ARG => 1 } 0 .. $#worker_pid;
+    my %pending;
     my %crashed;
 
-    while ( keys %pending ) {
+    while ( @chunk_order or keys %pending ) {
+
+        ##  top up the pool [ read-only : a crash does not stop the rest ]  ##
+        while ( @chunk_order and keys(%pending) < $workers ) {
+            my $w = shift @chunk_order;
+            $launch->($w);
+            $pending{$w} = 1;
+        }
+
         foreach my $w ( <[base.sort]>->( keys %pending ) ) {
 
             my $report;
@@ -292,10 +304,10 @@ if ( $workers <= 1 ) {
         }
     }
 
-    my %spawned_pid = map { $ARG => TRUE } @worker_pid;
+    my %spawned_pid = map { $ARG => TRUE } grep {defined} @worker_pid;
     <system.kill_list>->@*
         = grep { not $spawned_pid{$ARG} } <system.kill_list>->@*;
-    unlink grep {-f} @worker_result_file;
+    unlink grep { defined and -f } @worker_result_file;
 
     if (%crashed) {
         <[base.logs]>->(
@@ -367,8 +379,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,,.,...,,.,,.,,,,,,,,,.,...,,.,,,.,,,,,,.,,,..,,...,...,.,,,,,.,,..,...,,,.,
-#FCW2DLCIOVZREGLX4BV6TLHN5FNUQMZ73SSHBGBAAUG43AWEZDEP7KC2FAH2ZD6Y6X7KPITJS6PK4
-#\\\|ORFUT2NRXX64D5CIUSPQO46XFZMAFLMIPXFIVD3POWE5W2CE7BY \ / AMOS7 \ YOURUM ::
-#\[7]XEKVCGP67TQUMK3ML3BVQCXUI7W7D5PFRS4DBJD3SYXP4JOH4MBA 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,,,...,.,.,.,.,,.,,,.,,.,.,,.,,..,,...,...,..,,,..,,,,,..,,,,,,
+#7YN5U7Q3RC65DZ62EU4YLZZ7BSZ3S5F5SBXTRZWU4NIMO3C37JR4AN4VZDJCAE7TJXQDRX2MZ5UQE
+#\\\|VUK5WSMZKLAXUSGHILG5ECXUGCXOR3C7XO3MELZOSMEVZ2GLDDL \ / AMOS7 \ YOURUM ::
+#\[7]ZKBUHUXSCGQYLVVXLWIPQUI3ABX5424G7HHHUW3Z3K2QHVUTH6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
