@@ -192,14 +192,40 @@ ACTIONS need -- lane B2 generalises them into form.* instead of copying :
 
 vault-edit can move onto them afterwards [ not part of B2 ].
 
+## records : namespaced, vault-backed [ user, 2026-10-28 ]
+
+where host \ user set-ups live, so a broken host, server or disk never
+makes the user re-enter them [ ai-mem : declared-intent-survives-breakage ] :
+
+- **one dot namespace** : `cfg.hosts.<group>.<name>` [ e.g.
+  `cfg.hosts.remote.delta`, `cfg.hosts.local.azurum` ], the same for users
+  and further set-ups -- clean naming covers the system and the network
+- **views are prefix cuts** : a host list shows `cfg.hosts.*` with the
+  prefix stripped ; no separate registry
+- **branch prefixes scope ownership** : `usr.taeki.cfg.hosts..` -- the
+  owner's key signs \ encrypts everything below its branch, so namespace
+  and cryptography line up
+- **the immutable parent** : the anchor [ `cfg.hosts`, `usr.taeki` and the
+  key behind it ] never changes ; references stay valid while values and
+  even storage locations change below it -- recovery walks the same names
+- **store** : p7-vault with nested user \ host set-ups [ replicated,
+  encrypted where personal ] ; host-edit \ user-edit edit the records,
+  vault-edit shares the form layer
+- **prefill** : `hints.*` [ ssh_config, etc_hosts, known_hosts,
+  server_pins ] proposes the values ; nothing already stated is asked again
+
+first slice [ todo ] : host-edit prefills from hints.*, stores the record
+under `usr.<user>.cfg.hosts.<group>.<name>` in the vault ; azurum is the
+first host added this way.
+
 ## later
 
 - relay through a linked node, offline file exchange [ transports ]
 - remove \ rename host [ through the key trash : pin + record together ]
 - several owners per host, roles driving osf-cache peers
 
-#,,,.,..,,,,,,,.,,..,,,..,.,.,,,.,,,.,,,,,,,,,..,,...,...,,,.,...,.,,,,,,,.,,,
-#V5PZHTYHT7THZ5VGOEMNL6LWQXX2O4SOLRJLT2AKPICXWZJQ6DO5WVV2BKAFVAZSUBFSDXQTG5MB4
-#\\\|IWVLPCODCFSWEJQHI372K33LU6CE2NVZSC6BG77CJ6A2QXBRT63 \ / AMOS7 \ YOURUM ::
-#\[7]EFLHLGH6WPMVGLAHGISVBANATPOL32EC7LDXYNMR25IEXY4I2ICA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,,,,,,,,..,.,,,...,,.,,,.,,.,.,..,,...,...,..,,.,.,,,.,,.,,.,,,
+#7YWN76KSQQSHZ3LTQQGYQLF3JIHHUD35DGRKQPAFYCEGEMOSMW27CWJAESI5IIVC3IXZUCRF7UOVI
+#\\\|XIWTATVATBH76MOBLLACC756CMVBRFWPCC57X5Y4N3DV54SACHP \ / AMOS7 \ YOURUM ::
+#\[7]3UZCS3H6PIRPCUG63LNIA4J5YK32HGNU6RYNYPLZKHLWWZPN3SBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
