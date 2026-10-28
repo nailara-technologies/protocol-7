@@ -5432,6 +5432,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             ## byte \ word \ line checks above still guard ##
                             ## integrity, the signature itself is skipped  ##
                             p7_ensure_bmw_digest();    ## on demand ##
+
                             if ( defined &Digest::BMW::bmw_256 ) {
 
                                 my $sub_bmw_chksum = eval {
@@ -5645,23 +5646,22 @@ sub p7_soft_require {    ##  require without %INC poisoning on failure  ##
 
     my $module  = shift;
     my @exports = @ARG;
+    my $class   = $module;
 
-    my $require_ok = eval {
+    $module .= qw| .pm | if $module =~ s|::|/|g;    ## bareword issue! ##
+
+    my $load_success = FALSE;
+    eval {
         require $module;
-        $module->import(@exports) if @exports;
-        TRUE;
+        $class->import(@exports) if @exports;
+        $load_success = TRUE;
     };
 
-    if ( not $require_ok or length $EVAL_ERROR ) {
-        ## a failed require of a found file leaves a stale %INC entry -- ##
-        ## later loads then die with 'attempt to reload ... aborted' and ##
-        ## never reach their real error path : drop it here              ##
-        ( my $pm_file = "$module.pm" ) =~ s|::|/|g;
-        delete $INC{$pm_file};
-        return FALSE;
-    }
+    ## a failed require of a found file leaves a stale %INC entry -- later ##
+    ## loads then die with 'attempt to reload ... aborted'                 ##
+    delete $INC{$module} if not $load_success;
 
-    return TRUE;
+    return $load_success;    ## return status : [TRUE|FALSE]
 }
 
 ##############################################################################
@@ -5680,13 +5680,13 @@ sub p7_ensure_bmw_digest {
     ## install below is only for hosts that do not have the module at all ##
     ## [ root + the host opt-in, same policy as v7-zenki.pre_init ]       ##
     p7_soft_require(qw| Digest::BMW |);
-    return TRUE if defined &Digest::BMW::bmw_256;
+    return TRUE if defined &Digest::BMW::bmw_256;    ## loaded ##
 
     if (    ( $UID == 0 or $EUID == 0 )
         and ( $data{'base'}{'perlmod'}{'auto_install'} // FALSE )
         and defined $code{'base.perlmod.install'} ) {
         my $install_result
-            = eval { $code{'base.perlmod.install'}->(qw| Digest::BMW |); };
+            = eval { $code{'base.perlmod.install'}->(qw| Digest::BMW |) };
         $code{'base.log'}->(
             sprintf ': digest module Digest::BMW installed on demand [ %s ]',
             $install_result->{'success'} ? qw| ok | : qw| failed |
@@ -6718,13 +6718,13 @@ sub p7_export_inline_subroutines_with_exact_style {
                         # Standard style
                         p7_print_decoded_with_colon_prefixes($source_code);
 
-                        # Original code (commented out)
-                        # foreach my $line (split /\n/, $source_code) {
+                        # Original code [commented out]
+                        # foreach my $line (split "\n", $source_code) {
                         #     print "$line\n";
                         # }
                     }
 
-                    # Add empty line before metadata (Protocol-7 style)
+                    # Add empty line before metadata [Protocol-7 style]
                     print ":\n";
 
                     # Print metadata
@@ -6789,7 +6789,7 @@ sub p7_export_inline_subroutines_with_exact_style {
             # print "### End of $export_name ###\n";
             $export_count++;
         } else {
-            print "# Source code not available for $export_name\n\n";
+            print "# source code not available for $export_name\n\n";
         }
     }
 
@@ -6844,8 +6844,8 @@ __DATA__
 :
 :.
 
-#,,..,.,.,,,.,.,.,...,,.,,...,.,,,.,.,...,..,,..,,...,..,,,,,,,,.,.,,,...,,..,
-#3Y6ATXO6QBRPXOOTQOJUDGEOIPS2QC7ZWGAEAQU4XTIJQDYH4TRSLWRM5WGWBSHKBPS5SMIK25EGI
-#\\\|SS5ADAEXJZVAWPQ7NAAWJA3KVJ5RWHKUAUCZETQVBKTGRNNHMMJ \ / AMOS7 \ YOURUM ::
-#\[7]OOT2SJ3RBUS4MSINWJQLGSGZ7LUVWWMKFJ7OUOUVTCLS76RRPGCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,.,,,,,.,,,.,.,,,.,,,,,.,,,,,.,..,,...,...,...,.,,,.,,,.,.,,..,
+#ANMRWER2FWPYIH2FQRUZUNZ67X3X2S5AHOVT4LKK2NDI2XVFPATEUGEOW2LNQBVHYIV3RXGWVA63S
+#\\\|MGUQH2QRECHII5LLRWWRPKXRGA7T4JFOJPQCJTZXAWUV5FOZ7EV \ / AMOS7 \ YOURUM ::
+#\[7]ZFEQKIRBU4YG7VFZFRMG72DVVSHEZ6AN2PG4PRJ3BK5WZM54CWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

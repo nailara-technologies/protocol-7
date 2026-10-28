@@ -11,12 +11,12 @@ use warnings;
 
 ## installs protocol-7 on a debian host, from bare to a service unit :
 ##
-## 1. base packages ..... ca-certificates git perl build-essential
-## 2. checkout .......... clone \ update /usr/local/protocol-7
-## 3. dependencies ...... bin/p7-deps install <profile>
-## 4. service unit ...... bin/p7-deps install-service
-## 5. boot start ........ bin/p7-deps enable-service [ -enable only ]
-## 6. service ........... systemctl start Protocol-7 [ -start only ]
+## 1. base packages ... perl libcrypt-dev ca-certificates build-essential git
+## 2. checkout ........ clone \ update /usr/local/protocol-7
+## 3. dependencies .... bin/p7-deps install <profile>
+## 4. service unit .... bin/p7-deps install-service
+## 5. boot start ...... bin/p7-deps enable-service [ -enable only ]
+## 6. service ......... systemctl start Protocol-7 [ -start only ]
 ##
 ## every step looks first and acts only on what is missing -- a second run
 ## changes nothing. the service is never restarted, and started only with
@@ -57,7 +57,13 @@ $OUTPUT_AUTOFLUSH = 1;
 
 my $TOOL = qw| p7-install |;
 
-my @BASE_PACKAGES = qw| ca-certificates git perl build-essential |;
+my @BASE_PACKAGES = qw|
+    ca-certificates
+    git
+    perl
+    build-essential
+    libcrypt-dev                ##  XS build header : Digest::BMW  ##
+    |;
 
 ## without dpkg the same tools are looked up in PATH instead ##
 my @BASE_BINARIES = qw| git perl make cc |;
@@ -644,8 +650,8 @@ EOL
     return TRUE;
 }
 
-#,,..,,,,,.,.,..,,.,,,,.,,,,.,,,,,,,,,..,,..,,..,,...,...,...,..,,,,.,..,,,.,,
-#E3PW46VMVA6CYMHGH5WKGV4PXLSRR4B7ZEFVUBNA6SY2Q5WAMDVFPKIUIGJZPEU3NWWW6KHVYS3TK
-#\\\|SPE5ZOBKHLFA6C36MDESDDVTSGJL7RKRMNRYCVLIM5IF3UPLGVT \ / AMOS7 \ YOURUM ::
-#\[7]Q6SETONBE6OGR7DRIBZUCKSOUSJPKEV4FLCAJANHUTYF2K5POMDY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,.,.,.,,.,,,,,,.,.,.,,,,,.,.,.,..,,...,...,,,,,,..,..,,,,,,...,
+#D53RKAIAB7UFJ6AMAJHSQK4FEVRQN3WR4ROLL2QP47QFOLEG7SJ75IEJY2WIJE2F3DFR42TSSN6H4
+#\\\|UNWGPFZHJNT7XVVXVWFADEYN6T2ZFJB37QH57QYAXCG6NEDJKDI \ / AMOS7 \ YOURUM ::
+#\[7]T6BZQLJ2JARZ743LF46J5YRDOJAXPR4HIER5XGATTTPT2FLVNUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
