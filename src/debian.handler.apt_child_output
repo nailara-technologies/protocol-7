@@ -36,6 +36,29 @@ while ( $handler_data->{'buffer'} =~ s|^([^\n]*)\n|| ) {
         next;
     }
     $line =~ s|^> ||;
+
+    ## dpkg progress redraws with \r : only the final state is kept ##
+    $line =~ s|\r+$||;
+    $line =~ s|^.*\r||;
+
+    ## the autoremove list is unrelated to the install : one count line ##
+    if ( $line =~ m|no longer required:$| ) {
+        $handler_data->{'autoremove'} = 0;
+        next;
+    }
+    if ( defined $handler_data->{'autoremove'} ) {
+        if ( $line =~ m|^\s+(.+)$| ) {
+            $handler_data->{'autoremove'} += split ' ', ${^CAPTURE}[0];
+            next;
+        }
+        <[base.logs]>->(
+            1,
+            "apt: %d packages no longer required [ 'apt autoremove' ]",
+            delete $handler_data->{'autoremove'}
+        );
+        next if $line =~ m|^Use 'apt autoremove'|;
+    }
+
     <[base.logs]>->( 1, 'apt: %s', $line ) if length $line;
 }
 
@@ -115,8 +138,8 @@ $event->cancel if $event->is_active;
 
 return;
 
-#,,.,,..,,...,..,,,,,,...,.,,,,,.,..,,.,,,,..,..,,...,...,,,.,.,,,.,.,...,,.,,
-#7KT22JYANS6G3NGMOZBZUSV6M6VHHPKGSJ7TSXF5EUFT7YRQOKHLOZD7XU5HRCWRZNBIF2QBTLGZE
-#\\\|QQ4EKIZLRKNSW7JVPUX2H75OQIPULMFO6N6SBURL3HBHUVLTPU7 \ / AMOS7 \ YOURUM ::
-#\[7]UA6NV3DLZ5LQONBYE5CQUL3RGGSC4EYZ5DUTNTZNGCAJSEINA6DQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,.,.,,,,.,,,,.,,,.,,..,,,,,,,,,..,,...,...,...,,.,,,,.,,.,,..,,
+#QKGSPNDDCFRTDBQH4D6YZS7PKEEAFWWZAVSLENIWQVX6NO26N6PA2KQWODRHL775NW5WJCZVRPJKK
+#\\\|2CIM2LCP2L3SGAD4WCVK74EWMI5VOFPIV5BB52TALK4IVUYZA4M \ / AMOS7 \ YOURUM ::
+#\[7]DSPTFXLWI3Z4SCWTBG5644ZVPUSVL65X656WNUNR6RIHXV37WMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
