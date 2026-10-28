@@ -4864,6 +4864,30 @@ sub p7_uncompress_subroutine_str {
 
     state $method = qw| anyuncompress |;    ##[ anyuncompress | pipe ]##
 
+    ## xz \ lzma need IO::Compress::Lzma [ not core ] : without it the pipe ##
+    ## mode works the same -- one notice line, not the error block below    ##
+    state %lzma_reader = (
+        qw| xz |   => qw| IO::Uncompress::UnXz |,
+        qw| lzma | => qw| IO::Uncompress::UnLzma |,
+    );
+    if (    $method eq qw| anyuncompress |
+        and defined $compression_type
+        and defined $lzma_reader{$compression_type}
+        and not p7_soft_require( $lzma_reader{$compression_type} ) ) {
+        my $notice = sprintf '%s inline subroutines : '
+            . 'pipe mode [ %s missing ]',
+            $compression_type, $lzma_reader{$compression_type};
+        if ( not exists $ENV{'NO_ANYCOMPRESS_WARN'} ) {
+            my $caller_lvl
+                = $code{'log.base_log_complete'}->() ? ' <{NC}>' : "\n";
+            warn $notice . $caller_lvl;
+        } else {
+            push $data{'system'}{'start'}{'zenka-buffer'}->@*,
+                sprintf ':[compile-errors]: %s', $notice;
+        }
+        $method = qw| pipe |;
+    }
+
     my $AnyUncompressError;
     if ( $method eq qw| anyuncompress | and not defined &anyuncompress ) {
         my $module_name = qw| IO::Uncompress::AnyUncompress |;
@@ -6844,8 +6868,8 @@ __DATA__
 :
 :.
 
-#,,,,,.,.,,..,,,.,,,,,.,,,.,.,,,.,,,,,.,,,,,.,..,,...,...,...,.,,,.,,,.,.,,..,
-#ANMRWER2FWPYIH2FQRUZUNZ67X3X2S5AHOVT4LKK2NDI2XVFPATEUGEOW2LNQBVHYIV3RXGWVA63S
-#\\\|MGUQH2QRECHII5LLRWWRPKXRGA7T4JFOJPQCJTZXAWUV5FOZ7EV \ / AMOS7 \ YOURUM ::
-#\[7]ZFEQKIRBU4YG7VFZFRMG72DVVSHEZ6AN2PG4PRJ3BK5WZM54CWDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,,,.,,.,,,,,,.,.,,..,.,.,.,,,..,,...,...,.,.,,,.,.,,,.,,,...,
+#MHSQCQVQUXRTCWD6XBH5GLMN3ODXYXX43JSY6F4WSZ4WQSLXVV7LKKXS2CNTT772XIR3U3YKCLXWE
+#\\\|HBFKFXKBJZUUXC7ZSDF5ZBK2XSUELLTZE7DX5JKKPYIWWIMSLLH \ / AMOS7 \ YOURUM ::
+#\[7]PWXLDASYJT6AWC56GXZKYJNODR2XFIPXKVHEIBIJMLFWTB6ID4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
