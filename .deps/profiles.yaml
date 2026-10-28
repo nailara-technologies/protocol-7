@@ -10,6 +10,9 @@ profiles:
       - perl
       - make
       - libcrypt-dev       # XS build header : Digest::BMW [ pm-src build ]
+      - libio-compress-lzma-perl  # IO::Uncompress::UnXz : xz inline subs [ boot ]
+      - libinline-c-perl   # Inline::C : AMOS7::INLINE [ boot, compiles with gcc ]
+      - gcc                # Inline::C compiles at first use
     cpan:
       - Event
       - IO::AIO
@@ -18,6 +21,8 @@ profiles:
       - Time::HiRes
       - URI
       - Digest::BMW      # AMOS7::INLINE path names [ pm-src build ]
+      - Crypt::Curve25519  # C25519 keys : every zenka start
+      - Crypt::Ed25519     # C25519 signatures : every zenka start
       - Crypt::Misc      # encode_b32r ; debian : libcryptx-perl
       - List::MoreUtils  # INLINE minmax ; debian : liblist-moreutils-perl
 
@@ -67,18 +72,11 @@ profiles:
       - Net::DNS
 
   cryptography:
-    description: "cryptography and checksumming"
+    description: "tls + certificate extras [ boot crypto lives in minimal ]"
     apt:
-      - libcrypt-openssl-rsa-perl
-      - libglib2.0-dev
-      - gcc                    # Inline::C compiles at first use
+      - libcrypt-openssl-rsa-perl  # letsencr account keys
     cpan:
-      - Inline::C              # AMOS7::INLINE [ ELF checksum, amos-chksum, bit tools ]
-      - Crypt::Curve25519
-      - Crypt::Ed25519
       - Crypt::OpenSSL::X509
-      - Digest::BMW
-      - Digest::SHA
       - Digest::Skein
 
   vault:

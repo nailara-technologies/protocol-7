@@ -6,10 +6,18 @@
 ##  Load Module::Runtime early for dynamic module loading in init_code  ####
 <[base.perlmod.autoload]>->('Module::Runtime');
 
+## bin/Protocol-7 needs these before any install path exists [ xz inline ##
+## subroutines, AMOS7::INLINE at compile time ] : inside the auto-install ##
+## window they are installed here, the next start uses them              ##
+if ( <base.perlmod.auto_install> ) {
+    <[base.perlmod.autoload]>->($ARG)
+        foreach qw| IO::Uncompress::UnXz Inline::C |;
+}
+
 return FALSE;
 
-#,,.,,,,.,.,,,,..,..,,..,,,,.,..,,,,,,,.,,,..,..,,...,...,,,.,,..,,,,,,,,,,,,,
-#O2KRWXL25SXHKHYGX7GPSHSIOUKFHEMXFJV72AVSHPJXEOMXZOUDJP44XVU7AGPHFDBNOEOITRFMS
-#\\\|BGJ43CT3W3GJ6BBNHNGW4UYZ2AZOCKLATUEZWT7R7NAY4BL26K4 \ / AMOS7 \ YOURUM ::
-#\[7]MKY2O4SHEK6IDI5KVQKRVDPXGVANV5WJP7BU36JLXYI6GKKVSKDQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,.,,.,.,...,,.,,.,.,,..,,,,,,,.,..,,...,...,,.,,..,,,,.,,..,.,.,
+#D6B5ZGCVN35VKDGXM3LXML4O5JN3MQ6SNGZ5YGG3QFUZWBMUDSN4STEG22JRV3UFYUW6DWULHWCPG
+#\\\|JTXBAIVTET5E2I5KPGHGGHXX6QU3AJXMQLV4UF67BP5Z22PTC2T \ / AMOS7 \ YOURUM ::
+#\[7]VMKV7Z3NC2P2MKELY4FPEK7FYGGWLBYQRX4ICPUBNTL2LCJSZMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
