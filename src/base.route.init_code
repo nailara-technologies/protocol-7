@@ -7,6 +7,13 @@ $data{'route'} //= {};
 <limits.routes.combined>   //= 42777;
 <limits.routes.per_client> //= 13747;
 
+## route history : the last issued routes per 'target sid : cmd id', for    ##
+## unknown-route replies [ base.handler.command.process_reply ] -- one hash ##
+## entry per route ; high-throughput zenki can switch it off                ##
+<base.route_history.enabled> //= TRUE;
+<base.route_history.size>    //= 1024;
+<base.route_history.ttl>     //= 900;    ##  seconds  ##
+
 <[base.list.init]>->(
     {   'name'         => 'routes',
         'key_ref'      => \$data{'route'},
@@ -16,8 +23,8 @@ $data{'route'} //= {};
 
 return FALSE;
 
-#,,.,,,,,,,.,,,.,,.,,,.,.,.,,,.,,,,..,,.,,,.,,..,,...,...,,.,,.,.,.,,,.,,,..,,
-#JTD3V7B2RAOST6T2STWDOTN47EFSMQOZGJVR6OZ7F7C4DJF3RNSKOD7VMWHPP6OPATSZUEH6YIZ6U
-#\\\|HKRSX47DDELJNN35VPJKFBP7N65GAWALCV5FIV3YNBRD7AOARUP \ / AMOS7 \ YOURUM ::
-#\[7]CZHUD4UBS4KNRYD47DBILQ54RDPOAT3LUSRABTPMUZBCOIVGYSDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,,,.,,..,,..,...,,,,,,,.,,,.,..,,...,...,,..,,,.,...,.,.,..,,
+#BXJ5GCFPFSF46DV3WUS6KRF6DUEDWEZK5PAPKGTXCTNE5D3E5LJAOMLFMLKLPFC2GMGTKDA7YL2A6
+#\\\|O4HE4IHOICFJKJY6L3NGETOWDO3VBES43ZH7VVU5A4JMWBMTC4G \ / AMOS7 \ YOURUM ::
+#\[7]2OHKXGPMHR3UZ72U45EJEOL6IR3YJYTQI4AFWNFHQCRB5NFC4IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

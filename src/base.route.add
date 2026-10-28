@@ -72,10 +72,35 @@ $data{'session'}->{$id}->{'route'}->{$cmd_id}
     = $data{'session'}->{$target_sid}->{'route'}->{$target_cmd_id}
     = $route_id;
 
+## short-lived route history [ optional, base.route.init_code ] : a reply ##
+## to an unknown route id can then still tell what was issued for it      ##
+if (<base.route_history.enabled>) {
+    my $history = <base.route_history.entries> //= {};
+    my $order   = <base.route_history.order>   //= [];
+    my $key     = join qw| : |, $target_sid, $target_cmd_id;
+    my $seq     = ++<base.route_history.seq>;
+    $history->{$key} = {
+        'route_id'   => $route_id,
+        'src_sid'    => $id,
+        'src_cmd_id' => $cmd_id,
+        'time'       => time,
+        'seq'        => $seq,
+    };
+    push $order->@*, [ $key, $seq ];
+
+    ## oldest out first ; a key issued again since keeps its newer entry ##
+    while ( $order->@* > <base.route_history.size> ) {
+        my ( $old_key, $old_seq ) = ( shift $order->@* )->@*;
+        delete $history->{$old_key}
+            if exists $history->{$old_key}
+            and $history->{$old_key}->{'seq'} == $old_seq;
+    }
+}
+
 return $data{'route'}->{$route_id};
 
-#,,,.,,..,,..,,,,,,.,,.,,,.,,,...,.,.,.,.,.,.,..,,...,...,...,,.,,..,,..,,...,
-#B2QJYWH7MPBL2FTX2377KIKP22UBPNT2HLJG2DHUZ2IEBKUYU7DZZ6I54X2WWBXWFPEOTO3RO6B3G
-#\\\|CVG45YRPXJEYCL5JJIG6YOWK2UIF4BEP45GHL5X4JHC2PV26QNO \ / AMOS7 \ YOURUM ::
-#\[7]OQ3DFMZGTWWIZIVTFTQN52U4QHY2UYPHX3KRWUCUTQBK7NS436DY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,..,,,,.,,.,,,..,..,,,,.,,..,..,,...,...,,..,...,..,,...,...,
+#AQOD34GL2DNPSTC3AY36SGDCFAMM2JJP2YTMQ4JFOO3JF5ECKEQTNWM4QBTJMAXSDOOO5BIWJF6CC
+#\\\|RQ6UQXGAWVUK6MIJKOPYEHLPJVB2I3KCOALYYLYSMQLKO773GZ3 \ / AMOS7 \ YOURUM ::
+#\[7]HWQI5HUSOUWH5M7Z3KESLH7LER35XB7QEQVGC5ZME3YOFX6Z4CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
