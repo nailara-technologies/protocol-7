@@ -2096,9 +2096,57 @@ items:
   - graphics
   - new-zenki
   text: terminal graphing zenka in project style [ cpu \ load \ gpu \ zenka metrics, btop-like ]
+- added: 32H45XWYNE
+  details: |-
+    user 2026-10-29 : fingers hurt from typing signature passphrases -- prioritized. the plan is filed in Y7O's details and data/md/design/CREDENTIAL-LAYERS.md [ vault agent layer ] : an unlocked p7-vault session in the user's OWN process serves requests over a local socket [ ssh-agent model ], the vault key never goes to a zenka. first slice : update-signatures asks the agent instead of prompting ; the agent signs and returns only signatures [ the key never leaves it ] ; approval per run [ no 'always', at most a short window ], the request shows file count + list. the unlock ends with a signed end timestamp [ immutable capability reduction, todo PBS ] ; the parallel worker pool [ 149b7a0ba ] sends its chunks to the agent. menu <-> agent session : B2K. a good kimi lane with claude review [ security-sensitive : the agent socket's peer check is the gate ].
+    approval types [ user 2026-10-29 ] : delegation for a working session, in more than one form -- e.g. a protocol-7-menu zenka event that authorizes with an IDLE timeout [ the window stays open while work continues, closes after idle, with a signed end ]. the regular step of the normal workflow : a review window -- code highlighting + a good change overview [ files, per-file diff ] -- approving it is the authorization. matches data/md/design/DEVELOPER-WORKFLOW-ACCELERATION.md [ graphical diff + signing client ]. the review is the security gate made pleasant, not an extra step.
+    delegation shapes [ user 2026-10-29 ] : (1) per step -- each signing approved by a mouse event in the review window ; no idle timeout needed. (2) planned multi-commit work -- a delegation sized to the plan : a signing STEP COUNT and \ or an idle timeout fitting the task ; the model clears it early when it marks the plan done [ signed end ]. the grant \ step \ clear events also feed visual notification : the notify zenka, or the ticker zenka showing a status line [ 'signing delegated : 3 of 5 steps left' ].
+    hybrid mode [ user 2026-10-29 ] : approve with a short numerical PIN instead of the passphrase -- already planned in ai-mem topic-write-access-security-infrastructure [ 'PIN auth' for many small approvals, e.g. batches of code-signing requests ; reuse ui.caller.security-level \ cred-mesh ui-show levels, not a parallel mechanism ; a styled diff image rendered by another zenka for the review window ]. so three tiers : mouse click per step \ PIN \ full passphrase [ unlock ], plus the sized delegations above.
+    correction [ user ] : the PIN is a HEIGHTENED mode, not a lighter one -- it adds a check on top of the click. configurable by security level : off for the session \ auto-enabled after a medium idle timeout [ returning after a pause asks for the PIN ] \ on for every commit. the passphrase stays the unlock.
+    both, precisely [ user ] : click and PIN are each a time- or session-bound replacement for the passphrase ; a click is easy for a model to perform, a keyboard can be sniffed -- no single layer is unforgeable. layers raise the VISIBILITY an attacker [ or an accident ] needs : every approval is an event in a known window. a vigilant system knows its current security levels exactly and adapts : tighter scan intervals and more forensics investment for the windows in which malicious or accidental activity would have to happen [ open delegations, PIN-off periods ], less outside them.
+    remote delegation host [ user 2026-10-29 ] : the delegation can live on a machine the coding model has NO access to during the session -- not even through prepared code updates for that host. it runs a light consensus-based security review [ several review zenki \ models ] before it signs. so a coding model works all night and pushes to a dev branch ; the review zenki catch issues and send them back to it ; only reviewed work gets a valid signature. the model never holds or reaches signing power -- the review host is the gate [ cf. VERSION-BRANCHES.md : re-signing as the hand-over gate ; llm.service.consensus_vote for the voting ].
+    switchable posture [ user ] : whether the coding model may alter the coding zenka \ the gpu host itself changes over time -- the system has to KNOW the current case and adapt the review : when the model can touch its own runtime [ or the review host's inputs ], the review must assume the reviewers may be influenced too -> stricter mode [ more reviewers, an independent host, the human click \ PIN ] ; when it cannot, the light consensus review suffices. the mode is an explicit, logged switch with its own signed start \ end, not an inferred state.
+    review levels [ user ] : a fast LOCAL review lets single changes be committed [ dev branch ] ; the result of a whole session additionally needs the slower REMOTE models [ e.g. the srv-U \ srv-A workers ] to agree with the review before it is signed for base. two speeds : quick feedback while working, a broader consensus for what is kept.
+  done_at: null
+  id: HX4
+  priority: high
+  status: open
+  tags:
+  - vault
+  - signing
+  - keys
+  text: "vault agent : sourcecode signing without passphrase prompts [ first slice of Y7O's agent ]"
+- added: 32H5FCN4NA
+  details: |-
+    user 2026-10-29 : coding \ review zenki, models and users drop ideas into the channels where they arise [ chat channels, task notes, review findings ] ; those are collected into one incoming queue [ deduplicated, with origin ]. at night, when all systems are idle, models discuss the queue together and prepare PRIORITIZED suggestions for the morning -- suggestions only, the user decides. related : XOJ [ overnight results as reviewable patches ], 6WP [ remote overnight batches ], HX4 [ review zenki that would also emit findings ], llm.service.consensus_vote [ for agreeing on priority ]. not the same as the 'idea pool' in NETWORK-SNAPSHOT-AND-IDEA-POOL.md [ that one is a capability view ] -- name them apart.
+    admission review [ user ] : the intake has its own security review layer BEFORE an idea is admitted -- the queue feeds models with more overall capability, so an unreviewed idea is a prompt-injection path [ a crafted 'idea' from a page, mail or remote channel steering a more capable model ]. ideas from outside sources are treated as data : screened [ instructions, payloads, links ], tagged with origin and trust, and only admitted ideas reach the night discussion ; rejected ones stay visible for review, never silently dropped.
+    why a review, not redundancy [ user ] : the set-up lets ONE model have an idea. making that tamper-evident by redundancy would need e.g. 7 models on the exact same task with the exact same seed entropy and a 5 of 7 agreement -- costly. a security review of what the single model produced is the efficient alternative ; the heavy 5-of-7 form stays available for the cases that warrant it.
+    optional remote validation [ user ] : ideas are rare compared to rounds, so reproducing the round that produced one stays affordable -- re-run that exact task with the same seed entropy on remote models [ deterministic inference : same model, sampler, seed ] and compare. matching reproductions add logical trust to the idea ; a mismatch is a flag for the review. per-idea and optional, sized by how often ideas actually occur.
+  done_at: null
+  id: OLM
+  priority: normal
+  status: open
+  tags:
+  - models
+  - overnight
+  - ideas
+  text: 'idea intake : ideas from every channel into one incoming queue ; idle-night model discussion -> prioritized suggestions'
+- added: 32H5F45SJ4
+  details: |-
+    user 2026-10-29 : a task whose inference is bit-for-bit reproducible can be re-run anywhere from very little transferred entropy -- a descriptor of checksums [ model file, sampler config, input \ context, backend + build ] plus seed and timestamp ; sometimes a hash and a timestamp are enough when the rest is already known by checksum. uses : idea validation [ OLM ], review cross-checks [ HX4 ], proving a result without shipping it, dedup of identical runs. needs : one deterministic backend profile [ same build, same device class, fixed threads \ batch, deterministic sampler -- cf. ai-mem sampler-penalties-break-exact-copy ], a test that two hosts produce identical bytes. fits checksum addressing [ the descriptor IS the result's address ].
+    applies to text AND image models [ user ] -- diffusion runs are seeded too : model + scheduler + steps + guidance + seed + prompt checksums describe an image exactly ; the invoke \ image zenki [ invoke-model-manager, image2html ] are the image-side consumers.
+  done_at: null
+  id: 7SE
+  priority: normal
+  status: open
+  tags:
+  - models
+  - reproducible
+  - inference
+  text: 'bit-reproducible inference tasks : reproducible at a distance from a compact descriptor'
 
-#,,,.,.,.,.,.,..,,,..,,,.,.,.,,..,.,,,,..,,,,,..,,...,...,,.,,,,,,,,.,,,.,.,.,
-#2DZBCIJ5GMWG6UEFSRBDDS7S4EL73HJBIKPJGEX2K5ODA4LO7VGY4XFOEX3NRGWOH7KK3QD6MBQDE
-#\\\|ZRBCWYYQ2Z6YMHEJ2RXPTRPTVVGRPNUM43YZKXPN37JUHILWMKM \ / AMOS7 \ YOURUM ::
-#\[7]5Z3HARDAHE5FB3DRJBHIUELVJCLA74KBASMGG2XPVW3ZSNLVYOAI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,...,,,,,.,.,,,.,...,..,,,,.,.,,,..,,...,..,,..,,,.,,.,,,,,,,..,,
+#JWRLFMUZPE4IFBP3AG7FFTP3UVRWRZA7WUDZ3OFPDSLDFXNTICKXISD4YXI352JU2CZ7JUUGHSUW2
+#\\\|MOCO4PRMCIWUZIJPFKIGDM3TF2KHODSEZ55DXCSRUAHI46XF6SL \ / AMOS7 \ YOURUM ::
+#\[7]KDWK27XVCV2KWUHTPEKAGZNOI3T7ZP4P357XTWFQLDIOFEMBEECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
