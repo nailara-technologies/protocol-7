@@ -48,7 +48,7 @@ if ( not defined $payload_data_ref->{'signature'} ) {
     if ( defined <sourcecode.cfg.sign_agent_socket>
         and length <sourcecode.cfg.sign_agent_socket> ) {
         $payload_data_ref->{'signature'} = <[sourcecode.agent.sign]>->(
-            {   qw| op => sign |,
+            {   'op'          => qw| sign |,
                 'socket'      => <sourcecode.cfg.sign_agent_socket>,
                 'run'         => <sourcecode.cfg.sign_agent_run>  // '',
                 'path'        => $payload_data_ref->{'sign-path'} // '',
@@ -139,8 +139,8 @@ $calc_result_href->{'signature-footer-str'} = $template_str;
 
 return $calc_result_href;
 
-#,,,,,.,,,,,.,.,,,,.,,..,,.,,,..,,..,,.,,,,..,..,,...,...,.,,,.,.,,,.,,..,...,
-#33CW5RFPAGJ4D3QZ6KYAFQCWN3CQU3FIDD5QNUTLQGPEQDVQTC7EVYHNJXOEMXK7ZC7XEMP7XETCC
-#\\\|HPKOFZ2BSFGP2JFRVE533VLVT5WLA5CQ2JVPLIBGKTOB22WN36Z \ / AMOS7 \ YOURUM ::
-#\[7]XHAC5MIFM6I244JRPBDFWY7GYVPCQWRQ74NWC4MMDBJQ6BT5HKCA 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,,,.,,,,,,,,.,,,,.,,.,,...,.,,,..,,...,...,..,,,.,,...,.,.,,.,,
+#XJJYLFXHTR4GHBNKO63X46T665Z3K3FYJTZENSNEGGLY6LMFNA7PE72K6MH35AOW3P63RXQIGFW4W
+#\\\|B6ZIIMFR2INOUMVSE4NSJ5WBQRE6AJ25VC4GA34XU4VI24OUPK6 \ / AMOS7 \ YOURUM ::
+#\[7]UM5FC5S4YKYPT7KR2MXSKYVUGS2HXHFUDYJ4XXZDQCPBDY7KTYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

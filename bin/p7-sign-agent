@@ -31,7 +31,7 @@ use warnings;
 ##   HELLO                         -> OK <proto> <public-b32>
 ##   RUN <run> <tree-b32> <count>  -> then 'F <rel-b32> <chk-b32> <len>'
 ##                                    lines + 'GO'
-##                                 -> OK | NO denied
+##                                 -> OK | NO denied [ <reason-b32> ]
 ##   SIGN <run> <rel-b32> <body-chksum-b32> <body-len> <buffer-b32>
 ##                                 -> OK <signature-b32> | NO <reason>
 ##   END <run>                     -> OK <ntime-b32> <end-sig-b32>
@@ -55,6 +55,7 @@ use File::Basename qw| dirname |;
 use File::Path     qw| make_path |;
 use File::Spec     ();
 use Time::HiRes    ();
+use POSIX          ();
 
 BEGIN {
     ## repo layout first [ bin/ + data/lib-path/pm ] ##
@@ -67,7 +68,7 @@ use Crypt::Misc    qw| encode_b32r decode_b32r |;
 use Digest::BMW    ();
 use AMOS7::13      qw| key_32 |;
 use AMOS7::Twofish ();
-use AMOS7::TERM    qw| read_password_single |;
+use AMOS7::TERM    qw| read_password_single confirm_key wipe_secret |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -75,6 +76,8 @@ use constant FALSE => 0;    ##  false  ##
 
 binmode STDOUT, ':encoding(UTF-8)';
 binmode STDERR, ':encoding(UTF-8)';
+## the encoding layer buffers -- show the request now ##
+STDERR->autoflush(1);
 STDOUT->autoflush(1);
 
 ## linux SO_PEERCRED [ Socket.pm exports it there ; 17 is the arch value ] ##
@@ -85,9 +88,15 @@ my $key_name         = qw| proto-7.sourcecode |;
 my $request_timeout  = 13;     ## seconds : client header + list lines ##
 my $run_idle_seconds = 120;    ## approved runs expire when idle past this ##
 
-my $run_base                   ## runtime dir : socket + runs.log ##
-    = $ENV{'XDG_RUNTIME_DIR'}
-    // sprintf( qw| %s/.n/run |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+## runtime dir : socket + runs.log. XDG_RUNTIME_DIR only when it exists and is
+## writable [ wsl sets it to a /run/user/<uid> nobody created ] -- the client
+## [ sourcecode.agent.sign ] resolves the same way
+my $run_base
+    = (     length( $ENV{'XDG_RUNTIME_DIR'} // '' )
+        and -d $ENV{'XDG_RUNTIME_DIR'}
+        and -w _ )
+    ? $ENV{'XDG_RUNTIME_DIR'} =~ s|/+$||r
+    : sprintf( qw| %s/.n/run |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
 my $socket_path = $ENV{'P7_SIGN_AGENT_SOCKET'}
     // sprintf qw| %s/p7-sign-agent.sock |, $run_base;
 ## the C25519 keypair store [ crypt.C25519.get_usr_keys_dir ] ##
@@ -95,7 +104,7 @@ my $key_dir
     = sprintf( qw| %s/.n/user-keys |,
     $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
 
-my $test_stdin_approval;       ## tests only : --test-stdin-approval ##
+my $test_stdin_approval;    ## tests only : --test-stdin-approval ##
 ## or P7_SIGN_AGENT_TEST_STDIN=1      ##
 
 Getopt::Long::GetOptions(
@@ -121,34 +130,8 @@ sub out_line {
     return say STDERR sprintf 'p7-sign-agent : %s', join '', @ARG;
 }
 
-## random bytes for the wipe below : the same dual-source pattern as
-## AMOS7::Vault's _random_bytes [ data/lib-path/pm/AMOS7/Vault.pm ] -- kernel
-## entropy first, Crypt::PRNG fallback [ CryptX already required here ]
-sub _random_bytes {
-    my $len = shift;
-    my $buf = '';
-    if ( open( my $fh, '<:raw', qw| /dev/urandom | ) ) {
-        read( $fh, $buf, $len );
-        close $fh;
-    }
-    $buf = Crypt::Misc::random_bytes($len)    ## part of CryptX ##
-        if length $buf != $len;
-    die "p7-sign-agent : no random source\n" if length $buf != $len;
-    return $buf;
-}
-
-sub secret_wipe {
-    my $sref = shift;
-    return if ref $sref ne qw| SCALAR |;
-    my $len = length $sref->$*;
-    return if not $len;
-    ## in-place same-length random overwrite x2 before truncation [ the
-    ## pattern of AMOS7::Vault::secret_wipe, data/lib-path/pm/AMOS7/Vault.pm ]
-    ## -- plain truncation frees the buffer with the secret bytes intact
-    substr( $sref->$*, 0, $len, _random_bytes($len) ) for 1 .. 2;
-    $sref->$* = '';
-    return;
-}
+## AMOS7::TERM::wipe_secret : in place random overwrite x2, then truncate
+sub secret_wipe { return wipe_secret(@ARG) }
 
 sub cleanup_exit {
     my $code = shift // 0;
@@ -392,10 +375,15 @@ sub run_file_body {
 ##[ run log + signed end ]####################################################
 
 sub run_log_open {
-    open( $run_log_fh, qw| >> |, $runs_log_path ) or do {
-        warn "p7-sign-agent : cannot open $runs_log_path : $OS_ERROR\n";
-        return FALSE;
-    };
+    ## the runtime dir may not exist yet                                  ##
+    ## [ first start on the ~/.n/run fallback ] -- and no audit log means ##
+    ## no signing : fail closed                                           ##
+    if ( not -d $run_base ) {
+        make_path( $run_base, { qw| mode | => 0700 } );
+        chmod 0700, $run_base;
+    }
+    open( $run_log_fh, qw| >> |, $runs_log_path )
+        or die "p7-sign-agent : cannot open $runs_log_path : $OS_ERROR\n";
     chmod 0600, $runs_log_path;
     $run_log_fh->autoflush(1);
     return TRUE;
@@ -438,6 +426,51 @@ sub runs_expire {
     return;
 }
 
+## the request against HEAD for the 'd' key : tracked files through git diff,
+## untracked ones as whole-file additions. list-form git commands
+## [ no shell ]. with a core.pager [ 'diff-modified | less ..' here ] the diff
+## comes colored and goes through that pager, as git diff would show it ;
+## without one it comes plain for AMOS7::TERM::diff_page's own colors. returns
+## ( text, diff_page options )
+sub run_diff {
+    my $work_tree = shift;
+    my $paths     = shift;
+    my @git_base  = ( qw| git -C |, $work_tree );
+
+    my $read = sub {
+        open( my $fh, '-|', @ARG ) or return '';
+        local $INPUT_RECORD_SEPARATOR;
+        my $out = <$fh> // '';
+        close $fh;
+        return $out;
+    };
+
+    return " :. not a git work tree, no diff .:\n"
+        if $read->( @git_base, qw| rev-parse --is-inside-work-tree | )
+        !~ m|^true|;
+
+    my $pager = $read->( @git_base, qw| config --get core.pager | );
+    $pager =~ s|\s+$||;
+    my $color = length $pager ? qw| always | : qw| never |;
+    my @git   = ( @git_base[ 0 .. 2 ], qw| -c |, "color.ui=$color" );
+    my @flags = ( "--color=$color", qw| HEAD -- | );
+
+    my $diff = $read->( @git, qw| diff |, @flags, $paths->@* );
+    foreach my $untracked (
+        split m|\n|,
+        $read->(
+            @git, qw| ls-files --others --exclude-standard -- |,
+            $paths->@*
+        )
+    ) {
+        $diff .= $read->(
+            @git, qw| diff |, "--color=$color",
+            qw| --no-index -- /dev/null |, $untracked
+        );
+    }
+    return ( $diff, { qw| pager | => $pager } );
+}
+
 ##[ approval ]################################################################
 
 ## the approval seam : slice 1 is this terminal prompt. the later slices
@@ -465,13 +498,21 @@ sub approve_run {
             substr( $entry->{'chksum'}, 0, 13 );
     }
     print STDERR ":.\n";
-    print STDERR sprintf ': sign these %d files ? [y/n] : ', $info->{'count'};
+    ## one key on /dev/tty [ AMOS7::TERM::confirm_key, the ncode prompt ] ##
+    my ( $answer, $reason ) = confirm_key(
+        {   qw| question | =>
+                sprintf( 'sign these %d files ?', $info->{'count'} ),
+            qw| reason | => TRUE,
+            qw| diff   | => sub {
+                run_diff( $info->{'work_tree'},
+                    [ map { $ARG->{'path'} } $info->{'entries'}->@* ] );
+            }
+        }
+    );
+    return ( $answer ? TRUE : FALSE, $reason ) if defined $answer;
 
-    my $answer;
-    if ( open( my $tty, qw| < |, qw| /dev/tty | ) ) {
-        $answer = <$tty>;
-        close $tty;
-    } elsif ($test_stdin_approval) {
+    if ($test_stdin_approval) {
+        print STDERR q|: sign ? [y/n] : |;
         $answer = <STDIN>;    ## test flag only -- never in production ##
     } else {
         out_line('approval refused : no controlling terminal');
@@ -649,7 +690,7 @@ sub op_run {
         scalar @unreadable
     ) if @unreadable;
 
-    my $approved = approve_run(
+    my ( $approved, $deny_reason ) = approve_run(
         {   qw| run_id    | => $run_id,
             qw| work_tree | => $work_tree,
             qw| count     | => scalar @entries,
@@ -658,7 +699,32 @@ sub op_run {
             qw| peer_uid  | => $peer_uid
         }
     );
-    return respond_no( $client, qw| denied | ) if not $approved;
+    ## the reason travels base32 [ line protocol ] ##
+    if ( not $approved ) {
+        my @reason
+            = length( $deny_reason // '' )
+            ? encode_b32r($deny_reason)
+            : ();
+        run_log_line( qw| denied |, $run_id, scalar @entries, @reason );
+        return respond_no( $client, qw| denied |, @reason );
+    }
+
+    ## what was approved is what the RUN read : a file swapped while the ##
+    ## prompt [ or its diff ] was open is refused here, before any SIGN  ##
+    my @changed_since = grep {
+        my $body = run_file_body( $probe_run, $ARG->{'path'} );
+        not defined $body
+            or length $body->$* != $ARG->{'length'}
+            or bmw_b32( 512, $body->$* ) ne $ARG->{'chksum'}
+    } @entries;
+    if (@changed_since) {
+        run_log_line( qw| changed |, $run_id, scalar @changed_since );
+        return respond_no(
+            $client,
+            sprintf 'content changed %d',
+            scalar @changed_since
+        );
+    }
 
     $run_approved{$run_id} = {
         qw| work_tree | => $work_tree,
@@ -741,10 +807,11 @@ sub op_sign {
         if not defined $buffer;
     ## the 5 tail bytes are fill_source_template's constant
     ## sig_template_prefix = substr( sign_template, 158, 5 ) -- the real
-    ## template's "\n#\\\\\\" [ newline, '#', three backslashes ], so they are
-    ## constrained to exactly that shape instead of any 5 bytes
+    ## template's "#\\\\\\|"
+    ## [ '#', three backslashes, '|' : the start of footer line 3 ], so they
+    ## are constrained to exactly that shape instead of any 5 bytes
     my ( $header_line, $footer_bmw, undef )
-        = $buffer =~ m|^(\#[,\.]+\n)\#([0-9A-Z]+)\n(\n\#\\\\\\)\z|s;
+        = $buffer =~ m|^(\#[,\.]+\n)\#([0-9A-Z]+)\n(\#\\\\\\\x7C)\z|s;
     return respond_no( $client, qw| buffer format | )
         if not defined $header_line;
     return respond_no( $client, qw| binding mismatch | )
@@ -840,8 +907,8 @@ cleanup_exit(0);
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,.,,..,,,,,...,.,.,...,,,.,,.,,,..,,,.,,,,,..,,...,...,..,,,,.,,,,,,.,,.,,,
-#BUGCRWTYTJD6BKNUYGIPZH56KKLLBZYYJBYO3KDSTAVQDZQQNEWYYMKPSSWXCBTQPNNZDMDJXWXHW
-#\\\|V2W55QGJQX2OPHZO5BGVB7P23DUUKSA5HLSWDI3HEILTAEMZBVA \ / AMOS7 \ YOURUM ::
-#\[7]A3LOQNHDYIDTUBCEDN3V5OKRI3ZJCT4BQSDBWXF7JJHPGEJ4TSBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,,,.,,,.,.,.,.,,,...,..,,...,..,,...,...,...,,,,,,..,,,,,.,.,
+#34SRAXF6I7VZDB6CJJRAY2J2VMP4X4MXVBW3CZGZNWFCOGWZQCA6JGLBFSACHLOFEVZHUTOMGTLFA
+#\\\|7UAER6TUDEAOOLNGQN7TEY7UMDEIL76NRD6T5JTU4PMUHJLCWM3 \ / AMOS7 \ YOURUM ::
+#\[7]AHSF4B2IK5IXPNMKKFQWF42KYVYPF5U3IB6Z23PL7QT5VKCNK6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
