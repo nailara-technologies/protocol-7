@@ -184,36 +184,6 @@ if (   @source_paths == 0
     <[base.exit]>->('0110');
 }
 
-if ($agent_mode) {
-
-    ## one run id for the whole signing run -- it carries a checksum of the ##
-    ## sorted path list, so a changed file set IS a different run and       ##
-    ## prompts anew [ design note ]. The workers inherit both knobs through ##
-    ## the fork, and the agent serializes approval ONCE per run             ##
-    <sourcecode.cfg.sign_agent_tree> = $work_tree;
-    <sourcecode.cfg.sign_agent_run>  = sprintf qw| %d-%d-%s |, $PID, time(),
-        substr(
-        <[chk-sum.bmw.strsum]>->(
-            join( "\n", <[base.sort]>->(@source_paths) )
-        ) // '0',
-        0, 13
-        );
-
-    my $begin_ok = <[sourcecode.agent.sign]>->(
-        {   qw| op => begin |,
-            'socket'    => $agent_socket,
-            'run'       => <sourcecode.cfg.sign_agent_run>,
-            'work-tree' => $work_tree,
-            'paths'     => \@source_paths
-        }
-    );
-
-    if ( not $begin_ok ) {
-        <[base.log]>->( 0, ':. agent run denied, aborting .:' );
-        <[base.exit]>->(qw| 0110 |);
-    }
-}
-
 <[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
 
 map {
@@ -266,6 +236,60 @@ foreach my $path_rel (@source_paths) {
     <[base.cnt_s]>->($fragments),
     $strip_fragments ? ' [ stripped ]' : ' -- sign with :strip: to remove'
 ) if $fragments;
+
+if ($agent_mode) {
+
+    ## content binding for the approval : per-path BMW-512 + length over   ##
+    ## the strict-stripped body, computed with the same pipeline the sign  ##
+    ## path uses [ extract_sig_body strip mode + chk-sum.bmw.strsum ]. the ##
+    ## agent re-reads each file itself at RUN and at SIGN and refuses on   ##
+    ## any mismatch. this runs AFTER the fragment pass above so :strip:    ##
+    ## rewrites are inside the approved content -- hence the run begins    ##
+    ## here and not earlier                                                ##
+    my @agent_paths;
+    foreach my $path_rel (@source_paths) {
+        my $path_abs = catfile( $work_tree, $path_rel );
+        my $text;
+        if ( not <[file.slurp]>->( $path_abs, \$text, qw| :raw | ) ) {
+            <[base.logs]>->( 0, ': cannot read ./%s, aborting', $path_rel );
+            <[base.exit]>->(qw| 0110 |);
+        }
+        <[source.extract_sig_body]>->( \$text, qw| strip | );
+        push @agent_paths,
+            {
+            qw| path |        => $path_rel,
+            qw| body-chksum | => <[chk-sum.bmw.strsum]>->( \$text ),
+            qw| body-length | => length $text
+            };
+    }
+
+    ## one run id for the whole signing run -- it carries a checksum of the ##
+    ## sorted path list, so a changed file set IS a different run and       ##
+    ## prompts anew [ design note ]. The workers inherit both knobs through ##
+    ## the fork, and the agent serializes approval ONCE per run             ##
+    <sourcecode.cfg.sign_agent_tree> = $work_tree;
+    <sourcecode.cfg.sign_agent_run>  = sprintf qw| %d-%d-%s |, $PID, time(),
+        substr(
+        <[chk-sum.bmw.strsum]>->(
+            join( "\n", <[base.sort]>->(@source_paths) )
+        ) // '0',
+        0, 13
+        );
+
+    my $begin_ok = <[sourcecode.agent.sign]>->(
+        {   qw| op => begin |,
+            'socket'    => $agent_socket,
+            'run'       => <sourcecode.cfg.sign_agent_run>,
+            'work-tree' => $work_tree,
+            'paths'     => \@agent_paths
+        }
+    );
+
+    if ( not $begin_ok ) {
+        <[base.log]>->( 0, ':. agent run denied, aborting .:' );
+        <[base.exit]>->(qw| 0110 |);
+    }
+}
 
 my $file_count = scalar @source_paths;
 my @staged_paths;
@@ -497,8 +521,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,..,.,.,,.,,,,,,,,.,.,,,,,.,,,.,,,.,..,,,,,,..,,...,...,...,...,...,,,.,,..,
-#ZXY55THSC7P6Y5BMLKBSZA6LFBIGD4CYKKH2NSJL2TFQRXTOECD2A2YU33SUEYBGQHTGJCDV34EMI
-#\\\|TMCVOJE4ZLBGTK2SN5XAMZXQRJWHP4ARI65O64V35ONURVQNEQ4 \ / AMOS7 \ YOURUM ::
-#\[7]H4XIRY3PVRIFVEB42S2K2DCKUUHNUEQ2NK2LPQEZJ225BN3EW6CQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,.,,.,,,,.,,,.,,,,,.,.,,,.,.,.,..,,...,..,,...,,..,.,.,.,,,,..,
+#Y42NTTX5K2YPGCGGSHDQQZMGIN624ZOMLECJCSQ7Q7OFBU2I2XMYGCUNHPTVDTRDXNNG67DH3YGZ4
+#\\\|4FZ76FXCJ7UWDFMK7JJB3IN22G3G3PPMGVBIT2L2QVIZOPQNSYA \ / AMOS7 \ YOURUM ::
+#\[7]MRSDAOTOUXTGH3VREGX4PJWV4WT7O33JNDUZCEWT6WG7VZZJIEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

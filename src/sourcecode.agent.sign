@@ -13,10 +13,15 @@
 #                                -> the agent key's public half [ b32 ]
 #                                  | undef [ unreachable / refusal ]
 #           { op => 'begin', socket => <path>, run => <id>,
-#             work-tree => <dir>, paths => <aref> }
+#             work-tree => <dir>,
+#             paths => [ { path => <rel>, body-chksum => <b32>,
+#             body-length => <n> }, ... ] }
 #                                -> TRUE on approval | FALSE on denial
 #                                  [ no timeout : the prompt is
-#                                  user-paced, agent-side ]
+#                                  user-paced, agent-side ]. the per-path
+#                                  chksum + length bind the approval to
+#                                  file CONTENTS : the agent re-reads each
+#                                  file itself and refuses on any mismatch
 #           { op => 'sign', socket => <path>, run => <id>, path => <rel>,
 #             body-chksum => <b32>, body-length => <n>, buffer => <str> }
 #                                -> signature [ b32 ] | undef [ refusal ]
@@ -74,11 +79,25 @@ if ( $op eq qw| hello | ) {
     my $worktree = $call->{'work-tree'} // return undef;
     my $paths    = $call->{'paths'}     // return undef;
     return undef if ref $paths ne qw| ARRAY | or not scalar $paths->@*;
+    ## wire shape : 'F <rel-b32> <body-chksum-b32> <body-len>' per path ##
+    my @f_lines;
+    foreach my $entry ( $paths->@* ) {
+        return undef if ref $entry ne qw| HASH |;
+        my ( $rel, $chk, $len )
+            = @{$entry}{qw| path body-chksum body-length |};
+        return undef
+            if not defined $rel
+            or not length $rel
+            or not defined $chk
+            or $chk !~ m|^[0-9A-Z]+$|
+            or not defined $len
+            or $len !~ m|^\d+$|;
+        push @f_lines, sprintf 'F %s %s %d', encode_b32r($rel), $chk, $len;
+    }
     $line_out = join( ' ',
-        qw| RUN |, $run_id, encode_b32r($worktree), scalar $paths->@* )
+        qw| RUN |, $run_id, encode_b32r($worktree), scalar @f_lines )
         . "\n"
-        . join( '', map { sprintf "F %s\n", encode_b32r($ARG) } $paths->@* )
-        . "GO\n";
+        . join( '', map { $ARG . "\n" } @f_lines ) . "GO\n";
     $wait_seconds = 0;    ## the agent may wait on its user's approval ##
 } elsif ( $op eq qw| sign | ) {
     return undef
@@ -133,8 +152,8 @@ return @fields    if $op eq qw| end |   and $status_word eq qw| OK |;
 
 return undef;
 
-#,,..,...,..,,,,,,,..,,.,,.,.,,,.,.,.,,,.,.,,,.,.,...,...,...,,,,,...,.,.,.,.,
-#IRPCQ567P3QFEXNDPVG4FI3F4WJ6SEMEW3CS33OPHLDDQX3JRLQ3S7JBDH7J5LFO3M6ONF25BBLGW
-#\\\|4EC4H45MNMJ44OGF2XWO6CHWAZST2XRPXBSHSDE7ZELPV4JWSD3 \ / AMOS7 \ YOURUM ::
-#\[7]B742JABD7PGZNLQFBVK6UOYQPZSSPWQ572OZ4SCR6HOGGDPOZEDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,..,,.,,,,..,..,,.,,,...,,.,,.,.,...,.,,,,.,,...,,..,.,,,,,,,
+#JXQSRDDO5NXA5S3WWRXSBM6L6VA5YNQQQZWGQFTDSS7DIFQFK2WQZFB5ZD6TQOJIAZ7FRA6BBCMRY
+#\\\|XHPBPP4LP34WYOSCGQIAQOBL2UTNG47UYSNCEZ7TSLYXX4DSGU2 \ / AMOS7 \ YOURUM ::
+#\[7]ESKQ3Y54ORSG2T6EZAW2FGW26K552DGP7VSNPRAKNAPAHV65SYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
