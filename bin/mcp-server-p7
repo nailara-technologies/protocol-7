@@ -88,11 +88,13 @@ do {
 my @external_tools = (
     {   'name'        => 'kimi_dispatch',
         'description' => 'dispatch a task to the local kimi AI agent. runs '
-            . 'kimi with auto-approval (-y) and afk mode '
-            . '(--afk, auto-dismisses any AskUserQuestion '
-            . 'instead of hanging — no one can answer an '
-            . 'interactive prompt from a background '
-            . 'dispatch). use for code implementation, '
+            . 'the current kimi-code cli [ '
+            . '~/.kimi-code/bin/kimi ] in non-interactive '
+            . 'print mode [ -p ] : print mode auto-approves '
+            . 'routine tool calls and cannot prompt [ '
+            . '-y/--auto are rejected together with -p ], '
+            . 'so a background dispatch never hangs on a '
+            . 'question. use for code implementation, '
             . 'analysis, or research tasks. NON-BLOCKING: a '
             . 'run finishing within a few seconds returns '
             . 'its real combined output directly; a longer '
@@ -136,7 +138,7 @@ my @external_tools = (
             . 'quota cost of k2.8 for ~6x faster output, '
             . 'the most expensive option here, not a '
             . 'cheap/fast option.',
-        'command' => 'kimi-legacy -y --afk -p %s --model %s',
+        'command' => 'kimi -p %s --model %s --output-format text',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
             [   'model',
@@ -158,6 +160,13 @@ my @external_tools = (
                     . 'cost of k2.8 for ~6x faster output -- the priciest '
                     . 'option here, pick it for wall-clock speed only, never '
                     . 'as a "cheap and fast" default)',
+                0
+            ],
+            [   'thinking',
+                'thinking effort : low|high|max [ passed to the cli via '
+                    . 'KIMI_MODEL_THINKING_EFFORT ; unset = the cli default '
+                    . 'from [thinking] effort in ~/.kimi-code/config.toml -- '
+                    . 'currently low. the reply reports which level ran ]',
                 0
             ],
             [   'auto_summarize',
@@ -220,11 +229,18 @@ my @external_tools = (
             . 'quota -- it is 3x the quota cost of k2.8 for ~6x faster '
             . 'output, the most expensive option here, not a cheap/fast '
             . 'option.',
-        'command' => 'kimi-legacy -y --afk -r %s -p %s --model %s',
+        'command' => 'kimi -S %s -p %s --model %s --output-format text',
         'params'  => [
             [ 'session_id', 'the kimi session uuid from the resume line', 1 ],
             [   'prompt',
                 'the next task or instruction for the resumed session', 1
+            ],
+            [   'thinking',
+                'thinking effort : low|high|max [ passed to the cli via '
+                    . 'KIMI_MODEL_THINKING_EFFORT ; unset = the cli default '
+                    . 'from [thinking] effort in ~/.kimi-code/config.toml -- '
+                    . 'currently low. the reply reports which level ran ]',
+                0
             ],
             [   'model',
                 'model: k2.8 (default -- K2.8 Preview, a 2026-09 Kimi-side '
@@ -609,7 +625,7 @@ my @external_tools = (
                 0
             ],
             [   'auto_followup',
-                'on DISPATCH_NEEDED: background-dispatch a kimi-legacy '
+                'on DISPATCH_NEEDED: background-dispatch a kimi '
                     . 'follow-up with the failure items (default: false)',
                 0
             ],
@@ -2652,9 +2668,8 @@ sub _sanitize_agent_env {
     return TRUE;
 }
 
-## background kimi-legacy follow-up dispatch — forks and detaches, never
-## blocks the mcp loop
-## [ child stdio redirected away from the protocol channel ]
+## background kimi follow-up dispatch — forks and detaches, never blocks   ##
+## the mcp loop  [ child stdio redirected away from the protocol channel ] ##
 sub _dispatch_followup {
     my ($prompt) = @ARG;
 
@@ -2673,12 +2688,14 @@ sub _dispatch_followup {
         open( STDIN,  '<',  '/dev/null' );
         open( STDOUT, '>>', $log_path );
         open( STDERR, '>>', $log_path );
-        exec( 'kimi-legacy', '-y', '--afk', '-p', $prompt, '--model',
-            $model );
+        ## print mode [ -p ] auto-approves routine tools and cannot prompt ##
+        ## [ -y/--auto are rejected with -p ] : the unattended equivalent  ##
+        ## of the old '-y --afk' pair, verified 2026-10-29 [ RXG ]         ##
+        exec( 'kimi', '-p', $prompt, '--model', $model, '--output-format',
+            'text' );
         exit(1);    ## exec failed
     }
-    log_msg( '[followup] background kimi-legacy dispatched [ pid=%d ]',
-        $pid );
+    log_msg( '[followup] background kimi dispatched [ pid=%d ]', $pid );
     return 1;
 }
 
@@ -4277,6 +4294,7 @@ sub tool_external_command {
     }
 
     ## kimi-specific defaults and model alias resolution
+    my $kimi_thinking = '';
     if ( $ext->{'name'} =~ m{^kimi_} ) {
         ## default changed 2026-09-15, per user + a real observed data point
         ## -- superseded the 2026-08-16 k3-256k-by-default reasoning below
@@ -4342,11 +4360,28 @@ sub tool_external_command {
             ) if not defined $resolved;
             $args->{'model'} = $resolved // $args->{'model'};
         }
+
+        ## thinking effort [ closed enum, same idiom as                    ##
+        ## claude_cloud_dispatch validating effort ]. the new cli has NO   ##
+        ## thinking flag [ --help shows none ; -p rejects -y/--auto too ]  ##
+        ## -- the level reaches the model loop through the                 ##
+        ## KIMI_MODEL_THINKING_EFFORT env var [ verified 2026-10-29 : the  ##
+        ## session wire.jsonl llm.request event carries  thinkingEffort    ##
+        ## from this var ]. supported efforts on the kimi-code models are  ##
+        ## low|high|max per their config support_efforts -- 'medium' is a  ##
+        ## provider.api_error 400, so it is deliberately NOT accepted here ##
+        my %valid_thinking = map { $ARG => 1 } qw| low high max |;
+        $kimi_thinking = lc( $args->{'thinking'} // '' );
+        return send_tool_result( $id,
+            "invalid thinking '$kimi_thinking' : use low|high|max", 1 )
+            if length $kimi_thinking and not $valid_thinking{$kimi_thinking};
     }
 
     ## params handled here, not forwarded to the shell command ##
     my %skip_in_cmd
-        = map { $_ => 1 } qw( auto_summarize keep template create_template );
+        = map { $_ => 1 }
+        qw( auto_summarize keep template create_template
+        thinking );
 
     ## template: resolve and prepend to prompt before dispatch ##
     if ( length( $args->{'template'} // '' ) ) {
@@ -4390,6 +4425,27 @@ sub tool_external_command {
     my $output = '';
     my $error  = '';
 
+    ## kimi thinking report + env override : prepending the env assignment ##
+    ## to the shell command                                                ##
+    ## [ value is a validated closed enum -- no injection surface ]. unset ##
+    ## = the cli's own default, reported from [thinking] effort in         ##
+    ## ~/.kimi-code/config.toml                                            ##
+    my $kimi_thinking_note = '';
+    if ( $ext->{'name'} =~ m{^kimi_(?:dispatch|continue)$} ) {
+        if ( length $kimi_thinking ) {
+            $cmd = "KIMI_MODEL_THINKING_EFFORT=$kimi_thinking $cmd";
+            $kimi_thinking_note
+                = "thinking=$kimi_thinking [KIMI_MODEL_THINKING_EFFORT]";
+        } else {
+            my $default_thinking = _kimi_config_thinking();
+            $kimi_thinking_note
+                = length $default_thinking
+                ? "thinking=$default_thinking [cli default: [thinking] "
+                . 'effort in ~/.kimi-code/config.toml]'
+                : 'thinking=cli default';
+        }
+    }
+
     if ( $ext->{'name'} =~ m{^kimi_(?:dispatch|continue)$} ) {
         ## kimi dispatch/continue run DETACHED [ _kimi_fork_run ] : the     ##
         ## unconditional qx() below blocked this whole single-threaded      ##
@@ -4418,6 +4474,7 @@ sub tool_external_command {
         } else {
             ## still running past the bounded window : reply immediately ##
             ## and let the caller poll kimi_check_status for the result  ##
+            $run->{'thinking_note'} = $kimi_thinking_note;
             return _kimi_dispatch_async_reply( $id, $args, $ext, $run );
         }
     } else {
@@ -4580,6 +4637,11 @@ sub tool_external_command {
     }
 
     my $result = length($error) ? $error : $output;
+    if (    length $kimi_thinking_note
+        and not length $error
+        and $ext->{'name'} =~ m{^kimi_(?:dispatch|continue)$} ) {
+        $result .= "\n$kimi_thinking_note";
+    }
     send_tool_result( $id, $result, length($error) ? 1 : 0 );
 }
 
@@ -5634,12 +5696,36 @@ sub tool_claude_cloud_result {
     send_tool_result( $id, join( "\n", @lines ), 0 );
 }
 
-## fork + detach a kimi-legacy dispatch WITHOUT blocking this server's      ##
-## request loop, then give it a short bounded window to fail fast           ##
+## current cli default thinking effort : [thinking] effort in             ##
+## ~/.kimi-code/config.toml                                               ##
+## [ best-effort : undef when unreadable or the key is absent ] — used to ##
+## report WHICH level a dispatch ran at when the caller did not set one   ##
+sub _kimi_config_thinking {
+    my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
+    my $path = "$home/.kimi-code/config.toml";
+    return undef if not -f $path;
+    open my $fh, '<', $path or return undef;
+    my $in_thinking = 0;
+    my $level;
+    while ( my $line = <$fh> ) {
+        if    ( $line =~ m{^\s*\[thinking\]} ) { $in_thinking = 1; next }
+        elsif ( $line =~ m{^\s*\[} )           { $in_thinking = 0; next }
+        elsif ( $in_thinking
+            and $line =~ m{^\s*effort\s*=\s*"([^"]+)"} ) {
+            $level = $1;
+            last;
+        }
+    }
+    close $fh;
+    return $level;
+}
+
+## fork + detach a kimi dispatch WITHOUT blocking this server's request     ##
+## loop, then give it a short bounded window to fail fast                   ##
 ##                                                                          ##
 ## shape follows the established _dispatch_followup idiom [ redirect stdio, ##
-## exec straight into kimi-legacy, never return to perl code in the worker  ##
-## ], adapted to a DOUBLE fork : the intermediate child is reaped by the    ##
+## exec straight into the cli, never return to perl code in the worker ],   ##
+## adapted to a DOUBLE fork : the intermediate child is reaped by the       ##
 ## parent at once and the real worker is orphaned to init.  that achieves   ##
 ## what _dispatch_followup's local $SIG{'CHLD'}='IGNORE' does               ##
 ## [ no zombies ] while still allowing liveness polling — a SIGCHLD         ##
@@ -5662,16 +5748,21 @@ sub _kimi_fork_run {
     my $pid_file = "$tmp_out.pid";
 
     ## snapshot existing kimi session dirs : a FRESH kimi_dispatch makes   ##
-    ## kimi-legacy create ~/.kimi/sessions/<hash>/<uuid>/ about a second   ##
-    ## after start                                                         ##
-    ## [ measured 2026-09-08 : dir at 1.1s vs first real stdout at 16.6s ] ##
+    ## the new cli create ~/.kimi-code/sessions/wd_<cwd>/<session_uuid>/   ##
+    ## about a second after start [ the legacy tree ~/.kimi/sessions/ is   ##
+    ## still scanned too — both for in-flight legacy sessions and as the   ##
+    ## documented fallback when the new cli cannot do something required ] ##
     ## — long before its first output line and well inside the bounded     ##
     ## window below, so the new session's uuid is recoverable by diffing   ##
     ## against this snapshot instead of grepping logs afterwards           ##
-    my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
-    my $sess_glob
-        = "$home/.kimi/sessions/*/????????-????-????-????-????????????";
-    my %sessions_before = map { $ARG => 1 } glob($sess_glob);
+    my $home       = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
+    my @sess_globs = (
+        "$home/.kimi-code/sessions/*/session_????????-????-????-????"
+            . '-????????????',
+        "$home/.kimi/sessions/*/????????-????-????-????-????????????",
+    );
+    my %sessions_before = map { $ARG => 1 }
+        map { glob($ARG) } @sess_globs;
 
     my $pid = fork();
     if ( not defined $pid ) {
@@ -5717,7 +5808,7 @@ sub _kimi_fork_run {
     }
     if ( $gpid !~ m{^\d+$} or $gpid < 2 ) {
         unlink $tmp_out, $pid_file;
-        return { 'error' => 'failed to start detached kimi-legacy worker' };
+        return { 'error' => 'failed to start detached kimi worker' };
     }
 
     ## bounded fast-fail window [ 6s ] : exists ONLY so a near-instant     ##
@@ -5740,8 +5831,8 @@ sub _kimi_fork_run {
             last;
         }
         if ( not length $uuid and not $uuid_ambiguous ) {
-            my @new_dirs
-                = grep { not $sessions_before{$ARG} } glob($sess_glob);
+            my @new_dirs = grep { not $sessions_before{$ARG} }
+                map { glob($ARG) } @sess_globs;
             if ( @new_dirs == 1 ) {
                 ($uuid) = $new_dirs[0] =~ m{/([^/]+)$};
             } elsif ( @new_dirs > 1 ) {
@@ -5805,10 +5896,13 @@ sub _kimi_dispatch_async_reply {
                 . 'its own.',
             $run->{'gpid'}
         ),
-        'captured output [ raw kimi-legacy '
-            . 'stdout+stderr, grows while it runs ]: '
+        'captured output [ raw kimi stdout+stderr, grows while it runs ]: '
             . $run->{'tmp_out'},
     );
+
+    push @lines, $run->{'thinking_note'}
+        if length( $run->{'thinking_note'} // '' );
+
     if ( length $uuid ) {
         push @lines,
             "session uuid: $uuid",
@@ -5820,11 +5914,12 @@ sub _kimi_dispatch_async_reply {
         ## [ e.g. a concurrent unrelated dispatch in the same window ]   ##
         push @lines,
               'session uuid: not attributable yet at reply time. it shows up '
-            . '~1s after kimi-legacy starts as the NEWEST directory '
-            . 'under ~/.kimi/sessions/*/ [ match by creation time ], '
-            . 'or in fresh lines of ~/.kimi/logs/kimi.log, and the '
-            . 'capture file above ends with "To resume this session: '
-            . 'kimi -r <uuid>" once the run finishes. then poll '
+            . '~1s after kimi starts as the NEWEST directory under '
+            . '~/.kimi-code/sessions/*/ [ the legacy tree '
+            . '~/.kimi/sessions/*/ is scanned too ], or in fresh lines '
+            . 'of ~/.kimi-code/logs/kimi-code.log, and the capture '
+            . 'file above ends with "To resume this session: kimi -r '
+            . '<uuid>" once the run finishes. then poll '
             . 'kimi_check_status(session_id=...) for the final result.';
     }
     push @lines,
@@ -5841,10 +5936,12 @@ sub _kimi_dispatch_async_reply {
     return;
 }
 
-## quick poll on a kimi session — the fast recovery path when the outer  ##
-## harness reports a kimi_dispatch / kimi_continue call as failed at its ##
-## ~1800s idle-silence watchdog while kimi-legacy keeps running. must    ##
-## return well under 1800s : no blocking waits here at all               ##
+## quick poll on a kimi session — the fast recovery path when the outer     ##
+## harness reports a kimi_dispatch / kimi_continue call as failed at its    ##
+## ~1800s idle-silence watchdog while the kimi worker keeps running.        ##
+## supports BOTH cli generations : new ~/.kimi-code/sessions tree and the   ##
+## legacy ~/.kimi/sessions tree. must return well under 1800s : no blocking ##
+## waits here at all                                                        ##
 sub tool_kimi_check_status {
     my ( $id, $args ) = @ARG;
 
@@ -5856,23 +5953,59 @@ sub tool_kimi_check_status {
     $max_lines = 200 if $max_lines > 200;
     $max_lines = 1   if $max_lines < 1;
 
-    my $home     = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
-    my $log_file = "$home/.kimi/logs/kimi.log";
+    my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
 
-    ## locate persisted session state : ~/.kimi/sessions/<hash>/<uuid>/ ##
-    my ($session_dir)
-        = grep { -d $ARG } glob("$home/.kimi/sessions/*/$session_id");
-    my $wire_file = defined $session_dir ? "$session_dir/wire.jsonl" : undef;
+    ## both cli generations are supported : the current kimi-code cli keeps ##
+    ## sessions at ~/.kimi-code/sessions/wd_<cwd>/<session_uuid>/           ##
+    ## [ dir name IS the session id, 'session_' prefix included ] with the  ##
+    ## main agent's wire.jsonl at agents/main/wire.jsonl ; the legacy tree  ##
+    ## ~/.kimi/sessions/<hash>/<uuid>/ with wire.jsonl directly inside is   ##
+    ## still scanned for in-flight legacy sessions                          ##
+    ## [ kept as the documented fallback ]                                  ##
+    my @log_files = grep { -f $ARG } (
+        "$home/.kimi-code/logs/kimi-code.log",
+        "$home/.kimi/logs/kimi.log",
+    );
+
+    ## locate persisted session state ##
+    my ($session_dir) = grep { -d $ARG } (
+        glob("$home/.kimi-code/sessions/*/$session_id"),
+        glob("$home/.kimi/sessions/*/$session_id"),
+    );
+    my $wire_file;
+    if ( defined $session_dir ) {
+        $wire_file
+            = -f "$session_dir/agents/main/wire.jsonl"
+            ? "$session_dir/agents/main/wire.jsonl"
+            : "$session_dir/wire.jsonl";
+        $wire_file = undef if not -f $wire_file;
+    }
 
     ## liveness, approach [a] : scan the process table — a resumed session  ##
-    ## carries its uuid in argv  [ kimi-legacy -y --afk -r <uuid> -p ... ]. ##
-    ## known false-positive window : an unrelated fresh dispatch whose      ##
-    ## prompt text mentions the uuid also matches — acceptable, it is still ##
-    ## a live kimi process referencing this session                         ##
+    ## carries its uuid in argv  [ kimi -S <uuid> -p ... ].                 ##
+    ## a live kimi worker looks like one of :                               ##
+    ##   sh -c kimi -p ...              [ fork_run shell wrapper ]          ##
+    ##   kimi -p ... / kimi -S <id>   [ the cli itself, argv[0] typed ]     ##
+    ##   /home/.../.kimi-code/bin/kimi ...   [ argv[0] full path ]          ##
+    ##   kimi-legacy ...                [ legacy cli workers ]              ##
+    ## the flag-gated forms keep 'strings .../kimi'-style shell noise out   ##
+    ## of the scan. exclude this server's own python kimi-cli wrapper and   ##
+    ## mcp-server-p7. known false-positive window : an unrelated fresh      ##
+    ## dispatch whose prompt text mentions the uuid also matches —          ##
+    ## acceptable, it is still a live kimi process referencing this         ##
+    ## session                                                              ##
     my $running_pid = 0;
     my $kimi_procs  = 0;
     for my $proc_line (qx| ps -eo pid,args 2>/dev/null |) {
-        next unless index( $proc_line, 'kimi-legacy' ) >= 0;
+        my $is_kimi_proc = index( $proc_line, 'kimi-legacy' ) >= 0
+            or $proc_line
+            =~ m{(?:^|\s)(?:\S*/)?kimi[ ](?:-p|-S|-c|-r|--session|--continue)(?:[ ]|$)}
+            or $proc_line =~ m{kimi-code/bin/kimi[ ]};
+        next unless $is_kimi_proc;
+        next
+            if index( $proc_line, 'kimi-cli' ) >= 0
+            or index( $proc_line, 'kimi_cli' ) >= 0
+            or index( $proc_line, 'mcp-server-p7' ) >= 0;
         $kimi_procs++;
         if (    not $running_pid
             and $proc_line =~ m{^\s*(\d+)\s}
@@ -5887,23 +6020,27 @@ sub tool_kimi_check_status {
     ## 4h40m after the result had already landed ]. both the argv pid-match ##
     ## and the fresh-dispatch fallback below funnel through the same        ##
     ## freshness gate : the session's own wire.jsonl must have been written ##
-    ## recently, and a trailing TurnEnd event means done regardless of      ##
-    ## process state                                                        ##
+    ## recently, and a trailing turn-end event means done regardless of     ##
+    ## process state — the event name differs between clis : legacy         ##
+    ## '"type": "TurnEnd"' vs the new cli's '"type":"agent.turn.ended"' [   ##
+    ## new cli may write a trailing prompt.completed after it, so the gate  ##
+    ## scans the last few lines, not just the very last one ]               ##
     my $wire_age;
     my $wire_fresh = 0;
     my $turn_ended = 0;
     if ( defined $wire_file and -f $wire_file ) {
         $wire_age   = time - ( stat($wire_file) )[9];
         $wire_fresh = $wire_age < 180 ? 1 : 0;
-        my $tail_cmd   = sprintf 'tail -n 1 %s', quotemeta($wire_file);
-        my $last_event = qx( $tail_cmd 2>/dev/null );
+        my $tail_cmd    = sprintf 'tail -n 5 %s', quotemeta($wire_file);
+        my $last_events = qx( $tail_cmd 2>/dev/null );
         $turn_ended = 1
-            if index( $last_event // '', '"type": ' . '"TurnEnd"' ) >= 0;
+            if index( $last_events // '', '"type": ' . '"TurnEnd"' ) >= 0
+            or index( $last_events // '', '"type":"agent.turn.ended"' ) >= 0;
     }
 
     ## fresh dispatches have no uuid in argv [ session created at runtime ] ##
-    ## : fall back to any live kimi-legacy process, still subject to the    ##
-    ## same freshness gate below                                            ##
+    ## : fall back to any live kimi process, still subject to the same      ##
+    ## freshness gate below                                                 ##
     my $running = 0;
     $running = 1 if $running_pid;
     $running = 1 if not $running and $kimi_procs and $wire_fresh;
@@ -5921,11 +6058,25 @@ sub tool_kimi_check_status {
 
     if ($running) {
         ## still in progress : return recent session activity so the caller ##
-        ## can see what it is doing without waiting it out                  ##
+        ## can see what it is doing without waiting it out. the new cli     ##
+        ## keeps a per-session log at <session_dir>/logs/kimi-code.log      ##
+        ## [ no id filter needed — the file IS this session ] ; the legacy  ##
+        ## cli logged everything into the shared ~/.kimi/logs/kimi.log,     ##
+        ## filtered by session id                                           ##
         my $log_tail = '';
-        if ( -f $log_file ) {
+        my ($session_log)
+            = defined $session_dir
+            ? glob("$session_dir/logs/*.log")
+            : ();
+        if ( defined $session_log and -f $session_log ) {
+            my $tail_cmd = sprintf 'tail -n %d %s',
+                $max_lines, quotemeta($session_log);
+            $log_tail = qx( $tail_cmd 2>/dev/null );
+        } elsif (@log_files) {
             my $tail_cmd = sprintf 'grep -F -- %s %s | tail -n %d',
-                quotemeta($session_id), quotemeta($log_file), $max_lines;
+                quotemeta($session_id),
+                join( ' ', map { quotemeta($ARG) } @log_files ),
+                $max_lines;
             $log_tail = qx( $tail_cmd 2>/dev/null );
         }
         my $header = sprintf 'status=running session=%s%s',
@@ -5940,21 +6091,32 @@ sub tool_kimi_check_status {
 
     return send_tool_result(
         $id,
-        "status=unknown session=$session_id : no live process and "
-            . "no session state found under ~/.kimi/sessions/*/$session_id",
+        "status=unknown session=$session_id : no live process and no session "
+            . "state found under ~/.kimi-code/sessions/*/ or "
+            . "~/.kimi/sessions/*/",
         1
     ) if not defined $session_dir;
 
-    ## process gone : recover the final result from the session's own    ##
-    ## persisted wire.jsonl — last ContentPart of payload type 'text' is ##
-    ## the closing assistant message of the completed turn               ##
+    ## process gone : recover the final result from the session's own       ##
+    ## persisted wire.jsonl. the LAST text part is the closing assistant    ##
+    ## message of the completed turn — shape differs between clis : the new ##
+    ## cli wraps it as '"part":{"type":"text","text":...}' inside a         ##
+    ## context.append_loop_event envelope [ extract event.part.text ],      ##
+    ## legacy used '"type": "ContentPart"' with payload.text. try the new   ##
+    ## shape first, fall back to the legacy one                             ##
     my $final_text = '';
     if ( defined $wire_file and -f $wire_file ) {
-        my $grep_cmd = sprintf
-            'grep -F %s %s | grep -F %s | tail -n 1',
-            quotemeta('"type": "ContentPart"'), quotemeta($wire_file),
-            quotemeta('"type": "text"');
-        my $last_text_line = qx( $grep_cmd 2>/dev/null );
+        my $last_text_line = '';
+        my $grep_cmd       = sprintf 'grep -F %s %s | tail -n 1',
+            quotemeta('"part":{"type":"text"'), quotemeta($wire_file);
+        $last_text_line = qx( $grep_cmd 2>/dev/null );
+        if ( not length $last_text_line ) {
+            my $legacy_cmd = sprintf
+                'grep -F %s %s | grep -F %s | tail -n 1',
+                quotemeta('"type": "ContentPart"'),
+                quotemeta($wire_file), quotemeta('"type": "text"');
+            $last_text_line = qx( $legacy_cmd 2>/dev/null );
+        }
         if ( length $last_text_line ) {
             ## qx under -C31 already utf8-decodes its output, but $json is ##
             ## in ->utf8 mode and expects raw bytes on decode [ same as    ##
@@ -5962,8 +6124,10 @@ sub tool_kimi_check_status {
             ## its source via '<:raw' filehandles ] — re-encode first      ##
             my $event
                 = eval { $json->decode( encode( 'UTF-8', $last_text_line ) ) };
-            $final_text = $event->{'message'}{'payload'}{'text'} // ''
-                if not $EVAL_ERROR and ref $event eq 'HASH';
+            if ( not $EVAL_ERROR and ref $event eq 'HASH' ) {
+                $final_text = $event->{'event'}{'part'}{'text'}
+                    // $event->{'message'}{'payload'}{'text'} // '';
+            }
         }
     }
 
@@ -5990,8 +6154,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,,.,,,.,.,,,..,,.,.,,..,,,,,,.,,.,,,,.,,..,,...,..,,.,.,,..,,,,,...,...,
-#EOF45SP2I3PYFRMMIUM2GCJQU6PQBSOSNEBALU6VDGUPY4ASGWJMYEB6LMBQUJBQVGUAYVJ5XU2F4
-#\\\|GO7CC7TMX4YAKUMFYQFDDGHNS7KGF3RYECCITUTBTBC4CVPYXFJ \ / AMOS7 \ YOURUM ::
-#\[7]SJJVW7PLXOFRAHOYKIVJ43ZC47AGO5D2D2F6QYYQR5WNU5VFSUDY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,,..,..,,...,,,,,.,.,,,,,.,.,..,,...,...,...,...,...,.,.,,,,,
+#SBKER57GZBP7FDLG46K34WUBQV3TXKCO3J76NFM6CEN6CMF3E5INPOVTEDWQRXXQSHLMKFZ2IUVPY
+#\\\|XG46B6CXBJHVNJMGBPJYRGEMTJMC4HA6PGCKVPE4X2DWX5ZJ77E \ / AMOS7 \ YOURUM ::
+#\[7]UYJURJZ3QNYU6NG33RVQQN65NAFBKJHDERZ546DJODPMDEYFOADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
