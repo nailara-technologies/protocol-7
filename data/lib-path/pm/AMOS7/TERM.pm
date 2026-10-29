@@ -28,7 +28,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.CN5GMZA |;
+our $VERSION = qw| AMOS7::TERM-VERSION.VSBKHWQ |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -1424,7 +1424,9 @@ sub progress_line {
     my $reset      = "\e[0m";
 
     my $cells = qw| : | x int( $cells_max * $count / $total );
-    $label = substr( $label, -$label_width ) if length $label > $label_width;
+    ## too long : the tail stays [ the file name ], '..' marks the cut ##
+    $label = '..' . substr( $label, -( $label_width - 2 ) )
+        if length $label > $label_width and $label_width > 2;
 
     return sprintf "\r${blacklight}:::[$nailara_bg$true_color%-${cells_max}s"
         . "$reset$blacklight]:"
@@ -2178,8 +2180,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,,,,..,,...,.,,,.,,,,,.,,,,,,..,,..,,..,.,,,..,,...,..,,.,.,,,.,.,.,,,,,...,
-#OJYALJBZ2PKVIIZKWHTX63GEUWUHMVFQY3WFDPUCYH2IVXNEUY7GCS6CS2F3SNU24OATMM4VX2VWC
-#\\\|PFG42UZ7D7DU4ENRNP34QDKPNMPSNU7O37Y5J4IV25HSUWVYJUP \ / AMOS7 \ YOURUM ::
-#\[7]WGAJGRQT6QM3LP6CTF7TDFNSD2ONLULAV2BEIN65U5E67DOX76AI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,,,..,,,..,..,,..,,.,,,...,..,,..,,...,...,,,.,.,.,,.,,.,,,.,.,
+#2FBSTI7S7QDAJGOVL5SSLN5DJO4CLGPJJTACQL222UFYD7CTD76QG4WX6K744T3FK6IDEPKCZ5BTI
+#\\\|7MLJNAXEW4T2ZMJKTI3LHAWWBAE4DLKM6D3E2E2WTD3WFIGX7CC \ / AMOS7 \ YOURUM ::
+#\[7]5P4H6ODL6UGVMPA6PZNJRBWWDYTSI6NSUW2AN4LNRQS3E4MU7UDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
