@@ -135,7 +135,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.H4DCBKI |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.QEKWPJA |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -1499,17 +1499,17 @@ sub edit_text {
                     ? ' [v] paste [.] in-order [y] clear'
                     : '';
                 my $help_text
-                    = '  :CTRL:. [x] save+quit [c] abort'
+                    = ' .:CTRL:. [x] save + quit [c] abort'
                     . $save_hint
                     . $paste_hint
                     . ' [w] del-word [l] del-line [d] de-interlace '
                     . '· arrows · enter · del · pgup \ pgdn page'
                     . ( $wrap ? ' · wrap' : '' ) . ' ·';
-                $help_text = '  · ' . $hint . ' ·' . substr( $help_text, 1 )
+                $help_text = '  · ' . $hint . ' ·' . $help_text
                     if length $hint;
                 ## show status [ e.g. 'saved' ] on the LEFT so it survives ##
                 ## narrow terminals; truncation keeps the leftmost part    ##
-                $help_text = "  · $last_status ·" . substr( $help_text, 1 )
+                $help_text = "  · $last_status ·" . $help_text
                     if length $last_status;
                 ## cut at the last whole ' · ' cell that fits, never inside ##
                 ## a label [ windowed cells follow, todo keys-bar ]         ##
@@ -1522,6 +1522,31 @@ sub edit_text {
                 ## left-aligned, one space in : the cut leaves a ragged end ##
                 ## on the right, padding there reads calmer than in front   ##
                 my $help = $help_text . $help_pad;
+
+                ## key chips : TRUE blue on the dark violet background   ##
+                ## [ update-version's version string ] -- lights up, yet ##
+                ## less contrast to a black terminal, calm on a beamer.  ##
+                ## colored after the cut + pad : escapes add no width    ##
+                my $chip_on
+                    = $C->{R}
+                    . ( $C->{'K'} // "\e[48;2;9;5;42m"
+                        . ( $C->{T} || "\e[38;2;6;71;195m" ) );
+                my $chip_off = $C->{R} . $C->{dim} . $C->{3};
+                ## brackets \ the .: :. pair in the violet frame color ##
+                my $punct = $C->{R} . $C->{dim} . $C->{0};
+                if ( length $C->{R} ) {    ##  no colors, no chips  ##
+                    $help =~ s{\.:CTRL:\.}
+                        {${punct}.:${chip_on}CTRL${punct}:.${chip_off}};
+                    $help =~ s{\[(\S)\]}
+                        {${punct}[${chip_on}$1${punct}]${chip_off}}g;
+                    ## named keys [ arrows, enter .. ] chip as a whole word ##
+                    ## -- anchored on the · cells so 'del-word' never       ##
+                    ## matches                                              ##
+                    $help
+                        =~ s{(?<=[·\\] )(arrows|enter|del|pgup|pgdn)(?=[ ·])}
+                        {${chip_on}$1${chip_off}}g;
+                }
+
                 say $C->{0} . ':'
                     . $C->{dim}
                     . $C->{3}
@@ -2042,8 +2067,8 @@ sub edit_text {
 
 1;
 
-#,,.,,.,,,..,,.,,,...,,,.,,,.,.,,,..,,..,,.,.,..,,...,...,,..,.,,,,,,,,.,,,.,,
-#WX4F53K5XUJ7KWTKHT243DK5YVBFT6CP7JQ6ZM5E4EOBACH4BVUIBWSHI7377FRCCFJUONEUFRTVO
-#\\\|ZGDAFWUB4NERF4VFO7VBZJFNENLXRLGA4A6Q7IM6OVA25R42ACT \ / AMOS7 \ YOURUM ::
-#\[7]AJV446WA466VGJKX7HW7VIHUX6SGXI5GASRAVOFEHHECO6J644AA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,..,,..,.,.,,,.,,,.,.,.,...,..,,...,...,...,,..,,,.,..,,..,,
+#6C3NBXNNMC2E2JMREVP6DZ2UKFQ2POZRI2PXXWIKTKPHIMYBO3RPMZEORXSIGGPSLHVUJLJU7QTHS
+#\\\|VS7F2Y4NQDTVITKZEMWOJZB3PEL4LNL5SXAN7BLYQOMSHDX3U4K \ / AMOS7 \ YOURUM ::
+#\[7]ZQLVO72JVEXY36KFT4HMJSEZEGEXFP7PIFVWMPKX5AR4YS6N36AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
