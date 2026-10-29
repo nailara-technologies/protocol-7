@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = thermal.idle.loadavg
+# descr = read one minute load average per processor
+
+my ( $loadavg_path, $cpuinfo_path ) = @ARG;
+$loadavg_path //= qw| /proc/loadavg |;
+$cpuinfo_path //= qw| /proc/cpuinfo |;
+
+my $load_avg = 0;
+if ( open( my $loadavg_fh, '<', $loadavg_path ) ) {
+    my $line = <$loadavg_fh>;
+    $load_avg = 0 + $1
+        if defined $line and $line =~ m|^\s*([0-9]+(?:\.[0-9]+)?)|;
+    close($loadavg_fh);
+}
+
+my $cpu_count = 0;
+if ( open( my $cpuinfo_fh, '<', $cpuinfo_path ) ) {
+    while ( my $line = <$cpuinfo_fh> ) {
+        $cpu_count++ if $line =~ m|^processor\s*:|;
+    }
+    close($cpuinfo_fh);
+}
+$cpu_count = 1 if $cpu_count < 1;
+
+return $load_avg / $cpu_count;
+
+#,,,,,.,,,,,.,,.,,,..,...,.,.,...,,..,,,,,.,.,..,,...,...,,.,,.,.,..,,,,.,,,.,
+#ZNJA5N4SW5NBJMX5EVMUPV5GGBDUBTCIQH5KJGNR5LX67DOLTS2K7YSYHBV2GTN6QCGCJVWKCYUNC
+#\\\|HZZQ3PFKH6BWAAFVLDGI4YVMJXXJLDFS43SLA7WX3S47DCHPYA5 \ / AMOS7 \ YOURUM ::
+#\[7]XH745JRRFJFKJ4ROYLXDK6QFVO3ZOKUVSQBCQGIVR35266EGDKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

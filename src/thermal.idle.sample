@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = thermal.idle.sample
+# descr = track idle state from load and inference activity
+
+my ( $idle_gate, $input, $now ) = @ARG;
+
+return FALSE if ref $idle_gate ne qw| HASH |;
+return FALSE if ref $input ne qw| HASH |;
+return FALSE if not defined $input->{'load_per_core'};
+
+my $idle = !$input->{'busy'}
+    && $input->{'load_per_core'} <= ( <thermal.cfg.idle.load_max> // 0.6 );
+
+if ($idle) {
+    $idle_gate->{'idle_since'} //= $now;
+    return qw| idle |;
+}
+
+delete $idle_gate->{'idle_since'};
+return qw| active |;
+
+#,,..,,,.,,,,,...,,,,,,,.,...,..,,..,,.,,,.,,,..,,...,..,,,..,...,,.,,...,..,,
+#KORHTKLYPJMJEGULYQ2AZ7TDREGOSDB5KDVHI5EZUJ7KKF73UPOYECBRV4A3XSQ4OVXW5TKQCIPPQ
+#\\\|5ZPZGAFZXNCWYISEABQPTZD2UO55SUZLAUED33YQDHWCWQ4CCM2 \ / AMOS7 \ YOURUM ::
+#\[7]FSJV5MUHDOTIZT773GYPGJ24CYCEN6FVWLI65ZHDKYPNCP5SGEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

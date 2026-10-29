@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = thermal.window.current
+# descr = select the day or night schedule window
+
+my ($epoch) = @ARG;
+
+my $range = <thermal.cfg.window.night> // qw| 22:00-06:00 |;
+return qw| day |
+    if $range !~ m|^\s*([0-9]{2}):([0-9]{2})\s*-\s*([0-9]{2}):([0-9]{2})\s*$|;
+
+my ( $start_hour, $start_min, $end_hour, $end_min ) = ( $1, $2, $3, $4 );
+return qw| day |
+    if $start_hour > 23
+    or $end_hour > 23
+    or $start_min > 59
+    or $end_min > 59;
+
+my ( $minute, $hour ) = ( localtime($epoch) )[ 1, 2 ];
+my $time  = $hour * 60 + $minute;
+my $start = $start_hour * 60 + $start_min;
+my $end   = $end_hour * 60 + $end_min;
+
+if ( $start <= $end ) {
+    return qw| night | if $time >= $start and $time < $end;
+} else {
+    return qw| night | if $time >= $start or $time < $end;
+}
+
+return qw| day |;
+
+#,,,,,,.,,.,,,,.,,..,,...,..,,,,.,.,.,.,.,..,,..,,...,...,,..,.,.,.,,,.,.,.,,,
+#WK4HOX5M2YK5J7P3VXKE2Q4Z5FGCS7ROZ77X47MAAEABCSQOWQV7IKQWACOQPPGYHOPUNLMXOAZ6A
+#\\\|4XNR4TSLDQYXPZHWOLUBWRPAHJJJ4SE2BBRYJDW4SGB23U7PZA6 \ / AMOS7 \ YOURUM ::
+#\[7]F66L35BQE326R2CZCQKZDXIXFNM3RZLGDJHC4KPCOK4EUY5TWGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

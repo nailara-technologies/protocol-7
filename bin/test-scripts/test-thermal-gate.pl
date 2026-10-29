@@ -9,9 +9,10 @@ use English;
 ###                                      ###
 
 use File::Spec;
-use File::Temp qw| tempdir |;
-use Cwd        qw| abs_path |;
-use FindBin    qw| $RealBin |;
+use File::Temp  qw| tempdir |;
+use Cwd         qw| abs_path |;
+use FindBin     qw| $RealBin |;
+use Time::Local qw| timelocal |;
 
 BEGIN {
     my $up_dir    = File::Spec->updir;
@@ -52,10 +53,18 @@ sub compile_module {
     return $cref;
 }
 
+compile_module('thermal.window.current');
+compile_module('thermal.window.weight');
 compile_module('thermal.gate.sample');
 compile_module('thermal.gate.decide');
 compile_module('thermal.mem.read');
 compile_module('thermal.mem.decide');
+compile_module('thermal.idle.sample');
+compile_module('thermal.idle.held');
+compile_module('thermal.idle.loadavg');
+compile_module('thermal.start.ready');
+compile_module('thermal.override.set');
+compile_module('thermal.override.active');
 compile_module('thermal.verdict');
 compile_module('thermal.init_code');
 
@@ -103,6 +112,7 @@ $gate = {
     'avg_long'    => 44.4,
     'state'       => qw| cold |,
     'state_since' => 0,
+    'window'      => qw| day |,
 };
 ok( $code{'thermal.gate.decide'}->( $gate, 120 ) eq qw| cold |,
     'below baseline plus cold mark stays cold' );
@@ -117,6 +127,7 @@ $gate = {
     'avg_long'    => 60,
     'state'       => qw| cold |,
     'state_since' => 1000,
+    'window'      => qw| day |,
 };
 ok( $code{'thermal.gate.decide'}->( $gate, 1100 ) eq qw| cold |,
     'hot candidate cannot flip before dwell' );
@@ -274,6 +285,221 @@ ok( $verdict->( undef, { 'state' => qw| soft | }, 1000 ) eq qw| no_new |,
 ok( $verdict->( undef, { 'state' => qw| calm | }, 1000 ) eq qw| run |,
     'gpu-less calm nodes run' );
 
+say ': 9. window and idle defaults are initialized';
+ok( $data{'thermal'}{'cfg'}{'start'}{'hold'} == 600
+        && $data{'thermal'}{'cfg'}{'idle'}{'hold'} == 600
+        && $data{'thermal'}{'cfg'}{'idle'}{'load_max'} == 0.6
+        && $data{'thermal'}{'cfg'}{'window'}{'night'} eq qw| 22:00-06:00 |
+        && $data{'thermal'}{'cfg'}{'night'}{'cold'} == 8
+        && $data{'thermal'}{'cfg'}{'night'}{'hot'} == 25
+        && $data{'thermal'}{'cfg'}{'night'}{'weight'} == 1
+        && $data{'thermal'}{'cfg'}{'day'}{'weight'} == 0.25,
+    'window idle start and weight defaults match the design'
+);
+
+say ': 10. schedule windows handle midnight and malformed ranges';
+my $at_time = sub {
+    my ( $hour, $minute ) = @ARG;
+    return timelocal( 0, $minute, $hour, 15, 0, 2026 );
+};
+my $window_current = sub {
+    return $code{'thermal.window.current'}->(@ARG);
+};
+ok( $window_current->( $at_time->( 23, 0 ) ) eq qw| night |
+        && $window_current->( $at_time->( 5, 59 ) ) eq qw| night |,
+    'crossing midnight includes late evening and early morning'
+);
+ok( $window_current->( $at_time->( 6, 0 ) ) eq qw| day |
+        && $window_current->( $at_time->( 21, 59 ) ) eq qw| day |,
+    'crossing midnight excludes the daytime'
+);
+{
+    local $data{'thermal'}{'cfg'}{'window'}{'night'} = qw| 01:00-05:00 |;
+    ok( $window_current->( $at_time->( 1, 0 ) ) eq qw| night |
+            && $window_current->( $at_time->( 4, 59 ) ) eq qw| night |,
+        'non-crossing range includes its interior'
+    );
+    ok( $window_current->( $at_time->( 0, 59 ) ) eq qw| day |
+            && $window_current->( $at_time->( 5, 0 ) ) eq qw| day |,
+        'non-crossing range excludes its exterior'
+    );
+}
+{
+    local $data{'thermal'}{'cfg'}{'window'}{'night'} = qw| 25:99-night |;
+    ok( $window_current->( $at_time->( 23, 0 ) ) eq qw| day |,
+        'malformed range falls back to day' );
+}
+ok( $code{'thermal.window.weight'}->(qw| night |) == 1
+        && $code{'thermal.window.weight'}->(qw| day |) == 0.25,
+    'window weight selects night and day values'
+);
+
+say ': 11. night and day marks preserve the absolute ceiling';
+$gate = {
+    'baseline'    => 40,
+    'avg_short'   => 47.9,
+    'avg_long'    => 47.9,
+    'state'       => qw| warm |,
+    'state_since' => 0,
+    'window'      => qw| night |,
+};
+ok( $code{'thermal.gate.decide'}->( $gate, 120 ) eq qw| cold |,
+    'night relative cold mark is baseline plus eight'
+);
+$gate->{'avg_short'} = $gate->{'avg_long'} = 48.1;
+ok( $code{'thermal.gate.decide'}->( $gate, 240 ) eq qw| warm |,
+    'temperature above the night cold mark is warm'
+);
+$gate->{'avg_short'} = $gate->{'avg_long'} = 65.1;
+ok( $code{'thermal.gate.decide'}->( $gate, 360 ) eq qw| hot |,
+    'night relative hot mark is baseline plus twenty five'
+);
+$gate->{'window'}    = qw| day |;
+$gate->{'avg_short'} = $gate->{'avg_long'} = 44.6;
+ok( $code{'thermal.gate.decide'}->( $gate, 480 ) eq qw| warm |,
+    'day keeps the original relative cold mark' );
+{
+    local $data{'thermal'}{'cfg'}{'mode'} = qw| absolute |;
+    $gate = {
+        'avg_short'   => 7.9,
+        'avg_long'    => 7.9,
+        'state'       => qw| warm |,
+        'state_since' => 0,
+        'window'      => qw| night |,
+    };
+    ok( $code{'thermal.gate.decide'}->( $gate, 120 ) eq qw| cold |,
+        'night absolute cold mark is eight degrees' );
+    $gate->{'avg_short'} = $gate->{'avg_long'} = 8.1;
+    ok( $code{'thermal.gate.decide'}->( $gate, 240 ) eq qw| warm |,
+        'night absolute threshold does not use the baseline'
+    );
+}
+$gate = {
+    'baseline'    => 40,
+    'avg_short'   => 83,
+    'avg_long'    => 83,
+    'state'       => qw| cold |,
+    'state_since' => 1000,
+    'window'      => qw| night |,
+};
+ok( $code{'thermal.gate.decide'}->( $gate, 1001 ) eq qw| hot |,
+    'night window never raises the absolute ceiling'
+);
+
+say ': 12. idle samples track continuous idle duration';
+my $idle_gate = {};
+ok( $code{'thermal.idle.sample'}
+        ->( $idle_gate, { 'load_per_core' => 0.6, 'busy' => FALSE }, 100 ) eq
+        qw| idle |,
+    'load at the idle maximum without inference is idle'
+);
+ok( $idle_gate->{'idle_since'} == 100, 'idle start records idle_since' );
+$code{'thermal.idle.sample'}
+    ->( $idle_gate, { 'load_per_core' => 0.5, 'busy' => FALSE }, 200 );
+ok( $idle_gate->{'idle_since'} == 100,
+    'continued idle preserves idle_since' );
+ok( $code{'thermal.idle.held'}->( $idle_gate, 699, 600 ) == FALSE
+        && $code{'thermal.idle.held'}->( $idle_gate, 700, 600 ) == TRUE,
+    'idle hold uses the full requested duration'
+);
+ok( $code{'thermal.idle.sample'}
+        ->( $idle_gate, { 'load_per_core' => 0.1, 'busy' => TRUE }, 300 ) eq
+        qw| active | && !exists $idle_gate->{'idle_since'},
+    'inference in flight clears idle_since'
+);
+$code{'thermal.idle.sample'}
+    ->( $idle_gate, { 'load_per_core' => 0.61, 'busy' => FALSE }, 400 );
+ok( !exists $idle_gate->{'idle_since'}, 'load above the maximum is active' );
+
+say ': 13. loadavg uses fixture load and processor counts';
+my $loadavg_path = File::Spec->catfile( $tmp_dir, 'loadavg' );
+my $cpuinfo_path = File::Spec->catfile( $tmp_dir, 'cpuinfo' );
+open( my $loadavg_fh, '>', $loadavg_path )
+    or die "cannot write $loadavg_path : $!";
+print {$loadavg_fh} "2.40 1.20 0.60 1/100 123\n";
+close($loadavg_fh);
+open( my $cpuinfo_fh, '>', $cpuinfo_path )
+    or die "cannot write $cpuinfo_path : $!";
+print {$cpuinfo_fh} "processor : 0\nprocessor: 1\n";
+close($cpuinfo_fh);
+ok( abs($code{'thermal.idle.loadavg'}->( $loadavg_path, $cpuinfo_path ) - 1.2
+    ) < 0.000001,
+    'one minute loadavg is divided by processor count'
+);
+ok( $code{'thermal.idle.loadavg'}->(
+        File::Spec->catfile( $tmp_dir, 'missing-loadavg' ),
+        $cpuinfo_path
+    ) == 0,
+    'missing loadavg fixture returns zero instead of dying'
+);
+
+say ': 14. real idle baseline learns up and down without a band';
+$gate = {};
+$code{'thermal.gate.sample'}->( $gate, 40, 0,    FALSE );
+$code{'thermal.gate.sample'}->( $gate, 50, 1800, TRUE );
+$expected = 40 + ( 1 - exp(-1) ) * 10;
+ok( abs( $gate->{'baseline'} - $expected ) < 0.000001,
+    'held idle learns upward outside the fallback band'
+);
+$code{'thermal.gate.sample'}->( $gate, 30, 3600, TRUE );
+$expected += ( 1 - exp(-1) ) * ( 30 - $expected );
+ok( abs( $gate->{'baseline'} - $expected ) < 0.000001,
+    'held idle also learns downward' );
+$gate = {};
+$code{'thermal.gate.sample'}->( $gate, 70, 0, TRUE );
+ok( $gate->{'baseline'} == 55, 'held idle baseline remains capped' );
+$gate = {
+    'baseline'       => 40,
+    'avg_short'      => 40,
+    'avg_long'       => 40,
+    'state'          => qw| warm |,
+    'last_sample_at' => 0,
+};
+$code{'thermal.gate.sample'}->( $gate, 30, 1800, FALSE );
+ok( $gate->{'baseline'} == 40,
+    'warm fallback without idle remains unchanged' );
+
+say ': 15. cold start requires calm memory and held idle';
+$gate      = { 'state'      => qw| cold | };
+$mem_gate  = { 'state'      => qw| calm | };
+$idle_gate = { 'idle_since' => 400 };
+ok( $code{'thermal.start.ready'}->( $gate, $mem_gate, $idle_gate, 1000 )
+        == TRUE,
+    'cold calm and held idle gates permit start'
+);
+ok( $code{'thermal.start.ready'}->( undef, $mem_gate, $idle_gate, 1000 )
+        == TRUE,
+    'missing temperature data does not block start'
+);
+ok( $code{'thermal.start.ready'}
+        ->( { 'state' => qw| warm | }, $mem_gate, $idle_gate, 1000 ) == FALSE,
+    'warm temperature blocks start'
+);
+ok( $code{'thermal.start.ready'}
+        ->( $gate, { 'state' => qw| soft | }, $idle_gate, 1000 ) == FALSE,
+    'soft memory blocks start'
+);
+ok( $code{'thermal.start.ready'}->( $gate, $mem_gate, $idle_gate, 999 )
+        == FALSE,
+    'idle shorter than start hold blocks start'
+);
+
+say ': 16. manual override expires at the window switch';
+my $override = {};
+ok( $code{'thermal.override.set'}
+        ->( $override, qw| run |, $at_time->( 23, 0 ) ) == TRUE
+        && $override->{'window'} eq qw| night |,
+    'override stores its verdict and window'
+);
+ok( $code{'thermal.override.active'}->( $override, $at_time->( 5, 59 ) ) eq
+        qw| run |,
+    'override remains active within its window'
+);
+ok( !defined $code{'thermal.override.active'}
+        ->( $override, $at_time->( 6, 0 ) ) && !exists $override->{'verdict'},
+    'window switch clears and expires the override'
+);
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -282,8 +508,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,..,..,,,..,,,.,,,.,.,,,,,.,,..,,.,,...,..,,...,..,,..,,,..,.,,,.,.,,,.,
-#OZIESBEZ7ASXILJB4FNESYPGKPP24YHUHS2CM4CWZSNJNST7VFZHGM3N3AINQ2BYRY7RFSQRX3VDE
-#\\\|PBDHYOOOEWJUMDNEGYDE3ACCS5LAOKI2SUOTHJ74T5AQG5C2WKB \ / AMOS7 \ YOURUM ::
-#\[7]3KB6PYT545ZJQ5PKBDZFKAN36IYFINBAZ5XJI6VGXB6ZI3JEPQDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,.,.,...,..,,,,,,,..,,,.,..,,..,,...,..,,,,.,,.,,,,.,,.,,,.,,
+#OK2SYVCNMMK24T5TQ2JDFFYHVYZWGVVVU2QXAZ3O5D6CHGCGIQ3VNZV6F2QTNWZLLD4ISX7VNK5WI
+#\\\|6O3AM4B5PILL5BHBFT6IDR2KHZ723ML5VJ6B7ODSISTZJ3YHYST \ / AMOS7 \ YOURUM ::
+#\[7]UVEH3RHEGLRXOZH676OOVHBSK7JCKAPZKD74UUEOP53MKWR7KYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = thermal.override.active
+# descr = return a forced verdict within its schedule window
+
+my ( $store, $now ) = @ARG;
+
+return undef if ref $store ne qw| HASH |;
+return undef if not defined $store->{'verdict'};
+
+my $window = <[thermal.window.current]>->($now);
+return $store->{'verdict'}
+    if defined $store->{'window'} and $store->{'window'} eq $window;
+
+delete @{$store}{qw| verdict window set_at |};
+return undef;
+
+#,,,,,,,,,.,.,,,.,.,.,,,.,..,,,.,,,,,,...,..,,..,,...,...,..,,,,.,,,,,,..,,,,,
+#IMJJBQT7UJEDDP6PWHVVCOAMUA4TB2BWAWDJGPPJ6YLWJ4SBPCETZ4WSTCCMDWGGYRLH4XGH557AE
+#\\\|Q4JFSDGPLJUB7EHM3ASJLKX3FH3NSOHXLQ355HJ3FXMUAZUP3KF \ / AMOS7 \ YOURUM ::
+#\[7]I3A26GMZ34MXFEDJ65WUR6OHQMJDZKQDGQ5A2QREMNIDGMP4A2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

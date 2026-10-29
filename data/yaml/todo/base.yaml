@@ -2335,9 +2335,25 @@ items:
   - jobsite
   - assessment
   text: 'jobsite : liveness check for stale job data [ weeks-old site-yaml store, strays ] before assessment'
+- added: 32IOXEUDBI
+  details: |-
+    - cause [ owner 2026-10-29 ] : an on-demand start answers the parent.cmd.* value getters [ temp desc humid wind clouds location ] before the forked child's first fetch landed -> FALSE n|a ; a second call right after succeeds
+    - fix : while the first data for the station is pending, the getters reply DEFERRED and a dispatch routine answers every parked caller when weather.parent.handler.update_current_reply stores the data [ same parameters the getters return already ]
+    - a fetch error \ timeout answers the parked callers FALSE with the reason, never hangs them [ own timer ]
+    - consumer : the thermal outdoor amplifier [ step 5 ] reads weather.temp -- with the fix its first read after an on-demand start is real, not n|a
+    - test [ owner ] : p7c v7-zenki.terminate weather, then p7c weather.temp directly -> on-demand start, reproducible every time : before the fix FALSE n|a, after it the real value on the FIRST call
+  done_at: null
+  id: GDX
+  priority: normal
+  status: open
+  tags:
+  - weather
+  - async
+  - zenka
+  text: 'weather : on-demand start race -- the first weather.temp \ desc .. answers FALSE n|a while the child still fetches, a second call succeeds'
 
-#,,..,.,.,...,,,.,.,.,...,,..,.,.,,.,,,,,,,.,,..,,...,...,.,.,,,,,,..,.,,,..,,
-#OCPGQZVWF6I7OUXODRH5MUEEZSVNZWDKCSNA7JD3IILGFG2ZCD57ZLRCOMCUGFYNY4537UX6JYDUS
-#\\\|VNP2R6N2PWDM7MI4X2KASJ44GZSDNUA46UWGO5B4D4OFAZDIYJI \ / AMOS7 \ YOURUM ::
-#\[7]MBV43A6BCHHSRMP2PO2W6YAOED52KCDN4XBFGR37TB66ATCAV4BI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,..,,,,.,.,,,,..,,,,,..,,,,,,,.,,..,,...,...,..,,,.,,,.,,..,,..,,
+#YXTCHTNOYCER6JXIY67AS5K5MCOOGWMV7QFVHDGFXD2NJ7GGYDX77VISB32IYFWHEOABD7P7NIMIW
+#\\\|RINXX3BFE46SEOXP4XHVLEU6LZG5JAZYV3DKUJYI6DZKI4H7KEK \ / AMOS7 \ YOURUM ::
+#\[7]CGHGHFXD3CDOHVFLJIOCS2RIP2SCVLAXRMN3R7P2BL6F5RFPHQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

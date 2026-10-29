@@ -1,9 +1,9 @@
 ## [:< ##
 
 # name  = thermal.gate.sample
-# descr = update thermal averages and the cold idle baseline
+# descr = update thermal averages and the idle baseline
 
-my ( $gate, $temp_1s, $now ) = @ARG;
+my ( $gate, $temp_1s, $now, $idle_held ) = @ARG;
 
 return FALSE if ref $gate ne qw| HASH |;
 
@@ -27,11 +27,11 @@ if ( not defined $gate->{'last_sample_at'} ) {
     $gate->{'avg_long'}
         += $long_alpha * ( $temp_1s - $gate->{'avg_long'} );
 
-    ## learns only near itself while cold : 'cold' is measured against the ##
-    ## baseline, so wider learning would let a load just under the mark    ##
-    ## pull it up step by step [ creep ]. the cap stops a hot start        ##
+    ## real idle learns in both directions without a band ; otherwise only ##
+    ## near itself while cold, so load just under the mark can not creep   ##
     my $band = <thermal.cfg.baseline.band> // 1.5;
-    if ( ( $gate->{'state'} // '' ) eq qw| cold |
+    if ( $idle_held
+        or ( $gate->{'state'} // '' ) eq qw| cold |
         and $temp_1s <= $gate->{'baseline'} + $band ) {
         my $base_alpha = 1 - exp( -$dt / $base_window );
         $gate->{'baseline'}
@@ -46,8 +46,8 @@ $gate->{'last_sample_at'} = $now;
 
 return TRUE;
 
-#,,..,.,.,,.,,,,,,.,.,,,.,...,.,.,...,,..,,,,,..,,...,..,,,.,,,..,,,.,,,.,,..,
-#Z5BORGOOP3ADSCXGQB7LJFOZSDPUCPQTZLJCKH6AB6UN3PX5UK7DGUYZKE5CTBBS3C4P4GUMTMWPE
-#\\\|47CK64CEP5ANVJZNVGW65GLIY3NJCDVZBFCERWDXMOFG2M2IMXE \ / AMOS7 \ YOURUM ::
-#\[7]SGIV6SK4O23Z734UMTZ7A62WYHB2G7WNJPTDBYVVHB5TASTIJIBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,...,,,,,...,.,.,.,.,.,.,,..,..,,...,...,,.,,...,,..,,.,,,.,,
+#2QLDWO37USGU55LDDBM66GN7PYFJJO6CJMNK4IRBXA7RQZMHWEO7LCGYL5M6LJM3VY3R6Z53U5636
+#\\\|JBV6W4ECZNIZ3PDFGEUJWT2VIKW5VN4BLCNGROQG5MR2BAXTLDQ \ / AMOS7 \ YOURUM ::
+#\[7]M4KGP5WP7A4FHA7DV3IOHMMGMROKCHGOICIEXBHJTWTPGO6XVEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

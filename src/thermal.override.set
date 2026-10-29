@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = thermal.override.set
+# descr = store a forced verdict for the current schedule window
+
+my ( $store, $verdict, $now ) = @ARG;
+
+return FALSE if ref $store ne qw| HASH |;
+
+$store->{'verdict'} = $verdict;
+$store->{'window'}  = <[thermal.window.current]>->($now);
+$store->{'set_at'}  = $now;
+
+return TRUE;
+
+#,,..,,,,,..,,..,,,,,,..,,...,.,.,.,.,,,.,,,.,..,,...,...,.,,,,..,,,.,...,,,,,
+#XYK7MJXIIIDEDRJF2P2CXGMBAH3KOXBB2CFG4INSBTUO6W22UUUN6VIGXPHFXRUFBNT4FBTNJQZQK
+#\\\|7TRL2QXWS3X7OG2XZM7UJQGA72NTV3A6DOPYVSRM52KQ3JZJDFM \ / AMOS7 \ YOURUM ::
+#\[7]WLDBVS6AHEVAUQEO6TWX5KFOEMACDUZVV377IXWA4NFSKSXOOYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
