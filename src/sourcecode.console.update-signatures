@@ -277,7 +277,7 @@ if ($agent_mode) {
         );
 
     my $begin_ok = <[sourcecode.agent.sign]>->(
-        {   qw| op => begin |,
+        {   'op'        => qw| begin |,
             'socket'    => $agent_socket,
             'run'       => <sourcecode.cfg.sign_agent_run>,
             'work-tree' => $work_tree,
@@ -491,7 +491,7 @@ if ($agent_mode) {
 
     ## the signed end timestamp : the agent's capability-reduction record ##
     my ( $end_ntime, $end_sig ) = <[sourcecode.agent.sign]>->(
-        {   qw| op => end |,
+        {   'op'     => qw| end |,
             'socket' => $agent_socket,
             'run'    => <sourcecode.cfg.sign_agent_run>
         }
@@ -521,8 +521,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,,,.,.,.,,,.,.,,.,,,,.,,,.,,,,,.,.,,,.,.,.,..,,...,..,,...,,..,.,.,.,,,,..,
-#Y42NTTX5K2YPGCGGSHDQQZMGIN624ZOMLECJCSQ7Q7OFBU2I2XMYGCUNHPTVDTRDXNNG67DH3YGZ4
-#\\\|4FZ76FXCJ7UWDFMK7JJB3IN22G3G3PPMGVBIT2L2QVIZOPQNSYA \ / AMOS7 \ YOURUM ::
-#\[7]MRSDAOTOUXTGH3VREGX4PJWV4WT7O33JNDUZCEWT6WG7VZZJIEBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,..,.,.,.,.,,,,,,.,,,,.,.,,,.,.,..,,...,...,...,...,,.,,...,...,
+#IEHWY7TVLSHTPKXJ7VZRKASXCO3ED3RGHQVHZSRJDGMU3R2YG6DSBNVAUW6DJ7PYZDXROMRNJ2JVY
+#\\\|HDITYG622MNMDH3JM2SXOFHGVHCZJQDJ3VCJMSEJYHIOUZYDUIC \ / AMOS7 \ YOURUM ::
+#\[7]6SYGRVHXCAVTHCGY3UU6GDXZZPN66AMWPR5SNPX63ID2AJ36VCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

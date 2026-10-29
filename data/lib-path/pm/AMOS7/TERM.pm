@@ -38,7 +38,7 @@ our $VERSION = qw| AMOS7::TERM-VERSION.325Q2VQ |;
     cursor_set_animation cursor_enable cursor_disable
     frame_border_line frame_rule_line frame_colorize_content frame_bar
     scroll_region_set scroll_region_clear content_area_clear pinned_row_print
-    ask wipe_secret
+    ask confirm_key diff_page wipe_secret
 ];
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
@@ -1283,6 +1283,209 @@ sub discard_buffered_input {
     return 0;    ## regular continuation \ no abort ##
 }
 
+## single key confirmation [ the bin/ncode user_confirmed prompt ] : reads AND
+## writes /dev/tty itself, so no buffered or redirected stdout \ stderr can
+## hide the question. typed-ahead input is flushed first -- only a key pressed
+## after the prompt shows counts. 'y' -> TRUE, 'n' esc ctrl-c ctrl-d -> FALSE,
+## any other key asks again [ bold from the second round ].  undef without a
+## terminal [ the caller decides, nothing blocks ].  reason => 1 : a denial
+## then asks for a reason line -- list context returns ( FALSE, reason | undef
+## ). diff => <code ref returning ( unified diff text, diff_page options )> :
+## 'd' pages it and asks again
+##
+## AMOS7::TERM::confirm_key( { question => 'sign these 3 files ?' } )
+sub confirm_key {
+    my $params   = shift                 // {};
+    my $question = $params->{'question'} // return undef;
+
+    open( my $tty_in,  '<', qw| /dev/tty | ) or return undef;
+    open( my $tty_out, '>', qw| /dev/tty | ) or return undef;
+    $tty_out->autoflush(1);
+
+    my $fd      = fileno $tty_in;
+    my $termios = POSIX::Termios->new;
+    return undef if not $termios->getattr($fd);
+    my $lflag_saved = $termios->getlflag;
+    my ( $vmin_saved, $vtime_saved )
+        = ( $termios->getcc(VMIN), $termios->getcc(VTIME) );
+    $termios->setlflag( $lflag_saved & ~( ICANON | ECHO ) );
+    $termios->setcc( VMIN,  1 );
+    $termios->setcc( VTIME, 0 );
+    $termios->setattr( $fd, TCSAFLUSH );    ## typed-ahead input dropped ##
+
+    ## the bin/ncode palette ##
+    my %c = (
+        qw| T | => "\e[38;2;6;71;195m",
+        qw| 0 | => "\e[38;2;68;39;172m",
+        qw| 2 | => "\e[38;2;170;94;2m",
+        qw| B | => "\e[1m",
+        qw| K | => "\e[5m",
+        qw| R | => "\e[0m",
+    );
+    ( my $question_str = $question ) =~ s|\?$|$c{'K'}?$c{'R'}$c{'T'}|;
+
+    my $diff_code
+        = ref $params->{'diff'} eq qw| CODE | ? $params->{'diff'} : undef;
+    my @keys = ( qw| y n |, $diff_code ? qw| d | : () );
+
+    my ( $answer, $bold ) = ( undef, '' );
+    while ( not defined $answer ) {
+        print {$tty_out} $c{'T'}
+            . "\r :: $question_str :: "
+            . $bold
+            . $c{'0'} . '['
+            . join(
+            $c{'0'} . '|',
+            map { $c{'K'} . $bold . $c{'T'} . $ARG . $c{'R'} } @keys
+            )
+            . $c{'0'} . ']'
+            . $c{'T'} . ' :. '
+            . $c{'R'};
+        my $key;
+        if ( not sysread( $tty_in, $key, 1 ) ) {
+            $answer = FALSE;    ## eof \ read error : deny ##
+        } elsif ( $key eq qw| y | ) {
+            $answer = TRUE;
+        } elsif ( $key eq qw| n | or $key =~ m|^[\x03\x04\x1b]$| ) {
+            $answer = FALSE;
+        } elsif ( $key eq qw| d | and $diff_code ) {
+            print {$tty_out} "\n";
+            $termios->setlflag($lflag_saved);    ## the pager runs cooked ##
+            $termios->setattr( $fd, TCSANOW );
+            ## ( text, options ) ##
+            AMOS7::TERM::diff_page( $diff_code->() );
+            $termios->setlflag( $lflag_saved & ~( ICANON | ECHO ) );
+            $termios->setattr( $fd, TCSAFLUSH );
+            next;                                ## same round, no bold ##
+        }
+        $bold = $c{'B'};
+    }
+    print {$tty_out} $c{'2'}
+        . ( $answer ? qw| y | : qw| n | )
+        . $c{'R'} . "\n";
+
+    $termios->setlflag($lflag_saved);
+    $termios->setcc( VMIN,  $vmin_saved );
+    $termios->setcc( VTIME, $vtime_saved );
+    $termios->setattr( $fd, TCSANOW );
+
+    ## a denial may carry a reason                                        ##
+    ## [ the bin/admin/vc_commit length gate, no truth check ] : 13 .. 76 ##
+    ## chars, an empty line skips it                                      ##
+    my $reason;
+    if ( not $answer and $params->{'reason'} ) {
+        my ( $min_len, $max_len ) = ( 13, 76 );
+        while (TRUE) {
+            print {$tty_out} $c{'T'}
+                . ' :: reason [ enter skips ] :. '
+                . $c{'R'};
+            my $line = <$tty_in>;
+            last if not defined $line;
+            $line =~ s|[\r\n]+$||;
+            $line =~ s|[^[:print:]]||g;
+            $line =~ s|^\s+||;
+            $line =~ s|\s+$||;
+            last if not length $line;
+            my $line_length = length $line;
+
+            if ( $line_length < $min_len or $line_length > $max_len ) {
+                print {$tty_out} $c{'2'}
+                    . " :.   .:[ len :. $line_length "
+                    . ".: $min_len .:. $max_len ]:.\n"
+                    . $c{'R'};
+                next;
+            }
+            $reason = $line;
+            last;
+        }
+    }
+
+    close $tty_in;
+    close $tty_out;
+    return wantarray ? ( $answer, $reason ) : $answer;
+}
+
+## a unified diff in the bin/ncode preview colors [ removed lines on the dark
+## blue, added on the dark green background, headers dimmed, file names bold ]
+## through 'less -R' on /dev/tty. no pager : printed to the tty
+##
+## options { pager => <command> } : the text goes as it is to that command
+## [ sh -c, like git's core.pager -- e.g. 'diff-modified | less -RFX' ]
+sub diff_page {
+    my $diff_text = shift // '';
+    my $options   = shift // {};
+
+    my %c = (
+        qw|  T  | => "\e[38;2;6;71;195m",
+        qw|  0  | => "\e[38;2;68;39;172m",
+        qw|  1  | => "\e[38;2;38;46;153m",
+        qw|  2  | => "\e[38;2;170;94;2m",
+        qw| B01 | => "\e[48;2;9;5;24m",
+        qw| B02 | => "\e[48;2;9;5;42m",
+        qw|  B  | => "\e[1m",
+        qw|  D  | => "\e[2m",
+        qw|  R  | => "\e[0m",
+    );
+
+    $diff_text = sprintf "%s :. no changes to show .:%s\n", $c{'2'}, $c{'R'}
+        if not length $diff_text;
+
+    my $pager_cmd = $options->{'pager'};
+    my $colored   = '';
+    $colored = $diff_text if defined $pager_cmd and length $pager_cmd;
+    foreach my $line ( length $colored ? () : split m|(?<=\n)|, $diff_text ) {
+        my $eol = $line =~ s|\n$|| ? "\n" : '';
+        if ( $line =~ m{^(diff |\+\+\+|---|@@|index |new file|deleted file)} )
+        {
+            $line =~ s|([^/\s]+)\s*$|$c{'R'}$c{'B02'}$c{'B'}$c{'T'}$1|
+                if $line =~ m|^diff |;
+            $colored .= $c{'D'} . $c{'1'} . $line . $c{'R'} . $eol;
+        } elsif ( $line =~ s|^-|| ) {
+            $colored
+                .= $c{'D'}
+                . $c{'0'} . '-'
+                . $c{'R'}
+                . $c{'B01'}
+                . $c{'1'}
+                . $line
+                . $c{'R'}
+                . $eol;
+        } elsif ( $line =~ s|^\+|| ) {
+            $colored
+                .= $c{'D'}
+                . $c{'T'} . '+'
+                . $c{'R'}
+                . $c{'B02'}
+                . $c{'1'}
+                . $line
+                . $c{'R'}
+                . $eol;
+        } else {
+            $colored .= $c{'1'} . $line . $c{'R'} . $eol;
+        }
+    }
+
+    open( my $tty_out, '>', qw| /dev/tty | ) or return FALSE;
+    ## the pager writes to the tty, whatever stdout is ##
+    open( my $stdout_saved, '>&', \*STDOUT ) or return FALSE;
+    open( STDOUT,           '>&', $tty_out ) or return FALSE;
+    my $paged = FALSE;
+    my @pager
+        = length $pager_cmd // ''
+        ? ( qw| sh -c |, $pager_cmd )
+        : qw| less -R |;
+    if ( open( my $pager, '|-', @pager ) ) {
+        binmode $pager, ':raw';
+        print {$pager} $colored;
+        close $pager;
+        $paged = TRUE;
+    }
+    open( STDOUT, '>&', $stdout_saved );
+    print {$tty_out} $colored if not $paged;
+    close $tty_out;
+    return TRUE;
+}
+
 ## overwrite a secret in place twice with random bytes, then truncate
 ## [ base.buffer.erase_secure, AMOS7::Vault ] -- the same length keeps the
 ## same buffer. a copy sharing it [ copy on write ] keeps its own share
@@ -1947,8 +2150,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,..,,,.,,,,,,,.,...,,..,,..,,.,,...,,..,..,,..,,...,...,,..,.,,,.,.,.,,,..,,
-#LGQZRURPQISVBRYBU3GEILKJPF7AVJL4S4RX23CMQORL2AIDDPLJKUATMCPYNHTF4AWCQKA6GLHHS
-#\\\|AK62RRJSOLNK5ZWLBJLN234CTKTWCJZMA47ND7HZHYDXUMA4C62 \ / AMOS7 \ YOURUM ::
-#\[7]VZBJQHS74OGMNSBP5OIRTLJOU6TC3GI6PN4BRFM25HLGMCEM5UDA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,..,,.,.,...,...,,,,,...,,,,,...,..,,...,...,,.,,,,,,.,,,,,.,,.,,
+#PQHS7RKKVXPDU6WYF6HFXG2CM3W6HSVTMODEFF4FMTK7JOPU5WXIQGSU3KDMDD764KPBMDMYXIH3Q
+#\\\|55GKEBL2SQHDDMMKA2O4452JQK625IKZ7U5L44SZAIL7WP7XFHW \ / AMOS7 \ YOURUM ::
+#\[7]R32RACK56BHY4XW5OSA6VGEOPHJ5GCGEXIDKJ7ID7RHQQSGMBCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

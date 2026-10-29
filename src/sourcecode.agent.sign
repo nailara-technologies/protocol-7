@@ -40,7 +40,15 @@ if ( $op eq qw| socket-path | ) {
         if length <sourcecode.cfg.sign_agent_socket> // '';
     return $ENV{'P7_SIGN_AGENT_SOCKET'}
         if length $ENV{'P7_SIGN_AGENT_SOCKET'} // '';
-    my $runtime_dir = $ENV{'XDG_RUNTIME_DIR'} // sprintf( qw| %s/.n/run |,
+    ## XDG_RUNTIME_DIR only when it exists and is writable ##
+    ## [ wsl sets one nobody created ] -- the same rule as ##
+    ## bin/p7-sign-agent                                   ##
+    my $runtime_dir
+        = (     length( $ENV{'XDG_RUNTIME_DIR'} // '' )
+            and -d $ENV{'XDG_RUNTIME_DIR'}
+            and -w _ )
+        ? $ENV{'XDG_RUNTIME_DIR'} =~ s|/+$||r
+        : sprintf( qw| %s/.n/run |,
         $ENV{'HOME'} // <[base.get_homedir]>
             ->( <crypt.C25519.usr_name> // $ENV{'USER'} ) );
     return sprintf qw| %s/p7-sign-agent.sock |, $runtime_dir;
@@ -57,7 +65,7 @@ return undef
 return undef if not <[base.perlmod.load]>->(qw| IO::Socket::UNIX |);
 
 my $handle = IO::Socket::UNIX->new(
-    qw| Type | => SOCK_STREAM(),
+    qw| Type | => Socket::SOCK_STREAM(),    ## runtime load : not imported ##
     qw| Peer | => $socket_path,
 );
 
@@ -145,15 +153,25 @@ return TRUE       if $op eq qw| begin | and $status_word eq qw| OK |;
 return $fields[0] if $op eq qw| sign |  and $status_word eq qw| OK |;
 return @fields    if $op eq qw| end |   and $status_word eq qw| OK |;
 
+## a denied run may carry the approver's reason [ base32, one field ] ##
+if (    $op eq qw| begin |
+    and $status_word eq qw| NO |
+    and ( $fields[0] // '' ) eq qw| denied | ) {
+    my $reason = defined $fields[1] ? decode_b32r( $fields[1] ) : undef;
+    <[base.logs]>->( 0, ': agent run denied : %s', $reason )
+        if defined $reason and length $reason;
+    return undef;    ## update-signatures logs the abort itself ##
+}
+
 <[base.logs]>->(
-    1,   ': signing agent refused [ %s ] : %s',
+    0,   ': signing agent refused [ %s ] : %s',
     $op, scalar @fields ? join( ' ', @fields ) : $reply
-) if $op ne qw| begin |;    ## begin logs its own abort ##
+);
 
 return undef;
 
-#,,,,,.,,,.,,,,,,,..,,.,,,,..,..,,.,,,...,,.,,.,.,...,.,,,,.,,...,,..,.,,,,,,,
-#JXQSRDDO5NXA5S3WWRXSBM6L6VA5YNQQQZWGQFTDSS7DIFQFK2WQZFB5ZD6TQOJIAZ7FRA6BBCMRY
-#\\\|XHPBPP4LP34WYOSCGQIAQOBL2UTNG47UYSNCEZ7TSLYXX4DSGU2 \ / AMOS7 \ YOURUM ::
-#\[7]ESKQ3Y54ORSG2T6EZAW2FGW26K552DGP7VSNPRAKNAPAHV65SYCY 7  DATA SIGNATURE ::
+#,,.,,..,,...,...,..,,.,.,.,,,,,,,,.,,,,.,.,.,.,.,...,...,.,.,,..,.,.,,,.,.,.,
+#MVAABO3V3HDZP7DAWA777IOLCX4WMRHXHKFTBMNIM6KB6LMDNJ3GSKJ3RWDL6JN4NHDCITY2VHAJU
+#\\\|SSM4FLW63JBDRI7624X5KRZ7R6AMPV3DYFFIX7X6RSOH4AIIZKL \ / AMOS7 \ YOURUM ::
+#\[7]3OFADYVLLFIQACYWUBLLD54SORGYII6EP63F65OR2FP4AVHQRCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

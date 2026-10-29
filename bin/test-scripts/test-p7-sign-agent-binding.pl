@@ -81,7 +81,7 @@ sub sign_buffer {
     $ctx->add($body);
     $ctx->add( sprintf '%s#', $header_line );
     return sprintf '%s#%s%s', $header_line,
-        encode_b32r( $ctx->digest ), "\n\n#\\\\\\";
+        encode_b32r( $ctx->digest ), "\n#\\\\\\|";
 }
 
 ## one op per connection, one reply line back
@@ -370,8 +370,8 @@ if ( $fail_count == 0 ) {
 say "$fail_count check(s) FAILED";
 exit 1;
 
-#,,,.,...,,..,..,,,..,.,.,...,.,,,,,,,,..,,,.,..,,...,...,,..,.,,,...,..,,..,,
-#I365L5GORPAFHZVBVMEOR3IHZGJU2OP47IWQRZ74IXW534RPQTH37SHYX6ILXAJ6CYYP2N6MVLX4Y
-#\\\|KNHJZDQYCUOUKXU7D3CCA25VUJJTGCG557EIVAVW65YX4PXCXYK \ / AMOS7 \ YOURUM ::
-#\[7]5PUODGUQILGL5GXWVOTAOIGTUSS4Z5VDEVG7NHEH2LZ7GXAWMADA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,...,,.,,,,.,.,,,,..,,,,,,.,,,.,,..,,...,...,,.,,,.,,,..,..,,,,.,
+#3VFZGW7KLLGVVQ5MM6QZCSYNQKKSZE4ZDKTD4TBLVBMX2G542ZQIZP5BJO7DZMNTSKNYDGJXQCSA6
+#\\\|ORDMBDOK2NIAF4C55H6ENGKPZAVPABQ2QARLO76K5YIWCTTTPCI \ / AMOS7 \ YOURUM ::
+#\[7]TBTJVFXRV73XWIDPAFQJRF2J2YYI4D3L54YLTRONOGTKTREFTIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

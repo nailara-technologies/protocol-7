@@ -82,8 +82,13 @@ if ( $args->{color_on} ) {
     $color_forced         = 1;
 }
 
+## no-color mode keeps the +\- markers
+## [ colors carry added vs removed otherwise ] and the rest of the style :
+## --no-color, or NO_COLOR set and not empty [ no-color.org ] for ai \
+## scripted callers. never inferred from a non-tty stdout -- under git it
+## always writes into the less pipe
 my $no_color_mode = 0;
-if ( $args->{'no-color'} ) {
+if ( $args->{'no-color'} or length( $ENV{'NO_COLOR'} // '' ) ) {
     $no_color_mode            = 1;
     $strip_leading_indicators = 0;
     $mark_empty_lines         = 0;
@@ -1079,8 +1084,8 @@ sub get_terminal_width {
 
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
-#,,,,,.,.,,,,,,.,,...,..,,,.,,,,,,...,.,,,,,.,..,,...,...,.,,,,,.,..,,.,,,.,,,
-#XPRE6KRO5MRUI4KC6PVZWSLPI325FU74STYC4KTZSNLQ6W4RMWFKATXBT5E4HKSOMXQOZ6YGQQDF2
-#\\\|ENPCLJT2275JMOIVMWUDMNFECLURAC3XSTPKBSFPM67OKIW273U \ / AMOS7 \ YOURUM ::
-#\[7]LKT72PO5UIGC2ANGZJRW3Q3LKII2PEMNUDJUOTD3D3FL5VGKM4DA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,,,,,.,,,,,,.,,..,,,.,,...,...,..,,...,...,,..,,.,,...,,,.,.,.,
+#CZ6MLSVAGTTQN75PON6LCL3NO3KFS5FKKDXRK4O4Y7FZI6WYXEL5DI5WU2NHK7YIEFGZHKYWTOLXC
+#\\\|4IWK423YPKORLHPN2KRT4LRGS3AVI6JFVRVOAQX2FNS2JWYUCCX \ / AMOS7 \ YOURUM ::
+#\[7]SDCMPHOFVVFWVMOTKOXSM7JBI6MI7J36PTJV5ZIMBUP4GU7BNMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
