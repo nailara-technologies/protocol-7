@@ -1188,7 +1188,12 @@ function startJobEvents() {
     };
     jobEvents.addEventListener('jobs', () => {
         if (jobEventsDebounce) clearTimeout(jobEventsDebounce);
-        jobEventsDebounce = setTimeout(syncPipeline, 300);
+        /* a delete already left the list locally : the pull finds nothing */
+        /* new and skips render, so an open trash panel reloads here       */
+        jobEventsDebounce = setTimeout(() => {
+            syncPipeline();
+            if (trashPanelVisible) loadTrashPanel();
+        }, 300);
     });
     jobEvents.onerror = () => { startPoll(); };
 }
