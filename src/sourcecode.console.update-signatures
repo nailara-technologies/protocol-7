@@ -253,18 +253,65 @@ foreach my $path_rel (@source_paths) {
 
 if ($agent_mode) {
 
-    ## format-code BEFORE the request : a reformat after RUN would be     ##
-    ## refused by the agent [ content changed ], and errors belong to the ##
-    ## caller's report, not to an approval prompt. -r reformats, then '-c ##
-    ## -report' is the gate [ exit 1 when anything still needs action --  ##
-    ## syntax, perl 5.32 floor ; its plain exit is always 0 ]. non-perl   ##
-    ## paths are skipped by format-code itself                            ##
-    my $format_code  = catfile( $work_tree, qw| bin format-code | );
-    my @format_paths = map { catfile( $work_tree, $ARG ) } @source_paths;
-    system( $format_code, qw| -r |, @format_paths );
-    if ( system( $format_code, qw| -c -report |, @format_paths ) != 0 ) {
+    ## format-code BEFORE the request : a reformat after RUN would be       ##
+    ## refused by the agent [ content changed ], and errors belong to the   ##
+    ## caller's report, not to an approval prompt. -r reformats, then '-c   ##
+    ## -report' is the gate [ exit 1 when anything still needs action --    ##
+    ## syntax, perl 5.32 floor ; its plain exit is always 0 ]. non-perl     ##
+    ## paths are skipped by format-code itself  run from the work tree with ##
+    ## the relative paths : its report names files as the agent screen does ##
+    my $format_code = catfile( $work_tree, qw| bin format-code | );
+    my $cwd_before
+        = <[base.perlmod.load]>->(qw| Cwd |) ? Cwd::getcwd() : undef;
+    chdir $work_tree;
+    system( $format_code, qw| -r |, @source_paths );
+    my $format_status
+        = system( $format_code, qw| -c -report |, @source_paths );
+    chdir $cwd_before if defined $cwd_before;
+    if ( $format_status != 0 ) {
         <[base.log]>->(
             0, ':. format-code reports ' . 'action needed, aborting .:'
+        );
+        <[base.exit]>->(qw| 0110 |);
+    }
+
+    ## module versions AFTER the format pass, BEFORE the checksums : the    ##
+    ## approved content carries its new $VERSION lines. the tool works      ##
+    ## repo-wide -- a module it updates outside this run is named and the   ##
+    ## run aborts [ it belongs in the same approval, never added silently ] ##
+    my $amos_versions
+        = catfile( $work_tree, qw| bin dev update-amos-versions | );
+    if ( open( my $versions_fh, '-|', $amos_versions ) ) {
+        my %requested = map { $ARG => TRUE } @source_paths;
+        my @outside;
+        while ( my $line = <$versions_fh> ) {
+            $line                    =~ s|\e\[[0-9;]*m||g;
+            next if $line            !~ m|\.:\s+(AMOS7(?:::\w+)*)\s*$|;
+            ( my $module_path = $1 ) =~ s|::|/|g;
+            $module_path = sprintf qw| data/lib-path/pm/%s.pm |, $module_path;
+            <[base.logs]>->(
+                1, ': module version ' . 'updated : %s', $module_path
+            );
+            push @outside, $module_path if not $requested{$module_path};
+        }
+        ## a failed version check is no "nothing to update" : fail closed ##
+        if ( not close $versions_fh ) {
+            <[base.log]>->(
+                0, ':. update-amos-versions ' . 'failed, aborting .:'
+            );
+            <[base.exit]>->(qw| 0110 |);
+        }
+        if (@outside) {
+            <[base.logs]>->(
+                0, ': module version updated outside this run : ./%s', $ARG
+            ) foreach @outside;
+            <[base.log]>->( 0, ':. add them to the run, aborting .:' );
+            <[base.exit]>->(qw| 0110 |);
+        }
+    } else {
+        <[base.logs]>->(
+            0,              ': cannot run ' . '%s [ %s ]',
+            $amos_versions, $OS_ERROR
         );
         <[base.exit]>->(qw| 0110 |);
     }
@@ -557,8 +604,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,.,.,,,..,,...,.,.,,.,,.,.,.,,,,,.,.,,,,.,,..,,...,...,...,..,,,,.,,..,...,
-#SZFBLE4ETGXL5M3ORUXDLOGU2H445JASSAP2OU57UNSJOFXXDY5JKGFTLOIJ6ZNPXXCGGQZFX5EFC
-#\\\|XSFGZAFJIKCZZ7RYTPMLU7GOLMGGSLUSBUMU3OS6T6ATHWSOJRY \ / AMOS7 \ YOURUM ::
-#\[7]CCKL7ZQX6FOMBDYBRUN3X7XL72QYIEUSN7UJJC3XYO5YBVGGLQAI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,...,,,.,.,,,,,,,,.,,.,,,,..,..,,...,...,...,,,,,,,.,,,.,...,
+#QSDOPBXXCJYSRPUQ66QA6HEJVIJSKZJYKFHYQLVTKGFTTQNLQDNQ25BAF4QVERQEMQWK3YGCXNID2
+#\\\|NTK5PN4IE6MRSHTND7DK56FCWSDS4TQI7D2YJHMQHC5XIJXESLM \ / AMOS7 \ YOURUM ::
+#\[7]73FSELW33665KMVV6C6YTG2NN3LKKHVDPZFZ4XPPBMW3ZTWYX2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

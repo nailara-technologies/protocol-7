@@ -216,11 +216,17 @@ my $algorithm_setup = {
 
 my @algorithm_changes;    ## [ module, old // undef, new ] ##
 
+my $amos_chksum_bin
+    = Cwd::abs_path($PROGRAM_NAME) =~ s{/dev/[^/]+$}{/amos-chksum}r;
+$amos_chksum_bin = qw| amos-chksum | if not -x $amos_chksum_bin;
+
 foreach my $module ( sort keys $algorithm_setup->%* ) {
     my $setup     = $algorithm_setup->{$module};
     my $file_path = "$lib_path/$setup->{'path'}";
     next if not -f $file_path;    ## partial module tree [ -root testing ]  ##
-    my $new_value  = qx| amos-chksum $setup->{'option'} |;
+    ## the amos-chksum next to this tool [ bin/ ] -- a zenka PATH has no ##
+    ## repo bin/ [ update-signatures :agent: runs this tool ]            ##
+    my $new_value  = qx| $amos_chksum_bin $setup->{'option'} |;
     my $exit_value = $CHILD_ERROR >> 8;
     chomp($new_value);
     die ":\n:: amos-chksum $setup->{'option'} failed [ $exit_value ]\n:\n"
@@ -309,8 +315,8 @@ if ( $check_mode and $changes_reported ) {
     exit 0;
 }
 
-#,,,.,,..,,.,,,,,,.,.,...,,,,,,,.,...,.,.,.,.,..,,...,...,..,,.,,,...,,,.,...,
-#3IOV4UOJET2R2TNAAJ6LMV327I7M6IR5EVNSTW6FHGNTYIGD4JV4TTQWULYWIPYA7UQ6Q5LF2CW4C
-#\\\|I2AHUXNY53Z2MQTGUYTQJSTQHRYKSKKDXZYT5IEPUIMXDDQ6XW7 \ / AMOS7 \ YOURUM ::
-#\[7]NUUEBSEOJGMIPTKNLOBL5BQIOFQIR64YMDPLBYZZ4P7Z3IRON6CI 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,,,,,...,,,,,,.,,,.,,,..,..,,..,,...,...,..,,.,.,,,,,,.,,,..,
+#DXQGZRUBC5H6B6U4SYD4MQPBAKJLS76JBC7ATK7Y2WW7Y652BCXWAWJ6U7O67INEPTPRIJJWB3KKS
+#\\\|S3HHFL3XGVEFUP7LUMFFKKCJQHRZHJZDQPVUNWY5MPFFOZZ3TI3 \ / AMOS7 \ YOURUM ::
+#\[7]BWCCZEKSPTBBNCQGE5NZKF76LIF7F4P2IGOUIU73EJ53J3WCZUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

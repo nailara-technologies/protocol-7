@@ -94,7 +94,10 @@ amend, and a new commit can never skip its version. the hook accepts `AMEND`,
   the old message. no session revival.
 - message checks enforced by the tool, not the model : the `vc_commit` length
   and harmony rules, no attribution lines [ the hook strips them anyway ], a
-  signed version per commit.
+  signed version per commit, and the hook's message FORM [ 'area : short
+  topic title', a single line at most 100 chars, details in a body of
+  '- ' lines wrapped at ~75 -- AI-COLLABORATION-GUIDE.md ] checked at
+  prepare, so a rejected form never reaches the commit step.
 
 ## output
 
@@ -111,8 +114,8 @@ amend, and a new commit can never skip its version. the hook accepts `AMEND`,
 - `bin/admin/vc_commit` -- message length \ harmony gate
 - `bin/dev/git-hooks/pre-commit` -- permissions, version files, signature check
 
-#,,,,,..,,...,..,,.,,,,..,,,,,,..,,,.,...,,.,,..,,...,...,...,.,,,...,,..,,,,,
-#7SJ5KY2TQCGSSDI5PUNV53SH4UZPJYLASHS6VZQ2IW6QV5EXEOTXT5NECCGUM5TMUS7APQH4CTZ6C
-#\\\|XGIFN3M7ED4IESWTO5XDSLJ7BHMXNF6OGJEZTXUV5QFFRYFYAHM \ / AMOS7 \ YOURUM ::
-#\[7]K67DCLQ2D3LD7RKESLZMJDLH4RZ7ZOFJHZUOLYVAWFSJE7FSRICY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,.,,,,,,,.,,,.,,,,.,...,.,,,...,..,,...,...,,,,,,..,,..,,,.,,.,,
+#ORBIKFPNRQCF26B67RAWNMVW6T6D3A3DLWCD3BSLAWDH6542GA2N67HPFWK6BCA3RAJB7YKECY7YE
+#\\\|FZHERIGXE5P2UPHKTN2PCJEDDYECKN6KUYSAD35LIL6RE7RCDKT \ / AMOS7 \ YOURUM ::
+#\[7]CAP77PQH3GLQIIOCBRDAFNQZOI4FKF37QCYVR5UIRQPZEYMTCSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
