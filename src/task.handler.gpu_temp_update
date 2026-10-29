@@ -1,8 +1,7 @@
 ## [:< ##
 
 # name  = task.handler.gpu_temp_update
-# descr = handle GPU temperature STRM subscription and consume stream data
-#         [ cold-queue gate feed : local sample buffer, no stretch loop ]
+# descr = handle gpu temperature subscription replies
 
 my $reply = shift;
 
@@ -18,66 +17,19 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     return;
 }
 
-## only process STRM open ##
-return if $reply->{'cmd'} ne qw| STRM |;
-return if $reply->{'args'} ne qw| open |;
-
-my $cmd_id = $reply->{'cmd_id'};
-return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+<task.stats.gpu.temp> //= {};
+return unless <[thermal.feed.register]>->( $reply, <task.stats.gpu.temp> );
 
 ## gpu feed live : cold-queue gpu gate authoritative from here on ##
 <task.cold_queue.gpu_available> = TRUE;
 
-## initialize gpu temp namespace ##
-<task.stats.gpu.temp> //= {
-    'load_1s'       => undef,
-    'load_5s'       => undef,
-    'sparkline_buf' => [],
-    'updated_at'    => undef,
-};
-
-## register local consumer ##
-<[strm.local.register]>->(
-    $cmd_id,
-    {   'watcher' => sub {
-            my $lc = shift;
-            return if not length $lc->{'buf'};
-
-            my $data = $lc->{'buf'};
-            $lc->{'buf'} = '';
-
-            for my $line ( split m|\n|, $data ) {
-                next if not length $line;
-                my ( $temp_1s, $avg_5s ) = split m| +|, $line;
-
-                <task.stats.gpu.temp.load_1s> = 0 + $temp_1s;
-                <task.stats.gpu.temp.load_5s>
-                    = defined $avg_5s ? 0 + $avg_5s : undef;
-                <task.stats.gpu.temp.updated_at> = <[base.ntime]>;
-
-                my $buf = <task.stats.gpu.temp.sparkline_buf>;
-                push @$buf, 0 + $temp_1s;
-                shift @$buf while @$buf > 20;
-            }
-
-            <[base.logs]>->(
-                3,
-                'gpu temp updated: %s C%s',
-                <task.stats.gpu.temp.load_1s> // 'undef',
-                defined <task.stats.gpu.temp.load_5s>
-                ? sprintf( ' [5s avg: %s C]',
-                    <task.stats.gpu.temp.load_5s> )
-                : ''
-            );
-        },
-    }
+<[base.logs]>->(
+    2, 'gpu temp STRM consumer registered [cmd_id=%d]',
+    $reply->{'cmd_id'}
 );
 
-<[base.logs]>
-    ->( 2, 'gpu temp STRM consumer registered [cmd_id=%d]', $cmd_id );
-
-#,,,.,,.,,,,,,,,.,..,,..,,..,,.,.,,.,,,,,,,,,,..,,...,...,...,...,...,,..,,.,,
-#SFN3YRU4PNNP4IO76JLJSXUYQ7HTXAZJTYEYTW3LJAIV5LH42RUYETIV2DBVNSZYSWZOT45UVCS6O
-#\\\|CNTQCYMJKA3P6VXQSYDXOWCFMRGHUN3KZ63ETJDODWHNITVRMP7 \ / AMOS7 \ YOURUM ::
-#\[7]2KRK44HJYIHPNTWMXINP2J5B3AKM4NN33ELW3SLIAAVK47IBDEAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,.,,,.,,,,,,,.,,.,.,,,,,,,.,..,,...,..,,.,.,.,,,,..,.,.,.,.,
+#X5U7P4XRFRMU7GNE2R6BG4TC7KB66YX5JLTM4ZXXX3ER5JIDOOSYIYDPEL5GUECVAGGJDO7ZIVND2
+#\\\|5HVKT26HTRX6EWSP3R2BWA5JDRLK7E5LYUHVDE4IKBV52FUAKP2 \ / AMOS7 \ YOURUM ::
+#\[7]6CRX2I23B37QZOGBODZSRUJKDYVXLYMWWEFZ7DQW2JV5NYR4HKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
