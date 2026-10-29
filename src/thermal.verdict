@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = thermal.verdict
+# descr = combine temperature and memory states into a worker verdict
+
+my ( $gate, $mem_gate, $now ) = @ARG;
+
+my $temp_state = ref $gate eq qw| HASH |    ? $gate->{'state'}     // '' : '';
+my $mem_state = ref $mem_gate eq qw| HASH | ? $mem_gate->{'state'} // '' : '';
+
+if ( $mem_state eq qw| hard | ) {
+    return qw| unload |
+        if defined $mem_gate->{'hard_since'}
+        and $now - $mem_gate->{'hard_since'}
+        >= ( <thermal.cfg.mem.hold> // 60 );
+    return qw| pause |;
+}
+
+if ( $temp_state eq qw| hot | ) {
+    return qw| unload |
+        if defined $gate->{'state_since'}
+        and $now - $gate->{'state_since'}
+        >= ( <thermal.cfg.unload.hold> // 900 );
+    return qw| pause |;
+}
+
+return qw| no_new | if $mem_state eq qw| soft |;
+
+## warm = in the pool at reduced weight [ design 'states' 3 ], never a stop ##
+## : a loaded but healthy gpu sits there                                    ##
+return qw| slow | if $temp_state eq qw| warm |;
+return qw| run |;
+
+#,,.,,,,,,...,,.,,,..,,.,,.,,,,.,,.,,,.,.,,.,,..,,...,...,.,.,..,,,,.,.,.,...,
+#AHZI2C2TK2PSSWQTBGSNAJDJBAOWZFNPIIUOO7GCIFOICOVCSD4NXRYZ4EMJC4O3SG4ZUDSICXTBI
+#\\\|N7SAZY6KO25S3CFEEWH4WAJ5IWOWNDIC3WJGRVCYYES45IY3JO4 \ / AMOS7 \ YOURUM ::
+#\[7]2POKG53ZI3SAQYKLA4D4EMDUOSOMWIA3RLXI243HU5HGHRZRVUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

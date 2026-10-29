@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = thermal.mem.read
+# descr = read memory pressure and available memory percentages
+
+my ($paths) = @ARG;
+$paths = {} if ref $paths ne qw| HASH |;
+
+my $psi_path     = $paths->{'psi'}     // qw| /proc/pressure/memory |;
+my $meminfo_path = $paths->{'meminfo'} // qw| /proc/meminfo |;
+
+my $reading = {
+    'psi_some_avg60' => undef,
+    'psi_full_avg60' => undef,
+    'avail_pct'      => undef,
+};
+
+if ( open( my $psi_fh, '<', $psi_path ) ) {
+    while ( my $line = <$psi_fh> ) {
+        if ( $line =~ m|^some\s+.*?avg60=([0-9]+(?:\.[0-9]+)?)| ) {
+            $reading->{'psi_some_avg60'} = 0 + $1;
+        } elsif ( $line =~ m|^full\s+.*?avg60=([0-9]+(?:\.[0-9]+)?)| ) {
+            $reading->{'psi_full_avg60'} = 0 + $1;
+        }
+    }
+    close($psi_fh);
+}
+
+my ( $mem_total, $mem_available );
+if ( open( my $meminfo_fh, '<', $meminfo_path ) ) {
+    while ( my $line = <$meminfo_fh> ) {
+        $mem_total = 0 + $1
+            if $line =~ m|^MemTotal:\s+([0-9]+)|;
+        $mem_available = 0 + $1
+            if $line =~ m|^MemAvailable:\s+([0-9]+)|;
+    }
+    close($meminfo_fh);
+}
+
+$reading->{'avail_pct'} = $mem_available * 100 / $mem_total
+    if defined $mem_total
+    and $mem_total > 0
+    and defined $mem_available;
+
+return $reading;
+
+#,,,,,,..,.,.,.,.,,..,...,.,.,...,,,,,.,.,,.,,..,,...,...,,,,,,..,,..,..,,,,,,
+#ALNZTAP2SA5N37J52QTH2VC4CBVJRFLVQMX6QXVHMYIQIW4SXQJXRF4PTLGFZGHX3UB5TX7ZLKLEM
+#\\\|6SZSXOQPI5JRGIADQA6EFPQRLIRVRRR6HISACWVL36BIUSWOIWZ \ / AMOS7 \ YOURUM ::
+#\[7]NDGKFW36HJGBMGHQZ3CNPAWIDMJLHHEISWVRN7TRXLX72XRQK6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

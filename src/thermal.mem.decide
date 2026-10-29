@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = thermal.mem.decide
+# descr = apply memory pressure thresholds and track hard duration
+
+my ( $mem_gate, $reading, $now ) = @ARG;
+
+return FALSE if ref $mem_gate ne qw| HASH |;
+return FALSE if ref $reading ne qw| HASH |;
+
+my $some_soft = <thermal.cfg.mem.psi_some_soft> // 10.0;
+my $full_hard = <thermal.cfg.mem.psi_full_hard> // 5.0;
+my $avail_min = <thermal.cfg.mem.avail_min_pct> // 15.0;
+
+my $some_avg60 = $reading->{'psi_some_avg60'};
+my $full_avg60 = $reading->{'psi_full_avg60'};
+my $avail_pct  = $reading->{'avail_pct'};
+
+my $next_state = qw| calm |;
+$next_state = qw| soft |
+    if defined $some_avg60 && $some_avg60 >= $some_soft
+    or defined $avail_pct  && $avail_pct < $avail_min;
+$next_state = qw| hard |
+    if defined $full_avg60 && $full_avg60 >= $full_hard
+    or defined $avail_pct  && $avail_pct < $avail_min / 2;
+
+$mem_gate->{'state_since'} = $now
+    if ( $mem_gate->{'state'} // '' ) ne $next_state;
+$mem_gate->{'state'} = $next_state;
+
+if ( $next_state eq qw| hard | ) {
+    $mem_gate->{'hard_since'} //= $now;
+} else {
+    delete $mem_gate->{'hard_since'};
+}
+
+return $mem_gate->{'state'};
+
+#,,,.,,..,,.,,,,,,..,,,..,..,,,..,.,.,,,,,.,,,..,,...,...,,..,,..,,,.,,,.,...,
+#BQHPEARJ35C4XS6ZVEG7PJYGVRWAP6CSXZ7RXMFTMNKXX3RLKFKB2OKJAPFADPBOKH776FU3OQZTU
+#\\\|CFBDU5ERNCRWIYAULOHNO4DPW5LJQBNRMZ6UDDD4UZGQQL54KKQ \ / AMOS7 \ YOURUM ::
+#\[7]76RFCNOU24WCVB3GYM6RCWUUQOWPDJVLO57WK77RHDG4XSX2NOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

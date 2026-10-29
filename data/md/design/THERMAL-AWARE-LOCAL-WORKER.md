@@ -34,7 +34,7 @@ WANTED, amplified by how cold it is outside.
 |---|---|
 | gpu temp vs. learned idle baseline | join \ leave thresholds, +- float offsets |
 | memory pressure [ psi + MemAvailable ] | pause, independent of all else |
-| system idle [ cpu load, gpu, memory ] | condition for a cold start |
+| system idle [ cpu load, gpu, memory ] | condition for a cold start ; baseline learns here |
 | schedule window [ day \ night ] | selects the offset set |
 | outdoor temp + forecast | amplifies NIGHT offsets only |
 
@@ -43,7 +43,7 @@ WANTED, amplified by how cold it is outside.
 1. **out** : model not loaded \ not spawned.
 2. **cold start** : spawn only when the start gate passes [ gpu cool +
    system idle + memory calm, all held for `start.hold` ].
-3. **in pool** : weight scales with temperature [ the existing stretch
+3. **in pool** [ verdict `slow` while warm ] : weight scales with temperature [ the existing stretch
    curve : fewer jobs, longer gaps as it warms ].
 4. **paused** : no new jobs, model stays loaded [ a reload is itself a heat
    and i\o spike ].
@@ -125,12 +125,16 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
    behavior change, existing defaults ].
 2. hysteresis + slow averages + relative baseline.
 3. memory input + states paused \ unload.
-4. windows + start gate.
+4. windows + start gate + idle detector [ no inference in flight, loadavg
+   low, held `thermal.idle.hold` ] -> the baseline refines during REAL
+   idle periods, both directions [ owner 2026-10-29 ] : temperature-free,
+   so the cold-state self-reference [ band + cap, step 2 ] becomes the
+   fallback only. the cap stays.
 5. outdoor amplifier + forecast.
 6. profiles, if wanted.
 
-#,,.,,.,.,,..,,..,.,.,,,,,,..,...,...,..,,,.,,..,,...,...,,,.,...,,.,,,,.,.,,,
-#W4KCJ2W7ZP4Z72R7ZPRVY3L7FAUAFI47WEXOTUUUIKSM2LUKV7SNBM563NQNPX5WR5NZS4U3UD4CM
-#\\\|K2DXLYT6KUD7CB7HCPC7NVIUL4TXKI2BAUOGMJUKMZQ2WMUVE3Y \ / AMOS7 \ YOURUM ::
-#\[7]FZH3P4USVSAQEVET3FHESD5S4RR3PMASUREE4DYPCRLBQOUAGCAA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,,,..,,,,.,,..,,,,,.,,,,,.,,,,,..,,...,...,...,,.,,.,,,...,,.,,
+#6AFVL7OFIG5FE4WZFEHR5B7KPCUVB4K6GHHIGGRGRRMH5UTQE7PLT3XPEDFWK33VP5CNPOL2D2TSC
+#\\\|UOSLKEDX7FM2Q5Y563GLK4UGBJLNGMK4PTACJGEKZ3BO5AFZYJJ \ / AMOS7 \ YOURUM ::
+#\[7]QCIV6M43CCLNIYNUGHF4XSXTAXBE3ECLOBYFJUU5E5KSFBJDR4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

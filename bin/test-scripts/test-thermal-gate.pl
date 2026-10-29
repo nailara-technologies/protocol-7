@@ -9,8 +9,9 @@ use English;
 ###                                      ###
 
 use File::Spec;
-use Cwd     qw| abs_path |;
-use FindBin qw| $RealBin |;
+use File::Temp qw| tempdir |;
+use Cwd        qw| abs_path |;
+use FindBin    qw| $RealBin |;
 
 BEGIN {
     my $up_dir    = File::Spec->updir;
@@ -53,6 +54,10 @@ sub compile_module {
 
 compile_module('thermal.gate.sample');
 compile_module('thermal.gate.decide');
+compile_module('thermal.mem.read');
+compile_module('thermal.mem.decide');
+compile_module('thermal.verdict');
+compile_module('thermal.init_code');
 
 sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
@@ -132,6 +137,143 @@ ok( $code{'thermal.gate.decide'}->( $gate, 2001 ) eq qw| hot |,
 ok( $gate->{'state_since'} == 2001,
     'ceiling transition records state_since' );
 
+say ': 5. memory defaults are initialized';
+$code{'thermal.init_code'}->();
+ok( $data{'thermal'}{'cfg'}{'unload'}{'hold'} == 900
+        && $data{'thermal'}{'cfg'}{'mem'}{'psi_some_soft'} == 10
+        && $data{'thermal'}{'cfg'}{'mem'}{'psi_full_hard'} == 5
+        && $data{'thermal'}{'cfg'}{'mem'}{'avail_min_pct'} == 15
+        && $data{'thermal'}{'cfg'}{'mem'}{'hold'} == 60,
+    'memory and unload defaults match the design'
+);
+
+say ': 6. memory readings use psi and meminfo fixtures';
+my $tmp_dir      = tempdir( CLEANUP => 1 );
+my $psi_path     = File::Spec->catfile( $tmp_dir, 'memory-pressure' );
+my $meminfo_path = File::Spec->catfile( $tmp_dir, 'meminfo' );
+open( my $psi_fh, '>', $psi_path ) or die "cannot write $psi_path : $!";
+print {$psi_fh} "some avg10=1.00 avg60=12.34 avg300=2.00 total=1\n";
+print {$psi_fh} "full avg10=0.50 avg60=6.50 avg300=1.00 total=1\n";
+close($psi_fh);
+open( my $meminfo_fh, '>', $meminfo_path )
+    or die "cannot write $meminfo_path : $!";
+print {$meminfo_fh} "MemTotal:        1000 kB\nMemAvailable:     120 kB\n";
+close($meminfo_fh);
+my $reading = $code{'thermal.mem.read'}
+    ->( { 'psi' => $psi_path, 'meminfo' => $meminfo_path } );
+ok( $reading->{'psi_some_avg60'} == 12.34
+        && $reading->{'psi_full_avg60'} == 6.5
+        && $reading->{'avail_pct'} == 12,
+    'psi and available memory are parsed'
+);
+$reading = $code{'thermal.mem.read'}->(
+    {   'psi'     => File::Spec->catfile( $tmp_dir, 'missing-psi' ),
+        'meminfo' => $meminfo_path,
+    }
+);
+ok(
+    (          not defined $reading->{'psi_some_avg60'}
+            && not defined $reading->{'psi_full_avg60'}
+            && $reading->{'avail_pct'} == 12
+    ),
+    'missing psi leaves pressure values undefined'
+);
+
+say ': 7. memory thresholds set calm, soft, and hard';
+my $mem_gate = {};
+ok( $code{'thermal.mem.decide'}->(
+        $mem_gate,
+        {   'psi_some_avg60' => 9.99,
+            'psi_full_avg60' => 4.99,
+            'avail_pct'      => 15,
+        },
+        100
+    ) eq qw| calm |,
+    'values below all thresholds are calm'
+);
+ok( $mem_gate->{'state_since'} == 100, 'calm records state_since' );
+ok( $code{'thermal.mem.decide'}
+        ->( $mem_gate, { 'psi_some_avg60' => 10, 'avail_pct' => 50 }, 200 )
+        eq qw| soft |,
+    'some pressure at the soft threshold is soft'
+);
+ok( $code{'thermal.mem.decide'}
+        ->( $mem_gate, { 'psi_full_avg60' => 5, 'avail_pct' => 50 }, 300 ) eq
+        qw| hard |,
+    'full pressure at the hard threshold is hard'
+);
+ok( $mem_gate->{'hard_since'} == 300, 'hard transition records hard_since' );
+$code{'thermal.mem.decide'}
+    ->( $mem_gate, { 'psi_full_avg60' => 6, 'avail_pct' => 50 }, 400 );
+ok( $mem_gate->{'hard_since'} == 300, 'continued hard preserves hard_since' );
+$code{'thermal.mem.decide'}->( $mem_gate, { 'avail_pct' => 14.9 }, 500 );
+ok(
+    (   $mem_gate->{'state'} eq qw| soft |
+            && not exists $mem_gate->{'hard_since'}
+    ),
+    'low available memory is soft and clears hard_since'
+);
+$code{'thermal.mem.decide'}->( $mem_gate, { 'avail_pct' => 7.49 }, 600 );
+ok( $mem_gate->{'state'} eq qw| hard | && $mem_gate->{'hard_since'} == 600,
+    'available memory below half the floor is hard' );
+$code{'thermal.mem.decide'}->( $mem_gate, {}, 700 );
+ok(
+    (   $mem_gate->{'state'} eq qw| calm |
+            && not exists $mem_gate->{'hard_since'}
+    ),
+    'missing pressure values do not trigger a state'
+);
+
+say ': 8. verdicts combine temperature and memory';
+my $verdict = sub {
+    return $code{'thermal.verdict'}->(@ARG);
+};
+ok( $verdict->( {}, { 'state' => qw| calm | }, 1000 ) eq qw| run |,
+    'calm gates run' );
+ok( $verdict->( {}, { 'state' => qw| soft | }, 1000 ) eq qw| no_new |,
+    'soft memory accepts no new jobs' );
+ok( $verdict->( { 'state' => qw| warm | }, {}, 1000 ) eq qw| slow |,
+    'warm temperature stays in the pool, reduced weight'
+);
+ok( $verdict->( { 'state' => qw| warm | }, { 'state' => qw| soft | }, 1000 )
+        eq qw| no_new |,
+    'soft memory wins over warm temperature'
+);
+ok( $verdict->( {}, { 'state' => qw| hard |, 'hard_since' => 950 }, 1000 ) eq
+        qw| pause |,
+    'recent hard memory pauses'
+);
+ok( $verdict->( {}, { 'state' => qw| hard |, 'hard_since' => 900 }, 1000 ) eq
+        qw| unload |,
+    'sustained hard memory unloads'
+);
+ok( $verdict->( { 'state' => qw| hot |, 'state_since' => 200 }, {}, 1000 ) eq
+        qw| pause |,
+    'recent hot temperature pauses'
+);
+ok( $verdict->( { 'state' => qw| hot |, 'state_since' => 100 }, {}, 1000 ) eq
+        qw| unload |,
+    'sustained hot temperature unloads'
+);
+ok( $verdict->(
+        { 'state' => qw| hot |,  'state_since' => 100 },
+        { 'state' => qw| hard |, 'hard_since'  => 950 },
+        1000
+    ) eq qw| pause |,
+    'memory hard wins over sustained hot temperature'
+);
+ok( $verdict->(
+        { 'state' => qw| cold |, 'state_since' => 0 },
+        { 'state' => qw| hard |, 'hard_since'  => 900 },
+        1000
+    ) eq qw| unload |,
+    'memory unload wins over cold temperature'
+);
+ok( $verdict->( undef, { 'state' => qw| soft | }, 1000 ) eq qw| no_new |,
+    'gpu-less nodes use memory alone' );
+ok( $verdict->( undef, { 'state' => qw| calm | }, 1000 ) eq qw| run |,
+    'gpu-less calm nodes run' );
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -140,8 +282,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,..,,..,...,..,,,..,,,,,,.,,..,,,..,..,,..,,...,...,.,.,...,,.,,...,.,.,
-#QRD34423NUY6VWWT6YRU7Q2XUV6X37RRJT7JKEP4NMUN65N2ASM4TXHFIVTSPRUVKI2WJ64UPZA7C
-#\\\|DBRWHMRB7SMPISX4X4QHEO7QDVQLPFUURP2LFLVOE4KPE2S5TMR \ / AMOS7 \ YOURUM ::
-#\[7]Y27CWJDCKBNFX6TOMKUIGYWRCZTAVT37KQVRRQY7IUIOML544SAY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,,,.,,,.,.,,,,,.,,..,,.,,...,..,,...,..,,..,,,..,.,,,.,.,,,.,
+#OZIESBEZ7ASXILJB4FNESYPGKPP24YHUHS2CM4CWZSNJNST7VFZHGM3N3AINQ2BYRY7RFSQRX3VDE
+#\\\|PBDHYOOOEWJUMDNEGYDE3ACCS5LAOKI2SUOTHJ74T5AQG5C2WKB \ / AMOS7 \ YOURUM ::
+#\[7]3KB6PYT545ZJQ5PKBDZFKAN36IYFINBAZ5XJI6VGXB6ZI3JEPQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
