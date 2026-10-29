@@ -140,7 +140,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.YEKJXKI |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.VQ4CHKQ |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -1738,7 +1738,7 @@ sub edit_text {
                     ## the f1 hint chips like a key ; the · separators take ##
                     ## the violet frame color                               ##
                     ## [ last : the lookbehinds above read the plain · ]    ##
-                    $help =~ s{F1=Keys}{${chip_on}F1=Keys${chip_off}};
+                    $help =~ s{ ?F1=Keys ?}{${chip_on} F1=Keys ${chip_off}};
                     $help =~ s{·}{${punct}·${chip_off}}g;
                 }
 
@@ -2349,8 +2349,8 @@ sub edit_text {
 
 1;
 
-#,,..,.,.,,,.,,..,,.,,.,.,.,.,,,,,...,..,,,,,,..,,...,...,.,.,...,..,,.,.,,,,,
-#WD4BPU6SMQXBIXBOGFCOTZKQZ4YUFVXVROKV4TTSSRNWPSB6BKQ3GJRFMY3HM4D5ZVBQSMUNDN4CM
-#\\\|OTB6UJEFPHK2EVXDTAWCAIT4Q66GTMGQTSR2WDR4AP4BBVAF2ZL \ / AMOS7 \ YOURUM ::
-#\[7]O52VYZ5MVV7UO7R5LO76VLE5TMCZ2LXJNZAGOV33UVILNKI5GEAA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,..,,,..,...,...,...,,,,,,,,,..,,...,...,,.,,,.,,,,,,.,,,,,,,
+#RY64PRC5MJFJ5GYNFNBN7WPSLZJYJWGJW6MGGKYLWVCB23BV3TX2FJTJ3BLZYOBZYTLIUWJBIDG2E
+#\\\|LBSXCU536C66FE5KFZ2EHIESNWAVK27GNPMY3KB24MH6TN2R2KS \ / AMOS7 \ YOURUM ::
+#\[7]HG5FVHIVQAX25OTVBH54SMKR7T3K4U3LENB6FWUGJ7IQL6UEUOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
