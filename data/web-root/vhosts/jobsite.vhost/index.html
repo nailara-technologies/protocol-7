@@ -1190,18 +1190,34 @@ function startJobEvents() {
     jobEvents.onerror = () => { startPoll(); };
 }
 
-/* one delayed follow-up pull : a change event, a rescue or the sync button */
-/* -- calls inside the window merge. a delete already left the list locally, */
-/* so that pull finds nothing new and skips render : an open trash panel     */
-/* reloads here too                                                          */
+/* delayed follow-up pulls. a delete already left the list locally, so its  */
+/* pull finds nothing new and skips render : an open trash panel reloads    */
+/* here too. two timers :                                                   */
+/*   events  : THROTTLED, never reset -- a stream of events [ a backlog run ] */
+/*             kept pushing a resetting timer out, the reload never came    */
+/*   actions : rescue \ delete \ sync button, their own timer, so no event   */
+/*             can shorten or swallow it [ a trashed job is never pushed to  */
+/*             the web cache, a delete may bring no event at all ]           */
 const REFRESH_SOON_MS = 1200;
 const REFRESH_RESCUE_MS = 3100;    /* push_soon delay + transfer */
-function refreshSoon(ms = REFRESH_SOON_MS) {
-    if (jobEventsDebounce) clearTimeout(jobEventsDebounce);
+const REFRESH_DELETE_MS = 4200;    /* nudge + push_soon + the reply carrying it back */
+let refreshActionTimer = null;
+function refreshNow() {
+    syncPipeline();
+    if (trashPanelVisible) loadTrashPanel();
+}
+function refreshSoon() {
+    if (jobEventsDebounce) return;    /* already armed : keep its time */
     jobEventsDebounce = setTimeout(() => {
         jobEventsDebounce = null;
-        syncPipeline();
-        if (trashPanelVisible) loadTrashPanel();
+        refreshNow();
+    }, REFRESH_SOON_MS);
+}
+function refreshAfterAction(ms = REFRESH_RESCUE_MS) {
+    if (refreshActionTimer) clearTimeout(refreshActionTimer);
+    refreshActionTimer = setTimeout(() => {
+        refreshActionTimer = null;
+        refreshNow();
     }, ms);
 }
 
@@ -1429,6 +1445,7 @@ function renderCard(j) {
             });
             if (!r.ok) throw new Error(r.status);
             /* do NOT advance lastNtime from this response, see pushChange */
+            refreshAfterAction(REFRESH_DELETE_MS);    /* jobsite trashes it on its next push */
         } catch(e) {
             notify('löschen fehler: ' + e.message, true);
         }
@@ -2375,7 +2392,7 @@ document.getElementById('btn-logout').addEventListener('click', logout);
 
 document.getElementById('btn-sync').addEventListener('click', () => {
     lastNtime = 0; saveCache(); syncPipeline();
-    refreshSoon();
+    refreshAfterAction(REFRESH_SOON_MS);
 });
 
 window.reassessAllVisible = () => {
@@ -2718,7 +2735,7 @@ async function rescueTrashJob(id, btn) {
         /* pull the rescued job into view on next poll — it's now in review */
         lastNtime = 0;
         syncPipeline();
-        refreshSoon(REFRESH_RESCUE_MS);    /* jobsite pushes ~3 s after a rescue */
+        refreshAfterAction();    /* jobsite pushes ~3 s after a rescue */
     } catch (e) {
         notify('rescue fehler: ' + e.message, true);
         btn.textContent = '↩ rescue';
