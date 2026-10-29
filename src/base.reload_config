@@ -31,7 +31,13 @@ if ( exists <system.config.reload_order> ) {
         map { $already_loaded = 1 if $ARG eq $config_name }
             <system.config.reload_order>->@*;
         next if $already_loaded;    ## [ nested load_config_file ]
-            # resetting password hashes for auth.setup.usr.* files
+
+        ## the host overlay is applied once, LAST, by base.load_host_config ##
+        ## below -- loading it here too opened a root-only file a second    ##
+        ## time and failed the reload                                       ##
+        next if index( $config_name, <[base.host.config_dir]> . '/' ) == 0;
+
+        # resetting password hashes for auth.setup.usr.* files
         <auth.setup.usr> = {} if $config_name =~ m|^auth\.setup\.usr\..+|;
         $success = 0 if !<[base.load_config_file]>->($config_name);
     }
@@ -48,8 +54,8 @@ $success = 0
 
 return $success;
 
-#,,..,,..,,,,,,,.,,,.,,,,,,,,,,..,,..,,,,,.,,,..,,...,..,,.,,,..,,,,.,...,.,,,
-#KD7VR4ERGJTWQPUEEK777W3AFPZ25SYNYARYPOOJHZWGBX36DSOU6QKTW3XPPAZFNLTMDOVI2FSD2
-#\\\|ESM7J6TFGJSFAMAHIWGJJXUTNBTLYNQYUDHWIKYLSCPZK47IYPM \ / AMOS7 \ YOURUM ::
-#\[7]FUZSJJ64V4CD6CW2XCODP2DP72N37MCRZAFQQBSSVSJ3YOA7DGCI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,..,,..,,.,.,...,,..,..,,..,,..,,...,...,.,.,...,...,,,,,,,.,
+#TBSSD2CXV2U3MR32HE2CYTTB3Z3W2DFV6O4MPOUQG3CEZUJTUNVDQXCIRRJ6YREKV3TWQ4BUJIJ4M
+#\\\|ZHI6ZXFWPLLR5OQUZQB7NDXATFQAS3PECH2BDV6F4VG6ZXEMEKQ \ / AMOS7 \ YOURUM ::
+#\[7]3WOJDFQ4M537CLRJMTKMIRVCOXVZT2NC5ZDCTIOHVGWYHMJKBOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
