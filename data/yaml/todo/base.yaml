@@ -2320,9 +2320,24 @@ items:
   - devmod
   - forensics
   text: set-up ncfg format + devmod state export \ reimport [ test zenki, forensic copies from remote ]
+- added: 32IM7M52DY
+  details: |-
+    narrowed [ owner, 2026-10-29 ] : site-yaml already drops a posting it cannot fetch [ site-yaml.handler.fetch_tick : 404 \ 410 = gone, no retry ], so a job fetched in this cycle was live at fetch time. the gap is OLD data : job files that reach jobsite from a weeks-old site-yaml store [ the stray path, site-yaml.job.scan_stray \ list-stray-jobs ], plus jobs that wait long between fetch and assessment.
+    - gate : a job whose detail fetch is older than N hours [ fetched_at \ store mtime ] gets a liveness check before the llm pass ; fresh ones pass untouched
+    - reuse the site-yaml fetch path for it [ same 404 \ 410 rule, same client \ rate limit on the fetch host ], jobsite only acts on the verdict -> status expired, no assessment
+    - the same check as a periodic sweep over review \ to_apply
+    - unreachable portal = unknown, the job stays queued [ rule of d7ab4301d ]
+  done_at: null
+  id: Q2K
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - assessment
+  text: 'jobsite : liveness check for stale job data [ weeks-old site-yaml store, strays ] before assessment'
 
-#,,,.,,.,,...,,.,,,,.,..,,,,.,.,.,.,.,,..,.,,,..,,...,...,..,,...,,..,,,.,.,,,
-#FGLRB6KV2QBMSZAXPQUNAOCLHZOXDRWU2UOHKNNRRQKSKXGH53Q744LE2MRWA6I2UZUYHLAEPQLSQ
-#\\\|32KRHMN2UYODY5BH3DCVD3VC565DALYKOISPEWYEIV3ODHNGRTM \ / AMOS7 \ YOURUM ::
-#\[7]62QN2EPTVKV5JH3BCHZSH4LUGS7XS3VU5JXAGIV7XNKUBVS3JIAY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,.,.,...,,..,.,.,,.,,,,,,,.,,..,,...,...,.,.,,,,,,..,.,,,..,,
+#OCPGQZVWF6I7OUXODRH5MUEEZSVNZWDKCSNA7JD3IILGFG2ZCD57ZLRCOMCUGFYNY4537UX6JYDUS
+#\\\|VNP2R6N2PWDM7MI4X2KASJ44GZSDNUA46UWGO5B4D4OFAZDIYJI \ / AMOS7 \ YOURUM ::
+#\[7]MBV43A6BCHHSRMP2PO2W6YAOED52KCDN4XBFGR37TB66ATCAV4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
