@@ -26,6 +26,7 @@ use File::Temp ();
 use Cwd        qw| abs_path |;
 use FindBin    qw| $RealBin |;
 use POSIX      qw| setsid |;
+use Fcntl      qw| F_GETFD F_SETFD FD_CLOEXEC |;
 
 use constant TRUE  => 5;
 use constant FALSE => 0;
@@ -166,6 +167,19 @@ sub spawn_agent {
             '--run-dir', $temp_dir
         );
         push @cmd, qw| --test-stdin-approval | if $opt{'test_stdin'};
+
+        ## the restart handover [ ctrl-r ] : the key through an inherited ##
+        ## pipe                                                           ##
+        my $key_read;    ## open until the exec : out of scope = closed ##
+        if ( defined $opt{'key_fd_data'} ) {
+            pipe( $key_read, my $key_write ) or die "pipe : $OS_ERROR\n";
+            my $fd_flags = fcntl( $key_read, F_GETFD, 0 ) // 0;
+            fcntl( $key_read, F_SETFD, $fd_flags & ~FD_CLOEXEC );
+            binmode $key_write;
+            print {$key_write} $opt{'key_fd_data'};
+            close $key_write;
+            push @cmd, qw| -key-fd |, fileno $key_read;
+        }
         exec @cmd or die "exec p7-sign-agent : $OS_ERROR\n";
     }
 
@@ -361,6 +375,68 @@ ok( ( defined $log_text and index( $log_text, 'approval refused', 0 ) != -1 ),
     'agent 2 logged the refusal'
 );
 
+##[ part 3 : the restart handover -key-fd ]###################################
+
+say q|part 3 : -key-fd hands the unlocked key over [ ctrl-r restart ]|;
+
+my $temp_three = File::Temp::tempdir(
+    q|p7-sign-agent-binding-3-XXXX|,
+    TMPDIR  => 1,
+    CLEANUP => 1
+);
+my $key_dir_three = File::Spec->catdir( $temp_three, qw| keys | );
+mkdir $key_dir_three or die "mkdir keys : $OS_ERROR\n";
+my ( $pub_three, $priv_three )
+    = Crypt::Ed25519::generate_keypair( Crypt::Misc::random_bytes(32) );
+{
+    open( my $fh, qw| > |,
+        File::Spec->catfile( $key_dir_three, q|test.public| ) )
+        or die "public key : $OS_ERROR\n";
+    say {$fh} encode_b32r($pub_three);
+    close $fh;
+    open( $fh, qw| > |,
+        File::Spec->catfile( $key_dir_three, q|test.private| ) )
+        or die "private key : $OS_ERROR\n";
+    say {$fh} encode_b32r($priv_three);
+    close $fh;
+}
+
+my ( $socket_three, $log_three, undef, $pid_three ) = spawn_agent(
+    'temp_dir'    => $temp_three,
+    'key_dir'     => $key_dir_three,
+    'key_fd_data' => $priv_three
+);
+ok( wait_for_socket($socket_three), q|agent 3 starts with the handed key| );
+my $hello_three = agent_request( $socket_three, qw| HELLO | );
+ok( defined $hello_three
+        && index( $hello_three, encode_b32r($pub_three), 0 ) != -1,
+    q|HELLO answers with the handed key's public half|
+);
+stop_agent($pid_three);
+unlink $socket_three;
+
+## a WRONG key through the pipe while the key dir holds the right one : the
+## agent must refuse -- proves the fd, not the file, is used
+my ( undef, $wrong_priv )
+    = Crypt::Ed25519::generate_keypair( Crypt::Misc::random_bytes(32) );
+my ( $socket_four, $log_four, undef, $pid_four ) = spawn_agent(
+    'temp_dir'    => $temp_three,
+    'key_dir'     => $key_dir_three,
+    'key_fd_data' => $wrong_priv
+);
+waitpid $pid_four, 0;
+@spawned_pid = grep { $ARG != $pid_four } @spawned_pid;
+my $log_four_text = do {
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $text = '';
+    if ( open( my $fh, qw| < |, $log_four ) ) { $text = <$fh>; close $fh }
+    $text;
+};
+ok( not( -S $socket_four )
+        && index( $log_four_text, q|does not match|, 0 ) != -1,
+    q|a wrong handed key is refused [ the fd is used, not the file ]|
+);
+
 ##[ summary ]#################################################################
 
 if ( $fail_count == 0 ) {
@@ -370,8 +446,8 @@ if ( $fail_count == 0 ) {
 say "$fail_count check(s) FAILED";
 exit 1;
 
-#,,,,,.,.,.,.,...,,.,,,,.,.,,,,..,,,,,,.,,,.,,..,,...,...,,.,,,.,,,..,..,,,,.,
-#3VFZGW7KLLGVVQ5MM6QZCSYNQKKSZE4ZDKTD4TBLVBMX2G542ZQIZP5BJO7DZMNTSKNYDGJXQCSA6
-#\\\|ORDMBDOK2NIAF4C55H6ENGKPZAVPABQ2QARLO76K5YIWCTTTPCI \ / AMOS7 \ YOURUM ::
-#\[7]TBTJVFXRV73XWIDPAFQJRF2J2YYI4D3L54YLTRONOGTKTREFTIAA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,..,.,.,,,.,,..,,,.,,.,,.,.,.,.,..,,...,..,,..,,.,.,,..,,,,,,,.,
+#O5P4MBHBISGTW7CVFYED6NP34L3R4YDDLN2FMGAJ4RAMYX464WPH2M3BZXOUTMCJDGUWAS5XGRF6Q
+#\\\|O75OYGUQAMIKMKZZDG75EJ6DWPZFZW562PIZD3EPQ6EYFVYAES4 \ / AMOS7 \ YOURUM ::
+#\[7]7QWUJSMYKU7HIX77QN45VISGFUKDBSRWEWIAE7GGMK37XK76KODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

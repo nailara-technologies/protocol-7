@@ -18,7 +18,13 @@ use warnings;
 ## every way out.
 ##
 ## p7-sign-agent [ --key <name> ] [ --socket <path> ] [ --key-dir <dir> ]
-## [ --run-dir <dir> ] [ --test-stdin-approval ]
+## [ --run-dir <dir> ] [ --test-stdin-approval ] [ -key-fd <n> ]
+##
+## ctrl-r on the agent's terminal while idle restarts it into the code on disk
+## WITHOUT the passphrase : the unlocked key goes through a pipe kept open
+## across exec [ -key-fd ], same pid and terminal. only when every repo file
+## the agent loads [ itself, data/lib-path/pm ] carries a valid signature by
+## this key -- otherwise a passphrase start is needed.
 ##
 ## standalone on purpose : needs perl, CryptX, Digest::BMW and the AMOS7
 ## modules in data/lib-path/pm [ AMOS7::13 + AMOS7::Twofish for the encrypted
@@ -47,10 +53,11 @@ use warnings;
 use FindBin;
 use Getopt::Long ();
 use IO::File     ();
+use IO::Select;
 use IO::Socket::UNIX;
-use Socket         qw| SOL_SOCKET |;
-use Cwd            ();
-use Fcntl          qw| :mode O_WRONLY O_CREAT O_APPEND |;
+use Socket qw| SOL_SOCKET |;
+use Cwd    ();
+use Fcntl  qw| :mode O_WRONLY O_CREAT O_APPEND F_GETFD F_SETFD FD_CLOEXEC |;
 use File::Basename qw| dirname |;
 use File::Path     qw| make_path |;
 use File::Spec     ();
@@ -108,12 +115,20 @@ my $key_dir
 my $test_stdin_approval;    ## tests only : --test-stdin-approval ##
 ## or P7_SIGN_AGENT_TEST_STDIN=1      ##
 
+## the restart re-runs this script with the same options                   ##
+## [ minus a handed over -key-fd ] -- both kept before GetOptions consumes ##
+## @ARGV                                                                   ##
+my $script_path   = Cwd::abs_path($PROGRAM_NAME);
+my @argv_original = @ARGV;
+my $key_fd;    ## -key-fd <n> : the unlocked key from a restart [ ctrl-r ] ##
+
 Getopt::Long::GetOptions(
     'key=s'               => \$key_name,
     'socket=s'            => \$socket_path,
     'key-dir=s'           => \$key_dir,
     'run-dir=s'           => \$run_base,
     'test-stdin-approval' => \$test_stdin_approval,
+    'key-fd=i'            => \$key_fd,
 ) or die "p7-sign-agent : option error\n";
 
 $test_stdin_approval = TRUE
@@ -142,6 +157,9 @@ my %C = (
 %C = map { $ARG => '' } keys %C if length( $ENV{'NO_COLOR'} // '' );
 
 my $progress_open = FALSE;    ## a \r progress line waits for its \n ##
+
+## the idle terminal watch [ ctrl-r ] and its saved mode ##
+my ( $tty_watch, $tty_termios, $tty_lflag_saved );
 
 sub progress_close {
     print STDERR "\n" if $progress_open;
@@ -221,6 +239,7 @@ sub secret_wipe { return wipe_secret(@ARG) }
 
 sub cleanup_exit {
     my $code = shift // 0;
+    tty_watch_mode(FALSE);
     run_close( $ARG, 'agent exit' ) foreach sort keys %run_approved;
     secret_wipe( \$key_private ) if defined $key_private;
     unlink $socket_path          if -S $socket_path;
@@ -232,6 +251,7 @@ $SIG{'TERM'} = sub { cleanup_exit(130) };
 $SIG{'HUP'}  = sub { cleanup_exit(130) };
 
 END {    ## a signal's exit wipes the key too ##
+    tty_watch_mode(FALSE);
     secret_wipe( \$key_private ) if defined $key_private;
 }
 
@@ -275,7 +295,24 @@ sub key_load {
         or length $priv_dec < 64;
     substr( $priv_dec, 0, 2, '' ) if length $priv_dec == 66;    ## prefix ##
 
-    if ( not $encrypted ) {
+    if ( defined $key_fd ) {
+
+        ## a restart [ ctrl-r ] : the previous process wrote the unlocked ##
+        ## key into a pipe it kept open across exec -- no passphrase. the ##
+        ## test signature below still proves it is the key of this public ##
+        ## half. the gate ran before the exec [ restart_files_check ]     ##
+        secret_wipe( \$priv_dec );
+        open( my $key_fh, '<&=', $key_fd )
+            or die "p7-sign-agent : -key-fd $key_fd : $OS_ERROR\n";
+        binmode $key_fh;
+        my $handed = '';
+        read( $key_fh, $handed, 65 );
+        close $key_fh;
+        die "p7-sign-agent : -key-fd : no key handed over\n"
+            if length $handed != 64;
+        $key_private = $handed;
+        secret_wipe( \$handed );
+    } elsif ( not $encrypted ) {
         $key_private = $priv_dec;
     } else {
         my $pass = passphrase_prompt(
@@ -439,6 +476,32 @@ sub slurp_file {
     my $data = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> };
     close $fh;
     return $data;
+}
+
+## a file's footer signature by THIS agent's key : the footer BMW over the
+## stripped body, then Ed25519 over the signed buffer [ header line, '#', BMW,
+## newline, the template's "#\\\|" -- source.fill_source_template ]
+sub file_signature_valid {
+    my $file = shift;
+    my $raw  = slurp_file($file) // return FALSE;
+    my ( $header_line, $footer_bmw, $sig_part_0, $sig_part_1 ) = $raw =~ m{
+            (?:\A|\n) (\#[,\.]{70,}\n)
+            \#([0-9A-Z]+)\n
+            \#\\\\\\\x7C([0-9A-Z]+)\x20[^\n]*\n
+            \#\\\[7\]([0-9A-Z]+)\x20[^\n]*\n
+            \#:+\n?\z
+        }x or return FALSE;
+
+    my $body = $raw;
+    strip_signature_footer( \$body );
+    return FALSE if footer_bmw_b32( $body, $header_line ) ne $footer_bmw;
+
+    my $signature = decode_b32r( $sig_part_0 . $sig_part_1 );
+    return FALSE if not defined $signature or length $signature != 64;
+    my $buffer = sprintf "%s#%s\n#\\\\\\|", $header_line, $footer_bmw;
+    return Crypt::Ed25519::verify( $buffer, $key_public, $signature )
+        ? TRUE
+        : FALSE;
 }
 
 ## the approved-content read : a run file's stripped body, derived from the
@@ -789,6 +852,7 @@ sub op_run {
         scalar @unreadable
     ) if @unreadable;
 
+    tty_watch_mode(FALSE);    ## the prompt \ reason line read cooked ##
     my ( $approved, $deny_reason ) = approve_run(
         {   qw| run_id    | => $run_id,
             qw| work_tree | => $work_tree,
@@ -798,6 +862,7 @@ sub op_run {
             qw| peer_uid  | => $peer_uid
         }
     );
+    tty_watch_mode(TRUE);
     ## the reason travels base32 [ line protocol ] ##
     if ( not $approved ) {
         my @reason
@@ -1014,6 +1079,104 @@ sub request_handle {
     return;
 }
 
+##[ restart : ctrl-r ]########################################################
+
+## the agent's terminal while idle : single keys, no echo [ ctrl-r ]. the
+## approval prompt [ its reason line ] and every way out get cooked mode back
+sub tty_watch_open {
+    open( $tty_watch, '<', qw| /dev/tty | ) or return undef $tty_watch;
+    $tty_termios = POSIX::Termios->new;
+    if ( not $tty_termios->getattr( fileno $tty_watch ) ) {
+        close $tty_watch;
+        return undef $tty_watch;
+    }
+    $tty_lflag_saved = $tty_termios->getlflag;
+    return tty_watch_mode(TRUE);
+}
+
+sub tty_watch_mode {
+    my $single_keys = shift;
+    return if not defined $tty_watch or not defined $tty_lflag_saved;
+    $tty_termios->setlflag(
+          $single_keys
+        ? $tty_lflag_saved & ~( POSIX::ICANON() | POSIX::ECHO() )
+        : $tty_lflag_saved
+    );
+    $tty_termios->setcc( POSIX::VMIN(),  1 );
+    $tty_termios->setcc( POSIX::VTIME(), 0 );
+    $tty_termios->setattr( fileno $tty_watch, POSIX::TCSANOW() );
+    return TRUE;
+}
+
+## the gate : the new process gets the unlocked key WITHOUT a passphrase, so
+## every repo file it will load must carry a valid signature by THIS key --
+## the agent itself and its modules under data/lib-path/pm. returns the files
+## that fail [ empty : the restart may go ]
+sub restart_files_check {
+    my $lib_root
+        = Cwd::abs_path( sprintf qw| %s/../data/lib-path/pm |, $FindBin::Bin )
+        // '';
+    my %files = ( $script_path => TRUE );
+    foreach my $loaded ( values %INC ) {
+        my $abs = Cwd::abs_path($loaded) // next;
+        $files{$abs} = TRUE
+            if length $lib_root and index( $abs, "$lib_root/", 0 ) == 0;
+    }
+    return grep { not file_signature_valid($ARG) } sort keys %files;
+}
+
+## exec into the code on disk, same pid and terminal. the key goes through a
+## pipe whose read end survives the exec [ FD_CLOEXEC cleared ] : never argv,
+## environment or a file
+sub restart_agent {
+    my $server = shift;
+
+    if (%run_approved) {
+        out_line('restart refused : a signing run is open');
+        return;
+    }
+    my @failed = restart_files_check();
+    if (@failed) {
+        out_line( 'restart refused : not signed by '
+                . 'this key -- start with the passphrase' );
+        out_line("  $ARG") foreach @failed;
+        return;
+    }
+
+    pipe( my $key_read, my $key_write ) or do {
+        out_line("restart refused : no pipe [ $OS_ERROR ]");
+        return;
+    };
+    my $fd_flags = fcntl( $key_read, F_GETFD, 0 ) // 0;
+    fcntl( $key_read, F_SETFD, $fd_flags & ~FD_CLOEXEC );
+    binmode $key_write;
+    print {$key_write} $key_private;
+    close $key_write;
+
+    run_log_line( qw| agent-restart |, $PID );
+    close $server;
+    unlink $socket_path if -S $socket_path;
+    tty_watch_mode(FALSE);
+    print STDERR "\e[H\e[2J";
+
+    ## the same options, a handed over -key-fd replaced ##
+    my @argv_kept;
+    for ( my $i = 0; $i < @argv_original; $i++ ) {
+        if ( $argv_original[$i] =~ m|^--?key-fd$| ) { $i++; next }
+        next if $argv_original[$i] =~ m|^--?key-fd=|;
+        push @argv_kept, $argv_original[$i];
+    }
+    exec(
+        $EXECUTABLE_NAME, $script_path, @argv_kept,
+        qw| -key-fd |,    fileno $key_read
+        )
+        or do {    ## exec failed : nothing is served any more ##
+        out_line("restart failed : $OS_ERROR");
+        cleanup_exit(1);
+        };
+    return;
+}
+
 ##[ main ]####################################################################
 
 key_load();
@@ -1021,28 +1184,46 @@ run_log_open();
 my $server = socket_set_up();
 
 idle_show();
-run_log_line( qw| agent-start |, $PID, encode_b32r($key_public) );
+run_log_line(
+    qw| agent-start |,
+    $PID,
+    encode_b32r($key_public),
+    defined $key_fd ? qw| restarted | : ()
+);
 
-while ( my $client = $server->accept() ) {
+## the agent's own terminal : single keys while idle [ ctrl-r restarts ] ##
+tty_watch_open();
+
+my $select = IO::Select->new($server);
+$select->add($tty_watch) if defined $tty_watch;
+
+while (TRUE) {
+    my @ready = $select->can_read(13);
     runs_expire();
-    my ( $peer_pid, $peer_uid ) = peer_uid_check($client);
-    if ( not defined $peer_pid ) {
-        print {$client} "NO peer refused\n";
+    foreach my $ready_fh (@ready) {
+        if ( defined $tty_watch and $ready_fh == $tty_watch ) {
+            my $got = sysread( $tty_watch, my $key, 1 );
+            cleanup_exit(0)        if not $got;   ## the terminal went away ##
+            restart_agent($server) if $key eq "\x12";    ## ctrl-r ##
+            next;
+        }
+        my $client = $server->accept() // next;
+        my ( $peer_pid, $peer_uid ) = peer_uid_check($client);
+        if ( not defined $peer_pid ) {
+            print {$client} "NO peer refused\n";
+            close $client;
+            next;
+        }
+        request_handle( $client, $peer_pid, $peer_uid );
         close $client;
-        next;
     }
-    request_handle( $client, $peer_pid, $peer_uid );
-    close $client;
 }
-
-## server socket closed : end every open run with its signed end ##
-cleanup_exit(0);
 
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,.,,,.,,.,.,,,.,...,,.,,.,,,,.,,,,.,,,,,.,,,..,,...,.,.,..,,.,,,..,,,..,.,.,
-#56R7L4QXCGF6GK4GQZ55SCNVCWMCSRDEZDHLISIYGZNOFRPLMILK2M33ZN7VRXFOWIWZUHZ3LP54Q
-#\\\|BRY4Q7POTZ3ZZDE22P4PKFANNMP7TYBEP6E2YUGIYKI5B7AZVI3 \ / AMOS7 \ YOURUM ::
-#\[7]Z2EXTJPX4LRPYDNHFCCVEC2LSZQMYFKC7I633CEVRAILVZN4QKBY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,,,.,,,,,,,,,,,,,,,.,.,,,,.,,..,,...,...,...,.,,,...,,,.,.,.,
+#DEIW2XOO4EFT26BD2GX3ZDDIKYZWVDNAACXFHHJLBUUZXKJO4VRQYBRPAXEL7QGT63UN5EE4YPRTA
+#\\\|R6U5DHF7EHPM63UFP7C6Z22XJWB32YNMJLRZZWVOCXLME57755J \ / AMOS7 \ YOURUM ::
+#\[7]SB6GQNZQ5Z2FATFH76NK4VD4VNBNFOFIKPU3OQ4454EIF2MH34DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
