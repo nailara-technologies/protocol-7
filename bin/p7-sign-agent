@@ -1105,6 +1105,9 @@ sub tty_watch_mode {
     $tty_termios->setcc( POSIX::VMIN(),  1 );
     $tty_termios->setcc( POSIX::VTIME(), 0 );
     $tty_termios->setattr( fileno $tty_watch, POSIX::TCSANOW() );
+    ## the cursor only where input is typed : hidden while idle and while the
+    ## progress runs, back for the prompt, every exit and the restart
+    print STDERR $single_keys ? "\e[?25l" : "\e[?25h";
     return TRUE;
 }
 
@@ -1304,8 +1307,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,.,,,,,..,,.,,,.,,,...,,,,,,,,,...,.,,,,.,,..,,...,...,,,,,.,.,.,.,.,.,..,,
-#GWOYOQUL2EX5TISXI6T3DQBBAMK42Z6TCUVZL4ASRNN3IOIW7KZKCH4DIGUIFPLRL52R2KX6WGXTE
-#\\\|Q27XPOF6O3DAJONA7KT5YAW2JHIICD6XWBJ3WS54TUU65MLNAIQ \ / AMOS7 \ YOURUM ::
-#\[7]D2VAVAQGLAUVCZW5SVIB6FX57QN7VN5LBODONV3KTSVWSSBMWEAA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,,,.,,..,,,.,.,.,,.,,.,,,,,.,..,,...,...,,.,,,..,,..,,,.,,,,,
+#FZCZXPMGY7XT4YVMSWCIB4TTYZI6AF477CBTR7SUXE6IB7BFZOOMDFHNBOM2L2TFXSZQOCTPTSKE2
+#\\\|WWIOSHKKPH5QTSLQRV7GK7PBZ6QPYWAEWRGI52RAY64WBFZIFKF \ / AMOS7 \ YOURUM ::
+#\[7]HXDZEBVMJLLQIYSRXSAHJY77LD3MNO5U6RKHCJW56VESHAGJRIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
