@@ -18,24 +18,31 @@ use warnings;
 ## every way out.
 ##
 ## p7-sign-agent [ --key <name> ] [ --socket <path> ] [ --key-dir <dir> ]
-## [ --run-dir <dir> ]
+## [ --run-dir <dir> ] [ --test-stdin-approval ]
 ##
 ## standalone on purpose : needs perl, CryptX, Digest::BMW and the AMOS7
 ## modules in data/lib-path/pm [ AMOS7::13 + AMOS7::Twofish for the encrypted
 ## private key, AMOS7::TERM for the hidden passphrase prompt ].  nothing from
-## a running protocol-7.
+## a running protocol-7.  --test-stdin-approval
+## [ or  P7_SIGN_AGENT_TEST_STDIN=1 ] is the ONLY case where the approval
+## prompt may fall back to stdin -- tests, never production.
 ##
 ## line protocol, one op per connection [ see the design note ] :
 ##   HELLO                         -> OK <proto> <public-b32>
-##   RUN <run> <tree-b32> <count>  -> then 'F <rel-path-b32>' lines + 'GO'
-##                                    -> OK | NO denied
+##   RUN <run> <tree-b32> <count>  -> then 'F <rel-b32> <chk-b32> <len>'
+##                                    lines + 'GO'
+##                                 -> OK | NO denied
 ##   SIGN <run> <rel-b32> <body-chksum-b32> <body-len> <buffer-b32>
 ##                                 -> OK <signature-b32> | NO <reason>
 ##   END <run>                     -> OK <ntime-b32> <end-sig-b32>
 ## relative paths only on the wire -- the agent joins them under the
-## approved work tree and validates every component. the gate is the
-## SO_PEERCRED same-uid check PLUS the per-run approval prompt in this
-## process's own terminal.
+## approved work tree and validates every component. the F line's chksum
+## + length bind the approval to the file CONTENTS [ BMW-512 over the
+## signature-stripped body, the same value get-code-signed computes ]. the
+## agent re-reads every file itself at RUN and again at SIGN and refuses
+## the moment its own checksum disagrees -- an approved PATH alone signs
+## nothing. the gate is the SO_PEERCRED same-uid check PLUS the per-run
+## approval prompt in this process's own terminal.
 
 use FindBin;
 use Getopt::Long ();
@@ -75,10 +82,10 @@ my $SO_PEERCRED = eval { Socket::SO_PEERCRED() } // 17;
 
 my $protocol_name    = qw| p7-sign-agent/1 |;
 my $key_name         = qw| proto-7.sourcecode |;
-my $request_timeout  = 13;      ## seconds : client header + list lines ##
-my $run_idle_seconds = 3600;    ## approved runs expire when idle past this ##
+my $request_timeout  = 13;     ## seconds : client header + list lines ##
+my $run_idle_seconds = 120;    ## approved runs expire when idle past this ##
 
-my $run_base                    ## runtime dir : socket + runs.log ##
+my $run_base                   ## runtime dir : socket + runs.log ##
     = $ENV{'XDG_RUNTIME_DIR'}
     // sprintf( qw| %s/.n/run |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
 my $socket_path = $ENV{'P7_SIGN_AGENT_SOCKET'}
@@ -88,12 +95,21 @@ my $key_dir
     = sprintf( qw| %s/.n/user-keys |,
     $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
 
+my $test_stdin_approval;       ## tests only : --test-stdin-approval ##
+## or P7_SIGN_AGENT_TEST_STDIN=1      ##
+
 Getopt::Long::GetOptions(
-    'key=s'     => \$key_name,
-    'socket=s'  => \$socket_path,
-    'key-dir=s' => \$key_dir,
-    'run-dir=s' => \$run_base,
+    'key=s'               => \$key_name,
+    'socket=s'            => \$socket_path,
+    'key-dir=s'           => \$key_dir,
+    'run-dir=s'           => \$run_base,
+    'test-stdin-approval' => \$test_stdin_approval,
 ) or die "p7-sign-agent : option error\n";
+
+$test_stdin_approval = TRUE
+    if not $test_stdin_approval
+    and defined $ENV{'P7_SIGN_AGENT_TEST_STDIN'}
+    and $ENV{'P7_SIGN_AGENT_TEST_STDIN'} eq '1';
 
 ## unlocked key material [ wiped on every exit path ] ##
 my ( $key_public, $key_private );
@@ -105,10 +121,32 @@ sub out_line {
     return say STDERR sprintf 'p7-sign-agent : %s', join '', @ARG;
 }
 
+## random bytes for the wipe below : the same dual-source pattern as
+## AMOS7::Vault's _random_bytes [ data/lib-path/pm/AMOS7/Vault.pm ] -- kernel
+## entropy first, Crypt::PRNG fallback [ CryptX already required here ]
+sub _random_bytes {
+    my $len = shift;
+    my $buf = '';
+    if ( open( my $fh, '<:raw', qw| /dev/urandom | ) ) {
+        read( $fh, $buf, $len );
+        close $fh;
+    }
+    $buf = Crypt::Misc::random_bytes($len)    ## part of CryptX ##
+        if length $buf != $len;
+    die "p7-sign-agent : no random source\n" if length $buf != $len;
+    return $buf;
+}
+
 sub secret_wipe {
     my $sref = shift;
     return if ref $sref ne qw| SCALAR |;
-    substr( $sref->$*, 0, length $sref->$*, '' );
+    my $len = length $sref->$*;
+    return if not $len;
+    ## in-place same-length random overwrite x2 before truncation [ the
+    ## pattern of AMOS7::Vault::secret_wipe, data/lib-path/pm/AMOS7/Vault.pm ]
+    ## -- plain truncation frees the buffer with the secret bytes intact
+    substr( $sref->$*, 0, $len, _random_bytes($len) ) for 1 .. 2;
+    $sref->$* = '';
     return;
 }
 
@@ -264,12 +302,43 @@ sub strip_signature_footer {
         my $body      = $3 // '';
         return TRUE    ## nothing extractable : treat as unsigned content ##
             if index( $body, $placeholder, 0 ) != -1;
+        my $header_line = $2;
         $str_ref->$* =~ s|$pattern||s;
-        $str_ref->$* .= "\n" if length $separator;    ## separator restore ##
+        if ( length $separator ) {
+            $str_ref->$* .= "\n";    ## separator restore ##
+            endline_state_restore( $str_ref, $header_line );
+        }
         return TRUE;
     }
 
     return TRUE;    ## no footer present : content is the body ##
+}
+
+## the endline state recorded at signing time : octal digit 11 of the footer's
+## first line [ amos7.decode_octal_bit_header : '#,' + 19 'xxx,' groups, ',' =
+## 0 '.' = 1 ], undone the way source.restore_payload_endline_state does
+## [ 7 : 2 added, 5 : untouched, 0 : 4 removed ] -- so the agent's body is the
+## same body the client's strict strip checksums. a header that does not
+## decode leaves the body as it is [ the checksums then disagree : refused ]
+sub endline_state_restore {
+    my $str_ref     = shift;
+    my $header_line = shift // return;
+    return if $header_line !~ m|^#,(?:[,\.]{3},){19}$|;
+    my $digit_bits = substr $header_line, 2 + 4 * 11, 3;
+    $digit_bits =~ tr|,.|01|;
+    my $state = oct qq|0b$digit_bits|;
+    ## 0 : disallowed, decoder errs ##
+    return if $state == 0 or $state == 5;
+    my $delta = $state - 5;
+    if ( $delta > 0 ) {    ## n newlines added at signing : remove n ##
+        my $trailing = $str_ref->$* =~ m{(\n+)$} ? length $1 : 0;
+        ## clamp, as the source ##
+        $delta = $trailing               if $trailing < $delta;
+        $str_ref->$* =~ s|\n{$delta}$||s if $delta > 0;
+    } else {               ## n newlines removed at signing : add n back ##
+        $str_ref->$* .= "\n" x abs $delta;
+    }
+    return;
 }
 
 ##[ checksum helpers ]########################################################
@@ -301,6 +370,23 @@ sub slurp_file {
     my $data = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> };
     close $fh;
     return $data;
+}
+
+## the approved-content read : a run file's stripped body, derived from the
+## AGENT's own disk read [ both at RUN and at SIGN ]. returns a scalar ref or
+## undef when the path is not a readable regular file
+sub run_file_body {
+    my $run = shift;
+    my $rel = shift;
+    my $full_path
+        = File::Spec->catfile( $run->{'work_tree'}, split m|/|, $rel );
+    my @st = lstat $full_path;
+    return undef if not @st or not S_ISREG( $st[2] );
+    my $raw = slurp_file($full_path);
+    return undef if not defined $raw;
+    my $body = $raw;
+    strip_signature_footer( \$body );
+    return \$body;
 }
 
 ##[ run log + signed end ]####################################################
@@ -358,7 +444,10 @@ sub runs_expire {
 ## [ menu click, PIN, sized delegations, todo B2K ] replace this function
 ## behind the same name and leave everything else untouched
 sub approve_run {
-    my $info = shift;    ## { run_id, work_tree, count, paths, peer_pid } ##
+    my $info = shift;    ## { run_id, work_tree, count, entries, peer_pid } ##
+    ## entries : aref of { path, chksum, length } -- the chksum prefix is ##
+    ## shown next to each path so the approving eye binds to content, not ##
+    ## just to a list of names [ todo HX4 follow-up ]                     ##
 
     print STDERR "\n";
     print STDERR ".:[ p7-sign-agent : signing request ]:.\n";
@@ -370,8 +459,10 @@ sub approve_run {
         $info->{'peer_pid'}, $info->{'peer_uid'};
     print STDERR ":.\n";
 
-    foreach my $path ( sort $info->{'paths'}->@* ) {
-        print STDERR sprintf ":    ./%s\n", $path;
+    foreach my $entry ( sort { $a->{'path'} cmp $b->{'path'} }
+        $info->{'entries'}->@* ) {
+        print STDERR sprintf ":    ./%s  %s\n", $entry->{'path'},
+            substr( $entry->{'chksum'}, 0, 13 );
     }
     print STDERR ":.\n";
     print STDERR sprintf ': sign these %d files ? [y/n] : ', $info->{'count'};
@@ -380,8 +471,11 @@ sub approve_run {
     if ( open( my $tty, qw| < |, qw| /dev/tty | ) ) {
         $answer = <$tty>;
         close $tty;
-    } else {    ## no controlling terminal [ tests ] : stdin ##
-        $answer = <STDIN>;
+    } elsif ($test_stdin_approval) {
+        $answer = <STDIN>;    ## test flag only -- never in production ##
+    } else {
+        out_line('approval refused : no controlling terminal');
+        return FALSE;
     }
     return FALSE if not defined $answer;
     chomp $answer;
@@ -450,7 +544,8 @@ sub respond_ok {
 
 sub respond_no {
     my $client = shift;
-    my $reason = shift // qw| refused |;
+    my $reason = join q| |, @ARG;
+    $reason = qw| refused | if not length $reason;
     $reason =~ s|\s|_|g;
     print {$client} "NO $reason\n";
     return FALSE;
@@ -502,31 +597,63 @@ sub op_run {
         or index( $work_tree, "\0" ) != -1
         or not -d $work_tree;
 
-    my @paths;
+    my @entries;
     foreach my $n ( 1 .. $count ) {
         my $f_line = read_line_alarm( $client, $request_timeout );
         return respond_no( $client, qw| file list truncated | )
             if not defined $f_line;
         chomp $f_line;
-        my ( $tag, $path_b32 ) = split m| |, $f_line, 2;
+        my ( $tag, $path_b32, $chk_b32, $len ) = split m| |, $f_line, 4;
         return respond_no( $client, qw| file list format | )
             if ( $tag // '' ) ne qw| F |
-            or not b32_field_valid($path_b32);
+            or not b32_field_valid($path_b32)
+            or not b32_field_valid($chk_b32)
+            or not defined $len
+            or $len !~ m|^\d+$|;
         my $rel = decode_b32r($path_b32);
         return respond_no( $client, qw| file list path | )
             if not rel_path_valid($rel);
-        push @paths, $rel;
+        push @entries,
+            {
+            qw| path |   => $rel,
+            qw| chksum | => $chk_b32,
+            qw| length | => $len + 0
+            };
     }
 
     my $go_line = read_line_alarm( $client, $request_timeout );
     return respond_no( $client, qw| file list go | )
         if not defined $go_line or $go_line ne "GO\n";
 
+    ## content binding : read every file NOW, derive the stripped body from ##
+    ## the agent's own disk read and compare against the client's chksum +  ##
+    ## len -- approval binds to CONTENT, so a file that changed between the ##
+    ## client's read and this prompt never enters the run [ todo HX4 ]      ##
+    my $probe_run = { qw| work_tree | => $work_tree };
+    my ( @mismatch, @unreadable );
+    foreach my $entry (@entries) {
+        my $body = run_file_body( $probe_run, $entry->{'path'} );
+        if ( not defined $body ) {
+            push @unreadable, $entry->{'path'};
+        } elsif ( length $body->$* != $entry->{'length'}
+            or bmw_b32( 512, $body->$* ) ne $entry->{'chksum'} ) {
+            push @mismatch, $entry->{'path'};
+        }
+    }
+    return respond_no( $client, sprintf 'content changed %d',
+        scalar @mismatch )
+        if @mismatch;
+    return respond_no(
+        $client,
+        sprintf 'content unreadable %d',
+        scalar @unreadable
+    ) if @unreadable;
+
     my $approved = approve_run(
         {   qw| run_id    | => $run_id,
             qw| work_tree | => $work_tree,
-            qw| count     | => scalar @paths,
-            qw| paths     | => \@paths,
+            qw| count     | => scalar @entries,
+            qw| entries   | => \@entries,
             qw| peer_pid  | => $peer_pid,
             qw| peer_uid  | => $peer_uid
         }
@@ -535,15 +662,25 @@ sub op_run {
 
     $run_approved{$run_id} = {
         qw| work_tree | => $work_tree,
-        qw| paths     | => { map { $ARG => TRUE } @paths },
+        qw| paths     | => {
+            map {
+                $ARG->{'path'} => {
+                    qw| chksum | => $ARG->{'chksum'},
+                    qw| length | => $ARG->{'length'}
+                }
+            } @entries
+        },
         qw| last      | => Time::HiRes::time(),
         qw| peer_pid  | => $peer_pid,
     };
-    my $list_chksum = bmw_b32( 512, join( "\n", sort @paths ) );
-    run_log_line(
-        qw| begin |, $run_id, scalar @paths, $list_chksum,
-        qw| pid |,   $peer_pid
+    my $list_chksum = bmw_b32(
+        512,
+        join( "\n",
+            map  { sprintf '%s %s', $ARG->{'path'}, $ARG->{'chksum'} }
+            sort { $a->{'path'} cmp $b->{'path'} } @entries )
     );
+    run_log_line( qw| begin |, $run_id, scalar @entries,
+        $list_chksum, qw| pid |, $peer_pid );
     return respond_ok($client);
 }
 
@@ -563,26 +700,33 @@ sub op_sign {
     my $run = $run_approved{$run_id};
     return respond_no( $client, qw| unknown run | ) if not defined $run;
 
+    ## the run dies with its requester : the pid approved at RUN is gone --
+    ## close the run. cheap [ one kill 0 ] and safe enough : a same-uid peer
+    ## only, ESRCH means truly gone, and a recycled pid number merely keeps
+    ## the window open for the short idle budget instead of closing early
+    if ( defined $run->{'peer_pid'} and not kill 0, $run->{'peer_pid'} ) {
+        run_close( $run_id, qw| requester gone | );
+        return respond_no( $client, qw| run closed | );
+    }
+
     my $rel = decode_b32r($path_b32);
     return respond_no( $client, qw| path | )
         if not rel_path_valid($rel);
+    my $approved = $run->{'paths'}{$rel};
     return respond_no( $client, qw| path not in run | )
-        if not exists $run->{'paths'}{$rel};
+        if not defined $approved;
 
-    my $full_path
-        = File::Spec->catfile( $run->{'work_tree'}, split m|/|, $rel );
-    my @st = lstat $full_path;
+    my $body_ref = run_file_body( $run, $rel );
     return respond_no( $client, qw| not a regular file | )
-        if not @st
-        or not S_ISREG( $st[2] );
+        if not defined $body_ref;
+    my $body = $body_ref->$*;
 
-    my $raw = slurp_file($full_path);
-    return respond_no( $client, qw| read failed | )
-        if not defined $raw;
-
-    ## re-derive the body from the agent's own disk read [ sign time ] ##
-    my $body = $raw;
-    strip_signature_footer( \$body );
+    ## approved-content binding : the disk body must still match what RUN   ##
+    ## approved -- not only what this request claims [ todo HX4 follow-up ] ##
+    return respond_no( $client, qw| content changed | )
+        if length $body != $approved->{'length'};
+    return respond_no( $client, qw| content changed | )
+        if bmw_b32( 512, $body ) ne $approved->{'chksum'};
 
     ## request binding : the requester's checksum of the unsigned content ##
     return respond_no( $client, qw| content changed | )
@@ -595,8 +739,12 @@ sub op_sign {
     my $buffer = decode_b32r($buffer_b32);
     return respond_no( $client, qw| buffer format | )
         if not defined $buffer;
+    ## the 5 tail bytes are fill_source_template's constant
+    ## sig_template_prefix = substr( sign_template, 158, 5 ) -- the real
+    ## template's "\n#\\\\\\" [ newline, '#', three backslashes ], so they are
+    ## constrained to exactly that shape instead of any 5 bytes
     my ( $header_line, $footer_bmw, undef )
-        = $buffer =~ m|^(\#[,\.]+\n)\#([0-9A-Z]+)\n(.{5})\z|s;
+        = $buffer =~ m|^(\#[,\.]+\n)\#([0-9A-Z]+)\n(\n\#\\\\\\)\z|s;
     return respond_no( $client, qw| buffer format | )
         if not defined $header_line;
     return respond_no( $client, qw| binding mismatch | )
@@ -692,8 +840,8 @@ cleanup_exit(0);
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,.,,,..,...,..,,.,,,,,.,...,,..,,,.,.,.,,,,,..,,...,...,.,,,,,.,...,..,,.,,,
-#QVTOW3K6Z2LBPKEK7WGNSNDG2DKOCGX63CLR4LQ5ROHOPCCVLGJJZVI4CWFURLQGBYCVRE4JKLF7I
-#\\\|FXEA5AQC74BAM33NQ27T2HT7RYV5XM2OZBTMOFY2BVL7I62BAH5 \ / AMOS7 \ YOURUM ::
-#\[7]ODS45DOZABFOGAFPBJBZDNPJTE3COZW7UIWWU4FA3DNFLTMEKWAA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,.,.,...,,,.,,.,,,..,,,.,,,,,..,,...,...,..,,,,.,,,,,,.,,.,,,
+#BUGCRWTYTJD6BKNUYGIPZH56KKLLBZYYJBYO3KDSTAVQDZQQNEWYYMKPSSWXCBTQPNNZDMDJXWXHW
+#\\\|V2W55QGJQX2OPHZO5BGVB7P23DUUKSA5HLSWDI3HEILTAEMZBVA \ / AMOS7 \ YOURUM ::
+#\[7]A3LOQNHDYIDTUBCEDN3V5OKRI3ZJCT4BQSDBWXF7JJHPGEJ4TSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
