@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = thermal.feed.register
+# descr = register a shared gpu temperature stream consumer
+
+my ( $reply, $store, $on_sample ) = @ARG;
+
+return FALSE if $reply->{'cmd'} eq qw| FALSE |;
+
+## only process STRM open ##
+return FALSE if $reply->{'cmd'} ne qw| STRM |;
+return FALSE if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return FALSE if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+## the caller owns the node [ <task.stats.gpu.temp> .. ] : a hash created ##
+## here would be a private copy the gate never reads                      ##
+return FALSE if ref $store ne qw| HASH |;
+$store->{'sparkline_buf'} //= [];
+$store->{$ARG} //= undef for qw| load_1s load_5s updated_at |;
+
+<[strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split m|\n|, $data ) {
+                next if not length $line;
+                my ( $temp_1s, $avg_5s ) = split m| +|, $line;
+
+                $store->{'load_1s'} = 0 + $temp_1s;
+                $store->{'load_5s'} = defined $avg_5s ? 0 + $avg_5s : undef;
+                $store->{'updated_at'} = <[base.ntime]>;
+
+                my $buf = $store->{'sparkline_buf'};
+                push @$buf, 0 + $temp_1s;
+                shift @$buf while @$buf > 20;
+
+                $on_sample->( $temp_1s, $avg_5s ) if defined $on_sample;
+            }
+
+            <[base.logs]>->(
+                3,
+                'gpu temp updated: %s C%s',
+                $store->{'load_1s'} // 'undef',
+                defined $store->{'load_5s'}
+                ? sprintf( ' [5s avg: %s C]', $store->{'load_5s'} )
+                : ''
+            );
+        },
+    }
+);
+
+return TRUE;
+
+#,,.,,...,.,,,,,,,...,...,,,,,...,..,,.,,,...,..,,...,...,...,...,,,,,,,.,,..,
+#FUXQBO3YOUS4EWRC2B5N3S5EY6ULDDWUC34ECRLOI4RGWYBFMG3JF3NLISKKSJM377HRCWOIA4O7S
+#\\\|MOQ2AJYNK4KEJSFK4DI72JIZER6IWS7MFKQG3HLLVOW57PF76UP \ / AMOS7 \ YOURUM ::
+#\[7]YV6LGQXRAT7NZSXV5OKIQTKGGXSJFFJAY76BBDKDQB63QXIKZACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

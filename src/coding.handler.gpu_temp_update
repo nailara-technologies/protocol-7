@@ -1,11 +1,11 @@
 ## [:< ##
 
 # name  = coding.handler.gpu_temp_update
-# descr = handle GPU temperature STRM subscription and consume stream data
+# descr = handle gpu temperature subscription replies
 
 my $reply = shift;
 
-## handle FALSE reply (X-11 unavailable or stats not ready) ##
+## handle FALSE reply [ X-11 unavailable or stats not ready ] ##
 if ( $reply->{'cmd'} eq qw| FALSE | ) {
     <[base.logs]>->(
         2,
@@ -15,97 +15,54 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     return;
 }
 
-## only process STRM open ##
-return if $reply->{'cmd'} ne qw| STRM |;
-return if $reply->{'args'} ne qw| open |;
+<coding.stats.gpu.temp> //= {};
+return
+    unless <[thermal.feed.register]>->(
+    $reply,
+    <coding.stats.gpu.temp>,
+    sub {
+        my ( $temp_1s, $avg_5s ) = @ARG;
 
-my $cmd_id = $reply->{'cmd_id'};
-return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+        ## adaptive timeout stretch : same continuous                      ##
+        ## proportional-feedback shape as                                  ##
+        ## web-browser.handler.gpu_load_reply's slowdown_target --         ##
+        ## asymmetric acceleration                                         ##
+        ## [ ramps up fast when over target, relaxes slowly when cooling ] ##
+        ## + a dead-band so small fluctuations don't cause constant tiny   ##
+        ## adjustments.                                                    ##
+        <coding.cfg.gpu_target_temp_c>  //= 80;
+        <coding.stretch.timeout_factor> //= 1.0;
 
-## initialize gpu temp namespace ##
-<coding.stats.gpu.temp> //= {
-    'load_1s'       => undef,
-    'load_5s'       => undef,
-    'sparkline_buf' => [],
-    'updated_at'    => undef,
-};
+        my $target   = <coding.cfg.gpu_target_temp_c>;
+        my $exceeded = $temp_1s - $target;
+        my $factor   = <coding.stretch.timeout_factor>;
 
-## register local consumer ##
-<[strm.local.register]>->(
-    $cmd_id,
-    {   'watcher' => sub {
-            my $lc = shift;
-            return if not length $lc->{'buf'};
+        ## ramp up fast when over target, relax slowly when under ##
+        my $accel     = $exceeded > 0 ? 0.08 : 0.03;
+        my $upper_tol = 0.5;
+        my $lower_tol = 1.5;
 
-            my $data = $lc->{'buf'};
-            $lc->{'buf'} = '';
+        my $skip = (
+                   $exceeded <= 0 and abs($exceeded) < $lower_tol
+                or $exceeded > 0  and abs($exceeded) < $upper_tol
+        ) ? 1 : 0;
 
-            for my $line ( split m|\n|, $data ) {
-                next if not length $line;
-                my ( $temp_1s, $avg_5s ) = split m| +|, $line;
-
-                <coding.stats.gpu.temp.load_1s> = 0 + $temp_1s;
-                <coding.stats.gpu.temp.load_5s>
-                    = defined $avg_5s ? 0 + $avg_5s : undef;
-                <coding.stats.gpu.temp.updated_at> = <[base.ntime]>;
-
-                ## adaptive timeout stretch : same continuous              ##
-                ## proportional-feedback shape as                          ##
-                ## web-browser.handler.gpu_load_reply's slowdown_target -- ##
-                ## asymmetric acceleration [ ramps up fast when over       ##
-                ## target, relaxes slowly when cooling ] + a dead-band so  ##
-                ## small fluctuations don't cause constant tiny            ##
-                ## adjustments. Piggybacks on this existing STRM consumer  ##
-                ## as the trigger point -- no push/relay needed [ unlike   ##
-                ## web-browser/ticker's slow_down command, coding already  ##
-                ## has the temp subscription feed locally ]                ##
-                <coding.cfg.gpu_target_temp_c>  //= 80;
-                <coding.stretch.timeout_factor> //= 1.0;
-
-                my $target   = <coding.cfg.gpu_target_temp_c>;
-                my $exceeded = $temp_1s - $target;
-                my $factor   = <coding.stretch.timeout_factor>;
-
-                ## ramp up fast when over target, relax slowly when under ##
-                my $accel     = $exceeded > 0 ? 0.08 : 0.03;
-                my $upper_tol = 0.5;
-                my $lower_tol = 1.5;
-
-                my $skip = (
-                           $exceeded <= 0 and abs($exceeded) < $lower_tol
-                        or $exceeded > 0  and abs($exceeded) < $upper_tol
-                ) ? 1 : 0;
-
-                if ( !$skip ) {
-                    $factor = sprintf( '%.3f', $factor + $exceeded * $accel );
-                    $factor = 3.0 if $factor > 3.0;
-                    $factor = 1.0 if $factor < 1.0;
-                    <coding.stretch.timeout_factor> = $factor;
-                }
-
-                my $buf = <coding.stats.gpu.temp.sparkline_buf>;
-                push @$buf, 0 + $temp_1s;
-                shift @$buf while @$buf > 20;
-            }
-
-            <[base.logs]>->(
-                3,
-                'gpu temp updated: %s C%s',
-                <coding.stats.gpu.temp.load_1s> // 'undef',
-                defined <coding.stats.gpu.temp.load_5s>
-                ? sprintf( ' [5s avg: %s C]',
-                    <coding.stats.gpu.temp.load_5s> )
-                : ''
-            );
-        },
+        if ( !$skip ) {
+            $factor = sprintf( '%.3f', $factor + $exceeded * $accel );
+            $factor = 3.0 if $factor > 3.0;
+            $factor = 1.0 if $factor < 1.0;
+            <coding.stretch.timeout_factor> = $factor;
+        }
     }
+    );
+
+<[base.logs]>->(
+    2, 'gpu temp STRM consumer registered [cmd_id=%d]',
+    $reply->{'cmd_id'}
 );
 
-<[base.logs]>
-    ->( 2, 'gpu temp STRM consumer registered [cmd_id=%d]', $cmd_id );
-
-#,,,.,.,.,,,.,,,,,,..,..,,...,,..,.,,,,.,,..,,..,,...,...,..,,,,.,.,.,,,.,,,.,
-#H5NXXD5UTGQS7BDWQS5265QFMQA5GWTIEMTKB2PFLOURKZHCQRQJG3OKZBFLUBD5OLB3H3LTNHRQU
-#\\\|IL4A4GLAUW73N2K4BYAEZEDDNRNDWUNE7K34W3OLEPR7NM57M62 \ / AMOS7 \ YOURUM ::
-#\[7]7SIIRLQ5L2PFMNKJI6EZYFWZWLDTPROSSSMBA4BLLB266LSCHWBI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,,.,,,,,,,,.,.,.,,..,.,,,..,,..,,...,...,..,,.,,,,..,.,,,..,,
+#FSXGV4EVL3AQ6RCLJ6VMWTQYB6RSP3O4FYKM5YUGIZYSI4GHKR2JONP6CVVY7KG4KQFUB6R5GJW6S
+#\\\|ALFOZTW3Z3AHD7TJCXV5O45CQCG5T52KPU3FQX2GKPU3ZJXDNLZ \ / AMOS7 \ YOURUM ::
+#\[7]ELSUXPDETPFJUD4DDHAPR6YS5YDGLIROBCE4MPJHCWV3E7AQI4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
