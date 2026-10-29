@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = thermal.outdoor.amp
+# descr = calculate the night offset amplifier from outdoor cold
+
+my ( $temp_out, $at, $now ) = @ARG;
+
+return 1.0
+    if not <[base.cfg_bool]>->( <thermal.cfg.outdoor.enabled> // qw| yes | )
+    or not defined $temp_out
+    or not defined $at
+    or $now - $at > ( <thermal.cfg.outdoor.max_age> // 3600 );
+
+my $amp = 1 + ( ( <thermal.cfg.outdoor.t_ref> // 15.0 ) - $temp_out )
+    * ( <thermal.cfg.outdoor.k> // 0.04 );
+return 1.0 if $amp < 1.0;
+
+my $max = <thermal.cfg.outdoor.max> // 1.5;
+return $max if $amp > $max;
+return $amp;
+
+#,,.,,,,.,,.,,...,,.,,,.,,.,,,,..,,,.,,,,,,..,..,,...,..,,..,,.,.,,.,,...,.,.,
+#DGMRKL3OPQ753FH2S5A7T5VFVSSKWUPYMYZHLORB5P3B3RNYC7WCGZY6TA3CKCV7VC4OPB6O7XGWE
+#\\\|44C42EWCOJXBDL7OWYAHZF5DKSO5XS373ODOZ4LLY4UFTM22TRC \ / AMOS7 \ YOURUM ::
+#\[7]L7TUDUPUDDFV3WUOLSYSVULTSYG37KQCE7ALEP5XQJAWFBFWTSAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

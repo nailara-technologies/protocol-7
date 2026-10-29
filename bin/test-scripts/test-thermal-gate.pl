@@ -53,8 +53,13 @@ sub compile_module {
     return $cref;
 }
 
+compile_module('thermal.window.in_range');
 compile_module('thermal.window.current');
+compile_module('thermal.window.tariff');
 compile_module('thermal.window.weight');
+compile_module('thermal.outdoor.poll');
+compile_module('thermal.handler.outdoor-reply');
+compile_module('thermal.outdoor.amp');
 compile_module('thermal.gate.sample');
 compile_module('thermal.gate.decide');
 compile_module('thermal.mem.read');
@@ -67,6 +72,12 @@ compile_module('thermal.override.set');
 compile_module('thermal.override.active');
 compile_module('thermal.verdict');
 compile_module('thermal.init_code');
+
+$code{'base.cfg_bool'} = sub {
+    my $value = shift // FALSE;
+    return FALSE if $value =~ m{^(0|no?|false|off)$}i;
+    return TRUE;
+};
 
 sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
@@ -500,6 +511,144 @@ ok( !defined $code{'thermal.override.active'}
     'window switch clears and expires the override'
 );
 
+say ': 17. outdoor replies store only numeric temperatures';
+my ( $reply_ok, $reply_text, $reply_why, $log_count ) = ( TRUE, '', '', 0 );
+$code{'base.reply.value'} = sub {
+    return ( $reply_ok, $reply_text, $reply_why );
+};
+$code{'base.logs'} = sub { $log_count++; return TRUE };
+$code{'base.time'} = sub { return 12345 };
+my $outdoor_reply = sub {
+    return $code{'thermal.handler.outdoor-reply'}->( {} );
+};
+$reply_text = "6.36\x{B0}C";
+ok( $outdoor_reply->() == TRUE
+        && $data{'thermal'}{'outdoor'}{'temp'} == 6.36
+        && $data{'thermal'}{'outdoor'}{'at'} == 12345,
+    'character degree reply stores temperature and timestamp'
+);
+$reply_text = "6.36\xC2\xB0C";
+ok( $outdoor_reply->() == TRUE && $data{'thermal'}{'outdoor'}{'temp'} == 6.36,
+    'utf-8 octet degree reply stores the same temperature'
+);
+$reply_text = 'n|a';
+ok( $outdoor_reply->() == FALSE
+        && $data{'thermal'}{'outdoor'}{'temp'} == 6.36
+        && $log_count == 1,
+    'unparsable reply logs once and preserves the old value'
+);
+( $reply_ok, $reply_text, $reply_why ) = ( FALSE, undef, qw| route failed | );
+ok( $outdoor_reply->() == FALSE
+        && $data{'thermal'}{'outdoor'}{'temp'} == 6.36
+        && $log_count == 2,
+    'false reply logs once and preserves the old value'
+);
+$code{'base.cfg_bool'} = sub {
+    my $value = shift // FALSE;
+    return FALSE if $value =~ m{^(0|no?|false|off)$}i;
+    return TRUE;
+};
+
+say ': 18. outdoor amplifier handles cold stale and disabled data';
+my $outdoor_amp = sub {
+    return $code{'thermal.outdoor.amp'}->(@ARG);
+};
+ok( $outdoor_amp->( 15, 1000, 2000 ) == 1,
+    'reference temperature gives no amplification'
+);
+ok( abs( $outdoor_amp->( 7, 1000, 2000 ) - 1.32 ) < 0.000001,
+    'seven degrees gives the proportional amplifier'
+);
+ok( $outdoor_amp->( -5, 1000, 2000 ) == 1.5
+        && $outdoor_amp->( -30, 1000, 2000 ) == 1.5,
+    'extreme cold clamps to the amplifier maximum'
+);
+ok( $outdoor_amp->( 7, 1000, 4601 ) == 1,
+    'stale outdoor data gives no amplification'
+);
+{
+    local $data{'thermal'}{'cfg'}{'outdoor'}{'enabled'} = qw| no |;
+    ok( $outdoor_amp->( -30, 1000, 2000 ) == 1,
+        'disabled outdoor data gives no amplification'
+    );
+}
+
+say ': 19. only relative night offsets are amplified';
+$gate = {
+    'baseline'    => 40,
+    'avg_short'   => 51.9,
+    'avg_long'    => 51.9,
+    'state'       => qw| warm |,
+    'state_since' => 0,
+    'window'      => qw| night |,
+    'amp'         => 1.5,
+};
+ok( $code{'thermal.gate.decide'}->( $gate, 120 ) eq qw| cold |,
+    'amplified night cold offset admits colder temperatures'
+);
+$gate->{'avg_short'} = $gate->{'avg_long'} = 52.1;
+ok( $code{'thermal.gate.decide'}->( $gate, 240 ) eq qw| warm |,
+    'temperature above the amplified cold offset is warm'
+);
+$gate->{'window'}    = qw| day |;
+$gate->{'avg_short'} = $gate->{'avg_long'} = 44.6;
+ok( $code{'thermal.gate.decide'}->( $gate, 360 ) eq qw| warm |,
+    'day offsets remain unamplified' );
+$gate->{'window'}    = qw| night |;
+$gate->{'amp'}       = 2;
+$gate->{'avg_short'} = $gate->{'avg_long'} = 82.9;
+ok( $code{'thermal.gate.decide'}->( $gate, 480 ) ne qw| hot |,
+    'amplified hot mark is clamped below the absolute ceiling'
+);
+$gate->{'avg_short'} = $gate->{'avg_long'} = 83;
+ok( $code{'thermal.gate.decide'}->( $gate, 481 ) eq qw| hot |,
+    'absolute ceiling remains immediate after amplification'
+);
+{
+    local $data{'thermal'}{'cfg'}{'mode'} = qw| absolute |;
+    $gate = {
+        'avg_short'   => 7.9,
+        'avg_long'    => 7.9,
+        'state'       => qw| warm |,
+        'state_since' => 0,
+        'window'      => qw| night |,
+        'amp'         => 2,
+    };
+    ok( $code{'thermal.gate.decide'}->( $gate, 120 ) eq qw| cold |,
+        'absolute night marks remain unamplified' );
+}
+
+say ': 20. tariff ranges and weights preserve existing callers';
+ok( $code{'thermal.window.in_range'}
+        ->( qw| 22:00-06:00 |, $at_time->( 23, 0 ) ) == TRUE
+        && $code{'thermal.window.in_range'}
+        ->( qw| 22:00-06:00 |, $at_time->( 5, 59 ) ) == TRUE
+        && $code{'thermal.window.in_range'}
+        ->( qw| 22:00-06:00 |, $at_time->( 6, 0 ) ) == FALSE,
+    'shared range parser handles midnight boundaries'
+);
+ok( $code{'thermal.window.tariff'}->( $at_time->( 23, 0 ) ) == FALSE,
+    'empty tariff range is disabled' );
+{
+    local $data{'thermal'}{'cfg'}{'window'}{'tariff'} = qw| 22:00-06:00 |;
+    ok( $code{'thermal.window.tariff'}->( $at_time->( 23, 0 ) ) == TRUE,
+        'configured tariff range is active' );
+}
+ok( $code{'thermal.window.weight'}->( qw| day |, TRUE ) == 1
+        && $code{'thermal.window.weight'}->( qw| day |, FALSE ) == 0.25
+        && $code{'thermal.window.weight'}->(qw| night |) == 1,
+    'tariff selects night weight and one argument calls are unchanged'
+);
+ok( $data{'thermal'}{'cfg'}{'window'}{'tariff'} eq ''
+        && $data{'thermal'}{'cfg'}{'outdoor'}{'enabled'} eq qw| yes |
+        && $data{'thermal'}{'cfg'}{'outdoor'}{'t_ref'} == 15
+        && $data{'thermal'}{'cfg'}{'outdoor'}{'k'} == 0.04
+        && $data{'thermal'}{'cfg'}{'outdoor'}{'max'} == 1.5
+        && $data{'thermal'}{'cfg'}{'outdoor'}{'max_age'} == 3600
+        && $data{'thermal'}{'cfg'}{'outdoor'}{'forecast'} eq qw| yes |,
+    'outdoor and tariff defaults match the design'
+);
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -508,8 +657,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,.,.,,..,,..,.,.,...,..,,,,,,,..,,,.,..,,..,,...,..,,,,.,,.,,,,.,,.,,,.,,
-#OK2SYVCNMMK24T5TQ2JDFFYHVYZWGVVVU2QXAZ3O5D6CHGCGIQ3VNZV6F2QTNWZLLD4ISX7VNK5WI
-#\\\|6O3AM4B5PILL5BHBFT6IDR2KHZ723ML5VJ6B7ODSISTZJ3YHYST \ / AMOS7 \ YOURUM ::
-#\[7]UVEH3RHEGLRXOZH676OOVHBSK7JCKAPZKD74UUEOP53MKWR7KYDY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,.,,,,,,,,,,,..,,.,.,,..,.,.,..,,...,..,,.,.,,,,,.,,,...,...,
+#BFHLIRZOR5CVJQLVMBRANJ4RQC5FG4EPRZQ4HWWQ4ZDCDQ6RZV6SZYGDLD4D2HPKTGSPOWYT7OZYK
+#\\\|O4FK7C4IEPIPNKHWRFF4RFCLV5NTEE6RWKDCYBB4COG63HBVQ6O \ / AMOS7 \ YOURUM ::
+#\[7]C3TH3FROCSJ6JGT3GQNSCIKWYTQ2DY74ZRVK2HYFIXXXNAUH5CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

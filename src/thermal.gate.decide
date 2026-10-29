@@ -32,9 +32,17 @@ my $hot_mark
     ? <thermal.cfg.night.hot> // 25.0
     : <thermal.cfg.hot> // 18.0;
 if ( ( <thermal.cfg.mode> // qw| relative | ) eq qw| relative | ) {
+    if ( $window eq qw| night | ) {
+        my $amp = $gate->{'amp'} // <[thermal.outdoor.amp]>->(
+            <thermal.outdoor.temp>, <thermal.outdoor.at>, $now
+        );
+        $cold_mark *= $amp;
+        $hot_mark  *= $amp;
+    }
     $cold_mark += $gate->{'baseline'};
     $hot_mark  += $gate->{'baseline'};
 }
+$hot_mark = $ceiling if $hot_mark > $ceiling;
 
 my $next_state = qw| warm |;
 $next_state = qw| cold | if $temp < $cold_mark;
@@ -52,8 +60,8 @@ if ( not defined $state ) {
 
 return $gate->{'state'};
 
-#,,..,,..,,.,,.,.,.,,,.,,,,.,,,,.,,,,,,,.,,,,,..,,...,...,..,,.,,,,,,,,.,,.,.,
-#XHEOT5DEYCGLMQIPGDLGTZBEFF4HWBRCRNBSHAHFRB6KOVHFYYYUYD67K6NSGIYZWYXKMKOV6ULVI
-#\\\|C2PZH7D5Y2TILMVHTB5WC6OUPX3Z7G5OLRS7USVOT4VRJEJOD2H \ / AMOS7 \ YOURUM ::
-#\[7]ULOIIGOVC36E7CYG3AHWBEKSRTNWJI7WHXMXMW7P7MISMCESWECA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,,..,..,,...,,.,,.,,,...,,,.,..,,...,...,,..,,,,,,..,...,,..,
+#EUSPUB63HVYC3GFA3FS6VWXEUNTWN3I5IKTBTMD3IIQDDVF357WRAVEY4MQMJIYD2ZMAD3PPY3NZQ
+#\\\|4O3B6C2DGYIHLNGPWNJLAIPFKSJFVCVMBQHQMQP6PONWNXPX3U7 \ / AMOS7 \ YOURUM ::
+#\[7]DYR2X4UWQGQZVPGAN5NVMAMJTE3PR5XZE3Z3Q35YR3TTVMBSOQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
