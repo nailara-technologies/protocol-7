@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = jobsite.sync.push_soon
+# descr = schedule a debounced web-cache sync push
+
+return if defined <jobsite.sync.soon_timer>;
+
+<jobsite.sync.soon_timer> = <[event.add_timer]>->(
+    {   'after'   => <jobsite.cfg.sync_soon_delay> // 3,
+        'handler' => 'jobsite.handler.sync-soon',
+    }
+);
+
+#,,.,,,,,,.,,,,..,,..,,,.,,,.,,..,.,,,.,.,,.,,..,,...,..,,,..,..,,,.,,,,,,,..,
+#EQ4BYPD4FXEK44WFVP2D64UCYBN7ZSNBVWKFNODGW4FKTYWGTGGTZYH34AP3ZO7KKJFU4U4GZGPU4
+#\\\|MO6MVZFE57TAEGNL4QJNUDGSNX3M54J3QAVKTCZHGEMH65SPEZZ \ / AMOS7 \ YOURUM ::
+#\[7]ZUWTS4C2BILXLX2FRMUJ4EPNDCEWEFRCHEX3THYAZ24H3UE5VCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

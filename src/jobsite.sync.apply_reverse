@@ -198,8 +198,12 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,.,,,.,,,..,,,,,...,,..,,,,,,..,,.,,,.,,,,,,..,,...,...,,.,,.,,,,,,,,,,,...,
-#DJ6RVVRKMVHHIJQ3DET3ZAZPMAE3CFGIGBNEFJJ7NA4TVLT2ABZYN7LRBN5W7YRYY5PULSEOW72GE
-#\\\|LPHB4PI6ZSGFUT5JN57GLTRQLKOZLZJCM5ZQKC3BGIAIPHTDYR4 \ / AMOS7 \ YOURUM ::
-#\[7]TFN2QMHTIBBJLMRFFLW6GFBGMTVSPX7I6NVEKSVARQE2BOYSYSBQ 7  DATA SIGNATURE ::
+## only when the web sent changes : push_chunk calls this after EVERY push, ##
+## an unconditional push_soon would loop push -> 3 s -> push forever        ##
+<[jobsite.sync.push_soon]> if scalar $entries->@*;
+
+#,,.,,,,.,...,,,,,,,.,,,.,,,,,,.,,,,,,,..,.,,,..,,...,...,.,,,.,.,...,..,,.,,,
+#AREKEX2PWW6TZ3L3LQLGHL6CE7IYY54WNDWPB3A5S4FEKOFFGLIPC4D54U3QRK7KCF23NFFKFZIV2
+#\\\|SNHTTKEV5Q6BT3QELSQR2OWHGSCMCDDOPKC25KD5ZWRYUKY2P4Q \ / AMOS7 \ YOURUM ::
+#\[7]ZKQ5V73PO2DUM2HOPWGQGVNBBZQ4D2YMQ5TXMPABINCV2YCL6QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
