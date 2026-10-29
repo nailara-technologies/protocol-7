@@ -10,15 +10,13 @@ my $call = shift // {};
 ## data alone defaulted every remote reply to 0 and declared the queue  ##
 ## drained 3 s after the import                                         ##
 ## [ 1127 queued on delta, assessment started on a fraction ]           ##
-my ( $mode, $depth ) = <[base.reply.mode_text]>->($call);
-if ( $mode eq qw| false | or $depth !~ m|^\s*(\d+)\s*$| ) {
+my ( $ok, $depth, $why ) = <[base.reply.value]>->( $call, qw| int | );
+if ( not $ok ) {
     <[base.logs]>->(
-        0, ': fetch : unreadable queue depth reply [ %s ] , polling on',
-        $depth
+        0, ': fetch : queue depth unknown [ %s ], polling on', $why
     );
     return;
 }
-$depth = $1;
 
 if ( $depth > 0 ) {
     ## queue has been populated for this scan ##
@@ -66,8 +64,8 @@ for my $category ( sort keys %{$queued_cat} ) {
 
 return;
 
-#,,.,,..,,,,.,,,,,.,,,.,.,,,.,,,,,.,.,..,,.,.,.,.,...,...,.,,,.,,,.,.,.,.,,,,,
-#KL2JACOP2SCM6HSGWRICRGKJDX675HBR6M2JXKXDKWROJPTIXEQSRN2ZVCQ7GQAIPF4WEYJOP6FUG
-#\\\|WZMAGKHPJ2H5RWA6HIKU6KBYINJYGY2BE6Y4C55WMUDENQACD5H \ / AMOS7 \ YOURUM ::
-#\[7]QF2NUXG22DL3NLFIRZYHCE5BOKPOXAXUU26IF5EFTGQBRV4U7UDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,,,,,,,.,...,,,,,,,.,.,.,.,,,.,.,...,...,.,.,.,.,,,.,..,,...,
+#6EJ3DQGFR7466DAXMKGQFNL6AUHUEYW6BQWWCYW6CCL3IK4EMJCIKQDGMBXJEBD5KMFZUTVNIBRCO
+#\\\|RCKAFYIE5HFLHISXQMLIPXJ4ZXB2JGGOSWULTMRSPK3QT2EG5PP \ / AMOS7 \ YOURUM ::
+#\[7]YWISMC634DW57XMP344VUPX7SXGEFQ4ETLRY6YEDXUXVJHXT2MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

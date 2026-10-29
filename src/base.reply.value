@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = base.reply.value
+# descr = read AND check a reply handler's payload : typed value or a reason
+# param = $call [ the reply hash ], $kind [ int | json | text, default text ]
+# return = ( ok [ TRUE \ FALSE ], value, why [ set when not ok ] )
+
+## base.reply.mode_text reads every reply shape ; this adds the check a ##
+## handler used to improvise. never a default : an unreadable or false  ##
+## reply is FALSE + why, so 'unknown' can not pass as a valid answer    ##
+## [ queue-depth-reply read 0 = drained from every remote reply ]       ##
+
+my $call = shift // {};
+my $kind = shift // qw| text |;
+
+my ( $mode, $text ) = <[base.reply.mode_text]>->($call);
+
+return ( FALSE, undef, "reply mode false : $text" ) if $mode eq qw| false |;
+
+if ( $kind eq qw| int | ) {
+    return ( FALSE, undef, "not an integer [ $text ]" )
+        if $text !~ m|^\s*(-?\d+)\s*$|;
+    return ( TRUE, $1 + 0, undef );
+}
+
+if ( $kind eq qw| json | ) {
+    <[base.perlmod.autoload]>->('JSON::XS');
+    my $value = eval { JSON::XS::decode_json($text) };
+    return ( FALSE, undef, 'json decode : ' . <[base.str.eval_error]> )
+        if $EVAL_ERROR or not ref $value;
+    return ( TRUE, $value, undef );
+}
+
+return ( FALSE, undef, "unknown kind '$kind'" ) if $kind ne qw| text |;
+return ( TRUE,  $text, undef );
+
+#,,..,..,,...,.,,,,.,,,.,,...,.,.,,.,,.,,,..,,..,,...,...,..,,,,,,,.,,,,,,,..,
+#KGICJX7Y7FMVOBKMTKMJIMPH32OVQLEREQUGUFGLL74NFRSUPYVVMF5GM5QKISB2RLCUMK7LPMMKW
+#\\\|OKXGGYKTQACEAT4BNO33HL35HTKDSXJBMUFRZOHIK6U2MD6HVCG \ / AMOS7 \ YOURUM ::
+#\[7]NSFGTOUK4EWFDQDJP47OFFQXEVX6O4FR5XMYTLWZAQLMJ4QY46BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
