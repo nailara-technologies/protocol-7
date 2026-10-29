@@ -68,7 +68,7 @@ use Crypt::Misc    qw| encode_b32r decode_b32r |;
 use Digest::BMW    ();
 use AMOS7::13      qw| key_32 |;
 use AMOS7::Twofish ();
-use AMOS7::TERM    qw| read_password_single confirm_key wipe_secret |;
+use AMOS7::TERM    qw| read_password_single confirm_key progress_line wipe_secret |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -126,8 +126,65 @@ my $runs_log_path = sprintf qw| %s/runs.log |, $run_base;
 my $run_log_fh;
 my %run_approved;    ## run id -> { tree, paths, last, peer_pid } ##
 
+##[ terminal display ]########################################################
+
+## the bin/ncode \ format-code palette [ NO_COLOR : plain ] ##
+my %C = (
+    qw|  T  | => "\e[38;2;6;71;195m",     ## bright blue : values ##
+    qw|  0  | => "\e[38;2;68;39;172m",    ## blacklight : frame   ##
+    qw|  1  | => "\e[38;2;38;46;153m",    ## blue : labels        ##
+    qw|  2  | => "\e[38;2;170;94;2m",     ## orange : attention   ##
+    qw|  3  | => "\e[38;2;9;170;94m",     ## green : done         ##
+    qw|  B  | => "\e[1m",
+    qw|  R  | => "\e[0m",
+);
+%C = map { $ARG => '' } keys %C if length( $ENV{'NO_COLOR'} // '' );
+
+my $progress_open = FALSE;    ## a \r progress line waits for its \n ##
+
+sub progress_close {
+    print STDERR "\n" if $progress_open;
+    $progress_open = FALSE;
+    return;
+}
+
 sub out_line {
-    return say STDERR sprintf 'p7-sign-agent : %s', join '', @ARG;
+    progress_close();
+    return say STDERR sprintf '%s: %s%s%s', $C{'0'}, $C{'1'},
+        join( '', @ARG ), $C{'R'};
+}
+
+sub ui_head {
+    my $title = shift;
+    progress_close();
+    return print STDERR sprintf "\n%s.:[ %s%s%s%s%s ]:.%s\n%s:%s\n",
+        $C{'0'}, $C{'T'}, $C{'B'}, $title, $C{'R'}, $C{'0'}, $C{'R'},
+        $C{'0'}, $C{'R'};
+}
+
+sub ui_field {
+    my ( $label, $value, $note ) = @ARG;
+    return printf STDERR "%s:  %s%-10s%s: %s%s%s%s\n", $C{'0'}, $C{'1'},
+        $label, $C{'0'}, $C{'T'}, $value,
+        defined $note
+        ? sprintf( ' %s[ %s%s %s]', $C{'0'}, $C{'1'}, $note, $C{'0'} )
+        : '',
+        $C{'R'};
+}
+
+sub ui_rule { return print STDERR sprintf "%s:%s\n", $C{'0'}, $C{'R'} }
+
+## a run's end on screen : the open progress line closed, then n of m ##
+sub run_summary {
+    my $run    = shift;
+    my $reason = shift;
+    return if ref $run ne qw| HASH |;
+    my $signed = scalar keys $run->{'signed'}->%*;
+    my $total  = $run->{'count'};
+    progress_close();
+    return printf STDERR "%s:\n%s:.[ %s%ssigned %d of %d files%s%s : %s ]:.%s\n",
+        $C{'0'}, $C{'0'}, $signed == $total ? $C{'3'} : $C{'2'},
+        $C{'B'}, $signed, $total, $C{'R'}, $C{'0'}, $reason, $C{'R'};
 }
 
 ## AMOS7::TERM::wipe_secret : in place random overwrite x2, then truncate
@@ -412,8 +469,8 @@ sub run_close {
     my $reason = shift // qw| ended |;
     return if not exists $run_approved{$run_id};
     sign_end($run_id);
+    run_summary( $run_approved{$run_id}, "closed : $reason" );
     delete $run_approved{$run_id};
-    out_line( sprintf 'run %s closed [ %s ]', $run_id, $reason );
     return;
 }
 
@@ -482,22 +539,22 @@ sub approve_run {
     ## shown next to each path so the approving eye binds to content, not ##
     ## just to a list of names [ todo HX4 follow-up ]                     ##
 
-    print STDERR "\n";
-    print STDERR ".:[ p7-sign-agent : signing request ]:.\n";
-    print STDERR sprintf ":  key  : %s\n",  $key_name;
-    print STDERR sprintf ":  run  : %s\n",  $info->{'run_id'};
-    print STDERR sprintf ":  tree : %s\n",  $info->{'work_tree'};
-    print STDERR sprintf ":  files : %d\n", $info->{'count'};
-    print STDERR sprintf ":  requester : pid %s [ uid %s ]\n",
-        $info->{'peer_pid'}, $info->{'peer_uid'};
-    print STDERR ":.\n";
+    ui_head('p7-sign-agent : signing request');
+    ui_field( qw| key |,       $key_name );
+    ui_field( qw| run |,       $info->{'run_id'} );
+    ui_field( qw| tree |,      $info->{'work_tree'} );
+    ui_field( qw| files |,     $info->{'count'} );
+    ui_field( qw| requester |, "pid $info->{'peer_pid'}",
+        "uid $info->{'peer_uid'}" );
+    ui_rule();
 
     foreach my $entry ( sort { $a->{'path'} cmp $b->{'path'} }
         $info->{'entries'}->@* ) {
-        print STDERR sprintf ":    ./%s  %s\n", $entry->{'path'},
-            substr( $entry->{'chksum'}, 0, 13 );
+        printf STDERR "%s:    %s./%s  %s%s%s\n", $C{'0'}, $C{'T'},
+            $entry->{'path'}, $C{'1'}, substr( $entry->{'chksum'}, 0, 13 ),
+            $C{'R'};
     }
-    print STDERR ":.\n";
+    ui_rule();
     ## one key on /dev/tty [ AMOS7::TERM::confirm_key, the ncode prompt ] ##
     my ( $answer, $reason ) = confirm_key(
         {   qw| question | =>
@@ -738,6 +795,8 @@ sub op_run {
         },
         qw| last      | => Time::HiRes::time(),
         qw| peer_pid  | => $peer_pid,
+        qw| count     | => scalar @entries,    ## display : n of m signed ##
+        qw| signed    | => {},
     };
     my $list_chksum = bmw_b32(
         512,
@@ -747,6 +806,17 @@ sub op_run {
     );
     run_log_line( qw| begin |, $run_id, scalar @entries,
         $list_chksum, qw| pid |, $peer_pid );
+
+    ## the approved run takes the screen : request + diff cleared, a header ##
+    ## and the format-code progress line until END                        ##
+    print STDERR "\e[H\e[2J";
+    ui_head('p7-sign-agent : signing');
+    ui_field( qw| run |,   $run_id );
+    ui_field( qw| files |, scalar @entries );
+    ui_rule();
+    print STDERR progress_line( '', 0, scalar @entries );
+    $progress_open = TRUE;
+
     return respond_ok($client);
 }
 
@@ -823,6 +893,10 @@ sub op_sign {
     my $signature
         = Crypt::Ed25519::sign( $buffer, $key_public, $key_private );
     run_log_line( qw| sign |, $run_id, $rel, $peer_pid );
+    $run->{'signed'}{$rel} = TRUE;
+    print STDERR progress_line( $rel, scalar keys $run->{'signed'}->%*,
+        $run->{'count'} );
+    $progress_open = TRUE;
     return respond_ok( $client, encode_b32r($signature) );
 }
 
@@ -833,6 +907,7 @@ sub op_end {
         if not defined $run_id
         or not exists $run_approved{$run_id};
     my ( $ntime, $sig_b32 ) = sign_end($run_id);
+    run_summary( $run_approved{$run_id}, 'run closed' );
     delete $run_approved{$run_id};
     return respond_ok( $client, $ntime, $sig_b32 );
 }
@@ -883,10 +958,14 @@ key_load();
 run_log_open();
 my $server = socket_set_up();
 
-say STDERR sprintf "%s : '%s' unlocked [ pub %s ]", $protocol_name,
-    $key_name, substr( encode_b32r($key_public), 0, 13 );
-say STDERR sprintf ": serving %s [ uid %d only ] -- ctrl-c ends the session",
-    $socket_path, $EUID;
+ui_head($protocol_name);
+ui_field( qw| key |, $key_name,
+    sprintf( 'unlocked : pub %s', substr( encode_b32r($key_public), 0, 13 ) ) );
+ui_field( qw| socket |, $socket_path, "uid $EUID only" );
+ui_field( 'run log', $runs_log_path );
+ui_rule();
+printf STDERR "%s:. %swaiting for requests -- ctrl-c ends the session%s\n",
+    $C{'0'}, $C{'1'}, $C{'R'};
 run_log_line( qw| agent-start |, $PID, encode_b32r($key_public) );
 
 while ( my $client = $server->accept() ) {
@@ -907,8 +986,8 @@ cleanup_exit(0);
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,.,,,,,,,.,..,,,,.,,,.,.,.,.,,,...,..,,...,..,,...,...,...,,,,,,..,,,,,.,.,
-#34SRAXF6I7VZDB6CJJRAY2J2VMP4X4MXVBW3CZGZNWFCOGWZQCA6JGLBFSACHLOFEVZHUTOMGTLFA
-#\\\|7UAER6TUDEAOOLNGQN7TEY7UMDEIL76NRD6T5JTU4PMUHJLCWM3 \ / AMOS7 \ YOURUM ::
-#\[7]AHSF4B2IK5IXPNMKKFQWF42KYVYPF5U3IB6Z23PL7QT5VKCNK6DQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,,,.,,,...,,,.,,,,,..,,,..,...,..,,...,...,,,,,...,,,,,,,.,,,.,
+#ORX6IEDZUS6IZ3L76XKEQVRBU2QKOFRUKMQQR62YFQ4TLBNESVS3PBMX6JQOXGEVK47RKJFXBGEA2
+#\\\|RE2QODT46GBDG5SOPXGXKWZE66S3P45WTLYR2OAVYWXTZ5BJV4C \ / AMOS7 \ YOURUM ::
+#\[7]BP42FJR3W5BWPUOUP5JSYXAJKXGWGZZZAAOOC5XZVKEVHZDXNEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
