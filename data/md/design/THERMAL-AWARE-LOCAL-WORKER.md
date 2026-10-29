@@ -57,6 +57,8 @@ hysteresis : join below `cold`, leave above `hot`, minimum dwell per state
 ```
 thermal.mode               = relative     ## relative | absolute ##
 thermal.baseline.window    = 1800         ## s, slow avg while idle ##
+thermal.baseline.band      = 1.5          ## C : learns only near itself [ no creep ] ##
+thermal.baseline.max       = 55.0         ## C cap : a hot start can not lift it ##
 thermal.cold               = +4.5         ## C over baseline : may join ##
 thermal.hot                = +18.0        ## C over baseline : pause ##
 thermal.ceiling            = 83.0         ## C ABSOLUTE, never amplified ##
@@ -127,8 +129,8 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
 5. outdoor amplifier + forecast.
 6. profiles, if wanted.
 
-#,,..,,..,..,,,..,,,.,,..,...,..,,,,,,,..,..,,..,,...,...,.,,,..,,,,,,,.,,,,.,
-#TTXZGIE5NNWNE663N5MDC77QYBAM5E6VHIYJXK53K6HSK2CAFBDYUFW6F7UNB5OS7RLT54CSI5NHE
-#\\\|MRSEK5MJVJKWHDXZUHONVAJ6BUE4KCT7R3RZS2RQAQLFEUHTV26 \ / AMOS7 \ YOURUM ::
-#\[7]GVLGKXVVWBCVTUJRGAFMAAP5PQWOYQQA2NNVE7K5YKCSARMJPQCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,.,.,,,,,,..,...,...,..,,,.,,..,,...,...,,,.,...,,.,,,,.,.,,,
+#W4KCJ2W7ZP4Z72R7ZPRVY3L7FAUAFI47WEXOTUUUIKSM2LUKV7SNBM563NQNPX5WR5NZS4U3UD4CM
+#\\\|K2DXLYT6KUD7CB7HCPC7NVIUL4TXKI2BAUOGMJUKMZQ2WMUVE3Y \ / AMOS7 \ YOURUM ::
+#\[7]FZH3P4USVSAQEVET3FHESD5S4RR3PMASUREE4DYPCRLBQOUAGCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

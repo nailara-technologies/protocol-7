@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = thermal.gate.sample
+# descr = update thermal averages and the cold idle baseline
+
+my ( $gate, $temp_1s, $now ) = @ARG;
+
+return FALSE if ref $gate ne qw| HASH |;
+
+my $short_window = <thermal.cfg.avg.short>       // 300;
+my $long_window  = <thermal.cfg.avg.long>        // 900;
+my $base_window  = <thermal.cfg.baseline.window> // 1800;
+
+if ( not defined $gate->{'last_sample_at'} ) {
+    $gate->{'avg_short'} = $temp_1s;
+    $gate->{'avg_long'}  = $temp_1s;
+    $gate->{'baseline'}  = $temp_1s;
+} else {
+    my $dt = $now - $gate->{'last_sample_at'};
+    $dt = 0 if $dt < 0;
+
+    my $short_alpha = 1 - exp( -$dt / $short_window );
+    my $long_alpha  = 1 - exp( -$dt / $long_window );
+
+    $gate->{'avg_short'}
+        += $short_alpha * ( $temp_1s - $gate->{'avg_short'} );
+    $gate->{'avg_long'}
+        += $long_alpha * ( $temp_1s - $gate->{'avg_long'} );
+
+    ## learns only near itself while cold : 'cold' is measured against the ##
+    ## baseline, so wider learning would let a load just under the mark    ##
+    ## pull it up step by step [ creep ]. the cap stops a hot start        ##
+    my $band = <thermal.cfg.baseline.band> // 1.5;
+    if ( ( $gate->{'state'} // '' ) eq qw| cold |
+        and $temp_1s <= $gate->{'baseline'} + $band ) {
+        my $base_alpha = 1 - exp( -$dt / $base_window );
+        $gate->{'baseline'}
+            += $base_alpha * ( $temp_1s - $gate->{'baseline'} );
+    }
+}
+
+my $base_max = <thermal.cfg.baseline.max> // 55.0;
+$gate->{'baseline'} = $base_max if $gate->{'baseline'} > $base_max;
+
+$gate->{'last_sample_at'} = $now;
+
+return TRUE;
+
+#,,..,.,.,,.,,,,,,.,.,,,.,...,.,.,...,,..,,,,,..,,...,..,,,.,,,..,,,.,,,.,,..,
+#Z5BORGOOP3ADSCXGQB7LJFOZSDPUCPQTZLJCKH6AB6UN3PX5UK7DGUYZKE5CTBBS3C4P4GUMTMWPE
+#\\\|47CK64CEP5ANVJZNVGW65GLIY3NJCDVZBFCERWDXMOFG2M2IMXE \ / AMOS7 \ YOURUM ::
+#\[7]SGIV6SK4O23Z734UMTZ7A62WYHB2G7WNJPTDBYVVHB5TASTIJIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
