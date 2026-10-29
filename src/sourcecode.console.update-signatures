@@ -253,6 +253,22 @@ foreach my $path_rel (@source_paths) {
 
 if ($agent_mode) {
 
+    ## format-code BEFORE the request : a reformat after RUN would be     ##
+    ## refused by the agent [ content changed ], and errors belong to the ##
+    ## caller's report, not to an approval prompt. -r reformats, then '-c ##
+    ## -report' is the gate [ exit 1 when anything still needs action --  ##
+    ## syntax, perl 5.32 floor ; its plain exit is always 0 ]. non-perl   ##
+    ## paths are skipped by format-code itself                            ##
+    my $format_code  = catfile( $work_tree, qw| bin format-code | );
+    my @format_paths = map { catfile( $work_tree, $ARG ) } @source_paths;
+    system( $format_code, qw| -r |, @format_paths );
+    if ( system( $format_code, qw| -c -report |, @format_paths ) != 0 ) {
+        <[base.log]>->(
+            0, ':. format-code reports ' . 'action needed, aborting .:'
+        );
+        <[base.exit]>->(qw| 0110 |);
+    }
+
     ## content binding for the approval : per-path BMW-512 + length over   ##
     ## the strict-stripped body, computed with the same pipeline the sign  ##
     ## path uses [ extract_sig_body strip mode + chk-sum.bmw.strsum ]. the ##
@@ -282,13 +298,19 @@ if ($agent_mode) {
     ## prompts anew [ design note ]. The workers inherit both knobs through ##
     ## the fork, and the agent serializes approval ONCE per run             ##
     <sourcecode.cfg.sign_agent_tree> = $work_tree;
-    <sourcecode.cfg.sign_agent_run>  = sprintf qw| %d-%d-%s |, $PID, time(),
-        substr(
-        <[chk-sum.bmw.strsum]>->(
-            join( "\n", <[base.sort]>->(@source_paths) )
-        ) // '0',
-        0, 13
-        );
+    ## the id is user facing [ agent screens, runs.log ] : its FINAL form ##
+    ## passes the truth filter -- the path list's BMW-L13 is harmonized   ##
+    ## against the filled '<pid>-<time>-%s' template                      ##
+    my $run_prefix = sprintf qw| %d-%d- |, $PID, time();
+    my $run_l13    = <[chk-sum.bmw.truth_template_L13]>->(
+        $run_prefix . qw| %s |,
+        join( "\n", <[base.sort]>->(@source_paths) )
+    );
+    if ( not defined $run_l13 ) {
+        <[base.log]>->( 0, ':. no harmonized run id, aborting .:' );
+        <[base.exit]>->(qw| 0110 |);
+    }
+    <sourcecode.cfg.sign_agent_run> = $run_prefix . $run_l13;
 
     my $begin_ok = <[sourcecode.agent.sign]>->(
         {   'op'        => qw| begin |,
@@ -535,8 +557,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,.,.,.,...,.,,,.,,,.,,,,..,,..,...,,.,,.,,,..,,...,..,,,.,,...,...,,,.,...,
-#XTM4X253KYLKF6ECWXHSWLNX73GADFE655EGWXUZBTZWAKKWBETZQKDVJLJAVYN6IBSFE33ZD65SI
-#\\\|CIXMKGWTVXWEOBIVZM6PP4SR6XXEDRVMFBSYO3YZODR5UZE7GDE \ / AMOS7 \ YOURUM ::
-#\[7]ZPS36XAYKAPQ22N55YG7OIGGV2FHXPT4P3IJLS3DGP2FYRE3E2BY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,...,.,.,,.,,.,.,.,,,,,.,.,,,,.,,..,,...,...,...,..,,,,.,,..,...,
+#SZFBLE4ETGXL5M3ORUXDLOGU2H445JASSAP2OU57UNSJOFXXDY5JKGFTLOIJ6ZNPXXCGGQZFX5EFC
+#\\\|XSFGZAFJIKCZZ7RYTPMLU7GOLMGGSLUSBUMU3OS6T6ATHWSOJRY \ / AMOS7 \ YOURUM ::
+#\[7]CCKL7ZQX6FOMBDYBRUN3X7XL72QYIEUSN7UJJC3XYO5YBVGGLQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

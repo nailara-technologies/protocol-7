@@ -28,7 +28,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.VSBKHWQ |;
+our $VERSION = qw| AMOS7::TERM-VERSION.TNXWW7Q |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -1376,10 +1376,14 @@ sub confirm_key {
     if ( not $answer and $params->{'reason'} ) {
         my ( $min_len, $max_len ) = ( 13, 76 );
         while (TRUE) {
-            print {$tty_out} $c{'T'}
+            ## a blank line apart from the question ; the typed reason shows
+            ## in the answer color [ cooked mode echoes in the open color ]
+            print {$tty_out} "\n"
+                . $c{'T'}
                 . ' :: reason [ enter skips ] :. '
-                . $c{'R'};
+                . $c{'2'};
             my $line = <$tty_in>;
+            print {$tty_out} $c{'R'};
             last if not defined $line;
             $line =~ s|[\r\n]+$||;
             $line =~ s|[^[:print:]]||g;
@@ -1405,10 +1409,10 @@ sub confirm_key {
     return wantarray ? ( $answer, $reason ) : $answer;
 }
 
-## the bin/format-code file progress line : 13 cells of ':' filling with
-## n of total, then the label. ends in \r [ no \n ] so the next call redraws
-## it in place -- the caller closes it with a "\n" when done. returns the
-## string, the caller prints it [ any handle ]
+## the bin/format-code file progress line : 13 cells of ':' filling with n of
+## total, then the label. ends in \r [ no \n ] so the next call redraws it in
+## place -- the caller closes it with a "\n" when done. returns the string,
+## the caller prints it [ any handle ]
 ##
 ## print STDERR AMOS7::TERM::progress_line( 'src/base.log', 3, 7 );
 sub progress_line {
@@ -1428,7 +1432,8 @@ sub progress_line {
     $label = '..' . substr( $label, -( $label_width - 2 ) )
         if length $label > $label_width and $label_width > 2;
 
-    return sprintf "\r${blacklight}:::[$nailara_bg$true_color%-${cells_max}s"
+    return
+          sprintf "\r${blacklight}:::[$nailara_bg$true_color%-${cells_max}s"
         . "$reset$blacklight]:"
         . "::[$nailara_bg$true_color %-${label_width}s"
         . " $reset$blacklight]:.$reset\r",
@@ -2180,8 +2185,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,,.,.,.,.,.,,,,,..,,,..,..,,..,,.,,,...,..,,..,,...,...,,,.,.,.,,.,,.,,,.,.,
-#2FBSTI7S7QDAJGOVL5SSLN5DJO4CLGPJJTACQL222UFYD7CTD76QG4WX6K744T3FK6IDEPKCZ5BTI
-#\\\|7MLJNAXEW4T2ZMJKTI3LHAWWBAE4DLKM6D3E2E2WTD3WFIGX7CC \ / AMOS7 \ YOURUM ::
-#\[7]5P4H6ODL6UGVMPA6PZNJRBWWDYTSI6NSUW2AN4LNRQS3E4MU7UDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,,..,.,,,,,.,,.,,..,,.,,,,,,,..,,...,...,...,,..,...,.,,,,..,
+#6OCNT4NOLRSI46VH26LUBAEJF4ZMAMZOLILR6G2QQ5ACHTSOGET54TRSAEH3YTY7NH2T23ZE3FDLS
+#\\\|I23QGINSDK2BM2DGZCUTMLA6HTEQNCICIMIOPILYCMTYEO7MZTS \ / AMOS7 \ YOURUM ::
+#\[7]2G327URD7A6FCML7XUAH3INKPMIDOFPFJZTIPWKCCHEAUOIAOWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
