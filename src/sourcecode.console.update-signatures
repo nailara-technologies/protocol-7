@@ -264,9 +264,17 @@ if ($agent_mode) {
     my $cwd_before
         = <[base.perlmod.load]>->(qw| Cwd |) ? Cwd::getcwd() : undef;
     chdir $work_tree;
-    system( $format_code, qw| -r |, @source_paths );
-    my $format_status
-        = system( $format_code, qw| -c -report |, @source_paths );
+    ## -r can need a second pass                                            ##
+    ## [ a long line split shifts the alignment of its neighbours ] : up to ##
+    ## three, each followed by the gate check                               ##
+    ## -- a real error never settles, the gate still fails closed           ##
+    my $format_status;
+    foreach my $format_pass ( 1 .. 3 ) {
+        system( $format_code, qw| -r |, @source_paths );
+        $format_status
+            = system( $format_code, qw| -c -report |, @source_paths );
+        last if $format_status == 0;
+    }
     chdir $cwd_before if defined $cwd_before;
     if ( $format_status != 0 ) {
         <[base.log]>->(
@@ -604,8 +612,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,.,,,,,,..,,.,,,.,,,,.,,,,,,,..,..,,.,,,..,,..,,...,...,.,.,,,.,,,,,,,.,.,,,
-#MUQYLBDYKPUG2YYOIQMXR7LEZAYI235W2RTEND5YO2BVIN6F4BF5GKMDVQ6GQSTQTXWXTEO347X76
-#\\\|R3NHEWQKP4YA5Z6WA6EXCPK3DYYM4T3QT32U2JNXWORI5CGHVAF \ / AMOS7 \ YOURUM ::
-#\[7]GGVTCXVISJHF6QYABVXMHI3SJIEGE3COWS4MH3PFODPX7PRC4SCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,,,.,,.,,...,..,,.,,,,,.,,.,,..,,...,...,,,.,,,.,.,,,,,.,.,,,
+#VWC5AELHNBSSQTKPGHNGAEL22CGHDOELTIFNJXM5M5JOZQ3JUHQEQMVNE4BE6VABM7QMBVQNOYWOE
+#\\\|XCCDLNLWQYGVS3ZJD75R4G3BOKVKAFKFGCAZQVD6X7NT2NYTIV2 \ / AMOS7 \ YOURUM ::
+#\[7]5PKSC6FDHIXEYWTXAOCAEQOFQYAE6ZL654BKENLC4XGJK6B4R4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
