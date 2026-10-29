@@ -135,7 +135,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.J3MTEGY |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.H4DCBKI |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -1499,17 +1499,17 @@ sub edit_text {
                     ? ' [v] paste [.] in-order [y] clear'
                     : '';
                 my $help_text
-                    = ' :CTRL:. [x] save+quit [c] abort'
+                    = '  :CTRL:. [x] save+quit [c] abort'
                     . $save_hint
                     . $paste_hint
                     . ' [w] del-word [l] del-line [d] de-interlace '
                     . '· arrows · enter · del · pgup \ pgdn page'
                     . ( $wrap ? ' · wrap' : '' ) . ' ·';
-                $help_text = ' · ' . $hint . ' ·' . $help_text
+                $help_text = '  · ' . $hint . ' ·' . substr( $help_text, 1 )
                     if length $hint;
                 ## show status [ e.g. 'saved' ] on the LEFT so it survives ##
                 ## narrow terminals; truncation keeps the leftmost part    ##
-                $help_text = "· $last_status · $help_text"
+                $help_text = "  · $last_status ·" . substr( $help_text, 1 )
                     if length $last_status;
                 ## cut at the last whole ' · ' cell that fits, never inside ##
                 ## a label [ windowed cells follow, todo keys-bar ]         ##
@@ -1519,7 +1519,9 @@ sub edit_text {
                 }
                 my $help_pad
                     = ' ' x ( $inner_width - length($help_text) - 1 );
-                my $help = $help_pad . $help_text . '';
+                ## left-aligned, one space in : the cut leaves a ragged end ##
+                ## on the right, padding there reads calmer than in front   ##
+                my $help = $help_text . $help_pad;
                 say $C->{0} . ':'
                     . $C->{dim}
                     . $C->{3}
@@ -2040,8 +2042,8 @@ sub edit_text {
 
 1;
 
-#,,,,,..,,,,.,...,,,,,,,,,,,,,,,.,.,,,..,,.,.,..,,...,...,..,,.,,,,,.,.,.,..,,
-#EMS2AQLVNO57R3OBXYHVJEFV6A3GIT56OLNM6GVWHDRGJHPZWN3GXFGVYEK6ODERDNOAKFH6XOCY6
-#\\\|BJP3A65PK35S3L7YKVIDBJS3BM5JP2QTRGI4E3YMTWBIMFIKXLQ \ / AMOS7 \ YOURUM ::
-#\[7]OLN3GBNQ4RIVHJ4CBV37RS6EKTU4IRD4COIYD5SOEY334MZRP2CI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,,,...,,,.,,,.,.,,,..,,..,,.,.,..,,...,...,,..,.,,,,,,,,.,,,.,,
+#WX4F53K5XUJ7KWTKHT243DK5YVBFT6CP7JQ6ZM5E4EOBACH4BVUIBWSHI7377FRCCFJUONEUFRTVO
+#\\\|ZGDAFWUB4NERF4VFO7VBZJFNENLXRLGA4A6Q7IM6OVA25R42ACT \ / AMOS7 \ YOURUM ::
+#\[7]AJV446WA466VGJKX7HW7VIHUX6SGXI5GASRAVOFEHHECO6J644AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
