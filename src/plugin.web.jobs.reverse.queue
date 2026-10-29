@@ -17,10 +17,14 @@ my $cache_dir    = <[plugin.web.jobs.cache.path]>;
 my $reverse_file = "$cache_dir/reverse-pending.yaml";
 eval { YAML::XS::DumpFile( $reverse_file, <plugin.web.jobs.reverse> ) };
 
+## the entry travels back on the reply to jobsite's next push : nudge it ##
+## now instead of waiting for its 300 s timer [ fire and forget ]        ##
+<[protocol-7.route-send]>->( { 'command' => qw| jobsite.sync-soon | } );
+
 return TRUE;
 
-#,,..,,,,,...,..,,,,.,,..,,,,,,,,,,,.,,.,,.,,,..,,...,...,..,,,.,,,.,,,..,,..,
-#75CIT2GIPANLVLFR6SRB2BQ4CEI4PKJP2EIC2OEKDZKTUO55WTSKVF634UVHGP57KUE24WWB2S3TC
-#\\\|QLS2LIX52FZEZYDTOJVPMBBVFLTBEIGBE2AARAIO33VYQICFP2C \ / AMOS7 \ YOURUM ::
-#\[7]RHRH2ROTYVW53QRZKOMUVQHBVZABG5DLUF7A6LE6NSUMDBOGQGBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,..,,,.,.,.,,,.,.,,,,..,,.,,,,,,..,,...,...,...,...,,,.,,.,,,,,,
+#AED73TJNDZVIU3TA7YVYXW72MTSOWAE5VP4MLLKGO7AH6FGOKVWLJJXZNLEVNJAFKE6QEM74LBESO
+#\\\|FTELQUKSUGSG4GAR3I3YR2V7QHGRKJWON4AUIQ2ZVDIAP6YZTHJ \ / AMOS7 \ YOURUM ::
+#\[7]PVBR7TCV7YNX3K3JT5QCUIHGC5PK7V7S2ZRUUZOXYT7UZHA3XYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
