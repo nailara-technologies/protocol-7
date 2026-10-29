@@ -19,6 +19,17 @@ if ( <jobsite.pending_count> <= 0 ) {
     <jobsite.pending_count> = 0;
     <jobsite.cycle>         = 'idle';
     <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
+    ## a rescan skipped while assessing runs now                   ##
+    ## [ a short delay : the result push below goes first ] -- see ##
+    ## handler.rescan-timer                                        ##
+    if (<jobsite.rescan_due>) {
+        <[base.logs]>->( 1, 'dispatch.consume_slot: owed rescan in 30 s' );
+        <[event.add_timer]>->(
+            {   'after'   => 30,
+                'handler' => 'jobsite.handler.rescan-timer',
+            }
+        );
+    }
     if (<jobsite.sync.push_in_progress>) {
         ## current push already collected its job list; schedule follow-up ##
         <jobsite.sync.push_after_assess> = TRUE;
@@ -33,8 +44,8 @@ if ( <jobsite.pending_count> <= 0 ) {
     }
 }
 
-#,,.,,,..,..,,,..,.,.,,,.,.,,,,,.,.,.,..,,..,,..,,...,...,...,..,,,..,,.,,..,,
-#PKF4G4T2XFKEABTIGXA2XED62TSC7K5HPYYF4PYPAQNMQDBOI3MBOKGILKZJ45DMRJZDOJ6J5TXI6
-#\\\|RK3ERJCRRIM7754AOZPD466NIGU5L2MRFFWKM6PAWBKMQKM24MQ \ / AMOS7 \ YOURUM ::
-#\[7]EECNYC4VUIPMG3XMZB66R3FZTE2XLAWIV6W5OXVC2G2TRQKZICAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,,,.,.,,..,.,,,,,.,...,.,.,.,,,..,,...,..,,.,,,,,,,,..,,,.,..,,
+#ZKOUWLRAJTSIPECWLXA77MW3ZLOSZBFZWAREK6AKKBQM5DHV47RMH5KE42QJBDOB4QJ4GO2JYJCFI
+#\\\|H66SIWMZJ2ZXB4MHI6IJW5BDUUTQ5V4VQIGVY6MH5HGZ75PWF2M \ / AMOS7 \ YOURUM ::
+#\[7]CG2AB7LXZN3E4LOIII37YIMXGEEVO2ZOCFGOGGM7OAW6IG3GREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
