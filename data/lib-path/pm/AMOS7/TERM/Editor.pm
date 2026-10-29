@@ -116,6 +116,7 @@ use utf8;
 use strict;
 use English;
 use warnings;
+use Digest::SHA ();
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -137,7 +138,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.6GUJNKI |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.WI4RC3A |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -948,6 +949,18 @@ sub edit_text {
     @lines = ('') if !@lines;
     _mlock( \$ARG ) foreach @lines;    ## the note never reaches swap ##
 
+    ## modified = the content differs from the saved state ; $dirty is only ##
+    ## a revision counter [ the free-cursor pad + strip bump it twice while ##
+    ## the text stays the same ] -- a checksum, no second plain copy        ##
+    my $content_sum = sub {
+        my $text = join "\n", editor_normalize_details(@lines);
+        utf8::encode($text);
+        my $sum = Digest::SHA::sha256($text);
+        _wipe( \$text );
+        return $sum;
+    };
+    my $saved_sum = $content_sum->();
+
     my ( $cur_line, $cur_col ) = ( 0, 0 );
     my $first_visible = 0;
     my $content_rows  = 1;     ## set by every redraw ; page keys read it ##
@@ -1592,12 +1605,14 @@ sub edit_text {
                 } elsif ( $keys_bar_mode eq qw| hybrid |
                     and $keys_bar_started ) {
                     my $bar_status = (
-                          length $last_status ? $last_status
-                        : $dirty              ? 'modified'
-                        :                       'saved'
+                        length $last_status ? $last_status
+                        : ( $dirty and $content_sum->() ne $saved_sum )
+                        ? 'modified'
+                        : 'saved'
                         )
-                        . ' · '
-                        . ( $cur_line + 1 ) . ':'
+                        . ' · line '
+                        . ( $cur_line + 1 )
+                        . ' · col '
                         . ( $cur_col + 1 );
                     $bar_status = ':: F1 keys ::'
                         if $keys_bar_events % 17 == 0;
@@ -1698,8 +1713,14 @@ sub edit_text {
                     ## -- anchored on the · cells so 'del-word' never       ##
                     ## matches                                              ##
                     $help
-                        =~ s{(?<=[·\\] )(arrows|enter|del|pgup|pgdn)(?=[ ·])}
+                        =~ s{(?:^ ?|[·\\] )\K(arrows|enter|del|pgup|pgdn)(?=[ ·])}
                         {${chip_on}$1${chip_off}}g;
+                    ## green marks clickable action words only -- the plain ##
+                    ## page \ wrap labels take the violet frame color       ##
+                    $help =~ s{(?:^ ?| )\K(page)(?= ·| *$)}
+                        {${punct}$1${chip_off}};
+                    $help =~ s{(?:^ ?|· )\K(wrap)(?= ·| *$)}
+                        {${punct}$1${chip_off}};
                 }
 
                 ## hidden cells replace the border's outer padding with chip
@@ -1835,6 +1856,22 @@ sub edit_text {
                         last;
                     }
                 }
+                ## a click on the status line or its border                ##
+                ## [ ' status ' \ ' F1 keys ' ] brings the key labels back ##
+                $key = qw| show-keys |
+                    if ref $key eq 'HASH'
+                    and $click_y >= $rows - 2
+                    and $keys_bar_mode ne qw| keys |;
+            }
+            if ( $key eq qw| show-keys | ) {
+                if ( $keys_bar_mode eq qw| hidden | ) {
+                    $keys_bar_mode = qw| hybrid |;
+                    $save_keys_bar_mode->();
+                }
+                $keys_bar_started = 0;
+                $keys_bar_offset  = 0;
+                $keys_bar_events++;
+                next;
             }
 
             $last_status = '';
@@ -1873,6 +1910,7 @@ sub edit_text {
                     } else {
                         $dirty       = 0;
                         $last_status = 'saved';
+                        $saved_sum   = $content_sum->();
                     }
                 } else {
                     _wipe( \$snapshot );
@@ -2184,8 +2222,8 @@ sub edit_text {
                 $fifo_from     = undef;
                 $fifo_last_idx = undef;
                 $clip_cleared  = _clipboard_read() // '';
-                $last_status   = 'paste buffer cleared';
-                $dirty         = 1;
+                ## no text change : not dirty ##
+                $last_status = 'paste buffer cleared';
             }
 
             ## paste [ one event, one redraw ] ##
@@ -2274,8 +2312,8 @@ sub edit_text {
 
 1;
 
-#,,,,,,..,,.,,...,,,,,...,.,,,.,,,,.,,,,.,.,,,..,,...,...,..,,,,,,,,,,,..,..,,
-#ULVFXUT3YOUVMDHVMBVVOQQ3SM5VLM2X2T2P2I43PFNWTT7GXQXCYUWTHTQMAFM2OC7CNFPVIS44O
-#\\\|RW5JREFJKUE2PPOMVJZWA5EAYQA45W5YHMUCEIHBSXM3GSRUQFU \ / AMOS7 \ YOURUM ::
-#\[7]ES5LS2UAUFSWOMFVEP36GLWDXHTAELYQYAQUKW44DI5UKZVLRIBY 7  DATA SIGNATURE ::
+#,,.,,...,...,,,,,.,,,...,..,,...,,..,..,,...,..,,...,...,.,.,,.,,.,.,.,,,,.,,
+#N6LKU2GPN5TYWYT37F27TMUH4J7BT2X5ZSESJJM5WCAD35BPONL7HU7N5PGJWDCLOHZQRR4S55EVI
+#\\\|ODP4GFLGBXZ53VLULXDG4NZMVSHF7XYRBDOM2GUPZSI4RFLE2RO \ / AMOS7 \ YOURUM ::
+#\[7]SAA4SSKHBMKTNMPPQNFXN6HISK2WRA47ZTXCPVMLRMZBW7PDV6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
