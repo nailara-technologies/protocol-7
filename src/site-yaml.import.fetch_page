@@ -84,6 +84,7 @@ if ( $st->{'page'} > 1 ) {
                 'id'            => $id,
                 'url'           => $link->{'url'},
                 'reply_handler' => $st->{'reply_handler'},
+                'category'      => $st->{'cat'},
                 };
             $st->{'queued_count'}++;
             $page_new++;
@@ -98,6 +99,13 @@ if ( $st->{'page'} > 1 ) {
         }
 
         if ( $st->{'page'} >= $st->{'max_pages'} ) {
+            <[base.logs]>->(
+                1,
+                'import: page ceiling %d reached '
+                    . '[ %s ] : more results pending',
+                $st->{'max_pages'},
+                length( $st->{'cat'} // '' ) ? $st->{'cat'} : $st->{'url'}
+            );
             return <[site-yaml.import.finish]>->($import_id);
         }
 
@@ -116,8 +124,8 @@ if ( $st->{'page'} > 1 ) {
 
 return;
 
-#,,.,,.,,,..,,...,.,,,.,.,..,,,.,,,,,,..,,,..,..,,...,...,,..,,.,,,,.,,.,,...,
-#4XWV2CKVYQG4AURZE3QXMA2FLDK6GSQOIIPTW4KSM7PZHYW6IUVWKQALTRMJ5K66JV2XPBFNMPUFE
-#\\\|4BGCZKYYTXSAFCQKQBJ7ZDLB5KBL4BK7WN3Q5URWK66ZOD2RHYR \ / AMOS7 \ YOURUM ::
-#\[7]N7ERKNAJB4J4JNGO6V42PKHZAOPILSUSI3NJ6CTARPPN6EAMOSDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,..,,.,.,.,.,.,,,,,.,.,.,,..,..,,...,...,..,,,,,,...,,..,..,,
+#XYM3PSSDQYMUZJFIH3UGZ53ZC766DTZWKS3JCNI66BBRDD7R3UK3OFVQGTYJGKVD4YLRKJWZEVR6E
+#\\\|RGAQRVTV7JUIRILNX32WPM6V4HRIYV7UKP6HXF4SXKLEX6UMTER \ / AMOS7 \ YOURUM ::
+#\[7]6MRMN72O46PZRO5YO5SHKJR7Y4MUDW6GIZX2WWPNYA5HX4G2U6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

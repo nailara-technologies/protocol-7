@@ -6,7 +6,7 @@
 #         open until the fetch queue is empty AND no import is running AND
 #         the outbox is empty [ every pushed record confirmed ] -- see
 #         site-yaml.outbox.check-terminate. each frame is one JSON line :
-#         {"name":"<outbox record name>","job":<job payload>}
+#         {"name":"<outbox record name>","job":<job payload> [,"cat":<category>]}
 
 my $args_str = $call->{'args'} // '';
 $args_str =~ s{^\s+|\s+$}{}g;
@@ -48,9 +48,12 @@ if ( defined $outbox_dir and opendir my $dh, $outbox_dir ) {
         close $backlog_fh;
         next if not defined $payload or not length $payload;
 
-        my $name  = $file =~ s|\.json$||r;
-        my $frame = sprintf qq|{"name":"%s","job":%s}| . "\n",
-            $name, $payload;
+        my $name = $file =~ s|\.json$||r;
+        ## records before WY5 hold the bare job : wrap them like new ones ##
+        $payload = sprintf qq|{"job":%s}|, $payload
+            if $payload !~ m|^\{"job":|;
+        my $frame = sprintf qq|{"name":"%s",%s| . "\n", $name,
+            substr( $payload, 1 );
 
         ## subscriber gone mid-backlog : clean up state, stop pushing ##
         last if not <[base.stream.push]>->( $h, \$frame );
@@ -59,8 +62,8 @@ if ( defined $outbox_dir and opendir my $dh, $outbox_dir ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,.,,,..,..,,.,,,...,...,,.,,.,.,,..,,,.,.,.,...,...,,,.,,,.,.,,,,..,..,,
-#GGQU7XFWCGYYP4G7OXUHOIO5FVZTMB4D6HAH7BBYFRCMA34UXEUZI5VD6BUIMIWYPRCNTETGYMDTG
-#\\\|SJWS4UP6JLNZB3BHXKXDQYTV7VQCOTUGGGUSX2PY24QWML4CKAB \ / AMOS7 \ YOURUM ::
-#\[7]KWLEKQNSHP4NAXLSK6Y7W4IEDBUC2HD72NJ7VGHXZGGDGGHLC4BA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,,,..,,.,,,,.,,,,,,,,.,,..,,,,,.,.,...,...,...,,,,,.,,,,,,,,.,,
+#22A7HHBM43NOMX77J6DZ5HNCMWVLIKA3ROB6JKGKYLRCVFYAWRVOE2HRYOXNMBLPLPIHPDWWXR2VM
+#\\\|CZT5PXCQNHUAX3C5VHW7BGZT7ILOXW6TH2XW4MLXAG23OV5GG2F \ / AMOS7 \ YOURUM ::
+#\[7]4KO6A37DQCJZSHCZOHDC2GLFG7UNCFZ73LCZGFP5BLWI6QU7EOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

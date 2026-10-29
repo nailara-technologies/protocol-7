@@ -5,7 +5,7 @@
 #
 # args format (single line, key=value pairs):
 #   url=<search-url> handler=<reply-module> skip=<space-separated-ids>
-#   [block_file=<path>] [full=1]
+#   [block_file=<path>] [block_data=<comma-joined-lines>] [full=1] [cat=<name>]
 # legacy bare url is also accepted.
 #
 # The reply handler is restricted to a small allow-list to avoid routing
@@ -29,6 +29,10 @@ return { 'mode' => 'false', 'data' => 'no url' }
     if not length $url;
 
 my $full_mode = $param{'full'} // 0;
+
+## category name : jobsite tags its imports so per-category tallies can be ##
+## kept on the upsert side [ WY5 ]                                         ##
+my $cat = $param{'cat'} // '';
 
 my $reply_handler = $param{'handler'} // $param{'reply_handler'} // '';
 if ( length $reply_handler ) {
@@ -57,27 +61,36 @@ if ( length $skip_ids_str ) {
     %skip = map { $ARG => 1 } split m{[\s,]+}, $skip_ids_str;
 }
 
-## optional pre-fetch field-block file  [ generic: caller provides ##
-## [<EPOCH>:]<FIELD>:<chksum> ]                                    ##
+## optional pre-fetch field-block file  [ generic: caller provides          ##
+## [<EPOCH>:]<FIELD>:<chksum> ]  remote callers cannot point at a local     ##
+## path, so the block list may also travel inline as block_data [           ##
+## comma-joined lines -- the lines are whitespace-free by their own charset ##
+## ] [ WY5 ]                                                                ##
 my $block_file = $param{'block_file'} // '';
+my $block_data = $param{'block_data'} // '';
 my %block;
+my @block_lines;
+push @block_lines, split m{,}, $block_data if length $block_data;
 if ( length $block_file and -r $block_file ) {
     if ( open my $fh, '<', $block_file ) {
         while ( my $line = <$fh> ) {
             chomp $line;
-            next if $line =~ m{^\s*$};
-            my ( $field, $sum );
-            if ( $line =~ m{^([A-Z2-7]+):(\w+):([A-Z2-7]+)$} ) {
-                ( $field, $sum ) = ( lc($2), $3 );    ## epoch-prefixed ##
-            } elsif ( $line =~ m{^(\w+):([A-Z2-7]+)$} ) {
-                ( $field, $sum ) = ( lc($1), $2 );    ## legacy ##
-            } else {
-                next;
-            }
-            $block{"$field:$sum"} = 1;
+            push @block_lines, $line;
         }
         close $fh;
     }
+}
+for my $line (@block_lines) {
+    next if $line =~ m{^\s*$};
+    my ( $field, $sum );
+    if ( $line =~ m{^([A-Z2-7]+):(\w+):([A-Z2-7]+)$} ) {
+        ( $field, $sum ) = ( lc($2), $3 );    ## epoch-prefixed ##
+    } elsif ( $line =~ m{^(\w+):([A-Z2-7]+)$} ) {
+        ( $field, $sum ) = ( lc($1), $2 );    ## legacy ##
+    } else {
+        next;
+    }
+    $block{"$field:$sum"} = 1;
 }
 
 ## drop stale queue entries that predate the generic fetch refactor
@@ -99,9 +112,8 @@ if ( @{$queue} ) {
 my $queue_preload     = scalar @{ <site-yaml.fetch_queue> // [] };
 my $allow_early_break = ( not $full_mode and not $queue_preload ) ? 1 : 0;
 
-my $max_pages = <site-yaml.import_max_pages> // 1;
-$max_pages = 1 if $max_pages < 1;
-$max_pages = 5 if $max_pages > 5;    ## safety cap
+my $max_pages = 20;    ## hard ceiling [ WY5 ] : the loop stops at the ##
+## first empty \ all-duplicate page long before  ##
 
 my $delay_search = <site-yaml.import_delay_search> // 1.5;
 
@@ -114,6 +126,7 @@ my $import_id = <[base.gen_id]>->( <site-yaml.import_state> //= {} );
     'skip'              => \%skip,
     'block'             => \%block,
     'full_mode'         => $full_mode,
+    'cat'               => $cat,
     'allow_early_break' => $allow_early_break,
     'max_pages'         => $max_pages,
     'delay_search'      => $delay_search,
@@ -127,8 +140,8 @@ my $import_id = <[base.gen_id]>->( <site-yaml.import_state> //= {} );
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,.,,,..,,,.,,,,,,,.,,,,,,.,.,,,.,,,,,..,,.,.,...,...,.,.,.,,,...,,.,,,..,
-#EHJXZYEOHQYS27PXTI6RDBZY54RT6AO4NMZB3E3XBW7ZLY73TSQXTUARYSARVVFZSLZGN2A6WUNRK
-#\\\|2GMYL3IEPCDIU6XRG4XGGD5R7HNZN6YWFJ6KPFV3HTUFLP55FLZ \ / AMOS7 \ YOURUM ::
-#\[7]CTA26Z4ND52D5N42RV7XNUNLLGU27UJUM55MATO4HC4BP7TBLICY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,.,.,.,.,,..,,,.,.,.,,..,.,,,.,.,...,..,,...,.,,,,..,,,,,,..,
+#Z54PU2AHWOFEKWL2Q3G5MBAHEFHHBUGN23PI6RKHM6TVMKDVE2VWDSYTLGHRLNJALL74ID3KTIKFG
+#\\\|5RQ7BJO43F3BOY4T3NGYJIQEODF6HWSTVUFYRY5KE4OL7D5WEZ7 \ / AMOS7 \ YOURUM ::
+#\[7]635F623EVKMNZZF2FXXTJU6CSGG7H2MVOIIHD2GWDVOMHB2JOYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
