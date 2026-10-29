@@ -175,6 +175,33 @@ sub ui_field {
 
 sub ui_rule { return print STDERR sprintf "%s:%s\n", $C{'0'}, $C{'R'} }
 
+## the agent at rest : startup and after every run           ##
+## [ a 0.7s look at the summary first, then a clean screen ] ##
+sub idle_show {
+    ui_head($protocol_name);
+    ui_field(
+        qw| key |,
+        $key_name,
+        sprintf(
+            'unlocked ' . ': pub %s',
+            substr( encode_b32r($key_public), 0, 13 )
+        )
+    );
+    ui_field( qw| socket |, $socket_path, "uid $EUID only" );
+    ui_field( 'run log', $runs_log_path );
+    ui_rule();
+    printf STDERR "%s:. %swaiting for requests "
+        . "-- ctrl-c ends the session%s\n",
+        $C{'0'}, $C{'1'}, $C{'R'};
+    return;
+}
+
+sub idle_return {
+    Time::HiRes::sleep(0.7);
+    print STDERR "\e[H\e[2J";
+    return idle_show();
+}
+
 ## a run's end on screen : the open progress line closed, then n of m ##
 sub run_summary {
     my $run    = shift;
@@ -194,7 +221,7 @@ sub secret_wipe { return wipe_secret(@ARG) }
 
 sub cleanup_exit {
     my $code = shift // 0;
-    run_close( $ARG, qw| agent exit | ) foreach sort keys %run_approved;
+    run_close( $ARG, 'agent exit' ) foreach sort keys %run_approved;
     secret_wipe( \$key_private ) if defined $key_private;
     unlink $socket_path          if -S $socket_path;
     exit $code;
@@ -473,6 +500,7 @@ sub run_close {
     sign_end($run_id);
     run_summary( $run_approved{$run_id}, "closed : $reason" );
     delete $run_approved{$run_id};
+    idle_return() if $reason ne 'agent exit';
     return;
 }
 
@@ -869,7 +897,7 @@ sub op_sign {
     ## only, ESRCH means truly gone, and a recycled pid number merely keeps
     ## the window open for the short idle budget instead of closing early
     if ( defined $run->{'peer_pid'} and not kill 0, $run->{'peer_pid'} ) {
-        run_close( $run_id, qw| requester gone | );
+        run_close( $run_id, 'requester gone' );
         return respond_no( $client, qw| run closed | );
     }
 
@@ -941,7 +969,9 @@ sub op_end {
     my ( $ntime, $sig_b32 ) = sign_end($run_id);
     run_summary( $run_approved{$run_id}, 'run closed' );
     delete $run_approved{$run_id};
-    return respond_ok( $client, $ntime, $sig_b32 );
+    my $responded = respond_ok( $client, $ntime, $sig_b32 );
+    idle_return();    ## after the reply : the client never waits for it ##
+    return $responded;
 }
 
 sub read_line_alarm {
@@ -990,20 +1020,7 @@ key_load();
 run_log_open();
 my $server = socket_set_up();
 
-ui_head($protocol_name);
-ui_field(
-    qw| key |,
-    $key_name,
-    sprintf(
-        'unlocked ' . ': pub %s',
-        substr( encode_b32r($key_public), 0, 13 )
-    )
-);
-ui_field( qw| socket |, $socket_path, "uid $EUID only" );
-ui_field( 'run log', $runs_log_path );
-ui_rule();
-printf STDERR "%s:. %swaiting for requests -- ctrl-c ends the session%s\n",
-    $C{'0'}, $C{'1'}, $C{'R'};
+idle_show();
 run_log_line( qw| agent-start |, $PID, encode_b32r($key_public) );
 
 while ( my $client = $server->accept() ) {
@@ -1024,8 +1041,8 @@ cleanup_exit(0);
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,,,,,.,...,,,,,..,,.,.,...,,,.,...,,..,,,,,..,,...,...,...,,,.,,..,..,,..,,
-#FVA3R4JEMYQE5C7KMZ4M7ZDIFEFCRNBMW7VLKP3X7FHSEO34FHD3T2GSNUY4CETFY2ZGA4QXZR2C6
-#\\\|BOMOXBS3YIORYGTGB4KIMMV46VSVXAI6BIIT35IO4B6J5DVO2OY \ / AMOS7 \ YOURUM ::
-#\[7]C3AE7Z7UP5COMMDFQLFI64D75MFGI2B2HXU5774YWMWMLDFC46DA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,...,,.,,.,,,,.,,,,.,,,,,.,,,..,,...,.,.,..,,.,,,..,,,..,.,.,
+#56R7L4QXCGF6GK4GQZ55SCNVCWMCSRDEZDHLISIYGZNOFRPLMILK2M33ZN7VRXFOWIWZUHZ3LP54Q
+#\\\|BRY4Q7POTZ3ZZDE22P4PKFANNMP7TYBEP6E2YUGIYKI5B7AZVI3 \ / AMOS7 \ YOURUM ::
+#\[7]Z2EXTJPX4LRPYDNHFCCVEC2LSZQMYFKC7I633CEVRAILVZN4QKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
