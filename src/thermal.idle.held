@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = thermal.idle.held
+# descr = check whether the system stayed idle long enough
+
+my ( $idle_gate, $now, $secs ) = @ARG;
+
+return FALSE if ref $idle_gate ne qw| HASH |;
+return FALSE if not defined $idle_gate->{'idle_since'};
+return FALSE if $now - $idle_gate->{'idle_since'} < $secs;
+
+return TRUE;
+
+#,,,,,..,,,..,,.,,...,...,.,.,.,.,,..,.,.,,,,,..,,...,...,...,...,...,..,,,,,,
+#MODMHTDU5ALD7SGPQHHXFBPJJ4YM5XQ6YQMH3MKCGMPH62I3WDA4U7YRCHKBKWT7DCUD5XYMZAE56
+#\\\|WKLRZBMJ3ADLWWMM2JIARXEHKCZGG3GPNBSGYTUJPFGPDN63BEE \ / AMOS7 \ YOURUM ::
+#\[7]TQ767OLE6OIG3HN4AD6LZXDD6JADAXHIYG2ERGHMKCWVKTNMQKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -89,14 +89,16 @@ MemAvailable covers kernels without psi.
 ## schedule windows
 
 ```
-thermal.window.night       = 22:00-07:00
+thermal.window.night       = 22:00-06:00
 thermal.night.cold         = +8.0
 thermal.night.hot          = +25.0
 thermal.night.weight       = 1.0          ## full worker ##
 thermal.day.weight         = 0.25         ## overflow only ##
 ```
 
-a manual override expires at the next window switch -- nothing to forget.
+06:00 = the heating comes on full until the thermostat regulates [ owner ] :
+the night verdict ends exactly there. a manual override expires at the next
+window switch -- nothing to forget.
 
 ## outdoor amplifier [ night only ]
 
@@ -133,8 +135,8 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
 5. outdoor amplifier + forecast.
 6. profiles, if wanted.
 
-#,,,.,...,,,,,.,,,..,,,,.,,..,,,,,.,,,,,.,,,,,..,,...,...,...,,.,,.,,,...,,.,,
-#6AFVL7OFIG5FE4WZFEHR5B7KPCUVB4K6GHHIGGRGRRMH5UTQE7PLT3XPEDFWK33VP5CNPOL2D2TSC
-#\\\|UOSLKEDX7FM2Q5Y563GLK4UGBJLNGMK4PTACJGEKZ3BO5AFZYJJ \ / AMOS7 \ YOURUM ::
-#\[7]QCIV6M43CCLNIYNUGHF4XSXTAXBE3ECLOBYFJUU5E5KSFBJDR4AI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,.,.,.,,,,,,,,,,,,.,,,,.,..,,..,,...,...,..,,.,,,...,,..,...,
+#7H4HFUI4SQSTXIGDSKBVQPRH6YCBPKD2DYA72LMOIOYWYVAH5UCV64DZNAUZZRNAYQWQ32LMLCE4G
+#\\\|FTQVDEYCZL4TND5JR33QSS4ZKIZ5CEKZNHI3UNXURLNH4XAK3U2 \ / AMOS7 \ YOURUM ::
+#\[7]EOWDKU2KHRJF24EJTGQJDGGDTP23KOKGIJE6TN45M354POK2SQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

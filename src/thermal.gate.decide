@@ -19,8 +19,18 @@ if ( $temp >= $ceiling ) {
     return $gate->{'state'};
 }
 
-my $cold_mark = <thermal.cfg.cold> // 4.5;
-my $hot_mark  = <thermal.cfg.hot>  // 18.0;
+my $window
+    = defined $gate->{'window'}
+    ? $gate->{'window'}
+    : <[thermal.window.current]>->($now);
+my $cold_mark
+    = $window eq qw| night |
+    ? <thermal.cfg.night.cold> // 8.0
+    : <thermal.cfg.cold> // 4.5;
+my $hot_mark
+    = $window eq qw| night |
+    ? <thermal.cfg.night.hot> // 25.0
+    : <thermal.cfg.hot> // 18.0;
 if ( ( <thermal.cfg.mode> // qw| relative | ) eq qw| relative | ) {
     $cold_mark += $gate->{'baseline'};
     $hot_mark  += $gate->{'baseline'};
@@ -42,8 +52,8 @@ if ( not defined $state ) {
 
 return $gate->{'state'};
 
-#,,.,,,.,,,.,,...,...,,,,,...,.,,,.,,,..,,,.,,..,,...,..,,,,.,,,,,...,..,,,,.,
-#D3VFPZ5L5XTSDMC5SHMWGGFADPCDA7757R7UVGBDOKRBAIANFF6UDPNE3SZYGRX2G3RWEZJTZMJH4
-#\\\|2YOVPD77LZDSYVESRCTNL2YI4EWNDG74JSHBJC7Y5DNYXJWNPVO \ / AMOS7 \ YOURUM ::
-#\[7]L2XAJXDL6LRL6RKZBPMSUDVG46RLAAMF7GJWUHPAMD6EGTQY4ABA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,.,.,,,.,,,,.,,,,.,,,,,,,.,,,,,..,,...,...,..,,.,,,,,,,,.,,.,.,
+#XHEOT5DEYCGLMQIPGDLGTZBEFF4HWBRCRNBSHAHFRB6KOVHFYYYUYD67K6NSGIYZWYXKMKOV6ULVI
+#\\\|C2PZH7D5Y2TILMVHTB5WC6OUPX3Z7G5OLRS7USVOT4VRJEJOD2H \ / AMOS7 \ YOURUM ::
+#\[7]ULOIIGOVC36E7CYG3AHWBEKSRTNWJI7WHXMXMW7P7MISMCESWECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,8 @@ metadata:
 
 design : `data/md/design/THERMAL-AWARE-LOCAL-WORKER.md` [ not built yet ].
 
-- heating here switches off after 22:00 : night gpu heat is WANTED ; a
+- heating here is off 22:00-06:00 [ at 06:00 it comes on full until the
+  thermostat regulates ] : night gpu heat is WANTED ; a
   night profile looser than day is intended, not a mistake.
 - outdoor temp [ `weather.temp`, NOT the stub `weather.current` ]
   amplifies night offsets only ; hard ceiling + memory marks never move.
@@ -19,8 +20,8 @@ design : `data/md/design/THERMAL-AWARE-LOCAL-WORKER.md` [ not built yet ].
 
 related : [[project-2026-10-29-session-handover-jobsite-live-updates]]
 
-#,,,,,...,,,.,..,,.,.,,..,...,...,,.,,,..,,,.,..,,...,...,,,,,..,,..,,,,,,,..,
-#ISLY6NE7FZATMAAWNIL35DAYISPK4U36FLHANPQCK7ILLBIF2TDQTADLS5257A2FN2NQSEK57ISUY
-#\\\|GSCLQNZBUAX45KVB6Z3L4TS26L6E5DZMRBSWGSX5Q4BQDZZMTO6 \ / AMOS7 \ YOURUM ::
-#\[7]EB5XBI43BHZ7SBVTCYBJ24T3TZH6ALET6OEGBGFU7CHZN5FNNKDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,...,...,,..,.,.,,,,,.,,,,,.,..,,...,...,.,.,,.,,,,,,.,.,,,,,
+#7SB35OD7B4PVSYRYR6CG4GG74KYURQBBY4KZ3CJDI6ANXGUYVO44VZFSEWL2ANCBKXWFZYAHTO5VE
+#\\\|FPZUJAPZKBJK7YJZTFQNBXNIHT6R3HA4DHP3IL5GWZ4VHV3PTQX \ / AMOS7 \ YOURUM ::
+#\[7]F5RRPWRUO3MBM3PZSJGSLEQ2P3IDT3X3ESRP7TAFNBL6UNWTWSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
