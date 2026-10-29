@@ -28,7 +28,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.G5ZLJYI |;
+our $VERSION = qw| AMOS7::TERM-VERSION.3POJOTA |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -1355,25 +1355,32 @@ sub confirm_key {
         } elsif ( $key eq qw| n | or $key =~ m|^[\x03\x04\x1b]$| ) {
             $answer = FALSE;
         } elsif ( $key eq qw| d | and $diff_code ) {
-            ## the diff on the alternate screen : leaving it restores the  ##
-            ## main screen as it was [ request + prompt ]. a key closes it ##
-            ## -- 'less -F' quits at once on a one-screen diff             ##
+            ## the diff on the alternate screen : leaving it restores the   ##
+            ## main screen as it was [ request + prompt ]. a pager that ran ##
+            ## a while was quit by the user [ q ] : straight back. one that ##
+            ## returned at once [ less -F, a one-screen diff ] waits for a  ##
+            ## key -- the diff was not read yet                             ##
             my $alt_screen = not $params->{'no_alt_screen'};
             print {$tty_out} $alt_screen ? "\e[?1049h\e[H\e[2J" : "\n";
             $termios->setlflag($lflag_saved);    ## the pager runs cooked ##
             $termios->setattr( $fd, TCSANOW );
-            ## ( text, options ) ##
-            AMOS7::TERM::diff_page( $diff_code->() );
+            my @diff_page_args = $diff_code->();       ## ( text, options ) ##
+            my $pager_start    = Time::HiRes::time();
+            AMOS7::TERM::diff_page(@diff_page_args);
+            my $pager_quit_by_user = Time::HiRes::time() - $pager_start > 0.3;
             $termios->setlflag( $lflag_saved & ~( ICANON | ECHO ) );
             $termios->setattr( $fd, TCSAFLUSH );
+
             if ($alt_screen) {
-                print {$tty_out} "\n"
-                    . $c{'0'} . ':. '
-                    . $c{'1'}
-                    . 'any key returns'
-                    . $c{'0'} . ' :.'
-                    . $c{'R'};
-                sysread( $tty_in, my $any_key, 1 );
+                if ( not $pager_quit_by_user ) {
+                    print {$tty_out} "\n"
+                        . $c{'0'} . ':. '
+                        . $c{'1'}
+                        . 'any key returns'
+                        . $c{'0'} . ' :.'
+                        . $c{'R'};
+                    sysread( $tty_in, my $any_key, 1 );
+                }
                 print {$tty_out} "\e[?1049l";
             } else {    ## no alternate screen : clear, the caller redraws ##
                 print {$tty_out} "\e[H\e[2J";
@@ -2209,8 +2216,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,.,,,..,,.,,,,.,..,,,,,,..,,..,,,..,...,.,.,..,,...,...,,..,..,,,.,,,,,,...,
-#KAK2KIHTEFZUCSU5IY6TDXFK62TSVN62LUW5TPOGVCXOCLSPLQHKRS72CYJCB5GJMOMLDHRV4T4R6
-#\\\|FAVLDWHA76TUJGRZNBVECJRHT4YFO3WLCRV2BOCLF4ZPPDYM3UP \ / AMOS7 \ YOURUM ::
-#\[7]546PFPFWISF2BIQTACG5Q5I7DR4XWIPGW3HMVXLUZUJDOZZ6E6DI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,...,...,,.,,.,.,,,,,,.,,,,.,,.,,..,,...,...,,.,,.,,,,,.,,,,,,.,,
+#2SID3HT2SLUBJGNSD7J6X5QVMJ2LEID53MDRO45PRMOELFX66E4YQ7QBZ2RXNWRKF3Y2UATNRXQ7U
+#\\\|WH2FGA3YUFYYHLAOXUPPXCQ4TRC5XRAU6QDHVZDZZWWFVSPLEJF \ / AMOS7 \ YOURUM ::
+#\[7]XIY6HOZJTPPZGZX7CNZAOCPWRVFS2OYUUQXOSWIKJXGNYOVYAWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
