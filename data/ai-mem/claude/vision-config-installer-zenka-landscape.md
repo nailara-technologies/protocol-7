@@ -74,8 +74,11 @@ request to fill it.
   the path above would replace A3's preseed-only approach.
 - still intent, not a build request.
 
-#,,..,.,,,...,.,,,,..,...,,.,,..,,,.,,,,,,..,,...,...,...,..,,...,...,.,.,.,,,
-#2KGKRKEDW5EQF77PZDSOB3S3U772Z4EOP77QSTB4WN6KLNEU4PKDBAXRTF5ESDZJ2WYME2Y7GJYAQ
-#\\\|O7ESVORTQQMCEWDHVIEDOD2YNKJQEOP67JUK5AXZPWP6XHFOAQP \ / AMOS7 \ YOURUM ::
-#\[7]MTB3EREAM7HFSZ4ANJE6CIXQL46E4ENR2WBRRBGOG4ZRCCI7ZCBY 7  DATA SIGNATURE ::
+
+**layer axis [ user 2026-10-29 ] :** impersonal -> personal. osf-cache [ OS files, signed archive hashes, shared freely ] -> os-pkg [ packages, distribution-generic ] -> configure [ ONE-TIME provisioning ] -> host-edit \ user-edit [ the machine and the person ; p7-vault anchors the PII layers cryptographically ] [ backend : the users zenka ] -> settings [ ongoing, personal layer on the device + minimal diff, anonymized patterns to statistics ]. a reinstall = impersonal bulk from the neighbors + the personal diff on top. the GWZ view tree and ZRK usage counts sit at the settings \ statistics end. history : src/set-up.* was the settings layer of the appliance era [ 10+ years ago ], the new settings zenka is its successor. set-up stays PARKED, not retired : it reads \ writes yaml + json, useful for user-designed integrations that work easier with those formats ; the format list can grow any time. the main system loads none of the set-up modules, so anyone can add them to a local zenka.v7 [ or via cfg/shared-params ] without collisions. load order = precedence ; per-key import rules in set-up.json.import_file : overwrite \ delete \ merge [ Hash::Merge::Simple ; merge only at key depth 1 so far -- its own LLL note ].
+
+#,,..,,.,,..,,,..,,,.,..,,..,,...,,..,,.,,,,,,...,...,...,..,,.,,,.,.,.,.,,..,
+#Z2MYSEOELKZT2YU5XYVNIMFFLCMWZMO26BNDRWZNIJOFLBTWOYEYFKPU34GCYQZ4WHM3QCBBMEN3U
+#\\\|RFGBQA432UXC3DY4EJZURYYQKPCKNUSV62PVNI4H43C3DE2ICTC \ / AMOS7 \ YOURUM ::
+#\[7]NPSERINAFJ7SQJZKV3ZKHFB3OVQKF2IK6FGU7SPXEGEM5NC2AQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

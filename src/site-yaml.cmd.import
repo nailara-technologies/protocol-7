@@ -53,7 +53,8 @@ if ( length $reply_handler ) {
 my $skip_ids_str = $param{'skip'} // $param{'skip_ids'} // '';
 my %skip;
 if ( length $skip_ids_str ) {
-    %skip = map { $ARG => 1 } split m|\s+|, $skip_ids_str;
+    ## comma list [ WY5 ] ##
+    %skip = map { $ARG => 1 } split m{[\s,]+}, $skip_ids_str;
 }
 
 ## optional pre-fetch field-block file  [ generic: caller provides ##
@@ -126,8 +127,8 @@ my $import_id = <[base.gen_id]>->( <site-yaml.import_state> //= {} );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,.,.,.,.,...,,,,,.,,,,,.,,.,,,..,,.,,.,.,.,.,...,...,..,,,,.,...,,.,,,,.,
-#HITIVDMXXFNMJQSJDGNCC4ZUN3I3LJTPK3CCIKFBCDEJ4I2PIJOEKV26T7IHIMAZQWV52RSJLHBEI
-#\\\|ZD2CUYWRXQK5FLHSFNXVHRX2QBSFAYSBIGBUUGRBLQ6ZPX53RSY \ / AMOS7 \ YOURUM ::
-#\[7]4TQF3CMUYB2QMC5QIGE5RB3XG77TZTGEKAYVB6Z2HRCIMBWIXWDI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,,,,,,.,,,,,,.,.,,,.,,,,,..,,.,.,...,...,.,.,.,,,...,,.,,,..,
+#EHJXZYEOHQYS27PXTI6RDBZY54RT6AO4NMZB3E3XBW7ZLY73TSQXTUARYSARVVFZSLZGN2A6WUNRK
+#\\\|2GMYL3IEPCDIU6XRG4XGGD5R7HNZN6YWFJ6KPFV3HTUFLP55FLZ \ / AMOS7 \ YOURUM ::
+#\[7]CTA26Z4ND52D5N42RV7XNUNLLGU27UJUM55MATO4HC4BP7TBLICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
