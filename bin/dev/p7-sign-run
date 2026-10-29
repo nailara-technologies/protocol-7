@@ -1,0 +1,228 @@
+#!/usr/bin/perl
+use v5.32.0;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+###                  ###
+##  p7-sign-run       ##
+###                  ###
+
+## the signing chain as one detached job
+## [ todo ZA2, slice 1 -- the p7_sign \ p7_sign_status mcp frontend runs it ]
+## :
+##
+##   [ update-version ] -> update-signatures :agent: :stage: <paths>
+##
+## update-signatures :agent: itself runs format-code -r + the '-c -report'
+## gate, update-amos-versions and the content checksums before its RUN. the
+## approval stays in the user's p7-sign-agent terminal -- this job only
+## submits and watches. its state goes to a JSON file at every phase :
+##
+## starting -> versioning -> awaiting-approval -> signing ->  approved |
+## denied | aborted | failed
+##
+## p7-sign-run -state <file.json> [ -version ] <path> [ <path> .. ]
+##
+## -version : bump the source version first [ bin/dev/update-version ] ; the
+## files it rewrites join the request [ their footers need the new sign ]
+
+use FindBin;
+use Cwd         ();
+use JSON::PP    ();
+use Time::HiRes ();
+
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+my $root_path = Cwd::abs_path("$FindBin::Bin/../..");
+chdir $root_path or die "p7-sign-run : chdir $root_path : $OS_ERROR\n";
+
+my ( $state_path, $bump_version, @paths );
+while ( defined( my $arg = shift @ARGV ) ) {
+    if    ( $arg eq qw| -state | )   { $state_path = shift @ARGV }
+    elsif ( $arg eq qw| -version | ) { $bump_version = TRUE }
+    else                             { push @paths, $arg }
+}
+die "p7-sign-run -state <file.json> [ -version ] <path> ..\n"
+    if not defined $state_path or not @paths;
+
+my $json  = JSON::PP->new->canonical->pretty;
+my $state = {
+    qw| status |  => qw| starting |,
+    qw| paths |   => [@paths],
+    qw| pid |     => $PID,
+    qw| started | => time(),
+};
+
+sub state_write {
+    my %update = @ARG;
+    @{$state}{ keys %update } = values %update;
+    $state->{'updated'} = time();
+    my $tmp = "$state_path.tmp";
+    open( my $fh, '>:raw', $tmp ) or return;
+    print {$fh} $json->encode($state);
+    close $fh;
+    rename $tmp, $state_path;    ## a reader never sees half a file ##
+    return;
+}
+
+sub finish {
+    state_write(@ARG);
+    exit( $state->{'status'} eq qw| approved | ? 0 : 1 );
+}
+
+## the agent's run log : the same resolution as bin/p7-sign-agent ##
+my $run_base
+    = (     length( $ENV{'XDG_RUNTIME_DIR'} // '' )
+        and -d $ENV{'XDG_RUNTIME_DIR'}
+        and -w _ )
+    ? $ENV{'XDG_RUNTIME_DIR'} =~ s|/+$||r
+    : sprintf( qw| %s/.n/run |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+my $runs_log = "$run_base/runs.log";
+
+sub git_changed {    ## modified tracked files, staged or not ##
+    my %changed;
+    foreach my $args ( [qw| diff --name-only |],
+        [qw| diff --cached --name-only |] ) {
+        open( my $fh, '-|', qw| git -c color.ui=false |, $args->@* )
+            or next;
+        while ( my $line = <$fh> ) { chomp $line; $changed{$line} = TRUE }
+        close $fh;
+    }
+    return %changed;
+}
+
+state_write();
+
+##[ 1 : source version ]######################################################
+
+if ($bump_version) {
+    state_write( qw| status | => qw| versioning | );
+    my %before = git_changed();
+    my $out    = qx| bin/dev/update-version 2>&1 |;
+    finish(
+        qw| status | => qw| failed |,
+        qw| report | => "update-version failed :\n$out"
+    ) if $CHILD_ERROR != 0;
+    my ($version)     = $out =~ m|source version :: (\S+)|;
+    my %after         = git_changed();
+    my %requested     = map  { $ARG => TRUE } @paths;
+    my @version_files = grep { not $before{$ARG} and not $requested{$ARG} }
+        sort keys %after;
+    push @paths, @version_files;
+    state_write(
+        qw| version |       => $version,
+        qw| version_files | => \@version_files,
+        qw| paths |         => [@paths],
+    );
+}
+
+##[ 2 : the agent run ]#######################################################
+
+my $log_offset = -s $runs_log // 0;    ## this job's lines come after ##
+
+state_write( qw| status | => qw| awaiting-approval | );
+
+my $sign_pid = open( my $sign_fh, '-|' );
+die "p7-sign-run : fork : $OS_ERROR\n" if not defined $sign_pid;
+if ( $sign_pid == 0 ) {
+    open( STDERR, '>&', \*STDOUT );
+    exec( qw| bin/Protocol-7 sourcecode update-signatures :agent: :stage: |,
+        @paths )
+        or die "exec update-signatures : $OS_ERROR\n";
+}
+
+## the run log tells the phase : 'begin' only after the user approved ##
+my ( $run_id, %signed, $denied_reason, $ended, $output );
+my $poll_run_log = sub {
+    open( my $log_fh, '<:raw', $runs_log ) or return;
+    seek( $log_fh, $log_offset, 0 );
+    while ( my $line = <$log_fh> ) {
+        my ( undef, $kind, $id, @rest ) = split m| |, $line;
+        next if not defined $kind;
+        if ( $kind eq qw| begin | and not defined $run_id ) {
+            $run_id = $id;
+            state_write(
+                qw| status | => qw| signing |,
+                qw| run_id | => $run_id
+            );
+        }
+        next if not defined $run_id or ( $id // '' ) ne $run_id;
+        $signed{ $rest[0] } = TRUE if $kind eq qw| sign |;
+        $ended              = TRUE if $kind eq qw| end |;
+    }
+    close $log_fh;
+    return;
+};
+
+## a denial has no 'begin' : its own line, matched by the request's paths ##
+my $poll_denial = sub {
+    open( my $log_fh, '<:raw', $runs_log ) or return;
+    seek( $log_fh, $log_offset, 0 );
+    while ( my $line = <$log_fh> ) {
+        chomp $line;
+        my ( undef, $kind, $id, $count, $reason_b32 ) = split m| |, $line;
+        next if ( $kind // '' ) ne qw| denied |;
+        $run_id        = $id;
+        $denied_reason = '';
+        if ( length( $reason_b32 // '' ) ) {
+            require Crypt::Misc;
+            $denied_reason = Crypt::Misc::decode_b32r($reason_b32) // '';
+        }
+    }
+    close $log_fh;
+    return;
+};
+
+## the child's output in chunks, the run log polled every second : the ##
+## state file shows 'signing' while it happens, not only at the end    ##
+require IO::Select;
+my $output_select = IO::Select->new($sign_fh);
+$output = '';
+while (TRUE) {
+    if ( $output_select->can_read(1) ) {
+        my $got = sysread( $sign_fh, my $chunk, 65536 );
+        last if not $got;
+        $output .= $chunk;
+    }
+    $poll_run_log->();
+    state_write( qw| signed | => scalar keys %signed ) if defined $run_id;
+}
+close $sign_fh;
+$poll_run_log->();
+$poll_denial->() if not defined $run_id or not $ended;
+
+$output =~ s|\e\[[0-9;]*m||g;
+my @report = grep { length and not m|^\s*:?\s*$| } split m|\n|, $output;
+my $report = join "\n", @report[ ( @report > 25 ? -25 : 0 ) .. $#report ];
+
+if ( defined $denied_reason ) {
+    finish(
+        qw| status |        => qw| denied |,
+        qw| run_id |        => $run_id,
+        qw| denied_reason | => $denied_reason,
+        qw| report |        => $report
+    );
+}
+if ($ended) {
+    finish(
+        qw| status | => qw| approved |,
+        qw| run_id | => $run_id,
+        qw| signed | => scalar keys %signed,
+        qw| report | => $report
+    );
+}
+finish(
+    qw| status | => qw| aborted |,
+    qw| run_id | => $run_id,
+    qw| signed | => scalar keys %signed,
+    qw| report | => $report
+);
+
+#,,.,,..,,,.,,,.,,.,,,,,,,.,,,.,.,,,.,,..,..,,..,,...,...,,.,,...,..,,,,.,..,,
+#GHRF3GVPVKBHHHOZ6ICPGGQHLCH3MWDLXW74Z5ZVAJSHBKFUHGJK5XBWP5MGJUPFYLONZHKAT73EI
+#\\\|LVSJA6G4DQXSJUGILH5BRMITV7IPIUEFM7A5YGQLXNTY53WSGNV \ / AMOS7 \ YOURUM ::
+#\[7]UHKJP65DWRBMSHPV522LCVPQFEIQWWHZC7BEBZ3FADBYV5J6VOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

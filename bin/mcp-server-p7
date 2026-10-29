@@ -304,6 +304,40 @@ my @external_tools = (
         ## no 'command' : routed by name to tool_kimi_check_status, ##
         ## registration only — same pattern as coding_summarize     ##
     },
+    {   'name'        => 'p7_sign',
+        'description' =>
+            'sign files through the p7-sign-agent [ todo ZA2 slice 1 ]. '
+            . 'NON-BLOCKING : starts bin/dev/p7-sign-run DETACHED and '
+            . 'returns a job id at once ; the user approves in the '
+            . 'p7-sign-agent terminal [ y \ n \ d ], this server never '
+            . 'waits for it. the chain : optional update-version, then '
+            . 'update-signatures :agent: :stage: [ format-code -r + '
+            . 'gate, update-amos-versions, content checksums, one RUN ]. '
+            . 'poll p7_sign_status(job) for phase + result. holds no key '
+            . 'and cannot answer the prompt.',
+        'params' => [
+            [   'paths',
+                'repo-relative files to sign, '
+                    . 'separated by spaces or newlines',
+                1
+            ],
+            [   'version',
+                'true : bump the source version first [ update-version '
+                    . '] ; its rewritten files join the request',
+                0
+            ],
+        ],
+        ## no 'command' : routed by name to tool_p7_sign ##
+    },
+    {   'name'        => 'p7_sign_status',
+        'description' =>
+            'phase + result of a p7_sign job : starting \ versioning \ '
+            . 'awaiting-approval \ signing \ approved \ denied [ with '
+            . 'the decoded reason ] \ aborted [ with the report ] \ '
+            . 'failed. returns within a second, read-only.',
+        'params' => [ [ 'job', 'the job id p7_sign returned', 1 ], ],
+        ## no 'command' : routed by name to tool_p7_sign_status ##
+    },
     {   'name'        => 'claude_dispatch',
         'description' =>
             'dispatch a task to Claude Code CLI in non-interactive mode. '
@@ -1539,6 +1573,10 @@ sub handle_tools_call {
         tool_p7_memory_digest( $id, $args );
     } elsif ( $name eq 'kimi_check_status' ) {
         tool_kimi_check_status( $id, $args );
+    } elsif ( $name eq 'p7_sign' ) {
+        tool_p7_sign( $id, $args );
+    } elsif ( $name eq 'p7_sign_status' ) {
+        tool_p7_sign_status( $id, $args );
     } elsif ( $name eq 'claude_cloud_dispatch' ) {
         tool_claude_cloud_dispatch( $id, $args );
     } elsif ( $name eq 'claude_cloud_status' ) {
@@ -5936,12 +5974,123 @@ sub _kimi_dispatch_async_reply {
     return;
 }
 
-## quick poll on a kimi session — the fast recovery path when the outer     ##
-## harness reports a kimi_dispatch / kimi_continue call as failed at its    ##
-## ~1800s idle-silence watchdog while the kimi worker keeps running.        ##
-## supports BOTH cli generations : new ~/.kimi-code/sessions tree and the   ##
-## legacy ~/.kimi/sessions tree. must return well under 1800s : no blocking ##
-## waits here at all                                                        ##
+## quick poll on a kimi session — the fast recovery path when the outer      ##
+## harness reports a kimi_dispatch / kimi_continue call as failed at its     ##
+## ~1800s idle-silence watchdog while the kimi worker keeps running.         ##
+## supports BOTH cli generations : new ~/.kimi-code/sessions tree and the    ##
+## legacy ~/.kimi/sessions tree. must return well under 1800s : no blocking  ##
+## waits here at all                                                         ##
+## ========================================================================= ##
+## p7_sign : the signing chain as a detached job [ todo ZA2 slice 1 ]        ##
+## ========================================================================= ##
+
+## job ids are the state file's base name : p7-sign-<epoch>-<pid> ##
+sub _p7_sign_state_path {
+    my $job = shift // '';
+    return undef if $job !~ m|^p7-sign-\d+-\d+$|;
+    return "$ROOT_PATH/data/state/$job.json";
+}
+
+sub tool_p7_sign {
+    my ( $id, $args ) = @ARG;
+
+    my @paths = grep {length} split m|\s+|, $args->{'paths'} // '';
+    return send_tool_result( $id, 'paths is required', 1 ) if not @paths;
+    foreach my $path (@paths) {
+        return send_tool_result( $id, "not a repo-relative file : $path", 1 )
+            if $path =~ m|^/|
+            or $path =~ m|(?:^\|/)\.\.(?:/\|$)|
+            or not -f "$ROOT_PATH/$path";
+    }
+    my $bump = ( $args->{'version'} // '' ) =~ m{^(?:1|true|yes)$}i;
+
+    my $state_dir = "$ROOT_PATH/data/state";
+    eval { make_path($state_dir) } if not -d $state_dir;
+    my $job        = sprintf 'p7-sign-%d-%d', time(), $PID;
+    my $state_path = _p7_sign_state_path($job);
+    my @cmd        = (
+        "$ROOT_PATH/bin/dev/p7-sign-run",
+        '-state', $state_path, $bump ? ('-version') : (), @paths
+    );
+
+    ## double fork : the job is orphaned to init in its own session -- it ##
+    ## outlives this call and this server, nothing here waits on it       ##
+    my $pid = fork();
+    return send_tool_result( $id, "fork failed : $OS_ERROR", 1 )
+        if not defined $pid;
+    if ( $pid == 0 ) {
+        my $gpid = fork();
+        POSIX::_exit(1) if not defined $gpid;
+        if ( $gpid == 0 ) {
+            POSIX::setsid();
+            open( STDIN,  '<',  '/dev/null' );
+            open( STDOUT, '>',  "$state_path.out" ) or POSIX::_exit(1);
+            open( STDERR, '>&', \*STDOUT );
+            chdir $ROOT_PATH;
+            exec(@cmd) or POSIX::_exit(127);
+        }
+        POSIX::_exit(0);
+    }
+    waitpid( $pid, 0 );
+
+    return send_tool_result(
+        $id,
+        sprintf "job %s started [ %d file%s%s ]\napprove in the "
+            . "p7-sign-agent terminal ; poll "
+            . "p7_sign_status(job=\"%s\")",
+        $job,
+        scalar @paths,
+        @paths == 1 ? ''                     : 's',
+        $bump       ? ', version bump first' : '',
+        $job
+    );
+}
+
+sub tool_p7_sign_status {
+    my ( $id, $args ) = @ARG;
+
+    my $state_path = _p7_sign_state_path( $args->{'job'} );
+    return send_tool_result( $id, 'unknown job id', 1 )
+        if not defined $state_path;
+    return send_tool_result( $id, 'job starting [ no state yet ]' )
+        if not -f $state_path;
+
+    my $state = eval {
+        open( my $fh, '<:raw', $state_path ) or die "$OS_ERROR\n";
+        local $INPUT_RECORD_SEPARATOR;
+        $json->decode(<$fh>);
+    };
+    return send_tool_result( $id, "state unreadable : $EVAL_ERROR", 1 )
+        if ref $state ne 'HASH';
+
+    ## a job that died without its final state : say so, never 'running' ##
+    my $status = $state->{'status'} // 'unknown';
+    my $final  = $status =~ m{^(?:approved|denied|aborted|failed)$};
+    $status = 'failed [ job process gone ]'
+        if not $final
+        and $state->{'pid'}
+        and not kill 0, $state->{'pid'};
+
+    my @lines = ("status : $status");
+    push @lines, "run    : $state->{'run_id'}" if $state->{'run_id'};
+    push @lines, sprintf 'signed : %d of %d', $state->{'signed'} // 0,
+        scalar @{ $state->{'paths'} // [] }
+        if defined $state->{'signed'};
+    push @lines, "version : $state->{'version'}" if $state->{'version'};
+    push @lines, "reason : $state->{'denied_reason'}"
+        if length( $state->{'denied_reason'} // '' );
+    push @lines, 'paths  : ' . join ' ', @{ $state->{'paths'} // [] };
+    push @lines, "report :\n$state->{'report'}"
+        if length( $state->{'report'} // '' )
+        and $status ne 'approved';
+
+    return send_tool_result(
+        $id,
+        join( "\n", @lines ),
+        $status =~ m{^(?:aborted|failed)} ? 1 : 0
+    );
+}
+
 sub tool_kimi_check_status {
     my ( $id, $args ) = @ARG;
 
@@ -6154,8 +6303,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,,,,,..,,..,,,..,..,,...,,,,,.,.,,,,,.,.,..,,...,...,...,...,...,.,.,,,,,
-#SBKER57GZBP7FDLG46K34WUBQV3TXKCO3J76NFM6CEN6CMF3E5INPOVTEDWQRXXQSHLMKFZ2IUVPY
-#\\\|XG46B6CXBJHVNJMGBPJYRGEMTJMC4HA6PGCKVPE4X2DWX5ZJ77E \ / AMOS7 \ YOURUM ::
-#\[7]UYJURJZ3QNYU6NG33RVQQN65NAFBKJHDERZ546DJODPMDEYFOADQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,,.,.,.,,.,,.,.,,..,,,.,,..,..,,...,...,,..,.,.,,..,,..,,.,,
+#ZMVLNWQS5M76YKO6JEP33BBYGMHAP5BSDCT72ZKQWPM5E2JN5JOQCL6D22PHBPPKYAS5HFZAJES5Y
+#\\\|XOKNMAXSCOPBA3GAA5EYST24PLCTCDFWHS7GRAYO354PY227X3K \ / AMOS7 \ YOURUM ::
+#\[7]4Y4DP5KB7WP7LB2F6AUMCVMM5XFZUT7WVR6LG5HCMBXD765GKMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
