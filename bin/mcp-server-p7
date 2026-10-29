@@ -310,11 +310,11 @@ my @external_tools = (
             . 'NON-BLOCKING : starts bin/dev/p7-sign-run DETACHED and '
             . 'returns a job id at once ; the user approves in the '
             . 'p7-sign-agent terminal [ y \ n \ d ], this server never '
-            . 'waits for it. the chain : optional update-version, then '
-            . 'update-signatures :agent: :stage: [ format-code -r + '
-            . 'gate, update-amos-versions, content checksums, one RUN ]. '
-            . 'poll p7_sign_status(job) for phase + result. holds no key '
-            . 'and cannot answer the prompt.',
+            . 'waits for it. the chain : optional plan [ slice 3 ] + '
+            . 'update-version, then update-signatures :agent: :stage: [ '
+            . 'format-code -r + gate, update-amos-versions, content '
+            . 'checksums, one RUN ]. poll p7_sign_status(job) for phase '
+            . '+ result. holds no key and cannot answer the prompt.',
         'params' => [
             [   'paths',
                 'repo-relative files to sign, '
@@ -332,15 +332,22 @@ my @external_tools = (
                     . ']',
                 0
             ],
+            [   'plan',
+                'true : run bin/dev/p7-commit-plan -apply on the paths first '
+                    . '[ the automatic requirement chain, slice 3 ] ; the '
+                    . 'files its steps rewrite join the request',
+                0
+            ],
         ],
         ## no 'command' : routed by name to tool_p7_sign ##
     },
     {   'name'        => 'p7_sign_status',
         'description' =>
-            'phase + result of a p7_sign job : starting \ versioning \ '
-            . 'preparing \ awaiting-approval \ signing \ approved \ '
-            . 'denied [ with the decoded reason ] \ aborted [ with the '
-            . 'report ] \ failed. returns within a second, read-only.',
+            'phase + result of a p7_sign job : starting \ planning \ '
+            . 'versioning \ preparing \ awaiting-approval \ signing \ '
+            . 'approved \ denied [ with the decoded reason ] \ aborted [ '
+            . 'with the report ] \ failed. returns within a second, '
+            . 'read-only.',
         'params' => [ [ 'job', 'the job id p7_sign returned', 1 ], ],
         ## no 'command' : routed by name to tool_p7_sign_status ##
     },
@@ -6054,6 +6061,7 @@ sub tool_p7_sign {
             or not -f "$ROOT_PATH/$path";
     }
     my $bump = ( $args->{'version'} // '' ) =~ m{^(?:1|true|yes)$}i;
+    my $plan = ( $args->{'plan'}    // '' ) =~ m{^(?:1|true|yes)$}i;
 
     my $state_dir = "$ROOT_PATH/data/state";
     eval { make_path($state_dir) } if not -d $state_dir;
@@ -6063,6 +6071,7 @@ sub tool_p7_sign {
         "$ROOT_PATH/bin/dev/p7-sign-run",
         '-state',
         $state_path,
+        $plan ? (qw| -plan |) : (),
         defined $args->{'op'}
             && length $args->{'op'} ? ( '-op', $args->{'op'} )
         : $bump ? ('-version')
@@ -6099,8 +6108,10 @@ sub tool_p7_sign {
             . "exits with the final state ]",
         $job,
         scalar @paths,
-        @paths == 1 ? ''                     : 's',
-        $bump       ? ', version bump first' : '',
+        @paths == 1 ? '' : 's',
+        $plan       ? ', requirement plan first'
+        : $bump     ? ', version bump first'
+        : '',
         $job,
         $job
     );
@@ -6470,8 +6481,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,..,.,.,..,,..,,...,..,,,,.,.,.,,.,,.,.,..,,...,.,.,,,,,,,.,,,,,,..,.,,,
-#UNNHPY3W7YR2VP5USLGZZYOFNULIZ2B624IKYNUGHV7YBCW76OF2L27ZNJLNZ77YK47RE5LQPPXJI
-#\\\|SUKRMRKODERJDDADFNS6NBKPYPBKA6MELQQQMOWNCJNHGYP2JQ6 \ / AMOS7 \ YOURUM ::
-#\[7]JDKEQIA263TBDJJNPL63M3LXELXIELFMPXJFG3QLJMQ4OP2YNYCI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,,..,,,.,...,,.,,,..,..,,..,,..,,...,...,..,,.,,,,..,...,,..,
+#DEMHP6FOL323P3N66XG6GL7MDBHFOY67TCOE4PXE676NBZHWOKVLWIPPP7PS276RFYUA424MSPDSG
+#\\\|QNGRVD4L2R3GE75Y32AFOGGMARCJQYANJJII7IGY6NLO6J4FT7E \ / AMOS7 \ YOURUM ::
+#\[7]2NDK4GM2IMFOTREOVQCL55X4ZIBYM6V5V56IBMMTIJ7642XNMQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
