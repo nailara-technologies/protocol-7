@@ -2240,9 +2240,62 @@ items:
   - ned
   - ui
   text: 'editor keys bar : cell row, border scroll, hybrid modes, clickable actions, usage order'
+- added: 32IJ3HU5NY
+  details: |-
+    owner idea 2026-10-29 : the free left side of the editor's top bar [ todo details editor, ned ] holds a search field.
 
-#,,.,,.,,,.,,,,,.,,,.,..,,,..,.,.,.,,,...,,,.,..,,...,...,..,,,.,,,,,,..,,,.,,
-#L5PFCMFM3XS7VFUGWBJC7YKKX4O4UFF3AGRHM7RLNBJUZ5MWSWU22EUJLLGFNYSYIGBWJ2Y6S4V3A
-#\\\|FTXZQZKN7ON7VWZPVJ743KWDUZOVF4OKGW4TD224LMMC2WYFTPA \ / AMOS7 \ YOURUM ::
-#\[7]RQKMKTYMPO6QVVW6UP42VHOT4OQ6N6XLJMMF65YF4FSUV27ZKWBA 7  DATA SIGNATURE ::
+    - N7FS network file search with automatic listing as you type ; opening a hit = a new buffer [ multi-buffer support later ]
+    - the same in a message view : search other messages from any open message
+    - opened files \ messages form a history-like buffer list, sorted by recent TIME SPENT in each [ same flat-statistics design as ZRK's usage order : one flat table keyed by a stable id, slow decay, any view is drawn from it ]
+    - depends on : ZRK cell row + hit map [ the list and search hits are clickable cells ], N7FS addressing [ todo 4EO ]
+    - the shared editor base [ AMOS7::TERM::Editor + ZRK cells \ hit map \ flat stats + GWZ search \ buffers ] is meant to carry the native mail \ message clients and expanded prompt editing [ e.g. the nshell model terminal ] -- keep it free of todo-specific code
+    - interactive chat window on the same base : needs a buffer that updates from outside [ incoming messages ] while the input area keeps its text \ cursor -- design the redraw for it early
+    - structure [ owner 2026-10-29 ] : ONE view tree for the whole interface [ nested frames, slots, cells ], independent of what is visible ; it DEFINES how each node shows once it becomes visible. the screen is a projection of the tree [ terminal size, scroll offsets, F1 mode, open buffers ] ; hidden nodes keep their state but are never rendered. scrolling, resizing and mode switches change only the projection. the keys bar overflow, the buffer list and nested menus are the same case. engine : move src/ascii.frame.{load,parse,compose} into AMOS7::TERM::Frame [ core perl ], src/ascii.frame.* call into it ; drop Editor.pm's frame_border_line copy -- after ZRK lands
+    - node state survives hiding [ re-entry = visible again, no reset by default ] and is updated IN PARALLEL whether visible or not [ incoming messages, search results, file changes go into the tree ; a node renders its current state when it becomes visible ; hidden nodes may raise a change marker in their parent, e.g. unread ]. opt-in flags : 'reset on entry' [ e.g. a search field ], 'wipe on hide' for secret contents [ vault-edit, key entry : Editor.pm _wipe \ _mlock ]
+    - persistence : nodes flagged 'persist' write their state into the network [ N7FS, todo 4EO ] -> survives a total machine loss ; a reinstall opens the last current value even for nodes never opened locally. secret nodes never persist in plain [ wipe on hide ; at most encrypted with the user's key ]. several devices on one tree : append-only merge for message-like nodes, last writer wins for view state [ cursor, scroll ]
+    - the persist layer is the job of the settings zenka [ todo 2PX ] -- use it, no private mechanism
+    - CORRECTION : the settings design exists -- data/md/design/SETTINGS-STATISTICS-ZENKA.md [ settings + statistics zenki, privacy-first ; layers personal -> branch -> network -> hardcoded, minimal diff sync ; noted in 4EO ] and memory vision-2026-10-28-declared-intent-survives-breakage. the view tree persists THROUGH those layers [ personal stays on the device unless the user declares otherwise ], the ZRK usage counts are a case for the statistics zenka. no separate todo [ a duplicate 2PX was removed ]
+  done_at: null
+  id: GWZ
+  priority: normal
+  status: open
+  tags:
+  - editor
+  - n7fs
+  - ui
+  text: 'editor top bar : search field [ N7FS files, messages ] + recent-buffer list by time spent'
+- added: 32IKBFGGOI
+  details: "src/set-up.json.import_file merges with Hash::Merge::Simple only at key depth 1 [ its own 'LLL: implement for key depth > 1' ] : a merge of a nested key replaces the whole sub-tree. extend overwrite \\ delete \\ merge rules to key paths of any depth [ e.g. 'a.b.c' ], load order stays the precedence. prerequisite for TJ6 [ partial state reimport ]."
+  done_at: null
+  id: JX3
+  priority: normal
+  status: open
+  tags:
+  - set-up
+  - config
+  text: 'set-up merge : full key depth [ today only depth 1, set-up.json.import_file LLL note ]'
+- added: 32IKBFGWHI
+  details: |-
+    owner 2026-10-29 : set-up [ parked, yaml + json, merge \ overwrite \ delete per key, load order = precedence ] gains the native ncfg format [ parser exists : src/base.parse_ncfg_code ] -- read AND write.
+
+    use : devmod exports a zenka's state [ %data branches, existing dump : base.devmod.dump_var \ dump.param_hash ] in ncfg \ yaml \ json and reimports it via set-up :
+    - test zenki : snapshot a state, reproduce it in a fresh test zenka
+    - forensics : copy a live state from a remote server and investigate it locally [ precedent : the srv-F route leak, devmod loaded into cube via kill -53 + 'p7c dump session.<id>' ]
+    rules : secrets \ keys never leave in plain [ %keys excluded ; PII via p7-vault only ] ; a remote copy is read-only evidence, reimport into a TEST zenka, never back into production. needs JX3 for partial merges.
+    - transport [ owner 2026-10-29 ] : same encryption-only route as the blackbox log-buffer reader \ writer processes -- the exporting zenka encrypts the state for the ADMIN user's key at the source, hands the ciphertext to the forensics zenka for transfer ; decryption only on the admin's explicit request. no host on the way [ incl. forensics ] ever holds plain state.
+  done_at: null
+  id: TJ6
+  priority: normal
+  status: open
+  tags:
+  - set-up
+  - config
+  - devmod
+  - forensics
+  text: set-up ncfg format + devmod state export \ reimport [ test zenki, forensic copies from remote ]
+
+#,,..,.,,,...,,,,,,,,,,.,,,,,,,,,,...,..,,.,,,..,,...,...,.,.,.,,,...,,..,.,.,
+#77I2WF5HAD4DQTGQBJXH2SWJX7HPKWFWATDGYNHY52K4KN3YYEAVLNHFJ4FSMZ4V6XU5OOXQGSIPU
+#\\\|6EYKI7JZAEEB3R2VDZSYANZU4ZV6JCZXCKPBHVP6W7ZYTXIQKHU \ / AMOS7 \ YOURUM ::
+#\[7]BLSOJI7G7VRRQ4V6SI4TDGDUXIIU22252SVZM7ZZ5G2LFVUQVYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

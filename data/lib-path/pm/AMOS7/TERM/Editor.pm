@@ -92,9 +92,11 @@ package AMOS7::TERM::Editor;    #############################################
 ## page once the wheel pauses and the window asserts ; a medium burst pays
 ## nothing for its first  WHEEL_MIN_TICKS - 1 ticks
 ## [ short rolls stay relative navigation ], then ramps to up to
-## WHEEL_MAX_PAGES pages. a left mouse press positions the cursor [ content
-## geometry mapped from the click, clicks on the frame stay inert, past-EOL
-## clamps to the line end ].
+## WHEEL_MAX_PAGES pages. a left mouse press positions the cursor
+## [ content geometry mapped from the click, past-EOL clamps to the line end ].
+## the keys bar packs whole cells, pages from its border markers \ wheel and
+## runs action clicks through their key bindings. f1 cycles keys \ hybrid \
+## hidden and remembers the mode in ~/.7/editor-keys-bar-mode [ best-effort ].
 ##
 ## secrets hygiene [ keep in step with AMOS7::Vault ] : note lines are mlocked
 ## best-effort when IO::AIO is available [ optional -- a standalone copy
@@ -135,7 +137,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.QEKWPJA |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.6GUJNKI |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -515,7 +517,8 @@ sub read_editor_event {
             return { paste => $paste };
         }
 
-        last if $b =~ m{[A-Za-z~]};
+        ## SS3 keys [ f1 is ESC O P ] have a letter in their introducer ##
+        last if $b =~ m{[A-Za-z~]} and $seq ne "\eO";
 
         ## an in-flight CSI parameter sequence
         ## [ ctrl-, \ ctrl+. as CSI-u, modified arrows .. ] may arrive
@@ -527,12 +530,12 @@ sub read_editor_event {
 
     ## mouse reports [ wheel tracking ] : SGR \e[<btn;x;yM or legacy X10 \e[M
     ## + 3 bytes -- both end the collection above. plain clicks are eaten here
-    ## [ never text ] : the wheel becomes a cursor move, a left press becomes
-    ## a cursor position [ SGR release 'm' and other buttons stay inert ]
+    ## [ never text ] : wheel \ click events keep their coordinates so the
+    ## caller can route content and keys-bar input [ releases stay inert ]
     if ( $seq =~ m{\x1b\[<(\d+);(\d+);(\d+)([Mm])} ) {
         my ( $btn, $cx, $cy, $kind ) = ( $1, $2, $3, $4 );
-        return { wheel => qw| up | }   if $btn == 64;
-        return { wheel => qw| down | } if $btn == 65;
+        return { wheel => qw| up |,   at => [ $cx, $cy ] } if $btn == 64;
+        return { wheel => qw| down |, at => [ $cx, $cy ] } if $btn == 65;
         return { click => [ $cx, $cy ] }
             if $btn == 0 and $kind eq qw| M |;
         return '';
@@ -540,10 +543,22 @@ sub read_editor_event {
     if ( $seq eq "\x1b[M" ) {    ## X10 : the 3 coordinate bytes follow ##
         my @coord = map { $reader->{'read'}->(0.1) } 1 .. 3;
         my $btn   = $coord[0];
-        return { wheel => qw| up | }
-            if defined $btn and $btn eq chr( 32 + 64 );
-        return { wheel => qw| down | }
-            if defined $btn and $btn eq chr( 32 + 65 );
+        return {
+            wheel => qw| up |,
+            at    => [ ord( $coord[1] ) - 32, ord( $coord[2] ) - 32 ]
+            }
+            if defined $btn
+            and $btn eq chr( 32 + 64 )
+            and defined $coord[1]
+            and defined $coord[2];
+        return {
+            wheel => qw| down |,
+            at    => [ ord( $coord[1] ) - 32, ord( $coord[2] ) - 32 ]
+            }
+            if defined $btn
+            and $btn eq chr( 32 + 65 )
+            and defined $coord[1]
+            and defined $coord[2];
         return { click => [ ord( $coord[1] ) - 32, ord( $coord[2] ) - 32 ] }
             if defined $btn
             and $btn eq chr(32)
@@ -970,6 +985,45 @@ sub edit_text {
     ## never wiped -- other applications may hold it ]                      ##
     my $clip_cleared;
 
+    ## the keys bar scrolls by whole cells ; the offset belongs to this editor
+    ## session and the hit map is rebuilt from the visible plain-text geometry
+    my $keys_bar_offset = 0;
+    my $keys_bar_page   = 1;
+    my $keys_bar_count  = 0;
+    my @keys_bar_hits;
+
+    ## one small mode file is shared by ned and every details editor. all io
+    ## is best-effort : an absent or unreadable file means the hybrid default
+    my $keys_bar_mode     = qw| hybrid |;
+    my $keys_bar_mode_dir = defined $ENV{'HOME'} ? "$ENV{'HOME'}/.7" : '';
+    my $keys_bar_mode_file
+        = length $keys_bar_mode_dir
+        ? "$keys_bar_mode_dir/editor-keys-bar-mode"
+        : '';
+    if ( length $keys_bar_mode_file ) {
+        eval {
+            open my $fh, '<', $keys_bar_mode_file or die;
+            my $saved_mode = <$fh> // '';
+            close $fh;
+            chomp $saved_mode;
+            $keys_bar_mode = $saved_mode
+                if $saved_mode =~ m{^(?:keys|hybrid|hidden)$};
+            1;
+        };
+    }
+    my $save_keys_bar_mode = sub {
+        return if not length $keys_bar_mode_file;
+        eval {
+            mkdir $keys_bar_mode_dir if not -d $keys_bar_mode_dir;
+            open my $fh, '>', $keys_bar_mode_file or die;
+            print {$fh} "$keys_bar_mode\n";
+            close $fh or die;
+            1;
+        };
+        return;
+    };
+    my ( $keys_bar_started, $keys_bar_events ) = ( 0, 0 );
+
     ## mouse wheel tracking : on unless asked off                       ##
     ## [ 'mouse => 0' or the P7_EDITOR_NO_MOUSE escape hatch ]. no      ##
     ## dependency -- terminals without mouse support ignore the DECSETs ##
@@ -1010,6 +1064,15 @@ sub edit_text {
     ## wheel pays out its pages without a keypress
     my ( $wheel_burst, $wheel_dir, $wheel_at, $wheel_accum, $flush_at )
         = ( 0, 0, 0, 0, 0 );
+
+    my $page_keys_bar = sub {
+        my $dir = shift;
+        $keys_bar_offset += $dir * $keys_bar_page;
+        $keys_bar_offset = 0 if $keys_bar_offset < 0;
+        $keys_bar_offset = $keys_bar_count - 1
+            if $keys_bar_count and $keys_bar_offset >= $keys_bar_count;
+        return;
+    };
 
     ## cursor moves shared by the arrow keys and the wheel : the second arg ##
     ## lets arrows grow a line at EOF while the wheel just stops            ##
@@ -1287,7 +1350,8 @@ sub edit_text {
             ## paid nothing ] otherwise clears and repaints an identical frame
             ## -- pure flicker
             my $frame_sig = join ':', $dirty, $cur_line, $cur_col,
-                $first_visible, $cols, $rows, $last_status,
+                $first_visible, $cols, $rows, $last_status, $keys_bar_offset,
+                $keys_bar_mode, $keys_bar_started, $keys_bar_events,
                 scalar @kill_stack,
                 ( defined $clip_at_start ? 1 : 0 ),
                 ( defined $clip_cleared  ? 1 : 0 );
@@ -1456,7 +1520,12 @@ sub edit_text {
                 ## bottom padding ##
                 say detail_editor_draw_line( '', $inner_width, 0, 0, $C );
 
-                ## footer separator ##
+                ## footer separator : hidden mode keeps the f1 hint here ##
+                my $bar_title
+                    = $keys_bar_mode eq qw| hidden | ? ' F1 keys '
+                    : (     $keys_bar_mode eq qw| hybrid |
+                        and $keys_bar_started ) ? ' status '
+                    : ' keys ';
                 say frame_border_line(
                     {   width    => $cols,
                         reset    => $C->{R},
@@ -1466,7 +1535,7 @@ sub edit_text {
                                 color => $C->{0}
                             },
                             {   type  => 'anchor',
-                                value => ' keys ',
+                                value => $bar_title,
                                 color => $C->{T}
                             },
                             {   type  => 'anchor',
@@ -1486,49 +1555,135 @@ sub edit_text {
                     }
                 );
 
-                ## help line [ left pad, :: delimiter ]  ctrl-s           ##
-                ## [ alias ctrl-o ] is only advertised when on_save gives ##
-                ## it a real target                                       ##
-                my $save_hint = defined $on_save ? ' [s] save' : '';
-                my $paste_hint
-                    = (
-                    @kill_stack
-                        or ( defined $clip_at_start
+                ## help line : stable action name, key and label per cell.  ##
+                ## ctrl-s [ alias ctrl-o ] only appears with a save target. ##
+                ## the later usage-count ordering plugs in at session       ##
+                ## startup                                                  ##
+                my @keys_bar_cells = (
+                    [ 'control',   'CTRL', '' ],
+                    [ 'save_quit', 'x',    'save + quit' ],
+                    [ 'abort',     'c',    'abort' ],
+                );
+                push @keys_bar_cells, [ 'save', 's', 'save' ]
+                    if defined $on_save;
+                if (@kill_stack
+                    or ( defined $clip_at_start
                         and not defined $clip_cleared )
-                    )
-                    ? ' [v] paste [.] in-order [y] clear'
-                    : '';
-                my $help_text
-                    = ' .:CTRL:. [x] save + quit [c] abort'
-                    . $save_hint
-                    . $paste_hint
-                    . ' [w] del-word [l] del-line [d] de-interlace '
-                    . '· arrows · enter · del · pgup \ pgdn page'
-                    . ( $wrap ? ' · wrap' : '' ) . ' ·';
-                $help_text = '  · ' . $hint . ' ·' . $help_text
-                    if length $hint;
-                ## show status [ e.g. 'saved' ] on the LEFT so it survives ##
-                ## narrow terminals; truncation keeps the leftmost part    ##
-                $help_text = "  · $last_status ·" . $help_text
-                    if length $last_status;
-                ## cut at the last whole ' · ' cell that fits, never inside ##
-                ## a label [ windowed cells follow, todo keys-bar ]         ##
-                if ( length $help_text > $inner_width - 2 ) {
-                    $help_text = substr( $help_text, 0, $inner_width - 2 );
-                    $help_text =~ s|\s+[·\[][^·\[]*$||;
+                ) {
+                    push @keys_bar_cells,
+                        [ 'paste',   'v', 'paste' ],
+                        [ 'restore', '.', 'in-order' ],
+                        [ 'clear',   'y', 'clear' ];
                 }
-                my $help_pad
-                    = ' ' x ( $inner_width - length($help_text) - 1 );
-                ## left-aligned, one space in : the cut leaves a ragged end ##
-                ## on the right, padding there reads calmer than in front   ##
-                my $help = $help_text . $help_pad;
+                push @keys_bar_cells,
+                    [ 'del_word',    'w',           'del-word' ],
+                    [ 'del_line',    'l',           'del-line' ],
+                    [ 'deinterlace', 'd',           'de-interlace' ],
+                    [ 'arrows',      'arrows',      '' ],
+                    [ 'enter',       'enter',       '' ],
+                    [ 'delete',      'del',         '' ],
+                    [ 'page',        'pgup \ pgdn', 'page' ];
+                push @keys_bar_cells, [ 'wrap', 'wrap', '' ] if $wrap;
+                unshift @keys_bar_cells, [ '', " $hint", '' ] if length $hint;
+                unshift @keys_bar_cells, [ '', " $last_status", '' ]
+                    if length $last_status;
+                if ( $keys_bar_mode eq qw| hidden | ) {
+                    @keys_bar_cells = ();
+                } elsif ( $keys_bar_mode eq qw| hybrid |
+                    and $keys_bar_started ) {
+                    my $bar_status = (
+                          length $last_status ? $last_status
+                        : $dirty              ? 'modified'
+                        :                       'saved'
+                        )
+                        . ' · '
+                        . ( $cur_line + 1 ) . ':'
+                        . ( $cur_col + 1 );
+                    $bar_status = ':: F1 keys ::'
+                        if $keys_bar_events % 17 == 0;
+                    @keys_bar_cells = ( [ '', $bar_status, '' ] );
+                }
+                $keys_bar_count = scalar @keys_bar_cells;
+
+                my $cell_text = sub {
+                    my $cell = shift;
+                    return '.:CTRL:.' if $cell->[0] eq qw| control |;
+                    return "[$cell->[1]] $cell->[2]"
+                        if length $cell->[2] and length( $cell->[1] ) == 1;
+                    return $cell->[1]
+                        . ( length $cell->[2] ? " $cell->[2]" : '' );
+                };
+
+                ## pack whole cells into the plain-text body ; colors are only
+                ## applied after the cut, so escapes never count as width
+                my $bar_width = $inner_width - 3;
+                $keys_bar_offset = $#keys_bar_cells
+                    if $keys_bar_offset > $#keys_bar_cells;
+                $keys_bar_offset = 0 if $keys_bar_offset < 0;
+                my @keys_bar_visible;
+                my $help_text   = '';
+                my %action_keys = (
+                    save_quit   => "\x18",
+                    abort       => "\x03",
+                    save        => "\x13",
+                    paste       => "\x16",
+                    restore     => "\x0e",
+                    clear       => "\x19",
+                    del_word    => "\x17",
+                    del_line    => "\x0c",
+                    deinterlace => "\x04",
+                );
+                @keys_bar_hits = ();
+
+                for my $idx ( $keys_bar_offset .. $#keys_bar_cells ) {
+                    my $cell = $keys_bar_cells[$idx];
+                    my $text = $cell_text->($cell);
+                    my $sep
+                        = !@keys_bar_visible ? ''
+                        : (
+                        $keys_bar_cells[ $idx - 1 ]->[0] eq qw| control |
+                            or (length( $cell->[1] ) == 1
+                            and length $cell->[2] )
+                        ) ? ' '
+                        : ' · ';
+                    last
+                        if length($help_text) + length($sep) + length($text)
+                        > $bar_width;
+                    my $cell_start = length($help_text) + length($sep);
+                    if ( length $cell->[2]
+                        and exists $action_keys{ $cell->[0] } ) {
+                        push @keys_bar_hits,
+                            {
+                            action => $cell->[0],
+                            key    => $action_keys{ $cell->[0] },
+                            start  => $cell_start + 3,
+                            end    => $cell_start + 5,
+                            },
+                            {
+                            action => $cell->[0],
+                            key    => $action_keys{ $cell->[0] },
+                            start  => $cell_start + 7,
+                            end    => $cell_start + 6 + length $cell->[2],
+                            };
+                    }
+                    $help_text .= $sep . $text;
+                    push @keys_bar_visible, $idx;
+                }
+                $help_text .= ' ·'
+                    if @keys_bar_visible
+                    and $keys_bar_visible[-1] == $#keys_bar_cells;
+                $keys_bar_page = @keys_bar_visible ? @keys_bar_visible : 1;
+                my $help = $help_text
+                    . ( ' ' x ( $bar_width - length($help_text) ) );
 
                 ## key chips : TRUE blue on the dark violet background   ##
                 ## [ update-version's version string ] -- lights up, yet ##
                 ## less contrast to a black terminal, calm on a beamer.  ##
                 ## colored after the cut + pad : escapes add no width    ##
                 my $chip_on
-                    = $C->{R}
+                    = !length $C->{R}
+                    ? ''
+                    : $C->{R}
                     . ( $C->{'K'} // "\e[48;2;9;5;42m"
                         . ( $C->{T} || "\e[38;2;6;71;195m" ) );
                 my $chip_off = $C->{R} . $C->{dim} . $C->{3};
@@ -1547,11 +1702,21 @@ sub edit_text {
                         {${chip_on}$1${chip_off}}g;
                 }
 
-                say $C->{0} . ':'
+                ## hidden cells replace the border's outer padding with chip
+                ## blue scroll markers ; both remain three columns wide
+                my $bar_more_right = (
+                    @keys_bar_cells and ( !@keys_bar_visible
+                        or $keys_bar_visible[-1] < $#keys_bar_cells )
+                );
+                my $left_marker
+                    = $keys_bar_offset ? $chip_on . '< ' : $C->{0} . ': ';
+                my $right_marker
+                    = $bar_more_right ? $chip_on . ' >:' : $C->{0} . ' ::';
+                say $left_marker
                     . $C->{dim}
                     . $C->{3}
                     . $help
-                    . $C->{0} . '::'
+                    . $right_marker
                     . $C->{R};
 
                 ## bottom border [ no trailing newline to avoid scrolling ] ##
@@ -1657,10 +1822,39 @@ sub edit_text {
                 next;    ## resized : redraw with new dimensions ##
             }
 
+            ## an action click becomes its key before dispatch : editing, save
+            ## handling and the later usage counters share this one code path
+            if ( ref $key eq 'HASH' and defined $key->{'click'} ) {
+                my ( $click_x, $click_y ) = $key->{'click'}->@*;
+                if ( $click_y == $rows - 1 ) {
+                    for my $hit (@keys_bar_hits) {
+                        next
+                            if $click_x < $hit->{'start'}
+                            or $click_x > $hit->{'end'};
+                        $key = $hit->{'key'};
+                        last;
+                    }
+                }
+            }
+
             $last_status = '';
+            $keys_bar_events++;
+            $keys_bar_started = 1
+                if $keys_bar_mode eq qw| hybrid |
+                and $key ne "\eOP"
+                and $key ne "\e[11~";
 
             ## control keys ##
-            if ( $key eq "\x03" ) {    ## Ctrl-C : abort ##
+            if ( $key eq "\eOP" or $key eq "\e[11~" ) {    ## f1 ##
+                $keys_bar_mode
+                    = $keys_bar_mode eq qw| keys |   ? 'hybrid'
+                    : $keys_bar_mode eq qw| hybrid | ? 'hidden'
+                    :                                  'keys';
+                $keys_bar_started = 0;
+                $keys_bar_offset  = 0;
+                $save_keys_bar_mode->();
+            } elsif ( $key eq "\x03" ) {    ## Ctrl-C : abort ##
+                ## the later unsaved-changes confirm window plugs in here ##
                 $aborted = 1;
                 last;
             } elsif ( $key eq "\x13" or $key eq "\x0f" ) {
@@ -1701,19 +1895,27 @@ sub edit_text {
                 ## when it asserts [ the wheel paused for a window ] ; a
                 ## direction change cashes the old burst in first
                 my $dir = $key->{'wheel'} eq qw| up | ? -1 : 1;
-                my $now = time();
-                $flush_wheel->()
-                    if $wheel_burst and $dir != $wheel_dir;
-                if ( not $wheel_burst
-                    or $now - $wheel_at > WHEEL_WINDOW ) {
-                    ( $wheel_burst, $wheel_accum, $wheel_dir )
-                        = ( 0, 0, $dir );
+                my ( $wheel_x, $wheel_y ) = ( $key->{'at'} // [] )->@*;
+                if ( defined $wheel_y and $wheel_y == $rows - 1 ) {
+                    $page_keys_bar->($dir);
+                } else {
+                    ## one line per tick, on the spot -- the burst pays out
+                    ## pages when it asserts [ the wheel paused for a window ]
+                    ## ; a direction change cashes the old burst in first
+                    my $now = time();
+                    $flush_wheel->()
+                        if $wheel_burst and $dir != $wheel_dir;
+                    if ( not $wheel_burst
+                        or $now - $wheel_at > WHEEL_WINDOW ) {
+                        ( $wheel_burst, $wheel_accum, $wheel_dir )
+                            = ( 0, 0, $dir );
+                    }
+                    $wheel_accum += $now - $wheel_at if $wheel_burst;
+                    $wheel_burst++;
+                    $wheel_at = $now;
+                    $flush_at = $now + WHEEL_WINDOW;
+                    $move_cursor->($dir);
                 }
-                $wheel_accum += $now - $wheel_at if $wheel_burst;
-                $wheel_burst++;
-                $wheel_at = $now;
-                $flush_at = $now + WHEEL_WINDOW;
-                $move_cursor->($dir);
             } elsif ( ref $key eq 'HASH'
                 and defined $key->{'click'} ) {    ## left press ##
                 ## position the cursor : content row 1 is terminal row
@@ -1722,7 +1924,11 @@ sub edit_text {
                 ## the clicked content row is a visual row : find the logical
                 ## line and the segment it carries
                 my ( $cx, $cy ) = $key->{'click'}->@*;
-                if ( $cy >= 5 ) {
+                if ( $cy == $rows - 1 ) {
+                    $page_keys_bar->(-1)
+                        if $cx <= 2 and $keys_bar_offset;
+                    $page_keys_bar->(1) if $cx >= $cols - 2;
+                } elsif ( $cy >= 5 ) {
                     my $vrow      = $first_visible + $cy - 5;
                     my $prev_line = $cur_line;
                     if ( $vrow <= $first_visible + $content_rows - 1 ) {
@@ -1971,6 +2177,7 @@ sub edit_text {
 
             ## Ctrl-Y : clear the paste registers ##
             elsif ( $key eq "\x19" ) {
+                ## the later clear-registers confirm window plugs in here ##
                 _wipe( map { \$ARG } @kill_stack, @fifo_run );
                 @kill_stack    = ();
                 @fifo_run      = ();
@@ -2067,8 +2274,8 @@ sub edit_text {
 
 1;
 
-#,,,.,.,.,...,...,,..,,..,.,.,,,.,,,.,.,.,...,..,,...,...,...,,..,,,.,..,,..,,
-#6C3NBXNNMC2E2JMREVP6DZ2UKFQ2POZRI2PXXWIKTKPHIMYBO3RPMZEORXSIGGPSLHVUJLJU7QTHS
-#\\\|VS7F2Y4NQDTVITKZEMWOJZB3PEL4LNL5SXAN7BLYQOMSHDX3U4K \ / AMOS7 \ YOURUM ::
-#\[7]ZQLVO72JVEXY36KFT4HMJSEZEGEXFP7PIFVWMPKX5AR4YS6N36AQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,,,,,...,.,,,.,,,,.,,,,.,.,,,..,,...,...,..,,,,,,,,,,,..,..,,
+#ULVFXUT3YOUVMDHVMBVVOQQ3SM5VLM2X2T2P2I43PFNWTT7GXQXCYUWTHTQMAFM2OC7CNFPVIS44O
+#\\\|RW5JREFJKUE2PPOMVJZWA5EAYQA45W5YHMUCEIHBSXM3GSRUQFU \ / AMOS7 \ YOURUM ::
+#\[7]ES5LS2UAUFSWOMFVEP36GLWDXHTAELYQYAQUKW44DI5UKZVLRIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -96,7 +96,9 @@ if ( open my $bfh, '>', $block_file ) {
     <[base.logs]>->( 0, 'fetch: cannot write %s: %s', $block_file, $! );
 }
 
-my $skip_ids = join( ' ', sort @skip_source_ids );
+## comma-joined : site-yaml.cmd.import reads each value up to the first ##
+## whitespace, a space-joined list kept only its first id [ todo WY5 ]  ##
+my $skip_ids = join( q|,|, sort @skip_source_ids );
 
 ## reset per-cycle counters before sending imports
 <jobsite.fetch_total_queued> = 0;
@@ -145,8 +147,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## a cycle cut short counts nothing over ##
 <jobsite.fetch_cycle> = undef;
 
-#,,,.,,,,,..,,,,,,.,,,.,.,,..,,..,,,.,.,,,,,.,..,,...,...,...,.,,,,..,.,.,...,
-#OH6Z2BRHDBPH6VDDZ3BJOR7G5B5SZXPYPXQCFZ6CJT2ZSZ44C53G26EY6JSK34EK4RD4532WQJHV6
-#\\\|B67TZAKDBE6KWBOTX5775UFFS2O6MWQIQLNCYJG62CMOUKRVQIB \ / AMOS7 \ YOURUM ::
-#\[7]H46XGWXQSCTPUH4TSP5JXJDVBTGLI6XTZHF22WDBEL2VABFNZAAI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,...,,,,,,,,,,..,,,.,.,.,,,.,..,,...,...,..,,,.,,..,,,..,...,
+#XFWAMA3SN7GES7Z7QN7UXR36JB32XBQGUBNE5QL7PYOB4LBZ2I2TC4XZSGE2IWZGJU6ODJCAZXKRI
+#\\\|FBF7CEAVDBE5VH7IX2CZKIKLJAJF3MRDKKFX2NKU7KMF6UPMSMG \ / AMOS7 \ YOURUM ::
+#\[7]GG6M3ZLX5J653OG6MXFN4KPP5JQ72IG6X6PFXIH3F65YEETSAMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
