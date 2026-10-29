@@ -28,7 +28,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.WDYOY5I |;
+our $VERSION = qw| AMOS7::TERM-VERSION.JS4UY5Q |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -1291,8 +1291,10 @@ sub discard_buffered_input {
 ## terminal [ the caller decides, nothing blocks ].  reason => 1 : a denial
 ## then asks for a reason line -- list context returns ( FALSE, reason | undef
 ## ). diff => <code ref returning ( unified diff text, diff_page options )> :
-## 'd' pages it and asks again ; redraw => <code ref> : called after the diff
-## on a cleared screen, to show the caller's context above the prompt
+## 'd' pages it on the alternate screen and asks again
+## [ the main screen comes back as it was ]. no_alt_screen => 1 : a cleared
+## screen instead, and redraw => <code ref> shows the caller's context above
+## the prompt
 ##
 ## AMOS7::TERM::confirm_key( { question => 'sign these 3 files ?' } )
 sub confirm_key {
@@ -1352,18 +1354,32 @@ sub confirm_key {
         } elsif ( $key eq qw| n | or $key =~ m|^[\x03\x04\x1b]$| ) {
             $answer = FALSE;
         } elsif ( $key eq qw| d | and $diff_code ) {
-            print {$tty_out} "\n";
+            ## the diff on the alternate screen : leaving it restores the  ##
+            ## main screen as it was [ request + prompt ]. a key closes it ##
+            ## -- 'less -F' quits at once on a one-screen diff             ##
+            my $alt_screen = not $params->{'no_alt_screen'};
+            print {$tty_out} $alt_screen ? "\e[?1049h\e[H\e[2J" : "\n";
             $termios->setlflag($lflag_saved);    ## the pager runs cooked ##
             $termios->setattr( $fd, TCSANOW );
             ## ( text, options ) ##
             AMOS7::TERM::diff_page( $diff_code->() );
             $termios->setlflag( $lflag_saved & ~( ICANON | ECHO ) );
             $termios->setattr( $fd, TCSAFLUSH );
-            ## the diff leftovers go : a clear screen, the caller redraws ##
-            ## its context [ redraw => code ref ] above the prompt again  ##
-            print {$tty_out} "\e[H\e[2J";
-            $params->{'redraw'}->() if ref $params->{'redraw'} eq qw| CODE |;
-            next;    ## same round, no bold ##
+            if ($alt_screen) {
+                print {$tty_out} "\n"
+                    . $c{'0'} . ':. '
+                    . $c{'1'}
+                    . 'any key returns'
+                    . $c{'0'} . ' :.'
+                    . $c{'R'};
+                sysread( $tty_in, my $any_key, 1 );
+                print {$tty_out} "\e[?1049l";
+            } else {    ## no alternate screen : clear, the caller redraws ##
+                print {$tty_out} "\e[H\e[2J";
+                $params->{'redraw'}->()
+                    if ref $params->{'redraw'} eq qw| CODE |;
+            }
+            next;       ## same round, no bold ##
         }
         $bold = $c{'B'};
     }
@@ -2192,8 +2208,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,..,.,,,...,,..,,,.,..,,.,.,,,.,.,.,,,,,,,.,..,,...,..,,,..,..,,..,,,.,,..,,
-#7GWBUXJUTJT5G7H6VBMDRFMV23FZWTWPUO535HMC3S7XCDD6GRZDCPQWC5UKUJNQELJCHDOBZP2CS
-#\\\|RRFQGAOF5OG5XCUKAYOJJRYXCN3R2X3BVFHSBQSD4L2UVIGCDAB \ / AMOS7 \ YOURUM ::
-#\[7]LUIOGWSLB32JPR6CDVC2UILNEKNPJLDLCCB6R4Z7QURR774M32DQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,,.,,.,.,,.,,.,.,.,,,,.,,..,,..,,...,...,.,.,,,,,...,,..,,,,,
+#EVYXAR6GKTPRTOZDHT3QDL4S2V5MLQUPC5GZTK5RYRLG32JDMYBVB5SH5ONAI6BAGOKRNGGKJW73M
+#\\\|SNAW6N7WPMVVWXO3KYUTDIFAHU2JIX557LOCJCHB4KN26TRVYHZ \ / AMOS7 \ YOURUM ::
+#\[7]MYB6NS7J3J7QSGYPRQL2CWGGLBMLWSSUMVMQ6OTXN2R4TNZLYKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
