@@ -1,0 +1,140 @@
+## [:< ##
+
+# name  = sourcecode.agent.sign
+# descr = signing-agent socket client [ todo HX4, see
+#         data/md/design/VAULT-AGENT-SIGNING.md ]. one op per short
+#         connection to the p7-sign-agent process, line protocol, base32
+#         fields. the agent holds the unlocked proto-7.sourcecode key --
+#         this process never sees it. call shape : a single hashref
+#         argument; the return shape depends on the op :
+#           { op => 'socket-path' }
+#                                -> default socket path string | undef
+#           { op => 'hello', socket => <path> }
+#                                -> the agent key's public half [ b32 ]
+#                                  | undef [ unreachable / refusal ]
+#           { op => 'begin', socket => <path>, run => <id>,
+#             work-tree => <dir>, paths => <aref> }
+#                                -> TRUE on approval | FALSE on denial
+#                                  [ no timeout : the prompt is
+#                                  user-paced, agent-side ]
+#           { op => 'sign', socket => <path>, run => <id>, path => <rel>,
+#             body-chksum => <b32>, body-length => <n>, buffer => <str> }
+#                                -> signature [ b32 ] | undef [ refusal ]
+#           { op => 'end', socket => <path>, run => <id> }
+#                                -> list ( ntime_b32, end_sig_b32 ) |
+#                                  empty list on failure
+
+my $call = shift // return undef;
+return undef if ref $call ne qw| HASH |;
+
+my $op = $call->{'op'} // return undef;
+
+##[ socket path resolution -- mirrors bin/p7-sign-agent ]##
+if ( $op eq qw| socket-path | ) {
+    return <sourcecode.cfg.sign_agent_socket>    ## explicit override ##
+        if length <sourcecode.cfg.sign_agent_socket> // '';
+    return $ENV{'P7_SIGN_AGENT_SOCKET'}
+        if length $ENV{'P7_SIGN_AGENT_SOCKET'} // '';
+    my $runtime_dir = $ENV{'XDG_RUNTIME_DIR'} // sprintf( qw| %s/.n/run |,
+        $ENV{'HOME'} // <[base.get_homedir]>
+            ->( <crypt.C25519.usr_name> // $ENV{'USER'} ) );
+    return sprintf qw| %s/p7-sign-agent.sock |, $runtime_dir;
+}
+
+my $socket_path = $call->{'socket'} // return undef;
+
+return undef
+    if $op ne qw| hello |
+    and $op ne qw| begin |
+    and $op ne qw| sign |
+    and $op ne qw| end |;
+
+return undef if not <[base.perlmod.load]>->(qw| IO::Socket::UNIX |);
+
+my $handle = IO::Socket::UNIX->new(
+    qw| Type | => SOCK_STREAM(),
+    qw| Peer | => $socket_path,
+);
+
+if ( not defined $handle ) {
+    <[base.logs]>->(
+        0, ': signing agent ' . 'not reachable [ %s ]', $socket_path
+    );
+    return undef;
+}
+$handle->autoflush(1);
+
+my $line_out;
+my $wait_seconds = 60;    ## begin waits without timeout : user-paced ##
+
+if ( $op eq qw| hello | ) {
+    $line_out = "HELLO\n";
+} elsif ( $op eq qw| begin | ) {
+    my $run_id   = $call->{'run'}       // return undef;
+    my $worktree = $call->{'work-tree'} // return undef;
+    my $paths    = $call->{'paths'}     // return undef;
+    return undef if ref $paths ne qw| ARRAY | or not scalar $paths->@*;
+    $line_out = join( ' ',
+        qw| RUN |, $run_id, encode_b32r($worktree), scalar $paths->@* )
+        . "\n"
+        . join( '', map { sprintf "F %s\n", encode_b32r($ARG) } $paths->@* )
+        . "GO\n";
+    $wait_seconds = 0;    ## the agent may wait on its user's approval ##
+} elsif ( $op eq qw| sign | ) {
+    return undef
+        if grep { not defined $call->{$ARG} }
+        qw| run path body-chksum body-length buffer |;
+    my $buffer = $call->{'buffer'};
+    $buffer = $buffer->$* if ref $buffer eq qw| SCALAR |;
+    ## the seam may thread the absolute source path -- the wire carries the ##
+    ## run-relative form [ the agent joins it under the work tree ]         ##
+    my $rel  = $call->{'path'};
+    my $tree = <sourcecode.cfg.sign_agent_tree> // '';
+    $rel = substr( $rel, length($tree) + 1 )
+        if length $tree and index( $rel, $tree . qw| / |, 0 ) == 0;
+    $line_out = join( ' ',
+        qw| SIGN |, $call->{'run'}, encode_b32r($rel),
+        $call->{'body-chksum'},
+        $call->{'body-length'},
+        encode_b32r($buffer) ) . "\n";
+} else {    ## end ##
+    my $run_id = $call->{'run'} // return undef;
+    $line_out = "END $run_id\n";
+}
+
+my $reply = eval {
+    local $SIG{'ALRM'} = sub { die "agent request timed out\n" };
+    alarm 30;    ## connect + write + reply, except begin [ see below ] ##
+    print {$handle} $line_out;
+    alarm( $wait_seconds > 0 ? $wait_seconds : 0 );
+    my $line = <$handle>;
+    alarm 0;
+    $line;
+};
+close $handle;
+
+if ( not defined $reply or not length $reply ) {
+    <[base.logs]>->( 0, ': signing agent gave no reply [ %s ]', $op );
+    return undef;
+}
+chomp $reply;
+
+my ( $status_word, @fields ) = split m| |, $reply;
+
+return $fields[1] if $op eq qw| hello | and $status_word eq qw| OK |;
+return TRUE       if $op eq qw| begin | and $status_word eq qw| OK |;
+return $fields[0] if $op eq qw| sign |  and $status_word eq qw| OK |;
+return @fields    if $op eq qw| end |   and $status_word eq qw| OK |;
+
+<[base.logs]>->(
+    1,   ': signing agent refused [ %s ] : %s',
+    $op, scalar @fields ? join( ' ', @fields ) : $reply
+) if $op ne qw| begin |;    ## begin logs its own abort ##
+
+return undef;
+
+#,,..,...,..,,,,,,,..,,.,,.,.,,,.,.,.,,,.,.,,,.,.,...,...,...,,,,,...,.,.,.,.,
+#IRPCQ567P3QFEXNDPVG4FI3F4WJ6SEMEW3CS33OPHLDDQX3JRLQ3S7JBDH7J5LFO3M6ONF25BBLGW
+#\\\|4EC4H45MNMJ44OGF2XWO6CHWAZST2XRPXBSHSDE7ZELPV4JWSD3 \ / AMOS7 \ YOURUM ::
+#\[7]B742JABD7PGZNLQFBVK6UOYQPZSSPWQ572OZ4SCR6HOGGDPOZEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,9 +40,28 @@ if ( not defined $payload_data_ref->{'signature'} ) {
             $payload_data_ref->{'data-chksum'}, $sig_template_prefix;
     }
 
-    ## update signature ##
-    $payload_data_ref->{'signature'}
-        = <[source.sign_data]>->( \$sign_data_buffer );
+    ## update signature : the agent seam [ todo HX4 ] -- when a sign agent ##
+    ## socket is configured [ ':agent:' on update-signatures ] the buffer  ##
+    ## is signed by p7-sign-agent and only the signature comes back ; the  ##
+    ## key never enters this process. without the knob the local sign runs ##
+    ## unchanged                                                           ##
+    if ( defined <sourcecode.cfg.sign_agent_socket>
+        and length <sourcecode.cfg.sign_agent_socket> ) {
+        $payload_data_ref->{'signature'} = <[sourcecode.agent.sign]>->(
+            {   qw| op => sign |,
+                'socket'      => <sourcecode.cfg.sign_agent_socket>,
+                'run'         => <sourcecode.cfg.sign_agent_run>  // '',
+                'path'        => $payload_data_ref->{'sign-path'} // '',
+                'body-chksum' => $payload_data_ref->{'sign-body-chksum'}
+                    // '',
+                'body-length' => $payload_data_ref->{'sign-body-length'} // 0,
+                'buffer'      => \$sign_data_buffer
+            }
+        );
+    } else {
+        $payload_data_ref->{'signature'}
+            = <[source.sign_data]>->( \$sign_data_buffer );
+    }
 
     ## sign_data already warned the specific cause                         ##
     ## [ no key loaded, no public/private key, etc. ] -- bail here instead ##
@@ -120,8 +139,8 @@ $calc_result_href->{'signature-footer-str'} = $template_str;
 
 return $calc_result_href;
 
-#,,.,,.,.,.,.,...,,,.,.,.,,.,,..,,,,,,...,,..,..,,...,...,.,.,,..,,,.,.,.,...,
-#DBVH234YVQZL7M46FZ4NKGDGQDEUHTOUQQ4LXMZ4A5XSNDLQONJF7EKKTHPZHQO47BJX7OKAL4SP6
-#\\\|ZSYVSFSRNCUSGO2WQWWWHESOUG75MMDDR4Y2RD2QAOYZRJVB6AM \ / AMOS7 \ YOURUM ::
-#\[7]RAMYFGTAMYTT5HBUZTRYY3J7V4OWUAQKDMRWYBWUWMDTOXYOOIBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,,.,,..,,.,,,..,,..,,.,,,,..,..,,...,...,.,,,.,.,,,.,,..,...,
+#33CW5RFPAGJ4D3QZ6KYAFQCWN3CQU3FIDD5QNUTLQGPEQDVQTC7EVYHNJXOEMXK7ZC7XEMP7XETCC
+#\\\|HPKOFZ2BSFGP2JFRVE533VLVT5WLA5CQ2JVPLIBGKTOB22WN36Z \ / AMOS7 \ YOURUM ::
+#\[7]XHAC5MIFM6I244JRPBDFWY7GYVPCQWRQ74NWC4MMDBJQ6BT5HKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
