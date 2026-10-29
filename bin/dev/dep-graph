@@ -8,8 +8,9 @@ use English;
 use warnings;
 use List::Util qw| min |;
 use Getopt::Long;
-use IO::Compress::Xz qw| xz $XzError |;
-use Crypt::Misc      qw| encode_b32r |;
+## IO::Compress::Xz loads where the .txz is written : not every perl has it
+## [ the 5.32 floor did not -- $XzError broke the strict compile ]
+use Crypt::Misc qw| encode_b32r |;
 
 ###           ###
 ##  dep-graph  ##                                #:..:..:..:..:..:..:..:..:..:
@@ -59,23 +60,26 @@ my %opt = (
     ##  flat reachable subroutine list [ full scan ]  ##
     qw| list-subs    | => 0,
     qw| count        | => 0,   ##  include call counts in adjacency output  ##
+    ## zenki whose reachable set holds a sub \ namespace [ reverse lookup ] ##
+    qw| affected-zenki | => undef,
 );
 
 Getopt::Long::Configure('prefix_pattern=--|-');
 
 GetOptions(
-    qw| text   |        => \$opt{text},
-    qw| dot    |        => \$opt{dot},
-    qw| reverse|        => \$opt{reverse},
-    qw| module=s      | => \$opt{module},
-    qw| depth=i       | => \$opt{depth},
-    qw| zenka=s       | => \$opt{zenka},
-    qw| stdin         | => \$opt{stdin},
-    qw| list          | => \$opt{list},
-    qw| list-modules  | => \$opt{'list-modules'},
-    qw| list-configs  | => \$opt{'list-configs'},
-    qw| list-subs     | => \$opt{'list-subs'},
-    qw| count         | => \$opt{'count'},
+    qw| text   |           => \$opt{text},
+    qw| dot    |           => \$opt{dot},
+    qw| reverse|           => \$opt{reverse},
+    qw| module=s      |    => \$opt{module},
+    qw| depth=i       |    => \$opt{depth},
+    qw| zenka=s       |    => \$opt{zenka},
+    qw| stdin         |    => \$opt{stdin},
+    qw| list          |    => \$opt{list},
+    qw| list-modules  |    => \$opt{'list-modules'},
+    qw| list-configs  |    => \$opt{'list-configs'},
+    qw| list-subs     |    => \$opt{'list-subs'},
+    qw| count         |    => \$opt{'count'},
+    qw| affected-zenki=s | => \$opt{q|affected-zenki|},
 ) or die ":: invalid command line arguments\n";
 
 ##  default to text output if no format specified  ##
@@ -126,6 +130,9 @@ my $txz_output_path = c_dir( $output_dir, qw| module-dependency-graph.txz | );
 ## analyze_zenka_reachability                                              ##
 my %conditional_targets;
 
+##  -affected-zenki : analyze_zenka_reachability returns its set  ##
+my $collect_mode = 0;
+
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ MAIN ]####################################################################
 
@@ -175,6 +182,65 @@ if ($any_list) {
 ##  scan all modules and build dependency graph  ##
 my $graph = scan_modules($modules_dir);
 
+## -affected-zenki=<sub|ns>[,..] : the reverse of -list-subs -- ONE scan,   ##
+## then each zenka's reachable set                                          ##
+## [ the -list-subs computation, output muted ]. a name matches as an exact ##
+## sub or a namespace prefix. a sub gone from src [ deleted, renamed ] is   ##
+## in no fresh set : the stored subroutines.load-early lists are checked    ##
+## too, such hits are tagged                                                ##
+if ( defined $opt{q|affected-zenki|} ) {
+    my @names = grep {length} split m|[,\s]+|, $opt{q|affected-zenki|};
+    die ":: -affected-zenki needs at least one sub or namespace\n"
+        if not @names;
+    my $matches = sub {
+        my $sub = shift;
+        return grep { $sub eq $ARG or index( $sub, "$ARG.", 0 ) == 0 } @names;
+    };
+    my $zenki_dir = c_dir( $root_path, qw| cfg zenki | );
+    opendir( my $dh, $zenki_dir ) or die ":: $zenki_dir : $OS_ERROR\n";
+    my @zenki = sort grep { -f c_dir( $zenki_dir, $ARG, qw| zenka.v7 | ) }
+        grep { not m|^\.| } readdir $dh;
+    closedir $dh;
+    $collect_mode = 1;
+    $opt{q|list-subs|} = 1;
+    my $found = 0;
+
+    foreach my $zenka (@zenki) {
+        my $reachable = do {
+            open( my $null_fh, q|>|, File::Spec->devnull )
+                or die "$OS_ERROR\n";
+            my $stdout_fh = select $null_fh;
+            my $result
+                = eval { analyze_zenka_reachability( $graph, $zenka ) };
+            select $stdout_fh;
+            $result;
+        };
+        my %hit = map { $ARG => 1 }
+            grep { $matches->($ARG) } @{ $reachable // [] };
+        my $stored_hit = 0;
+        my $stored
+            = c_dir( $zenki_dir, $zenka, qw| subroutines.load-early | );
+        if ( not %hit and open( my $sfh, q|<|, $stored ) ) {
+            while ( my $line = <$sfh> ) {
+                chomp $line;
+                next            if $line =~ m{^\s*(?:#|$)};
+                $stored_hit = 1 if $matches->($line);
+            }
+            close $sfh;
+        }
+        next if not %hit and not $stored_hit;
+        $found++;
+        say %hit
+            ? sprintf( q|%s : %d sub%s|,
+            $zenka,
+            scalar keys %hit,
+            keys %hit == 1 ? q|| : q|s| )
+            : sprintf( q|%s [ stored list ]|, $zenka );
+    }
+    say q|:: no zenka reaches | . join( q| |, @names ) if not $found;
+    exit 0;
+}
+
 ##  handle -zenka mode [reachability analysis]  ##
 if ( defined $opt{zenka} ) {
     analyze_zenka_reachability( $graph, $opt{zenka} );
@@ -221,8 +287,9 @@ if ( $opt{dot} ) {
         write_file( $dot_output_path, $dot_output );
         say written_line($dot_output_path);
         my $xz_data;
-        xz( \$dot_output, \$xz_data, Preset => 9 )
-            or die ":: xz compression failed: $XzError\n";
+        require IO::Compress::Xz;
+        IO::Compress::Xz::xz( \$dot_output, \$xz_data, Preset => 9 )
+            or die ":: xz compression failed: $IO::Compress::Xz::XzError\n";
         my $b32 = encode_b32r($xz_data);
         open( my $txz_fh, qw| > |, $txz_output_path )
             or die ":: cannot write $txz_output_path: $OS_ERROR\n";
@@ -1113,6 +1180,7 @@ sub analyze_zenka_reachability {
             }
         }
 
+        return [ keys %reachable ] if $collect_mode;    ## -affected-zenki ##
         say $ARG for sort_by_length( keys %reachable );
         return;
     }
@@ -1792,8 +1860,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,.,,,,.,,,,,...,,.,,,,,,...,,.,,.,.,,,,,...,.,.,...,...,...,..,,,..,.,,,,,.,
-#WP6TQGVIUO2FQICOQI5LSPWMRJUMXKUAJNFQZ6XYUWQRNRL6OEOGLE53VWGMWNPAKJ2GY7OTRZC72
-#\\\|BD7RC6WLRYX45OIUJ7SSD2ZC2MY4YKCZH3FKJGCTD3TXPWTEFRD \ / AMOS7 \ YOURUM ::
-#\[7]GDYH2Z34IPAIGG636TZGQHTFEYTTKMBVUQ3DN4DS57UBKEFHISCY 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,,,,..,...,,.,,..,,,,.,.,,,,,,,.,.,...,...,..,,.,,,,,.,...,.,,,
+#7PU3H5XNHKQZVSBJMV3ATCU3EHWRNPUNR4F5HEKZXPANIYMW54UKITUC436A73NDAJMWHHI3RBZBY
+#\\\|6C2V35X24GYABX6RDKEM6UKWW4BBTNFHESCHJ3I4UPIGPWYCXUC \ / AMOS7 \ YOURUM ::
+#\[7]CTIFGOH2D47WAR5OB7T4VLLYSPJ4EGLPMYBYTY2AIZ35QQ6JJECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
