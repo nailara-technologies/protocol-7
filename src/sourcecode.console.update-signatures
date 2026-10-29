@@ -239,7 +239,7 @@ foreach my $path_rel (@source_paths) {
     } else {
         <[base.logs]>->(
             0,         'cannot strip ' . './%s [ %s ]',
-            $path_rel, $OS_ERROR
+            $path_rel, <[base.str.os_err]>
         );
     }
 }
@@ -311,7 +311,7 @@ if ($agent_mode) {
     } else {
         <[base.logs]>->(
             0,              ': cannot run ' . '%s [ %s ]',
-            $amos_versions, $OS_ERROR
+            $amos_versions, <[base.str.os_err]>
         );
         <[base.exit]>->(qw| 0110 |);
     }
@@ -604,8 +604,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,.,.,.,..,,,,,,...,,,.,.,,,,,,,,.,,.,,,,..,..,,...,...,...,,,,,,,.,,,.,...,
-#QSDOPBXXCJYSRPUQ66QA6HEJVIJSKZJYKFHYQLVTKGFTTQNLQDNQ25BAF4QVERQEMQWK3YGCXNID2
-#\\\|NTK5PN4IE6MRSHTND7DK56FCWSDS4TQI7D2YJHMQHC5XIJXESLM \ / AMOS7 \ YOURUM ::
-#\[7]73FSELW33665KMVV6C6YTG2NN3LKKHVDPZFZ4XPPBMW3ZTWYX2BQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,,,.,,,,.,,,,,,,..,..,,.,,,..,,..,,...,...,.,.,,,.,,,,,,,.,.,,,
+#MUQYLBDYKPUG2YYOIQMXR7LEZAYI235W2RTEND5YO2BVIN6F4BF5GKMDVQ6GQSTQTXWXTEO347X76
+#\\\|R3NHEWQKP4YA5Z6WA6EXCPK3DYYM4T3QT32U2JNXWORI5CGHVAF \ / AMOS7 \ YOURUM ::
+#\[7]GGVTCXVISJHF6QYABVXMHI3SJIEGE3COWS4MH3PFODPX7PRC4SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

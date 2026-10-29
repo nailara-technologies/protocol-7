@@ -90,6 +90,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [claude-web-promotion-credits-overflow](reference-claude-web-promotion-credits-overflow.md) — cloud-session credits [ until 2026-11-05 ] SHOULD apply first, but on 2026-10-07 the web usage bar showed plan usage [ switch, cause unknown ; confirmed again 2026-10-12 : plan drawn, credit untouched ] -- check the bar after starting a web lane ; the place for backend-independent tasks [ spec-driven code, offline tests ] -- offer task files there [ ask first ] ; live checks stay local
 - [perl-cow-secret-wipe](reference-perl-cow-secret-wipe.md) — copying a secret shares its buffer [ COW ] : a wipe of one copy misses the other ; pass by reference, build key buffers with .= ; aio_mlock needs no poll
 
+- [os-err-for-console-logs](feedback-os-err-for-console-logs.md) — src/* log lines : <[base.str.os_err]> instead of raw $OS_ERROR [ cleaned up for the console ]
 #,,..,...,,,.,,,.,,.,,,,,,,,,,..,,,,.,,.,,.,,,..,,...,...,..,,.,,,,..,,,.,,..,
 #IDHQBYU4ZPC26MOBGHIZOXCZW46F4C72HTIW4WGXHFEDKBH4WZOLEIWGJE56VFO6LANL2YY3BLOAY
 #\\\|QOWCT43CGK3WKOTGMHIVLW3C2LHSUFDZIF6G2IIBCJA2TLKQAHE \ / AMOS7 \ YOURUM ::
@@ -112,9 +113,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 - [twin-restart-and-local-proxy](reference-twin-restart-and-local-proxy.md) — `v7-zenki.restart :twin: <zenka>` restarts without a gap ; a 502 from this shell can be the owner's local proxy, not the server
+- [os-err-for-console-logs](feedback-os-err-for-console-logs.md) — src/* log lines : <[base.str.os_err]> instead of raw $OS_ERROR [ cleaned up for the console ]
 
-#,,.,,.,,,.,,,,..,...,,.,,.,,,.,,,,..,..,,.,.,..,,...,..,,,..,.,,,...,...,,..,
-#BQDUNQAUFAPTFTML7QP3CE4GF4Q27SDM5T5UKJ2TFIUVBIGR6UQF46656PTOMAREYG2EPDRRM3U4Y
-#\\\|HARQNZMI3KFF7YCR2SX6DPS2AHIBSTKQULXYSFS5SMEF4F2AMSI \ / AMOS7 \ YOURUM ::
-#\[7]55OAKHZPP5QDJ42PJD7BPXUOLOPFYAPWPZN4VUWUZO3IBSJOK2BA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,..,,,,,,.,,,.,.,.,,,.,,,.,,,.,.,..,,...,...,,..,..,,,,.,,.,,..,,
+#QU2E3SKQQINUXGHZA6SM4GO76KOQMZ7ZT56OQMRX4CVDWM46DQETMRFCI6C5P6I3DQ4C6CONCXXBE
+#\\\|RWKIDBX3SFL3Y26H4NHRHOTONHM4MQZDPA3L3LQVPUJXERXH2QL \ / AMOS7 \ YOURUM ::
+#\[7]2PSFL6V6BS2GMCRVC5KSPRUXU6ATNLCE32FS6LGTI3EWOTXA4YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
