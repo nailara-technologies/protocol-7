@@ -140,7 +140,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.LYHOEGI |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.YEKJXKI |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -1735,6 +1735,11 @@ sub edit_text {
                         {${punct}$1${chip_off}};
                     $help =~ s{(?:^ ?|· )\K(wrap)(?= ·| *$)}
                         {${punct}$1${chip_off}};
+                    ## the f1 hint chips like a key ; the · separators take ##
+                    ## the violet frame color                               ##
+                    ## [ last : the lookbehinds above read the plain · ]    ##
+                    $help =~ s{F1=Keys}{${chip_on}F1=Keys${chip_off}};
+                    $help =~ s{·}{${punct}·${chip_off}}g;
                 }
 
                 ## hidden cells replace the border's outer padding with chip
@@ -2344,8 +2349,8 @@ sub edit_text {
 
 1;
 
-#,,,,,,.,,,,.,..,,,,.,,,,,,..,...,.,.,,,.,..,,..,,...,.,.,,.,,..,,,.,,.,.,,,.,
-#CZV3STQMQNRWK6VV7XSZHM4IS2F6KQBOLJ3FDI5VQ2WGQNWRCIVI4CXMZYY2X3GNKFP6PUM6HZKD6
-#\\\|MNCJCDF25LI6ERAMQVHNJYAEM7NVSQMZCE64NGS4HGHOK6YIQE7 \ / AMOS7 \ YOURUM ::
-#\[7]5B4SAQWZ6BK3WNC4REP44IWQR36EIFPTZZWGFIZB2RJS26B7IUBY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,,.,,.,.,.,.,,,,,...,..,,,,,,..,,...,...,.,.,...,..,,.,.,,,,,
+#WD4BPU6SMQXBIXBOGFCOTZKQZ4YUFVXVROKV4TTSSRNWPSB6BKQ3GJRFMY3HM4D5ZVBQSMUNDN4CM
+#\\\|OTB6UJEFPHK2EVXDTAWCAIT4Q66GTMGQTSR2WDR4AP4BBVAF2ZL \ / AMOS7 \ YOURUM ::
+#\[7]O52VYZ5MVV7UO7R5LO76VLE5TMCZ2LXJNZAGOV33UVILNKI5GEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
