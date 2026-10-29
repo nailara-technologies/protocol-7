@@ -20,6 +20,7 @@ use Event;
 use POSIX;
 use POSIX::SigSet;
 use POSIX::SigAction;
+use IO::Select;
 use Term::ReadLine;
 use Time::HiRes          qw| sleep |;
 use Crypt::PRNG::Fortuna qw| rand |;
@@ -28,7 +29,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.3POJOTA |;
+our $VERSION = qw| AMOS7::TERM-VERSION.GTXX5KA |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -1286,8 +1287,11 @@ sub discard_buffered_input {
 ## single key confirmation [ the bin/ncode user_confirmed prompt ] : reads AND
 ## writes /dev/tty itself, so no buffered or redirected stdout \ stderr can
 ## hide the question. typed-ahead input is flushed first -- only a key pressed
-## after the prompt shows counts. 'y' -> TRUE, 'n' esc ctrl-c ctrl-d -> FALSE,
-## any other key asks again [ bold from the second round ].  undef without a
+## after the prompt shows counts. the choices are labels on the prompt line --
+## < [a]pprove > < [d]iff > < [r]eject > -- a key or a left click on a label [
+## SGR mouse reporting while the prompt waits ; mouse => 0 or P7_NO_MOUSE opts
+## out ]. a \ y -> TRUE, r \ n, a lone esc, ctrl-c, ctrl-d -> FALSE, any other
+## key or sequence asks again [ bold from the second round ]. undef without a
 ## terminal [ the caller decides, nothing blocks ].  reason => 1 : a denial
 ## then asks for a reason line -- list context returns ( FALSE, reason | undef
 ## ). diff => <code ref returning ( unified diff text, diff_page options )> :
@@ -1322,6 +1326,7 @@ sub confirm_key {
         qw| 0 | => "\e[38;2;68;39;172m",
         qw| 1 | => "\e[38;2;38;46;153m",
         qw| 2 | => "\e[38;2;170;94;2m",
+        qw| 3 | => "\e[38;2;9;170;94m",
         qw| B | => "\e[1m",
         qw| K | => "\e[5m",
         qw| R | => "\e[0m",
@@ -1330,29 +1335,110 @@ sub confirm_key {
 
     my $diff_code
         = ref $params->{'diff'} eq qw| CODE | ? $params->{'diff'} : undef;
-    my @keys = ( qw| y n |, $diff_code ? qw| d | : () );
+
+    ## the choices as labels : < [a]pprove > < [d]iff > < [r]eject >, each
+    ## clickable [ the editor's SGR mouse reporting, AMOS7::TERM::Editor ]. y
+    ## and n stay as aliases of a and r
+    my @labels = (
+        [qw| a approve |], $diff_code ? [qw| d diff |] : (),
+        [qw| r reject |],
+    );
+    my $use_mouse = ( $params->{'mouse'} // 1 )
+        && not length( $ENV{'P7_NO_MOUSE'} // '' );
+    my $mouse = sub {    ## press-only reporting while the prompt waits ##
+        return if not $use_mouse;
+        print {$tty_out} $ARG[0]
+            ? "\e[?1000h\e[?1006h"
+            : "\e[?1000l\e[?1006l";
+    };
+
+    ## one prompt line, the label columns recorded [ 1-based, visible ] ##
+    my %label_cols;
+    my $render = sub {
+        my $bold    = shift;
+        my @visible = ( ': :: ', $question, ' :: ' );
+        my $line = "\r" . $c{'0'} . ':' . $c{'T'} . " :: $question_str :: ";
+        %label_cols = ();
+        foreach my $label (@labels) {
+            my ( $key, $word ) = $label->@*;
+            my $start = 1 + length join '', @visible;
+            my $text  = sprintf '< [%s]%s >', $key, substr( $word, 1 );
+            $label_cols{$key} = [ $start, $start + length($text) - 1 ];
+            push @visible, $text, ' ';
+            ## the [ ] pulse, the key letter and the word stay steady -- a ##
+            ## label reads the same in every blink phase                   ##
+            $line
+                .= $c{'0'} . '< '
+                . $c{'K'}
+                . $c{'T'} . '['
+                . $c{'R'}
+                . $bold
+                . $c{'T'}
+                . $key
+                . $c{'R'}
+                . $c{'K'}
+                . $c{'T'} . ']'
+                . $c{'R'}
+                . $c{'T'}
+                . substr( $word, 1 )
+                . $c{'0'} . ' > ';
+        }
+        print {$tty_out} $line . $c{'0'} . ':.' . $c{'R'} . "\e[K";
+        return;
+    };
+
+    ## the prompt's screen row [ a click carries absolute coordinates ] : a
+    ## cursor position report, undef when the terminal does not answer
+    my $prompt_row = sub {
+        print {$tty_out} "\e[6n";
+        my ( $reply, $select ) = ( '', IO::Select->new($tty_in) );
+        while ( $select->can_read(0.3) ) {
+            sysread( $tty_in, my $byte, 1 ) or last;
+            $reply .= $byte;
+            last if $byte eq 'R';
+        }
+        return $reply =~ m{\e\[(\d+);\d+R} ? $1 : undef;
+    };
+
+    ## one choice : a key, or a left click on a label of the prompt row.  a
+    ## lone esc rejects ; any other escape sequence
+    ## [ arrows, a click elsewhere ] is no choice
+    my $read_choice = sub {
+        my $row = shift;
+        sysread( $tty_in, my $key, 1 ) or return undef;
+        return $key if $key ne "\e";
+        my ( $seq, $select ) = ( $key, IO::Select->new($tty_in) );
+        while ( $select->can_read(0.05) ) {
+            sysread( $tty_in, my $byte, 1 ) or last;
+            $seq .= $byte;
+            last if length $seq > 2 and $byte =~ m{[A-Za-z~]};
+        }
+        return "\e" if $seq eq "\e";
+        if (    $seq =~ m{^\e\[<0;(\d+);(\d+)M$}
+            and defined $row
+            and $2 == $row ) {
+            my $col = $1;
+            foreach my $key ( keys %label_cols ) {
+                return $key
+                    if $col >= $label_cols{$key}[0]
+                    and $col <= $label_cols{$key}[1];
+            }
+        }
+        return '';
+    };
 
     my ( $answer, $bold ) = ( undef, '' );
     while ( not defined $answer ) {
-        print {$tty_out} "\r"
-            . $c{'0'} . ':'
-            . $c{'T'}
-            . " :: $question_str :: "
-            . $bold
-            . $c{'0'} . '['
-            . join(
-            $c{'0'} . '|',
-            map { $c{'K'} . $bold . $c{'T'} . $ARG . $c{'R'} } @keys
-            )
-            . $c{'0'} . ']'
-            . $c{'T'} . ' :. '
-            . $c{'R'};
-        my $key;
-        if ( not sysread( $tty_in, $key, 1 ) ) {
+        $render->($bold);
+        my $row = $use_mouse ? $prompt_row->() : undef;
+        $mouse->(1);
+        my $key = $read_choice->($row);
+        $mouse->(0);
+        if ( not defined $key ) {
             $answer = FALSE;    ## eof \ read error : deny ##
-        } elsif ( $key eq qw| y | ) {
+        } elsif ( $key eq qw| a | or $key eq qw| y | ) {
             $answer = TRUE;
-        } elsif ( $key eq qw| n | or $key =~ m|^[\x03\x04\x1b]$| ) {
+        } elsif ( $key =~ m{^[rn\x03\x04\e]$} ) {
             $answer = FALSE;
         } elsif ( $key eq qw| d | and $diff_code ) {
             ## the diff on the alternate screen : leaving it restores the   ##
@@ -1391,8 +1477,8 @@ sub confirm_key {
         }
         $bold = $c{'B'};
     }
-    print {$tty_out} $c{'2'}
-        . ( $answer ? qw| y | : qw| n | )
+    ## the choice echoed as its word : approve green, reject orange ##
+    print {$tty_out} ( $answer ? $c{'3'} . 'approve' : $c{'2'} . 'reject' )
         . $c{'R'} . "\n";
 
     $termios->setlflag($lflag_saved);
@@ -2216,8 +2302,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,..,..,,.,,,...,...,,.,,.,.,,,,,,.,,,,.,,.,,..,,...,...,,.,,.,,,,,.,,,,,,.,,
-#2SID3HT2SLUBJGNSD7J6X5QVMJ2LEID53MDRO45PRMOELFX66E4YQ7QBZ2RXNWRKF3Y2UATNRXQ7U
-#\\\|WH2FGA3YUFYYHLAOXUPPXCQ4TRC5XRAU6QDHVZDZZWWFVSPLEJF \ / AMOS7 \ YOURUM ::
-#\[7]XIY6HOZJTPPZGZX7CNZAOCPWRVFS2OYUUQXOSWIKJXGNYOVYAWCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,...,,.,,,..,,..,.,,,,.,,.,.,..,,...,...,,.,,,..,,.,,,..,,.,,
+#JJ4DCXUB76XCI3FKGLAU6MM2OWHWZ7ZMOZAIHGQVWJ2QSN27USS3YIJOZMQBAFCJBFLIP2V5KDU7C
+#\\\|F6S464PRT4QC322CEJU2NECT6KNJRCQESHHPYC66BZ74HRKYX6U \ / AMOS7 \ YOURUM ::
+#\[7]ZEHWBH3QG3UMT45NUQQR6H5HYY42NUJYP74LNXBXENAUA7KATWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
