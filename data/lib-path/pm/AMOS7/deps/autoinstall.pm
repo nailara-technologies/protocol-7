@@ -1,5 +1,5 @@
 package AMOS7::deps::autoinstall;
-our $VERSION = qw| AMOS7::deps::autoinstall-VERSION.VZAZNIY |;
+our $VERSION = qw| AMOS7::deps::autoinstall-VERSION.LI3BCNQ |;
 
 use strict;
 use warnings;
@@ -195,8 +195,8 @@ sub disable {
 
 1;
 
-#,,,,,,,,,.,.,..,,.,,,.,.,,,.,.,.,.,.,,,,,,,.,..,,...,...,,.,,,.,,,,,,..,,,..,
-#FPG5N7GHLCVYV65DLGLBRLP4VIOT4QV5CEJDNU542XLGXEAFRODCQKQZVG6CAJGHW2WSX24DKULUK
-#\\\|N4W3BH6PFNJIAJ2W4TEJ7RDT3EG6W5PKEFL266CTGO37WQLL4H4 \ / AMOS7 \ YOURUM ::
-#\[7]HWJCEIKCQCL3PGHN24GPOWEJWAARYNHECIRB7KV5GEIOHCTPO4BI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,...,...,..,,,..,,..,,..,...,,..,..,,...,...,,.,,.,.,,,.,..,,,,.,
+#BPXKIR5E5EPPPMLUCX7SKXOK6GMEUVEGZELVDZEJP6V7EKWH3JZQTGPA4PBJVOXSQOB7DM2FI5DA4
+#\\\|6IGFSK2EFBDQ4A2XH5IJ4HYCPRVFGZZHCEKPQLHHPTOEZIJIDZW \ / AMOS7 \ YOURUM ::
+#\[7]62DFZTIVGHLZXZUMTWEMZMTR5DO7B5QZHQTRHMZFW6DFQ4FTBEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
