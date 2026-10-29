@@ -598,16 +598,21 @@ sub draw_detail_line {
     $label_width //= length($label);
     my $indent = ' :  ';
     my $sep    = ' :  ';
+    ## continuation rows of a wrapped value align under the value column ##
+    my $cont = ' ' x ( length($indent) + $label_width + length($sep) );
+    my @vals = split m{\n}, $value // '', -1;
     if ($TTY) {
         printf "%s%s%-*s%s%s%s%s\n", $C{0}, $indent,
             $label_width, $label,
             $sep,
-            $C{T}, $value // '',
+            $C{T}, shift(@vals) // '',
             $C{R};
+        printf "%s%s%s%s\n", $cont, $C{T}, $_, $C{R} for @vals;
     } else {
         printf "%s%-*s%s%s\n",
             $indent, $label_width, $label,
-            $sep, $value // '';
+            $sep, shift(@vals) // '';
+        say $cont . $_ for @vals;
     }
 }
 
@@ -651,15 +656,25 @@ sub draw_detail_content {
     $text_width = 1   if $text_width < 1;
     $text       = ' ' if not length $text;
 
-    ## wrap plain text only -- ANSI is added per printed line, so      ##
-    ## Text::Wrap never counts invisible color codes towards the width ##
-    my @lines = ($text);
-    if ( $text =~ m{\S} ) {
+    ## wrap plain text only -- ANSI is added per printed line, so invisible ##
+    ## color codes never count towards the width                            ##
+    my @lines;
+    if ($TTY) {
+        ## reuse the details editor's own word-aware wrapper               ##
+        ## [ the very same view the editor presents ] -- view-only display ##
+        ## wrapping, no hard line breaks ever reach the yaml               ##
+        foreach my $logical ( split m{\n}, $text ) {
+            push @lines,
+                AMOS7::TERM::Editor::detail_editor_wrap_segments( $logical,
+                $text_width, 1 );
+        }
+    } elsif ( $text =~ m{\S} ) {
         local $Text::Wrap::columns   = $text_width;
         local $Text::Wrap::separator = "\n";
         local $Text::Wrap::huge      = qw| overflow |;
         @lines = split m{\n}, Text::Wrap::wrap( '', '', $text );
     }
+    @lines = ($text) if not @lines;    ## blank text still takes one row ##
 
     for my $line (@lines) {
         if ($TTY) {
@@ -692,6 +707,18 @@ sub draw_item_details {
     my @keys      = base_sort_keys( keys %fields );
     my $max_label = 0;
     length $_ > $max_label and $max_label = length $_ for @keys;
+
+    ## long text values wrap at the real terminal width [ tty only ] using ##
+    ## the details editor's own wrapper -- piped output stays single-line  ##
+    my $value_width = $width - length(' :  ') - $max_label - length(' :  ');
+    if ( $TTY and $value_width >= 5 ) {
+        my @seg;
+        push @seg,
+            AMOS7::TERM::Editor::detail_editor_wrap_segments( $_,
+            $value_width, 1 )
+            for split m{\n}, $fields{text} // '';
+        $fields{text} = join "\n", @seg;
+    }
 
     say '';
     draw_detail_rule( $width, 'todo item' );
@@ -1158,8 +1185,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,...,.,.,,..,,,.,,,,,,,.,.,.,..,,,..,,..,..,,...,...,..,,,,,,,..,,.,,,,.,
-#XL5MP4P4IFO2UQYLSDLZGVRFOGCKAQPQUKNLMIFEQ5OUWL6CPQURRV5OMB3JAVUE32ZSN65MQYVZS
-#\\\|2ORRNQWUKYRBUZHOYQ6JYLP5L2Y7ODCUBTAFMTVDIH5Q7ZUZ67H \ / AMOS7 \ YOURUM ::
-#\[7]UWDRC3IVR43FNYV2LTUGYRV7A2BD4VPBBQUXOO4FZOCYXV3PH4AI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,,.,,,.,,..,,...,.,.,,,.,...,..,,...,...,...,..,,.,.,..,,.,,,
+#6XOAHDPAOEIIJ4TTSF5FJH76XDV5WJ5OIECHHABUPJPIEOJKYYTQPT76MQWSDAVA7Y3JXJTOTFPYC
+#\\\|5LGS4IGEE2XTAKL2RR2Z5NJEQQA24DGXAWYZFG4ICQTXKEGAHKU \ / AMOS7 \ YOURUM ::
+#\[7]TUPVNG6AWXHGBY5BNR3WKQCEYSTI3WJCSRQB4OGEQNLDLV6LDYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

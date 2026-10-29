@@ -5,6 +5,7 @@
 # purpose = Process and structure incoming work requests
 
 my ($request) = @ARG;
+my $auto_review = FALSE;
 
 # Support multiple input formats
 if ( ref($request) eq qw| HASH | ) {
@@ -26,6 +27,9 @@ if ( ref($request) eq qw| HASH | ) {
         $request = $decoded if defined $decoded && length $decoded;
     }
 
+    ## opt-in review flag : strip before the generic type-prefix parser ##
+    $auto_review = TRUE if $request =~ s{^:auto-review:\s*}{}i;
+
     # Plain string - parse as command
     $request = <[coding.intake.parse_command_string]>->($request);
 } else {
@@ -41,9 +45,10 @@ my $task = {
     id => $request->{id} // <[coding.helper.task_id_generator]>->(
         $request->{type}, $request->{'description'}
     ),
-    type    => $request->{'type'}    // qw| analysis |,
-    subtype => $request->{'subtype'} // '',
-    source  => $request->{'source'}  // qw| api |,
+    type        => $request->{'type'}        // qw| analysis |,
+    subtype     => $request->{'subtype'}     // '',
+    source      => $request->{'source'}      // qw| api |,
+    auto_review => $request->{'auto_review'} // $auto_review,
 
     request => {
         description => $request->{'description'} // '',
@@ -100,8 +105,8 @@ return {
     message => sprintf( "Task ingested: %s", $task->{'id'} )
 };
 
-#,,,,,.,.,.,,,,..,.,.,..,,..,,,,.,,..,..,,.,.,..,,...,...,.,.,,..,..,,..,,.,.,
-#25VTIB6FP2UGHA6D44V3MLSXL7BOHYERZPDAAI72VPEGM6DSQIJKOOA5R26FKBONHWYNNDPSSL7W2
-#\\\|WIG4LP2DZXVRNDHNALTUED7YKKEC4ZYBFNOMEPHH4WQ7CNFRB66 \ / AMOS7 \ YOURUM ::
-#\[7]TMUEOMKHE2Y653RJ224EWQWWT7WMC355TV2XVSNVSDH3OJ2TJUCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,.,.,.,.,...,...,,,,,,..,,,.,..,,...,...,...,.,,,..,,.,,,..,,
+#64PBFCOKPVHIV5O25Y3BKYGYK7HIFUPDK74RESP62FPOLBIXTSMGKKVJBCXGK5FZIYYY7SPWYCHSC
+#\\\|BRZONAL3NX4ULIVHE3KC3X72EYHMM42HUPSINQ6TJPASJRXIPTI \ / AMOS7 \ YOURUM ::
+#\[7]O2GUT5YMFOKQE5H2K7EPB5VZ3OO2NVTPH6DOMB7FTL2X36OBIGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

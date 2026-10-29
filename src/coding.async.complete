@@ -220,6 +220,87 @@ if ( defined $result && $result->{'success'} ) {
         return { success => TRUE, task_id => $task_id, resumed => TRUE };
     }
 
+    ## opt-in review : one verdict round, then at most one correction round ##
+    my @review_messages;
+    if ( defined $task_rec and $task_rec->{'auto_review'} ) {
+        my $review = $task_rec->{'execution'}->{'review'};
+        if ( !defined $review ) {
+            $review = {
+                'stage'           => qw| review |,
+                'verdict'         => qw| pending |,
+                'defects'         => '',
+                'original_answer' => $result_text,
+            };
+            $task_rec->{'execution'}->{'review'} = $review;
+            @review_messages = (
+                @{ $state->{'messages'} // [] },
+                { 'role' => qw| assistant |, 'content' => $result_text },
+                {   'role'    => qw| user |,
+                    'content' => 'Check the answer against the original '
+                        . "prompt's stated requirements. Reply exactly OK if "
+                        . 'it satisfies them, or reply '
+                        . 'with a list of concrete '
+                        . 'defects. Do not review anything else.'
+                }
+            );
+        } elsif ( $review->{'stage'} eq qw| review | ) {
+            my $verdict = $result_text;
+            $verdict =~ s|^\s+||;
+            $verdict =~ s|\s+$||;
+            if ( uc($verdict) eq qw| OK | ) {
+                $review->{'verdict'} = qw| OK |;
+                $result_text = $review->{'original_answer'};
+            } else {
+                $review->{'stage'}   = qw| fix |;
+                $review->{'verdict'} = qw| defects |;
+                $review->{'defects'} = $verdict;
+                @review_messages     = (
+                    @{ $state->{'messages'} // [] },
+                    { 'role' => qw| assistant |, 'content' => $verdict },
+                    {   'role'    => qw| user |,
+                        'content' => 'Correct the original answer so it '
+                            . 'satisfies every stated '
+                            . 'requirement and resolves each '
+                            . 'listed defect. Return only the '
+                            . 'corrected answer.'
+                    }
+                );
+            }
+        } elsif ( $review->{'stage'} eq qw| fix | ) {
+            $review->{'corrected'} = TRUE;
+        }
+
+        if (@review_messages) {
+            <coding.async.task_state>->{$task_id} = {
+                'state'       => qw| streaming |,
+                'backend'     => $state->{'backend'} // qw| gpu |,
+                'round'       => ( $state->{'round'} // 0 ) + 1,
+                'request_seq' => $state->{'request_seq'} // 0,
+                'messages'    => \@review_messages,
+                'tools'       => [],
+            };
+            $task_rec->{'execution'}->{'status'} = qw| in_progress |;
+            delete $task_rec->{'execution'}->{'completed'};
+
+            ## same list move as the injected-messages resume above ##
+            my $aref_completed_r = <coding.task.completed> // [];
+            my $aref_active_r    = <coding.task.active> //= [];
+            $aref_completed_r->@*
+                = grep { $ARG ne $task_id } $aref_completed_r->@*;
+            push $aref_active_r->@*, $task_id
+                unless grep { $ARG eq $task_id } $aref_active_r->@*;
+
+            <[coding.task.enqueue_round]>->(
+                $task_id, ( $state->{'round'} // 0 ) + 1
+            );
+            <[base.logs]>->(
+                1,        'async.complete: %s auto-review %s round queued',
+                $task_id, $review->{'stage'}
+            );
+            return { success => TRUE, task_id => $task_id, resumed => TRUE };
+        }
+    }
+
     ## move job to completed ##
     <[jobqueue.move_job]>->( $job_id, 'completed' )
         if defined $job_id;
@@ -666,8 +747,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,..,.,.,,..,,.,,.,.,,.,,.,.,,,,,...,.,.,.,.,.,.,...,..,,.,,,.,,,.,.,...,.,,,
-#W5SNJH7ITYEYP72ZE5OK2T36VXJKKFPMVIBJNJBPHWFAGZWSNDOGRAETOEVUR4KXI6ZKE3M3D5IFO
-#\\\|WPIF2WB3VZ2SUGYYCFI7PETBPC42DB7FKZLOBAJYDFW5D2PLMJO \ / AMOS7 \ YOURUM ::
-#\[7]BJRAFC4PBQGQ7H37V5L4JNAL7TI7PIB52XXSUWU22BQMLYXLK2DI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,.,,.,,,.,,,,.,,,,,,.,,..,,,,,,.,.,...,..,,.,,,...,..,,.,,,.,,,
+#6NANX4VZE27OJ37XTXLRO3YFZYWKB5TY2JRY5V2WWWXA64QF6JU3VQIHOZGR7G5ZGDA6MRKUQWXNC
+#\\\|OLUGTVJ7CHNATN7X4MMCVXWI75GFNH5H4KTPVGMM36J5W53XN66 \ / AMOS7 \ YOURUM ::
+#\[7]U5OZVBDOFYSHZX6HML3KYGHU5GHKIEBPKJVEVQ7NFUU4FGOHWOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
