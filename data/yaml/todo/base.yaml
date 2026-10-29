@@ -2283,6 +2283,33 @@ items:
     - forensics : copy a live state from a remote server and investigate it locally [ precedent : the srv-F route leak, devmod loaded into cube via kill -53 + 'p7c dump session.<id>' ]
     rules : secrets \ keys never leave in plain [ %keys excluded ; PII via p7-vault only ] ; a remote copy is read-only evidence, reimport into a TEST zenka, never back into production. needs JX3 for partial merges.
     - transport [ owner 2026-10-29 ] : same encryption-only route as the blackbox log-buffer reader \ writer processes -- the exporting zenka encrypts the state for the ADMIN user's key at the source, hands the ciphertext to the forensics zenka for transfer ; decryption only on the admin's explicit request. no host on the way [ incl. forensics ] ever holds plain state.
+    - the 'blackbox' = data/md/design/PEER-FLIGHT-RECORDER.md [ draft ] : sealed boxes to the admin's vault key, hash-chained entries, per-epoch keys, forensics holds + moves captures it cannot read, access per incident via the HX4 approval tiers [ click \ PIN \ passphrase ]. a state export is a one-shot capture of the same kind -> ONE shared sealing + transport implementation for both, built once
+    - the same capture path serves the security zenka [ data/md/concepts/CONCEPT-SECURITY-AND-FORENSICS-ARCHITECTURE.md : roaming responder, live core-dump on suspicion, export to forensics ] : devmod state export = the zenka-internal case, a security-zenka core dump = any unix process ; both seal at capture, forensics carries. the security zenka's 'own trusted checksums carried inline' meets NCW [ attested binaries ]
+    - capture methods [ list grows -- owner 2026-10-29 + ideas ] :
+      * perl level : B::Deparse of the LIVE %code subs, compressed [ owner : the deparse interface exists ] ; deparse of the signed source vs the live sub = in-memory tampering shows as a diff ; %INC \ @INC, symbol-table walk for subs no signed module defines, Event watchers + timers, %data branches [ devmod dump ]
+      * process level : /proc/<pid>/{maps,status,environ,cmdline,cgroup,limits} ; maps -> checksum every mapped .so [ unsigned inline-code objects, RCM ] ; status SigCgt \ uid \ caps [ the lost-SIGCHLD lesson ]
+      * descriptors : /proc/<pid>/fd targets + socket peers ; pidfd_getfd [ linux 5.6+, ptrace rights ] duplicates a live fd into the capturing process [ owner experiments ] -- invasive : reading a pipe \ socket steals the target's data, so peek-only where possible and admin-authorized per incident
+      * memory : process_vm_readv \ gcore for chosen regions [ heap of the perl interpreter ] -- sealed at once, never plain on disk
+      * network : the zenka's cube sessions, routes, pending replies [ the srv-F route-leak shape ]
+      * owner's earlier fd experiments : a linux kernel interface, code on a disk that still needs recovery. likely candidates : pidfd_getfd [ duplicates any fd incl. sockets ] or opening /proc/<pid>/fd/<n> [ re-opens files \ pipes, not sockets ]
+      * strace [ ptrace ] : attach to the live process and record its system calls for a window -- read \ write payloads [ -e read=,write= ], connects, opens, signals ; shows what it DOES, not only what it holds. same rights + same caution : sealed output, admin-authorized, a short window [ it slows the target ]
+      * binwalk : signature scan + entropy profile of a capture [ core dump, memory region, unknown file ] -- finds embedded archives \ executables \ keys and high-entropy [ encrypted \ packed ] regions ; runs on the forensics side AFTER decryption, never on the live target
+      * clean-reference comparison : binwalk \ disassembler [ objdump, radare2 ] output of a captured binary or mapped region, compared OFF the suspect host against a clean build of the same version [ reproducible builds + attestations : NCW ] -- any time, also long after the incident ; a difference is evidence the host's own tools could never show
+    - network side [ owner 2026-10-29 ] :
+      * capture : ss -tanpe [ socket -> process ], conntrack table, a short filtered tcpdump [ pcap sealed like every capture ], the zenka's own view [ cube sessions, routes ]
+      * compare : expected peers [ cube sessions, host-edit records, pins ] vs actual sockets -- a socket no record explains is the finding ; the pcap is compared off the host like the binaries
+      * respond, AFTER tracing : ss -K [ kills a socket, needs CONFIG_INET_DIAG_DESTROY ], conntrack -D, a scoped nft drop rule with an expiry [ undoable ]. every response is an approval-tier action [ HX4 ] and logged ; never cut the admin's own link or the investigation's transport [ the security zenka checks its own path first ]
+    - roles [ owner 2026-10-29 ] : security zenka = the hands [ captures, responds on the host ] ; forensics zenka = overwatch + relay [ watches the responders, carries sealed captures it cannot read, asks the admin per incident ] ; admin = the only one who opens a capture
+    - parallel hardened UDT links [ owner 2026-10-29 ] : security + forensics open their own links beside the normal ones, on the native UDT transport [ PROTOCOL7_TRANSPORT_HIERARCHY.md L1 ; plugin.external.udt.init_code exists ] with auth-keypair v2 + pins -- an attacker who controls the host's TCP side \ cube does not silence them ; the 4th layer of the concept's reachability ladder [ p7 -> channels -> multicast ]
+    - evidence-gated escalation [ owner 2026-10-29 ] : raising the alert level \ granting responders more capability is justified BY the captured evidence [ hard proof or at least a verified anomaly ] ; the decision is immutable [ signed, hash-chained with the evidence it cites ] -> trusted to go ahead and take things apart, and auditable later both ways : a wrong escalation and a missed one both show in the record
+    - reroute as a response [ owner 2026-10-29 ] : the same evidence-backed decision may route traffic around a suspect node. it cannot be abused silently for denial of service : every reroute IS a recorded incident with full attention. a flood of triggered incidents is itself the anomaly -> the source of the triggers becomes the next subject [ rate per source, reroutes expire unless renewed by fresh evidence ]
+    - correction [ owner ] : an incident first triggers INVESTIGATION only, never a reroute. a reroute needs the evidence-backed decision, and that decision is correlated with the network [ held \ confirmed by other nodes, not by the suspect host ] -> a compromised host can neither trigger nor undo it locally
+    - disk capture + reinstall [ owner 2026-10-29 ] : when keeping a host up costs more than it is worth [ a security-relevant attribute ], capture -> reinstall [ osf-cache + os-pkg + configure + the personal diff ].
+      * owner's method : osf-cache checksums identify every UNALTERED os file ; delete those, fill free space with one repeated character, pack the now low-entropy partition [ or the whole disk incl. boot partitions ] and export it ; convert to a vdisk layout with variable usage for the investigation
+      * refinement [ claude ] : do the same READ-ONLY at block level -- map file extents, hash them, skip known os blocks, export only unknown blocks + a map into a sparse image [ qcow2 ] -> same size win, nothing on the suspect disk changes. deleting + filling free space would overwrite deleted-file remnants and timestamps, which are evidence ; unallocated space goes into the export too [ compressed ; deleted payloads hide there ]. the in-place variant stays for after a raw image exists
+      * the investigation disk = a multi-source reconstruction of the BIT-EXACT disk state : unknown blocks from the export, known blocks from osf-cache \ peers, a block map tying them together. proof : the capture also records a hash per block range [ + the whole device ] taken on the host -> the rebuilt image must match it exactly, or the gap is itself a finding
+      * hashes : BMW-384 \ BMW-512 [ Digest::BMW, the project's own checksum family ] for block ranges and the device ; the osf-cache lookups stay on the archive's signed sha256 where those exist
+      * correction [ owner ] : the network-facing identity is the BMW checksum ; sha256 [ the archive's signed value ] is an ATTRIBUTE of that dataset, with a reverse lookup sha256 -> BMW [ the archive anchors trust, BMW addresses the content ]
   done_at: null
   id: TJ6
   priority: normal
@@ -2294,8 +2321,8 @@ items:
   - forensics
   text: set-up ncfg format + devmod state export \ reimport [ test zenki, forensic copies from remote ]
 
-#,,..,.,,,...,,,,,,,,,,.,,,,,,,,,,...,..,,.,,,..,,...,...,.,.,.,,,...,,..,.,.,
-#77I2WF5HAD4DQTGQBJXH2SWJX7HPKWFWATDGYNHY52K4KN3YYEAVLNHFJ4FSMZ4V6XU5OOXQGSIPU
-#\\\|6EYKI7JZAEEB3R2VDZSYANZU4ZV6JCZXCKPBHVP6W7ZYTXIQKHU \ / AMOS7 \ YOURUM ::
-#\[7]BLSOJI7G7VRRQ4V6SI4TDGDUXIIU22252SVZM7ZZ5G2LFVUQVYAI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,.,,,,.,..,,,,.,.,.,.,.,,..,.,,,..,,...,...,..,,...,,..,,,.,.,,,
+#FGLRB6KV2QBMSZAXPQUNAOCLHZOXDRWU2UOHKNNRRQKSKXGH53Q744LE2MRWA6I2UZUYHLAEPQLSQ
+#\\\|32KRHMN2UYODY5BH3DCVD3VC565DALYKOISPEWYEIV3ODHNGRTM \ / AMOS7 \ YOURUM ::
+#\[7]62QN2EPTVKV5JH3BCHZSH4LUGS7XS3VU5JXAGIV7XNKUBVS3JIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

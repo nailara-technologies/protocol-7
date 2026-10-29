@@ -84,8 +84,10 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [declared-intent-survives-breakage](vision-2026-10-28-declared-intent-survives-breakage.md) — BASE PRINCIPLE [ user 2026-10-28 ] : declared intent outlives host \ server \ disk ; never silently dropped, visible while unfulfilled ; a user re-entering what they did not wipe = a gap. carriers : configure, settings zenka, p7-vault, N7FS
 - [entity-types-one-model](vision-2026-10-28-entity-types-one-model.md) — zenki = users = one entity model, native sub-branching ; triad zenki \ users \ llms, network as 4th, network instantiations as 5th ; one code path for all types ; tree refinement both ways [ forensics proposes parents from recurring sub-branches, users' view prefixes adoptable by the network ]
 
-#,,.,,,..,.,,,,,,,..,,,..,,..,.,.,...,,.,,,.,,..,,...,...,,.,,...,,,,,..,,,..,
-#Y7VBUCHQXF33FV2TLDXTUGIR5MO24HXVBKPKYZ7C32ZBMIEFGWNXOHTMDDQ3ZLOHTBTUEH5LOSH4W
-#\\\|SLUBMDULF5TW3M6JV3JJZGUUUBCYXV2VW6JZCXSFASXO5TOPWLK \ / AMOS7 \ YOURUM ::
-#\[7]AC4MOQEG4X35W7ZBK4XUEDLFU7RIIPFJIJ5YNO5IH5F7ALJLDUBI 7  DATA SIGNATURE ::
+- [checksum windows + provable ranges](vision-2026-10-29-checksum-windows-and-provable-ranges.md) — size:chksum, provably collision-free sizes vs pigeonhole, collision-free branches, path checksums for routing, fixed  content-defined  sliding windows
+
+#,,..,.,.,,.,,,,,,...,,,,,,,.,.,,,,..,,.,,...,...,...,...,,..,,..,.,,,,,,,.,,,
+#DNHX3D3FL2XN66KL6YJHXQPVK3B2TOGVTKSSPXKYWIVOCI7TM24DNODBJHYZMHWWUQRHPGBUSX4SC
+#\\\|3HPZ6KH3NE6VQSWG4TG5Q6UUAFH5BTR6L6QTD7SXLCJSXKTVLTM \ / AMOS7 \ YOURUM ::
+#\[7]JNOPQFSDRCVSJYEDWCPATPXAVEQRB7NF3MVT7E67VB4NQ5G4VMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
