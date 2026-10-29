@@ -326,6 +326,12 @@ my @external_tools = (
                     . '] ; its rewritten files join the request',
                 0
             ],
+            [   'op',
+                'the commit operation decides the bump : new \ amend \ '
+                    . 'amend-message [ no bump ] \ reset [ COMMIT-MANAGER.md '
+                    . ']',
+                0
+            ],
         ],
         ## no 'command' : routed by name to tool_p7_sign ##
     },
@@ -337,6 +343,45 @@ my @external_tools = (
             . 'report ] \ failed. returns within a second, read-only.',
         'params' => [ [ 'job', 'the job id p7_sign returned', 1 ], ],
         ## no 'command' : routed by name to tool_p7_sign_status ##
+    },
+    {   'name'        => 'p7_commit_prepare',
+        'description' =>
+            'prepare a commit message while the session is warm [ todo ZA2 '
+            . 'slice 2, bin/dev/p7-commit ]. the commit-msg hook checks '
+            . 'the form on the spot [ area : title, a one-line message '
+            . 'at most 100 chars, - body lines ; attribution lines '
+            . 'stripped ] ; stored with the operation and a checksum of '
+            . 'the STAGED diff. returns a commit id for p7_commit. sign '
+            . 'first [ p7_sign with the same op ], then prepare -- the '
+            . 'staged content is what the checksum binds.',
+        'params' => [
+            [   'message',
+                'the full commit message [ title, empty line, body ]', 1
+            ],
+            [   'op',
+                'new [ default ] \ amend \ amend-message \ reset '
+                    . '-- amend commits with --amend under AMEND=1',
+                0
+            ],
+        ],
+        ## no 'command' : routed by name to tool_p7_commit_prepare ##
+    },
+    {   'name'        => 'p7_commit',
+        'description' =>
+            'commit a prepared message. NON-BLOCKING : bin/dev/p7-commit '
+            . 'commit runs detached [ the hooks take seconds ] ; '
+            . 'p7_commit_status(id) reads the result. refuses \'stale\' '
+            . 'when the staged diff changed since prepare.',
+        'params' => [ [ 'id', 'the id p7_commit_prepare returned', 1 ], ],
+        ## no 'command' : routed by name to tool_p7_commit ##
+    },
+    {   'name'        => 'p7_commit_status',
+        'description' =>
+            'state of a prepared commit : prepared \ committing \ committed '
+            . '[ with the hash ] \ stale \ refused [ with the hook '
+            . 'report ]. read-only.',
+        'params' => [ [ 'id', 'the commit id', 1 ], ],
+        ## no 'command' : routed by name to tool_p7_commit_status ##
     },
     {   'name'        => 'claude_dispatch',
         'description' =>
@@ -1577,6 +1622,12 @@ sub handle_tools_call {
         tool_p7_sign( $id, $args );
     } elsif ( $name eq 'p7_sign_status' ) {
         tool_p7_sign_status( $id, $args );
+    } elsif ( $name eq 'p7_commit_prepare' ) {
+        tool_p7_commit_prepare( $id, $args );
+    } elsif ( $name eq 'p7_commit' ) {
+        tool_p7_commit( $id, $args );
+    } elsif ( $name eq 'p7_commit_status' ) {
+        tool_p7_commit_status( $id, $args );
     } elsif ( $name eq 'claude_cloud_dispatch' ) {
         tool_claude_cloud_dispatch( $id, $args );
     } elsif ( $name eq 'claude_cloud_status' ) {
@@ -6010,7 +6061,13 @@ sub tool_p7_sign {
     my $state_path = _p7_sign_state_path($job);
     my @cmd        = (
         "$ROOT_PATH/bin/dev/p7-sign-run",
-        '-state', $state_path, $bump ? ('-version') : (), @paths
+        '-state',
+        $state_path,
+        defined $args->{'op'}
+            && length $args->{'op'} ? ( '-op', $args->{'op'} )
+        : $bump ? ('-version')
+        : (),
+        @paths
     );
 
     ## double fork : the job is orphaned to init in its own session -- it ##
@@ -6091,6 +6148,113 @@ sub tool_p7_sign_status {
         $id,
         join( "\n", @lines ),
         $status =~ m{^(?:aborted|failed)} ? 1 : 0
+    );
+}
+
+## =========================================================================
+## p7_commit_prepare \ p7_commit \ p7_commit_status [ todo ZA2 slice 2 ]
+## =========================================================================
+
+sub _p7_commit_state {
+    my $id = shift // '';
+    return undef if $id !~ m|^p7-commit-\d+-\d+$|;
+    my $path = "$ROOT_PATH/data/state/$id.json";
+    open( my $fh, '<:raw', $path ) or return undef;
+    local $INPUT_RECORD_SEPARATOR;
+    return eval { $json->decode(<$fh>) };
+}
+
+sub tool_p7_commit_prepare {
+    my ( $id, $args ) = @ARG;
+    my $message = $args->{'message'} // '';
+    my $op      = $args->{'op'}      // 'new';
+    return send_tool_result( $id, 'message is required', 1 )
+        if $message !~ m|\S|;
+
+    ## p7-commit prepare reads the message on stdin -- a pipe, no shell ##
+    my $pid = open( my $out_fh, '-|' );
+    return send_tool_result( $id, "fork failed : $OS_ERROR", 1 )
+        if not defined $pid;
+    if ( $pid == 0 ) {
+        open( STDERR, '>&', \*STDOUT );
+        my $writer = open( my $in_fh, '|-' );
+        if ( defined $writer and $writer == 0 ) {
+            exec( "$ROOT_PATH/bin/dev/p7-commit", 'prepare', '-op', $op )
+                or POSIX::_exit(127);
+        }
+        binmode $in_fh, ':encoding(UTF-8)';
+        print {$in_fh} $message;
+        close $in_fh;
+        POSIX::_exit( $CHILD_ERROR >> 8 );
+    }
+    my $output = do { local $INPUT_RECORD_SEPARATOR; <$out_fh> // '' };
+    close $out_fh;
+    my $failed = $CHILD_ERROR != 0;
+    $output =~ s|\e\[[0-9;]*m||g;
+    chomp $output;
+    return send_tool_result( $id, $output, 1 ) if $failed;
+    my ($commit_id) = $output =~ m|(p7-commit-\d+-\d+)|;
+    return send_tool_result(
+        $id,
+        sprintf "prepared %s [ op %s ]\ncommit with p7_commit(id=\"%s\")",
+        $commit_id // $output,
+        $op, $commit_id // ''
+    );
+}
+
+sub tool_p7_commit {
+    my ( $id, $args ) = @ARG;
+    my $state = _p7_commit_state( $args->{'id'} );
+    return send_tool_result( $id, 'unknown commit id', 1 )
+        if ref $state ne 'HASH';
+    return send_tool_result( $id, "already $state->{'status'}", 1 )
+        if $state->{'status'} ne 'prepared';
+
+    ## double fork, as p7_sign : the hooks take seconds, nothing waits ##
+    my $pid = fork();
+    return send_tool_result( $id, "fork failed : $OS_ERROR", 1 )
+        if not defined $pid;
+    if ( $pid == 0 ) {
+        my $gpid = fork();
+        POSIX::_exit(1) if not defined $gpid;
+        if ( $gpid == 0 ) {
+            POSIX::setsid();
+            open( STDIN,  '<', '/dev/null' );
+            open( STDOUT, '>', "$ROOT_PATH/data/state/$args->{'id'}.out" )
+                or POSIX::_exit(1);
+            open( STDERR, '>&', \*STDOUT );
+            chdir $ROOT_PATH;
+            exec( "$ROOT_PATH/bin/dev/p7-commit", 'commit', $args->{'id'} )
+                or POSIX::_exit(127);
+        }
+        POSIX::_exit(0);
+    }
+    waitpid( $pid, 0 );
+    return send_tool_result(
+        $id,
+        sprintf "committing %s [ op %s ]\npoll p7_commit_status(id=\"%s\") "
+            . "or wait with bin/dev/p7-sign-wait %s",
+        $args->{'id'},
+        $state->{'op'},
+        $args->{'id'},
+        $args->{'id'}
+    );
+}
+
+sub tool_p7_commit_status {
+    my ( $id, $args ) = @ARG;
+    my $state = _p7_commit_state( $args->{'id'} );
+    return send_tool_result( $id, 'unknown commit id', 1 )
+        if ref $state ne 'HASH';
+    my @lines = ( "status : $state->{'status'}", "op     : $state->{'op'}" );
+    push @lines, "commit : $state->{'commit'}" if $state->{'commit'};
+    push @lines, 'files  : ' . join ' ', @{ $state->{'staged_files'} // [] };
+    push @lines, "report :\n$state->{'report'}"
+        if length( $state->{'report'} // '' );
+    return send_tool_result(
+        $id,
+        join( "\n", @lines ),
+        $state->{'status'} =~ m{^(?:stale|refused)$} ? 1 : 0
     );
 }
 
@@ -6306,8 +6470,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,,,,,.,,,.,,,,,.,,,.,,,.,,,,,,,.,,..,...,..,,...,...,...,.,,,.,.,,,.,,..,
-#VKQI5HNFD6ZKYXLH6ARWERYV6CNRC4UX62QH3IRUH6JOPJUFEQGIG4YE2FH7CT5AXAGVDT6BH6UDE
-#\\\|EAXIUOMBPYQMNJ7UA6NBN6E6KWMXCG7DJULTJFII5AYWRWV7HLX \ / AMOS7 \ YOURUM ::
-#\[7]2NVC5HNIQTE5NN5ETTW336XKCWWVHFLBTS2TA3PZZAKBGPSRDYBY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,..,,..,,...,..,,,,.,.,.,,.,,.,.,..,,...,.,.,,,,,,,.,,,,,,..,.,,,
+#UNNHPY3W7YR2VP5USLGZZYOFNULIZ2B624IKYNUGHV7YBCW76OF2L27ZNJLNZ77YK47RE5LQPPXJI
+#\\\|SUKRMRKODERJDDADFNS6NBKPYPBKA6MELQQQMOWNCJNHGYP2JQ6 \ / AMOS7 \ YOURUM ::
+#\[7]JDKEQIA263TBDJJNPL63M3LXELXIELFMPXJFG3QLJMQ4OP2YNYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

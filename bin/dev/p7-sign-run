@@ -23,10 +23,14 @@ use warnings;
 ## starting -> versioning -> preparing -> awaiting-approval -> signing ->
 ## approved | denied | aborted | failed
 ##
-## p7-sign-run -state <file.json> [ -version ] <path> [ <path> .. ]
+## p7-sign-run -state <file.json> [ -version | -op <op> ] <path> [ <path> .. ]
 ##
 ## -version : bump the source version first [ bin/dev/update-version ] ; the
 ## files it rewrites join the request [ their footers need the new sign ]
+## -op <new|amend|amend-message|reset> : the commit operation decides the bump
+## [ COMMIT-MANAGER.md ] -- new : update-version, amend : update-version
+## amend, reset : update-version reset, amend-message : none. -version = -op
+## new
 
 use FindBin;
 use Cwd         ();
@@ -39,14 +43,29 @@ use constant FALSE => 0;    ##  false  ##
 my $root_path = Cwd::abs_path("$FindBin::Bin/../..");
 chdir $root_path or die "p7-sign-run : chdir $root_path : $OS_ERROR\n";
 
-my ( $state_path, $bump_version, @paths );
+my ( $state_path, $bump_version, $op, @paths );
 while ( defined( my $arg = shift @ARGV ) ) {
     if    ( $arg eq qw| -state | )   { $state_path = shift @ARGV }
     elsif ( $arg eq qw| -version | ) { $bump_version = TRUE }
+    elsif ( $arg eq qw| -op | )      { $op = shift @ARGV // '' }
     else                             { push @paths, $arg }
 }
 die "p7-sign-run -state <file.json> [ -version ] <path> ..\n"
     if not defined $state_path or not @paths;
+
+my %version_mode = (
+    qw| new |           => [],
+    qw| amend |         => [qw| amend |],
+    qw| reset |         => [qw| reset |],
+    qw| amend-message | => undef,    ## the content is unchanged : no bump ##
+);
+if ( defined $op ) {
+    die "p7-sign-run : -op new \\ amend \\ amend-message \\ reset\n"
+        if not exists $version_mode{$op};
+    $bump_version = defined $version_mode{$op} ? TRUE : undef;
+}
+my @version_args
+    = defined $op && $version_mode{$op} ? $version_mode{$op}->@* : ();
 
 my $json  = JSON::PP->new->canonical->pretty;
 my $state = {
@@ -101,7 +120,7 @@ state_write();
 if ($bump_version) {
     state_write( qw| status | => qw| versioning | );
     my %before = git_changed();
-    my $out    = qx| bin/dev/update-version 2>&1 |;
+    my $out    = qx| bin/dev/update-version @version_args 2>&1 |;
     finish(
         qw| status | => qw| failed |,
         qw| report | => "update-version failed :\n$out"
@@ -231,8 +250,8 @@ finish(
     qw| report | => $report
 );
 
-#,,,.,.,.,,.,,,,,,,,.,.,.,..,,.,,,,,,,,.,,,..,..,,...,...,,.,,.,,,,.,,,,.,...,
-#UOJXE5QZEKWRYHNSQKBFM3XSNUESQ57X4Q7DKNCUKILXCELK47UYU5IYZTPQ3RFGTPT7IS2QLQYSA
-#\\\|223LWPWWFE362X5RIEL7EKEJZLRMYHTKYHARXVJI3D2LPJNWQ2G \ / AMOS7 \ YOURUM ::
-#\[7]ITJ2D4OWLKP63NZXTMP2FNVGCWYGEOB52GVQ6SSV3XMLNKQSHECI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,...,,,.,.,.,...,..,,,..,.,,,,.,,..,,...,...,..,,.,.,,..,.,,,...,
+#V7NJUMSHIU2MNWUPDZYSHZEJGNJVB5LMLHPAPJEVW3UJXPCH2K3AB3NGQZBHFGSQZ2VQYXKWO4X5A
+#\\\|C7S3OVLBNXS5KEREN5P7PF5SNONMSDEYJT7DTZUYIHHFGDY2FGG \ / AMOS7 \ YOURUM ::
+#\[7]DBSLBDATIHX756HJH4JUO3AEHQUEBHTJ5PY73GQAL7PQN6AE26BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
