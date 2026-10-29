@@ -1,0 +1,699 @@
+#!/usr/bin/perl
+use v5.32.0;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+###                  ###
+##  p7-sign-agent     ##
+###                  ###
+
+## sourcecode signing agent
+## [ todo HX4, data/md/design/VAULT-AGENT-SIGNING.md ] -- ssh-agent model for
+## the 'proto-7.sourcecode' C25519 key. Runs as the USER, in the user's own
+## login context, never a protocol-7-uid process and never a zenka child
+## [ CREDENTIAL-LAYERS.md : the signing key is never handed to a zenka ]. The
+## unlocked private key lives in THIS process's memory only and is wiped on
+## every way out.
+##
+## p7-sign-agent [ --key <name> ] [ --socket <path> ] [ --key-dir <dir> ]
+## [ --run-dir <dir> ]
+##
+## standalone on purpose : needs perl, CryptX, Digest::BMW and the AMOS7
+## modules in data/lib-path/pm [ AMOS7::13 + AMOS7::Twofish for the encrypted
+## private key, AMOS7::TERM for the hidden passphrase prompt ].  nothing from
+## a running protocol-7.
+##
+## line protocol, one op per connection [ see the design note ] :
+##   HELLO                         -> OK <proto> <public-b32>
+##   RUN <run> <tree-b32> <count>  -> then 'F <rel-path-b32>' lines + 'GO'
+##                                    -> OK | NO denied
+##   SIGN <run> <rel-b32> <body-chksum-b32> <body-len> <buffer-b32>
+##                                 -> OK <signature-b32> | NO <reason>
+##   END <run>                     -> OK <ntime-b32> <end-sig-b32>
+## relative paths only on the wire -- the agent joins them under the
+## approved work tree and validates every component. the gate is the
+## SO_PEERCRED same-uid check PLUS the per-run approval prompt in this
+## process's own terminal.
+
+use FindBin;
+use Getopt::Long ();
+use IO::File     ();
+use IO::Socket::UNIX;
+use Socket         qw| SOL_SOCKET |;
+use Cwd            ();
+use Fcntl          qw| :mode O_WRONLY O_CREAT O_APPEND |;
+use File::Basename qw| dirname |;
+use File::Path     qw| make_path |;
+use File::Spec     ();
+use Time::HiRes    ();
+
+BEGIN {
+    ## repo layout first [ bin/ + data/lib-path/pm ] ##
+    unshift @INC, "$FindBin::Bin/../data/lib-path/pm", "$FindBin::Bin";
+}
+
+use AMOS7::NTIME   qw| ntime_b32_now |;
+use Crypt::Ed25519 ();
+use Crypt::Misc    qw| encode_b32r decode_b32r |;
+use Digest::BMW    ();
+use AMOS7::13      qw| key_32 |;
+use AMOS7::Twofish ();
+use AMOS7::TERM    qw| read_password_single |;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+binmode STDOUT, ':encoding(UTF-8)';
+binmode STDERR, ':encoding(UTF-8)';
+STDOUT->autoflush(1);
+
+## linux SO_PEERCRED [ Socket.pm exports it there ; 17 is the arch value ] ##
+my $SO_PEERCRED = eval { Socket::SO_PEERCRED() } // 17;
+
+my $protocol_name    = qw| p7-sign-agent/1 |;
+my $key_name         = qw| proto-7.sourcecode |;
+my $request_timeout  = 13;      ## seconds : client header + list lines ##
+my $run_idle_seconds = 3600;    ## approved runs expire when idle past this ##
+
+my $run_base                    ## runtime dir : socket + runs.log ##
+    = $ENV{'XDG_RUNTIME_DIR'}
+    // sprintf( qw| %s/.n/run |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+my $socket_path = $ENV{'P7_SIGN_AGENT_SOCKET'}
+    // sprintf qw| %s/p7-sign-agent.sock |, $run_base;
+## the C25519 keypair store [ crypt.C25519.get_usr_keys_dir ] ##
+my $key_dir
+    = sprintf( qw| %s/.n/user-keys |,
+    $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+
+Getopt::Long::GetOptions(
+    'key=s'     => \$key_name,
+    'socket=s'  => \$socket_path,
+    'key-dir=s' => \$key_dir,
+    'run-dir=s' => \$run_base,
+) or die "p7-sign-agent : option error\n";
+
+## unlocked key material [ wiped on every exit path ] ##
+my ( $key_public, $key_private );
+my $runs_log_path = sprintf qw| %s/runs.log |, $run_base;
+my $run_log_fh;
+my %run_approved;    ## run id -> { tree, paths, last, peer_pid } ##
+
+sub out_line {
+    return say STDERR sprintf 'p7-sign-agent : %s', join '', @ARG;
+}
+
+sub secret_wipe {
+    my $sref = shift;
+    return if ref $sref ne qw| SCALAR |;
+    substr( $sref->$*, 0, length $sref->$*, '' );
+    return;
+}
+
+sub cleanup_exit {
+    my $code = shift // 0;
+    run_close( $ARG, qw| agent exit | ) foreach sort keys %run_approved;
+    secret_wipe( \$key_private ) if defined $key_private;
+    unlink $socket_path          if -S $socket_path;
+    exit $code;
+}
+
+$SIG{'INT'}  = sub { cleanup_exit(130) };
+$SIG{'TERM'} = sub { cleanup_exit(130) };
+$SIG{'HUP'}  = sub { cleanup_exit(130) };
+
+END {    ## a signal's exit wipes the key too ##
+    secret_wipe( \$key_private ) if defined $key_private;
+}
+
+##[ key loading ]#############################################################
+
+sub passphrase_prompt {
+    my $label = shift;
+    foreach my $try ( 1 .. 3 ) {
+        ## list context : the no-tty fallback returns ( pass, abort ) ##
+        my ( $typed, undef ) = read_password_single($label);
+        return undef                         if not defined $typed;
+        return $typed                        if length $typed;
+        say STDERR '  << empty -- try again' if $try < 3;
+    }
+    return undef;
+}
+
+sub key_load {
+
+    my $pub_file  = sprintf qw| %s/%s.public |,  $key_dir, $key_name;
+    my $priv_file = sprintf qw| %s/%s.private |, $key_dir, $key_name;
+
+    die sprintf "p7-sign-agent : no key '%s' [ %s ]\n", $key_name, $key_dir
+        if not -r $pub_file or not -r $priv_file;
+
+    my $pub_b32  = read_key_file($pub_file);
+    my $priv_b32 = read_key_file($priv_file);
+    $key_public = decode_b32r($pub_b32);
+
+    die "p7-sign-agent : public key decoding failed\n"
+        if not defined $key_public
+        or length $key_public != 32;
+
+    ## encrypted private keys are b32-prefixed 'FY5', unencrypted 'KU5'
+    ## [ crypt.C25519.get_type_from_key_str ] ; the 2-octet prefix comes off
+    ## after decoding [ prefixed key material ]
+    my $encrypted = index( $priv_b32, qw| FY5 |, 0 ) == 0 ? TRUE : FALSE;
+    my $priv_dec  = decode_b32r($priv_b32);
+    die "p7-sign-agent : private key decoding failed\n"
+        if not defined $priv_dec
+        or length $priv_dec < 64;
+    substr( $priv_dec, 0, 2, '' ) if length $priv_dec == 66;    ## prefix ##
+
+    if ( not $encrypted ) {
+        $key_private = $priv_dec;
+    } else {
+        my $pass = passphrase_prompt(
+            sprintf "signing key '%s' decryption password", $key_name );
+        die "p7-sign-agent : no passphrase, locked\n"
+            if not defined $pass;
+        my $enc_key = key_32( \$pass );
+        secret_wipe( \$pass );
+        die "p7-sign-agent : key derivation failed\n"
+            if not defined $enc_key
+            or length $enc_key != 32;
+
+        my $status
+            = AMOS7::Twofish::key_init( $enc_key, qw| decryption C25519 | );
+        die "p7-sign-agent : twofish init failed\n"
+            if not defined $status or not $status;
+        my $dec_ref = AMOS7::Twofish::decrypt( qw| C25519 |, \$priv_dec );
+        AMOS7::Twofish::delete_table_entry(qw| decryption C25519 |);
+        secret_wipe( \$priv_dec );
+        die "p7-sign-agent : private key decryption "
+            . "failed [ wrong passphrase ? ]\n"
+            if ref $dec_ref ne qw| SCALAR |
+            or length $dec_ref->$* != 64;
+        $key_private = $dec_ref->$*;
+    }
+
+    ## a test signature proves the passphrase opened the RIGHT key ##
+    my $probe = Crypt::Ed25519::sign( qw| p7-sign-agent |,
+        $key_public, $key_private );
+    die "p7-sign-agent : decrypted key does not match the public half\n"
+        if not Crypt::Ed25519::verify( qw| p7-sign-agent |,
+        $key_public, $probe );
+
+    return TRUE;
+}
+
+sub read_key_file {
+    my $path = shift;
+    open( my $key_fh, qw| < |, $path ) or return undef;
+    my $line = <$key_fh>;
+    close $key_fh;
+    chomp $line;
+    return $line;
+}
+
+##[ footer strip : same strict-mode rules as the signer ]#####################
+
+## a focused port of source.extract_sig_body's strict strip path : the stub
+## strips, then the end-anchored footer block with the separator restore.  it
+## must byte-match the worker's strip -- drift fails closed, a refused file,
+## never a wrong signature [ design note, 'what it signs' ]
+sub strip_signature_footer {
+    my $str_ref = shift;    ## raw file content, modified in place ##
+
+    my $placeholder = qw| PLACEHOLDER |;
+
+    ## old format stub : block ending with #[:]{70,} ##
+    $str_ref->$*
+        =~ s|\n?#[\.,]{70,}\n(?:#[^\n]*$placeholder[^\n]*\n)+#[:]{70,}\n?||sg;
+
+    ## new format stub : comma-line + checksum + pipe + bracket-7 + colon ##
+    $str_ref->$* =~ s{
+            \n? \# [,\.]+ \n
+            \# [A-Z0-9]{60,} \n
+            \#+ \\+ \| PLACEHOLDER [^\n]* \n
+            \#+ \\+ \[7] PLACEHOLDER [^\n]* \n
+            \# :+
+        }{}sgx;
+
+    ## AMOS7 perl module stub : bare placeholder lines ##
+    $str_ref->$* =~ s{
+            \n? \# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1 \n
+            \#+ \\+ \| PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2 \n
+            \#+ \\+ \[7] PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3 \n
+            \# :+
+        }{}sgx;
+
+    ## llm-hallucinated fake footer : sequential letter+digit checksum ##
+    $str_ref->$* =~ s{
+            \n? \# [,\.]{70,} \n
+            \# (?:[A-Z]\d){15,} [A-Z0-9]* \n
+            \# \\+ \| [^\n]* \n
+            \# \\+ \[7\] [^\n]* \n
+            \n?
+            \# :{70,} \n?
+        }{}sgx;
+
+    ## the footer block itself, anchored at end of string ##
+    my $pattern = qr/(\n)?(# _{78}|#[\.,]{70,})\n((?:#[^\n]+\n)+)$/;
+
+    if ( $str_ref->$* =~ m|$pattern| ) {
+        my $separator = $1 // '';
+        my $body      = $3 // '';
+        return TRUE    ## nothing extractable : treat as unsigned content ##
+            if index( $body, $placeholder, 0 ) != -1;
+        $str_ref->$* =~ s|$pattern||s;
+        $str_ref->$* .= "\n" if length $separator;    ## separator restore ##
+        return TRUE;
+    }
+
+    return TRUE;    ## no footer present : content is the body ##
+}
+
+##[ checksum helpers ]########################################################
+
+sub bmw_b32 {
+    my $bits = shift;
+    my $data = shift;
+    my $ctx  = Digest::BMW->new($bits);
+    $ctx->add($data);
+    return encode_b32r( $ctx->digest );
+}
+
+## the footer BMW-384 the sign buffer commits to : BMW-384 over the stripped
+## body followed by '<header-line>#' [ the exact composition of
+## source.create_harmonic_footer's cloned ctx + add ]
+sub footer_bmw_b32 {
+    my $body        = shift;
+    my $header_line = shift;    ## includes its trailing newline ##
+    my $ctx         = Digest::BMW->new(384);
+    $ctx->add($body);
+    $ctx->add( sprintf '%s#', $header_line );
+    return encode_b32r( $ctx->digest );
+}
+
+sub slurp_file {
+    my $path = shift;
+    open( my $fh, qw| < |, $path ) or return undef;
+    binmode $fh;
+    my $data = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> };
+    close $fh;
+    return $data;
+}
+
+##[ run log + signed end ]####################################################
+
+sub run_log_open {
+    open( $run_log_fh, qw| >> |, $runs_log_path ) or do {
+        warn "p7-sign-agent : cannot open $runs_log_path : $OS_ERROR\n";
+        return FALSE;
+    };
+    chmod 0600, $runs_log_path;
+    $run_log_fh->autoflush(1);
+    return TRUE;
+}
+
+sub run_log_line {
+    return if not defined $run_log_fh;
+    print {$run_log_fh} join( ' ', ntime_b32_now(5), @ARG ) . "\n";
+    return;
+}
+
+## the signed end : an immutable capability-reduction statement. anyone with
+## the public key verifies when a run's signing window closed
+## [ todo PBS window audit ]
+sub sign_end {
+    my $run_id = shift;
+    my $ntime  = ntime_b32_now(5);
+    my $record = sprintf qw| p7-sign-agent:end:%s:%s |, $run_id, $ntime;
+    my $sig    = Crypt::Ed25519::sign( $record, $key_public, $key_private );
+    run_log_line( qw| end |, $run_id, $ntime, encode_b32r($sig) );
+    return ( $ntime, encode_b32r($sig) );
+}
+
+sub run_close {
+    my $run_id = shift;
+    my $reason = shift // qw| ended |;
+    return if not exists $run_approved{$run_id};
+    sign_end($run_id);
+    delete $run_approved{$run_id};
+    out_line( sprintf 'run %s closed [ %s ]', $run_id, $reason );
+    return;
+}
+
+sub runs_expire {
+    my $now = Time::HiRes::time();
+    foreach my $run_id ( sort keys %run_approved ) {
+        run_close( $run_id, qw| idle | )
+            if $now - $run_approved{$run_id}{'last'} > $run_idle_seconds;
+    }
+    return;
+}
+
+##[ approval ]################################################################
+
+## the approval seam : slice 1 is this terminal prompt. the later slices
+## [ menu click, PIN, sized delegations, todo B2K ] replace this function
+## behind the same name and leave everything else untouched
+sub approve_run {
+    my $info = shift;    ## { run_id, work_tree, count, paths, peer_pid } ##
+
+    print STDERR "\n";
+    print STDERR ".:[ p7-sign-agent : signing request ]:.\n";
+    print STDERR sprintf ":  key  : %s\n",  $key_name;
+    print STDERR sprintf ":  run  : %s\n",  $info->{'run_id'};
+    print STDERR sprintf ":  tree : %s\n",  $info->{'work_tree'};
+    print STDERR sprintf ":  files : %d\n", $info->{'count'};
+    print STDERR sprintf ":  requester : pid %s [ uid %s ]\n",
+        $info->{'peer_pid'}, $info->{'peer_uid'};
+    print STDERR ":.\n";
+
+    foreach my $path ( sort $info->{'paths'}->@* ) {
+        print STDERR sprintf ":    ./%s\n", $path;
+    }
+    print STDERR ":.\n";
+    print STDERR sprintf ': sign these %d files ? [y/n] : ', $info->{'count'};
+
+    my $answer;
+    if ( open( my $tty, qw| < |, qw| /dev/tty | ) ) {
+        $answer = <$tty>;
+        close $tty;
+    } else {    ## no controlling terminal [ tests ] : stdin ##
+        $answer = <STDIN>;
+    }
+    return FALSE if not defined $answer;
+    chomp $answer;
+    return $answer eq qw| y | ? TRUE : FALSE;
+}
+
+##[ socket + peer gate ]######################################################
+
+sub socket_set_up {
+    if ( -e $socket_path ) {
+        my ( undef, undef, undef, undef, $uid ) = lstat $socket_path;
+        my $mode = ( lstat $socket_path )[2];
+        die "p7-sign-agent : $socket_path exists and is not a socket\n"
+            if not defined $mode
+            or not S_ISSOCK($mode);
+        die "p7-sign-agent : $socket_path is not owned by uid $EUID\n"
+            if $uid != $EUID;
+        ## a socket that still ANSWERS belongs to a live agent -- stop ; a
+        ## dead one is stale and gets replaced [ crash residue ]
+        if (IO::Socket::UNIX->new(
+                'Type' => SOCK_STREAM,
+                'Peer' => $socket_path
+            )
+        ) {
+            die "p7-sign-agent : $socket_path is already served\n";
+        }
+        unlink $socket_path
+            or die "p7-sign-agent : cannot replace "
+            . "$socket_path : $OS_ERROR\n";
+    }
+    if ( not -d $run_base ) {
+        make_path( $run_base, { qw| mode | => 0700 } );
+        chmod 0700, $run_base;
+    }
+    my $server = IO::Socket::UNIX->new(
+        qw| Type   | => SOCK_STREAM,
+        qw| Listen | => 64,
+        qw| Local  | => $socket_path,
+    ) or die "p7-sign-agent : cannot bind $socket_path : $OS_ERROR\n";
+    chmod 0600, $socket_path;
+    return $server;
+}
+
+## the gate : SO_PEERCRED, and the peer uid must equal our euid -- that is the
+## whole check in this slice [ design note, 'the gate' ]. pid + uid are logged
+## for the record, never enforced
+sub peer_uid_check {
+    my $client   = shift;
+    my @peercred = eval {
+        no strict;
+        unpack( qw| i* |, $client->sockopt($SO_PEERCRED) );
+    };
+    return undef if $@ or @peercred != 3;
+    my ( $pid, $uid, undef ) = @peercred;
+    return undef if $uid != $EUID;
+    return ( $pid, $uid );
+}
+
+##[ protocol ]################################################################
+
+sub respond_ok {
+    my $client = shift;
+    print {$client} join( ' ', qw| OK |, @ARG ) . "\n";
+    return TRUE;
+}
+
+sub respond_no {
+    my $client = shift;
+    my $reason = shift // qw| refused |;
+    $reason =~ s|\s|_|g;
+    print {$client} "NO $reason\n";
+    return FALSE;
+}
+
+sub b32_field_valid {
+    my $field = shift;
+    return ( defined $field and length $field and $field =~ m|^[0-9A-Z]+$| )
+        ? TRUE
+        : FALSE;
+}
+
+## relative path check : no absolute, no .., no empty components ##
+sub rel_path_valid {
+    my $rel = shift;
+    return FALSE if not defined $rel or not length $rel;
+    return FALSE if index( $rel, qw| / |, 0 ) == 0;
+    return FALSE if index( $rel, "\0" ) != -1;
+    foreach my $part ( split m|/|, $rel ) {
+        return FALSE if $part eq qw| .. | or not length $part;
+    }
+    return TRUE;
+}
+
+sub op_hello {
+    my $client = shift;
+    respond_ok( $client, $protocol_name, encode_b32r($key_public) );
+    return;
+}
+
+sub op_run {
+    my ( $client, $args_aref, $peer_pid, $peer_uid ) = @ARG;
+
+    my ( $run_id, $work_tree_b32, $count ) = $args_aref->@*;
+    return respond_no( $client, qw| run arguments | )
+        if not defined $run_id
+        or $run_id !~ m|^[0-9A-Za-z_.-]{1,80}$|
+        or not b32_field_valid($work_tree_b32)
+        or not defined $count
+        or $count !~ m|^\d+$|
+        or $count < 1;
+    return respond_no( $client, qw| run already open | )
+        if exists $run_approved{$run_id};
+
+    my $work_tree = decode_b32r($work_tree_b32);
+    return respond_no( $client, qw| work tree | )
+        if not defined $work_tree
+        or not length $work_tree
+        or index( $work_tree, "\0" ) != -1
+        or not -d $work_tree;
+
+    my @paths;
+    foreach my $n ( 1 .. $count ) {
+        my $f_line = read_line_alarm( $client, $request_timeout );
+        return respond_no( $client, qw| file list truncated | )
+            if not defined $f_line;
+        chomp $f_line;
+        my ( $tag, $path_b32 ) = split m| |, $f_line, 2;
+        return respond_no( $client, qw| file list format | )
+            if ( $tag // '' ) ne qw| F |
+            or not b32_field_valid($path_b32);
+        my $rel = decode_b32r($path_b32);
+        return respond_no( $client, qw| file list path | )
+            if not rel_path_valid($rel);
+        push @paths, $rel;
+    }
+
+    my $go_line = read_line_alarm( $client, $request_timeout );
+    return respond_no( $client, qw| file list go | )
+        if not defined $go_line or $go_line ne "GO\n";
+
+    my $approved = approve_run(
+        {   qw| run_id    | => $run_id,
+            qw| work_tree | => $work_tree,
+            qw| count     | => scalar @paths,
+            qw| paths     | => \@paths,
+            qw| peer_pid  | => $peer_pid,
+            qw| peer_uid  | => $peer_uid
+        }
+    );
+    return respond_no( $client, qw| denied | ) if not $approved;
+
+    $run_approved{$run_id} = {
+        qw| work_tree | => $work_tree,
+        qw| paths     | => { map { $ARG => TRUE } @paths },
+        qw| last      | => Time::HiRes::time(),
+        qw| peer_pid  | => $peer_pid,
+    };
+    my $list_chksum = bmw_b32( 512, join( "\n", sort @paths ) );
+    run_log_line(
+        qw| begin |, $run_id, scalar @paths, $list_chksum,
+        qw| pid |,   $peer_pid
+    );
+    return respond_ok($client);
+}
+
+sub op_sign {
+    my ( $client, $args_aref, $peer_pid ) = @ARG;
+
+    my ( $run_id, $path_b32, $body_chksum, $body_len, $buffer_b32 )
+        = $args_aref->@*;
+    return respond_no( $client, qw| sign arguments | )
+        if not defined $run_id
+        or not b32_field_valid($path_b32)
+        or not b32_field_valid($body_chksum)
+        or not defined $body_len
+        or $body_len !~ m|^\d+$|
+        or not b32_field_valid($buffer_b32);
+
+    my $run = $run_approved{$run_id};
+    return respond_no( $client, qw| unknown run | ) if not defined $run;
+
+    my $rel = decode_b32r($path_b32);
+    return respond_no( $client, qw| path | )
+        if not rel_path_valid($rel);
+    return respond_no( $client, qw| path not in run | )
+        if not exists $run->{'paths'}{$rel};
+
+    my $full_path
+        = File::Spec->catfile( $run->{'work_tree'}, split m|/|, $rel );
+    my @st = lstat $full_path;
+    return respond_no( $client, qw| not a regular file | )
+        if not @st
+        or not S_ISREG( $st[2] );
+
+    my $raw = slurp_file($full_path);
+    return respond_no( $client, qw| read failed | )
+        if not defined $raw;
+
+    ## re-derive the body from the agent's own disk read [ sign time ] ##
+    my $body = $raw;
+    strip_signature_footer( \$body );
+
+    ## request binding : the requester's checksum of the unsigned content ##
+    return respond_no( $client, qw| content changed | )
+        if length $body != $body_len;
+    return respond_no( $client, qw| content changed | )
+        if bmw_b32( 512, $body ) ne $body_chksum;
+
+    ## buffer binding : data-chksum must be BMW-384 over exactly these ##
+    ## stripped bytes + the presented header line [ design note ]      ##
+    my $buffer = decode_b32r($buffer_b32);
+    return respond_no( $client, qw| buffer format | )
+        if not defined $buffer;
+    my ( $header_line, $footer_bmw, undef )
+        = $buffer =~ m|^(\#[,\.]+\n)\#([0-9A-Z]+)\n(.{5})\z|s;
+    return respond_no( $client, qw| buffer format | )
+        if not defined $header_line;
+    return respond_no( $client, qw| binding mismatch | )
+        if footer_bmw_b32( $body, $header_line ) ne $footer_bmw;
+
+    $run->{'last'} = Time::HiRes::time();
+
+    ## sign exactly the presented buffer bytes -- the key stays here ##
+    my $signature
+        = Crypt::Ed25519::sign( $buffer, $key_public, $key_private );
+    run_log_line( qw| sign |, $run_id, $rel, $peer_pid );
+    return respond_ok( $client, encode_b32r($signature) );
+}
+
+sub op_end {
+    my ( $client, $args_aref ) = @ARG;
+    my ($run_id) = $args_aref->@*;
+    return respond_no( $client, qw| unknown run | )
+        if not defined $run_id
+        or not exists $run_approved{$run_id};
+    my ( $ntime, $sig_b32 ) = sign_end($run_id);
+    delete $run_approved{$run_id};
+    return respond_ok( $client, $ntime, $sig_b32 );
+}
+
+sub read_line_alarm {
+    my ( $handle, $seconds ) = @ARG;
+    my $timed_out = FALSE;
+    my $line      = eval {
+        local $SIG{'ALRM'} = sub { $timed_out = TRUE; die "alarm\n" };
+        alarm $seconds;
+        my $read = <$handle>;
+        alarm 0;
+        $read;
+    };
+    alarm 0;
+    return undef if $timed_out;
+    return $line;
+}
+
+sub request_handle {
+    my ( $client, $peer_pid, $peer_uid ) = @ARG;
+
+    my $line = read_line_alarm( $client, $request_timeout );
+    return respond_no( $client, qw| empty | )
+        if not defined $line or not length $line;
+    chomp $line;
+
+    my ( $op, @args ) = split m| |, $line;
+    if ( $op eq qw| HELLO | ) {
+        op_hello($client);
+    } elsif ( $op eq qw| PING | ) {
+        respond_ok($client);
+    } elsif ( $op eq qw| RUN | ) {
+        op_run( $client, \@args, $peer_pid, $peer_uid );
+    } elsif ( $op eq qw| SIGN | ) {
+        op_sign( $client, \@args, $peer_pid );
+    } elsif ( $op eq qw| END | ) {
+        op_end( $client, \@args );
+    } else {
+        respond_no( $client, qw| unknown op | );
+    }
+    return;
+}
+
+##[ main ]####################################################################
+
+key_load();
+run_log_open();
+my $server = socket_set_up();
+
+say STDERR sprintf "%s : '%s' unlocked [ pub %s ]", $protocol_name,
+    $key_name, substr( encode_b32r($key_public), 0, 13 );
+say STDERR sprintf ": serving %s [ uid %d only ] -- ctrl-c ends the session",
+    $socket_path, $EUID;
+run_log_line( qw| agent-start |, $PID, encode_b32r($key_public) );
+
+while ( my $client = $server->accept() ) {
+    runs_expire();
+    my ( $peer_pid, $peer_uid ) = peer_uid_check($client);
+    if ( not defined $peer_pid ) {
+        print {$client} "NO peer refused\n";
+        close $client;
+        next;
+    }
+    request_handle( $client, $peer_pid, $peer_uid );
+    close $client;
+}
+
+## server socket closed : end every open run with its signed end ##
+cleanup_exit(0);
+
+## footer note : this file is unsigned until the owner's next
+## update-signatures run -- no signing happens in the HX4 slice
+
+#,,.,,,..,...,..,,.,,,,,.,...,,..,,,.,.,.,,,,,..,,...,...,.,,,,,.,...,..,,.,,,
+#QVTOW3K6Z2LBPKEK7WGNSNDG2DKOCGX63CLR4LQ5ROHOPCCVLGJJZVI4CWFURLQGBYCVRE4JKLF7I
+#\\\|FXEA5AQC74BAM33NQ27T2HT7RYV5XM2OZBTMOFY2BVL7I62BAH5 \ / AMOS7 \ YOURUM ::
+#\[7]ODS45DOZABFOGAFPBJBZDNPJTE3COZW7UIWWU4FA3DNFLTMEKWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,6 +30,16 @@ my $workers_override;
 $workers_override = $1
     if $command_params =~ s| *:workers=(\d+): *| |;
 
+## :agent: signs through p7-sign-agent                                     ##
+## [ todo HX4,  data/md/design/VAULT-AGENT-SIGNING.md ] instead of loading ##
+## the key into this process -- the agent holds the unlocked key and signs ##
+## over a local socket after ONE approval per run. :agent=<socket path>:   ##
+## overrides the socket location. WITHOUT ':agent:' nothing changes : the  ##
+## key loads, the passphrase prompt happens, the agent is never contacted  ##
+my $agent_socket_opt;
+$agent_socket_opt = $1 if $command_params =~ s| *:agent=(\S+?):?| |;
+my $agent_mode = $command_params =~ s| *:agent: *| |;
+
 ## :inlist: treats the remaining params as candidates to intersect against ##
 ## the authoritative signed corpus [ sourcecode.source_path_set_up ],      ##
 ## rather than as a stand-alone file set -- exclusion patterns and corpus  ##
@@ -51,15 +61,65 @@ if ( $restrict_to_corpus and not length $command_params ) {
 
 my $signature_key_name = qw| proto-7.sourcecode |;
 
-<[source.load_signature_key]>->($signature_key_name);
+my $agent_socket;
 
-if (   not exists $keys{'C25519'}{$signature_key_name}
-    or not exists $keys{'C25519'}{$signature_key_name}->{'private'}
-    or not exists $keys{'C25519'}{$signature_key_name}->{'public'} ) {
-    <[base.log]>->( 0, ".: source signature key :." );
-    <[base.logs]>->( 0, ":  : %s", $signature_key_name );
-    <[base.log]>->( 0, ":. not loaded, aborting .:" );
-    <[base.exit]>->(qw| 0110 |);
+if ($agent_mode) {
+
+    ## agent mode : the key is DELIBERATELY not loaded here -- identity is ##
+    ## proven by comparing the agent's public half with the on-disk        ##
+    ## '.public' file [ public material only, design note ]                ##
+    $agent_socket
+        = length $agent_socket_opt
+        ? $agent_socket_opt
+        : <[sourcecode.agent.sign]>->( { 'op' => qw| socket-path | } );
+
+    <sourcecode.cfg.sign_agent_socket> = $agent_socket;
+
+    my $agent_pub = <[sourcecode.agent.sign]>
+        ->( { 'op' => qw| hello |, 'socket' => $agent_socket } );
+
+    my $disk_pub;
+    my $agent_key_vars = <[crypt.C25519.key_vars]>->($signature_key_name);
+    if ( ref $agent_key_vars eq qw| HASH |
+        and defined $agent_key_vars->{'key_filename'}{'public'} ) {
+        $disk_pub
+            = <[file.slurp]>
+            ->( $agent_key_vars->{'key_filename'}{'public'} )->$*;
+        chomp $disk_pub;
+    }
+
+    if (   not defined $agent_pub
+        or not defined $disk_pub
+        or $agent_pub ne $disk_pub ) {
+        <[base.log]>->( 0, '.: agent identity check FAILED :.' );
+        <[base.logs]>->(
+            0,
+            ':  : %s',
+            not defined $agent_pub
+            ? 'agent unreachable'
+            : 'agent key does not match the on-disk public key'
+        );
+        <[base.log]>->( 0, ':. not signing through a stranger .:' );
+        <[base.exit]>->(qw| 0110 |);
+    }
+
+    <[base.logs]>->(
+        1,             ': signing through agent %s [ key %s ]',
+        $agent_socket, $signature_key_name
+    );
+
+} else {
+
+    <[source.load_signature_key]>->($signature_key_name);
+
+    if (   not exists $keys{'C25519'}{$signature_key_name}
+        or not exists $keys{'C25519'}{$signature_key_name}->{'private'}
+        or not exists $keys{'C25519'}{$signature_key_name}->{'public'} ) {
+        <[base.log]>->( 0, ".: source signature key :." );
+        <[base.logs]>->( 0, ":  : %s", $signature_key_name );
+        <[base.log]>->( 0, ":. not loaded, aborting .:" );
+        <[base.exit]>->(qw| 0110 |);
+    }
 }
 
 my $source_version  = <protocol-7.src-ver>;
@@ -122,6 +182,36 @@ if (   @source_paths == 0
         0, 'no matching source files, cannot update signatures..,'
     );
     <[base.exit]>->('0110');
+}
+
+if ($agent_mode) {
+
+    ## one run id for the whole signing run -- it carries a checksum of the ##
+    ## sorted path list, so a changed file set IS a different run and       ##
+    ## prompts anew [ design note ]. The workers inherit both knobs through ##
+    ## the fork, and the agent serializes approval ONCE per run             ##
+    <sourcecode.cfg.sign_agent_tree> = $work_tree;
+    <sourcecode.cfg.sign_agent_run>  = sprintf qw| %d-%d-%s |, $PID, time(),
+        substr(
+        <[chk-sum.bmw.strsum]>->(
+            join( "\n", <[base.sort]>->(@source_paths) )
+        ) // '0',
+        0, 13
+        );
+
+    my $begin_ok = <[sourcecode.agent.sign]>->(
+        {   qw| op => begin |,
+            'socket'    => $agent_socket,
+            'run'       => <sourcecode.cfg.sign_agent_run>,
+            'work-tree' => $work_tree,
+            'paths'     => \@source_paths
+        }
+    );
+
+    if ( not $begin_ok ) {
+        <[base.log]>->( 0, ':. agent run denied, aborting .:' );
+        <[base.exit]>->(qw| 0110 |);
+    }
 }
 
 <[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
@@ -373,6 +463,23 @@ if ( $workers <= 1 ) {
     $file_count    -= $total_written;
 }
 
+if ($agent_mode) {
+
+    ## the signed end timestamp : the agent's capability-reduction record ##
+    my ( $end_ntime, $end_sig ) = <[sourcecode.agent.sign]>->(
+        {   qw| op => end |,
+            'socket' => $agent_socket,
+            'run'    => <sourcecode.cfg.sign_agent_run>
+        }
+    );
+    <[base.logs]>->(
+        2,
+        ': agent run %s closed [ end %s ]',
+        <sourcecode.cfg.sign_agent_run>,
+        $end_ntime // 'no end record'
+    );
+}
+
 if ( $stage_files and @staged_paths ) {
     <[base.logs]>->(
         '* staging %d signed file%s..,',
@@ -390,8 +497,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,.,,,,.,..,,,..,.,.,.,.,..,,..,,..,,,..,..,,..,,...,...,.,.,,,.,.,.,,,,,.,,,
-#U4XRDYYUIUQAIBASLKRXO7XJ5THJ3S6GUHJUV3BW3I7I5FHWFH2XAIEGOGDXKGHCBS5RVQ7YPJLYY
-#\\\|OQBNVBGVE44PXOX3XJOLK5WWAR6RJSTUNBMX4ULLJMBHI6CZARB \ / AMOS7 \ YOURUM ::
-#\[7]ZNVSBJP43CSB2O2C36HNJU53WWFMEXPNU5M52OUFE2RJ75EUUEBA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,,,,,.,.,,,,,.,,,.,,,.,..,,,,,,..,,...,...,...,...,...,,,.,,..,
+#ZXY55THSC7P6Y5BMLKBSZA6LFBIGD4CYKKH2NSJL2TFQRXTOECD2A2YU33SUEYBGQHTGJCDV34EMI
+#\\\|TMCVOJE4ZLBGTK2SN5XAMZXQRJWHP4ARI65O64V35ONURVQNEQ4 \ / AMOS7 \ YOURUM ::
+#\[7]H4XIRY3PVRIFVEB42S2K2DCKUUHNUEQ2NK2LPQEZJ225BN3EW6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

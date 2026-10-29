@@ -63,6 +63,13 @@ my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
 my $body_only_chksum = <[chk-sum.bmw.strsum]>->( \$src_str );
 my $body_only_length = length $src_str;
 
+## agent signing context [ todo HX4 ] : path + body checksum travel with ##
+## the footer data to the signing seam in source.fill_source_template ;  ##
+## inert for every caller that never sets the agent socket knob          ##
+$footer_data->{'sign-path'}        = $src_path;
+$footer_data->{'sign-body-chksum'} = $body_only_chksum;
+$footer_data->{'sign-body-length'} = $body_only_length;
+
 my $footer_found        = $footer_data->{'was-present'};
 my $found_footer_valid  = $footer_data->{'structure-was-valid'};
 my $found_footer_length = $footer_data->{'footer-length-found'};
@@ -173,12 +180,16 @@ if ( $is_valid and not $footer_data->{'needs_separator_endline'} ) {
 ## which happens before this point. register a missing key as its own named
 ## error case rather than letting the sign machinery discover it deep inside
 ## the iteration loop and cascade into unrelated-looking warnings
+my $agent_signing = ( defined <sourcecode.cfg.sign_agent_socket>
+        and length <sourcecode.cfg.sign_agent_socket> ) ? TRUE : FALSE;
+
 my $sign_key_name = <[crypt.C25519.key_vars]>->{'key_name'};
 return {
     'mode' => qw| false |,
     'data' => sprintf( "cannot sign [ key '%s' not loaded ]", $sign_key_name )
     }
-    if not <[crypt.C25519.private_key_loaded]>;
+    if not $agent_signing
+    and not <[crypt.C25519.private_key_loaded]>;
 
 # Now calculate signature - harmonize will add separator if needed
 my $recalc_data
@@ -277,8 +288,8 @@ return {
     'body-length' => $body_only_length
     }
 
-#,,,.,,,.,...,..,,,,,,.,,,,.,,.,.,.,.,,,.,,,,,..,,...,...,,..,.,.,,,.,,..,.,,,
-#NUJ3T243WNB4SZBFTSK6CCAJ4RR2TQGOTGEWSH6G7HN6FJALHFUBN44DAVAEFILV5GA26BKLPQAZQ
-#\\\|KN6Q75SKJJOGA5V3LPSNGUZ2SQH6KXDZAFFLYAJ23WRALHE3BH7 \ / AMOS7 \ YOURUM ::
-#\[7]O5LET3YJSMU3TZIAZBKKGXQTLUCLY22DH2AZYX6ZWQ75IXV4YWDA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,.,,..,...,.,,,,.,,,.,,,,.,,.,,..,,...,...,.,.,.,.,,,,,.,.,,,.,
+#HHSUE2TZIY3JTP2TPBHNI2OXDJLAQ3SR3SA255JAAPR2T63MPBSC4RANTOZ2YFOJE2TCKL3N2ANLM
+#\\\|Q7OOEXNSC65EWI6NKZ77K4TKBFLNCS256RYV3CIYF4FUMM4WGNO \ / AMOS7 \ YOURUM ::
+#\[7]QC4FQ5SPB2ST3OIWUIUXJRJQW6UAHXKMU5LURY632FBWDG7TFWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
