@@ -27,11 +27,13 @@ leaves them out invalidates them [ pre-commit : 'no signature present ::
 cfg/protocol-7.src-ver' ]. a follow-up run lists ALL staged signed files,
 without `version: true` [ no second bump ].
 
+**3. never pass an unsigned file to p7_sign** [ 2026-10-29 ] : data/web-root html went into a sign run [ d0ff178db ] and got a signature footer after </html>. stage unsigned files yourself ; to undo : `bin/Protocol-7 sourcecode strip-signature-footer <file>`. a commit holding ONLY unsigned files still needs a version bump : a sign run on cfg/protocol-7.src-ver with version true
+
 related : [[use-format-code-not-perl-c]],
 [[reload-success-doesnt-guarantee-new-file-loaded]]
 
-#,,.,,.,,,..,,,,,,,.,,,,,,..,,,..,...,.,,,.,.,..,,...,...,,.,,,,.,,.,,...,...,
-#EQJ6ICPVA67RFKYUJOVQPPSWZU54PA6HJTUVTPAWJX6RDABONS2YFNDVOIMD3HKNA3OUK4YMFVO4A
-#\\\|IDVN73LCNC3MNKTTN5SA6B6R2VI43F4OQRLO4I6B5SRB3UQ7J56 \ / AMOS7 \ YOURUM ::
-#\[7]TRDMXCXCHHNDO7F75HC5FLBAG6N4QQFWIZ474MBHVKRV3SQ4GOCY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,.,.,.,,,,..,,..,,,.,.,.,..,,..,,...,...,.,,,,.,,,,.,,,,,...,
+#YKP4QYT6ETAJG2JHIKH3VNMAFOWKDG2ZG36P2RXYN3GE4MVO3OIIVJ7IPKJB3MRNJH7RVNCRCA2CU
+#\\\|FI34MULKN3LSWIMNJ7J2JIT4GZZLR553SAPPGBQW5LKIRZGCLZD \ / AMOS7 \ YOURUM ::
+#\[7]X346POXZXFSYVAFGSFOMIPRKMS2ACDNL265KYYGX3GBIPCZS7IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
