@@ -117,9 +117,10 @@ if ($is_batch) {
     }
 }
 
-my $mem       = <[plugin.web.jobs.cache.read_all]>;
-my $ok        = TRUE;
-my $cache_dir = <[plugin.web.jobs.cache.path]>;
+my $mem         = <[plugin.web.jobs.cache.read_all]>;
+my $ok          = TRUE;
+my $changed_any = FALSE;
+my $cache_dir   = <[plugin.web.jobs.cache.path]>;
 my @conflicts;
 
 ## the resulting watermark for a single browser push, handed back so the  ##
@@ -150,7 +151,8 @@ if ($is_batch) {
 for my $job_data (@job_list) {
     my $job_id = ( $job_data->{'id'} // '' );
     next if not length $job_id;
-    my $enc_id = $job_id;
+    my $enc_id      = $job_id;
+    my $job_changed = $is_batch ? TRUE : FALSE;
 
     ## marks batch : never plant a record this web does not already hold :  ##
     ## a marks url owns no job state here, it may only update marks on jobs ##
@@ -182,6 +184,7 @@ for my $job_data (@job_list) {
         delete <plugin.web.jobs.index>->{$job_id}
             if ref <plugin.web.jobs.index> eq 'HASH';
         <[plugin.web.jobs.removed_log.append]>->($enc_id);
+        $changed_any = TRUE;
         next;
     }
 
@@ -205,6 +208,7 @@ for my $job_data (@job_list) {
         delete <plugin.web.jobs.index>->{$job_id}
             if ref <plugin.web.jobs.index> eq 'HASH';
         <[plugin.web.jobs.removed_log.append]>->($enc_id);
+        $changed_any = TRUE;
         next;
     }
 
@@ -361,6 +365,7 @@ for my $job_data (@job_list) {
             ## bump last_modified so delta queries on other browsers pick ##
             ## up this change                                             ##
             $cached->{'last_modified'} = <[base.ntime.b32]>;
+            $job_changed = TRUE;
             <[plugin.web.jobs.reverse.queue]>
                 ->( { 'id' => $job_id, %changed } );
         }
@@ -369,6 +374,7 @@ for my $job_data (@job_list) {
         ## queue directly                                                   ##
         if ( exists $job_data->{'action'}
             and length( $job_data->{'action'} ) ) {
+            $job_changed = TRUE;
             <[plugin.web.jobs.reverse.queue]>->(
                 {   'id'     => $job_id,
                     'action' => $job_data->{'action'}
@@ -390,6 +396,7 @@ for my $job_data (@job_list) {
                 delete <plugin.web.jobs.index>->{$job_id}
                     if ref <plugin.web.jobs.index> eq qw| HASH |;
                 <[plugin.web.jobs.removed_log.append]>->($enc_id);
+                $changed_any = TRUE;
             }
         }
     }
@@ -401,10 +408,13 @@ for my $job_data (@job_list) {
             and $job_data->{'action'} eq 'delete' )
     ) {
         my $wrote = <[plugin.web.jobs.cache.write]>->( $job_id, $cached );
-        $ok                   = FALSE                      if not $wrote;
+        $ok                   = FALSE if not $wrote;
+        $changed_any          = TRUE  if $wrote and $job_changed;
         $single_last_modified = $cached->{'last_modified'} if not $is_batch;
     }
 }
+
+<[plugin.web.jobs.events.notify]> if $changed_any;
 
 ## flush reverse queue only for jobsite batch pulls, not browser POSTs ##
 ## browser POSTs must not drain the queue or action entries are lost   ##
@@ -462,8 +472,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,,,,,..,,..,,...,,..,...,...,...,...,,,.,..,,...,...,.,.,.,,,...,.,,,.,,,
-#5IFCPNYRT2XIGJDBIZ3IRCOBJ45YYVTKCPMH6ZGNORJEOIGIWVG3HMRXOJTLGKD3J2MX3B4YJ5P6G
-#\\\|VQEKXKOLARR7VDGYW2M5DQWS4ALIEWAX4KYNJC3L2WWAZVSKEW4 \ / AMOS7 \ YOURUM ::
-#\[7]GVTFZ5OZBY7JA7EBP6KPXNLOIJKRDS7IB2IPHASG5CWRIKNOK2BQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,,,,,,..,,,,,,..,..,,..,,,,,,..,,...,...,..,,.,,,..,,,,,,,,.,
+#4UDTSEA77ADLYD7UU4RRRPT766AVZ25EW5P5JS77BCZBUPIGTWCHCSFJMZYJIYK2TEJJYQZQERKRY
+#\\\|T3Z62LVFS67NOPHUHLFPJX7OQPSLOWKKMDSYD3ADP37PNJAZQMN \ / AMOS7 \ YOURUM ::
+#\[7]SXK7GEJY7YWBQV2TYB5FLU3GO2AFGHEG67JJ3KZECJUFEGATC2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -869,6 +869,7 @@ input[type="date"], textarea {
 
 const STORAGE_KEY = 'jobs_pipeline_v1';
 const JOBS_JSON   = '/jobs.json';
+const JOBS_EVENTS = '/jobs-events';
 const JOBS_SYNC   = '/jobs-sync';
 const JOBS_TRASH        = '/jobs-trash';
 const JOBS_TRASH_RESCUE = '/jobs-trash-rescue';
@@ -877,6 +878,7 @@ const JOBS_PREFS        = '/jobs-prefs';
 const TRASH_WATERMARK_KEY = 'jobs_trash_watermark_v1';
 const EXPORT_TIME_KEY     = 'jobs_last_export_epoch_v1';
 const POLL_MS     = 30000;
+const SSE_POLL_MS = 120000;
 const USER_DECISIONS_KEY = 'jobs_user_decisions_v1';
 const USER_OWNED_STAGES  = new Set(['to_apply','applied','interviewed','responded','rejected','skipped','archived']);
 
@@ -888,6 +890,9 @@ let filterMode = 'review';
 let minScore = 7;
 let showArchived = false;
 let pollTimer = null;
+let pollInterval = 0;
+let jobEvents = null;
+let jobEventsDebounce = null;
 let userDecisions = {};  // id → { stage?, notes?, date_applied?, ts }
 const pushChains = {};   // id → tail promise, serializes same-job pushes so ##
                           // each one reads base_last_modified only after the ##
@@ -948,7 +953,7 @@ function openAuthPrompt() {
                     credentials: 'same-origin',
                     body: JSON.stringify({ token }),
                 });
-                if (r.ok) { inp.value = ''; done(true); return; }
+                if (r.ok) { inp.value = ''; startJobEvents(); done(true); return; }
                 err.textContent = 'ungültiges token';
             } catch (e) {
                 err.textContent = 'fehler: ' + e.message;
@@ -1163,8 +1168,29 @@ async function syncPipeline() {
 }
 
 function startPoll() {
+    const interval = jobEvents && jobEvents.readyState === EventSource.OPEN
+        ? SSE_POLL_MS
+        : POLL_MS;
+    if (pollTimer && interval === pollInterval) return;
     if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(syncPipeline, POLL_MS);
+    pollInterval = interval;
+    pollTimer = setInterval(syncPipeline, interval);
+}
+
+function startJobEvents() {
+    if (jobEvents) jobEvents.close();
+    let opened = false;
+    jobEvents = new EventSource(JOBS_EVENTS, { withCredentials: true });
+    jobEvents.onopen = () => {
+        startPoll();
+        if (opened) syncPipeline();
+        opened = true;
+    };
+    jobEvents.addEventListener('jobs', () => {
+        if (jobEventsDebounce) clearTimeout(jobEventsDebounce);
+        jobEventsDebounce = setTimeout(syncPipeline, 300);
+    });
+    jobEvents.onerror = () => { startPoll(); };
 }
 
 /* ── score helpers ── */
@@ -2773,9 +2799,16 @@ updateExportLastTimeDisplay();
 syncLastExportTime();
 render(); // show cached data immediately
 syncPipeline(); // full sync from server (may advance lastNtime)
-startPoll();    // delta polls every 30s thereafter
+startPoll();
+startJobEvents();
 (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve())
     .then(checkCustomFontLoaded);
 </script>
 </body>
 </html>
+
+#,,,,,...,..,,.,.,,,.,,..,.,,,.,,,,,.,,,,,,.,,..,,...,...,,..,...,..,,.,.,.,,,
+#GSWT7L5GMDVG3SDRSU7EG564NCZT37CVQ3U64QUEALVZAVBK2FBYLYZV437CNRWWX23PQWJ2RUYKC
+#\\\|JVS4FDVHKFTY2LP6LBHRZ4FUALE7TBVMF2DIK6SUNUUCZPLC6KQ \ / AMOS7 \ YOURUM ::
+#\[7]WTJD6QFEVQ6FWRPVOAV2HDCE5QOGBNPX3QRDF24MNKOMRACNTSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

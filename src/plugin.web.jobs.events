@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = plugin.web.jobs.events
+# descr = register an unbounded server-sent events stream for job changes
+
+my $call   = shift // {};
+my $sid    = $call->{'session_id'};
+my $cmd_id = $call->{'command_id'};
+
+return { 'mode' => qw| false |, 'data' => 'requires cmd_id > 0' }
+    if not defined $cmd_id or $cmd_id == 0;
+
+my $h = <[base.stream.open]>->(
+    {   'sid'    => $sid,
+        'cmd_id' => $cmd_id,
+        'type'   => qw| STRM |,
+        'total'  => undef,
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => 'base.stream.open refused' }
+    if not defined $h;
+
+my $retry = "retry: 5000\n\n";
+if ( not <[base.stream.push]>->( $h, \$retry ) ) {
+    <[base.stream.close]>->($h);
+    return { 'mode' => qw| deferred | };
+}
+
+<plugin.web.jobs.events.subscribers> //= {};
+## command ids count per connection : two browsers can share one -- the ##
+## session id makes the key unique                                      ##
+<plugin.web.jobs.events.subscribers>->{"$sid:$cmd_id"} = $h;
+
+if (   not defined <plugin.web.jobs.events.heartbeat_timer>
+    or not <plugin.web.jobs.events.heartbeat_timer>->is_active ) {
+    <plugin.web.jobs.events.heartbeat_timer> = <[event.add_timer]>->(
+        {   'after'    => 25,
+            'interval' => 25,
+            'repeat'   => TRUE,
+            'handler'  => qw| plugin.web.jobs.events.heartbeat |,
+        }
+    );
+}
+
+return { 'mode' => qw| deferred | };
+
+#,,..,..,,,,,,,..,...,,..,,..,,,,,,.,,,,,,,.,,..,,...,...,.,,,,..,,,,,,,.,.,.,
+#2NSU2L6EKOENGCNMZQB7JBSGDR4Q5WZ42LCATSB5V56SBC57PRXIUWODAQ5CGIHKLCPNPAQ4DIBHY
+#\\\|4IQXUD7IVAEKYKL4FEXHADMOXWU4LWZV3KYQNASV6OAZB3PFKIX \ / AMOS7 \ YOURUM ::
+#\[7]G4Q7RZ5LSU5BPENY4JVNWWOFWNHRCXVI4WREKADD4ZDIMPF6IQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

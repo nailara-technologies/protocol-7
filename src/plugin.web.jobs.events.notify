@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = plugin.web.jobs.events.notify
+# descr = send a coalesced job change signal without job data
+
+my $subscribers = <plugin.web.jobs.events.subscribers> // {};
+return TRUE if not keys %{$subscribers};
+
+## at most one event per second, but a change inside the window is never ##
+## dropped : it owes one trailing event at the window's end [ a change   ##
+## landing right after the browser's pull would otherwise stay unseen ]  ##
+my $now  = time;
+my $wait = 1 - ( $now - ( <plugin.web.jobs.events.last_sent> // 0 ) );
+if ( $wait > 0 ) {
+    <plugin.web.jobs.events.trailing> //= <[event.add_timer]>->(
+        {   'after'   => $wait,
+            'handler' => qw| plugin.web.jobs.events.trailing |,
+        }
+    );
+    return TRUE;
+}
+<plugin.web.jobs.events.last_sent> = $now;
+
+my $event = sprintf "event: jobs\ndata: %s\n\n", <[base.ntime.b32]>;
+return <[plugin.web.jobs.events.send]>->($event);
+
+#,,,.,...,.,,,.,,,...,...,..,,,..,.,.,,,,,...,..,,...,..,,.,,,.,.,,,.,.,.,..,,
+#D45UMMI3VBWX5BG42T5IELSH4V3YL7YACZRZ323PTL6Y3EWHLOYRCPFEJSEKDZP3OM6Z5HMQWBFZK
+#\\\|AFUGVM56OIFARW7CM4BCV73ARIVGYZLRDHDS7GZRPV4W2UROKZA \ / AMOS7 \ YOURUM ::
+#\[7]IDFCDBZVWNFIA7YVABOE4VBQ6C4OYGDDGVG2Z27JBZBODGAWLIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
