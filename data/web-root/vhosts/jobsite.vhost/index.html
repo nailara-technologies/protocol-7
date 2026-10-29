@@ -1195,13 +1195,14 @@ function startJobEvents() {
 /* so that pull finds nothing new and skips render : an open trash panel     */
 /* reloads here too                                                          */
 const REFRESH_SOON_MS = 1200;
-function refreshSoon() {
+const REFRESH_RESCUE_MS = 3100;    /* push_soon delay + transfer */
+function refreshSoon(ms = REFRESH_SOON_MS) {
     if (jobEventsDebounce) clearTimeout(jobEventsDebounce);
     jobEventsDebounce = setTimeout(() => {
         jobEventsDebounce = null;
         syncPipeline();
         if (trashPanelVisible) loadTrashPanel();
-    }, REFRESH_SOON_MS);
+    }, ms);
 }
 
 /* ── score helpers ── */
@@ -2717,7 +2718,7 @@ async function rescueTrashJob(id, btn) {
         /* pull the rescued job into view on next poll — it's now in review */
         lastNtime = 0;
         syncPipeline();
-        refreshSoon();    /* jobsite's push lands a moment later */
+        refreshSoon(REFRESH_RESCUE_MS);    /* jobsite pushes ~3 s after a rescue */
     } catch (e) {
         notify('rescue fehler: ' + e.message, true);
         btn.textContent = '↩ rescue';
