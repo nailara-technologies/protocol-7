@@ -57,7 +57,8 @@ use IO::Select;
 use IO::Socket::UNIX;
 use Socket qw| SOL_SOCKET |;
 use Cwd    ();
-use Fcntl  qw| :mode O_WRONLY O_CREAT O_APPEND F_GETFD F_SETFD FD_CLOEXEC |;
+use Fcntl
+    qw| :mode O_WRONLY O_CREAT O_EXCL O_APPEND F_GETFD F_SETFD FD_CLOEXEC |;
 use File::Basename qw| dirname |;
 use File::Path     qw| make_path |;
 use File::Spec     ();
@@ -91,7 +92,7 @@ STDOUT->autoflush(1);
 ## linux SO_PEERCRED [ Socket.pm exports it there ; 17 is the arch value ] ##
 my $SO_PEERCRED = eval { Socket::SO_PEERCRED() } // 17;
 
-my $protocol_name    = qw| p7-sign-agent/1 |;
+my $protocol_name    = qw| p7-sign-agent:002 |;    ## wire version, HELLO ##
 my $key_name         = qw| proto-7.sourcecode |;
 my $request_timeout  = 13;     ## seconds : client header + list lines ##
 my $run_idle_seconds = 120;    ## approved runs expire when idle past this ##
@@ -196,7 +197,7 @@ sub ui_rule { return print STDERR sprintf "%s:%s\n", $C{'0'}, $C{'R'} }
 ## the agent at rest : startup and after every run           ##
 ## [ a 0.7s look at the summary first, then a clean screen ] ##
 sub idle_show {
-    ui_head($protocol_name);
+    ui_head(qw| p7-sign-agent |);
     ui_field(
         qw| key |,
         $key_name,
@@ -1108,11 +1109,9 @@ sub tty_watch_mode {
     return TRUE;
 }
 
-## the gate : the new process gets the unlocked key WITHOUT a passphrase, so
-## every repo file it will load must carry a valid signature by THIS key --
-## the agent itself and its modules under data/lib-path/pm. returns the files
-## that fail [ empty : the restart may go ]
-sub restart_files_check {
+## the files a restart runs : the agent itself and its repo modules under
+## data/lib-path/pm [ what the new process will load ]
+sub restart_files {
     my $lib_root
         = Cwd::abs_path( sprintf qw| %s/../data/lib-path/pm |, $FindBin::Bin )
         // '';
@@ -1122,7 +1121,66 @@ sub restart_files_check {
         $files{$abs} = TRUE
             if length $lib_root and index( $abs, "$lib_root/", 0 ) == 0;
     }
-    return grep { not file_signature_valid($ARG) } sort keys %files;
+    return sort keys %files;
+}
+
+## the gate : the new process gets the unlocked key WITHOUT a passphrase.
+## files signed by THIS key pass silently ; the others need an approval with
+## their diff [ restart_agent ]. returns the unsigned ones
+sub restart_files_check {
+    return grep { not file_signature_valid($ARG) } restart_files();
+}
+
+## the code this process RUNS, kept at start : an unsigned restart shows
+## exactly what changes between it and the files on disk now
+my %code_snapshot;
+
+sub code_snapshot_take {
+    $code_snapshot{$ARG} = slurp_file($ARG) // '' foreach restart_files();
+    return;
+}
+
+## running copy vs disk as a unified diff
+## [ git diff --no-index, colored for a core.pager like run_diff ]. returns (
+## text, diff_page options )
+sub code_snapshot_diff {
+    my @paths = @ARG;
+    my $read  = sub {
+        open( my $fh, '-|', @ARG ) or return '';
+        local $INPUT_RECORD_SEPARATOR;
+        my $out = <$fh> // '';
+        close $fh;
+        return $out;
+    };
+    my $tree  = Cwd::abs_path( sprintf qw| %s/.. |, $FindBin::Bin );
+    my $pager = $read->( qw| git -C |, $tree, qw| config --get core.pager | );
+    $pager =~ s|\s+$||;
+    my $color = length $pager ? qw| always | : qw| never |;
+
+    my $diff = '';
+    foreach my $path (@paths) {
+        my $running = sprintf qw| %s/running-copy.%d |, $run_base, $PID;
+        sysopen( my $fh, $running, O_WRONLY | O_CREAT | O_EXCL, 0600 )
+            or next;
+        binmode $fh;
+        print {$fh} $code_snapshot{$path} // '';
+        close $fh;
+        my $one = $read->(
+            qw| git -c |, "color.ui=$color",
+            qw| diff --no-index --no-prefix |,
+            "--color=$color", qw| -- |, $running, $path
+        );
+        unlink $running;
+        ( my $label = $path ) =~ s|^\Q$tree\E/||;
+        ## headers : running/<path> vs disk/<path> ##
+        ## [ git drops the leading / ]             ##
+        ( my $running_bare = $running ) =~ s|^/||;
+        ( my $path_bare = $path )       =~ s|^/||;
+        $one =~ s|\Q$running_bare\E|running/$label|g;
+        $one =~ s|\Q$path_bare\E|disk/$label|g;
+        $diff .= $one;
+    }
+    return ( $diff, { qw| pager | => $pager } );
 }
 
 ## exec into the code on disk, same pid and terminal. the key goes through a
@@ -1135,12 +1193,36 @@ sub restart_agent {
         out_line('restart refused : a signing run is open');
         return;
     }
-    my @failed = restart_files_check();
-    if (@failed) {
-        out_line( 'restart refused : not signed by '
-                . 'this key -- start with the passphrase' );
-        out_line("  $ARG") foreach @failed;
-        return;
+    ## unsigned code : the user sees the change and decides              ##
+    ## [ the same y \ n \ d prompt as a signing request ] -- the upgrade ##
+    ## path stays open, but never silently                               ##
+    my @unsigned = restart_files_check();
+    if (@unsigned) {
+        ui_head('p7-sign-agent : restart into unsigned code');
+        foreach my $path (@unsigned) {
+            printf STDERR "%s:    %s%s%s\n", $C{'0'}, $C{'2'}, $path, $C{'R'};
+        }
+        ui_rule();
+        tty_watch_mode(FALSE);
+        my $approved = confirm_key(
+            {   qw| question | => sprintf(
+                    'restart into %d unsigned file%s ?',
+                    scalar @unsigned,
+                    @unsigned == 1 ? '' : 's'
+                ),
+                qw| diff | => sub { code_snapshot_diff(@unsigned) },
+            }
+        );
+        tty_watch_mode(TRUE);
+        if ( not $approved ) {
+            out_line('restart cancelled -- the running agent goes on');
+            return idle_return();
+        }
+        run_log_line(
+            qw| agent-restart unsigned |,
+            scalar @unsigned,
+            bmw_b32( 512, join( "\n", @unsigned ) )
+        );
     }
 
     pipe( my $key_read, my $key_write ) or do {
@@ -1183,6 +1265,7 @@ key_load();
 run_log_open();
 my $server = socket_set_up();
 
+code_snapshot_take();    ## the code this process runs [ restart diff ] ##
 idle_show();
 run_log_line(
     qw| agent-start |,
@@ -1222,8 +1305,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,.,,,..,,,,,...,,,.,,,,,,,,,,,,,,,.,.,,,,.,,..,,...,...,...,.,,,...,,,.,.,.,
-#DEIW2XOO4EFT26BD2GX3ZDDIKYZWVDNAACXFHHJLBUUZXKJO4VRQYBRPAXEL7QGT63UN5EE4YPRTA
-#\\\|R6U5DHF7EHPM63UFP7C6Z22XJWB32YNMJLRZZWVOCXLME57755J \ / AMOS7 \ YOURUM ::
-#\[7]SB6GQNZQ5Z2FATFH76NK4VD4VNBNFOFIKPU3OQ4454EIF2MH34DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,..,,,,,,.,.,,,,,,..,.,.,,,.,,,,,..,,...,..,,.,,,,..,.,,,,..,,..,
+#VU7S52ET55U3R5KW2V4VGNYHWNCM4NGYTDAPWAXXVZQJZ4WVV6XK3BQVFXDM7T4ZC455FKZQNTURK
+#\\\|FAVSQC7RXJ4VTGQUVZ26NPGOWJKZC4BHV5TPJV3F3NPWXHYJOQG \ / AMOS7 \ YOURUM ::
+#\[7]ZISTYSN5FCTTEBDA7K2TX6HFMS2VKSI74WEVAGMRRCOSBYRCMOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

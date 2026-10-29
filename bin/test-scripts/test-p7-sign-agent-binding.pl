@@ -246,7 +246,7 @@ my ( $socket_one, $log_one, $stdin_one, $pid_one ) = spawn_agent(
 ok( wait_for_socket($socket_one), 'agent 1 serves its socket' );
 
 my $hello = agent_request( $socket_one, qw| HELLO | );
-ok( defined $hello && $hello =~ m|^OK p7-sign-agent/1 |,
+ok( defined $hello && $hello =~ m|^OK p7-sign-agent:002 |,
     'HELLO answers with the protocol + public key'
 );
 
@@ -446,8 +446,8 @@ if ( $fail_count == 0 ) {
 say "$fail_count check(s) FAILED";
 exit 1;
 
-#,,,.,,,,,.,.,,..,.,.,,,.,,..,,,.,,.,,.,.,.,.,..,,...,..,,..,,.,.,,..,,,,,,,.,
-#O5P4MBHBISGTW7CVFYED6NP34L3R4YDDLN2FMGAJ4RAMYX464WPH2M3BZXOUTMCJDGUWAS5XGRF6Q
-#\\\|O75OYGUQAMIKMKZZDG75EJ6DWPZFZW562PIZD3EPQ6EYFVYAES4 \ / AMOS7 \ YOURUM ::
-#\[7]7QWUJSMYKU7HIX77QN45VISGFUKDBSRWEWIAE7GGMK37XK76KODA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,,,,.,,,.,,,..,..,,,,,,..,,.,.,..,,...,...,,.,,,,,,,,.,,,.,.,,,
+#YHDKJ7LHKMJFPNACDTFWJ675CI6STTI6HDIQA4IES5LX6STPJ2LRW6432MVIKOGGU4CLXRU2UGQOW
+#\\\|QIAN3CAA3CXKJHWQIXNTEQBQ3ARDHK3INJUNWWKRRHSQ3I5HJHA \ / AMOS7 \ YOURUM ::
+#\[7]4EN477IQQKFUUYGY3BIDYW6HY4CSPZGLEWXRE5TQPSGKL6WAGKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

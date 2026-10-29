@@ -148,7 +148,17 @@ chomp $reply;
 
 my ( $status_word, @fields ) = split m| |, $reply;
 
-return $fields[1] if $op eq qw| hello | and $status_word eq qw| OK |;
+## the agent's wire version : an older or newer agent is refused by name ##
+## here, not later as a confusing 'file list format' on the RUN lines    ##
+if ( $op eq qw| hello | and $status_word eq qw| OK | ) {
+    return $fields[1] if ( $fields[0] // '' ) eq qw| p7-sign-agent:002 |;
+    <[base.logs]>->(
+        0,
+        ': signing agent speaks %s, p7-sign-agent:002 expected',
+        $fields[0] // 'nothing'
+    );
+    return undef;
+}
 return TRUE       if $op eq qw| begin | and $status_word eq qw| OK |;
 return $fields[0] if $op eq qw| sign |  and $status_word eq qw| OK |;
 return @fields    if $op eq qw| end |   and $status_word eq qw| OK |;
@@ -170,8 +180,8 @@ if (    $op eq qw| begin |
 
 return undef;
 
-#,,.,,..,,...,...,..,,.,.,.,,,,,,,,.,,,,.,.,.,.,.,...,...,.,.,,..,.,.,,,.,.,.,
-#MVAABO3V3HDZP7DAWA777IOLCX4WMRHXHKFTBMNIM6KB6LMDNJ3GSKJ3RWDL6JN4NHDCITY2VHAJU
-#\\\|SSM4FLW63JBDRI7624X5KRZ7R6AMPV3DYFFIX7X6RSOH4AIIZKL \ / AMOS7 \ YOURUM ::
-#\[7]3OFADYVLLFIQACYWUBLLD54SORGYII6EP63F65OR2FP4AVHQRCAI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,,.,,,.,,,..,,.,,.,,,,,,,.,.,.,.,...,..,,..,,...,,..,,,.,,,.,
+#HY6CM5KY2JO773THERRV5PFHWC7V7MJ7PAW6ZIFFYNYIMZQMXY56RAPW423VT6H46MMQLC5BT4DJI
+#\\\|NMGOZGKME5MZBTPVRAIFOE66GJFCHNVD7VJACHPENEW3WREMF4T \ / AMOS7 \ YOURUM ::
+#\[7]3HT3CNYWIMMHP7DQHN3OB34PWB5MSNDVNNBUS6CKUK2Z4COXAIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
