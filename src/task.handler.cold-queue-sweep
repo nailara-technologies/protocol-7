@@ -39,15 +39,19 @@ if ( defined <task.cold_queue.force_at>
     my $load_5s   = <task.stats.gpu.temp.load_5s>;
 
     my $cold = FALSE;
-    if ( @{$buf} >= $need ) {
-        $cold = TRUE;
-        for my $temp ( @{$buf}[ -$need .. -1 ] ) {
-            if ( $temp > $threshold ) { $cold = FALSE; last }
+    if ( <[base.cfg_bool]>->( <task.cfg.thermal_gate> // FALSE ) ) {
+        $cold = ( <task.thermal.gate>->{'state'} // '' ) eq qw| cold |;
+    } else {
+        if ( @{$buf} >= $need ) {
+            $cold = TRUE;
+            for my $temp ( @{$buf}[ -$need .. -1 ] ) {
+                if ( $temp > $threshold ) { $cold = FALSE; last }
+            }
+            $cold = FALSE
+                if $cold
+                and defined $load_5s
+                and $load_5s > $threshold;
         }
-        $cold = FALSE
-            if $cold
-            and defined $load_5s
-            and $load_5s > $threshold;
     }
     @eligible = $cold ? @pending : ();
 } else {
@@ -87,8 +91,8 @@ for my $chk (@eligible) {
 
 return 0;
 
-#,,,,,,,,,,..,,.,,.,,,.,,,..,,..,,.,.,.,,,.,.,..,,...,...,,,,,,.,,,,,,,,.,...,
-#ABCGY2IE7PW3ONFYEJJCLUNWGJJPP7BI72LNPM4UNW6DSEJISELC3JRME3CX6PSKUNXSONA7RTUSI
-#\\\|57VDWQVL53JLJHEN3GBEFTCAVS3V23EN6WOEOZB6RAUIG7PPRSW \ / AMOS7 \ YOURUM ::
-#\[7]C35Z2L6EDIYP2DU54SPVILDAPWUV2XSE2A3BETNBEPEJZG7WWECQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,,..,,,.,,,,,..,,.,,,...,.,,,..,,...,...,..,,,.,,,.,,..,,,.,,
+#BBU6WOM2ZTS3CXXYEXEJM2A2DQLILSSSG6IM6MCVXKVVN2YSBNYUOB7HVOBCMMRW7QYRMFLLPL6G4
+#\\\|5PCZLN3MBQCR75UC6CO2UNAQOZ3REGHXDS7SRZTRATVVNFZK42E \ / AMOS7 \ YOURUM ::
+#\[7]XP3GVRHDBSVD5DPBY5PIOTRXBWTE2VHRN7UBCWKZZH4HAGJLN2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

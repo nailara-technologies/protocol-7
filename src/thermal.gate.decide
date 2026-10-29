@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = thermal.gate.decide
+# descr = apply thermal thresholds with hysteresis and dwell
+
+my ( $gate, $now ) = @ARG;
+
+return FALSE if ref $gate ne qw| HASH |;
+return FALSE if not defined $gate->{'avg_short'};
+
+my $ceiling = <thermal.cfg.ceiling> // 83.0;
+my $temp    = $gate->{'avg_short'};
+$temp = $gate->{'avg_long'} if $gate->{'avg_long'} > $temp;
+
+if ( $temp >= $ceiling ) {
+    $gate->{'state_since'} = $now
+        if ( $gate->{'state'} // '' ) ne qw| hot |;
+    $gate->{'state'} = qw| hot |;
+    return $gate->{'state'};
+}
+
+my $cold_mark = <thermal.cfg.cold> // 4.5;
+my $hot_mark  = <thermal.cfg.hot>  // 18.0;
+if ( ( <thermal.cfg.mode> // qw| relative | ) eq qw| relative | ) {
+    $cold_mark += $gate->{'baseline'};
+    $hot_mark  += $gate->{'baseline'};
+}
+
+my $next_state = qw| warm |;
+$next_state = qw| cold | if $temp < $cold_mark;
+$next_state = qw| hot |  if $temp > $hot_mark;
+
+my $state = $gate->{'state'};
+if ( not defined $state ) {
+    $gate->{'state'}       = $next_state;
+    $gate->{'state_since'} = $now;
+} elsif ( $next_state ne $state
+    and $now - $gate->{'state_since'} >= ( <thermal.cfg.dwell> // 120 ) ) {
+    $gate->{'state'}       = $next_state;
+    $gate->{'state_since'} = $now;
+}
+
+return $gate->{'state'};
+
+#,,.,,,.,,,.,,...,...,,,,,...,.,,,.,,,..,,,.,,..,,...,..,,,,.,,,,,...,..,,,,.,
+#D3VFPZ5L5XTSDMC5SHMWGGFADPCDA7757R7UVGBDOKRBAIANFF6UDPNE3SZYGRX2G3RWEZJTZMJH4
+#\\\|2YOVPD77LZDSYVESRCTNL2YI4EWNDG74JSHBJC7Y5DNYXJWNPVO \ / AMOS7 \ YOURUM ::
+#\[7]L2XAJXDL6LRL6RKZBPMSUDVG46RLAAMF7GJWUHPAMD6EGTQY4ABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

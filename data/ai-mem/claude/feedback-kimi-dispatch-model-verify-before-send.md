@@ -107,3 +107,17 @@ a careful review [ which caught the real defects in both stages anyway ].
 #\\\|XKKIEZIDPUSEPHIFNRUYOQRL3NS2KGT5Q4FZ2ZSYMRJEIOZ3ETX \ / AMOS7 \ YOURUM ::
 #\[7]AIGCXH76RVHXCWH6YN2QTKNTULUHYEIRXUF4RM74DJA5M4XJEQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**k3.1 measured [ 2026-10-29, owner : the vendor publishes no cost, users find out ]** :
+thinking low, thermal step 1 [ new shared module + 2 handler rewrites +
+2 zenka.v7 + 2 whitelists, spec-precise prompt ] = 5h +2.0 \ 7d +1.0.
+quality : clean refactor, ONE real bug [ `$store //= {}` on a lexical ->
+orphan hash when the caller's node was undef ] -- review every k3.1 diff
+for data-node ownership. strategy : claude = review \ decisions \ live
+debugging ; k3.1 low = precise-spec implementation, one step per dispatch.
+
+#,,,,,.,.,.,.,,..,.,,,..,,.,.,...,,,,,,..,,..,..,,...,..,,..,,.,,,,..,,..,.,,,
+#CFOHXIIJQTJO34APTDS2R3R5SOKDNJ7MQGOZO5KK2L2KQMTMAXGP5Q3ZDSW23KRGDNTLT55HQIM5Y
+#\\\|BPQE5YY4WXTMGUVBXI46AYRPB2IOXLTEKYX5JG5R6LNR5LXLEEW \ / AMOS7 \ YOURUM ::
+#\[7]M4I4PZO7NB4LSY2PBKLKZ3FYNG425B7YEMOLNAZBAT2Y3L4WMWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
