@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = site-yaml.cmd.liveness
+# descr = check one stepstone posting : alive \ gone \ unknown
+# param = url=<job-posting-url>
+#
+# notes = jobsite asks before assessing stale job data [ todo Q2K ]. the
+#         check rides the fetch queue [ same client, rate limit, backoff ]
+#         at its FRONT and answers deferred with a json verdict -- see
+#         site-yaml.liveness.verdict. a reply id lost to a restart only
+#         costs the caller its own timeout [ verdict unknown there ]
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s{^\s+|\s+$}{}g;
+my %param = ( $args_str =~ m|(\w+)=([^\s]+)|g );
+my $url   = $param{'url'} // $args_str;
+
+## same host + suffix contract as site-yaml.cmd.import-url ##
+my ($listing) = (
+    $url =~ m{^https?://(?:[a-z0-9-]+\.)*stepstone\.de/\S*?
+            --(\d+)-inline\.html(?:[?#]\S*)?$}xi
+);
+return { 'mode' => qw| false |, 'data' => 'not a stepstone job posting url' }
+    if not defined $listing;
+
+my $reply_id = $call->{'reply_id'};
+return { 'mode' => qw| false |, 'data' => 'no reply id [ deferred only ]' }
+    if not defined $reply_id;
+
+unshift <site-yaml.fetch_queue>->@*,
+    {
+    'id'       => <[base.vax-int.encode]>->($listing),
+    'url'      => $url,
+    'liveness' => $reply_id,
+    };
+
+<[base.logs]>->( 2, 'liveness : queued %s', $listing );
+<[site-yaml.fetch.schedule]>;
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,,..,,..,,.,,,,,,..,,,,,,...,,,,,,..,,,.,..,,...,...,...,..,,.,,,,..,,..,
+#ZPR5JIUYKKXRT75AZ7UTGNYH66TDFBIDA6TGB5VFV7Y6R5WDGS7QAI5AZOI27BKR4T2YX7J4SEVSY
+#\\\|RLX54Z7JDUD4D2X5BSASPYF7VTOG3UFIWDVVMQ55O4NT347BF6E \ / AMOS7 \ YOURUM ::
+#\[7]T7T7U2CKW4M26PNK5D76OCL2ZGA2RDFAHMJYTZDKC4MDR2YXCUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

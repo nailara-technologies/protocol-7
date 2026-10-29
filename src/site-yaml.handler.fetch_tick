@@ -22,6 +22,32 @@ return unless length $url;
     sub {
         my $raw_result = shift;    ## content string, or numeric http code ##
 
+        ## liveness check [ site-yaml.cmd.liveness ] : one verdict back to ##
+        ## the deferred caller, never a retry -- unknown is an answer too  ##
+        if ( defined $item->{'liveness'} ) {
+            my $verdict
+                = <[site-yaml.liveness.verdict]>->( $url, $raw_result );
+            <[base.logs]>->(
+                1,   'liveness: %s [%s %s] q=%d',
+                $id, $verdict->{'verdict'}, $verdict->{'code'},
+                scalar @{$queue}
+            );
+            <[base.callback.cmd_reply]>->(
+                $item->{'liveness'},
+                {   'mode' => qw| true |,
+                    'data' => JSON::encode_json($verdict),
+                }
+            );
+            <[site-yaml.fetch.backoff]>->(
+                ( $verdict->{'code'} // 0 ) =~ m{\A(?:403|429)\z}
+                ? qw| error |
+                : qw| success |
+            );
+            <[site-yaml.fetch.state]>->('save');
+            <[site-yaml.fetch.schedule]>;
+            return;
+        }
+
         my $job
             = ( $raw_result =~ m{\A\d+\z} )
             ? $raw_result
@@ -117,8 +143,8 @@ return unless length $url;
 
 return;
 
-#,,..,.,,,,,,,,,,,,..,,..,,..,...,,,.,.,,,,,,,.,.,...,..,,...,,..,,.,,..,,,.,,
-#2VF3XHYA4VBD4VQLC7KVJODSVTXJCKMPAXN642LEJMUPEV6DG5VEBJ4XMEX2BSJY2IQHPTJRDQQH6
-#\\\|JZJIHNXQH5JNSMK2YG6LJW7GMKBVCM73QDEH3EWUBXWDEEJWZU7 \ / AMOS7 \ YOURUM ::
-#\[7]D55MQCHYXK2UMNLOU2G4AKLYXDWLQDDPBM6OODHXZ5FVOLMLTEDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,.,,.,.,..,,,.,,...,..,,.,,,,,,,.,.,...,...,...,,,.,,,.,,..,,.,,
+#VACXVM7SCIORU3RN23CKRLLS7PNKQTCMAYXQDKZBOQ5UIH3IK3XKDV6CXKUWC3RBMD4UEFLKKFQ26
+#\\\|BF5RB2SIYVG4XFRIDQGNLI77PKBQSGDNQV5O4FQOXFPXEBSYE7O \ / AMOS7 \ YOURUM ::
+#\[7]2XGAFI7O6RWJFUEYUFRI3A263OON7CBOFSUEIBO2PFDBUYRQQECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

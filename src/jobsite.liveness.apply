@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = jobsite.liveness.apply
+# descr = act on a liveness verdict, release or pass the slot
+# param = $job_id, $token, $verdict [ { verdict, code, valid_through } ]
+#
+# notes = alive   : live_at stamped, the entry goes back to the queue
+#                   FRONT and dispatches at once [ fresh now, no recheck ]
+#         gone    : trash with the reason, unless the job left the
+#                   trashable states meanwhile [ applied \ interviewed ..
+#                   are never touched ]
+#         unknown : the job stays new, its slot is released -- the next
+#                   cycle tries again [ an unreachable portal must not hold
+#                   cycle=assessing, rule of d7ab4301d ]
+
+my ( $job_id, $token, $verdict ) = @ARG;
+
+my $pending = <jobsite.liveness_pending> // {};
+my $rec     = $pending->{$job_id};
+
+## late or superseded : the timeout \ reply already decided ##
+return if not defined $rec or $rec->{'token'} ne $token;
+delete $pending->{$job_id};
+eval { $rec->{'timer'}->cancel } if defined $rec->{'timer'};
+
+my $kind = $verdict->{'verdict'}           // qw| unknown |;
+my $code = $verdict->{'code'}              // '-';
+my $job  = <[jobsite.job.read]>->($job_id) // {};
+
+if ( $kind eq qw| alive | ) {
+    $job->{'live_at'}       = time;
+    $job->{'valid_through'} = $verdict->{'valid_through'}
+        if length( $verdict->{'valid_through'} // '' );
+    <[jobsite.job.write]>->( $job_id, $job );
+    <[base.logs]>->( 1, '[job:%s] liveness : alive', $job_id );
+    unshift <jobsite.assess_queue>->@*, $rec->{'entry'};
+    <[jobsite.dispatch.next]>;
+    return;
+}
+
+if ( $kind eq qw| gone | ) {
+    my $status = $job->{'status'} // '';
+    if ( $status =~ m{^(?:new|review)$} ) {
+        $job->{'status'}      = qw| trash |;
+        $job->{'stage'}       = qw| trash |;
+        $job->{'trash_epoch'} = <[base.ntime.epoch_timestamp]>;
+        $job->{'score_reason'}
+            = $verdict->{'offline'}
+            ? 'expired : posting offline'
+            : "expired : posting gone [ $code ]";
+        <[jobsite.job.write]>->( $job_id, $job );
+        <[base.logs]>->(
+            1,       '[job:%s] liveness : gone [ %s ] → trash',
+            $job_id, $code
+        );
+    } else {
+        <[base.logs]>->(
+            1,       '[job:%s] liveness : gone, status %s kept',
+            $job_id, $status
+        );
+    }
+    ( <jobsite.tasks>->{$job_id} //= {} )->{'stage'} = qw| done |;
+} else {
+    <[base.logs]>->(
+        1, '[job:%s] liveness : unknown [ %s %s ], next cycle',
+        $job_id, $code, $verdict->{'why'} // ''
+    );
+    ## not 'queued' any more : dispatch.assessments collects it again ##
+    delete( ( <jobsite.tasks>->{$job_id} // {} )->{'stage'} );
+}
+
+<[jobsite.dispatch.consume_slot]>;
+<[jobsite.dispatch.next]>;
+return;
+
+#,,,.,...,.,,,.,,,,,.,.,,,...,.,,,,,.,,..,,,.,..,,...,..,,.,,,..,,,,,,..,,..,,
+#KD5Q44TJF6FL2YYPJYQ7RBJAH6QFPGUAWW6U6XWYVAMDSJRXIYT545HI35XPIFQUJLE7AI5NJ5HVE
+#\\\|36ZZ22NVBRMDV2EGPTW3MLHGIJECJTGAYAT3T3X7DSZJ6C4UML6 \ / AMOS7 \ YOURUM ::
+#\[7]J2VCVXDPWXNRD2YUEBCXECH3CXBEM6QU2FA5GJ7NSTEPYBNRTWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

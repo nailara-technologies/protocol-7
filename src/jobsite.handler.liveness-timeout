@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = jobsite.handler.liveness-timeout
+# descr = no liveness verdict in time : unknown, slot released
+
+my $event = shift;
+my $wdata = eval { $event->w->data } // {};
+
+<[jobsite.liveness.apply]>->(
+    $wdata->{'job_id'} // '',
+    $wdata->{'token'}  // '',
+    { 'verdict' => qw| unknown |, 'why' => 'timeout' }
+);
+return;
+
+#,,,.,,,,,,.,,,.,,.,.,..,,...,,..,,,,,...,,,,,..,,...,..,,,,,,,,,,...,,.,,,.,,
+#55CV2ETE35KJ7EOJXSM5X6OCFNHS6QLVGNCJ2UDKIBCCZ2YMQYV47WFWNBGDDWMHFPCCBK3FYC5JY
+#\\\|ZAU7OLRVDHA3VUKZTABTOG24GDQGVJ57GZXC6EAWWCIYWETJ4FP \ / AMOS7 \ YOURUM ::
+#\[7]SLIR37F3V4ANKRKXRJ6CQ7NGXCWAFLQ7EBGXDPRUOB4575WAGMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
