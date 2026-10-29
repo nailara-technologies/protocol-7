@@ -40,7 +40,8 @@ use Crypt::Misc qw| encode_b32r |;
 my $root_path = Cwd::abs_path("$FindBin::Bin/../..");
 chdir $root_path or die "p7-commit : chdir $root_path : $OS_ERROR\n";
 my $state_dir = "$root_path/data/state";
-my $json      = JSON::PP->new->canonical->pretty;
+## octets on disk : the files are :raw ##
+my $json = JSON::PP->new->utf8->canonical->pretty;
 
 my %operations = map { $ARG => 1 } qw| new amend amend-message reset |;
 
@@ -96,6 +97,8 @@ if ( $command eq qw| prepare | ) {
     fail("operation '$op' [ new | amend | amend-message | reset ]")
         if not $operations{$op};
 
+    ## stdin carries utf-8 octets -- decode, the tmp file layer encodes ##
+    binmode STDIN, qw| :encoding(UTF-8) |;
     my $message = do { local $INPUT_RECORD_SEPARATOR; <STDIN> }
         // '';
     fail('empty message') if $message !~ m|\S|;
@@ -199,8 +202,8 @@ if ( $command eq qw| show | ) {
 
 fail('p7-commit prepare -op <op> < message | commit <id> | show <id>');
 
-#,,,.,.,.,,.,,,,,,,,.,.,,,,.,,,..,.,.,.,.,..,,..,,...,...,,..,.,.,,,,,...,,,,,
-#2RN7LEQWY27FSXAMK7JYFO4CWRNDWL5YS36CHOWZ7WEIM5I5JR6GQE6IPHYGKGXKGBZMS37P2BLEY
-#\\\|R3C5GGJK2UHCY7WOBMJCDB5P4CQEPP76FXYFE57QT72XEMZLHJT \ / AMOS7 \ YOURUM ::
-#\[7]5K36KJN3MAVGBPWKHQZ5FLMT523FKSFTWIZZYYJFQIGSJLJXTUDQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,.,,,.,.,.,,,.,,,,,.,.,,,,..,..,,...,...,,.,,,,,,,,.,.,,,,,.,
+#CGZ5OTNA4ZDD2RN3QOA5YFM3R34IVUMPMUHUK4D3JQJLWPMP3MYCMIBKMG67ITM4BYW6JLIGF43NQ
+#\\\|6JRKVLNRC4SWLJPNVKTPTDCBO6VXWEJ3Z4WWO5JBHF4TKGDIDSN \ / AMOS7 \ YOURUM ::
+#\[7]J5HADZU3SRDCFUVR6HUOIFFMRE3K6KZOAOMOPFB34DEX5KOEVADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
