@@ -814,7 +814,18 @@ sub op_run {
     ui_field( qw| run |,   $run_id );
     ui_field( qw| files |, scalar @entries );
     ui_rule();
-    print STDERR progress_line( '', 0, scalar @entries );
+    ## label width : the longest path of the run, capped to the terminal ##
+    ## [ the bar frame takes 28 columns ]                                ##
+    my ( $columns, undef ) = AMOS7::TERM::terminal_size( \*STDERR );
+    my $longest = 0;
+    foreach my $entry (@entries) {
+        $longest = length $entry->{'path'}
+            if length $entry->{'path'} > $longest;
+    }
+    $run_approved{$run_id}{'label_width'}
+        = $longest < $columns - 28 ? $longest : $columns - 28;
+    print STDERR progress_line( '', 0, scalar @entries,
+        $run_approved{$run_id}{'label_width'} );
     $progress_open = TRUE;
 
     return respond_ok($client);
@@ -893,10 +904,14 @@ sub op_sign {
     my $signature
         = Crypt::Ed25519::sign( $buffer, $key_public, $key_private );
     run_log_line( qw| sign |, $run_id, $rel, $peer_pid );
-    $run->{'signed'}{$rel} = TRUE;
-    print STDERR progress_line( $rel, scalar keys $run->{'signed'}->%*,
-        $run->{'count'} );
-    $progress_open = TRUE;
+    ## one redraw per FILE : a file takes hundreds of iteration signs and ##
+    ## a redraw on each one floods the terminal                          ##
+    if ( not $run->{'signed'}{$rel} ) {
+        $run->{'signed'}{$rel} = TRUE;
+        print STDERR progress_line( $rel, scalar keys $run->{'signed'}->%*,
+            $run->{'count'}, $run->{'label_width'} );
+        $progress_open = TRUE;
+    }
     return respond_ok( $client, encode_b32r($signature) );
 }
 
@@ -986,8 +1001,8 @@ cleanup_exit(0);
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,.,,,.,.,,,,,,,.,,,...,,,.,,,,,..,,,..,...,..,,...,...,,,,,...,,,,,,,.,,,.,
-#ORX6IEDZUS6IZ3L76XKEQVRBU2QKOFRUKMQQR62YFQ4TLBNESVS3PBMX6JQOXGEVK47RKJFXBGEA2
-#\\\|RE2QODT46GBDG5SOPXGXKWZE66S3P45WTLYR2OAVYWXTZ5BJV4C \ / AMOS7 \ YOURUM ::
-#\[7]BP42FJR3W5BWPUOUP5JSYXAJKXGWGZZZAAOOC5XZVKEVHZDXNEDI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,,..,,,,,...,.,,,.,.,,,.,.,,,..,,...,...,..,,...,..,,,.,,...,
+#5ZJHTP3EMBVYOQGKKC3EK5AEYJYDFRMM4MPAPGJDVBJUX337XWQIKK34PEDQXAJDEFRBYAZHLQFKC
+#\\\|5TDPXWJZBVQY4FAJF6O2OGZ7MC3CDYAFDY6SQTQT24X5WQ2QQFZ \ / AMOS7 \ YOURUM ::
+#\[7]SCH6VPRL3BDQ3C4VSMZY3ZPVMEU3O2G3XLAMJQUWTTK6KBA5Y4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
