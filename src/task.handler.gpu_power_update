@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = task.handler.gpu_power_update
+# descr = handle gpu power subscription replies for thermal idle detection
+
+my $reply = shift;
+my $store = <task.stats.gpu.power> //= {};
+
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    $store->{'watts'}      = undef;
+    $store->{'updated_at'} = undef;
+    <[base.logs]>->(
+        2,
+        'gpu power subscription failed [ '
+            . 'thermal idle learning disabled ]: %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if ( $reply->{'args'} // '' ) ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+<[strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split m|\n|, $data ) {
+                my ($watts) = $line =~ m|^\s*(\d+(?:\.\d+)?)| or next;
+                $store->{'watts'} = 0 + $watts;
+                ## same clock as the gate ##
+                $store->{'updated_at'} = <[base.time]>->(2);
+            }
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, 'gpu power STRM consumer registered [cmd_id=%d]', $cmd_id
+);
+
+return TRUE;
+
+#,,,.,.,,,...,,,.,,..,,.,,,..,..,,,..,,.,,,.,,..,,...,...,...,.,.,..,,,,.,..,,
+#OGAYOWYI7YEC2TKQ6VIDKKG7ZFFHKMVZFD2SZUBIZ22XNH65W5QMCSLC656WLTZGASPNJJDKNE4DQ
+#\\\|SVR7H7Q4JJ3KYWTA52ISN4ANLPV2C3LGEVAUID4IMEYLCROQAKX \ / AMOS7 \ YOURUM ::
+#\[7]OOJC32DHHWHNWWUB43TMV46HJ5QDVYJ4VDDFF7QR4A35LM66W6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

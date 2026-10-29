@@ -28,6 +28,10 @@
     'sparkline_buf' => [],
     'updated_at'    => undef,
 };
+<task.stats.gpu.power> //= {
+    'watts'      => undef,
+    'updated_at' => undef,
+};
 
 ## reasoning branch registry [ generic parallel orchestration ] ##
 <reasoning.branch.registry>        //= {};
@@ -44,34 +48,36 @@
     scalar( keys <task.queue>->%* )
 );
 
-## subscribe to X-11 GPU temperature stream if available -- deferred via    ##
-## <system.callbacks.initialized>: resolve_primary_sid's own internal       ##
-## route-send fires before this zenka's own cube session exists when called ##
-## directly from init_code, and the resolver has no retry of its own, so a  ##
-## race here means never getting GPU stats at all                           ##
+## subscribe to X-11 GPU temperature and power streams if available --    ##
+## deferred via <system.callbacks.initialized>: resolve_primary_sid's own ##
+## internal route-send fires before this zenka's own cube session exists  ##
+## when called directly from init_code, and the resolver has no retry of  ##
+## its own, so a race here means never getting GPU stats at all           ##
 push <system.callbacks.initialized>->@*, sub {
     <[base.zenki.resolve_primary_sid]>->(
         'X-11',
         sub {
             my $sid = shift;
             return if not defined $sid;
-            <[protocol-7.route-send]>->(
-                {   'command'   => "$sid.gpu_metric",
-                    'call_args' => { 'args' => 'temp subscribe' },
-                    'reply'     => {
-                        'handler' => 'task.handler.gpu_temp_update',
-                        'params'  => {}
+            foreach my $metric (qw| temp power |) {
+                <[protocol-7.route-send]>->(
+                    {   'command'   => "$sid.gpu_metric",
+                        'call_args' => { 'args' => "$metric subscribe" },
+                        'reply'     => {
+                            'handler' => "task.handler.gpu_${metric}_update",
+                            'params'  => {}
+                        }
                     }
-                }
-            );
+                );
+            }
         }
     );
 };
 
 return TRUE;
 
-#,,,,,.,.,,.,,,,,,,,.,.,,,..,,,..,...,..,,..,,..,,...,.,,,,.,,,..,.,.,.,.,,.,,
-#4XT5ZPJHPMSOACPH2K6J5AEBPQZDSANBN3QKTGAXFSR4D3DMODO7TL6YQICK2KRVQDYFYVGLKS34A
-#\\\|G4EHZSO4SHZSGPIU3QHGPP33YRBAWHNVOC36WR4UASGFMEFGCXG \ / AMOS7 \ YOURUM ::
-#\[7]LJUUEDFR6PKKR2AC27EHQ7DTBDOMVFVXGFFIPXL3YRIN2IWKJ2BI 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,,,,,,,,,.,,..,,.,,...,..,,,.,,..,,...,...,,.,,..,,.,.,,,,,...,
+#4WSP6VN5HBQOH3IS7WWZYX5FOCVP56UD23O2VYXAS6AV4DRDP4TBKDQN2UGEB2BM65YS5PO5M6OJK
+#\\\|FGJ3BCFA6QGURCV3OEOZ4FKYJS7BXYBHNMSESPIRSB27GXBVUH3 \ / AMOS7 \ YOURUM ::
+#\[7]UFPATGTW2AAIB2DGHJOQPGYTUC5XXLKXUGKY5LKVREV3U4SJHMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

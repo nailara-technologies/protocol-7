@@ -25,8 +25,38 @@ return
     sub {
         my ( $temp_1s, $avg_5s ) = @ARG;
         <task.thermal.gate> //= {};
-        my $now = <[base.time]>->(2);
-        <[thermal.gate.sample]>->( <task.thermal.gate>, $temp_1s, $now );
+        my $idle = <task.thermal.idle> //= {};
+        my $now  = <[base.time]>->(2);
+
+        if ( not defined $idle->{'loadavg_at'}
+            or $now - $idle->{'loadavg_at'} >= 10 ) {
+            $idle->{'load_per_core'} = <[thermal.idle.loadavg]>;
+            $idle->{'loadavg_at'}    = $now;
+        }
+
+        my $power = <task.stats.gpu.power> //= {};
+        my $busy  = TRUE;
+        if (    defined $power->{'watts'}
+            and defined $power->{'updated_at'}
+            and $now - $power->{'updated_at'} <= 30 ) {
+            $busy
+                = $power->{'watts'} > ( <thermal.cfg.idle.power_max> // 60 );
+        }
+
+        $idle->{'state'} = <[thermal.idle.sample]>->(
+            $idle,
+            {   'load_per_core' => $idle->{'load_per_core'},
+                'busy'          => $busy,
+            },
+            $now
+        );
+        $idle->{'power_watts'} = $power->{'watts'};
+        my $idle_held = <[thermal.idle.held]>->(
+            $idle, $now, <thermal.cfg.idle.hold> // 600
+        );
+        <[thermal.gate.sample]>->(
+            <task.thermal.gate>, $temp_1s, $now, $idle_held
+        );
         <[thermal.gate.decide]>->( <task.thermal.gate>, $now );
     }
     );
@@ -39,8 +69,8 @@ return
     $reply->{'cmd_id'}
 );
 
-#,,,,,,..,,.,,...,,,.,,..,,..,...,.,.,,.,,.,.,..,,...,...,,..,.,,,.,,,,.,,...,
-#VBXINIC74NDZLLVLCXGQAGXSW43Y22EVQ464W4TFAB4II6HODKOVUX4DSD3MN744ABAAFPEY4AU6W
-#\\\|5KA7MJWVMQAHL6LQD3SXIQRZZ6JBBAA5KS4C2WOHCCHAQYBGWUI \ / AMOS7 \ YOURUM ::
-#\[7]PS6XIZWQTVHULYNDAAGV5L7FSE7WPACKFXUCVQBO2D7QOKDWIUBY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,.,...,,..,,.,,.,,,,.,,,.,,...,..,,...,...,...,...,...,,,.,..,,
+#U3WRBVWV3XXIIGC5XGTHTOMUOW3UG5Q3VDZ66AATQQRQ7IPXODNBARCZNEX5X75AMVMVZ7DSXXQSK
+#\\\|3IXQ75KOBQVO5TKZAEYGEZJ4CLSU3RLK4WN2QWEECRL2LL2NLHA \ / AMOS7 \ YOURUM ::
+#\[7]OYNCSU4KC4LJQBVX3OMWZAAIC4UZIHJHDWXZHTAF5HJMATITQKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
