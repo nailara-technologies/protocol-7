@@ -62,6 +62,9 @@ compile_module('thermal.handler.outdoor-reply');
 compile_module('thermal.outdoor.amp');
 compile_module('thermal.gate.sample');
 compile_module('thermal.gate.decide');
+compile_module('thermal.feed.register');
+compile_module('task.handler.gpu_power_update');
+compile_module('task.handler.gpu_temp_update');
 compile_module('thermal.mem.read');
 compile_module('thermal.mem.decide');
 compile_module('thermal.idle.sample');
@@ -300,6 +303,7 @@ say ': 9. window and idle defaults are initialized';
 ok( $data{'thermal'}{'cfg'}{'start'}{'hold'} == 600
         && $data{'thermal'}{'cfg'}{'idle'}{'hold'} == 600
         && $data{'thermal'}{'cfg'}{'idle'}{'load_max'} == 0.6
+        && $data{'thermal'}{'cfg'}{'idle'}{'power_max'} == 60
         && $data{'thermal'}{'cfg'}{'window'}{'night'} eq qw| 22:00-06:00 |
         && $data{'thermal'}{'cfg'}{'night'}{'cold'} == 8
         && $data{'thermal'}{'cfg'}{'night'}{'hot'} == 25
@@ -649,6 +653,72 @@ ok( $data{'thermal'}{'cfg'}{'window'}{'tariff'} eq ''
     'outdoor and tariff defaults match the design'
 );
 
+say ': 21. task idle wiring fails closed and learns after the hold';
+my %task_streams;
+my $task_now = 100;
+$code{'base.time'} = sub { return $task_now };
+## ntime is a different clock : the gate compares base.time only ##
+$code{'base.ntime'}          = sub { return 3_234_362_257_055 };
+$code{'base.logs'}           = sub { return TRUE };
+$code{'strm.local.register'} = sub {
+    my ( $cmd_id, $args ) = @ARG;
+    $task_streams{$cmd_id} = $args->{'watcher'};
+    return TRUE;
+};
+$code{'thermal.idle.loadavg'} = sub { return 0.1 };
+$code{'task.handler.gpu_power_update'}
+    ->( { 'cmd' => qw| STRM |, 'args' => qw| open |, 'cmd_id' => 501 } );
+$code{'task.handler.gpu_temp_update'}
+    ->( { 'cmd' => qw| STRM |, 'args' => qw| open |, 'cmd_id' => 502 } );
+my $task_stream_sample = sub {
+    my ( $cmd_id, $payload ) = @ARG;
+    $task_streams{$cmd_id}->( { 'buf' => $payload } );
+};
+$task_stream_sample->( 501, "80.0\n" );
+$task_stream_sample->( 502, "40\n" );
+ok( $data{'task'}{'thermal'}{'idle'}{'state'} eq qw| active |
+        && !exists $data{'task'}{'thermal'}{'idle'}{'idle_since'},
+    'fresh power above the maximum is active'
+);
+$data{'task'}{'stats'}{'gpu'}{'power'}{'watts'} = 42;
+$task_now = 131;
+$task_stream_sample->( 502, "40\n" );
+ok( $data{'task'}{'thermal'}{'idle'}{'state'} eq qw| active |
+        && !exists $data{'task'}{'thermal'}{'idle'}{'idle_since'},
+    'power older than thirty seconds is active'
+);
+$task_now = 1000;
+$data{'task'}{'thermal'}{'gate'} = {};
+$task_stream_sample->( 501, "42\n" );
+$task_stream_sample->( 502, "40\n" );
+ok( $data{'task'}{'thermal'}{'idle'}{'state'} eq qw| idle |
+        && $data{'task'}{'thermal'}{'idle'}{'idle_since'} == 1000
+        && $data{'task'}{'thermal'}{'idle'}{'power_watts'} == 42,
+    'fresh power below the maximum records idle state and watts'
+);
+$task_now = 1600;
+$task_stream_sample->( 501, "42\n" );
+$task_stream_sample->( 502, "50\n" );
+$expected = 40 + ( 1 - exp( -600 / 1800 ) ) * 10;
+ok( abs( $data{'task'}{'thermal'}{'gate'}{'baseline'} - $expected )
+        < 0.000001,
+    'task callback learns upward outside the band after held idle'
+);
+$task_now = 2200;
+$task_stream_sample->( 501, "42\n" );
+$task_stream_sample->( 502, "30\n" );
+$expected += ( 1 - exp( -600 / 1800 ) ) * ( 30 - $expected );
+ok( abs( $data{'task'}{'thermal'}{'gate'}{'baseline'} - $expected )
+        < 0.000001,
+    'task callback also learns downward after held idle'
+);
+$code{'task.handler.gpu_power_update'}->(
+    { 'cmd' => qw| FALSE |, 'call_args' => { 'args' => qw| unavailable | } }
+);
+ok( !defined $data{'task'}{'stats'}{'gpu'}{'power'}{'updated_at'},
+    'failed power subscription invalidates freshness'
+);
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -657,8 +727,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,.,.,.,,,.,,,.,,,,,,,,,,,..,,.,.,,..,.,.,..,,...,..,,.,.,,,,,.,,,...,...,
-#BFHLIRZOR5CVJQLVMBRANJ4RQC5FG4EPRZQ4HWWQ4ZDCDQ6RZV6SZYGDLD4D2HPKTGSPOWYT7OZYK
-#\\\|O4FK7C4IEPIPNKHWRFF4RFCLV5NTEE6RWKDCYBB4COG63HBVQ6O \ / AMOS7 \ YOURUM ::
-#\[7]C3TH3FROCSJ6JGT3GQNSCIKWYTQ2DY74ZRVK2HYFIXXXNAUH5CAI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,,..,,,,,,..,,.,,..,,..,,,.,,..,,...,...,.,.,.,.,.,,,,..,,..,
+#2C52JN6DK2K64CKK6FWHGVF6OLOYEKUP7HYR24MM76WF2UN37HLXRY26HHHLOD5RYOAC3LNSTQ3WC
+#\\\|GGNPHTGIZ4K4FUBAHFN6PWY3SH6NW6IWB6GUW5XRDQFNMAQT7QF \ / AMOS7 \ YOURUM ::
+#\[7]NURP7IYVGLCOXTZB3IIJGIYT624R7VAMQAURQUF7NUKJALW2X2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
