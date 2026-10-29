@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = sourcecode.console.affected-zenki
+# descr = zenki whose reachable subroutines include the given subs or
+#         namespaces [ the reverse of subroutine-list ]. a thin front of
+#         bin/dev/dep-graph -affected-zenki [ the logic lives there, works
+#         with every zenka down ] -- todo 2SL, data/md/design/COMMIT-MANAGER.md
+
+my %C = %AMOS7::C;
+
+my @names = grep {length} split m|[,\s]+|, shift // '';
+
+if ( not @names ) {
+    say sprintf '%s%s: affected-zenki <sub | namespace> [ .. ]%s',
+        $C{'b'}, $C{'0'}, $C{'R'};
+    return;
+}
+
+my $work_tree = <sourcecode.path>->{'work_tree'};
+my $dep_graph = catfile( $work_tree, qw| bin dev dep-graph | );
+
+open( my $graph_fh, '-|', $dep_graph,
+    sprintf( '-affected-zenki=%s', join ',', @names ) )
+    or return <[base.logs]>->(
+    0,          ': cannot run %s [ %s ]',
+    $dep_graph, <[base.str.os_err]>
+    );
+
+say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
+while ( my $line = <$graph_fh> ) {
+    chomp $line;
+    printf "%s%s: %s%s%s\n", $C{'b'}, $C{'0'},
+        index( $line, qw| :: |, 0 ) == 0 ? $C{'0'} : $C{'T'}, $line, $C{'R'};
+}
+close $graph_fh
+    or <[base.logs]>->( 0, ': dep-graph -affected-zenki failed' );
+say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
+
+return;
+
+#,,.,,...,...,...,,,.,.,,,,..,,,,,,.,,,,,,...,..,,...,...,.,,,.,,,,,.,,,,,.,,,
+#6CBT52J63CCP72V6OAVB2CLABF6TXX7ZERYL5XM3YJSZX5ZKWOSZ4PPAWRB27ZJEBERS7O5HKQ52E
+#\\\|DQJTOASDTJ5RBUCTYJB4T3SVITGOBLNXUNTWCYZDV3WOG27UPSW \ / AMOS7 \ YOURUM ::
+#\[7]N577ANXYVBNHEBJHM5ZZU4BEFZ5FRG7YSFT3VPMYGMYPXFQSHQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
