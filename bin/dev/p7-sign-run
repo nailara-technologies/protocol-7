@@ -91,6 +91,27 @@ sub state_write {
     return;
 }
 
+## a visible desktop notice when the agent waits for the user : the agent ##
+## itself never talks to the network [ it holds the key ], so this runner ##
+## sends it. best effort -- a down notify zenka never blocks the signing  ##
+sub notify_approval_request {
+    my $count = scalar @paths;
+    my $shown = join q| |, @paths[ 0 .. ( $count > 3 ? 2 : $count - 1 ) ];
+    $shown .= sprintf q| [ +%d ]|, $count - 3 if $count > 3;
+    $shown =~ s|'||g;    ## the loves parser splits on single quotes ##
+    my $pid = fork();
+    return if not defined $pid or $pid;
+    open( STDOUT, '>', '/dev/null' );
+    open( STDERR, '>', '/dev/null' );
+    exec(
+        qw| p7c notify.loves |,
+        sprintf(
+            q|'signing request' '%d file%s : %s'|,
+            $count, $count == 1 ? '' : 's', $shown
+        )
+    ) or exit(1);
+}
+
 sub finish {
     state_write(@ARG);
     exit( $state->{'status'} eq qw| approved | ? 0 : 1 );
@@ -218,6 +239,7 @@ my $poll_run_log = sub {
                 qw| status | => qw| awaiting-approval |,
                 qw| run_id | => $id
             );
+            notify_approval_request();
         }
         if ( $kind eq qw| begin | and not defined $run_id ) {
             $run_id = $id;
@@ -298,8 +320,8 @@ finish(
     qw| report | => $report
 );
 
-#,,,.,,,.,,.,,,.,,,,,,,,.,,,.,..,,.,,,,..,.,.,..,,...,...,..,,,,.,,,.,,,.,.,.,
-#5RKZUIOBDTQ4KIYJLFNTA3IR6FVTYU5PFNK7E72ZAZMWV2C3CNZDD3633R25UNLRU7WKZ5KZVEAM6
-#\\\|LM4BLG7ZYDOJKMDBJKGIFLKB2NXOZXJDXBZ73V5TNHNZ6SWEZSW \ / AMOS7 \ YOURUM ::
-#\[7]BBE2RM5C25CVQJTI6QLGSBZTTCZNXXIMUSR7NMC6JAMVYKKQEQBI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,,.,,..,,,.,,,,,,,,.,...,,.,,..,,...,...,...,,.,,,,,,,,.,,.,,
+#DSTEPPU2HQGHESZEMXJJGZJ474NEVMEGMCZJOYWB3SPXCKXUC3OOZONSXJHDV5FEPIBNDQ7CFWLDK
+#\\\|D4MGEDF5TAYI6ASLQ56OUVRZ2ZPDGZW7Y7F7FXMEZMNAUMXDMRH \ / AMOS7 \ YOURUM ::
+#\[7]74GKKQHTT5UBRW6A6LYX4JHGRGMF2SYCCERFBWTZ5KYHTL7BIOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
