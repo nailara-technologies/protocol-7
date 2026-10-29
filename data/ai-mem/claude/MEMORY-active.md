@@ -220,7 +220,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [session-handover-installer-cloud](project-2026-10-17-session-handover-installer-cloud.md) — START HERE 2026-10-17 [ last 5c09e923b ] : deps line done [ frame, tracked, backend, p7-install, p7-deps restyled ], cloud dispatch working [ pty, launch clone, push path ] ; OPEN : root runner, debs + signed repo, legacy scripts, cloud tool polish
 - [clean-bare-host-install-azurum](project-2026-10-28-clean-bare-host-install-azurum.md) — previous [ superseded 2026-10-29 ] 2026-10-28 : azurum bare -> p7-install -> running service clean [ milestone, README updated ] ; boot-early deps, pm-src dirs in /var/protocol-7, styled installer output ; open : route-history verdict, discover peers [ wsl nat + owner root ], nodes orbital-p7ref spam
 - [session-handover-signing-agent-kimi-cli](project-2026-10-29-session-handover-signing-agent-kimi-cli.md) — previous [ superseded 2026-10-29 evening ] 2026-10-29 [ last 40c0fbc6f ] : HX4 follow-up first [ agent approval binds paths not contents ], kimi on the current cli with thinking per dispatch, sign pool 1:45, release v6.48.9 ; new conversation needed for the new mcp schema
-- [session-handover-commit-manager](project-2026-10-29-session-handover-commit-manager.md) — START HERE 2026-10-29 evening [ last 18d2a1363 ] : commits go p7_sign -> p7_commit_prepare -> p7_commit [ p7-sign-wait in the background for notifications ] ; sign agent done [ clickable prompt, ctrl-r ] ; next : kimi on stale redraft or RCM
+- [session-handover-commit-manager](project-2026-10-29-session-handover-commit-manager.md) — previous [ superseded 2026-10-29 night ] 2026-10-29 evening [ last 18d2a1363 ] : commits go p7_sign -> p7_commit_prepare -> p7_commit [ p7-sign-wait in the background for notifications ] ; sign agent done [ clickable prompt, ctrl-r ] ; next : kimi on stale redraft or RCM
 
 #,,,.,,..,.,,,,.,,,,.,,..,,..,,..,,,.,.,,,,,,,..,,...,..,,...,,,,,,..,.,,,...,
 #Q75SXNVAFUJ4BWGBGI7UZKJN2ORYB5YHIXOYNHE2Q5IUU7WKNLVRDJAMFX676LRP3A7KSVJSNAW2M
@@ -233,4 +233,12 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #YXMITNV2FGFI6DX4ORN7WB2YOGLAUMSOUMOGAFWDZYYIWUPVOHNOXTUUOJGLZ7QMNHE4CAVIKJHFM
 #\\\|WIMYIBRRHNWF6UK5GFXBE3TR3MBG676RH5DJSWLXAQI67DJIHEZ \ / AMOS7 \ YOURUM ::
 #\[7]FQISV2ZWV46SJAU2KPARJ5LB2XRTTBDYEJGVJTMOMHFPHGY3LCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [session-handover-jobsite-live-updates](project-2026-10-29-session-handover-jobsite-live-updates.md) — START HERE 2026-10-29 night : live updates done + confirmed, WY5 deployed [ check the next scan ], next Q2K, ZRK round 2 ; how-to-work list [ whitelist, version files, unsigned files, aborted sign runs ]
+- [jobsite-live-update-chain](project-2026-10-29-jobsite-live-update-chain.md) — LANDED 2026-10-29 : push_soon 3 s, web sync-soon nudge for ui deletes, SSE /jobs-events [ signal only ], browser timers [ events throttle, actions own timers ] ; httpd route option syntax, remote queue-depth + owed rescan fixes
+
+#,,..,..,,,,.,.,.,,.,,,..,...,,..,..,,.,.,...,..,,...,...,.,.,...,.,.,,,,,...,
+#2ELBAQCFKLHPQCVMRGCHC2COD7AWQP7XZTJT6E3UJIM6RPCMVH3MAJQZYDS7UY5YW6PI35XZTRNES
+#\\\|S64CEVJR2G5642NLT7FGQJGK5YVI5KD3TOY7ILA7LUJKBTYM6Q3 \ / AMOS7 \ YOURUM ::
+#\[7]7XMWUAAB2QVR4YGJ4EW2BKA64D7GAHL225BO4YWH6HB3PNH4QKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
