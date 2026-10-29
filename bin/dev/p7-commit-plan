@@ -1,0 +1,391 @@
+#!/usr/bin/perl
+use v5.32.0;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+###                   ###
+##  p7-commit-plan     ##
+###                   ###
+
+## the automatic requirement chain
+## [ todo ZA2 slice 3,  data/md/design/COMMIT-MANAGER.md ] -- which
+## regeneration steps a change needs, derived from its changed files :
+##
+##   src/ module added \ deleted \ renamed   -> update-sub-list + dep-graph
+##   a src/ file's <[call]> set changed      -> dep-graph [ the .asc \ .dot
+##                                              \ .txz doc files ]
+##   those module names                      -> gen-sub-whitelist per
+##                                              affected zenka
+##   a changed data/lib-path/pm/**/*.pm      -> amos-versions [ reported only :
+##                                              update-signatures runs it ]
+##   any changed perl source                 -> format-code   [ reported only :
+##                                              the :agent: path runs it ]
+##
+## p7-commit-plan [ -apply ] [ -json ] [ <path> .. ]
+##
+## the default input is the work tree's git status
+## [ modified, added, deleted, staged or not ] ; with paths, only those.
+## without -apply the plan is printed and nothing changes ; with -apply the
+## regeneration steps RUN and the files they rewrote are reported
+## [ those join the signing request : bin/dev/p7-sign-run -plan ]
+
+use FindBin;
+use Cwd      ();
+use JSON::PP ();
+
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+my $root_path = Cwd::abs_path("$FindBin::Bin/../..");
+my $json      = JSON::PP->new->canonical->pretty;
+
+my @doc_files = (
+    qw| data/md/documentation/module-dependency-graph.asc |,
+    qw| data/md/documentation/module-dependency-graph.dot |,
+    qw| data/md/documentation/module-dependency-graph.txz |,
+);
+
+##[ pure parts -- no git, no side effects : the test-script loads these ]#####
+
+sub call_refs {    ## sorted unique <[module.name]> refs in a source text ##
+    my $text = shift // '';
+    my %seen;
+    $seen{$1} = TRUE while $text =~ m|<\[([a-zA-Z0-9._-]+)\]>|g;
+    return sort keys %seen;
+}
+
+sub call_set_changed {    ## the name SET differs, not the text ##
+    my ( $before, $after ) = @ARG;
+    my @before_refs = call_refs($before);
+    my @after_refs  = call_refs($after);
+    return "@before_refs" ne "@after_refs";
+}
+
+sub strip_footer {    ## content without the trailing signature footer ##
+    my $text  = shift // '';
+    my @lines = split m|\n|, $text, -1;
+    pop @lines
+        while @lines
+        and ( not length $lines[-1] or $lines[-1] =~ m|^#| );
+    return join "\n", @lines;
+}
+
+## the footer never counts : generators write unsigned ##
+sub same_content {
+    my ( $before, $after ) = @ARG;
+    return strip_footer($before) eq strip_footer($after);
+}
+
+sub is_perl_path {    ## by suffix or location ; bin/ files need a shebang ##
+    my $path = shift // '';
+    return TRUE if $path =~ m{\.p[ml]$};
+    return TRUE if $path =~ m{^src/};
+    return FALSE;
+}
+
+sub classify_status {    ## porcelain -v1 -z --no-renames -> path => A M D ##
+    my %status;
+    foreach my $entry (@ARG) {
+        next if length($entry) < 4;
+        my $code = substr $entry, 0, 2;
+        my $path = substr $entry, 3;
+        my $state
+            = $code eq '??'    ? qw| A |
+            : $code =~ m|A|    ? qw| A |
+            : $code =~ m|D|    ? qw| D |
+            : $code =~ m|[MT]| ? qw| M |
+            :                    next;
+        $status{$path} = $state;
+    }
+    return %status;
+}
+
+sub build_steps {    ## change hash + call-diff names + perl files + zenki ##
+    my ( $status, $call_diff, $perl_files, $affected ) = @ARG;
+
+    my ( @sub_list_names, @graph_names, @pm_files );
+
+    foreach my $path ( sort keys %{$status} ) {
+        my $state = $status->{$path};
+        push @pm_files, $path if $path =~ m|^data/lib-path/pm/.+\.pm$|;
+        next if $path !~ m|^src/(.+)$|;
+        my $name = $1;    ## copy before the state match clobbers $1 ##
+        if ( $state =~ m|^[AD]$| ) {
+            push @sub_list_names, $name;    ## module added \ deleted [ a   ##
+            push @graph_names,    $name;    ## rename shows as both with    ##
+        }    ## --no-renames ]               ##
+        push @graph_names, $name
+            if $state eq qw| M | and $call_diff->{$name};
+    }
+
+    my @steps;
+
+    push @steps,
+        {
+        qw| step |   => qw| format-code |,
+        qw| reason | => 'changed perl source [ reported '
+            . 'only : the :agent: path runs it ]',
+        qw| files | => [ @{$perl_files} ],
+        }
+        if @{$perl_files};
+
+    push @steps,
+        {
+        qw| step |   => qw| amos-versions |,
+        qw| reason | => 'changed data/lib-path/pm module [ reported only : '
+            . 'update-signatures runs update-amos-versions ]',
+        qw| files | => [@pm_files],
+        }
+        if @pm_files;
+
+    if (@sub_list_names) {
+        push @steps,
+            {
+            qw| step |   => qw| update-sub-list |,
+            qw| reason | => 'src/ module added \\ deleted : '
+                . join( ' ', @sub_list_names ),
+            qw| files | => [qw| src/base.list.subroutines |],
+            };
+    }
+
+    if (@graph_names) {
+        my $why
+            = @sub_list_names
+            ? 'module added \\ deleted : '
+            : '<[call]> references changed : ';
+        push @steps,
+            {
+            qw| step |   => qw| dep-graph |,
+            qw| reason | => $why . join( ' ', @graph_names ),
+            qw| files |  => [@doc_files],
+            };
+    }
+
+    if ( @{$affected} ) {
+        push @steps,
+            {
+            qw| step |   => qw| gen-sub-whitelist |,
+            qw| reason | => 'affected zenki [ dep-graph -affected-zenki ] : '
+                . join( ' ', @{$affected} ),
+            qw| files | =>
+                [ map {"cfg/zenki/$_/subroutines.load-early"} @{$affected} ],
+            };
+    }
+
+    return @steps;
+}
+
+##[ git + fs helpers ]########################################################
+
+sub fail { say STDERR "p7-commit-plan : $ARG[0]"; exit 1 }
+
+sub git_out {    ## colors off, the shell's git config forces them on ##
+    open( my $fh, '-|', qw| git -c color.ui=false |, @ARG ) or return '';
+    local $INPUT_RECORD_SEPARATOR;
+    my $out = <$fh> // '';
+    close $fh;
+    return $out;
+}
+
+sub slurp {
+    my $path = shift;
+    open( my $fh, '<:raw', $path ) or return undef;
+    local $INPUT_RECORD_SEPARATOR;
+    my $content = <$fh>;
+    close $fh;
+    return $content;
+}
+
+sub restore {    ## byte-exact put-back of a snapshot ##
+    my ( $path, $content ) = @ARG;
+    open( my $fh, '>:raw', $path ) or fail("$path : $OS_ERROR");
+    print {$fh} $content;
+    close $fh;
+    return;
+}
+
+##[ the change set ]##########################################################
+
+sub path_in_head {    ## tracked at HEAD, whatever the work tree shows ##
+    my $path = shift;
+    qx| git -c color.ui=false cat-file -e HEAD:$path 2>/dev/null |;
+    return $CHILD_ERROR == 0;
+}
+
+sub changed_files {    ## explicit paths or the work tree's git status ##
+    my @paths = @ARG;
+    my %status;
+    if (@paths) {
+        foreach my $path (@paths) {
+            $status{$path}
+                = not path_in_head($path) ? qw| A |
+                : not -e $path            ? qw| D |
+                :                           qw| M |;
+        }
+    } else {
+        my $porcelain
+            = git_out(qw| status --porcelain=v1 -z -uall --no-renames |);
+        %status = classify_status( split m|\0|, $porcelain );
+    }
+    return %status;
+}
+
+sub perl_files {    ## is_perl_path + bin/ files with a perl shebang ##
+    my $status = shift;
+    my @perl   = grep { is_perl_path($_) } sort keys %{$status};
+    foreach my $path (
+        grep { not is_perl_path($_) }
+        sort keys %{$status}
+    ) {
+        next if $path !~ m|^bin/|;
+        my $first_line;
+        if ( $status->{$path} eq qw| D | or not -f $path ) {
+            my $head = git_out( qw| show |, "HEAD:$path" );
+            ( $first_line = $head ) =~ s|\n.*||s;
+        } else {
+            open( my $fh, '<:raw', $path ) or next;
+            $first_line = <$fh> // '';
+            close $fh;
+        }
+        push @perl, $path if $first_line =~ m|^\#!.*\bperl\b|;
+    }
+    return @perl;
+}
+
+sub call_diff_names {    ## modified src/ files whose <[call]> set moved ##
+    my $status = shift;
+    my %diff;
+    foreach my $path ( sort keys %{$status} ) {
+        next if $path !~ m|^src/| or $status->{$path} ne qw| M |;
+        my $before = git_out( qw| show |, "HEAD:$path" );
+        my $after  = slurp($path) // '';
+        $diff{ $path =~ s|^src/||r } = TRUE
+            if call_set_changed( $before, $after );
+    }
+    return %diff;
+}
+
+sub affected_zenki {    ## the read-only reverse lookup, ~45 s for all ##
+    my @names = @ARG;
+    return [] if not @names;
+    my $list = join ',', @names;
+    my $out  = qx| bin/dev/dep-graph -affected-zenki=$list 2>&1 |;
+    fail("dep-graph -affected-zenki failed :\n$out") if $CHILD_ERROR != 0;
+    return [
+        map { m|^(\S+)| ? ($1) : () }
+        grep { not m|^::| } split m|\n|, $out
+    ];
+}
+
+##[ -apply : run the regeneration steps, report what they rewrote ]###########
+
+sub apply_steps {
+    my ( $steps, $affected ) = @ARG;
+    my %wanted = map { $_->{'step'} => TRUE } @{$steps};
+    my @rewritten;
+
+    if ( $wanted{qw| update-sub-list |} ) {
+        my $target  = qw| src/base.list.subroutines |;
+        my $before  = slurp($target);
+        my $out     = qx| bin/Protocol-7 sourcecode update-sub-list 2>&1 |;
+        my $written = slurp($target) // '';
+        fail("update-sub-list failed :\n$out") if $CHILD_ERROR != 0;
+        if ( defined $before and same_content( $before, $written ) ) {
+            restore( $target, $before );    ## keep the signed original ##
+        } else {
+            push @rewritten, $target;
+        }
+    }
+
+    if ( $wanted{qw| dep-graph |} ) {
+        my %before = map { $_ => slurp($_) } @doc_files;
+        my $out    = qx| bin/dev/dep-graph -text -dot 2>&1 |;
+        fail("dep-graph failed :\n$out") if $CHILD_ERROR != 0;
+        foreach my $file (@doc_files) {
+            my $after = slurp($file);
+            next
+                if defined $before{$file}
+                and defined $after
+                and $before{$file} eq $after;
+            push @rewritten, $file;
+        }
+    }
+
+    if ( $wanted{qw| gen-sub-whitelist |} ) {
+        foreach my $zenka ( @{$affected} ) {
+            my $target = "cfg/zenki/$zenka/subroutines.load-early";
+            my $before = slurp($target);
+            qx| bin/dev/gen-sub-whitelist $zenka 2>&1 |;
+            fail("gen-sub-whitelist $zenka failed")
+                if $CHILD_ERROR != 0;
+            my $written = slurp($target) // '';
+            if ( defined $before and same_content( $before, $written ) ) {
+                restore( $target, $before );    ## untouched, byte-exact ##
+            } else {
+                push @rewritten, $target;
+            }
+        }
+    }
+
+    return @rewritten;
+}
+
+##[ output ]##################################################################
+
+sub print_human {
+    my ( $status, $steps, $rewritten, $apply ) = @ARG;
+    my $n_files = scalar keys %{$status};
+    say sprintf ':: p7-commit-plan : %d changed file%s -> %d step%s%s',
+        $n_files,
+        $n_files == 1 ? '' : 's',
+        scalar @{$steps}, @{$steps} == 1 ? '' : 's',
+        $apply ? ' [ apply ]' : '';
+    foreach my $step ( @{$steps} ) {
+        say sprintf ':. %s',          $step->{'step'};
+        say sprintf ':.   why  : %s', $step->{'reason'};
+        say sprintf ':.   file : %s', $ARG for @{ $step->{'files'} };
+    }
+    if ($apply) {
+        say sprintf ':: rewritten : %d file%s',
+            scalar @{$rewritten}, @{$rewritten} == 1 ? '' : 's';
+        say sprintf '::   %s', $ARG for @{$rewritten};
+    }
+    return;
+}
+
+##[ main -- not loaded with the pure parts : test-script runs these directly ]#
+
+sub main {
+    chdir $root_path or die "p7-commit-plan : chdir $root_path : $OS_ERROR\n";
+
+    my ( $apply, $json_out, @paths );
+    while ( defined( my $arg = shift @ARGV ) ) {
+        if    ( $arg eq qw| -apply | ) { $apply = TRUE }
+        elsif ( $arg eq qw| -json | )  { $json_out = TRUE }
+        else                           { push @paths, $arg }
+    }
+
+    my %status    = changed_files(@paths);
+    my @perl      = perl_files( \%status );
+    my %call_diff = call_diff_names( \%status );
+    my $affected  = affected_zenki( sort keys %call_diff );
+    my @steps     = build_steps( \%status, \%call_diff, \@perl, $affected );
+    my @rewritten = $apply ? apply_steps( \@steps, $affected ) : ();
+
+    my $plan = { qw| steps | => \@steps, qw| rewritten | => \@rewritten };
+    if   ($json_out) { say $json->encode($plan) }
+    else             { print_human( \%status, \@steps, \@rewritten, $apply ) }
+    return 0;
+}
+
+main() if not caller;
+
+1;
+
+#,,.,,,,,,,.,,,..,.,,,.,,,...,,..,,,.,.,.,..,,..,,...,..,,,.,,.,,,,,,,,.,,,,,,
+#A45GSYTLA3X3RO3O7JKJ5BJ5MAGLZ4IMFI4HM7DPVJVF3EFS2TMIFLHRXPVYJCMSR5U5W7U44UNBS
+#\\\|I54PEX4HHVYGSHGV3H7Y3X2REHSLWOA4AKQUR5Y7DT4EWPSGHTM \ / AMOS7 \ YOURUM ::
+#\[7]QFD3ZH76FF3USQWWS5YEFDMRIGCDMOW5MAYB4E5PSPXDSRXJJGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,7 @@ use warnings;
 ## starting -> versioning -> preparing -> awaiting-approval -> signing ->
 ## approved | denied | aborted | failed
 ##
-## p7-sign-run -state <file.json> [ -version | -op <op> ] <path> [ <path> .. ]
+## p7-sign-run -state <file.json> [ -version | -op <op> ] [ -plan ] <path> ..
 ##
 ## -version : bump the source version first [ bin/dev/update-version ] ; the
 ## files it rewrites join the request [ their footers need the new sign ]
@@ -31,6 +31,9 @@ use warnings;
 ## [ COMMIT-MANAGER.md ] -- new : update-version, amend : update-version
 ## amend, reset : update-version reset, amend-message : none. -version = -op
 ## new
+## -plan : run bin/dev/p7-commit-plan -apply -json on the paths first
+## [ todo ZA2 slice 3, the automatic requirement chain ] ; the files its steps
+## rewrite join the request, like the version files
 
 use FindBin;
 use Cwd         ();
@@ -43,14 +46,15 @@ use constant FALSE => 0;    ##  false  ##
 my $root_path = Cwd::abs_path("$FindBin::Bin/../..");
 chdir $root_path or die "p7-sign-run : chdir $root_path : $OS_ERROR\n";
 
-my ( $state_path, $bump_version, $op, @paths );
+my ( $state_path, $bump_version, $op, $run_plan, @paths );
 while ( defined( my $arg = shift @ARGV ) ) {
-    if    ( $arg eq qw| -state | )   { $state_path = shift @ARGV }
+    if    ( $arg eq qw| -state | )   { $state_path   = shift @ARGV }
     elsif ( $arg eq qw| -version | ) { $bump_version = TRUE }
-    elsif ( $arg eq qw| -op | )      { $op = shift @ARGV // '' }
+    elsif ( $arg eq qw| -op | )      { $op           = shift @ARGV // '' }
+    elsif ( $arg eq qw| -plan | )    { $run_plan     = TRUE }
     else                             { push @paths, $arg }
 }
-die "p7-sign-run -state <file.json> [ -version ] <path> ..\n"
+die "p7-sign-run -state <file.json> [ -version ] [ -plan ] <path> ..\n"
     if not defined $state_path or not @paths;
 
 my %version_mode = (
@@ -114,6 +118,50 @@ sub git_changed {    ## modified tracked files, staged or not ##
 }
 
 state_write();
+
+##[ 0 : the automatic requirement plan ]######################################
+
+## p7-commit-plan -apply runs the regeneration steps the change needs
+## [ the sub-list, the dep-graph doc, the zenka whitelists ] BEFORE
+## update-version : its change classification reads the original work tree.
+## the files the steps rewrite need the new sign, so they join the request
+if ($run_plan) {
+    state_write( qw| status | => qw| planning | );
+    ## list form : the paths never meet a shell ; stdout only -- stderr ##
+    ## would break the JSON [ the job's own .out file collects it ]     ##
+    my $plan_out = do {
+        open( my $plan_fh, '-|', qw| bin/dev/p7-commit-plan -apply -json |,
+            @paths )
+            or finish(
+            qw| status | => qw| failed |,
+            qw| report | => "p7-commit-plan : $OS_ERROR"
+            );
+        local $INPUT_RECORD_SEPARATOR;
+        my $out = <$plan_fh> // '';
+        close $plan_fh;
+        $out;
+    };
+    finish(
+        qw| status | => qw| failed |,
+        qw| report | => "p7-commit-plan failed :\n$plan_out"
+    ) if $CHILD_ERROR != 0;
+    my $plan = eval { $json->decode($plan_out) };
+    if ( ref $plan ne 'HASH' or ref $plan->{'steps'} ne 'ARRAY' ) {
+        finish(
+            qw| status | => qw| failed |,
+            qw| report | => "p7-commit-plan gave no plan :\n$plan_out"
+        );
+    }
+    my %requested = map { $ARG => TRUE } @paths;
+    my @plan_files
+        = grep { not $requested{$ARG} } @{ $plan->{'rewritten'} // [] };
+    push @paths, @plan_files;
+    state_write(
+        qw| plan |       => $plan,
+        qw| plan_files | => \@plan_files,
+        qw| paths |      => [@paths],
+    );
+}
 
 ##[ 1 : source version ]######################################################
 
@@ -250,8 +298,8 @@ finish(
     qw| report | => $report
 );
 
-#,,,,,.,.,...,...,,,.,.,.,...,..,,,..,.,,,,.,,..,,...,...,..,,.,.,,..,.,,,...,
-#V7NJUMSHIU2MNWUPDZYSHZEJGNJVB5LMLHPAPJEVW3UJXPCH2K3AB3NGQZBHFGSQZ2VQYXKWO4X5A
-#\\\|C7S3OVLBNXS5KEREN5P7PF5SNONMSDEYJT7DTZUYIHHFGDY2FGG \ / AMOS7 \ YOURUM ::
-#\[7]DBSLBDATIHX756HJH4JUO3AEHQUEBHTJ5PY73GQAL7PQN6AE26BY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,.,,,,,,,,.,,,.,..,,.,,,,..,.,.,..,,...,...,..,,,,.,,,.,,,.,.,.,
+#5RKZUIOBDTQ4KIYJLFNTA3IR6FVTYU5PFNK7E72ZAZMWV2C3CNZDD3633R25UNLRU7WKZ5KZVEAM6
+#\\\|LM4BLG7ZYDOJKMDBJKGIFLKB2NXOZXJDXBZ73V5TNHNZ6SWEZSW \ / AMOS7 \ YOURUM ::
+#\[7]BBE2RM5C25CVQJTI6QLGSBZTTCZNXXIMUSR7NMC6JAMVYKKQEQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
