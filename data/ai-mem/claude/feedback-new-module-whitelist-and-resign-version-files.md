@@ -29,11 +29,13 @@ without `version: true` [ no second bump ].
 
 **3. never pass an unsigned file to p7_sign** [ 2026-10-29 ] : data/web-root html went into a sign run [ d0ff178db ] and got a signature footer after </html>. stage unsigned files yourself ; to undo : `bin/Protocol-7 sourcecode strip-signature-footer <file>`. a commit holding ONLY unsigned files still needs a version bump : a sign run on cfg/protocol-7.src-ver with version true
 
+**4. an aborted sign run leaves files signed** [ 2026-10-29 ] : the next run reports them as needing no action AND does not stage them -- 8cfac2a4b shipped without 3 of its files. check `git show --stat HEAD` before every push ; stage such files yourself. also : pre-commit refuses a `# descr` over 55 chars, only a NEW file shows it
+
 related : [[use-format-code-not-perl-c]],
 [[reload-success-doesnt-guarantee-new-file-loaded]]
 
-#,,.,,,..,.,,,...,.,.,.,,,,..,,..,,,.,.,.,..,,..,,...,...,.,,,,.,,,,.,,,,,...,
-#YKP4QYT6ETAJG2JHIKH3VNMAFOWKDG2ZG36P2RXYN3GE4MVO3OIIVJ7IPKJB3MRNJH7RVNCRCA2CU
-#\\\|FI34MULKN3LSWIMNJ7J2JIT4GZZLR553SAPPGBQW5LKIRZGCLZD \ / AMOS7 \ YOURUM ::
-#\[7]X346POXZXFSYVAFGSFOMIPRKMS2ACDNL265KYYGX3GBIPCZS7IDY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,..,,,.,,,..,,,.,.,.,...,.,.,.,,,..,,...,...,,..,.,,,,.,,,,,,,..,
+#AIAK3HNAG7HF3QPU7XZC3XYAOHPU4C5PCW4JCWBCTIPBWJPKOPSETAX3BZ2GUBVHLDJL4TNON5YNM
+#\\\|6RSHE2JPO3KGY5E3B73X7R7WZELU2AWG526PODJVE3PFYQJJZZR \ / AMOS7 \ YOURUM ::
+#\[7]EGKMW7VQXMX2PDVQ4DGADFD4LLNBEMKV2H7BONP2LVDQJ5TJNCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
