@@ -132,13 +132,15 @@ use constant FALSE => 0;    ##  false  ##
 use constant WHEEL_WINDOW    => 0.18;
 use constant WHEEL_FAST      => 0.07;
 use constant WHEEL_MIN_TICKS => 5;
+## seconds : one click, not a double ##
+use constant CLICK_BOUNCE    => 0.25;
 use constant WHEEL_MAX_PAGES => 2;
 
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.WI4RC3A |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.LYHOEGI |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -1035,7 +1037,10 @@ sub edit_text {
         };
         return;
     };
-    my ( $keys_bar_started, $keys_bar_events ) = ( 0, 0 );
+    my ( $keys_bar_started, $keys_bar_events ) = ( 0,   0 );
+    my ( $last_click_sig,   $last_click_at )   = ( q||, 0 );
+    ## the drawn footer title, the mouse f1 span ##
+    my $bar_title_width = 6;
 
     ## mouse wheel tracking : on unless asked off                       ##
     ## [ 'mouse => 0' or the P7_EDITOR_NO_MOUSE escape hatch ]. no      ##
@@ -1535,10 +1540,13 @@ sub edit_text {
 
                 ## footer separator : hidden mode keeps the f1 hint here ##
                 my $bar_title
-                    = $keys_bar_mode eq qw| hidden | ? ' F1 keys '
+                    = $keys_bar_mode eq qw| hidden | ? ' F1=Keys '
                     : (     $keys_bar_mode eq qw| hybrid |
                         and $keys_bar_started ) ? ' status '
-                    : ' keys ';
+                    : $keys_bar_mode eq qw| hybrid | ? ' hybrid '
+                    :                                  ' keys ';
+                ## the mouse f1 span ##
+                $bar_title_width = length $bar_title;
                 say frame_border_line(
                     {   width    => $cols,
                         reset    => $C->{R},
@@ -1600,10 +1608,13 @@ sub edit_text {
                 unshift @keys_bar_cells, [ '', " $hint", '' ] if length $hint;
                 unshift @keys_bar_cells, [ '', " $last_status", '' ]
                     if length $last_status;
-                if ( $keys_bar_mode eq qw| hidden | ) {
-                    @keys_bar_cells = ();
-                } elsif ( $keys_bar_mode eq qw| hybrid |
-                    and $keys_bar_started ) {
+                ## hidden : the status line from the start                 ##
+                ## [ an empty row says nothing ] ; hybrid : the same after ##
+                ## the first key                                           ##
+                if ($keys_bar_mode eq qw| hidden |
+                    or (    $keys_bar_mode eq qw| hybrid |
+                        and $keys_bar_started )
+                ) {
                     my $bar_status = (
                         length $last_status ? $last_status
                         : ( $dirty and $content_sum->() ne $saved_sum )
@@ -1614,8 +1625,11 @@ sub edit_text {
                         . ( $cur_line + 1 )
                         . ' · col '
                         . ( $cur_col + 1 );
-                    $bar_status = ':: F1 keys ::'
-                        if $keys_bar_events % 17 == 0;
+                    ## the f1 hint stays at the end                        ##
+                    ## [ a periodic swap read as a state change ] ; hidden ##
+                    ## has it in its title                                 ##
+                    $bar_status .= ' · F1=Keys'
+                        if $keys_bar_mode eq qw| hybrid |;
                     @keys_bar_cells = ( [ '', $bar_status, '' ] );
                 }
                 $keys_bar_count = scalar @keys_bar_cells;
@@ -1842,6 +1856,20 @@ sub edit_text {
                 last if $aborted;
                 next;    ## resized : redraw with new dimensions ##
             }
+            ## inert events [ mouse releases ] are no key press : they must ##
+            ## not start the hybrid status or tick the f1 hint counter      ##
+            next if not ref $key and not length $key;
+            ## some mice bounce : a second press on the same cell within   ##
+            ## CLICK_BOUNCE is the same click [ a toggle would run twice ] ##
+            if ( ref $key eq 'HASH' and defined $key->{'click'} ) {
+                my $click_sig = join ':', $key->{'click'}->@*;
+                my $click_now = time;
+                next
+                    if $click_sig eq $last_click_sig
+                    and $click_now - $last_click_at < CLICK_BOUNCE;
+                ( $last_click_sig, $last_click_at )
+                    = ( $click_sig, $click_now );
+            }
 
             ## an action click becomes its key before dispatch : editing, save
             ## handling and the later usage counters share this one code path
@@ -1856,8 +1884,12 @@ sub edit_text {
                         last;
                     }
                 }
+                ## the footer title [ '::. keys .::' ] is the mouse f1 ##
+                if ( ref $key eq 'HASH' and $click_y == $rows - 2 ) {
+                    $key = "\eOP" if $click_x <= $bar_title_width + 6;
+                }
                 ## a click on the status line or its border                ##
-                ## [ ' status ' \ ' F1 keys ' ] brings the key labels back ##
+                ## [ ' status ' \ ' F1=Keys ' ] brings the key labels back ##
                 $key = qw| show-keys |
                     if ref $key eq 'HASH'
                     and $click_y >= $rows - 2
@@ -2312,8 +2344,8 @@ sub edit_text {
 
 1;
 
-#,,.,,...,...,,,,,.,,,...,..,,...,,..,..,,...,..,,...,...,.,.,,.,,.,.,.,,,,.,,
-#N6LKU2GPN5TYWYT37F27TMUH4J7BT2X5ZSESJJM5WCAD35BPONL7HU7N5PGJWDCLOHZQRR4S55EVI
-#\\\|ODP4GFLGBXZ53VLULXDG4NZMVSHF7XYRBDOM2GUPZSI4RFLE2RO \ / AMOS7 \ YOURUM ::
-#\[7]SAA4SSKHBMKTNMPPQNFXN6HISK2WRA47ZTXCPVMLRMZBW7PDV6DI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,..,,,,.,,,,,,..,...,.,.,,,.,..,,..,,...,.,.,,.,,..,,,.,,.,.,,,.,
+#CZV3STQMQNRWK6VV7XSZHM4IS2F6KQBOLJ3FDI5VQ2WGQNWRCIVI4CXMZYY2X3GNKFP6PUM6HZKD6
+#\\\|MNCJCDF25LI6ERAMQVHNJYAEM7NVSQMZCE64NGS4HGHOK6YIQE7 \ / AMOS7 \ YOURUM ::
+#\[7]5B4SAQWZ6BK3WNC4REP44IWQR36EIFPTZZWGFIZB2RJS26B7IUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
