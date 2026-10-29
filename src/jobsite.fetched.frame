@@ -6,7 +6,9 @@
 # param = one JSON line : {"name":"<outbox record>","job":<job payload>}
 # notes = the job runs through the exact code path site-yaml's route-send
 #         used to deliver [ jobsite.cmd.job-upsert with the json payload as
-#         args ] -- a duplicate delivery is harmless, upsert merges by id
+#         args ] -- a duplicate delivery is harmless, upsert merges by id ;
+#         the frame may carry a "cat" category tag [ site-yaml.outbox.write ]
+#         which travels to the upsert as a param, never into the job record
 
 my $line = shift // '';
 return if not length $line;
@@ -23,6 +25,7 @@ if ( $@ or ref $frame ne qw| HASH | ) {
 
 my $job  = $frame->{'job'};
 my $name = $frame->{'name'} // '';
+my $cat  = $frame->{'cat'}  // '';
 return if ref $job ne qw| HASH |;
 
 my $payload = eval { JSON::encode_json($job) };
@@ -34,8 +37,14 @@ if ( not defined $payload or $@ ) {
     return;
 }
 
-## same delivery shape as site-yaml's route-send [ call_args args ] ##
-my $upsert = $code{'jobsite.cmd.job-upsert'}->( { 'args' => $payload } );
+## same delivery shape as site-yaml's route-send [ param job + cat ] ##
+my $upsert = $code{'jobsite.cmd.job-upsert'}->(
+    {   'param' => {
+            'job' => $payload,
+            'cat' => $cat,
+        }
+    }
+);
 
 ## confirm only a stored job : on a refusal the record stays in the remote ##
 ## outbox and comes again with the next subscription                       ##
@@ -60,8 +69,8 @@ if ( length $name and $name =~ m|^[A-Za-z0-9._-]+$| ) {
 
 return;
 
-#,,..,,..,..,,..,,.,.,,,.,,,,,...,,,,,,,.,,..,.,.,...,...,,.,,,,,,.,.,,,.,,,,,
-#O2DSCZ3GVAS5M74GPSJD4QCYHI6CGX47RXBYYK5HPIQFEIMLBJVWFVVW3XTYSZLUTA7ZQ5S6EICYM
-#\\\|XTY7N4HM2YUR4A7MMRKUQ25OVVWMA6F2HV65LHBMJE3BCMNGG4G \ / AMOS7 \ YOURUM ::
-#\[7]OE2FI4HY7LNZHU6IWFW5LYV7YEQFFOY7BHY7CF6JWOAJIS3P2GBY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,.,,,,..,,,.,,..,.,,,,,.,.,.,.,.,...,...,,.,,.,.,,,,,.,,,,.,,
+#33Y5HVNGQMLKJHRHXFPODLY4D3W55ASOJMRDRZJUFXVCMT2LA6D4K4ZU7T3TYI4JDQIJSNGVRTLJU
+#\\\|JLISMCJILWFEIMULMTRCZSOGIPGUCVRRIXBBZLMANML5D3YRNUH \ / AMOS7 \ YOURUM ::
+#\[7]CKT6TLSFDRQVCTSFD7EH3WISJD26ICH5XT44PDFMJAESZITUAABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

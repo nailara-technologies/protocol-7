@@ -33,13 +33,30 @@ if ( defined <jobsite.queue_poll_timer> ) {
 }
 
 <[base.logs]>->( 1, ':. site-yaml queue empty, claiming strays..' );
+
+## per-category fetch tally [ WY5 ] : queued from the import replies, new \ ##
+## known from the job-upsert results -- the import summary alone counted    ##
+## queued links as "new", which a full=0 rescan disproved                   ##
+my $queued_cat = <jobsite.fetch_queued_cat> // {};
+my $upsert_st  = <jobsite.upsert_stats>     // {};
+for my $category ( sort keys %{$queued_cat} ) {
+    <[base.logs]>->(
+        1,
+        ':: %s :: queued %d · new %d · known %d',
+        $category,
+        $queued_cat->{$category},
+        $upsert_st->{$category}{'new'}   // 0,
+        $upsert_st->{$category}{'known'} // 0
+    );
+}
+
 <[jobsite.stray.check]>;
 <[jobsite.dispatch.assessments]>;
 
 return;
 
-#,,..,,,.,,.,,,,.,...,.,,,,,,,,.,,..,,...,.,.,.,.,...,.,.,.,,,.,.,.,,,.,.,...,
-#KOZYFM34C2XRN3GVO36LI4MMIBVCHUBGA2BJQOXICLLMUH2EJRGIS6QVKU4PG5AP5TQFZZHJ6HJEI
-#\\\|DKHOHIR7RYAXGPO4L5AVZ3RH7SRBPJFG6PFQJMQU76D43RN3PDC \ / AMOS7 \ YOURUM ::
-#\[7]SJVACSJSPHS5FBWEBNZIULYW6LY4GAXSEI2E2UIFENEG6QH7E2DY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,.,.,,,,,.,,,,..,,.,,.,,,...,.,.,...,...,..,,,,.,,,,,,,,,,.,,
+#VJNDGAGUYI7DBJNKT5JCOUBTOAJV3BJXRKYKWBYQEHUGRZAEWSE5ZXOVYK3IE54FWJQKQWQZBNK44
+#\\\|6O7EGLGU7L36MAWISUN4JOQR3ZPZDWOGSV5XM2NK5XX7Z2F26KW \ / AMOS7 \ YOURUM ::
+#\[7]QHYKVMLG3E4Y43XIW7PSCZDJTYQ7B6KDVOBKIXHOCYRBXPNJR4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -100,8 +100,21 @@ if ( open my $bfh, '>', $block_file ) {
 ## whitespace, a space-joined list kept only its first id [ todo WY5 ]  ##
 my $skip_ids = join( q|,|, sort @skip_source_ids );
 
+## remote hosts cannot read our block_file path : the checksum list travels ##
+## inline as block_data, comma-joined                                       ##
+## [ the lines carry no whitespace by their own charset ] -- same channel \ ##
+## join as the skip list                                                    ##
+my $block_data = '';
+if ( open my $bfh, '<', $block_file ) {
+    my @lines = grep {length} map { chomp; $_ } <$bfh>;
+    close $bfh;
+    $block_data = join( q|,|, @lines );
+}
+
 ## reset per-cycle counters before sending imports
 <jobsite.fetch_total_queued> = 0;
+<jobsite.fetch_queued_cat>   = {};
+<jobsite.upsert_stats>       = {};
 <jobsite.fetch_saw_queue>    = FALSE;
 
 ## cancel any leftover poll timer from a previous scan ##
@@ -118,18 +131,18 @@ my $fetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
     if $fetch_zenka ne qw| site-yaml |;
 
 for my $cat ( sort keys %cat_urls ) {
-    my $args_str = $fetch_zenka ne qw| site-yaml |
-        ? sprintf 'url=%s handler=:hold: skip=%s full=%d',
-        $cat_urls{$cat}, $skip_ids,
-        ( $full_mode ? 1 : 0 )
-        ## no block_file : the remote host cannot read our local paths ; ##
-        ## the checksum list may travel inline later                     ##
-        : sprintf 'url=%s handler=%s skip=%s block_file=%s full=%d',
+    my $args_str
+        = $fetch_zenka ne qw| site-yaml |
+        ? sprintf 'url=%s handler=:hold: skip=%s '
+        . 'block_data=%s full=%d cat=%s',
+        $cat_urls{$cat}, $skip_ids, $block_data, ( $full_mode ? 1 : 0 ), $cat
+        : sprintf 'url=%s handler=%s skip=%s block_file=%s full=%d cat=%s',
         $cat_urls{$cat},
         qw| jobsite.job-upsert |,
         $skip_ids,
         $block_file,
-        ( $full_mode ? 1 : 0 );
+        ( $full_mode ? 1 : 0 ),
+        $cat;
 
     <[protocol-7.route-send]>->(
         {   'command'   => $fetch_zenka . '.import',
@@ -147,8 +160,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## a cycle cut short counts nothing over ##
 <jobsite.fetch_cycle> = undef;
 
-#,,..,,,.,..,,,,,,...,,,,,,,,,,..,,,.,.,.,,,.,..,,...,...,..,,,.,,..,,,..,...,
-#XFWAMA3SN7GES7Z7QN7UXR36JB32XBQGUBNE5QL7PYOB4LBZ2I2TC4XZSGE2IWZGJU6ODJCAZXKRI
-#\\\|FBF7CEAVDBE5VH7IX2CZKIKLJAJF3MRDKKFX2NKU7KMF6UPMSMG \ / AMOS7 \ YOURUM ::
-#\[7]GG6M3ZLX5J653OG6MXFN4KPP5JQ72IG6X6PFXIH3F65YEETSAMCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,.,.,.,.,.,.,.,,,.,.,,,,,.,.,..,,...,...,.,,,.,,,..,,.,,,.,,,
+#VRRUZJMSNXMS3P6FMQ4V6BGRI65AWXQC6PXNLYRAFMDDBZLLIRI5OANPN6JAIKJDU63WXRAYXAUR2
+#\\\|VXEORSFTWNY6G6ZO2H64A7UHDWXGDN67GNA7CCMVDXBIGATNUUW \ / AMOS7 \ YOURUM ::
+#\[7]ZLR6V43NGYGGC6ATLW5JB5CJKABI4UWFFDJABFGTGTNQNEHSVQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

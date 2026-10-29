@@ -86,12 +86,22 @@ return unless length $url;
                 ## durable outbox + STRM fan-out instead of a route-send : ##
                 ## the caller may sit on another host [ remote fetch ]     ##
                 <[base.logs]>->( 1, 'fetch: %s [hold] q=%d', $id, $ql - 1 );
-                <[site-yaml.outbox.write]>->( $id, $payload );
+                <[site-yaml.outbox.write]>->(
+                    $id, $payload, $item->{'category'} // ''
+                );
             } else {
                 <[base.logs]>->( 1, 'fetch: %s [route] q=%d', $id, $ql - 1 );
+                ## param-only multiline send : param \ data do not travel ##
+                ## with args [ send.local ], and the category tag must    ##
+                ## reach the upsert side for per-category tallies [ WY5 ] ##
                 <[protocol-7.route-send]>->(
                     {   'command'   => $reply_handler,
-                        'call_args' => { 'args' => $payload },
+                        'call_args' => {
+                            'param' => {
+                                'job' => $payload,
+                                'cat' => $item->{'category'} // '',
+                            }
+                        },
                     }
                 );
             }
@@ -107,8 +117,8 @@ return unless length $url;
 
 return;
 
-#,,.,,,..,.,.,..,,...,.,,,,.,,...,..,,..,,,..,.,.,...,...,...,,.,,.,,,.,.,,..,
-#LNENSNRYRNMMMCTXLXIKKH4GXQWAQ2UYAONXU4A52QKQP4MKUSTUHFO27LB6HA2WTCKIG2ALKF2A2
-#\\\|IPKA4CKPS3RSBTCZNJK2VYZ6X466YOAB6QORZS4U5Y5XBT2SXP4 \ / AMOS7 \ YOURUM ::
-#\[7]TEWHTVQ7P43J44QLPFSXTSMKPK6XZN6RTTR4HJP7NGRGUF5AYGBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,,,,..,,..,,..,...,,,.,.,,,,,,,.,.,...,..,,...,,..,,.,,..,,,.,,
+#2VF3XHYA4VBD4VQLC7KVJODSVTXJCKMPAXN642LEJMUPEV6DG5VEBJ4XMEX2BSJY2IQHPTJRDQQH6
+#\\\|JZJIHNXQH5JNSMK2YG6LJW7GMKBVCM73QDEH3EWUBXWDEEJWZU7 \ / AMOS7 \ YOURUM ::
+#\[7]D55MQCHYXK2UMNLOU2G4AKLYXDWLQDDPBM6OODHXZ5FVOLMLTEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

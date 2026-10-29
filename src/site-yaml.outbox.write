@@ -2,12 +2,20 @@
 
 # name  = site-yaml.outbox.write
 # descr = durably store one fetched job + fan it out to open fetched-streams
-# param = <job id> <json payload>
+# param = <job id> <json payload> [category]
 # return = outbox record name [ without .json ] or undef on write error
 
-my ( $job_id, $payload ) = @ARG;
+my ( $job_id, $payload, $category ) = @ARG;
 
 return undef if not length( $job_id // '' ) or not defined $payload;
+
+## the record always wraps the payload : {"job":<job>[,"cat":..]} -- the  ##
+## frame inserts "name" into it [ jobsite.fetched.frame reads all three ] ##
+my $record
+    = length( $category // '' )
+    ? sprintf( qq|{"job":%s,"cat":%s}|, $payload,
+    JSON::encode_json($category) )
+    : sprintf( qq|{"job":%s}|, $payload );
 
 my $outbox_dir = <[site-yaml.outbox.dir]> // return undef;
 
@@ -32,7 +40,7 @@ if ( not open $out_fh, '>:raw', $temp ) {
     );
     return undef;
 }
-print {$out_fh} $payload;
+print {$out_fh} $record;
 close $out_fh;
 
 if ( not rename $temp, $file ) {
@@ -47,7 +55,8 @@ if ( not rename $temp, $file ) {
 ## fan out to every open fetched-stream : one JSON line per frame ##
 my $streams = <site-yaml.fetched_streams> // [];
 if ( @{$streams} ) {
-    my $frame = sprintf qq|{"name":"%s","job":%s}| . "\n", $name, $payload;
+    my $frame = sprintf qq|{"name":"%s",%s| . "\n", $name,
+        substr( $record, 1 );
     my @alive;
     for my $h ( @{$streams} ) {
         if ( <[base.stream.push]>->( $h, \$frame ) ) {
@@ -67,8 +76,8 @@ if ( @{$streams} ) {
 
 return $name;
 
-#,,..,.,.,,,,,...,,.,,,.,,,..,..,,.,.,,.,,.,.,.,.,...,...,..,,,.,,.,,,,..,.,.,
-#MD6HK2YXHOPZWVRLXV3FFBDBHQYR33SA36GPHF25GU5VXZAVM34UWS745QZFZYS2DLAQM2QTPZW2C
-#\\\|TTHFQ27PVNNE7ASXIWA2IX77E7WEC5CORINFSRNJ7IX7VYO6Y7C \ / AMOS7 \ YOURUM ::
-#\[7]TDPZ66RD7UCU6WRALEBBJJDB6PG5DIOF34RUZUKWSI4J5MVP6OAA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,..,,..,,.,,,...,.,.,...,.,.,.,.,...,..,,,..,,,,,...,,..,..,,
+#BZSUHY6O6HOQQGUEVSEO7YNLFC3NEPNREDVDCDM53PU42GPAA2ZLW2OUDFDD2RLQLSRBBKW4H2SHK
+#\\\|DORRGNO4MQGJ2FH7DZUK7LUAQ4KVX2BY2643GDIWBZBVICOONFG \ / AMOS7 \ YOURUM ::
+#\[7]XGOETMJYZDRTQYK6ZNAS4KUZMUTQNBOPM7XYCJPQXWT2IPEWL4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

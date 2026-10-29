@@ -4,11 +4,29 @@
 # descr = insert|update job record from a fetched search result
 # param = job fields [id,url,title,company,..]
 
-my $args   = $call->{'args'}                   // '';
+my $param = ref $call->{'param'} eq qw| HASH | ? $call->{'param'} : {};
+
+## payload arrives either as plain args [ legacy \ direct calls ] or as     ##
+## param.job [ site-yaml's fetch_tick \ fetched.frame sends, where param is ##
+## also the only channel for the category tag ]                             ##
+my $args
+    = length( $call->{'args'} // '' )
+    ? $call->{'args'}
+    : ( $param->{'job'} // '' );
 my $job_in = eval { JSON::decode_json($args) } // {};
 if ( $@ or ref $job_in ne 'HASH' ) {
     return { 'mode' => 'false', 'data' => 'expected json job record' };
 }
+
+## category tag for the per-cycle new \ known tallies [ WY5 ] ##
+my $cat = $param->{'cat'} // '';
+
+my $tally = sub {
+    return if not length $cat;
+    my $kind = shift;
+    <jobsite.upsert_stats>->{$cat}{$kind}++;
+    return;
+};
 
 my $id = $job_in->{'id'} // '';
 return { 'mode' => 'false', 'data' => 'no id' }
@@ -35,11 +53,11 @@ if ( $idx_status =~ m{^(blocked|deleted|trash)(:|$)} ) {
         2,   'jobs.upsert: skipping %s (status %s)',
         $id, $idx_status
     );
+    $tally->(qw| known |);
     return { 'mode' => 'true', 'data' => 'exists' };
 }
 
 my $store = <jobs.store> // <[jobsite.job.load_all]>;
-
 ## hard-block student-only positions                                        ##
 ## [ thesis / internship / apprenticeship ] -- candidate is a 25+ year      ##
 ## full-time professional, not enrolled in any degree program, so these are ##
@@ -62,6 +80,7 @@ if (not exists $store->{$id}
         2,   'jobs.upsert: skipping %s (student-only position: %s)',
         $id, $job->{'title'} // ''
     );
+    $tally->(qw| known |);
     return { 'mode' => 'true', 'data' => 'exists' };
 }
 
@@ -73,6 +92,7 @@ if ( not exists $store->{$id} ) {
             2,   'jobs.upsert: skipping %s (checksum %s)',
             $id, join( ', ', @{ $chk->{'hits'} // [] } )
         );
+        $tally->(qw| known |);
         return { 'mode' => 'true', 'data' => 'exists' };
     }
 }
@@ -159,13 +179,15 @@ if ($is_new) {
     );
 }
 
+$tally->( $is_new ? qw| new | : qw| known | );
+
 return {
     'mode' => qw| true |,
     'data' => $is_new ? qw| new | : qw| updated |
 };
 
-#,,,.,...,,,,,.,.,.,,,...,,,.,,,.,.,.,..,,..,,.,.,...,...,...,.,.,..,,...,...,
-#3BOTCH6EOUT5ARTHVGGRHPGZLZCBASXPEMVUEFCNRRLUTFHB2S6XPLJZYV35JDRSA3I2U6BHP6KYW
-#\\\|N5FASZMA5CO4PJTLZKE4WZS2N7WIDSN2PVUUVJF4CPQY2346TEI \ / AMOS7 \ YOURUM ::
-#\[7]EAZUNZAMT65JVUC7AFLU5RHRZ2SMNFVLE3MZV5WYEZU6AQS2HWDA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,.,,,.,.,.,,,,,...,,..,,..,...,.,.,...,...,,,,,...,.,.,,.,,,.,,
+#A2C3IITILI2J53OM3SNT7LFGQCDRRMDVE46NNHHQDQTEIE7FWGPHQAXM6LFIWZJB3A5NVHBBM7NHE
+#\\\|OBYUE7V74KQUR4ZLLP75POSVALSOX2P5FK6NAWXMYKT4WTG5FST \ / AMOS7 \ YOURUM ::
+#\[7]J7L4INZLJPBQM7L6VM4IHV6Q65YRZNUM42RCFDIHBJQNIU2NR2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

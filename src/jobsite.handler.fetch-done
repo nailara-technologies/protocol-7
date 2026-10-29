@@ -12,10 +12,8 @@ my $category = $call->{'params'}{'category'} // '';
 chomp($data_str);    ## strip trailing \n ##
 
 if ( lc($mode) eq qw| false | ) {
-    <[base.logs]>->(
-        0,         ':. %s ::: import ' . 'failed : %s',
-        $category, $data_str
-    );
+    <[base.logs]>
+        ->( 0, ':. %s ::: import failed : %s', $category, $data_str );
 } else {
     <[base.logs]>->( 1, ':. %s .: %s', $data_str, $category );
 }
@@ -31,9 +29,12 @@ if ( lc($mode) eq qw| false | ) {
 
 ## accumulate total items queued in site-yaml across all category replies ##
 if ( lc($mode) ne qw| false | ) {
-    my ($n_new) = $data_str =~ m|(\d+) new|;
+    my ($n_queued) = $data_str =~ m|queued\s+0*(\d+)|;
+    $n_queued //= 0;
     <jobsite.fetch_total_queued> //= 0;
-    <jobsite.fetch_total_queued> += ( $n_new // 0 );
+    <jobsite.fetch_total_queued> += $n_queued;
+    <jobsite.fetch_queued_cat>->{$category} = $n_queued
+        if length $category;
 }
 
 ## decrement fetch counter : only proceed when all categories replied
@@ -94,8 +95,8 @@ if ( <jobsite.pending_count> == 0 ) {
     <[jobsite.sync.push]>->( undef, FALSE );
 }
 
-#,,.,,,..,,,,,...,,..,...,,,.,,..,.,,,,,.,,,,,..,,...,..,,..,,,.,,,..,,,,,,,.,
-#2R7R7NXYMXD4KMHIAHLWWEDOYJ4IHTL4AWCPWGWOUJ5U5YEP7UPLHACVMJSZKRWS5GXSU257A2A74
-#\\\|IF2NUZ3U4XQAHEO7HRZ3URSTCR7JVKBW6EPASHVPXZRYFCDZKSE \ / AMOS7 \ YOURUM ::
-#\[7]AT47C4XZUOO2F7UXWOBIRSFKIW62AS2BPIK7A7LA6MW4GTUMUKDI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,,,,,,,,,.,,,.,,,..,,..,,.,,,..,,...,...,..,,,..,.,.,,,,,..,,
+#CI4OBFDWX4O4N52H3CQULYNLN7S2AIN65ZELTEWXF7ZDVGSH635N3Y3L5KVP4IRQO2JPBV276DPDE
+#\\\|KU53FG22WR22NMZGDHF25XPVOM4XRAFSQFPUZ56AQCVDRUGCKDB \ / AMOS7 \ YOURUM ::
+#\[7]6O6OJ5HN42B6PHQUUD4NWKRFOSBMFBDRTZ5KT53ALHKBCXHA6CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
