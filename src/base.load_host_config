@@ -65,6 +65,18 @@ if ( not $trusted ) {
     return TRUE;
 }
 
+## a root-only overlay [ 0600 : web.auth.secret for httpd \ httpsd \ web ] ##
+## is read at start-up, before the privilege drop. a reload after it can   ##
+## not read it again : the start-up values stay in memory                  ##
+## [ nothing here has a zenka default to fall back to ] -- keep them, not  ##
+## an error                                                                ##
+if ( not -r $host_cfg and <system.host_config.applied> ) {
+    <[base.logs]>->(
+        1, ': host overlay %s root-only : start-up values kept', $host_cfg
+    );
+    return TRUE;
+}
+
 <[base.logs]>->( 1, ': host overlay : %s', $host_cfg );
 
 ## remembered : base.reload_config applies the overlay again after the ##
@@ -73,8 +85,8 @@ if ( not $trusted ) {
 
 return <[base.load_config_file]>->($host_cfg);
 
-#,,..,,,.,,.,,.,.,,,,,.,.,,.,,,,,,..,,,,.,...,..,,...,..,,,..,..,,.,,,...,.,,,
-#KWRG5HPJ6K2WOLMAEOEZDHNBUW2QKKD6D532I52ML6E5EYHRENZRLCXLFCCJZKL2VTQXEFLFCSPI6
-#\\\|MH45LRAIV6JLYG2D5CBTNNO2BIDTZRMROQEPO7Y4JDQ6BUPRBTW \ / AMOS7 \ YOURUM ::
-#\[7]Z4XYLHXUVNAI2T2LQTR3VEI4XGBS3KD4VV3RPRS4CH32JDECH4BA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,.,.,.,,,,,.,...,,..,.,.,...,..,,...,...,,,,,,,,,,.,,,..,..,,
+#7VYDOCQK4M7VCJ43CJPSYQ3PN6FULPARKNUAZGKQGBXZUHY2NIEZBZKAIU3MHWRCQLCU44FWJSKPY
+#\\\|POKP3FAP6IKMSOIIIRMA34J6AH24LFJQAVJXOTXALVZNULISGG6 \ / AMOS7 \ YOURUM ::
+#\[7]RUTPARIDSAC3N6Z76IA2VYVVEGWKFNCS44YBACCPRA7EJPNKZOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
