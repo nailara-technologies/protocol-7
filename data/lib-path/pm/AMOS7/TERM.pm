@@ -28,7 +28,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.HLTIVPQ |;
+our $VERSION = qw| AMOS7::TERM-VERSION.CN5GMZA |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -38,7 +38,7 @@ our $VERSION = qw| AMOS7::TERM-VERSION.HLTIVPQ |;
     cursor_set_animation cursor_enable cursor_disable
     frame_border_line frame_rule_line frame_colorize_content frame_bar
     scroll_region_set scroll_region_clear content_area_clear pinned_row_print
-    ask confirm_key diff_page wipe_secret
+    ask confirm_key diff_page progress_line wipe_secret
 ];
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
@@ -1405,6 +1405,34 @@ sub confirm_key {
     return wantarray ? ( $answer, $reason ) : $answer;
 }
 
+## the bin/format-code file progress line : 13 cells of ':' filling with
+## n of total, then the label. ends in \r [ no \n ] so the next call redraws
+## it in place -- the caller closes it with a "\n" when done. returns the
+## string, the caller prints it [ any handle ]
+##
+## print STDERR AMOS7::TERM::progress_line( 'src/base.log', 3, 7 );
+sub progress_line {
+    my $label       = shift // '';
+    my $count       = shift // 0;
+    my $total       = shift || 1;
+    my $label_width = shift // 42;
+    my $cells_max   = 13;
+
+    my $nailara_bg = "\e[48;2;9;5;42m";
+    my $blacklight = "\e[38;2;68;39;172m";
+    my $true_color = "\e[38;2;6;71;195m";
+    my $reset      = "\e[0m";
+
+    my $cells = qw| : | x int( $cells_max * $count / $total );
+    $label = substr( $label, -$label_width ) if length $label > $label_width;
+
+    return sprintf "\r${blacklight}:::[$nailara_bg$true_color%-${cells_max}s"
+        . "$reset$blacklight]:"
+        . "::[$nailara_bg$true_color %-${label_width}s"
+        . " $reset$blacklight]:.$reset\r",
+        $cells, $label;
+}
+
 ## a unified diff in the bin/ncode preview colors [ removed lines on the dark
 ## blue, added on the dark green background, headers dimmed, file names bold ]
 ## through 'less -R' on /dev/tty. no pager : printed to the tty
@@ -2150,8 +2178,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,,,,,,.,,,,,,,.,,.,,.,,,,,.,.,,,.,.,.,,,...,..,,...,...,...,..,,..,,...,,.,,
-#GPU2RGYNJJSLLOHV6GTVVB5UGQKHKX63H3S76XX54SIZQV5IXOBRNO5QSGRFRRSNL6EOLQ7VWEY3K
-#\\\|7VYDHK2MT3RUEEBEFCKVBFIVN3CRVEKWIZB3M4XM4KJULOJNUBR \ / AMOS7 \ YOURUM ::
-#\[7]Z3QLNDBXSYRN5F53C6ZBGKZFQNGJCZHQFUBV7ZQJETBQMDGMSUBY 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,,,.,,,,,.,,,,,,..,,..,,..,.,,,..,,...,..,,.,.,,,.,.,.,,,,,...,
+#OJYALJBZ2PKVIIZKWHTX63GEUWUHMVFQY3WFDPUCYH2IVXNEUY7GCS6CS2F3SNU24OATMM4VX2VWC
+#\\\|PFG42UZ7D7DU4ENRNP34QDKPNMPSNU7O37Y5J4IV25HSUWVYJUP \ / AMOS7 \ YOURUM ::
+#\[7]WGAJGRQT6QM3LP6CTF7TDFNSD2ONLULAV2BEIN65U5E67DOX76AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
