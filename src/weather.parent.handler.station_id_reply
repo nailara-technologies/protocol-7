@@ -34,6 +34,8 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
         );
         delete <weather.get-urls.reply_ids>;
     }
+    <[weather.parent.answer_parked]>
+        ->( 'unable to get station id : ' . $reply->{'call_args'}->{'args'} );
     $shutdown = 1;
 
     <[base.sleep]>->($term_wait);
@@ -82,8 +84,8 @@ if (    defined <weather.get-urls.reply_ids>
     }
 }
 
-#,,.,,,.,,,,,,...,,..,.,,,..,,.,,,,,,,.,.,.,.,..,,...,...,.,,,...,,..,.,,,,.,,
-#LY5BWKM2F3GNPV5IG2MIJNLHW62NRBGW4K7E3DGN7WZ665C4P4UJS5WQPB3E5MA42NKNJB7O2SPNC
-#\\\|CMGPKHVKY3GMHLOW2Z7AJKFZX3WQ7RZT44CU6WGPH5TN7PGLDD5 \ / AMOS7 \ YOURUM ::
-#\[7]DWRUMBYTUD6KK7TVMUXFQAQ5LLSK4U2UV3JXHTIDRPS4ORMOT2CQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,.,.,,,..,,...,,..,,..,,,,,,,,,..,,...,.,,,.,.,..,,.,.,..,,,,,,
+#WSKAYJJAVR3USTBUIJ426SCW6ZQBVK4C3Z5LOMAARZMHPJ3VA26NKLL2U25H5XI7FWLWNYR2WVK76
+#\\\|6SE7NERFDR4TLY457TUA2TDIZCNKOOJUGREQI4ZFLBSH2KVTSNN \ / AMOS7 \ YOURUM ::
+#\[7]Z2O522Y7FB5ULS23ZOFT6XTRD7LVTFGOPGIPJOZRYUTGOQXHZSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

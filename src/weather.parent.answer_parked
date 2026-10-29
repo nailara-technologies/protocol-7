@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = weather.parent.answer_parked
+# descr = answer callers parked while current weather data loads
+
+my $reason = shift;
+$reason = 'weather data not available yet [ timeout ]' if ref $reason;
+
+my $timer = delete <weather.timer.parked_timeout>;
+$timer->cancel if defined $timer;
+
+foreach my $reply_id ( keys <weather.parked_replies>->%* ) {
+    my $parked = delete <weather.parked_replies>->{$reply_id};
+    my $reply
+        = defined $reason
+        ? { 'mode' => qw| false |, 'data' => $reason }
+        : $code{ 'weather.parent.cmd.' . $parked->{'getter'} }->( {} );
+
+    ## data still missing : a re-ask can not park again, answer false ##
+    $reply = {
+        'mode' => qw| false |,
+        'data' => 'weather data not available'
+        }
+        if ref $reply ne qw| HASH |
+        or ( $reply->{'mode'} // '' ) eq qw| deferred |;
+    <[base.callback.cmd_reply]>->( $reply_id, $reply );
+}
+
+return TRUE;
+
+#,,,.,..,,,.,,.,.,,..,,..,,..,.,.,.,.,,,,,..,,..,,...,...,...,,..,,,,,..,,,,,,
+#YUZBFGCHKDWZHROKAVA4NM7ONGB6GR732OANXYRRB4CLXYJZZTLXZPX3B3DIP6AP5WCYHCFGF3E24
+#\\\|OYHDYLOIT5IU45PDBNVACW7BCLGOHXUXZJ4S4KHVHJFA6YBKJNM \ / AMOS7 \ YOURUM ::
+#\[7]MT4VZWV24KOQ6LTQMUSKFYH7TNSUSHB3LOYKP7XDJHBVRRQBX4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

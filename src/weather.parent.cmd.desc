@@ -3,19 +3,26 @@
 # name  = weather.parent.cmd.desc
 # descr = return local weather short description text
 
+my $stid = <weather.station_id>;
+
+## first data still pending [ on-demand start ] : answer when it lands ##
+my $parked = <[weather.parent.park_pending]>->( $call, qw| desc | );
+return $parked if defined $parked;
+
+my $current = <weather.data>->{$stid}->{'current'};
+
 return {
     'mode' => qw| false |,
     'data' => 'no city selected (undefined station id)'
     }
-    if not defined <weather.station_id>;
+    if not defined $stid;
 
-my $stid  = <weather.station_id>;
-my $descr = <weather.data>->{$stid}->{'current'}->{'descr'} // 'n|a';
+my $descr = $current->{'descr'} // 'n|a';
 
 return { 'mode' => qw| true |, 'data' => $descr }
 
-#,,,,,,,,,,,,,..,,,..,,,,,,,,,,,,,.,,,...,..,,..,,...,...,...,...,.,,,..,,...,
-#XBUEEKTUB4T5PMZAFDNZKY57OROPZJPX6BA34BA2ORD447TGFOJZSJIVFG6QETWUMRAJZORY7RH6C
-#\\\|47SZKNNPKBDRYIV3D6EPXJMCEARXJRJOVRCO3KFWYSWCQQHG2CO \ / AMOS7 \ YOURUM ::
-#\[7]SJVR4MR3M6FAN3W5YYLU2J3CQBAIEO42CLEKNLZHJPWZGGJ62OAA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,...,..,,.,,,,,,,...,..,,,,,,.,.,..,,...,...,.,.,.,,,.,,,,.,,...,
+#IVJJWZVPS6QQG3OQZ4EZDQD2ZVMPAGRZMX4YGMASC3C2RFHOZ2ALNBPIZG5L2A52H4ADMUQFEEBUY
+#\\\|TGCTTYUSPFLYWWEOBUBSXOUFCEONQQG42URAN2OZBTY4DV7JBNB \ / AMOS7 \ YOURUM ::
+#\[7]WDRHNAAW23XIGEPOL7XNCMZ6DFYJZ7KIUA4OE6XS3BU5M7NWVKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
