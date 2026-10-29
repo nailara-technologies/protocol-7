@@ -236,9 +236,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [session-handover-jobsite-live-updates](project-2026-10-29-session-handover-jobsite-live-updates.md) — START HERE 2026-10-29 night : live updates done + confirmed, WY5 deployed [ check the next scan ], next Q2K, ZRK round 2 ; how-to-work list [ whitelist, version files, unsigned files, aborted sign runs ]
 - [jobsite-live-update-chain](project-2026-10-29-jobsite-live-update-chain.md) — LANDED 2026-10-29 : push_soon 3 s, web sync-soon nudge for ui deletes, SSE /jobs-events [ signal only ], browser timers [ events throttle, actions own timers ] ; httpd route option syntax, remote queue-depth + owed rescan fixes
+- [thermal-aware-local-worker](project-2026-10-29-thermal-aware-local-worker.md) — DESIGN 2026-10-29 : local gpu in pool gated by temp \ memory \ idle \ night window \ outdoor amplifier, all configurable ; heat wanted after 22:00
 
-#,,..,..,,,,.,.,.,,.,,,..,...,,..,..,,.,.,...,..,,...,...,.,.,...,.,.,,,,,...,
-#2ELBAQCFKLHPQCVMRGCHC2COD7AWQP7XZTJT6E3UJIM6RPCMVH3MAJQZYDS7UY5YW6PI35XZTRNES
-#\\\|S64CEVJR2G5642NLT7FGQJGK5YVI5KD3TOY7ILA7LUJKBTYM6Q3 \ / AMOS7 \ YOURUM ::
-#\[7]7XMWUAAB2QVR4YGJ4EW2BKA64D7GAHL225BO4YWH6HB3PNH4QKDA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,,,.,..,,.,,,.,.,,,.,.,.,..,,..,,...,...,...,,,,,,.,,.,,,.,.,
+#P255RPT7XEC5HH6DAVKHOAAXUJEROTUSDFQP7VJ56EKXQYJIR74A43MSBBSCAMPTYTBCH5F7YFJC2
+#\\\|JKK7VPJ3CXTM4ABQDWTOC2JVYATDUOFPR7PYJVUTR53V34DE4V5 \ / AMOS7 \ YOURUM ::
+#\[7]RCI42U7WSSOOHTBU3ZZE2NV45FOSGCZLLM72SJRPUSNYIED4BKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
