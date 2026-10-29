@@ -1202,6 +1202,20 @@ const REFRESH_SOON_MS = 1200;
 const REFRESH_RESCUE_MS = 3100;    /* push_soon delay + transfer */
 const REFRESH_DELETE_MS = 4200;    /* nudge + push_soon + the reply carrying it back */
 let refreshActionTimer = null;
+/* stage dropdowns : one close path. a click anywhere outside an open menu   */
+/* [ the sync button included ] and Escape close it -- before, only its own */
+/* options did, and render() re-opens a menu still marked .open on rebuild  */
+function closeStageDropdowns() {
+    document.querySelectorAll('.stage-dropdown.open').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.job-card.dropdown-open').forEach(c => c.classList.remove('dropdown-open'));
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('.stage-dropdown')) closeStageDropdowns();
+}, true);    /* capture : runs before any stopPropagation */
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeStageDropdowns();
+});
+
 function refreshNow() {
     syncPipeline();
     if (trashPanelVisible) loadTrashPanel();
@@ -1537,10 +1551,15 @@ function renderCard(j) {
     const menu     = dropdown.querySelector('.stage-dropdown-menu');
     trigger.addEventListener('click', e => {
         e.stopPropagation();
-        document.querySelectorAll('.stage-dropdown.open').forEach(d => d.classList.remove('open'));
-        document.querySelectorAll('.job-card.dropdown-open').forEach(c => c.classList.remove('dropdown-open'));
-        dropdown.classList.toggle('open');
-        el.classList.toggle('dropdown-open', dropdown.classList.contains('open'));
+        /* read the state BEFORE closing all : closing first and then */
+        /* toggling always reopened it -- its own trigger could never */
+        /* close a menu                                               */
+        const wasOpen = dropdown.classList.contains('open');
+        closeStageDropdowns();
+        if (!wasOpen) {
+            dropdown.classList.add('open');
+            el.classList.add('dropdown-open');
+        }
     });
     menu.querySelectorAll('.stage-option').forEach(opt => {
         opt.addEventListener('click', e => {
