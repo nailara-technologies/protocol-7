@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = weather.parent.park_pending
+# descr = park a getter's caller while first data is pending
+# param = $call, $getter [ temp desc humid wind clouds ]
+# return = a deferred reply hash when parked, else undef [ answer now ]
+#
+# notes = todo GDX : an on-demand start answered FALSE n|a before the
+#         child's first fetch landed. pending = no current data yet while a
+#         station id exists or a location is set [ the id lookup runs ].
+#         weather.parent.answer_parked answers every parked caller once
+#         the data is stored, on a fetch error, or at the parked timeout
+
+my ( $call, $getter ) = @ARG;
+
+my $station_id = <weather.station_id>;
+my $current
+    = defined $station_id
+    ? <weather.data>->{$station_id}->{'current'}
+    : undef;
+return undef if defined $current;
+
+my $location = <weather.location> // '';
+return undef if not defined $station_id and not length $location;
+
+## no reply id [ a re-ask from answer_parked ] : nothing to park ##
+my $reply_id = ( $call // {} )->{'reply_id'};
+return undef if not defined $reply_id;
+
+<weather.parked_replies>->{$reply_id} = { 'getter' => $getter };
+<weather.timer.parked_timeout> //= <[event.add_timer]>->(
+    {   'after'   => <weather.cfg.parked_timeout> // 30,
+        'handler' => qw| weather.parent.answer_parked |,
+    }
+);
+return { 'mode' => qw| deferred | };
+
+#,,..,,..,...,..,,,,,,...,..,,..,,,,,,,,.,.,.,..,,...,...,.,.,,.,,..,,..,,,,.,
+#WG2ULS2JKKMFEFQVMFCVF6IEONS3QGCFFMTYQKUHH36YIVI74DKQTVJYX2GZESKNHZHSO6UOPIYAU
+#\\\|5CRLBVMM552LZOUQXJBV6GMA4ZN6JPVM3N2L4BDVAT7P5PKO5LQ \ / AMOS7 \ YOURUM ::
+#\[7]TWTGA5VQQWVXI7TGNPIKHGFARA5SV4ZYW5BBEXZ6W73LVTVCIODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

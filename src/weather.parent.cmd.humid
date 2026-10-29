@@ -3,20 +3,27 @@
 # name  = weather.parent.cmd.humid
 # descr = return outside air humidity in percent
 
+my $stid = <weather.station_id>;
+
+## first data still pending [ on-demand start ] : answer when it lands ##
+my $parked = <[weather.parent.park_pending]>->( $call, qw| humid | );
+return $parked if defined $parked;
+
+my $current = <weather.data>->{$stid}->{'current'};
+
 return {
     'mode' => qw| false |,
     'data' => 'no city selected (undefined station id)'
     }
-    if not defined <weather.station_id>;
+    if not defined $stid;
 
-my $stid     = <weather.station_id>;
-my $humidity = <weather.data>->{$stid}->{'current'}->{'humidity'} // 'n|a';
+my $humidity = $current->{'humidity'} // 'n|a';
 $humidity .= "%" if $humidity =~ m|^\d+(\.\d+)?$|;
 
 return { 'mode' => qw| true |, 'data' => $humidity }
 
-#,,,.,,,,,..,,,..,..,,.,.,.,.,...,,.,,.,,,,,.,..,,...,...,,.,,..,,,,.,,,.,,..,
-#MQ5J236TULKCHQV2KQCGHT6RDV6YVHAXOAI5HWGS6W6RHUQ7KHKNEGXGU47LR7SQJ3NAEDDSWWZF2
-#\\\|IQOOTMQSG5ALTJQK7TXEHPQYNCLUE745VOJASKXJILELYV2RH54 \ / AMOS7 \ YOURUM ::
-#\[7]S5RWRDUKL6F5YCYYLAJQPSGW56LZQHGK2RVYNJNO4S2KZMOJECDQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,..,,,..,.,,,,.,,,.,,.,.,,..,..,,...,...,.,,,..,,,.,,..,,.,,,
+#5XMQSY4KMEPW4L34GTQSGSOSV2754OY6QUQ6OPEU2UC34ICJ6XKV66BNPUD7RUE425WAHZMLOHTBU
+#\\\|6VEY3JQAUX7SSJCMEYN5A2PUKQMEVHYQBSDLNE7ZWT7OT55TFRX \ / AMOS7 \ YOURUM ::
+#\[7]6MDRXCUG7MJ42Z3CLS67IGNRPU7PSNT3CSOSUTU3OTE2MA43WUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

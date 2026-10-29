@@ -5,21 +5,27 @@
 
 my $station_id = <weather.station_id>;
 
+## first data still pending [ on-demand start ] : answer when it lands ##
+my $parked = <[weather.parent.park_pending]>->( $call, qw| temp | );
+return $parked if defined $parked;
+
+my $current = <weather.data>->{$station_id}->{'current'};
+
 return {
     'mode' => qw| false |,
     'data' => 'no city selected (undefined station id)'
     }
     if not defined $station_id;
 
-my $temp = <weather.data>->{$station_id}->{'current'}->{'temp'} // 'n|a';
+my $temp = $current->{'temp'} // 'n|a';
 
 $temp .= Encode::encode( 'UTF-8', "\N{DEGREE SIGN}C" )
     if $temp =~ m|^-?\d+(\.\d+)?$|;
 
 return { 'mode' => qw| true |, 'data' => $temp }
 
-#,,..,..,,,..,,.,,,..,,,,,,.,,,.,,.,,,...,,,,,..,,...,...,...,.,,,,..,.,.,,,,,
-#PNARLYOBDQMRU2URFCX62C2G3CYSXBQBCIU7D7ERT66XW36C6ZGYM36SIF7VAE4RXKMGLAMUIP6A2
-#\\\|KCJKLLKWYCYP3HB3THHYV4NXG7IPBF2LPF6QZWPGJDXGZKQXRZU \ / AMOS7 \ YOURUM ::
-#\[7]DT35FNSU7LM455WXCZ6GPYUXFRIZ4URQNM3GK2JURZOZFHHMEUAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,.,,..,,,..,..,,.,,,,,,,,,,,,.,,..,,...,...,..,,,..,..,,...,.,,,
+#HGL27MO5OZCBUMNABPCUCJ6PQY3MKFWDR4FDGBHOKHT5JAMOTTTTMJBYSAUH6BPDM3LOB5DI4HHYK
+#\\\|4GWRLUPYGOBI643RJ6ITWBWFB7EY5XKCAQHLM34QZJBVXA6EB5U \ / AMOS7 \ YOURUM ::
+#\[7]G3YNNPEU3RP65TBORL7ZR3QTB6WXNJ6CKJABWWETTVRLR6F6MWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

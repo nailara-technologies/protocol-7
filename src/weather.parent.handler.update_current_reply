@@ -47,11 +47,18 @@ if (    defined $current_data
     <[weather.parent.cache.write_data]>
         ->( 'current', $station_id, $data_str );
     <[weather.parent.extract_current]>->( $station_id, $current_data );
+    <[weather.parent.answer_parked]>;
     my $update_minutes = sprintf( '%0.1f minutes', $update_interval / 60 );
     <[base.log]>->(
         2, "next 'current' data update in $update_minutes minutes.."
     );
 } else {
+    my $parked_reason
+        = $reply->{'cmd'} eq qw| FALSE |
+        ? $reply->{'call_args'}->{'args'}
+        : 'invalid current weather data received';
+    <[weather.parent.answer_parked]>
+        ->( $parked_reason // 'unable to obtain current weather data' );
     my $status_str = defined $status_code ? " ($status_code)" : '';
     $status_str = " (city not found)"
         if defined $status_code and $status_code eq '404';
@@ -122,8 +129,8 @@ if ( time + $update_interval > $midnight ) {
     }
 );
 
-#,,,.,.,.,.,.,,,.,..,,.,.,...,..,,.,.,,,,,.,,,..,,...,...,.,,,..,,...,.,,,..,,
-#5AFYK765P4OB3GB45UR7ZHY3Y3MB3XX23QVPVP4L3UQBIMRAKSFQINEVNIISNDO24K6TJOY5WHX76
-#\\\|BPJKWIGRZ5EYPN26PT6DKXPTVJTNIXHTEBJCT426CSOZKEHIOTM \ / AMOS7 \ YOURUM ::
-#\[7]CO5LMUKEWAQDP44BRNYIRTWBSUQ57UBOEYWEWKHARGFZL6SFDWAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,.,,,.,,,...,..,,...,,,,,.,,,..,,...,...,...,...,,,.,,..,.,,,
+#OADAIR2BRNRWFDGO3INP5B3NUF3SSCF62R6MPLTR4WYPKNIGMGA4GQHJ4BMYGUF4YOR4XA2HKLN7W
+#\\\|XYZ6WA43ZKEOHAIBZO5CE7CU36LKGPC43LAJVYXEUOMMHMBOJVG \ / AMOS7 \ YOURUM ::
+#\[7]PPTMBCEMZVEL7P6BXI34DFU6KKS6QMAFDU5TCXAJEWKCYDV24KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

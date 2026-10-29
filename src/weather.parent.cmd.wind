@@ -3,14 +3,21 @@
 # name  = weather.parent.cmd.wind
 # descr = return current local wind speed and direction
 
+my $stid = <weather.station_id>;
+
+## first data still pending [ on-demand start ] : answer when it lands ##
+my $parked = <[weather.parent.park_pending]>->( $call, qw| wind | );
+return $parked if defined $parked;
+
+my $current = <weather.data>->{$stid}->{'current'};
+
 return {
     'mode' => qw| false |,
     'data' => 'no city selected [undefined station id]'
     }
-    if not defined <weather.station_id>;
+    if not defined $stid;
 
-my $stid = <weather.station_id>;
-my $wind = <weather.data>->{$stid}->{'current'}->{'wind'} // {};
+my $wind = $current->{'wind'} // {};
 
 my $speed = $wind->{'speed_kmh'} // 'n|a';
 my $dir   = $wind->{'direction'} // 'n|a';
@@ -26,8 +33,8 @@ if ( $speed =~ m{^\d+(\.\d+)?$} ) {
 
 return { 'mode' => qw| true |, 'data' => $data }
 
-#,,.,,,.,,,,.,,,.,.,,,,.,,,,.,.,.,,,.,.,.,,,,,..,,...,...,,.,,,..,,,,,...,.,,,
-#7HWO6EVBCYF4Q42T4UCHOAUSRZZPIKW5KR3MIYLKJX2F5UN6N2WEUBJMW67R36Q7MPUV2EOTG2UI6
-#\\\|4UUA5EHLEQ57PNMXE4P5X43P3D3EM6XMQKE2AC5BVAB5DEBYDET \ / AMOS7 \ YOURUM ::
-#\[7]BH5JNG6JPFTPOEILR7OJBQZPSVIUY2LNAPQPEJN7QXJDDJ2QI6CA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,,,,.,,.,.,.,,,,..,...,,..,..,,..,,...,...,...,.,,,.,,,,,,,..,,
+#N2SUNTJA63OTAACNYDM6YZWDEHBC3YA6MMM6MFLVTOSIDGFCQK5ZM2CJ57EHSATQLAQ4LZWSSNNL6
+#\\\|N2TDJLGE6VGXSNSC6PUKHOUM2TLBURYNJEQJMNINEPG52JOPPC2 \ / AMOS7 \ YOURUM ::
+#\[7]FNN3FBMUR2ETBYZHQGMNMAD66BATGI3ZLK3XJB2XU4PVSRBV6IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

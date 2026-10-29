@@ -3,20 +3,27 @@
 # name  = weather.parent.cmd.clouds
 # descr = return current local cloud coverage in %
 
+my $stid = <weather.station_id>;
+
+## first data still pending [ on-demand start ] : answer when it lands ##
+my $parked = <[weather.parent.park_pending]>->( $call, qw| clouds | );
+return $parked if defined $parked;
+
+my $current = <weather.data>->{$stid}->{'current'};
+
 return {
     'mode' => qw| false |,
     'data' => 'no city selected (undefined station id)'
     }
-    if not defined <weather.station_id>;
+    if not defined $stid;
 
-my $stid   = <weather.station_id>;
-my $clouds = <weather.data>->{$stid}->{'current'}->{'clouds'} // 'n|a';
+my $clouds = $current->{'clouds'} // 'n|a';
 $clouds .= "%" if $clouds =~ m|^\d+(\.\d+)?$|;
 
 return { 'mode' => qw| true |, 'data' => $clouds }
 
-#,,,.,.,,,...,,,.,.,.,,,.,,,.,,.,,,..,,,,,.,.,..,,...,...,..,,,,,,.,.,,.,,.,,,
-#BLYCWWMJWDTQI4EPDMYOUDXATZQ7PQPIOAKXVDHKOP2GEN3WICDKV3QLVC76NTPZX4KILTV7CQY7Y
-#\\\|GI6VSXFFQRJZSWCTWICVTHZJ2Q7UACWCWTFSKCTDG3QB4BJZSXF \ / AMOS7 \ YOURUM ::
-#\[7]2BBI2WJ6OHNKW4Y5ZKC6YB4B25M2RPLQONLHAWJV3ANFGLBTVCCY 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,,,,,.,,,,,...,,.,,..,,,..,.,,,..,,...,...,...,,..,...,...,.,.,
+#M6TACDENQXPFLIQUZJQMHCB5ANMROLSHCSXCCSYYTUKQEZHPLW26IBPBBFAVQYYE7WCGEZUCTTBEO
+#\\\|4F2U62CK7A5DIA3AMHDVAKWXP5U27ONIHRDEMIUYGXZH5GD7RAS \ / AMOS7 \ YOURUM ::
+#\[7]H2AAEHKEW3LNAEOTL52O2YLEJWOO45LNRHTUH3TYKZUFBLIVQUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
