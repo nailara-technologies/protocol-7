@@ -201,10 +201,8 @@ sub idle_show {
     ui_field(
         qw| key |,
         $key_name,
-        sprintf(
-            'unlocked ' . ': pub %s',
-            substr( encode_b32r($key_public), 0, 13 )
-        )
+        sprintf( 'unlocked : pub %s',
+            substr( encode_b32r($key_public), 0, 13 ) )
     );
     ui_field( qw| socket |, $socket_path, "uid $EUID only" );
     ui_field( 'run log', $runs_log_path );
@@ -852,6 +850,11 @@ sub op_run {
         scalar @unreadable
     ) if @unreadable;
 
+    ## the request is on screen now                                      ##
+    ## [ p7-sign-run : preparing -> awaiting approval ] -- logged before ##
+    ## the answer, so a denial has it too                                ##
+    run_log_line( qw| request |, $run_id, scalar @entries,
+        qw| pid |, $peer_pid );
     tty_watch_mode(FALSE);    ## the prompt \ reason line read cooked ##
     my ( $approved, $deny_reason ) = approve_run(
         {   qw| run_id    | => $run_id,
@@ -1307,8 +1310,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,..,.,,,,..,.,,,,,.,,..,,,.,.,.,,.,,.,,,,,.,..,,...,...,,.,,,..,,..,,,.,,,,,
-#FZCZXPMGY7XT4YVMSWCIB4TTYZI6AF477CBTR7SUXE6IB7BFZOOMDFHNBOM2L2TFXSZQOCTPTSKE2
-#\\\|WWIOSHKKPH5QTSLQRV7GK7PBZ6QPYWAEWRGI52RAY64WBFZIFKF \ / AMOS7 \ YOURUM ::
-#\[7]HXDZEBVMJLLQIYSRXSAHJY77LD3MNO5U6RKHCJW56VESHAGJRIBY 7  DATA SIGNATURE ::
+#,,..,,,.,...,,.,,,,,,.,,,...,...,,.,,,,.,.,,,..,,...,...,..,,.,,,.,,,,,.,,.,,
+#WAHJC77BAZCTYOIEADAY25X5GYUMV3EN3UO2NBBXYV4ITXPZGBRWHERCWPXJH3RU6CDZ5AY5KXDIE
+#\\\|RO3O4RB4E6IY5K7YFHH726K2ZAUS43PR7WKKOY6X6KAMNXCQVWA \ / AMOS7 \ YOURUM ::
+#\[7]VB45SVOOCMBYYEYFCEFGYF23Q32MKXEYC7MMNIPFAQDF6CMTL2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
