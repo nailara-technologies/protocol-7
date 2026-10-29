@@ -1,5 +1,5 @@
 package AMOS7::deps::dist_upgr;
-our $VERSION = qw| AMOS7::deps::dist_upgr-VERSION.2XHT55I |;
+our $VERSION = qw| AMOS7::deps::dist_upgr-VERSION.OF2ZQQQ |;
 
 use strict;
 use warnings;
@@ -146,8 +146,8 @@ sub _run_step {
 
 1;
 
-#,,.,,,,.,,.,,..,,,.,,.,.,.,.,.,.,..,,..,,..,,.,.,...,...,...,.,.,..,,,..,,.,,
-#ECT5E4MVZWAYNNE4HPEJC2PXOHUXQK5GGLXESA24LOVF5HSMXQ5DVAESTNR2FCRRMK7DXPSGTXPPO
-#\\\|DDFIVSYTPWSYTJ3EOPI5BHDQ75K2VI5ZH2DU5HLSL6MGULBOS4Y \ / AMOS7 \ YOURUM ::
-#\[7]EBZQI5VTRWM4N42ZBQOSTM42FBB7TNQMQIDXYCIFL5GDDBEL2QBI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,..,,,,,,.,.,..,,,,.,.,,,.,.,...,.,.,...,...,,,.,.,.,,.,,...,.,.,
+#PDVQDP7VYEXOGIZUY7DYBOTZ5WL7EYZZG6AUXWZDWLYU43TEKYDXCQTYMPGKVSPPXA6YDMQGEG5E6
+#\\\|7WZOPJZP5CPDLHGH6Q3WWE7W4I2VYZTOQ5ILUDATYIARWXXZBSU \ / AMOS7 \ YOURUM ::
+#\[7]GS65LSRVXVJ6A6EKJC3VAB6QKFQD5OKZ5HFXUH3LJULK3RS2PYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

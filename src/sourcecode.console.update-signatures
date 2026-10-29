@@ -5,12 +5,17 @@
 
 my $command_params = shift // '';
 
-my $sign_verbosity = 2;    ## [ 0 | 1 | 2 ] ##
+## silent by default : the per-iteration octal header lines only with  ##
+## :verbose: \ SIGN_VERBOSE. :sign-silent: \ SIGN_SILENT stay accepted ##
+## [ the former opt-out, now the default -- callers still pass it ]    ##
+my $sign_verbosity = 0;    ## [ 0 | 1 | 2 ] ##
 
-$sign_verbosity = 0
-    if $command_params =~ s| *:sign-silent: *| |
-    or exists $ENV{'SIGN_SILENT'}
-    and <[base.cfg_bool]>->( $ENV{'SIGN_SILENT'} ) == TRUE;
+$command_params =~ s| *:sign-silent: *| |;
+
+$sign_verbosity = 2
+    if $command_params =~ s| *:verbose: *| |
+    or exists $ENV{'SIGN_VERBOSE'}
+    and <[base.cfg_bool]>->( $ENV{'SIGN_VERBOSE'} ) == TRUE;
 
 ## :stage: re-stages [ via git add ] exactly the files this run signs, and ##
 ## no others -- leaves other already-staged/unstaged batches untouched     ##
@@ -102,6 +107,15 @@ if ($agent_mode) {
         <[base.log]>->( 0, ':. not signing through a stranger .:' );
         <[base.exit]>->(qw| 0110 |);
     }
+
+    ## the PUBLIC half only [ just proven equal to the agent's ] :         ##
+    ## verifying existing footers needs it, and the identity switch        ##
+    ## source.load_ signature_key makes -- without both, verification fell ##
+    ## back to the '<user>.base' identity                                  ##
+    ## [ 'found no public key named taeki.base' ]                          ##
+    $keys{'C25519'}{$signature_key_name}{'public'} = decode_b32r($disk_pub);
+    <crypt.C25519.base_key_name> = $signature_key_name;
+    delete <crypt.C25519.key_vars>;    ## the cache, as load_signature_key ##
 
     <[base.logs]>->(
         1,             ': signing through agent %s [ key %s ]',
@@ -521,8 +535,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,.,,,.,,,.,,,..,.,.,.,.,,,,,,.,,,,.,.,,,.,.,..,,...,...,...,...,,.,,...,...,
-#IEHWY7TVLSHTPKXJ7VZRKASXCO3ED3RGHQVHZSRJDGMU3R2YG6DSBNVAUW6DJ7PYZDXROMRNJ2JVY
-#\\\|HDITYG622MNMDH3JM2SXOFHGVHCZJQDJ3VCJMSEJYHIOUZYDUIC \ / AMOS7 \ YOURUM ::
-#\[7]6SYGRVHXCAVTHCGY3UU6GDXZZPN66AMWPR5SNPX63ID2AJ36VCBI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,,,.,,,.,,,,..,,..,...,,.,,.,,,..,,...,..,,,.,,...,...,,,.,...,
+#XTM4X253KYLKF6ECWXHSWLNX73GADFE655EGWXUZBTZWAKKWBETZQKDVJLJAVYN6IBSFE33ZD65SI
+#\\\|CIXMKGWTVXWEOBIVZM6PP4SR6XXEDRVMFBSYO3YZODR5UZE7GDE \ / AMOS7 \ YOURUM ::
+#\[7]ZPS36XAYKAPQ22N55YG7OIGGV2FHXPT4P3IJLS3DGP2FYRE3E2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -28,7 +28,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.325Q2VQ |;
+our $VERSION = qw| AMOS7::TERM-VERSION.HLTIVPQ |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -2150,8 +2150,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,.,,.,,,..,,..,,.,.,...,...,,,,,...,,,,,...,..,,...,...,,.,,,,,,.,,,,,.,,.,,
-#PQHS7RKKVXPDU6WYF6HFXG2CM3W6HSVTMODEFF4FMTK7JOPU5WXIQGSU3KDMDD764KPBMDMYXIH3Q
-#\\\|55GKEBL2SQHDDMMKA2O4452JQK625IKZ7U5L44SZAIL7WP7XFHW \ / AMOS7 \ YOURUM ::
-#\[7]R32RACK56BHY4XW5OSA6VGEOPHJ5GCGEXIDKJ7ID7RHQQSGMBCAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,.,,.,,.,,,,,.,.,,,.,.,.,,,...,..,,...,...,...,..,,..,,...,,.,,
+#GPU2RGYNJJSLLOHV6GTVVB5UGQKHKX63H3S76XX54SIZQV5IXOBRNO5QSGRFRRSNL6EOLQ7VWEY3K
+#\\\|7VYDHK2MT3RUEEBEFCKVBFIVN3CRVEKWIZB3M4XM4KJULOJNUBR \ / AMOS7 \ YOURUM ::
+#\[7]Z3QLNDBXSYRN5F53C6ZBGKZFQNGJCZHQFUBV7ZQJETBQMDGMSUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
