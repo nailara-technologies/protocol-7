@@ -135,7 +135,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.H5ER3YQ |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.J3MTEGY |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -715,7 +715,7 @@ sub detail_editor_draw_wrapped {
             ## the content it decorates, which is what is being dimmed.  the
             ## dim resets BEFORE the trailing border so the frame keeps full
             ## strength [ the bleed lesson ]
-            my $pad = $i > 0 ? $C->{T} . '┊' . ' ' : $C->{T} . '  ';
+            my $pad = $i > 0 ? $C->{T} . '┊ ' : $C->{T} . '  ';
             push @rows,
                   $border_color . ':'
                 . $C->{dim}
@@ -1489,22 +1489,21 @@ sub edit_text {
                 ## help line [ left pad, :: delimiter ]  ctrl-s           ##
                 ## [ alias ctrl-o ] is only advertised when on_save gives ##
                 ## it a real target                                       ##
-                my $save_hint = defined $on_save ? ' · ctrl-s save' : '';
+                my $save_hint = defined $on_save ? ' [s] save' : '';
                 my $paste_hint
                     = (
                     @kill_stack
                         or ( defined $clip_at_start
                         and not defined $clip_cleared )
                     )
-                    ? ' · ctrl-v paste · ctrl+. in-order · ctrl-y clear'
+                    ? ' [v] paste [.] in-order [y] clear'
                     : '';
                 my $help_text
-                    = ' · ctrl-x save+quit · ctrl-c abort'
+                    = ' :CTRL:. [x] save+quit [c] abort'
                     . $save_hint
                     . $paste_hint
-                    . ' · ctrl-w del-word · ctrl-l del-line · ctrl-d '
-                    . 'de-interlace · arrows · enter · del · pgup \ '
-                    . 'pgdn page'
+                    . ' [w] del-word [l] del-line [d] de-interlace '
+                    . '· arrows · enter · del · pgup \ pgdn page'
                     . ( $wrap ? ' · wrap' : '' ) . ' ·';
                 $help_text = ' · ' . $hint . ' ·' . $help_text
                     if length $hint;
@@ -1512,7 +1511,12 @@ sub edit_text {
                 ## narrow terminals; truncation keeps the leftmost part    ##
                 $help_text = "· $last_status · $help_text"
                     if length $last_status;
-                $help_text = substr( $help_text, 0, $inner_width - 2 );
+                ## cut at the last whole ' · ' cell that fits, never inside ##
+                ## a label [ windowed cells follow, todo keys-bar ]         ##
+                if ( length $help_text > $inner_width - 2 ) {
+                    $help_text = substr( $help_text, 0, $inner_width - 2 );
+                    $help_text =~ s|\s+[·\[][^·\[]*$||;
+                }
                 my $help_pad
                     = ' ' x ( $inner_width - length($help_text) - 1 );
                 my $help = $help_pad . $help_text . '';
@@ -2036,8 +2040,8 @@ sub edit_text {
 
 1;
 
-#,,,.,...,.,,,,,.,,..,,,,,,,,,..,,..,,,..,,.,,..,,...,..,,..,,.,,,.,.,,,,,...,
-#2AUAXWH3Y4LPDUQCQO535ZX25CVJWRP4IJO2VD3EZGJHJTJ5LAX6YMSMYX3RYOAT3O6HNQDHN73NQ
-#\\\|7H6ML7AIXZUUTZEHRVXGLZDNDIQV6LVOF3SJDT2JSIBQMGJO7F4 \ / AMOS7 \ YOURUM ::
-#\[7]CD6USK7PK6LJDWL7FXFU7GO7ZCL347YNEHHAIZY4FRCZ7OY7I6CI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,,,,,,,,,,,,,,,.,.,,,..,,.,.,..,,...,...,..,,.,,,,,.,.,.,..,,
+#EMS2AQLVNO57R3OBXYHVJEFV6A3GIT56OLNM6GVWHDRGJHPZWN3GXFGVYEK6ODERDNOAKFH6XOCY6
+#\\\|BJP3A65PK35S3L7YKVIDBJS3BM5JP2QTRGI4E3YMTWBIMFIKXLQ \ / AMOS7 \ YOURUM ::
+#\[7]OLN3GBNQ4RIVHJ4CBV37RS6EKTU4IRD4COIYD5SOEY334MZRP2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,317 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+use English;
+use utf8;
+
+###            ###
+##   todo-list  ##
+###            ###
+
+## todo-list — find todo items whose text is multi-line or over a length  ##
+## budget and shorten them via the coding zenka [ todo-shorten template ] ##
+##
+## usage:
+##   bin/todo-list                 fix all items over the budget
+##   bin/todo-list -n              dry run : list items needing a fix
+##   bin/todo-list -budget 80      use a different length budget [ 100 ]
+##
+## the yaml file format stays owned by bin/todo -- this script only calls
+## `bin/todo edit` and `bin/todo details` to apply changes.
+
+BEGIN {
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir    = File::Spec->updir;
+    my $root_path = abs_path(
+        File::Spec->rel2abs( File::Spec->catdir( $RealBin, $up_dir ) ) );
+    $ENV{'P7_ROOT'} //= $root_path if defined $root_path and -d $root_path;
+}
+
+use FindBin qw| $RealBin |;
+
+binmode( STDOUT, ':utf8' );
+binmode( STDERR, ':utf8' );
+
+my $todo_bin = "$RealBin/todo";
+
+##[ options ]#################################################################
+
+my $budget  = 100;
+my $dry_run = 0;
+my @pass_args;    ## -file / -list forwarded to bin/todo ##
+
+while ( my $arg = shift @ARGV ) {
+    if ( $arg eq '-n' ) {
+        $dry_run = 1;
+    } elsif ( $arg eq '-budget' and defined $ARGV[0] ) {
+        $budget = shift @ARGV;
+    } elsif ( $arg =~ m{^-budget=(\d+)$} ) {
+        $budget = $1;
+    } elsif ( $arg eq '-file' and defined $ARGV[0] ) {
+        push @pass_args, $arg, shift @ARGV;
+    } elsif ( $arg eq '-list' and defined $ARGV[0] ) {
+        push @pass_args, $arg, shift @ARGV;
+    } elsif ( $arg eq '-options' or $arg eq '-h' or $arg eq 'help' ) {
+        print <<~'USAGE';
+        usage: todo-list [options]
+
+        options:
+          -n                dry run : list items needing a fix, change nothing
+          -budget N         length budget for item text [ default 100 ]
+          -file <path>      use given todo file [ passed to bin/todo ]
+          -list <name>      use named list [ passed to bin/todo ]
+        USAGE
+        exit 0;
+    } else {
+        die ":: unknown option: $arg\n";
+    }
+}
+
+die ":: budget must be a positive integer\n" unless $budget > 0;
+
+##[ helpers ]#################################################################
+
+## run a command with piped stdin, capture stdout -- no shell anywhere ##
+sub run_io {
+    my ( $stdin, @cmd ) = @_;
+    require IPC::Open3;
+    require Symbol;
+    my $err = Symbol::gensym();
+    my $pid = IPC::Open3::open3( my $in, my $out, $err, @cmd );
+    binmode $in,  ':utf8';
+    binmode $out, ':utf8';
+    print {$in} $stdin if defined $stdin;
+    close $in;
+    local $/;
+    my $stdout = <$out> // '';
+    my $stderr = <$err> // '';
+    close $out;
+    close $err;
+    waitpid $pid, 0;
+    my $ok = $? == 0;
+    utf8::decode($stdout) unless utf8::is_utf8($stdout);
+    utf8::decode($stderr) unless utf8::is_utf8($stderr);
+    return ( $ok, $stdout, $stderr );
+}
+
+## read items via bin/todo's own list path is lossy -- parse the yaml the  ##
+## same way bin/todo does, but never write it here : all writes go through ##
+## `bin/todo edit` / `bin/todo details`                                    ##
+sub load_items {
+    my $todo_file = $ENV{'P7_TODO_FILE'};
+    if ( not defined $todo_file ) {
+        my ( $list, $file ) = ( 'base', undef );
+        for my $i ( 0 .. $#pass_args - 1 ) {
+            $list = $pass_args[ $i + 1 ] if $pass_args[$i] eq '-list';
+            $file = $pass_args[ $i + 1 ] if $pass_args[$i] eq '-file';
+        }
+        $todo_file = $file if defined $file;
+        if ( not defined $todo_file ) {
+            my $root = $ENV{'P7_ROOT'} // '';
+            $todo_file
+                = -d "$root/data/yaml/todo"
+                ? "$root/data/yaml/todo/$list.yaml"
+                : "$ENV{HOME}/.p7/todo.yaml";
+        }
+    }
+    return [] unless -f $todo_file;
+
+    open my $fh, '<', $todo_file or die ":: cannot read $todo_file: $!\n";
+    local $/;
+    my $content = <$fh>;
+    close $fh;
+    utf8::decode($content);
+
+    my $data;
+    for my $mod (qw| YAML::PP YAML::XS YAML |) {
+        my $file = $mod;
+        $file =~ s|::|/|g;
+        $file .= '.pm';
+        next unless eval { require $file; 1 };
+        $data = eval {
+                  $mod eq 'YAML::PP' ? YAML::PP->new->load_string($content)
+                : $mod eq 'YAML::XS' ? YAML::XS::Load($content)
+                :                      YAML::Load($content);
+        };
+        last;
+    }
+    $data //= {};
+    my $items = ref $data eq 'HASH' ? ( $data->{items} // [] ) : [];
+    utf8::decode( $_->{text} )    for grep { defined $_->{text} } @$items;
+    utf8::decode( $_->{details} ) for grep { defined $_->{details} } @$items;
+    return $items;
+}
+
+sub needs_fix {
+    my $item = shift;
+    my $text = $item->{text} // '';
+    return 1 if $text =~ m{\n};
+    return 1 if length($text) > $budget;
+    return 0;
+}
+
+## mechanical check -- never trust the model ##
+sub summary_valid {
+    my $line = shift;
+    return 0 if not defined $line;
+    return 0 if $line =~ m{\n};
+    return 0 if not length $line;
+    return 0 if length $line > $budget;
+    return 1;
+}
+
+## strip the trailing `[ review verdict ... ]` block get-result appends ##
+sub strip_review_verdict {
+    my $result = shift;
+    $result =~ s{\n+\[ review verdict[^\n]*\].*$}{}s;
+    $result =~ s{^\s+|\s+$}{}g;
+    return $result;
+}
+
+sub build_prompt {
+    my ( $item, $reason ) = @_;
+    my $text    = $item->{text}    // '';
+    my $details = $item->{details} // '';
+    my @parts   = (
+        ':auto-review:',
+        ':todo-shorten:',
+        ':no_tools:',
+        "summary budget : $budget characters -- a HARD LIMIT, count the"
+            . ' characters, never exceed it. output ONLY that one line,'
+            . ' nothing else.',
+        '',
+        'todo item text :',
+        $text,
+        '',
+        'todo item details :',
+        length($details) ? $details : '[ none ]',
+    );
+    push @parts, '', "previous attempt rejected : $reason"
+        if defined $reason;
+    return join "\n", @parts;
+}
+
+sub shorten_via_coding {
+    my ( $item, $reason ) = @_;
+    my $prompt = build_prompt( $item, $reason );
+
+    my ( $ok, $out ) = run_io( undef, 'p7c', 'coding.submit', $prompt );
+    return ( undef, "submit failed: $out" ) if not $ok;
+    my ($task_id) = $out =~ m{task:(task-[A-Z0-9]+)}i;
+    return ( undef, "no task id in submit reply : $out" )
+        unless defined $task_id;
+
+    ( $ok, $out ) = run_io( undef, 'p7c', 'coding.wait-done', $task_id );
+    return ( undef, "wait-done failed: $out" ) if not $ok;
+
+    ( $ok, $out ) = run_io( undef, 'p7c', 'coding.get-result', $task_id );
+    return ( undef, "get-result failed: $out" ) if not $ok;
+
+    return ( strip_review_verdict($out), undef );
+}
+
+##[ main ]####################################################################
+
+my $items = load_items();
+my @fix   = grep { needs_fix($_) } @$items;
+
+if ( not @fix ) {
+    say ":: no items over the $budget-char budget";
+    exit 0;
+}
+
+if ($dry_run) {
+    say ":: dry run -- items needing a fix:";
+    foreach my $item (@fix) {
+        my $text = $item->{text} // '';
+        printf "  %s  len=%d lines=%d  %s\n", $item->{id}, length($text),
+            ( $text =~ tr/\n// ) + 1,
+            ( split m{\n}, $text )[0] // '';
+    }
+    exit 0;
+}
+
+foreach my $item (@fix) {
+    my $id      = $item->{id};
+    my $old_len = length( $item->{text} // '' );
+
+    my ( $summary, $err ) = shorten_via_coding($item);
+    if ( not defined $summary ) {
+        say "$id : SKIP [ $err ]";
+        next;
+    }
+
+    if ( not summary_valid($summary) ) {
+        ## one resend with the measured reason, then skip ##
+        my $len   = length $summary;
+        my $lines = ( $summary =~ tr/\n// ) + 1;
+        my $reason
+            = "previous attempt was $lines line(s), $len characters"
+            . " -- the budget is $budget characters for ONE single line."
+            . ' drop secondary clauses, keep only the core action';
+        ( $summary, $err ) = shorten_via_coding( $item, $reason );
+        if ( not defined $summary ) {
+            say "$id : SKIP [ retry: $err ]";
+            next;
+        }
+        if ( not summary_valid($summary) ) {
+            my $last_len = length $summary;
+            say "$id : SKIP [ model returned invalid summary "
+                . "twice ; last was $last_len chars, budget $budget ]";
+            next;
+        }
+    }
+
+    ## build new details : original text as title paragraph + old details ##
+    my $title = $item->{text} // '';
+    unless ( $title =~ m{^\s*[-*] }m
+        or $title =~ m{\[ \]}
+        or $title =~ m{^[^:]+:\s}m ) {
+        ## plain prose : collapse to one paragraph ##
+        $title =~ s{\s*\n\s*}{ }g;
+    }
+    my $old_details = $item->{details} // '';
+    my $new_details = $title;
+    $new_details .= "\n\n" . $old_details if length $old_details;
+
+    ## assertions before any write ##
+    if ( index( $new_details, $title ) != 0 ) {
+        say "$id : SKIP [ internal error : details do not start with text ]";
+        next;
+    }
+    if ( length $old_details
+        and index( $new_details, $old_details ) < 0 ) {
+        say "$id : SKIP [ internal error : old details not preserved ]";
+        next;
+    }
+
+    ## apply through bin/todo -- the file format stays owned there. details ##
+    ## first : they carry the original text, so a failed text edit after    ##
+    ## them loses nothing [ the reverse order would ]                       ##
+    my ( $ok, $out, $stderr )
+        = run_io( $new_details, $todo_bin, @pass_args, 'details', $id );
+    if ( not $ok ) {
+        say "$id : SKIP [ bin/todo details failed : $stderr$out ]";
+        next;
+    }
+    ( $ok, $out, $stderr )
+        = run_io( $summary, $todo_bin, @pass_args, 'edit', $id );
+    if ( not $ok ) {
+        say "$id : SKIP [ bin/todo edit failed after details were written "
+            . "-- original text is safe in details : $stderr$out ]";
+        next;
+    }
+
+    printf "%s : %d -> %d\n", $id, $old_len, length($summary);
+}
+
+exit 0;
+
+#,,..,,..,,,.,.,,,,,.,...,.,.,.,.,,.,,,,.,.,,,..,,...,...,...,..,,...,,,.,,,,,
+#QXYRUTXSH6WTTCAHKCYHHEMUATCLAWDSYDLFMUAPKPIKYSR4RKNYEGHRMQDTLRXV5FLIA57TQVXOS
+#\\\|CP7UTW7NB3FDOQ3AGBWGE5SSLVUAWDQHD2AIQBX2BWAT7CW6AI7 \ / AMOS7 \ YOURUM ::
+#\[7]NOPT5RXJSZXTFG3ZG5JL4VDKQPGW7HA6S5YXVDNTT6VPI4NXO6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

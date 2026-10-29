@@ -108,65 +108,67 @@ my @external_tools = (
             . 'line at the end: "To resume this session: '
             . 'kimi -r <uuid>" — pass that uuid to '
             . 'kimi_continue to resume a long-running task. '
-            . 'model=k2.8 (default) for most work (K2.8 '
-            . 'Preview, a 2026-09 Kimi-side upgrade -- '
-            . '"performance close to K3" per Kimi\'s own '
-            . 'docs, and one real multi-hour dispatch this '
-            . 'session used only ~35% of a rate-limit '
-            . 'window doing moderately complex work, well '
-            . 'under k3/k3-256k cost for comparable tasks '
-            . '-- one strong data point, revisit if quality '
-            . 'issues surface; \'k2.7\' still works as a '
-            . 'deprecated alias for the same model, prefer '
-            . 'k2.8 in new usage), model=k3 (renamed '
-            . '2026-09-17: this now means the 256k-ceiling '
-            . 'variant, not the old full-1M one -- the size '
-            . 'warning is implicit in the short name you\'d '
-            . 'actually type) for higher-stakes '
-            . 'correctness-critical work (permission '
-            . 'models, concurrency, protocol design) where '
-            . 'K3\'s specifically stronger reasoning is '
-            . 'worth the extra cost over k2.8, model=k3-1m '
-            . 'ONLY when the task\'s CONTEXT [ not its '
-            . 'difficulty ] genuinely exceeds 256k or needs '
-            . 'video input -- same K3-tier reasoning as k3, '
-            . 'full quota cost, the priciest reasoning-tier '
-            . 'option; \'k3-256k\' still works as an '
-            . 'explicit alias for plain k3, model=k2.7-fast '
-            . 'ONLY when wall-clock speed specifically '
-            . 'matters more than quota -- it is 3x the '
-            . 'quota cost of k2.8 for ~6x faster output, '
-            . 'the most expensive option here, not a '
-            . 'cheap/fast option.',
+            . 'model=k3.1 + thinking low (default since '
+            . '2026-10-29 : one measured state-machine run '
+            . 'cost 5h +3% \\ 7d +1%), model=k2.8 for plain '
+            . 'bulk work (K2.8 Preview, a 2026-09 Kimi-side '
+            . 'upgrade -- "performance close to K3" per '
+            . 'Kimi\'s own docs, and one real multi-hour '
+            . 'dispatch this session used only ~35% of a '
+            . 'rate-limit window doing moderately complex '
+            . 'work, well under k3/k3-256k cost for '
+            . 'comparable tasks -- one strong data point, '
+            . 'revisit if quality issues surface; \'k2.7\' '
+            . 'still works as a deprecated alias for the '
+            . 'same model, prefer k2.8 in new usage), '
+            . 'model=k3 (renamed 2026-09-17: this now means '
+            . 'the 256k-ceiling variant, not the old '
+            . 'full-1M one -- the size warning is implicit '
+            . 'in the short name you\'d actually type) for '
+            . 'higher-stakes correctness-critical work '
+            . '(permission models, concurrency, protocol '
+            . 'design) where K3\'s specifically stronger '
+            . 'reasoning is worth the extra cost over k2.8, '
+            . 'model=k3-1m ONLY when the task\'s CONTEXT [ '
+            . 'not its difficulty ] genuinely exceeds 256k '
+            . 'or needs video input -- same K3-tier '
+            . 'reasoning as k3, full quota cost, the '
+            . 'priciest reasoning-tier option; \'k3-256k\' '
+            . 'still works as an explicit alias for plain '
+            . 'k3, model=k2.7-fast ONLY when wall-clock '
+            . 'speed specifically matters more than quota '
+            . '-- it is 3x the quota cost of k2.8 for ~6x '
+            . 'faster output, the most expensive option '
+            . 'here, not a cheap/fast option.',
         'command' => 'kimi -p %s --model %s --output-format text',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
             [   'model',
-                'model: k2.8 (default -- K2.8 Preview, a 2026-09 Kimi-side '
-                    . 'upgrade, "close to K3" per Kimi\'s own docs, and '
-                    . 'cheap in practice: one real multi-hour dispatch used '
-                    . 'only ~35% of a rate-limit window; \'k2.7\' still '
-                    . 'works as a deprecated alias for this same model) | k3 '
-                    . '(renamed 2026-09-17 : now means the 256k-ceiling '
-                    . 'variant -- strong reasoning, for higher-stakes '
+                'model: k2.8 (K2.8 Preview, a 2026-09 Kimi-side upgrade, '
+                    . '"close to K3" per Kimi\'s own docs, and cheap in '
+                    . 'practice: one real multi-hour dispatch used only ~35% '
+                    . 'of a rate-limit window; \'k2.7\' still works as a '
+                    . 'deprecated alias for this same model) | k3 (renamed '
+                    . '2026-09-17 : now means the 256k-ceiling variant -- '
+                    . 'strong reasoning, for higher-stakes '
                     . 'correctness-critical work, the usually-correct pick; '
                     . '\'k3-256k\' works too, same target) | k3-1m (same '
                     . 'K3-tier reasoning as k3, full 1M context, full quota '
                     . 'cost -- only when context genuinely exceeds 256k or '
                     . 'video input is needed, this is the old bare \'k3\') | '
-                    . 'k3.1 (K3.1 Pro, 1M context, newest -- cost not '
-                    . 'measured yet, try on a small task first) | k3.1-fast '
-                    . '(2x usage cost of k3.1) | k2.7-fast (3x the quota '
-                    . 'cost of k2.8 for ~6x faster output -- the priciest '
-                    . 'option here, pick it for wall-clock speed only, never '
-                    . 'as a "cheap and fast" default)',
+                    . 'k3.1 (DEFAULT -- K3.1 Pro, 1M context, newest ; with '
+                    . 'thinking low one real run cost 5h +3% \\ 7d +1%) | '
+                    . 'k3.1-fast (2x usage cost of k3.1) | k2.7-fast (3x the '
+                    . 'quota cost of k2.8 for ~6x faster output -- the '
+                    . 'priciest option here, pick it for wall-clock speed '
+                    . 'only, never as a "cheap and fast" default)',
                 0
             ],
             [   'thinking',
                 'thinking effort : low|high|max [ passed to the cli via '
-                    . 'KIMI_MODEL_THINKING_EFFORT ; unset = the cli default '
-                    . 'from [thinking] effort in ~/.kimi-code/config.toml -- '
-                    . 'currently low. the reply reports which level ran ]',
+                    . 'KIMI_MODEL_THINKING_EFFORT ; unset = low, always [ '
+                    . 'set here, not left to the per-model cli default ]. '
+                    . 'the reply reports which level ran ]',
                 0
             ],
             [   'auto_summarize',
@@ -205,30 +207,31 @@ my @external_tools = (
             . 'longer run returns status=dispatched_async within ~6s '
             . 'echoing the already-known session uuid, while kimi keeps '
             . 'running detached — poll kimi_check_status(session_id) for '
-            . 'progress and the final result. model=k2.8 (default) for '
-            . 'most work (K2.8 Preview, a 2026-09 Kimi-side upgrade -- '
-            . '"performance close to K3" per Kimi\'s own docs, and one '
-            . 'real multi-hour dispatch this session used only ~35% of a '
-            . 'rate-limit window doing moderately complex work, well '
-            . 'under k3/k3-256k cost for comparable tasks -- one strong '
-            . 'data point, revisit if quality issues surface; \'k2.7\' '
-            . 'still works as a deprecated alias for the same model, '
-            . 'prefer k2.8 in new usage), model=k3 (renamed 2026-09-17: '
-            . 'this now means the 256k-ceiling variant, not the old '
-            . 'full-1M one -- the size warning is implicit in the short '
-            . 'name you\'d actually type) for higher-stakes '
-            . 'correctness-critical work (permission models, '
-            . 'concurrency, protocol design) where K3\'s specifically '
-            . 'stronger reasoning is worth the extra cost over k2.8, '
-            . 'model=k3-1m ONLY when the task\'s CONTEXT [ not its '
-            . 'difficulty ] genuinely exceeds 256k or needs video input '
-            . '-- same K3-tier reasoning as k3, full quota cost, the '
-            . 'priciest reasoning-tier option; \'k3-256k\' still works '
-            . 'as an explicit alias for plain k3, model=k2.7-fast ONLY '
-            . 'when wall-clock speed specifically matters more than '
-            . 'quota -- it is 3x the quota cost of k2.8 for ~6x faster '
-            . 'output, the most expensive option here, not a cheap/fast '
-            . 'option.',
+            . 'progress and the final result. model=k3.1 + thinking low '
+            . '(default since 2026-10-29 : one measured run cost 5h +3% '
+            . '\\ 7d +1%), model=k2.8 for most work (K2.8 Preview, a '
+            . '2026-09 Kimi-side upgrade -- "performance close to K3" '
+            . 'per Kimi\'s own docs, and one real multi-hour dispatch '
+            . 'this session used only ~35% of a rate-limit window doing '
+            . 'moderately complex work, well under k3/k3-256k cost for '
+            . 'comparable tasks -- one strong data point, revisit if '
+            . 'quality issues surface; \'k2.7\' still works as a '
+            . 'deprecated alias for the same model, prefer k2.8 in new '
+            . 'usage), model=k3 (renamed 2026-09-17: this now means the '
+            . '256k-ceiling variant, not the old full-1M one -- the size '
+            . 'warning is implicit in the short name you\'d actually '
+            . 'type) for higher-stakes correctness-critical work '
+            . '(permission models, concurrency, protocol design) where '
+            . 'K3\'s specifically stronger reasoning is worth the extra '
+            . 'cost over k2.8, model=k3-1m ONLY when the task\'s CONTEXT '
+            . '[ not its difficulty ] genuinely exceeds 256k or needs '
+            . 'video input -- same K3-tier reasoning as k3, full quota '
+            . 'cost, the priciest reasoning-tier option; \'k3-256k\' '
+            . 'still works as an explicit alias for plain k3, '
+            . 'model=k2.7-fast ONLY when wall-clock speed specifically '
+            . 'matters more than quota -- it is 3x the quota cost of '
+            . 'k2.8 for ~6x faster output, the most expensive option '
+            . 'here, not a cheap/fast option.',
         'command' => 'kimi -S %s -p %s --model %s --output-format text',
         'params'  => [
             [ 'session_id', 'the kimi session uuid from the resume line', 1 ],
@@ -237,30 +240,30 @@ my @external_tools = (
             ],
             [   'thinking',
                 'thinking effort : low|high|max [ passed to the cli via '
-                    . 'KIMI_MODEL_THINKING_EFFORT ; unset = the cli default '
-                    . 'from [thinking] effort in ~/.kimi-code/config.toml -- '
-                    . 'currently low. the reply reports which level ran ]',
+                    . 'KIMI_MODEL_THINKING_EFFORT ; unset = low, always [ '
+                    . 'set here, not left to the per-model cli default ]. '
+                    . 'the reply reports which level ran ]',
                 0
             ],
             [   'model',
-                'model: k2.8 (default -- K2.8 Preview, a 2026-09 Kimi-side '
-                    . 'upgrade, "close to K3" per Kimi\'s own docs, and '
-                    . 'cheap in practice: one real multi-hour dispatch used '
-                    . 'only ~35% of a rate-limit window; \'k2.7\' still '
-                    . 'works as a deprecated alias for this same model) | k3 '
-                    . '(renamed 2026-09-17 : now means the 256k-ceiling '
-                    . 'variant -- strong reasoning, for higher-stakes '
+                'model: k2.8 (K2.8 Preview, a 2026-09 Kimi-side upgrade, '
+                    . '"close to K3" per Kimi\'s own docs, and cheap in '
+                    . 'practice: one real multi-hour dispatch used only ~35% '
+                    . 'of a rate-limit window; \'k2.7\' still works as a '
+                    . 'deprecated alias for this same model) | k3 (renamed '
+                    . '2026-09-17 : now means the 256k-ceiling variant -- '
+                    . 'strong reasoning, for higher-stakes '
                     . 'correctness-critical work, the usually-correct pick; '
                     . '\'k3-256k\' works too, same target) | k3-1m (same '
                     . 'K3-tier reasoning as k3, full 1M context, full quota '
                     . 'cost -- only when context genuinely exceeds 256k or '
                     . 'video input is needed, this is the old bare \'k3\') | '
-                    . 'k3.1 (K3.1 Pro, 1M context, newest -- cost not '
-                    . 'measured yet, try on a small task first) | k3.1-fast '
-                    . '(2x usage cost of k3.1) | k2.7-fast (3x the quota '
-                    . 'cost of k2.8 for ~6x faster output -- the priciest '
-                    . 'option here, pick it for wall-clock speed only, never '
-                    . 'as a "cheap and fast" default)',
+                    . 'k3.1 (DEFAULT -- K3.1 Pro, 1M context, newest ; with '
+                    . 'thinking low one real run cost 5h +3% \\ 7d +1%) | '
+                    . 'k3.1-fast (2x usage cost of k3.1) | k2.7-fast (3x the '
+                    . 'quota cost of k2.8 for ~6x faster output -- the '
+                    . 'priciest option here, pick it for wall-clock speed '
+                    . 'only, never as a "cheap and fast" default)',
                 0
             ],
             [   'auto_summarize',
@@ -4406,19 +4409,23 @@ sub tool_external_command {
         ## quality problems show up on a k2.7-default dispatch, that's real
         ## signal to revisit, not something to explain away.
         ##
-        ## previous reasoning [ 2026-08-16, no longer the live default ]:
-        ## defaulted to k3-256k over full k3 for the same reasoning quality at
-        ## roughly half the quota cost within a 256k context ceiling.  still
-        ## pass model=k3 explicitly when K3's specifically stronger reasoning
-        ## genuinely matters [ permission models, concurrency, protocol design
-        ## -- see project-kimi-k2.7-vs-k3-tier-economics.md's "how to apply"
-        ## ], and model=k3-1m only on the rare task whose CONTEXT
-        ## [ not reasoning difficulty ] genuinely exceeds 256k or needs video
-        ## input
-        ## -- see the 2026-09-17 alias rename note on %model_map below : 'k3'
-        ## bare now points at the 256k variant, not the 1M one, on purpose
-        ## [ the usually-correct choice should be the short name ]
-        $args->{'model'} //= 'k2.8';
+        ## previous reasoning [ 2026-08-16, no longer the live default ]:   ##
+        ## defaulted to k3-256k over full k3 for the same reasoning quality ##
+        ## at roughly half the quota cost within a 256k context ceiling.    ##
+        ## still pass model=k3 explicitly when K3's specifically stronger   ##
+        ## reasoning genuinely matters [ permission models, concurrency,    ##
+        ## protocol design                                                  ##
+        ## -- see project-kimi-k2.7-vs-k3-tier-economics.md's "how to       ##
+        ## apply" ], and model=k3-1m only on the rare task whose CONTEXT    ##
+        ## [ not reasoning difficulty ] genuinely exceeds 256k or needs     ##
+        ## video input                                                      ##
+        ## -- see the 2026-09-17 alias rename note on %model_map below :    ##
+        ## 'k3' bare now points at the 256k variant, not the 1M one, on     ##
+        ## purpose [ the usually-correct choice should be the short name ]  ##
+        ## 2026-10-29 : k3.1 + thinking low is the default -- the first     ##
+        ## measured run [ a coding state-machine change ] cost 5h +3% \ 7d  ##
+        ## +1%                                                              ##
+        $args->{'model'} //= 'k3.1';
 
         my %model_map = (
             ## renamed 2026-09-17, per user : 'k3' used bare almost always  ##
@@ -4471,6 +4478,11 @@ sub tool_external_command {
         return send_tool_result( $id,
             "invalid thinking '$kimi_thinking' : use low|high|max", 1 )
             if length $kimi_thinking and not $valid_thinking{$kimi_thinking};
+
+        ## unset = low, explicitly : the per-model default_effort in the ##
+        ## cli config [ max \ high ] must never decide the cost of a     ##
+        ## dispatch                                                      ##
+        $kimi_thinking = qw| low | if not length $kimi_thinking;
     }
 
     ## params handled here, not forwarded to the shell command ##
@@ -6481,8 +6493,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,...,.,,,..,,,..,,,.,...,,.,,,..,..,,..,,..,,...,...,..,,.,,,,..,...,,..,
-#DEMHP6FOL323P3N66XG6GL7MDBHFOY67TCOE4PXE676NBZHWOKVLWIPPP7PS276RFYUA424MSPDSG
-#\\\|QNGRVD4L2R3GE75Y32AFOGGMARCJQYANJJII7IGY6NLO6J4FT7E \ / AMOS7 \ YOURUM ::
-#\[7]2NDK4GM2IMFOTREOVQCL55X4ZIBYM6V5V56IBMMTIJ7642XNMQBI 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,..,,.,.,,.,,...,,,.,.,.,,,,,..,,...,...,.,.,.,.,,.,,,,,,,..,
+#YEFDYZHC5L44WWAQPSG2QOREHMN5ZDC6FDKMZ5VG22X5VL23UVR5JCHV46PZUFAVAEIMHM3NJU5GI
+#\\\|2YACDYKREPMJI6WSB2H2EWN5KCMPLY2RTZE5ZHHPXDDPTMBUTZ2 \ / AMOS7 \ YOURUM ::
+#\[7]DFTV443QOPAW4CKKXLS6DKLXNQ2C7EQZFBTPSYVTL2UZU2HI6GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

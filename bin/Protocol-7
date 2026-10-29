@@ -29,6 +29,69 @@ use constant TRUE    => 5;     ##  TRUE.  ##
 use constant FALSE   => 0;     ##  false  ##
 use constant UNKNOWN => 2;     ##  unknown  ##
 
+## [ todo RCM ] the sourcecode console zenka                               ##
+## [ 'update-signatures' without :agent: ] holds the unlocked signing key  ##
+## as well -- the same guarantee as bin/p7-sign-agent : no user-writable   ##
+## unsigned Inline C object from ~/.7/inline-code may be dlopen'ed in this ##
+## process, so every AMOS7 module takes its pure-perl alternative. the     ##
+## first AMOS7 module compiles during load-early signature verification -- ##
+## before <system.zenka.name> resolution -- so the zenka is resolved here, ##
+## from the invoked name chain \ bare argument, in BEGIN ahead of any      ##
+## runtime code                                                            ##
+BEGIN {
+
+    no warnings 'once';    ##  single fully-qualified package var write  ##
+
+    my $zenkaname;
+    my $walk_path  = $PROGRAM_NAME;
+    my %seen_path  = ();
+    my $walk_depth = 0;
+
+    ##  same terminal-segment rule as p7_zenka_name_from_link_name  ##
+    my @name_pattern = (
+        qr{^protocol-7\.(.+)$}i,    ##  'Protocol-7.<zenka>' form  ##
+        qr{^v7\.(.+)$}i,            ##  deprecated 'v7.<zenka>'    ##
+        qr{^p7-(.+)$}i              ##  current 'p7-<zenka>' form  ##
+    );
+
+    while ( defined $walk_path and length $walk_path and $walk_depth < 32 ) {
+        last if exists $seen_path{$walk_path};    ##  symlink cycle guard  ##
+        $seen_path{$walk_path} = TRUE;
+        $walk_depth++;
+
+        my $base_name = $walk_path;
+        $base_name =~ s|^.*[/]||;
+        foreach my $name_pattern (@name_pattern) {
+            if ( $base_name =~ $name_pattern ) {
+                $zenkaname = lc $LAST_PAREN_MATCH;
+                last;
+            }
+        }
+        last if defined $zenkaname;
+
+        my $link_target = readlink $walk_path;
+        last if not defined $link_target;
+
+        ##  a relative link target resolves against the link's own dir  ##
+        if ( $link_target !~ m|^/| ) {
+            ( my $link_dir = $walk_path ) =~ s|/?[^/]+$||;
+            $link_target = sprintf qw| %s/%s |,
+                length($link_dir) ? $link_dir : qw| . |, $link_target;
+        }
+        $walk_path = $link_target;
+    }
+
+    ## bare-argument form [ 'bin/Protocol-7 sourcecode' ] names no zenka ##
+    ## segment in the program name -- the chain leaves @ARGV untouched   ##
+    if ( not defined $zenkaname and @ARGV and $ARGV[0] !~ m{^-} ) {
+        $zenkaname = lc $ARGV[0];
+    }
+
+    ##  consulted when AMOS7::INLINE next compiles [ pure-perl only ]  ##
+    $AMOS7::INLINE::force_pure_perl = TRUE
+        if defined $zenkaname and $zenkaname eq qw| sourcecode |;
+}
+
 # is protocol 7 code? #
 our $PROTOCOL_SEVEN = TRUE;    ##  TRUE  ##
 ##
@@ -6868,8 +6931,8 @@ __DATA__
 :
 :.
 
-#,,,,,,,.,,,,,,..,,,.,,.,,,,,,.,.,,..,.,.,.,,,..,,...,...,.,.,,,.,.,,,.,,,...,
-#MHSQCQVQUXRTCWD6XBH5GLMN3ODXYXX43JSY6F4WSZ4WQSLXVV7LKKXS2CNTT772XIR3U3YKCLXWE
-#\\\|HBFKFXKBJZUUXC7ZSDF5ZBK2XSUELLTZE7DX5JKKPYIWWIMSLLH \ / AMOS7 \ YOURUM ::
-#\[7]PWXLDASYJT6AWC56GXZKYJNODR2XFIPXKVHEIBIJMLFWTB6ID4CQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,...,,.,,.,.,,.,,,,,,,..,,..,..,,...,...,.,.,.,.,,,,,,,,,,,,,
+#Q77NJYMU3XU4ZZZRPW2BB7RSWHJXWNMUUZBCPRIWAADTVNFM7K6N6IPDBOF6ZXQ5RE5DJLNOFCCRW
+#\\\|NDNHBLP5KX4JN3VLJG7OYHH23O4D72VU63RX6SCBAIS64N22PHB \ / AMOS7 \ YOURUM ::
+#\[7]VHIVU4B3GF4PNTFFU7GQSVBZ5IDYQE4YUZ77TIBPCQCGWNF3UOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

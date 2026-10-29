@@ -37,6 +37,13 @@ my $status = $task->{'execution'}->{'status'} // 'unknown';
 # Return based on task status
 if ( $status eq 'completed' ) {
     my $result = $task->{'execution'}->{'result'} // '';
+    my $review = $task->{'execution'}->{'review'};
+    if ( ref $review eq qw| HASH | and $review->{'verdict'} ne qw| pending | )
+    {
+        $result .= "\n\n[ review verdict : $review->{'verdict'} ]";
+        $result .= "\n[ review defects ]\n$review->{'defects'}"
+            if length $review->{'defects'} // '';
+    }
 
     ## empty result means task produced no output ##
     return {
@@ -72,8 +79,8 @@ if ( $status eq 'completed' ) {
     };
 }
 
-#,,,,,,..,,.,,,,.,,,,,.,.,...,.,.,,,,,,,.,,,.,.,.,...,...,,,.,.,,,,,,,,.,,..,,
-#QTGICBUP7F5GGASFDEREYCUGGL6ZQQZYI4FG4TBTNLEM6TIXI53NWIDTO5ZJYW5AOJFPSJOJR7CHI
-#\\\|KOK334RJKTKO3QAWHGGFKEXVTS4A2FSIZPI2VA3JOAVES2IDUOM \ / AMOS7 \ YOURUM ::
-#\[7]XLNYFCMDP5BFEGFSEFAE6S2JNFQ2IYFI2RNF3VLZNWKRWLIDB6CI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,...,...,...,...,.,.,,,,,..,,.,.,...,...,,..,,,,,..,,,.,,,,,,
+#LNBMEB2ACONAIGBQXPDR4TWGBT3WRAABVTJ3YIM2U2XOAPMSHKQFXYSADYGPDN6EULJRFFCRAJX4S
+#\\\|SUGDRWPJHRR6FDYUOG27C55LUNWCMVYJUHGXWVHEXYF6OALALHR \ / AMOS7 \ YOURUM ::
+#\[7]MF2UXPU3FXZWHIUDZZDC6W36MHKEKFMOMVVK3OMISV34CBRTW6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

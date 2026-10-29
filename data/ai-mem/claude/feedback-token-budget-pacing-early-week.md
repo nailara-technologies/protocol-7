@@ -51,8 +51,11 @@ confirmation, and got it).
 
 **2026-10-07** : read the numbers myself -- `p7c usage.claude` \ `p7c usage.kimi` -- before stating any usage figure ; quoted a stale pasted 8% when it was 10%. the user prefers I run them [ also when watching kimi's budget during batch dispatches ].
 
-#,,,.,...,,,,,,,,,.,.,...,..,,,,.,,..,.,.,...,.,.,...,...,.,.,.,,,.,.,...,,,,,
-#O3LUAPWVGZ6ZCUL6EXOM42DKF5HXYKT7KNSGYUKDEQUUZUMSQHHEERSSITMK64EW3A3LYLN26K3OW
-#\\\|I62XWRUGPFABIIPKPVNBNDC7EOZO2O5FCGG4JJXYOBB7ORJTQWC \ / AMOS7 \ YOURUM ::
-#\[7]IRVCGT5B4QMUW6RQX566473UN234BSMMBJYM5DMOULDC5XJUL2DY 7  DATA SIGNATURE ::
+
+**2026-10-29 :** thinking LOW is the default for kimi and for our own session -- quality stays high on current models. the real cost driver is CONTEXT GROWTH : one fresh, self-contained dispatch per piece over long kimi_continue chains ; hand a session over before its context bloats. bigger model + low thinking [ k3.1 low ] over smaller model + high for structural work. default kimi = k3.1 low [ mcp server ] ; LONG MECHANICAL tasks [ bulk renames, sweeps, many similar edits ] go to k2.8 low explicitly [ k2.7 = alias of the same model ]. 2026-10-29 runs : k2.8 low +3/+1 and +5/+2, k3.1 low +3/+1 [ 5h/7d ].
+
+#,,,.,,..,...,,.,,.,.,,,,,..,,...,,.,,...,...,.,.,...,...,..,,,.,,,.,,,..,,..,
+#ABULPJB4QJHM7JFBK3JQCJIHYRVEUZAVVXTSOHJTVCDH3E325M6664UAFJD52JKC4FZEYDOHUEWRU
+#\\\|7FDTFTL5CJEYQILVHKHIA3RB7IKVXLSANEQOTF5IR7VHEETYZ3I \ / AMOS7 \ YOURUM ::
+#\[7]II2UDQA2JBHT5OMT2CLTGPKBUTPGC2HNHM45XQG2XWFSHTZPBQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
