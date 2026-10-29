@@ -68,7 +68,8 @@ use Crypt::Misc    qw| encode_b32r decode_b32r |;
 use Digest::BMW    ();
 use AMOS7::13      qw| key_32 |;
 use AMOS7::Twofish ();
-use AMOS7::TERM    qw| read_password_single confirm_key progress_line wipe_secret |;
+use AMOS7::TERM
+    qw| read_password_single confirm_key progress_line wipe_secret |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -182,7 +183,8 @@ sub run_summary {
     my $signed = scalar keys $run->{'signed'}->%*;
     my $total  = $run->{'count'};
     progress_close();
-    return printf STDERR "%s:\n%s:.[ %s%ssigned %d of %d files%s%s : %s ]:.%s\n",
+    return printf STDERR "%s:\n%s:.[ %s%ssigned %d "
+        . "of %d files%s%s : %s ]:.%s\n",
         $C{'0'}, $C{'0'}, $signed == $total ? $C{'3'} : $C{'2'},
         $C{'B'}, $signed, $total, $C{'R'}, $C{'0'}, $reason, $C{'R'};
 }
@@ -530,22 +532,20 @@ sub run_diff {
 
 ##[ approval ]################################################################
 
-## the approval seam : slice 1 is this terminal prompt. the later slices
-## [ menu click, PIN, sized delegations, todo B2K ] replace this function
-## behind the same name and leave everything else untouched
-sub approve_run {
-    my $info = shift;    ## { run_id, work_tree, count, entries, peer_pid } ##
-    ## entries : aref of { path, chksum, length } -- the chksum prefix is ##
-    ## shown next to each path so the approving eye binds to content, not ##
-    ## just to a list of names [ todo HX4 follow-up ]                     ##
-
+## the request block : once before the prompt, again after a diff
+## [ the prompt clears the screen and calls it back through redraw ]
+sub request_show {
+    my $info = shift;
     ui_head('p7-sign-agent : signing request');
-    ui_field( qw| key |,       $key_name );
-    ui_field( qw| run |,       $info->{'run_id'} );
-    ui_field( qw| tree |,      $info->{'work_tree'} );
-    ui_field( qw| files |,     $info->{'count'} );
-    ui_field( qw| requester |, "pid $info->{'peer_pid'}",
-        "uid $info->{'peer_uid'}" );
+    ui_field( qw| key |,   $key_name );
+    ui_field( qw| run |,   $info->{'run_id'} );
+    ui_field( qw| tree |,  $info->{'work_tree'} );
+    ui_field( qw| files |, $info->{'count'} );
+    ui_field(
+        qw| requester |,
+        "pid $info->{'peer_pid'}",
+        "uid $info->{'peer_uid'}"
+    );
     ui_rule();
 
     foreach my $entry ( sort { $a->{'path'} cmp $b->{'path'} }
@@ -555,11 +555,25 @@ sub approve_run {
             $C{'R'};
     }
     ui_rule();
+    return;
+}
+
+## the approval seam : slice 1 is this terminal prompt. the later slices
+## [ menu click, PIN, sized delegations, todo B2K ] replace this function
+## behind the same name and leave everything else untouched
+sub approve_run {
+    my $info = shift;    ## { run_id, work_tree, count, entries, peer_pid } ##
+    ## entries : aref of { path, chksum, length } -- the chksum prefix is ##
+    ## shown next to each path so the approving eye binds to content, not ##
+    ## just to a list of names [ todo HX4 follow-up ]                     ##
+
+    request_show($info);
     ## one key on /dev/tty [ AMOS7::TERM::confirm_key, the ncode prompt ] ##
     my ( $answer, $reason ) = confirm_key(
         {   qw| question | =>
                 sprintf( 'sign these %d files ?', $info->{'count'} ),
             qw| reason | => TRUE,
+            qw| redraw | => sub { request_show($info) },
             qw| diff   | => sub {
                 run_diff( $info->{'work_tree'},
                     [ map { $ARG->{'path'} } $info->{'entries'}->@* ] );
@@ -795,7 +809,7 @@ sub op_run {
         },
         qw| last      | => Time::HiRes::time(),
         qw| peer_pid  | => $peer_pid,
-        qw| count     | => scalar @entries,    ## display : n of m signed ##
+        qw| count     | => scalar @entries,      ## display : n of m signed ##
         qw| signed    | => {},
     };
     my $list_chksum = bmw_b32(
@@ -808,7 +822,7 @@ sub op_run {
         $list_chksum, qw| pid |, $peer_pid );
 
     ## the approved run takes the screen : request + diff cleared, a header ##
-    ## and the format-code progress line until END                        ##
+    ## and the format-code progress line until END                          ##
     print STDERR "\e[H\e[2J";
     ui_head('p7-sign-agent : signing');
     ui_field( qw| run |,   $run_id );
@@ -824,8 +838,11 @@ sub op_run {
     }
     $run_approved{$run_id}{'label_width'}
         = $longest < $columns - 28 ? $longest : $columns - 28;
-    print STDERR progress_line( '', 0, scalar @entries,
-        $run_approved{$run_id}{'label_width'} );
+    print STDERR progress_line(
+        '', 0,
+        scalar @entries,
+        $run_approved{$run_id}{'label_width'}
+    );
     $progress_open = TRUE;
 
     return respond_ok($client);
@@ -904,8 +921,8 @@ sub op_sign {
     my $signature
         = Crypt::Ed25519::sign( $buffer, $key_public, $key_private );
     run_log_line( qw| sign |, $run_id, $rel, $peer_pid );
-    ## one redraw per FILE : a file takes hundreds of iteration signs and ##
-    ## a redraw on each one floods the terminal                          ##
+    ## one redraw per FILE : a file takes hundreds of iteration signs and a ##
+    ## redraw on each one floods the terminal                               ##
     if ( not $run->{'signed'}{$rel} ) {
         $run->{'signed'}{$rel} = TRUE;
         print STDERR progress_line( $rel, scalar keys $run->{'signed'}->%*,
@@ -974,8 +991,14 @@ run_log_open();
 my $server = socket_set_up();
 
 ui_head($protocol_name);
-ui_field( qw| key |, $key_name,
-    sprintf( 'unlocked : pub %s', substr( encode_b32r($key_public), 0, 13 ) ) );
+ui_field(
+    qw| key |,
+    $key_name,
+    sprintf(
+        'unlocked ' . ': pub %s',
+        substr( encode_b32r($key_public), 0, 13 )
+    )
+);
 ui_field( qw| socket |, $socket_path, "uid $EUID only" );
 ui_field( 'run log', $runs_log_path );
 ui_rule();
@@ -1001,8 +1024,8 @@ cleanup_exit(0);
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,..,,..,,.,,,,.,,..,,,,,...,.,,,.,.,,,.,.,,,..,,...,...,..,,...,..,,,.,,...,
-#5ZJHTP3EMBVYOQGKKC3EK5AEYJYDFRMM4MPAPGJDVBJUX337XWQIKK34PEDQXAJDEFRBYAZHLQFKC
-#\\\|5TDPXWJZBVQY4FAJF6O2OGZ7MC3CDYAFDY6SQTQT24X5WQ2QQFZ \ / AMOS7 \ YOURUM ::
-#\[7]SCH6VPRL3BDQ3C4VSMZY3ZPVMEU3O2G3XLAMJQUWTTK6KBA5Y4AQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,,,..,,.,.,...,,,.,...,,..,,,,,..,,...,...,...,,,.,,..,..,,..,,
+#FVA3R4JEMYQE5C7KMZ4M7ZDIFEFCRNBMW7VLKP3X7FHSEO34FHD3T2GSNUY4CETFY2ZGA4QXZR2C6
+#\\\|BOMOXBS3YIORYGTGB4KIMMV46VSVXAI6BIIT35IO4B6J5DVO2OY \ / AMOS7 \ YOURUM ::
+#\[7]C3AE7Z7UP5COMMDFQLFI64D75MFGI2B2HXU5774YWMWMLDFC46DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
