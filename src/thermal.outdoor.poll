@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = thermal.outdoor.poll
+# descr = request the current outdoor temperature asynchronously
+
+my $handler_params = shift // {};
+
+<[protocol-7.route-send]>->(
+    {   'command' => qw| weather.temp |,
+        'reply'   => { 'handler' => qw| thermal.handler.outdoor-reply |, },
+    }
+);
+
+return TRUE;
+
+#,,.,,.,,,,,,,...,,,,,.,,,.,,,,..,,,,,,.,,.,.,..,,...,...,.,.,..,,,,,,,,,,,..,
+#OS45DXS2TLWV6O4P7EPHNEN6LVO7XMTJ3SD3YLKLJBY7HKDMHDIXNYFJT6ALIYKMR337AWEOCBFZI
+#\\\|Y7YJAU2UB3PZZBD24IOBA672CLVDYCQYIKWB5Y6MSEQ5HRLWSUS \ / AMOS7 \ YOURUM ::
+#\[7]UV4CAG2VOR7WPPU6EX2YTC53RADVYDDHHH7CYLFAY45H7S6YZAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

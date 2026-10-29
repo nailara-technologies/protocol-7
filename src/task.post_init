@@ -53,10 +53,21 @@ my $sweep_interval = 15;
     $sweep_interval
 );
 
+## outdoor temperature for the thermal night amplifier [ step 5 ] : the ##
+## reply lands in <thermal.outdoor.*>, weather answers deferred on an   ##
+## on-demand start [ GDX ] -- stale after thermal.outdoor.max_age       ##
+<[event.add_timer]>->(
+    {   'after'    => 5,
+        'interval' => <thermal.cfg.outdoor.poll> // 600,
+        'repeat'   => TRUE,
+        'handler'  => 'thermal.outdoor.poll',
+    }
+);
+
 0;
 
-#,,,.,.,.,,,.,.,.,,,.,,,,,,,.,,,,,.,.,,,,,,,,,..,,...,...,.,.,..,,,,,,.,.,,..,
-#HUL73NGNXACBMXD7GQ236D3MMXUA4DCGE5FRP44KMOJVWRAAUCYTGB3XQES74SLABI4Y4LBOLTTMK
-#\\\|OY4UWWNSZOTM7MILPKVWL5M4RMECG3GJQT2WGSUG2TDETV3DPDQ \ / AMOS7 \ YOURUM ::
-#\[7]Y7AY6Q4ZIUE2YMDOCBHJADDZNNX5XFMQ7UV6Z5DAHQZT2PN646DY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,...,.,,,,,,,,,,,,,.,...,.,.,..,,...,..,,.,.,...,,..,...,...,
+#HB5YDXBPSZMY3YK7GOZCBOFI3KVMVCO32BF5PQL722CJY4FLOH2VFT5P5MWYOS55PQBDEMM2TJRCG
+#\\\|CF5SSOB2LXEVOANDJ4JIMUL2N7WUX2VWA3A5X2K4WRFWU3WMM3W \ / AMOS7 \ YOURUM ::
+#\[7]7V62XRSLHKS3EYGJRCPUIRWVZLP6XFE5E2K2GRNAB46ER3AWVWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

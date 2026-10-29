@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = thermal.handler.outdoor-reply
+# descr = store a numeric outdoor temperature reply
+
+my $call = shift // {};
+
+my ( $ok, $text, $why ) = <[base.reply.value]>->( $call, qw| text | );
+if ( not $ok or $text !~ m|^\s*(-?\d+(?:\.\d+)?)| ) {
+    <[base.logs]>->(
+        2,
+        ': thermal : outdoor temperature unavailable [ %s ]',
+        $ok ? $text : $why
+    );
+    return FALSE;
+}
+
+<thermal.outdoor.temp> = 0 + $1;
+<thermal.outdoor.at>   = <[base.time]>->(2);
+
+return TRUE;
+
+#,,.,,..,,.,,,,.,,,..,..,,,..,,,.,,..,,,.,.,.,..,,...,..,,,..,.,.,..,,,,,,,.,,
+#MSDG4BSA53JLUYGZ7VWPNQ7FYVKBEQA4TNF6QQC2LC2OLTQTHKRCUGZA5GXW2756PYYL5G7ZCDJ7G
+#\\\|KLKYB4M7WM2B3ZHKTFHOATRXCTOJZCDSQUOABZ6KCG4M3DHKJJB \ / AMOS7 \ YOURUM ::
+#\[7]23N4CCKZFDFPIEZY46JCGZYAHN4KZPGJJBYCFOKDYVQB62SCLODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
