@@ -32,6 +32,9 @@ use AMOS7::FILE;    ## get_homepath ##
 
 our $devmod_output_to_console = FALSE;    ##  display build warnings  ##
 
+##  set TRUE before this module compiles : pure-perl alternatives only   ##
+our $force_pure_perl;
+
 ## known inline sourcecode modules ##
 use AMOS7::INLINE::src::BitConv;
 use AMOS7::INLINE::src::AMOS_13_ELF;
@@ -51,17 +54,31 @@ my $source_registry = {
 my $subroutines_installed //= {};
 
 ##  without Inline::C every subroutine takes its pure-perl alternative  ##
-eval qq| require 'Inline/C.pm' |;
-my $inline_c_available = length $EVAL_ERROR ? FALSE : TRUE;
+##
+## $force_pure_perl : set before this module compiles                       ##
+## [ e.g. in a BEGIN block ahead of the first 'use AMOS7::..' ] to skip the ##
+## Inline::C probe and bind path unconditionally -- for processes that must ##
+## never dlopen a compiled object out of the user-writable unsigned inline  ##
+## cache [ ~/.7/inline-code, data/md/design/INLINE-OBJECT-TRUST.md ]        ##
+my $inline_c_available = FALSE;
+
+if ( not $force_pure_perl ) {
+    eval qq| require 'Inline/C.pm' |;
+    $inline_c_available = length $EVAL_ERROR ? FALSE : TRUE;
+}
 warn_err(
     "'Inline::C' is not available [ installed ? ] -- using pure-perl"
         . ' alternatives',
     1
-) if not $inline_c_available;
+) if not $inline_c_available and not $force_pure_perl;
+## the forced switch stays silent on purpose : it is a deliberate       ##
+## process-level choice [ not an abnormal state ], and load-time stderr ##
+## noise breaks tooling that compiles files -- the choosing process     ##
+## documents the switch at its own BEGIN block                          ##
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-$VERSION = qw| AMOS7::INLINE-VERSION.4U4T5NY |;
+$VERSION = qw| AMOS7::INLINE-VERSION.3UFELCI |;
 
 return TRUE;    ## true ##
 
@@ -205,7 +222,8 @@ sub compile_inline_source {
         ###                                                 ###
 
         eval {
-            die "'Inline::C' is not available\n" if not $inline_c_available;
+            die "'Inline::C' is not available\n"
+                if not $inline_c_available or $force_pure_perl;
             Inline->bind(
                 qw|  C  |         => $cleaned_source,
                 qw| name |        => $compilation_target,
@@ -260,7 +278,7 @@ sub compile_inline_source {
             ## fallback is reported below                                  ##
             warn_err( "<< compilation of '%s' not successful >>",
                 0, $current_sub_name )
-                if $inline_c_available;
+                if $inline_c_available and not $force_pure_perl;
             if ( defined &{$fallback_ref} ) {
                 warn_err(
                     "   : installing pure-perl alternative for '%s' ..,",
@@ -320,7 +338,8 @@ sub compile_inline_source {
     warn_err( '%d of %d subroutines compiled and installed',
         1, $success_count, $total_subroutine_count )
         if $success_count < $total_subroutine_count
-        and $inline_c_available;
+        and $inline_c_available
+        and not $force_pure_perl;
 
     ## returning code-ref to compiled routine ##
     return \&{"${target_package}::$subroutine_name"} if $single_func;
@@ -397,8 +416,8 @@ sub _src_digest {
 
 return TRUE ##################################################################
 
-#,,.,,...,,..,,,.,.,.,..,,,,.,.,,,,..,.,,,...,..,,...,...,,.,,,,,,..,,,,.,.,,,
-#2C36Q35SFU3SK22KDCXNVAGG4H6RP343IQYEMB3GIYRHMDQM6W6XMQRDLR4PPIP5S7EXXCRVBCTNW
-#\\\|PEWBQSHIBWNPOJW4MRJKCI2ZD5PTCFVFJ676SLO3QG7Y4CJNNZA \ / AMOS7 \ YOURUM ::
-#\[7]EBBEIS6NRGKL6VKOE5NSUGBDGEIORT6GXRJHLD2OP2S6WZZ4XWCQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,..,...,,,,,,.,,..,,,..,.,.,,..,..,,...,...,.,,,..,,,.,,..,,...,
+#B7BNOIC7WNTUG3PBK6BK73A5SLM7MKJJLODX6AK2MI4T7JTMJBJ45X7OFYDF4HTB7IND2WVVIGDNY
+#\\\|H2B7ZGWVX2YY6OPYSFV2ER6M4NW4SJ3TIVY3FASEJIPKGR7J6O7 \ / AMOS7 \ YOURUM ::
+#\[7]NSFTJB2IGPBOQEJAZVIGHGOFNWWI67QTFLJNONH5T3TTL3P4XSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

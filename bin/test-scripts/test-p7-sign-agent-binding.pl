@@ -139,6 +139,44 @@ sub wait_for_socket {
     return FALSE;
 }
 
+## todo RCM : the agent must never map an Inline object -- the compiled cache
+## under ~/.7/inline-code is user-writable and unsigned, and this process
+## holds the unlocked signing key. /proc/<pid>/maps is the strongest evidence
+## : it needs no cooperation from the agent [ no hidden report channel ] and
+## lists every mapped file. undef when unreadable.
+sub maps_inline_object_count {
+    my $pid       = shift;
+    my $maps_path = sprintf qw| /proc/%d/maps |, $pid;
+    open( my $maps_fh, qw| < |, $maps_path ) or return undef;
+    my $inline_count = 0;
+    while ( my $line = <$maps_fh> ) {
+        $inline_count++ if index( $line, qw| inline-code |, 0 ) != -1;
+    }
+    close $maps_fh;
+    return $inline_count;
+}
+
+## contrast probe : the agent's module list WITHOUT the force switch maps
+## inline-code objects when Inline::C is available -- informational, proves
+## the maps assertion below is not vacuous on this host [ returns count ]
+sub probe_plain_inline_load {
+    my @cmd = (
+        $^X,
+        qw| -I |,
+        File::Spec->catdir( $main::root_path, qw| data lib-path pm | ),
+        qw| -e |,
+        q~use AMOS7::13; use AMOS7::Assert::Truth; use AMOS7::CHKSUM::ELF;
+          use AMOS7::TERM; use AMOS7::NTIME; use DynaLoader ();
+          print scalar grep { m|inline-code| }
+              @DynaLoader::dl_shared_objects~
+    );
+    open( my $probe_fh, '-|', @cmd ) or return undef;
+    my $count = <$probe_fh>;
+    close $probe_fh;
+    return unless defined $count and $count =~ m|^\d+$|;
+    return 0 + $count;
+}
+
 ## spawn an agent in its own session [ no controlling tty ] with a pipe to its
 ## stdin and its stderr captured to a log file
 my @spawned_pid;
@@ -244,6 +282,22 @@ my ( $socket_one, $log_one, $stdin_one, $pid_one ) = spawn_agent(
 );
 
 ok( wait_for_socket($socket_one), 'agent 1 serves its socket' );
+
+## todo RCM : /proc maps -- no inline-code object in the agent's address space
+## [ the switch is set in its BEGIN block, before any AMOS7 module ]
+my $maps_count_one = maps_inline_object_count($pid_one);
+ok( defined $maps_count_one && $maps_count_one == 0,
+    'agent 1 maps no inline-code object [ /proc maps ]'
+) or say "       inline-code mappings : $maps_count_one";
+
+my $probe_count = probe_plain_inline_load();
+if ( defined $probe_count and $probe_count > 0 ) {
+    say "  note : unguarded perl maps $probe_count inline-code "
+        . "object(s) -- the assertion above is not vacuous here";
+} else {
+    say '  note : Inline::C unavailable or no inline-code object '
+        . 'mapped unguarded -- the assertion above stands on its own';
+}
 
 my $hello = agent_request( $socket_one, qw| HELLO | );
 ok( defined $hello && $hello =~ m|^OK p7-sign-agent:002 |,
@@ -407,6 +461,10 @@ my ( $socket_three, $log_three, undef, $pid_three ) = spawn_agent(
     'key_fd_data' => $priv_three
 );
 ok( wait_for_socket($socket_three), q|agent 3 starts with the handed key| );
+my $maps_count_three = maps_inline_object_count($pid_three);
+ok( defined $maps_count_three && $maps_count_three == 0,
+    q|agent 3 maps no inline-code object [ /proc maps ]|
+) or say "       inline-code mappings : $maps_count_three";
 my $hello_three = agent_request( $socket_three, qw| HELLO | );
 ok( defined $hello_three
         && index( $hello_three, encode_b32r($pub_three), 0 ) != -1,
@@ -446,8 +504,8 @@ if ( $fail_count == 0 ) {
 say "$fail_count check(s) FAILED";
 exit 1;
 
-#,,,,,,..,,,.,,,,,,.,,,.,,,..,..,,,,,,..,,.,.,..,,...,...,,.,,,,,,,,.,,,.,.,,,
-#YHDKJ7LHKMJFPNACDTFWJ675CI6STTI6HDIQA4IES5LX6STPJ2LRW6432MVIKOGGU4CLXRU2UGQOW
-#\\\|QIAN3CAA3CXKJHWQIXNTEQBQ3ARDHK3INJUNWWKRRHSQ3I5HJHA \ / AMOS7 \ YOURUM ::
-#\[7]4EN477IQQKFUUYGY3BIDYW6HY4CSPZGLEWXRE5TQPSGKL6WAGKCI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,.,,..,.,.,,.,,,..,.,,,.,.,,,.,..,,...,...,,..,,.,,,.,,,.,,,.,,
+#BJ57PDZ776ZEW6ZZMTK3MB2QJMC3QXU5PP3H3YNTCRIPJMW5AHYRVO66QJ2BTBX3RFB4PPGMXMYGI
+#\\\|HIRHEYDIXBHWXCXWDILVWPAUUNHNGBXAWSIN57YOYQTUGNFCKZB \ / AMOS7 \ YOURUM ::
+#\[7]FXJFRYWHIMKPHD352GJXQJBPBRDWTWFYOL5WOVBX2PRDOOIMP4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

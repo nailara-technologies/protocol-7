@@ -65,9 +65,20 @@ use File::Spec     ();
 use Time::HiRes    ();
 use POSIX          ();
 
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
 BEGIN {
     ## repo layout first [ bin/ + data/lib-path/pm ] ##
     unshift @INC, "$FindBin::Bin/../data/lib-path/pm", "$FindBin::Bin";
+    ## no Inline C object in this process, ever : the compiled cache under ##
+    ## ~/.7/inline-code is user-writable and carries no signature          ##
+    ## [ todo RCM ] -- this process holds the unlocked signing key, so     ##
+    ## every AMOS7 module takes its pure-perl alternative. set in BEGIN,   ##
+    ## before the first AMOS7 module compiles ; the ctrl-r restart re-runs ##
+    ## this block in the new process                                       ##
+    $AMOS7::INLINE::force_pure_perl = TRUE;
 }
 
 use AMOS7::NTIME   qw| ntime_b32_now |;
@@ -78,10 +89,6 @@ use AMOS7::13      qw| key_32 |;
 use AMOS7::Twofish ();
 use AMOS7::TERM
     qw| read_password_single confirm_key progress_line wipe_secret |;
-
-##[ global constants ]##
-use constant TRUE  => 5;    ##  TRUE.  ##
-use constant FALSE => 0;    ##  false  ##
 
 binmode STDOUT, ':encoding(UTF-8)';
 binmode STDERR, ':encoding(UTF-8)';
@@ -1310,8 +1317,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,..,,,.,...,,.,,,,,,.,,,...,...,,.,,,,.,.,,,..,,...,...,..,,.,,,.,,,,,.,,.,,
-#WAHJC77BAZCTYOIEADAY25X5GYUMV3EN3UO2NBBXYV4ITXPZGBRWHERCWPXJH3RU6CDZ5AY5KXDIE
-#\\\|RO3O4RB4E6IY5K7YFHH726K2ZAUS43PR7WKKOY6X6KAMNXCQVWA \ / AMOS7 \ YOURUM ::
-#\[7]VB45SVOOCMBYYEYFCEFGYF23Q32MKXEYC7MMNIPFAQDF6CMTL2DY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,,,,,..,,...,,,.,..,,,.,,.,.,..,,...,...,.,.,..,,.,.,...,,..,
+#H3G76QTWIDHRS6H5BL3PXW2JRXS4B2UKRIHWT4EHVKZBBFCO6J33FRAHD3HZPAO42K76K3RNMG6W6
+#\\\|4RN2CIUIL4FDNYSYL35I75B7AW5DOBAUC4SOONEPXZNSRJWDPFY \ / AMOS7 \ YOURUM ::
+#\[7]PWXX5FOPGXKLPMZAUNBU3JANJZBBZHA3FZ5FKD4MY56OG6Z7S2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
