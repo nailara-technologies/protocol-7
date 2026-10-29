@@ -1186,16 +1186,22 @@ function startJobEvents() {
         if (opened) syncPipeline();
         opened = true;
     };
-    jobEvents.addEventListener('jobs', () => {
-        if (jobEventsDebounce) clearTimeout(jobEventsDebounce);
-        /* a delete already left the list locally : the pull finds nothing */
-        /* new and skips render, so an open trash panel reloads here       */
-        jobEventsDebounce = setTimeout(() => {
-            syncPipeline();
-            if (trashPanelVisible) loadTrashPanel();
-        }, 300);
-    });
+    jobEvents.addEventListener('jobs', refreshSoon);
     jobEvents.onerror = () => { startPoll(); };
+}
+
+/* one delayed follow-up pull : a change event, a rescue or the sync button */
+/* -- calls inside the window merge. a delete already left the list locally, */
+/* so that pull finds nothing new and skips render : an open trash panel     */
+/* reloads here too                                                          */
+const REFRESH_SOON_MS = 1200;
+function refreshSoon() {
+    if (jobEventsDebounce) clearTimeout(jobEventsDebounce);
+    jobEventsDebounce = setTimeout(() => {
+        jobEventsDebounce = null;
+        syncPipeline();
+        if (trashPanelVisible) loadTrashPanel();
+    }, REFRESH_SOON_MS);
 }
 
 /* ── score helpers ── */
@@ -2368,6 +2374,7 @@ document.getElementById('btn-logout').addEventListener('click', logout);
 
 document.getElementById('btn-sync').addEventListener('click', () => {
     lastNtime = 0; saveCache(); syncPipeline();
+    refreshSoon();
 });
 
 window.reassessAllVisible = () => {
@@ -2710,6 +2717,7 @@ async function rescueTrashJob(id, btn) {
         /* pull the rescued job into view on next poll — it's now in review */
         lastNtime = 0;
         syncPipeline();
+        refreshSoon();    /* jobsite's push lands a moment later */
     } catch (e) {
         notify('rescue fehler: ' + e.message, true);
         btn.textContent = '↩ rescue';
