@@ -21,6 +21,9 @@ for my $held_id ( keys %{ <jobsite.tasks> // {} } ) {
         and not $armed->{$held_id};
 }
 
+## a running liveness check holds its job's slot too [ Q2K ] ##
+$in_flight += scalar keys %{ <jobsite.liveness_pending> // {} };
+
 my $queue = <jobsite.assess_queue> // [];
 
 while ( $in_flight < $parallel ) {
@@ -82,6 +85,12 @@ while ( $in_flight < $parallel ) {
         last;
     }
 
+    ## stale job data : liveness check first, it keeps the slot [ Q2K ] ##
+    if ( <[jobsite.liveness.start]>->( $job_id, $entry ) ) {
+        $in_flight++;
+        next;
+    }
+
     <[base.logs]>->(
         1,       '[job:%s] dispatching assessment [ remaining : %d ]',
         $job_id, scalar $queue->@*
@@ -125,8 +134,8 @@ while ( $in_flight < $parallel ) {
     $in_flight++;
 }
 
-#,,,.,.,.,.,,,.,.,..,,.,.,,,,,.,.,.,,,.,,,..,,..,,...,...,,,.,,,.,.,.,,.,,,.,,
-#YUCN4YZRBAQEZ6AT3KMGGE2DRUZDTL6OR7MGPNIODPNC3GGTTVPCNX5K6MLAIQXNSPLW4SD33UHFA
-#\\\|IBGVTBO53O4L4T2RE6MGFOGK3426JITXG42AE72JDTWVONZMPGG \ / AMOS7 \ YOURUM ::
-#\[7]4VBCOSIV67TPYYCGMHBWQEWJY2DPIRJPIDNGOATNVO4Q7OOFQ4CY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,...,,.,,..,,,,.,,,.,,.,,.,,,..,,...,...,,.,,...,.,.,,,.,...,
+#UVIN63RYEDHVHDAPCB35UZCVHGPDYXRQR3WJ7TEXUSFN3COMN3YZ6X6MFG6CUVGO2IDIRIAK6M2EY
+#\\\|YR3RGVHSXR4VDLOT5IO7I3LXVIQKOE5M6QW6BKKY6XQRGMN3ZXA \ / AMOS7 \ YOURUM ::
+#\[7]C6GLORBDKJHJGUDTDTTDBRGI5MXZ4ANKYN5SJV5H4JVG2VFSKQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

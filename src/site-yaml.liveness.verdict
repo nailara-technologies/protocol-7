@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = site-yaml.liveness.verdict
+# descr = fetch result -> liveness verdict hash
+# param = $url, $raw_result [ page html, or a numeric http code ]
+# return = { verdict => alive | gone | unknown, code, valid_through }
+
+## 404 \ 410 = gone. any other code [ 403 \ 429 rate limit, 5xx, 599 ] is   ##
+## unknown, never gone. a 200 page may still be a dead posting : the portal ##
+## keeps the page and flags "isOffline":true -- an expired listing that was ##
+## re-posted answers 200 with a fresh validThrough                          ##
+## [ 2026-10-29, valid_through in august, live again ] so the STORED date   ##
+## proves nothing                                                           ##
+
+my ( $url, $raw_result ) = @ARG;
+$raw_result //= 599;
+
+if ( $raw_result =~ m{\A\d+\z} ) {
+    return {
+        'verdict' => $raw_result =~ m{\A4(?:04|10)\z} ? 'gone' : 'unknown',
+        'code'    => 0 + $raw_result,
+    };
+}
+
+return { 'verdict' => qw| gone |, 'code' => 200, 'offline' => TRUE }
+    if $raw_result =~ m{"isOffline"\s*:\s*true};
+
+my $job = <[site-yaml.stepstone.job_from_html]>->( $url, $raw_result );
+
+## no json-ld job posting and no offline flag : can not tell ##
+return { 'verdict' => qw| unknown |, 'code' => 200, 'why' => "$job" }
+    if ref $job ne qw| HASH |;
+
+return {
+    'verdict'       => qw| alive |,
+    'code'          => 200,
+    'valid_through' => $job->{'valid_through'} // '',
+};
+
+#,,.,,,.,,,,.,..,,.,.,,.,,..,,,..,..,,..,,,,,,..,,...,...,,..,.,.,.,.,,,.,,,,,
+#AE252XKILPDIQ4ADU3Y52ITSVNLT3JVBKK7DSZLNV2ZE63GBX4MXNLBR7VQT3O26ORDUIR6NVKUG2
+#\\\|DJ27PTVEJJ2PNHKY2TBY7GRC3WFGV3VPGPR3QSF5LVXBFKHTBKM \ / AMOS7 \ YOURUM ::
+#\[7]HMAVZQ6O2JB34NZ5SATYNPDZ7ZGD2WTTY4DVQM2GUXG27MLVCIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

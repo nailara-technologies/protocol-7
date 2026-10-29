@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = jobsite.liveness.start
+# descr = stale job data : ask site-yaml if the posting lives
+# param = $job_id, $entry [ the assess queue entry ]
+# return = TRUE when a check went out [ it holds the slot ], else FALSE
+#
+# notes = todo Q2K. a job fetched long ago [ a stray from a weeks-old
+#         site-yaml store, a backlog that waited for hours ] is checked
+#         before its llm pass. age = now - the newer of fetched_at and
+#         live_at [ live_at = the last passed check ; fetched_at stays the
+#         ui sort key ]. neither stamp = stale. verdicts :
+#         jobsite.liveness.apply
+
+my ( $job_id, $entry ) = @ARG;
+
+my $max_age = <jobsite.cfg.liveness_max_age> // 43200;
+return FALSE if $max_age !~ m|^\d+$| or $max_age == 0;    ## disabled ##
+
+my $job = <[jobsite.job.read]>->($job_id) // {};
+my $url = $job->{'url'}                   // '';
+return FALSE if not length $url;    ## nothing to check : assess ##
+
+my ($stamp) = sort { $b <=> $a }
+    grep { defined and m|^\d+$| } $job->{'fetched_at'}, $job->{'live_at'};
+return FALSE if defined $stamp and time - $stamp < $max_age;
+
+my $pending = <jobsite.liveness_pending> //= {};
+my $token   = <[base.gen_id]>->($pending);
+
+$pending->{$job_id} = {
+    'token' => $token,
+    'entry' => $entry,
+    'timer' => <[event.add_timer]>->(
+        {   'after'   => <jobsite.cfg.liveness_timeout> // 180,
+            'handler' => 'jobsite.handler.liveness-timeout',
+            'data'    => { 'job_id' => $job_id, 'token' => $token },
+        }
+    ),
+};
+
+<[base.logs]>->(
+    1,
+    '[job:%s] stale job data [ %s ], liveness check first',
+    $job_id,
+    defined $stamp
+    ? sprintf( '%.1f h', ( time - $stamp ) / 3600 )
+    : 'no fetch stamp'
+);
+
+<[protocol-7.route-send]>->(
+    {   'command' => ( <jobsite.cfg.fetch_zenka> // qw| site-yaml | )
+            . '.liveness',
+        'call_args' => { 'args' => "url=$url" },
+        'reply'     => {
+            'handler' => 'jobsite.handler.liveness-reply',
+            'params'  => { 'job_id' => $job_id, 'token' => $token },
+        },
+    }
+);
+
+return TRUE;
+
+#,,,,,.,,,.,.,,..,.,.,.,,,.,.,.,.,.,.,,..,...,..,,...,...,..,,.,,,,.,,..,,,..,
+#7JJOYLUDV5SFPSCH3OCXDD2TA25ITLYMQLMEH3LEY6P6ZDPEQP2MX4XF23I5TTVTRBCDWAV3343KA
+#\\\|SVBSB7VAZUYBYJUPHSGRG2AMPO54Q5J5A3QMZFIH5MAFYYBD5R4 \ / AMOS7 \ YOURUM ::
+#\[7]DV2WRXCUFGXMIPIBO3HTHDKYOIEW3OXE4BQL6DH7XUU7FDDT4CBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

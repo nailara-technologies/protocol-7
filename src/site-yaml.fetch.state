@@ -37,11 +37,13 @@ if ( $op eq qw| load | ) {
 }
 
 if ( $op eq qw| save | ) {
-    ## ids are the encoded job ids already [ site-yaml.stepstone.* ] ##
+    ## ids are the encoded job ids already [ site-yaml.stepstone.* ] a ##
+    ## liveness item holds a reply id of THIS run : not saved          ##
     my $queue = [
         map {
             { %{$ARG} }
-        } @{ <site-yaml.fetch_queue> // [] }
+        } grep { not defined $ARG->{'liveness'} }
+            @{ <site-yaml.fetch_queue> // [] }
     ];
 
     my $payload = {
@@ -67,8 +69,8 @@ if ( $op eq qw| save | ) {
 
 return FALSE;
 
-#,,,.,,..,,..,.,.,...,,,.,..,,,.,,,,,,..,,,,.,.,.,...,...,,.,,.,,,.,,,..,,,..,
-#X7CSWDLKD7WMVQATVELYJKEAVQG5Y7C35J4VZORWOBQLTHIGIDTCJ4JL5QY3QMF7RJZYD73OQPHOY
-#\\\|NY2JIYKYTN5UNPQZ5MP3I3WSEFA4TK4FFHYM5ERXQHVP6WMTQ6A \ / AMOS7 \ YOURUM ::
-#\[7]GZTA7KFXRLQA47FQNB3EHQABFYK5PUBTGLDXBUJOSQVT4R3IICDA 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,..,,,,.,,.,,..,,.,,,.,.,..,,.,.,...,...,,..,,,,,.,,,,.,,,,,,
+#6E4CFKSDSORW5ZUEMMCWRFRNG354PKVYGWGWTQEUTRYYUZOQGQBGYNBESHIDGJ7LTLS4EQMZ7WMCS
+#\\\|KDVA4ND2ZSUTJRFCCYUU7T5YJVQOKQW2XXPGTZUKAYRDSQV7UJY \ / AMOS7 \ YOURUM ::
+#\[7]CG6QQFSQSR2C6EHNNUKGPROZ7FIMSSFT2E77BQPZTLCBIGCDTKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

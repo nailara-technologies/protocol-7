@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = jobsite.handler.liveness-reply
+# descr = site-yaml liveness verdict for one job
+
+my $call   = shift             // {};
+my $params = $call->{'params'} // {};
+
+my ( $ok, $verdict, $why ) = <[base.reply.value]>->( $call, qw| json | );
+if ( not $ok or ref $verdict ne qw| HASH | ) {
+    $verdict = { 'verdict' => qw| unknown |, 'why' => $why // 'no hash' };
+}
+
+<[jobsite.liveness.apply]>->(
+    $params->{'job_id'} // '',
+    $params->{'token'} // '', $verdict
+);
+return;
+
+#,,,.,,..,.,.,.,.,.,,,.,.,,..,.,,,,..,.,.,...,..,,...,...,...,...,..,,.,.,.,,,
+#5MVDGN5224I7MVDSAYIKQACZQ5QNNULBREIM4EO4FSJBDQZHJ3SBNNYKAQQTDGNR6XOEKNP62Y3LO
+#\\\|3PXHMFNDW6VRP7CZSL3TG5PDKRWS7SH2OKBNJ5BO7CWAPFNZ35H \ / AMOS7 \ YOURUM ::
+#\[7]Q2GVCTYAXPVXCBGCHFLJWHL4ZGLUBKA5S5HX6WB7NOTZGBI6NOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
