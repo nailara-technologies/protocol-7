@@ -6037,11 +6037,14 @@ sub tool_p7_sign {
         $id,
         sprintf "job %s started [ %d file%s%s ]\napprove in the "
             . "p7-sign-agent terminal ; poll "
-            . "p7_sign_status(job=\"%s\")",
+            . "p7_sign_status(job=\"%s\")\nto be notified : run "
+            . "bin/dev/p7-sign-wait %s as a background command [ it "
+            . "exits with the final state ]",
         $job,
         scalar @paths,
         @paths == 1 ? ''                     : 's',
         $bump       ? ', version bump first' : '',
+        $job,
         $job
     );
 }
@@ -6303,8 +6306,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,.,,,.,,.,.,,,,,,,,,.,,,,..,...,,,.,,..,..,,...,...,...,..,,.,,,.,,,.,.,
-#6MRGDGAN7TG6JMFXUHGKKAOPISPLKVQYBUXUPUPM3IPTDGUBM4TJ4TYPUEL2XUDMIT3OAP27HMCF2
-#\\\|AMHCEPMYKIFPGCLTGW4NSV362DH5CCYQ5YGFNGKSNAV3SNNMDWL \ / AMOS7 \ YOURUM ::
-#\[7]MPJTFELGQDAIBI7ETXXJEQQPBF7EF32EK7P2BCPCHRZRK7O4D4CQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,,,.,,,.,,,.,,,,,,,.,,..,...,..,,...,...,...,.,,,.,.,,,.,,..,
+#VKQI5HNFD6ZKYXLH6ARWERYV6CNRC4UX62QH3IRUH6JOPJUFEQGIG4YE2FH7CT5AXAGVDT6BH6UDE
+#\\\|EAXIUOMBPYQMNJ7UA6NBN6E6KWMXCG7DJULTJFII5AYWRWV7HLX \ / AMOS7 \ YOURUM ::
+#\[7]2NVC5HNIQTE5NN5ETTW336XKCWWVHFLBTS2TA3PZZAKBGPSRDYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
