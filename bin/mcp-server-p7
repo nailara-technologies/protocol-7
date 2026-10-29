@@ -152,10 +152,12 @@ my @external_tools = (
                     . 'K3-tier reasoning as k3, full 1M context, full quota '
                     . 'cost -- only when context genuinely exceeds 256k or '
                     . 'video input is needed, this is the old bare \'k3\') | '
-                    . 'k2.7-fast (3x the quota cost of k2.8 for ~6x faster '
-                    . 'output -- the priciest option here, pick it for '
-                    . 'wall-clock speed only, never as a "cheap and fast" '
-                    . 'default)',
+                    . 'k3.1 (K3.1 Pro, 1M context, newest -- cost not '
+                    . 'measured yet, try on a small task first) | k3.1-fast '
+                    . '(2x usage cost of k3.1) | k2.7-fast (3x the quota '
+                    . 'cost of k2.8 for ~6x faster output -- the priciest '
+                    . 'option here, pick it for wall-clock speed only, never '
+                    . 'as a "cheap and fast" default)',
                 0
             ],
             [   'auto_summarize',
@@ -237,10 +239,12 @@ my @external_tools = (
                     . 'K3-tier reasoning as k3, full 1M context, full quota '
                     . 'cost -- only when context genuinely exceeds 256k or '
                     . 'video input is needed, this is the old bare \'k3\') | '
-                    . 'k2.7-fast (3x the quota cost of k2.8 for ~6x faster '
-                    . 'output -- the priciest option here, pick it for '
-                    . 'wall-clock speed only, never as a "cheap and fast" '
-                    . 'default)',
+                    . 'k3.1 (K3.1 Pro, 1M context, newest -- cost not '
+                    . 'measured yet, try on a small task first) | k3.1-fast '
+                    . '(2x usage cost of k3.1) | k2.7-fast (3x the quota '
+                    . 'cost of k2.8 for ~6x faster output -- the priciest '
+                    . 'option here, pick it for wall-clock speed only, never '
+                    . 'as a "cheap and fast" default)',
                 0
             ],
             [   'auto_summarize',
@@ -4324,6 +4328,10 @@ sub tool_external_command {
             ## two                                                        ##
             'k2.7'      => 'kimi-code/kimi-for-coding',
             'k2.7-fast' => 'kimi-code/kimi-for-coding-highspeed',
+            ## K3.1 Pro [ added 2026-10-29, 1M context ; cost per task not ##
+            ## measured yet -- the highspeed variant is 2x usage cost ]    ##
+            'k3.1'      => 'kimi-code/k3.1-pro',
+            'k3.1-fast' => 'kimi-code/k3.1-pro-highspeed',
         );
         if ( defined $args->{'model'} ) {
             my $resolved = $model_map{ lc $args->{'model'} };
@@ -5982,8 +5990,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,.,.,.,,,..,,,,.,.,.,,.,,...,..,,,,,,,..,..,,...,...,...,,.,,.,.,.,.,,..,
-#C5NZZWT6I34BOZJWJGC54YWS4DSSKCJ5FKT2TLQESPUBRIKILPSDJJHLI6KT6J6FNS34CP4OC6XEE
-#\\\|5TKZ3LDWAKWJOS3PXPKM5XWMYKHR2GW72YJQVTWNZHVMOR3D6HB \ / AMOS7 \ YOURUM ::
-#\[7]OVIQITEH65EFPKCEQ26E2FSW7THWGEJ6TQCSUXNCDG6WEF54VKDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,..,,.,.,,..,,,,,,.,,.,,,,.,,..,,...,..,,.,.,,..,,,,,...,...,
+#EOF45SP2I3PYFRMMIUM2GCJQU6PQBSOSNEBALU6VDGUPY4ASGWJMYEB6LMBQUJBQVGUAYVJ5XU2F4
+#\\\|GO7CC7TMX4YAKUMFYQFDDGHNS7KGF3RYECCITUTBTBC4CVPYXFJ \ / AMOS7 \ YOURUM ::
+#\[7]SJJVW7PLXOFRAHOYKIVJ43ZC47AGO5D2D2F6QYYQR5WNU5VFSUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
