@@ -89,7 +89,7 @@
             ## explicit web.* list [ no wildcard ] : exactly the commands the      ##
             ## httpd/httpsd zenki send, found by source sweep --                  ##
             ##   web.process_template_ipc  src/httpd.process_template:88          ##
-            ##   web.jobs-data web.jobs-sync  cfg/zenki/httpd/routes relays       ##
+            ##   web.jobs-data web.jobs-events web.jobs-sync [ httpd routes ]    ##
             ##   web.context  src/httpd.route.handler.context:13 [ POST /context ] ##
             ##   web.request  src/httpd.route.handler.web-relay:51 route default  ##
             ##   web.auth-login  src/httpd.route.handler.web-login [ POST         ##
@@ -102,7 +102,7 @@
             ## mint tokens. httpsd authenticates as user 'httpsd' : its own grant  ##
             ## below, only what the https jobsite ui and templates relay         ##
             access.cmd.usr.httpsd =  web.process_template_ipc \
-                                     web.jobs-data web.jobs-sync \
+                                     web.jobs-data web.jobs-events web.jobs-sync \
                                      web.jobs-sync-foreign \
                                      web.context web.request \
                                      web.auth-login web.auth-status \
@@ -112,7 +112,7 @@
                                      jobsite.get-prefs jobsite.set-prefs
 
             access.cmd.usr.httpd  =  web.process_template_ipc \
-                                     web.jobs-data web.jobs-sync \
+                                     web.jobs-data web.jobs-events web.jobs-sync \
                                      web.jobs-sync-foreign \
                                      web.context web.request \
                                      web.auth-login web.auth-status \
@@ -532,8 +532,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,.,,.,.,..,,,,.,,.,,,,.,,,.,,.,,,..,.,.,,,.,.,.,...,...,.,.,.,,,...,.,,,,..,
-#5EILOG5K2BHNHONNTTEDW4QDHPBPHTE6EDVDDY65NHOZY3MFFBI5TD5O7HQUJWVRKAD335OXIVBT6
-#\\\|5ML3WBFE5SMONNDR6PWTJZGGUUOCAL5OEAJBD7VKJAK2DEXNPGG \ / AMOS7 \ YOURUM ::
-#\[7]3T6HWRGB3YSPOTO66UQJPQ7CPRPMLYP2ODEJVT6E52Q6OMPCCKCA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,,,,.,,,.,,,,,,.,.,.,.,.,.,.,.,.,.,...,...,,.,,,,.,..,,,,,,...,
+#ND4I2KC7F23HZUVYW75X5GDHDVKDYQWR4SRWOHHU4JB4THQXWS6EQPIEK5SPQEXJJPU3D7HPG3STE
+#\\\|52JLFT7AHTUVPARVFF2TTAKC4L6R2SHV2OUMHQCDRGM4PADG7B5 \ / AMOS7 \ YOURUM ::
+#\[7]IH2VEOKR5UZ2BTFX4ZX6EPXLNANOOIYJCUCNYGZNDCND47MVHECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

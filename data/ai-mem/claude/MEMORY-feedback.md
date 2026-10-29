@@ -242,3 +242,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|N2DIOUA5FMVJ47VIHG7KPX6T2IOEJX2ISB765FWPQR2SOUCX6U6 \ / AMOS7 \ YOURUM ::
 #\[7]BBEQHKYR2XFC63V2O5VGF4ZNPY5J672JY33OC2THNBFPHD2HICCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [new-module-whitelist-and-resign-version-files](feedback-new-module-whitelist-and-resign-version-files.md) — a NEW src module in a whitelisted zenka needs bin/dev/gen-sub-whitelist <zenka> in the same sign run [ plan:true missed it, reload source hides it ] ; a 2nd sign run for one commit must list the 3 version files too
+
+#,,..,,..,,,.,...,,,,,.,,,,.,,,.,,,,.,.,.,,,.,..,,...,...,,.,,,.,,,,,,,.,,..,,
+#J6Q7P7Q3ZKAVUE224LQLP635VKEXDXWFTPWALHDH6OY5UKVQIBVC3P3NAUEYU2LF3YOHCITRUXN54
+#\\\|AGKEGJPZJNL53O35X5REBM77S2QLIBTHCPHDG2X72NQ6KY7ZK3E \ / AMOS7 \ YOURUM ::
+#\[7]VIQXYPDHD5OCKTIRBFQOCRYHZ3BKFNOYQUG6IOZ4KPHSULH53EDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

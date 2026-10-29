@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = plugin.web.jobs.events.send
+# descr = write an SSE chunk to every subscriber and drop closed streams
+
+my $chunk = shift // '';
+return FALSE if not length $chunk;
+
+my $subscribers = <plugin.web.jobs.events.subscribers> //= {};
+for my $key ( keys %{$subscribers} ) {
+    my $h = $subscribers->{$key};
+    next if <[base.stream.push]>->( $h, \$chunk );
+    <[base.stream.close]>->($h);
+    delete $subscribers->{$key};
+}
+
+if ( not keys %{$subscribers}
+    and defined <plugin.web.jobs.events.heartbeat_timer> ) {
+    <plugin.web.jobs.events.heartbeat_timer>->cancel
+        if <plugin.web.jobs.events.heartbeat_timer>->is_active;
+    <plugin.web.jobs.events.heartbeat_timer> = undef;
+}
+
+return TRUE;
+
+#,,,,,..,,...,,..,...,...,.,.,.,.,..,,.,,,,,.,..,,...,...,...,,,.,,.,,.,.,..,,
+#CWZ3QUW2LRZVCT5BBA7GG6BGQ5FED3VXXAL4FDG2225G6PRJRVFNUX3K6CJBQHEXERRJ43BM4CUQG
+#\\\|UYG5M7AHVYRFXGTT56GPLNTILJ2ERFUXZUMYVI3VYMHABIIS3YB \ / AMOS7 \ YOURUM ::
+#\[7]CIQIU4RLISWDOHWHJCVDC5Z6LVNTYIILPI4QADVWFRWXDQIBAABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
