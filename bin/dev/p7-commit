@@ -1,0 +1,206 @@
+#!/usr/bin/perl
+use v5.32.0;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+###                  ###
+##  p7-commit         ##
+###                  ###
+
+## the commit step of the commit manager
+## [ todo ZA2 slice 2,  data/md/design/COMMIT-MANAGER.md ] -- the message is
+## PREPARED while the session that did the work is warm, the commit happens
+## any time later :
+##
+## p7-commit prepare -op <new|amend|amend-message|reset> < message the hook's
+## form check
+## [ bin/dev/git-hooks/commit-msg, the same rules as at commit time ] on a
+## copy -> stored with the operation and a checksum of the staged diff ->
+## prints the id  p7-commit commit <id>  the staged diff must still match the
+## checksum [ else 'stale' : the message describes other content ] -> git
+## commit [ --amend with AMEND=1 for the amend operations ] -> prints the new
+## hash  p7-commit show <id>
+##
+## signing stays a separate step
+## [ p7_sign \ p7-sign-run, the op decides its update-version mode ] -- this
+## tool never touches a key
+
+use FindBin;
+use Cwd         ();
+use JSON::PP    ();
+use Digest::BMW ();
+use File::Temp  ();
+use POSIX       ();
+
+BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+use Crypt::Misc qw| encode_b32r |;
+
+my $root_path = Cwd::abs_path("$FindBin::Bin/../..");
+chdir $root_path or die "p7-commit : chdir $root_path : $OS_ERROR\n";
+my $state_dir = "$root_path/data/state";
+my $json      = JSON::PP->new->canonical->pretty;
+
+my %operations = map { $ARG => 1 } qw| new amend amend-message reset |;
+
+sub fail { say STDERR "p7-commit : $ARG[0]"; exit 1 }
+
+sub git_out {    ## colors off, the shell's git config forces them on ##
+    open( my $fh, '-|', qw| git -c color.ui=false |, @ARG ) or return '';
+    local $INPUT_RECORD_SEPARATOR;
+    my $out = <$fh> // '';
+    close $fh;
+    return $out;
+}
+
+## what the commit will contain : the staged diff, binary-safe ##
+sub staged_chksum {
+    my $ctx = Digest::BMW->new(256);
+    $ctx->add( git_out(qw| diff --cached --binary --no-color |) );
+    return encode_b32r( $ctx->digest );
+}
+
+sub state_path {
+    my $id = shift // '';
+    fail('unknown id') if $id !~ m|^p7-commit-\d+-\d+$|;
+    return "$state_dir/$id.json";
+}
+
+sub state_read {
+    my $path = state_path(shift);
+    open( my $fh, '<:raw', $path ) or fail("no prepared commit [ $path ]");
+    local $INPUT_RECORD_SEPARATOR;
+    return $json->decode(<$fh>);
+}
+
+sub state_write {
+    my ( $id, $state ) = @ARG;
+    my $path = state_path($id);
+    open( my $fh, '>:raw', "$path.tmp" ) or fail("$path : $OS_ERROR");
+    print {$fh} $json->encode($state);
+    close $fh;
+    rename "$path.tmp", $path;
+    return;
+}
+
+my $command = shift // '';
+
+##[ prepare ]#################################################################
+
+if ( $command eq qw| prepare | ) {
+    my $op = qw| new |;
+    while ( defined( my $arg = shift ) ) {
+        $op = shift // '' if $arg eq qw| -op |;
+    }
+    fail("operation '$op' [ new | amend | amend-message | reset ]")
+        if not $operations{$op};
+
+    my $message = do { local $INPUT_RECORD_SEPARATOR; <STDIN> }
+        // '';
+    fail('empty message') if $message !~ m|\S|;
+
+    ## the hook itself checks the form [ and strips llm metadata in place ] --
+    ## one set of rules for prepare and commit
+    my $tmp = File::Temp->new( DIR => $state_dir, SUFFIX => '.msg' );
+    binmode $tmp, ':encoding(UTF-8)';
+    print {$tmp} $message;
+    close $tmp;
+    my $hook     = "$root_path/bin/dev/git-hooks/commit-msg";
+    my $hook_out = qx| "$hook" "$tmp" 2>&1 |;
+    if ( $CHILD_ERROR != 0 ) {
+        print STDERR $hook_out;
+        fail('message form refused [ the commit-msg hook, above ]');
+    }
+    open( my $read_fh, '<:encoding(UTF-8)', "$tmp" ) or fail("$OS_ERROR");
+    $message = do { local $INPUT_RECORD_SEPARATOR; <$read_fh> };
+    close $read_fh;
+
+    my $staged = git_out(qw| diff --cached --name-only |);
+    fail('nothing staged')
+        if $op ne qw| amend-message | and not length $staged;
+
+    my $id = sprintf 'p7-commit-%d-%d', time(), $PID;
+    state_write(
+        $id,
+        {   qw| op |            => $op,
+            qw| message |       => $message,
+            qw| staged_chksum | => staged_chksum(),
+            qw| staged_files |  => [ split m|\n|, $staged ],
+            qw| prepared |      => time(),
+            qw| status |        => qw| prepared |,
+        }
+    );
+    say $id;
+    exit 0;
+}
+
+##[ commit ]##################################################################
+
+if ( $command eq qw| commit | ) {
+    my $id    = shift;
+    my $state = state_read($id);
+    fail("already $state->{'status'} [ $state->{'commit'} ]")
+        if $state->{'status'} ne qw| prepared |;
+
+    ## the message describes the content staged at prepare -- anything else ##
+    ## would commit text that does not match it                             ##
+    if ( staged_chksum() ne $state->{'staged_chksum'} ) {
+        $state->{'status'} = qw| stale |;
+        state_write( $id, $state );
+        fail('stale : the staged content changed since prepare');
+    }
+
+    my $amend = $state->{'op'} =~ m|^amend|;
+    local $ENV{'AMEND'} = 1 if $amend;
+    my $msg_file = File::Temp->new( DIR => $state_dir, SUFFIX => '.msg' );
+    binmode $msg_file, ':encoding(UTF-8)';
+    print {$msg_file} $state->{'message'};
+    close $msg_file;
+
+    my @cmd = ( qw| git commit -q -F |, "$msg_file",
+        $amend ? qw| --amend | : () );
+    my $out = do {
+        my $pid = open( my $fh, '-|' ) // fail("fork : $OS_ERROR");
+        if ( $pid == 0 ) {    ## the hooks report on stderr : both read ##
+            open( STDERR, '>&', \*STDOUT );
+            exec(@cmd) or POSIX::_exit(127);
+        }
+        local $INPUT_RECORD_SEPARATOR;
+        my $text = <$fh> // '';
+        close $fh;
+        $text;
+    };
+    my $rc = $CHILD_ERROR >> 8;
+    $out =~ s|\e\[[0-9;]*m||g;
+    if ( $rc != 0 ) {
+        $state->{'status'} = qw| refused |;
+        $state->{'report'} = $out;
+        state_write( $id, $state );
+        print STDERR $out;
+        fail('git commit refused [ the hooks, above ]');
+    }
+    my $hash = git_out(qw| log -1 --format=%h |);
+    chomp $hash;
+    $state->{'status'} = qw| committed |;
+    $state->{'commit'} = $hash;
+    state_write( $id, $state );
+    say $hash;
+    exit 0;
+}
+
+##[ show ]####################################################################
+
+if ( $command eq qw| show | ) {
+    my $state = state_read(shift);
+    print $json->encode($state);
+    exit 0;
+}
+
+fail('p7-commit prepare -op <op> < message | commit <id> | show <id>');
+
+#,,,.,.,.,,.,,,,,,,,.,.,,,,.,,,..,.,.,.,.,..,,..,,...,...,,..,.,.,,,,,...,,,,,
+#2RN7LEQWY27FSXAMK7JYFO4CWRNDWL5YS36CHOWZ7WEIM5I5JR6GQE6IPHYGKGXKGBZMS37P2BLEY
+#\\\|R3C5GGJK2UHCY7WOBMJCDB5P4CQEPP76FXYFE57QT72XEMZLHJT \ / AMOS7 \ YOURUM ::
+#\[7]5K36KJN3MAVGBPWKHQZ5FLMT523FKSFTWIZZYYJFQIGSJLJXTUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

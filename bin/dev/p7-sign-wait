@@ -9,10 +9,10 @@ use warnings;
 ##  p7-sign-wait      ##
 ###                  ###
 
-## wait for a p7_sign job [ bin/dev/p7-sign-run ] to reach its final state,
-## then print it and exit -- 0 approved, 1 otherwise. for callers that get
-## notified when a background command ends
-## [ the p7_sign mcp tool itself never waits ] :
+## wait for a p7_sign job [ bin/dev/p7-sign-run ] or a p7_commit
+## [ bin/dev/ p7-commit ] to reach its final state,  then print it and exit --
+## 0 approved, 1 otherwise. for callers that get notified when a background
+## command ends  [ the p7_sign mcp tool itself never waits ] :
 ##
 ## p7-sign-wait <job> [ <timeout seconds, default 3600> ]
 
@@ -23,7 +23,7 @@ use JSON::PP ();
 my $job     = shift // '';
 my $timeout = shift // 3600;
 die "p7-sign-wait <job> [ <timeout seconds> ]\n"
-    if $job !~ m|^p7-sign-\d+-\d+$| or $timeout !~ m|^\d+$|;
+    if $job !~ m{^p7-(?:sign|commit)-\d+-\d+$} or $timeout !~ m|^\d+$|;
 
 my $root_path  = Cwd::abs_path("$FindBin::Bin/../..");
 my $state_path = "$root_path/data/state/$job.json";
@@ -37,7 +37,9 @@ while (1) {
     };
     if ( ref $state eq 'HASH' ) {
         my $status = $state->{'status'} // '';
-        my $final  = $status =~ m{^(?:approved|denied|aborted|failed)$};
+        my $final
+            = $status
+            =~ m{^(?:approved|denied|aborted|failed|committed|refused|stale)$};
         $status = 'failed [ job process gone ]'
             if not $final
             and $state->{'pid'}
@@ -45,11 +47,13 @@ while (1) {
         if ( $final or $status =~ m|^failed| ) {
             say "$job : $status";
             say "run    : $state->{'run_id'}" if $state->{'run_id'};
+            say "commit : $state->{'commit'}" if $state->{'commit'};
             say sprintf 'signed : %d of %d', $state->{'signed'} // 0,
-                scalar @{ $state->{'paths'} // [] };
+                scalar @{ $state->{'paths'} // [] }
+                if $state->{'paths'};
             say "reason : $state->{'denied_reason'}"
                 if length( $state->{'denied_reason'} // '' );
-            exit( $status eq 'approved' ? 0 : 1 );
+            exit( $status =~ m{^(?:approved|committed)$} ? 0 : 1 );
         }
     }
     if ( time() > $deadline ) {
@@ -59,8 +63,8 @@ while (1) {
     select( undef, undef, undef, 2 );
 }
 
-#,,,.,.,.,,..,,.,,,.,,.,.,.,,,.,.,,,.,,.,,.,,,..,,...,...,..,,,..,.,,,,..,.,.,
-#IOPZQ3HLCIJLQPUZ7FD7MNFCMOYME6BMQKFB3K7ZXW4PTJLSUTUTOSY7V4DXUX2BMHSEMB32DWG7A
-#\\\|2THYSBAJVAUSNUFCCE4WHRAWWL5JFVRVSF2RU3T7L246D7SKS5Y \ / AMOS7 \ YOURUM ::
-#\[7]WIE2YKPZSIWP76D3OJCIGPP4VMZ7LUQPVQ2VQUAWJEP2OAJLUMDY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,,.,,.,.,...,,,.,..,,.,,,...,..,,...,...,.,.,.,.,..,,...,,,.,
+#RI26R4Z7TIXMN3JPXT62GQRJE3UTLFD4HHGCGP5HZJ3XQVDA2HIQHT5ADDIFD3R5DXDSFK3KHTLWC
+#\\\|JORCBJFN5NJK3TCEIJXE5J5WAHOQQNMH55DQTDEPCKM33AV3VHV \ / AMOS7 \ YOURUM ::
+#\[7]DU4PSPMJNVT6H4PXN4LJIZK3JJXXKLOHB4JPYMCVLIZ3LNF6QSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

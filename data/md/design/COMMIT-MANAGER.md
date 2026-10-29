@@ -9,6 +9,20 @@ status : design [ 2026-10-29 ], from the HX4 follow-up session. builds on
 `work.console.commit` [ "LLM-friendly commit with auto-signing" ] -- extend
 or retire it, never run both.
 
+landed [ 2026-10-29 ] :
+
+- slice 1 : `p7_sign` \ `p7_sign_status` over `bin/dev/p7-sign-run` -- the
+  signing chain as a detached job, phases preparing \ awaiting-approval \
+  signing \ approved .. ; `bin/dev/p7-sign-wait <job>` for a notified
+  caller
+- slice 2 : `p7_commit_prepare` \ `p7_commit` \ `p7_commit_status` over
+  `bin/dev/p7-commit` -- the hook checks the message form at prepare, the
+  staged-diff checksum makes a later change `stale`, the commit runs
+  detached ; `p7_sign` takes the same `op` for its update-version mode
+- `dep-graph -affected-zenki` + `p7-sourcecode affected-zenki` [ 2SL ]
+- open : the automatic requirement chain [ which steps a change needs ],
+  the stale-message redraft
+
 ## why
 
 one session [ 2026-10-29 ] hit every manual gap at least once :
@@ -114,8 +128,8 @@ amend, and a new commit can never skip its version. the hook accepts `AMEND`,
 - `bin/admin/vc_commit` -- message length \ harmony gate
 - `bin/dev/git-hooks/pre-commit` -- permissions, version files, signature check
 
-#,,,,,...,,..,,.,,,,,,,.,,,.,,,,.,...,.,,,...,..,,...,...,,,,,,..,,..,,,.,,.,,
-#ORBIKFPNRQCF26B67RAWNMVW6T6D3A3DLWCD3BSLAWDH6542GA2N67HPFWK6BCA3RAJB7YKECY7YE
-#\\\|FZHERIGXE5P2UPHKTN2PCJEDDYECKN6KUYSAD35LIL6RE7RCDKT \ / AMOS7 \ YOURUM ::
-#\[7]CAP77PQH3GLQIIOCBRDAFNQZOI4FKF37QCYVR5UIRQPZEYMTCSCQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,,,.,.,.,.,.,,..,.,.,,,,,,.,,..,,...,..,,.,.,..,,,,.,,.,,.,.,
+#5HKPPQWXHVHO2RXKA7VLNK5RSZEHPUDW6CO3TDUENZKXQV37MKXXGXLCDGBB7Q2YCXCTXTIS6VFDY
+#\\\|3VEM53H4E2LKCHKAW4B6LVP2AFIFX2AF4EZIKE43ZW6MCERF3VY \ / AMOS7 \ YOURUM ::
+#\[7]J24NFBRBX4POAEDGNGWQ3MSVSXLKISKR2QX3BKFFQWPOIHSY2ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
