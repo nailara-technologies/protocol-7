@@ -612,7 +612,14 @@ sub preprocess_source {
     for my $chain ( collect_concat_chains($doc) ) {
         my $start_line = $chain->[0]->location->[0];
         my $end_line   = $chain->[-1]->location->[0];
-        next if $start_line == $end_line;    ## already one physical line ##
+        ## one physical line : only format-code's own leftovers -- every ##
+        ## joint at whitespace                                           ##
+        ## [ a later reflow pulled a split back onto one line ]. a joint ##
+        ## inside a word or marker [ '└' . '─', 'pm-src.' . 'X' ] is     ##
+        ## deliberate and stays                                          ##
+        next
+            if $start_line == $end_line
+            and not concat_joints_at_whitespace($chain);
         $concat_chain_by_start_line{$start_line} //= $chain;
     }
 
@@ -1544,14 +1551,25 @@ sub split_into_lines {
 ## it, so a suboptimal split [ manual edit, an older tool version, .. ]     ##
 ## would otherwise be stuck forever ; this fixes that the same way step4    ##
 ## does for comment blocks -- collapse to canonical form first, then        ##
-## re-derive, so repeated runs converge instead of drifting                 ##
+## re-derive, so repeated runs converge instead of drifting  every joint of ##
+## a chain at whitespace : the left fragment ends with one or the right one ##
+## starts with one [ how split_into_lines breaks a string ]                 ##
+sub concat_joints_at_whitespace {
+    my $chain = shift;
+    for my $i ( 1 .. $#{$chain} ) {
+        my $left  = substr( $chain->[ $i - 1 ]->content, 1, -1 );
+        my $right = substr( $chain->[$i]->content,       1, -1 );
+        return 0 if $left !~ m{\s\z} and $right !~ m{\A\s};
+    }
+    return 1;
+}
+
 sub step0_rejoin_concat_chain {
     my ( $lines, $chain ) = @_;
 
     my @toks       = @$chain;
     my $start_line = $toks[0]->location->[0];
     my $end_line   = $toks[-1]->location->[0];
-    return undef if $start_line == $end_line;
 
     ## same quote char throughout , no embedded raw newlines in any     ##
     ## fragment -- otherwise too risky to rejoin reliably , leave alone ##
@@ -3400,8 +3418,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,.,,...,..,,,,,,..,,,,,,,..,.,.,,.,,..,,..,,...,...,...,,..,.,,,.,.,..,,
-#D5QRJGIVATJXYHQABLUUMTK2DPGVV7DA5BGMMC745ETJV7EJDZOMWQJQ725RHJUOVVC4HE64LXD3Q
-#\\\|XJJKDWX3KN64JKCWJXCA6DI4R6J55ISN6HCCQ44RKN22X7PR2GR \ / AMOS7 \ YOURUM ::
-#\[7]4CN2WTVBHUKS5UNECFQK6BIZI6YTAWYDNOZ2UGKANJP2AK3UX2BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,...,,,.,.,.,,.,,,,,,.,.,,,,,..,,...,...,.,,,,..,...,..,,.,,,
+#FHBOMLG3YNO5JOS7FZKRW3OYKQ2SMIXGTIJYD6JMOCRXIWSYIH65LBG4MSHDH2VB7XBCUQEMPQ5UC
+#\\\|QAX26FCYDHCHT36I7YO6JLFZR7QA3TMMULK5BWNRQVSWK3KO5HY \ / AMOS7 \ YOURUM ::
+#\[7]6GEEIYID2ZE4BUF6UXCCCMIAEXW343C7ZJ3QHKAO5KVJZPUQIODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
