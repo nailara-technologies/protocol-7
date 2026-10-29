@@ -227,3 +227,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|GBPAXHDBOWHI4V43TOJY2ROGH52HKPACSL5NKD4KWLCIPHHMXSM \ / AMOS7 \ YOURUM ::
 #\[7]7UOK5OHX46CFDHH2SC6XL4N5OBFNNQAYCVD2OL6NC62OZBKDD6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [mx-topology-plan](project-2026-10-29-mx-topology-plan.md) — 2026-10-29 owner : only MX today = postfix on atom ; after the smtpd zenka takes over : yourum primary, pri secondary, delta third [ US, deprioritized ] ; later NY \ Dallas \ LA US nodes
+
+#,,,,,..,,.,,,,.,,,,,,,.,,,,,,..,,,,,,.,.,,,,,..,,...,...,,..,.,,,,.,,,,,,,,,,
+#YXMITNV2FGFI6DX4ORN7WB2YOGLAUMSOUMOGAFWDZYYIWUPVOHNOXTUUOJGLZ7QMNHE4CAVIKJHFM
+#\\\|WIMYIBRRHNWF6UK5GFXBE3TR3MBG676RH5DJSWLXAQI67DJIHEZ \ / AMOS7 \ YOURUM ::
+#\[7]FQISV2ZWV46SJAU2KPARJ5LB2XRTTBDYEJGVJTMOMHFPHGY3LCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
