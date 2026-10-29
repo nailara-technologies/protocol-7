@@ -234,12 +234,13 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|WIMYIBRRHNWF6UK5GFXBE3TR3MBG676RH5DJSWLXAQI67DJIHEZ \ / AMOS7 \ YOURUM ::
 #\[7]FQISV2ZWV46SJAU2KPARJ5LB2XRTTBDYEJGVJTMOMHFPHGY3LCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-- [session-handover-jobsite-live-updates](project-2026-10-29-session-handover-jobsite-live-updates.md) — START HERE 2026-10-29 night : live updates done + confirmed, WY5 deployed [ check the next scan ], next Q2K, ZRK round 2 ; how-to-work list [ whitelist, version files, unsigned files, aborted sign runs ]
+- [session-handover-jobsite-live-updates](project-2026-10-29-session-handover-jobsite-live-updates.md) — previous [ superseded 2026-10-29 late ] 2026-10-29 night : live updates done + confirmed, WY5 deployed [ check the next scan ], next Q2K, ZRK round 2 ; how-to-work list [ whitelist, version files, unsigned files, aborted sign runs ]
 - [jobsite-live-update-chain](project-2026-10-29-jobsite-live-update-chain.md) — LANDED 2026-10-29 : push_soon 3 s, web sync-soon nudge for ui deletes, SSE /jobs-events [ signal only ], browser timers [ events throttle, actions own timers ] ; httpd route option syntax, remote queue-depth + owed rescan fixes
 - [thermal-aware-local-worker](project-2026-10-29-thermal-aware-local-worker.md) — DESIGN 2026-10-29 : local gpu in pool gated by temp \ memory \ idle \ night window \ outdoor amplifier, all configurable ; heat wanted after 22:00
+- [session-handover-thermal-q2k](project-2026-10-30-session-handover-thermal-q2k.md) — START HERE 2026-10-29 late [ last 344e62e56 ] : Q2K deployed, thermal 1-5 watch-only over night, GDX fixed ; next : night snapshots, wire verdict into the pool
 
-#,,,.,...,,.,,.,.,,,.,..,,.,,,.,.,,,.,.,.,..,,..,,...,...,...,,,,,,.,,.,,,.,.,
-#P255RPT7XEC5HH6DAVKHOAAXUJEROTUSDFQP7VJ56EKXQYJIR74A43MSBBSCAMPTYTBCH5F7YFJC2
-#\\\|JKK7VPJ3CXTM4ABQDWTOC2JVYATDUOFPR7PYJVUTR53V34DE4V5 \ / AMOS7 \ YOURUM ::
-#\[7]RCI42U7WSSOOHTBU3ZZE2NV45FOSGCZLLM72SJRPUSNYIED4BKAQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,.,,,,.,,,..,,.,,,,,,,.,,...,..,,...,...,..,,...,,.,,.,.,.,,,
+#XAMSQHO36KTBVXSFB2ZY7KKQIE33OOFUBAELYTQ54Y3PPHT5BTNLYPYYHX322UWGDMJV324H4HJRS
+#\\\|G6EKLZDKCGY576664VRFFATB3ZSLJQ3I2DMDCI5HS7G5YKPQQ6O \ / AMOS7 \ YOURUM ::
+#\[7]XZRPTN7LG3XBTK3BM2W2NTFBZDLDVRI5VBWTUK2HX2HBH5RASQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
