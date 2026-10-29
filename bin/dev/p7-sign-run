@@ -20,8 +20,8 @@ use warnings;
 ## approval stays in the user's p7-sign-agent terminal -- this job only
 ## submits and watches. its state goes to a JSON file at every phase :
 ##
-## starting -> versioning -> awaiting-approval -> signing ->  approved |
-## denied | aborted | failed
+## starting -> versioning -> preparing -> awaiting-approval -> signing ->
+## approved | denied | aborted | failed
 ##
 ## p7-sign-run -state <file.json> [ -version ] <path> [ <path> .. ]
 ##
@@ -123,7 +123,9 @@ if ($bump_version) {
 
 my $log_offset = -s $runs_log // 0;    ## this job's lines come after ##
 
-state_write( qw| status | => qw| awaiting-approval | );
+## preparing : update-signatures formats, versions and checksums first ; ##
+## awaiting-approval only once the agent logs the request [ on screen ]  ##
+state_write( qw| status | => qw| preparing | );
 
 my $sign_pid = open( my $sign_fh, '-|' );
 die "p7-sign-run : fork : $OS_ERROR\n" if not defined $sign_pid;
@@ -142,6 +144,14 @@ my $poll_run_log = sub {
     while ( my $line = <$log_fh> ) {
         my ( undef, $kind, $id, @rest ) = split m| |, $line;
         next if not defined $kind;
+        if (    $kind eq qw| request |
+            and not defined $run_id
+            and $state->{'status'} eq qw| preparing | ) {
+            state_write(
+                qw| status | => qw| awaiting-approval |,
+                qw| run_id | => $id
+            );
+        }
         if ( $kind eq qw| begin | and not defined $run_id ) {
             $run_id = $id;
             state_write(
@@ -221,8 +231,8 @@ finish(
     qw| report | => $report
 );
 
-#,,.,,..,,,.,,,.,,.,,,,,,,.,,,.,.,,,.,,..,..,,..,,...,...,,.,,...,..,,,,.,..,,
-#GHRF3GVPVKBHHHOZ6ICPGGQHLCH3MWDLXW74Z5ZVAJSHBKFUHGJK5XBWP5MGJUPFYLONZHKAT73EI
-#\\\|LVSJA6G4DQXSJUGILH5BRMITV7IPIUEFM7A5YGQLXNTY53WSGNV \ / AMOS7 \ YOURUM ::
-#\[7]UHKJP65DWRBMSHPV522LCVPQFEIQWWHZC7BEBZ3FADBYV5J6VOBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,,,,,.,.,.,..,,.,,,,,,,,.,,,..,..,,...,...,,.,,.,,,,.,,,,.,...,
+#UOJXE5QZEKWRYHNSQKBFM3XSNUESQ57X4Q7DKNCUKILXCELK47UYU5IYZTPQ3RFGTPT7IS2QLQYSA
+#\\\|223LWPWWFE362X5RIEL7EKEJZLRMYHTKYHARXVJI3D2LPJNWQ2G \ / AMOS7 \ YOURUM ::
+#\[7]ITJ2D4OWLKP63NZXTMP2FNVGCWYGEOB52GVQ6SSV3XMLNKQSHECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

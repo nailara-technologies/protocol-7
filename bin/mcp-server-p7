@@ -332,9 +332,9 @@ my @external_tools = (
     {   'name'        => 'p7_sign_status',
         'description' =>
             'phase + result of a p7_sign job : starting \ versioning \ '
-            . 'awaiting-approval \ signing \ approved \ denied [ with '
-            . 'the decoded reason ] \ aborted [ with the report ] \ '
-            . 'failed. returns within a second, read-only.',
+            . 'preparing \ awaiting-approval \ signing \ approved \ '
+            . 'denied [ with the decoded reason ] \ aborted [ with the '
+            . 'report ] \ failed. returns within a second, read-only.',
         'params' => [ [ 'job', 'the job id p7_sign returned', 1 ], ],
         ## no 'command' : routed by name to tool_p7_sign_status ##
     },
@@ -355,7 +355,7 @@ my @external_tools = (
         'params' => [
             [ 'prompt', 'the task or question for claude to work on', 1 ],
             [   'model',
-                'model: haiku|sonnet|opus|fable ' . '(default: sonnet)', 0
+                'model: haiku|sonnet|opus|fable (default: sonnet)', 0
             ],
             [ 'max_budget', 'max USD to spend (default: 1.00)', 0 ],
             [   'auto_summarize',
@@ -398,7 +398,7 @@ my @external_tools = (
             ],
             [ 'prompt', 'the next instruction for the resumed session', 1 ],
             [   'model',
-                'model: haiku|sonnet|opus|fable ' . '(default: sonnet)', 0
+                'model: haiku|sonnet|opus|fable (default: sonnet)', 0
             ],
             [ 'max_budget', 'max USD to spend (default: 1.00)', 0 ],
             [   'auto_summarize',
@@ -5713,7 +5713,7 @@ sub tool_claude_cloud_result {
     );
     push @lines, '', "diffstat $base...$remote_branch :";
     push @lines,
-          defined $d_err ? "[ diffstat " . "failed : $d_err ]"
+          defined $d_err ? "[ diffstat failed : $d_err ]"
         : length $d_out  ? $d_out
         :                  '[ no changes ]';
 
@@ -6183,7 +6183,7 @@ sub tool_kimi_check_status {
         my $tail_cmd    = sprintf 'tail -n 5 %s', quotemeta($wire_file);
         my $last_events = qx( $tail_cmd 2>/dev/null );
         $turn_ended = 1
-            if index( $last_events // '', '"type": ' . '"TurnEnd"' ) >= 0
+            if index( $last_events // '', '"type": "TurnEnd"' ) >= 0
             or index( $last_events // '', '"type":"agent.turn.ended"' ) >= 0;
     }
 
@@ -6303,8 +6303,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,.,.,...,,,,,,,.,.,.,,.,,.,.,,..,,,.,,..,..,,...,...,,..,.,.,,..,,..,,.,,
-#ZMVLNWQS5M76YKO6JEP33BBYGMHAP5BSDCT72ZKQWPM5E2JN5JOQCL6D22PHBPPKYAS5HFZAJES5Y
-#\\\|XOKNMAXSCOPBA3GAA5EYST24PLCTCDFWHS7GRAYO354PY227X3K \ / AMOS7 \ YOURUM ::
-#\[7]4Y4DP5KB7WP7LB2F6AUMCVMM5XFZUT7WVR6LG5HCMBXD765GKMCI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,,,,,,,,,.,,,,..,...,,,.,,..,..,,...,...,...,..,,.,,,.,,,.,.,
+#6MRGDGAN7TG6JMFXUHGKKAOPISPLKVQYBUXUPUPM3IPTDGUBM4TJ4TYPUEL2XUDMIT3OAP27HMCF2
+#\\\|AMHCEPMYKIFPGCLTGW4NSV362DH5CCYQ5YGFNGKSNAV3SNNMDWL \ / AMOS7 \ YOURUM ::
+#\[7]MPJTFELGQDAIBI7ETXXJEQQPBF7EF32EK7P2BCPCHRZRK7O4D4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
