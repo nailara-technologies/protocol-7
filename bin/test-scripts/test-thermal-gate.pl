@@ -35,6 +35,7 @@ use constant FALSE => 0;
 
 our %data;
 our %code;
+our $call;
 
 my $fail_count = 0;
 
@@ -746,6 +747,91 @@ ok( $code{'thermal.hover.step'}->(135) == 20
     'a hold steps at most 20 s, then looks again'
 );
 
+say ': 23. temperature boosts lift the night hover mark';
+my $hot_boost = { 'until' => $night_at + 60, 'level' => 'hot', 'delta' => 8 };
+ok( $hover_gap->( 70, qw| run |, $night_at, $hot_boost ) == 0
+        && $hover_gap->( 78, qw| run |, $night_at, $hot_boost ) == 30,
+    'hot boost adds eight degrees to the night mark'
+);
+my $warm_boost
+    = { 'until' => $night_at + 60, 'level' => 'warm', 'delta' => 4 };
+ok( $hover_gap->( 73, qw| run |, $night_at, $warm_boost ) == 15,
+    'warm boost adds four degrees to the night mark'
+);
+my $full_boost
+    = { 'until' => $night_at + 60, 'level' => 'full', 'delta' => 'full' };
+ok( $hover_gap->( 82, qw| run |, $night_at, $full_boost ) == 0,
+    'full boost disables the hover mark' );
+ok( $hover_gap->( 82, qw| pause |, $night_at, $full_boost ) == 180,
+    'full boost preserves the pause verdict' );
+ok( $hover_gap->(
+        70, qw| run |,
+        $night_at, { 'until' => $night_at, 'level' => 'hot', 'delta' => 8 }
+    ) == 30,
+    'expired boost behaves as none'
+);
+ok( $hover_gap->( 82, qw| run |, $day_at, $full_boost ) == 0,
+    'boost leaves the no-hover day window unchanged'
+);
+
+compile_module('coding.thermal.boost_active');
+compile_module('coding.cmd.temp-boost');
+my $temp_boost = sub {
+    $call = { 'args' => shift };
+    return $code{'coding.cmd.temp-boost'}->();
+};
+delete $data{'coding'}{'thermal'}{'boost'};
+$task_now = 5000;
+my $boost_reply = $temp_boost->('');
+ok( $boost_reply->{'mode'} eq qw| size |
+        && $boost_reply->{'data'} eq 'no boost',
+    'command reports no active boost'
+);
+$boost_reply = $temp_boost->('42');
+ok( $boost_reply->{'mode'} eq qw| size |
+        && $data{'coding'}{'thermal'}{'boost'}{'until'} == $task_now + 42 * 60
+        && $data{'coding'}{'thermal'}{'boost'}{'level'} eq qw| hot |
+        && $data{'coding'}{'thermal'}{'boost'}{'delta'} == 8,
+    'command defaults to a 42 minute hot boost'
+);
+$boost_reply = $temp_boost->('off');
+ok( $boost_reply->{'data'} eq 'boost ended'
+        && !exists $data{'coding'}{'thermal'}{'boost'},
+    'off ends the boost immediately'
+);
+$boost_reply = $temp_boost->('999');
+ok( $boost_reply->{'mode'} eq qw| size |
+        && $boost_reply->{'data'} =~ m|capped at 180 min|
+        && $data{'coding'}{'thermal'}{'boost'}{'until'}
+        == $task_now + 180 * 60,
+    'command caps long boosts at 180 minutes with a note'
+);
+$boost_reply = $temp_boost->('10 scorching');
+ok( $boost_reply->{'mode'} eq qw| false |
+        && $boost_reply->{'data'} =~ m|warm, hot, full|,
+    'unknown boost level is refused with the level list'
+);
+$boost_reply = $temp_boost->('on');
+ok( $data{'coding'}{'thermal'}{'boost'}{'until'} == $task_now + 42 * 60
+        && $data{'coding'}{'thermal'}{'boost'}{'level'} eq qw| hot |,
+    "'on' starts the default 42 minute hot boost"
+);
+$boost_reply = $temp_boost->('full');
+ok( $data{'coding'}{'thermal'}{'boost'}{'until'} == $task_now + 42 * 60
+        && $data{'coding'}{'thermal'}{'boost'}{'delta'} eq qw| full |,
+    'a bare level runs for the default time'
+);
+$boost_reply = $temp_boost->('warm 15');
+ok( $data{'coding'}{'thermal'}{'boost'}{'until'} == $task_now + 15 * 60
+        && $data{'coding'}{'thermal'}{'boost'}{'delta'} == 4,
+    'level and minutes in any order'
+);
+$boost_reply = $temp_boost->('10 20');
+ok( $boost_reply->{'mode'} eq qw| false |, 'two numbers are refused' );
+ok( $code{'base.time'}->(2) != $code{'base.ntime'}->(),
+    'test time and monotonic time stubs remain different'
+);
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -754,8 +840,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,...,,.,,.,,,,,,,...,,..,...,,.,,,.,,,,.,..,,...,...,,,.,.,.,,.,,...,.,,,
-#Q5RHMW3XWWM53NSBVKSQIKZXDKBK5MJTDE37VPW4IVP5PSDM2LRJXLPKZZ2MCUYBFA4DCAEIR7IGE
-#\\\|YG4W7GATTE5XCJW6B6SJIMGQOZG36WKUNIHSSXBLMPBAKJSBLFJ \ / AMOS7 \ YOURUM ::
-#\[7]BTN5YRZOHIRMKXBVSA43YMEJRKLPEAZI6J3A4OYJHIXO3MCZVACY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,,.,,,.,,,.,,.,.,.,,,.,.,,..,..,,...,..,,...,,..,.,,,,.,,.,.,
+#GFXP5XOWVWX4BGD4GEWQAP6WESVIXPOJ3TP5WR4EROIEZSJMSRSJN6FPBFRNV22YB7YJ5SI27GTCU
+#\\\|YPCAICS4AQCCOZCI7AQ4K7ND6NLOEIGA7YXOBVPIVKP3ET4GZJX \ / AMOS7 \ YOURUM ::
+#\[7]CW5MTS3GFNW24GALUKV75A5P43G26T3EKDMAR3LAGCLXUSOGKMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

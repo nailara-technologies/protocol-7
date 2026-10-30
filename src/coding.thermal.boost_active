@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = coding.thermal.boost_active
+# descr = return the active temperature boost and clear an expired one
+# param = [ now ]
+
+my $now   = @ARG ? shift : <[base.time]>->(2);
+my $boost = <coding.thermal.boost>;
+
+return undef  if ref $boost ne qw| HASH |;
+return $boost if ( $boost->{'until'} // 0 ) > $now;
+
+delete <coding.thermal.boost>;
+<[base.logs]>->( 1, 'thermal boost : ended' );
+return undef;
+
+#,,.,,,.,,,,.,,..,,.,,,..,,.,,.,.,...,,,.,..,,..,,...,...,..,,.,,,.,.,...,.,.,
+#YMG3D55LMXPZTAHLZXI7GPKJNWUZVJE7MI5QJ6NAGMANKKFQHOJ73SUZZXFJ4N5I55VH2HW77IMNQ
+#\\\|K2BU65C5AW7F6WCUHJ5ZTXOPVGDZD567GLGQJCOPSFNJDEAP5JU \ / AMOS7 \ YOURUM ::
+#\[7]X4HB4CADESPVIVYUCLYMCUQTXN5W7YOZ5L6M6E7QIBRHOAPAGGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
