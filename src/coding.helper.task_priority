@@ -31,10 +31,13 @@ if ( exists $params->{size} && $params->{size} eq 'large' ) {
     $priority += 1;
 }
 
+## background queue work [ :background: ] goes behind direct requests ##
+$priority += 2 if $params->{'background'};
+
 return $priority;
 
-#,,,,,,,.,...,,,.,,,,,,.,,,..,.,.,...,,,.,,.,,..,,...,...,,,.,...,,..,,..,,..,
-#5JHVCQ5O2UGOBFA56HFGHEZ3QMLLFGQBMYWNN37QZB2RRVTG4BW3543ZRLPFWIHAD23WEUTWZM2CI
-#\\\|D7K7OOBW3RNV2GQFAVT7MAODIUTNF6TLZ7RYYYXNV6Y6HXGEHTD \ / AMOS7 \ YOURUM ::
-#\[7]MCXCCVT6AT6FOXNJU5AT77GLCX4MWB2B5XRBFNJQUWJ35CJ4XCDI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,..,.,,,,..,.,.,.,,,.,.,.,.,,,,,..,,...,..,,.,.,.,.,...,,,,,..,,
+#2FI2GAHLLFZVRJWAHTJBAT63QU3OJYWMBDZQYJHJJRX5RJ2RL2Z5WJJJ4PGWOLKH6GBKXMCRAXVES
+#\\\|BMOCP65BH6EKBGQBPJN3NDYCMXR3UQSSBD5RSG5ROPBVDMZJTEP \ / AMOS7 \ YOURUM ::
+#\[7]ALBFJPKXYML6DEH3TMUXFUUO2ARJPD5TGMKZMQH3BVHDOIUS2WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

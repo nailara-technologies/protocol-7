@@ -117,6 +117,12 @@ my %backend_cmd = (
     'local'     => 'coding.ask-reply',
 );
 
+## queue work is background work : coding holds it at the thermal hover   ##
+## mark, a direct request starts at once. last, like the task tag, so the ##
+## prompt cache prefix stays the same                                     ##
+$prompt .= "\n:background:"
+    if ( $backend_cmd{$model} // '' ) eq qw| coding.ask-reply |;
+
 return {
     'status'     => $status,
     'model'      => $model,
@@ -126,8 +132,8 @@ return {
     'model_pin'  => $model_pin,
 };
 
-#,,,,,..,,.,.,,,.,...,...,,..,.,,,,..,...,...,..,,...,...,...,..,,..,,,,,,,.,,
-#RS4ZYLTKPKX7VFLPLQUFSL7F2EQTJ4Z4VLGHOVCHWTV7OXD66VIDHYS73XJPLKLLJQP4U3N72EWIG
-#\\\|STTURKFG5BNAVUYF54Y5UGZK4HTPA4GXIZFXRADW56YD5JYG7WW \ / AMOS7 \ YOURUM ::
-#\[7]SE3OZHHPZAXKW3SS2RB7ROXA22P7ILANLE7TNN2HGENOPMTCQ4CY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,...,,..,.,.,..,,,.,,..,,.,,,,..,..,,...,...,...,,,.,.,,,...,.,.,
+#QSIZROIMXZNJFEU5S5LOFWQUZVAKHWTJWQFOYXNJZC5VYCHDUBC3LXYIDNODF7BVAEJFSY44HWC34
+#\\\|MGYBW25NEJATDMEUQE3FDHBTISYCI6OHY5SBWFGOU6YRBMS57WI \ / AMOS7 \ YOURUM ::
+#\[7]IWT3AMLSPSWLG5HQ2KQINXVKEPHANIS6ZPU3RVZNUGY6A2HSUUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

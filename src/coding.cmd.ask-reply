@@ -61,6 +61,10 @@ my $no_tools_mode = FALSE;
 if ( $request_str =~ s{:simple:\s*}{}i )     { $simple_mode   = TRUE }
 if ( $request_str =~ s{^:no_tools:\n?}{}im ) { $no_tools_mode = TRUE }
 
+## :background: [ models queue work, any line ] : held at the hover mark ##
+my $background = $request_str =~ s{^:background:[ \t]*\n?}{}im ? TRUE : FALSE;
+$request_str =~ s{\s+\z}{} if $background;
+
 # Parse and analyze task
 my $intake_result = <[coding.task.intake]>->($request_str);
 return {
@@ -97,6 +101,8 @@ if ($no_tools_mode) {
     $routed_task->{'no_tools'} = TRUE;
 }
 
+$routed_task->{'background'} = TRUE if $background;
+
 # Enqueue task
 my $queue_result = <[coding.task.enqueue]>->($routed_task);
 return {
@@ -124,8 +130,8 @@ my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
 
 return { 'mode' => qw| deferred | };
 
-#,,..,...,.,.,.,,,...,.,.,..,,,..,...,,.,,,.,,.,.,...,...,.,,,..,,..,,.,,,.,.,
-#VIC5QRRGLE5LFYRK7WAZBXMS5KT3AAMUSZEAJLFTHJTSPZQUXKJPFAMMNAFVOYP6VVZ6OFGRMT5KY
-#\\\|NH4N7L3MKYR7N3OXUBWE7Z2SVKX3ESJTG3QC22NUUHW742UZNL4 \ / AMOS7 \ YOURUM ::
-#\[7]6I4O6UZRKV3I75C3CUQ4CKF5CH76N2F2XDJ24NIPHZKVDEHKF6AA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,..,,,..,,..,.,.,..,,,..,..,,,,,,.,.,...,..,,..,,.,,,..,,,,,,,,.,
+#EIQG6YTUXQZJFDZVYK4A3LULJRA3ATLFGQNU5OSPE2GNDIRWH72FA2LTAMYLYNS5SXRYBITV7VE5Y
+#\\\|7UVZTUGXMKK2CBO2JMJSFUVEANCDCDB5MQL74LKG4C7FI7CNXMY \ / AMOS7 \ YOURUM ::
+#\[7]TCPPLO2TNNJLDFHCRC6T2BMF7PJ3ODAS76GQ3PUNGZHJQ4NUIGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
