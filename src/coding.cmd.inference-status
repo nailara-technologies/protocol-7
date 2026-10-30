@@ -63,28 +63,32 @@ if ( $now - ( $vram_cache->{'at'} // 0 ) > 5 ) {
 
 my $status = {
     'gpu' => {
-        'status'        => $gpu_status,
-        'port'          => $servers->{'gpu'}{'port'}  // 8000,
-        'pid'           => $servers->{'gpu'}{'pid'}   // 0,
-        'model_id'      => $servers->{'gpu'}{'model'} // '',
-        'mmproj_path'   => $gpu_mmproj,
-        'url'           => $servers->{'gpu'}{'url'}     // '',
-        'backend'       => $servers->{'gpu'}{'backend'} // 'gpu',
-        'idle_secs'     => $idle_secs->('gpu'),
+        'status'      => $gpu_status,
+        'port'        => $servers->{'gpu'}{'port'}  // 8000,
+        'pid'         => $servers->{'gpu'}{'pid'}   // 0,
+        'model_id'    => $servers->{'gpu'}{'model'} // '',
+        'mmproj_path' => $gpu_mmproj,
+        'url'         => $servers->{'gpu'}{'url'}     // '',
+        'backend'     => $servers->{'gpu'}{'backend'} // 'gpu',
+        'idle_secs'   => $idle_secs->('gpu'),
+        'idle_used'   => ( <coding.model_used_by_request> // {} )->{'gpu'} ? 1
+        : 0,
         'still_loading' => ( $gpu_status eq qw| starting | ) ? 1 : 0,
         $plan->( $servers->{'gpu'} ),
         'vram_used_mb'  => $vram_cache->{'used_mb'},
         'vram_total_mb' => $vram_cache->{'total_mb'},
     },
     'cpu' => {
-        'status'        => $cpu_status,
-        'port'          => $servers->{'cpu'}{'port'}  // 8001,
-        'pid'           => $servers->{'cpu'}{'pid'}   // 0,
-        'model_id'      => $servers->{'cpu'}{'model'} // '',
-        'mmproj_path'   => $cpu_mmproj,
-        'url'           => $servers->{'cpu'}{'url'}     // '',
-        'backend'       => $servers->{'cpu'}{'backend'} // 'cpu',
-        'idle_secs'     => $idle_secs->('cpu'),
+        'status'      => $cpu_status,
+        'port'        => $servers->{'cpu'}{'port'}  // 8001,
+        'pid'         => $servers->{'cpu'}{'pid'}   // 0,
+        'model_id'    => $servers->{'cpu'}{'model'} // '',
+        'mmproj_path' => $cpu_mmproj,
+        'url'         => $servers->{'cpu'}{'url'}     // '',
+        'backend'     => $servers->{'cpu'}{'backend'} // 'cpu',
+        'idle_secs'   => $idle_secs->('cpu'),
+        'idle_used'   => ( <coding.model_used_by_request> // {} )->{'cpu'} ? 1
+        : 0,
         'still_loading' => ( $cpu_status eq qw| starting | ) ? 1 : 0,
         $plan->( $servers->{'cpu'} ),
     }
@@ -105,8 +109,8 @@ if ( length $reply_id ) {
 
 return { 'mode' => qw| size |, 'data' => $yaml };
 
-#,,,.,,,.,,,,,...,..,,.,,,..,,,.,,,.,,,,.,..,,..,,...,...,,.,,,.,,.,,,,,,,..,,
-#2IKNXBVNRMRQBKIJBNCKVXGHNLJFJSRIALEZOQSL3E7TEY5Z5WCI7WARWGA3QIAD77ZNLVG7I63MO
-#\\\|5QCE7U5KMHP2DBAJGOLOW6GZAJF7C62FXEVBFNWXOTMGVO2G5AD \ / AMOS7 \ YOURUM ::
-#\[7]ZEGRSEFCHR6NICVZU245D5PJPMHIDANCY3OULKKMAG2N6V2ZDIAI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,.,,,,,,,,,,,,..,..,,,.,,,,,,..,,...,...,,.,,...,...,.,.,..,,
+#EYR5JAHGLUH2EQYLGJIFKZFQDD6OM22UNNAUXTHJTRVBNJABQO6Y4R7NUFMYDDZHTXNTA53CSAWRU
+#\\\|CWVPDPLXXL2W7VESCADLHDA3YIXGESGSHMK7EWHQCR54F42YSW3 \ / AMOS7 \ YOURUM ::
+#\[7]PB3LEO2LVYTCZYEWYB3EQUVWM3YPBOH7P5WTJHM3IOXX6WB4MWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

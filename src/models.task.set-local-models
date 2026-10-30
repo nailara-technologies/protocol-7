@@ -16,7 +16,8 @@ my $text = shift // '';
 
 my @ids;
 my $idle_secs;
-my $status = length $text ? eval { YAML::XS::Load($text) } : undef;
+my $idle_used = FALSE;
+my $status    = length $text ? eval { YAML::XS::Load($text) } : undef;
 
 if ( ref $status eq qw| HASH | ) {
     foreach my $backend (qw| gpu cpu |) {
@@ -29,6 +30,8 @@ if ( ref $status eq qw| HASH | ) {
             $idle_secs = $backend_idle
                 if not defined $idle_secs or $backend_idle < $idle_secs;
         }
+        ## any backend that served a request : the longer swap idle ##
+        $idle_used = TRUE if $backend_status->{'idle_used'};
     }
 } else {
     <[base.logs]>->(
@@ -42,6 +45,7 @@ if ( ref $status eq qw| HASH | ) {
     'at'        => time,
     'ids'       => \@ids,
     'idle_secs' => $idle_secs,
+    'idle_used' => $idle_used,
 };
 
 <[base.logs]>->(
@@ -52,8 +56,8 @@ if ( ref $status eq qw| HASH | ) {
 
 return \@ids;
 
-#,,.,,.,,,.,.,..,,.,,,...,.,,,,..,...,,,.,.,,,.,.,...,..,,,,,,.,,,,,.,,..,,.,,
-#VXW3OO2HVFFBB2ZAZW55FHFXSOLNXXUGIXSLM647IKSPCZALIKMBGFIVFLR2J2KNLVGRWH2MN5LLQ
-#\\\|WQUNRX5FGHGX3KRKRNMBW6XB2YCLQRSBHGE6VCIU7VCFL2BYJJE \ / AMOS7 \ YOURUM ::
-#\[7]XXH2SUCBSOQJBAC2MQIN7ZZNEGQZG4FRXV5MMX3RPBRHYNOYM2BY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,..,,,..,,..,.,,,,,,,,,.,..,,,,,,.,.,...,...,...,...,,,.,,.,,,.,,
+#RC4RDFJS7TWWOJVM7OTEFY3N42XCATJLCJHXCQNQI24NAAUQPDV6VKYDB56MERGTYSX5I2JR3KIR4
+#\\\|FXUKM2EG3ENSONRBTSSCJVYNXEWSJYLGL4YMP2IQKYLBPQEZ7RI \ / AMOS7 \ YOURUM ::
+#\[7]PW2ELU4OJLT2QCAMNC3JRQTKICJGZO3YNYSNSXP7BIXUKO67CGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -55,7 +55,13 @@ if ( not defined $idle_secs or $idle_secs !~ m|^\d+$| ) {
     delete $swap->{$pin_content};
     return UNKNOWN;
 }
-if ( $idle_secs < ( <models.cfg.task_swap_idle> // 1800 )
+## a model only loaded [ startup, switch ] gives way sooner than one that ##
+## served requests                                                        ##
+my $swap_idle
+    = $local->{'idle_used'}
+    ? <models.cfg.task_swap_idle> // 1620
+    : <models.cfg.task_swap_idle_load> // 420;
+if ( $idle_secs < $swap_idle
     or not defined <[models.registry.lookup]>->($pin) ) {
     delete $swap->{$pin_content};
     return FALSE;
@@ -70,8 +76,8 @@ if ( not $swap->{$pin_content} ) {
 }
 return TRUE;
 
-#,,..,,,,,,,.,.,,,..,,,..,,..,...,,.,,.,,,,.,,..,,...,.,.,.,,,,,,,,.,,,.,,..,,
-#DYKJIUKGDISUUKEEUE6C7ND5UJKKMY3YU5FTZNFYO3HDRM27UIV2OE34P67HIKWBSVVTMFXJNB4PC
-#\\\|4ADCJ6VY4NFXOYDRVKJJYN4EFXHYGJQOKQT6FZXUMXXZATYFVSK \ / AMOS7 \ YOURUM ::
-#\[7]4NIXMEFV5UBYM7PTCLZK5RFSYHLHPTLLDXTDET44YJ4O3MAGLUDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,...,...,.,,,.,.,,..,...,.,,,..,,...,...,..,,...,.,,,.,.,..,,
+#LJ27BANCYIQXYBZZMRSNOE7HCNINSE7VR3N4MMX6BFKTRBBDYDP3O6P2SAXJ3XQTDDETTMZDF7OPQ
+#\\\|4HPIJ52ITHZB6R4P6BKXEWECYS6CHPAML5I453RZAZRXZBNX7G4 \ / AMOS7 \ YOURUM ::
+#\[7]L2KLMX7JORH2ZRMTU45MYVLCZDID65LASC4G7YHZXHBGO262SABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
