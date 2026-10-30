@@ -5,8 +5,10 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — START HERE 2026-10-30 morning [ last aa9b29c3d ] : review + live-test kimi replica mode, KKHN2 applied-vs-trash, claim release still unseen live
+- [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — START HERE [ 2026-10-30 end, last a3d230f86 + memory ] : replica mode LIVE + end-to-end ok [ local = replica of pri ], ui role by verified user, sync-token rotation cmd ; v7-zenki empty-id chain + pull-git hang fixed ; log resend loop fixed. open : claim-expiry task reset [ kimi ], night-brake follow-ups, KKHN2, stashes
 - [deferred-history-purge](project-2026-10-30-deferred-history-purge.md) — ONE purge-paths run with the owner later : dep-graph .txz + old data/gfx/backgrounds/ images ; no remote re-add [ no origin ]
+- [nameserv-zone-delegation-plan](project-2026-10-30-nameserv-zone-delegation-plan.md) — plan : zenki take over dns [ own nameserv as master ] + mail, then RETIRE atom \ postfix \ inwx-as-master ; snapshots in /data/backup/{dns,mail}/ are the functional reference ; must be REBUILDABLE from tracked config [ reproducibility ] ; zones NOT current yet -> reconcile first
+- [fix-dns-zone-issues-when-seen](feedback-fix-dns-zone-issues-when-seen.md) — owner 2026-10-30 : fix zone defects when seen, name each ; mail paths [ MX, @taeki.v7.ax ] dig-verified before + after ; registrar only via owner-given access
 - [sampler-penalties-break-exact-copy](feedback-sampler-penalties-break-exact-copy.md) — DRY [ short allowed length ] + repeat_penalty make agent models mangle every copied path \ old_string [ 'protocol -7' ] : 9b 14b 35b all failed a 4-line edit until repeat_penalty 1.0 + dry_allowed_length 64 [ 35b3dbe6a ]. outlier fixes go PER MODEL, never into global inference.model.* ; check the sampler before blaming model or tool
 - [zenka-open-default-utf8-layer](feedback-zenka-open-default-utf8-layer.md) — every plain open() in src/* carries :encoding(UTF-8) [ bin/Protocol-7 `use open`, deliberate ] : files holding OCTETS [ encode_json, bodies, binary ] need '>:raw' \ '<:raw' on write AND read -- 2026-10-24 site-yaml outbox double-encoded 58 jobs [ 8b2384420 ] ; check bytes on disk, a layered round trip hides it
 - [changed-established-behavior-silently](feedback-changed-established-behavior-silently.md) — 2026-10-11 : switched the unit to Restart=on-failure as a side effect and called it intended ; teardown = restart was the user's habit. never change restart \ start \ default semantics silently -- name old vs new, ask, add new behavior as opt-in [ :no-restart: ]
@@ -87,8 +89,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,..,,,.,,,,,,..,.,,,.,.,,.,,...,.,,,,.,,..,,...,...,..,,,,.,.,.,.,,,,,,,
-#TF2FWAC774WAYY5GWPDZORLSQ5CZ2J6DN3WCSKAKZLWHVM6LWONS5WAK2VM2VAHC2LILQMXOHEYJ6
-#\\\|K2UKETEWHHEXQNR76CUEQ4G5RUFXYRNOQVV5QO4RYAIPXS2J3QQ \ / AMOS7 \ YOURUM ::
-#\[7]HYTOYZVZXY6FDJ2QCQEVXATCGSDXUQGIN3HWBTWDTHAQ56TD3UDI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,,.,,..,,...,..,,,,.,,,,,..,,..,,...,...,.,,,...,..,,.,.,,..,
+#D5Z4SA7BSZDNBZYEU27LZ27WIXF2TM76OZYEGWJZJN6UBTFDYZ22FWTJJGPH5O4XJDVMRG72DUXXI
+#\\\|XTQVDRUYZ7QMLGUTGRJURPCPRBP3VT3WEACZAH66BGOWOA33PWN \ / AMOS7 \ YOURUM ::
+#\[7]ZMKBMRZ3KDR7GQ3BIJGYVEG4AFYOWAQ5GGRJPCIEJ67COU65E6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
