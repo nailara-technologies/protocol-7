@@ -7,6 +7,9 @@ my $call = shift // {};
 
 ## TRUE \ FALSE replies carry no mode \ data [ base.reply.mode_text ] ##
 my ( $mode, $result ) = <[base.reply.mode_text]>->($call);
+## the reply arrives as utf-8 octets : decode before the log layer encodes ##
+## it again [ 'ü' showed as 'Ã¼' ]                                         ##
+utf8::decode($result) if defined $result and not utf8::is_utf8($result);
 my $job_id  = ( $call->{'params'}{'job_id'} // '' );
 my $task_id = $call->{'params'}{'task_id'} // '';
 my $attempt = $call->{'params'}{'attempt'} // 0;
@@ -380,8 +383,8 @@ if ( not $give_up and <[jobsite.util.description_ok]>->($job)->{'ok'} ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.release_slot]>->($job_id);
 
-#,,,.,,..,,..,,,,,,,,,,.,,,.,,,,,,...,...,.,,,..,,...,...,.,.,,,,,,..,,.,,,,.,
-#7WA2YBP53NDHCA3TUB6WLF2N3QBL4BVJPNWGZ3RHOBQCBGIC4XWNK64QWOVMRHDQJRE5EX2FFVXA6
-#\\\|RJP2BFSAC2R6TGWNLXNJD3NGLDX27SH7R3F5K4AFYEO36CPDZOA \ / AMOS7 \ YOURUM ::
-#\[7]666SM4V76ILRQUVHPIZHY4L34EWNDG47UH6XTVPKCHZQGLYCCOBA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,.,,,..,...,.,,,,,,,,,.,,,,,..,,...,..,,.,,,.,.,,..,.,.,...,
+#WVGI6OVJZJA54QJCPP6QKGDRRO2WUN3FMDBG7NZG6DYHOGEHZNVW4VCBQMDLLPASS6DY6N2VWC5HU
+#\\\|COBXDXQRTRDKN474PIJDDTMTN2NUUBYTBXLMWTMRDHXI46DVD2T \ / AMOS7 \ YOURUM ::
+#\[7]YB4IKVDTZRJSRQCFALFMAH4PXT7IR57A3NAJHLQJK6QKL3GZ6GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
