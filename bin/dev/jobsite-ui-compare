@@ -1,0 +1,193 @@
+#!/usr/bin/perl
+## [:< ##
+
+# name  = jobsite-ui-compare
+# descr = compare job ids and stages from two jobs.json sources
+
+use v5.32.0;
+use strict;
+use warnings;
+use utf8;
+use FindBin;
+BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+
+use JSON::PP   ();
+use File::Temp qw| tempdir |;
+
+binmode STDOUT, ':encoding(UTF-8)';
+binmode STDERR, ':encoding(UTF-8)';
+
+my $verbose = 0;
+my @sources;
+for my $arg (@ARGV) {
+    if ( $arg eq '-v' ) {
+        $verbose = 1;
+    } else {
+        push @sources, $arg;
+    }
+}
+
+if ( @sources != 2 ) {
+    print STDERR "usage: $0 <source-a> <source-b> [ -v ]\n";
+    exit 2;
+}
+
+my $temp_dir
+    = tempdir( 'jobsite-ui-compare-XXXXXX', TMPDIR => 1, CLEANUP => 1 );
+
+sub fetch_command {
+    my $source = shift;
+
+    return ( 'curl', '-fsS', '--max-time', 30, 'http://127.0.0.1/jobs.json' )
+        if $source eq 'local';
+    return ( 'curl', '-fsS', '--max-time', 30, '--', $source )
+        if $source =~ m|^https?://|;
+    ## 'ssh:<host>' or a bare host word : loopback jobs.json on that host ##
+    $source =~ s|^ssh:||;
+    return ( 'ssh', '-o', 'BatchMode=yes', "root\@$source",
+        'curl', '-s', 'http://127.0.0.1/jobs.json' )
+        if $source !~ m|[/:]|;
+    return;
+}
+
+sub fetch_source {
+    my ( $label, $source ) = @_;
+
+    if (   $source !~ m|^https?://|
+        && $source ne 'local'
+        && ( $source =~ m|/| || $source !~ m|^ssh:| && $source =~ m|:| ) ) {
+        open my $fh, '<:raw', $source or do {
+            print STDERR "source $label: cannot open file: $!\n";
+            exit 2;
+        };
+        local $/;
+        my $json = <$fh>;
+        close $fh or do {
+            print STDERR "source $label: cannot read file: $!\n";
+            exit 2;
+        };
+        return $json;
+    }
+
+    my @command = fetch_command($source);
+    if ( !@command ) {
+        print STDERR "source $label: invalid source\n";
+        exit 2;
+    }
+
+    my $error_file = "$temp_dir/source-$label.stderr";
+    open my $error_fh, '>:raw', $error_file
+        or die "cannot create temp error file: $!\n";
+    my $pid = open my $output_fh, '-|';
+    die "cannot fork fetch command: $!\n" if !defined $pid;
+    if ( !$pid ) {
+        open STDERR, '>&', $error_fh;
+        exec @command;
+        exit 127;
+    }
+    close $error_fh;
+    local $/;
+    my $json = <$output_fh>;
+    close $output_fh;
+    my $status = $?;
+    if ( $status != 0 ) {
+        print STDERR "source $label: fetch failed\n";
+        exit 2;
+    }
+    return $json;
+}
+
+sub parse_jobs {
+    my ( $label, $json ) = @_;
+
+    my $data = eval { JSON::PP->new->utf8->decode($json) };
+    if ( $@ || ref $data ne 'HASH' || !exists $data->{'jobs'} ) {
+        print STDERR "source $label: invalid jobs.json\n";
+        exit 2;
+    }
+
+    my @entries;
+    if ( ref $data->{'jobs'} eq 'ARRAY' ) {
+        @entries = @{ $data->{'jobs'} };
+    } elsif ( ref $data->{'jobs'} eq 'HASH' ) {
+        @entries = map { $data->{'jobs'}{$_} } sort keys %{ $data->{'jobs'} };
+    } else {
+        print STDERR "source $label: invalid jobs list\n";
+        exit 2;
+    }
+
+    my %jobs;
+    for my $job (@entries) {
+        if (   ref $job ne 'HASH'
+            || !defined $job->{'id'}
+            || !length $job->{'id'}
+            || exists $jobs{ $job->{'id'} } ) {
+            print STDERR "source $label: invalid or duplicate job id\n";
+            exit 2;
+        }
+        $jobs{ $job->{'id'} } = {
+            stage   => $job->{'stage'}   // '',
+            company => $job->{'company'} // '',
+        };
+    }
+    return \%jobs;
+}
+
+sub print_list {
+    my ( $title, $rows ) = @_;
+    printf "%s: %d\n", $title, scalar @{$rows};
+    my $limit = $verbose ? scalar @{$rows} : 20;
+    my $shown = 0;
+    for my $row ( @{$rows} ) {
+        last if $shown >= $limit;
+        print "  $row\n";
+        $shown++;
+    }
+    printf "  ... %d more\n", scalar( @{$rows} ) - $limit
+        if @{$rows} > $limit;
+}
+
+my $jobs_a = parse_jobs( 'a', fetch_source( 'a', $sources[0] ) );
+my $jobs_b = parse_jobs( 'b', fetch_source( 'b', $sources[1] ) );
+
+for my $source ( [ 'a', $jobs_a ], [ 'b', $jobs_b ] ) {
+    my ( $label, $jobs ) = @{$source};
+    my %stages;
+    $stages{ $_->{'stage'} }++ for values %{$jobs};
+    printf "source %s: %d jobs\n", $label, scalar keys %{$jobs};
+    printf "  stage %s: %d\n",     $_,     $stages{$_} for sort keys %stages;
+}
+
+my @only_a = sort grep { !exists $jobs_b->{$_} } keys %{$jobs_a};
+my @only_b = sort grep { !exists $jobs_a->{$_} } keys %{$jobs_b};
+my @different_stage;
+for my $id ( sort grep { exists $jobs_b->{$_} } keys %{$jobs_a} ) {
+    next if $jobs_a->{$id}{'stage'} eq $jobs_b->{$id}{'stage'};
+    push @different_stage,
+        sprintf '%s  %s  %s  %s', $id, $jobs_a->{$id}{'stage'},
+        $jobs_b->{$id}{'stage'}, $jobs_a->{$id}{'company'};
+}
+
+print_list( 'only in a', \@only_a );
+print_list( 'only in b', \@only_b );
+print "different stage [ id  stage a  stage b  company ]: "
+    . scalar(@different_stage) . "\n";
+my $limit = $verbose ? scalar @different_stage : 20;
+my $shown = 0;
+for my $row (@different_stage) {
+    last if $shown >= $limit;
+    print "  $row\n";
+    $shown++;
+}
+printf "  ... %d more\n", scalar(@different_stage) - $limit
+    if @different_stage > $limit;
+
+my $identical = !@only_a && !@only_b && !@different_stage;
+printf "identical: %s\n", $identical ? 'yes' : 'no';
+exit( $identical ? 0 : 1 );
+
+#,,.,,,,.,,..,...,.,.,..,,..,,,.,,,.,,,,,,,,.,..,,...,...,.,.,,.,,...,..,,,,.,
+#QQM6M5L5QRC3PKNIYW3KZMH7MSCMSHDA55EGQ5BUXTBY4FUOOOUPSJ6R2PQOCSIIYOI7CKJTG67OU
+#\\\|EZHZMBRKPOAI3QE7CFMHD2RKY3FOJLKLLV5I4GIKOFR6ZPMVCHT \ / AMOS7 \ YOURUM ::
+#\[7]6GQ2V3VE4AKIPMDRIXMU7NWWSGON7UJ7H4HUWBCBLG3XFNAATAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

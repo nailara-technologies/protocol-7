@@ -36,6 +36,40 @@ metadata:
 - pri : assess_parallel 6 [ host-config jobsite.cfg + runtime ], two
   orphaned in_progress tasks failed by hand
 
+**later the same night [ a9cc3f999 ]**
+
+- outdoor amplifier on the hover mark : night mark += ( amp - 1 ) x
+  thermal.cfg.hover.amp_c 12 ; coding polls weather.temp itself [ cube
+  access.zenki grants it ]. live : first hold at 74.7 C at ~3 C outside
+- soft swap CONFIRMED live : after a coding restart 72T4WFI -> OFSQC4I by
+  itself, but only once a dead claim was released [ see below ]
+- coding stalled after a `reload source` at 02:50 : commands answered,
+  timers dead [ held task never resumed, thermal tick \ log silent ].
+  restart fixed it, cause UNKNOWN [ the reload hit a 'my $reply masks'
+  warning in coding.cmd.temp-boost, fixed ]. after any coding reload :
+  check that 'thermal hold' \ 'acquire' lines keep coming
+- gap : a coding restart drops its tasks but models keeps their claims
+  till the 1800 s ttl -- models should drop claims when coding comes back
+  [ notify_online ]. released by hand tonight : models.eval-code
+  release-claim + `ssh root@pri ':: task.reset <id>'`
+
+**next topic : local jobsite \ ui sync [ owner 2026-10-30 ]**
+
+- acceptance : both uis show the same jobs. tonight [ jobs.json ] local
+  917 vs pri 428 : 555 only local, 66 only pri, 6 stage differences
+  [ QHY52 new vs applied ] -- there is no pri -> local sync at all
+- tool : bin/dev/jobsite-ui-compare local pri [ kimi, exit 0 = same ]
+- local jobsite STOPPED ; httpd + web run for the radio. pri is safe :
+  local pushes as role 'marks', pri drops every non-mark field
+- side triggers start the on-demand local jobsite : web's
+  plugin.web.jobs.reverse.queue 'jobsite.sync-soon', the ui's relayed
+  jobsite.* [ prefs, rescue-http, import-url-http ], site-yaml import.
+  gate those [ start only when running or configured as ui host ] ;
+  an explicit jobsite.scan must keep working as designed
+- sync must tolerate a dead target : per-url skip + backoff, not a full
+  batch resend every cycle [ 127.0.0.1 was refused since 32EZ.. -- local
+  httpd had been down since 10-28 09:45 ]
+
 **next**
 
 1. morning : hold lines + temp curve, `p7c task.dump '^task\.thermal'`
@@ -59,8 +93,8 @@ related : [[project-2026-10-30-session-handover-thermal-q2k]],
 [[project-2026-10-29-thermal-aware-local-worker]],
 [[feedback-amend-env-and-unsigned-files-staging]]
 
-#,,,,,.,,,,.,,.,.,,..,..,,.,,,,,,,,.,,,,,,,,,,..,,...,...,.,,,.,,,...,,..,,.,,
-#3KODLJJE7BRMB5J2KQA7LNP6SPPAMPMLBIC2RA3WLXWMITMW2RT7CIRC3GI2LS56SV4PBNAYQAPKA
-#\\\|U5F5NUJDCARKMVLUVJCHS73L35G7EHEIW72XWZDEQILS2FNQ2U5 \ / AMOS7 \ YOURUM ::
-#\[7]4INAGH7S4CC2PUF7KNEQHVZ6X6FKGAG3EJHFWVRVVTQK4GM3OWBA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,...,,,.,,,.,.,.,..,,,,,,...,..,,...,..,,,,,,.,,,...,.,.,...,
+#4WLPIDMYPBDJR5BFKSNSSPFL4NNFUFSSZOB5QS6PBNBLQONIHS73ME3DRQ4AHEC6HM7CIGLMJRPCE
+#\\\|ONBLM4TBTPJMDPMXJLZIOSQN2L4JN5WNW2JCYH2P7SYBCXWDADQ \ / AMOS7 \ YOURUM ::
+#\[7]3YDFVTCQFLQCETO6WSRLY2D27NZW65OH644JFP4TGSYNCZQJ24AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
