@@ -56,6 +56,12 @@ while ( defined( my $arg = shift @ARGV ) ) {
 }
 die "p7-sign-run -state <file.json> [ -version ] [ -plan ] <path> ..\n"
     if not defined $state_path or not @paths;
+## a slash-less name resolves in src/ [ source.cmd.get-code-signed ] : a ##
+## top-level file would abort the run later as 'code file not found'     ##
+die "p7-sign-run : '$ARG' has no slash and is not in src/ -- the sign chain "
+    . "looks up slash-less names there ; an unsigned file is staged by "
+    . "hand\n"
+    foreach grep { index( $ARG, '/' ) < 0 and not -f "src/$ARG" } @paths;
 
 my %version_mode = (
     qw| new |           => [],
@@ -138,6 +144,100 @@ sub git_changed {    ## modified tracked files, staged or not ##
     return %changed;
 }
 
+my @bump_files = (
+    qw| cfg/protocol-7.src-ver |,
+    qw| read-me/md/README.md |,
+    qw| read-me/project-identity/source-code-versions.md |
+);
+
+sub git_head_file {
+    my $path = shift;
+    open( my $fh, '-|', qw| git show |, "HEAD:$path" ) or return undef;
+    local $INPUT_RECORD_SEPARATOR;
+    my $text = <$fh>;
+    close $fh;
+    return $CHILD_ERROR == 0 ? $text : undef;
+}
+
+sub strip_signature_footer {
+    my $text = shift;
+    $text
+        =~ s|\n#,[.,]+\n#[A-Z2-7]+\n#\\\\\\\|[^\n]+\n#\\\[7\][^\n]+\n#:::+\n?\z|\n|;
+    return $text;
+}
+
+sub pending_version_bump {
+    my $pending = FALSE;
+    foreach my $path (@bump_files) {
+        system( qw| git diff --quiet HEAD -- |, $path );
+        return ( undef, 'cannot compare version files with HEAD' )
+            if $CHILD_ERROR > 256;
+        $pending = TRUE if $CHILD_ERROR != 0;
+    }
+    return ( undef, '' ) if not $pending;
+    return ( undef, 'not all three version files differ from HEAD' )
+        if grep { system( qw| git diff --quiet HEAD -- |, $ARG ) == 0 }
+        @bump_files;
+
+    my $head_ver = git_head_file( $bump_files[0] );
+    return ( undef, 'cannot read HEAD source version' )
+        if not defined $head_ver;
+    $head_ver =~ s|\n.*||s;
+    chomp $head_ver;
+    open( my $ver_fh, '<:raw', $bump_files[0] )
+        or return ( undef, 'cannot read pending source version' );
+    my $new_ver = <$ver_fh> // '';
+    close $ver_fh;
+    chomp $new_ver;
+    my ($head_count) = $head_ver =~ m|^[A-Z2-7]{10}-(\d+)\.\d+$|;
+    my ( $new_base, $new_count, $new_minor )
+        = $new_ver =~ m|^([A-Z2-7]{10})-(\d+)\.(\d+)$|;
+    return ( undef, 'pending source version is not HEAD counter + 1' )
+        if not defined $head_count
+        or not defined $new_count
+        or $new_count != $head_count + 1;
+
+    my %head_text = map { $ARG => git_head_file($ARG) } @bump_files;
+    return ( undef, 'cannot read all version files from HEAD' )
+        if grep { not defined $head_text{$ARG} } @bump_files;
+    foreach my $path ( @bump_files[ 1 .. $#bump_files ] ) {
+        open( my $fh, '<:raw', $path )
+            or return ( undef, "cannot read $path" );
+        local $INPUT_RECORD_SEPARATOR;
+        my $text = <$fh>;
+        close $fh;
+        return ( undef, "version $new_ver missing from $path" )
+            if index( $text, $new_ver ) < 0;
+        if ( $path eq $bump_files[1] ) {
+            $text =~ s|: \Q$new_ver\E |: $head_ver |g;
+        } else {
+            $text
+                =~ s|(- \*\*Version Identifier\*\*: `)\Q$new_ver\E(`)|$1$head_ver$2|;
+            my ($head_base) = $head_ver =~ m|^([A-Z2-7]{10})-|;
+            $text
+                =~ s|(- \*\*Network Timestamp\*\*: `)\Q$new_base\E(`)|$1$head_base$2|;
+            $text
+                =~ s|(- \*\*Commit Count\*\*: `)\Q$new_count\E(`)|$1$head_count$2|;
+            my ($head_minor) = $head_ver =~ m|\.(\d+)$|;
+            $text
+                =~ s|(- \*\*Revision\*\*: `\.)\Q$new_minor\E(`)|$1$head_minor$2|;
+        }
+        return ( undef, "$path has changes beyond version and signature" )
+            if strip_signature_footer($text) ne
+            strip_signature_footer( $head_text{$path} );
+    }
+    open( $ver_fh, '<:raw', $bump_files[0] );
+    local $INPUT_RECORD_SEPARATOR;
+    my $ver_text = <$ver_fh>;
+    close $ver_fh;
+    $ver_text =~ s|\A\Q$new_ver\E|$head_ver|;
+    return ( undef,
+        "$bump_files[0] has changes beyond version and signature" )
+        if strip_signature_footer($ver_text) ne
+        strip_signature_footer( $head_text{ $bump_files[0] } );
+    return ( $new_ver, '' );
+}
+
 state_write();
 
 ##[ 0 : the automatic requirement plan ]######################################
@@ -188,17 +288,31 @@ if ($run_plan) {
 
 if ($bump_version) {
     state_write( qw| status | => qw| versioning | );
-    my %before = git_changed();
-    my $out    = qx| bin/dev/update-version @version_args 2>&1 |;
-    finish(
-        qw| status | => qw| failed |,
-        qw| report | => "update-version failed :\n$out"
-    ) if $CHILD_ERROR != 0;
-    my ($version)     = $out =~ m|source version :: (\S+)|;
-    my %after         = git_changed();
-    my %requested     = map  { $ARG => TRUE } @paths;
-    my @version_files = grep { not $before{$ARG} and not $requested{$ARG} }
-        sort keys %after;
+    my ( $version, $pending_reason )
+        = @version_args ? ( undef, '' ) : pending_version_bump();
+    my %requested = map { $ARG => TRUE } @paths;
+    my @version_files;
+    if ( defined $version ) {
+        say "version : reusing pending bump $version";
+        @version_files = grep { not $requested{$ARG} } @bump_files;
+    } else {
+        say "version : pending bump not reused : $pending_reason"
+            if length $pending_reason;
+        my %before = git_changed();
+        my $out    = qx| bin/dev/update-version @version_args 2>&1 |;
+        finish(
+            qw| status | => qw| failed |,
+            qw| report | => "update-version failed :\n$out"
+        ) if $CHILD_ERROR != 0;
+        ($version) = $out =~ m|source version :: (\S+)|;
+        my %after   = git_changed();
+        my %is_bump = map { $ARG => TRUE } @bump_files;
+        @after{@bump_files} = (TRUE) x scalar @bump_files;
+        @version_files = grep {
+            not $requested{$ARG} and ( not $before{$ARG} or $is_bump{$ARG} )
+            }
+            sort keys %after;
+    }
     push @paths, @version_files;
     state_write(
         qw| version |       => $version,
@@ -320,8 +434,8 @@ finish(
     qw| report | => $report
 );
 
-#,,,,,,,.,...,,,.,,.,,..,,,.,,,,,,,,.,...,,.,,..,,...,...,...,,.,,,,,,,,.,,.,,
-#DSTEPPU2HQGHESZEMXJJGZJ474NEVMEGMCZJOYWB3SPXCKXUC3OOZONSXJHDV5FEPIBNDQ7CFWLDK
-#\\\|D4MGEDF5TAYI6ASLQ56OUVRZ2ZPDGZW7Y7F7FXMEZMNAUMXDMRH \ / AMOS7 \ YOURUM ::
-#\[7]74GKKQHTT5UBRW6A6LYX4JHGRGMF2SYCCERFBWTZ5KYHTL7BIOCQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,.,,,,.,,,.,,.,.,,..,.,,,..,,..,,...,...,.,.,,,.,..,,,,,,,.,,
+#6UWCEDDN3LEH3NERZXZJCW6PKO7EKRV7VNLITBXZCKEEE7YGCE6EZPB4CSU5N7E3PEPTYHM4UTD3Y
+#\\\|ZAR3ATK4I6YNEY4P2RH6TMRIZP5XIQDYOVXWV5X4DDB66XERQ6N \ / AMOS7 \ YOURUM ::
+#\[7]WTA5QE6744J5LUPJYRGOVNOAQADJEVP5256MYHZWKIC4HBOLH4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

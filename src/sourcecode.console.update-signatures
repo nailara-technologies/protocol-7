@@ -17,8 +17,9 @@ $sign_verbosity = 2
     or exists $ENV{'SIGN_VERBOSE'}
     and <[base.cfg_bool]>->( $ENV{'SIGN_VERBOSE'} ) == TRUE;
 
-## :stage: re-stages [ via git add ] exactly the files this run signs, and ##
-## no others -- leaves other already-staged/unstaged batches untouched     ##
+## :stage: re-stages [ via git add ] exactly the requested files that end ##
+## validly signed, whether this run signed them or they already were --   ##
+## leaves other already-staged/unstaged batches untouched                 ##
 my $stage_files = $command_params =~ s| *:stage: *| |;
 
 ## :strip: removes a signature FRAGMENT left directly above a file's real
@@ -238,7 +239,7 @@ foreach my $path_rel (@source_paths) {
         );
     } else {
         <[base.logs]>->(
-            0,         'cannot strip ' . './%s [ %s ]',
+            0,         'cannot strip ./%s [ %s ]',
             $path_rel, <[base.str.os_err]>
         );
     }
@@ -278,7 +279,7 @@ if ($agent_mode) {
     chdir $cwd_before if defined $cwd_before;
     if ( $format_status != 0 ) {
         <[base.log]>->(
-            0, ':. format-code reports ' . 'action needed, aborting .:'
+            0, ':. format-code reports action needed, aborting .:'
         );
         <[base.exit]>->(qw| 0110 |);
     }
@@ -298,15 +299,14 @@ if ($agent_mode) {
             ( my $module_path = $1 ) =~ s|::|/|g;
             $module_path = sprintf qw| data/lib-path/pm/%s.pm |, $module_path;
             <[base.logs]>->(
-                1, ': module version ' . 'updated : %s', $module_path
+                1, ': module version updated : %s', $module_path
             );
             push @outside, $module_path if not $requested{$module_path};
         }
         ## a failed version check is no "nothing to update" : fail closed ##
         if ( not close $versions_fh ) {
-            <[base.log]>->(
-                0, ':. update-amos-versions ' . 'failed, aborting .:'
-            );
+            <[base.log]>
+                ->( 0, ':. update-amos-versions failed, aborting .:' );
             <[base.exit]>->(qw| 0110 |);
         }
         if (@outside) {
@@ -318,7 +318,7 @@ if ($agent_mode) {
         }
     } else {
         <[base.logs]>->(
-            0,              ': cannot run ' . '%s [ %s ]',
+            0,              ': cannot run %s [ %s ]',
             $amos_versions, <[base.str.os_err]>
         );
         <[base.exit]>->(qw| 0110 |);
@@ -612,8 +612,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,.,,.,,..,,,,.,,,.,,.,,...,..,,.,,,,,.,,.,,..,,...,...,,,.,,,.,.,,,,,.,.,,,
-#VWC5AELHNBSSQTKPGHNGAEL22CGHDOELTIFNJXM5M5JOZQ3JUHQEQMVNE4BE6VABM7QMBVQNOYWOE
-#\\\|XCCDLNLWQYGVS3ZJD75R4G3BOKVKAFKFGCAZQVD6X7NT2NYTIV2 \ / AMOS7 \ YOURUM ::
-#\[7]5PKSC6FDHIXEYWTXAOCAEQOFQYAE6ZL654BKENLC4XGJK6B4R4CI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,...,...,.,,,..,,,..,..,,,..,...,..,,...,...,..,,,..,,..,,,,,,,.,
+#OCLJLEBAWFSRSVFUJV36DUFWVF3QFH3UWGGS6CGEOSAF54AIBU5MQX6ANENAUQQVUESFPKBWFKUBY
+#\\\|WOVO67BVDDBRWCG6FDGNEGTQBRVS6TPY2W3WDWFNUTI26YMXIXT \ / AMOS7 \ YOURUM ::
+#\[7]RPG3BHDJK5EIFQHIJ3LSMRI2KIFY5XQLBVERWZEJHHVG74MDI6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
