@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = models.cmd.coding-online
+# descr = note coding's instance, release its previous claims
+# note  = cube injects the authenticated source zenka name and sid
+
+my ( $source_zenka, $source_sid, $instance ) = split m| +|,
+    $call->{'args'} // '', 3;
+
+return { 'mode' => qw| false |, 'data' => 'coding session required' }
+    if ( $source_zenka // '' ) ne qw| coding |
+    or ( $source_sid // '' ) !~ m|^\d+$|
+    or ( $instance   // '' ) !~ m|^\d+$|;
+
+<models.task.coding_instance> = $instance;
+my $released
+    = <[models.task.release-previous-instance]>->( $source_zenka, $instance );
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf 'coding instance %s online, released %d claims',
+    $instance, $released
+};
+
+#,,..,,.,,,,,,,..,.,.,,.,,...,,.,,.,.,,..,,..,..,,...,...,,,,,,,,,,,.,,,.,,..,
+#HHNQ7DSK3MT55AAWTBWTIT2EIR6R4Y357T6N62AGVUVVX4QA3OTMS5B4IKEHQ5RMRKYBUANM3EAGY
+#\\\|ECQQSNPQNQAHRT3FXW726FAPGRJTVYQVHCNDVAPKNSARVAPREJS \ / AMOS7 \ YOURUM ::
+#\[7]4UJFKWAZJO2CCTQOPJOON4XZEV652MMH6M2LAZH2QQQX7KSK3WDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

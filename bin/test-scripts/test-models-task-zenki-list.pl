@@ -157,7 +157,7 @@ compile_module($_)
     models.task.subscribe-retry models.handler.task-poll
     models.handler.task-poll-step models.handler.task-stream
     models.task.startup models.task.claim-ok models.task.release-claim
-    models.task.rescan models.task.set-local-models |;
+    models.task.claim-record models.task.rescan models.task.set-local-models |;
 
 ## .cmd. modules get 'my $call' from the runtime's compiled-in command ##
 ## header [ bin/Protocol-7 ] : mirror it with an our-scoped $call the  ##
@@ -823,8 +823,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,..,,.,,,,,.,.,.,...,.,,,..,,,,,,,.,,,,.,.,.,...,...,...,,..,.,,,,..,,,.,
-#LJFOHSA5AKHTAFC3SMJ472RLFOFESTKMBDMJUDNNXQPWW3WRAJTEATCMXRCVTHRZSOVL3NYT7ONQC
-#\\\|3ITN6P2N72WKWFY45GIQKGZHP4ZB5LPFCQGHCOSRSJCEXXKGLXV \ / AMOS7 \ YOURUM ::
-#\[7]OGAR4QFIJ4RNKFH6T7PMCKTAMP44AGWEPOQJFJHTQTTWZINSRIDY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,.,.,..,,,..,,,.,,.,,,,,,,.,,.,.,...,...,..,,,,,,,,.,,.,,,..,
+#BETQYUKXGCTBMN5DO2N4YT743MHO62NQJLJIAQ3F26LFXAOB2THB5IOPRT6VPEJV3V2Y6VHNYS7A6
+#\\\|ZWT4SSGXJB7MJMTRKS3Q5LIKRMP5HVHY2UINQBK3DFCBRZNDHZ5 \ / AMOS7 \ YOURUM ::
+#\[7]X37HWU3F36FJEOHU2Y5JILF2GUAM4JTJSNQI6YPLHSKV5OUWZMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

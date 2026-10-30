@@ -74,7 +74,7 @@ if ( $zenka eq qw| task | ) {
     ## the same millisecond both passed the gate before either reply came  ##
     ## [ pri claimed both, the gpu stayed idle ] -- a refused claim frees  ##
     ## it                                                                  ##
-    <models.task.claimed>->{$task_id} = time;
+    <models.task.claimed>->{$task_id} = <[models.task.claim-record]>;
 
     my $sent = <[protocol-7.route-send]>->(
         {   'command'   => <[models.task.cmd]>->(qw| claim |),
@@ -106,8 +106,8 @@ return <[protocol-7.route-send]>->(
     }
 );
 
-#,,,.,...,,,.,.,.,...,,..,...,,.,,...,...,.,.,.,.,...,...,..,,,..,,,.,,.,,,..,
-#HRRLTLJ74IGY5O6U2YRU6PR5YEJCU2NVHNQ32YBLTZQR5SSLCBNRASCXXGEYXGXL2VEXSWBNGVQ3M
-#\\\|65SR7LMGGUQ4YOFMRICD6RKN7HDAC3ZZ435OV36QNO7ZCGTFTXV \ / AMOS7 \ YOURUM ::
-#\[7]RPIPWPZAM7SUSL4ATKKNKLUSKBFAX6XZROTBQX3A33ZG56IJ6SAI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,.,,,.,.,,,.,..,,,,,,,.,,.,,,.,.,...,..,,...,.,.,,,.,,..,,,,,
+#BM46DXE4BTMN3JQJYJTOVN5WXJF5PHUELTBUXJ3LDEJUOCCRNBCDMYTXPMG7R2XDIJLWT53PPTQIU
+#\\\|RKHS2KMIW5YDI2C4MWOJ5JE54JUP45O2V7SO6GK4OBOUCH4A6EX \ / AMOS7 \ YOURUM ::
+#\[7]6BM3VVKDN5OPUU37XY7OUQ5YWDFXN2KUKZFU6AT6EAOCF64FBECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

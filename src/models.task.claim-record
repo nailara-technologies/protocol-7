@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = models.task.claim-record
+# descr = claim timestamp with the current coding instance, when known
+
+my $record = { 'at' => time };
+
+my $instance = <models.task.coding_instance> // '';
+if ( length $instance ) {
+    $record->{'owner_zenka'}    = qw| coding |;
+    $record->{'owner_instance'} = $instance;
+}
+
+return $record;
+
+#,,,.,...,,.,,..,,,,.,.,,,,..,,.,,,,.,,,,,,.,,..,,...,..,,,,,,,,,,,.,,.,,,.,.,
+#2DRZE5Z2TBA7GMZQAUMBFDZN3YIHFUZHDWSF3YR67MPI6D53Y6AI724EJSU5BR3TGIABNCTUQ23HS
+#\\\|AQ2HWPLUX46ZPBRU3UM3BH7A4NLRWCSAQCYEHVUQFMFUDXALT77 \ / AMOS7 \ YOURUM ::
+#\[7]SIJIGMR4BHI46V6IMIL67HKNO5SV3YEYJBDQI5VW7DSZVGS3YSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

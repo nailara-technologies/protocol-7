@@ -22,7 +22,10 @@ my $claimed = <models.task.claimed> //= {};
 my $ttl     = <models.cfg.task_claim_ttl> // 1800;
 $ttl = 1800 if $ttl !~ m|^\d+$| or $ttl < 60;
 foreach my $claimed_id ( keys %{$claimed} ) {
-    next if time - ( $claimed->{$claimed_id} // 0 ) <= $ttl;
+    my $claim      = $claimed->{$claimed_id};
+    my $claimed_at = ref $claim eq qw| HASH | ? $claim->{'at'} // 0 : $claim
+        // 0;
+    next if time - $claimed_at <= $ttl;
     <[base.logs]>->(
         0,           ': claim of task %s expired after %d s : slot freed',
         $claimed_id, $ttl
@@ -61,8 +64,8 @@ if ( length $pin ) {
 
 return $in_flight < scalar(@ids) ? TRUE : FALSE;
 
-#,,.,,.,.,,,,,.,,,.,.,.,.,..,,...,,,.,,,.,,,,,.,.,...,...,.,,,,,,,,,.,...,,..,
-#D6IZF2MMFOFXAOZU5F6N4MGGVE365FC32RX2WEDLGBKIQWBDNVJGESXP4IRSSZLWXYYL6BM3E6JQO
-#\\\|HYVGZEUTTFAFPPVV2XULYQLM5HNP6JWUDSD5YMYJZUVXCEBXYFB \ / AMOS7 \ YOURUM ::
-#\[7]55B4QBGD3PQJLHDAZCX5YQTTGC42ZMP3WJVM4LUKKYIEGTOLKQDY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,,,,..,...,,..,.,,,,,.,,..,...,.,.,...,...,.,,,,.,,.,,,,,.,.,,,
+#MIPMY4AV23WFSXNGOKOGHK3FRE32INWR4HWQC5DBZFCT2YF4EGSV5DDLFZE3I2HQL777JH36UCZEG
+#\\\|32B4M7DN6F26CKO3OEEH6AQ4WOIXJ5G7ZRJUI66P42CC725QCQP \ / AMOS7 \ YOURUM ::
+#\[7]BFMUAXQ3QVQ3T7SVSV2LHHDRNF3O36TY577XAKTJ73PN3UUNUOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
