@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = thermal.hover.step
+# descr = one hold step : the gap, at most thermal.cfg.hover.step seconds,
+#         so a held round looks at the temperature again while it cools
+#         [ a hold sized at the hot start overshoots far below the mark ]
+
+my ($gap) = @ARG;
+
+my $step = <thermal.cfg.hover.step> // 20;
+$step = 20 if $step !~ m|^\d+(?:\.\d+)?$| or $step <= 0;
+
+return $gap < $step ? $gap : $step;
+
+#,,.,,...,,.,,,..,..,,...,.,.,,.,,.,,,,,.,.,.,..,,...,...,,,,,,..,.,.,,,,,.,.,
+#XY3U7CCNI2QT64DSHITZPXGAICUXUAGEGCLQ73DU6RX5KJ5IFYQ7MQWBWLKR2TKUVGRRE2TFY7WM4
+#\\\|WSTQ7EIHWCCV42IWKLY77DJJBCBNOTWTO2X3M7SXQCIXXQ3MPEC \ / AMOS7 \ YOURUM ::
+#\[7]6QHS5HR37IVYAEB3VMUCII4IMTNEJBDH7ZEUTTL4MXRCJNS2LGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

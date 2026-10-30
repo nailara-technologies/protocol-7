@@ -300,7 +300,16 @@ for my $job_data (@job_list) {
         if ( exists $job_data->{'stage'} ) {
             my $base_lm = $job_data->{'base_last_modified'} // '';
             my $cur_lm  = $cached->{'last_modified'}        // '';
-            if ( length $base_lm and $cur_lm ne $base_lm ) {
+            ## a record touched without a stage move                      ##
+            ## [ liveness stamp, note, reassess ] is no conflict when the ##
+            ## browser's base_stage still matches : only a stage that     ##
+            ## really moved on is one                                     ##
+            my $base_stage = $job_data->{'base_stage'};
+            if (    length $base_lm
+                and $cur_lm ne $base_lm
+                and ( not defined $base_stage
+                    or $base_stage ne ( $cached->{'stage'} // '' ) )
+            ) {
                 $stage_conflict = {
                     'id'             => $enc_id,
                     'field'          => 'stage',
@@ -472,8 +481,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,.,,,.,..,,,.,,,,,,,..,,,,,,..,..,,..,,,,,,..,,...,...,..,,.,,,..,,,,,,,,.,
-#4UDTSEA77ADLYD7UU4RRRPT766AVZ25EW5P5JS77BCZBUPIGTWCHCSFJMZYJIYK2TEJJYQZQERKRY
-#\\\|T3Z62LVFS67NOPHUHLFPJX7OQPSLOWKKMDSYD3ADP37PNJAZQMN \ / AMOS7 \ YOURUM ::
-#\[7]SXK7GEJY7YWBQV2TYB5FLU3GO2AFGHEG67JJ3KZECJUFEGATC2BQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,..,..,,..,,,,.,...,,.,,,,,,,.,,..,,...,..,,...,.,,,,.,,,..,,.,,
+#ZQ2T5JDDK5HQR7GQKKVLAZ23XXTDQKW474Z3N7TABCMLR23Z35G325KTGX4BAS74GFHBYXEL6C5OA
+#\\\|VNLJSHBMFRU5YM7JRSW4PG26AMV7R4WKAPUZXXNMB5G7JQ6RIC4 \ / AMOS7 \ YOURUM ::
+#\[7]2YLWVENCEKE3QWMBRYRHTS3WJXGCTXKWM6SBURBCZXUWMSIHGOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

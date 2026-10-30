@@ -1060,11 +1060,15 @@ function pushChange(id, fields) {
 }
 async function doPushChange(id, fields) {
     try {
-        const body = { id, ...fields };
+        const { base_stage, ...rest } = fields;
+        const body = { id, ...rest };
         /* stage pushes carry the last-known last_modified watermark so the  */
         /* backend can detect + reject a stale write instead of silently    */
         /* clobbering a stage that moved on since this browser last synced  */
         if (fields.stage && jobs[id]) body.base_last_modified = jobs[id].last_modified || '';
+        /* the stage this move started from : the backend only rejects when */
+        /* the stage itself moved on, not on any other touch of the record */
+        if (fields.stage && base_stage) body.base_stage = base_stage;
         const r = await jobsFetch(JOBS_SYNC, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1425,6 +1429,7 @@ function renderCard(j) {
     };
     const STAGES_WITH_DATE = new Set(['applied','interviewed','responded']);
     const setStage = (id, stage) => {
+        const baseStage = jobs[id].stage;
         jobs[id].stage = stage;
         if (STAGES_WITH_DATE.has(stage) && !jobs[id].date_applied) {
             const today = new Date().toISOString().slice(0,10);
@@ -1444,7 +1449,7 @@ function renderCard(j) {
         userDecisions[id] = { ...(userDecisions[id] || {}), stage, base_last_modified: jobs[id].last_modified || '', ts: Date.now() };
         saveUserDecisions();
         saveCache(); render();
-        pushChange(id, { stage, stage_changed_at: jobs[id].stage_changed_at, ...(jobs[id].date_applied ? { date_applied: jobs[id].date_applied } : {}) });
+        pushChange(id, { stage, base_stage: baseStage, stage_changed_at: jobs[id].stage_changed_at, ...(jobs[id].date_applied ? { date_applied: jobs[id].date_applied } : {}) });
     };
     const deleteJob = async (id) => {
         delete jobs[id];
@@ -2856,3 +2861,9 @@ startJobEvents();
 </script>
 </body>
 </html>
+
+#,,..,,.,,,..,,,,,,..,,,,,.,,,,,,,,..,,,,,..,,..,,...,..,,..,,.,,,,.,,,,,,..,,
+#VGKJX3VUXDZMBMGXIDZK53AWE3AS4IIDAUPQTIY67KXD5NERPMHK2Z34BXAQRRUA37PZXSQXCVB2I
+#\\\|WIFGWIVXAAEV3MYSXQUOFMZ7HELFIYB5L2YAY4OOPYUA6BHPF66 \ / AMOS7 \ YOURUM ::
+#\[7]P5QGFS7MCRJVJIBNB47BJGC7Q3IIWF2MZIWQMWC2F73XKSLSXYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

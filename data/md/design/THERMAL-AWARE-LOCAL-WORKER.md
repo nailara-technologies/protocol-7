@@ -133,10 +133,19 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
    so the cold-state self-reference [ band + cap, step 2 ] becomes the
    fallback only. the cap stays.
 5. outdoor amplifier + forecast.
-6. profiles, if wanted.
+6. power feed-forward [ owner 2026-10-30 ] : power leads temperature.
+   learn k [ C per W ] from settled periods : steady temp ~ baseline +
+   k * [ P - P_idle ], outdoor-adjusted. the gate acts on the PREDICTED
+   temperature [ hot \ pause before the overshoot, a spawn refused on
+   the heat it would bring ].
+   cooling fault guard : a sudden k jump at the same power = a stopped
+   fan \ blocked airflow -> freeze k [ never learn it as the new normal ],
+   crawl or pause, notify the owner. the absolute ceiling stays as the
+   last line, independent of any learned value.
+7. profiles, if wanted.
 
-#,,,,,..,,,,.,,.,,.,.,.,,,,,,,,,,,,.,,,,.,..,,..,,...,...,..,,.,,,...,,..,...,
-#7H4HFUI4SQSTXIGDSKBVQPRH6YCBPKD2DYA72LMOIOYWYVAH5UCV64DZNAUZZRNAYQWQ32LMLCE4G
-#\\\|FTQVDEYCZL4TND5JR33QSS4ZKIZ5CEKZNHI3UNXURLNH4XAK3U2 \ / AMOS7 \ YOURUM ::
-#\[7]EOWDKU2KHRJF24EJTGQJDGGDTP23KOKGIJE6TN45M354POK2SQBA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,,,.,...,,..,,..,..,,,,.,.,,,..,,...,..,,,,.,..,,,,.,..,,,.,,
+#7AJEJJX72QIRWVEXQKYX2QLWDJBOXN5RPQI43HQEA2L3V24WWBSW2BOXXQ2KUSNVABBW4RQCSYY7M
+#\\\|5XC6CJNHU7TQQK3LBQRNEDETX3L6X4WBOT46DJDRV7BNSNLKVR5 \ / AMOS7 \ YOURUM ::
+#\[7]PAT3MOJNKGYVERQOQ4ETTVCV5URUTVEMTSBSAG47MCHSC2ACQUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

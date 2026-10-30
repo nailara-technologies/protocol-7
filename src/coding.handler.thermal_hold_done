@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = coding.handler.thermal_hold_done
+# descr = event-timer : a thermal round hold ran out, enqueue the round
+#         again [ it passes the hover gate once more ]
+
+my $timer_data = eval { shift->w->data } // {};
+my $task_id    = $timer_data->{'task_id'};
+my $round      = $timer_data->{'round'};
+
+return unless defined $task_id and defined $round;
+
+delete <coding.thermal.held>->{$task_id};
+
+<[coding.task.enqueue_round]>->( $task_id, $round );
+
+return;
+
+#,,.,,,,.,.,.,.,,,,..,...,.,.,...,,,.,.,,,..,,..,,...,...,,.,,...,,.,,.,,,.,.,
+#CHJEMCPSTRCHQXHKMHOMEIQFCCKW2N375DANJ5KFNGUFUVS6GZZ6BCWT74WXULYADMVSL5JGXRZOW
+#\\\|A5TQIK4KQY6OQ5Y2U3SCHEGCC7RBJFCBEHCLHHPRLCGMW3GUL5E \ / AMOS7 \ YOURUM ::
+#\[7]KKVS7RNAGORTJSHHRCXSNNE463LN3POOXAJRGORHYM37XI6VP6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
