@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = task.handler.stale-claim-sweep
+# descr = periodic : fail claimed \ in_progress tasks that did not move for
+#         task.cfg.stale_claim_secs [ the claiming worker died : a claim
+#         has no heartbeat and no expiry, it stayed in_progress for ever ]
+# note  = failed, not reset : the requester's own watchdog [ jobsite :
+#         assess_timeout x assess_watch_extensions, ~5 h ] gave up and
+#         dispatched again long before -- a reset would run it twice
+
+my $max_age = <task.cfg.stale_claim_secs> // 21600;
+$max_age = 21600 if $max_age !~ m|^\d+$|;
+return if $max_age < 600;    ## 0 \ small = sweep off ##
+
+my $queue = <task.queue> // {};
+
+foreach my $task_id ( keys %{$queue} ) {
+    my $task   = $queue->{$task_id} // {};
+    my $status = $task->{'status'}  // '';
+    next if $status ne qw| claimed | and $status ne qw| in_progress |;
+
+    my $updated = $task->{'updated_at'} // '';
+    next if not length $updated;
+    my $age = <[base.ntime.delta_seconds]>->($updated);
+    next if not defined $age or $age <= $max_age;
+
+    <[base.logs]>->(
+        0, ':. task %s : %s by %s, no update for %d s -- failing stale claim',
+        $task_id, $status, $task->{'agent'} // '-', $age
+    );
+    <[task.fail_task]>->(
+        $task_id,
+        sprintf(
+            'stale claim [ %s by %s, no update for %d s ]',
+            $status, $task->{'agent'} // '-', $age
+        )
+    );
+}
+
+return;
+
+#,,,,,,.,,,.,,...,..,,...,,,.,...,,,.,...,..,,..,,...,...,,.,,,,.,,,.,.,,,,.,,
+#RJ523OMMXLBH7E7R7DTRQVVAFXRBGDBGRFJPK4AEAUQBUCMON3QHPW4NPASKMGE4FSSRWQ4NJDQC6
+#\\\|7XS7BXVU3KFI2BFN4LUQIRTCNLBQUT2PZRXBMPRYGYHBWMFHHZ6 \ / AMOS7 \ YOURUM ::
+#\[7]M43YUHMVRFTNPS7TRZ4KSCTGWVBRYCCXXTKB6AWDUGPQF7K5D6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
