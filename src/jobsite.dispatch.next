@@ -56,7 +56,9 @@ while ( $in_flight < $parallel ) {
         my $current_gen = ( <jobsite.tasks>->{$job_id} // {} )->{'queue_gen'}
             // 0;
 
-        if ( $cur_status =~ m{^(?:trash|deleted|blocked)$} ) {
+        ## a reassess asked for a trashed job explicitly ##
+        if ( $cur_status =~ m{^(?:deleted|blocked)$}
+            or ( $cur_status eq qw| trash | and not $entry->{'reassess'} ) ) {
             <[base.logs]>->(
                 1,       '[job:%s] skipping stale queue entry, status=%s',
                 $job_id, $cur_status
@@ -136,8 +138,8 @@ while ( $in_flight < $parallel ) {
     $in_flight++;
 }
 
-#,,,,,..,,..,,,..,,,,,,,.,,..,,.,,..,,,,,,.,.,..,,...,...,...,...,,.,,,..,,,,,
-#QX2E6FENBJGAJJEZKVEIHVHERFRQ3VQDSYGMHMCKQOB7E6AUXLBESZHI5QC6UDWBH5WTE3O5KQST6
-#\\\|TXPO4YIAFK3ILU4FODBR3BQER765YJXNNZINHVF4VE2VYWEUBNA \ / AMOS7 \ YOURUM ::
-#\[7]X5PZUVMX6WBWMDCP2YHXQEGPCQOKGSUH3TFHAW6T2SKBDRKDXUDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,.,,,..,,,,,,,,,,,,,.,.,.,.,,..,..,,...,...,...,.,.,.,.,..,,..,,
+#Q446WJRVG4NVQRM22LBTSZTA5XOT2RHWRZOHFLW3QFZTXEYNTXKWWFYVDEMN5HKOMA7YWS7OD3NDU
+#\\\|7VQQ3O2UZYIJ3JWRYAMTTTAGWXNXVEPPBU776LJJJND3WA7WTNT \ / AMOS7 \ YOURUM ::
+#\[7]P2VHEZL4GKBQP5EEZVLRBGOBWM6IN2WXH6UUNUZ2CQKWBCM5D4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
