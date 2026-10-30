@@ -66,9 +66,11 @@ foreach my $path_rel ( $path_aref->@* ) {
     ## allow for SIGINT -- only when running inline, never in a fork worker ##
     <[event.once]> if not defined $worker_tag;
 
-    next
-        if $code_data_ref->{'mode'} eq qw| true |
-        and $code_data_ref->{'data'} eq 'still valid. =)';
+    if (    $code_data_ref->{'mode'} eq qw| true |
+        and $code_data_ref->{'data'} eq 'still valid. =)' ) {
+        push @staged_paths, $path_rel;
+        next;
+    }
 
     if ( $code_data_ref->{'mode'} ne qw| size |
         or not length $code_data_ref->{'data'} ) {
@@ -124,8 +126,8 @@ return {
     qw| written_count | => $written_count
 };
 
-#,,..,,,.,.,.,...,.,,,,,.,.,,,,,.,.,,,..,,.,,,..,,...,...,,..,,,.,,,,,.,,,.,,,
-#G2V2PKU6NDEKNTI3OGSXMFMI7TU7HSKD46MRCYQSP76X3ZFW34G7C52C4QIDNFLSYZCUUSTP3PZ26
-#\\\|NLKIQ2LYBYVKQGDDAMBUTHEKGK5N77QVMEZSUE3E55YV63N75MW \ / AMOS7 \ YOURUM ::
-#\[7]UDZ3IJFSXOZB3BPJQGHGMTIXKZQI57RTI22DF3XNFFKQ2VM6QGCY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,,,,,,,,,...,..,,,..,,.,,...,..,,...,...,...,.,,,,,.,,,.,.,,,
+#J5RQ2XXH25LE6CGCVEC4X6HFDALZIWLLBMC3W423RWB4FOHP5LDTDMVZ3FXUSTAMIOZRGQ5FRKICE
+#\\\|I3YCBDFB2J25B5FRZYXXOIDWO2SRO2U24M4MWAGTDZQNARPIBC7 \ / AMOS7 \ YOURUM ::
+#\[7]Z7KDT7JZVMIPSFTONVG4AB6YDL4OVXVQRENNJVAAWL266TPDRMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
