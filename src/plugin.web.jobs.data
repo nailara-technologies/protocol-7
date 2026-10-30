@@ -82,8 +82,10 @@ if ( defined $since_num ) {
     }
 }
 
+## canonical : sorted keys -- per-process hash order showed the assertion ##
+## dimensions in a different order on every host [ ui ]                   ##
 my $json = eval {
-    JSON::XS::encode_json(
+    JSON::XS->new->utf8->canonical->encode(
         {   'jobs'    => \@array,
             'ntime'   => $current_ntime,
             'removed' => \@removed,
@@ -113,8 +115,8 @@ return {
     'content_type' => qw| application/json |
 };
 
-#,,..,,..,,.,,,.,,,.,,.,,,...,.,,,..,,,..,,.,,..,,...,...,,,,,,,,,,,.,.,.,,..,
-#AWEUUTWNZDDRJ4P2N6624EEH5FYDXJY5JDT6K5GWKGMVQW5IEDCUVFWUF3SBRHUFDGVXVXTE37XX6
-#\\\|BZWRZBRGUEWHS463Q4IZL6WCNIHEGY4K5B3FNC6JFIMTQHZDKTS \ / AMOS7 \ YOURUM ::
-#\[7]4ON3LXLTFKCJWFQKU4QZXGTWZ44ASZL6JALKGD5LBJP4KYTHNKDA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,.,.,,.,,..,,,..,,,.,,,.,...,..,,...,...,.,.,.,,,.,.,...,...,
+#QYEDX6GCVWUHPDB7VJWMBLRVLX627CFIFLH2FANQHDP37VYK2OUOJZDFIACXOID4VWBAVNLG4OGH2
+#\\\|VAIY6OGIMIKF755AGV3WJEX5TZE4QTXPGZOAJNHUKA4F7SZV6SH \ / AMOS7 \ YOURUM ::
+#\[7]NJPY4UP6GTT5GWSQSGQ7UPW6AFGPUZNYCH5MDLD26TXSJODEEIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
