@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = coding.handler.thermal_tick
+# descr = periodic : feed the gpu temperature into the coding thermal gate
+#         [ read from <coding.stats.gpu.temp>, so a reload is enough --
+#         the STRM callback itself only changes on a restart ]
+
+my $now   = <[base.time]>->(2);
+my $store = <coding.stats.gpu.temp> // {};
+my $th    = <coding.thermal> //= {};
+
+## freshness on our own clock : updated_at is ntime [ another scale ], so ##
+## note when it last CHANGED                                              ##
+my $seen = $store->{'updated_at'};
+if ( defined $seen and ( $th->{'seen'} // '' ) ne $seen ) {
+    $th->{'seen'}     = $seen;
+    $th->{'fresh_at'} = $now;
+}
+
+my $temp = $store->{'load_5s'} // $store->{'load_1s'};
+if (   not defined $temp
+    or not defined $th->{'fresh_at'}
+    or $now - $th->{'fresh_at'} > 30 ) {
+    $th->{'temp'}    = undef;
+    $th->{'verdict'} = undef;
+    return;
+}
+
+my $gate = $th->{'gate'} //= {};
+<[thermal.gate.sample]>->( $gate, $temp, $now );
+<[thermal.gate.decide]>->( $gate, $now );
+
+$th->{'temp'}    = $temp;
+$th->{'verdict'} = <[thermal.verdict]>->( $gate, undef, $now );
+
+return;
+
+#,,,.,,,.,.,,,.,.,,.,,..,,..,,.,.,,,.,.,,,..,,..,,...,...,...,...,.,,,,..,,,.,
+#KGKG5OP2EAU7FE2HE6QJSEU5XJ2TBJQIHL7GZOWOHNC5HTL7JHAVFXD7E46Y6QACJRPFWI34DQCDM
+#\\\|CDJFXJHIFYFTR752VEPAZKPNT2EVOA3I4AE6HVRCDRNFY3S3SH3 \ / AMOS7 \ YOURUM ::
+#\[7]RSLVCKSKRCS5NMZROKBINSAERKPTZDZKVOBTLAJIBSBH37J63UDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

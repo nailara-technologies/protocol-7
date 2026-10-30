@@ -24,6 +24,53 @@ return { success => FALSE, error => "task not found: $task_id" }
 ## acquire and queues while the lock is held -- even by this same task     ##
 my $backend = ( <coding.async.task_state>->{$task_id} // {} )->{'backend'}
     // qw| gpu |;
+
+## thermal hover [ coding.cfg.thermal_gate ] : while the gpu runs over the  ##
+## hover mark the next round waits [ thermal.hover.gap ]. the lock is not   ##
+## kept while waiting : the holder's continuation releases with its token   ##
+## [ as send_request's queue_paused branch ], the timer re-enters here as a ##
+## fresh acquire                                                            ##
+if ( $backend eq qw| gpu |
+    and <[base.cfg_bool]>->( <coding.cfg.thermal_gate> // FALSE ) ) {
+    my $th  = <coding.thermal> // {};
+    my $gap = <[thermal.hover.gap]>->(
+        $th->{'temp'}, $th->{'verdict'}, <[base.time]>->(2)
+    );
+    if ( $gap > 0 ) {
+        my $held = <coding.thermal.held> //= {};
+        if ( not exists $held->{$task_id} ) {
+            $held->{$task_id} = $round;
+            my $hold_token
+                = <[coding.async.lock_token]>->( $task_id, $backend );
+            <[coding.async.backend_release]>->(
+                $task_id, $backend, $hold_token
+            ) if defined $hold_token;
+            <[event.add_timer]>->(
+                {   'after'   => <[thermal.hover.step]>->($gap),
+                    'handler' => qw| coding.handler.thermal_hold_done |,
+                    'data'    => { 'task_id' => $task_id, 'round' => $round }
+                }
+            );
+            <[base.logs]>->(
+                1,
+                'thermal hold : %s round=%d for %s s [ gpu %.1f C, %s ]',
+                $task_id,
+                $round,
+                $gap,
+                $th->{'temp'}    // 0,
+                $th->{'verdict'} // '-'
+            );
+        }
+        return {
+            success      => TRUE,
+            task_id      => $task_id,
+            round        => $round,
+            deferred     => TRUE,
+            thermal_hold => $gap,
+        };
+    }
+}
+
 my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
 
 <[base.logs]>->(
@@ -68,8 +115,8 @@ return {
     deferred => TRUE,
 };
 
-#,,.,,.,.,.,.,,.,,.,,,...,,.,,.,,,.,,,,,.,.,.,..,,...,..,,...,,..,...,,,.,,.,,
-#J37XAQ7NYZQZ7BZOEITTIXQYF7MYM74YNQDJVRPXPZSEZ4R447WMQQ4IRRH5POWRSSOC5FCGKHZBQ
-#\\\|D2FRS2AS7OQWFSFFSU7XWLF3YXZGSYONAG3BKVLPO5GPYCKPRAZ \ / AMOS7 \ YOURUM ::
-#\[7]A3BDSNFWV4RUM3SOGTFCVSWFLSOCPQYFJQH7K7QTX4LEVNJQQ2AI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,.,,.,,,.,,.,.,.,.,...,,,.,,,,,..,,...,...,,,,,...,,..,.,,,,,,,
+#XVR7DNWDXN3BTHTVVVPOI3LF3S57XRXOJWHXR3HYXLXKUA2GW2LA3LHJYRPDYYOPWRS4RAUZGLUCA
+#\\\|7GYUD72MM7YM7L5NUSBKLZCRITCBA5UFBBGEVJSRFGDX3WAPMOP \ / AMOS7 \ YOURUM ::
+#\[7]SHCXZ6Z4RFVF5AA5JMHEO3GQ67TSSA36WQLQHZECJXQGYHXAL4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

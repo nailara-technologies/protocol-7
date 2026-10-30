@@ -28,6 +28,37 @@ unless ( defined $task ) {
     return FALSE;
 }
 
+## thermal hover [ coding.cfg.thermal_gate ] : a NEW task waits while the ##
+## gpu runs over the hover mark, the same hold enqueue_round gives later  ##
+## rounds [ one-round tasks never reach it ]. nothing is touched yet, the ##
+## timer calls this execute again with the same params                    ##
+if (    <[coding.helper.task_backend]>->($task) eq qw| gpu |
+    and <[base.cfg_bool]>->( <coding.cfg.thermal_gate> // FALSE ) ) {
+    my $th  = <coding.thermal> // {};
+    my $gap = <[thermal.hover.gap]>->(
+        $th->{'temp'}, $th->{'verdict'}, <[base.time]>->(2)
+    );
+    if ( $gap > 0 ) {
+        my $held = <coding.thermal.held> //= {};
+        if ( not exists $held->{$task_id} ) {
+            $held->{$task_id} = 0;
+            <[event.add_timer]>->(
+                {   'after'   => <[thermal.hover.step]>->($gap),
+                    'handler' => qw| coding.handler.thermal_execute_hold |,
+                    'data' => { 'task_id' => $task_id, 'params' => $params }
+                }
+            );
+            <[base.logs]>->(
+                1, 'thermal hold : %s start for %s s [ gpu %.1f C, %s ]',
+                $task_id, $gap,
+                $th->{'temp'}    // 0,
+                $th->{'verdict'} // '-'
+            );
+        }
+        return TRUE;
+    }
+}
+
 ## clear stale staged edits from previous tasks ##
 <[coding.staged.clear]>;
 
@@ -107,7 +138,7 @@ if ($async_mode) {
 
         if ( defined $pin_error ) {
             <[base.logs]>->(
-                0,        '[model_pin] ' . 'task %s : %s',
+                0,        '[model_pin] task %s : %s',
                 $task_id, $pin_error
             );
             $task->{'execution'}->{'status'} = 'failed';
@@ -286,8 +317,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,.,,,,.,,..,.,.,,,.,.,.,,..,,,.,.,,,.,.,,.,,.,.,...,...,,,.,,,.,..,,...,.,,,
-#FQ2H7NN2A42Q7EUOTNMTL2WVRVSMCYUMXITIBZQWPBKWZOTXNKJQYE2TIRBTWI4LB6FPOB7YTFNBC
-#\\\|GGNKAMYPHWHBMFPB2BN2ATHRIVAYLE3IDZXAV5ZBCHMR53ZW6IN \ / AMOS7 \ YOURUM ::
-#\[7]NEAVA3RVRHKRKQ77BCR3QCLTV42P26NNVFUWJZ5FXFRQNI7UHGDY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,,,.,,.,,,,.,...,,,,,..,,,.,,.,.,...,.,.,...,.,,,,,.,,,.,..,,
+#UY3ZVXRQESRJH6Y5BFQWQYKBGMCODAOD2D6ZGJQAHY7O7KRVWJNF7SKIKYELKV2BADH2422LWQV6K
+#\\\|AJ33GA2U2SXTX3CWKXBTJBA64IOR7VL2ZWCWL4JT7BUHQPQ2RNM \ / AMOS7 \ YOURUM ::
+#\[7]EG3EBNQAVWY7ZY5CWFNPT2ADBNHQYLCOX4DXKC2HY7YJWIDTNUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,6 +27,9 @@ if ( $mode eq qw| false | ) {
                 { 'args' => "$task_id backend $target_cmd not available" }
         }
     );
+    ## free the claim slot too : otherwise a failed start holds the only ##
+    ## slot of a one-backend host until the claim ttl [ 1800 s ]         ##
+    <[models.task.release-claim]>->($task_id);
     <models.task.active_id>  = undef;
     <models.task.active_job> = undef;
     <[jobqueue.move_job]>->( $job_id, qw| error | );
@@ -69,8 +72,8 @@ if ( $sent <= 0 ) {
     <[jobqueue.move_job]>->( $job_id, qw| error | );
 }
 
-#,,..,,..,...,,.,,,,.,..,,..,,,..,.,,,,.,,.,,,..,,...,...,,..,,,,,,,,,...,,,,,
-#HSERXLADJ76TDP6GOTFIOXN2VESJDATWWWOC34FSQAMMORWQZWDSTHB63VV7HHJHSPI4JO2A4CKN6
-#\\\|4IHUWFTA6I3B2JU2K2S7CTYRW2LUJ5VOK2ESU4L4KDFT3RH2NAZ \ / AMOS7 \ YOURUM ::
-#\[7]J5K63RNSSCTBBTCZERWBODISXZS7NFUHYQTD4H7VHQJRZKLYXIDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,,..,,..,,..,,..,...,,,.,.,,,..,,...,...,...,.,,,.,,,.,.,..,,
+#H3765NBP73CT535KST3MS4DY6DYG3IZNDX5QOH5M2477FGRNDR3QGY7AWR4XDLUGAVV5JITXTXYWG
+#\\\|NTUNJPEXG77GJDMMNI6B2Y7BWPLX76CZE2EQ4GFFQXO7QHGJK2S \ / AMOS7 \ YOURUM ::
+#\[7]C6XQVMNDPDENBJFUHTLTWP4AOFDHE3J5ZDV6OEKTB5UDLFEABCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

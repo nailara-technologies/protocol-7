@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = coding.handler.thermal_execute_hold
+# descr = event-timer : a thermal hold of a new task ran out, execute it
+#         again [ it passes the hover gate once more ]
+
+my $timer_data = eval { shift->w->data } // {};
+my $task_id    = $timer_data->{'task_id'};
+my $params     = $timer_data->{'params'};
+
+return unless defined $task_id and ref $params eq qw| HASH |;
+
+delete <coding.thermal.held>->{$task_id};
+
+<[coding.task.execute]>->($params);
+
+return;
+
+#,,,.,,..,.,.,,,.,,,.,...,,.,,.,,,,,.,.,,,,,,,..,,...,...,,..,,,.,.,.,...,...,
+#UNZYMEVBWNRX4VKUI2BWHHLT2ETHBBKBNDZHYCSEXZBKGTCJU5P6B3PJIHSAIXVDVMO4MEB6X6NJY
+#\\\|ARNGALMRAFKY6KICQY4UZCHZS64BOGP6UHHUBY72H4IMKWUMPI2 \ / AMOS7 \ YOURUM ::
+#\[7]3NXI6WKLHLAMVDLVQKCQQGV725PBY7AVSCX3AW4R4IHGKLUYAKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -719,6 +719,33 @@ ok( !defined $data{'task'}{'stats'}{'gpu'}{'power'}{'updated_at'},
     'failed power subscription invalidates freshness'
 );
 
+say ': 22. night hover gap holds rounds over the mark only';
+compile_module('thermal.hover.gap');
+$data{'thermal'}{'cfg'}{'hover'}
+    = { 'night' => 68, 'day' => 0, 'per_c' => 15, 'gap_max' => 180 };
+my $hover_gap = $code{'thermal.hover.gap'};
+my $night_at  = timelocal( 0, 0, 23, 15, 0, 2026 );
+my $day_at    = timelocal( 0, 0, 14, 15, 0, 2026 );
+ok( $hover_gap->( 67.9, qw| run |, $night_at ) == 0,
+    'under the night mark runs at once' );
+ok( $hover_gap->( 70, qw| slow |, $night_at ) == 30,
+    '2 C over the night mark holds 30 s' );
+ok( $hover_gap->( 90, qw| slow |, $night_at ) == 180,
+    'the hold is capped at gap_max' );
+ok( $hover_gap->( 75, qw| run |, $day_at ) == 0, 'no day hover by default' );
+ok( $hover_gap->( 60, qw| pause |, $day_at ) == 180
+        && $hover_gap->( undef, qw| unload |, $day_at ) == 180,
+    'pause and unload hold the max in every window'
+);
+ok( $hover_gap->( undef, qw| slow |, $night_at ) == 0,
+    'no fresh temperature runs as before' );
+
+compile_module('thermal.hover.step');
+ok( $code{'thermal.hover.step'}->(135) == 20
+        && $code{'thermal.hover.step'}->(7.5) == 7.5,
+    'a hold steps at most 20 s, then looks again'
+);
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -727,8 +754,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,..,,,,,,,..,,..,,,,,,..,,.,,..,,..,,,.,,..,,...,...,.,.,.,.,.,,,,..,,..,
-#2C52JN6DK2K64CKK6FWHGVF6OLOYEKUP7HYR24MM76WF2UN37HLXRY26HHHLOD5RYOAC3LNSTQ3WC
-#\\\|GGNPHTGIZ4K4FUBAHFN6PWY3SH6NW6IWB6GUW5XRDQFNMAQT7QF \ / AMOS7 \ YOURUM ::
-#\[7]NURP7IYVGLCOXTZB3IIJGIYT624R7VAMQAURQUF7NUKJALW2X2DA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,,,,,,,...,,..,...,,.,,,.,,,,.,..,,...,...,,,.,.,.,,.,,...,.,,,
+#Q5RHMW3XWWM53NSBVKSQIKZXDKBK5MJTDE37VPW4IVP5PSDM2LRJXLPKZZ2MCUYBFA4DCAEIR7IGE
+#\\\|YG4W7GATTE5XCJW6B6SJIMGQOZG36WKUNIHSSXBLMPBAKJSBLFJ \ / AMOS7 \ YOURUM ::
+#\[7]BTN5YRZOHIRMKXBVSA43YMEJRKLPEAZI6J3A4OYJHIXO3MCZVACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

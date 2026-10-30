@@ -744,10 +744,23 @@ if ( not $already_initialized ) {
     };
 }
 
+## thermal hover : feed the gpu temperature into the gate every 5 s       ##
+## [ re-armed on every init and reload, see coding.handler.thermal_tick ] ##
+eval { <coding.timer.thermal_tick>->cancel }
+    if defined <coding.timer.thermal_tick>;
+<coding.timer.thermal_tick> = <[event.add_timer]>->(
+    {   'after'    => 5,
+        'interval' => 5,
+        'repeat'   => TRUE,
+        'handler'  => qw| coding.handler.thermal_tick |,
+        'desc'     => 'thermal hover gate sample'
+    }
+);
+
 return 0;
 
-#,,,,,..,,,,,,,..,,,,,,,,,..,,.,,,..,,.,,,.,,,.,.,...,...,.,,,,,,,.,,,,..,...,
-#G7HV6XE2CRPEZC6IO3BIMDLTXWLTDJTHA6UP2MSXNW6LOZUY5OTEMDTYFRQ4CFQX7OE5OCJYQHJH2
-#\\\|GZYEWPF36QC7L67HMLV5I5YWKYSDJKUNL7WHHAES3DXW2HUM6Y2 \ / AMOS7 \ YOURUM ::
-#\[7]MH6FALXW7SQQMXLSKX6QSJ7SDP7AILQDXWGTDMHZINVTS3P2PYAY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,,,,,,,,.,,.,,,..,,,,,,,..,.,,,.,.,...,...,,.,,,..,.,,,,..,,..,
+#WBBSBHL6ZMXH5KOGGFITIDZ6PUVZWYH2OOCJRQGCYS52QGE4L7UUCDHXZG4A67OHSTUPLQDQO7NNG
+#\\\|VKNRWTAZD5TC2FB5WHPNK5QDW3YQ74GXTG27XD2UAKRIQGQASJ4 \ / AMOS7 \ YOURUM ::
+#\[7]TNNWK7SAQFELVJGFVV7ALWKRSSORVJ2AFNQ4Z5MSQ44FLJHOC4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
