@@ -249,3 +249,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|AGKEGJPZJNL53O35X5REBM77S2QLIBTHCPHDG2X72NQ6KY7ZK3E \ / AMOS7 \ YOURUM ::
 #\[7]VIQXYPDHD5OCKTIRBFQOCRYHZ3BKFNOYQUG6IOZ4KPHSULH53EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [feed-closure-not-reloadable](feedback-feed-closure-not-reloadable.md) — reload source keeps old anonymous subs in feeds : full reload [ init too ] first, restart only as fallback
+
+#,,,.,.,.,,..,,,,,,,.,...,,,,,,.,,.,.,...,.,,,..,,...,...,,.,,..,,,.,,,..,,..,
+#3SAWTIIGTBZV7VU6PITEGE664EPIODD7FRQJE7THPPFKVWLT2IINRRKJHNTRHSORELTPJVONAWTVC
+#\\\|AYFL3ZCJ2ZAOLBZ4I447H3C6OXFFMOFEZNNOGZTAUSJISL7OJV3 \ / AMOS7 \ YOURUM ::
+#\[7]56BELRCX4RLN4ZLANNK4ZLA46ITNQUJYGMYEPLGQS7UIJ2NSTECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
