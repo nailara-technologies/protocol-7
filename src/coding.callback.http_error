@@ -26,6 +26,8 @@ my $used_backend = ( $state // {} )->{'backend'} // '';
 <coding.model_last_used> //= {};
 <coding.model_last_used>->{$used_backend} = <[base.time]>->(2)
     if length $used_backend;
+<coding.model_used_by_request>->{$used_backend} = TRUE
+    if length $used_backend;
 
 <[base.logs]>->( 0, "async.request: error for %s: %s", $task_id, $error );
 
@@ -307,8 +309,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
 
 return;
 
-#,,,.,.,,,.,,,.,,,,,,,.,.,,..,.,,,,..,.,.,..,,..,,...,...,.,.,.,,,.,.,.,,,.,.,
-#PYU7PIB377JY6ZZKYIXOP2H2YBY4SQNISUQFFIULFVILCZ7ZLOY4TPDZ4FVSRIAYRHSETCLRBZGJI
-#\\\|52G24ICLP6YH7NVNBA4KH3QEHHNN6Q2DPBYPDS5UYAYAT5WAYJ6 \ / AMOS7 \ YOURUM ::
-#\[7]KQ6G7BCN7AVKH6N4GYBZJ66VFZKKLNE3FFJZTU7SP5QGI3CNLUBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,..,,.,,.,,,...,...,...,,,,,.,.,..,,...,...,,,.,...,.,.,,..,,..,
+#OAT4BTTRMU4MBOI7JT2UTG75OTTCQDRKXGZXVCHQ32TKBL7LEF7NO76W46CM6B6O73W6YDX6RPY7E
+#\\\|43372QI4BV7AFILGWMSMLDAS7F62SHLQJBMKVB5CJENEOJDH5EP \ / AMOS7 \ YOURUM ::
+#\[7]XKEG2BORYKU3GCIPJDQ7EC3DU5QE4FVDX34FY7KGOUMIOXLP3QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

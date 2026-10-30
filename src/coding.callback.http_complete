@@ -40,6 +40,8 @@ my $used_backend = $state->{'backend'} // '';
 <coding.model_last_used> //= {};
 <coding.model_last_used>->{$used_backend} = <[base.time]>->(2)
     if length $used_backend;
+<coding.model_used_by_request>->{$used_backend} = TRUE
+    if length $used_backend;
 
 ## round finished cleanly [ no timeout fired for this attempt ] : drop any
 ## ceiling escalation so the next round starts fast again rather than staying
@@ -340,8 +342,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,,.,,,,,,..,,,.,...,...,.,,,,,.,..,,.,.,,,,,..,,...,...,...,,..,,,,,...,.,,,
-#N6YQTTASSHAVP3HIVOWRPCFBDWLJD355JCVAPRUO6QJTRPVN7W6RALNOU7IH3UDJ32MZ67ACCH2UY
-#\\\|CNPNRQIGC3JBOVYZ6HRF7HNAO5H5LZLH5HRHH7PPIMEQIVLCNDB \ / AMOS7 \ YOURUM ::
-#\[7]CAJ5DKRMW2JJFXEHULCSRY72IFZWCEQPFBO65PKDHECU67Z5ZMCA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,,,,,.,,,,,.,,,.,,..,.,,,,,.,..,,...,...,,,,,,,,,,.,,..,,...,
+#KTOBDJKBXXRRDRCDJUPV7TRU4R3J42YVEIDG6HT5OFGZNKAIIZFGVAMTSSJO323WGNVNT3VIM54YQ
+#\\\|POPDONEXUKGMQQDMNWLHAVODSCS3BDJZ3BDCUIQVYTWHUOCVGNO \ / AMOS7 \ YOURUM ::
+#\[7]CAWAMV7NBHR73ZYRNF22CVC7YDS2RPS2HJHUWWEDEGGLDH63GADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

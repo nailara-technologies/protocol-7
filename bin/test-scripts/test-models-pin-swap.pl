@@ -83,13 +83,15 @@ compile_module('models.task.claim-ok');
 compile_module('models.task.set-local-models');
 
 sub reset_pin_state {
-    $data{'models'}{'cfg'}{'task_swap'}      = TRUE;
-    $data{'models'}{'cfg'}{'task_swap_idle'} = 1800;
-    $data{'models'}{'cfg'}{'task_models'}    = '';
-    $data{'models'}{'task'}{'local_models'}  = {
+    $data{'models'}{'cfg'}{'task_swap'}           = TRUE;
+    $data{'models'}{'cfg'}{'task_swap_idle'}      = 1620;
+    $data{'models'}{'cfg'}{'task_swap_idle_load'} = 420;
+    $data{'models'}{'cfg'}{'task_models'}         = '';
+    $data{'models'}{'task'}{'local_models'}       = {
         'at'        => time,
         'ids'       => ['AAAAAAA:BBBBBBB'],
         'idle_secs' => 2000,
+        'idle_used' => TRUE,
     };
     $data{'models'}{'task'}{'swap_accepted'}  = {};
     $data{'models'}{'task'}{'claimed'}        = {};
@@ -112,6 +114,20 @@ reset_pin_state();
 $data{'models'}{'task'}{'local_models'}{'idle_secs'} = 100;
 ok( $code{'models.task.pin-accepted'}->(':CCCCCCC') == FALSE,
     'idle below the threshold is refused' );
+
+reset_pin_state();
+$data{'models'}{'task'}{'local_models'}{'idle_secs'} = 1000;
+ok( $code{'models.task.pin-accepted'}->(':CCCCCCC') == FALSE,
+    'a used model needs the long idle [ 1000 < 1620 ]'
+);
+$data{'models'}{'task'}{'local_models'}{'idle_used'} = FALSE;
+ok( $code{'models.task.pin-accepted'}->(':CCCCCCC') == TRUE,
+    'a load-only model gives way after the short idle [ 1000 >= 420 ]'
+);
+$data{'models'}{'task'}{'local_models'}{'idle_secs'} = 300;
+ok( $code{'models.task.pin-accepted'}->(':CCCCCCC') == FALSE,
+    'a load-only model under the short idle is refused'
+);
 
 reset_pin_state();
 $data{'models'}{'task'}{'local_models'}{'idle_secs'} = undef;
@@ -225,8 +241,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,,,,,,.,.,.,,..,...,..,,.,.,.,.,,,,,...,..,,...,...,..,,,.,,..,,...,..,,
-#WKCL336WBKLY7SQPLSGPDUK3RX7YPLDJZV4IFMAB7AKDT7M6NG4SWSHLVZ7HHSF7SY7DG4AIPF5HE
-#\\\|TA7QVKJ45X36UXRQRKQ37KX6PRDDHFB446ORJ2IJFEUSAC2H4HN \ / AMOS7 \ YOURUM ::
-#\[7]LB75N57ZQMXZTR2XZR6MFYR4FKCJMJHRTPPCF2UXATWW5BDW4IAI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,,..,,.,,,..,..,,,,.,,,,,.,.,..,,...,..,,...,..,,,..,,.,,,,.,
+#2OUNF5SVZ27NELDZYHQ7Z27327WPZSVDEF7KIO6RQKETVOFTPUSNYDUYPYN2DKZEKS7O4QGO3RXZ6
+#\\\|RBFWHTYE2M2LEGJD33CGETODZW5BRY4PHKFNGHSKPCPCBQMQSAB \ / AMOS7 \ YOURUM ::
+#\[7]QUB2TYWCRDSY2JUDXNWPVEWEJNKPYLKGIJNUXCV5WIPQO2PW2SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

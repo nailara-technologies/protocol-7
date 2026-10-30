@@ -18,6 +18,9 @@ if ( $params->{'spawn_result'} // FALSE ) {
     <coding.model_last_used> //= {};
     <coding.model_last_used>->{$backend} = <[base.time]>->(2)
         if length $backend;
+    ## a fresh load : the short swap idle applies until a request ran ##
+    <coding.model_used_by_request>->{$backend} = FALSE
+        if length $backend;
 }
 
 <[base.logs]>->(
@@ -29,8 +32,8 @@ if ( $params->{'spawn_result'} // FALSE ) {
 
 return TRUE;
 
-#,,.,,,..,.,.,,,,,,..,...,...,...,,..,...,,,,,..,,...,...,.,.,,,,,...,.,,,.,,,
-#GIYPIVA4LSB6GCXXQODDBG2F3GWAEV45BU36266V5SK4X7Q4NWJ2X3UYGEGYJW74JVDNEYWHLS3FO
-#\\\|XSSHFSQFJBLZ2TLM3VHM6F3FRICMN2LXS4SXXKVC26PQDSWUW25 \ / AMOS7 \ YOURUM ::
-#\[7]DAIYLONHNZABNCUIJXA43ULVYLPAETGHOKAKY43WTACY54GBFYDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,..,,.,.,,.,,..,,,,.,...,,,.,..,,...,...,...,,.,,,,.,,,.,,.,,
+#3W6RLFAICLF3GXGJ452OAOO3U5V5TC7YPKRY4GDVGKBTOMZ7HI4Y6VNT5YJSVFIM6I2DRT5XJM54S
+#\\\|MPWI4VEKC6HVHWRPQV2ZMKYYOXSLIKHZIOMDZOJU7K3FDQ3LXKT \ / AMOS7 \ YOURUM ::
+#\[7]J2N35IX5PKB4LRTM7C4Q7LY3GMSXCAIJS6S7XDSTC5BHQDK2ZKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
