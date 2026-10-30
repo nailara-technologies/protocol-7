@@ -1,18 +1,31 @@
 ## [:< ##
 
 # name  = web.jobs.sync_ui_authorized
-# descr = check a bearer token against the primary ui sync role
+# descr = check a bearer token's verified user for the ui sync role
+# note  = the token is verified like every web token [ only its hash is
+#         stored ] ; its user must be listed in web.cfg.jobs_sync_ui_users
+#         [ host config, eg jobsite-replica ] -- no token copy in config,
+#         a rotation touches only the replica [ v7-zenki.jobsite-sync-token ]
 
 my $token = shift // '';
 return FALSE if not length $token;
-my $allowed = <web.cfg.jobs_sync_ui_tokens> // '';
+
+my $allowed = <web.cfg.jobs_sync_ui_users> // '';
+return FALSE if not length $allowed;
+
+my $session = <[plugin.web.auth.verify_session]>->($token);
+return FALSE if ref $session ne qw| HASH |;
+
+my $user_id = $session->{'user_id'} // '';
+return FALSE if not length $user_id;
+
 for my $candidate ( split m|\s+|, $allowed ) {
-    return TRUE if length $candidate and $candidate eq $token;
+    return TRUE if length $candidate and $candidate eq $user_id;
 }
 return FALSE;
 
-#,,,.,,,.,.,,,,.,,.,,,,.,,.,,,.,.,,,.,,..,,,,,..,,...,...,.,.,.,.,...,.,,,,,,,
-#4RLOBBH74RKKVMIT3XD6TKRZEMJCIENJQUC7L2RHYE3QVAEH27JE2MTATDZFIAYRCKRZVBXF7SAMI
-#\\\|KXRCBMETFGUYGFB2KUXJLL4QWBA2E3CO5ZNW4ZRKOZISKCS6IB4 \ / AMOS7 \ YOURUM ::
-#\[7]PXY5NBSFW643RV3XV7WP377ZKRJDY4K3EOFXS6HDTWLJQIWR3IBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,...,.,,,,,.,,..,,..,...,,,,,,.,,..,,...,..,,.,.,.,,,..,,,.,,,.,,
+#57QDQWF25HVF77FOQPL4GNIRIJATYRDELGPIX62OI762OAB3LKGJFKY6LWYV3UGFD6VOL42F6OYZS
+#\\\|TIBVVKPQUAQAHYUK4CYPD7NF7L53LCCZR62DYPL5FXOMO25EYNI \ / AMOS7 \ YOURUM ::
+#\[7]QHWRNOCUBIJXS2Y4GSDQ72JTXLX3QZVXCLW3GN5Q7RJ5KSTBHMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
