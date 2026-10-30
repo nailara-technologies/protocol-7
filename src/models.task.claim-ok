@@ -15,9 +15,10 @@
 
 my $pin = uc( shift // '' );
 
-## a claim that never completes must not hold its slot for ever [ a job ##
-## stuck in coding's 'depending' queue, a task failed by its owner that ##
-## this host never hears of ] : claims older than the ttl are dropped   ##
+## a claim that never completes must not hold its slot for ever [ a job   ##
+## stuck in coding's 'depending' queue, a task failed by its owner that   ##
+## this host never hears of ] : claims older than the ttl are dropped and ##
+## the task is failed by the same helper as the stale-claim sweep         ##
 my $claimed = <models.task.claimed> //= {};
 my $ttl     = <models.cfg.task_claim_ttl> // 1800;
 $ttl = 1800 if $ttl !~ m|^\d+$| or $ttl < 60;
@@ -27,8 +28,21 @@ foreach my $claimed_id ( keys %{$claimed} ) {
         // 0;
     next if time - $claimed_at <= $ttl;
     <[base.logs]>->(
-        0,           ': claim of task %s expired after %d s : slot freed',
+        0, ': claim of task %s expired after %d s : slot freed, failing task',
         $claimed_id, $ttl
+    );
+    <[protocol-7.route-send]>->(
+        {   'command'   => <[models.task.cmd]>->( qw| fail |, $claimed_id ),
+            'call_args' => {
+                'param' => {
+                    'id'    => $claimed_id,
+                    'error' =>
+                        sprintf( 'models claim expired after %d s', $ttl ),
+                    'expected_agent' => <models.cfg.task_agent>
+                        // qw| models |
+                }
+            }
+        }
     );
     delete $claimed->{$claimed_id};
 }
@@ -64,8 +78,8 @@ if ( length $pin ) {
 
 return $in_flight < scalar(@ids) ? TRUE : FALSE;
 
-#,,,.,,,,,...,.,,,,..,...,,..,.,,,,,.,,..,...,.,.,...,...,.,,,,.,,.,,,,,.,.,,,
-#MIPMY4AV23WFSXNGOKOGHK3FRE32INWR4HWQC5DBZFCT2YF4EGSV5DDLFZE3I2HQL777JH36UCZEG
-#\\\|32B4M7DN6F26CKO3OEEH6AQ4WOIXJ5G7ZRJUI66P42CC725QCQP \ / AMOS7 \ YOURUM ::
-#\[7]BFMUAXQ3QVQ3T7SVSV2LHHDRNF3O36TY577XAKTJ73PN3UUNUOBQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,,,,.,,,..,,..,...,,.,,,,.,.,,,.,.,...,...,.,.,,,,,.,,,.,.,.,.,
+#AAD2RQLN2P7C2ZMVFY4MDDCOWD64AGZFUEZOE3KAVNIUM2RFTJQSUV2G6R4TSMICC45HMTKTSIUOI
+#\\\|Q4RLSY5MYTHEJ4ASWXBY6FOV5G3HGN5XHPAOWQQJVNNSX7CEZYQ \ / AMOS7 \ YOURUM ::
+#\[7]KXALCFXAHKUD4ASKXLKYXFD2USW46K7TAHCTHYKC4ICCNBV724CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
