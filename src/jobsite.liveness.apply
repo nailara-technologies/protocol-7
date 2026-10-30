@@ -5,7 +5,8 @@
 # param = $job_id, $token, $verdict [ { verdict, code, valid_through } ]
 #
 # notes = alive   : live_at stamped, the entry goes back to the queue
-#                   FRONT and dispatches at once [ fresh now, no recheck ]
+#                   FRONT and dispatches at once [ fresh now, no recheck ] ;
+#                   a sweep entry refills the sweep instead
 #         gone    : trash with the reason, unless the job left the
 #                   trashable states meanwhile [ applied \ interviewed ..
 #                   are never touched ]
@@ -23,9 +24,14 @@ return if not defined $rec or $rec->{'token'} ne $token;
 delete $pending->{$job_id};
 eval { $rec->{'timer'}->cancel } if defined $rec->{'timer'};
 
-my $kind = $verdict->{'verdict'}           // qw| unknown |;
-my $code = $verdict->{'code'}              // '-';
-my $job  = <[jobsite.job.read]>->($job_id) // {};
+my $kind  = $verdict->{'verdict'}           // qw| unknown |;
+my $code  = $verdict->{'code'}              // '-';
+my $job   = <[jobsite.job.read]>->($job_id) // {};
+my $sweep = <jobsite.liveness_sweep>;
+my $sweep_owned
+    = (    ( $rec->{'entry'} // {} )->{'sweep'}
+        && ref $sweep eq qw| HASH |
+        && exists $sweep->{'in_flight'}->{$job_id} ) ? TRUE : FALSE;
 
 if ( $kind eq qw| alive | ) {
     $job->{'live_at'}       = time;
@@ -33,8 +39,11 @@ if ( $kind eq qw| alive | ) {
         if length( $verdict->{'valid_through'} // '' );
     <[jobsite.job.write]>->( $job_id, $job );
     <[base.logs]>->( 1, '[job:%s] liveness : alive', $job_id );
-    unshift <jobsite.assess_queue>->@*, $rec->{'entry'};
-    <[jobsite.dispatch.next]>;
+    if ( not $sweep_owned ) {
+        unshift <jobsite.assess_queue>->@*, $rec->{'entry'};
+        <[jobsite.dispatch.next]>;
+    }
+    <[jobsite.liveness-sweep.complete]>->( $job_id, $kind );
     return;
 }
 
@@ -69,12 +78,15 @@ if ( $kind eq qw| gone | ) {
     delete( ( <jobsite.tasks>->{$job_id} // {} )->{'stage'} );
 }
 
-<[jobsite.dispatch.consume_slot]>;
-<[jobsite.dispatch.next]>;
+if ( not $sweep_owned ) {
+    <[jobsite.dispatch.consume_slot]>;
+    <[jobsite.dispatch.next]>;
+}
+<[jobsite.liveness-sweep.complete]>->( $job_id, $kind );
 return;
 
-#,,,.,...,.,,,.,,,,,.,.,,,...,.,,,,,.,,..,,,.,..,,...,..,,.,,,..,,,,,,..,,..,,
-#KD5Q44TJF6FL2YYPJYQ7RBJAH6QFPGUAWW6U6XWYVAMDSJRXIYT545HI35XPIFQUJLE7AI5NJ5HVE
-#\\\|36ZZ22NVBRMDV2EGPTW3MLHGIJECJTGAYAT3T3X7DSZJ6C4UML6 \ / AMOS7 \ YOURUM ::
-#\[7]J2VCVXDPWXNRD2YUEBCXECH3CXBEM6QU2FA5GJ7NSTEPYBNRTWBY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,,..,.,.,.,,,,,.,...,,,,,,..,..,,...,...,.,,,.,.,,,.,.,,,..,,
+#W7ZJZCVXAWSTLVIIR4UDXSAFNLIA7B7D4PKDLW5YH6VD3AHELRZLP4KM6BGELEXRAWIE4ROXLEGHU
+#\\\|ASEOHJHHQRGN2J7IXBPIXTE75VXWJ4PRKAH7DF72BLLZQU63CTW \ / AMOS7 \ YOURUM ::
+#\[7]PI7DO2FOZAMTNGWEK2FBB5SUEG6VALF5FVBWOTMXLIO2ZG2EMUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

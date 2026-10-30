@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = jobsite.cmd.liveness-sweep
+# descr = check posting liveness across all trashable jobs
+# param = [:dry:] [max count] | status
+
+my $args = $call->{'args'} // '';
+$args =~ s{^\s+|\s+$}{}g;
+
+my $sweep = <jobsite.liveness_sweep>;
+if ( $args eq qw| status | ) {
+    return { 'mode' => qw| false |, 'data' => 'no liveness sweep has run' }
+        if ref $sweep ne qw| HASH |;
+    return {
+        'mode' => qw| size |,
+        'data' => sprintf(
+            "total=%d done=%d alive=%d gone=%d unknown=%d "
+                . "in_flight=%d skipped=%d deferred=%d finished=%s",
+            $sweep->{'total'}   // 0,
+            $sweep->{'done'}    // 0,
+            $sweep->{'alive'}   // 0,
+            $sweep->{'gone'}    // 0,
+            $sweep->{'unknown'} // 0,
+            scalar keys %{ $sweep->{'in_flight'} // {} },
+            $sweep->{'skipped'} // 0,
+            scalar @{ $sweep->{'deferred'} // [] },
+            $sweep->{'finished'} ? 'yes' : 'no'
+        )
+    };
+}
+
+my $dry = $args =~ s|:dry:||g;
+$args =~ s{^\s+|\s+$}{}g;
+my $max;
+if ( length $args ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'usage: liveness-sweep [:dry:] [max count] | status'
+        }
+        if $args !~ m|^\d+$| or $args < 1;
+    $max = $args;
+}
+return {
+    'mode' => qw| false |,
+    'data' => 'liveness sweep already in progress'
+    }
+    if ref $sweep eq qw| HASH | and not $sweep->{'finished'};
+
+my $jobs = <[jobsite.job.load_all]> // {};
+my @candidates
+    = sort grep { ( $jobs->{$ARG}->{'status'} // '' ) =~ m{^(?:new|review)$} }
+    keys %{$jobs};
+my $available = scalar @candidates;
+splice @candidates, $max if defined $max and @candidates > $max;
+
+if ($dry) {
+    return {
+        'mode' => qw| size |,
+        'data' => sprintf(
+            "candidates=%d selected=%d%s%s",
+            $available,
+            scalar @candidates,
+            @candidates ? "\n" : '',
+            join "\n",
+            @candidates
+        )
+    };
+}
+
+<jobsite.liveness_sweep> = {
+    'total'     => scalar @candidates,
+    'done'      => 0,
+    'alive'     => 0,
+    'gone'      => 0,
+    'unknown'   => 0,
+    'skipped'   => 0,
+    'queue'     => \@candidates,
+    'deferred'  => [],
+    'in_flight' => {},
+    'finished'  => FALSE,
+};
+
+<[jobsite.liveness-sweep.next]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'liveness sweep started [ %d candidates, %d in flight max ]',
+        scalar @candidates,
+        <jobsite.cfg.liveness_sweep_parallel> // 2
+    )
+};
+
+#,,,,,,,.,.,,,.,.,,,.,,,.,..,,.,.,.,.,,..,.,,,..,,...,...,,..,,..,,,,,,,,,.,.,
+#DCJZCY7JG7AFRR3AAPZX3FAVIQ6FUBJVXB5OHW3AHAQ6A2Y2ZJIDINVAOBYR2WVS6V4PMZKTVJWFY
+#\\\|VLXPKBFSY5FNVGVMEIAM3IYKQWACG5NIBYGYU3IT43QUB5JOHOJ \ / AMOS7 \ YOURUM ::
+#\[7]TUA2EFNP6DNLORVFOLYMERRKGTMT4CW4Q7QINENVZ3GTLGDIX6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

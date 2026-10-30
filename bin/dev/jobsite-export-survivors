@@ -1,0 +1,133 @@
+#!/usr/bin/perl
+## [:< ##
+
+# name  = jobsite-export-survivors
+# descr = export applied or liveness-verified jobs from local storage
+
+use v5.32.0;
+use strict;
+use warnings;
+use utf8;
+use FindBin;
+BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+
+use JSON::PP ();
+use YAML::XS ();
+
+my $out_file;
+my $compare_file;
+while (@ARGV) {
+    my $arg = shift @ARGV;
+    if ( $arg eq '-o' and @ARGV ) {
+        $out_file = shift @ARGV;
+    } elsif ( $arg eq '-compare' and @ARGV ) {
+        $compare_file = shift @ARGV;
+    } else {
+        print STDERR "usage: $0 [ -o <file> ] [ -compare <jobs.json> ]\n";
+        exit 2;
+    }
+}
+
+my %excluded;
+if ( defined $compare_file ) {
+    open my $fh, '<:raw', $compare_file
+        or die "cannot open comparison file $compare_file: $!\n";
+    local $/;
+    my $json = <$fh>;
+    close $fh or die "cannot read comparison file $compare_file: $!\n";
+
+    my $data = eval { JSON::PP->new->utf8->decode($json) };
+    die "invalid comparison jobs.json $compare_file: $@" if $@;
+    my $entries = ref $data eq 'HASH' ? $data->{'jobs'} : $data;
+    my @jobs
+        = ref $entries eq 'ARRAY' ? @{$entries}
+        : ref $entries eq 'HASH'  ? values %{$entries}
+        :                           ();
+    die "invalid comparison jobs list in $compare_file\n"
+        if ref $entries ne 'ARRAY' and ref $entries ne 'HASH';
+
+    for my $job (@jobs) {
+        die "invalid comparison job in $compare_file\n"
+            if ref $job ne 'HASH'
+            or not defined $job->{'id'}
+            or not length $job->{'id'};
+        $excluded{ $job->{'id'} } = 1;
+    }
+}
+
+my $jobs_root
+    = ( $ENV{'PROTOCOL_7_VAR'} // '/var/protocol-7' ) . '/jobsite/jobs';
+-d $jobs_root or die "jobsite store not found: $jobs_root\n";
+
+my %jobs;
+
+sub load_status_dir {
+    my ( $status, $epoch ) = @_;
+    my $dir
+        = defined $epoch
+        ? "$jobs_root/$status/$epoch"
+        : "$jobs_root/$status";
+    return if not -d $dir;
+    opendir my $dh, $dir or die "cannot open $dir: $!\n";
+    my @files = sort grep { m|\.yaml$| && !m|^\.| } readdir $dh;
+    closedir $dh;
+
+    for my $file (@files) {
+        my $id   = $file =~ s|\.yaml$||r;
+        my $path = "$dir/$file";
+        my $job  = eval { YAML::XS::LoadFile($path) };
+        die "cannot load $path: $@"         if $@;
+        die "invalid job record in $path\n" if ref $job ne 'HASH';
+        $job->{'id'} //= $id;
+        $jobs{$id} = $job;
+    }
+}
+
+## active records win over an orphaned blocked copy of the same id ##
+load_status_dir(qw| blocked |);
+my $blocked_root = "$jobs_root/blocked";
+if ( -d $blocked_root ) {
+    opendir my $dh, $blocked_root or die "cannot open $blocked_root: $!\n";
+    my @epochs = sort grep { !m|^\.| && -d "$blocked_root/$_" } readdir $dh;
+    closedir $dh;
+    load_status_dir( qw| blocked |, $_ ) for @epochs;
+}
+load_status_dir($_)
+    for qw| new assessed review apply applied interviewed rejected skipped
+    archived |;
+
+my %applied_or_later = map { $_ => 1 }
+    qw| applied interviewed responded rejected skipped archived |;
+my @survivors;
+for my $id ( sort keys %jobs ) {
+    next if $excluded{$id};
+    my $job    = $jobs{$id};
+    my $stage  = $job->{'stage'}  // $job->{'status'} // '';
+    my $status = $job->{'status'} // '';
+    next
+        if $stage  =~ m{^(?:trash|deleted)$}
+        or $status =~ m{^(?:trash|deleted)$};
+    next
+        if not $applied_or_later{$stage}
+        and not defined $job->{'live_at'};
+    next
+        if not $applied_or_later{$stage}
+        and not length $job->{'live_at'};
+    push @survivors, $job;
+}
+
+my $json = JSON::PP->new->utf8->canonical->pretty->encode( \@survivors );
+if ( defined $out_file and $out_file ne '-' ) {
+    open my $fh, '>:raw', $out_file or die "cannot write $out_file: $!\n";
+    print {$fh} $json or die "cannot write $out_file: $!\n";
+    close $fh         or die "cannot close $out_file: $!\n";
+} else {
+    binmode STDOUT, ':raw';
+    print STDOUT $json;
+}
+
+#,,,,,...,,..,,..,.,,,...,,..,,.,,,,.,.,.,.,,,..,,...,...,,,.,.,,,.,,,,,,,,,.,
+#UJNARYURYGO3HUL75NSZBIXL75ZB3VO2KCEXV3JOKWTNYBEYQFTJDKZU344JAR4ALRQZYGZRATFP2
+#\\\|W2TZ3AMFB3KGI52ZGHRVFSUPPU66ZGDQ7HPJJ4EITNR3W3BESLV \ / AMOS7 \ YOURUM ::
+#\[7]LAQTZNXYGL5HMV76QCM4WBQHGNBJCOQ4XKO3BMXNAUW3ATAW7YCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

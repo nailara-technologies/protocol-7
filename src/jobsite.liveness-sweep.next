@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = jobsite.liveness-sweep.next
+# descr = fill available liveness sweep slots and log completion
+
+my $sweep = <jobsite.liveness_sweep>;
+return if ref $sweep ne qw| HASH | or $sweep->{'finished'};
+
+my $parallel = <jobsite.cfg.liveness_sweep_parallel> // 2;
+$parallel = 2 if $parallel !~ m|^\d+$| or $parallel < 1;
+
+my $queue    = $sweep->{'queue'}    //= [];
+my $deferred = $sweep->{'deferred'} //= [];
+unshift @{$queue}, splice @{$deferred};
+
+while ( scalar keys %{ $sweep->{'in_flight'} } < $parallel and @{$queue} ) {
+    my $job_id = shift @{$queue};
+
+    ## an assessment owns this check : retry after its verdict arrives ##
+    if ( exists <jobsite.liveness_pending>->{$job_id}
+        and not exists $sweep->{'in_flight'}->{$job_id} ) {
+        push @{$deferred}, $job_id;
+        next;
+    }
+
+    $sweep->{'in_flight'}->{$job_id} = TRUE;
+    if ( not <[jobsite.liveness.start]>->( $job_id, { 'sweep' => TRUE } ) ) {
+        delete $sweep->{'in_flight'}->{$job_id};
+        $sweep->{'done'}++;
+        $sweep->{'skipped'}++;
+    }
+}
+
+return if @{$queue} or @{$deferred} or keys %{ $sweep->{'in_flight'} };
+
+$sweep->{'finished'} = TRUE;
+<[base.logs]>->(
+    1,
+    'liveness sweep finished : alive=%d gone=%d unknown=%d skipped=%d',
+    $sweep->{'alive'}   // 0,
+    $sweep->{'gone'}    // 0,
+    $sweep->{'unknown'} // 0,
+    $sweep->{'skipped'} // 0
+);
+
+#,,..,..,,.,.,.,.,,..,,,.,.,.,..,,,,.,.,,,.,.,..,,...,...,..,,,.,,,..,,..,..,,
+#DRSBBKPITSWS3DU3CGS4TTRSXOSMKW2ERQBK2XHMUKUVLQZ2HRAFDTJ2AVNCJN66BFEOVLMIHYUFI
+#\\\|7WWNO3KPGHMGDKKA4AW4D6VIJTL7R3FP6UICDN6I5YCBQGJLMZP \ / AMOS7 \ YOURUM ::
+#\[7]QUTS3BBUOWM6ANXKO53HU4QK4FZNUJYJV5XPAKT7OJOZL57QFUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

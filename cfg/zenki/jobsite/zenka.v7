@@ -72,6 +72,9 @@ jobsite.cfg.assess_watch_extensions = 24
 ## strictly serial chain
 jobsite.cfg.assess_parallel = 1
 
+## liveness sweep checks in flight at once [ default 2 ]
+jobsite.cfg.liveness_sweep_parallel = 2
+
 ## two-stage delete retention (in V7 epochs)
 jobsite.cfg.trash_keep_epochs   = 1  ## recoverable compressed stage
 jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
@@ -108,7 +111,8 @@ jobsite.cfg.mail_dir             = /data/jobcenter-report-data/mail-rejections
 access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       list-jobs src-age src-ver show-buffer buffer-erase \
                       buffer-erase-level mail_received manual-sync \
-                      scan status list approve reject reset set-threshold \
+                      liveness-sweep scan status list approve reject reset \
+                      set-threshold \
                       set-status job-upsert import-url import-url-http \
                       clear-tasks blacklist-add blacklist-stats \
                       show-prompt progress report-stray-jobs group-jobs \
@@ -141,8 +145,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite \
 
 [zenka.loop]
 
-#,,,,,,,,,,.,,.,.,..,,.,.,..,,,.,,,,.,,,.,.,.,..,,...,...,,.,,.,,,,.,,,,.,...,
-#BUJALJBWZTC4GRRVLX5FX5OZ7A7EBSCKRVFWF67IKZ7HNUU5ZGX7DU3465XXEIKUHUSBHIMIGV34W
-#\\\|LZKHHI4Q2HPJYMLPJNTCLB7KCIDM3DMXNVJRMKCW5BXI7LJNZWK \ / AMOS7 \ YOURUM ::
-#\[7]FNJQPWISQ2TVHWZ57VIVMZOZRUKJCZPXEKZXCJSRFBA3FQXEBGCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,..,,,,,,,,,,.,,,.,.,,..,,,.,..,,...,.,.,.,.,,,.,.,,,.,.,,.,,
+#XCNLMKCRXQ66LR4MZF4PYM4YMYYLK7IQ2Y6XJXMRYVRFXDNPEHLSNXZ6T3NXAVRIS6CBFCGQM2J4U
+#\\\|UI3L43PWZWXVWXO6BXVRWZQKCECL7TLCOZX5B72CGRVCZLKVNTL \ / AMOS7 \ YOURUM ::
+#\[7]LURTNSWYRX4XRBWCUIEHD47CH6RYYWW4HVC24G4RPCJ6JR5VW4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

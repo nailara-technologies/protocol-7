@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = jobsite.liveness-sweep.complete
+# descr = record one sweep verdict and refill its slot
+# param = $job_id, $verdict kind
+
+my ( $job_id, $kind ) = @ARG;
+my $sweep = <jobsite.liveness_sweep>;
+return if ref $sweep ne qw| HASH |;
+
+if ( delete $sweep->{'in_flight'}->{$job_id} ) {
+    $sweep->{'done'}++;
+    $sweep->{$kind}++ if $kind =~ m{^(?:alive|gone|unknown)$};
+}
+
+<[jobsite.liveness-sweep.next]>;
+
+#,,,,,.,,,...,.,.,,..,,.,,.,,,...,.,,,,,,,,,,,..,,...,...,,.,,.,.,..,,.,.,,.,,
+#3GZGBE75JWOZWPKOMWJQGULPN4NLZRIIMUGOM4SBCMCP3JIZZ4DRYFD6JNY3IDAITG3LXI6ONIBYO
+#\\\|QDGXK7R3W7EEO6S7YNBDWMUUOICUTXI7CE4UI2SEDTQEDQKMY6C \ / AMOS7 \ YOURUM ::
+#\[7]T735UDKLULRT5IDZRQ3AGSNAQL5GY76WO2J65DP7GR73J2K54ECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
