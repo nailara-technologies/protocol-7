@@ -1316,7 +1316,8 @@ function renderCard(j) {
 
     /* dimension breakdown */
     const dims = _dims;
-    const dimKeys = Object.keys(dims);
+    /* base.sort order : length ascending, reverse alphabetical within a length */
+    const dimKeys = baseSort(Object.keys(dims));
     const dimAbbr = {
         'location': 'loc', 'work-profile': 'work', 'company-culture': 'cult',
         'compensation': 'comp', 'remote-flexibility': 'remote',
@@ -2191,7 +2192,7 @@ function showPrintTable() {
     const details = rows.map((j,i) => {
         const sug = (j.assertions && j.assertions.suggest) || {};
         const dim = (j.assertions && j.assertions.dimensions) || {};
-        const dimList = Object.entries(dim)
+        const dimList = baseSort(Object.keys(dim)).map(k => [k, dim[k]])
             .map(([k,v]) => `${k.replace(/-/g,' ')}: ${v.score}`)
             .join(', ');
         const dateLine = fmtDate(j);
@@ -2267,6 +2268,11 @@ async function submitImportUrl() {
 }
 
 /* ── helpers ── */
+/* base.sort : length ascending, reverse alphabetical within a length */
+function baseSort(keys) {
+    return keys.slice().sort().reverse().sort((a, b) => a.length - b.length);
+}
+
 function escHtml(s) {
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
