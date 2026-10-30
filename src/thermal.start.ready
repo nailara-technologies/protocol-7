@@ -3,10 +3,16 @@
 # name  = thermal.start.ready
 # descr = check cold start temperature memory and idle gates
 
-my ( $gate, $mem_gate, $idle_gate, $now ) = @ARG;
+my ( $gate, $mem_gate, $idle_gate, $now, $expected_watts ) = @ARG;
 
 return FALSE
     if defined $gate->{'state'} and $gate->{'state'} ne qw| cold |;
+if ( defined $expected_watts ) {
+    my $predicted = <[thermal.gate.predict]>->( $gate, $expected_watts );
+    return FALSE
+        if defined $predicted
+        and $predicted > <[thermal.gate.hot_mark]>->( $gate, $now );
+}
 return FALSE if ref $mem_gate ne qw| HASH |;
 return FALSE if ( $mem_gate->{'state'} // '' ) ne qw| calm |;
 
@@ -14,8 +20,8 @@ return <[thermal.idle.held]>->(
     $idle_gate, $now, <thermal.cfg.start.hold> // 600
 );
 
-#,,.,,...,...,,..,,.,,.,.,,,.,..,,.,.,.,,,.,.,..,,...,...,.,.,.,,,.,,,.,,,..,,
-#C7BG7AEBPOMTYCFHIBR6H6A26MGOR63B56UBYBY565XFCIOS4L72OCGPZKSFEJRSIQLURXTRVO6NM
-#\\\|CMNQM6LNXFFM4LZ7K7QR7HMPID4WDPQGUKDMXVYIGW2IIRUU36M \ / AMOS7 \ YOURUM ::
-#\[7]DEHBI3FV44U73YTU3JCKU6SG3TDMJSFIVCP6YHPN57IOZNGGAGAY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,.,,.,.,,,.,.,,,,.,,,.,,,.,,.,,,..,,...,...,.,.,...,..,,..,,,,,,
+#H4SZPJ3D3DNS4DEQQI57H7T2SOITJHBLEJCOS2KBKW4RLWW3I52N4PMCTA4ZYU5SRMTUHG3Y33HXU
+#\\\|WXAJSYFUU7MY4GNZRST3Y7FOPWKZHNWIS4QBFMX3TXUBL3CX5MA \ / AMOS7 \ YOURUM ::
+#\[7]BCDEPFIXCWKMNGHEQWKV7TD4BZGBVZURQCS3JIY4IO3EUE4NOKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

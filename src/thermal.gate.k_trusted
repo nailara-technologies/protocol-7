@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = thermal.gate.k_trusted
+# descr = check whether the learned power coefficient may drive decisions
+
+my $gate = shift;
+
+return FALSE if ref $gate ne qw| HASH |;
+return FALSE if ( <thermal.cfg.predict> // qw| yes | ) ne qw| yes |;
+return FALSE
+    if ( $gate->{'k_samples'} // 0 ) < ( <thermal.cfg.k.min_samples> // 30 );
+
+return TRUE;
+
+#,,.,,,.,,,,,,...,..,,,,.,.,,,.,.,..,,...,..,,..,,...,...,.,,,...,.,,,.,,,,..,
+#NO4RTKQL3C447Q2RSNQUZLQPUON25TYFB4JEUNNH63WJKKDONAIKNL42T3BTVLGD4FIHVKFJVL6F2
+#\\\|LYJTLP3GACYIIYMLU2DXKQNFHZG5IW2XMVOCCBKRAX2NBOGR4IZ \ / AMOS7 \ YOURUM ::
+#\[7]JIWBKJKF7CEK3FIGWSL2J5LBIAWPZSGVYVROXFTUQG6NQSUNFUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

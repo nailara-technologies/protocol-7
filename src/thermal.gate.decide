@@ -19,6 +19,14 @@ if ( $temp >= $ceiling ) {
     return $gate->{'state'};
 }
 
+if ( exists $gate->{'fault'} ) {
+    $gate->{'state'} = qw| hot |;
+    return $gate->{'state'};
+}
+
+my $predicted = <[thermal.gate.predict]>->($gate);
+$temp = $predicted if defined $predicted and $predicted > $temp;
+
 my $window
     = defined $gate->{'window'}
     ? $gate->{'window'}
@@ -27,22 +35,15 @@ my $cold_mark
     = $window eq qw| night |
     ? <thermal.cfg.night.cold> // 8.0
     : <thermal.cfg.cold> // 4.5;
-my $hot_mark
-    = $window eq qw| night |
-    ? <thermal.cfg.night.hot> // 25.0
-    : <thermal.cfg.hot> // 18.0;
-if ( ( <thermal.cfg.mode> // qw| relative | ) eq qw| relative | ) {
-    if ( $window eq qw| night | ) {
-        my $amp = $gate->{'amp'} // <[thermal.outdoor.amp]>->(
-            <thermal.outdoor.temp>, <thermal.outdoor.at>, $now
-        );
-        $cold_mark *= $amp;
-        $hot_mark  *= $amp;
-    }
-    $cold_mark += $gate->{'baseline'};
-    $hot_mark  += $gate->{'baseline'};
+if ( ( <thermal.cfg.mode> // qw| relative | ) eq qw| relative |
+    and $window eq qw| night | ) {
+    $cold_mark *= $gate->{'amp'} // <[thermal.outdoor.amp]>->(
+        <thermal.outdoor.temp>, <thermal.outdoor.at>, $now
+    );
 }
-$hot_mark = $ceiling if $hot_mark > $ceiling;
+$cold_mark += $gate->{'baseline'}
+    if ( <thermal.cfg.mode> // qw| relative | ) eq qw| relative |;
+my $hot_mark = <[thermal.gate.hot_mark]>->( $gate, $now );
 
 my $next_state = qw| warm |;
 $next_state = qw| cold | if $temp < $cold_mark;
@@ -60,8 +61,8 @@ if ( not defined $state ) {
 
 return $gate->{'state'};
 
-#,,.,,...,,,,,,,.,,..,..,,...,,.,,.,,,...,,,.,..,,...,...,,..,,,,,,..,...,,..,
-#EUSPUB63HVYC3GFA3FS6VWXEUNTWN3I5IKTBTMD3IIQDDVF357WRAVEY4MQMJIYD2ZMAD3PPY3NZQ
-#\\\|4O3B6C2DGYIHLNGPWNJLAIPFKSJFVCVMBQHQMQP6PONWNXPX3U7 \ / AMOS7 \ YOURUM ::
-#\[7]DYR2X4UWQGQZVPGAN5NVMAMJTE3PR5XZE3Z3Q35YR3TTVMBSOQDA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,..,,.,.,...,.,.,.,.,,,.,.,.,...,..,,...,...,,..,.,.,.,.,,,.,,..,
+#IBJ6ATV2N2GRW2F2V6R7JZQUKALBBUN42W5BL6CDZNMDR37EB5HT3Z3Z7ARYUNHBDKO3SCPRDN2YA
+#\\\|6ZXA74CMJBTVUGKWNFN72P47C2R6DGMHSV4G6FPKTEMNZZXFXGN \ / AMOS7 \ YOURUM ::
+#\[7]XR4VMIHUAYXNSW5G3ZPIELTY5FOBFN6KGJXGVGAY3D2YY7W47YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
