@@ -29,7 +29,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.GTXX5KA |;
+our $VERSION = qw| AMOS7::TERM-VERSION.QUFV3RA |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -1481,29 +1481,67 @@ sub confirm_key {
     print {$tty_out} ( $answer ? $c{'3'} . 'approve' : $c{'2'} . 'reject' )
         . $c{'R'} . "\n";
 
-    $termios->setlflag($lflag_saved);
-    $termios->setcc( VMIN,  $vmin_saved );
-    $termios->setcc( VTIME, $vtime_saved );
-    $termios->setattr( $fd, TCSANOW );
-
-    ## a denial may carry a reason                                        ##
-    ## [ the bin/admin/vc_commit length gate, no truth check ] : 13 .. 76 ##
-    ## chars, an empty line skips it                                      ##
+    ## a denial may carry a reason                                          ##
+    ## [ the bin/admin/vc_commit length gate, no truth check ] : 13 .. 76   ##
+    ## chars, an empty line skips it. read raw, one key at a time : left \  ##
+    ## right \ home \ end move, backspace \ del erase, ctrl-u clears, esc \ ##
+    ## ctrl-c \ ctrl-d skip, any other sequence is dropped -- cooked mode   ##
+    ## echoed arrow keys as ^[[D into the line                              ##
     my $reason;
     if ( not $answer and $params->{'reason'} ) {
         my ( $min_len, $max_len ) = ( 13, 76 );
+        my $prompt = $c{'T'} . ' :: reason [ enter skips ] :. ' . $c{'2'};
+        print {$tty_out} "\n";
         while (TRUE) {
-            ## a blank line apart from the question ; the typed reason shows
-            ## in the answer color [ cooked mode echoes in the open color ]
-            print {$tty_out} "\n"
-                . $c{'T'}
-                . ' :: reason [ enter skips ] :. '
-                . $c{'2'};
-            my $line = <$tty_in>;
-            print {$tty_out} $c{'R'};
+            my ( $text, $cursor ) = ( '', 0 );
+            my $draw = sub {
+                my $tail = length($text) - $cursor;
+                print {$tty_out} "\r" . $prompt . $text . "\e[K"
+                    . ( $tail ? "\e[${tail}D" : '' );
+            };
+            my $line;
+            $draw->();
+            while (TRUE) {
+                sysread( $tty_in, my $key, 1 ) or last;
+                if ( $key eq "\r" or $key eq "\n" ) {
+                    $line = $text;
+                    last;
+                } elsif ( $key =~ m{^[\x03\x04]$} ) {
+                    last;
+                } elsif ( $key eq "\e" ) {
+                    my ( $seq, $select ) = ( $key, IO::Select->new($tty_in) );
+                    while ( $select->can_read(0.05) ) {
+                        sysread( $tty_in, my $byte, 1 ) or last;
+                        $seq .= $byte;
+                        last if length $seq > 2 and $byte =~ m{[A-Za-z~]};
+                    }
+                    last if $seq eq "\e";
+                    if ( $seq =~ m{^\e[\[O]D$} ) {
+                        $cursor-- if $cursor > 0;
+                    } elsif ( $seq =~ m{^\e[\[O]C$} ) {
+                        $cursor++ if $cursor < length $text;
+                    } elsif ( $seq =~ m{^\e(?:[\[O]H|\[[17]~)$} ) {
+                        $cursor = 0;
+                    } elsif ( $seq =~ m{^\e(?:[\[O]F|\[[48]~)$} ) {
+                        $cursor = length $text;
+                    } elsif ( $seq eq "\e[3~" and $cursor < length $text ) {
+                        substr( $text, $cursor, 1, '' );
+                    }
+                } elsif ( $key eq "\x7f" or $key eq "\x08" ) {
+                    if ( $cursor > 0 ) {
+                        substr( $text, $cursor - 1, 1, '' );
+                        $cursor--;
+                    }
+                } elsif ( $key eq "\x15" ) {
+                    ( $text, $cursor ) = ( '', 0 );
+                } elsif ( $key =~ m{^[[:print:]]$} ) {
+                    substr( $text, $cursor, 0, $key );
+                    $cursor++;
+                }
+                $draw->();
+            }
+            print {$tty_out} $c{'R'} . "\n";
             last if not defined $line;
-            $line =~ s|[\r\n]+$||;
-            $line =~ s|[^[:print:]]||g;
             $line =~ s|^\s+||;
             $line =~ s|\s+$||;
             last if not length $line;
@@ -1520,6 +1558,11 @@ sub confirm_key {
             last;
         }
     }
+
+    $termios->setlflag($lflag_saved);
+    $termios->setcc( VMIN,  $vmin_saved );
+    $termios->setcc( VTIME, $vtime_saved );
+    $termios->setattr( $fd, TCSANOW );
 
     close $tty_in;
     close $tty_out;
@@ -2302,8 +2345,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,,.,,.,,.,,,..,,...,,.,,,..,,..,.,,,,.,,.,.,..,,...,...,,.,,,..,,.,,,..,,.,,
-#JJ4DCXUB76XCI3FKGLAU6MM2OWHWZ7ZMOZAIHGQVWJ2QSN27USS3YIJOZMQBAFCJBFLIP2V5KDU7C
-#\\\|F6S464PRT4QC322CEJU2NECT6KNJRCQESHHPYC66BZ74HRKYX6U \ / AMOS7 \ YOURUM ::
-#\[7]ZEHWBH3QG3UMT45NUQQR6H5HYY42NUJYP74LNXBXENAUA7KATWBY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,,,..,,..,,..,,.,,,..,,.,.,,,,,..,,...,...,.,,,.,,,.,,,,.,,...,
+#DDFYKONM4T5YFYJD55BDJV5YF4N6KT2OEPCQPXFYVTFJHD5WOHX7SG64U5ON5VYUWPI7CNQRG4ENU
+#\\\|3NMSBVNSLVU567VHRPLWAQHTUM63YGYIYHBNZN37JS6XH4S456G \ / AMOS7 \ YOURUM ::
+#\[7]Q3HVBZEBAKIU3JOFWSHSFLF4ERYD2Y3BSNJICBCF6ROO5NAUFIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
