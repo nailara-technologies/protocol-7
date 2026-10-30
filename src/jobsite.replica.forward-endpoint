@@ -18,6 +18,9 @@ my $request = {
     'params'  => { 'reply_id' => $reply_id },
 };
 
+## a pull sent before this forward carries the old state : pull-response ##
+## drops it [ jobsite.replica.pull_seq ]                                 ##
+<jobsite.replica.forward_seq>++;
 if ( $url =~ m{^https://}i ) {
     <[clients.https.post]>->($request);
 } else {
@@ -25,8 +28,8 @@ if ( $url =~ m{^https://}i ) {
 }
 return { 'mode' => qw| deferred | };
 
-#,,..,.,,,.,,,,,,,,..,,,.,..,,.,.,.,.,,..,,,.,..,,...,...,..,,,..,.,,,.,.,,..,
-#ZIJ3WZS2UZ3YUGVKP3LFL4DO4ZYNB6F3R2QAACFVYUOUEIM52BDAT6LVCRENG6DFJYNEGBQCJQVPM
-#\\\|PTESW4HWILJ5NZE2P4FI65AZZYFXGAI6QS6ZMREABSFHWKQFAFK \ / AMOS7 \ YOURUM ::
-#\[7]DEK4JNQWMGWDOQKVE3RTXPJMV74GI7AHKQMHNAAUB7IBZHNBN2BA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,...,,,.,,,.,...,..,,,,.,..,,..,,...,...,..,,,.,,...,,,,,.,.,
+#HUMYLGCTU62AVU33NJLCNITU35NASQFOSVXLFJKCNYXKMFNM25QSF2YLLECKOWT7Q2J2SYYPTVLWM
+#\\\|IKO6R3LRPNFQOFSJAMEY7LUSDSTQ2CU3A5QQJDNUTFECQQULC6K \ / AMOS7 \ YOURUM ::
+#\[7]BNQ6IE4MTKNIILVW4PYXBROU2RDEKPFWPRMPOQQPXTNHIO7ZSSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

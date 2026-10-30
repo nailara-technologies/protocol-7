@@ -24,6 +24,8 @@ my $request = {
     'on_done' => qw| jobsite.replica.pull-response |,
 };
 
+## forwards sent so far : a later one makes this pull stale ##
+<jobsite.replica.pull_seq>         = <jobsite.replica.forward_seq> // 0;
 <jobsite.replica.pull_in_progress> = TRUE;
 if ( $url =~ m{^https://}i ) {
     <[clients.https.get]>->($request);
@@ -31,8 +33,8 @@ if ( $url =~ m{^https://}i ) {
     <[clients.http.get]>->($request);
 }
 
-#,,..,,.,,...,.,,,..,,.,,,...,.,,,,,,,.,,,,,,,..,,...,...,..,,.,.,,,.,,,,,,.,,
-#7JTTTK7NAIUVDQXI3OBYXO6SUXYY5NYBGRWXT3SEQNF4WTWATJFVACJLYULMYLFPRHYVUKZ722Z24
-#\\\|3YSACR5QT5KMQGIPADEKSYML2JTRCMYRS44J3MHGZJM4GZT7Q7B \ / AMOS7 \ YOURUM ::
-#\[7]6VVARHBPCORJ3APHZB4IRTTQCIRZKT5GZFMDXXSNEPR2RJBO5WCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,...,.,.,,,.,,.,,,,.,,.,,,.,,.,,,..,,...,...,.,.,.,,,,,,,,,.,..,,
+#B6V6TNQJHTI62HCVKH4A2EN27U2G4TYPRURKHUR3O2G6UNGCRTWJ5ABKQYIYW4OXBPAJ2QRVATUW2
+#\\\|C6WDFAJRN6P75HE5QNM7FVW3QLM4GSCVXVZ6JVTTPZQP5U4PCDR \ / AMOS7 \ YOURUM ::
+#\[7]VB7MCQ6TPEVEND53RF7IOQFFJF2QRQIPDOGRMOLSZ5OJ3PLTVAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
