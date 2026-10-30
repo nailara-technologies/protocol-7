@@ -35,9 +35,11 @@ if ( $backend eq qw| gpu |
     my $th    = <coding.thermal> // {};
     my $now   = <[base.time]>->(2);
     my $boost = <[coding.thermal.boost_active]>->($now);
-    my $gap   = <[thermal.hover.gap]>->(
-        $th->{'temp'}, $th->{'verdict'}, $now, $boost
-    );
+    ## a direct request [ not :background: ] starts at once : only the  ##
+    ## pause \ unload verdicts hold it [ no temperature, no hover gap ] ##
+    my $hold_temp = $task->{'background'} ? $th->{'temp'} : undef;
+    my $gap       = <[thermal.hover.gap]>
+        ->( $hold_temp, $th->{'verdict'}, $now, $boost );
     if ( $gap > 0 ) {
         my $held = <coding.thermal.held> //= {};
         if ( not exists $held->{$task_id} ) {
@@ -117,8 +119,8 @@ return {
     deferred => TRUE,
 };
 
-#,,,.,.,,,.,,,,,.,.,.,,..,.,,,,,,,,,.,,.,,..,,..,,...,...,..,,,,,,.,,,.,,,,,,,
-#OXQW3DLHBGVO7BLLUVURON7WHTB4DP2TWJGFB2RYHQX2OTVB5JMM4R57ZEAXROZ53IWID47Z5NBIA
-#\\\|N6DTPCRS56S2MWXQ7CKXH3K6DM6AP3D6JYH4VWSWW55R33LUTBH \ / AMOS7 \ YOURUM ::
-#\[7]PJCSFA5ZGHN3KGULOMXLC7Q6DZXGAL5KXJ6KD4XKQ2PE4A5H2QDY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,,,..,,,,,,,..,,..,,,,,...,.,,,..,,...,...,,,.,,,.,.,,,,..,.,,,
+#J74P2Q3I6O4VE2VIV2ZPA77LCBYPQHV5BLFA4J7ESZZSRRVD7QROZILLR7LXHFL64RW6TYUE5KVDU
+#\\\|QTAX3MUWYZJ5F2BYDSHBY5H332GIWPROSUR7H6Y6OJDUKW4ZWBU \ / AMOS7 \ YOURUM ::
+#\[7]JHWUYFTQJIK43F5U3JLPFUAF3PSF6ZOOSMWJE3Q4YXSKPHE5QGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

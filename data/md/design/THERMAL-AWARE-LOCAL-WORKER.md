@@ -142,10 +142,19 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
    fan \ blocked airflow -> freeze k [ never learn it as the new normal ],
    crawl or pause, notify the owner. the absolute ceiling stays as the
    last line, independent of any learned value.
-7. profiles, if wanted.
+7. priority pickup [ owner 2026-10-30 ] : the hover gaps are free gpu
+   time. a direct request starts at once [ only pause \ unload hold it ],
+   queue work carries :background: [ models ] and waits at the mark, and
+   goes behind direct requests in the jobqueue. LANDED as the first half.
+   second half : two workers [ gpu + cpu, two hosts, or two server slots ]
+   on offset duty cycles, so one is always in its gap -- a priority
+   request lands there with no added latency, background work fills both
+   alternately ; the heat budget is the average, a priority round only
+   delays the other worker's next background round.
+8. profiles, if wanted.
 
-#,,.,,..,,.,.,.,,,,,.,...,,..,,..,..,,,,.,.,,,..,,...,..,,,,.,..,,,,.,..,,,.,,
-#7AJEJJX72QIRWVEXQKYX2QLWDJBOXN5RPQI43HQEA2L3V24WWBSW2BOXXQ2KUSNVABBW4RQCSYY7M
-#\\\|5XC6CJNHU7TQQK3LBQRNEDETX3L6X4WBOT46DJDRV7BNSNLKVR5 \ / AMOS7 \ YOURUM ::
-#\[7]PAT3MOJNKGYVERQOQ4ETTVCV5URUTVEMTSBSAG47MCHSC2ACQUCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,.,,,,,,,,,,..,,,.,.,.,..,,..,,..,,...,...,.,,,,,.,.,.,.,.,.,,,
+#LPDW2WZ6P2UB7XTBCBFPCAUWSSIZ4RNUKHL4DTBJCY5P5M2KGU2YDZ2TCBLKXDYERZTZG2WNNZ6RQ
+#\\\|SNIE52ZGK3E7DW4HR6VYC5DA7VFO4VX3CKPOCHNSVQAKFJRHDBO \ / AMOS7 \ YOURUM ::
+#\[7]7PFGV52DPEKC6TIRJFEISOVCZEHTEYGRF54LLU3G7NWAYK2WVSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
