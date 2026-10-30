@@ -62,6 +62,8 @@ my %opt = (
     qw| count        | => 0,   ##  include call counts in adjacency output  ##
     ## zenki whose reachable set holds a sub \ namespace [ reverse lookup ] ##
     qw| affected-zenki | => undef,
+    ## the xz + base32 copy of the .dot : opt-in, not tracked in git ##
+    qw| txz          | => 0,
 );
 
 Getopt::Long::Configure('prefix_pattern=--|-');
@@ -80,6 +82,7 @@ GetOptions(
     qw| list-subs     |    => \$opt{'list-subs'},
     qw| count         |    => \$opt{'count'},
     qw| affected-zenki=s | => \$opt{q|affected-zenki|},
+    qw| txz           |    => \$opt{txz},
 ) or die ":: invalid command line arguments\n";
 
 ##  default to text output if no format specified  ##
@@ -286,6 +289,8 @@ if ( $opt{dot} ) {
     } else {
         write_file( $dot_output_path, $dot_output );
         say written_line($dot_output_path);
+    }
+    if ( $opt{txz} and not defined $opt{module} ) {
         my $xz_data;
         require IO::Compress::Xz;
         IO::Compress::Xz::xz( \$dot_output, \$xz_data, Preset => 9 )
@@ -1860,8 +1865,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,,..,..,,.,,,,..,...,,.,,..,,,,.,.,,,,,,,.,.,...,...,..,,.,,,,,.,...,.,,,
-#7PU3H5XNHKQZVSBJMV3ATCU3EHWRNPUNR4F5HEKZXPANIYMW54UKITUC436A73NDAJMWHHI3RBZBY
-#\\\|6C2V35X24GYABX6RDKEM6UKWW4BBTNFHESCHJ3I4UPIGPWYCXUC \ / AMOS7 \ YOURUM ::
-#\[7]CTIFGOH2D47WAR5OB7T4VLLYSPJ4EGLPMYBYTY2AIZ35QQ6JJECY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,,,,,...,.,,,..,,,,,,,,.,.,.,.,.,...,...,,.,,,,.,...,.,,,...,
+#JPH65EMLZZ5ELLUP4M4YI3PVP42GWMGQ5XCRWWPXLBLSLXZGYMWIR35K2Z5PXWWNIHQD7QFK7EU5S
+#\\\|M2UHDTGP7Q34HTSTVNKPHKMNZJC7GPLFMC7FYTALQGP2Y2LTPRQ \ / AMOS7 \ YOURUM ::
+#\[7]2KEO2M5GIX7EX7XEWWIM32QKPHGJW63OFP3JY4IQBXZENDD76GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
