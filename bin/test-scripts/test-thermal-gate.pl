@@ -832,6 +832,30 @@ ok( $code{'base.time'}->(2) != $code{'base.ntime'}->(),
     'test time and monotonic time stubs remain different'
 );
 
+say ': 24. outdoor cold lifts the night hover mark';
+$data{'thermal'}{'cfg'}{'hover'}{'amp_c'}     = 12;
+$data{'thermal'}{'cfg'}{'outdoor'}{'enabled'} = qw| yes |;
+$data{'thermal'}{'outdoor'}{'temp'} = 3.23;        ## amp 1.4708 : +5.65 C ##
+$data{'thermal'}{'outdoor'}{'at'}   = $night_at;
+ok( $hover_gap->( 73.5, qw| slow |, $night_at ) == 0,
+    '3.23 C outside lifts the night mark to about 73.65'
+);
+ok( $hover_gap->( 74.65, qw| slow |, $night_at ) == 15,
+    'one degree over the lifted mark holds 15 s'
+);
+ok( $hover_gap->( 75, qw| run |, $day_at ) == 0,
+    'the day window stays without hover'
+);
+$data{'thermal'}{'outdoor'}{'at'} = $night_at - 7200;
+ok( $hover_gap->( 70, qw| slow |, $night_at ) == 30,
+    'a stale outdoor value leaves the plain mark'
+);
+$data{'thermal'}{'outdoor'}{'temp'} = 20;
+$data{'thermal'}{'outdoor'}{'at'}   = $night_at;
+ok( $hover_gap->( 70, qw| slow |, $night_at ) == 30,
+    'a mild night leaves the plain mark' );
+delete $data{'thermal'}{'outdoor'};
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -840,8 +864,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,,,,,..,..,,,.,,,.,,,.,,.,.,.,,,.,.,,..,..,,...,..,,...,,..,.,,,,.,,.,.,
-#GFXP5XOWVWX4BGD4GEWQAP6WESVIXPOJ3TP5WR4EROIEZSJMSRSJN6FPBFRNV22YB7YJ5SI27GTCU
-#\\\|YPCAICS4AQCCOZCI7AQ4K7ND6NLOEIGA7YXOBVPIVKP3ET4GZJX \ / AMOS7 \ YOURUM ::
-#\[7]CW5MTS3GFNW24GALUKV75A5P43G26T3EKDMAR3LAGCLXUSOGKMDA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,.,,,.,,,,,,..,,,..,.,.,.,.,,,.,..,,...,...,.,.,,.,,,.,,,,,,,..,
+#J4Y6GEMOIFBFPFLUNLSDD2MK7JOB2B57APADCWWJ4NP3FRIBPEJNXUYWFNIKO7FK4BR24ENFAKE3M
+#\\\|5XMRS2NDJAJV7IDGBTQY3FD4RITFY7U2U6ZEBMWT56ROTWEV7LQ \ / AMOS7 \ YOURUM ::
+#\[7]WWYKOPQTZ3GLRPT62VTFSARD34MAIBBWJFMYCWQXIRNI57WVZAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
