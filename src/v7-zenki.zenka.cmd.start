@@ -326,6 +326,17 @@ if ( not defined $zenka_id ) {
     }
 }
 
+## no setup entry : starting anyway ran an external zenka as a plain one ##
+## without a zenka id [ pri 2026-10-30 : pull-git hung in 'starting' ]   ##
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf(
+        "zenka '%s' not started : no setup entry [ v7-zenki reinit ? ]",
+        $zenka_name )
+    }
+    if not defined $zenka_id;
+
 my $obj_id = <[zenka.get_object_id]>->($zenka_id);
 
 my $target_queue
@@ -366,8 +377,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,.,,,.,,,,.,,..,...,,,,,...,,,,,,,.,...,.,,,..,,...,...,.,.,,..,.,,,,,.,.,.,
-#64KEXZPVE6MU7MKGN3CGJQTOERCOC6SJJWNWTDD6TKFED64U5MYW2H2ADY7SSJSL7B27PXREODW3Y
-#\\\|64Y7LBQW6IKTHOE23UP5M2BFQ2KIMDQRFSYSUZ7TENEYIXUNNGI \ / AMOS7 \ YOURUM ::
-#\[7]O2TVIIRNTEYT4VN5ICWEJFORFGGGORDUROHZUGTC2YSIFY4IY6DI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,.,,,,..,...,,,.,..,,.,.,,,,,..,,...,...,.,.,,,.,,,.,,,,,,,,,
+#5WLN7Q6RF3EGTBT6QJ2VGOFPQBTJXTK45ZLEHYTGZBGKBZY3UCNO45EQPIK622EXS64FB7LMAESZK
+#\\\|SB6CEQW2TJNO2JDZSZEXPXWRRJ5RCXJ6QMXSHDAFDDAQKB66CR4 \ / AMOS7 \ YOURUM ::
+#\[7]X4TH2KDYVQUJQEPCF476WSLGVMRKGWR4NGWX74LPQKHZB7D57EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

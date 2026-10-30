@@ -18,7 +18,11 @@ if ( not exists <v7-zenki.zenka.instance>->{$instance_id} ) {
 }
 my $zenka_instance = <v7-zenki.zenka.instance>->{$instance_id};
 my $zenka_id       = $zenka_instance->{'zenka_id'};
-my $zenka_name     = <v7-zenki.zenka.setup>->{$zenka_id}->{'name'};
+## no read with an undef id : it autovivified a '' setup entry ##
+my $zenka_name
+    = defined $zenka_id
+    ? <v7-zenki.zenka.setup>->{$zenka_id}->{'name'}
+    : undef;
 
 <[base.logs]>->( 2, 'instance %s : zenka name not defined.', $instance_id )
     and return
@@ -74,8 +78,8 @@ if ( $last_nl >= 0 ) {    ## extract tail + trim buffer ##
     $buffer->$* .= $tail_str;
 }
 
-#,,..,.,.,,..,...,,.,,.,.,,,,,.,,,,.,,,..,,,.,..,,...,...,,..,,..,..,,...,..,,
-#JNK65CO76EURVSJN6VLSYAGSOOHA4R7KTFFYA7ZZMYLL52GAXWCDLJUYIT7PO4THS72BNDBO4W2QC
-#\\\|5Z4SDW5CIROIJXWAQZ23553YAWNNR24AD76WZDREQVMUAFJN575 \ / AMOS7 \ YOURUM ::
-#\[7]5PUKTAO257JJYDKW6X5WCBRZL7B5YNMQ4CUO3D3HWRCZNIVEHCBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,.,,,.,,...,.,,,..,,,,.,...,,.,,..,,...,...,..,,,,.,.,.,.,,,.,,,
+#5N7MLHE6KA6ILLOUZR74E26WA6K24E37PUSG36BDTDWUTU67YHPOEFMMD2OL6R6EHM3GFAGTGCRCO
+#\\\|SYMPXFPN47MDZUR6VE4UQOG6O7JVNAVWDTCGS3AMLFHUSHI42GA \ / AMOS7 \ YOURUM ::
+#\[7]CR6S5FILZR43XZ6LVHWVRAWO7NKLWZO7QAT4IOKENP465WWHBKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
