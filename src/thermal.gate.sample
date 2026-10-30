@@ -1,9 +1,9 @@
 ## [:< ##
 
 # name  = thermal.gate.sample
-# descr = update thermal averages and the idle baseline
+# descr = sample the thermal gate and learn its power coefficient
 
-my ( $gate, $temp_1s, $now, $idle_held ) = @ARG;
+my ( $gate, $temp_1s, $now, $idle_held, $watts, $idle_watts ) = @ARG;
 
 return FALSE if ref $gate ne qw| HASH |;
 
@@ -11,12 +11,13 @@ my $short_window = <thermal.cfg.avg.short>       // 300;
 my $long_window  = <thermal.cfg.avg.long>        // 900;
 my $base_window  = <thermal.cfg.baseline.window> // 1800;
 
+my $dt = 0;
 if ( not defined $gate->{'last_sample_at'} ) {
     $gate->{'avg_short'} = $temp_1s;
     $gate->{'avg_long'}  = $temp_1s;
     $gate->{'baseline'}  = $temp_1s;
 } else {
-    my $dt = $now - $gate->{'last_sample_at'};
+    $dt = $now - $gate->{'last_sample_at'};
     $dt = 0 if $dt < 0;
 
     my $short_alpha = 1 - exp( -$dt / $short_window );
@@ -42,12 +43,53 @@ if ( not defined $gate->{'last_sample_at'} ) {
 my $base_max = <thermal.cfg.baseline.max> // 55.0;
 $gate->{'baseline'} = $base_max if $gate->{'baseline'} > $base_max;
 
+if ( defined $watts ) {
+    if ( not defined $gate->{'power_avg'} ) {
+        $gate->{'power_avg'} = $watts;
+    } else {
+        my $power_alpha = 1 - exp( -$dt / $short_window );
+        $gate->{'power_avg'}
+            += $power_alpha * ( $watts - $gate->{'power_avg'} );
+    }
+
+    my $delta_w
+        = defined $idle_watts ? $gate->{'power_avg'} - $idle_watts : undef;
+    if (    defined $delta_w
+        and $delta_w >= ( <thermal.cfg.k.min_delta_w> // 40 )
+        and abs( $watts - $gate->{'power_avg'} )
+        <= ( <thermal.cfg.k.power_band> // 15 )
+        and abs( $gate->{'avg_short'} - $gate->{'avg_long'} )
+        <= ( <thermal.cfg.k.temp_band> // 1.0 ) ) {
+        $gate->{'k_since'} //= $now;
+        if ( $now - $gate->{'k_since'} >= ( <thermal.cfg.k.settle> // 600 ) )
+        {
+            my $k_obs
+                = ( $gate->{'avg_long'} - $gate->{'baseline'} ) / $delta_w;
+            if (    $k_obs >= ( <thermal.cfg.k.min> // 0.02 )
+                and $k_obs <= ( <thermal.cfg.k.max> // 0.5 ) ) {
+                if ( defined $gate->{'k'} ) {
+                    my $k_alpha
+                        = 1
+                        - exp( -$dt / ( <thermal.cfg.k.window> // 3600 ) );
+                    $gate->{'k'} += $k_alpha * ( $k_obs - $gate->{'k'} );
+                } else {
+                    $gate->{'k'} = $k_obs;
+                }
+                $gate->{'k_samples'}++;
+                $gate->{'k_at'} = $now;
+            }
+        }
+    } else {
+        delete $gate->{'k_since'};
+    }
+}
+
 $gate->{'last_sample_at'} = $now;
 
 return TRUE;
 
-#,,..,,,,,,,.,,.,,...,,,,,...,.,.,.,.,.,.,,..,..,,...,...,,.,,...,,..,,.,,,.,,
-#2QLDWO37USGU55LDDBM66GN7PYFJJO6CJMNK4IRBXA7RQZMHWEO7LCGYL5M6LJM3VY3R6Z53U5636
-#\\\|JBV6W4ECZNIZ3PDFGEUJWT2VIKW5VN4BLCNGROQG5MR2BAXTLDQ \ / AMOS7 \ YOURUM ::
-#\[7]M4KGP5WP7A4FHA7DV3IOHMMGMROKCHGOICIEXBHJTWTPGO6XVEAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,...,.,,,,,,,.,.,,.,,..,,..,,..,,...,...,...,..,,,,.,,,.,,..,
+#2L7V3SDFPIZDVVFWGJ6PE5LT6PFYLYXZ54WXCTB4OJNWWFWB5CHH5FOR2ZUMRY5L4XGEWRL6P4XNM
+#\\\|MGWYTRBVMGKDVYZ5G4NWF2XLTJ6ED2JX7XM6ILGPIHKM3KXB54R \ / AMOS7 \ YOURUM ::
+#\[7]4V4ZXKMVJDIIU6C6MJY7AMX6JYLVNEJZTT2ZTE5LHGA3TXWNOSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
