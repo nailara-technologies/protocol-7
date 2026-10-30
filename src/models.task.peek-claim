@@ -93,7 +93,7 @@ if ( not $gate ) {
 ## reserve the slot NOW, not on the claim reply : two announcements in the ##
 ## same millisecond both passed the gate before either reply came          ##
 ## [ pri claimed both, the gpu stayed idle ] -- a refused claim frees it   ##
-<models.task.claimed>->{$task_id} = time;
+<models.task.claimed>->{$task_id} = <[models.task.claim-record]>;
 
 my $sent = <[protocol-7.route-send]>->(
     {   'command'   => <[models.task.cmd]>->( qw| claim |, $task_id ),
@@ -117,8 +117,8 @@ delete <models.task.claimed>->{$task_id} if not $sent;
 
 return TRUE;
 
-#,,,.,.,.,,,.,...,,,.,..,,,.,,.,,,.,,,.,.,,.,,..,,...,.,.,.,,,..,,.,,,..,,.,.,
-#CJ5VI3K6WMUDJII3EHFKKMI4NG5V3M62JMKXJHOV2HINWPVVPIYB22EEUNPDF7UKSRSURKGO2ZVDO
-#\\\|RDDVTADE37MRZQXXLYJVHXEJDHC2UHMXZBAV5MKKLNLGDEHGRLF \ / AMOS7 \ YOURUM ::
-#\[7]DCPS762ZLA57OELMSIF3SFROOFEF6FVD7QXVRCJDSLELA5Q2E4BA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,..,,.,,,,..,.,,,.,,,.,,,,,,,.,.,..,,...,..,,.,,,,,.,.,.,...,,..,
+#4OVW6ERRNBFI54WBIQDEFYI4SKF4M6FPSKXXJ3O6BT653F7ZQ63SSYGPC5AHUEQIFXFX4YA5LJJCY
+#\\\|XT2ST6WCMSL2SIEORYADDLCWTIYUQG44JQFOMGQ2E2M7N5FSZ5H \ / AMOS7 \ YOURUM ::
+#\[7]M47XAACUBTKYMEQAQYEPANQIOAGIO5HNG7CDXV33QJQVZHBMSMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

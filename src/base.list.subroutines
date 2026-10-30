@@ -177,6 +177,7 @@ return [ qw[
         ticker.rgb_col
         task.post_init
         task.init_code
+        task.fail_task
         task.cmd.start
         task.cmd.reset
         task.cmd.queue
@@ -266,6 +267,7 @@ return [ qw[
         usage.init_code
         udev.load_rules
         trust.statement
+        thermal.verdict
         task.cmd.result
         task.cmd.create
         system.pre_init
@@ -394,6 +396,7 @@ return [ qw[
         ticker.cmd.pause
         ticker.calc_incr
         ticker.calc_decr
+        thermal.mem.read
         task.notice.push
         system.init_code
         storage.9p.wstat
@@ -512,6 +515,7 @@ return [ qw[
         base.stream-file
         base.slot.unfold
         base.resolve_key
+        base.reply.value
         base.prng.reseed
         base.path_owners
         base.parser.tree
@@ -563,6 +567,9 @@ return [ qw[
         ticker.emit_event
         ticker.cmd.resume
         ticker.cmd.events
+        thermal.init_code
+        thermal.idle.held
+        thermal.hover.gap
         task.persist.save
         task.persist.load
         task.cmd.handover
@@ -767,6 +774,8 @@ return [ qw[
         ticker.cmd.get-xid
         ticker.cmd.dismiss
         ticker.calc_colors
+        thermal.mem.decide
+        thermal.hover.step
         template.init_code
         task.cmd.wait-done
         task.cmd.summarize
@@ -979,6 +988,7 @@ return [ qw[
         window.place.cancel
         window.place.adjust
         websocket.init_code
+        web.cmd.jobs-events
         web.cmd.auth-status
         web.cmd.auth-revoke
         web.cmd.auth-logout
@@ -1001,6 +1011,11 @@ return [ qw[
         tile.merge_multiple
         tile.cmd.base-group
         ticker.calc-col.RGB
+        thermal.start.ready
+        thermal.outdoor.amp
+        thermal.idle.sample
+        thermal.gate.sample
+        thermal.gate.decide
         system.cmd.hostname
         storage.map-dirs.fs
         ssl.connect_handler
@@ -1242,6 +1257,9 @@ return [ qw[
         ticker.cmd.read_file
         ticker.cmd.get_speed
         ticker.callback.draw
+        thermal.override.set
+        thermal.outdoor.poll
+        thermal.idle.loadavg
         test.iteration.hello
         task.persist.archive
         sys-deps.cmd.promote
@@ -1533,6 +1551,9 @@ return [ qw[
         tile.cmd.get_geometry
         ticker.select_monitor
         ticker.process_subcfg
+        thermal.window.weight
+        thermal.window.tariff
+        thermal.feed.register
         storchencam.init_code
         storage.map-dirs.tree
         storage.9p.write-file
@@ -1625,6 +1646,7 @@ return [ qw[
         jobsite.index.rebuild
         jobsite.fetched.frame
         jobsite.dispatch.next
+        jobsite.cmd.sync-soon
         jobsite.cmd.set-prefs
         jobsite.cmd.list-jobs
         jobsite.cmd.get-prefs
@@ -1704,6 +1726,7 @@ return [ qw[
         coding.task.resurrect
         coding.intake.process
         coding.cmd.tree-write
+        coding.cmd.temp-boost
         coding.cmd.round-time
         coding.cmd.redo-round
         coding.cmd.pause-task
@@ -1833,6 +1856,7 @@ return [ qw[
         ticker.move_to_profile
         ticker.handler.fade_in
         ticker.cmd.set-monitor
+        thermal.window.current
         system.process.cmd.top
         storage.cmd.plan9-scan
         storage.9p.resize-path
@@ -1847,6 +1871,7 @@ return [ qw[
         space.jump.cache.write
         source.signature_valid
         site-yaml.outbox.write
+        site-yaml.cmd.liveness
         set-up.chk_profile_dir
         sessions.secret.parent
         sessions.holder.parent
@@ -1871,6 +1896,7 @@ return [ qw[
         plugin.web.space.state
         plugin.web.space.index
         plugin.web.space.fetch
+        plugin.web.jobs.events
         plan-9.client.list-dir
         pager.source.file-list
         pager.decode.direction
@@ -1933,6 +1959,9 @@ return [ qw[
         keys.console.duplicate
         keys.console.authorize
         jobsite.util.source-id
+        jobsite.sync.push_soon
+        jobsite.liveness.start
+        jobsite.liveness.apply
         jobsite.cmd.set-status
         jobsite.cmd.job-upsert
         jobsite.cmd.import-url
@@ -2156,6 +2185,8 @@ return [ qw[
         ticker.cmd.swap_profile
         ticker.cmd.place_window
         ticker.cmd.next-monitor
+        thermal.window.in_range
+        thermal.override.active
         task.cmd.summarize-done
         system.process.autokill
         system.cmd.pid_autokill
@@ -2535,6 +2566,7 @@ return [ qw[
         mpv.cmd.shuffle-playlist
         mpv.callback.init_volume
         models.task.pin-accepted
+        models.task.claim-record
         models.storage.yaml_save
         models.storage.yaml_load
         models.registry.list_all
@@ -2546,6 +2578,7 @@ return [ qw[
         models.cmd.scan-path-add
         models.cmd.route_by_role
         models.cmd.cost_analysis
+        models.cmd.coding-online
         models.chat.invoke_model
         models.backend.interface
         model_batch.verify.clean
@@ -2880,6 +2913,7 @@ return [ qw[
         jobsite.sync.role_for_url
         jobsite.report.mail_split
         jobsite.removed_log.prune
+        jobsite.handler.sync-soon
         jobsite.fetched.subscribe
         jobsite.cmd.set-threshold
         jobsite.cmd.mark-exported
@@ -3077,6 +3111,7 @@ return [ qw[
         sourcecode.console.modules
         source.cmd.get-code-signed
         site-yaml.stepstone.search
+        site-yaml.liveness.verdict
         set-up.json.cmd.get-config
         set-up.handler.zenka_reply
         set-up.cmd.list-exportable
@@ -3339,6 +3374,7 @@ return [ qw[
         web-browser.cmd.clear_views
         web-browser.cmd.clear_cache
         web-browser.calc_zoom_level
+        weather.parent.park_pending
         weather.parent.get_url_list
         weather.parent.cmd.location
         weather.parent.cmd.get-urls
@@ -3403,6 +3439,7 @@ return [ qw[
         plugin.web.space.index.load
         plugin.web.jobs.store.prune
         plugin.web.jobs.prefs.write
+        plugin.web.jobs.events.send
         plugin.web.jobs.cache.write
         plugin.web.auth.store.group
         plugin.web.auth.admit.check
@@ -3558,6 +3595,7 @@ return [ qw[
         context.compact.incremental
         content.set-up.import_rules
         content.set-up.export_rules
+        coding.thermal.boost_active
         coding.task.estimate_tokens
         coding.self_test.multiplier
         coding.round_chain.restream
@@ -3568,6 +3606,7 @@ return [ qw[
         coding.helper.task_priority
         coding.helper.refund_tokens
         coding.helper.budget_status
+        coding.handler.thermal_tick
         coding.handler.http_timeout
         coding.cmd.tree-query-reply
         coding.cmd.inference-status
@@ -3655,6 +3694,7 @@ return [ qw[
         web-browser.cmd.graph-params
         web-browser.cmd.get_snapshot
         web-browser.cmd.get_progress
+        weather.parent.answer_parked
         weather.base.calc_zoom_level
         vterm.subbit.determine_route
         vterm.subbit.check_threshold
@@ -3988,7 +4028,9 @@ return [ qw[
         tile.callback.poll_tile_color
         ticker.handler.gpu_load_reply
         ticker.cmd.set-window-profile
+        thermal.handler.outdoor-reply
         terminal.curses_ui.app.models
+        task.handler.gpu_power_update
         task.handler.cold-queue-sweep
         system.handler.X-11_restarted
         system.handler.X-11_pid_reply
@@ -4026,6 +4068,7 @@ return [ qw[
         plugin.web.space.orbital.json
         plugin.web.jobs.reverse.queue
         plugin.web.jobs.reverse.flush
+        plugin.web.jobs.events.notify
         plugin.web.auth.session.write
         plugin.web.auth.session.prune
         plugin.web.auth.handler.login
@@ -4291,6 +4334,7 @@ return [ qw[
         terminal.curses_ui.keybindings
         task.persist.summary_tree.save
         task.persist.summary_tree.load
+        task.handler.stale-claim-sweep
         sys-deps.handler.install_reply
         ssh.parser.profile_connections
         ssh.handler.heartbeat_response
@@ -4405,6 +4449,7 @@ return [ qw[
         jobsite.handler.translate-done
         jobsite.handler.repair-created
         jobsite.handler.new-job-settle
+        jobsite.handler.liveness-reply
         jobsite.handler.fetched-stream
         jobsite.handler.assess-timeout
         jobsite.chksum.group-by-branch
@@ -4604,6 +4649,7 @@ return [ qw[
         proxy.handler.auth_lookup_reply
         protocol-7-menu.cmd.menu-update
         plugin.web.space.grid.init_code
+        plugin.web.jobs.events.trailing
         plugin.web.auth.destroy_session
         plugin.web.attention.push_state
         plugin.user-edit.example.render
@@ -4845,6 +4891,7 @@ return [ qw[
         protocol-7-menu.cmd.input-choice
         powershell.util.extract_icon_tag
         plugin.web.space.index.init_code
+        plugin.web.jobs.events.heartbeat
         plugin.web.auth.secure_transport
         plugin.web.auth.refuse_plaintext
         plugin.web.auth.admit.wait_until
@@ -4899,6 +4946,7 @@ return [ qw[
         keys.console.keys-backup-archive
         jobsite.repair_encoding.scan_one
         jobsite.repair_encoding.location
+        jobsite.handler.liveness-timeout
         jobsite.handler.import-url-reply
         invoke-web.handler.win_mem_reply
         invoke-web.cmd.requeue-cancelled
@@ -4972,6 +5020,7 @@ return [ qw[
         coding.helper.check_resource_fit
         coding.handler.wait_done_timeout
         coding.handler.user_stream_reply
+        coding.handler.thermal_hold_done
         coding.handler.refresh_mem_stats
         coding.handler.lora_train_stdout
         coding.handler.lora_train_stderr
@@ -5046,6 +5095,7 @@ return [ qw[
         tile.gpu_alerts.enable_auto_speed
         system.process.callback.send_kill
         start-anim.callback.report_online
+        sourcecode.console.affected-zenki
         site-yaml.stepstone.job_from_html
         select.region.cmd.screenshot-rect
         screen.setup.handler.button_press
@@ -5537,6 +5587,7 @@ return [ qw[
         coding.round_chain.navigate_to_node
         coding.learning.update_success_rate
         coding.helper.get_service_breakdown
+        coding.handler.thermal_execute_hold
         channels.memory-sync.register-watch
         branch.session.return_slot.register
         branch.calc.fraction.prefix_entropy
@@ -5742,6 +5793,7 @@ return [ qw[
         pager.util.sort.compute_adaptive_keys
         pager.util.encode.encode_base32_chunk
         mpv.handler.snapshot_collect_playlist
+        models.task.release-previous-instance
         models.storage.adapter.invoke.resolve
         models.statistics.invocation_tracking
         models.registry.init_from_definitions
@@ -6308,8 +6360,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,...,,..,,..,,,.,.,,,.,.,.,.,,.,,,,,,,..,.,.,...,..,,..,,.,.,,..,..,,...,
-#ITKQX4ZZMHZVKUFQKSNHUEMBDLZ3JXQ5ZWL455GAP5S2UTRJNGKNSFPZ4NBQ6PQHYVBFSTTRCCOI2
-#\\\|2AD476XZIPCPDMRTRT5EV2ZVZXZEPGE2JSRUXZAANZ7VGHOTF7O \ / AMOS7 \ YOURUM ::
-#\[7]2G7RJ3DHEKXGNNTUPVO2GANWTYGZ7Q5MKX4LKF4WA73NCM5VAKAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,,.,,.,.,,.,,,.,,.,,,,.,,.,.,.,.,...,...,...,,,.,,,,,,..,..,,
+#S3JD5BYZF7FX47AK4KSE33CGW4BQKTMRS2R3FGWXVMOUEW5RBD2EBJGXR6JSAX33H62CDX5PAO7MK
+#\\\|7WHTRZRVG2TNPX2HF2ELWTDJK74DNTGFGRDTQMTHXG547QHWVKE \ / AMOS7 \ YOURUM ::
+#\[7]P3MSESJ54XWFIFVUOYQZB7LG5PP5TJ62K5TSWBUZRQ2UADGV7WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

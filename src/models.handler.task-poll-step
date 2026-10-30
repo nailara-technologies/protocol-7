@@ -41,7 +41,7 @@ if ( $step eq 'claimed' ) {
         2, ': claimed %s, starting + fetching details', $task_id
     );
 
-    <models.task.claimed>->{$task_id} = time;    ## in-flight count ##
+    <models.task.claimed>->{$task_id} = <[models.task.claim-record]>;
 
     <[protocol-7.route-send]>->(
         {   'command'   => <[models.task.cmd]>->( qw| start |, $task_id ),
@@ -105,6 +105,10 @@ if ( $step eq 'show' ) {
         1,        ': task %s enqueueing for %s backend',
         $task_id, $model
     );
+
+    ## the backend is known now : only coding's work dies with coding ##
+    my $claim = <models.task.claimed>->{$task_id};
+    $claim->{'target_cmd'} = $target_cmd if ref $claim eq qw| HASH |;
 
     ## enqueue for jobqueue-managed execution ##
     <[models.task.enqueue]>->(
@@ -236,7 +240,8 @@ if ( $step eq 'peek-claimed' ) {
         $task_id, $params->{'model'}
     );
 
-    <models.task.claimed>->{$task_id} = time;    ## in-flight count ##
+    <models.task.claimed>->{$task_id} = <[models.task.claim-record]>;
+    <models.task.claimed>->{$task_id}{'target_cmd'} = $params->{'target_cmd'};
 
     <[models.task.enqueue]>->(
         {   'task_id'    => $task_id,
@@ -313,8 +318,8 @@ if ( $step eq 'poll-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,.,,.,,,,,.,...,...,,.,,..,,...,,,.,,,.,...,.,.,...,...,..,,.,.,,,.,,..,..,,
-#CZ4V7WZV36E3ESCP5FDJ575VIKTKR6TVF7WT2W3WUNKYBCX3PWX53CZ443TKPFFPFWSRW2HJWISO2
-#\\\|ZRVVYREQ6QAT4JZJDM6BN2754VS2WAEICJZBRXRVRHRYTGAJBVN \ / AMOS7 \ YOURUM ::
-#\[7]C3XMYF5OIHUNCWQGCCAJ52XYFWIJY5U6XI2Q2B2RS5DIYKYCJUDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,...,.,,,,,.,...,..,,..,,.,.,.,.,...,...,.,.,,..,,..,,..,,,,,
+#U22HD6YA6XZ4FJROWFH7OIUUJ4XNXHNCG7F3R677AGRG23OESGZONEXSMPBNMIVSLRDLECHDRRWFA
+#\\\|FVSU7ZYCOGSFHGAOF6AH3WQABPXVN4DPGQTZNX7YDBSDLVAW2PN \ / AMOS7 \ YOURUM ::
+#\[7]VWS6IFZLN3UH2YR4XV4ORPKZVLFA7DCDW3LZIZPZSRIC65PRQEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

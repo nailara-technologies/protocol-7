@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = models.task.release-previous-instance
+# descr = release claims left by an earlier coding instance
+# param = <authenticated zenka> <current instance id>
+
+my $zenka    = shift // '';
+my $instance = shift // '';
+
+return FALSE if $zenka ne qw| coding | or not length $instance;
+
+my $claimed  = <models.task.claimed> // {};
+my $released = 0;
+
+foreach my $task_id ( keys %{$claimed} ) {
+    my $claim = $claimed->{$task_id};
+    next
+        if ref $claim ne qw| HASH |
+        or ( $claim->{'owner_zenka'} // '' ) ne $zenka
+        or not length( $claim->{'owner_instance'} // '' )
+        or $claim->{'owner_instance'} eq $instance
+        ## only work coding runs : another backend's task outlives coding ##
+        or ( $claim->{'target_cmd'} // '' ) !~ m|^coding\.|;
+
+    my $age = time - ( $claim->{'at'} // 0 );
+    <[base.logs]>->(
+        1,
+        ': previous coding instance claim %s [ task %s ] released after %d s',
+        $task_id,
+        $task_id,
+        $age
+    );
+    <[models.task.release-claim]>->($task_id);
+    $released++;
+}
+
+return $released;
+
+#,,,,,,,,,...,,,,,.,.,...,,..,,..,,..,,,.,.,,,..,,...,..,,...,.,.,,,,,,..,,,.,
+#6YKBKMG7WMOCHVOEMSVNB7JMUEFDTJ64QPNNTGCNGK2UA4EE5YYGB2JSN46RXOTBEFQSMJVDIEJ3O
+#\\\|BGXRUTUXW3MHMPBB5MCVSMWEZTQEWTGZTWQJUHLMJRYEQEQDHVZ \ / AMOS7 \ YOURUM ::
+#\[7]UWLD2RM2OQC2AUYZGKR5KTHETCLX3YOQZSPTCQEKSS4LMVK2G4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
