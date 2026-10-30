@@ -312,9 +312,13 @@ foreach my $dep_name (@dependencies) {
 
 if ( not defined $zenka_id ) {
     foreach my $id ( keys <v7-zenki.zenka.setup>->%* ) {
-        if ( not defined <v7-zenki.zenka.setup>->{$id}->{'name'} ) {
+        ## an empty id is no zenka : a ->{$zenka_id}->{'name'} read with an ##
+        ## empty id autovivified it [ warned on every start before ]        ##
+        if ( not length $id ) {
+            delete <v7-zenki.zenka.setup>->{$id};
+        } elsif ( not defined <v7-zenki.zenka.setup>->{$id}->{'name'} ) {
             <[base.s_warn]>->(
-                'v7-zenki.zenka.setup.%d has an undefined name key', $id
+                'v7-zenki.zenka.setup.%s has an undefined name key', $id
             );
         } elsif ( <v7-zenki.zenka.setup>->{$id}->{'name'} eq $zenka_name ) {
             $zenka_id = $id;    ## has name match ##
@@ -362,8 +366,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,.,,,.,,,..,.,.,..,,,.,,.,.,,.,,.,.,,..,,,,,..,,...,...,.,.,.,,,,..,..,,..,,
-#AMQPNS4DJNSODKOS2GQ5AQD3LE67KVABV4FI6ZGVGHTPSYZL2VVM46L6GX5JKYBXBG7ARUHU4CFFS
-#\\\|QFZIRGMX4JNUMJ4Q7OOTYIED7OYQ3X5IYIPZ2GKXXWP66QUJ5GN \ / AMOS7 \ YOURUM ::
-#\[7]ZATKWLZK5S56KWNMR5XXME7CRKEQKNB4AJPJWBJ7AEI7UDFMNEDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,..,...,,,,,...,,,,,,,.,...,.,,,..,,...,...,.,.,,..,.,,,,,.,.,.,
+#64KEXZPVE6MU7MKGN3CGJQTOERCOC6SJJWNWTDD6TKFED64U5MYW2H2ADY7SSJSL7B27PXREODW3Y
+#\\\|64Y7LBQW6IKTHOE23UP5M2BFQ2KIMDQRFSYSUZ7TENEYIXUNNGI \ / AMOS7 \ YOURUM ::
+#\[7]O2TVIIRNTEYT4VN5ICWEJFORFGGGORDUROHZUGTC2YSIFY4IY6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
