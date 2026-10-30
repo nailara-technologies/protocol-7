@@ -44,7 +44,8 @@ metadata:
 
 - live test BLOCKED on root config : pri web.cfg needs web.cfg.jobs_sync_ui_users = jobsite-replica [ ui role now keyed on the VERIFIED user, no token copy on pri ] ; local token rotated to a jobsite-replica one [ v7-zenki.jobsite-sync-token ] ; local jobsite.cfg needs primary_url = https://<pri-jobsite-host>/jobs-sync + sync_url_roles ...=ui. then restart local jobsite + compare with bin/dev/jobsite-ui-compare local pri
 - LIVE 2026-10-30 : local = replica of pri, jobsite-ui-compare identical [ 18 jobs ]. real causes : https body is character-decoded [ decode_json died, fixed 822ff1a0c ] + local web never got the replica plugin code [ deploy restarted web on pri only -- after a plugin change reload plugins on EVERY host running web ]. CORRECTION : 822ff1a0c also claims an undefined $mem -- WRONG, it is declared at plugin line 137 [ the change there is a no-op ]. still to test : one ui stage change local -> pri
-- for later : letsencr dns issues on pri [ owner, 2026-10-30 ]
+- stash@{0} = letsencr param-only send, half done [ set aside ] ; stash@{1} = old replica stash, redundant [ drop ]
+- [ DROPPED by owner 2026-10-30 : no longer practical ] - letsencr pri : zulum.v7.ax dns-01 fails -- CAUSE FOUND : pri = dns-01 via nameserv alias [ acme.<domain> ], delta = default http-01. INWX lacks _acme-challenge CNAME + acme.<d> NS for zulum.v7.ax [ + zulum.protocol-7.network if wanted ] : 1 CNAME + 3 NS [ dn0000 dn0110 dn1110 = 3 servers ] each. pri.v7.ax = OLD name of pri -> drop it from letsencr config once zulum has its cert [ else failed renewals from ~11-20 ]. <pri-jobsite-host> protocol-7.network <personal-zone> v7.ax ok [ v7.ax acme NS covers all 3 servers ]. owner adds the records at INWX. UNCOMMITTED letsencr param-only send fix [ 3 files ] set aside : param was never delivered next to args
 - 2026-10-30 08:22 : old sync token leaked into pri httpsd log [ pasted in a browser ] -> owner revoked it ; NEW v7-zenki.jobsite-sync-token : `::: srv-U web.auth-issue jobsite-push -ttl 31536000 | :: v7-zenki.jobsite-sync-token+ url=https://<pri-jobsite-host>/jobs-sync` [ token never on argv \ screen ; + form words = key=value headers ]. rotated, pushes ok again. pri still holds jobsite-push session ABIAR3KNEMPRO [ 06:38, unknown owner ]. ui role : keyed on the verified user id [ done ]
 
 1. kimi replica mode [ session_f82e3d0d-576c-4123-a4f8-b63f915f5471 ] :
@@ -66,8 +67,8 @@ metadata:
 5. 72T4WFI fails self-test prompt 2 twice [ frees the mouse, runs out of
    tokens ] -- per-model fix only, never global
 
-#,,,.,...,,,,,,..,,..,...,.,.,...,,..,.,.,,,,,..,,...,..,,.,.,.,.,...,.,,,.,,,
-#NX4PKCA5GWQFFRZFBLKIUIIYVE4NLWMHD2ZIKLTBAR6I4XMKBX2CKPGPXM2YAZKRFEL545425SJLC
-#\\\|DPWBXS2DNYPWBU5YSPOWTBXF47MSBNS2KWCHYCDTOEN7GZ3WR3D \ / AMOS7 \ YOURUM ::
-#\[7]JB7ULMHHP5UCQDGJD77ZWH6H3ZSXBI4OBYANGQZNW3PBU2FU2ADQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,...,,..,,,.,,,,,,.,,...,,,.,..,,...,.,.,...,,,.,,.,,.,.,...,
+#MWFPH4OZE255CVXB2SJXHRTSMDNQWMV6TFRETV6CHECYWWAJRMTIX2JMNRVHZKVSL7B3HBFECXUWU
+#\\\|YDLHFVWQ4VOQPZKQC44NXCENJR5U7KW2QMLLX2U4XROQEFHQG7R \ / AMOS7 \ YOURUM ::
+#\[7]KBJKNSDNH2PPQUEZGR6WINNW4TEKF32IPSDJMYPG3DZ32U4XVQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
