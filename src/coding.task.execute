@@ -52,9 +52,15 @@ if (    <[coding.helper.task_backend]>->($task) eq qw| gpu |
                     'data' => { 'task_id' => $task_id, 'params' => $params }
                 }
             );
+            ## a task still over the mark when its timer fires is held ##
+            ## again : count the holds, log 'again' instead of 'start' ##
+            my $holds = ++( <coding.thermal.hold_count> //= {} )->{$task_id};
             <[base.logs]>->(
-                1, 'thermal hold : %s start for %s s [ gpu %.1f C, %s ]',
-                $task_id, $gap,
+                1,
+                'thermal hold : %s %s for %s s [ gpu %.1f C, %s ]',
+                $task_id,
+                $holds > 1 ? sprintf( 'again [ hold %d ]', $holds ) : 'start',
+                $gap,
                 $th->{'temp'}    // 0,
                 $th->{'verdict'} // '-'
             );
@@ -62,6 +68,10 @@ if (    <[coding.helper.task_backend]>->($task) eq qw| gpu |
         return TRUE;
     }
 }
+
+## past the thermal gate : forget the hold count ##
+delete <coding.thermal.hold_count>->{$task_id}
+    if defined <coding.thermal.hold_count>;
 
 ## clear stale staged edits from previous tasks ##
 <[coding.staged.clear]>;
@@ -321,8 +331,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,,,,,,.,,,,,..,,,,.,,,,,.,.,,,,,.,,,...,,..,.,.,...,...,.,,,,..,,.,,,..,.,,,
-#FAZASD4U4RQIDYFVIQZTI3UM2SQCITST2WU47GLKHDLYWYLYMCKLZJIDQRMNVV425BLRG7QDUDFIU
-#\\\|K5WQ2SRG6PPEM6SNJBKF3WCYDZTG6EELKIY3X6OSH4GOQ62HEBA \ / AMOS7 \ YOURUM ::
-#\[7]VICYUQS7RUHDQN4NBX53MT2QW6TQOCWVGFTHY7POPMDSDIVHC2BA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,.,...,.,.,.,.,,.,,...,.,.,.,.,.,.,...,...,.,.,,.,,,.,,...,,..,
+#EGSWPHVAP37BTOUPOUZ4FQGDWYLJXTA36SADO55KPYDJIUBEMNYUNL3GF7EVRYCZI22IVFKS3F64E
+#\\\|EXYHM2LYUFCSSUDTPLKWMYUBQRDQP4MN5XYUGAOLXQJHA3HXYKI \ / AMOS7 \ YOURUM ::
+#\[7]ANR6SN7EGFDEFDYQRF3IH753Y2ICYNNGFFJ6XDSMJW2CFW5LYSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
