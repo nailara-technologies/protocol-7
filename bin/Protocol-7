@@ -5735,7 +5735,13 @@ sub p7_soft_require {    ##  require without %INC poisoning on failure  ##
     my @exports = @ARG;
     my $class   = $module;
 
-    $module .= qw| .pm | if $module =~ s|::|/|g;    ## bareword issue! ##
+    ## package names only, never a path ##
+    return FALSE if $module !~ m|\A\w+(?:::\w+)*\z|a;
+
+    ## a string require takes a file path : Foo::Bar -> Foo/Bar.pm, Foo -> ##
+    ## Foo.pm                                                              ##
+    $module =~ s|::|/|g;
+    $module .= qw| .pm |;
 
     my $load_success = FALSE;
     eval {
@@ -6931,8 +6937,8 @@ __DATA__
 :
 :.
 
-#,,.,,..,,,..,.,.,...,,.,,.,.,,.,,,,,,,..,,..,..,,...,...,.,.,.,.,,,,,,,,,,,,,
-#Q77NJYMU3XU4ZZZRPW2BB7RSWHJXWNMUUZBCPRIWAADTVNFM7K6N6IPDBOF6ZXQ5RE5DJLNOFCCRW
-#\\\|NDNHBLP5KX4JN3VLJG7OYHH23O4D72VU63RX6SCBAIS64N22PHB \ / AMOS7 \ YOURUM ::
-#\[7]VHIVU4B3GF4PNTFFU7GQSVBZ5IDYQE4YUZ77TIBPCQCGWNF3UOBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,...,,,,,,,.,...,,..,,.,,...,..,,...,..,,.,.,,,,,,,.,..,,,..,
+#RFCZMC7TA6UEXA4TPGRECFCWFQV42OBKLA7EV2XNXSBYS64FOBHOYXJJPJKN3VRW5NTOR3N3H3ADW
+#\\\|FH3E6HJUSLVVUIPVST7JCDKJWS2XZWSVJUJK6I65JNC3YFYU724 \ / AMOS7 \ YOURUM ::
+#\[7]XC34VFSQMXSMHWNDFAU4GRHO7D3L74L3VCEZZOSTZMY3UOOENSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
