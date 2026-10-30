@@ -15,8 +15,10 @@ return if $max_age < 600;    ## 0 \ small = sweep off ##
 my $queue = <task.queue> // {};
 
 foreach my $task_id ( keys %{$queue} ) {
-    my $task   = $queue->{$task_id} // {};
-    my $status = $task->{'status'}  // '';
+    ## <task.queue> also holds 'order' [ an array ], not a task ##
+    my $task = $queue->{$task_id};
+    next if ref $task ne qw| HASH |;
+    my $status = $task->{'status'} // '';
     next if $status ne qw| claimed | and $status ne qw| in_progress |;
 
     my $updated = $task->{'updated_at'} // '';
@@ -39,8 +41,8 @@ foreach my $task_id ( keys %{$queue} ) {
 
 return;
 
-#,,,,,,.,,,.,,...,..,,...,,,.,...,,,.,...,..,,..,,...,...,,.,,,,.,,,.,.,,,,.,,
-#RJ523OMMXLBH7E7R7DTRQVVAFXRBGDBGRFJPK4AEAUQBUCMON3QHPW4NPASKMGE4FSSRWQ4NJDQC6
-#\\\|7XS7BXVU3KFI2BFN4LUQIRTCNLBQUT2PZRXBMPRYGYHBWMFHHZ6 \ / AMOS7 \ YOURUM ::
-#\[7]M43YUHMVRFTNPS7TRZ4KSCTGWVBRYCCXXTKB6AWDUGPQF7K5D6BA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,,,,,.,...,..,,.,,,..,,,,,,,..,..,,...,...,..,,.,.,..,,.,,,,,.,
+#UUWLBYOQUDR74WX77LJBEYKO2HMEVHVOFYZZ3IAYT7CU7236JNBIVAWYYYJQHXLXAFEHFDQCN6RNU
+#\\\|7DNGVIOQS2FP6IXSKMDHAPTFVY3NNIYJKWI3BH44LFMVAUIYHTJ \ / AMOS7 \ YOURUM ::
+#\[7]5UMK4YYFXGQ7UY4SIONOKB5O53NJUXJTTU6Z7HJRYJMQYAZDSCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

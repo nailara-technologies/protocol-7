@@ -121,6 +121,7 @@ sub reset_queue {
         [ 'OLDDONE', 'done' ],
         [ 'OLDPEND', 'pending' ]
     };
+    $data{'task'}{'queue'}{'order'} = [qw| OLDPROG NEWPROG |];
     return;
 }
 
@@ -156,8 +157,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,..,,.,.,...,,,.,,.,,,,.,,..,,..,,.,,.,,,..,,...,...,.,.,,,,,,.,,..,,..,,
-#I3V2LQXRRNBDGLFFPQKOJPSHLABYR3O34QPF2PKX7QYMOTDIEXD5R66STRPXIQ5JJTYRG4QHDZLRW
-#\\\|HMHX43VZFJWL37KI65PTC3GN77Y2JP4GGUMPP5NWM3UORSOOXBV \ / AMOS7 \ YOURUM ::
-#\[7]VSHJP3GHMD7ZCY23JNGGRC2SYBCBVBK33UWSCXMCLBLO7FUZNIAA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,,.,,,..,,.,,..,,.,,,.,.,.,.,..,,...,...,.,.,.,.,.,.,..,,,.,,
+#D5NS4GBCFL6TJGA3SVJSAFUVHJ7QC6YJDH6CFDNQQR327ZJG4GZN46JM7YMAZ7VL227OL5PZJ5PZO
+#\\\|CNIUPIO7OS7AASA6ZUKWHSTJPOS3P4KZLCTIAWN7RFCCQTSS2ZX \ / AMOS7 \ YOURUM ::
+#\[7]TBYMNO7XTSR5MV2YTHOGPJVI7RSNLAI5MVIRQT5EFTIJEOCMCGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
