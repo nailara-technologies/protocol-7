@@ -13,6 +13,13 @@ my $params = shift;
 
 delete <coding.switch_model_active>;
 
+if ( $params->{'spawn_result'} // FALSE ) {
+    my $backend = $params->{'backend'} // '';
+    <coding.model_last_used> //= {};
+    <coding.model_last_used>->{$backend} = <[base.time]>->(2)
+        if length $backend;
+}
+
 <[base.logs]>->(
     2,
     '[switch_model_spawn_done] %s spawn finished [ result=%s ]',
@@ -22,8 +29,8 @@ delete <coding.switch_model_active>;
 
 return TRUE;
 
-#,,,.,..,,,..,...,,..,...,..,,..,,.,.,,.,,.,,,..,,...,...,..,,.,,,,..,,,.,.,.,
-#4GTVBAJKDJH3DXSKGNB52MUWB2L4W6K2ZLSEFRB7QVYKIGWGRIOCLRXYQB2PHQ2KNXMVHOMFGESQA
-#\\\|23KWMPJS3DPL2NT53ZGQJPDNSBVK74APUYPFVD2VPQ2EPASMJMP \ / AMOS7 \ YOURUM ::
-#\[7]DNIXWNHYJI56ZIYVB6D5VAWVVLZUG4GQGSGLMLSVLN4A26TURSAI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,,..,...,...,...,,..,...,,,,,..,,...,...,.,.,,,,,...,.,,,.,,,
+#GIYPIVA4LSB6GCXXQODDBG2F3GWAEV45BU36266V5SK4X7Q4NWJ2X3UYGEGYJW74JVDNEYWHLS3FO
+#\\\|XSSHFSQFJBLZ2TLM3VHM6F3FRICMN2LXS4SXXKVC26PQDSWUW25 \ / AMOS7 \ YOURUM ::
+#\[7]DAIYLONHNZABNCUIJXA43ULVYLPAETGHOKAKY43WTACY54GBFYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

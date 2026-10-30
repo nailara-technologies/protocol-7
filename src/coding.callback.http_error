@@ -21,6 +21,12 @@ if ( defined $req_seq && $req_seq != $current_seq ) {
     return;
 }
 
+## failed http requests also mark their backend as used ##
+my $used_backend = ( $state // {} )->{'backend'} // '';
+<coding.model_last_used> //= {};
+<coding.model_last_used>->{$used_backend} = <[base.time]>->(2)
+    if length $used_backend;
+
 <[base.logs]>->( 0, "async.request: error for %s: %s", $task_id, $error );
 
 ## check for retryable errors (HTTP 500, timeouts) ##
@@ -301,8 +307,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
 
 return;
 
-#,,.,,,,,,...,.,,,,..,.,,,,,,,...,.,.,,,,,,.,,..,,...,...,.,.,..,,,.,,...,,..,
-#3HVHOVRYQVLMO4RKLTPWRJ4N3OAOM2CPTN6RX5Z73BL3MMUVV3YN2UUASQXXD5DXIHWBS2V6PLTM6
-#\\\|U5OVBC43I5QKNIQVON5KY6T4L24JYGK6WWXYA2W7HEZAPEIYHR4 \ / AMOS7 \ YOURUM ::
-#\[7]PJW5BPR3TB27SQQXKQCE2CFZHU5K45O6GOIGXYB7HPTE7W3EZMAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,,,,,.,.,,..,.,,,,..,.,.,..,,..,,...,...,.,.,.,,,.,.,.,,,.,.,
+#PYU7PIB377JY6ZZKYIXOP2H2YBY4SQNISUQFFIULFVILCZ7ZLOY4TPDZ4FVSRIAYRHSETCLRBZGJI
+#\\\|52G24ICLP6YH7NVNBA4KH3QEHHNN6Q2DPBYPDS5UYAYAT5WAYJ6 \ / AMOS7 \ YOURUM ::
+#\[7]KQ6G7BCN7AVKH6N4GYBZJ66VFZKKLNE3FFJZTU7SP5QGI3CNLUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

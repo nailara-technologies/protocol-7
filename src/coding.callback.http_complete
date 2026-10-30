@@ -35,6 +35,12 @@ if ( defined $req_seq && $req_seq != $current_seq ) {
     return;
 }
 
+## every finished http request marks its backend as used ##
+my $used_backend = $state->{'backend'} // '';
+<coding.model_last_used> //= {};
+<coding.model_last_used>->{$used_backend} = <[base.time]>->(2)
+    if length $used_backend;
+
 ## round finished cleanly [ no timeout fired for this attempt ] : drop any
 ## ceiling escalation so the next round starts fast again rather than staying
 ## at the full ceiling permanently — see coding.handler.http_timeout
@@ -334,8 +340,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,,.,,..,.,.,.,,,...,,..,,,.,.,,,.,.,,..,..,,..,,...,...,.,,,...,,..,,,.,.,,,
-#24B2M4CPYZFWOJUGNKERHUWH3TKAUBXS35BC7P5WWZUBQWAA6PW2RBZBLYKS2CZCLQ2M22ZJR63UI
-#\\\|TG44Y6FDQHFS4J324PCI6TJVVJ6UP7GV7TSSE4O7XJT4NBG3DQ5 \ / AMOS7 \ YOURUM ::
-#\[7]JICHAM55IM5OSU7RPJ6BJLKWK7UUC6U574YE2JDTHHQJKKKUPMAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,...,...,.,,,,,.,..,,.,.,,,,,..,,...,...,...,,..,,,,,...,.,,,
+#N6YQTTASSHAVP3HIVOWRPCFBDWLJD355JCVAPRUO6QJTRPVN7W6RALNOU7IH3UDJ32MZ67ACCH2UY
+#\\\|CNPNRQIGC3JBOVYZ6HRF7HNAO5H5LZLH5HRHH7PPIMEQIVLCNDB \ / AMOS7 \ YOURUM ::
+#\[7]CAJ5DKRMW2JJFXEHULCSRY72IFZWCEQPFBO65PKDHECU67Z5ZMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

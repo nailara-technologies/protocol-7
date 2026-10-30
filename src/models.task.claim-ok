@@ -10,7 +10,8 @@
 #         default ]. default : one in-flight claim per ready local
 #         backend serving the pin [ coding.inference-status, cached in
 #         <models.task.local_models> for 60 s ] -- a host with one cpu
-#         backend holds at most one task, the gpu host takes the rest
+#         backend holds at most one task, the gpu host takes the rest ;
+#         a pin accepted for a model swap uses all ready backends as slots
 
 my $pin = uc( shift // '' );
 
@@ -46,17 +47,22 @@ my @ids = @{ $local->{'ids'} // [] };
 if ( length $pin ) {
     my ($pin_content) = $pin =~ m|([A-Z2-7]{7})$|;
     if ( defined $pin_content ) {
-        @ids = grep {
+        my @matching_ids = grep {
             my ($id_content) = m|([A-Z2-7]{7})$|;
             defined $id_content and $id_content eq $pin_content;
         } @ids;
+        @ids = @matching_ids;
+        ## a swap-accepted pin uses every ready backend as one future slot ##
+        @ids = @{ $local->{'ids'} // [] }
+            if not @ids
+            and ( <models.task.swap_accepted> // {} )->{$pin_content};
     }
 }
 
 return $in_flight < scalar(@ids) ? TRUE : FALSE;
 
-#,,..,..,,,..,..,,.,.,,.,,.,.,.,.,,,,,,.,,,,.,.,.,...,...,,.,,,,,,,.,,,,.,,.,,
-#I526GLDZQQVTVOTJKX4HAHZYD6TDUBCMXPDS2ZBQLQTVJSUXJ427RCYC4PP646JJZKNSWLM57KNHC
-#\\\|NRIBN3LSX6WIOGYYHVEC3P7NOHOCCKSEORVFCDUAQDNQYDBTIAZ \ / AMOS7 \ YOURUM ::
-#\[7]5C6NLKN5D37LR42ETHCJJORSTZLQXDL4IKKFTAZGAVQZ3NIDJ4CY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,,,.,.,.,.,..,,...,,,.,,,.,,,,,.,.,...,...,.,,,,,,,,,.,...,,..,
+#D6IZF2MMFOFXAOZU5F6N4MGGVE365FC32RX2WEDLGBKIQWBDNVJGESXP4IRSSZLWXYYL6BM3E6JQO
+#\\\|HYVGZEUTTFAFPPVV2XULYQLM5HNP6JWUDSD5YMYJZUVXCEBXYFB \ / AMOS7 \ YOURUM ::
+#\[7]55B4QBGD3PQJLHDAZCX5YQTTGC42ZMP3WJVM4LUKKYIEGTOLKQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
