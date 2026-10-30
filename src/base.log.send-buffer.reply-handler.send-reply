@@ -37,6 +37,13 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
     ##  report error replies from target zenka  ##
     ##
     if ( $reply->{'call_args'}->{'args'} ne $client_not_present ) {
+
+        ## the log zenka answered and REFUSED this line : resending it can ##
+        ## only fail again -- drop it [ pri 2026-10-25 : one crash-capture ##
+        ## line resent 1.1M times, each refusal logged by p7-log ]         ##
+        shift $b_ref->{'data'}->@*;
+        $b_ref->{'paused'} = FALSE;
+
         $b_ref->{'warned-reply'} //= FALSE;
         ## consider slowing down ? [ error case ] ## [ LLL ]
         $b_ref->{'warned-reply'} = TRUE and <[base.logs]>->(
@@ -51,8 +58,8 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
 
 }
 
-#,,..,,,,,.,,,..,,...,,,,,,,,,,..,...,,,,,,,,,..,,...,...,,,,,,,.,.,.,...,...,
-#I2EVYT7V72D4CSDKZM2PFUTRPKOVLWVSYIJN32AXWXPAD7ULWWO6KLLCDZ4TLOJGNOPBIPTRDI6VS
-#\\\|M24APMOWV2H2BWQ2TC5IBC63BIH3GHZHHZ2SCC2ATLUFMQ77N4R \ / AMOS7 \ YOURUM ::
-#\[7]VLVA5CQQ4VW3XZPESDBGO55R6LNNBPMGU7YFAWSWNWT3MFY66GDY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,...,,,,,,,,,..,,,..,,..,...,..,,...,...,...,.,,,.,.,..,,.,.,
+#DYZLCCONISWEAAJYYVOUH2NMFOPYVCB523KDUB25FX5GUSEANMEW7WCD75MF7FSWFYCVBZGPNWK2Y
+#\\\|2RQWSQLGO55BXPCK6B7VDAUSIA66MR576PLLLKD5DHUAWVMQ5JU \ / AMOS7 \ YOURUM ::
+#\[7]CYG7VTWSC37BZ2A7VFGO3WRCRH7MR7D6A7FL34NXJABVZSS43ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
