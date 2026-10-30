@@ -17,7 +17,13 @@ my $job = <[jobsite.job.read]>->($id);
 return if ref $job ne 'HASH';
 
 my $prompt = <[jobsite.util.build_prompt]>->($job);
-my $entry  = { 'job_id' => $id, 'desc' => $prompt, 'gen' => $gen };
+## reassess : marks the entry so dispatch.next scores a trashed job too ##
+my $entry = {
+    'job_id'   => $id,
+    'desc'     => $prompt,
+    'gen'      => $gen,
+    'reassess' => TRUE,
+};
 
 <jobsite.assess_queue> //= [];
 unshift <jobsite.assess_queue>->@*, $entry;    ## front of queue ##
@@ -34,8 +40,8 @@ unshift <jobsite.assess_queue>->@*, $entry;    ## front of queue ##
     $id, $gen
 );
 
-#,,.,,,,,,.,,,,,.,,,,,,.,,,,.,...,,.,,,,,,,,.,..,,...,...,..,,.,.,.,,,.,.,,,,,
-#AO7A6MF24A6OZVO6K67Q4QNELPMHF755HRBDHRSHTQYHIAWRTXGIC5WC35AHCEUYLK56OPT4FLY62
-#\\\|V63XFXKOTUJMQ2E3MLUIOY437NUFK7SZK65GIRODHGBR7O3GKO3 \ / AMOS7 \ YOURUM ::
-#\[7]M5VXB5G4QWISSNPD6T3KBJ6E5T5AAKZLK2MTZANUZ2IKIPTKE2AI 7  DATA SIGNATURE ::
+#,,..,...,,..,,,.,..,,.,.,.,,,...,.,,,.,.,.,,,..,,...,.,,,.,.,.,.,..,,.,,,,..,
+#QYLSKFAQSZFX45CQSCMA27WENRWV3VADMQAGOTNZJCWKUBQ5EPVL4SJUUBGFOLPDU4ZLGN4Q5DFE2
+#\\\|6NFFGPVPQOPD2UZCOFQZRVL435FNSXXCDSWAWFVMARUR67AYAC6 \ / AMOS7 \ YOURUM ::
+#\[7]QGLN6K2IU6BRHFLGOSLMRDCHKWLOW562CVMFNOHFS3SOW654NKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -334,7 +334,11 @@ $job->{'score'}         = $score;
 $job->{'score_reason'}  = $reason  // '';
 $job->{'score_summary'} = $summary // '';
 $job->{'assertions'}    = $assertions if %{ $assertions // {} };
-$job->{'stage'}         = $job_rec->{'stage'};
+
+## a reassessed trashed job that cleared the threshold leaves trash for ##
+## good : a stale trash_epoch would date a later re-trash wrong         ##
+delete $job->{'trash_epoch'} if $job->{'status'} ne qw| trash |;
+$job->{'stage'} = $job_rec->{'stage'};
 
 ## repair_failed/repair_attempted were previously memory-only [ set on     ##
 ## job_rec but never mirrored to the on-disk file in this, the normal,     ##
@@ -383,8 +387,8 @@ if ( not $give_up and <[jobsite.util.description_ok]>->($job)->{'ok'} ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.release_slot]>->($job_id);
 
-#,,,,,.,,,...,,.,,,.,,,..,...,.,,,,,,,,,.,,,,,..,,...,..,,.,,,.,.,,..,.,.,...,
-#WVGI6OVJZJA54QJCPP6QKGDRRO2WUN3FMDBG7NZG6DYHOGEHZNVW4VCBQMDLLPASS6DY6N2VWC5HU
-#\\\|COBXDXQRTRDKN474PIJDDTMTN2NUUBYTBXLMWTMRDHXI46DVD2T \ / AMOS7 \ YOURUM ::
-#\[7]YB4IKVDTZRJSRQCFALFMAH4PXT7IR57A3NAJHLQJK6QKL3GZ6GBI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,.,,...,.,,,,,,,,.,,,,,,,,,,.,,,..,,...,...,.,.,...,.,,,,..,,,,,
+#GYBYEZU2LJ34HEXAGQCBOYMQSIWBBETTMFCBBC3NEEK4HMJFXAIJJ7YGNCESHKIE2QRP4WMOSCMP2
+#\\\|JIY5NBPWBNJNYQCTYNNOKNW6UH4X2YE36RM7H266JAPIRVEJ5TP \ / AMOS7 \ YOURUM ::
+#\[7]PNPRJQSD4HORBZRNAVB43GRVPQPOWT7MMPKSLKXRVURRSC7R7UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
