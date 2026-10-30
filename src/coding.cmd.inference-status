@@ -25,6 +25,14 @@ $cpu_mmproj = $servers->{'cpu'}{'mmproj_path'}
 my $gpu_status = $servers->{'gpu'}{'status'} // 'unknown';
 my $cpu_status = $servers->{'cpu'}{'status'} // 'unknown';
 
+my $last_used = <coding.model_last_used> // {};
+my $idle_now  = <[base.time]>->(2);
+my $idle_secs = sub {
+    my ($backend) = @ARG;
+    return '' if not defined $last_used->{$backend};
+    return int( $idle_now - $last_used->{$backend} );
+};
+
 ## load plan of a server [ spawn_inference_server's record ] : context, ##
 ## layers on the gpu, moe experts in ram, kv cache type                 ##
 my $plan = sub {
@@ -62,6 +70,7 @@ my $status = {
         'mmproj_path'   => $gpu_mmproj,
         'url'           => $servers->{'gpu'}{'url'}     // '',
         'backend'       => $servers->{'gpu'}{'backend'} // 'gpu',
+        'idle_secs'     => $idle_secs->('gpu'),
         'still_loading' => ( $gpu_status eq qw| starting | ) ? 1 : 0,
         $plan->( $servers->{'gpu'} ),
         'vram_used_mb'  => $vram_cache->{'used_mb'},
@@ -75,6 +84,7 @@ my $status = {
         'mmproj_path'   => $cpu_mmproj,
         'url'           => $servers->{'cpu'}{'url'}     // '',
         'backend'       => $servers->{'cpu'}{'backend'} // 'cpu',
+        'idle_secs'     => $idle_secs->('cpu'),
         'still_loading' => ( $cpu_status eq qw| starting | ) ? 1 : 0,
         $plan->( $servers->{'cpu'} ),
     }
@@ -95,8 +105,8 @@ if ( length $reply_id ) {
 
 return { 'mode' => qw| size |, 'data' => $yaml };
 
-#,,,.,...,,.,,,..,...,.,.,.,,,.,.,...,,,.,..,,..,,...,...,,,,,,.,,,.,,,..,,,.,
-#CTGDLMVYGBPQWSR24SSGMBWWEOXLKAGO2667S23LEXBWJQTJBAHFKPEFGCKQG6UTAOUNENFMH3NHO
-#\\\|C7SNCOSKLBAOXTKLY2J5ECFHTK6X63GHL4RFMDC3BAHUUGJF7HO \ / AMOS7 \ YOURUM ::
-#\[7]V7YGZDAGQ4IN37ZDUDKD56FSBA3LIOMNGVXY6AI7OC32ZQBQUGBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,..,,.,,,..,,,.,,,.,,,,.,..,,..,,...,...,,.,,,.,,.,,,,,,,..,,
+#2IKNXBVNRMRQBKIJBNCKVXGHNLJFJSRIALEZOQSL3E7TEY5Z5WCI7WARWGA3QIAD77ZNLVG7I63MO
+#\\\|5QCE7U5KMHP2DBAJGOLOW6GZAJF7C62FXEVBFNWXOTMGVO2G5AD \ / AMOS7 \ YOURUM ::
+#\[7]ZEGRSEFCHR6NICVZU245D5PJPMHIDANCY3OULKKMAG2N6V2ZDIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

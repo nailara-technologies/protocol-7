@@ -242,6 +242,12 @@ if ( defined $saved_status_ref && length $saved_status_ref->$* ) {
 # Initialize inference servers storage
 <coding.inference_servers> //= {};
 
+## freshly loaded backends count as just used at startup ##
+<coding.model_last_used> //= {
+    'gpu' => <[base.time]>->(2),
+    'cpu' => <[base.time]>->(2),
+};
+
 ## async model-switch state [ spawn_smart fully async since 2026-09-18 ] :
 ## per-backend guard telling inference_server_sigchld a kill was deliberate
 ## [ same shape as <coding.draining> / <coding.lora_training_in_progress> ]
@@ -759,8 +765,8 @@ eval { <coding.timer.thermal_tick>->cancel }
 
 return 0;
 
-#,,,.,,.,,..,,.,,,,,,,,.,,.,,,..,,,,,,,..,.,,,.,.,...,...,,.,,,..,.,,,,..,,..,
-#WBBSBHL6ZMXH5KOGGFITIDZ6PUVZWYH2OOCJRQGCYS52QGE4L7UUCDHXZG4A67OHSTUPLQDQO7NNG
-#\\\|VKNRWTAZD5TC2FB5WHPNK5QDW3YQ74GXTG27XD2UAKRIQGQASJ4 \ / AMOS7 \ YOURUM ::
-#\[7]TNNWK7SAQFELVJGFVV7ALWKRSSORVJ2AFNQ4Z5MSQ44FLJHOC4BA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,,..,,,,,,.,,,,.,,,,,,,.,.,.,.,.,...,...,..,,..,,...,,,.,,,.,
+#BQ2NJQQQ5HP3OGBSI6JG5GIOO6WUS6NX7HZ42I3RH32FI474O7YOGVRJEK5K4TQBMOBMDP4JMKBTM
+#\\\|WHUDVY72TCPM5BVCMBVMQGYQAHTQZCJE7OSLJGWEFRWKVRUFSQI \ / AMOS7 \ YOURUM ::
+#\[7]LNQBJOEL5Q5QRRQUROSCAL3ZDG3FXPSJ7XLXOWRPATTPEN4AEEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
