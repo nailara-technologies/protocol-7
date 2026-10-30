@@ -5,6 +5,8 @@
 
 my $call = shift           // {};
 my $body = $call->{'args'} // '';
+## a foreign push with its bearer arrives multi-line : body in data ##
+$body = $call->{'data'} if not length $body and defined $call->{'data'};
 
 ## shm transfer [ large authenticated jobsite push ] : body was streamed to ##
 ## disk + validated by httpd.handler.shm_write -- read via base.shm.read    ##
@@ -516,8 +518,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,,,,,,,,,.,,..,,.,,,,.,.,.,.,,,...,...,,,.,..,,...,...,...,..,,.,,,,..,.,.,
-#VVT35XABC5BBAYQ2O6VRXRNFBGLAKNDEELR4S53XS46QWK7VYX2EPYPP36PMWKSNQRGF5INZRXEOI
-#\\\|75ZMLL5R2HYOFBJPYFNN2Z3BUHOIPFMVPHA6P572LXONADZ6PWJ \ / AMOS7 \ YOURUM ::
-#\[7]ZTGVHGWRQULQTTAM52BVWDMSHX244DRUD5ALYZ3XMB4M25L2XOAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,...,,..,..,,...,.,.,.,.,,,,,..,,...,..,,...,,..,,,,,,,.,...,
+#CS7ITKEOS4BCGIJLIMS3T4KGU4Q63P5AQQNZSUNUVTAUBQ4QTEKRDMO4QMRX5VKASDML247VGY5CA
+#\\\|CQB2YWGB7WIXFGUOEYMTOFH6PMUM62UUNBV42DIKLRYHYM4WAKD \ / AMOS7 \ YOURUM ::
+#\[7]A6U6YUPLJSGUAYG3N5KPSGJVYY53WJOZ42TNN3CLW5LQE6FK66CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
