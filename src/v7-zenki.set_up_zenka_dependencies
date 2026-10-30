@@ -81,7 +81,8 @@ foreach my $s_id (
                 my ( $type, $name ) = ( $1, $2 );
                 foreach my $id ( keys <dependency.object>->%* ) {
                     next if <dependency.object>->{$id}->{'type'} ne $type;
-                    if ( <dependency.object>->{$id}->{'name'} eq $name ) {
+                    if ( ( <dependency.object>->{$id}->{'name'} // '' ) eq
+                        $name ) {
                         $object_id = $id;
                         last;
                     }
@@ -156,7 +157,7 @@ foreach my $s_id (
         my $object_id;
         foreach my $id ( keys <dependency.object>->%* ) {
             next if <dependency.object>->{$id}->{'type'} ne $type;
-            if ( <dependency.object>->{$id}->{'name'} eq $name ) {
+            if ( ( <dependency.object>->{$id}->{'name'} // '' ) eq $name ) {
                 $object_id = $id;
                 last;
             }
@@ -176,8 +177,8 @@ foreach my $s_id (
     }
 }
 
-#,,,,,.,.,,..,,,,,,,,,.,.,,,,,,,.,.,,,,,.,..,,..,,...,...,,..,,..,,,.,,,.,,,,,
-#3N4MKJ34FMFNIOGH3U3HZUZMFM4F4VO3WQHBJJTGSUWW7WVXOHWFDCBXVV4XOEHCOPUDVQGYAZBGM
-#\\\|3RENDTYYYCKLMO4OVG5EDFT3SSAWJNS42CPMTPXXJRVTA5FEOWR \ / AMOS7 \ YOURUM ::
-#\[7]SKPIES63XHLUTEROY4UNFZBPA2GWCTUGPPJIGUR2CP3NOXVK6UAI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,.,,,..,,,..,,.,,.,.,.,,,,,,,..,,...,...,...,,,.,,.,,,,.,,.,,
+#DZLRLSOK2WGTNA5NMELO4ICE5DQBO3CHGL2VQKTYAWXO2CJR2N42YLFGPUSGS7IT5ID2MYJ2YE4HI
+#\\\|TTYFLP2VWQU2Z7DU2BUA5GXV434NSTHBLKR6PO6LM7BVF4Z3SHQ \ / AMOS7 \ YOURUM ::
+#\[7]N66APBGJYLCG7BGZUO3BJTBCDS5RIFOWIVCTVEWAYXLF2JAAL6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
