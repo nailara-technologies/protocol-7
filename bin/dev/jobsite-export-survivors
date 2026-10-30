@@ -16,14 +16,18 @@ use YAML::XS ();
 
 my $out_file;
 my $compare_file;
+my $removed_file;
 while (@ARGV) {
     my $arg = shift @ARGV;
     if ( $arg eq '-o' and @ARGV ) {
         $out_file = shift @ARGV;
     } elsif ( $arg eq '-compare' and @ARGV ) {
         $compare_file = shift @ARGV;
+    } elsif ( $arg eq '-removed' and @ARGV ) {
+        $removed_file = shift @ARGV;
     } else {
-        print STDERR "usage: $0 [ -o <file> ] [ -compare <jobs.json> ]\n";
+        print STDERR "usage: $0 [ -o <file> ] [ -compare "
+            . "<jobs.json> ] [ -removed <removed-log.yaml> ]\n";
         exit 2;
     }
 }
@@ -52,6 +56,17 @@ if ( defined $compare_file ) {
             or not defined $job->{'id'}
             or not length $job->{'id'};
         $excluded{ $job->{'id'} } = 1;
+    }
+}
+
+## ids the target jobsite removed on purpose : never offered again ##
+if ( defined $removed_file ) {
+    my $log = eval { YAML::XS::LoadFile($removed_file) };
+    die "invalid removed log $removed_file: $@"       if $@;
+    die "invalid removed log list in $removed_file\n" if ref $log ne 'ARRAY';
+    for my $entry ( @{$log} ) {
+        $excluded{ $entry->{'id'} } = 1
+            if ref $entry eq 'HASH' and length( $entry->{'id'} // '' );
     }
 }
 
@@ -126,8 +141,8 @@ if ( defined $out_file and $out_file ne '-' ) {
     print STDOUT $json;
 }
 
-#,,,,,...,,..,,..,.,,,...,,..,,.,,,,.,.,.,.,,,..,,...,...,,,.,.,,,.,,,,,,,,,.,
-#UJNARYURYGO3HUL75NSZBIXL75ZB3VO2KCEXV3JOKWTNYBEYQFTJDKZU344JAR4ALRQZYGZRATFP2
-#\\\|W2TZ3AMFB3KGI52ZGHRVFSUPPU66ZGDQ7HPJJ4EITNR3W3BESLV \ / AMOS7 \ YOURUM ::
-#\[7]LAQTZNXYGL5HMV76QCM4WBQHGNBJCOQ4XKO3BMXNAUW3ATAW7YCA 7  DATA SIGNATURE ::
+#,,,,,...,...,,.,,.,,,,.,,,,.,,.,,...,.,.,..,,..,,...,..,,,,,,,,.,..,,..,,,,.,
+#V2QPIYOBGDQEGZRCPDWFUWXWHZNCLMCTC372CJE5WXFXP5PSK56ZER6IUTX7ZYWCUULZNAJ3R7DF2
+#\\\|JZQS63EKKTXVJ6OF2IPJIQQU4SSRKEQJZTLXRBRPMS435WHZCQL \ / AMOS7 \ YOURUM ::
+#\[7]SDV72E2IJ64TNSEO5QLOHZCICGD6E6YQP66RBYYQBRVF6VKFO6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

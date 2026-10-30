@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-sign-tools](project-2026-10-30-session-handover-sign-tools.md) — START HERE 2026-10-30 night 2 [ last 9d2fd7907 ] : live-check coding-restart claim release, p7-commit-plan path \ untracked bugs, then jobsite sync
+- [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — START HERE 2026-10-30 morning [ last aa9b29c3d ] : review + live-test kimi replica mode, KKHN2 applied-vs-trash, claim release still unseen live
+- [deferred-history-purge](project-2026-10-30-deferred-history-purge.md) — ONE purge-paths run with the owner later : dep-graph .txz + old data/gfx/backgrounds/ images ; no remote re-add [ no origin ]
 - [sampler-penalties-break-exact-copy](feedback-sampler-penalties-break-exact-copy.md) — DRY [ short allowed length ] + repeat_penalty make agent models mangle every copied path \ old_string [ 'protocol -7' ] : 9b 14b 35b all failed a 4-line edit until repeat_penalty 1.0 + dry_allowed_length 64 [ 35b3dbe6a ]. outlier fixes go PER MODEL, never into global inference.model.* ; check the sampler before blaming model or tool
 - [zenka-open-default-utf8-layer](feedback-zenka-open-default-utf8-layer.md) — every plain open() in src/* carries :encoding(UTF-8) [ bin/Protocol-7 `use open`, deliberate ] : files holding OCTETS [ encode_json, bodies, binary ] need '>:raw' \ '<:raw' on write AND read -- 2026-10-24 site-yaml outbox double-encoded 58 jobs [ 8b2384420 ] ; check bytes on disk, a layered round trip hides it
 - [changed-established-behavior-silently](feedback-changed-established-behavior-silently.md) — 2026-10-11 : switched the unit to Restart=on-failure as a side effect and called it intended ; teardown = restart was the user's habit. never change restart \ start \ default semantics silently -- name old vs new, ask, add new behavior as opt-in [ :no-restart: ]
@@ -86,8 +87,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,.,,,,..,.,,,,,.,..,,,,.,,..,..,,,,,,..,,..,,...,...,..,,...,,,.,...,,..,
-#57B3XAPGTXSFPJX3BZZUAKFMAT7U5ITVDVZ5JLCANPSPC5F3XHPXVLLC7NKREN4BTYKM4US3CQG4U
-#\\\|25O7UQFVEJ5XHW6T3CWWS6AL7YG3ZXNZYDFJHTC266TCDXUUCPT \ / AMOS7 \ YOURUM ::
-#\[7]MENYGAN6MEDDAXS4Y23A42WSC2AIOULVTRWT7E363W4BDMP4JMDI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,..,.,,,.,.,,.,,...,.,,,,.,,..,,...,...,..,,,,.,.,.,.,,,,,,,
+#TF2FWAC774WAYY5GWPDZORLSQ5CZ2J6DN3WCSKAKZLWHVM6LWONS5WAK2VM2VAHC2LILQMXOHEYJ6
+#\\\|K2UKETEWHHEXQNR76CUEQ4G5RUFXYRNOQVV5QO4RYAIPXS2J3QQ \ / AMOS7 \ YOURUM ::
+#\[7]HYTOYZVZXY6FDJ2QCQEVXATCGSDXUQGIN3HWBTWDTHAQ56TD3UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
