@@ -220,14 +220,17 @@ sub changed_files {    ## explicit paths or the work tree's git status ##
     if (@paths) {
         foreach my $path (@paths) {
             $status{$path}
-                = not path_in_head($path) ? qw| A |
-                : not -e $path            ? qw| D |
-                :                           qw| M |;
+                = !path_in_head($path) ? qw| A |
+                : !-e $path            ? qw| D |
+                :                        qw| M |;
         }
     } else {
         my $porcelain
             = git_out(qw| status --porcelain=v1 -z -uall --no-renames |);
         %status = classify_status( split m|\0|, $porcelain );
+        my $untracked
+            = git_out(qw| ls-files --others --exclude-standard src/ |);
+        $status{$_} = qw| A | for grep {length} split m|\n|, $untracked;
     }
     return %status;
 }
@@ -242,7 +245,7 @@ sub perl_files {    ## is_perl_path + bin/ files with a perl shebang ##
         next if $path !~ m|^bin/|;
         my $first_line;
         if ( $status->{$path} eq qw| D | or not -f $path ) {
-            my $head = git_out( qw| show |, "HEAD:$path" );
+            my $head = git_out( qw| show --no-color |, "HEAD:$path" );
             ( $first_line = $head ) =~ s|\n.*||s;
         } else {
             open( my $fh, '<:raw', $path ) or next;
@@ -259,7 +262,7 @@ sub call_diff_names {    ## modified src/ files whose <[call]> set moved ##
     my %diff;
     foreach my $path ( sort keys %{$status} ) {
         next if $path !~ m|^src/| or $status->{$path} ne qw| M |;
-        my $before = git_out( qw| show |, "HEAD:$path" );
+        my $before = git_out( qw| show --no-color |, "HEAD:$path" );
         my $after  = slurp($path) // '';
         $diff{ $path =~ s|^src/||r } = TRUE
             if call_set_changed( $before, $after );
@@ -274,8 +277,10 @@ sub affected_zenki {    ## the read-only reverse lookup, ~45 s for all ##
     my $out  = qx| bin/dev/dep-graph -affected-zenki=$list 2>&1 |;
     fail("dep-graph -affected-zenki failed :\n$out") if $CHILD_ERROR != 0;
     return [
-        map { m|^(\S+)| ? ($1) : () }
-        grep { not m|^::| } split m|\n|, $out
+        grep { -d "cfg/zenki/$_" }
+            map  { m|^(\S+)| ? ($1) : () }
+            grep { not m|^::| } split m|\n|,
+        $out
     ];
 }
 
@@ -367,10 +372,15 @@ sub main {
         else                           { push @paths, $arg }
     }
 
-    my %status    = changed_files(@paths);
-    my @perl      = perl_files( \%status );
-    my %call_diff = call_diff_names( \%status );
-    my $affected  = affected_zenki( sort keys %call_diff );
+    my %status      = changed_files(@paths);
+    my @perl        = perl_files( \%status );
+    my %call_diff   = call_diff_names( \%status );
+    my @graph_names = keys %call_diff;
+    foreach my $path ( sort keys %status ) {
+        next if $path !~ m|^src/| or $status{$path} !~ m|^[AD]$|;
+        push @graph_names, $path =~ s|^src/||r;
+    }
+    my $affected  = affected_zenki( sort @graph_names );
     my @steps     = build_steps( \%status, \%call_diff, \@perl, $affected );
     my @rewritten = $apply ? apply_steps( \@steps, $affected ) : ();
 
@@ -384,8 +394,8 @@ main() if not caller;
 
 1;
 
-#,,.,,,,,,,.,,,..,.,,,.,,,...,,..,,,.,.,.,..,,..,,...,..,,,.,,.,,,,,,,,.,,,,,,
-#A45GSYTLA3X3RO3O7JKJ5BJ5MAGLZ4IMFI4HM7DPVJVF3EFS2TMIFLHRXPVYJCMSR5U5W7U44UNBS
-#\\\|I54PEX4HHVYGSHGV3H7Y3X2REHSLWOA4AKQUR5Y7DT4EWPSGHTM \ / AMOS7 \ YOURUM ::
-#\[7]QFD3ZH76FF3USQWWS5YEFDMRIGCDMOW5MAYB4E5PSPXDSRXJJGBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,..,,.,.,.,.,,..,,,,,,.,,,.,,.,,,..,,...,...,,.,,,,,,,,.,,,.,,,,,
+#Q6YZDKUWI4EJ65MWUJLQNOSBTXEN7C2OTGNOXPYQ3AFAO2EU7AOQHJZJTUWH5VJWGKSJSSBW6DMCI
+#\\\|HIXVEM65RTNTOIIO5YDDAX2G5LQ6HQ37OGSX7VKQNBHWVAUAOO4 \ / AMOS7 \ YOURUM ::
+#\[7]6TOQ2WRK45GTKIS6EFXGQVIAU6M646BKL4TGN3TYOULC6YI65EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
