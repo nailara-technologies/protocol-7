@@ -751,6 +751,20 @@ if ( not $already_initialized ) {
     };
 }
 
+## outdoor temperature for the night hover amplifier [ thermal.hover.gap ] ##
+## : the reply lands in <thermal.outdoor.*>                                ##
+## [ thermal.handler.outdoor-reply ]                                       ##
+eval { <coding.timer.outdoor_poll>->cancel }
+    if defined <coding.timer.outdoor_poll>;
+<coding.timer.outdoor_poll> = <[event.add_timer]>->(
+    {   'after'    => 5,
+        'interval' => <thermal.cfg.outdoor.poll> // 600,
+        'repeat'   => TRUE,
+        'handler'  => qw| thermal.outdoor.poll |,
+        'desc'     => 'outdoor temperature for the hover mark'
+    }
+);
+
 ## thermal hover : feed the gpu temperature into the gate every 5 s       ##
 ## [ re-armed on every init and reload, see coding.handler.thermal_tick ] ##
 eval { <coding.timer.thermal_tick>->cancel }
@@ -766,8 +780,8 @@ eval { <coding.timer.thermal_tick>->cancel }
 
 return 0;
 
-#,,..,...,,.,,.,.,,,.,..,,,.,,.,,,..,,,..,,,,,.,.,...,...,...,...,,,,,.,,,,..,
-#Y4WB6BC2NKNHBUHJWC6IY25C4DUPSSFO42POA4FKLBKA7WJZRU6OZUDBXXC2JR5MTXVGRJJ55XJVA
-#\\\|SM2SYENF7M2473DQOXINFYS5QVRJC33VMUX2QJJFDL3V66OPLLD \ / AMOS7 \ YOURUM ::
-#\[7]C2RWVAS6N6LY74YQOSPJYPUGZSUXGXAHVBTK7NWJVUJX35UNAMCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,,,.,,..,.,,,,.,,,.,,.,,,.,,,.,.,...,...,...,.,,,.,,,..,,,,.,
+#GSUQONIUIBOO2RWTVQ2K4HYPYAMUYI6BB7FK3JZUWL6C2O7BFUJSAYH37KQTDQMGHJVY4P7LELRD4
+#\\\|R5HPDFIM3BPISJHRZBD6GIDWC6V4BI67KM33VW7VOOL7PDEWA45 \ / AMOS7 \ YOURUM ::
+#\[7]PYFLWHCOKN66FBEYR7ZZWOJ7JYFPHENBY4JTOPPMRRGU5P22USCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

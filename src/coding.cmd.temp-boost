@@ -77,15 +77,15 @@ $minutes = $max_minutes if $capped;
 };
 <[base.logs]>->( 1, "thermal boost : $level for $minutes min" );
 
-my $reply
+my $answer
     = $level eq qw| full |
     ? "boost full : $minutes min"
     : "boost $level [ +$delta C ] : $minutes min";
-$reply .= " [ capped at $max_minutes min ]" if $capped;
-return { 'mode' => qw| size |, 'data' => $reply };
+$answer .= " [ capped at $max_minutes min ]" if $capped;
+return { 'mode' => qw| size |, 'data' => $answer };
 
-#,,,.,,.,,.,,,,,,,,..,...,,,.,...,...,.,.,...,..,,...,...,.,.,,.,,,..,,..,,..,
-#QUA5I7C2HBQY4PRVKQWSDSJ5NWXDSM4XOB56MHHSHIUGKDSJFEBQXSVPQSXCUHU5BMQACZLD3ALTA
-#\\\|2A5RIBD4CO7R4YZSPIUQH42OW6MEI2HB7RORZPBGMZT52QDCEGK \ / AMOS7 \ YOURUM ::
-#\[7]NISXBS67ZSJJDXRPVPOQH5G7WVSA6IBVWG4ZPJ7EWTGKGQUW2MBI 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,..,,,..,.,,,...,.,.,...,,..,..,,...,...,,,,,.,.,,..,,.,,.,.,
+#NRTS5VHBW4V2W6OZWRRLWTPPMS243MDU3U4R6ZLO42PYDSQKVZEK4OA4LXTCS5UHAOIEU6SYROJEW
+#\\\|CRG5GVXXQ7ANV3ETRO6QAYT2TPHNPDTNSFCRYBG37EU32HIA3IC \ / AMOS7 \ YOURUM ::
+#\[7]56QL4QA5XVSXTFGVZWQHC2RGJJQVEN7ZS3PWJCVPLLYP7KPESYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

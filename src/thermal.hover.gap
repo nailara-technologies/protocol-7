@@ -17,11 +17,21 @@ return $gap_max
 ## no fresh temperature : run as before [ the hold is a comfort brake ] ##
 return 0 if not defined $temp;
 
+my $night = <[thermal.window.current]>->($now) eq qw| night |;
 my $target
-    = <[thermal.window.current]>->($now) eq qw| night |
+    = $night
     ? <thermal.cfg.hover.night>
     : <thermal.cfg.hover.day>;
 return 0 if not defined $target or not length $target or $target <= 0;
+
+## cold outside, warmer room wanted : the night mark rises with the outdoor ##
+## amplifier [ 1.0 .. outdoor.max ] -- 3 C out = about +5.6 C               ##
+if ($night) {
+    my $amp = <[thermal.outdoor.amp]>->(
+        <thermal.outdoor.temp>, <thermal.outdoor.at>, $now
+    );
+    $target += ( $amp - 1 ) * ( <thermal.cfg.hover.amp_c> // 12 );
+}
 
 if ( defined $boost and ( $boost->{'until'} // 0 ) > $now ) {
     return 0 if $boost->{'delta'} eq qw| full |;
@@ -35,8 +45,8 @@ $gap = $gap_max if $gap > $gap_max;
 
 return 0 + sprintf( qw| %.1f |, $gap );
 
-#,,,.,.,.,.,,,,,.,,,,,.,.,,,,,..,,...,,,.,..,,..,,...,...,,,.,,,,,...,.,.,,,.,
-#HELJADBQX4C46VP2EFQFOT4KZIQ7LHT5GRDL6XQFPNAMID225VEUG4PZJA5SR44FK7YHVGUZMYG4Q
-#\\\|2PHPAZ6S26Y3YMAOW3N2Y5IIJQOJIKAN4NLLOR6CPIJ74ILXPMU \ / AMOS7 \ YOURUM ::
-#\[7]5PZNQMMLQTL52QC3H72UIXMOLMIMILGKOZ3MBPZQJCSLRZHV5MAA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,.,,.,,,..,,,,,.,.,..,,.,,,.,,,..,,...,...,.,,,...,,,,,.,.,,,,,
+#MNV6KGDY4ZF7YBJYCQ5HC6WV4CAERKKB3BZKWEEH7UEIBHBF5P4CLCF5XNBTSE2STGAHVKNSHTMHM
+#\\\|A42BLORXDAPOXUWS5QC774C3NMBN4FOZGMJHVVLHKBUGYYN2SMW \ / AMOS7 \ YOURUM ::
+#\[7]6YEMAUSEO64MX7MXZJULCFUCWZ7V6EJW265HP2QJERTLBVUZO4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
