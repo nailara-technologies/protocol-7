@@ -32,13 +32,18 @@ foreach my $zenka_name (@zenki) {
 
 <[base.log]>->( 1, 'setting up zenka dependency chains.,' );
 
+## an empty id is no zenka : a ->{$zenka_id}->{'name'} read with an empty ##
+## id autovivified it, and its undef name failed every reinit [ pri ]     ##
+delete <v7-zenki.zenka.setup>->{''};
+
 foreach my $s_id (
     sort {
         <v7-zenki.zenka.setup>->{$a}->{'name'} cmp
             <v7-zenki.zenka.setup>->{$b}->{'name'}
     } keys( <v7-zenki.zenka.setup>->%* )
 ) {
-    my $zenka_name    = <v7-zenki.zenka.setup>->{$s_id}->{'name'};
+    my $zenka_name = <v7-zenki.zenka.setup>->{$s_id}->{'name'};
+    next if not defined $zenka_name;
     my $source_object = <[zenka.get_object_id]>->($s_id);
 
     ## rebuilt from config : a missing chain means 'no dependencies' to the ##
@@ -171,8 +176,8 @@ foreach my $s_id (
     }
 }
 
-#,,..,.,,,..,,..,,,,,,,.,,..,,,..,.,,,...,,,,,..,,...,..,,.,,,,,,,,,,,,,,,,,.,
-#3FO6WPVOVJ2UAGJFCKLWZQJJBRVTKE2HZKAZWGRQ4LMXEXT67DZEFNAB5HOESINRXBWXELA3WG4I4
-#\\\|B4J5UWKG27BTOYLKIP2SDOIDDGRGSXVTKEJ7IQF7YNRYONONEZW \ / AMOS7 \ YOURUM ::
-#\[7]6UUADDIVHLY4RZXLUAXOGRHPDQ3MZ3KLMKKJYBPUJ5Z3T2762OAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,,,,,,,.,.,,,,,,,.,.,,,,,.,..,,..,,...,...,,..,,..,,,.,,,.,,,,,
+#3N4MKJ34FMFNIOGH3U3HZUZMFM4F4VO3WQHBJJTGSUWW7WVXOHWFDCBXVV4XOEHCOPUDVQGYAZBGM
+#\\\|3RENDTYYYCKLMO4OVG5EDFT3SSAWJNS42CPMTPXXJRVTA5FEOWR \ / AMOS7 \ YOURUM ::
+#\[7]SKPIES63XHLUTEROY4UNFZBPA2GWCTUGPPJIGUR2CP3NOXVK6UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

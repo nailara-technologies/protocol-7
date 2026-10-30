@@ -41,7 +41,8 @@ sub ok ($;$) {
     return;
 }
 
-my $pragmas = q{no bytes; use English; use File::stat; use File::Spec;
+my $pragmas
+    = q{use strict; no bytes; use English; use File::stat; use File::Spec;
     use File::Spec::Functions qw| catfile |;
     use open qw| :encoding(UTF-8) |;};
 my $prefix = q{use constant TRUE => 5; use constant FALSE => 0;};
@@ -64,7 +65,7 @@ my @logs;
 my @timers;
 my @posts;
 my @reverse;
-my $mem = {};
+my $fixture_cache = {};
 $code{'base.logs'}                      = sub { push @logs, [@ARG]; return };
 $code{'base.cnt_s'}                     = sub { $ARG[0] == 1 ? '' : 's' };
 $code{'base.ntime.b32'}                 = sub {'99'};
@@ -77,10 +78,10 @@ $code{'jobsite.replica.enabled'} = sub {
 };
 $code{'jobsite.replica.complete'}       = sub {return};
 $code{'jobsite.sync.token_for_url'}     = sub {'token'};
-$code{'plugin.web.jobs.cache.read_all'} = sub {$mem};
+$code{'plugin.web.jobs.cache.read_all'} = sub {$fixture_cache};
 $code{'plugin.web.jobs.cache.path'}     = sub {'/unused'};
 $code{'plugin.web.jobs.cache.write'}    = sub {
-    $mem->{ $ARG[0] } = { %{ $ARG[1] } };
+    $fixture_cache->{ $ARG[0] } = { %{ $ARG[1] } };
     return TRUE;
 };
 $code{'plugin.web.jobs.removed_log.append'} = sub {TRUE};
@@ -252,7 +253,7 @@ ok( !$code{q|web.jobs.sync_ui_authorized|}->(q|tok-r|),
     q|no listed users : nobody| );
 
 say "\n :. replacement and authorized ui conflict guard";
-$mem = {
+$fixture_cache = {
     'J1' => {
         'id'     => 'J1',
         'status' => 'review',
@@ -261,27 +262,28 @@ $mem = {
     },
     'OLD' => { 'id' => 'OLD', 'status' => 'new', 'stage' => 'new' },
 };
-$data{'plugin'}{'web'}{'jobs'}{'cache'} = $mem;
+$data{'plugin'}{'web'}{'jobs'}{'cache'} = $fixture_cache;
 web_sync(
     {   'role' => 'replica',
         'jobs' =>
             [ { 'id' => 'J1', 'status' => 'review', 'summary' => 'fresh' } ],
     }
 );
-ok( !exists $mem->{'OLD'},
+ok( !exists $fixture_cache->{'OLD'},
     'replacement removes ids absent from the primary' );
-ok( $mem->{'J1'}{'score_summary'} eq 'fresh',
-    'jobs.json summary alias survives the local sync path' );
-ok( !exists $mem->{'J1'}{'notes'},
+ok( $fixture_cache->{'J1'}{'score_summary'} eq 'fresh',
+    'jobs.json summary alias survives the local sync path'
+);
+ok( !exists $fixture_cache->{'J1'}{'notes'},
     'replacement does not preserve stale local browser fields' );
 
-$mem->{'J1'}{'stage'} = 'interviewed';
+$fixture_cache->{'J1'}{'stage'} = 'interviewed';
 $data{'web'}{'jobs'}{'sync_ui_authorized'} = FALSE;
 my $denied
     = web_sync(
     { 'role' => 'ui', 'jobs' => [ { 'id' => 'J1', 'stage' => 'applied' } ] }
     );
-ok( !$denied->{'ok'} && $mem->{'J1'}{'stage'} eq 'interviewed',
+ok( !$denied->{'ok'} && $fixture_cache->{'J1'}{'stage'} eq 'interviewed',
     'unauthorized ui role cannot change stage' );
 
 $data{'web'}{'jobs'}{'sync_ui_authorized'} = TRUE;
@@ -294,7 +296,7 @@ my $conflict = web_sync(
     }
 );
 ok( scalar $conflict->{'conflicts'}->@* == 1
-        && $mem->{'J1'}{'stage'} eq 'interviewed',
+        && $fixture_cache->{'J1'}{'stage'} eq 'interviewed',
     'primary reuses base_stage to reject a stale forwarded stage'
 );
 ok( scalar @reverse == 0, 'a conflicted stage is not queued again' );
@@ -303,8 +305,8 @@ say '';
 say "passed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,.,,.,,,,,,,.,,,,..,.,.,,,,,,,.,,..,,,.,,.,,..,,...,...,...,,..,..,,...,...,
-#BZCCJBD3VQQDOXT5VMI4LCZSZITYL24VEPWYI5V6QSKOVNLALIWQVZYBMRJTB5VJ4B2M57S24TVDA
-#\\\|LDWB5UDE24AOKW3ZKAQNMNET5RUA45PK7CPKMG5FPKM2S2BBAYK \ / AMOS7 \ YOURUM ::
-#\[7]JHYJIUIOA4OTCKIQQXOYHXPS2VUZG76Q722QYSMIEW5YWPYMQMDA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,.,,,,,,,,,,,,.,...,,,,,,.,,...,..,,...,...,,.,,,,.,...,.,,,.,.,
+#4TZL2DACFS7CITHIKHPTBYVD352ULDBYJLXXJU4JJKWJCJ2Z2RCJGTKPM6X4DHEGZQ5O5Y6ATWOSW
+#\\\|U2EPXBTVXHPZF63SPLEVJXS6YGOM2FLIMMXUYPVGSK475P7KB2A \ / AMOS7 \ YOURUM ::
+#\[7]CQDTE4SJTHR7PY3OTLR7ZWDCXENZKFFWGZ3JHZEXHWOKYR5KHGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
