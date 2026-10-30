@@ -35,12 +35,15 @@ return
         }
 
         my $power = <task.stats.gpu.power> //= {};
-        my $busy  = TRUE;
-        if (    defined $power->{'watts'}
-            and defined $power->{'updated_at'}
-            and $now - $power->{'updated_at'} <= 30 ) {
-            $busy
-                = $power->{'watts'} > ( <thermal.cfg.idle.power_max> // 60 );
+        my $watts
+            = (     defined $power->{'watts'}
+                and defined $power->{'updated_at'}
+                and $now - $power->{'updated_at'} <= 30 )
+            ? $power->{'watts'}
+            : undef;
+        my $busy = TRUE;
+        if ( defined $watts ) {
+            $busy = $watts > ( <thermal.cfg.idle.power_max> // 60 );
         }
 
         $idle->{'state'} = <[thermal.idle.sample]>->(
@@ -55,7 +58,8 @@ return
             $idle, $now, <thermal.cfg.idle.hold> // 600
         );
         <[thermal.gate.sample]>->(
-            <task.thermal.gate>, $temp_1s, $now, $idle_held
+            <task.thermal.gate>, $temp_1s, $now, $idle_held, $watts,
+            $idle->{'power_watts'}
         );
         <[thermal.gate.decide]>->( <task.thermal.gate>, $now );
     }
@@ -69,8 +73,8 @@ return
     $reply->{'cmd_id'}
 );
 
-#,,,,,,,,,...,,,.,...,,..,,.,,.,,,,.,,,.,,...,..,,...,...,...,...,...,,,.,..,,
-#U3WRBVWV3XXIIGC5XGTHTOMUOW3UG5Q3VDZ66AATQQRQ7IPXODNBARCZNEX5X75AMVMVZ7DSXXQSK
-#\\\|3IXQ75KOBQVO5TKZAEYGEZJ4CLSU3RLK4WN2QWEECRL2LL2NLHA \ / AMOS7 \ YOURUM ::
-#\[7]OYNCSU4KC4LJQBVX3OMWZAAIC4UZIHJHDWXZHTAF5HJMATITQKDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,,..,,..,...,,,,,.,.,...,.,,,..,,...,...,...,..,,,,.,,,.,,.,,
+#MRT26PD26P75TFRLA4QEFIM4FBYNTWLBCFWRE2NXJZDHSFIS5HB6G6GZVPD4K2PPY2WVGQ7XNMXHU
+#\\\|3VY42CWHD5BMIPS2TFF3VTXOE47DQ3N67FW3MJ5H2EVDQDR66KB \ / AMOS7 \ YOURUM ::
+#\[7]75LTAAXT42CPM37ZMNLR2BP6NLY52XNO463ETVLW4AEURF6GU4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
