@@ -67,8 +67,21 @@ metadata:
 5. 72T4WFI fails self-test prompt 2 twice [ frees the mouse, runs out of
    tokens ] -- per-model fix only, never global
 
-#,,..,,,.,,,.,,,.,...,,..,,,.,,,,,,.,,...,,,.,..,,...,.,.,...,,,.,,.,,.,.,...,
-#MWFPH4OZE255CVXB2SJXHRTSMDNQWMV6TFRETV6CHECYWWAJRMTIX2JMNRVHZKVSL7B3HBFECXUWU
-#\\\|YDLHFVWQ4VOQPZKQC44NXCENJR5U7KW2QMLLX2U4XROQEFHQG7R \ / AMOS7 \ YOURUM ::
-#\[7]KBJKNSDNH2PPQUEZGR6WINNW4TEKF32IPSDJMYPG3DZ32U4XVQBI 7  DATA SIGNATURE ::
+
+**update 2026-10-30 late [ next session ]**
+
+- DONE : 3. claim expiry fails the task [ cab9587c9, guarded by expected_agent ]
+- DONE : 4. pull-git hang was already fixed by a3d230f86 [ no setup entry ]
+- KKHN2 : owner said drop -- web view already dropped it [ removed-log ] ;
+  only the pre-replica jobsite store keeps applied/KKHN2.yaml, replica
+  refuses local deletes by design -- delete it if replica mode ever ends
+- 5. start model now OFSQC4I [ 928b80e4b ], 72T4WFI kept commented
+- night-brake step 6 slices 1 + 2 LIVE [ 35d3fff67 ] : power_avg + k
+  learning, no behavior change. next : slices 3 [ gate on predicted
+  temp, spawn refusal ] + 4 [ cooling fault guard ] once k has samples
+
+#,,..,,..,,..,,,.,..,,,,.,..,,.,,,...,,,,,...,..,,...,...,...,...,,..,,..,.,.,
+#UF3Y67YQGWQ5B3RAQHBH2ECHWK6EQLB3UJ7GKOAVKRLCOL226XYUYO74O4D5HWROPZ6AWZNFVPFLS
+#\\\|Z2U27CLIX6IBPHZPAJLJQ236VRMK7U7K4F4JPEBCZGNEJFADK5Y \ / AMOS7 \ YOURUM ::
+#\[7]UCZDPQOCP4PYZXNILDRTCWK5WHWQTLAIPAHQCNRDCZLMWOO2JQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
