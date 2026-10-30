@@ -120,7 +120,14 @@ if ( $command eq qw| web.jobs-sync-foreign | ) {
     my $headers = $session->{'http'}->{'request'}->{'headers'} // {};
     my ($bearer)
         = ( $headers->{'authorization'} // '' ) =~ m{^Bearer\s+(\S+)}i;
-    $call_args->{'param'}{'auth_token'} = $bearer if defined $bearer;
+    ## send.local drops param when args is set : the body travels as ##
+    ## multi-line data next to it [ the token never reached web ]    ##
+    if ( defined $bearer and exists $call_args->{'args'} ) {
+        $call_args = {
+            'param' => { 'auth_token' => $bearer },
+            'data'  => $call_args->{'args'},
+        };
+    }
 }
 
 my $relay_spec = {
@@ -196,8 +203,8 @@ if ( $args->{'auth.required'} and not $auth_exempt ) {
 
 return 0;        # [ deferred : reply handler writes response ]
 
-#,,,.,...,.,,,,.,,,..,.,,,,..,...,...,,,,,...,..,,...,..,,.,.,,.,,..,,,,.,..,,
-#FXKEE5XVPFHU5B2DC2GTRGIAZ2VWS2ORFMMLZWBDGTRHIQNBHHFIE7PSPGMW53X4QFLQ3HBAQFH7I
-#\\\|SSICKJRRF2WAVZQFHYHE7ZKSB6EXJKAFM6DHSVQW2WDFMG476DJ \ / AMOS7 \ YOURUM ::
-#\[7]B7XGYFIJPAMJUBUYAV67F54VUY63RHYQ76FDKPGL3JM5OPKHAWDY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,...,...,.,.,,.,,,,.,,,,,.,,,..,,...,...,.,,,..,,..,,,,.,,..,
+#F67AYMM4B3WBLGYIB2QSWMJGGUA4FT6WW22WG6FTOZWEN5G6DAFM7HO7LC6QSTSHTQK3IH6MYZQNE
+#\\\|X5FYKR3ZHIOM7JDYS73QESNJYX5FSUUJX7MJR5SB7J33XNYBB6N \ / AMOS7 \ YOURUM ::
+#\[7]RPNDSOCHKM3SZBKPDQOKBN2TJBT5YBP3A4X3ROKRWV4BNMW2VGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
