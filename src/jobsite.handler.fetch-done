@@ -11,6 +11,11 @@ my $category = $call->{'params'}{'category'} // '';
 
 chomp($data_str);    ## strip trailing \n ##
 
+## a remote reply arrives as utf-8 octets : decode before the log layer ##
+## encodes it again [ '·' showed as 'Â·' ]                              ##
+utf8::decode($data_str)
+    if defined $data_str and not utf8::is_utf8($data_str);
+
 if ( lc($mode) eq qw| false | ) {
     <[base.logs]>
         ->( 0, ':. %s ::: import failed : %s', $category, $data_str );
@@ -95,8 +100,8 @@ if ( <jobsite.pending_count> == 0 ) {
     <[jobsite.sync.push]>->( undef, FALSE );
 }
 
-#,,..,,..,.,.,,.,,,,,,,,,,.,,,.,,,..,,..,,.,,,..,,...,...,..,,,..,.,.,,,,,..,,
-#CI4OBFDWX4O4N52H3CQULYNLN7S2AIN65ZELTEWXF7ZDVGSH635N3Y3L5KVP4IRQO2JPBV276DPDE
-#\\\|KU53FG22WR22NMZGDHF25XPVOM4XRAFSQFPUZ56AQCVDRUGCKDB \ / AMOS7 \ YOURUM ::
-#\[7]6O6OJ5HN42B6PHQUUD4NWKRFOSBMFBDRTZ5KT53ALHKBCXHA6CDQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,,,,..,,,.,...,,.,,,..,,.,,...,..,,...,...,,..,...,..,,...,...,
+#UEQIXH3DSVNXC7NCJDHCJHV753OJMVO3LFWXQ4CGZZ6A4XGCNULGZD4GFPSAL2DYG2D5WTBXOT4L2
+#\\\|2ERFTCVVI2AFH5TRJI5JT5BE4PORN4QYMKX7T4AVBHMVGNBHM7J \ / AMOS7 \ YOURUM ::
+#\[7]HRJHJV6VC5LRFSVFHVI2IACDQ2BQCAADZFNY6QZAW72DSI7K76AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
