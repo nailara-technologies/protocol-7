@@ -880,7 +880,9 @@ sub op_run {
             ? encode_b32r($deny_reason)
             : ();
         run_log_line( qw| denied |, $run_id, scalar @entries, @reason );
-        return respond_no( $client, qw| denied |, @reason );
+        respond_no( $client, qw| denied |, @reason );
+        idle_return();    ## the request + prompt leave the screen ##
+        return FALSE;
     }
 
     ## what was approved is what the RUN read : a file swapped while the ##
@@ -1317,8 +1319,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,..,..,,.,,,..,,,,,,..,,...,,,.,..,,,.,,.,.,..,,...,...,.,.,..,,.,.,...,,..,
-#H3G76QTWIDHRS6H5BL3PXW2JRXS4B2UKRIHWT4EHVKZBBFCO6J33FRAHD3HZPAO42K76K3RNMG6W6
-#\\\|4RN2CIUIL4FDNYSYL35I75B7AW5DOBAUC4SOONEPXZNSRJWDPFY \ / AMOS7 \ YOURUM ::
-#\[7]PWXX5FOPGXKLPMZAUNBU3JANJZBBZHA3FZ5FKD4MY56OG6Z7S2BQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,.,,..,.,.,.,.,,.,,,,,,.,.,...,..,,...,...,,..,,,,,,..,...,,,.,
+#6MIDGPDDC4Y2KU4I6WR2EBL36NJTEKMLKN3VU2PKDMTF5VR5RLZ34VQDBONODOL2PFKUT24HZPYOY
+#\\\|B53NZQAA7VQL3WIBKLRPDYLRDJICFRMFHQDR5N2FHGNOHHHU2OH \ / AMOS7 \ YOURUM ::
+#\[7]EXEWQL72KKLSPDXOZNUTLPG2A74HT27A7NTPBEN3MCF46QH3RKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
