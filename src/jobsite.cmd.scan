@@ -4,6 +4,12 @@
 # descr = trigger a scan cycle manually
 # param = [:full:]
 
+return {
+    'mode' => qw| false |,
+    'data' => 'replica of ' . ( <jobsite.cfg.primary_url> // '' ),
+    }
+    if <[jobsite.replica.enabled]>;
+
 my $args      = $call->{'args'} // '';
 my $full_mode = ( $args =~ m{:full:} ) ? TRUE : FALSE;
 
@@ -21,8 +27,8 @@ if ( <jobsite.cycle> ne qw| idle | ) {
 my $msg = $full_mode ? 'full scan started' : 'scan started';
 return { 'mode' => qw| true |, 'data' => $msg };
 
-#,,..,,..,..,,,..,,,,,,.,,,,,,,.,,..,,..,,...,..,,...,.,.,.,.,,,,,..,,,,.,..,,
-#NFEBZPE3C3FZDQLZAGAEAGCJRYIVSFOQUG44JSZV7CSA4OOTKJ6R7CSIWX7B53UKPOMJMHMH5U4V2
-#\\\|4PG3OGVUCJM7776GWAIZYRZQEUB22L6GJGS5FLVPR7N7WJEVAXV \ / AMOS7 \ YOURUM ::
-#\[7]ZVCV7W4WYDN4EBQZHFDN6DZ2T4Q57E6XXGBU4MUGLGRMZGAVRSAI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,.,.,.,,,.,,,,,.,,..,.,,,...,..,,...,...,..,,...,...,,..,,..,
+#33ELIEONEIKB4EZHSJFWQI44OPFLCXVXY2O7XBJS5RRF3S23PLIFWFS6QHNRI5SBTJM4PMAHFWVL2
+#\\\|G3JW4VIKZT3TQBESV6LBZQYQALSWP4IWL34VSW35UK37AV4A4OX \ / AMOS7 \ YOURUM ::
+#\[7]LO43ANA7CZDNOG6RDMZZRKHR4UVMPBL42YGW3V7VP3P3AXTXM6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

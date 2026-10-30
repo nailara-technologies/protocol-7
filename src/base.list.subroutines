@@ -1374,6 +1374,7 @@ return [ qw[
         keys.backup.rollback
         keyring.cmd.distance
         jobsite.stage.review
+        jobsite.replica.pull
         jobsite.job.load_all
         jobsite.cmd.progress
         io.ssl.ip.input.open
@@ -2293,6 +2294,8 @@ return [ qw[
         jobsite.util.block-line
         jobsite.sync.push_chunk
         jobsite.report.assemble
+        jobsite.replica.forward
+        jobsite.replica.enabled
         jobsite.job.index.build
         jobsite.dispatch.repair
         jobsite.cmd.show-prompt
@@ -2611,6 +2614,7 @@ return [ qw[
         keys.console.owner-unpin
         jobsite.stray.claim_next
         jobsite.report.csv_parse
+        jobsite.replica.complete
         jobsite.dispatch.give_up
         jobsite.cmd.report-build
         jobsite.cmd.list-trashed
@@ -2912,6 +2916,7 @@ return [ qw[
         jobsite.util.build_prompt
         jobsite.sync.role_for_url
         jobsite.report.mail_split
+        jobsite.replica.pull_soon
         jobsite.removed_log.prune
         jobsite.handler.sync-soon
         jobsite.fetched.subscribe
@@ -3364,6 +3369,7 @@ return [ qw[
         window.place.handler.scroll
         window.place.handler.motion
         window.place.apply_geometry
+        web.jobs.sync_ui_authorized
         web-browser.wait_for_window
         web-browser.wait-state-poll
         web-browser.start_slideshow
@@ -3517,6 +3523,8 @@ return [ qw[
         jobsite.validate.assessment
         jobsite.util.description_ok
         jobsite.report.extract_text
+        jobsite.replica.unsent-save
+        jobsite.replica.unsent-load
         jobsite.repair_encoding.job
         jobsite.liveness-sweep.next
         jobsite.handler.repair-done
@@ -4134,6 +4142,8 @@ return [ qw[
         keys.console.remove-signature
         keys.console.encoding-upgrade
         jobsite.report.render_dossier
+        jobsite.replica.pull-response
+        jobsite.replica.forward-retry
         jobsite.handler.sync-response
         jobsite.handler.rewire-assess
         jobsite.dispatch.release_slot
@@ -4446,6 +4456,7 @@ return [ qw[
         kimi-web.cmd.get-session-state
         kimi-web.cmd.dispatch_parallel
         keys.console.gen-file-seed-key
+        jobsite.replica.local-response
         jobsite.repair_encoding.finish
         jobsite.repair_encoding.backup
         jobsite.handler.translate-done
@@ -4712,6 +4723,7 @@ return [ qw[
         keystore.trash.purge_candidates
         jobsite.report.mime_decode_body
         jobsite.report.evidence_collect
+        jobsite.replica.pull_soon-fired
         jobsite.repair_encoding.example
         jobsite.liveness-sweep.complete
         jobsite.handler.pending-changed
@@ -4947,6 +4959,8 @@ return [ qw[
         kimi.handler.process-queued-task
         kimi-web.internal.http_post_sync
         keys.console.keys-backup-archive
+        jobsite.replica.forward-response
+        jobsite.replica.forward-endpoint
         jobsite.repair_encoding.scan_one
         jobsite.repair_encoding.location
         jobsite.handler.liveness-timeout
@@ -5932,6 +5946,7 @@ return [ qw[
         letsencr.child.cmd.request-certificate
         kimi-web.handler.dispatch_stream_start
         keys.unpack_format.key_archive_payload
+        jobsite.replica.forward-local-response
         jobsite.handler.mark-exported-response
         io.unix.socket.handler.report-tmp-path
         invoke-web.handler.startup_pause_retry
@@ -6125,6 +6140,7 @@ return [ qw[
         letsencr.parent.handler_challenge_timeout
         letsencr.parent.handler.vhost_query_reply
         jobsite.util.fix_encoding.score-candidate
+        jobsite.replica.forward-endpoint-response
         graphics.matrix.visual.group-by-proximity
         fetch.file.huggingface.handler.hash_retry
         data.init_holographic.generate_field_line
@@ -6363,8 +6379,8 @@ return [ qw[
     ]
 ];
 
-#,,..,..,,,,.,,,.,...,...,,..,.,,,.,.,...,,,,,.,.,...,...,.,,,,..,..,,...,...,
-#ZTPOWF3BHY2DEDVWFGSYZKZR52QSYSMMZBNCKQWWAKRVC3Z22BDJVCJ3XKYCIPRPK7RWD6MELP6MM
-#\\\|7UTUPK7ED5D7HMKGAW2JPBZ6NSLGTRVXYWNPHLWXXK4UXEOJJ7B \ / AMOS7 \ YOURUM ::
-#\[7]NCRLF2VT7DUTDO5JFD2MPFGWSVOEGM6NFK6AMT3ILLCGYNYRS6AI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,.,.,,,,,...,.,.,.,,,..,,..,,.,.,...,...,..,,..,,..,,,..,,.,,
+#ZBX55FSOZG375RD4YVMDMDV5LOI532WY3GLSQRG252FPOCRXQ7555OEU6ILKGRBRS4C32VAV35GWS
+#\\\|WZSONGQR3XSLNGGN7CBLVV7JDBXW6MIOUQQN7M66BME755WL2UU \ / AMOS7 \ YOURUM ::
+#\[7]CNZ3NJ7AGAAXYBMN7DSEBHFCUMPOG5VIBKUJ36FNBCHG2WF6F4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

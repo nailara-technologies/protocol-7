@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = jobsite.replica.forward-endpoint
+# descr = forward an http ui action to its primary endpoint
+
+my ( $endpoint, $args, $reply_id ) = @ARG;
+my $url = <jobsite.cfg.primary_url> // '';
+$url =~ s{/jobs-sync/?$}{/$endpoint};
+my $token   = <[jobsite.sync.token_for_url]>->(<jobsite.cfg.primary_url>);
+my $headers = {};
+$headers->{'Authorization'} = "Bearer $token" if length $token;
+my $request = {
+    'url'     => $url,
+    'body'    => $args // '',
+    'headers' => $headers,
+    'timeout' => 32,
+    'on_done' => qw| jobsite.replica.forward-endpoint-response |,
+    'params'  => { 'reply_id' => $reply_id },
+};
+
+if ( $url =~ m{^https://}i ) {
+    <[clients.https.post]>->($request);
+} else {
+    <[clients.http.post]>->($request);
+}
+return { 'mode' => qw| deferred | };
+
+#,,..,.,,,.,,,,,,,,..,,,.,..,,.,.,.,.,,..,,,.,..,,...,...,..,,,..,.,,,.,.,,..,
+#ZIJ3WZS2UZ3YUGVKP3LFL4DO4ZYNB6F3R2QAACFVYUOUEIM52BDAT6LVCRENG6DFJYNEGBQCJQVPM
+#\\\|PTESW4HWILJ5NZE2P4FI65AZZYFXGAI6QS6ZMREABSFHWKQFAFK \ / AMOS7 \ YOURUM ::
+#\[7]DEK4JNQWMGWDOQKVE3RTXPJMV74GI7AHKQMHNAAUB7IBZHNBN2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

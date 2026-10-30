@@ -12,6 +12,11 @@
 my $args = $call->{'args'} // '';
 $args =~ s{^\s+|\s+$}{}g;
 
+return <[jobsite.replica.forward-endpoint]>->(
+    qw| jobs-import-url |,
+    $args, $call->{'reply_id'}
+) if <[jobsite.replica.enabled]>;
+
 my $result = <[jobsite.cmd.import-url]>->( { 'args' => $args } );
 
 my $ok = ( lc( $result->{'mode'} // '' ) eq qw| true | ) ? 1 : 0;
@@ -30,8 +35,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,.,.,,,.,.,.,,,,..,,.,,...,.,,,,,.,,,,,.,,,..,,...,..,,...,,..,,..,..,,..,,
-#46PTROHPMXMBXGLLFMJNT7IU46PS44X5WEVH37GPEOC3IVHZNS56OIV2EK6SA7U7S5KXCE53VM3QY
-#\\\|AAQFZPFNL4MWTEFUF7VCZ6ZOWACHVTYI2JF5SVJQQVX7X5HQGYL \ / AMOS7 \ YOURUM ::
-#\[7]NN6WM5J72FEWIPJOIYDF2UUAUDINIM5V5PS3MALW4BYFWZZROOAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,.,,,,.,,.,,,.,,,.,,.,.,.,,,,,,,..,,...,...,...,,,.,,,.,...,,,.,
+#ARYHTCXZAZQL4EV3GJ6VAGV4MXVMVHVRWU2RYTIZ4U74PDTGT5HOHYBD4L4SVEDSUCLFWXBUMYQ4G
+#\\\|UDYVKZNTNEQNMT4KFNZYRZUCKAMCEDEP2FJ3EDNBPW77O4QGDEM \ / AMOS7 \ YOURUM ::
+#\[7]ZZFQQ5OVQR2Z2KBCCIZKGGCIP2SKHSZCXIQOMD53OJGZIOFSDIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

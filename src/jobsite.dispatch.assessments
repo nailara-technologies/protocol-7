@@ -3,6 +3,8 @@
 # name  = jobsite.dispatch.assessments
 # descr = collect new untracked jobs and queue assessment tasks
 
+return if <[jobsite.replica.enabled]>;
+
 ## re-entrant safe : a settle-timer (new job-upsert arrivals) or a        ##
 ## queue-drain signal can both call this while a previous batch is still  ##
 ## mid-flight ; only the call that finds cycle already idle is allowed to ##
@@ -237,8 +239,8 @@ push <jobsite.assess_queue>->@*, @queue;
 
 return;
 
-#,,,.,..,,,..,..,,.,,,,..,,..,..,,,.,,.,.,.,,,..,,...,..,,.,,,,,.,.,,,,.,,,.,,
-#MJIP2AOL672XO63TUT6FY5SKUTGCI3KNES5G7ZGPCUHJ3P2UGFCA4R7TOVGVZHTDV7QB6MMGNPDB4
-#\\\|HZBPS3QWLWEBQHOPZGLEZIZNU6NDIWQQ7KW2PPU4X7PDUILVJD6 \ / AMOS7 \ YOURUM ::
-#\[7]S43R3DK6GCXOEE6MMAXM75CC7ZGAKT4ZTNDUEZHRGXMBZSIGJ6BA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,..,,...,,,,,.,,,,,,,..,,.,.,...,..,,...,,.,,.,.,,..,.,,,...,,..,
+#FIMBKE6NKV56DPSYBYF3YXDAOWDSIMKCSCIO3CAZ2LQTQHQTU2XBSKNU4FITKYF5KDM47CWYJF6EA
+#\\\|T6NQ6VQUA2QJGYQBUNKSFWFX5YGX3BJ2KNLABRUAFYVCZNDLRBU \ / AMOS7 \ YOURUM ::
+#\[7]3AW4RZXNZWSAGDH7WSK62J6I5KQKX4CNZ5MUWRUCLAOCEUBFDEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

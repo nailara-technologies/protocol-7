@@ -6,6 +6,11 @@
 
 my $body = $call->{'args'} // '';
 
+return <[jobsite.replica.forward-endpoint]>->(
+    qw| jobs-prefs |,
+    $body, $call->{'reply_id'}
+) if <[jobsite.replica.enabled]>;
+
 my $incoming = eval { JSON::XS::decode_json($body) };
 if ( $@ or ref $incoming ne qw| HASH | ) {
     return {
@@ -42,8 +47,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,.,,,.,.,,..,..,,.,.,,..,.,,,...,,,.,.,,,..,,...,...,...,,,,,..,,,,.,,..,
-#JYFGXX3R57BBPNDD6I6PI2F3MMTWZKEZ7JAI6OYEUNV7TWYQYIUI5GHGSZJSA3CRYA7CRKZ5YUI6W
-#\\\|Z6BGTIJSAKH2APQYUNT3ZAFVLXM5R3EGQBOECBIIQSWA76QAELF \ / AMOS7 \ YOURUM ::
-#\[7]YLQ5TPU7HEPZXPMFVCUHKM7CY36ZIBF2CFENHXGBSQI66R5CREDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,.,,,,,.,,,.,,,.,...,.,,,,,,,..,,...,...,..,,,..,,,,,,.,,...,
+#AX6SVX6KGG5ZGC4VNHNL3DGYCQU5OVOOKZ5O7CN6FA7UBGS62KETFMLQWA2DKJEGPS6DB5ZKFSKFI
+#\\\|4SYXDOLXMMFOGMTTXYY7SH6PPMN6GEBY3TU7GNH2IMQF5LTXIRW \ / AMOS7 \ YOURUM ::
+#\[7]3ULVL74CVK3OMF5RR2OBQUOSGSI54KBZ2WAMMST4HQWKKGNLRCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

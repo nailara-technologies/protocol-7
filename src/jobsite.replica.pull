@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = jobsite.replica.pull
+# descr = fetch the primary job set without blocking the event loop
+
+return if not <[jobsite.replica.enabled]>;
+return if <jobsite.replica.pull_in_progress>;
+if ( defined <jobsite.replica.next_timer> ) {
+    <jobsite.replica.next_timer>->cancel;
+    delete <jobsite.replica.next_timer>;
+}
+
+my $url = <jobsite.cfg.primary_url> // '';
+$url =~ s{/jobs-sync/?$}{/jobs.json};
+$url .= '/jobs.json' if $url !~ m{/jobs\.json$};
+
+my $token   = <[jobsite.sync.token_for_url]>->(<jobsite.cfg.primary_url>);
+my $headers = {};
+$headers->{'Authorization'} = "Bearer $token" if length $token;
+my $request = {
+    'url'     => $url,
+    'headers' => $headers,
+    'timeout' => 32,
+    'on_done' => qw| jobsite.replica.pull-response |,
+};
+
+<jobsite.replica.pull_in_progress> = TRUE;
+if ( $url =~ m{^https://}i ) {
+    <[clients.https.get]>->($request);
+} else {
+    <[clients.http.get]>->($request);
+}
+
+#,,..,,.,,...,.,,,..,,.,,,...,.,,,,,,,.,,,,,,,..,,...,...,..,,.,.,,,.,,,,,,.,,
+#7JTTTK7NAIUVDQXI3OBYXO6SUXYY5NYBGRWXT3SEQNF4WTWATJFVACJLYULMYLFPRHYVUKZ722Z24
+#\\\|3YSACR5QT5KMQGIPADEKSYML2JTRCMYRS44J3MHGZJM4GZT7Q7B \ / AMOS7 \ YOURUM ::
+#\[7]6VVARHBPCORJ3APHZB4IRTTQCIRZKT5GZFMDXXSNEPR2RJBO5WCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

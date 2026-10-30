@@ -3,6 +3,8 @@
 # name  = jobsite.store.prune
 # descr = two-phase prune: blocked->deleted, deleted->gone, with checksum backfill
 
+return if <[jobsite.replica.enabled]>;
+
 my $jobs_root = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
 
@@ -235,8 +237,8 @@ return {
     'deleted_pruned' => $deleted_pruned,
 };
 
-#,,.,,,,.,..,,,.,,..,,.,.,.,,,,,,,,,.,,,.,,..,..,,...,...,...,..,,.,.,,..,,.,,
-#RTXSXWXDOJ5YHCOUHY34QVS4IM2GBMXUZFC32VK3ENN6X3INLL4UZNTIKEXUTBJG5O6XYI6ZWADPK
-#\\\|5UKPWNGGLK2NRKFVSASPHZAEMIAD3LIRZPVJMIQ54Z5XHANIGWK \ / AMOS7 \ YOURUM ::
-#\[7]WJCTIOY3T4PUD45TTERKFHLHRRDECJNAJUSUUOYAC3WK7CJF7IDI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,,,,,.,,.,,,,,,..,,...,..,,,.,,..,,...,...,,,,,.,,,.,,,.,.,,..,
+#KVMHGPRAGBVGIUIVVQWTV53R35FCEOHFA2DTGJSKDNZ52L7RTIOPGJ7LH2M5ABUGTI7ZKC6T55XL6
+#\\\|BFX2JTGUGUKOF5OVHSMGK5MQNMTGSQSVFOLXEGOS4LEUQHYSYH3 \ / AMOS7 \ YOURUM ::
+#\[7]LD5HJR4JIIDTWLOPSN25L6EDPPBFU2ZTJ2FT6CP3UAJOUYNZ2OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

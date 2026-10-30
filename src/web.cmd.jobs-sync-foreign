@@ -9,15 +9,18 @@
 #         single browser updates pass as before
 
 <web.jobs.sync_foreign> = TRUE;
+my $token = $call->{'param'}{'auth_token'} // '';
+<web.jobs.sync_ui_authorized> = <[web.jobs.sync_ui_authorized]>->($token);
 my @reply = eval { <[plugin.web.jobs.sync]>->(@ARG) };
 my $error = $EVAL_ERROR;
-<web.jobs.sync_foreign> = FALSE;
+<web.jobs.sync_foreign>       = FALSE;
+<web.jobs.sync_ui_authorized> = FALSE;
 die $error if length $error;
 
 return wantarray ? @reply : $reply[0];
 
-#,,.,,..,,,.,,,..,.,,,,.,,.,.,..,,,,,,,..,...,..,,...,...,.,,,...,,,,,,.,,,,,,
-#TVFIU2XVGURGK5OOZGJNC5X7RURZN5F7NNL2Z2CROQOQXWEQL75JYGXJB7DCPNXRTIPCRXLL2G4HS
-#\\\|2WYZFPRHOQOCLTVFT6YBQ55Q3KQLDGDAZBB6CZ4A4QBNYDRY3VA \ / AMOS7 \ YOURUM ::
-#\[7]GLJUZDAGG7B6RNFUZ64NY6SLOENMR6DO7GTRXNZ5TVKBOBHO3KBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,,,,,.,,,...,,,.,,,.,,,.,,,.,..,,...,.,.,.,,,..,,,..,,,.,,,,,
+#63FUQDZAKKLECZSJ77CJIK44EZZ3SI6ZIGW76NPTW53XJO6TE7AIUFVZPE7ZW7KVND54PRIAQBISM
+#\\\|ZCT5ABLQ2WB77MRWIDK6Y2QHD5IOVF6ADF4QPPAY4VXMVTQO2QC \ / AMOS7 \ YOURUM ::
+#\[7]A6BS26NEBPFLZTPAP47WNCFD77USS2GSYU2Y76BDNAFIVWAT3OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

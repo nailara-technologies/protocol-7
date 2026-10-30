@@ -110,6 +110,8 @@ $code{'jobsite.job.load_all'} = sub {
     };
 };
 
+$code{'jobsite.replica.enabled'} = sub { return FALSE };
+
 ## capture the queue instead of sending chunks ##
 $code{'jobsite.sync.push_chunk'} = sub {
     my $queue = $data{'jobsite'}{'sync'}{'push_queue'} // [];
@@ -245,8 +247,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,.,,,,,,...,,,.,.,,,.,,,,.,,,,.,.,.,.,.,..,,...,..,,..,,,,.,,.,,,..,..,,
-#7OFIXMPDB6AHJ3OP23E5EWDUGLFG4A2DIJ7ALC7YVWMYTL26QIU53DKQ5QEUCS7BGPPDMWZY6LAJA
-#\\\|5S4ECY5MMM3AO3K6M4ORI7NGT7TRML37E3VM4ZHWAJGOEBLBBVF \ / AMOS7 \ YOURUM ::
-#\[7]FLMK7KT26CDOPS5AMMBEP47SJ6CY2YA2IQPRY4ICO75TNCN4DEAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,,,,,,..,,.,,..,,.,.,,.,,...,..,,...,...,.,,,..,,..,,,,.,.,.,
+#YULWGKESRCEB6QDJOVX6ONEPUSBHWZOBLV6XEIHTVYZ3O2TI3RAWWYSTOYBG2DXJHJKSVLZ6OHZLQ
+#\\\|LGLOQWUW35JS264FPX77OI5ZYZO5GUM66DSAW7U6YRUEAA3AU3P \ / AMOS7 \ YOURUM ::
+#\[7]KZJJIGJ65OJOMV3TYMBIN3H2QBTDESMIXXTPVBGWDMNRBDH4QKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

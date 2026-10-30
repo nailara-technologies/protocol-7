@@ -14,6 +14,8 @@
 #                   cycle tries again [ an unreachable portal must not hold
 #                   cycle=assessing, rule of d7ab4301d ]
 
+return if <[jobsite.replica.enabled]>;
+
 my ( $job_id, $token, $verdict ) = @ARG;
 
 my $pending = <jobsite.liveness_pending> // {};
@@ -85,8 +87,8 @@ if ( not $sweep_owned ) {
 <[jobsite.liveness-sweep.complete]>->( $job_id, $kind );
 return;
 
-#,,,.,,,,,...,..,,,..,.,.,.,,,,,.,...,,,,,,..,..,,...,...,.,,,.,.,,,.,.,,,..,,
-#W7ZJZCVXAWSTLVIIR4UDXSAFNLIA7B7D4PKDLW5YH6VD3AHELRZLP4KM6BGELEXRAWIE4ROXLEGHU
-#\\\|ASEOHJHHQRGN2J7IXBPIXTE75VXWJ4PRKAH7DF72BLLZQU63CTW \ / AMOS7 \ YOURUM ::
-#\[7]PI7DO2FOZAMTNGWEK2FBB5SUEG6VALF5FVBWOTMXLIO2ZG2EMUAI 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,,,.,.,,,,,.,,,.,.,.,.,...,..,,..,,...,...,.,.,,.,,...,,..,,,,,
+#56VPC4G43DYNILZO55IJTAJNE5XY77UM5HSMDSOSCYJZ34ECOGGTFM2BAW4GA54ZHIR3VJUMZUXQ6
+#\\\|RXROCGBLCMS5VUYEOECUCOB3WCXA76UVUPKDB3M4PBDXFVHPQC7 \ / AMOS7 \ YOURUM ::
+#\[7]BJJFY5PAG6QK7PDT2ME2IDBQWBI4BY4EG7SKOKIAM53AEZ753OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

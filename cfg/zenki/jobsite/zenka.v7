@@ -86,15 +86,23 @@ jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
 ##   jobsite.cfg.sync_url    = http://<host>/jobs-sync               ##
 ##   jobsite.cfg.sync_urls   = <url> [<url> ..]                      ##
 ##   jobsite.cfg.sync_token  = <token>   ## or per-url : ##
-##   jobsite.cfg.sync_tokens = <url>=<token> [<url>=<token> ..]       ##
-##   jobsite.cfg.sync_url_roles = <url>=owner|marks [<url>=<role> ..] ##
-## [ roles : owner [ default ] = full sync behaviour ; marks = export ##
-##   marks + prefs ONLY, never job state or removal signals -- for    ##
-##   a url whose web belongs to a DIFFERENT jobsite, e.g. forwarding  ##
-##   export marks to a host that does not own this stock ]            ##
-## [ token : p7c web.auth-issue jobsite-push -ttl 31536000 ]          ##
+##   jobsite.cfg.sync_tokens = <url>=<token> [<url>=<token> ..]          ##
+##   jobsite.cfg.sync_url_roles = <url>=owner|marks|ui [<url>=<role> ..] ##
+## [ roles : owner [ default ] = full sync behaviour ; marks = export    ##
+##   marks + prefs ONLY ; ui = replica browser actions only. a primary   ##
+##   must also set web.cfg.jobs_sync_ui_tokens in web host-config to     ##
+##   the bearer tokens allowed to send role=ui stage changes ]           ##
+## [ token : p7c web.auth-issue jobsite-push -ttl 31536000 ]             ##
 jobsite.cfg.sync_url      = http://127.0.0.1/jobs-sync
 jobsite.cfg.sync_urls     =
+
+## replica mode [ set only in host-config ] : primary_url is the       ##
+## primary's /jobs-sync url, using sync_tokens for its bearer token.   ##
+## empty = own stock [ default ]. a replica only pulls jobs.json and   ##
+## forwards ui actions ; it never scans, assesses or prunes its stock. ##
+## jobsite.cfg.primary_url = https://<primary>/jobs-sync               ##
+jobsite.cfg.primary_url           =
+jobsite.cfg.replica_pull_interval = 120
 
 ## path to cv/profile context file injected into assessment prompt
 jobsite.cfg.profile_file    = /etc/protocol-7/jobsite/profile.txt
@@ -145,8 +153,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite \
 
 [zenka.loop]
 
-#,,.,,.,.,,.,,..,,..,,,,,,,,,,.,,,.,.,,..,,,.,..,,...,.,.,.,.,,,.,.,,,.,.,,.,,
-#XCNLMKCRXQ66LR4MZF4PYM4YMYYLK7IQ2Y6XJXMRYVRFXDNPEHLSNXZ6T3NXAVRIS6CBFCGQM2J4U
-#\\\|UI3L43PWZWXVWXO6BXVRWZQKCECL7TLCOZX5B72CGRVCZLKVNTL \ / AMOS7 \ YOURUM ::
-#\[7]LURTNSWYRX4XRBWCUIEHD47CH6RYYWW4HVC24G4RPCJ6JR5VW4CQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,,..,.,,,..,,.,.,,,.,,,,,,.,,..,,...,...,.,.,.,,,,..,,.,,.,.,
+#YPFKD3HAKS5CT7F3QGXNHJP3ZLPSTIOGWKHBOLUJW2PSB7JTLZOFHBM3CJRBQ5V4IIAFLLASR52ZS
+#\\\|KK7YAJSMEVKLWJCSLNMV5KLDOB7PHUQWZ47LFXEBJREX5C556UY \ / AMOS7 \ YOURUM ::
+#\[7]J75ON7KN7CF5X2W6KXDQTUSKPBCC3NDXHM627KKT3CPFKOTOLOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

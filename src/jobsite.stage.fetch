@@ -3,6 +3,8 @@
 # name  = jobsite.stage.fetch
 # descr = begin scanning : route-send site-yaml.import per category url
 
+return if <[jobsite.replica.enabled]>;
+
 my $full_mode = shift // FALSE;
 
 <jobsite.cycle>     = qw| scanning |;
@@ -160,8 +162,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## a cycle cut short counts nothing over ##
 <jobsite.fetch_cycle> = undef;
 
-#,,,,,,,.,...,,,.,.,.,.,.,.,.,.,,,.,.,,,,,.,.,..,,...,...,.,,,.,,,..,,.,,,.,,,
-#VRRUZJMSNXMS3P6FMQ4V6BGRI65AWXQC6PXNLYRAFMDDBZLLIRI5OANPN6JAIKJDU63WXRAYXAUR2
-#\\\|VXEORSFTWNY6G6ZO2H64A7UHDWXGDN67GNA7CCMVDXBIGATNUUW \ / AMOS7 \ YOURUM ::
-#\[7]ZLR6V43NGYGGC6ATLW5JB5CJKABI4UWFFDJABFGTGTNQNEHSVQCY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,,.,,.,.,,..,,.,,,,,,.,.,.,,,..,,...,...,.,,,...,.,.,.,.,.,.,
+#7MTDFFEIU4DG4VZB6UAUIPHC5EVAOASR42TDLOJ5YXDL5PEMLSHM6KX5MHZTONFYEFHX2LHXSDUJC
+#\\\|M3PSUNFHTOZ3MODRINKP2ESLFWZFCIZHJUH7UN3YIG54U46P5H5 \ / AMOS7 \ YOURUM ::
+#\[7]V4M24ZQYUPN6X3VAVFINEUQBNCCKDRHV64WS4NSLRDXGW4OHOIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = jobsite.replica.complete
+# descr = apply pull backoff and arm the next one-shot timer
+
+my $ok = shift // FALSE;
+<jobsite.replica.pull_in_progress> = FALSE;
+
+my $base = <jobsite.cfg.replica_pull_interval> // 120;
+$base = 120 if $base !~ m{^\d+$} or $base < 1;
+my $delay = <jobsite.replica.next_delay> // $base;
+my $state = $ok ? qw| ready | : qw| backoff |;
+if ( ( <jobsite.replica.state> // qw| starting | ) ne $state ) {
+    <[base.logs]>->(
+        $ok ? 1 : 0,
+        $ok
+        ? 'jobsite replica: primary pull ready [%s]'
+        : 'jobsite replica: primary unavailable, keeping last set [%s]',
+        <jobsite.cfg.primary_url> // ''
+    );
+    <jobsite.replica.state> = $state;
+}
+
+$delay = $base if $ok;
+<jobsite.replica.next_delay>
+    = $ok ? $base : ( $delay * 2 > 1800 ? 1800 : $delay * 2 );
+<jobsite.replica.next_timer> = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| jobsite.replica.pull |,
+    }
+);
+
+#,,.,,.,,,,..,,..,,,,,..,,,..,,,.,.,,,..,,,,,,..,,...,...,...,...,.,,,,,.,...,
+#KOSQX26BUDT4K7CIIUANPLQ7UVQZFEDOLD45RSRISDSDVTYQ4QD5JJ6NO4LVFGAIWLP2MWTCSQNZK
+#\\\|UZRDBIYA6S3SBOPJSNS45AOHQLWP5YOAB3RCIZPOACDON2TENVX \ / AMOS7 \ YOURUM ::
+#\[7]QLJ67PIV5AZVB2N6DZO77K5QVZFJJGOE6UMBV442DGUJO6MUISAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

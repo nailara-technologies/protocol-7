@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = jobsite.replica.unsent-load
+# descr = restore unsent ui actions at init and arm their resend
+
+my $sref = <[file.zenka_dir.load]>->('replica-unsent.json');
+my $list
+    = defined $sref ? eval { JSON::XS::decode_json( $sref->$* ) } : undef;
+<jobsite.replica.unsent> = ref $list eq 'ARRAY' ? $list : [];
+return if not <jobsite.replica.unsent>->@*;
+
+<[base.logs]>->(
+    1,
+    'jobsite replica: %d unsent ui action%s restored',
+    scalar <jobsite.replica.unsent>->@*,
+    ( <jobsite.replica.unsent>->@* == 1 ? '' : 's' )
+);
+<jobsite.replica.forward_timer> //= <[event.add_timer]>->(
+    {   'after'   => 5,
+        'handler' => qw| jobsite.replica.forward-retry |,
+    }
+);
+
+#,,.,,.,,,,.,,..,,,,.,.,,,.,.,.,.,,,,,,.,,,.,,..,,...,..,,,..,.,,,,..,.,,,,,.,
+#AGUWFDUQ2IZA4GUUELBXBMFOFZPICS4NYJMJLHZQWPE756GTDUHG2KNS5UK2DEFHB7YKKKRSM3CE2
+#\\\|HHUFZILOE62TEMHVAZOS5CAMT4CKYY3CVE2RBFURJMCYPXNBZBE \ / AMOS7 \ YOURUM ::
+#\[7]DKW7GL25L2WYGWYBJLZRSMBX3MGAGR7XS2AQHG65WOK2CHSI24AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

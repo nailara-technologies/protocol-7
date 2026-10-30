@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = jobsite.replica.local-response
+# descr = complete a pull after the local replacement was accepted
+
+my $result = shift // {};
+my $reply
+    = $result->{'ok'}
+    ? eval { JSON::XS::decode_json( $result->{'body'} // '' ) }
+    : undef;
+my $ok = ref $reply eq 'HASH' && ( $reply->{'ok'} // FALSE );
+<[jobsite.replica.complete]>->( $ok ? TRUE : FALSE );
+
+#,,..,,..,..,,.,,,.,,,,,.,,,.,,,,,.,,,,,.,.,,,..,,...,...,...,...,..,,,.,,,.,,
+#SRI2ON4ZDBOZPNTUOLPLFOSVM7UEUVQGYAMMFP5QPLNKUJFNHBGQROTUWRBDCC4CVUM7TE3PUYZ6O
+#\\\|BS2ODBIMJUIZTP7AVQ42DWIBDKFJUFRPVJ7YSLAQMCUXKYAJIAE \ / AMOS7 \ YOURUM ::
+#\[7]G75M7F4KWQUX4ENPBTIOX6OQF26PVBZKUVEC3O3PJKPEKVBHYWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

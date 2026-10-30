@@ -116,6 +116,13 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
 
 ## the original route relay spec : used directly, or by the auth gate reply ##
 ## handler after the token verified [ httpd.handler.web-relay .auth-check ] ##
+if ( $command eq qw| web.jobs-sync-foreign | ) {
+    my $headers = $session->{'http'}->{'request'}->{'headers'} // {};
+    my ($bearer)
+        = ( $headers->{'authorization'} // '' ) =~ m{^Bearer\s+(\S+)}i;
+    $call_args->{'param'}{'auth_token'} = $bearer if defined $bearer;
+}
+
 my $relay_spec = {
     'command'   => $command,
     'call_args' => $call_args,
@@ -189,8 +196,8 @@ if ( $args->{'auth.required'} and not $auth_exempt ) {
 
 return 0;        # [ deferred : reply handler writes response ]
 
-#,,..,.,,,,,,,.,,,,..,,..,...,.,.,,.,,.,.,,..,..,,...,...,.,,,,.,,,..,,.,,,..,
-#LDYNJBBS44W4J4FF2NIGC5USOHNHSESX5OODDJSGFD3H5N62NKDXN6VVXTCL7SVAZNH3VVPM7Q5YM
-#\\\|675ZBMXTNS2VMZLES7MB45SJ2SR6FVHTJJXL3HDM53H3Q57XBTA \ / AMOS7 \ YOURUM ::
-#\[7]GPSYJQ6UEH4CNFRL2SJL7QLLCNCOAK6HUPCTXEARHQWWLEWN62BA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,.,,,..,.,,,,..,...,...,,,,,...,..,,...,..,,.,.,,.,,..,,,,.,..,,
+#FXKEE5XVPFHU5B2DC2GTRGIAZ2VWS2ORFMMLZWBDGTRHIQNBHHFIE7PSPGMW53X4QFLQ3HBAQFH7I
+#\\\|SSICKJRRF2WAVZQFHYHE7ZKSB6EXJKAFM6DHSVQW2WDFMG476DJ \ / AMOS7 \ YOURUM ::
+#\[7]B7XGYFIJPAMJUBUYAV67F54VUY63RHYQ76FDKPGL3JM5OPKHAWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

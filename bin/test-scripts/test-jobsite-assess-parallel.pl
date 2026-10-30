@@ -106,7 +106,9 @@ $code{'jobsite.job.write'} = sub {
     return TRUE;
 };
 
-$code{'jobsite.state.persist'} = sub { return TRUE };
+$code{'jobsite.state.persist'}   = sub { return TRUE };
+$code{'jobsite.replica.enabled'} = sub { return FALSE };
+$code{'jobsite.liveness.start'}  = sub { return FALSE };
 
 $code{'jobsite.sync.push'} = sub {
     push @sync_pushes, [@ARG];
@@ -330,8 +332,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,.,,...,.,,,..,,.,.,.,,,,.,,,..,.,.,,..,.,.,...,...,..,,,..,..,,,,.,.,,,
-#2QPVHGMUJ6ENBRTVKJSIFF6C467FPIKWARGCOQSW2IXHSDFIO3JRVBPSV63C57XV4XXJ6Q3DAOIFY
-#\\\|RPWK3BCKDCUCQRTB25KNRB2I7AEWFCNNDPJZU6UT56MNJPWR4F7 \ / AMOS7 \ YOURUM ::
-#\[7]SSYOJL7A2ZX7RAMKI6RLFG2GJMFHDSY4335KHXORYS3IC3BC4KDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,.,..,,..,,...,...,.,.,,..,...,.,.,...,...,,.,,.,.,,..,,.,,,.,,
+#D6J4KIFYQ47A65XIW3HECIWO3DJOUKJ63DLWOUCWYDWBKZQVBFUQULWDEDSN7GEFP3CHM4KFNYN5M
+#\\\|P3YHUAJ6PIXM2GQFK2MIBHUSF32UI3HKRAZ7ATSOV7BCA2BUYGX \ / AMOS7 \ YOURUM ::
+#\[7]FHLUKQEL3ZM5C7QLNYNDNWACVC3E3BCWQTURF2PPFGQATGO2TKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

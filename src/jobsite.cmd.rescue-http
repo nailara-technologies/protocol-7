@@ -11,6 +11,11 @@
 my $args = $call->{'args'} // '';
 $args =~ s{^\s+|\s+$}{}g;
 
+return <[jobsite.replica.forward-endpoint]>->(
+    qw| jobs-trash-rescue |,
+    $args, $call->{'reply_id'}
+) if <[jobsite.replica.enabled]>;
+
 my ( $id_in, $target_stage ) = split m|\s+|, $args, 2;
 $target_stage //= 'review';
 
@@ -30,8 +35,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,.,.,,,.,,,.,..,,...,.,.,..,,...,..,,..,,..,,...,...,.,.,,,,,...,..,,,..,
-#2ET4HQMZCEH6Q5UIAZWHNVJ7QFYWZBPIAPZFQEY5G62M34S7K2FYI6DUYXG7S2OAWQD7IQNTGZFGG
-#\\\|WXGIDZNAWNKWVIJJK6RLDEVACHKRLP5VVWF7MNT2BMQTBEUFU5Q \ / AMOS7 \ YOURUM ::
-#\[7]YROB4GMNBIZ4RRVVBABR6TRHIWFJOWZZNXT2BNKSAWAXY76NHYAY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,.,,,...,,..,,..,,,,,.,,,...,..,,...,...,,..,,..,,..,,,,,.,.,
+#X6XCXFQASIO6XXDJIBF5T2QZYM4RUUOEE7SPFT6XZ7COD3RMV7VGIJ5ZLGOGK6MW3BGRWKUGVVVSS
+#\\\|ERLYTIKY5XEGERYABVN226Q7M3JKNLMIFZLIX5ITN63QTZ5GG4P \ / AMOS7 \ YOURUM ::
+#\[7]3MRRYPFKPE32XO4UJALTLS4MNMEYSV3CYPXNEKM7MVGNL2C2WICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

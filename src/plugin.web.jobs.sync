@@ -79,7 +79,24 @@ if ( ref $payload->{'jobs'} eq qw| ARRAY | ) {
 ## stale jobsite pushed full job state + removal signals into a web it did ##
 ## not own, clobbering stages and dropping cache entries ]                 ##
 my $is_marks_batch = FALSE;
-if ($is_batch
+my $is_ui_batch
+    = $is_batch && ( $payload->{'role'} // '' ) eq qw| ui | ? TRUE : FALSE;
+## replica replaces the whole cache : loopback only [ the local jobsite ], ##
+## a foreign peer claiming it falls through to the marks-only path below   ##
+my $is_replica_batch
+    = (     $is_batch
+        and ( $payload->{'role'} // '' ) eq qw| replica |
+        and not <web.jobs.sync_foreign> ) ? TRUE : FALSE;
+if ( $is_ui_batch and not <web.jobs.sync_ui_authorized> ) {
+    return {
+        'mode'         => qw| strm |,
+        'data'         => '{"ok":false,"error":"ui role not authorized"}',
+        'content_type' => qw| application/json |,
+    };
+}
+if (    $is_batch
+    and not $is_ui_batch
+    and not $is_replica_batch
     and ( ( $payload->{'role'} // '' ) eq qw| marks |
         or <web.jobs.sync_foreign> )
     ) {    ## foreign peer : marks only, whatever the batch claims ##
@@ -129,6 +146,13 @@ my @conflicts;
 ## pre-push base_last_modified and false-conflicts against its own write  ##
 my $single_last_modified;
 
+if ($is_replica_batch) {
+    my %primary_id = map { ( $ARG->{'id'} // '' ) => TRUE }
+        grep { ref $ARG eq 'HASH' } @job_list;
+    push @job_list, map { { 'id' => $ARG, 'status' => 'trash' } }
+        grep { not $primary_id{$ARG} } keys %{$mem};
+}
+
 ## collect pending reverse-delete IDs so a batch push does not resurrect ##
 ## them also collect pending reverse-stage-change IDs : a browser stage  ##
 ## push not yet round-tripped back into jobsite's own copy must not get  ##
@@ -136,7 +160,7 @@ my $single_last_modified;
 ## [ still older ] on-disk view                                          ##
 my %pending_delete;
 my %pending_stage_change;
-if ($is_batch) {
+if ( $is_batch and not $is_ui_batch and not $is_replica_batch ) {
     my $rev = <plugin.web.jobs.reverse> // [];
     for my $r ( @{$rev} ) {
         next if ref $r ne 'HASH';
@@ -152,13 +176,12 @@ for my $job_data (@job_list) {
     my $job_id = ( $job_data->{'id'} // '' );
     next if not length $job_id;
     my $enc_id      = $job_id;
-    my $job_changed = $is_batch ? TRUE : FALSE;
+    my $job_changed = $is_batch && not $is_ui_batch ? TRUE : FALSE;
 
-    ## marks batch : never plant a record this web does not already hold :  ##
-    ## a marks url owns no job state here, it may only update marks on jobs ##
-    ## that exist [ skips the pending-delete and terminal-state removal     ##
-    ## paths below as well, via the shared guards ]                         ##
-    next if $is_marks_batch and ref $mem->{$job_id} ne qw| HASH |;
+    ## marks and ui batches never plant a record this web does not hold    ##
+    next
+        if ( $is_marks_batch or $is_ui_batch )
+        and ref $mem->{$job_id} ne qw| HASH |;
 
     ## set when the export-mark merge below actually lands, so a marks ##
     ## batch only rewrites the record it really changed                ##
@@ -212,7 +235,14 @@ for my $job_data (@job_list) {
         next;
     }
 
-    if ($is_batch) {
+    if ( $is_batch and not $is_ui_batch ) {
+        if ($is_replica_batch) {
+            $job_data->{'score_reason'} = delete $job_data->{'reason'}
+                if exists $job_data->{'reason'};
+            $job_data->{'score_summary'} = delete $job_data->{'summary'}
+                if exists $job_data->{'summary'};
+            $cached = { %{$job_data} };
+        }
         ## staleness guard : jobsite builds its outbound batch from its OWN ##
         ## on-disk view, which can still predate a browser-initiated stage  ##
         ## change already applied straight to this cache -- only skip the   ##
@@ -305,8 +335,10 @@ for my $job_data (@job_list) {
             ## browser's base_stage still matches : only a stage that     ##
             ## really moved on is one                                     ##
             my $base_stage = $job_data->{'base_stage'};
-            if (    length $base_lm
-                and $cur_lm ne $base_lm
+            if (
+                (   $is_ui_batch
+                    or ( length $base_lm and $cur_lm ne $base_lm )
+                )
                 and ( not defined $base_stage
                     or $base_stage ne ( $cached->{'stage'} // '' ) )
             ) {
@@ -375,8 +407,10 @@ for my $job_data (@job_list) {
             ## up this change                                             ##
             $cached->{'last_modified'} = <[base.ntime.b32]>;
             $job_changed = TRUE;
-            <[plugin.web.jobs.reverse.queue]>
-                ->( { 'id' => $job_id, %changed } );
+            my %reverse = ( 'id' => $job_id, %changed );
+            $reverse{'base_stage'} = $job_data->{'base_stage'}
+                if exists $job_data->{'base_stage'};
+            <[plugin.web.jobs.reverse.queue]>->( \%reverse );
         }
 
         ## action entries (e.g. reassess, delete) bypass browser_fields and ##
@@ -428,7 +462,7 @@ for my $job_data (@job_list) {
 ## flush reverse queue only for jobsite batch pulls, not browser POSTs ##
 ## browser POSTs must not drain the queue or action entries are lost   ##
 my @reverse;
-if ($is_batch) {
+if ( $is_batch and not $is_ui_batch and not $is_replica_batch ) {
     my $all_reverse = <[plugin.web.jobs.reverse.flush]>;
     my $since_num
         = length($since)
@@ -481,8 +515,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,,,,..,..,,,..,..,,..,,,,.,...,,.,,,,,,,.,,..,,...,..,,...,.,,,,.,,,..,,.,,
-#ZQ2T5JDDK5HQR7GQKKVLAZ23XXTDQKW474Z3N7TABCMLR23Z35G325KTGX4BAS74GFHBYXEL6C5OA
-#\\\|VNLJSHBMFRU5YM7JRSW4PG26AMV7R4WKAPUZXXNMB5G7JQ6RIC4 \ / AMOS7 \ YOURUM ::
-#\[7]2YLWVENCEKE3QWMBRYRHTS3WJXGCTXKWM6SBURBCZXUWMSIHGOBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,...,.,,,.,,,,,.,,,,,..,,.,,,..,,...,...,.,,,...,.,.,,,.,.,.,
+#TMOVXQIQ23Q6Y4TBOLVKW4NHNYNQKA4UHKJ4WHRMPKPS2FCAIFKCRTNSG2LKGWMMHHOXIEGQAVASW
+#\\\|JF3D3OHMNHOQ5STS7CTEEJSCZSI5FQ2O37XQSGVIU7JUTQLNEHN \ / AMOS7 \ YOURUM ::
+#\[7]OQF7UZ4JYPGV4SDOU6SLVYV3MHG3CD5IXL2NYL5BP3R4QC7U6MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
