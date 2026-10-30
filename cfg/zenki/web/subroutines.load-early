@@ -116,6 +116,7 @@ jobsite.job.read
 jobqueue.add_job
 devmod.post_init
 devmod.init_code
+clients.http.get
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -153,6 +154,7 @@ jobsite.job.trash
 jobsite.init_code
 jobqueue.move_job
 jobqueue.exec_job
+clients.https.get
 clients.http.post
 base.stream.close
 base.session.user
@@ -353,6 +355,7 @@ web.cmd.render-template
 protocol.sftp.init_code
 jobsite.util.block-line
 jobsite.sync.push_chunk
+jobsite.replica.forward
 jobsite.replica.enabled
 jobsite.job.index.build
 jobsite.dispatch.repair
@@ -427,6 +430,7 @@ plugin.web.attention.json
 jobsite.util.fix_encoding
 jobsite.util.build_prompt
 jobsite.sync.role_for_url
+jobsite.replica.pull_soon
 jobsite.removed_log.prune
 jobsite.handler.sync-soon
 jobsite.fetched.subscribe
@@ -507,6 +511,7 @@ plugin.web.attention.states
 net.read_linewise_estimated
 jobsite.validate.assessment
 jobsite.util.description_ok
+jobsite.replica.unsent-save
 jobsite.replica.unsent-load
 jobsite.liveness-sweep.next
 jobsite.handler.repair-done
@@ -575,6 +580,7 @@ plugin.web.auth.session.write
 plugin.web.auth.session.prune
 plugin.web.auth.handler.login
 jobsite.replica.pull-response
+jobsite.replica.forward-retry
 jobsite.handler.sync-response
 jobsite.dispatch.release_slot
 jobsite.dispatch.reassess_now
@@ -619,6 +625,7 @@ plugin.web.auth.create_session
 plugin.web.auth.admit.schedule
 plugin.web.attention.pop_state
 plugin.web.attention.init_code
+jobsite.replica.local-response
 jobsite.handler.repair-created
 jobsite.handler.new-job-settle
 jobsite.handler.liveness-reply
@@ -638,6 +645,7 @@ plugin.web.space.grid.init_code
 plugin.web.jobs.events.trailing
 plugin.web.auth.destroy_session
 plugin.web.attention.push_state
+jobsite.replica.pull_soon-fired
 jobsite.liveness-sweep.complete
 jobsite.handler.pending-changed
 jobsite.fetched.subscribe-retry
@@ -655,6 +663,7 @@ plugin.web.auth.refuse_plaintext
 plugin.web.auth.admit.wait_until
 plugin.web.auth.admit.state_save
 plugin.web.auth.admit.state_load
+jobsite.replica.forward-response
 jobsite.handler.liveness-timeout
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
@@ -750,6 +759,7 @@ protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 plugin.web.space.orbital.handler.reply
 plugin.web.space.handler.cursor_update
+jobsite.replica.forward-local-response
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
 plugin.web.space.template-resolver.json
@@ -799,8 +809,8 @@ plugin.web.space.orbital.handler.gm_state_strm_open
 plugin.web.space.orbital.handler.external_strm_open
 plugin.web.space.orbital.handler.discover_strm_open
 
-#,,,,,...,..,,.,.,,..,.,.,...,.,,,.,,,..,,...,..,,...,.,.,.,,,.,.,,,.,.,.,,,.,
-#VC4RZWT7HQV5KE2VHJP3YXBGBWUOZOV3MOMCKUXTOMGKM4LZWM4PA23PQYYXNYNWQZ2D477H5TMQG
-#\\\|5FXQ5UZAD5R2EUYBCW5FQM26AWQUD725GEHFZQBOT6JLC3ROGHD \ / AMOS7 \ YOURUM ::
-#\[7]FVY6NTIAB7QXV2SGHR2GQ77ZOHPWQSLXR5UHZ4EHXUBI2LC7CAAQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,...,,,,,,,,,,.,,,,.,...,.,.,..,,...,.,.,.,.,,.,,,,.,..,,,,,,
+#3A2U6AKZT4AG5Z5CGGZONOYCQBVRNGXGBFXHPKOGGHESL2TJSJXUXZ3GBYBGP6GWGQY7HL72MCWNK
+#\\\|KCPGXKBQBZGSABTICPAJGHQL5DBXHKKW7HXEG6IROYCJ3AW3JBF \ / AMOS7 \ YOURUM ::
+#\[7]E4XOWMEGLSS576UNF4ALBWWMPFFZKDSOSH4YAT6BK44IHG5GPUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

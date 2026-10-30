@@ -42,8 +42,8 @@ metadata:
 
 **replica mode : LANDED 536a365f7 [ review done ; fix : forwarded ui actions kept in replica-unsent.json until the primary says ok:true, retry 15 .. 900 s ], pulled on all 4, srv-U [ pri ] web httpd jobsite restarted. stash@{0} is now redundant [ drop ]**
 
-- live test BLOCKED on root config : pri web.cfg needs web.cfg.jobs_sync_ui_tokens = <local token for pri> ; local jobsite.cfg needs primary_url = https://<pri-jobsite-host>/jobs-sync + sync_url_roles ...=ui. then restart local jobsite + compare with bin/dev/jobsite-ui-compare local pri
-- 2026-10-30 08:22 : old sync token leaked into pri httpsd log [ pasted in a browser ] -> owner revoked it ; NEW v7-zenki.jobsite-sync-token : `::: srv-U web.auth-issue jobsite-push -ttl 31536000 | :: v7-zenki.jobsite-sync-token+ url=https://<pri-jobsite-host>/jobs-sync` [ token never on argv \ screen ; + form words = key=value headers ]. rotated, pushes ok again. pri still holds jobsite-push session ABIAR3KNEMPRO [ 06:38, unknown owner ]. design q before the live test : ui role keyed on a plaintext token copy in pri web.cfg -> better key it on the verified user id
+- live test BLOCKED on root config : pri web.cfg needs web.cfg.jobs_sync_ui_users = jobsite-replica [ ui role now keyed on the VERIFIED user, no token copy on pri ] ; local token rotated to a jobsite-replica one [ v7-zenki.jobsite-sync-token ] ; local jobsite.cfg needs primary_url = https://<pri-jobsite-host>/jobs-sync + sync_url_roles ...=ui. then restart local jobsite + compare with bin/dev/jobsite-ui-compare local pri
+- 2026-10-30 08:22 : old sync token leaked into pri httpsd log [ pasted in a browser ] -> owner revoked it ; NEW v7-zenki.jobsite-sync-token : `::: srv-U web.auth-issue jobsite-push -ttl 31536000 | :: v7-zenki.jobsite-sync-token+ url=https://<pri-jobsite-host>/jobs-sync` [ token never on argv \ screen ; + form words = key=value headers ]. rotated, pushes ok again. pri still holds jobsite-push session ABIAR3KNEMPRO [ 06:38, unknown owner ]. ui role : keyed on the verified user id [ done ]
 
 1. kimi replica mode [ session_f82e3d0d-576c-4123-a4f8-b63f915f5471 ] :
    primary_url, non-blocking pull every 120 s into the local httpd cache,
@@ -64,8 +64,8 @@ metadata:
 5. 72T4WFI fails self-test prompt 2 twice [ frees the mouse, runs out of
    tokens ] -- per-model fix only, never global
 
-#,,,.,...,.,,,.,.,,.,,,,,,,..,,..,,,.,.,,,...,..,,...,...,.,.,,..,...,,,,,.,.,
-#WWZ42DOIXVPEPRLRWNAFCDKPAMF2PUVSTUHGUHHXM35ZHJNKDXGB2TRBCLYWHNZYTK46UYMI3XPHC
-#\\\|ZUYXHUQHHOBOXIWSXVQLHRUIMSLEJQ7HWU6EW4UMGYFQWOIY3JE \ / AMOS7 \ YOURUM ::
-#\[7]J73ZEIGABPXRBOWA2RSPUC32B5ENRSA5JKMY3H2IWGFYFMVZQYAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,,.,,,.,,,.,,,.,,,..,,..,.,,,..,,...,...,...,..,,,,.,..,,.,.,
+#GFL3AF5K3IT2FL76DHLAQZFNQK6F5RQ2UDPCMKTGU7IYEBW6Y3DOF7KH6GHD4WP24OXUEYU3MMAUA
+#\\\|2T6PZWYYLZSG2C7E5NEB5JQ35Z73P6VFJT6OZFALRONAU4ZNLYW \ / AMOS7 \ YOURUM ::
+#\[7]2T3XNF5OXUELBNRXIF4EQQUK6K2NSWLQYYNOZWBXFP3ZLAMANUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

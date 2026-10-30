@@ -98,6 +98,7 @@ $code{q|jobsite.replica.unsent-save|} = sub {
 $code{q|jobsite.replica.pull_soon|} = sub {return};
 
 compile_module($_) for qw| jobsite.replica.pull-response
+    web.jobs.sync_ui_authorized
     jobsite.replica.complete jobsite.sync.role_for_url
     jobsite.replica.forward-local-response jobsite.replica.forward-response
     plugin.web.jobs.sync |;
@@ -213,6 +214,24 @@ sub web_sync {
     return JSON::XS::decode_json( $reply->{'data'} );
 }
 
+say "\n :. ui role keyed on the verified user";
+my %sessions = (
+    q|tok-r| => { q|user_id| => q|jobsite-replica| },
+    q|tok-p| => { q|user_id| => q|jobsite-push| }
+);
+$code{q|plugin.web.auth.verify_session|}
+    = sub { $sessions{ $ARG[0] // q|| } };
+$data{web}{cfg}{jobs_sync_ui_users} = q|jobsite-replica|;
+ok( $code{q|web.jobs.sync_ui_authorized|}->(q|tok-r|),
+    q|a listed user may send role ui| );
+ok( !$code{q|web.jobs.sync_ui_authorized|}->(q|tok-p|),
+    q|another verified user may not| );
+ok( !$code{q|web.jobs.sync_ui_authorized|}->(q|tok-x|),
+    q|an unverified token may not| );
+$data{web}{cfg}{jobs_sync_ui_users} = q||;
+ok( !$code{q|web.jobs.sync_ui_authorized|}->(q|tok-r|),
+    q|no listed users : nobody| );
+
 say "\n :. replacement and authorized ui conflict guard";
 $mem = {
     'J1' => {
@@ -265,8 +284,8 @@ say '';
 say "passed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,,.,,..,,,,,,..,...,,,.,...,.,.,,..,,..,..,,...,...,..,,,,.,.,,,.,.,.,,,
-#NFAAY3LDQZQBPBLDXOEZG24WBYQ33ESR77RDKH4A3GMCU4S6JBP5D5UQON4GQVMSD4EB3LKRSILY6
-#\\\|FWCUUQZRUJDBQPW6USTIM2KLRSHR5FGFBGLMDJROYSPGHL4BA6Y \ / AMOS7 \ YOURUM ::
-#\[7]6I46UKHWNFU3QKMVU3DZA2II6TY4LYTS2Y5I7GF2NDQTARR7PKDY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,.,.,...,,..,,.,,...,..,,,..,..,,...,...,...,,.,,..,,.,.,,,,,
+#T2QURGNTH6SJY54TQ7LKG4OXZTS4U6OCJWC7KXENE5P57SZDOGFP63NDYXP25LNSMWZ6JC25T2U7A
+#\\\|XPRBH7E5M3CJKHYLPNM2FZWEVFCA76M2OBE5UBP2UVDQJXTVUO2 \ / AMOS7 \ YOURUM ::
+#\[7]IUTCNEUOYDFZLVBTXOF2CFG3EZOINGPD5GCAD5IBUOAHAQ3JVMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
