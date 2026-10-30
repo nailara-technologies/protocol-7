@@ -58,10 +58,20 @@ $url =~ s{[?#].*$}{};
 my $idx_status = ( <jobsite.job.index> // {} )->{$job_id} // '';
 if ( length $idx_status ) {
     my ($status) = split m|:|, $idx_status, 2;
+
+    ## a trashed job asked for by hand is wanted : rescue it to review, low ##
+    ## score included -- the reason stays readable and a reassess there     ##
+    ## keeps the stage [ review is protected in assess-done ]               ##
+    if ( $status eq qw| trash | ) {
+        my $rescued = <[jobsite.job.rescue]>->( $job_id, qw| review | );
+        return {
+            'mode' => $rescued->{'ok'} ? qw| true | : qw| false |,
+            'data' => $rescued->{'message'} // '',
+        };
+    }
+
     my $hint
-        = $status eq qw| trash |   ? ' [ use jobsite.rescue to restore ]'
-        : $status eq qw| deleted | ? ' [ deleted stage, purges soon ]'
-        :                            '';
+        = $status eq qw| deleted | ? ' [ deleted stage, purges soon ]' : '';
     return {
         'mode' => qw| false |,
         'data' => "already known: $job_id sits in $idx_status$hint",
@@ -105,8 +115,8 @@ return {
         . "fetch, lands as 'new' on success ]",
 };
 
-#,,,.,..,,...,,..,...,.,.,...,,,.,,,.,...,,.,,..,,...,...,...,.,,,.,,,,,.,...,
-#ALCBGVJF2MWXC5ESIJCHEUJIO7H5FZBJWDU2WEHUIP2BMX7Z2ZVVHJC6ZOB4JTJZDLYM6CYXA7CYM
-#\\\|4OL65PNVSR3GBEZQMMQYTS7MUF4Z4RJYKQSRIRNR6UAKMRUAUBW \ / AMOS7 \ YOURUM ::
-#\[7]LJ6ELY64ECQZ2X2YIRLHCWF4WMHP6PN4BFCZMPSCI554PRIKMMAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,.,.,,,.,,..,,,,,,,.,,,,,...,..,,...,...,.,,,,,,,,.,,,,,,,..,
+#EVFB44G3JMBAKVTXRS4ZVVRQZKVTSSNHXNKJKEOIMMKYH3AWAWJ4SJLZ65G4HHVURXZNU5QAZPKVQ
+#\\\|DWH7JYVDNVXGH2HDSWW47SO5JZNW6DI5XKUJHX7RNL467MTTBG6 \ / AMOS7 \ YOURUM ::
+#\[7]PGCGAM42HFYU6L5XGRF4IACERTPVUJ2GDGGOIQZZ2BQDEGQWD6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
