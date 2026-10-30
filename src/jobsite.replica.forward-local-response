@@ -45,14 +45,18 @@ my $request = {
     'on_done' => qw| jobsite.replica.forward-response |,
     'params'  => { 'count' => scalar @entries },
 };
+
+## a pull sent before this forward carries the old state : pull-response ##
+## drops it [ jobsite.replica.pull_seq ]                                 ##
+<jobsite.replica.forward_seq>++;
 if ( $url =~ m{^https://}i ) {
     <[clients.https.post]>->($request);
 } else {
     <[clients.http.post]>->($request);
 }
 
-#,,,.,.,.,..,,,,,,,..,,,.,..,,,,,,.,,,,,.,...,..,,...,.,.,...,,,.,,,.,,..,,..,
-#ISIZJTHAG2BPDKYHDINNDBMKXODSYIT7DO7LNTGPFZGRAOA72QJRUXIUMA4GYYCEO27R4V7TF7YPW
-#\\\|ZMGS324KRCUT2N3LQLMIDDRKIS7X2TA5LBALARJPWY42XYITGDV \ / AMOS7 \ YOURUM ::
-#\[7]WXPQ3RDYKN2E5U4FG3YAQF3YUVUYXK57IWIHZWGBPJSPIXYU2CBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,..,,,,.,...,,.,,..,,,.,,...,,,.,..,,...,...,..,,..,,,,.,.,.,..,,
+#KC3KZUPZJIZE3QDL74NYN4YFDVRMG2T4TV45IRFU5A6JTOFCRZM4WCF6SBWOQOTVOUTTS4C5W7RKA
+#\\\|6Z67HWXSYL7XEN7WOGFXWM3Q3NOAO4ZNOPQJ4TNFGBSIJ2KCOG2 \ / AMOS7 \ YOURUM ::
+#\[7]PZULEFCK32SQHR24UBZO2RDGXEOW4CJKKEC6ITT4MC4YDEE2UACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

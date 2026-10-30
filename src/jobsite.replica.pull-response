@@ -19,6 +19,14 @@ if ( ref $payload ne 'HASH' or ref $payload->{'jobs'} ne 'ARRAY' ) {
     return;
 }
 
+## a ui action went to the primary after this pull left : its set may ##
+## predate the action and would undo it locally -- pull again         ##
+if ( ( <jobsite.replica.forward_seq> // 0 ) != <jobsite.replica.pull_seq> ) {
+    <[jobsite.replica.complete]>->(TRUE);
+    <[jobsite.replica.pull_soon]>;
+    return;
+}
+
 my $body = eval {
     JSON::XS::encode_json(
         { 'role' => qw| replica |, 'jobs' => $payload->{'jobs'} } );
@@ -36,8 +44,8 @@ if ( not length $body ) {
     }
 );
 
-#,,,.,.,,,.,.,,,,,..,,..,,,,,,.,.,,.,,,,.,,,,,..,,...,...,.,,,.,.,.,,,,,.,...,
-#FVI7QCEHCAVIX2VHQO27YJSOJ6B7JG5TTIMZQD5WQ3N7EIO6WNCYBFB37XN4FEXOGWHXDWQZ3LLMO
-#\\\|T2C6IAXEYH277RPMZOLVSZZKW4KWUG2VCNI2RYSJ3QUHVQQKI44 \ / AMOS7 \ YOURUM ::
-#\[7]CAGMLL7VD6RPYDTYVBGEPUMVV2BNYAGONUWXNAQ2TFBI6BB7MUCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,,,.,,,.,,..,,..,,,,,...,,.,,..,,...,...,,..,...,,,,,,..,..,,
+#32MDQ2HWNEJWZ24XWZ3GCLCJL6NNVUPHCT6QJU3NHPJDIKIPY5OWD3R6GSDYI53I6MDFKVWZVLBN4
+#\\\|KW2C7AYYT5RDT6W7YASCJQBDKX2ROQKHOASLBJYPJGLHMYC4JRO \ / AMOS7 \ YOURUM ::
+#\[7]5QGF2G5HDELJMDF2XEXDIKBMUADTEL245FHJQJ7ZUZXNQPFLEEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
