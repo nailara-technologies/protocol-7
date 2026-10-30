@@ -102,6 +102,8 @@ a careful review [ which caught the real defects in both stages anyway ].
 
 **data point 2026-10-21** : small, tightly briefed k2.8 jobs [ one module + its tests, or an audit with a report ] cost ~1 % of the 7d window each -- five such jobs fit into the last ~5 %. brief = files, exact semantics, test cases, 'do not commit \ sign', report shape.
 
+**2026-10-30 : K3.1 low = new default [ owner ]** : K3.1 on the low setting costs ~1 % of the 7d window per task -- over 2x less than k2.8 -- at the best result quality seen from kimi so far. prefer it over k2.8 \ k3 for dispatches ; both are the dispatch defaults -- a bare kimi_dispatch already uses K3.1 low, no model arg needed.
+
 #,,,.,..,,,..,,..,,,,,,.,,,,.,...,..,,,,.,,..,..,,...,...,...,.,.,.,,,,,,,..,,
 #DPNOESVJ7ACGP3Y7QZN4IDTXFH3OL6Z7CMEYL4CDOGUEZMAKKWSBBC4WFMKS253AN5DGRIFH7YDTC
 #\\\|XKKIEZIDPUSEPHIFNRUYOQRL3NS2KGT5Q4FZ2ZSYMRJEIOZ3ETX \ / AMOS7 \ YOURUM ::
@@ -116,8 +118,8 @@ orphan hash when the caller's node was undef ] -- review every k3.1 diff
 for data-node ownership. strategy : claude = review \ decisions \ live
 debugging ; k3.1 low = precise-spec implementation, one step per dispatch.
 
-#,,,,,.,.,.,.,,..,.,,,..,,.,.,...,,,,,,..,,..,..,,...,..,,..,,.,,,,..,,..,.,,,
-#CFOHXIIJQTJO34APTDS2R3R5SOKDNJ7MQGOZO5KK2L2KQMTMAXGP5Q3ZDSW23KRGDNTLT55HQIM5Y
-#\\\|BPQE5YY4WXTMGUVBXI46AYRPB2IOXLTEKYX5JG5R6LNR5LXLEEW \ / AMOS7 \ YOURUM ::
-#\[7]M4I4PZO7NB4LSY2PBKLKZ3FYNG425B7YEMOLNAZBAT2Y3L4WMWBI 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,,.,,.,.,.,,,.,,,,,.,.,,,,..,..,,...,..,,...,,.,,,..,,.,,,..,
+#DIM2LGXTN2JW2VCDJDN7CS6W7ZJK5LT7EGXIFJUZAXYQEYHGFTZQBCLA5W7TYTSV23OCF7DLJYVPW
+#\\\|KVUHUH4C3MPNTHXL23PEJMZEITB23FTOVTS6UMCMKUX4IHOUIP4 \ / AMOS7 \ YOURUM ::
+#\[7]OWRXLGXCJKSVP4FSBWDOBK3DTCYEVUTGHF4ITXBWHEP3POFHREBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -183,25 +183,31 @@ p7c -c src/module.name                             # Syntax check protocol-7 mod
 
 ### Git Workflow (CRITICAL: Respect Pre-Commit Hooks!)
 
-```bash
-# 1. Make changes
-git add src/...
+current path [ 2026-10-30 ] : the P7 MCP sign \ commit tools. you hold no
+key -- the user approves every sign in the p7-sign-agent terminal [ y \ n \ d ].
+a dispatched task is usually told 'do not commit \ sign' : then only know
+this chain, leave the run to the session that briefed you.
 
-# 2. Update version (generates new version number)
-./bin/dev/update-version
+cloud sessions [ claude.ai\code, remote agents ] reach neither the P7 MCP
+server nor the p7-sign-agent [ no bridge yet ] : push the change unsigned on
+a branch and name the files to sign in the hand-off -- a local session runs
+the chain below.
 
-# 3. Ask user to sign files (requires passphrase - you CANNOT do this!)
-# User runs: bin/Protocol-7 sourcecode update-signatures
+1. `p7_sign paths="..." op=new plan=true` -- non-blocking, returns a job id.
+   `op` decides the version bump : new = bump, amend \ amend-message = none,
+   reset [ data/md/design/COMMIT-MANAGER.md ]. `plan=true` runs
+   `bin/dev/p7-commit-plan -apply` first : sub-list, dep-graph, sub
+   whitelists as the changed files need them ; rewritten files join the
+   request. dry look : `bin/dev/p7-commit-plan [ -json ] [ paths ]`
+2. `p7_sign_status job=...` until approved [ denied \ aborted carry a reason ]
+3. `p7_commit_prepare message="..." op=new` -- the commit-msg hook checks the
+   form at once ; binds a checksum of the STAGED diff
+4. `p7_commit id=...` then `p7_commit_status id=...` -- 'stale' when the
+   staging changed after prepare : prepare again
 
-# 4. Commit normally - pre-commit hooks will pass with valid signatures
-git commit -F - <<'EOF'
-area : short topic title
-
-- first detail [ annotation ]
-- second detail, wrapped at ~75 columns with a two-space
-  continuation indent
-EOF
-```
+unsigned files [ bin/c_src/*.c, web-root html, this guide ] are staged by
+hand, never listed in p7_sign [ it aborts : code file not found ] ; re-check
+the staged content before step 3.
 
 ### Commit Message Form
 - **Title**: short `area : topic` line, aim for ~72 characters
