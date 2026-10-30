@@ -5,9 +5,11 @@
 
 ## a 200 can still carry ok:false [ eg 'ui role not authorized' ] ##
 my $result = shift // {};
-my $reply
-    = ref $result eq 'HASH' && $result->{'ok'}
-    ? eval { JSON::XS::decode_json( $result->{'body'} // '' ) }
+my $reply  = ref $result eq 'HASH' && $result->{'ok'}
+    ? eval {
+    my $raw = $result->{'body'} // '';
+    JSON::XS->new->utf8( utf8::is_utf8($raw) ? 0 : 1 )->decode($raw);
+    }
     : undef;
 my $taken = ref $reply eq 'HASH' && $reply->{'ok'} ? TRUE : FALSE;
 
@@ -43,8 +45,8 @@ return if defined <jobsite.replica.forward_timer>;
     }
 );
 
-#,,.,,,,.,,..,,,,,,..,,,.,...,,,,,..,,.,,,.,.,..,,...,...,,.,,,,,,...,,..,,,,,
-#3TCGBZY6PUHJAVNBJ56PK2D7MZSXIV7YGQUMXLJPSDXS5UE2RCQY6UT4DHI52QPNHRIZJC5IQZTLI
-#\\\|OTT6NZTNYH5ZX72CGVCVOMRGMBTHLIST7IE6OTM6VGFSVUPULEH \ / AMOS7 \ YOURUM ::
-#\[7]CAV4YSGBVXDFFMMWR5DXAV74TJCRNXLNHBDQHA3OPDJ4TCEA66DI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,...,,.,,.,.,,..,,,,,...,.,.,..,,...,...,,..,.,,,.,,,,,,,..,,
+#QLW3LPYIV5F5C7JW6XQVZ776KZHSWY2T2FZFQWK6QXTZDHYM7SRNOA7W4JCFEIDPDQNEFHZAU2JFS
+#\\\|NX2N6IP55J4R7LC5MPJCKBZJPLQ7CJ2E6BFUHCIN5GOZPWIJDIN \ / AMOS7 \ YOURUM ::
+#\[7]VHEBVL7XXZEYFRLDKSA236AH7Y7VG5CX3POA27CUILD256264UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

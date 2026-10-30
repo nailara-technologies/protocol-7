@@ -4,9 +4,14 @@
 # descr = validate primary jobs json and replace the local web cache
 
 my $result = shift // {};
-my $payload
-    = $result->{'ok'}
-    ? eval { JSON::XS::decode_json( $result->{'body'} // '' ) }
+## clients.https hands the body over character-decoded, clients.http as  ##
+## octets : decode_json on characters dies on anything above U+00FF      ##
+## [ typographic quotes, dashes, euro in job texts : every pull failed ] ##
+my $payload = $result->{'ok'}
+    ? eval {
+    my $raw = $result->{'body'} // '';
+    JSON::XS->new->utf8( utf8::is_utf8($raw) ? 0 : 1 )->decode($raw);
+    }
     : undef;
 
 if ( ref $payload ne 'HASH' or ref $payload->{'jobs'} ne 'ARRAY' ) {
@@ -31,8 +36,8 @@ if ( not length $body ) {
     }
 );
 
-#,,.,,.,,,...,...,,,,,.,,,,..,,,.,,..,,.,,,..,..,,...,..,,,..,,,.,..,,,,,,,..,
-#7F3JXB4JNOHSQFJIQKNPLTLZMYPQD5HFEA6FU4Z2RDZB4TPSCOGYLAI4WN5CEXWO6GRB4BFKJMCP6
-#\\\|UDAZ6L73V5OLSIGMVN3KU5CM64MQG24QQHNLV2K5DC36WPC5SUG \ / AMOS7 \ YOURUM ::
-#\[7]2VTPZFY3SH2WHRXHYM7D7ODH5W73QCZH3LAZAF7UMWYMXWVQVICA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,..,,..,,,,,,.,.,,.,,,,.,,,,,..,,...,...,.,,,.,.,.,,,,,.,...,
+#FVI7QCEHCAVIX2VHQO27YJSOJ6B7JG5TTIMZQD5WQ3N7EIO6WNCYBFB37XN4FEXOGWHXDWQZ3LLMO
+#\\\|T2C6IAXEYH277RPMZOLVSZZKW4KWUG2VCNI2RYSJ3QUHVQQKI44 \ / AMOS7 \ YOURUM ::
+#\[7]CAGMLL7VD6RPYDTYVBGEPUMVV2BNYAGONUWXNAQ2TFBI6BB7MUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

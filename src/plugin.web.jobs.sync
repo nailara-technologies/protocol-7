@@ -150,7 +150,8 @@ if ($is_replica_batch) {
     my %primary_id = map { ( $ARG->{'id'} // '' ) => TRUE }
         grep { ref $ARG eq 'HASH' } @job_list;
     push @job_list, map { { 'id' => $ARG, 'status' => 'trash' } }
-        grep { not $primary_id{$ARG} } keys %{$mem};
+        grep { not $primary_id{$ARG} }
+        keys %{ <[plugin.web.jobs.cache.read_all]> // {} };
 }
 
 ## collect pending reverse-delete IDs so a batch push does not resurrect ##
@@ -515,8 +516,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,.,.,.,.,.,.,...,.,,,.,,,,,.,,,,,..,,.,,,..,,...,...,.,,,...,.,.,,,.,.,.,
-#TMOVXQIQ23Q6Y4TBOLVKW4NHNYNQKA4UHKJ4WHRMPKPS2FCAIFKCRTNSG2LKGWMMHHOXIEGQAVASW
-#\\\|JF3D3OHMNHOQ5STS7CTEEJSCZSI5FQ2O37XQSGVIU7JUTQLNEHN \ / AMOS7 \ YOURUM ::
-#\[7]OQF7UZ4JYPGV4SDOU6SLVYV3MHG3CD5IXL2NYL5BP3R4QC7U6MDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,.,,,,.,.,.,.,,,...,...,,,.,..,,...,...,...,..,,.,,,,..,.,.,
+#VVT35XABC5BBAYQ2O6VRXRNFBGLAKNDEELR4S53XS46QWK7VYX2EPYPP36PMWKSNQRGF5INZRXEOI
+#\\\|75ZMLL5R2HYOFBJPYFNN2Z3BUHOIPFMVPHA6P572LXONADZ6PWJ \ / AMOS7 \ YOURUM ::
+#\[7]ZTGVHGWRQULQTTAM52BVWDMSHX244DRUD5ALYZ3XMB4M25L2XOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

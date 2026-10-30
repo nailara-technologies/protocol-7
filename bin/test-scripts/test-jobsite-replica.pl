@@ -126,6 +126,25 @@ ok( $replacement->{'role'} eq 'replica'
         && $replacement->{'jobs'}[0]{'reason'} eq 'match',
     'primary jobs ride unchanged in a replacement batch'
 );
+## clients.https delivers characters : a „ or \x{20ac} must not fail the ##
+## pull                                                                  ##
+$code{q|jobsite.replica.pull-response|}->(
+    {   q|ok|   => TRUE,
+        q|body| => JSON::XS->new->encode(
+            {   q|jobs| => [
+                    {   q|id|     => q|J9|,
+                        q|reason| => qq|\x{201e}ok\x{201c} \x{20ac}|
+                    }
+                ]
+            }
+        ),
+    }
+);
+my $wide = JSON::XS::decode_json( $posts[-1]{q|body|} );
+ok( $wide->{jobs}[0]{id} eq q|J9|
+        && $wide->{jobs}[0]{reason} eq qq|\x{201e}ok\x{201c} \x{20ac}|,
+    q|a character-decoded https body with wide characters is accepted|
+);
 my $post_count = scalar @posts;
 $code{'jobsite.replica.pull-response'}->( { 'ok' => TRUE, 'body' => '{}' } );
 ok( scalar @posts == $post_count,
@@ -284,8 +303,8 @@ say '';
 say "passed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,..,,.,,..,,.,.,...,,..,,.,,...,..,,,..,..,,...,...,...,,.,,..,,.,.,,,,,
-#T2QURGNTH6SJY54TQ7LKG4OXZTS4U6OCJWC7KXENE5P57SZDOGFP63NDYXP25LNSMWZ6JC25T2U7A
-#\\\|XPRBH7E5M3CJKHYLPNM2FZWEVFCA76M2OBE5UBP2UVDQJXTVUO2 \ / AMOS7 \ YOURUM ::
-#\[7]IUTCNEUOYDFZLVBTXOF2CFG3EZOINGPD5GCAD5IBUOAHAQ3JVMBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,,,,..,.,.,,,,,,,.,,..,,,.,,.,,..,,...,...,...,,..,..,,...,...,
+#BZCCJBD3VQQDOXT5VMI4LCZSZITYL24VEPWYI5V6QSKOVNLALIWQVZYBMRJTB5VJ4B2M57S24TVDA
+#\\\|LDWB5UDE24AOKW3ZKAQNMNET5RUA45PK7CPKMG5FPKM2S2BBAYK \ / AMOS7 \ YOURUM ::
+#\[7]JHYJIUIOA4OTCKIQQXOYHXPS2VUZG76Q722QYSMIEW5YWPYMQMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
