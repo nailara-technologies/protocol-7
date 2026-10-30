@@ -26,59 +26,10 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
 return { 'mode' => 'false', 'data' => 'task id required' }
     unless length $task_id;
 
-my $task = <task.queue>->{$task_id};
+return <[task.fail_task]>->( $task_id, $error );
 
-return {
-    'mode' => 'false',
-    'data' => sprintf( 'task %s not found', $task_id )
-    }
-    unless defined $task;
-
-## pending, claimed, or in_progress tasks can be failed
-if (    $task->{'status'} ne 'claimed'
-    and $task->{'status'} ne 'pending'
-    and $task->{'status'} ne 'in_progress' ) {
-    return {
-        'mode' => 'false',
-        'data' => sprintf(
-            'task %s is %s, cannot fail',
-            $task_id, $task->{'status'}
-        )
-    };
-}
-
-## update task
-my $ntime_b32 = <[base.ntime.b32]>;
-
-$task->{'status'}     = 'failed';
-$task->{'result'}     = $error || 'failed';
-$task->{'updated_at'} = $ntime_b32;
-
-## move to history, then persist ##
-<[task.persist.archive]>->($task_id);
-<[task.persist.save]>;
-
-## fire deferred reply for any pending wait-done ##
-my $wait_reply_id = delete <task.wait.pending>->{$task_id};
-if ( defined $wait_reply_id ) {
-    <[base.callback.cmd_reply]>->(
-        $wait_reply_id, { 'mode' => 'false', 'data' => "failed: $error" }
-    );
-}
-
-## record blocked/failed outcome in valued tree ##
-## [ only if linked to a node ]                 ##
-if ( length( $task->{'node_id'} // '' ) ) {
-    <[valued.tree.record_outcome]>
-        ->( { 'node_id' => $task->{'node_id'}, 'outcome' => 'blocked' } );
-}
-
-<[base.logs]>->( 1, ':. task %s failed: %s', $task_id, $error || 'no error' );
-
-return { 'mode' => 'true', 'data' => "failed $task_id" };
-
-#,,,.,...,.,.,.,.,.,,,.,.,,,.,...,..,,...,,..,..,,...,...,,,,,,.,,,,.,.,,,...,
-#G444QUTNBOPNJFGVFO2LVFZQYCA6QNKOJRO6DMYWTYS2FOXICEAGFIOG4XHVG2P3CHZR5PEFFZ5II
-#\\\|7XCVWL6QBECQWSFPLCZ4FQ7OUD7WODFRKZ53LTRHJCYMOWFOJMQ \ / AMOS7 \ YOURUM ::
-#\[7]LLYWHVRYFY5U5Y6KSUUXUO6I73OOJVWHMNJEWXNOZYQYEKIP4SAA 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,.,.,,,,,,.,,.,.,.,,,,..,.,,,..,,...,...,...,,.,,.,.,,,,,.,,,
+#QBXDEK4I4AOBRBOKZJ6ITLWDSZOZ5KS75X457QZHUNAQ6TINCZUZ3CULROFPOIXH5GENORMCQOAQO
+#\\\|5SM4PK7M4XRNFMERYHTEBPHGQ6DOXMRZ24XGI46YEKYKL2BN3FS \ / AMOS7 \ YOURUM ::
+#\[7]CWZILWYNQCCDIKPWB3Q2MVJLQBUY27J2IEHT7Y26W3UGCC6EEKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

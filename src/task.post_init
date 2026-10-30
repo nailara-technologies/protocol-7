@@ -53,6 +53,17 @@ my $sweep_interval = 15;
     $sweep_interval
 );
 
+## stale claims : a claimed \ in_progress task whose worker died stays so ##
+## for ever -- failed after task.cfg.stale_claim_secs without an update   ##
+<task.cfg.stale_claim_secs> //= 21600;
+<[event.add_timer]>->(
+    {   'after'    => 60,
+        'interval' => 600,
+        'repeat'   => TRUE,
+        'handler'  => 'task.handler.stale-claim-sweep',
+    }
+);
+
 ## outdoor temperature for the thermal night amplifier [ step 5 ] : the ##
 ## reply lands in <thermal.outdoor.*>, weather answers deferred on an   ##
 ## on-demand start [ GDX ] -- stale after thermal.outdoor.max_age       ##
@@ -66,8 +77,8 @@ my $sweep_interval = 15;
 
 0;
 
-#,,,.,,.,,,,,,,.,,...,.,,,,,,,,,,,,,.,...,.,.,..,,...,..,,.,.,...,,..,...,...,
-#HB5YDXBPSZMY3YK7GOZCBOFI3KVMVCO32BF5PQL722CJY4FLOH2VFT5P5MWYOS55PQBDEMM2TJRCG
-#\\\|CF5SSOB2LXEVOANDJ4JIMUL2N7WUX2VWA3A5X2K4WRFWU3WMM3W \ / AMOS7 \ YOURUM ::
-#\[7]7V62XRSLHKS3EYGJRCPUIRWVZLP6XFE5E2K2GRNAB46ER3AWVWDA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,,,.,,,,,.,,,.,.,,,,,,,,,...,..,,...,...,.,.,...,..,,,,.,,..,
+#UVNXVSNZV56CVDG575SW7YO55RRLUYPIKDQCRDWY2MD3MLAHOCT6SKLODLVHQRNM3C3SGBBBA6WCA
+#\\\|YW5ZD47AF5DAXS7ZWRL723ZHB3HB4ESZPFNI7WAHFZL33P6Q5EB \ / AMOS7 \ YOURUM ::
+#\[7]Y2NW7EURAFQYXCCR45NLTRQZSVOOCUGVK66JU2OY74UJ222TJCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
