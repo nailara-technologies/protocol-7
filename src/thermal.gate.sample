@@ -43,6 +43,8 @@ if ( not defined $gate->{'last_sample_at'} ) {
 my $base_max = <thermal.cfg.baseline.max> // 55.0;
 $gate->{'baseline'} = $base_max if $gate->{'baseline'} > $base_max;
 
+$gate->{'idle_watts'} = $idle_watts if defined $idle_watts;
+
 if ( defined $watts ) {
     if ( not defined $gate->{'power_avg'} ) {
         $gate->{'power_avg'} = $watts;
@@ -65,18 +67,57 @@ if ( defined $watts ) {
         {
             my $k_obs
                 = ( $gate->{'avg_long'} - $gate->{'baseline'} ) / $delta_w;
-            if (    $k_obs >= ( <thermal.cfg.k.min> // 0.02 )
-                and $k_obs <= ( <thermal.cfg.k.max> // 0.5 ) ) {
-                if ( defined $gate->{'k'} ) {
-                    my $k_alpha
-                        = 1
-                        - exp( -$dt / ( <thermal.cfg.k.window> // 3600 ) );
-                    $gate->{'k'} += $k_alpha * ( $k_obs - $gate->{'k'} );
-                } else {
-                    $gate->{'k'} = $k_obs;
+            my $trusted = <[thermal.gate.k_trusted]>->($gate);
+            if (    $trusted
+                and $k_obs
+                > $gate->{'k'} * ( <thermal.cfg.k.fault_ratio> // 1.5 ) ) {
+                if ( not exists $gate->{'fault'} ) {
+                    $gate->{'fault'} = {
+                        'since' => $now,
+                        'k_obs' => $k_obs,
+                        'k'     => $gate->{'k'},
+                    };
+                    my $message
+                        = sprintf( 'possible stopped fan or blocked airflow '
+                            . '[ k_obs %.3f C/W vs k %.3f C/W ]',
+                        $k_obs, $gate->{'k'} );
+                    <[base.logs]>->(
+                        0, 'thermal cooling fault : %s', $message
+                    );
+                    <[protocol-7.route-send]>->(
+                        {   'command'   => qw| notify.warn |,
+                            'call_args' => {
+                                'args' =>
+                                    sprintf( "'thermal cooling fault' '%s'",
+                                    $message )
+                            },
+                        }
+                    );
                 }
-                $gate->{'k_samples'}++;
-                $gate->{'k_at'} = $now;
+            } else {
+                if ( $trusted and exists $gate->{'fault'} ) {
+                    <[base.logs]>->(
+                        0,
+                        'thermal cooling fault cleared '
+                            . '[ k_obs %.3f C/W vs k %.3f C/W ]',
+                        $k_obs,
+                        $gate->{'k'}
+                    );
+                    delete $gate->{'fault'};
+                }
+                if (    $k_obs >= ( <thermal.cfg.k.min> // 0.02 )
+                    and $k_obs <= ( <thermal.cfg.k.max> // 0.5 ) ) {
+                    if ( defined $gate->{'k'} ) {
+                        my $k_alpha
+                            = 1 - exp(
+                            -$dt / ( <thermal.cfg.k.window> // 3600 ) );
+                        $gate->{'k'} += $k_alpha * ( $k_obs - $gate->{'k'} );
+                    } else {
+                        $gate->{'k'} = $k_obs;
+                    }
+                    $gate->{'k_samples'}++;
+                    $gate->{'k_at'} = $now;
+                }
             }
         }
     } else {
@@ -84,12 +125,35 @@ if ( defined $watts ) {
     }
 }
 
+## a fault holds the gate hot, so the load stops and no settled k_obs can ##
+## clear it : after the hold, real idle back near the baseline lets it    ##
+## retry -- a cooling still broken sets it again on the next load         ##
+if (    exists $gate->{'fault'}
+    and $idle_held
+    and $now - $gate->{'fault'}->{'since'}
+    >= ( <thermal.cfg.k.fault_hold> // 1800 )
+    and $gate->{'avg_long'}
+    <= $gate->{'baseline'} + ( <thermal.cfg.baseline.band> // 1.5 ) ) {
+    <[base.logs]>->(
+        0, 'thermal cooling fault cleared for a retry [ idle %.1f C ]',
+        $gate->{'avg_long'}
+    );
+    delete $gate->{'fault'};
+}
+
+my $predicted = <[thermal.gate.predict]>->($gate);
+if ( defined $predicted ) {
+    $gate->{'predicted'} = $predicted;
+} else {
+    delete $gate->{'predicted'};
+}
+
 $gate->{'last_sample_at'} = $now;
 
 return TRUE;
 
-#,,,.,,.,,,..,,..,...,.,,,,,,,.,.,,.,,..,,..,,..,,...,...,...,..,,,,.,,,.,,..,
-#2L7V3SDFPIZDVVFWGJ6PE5LT6PFYLYXZ54WXCTB4OJNWWFWB5CHH5FOR2ZUMRY5L4XGEWRL6P4XNM
-#\\\|MGWYTRBVMGKDVYZ5G4NWF2XLTJ6ED2JX7XM6ILGPIHKM3KXB54R \ / AMOS7 \ YOURUM ::
-#\[7]4V4ZXKMVJDIIU6C6MJY7AMX6JYLVNEJZTT2ZTE5LHGA3TXWNOSBY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,,,.,..,,,.,,..,,.,,,,.,,.,,,..,,...,...,...,..,,,,,,...,...,
+#IPL4ITI2RZOXYONYUMMGKHDOHR6A2DCG4SMRHIJ3GBXCEC6SARDB4CWUJ6P4UHL6S7FMPZ47YE4EW
+#\\\|UHEJDACITFCU3KULSS2KWYZ3VMKY2JK4AOUEAMKVBVC43RJXSL3 \ / AMOS7 \ YOURUM ::
+#\[7]THHHTUIFUA2NAFJNM5XZI3RILE5RMY3RFXUC2ENXPMSTCA5ZQICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = thermal.gate.hot_mark
+# descr = calculate the configured hot mark for the current window
+
+my ( $gate, $now ) = @ARG;
+
+my $window
+    = defined $gate->{'window'}
+    ? $gate->{'window'}
+    : <[thermal.window.current]>->($now);
+my $hot_mark
+    = $window eq qw| night |
+    ? <thermal.cfg.night.hot> // 25.0
+    : <thermal.cfg.hot> // 18.0;
+if ( ( <thermal.cfg.mode> // qw| relative | ) eq qw| relative | ) {
+    if ( $window eq qw| night | ) {
+        $hot_mark *= $gate->{'amp'} // <[thermal.outdoor.amp]>->(
+            <thermal.outdoor.temp>, <thermal.outdoor.at>, $now
+        );
+    }
+    $hot_mark += $gate->{'baseline'};
+}
+
+my $ceiling = <thermal.cfg.ceiling> // 83.0;
+$hot_mark = $ceiling if $hot_mark > $ceiling;
+
+return $hot_mark;
+
+#,,..,,..,...,,.,,.,,,.,.,,,.,,.,,..,,...,,.,,..,,...,..,,...,,.,,,..,..,,,..,
+#FQIMKPSOW4KAYS36TKBA32HOZUXKQRFTJJMA7IDTGYLNSPRKYZEMX2S7F2MSRN36HRJRA3WBYWHBM
+#\\\|EJOI6ZPOAR22PLCO7MFQRYGHYX2VE2DKU27DYGCJUMLSSQXIW3Z \ / AMOS7 \ YOURUM ::
+#\[7]VQKJR3JOZLV7E2J2G4YXG53F4QJH4AUBW5AOFLDWRFDQQMJJDUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

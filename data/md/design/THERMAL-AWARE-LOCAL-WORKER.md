@@ -142,6 +142,21 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
    fan \ blocked airflow -> freeze k [ never learn it as the new normal ],
    crawl or pause, notify the owner. the absolute ceiling stays as the
    last line, independent of any learned value.
+   slices 3 + 4 landed : trusted k drives predicted-temperature thresholds
+   and optional expected-watts spawn refusal ; settled cooling faults freeze
+   k, force hot without resetting its clock, and notify the owner once.
+6b. power curve [ owner 2026-10-30 ] : with a trusted k the gate steers
+   the gpu power LIMIT instead of a load square wave : allowed watts =
+   P_idle + [ target - baseline ] \ k. bounds : card min [ 100 W here ]
+   .. the owner's set limit [ 144.5 W here, 85 % of 170 ] -- the curve
+   only lowers below the owner's choice, never above. steps <= 5 % with
+   a hold between ; restore the owner's limit on zenka exit, on a stale
+   power \ temp feed and on any gate fault [ a fault drops to the card
+   min ] ; ceiling + fault guard stay first. setting needs root : one
+   narrow v7-zenki command taking a percent, task \ coding stay
+   unprivileged. WSL : nvidia-smi READS the limit, setting is refused
+   even as root [ Windows driver owns it ] -> read-only there, control
+   on native linux [ this host is moving there ] and the linux servers.
 7. priority pickup [ owner 2026-10-30 ] : the hover gaps are free gpu
    time. a direct request starts at once [ only pause \ unload hold it ],
    queue work carries :background: [ models ] and waits at the mark, and
@@ -153,8 +168,8 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
    delays the other worker's next background round.
 8. profiles, if wanted.
 
-#,,,.,,.,,,,,,.,.,,,,,,,,,,..,,,.,.,.,..,,..,,..,,...,...,.,,,,,.,.,.,.,.,.,,,
-#LPDW2WZ6P2UB7XTBCBFPCAUWSSIZ4RNUKHL4DTBJCY5P5M2KGU2YDZ2TCBLKXDYERZTZG2WNNZ6RQ
-#\\\|SNIE52ZGK3E7DW4HR6VYC5DA7VFO4VX3CKPOCHNSVQAKFJRHDBO \ / AMOS7 \ YOURUM ::
-#\[7]7PFGV52DPEKC6TIRJFEISOVCZEHTEYGRF54LLU3G7NWAYK2WVSAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,,,,,,.,,..,,.,.,,,,,.,.,,.,,..,,...,...,,.,,,,,,..,,...,,..,
+#BPCSUAD4IHHLKBX74YL5FCEUHV63QKMSZFAYLKZJGXQHS4B2OCDQXAX5PVK47ZRAQVQQPQ4DQJ55E
+#\\\|E3QJSJVO6PTNXOJT32KANQWVOQ3YXGBKTZFRRYHB5LK7QS4JEFA \ / AMOS7 \ YOURUM ::
+#\[7]2VLJTYWDWBSOA3FN2YMRSDTPPU5QX5M374JXRPWCX6QDGKYYO4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

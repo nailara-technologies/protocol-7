@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = thermal.gate.predict
+# descr = predict temperature from learned power above the idle draw
+
+my ( $gate, $watts ) = @ARG;
+
+return undef if not <[thermal.gate.k_trusted]>->($gate);
+return undef if not defined $gate->{'idle_watts'};
+$watts //= $gate->{'power_avg'};
+return undef if not defined $watts;
+
+my $delta_w = $watts - $gate->{'idle_watts'};
+$delta_w = 0 if $delta_w < 0;
+
+return $gate->{'baseline'} + $gate->{'k'} * $delta_w;
+
+#,,,,,,.,,...,..,,...,,.,,.,,,..,,..,,..,,...,..,,...,..,,..,,,,,,,,,,...,.,.,
+#BKRGDX7JYJLQUM3QQB27YAJCY3HRURNLWNLQYAGLWI7BCPCWOCOLYO7ZNLGDT2A5VO3LL2JLGJAWE
+#\\\|3LSQC7JI3R5RPWE7ED6MOHDHLOFPW6CTV5U7OCV642KBMCQR6EN \ / AMOS7 \ YOURUM ::
+#\[7]YEHKT4NPUXWMV7JGOLWZQ2Q2ATWCU56GW63SUVFR3BJ2BHGVBWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

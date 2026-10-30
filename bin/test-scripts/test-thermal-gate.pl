@@ -61,6 +61,9 @@ compile_module('thermal.window.weight');
 compile_module('thermal.outdoor.poll');
 compile_module('thermal.handler.outdoor-reply');
 compile_module('thermal.outdoor.amp');
+compile_module('thermal.gate.k_trusted');
+compile_module('thermal.gate.predict');
+compile_module('thermal.gate.hot_mark');
 compile_module('thermal.gate.sample');
 compile_module('thermal.gate.decide');
 compile_module('thermal.feed.register');
@@ -856,6 +859,103 @@ ok( $hover_gap->( 70, qw| slow |, $night_at ) == 30,
     'a mild night leaves the plain mark' );
 delete $data{'thermal'}{'outdoor'};
 
+say ': 25. trusted predictions leave measured ceiling checks independent';
+$gate = {
+    'baseline'       => 40,
+    'avg_short'      => 40,
+    'avg_long'       => 40,
+    'last_sample_at' => 0,
+    'state'          => qw| cold |,
+    'state_since'    => 0,
+    'window'         => qw| day |,
+    'k'              => 0.1,
+    'k_samples'      => 30,
+};
+$code{'thermal.gate.sample'}->( $gate, 40, 1, FALSE, 100, 50 );
+ok( $gate->{'idle_watts'} == 50 && $gate->{'predicted'} == 45,
+    'trusted power average predicts baseline plus learned heating'
+);
+ok( $code{'thermal.gate.decide'}->( $gate, 120 ) eq qw| warm |,
+    'prediction joins the measured averages for threshold decisions'
+);
+$gate->{'state'}       = qw| cold |;
+$gate->{'state_since'} = 0;
+$gate->{'predicted'}   = 90;
+ok( $code{'thermal.gate.decide'}->( $gate, 1 ) eq qw| cold |
+        && $gate->{'state_since'} == 0,
+    'learned prediction cannot trigger the immediate measured ceiling'
+);
+$gate->{'k_samples'} = 29;
+$code{'thermal.gate.sample'}->( $gate, 40, 2, FALSE, 100, 50 );
+ok( !exists $gate->{'predicted'},
+    'untrusted sampling removes a stale prediction' );
+$gate->{'k_samples'} = 30;
+{
+    local $data{'thermal'}{'cfg'}{'predict'} = qw| no |;
+    $code{'thermal.gate.sample'}->( $gate, 40, 3, FALSE, 100, 50 );
+    ok( !exists $gate->{'predicted'}, 'disabled prediction remains inert' );
+}
+
+say ': 26. expected watts can refuse a predicted-hot spawn';
+$gate = {
+    'baseline'   => 40,
+    'state'      => qw| cold |,
+    'window'     => qw| day |,
+    'idle_watts' => 50,
+    'k'          => 0.1,
+    'k_samples'  => 30,
+};
+$mem_gate = { 'state' => qw| calm | };
+my $start_idle = { 'state' => qw| idle |, 'idle_since' => 0 };
+ok( $code{'thermal.start.ready'}->( $gate, $mem_gate, $start_idle, 1000, 200 )
+        == TRUE,
+    'expected power below the hot mark permits spawning'
+);
+ok( $code{'thermal.start.ready'}->( $gate, $mem_gate, $start_idle, 1000, 250 )
+        == FALSE,
+    'expected power above the hot mark refuses spawning'
+);
+
+say ': 27. cooling faults freeze k, notify once, and clear when settled';
+my @fault_notices;
+$code{'protocol-7.route-send'} = sub {
+    push @fault_notices, shift;
+    return TRUE;
+};
+$gate = {
+    'baseline'       => 40,
+    'avg_short'      => 50,
+    'avg_long'       => 50,
+    'last_sample_at' => 0,
+    'state'          => qw| warm |,
+    'state_since'    => 100,
+    'window'         => qw| day |,
+    'power_avg'      => 100,
+    'k'              => 0.1,
+    'k_samples'      => 30,
+    'k_since'        => 0,
+};
+$code{'thermal.gate.sample'}->( $gate, 50, 600, FALSE, 100, 50 );
+ok( $gate->{'k'} == 0.1
+        && $gate->{'k_samples'} == 30
+        && $gate->{'fault'}{'k_obs'} == 0.2,
+    'excessive settled k is recorded without being learned'
+);
+$code{'thermal.gate.sample'}->( $gate, 50, 601, FALSE, 100, 50 );
+ok( @fault_notices == 1
+        && $fault_notices[0]{'command'} eq qw| notify.warn |
+        && $fault_notices[0]{'call_args'}{'args'} =~ m|stopped fan|,
+    'one owner warning names the possible cooling fault'
+);
+ok( $code{'thermal.gate.decide'}->( $gate, 602 ) eq qw| hot |
+        && $gate->{'state_since'} == 100,
+    'fault forces hot without resetting the hot-state clock'
+);
+$gate->{'avg_short'} = $gate->{'avg_long'} = 45;
+$code{'thermal.gate.sample'}->( $gate, 45, 1200, FALSE, 100, 50 );
+ok( !exists $gate->{'fault'} && $gate->{'k'} == 0.1,
+    'a settled normal observation clears the fault and resumes learning' );
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -864,8 +964,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,.,,.,.,,.,,,.,,,,,,..,,,..,.,.,.,.,,,.,..,,...,...,.,.,,.,,,.,,,,,,,..,
-#J4Y6GEMOIFBFPFLUNLSDD2MK7JOB2B57APADCWWJ4NP3FRIBPEJNXUYWFNIKO7FK4BR24ENFAKE3M
-#\\\|5XMRS2NDJAJV7IDGBTQY3FD4RITFY7U2U6ZEBMWT56ROTWEV7LQ \ / AMOS7 \ YOURUM ::
-#\[7]WWYKOPQTZ3GLRPT62VTFSARD34MAIBBWJFMYCWQXIRNI57WVZAAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,...,,..,,..,,,.,,.,,..,,,,.,..,,..,,...,...,,.,,.,.,,,,,,.,,...,
+#URJNXLQ7DBV3CWGFEXHQIE5CFQ7VDKKVQ5SJPUH2P64DZCJM67V7OR7GVYTCBXP322AWUHIVTBZVS
+#\\\|LTLFX76SUKFQAO55W2PT7LR2Y4NMSWHY5KZUBZEIFM4UGHD6KS2 \ / AMOS7 \ YOURUM ::
+#\[7]6RTT5V2O6SOKPUWN7KZLR6PNTHO6DAPMFDNLL4KOR3H2NZ2VTOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
