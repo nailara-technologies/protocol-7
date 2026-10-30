@@ -184,9 +184,24 @@ for my $id ( keys %{$idx} ) {
     }
 );
 
+if (<[jobsite.replica.enabled]>) {
+    <jobsite.replica.next_delay> = <jobsite.cfg.replica_pull_interval> // 120;
+    <[event.add_timer]>->(
+        {   'after'   => 2,
+            'handler' => qw| jobsite.replica.pull |,
+        }
+    );
+    <[base.logs]>->(
+        1,
+        'jobsite: replica of %s',
+        <jobsite.cfg.primary_url> // ''
+    );
+    <[jobsite.replica.unsent-load]>;
+}
+
 ## rescan timer : only when interval > 0
 my $interval = <jobsite.cfg.rescan_interval> // 0;
-if ( $interval > 0 ) {
+if ( $interval > 0 and not <[jobsite.replica.enabled]> ) {
     <[event.add_timer]>->(
         {   'after'    => $interval,
             'interval' => $interval,
@@ -199,7 +214,7 @@ if ( $interval > 0 ) {
 
 ## sync push timer : only when interval > 0
 my $sync_interval = <jobsite.cfg.sync_interval> // 0;
-if ( $sync_interval > 0 ) {
+if ( $sync_interval > 0 and not <[jobsite.replica.enabled]> ) {
     <[event.add_timer]>->(
         {   'after'    => 30,
             'interval' => $sync_interval,
@@ -222,7 +237,7 @@ $tasks = <jobsite.tasks> // {};
 my @orphans = grep { ( $tasks->{$ARG}{'stage'} // '' ) eq 'assessing' }
     keys %{$tasks};
 
-if (@orphans) {
+if ( @orphans and not <[jobsite.replica.enabled]> ) {
     <jobsite.pending_count> = scalar @orphans;
     <[base.logs]>->(
         1,
@@ -262,12 +277,14 @@ if (@stuck_queued) {
 
 ## deferred dispatch on startup : picks up any status=new jobs that     ##
 ## survived reload (rescan_interval=0 means nothing else triggers this) ##
-<[event.add_timer]>->(
-    {   'after'   => 4,
-        'repeat'  => FALSE,
-        'handler' => 'jobsite.dispatch.assessments',
-    }
-);
+if ( not <[jobsite.replica.enabled]> ) {
+    <[event.add_timer]>->(
+        {   'after'   => 4,
+            'repeat'  => FALSE,
+            'handler' => 'jobsite.dispatch.assessments',
+        }
+    );
+}
 
 my $job_count = scalar keys %{$tasks};
 <[base.logs]>->(
@@ -279,12 +296,14 @@ my $job_count = scalar keys %{$tasks};
 ## stranded under their own var dir                                    ##
 ## [ eg from a past path-resolution desync ] ; jobsite decides when to ##
 ## look, never an unsolicited push                                     ##
-<[event.add_timer]>->(
-    {   'after'   => 2,
-        'repeat'  => FALSE,
-        'handler' => 'jobsite.stray.check',
-    }
-);
+if ( not <[jobsite.replica.enabled]> ) {
+    <[event.add_timer]>->(
+        {   'after'   => 2,
+            'repeat'  => FALSE,
+            'handler' => 'jobsite.stray.check',
+        }
+    );
+}
 
 ## remote fetching : collect what the fetch host's outbox still holds ##
 ## [ a backlog from before a restart, a stream that closed early ] -- ##
@@ -300,8 +319,8 @@ my $fetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
 
 TRUE;
 
-#,,,.,,.,,.,,,.,.,.,,,,,,,,..,,,.,.,.,.,.,..,,..,,...,...,.,.,...,.,.,.,,,.,,,
-#AXATRZCSEFETDJGBOOHDLVYH2YMQFCYITQDQPZCNOIW3EQPVQ6XSQPMZBNHGG5EXPJ5U6B675AN5G
-#\\\|ZHCLC55E72K6YUEPGQAQK3NF6DJUJOIHZEPX2RLBZ5BT6EXSHMZ \ / AMOS7 \ YOURUM ::
-#\[7]KAX2PRQKQN6ODKUHBRNNDRPKYCU7ZNZFVFAQ72HY76GVHX5EHGCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,..,,..,.,.,,.,,,,.,.,,,,..,.,,,..,,...,...,.,,,,..,,,.,,.,,,..,
+#56HGIVNC3K3BND46QO3Y67252GNXQUUJEYBHC2373NAW76OP325DV23O7QBU34E3H2RF2SWMNWMWE
+#\\\|TYKIR3Y36WUKHVHZUIK4PYT3CGRDOG6ZUEBC7X63UG2FQAQGZF3 \ / AMOS7 \ YOURUM ::
+#\[7]H2UIKSDKXXL32VSZZGFBHDS4KPN6K66PIXHRFKABEYNEMS4TGOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

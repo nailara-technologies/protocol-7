@@ -4,6 +4,13 @@
 # descr = check posting liveness across all trashable jobs
 # param = [:dry:] [max count] | status
 
+return {
+    'mode' => qw| false |,
+    'data' => 'replica of ' . ( <jobsite.cfg.primary_url> // '' ),
+    }
+    if <[jobsite.replica.enabled]>
+    and ( $call->{'args'} // '' ) ne qw| status |;
+
 my $args = $call->{'args'} // '';
 $args =~ s{^\s+|\s+$}{}g;
 
@@ -91,8 +98,8 @@ return {
     )
 };
 
-#,,,,,,,.,.,,,.,.,,,.,,,.,..,,.,.,.,.,,..,.,,,..,,...,...,,..,,..,,,,,,,,,.,.,
-#DCJZCY7JG7AFRR3AAPZX3FAVIQ6FUBJVXB5OHW3AHAQ6A2Y2ZJIDINVAOBYR2WVS6V4PMZKTVJWFY
-#\\\|VLXPKBFSY5FNVGVMEIAM3IYKQWACG5NIBYGYU3IT43QUB5JOHOJ \ / AMOS7 \ YOURUM ::
-#\[7]TUA2EFNP6DNLORVFOLYMERRKGTMT4CW4Q7QINENVZ3GTLGDIX6BA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,.,.,..,,,..,,.,,.,,,,.,,,.,,..,,...,...,,.,,..,,,.,,.,.,.,,,
+#SLIGJA5CFZZC6BHQ77FRE7OW6XZ7JC6NUKRBF3TSXHYRKO4ZXFKWFPI2AKC274222EA2UL2RB5NYW
+#\\\|D5FDC3VMMISZDG3EWIC654YU4AVYXPOPT2BDNAWIPNAM3DLU4TK \ / AMOS7 \ YOURUM ::
+#\[7]CX22YYNC7KJUXOAYZTT72DHZFBMWPC3LMN5QPTP6U2E2EFPOS2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

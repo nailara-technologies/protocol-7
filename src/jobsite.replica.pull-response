@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = jobsite.replica.pull-response
+# descr = validate primary jobs json and replace the local web cache
+
+my $result = shift // {};
+my $payload
+    = $result->{'ok'}
+    ? eval { JSON::XS::decode_json( $result->{'body'} // '' ) }
+    : undef;
+
+if ( ref $payload ne 'HASH' or ref $payload->{'jobs'} ne 'ARRAY' ) {
+    <[jobsite.replica.complete]>->(FALSE);
+    return;
+}
+
+my $body = eval {
+    JSON::XS::encode_json(
+        { 'role' => qw| replica |, 'jobs' => $payload->{'jobs'} } );
+} // '';
+if ( not length $body ) {
+    <[jobsite.replica.complete]>->(FALSE);
+    return;
+}
+
+<[clients.http.post]>->(
+    {   'url'     => qw| http://127.0.0.1/jobs-sync |,
+        'body'    => $body,
+        'timeout' => 32,
+        'on_done' => qw| jobsite.replica.local-response |,
+    }
+);
+
+#,,.,,.,,,...,...,,,,,.,,,,..,,,.,,..,,.,,,..,..,,...,..,,,..,,,.,..,,,,,,,..,
+#7F3JXB4JNOHSQFJIQKNPLTLZMYPQD5HFEA6FU4Z2RDZB4TPSCOGYLAI4WN5CEXWO6GRB4BFKJMCP6
+#\\\|UDAZ6L73V5OLSIGMVN3KU5CM64MQG24QQHNLV2K5DC36WPC5SUG \ / AMOS7 \ YOURUM ::
+#\[7]2VTPZFY3SH2WHRXHYM7D7ODH5W73QCZH3LAZAF7UMWYMXWVQVICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

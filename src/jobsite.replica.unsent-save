@@ -1,0 +1,14 @@
+## [:< ##
+
+# name  = jobsite.replica.unsent-save
+# descr = persist the unsent ui actions so a restart does not lose them
+
+my $unsent = <jobsite.replica.unsent>                           // [];
+my $json   = eval { JSON::XS->new->canonical->encode($unsent) } // '[]';
+<[file.zenka_dir.write]>->( 'replica-unsent.json', \$json, '>', 0640 );
+
+#,,,,,..,,..,,..,,.,.,.,,,..,,,,,,,..,,,.,,.,,..,,...,...,.,,,.,.,.,,,...,..,,
+#RVL3M7PI475SCWPZVMWWRIASBBPDCBL7NDV5GRNCU7Z7RVPAJ3DFC3BJURLKVWOTSVZPR7GLPNAOW
+#\\\|ZQ4JR5HZYIWDEK3X7M57YFALT7IG2IYC5U6YH2RN72AAYJ3M6TU \ / AMOS7 \ YOURUM ::
+#\[7]OSWPCSMXSXAU4ZTJ36A3GK6QT3NZTYYCMG4IR63KI7BMIXFBU2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

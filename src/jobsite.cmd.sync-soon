@@ -6,12 +6,17 @@
 ## the web's reverse entries [ a delete in the ui ] ride back on the reply ##
 ## to jobsite's NEXT push -- without a nudge that was the 300 s timer.     ##
 ## push_soon coalesces, so a burst of nudges is still one push             ##
+if (<[jobsite.replica.enabled]>) {
+    <[jobsite.replica.forward]>;
+    return { 'mode' => qw| true |, 'data' => 'primary ui forward armed' };
+}
+
 <[jobsite.sync.push_soon]>;
 
 return { 'mode' => qw| true |, 'data' => 'sync push armed' };
 
-#,,,,,..,,,.,,,,,,,,.,.,.,,,.,.,,,.,,,,,,,,,,,..,,...,...,...,,,,,,..,,.,,,,.,
-#65FAZBL2JTE26UQTDK2CUU5RVVUCPJ5RYTAI7Y2P5MKI2FZX23DEHALT6KEQ2XD7LZW46SUOQ26S4
-#\\\|VYLC4AEHW4YTITTOPFJZS43PMN2KOYRFWAUBHZYHL42Y42QW4Y2 \ / AMOS7 \ YOURUM ::
-#\[7]5CS5HV225AP7UJNEVZ253FZA6HBPKOVQLZ5PWXC3ETZWWZLULMDI 7  DATA SIGNATURE ::
+#,,..,,..,,..,..,,,,.,,,.,.,.,..,,.,,,.,.,..,,..,,...,...,.,.,.,,,.,.,,,,,,,,,
+#WTPADIGE2XJ42DKMZY2GA3F6R7HXANLFQROTIVG56ATVAQWEGBEU4RZXXQ4RNHJMGVVOM553Y2AWU
+#\\\|SUNG6WUTLZXZ5QMVCPKEEWPRLJCL4UPL76TBSVFZPALQS5ANLCV \ / AMOS7 \ YOURUM ::
+#\[7]VA3CW4PYQFZZRPREWKHTVIU6HE7VRQWJFUHBFI7DOTGL2KPT2KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

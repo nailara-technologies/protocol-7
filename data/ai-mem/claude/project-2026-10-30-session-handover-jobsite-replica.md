@@ -67,11 +67,16 @@ metadata:
 3. models claim ttl expiry [ 1800 s ] does not tell task : the task stays
    'in_progress by models' until the 6 h stale-claim sweep [ RSRZTLA,
    2026-10-30 ] -- on expiry also fail \ reset the task
-4. 72T4WFI fails self-test prompt 2 twice [ frees the mouse, runs out of
+4. pri 2026-10-30 : start_once :wait-down: pull-git hung > 7 min -- the
+   pull-git pid [ 134725 ] exited, v7-zenki kept the instance 'starting'
+   [ no online \ offline line, no pull-git log ]. v7-zenki SIGCHLD fine
+   [ not blocked, no zombies ] -> an exit while 'starting' is not handled.
+   retry worked. guard remote pulls with timeout 150 until fixed
+5. 72T4WFI fails self-test prompt 2 twice [ frees the mouse, runs out of
    tokens ] -- per-model fix only, never global
 
-#,,.,,..,,,.,,,,,,...,,,.,.,,,,,,,,..,,,.,,,.,..,,...,...,,.,,,,.,,..,,,.,...,
-#NDS45FO44TKZAPZ37PRCFWUUKVMRM3SUAFUSIG4XYGHLOGBLPNLZRLLUJCXFXLTUESONFEQVLBWVM
-#\\\|H4IOEZWI5SAJSBCAARA4DNYZUS2C4IXJC72Y6GOZY3QNC2VFUVJ \ / AMOS7 \ YOURUM ::
-#\[7]T2QKSBZHQIFBACQWNSUE2HYG45SA2DFEAGVBOWLBYNJZ6ZG25SAA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,.,,.,.,.,.,.,.,...,.,,,,.,,,..,..,,...,..,,..,,.,.,,,.,,.,,,,,,
+#U44FUB52CZ4AWDS64LGUB3Q3UNBIYAH4U2R4KU2OGA7AD7OZ3A552CQISU6FVBJFUY5W22OACH2JK
+#\\\|ZV6ZDS54NGIEXVU5O7RYEBZUBWNCYMCUPDJHDEG2VALKVCVEHHV \ / AMOS7 \ YOURUM ::
+#\[7]BM333AXQULRZWRVSFZKYDFXQODUOL55D226LCSI7SWDSKRK27AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

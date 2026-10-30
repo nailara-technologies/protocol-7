@@ -3,6 +3,8 @@
 # name  = jobsite.handler.rescan-timer
 # descr = periodic rescan timer : triggers fetch when idle
 
+return if <[jobsite.replica.enabled]>;
+
 ## a busy cycle [ a long assessment run ] used to DROP the scan : the next ##
 ## try came a full rescan_interval later, and failed assessments waited    ##
 ## that long for their retry. now it is owed : dispatch.consume_slot runs  ##
@@ -22,8 +24,8 @@ if ( <jobsite.cycle> ne 'idle' ) {
 <[base.logs]>->( 1, 'rescan timer : starting fetch' );
 <[jobsite.stage.fetch]>;
 
-#,,,.,,.,,,.,,..,,,,,,...,,.,,,..,,..,.,.,.,,,..,,...,...,..,,.,,,...,...,.,.,
-#W3QH65FNXURSRRTPYLG7SKP2YTYSULW6HUQ33GUIGWIP6WU6NVSVEPGTGN43X5MQYBWOXGYECCOFI
-#\\\|YSXGSTDZBUVCUETVEGQ2BB62IZLFNQF7AFILOAEQMZOXQ5FBDTY \ / AMOS7 \ YOURUM ::
-#\[7]7CTH4KGKSSAGRHBWB5JQ5WND46QHDH4TCHYQ6AHRCAP7CHCCPABI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,..,,,,,,,,.,,.,,,,,,..,,,,,,..,,...,...,...,,..,,,.,.,.,...,
+#RMY7WIKM7MQVIMSWX33GAQLAIDLW7N6UYB5ZIARTAOT3GMRJZ7PPPWMRFAVPFUWOS4MVX4ECQL7BI
+#\\\|7E2GT4LBCUIJFR3NM4JXMBJ34ODJWOFTTAGFS4CTOGSD4R4MYLY \ / AMOS7 \ YOURUM ::
+#\[7]CD6BRNL32X7FD7BXICLHFE63JFOGTDBPBYKPKPERVYO2NWKHYECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

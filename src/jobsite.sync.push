@@ -4,6 +4,8 @@
 # param = < event_object | ondef >, [ force (boolean) ]
 # descr = start chunked async http push : sends changed jobs in small batches
 
+return if <[jobsite.replica.enabled]>;
+
 my $force = ( @ARG > 1 ) ? <[base.cfg_bool]>->( $ARG[1] ) : FALSE;
 
 return if <jobsite.sync.push_in_progress>;
@@ -238,8 +240,8 @@ my $log_level = $total_jobs ? 1 : 2;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,..,,..,.,.,.,.,...,...,...,.,.,.,,,.,,,,..,..,,...,...,.,.,,..,,,,,.,,,.,.,
-#3WE65ZDCIG4ZZGXCZSIFOF7VNFC4HMFOY7EE5RHFGGCW3BMJUJOTSTD2HKKZEUPVEL2M7CFXJBIDY
-#\\\|LDWM2R64WV5YFOEIH6IKZIJXBBTDA7HKIRNBNJBAOU6ZKYNCBWW \ / AMOS7 \ YOURUM ::
-#\[7]JJKMYRKKRXSNVLXCFEISCLKGFQ65S4FNXFLGWGI73ETIZIT2BWBY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,..,,...,,.,,...,..,,...,,.,,..,,...,...,,..,.,.,...,,,,,.,.,
+#VZRN2MHXG5VYODZBISFYKVZCDT4EP2NA3PEKDIPVKV5ZLMHXTERQBT7FTGVU7QFGLHD4DTNTMQJY6
+#\\\|YI4K3ND6SMKC75GBJGZO6X6VP3N2GRN43TFCXXI4Q2SPARGD4WF \ / AMOS7 \ YOURUM ::
+#\[7]VUAK2CXRP6NMYKDJMCTK4OUL7IV3GNK5WXZIOA6B4XHUFWD27KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

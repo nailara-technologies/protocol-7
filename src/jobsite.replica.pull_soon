@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = jobsite.replica.pull_soon
+# descr = arm the debounced primary pull after forwarded ui actions
+
+return if not <[jobsite.replica.enabled]>;
+return if defined <jobsite.replica.soon_timer>;
+
+<jobsite.replica.soon_timer> = <[event.add_timer]>->(
+    {   'after'   => <jobsite.cfg.sync_soon_delay> // 3,
+        'handler' => qw| jobsite.replica.pull_soon-fired |,
+    }
+);
+
+#,,.,,,..,,..,,,,,,..,..,,,,,,,,,,,,.,,,,,,,.,..,,...,...,,,.,,.,,,,,,.,.,,,.,
+#KIDRNYBLJ3SBMFBRNNIYBUDPG67LR5HYQNIOJIEBBW5GCN6JESITKRKZQAO2VRCB6TUK22PKMYI5K
+#\\\|EDNXJQNJQ2STFDKEYSZGWSTLVJQ3LYWVPQ7CJ7EG23KHYGY4VRH \ / AMOS7 \ YOURUM ::
+#\[7]V7XCWF6P7E5NQEUYDYJ7YI6R32ZHHCJERBMJ4LMY4RR4RBY42SDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

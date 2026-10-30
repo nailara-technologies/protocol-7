@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = web.jobs.sync_ui_authorized
+# descr = check a bearer token against the primary ui sync role
+
+my $token = shift // '';
+return FALSE if not length $token;
+my $allowed = <web.cfg.jobs_sync_ui_tokens> // '';
+for my $candidate ( split m|\s+|, $allowed ) {
+    return TRUE if length $candidate and $candidate eq $token;
+}
+return FALSE;
+
+#,,,.,,,.,.,,,,.,,.,,,,.,,.,,,.,.,,,.,,..,,,,,..,,...,...,.,.,.,.,...,.,,,,,,,
+#4RLOBBH74RKKVMIT3XD6TKRZEMJCIENJQUC7L2RHYE3QVAEH27JE2MTATDZFIAYRCKRZVBXF7SAMI
+#\\\|KXRCBMETFGUYGFB2KUXJLL4QWBA2E3CO5ZNW4ZRKOZISKCS6IB4 \ / AMOS7 \ YOURUM ::
+#\[7]PXY5NBSFW643RV3XV7WP377ZKRJDY4K3EOFXS6HDTWLJQIWR3IBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

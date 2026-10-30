@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = jobsite.replica.forward-response
+# descr = finish forwarded ui actions : drop them once the primary took them, else retry
+
+## a 200 can still carry ok:false [ eg 'ui role not authorized' ] ##
+my $result = shift // {};
+my $reply
+    = ref $result eq 'HASH' && $result->{'ok'}
+    ? eval { JSON::XS::decode_json( $result->{'body'} // '' ) }
+    : undef;
+my $taken = ref $reply eq 'HASH' && $reply->{'ok'} ? TRUE : FALSE;
+
+<jobsite.replica.forward_in_progress> = FALSE;
+
+if ($taken) {
+    <jobsite.replica.unsent> = [];
+    <[jobsite.replica.unsent-save]>;
+    <jobsite.replica.forward_delay> = 0;
+    <[jobsite.replica.pull_soon]>;
+    return;
+}
+
+## keep the actions, retry with backoff 15 s .. 900 s ##
+my $delay = <jobsite.replica.forward_delay> // 0;
+$delay = $delay ? ( $delay * 2 > 900 ? 900 : $delay * 2 ) : 15;
+<jobsite.replica.forward_delay> = $delay;
+<[base.logs]>->(
+    0,
+    'jobsite replica: forward of %d ui action%s failed [%s], retry in %d s',
+    scalar( ( <jobsite.replica.unsent> // [] )->@* ),
+    ( ( <jobsite.replica.unsent> // [] )->@* == 1 ? '' : 's' ),
+    ( ref $reply eq 'HASH' ? $reply->{'error'} : undef ) // (
+        ref $result eq 'HASH' ? $result->{'error'}
+            // $result->{'status'} : undef
+    ) // 'no reply',
+    $delay
+);
+return if defined <jobsite.replica.forward_timer>;
+<jobsite.replica.forward_timer> = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| jobsite.replica.forward-retry |,
+    }
+);
+
+#,,.,,,,.,,..,,,,,,..,,,.,...,,,,,..,,.,,,.,.,..,,...,...,,.,,,,,,...,,..,,,,,
+#3TCGBZY6PUHJAVNBJ56PK2D7MZSXIV7YGQUMXLJPSDXS5UE2RCQY6UT4DHI52QPNHRIZJC5IQZTLI
+#\\\|OTT6NZTNYH5ZX72CGVCVOMRGMBTHLIST7IE6OTM6VGFSVUPULEH \ / AMOS7 \ YOURUM ::
+#\[7]CAV4YSGBVXDFFMMWR5DXAV74TJCRNXLNHBDQHA3OPDJ4TCEA66DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

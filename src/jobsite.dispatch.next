@@ -9,6 +9,8 @@
 #         released by jobsite.dispatch.release_slot \ give_up, which
 #         re-invoke this module to refill
 
+return if <[jobsite.replica.enabled]>;
+
 my $parallel = <jobsite.cfg.assess_parallel> // 1;
 $parallel = 1 if $parallel !~ m|^\d+$| or $parallel < 1;
 
@@ -134,8 +136,8 @@ while ( $in_flight < $parallel ) {
     $in_flight++;
 }
 
-#,,,.,,.,,..,,,,.,...,,.,,..,,,,.,,,.,,.,,.,,,..,,...,...,,.,,...,.,.,,,.,...,
-#UVIN63RYEDHVHDAPCB35UZCVHGPDYXRQR3WJ7TEXUSFN3COMN3YZ6X6MFG6CUVGO2IDIRIAK6M2EY
-#\\\|YR3RGVHSXR4VDLOT5IO7I3LXVIQKOE5M6QW6BKKY6XQRGMN3ZXA \ / AMOS7 \ YOURUM ::
-#\[7]C6GLORBDKJHJGUDTDTTDBRGI5MXZ4ANKYN5SJV5H4JVG2VFSKQDI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,..,,,,,,,.,,..,,.,,..,,,,,,.,.,..,,...,...,...,...,,.,,,..,,,,,
+#QX2E6FENBJGAJJEZKVEIHVHERFRQ3VQDSYGMHMCKQOB7E6AUXLBESZHI5QC6UDWBH5WTE3O5KQST6
+#\\\|TXPO4YIAFK3ILU4FODBR3BQER765YJXNNZINHVF4VE2VYWEUBNA \ / AMOS7 \ YOURUM ::
+#\[7]X5PZUVMX6WBWMDCP2YHXQEGPCQOKGSUH3TFHAW6T2SKBDRKDXUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

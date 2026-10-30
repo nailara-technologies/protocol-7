@@ -13,6 +13,12 @@
 # the pipeline as status 'new' via jobsite.job-upsert, a page that does
 # not resolve to a JobPosting shows up in the site-yaml log [ gone/drop ].
 
+return {
+    'mode' => qw| false |,
+    'data' => 'replica of ' . ( <jobsite.cfg.primary_url> // '' ),
+    }
+    if <[jobsite.replica.enabled]>;
+
 my $args_str = $call->{'args'} // '';
 $args_str =~ s{^\s+|\s+$}{}g;
 
@@ -99,8 +105,8 @@ return {
         . "fetch, lands as 'new' on success ]",
 };
 
-#,,,,,,,,,,..,.,.,,,,,..,,,,.,..,,...,...,,.,,..,,...,...,.,,,.,.,,.,,..,,,..,
-#CPPKTJ2CV7OYMC7FVAEG53DD5W3U7VZWTHTT4RQQN7SZ2VWSQ2EZLWYUMIQ6EXBNSXVYMX6OSCTWY
-#\\\|PGMFMJ2M4XFH72RVXSOHJU2Q664KPLKZOACU3K3HTLCB4HFNUBK \ / AMOS7 \ YOURUM ::
-#\[7]TOOZ23WPADPOFLFITEW3Y3CAZ6IKKEN7BXG3LY53ZWDH2ONJAIAA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,..,...,.,.,...,,,.,,,.,...,,.,,..,,...,...,...,.,,,.,,,,,.,...,
+#ALCBGVJF2MWXC5ESIJCHEUJIO7H5FZBJWDU2WEHUIP2BMX7Z2ZVVHJC6ZOB4JTJZDLYM6CYXA7CYM
+#\\\|4OL65PNVSR3GBEZQMMQYTS7MUF4Z4RJYKQSRIRNR6UAKMRUAUBW \ / AMOS7 \ YOURUM ::
+#\[7]LJ6ELY64ECQZ2X2YIRLHCWF4WMHP6PN4BFCZMPSCI554PRIKMMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

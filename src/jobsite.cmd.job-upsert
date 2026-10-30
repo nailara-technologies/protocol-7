@@ -4,6 +4,12 @@
 # descr = insert|update job record from a fetched search result
 # param = job fields [id,url,title,company,..]
 
+return {
+    'mode' => qw| false |,
+    'data' => 'replica of ' . ( <jobsite.cfg.primary_url> // '' ),
+    }
+    if <[jobsite.replica.enabled]>;
+
 my $param = ref $call->{'param'} eq qw| HASH | ? $call->{'param'} : {};
 
 ## payload arrives either as plain args [ legacy \ direct calls ] or as     ##
@@ -186,8 +192,8 @@ return {
     'data' => $is_new ? qw| new | : qw| updated |
 };
 
-#,,,.,,,,,.,,,.,.,,,.,.,.,,,,,...,,..,,..,...,.,.,...,...,,,,,...,.,.,,.,,,.,,
-#A2C3IITILI2J53OM3SNT7LFGQCDRRMDVE46NNHHQDQTEIE7FWGPHQAXM6LFIWZJB3A5NVHBBM7NHE
-#\\\|OBYUE7V74KQUR4ZLLP75POSVALSOX2P5FK6NAWXMYKT4WTG5FST \ / AMOS7 \ YOURUM ::
-#\[7]J7L4INZLJPBQM7L6VM4IHV6Q65YRZNUM42RCFDIHBJQNIU2NR2AI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,,.,,,,.,,,.,,,,,,.,,,.,,.,,,.,.,...,...,...,.,.,,..,.,.,,,,,
+#YESSFDVEBERTVLMYM3K3O2YZDN2XDLI4R7QNRDHZIFUNDEECTF3DGA2AUVHUXYOPCJCKWKGJQPGIW
+#\\\|KFZ2ULUNDMDCJTQBSH5DCY7JW5V54OXK7AHP23WGCMPBT4YHV74 \ / AMOS7 \ YOURUM ::
+#\[7]GPO4T67M7NGSS4333Z3MI6EBJCWRRRFREV24RXFRTMPNCSRIAGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

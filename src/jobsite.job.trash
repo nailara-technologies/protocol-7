@@ -8,6 +8,9 @@
 #         delete share it : status trash + trash_epoch, an in-flight
 #         assessment task is failed. undo : jobsite.rescue
 
+return wantarray ? ( FALSE, 'replica mode' ) : FALSE
+    if <[jobsite.replica.enabled]>;
+
 my $id = shift // '';
 return wantarray ? ( FALSE, 'no job id' ) : FALSE if not length $id;
 
@@ -53,8 +56,8 @@ if ( $was_assessing and length( $task_id // '' ) ) {
 <[jobsite.sync.push_soon]>;
 return TRUE;
 
-#,,.,,..,,,.,,...,,,,,..,,,,.,,,,,.,.,,,.,..,,..,,...,...,...,,.,,.,.,,,.,.,,,
-#D2S25AH6L3ZH3TRB33RFTWVPIMUFDK6TX67ZWB44CX24L3V6Y2Z2VXZ3DO6U5EV7GSNGR2TPTI63W
-#\\\|U657ODTF4NREKLX6WKQY6MA5D2SJHTBDXQIBA7CN2ML2VRWKI26 \ / AMOS7 \ YOURUM ::
-#\[7]DFCNXH6OEI2ZWLXXNF2VZKQBDM22JF2AFZ3X6GARNX3EBLAJOYBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,.,...,.,,,,..,...,.,.,,,,,.,.,..,,...,,..,,..,,,,,...,..,,..,,
+#HRSFNG3XDVHHOC7N6RVPAEL3HA2D6R6HBCUVSWVJGYMHC2ZAH3BUDNK77JA2M7SQAQ2IPOVLPL2CS
+#\\\|TQXFLHAHJS6FR4K4PMBDJQPOEVNWQNUDRK7FQ63DLB6PXFIO2IY \ / AMOS7 \ YOURUM ::
+#\[7]BZZHGHXVZHTXIUWII4R7CHUZN34BEXNQXLJLJGLPKZPW6PI6GUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

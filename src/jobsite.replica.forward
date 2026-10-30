@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = jobsite.replica.forward
+# descr = collect local ui actions for forwarding to the primary
+
+return if not <[jobsite.replica.enabled]>;
+return if <jobsite.replica.forward_in_progress>;
+<jobsite.replica.forward_in_progress> = TRUE;
+<[clients.http.post]>->(
+    {   'url'     => qw| http://127.0.0.1/jobs-sync |,
+        'body'    => '{"jobs":[]}',
+        'timeout' => 32,
+        'on_done' => qw| jobsite.replica.forward-local-response |,
+    }
+);
+
+#,,,.,.,,,,,.,,.,,.,,,,,.,,,,,,,.,...,..,,.,.,..,,...,...,.,,,,,.,,,,,...,,,,,
+#EO55DWX4NN5ORCQWBT4MKJ2X6WTDKCV6ODGT2LH7LSMBBG5B2ZNBCT7LXD7QTRTPQJNLXNATMBAWM
+#\\\|OUASZZNU4A2KRJQBCGMMGL7NVQO6YJROLLHGFPNQN343OCKZG7S \ / AMOS7 \ YOURUM ::
+#\[7]JYF7LVWSA6MWD4N5TNXHQS6ZU4HJ4S6DMMC2GUOXF57BLYU24KCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

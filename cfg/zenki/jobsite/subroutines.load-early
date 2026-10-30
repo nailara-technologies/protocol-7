@@ -205,6 +205,7 @@ base.event.add_idle
 base.diff.hash_keys
 base.calc_unix_path
 jobsite.stage.review
+jobsite.replica.pull
 jobsite.job.load_all
 jobsite.cmd.progress
 io.ip.tcp.input.open
@@ -305,6 +306,8 @@ protocol.sftp.init_code
 jobsite.util.block-line
 jobsite.sync.push_chunk
 jobsite.report.assemble
+jobsite.replica.forward
+jobsite.replica.enabled
 jobsite.job.index.build
 jobsite.dispatch.repair
 jobsite.cmd.show-prompt
@@ -343,6 +346,7 @@ protocol.https.init_code
 plugin.auth.auth-keypair
 jobsite.stray.claim_next
 jobsite.report.csv_parse
+jobsite.replica.complete
 jobsite.dispatch.give_up
 jobsite.cmd.report-build
 jobsite.cmd.list-trashed
@@ -371,6 +375,7 @@ jobsite.util.fix_encoding
 jobsite.util.build_prompt
 jobsite.sync.role_for_url
 jobsite.report.mail_split
+jobsite.replica.pull_soon
 jobsite.removed_log.prune
 jobsite.handler.sync-soon
 jobsite.fetched.subscribe
@@ -436,6 +441,8 @@ net.read_linewise_estimated
 jobsite.validate.assessment
 jobsite.util.description_ok
 jobsite.report.extract_text
+jobsite.replica.unsent-save
+jobsite.replica.unsent-load
 jobsite.repair_encoding.job
 jobsite.liveness-sweep.next
 jobsite.handler.repair-done
@@ -491,6 +498,8 @@ base.access.special-user-map
 auth.client.server_pin.check
 protocol.protocol-7.init_code
 jobsite.report.render_dossier
+jobsite.replica.pull-response
+jobsite.replica.forward-retry
 jobsite.handler.sync-response
 jobsite.handler.rewire-assess
 jobsite.dispatch.release_slot
@@ -523,6 +532,7 @@ auth.client.unix.authenticate
 ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+jobsite.replica.local-response
 jobsite.repair_encoding.finish
 jobsite.repair_encoding.backup
 jobsite.handler.translate-done
@@ -545,6 +555,7 @@ auth.client.zenka.authenticate
 ascii.frame.render.border_line
 jobsite.report.mime_decode_body
 jobsite.report.evidence_collect
+jobsite.replica.pull_soon-fired
 jobsite.repair_encoding.example
 jobsite.liveness-sweep.complete
 jobsite.handler.pending-changed
@@ -557,6 +568,8 @@ base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.handler.link-upgrade.input
 base.chk-sum.bmw384.arc-segment
+jobsite.replica.forward-response
+jobsite.replica.forward-endpoint
 jobsite.repair_encoding.scan_one
 jobsite.repair_encoding.location
 jobsite.handler.liveness-timeout
@@ -641,6 +654,7 @@ base.handler.ondemand_idle_term_guard
 auth.client.auth-keypair.authenticate
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
+jobsite.replica.forward-local-response
 jobsite.handler.mark-exported-response
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
@@ -654,6 +668,7 @@ protocol.sftp.handler.read_server_output
 jobsite.util.fix_encoding.mojibake-table
 protocol.protocol-7.auth.select-size-mode
 jobsite.util.fix_encoding.score-candidate
+jobsite.replica.forward-endpoint-response
 base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
@@ -667,8 +682,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,.,,,,,,,.,,,.,,,.,,.,,,,..,.,.,,..,,,.,..,,...,...,.,,,..,,...,,,,,...,
-#MRXJJJ2JTUXIEFUSDOY4QACPMNAGKGXKAQLJUCY7CZ3WQ24MPZKGBMGTSVVMX3CHFTAID4TZ7U5KY
-#\\\|UBXH4QQNV27JBM6CHKMPGXMQYUFGWLCMQCFHYS5EFCS5LSGMQBM \ / AMOS7 \ YOURUM ::
-#\[7]LXCYWAORTE5AKHR27YRWVLX3R4QMUNTEEVURJ7VHN6CBXKUDQOAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,.,,,,,,,,,,.,,,,,,,,..,,.,,...,..,,...,..,,...,...,.,.,.,.,,..,
+#7PZ2RDPTNGF4452BWZZOKBKNLR2ANSUWO6STXCUNVMIUAZN7DSUVHWDFFYBOWVMLFCF6EOA2VFYHQ
+#\\\|STUX4IO6O6OOZ3NC2RLAVQFIZDK6MO44PALSGLXYHEPBWKEZKBG \ / AMOS7 \ YOURUM ::
+#\[7]RDIR4DTNU4WGM2A35LYSFGU3FL7P46HKX4TF5IKCOPIXH27FJQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

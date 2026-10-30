@@ -150,6 +150,11 @@ $code{'plugin.web.jobs.cache.write'}    = sub {
 };
 $code{'plugin.web.jobs.removed_log.append'} = sub { return TRUE };
 $code{'plugin.web.jobs.store.prune'}        = sub {return};
+$code{'plugin.web.jobs.events.notify'}      = sub {return};
+
+$code{'jobsite.replica.enabled'} = sub { return FALSE };
+$code{'jobsite.sync.push_soon'}  = sub { return TRUE };
+$code{'protocol-7.route-send'}   = sub { return TRUE };
 
 ## jobsite-side stubs                                                      ##
 $code{'jobsite.job.read'}  = sub { return $job_store{ $ARG[0] } };
@@ -711,8 +716,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,...,,,,,,,,,..,,.,.,,.,,,.,,...,,.,,,.,,..,,...,...,,.,,.,,,...,.,.,,,,,
-#24OCGGBQRLTMRJKA7BY7WNDFAW2T22WOK6YLLUCQE5DPKQGEMVI4IDMEMNZQDJVMY2SELYMY2ONK4
-#\\\|PNBS6OMUOIU6TGXFDFBYNBAECRU56PWOPB6W7NPH5DWTNJXU2MP \ / AMOS7 \ YOURUM ::
-#\[7]TP74PYLI4Z6YDENG2Z5Z2D7P3O2HZMRGIK3JRKUKPST7GBFRF4CA 7  DATA SIGNATURE ::
+#,,..,...,..,,.,,,,.,,.,.,.,.,,,,,.,.,.,.,...,..,,...,...,...,,.,,.,,,...,...,
+#V4P6TPCXIZLMTFPPCCF7AXVEJB36H7KHFJKBSQI7O2YUYSPP4JLHIOKSGD6Y5VZDY2JTRXUBERNGY
+#\\\|WEJV5HQYC7JQDCIZBR7VWZUYY2GBFYGPS53CQUFMW33OKVR4TX7 \ / AMOS7 \ YOURUM ::
+#\[7]BQ52GBRFESAWVQUSSTNA7HJZSJ7ZAUBJE7CX3Z7NQUK3FESFP6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

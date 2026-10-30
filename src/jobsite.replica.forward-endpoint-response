@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = jobsite.replica.forward-endpoint-response
+# descr = relay a primary endpoint response to the local http caller
+
+my $result = shift               // {};
+my $params = $result->{'params'} // {};
+my $body
+    = $result->{'ok'}
+    ? ( $result->{'body'} // '{}' )
+    : JSON::XS::encode_json(
+    {   'ok'      => JSON::XS::false(),
+        'message' => $result->{'error'} // 'primary unavailable'
+    }
+    );
+<[base.callback.cmd_reply]>->(
+    $params->{'reply_id'},
+    {   'mode'         => qw| strm |,
+        'data'         => $body,
+        'content_type' => qw| application/json |
+    }
+);
+<[jobsite.replica.pull_soon]>;
+
+#,,,.,.,,,.,.,,,.,..,,,,,,...,.,,,.,,,,,,,.,.,..,,...,...,..,,,..,..,,...,...,
+#R7CZ5Q4CBAJABC3Z7EC34H4SQZ3EQSCUAQCBWBTDH6LZZAVHEHXRTLWADFHY7VPXKDWRRUNTJP2K4
+#\\\|PPEIJTQPB6BLG47DUGEEYBPX5UCRAPJO4B23DVO3VZFELGD23WI \ / AMOS7 \ YOURUM ::
+#\[7]C4BYXFPZUSOQJTTC2BFPATPSTPNN6CTHLVHSP5WD75Q4YKHRZWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

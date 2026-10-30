@@ -12,6 +12,8 @@
 #         ui sort key ]. neither stamp = stale. verdicts :
 #         jobsite.liveness.apply
 
+return FALSE if <[jobsite.replica.enabled]>;
+
 my ( $job_id, $entry ) = @ARG;
 
 my $max_age = <jobsite.cfg.liveness_max_age> // 43200;
@@ -61,8 +63,8 @@ $pending->{$job_id} = {
 
 return TRUE;
 
-#,,,,,.,,,.,.,,..,.,.,.,,,.,.,.,.,.,.,,..,...,..,,...,...,..,,.,,,,.,,..,,,..,
-#7JJOYLUDV5SFPSCH3OCXDD2TA25ITLYMQLMEH3LEY6P6ZDPEQP2MX4XF23I5TTVTRBCDWAV3343KA
-#\\\|SVBSB7VAZUYBYJUPHSGRG2AMPO54Q5J5A3QMZFIH5MAFYYBD5R4 \ / AMOS7 \ YOURUM ::
-#\[7]DV2WRXCUFGXMIPIBO3HTHDKYOIEW3OXE4BQL6DH7XUU7FDDT4CBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,,.,,,..,,,,,,.,,..,,..,,.,.,..,,...,...,,.,,,,,,.,,,...,,..,
+#WNUSY7RGTBUZDTYLAULIMPE5IDDQUU23CFE7QWMF34Y5OERP2F2FKHGQ5VB7D6EQCPX2FSCFFDCWQ
+#\\\|CTIOSMWE377QZQZ3NHXTOGCUAKVEJCBLO65TF423EYSBN2ASCED \ / AMOS7 \ YOURUM ::
+#\[7]BDPEGCNOEOA3OGFF5Q3LEW5QOHL64MZYUXYSXMEERBVXMC6T3ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

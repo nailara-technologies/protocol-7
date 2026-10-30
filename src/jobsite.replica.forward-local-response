@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = jobsite.replica.forward-local-response
+# descr = send collected ui actions to the primary jobs sync endpoint
+
+## the local jobs-sync call already FLUSHED the web reverse queue : the     ##
+## entries live only here now -- unsent ones from a failed forward go first ##
+## [ ntime order ], kept until the primary confirms them                    ##
+my $result = shift // {};
+my $reply
+    = $result->{'ok'}
+    ? eval { JSON::XS::decode_json( $result->{'body'} // '' ) }
+    : undef;
+my $fresh = ref $reply eq 'HASH' ? $reply->{'reverse'} : undef;
+$fresh = [] if ref $fresh ne 'ARRAY';
+
+my @entries = ( ( <jobsite.replica.unsent> // [] )->@*, $fresh->@* );
+if ( not @entries ) {
+    <jobsite.replica.forward_in_progress> = FALSE;
+    return;
+}
+if ( $fresh->@* ) {
+    <jobsite.replica.unsent> = \@entries;
+    <[jobsite.replica.unsent-save]>;
+}
+
+my $url     = <jobsite.cfg.primary_url> // '';
+my $token   = <[jobsite.sync.token_for_url]>->($url);
+my $headers = {};
+$headers->{'Authorization'} = "Bearer $token" if length $token;
+
+my $body = eval {
+    JSON::XS::encode_json( { 'role' => qw| ui |, 'jobs' => \@entries } );
+} // '';
+if ( not length $body ) {
+    <jobsite.replica.forward_in_progress> = FALSE;
+    return;
+}
+
+my $request = {
+    'url'     => $url,
+    'body'    => $body,
+    'headers' => $headers,
+    'timeout' => 32,
+    'on_done' => qw| jobsite.replica.forward-response |,
+    'params'  => { 'count' => scalar @entries },
+};
+if ( $url =~ m{^https://}i ) {
+    <[clients.https.post]>->($request);
+} else {
+    <[clients.http.post]>->($request);
+}
+
+#,,,.,.,.,..,,,,,,,..,,,.,..,,,,,,.,,,,,.,...,..,,...,.,.,...,,,.,,,.,,..,,..,
+#ISIZJTHAG2BPDKYHDINNDBMKXODSYIT7DO7LNTGPFZGRAOA72QJRUXIUMA4GYYCEO27R4V7TF7YPW
+#\\\|ZMGS324KRCUT2N3LQLMIDDRKIS7X2TA5LBALARJPWY42XYITGDV \ / AMOS7 \ YOURUM ::
+#\[7]WXPQ3RDYKN2E5U4FG3YAQF3YUVUYXK57IWIHZWGBPJSPIXYU2CBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
