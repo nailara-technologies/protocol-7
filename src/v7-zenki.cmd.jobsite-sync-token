@@ -1,0 +1,158 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.jobsite-sync-token
+# param = url=<sync-url> [no-restart=1] [ token : stdin ]
+# descr = set the bearer token of one jobsite sync url
+#         in the host config [ jobsite.cfg.sync_tokens
+#         <url>=<token> ], then restart jobsite
+# note  = mint on the primary and pipe it over, the token never touches
+#         argv, a log or the reply :
+#           ::: <host> web.auth-issue <user> -ttl 31536000 \
+#             | :: v7-zenki.jobsite-sync-token+ url=https://<primary>/jobs-sync
+#         the body is a bare token or the auth-issue reply line. host
+#         configs are root and read at init : jobsite restarts unless
+#         :no-restart: [ in effect at the next restart ]. revoke the old
+#         token afterwards by its hash [ web.auth-revoke ]
+
+## the '+' form carries its words as 'key=value' headers [ p7c ] : ##
+## url=<sync-url> [ no-restart=1 ], the body is the token source   ##
+my $param = ref $call->{'param'} eq qw| HASH | ? $call->{'param'} : {};
+my $args  = $call->{'args'} // '';
+my $no_restart
+    = ( $args =~ s{\s*:no-restart:\s*}{ }g or $param->{'no-restart'} )
+    ? TRUE
+    : FALSE;
+$args =~ s{^\s+|\s+$}{}g;
+
+my $usage = 'usage : <token source> | v7-zenki.jobsite-sync-token+ '
+    . 'url=<sync-url> [no-restart=1]';
+
+my $url  = $param->{'url'} // $args;
+my $body = $call->{'data'} // '';
+$url =~ s{^\s+|\s+$}{}g;
+return { 'mode' => qw| false |, 'data' => $usage }
+    if $url !~ m{^https?://\S+$};
+
+my ($token) = $body =~ m{token \[ shown once \] : (\S+)};
+($token) = $body =~ m{^\s*(\S+)\s*$} if not defined $token;
+return {
+    'mode' => qw| false |,
+    'data' => "no token on stdin [ nothing changed ] -- $usage"
+    }
+    if not defined $token or $token !~ m|^[\w.+/-]{8,}$|;
+
+my $host_cfg = join qw| / |, <[base.host.config_dir]>, qw| jobsite.cfg |;
+return {
+    'mode' => qw| false |,
+    'data' => "no trusted $host_cfg [ nothing changed ]"
+    }
+    if -l $host_cfg
+    or not -f $host_cfg
+    or not <[base.host.trusted_file]>->($host_cfg);
+
+open( my $in_fh, '<:raw', $host_cfg ) or do {
+    return {
+        'mode' => qw| false |,
+        'data' => "cannot read $host_cfg : $OS_ERROR [ nothing changed ]"
+    };
+};
+my $content = do { local $INPUT_RECORD_SEPARATOR = undef; <$in_fh> };
+close($in_fh);
+
+my $key_re = qr{^(\s*jobsite\.cfg\.sync_tokens\s*=[ \t]*)(.*)$}m;
+my $count  = () = $content =~ m{^\s*jobsite\.cfg\.sync_tokens\s*=}mg;
+return {
+    'mode' => qw| false |,
+    'data' => "$count sync_tokens lines in $host_cfg "
+        . '[ expected one at most, nothing changed ]'
+    }
+    if $count > 1;
+
+## replace the pair for this url, keep every other pair ##
+my $replaced = FALSE;
+if ($count) {
+    $content =~ s{$key_re}{
+        my ( $lead, $pairs ) = ( $1, $2 );
+        my @pairs = map {
+            my ($pair_url) = split m|=|, $ARG, 2;
+            ( $pair_url eq $url ) ? do { $replaced = TRUE; "$url=$token" } : $ARG
+        } split m|\s+|, $pairs;
+        push @pairs, "$url=$token" if not $replaced;
+        $lead . join( qw| |, @pairs );
+    }e;
+} else {
+    $content .= "\n" if length $content and $content !~ m{\n$};
+    $content .= "jobsite.cfg.sync_tokens = $url=$token\n";
+}
+undef $token;
+
+## owner + mode kept, temp file + rename ##
+require Fcntl;
+my $stat = File::stat::stat($host_cfg);
+return {
+    'mode' => qw| false |,
+    'data' => "cannot stat $host_cfg : $OS_ERROR [ nothing changed ]"
+    }
+    if not defined $stat;
+
+my $tmp_file = sprintf '%s.sync-token-%d', $host_cfg, $PID;
+my $written  = FALSE;
+if (sysopen(
+        my $fh,
+        $tmp_file,
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        0600
+    )
+) {
+    $written = ( print {$fh} $content ) && close($fh);
+    $written
+        &&= chown( $stat->uid, $stat->gid, $tmp_file )
+        && chmod( $stat->mode & 07777, $tmp_file )
+        && rename( $tmp_file, $host_cfg );
+}
+undef $content;
+if ( not $written ) {
+    my $error = "$OS_ERROR";
+    unlink $tmp_file;
+    return {
+        'mode' => qw| false |,
+        'data' => "writing $host_cfg failed : $error [ nothing changed ]"
+    };
+}
+
+my $action = $replaced ? qw| replaced | : qw| added |;
+<[base.logs]>->( 0, '<< jobsite sync token %s for %s >>', $action, $url );
+
+## jobsite reads host config at init : restart it ##
+my @restarted;
+if ( not $no_restart ) {
+    my $zenka_id = <[zenka.get_id]>->(qw| jobsite |);
+    if ( defined $zenka_id ) {
+        foreach my $instance_id (<[v7-zenki.instance_ids]>) {
+            next
+                if <v7-zenki.zenka.instance>->{$instance_id}->{'zenka_id'}
+                != $zenka_id;
+            <[zenka.instance.restart]>->($instance_id);
+            push @restarted, $instance_id;
+        }
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'sync token %s for %s%s',
+        $action,
+        $url,
+        $no_restart  ? ' [ jobsite not restarted ]'
+        : @restarted ? ' [ jobsite restarting ]'
+        :              ' [ jobsite not running ]'
+    )
+};
+
+#,,,.,,,,,,.,,.,.,,,.,..,,..,,.,.,,..,.,,,,.,,..,,...,...,..,,,,,,.,,,...,,,,,
+#3PBGYP6RMJCZWPNNKDO6BJDCHLM4XRYEKVHUUFRYNIZ35JB5OPJ2ZVTRG7FILKLMYIWGZZPOGBA72
+#\\\|UCL6CBPEHIZELGWGWWWRMYXDT4EOHBZAFKWOJK53YH5O57G6TNU \ / AMOS7 \ YOURUM ::
+#\[7]7NYO6DE7F6HONOGCEERM24SZNCXHOANYWOHTWDZBM4JCNGWYPOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
