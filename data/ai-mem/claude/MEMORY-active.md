@@ -237,10 +237,11 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [session-handover-jobsite-live-updates](project-2026-10-29-session-handover-jobsite-live-updates.md) — previous [ superseded 2026-10-29 late ] 2026-10-29 night : live updates done + confirmed, WY5 deployed [ check the next scan ], next Q2K, ZRK round 2 ; how-to-work list [ whitelist, version files, unsigned files, aborted sign runs ]
 - [jobsite-live-update-chain](project-2026-10-29-jobsite-live-update-chain.md) — LANDED 2026-10-29 : push_soon 3 s, web sync-soon nudge for ui deletes, SSE /jobs-events [ signal only ], browser timers [ events throttle, actions own timers ] ; httpd route option syntax, remote queue-depth + owed rescan fixes
 - [thermal-aware-local-worker](project-2026-10-29-thermal-aware-local-worker.md) — DESIGN 2026-10-29 : local gpu in pool gated by temp \ memory \ idle \ night window \ outdoor amplifier, all configurable ; heat wanted after 22:00
-- [session-handover-thermal-q2k](project-2026-10-30-session-handover-thermal-q2k.md) — START HERE 2026-10-29 late [ last 344e62e56 ] : Q2K deployed, thermal 1-5 watch-only over night, GDX fixed ; next : night snapshots, wire verdict into the pool
+- [session-handover-thermal-q2k](project-2026-10-30-session-handover-thermal-q2k.md) — previous [ superseded 2026-10-30 ] 2026-10-29 late [ last 344e62e56 ] : Q2K deployed, thermal 1-5 watch-only over night, GDX fixed ; next : night snapshots, wire verdict into the pool
+- [session-handover-night-brake](project-2026-10-30-session-handover-night-brake.md) — START HERE 2026-10-30 [ last 672074350 ] : night brake 68 C live, idle baseline via power, soft swap 7 \ 27 m, stale-claim sweep, temp-boost [ next coding start ], priority pickup ; next : morning checks
 
-#,,,,,,..,...,,.,,.,,,,.,,,..,,.,,,,,,,.,,...,..,,...,...,..,,...,,.,,.,.,.,,,
-#XAMSQHO36KTBVXSFB2ZY7KKQIE33OOFUBAELYTQ54Y3PPHT5BTNLYPYYHX322UWGDMJV324H4HJRS
-#\\\|G6EKLZDKCGY576664VRFFATB3ZSLJQ3I2DMDCI5HS7G5YKPQQ6O \ / AMOS7 \ YOURUM ::
-#\[7]XZRPTN7LG3XBTK3BM2W2NTFBZDLDVRI5VBWTUK2HX2HBH5RASQBQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,..,,..,..,,...,,,.,,,.,.,,,,.,,..,,...,...,...,,,.,..,,.,.,,,,,
+#M5A4HMXEHSFTZAUY2VYUS7355FZRMB36DT4EUDFPSFMT7JBIW3GAGX4T4CPT3AF6V44BMLOLQK3K2
+#\\\|56FJ4ASRDLIBCOO4B44DAA6B4ARODFWYVR5HT567I3RYTASNVSJ \ / AMOS7 \ YOURUM ::
+#\[7]RC4WKTQ4HAQDXP2YFGSHLSTCU2JHEXVDZWJSNLSGZLO2Y36CPQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,7 @@ the pre-commit hook refuses `git commit --amend` with "version mismatch [ expect
 
 **Why:** 2026-10-07 the p-7-r pin-line commit landed with only the version files : the user's sign run stages only files carrying an AMOS7 signature, `bin/c_src/p-7-r.c` has none, so it stayed unstaged.
 
-**How to apply:** before asking for a signed version, `git add` every changed file without a signature block [ bin/c_src/*.c, data/web-root/** pages, other unsigned files ] myself -- and NEVER list them in p7_sign paths : 2026-10-30 jobsite index.html got a signature footer that way [ served on pri ], fix = `p7-sourcecode strip-signature-footer <file>` ; after the commit check `git status --short` is empty. if one slipped through and the commit is unpushed : stage it, `AMEND=1 git commit --amend --no-edit`.
+**How to apply:** before asking for a signed version, `git add` every changed file without a signature block [ bin/c_src/*.c, data/web-root/** pages, other unsigned files ] myself -- and NEVER list them in p7_sign paths : 2026-10-30 jobsite index.html got a signature footer that way [ served on pri ], fix = `p7-sourcecode strip-signature-footer <file>` ; but regenerated subroutines.load-early files ARE signed : list them. a refused commit re-bumps the version unsigned : sign the 3 version files again [ or bump in the same run as the code ] ; after the commit check `git status --short` is empty. if one slipped through and the commit is unpushed : stage it, `AMEND=1 git commit --amend --no-edit`.
 
 **2026-10-07, later : the sign run stages MORE than intended and rewrites what it stages.** it stages every modified signed file -- including a kimi \ subagent's half-finished edits still in progress [ happened : 7 unreviewed harness files staged next to my 2 ]. and it reformats with `format-code -r`, which changed code meaning [ `s/\@ARG/\@_/g` -> `s|@ARG|@_|g`, committed uncompilable in d97bc51ff ; format-code fixed in 9a8d002cf ]. so after "signed" : `git status --short`, `git restore --staged` anything not reviewed [ it then needs re-signing in its own batch ], and run `perl -c` \ the harness on the STAGED content right before committing -- a check done before the sign run does not cover what gets committed. better : don't ask for a sign while an agent is still editing.
 
@@ -23,8 +23,8 @@ the pre-commit hook refuses `git commit --amend` with "version mismatch [ expect
 index.html change [ unsigned web-root page ] stayed unstaged. right before EVERY commit run
 `git -c color.ui=false status --short` and treat any ` M` [ unstaged ] line as a stop.
 
-#,,,,,...,.,,,...,,,.,..,,.,,,,,,,..,,,.,,..,,..,,...,...,,.,,,,,,,,,,...,,,,,
-#5LOPIVV5SFO2BU5LPDLNJKY5B6AVUB4YW754Y57EU7RH46COYM633D7ZBRCB456X7UF6X3WXB5DUE
-#\\\|NZEH55L3FUTE5PGNU2ETMCHEVZGEEN3JHLSGURU6BTIYDGFTYDM \ / AMOS7 \ YOURUM ::
-#\[7]4HIQ5XDJFMQI4Y5MOUCGHRA25CEUAX7YTM22DEFDQM2U7NEO72DY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,.,,,.,,,.,.,..,,,,.,.,,,...,..,,...,...,,..,..,,...,,..,,..,
+#DCICMKNKM4IGRMLQFNHZL3F7AZX6E35J4F645R2SO6OXQJCVI2PIPPCSTPSRCKFNJHI22VGEXFIUG
+#\\\|HWZVLA72VJG46VF5E2KSNKZHF5EQH3IXODQETW24JYUBK5FMPIO \ / AMOS7 \ YOURUM ::
+#\[7]ILM76KGDMBMNOUD4WPDZLN7DN3DEOISIEIFEO6PZEV7UYR3SSACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
