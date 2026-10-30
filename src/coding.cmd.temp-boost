@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = coding.cmd.temp-boost
+# descr = temporarily raise the thermal hover mark
+# param = [ minutes ] [ warm|hot|full|on ] | off [ any order ]
+
+my @args = split( ' ', $call->{'args'} // '' );
+my $usage
+    = 'usage : coding.temp-boost [ minutes ] [ warm|hot|full|on ] | off';
+my $now = <[base.time]>->(2);
+
+if ( not @args ) {
+    my $boost = <[coding.thermal.boost_active]>->($now);
+    return { 'mode' => qw| size |, 'data' => 'no boost' }
+        if not defined $boost;
+    my $minutes = int( ( $boost->{'until'} - $now + 59 ) / 60 );
+    my $detail
+        = $boost->{'delta'} eq qw| full |
+        ? ''
+        : sprintf( ' [ +%s C ]', $boost->{'delta'} );
+    return {
+        'mode' => qw| size |,
+        'data' => sprintf(
+            'boost %s%s : %d min left',
+            $boost->{'level'}, $detail, $minutes
+        )
+    };
+}
+
+if ( @args == 1 and $args[0] eq qw| off | ) {
+    delete <coding.thermal.boost>;
+    return { 'mode' => qw| size |, 'data' => 'boost ended' };
+}
+
+return { 'mode' => qw| false |, 'data' => $usage } if @args > 2;
+
+## any order : a number is the minutes, a word the level              ##
+## [ 'on' = the default level ] -- so 'on' or a bare level starts the ##
+## default time                                                       ##
+my ( $minutes, $level );
+foreach my $arg (@args) {
+    if ( $arg =~ m|^\d+$| ) {
+        return { 'mode' => qw| false |, 'data' => $usage }
+            if defined $minutes or $arg !~ m|^[1-9]|;
+        $minutes = $arg;
+    } else {
+        return { 'mode' => qw| false |, 'data' => $usage }
+            if defined $level;
+        $level
+            = $arg eq qw| on |
+            ? <thermal.cfg.boost.level> // qw| hot |
+            : $arg;
+    }
+}
+$minutes //= <thermal.cfg.boost.minutes> // 42;
+$level   //= <thermal.cfg.boost.level>   // qw| hot |;
+
+my $delta
+    = $level eq qw| full | ? qw| full |
+    : $level eq qw| warm | ? <thermal.cfg.boost.warm> // 4
+    : $level eq qw| hot |  ? <thermal.cfg.boost.hot> // 8
+    :                        undef;
+return {
+    'mode' => qw| false |,
+    'data' => "unknown level : $level [ levels : warm, hot, full ]"
+    }
+    if not defined $delta;
+
+my $max_minutes = <thermal.cfg.boost.max_minutes> // 180;
+my $capped      = $minutes > $max_minutes;
+$minutes = $max_minutes if $capped;
+
+<coding.thermal.boost> = {
+    'until' => $now + $minutes * 60,
+    'level' => $level,
+    'delta' => $delta
+};
+<[base.logs]>->( 1, "thermal boost : $level for $minutes min" );
+
+my $reply
+    = $level eq qw| full |
+    ? "boost full : $minutes min"
+    : "boost $level [ +$delta C ] : $minutes min";
+$reply .= " [ capped at $max_minutes min ]" if $capped;
+return { 'mode' => qw| size |, 'data' => $reply };
+
+#,,,.,,.,,.,,,,,,,,..,...,,,.,...,...,.,.,...,..,,...,...,.,.,,.,,,..,,..,,..,
+#QUA5I7C2HBQY4PRVKQWSDSJ5NWXDSM4XOB56MHHSHIUGKDSJFEBQXSVPQSXCUHU5BMQACZLD3ALTA
+#\\\|2A5RIBD4CO7R4YZSPIUQH42OW6MEI2HB7RORZPBGMZT52QDCEGK \ / AMOS7 \ YOURUM ::
+#\[7]NISXBS67ZSJJDXRPVPOQH5G7WVSA6IBVWG4ZPJ7EWTGKGQUW2MBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

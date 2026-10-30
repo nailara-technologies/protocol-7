@@ -34,9 +34,11 @@ unless ( defined $task ) {
 ## timer calls this execute again with the same params                    ##
 if (    <[coding.helper.task_backend]>->($task) eq qw| gpu |
     and <[base.cfg_bool]>->( <coding.cfg.thermal_gate> // FALSE ) ) {
-    my $th  = <coding.thermal> // {};
-    my $gap = <[thermal.hover.gap]>->(
-        $th->{'temp'}, $th->{'verdict'}, <[base.time]>->(2)
+    my $th    = <coding.thermal> // {};
+    my $now   = <[base.time]>->(2);
+    my $boost = <[coding.thermal.boost_active]>->($now);
+    my $gap   = <[thermal.hover.gap]>->(
+        $th->{'temp'}, $th->{'verdict'}, $now, $boost
     );
     if ( $gap > 0 ) {
         my $held = <coding.thermal.held> //= {};
@@ -317,8 +319,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,,.,,.,,...,,,,,,,.,,.,,,,.,...,,,,,..,,,.,,.,.,...,.,.,...,.,,,,,.,,,.,..,,
-#UY3ZVXRQESRJH6Y5BFQWQYKBGMCODAOD2D6ZGJQAHY7O7KRVWJNF7SKIKYELKV2BADH2422LWQV6K
-#\\\|AJ33GA2U2SXTX3CWKXBTJBA64IOR7VL2ZWCWL4JT7BUHQPQ2RNM \ / AMOS7 \ YOURUM ::
-#\[7]EG3EBNQAVWY7ZY5CWFNPT2ADBNHQYLCOX4DXKC2HY7YJWIDTNUAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,,.,,.,,,,.,,,..,..,,,..,,,.,.,.,...,..,,...,,.,,..,,.,,,.,,,
+#P6CZL63MRGS73ZHKXGNWKZU6AUGDZP3G323XXKRPBNWVMB2OI46ZOZTAH7M35AQ5WL7A6EQA2JAI2
+#\\\|XMST44RHQHK43TPYM6K63TYWADZ6AJGIRVQFPKHQX4VMJ42H2PU \ / AMOS7 \ YOURUM ::
+#\[7]HL5D5OAXLLB5ZRGE4TGQDABVPAF5FCMEB6WKDVKC452LUQIV3UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

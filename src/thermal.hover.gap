@@ -5,7 +5,7 @@
 #         temperature over the hover mark of the current window, max
 #         while the verdict stops work [ 0 = run now ]
 
-my ( $temp, $verdict, $now ) = @ARG;
+my ( $temp, $verdict, $now, $boost ) = @ARG;
 
 my $gap_max = <thermal.cfg.hover.gap_max> // 180;
 
@@ -23,6 +23,11 @@ my $target
     : <thermal.cfg.hover.day>;
 return 0 if not defined $target or not length $target or $target <= 0;
 
+if ( defined $boost and ( $boost->{'until'} // 0 ) > $now ) {
+    return 0 if $boost->{'delta'} eq qw| full |;
+    $target += $boost->{'delta'};
+}
+
 my $gap = ( $temp - $target ) * ( <thermal.cfg.hover.per_c> // 15 );
 return 0 if $gap <= 0;
 
@@ -30,8 +35,8 @@ $gap = $gap_max if $gap > $gap_max;
 
 return 0 + sprintf( qw| %.1f |, $gap );
 
-#,,.,,.,.,,,.,..,,..,,,..,.,,,.,.,,..,..,,,,.,..,,...,..,,..,,..,,.,,,,,.,,,.,
-#NG2FKJIKKSWFW7MNOXP6VR57LTDWLGITOD5CFOUS2JHRQ3NSQUFGH5OWSHHMDMPZ7JSB6M4EN7RCM
-#\\\|XUFNDD4H7NFSVOKCZIKMSKSS4BQAJ25CU3R35ROWKN5LAUCYLUY \ / AMOS7 \ YOURUM ::
-#\[7]KIMPP3MRXGKB6IWO6TOSQTYARJV6RNQ6EDAI5GBZVH4YF7SBT4CQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,.,,,,,.,.,,,,,..,,...,,,.,..,,..,,...,...,,,.,,,,,...,.,.,,,.,
+#HELJADBQX4C46VP2EFQFOT4KZIQ7LHT5GRDL6XQFPNAMID225VEUG4PZJA5SR44FK7YHVGUZMYG4Q
+#\\\|2PHPAZ6S26Y3YMAOW3N2Y5IIJQOJIKAN4NLLOR6CPIJ74ILXPMU \ / AMOS7 \ YOURUM ::
+#\[7]5PZNQMMLQTL52QC3H72UIXMOLMIMILGKOZ3MBPZQJCSLRZHV5MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,9 +32,11 @@ my $backend = ( <coding.async.task_state>->{$task_id} // {} )->{'backend'}
 ## fresh acquire                                                            ##
 if ( $backend eq qw| gpu |
     and <[base.cfg_bool]>->( <coding.cfg.thermal_gate> // FALSE ) ) {
-    my $th  = <coding.thermal> // {};
-    my $gap = <[thermal.hover.gap]>->(
-        $th->{'temp'}, $th->{'verdict'}, <[base.time]>->(2)
+    my $th    = <coding.thermal> // {};
+    my $now   = <[base.time]>->(2);
+    my $boost = <[coding.thermal.boost_active]>->($now);
+    my $gap   = <[thermal.hover.gap]>->(
+        $th->{'temp'}, $th->{'verdict'}, $now, $boost
     );
     if ( $gap > 0 ) {
         my $held = <coding.thermal.held> //= {};
@@ -115,8 +117,8 @@ return {
     deferred => TRUE,
 };
 
-#,,,,,,,.,.,.,.,.,,.,,,.,,.,.,.,.,...,,,.,,,,,..,,...,...,,,,,...,,..,.,,,,,,,
-#XVR7DNWDXN3BTHTVVVPOI3LF3S57XRXOJWHXR3HYXLXKUA2GW2LA3LHJYRPDYYOPWRS4RAUZGLUCA
-#\\\|7GYUD72MM7YM7L5NUSBKLZCRITCBA5UFBBGEVJSRFGDX3WAPMOP \ / AMOS7 \ YOURUM ::
-#\[7]SHCXZ6Z4RFVF5AA5JMHEO3GQ67TSSA36WQLQHZECJXQGYHXAL4BI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,.,.,.,,..,.,,,,,,,,,.,,.,,..,,..,,...,...,..,,,,,,.,,,.,,,,,,,
+#OXQW3DLHBGVO7BLLUVURON7WHTB4DP2TWJGFB2RYHQX2OTVB5JMM4R57ZEAXROZ53IWID47Z5NBIA
+#\\\|N6DTPCRS56S2MWXQ7CKXH3K6DM6AP3D6JYH4VWSWW55R33LUTBH \ / AMOS7 \ YOURUM ::
+#\[7]PJCSFA5ZGHN3KGULOMXLC7Q6DZXGAL5KXJ6KD4XKQ2PE4A5H2QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
