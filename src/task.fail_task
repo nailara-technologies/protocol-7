@@ -1,12 +1,12 @@
 ## [:< ##
 
 # name  = task.fail_task
-# param = <task_id> <error>
+# param = <task_id> <error> [ <expected_agent> ]
 # descr = mark a pending, claimed or in_progress task as failed : archive,
 #         persist, answer a waiting wait-done, record the outcome
 # return = { mode, data } [ the task.cmd.fail reply ]
 
-my ( $task_id, $error ) = @ARG;
+my ( $task_id, $error, $expected_agent ) = @ARG;
 $error //= '';
 
 my $task = <task.queue>->{$task_id};
@@ -16,6 +16,24 @@ return {
     'data' => sprintf( 'task %s not found', $task_id )
     }
     unless defined $task;
+
+## an expiry request only fails its own still-active claim ##
+if (length( $expected_agent // '' )
+    and (
+        ( $task->{'agent'} // '' ) ne $expected_agent
+        or (    $task->{'status'} ne 'claimed'
+            and $task->{'status'} ne 'in_progress' )
+    )
+) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'task %s is %s by %s, not an active claim of %s',
+            $task_id,                $task->{'status'},
+            $task->{'agent'} // '-', $expected_agent
+        )
+    };
+}
 
 ## pending, claimed, or in_progress tasks can be failed
 if (    $task->{'status'} ne 'claimed'
@@ -60,8 +78,8 @@ if ( length( $task->{'node_id'} // '' ) ) {
 
 return { 'mode' => 'true', 'data' => "failed $task_id" };
 
-#,,,,,.,,,,,.,..,,..,,.,,,,,,,.,,,,,.,,,.,,..,..,,...,...,.,,,.,.,,,.,,..,.,,,
-#IY3DLJFXXCOPKXHMTTVPSFDNNOZV4VMKYFH7SXH3FK2PVFR54DNEPFJKXRU23KT7PQCFBQJB5JTKK
-#\\\|3KMEB2TGEQHACSTT7DCU2UOGIV6IXEXZPU3RXEDQ5JFMM66NOO6 \ / AMOS7 \ YOURUM ::
-#\[7]CQA46BDXIHTXZIOVJ2M6XF76XCPTEBWP43R3TIV6RNFR74XUKMAQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,.,,,,,,,.,,,.,,.,,,.,,,,.,,..,..,,...,...,..,,,..,..,,.,,,...,
+#IUZLR7NOVNAP5EXKIGUZT3YYC5VTKSXXPQVTFCQIXL3ITQOKAHIYAIVUR2B227HPYFZEZ4D5YTWPI
+#\\\|Z76IN4OTG5SHZJO6PHOG7NC4QTTYU4VCT3FR2TBKLW6HNY4GHF4 \ / AMOS7 \ YOURUM ::
+#\[7]UXJTCNC2RDEEPYIDFKXQTQT4XWNV6UW64JSQ2MBM3ZVFGEAF5SDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

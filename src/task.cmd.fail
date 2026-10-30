@@ -4,12 +4,13 @@
 # param = <task_id> [error_message]
 # descr = mark a claimed task as failed with optional error
 
-my ( $task_id, $error ) = ( '', '' );
+my ( $task_id, $error, $expected_agent ) = ( '', '', '' );
 
 ## parse params
 if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
-    $task_id = $call->{'param'}->{'id'}    // '';
-    $error   = $call->{'param'}->{'error'} // '';
+    $task_id        = $call->{'param'}->{'id'}             // '';
+    $error          = $call->{'param'}->{'error'}          // '';
+    $expected_agent = $call->{'param'}->{'expected_agent'} // '';
 } else {
     my $args = $call->{'args'} // '';
     ## try to split on first whitespace
@@ -26,10 +27,10 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
 return { 'mode' => 'false', 'data' => 'task id required' }
     unless length $task_id;
 
-return <[task.fail_task]>->( $task_id, $error );
+return <[task.fail_task]>->( $task_id, $error, $expected_agent );
 
-#,,..,,,.,...,,,,,.,.,,,,,,.,,.,.,.,,,,..,.,,,..,,...,...,...,,.,,.,.,,,,,.,,,
-#QBXDEK4I4AOBRBOKZJ6ITLWDSZOZ5KS75X457QZHUNAQ6TINCZUZ3CULROFPOIXH5GENORMCQOAQO
-#\\\|5SM4PK7M4XRNFMERYHTEBPHGQ6DOXMRZ24XGI46YEKYKL2BN3FS \ / AMOS7 \ YOURUM ::
-#\[7]CWZILWYNQCCDIKPWB3Q2MVJLQBUY27J2IEHT7Y26W3UGCC6EEKBI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,...,,..,...,.,.,,,.,..,,..,,,..,..,,...,...,...,..,,.,,,.,,,.,.,
+#KWCCLPDVLWXTP3KO7DCMI6RT6PCXHCBMXCH37I5T23EDT2LJLIDH6Z7OTSOZDKLRYTAIFCG5KBJZC
+#\\\|XJ4DRZAU7HI7FITOMSYZWQJDVDOVGHVTURHOURSG3OGRMDEWSGS \ / AMOS7 \ YOURUM ::
+#\[7]ZOIXRQGV4TSFVRC7LHQFHAI276CCMNUYWPVQL7WRLR7LZLJ7CSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
