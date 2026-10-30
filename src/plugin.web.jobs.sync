@@ -181,10 +181,17 @@ for my $job_data (@job_list) {
     my $enc_id      = $job_id;
     my $job_changed = $is_batch && not $is_ui_batch ? TRUE : FALSE;
 
-    ## marks and ui batches never plant a record this web does not hold    ##
-    next
-        if ( $is_marks_batch or $is_ui_batch )
-        and ref $mem->{$job_id} ne qw| HASH |;
+    ## marks and ui batches never plant a record this web does not hold ;   ##
+    ## neither does a browser post : it left id-only stubs in the 'new' tab ##
+    ## [ 2026-10-30, three trashed jobs ] -- an action still queues         ##
+    if ( ( $is_marks_batch or $is_ui_batch or not $is_batch )
+        and ref $mem->{$job_id} ne qw| HASH | ) {
+        <[plugin.web.jobs.reverse.queue]>
+            ->( { 'id' => $job_id, 'action' => $job_data->{'action'} } )
+            if not $is_marks_batch
+            and length( $job_data->{'action'} // '' );
+        next;
+    }
 
     ## set when the export-mark merge below actually lands, so a marks ##
     ## batch only rewrites the record it really changed                ##
@@ -518,8 +525,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,,,.,,,.,.,.,...,,..,..,,...,.,.,.,.,,,,,..,,...,..,,...,,..,,,,,,,.,...,
-#CS7ITKEOS4BCGIJLIMS3T4KGU4Q63P5AQQNZSUNUVTAUBQ4QTEKRDMO4QMRX5VKASDML247VGY5CA
-#\\\|CQB2YWGB7WIXFGUOEYMTOFH6PMUM62UUNBV42DIKLRYHYM4WAKD \ / AMOS7 \ YOURUM ::
-#\[7]A6U6YUPLJSGUAYG3N5KPSGJVYY53WJOZ42TNN3CLW5LQE6FK66CA 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,...,...,.,.,,.,,,,.,,.,,.,.,..,,...,...,...,.,,,.,.,,,,,..,,
+#JTUOCVRI2EKK5XT2I62ZJKVAWHSXW6CPMZ4NLSY7WXBAMFRUVJVJCC4TCZAUITKLXL7NZI2VHOBJO
+#\\\|TDLPLHXV5VOJKX5CJOY37SCG624OAO2KLDE4K6QQLWX4GEFOFOL \ / AMOS7 \ YOURUM ::
+#\[7]H6TN6BORG564ULVTTXK5LNU7UHMVFLHO4J7TKVGLJGVYAHOVTUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
