@@ -52,6 +52,16 @@ for my $entry ( @{$entries} ) {
             next;
         }
 
+        ## blocked \ deleted jobs stay out : a block is not a score ##
+        if ( ( <jobsite.job.index>->{$id} // '' )
+            =~ m{^(blocked|deleted)(:|$)} ) {
+            <[base.logs]>->(
+                0,   'jss.sync.apply: reassess %s refused [ %s ]',
+                $id, $1
+            );
+            next;
+        }
+
         ## clear assessment fields only : keep user stage/status ##
         for my $f (
             qw| score score_reason score_summary assertions
@@ -88,6 +98,20 @@ for my $entry ( @{$entries} ) {
         ## bring pending_count to 0, same failure class as a skipped-slot ##
         ## leak; see jobsite.dispatch.consume_slot ]                      ##
         <jobsite.pending_count> = ( <jobsite.pending_count> // 0 ) + 1;
+
+        ## a trashed job : job-upsert never resurrects one, a refetch would ##
+        ## land nowhere and the job waited forever. score the on-disk data  ##
+        ## now -- scores jitter by up to 3 points, so a reassess is how a   ##
+        ## near-threshold job gets its second chance ; assess-done moves it ##
+        ## to review when it clears the threshold                           ##
+        if ( ( <jobsite.job.index>->{$id} // '' ) =~ m{^trash(:|$)} ) {
+            <[base.logs]>->(
+                1, 'jss.sync.apply: reassess %s from trash [ on-disk data ]',
+                $id
+            );
+            <[jobsite.dispatch.reassess_now]>->( $id, $gen );
+            next;
+        }
 
         ## refresh source data before re-scoring, when the source supports ##
         ## it : site-yaml.import-url re-scrapes and calls                  ##
@@ -202,8 +226,8 @@ for my $entry ( @{$entries} ) {
 ## an unconditional push_soon would loop push -> 3 s -> push forever        ##
 <[jobsite.sync.push_soon]> if scalar $entries->@*;
 
-#,,.,,,,.,...,,,,,,,.,,,.,,,,,,.,,,,,,,..,.,,,..,,...,...,.,,,.,.,...,..,,.,,,
-#AREKEX2PWW6TZ3L3LQLGHL6CE7IYY54WNDWPB3A5S4FEKOFFGLIPC4D54U3QRK7KCF23NFFKFZIV2
-#\\\|SNHTTKEV5Q6BT3QELSQR2OWHGSCMCDDOPKC25KD5ZWRYUKY2P4Q \ / AMOS7 \ YOURUM ::
-#\[7]ZKQ5V73PO2DUM2HOPWGQGVNBBZQ4D2YMQ5TXMPABINCV2YCL6QCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,.,,,,.,,,,.,,..,,.,,...,..,,..,,...,...,...,...,,.,,..,,,..,
+#3ALRI2Z24AF6O357QI4DD3KHJYWKL53WPT6BXMLPKT4YO3EMNIU5ELBMY6IHSTSG6ELO6VQSZKNUC
+#\\\|6RDZRSBZACW7SKI5JERHBTQRMNRB3IFJUVTRB6FOSLPJP6NNKWP \ / AMOS7 \ YOURUM ::
+#\[7]ZHRM562E4VTDCXD5L242ZKIHVYP7ZASHFUWSH3PZEHY6T245LAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
