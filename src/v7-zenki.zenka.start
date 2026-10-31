@@ -258,6 +258,16 @@ if ( exists $init_result_data->{'start_mode'}
             and -x sprintf qw| %s%s%s |, <system.root_path>, $ARG, $exec_bin;
     } qw| /bin/ /bin/admin/ |;
 
+    ## a bare system program [ tint2, jgmenu .. ] : the standard paths ##
+    ## after the local ones, a protocol-7 script of that name wins     ##
+    if ( defined $exec_bin and $exec_bin !~ m|/| ) {
+        foreach my $dir (qw| /usr/local/bin /usr/bin /bin |) {
+            next if not -x "$dir/$exec_bin";
+            $exec_bin = "$dir/$exec_bin";
+            last;
+        }
+    }
+
     if ( not defined $exec_bin or not defined $prog_usr ) {
         my $reason
             = sprintf "expected program-name [exec_bin] in '%s' start set-up",
@@ -558,8 +568,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,..,,.,,,..,,.,,.,,,,..,.,.,,,.,,.,,..,,...,..,,...,...,.,,,.,,,,,,,...,..,,
-#M6OTVHL6IWZ7HCOWTGWP426AQ4MQA5FH2ORIP3DQGEFOYGBJBW6W3E2MY7KVUWBXY6RDVJQLNMYEA
-#\\\|6PF2EGRHDHFXN3YAIUIHMVUNUHBGJQNZCPXGCGMDTSPADI5Z54E \ / AMOS7 \ YOURUM ::
-#\[7]GFJLWFZXGHZCYFCN6T3BPHJLLFSFYZPT6ZFRVA4VW7MTNZMG6MBY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,,,,..,.,.,.,.,,.,,,.,,.,,,,,.,..,,...,...,.,.,.,,,,,.,...,..,,
+#LMVN2IJCHI6JLELITHV7ZWK2B6VDBCPUXQQFYTW6WCVHCVPVP6DPWICPAN62WTEPZXMJYAHAILND6
+#\\\|BOMXPPGTNX6AKJOTSUTYW4VC6AQ4V3EKX3TR4OLW6KBNCUZKU2U \ / AMOS7 \ YOURUM ::
+#\[7]6TVP5257AJ6Y5DPYSMGZYTXFMRIBY67AUI5PXWYGJJ2THQYZLYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
