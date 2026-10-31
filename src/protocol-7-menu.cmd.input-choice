@@ -54,17 +54,14 @@ if ($use_transparency) {
     $dialog->set_visual($rgba);
 }
 
-my $css_prov = Gtk3::CssProvider->new();
-$css_prov->load_from_data(<<'EOT');
-window { background-color:#000013; color:#0055CC; font-size:large; }
-button { background-color:#000042; color:#0055CC; padding:6px;
-         border:1px solid #0055CC; }
-button:focus { background-color:#001066; }
-button:hover { background-color:#001066; }
-button label { color:#0055CC; }
-label { color:#0055CC; }
-EOT
-Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
+## shared protocol-7 style [ application priority ] ##
+
+<[base.gtk.style]>->(
+    $screen,
+    {         'css' => "window { font-size: large; "
+            . "}\nbutton { padding: 6px; }\n"
+    }
+);
 
 # Create container
 my $vbox = Gtk3::Box->new( 'vertical', 6 );
@@ -162,8 +159,8 @@ if ( length $result ) {
     return { 'mode' => qw| false |, 'data' => 'no selection' };
 }
 
-#,,.,,.,,,,.,,..,,,.,,,..,,.,,,..,,,.,.,,,..,,..,,...,...,,.,,.,,,,,.,,..,.,.,
-#3RVPK67XWUCNOUUC4AKSIB2M3TXZ3RVCYFGEJINLQWY6NKD2PRDAJ2MFQALVRFTIG35CQZ6H5D5AO
-#\\\|257US6TS6BEDYVZF2VKOC5G7MWIVDTAMDGJ4QJO2SIFICEC5EXK \ / AMOS7 \ YOURUM ::
-#\[7]B2YZCF7RBTFE6CFDPZ74W4KSAKCG75WL23HZ5I2G3F3T3T6MXMCI 7  DATA SIGNATURE ::
+#,,.,,...,...,,,,,,,.,,,,,.,,,,..,..,,...,,,.,..,,...,...,...,,.,,.,,,,,,,...,
+#FVCJS6IMGJVKMZBHY2GFM2ZSZDPWUSAAY72DZH6AUWBBUTK3FGXC4EOFKWA4MVNOSOK2RQUGL5SF6
+#\\\|KQWDN7E4JUIC5RPYHHHXV7Q6BEMWZAMA665QPPIWT4UCBIAQF4I \ / AMOS7 \ YOURUM ::
+#\[7]N3XS243FMWMQXM4TPUL4ZDMF3X4TBL463XGCYBIDDXJWXABISUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

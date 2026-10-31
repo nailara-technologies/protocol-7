@@ -17,13 +17,14 @@ $brightness = 1    if $brightness > 1;
 my $color = sub {
     my ($name) = @ARG;
     my %fallback = (
-        'background' => '05040f',
-        'panel'      => '0b1024',
-        'text'       => 'b8b4d8',
-        'muted'      => '77729d',
-        'accent'     => '6f63b8',
-        'entry'      => '09081a',
-        'error'      => 'b078a8',
+        ## protocol-7 palette [ base.gtk.style ] ##
+        'background' => '000013',
+        'panel'      => '000042',
+        'text'       => '0055CC',
+        'muted'      => '003A8C',
+        'accent'     => '0055CC',
+        'entry'      => '000042',
+        'error'      => '4427AC',
     );
     my $hex = $theme->{'color'}->{$name} // $fallback{$name};
     $hex = $fallback{$name} if $hex !~ m|^[0-9a-fA-F]{6}$|;
@@ -39,42 +40,35 @@ my $title_size = $theme->{'title_size'} // 42;
 $title_size = 42 if $title_size !~ m|^\d+$|;
 my $status_size = $theme->{'status_size'} // 22;
 $status_size = 22 if $status_size !~ m|^\d+$|;
-my $family = $theme->{'font_family'} // 'Sans';
+my $family = $theme->{'font_family'} // 'White Rabbit';
 $family =~ s|[{};]| |g;
 my $width = $theme->{'content_width'} // 620;
 $width = 620 if $width !~ m|^\d+$|;
 my $padding = $theme->{'padding'} // 42;
 $padding = 42 if $padding !~ m|^\d+$|;
 
-my $css = Gtk3::CssProvider->new();
-$css->load_from_data(
-    sprintf <<'EOT',
-window, grid { background-color: %s; color: %s; }
-label { background-color: %s; color: %s; font-family: %s; font-size: %dpx; }
-.title { color: %s; font-size: %dpx; }
-.muted { color: %s; }
-.status { color: %s; font-size: %dpx; }
-entry { background-color: %s; color: %s; caret-color: %s;
-        border-color: %s; border-width: 2px; border-style: solid;
-        font-family: %s; font-size: %dpx; padding: 12px; }
-button { background-color: %s; color: %s; border-color: %s;
-         border-width: 2px; border-style: solid; font-family: %s;
-         font-size: %dpx; padding: 14px; }
-button:hover, button:focus { background-color: %s; color: %s; }
-EOT
-    ( map { $color->($ARG) } qw| background text panel text | ),
-    $family,            $font_size,
-    $color->('text'),   $title_size,
-    $color->('muted'),  $color->('muted'), $status_size,
-    $color->('entry'),  $color->('text'),  $color->('text'),
-    $color->('accent'), $family,           $font_size,
-    $color->('panel'),  $color->('text'),  $color->('accent'),
-    $family,            $font_size, $color->('accent'), $color->('text')
-);
 my $window = Gtk3::Window->new('toplevel');
 my $screen = $window->get_screen();
 $window->set_visual( $screen->get_system_visual() );
-Gtk3::StyleContext::add_provider_for_screen( $screen, $css, -1 );
+<[base.gtk.style]>->(
+    $screen,
+    {   'color' => {
+            'background' => $color->('background'),
+            'panel'      => $color->('entry'),
+            'text'       => $color->('text'),
+            'muted'      => $color->('muted'),
+            'border'     => $color->('accent'),
+        },
+        'font_family' => $family,
+        'font_size'   => $font_size,
+        'css'         => sprintf(
+            ".title { font-size: %dpx; }\n.status { color: %s; font-size: "
+                . "%dpx; }\nentry { padding: 12px; }\nbutton { padding: "
+                . "14px; }\n",
+            $title_size, $color->('error'), $status_size
+        ),
+    }
+);
 $window->set_decorated(0);
 $window->set_resizable(0);
 $window->set_keep_above(1);
@@ -140,8 +134,8 @@ $password->set_text('');
 $user->grab_focus();
 TRUE;
 
-#,,..,.,,,,,.,.,,,,..,,.,,...,,..,.,.,,,.,,..,..,,...,..,,,,,,,..,,,,,,,,,..,,
-#3KPES2ASTC7G7HN4XJGDHYLU6Y26XNT7A7DPG5K3UO2GTHOQGYN6ANV6RQW5SXURNVBRVWIHCD7SM
-#\\\|UE5MLM756PJSM6KDZEHG2H7HKZMZRM5EDYDOZWIO6HBBZ5UMEA5 \ / AMOS7 \ YOURUM ::
-#\[7]CYIAJDYOOQX45I6ZBR6L7R4MPJAXMS4CUNYOXKF7VPEJEU4OR4BQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,,.,,,,.,..,,..,,,,.,...,...,..,,...,...,...,,,,,,..,..,,..,,
+#NKLMLWLHAWQKTQ6IOSSBGO5WXZXAVFJBJ5ZNDVX4OC3MRILD3OI2SLHT7U2LVCDWALNMZZNACXHDS
+#\\\|VLNTNQPXBPGJHTPGHKSP2ANSY5Y6DVLQGIR5DDR323S2C7AIQDD \ / AMOS7 \ YOURUM ::
+#\[7]BUXCFZOHTFUISOLF6SEJZDPBICX7OFRFSOH3QH6725PJR6W43QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

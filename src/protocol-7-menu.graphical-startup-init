@@ -37,14 +37,13 @@ if ($use_transparency) {
 }
 
 # Apply CSS styling
-my $css_prov = Gtk3::CssProvider->new();
-$css_prov->load_from_data(<<'EOT');
-menu { background-color:#000013; border-color:#000042; color:#0055CC;
-                                                       font-size:x-large }
-menu *:hover { background-color:#000042; color:#0088FF }
-menu *:focus { background-color:#000042; color:#0088FF }
-EOT
-Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
+## shared protocol-7 style [ application priority ] ##
+<[base.gtk.style]>->(
+    $screen,
+    {         'css' => "menu { font-size: x-large; }\nwindow, box, "
+            . "grid { background-color: transparent; }\n"
+    }
+);
 
 # Load and scale image
 my $pbuf  = Gtk3::Gdk::Pixbuf->new_from_file($logo_path);
@@ -609,8 +608,8 @@ if ($use_transparency) {
 
 return 0;
 
-#,,..,...,.,.,,..,,..,,,.,.,.,.,.,..,,.,.,,,.,.,.,...,.,.,,,,,.,.,,..,.,,,,,,,
-#WKMBSELUN3VKYYBFE7UOBPOTBPYDKSZSI33IZHJMU2A533SNDSWB65VHMZBA2X6IIU5HLS6VVQGMW
-#\\\|A5PGWGRB2VEFWSYQ5BZO6MGXNFLSBUEQJQXU4MDIPHIKYVVJONS \ / AMOS7 \ YOURUM ::
-#\[7]OSJLC2J7Q3X7U4M2L4CZ7UMIQHWW3ZQEGVL4VDZRQSXTQXXD54DQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,,..,,.,,,..,..,,,,.,,..,...,.,.,...,...,.,,,...,,..,.,,,,..,
+#6REDPM4O4VIKZZHWEFKZBAXEXQSXS2UTKRTEUL74C6RGWCJT2UVKFGYY6FLUVKS5D32AZ5KKYNDRG
+#\\\|3JYEXSVP42CXCNYR2KIB37OKLVTXNIPZUF3NEF3ORD46DIHFMHA \ / AMOS7 \ YOURUM ::
+#\[7]T7V3ZQHK76WLD3O7B7USTHK54CDP2VXNHTUJSUKSLMO2RDEEHSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

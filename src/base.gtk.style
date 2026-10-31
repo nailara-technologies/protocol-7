@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = base.gtk.style
+# param = <screen> [ { color => { role => hex }, font_family, font_size, css } ]
+# descr = shared protocol-7 gtk3 style [ greeter, lock, menu dialogs ]
+
+## one palette for every protocol-7 gtk window, installed at application ##
+## priority : the default theme never shows through                      ##
+## [ grey buttons, gradients, shadows, bright selections ]               ##
+
+my ( $screen, $opt ) = @ARG;
+return undef if not defined $screen;
+$opt //= {};
+
+my %color = (
+    'background' => '#000013',
+    'panel'      => '#000042',
+    'text'       => '#0055CC',
+    'hover'      => '#0088FF',
+    'focus'      => '#001066',
+    'border'     => '#0055CC',
+    'muted'      => '#003A8C',
+    'selection'  => '#1A0946',
+);
+foreach my $role ( keys %{ $opt->{'color'} // {} } ) {
+    my $hex = $opt->{'color'}->{$role} // next;
+    next if $hex !~ m|^#?([0-9a-fA-F]{6})$|;
+    $color{$role} = '#' . ${^CAPTURE}[0];
+}
+
+my $family = $opt->{'font_family'} // 'White Rabbit';
+$family =~ s|[{};"]| |g;
+my $size = $opt->{'font_size'};
+my $size_css
+    = ( defined $size and $size =~ m|^\d+$| ) ? "font-size: ${size}px;" : '';
+
+my $css_text = <<"EOT";
+* { background-image: none; box-shadow: none; text-shadow: none;
+    outline-color: $color{'border'}; }
+window, dialog, grid, box {
+    background-color: $color{'background'}; color: $color{'text'};
+    font-family: "$family"; $size_css }
+label { background-color: transparent; color: $color{'text'}; }
+.muted { color: $color{'muted'}; }
+entry {
+    background-color: $color{'panel'}; color: $color{'text'};
+    caret-color: $color{'text'};
+    border: 1px solid $color{'border'}; border-radius: 0; }
+entry:focus { background-color: $color{'focus'}; }
+entry selection, entry selection:focus {
+    background-color: $color{'selection'}; color: $color{'hover'}; }
+button {
+    background-color: $color{'panel'}; color: $color{'text'};
+    border: 1px solid $color{'border'}; border-radius: 0; }
+button:hover, button:focus { background-color: $color{'focus'}; color: $color{'hover'}; }
+button label { color: inherit; }
+menu { background-color: $color{'background'}; border-color: $color{'panel'};
+       color: $color{'text'}; }
+menu *:hover, menu *:focus { background-color: $color{'panel'}; color: $color{'hover'}; }
+EOT
+$css_text .= $opt->{'css'} if defined $opt->{'css'};
+
+my $provider = Gtk3::CssProvider->new();
+$provider->load_from_data($css_text);
+Gtk3::StyleContext::add_provider_for_screen( $screen, $provider, 600 );
+return $provider;
+
+#,,,,,.,,,,,.,,..,.,,,,.,,,..,...,,.,,.,,,.,,,..,,...,..,,,.,,.,,,.,.,.,.,,..,
+#2BIHJJRUCCXNT6H4XBOQESEAW6OJNR2QFYRY44XA2EZWETL6TSV4YOA6F5FUCPRLHGEMOFTNYQIGA
+#\\\|P6MVF4RXLCQC7KDOM5I5UG5WTO37BM4MPLV4DWN6OZK2IAVC6PN \ / AMOS7 \ YOURUM ::
+#\[7]XLZP5SSSYXK77RCPAIY2OLYU7KSI5ZYLN324WA2MTS53RWS6UCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

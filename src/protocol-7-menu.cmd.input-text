@@ -36,14 +36,14 @@ if ($use_transparency) {
     $dialog->set_visual($rgba);
 }
 
-my $css_prov = Gtk3::CssProvider->new();
-$css_prov->load_from_data(<<'EOT');
-window { background-color:#000013; color:#0055CC; font-size:large; }
-entry { background-color:#000042; color:#0055CC; padding:4px; }
-entry:focus { background-color:#001066; }
-label { color:#0055CC; }
-EOT
-Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
+## shared protocol-7 style [ application priority ] ##
+
+<[base.gtk.style]>->(
+    $screen,
+    {         'css' => "window { font-size: large; "
+            . "}\nentry { padding: 4px; }\n"
+    }
+);
 
 # Create container
 my $vbox = Gtk3::Box->new( 'vertical', 6 );
@@ -116,8 +116,8 @@ if ($result) {
     return { 'mode' => qw| false |, 'data' => 'input cancelled' };
 }
 
-#,,.,,.,.,.,.,.,.,.,,,,,,,...,,,,,..,,..,,,.,,.,.,...,...,.,,,..,,.,,,.,.,.,,,
-#EVEKQHEBUQXQNMNBKB5G2VIXJBOBGBNSRLDGHHFWEICLFTW6JAHCVRW5HYCBRE6CUY4J3OXL2HXQK
-#\\\|DA2UEGVA4O4XHX2YN4ILM2Z727WUCB76DOAYQSVRLGZQSCJWMZS \ / AMOS7 \ YOURUM ::
-#\[7]EDVMUZA3YHBWEXXKZU4TY37R6LE7VYEVKH7QUH7OI2PBCQIZ72BQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,.,,.,.,.,.,...,,..,,,.,...,,,.,.,.,...,...,,.,,,,.,,,,,,,,,...,
+#S7JEWDDM7KTII7FSYQS73C4ECL6AKSOMQUMCIAGNJP67WN5MS7DANKEUNKPELIVHP5ATFUZO4DVCO
+#\\\|NXDEJZX5REIXVBVQ4KVWI42PBFLC7QT54S3QVPYJSW75DYEQ46H \ / AMOS7 \ YOURUM ::
+#\[7]C3NLTO76JXEC6S7CPCE3AV3UCWYK4YMU2EJXWGMODO3LRSFELUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
