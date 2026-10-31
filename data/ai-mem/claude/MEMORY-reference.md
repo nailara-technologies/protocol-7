@@ -74,6 +74,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [Cross-zenka](feedback-cross-zenka-deferred-reply.md), [Access control](feedback-buffer-access-control.md), [httpd](feedback-httpd-deferred-reply.md) — httpd never loads plugin.web.*
 - [Timer Args](feedback-timer-module-args.md), [Deferred Init](feedback-deferred-init.md) — push onto system.callbacks.initialized
 - [config reload clobber](feedback-config-reload-clobber.md), [route-send command format](feedback-route-send-command-format.md) — `reload config/all` overwrites runtime; no cube. prefix
+- [coding-set-devmode](reference-coding-set-devmode.md) — live runtime values incl. inference.model.* : `p7c coding.set \ get \ del <key>` [ tree-write refuses inference ]
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 - [show-buffer command](reference-show-buffer-command.md) — no `p7-log.tail` exists; use `show-buffer <name> [lines] [pattern]` (`list buffers` first); don't invent `.tail`-style command names; buffer is a passive review sink only, rotation ≠ behavior unreliability
@@ -115,8 +116,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [twin-restart-and-local-proxy](reference-twin-restart-and-local-proxy.md) — `v7-zenki.restart :twin: <zenka>` restarts without a gap ; a 502 from this shell can be the owner's local proxy, not the server
 - [os-err-for-console-logs](feedback-os-err-for-console-logs.md) — src/* log lines : <[base.str.os_err]> instead of raw $OS_ERROR [ cleaned up for the console ]
 
-#,,.,,.,.,.,.,..,,,,,,.,,,.,.,.,,,.,,,.,,,.,.,..,,...,...,,..,..,,,,.,,.,,..,,
-#QU2E3SKQQINUXGHZA6SM4GO76KOQMZ7ZT56OQMRX4CVDWM46DQETMRFCI6C5P6I3DQ4C6CONCXXBE
-#\\\|RWKIDBX3SFL3Y26H4NHRHOTONHM4MQZDPA3L3LQVPUJXERXH2QL \ / AMOS7 \ YOURUM ::
-#\[7]2PSFL6V6BS2GMCRVC5KSPRUXU6ATNLCE32FS6LGTI3EWOTXA4YDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,,,.,,.,,...,.,.,..,,..,,..,,..,,...,...,...,...,.,,,..,,,..,
+#AWPGFHZ2JHW7TJ7FD4JLARN4YVTZDN3YORYSBLOIMZZDDKLTKAM4IA6P76S4NR5PLV2EIO47V777C
+#\\\|WW6ZRJO4ONPDZVZCUEFUL3UU5TEHJA24PQQQZJJ4MACGU2YBHUP \ / AMOS7 \ YOURUM ::
+#\[7]XMNUT5QVWL4RQKYVBH3OW32WMEXJ36CJAR5EXOSOF4EIMZH4CUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
