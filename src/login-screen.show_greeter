@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = login-screen.show_greeter
+# descr = clear admission state and show the dark login form
+
+my $password = <login-screen.widget.password>;
+my $user     = <login-screen.widget.user>;
+$password->set_text('')        if defined $password;
+$user->set_sensitive(TRUE)     if defined $user;
+$password->set_sensitive(TRUE) if defined $password;
+<login-screen.widget.button>->set_sensitive(TRUE);
+<login-screen.widget.status>->set_text('');
+<login-screen.ticket> = undef;
+<login-screen.state>  = qw| greeter |;
+my $window = <login-screen.window>;
+
+if ( defined $window ) {
+    $window->show_all();
+    $window->present();
+}
+$user->grab_focus() if defined $user;
+TRUE;
+
+#,,,,,.,,,,.,,..,,,,,,.,,,,,.,,,.,.,.,.,.,..,,..,,...,.,.,,,.,.,,,.,.,,.,,..,,
+#F3KZGPBA4RFAKX5OE2RN75FVOYBL7BN7ADF2YNHJUYPYIRM632OEPEZOP3F4VRPPXV2KLNCCESDWA
+#\\\|Y4QO5FJVOTCIKHZGWQG4V7GFOPXSDHRJW2QF5AULNOADOIEOMHJ \ / AMOS7 \ YOURUM ::
+#\[7]P4MLYZZU7G7EEFP3LUT2LUJ4QXOG4FWQVZUN6ESUCFI66LSR2SBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

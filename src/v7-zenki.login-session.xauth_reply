@@ -1,0 +1,54 @@
+## [:< ##
+
+# name = v7-zenki.login-session.xauth_reply
+# descr = hand X authority to the user, start the session
+
+my $reply    = shift                                         // {};
+my $cube_sid = $reply->{'params'}->{'cube_sid'}              // '';
+my $pending  = <v7-zenki.login-session.pending>->{$cube_sid} // return;
+delete <v7-zenki.login-session.pending>->{$cube_sid};
+my $request = $pending->{'request'};
+my $fail    = sub {
+    my ($message) = @ARG;
+    <[base.callback.cmd_reply]>->(
+        $request->{'reply_id'},
+        { 'mode' => qw| false |, 'data' => $message }
+    );
+    return FALSE;
+};
+
+return $fail->('X-11 authorization unavailable')
+    if ( $reply->{'cmd'} // '' ) ne qw| TRUE |;
+my ( $protocol, $cookie_hex )
+    = split( m| = |, $reply->{'call_args'}->{'args'} // '', 2 );
+my $path = sprintf( qw| /var/run/.7/login-screen/sessions/%s.Xauthority |,
+    $pending->{'user'} );
+my $written = <[base.X-11.write_xauth_file]>->(
+    {   'display'    => $pending->{'display'},
+        'protocol'   => $protocol,
+        'cookie_hex' => $cookie_hex,
+        'path'       => $path,
+        'uid'        => $pending->{'uid'},
+        'gid'        => $pending->{'gid'},
+    }
+);
+return $fail->('cannot hand X authority to user') if not $written;
+
+## the start below is the only admitted one : zenka.start refuses an ##
+## exec_usr_from_subname start without this single-use mark          ##
+<v7-zenki.login-session.admitted>->{ $pending->{'user'} } = time + 30;
+
+$request->{'args'}
+    = sprintf( ':wait-up: login-screen-session[%s]', $pending->{'user'} );
+my $result = $code{'v7-zenki.zenka.cmd.start_once'}->($request);
+if ( ref($result) eq qw| HASH | and $result->{'mode'} ne qw| deferred | ) {
+    unlink($path);
+    <[base.callback.cmd_reply]>->( $request->{'reply_id'}, $result );
+}
+TRUE;
+
+#,,,.,...,.,,,..,,...,..,,,..,...,,..,,..,,,,,..,,...,...,..,,,,.,,.,,...,..,,
+#GNWLVK7L6YGYJKPN2RONAUHX5K2FWP5XNDIXJ5IDR3XCCMKBHZJH2JCRKGQOXJPTPWF2RYWS5YUZQ
+#\\\|Y37DQRVD2PAAKWD2HJHUETKL36H6R7UFOUM4JH46YK4VXKWW4IP \ / AMOS7 \ YOURUM ::
+#\[7]O4OD5SBYAYGUBNK5YQYNSYAAZIPDU5DSZZN5KSPD7R2AANK4OQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

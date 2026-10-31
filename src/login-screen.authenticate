@@ -1,0 +1,94 @@
+## [:< ##
+
+# name = login-screen.authenticate
+# descr = one framed password check, then a granted session
+
+return FALSE if <login-screen.state> ne qw| greeter |;
+my $username = <login-screen.widget.user>->get_text();
+my $password = <login-screen.widget.password>->get_text();
+my $wipe     = sub {
+    return if not defined $_[0];
+    $_[0] = "\0" x length( $_[0] );
+};
+my $fail = sub {
+    my ($message) = @ARG;
+    <[login-screen.show_greeter]>;
+    <login-screen.widget.status>->set_text($message);
+    return FALSE;
+};
+
+if ( $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|
+    or length($password) > 1024 ) {
+    $wipe->($password);
+    <login-screen.widget.password>->set_text('');
+    return $fail->('authentication failed');
+}
+
+<login-screen.state> = qw| authenticating |;
+<login-screen.widget.user>->set_sensitive(FALSE);
+<login-screen.widget.password>->set_sensitive(FALSE);
+<login-screen.widget.button>->set_sensitive(FALSE);
+<login-screen.widget.status>->set_text('authenticating ..,');
+
+Glib::Timeout->add(
+    30,
+    sub {
+        my $reply = '';
+        my $fh    = <login-screen.auth_helper.fh>;
+        if ( defined $fh ) {
+            my $frame   = pack( 'n/a* n/a*', $username, $password );
+            my $request = pack( 'N', length($frame) ) . $frame;
+            $wipe->($frame);
+            my $offset = 0;
+            while ( defined $request and $offset < length($request) ) {
+                my $written = syswrite( $fh, $request,
+                    length($request) - $offset, $offset );
+                last if not defined $written or $written == 0;
+                $offset += $written;
+            }
+            $wipe->($request) if defined $request;
+            if (
+                $offset == 4 + 2 + length($username) + 2 + length($password) )
+            {
+                while ( $reply !~ m|\n$| and length($reply) < 128 ) {
+                    my $read = sysread( $fh, my $part, 128 - length($reply) );
+                    last if not defined $read or $read == 0;
+                    $reply .= $part;
+                }
+            }
+        }
+        $wipe->($password);
+        <login-screen.widget.password>->set_text('');
+
+        if ( $reply =~ m|^OK ([0-9a-f]{64})\n$| ) {
+            my $ticket = ${^CAPTURE}[0];
+            <login-screen.state>  = qw| starting |;
+            <login-screen.ticket> = $ticket;
+            <login-screen.widget.status>->set_text('starting session ..,');
+            <[protocol-7.route-send]>->(
+                {   'command' =>
+                        "v7-zenki.login-session-start $username $ticket",
+                    'reply' => {
+                        'handler' =>
+                            qw| login-screen.handler.session_start_reply |
+                    }
+                }
+            );
+            $wipe->($ticket);
+        } elsif ( $reply =~ m|^WAIT (\d+)\n$| ) {
+            $fail->( sprintf 'try again in %d s', ${^CAPTURE}[0] );
+        } else {
+            $fail->('authentication failed');
+        }
+        $wipe->($reply);
+        $wipe->($username);
+        return FALSE;
+    }
+);
+TRUE;
+
+#,,.,,,..,,.,,,.,,,,.,..,,.,,,.,,,.,.,,,.,,.,,..,,...,...,,,,,,,,,.,,,...,.,.,
+#S5ZWVOQLIJMD3DIO4JEVYQD5BLMO3VRY5EJEN5335JN7MBR5VV4LWEJGK3PPM5MDODXHYEAU5DRQM
+#\\\|KWSBL6RBQFGJE3YXEPGD3L4M2O7NIAUOKWGAJSDP7LINVDKJ4HP \ / AMOS7 \ YOURUM ::
+#\[7]OWV24FMGLVJRKOOD7E7GUPCAUNF5N324EUPY5JLP5UNAQTOXRMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

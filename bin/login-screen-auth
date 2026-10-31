@@ -1,0 +1,357 @@
+#!/usr/bin/env perl
+use v5.32;
+use strict;
+use English;
+use warnings;
+use bytes;
+use Fcntl qw| :DEFAULT :mode |;
+use File::Spec;
+use IO::Handle;
+
+use constant { TRUE => 5, FALSE => 0 };
+
+my $MAX_PASSWORD = 1024;
+my $MAX_FRAME    = 1120;
+my $GRANT_TTL    = 30;
+
+my %opt = (
+    'fd'        => undef,
+    'config'    => undef,
+    'passwd'    => '/etc/passwd',
+    'shadow'    => '/etc/shadow',
+    'shells'    => '/etc/shells',
+    'grant_dir' => '/var/run/.7/login-screen/grants',
+);
+my $test_mode = FALSE;
+
+while (@ARGV) {
+    my $name = shift @ARGV;
+    my $path = shift @ARGV;
+    die "login-screen-auth : option requires a value\n" if not defined $path;
+    if ( $name eq '--fd' ) {
+        $opt{'fd'} = $path;
+    } elsif ( $name eq '--config' ) {
+        $opt{'config'} = $path;
+    } elsif ( $name =~ m{^--test-(passwd|shadow|shells|grant-dir)$} ) {
+        my $key = $1;
+        $key =~ tr/-/_/;
+        $opt{$key} = $path;
+        $test_mode = TRUE;
+    } else {
+        die "login-screen-auth : refused option\n";
+    }
+}
+
+die "login-screen-auth : socket fd expected\n"
+    if not defined $opt{'fd'}
+    or $opt{'fd'} !~ m|^\d+$|;
+die "login-screen-auth : production requires euid 0\n"
+    if not $test_mode and $EUID != 0;
+die "login-screen-auth : fixture mode is refused as root\n"
+    if $test_mode and ( $EUID == 0 or $UID == 0 );
+die "login-screen-auth : incomplete fixture mode\n"
+    if $test_mode
+    and grep {
+           $opt{$ARG} =~ m{^/etc/(passwd|shadow|shells)$}
+        or $opt{$ARG} eq '/var/run/.7/login-screen/grants'
+    } qw| passwd shadow shells grant_dir |;
+
+sub wipe {
+    return if not defined $_[0];
+    $_[0] = "\0" x length( $_[0] );
+    return;
+}
+
+sub read_exact {
+    my ( $fh, $length ) = @ARG;
+    my $buffer = '';
+    while ( length($buffer) < $length ) {
+        my $read = sysread( $fh, my $part, $length - length($buffer) );
+        return undef if not defined $read or $read == 0;
+        $buffer .= $part;
+        wipe($part);
+    }
+    return $buffer;
+}
+
+sub write_exact {
+    my ( $fh, $buffer ) = @ARG;
+    my $offset = 0;
+    while ( $offset < length($buffer) ) {
+        my $written
+            = syswrite( $fh, $buffer, length($buffer) - $offset, $offset );
+        return FALSE if not defined $written or $written == 0;
+        $offset += $written;
+    }
+    return TRUE;
+}
+
+sub safe_policy_file {
+    my ( $path, $fixture ) = @ARG;
+    return FALSE if not defined $path or -l $path or not -f $path;
+    return TRUE  if $fixture;
+    my @stat = stat($path);
+    return FALSE if not @stat or $stat[4] != 0 or ( $stat[2] & 022 );
+    return TRUE;
+}
+
+sub read_policy_lines {
+    my ( $path, $fixture ) = @ARG;
+    return undef if not safe_policy_file( $path, $fixture );
+    open( my $fh, '<:raw', $path ) or return undef;
+    my @lines;
+    while ( my $line = <$fh> ) {
+        $line =~ s|\r?\n$||;
+        push @lines, $line;
+    }
+    close($fh) or return undef;
+    return \@lines;
+}
+
+sub load_config {
+    my ( $path, $fixture ) = @ARG;
+    my %cfg = (
+        'allow'            => '',
+        'user_free'        => 2,
+        'global_free'      => 5,
+        'user_max_delay'   => 60,
+        'global_max_delay' => 30,
+    );
+    return \%cfg if not defined $path or not length $path;
+    my $lines = read_policy_lines( $path, $fixture )
+        // die "config refused\n";
+    foreach my $line ( @{$lines} ) {
+        $line =~ s{^\s+|\s+$}{}g;
+        next if not length $line or $line =~ m|^#|;
+        my ( $key, $value ) = split( m|\s*=\s*|, $line, 2 );
+        next if not defined $value;
+        $key =~ s|^login-screen[.]auth[.]||;
+        if ( $key eq 'allow' ) {
+            $cfg{'allow'} = $value;
+        } elsif ( $key =~ m{^(user_free|global_free)$}
+            and $value =~ m|^\d{1,3}$| ) {
+            $cfg{$key} = int($value);
+        } elsif ( $key =~ m{^(user_max_delay|global_max_delay)$}
+            and $value =~ m|^\d{1,4}$|
+            and $value >= 1
+            and $value <= 300 ) {
+            $cfg{$key} = int($value);
+        }
+    }
+    return \%cfg;
+}
+
+my $cfg   = load_config( $opt{'config'}, $test_mode );
+my %allow = map { $ARG => TRUE } split( m| +|, $cfg->{'allow'} );
+my %user_state;
+my $global_state = { 'failures' => 0, 'next' => 0, 'last' => 0 };
+my $dummy_hash   = crypt( 'fixture-only-dummy-password', '$6$p7login$' );
+
+sub passwd_record {
+    my ($username) = @ARG;
+    my $lines = read_policy_lines( $opt{'passwd'}, $test_mode ) // return;
+    foreach my $line ( @{$lines} ) {
+        my @f = split( m|:|, $line, -1 );
+        next if @f < 7 or $f[0] ne $username;
+        return {
+            'uid'   => $f[2],
+            'gid'   => $f[3],
+            'home'  => $f[5],
+            'shell' => $f[6],
+        };
+    }
+    return;
+}
+
+sub shadow_record {
+    my ($username) = @ARG;
+    my $lines = read_policy_lines( $opt{'shadow'}, $test_mode ) // return;
+    foreach my $line ( @{$lines} ) {
+        my @f = split( m|:|, $line, -1 );
+        next if @f < 2 or $f[0] ne $username;
+        return \@f;
+    }
+    return;
+}
+
+sub valid_shell {
+    my ($shell) = @ARG;
+    return FALSE if not defined $shell or $shell !~ m{^/[^\s:]+$};
+    return FALSE if $shell                       =~ m{/(?:nologin|false)$};
+    return FALSE if not -x $shell;
+    my $lines = read_policy_lines( $opt{'shells'}, $test_mode )
+        // return FALSE;
+    return scalar grep { $ARG eq $shell } @{$lines};
+}
+
+sub account_hash {
+    my ($username) = @ARG;
+    return undef if not exists $allow{$username};
+    my $passwd = passwd_record($username) // return undef;
+    return undef if $passwd->{'uid'} !~ m|^\d+$| or $passwd->{'uid'} < 1000;
+    return undef if not valid_shell( $passwd->{'shell'} );
+    my $shadow = shadow_record($username) // return undef;
+    my $hash   = $shadow->[1]             // '';
+    return undef if not length $hash or $hash =~ m|^[!*]|;
+
+    my $today = int( time / 86400 );
+    return undef if defined $shadow->[2] and $shadow->[2] eq '0';
+    if ( defined $shadow->[7] and $shadow->[7] =~ m|^\d+$| ) {
+        return undef if $today >= $shadow->[7];
+    }
+    if (    defined $shadow->[2]
+        and $shadow->[2] =~ m|^\d+$|
+        and defined $shadow->[4]
+        and $shadow->[4] =~ m|^\d+$| ) {
+        my $password_end = $shadow->[2] + $shadow->[4];
+        return undef if $today > $password_end;
+        if ( defined $shadow->[6] and $shadow->[6] =~ m|^\d+$| ) {
+            return undef if $today > $password_end + $shadow->[6];
+        }
+    }
+    return $hash;
+}
+
+sub slow_eq {
+    my ( $left, $right ) = @ARG;
+    my $length = length($left);
+    return FALSE if $length != length($right);
+    my $different = 0;
+    $different
+        |= ord( substr( $left, $ARG, 1 ) ) ^ ord( substr( $right, $ARG, 1 ) )
+        for 0 .. $length - 1;
+    return $different == 0;
+}
+
+sub current_delay {
+    my ( $state, $free, $maximum ) = @ARG;
+    return 0 if $state->{'failures'} <= $free;
+    my $delay = 2**( $state->{'failures'} - $free - 1 );
+    return $delay > $maximum ? $maximum : $delay;
+}
+
+sub write_grant {
+    my ( $username, $uid ) = @ARG;
+    my $grant_dir = $opt{'grant_dir'};
+    return undef if -l $grant_dir or not -d $grant_dir;
+    my @dir_stat = stat($grant_dir);
+    if ( not $test_mode ) {
+        return undef
+            if @dir_stat < 5
+            or $dir_stat[4] != 0
+            or ( $dir_stat[2] & 0777 ) != 0700;
+    }
+    open( my $random, '<:raw', '/dev/urandom' ) or return undef;
+    my $ticket = read_exact( $random, 32 );
+    close($random);
+    return undef if not defined $ticket;
+    my $ticket_hex = unpack( 'H*', $ticket );
+    wipe($ticket);
+    my $path = File::Spec->catfile( $grant_dir, $ticket_hex );
+    my $fh;
+    return undef
+        if not
+        sysopen( $fh, $path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0600 );
+    my $body = join( "\n",
+        'login-screen-grant-v1', $username, $uid, time + $GRANT_TTL, '' );
+    my $ok = write_exact( $fh, $body );
+    $ok = FALSE if not $fh->sync;
+    $ok = FALSE if not close($fh);
+    wipe($body);
+
+    if ( not $ok ) {
+        unlink($path);
+        return undef;
+    }
+    return $ticket_hex;
+}
+
+open( my $io, '+<&=', $opt{'fd'} ) or die "login-screen-auth : fd refused\n";
+binmode( $io, ':raw' ) or die "login-screen-auth : raw fd refused\n";
+$io->autoflush(TRUE);
+
+$SIG{'TERM'} = sub { exit 0 };
+$SIG{'INT'}  = sub { exit 0 };
+$SIG{'PIPE'} = sub { exit 0 };
+
+while (TRUE) {
+    my $header = read_exact( $io, 4 ) // last;
+    my $length = unpack( 'N', $header );
+    wipe($header);
+    last if $length < 4 or $length > $MAX_FRAME;
+    my $frame = read_exact( $io, $length ) // last;
+    my ( $username, $password ) = unpack( 'n/a* n/a*', $frame );
+    wipe($frame);
+    my $reply = "ERROR\n";
+
+    if ( $username =~ m|^[a-z_][a-z0-9_-]{0,31}$|
+        and length($password) <= $MAX_PASSWORD ) {
+        my $now   = time;
+        my $state = $user_state{$username} //= {
+            'failures' => 0,
+            'next'     => 0,
+            'last'     => 0,
+        };
+        if ( $global_state->{'last'} + 900 < $now ) {
+            $global_state->{'failures'} = 0;
+            $global_state->{'next'}     = 0;
+        }
+        my $next
+            = $state->{'next'} > $global_state->{'next'}
+            ? $state->{'next'}
+            : $global_state->{'next'};
+        if ( $next > $now ) {
+            $reply = sprintf( "WAIT %d\n", $next - $now + 1 );
+        } else {
+            ## an inadmissible account runs the same crypt on the dummy ##
+            ## hash [ same timing ] but can never succeed : the dummy   ##
+            ## password is public, its match must not grant anything    ##
+            my $admissible_hash = account_hash($username);
+            my $hash            = $admissible_hash // $dummy_hash;
+            my $candidate       = crypt( $password, $hash );
+            wipe($password);
+            my $ok = slow_eq( $candidate, $hash )
+                && defined $admissible_hash;
+            wipe($candidate);
+            if ($ok) {
+                my $record = passwd_record($username);
+                my $ticket
+                    = defined $record
+                    ? write_grant( $username, $record->{'uid'} )
+                    : undef;
+                if ( defined $ticket ) {
+                    $state->{'failures'} = 0;
+                    $state->{'next'}     = 0;
+                    $reply               = "OK $ticket\n";
+                }
+            } else {
+                $state->{'failures'}++;
+                $state->{'last'} = $now;
+                $state->{'next'}
+                    = $now
+                    + current_delay( $state, $cfg->{'user_free'},
+                    $cfg->{'user_max_delay'} );
+                $global_state->{'failures'}++;
+                $global_state->{'last'} = $now;
+                $global_state->{'next'}
+                    = $now
+                    + current_delay( $global_state, $cfg->{'global_free'},
+                    $cfg->{'global_max_delay'} );
+                $reply = "FAIL\n";
+            }
+        }
+    }
+    wipe($password);
+    wipe($username);
+    last if not write_exact( $io, $reply );
+    wipe($reply);
+}
+
+close($io);
+exit 0;
+
+#,,,,,,,.,.,,,,.,,..,,...,,..,,,.,,,.,...,..,,..,,...,...,.,.,,,.,,..,,,,,...,
+#LC6CHNMM4XLUQPVF6INPBVLOYYUD3HDX2SWEPQQXW6JA5DY2ECTWJFDDWRVRVWNL2AESCZIXTBC44
+#\\\|VYLXBKEVTRKY45Q7WNAFKLKZ6EN5YHGXOHDTN5ADBYANS5ZIAOH \ / AMOS7 \ YOURUM ::
+#\[7]ZDSOJLYVR27DUHRGLXGWXQBIZORXXDWFPSOHZIINORSNEEE3WYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

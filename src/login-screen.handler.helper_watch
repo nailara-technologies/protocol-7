@@ -1,0 +1,19 @@
+## [:< ##
+
+# name = login-screen.handler.helper_watch
+# descr = a dead root helper is fatal : v7 restarts the greeter
+
+my $pid  = <login-screen.auth_helper.pid> // return FALSE;
+my $done = waitpid( $pid, POSIX::WNOHANG() );
+return TRUE if $done == 0;
+
+<[base.logs]>->( 0, 'login-screen root helper ended [ pid %d ]', $pid );
+<login-screen.auth_helper.pid> = undef;
+Gtk3->main_quit();
+FALSE;
+
+#,,.,,,..,,..,.,.,..,,,..,,..,,,,,,..,,,.,,,,,..,,...,...,,..,,.,,..,,.,,,...,
+#FQUOJO5UJN4PDYITABSDTTUIHEDZNBCJRZWDTRW7W5252T4IDYAMD2YJXGIGTNSFISDBYEKME3B7M
+#\\\|IGA5EOD4N2LNPND4JACTBFZKUTTWK5HXCA2E2LFVY47UCZOGWAI \ / AMOS7 \ YOURUM ::
+#\[7]Q5IY7RHFTUNPDP4KJVYRMWAB5OJHFDOGVVEKF5R7EYXTO33HOEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

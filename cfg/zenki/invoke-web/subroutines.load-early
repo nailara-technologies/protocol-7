@@ -61,6 +61,9 @@ base.swap_subs
 base.ssl.write
 base.sig_NUM55
 base.sig_NUM53
+base.sig_NUM52
+base.sig_NUM51
+base.sig_NUM50
 base.sig_NUM41
 base.sig_NUM37
 base.route.add
@@ -77,6 +80,7 @@ base.conf-wrap
 base.cmd.heart
 auth.auth_list
 trust.statement
+thermal.verdict
 plugin.auth.pwd
 net.read_binary
 base.zenka.push
@@ -105,6 +109,7 @@ base.stream.open
 base.stream.gate
 base.stream.emit
 base.resolve_key
+base.reply.value
 base.prng.reseed
 base.path_owners
 base.parser.list
@@ -119,6 +124,7 @@ base.call_filter
 auth.pwd.success
 auth.auth_select
 ascii.frame.load
+thermal.hover.gap
 plugin.auth.zenka
 net.read_bytewise
 jobqueue.move_job
@@ -147,6 +153,7 @@ base.chk-sum.amos
 ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
+thermal.hover.step
 invoke-web.retried
 invoke-web.cmd.log
 image.analyze.file
@@ -173,6 +180,9 @@ base.clean_unicode
 base.clean_hashref
 base.base32.encode
 ascii.frame.render
+thermal.outdoor.amp
+thermal.gate.sample
+thermal.gate.decide
 plugin.auth.twofish
 io.ip.tcp.init_code
 invoke-web.stats.db
@@ -205,6 +215,8 @@ base.event.add_idle
 base.diff.hash_keys
 base.dependency.add
 base.calc_unix_path
+thermal.outdoor.poll
+thermal.gate.predict
 io.ip.tcp.input.open
 invoke-web.init_code
 invoke-web.cmd.start
@@ -225,6 +237,7 @@ clients.http.request
 clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
+base.reply.mode_text
 base.read_proc_times
 base.prng.chars-anum
 base.prng.characters
@@ -249,6 +262,8 @@ base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
+thermal.gate.hot_mark
+thermal.feed.register
 jobqueue.get_next_job
 jobqueue.get_job_data
 invoke-web.state_name
@@ -284,6 +299,8 @@ base.console.commands
 base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
+thermal.window.current
+thermal.gate.k_trusted
 pager.source.file-list
 invoke-web.queue.order
 invoke-web.output.stop
@@ -315,6 +332,7 @@ base.get_max_verbosity
 base.comp-int.is_valid
 base.cfg.profile.apply
 auth.client.owner_pins
+thermal.window.in_range
 protocol.sftp.init_code
 jobqueue.queue_template
 io.unix.socket.end_code
@@ -426,6 +444,8 @@ base.handler.link-upgrade
 base.handler.inotify_poll
 base.file.zenka_dir.write
 base.erase_buffer_content
+base.devmod.unload_unsafe
+base.devmod.safe_commands
 base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
@@ -472,6 +492,7 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.file.read_timestamped
 base.event.io_idle_restart
+base.devmod.process_signal
 base.dependency.ok_resolve
 base.dependency.add_object
 base.chk-sum.bmw.chain_L13
@@ -484,10 +505,12 @@ invoke-web.cmd.render-stats
 invoke-web.cmd.model-source
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
+coding.thermal.boost_active
 coding.self_test.multiplier
 coding.parser.str.is_vision
 coding.parse.xml_tool_calls
 coding.helper.task_priority
+coding.handler.thermal_tick
 coding.handler.http_timeout
 coding.chmod_child.readline
 coding.callback.http_header
@@ -503,6 +526,7 @@ base.parser.ondemand_status
 base.modules.check_migrated
 base.handler.whitelist_miss
 base.file.write_timestamped
+base.devmod.unsafe_commands
 base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
@@ -544,6 +568,7 @@ base.file.zenka_dir.run_path
 base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 auth.client.server_pin.check
+thermal.handler.outdoor-reply
 protocol.protocol-7.init_code
 invoke-web.stats.render_start
 invoke-web.stats.graph_params
@@ -663,6 +688,7 @@ coding.helper.model_switch_start
 coding.helper.loop_verdict_spawn
 coding.helper.loop_verdict_apply
 coding.helper.check_resource_fit
+coding.handler.thermal_hold_done
 coding.handler.refresh_mem_stats
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
@@ -727,6 +753,7 @@ invoke-web.handler.queue_watch_once
 invoke-web.handler.gpu_metric_reply
 coding.tools.definitions.scratchpad
 coding.self_test.handler.poll_probe
+coding.handler.thermal_execute_hold
 base.zenki.resolve_primary_sid.pick
 base.session.register_authenticated
 base.perlmod.register_loaded_module
@@ -835,8 +862,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,...,,,,,,,,,,,,,.,.,,,.,,,.,,,,,,..,,.,,..,,...,.,,,,,.,.,.,,..,,,.,,,,,
-#NGXHD4LCTY4WCWCPONPKPRIRV5PNH7HGR6FQJKFSGFBLZ5VVFQ7IKOCKRK5MUICOXKOLBZR3SFFSU
-#\\\|PDK7KRYQJUHNL4F5JQWOEPTRPND6EJ3CGUFF65CVAUCYJQZVZ3L \ / AMOS7 \ YOURUM ::
-#\[7]AFN2LCX7DXHUCPBHUR5X2T47XGQFIMRROOTNXK3X7ZPGH3H6CUBA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,..,,,.,,,,,,..,,,,.,.,,,...,..,,...,...,.,.,,..,,,,,,,,,..,,
+#F4SOWTOJKMTOJ3WKU5KDQYM6EWBQB2OF6ALY3MTU2IX3AQNCF3562IIO3VEGNP6MY5Z5T3NSU4H3U
+#\\\|URPSLOAIWMXUWY2N7G4WB5UYX5VUINSDQW45SVT3LYWZJVCN2WN \ / AMOS7 \ YOURUM ::
+#\[7]CYALBKE4CJJXYUOYUYICDICTOVXEREFMKJHSFYJY2IWBV3EQOUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

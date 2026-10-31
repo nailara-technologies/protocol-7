@@ -1,0 +1,46 @@
+## [:< ##
+
+# name = v7-zenki.login-session.consume_grant
+# descr = validate and unlink one root-owned login grant
+
+my ( $username, $ticket ) = @ARG;
+return undef if $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
+return undef if $ticket   !~ m|^[0-9a-f]{64}$|;
+
+my $grant_dir = <v7-zenki.login-session.grant_dir>
+    // qw| /var/run/.7/login-screen/grants |;
+my $path = sprintf( qw| %s/%s |, $grant_dir, $ticket );
+return undef if -l $path or not -f $path;
+my @stat = stat($path);
+return undef if not @stat or $stat[4] != 0 or ( $stat[2] & 0777 ) != 0600;
+
+require Fcntl;
+my $fh;
+return undef
+    if not sysopen( $fh, $path, Fcntl::O_RDONLY() | Fcntl::O_NOFOLLOW() );
+binmode( $fh, ':raw' );
+my $body = '';
+while ( length($body) < 257 ) {
+    my $read = sysread( $fh, my $part, 257 - length($body) );
+    last if not defined $read or $read == 0;
+    $body .= $part;
+}
+close($fh);
+unlink($path);    ## single use, including malformed or wrong-user claims ##
+return undef if length($body) > 256;
+
+my ( $version, $grant_user, $uid, $expires, $extra )
+    = split( m|\n|, $body, -1 );
+return undef if defined $extra and length $extra;
+return undef if $version ne 'login-screen-grant-v1';
+return undef if $grant_user ne $username;
+return undef if $uid     !~ m|^\d+$| or $uid < 1000;
+return undef if $expires !~ m|^\d+$| or $expires < time;
+
+return { 'user' => $grant_user, 'uid' => int($uid), 'expires' => $expires };
+
+#,,,.,...,,.,,,.,,,..,.,.,,,.,,.,,.,.,,,.,.,.,..,,...,...,.,.,...,..,,.,.,,,,,
+#U5CZ3M5NIZ77YOZI4GEC5W5TRAA7ZQI3EJGK46WHCMFHF63QB76FILUGCIFEG55YACHYPRZ5NCWCC
+#\\\|Y7QQU2Z2HLRPWMRJB6TOWMKSTM6CL7L7XCUR3GOVWBX4YI77CIG \ / AMOS7 \ YOURUM ::
+#\[7]QD5UGW5WQWCRHHCH5SPVDCBCXNYGDQKM2ECAFMLTEXOE7GNQCMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

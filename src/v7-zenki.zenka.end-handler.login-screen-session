@@ -1,0 +1,22 @@
+## [:< ##
+
+# name = v7-zenki.zenka.end-handler.login-screen-session
+# descr = any session end : drop its xauth, back to the greeter
+
+my $instance_id = shift;
+my $instance    = <v7-zenki.zenka.instance>->{$instance_id} // return FALSE;
+my $username    = $instance->{'subname'}                    // '';
+if ( $username =~ m|^[a-z_][a-z0-9_-]{0,31}$| ) {
+    my $path = sprintf( qw| /var/run/.7/login-screen/sessions/%s.Xauthority |,
+        $username );
+    unlink($path) if -f $path and not -l $path;
+}
+<[protocol-7.route-send]>
+    ->( { 'command' => qw| login-screen.session-ended | } );
+TRUE;
+
+#,,.,,.,.,,,,,,..,,,,,,,,,.,.,.,,,,,,,...,...,..,,...,...,.,.,..,,,..,,,,,...,
+#LFXVIEGXE3PESYHFHZKD2S7DKR4UJ7DNLDVUHPWVPT2AJ4OA25OCLW4RR2Z46MOQ7D7444JSVGWYY
+#\\\|K2AXGM5NUDIMW2ETIJ5ECNXUTGBPXHK64VVCUCKJQJGGDNTT5DI \ / AMOS7 \ YOURUM ::
+#\[7]XHNVRS6GZ27VJFPIC4WYWDKIIZWWGD5RN5O524USPSKMC3EYVMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

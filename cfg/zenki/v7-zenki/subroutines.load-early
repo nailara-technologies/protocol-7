@@ -64,6 +64,9 @@ base.swap_subs
 base.ssl.write
 base.sig_NUM55
 base.sig_NUM53
+base.sig_NUM52
+base.sig_NUM51
+base.sig_NUM50
 base.sig_NUM41
 base.sig_NUM37
 base.route.add
@@ -325,6 +328,7 @@ v7-zenki.sys_deps.track
 v7-zenki.sys_deps.probe
 v7-zenki.instance_count
 v7-zenki.find-AMOS-user
+v7-zenki.devmod.request
 protocol.sftp.init_code
 jobqueue.queue_template
 io.unix.socket.end_code
@@ -405,6 +409,7 @@ v7-zenki.stdout_log.close
 v7-zenki.load_start_setup
 v7-zenki.init_start_setup
 v7-zenki.handler.sig_chld
+v7-zenki.devmod.send_next
 v7-zenki.delegation.retry
 v7-zenki.delegation.issue
 v7-zenki.check_zenka_deps
@@ -425,6 +430,8 @@ base.load_runtime_modules
 base.is_defined_recursive
 base.handler.link-upgrade
 base.erase_buffer_content
+base.devmod.unload_unsafe
+base.devmod.safe_commands
 base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
@@ -459,6 +466,7 @@ base.ntime.epoch_timestamp
 base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
+base.devmod.process_signal
 base.dependency.ok_resolve
 base.dependency.add_object
 base.check_dependency_dirs
@@ -498,6 +506,7 @@ base.modules.check_migrated
 base.handler.whitelist_miss
 base.handler.warn_nak_reply
 base.file.gen_path_linkname
+base.devmod.unsafe_commands
 base.dependency.get_reverse
 base.debian.install_package
 base.cmd.buffer-erase-level
@@ -540,6 +549,7 @@ v7-zenki.zenka.cmd.start_once
 v7-zenki.zenka.cmd.sid-lookup
 v7-zenki.zenka.cmd.pid-lookup
 v7-zenki.zenka.cmd.gone_child
+v7-zenki.zenka.cmd.devmod-ack
 v7-zenki.sub-process.get_ppid
 v7-zenki.stop_heartbeat_timer
 v7-zenki.resolve.object.zenka
@@ -614,7 +624,6 @@ v7-zenki.zenka.cmd.zenka-status
 v7-zenki.zenka.cmd.subname-sids
 v7-zenki.zenka.cmd.pid-instance
 v7-zenki.zenka.cmd.devmod-clear
-v7-zenki.zenka.cmd.devmod-ack
 v7-zenki.zenka.cmd.clear-manual
 v7-zenki.pressure.defer_restart
 v7-zenki.kept_children_reabsorb
@@ -641,13 +650,8 @@ base.handler.link-upgrade.input
 v7-zenki.zenka.push_routing_mode
 v7-zenki.zenka.cmd.notify_online
 v7-zenki.zenka.cmd.instance_pids
-v7-zenki.zenka.cmd.devmod-unload-unsafe
-v7-zenki.zenka.cmd.devmod-enable-rw
 v7-zenki.zenka.cmd.devmod-enable
-v7-zenki.zenka.cmd.devmod-disable
 v7-zenki.zenka-instances.get-ids
-v7-zenki.devmod.send_next
-v7-zenki.devmod.request
 v7-zenki.sub-process.orphan_pids
 v7-zenki.stdout_log.early_buffer
 v7-zenki.resolve.object.sys_deps
@@ -684,6 +688,7 @@ v7-zenki.zenka.cmd.pause-instance
 v7-zenki.zenka.cmd.notify_restart
 v7-zenki.zenka.cmd.notify_offline
 v7-zenki.zenka.cmd.drain-instance
+v7-zenki.zenka.cmd.devmod-disable
 v7-zenki.zenka.cmd.claim-children
 v7-zenki.sub-process.get_children
 v7-zenki.parser.dependency_status
@@ -743,6 +748,7 @@ base.callback.setup_rollback_timer
 ascii.frame.parse.fill_anchor_text
 v7-zenki.zenka.cmd.report-temp-path
 v7-zenki.zenka.cmd.get-instance-ids
+v7-zenki.zenka.cmd.devmod-enable-rw
 v7-zenki.sub-process.identity_match
 v7-zenki.report_collected_child_pid
 v7-zenki.load_zenka_output_patterns
@@ -819,6 +825,7 @@ protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
 base.stdio.frame.decode.decode_payload
 base.log.send-buffer.idle-callback-set
+v7-zenki.zenka.cmd.devmod-unload-unsafe
 v7-zenki.parser.manually_stopped_tstamp
 v7-zenki.handler.stdio_multiplex_listen
 v7-zenki.callback.delete_instance_cache
@@ -853,9 +860,13 @@ base.log.send-buffer.reply-handler.notify-online
 v7-zenki.handler.stdio_multiplex_demux.route_to_slot
 v7-zenki.handler.stdio_multiplex_demux.encode_payload_hex
 v7-zenki.handler.stdio_multiplex_demux.decode_payload_text
+v7-zenki.login-session.consume_grant
+v7-zenki.zenka.cmd.login-session-start
+v7-zenki.login-session.xauth_reply
+v7-zenki.zenka.end-handler.login-screen-session
 
-#,,..,,,.,,..,.,.,,,.,,.,,,,.,,.,,..,,...,,,,,..,,...,...,..,,,.,,.,.,,..,,,,,
-#OB6LO5IVOESTOI5VOMVEOAYIS326N5MATQWEMGA5PMHGBIGBB3P6MAYPJMLVCRKN42QB5OHPPNSVA
-#\\\|7JUFDSJA6Z2ZH5GCZLPIPMYRZLACKZINPWOIDMIIBBW4YPMHO36 \ / AMOS7 \ YOURUM ::
-#\[7]NDOAEP3ZHQ3SM73FOYPZAI7XSCXSQNJHUGE2Q2LI3GNS2BPUPIBA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,...,.,,,.,,,,..,,,,,,,.,.,.,...,..,,...,...,.,,,,,.,,,,,,..,..,,
+#FRKITP6KGREBLY4SAMEEIHQAOYG7MPMPNPHVPGV2PAYAPCHL7TMALHK4Y243LS3K4P42Y4BJX5W4C
+#\\\|BZIVQE4SSD6NEVA5GSBWQQJNV6DGYW52O2JQG442BYWEC3ZIPSE \ / AMOS7 \ YOURUM ::
+#\[7]ZG6POVK2VWVBIJUFE2LIHT3FUVFJZ2SV3I572KIJF4KXFZTJOMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

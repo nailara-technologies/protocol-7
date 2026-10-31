@@ -1,0 +1,153 @@
+#!/usr/bin/env perl
+use v5.32;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use FindBin     qw| $RealBin |;
+use Time::HiRes qw| sleep |;
+use POSIX       qw| WNOHANG |;
+
+use constant { TRUE => 5, FALSE => 0 };
+
+sub fail {
+    my ($message) = @ARG;
+    say STDERR "login-screen-session : $message";
+    exit 1;
+}
+
+sub load_config {
+    my ($path) = @ARG;
+    my %cfg;
+    return \%cfg if not defined $path or not -f $path;
+    open( my $fh, '<:raw', $path )    or fail('cannot read session config');
+    while ( my $line = <$fh> ) {
+        $line                             =~ s|\r?\n$||;
+        $line                             =~ s{^\s+|\s+$}{}g;
+        next if not length $line or $line =~ m|^#|;
+        my ( $key, $value ) = split( m|\s*=\s*|, $line, 2 );
+        $cfg{$key} = $value if defined $value;
+    }
+    close($fh);
+    return \%cfg;
+}
+
+sub executable {
+    my ($configured) = @ARG;
+    return $configured
+        if defined $configured
+        and $configured =~ m{^/}
+        and -x $configured;
+    if ( defined $configured and $configured =~ m|^[A-Za-z0-9_.+-]+$| ) {
+        foreach my $dir (qw| /usr/local/bin /usr/bin /bin |) {
+            my $path = File::Spec->catfile( $dir, $configured );
+            return $path if -x $path;
+        }
+    }
+    return;
+}
+
+my $username = $ENV{'USER'} // '';
+fail('invalid session user') if $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
+my @pw = getpwnam($username);
+fail('session user does not match euid')
+    if not @pw
+    or $pw[2] != $EUID
+    or $EUID < 1000
+    or $UID != $EUID;
+
+my $display = $ENV{'DISPLAY'} // '';
+fail('invalid display') if $display !~ m|^:\d+$|;
+my $home = $ENV{'HOME'} // $pw[7];
+fail('invalid home') if $home ne $pw[7] or not -d $home;
+chdir($home)                            or fail('cannot enter home');
+
+my $root_path = File::Spec->rel2abs(
+    File::Spec->catdir( $RealBin, File::Spec->updir ) );
+my $config_path = $ENV{'LOGIN_SCREEN_SESSION_CONFIG'}
+    // File::Spec->catfile( $root_path,
+    qw| cfg zenki login-screen session.cfg | );
+my $cfg = load_config($config_path);
+$root_path = $cfg->{'root_path'} // $root_path;
+
+my $openbox = executable( $cfg->{'openbox.bin'} // 'openbox' )
+    // fail('openbox not found');
+my $compton = executable( $cfg->{'compton.bin'} // 'compton' )
+    // fail('compton not found');
+my $openbox_config = $cfg->{'openbox.config_file'}
+    // File::Spec->catfile( $root_path, 'cfg', 'zenki', 'openbox',
+    "openbox.$username.xml" );
+fail('per-user openbox config missing')
+    if -l $openbox_config or not -f $openbox_config;
+
+my $xauth_path
+    = File::Spec->catfile( $cfg->{'xauthority.dir'}
+        // '/var/run/.7/login-screen/sessions',
+    "$username.Xauthority" );
+fail('xauthority missing or unsafe')
+    if -l $xauth_path or not -f $xauth_path;
+my @xauth_stat = stat($xauth_path);
+fail('xauthority ownership or mode refused')
+    if not @xauth_stat
+    or $xauth_stat[4] != $EUID
+    or ( $xauth_stat[2] & 0777 ) != 0600;
+$ENV{'XAUTHORITY'}   = $xauth_path;
+$ENV{'NO_AT_BRIDGE'} = 1;
+delete $ENV{'LOGIN_SCREEN_SESSION_CONFIG'};
+
+setpgrp( 0, 0 ) or fail('cannot create session process group');
+my %children;
+my $ending = FALSE;
+$SIG{'TERM'} = $SIG{'INT'} = $SIG{'HUP'} = sub { $ending = TRUE };
+
+sub spawn_child {
+    my ( $role, @command ) = @ARG;
+    my $pid = fork();
+    fail("cannot fork $role") if not defined $pid;
+    if ( $pid == 0 ) {
+        exec { $command[0] } @command or POSIX::_exit(127);
+    }
+    $children{$pid} = $role;
+    return $pid;
+}
+
+my $openbox_pid = spawn_child( 'openbox', $openbox, '--sm-disable',
+    '--config-file', $openbox_config );
+sleep(0.2);
+my $compton_pid = spawn_child( 'compton', $compton, '-d', $display );
+sleep(0.2);
+
+my $config_home = $ENV{'XDG_CONFIG_HOME'}
+    // File::Spec->catdir( $home, '.config' );
+my $autostart
+    = File::Spec->catfile( $config_home, 'protocol-7', 'autostart' );
+if ( -f $autostart and -x $autostart ) {
+    spawn_child( 'autostart', $autostart );
+    ## let an immediate openbox logout follow, not skip, exec ##
+    sleep(0.1);
+}
+
+my $exit_code = 0;
+while ( not $ending ) {
+    while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
+        my $role = delete $children{$pid} // next;
+        next if $role eq 'autostart';
+        $ending    = TRUE;
+        $exit_code = 1 if $role eq 'compton' or $CHILD_ERROR != 0;
+    }
+    last if $ending;
+    sleep(0.1);
+}
+
+$SIG{'TERM'} = $SIG{'INT'} = $SIG{'HUP'} = 'IGNORE';
+kill 'TERM', -$$;
+sleep(0.2);
+kill 'KILL', keys %children if keys %children;
+waitpid( $ARG, WNOHANG ) for keys %children;
+exit $exit_code;
+
+#,,.,,.,,,..,,...,,,.,..,,,..,...,...,..,,.,,,..,,...,...,...,,,.,,,.,.,,,.,,,
+#O5S2VOIJWZS3AR5QDPDCS46PP66DAWGGWPT27JVYP7SNRHPICPBQN2U2AZDK4ESQJI4D43A6WRTLS
+#\\\|5PTH2N2XT2Y4WQHVGLIYBU5CG5BTE5SUSGXGTIAEWPBUBFVGCDR \ / AMOS7 \ YOURUM ::
+#\[7]FTUI33APZQ44V237KMYTKSLTXALZYOVPN3MI2PFFQ7ZEJMGVDWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

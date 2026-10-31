@@ -186,6 +186,32 @@ if ( exists $init_result_data->{'start_mode'}
     my $exec_bin = $init_result_data->{'exec_bin'};
     my $prog_usr = $init_result_data->{'exec_usr'};
 
+    ## explicit per-instance user : only root-owned start configs may opt ##
+    ## in                                                                 ##
+    if ( $init_result_data->{'exec_usr_from_subname'} ) {
+        my @session_pw = getpwnam( $zenka_subname // '' );
+        if (   not defined $zenka_subname
+            or $zenka_subname !~ m|^[a-z_][a-z0-9_-]{0,31}$|
+            or not @session_pw
+            or $session_pw[2] < 1000
+            or ( delete <v7-zenki.login-session.admitted>->{$zenka_subname}
+                // 0 ) < time
+        ) {
+            ## a user session starts only right after its consumed login ##
+            ## grant [ v7-zenki.login-session.xauth_reply ], never by a  ##
+            ## plain v7-zenki.start of login-screen-session[<user>]      ##
+            <[base.logs]>->(
+                0,
+                "<< '%s' exec_usr_from_subname : "
+                    . "invalid user or no login grant >>",
+                $zenka_name
+            );
+            <[zenka.change_status]>->( $instance_id, qw| error | );
+            return undef;
+        }
+        $prog_usr = $zenka_subname;
+    }
+
     if ( defined $prog_usr and $prog_usr eq qw| <AMOS-user> | ) {
         if ( defined <system.AMOS-user> ) {
             $prog_usr = <system.AMOS-user>;
@@ -470,8 +496,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,,,..,,...,,,.,...,.,.,..,,.,,,...,,,.,,.,,..,,...,...,.,.,,,,,,,.,,,.,.,.,
-#J6L7R27SE7JML4JHQ3C3IRQIVJHQO4PTE3OPZDVEW5IG5D7QYOA4R7W6BBKVXV43BKESQLKRJTLTC
-#\\\|AFJ2WIFF4TDP7FVGDU24XTPJXV3DQI3DIJS6N6O7EJRWRLV2SDA \ / AMOS7 \ YOURUM ::
-#\[7]63ARVNDO5B6D5YD3K4MXWLCTWONSKMNK6R5PBWVZZWMSZ2YYEOAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,..,,...,,.,,.,.,,,.,,.,,..,,..,,...,..,,...,.,,,,,,,..,,.,.,
+#C6ZFYYVA3WX6LB356CBGY57T422N2YMBAOC6B4KVBXREFLJDCPQQ5P3CMPVSIWMPJG3DUK6NHUDGQ
+#\\\|TMLDBCK66O2L2L5EEFVKDCOB3HM66IQLKCRL3HEWFM4J3OCBFBD \ / AMOS7 \ YOURUM ::
+#\[7]G4IEK7336YCU2YCGTZJ3JXGY5X6AQZIXKKHFVZ2IUFL7BJNFDGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
