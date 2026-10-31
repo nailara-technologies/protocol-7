@@ -113,6 +113,26 @@ later as a mapping onto the same tree, decided when N7FS work resumes.
 
 ---
 
+## open : the semantic layer
+
+[ owner 2026-10-31 ] the gap in `/data/` is the semantic layer, which
+N7FS will close : a completely virtual tree of relevance from the user's
+perspective, powered by N7FS, the checksum based search and the dedup
+tree. not one fixed tree but several LENSES over the same content, side
+by side :
+
+```
+/data/view/<lens>/     each lens its own order of relevance
+```
+
+- a first lens can simply be `tree` ; further ones join without
+  restructuring [ e.g. one along the LOVE \ TRUTH \ AWARENESS triangle
+  around EXISTENCE -- the semantic core vision ]
+- names describe meaning, never form [ not `files`, not by file type ]
+- structure and names stay open until N7FS work resumes
+
+---
+
 ## steps
 
 1. the role helper + host config keys ; switch the 54 + 10 hardcoded
@@ -125,8 +145,8 @@ later as a mapping onto the same tree, decided when N7FS work resumes.
 4. the owner moves the dev checkout to `/data/source/protocol-7`
 5. `/data/network/` mappings, protocol by protocol
 
-#,,..,,..,,.,,..,,,.,,,,,,.,.,,.,,,,.,,.,,,..,..,,...,...,...,..,,..,,.,,,,,,,
-#67UOEOTB73TKHM5WNZRCQVEXKMJSP5VN6DT66V5S3K5DKZIEFQK22K2SOW6Y5BPZHUOFIJADP5QJK
-#\\\|QDRRZ5AJ7RTS7I723B22RBKB5AYMHNV7VRAPP3WODFKBXZF4W65 \ / AMOS7 \ YOURUM ::
-#\[7]S3N7C3FNCSL67HAD6CBRPERLJO32TNMS355YAHWIUZLDT5TJZGAA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,,,.,.,...,,.,,,,.,,..,,,.,.,,,..,,...,...,..,,.,,,,.,,,..,,.,,
+#J2N2LMEQLAHX4P7H5NPEFTACGIXBAAKXPTRM7QLVGJFNZQIHZCXQ34T5WQQWNJQLHOK2KFD3UBZ5Q
+#\\\|YYBTOFBOWLOEIPAOPKLYNHLUFN64PPPNTCAPFY5IYWIVTDP3NKS \ / AMOS7 \ YOURUM ::
+#\[7]IBY5YV6WS3K46PQKWJ5XDP6QVNK7DJTNTCBTYQEOI3J66UBGAMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
