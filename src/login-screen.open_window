@@ -46,6 +46,10 @@ my $width = $theme->{'content_width'} // 620;
 $width = 620 if $width !~ m|^\d+$|;
 my $padding = $theme->{'padding'} // 42;
 $padding = 42 if $padding !~ m|^\d+$|;
+my $panel_padding = $theme->{'panel_padding'} // 36;
+$panel_padding = 36 if $panel_padding !~ m|^\d+$|;
+my $panel_alpha = $theme->{'panel_alpha'} // 0.92;
+$panel_alpha = 0.92 if $panel_alpha !~ m{^(?:0(?:[.]\d+)?|1(?:[.]0+)?)$};
 
 my $window = Gtk3::Window->new('toplevel');
 my $screen = $window->get_screen();
@@ -62,10 +66,17 @@ $window->set_visual( $screen->get_system_visual() );
         'font_family' => $family,
         'font_size'   => $font_size,
         'css'         => sprintf(
-            ".title { font-size: %dpx; }\n.status { color: %s; font-size: "
-                . "%dpx; }\nentry { padding: 12px; }\nbutton { padding: "
-                . "14px; }\n",
-            $title_size, $color->('error'), $status_size
+            ".panel { background-color: rgba( %d, %d, %d, %s ); }\ngrid { "
+                . "background-color: transparent; }\n.title { font-size: "
+                . "%dpx; }\n.status { color: %s; font-size: %dpx; }\nentry { "
+                . "padding: 12px; }\nbutton { padding: 14px; }\n",
+            (   map { hex($ARG) }
+                    ( $color->('background') =~ m|#(..)(..)(..)| )
+            ),
+            $panel_alpha,
+            $title_size,
+            $color->('error'),
+            $status_size
         ),
     }
 );
@@ -77,13 +88,22 @@ $window->set_app_paintable(1);
 $window->set_default_size( $screen->get_width(), $screen->get_height() );
 $window->fullscreen();
 
+## the form sits on a padded panel : its own translucent background ##
+## [ themeable, image mode shows through ], the grid stays clear    ##
+my $panel = Gtk3::EventBox->new();
+$panel->get_style_context()->add_class('panel');
+$panel->set_halign('center');
+$panel->set_valign('center');
 my $grid = Gtk3::Grid->new();
-$grid->set_halign('center');
-$grid->set_valign('center');
 $grid->set_size_request( $width, -1 );
 $grid->set_row_spacing(24);
 $grid->set_column_spacing(16);
-$window->add($grid);
+$grid->set_margin_top($panel_padding);
+$grid->set_margin_bottom($panel_padding);
+$grid->set_margin_start($panel_padding);
+$grid->set_margin_end($panel_padding);
+$panel->add($grid);
+$window->add($panel);
 
 my $title = Gtk3::Label->new('protocol-7');
 $title->get_style_context()->add_class('title');
@@ -148,8 +168,8 @@ Glib::Timeout->add(
 );
 TRUE;
 
-#,,,.,.,,,,,,,...,,,.,..,,,,.,.,,,.,.,,..,.,.,..,,...,..,,...,.,,,,,.,,..,,,.,
-#BVTFYWPKWR5E6Z4VRDPR4X24ZP7OV3XWYYYGUHBDPDQGBXVYUCYC3G3QOBQH5WWYXO4E6TLVTRYCE
-#\\\|ORBN3WAEHEQY3RF3HS75LPASTLKKY2KJT6PLKPTLAOX24IECXA4 \ / AMOS7 \ YOURUM ::
-#\[7]DQNB3LMHPDKSLFBVOK6SBEYA6T356MPZJDVOIMOB3PWPQHCLX4BA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,.,,,.,,..,,.,.,,,.,.,,,,..,,,,,..,,...,...,,..,.,,,,..,,.,,..,,
+#TLY6BH7L6O55C5GHW363BAWV25ARXV5IQIJXP7AC3NXTUWWQE7FHNK4CBWHO5GWKX2ULVWWXWJPXQ
+#\\\|WIKAET6QBFUKDI2L2ZWY6LMIAWYVWKANNLQDCJHOFEEDHEU4AE2 \ / AMOS7 \ YOURUM ::
+#\[7]TPKHBJNOXXRK4NSE6LMHE5XD4WKO4F2DK3M3OAGVSDZUTAI4AGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
