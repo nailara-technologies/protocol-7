@@ -153,6 +153,14 @@ ok( $x->{'calls'}->[0]->[1] eq 'Insert'
 $result = $change_user->( 'Delete', { 'args' => "$caller $session_user" } );
 ok( $result->{'mode'} eq 'true' && $x->{'calls'}->[2]->[1] eq 'Delete',
     'v7 can revoke the same user' );
+{
+    my $calls = scalar $x->{'calls'}->@*;
+    local $data{'X-11'}{'servers'}{':13'}{'xauth'}{'user'} = 'x11own';
+    my $kept = $change_user->( 'Delete', { 'args' => 'v7-zenki x11own' } );
+    ok( $kept->{'mode'} eq 'true' && scalar( $x->{'calls'}->@* ) == $calls,
+        'a session revoke never removes the X-11 user itself'
+    );
+}
 
 my $before = scalar $x->{'calls'}->@*;
 $caller = 'login-screen';
@@ -180,9 +188,17 @@ $code{'base.callback.cmd_reply'} = sub { push @replies, [@ARG]; return TRUE };
 $code{'base.reply.mode_text'}    = sub { return ( 'false', 'stub refusal' ) };
 $code{'base.logs'} //= sub { return TRUE };
 $code{'protocol-7.route-send'} = sub { push @sent, $ARG[0]; return TRUE };
-$code{'zenka.cmd.start_once'}  = sub {
+my @desktop_starts;
+my @terminated;
+$code{'zenka.cmd.start_once'} = sub {
+    my $args = $ARG[0]->{'args'} // '';
+    if ( $args eq 'compton' ) { push @desktop_starts, $args; return TRUE }
     $starts++;
     return { 'mode' => 'deferred' };
+};
+$code{'zenka.cmd.terminate'} = sub {
+    push @terminated, $ARG[0]->{'args'} // '';
+    return TRUE;
 };
 
 sub pending_session {
@@ -206,7 +222,8 @@ ok( $sent[-1]->{'command'} eq 'X-11.grant_session_user' && $starts == 0,
     'xauth handoff requests SI grant before any session start'
 );
 $access_reply->( { 'params' => { 'cube_sid' => 77 }, 'cmd' => 'TRUE' } );
-ok( $starts == 1, 'successful grant starts the session' );
+ok( $starts == 1,                   'successful grant starts the session' );
+ok( "@desktop_starts" eq 'compton', 'admission starts the compton zenka' );
 ok( !grep( { $_->{'command'} eq 'X-11.revoke_session_user' } @sent ),
     'deferred running session keeps its grant' );
 
@@ -236,13 +253,14 @@ ok( $sent[0]->{'command'} eq 'X-11.revoke_session_user'
         && $sent[1]->{'command'} eq 'login-screen.session-ended',
     'session end revokes access before restoring the greeter'
 );
+ok( "@terminated" eq 'compton', 'session end terminates the compton zenka' );
 
 say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,,,,,.,,,.,..,,,..,.,,,,,,,...,.,,,,,,,,,,,..,,...,...,..,,,,.,...,,..,.,,,
-#2YT4XDL6Q23FRKONQ5JUWIVPM24F534R3344LRKR2AJEL4F5ABUG37IV5OYA4RY4AL3XQSK4MCZFO
-#\\\|ZRDVDWROISZMGXLPFNYX4E24RXA4OSYRYPSLE47TD6JXJD5MVG4 \ / AMOS7 \ YOURUM ::
-#\[7]LDD34VMEGK2H7ZLX7O2QMHVHT5KWLKO4NTFGRCGUJN4PLOTONYCY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,,,..,,,,.,...,..,,..,,,,.,,,,,..,,...,...,.,.,...,.,.,..,,.,,,
+#Z7X2ISAFMVPT52Q6PGX3MW3TJDP5D2FXZPEDNZH6NXTDZKKP7CSQL4PHHWJ77GQ5CHCJVZCLOE6QU
+#\\\|6BCJ52L5GH7CIWYB5WGSPVRNJSS35EQ4OO36PXFUACHGV5O5UC2 \ / AMOS7 \ YOURUM ::
+#\[7]GINS2A7QSK52HBV2UZHJ26PD5RS3BSC7LXZOPUH3NXUVUSEIDIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

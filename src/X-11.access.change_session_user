@@ -24,6 +24,14 @@ return { 'mode' => qw| false |, 'data' => 'xorg access is not ready' }
 return { 'mode' => qw| false |, 'data' => 'invalid session user' }
     if defined $extra
     or ( $username // '' ) !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
+## X-11 itself and root keep their SI entries : display_poll grants them, a ##
+## session revoke must not lock X-11 out of its own display                 ##
+my $x11_user = <X-11.servers>->{<X-11.primary_display>}->{'xauth'}->{'user'}
+    // '';
+return { 'mode' => qw| true |, 'data' => 'X-11 user access kept' }
+    if $operation eq qw| Delete |
+    and ( $username eq $x11_user or $username eq qw| root | );
+
 my @pw = getpwnam($username);
 return { 'mode' => qw| false |, 'data' => 'invalid session account' }
     if not @pw
@@ -56,8 +64,8 @@ return {
     : 'session user revoked'
 };
 
-#,,,,,,,.,,,.,,.,,...,,..,,..,,,.,,,,,,,,,,.,,.,.,...,...,.,,,..,,.,.,,..,,..,
-#QHLM2F7TNEKRORBHSJMEJ3ZNYMJ6AI5FESB4YQWHUANUGWAQCG27FQ7IX2JEET5TY5WMOIVL64KUU
-#\\\|BOJ7HAYBKCZWHNLWXGTVND3AGEATBQF2KSLWGAFIAHDIYHZ6Z23 \ / AMOS7 \ YOURUM ::
-#\[7]QOV7TP2LIU5T7N2MQIRMXRWJZV6DCMEK3NWPJ4NKODZJKRX5WKAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,..,,,,,,.,,,..,.,,,,,,,...,,,.,.,.,...,...,,,.,..,,,,,,,.,,.,.,
+#WQO74QM76AKNKYLQ6YEPYVMR5QQSCTJVMDOEQ3N3NI7U7ACFKF5HMJTH2IDFULIHQF55ZSF6ZQ6FY
+#\\\|GWCFLA2E6R5SUUYFHUCF7WSVM7ICFTQE22B3DSR6YR6PLL5BRBY \ / AMOS7 \ YOURUM ::
+#\[7]P3QQYBIBU3A4CRVL56IMI5D3Z7MCCTE73MLGE2G2UFRZ3GUKHIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
