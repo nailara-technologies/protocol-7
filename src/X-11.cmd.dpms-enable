@@ -14,14 +14,16 @@ my $t_sec = <X-11.blank_timeout> // 780;
 
 <X-11.obj>->DPMSInfo();
 <X-11.obj>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
+## else the 600s server default blanks first ##
+<X-11.obj>->SetScreenSaver( $t_sec, $t_sec, 1, 1 );
 <X-11.obj>->DPMSInfo();
 
 <[base.log]>->( 1, 'DPMS manually enabled' );
 
 return { 'mode' => qw| true |, 'data' => 'DPMS on \ enabled' };
 
-#,,,.,,..,.,,,...,,..,,..,.,.,,.,,,,,,,,,,.,,,..,,...,...,...,.,,,,,,,..,,.,.,
-#NLUANXZ7E4P3YOIPEJUQFCTBQWH6SXLHV2Y2P5IPXEWUCDJFZ3H2TGRZCZRYVEWK6YUUEYI22PZUK
-#\\\|THPJ5IQ6CXHQ5KRZALJKSQF52OB2PRWJR6KK3D6YC6FZQECTC3R \ / AMOS7 \ YOURUM ::
-#\[7]7UKK5PFOHN4NDCLHN6A5AKRK5ZAZVKIGNRX42P2MUATKL7H6RMBI 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,,,,,,..,.,.,...,.,.,,,.,...,..,,...,..,,,.,,,.,,,.,,.,.,...,
+#OM66DX62TU5YHD2CSOKKAD46ZKTCX6IGYI5KLPWBY2ANC6KKOJEPIVNBP22SRW7343HQL3WCIMS7G
+#\\\|BW7EA43MLNYTOBVLPN2KR2T7WCHN4UNEVP6QVUK7VJPQARDJ3GV \ / AMOS7 \ YOURUM ::
+#\[7]Q4RKUS5A457GVFQZBQ5LB6MTNJ5WKANDLGIKR7AODDPFW22LK2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

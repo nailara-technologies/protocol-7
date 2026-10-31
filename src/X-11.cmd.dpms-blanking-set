@@ -27,6 +27,8 @@ my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
 
 <X-11.obj>->DPMSEnable() if !$dpms_enabled;
 <X-11.obj>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
+## else the 600s server default blanks first ##
+<X-11.obj>->SetScreenSaver( $t_sec, $t_sec, 1, 1 );
 <X-11.obj>->DPMSInfo();
 
 <[base.logs]>->( 'manually enabled DPMS blanking [%03ds]', $t_sec );
@@ -37,8 +39,8 @@ return {
         $t_sec )
 };
 
-#,,..,..,,,.,,,,.,,,,,,..,.,.,,,,,,..,..,,.,,,..,,...,...,...,..,,...,,,.,.,,,
-#5TLIHQ32XA6T4MUB6SI5ONPMMMQZ5MQF6DERF67FJOZMD3MLAZFMGBCCFVCSUE2IG7PRDEA3OQYCY
-#\\\|ZPK2FRHD5IC776NP6AQDAMKTEDMTWFONZKDL4W7O5OPCEQTMKIZ \ / AMOS7 \ YOURUM ::
-#\[7]WVPLBMGNHNNDGBH76QDFR6B6RYLTFGHDLWHHLHNOT7E7XB2N4EBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,,..,..,,.,.,,,,,.,.,...,,..,..,,...,.,,,..,,,,.,,.,,,,.,.,,,
+#BFZUHOH3WHFRFSASKJWG3YUICFS4BRQ4FZYFHXKC5EA2L6AL7OB7FFXGW3EFEBL6Q7BH2ZBCOM4T2
+#\\\|IUUIHVOMW6LKK5TTMEDW7OZLMSE4URMZECKSDSKPYRMWAWXAY4T \ / AMOS7 \ YOURUM ::
+#\[7]2PAZKYH42HZOYCE52VG4O63PNGPNZFAH5NITZFPPYDP2EYJXEEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

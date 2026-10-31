@@ -295,6 +295,8 @@ if (    <X-11.has_dpms>
     );
     <X-11.obj>->DPMSInfo();
     <X-11.obj>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
+    ## else the 600s server default blanks first ##
+    <X-11.obj>->SetScreenSaver( $t_sec, $t_sec, 1, 1 );
     <X-11.obj>->DPMSInfo();
 }
 
@@ -382,8 +384,8 @@ $server->{'has_randr'}     = <X-11.has_randr>;
 $server->{'has_dpms'}      = <X-11.has_dpms>;
 $server->{'is_composited'} = <X-11.is_composited>;
 
-#,,.,,.,.,,,,,,,.,,..,..,,,,.,..,,,..,,,.,..,,..,,...,...,,,,,.,,,..,,,..,,,,,
-#7GTMPDXZPSQLHI63NN3SAN2DDYVIKRFIUJ6MVFMXPNUKLNLDYD4GUUFPU65MBSSAB3GP7Y5UKJ5LW
-#\\\|OA6PMARTFIWOCLXVO4NEIERA5UNKPJVS7T2VJKI7PB54MOBWC2Z \ / AMOS7 \ YOURUM ::
-#\[7]M3VH5HDTE43PHAA5JB2VJNYVBD747GQHNL67ACZDDNQIFEWLBQAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,..,,,.,...,,..,,,.,..,,,,.,.,.,..,,...,..,,,.,,,,.,,,.,..,,,.,,
+#74F4P6WP2SGWV4RVDFV4YXN4ZRIKNR7C53J2KSMLBYWX6LNHU6R222SJSP3L4VN7PZV37P4RXF3K2
+#\\\|SGNZAQ4KFNVDQSXCUMQM6IYD6UWYMDHXVP27ZR4WSPQGAYDM7US \ / AMOS7 \ YOURUM ::
+#\[7]TB3DUH264HLM65IGYYM6Y6W6LLPMSM4W4UFCSZIJNAPU5VOLIMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
