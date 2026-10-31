@@ -53,6 +53,7 @@ use AMOS7::deps::tracked     qw| record |;
 use AMOS7::deps::dist_upgr   ();
 use AMOS7::deps::hostpower   ();
 use AMOS7::deps::autoinstall ();
+use AMOS7::deps::assets      qw| asset_state install_asset |;
 use AMOS7::TERM::Frame       qw|
     frame_column_line frame_title_banner frame_section_header
     frame_status_row frame_error_line frame_error_exit frame_option_list
@@ -307,6 +308,22 @@ sub check_profile {
         }
     }
 
+    ## check repo assets [ themes, fonts, alternatives ] ##
+    if ( $profile->{assets} ) {
+        for my $entry ( @{ $profile->{assets} } ) {
+            $total++;
+            my $state = asset_state( $P7_ROOT, $entry );
+            if ( $state->{ok} ) {
+                push @rows, [ $state->{label}, 'installed', 'asset', 'ok' ];
+            } else {
+                push @rows,
+                    [ $state->{label}, 'missing',
+                    "asset : $state->{detail}" ];
+                push @missing, "asset:$state->{label}";
+            }
+        }
+    }
+
     say frame_section_header("profile $profile_name");
     my $missing_n = scalar(@missing) + $inc_missing;
     if ($missing_n) {
@@ -500,6 +517,31 @@ sub install_profile {
             } else {
                 $failed++;
                 $row->( $module, 'failed', 'cpanm' );
+            }
+        }
+    }
+
+    ## repo assets after the packages : an alternative needs its package ##
+    if ( $profile->{assets} ) {
+        for my $entry ( @{ $profile->{assets} } ) {
+            my $state = asset_state( $P7_ROOT, $entry );
+            next if $state->{ok};
+            if ( $EUID != 0 ) {
+                $failed++;
+                $row->( $state->{label}, 'needs root', 'asset', 'warn' );
+                next;
+            }
+            my ( $ok, $count ) = install_asset($state);
+            if ($ok) {
+                $row->(
+                    $state->{label},          'installed',
+                    "asset : $count written", 'ok'
+                );
+            } else {
+                $failed++;
+                $row->(
+                    $state->{label}, 'failed', "asset : $state->{detail}"
+                );
             }
         }
     }
@@ -1292,7 +1334,8 @@ sub load_profiles {
             $profiles{$current_profile} = {};
         } elsif ( $line =~ m|^    description: "(.+)"$| ) {
             $profiles{$current_profile}{description} = $1;
-        } elsif ( $line =~ m{^    (includes|apt|cpan|cpan_fallback):$} ) {
+        } elsif (
+            $line =~ m{^    (includes|apt|cpan|cpan_fallback|assets):$} ) {
             $current_section = $1;
             $profiles{$current_profile}{$current_section} = [];
         } elsif ( $line =~ m|^    host_power: "?([\w-]+)"?$| ) {
@@ -1401,8 +1444,8 @@ sub show_help {
 EOL
 }
 
-#,,,,,,,,,...,..,,...,,,.,...,.,,,...,,..,.,,,..,,...,...,,,,,..,,.,.,,,.,.,.,
-#A6GLW5COM77YZIDKIGNMIL7HIOBNF23MEGKLUWK4SQ36LCOFEPZ22RSUWV55U2XYDO7KF3XLUWSY2
-#\\\|3KSYBZN7T4YFMFRSQZAWWLPEHPZ4PPFP4QVXFOTBDDMCHBRPPXO \ / AMOS7 \ YOURUM ::
-#\[7]6HA7VBMJXV6PI25DHADM46DGTOBMUCEITLRSVXHDFHTEM7RTEECA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,.,,.,.,...,.,.,.,.,..,,,..,,,,,..,,...,..,,.,,,,..,...,..,,...,
+#BI553LUZPJ3CQRFHU3XZX46IFFGQA2Q56AQBDFI5WYQWAXVFYS4HIBFDAVOPSOJVOKJM3MET4SPN6
+#\\\|T2JWMQXEOJ7MJ5B6SAMKLSVWGV5746BOPMV2HXZ7XVGLFPSDSCD \ / AMOS7 \ YOURUM ::
+#\[7]6W2LXPZJTDQ442FP7I4SBXDGMDC5CAYNK6WIAW3MUINKQEUFYWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

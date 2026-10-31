@@ -13,7 +13,7 @@
 ##                                                                          ##
 ## the base : data/configs/desktop/photonic [ @HOME@ \ @USER@ templated ]   ##
 ## plus the themes : gkrellm2 [ invisible-blue default ], openbox amos-base ##
-## and the console font white-rabbit [ ~/.local/share/fonts ]               ##
+## [ fonts \ system-wide themes : bin/p7-deps assets: entries ]             ##
 
 use v5.32.0;
 use strict;
@@ -69,15 +69,6 @@ foreach my $theme ( [ qw| gkrellm2 |, qw| .gkrellm2/themes | ],
         },
         $tree
     );
-}
-
-## the console font [ terminal faceName WhiteRabbit ] into the user fonts ##
-my $fonts_rel = catdir(qw| .local share fonts |);
-foreach my $font (qw| console/white-rabbit.flipped.ttf |) {
-    my $src = catfile( $p7_root, qw| data ttf |, split m|/|, $font );
-    next if not -f $src;
-    $map{ catfile( $fonts_rel, ( split m|/|, $font )[-1] ) }
-        = { src => $src, tpl => 0 };
 }
 
 sub slurp_raw {
@@ -159,8 +150,6 @@ if ( $command eq qw| install | ) {
         $written++;
     }
     say ":. $written written, $kept kept [ $home ]";
-    my $font_dir = catdir( $home, $fonts_rel );
-    system( qw| fc-cache -f |, $font_dir ) if $written and -d $font_dir;
     exit 0;
 }
 
@@ -188,8 +177,8 @@ if ( $command eq qw| pull | ) {
 die "usage : p7-desktop status | diff | "
     . "install [ -force ] | pull <path ..>\n";
 
-#,,.,,,.,,...,,.,,,.,,,.,,...,,,.,,,,,.,.,.,.,..,,...,...,,,.,.,,,,..,.,,,,.,,
-#FSP3LHVQAUFYHGE2X2JUJYIDYE2QYUYQPD4GZBBAMJNQA7HFCVVS7GQ72OTJ7DRFAKULZTOF6S7LC
-#\\\|ORYUVBCG7XUW6G4OEWIHCORZJD2NIZ466A7UYGULPTO2PMQANE4 \ / AMOS7 \ YOURUM ::
-#\[7]NBYAFFFQDFKDOM6ANORPPL3CMQ7WUJCPN3BTKZSAIWKWRYZ4POBY 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,...,,,.,.,.,..,,..,,...,.,.,..,,...,...,,.,,.,.,...,,.,,...,
+#OIURID2N2FJ3TW6SZUTPWAWUKJ4XRRNWNHUKMXPLZ7FZF2WJU45F7KH2CJJQXHM2F2LJR2UR7I77O
+#\\\|7NWZWZBA2A33YOCWC755OK2VYTVZ4TDFKE7V2CBMNHIIOAYBRQS \ / AMOS7 \ YOURUM ::
+#\[7]T6ML45L6HZAO6TSKTUXJ5MOGP7LBD6DUTIJJYSNODP6MIU7AIUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

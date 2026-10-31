@@ -158,6 +158,8 @@ profiles:
       - X11::Protocol
       - X11::Protocol::WM
       - X11::Protocol::XSetRoot
+    assets:
+      - alternative x-cursor-theme /usr/share/icons/Chameleon-DarkSkyBlue-Regular/cursor.theme
 
   photonic-desktop:
     description: "openbox desktop base [ data/configs/desktop/photonic ] -- openbox itself is the openbox-n build"
@@ -178,6 +180,7 @@ profiles:
       - i3lock-fancy     # screen lock
       - suckless-tools   # slock
       - wakeonlan
+      - highlight        # syntax highlighting [ amos-7.blue theme below ]
       ## openbox-n build [ AUTOINSTALL_deb.sh ] ##
       - gettext
       - automake
@@ -196,6 +199,11 @@ profiles:
       - devscripts
       - dpkg-dev
       - docbook-to-man
+    assets:
+      - copy data/configs/themes/wm/openbox/amos-base /usr/share/themes
+      - copy data/configs/themes/wm/gkrellm2/invisible-blue /usr/share/gkrellm2/themes
+      - copy data/ttf/console/white-rabbit.flipped.ttf /usr/local/share/fonts/protocol-7
+      - copy cfg/backup/themes/highlight/amos-7.blue.theme /usr/share/highlight/themes
 
   tools:
     description: "utility tools and scripts [DBI, database tools, etc.]"
