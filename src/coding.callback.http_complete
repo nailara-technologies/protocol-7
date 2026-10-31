@@ -108,9 +108,12 @@ if ( $sm_state eq 'complete' || $sm_state eq 'error' ) {
 
 if ( $sm_state eq 'subtask' ) {
     ## parent transitioned to subtask-wait state during streaming          ##
-    ## compaction subtasks: lock NOT released by compact_context : release ##
-    ## here                                                                ##
-    ## tool subtasks: lock already released by subtask_spawn               ##
+    ## compaction subtasks : the lock is handed over at suspend time       ##
+    ## [ send_request's compaction-pending branch ] -- this callback runs  ##
+    ## under the CLOSING request's own lock context, whose token the       ##
+    ## suspended round's re-entry already rotated, so the release here is  ##
+    ## only a fallback [ usually skipped : not holder / stale token ] tool ##
+    ## subtasks: lock already released by subtask_spawn                    ##
     if ( defined $state->{'compaction_pending'} ) {
         <[base.logs]>->(
             2,
@@ -342,8 +345,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,,,,,,.,..,,.,,,,,,,.,,,,,.,,,.,,..,.,,,,,.,..,,...,...,,,,,,,,,,.,,..,,...,
-#KTOBDJKBXXRRDRCDJUPV7TRU4R3J42YVEIDG6HT5OFGZNKAIIZFGVAMTSSJO323WGNVNT3VIM54YQ
-#\\\|POPDONEXUKGMQQDMNWLHAVODSCS3BDJZ3BDCUIQVYTWHUOCVGNO \ / AMOS7 \ YOURUM ::
-#\[7]CAWAMV7NBHR73ZYRNF22CVC7YDS2RPS2HJHUWWEDEGGLDH63GADA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,.,,.,,,.,.,,,,,.,.,.,.,..,,,..,..,,...,...,.,.,,,,,,,,,,.,,,,.,
+#HIOQ26JDTZWZGYNFCIUUEV5MSCM5RDEXWE7GOJHDKSS3VVMHJF35DN6GE5QCXWEUM2S2J7L2KJRGE
+#\\\|Z6TP3PU2NL2LFVG3CDYWPH4FIR4BZQKOUFZWNNEVQMNEDBVTACD \ / AMOS7 \ YOURUM ::
+#\[7]44IQNIBFLR6HNMWZTK64SP3KY54JLTT5DZ3SJD77ANNGKNHGLUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,6 +51,20 @@ if ( defined $compact_result and $compact_result eq qw| pending | ) {
     <[base.logs]>->(
         1, "send_request: %s suspended for inference compaction", $task_id
     );
+    ## hand the backend lock over at suspend time : the parent has no      ##
+    ## request in flight while suspended, and the compaction child runs on ##
+    ## the SAME backend -- keeping the lock deadlocks                      ##
+    ## [ child waits for the lock, parent waits for the child ]. the       ##
+    ## closing request's later http_complete can NOT do this release : it  ##
+    ## runs under that request's own callback lock context, whose token    ##
+    ## this round's re-entry already rotated [ arrives stale every time -- ##
+    ## the task-LUFFZYI deadlock, 2026-10-31 ]. the parent's resume        ##
+    ## re-acquires fresh [ subtask_advance -> enqueue_round ]              ##
+    my $backend_c = $state->{'backend'} // '';
+    <[coding.async.backend_release]>->(
+        $task_id, $backend_c,
+        <[coding.async.lock_token]>->( $task_id, $backend_c )
+    ) if length $backend_c;
     return { success => TRUE, task_id => $task_id, compacting => 1 };
 }
 
@@ -399,8 +413,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,..,.,.,...,.,,,.,.,,..,.,,,,,.,.,.,.,,,.,,,..,,...,...,,.,,,.,,,,,,...,,..,
-#3M7AGLKWA7TJR4AO2PD57ACUXFNO6I7LE7X6DGSMVCMWLQGYM36BVI4NQSZ2J64IZKYN4TN6VR7II
-#\\\|KGPZ2F3JCDZNJBRKJKFWXF2CAGC276DKSDFVG5266FJKYIOEEBA \ / AMOS7 \ YOURUM ::
-#\[7]VUUS7KBWBC2QVK7Z6CAO4PI3HWZCZJJMHDPMWXSXHYG5FYL3NSAA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,,.,,.,.,.,,,,..,.,.,,,.,...,..,,...,...,...,.,.,,,.,,,,,...,
+#OQDYTGZRLQW2YOPXQVIYCYYNTFGCOMR7TQO77XDEBVS4XNV5TPEEZCZUURD6DUH646TZNXNWECTDC
+#\\\|4UZMK4J4IT4AUUV7WPTE4GZ5PRER34V2N2EYEAQF4IWV3TQ5UGN \ / AMOS7 \ YOURUM ::
+#\[7]CDV3GLCMKEQAEQYJJ7N6LFGGIKH2BGOUXAPOLBYLNFMVPR5QLIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

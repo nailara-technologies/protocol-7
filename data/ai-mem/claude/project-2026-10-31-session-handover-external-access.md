@@ -34,12 +34,26 @@ metadata:
 VSHN4 \ VKMN6 owner re-trashed [ no interest ] ; night-brake slices 3 + 4
 were already in 1453c62d3
 
+**devmod signal set** [ owner 2026-10-31, kimi slice ] : signals stay
+ACTIONS [ standalone cube \ unconnected zenka have no other lever ] :
+numbers climb with the resulting state : NUM50 unload-all [ off ], NUM51
+load-safe [ safe, from below ], NUM52 unload-unsafe [ safe, from above ],
+NUM53 load-full [ full, today's ] -- 54 stays free [ gap to NUM55 log
+width ]. load-safe must never load unsafe code at all [ unloading right
+after is already too late ]. unsafe = writes %data [ set \ del ], blocks
+[ sleep ], exhausts [ eat-mem ], runs anything [ exec-sub \ eval-code ].
+v7-zenki keeps off | safe | full per zenka, pushes it as a start-up value
+[ race free on restart ], serializes runtime signals [ next one after the
+ack ] ; an unload signal also updates the remembered state. handler only
+sets a flag, the event loop acts. OPEN : default of devmod-enable stays
+full or becomes safe [ behavior change -- owner to decide ]
+
 **next** : thermal k live check ; azurum to full desktop set [ root ] ;
 slice 1 of external access ; N7FS [ binary byte form NOT decided -- not
 used yet ]
 
-#,,..,...,,,.,,.,,,..,..,,..,,,.,,,..,,.,,...,..,,...,...,...,.,,,.,.,...,..,,
-#ZPNAVXG4TFETISUMZ6E25AC5SSEPJRQOT7TE2MUK7MWBODDNUYH2BWXQJPH2N7SSRCLK5J5HDDW3I
-#\\\|DGGICMCNBHSFPQOMFHB4UCFGFFE53D5IJG7ENYBXOLAAM3Q4ZQ3 \ / AMOS7 \ YOURUM ::
-#\[7]GFBD6VHHP4MM2ZWDCNKOYG3FRJSGMUSK3BMAUBRLJEJP5NMVE6DY 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,,.,,,,,,.,,.,,,,.,,.,.,.,.,.,.,..,,...,...,.,,,,.,,.,.,.,.,.,.,
+#23LDLFCSUGU2K4EKKJV55FQT72FG33SRD3H7SM2WNTFNTFEB3CDKDBLUXE7KYPRHSANNBMGXFON4K
+#\\\|2TBJLE2JD5VYZSWWM5F4X2PPKFXKQOETXO76WLKU2MHLEVHQ2EF \ / AMOS7 \ YOURUM ::
+#\[7]5FI32ABYSSHHE3VSAGOQR55V6VUPUQYC3GNVQHCFKAHNZCCBLIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
