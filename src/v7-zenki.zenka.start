@@ -263,7 +263,31 @@ if ( exists $init_result_data->{'start_mode'}
         map { $privs->{$ARG} =~ s|'||g }
             keys %{$privs};    # LLL: abort on match ?
 
-        ## implement exec_args.., ##  [LLL]
+        ## exec_args [ start.cfg v7-init ] : static list, <user> \ <home> ##
+        ## of the target user filled in, never through a shell            ##
+        my @exec_args;
+        my $args_str = $init_result_data->{'exec_args'} // '';
+        $args_str =~ s|^\s+||;
+        $args_str =~ s|\s+$||;
+        if ( length $args_str ) {
+            my %tpl = ( '<user>' => $prog_usr, '<home>' => $privs->{'home'} );
+            foreach my $arg ( split m|\s+|, $args_str ) {
+                $arg =~ s{(<user>|<home>)}{$tpl{$1}}g;
+                if ( $arg =~ m|[\x00-\x1f\x7f]| ) {
+                    <[base.logs]>->(
+                        0, "'%s' exec_args : control character refused",
+                        $zenka_name
+                    );
+                    <[zenka.change_status]>->( $instance_id, qw| error | );
+                    return undef;
+                }
+                push @exec_args, $arg;
+            }
+            <[base.logs]>->(
+                1,           "'%s' exec_args : %s",
+                $zenka_name, join( ' ', @exec_args )
+            );
+        }
 
         ## a bare perl -e : English must be loaded or the id lines below ##
         ## are plain variables [ the program ran on as root ]            ##
@@ -346,10 +370,17 @@ if ( exists $init_result_data->{'start_mode'}
             $zenka_sn_str, $prog_usr
         );
         eval {
-            $pid
-                = IPC::Open2::open2( $out_fh, $in_fh, $EXECUTABLE_NAME,
+            $pid = IPC::Open2::open2(
+                $out_fh, $in_fh,
+                $EXECUTABLE_NAME,
                 qw| -e |,
-                sprintf( "%s exec '%s'", $prepare_code, $exec_bin ) );
+                sprintf(
+                    "%s exec { '%s' } '%s', \@ARGV;",
+                    $prepare_code, $exec_bin, $exec_bin
+                ),
+                qw| -- |,
+                @exec_args
+            );
         };
         goto SKIP_OPEN2;
     }
@@ -501,8 +532,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,..,,,,,,..,.,,,.,,,,.,,,.,,..,,,,.,.,.,...,..,,...,...,.,.,,.,,,..,..,,.,,,
-#BND3ECBILQY33YJXBXBIYH4WM72TXJYISYL2UOTBUZHY6QM5L67FOKNEED3QMJHOCAJMFLQ6FMOAQ
-#\\\|HRVWNXOXTWI7LHW2MNJ4ZHXWBGSJBXVXLC2C5TLAUDSLBEICNGH \ / AMOS7 \ YOURUM ::
-#\[7]4VPKHACTJALNCEJMD77AFCJCV7KGFGMCJMJNQGA2MYRTC24KCSCI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,.,,,.,,,,.,,.,.,,..,,,.,,..,..,,...,...,..,,,,.,,.,,..,,.,,,
+#PIMAI2UYTSYGZ5C4BC5P5K3HKQJNFNR2U5IUNAZU3R6LXWRZAOESZH4LPJ5LRP3AL4GLHJDNOENDK
+#\\\|GJY5ZW3VKQU6SO6PJEHW2IS43FZVXH2PQ5ZLZD4DSWD55GPFWY6 \ / AMOS7 \ YOURUM ::
+#\[7]CKZRE4X2TTREFF2CRMPMGONUUQKZWEUZBSB7A43XVTZFJULVVYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
