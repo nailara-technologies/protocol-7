@@ -6,8 +6,10 @@
 #           gpu_layers => N, layer_count => N,    [ gpu offload fraction ]
 #           kv_cache_type => f16 | q8_0 | .. ,   [ default f16 ]
 #           offload_mb => N,      [ moe expert weights in ram : --n-cpu-moe ]
-#           vram_total_mb => N,   [ skips the nvidia-smi query : planners ]
+#           vram_total_mb => N,   [ total vram, skips the nvidia-smi query ]
+#           vram_budget_mb => N,  [ free minus spawn reserve : moe planner ]
 #           swa_compress => bool, [ --swa-compress : swa layers at window ]
+#           handled_offload => bool, [ expected fit failure during offload ]
 #           probe => bool }       [ planner variant : quiet logs ]
 # return = { context_length => N, calculated => N, explanation => "...",
 #            limited_by => "..." }
@@ -373,10 +375,10 @@ if ( $backend ne qw| gpu | ) {
 
 ## query GPU memory [ single shared helper, see its own file for why ] ##
 my $vram
-    = $params->{'vram_total_mb'}
+    = $params->{'vram_total_mb'} || $params->{'vram_budget_mb'}
     ? {
     'ok'       => TRUE,
-    'total_mb' => $params->{'vram_total_mb'},
+    'total_mb' => $params->{'vram_budget_mb'} // $params->{'vram_total_mb'},
     'free_mb'  => 0
     }
     : <[coding.helper.query_gpu_memory]>;
@@ -466,14 +468,18 @@ if ( $offload_mb > 0 and !$partial_offload ) {
     }
 }
 
-## memory left after loading [ gpu-resident ] model weights + CUDA context ##
+## memory left after loading [ gpu-resident ] model weights + CUDA context  ##
+## the moe planner's budget already excludes the spawn's fixed vram reserve ##
 my $remaining_mb
-    = $total_mb - $gpu_model_mb - $mmproj_size_mb - $cuda_overhead_mb;
+    = $total_mb
+    - $gpu_model_mb
+    - $mmproj_size_mb
+    - ( $params->{'vram_budget_mb'} ? 0 : $cuda_overhead_mb );
 
 ## cannot fit model at all ##
 if ( $remaining_mb <= 0 ) {
     <[base.logs]>->(
-        $log_err,
+        $probe ? 2 : $params->{'handled_offload'} ? 1 : $log_err,
         '[calculate_safe_context] model does not fit '
             . 'GPU: total=%dMB model=%.0fMB mmproj=%.0fMB',
         $total_mb,
@@ -672,7 +678,7 @@ if ($partial_offload) {
 
 <[base.logs]>->(
     $log_info,
-    ': VRAM=%d MB : model %.0f MB ' . 'mmproj %.0f MB KV [ token %.1f KB ]',
+    ': VRAM=%d MB : model %.0f MB mmproj %.0f MB KV [ token %.1f KB ]',
     $total_mb,
     $model_size_mb,
     $mmproj_size_mb,
@@ -699,8 +705,8 @@ return {
     kv_bytes_per_token => $kv_bytes_per_token,
 };
 
-#,,.,,,,,,.,.,..,,...,,..,,,,,,.,,.,.,..,,...,.,.,...,..,,...,,..,..,,,.,,,,.,
-#Q345UZHGEI7JAPVJAS3WTHSK4BOD5JKQTE3CKDDO6WKKNFVM6VFF3LR7MOVXDQUU7HGBMU6HWKNDG
-#\\\|BHQ34E4QHNDQSTW4FPQDMIQAX7YRJEU25W5DXOSJLDSUAGQ4HCY \ / AMOS7 \ YOURUM ::
-#\[7]IVBJNJZ5MVDCJLSTDO7EPKM7IOST2GUBSPL2VOTCR57WHMCOSUAY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,.,,,.,...,...,...,.,.,,..,.,.,.,.,...,...,...,...,,,.,..,,..,,
+#7ZT55ANSIH46COAJLCQGABFGZ6D53CYWTOSG53M3USTRG4O35DM6QMXWQ4A464K2PTHHFNZDICLFW
+#\\\|NF7QCCEBNP5FTTXJKC2ZST3R6WXPM2VHEXMUXMF7XQICHBUFIHA \ / AMOS7 \ YOURUM ::
+#\[7]YI6GHONMMLFWYFQZJ6CM7QEOHLNZO2VZSLOEGFAEILXQV3V2ZABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
