@@ -47,20 +47,22 @@ sub executable {
     return;
 }
 
-my $username = $ENV{'USER'} // '';
-fail('invalid session user') if $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
-my @pw = getpwnam($username);
+## the account is the euid v7 started us as : USER \ HOME are not set for ##
+## the session user by the start, they are derived here                   ##
+my @pw = getpwuid($EUID);
 fail('session user does not match euid')
     if not @pw
-    or $pw[2] != $EUID
     or $EUID < 1000
     or $UID != $EUID;
+my $username = $pw[0];
+fail('invalid session user') if $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
 
 my $display = $ENV{'DISPLAY'} // '';
 fail('invalid display') if $display !~ m|^:\d+$|;
-my $home = $ENV{'HOME'} // $pw[7];
-fail('invalid home') if $home ne $pw[7] or not -d $home;
-chdir($home)                            or fail('cannot enter home');
+my $home = $pw[7];
+fail('invalid home') if not length $home or not -d $home;
+@ENV{qw| USER LOGNAME HOME |} = ( $username, $username, $home );
+chdir($home) or fail('cannot enter home');
 
 my $root_path = File::Spec->rel2abs(
     File::Spec->catdir( $RealBin, File::Spec->updir ) );
@@ -146,8 +148,8 @@ kill 'KILL', keys %children if keys %children;
 waitpid( $ARG, WNOHANG ) for keys %children;
 exit $exit_code;
 
-#,,.,,.,,,..,,...,,,.,..,,,..,...,...,..,,.,,,..,,...,...,...,,,.,,,.,.,,,.,,,
-#O5S2VOIJWZS3AR5QDPDCS46PP66DAWGGWPT27JVYP7SNRHPICPBQN2U2AZDK4ESQJI4D43A6WRTLS
-#\\\|5PTH2N2XT2Y4WQHVGLIYBU5CG5BTE5SUSGXGTIAEWPBUBFVGCDR \ / AMOS7 \ YOURUM ::
-#\[7]FTUI33APZQ44V237KMYTKSLTXALZYOVPN3MI2PFFQ7ZEJMGVDWBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,,,,,,,.,.,,,.,.,.,,,,.,,..,,..,,...,...,...,...,,,,,,..,,.,,
+#A6PMLSRK7P26ZDNF6UXUJE4VCBISU45JQEQJR7M66GPMAKFQD445EYBHMV4IIELFTO56LYKYQJJBK
+#\\\|WYI7OJRPHIUEJCJMN744D3IBHEYKNXRYBHFTZ2UMN4YNZZVZS5G \ / AMOS7 \ YOURUM ::
+#\[7]R7NG5P5V5ELTIUTYWAP7T22FFV6GPG3YLHOMBRR3UJ3JDLVECWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
