@@ -300,7 +300,7 @@ if ( exists $init_result_data->{'start_mode'}
             die "privilege switch failed\\n"
                 if \$UID != $privs->{'uid'} or \$EUID != $privs->{'uid'}
                 or ( split ' ', \$GID )[0] != $privs->{'gid'}
-                or grep { \$_ == 0 } split ' ', \$EGID;
+                or ( $privs->{'uid'} != 0 and grep { \$_ == 0 } split ' ', \$EGID );
             \$ENV{'USER'} = qw| $prog_usr |;
             \$ENV{'HOME'} = qw| $privs->{'home'} |;
             \$ENV{'XDG_RUNTIME_DIR'} = qw| $privs->{'home'} |;
@@ -501,8 +501,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,.,.,.,,,,,,,,,.,,,,,.,..,,...,,.,,,..,.,,,..,,...,...,.,,,.,,,.,,,,,,,,.,,
-#CQ7RCUOT2DNQH2S7K72HNBEG3ZFJ7SW3SW2RYAHTQS2HGOREM43UZKXG2Z6JJFSON3JTAAURKZ2S2
-#\\\|GXQWYKO7VE7PTA7TN55XHQADQQP5RPYBJ6E5E33FBVAZELPCOFL \ / AMOS7 \ YOURUM ::
-#\[7]4IJGE6S7P3JCETWPSFKL7C7AURKRCC2BREHQWLEHB2V7XNKRLEAA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,.,,,,.,,,.,,..,,,,.,.,.,...,..,,...,...,.,.,,.,,,..,..,,.,,,
+#BND3ECBILQY33YJXBXBIYH4WM72TXJYISYL2UOTBUZHY6QM5L67FOKNEED3QMJHOCAJMFLQ6FMOAQ
+#\\\|HRVWNXOXTWI7LHW2MNJ4ZHXWBGSJBXVXLC2C5TLAUDSLBEICNGH \ / AMOS7 \ YOURUM ::
+#\[7]4VPKHACTJALNCEJMD77AFCJCV7KGFGMCJMJNQGA2MYRTC24KCSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
