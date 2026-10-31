@@ -1,15 +1,15 @@
 ## [:< ##
 
 # name = v7-zenki.login-session.xauth_reply
-# descr = hand X authority to the user, start the session
+# descr = hand X authority to the user, request session access
 
 my $reply    = shift                                         // {};
 my $cube_sid = $reply->{'params'}->{'cube_sid'}              // '';
 my $pending  = <v7-zenki.login-session.pending>->{$cube_sid} // return;
-delete <v7-zenki.login-session.pending>->{$cube_sid};
-my $request = $pending->{'request'};
-my $fail    = sub {
+my $request  = $pending->{'request'};
+my $fail     = sub {
     my ($message) = @ARG;
+    delete <v7-zenki.login-session.pending>->{$cube_sid};
     <[base.callback.cmd_reply]>->(
         $request->{'reply_id'},
         { 'mode' => qw| false |, 'data' => $message }
@@ -34,21 +34,20 @@ my $written = <[base.X-11.write_xauth_file]>->(
 );
 return $fail->('cannot hand X authority to user') if not $written;
 
-## the start below is the only admitted one : zenka.start refuses an ##
-## exec_usr_from_subname start without this single-use mark          ##
-<v7-zenki.login-session.admitted>->{ $pending->{'user'} } = time + 30;
-
-$request->{'args'}
-    = sprintf( ':wait-up: login-screen-session[%s]', $pending->{'user'} );
-my $result = $code{'v7-zenki.zenka.cmd.start_once'}->($request);
-if ( ref($result) eq qw| HASH | and $result->{'mode'} ne qw| deferred | ) {
-    unlink($path);
-    <[base.callback.cmd_reply]>->( $request->{'reply_id'}, $result );
-}
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| X-11.grant_session_user |,
+        'call_args' => { 'args' => $pending->{'user'} },
+        'reply'     => {
+            'handler' => qw| v7-zenki.login-session.access_reply |,
+            'params'  => { 'cube_sid' => $cube_sid },
+        }
+    }
+);
+return $fail->('cannot request X access for session user') if not $sent;
 TRUE;
 
-#,,,.,...,.,,,..,,...,..,,,..,...,,..,,..,,,,,..,,...,...,..,,,,.,,.,,...,..,,
-#GNWLVK7L6YGYJKPN2RONAUHX5K2FWP5XNDIXJ5IDR3XCCMKBHZJH2JCRKGQOXJPTPWF2RYWS5YUZQ
-#\\\|Y37DQRVD2PAAKWD2HJHUETKL36H6R7UFOUM4JH46YK4VXKWW4IP \ / AMOS7 \ YOURUM ::
-#\[7]O4OD5SBYAYGUBNK5YQYNSYAAZIPDU5DSZZN5KSPD7R2AANK4OQBI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,..,,.,.,,.,,..,,,,,,,,.,,,.,.,,,..,,...,...,.,,,...,,,,,...,.,.,
+#6PBZTM62NHFNAUGAVOYZ4Q35M7WPMLBXZIMARHYYHNMXXNTE3QLHXJRH2YYXUDNSYXHTZV2UPQCDE
+#\\\|IJLZFYISZE4S54P3IJZSZOO3ARTTS2XTVPJVGPWDZFMNV4R5JR6 \ / AMOS7 \ YOURUM ::
+#\[7]4BAHN6XNCXXPHXSMFKKD76ZGSZZSR6D6A2GFIWEHHXPPQWDG3UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

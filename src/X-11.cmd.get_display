@@ -3,10 +3,14 @@
 # name  = X-11.cmd.get_display
 # descr = return the server's X11-'display' address
 
+return { 'mode' => qw| false |, 'data' => 'xorg access is not ready' }
+    if <X-11.mode> eq qw| xorg |
+    and not <X-11.servers>->{<X-11.primary_display>}->{'access_ready'};
+
 return { 'mode' => qw| true |, 'data' => <X-11.display>->{<X-11.mode>} };
 
-#,,..,,.,,.,,,..,,...,.,,,,,,,...,,.,,,,,,.,,,..,,...,...,,.,,.,,,,..,...,.,.,
-#C4XBO7NBQK46DOMCJ4KOL5SM37EFNZCTVFETCZQA64FYNQNGPUFLVSVNCDQKS3UCR3VRJ672QJKOO
-#\\\|F7KQPFBTQUMPDZPBUXV4SAU4E2DAHZNWMERIUVB7AJP37HONAGC \ / AMOS7 \ YOURUM ::
-#\[7]BPUVX6A6YXHAOB5H3OWJWS5O5Y5QJB7AKSNBL6MPDMI7JGAOUSAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,,,.,.,.,,,..,,...,.,.,,.,,,,.,..,,...,...,...,,.,,,..,.,,,.,.,
+#J6ML5DJIHMPLPCSZFXU5RQMAZR4HEKCSQJDC5O7ULUCGYWPXL55SZVY3CM4XGM6CGP47P4JTOOYD4
+#\\\|2O4HOOQPL47MFXZDDWLCL2NT3AAADDU7YQ5SHFPAHINLQKJWVEG \ / AMOS7 \ YOURUM ::
+#\[7]RLUD5A3T7ZP3ZEM6O2F4VQEOBWLV75UXCPEN24V7YZF5DQX3WYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

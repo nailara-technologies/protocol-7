@@ -66,24 +66,64 @@ if ( defined $disp_num and not -S "/tmp/.X11-unix/X$disp_num" ) {
 ## alarm(). the filesystem pre-check above still stands -- it's signal-free ##
 ## and narrows how often this synchronous call is even attempted.,          ##
 my $conn;
+my @connect_args = ($display_str);
+push( @connect_args,
+    [ $server->{'xauth'}->{'protocol'}, $server->{'xauth'}->{'data'} ] )
+    if $server->{'mode'} eq qw| xorg |
+    and defined $server->{'xauth'};
 my $connect_start = <[base.time]>->(4);
-eval { $conn = X11::Protocol->new($display_str); };
-my $connect_ms = ( <[base.time]>->(4) - $connect_start ) * 1000;
+eval { $conn = X11::Protocol->new(@connect_args); };
+my $connect_error = $EVAL_ERROR;
+my $connect_ms    = ( <[base.time]>->(4) - $connect_start ) * 1000;
 
 <[base.logs]>->(
     2,            ": display %s X11::Protocol->new took %.2f ms",
     $display_str, $connect_ms
 );
 
-if ( length $EVAL_ERROR or not defined $conn ) {
+if ( length $connect_error or not defined $conn ) {
     <[base.logs]>->(
         2,            ": display %s connection not ready yet: %s",
-        $display_str, $EVAL_ERROR
+        $display_str, $connect_error
     ) if $server->{'poll_retries'} % 7 == 0;
     return;
 }
 
-## connection established ##
+if ( $server->{'mode'} eq qw| xorg | ) {
+    my $x11_user  = $server->{'xauth'}->{'user'} // '';
+    my $access_ok = eval {
+        die 'missing xorg authority or user' if not length $x11_user;
+        foreach my $local_user ( $x11_user, qw| root | ) {
+            $conn->ChangeHosts( qw| Insert ServerInterpreted |,
+                "localuser:$local_user" );
+        }
+        $conn->SetAccessControl(qw| Enabled |);
+        my @hosts = $conn->ListHosts();
+        die 'X access control is disabled'
+            if not @hosts
+            or $hosts[0] ne qw| Enabled |;
+        foreach my $local_user ( $x11_user, qw| root | ) {
+            my $present = grep {
+                        ref($ARG) eq qw| ARRAY |
+                    and $ARG->[0] eq qw| ServerInterpreted |
+                    and $ARG->[1] eq "localuser:$local_user"
+            } @hosts[ 1 .. $#hosts ];
+            die "missing SI localuser entry for $local_user" if not $present;
+        }
+        TRUE;
+    };
+    if ( not $access_ok or length $EVAL_ERROR ) {
+        <[base.logs]>->(
+            0,            'xorg access setup failed on %s : %s',
+            $display_str, $EVAL_ERROR
+        );
+        eval { $conn->{'connection'}->fh->close };
+        return;
+    }
+    $server->{'access_ready'} = TRUE;
+}
+
+## connection established and xorg access control enforced ##
 $cancel_poll->();
 
 $server->{'conn'}      = $conn;
@@ -96,8 +136,8 @@ $server->{'connected'} = TRUE;
 ## resolve jobs waiting on this display ##
 <[jobqueue.check_dependencies]>;
 
-#,,..,.,,,.,,,.,,,,..,.,.,.,.,..,,.,,,..,,..,,..,,...,..,,.,,,...,,.,,,.,,,,.,
-#FHFUIEXK22NTAOJDNFNBWT52BH3PAGCFT5UU77OBHRHACP3Q55TWKLPBTCMGTHHS6F6Z6UNBKDND6
-#\\\|GSTEORH6ZUON3ZNOOHNYBK2GHA6XIZ5HXDMXARHWRTKTFPLDEBZ \ / AMOS7 \ YOURUM ::
-#\[7]QVHOVVLB27BH27MU4MGLB2EKABDMMVVLZRBCVLROQPNTLFR42ACI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,,,.,,.,,...,,..,,..,,,,,..,,..,,...,..,,...,.,,,..,,,.,,.,,,
+#JBDY7GDXIYD46E36ZKC7ROAAZSQ6M7HXDECKXRKO76WRQVWPSW2PEHFZ2K6GUWKAMYICZ2IH5RFTG
+#\\\|PWQCIWT7Q3GDIF2T7YKJOTKXXAQVMSFS7S4VXLPYCFUPCVBOUNV \ / AMOS7 \ YOURUM ::
+#\[7]S5KWCS7CBDM73WW5IDVR6WZRLGLK5CZHUVGW4MHOBOICB73RPWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

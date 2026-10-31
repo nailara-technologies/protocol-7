@@ -85,11 +85,14 @@ back to another user, display, or openbox config.
 
 ## 3. login flow
 
-1. v7 starts xorg and then `login-screen`. the X-11 zenka has already set a
-   dark root background. the greeter starts its root helper and drops privs.
+1. v7 starts xorg and then `login-screen`. X-11 writes a private 0600
+   authority file before starting xorg with `-auth`, then authenticates its
+   own connection and inserts `SI:localuser:<x11-user>` plus root before the
+   display becomes ready. the greeter starts its root helper and drops privs.
 2. the greeter resolves `DISPLAY` and asks X-11 for protocol name + cookie.
    it writes a private xauthority file before Gtk initialization. no cookie
-   means no window and a startup error, not an insecure X connection.
+   means no window and a startup error, not an insecure X connection. any
+   failed setup statement ends the greeter before a window is mapped.
 3. Gtk settings prefer the dark theme before any widget is realized. a
    fullscreen undecorated window, all widgets, and the complete CSS are built
    before `show_all`. the greeter enters `greeter` state.
@@ -105,13 +108,16 @@ back to another user, display, or openbox config.
    `starting` ; the window remains dark.
 7. v7 authenticates the caller, validates and consumes the grant, re-checks
    uid >= 1000, fetches display + xauth itself, and writes a user-owned 0600
-   xauthority file. only then does it start `login-screen-session[user]`.
+   xauthority file. it then inserts `SI:localuser:<user>` through the v7-only
+   X-11 command. only after that grant succeeds does it start
+   `login-screen-session[user]`.
 8. once v7 reports the external session running, the greeter clears the
    ticket, hides its window, and enters `session`. the root stays dark.
 9. openbox starts with the exact per-user config, compton starts next, then
    `$XDG_CONFIG_HOME/protocol-7/autostart` [ or
    `~/.config/protocol-7/autostart` ] runs when present and executable.
-10. when the supervisor ends, v7's end handler calls
+10. when the supervisor ends, v7's end handler revokes the session user's SI
+    entry, removes its xauthority file, and calls
     `login-screen.session-ended`. the greeter discards any old form state,
     shows the dark window, and returns to `greeter`. the session itself is
     never automatically restarted.
@@ -235,9 +241,10 @@ white. lock mode reuses the same renderer and palette.
 
 ## 8. cube and configuration surface
 
-`login-screen` receives only its required X-11 reads and
-`v7-zenki.login-session-start`. v7 receives only
-`login-screen.session-ended`. no wildcard is added for either side.
+`login-screen` receives only its required X-11 reads,
+`v7-zenki.login-session-start`, and `v7-zenki.register_child`. v7 receives
+`login-screen.session-ended` plus the two narrow X-11 session-user grant \
+revoke commands. no wildcard is added for either side.
 `cfg/zenki/cube/auth.zenki` authenticates `login-screen` as a zenka.
 
 tracked auth config contains policy defaults and an empty allow-list. the
@@ -291,8 +298,8 @@ restarts a zenka, touches a real host display, installs a setuid file, or
 uses a real user session. real xorg, keyboard focus, actual logout, and
 multi-monitor behavior remain explicit real-host validation steps.
 
-#,,.,,...,...,.,,,.,,,.,,,,..,,.,,...,,,.,,.,,..,,...,..,,,,.,.,.,,,,,,,,,...,
-#NCBJAGM2YI3EPK6PCVIQV3MDP5K2CIDEYG4LT2ZZAO4L5TA63ISIIGTOP4FHQKYRHJC35PZHSGM2I
-#\\\|ZDOTV5S637RJ7FULW6UVSG2RLE3WYZORB2HRBH2UNDQLJWWNDCM \ / AMOS7 \ YOURUM ::
-#\[7]NLLEI746DDU65NK67J4WSRNEGUM4YSCFGDQHZUHTOLJNXV6TYIDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,.,,..,...,.,.,,,,,.,,,...,..,,..,,...,...,,..,.,.,...,..,,,..,
+#FKMTN5TYCL2EN3IWBPIFYYD43CYKFQ5F2XYSJIU7XOTOCHNGQLUE5CPZMUHC57JK6PFICTMSWGNCM
+#\\\|3FDO5VSUJG3KLPQXCIS3TDSOZLPRKNWWHRUO6SD7JARHSKAC7OA \ / AMOS7 \ YOURUM ::
+#\[7]QH44SVO3GVQTYGFMAMMSH5WVK5ZZXHWFJ3L2UOOLZDVNC6M5CMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,13 +7,22 @@ my $pid  = <login-screen.auth_helper.pid> // return FALSE;
 my $done = waitpid( $pid, POSIX::WNOHANG() );
 return TRUE if $done == 0;
 
-<[base.logs]>->( 0, 'login-screen root helper ended [ pid %d ]', $pid );
+## a waitpid error is not itself proof of death ; EPERM also means alive ##
+if ( $done < 0 ) {
+    return TRUE if kill( 0, $pid ) or $ERRNO == POSIX::EPERM();
+}
+
+my $detail = $done == $pid ? sprintf( 'status %d', $CHILD_ERROR ) : $OS_ERROR;
+<[base.logs]>->(
+    0,    'login-screen root helper ended [ pid %d : %s ]',
+    $pid, $detail
+);
 <login-screen.auth_helper.pid> = undef;
 Gtk3->main_quit();
 FALSE;
 
-#,,.,,,..,,..,.,.,..,,,..,,..,,,,,,..,,,.,,,,,..,,...,...,,..,,.,,..,,.,,,...,
-#FQUOJO5UJN4PDYITABSDTTUIHEDZNBCJRZWDTRW7W5252T4IDYAMD2YJXGIGTNSFISDBYEKME3B7M
-#\\\|IGA5EOD4N2LNPND4JACTBFZKUTTWK5HXCA2E2LFVY47UCZOGWAI \ / AMOS7 \ YOURUM ::
-#\[7]Q5IY7RHFTUNPDP4KJVYRMWAB5OJHFDOGVVEKF5R7EYXTO33HOEDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,...,,.,,,..,,,,,...,.,,,.,,,.,,,..,,...,...,.,.,,,,,...,.,,,.,,,
+#GNOA5R253C6ZZDRJZKEKZ7MEONT525J4TLL46X6PWFBKT4BBWUXPXHZ36NJ5XRTEHOTQ3ME3MCV5W
+#\\\|YSWWJHPDDDRRW5CMXKUH3EJHDTHQ5ZOQIYCZ3TTGXSHCXDBMHCB \ / AMOS7 \ YOURUM ::
+#\[7]24U2EAZEHFLQWMZ4OWJME2CCK36QRSCH2VTVNPYHYMKJTRIMVCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

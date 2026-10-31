@@ -1,0 +1,52 @@
+## [:< ##
+
+# name = v7-zenki.login-session.access_reply
+# descr = start the admitted session after its xorg grant
+
+my $reply    = shift                                         // {};
+my $cube_sid = $reply->{'params'}->{'cube_sid'}              // '';
+my $pending  = <v7-zenki.login-session.pending>->{$cube_sid} // return;
+delete <v7-zenki.login-session.pending>->{$cube_sid};
+my $request = $pending->{'request'};
+my $path    = sprintf( qw| /var/run/.7/login-screen/sessions/%s.Xauthority |,
+    $pending->{'user'} );
+my $revoke = sub {
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| X-11.revoke_session_user |,
+            'call_args' => { 'args' => $pending->{'user'} },
+        }
+    );
+};
+my $fail = sub {
+    my ($message) = @ARG;
+    $revoke->();
+    unlink($path) if -f $path and not -l $path;
+    <[base.callback.cmd_reply]>->(
+        $request->{'reply_id'},
+        { 'mode' => qw| false |, 'data' => $message }
+    );
+    return FALSE;
+};
+
+return $fail->('cannot grant X access to session user')
+    if ( $reply->{'cmd'} // '' ) ne qw| TRUE |;
+
+## the start below is the only admitted one : zenka.start refuses an ##
+## exec_usr_from_subname start without this single-use mark          ##
+<v7-zenki.login-session.admitted>->{ $pending->{'user'} } = time + 30;
+
+$request->{'args'}
+    = sprintf( ':wait-up: login-screen-session[%s]', $pending->{'user'} );
+my $result = $code{'v7-zenki.zenka.cmd.start_once'}->($request);
+if ( ref($result) eq qw| HASH | and $result->{'mode'} ne qw| deferred | ) {
+    $revoke->();
+    unlink($path) if -f $path and not -l $path;
+    <[base.callback.cmd_reply]>->( $request->{'reply_id'}, $result );
+}
+TRUE;
+
+#,,,.,,.,,,,,,...,,.,,...,...,...,,.,,...,,.,,.,.,...,..,,,.,,...,.,,,...,,.,,
+#RIJGB74R4HS6F2TY33XGFZCDSVTGOFNJWSPF7LKQLUKAJMLF3LNGVWEBE7TPZWZP4UNKT5EUJNGPW
+#\\\|RIUP6KKSB7XWAJKWYSEAC5SRTXAEX7DFN5V7WJZCWZASFRO6S2G \ / AMOS7 \ YOURUM ::
+#\[7]SLIBK53LFXODZCZLPLDNMR4PS7MU7OK46HHPH7C3OY2TY6ASSEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

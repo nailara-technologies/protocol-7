@@ -1,0 +1,68 @@
+## [:< ##
+
+# name = X-11.access.change_session_user
+# descr = v7-only SI localuser grant \ revoke on xorg
+
+my $operation = shift // '';
+my $call      = shift // {};
+
+my @client_sessions = grep {
+            defined $data{'session'}{$ARG}
+        and defined $data{'session'}{$ARG}{'mode'}
+        and $data{'session'}{$ARG}{'mode'} ne qw| server |
+} keys %{ $data{'session'} // {} };
+my $caller
+    = @client_sessions == 1
+    ? <[base.session.user]>->( $client_sessions[0] )
+    : '';
+return { 'mode' => qw| false |, 'data' => 'denied : v7-zenki only' }
+    if $caller ne qw| v7-zenki |;
+
+return { 'mode' => qw| false |, 'data' => 'invalid access operation' }
+    if $operation ne qw| Insert | and $operation ne qw| Delete |;
+return { 'mode' => qw| false |, 'data' => 'xorg access is not ready' }
+    if <X-11.mode> ne qw| xorg |
+    or not defined <X-11.obj>
+    or not <X-11.servers>->{<X-11.primary_display>}->{'access_ready'};
+
+my ( $username, $extra ) = split( m| +|, $call->{'args'} // '', 2 );
+return { 'mode' => qw| false |, 'data' => 'invalid session user' }
+    if defined $extra
+    or $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
+my @pw = getpwnam($username);
+return { 'mode' => qw| false |, 'data' => 'invalid session account' }
+    if not @pw
+    or $pw[2] < 1000;
+
+my $ok = eval {
+    <X-11.obj>->ChangeHosts( $operation, qw| ServerInterpreted |,
+        "localuser:$username" );
+    my @hosts = <X-11.obj>->ListHosts();
+    die 'X access control is disabled'
+        if not @hosts
+        or $hosts[0] ne qw| Enabled |;
+    my $present = grep {
+                ref($ARG) eq qw| ARRAY |
+            and $ARG->[0] eq qw| ServerInterpreted |
+            and $ARG->[1] eq "localuser:$username"
+    } @hosts[ 1 .. $#hosts ];
+    die 'X access change was not applied'
+        if $operation eq qw| Insert | and not $present
+        or $operation eq qw| Delete | and $present;
+    TRUE;
+};
+return { 'mode' => qw| false |, 'data' => 'X access change failed' }
+    if not $ok or length $EVAL_ERROR;
+
+return {
+    'mode' => qw| true |,
+    'data' => $operation eq qw| Insert |
+    ? 'session user granted'
+    : 'session user revoked'
+};
+
+#,,,.,,..,.,.,.,,,.,,,.,.,..,,,.,,.,.,,,,,,,.,.,.,...,...,.,,,,..,,,,,,,,,..,,
+#26ZXONNCF5G7X6FJBMED76OGBLZGQVBLOXWQ6BBEJL3BPSNLLCT6U3KIZXN4TRMQUOY2JOWW3KRA4
+#\\\|R6WCL7I2AZFYC66J25PAOSGXQDEK3RNHGFSOV6277GQKCUK2PNV \ / AMOS7 \ YOURUM ::
+#\[7]JZ3UMHDGLKVX3TKJ23PQ7HQZSKJQYST7E4KTG5QBUVWTJGL7S6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

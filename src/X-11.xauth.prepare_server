@@ -1,0 +1,72 @@
+## [:< ##
+
+# name = X-11.xauth.prepare_server
+# descr = private authority file before xorg starts
+
+my $server  = shift                // return FALSE;
+my $display = $server->{'display'} // return FALSE;
+my $mode    = $server->{'mode'}    // '';
+return FALSE if $mode ne qw| xorg |;
+
+my ($display_number) = $display =~ m|^:(\d+)$|;
+return FALSE if not defined $display_number;
+
+my $x11_user = <system.zenka-user.current> // return FALSE;
+my @pw       = getpwnam($x11_user);
+return FALSE if not @pw;
+
+my $runtime_dir = sprintf( qw| %s/%s |,
+    <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |,
+    <system.zenka.name>             // qw| X-11 | );
+return FALSE if -l $runtime_dir or not -d $runtime_dir;
+my @dir_stat = stat($runtime_dir);
+return FALSE
+    if not @dir_stat
+    or $dir_stat[4] != $pw[2]
+    or ( $dir_stat[2] & 022 );
+
+my $path   = sprintf( qw| %s/Xauthority-%s |, $runtime_dir, $display_number );
+my $cookie = eval { <[base.prng.bytes]>->(16) };
+undef $EVAL_ERROR;
+
+if ( not defined $cookie or length($cookie) != 16 ) {
+    my $random_fh;
+    if ( open( $random_fh, '<:raw', '/dev/urandom' ) ) {
+        $cookie = '';
+        while ( length($cookie) < 16 ) {
+            my $read = sysread( $random_fh, my $part, 16 - length($cookie) );
+            last if not defined $read or $read == 0;
+            $cookie .= $part;
+        }
+        close($random_fh);
+    }
+}
+return FALSE if not defined $cookie or length($cookie) != 16;
+
+my $written = <[base.X-11.write_xauth_file]>->(
+    {   'display'    => $display,
+        'protocol'   => qw| MIT-MAGIC-COOKIE-1 |,
+        'cookie_hex' => unpack( 'H*', $cookie ),
+        'path'       => $path,
+        'uid'        => $pw[2],
+        'gid'        => $pw[3],
+    }
+);
+if ( not $written ) {
+    $cookie = "\0" x length($cookie);
+    return FALSE;
+}
+
+$server->{'xauth'} = {
+    'protocol' => qw| MIT-MAGIC-COOKIE-1 |,
+    'data'     => $cookie,
+    'path'     => $path,
+    'user'     => $x11_user,
+};
+TRUE;
+
+#,,.,,,,.,,,.,,..,,,,,,,,,..,,.,,,..,,..,,,,.,.,.,...,...,...,.,,,,,.,.,,,.,,,
+#JU7IUOZZ25V2QA7PEQ7PNC4IOLGGSDUWOS4G2RWVQSRPBKKLESCRWFCYENUUR7HAZPEHBDH2A55SU
+#\\\|56ANH6X4V4PBTWROTJLAQ3MOCCDY23XULC2JOYHOLCWFNNAY7W5 \ / AMOS7 \ YOURUM ::
+#\[7]SEIY7TWVJQ7UO6TDW6Z3VOUIJRD3SJ6PJ6P5FTMRMK66QUMDI2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

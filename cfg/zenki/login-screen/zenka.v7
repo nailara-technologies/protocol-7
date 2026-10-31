@@ -1,34 +1,34 @@
 
  .:[ native x11 login-screen : unprivileged greeter + root crypt helper ]:.
 
-[load_config_file:'shared-params']
-[load_config_file:'X11-vars']
-[load_config_file:'zenki/login-screen/auth.cfg']
-[load_config_file:'zenki/login-screen/theme.cfg']
-[load_host_config]
+[load_config_file:'shared-params'] or [base.exit:1,'login-screen config failed']
+[load_config_file:'X11-vars'] or [base.exit:1,'login-screen config failed']
+[load_config_file:'zenki/login-screen/auth.cfg'] or [base.exit:1,'login-screen config failed']
+[load_config_file:'zenki/login-screen/theme.cfg'] or [base.exit:1,'login-screen config failed']
+[load_host_config] or [base.exit:1,'login-screen host config failed']
 
 login-screen.greeter_user = <system.amos-zenka-user>
 
 access.cmd.usr.cube = commands heart reload verify-instance session-ended
 
 modules.load = auth.client net protocol io.unix ui login-screen
-[load_modules:<modules.load>]
-[init_modules]
+[load_modules:<modules.load>] or [base.exit:1,'login-screen module load failed']
+[init_modules] or [base.exit:1,'login-screen module init failed']
 
 ## root helper and private runtime dirs exist before the permanent drop ##
-[login-screen.start_auth_helper]
-[root.drop_privs:<login-screen.greeter_user>]
+[login-screen.start_auth_helper] or [base.exit:1,'login-screen helper failed']
+[root.drop_privs:<login-screen.greeter_user>] or [base.exit:1,'login-screen privilege drop failed']
 
-[base.net.connect:'unix']
-[base.get_session_id]
-[base.X-11.get_display]
-[login-screen.xauth_setup]
-[login-screen.open_window]
+[base.net.connect:'unix'] or [base.exit:1,'login-screen cube connection failed']
+[base.get_session_id] or [base.exit:1,'login-screen session setup failed']
+[base.X-11.get_display] or [base.exit:1,'login-screen display setup failed']
+[login-screen.xauth_setup] or [base.exit:1,'login-screen xauth setup failed']
+[login-screen.open_window] or [base.exit:1,'login-screen window setup failed']
 
 [base.gtk.main_loop]
 
-#,,,,,.,,,...,,,,,,.,,,.,,,,.,,.,,.,.,..,,,.,,..,,...,.,.,.,.,,,.,,.,,...,.,.,
-#EKA5YRJKKMG62XHAOJM4V3FBXPKIS5URUMVWVTHT7SZLCUR7H7NZD4AY3MQFNRLOFQXZRPKU2KCDA
-#\\\|R4ZMDO54BTLUMIGP5YZNKKZFGHXPQFSVK4F4W3KKT7QEEWDYDUA \ / AMOS7 \ YOURUM ::
-#\[7]U2ATPQNXFEMCVEGC7MDQCPTVNYJGSVMVNR45DQHAS52E6JU7WQBY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,.,.,.,,,,.,,,.,,,,,,,,.,.,.,..,,...,...,,,.,..,,..,,..,,.,,,
+#GPDQ5IM54QRZGQTYZT5DBMZQ657LDYT3DBMXTRNUVBIMHCGVBAUHE2V4ONUHIKO3A4H3KURMUUK3I
+#\\\|X7HRKRKJUKRR2QXWXVYVGCL2SAKZ4DXZOY3CC4XNN3SZES3DBJD \ / AMOS7 \ YOURUM ::
+#\[7]GBVA4UWWWCOVZRBX2JDZZW574RINZCX3QXJ65NLQNCDHTZDNYGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
