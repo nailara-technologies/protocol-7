@@ -1,12 +1,17 @@
 ## [:< ##
 
 # name = v7-zenki.zenka.end-handler.login-screen-session
-# descr = any session end : drop its xauth, back to the greeter
+# descr = any session end : revoke x access, drop xauth, show greeter
 
 my $instance_id = shift;
 my $instance    = <v7-zenki.zenka.instance>->{$instance_id} // return FALSE;
 my $username    = $instance->{'subname'}                    // '';
 if ( $username =~ m|^[a-z_][a-z0-9_-]{0,31}$| ) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| X-11.revoke_session_user |,
+            'call_args' => { 'args' => $username },
+        }
+    );
     my $path = sprintf( qw| /var/run/.7/login-screen/sessions/%s.Xauthority |,
         $username );
     unlink($path) if -f $path and not -l $path;
@@ -15,8 +20,8 @@ if ( $username =~ m|^[a-z_][a-z0-9_-]{0,31}$| ) {
     ->( { 'command' => qw| login-screen.session-ended | } );
 TRUE;
 
-#,,.,,.,.,,,,,,..,,,,,,,,,.,.,.,,,,,,,...,...,..,,...,...,.,.,..,,,..,,,,,...,
-#LFXVIEGXE3PESYHFHZKD2S7DKR4UJ7DNLDVUHPWVPT2AJ4OA25OCLW4RR2Z46MOQ7D7444JSVGWYY
-#\\\|K2AXGM5NUDIMW2ETIJ5ECNXUTGBPXHK64VVCUCKJQJGGDNTT5DI \ / AMOS7 \ YOURUM ::
-#\[7]XHNVRS6GZ27VJFPIC4WYWDKIIZWWGD5RN5O524USPSKMC3EYVMDY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,,.,,.,.,.,.,,..,...,,,,,,,.,..,,...,...,.,,,.,,,,,,,..,,,,.,
+#JXHWYB5QABTRILX4EW7HDMLP7XY7MX3Q447THSCIXHUB3OBMC6UI5S6XFYQKC4LYXA2SCOIZQ2PCM
+#\\\|LDVEWMTBKSCGCOXVFPIDYJ6GNPCDPUMXF43MVHENODZFMLV7MNJ \ / AMOS7 \ YOURUM ::
+#\[7]K4BB47WDRVB5LJSKJK6TV7QHHHDCS5PJ66U5TBG2OJ4ZATKCKICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

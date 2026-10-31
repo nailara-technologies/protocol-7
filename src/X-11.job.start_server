@@ -15,7 +15,18 @@ my $bin_name     = $params->{'bin_name'} // <X-11.startup.bin_name> // return;
 my $is_primary   = $params->{'primary'}  // <X-11.startup.primary>  // FALSE;
 
 my $server = <X-11.servers>->{$display_str} //= {};
-$server->{'mode'}   = $mode;
+$server->{'mode'}    = $mode;
+$server->{'display'} = $display_str;
+
+if ( $mode eq qw| xorg | ) {
+    if ( not <[X-11.xauth.prepare_server]>->($server) ) {
+        <[base.logs]>->(
+            0, 'cannot create xorg authority file for %s', $display_str
+        );
+        return;
+    }
+    $extra_params .= ' -auth ' . $server->{'xauth'}->{'path'};
+}
 $server->{'params'} = $extra_params;
 
 my $server_bin = <X-11.bin_path>->{$bin_name};
@@ -121,8 +132,8 @@ $server->{'poll_timer'}   = <[event.add_timer]>->(
     }
 );
 
-#,,,,,.,,,,..,,.,,.,.,,.,,,,,,.,.,,.,,,..,...,..,,...,...,...,,.,,,..,,.,,.,.,
-#EB32IWE4J5NEJ3BNJJI3ETBKZPVUTPMY4R4E7H6VWM2FK3PFTYEXB2LCFBBX7OHHPWQOVIZNL5XC4
-#\\\|QGWHUHA4P2Y7JHH3RZPT2RAUAJUO6YLEYITQ4T52YRXQTHLRS5H \ / AMOS7 \ YOURUM ::
-#\[7]HXM7P7YA4S5RGSZ7PIDYM37KMLAJLRNDGCKQ7NFNYYGXRAWPDCCY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,..,,,..,,..,,,,,,..,,.,,...,..,,...,...,,..,,.,,,,.,..,,.,,,
+#AZK2LSIYV5R2YTGLM2GVJRJU3J357DT2KZFJCCFLHMWZY4R7SLSUBTMUPMWOYGEEBMIMDXVKIU3D6
+#\\\|PEGVG7EQSQSSMNUOMGEJJX5VUN7XR4E6O3P6C4LTITHF5WKW6EK \ / AMOS7 \ YOURUM ::
+#\[7]IM2OCLKBJTONIAUAQ6VHLSAK2AEYRFQYED2UOTSZ4VL35OKHUIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

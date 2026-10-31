@@ -60,8 +60,12 @@ close($policy_fh) or die 'cannot close login-screen helper policy';
 chmod( 0600, <login-screen.auth_helper.config_path> )
     or die 'cannot protect login-screen helper policy';
 
-socketpair( my $greeter_fh, my $helper_fh, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
-    or die "cannot create login-screen helper socket : $OS_ERROR";
+require Socket;
+require Fcntl;
+socketpair(
+    my $greeter_fh,        my $helper_fh, Socket::AF_UNIX(),
+    Socket::SOCK_STREAM(), Socket::PF_UNSPEC()
+) or die "cannot create login-screen helper socket : $OS_ERROR";
 binmode( $greeter_fh, ':raw' );
 binmode( $helper_fh,  ':raw' );
 
@@ -69,7 +73,7 @@ my $pid = fork();
 die "cannot fork login-screen helper : $OS_ERROR" if not defined $pid;
 if ( $pid == 0 ) {
     close($greeter_fh);
-    fcntl( $helper_fh, F_SETFD, 0 ) or POSIX::_exit(126);
+    fcntl( $helper_fh, Fcntl::F_SETFD(), 0 ) or POSIX::_exit(126);
     my $helper = sprintf( qw| %sbin/login-screen-auth |, <system.root_path> );
     exec {$EXECUTABLE_NAME} $EXECUTABLE_NAME, $helper,
         '--fd',     fileno($helper_fh),
@@ -86,8 +90,8 @@ $greeter_fh->autoflush(TRUE);
 
 TRUE;
 
-#,,.,,,..,...,..,,..,,,,.,,..,,..,...,.,.,,,,,..,,...,...,..,,,,,,.,.,,..,...,
-#3XW3CQXFY7ALOSVA4K4R373SXHLSYPVMEDFIBB4QCZNOVZK22KGN7SUQOUVEBV324777MB6JELZ5G
-#\\\|C6CMNQFRXLEMVRLVZCWQGYQM4LZBBIA4DIZGCXIE7B4GZTPMBH2 \ / AMOS7 \ YOURUM ::
-#\[7]ZKW5IWIQ2QM5FWTL5OXEKBM67TQLL7L5RDZCSZ4OOKAA4JIKVYCI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,,,...,.,.,...,,,,,...,.,,,,.,,..,,...,...,...,..,,,.,,,..,.,,,
+#4VZBXZY254DUA62QODANGHWMZ446TZYANLNPMGJHAUAFTLJVXZG6Z6MPQFWIMFEFN74PCP3MZNHKO
+#\\\|HAOJKLMF6RTOSVFG54SUJO76VI2FN7J7R5UGRH4EG56WHITGAV7 \ / AMOS7 \ YOURUM ::
+#\[7]UXUSA6VVNOJCYGRXHIXMETT6DKENB25JDQB5JHAEJ3LHDA3LQEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

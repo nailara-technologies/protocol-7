@@ -151,6 +151,10 @@ foreach my $code_line (@zenka_perl_code) {
         } else {
             ## say ' < pass > has err';
         }
+
+        ## an explicit base.exit error handler makes exceptions fatal too ##
+        <[base.exit]>->( 1, 'fatal zenka set-up statement' )
+            if index( $code_line, "\$code{'base.exit'}->" ) >= 0;
         $noerr = FALSE if $noerr;
     }
 }
@@ -166,8 +170,8 @@ if ($noerr) {    ##  reset names when no error has occurred  ##
 }
 return $noerr;    ## return zenka cfg execution status ##
 
-#,,,,,,,.,.,,,,.,,,,,,.,.,,.,,.,,,.,,,,..,...,..,,...,...,...,..,,.,,,,..,.,,,
-#POAWS57HAZ4YI3XDLWPJAK74KTUW2JFTCZPWK53NVWO4JVZZ3UQMRO4RQX3LW5I5DAAG5KXMVIGVQ
-#\\\|F6ZTDC6NJ3FI2HSKYYVWGMUTZMO6EDSWF3AKWJITAYANSYZOMDQ \ / AMOS7 \ YOURUM ::
-#\[7]ECTAYIZ2AZCFKGKZHR6MODT4LAEQWMKLD5E67FYAXI2HYRL43WCA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,..,,.,.,...,...,,..,,..,,.,,..,,...,...,..,,.,.,.,.,,..,,,.,
+#JRLXL6EUPKRKXQ2T7EQA5OT32ULD3HBJK2WPCPML4LTOROBY4XCAHETFUASFPEHM3IXAIEMYEVU3E
+#\\\|GPNKKPG23YO6LNDBB47AHYML4IVVT5ENWEUA3XDLOWYWQLW4NOZ \ / AMOS7 \ YOURUM ::
+#\[7]GG4Z6JJOIBU5HPMTHWBBVRDB2XPMGOFNYZ4GVJYXQ7Y7WIMVV2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
