@@ -19,7 +19,7 @@ my $runtime_dir = sprintf( qw| %s/%s |,
     <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |,
     <system.zenka.name>             // qw| X-11 | );
 return FALSE if -l $runtime_dir or not -d $runtime_dir;
-my @dir_stat = stat($runtime_dir);
+my @dir_stat = CORE::stat($runtime_dir);
 return FALSE
     if not @dir_stat
     or $dir_stat[4] != $pw[2]
@@ -65,8 +65,8 @@ $server->{'xauth'} = {
 };
 TRUE;
 
-#,,.,,,,.,,,.,,..,,,,,,,,,..,,.,,,..,,..,,,,.,.,.,...,...,...,.,,,,,.,.,,,.,,,
-#JU7IUOZZ25V2QA7PEQ7PNC4IOLGGSDUWOS4G2RWVQSRPBKKLESCRWFCYENUUR7HAZPEHBDH2A55SU
-#\\\|56ANH6X4V4PBTWROTJLAQ3MOCCDY23XULC2JOYHOLCWFNNAY7W5 \ / AMOS7 \ YOURUM ::
-#\[7]SEIY7TWVJQ7UO6TDW6Z3VOUIJRD3SJ6PJ6P5FTMRMK66QUMDI2DQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,,,,,,..,..,,,..,,,.,,,.,,,,,.,.,...,...,.,.,..,,..,,.,,,..,,
+#L2DM3FFQLBEFEPOKV6VKMESO25A64232ZANN2TAPAU4FCAQCUDIO6NSZGKV42S7IJQHSQUHEVBDJU
+#\\\|6ZYBCKGAGCAJJZXZ3FTJBJBJWAUFIXQICPMVXO5JLLVVHYJUZA7 \ / AMOS7 \ YOURUM ::
+#\[7]F2H3C6HYQQ4QVF3L3EDIO3PX7DEZTEXVAWTBUKFCESNPRJOM2ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

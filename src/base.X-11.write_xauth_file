@@ -21,7 +21,7 @@ return FALSE if not defined $uid or not defined $gid;
 require Fcntl;
 require Sys::Hostname;
 if ( -e $path ) {
-    my @old = lstat($path);
+    my @old = CORE::lstat($path);
     return FALSE if not @old or not -f _ or $old[4] != $uid;
     unlink($path) or return FALSE;
 }
@@ -59,8 +59,8 @@ $entry = "\0" x length($entry);
 unlink($path) if not $ok;
 return $ok;
 
-#,,,,,.,,,,,.,,,,,,,.,,.,,...,...,...,,..,.,.,..,,...,...,.,,,..,,..,,,.,,.,.,
-#PAFXS6WRRO7HUMVWRUF4MLANACJVULEW2RF4BYZPTE7VWSOSS5MQ67GY4QHDKNVEFGTOOVCR5NZBC
-#\\\|UU6RHZL3GCALOTSQK7ISI6XNMC62TITZJJHJUH2XSG2QWPDEDEH \ / AMOS7 \ YOURUM ::
-#\[7]NRFLCFDNHL2LJ5F7ZVU35CG4GR7NJKW75VHX55P4PNESIBIWGOAA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,..,,,..,,..,..,,,.,,..,,...,.,.,..,,...,...,.,,,...,,,.,.,.,,,.,
+#66UYTAVHFMA5LVT4KMTCX2HBON5RINR6XFG65FNTETECY5DC5T4EJAI4RBLPUHKNGKBXMTUDLLAWO
+#\\\|7ZOBWU6KZLB3FP7TH353DR44SKPSHHKNHIH6F3MXSFZAFCXEIEM \ / AMOS7 \ YOURUM ::
+#\[7]CM73FMVWUXN77J4IGU5KRTS7IRELVWHMRRQQM43PLCLF37HU24AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
