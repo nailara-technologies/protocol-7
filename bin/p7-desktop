@@ -1,0 +1,183 @@
+#!/usr/bin/perl
+
+## desktop base : install the tracked photonic desktop into a home, show    ##
+## what differs, pull tuned files back into the repo base                   ##
+##                                                                          ##
+##   p7-desktop status  [ home ]       : which files differ from the base   ##
+##   p7-desktop diff    [ home ]       : the differences                    ##
+##   p7-desktop install [ home ] [ -force ] : copy the base [ differing     ##
+##                                      files only with -force, the old     ##
+##                                      one kept as <file>.<epoch>.bak ]    ##
+##   p7-desktop pull    [ home ] <relative path ..> : a tuned file back     ##
+##                                      into the base [ re-templated ]      ##
+##                                                                          ##
+## the base : data/configs/desktop/photonic [ @HOME@ \ @USER@ templated ]   ##
+## plus the themes : gkrellm2 [ invisible-blue default ], openbox amos-base ##
+
+use v5.32.0;
+use strict;
+use warnings;
+use English;
+use File::Basename        qw| dirname |;
+use File::Spec::Functions qw| catfile catdir abs2rel rel2abs |;
+use File::Path            qw| make_path |;
+use File::Find            qw| find |;
+use File::Copy            qw| copy |;
+use File::Compare         qw| compare |;
+
+my $p7_root = rel2abs( catdir( dirname( rel2abs($PROGRAM_NAME) ), '..' ) );
+my $base    = catdir( $p7_root, qw| data configs desktop photonic | );
+my $themes  = catdir( $p7_root, qw| data configs themes wm | );
+
+my ( $command, @args ) = @ARGV;
+$command //= qw| status |;
+my $force = grep { $ARG eq '-force' } @args;
+@args = grep { $ARG ne '-force' } @args;
+
+my $home = ( @args and -d $args[0] ) ? shift @args : $ENV{'HOME'};
+$home = rel2abs($home);
+my $user = ( getpwuid( ( stat $home )[4] ) )[0] // $ENV{'USER'};
+
+die "<< no desktop base at $base >>\n" if not -d $base;
+
+## base file -> home file, with the theme trees mapped into the home ##
+my %map;
+find(
+    {   no_chdir => 1,
+        wanted   => sub {
+            return if not -f $File::Find::name;
+            my $rel = abs2rel( $File::Find::name, $base );
+            $map{$rel} = { src => $File::Find::name, tpl => 1 };
+        }
+    },
+    $base
+);
+foreach my $theme ( [ qw| gkrellm2 |, qw| .gkrellm2/themes | ],
+    [ qw| openbox |, qw| .themes | ] ) {
+    my $tree = catdir( $themes, $theme->[0] );
+    next if not -d $tree;
+    find(
+        {   no_chdir => 1,
+            wanted   => sub {
+                return if not -f $File::Find::name;
+                return if $File::Find::name =~ m|\.xcf$|;   ## sources only ##
+                my $rel = catfile( $theme->[1],
+                    abs2rel( $File::Find::name, $tree ) );
+                $map{$rel} = { src => $File::Find::name, tpl => 0 };
+            }
+        },
+        $tree
+    );
+}
+
+sub slurp_raw {
+    open( my $fh, '<:raw', shift ) or return undef;
+    local $INPUT_RECORD_SEPARATOR;
+    return readline($fh);
+}
+
+sub rendered {    ## base content for this home ##
+    my $entry   = shift;
+    my $content = slurp_raw( $entry->{'src'} ) // '';
+    if ( $entry->{'tpl'} ) {
+        $content =~ s|\@HOME\@|$home|g;
+        $content =~ s|\@USER\@|$user|g;
+    }
+    return $content;
+}
+
+sub state_of {
+    my $rel    = shift;
+    my $target = catfile( $home, $rel );
+    return qw| missing | if not -e $target;
+    my $have = slurp_raw($target) // '';
+    return $have eq rendered( $map{$rel} ) ? qw| same | : qw| differs |;
+}
+
+if ( $command eq qw| status | ) {
+    my %count;
+    foreach my $rel ( sort keys %map ) {
+        my $state = state_of($rel);
+        $count{$state}++;
+        say sprintf ': %-8s %s', $state, $rel if $state ne qw| same |;
+    }
+    say sprintf ':. %d same, %d differ, %d missing [ %s ]',
+        $count{'same'} // 0, $count{'differs'} // 0, $count{'missing'} // 0,
+        $home;
+    exit 0;
+}
+
+if ( $command eq qw| diff | ) {
+    foreach my $rel ( sort keys %map ) {
+        next if state_of($rel) ne qw| differs |;
+        next if $map{$rel}{'src'} =~ m{\.(?:png|xbm|xcf)$};
+        my $tmp = catfile( '/tmp', sprintf 'p7-desktop.%d.base', $PID );
+        open( my $fh, '>:raw', $tmp ) or die "$tmp : $OS_ERROR\n";
+        print {$fh} rendered( $map{$rel} );
+        close($fh);
+        system( qw| diff -u --label |,
+            "base/$rel", $tmp, qw| --label |,
+            "home/$rel", catfile( $home, $rel ) );
+        unlink $tmp;
+    }
+    exit 0;
+}
+
+if ( $command eq qw| install | ) {
+    my ( $written, $kept ) = ( 0, 0 );
+    foreach my $rel ( sort keys %map ) {
+        my $state  = state_of($rel);
+        my $target = catfile( $home, $rel );
+        next if $state eq qw| same |;
+        if ( $state eq qw| differs | and not $force ) {
+            say ": kept     $rel [ differs : diff, then -force or pull ]";
+            $kept++;
+            next;
+        }
+        if ( $state eq qw| differs | ) {
+            my $backup = sprintf '%s.%d.bak', $target, time;
+            die "<< backup $backup exists >>\n" if -e $backup;
+            rename( $target, $backup ) or die "$target : $OS_ERROR\n";
+            say ": backup   $rel -> " . abs2rel( $backup, $home );
+        }
+        make_path( dirname($target) );
+        open( my $fh, '>:raw', $target ) or die "$target : $OS_ERROR\n";
+        print {$fh} rendered( $map{$rel} );
+        close($fh);
+        chmod( ( stat $map{$rel}{'src'} )[2] & 07777, $target );
+        say ": written  $rel";
+        $written++;
+    }
+    say ":. $written written, $kept kept [ $home ]";
+    exit 0;
+}
+
+if ( $command eq qw| pull | ) {
+    die "usage : p7-desktop pull [ home ] <relative path ..>\n" if not @args;
+    foreach my $rel (@args) {
+        my $from = catfile( $home, $rel );
+        die "<< $from not found >>\n" if not -f $from;
+        my $to
+            = exists $map{$rel} ? $map{$rel}{'src'} : catfile( $base, $rel );
+        my $content = slurp_raw($from);
+        if ( not exists $map{$rel} or $map{$rel}{'tpl'} ) {
+            $content =~ s|\Q$home\E|\@HOME\@|g;
+            $content =~ s|/var/mail/\Q$user\E\b|/var/mail/\@USER\@|g;
+        }
+        make_path( dirname($to) );
+        open( my $fh, '>:raw', $to ) or die "$to : $OS_ERROR\n";
+        print {$fh} $content;
+        close($fh);
+        say ": pulled   $rel -> " . abs2rel( $to, $p7_root );
+    }
+    exit 0;
+}
+
+die "usage : p7-desktop status | diff | "
+    . "install [ -force ] | pull <path ..>\n";
+
+#,,,,,..,,,.,,..,,,,,,..,,,,.,.,.,,..,,..,,.,,..,,...,...,.,,,...,,,.,,.,,...,
+#CJFI44XVZSJXMZXF2H6LMACEATCZSD32RHZQQI6I2PDSH2Z6YTJRITKWXK3L2NDY5TQEPBQJQAXE6
+#\\\|O3JKVX7X7MGSL2UE2SADRPTWCTFQN6TB5L3ZSONKH74WGBOD6TL \ / AMOS7 \ YOURUM ::
+#\[7]M3A6OFKGM7BTVOPWCYGO4IOCRPEMLU4KRQPGZWBMFS225PV3KUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
