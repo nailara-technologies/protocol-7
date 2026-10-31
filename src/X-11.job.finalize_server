@@ -331,6 +331,8 @@ if ( <X-11.bg_fade> //= TRUE and $bg_col ne '#000000' ) {
 } else {
     <[base.logs]>->( 1, ": setting background color to '%s'", $bg_col );
     X11::Protocol::XSetRoot->set_background(
+        ## no DISPLAY env in xorg mode ##
+        'display'      => <X-11.display>->{<X-11.mode>},
         'color'        => $bg_col,
         'use_esetroot' => TRUE
     );
@@ -384,8 +386,8 @@ $server->{'has_randr'}     = <X-11.has_randr>;
 $server->{'has_dpms'}      = <X-11.has_dpms>;
 $server->{'is_composited'} = <X-11.is_composited>;
 
-#,,.,,,,,,,.,,,..,,,.,...,,..,,,.,..,,,,.,.,.,..,,...,..,,,.,,,,.,,,.,..,,,.,,
-#74F4P6WP2SGWV4RVDFV4YXN4ZRIKNR7C53J2KSMLBYWX6LNHU6R222SJSP3L4VN7PZV37P4RXF3K2
-#\\\|SGNZAQ4KFNVDQSXCUMQM6IYD6UWYMDHXVP27ZR4WSPQGAYDM7US \ / AMOS7 \ YOURUM ::
-#\[7]TB3DUH264HLM65IGYYM6Y6W6LLPMSM4W4UFCSZIJNAPU5VOLIMCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,...,.,.,,,.,,..,.,,,,..,,,,,..,,...,...,.,,,,,,,,,,,,..,,,.,
+#6F5QTNYNZOU66O3FM42RHSOEPCSU3S3MKNYUI2U25M6WT3XYTXLAV63RVHP74YEO7GEQVG7HIYNFQ
+#\\\|LLEAHJAYBQU3MBWOHLW6DL2ZH5DGG5GRIZNO4WNOB3LED6S5ZVF \ / AMOS7 \ YOURUM ::
+#\[7]YWL2BSK6SWVJJVIDIC3YTWHNGNMP5MNJBUY7IBQCQV5JQZAYJYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,6 +44,8 @@ while ( $fade_val < 1 ) {
     }
     <[base.log]>->( 2, ": <fading> bg_color = $c_hex" );
     X11::Protocol::XSetRoot->set_background(
+        ## no DISPLAY env in xorg mode ##
+        'display'      => <X-11.display>->{<X-11.mode>},
         'color'        => $c_hex,
         'use_esetroot' => $fade_val == 1
     );
@@ -52,8 +54,8 @@ while ( $fade_val < 1 ) {
 
 <[base.log]>->( 2, ": <fading> complete" );
 
-#,,.,,.,.,,,.,..,,...,,,.,..,,.,.,.,.,,,,,,,.,..,,...,...,...,,,.,..,,,.,,,,.,
-#TWYJW33HVD6AOBUXZWZ2P5V27B3NMBUQLIB5OWXVY6BW4SJJG5KGBSVMYEFP4FUS5Z6X5ALDWKPHA
-#\\\|H5SUZQRYPXK4N4E34TPBBR4WWRCELZ3U3VC5KXHFC63EYGZ3RXL \ / AMOS7 \ YOURUM ::
-#\[7]RRR4NFUXDJXABZ2KBZIJ42F7HQZJNL243OVMJXGZ3M22CJBPDYBA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,.,.,,,.,.,.,..,,,,,,,,,,,,,,..,,...,..,,.,.,,..,,,,,,,,,.,.,
+#JMQFTUSAQUCCTIFNIWSQXEXJ7FGDAN5WWEETVUABE722HJB24YE6V3HIJ5HVW3CBBKA6XR45QJKTG
+#\\\|YR6BHDFDSRL3WU3NPVMFXXPEYR3GONDJDMJM4RLUKGDGRUJSQZA \ / AMOS7 \ YOURUM ::
+#\[7]5JAQVZF5MOAS5CEVA7AGLXHVMIGVDVIZARELUCY7TILYOM5PT4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
