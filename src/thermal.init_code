@@ -3,37 +3,42 @@
 # name  = thermal.init_code
 # descr = initialize shared thermal gate defaults
 
-<thermal.cfg.mode>            //= qw| relative |;
-<thermal.cfg.baseline.window> //= 1800;
-<thermal.cfg.baseline.band>   //= 1.5;
-<thermal.cfg.baseline.max>    //= 55.0;
-<thermal.cfg.cold>            //= +4.5;
-<thermal.cfg.hot>             //= +18.0;
-<thermal.cfg.ceiling>         //= 83.0;
-<thermal.cfg.dwell>           //= 120;
-<thermal.cfg.avg.short>       //= 300;
-<thermal.cfg.avg.long>        //= 900;
-<thermal.cfg.k.power_band>    //= 15;
-<thermal.cfg.k.temp_band>     //= 1.0;
-<thermal.cfg.k.settle>        //= 600;
-<thermal.cfg.k.min_delta_w>   //= 40;
-<thermal.cfg.k.min>           //= 0.02;
-<thermal.cfg.k.max>           //= 0.5;
-<thermal.cfg.k.window>        //= 3600;
-<thermal.cfg.k.min_samples>   //= 30;
-<thermal.cfg.k.fault_ratio>   //= 1.5;
-<thermal.cfg.k.fault_hold>    //= 1800;
-<thermal.cfg.predict>         //= qw| yes |;
-<thermal.cfg.start.hold>      //= 600;
-<thermal.cfg.unload.hold>     //= 900;
-<thermal.cfg.idle.hold>       //= 600;
-<thermal.cfg.idle.load_max>   //= 0.6;
-<thermal.cfg.idle.power_max>  //= 60;
-<thermal.cfg.hover.night>     //= 68;    ## C : night work hovers here ##
-<thermal.cfg.hover.day>       //= 0;     ## 0 = no day hover ##
-<thermal.cfg.hover.per_c>     //= 15;    ## s hold per C over ##
-<thermal.cfg.hover.gap_max>   //= 180;
-<thermal.cfg.hover.step>      //= 20;    ## s : re-check while held ##
+<thermal.cfg.mode>              //= qw| relative |;
+<thermal.cfg.baseline.window>   //= 1800;
+<thermal.cfg.baseline.band>     //= 1.5;
+<thermal.cfg.baseline.max>      //= 55.0;
+<thermal.cfg.cold>              //= +4.5;
+<thermal.cfg.hot>               //= +18.0;
+<thermal.cfg.ceiling>           //= 83.0;
+<thermal.cfg.dwell>             //= 120;
+<thermal.cfg.avg.short>         //= 300;
+<thermal.cfg.avg.long>          //= 900;
+<thermal.cfg.k.fit.window>      //= 1800;
+<thermal.cfg.k.fit.max_samples> //= 1800;
+<thermal.cfg.k.fit.every>       //= 120;
+<thermal.cfg.k.fit.deriv_span>  //= 20;
+<thermal.cfg.k.fit.tau_min>     //= 30;
+<thermal.cfg.k.fit.tau_max>     //= 3000;
+<thermal.cfg.k.fit.min_r2>      //= 0.8;
+<thermal.cfg.k.fit.min_points>  //= 20;
+<thermal.cfg.k.min_delta_w>     //= 40;
+<thermal.cfg.k.min>             //= 0.02;
+<thermal.cfg.k.max>             //= 0.5;
+<thermal.cfg.k.window>          //= 3600;
+<thermal.cfg.k.min_samples>     //= 30;
+<thermal.cfg.k.fault_ratio>     //= 1.5;
+<thermal.cfg.k.fault_hold>      //= 1800;
+<thermal.cfg.predict>           //= qw| yes |;
+<thermal.cfg.start.hold>        //= 600;
+<thermal.cfg.unload.hold>       //= 900;
+<thermal.cfg.idle.hold>         //= 600;
+<thermal.cfg.idle.load_max>     //= 0.6;
+<thermal.cfg.idle.power_max>    //= 60;
+<thermal.cfg.hover.night>       //= 68;    ## C : night work hovers here ##
+<thermal.cfg.hover.day>         //= 0;     ## 0 = no day hover ##
+<thermal.cfg.hover.per_c>       //= 15;    ## s hold per C over ##
+<thermal.cfg.hover.gap_max>     //= 180;
+<thermal.cfg.hover.step>        //= 20;    ## s : re-check while held ##
 ## C per outdoor amp unit [ night ] ##
 <thermal.cfg.hover.amp_c>       //= 12;
 <thermal.cfg.boost.minutes>     //= 42;
@@ -61,8 +66,8 @@
 
 return TRUE;
 
-#,,.,,.,.,...,..,,,.,,.,,,...,.,.,,.,,.,.,.,.,..,,...,.,.,.,,,,.,,,.,,,..,,,.,
-#BGRDSFGPFXZF2PEORDI54EN5TEQXI273Q7TLIKJEZP7MLIK4EBEHQAAR6TEQ7FBCWDWJS43NLB3DM
-#\\\|LGPDGXUWUPKE6LSSH6ZCJ44FNOCZVXBUDQH3TP6DMK4FEMZ5BPD \ / AMOS7 \ YOURUM ::
-#\[7]QZ2X6SG7DAZ2FQWANHWW7OJ7LMWAM4DA2CCP7D5XAWTQ72UY4SCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,...,,..,,..,,,.,,,,,.,.,...,..,,...,...,,,.,,.,,..,,,,.,,,,,
+#2ZHJTUZFP2EOECJRUT5OLQ33B4ENNKCI5V2ZOXSKOEIOCLEJ3K5OKTN5UHJANWQ4E3E3SJXQ3BEC4
+#\\\|WAJ3A4BHLYTZBDGXMUU3QSH5BAVLJYTPDZFSXHRAVOFII2IJHSJ \ / AMOS7 \ YOURUM ::
+#\[7]QLG3O7GMONPFOOAYLTFIHXBCYMG2SX476OLORGURUEH2HNOJTUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
