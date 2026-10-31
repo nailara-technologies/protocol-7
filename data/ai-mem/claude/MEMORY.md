@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-external-access](project-2026-10-31-session-handover-external-access.md) — START HERE 2026-10-31 [ 42210691a ] : backlog closed, thermal k fit live, external-access design, azurum needs root
+- [session-handover-login-screen](project-2026-10-31-session-handover-login-screen.md) — START HERE [ b70c9d6cc ] : authorization, devmod safe\rw, native login-screen live on azurum, real login untested
+- [session-handover-external-access](project-2026-10-31-session-handover-external-access.md) — previous 2026-10-31 [ 42210691a ]
 - [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — previous : [ 2026-10-30 end, last a3d230f86 + memory ] : replica mode LIVE + end-to-end ok [ local = replica of pri ], ui role by verified user, sync-token rotation cmd ; v7-zenki empty-id chain + pull-git hang fixed ; log resend loop fixed. open : claim-expiry task reset [ kimi ], night-brake follow-ups, KKHN2, stashes
 - [deferred-history-purge](project-2026-10-30-deferred-history-purge.md) — ONE purge-paths run with the owner later : dep-graph .txz + old data/gfx/backgrounds/ images ; no remote re-add [ no origin ]
 - [nameserv-zone-delegation-plan](project-2026-10-30-nameserv-zone-delegation-plan.md) — plan : zenki take over dns [ own nameserv as master ] + mail, then RETIRE atom \ postfix \ inwx-as-master ; snapshots in /data/backup/{dns,mail}/ are the functional reference ; must be REBUILDABLE from tracked config [ reproducibility ] ; zones NOT current yet -> reconcile first
@@ -90,8 +91,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,,.,,,.,.,,,,..,,,,,.,.,.,,,.,.,,,,,,,,,..,,...,...,.,.,...,,.,,,,,,..,,
-#UHWUCBIPRR6FS4AXLN2S7VJ7AAUTVUIA36DSH3GBVQZ4DKCCQHGHO26HGEDDL4PGMB3LXIAR46SCO
-#\\\|SJ5TOGTCMUI6OGH7HRCODBGWD747IGBFDEMS6STVU5HGWGWYT6V \ / AMOS7 \ YOURUM ::
-#\[7]CUPN7EHNBXWUYTJUNTOZNNM7Q22WMW43U2WR6KY6BGQUS66XAECY 7  DATA SIGNATURE ::
+#,,..,,..,...,.,,,.,,,...,,,.,,,.,..,,..,,,.,,..,,...,..,,.,.,,.,,,,,,.,.,...,
+#SWYIZDUBMDNZIHWSHB5CAACS5PQMU6HGDYQICHJEIJVNUDPY5KWTW5KWD6WEBS4V4JF6DIZDKCBI2
+#\\\|B6J3ME7KQ75EJWUKQOFO75IKQLHR7XNXPMTL3EXAUE5AK5G4QWZ \ / AMOS7 \ YOURUM ::
+#\[7]WLHX343YFPFSK2BTYPB73Y6D7FEEWKCAYQSY43XWEKP2CXARICAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
