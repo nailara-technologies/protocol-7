@@ -265,7 +265,9 @@ if ( exists $init_result_data->{'start_mode'}
 
         ## implement exec_args.., ##  [LLL]
 
-        my $prepare_code = qw| %ENV=(); |;
+        ## a bare perl -e : English must be loaded or the id lines below ##
+        ## are plain variables [ the program ran on as root ]            ##
+        my $prepare_code = 'use English; use POSIX (); %ENV=();';
 
         ## resolve the display for THIS zenka's own subname group            ##
         ## [not a flat global] -- e.g. tile[xvfb-0000] gets the xvfb-0000    ##
@@ -292,10 +294,13 @@ if ( exists $init_result_data->{'start_mode'}
             if defined $display;
         ## implement env set-up \ templates ? ##  [ <-- [LLL] ]
         $prepare_code .= <<~"EOT";
-            \$EGID        = qw| $privs->{'all_gids'} |;
-            \$GID         = qw| $privs->{'gid'} |;
-            \$EUID        = qw| $privs->{'uid'} |;
-            \$UID         = qw| $privs->{'uid'} |;
+            \$EGID = '$privs->{'gid'} $privs->{'all_gids'}';    ## egid, then the full setgroups list ##
+            POSIX::setgid( $privs->{'gid'} ) or die "setgid failed\\n";
+            POSIX::setuid( $privs->{'uid'} ) or die "setuid failed\\n";
+            die "privilege switch failed\\n"
+                if \$UID != $privs->{'uid'} or \$EUID != $privs->{'uid'}
+                or ( split ' ', \$GID )[0] != $privs->{'gid'}
+                or grep { \$_ == 0 } split ' ', \$EGID;
             \$ENV{'USER'} = qw| $prog_usr |;
             \$ENV{'HOME'} = qw| $privs->{'home'} |;
             \$ENV{'XDG_RUNTIME_DIR'} = qw| $privs->{'home'} |;
@@ -496,8 +501,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,.,.,,,.,,,.,.,..,,...,,.,,.,.,,,.,,.,,..,,..,,...,..,,...,.,,,,,,,..,,.,.,
-#C6ZFYYVA3WX6LB356CBGY57T422N2YMBAOC6B4KVBXREFLJDCPQQ5P3CMPVSIWMPJG3DUK6NHUDGQ
-#\\\|TMLDBCK66O2L2L5EEFVKDCOB3HM66IQLKCRL3HEWFM4J3OCBFBD \ / AMOS7 \ YOURUM ::
-#\[7]G4IEK7336YCU2YCGTZJ3JXGY5X6AQZIXKKHFVZ2IUFL7BJNFDGBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,,,.,,,,,.,..,,...,,.,,,..,.,,,..,,...,...,.,,,.,,,.,,,,,,,,.,,
+#CQ7RCUOT2DNQH2S7K72HNBEG3ZFJ7SW3SW2RYAHTQS2HGOREM43UZKXG2Z6JJFSON3JTAAURKZ2S2
+#\\\|GXQWYKO7VE7PTA7TN55XHQADQQP5RPYBJ6E5E33FBVAZELPCOFL \ / AMOS7 \ YOURUM ::
+#\[7]4IJGE6S7P3JCETWPSFKL7C7AURKRCC2BREHQWLEHB2V7XNKRLEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
