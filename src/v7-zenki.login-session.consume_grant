@@ -11,7 +11,7 @@ my $grant_dir = <v7-zenki.login-session.grant_dir>
     // qw| /var/run/.7/login-screen/grants |;
 my $path = sprintf( qw| %s/%s |, $grant_dir, $ticket );
 return undef if -l $path or not -f $path;
-my @stat = stat($path);
+my @stat = CORE::stat($path);    ## File::stat is imported globally ##
 return undef if not @stat or $stat[4] != 0 or ( $stat[2] & 0777 ) != 0600;
 
 require Fcntl;
@@ -39,8 +39,8 @@ return undef if $expires !~ m|^\d+$| or $expires < time;
 
 return { 'user' => $grant_user, 'uid' => int($uid), 'expires' => $expires };
 
-#,,,.,...,,.,,,.,,,..,.,.,,,.,,.,,.,.,,,.,.,.,..,,...,...,.,.,...,..,,.,.,,,,,
-#U5CZ3M5NIZ77YOZI4GEC5W5TRAA7ZQI3EJGK46WHCMFHF63QB76FILUGCIFEG55YACHYPRZ5NCWCC
-#\\\|Y7QQU2Z2HLRPWMRJB6TOWMKSTM6CL7L7XCUR3GOVWBX4YI77CIG \ / AMOS7 \ YOURUM ::
-#\[7]QD5UGW5WQWCRHHCH5SPVDCBCXNYGDQKM2ECAFMLTEXOE7GNQCMCI 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,..,,,.,,..,,,,,,,,,,,,.,...,..,,...,.,.,,..,.,,,.,,,,.,,.,.,
+#KG4YLZWSDPWTLJYI2BUI5LMQIZPUSKH5YXKYTPW4MR2M7KFE7MUC534MNHMSZY5Z5IGM4G4Q6Z6TA
+#\\\|6JO5ECT23FEXHSVWU5QJIEZLF5W6RHGRM65AAHSSNVTS4E757FH \ / AMOS7 \ YOURUM ::
+#\[7]M2ERE44MRYXTOO6WX4TSQZHIVSRJADWZPJRWDQPIN24PIZ2FAOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

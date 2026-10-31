@@ -4,6 +4,7 @@ use strict;
 use English;
 use warnings;
 use File::Spec;
+use File::stat;
 use File::Temp qw| tempdir |;
 use FindBin    qw| $RealBin |;
 use Cwd        qw| abs_path |;
@@ -63,13 +64,16 @@ my $session_user = $pw[0];
 
 my $tmp         = tempdir( CLEANUP => 1 );
 my $runtime_dir = File::Spec->catdir( $tmp, 'X-11' );
-mkdir($runtime_dir) or die 'cannot create fixture runtime dir';
+mkdir( $runtime_dir, 0750 ) or die 'cannot create fixture runtime dir';
 $data{'system'}{'zenka-user'}{'current'}        = $session_user;
 $data{'system'}{'zenka'}{'name'}                = 'X-11';
 $data{'system'}{'path'}{'zenka-dirs'}{'var_P7'} = $tmp;
 $code{'base.prng.bytes'}                        = sub { "\x42" x 16 };
 $code{'base.X-11.write_xauth_file'}             = $write_xauth;
 
+ok( $UID != 0 && ( ( CORE::stat($runtime_dir) )[2] & 0777 ) == 0750,
+    'fixture runs non-root with the live 0750 directory layout'
+);
 my $server = { 'display' => ':13', 'mode' => 'xorg' };
 ok( $prepare->($server), 'xorg authority preparation succeeds' );
 ok( defined $server->{'xauth'}
@@ -77,14 +81,12 @@ ok( defined $server->{'xauth'}
     'server retains a 128-bit cookie'
 );
 my $xauth_path = $server->{'xauth'}->{'path'} // '';
-ok( -f $xauth_path && ( ( stat($xauth_path) )[2] & 0777 ) == 0600,
+ok( -f $xauth_path && ( ( CORE::stat($xauth_path) )[2] & 0777 ) == 0600,
     'xorg authority file is private' );
-ok( -f $xauth_path && ( stat($xauth_path) )[4] == $pw[2],
-    'authority file belongs to the X-11 user'
-);
-ok( ( ( stat($xauth_path) )[2] & 0777 ) == 0600,
-    'authority file mode remains 0600'
-);
+ok( -f $xauth_path && ( CORE::stat($xauth_path) )[4] == $pw[2],
+    'authority file belongs to the X-11 user' );
+ok( $prepare->($server),
+    'existing authority replacement works with File::stat loaded' );
 
 $data{'X-11'}{'obj'} = {
     'authorization_protocol_name' => 'MIT-MAGIC-COOKIE-1',
@@ -231,8 +233,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,.,,..,,,.,,.,.,.,.,,,.,,..,,.,,,,,,..,,,,.,..,,...,...,...,.,,,,,.,,.,,,.,,
-#72ZUV45BHMGWXJS6TGOJ6YJRRGO4HQMMEWVWI73U2UMVY7DBBR5VI2ITUDDKRAXMAZC4SEII5MB7W
-#\\\|7OMF723WR642TJBVX6LVILZFBGOKET6NXYPZBA4YZIKYR2UM26Z \ / AMOS7 \ YOURUM ::
-#\[7]ZUTN3RQXGUJTWWZJDUX7VP643KAPP3OALEZQWZ4SKMFE27Z2KQAA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,..,,,,,,.,.,.,.,,.,,.,,,.,.,..,,...,...,,..,..,,.,,,,..,,.,,
+#W2F6AYGPIRO644U2IEKZ6S762YLACJVP3ZMU7IMZLP65BJ25R2ASCFIQPCVGVQKQWJ7N7BHWQOVQM
+#\\\|WT3U4IXMZKYPQW6ENAJITWU5QUO5AFA2K2V76WRFBU2L36LWWDI \ / AMOS7 \ YOURUM ::
+#\[7]DBTPPYATCW643LYMVXJ3S5A7YESLD37CSSEHNIU7VORDVOC4AYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
