@@ -1,0 +1,23 @@
+## [:< ##
+
+# name = login-screen.handler.session_start_reply
+# descr = hide the greeter once the user session runs
+
+my $reply = shift // {};
+<login-screen.ticket> = undef;
+
+if ( ( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
+    <login-screen.state> = qw| session |;
+    <login-screen.window>->hide();
+    return TRUE;
+}
+
+<[login-screen.show_greeter]>;
+<login-screen.widget.status>->set_text('session could not be started');
+FALSE;
+
+#,,,.,..,,,..,,.,,,.,,...,.,,,,,,,.,,,...,.,,,..,,...,...,,,.,,.,,,,.,..,,...,
+#3WAGJBMUO6EMYECIMSIUOVS7VHVSHSMVFGANWZTHNSHWEZLVT5MIRJ2OREG3QMLYVDVJWDEWPOWRY
+#\\\|N6L3QKZ7ROGZNE36OPBRDHS4O3Z4TUD4BDEN635WRKGQUL6M5JP \ / AMOS7 \ YOURUM ::
+#\[7]3DYUJYBSVY7I4E3ZPX2KNMWQRWEUSIQ5WQ5EMYJTZJJ2RAAXHMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

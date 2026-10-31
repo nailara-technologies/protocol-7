@@ -1,0 +1,147 @@
+## [:< ##
+
+# name = login-screen.open_window
+# descr = build the whole dark greeter before mapping it
+
+$ENV{'DISPLAY'} = <x11.display>;
+Gtk3->init;
+my $settings = Gtk3::Settings::get_default();
+$settings->set_property( 'gtk-application-prefer-dark-theme' => TRUE );
+
+my $theme      = <login-screen.theme>   // {};
+my $brightness = $theme->{'brightness'} // 0.82;
+$brightness = 0.82 if $brightness !~ m|^\d+(?:[.]\d+)?$|;
+$brightness = 0.2  if $brightness < 0.2;
+$brightness = 1    if $brightness > 1;
+
+my $color = sub {
+    my ($name) = @ARG;
+    my %fallback = (
+        'background' => '05040f',
+        'panel'      => '0b1024',
+        'text'       => 'b8b4d8',
+        'muted'      => '77729d',
+        'accent'     => '6f63b8',
+        'entry'      => '09081a',
+        'error'      => 'b078a8',
+    );
+    my $hex = $theme->{'color'}->{$name} // $fallback{$name};
+    $hex = $fallback{$name} if $hex !~ m|^[0-9a-fA-F]{6}$|;
+    my @rgb
+        = map { int( hex($ARG) * $brightness + 0.5 ) } ( $hex =~ m|(..)|g );
+    return sprintf( '#%02x%02x%02x', @rgb );
+};
+my $font_size = $theme->{'font_size'} // 32;
+$font_size = 32 if $font_size !~ m|^\d+$|;
+$font_size = 16 if $font_size < 16;
+$font_size = 96 if $font_size > 96;
+my $title_size = $theme->{'title_size'} // 42;
+$title_size = 42 if $title_size !~ m|^\d+$|;
+my $status_size = $theme->{'status_size'} // 22;
+$status_size = 22 if $status_size !~ m|^\d+$|;
+my $family = $theme->{'font_family'} // 'Sans';
+$family =~ s|[{};]| |g;
+my $width = $theme->{'content_width'} // 620;
+$width = 620 if $width !~ m|^\d+$|;
+my $padding = $theme->{'padding'} // 42;
+$padding = 42 if $padding !~ m|^\d+$|;
+
+my $css = Gtk3::CssProvider->new();
+$css->load_from_data(
+    sprintf <<'EOT',
+window, grid { background-color: %s; color: %s; }
+label { background-color: %s; color: %s; font-family: %s; font-size: %dpx; }
+.title { color: %s; font-size: %dpx; }
+.muted { color: %s; }
+.status { color: %s; font-size: %dpx; }
+entry { background-color: %s; color: %s; caret-color: %s;
+        border-color: %s; border-width: 2px; border-style: solid;
+        font-family: %s; font-size: %dpx; padding: 12px; }
+button { background-color: %s; color: %s; border-color: %s;
+         border-width: 2px; border-style: solid; font-family: %s;
+         font-size: %dpx; padding: 14px; }
+button:hover, button:focus { background-color: %s; color: %s; }
+EOT
+    map { $color->($ARG) } qw| background text panel text |,
+    $family,            $font_size,
+    $color->('text'),   $title_size,
+    $color->('muted'),  $color->('muted'), $status_size,
+    $color->('entry'),  $color->('text'),  $color->('text'),
+    $color->('accent'), $family,           $font_size,
+    $color->('panel'),  $color->('text'),  $color->('accent'),
+    $family,            $font_size, $color->('accent'), $color->('text')
+);
+my $window = Gtk3::Window->new('toplevel');
+my $screen = $window->get_screen();
+$window->set_visual( $screen->get_system_visual() );
+Gtk3::StyleContext::add_provider_for_screen( $screen, $css, -1 );
+$window->set_decorated(0);
+$window->set_resizable(0);
+$window->set_keep_above(1);
+$window->set_border_width($padding);
+$window->set_app_paintable(1);
+$window->set_default_size( $screen->get_width(), $screen->get_height() );
+$window->fullscreen();
+
+my $grid = Gtk3::Grid->new();
+$grid->set_halign('center');
+$grid->set_valign('center');
+$grid->set_size_request( $width, -1 );
+$grid->set_row_spacing(24);
+$grid->set_column_spacing(16);
+$window->add($grid);
+
+my $title = Gtk3::Label->new('protocol-7');
+$title->get_style_context()->add_class('title');
+$title->set_xalign(0);
+my $user_label = Gtk3::Label->new('user');
+$user_label->set_xalign(0);
+my $user = Gtk3::Entry->new();
+$user->set_max_length(32);
+$user->set_activates_default(FALSE);
+my $password_label = Gtk3::Label->new('password');
+$password_label->set_xalign(0);
+my $password = Gtk3::Entry->new();
+$password->set_visibility(FALSE);
+$password->set_max_length(1024);
+eval { $password->set_input_purpose('password') };
+my $button = Gtk3::Button->new_with_label('log in');
+my $status = Gtk3::Label->new('');
+$status->get_style_context()->add_class('status');
+$status->set_xalign(0);
+$status->set_line_wrap(TRUE);
+
+$grid->attach( $title,          0, 0, 2, 1 );
+$grid->attach( $user_label,     0, 1, 2, 1 );
+$grid->attach( $user,           0, 2, 2, 1 );
+$grid->attach( $password_label, 0, 3, 2, 1 );
+$grid->attach( $password,       0, 4, 2, 1 );
+$grid->attach( $button,         0, 5, 2, 1 );
+$grid->attach( $status,         0, 6, 2, 1 );
+$user->set_hexpand(TRUE);
+$password->set_hexpand(TRUE);
+$button->set_hexpand(TRUE);
+
+$user->signal_connect( 'activate' => sub { $password->grab_focus } );
+$password->signal_connect(
+    'activate' => sub {<[login-screen.authenticate]>} );
+$button->signal_connect( 'clicked' => sub {<[login-screen.authenticate]>} );
+$window->signal_connect( 'delete_event' => sub { Gtk3->main_quit } );
+Glib::Timeout->add( 1000, $code{'login-screen.handler.helper_watch'} );
+
+<login-screen.window>          = $window;
+<login-screen.widget.user>     = $user;
+<login-screen.widget.password> = $password;
+<login-screen.widget.button>   = $button;
+<login-screen.widget.status>   = $status;
+<login-screen.state>           = qw| greeter |;
+$window->show_all();
+$password->set_text('');
+$user->grab_focus();
+TRUE;
+
+#,,,,,,..,.,,,.,,,.,.,...,,,.,..,,,.,,,,,,,.,,..,,...,...,...,.,.,.,.,,..,...,
+#PEW6L42CAMJQDXV6THTWACZ43RDNWSWQEP2JMDEMJXLXKCZHASLIM2M2JPJE6VA7PYLKNVL6QTW66
+#\\\|ITKGUFNCFYAQZHBCGBOYPISOWDYHVBJYXUG36VRG6KUSC2OWQQW \ / AMOS7 \ YOURUM ::
+#\[7]LKVWKCPH5IEXUIIHFW6QEDBRQOUG3FFVV6N234TJWF6JCEEQRUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

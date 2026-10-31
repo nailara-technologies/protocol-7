@@ -1,0 +1,98 @@
+## [:< ##
+
+# name = v7-zenki.zenka.cmd.login-session-start
+# param = <authenticated user> <single-use root grant ticket>
+# descr = consume a login grant, start the user x11 session
+
+my @client_sessions = grep {
+            defined $data{'session'}{$ARG}
+        and defined $data{'session'}{$ARG}{'mode'}
+        and $data{'session'}{$ARG}{'mode'} ne qw| server |
+} keys %{ $data{'session'} // {} };
+my $caller
+    = @client_sessions == 1
+    ? <[base.session.user]>->( $client_sessions[0] )
+    : '';
+return { 'mode' => qw| false |, 'data' => 'denied : login-screen only' }
+    if $caller ne qw| cube | and $caller ne qw| login-screen |;
+
+my ( $username, $ticket, $extra )
+    = split( m| +|, $call->{'args'} // '', 3 );
+return { 'mode' => qw| false |, 'data' => 'invalid login admission' }
+    if defined $extra
+    or $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|
+    or $ticket   !~ m|^[0-9a-f]{64}$|;
+
+foreach my $iid (<[v7-zenki.instance_ids]>) {
+    my $instance = <v7-zenki.zenka.instance>->{$iid};
+    next if $instance->{'zenka_name'} ne qw| login-screen-session |;
+    next if $instance->{'status'} =~ m{^(?:offline|error|shutdown)$};
+    return {
+        'mode' => qw| false |,
+        'data' => 'a user session is already active'
+    };
+}
+
+my @pw = getpwnam($username);
+return { 'mode' => qw| false |, 'data' => 'invalid login account' }
+    if not @pw
+    or $pw[2] < 1000
+    or not -d $pw[7];
+my $openbox_config = sprintf( qw| %s/zenki/openbox/openbox.%s.xml |,
+    <system.conf_path>, $username );
+return { 'mode' => qw| false |, 'data' => 'user session config is missing' }
+    if -l $openbox_config or not -f $openbox_config;
+
+my $grant = <[v7-zenki.login-session.consume_grant]>->( $username, $ticket )
+    // return {
+    'mode' => qw| false |,
+    'data' => 'invalid or expired login grant'
+    };
+return { 'mode' => qw| false |, 'data' => 'login account changed' }
+    if $grant->{'uid'} != $pw[2];
+
+my $display;
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $x11_sid = shift;
+        $display = <x11.display>->{$x11_sid} if defined $x11_sid;
+        $call->{'login_session_cube_sid'} = $x11_sid;
+    }
+);
+return { 'mode' => qw| false |, 'data' => 'no authorized X-11 display' }
+    if not defined $display
+    or $display !~ m|^:\d+$|
+    or not defined $call->{'login_session_cube_sid'};
+
+my $cube_sid = delete $call->{'login_session_cube_sid'};
+my $request  = { $call->%* };
+<v7-zenki.login-session.pending>->{$cube_sid} = {
+    'request' => $request,
+    'user'    => $username,
+    'uid'     => $pw[2],
+    'gid'     => $pw[3],
+    'display' => $display,
+};
+my $sent = <[protocol-7.route-send]>->(
+    {   'command' => "$cube_sid.get_xauth_data",
+        'reply'   => {
+            'handler' => qw| v7-zenki.login-session.xauth_reply |,
+            'params'  => { 'cube_sid' => $cube_sid },
+        }
+    }
+);
+if ( not $sent ) {
+    delete <v7-zenki.login-session.pending>->{$cube_sid};
+    return {
+        'mode' => qw| false |,
+        'data' => 'cannot request X-11 authorization'
+    };
+}
+return { 'mode' => qw| deferred | };
+
+#,,,.,,,.,...,.,.,.,,,...,...,,.,,..,,,.,,...,..,,...,...,.,.,.,,,.,.,.,.,,.,,
+#FZG2NWJPSIVQQGJAO3QMZB5OYLVHPQUDAUYKE6IOIIZQVHAFXWZY3WKAJZ563PWSGBCIBFA3S3YXM
+#\\\|QHJQRMVNEAF2MDLATATRRUQU4BNW2LAC7SWEU7JVHFMAKJKFWQ4 \ / AMOS7 \ YOURUM ::
+#\[7]OF7H6NFF6AQMTS5V2SYCYOLZWL5MHRVD76YHP6MNODGXOBXOA4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

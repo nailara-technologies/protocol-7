@@ -73,6 +73,9 @@ base.swap_subs
 base.ssl.write
 base.sig_NUM55
 base.sig_NUM53
+base.sig_NUM52
+base.sig_NUM51
+base.sig_NUM50
 base.sig_NUM41
 base.sig_NUM37
 base.route.add
@@ -206,9 +209,6 @@ thermal.start.ready
 thermal.outdoor.amp
 thermal.idle.sample
 thermal.gate.sample
-thermal.gate.predict
-thermal.gate.k_trusted
-thermal.gate.hot_mark
 thermal.gate.decide
 plugin.auth.twofish
 io.ip.tcp.init_code
@@ -232,6 +232,7 @@ base.calc_unix_path
 thermal.override.set
 thermal.outdoor.poll
 thermal.idle.loadavg
+thermal.gate.predict
 task.persist.archive
 io.ip.tcp.input.open
 format.yaml.pre_init
@@ -266,6 +267,7 @@ auth.binding.message
 ascii.frame.validate
 thermal.window.weight
 thermal.window.tariff
+thermal.gate.hot_mark
 thermal.feed.register
 jobqueue.get_next_job
 jobqueue.get_job_data
@@ -294,6 +296,7 @@ base.balanced-average
 valued.node.set_weight
 valued.node.remove_ref
 thermal.window.current
+thermal.gate.k_trusted
 format.yaml.write_file
 crypt.C25519.sign_data
 base.session.init_code
@@ -386,6 +389,8 @@ base.is_defined_recursive
 base.handler.link-upgrade
 base.file.zenka_dir.write
 base.erase_buffer_content
+base.devmod.unload_unsafe
+base.devmod.safe_commands
 base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
@@ -408,6 +413,7 @@ base.ntime.epoch_timestamp
 base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
+base.devmod.process_signal
 base.check_dependency_dirs
 task.cmd.trigger-cold-queue
 task.cmd.summary-tree-query
@@ -425,6 +431,7 @@ base.perlmod.wipe_file_subs
 base.parser.ondemand_status
 base.modules.check_migrated
 base.handler.whitelist_miss
+base.devmod.unsafe_commands
 base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
@@ -602,8 +609,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,..,,..,..,,,.,,,..,,,.,...,..,,,,.,..,,..,,...,...,,,.,..,,...,...,..,,
-#2WCOUDVUY2QBASW3K2SYE2ZWKKOOVVD54AGDQWP66YFEQQG4GVAIQCGTSVMA5UGN6OSJDZUHJFREW
-#\\\|OFMMGJBMQOWHW4DMUXOMGHHP2T5BN4XRVPJBXWJHNA3FA673UVK \ / AMOS7 \ YOURUM ::
-#\[7]R356LMREY2J5ANHR3RCK2BSNA4GSP7KWF4KVGEZN3OJ4UJ5THIDI 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,,,.,..,,,.,,..,,,,,,,,,,.,.,..,,...,...,.,,,,..,,..,..,,...,
+#NBEQWGD6VRZV7G24FQYRXL24LRUYIAZG6NU4RK2WTZWYSA5PG3HJF4Z43KM6IPOXY4PRSPNHXYGX4
+#\\\|T4OMM3R2VXVCRPFIJGKQAXOIGFHG4QO35QC5A34XZM6NPAFNIWH \ / AMOS7 \ YOURUM ::
+#\[7]7MOFFBMY25BPYTLATA4ENSNK3FJP4YRY37TJMDVDGR6RATESNIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -67,6 +67,9 @@ base.swap_subs
 base.ssl.write
 base.sig_NUM55
 base.sig_NUM53
+base.sig_NUM52
+base.sig_NUM51
+base.sig_NUM50
 base.sig_NUM41
 base.sig_NUM37
 base.route.add
@@ -123,6 +126,7 @@ httpd.new_header
 httpd.cmd.vhosts
 devmod.post_init
 devmod.init_code
+clients.http.get
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -159,6 +163,7 @@ jobqueue.move_job
 jobqueue.exec_job
 httpd.json.encode
 httpd.json.decode
+clients.https.get
 clients.http.post
 base.stream.close
 base.session.user
@@ -377,6 +382,7 @@ route.bmw384.index.init
 protocol.sftp.init_code
 jobsite.util.block-line
 jobsite.sync.push_chunk
+jobsite.replica.forward
 jobsite.replica.enabled
 jobsite.job.index.build
 jobsite.dispatch.repair
@@ -458,6 +464,7 @@ plugin.web.auth.admit.cfg
 jobsite.util.fix_encoding
 jobsite.util.build_prompt
 jobsite.sync.role_for_url
+jobsite.replica.pull_soon
 jobsite.removed_log.prune
 jobsite.handler.sync-soon
 jobsite.fetched.subscribe
@@ -484,6 +491,8 @@ base.is_defined_recursive
 base.handler.link-upgrade
 base.file.zenka_dir.write
 base.erase_buffer_content
+base.devmod.unload_unsafe
+base.devmod.safe_commands
 base.chk-sum.elf.pre_init
 base.chk-sum.bmw384.color
 base.chk-sum.bmw.pre_init
@@ -520,6 +529,7 @@ base.language.encoding_map
 base.handler.session_error
 base.file.path.chksum.AMOS
 base.event.io_idle_restart
+base.devmod.process_signal
 base.check_dependency_dirs
 route.bmw384.route.as-curve
 route.bmw384.index.register
@@ -530,6 +540,7 @@ plugin.web.auth.admit.check
 net.read_linewise_estimated
 jobsite.validate.assessment
 jobsite.util.description_ok
+jobsite.replica.unsent-save
 jobsite.replica.unsent-load
 jobsite.liveness-sweep.next
 jobsite.handler.repair-done
@@ -555,6 +566,7 @@ base.perlmod.wipe_file_subs
 base.parser.ondemand_status
 base.modules.check_migrated
 base.handler.whitelist_miss
+base.devmod.unsafe_commands
 base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
@@ -610,6 +622,7 @@ plugin.web.auth.session.write
 plugin.web.auth.session.prune
 plugin.web.auth.handler.login
 jobsite.replica.pull-response
+jobsite.replica.forward-retry
 jobsite.handler.sync-response
 jobsite.dispatch.release_slot
 jobsite.dispatch.reassess_now
@@ -655,6 +668,7 @@ plugin.web.auth.handler.status
 plugin.web.auth.handler.logout
 plugin.web.auth.create_session
 plugin.web.auth.admit.schedule
+jobsite.replica.local-response
 jobsite.handler.repair-created
 jobsite.handler.new-job-settle
 jobsite.handler.liveness-reply
@@ -686,6 +700,7 @@ route.bmw384.route.hamming-dist
 route.bmw384.ledger.warning_map
 route.bmw384.index.query-radius
 plugin.web.auth.destroy_session
+jobsite.replica.pull_soon-fired
 jobsite.liveness-sweep.complete
 jobsite.handler.pending-changed
 jobsite.fetched.subscribe-retry
@@ -709,6 +724,7 @@ plugin.web.auth.refuse_plaintext
 plugin.web.auth.admit.wait_until
 plugin.web.auth.admit.state_save
 plugin.web.auth.admit.state_load
+jobsite.replica.forward-response
 jobsite.handler.liveness-timeout
 httpd.handler.web_template_reply
 httpd.handler.web-relay.response
@@ -820,6 +836,7 @@ protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 plugin.storage.util.normalize_checksum
 plugin.storage.checksum.cluster.create
+jobsite.replica.forward-local-response
 io.unix.socket.handler.report-tmp-path
 httpd.route.handler.iris-route-advance
 httpd.handler.download_transfer.broken
@@ -854,8 +871,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,.,,,,.,,.,,,,.,,...,,..,...,,.,,,,,,,.,,..,,...,...,,,.,...,.,.,...,...,
-#KQGJUERSVVEPM5DZDUUPGRNCVKJRRNT4DXXUNRQY6OKSQIHCQ7O442LDIMATN64L2TZUVW5PES3CM
-#\\\|P5Y36TQP23V3LOR6XRKWDAYPAHYRRNHLZ3B4PQQTHEU67SD7VG3 \ / AMOS7 \ YOURUM ::
-#\[7]XB2ETTX6GYHXM3CF4MI4KNRGY7SEJM2LP7HBBN36RBLVKUEMBQAA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,..,,.,.,.,.,.,,,..,,...,...,,,,,..,,...,..,,.,,,...,...,.,.,,,.,
+#74SZA6NJJYN6527XTCJJPEQKYOD3MWSHNENPHLIYDLL2GBDL44EWHNSUCM3NN7CNV22HRFSIY7YXA
+#\\\|JNL64SPVRBGNZNJC3CM7X3CGL4FLSNVNBXQYKOJGSKQUEH5DHBI \ / AMOS7 \ YOURUM ::
+#\[7]ZJ7RFN77LZKMHC5UON6MKMG4SU7C7C4AAKKVYA3K6KIU24XME4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

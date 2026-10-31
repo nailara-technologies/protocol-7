@@ -32,7 +32,7 @@
     <!-- with Smart placement on a multi-monitor system, try to place new windows
        on: 'Any' - any monitor, 'Mouse' - where the mouse is, 'Active' - where
        the active window is, 'Primary' - only on the primary monitor -->
-    <primaryMonitor>1</primaryMonitor>
+    <primaryMonitor>Mouse</primaryMonitor>
     <!-- The monitor where Openbox should place popup dialogs such as the
        focus cycling popup, or the desktop switch popup.  It can be an index
        from 1, specifying a particular monitor.  Or it can be one of the
@@ -77,7 +77,7 @@
     </font>
     <font place="MenuHeader">
       <name>FreeSans Semi-Bold</name>
-      <size>9</size>
+      <size>11</size>
       <!-- font size in points -->
       <weight>Normal</weight>
       <!-- 'bold' or 'normal' -->
@@ -86,7 +86,7 @@
     </font>
     <font place="MenuItem">
       <name>FreeSans Semi-Bold</name>
-      <size>9</size>
+      <size>11</size>
       <!-- font size in points -->
       <weight>Normal</weight>
       <!-- 'bold' or 'normal' -->
@@ -95,7 +95,7 @@
     </font>
     <font place="ActiveOnScreenDisplay">
       <name>sans</name>
-      <size>9</size>
+      <size>11</size>
       <!-- font size in points -->
       <weight>bold</weight>
       <!-- 'bold' or 'normal' -->
@@ -104,7 +104,7 @@
     </font>
     <font place="InactiveOnScreenDisplay">
       <name>sans</name>
-      <size>9</size>
+      <size>11</size>
       <!-- font size in points -->
       <weight>bold</weight>
       <!-- 'bold' or 'normal' -->
@@ -124,6 +124,7 @@
     <number>8</number>
     <firstdesk>1</firstdesk>
     <names>
+        <name>d.0</name>
         <name>d.1</name>
         <name>d.2</name>
         <name>d.3</name>
@@ -131,7 +132,6 @@
         <name>d.5</name>
         <name>d.6</name>
         <name>d.7</name>
-        <name>d.8</name>
     </names>
     <popupTime>777</popupTime>
     <!-- The number of milliseconds to show the popup for when switching
@@ -252,31 +252,6 @@
         <to>4</to>
       </action>
     </keybind>
-    <keybind key="W-k" chroot="true">
-      <keybind key="A-Up">
-        <action name="DesktopUp">
-          <dialog>no</dialog>
-        </action>
-      </keybind>
-      <keybind key="A-Down">
-        <action name="DesktopDown">
-          <dialog>no</dialog>
-        </action>
-      </keybind>
-      <keybind key="A-Left">
-        <action name="DesktopLeft">
-          <dialog>no</dialog>
-        </action>
-      </keybind>
-      <keybind key="A-Right">
-        <action name="DesktopRight">
-          <dialog>no</dialog>
-        </action>
-      </keybind>
-      <keybind key="Escape">
-        <action name="BreakChroot"/>
-      </keybind>
-    </keybind>
     <keybind key="W-d">
       <action name="ToggleShowDesktop"/>
     </keybind>
@@ -306,6 +281,11 @@
         <command>slock /usr/bin/perl -e 'select undef,undef,undef,0.3;qx(/usr/bin/xset dpms force off)'</command>
       </action>
     </keybind>
+    <keybind key="C-S-Escape">
+      <action name="Execute">
+        <command>slock /usr/bin/perl -e 'select undef,undef,undef,0.3;qx(/usr/bin/xset dpms force off)'</command>
+      </action>
+    </keybind>
     <keybind key="W-Escape">
       <action name="Execute">
         <command>i3lock-fancy -- scrot</command>
@@ -316,39 +296,9 @@
         <command>xset dpms force off</command>
       </action>
     </keybind>
-    <keybind key="S-A-F11">
-      <action name="Execute">
-        <command>ssh root@quantum /root/right.sh</command>
-      </action>
-    </keybind>
-    <keybind key="S-A-F10">
-      <action name="Execute">
-        <command>ssh root@quantum /root/xrandr.sh</command>
-      </action>
-    </keybind>
-    <keybind key="S-A-F9">
-      <action name="Execute">
-        <command>ssh root@quantum /root/left.sh</command>
-      </action>
-    </keybind>
-    <keybind key="S-Pause">
-      <action name="Execute">
-        <command>ssh root@quantum xset dpms force off</command>
-      </action>
-    </keybind>
-    <keybind key="S-C-Pause">
-      <action name="Execute">
-        <command>ssh root@quantum systemctl suspend</command>
-      </action>
-    </keybind>
-    <keybind key="S-A-Pause">
-      <action name="Execute">
-        <command>wakeonlan quantum</command>
-      </action>
-    </keybind>
     <keybind key="W-T">
       <action name="Execute">
-        <command>trs -a -t</command>
+        <command>trs -a -t 0.65</command>
       </action>
     </keybind>
     <keybind key="W-Prior">
@@ -373,52 +323,52 @@
     </keybind>
     <keybind key="A-E">
       <action name="Execute">
-        <command>env PATH=@HOME@/bin:/usr/local/bin:/usr/bin:/bin /usr/bin/rofi -lines 20 -show window</command>
+        <command>env PATH=@HOME@/bin:/usr/local/bin:/usr/bin:/bin /usr/bin/rofi -l 13 -terminal /usr/local/protocol-7/bin/terminal -modes "window,run" -show window</command>
       </action>
     </keybind>
     <keybind key="C-Return">
       <action name="Execute">
-        <command>env PATH=@HOME@/bin:/usr/local/bin:/usr/bin:/bin /usr/bin/rofi -lines 7 -modi "run,window" -show run</command>
+        <command>env PATH=@HOME@/bin:/usr/local/bin:/usr/bin:/bin /usr/bin/rofi -l 7 -terminal /usr/local/protocol-7/bin/terminal -modes "run,ssh" -show run</command>
       </action>
     </keybind>
     <keybind key="A-Return">
       <action name="Execute">
-        <command>lxterm -fa 'fixed' -fs 15</command>
+        <command>/usr/local/protocol-7/bin/terminal</command>
       </action>
     </keybind>
     <keybind key="W-S">
       <action name="Execute">
-        <command>~/bin/sct</command>
+        <command>/usr/local/protocol-7/bin/dev/scripts/sct</command>
       </action>
     </keybind>
-    <keybind key="W-x">
+    <keybind key="A-backslash">
       <action name="Execute">
-        <command>~/bin/xm</command>
+        <command>/usr/local/protocol-7/bin/harmony-osd</command>
       </action>
     </keybind>
-    <keybind key="W-c">
+    <keybind key="W-a">
       <action name="Execute">
-        <command>~/bin/calcoo</command>
+        <command>/usr/local/protocol-7/bin/dev/amos-chksum-x-selection</command>
       </action>
     </keybind>
     <keybind key="C-S-Return">
       <action name="Execute">
-        <command>~/bin/url.fox</command>
+        <command>/usr/local/protocol-7/bin/desktop/fox-url</command>
       </action>
     </keybind>
-    <keybind key="S-W-R">
+    <keybind key="Shift-W-R">
       <action name="Execute">
-        <command>re.fox</command>
+        <command>/usr/local/protocol-7/bin/desktop/fox-restart</command>
       </action>
     </keybind>
-    <keybind key="W-F">
+    <keybind key="A-Shift-grave">
       <action name="Execute">
-        <command>fox.off</command>
+        <command>/usr/local/protocol-7/bin/desktop/fox-on</command>
       </action>
     </keybind>
-    <keybind key="W-Shift-F">
+    <keybind key="A-grave">
       <action name="Execute">
-        <command>fox.on</command>
+        <command>/usr/local/protocol-7/bin/desktop/fox-off</command>
       </action>
     </keybind>
     <keybind key="A-W">
@@ -487,16 +437,6 @@
     <keybind key="W-S-Down">
       <action name="DirectionalCycleWindows">
         <direction>down</direction>
-      </action>
-    </keybind>
-    <!-- Keybindings for running applications -->
-    <keybind key="W-e">
-      <action name="Execute">
-        <startupnotify>
-          <enabled>true</enabled>
-          <name>Konqueror</name>
-        </startupnotify>
-        <command>kfmclient openProfile filemanagement</command>
       </action>
     </keybind>
     <!-- Launch scrot when Print is pressed -->
@@ -877,7 +817,7 @@
     <!-- show the manage desktops section in the client-list-(combined-)menu -->
   </menu>
   <applications>
-    <application name="mpv">
+    <application class="mpv">
       <focus>yes</focus>
       <decor>no</decor>
     </application>
@@ -885,6 +825,31 @@
       <focus>yes</focus>
       <decor>no</decor>
       <layer>above</layer>
+    </application>
+    <application name="Xephyr">
+      <focus>yes</focus>
+      <decor>no</decor>
+      <layer>below</layer>
+    </application>
+    <application title="amos-desktop web-browser">
+      <size force="yes">
+        <width>50%</width>
+        <height>47%</height>
+      </size>
+    <position force="no">
+      <x>-50%</x>
+      <y>center</y>
+    </position>
+      <focus>yes</focus>
+      <decor>no</decor>
+    </application>
+    <application class="Firefox">
+      <focus>yes</focus>
+      <decor>no</decor>
+    </application>
+    <application class="epiphany-browser">
+      <focus>yes</focus>
+      <decor>no</decor>
     </application>
     <application name="calcoo">
       <focus>yes</focus>
@@ -904,6 +869,24 @@
       <decor>no</decor>
       <shade>no</shade>
       <layer>below</layer>
+      <skip_pager>no</skip_pager>
+      <fullscreen>no</fullscreen>
+      <maximized>false</maximized>
+      <desktop>all</desktop>
+    </application>
+    <application name="nailara-menu">
+      <decor>no</decor>
+      <shade>no</shade>
+      <layer>below</layer>
+      <skip_pager>no</skip_pager>
+      <fullscreen>no</fullscreen>
+      <maximized>false</maximized>
+      <desktop>all</desktop>
+    </application>
+    <application title="ticker">
+      <decor>no</decor>
+      <shade>no</shade>
+      <layer>above</layer>
       <skip_pager>no</skip_pager>
       <fullscreen>no</fullscreen>
       <maximized>false</maximized>

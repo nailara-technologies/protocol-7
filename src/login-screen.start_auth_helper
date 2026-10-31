@@ -1,0 +1,93 @@
+## [:< ##
+
+# name = login-screen.start_auth_helper
+# descr = private runtime dirs + fork the root crypt helper
+
+return if defined <login-screen.auth_helper.fh>;
+
+die 'login-screen helper requires root at startup' if $EUID != 0;
+my $greeter_user = <login-screen.greeter_user> // die 'no greeter user';
+my @pw           = getpwnam($greeter_user);
+die 'login-screen greeter user not found' if not @pw;
+
+my $root = <login-screen.runtime_root>;
+my %dirs = (
+    $root                => { 'mode' => 0711, 'uid' => 0, 'gid' => 0 },
+    "$root/grants"       => { 'mode' => 0700, 'uid' => 0, 'gid' => 0 },
+    "$root/sessions"     => { 'mode' => 0711, 'uid' => 0, 'gid' => 0 },
+    "$root/greeter-$PID" => {
+        'mode' => 0700,
+        'uid'  => $pw[2],
+        'gid'  => $pw[3],
+    },
+);
+
+foreach my $path ( sort keys %dirs ) {
+    die "login-screen runtime path is a symlink"             if -l $path;
+    make_path( $path, { 'mode' => $dirs{$path}->{'mode'} } ) if not -d $path;
+    chmod( $dirs{$path}->{'mode'}, $path )
+        or die "cannot chmod login-screen runtime dir";
+    chown( $dirs{$path}->{'uid'}, $dirs{$path}->{'gid'}, $path )
+        or die "cannot chown login-screen runtime dir";
+}
+<login-screen.runtime_dir> = "$root/greeter-$PID";
+
+## host overlays are already merged : only root writes the helper's policy ##
+my $allow = <login-screen.auth.allow> // '';
+my @allow = split( m| +|, $allow );
+die 'invalid username in login-screen allow-list'
+    if grep { $ARG !~ m|^[a-z_][a-z0-9_-]{0,31}$| } @allow;
+my %policy = (
+    'user_free'        => <login-screen.auth.user_free>        // 2,
+    'global_free'      => <login-screen.auth.global_free>      // 5,
+    'user_max_delay'   => <login-screen.auth.user_max_delay>   // 60,
+    'global_max_delay' => <login-screen.auth.global_max_delay> // 30,
+);
+foreach my $key ( keys %policy ) {
+    die 'invalid login-screen rate policy'
+        if $policy{$key} !~ m|^\d{1,3}$|
+        or $key =~ m|_max_delay$|
+        and ( $policy{$key} < 1 or $policy{$key} > 300 );
+}
+<login-screen.auth_helper.config_path> = "$root/auth.cfg";
+my $policy_text = join( "\n",
+    "login-screen.auth.allow = " . join( ' ', @allow ),
+    map {"login-screen.auth.$ARG = $policy{$ARG}"} sort keys %policy ) . "\n";
+open( my $policy_fh, '>:raw', <login-screen.auth_helper.config_path> )
+    or die 'cannot write login-screen helper policy';
+print {$policy_fh} $policy_text;
+close($policy_fh) or die 'cannot close login-screen helper policy';
+chmod( 0600, <login-screen.auth_helper.config_path> )
+    or die 'cannot protect login-screen helper policy';
+
+socketpair( my $greeter_fh, my $helper_fh, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    or die "cannot create login-screen helper socket : $OS_ERROR";
+binmode( $greeter_fh, ':raw' );
+binmode( $helper_fh,  ':raw' );
+
+my $pid = fork();
+die "cannot fork login-screen helper : $OS_ERROR" if not defined $pid;
+if ( $pid == 0 ) {
+    close($greeter_fh);
+    fcntl( $helper_fh, F_SETFD, 0 ) or POSIX::_exit(126);
+    my $helper = sprintf( qw| %sbin/login-screen-auth |, <system.root_path> );
+    exec {$EXECUTABLE_NAME} $EXECUTABLE_NAME, $helper,
+        '--fd',     fileno($helper_fh),
+        '--config', <login-screen.auth_helper.config_path>
+        or POSIX::_exit(127);
+}
+
+close($helper_fh);
+<login-screen.auth_helper.fh>  = $greeter_fh;
+<login-screen.auth_helper.pid> = $pid;
+$greeter_fh->autoflush(TRUE);
+<[base.zenki.report_child_pid]>->( $pid, qw| login-screen-auth | );
+<[base.logs]>->( 1, 'login-screen root helper started [ pid %d ]', $pid );
+
+TRUE;
+
+#,,.,,,..,...,..,,..,,,,.,,..,,..,...,.,.,,,,,..,,...,...,..,,,,,,.,.,,..,...,
+#3XW3CQXFY7ALOSVA4K4R373SXHLSYPVMEDFIBB4QCZNOVZK22KGN7SUQOUVEBV324777MB6JELZ5G
+#\\\|C6CMNQFRXLEMVRLVZCWQGYQM4LZBBIA4DIZGCXIE7B4GZTPMBH2 \ / AMOS7 \ YOURUM ::
+#\[7]ZKW5IWIQ2QM5FWTL5OXEKBM67TQLL7L5RDZCSZ4OOKAA4JIKVYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

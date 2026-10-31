@@ -1,0 +1,34 @@
+
+ .:[ native x11 login-screen : unprivileged greeter + root crypt helper ]:.
+
+[load_config_file:'shared-params']
+[load_config_file:'X11-vars']
+[load_config_file:'zenki/login-screen/auth.cfg']
+[load_config_file:'zenki/login-screen/theme.cfg']
+[load_host_config]
+
+login-screen.greeter_user = <system.amos-zenka-user>
+
+access.cmd.usr.cube = commands heart reload verify-instance session-ended
+
+modules.load = auth.client net protocol io.unix ui login-screen
+[load_modules:<modules.load>]
+[init_modules]
+
+## root helper and private runtime dirs exist before the permanent drop ##
+[login-screen.start_auth_helper]
+[root.drop_privs:<login-screen.greeter_user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+[base.X-11.get_display]
+[login-screen.xauth_setup]
+[login-screen.open_window]
+
+[base.gtk.main_loop]
+
+#,,,,,.,,,...,,,,,,.,,,.,,,,.,,.,,.,.,..,,,.,,..,,...,.,.,.,.,,,.,,.,,...,.,.,
+#EKA5YRJKKMG62XHAOJM4V3FBXPKIS5URUMVWVTHT7SZLCUR7H7NZD4AY3MQFNRLOFQXZRPKU2KCDA
+#\\\|R4ZMDO54BTLUMIGP5YZNKKZFGHXPQFSVK4F4W3KKT7QEEWDYDUA \ / AMOS7 \ YOURUM ::
+#\[7]U2ATPQNXFEMCVEGC7MDQCPTVNYJGSVMVNR45DQHAS52E6JU7WQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

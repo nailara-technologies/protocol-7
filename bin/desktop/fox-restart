@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+
+uid=$(id -u)
+pkill -CONT -u "$uid" firefox 2>/dev/null || :
+pkill -TERM -u "$uid" firefox 2>/dev/null || :
+
+attempt=0
+while pgrep -u "$uid" firefox >/dev/null 2>&1; do
+    if [ "$attempt" -ge 100 ]; then
+        pkill -KILL -u "$uid" firefox 2>/dev/null || :
+        break
+    fi
+    sleep 0.1
+    attempt=$((attempt + 1))
+done
+
+nohup firefox >/dev/null 2>&1 </dev/null &
+
+#,,,,,,.,,..,,,.,,...,.,,,..,,,,.,..,,.,.,.,,,..,,...,...,.,,,,,.,.,.,.,.,.,,,
+#JLURPOBA6LK4GI57SLZNYI467B4TS2ATJZPRW6EDMC3OUBQREJVEAHNXKZPM25HIEHLFLDZR5GA6M
+#\\\|LJI77DXBCZPFSL2GY3PYVZ37ZAWFMDFVY3655NGX77TBB6Q2UUK \ / AMOS7 \ YOURUM ::
+#\[7]4P57QOFJPTKXT5HDY5HS3ARYNH7FRIYSN2MP6OAGTAECPCZ4CUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

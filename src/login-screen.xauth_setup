@@ -1,0 +1,46 @@
+## [:< ##
+
+# name = login-screen.xauth_setup
+# descr = fetch x11 auth, write the greeter's private cookie
+
+my ($local_sid) = keys <user.cube.session>->%*;
+my $cube_fh     = $data{'session'}{$local_sid}{'handle'};
+my $cmd_id      = <[base.gen_id]>->( $data{'route'} //= {} );
+<[base.net.send_to_socket]>->(
+    $cube_fh, sprintf( "(%d)X-11.get_xauth_data\n", $cmd_id )
+);
+
+my $reply_string;
+while (TRUE) {
+    $reply_string = readline($cube_fh);
+    die 'login-screen xauth cube connection ended'
+        if not defined $reply_string;
+    last if $reply_string =~ m{^\($cmd_id\)(?:TRUE|FALSE) };
+    $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+}
+
+die 'X-11 has no authorization cookie for login-screen'
+    if $reply_string !~ m{^\($cmd_id\)TRUE ([^\n]+)\n$};
+my $xauth = ${^CAPTURE}[0];
+my ( $protocol, $cookie_hex ) = split( m| = |, $xauth, 2 );
+my $path = sprintf( qw| %s/Xauthority |, <login-screen.runtime_dir> );
+
+<[base.X-11.write_xauth_file]>->(
+    {   'display'    => <x11.display>,
+        'protocol'   => $protocol,
+        'cookie_hex' => $cookie_hex,
+        'path'       => $path,
+        'uid'        => $UID,
+        'gid'        => $GID,
+    }
+) or die 'cannot create login-screen Xauthority';
+
+$ENV{'XAUTHORITY'} = $path;
+<login-screen.xauthority_path> = $path;
+TRUE;
+
+#,,..,..,,,,.,.,.,...,...,.,.,...,...,..,,.,.,..,,...,...,...,.,,,,,.,..,,...,
+#IFUF4VHTKEFFE3YEDG7NJM5EEUZMONZUZBVBBGFNIKPZL53GL2QUARHYDYOITTTQFVCD5N6F6JTWK
+#\\\|MAAH6BS6V2GWUCNDQZBUOZGXH2RXF5PACLTFQJVZ3IJM5ZRE2IR \ / AMOS7 \ YOURUM ::
+#\[7]GJERQXY4DOV5CPCLSPPH7IEU7ZAV3426V26NUYN36E43C6GGBKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,66 @@
+## [:< ##
+
+# name = base.X-11.write_xauth_file
+# descr = write one xauthority entry, no cookie on argv \ shell
+
+my $args       = shift                 // {};
+my $display    = $args->{'display'}    // '';
+my $protocol   = $args->{'protocol'}   // '';
+my $cookie_hex = $args->{'cookie_hex'} // '';
+my $path       = $args->{'path'}       // '';
+my $uid        = $args->{'uid'};
+my $gid        = $args->{'gid'};
+
+return FALSE if $display !~ m|^:(\d+)$|;
+my $display_number = ${^CAPTURE}[0];
+return FALSE if $protocol   !~ m|^[A-Za-z0-9][A-Za-z0-9-]{0,63}$|;
+return FALSE if $cookie_hex !~ m|^(?:[0-9a-fA-F]{2}){1,256}$|;
+return FALSE if not length $path or -l $path;
+return FALSE if not defined $uid or not defined $gid;
+
+require Fcntl;
+require Sys::Hostname;
+if ( -e $path ) {
+    my @old = lstat($path);
+    return FALSE if not @old or not -f _ or $old[4] != $uid;
+    unlink($path) or return FALSE;
+}
+
+my $fh;
+return FALSE
+    if not sysopen(
+    $fh,
+    $path,
+    Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+        | Fcntl::O_NOFOLLOW(),
+    0600
+    );
+chmod( 0600, $path )       or do { close($fh); unlink($path); return FALSE };
+chown( $uid, $gid, $path ) or do { close($fh); unlink($path); return FALSE };
+binmode( $fh, ':raw' );
+
+my $hostname = Sys::Hostname::hostname();
+my $entry    = join( '',
+    pack( 'n',    256 ),
+    pack( 'n/a*', $hostname ),
+    pack( 'n/a*', $display_number ),
+    pack( 'n/a*', $protocol ),
+    pack( 'n/a*', pack( 'H*', $cookie_hex ) ) );
+my $offset = 0;
+
+while ( $offset < length($entry) ) {
+    my $written = syswrite( $fh, $entry, length($entry) - $offset, $offset );
+    last if not defined $written or $written == 0;
+    $offset += $written;
+}
+my $ok = $offset == length($entry) ? TRUE : FALSE;
+$ok    = FALSE if not close($fh);
+$entry = "\0" x length($entry);
+unlink($path) if not $ok;
+return $ok;
+
+#,,,,,.,,,,,.,,,,,,,.,,.,,...,...,...,,..,.,.,..,,...,...,.,,,..,,..,,,.,,.,.,
+#PAFXS6WRRO7HUMVWRUF4MLANACJVULEW2RF4BYZPTE7VWSOSS5MQ67GY4QHDKNVEFGTOOVCR5NZBC
+#\\\|UU6RHZL3GCALOTSQK7ISI6XNMC62TITZJJHJUH2XSG2QWPDEDEH \ / AMOS7 \ YOURUM ::
+#\[7]NRFLCFDNHL2LJ5F7ZVU35CG4GR7NJKW75VHX55P4PNESIBIWGOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
