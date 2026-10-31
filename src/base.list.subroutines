@@ -1501,10 +1501,6 @@ return [ qw[
         base.eval.get_params
         base.eval.comp_regex
         base.disable_command
-        base.devmod.unsafe_commands
-        base.devmod.unload_unsafe
-        base.devmod.safe_commands
-        base.devmod.process_signal
         base.devmod.dump_var
         base.cmd.show-buffer
         base.cmd.show-access
@@ -1959,6 +1955,7 @@ return [ qw[
         melt.cmd.extract_frame
         mediainfo.cmd.get_info
         logo-display.init_code
+        login-screen.init_code
         letsencr.child.get_jwk
         letsencr.base.pre_init
         kimi.watcher.ws_status
@@ -2176,6 +2173,7 @@ return [ qw[
         v7-zenki.sys_deps.probe
         v7-zenki.instance_count
         v7-zenki.find-AMOS-user
+        v7-zenki.devmod.request
         users.record.ensure_dir
         users.cmd.field-options
         universal.cmd.slow_down
@@ -2604,6 +2602,8 @@ return [ qw[
         menu-commands.cmd.status
         menu-commands.cmd.remove
         memory.maintenance.timer
+        login-screen.xauth_setup
+        login-screen.open_window
         lm-vision.select_backend
         link.supervisor.teardown
         link.handler.session_rip
@@ -2811,6 +2811,7 @@ return [ qw[
         v7-zenki.load_start_setup
         v7-zenki.init_start_setup
         v7-zenki.handler.sig_chld
+        v7-zenki.devmod.send_next
         v7-zenki.delegation.retry
         v7-zenki.delegation.issue
         v7-zenki.check_zenka_deps
@@ -2909,6 +2910,8 @@ return [ qw[
         model_batch.baseline.pack
         menu-commands.update-menu
         melt.trigger.auto_cleanup
+        login-screen.show_greeter
+        login-screen.authenticate
         link.transport.ssh-w.open
         link.supervisor.link_down
         letsencr.parent.init_code
@@ -3039,6 +3042,8 @@ return [ qw[
         base.file.zenka_dir.write
         base.file.write_timestamp
         base.erase_buffer_content
+        base.devmod.unload_unsafe
+        base.devmod.safe_commands
         base.chk-sum.profile.calc
         base.chk-sum.elf.pre_init
         base.chk-sum.elf.get-true
@@ -3054,12 +3059,14 @@ return [ qw[
         base.X-11.get_orientation
         base.X-11.get_coordinates
         auto-hide.cmd.get-timeout
+        authorization.key_mapping
         auth.client.distrust_list
         amos7.encode_octal_header
         amos-term.interaction.ask
         amos-term.handler.command
         amos-term.fuse.get_window
         amos-term.cmd.window-open
+        X-11.xauth.prepare_server
         X-11.set_background_image
         X-11.pool.promote_standby
         X-11.handler.wait_visible
@@ -3346,6 +3353,7 @@ return [ qw[
         base.file.read_timestamped
         base.file.path.chksum.AMOS
         base.event.io_idle_restart
+        base.devmod.process_signal
         base.dependency.ok_resolve
         base.dependency.del_object
         base.dependency.add_object
@@ -3353,6 +3361,7 @@ return [ qw[
         base.chk-sum.jha.init_code
         base.chk-sum.bmw.chain_L13
         base.check_dependency_dirs
+        base.X-11.write_xauth_file
         auth.zenka.cmd.session-key
         amos-term.render.highlight
         amos-term.plugin-init_code
@@ -3672,6 +3681,7 @@ return [ qw[
         base.file.write_timestamped
         base.file.gen_path_linkname
         base.editor.set_total_lines
+        base.devmod.unsafe_commands
         base.devmod.dump.param_hash
         base.dependency.get_reverse
         base.dependency.get_missing
@@ -3682,6 +3692,7 @@ return [ qw[
         base.chk-sum.elf.vax-BASE32
         base.chk-sum.amos.init_code
         base.X-11.handler.geo_reply
+        authorization.buffer.arrive
         auth.client.zenka.init_code
         audio.cmd.spatial-purr-icon
         amos-term.window-fullscreen
@@ -3692,6 +3703,7 @@ return [ qw[
         X-11.handler.poll_size_list
         X-11.handler.global_hotkeys
         X-11.cmd.screen_size_ranges
+        X-11.cmd.grant_session_user
         X-11.build_monitor_registry
         zenki.handler.v7_start_reply
         workspace-transfer.init_code
@@ -3986,6 +3998,9 @@ return [ qw[
         base.chk-sum.bmw.str-b32.L13
         base.access.special-user-map
         base.X-11.set_window_opacity
+        authorization.cmd.key-submit
+        authorization.cmd.key-arrive
+        authorization.buffer.approve
         auth.client.server_pin.check
         audio.handler.decode_timeout
         amos.chksum.cmd.parse-nested
@@ -3996,6 +4011,7 @@ return [ qw[
         X-11.handler.read_gpu_nvidia
         X-11.handler.read_gpu_metric
         X-11.handler.fade_out_window
+        X-11.cmd.revoke_session_user
         X-11.bg-image.clean-up-cache
         zenki.parent.request_v7_start
         work.parent.util.version_diff
@@ -4029,6 +4045,7 @@ return [ qw[
         v7-zenki.zenka.cmd.sid-lookup
         v7-zenki.zenka.cmd.pid-lookup
         v7-zenki.zenka.cmd.gone_child
+        v7-zenki.zenka.cmd.devmod-ack
         v7-zenki.sub-process.get_ppid
         v7-zenki.stop_heartbeat_timer
         v7-zenki.resolve.object.zenka
@@ -4291,6 +4308,10 @@ return [ qw[
         base.callback.run_initialized
         base.callback.report_children
         base.X-11.get_window_geometry
+        authorization.verify_approval
+        authorization.cmd.key-pending
+        authorization.cmd.key-inspect
+        authorization.cmd.key-approve
         auth.client.unix.authenticate
         audio.render_standing_wave.v4
         audio.render_standing_wave.v3
@@ -4449,6 +4470,8 @@ return [ qw[
         menu-commands.cmd.add-category
         memory.tree.score.rank_falloff
         melt.handler.frame_count_reply
+        login-screen.start_auth_helper
+        login-screen.cmd.session-ended
         lm-vision.parser.process_chunk
         lm-vision.handler.http_analyze
         llm.service.subprocess_wrapper
@@ -4598,6 +4621,8 @@ return [ qw[
         base.callback.report_pid_files
         base.cache.refaddr-prefix.init
         base.X-11.get_pointer_scr_rect
+        authorization.owner_public_key
+        authorization.decision_message
         auth.client.zenka.authenticate
         ascii.frame.render.html.escape
         ascii.frame.render.html.border
@@ -4637,7 +4662,6 @@ return [ qw[
         v7-zenki.zenka.cmd.subname-sids
         v7-zenki.zenka.cmd.pid-instance
         v7-zenki.zenka.cmd.devmod-clear
-        v7-zenki.zenka.cmd.devmod-ack
         v7-zenki.zenka.cmd.clear-manual
         v7-zenki.pressure.defer_restart
         v7-zenki.kept_children_reabsorb
@@ -4859,6 +4883,7 @@ return [ qw[
         amos-term.buffer-attach_generic
         X-11.cancel_wait_visible_timers
         X-11.callback.display_connected
+        X-11.access.change_session_user
         X-11-pointer.cmd.restore-cursor
         work.console.version-sign-commit
         work.callback.object.perl_module
@@ -4873,13 +4898,8 @@ return [ qw[
         v7-zenki.zenka.push_routing_mode
         v7-zenki.zenka.cmd.notify_online
         v7-zenki.zenka.cmd.instance_pids
-        v7-zenki.zenka.cmd.devmod-unload-unsafe
-        v7-zenki.zenka.cmd.devmod-enable-rw
         v7-zenki.zenka.cmd.devmod-enable
-        v7-zenki.zenka.cmd.devmod-disable
         v7-zenki.zenka-instances.get-ids
-        v7-zenki.devmod.send_next
-        v7-zenki.devmod.request
         v7-zenki.sub-process.orphan_pids
         v7-zenki.stdout_log.early_buffer
         v7-zenki.resolve.object.sys_deps
@@ -5085,6 +5105,7 @@ return [ qw[
         base.chk-sum.amos.unix.sock_path
         base.cfg.profile.cmd.set-profile
         base.calculate_line_length_stats
+        authorization.host_registry_init
         ascii.frame.parse.border_segment
         amos-term.plugin-install_watcher
         amos-term.cmd.interaction-status
@@ -5113,6 +5134,7 @@ return [ qw[
         v7-zenki.zenka.cmd.notify_restart
         v7-zenki.zenka.cmd.notify_offline
         v7-zenki.zenka.cmd.drain-instance
+        v7-zenki.zenka.cmd.devmod-disable
         v7-zenki.zenka.cmd.claim-children
         v7-zenki.sub-process.get_children
         v7-zenki.parser.dependency_status
@@ -5185,6 +5207,7 @@ return [ qw[
         mod-test.cmd.write-blacklist-code
         mod-test.cmd.list-loaded-matching
         menu-commands.cmd.remove-category
+        login-screen.handler.helper_watch
         letsencr.parent.wait_httpd_online
         letsencr.parent.enroll_state_save
         letsencr.parent.enroll_state_path
@@ -5306,7 +5329,9 @@ return [ qw[
         v7-zenki.pressure.release_deferred
         v7-zenki.pid-files.global.register
         v7-zenki.pid-files.global.clean-up
+        v7-zenki.login-session.xauth_reply
         v7-zenki.handler.process_kill_list
+        v7-zenki.handler.get_display_retry
         v7-zenki.handler.get_display_reply
         v7-zenki.handler.cube_session_auth
         v7-zenki.handler.condition_recheck
@@ -5499,8 +5524,10 @@ return [ qw[
         vision-batch.parent.collect_results
         v7-zenki.zenka.cmd.report-temp-path
         v7-zenki.zenka.cmd.get-instance-ids
+        v7-zenki.zenka.cmd.devmod-enable-rw
         v7-zenki.sub-process.identity_match
         v7-zenki.report_collected_child_pid
+        v7-zenki.login-session.access_reply
         v7-zenki.load_zenka_output_patterns
         v7-zenki.install_workflow_shortcuts
         v7-zenki.init_zenka_output_patterns
@@ -5657,6 +5684,7 @@ return [ qw[
         v7-zenki.zenka.cmd.restart_own-zenka
         v7-zenki.tmp-paths.global.unregister
         v7-zenki.pid-files.global.unregister
+        v7-zenki.login-session.consume_grant
         v7-zenki.handler.startup_probe_reply
         v7-zenki.handler.reset_restart_delay
         v7-zenki.handler.process_output_line
@@ -5917,6 +5945,7 @@ return [ qw[
         weather.parent.wind.calculate_beaufort
         v7-zenki.zenka.instance.track_handover
         v7-zenki.zenka.end-handler.web-browser
+        v7-zenki.zenka.cmd.login-session-start
         v7-zenki.handler.stdio_multiplex_scope
         v7-zenki.handler.stdio_multiplex_demux
         v7-zenki.handler.startup_probe_timeout
@@ -6011,6 +6040,7 @@ return [ qw[
         web-browser.console_capture.buffer_name
         web-browser.cmd.start-capture-slideshow
         weather.parent.handler.station_id_reply
+        v7-zenki.zenka.cmd.devmod-unload-unsafe
         v7-zenki.parser.manually_stopped_tstamp
         v7-zenki.handler.stdio_multiplex_listen
         v7-zenki.callback.delete_instance_cache
@@ -6099,6 +6129,7 @@ return [ qw[
         models.storage.adapter.lmstudio.discover
         models.registry.list_all.list_all_models
         models.decision.cost_base.get_group_path
+        login-screen.handler.session_start_reply
         lm-vision.handler.check_batch_completion
         lm-vision.handler.check-completion-chain
         letsencr.parent.handler_revocation_reply
@@ -6302,6 +6333,7 @@ return [ qw[
         data.topology.interference.map.hash_to_cube_3d
         base.zenki.ondemand.handler.reconcile_starting
         web-browser.callback.capture_paged_query_result
+        v7-zenki.zenka.end-handler.login-screen-session
         protocol-7-menu.handler.screen-change_strm_open
         plugin.user-edit.address-cluster.serialize_blob
         plugin.auth.auth-keypair.validate-incoming-tofu
@@ -6397,8 +6429,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,..,,.,.,,,,,,..,.,.,,..,,,.,..,,,,.,.,,,.,.,...,...,.,.,.,.,..,,..,,,..,
-#XCCAKE6IQ7H3K3KFOLRISVWQPJMN5FMD6KEL65IBAAQNRBI3CB2RMBFQVRXWG67OXKQDTLNV6PSXM
-#\\\|QDXZCBRRUPDNARTGRPGCGAGDTDANYCADTB5BKHLF5YW4PQT4AM7 \ / AMOS7 \ YOURUM ::
-#\[7]E3HT3UNXCDFLLJCRANRRWMTAP4K4MV66CWDH46NJDAQPSX6GW2AI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,.,,,.,,,,,,.,,,..,,.,,,..,,.,,,.,.,...,...,.,.,...,,.,,...,,..,
+#2U4FXUCHU6XDKAGZJQ5NYJPKBJNIYBD7C2XYFHNI6RAVA7J67A75ML6GNY7ZR724KGYVXUY5Z3VTS
+#\\\|DQLZTVGJ5CQHQNOTQXS74ASHQ4SZT3VM3ERIRDEKH3N2DTGZALM \ / AMOS7 \ YOURUM ::
+#\[7]BUMAV6GQKTXGQIPHRGH3KMAYODZ77WLWGBAYIKGVUKIJ7Q6LC6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = v7-zenki.handler.get_display_retry
+# descr = timer : ask X-11 again for its display after a 'not ready' reply
+
+my $params   = $_[0]->w->data        // return;
+my $cube_sid = $params->{'cube_sid'} // return;
+
+<[protocol-7.route-send]>->(
+    {   'command' => "$cube_sid.get_display",
+        'reply'   => {
+            'handler' => qw| v7-zenki.handler.get_display_reply |,
+            'params'  => {
+                'cube_sid' => $cube_sid,
+                'attempt'  => $params->{'attempt'},
+            }
+        }
+    }
+);
+
+#,,,,,,..,,,.,,,,,..,,,.,,,,.,,,,,...,..,,...,..,,...,...,,,,,,,.,,..,,..,,,,,
+#F32PS7EPJ5WXADNTJJFQGWMFBVW4ZTSLMCEJG6RHXTAPA4DEE466UMH6RCBGF7HDRELKX2NFLC5AA
+#\\\|H4JQI5ACWRPB5AWPXHZZNH3PO3ZIQ74VU4CHRNDP5KYTM23XPPK \ / AMOS7 \ YOURUM ::
+#\[7]DL6BNBDO3X2I5CPEZ5HIDRNML4M2Y7P326MGT2YPEU5SS2SFRIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
