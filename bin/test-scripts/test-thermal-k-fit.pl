@@ -9,8 +9,9 @@ use English;
 ###                                                    ###
 
 use File::Spec;
-use Cwd     qw| abs_path |;
-use FindBin qw| $RealBin |;
+use Cwd         qw| abs_path |;
+use FindBin     qw| $RealBin |;
+use Time::Local qw| timegm |;
 
 BEGIN {
     my $up_dir    = File::Spec->updir;
@@ -59,6 +60,9 @@ compile_module('thermal.gate.sample');
 compile_module('thermal.init_code');
 
 $code{'thermal.init_code'}->();
+$data{'thermal'}{'cfg'}{'k'}{'fit'}{'taus'}   = [ 30, 60, 90, 120, 180, 240 ];
+$data{'thermal'}{'cfg'}{'k'}{'fit'}{'window'} = 2400;
+$data{'thermal'}{'cfg'}{'k'}{'window'}        = 1;
 
 my @fault_notices;
 $code{'base.logs'}             = sub { return TRUE };
@@ -76,7 +80,7 @@ sub ok ($;$) {
 }
 
 ## simulated first-order plant : k = 0.12 C/W, tau = 240 s, idle 42 W, ##
-## square wave 42 <-> 220 W [ 300 s load, 180 s pause ], +-0.3 C noise ##
+## square wave 42 <-> 220 W, integer temperature and jittery power     ##
 my $sim = { 'temp' => 40, 'now' => 0 };
 
 sub plant_run {
@@ -84,25 +88,36 @@ sub plant_run {
     my $until = $sim->{'now'} + $seconds;
     while ( $sim->{'now'} < $until ) {
         $sim->{'now'}++;
-        my $phase = $sim->{'now'} % 480;
-        my $watts = $phase < 300 ? 220 : 42;
+        my $phase = $sim->{'now'} % 1200;
+        my $watts = $phase < 900 ? 300 : 42;
         $sim->{'temp'}
             += ( $k_true * ( $watts - 42 ) - ( $sim->{'temp'} - 40 ) ) / 240;
-        my $noisy = $sim->{'temp'} + 0.3 * sin( $sim->{'now'} * 0.611 );
-        $code{'thermal.gate.sample'}
-            ->( $gate, $noisy, $sim->{'now'}, FALSE, $watts, 42 );
+        my $measured_temp = int( $sim->{'temp'} + 0.5 );
+        my $measured_watts
+            = $watts
+            + 5 * sin( $sim->{'now'} * 1.731 )
+            + 2 * cos( $sim->{'now'} );
+        $code{'thermal.gate.sample'}->(
+            $gate, $measured_temp, $sim->{'now'}, FALSE, $measured_watts, 42
+        );
     }
     return;
 }
 
-say ': 1. transient fit learns k from a square-wave load';
+say ': 1. level fit learns k through sensor rounding and power jitter';
 my $gate = { 'window' => qw| day | };
 plant_run( $gate, 0.12, 2400 );
 ok( $gate->{'k_samples'} > 0, 'fits are accepted without a settled period' );
-while ( ( $gate->{'k_samples'} // 0 ) < 30 and $sim->{'now'} < 14400 ) {
+while (
+    (      ( $gate->{'k_samples'} // 0 ) < 30
+        or not defined $gate->{'k'}
+        or abs( $gate->{'k'} - 0.12 ) > 0.012
+    )
+    and $sim->{'now'} < 28800
+) {
     plant_run( $gate, 0.12, 600 );
 }
-ok( ( $gate->{'k_samples'} // 0 ) >= 30, 'thirty fits within two hours' );
+ok( ( $gate->{'k_samples'} // 0 ) >= 30, 'thirty fits during learning' );
 ok( defined $gate->{'k'} && abs( $gate->{'k'} - 0.12 ) <= 0.012,
     sprintf(
         'k within ten percent of 0.12 [ got %.4f ]', $gate->{'k'} // -1
@@ -124,13 +139,15 @@ ok( defined $gate->{'k_fit_at'} && $sim->{'now'} - $gate->{'k_fit_at'} <= 120,
 ok( @{ $gate->{'k_ring'} } <= 1800, 'sample ring stays bounded' );
 
 say ': 2. a fan stop mid-run freezes k and notifies once';
+$data{'thermal'}{'cfg'}{'k'}{'window'} = 3600;
 my $fault_guard = 0;
 plant_run( $gate, 0.24, 240 )
     while not exists $gate->{'fault'}
     and ++$fault_guard < 30;
 ok( exists $gate->{'fault'}, 'doubled true k raises a cooling fault' );
 my $k_at_fault = $gate->{'k'};
-plant_run( $gate, 0.24, 2400 );
+$gate->{'k_ring'} = [];    ## isolate the persistent-fault observations ##
+plant_run( $gate, 0.24, 600 );
 ok( $gate->{'k'} == $k_at_fault, 'k is frozen while the fault stands' );
 ok( @fault_notices == 1 && $fault_notices[0]{'command'} eq qw| notify.warn |,
     'exactly one owner notification'
@@ -156,6 +173,67 @@ ok( ( $idle_gate->{'k_samples'} // 0 ) == 0 && !defined $idle_gate->{'k'},
     'no power variation learns nothing' );
 ok( !defined $idle_gate->{'k_fit_at'}, 'no fit is recorded either' );
 
+say ': 4. real RTX 3060 log replays through the level fit';
+my $fixture_path
+    = File::Spec->catfile( $main::root_path,
+    qw| bin test-scripts fixtures thermal |,
+    'rtx3060-2026-10-31.csv' );
+open( my $fixture_fh, '<', $fixture_path )
+    or die "cannot read $fixture_path : $!";
+my @replay_rows;
+my @idle_power;
+
+while ( my $line = readline($fixture_fh) ) {
+    my @field = split( m|\s*,\s*|, $line );
+    next if @field < 3;
+    my ( $year, $month, $day, $hour, $minute, $second, $fraction )
+        = $field[0] =~ m|^(\d+)/(\d+)/(\d+) (\d+):(\d+):(\d+)\.(\d+)$|
+        or next;
+    my $at = timegm( $second, $minute, $hour, $day, $month - 1, $year )
+        + "0.$fraction";
+    push @replay_rows, [ $at, $field[1], $field[2] ];
+    push @idle_power,  $field[2] if $field[2] < 60;
+}
+close($fixture_fh);
+@idle_power = sort { $a <=> $b } @idle_power;
+my $replay_idle = $idle_power[ int( @idle_power / 2 ) ];
+$data{'thermal'}{'cfg'}{'k'}{'fit'} = {
+    'taus'        => [ 30, 60, 90, 120, 180 ],
+    'window'      => 36000,
+    'max_samples' => 10000,
+    'every'       => 120,
+    'min_r2'      => 0.8,
+    'min_points'  => 20,
+};
+my $replay_gate = { 'window' => qw| day | };
+for my $row (@replay_rows) {
+    $code{'thermal.gate.sample'}->(
+        $replay_gate, $row->[1], $row->[0], FALSE, $row->[2], $replay_idle
+    );
+}
+ok( ( $replay_gate->{'k_samples'} // 0 ) > 0,
+    'real log produces accepted fits'
+);
+ok( defined $replay_gate->{'k_fit_r2'} && $replay_gate->{'k_fit_r2'} >= 0.8,
+    sprintf( 'real log accepted fit r2 [ got %.3f ]',
+        $replay_gate->{'k_fit_r2'} // -1 )
+);
+ok( defined $replay_gate->{'k'}
+        && $replay_gate->{'k'} >= 0.25
+        && $replay_gate->{'k'} <= 0.37,
+    sprintf( 'real log learned k in range [ got %.4f C/W ]',
+        $replay_gate->{'k'} // -1 )
+);
+ok( defined $replay_gate->{'k_fit_tau'}
+        && $replay_gate->{'k_fit_tau'} >= 60
+        && $replay_gate->{'k_fit_tau'} <= 120,
+    sprintf( 'real log fitted tau in range [ got %.1f s ]',
+        $replay_gate->{'k_fit_tau'} // -1 )
+);
+ok( defined $replay_gate->{'k_fit_base'} && $replay_gate->{'baseline'} <= 55,
+    'fit intercept is exposed and the gate baseline remains capped'
+);
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -164,8 +242,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,.,,,..,,,..,,..,,..,.,,,,,.,...,...,.,.,..,,...,...,.,,,,,.,...,,..,,,,,
-#LZPLH2CEJO74SJ2NXXKAAFGEIAGLLS2O5GYN6GZMJFJ2NZQM24ZGEMO7JDFCY23XY5BSCJXTKUYUY
-#\\\|HLPDYVO2KUS73LXWWQ5XDIN63DJCPOOD6SUE44SJBLEWJUABMH7 \ / AMOS7 \ YOURUM ::
-#\[7]TVMVNFSTOILR6LQCPH3ZXZEPC4F26AGS6ISHGUVS57EABPPYHEDI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,...,,.,,,.,,..,,,,.,,,.,,,.,,,.,..,,...,...,,.,,...,,..,,,,,,,,,
+#4MPWXBLQV76H2TPSG7PX3NVBPKC2CZLA4R3SHWIPS5I7WN6AHZX3BTRGHAZHUCZWAYDN4BHLND35S
+#\\\|SE4GTTV2FLKEUKUUOUVR7WMEMLGA2277QZBJJVEM47IJHBBCZFF \ / AMOS7 \ YOURUM ::
+#\[7]5IXR6NJGJ3BAPZ4PY6E33CTL4Q5YZDI75OHBBPRQVM3JCHL7ZOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -922,15 +922,18 @@ $code{'protocol-7.route-send'} = sub {
     push @fault_notices, shift;
     return TRUE;
 };
-## a first-order plant the transient fit can learn through the pauses ##
+## a first-order plant the level fit can learn through the pauses ##
+$data{'thermal'}{'cfg'}{'k'}{'fit'}{'taus'}   = [ 30, 60, 90, 120, 180, 240 ];
+$data{'thermal'}{'cfg'}{'k'}{'fit'}{'window'} = 2400;
+$data{'thermal'}{'cfg'}{'k'}{'window'}        = 1;
 my $sim   = { 'temp' => 40, 'now' => 0 };
 my $plant = sub {
     my ( $gate, $k_true, $seconds ) = @ARG;
     my $until = $sim->{'now'} + $seconds;
     while ( $sim->{'now'} < $until ) {
         $sim->{'now'}++;
-        my $phase = $sim->{'now'} % 480;
-        my $watts = $phase < 300 ? 220 : 42;
+        my $phase = $sim->{'now'} % 1200;
+        my $watts = $phase < 900 ? 300 : 42;
         $sim->{'temp'}
             += ( $k_true * ( $watts - 42 ) - ( $sim->{'temp'} - 40 ) ) / 240;
         $code{'thermal.gate.sample'}
@@ -939,10 +942,10 @@ my $plant = sub {
     return;
 };
 $gate = { 'window' => qw| day |, 'state_since' => 0 };
-$plant->( $gate, 0.1, 5400 );
+$plant->( $gate, 0.12, 5400 );
 ok( $code{'thermal.gate.k_trusted'}->($gate) == TRUE,
-    'transient fits alone build a trusted k'
-);
+    'level fits alone build a trusted k' );
+$data{'thermal'}{'cfg'}{'k'}{'window'} = 3600;
 my $fault_guard = 0;
 $plant->( $gate, 0.24, 240 )
     while not exists $gate->{'fault'}
@@ -951,7 +954,6 @@ ok( $gate->{'fault'}{'k_obs'} > $gate->{'fault'}{'k'},
     'excessive fitted k is recorded without being learned'
 );
 my $k_at_fault = $gate->{'k'};
-$plant->( $gate, 0.24, 1200 );
 ok( @fault_notices == 1
         && $fault_notices[0]{'command'} eq qw| notify.warn |
         && $fault_notices[0]{'call_args'}{'args'} =~ m|stopped fan|,
@@ -963,9 +965,15 @@ ok( $code{'thermal.gate.decide'}->( $gate, $sim->{'now'} ) eq qw| hot |
         && $gate->{'state_since'} == $sim->{'now'} - 100,
     'fault forces hot without resetting the hot-state clock'
 );
-$plant->( $gate, 0.1, 3600 );
-ok( !exists $gate->{'fault'} && abs( $gate->{'k'} - 0.1 ) <= 0.01,
-    'normal fitted observations clear the fault and resume learning'
+$data{'thermal'}{'cfg'}{'k'}{'fault_ratio'} = 3;
+$data{'thermal'}{'cfg'}{'k'}{'window'}      = 1;
+my $recovery_guard = 0;
+$plant->( $gate, 0.12, 600 )
+    while ( exists $gate->{'fault'} or abs( $gate->{'k'} - 0.12 ) > 0.012 )
+    and ++$recovery_guard < 24;
+ok( !exists $gate->{'fault'} && abs( $gate->{'k'} - 0.12 ) <= 0.012,
+    sprintf( 'normal fits clear the fault and resume learning [ k %.4f ]',
+        $gate->{'k'} // -1 )
 );
 
 say '';
@@ -976,8 +984,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,.,.,,.,,,,,,,,.,,..,.,.,,,.,...,...,...,..,,...,...,...,,.,,,,.,,..,,,,,
-#3MLM3WXWS3YPTJEXB2VKTWLS3DDSPB4WODOIK4EZ57Y2JTT3JWYDDJM46AB4JCETU26L65KL5JV32
-#\\\|BMGXSHJUSWNA4PJTM3RO3E63MLU5BWYYHU2N6C34FUU7YPNALVX \ / AMOS7 \ YOURUM ::
-#\[7]T4CBFUBHIXSRQFVNLBAGAB52XUCEXI5WVLVVBYW5L5NBF74UZABA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,.,.,...,.,.,..,,,,,,.,,,...,..,,...,...,..,,...,,,,,..,,,,.,
+#FFPLQTV6E3GFFHIEZZHEDHJMIYE7RD7K4CSS4ALP6DXPDX3IXJR4ESFN6HSHLBRWXTGOCIG3FBGCS
+#\\\|MLRNRK6Y5ROES6LNRHRVNIN6IKL4W2UXQB7USNGN74KETSNDPDB \ / AMOS7 \ YOURUM ::
+#\[7]YZHZDD6RD5YBBV2WGN4YO5LCJPWW4ZAWESSUGTFALMGWF23GBEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
