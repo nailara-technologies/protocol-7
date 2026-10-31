@@ -67,9 +67,9 @@ my @domains_to_request = ($domain);
 my $result = <[protocol-7.command.send.local]>->(
     {   'command'   => qw| child.request-certificate |,
         'call_args' => {
-            'args'  => $domain,
             'param' => {
-                'domains' => \@domains_to_request,
+                'domain'  => $domain,
+                'domains' => join( qw| |, @domains_to_request ),
                 'email'   => <letsencr.admin.email>,
                 'attempt' => 1,
             }
@@ -106,8 +106,8 @@ if ($result) {
     };
 }
 
-#,,,.,..,,,.,,,,,,,..,..,,.,,,,,.,.,.,,.,,,..,..,,...,...,.,.,..,,,..,..,,.,.,
-#5E6MKZ76JIUBWFVETWRBBXYM7LINYE3VDHEINLWNU7SRO7HSV26LTC7PV7MXRJWA7JKATG522ZVPC
-#\\\|3RUB5R6QOGY3A6FEEDTWRHFTE5FE3MPHEVAQOTL5IRMQISI4GRV \ / AMOS7 \ YOURUM ::
-#\[7]QGYDEQ4YZ3TZH4GRBF7DVUPWRUCMFYIB3VQSQKYBBYPVU5OIVCCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,...,.,.,,,.,,..,,..,..,,...,..,,...,...,...,,,.,,,,,.,,,,.,,
+#LVU6O6UCRN3YBC2VYPPRDIRTPKYF4MM4L3GHLEGU3LBXZWOVRXEUVFKZ5ZJKASCACSRMNHO537XIE
+#\\\|5MVJAMSJDADXDSP3NUDRYD7XCPPRHYWJKIJZG7RNZJQ3WZXJCLO \ / AMOS7 \ YOURUM ::
+#\[7]L4YFLX4MVZUXSYQCHKBVWG37S47CADXW6NNGL2VZEGPSJ73C3AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

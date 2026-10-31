@@ -4,8 +4,12 @@
 # param = <domain>
 # descr = request new certificate from ACME server
 
-## $call is provided by compiled-in code header
-my $domain = $call->{'args'};
+## $call is provided by compiled-in code header  multi-line param form   ##
+## [ send.local drops param next to args ] : the domain travels as param ##
+## too, the domain list space separated                                  ##
+my $param = ref $call->{'param'} eq qw| HASH | ? $call->{'param'} : {};
+my $domain
+    = length( $call->{'args'} // '' ) ? $call->{'args'} : $param->{'domain'};
 
 return {
     'mode' => 'false',
@@ -27,16 +31,20 @@ my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
 );
 
 ## Parse additional domains from parameters (if provided)
-my $alt_names = $call->{'param'}{'domains'} // [$domain];
-my @domains   = @$alt_names if ref($alt_names) eq 'ARRAY' && @$alt_names;
+my $alt_names = $param->{'domains'} // [$domain];
+$alt_names = [ grep {length} split m{\s+}, $alt_names ] if not ref $alt_names;
+my @domains = @$alt_names if ref($alt_names) eq 'ARRAY' && @$alt_names;
 @domains = ($domain) unless @domains;
 
 ## Get admin email from config or parameters
-my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
+my $email = $param->{'email'} || <letsencr.admin.email>;
 
 ## per-request ACME server [ staging enrollments ] : default is the ##
 ## zenka-wide configured server [ production ]                      ##
-my $acme_server = $call->{'param'}{'acme_server'} // undef;
+my $acme_server
+    = length( $param->{'acme_server'} // '' )
+    ? $param->{'acme_server'}
+    : undef;
 
 ## Substitute :requested-domain: keyword with primary domain
 $email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
@@ -70,8 +78,8 @@ if ( ( $result->{'mode'} // '' ) ne qw| deferred | ) {
 
 return $result;
 
-#,,,,,,..,..,,.,.,..,,,..,,,.,,..,.,.,.,.,..,,..,,...,...,...,,..,..,,,,,,...,
-#LSIXXWEQ55LCOKQTJ7JKEFINE2Y3JROHVP5J6VPCM36KTZWBFM2C3O6GLY2KBYX3TCZKCP2DWKCGC
-#\\\|YAOWOX5UELMZETIRQ5JN7UZKHSPOYSFS3VNAW5CRDQ4R35ZGU7E \ / AMOS7 \ YOURUM ::
-#\[7]VSYJCGP2ADYNZIJ5A23NPS3PZJEGV6QDOMKGK7UOOR5BFZD734AQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,,,,,,.,,,,,,,.,,.,,,,..,,..,..,,...,...,...,.,,,...,,.,,...,
+#3SQI7RSOFOONICC4HZEBO64OHAOGTTA2522ZAGUTJKIYVOOK6VMV2P3D2GYGPYAGJM6BMZIXCWKGW
+#\\\|VYHEBHVOHK3MJMMBITCBBLHAEKAVZ4BD3DV3RZJ4WFL5DK3YXT3 \ / AMOS7 \ YOURUM ::
+#\[7]PCH6BY2IYKC2T4IRI7FXM6RBR3U4KVIXTOVQNAXDCZ3J3ZLC3KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

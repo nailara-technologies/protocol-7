@@ -40,14 +40,14 @@ if ( $mode eq qw| TRUE | ) {
     my $result = <[protocol-7.command.send.local]>->(
         {   'command'   => qw| child.request-certificate |,
             'call_args' => {
-                'args'  => $domain,
                 'param' => {
-                    'domains'     => \@domains,
+                    'domain'      => $domain,
+                    'domains'     => join( qw| |, @domains ),
                     'email'       => <letsencr.admin.email>,
                     'attempt'     => 1,
                     'acme_server' => $staging
-                    ? <letsencr.cfg.enroll_staging_server>
-                    : undef,
+                    ? <letsencr.cfg.enroll_staging_server> // ''
+                    : '',
                 }
             },
             'reply' => {
@@ -104,8 +104,8 @@ if ( $mode eq qw| TRUE | ) {
 
 return TRUE;
 
-#,,,.,,.,,...,,..,,.,,,,,,,,,,...,..,,,..,.,.,..,,...,...,.,.,..,,,,,,,.,,.,.,
-#EWVF2FBWQ527R7HOAHIPEZPUANLYTRPZHK2IOZJAUC3E276BUX66UOZSLRSFOVHA545GLWCP2O25M
-#\\\|OYR4Z6VJMJCE3GGCFH7CNRPTZZOMRZ5I2RGXCEWO4IWSZKOS3TU \ / AMOS7 \ YOURUM ::
-#\[7]U6JXXEYTNKRM4IFKLZQ5K5YIIKB24BF2F66SMVUYEIJ3H2HGBOCA 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,.,.,,,,,..,,,,.,,.,,,,,,,..,..,,...,...,,..,,,.,...,,..,..,,
+#7KCX53WFOQTKJ2FNW2KJM42LYGU3TEVG3ZVUKOHRUJY7VYYX73BLWSCENGWEVIPWJC4UBQXMIPPPC
+#\\\|R3DYLM5MQ6LMMACPPOMCEQEX6X47ERLWGYI767BNM2BFSHEANAF \ / AMOS7 \ YOURUM ::
+#\[7]3LXQI2QKZAUCKV72CE7ZNAFFBYDQM7NETFDAQ4OHDB7TYZFUKEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

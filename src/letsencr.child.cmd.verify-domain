@@ -1,14 +1,16 @@
 ## [:< ##
 
 # name  = letsencr.child.cmd.verify-domain
-# param = <domain> [ param.public_addresses : arrayref ]
+# param = <domain> [ param.public_addresses : space separated ]
 # descr = pre-enrollment checks : public DNS [ blocking ],
 #         then the HTTP-01 self-test [ asynchronous : the setup command
 #         reaches httpd only once this command returns to the event loop,
 #         so the parent is answered later via the deferred reply_id ]
 
 ## $call is provided by compiled-in code header
-my $domain = $call->{'args'};
+my $param = ref $call->{'param'} eq qw| HASH | ? $call->{'param'} : {};
+my $domain
+    = length( $call->{'args'} // '' ) ? $call->{'args'} : $param->{'domain'};
 
 return {
     'mode' => qw| false |,
@@ -18,7 +20,9 @@ return {
 
 <[base.logs]>->( 2, 'child : verifying domain for enrollment : %s', $domain );
 
-my $public_addresses = $call->{'param'}{'public_addresses'} // [];
+my $public_addresses = $param->{'public_addresses'} // [];
+$public_addresses = [ grep {length} split m{\s+}, $public_addresses ]
+    if not ref $public_addresses;
 
 ## check 1 : the name resolves to at least one public address [ blocking ] ##
 my $dns_check
@@ -58,8 +62,8 @@ unless ( $selftest->{'ok'} ) {
 ## the setup reply handler \ timeout answers the parent via reply_id ##
 return { 'mode' => qw| deferred | };
 
-#,,,,,,,,,.,.,,,.,...,..,,,,,,.,,,..,,.,,,,,.,..,,...,...,..,,,.,,...,,,,,,.,,
-#LAV35KESRIOXM5VUPZKKZBT62SBC7SNPQ5JL5XQUWIEZNCTMSOB53TXG5YHM6XWATFLCAXLQ624Y4
-#\\\|J4TOFCZZX3ZZCXVRKNTZSUWGHD3AOYIMN2IKZPFI7OSUMKG66CF \ / AMOS7 \ YOURUM ::
-#\[7]43UFTEXDWJHG2LSRD77IJZTEWMOTFBNMRRWSZSHBGZ76WZUMMWCQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,...,...,,.,,.,.,,,.,,.,,,.,,,,.,..,,...,...,.,.,,,,,,,,,..,,..,,
+#73Z5G566RQ74BORJAOF5U3EQOURSPQQCZ6TOKKOHOZWC5B2F7IWE6ONNFZVXWIBI4VH2XOBHU56XS
+#\\\|FGJZDXGK3HEODD7RMLRYCG7MJGN3KLTHW2WLXSVA2C256X6TCE6 \ / AMOS7 \ YOURUM ::
+#\[7]FUEDZUE33ZPRVMAHMBLV7IOQUI2A6TNAX4VNVGZTCT52PJFVAQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
