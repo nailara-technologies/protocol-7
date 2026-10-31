@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = thermal.gate.sample
-# descr = sample the thermal gate and learn its power coefficient
+# descr = sample the thermal gate and fit its power coefficient
 
 my ( $gate, $temp_1s, $now, $idle_held, $watts, $idle_watts ) = @ARG;
 
@@ -54,19 +54,90 @@ if ( defined $watts ) {
             += $power_alpha * ( $watts - $gate->{'power_avg'} );
     }
 
-    my $delta_w
-        = defined $idle_watts ? $gate->{'power_avg'} - $idle_watts : undef;
-    if (    defined $delta_w
-        and $delta_w >= ( <thermal.cfg.k.min_delta_w> // 40 )
-        and abs( $watts - $gate->{'power_avg'} )
-        <= ( <thermal.cfg.k.power_band> // 15 )
-        and abs( $gate->{'avg_short'} - $gate->{'avg_long'} )
-        <= ( <thermal.cfg.k.temp_band> // 1.0 ) ) {
-        $gate->{'k_since'} //= $now;
-        if ( $now - $gate->{'k_since'} >= ( <thermal.cfg.k.settle> // 600 ) )
-        {
-            my $k_obs
-                = ( $gate->{'avg_long'} - $gate->{'baseline'} ) / $delta_w;
+    ## bounded ring of recent samples for the transient fit : the gate      ##
+    ## pauses the load itself, so a settled period never happens -- fit the ##
+    ## first-order model [ tau*dT/dt + T-baseline = k*[P-P_idle] ]          ##
+    my $ring = $gate->{'k_ring'} //= [];
+    push( @{$ring}, [ $now, $temp_1s, $watts ] );
+    shift @{$ring}
+        while @{$ring}
+        and $ring->[0][0] < $now - ( <thermal.cfg.k.fit.window> // 1800 );
+    shift @{$ring}
+        while @{$ring} > ( <thermal.cfg.k.fit.max_samples> // 1800 );
+
+    my $fit_every = <thermal.cfg.k.fit.every> // 120;
+    if (
+        $now - ( $gate->{'k_fit_check'} // $now - $fit_every ) >= $fit_every )
+    {
+        $gate->{'k_fit_check'} = $now;
+
+        ## least squares : dT/dt = a*dP + b*[T-baseline], tau=-1/b, k=-a/b ##
+        my $k_obs;
+    FIT: {
+            last FIT if not defined $gate->{'idle_watts'};
+            last FIT if not defined $gate->{'baseline'};
+            my $idle_w     = $gate->{'idle_watts'};
+            my $min_points = <thermal.cfg.k.fit.min_points> // 20;
+            last FIT if @{$ring} < $min_points + 1;
+            my $deriv_span = <thermal.cfg.k.fit.deriv_span> // 20;
+
+            ## no power variation in the window -> no signal to fit ##
+            my ( $dp_min, $dp_max );
+            for my $point ( @{$ring} ) {
+                my $dp = $point->[2] - $idle_w;
+                $dp_min = $dp if not defined $dp_min or $dp < $dp_min;
+                $dp_max = $dp if not defined $dp_max or $dp > $dp_max;
+            }
+            last FIT
+                if $dp_max - $dp_min < ( <thermal.cfg.k.min_delta_w> // 40 );
+
+            my ( $s11, $s12, $s22, $t1, $t2, $yy, $count )
+                = ( 0, 0, 0, 0, 0, 0, 0 );
+            for my $i ( 1 .. $#{$ring} ) {
+                my $j = $i - 1;
+                $j--
+                    while $j > 0
+                    and $ring->[$i][0] - $ring->[$j][0] < $deriv_span;
+                my $span = $ring->[$i][0] - $ring->[$j][0];
+                next if $span < $deriv_span;    ## smoothed derivative ##
+                my $y  = ( $ring->[$i][1] - $ring->[$j][1] ) / $span;
+                my $x1 = $ring->[$i][2] - $idle_w;
+                my $x2 = $ring->[$i][1] - $gate->{'baseline'};
+                $s11 += $x1 * $x1;
+                $s12 += $x1 * $x2;
+                $s22 += $x2 * $x2;
+                $t1  += $x1 * $y;
+                $t2  += $x2 * $y;
+                $yy  += $y * $y;
+                $count++;
+            }
+            last FIT if $count < $min_points or $yy == 0 or $s11 == 0;
+            my $det = $s11 * $s22 - $s12 * $s12;
+            last FIT if $det <= 1e-6 * $s11 * $s22;    ## nearly collinear ##
+            my $a = ( $t1 * $s22 - $t2 * $s12 ) / $det;
+            my $b = ( $s11 * $t2 - $s12 * $t1 ) / $det;
+            last FIT if $b >= 0;
+            my $tau = -1 / $b;
+            last FIT
+                if $tau < ( <thermal.cfg.k.fit.tau_min> // 30 )
+                or $tau > ( <thermal.cfg.k.fit.tau_max> // 3000 );
+            my $ss_res
+                = $yy
+                - 2 * $a * $t1
+                - 2 * $b * $t2
+                + $a * $a * $s11
+                + 2 * $a * $b * $s12
+                + $b * $b * $s22;
+            $ss_res = 0 if $ss_res < 0;
+            my $r2 = 1 - $ss_res / $yy;
+            $gate->{'k_fit_tau'} = $tau;
+            $gate->{'k_fit_r2'}  = $r2;
+            $gate->{'k_fit_at'}  = $now;
+            last FIT if $r2 < ( <thermal.cfg.k.fit.min_r2> // 0.8 );
+            $k_obs = -$a / $b;
+        }
+
+        if ( defined $k_obs ) {
             my $trusted = <[thermal.gate.k_trusted]>->($gate);
             if (    $trusted
                 and $k_obs
@@ -105,23 +176,24 @@ if ( defined $watts ) {
                     );
                     delete $gate->{'fault'};
                 }
-                if (    $k_obs >= ( <thermal.cfg.k.min> // 0.02 )
-                    and $k_obs <= ( <thermal.cfg.k.max> // 0.5 ) ) {
-                    if ( defined $gate->{'k'} ) {
-                        my $k_alpha
-                            = 1 - exp(
-                            -$dt / ( <thermal.cfg.k.window> // 3600 ) );
-                        $gate->{'k'} += $k_alpha * ( $k_obs - $gate->{'k'} );
-                    } else {
-                        $gate->{'k'} = $k_obs;
-                    }
+                ## out of range : still a fault signal above, never learned ##
+                my $in_range
+                    = ( <thermal.cfg.k.min> // 0.02 ) <= $k_obs
+                    <= ( <thermal.cfg.k.max> // 0.5 );
+                if ( $in_range and defined $gate->{'k'} ) {
+                    my $k_alpha
+                        = 1 - exp(
+                        -$fit_every / ( <thermal.cfg.k.window> // 3600 ) );
+                    $gate->{'k'} += $k_alpha * ( $k_obs - $gate->{'k'} );
+                } elsif ($in_range) {
+                    $gate->{'k'} = $k_obs;
+                }
+                if ($in_range) {
                     $gate->{'k_samples'}++;
                     $gate->{'k_at'} = $now;
                 }
             }
         }
-    } else {
-        delete $gate->{'k_since'};
     }
 }
 
@@ -152,8 +224,8 @@ $gate->{'last_sample_at'} = $now;
 
 return TRUE;
 
-#,,,,,..,,.,.,,,,,,,.,..,,,.,,..,,.,,,,.,,.,,,..,,...,...,...,..,,,,,,...,...,
-#IPL4ITI2RZOXYONYUMMGKHDOHR6A2DCG4SMRHIJ3GBXCEC6SARDB4CWUJ6P4UHL6S7FMPZ47YE4EW
-#\\\|UHEJDACITFCU3KULSS2KWYZ3VMKY2JK4AOUEAMKVBVC43RJXSL3 \ / AMOS7 \ YOURUM ::
-#\[7]THHHTUIFUA2NAFJNM5XZI3RILE5RMY3RFXUC2ENXPMSTCA5ZQICA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,...,,..,.,,,..,,...,,..,...,..,,...,...,.,,,..,,.,.,,,,,.,,,
+#BSMWY2ZNPCCZDMAJZGUC4SWLCDAZRWGBMTSBLQCSUEEKU7LSWCZ4VLKZJOBQ2VZ2ICTQTAVXQGM3O
+#\\\|CAZLNAXK3XT7T6PWOVN4DT52RPUAA3W3Q4S2C33ITZZ3PTFXKBB \ / AMOS7 \ YOURUM ::
+#\[7]S53PU76BFTZDA45VAXBOESFYRE5EGSRAQ7S4AAZY3MDQUKCBUYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

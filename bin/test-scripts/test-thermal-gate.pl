@@ -922,39 +922,51 @@ $code{'protocol-7.route-send'} = sub {
     push @fault_notices, shift;
     return TRUE;
 };
-$gate = {
-    'baseline'       => 40,
-    'avg_short'      => 50,
-    'avg_long'       => 50,
-    'last_sample_at' => 0,
-    'state'          => qw| warm |,
-    'state_since'    => 100,
-    'window'         => qw| day |,
-    'power_avg'      => 100,
-    'k'              => 0.1,
-    'k_samples'      => 30,
-    'k_since'        => 0,
+## a first-order plant the transient fit can learn through the pauses ##
+my $sim   = { 'temp' => 40, 'now' => 0 };
+my $plant = sub {
+    my ( $gate, $k_true, $seconds ) = @ARG;
+    my $until = $sim->{'now'} + $seconds;
+    while ( $sim->{'now'} < $until ) {
+        $sim->{'now'}++;
+        my $phase = $sim->{'now'} % 480;
+        my $watts = $phase < 300 ? 220 : 42;
+        $sim->{'temp'}
+            += ( $k_true * ( $watts - 42 ) - ( $sim->{'temp'} - 40 ) ) / 240;
+        $code{'thermal.gate.sample'}
+            ->( $gate, $sim->{'temp'}, $sim->{'now'}, FALSE, $watts, 42 );
+    }
+    return;
 };
-$code{'thermal.gate.sample'}->( $gate, 50, 600, FALSE, 100, 50 );
-ok( $gate->{'k'} == 0.1
-        && $gate->{'k_samples'} == 30
-        && $gate->{'fault'}{'k_obs'} == 0.2,
-    'excessive settled k is recorded without being learned'
+$gate = { 'window' => qw| day |, 'state_since' => 0 };
+$plant->( $gate, 0.1, 5400 );
+ok( $code{'thermal.gate.k_trusted'}->($gate) == TRUE,
+    'transient fits alone build a trusted k'
 );
-$code{'thermal.gate.sample'}->( $gate, 50, 601, FALSE, 100, 50 );
+my $fault_guard = 0;
+$plant->( $gate, 0.24, 240 )
+    while not exists $gate->{'fault'}
+    and ++$fault_guard < 30;
+ok( $gate->{'fault'}{'k_obs'} > $gate->{'fault'}{'k'},
+    'excessive fitted k is recorded without being learned'
+);
+my $k_at_fault = $gate->{'k'};
+$plant->( $gate, 0.24, 1200 );
 ok( @fault_notices == 1
         && $fault_notices[0]{'command'} eq qw| notify.warn |
         && $fault_notices[0]{'call_args'}{'args'} =~ m|stopped fan|,
     'one owner warning names the possible cooling fault'
 );
-ok( $code{'thermal.gate.decide'}->( $gate, 602 ) eq qw| hot |
-        && $gate->{'state_since'} == 100,
+ok( $gate->{'k'} == $k_at_fault, 'k stays frozen while the fault stands' );
+$gate->{'state_since'} = $sim->{'now'} - 100;
+ok( $code{'thermal.gate.decide'}->( $gate, $sim->{'now'} ) eq qw| hot |
+        && $gate->{'state_since'} == $sim->{'now'} - 100,
     'fault forces hot without resetting the hot-state clock'
 );
-$gate->{'avg_short'} = $gate->{'avg_long'} = 45;
-$code{'thermal.gate.sample'}->( $gate, 45, 1200, FALSE, 100, 50 );
-ok( !exists $gate->{'fault'} && $gate->{'k'} == 0.1,
-    'a settled normal observation clears the fault and resumes learning' );
+$plant->( $gate, 0.1, 3600 );
+ok( !exists $gate->{'fault'} && abs( $gate->{'k'} - 0.1 ) <= 0.01,
+    'normal fitted observations clear the fault and resume learning'
+);
 
 say '';
 if ($fail_count) {
@@ -964,8 +976,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,.,.,,..,...,,..,,..,,,.,,.,,..,,,,.,..,,..,,...,...,,.,,.,.,,,,,,.,,...,
-#URJNXLQ7DBV3CWGFEXHQIE5CFQ7VDKKVQ5SJPUH2P64DZCJM67V7OR7GVYTCBXP322AWUHIVTBZVS
-#\\\|LTLFX76SUKFQAO55W2PT7LR2Y4NMSWHY5KZUBZEIFM4UGHD6KS2 \ / AMOS7 \ YOURUM ::
-#\[7]6RTT5V2O6SOKPUWN7KZLR6PNTHO6DAPMFDNLL4KOR3H2NZ2VTOCI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,,,,,.,,..,.,.,,,.,...,...,...,..,,...,...,...,,.,,,,.,,..,,,,,
+#3MLM3WXWS3YPTJEXB2VKTWLS3DDSPB4WODOIK4EZ57Y2JTT3JWYDDJM46AB4JCETU26L65KL5JV32
+#\\\|BMGXSHJUSWNA4PJTM3RO3E63MLU5BWYYHU2N6C34FUU7YPNALVX \ / AMOS7 \ YOURUM ::
+#\[7]T4CBFUBHIXSRQFVNLBAGAB52XUCEXI5WVLVVBYW5L5NBF74UZABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

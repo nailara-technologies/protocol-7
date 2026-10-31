@@ -145,6 +145,13 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
    slices 3 + 4 landed : trusted k drives predicted-temperature thresholds
    and optional expected-watts spawn refusal ; settled cooling faults freeze
    k, force hot without resetting its clock, and notify the owner once.
+   k learning reworked [ owner 2026-10-31 ] : the gate pauses the load
+   itself, so a 600 s settled period never happens live. replaced by a
+   transient fit over a bounded sample ring [ thermal.cfg.k.fit.* ] :
+   least squares of dT/dt on [ P - P_idle, T - baseline ] every 120 s
+   gives tau = -1/b and k = -a/b ; accepted only with b < 0, tau in
+   30..3000 s, R^2 >= 0.8 and >= 40 W power swing, clamped to k.min/max.
+   the same k averaging, trust count, fault guard and ceiling apply.
 6b. power curve [ owner 2026-10-30 ] : with a trusted k the gate steers
    the gpu power LIMIT instead of a load square wave : allowed watts =
    P_idle + [ target - baseline ] \ k. bounds : card min [ 100 W here ]
@@ -168,8 +175,8 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
    delays the other worker's next background round.
 8. profiles, if wanted.
 
-#,,,.,.,.,,,.,...,,,,,,.,,..,,.,.,,,,,.,.,,.,,..,,...,...,,.,,,,,,..,,...,,..,
-#BPCSUAD4IHHLKBX74YL5FCEUHV63QKMSZFAYLKZJGXQHS4B2OCDQXAX5PVK47ZRAQVQQPQ4DQJ55E
-#\\\|E3QJSJVO6PTNXOJT32KANQWVOQ3YXGBKTZFRRYHB5LK7QS4JEFA \ / AMOS7 \ YOURUM ::
-#\[7]2VLJTYWDWBSOA3FN2YMRSDTPPU5QX5M374JXRPWCX6QDGKYYO4BI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,,,.,,..,.,.,,.,,..,,,,,,,,,,..,,...,..,,,,.,,..,...,..,,,..,
+#6RIUBKXPCCWASJT4PY22FNZUDG6HZADSQTMZDN6P3XJZKEVFAXNGOAKVVQA3KOLWKQSC6CPPZJMU4
+#\\\|XHUK47DX5NHTP7ULXBM7URO5YJUSW62PF5T4ZBM7RHUBDTPQ5XZ \ / AMOS7 \ YOURUM ::
+#\[7]ASCXUCNWX5B6JBT5T44IG6VALAJ7UNGCKBOGGDLTNDXQF2GPEYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
