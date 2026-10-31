@@ -45,8 +45,8 @@ after is already too late ]. unsafe = writes %data [ set \ del ], blocks
 v7-zenki keeps off | safe | full per zenka, pushes it as a start-up value
 [ race free on restart ], serializes runtime signals [ next one after the
 ack ] ; an unload signal also updates the remembered state. handler only
-sets a flag, the event loop acts. OPEN : default of devmod-enable stays
-full or becomes safe [ behavior change -- owner to decide ]
+sets a flag, the event loop acts. DECIDED : devmod-enable is safe [ NUM51 ] ;
+devmod-enable-rw retains the old full behavior [ NUM53 ]
 
 **later 2026-10-31** [ last 4cdda1ca0, deployed srv-U F V A ]
 
@@ -75,8 +75,8 @@ full or becomes safe [ behavior change -- owner to decide ]
 slice 1 of external access ; N7FS [ binary byte form NOT decided -- not
 used yet ]
 
-#,,,.,.,,,,,.,,..,..,,,.,,,,,,,..,.,,,.,,,..,,..,,...,.,.,,,.,...,,.,,..,,,,,,
-#Y5B3WG7Y2UFRWVMKY5DQDLFH6ABQZWCRLOPIUX4Q4SRAU4KOZKW674456RG6DQDZRVWAV7UGOQUJ6
-#\\\|IEBVM33TU3E4WXA7JVACTTGUJ6XE5DIXNIHIHISBM62BS62JOQY \ / AMOS7 \ YOURUM ::
-#\[7]H2OIDRCMU2YME65KHAGA4Z2UCEQHLF7NCAO5M6XYSRE2KIAY5WBI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,.,...,.,,,.,,,,..,...,,,.,..,,..,,...,...,,.,,,..,,.,,.,,,,,,,
+#6WYFEDA4P4KAIEVYXO3VELW73HOOVENR7EYVKGPR7DIQWMPYSMQTWTPJ4KNVJIK2RQDUZE7Q4YPAS
+#\\\|ZRTKBBQNZJJY5RO4VN4XRH3RYVI65UNKEGRQFN62P4TPQSPXRXY \ / AMOS7 \ YOURUM ::
+#\[7]LJIFU5W6KQZOMIMIZ76CC64XVA6CHDAF54XRKVEIUWIRDXVBSGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

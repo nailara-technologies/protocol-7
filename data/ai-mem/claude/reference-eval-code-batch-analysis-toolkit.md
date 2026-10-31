@@ -15,7 +15,7 @@ hamming]>` are the direct code-refs, faster for a batch since `similarity`'s
 
 **1. `eval-code` needs explicit per-zenka whitelisting, unlike `web-browser`.**
 `devmod.cmd.eval-code` is a devmod command, available on any zenka once
-`v7-zenki.devmod-enable <zenka>` loads the module — but each zenka's OWN
+`v7-zenki.devmod-enable-rw <zenka>` loads the module — but each zenka's OWN
 `access.cmd.usr.*` line in its `zenka.v7` startup file can still block it.
 `web-browser`'s access line ends in a wildcard (`* *.*`), so eval-code just
 worked there. `graphics-matrix`'s access line is a strict enumerated
@@ -48,7 +48,7 @@ kill above, EVERY subsequent `eval-code` call failed with "command does not
 exist" — not because the function name was wrong, but because the crash-
 triggered restart wiped devmod (it's a runtime-only SIGNUM53 attach, exactly
 like [[feedback-editing-p7-owned-data-files-reowns-them]]'s sibling
-gotcha about state not surviving a restart). Fix: `v7-zenki.devmod-enable
+gotcha about state not surviving a restart). Fix: `v7-zenki.devmod-enable-rw
 <zenka>` again after ANY unexpected restart, before assuming a genuine code
 problem. Cheap to check first (`v7-zenki.list zenki` for a new instance/PID)
 before debugging "command does not exist" as a naming/permissions issue.
@@ -88,8 +88,8 @@ across the shell-user/zenka-user boundary, (5) for any *-hash-based
 duplicate/similarity work specifically, treat exact hash as ground truth and
 perceptual hash as a candidate filter only.
 
-#,,,,,,..,,..,,..,,,.,,,,,,.,,,,.,.,.,.,.,..,,..,,...,...,.,.,..,,..,,..,,,,,,
-#R2U76ANTWH5MZHVLD3AXC3GAKX42MB2VPU4J2OVZ7CPTE4HAXSUGX2R4OTVNNF2DW33KVJEDKO5X4
-#\\\|5HDXKXTOZK53INNS42GQSXBH5HK6WA3O5N7URS34VQUWGNKIRMQ \ / AMOS7 \ YOURUM ::
-#\[7]ISIHAOVSET3JP5NP2LGQIYRMBYNG4EVCD6XFBPSTT5F3Y3JY6EBQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,,,.,,,..,,,,.,,.,,.,,,.,.,,,.,..,,...,...,,..,.,.,,.,,.,,,.,.,
+#OJTGUOV77TLINRXLTPWPZMN33JV3IVP3M5SC6AVGFW63DYA64JL6TDVB2FXPQG3OD6Y5353SR5CVE
+#\\\|SRGILAJGKJRB4PSKPZGFUEOG2HLELEZGN3M7S3XWRONXV2YOHSC \ / AMOS7 \ YOURUM ::
+#\[7]DTXOUXNGZ3ORSK36Z3BQ4ZNAHHRLMYZGYRP244GY7PYVNKLNNGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

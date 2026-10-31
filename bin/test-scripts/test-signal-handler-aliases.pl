@@ -8,14 +8,14 @@
 ## src/base.init_zenka.install_signal_handlers [ like the other harnesses : ##
 ## AMOS7::Protocol::P7Syntax  p7_syntax__translate + an eval'd wrapper ]    ##
 ## against stubbed base.sort / base.logs / base.perlmod.load /              ##
-## event.add_signal. %SIG carries aliases [ CLD = CHLD, IOT = ABRT, POLL =  ##
-## IO ] and Event.pm only calls sigaction when its per-signal watcher count ##
-## goes 0 -> 1, so a second watcher on the same number silently defeats any ##
-## later add_signal for that signal [ v7-zenki lost SIGCHLD after           ##
-## v7-zenki.compile_bin_p7c restored $SIG{CHLD} : e0a451c68, 2026-10-07 ].  ##
-## checks : one registration per sig_num, CHLD yes / CLD no, no IOT beside  ##
-## ABRT and no POLL beside IO, and a stale CLD watcher from an earlier init ##
-## is cancelled + deleted on reload.                                        ##
+## event.add_signal. %SIG carries aliases                                   ##
+## [ CLD = CHLD, IOT = ABRT, POLL = IO ] and Event.pm only calls sigaction  ##
+## when its per-signal watcher count goes 0 -> 1, so a second watcher on    ##
+## the same number silently defeats any later add_signal for that signal [  ##
+## v7-zenki lost SIGCHLD after v7-zenki.compile_bin_p7c restored $SIG{CHLD} ##
+## : e0a451c68, 2026-10-07 ].  checks : one registration per sig_num, CHLD  ##
+## yes / CLD no, no IOT beside ABRT and no POLL beside IO, and a stale CLD  ##
+## watcher from an earlier init is cancelled + deleted on reload.           ##
 ##                                                                          ##
 ## 2 : live mechanism -- real Event.pm in this process, /proc/$$/status     ##
 ## SigCgt bit 16 [ signal 17 = CHLD ] as ground truth : one watcher         ##
@@ -24,8 +24,8 @@
 ## second watcher on 'CLD' present the same sequence stays lost. ends by    ##
 ## forking a child and asserting the CHLD callback fires [ Event::sweep ].  ##
 ##                                                                          ##
-## P7_TEST_SIG_SRC env override : compile another copy of the module [ eg a ##
-## pre-fix one from `git show` ] instead of the current src file.           ##
+## P7_TEST_SIG_SRC env override : compile another copy of the module        ##
+## [ eg a pre-fix one from `git show` ] instead of the current src file.    ##
 
 use v5.24;
 use strict;
@@ -78,8 +78,9 @@ my @cancelled_watchers;
 
 $code{'base.sort'}
     = sub { my $hash_ref = shift; return sort keys %$hash_ref };
-$code{'base.logs'}         = sub { return TRUE };
-$code{'base.perlmod.load'} = sub {
+$code{'base.logs'}                 = sub { return TRUE };
+$code{'base.load_runtime_modules'} = sub { return TRUE };
+$code{'base.perlmod.load'}         = sub {
     my $module = shift;
     eval "require $module";    ## Config : %Config::Config ##
     die "perlmod.load $module : $EVAL_ERROR" if $EVAL_ERROR;
@@ -262,8 +263,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,.,,,.,,...,.,.,.,,,,.,,,.,,,,.,..,,.,.,..,,...,...,...,,,.,...,,.,,,,,,
-#KTGFIVCNE5XTSMQ5V4ZRNLW4S77JVVUSHHJ67RYRCFBY6GCUZOJDQLFL6C6ZWJK5U6PTRQXQAZCES
-#\\\|6ZLWDJ33SHZRSORU2LLD67PPU3M6367HUG6C7Q74VR3HMD64VW3 \ / AMOS7 \ YOURUM ::
-#\[7]T32OAHFQC7LU7AGBV22VW5WCMM74YW7PTJVJ44JRNONB2C45Y6DI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,..,,..,,...,,,.,...,,..,.,.,..,,...,..,,..,,,,,,.,.,..,,...,
+#2YKEDIQNK7MBR5CLOSKZURPAY2ODNA53VPIU4KPBOLAK73AHNBNIPLVPI2SAT46KLI4MTTDUMNOVW
+#\\\|47QEMFTYCSJECGUVRMLECTDWXZU4ZHG6NLHXZQIN7SBYBL6Z2G2 \ / AMOS7 \ YOURUM ::
+#\[7]U54VOV3CIJEQHM4VJFYIMYK5L2HDRCSSJDBJA3JT7SVHH2NO76BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

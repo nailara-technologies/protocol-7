@@ -3,26 +3,19 @@
 .:[ list of devmod module commands ]:.
 
 
-##  read-only access to zenka mem [ no keys ] and functions  ##
+## sole devmod classification : every unlisted or unknown command is unsafe ##
+## [ safe loading never compiles unlisted commands ; unsafe unloading uses  ##
+## the complement of this list ]                                            ##
 ##
-base.devmod.cmd_list.safe = get dump echo true since \
-                            b32-elf elf-b32 elf-num \
-                            dump-env true-int core-subs \
-                            list-subs deparse-code \
-                            current-umask unload-devmod \
-                            extract-line-map permission-setup \
-                            inline-subroutines keep-devmod-loaded \
-                            decode-harmonic-ref
+base.devmod.cmd_list.safe = b32-elf core-subs current-umask \
+                            decode-harmonic-ref deparse-code dump dump-env \
+                            dump-keys elf-b32 elf-num extract-line-map get \
+                            inline-subroutines list-subs mem-allocated \
+                            permission-setup receive-multiline since true \
+                            true-int unload-devmod unload-unsafe
 
-##  commands that modify data or eat memory  ##
-##
-base.devmod.cmd_list.development_only = del set add-env del-env eat-mem \
-                                        exec-sub free-mem eval-code \
-                                        switch-user mem-allocated \
-                                        change-log-verbosity
-
-#,,,.,,.,,,.,,,.,,,..,,,,,..,,,.,,...,,.,,,..,..,,...,...,.,,,..,,,,.,,,.,..,,
-#RVYKZTC7JJKXVLZOQ6FTTL7MSXOPHWPPVPABTGQ4UB5UDXQGL75KUEVIC4RZE75X34YV3PD6G3V5W
-#\\\|TEHMWN5CFJEHJEFTV5BHEA6JAJ2NDN7QW6V3O3EKQB4FA6MNCF4 \ / AMOS7 \ YOURUM ::
-#\[7]5DFOLG4KEGSTN6SO3FDPJE5X44ODVHA2EYKE5KW2QP7ZDYT4I6BI 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,.,.,.,,..,,..,.,,,,.,,,,,,.,.,..,,...,...,.,,,..,,...,.,,,,.,,
+#YETQC2IPDXIARZSUSCHIAJ2DK76TSFATPXFRJPC6TFODCTQIFIDVU7B3NHT5SEQ3SQNU6HRONZGEC
+#\\\|XOGB4XBRN6BXOOBF5GPNTHBE4SVOAP42EUWE3RIN6FJCB6QLQWZ \ / AMOS7 \ YOURUM ::
+#\[7]NJV3UFUFJINAGTQJZSX6MZNKK4OGJBFPQBO2KN7RXMUCKIJSREBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

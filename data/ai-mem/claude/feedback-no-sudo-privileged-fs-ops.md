@@ -37,15 +37,15 @@ becoming that user.
 2026-09-29 ] : load devmod into that zenka, then eval inside its process --
 its real uid and permissions, no sudo :
 
-    p7c v7-zenki.devmod-enable models
+    p7c v7-zenki.devmod-enable-rw models
     p7c models.eval-code 'return join " ", "uid=$<",
         ( -r "<path>" ? "readable" : "NOT readable [$!]" );'
 
 [ answered uid=777, models dir visible, invokeai db `Permission denied` ].
 give dispatched agents this recipe instead of any privilege switch.
 
-#,,,.,,,,,.,.,,.,,.,,,,..,,,,,,,.,...,.,.,,,,,..,,...,...,,,,,..,,,..,...,,..,
-#M2K7TOTST7OJ7YMWH7RP3TKTPHTAYNTTLQVZH4JBM4DKFKO24CZSYD5XMWBPGAOBDPQ66KARG6NEC
-#\\\|XPG2564VPEDH2W3DGYS5PWLPC4367XCP3C7WQGX2UEDFLEC326L \ / AMOS7 \ YOURUM ::
-#\[7]6RVIRUDKKQCB3K6EUIBQACOXAJCAXPLNQV26GE26BP4MJJUB2QCI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,..,,...,,..,..,,,,,,.,,,.,.,,,,,..,,...,...,,..,.,,,.,,,,,.,,..,
+#OQ6QZNAJSSUBGTECFJ3UFT7GNJJ6EA3QHNP22ASTMBVDEZIEY274PH4KSHF6JLXWUXW25ZDZDUYEU
+#\\\|BRLCZHPBP3WPIBGMH6HEPHOSWQIEAEA2QFPOW24DAHJ3GF5JXP6 \ / AMOS7 \ YOURUM ::
+#\[7]6WM72BLFIHPPLPN2ZQ5RYEHEHTGPVBTJUD2NY5HRKVCY2KK3SIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

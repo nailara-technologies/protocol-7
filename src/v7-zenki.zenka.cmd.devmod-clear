@@ -61,19 +61,15 @@ if ( defined $target_params and $target_params =~ m{\d+|\w+} ) {
         } else {
             return {
                 'mode' => qw| false |,
-                'data' => sprintf(
-                    "zenka name '%s' " . "not valid [syntax]",
-                    $param_str
-                )
+                'data' => sprintf( "zenka name '%s' not valid [syntax]",
+                    $param_str )
                 }
                 if $param_str !~ $user_re and $param_str !~ $user_substr_re;
             my @results = <[v7-zenki.zenka-instances.get-ids]>->($param_str);
             return {
                 'mode' => qw| false |,
-                'data' => sprintf(
-                    "no instance matches " . "for zenka '%s'",
-                    $param_str
-                )
+                'data' => sprintf( "no instance matches for zenka '%s'",
+                    $param_str )
                 }
                 if not @results;
 
@@ -111,7 +107,7 @@ foreach my $instance_id (@instance_ids) {
     my $instance      = <v7-zenki.zenka.instance>->{$instance_id};
     my $name_of_zenka = $instance->{'zenka_name'};
 
-    if ( delete $instance->{'devmod_enabled'} ) {
+    if ( delete $instance->{'devmod_state'} ) {
         $clear_count++;
         <[base.logs]>->(
             0,            "< devmod-clear > forgetting instance %d [ '%s' ]",
@@ -138,8 +134,8 @@ return {
     )
 };
 
-#,,..,,..,.,,,...,.,,,,,,,,,,,,,.,...,,..,.,.,..,,...,...,..,,,,.,.,.,,..,,,,,
-#7RUPA4JCDIT6N7NDY2MKT56LTK5FDYDO7R2FHH7VQJQCWESMRTWHLTNADQF622M2AU4CY5VGQJGTO
-#\\\|53SCAJODLRN4X3G72GCE3GD2WDHNOI5XYXVMGW5Y7MLFGLDSCTT \ / AMOS7 \ YOURUM ::
-#\[7]QBFQID3CW5LQ4XIER6D4VHTOAXZ3X7O67XKQPOKR5BXCNV2DEIDA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,,,.,,..,,,,,,,,,,,,,,,.,..,,..,,...,...,.,.,...,,..,,.,,,,.,
+#GZ2NE2FY25QO4KR47FGZXJRDNUIBLXGQIIYHKQFGY6GPBMQEKDMP5SPARYZIZG5HOMJ22B2DSBZQE
+#\\\|FOQJY7R6ZVA3Y5BM435UEWCZGIWU3VPDPXTDHVEQCXVWWJG7WW6 \ / AMOS7 \ YOURUM ::
+#\[7]Y3DLYN24OH3YDOW4KIA2K5A5K2SPQNKYKTL4V5QR6QHVIBW52AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

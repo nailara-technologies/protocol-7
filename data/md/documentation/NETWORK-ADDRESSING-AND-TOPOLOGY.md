@@ -136,13 +136,21 @@ zenka in `cfg/zenki/cube/access.zenki`.
 Development and diagnostic commands live in the `devmod` namespace, loadable
 on demand without any filesystem access or reinit phase:
 
-- **Enable**: `v7-zenki.devmod-enable <zenka>` — looks up the zenka PID and sends
-  SIGNUM53; the signal handler loads the devmod module and its commands
-- **Disable**: `devmod.cmd.unload-devmod` — unloads the module again cleanly
-- **Access gate**: who can call `v7-zenki.devmod-enable` is controlled by the
-  standard cube access config, not by any devmod-specific mechanism
-- **Unix permissions**: manually sending SIGNUM53 requires the same Unix
-  permissions as the target process — no privilege escalation vector
+- **Enable safe**: `v7-zenki.devmod-enable <zenka>` — queues SIGNUM51 and loads
+  only read-only, non-blocking diagnostic commands. Unsafe code is never loaded.
+- **Enable full**: `v7-zenki.devmod-enable-rw <zenka>` — queues SIGNUM53 and
+  loads all commands, including `set`, `exec-sub`, and `eval-code`. This is the
+  old `devmod-enable` behavior.
+- **Reduce to safe**: `v7-zenki.devmod-unload-unsafe <zenka>` — queues SIGNUM52
+  and removes every command not on the safe allow-list.
+- **Disable**: `v7-zenki.devmod-disable <zenka>` — queues SIGNUM50 and unloads
+  the module; `devmod.cmd.unload-devmod` remains the in-process equivalent.
+- **Access gate**: who can call these commands is controlled by the standard
+  cube access config, not by any devmod-specific mechanism. `devmod:*` expands
+  only to commands actually loaded, so it does not expose unsafe commands in
+  safe mode.
+- **Unix permissions**: manually sending SIGNUM50 through SIGNUM53 requires the
+  same Unix permissions as the target process — no privilege escalation vector.
 
 Commands in the devmod namespace (e.g., `devmod.cmd.parent-route`) are
 available only while the module is loaded, and only to callers permitted by
@@ -285,8 +293,8 @@ mpv[top-right].pause  # pauses only top-right
 | Session ID      | single session  | ephemeral    | precise point-to-point targeting  |
 | Composition     | any of above    | —            | multi-hop routes, cross-segment   |
 
-#,,,.,.,.,,..,,,,,,..,..,,.,.,,,,,.,.,,..,,,.,..,,...,..,,,..,,,,,,.,,..,,.,,,
-#GRSGDDCJHIOOZ2LYVPBJG6W2NAE363Q4GT2CLIJHFLNHRSOPNKDGMQ5I7CBSNXZOB2RLQZE36EAQO
-#\\\|OO7CGOTVSBLNNJXXE275ULQFGBS2BQGYW7BFLIHVWOUJJAWWIVQ \ / AMOS7 \ YOURUM ::
-#\[7]SR3D652HZ3F5AU7JF7CXSSJWZVJYRTMAEDPYXTCATVGDC62BWGCA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,...,.,.,,,,,,..,,.,,.,,,...,,,.,..,,...,...,,.,,.,,,..,,...,,..,
+#5R7STK3PCOIKWHXYQOBINT6LOOCWGNKSGMYBLQTJT7MI46QSAQYVBLYHODUZCOKV6EACR4WUUR2UI
+#\\\|4E5FAQSJS2SBOAMUCWR6EJN2TPLVWNSHYVOWDUADWYWDKP4WPFZ \ / AMOS7 \ YOURUM ::
+#\[7]CQKKTD7F6HKOMGMVXHB4TVTIJZ5VCKDOLUU4LYPSWD7T5AUPSSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

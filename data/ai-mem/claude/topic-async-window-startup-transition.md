@@ -148,7 +148,7 @@ tonight since the screen-change subscriber list was always empty/broken):**
    durably safe) to fix position; `p7c v7-zenki.restart ticker` for a full reset
    (non-deterministic on landing, may need the move-window fix afterward
    too); `p7c X-11.get-windows` / `p7c X-11.get_geometry <id>` to check
-   state; `p7c v7-zenki.devmod-enable <zenka>` + `p7c <zenka>.get <key>` / `.set`
+   state; `p7c v7-zenki.devmod-enable-rw <zenka>` + `p7c <zenka>.get <key>` / `.set`
    to inspect/patch live data state without a restart.
 
 **Files touched this session (uncommitted, verify against `git status`):**
@@ -609,8 +609,8 @@ commented out) and cfg/zenki/v7-zenki/start-set-up.base
 ticker (graphics-matrix isn't referenced anywhere in ticker's modules), just
 a leftover debug toggle from a prior session, taeki wants it disabled for now.
 
-#,,..,,,.,,..,..,,,..,.,.,,,,,,.,,...,.,.,...,..,,...,...,.,,,.,,,,..,...,...,
-#X7HE4ITW3EY5FRPYMFGB3U3MG7UVKU3RN43GBP2U6SRTH75TRHTHQBL7V73TKUPF5VXYWDDPXNNZ4
-#\\\|7L5BZHN3A4NNWGX3ZNTGIORT25VIEDORRMHPPCAZBF56YS6XQN4 \ / AMOS7 \ YOURUM ::
-#\[7]LFH6PRP6ANPV7VFQ2HKUXKYDCJJ4EHTSCTDPIC7QVJ6SGO4IOYCQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,,.,,,.,,...,,,.,...,,,,,,,,,,.,,..,,...,...,,,,,,,.,,..,,.,,..,,
+#X2BMND5SJRJMPHSLYJLOXJJCSR2IXEVEEA4ZFEKXL27OJOZ7CQIUBQP25EH6E3MNY4EWZYELYLKBS
+#\\\|YLQXCTPIKFIV2HYUTX7ZAXX26DJGRVYBECLM4BAN2A2GDMBSNCG \ / AMOS7 \ YOURUM ::
+#\[7]SP3D57MLN35MPRZPHIKT4YXFQVCGBBCAXJ46WVMMZFB4RIACOWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

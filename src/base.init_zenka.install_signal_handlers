@@ -2,7 +2,14 @@
 
 # name  = base.init_zenka.install_signal_handlers
 
-my @registered_signals = qw| int term hup NUM37 NUM55 NUM41 chld PIPE NUM53 |;
+my @registered_signals
+    = qw| int term hup NUM37 NUM55 NUM41 chld PIPE NUM50 NUM51 NUM52 NUM53 |;
+
+<[base.load_runtime_modules]>->(
+    qw| base.sig_NUM50 base.sig_NUM51 base.sig_NUM52 |,
+    qw| base.devmod.safe_commands base.devmod.unsafe_commands |,
+    qw| base.devmod.unload_unsafe base.devmod.process_signal |
+);
 
 ## [ setting logging signal handler for all others ]
 ##
@@ -79,8 +86,8 @@ foreach
     );
 }
 
-#,,.,,..,,,.,,.,,,.,.,,.,,...,.,,,..,,...,,.,,..,,...,..,,..,,...,...,..,,,,,,
-#F2M4DGCZ2226272SFN3T7P22KYYZKLTGMK6H7F4RO74OWYUWNI55ZGOMTAOTZB5TLTAPLOOK77QS6
-#\\\|OFMPDAORHDRH4L6EXYDOESDGGTVHTCL47GCZCMDDF4FTKUUINP2 \ / AMOS7 \ YOURUM ::
-#\[7]OCTCHJGWUZPLZ4XBMR6RU6L2BVOCBR2DKYW5WO3GA2CBBI7W2EDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,...,.,.,,..,,,,,,,,,,,,,,.,,..,,...,...,...,..,,,..,,,.,,,,,
+#W55FWR57S77QPHF4ENV77U3KEJXQZVOHU2BFTLUXKPSKKKFW5UHAU6ZM76QCCL4XPUVZ6PFT5BERY
+#\\\|U4LSK6RYH4JYEF5WJOD5MUZ62BE7C5HW52IYF7J3D46YLWTVMLE \ / AMOS7 \ YOURUM ::
+#\[7]YO2GR74X5NUPEP2YXX7LVTNE5Q4JBAVE43FIDOGBAJP5GSNPS4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

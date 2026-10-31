@@ -1,5 +1,15 @@
 # v7-zenki-owned devmod enablement state, explicitly clearable
 
+## 2026-10-31 state-model update
+
+the boolean `devmod_enabled` described below is replaced by per-instance
+`devmod_state = off | safe | full`. `devmod-enable` now selects safe mode ;
+`devmod-enable-rw` selects the old full behavior. `devmod-disable` selects off
+and `devmod-unload-unsafe` selects safe. restart restoration is supplied as
+`PROTOCOL_7_DEVMOD_STATE` before exec, not by the old post-verification
+SIGNUM53. runtime signals are serialized per instance until devmod-ack.
+`devmod-clear` still only forgets restart state.
+
 implemented 2026-09-20 [ same day, see "decided / implemented"
 below ]; original design conversation captured in git history.
 follow-up to [[devcmd-namespace-wildcard-permissions]]. that doc scopes
@@ -213,8 +223,8 @@ escalate to root."
   namespace-wildcard-permissions.md`, the permission-mask side of this
   same devmod-hardening effort, implemented 2026-09-20.
 
-#,,.,,,..,..,,...,,,,,...,..,,,,,,.,.,,.,,,,.,..,,...,...,.,.,,,.,.,.,,,.,...,
-#R26OPD52FVZNVY65UYFNGKUSAR3FYWCSYED3UGJL5H6QOA57AO37ABAEB4B535UFR75QRKRHYNONW
-#\\\|UKQPNPYPADQSE5MUY2EBHCCEAUE6RSWRWERXFVZEJKTFFJWEGDA \ / AMOS7 \ YOURUM ::
-#\[7]3OH2L2257UV5JQYZDLV4IMNGV4RVUPJHGXE6GO7PUUYJSAPMRCAI 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,.,.,.,,,,,.,,,...,...,..,,,,.,..,,...,..,,,..,...,,,.,,..,,..,
+#UCKJ77NWBRDBV2PJLSMV4QWL32MZIKRJRNAM7VCDBHQIBF44SWW7R7URZPBYJ7JQ5GTSTAGBEZJV2
+#\\\|EGXWG42WGR3RZHODKMLSNJBJ5RBJNKRWXCM32NXUG5C7HGA4SNS \ / AMOS7 \ YOURUM ::
+#\[7]5XNMG57QKTGQLIRAOJ5CPJLEASIBYH4CVNHN4N5BZ6JD4WW27EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

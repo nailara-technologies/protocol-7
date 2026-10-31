@@ -1,25 +1,12 @@
 ## [:< ##
 
 # name  = base.sig_NUM53
-# descr = load devmod module in running zenka
+# descr = request full devmod loading from the event loop
 
-if ( <[base.code.exists]>->(qw| devmod.dump |) ) {
-    <[base.log]>->(
-        1, ' <<< SIGNUM53 >>> \'devmod\' routines already present'
-    );
-} else {
-    <[base.log]>->( 0, ':' );
-    <[base.log]>->( 0, " <<< SIGNUM53 >>> loading 'devmod' source code ..," );
-    <[base.log]>->( 0, ':' );
+<base.devmod.requested_state> = qw| full |;
 
-    <[base.load_runtime_modules]>->('devmod');
-    <[base.init_modules]>->('devmod');
-
-    <[base.parser.access_conf]>;    ## recompile masks [ devcmd fold-in ] ##
-}
-
-#,,..,,,,,..,,,..,,,.,,,.,...,,,.,.,.,..,,.,,,..,,...,...,,..,.,.,.,,,,,.,...,
-#YCF2LV4W7GWQPIQGLQWSVXX2GRJ27T3QALV6CLVRH665L73KLKC3AE4O7T73377YIJ7D5BQ5EKWLI
-#\\\|NQKFJ3IJ33O3NABM73U3Y3VD5TE2WNI522VJVXYLSD5GQBON6KT \ / AMOS7 \ YOURUM ::
-#\[7]655KUAGY3DWNIOUWFWNIJ5R25E6BMGF6CRIH7E3KQIZMQDXLZ4CQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,,,,.,,,..,.,,,,,,,..,,..,,,,.,..,,...,...,...,...,...,,.,,,.,,
+#XCKCWIJPQ62PXE3PJM2HDWSTLMHNP2RZFMAEVB5MNOT75TC4PPFYRD6KCZ2IO2X6GXIBPZP73XCOA
+#\\\|YX5S7UEBCMP6I2UKIHDSQ3ESYRRWQ7347GGZFG2EYIWW7PWKGLV \ / AMOS7 \ YOURUM ::
+#\[7]B3ZUCY7SWAGRSVYDNQBRBZG3JQNM5V4G27DVM2NK4N2GCCD4WEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,7 +42,7 @@ the regular session budget ].
   client hangs ]. remotes : pull + `reload all` or restart
 - the installed /usr/local/bin/p7c is still the old binary until
   v7-zenki reinstalls it [ start ] ; tests used a scratch build
-- devmod for tests : `p7c v7-zenki.devmod-enable coding` [ SIGNUM53, no
+- devmod for tests : `p7c v7-zenki.devmod-enable coding` [ safe SIGNUM51, no
   restart ] -> `coding.receive-multiline` echoes ; `devmod-clear` after
 
 ## design : files + file-view [ afb1ca66f, answers ae50788b9 ]
@@ -250,8 +250,8 @@ the regular session budget ].
 - any 'deep recursion' warning ends a zenka [ exit 110 ] -- a synchronous
   handoff chain over a queue must be a loop
 
-#,,,.,,..,..,,,..,,,,,..,,,..,...,..,,.,,,,.,,..,,...,...,.,,,.,,,.,.,,,.,.,.,
-#LKXCCQQOLSAUBZZJDYGXOSDFNWBQ4ZXQ3ESUYOFRLMB6R6H6VW2Q5X4M3ES6ESKUDFV7P6E524PD4
-#\\\|XFCRNIZ3RP3HCC4OX6IE4HNQV6SXZPSREAUKXKDMPJ5FR2AKVA2 \ / AMOS7 \ YOURUM ::
-#\[7]A5I77PYH6A6AKUCEZ6OB7NGLGAH4LIGDRNHWNBQIZZUWXZ7WH6DA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,.,,.,.,,,,,..,,.,,,..,,,.,,..,,...,...,..,,,,,,,..,.,,,,,.,
+#NMQD4RVFJMWH4OI5DA2NK7LWL7BO5ZMZJMLRITNUBGFWX4FXE5TVWLP2R2UKNGXASPRMJIE4J4VJK
+#\\\|FWJEJVCKEOXZKR4O2MWCIZCYHLJDI4ZPBFWQNWBZ325P74WKKCJ \ / AMOS7 \ YOURUM ::
+#\[7]OUUDB3LEFSNCGISFKPBRBEUIBO3YMVZNQYWVJKTUQM2XWWLY7YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

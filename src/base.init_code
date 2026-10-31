@@ -260,6 +260,17 @@ if (    defined <system.zenka.type>
 ##
 <[base.init_zenka.install_signal_handlers]>;
 
+<base.timer.devmod> //= <[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => 0.05,
+        'repeat'   => TRUE,
+        'handler'  => qw| base.devmod.process_signal |
+    }
+);
+<base.devmod.requested_state> = $ENV{'PROTOCOL_7_DEVMOD_STATE'}
+    if defined $ENV{'PROTOCOL_7_DEVMOD_STATE'}
+    and $ENV{'PROTOCOL_7_DEVMOD_STATE'} =~ m{^(?:off|safe|full)$};
+
 ## initializing session list ###
 ##
 if ( ref( $data{'session'} ) ne qw| HASH | ) { $data{'session'} = {} }
@@ -335,8 +346,8 @@ if ( scalar(@INDEXCUBE) == 0 ) {
 
 return FALSE;
 
-#,,..,.,.,,..,,..,,.,,...,.,.,..,,...,...,,,,,..,,...,...,.,,,,,.,,,.,,,.,..,,
-#MYQF5PXDURSBTJ2TRLGXYEMPYYP24MYXBDZZBGECMMHA7WHO65F6YS4UJ33BDHRCAQ4NXDKTNCYYC
-#\\\|NXH6CMKNLAFFJ5GAS4XP3FL5HRUP6JMICVOOOLTIBV3LZUYI3BP \ / AMOS7 \ YOURUM ::
-#\[7]6RBLV2ZXC3VNVYYJHH4UBOMIHQBH4DLDFQOX3MVQWPEWQF7U2AAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,..,,,.,,,,.,,,.,,..,,,.,...,,..,..,,...,...,.,.,.,,,.,.,.,,,,,,,
+#VICKBY26JAI5W7F5YMQNKEOEJMPFUVSJA7WLT5NK2HNBDTYISO4C6G2Q2DBMFD5MTYFYSU6S3Q34Q
+#\\\|ZQAOIGPOKXFJTRPYQ5W2NLFJPI74BP7QXIBBPUSUMRXARF2QAJP \ / AMOS7 \ YOURUM ::
+#\[7]CPEGWGGZLHHVP53INOMAEGUMG5D7GLVZSGIOPM324QMMBAQEBSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,6 +14,13 @@
 
 # devmod zenki sweep — classification + migration plan
 
+## 2026-10-31 behavior note
+
+`devmod-enable` below now means safe, read-only diagnostics. historical
+recipes involving `set`, `exec-sub`, `eval-code`, blocking, or memory tests
+require `devmod-enable-rw` [ full mode ]. `devmod:*` exposes only commands
+actually loaded in the selected mode.
+
 investigation-only pass, 2026-09-20. follow-up to
 [[devcmd-namespace-wildcard-permissions]] and
 [[v7-zenki-devmod-lifecycle-state]]. those landed the mechanism
@@ -393,7 +400,7 @@ with the mechanical batch either way since p7-log's own intent
   `eval-code ## <-- dev only, harness scenarios 2/3 (F2/F8)`.
   transport LOADS devmod by default today, so `eval-code` works
   out of the box right now; migrating it to the devcmd axis makes
-  the harness require `v7-zenki.devmod-enable` first. that is the
+  the harness require `v7-zenki.devmod-enable-rw` first. that is the
   intended end-state, but it changes how the F2/F8 harness
   scenarios run — owner confirms before this one moves.
 - **weather's wildcard toggle** — see category 3b: exact names,
@@ -497,8 +504,8 @@ the zenka's own `zenka.v7`, matching how coding landed.
   line via its three-hit comment block ]. every distinct file
   appears in exactly one category above.
 
-#,,..,,.,,,,,,,.,,,,.,,..,,,,,,..,.,.,,,,,,..,..,,...,..,,..,,,,,,.,.,,,.,,.,,
-#32ABL3QHHX3CVJGBXJQJPS6RZCACXFXDJJB4KTXMHDGWCDFR6SHTL2K2BMH6DSQ4IOMRFA5KFRGVQ
-#\\\|X6DED4LQHYVLCND527E4JFIIKMMQ7I3V7QVH7QNZMG3IM33Q4GG \ / AMOS7 \ YOURUM ::
-#\[7]A5DI7YROD2DWGUYPSOXFDOOVQ7QPCTKMPVZV74MIPDBMUYHFYODQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,..,.,.,,,,,...,,..,,.,,.,,,...,..,,...,...,..,,.,,,,,,,,,,,...,
+#ULFGL5PED2ICOLWAMS5DVBLLCR4PERO2S454FW2G4ALDJQYKVYHTEPQPJ4IUE6V5BIWQAD64R3IEC
+#\\\|C623ZE2C7AW6OMUXGNR3TNJCKWERUS6Z5MX4FXPNTFP46VMEAI5 \ / AMOS7 \ YOURUM ::
+#\[7]SMKGO4ZYVVWPPAUOPOAOPCT5L7XSRPNC6NQTUDTQMJGSPYWFKWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

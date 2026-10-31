@@ -3,18 +3,11 @@
 # name  = devmod.cmd.unload-unsafe
 # descr = removing dev-only commands from memory
 
-if (not <[base.is_defined_recursive]>->(
-        qw| base.devmod.cmd_list.development_only |)
-) {
-    <[base.load_config]>->(qw| cfg/devmod-commands |);
-}
-
-my @remove_cmd = split m| +|, <base.devmod.cmd_list.development_only> // '';
+my @remove_cmd   = <[base.devmod.unsafe_commands]>;
+my $unload_count = <[base.devmod.unload_unsafe]>;
 
 return { 'mode' => qw| false |, 'data' => 'cannot load command list' }
     if @remove_cmd == 0;
-
-my $unload_count = <[base.disable_command]>->(@remove_cmd);
 
 return {
     'mode' => qw| true |,
@@ -27,8 +20,8 @@ return {
     'data' => sprintf( '%d commands removed', $unload_count )
     }
 
-#,,..,.,,,.,,,..,,,,,,,,,,,,,,.,.,...,.,.,,,.,..,,...,..,,...,..,,,,,,.,.,,,.,
-#CEZJWUI67DAPVANBYVNBRONXIEXLOZG6OXXLU25K5AJKB4MLK3HVEHUST7PFBCIVNAWKPRIVTGPRY
-#\\\|EZH4YMKB47GX76DEAOERRUDAKJUARWKM7IFSMN7LM4BY7CCJSDN \ / AMOS7 \ YOURUM ::
-#\[7]AJWSEM5FJGUQBGYDXBGSEIG3DYMZ4MI67T233EB4RECCYPWXCYDI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,.,,,,.,,.,,,...,,.,,,,.,,..,..,,...,...,.,.,,,.,..,,,.,,,,.,
+#7IXSVTSPZJEWXM3UBJDTFJW5Z7HGRPAN3OZ3Y5GTZU2YHEKCANEFMLYFP3KV4EHV2I2HSZAGGW7U4
+#\\\|WJFQUSWJATMJJLSQDBKVFQRRUFBP3Z7URZE4AQRD44BMR3ZGXA5 \ / AMOS7 \ YOURUM ::
+#\[7]EJMQMC4J24Q35A4CX6KLM5VMWKCMN5C2K4U6LY7N3WYC33YPFUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

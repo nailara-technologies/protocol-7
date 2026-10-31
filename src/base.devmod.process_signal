@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = base.devmod.process_signal
+# descr = apply a devmod state from a signal or start-up value
+
+my $requested_state = delete <base.devmod.requested_state>;
+return TRUE if not defined $requested_state;
+return TRUE if $requested_state !~ m{^(?:off|safe|full)$};
+
+my $success = TRUE;
+if ( $requested_state eq qw| off | ) {
+    <base.devmod.keep_on_reload> = FALSE;
+    <[base.purge_code]>->('devmod');
+    delete <base.p7_mod.loaded.devmod>;
+    <[base.parser.access_conf]>;
+} elsif ( $requested_state eq qw| safe | ) {
+    my @safe_commands = <[base.devmod.safe_commands]>;
+    my @modules       = qw| devmod.dump devmod.pre_init devmod.init_code |;
+    push @modules, map { sprintf qw| devmod.cmd.%s |, $ARG } @safe_commands;
+    push @modules, qw| devmod.post_init |;
+
+    $success = <[base.load_runtime_modules]>->(@modules);
+    $success = <[base.init_modules]>->('devmod') if $success;
+    $success = <[base.devmod.unload_unsafe]> >= 0 && $success;
+} else {
+    $success = <[base.load_runtime_modules]>->('devmod');
+    $success = <[base.init_modules]>->('devmod') if $success;
+    <[base.parser.access_conf]> if $success;
+}
+
+<base.devmod.state> = $requested_state if $success;
+
+<[base.logs]>->(
+    $success ? 1 : 0,
+    'devmod transition to %s %s',
+    $requested_state, $success ? qw| complete | : qw| failed |
+);
+
+if ( keys $data{'session'}->%* ) {
+    my $result_state = $success ? $requested_state : qw| error |;
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.v7-zenki.devmod-ack |,
+            'call_args' =>
+                { 'args' => join( ' ', $result_state, $requested_state ) }
+        }
+    );
+}
+
+return $success;
+
+#,,,.,,,.,,,,,,.,,.,.,.,.,...,,,.,,,,,,.,,.,.,..,,...,...,,..,,.,,...,,.,,.,.,
+#4VQS6AT27OBRV5EDMCMUXBMC7G4AIRHYAQSWPJYORBGIDXHFSD6GGQGNHZ3MLBC2IJHIZUQ4PW3FK
+#\\\|JGFFXUU7AGL7OJV4M7CBENIJPFDVM6SW7JCTW6PPO2DQOYHD6HM \ / AMOS7 \ YOURUM ::
+#\[7]EB66L5RGQWR7UXG2Q6F42N5QRGYRLFQGYTUE4P5YDNLREUCCBADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
