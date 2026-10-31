@@ -108,7 +108,11 @@ $window->add($panel);
 my $title = Gtk3::Label->new('protocol-7');
 $title->get_style_context()->add_class('title');
 $title->set_xalign(1);
+my $time = Gtk3::Label->new('');
+$time->get_style_context()->add_class('muted');
+$time->set_xalign(1);
 my $user_label = Gtk3::Label->new('user');
+$user_label->get_style_context()->add_class('muted');
 $user_label->set_xalign(1);
 my $user = Gtk3::Entry->new();
 $user->set_max_length(32);
@@ -126,12 +130,13 @@ $status->set_xalign(0);
 $status->set_line_wrap(TRUE);
 
 $grid->attach( $title,          0, 0, 2, 1 );
-$grid->attach( $user_label,     0, 1, 2, 1 );
-$grid->attach( $user,           0, 2, 2, 1 );
-$grid->attach( $password_label, 0, 3, 2, 1 );
-$grid->attach( $password,       0, 4, 2, 1 );
-$grid->attach( $button,         0, 5, 2, 1 );
-$grid->attach( $status,         0, 6, 2, 1 );
+$grid->attach( $time,           0, 1, 2, 1 );
+$grid->attach( $user_label,     0, 2, 2, 1 );
+$grid->attach( $user,           0, 3, 2, 1 );
+$grid->attach( $password_label, 0, 4, 2, 1 );
+$grid->attach( $password,       0, 5, 2, 1 );
+$grid->attach( $button,         0, 6, 2, 1 );
+$grid->attach( $status,         0, 7, 2, 1 );
 $user->set_hexpand(TRUE);
 $password->set_hexpand(TRUE);
 $button->set_hexpand(TRUE);
@@ -143,12 +148,14 @@ $button->signal_connect( 'clicked' => sub {<[login-screen.authenticate]>} );
 $window->signal_connect( 'delete_event' => sub { Gtk3->main_quit } );
 Glib::Timeout->add( 1000, $code{'login-screen.handler.helper_watch'} );
 
-<login-screen.window>          = $window;
-<login-screen.widget.user>     = $user;
-<login-screen.widget.password> = $password;
-<login-screen.widget.button>   = $button;
-<login-screen.widget.status>   = $status;
-<login-screen.state>           = qw| init |;
+<login-screen.window>            = $window;
+<login-screen.widget.user>       = $user;
+<login-screen.widget.user_label> = $user_label;
+<login-screen.widget.time>       = $time;
+<login-screen.widget.password>   = $password;
+<login-screen.widget.button>     = $button;
+<login-screen.widget.status>     = $status;
+<login-screen.state>             = qw| init |;
 $password->set_text('');
 
 ## a running user session [ greeter restarted ] : stay hidden, never cover ##
@@ -168,8 +175,8 @@ Glib::Timeout->add(
 );
 TRUE;
 
-#,,,.,...,,,,,,.,,,.,,..,,.,.,,,.,.,,,,..,,,,,..,,...,...,,..,.,,,,..,,.,,..,,
-#TLY6BH7L6O55C5GHW363BAWV25ARXV5IQIJXP7AC3NXTUWWQE7FHNK4CBWHO5GWKX2ULVWWXWJPXQ
-#\\\|WIKAET6QBFUKDI2L2ZWY6LMIAWYVWKANNLQDCJHOFEEDHEU4AE2 \ / AMOS7 \ YOURUM ::
-#\[7]TPKHBJNOXXRK4NSE6LMHE5XD4WKO4F2DK3M3OAGVSDZUTAI4AGDY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,,.,,.,.,...,..,,..,,,..,...,..,,...,...,,,,,,.,,,,.,..,,..,,
+#AACUQYHCT5J5VAYQJ5VH7UHJD3EDU2XPS6HLBH7KKXJS7U5K4UHRKJXI7OTVXAT7FWJXZFZIYVKTK
+#\\\|2NPANGYZTF67NZJ24DFEXIP6B4L4VEC4B6PP5KNO2DKI6MAH2DJ \ / AMOS7 \ YOURUM ::
+#\[7]CDB7SF6JS3GBGFFLXIOUTGRWJIHOY5OKTOESORYFNCJ2C44N3QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

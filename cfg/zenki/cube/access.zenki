@@ -43,7 +43,11 @@
                                      cred-mesh.interactive-action \
                                      cred-mesh.interactive-input \
                                      select-strm-mode \
+                                     login-screen.lock \
                                      list # <-- restrict later [param based]
+
+    ## unix users authenticate as unix-<name> ; any generic cube user may   ##
+    ## request this harmless lock, but only an active session can be locked ##
 
 
           access.cmd.usr.v7-zenki  =  heart *.heart session-key \
@@ -180,8 +184,10 @@
           access.cmd.usr.openbox  =  v7-zenki.register_child
 
       access.cmd.usr.login-screen =  X-11.get_display X-11.get_xauth_data \
+                                     X-11.dpms-force-off \
                                      v7-zenki.login-session-start \
                                      v7-zenki.login-session-state \
+                                     v7-zenki.login-session-locked \
                                      v7-zenki.register_child
 
        access.cmd.usr.powershell  =  v7-zenki.register_child v7-zenki.report-temp-path
@@ -548,8 +554,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,,,,.,.,..,,...,,..,,,.,,,.,.,,,.,.,,,.,,.,,.,.,...,...,.,.,.,,,,,.,...,,,.,
-#7MHZKTMIG5HPLRUTR2C3WFEMK2MNFHWJAEBJWQTBXJUEWYC4G5FC6TLPAP3YTW4YKBNXBHMVU5DV4
-#\\\|3D3YJM46XTUYT3MYDV2VTFLKYMQY4LRQZIAAFO7MZREOCBQ3TAN \ / AMOS7 \ YOURUM ::
-#\[7]5FGERD7PM2S5POZOUPAA76AXPPRZLR7FFTCN3LESH2JUFXXHS6BA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,,,.,,.,,...,,.,,..,,,..,,,.,.,.,...,...,...,...,,,,,,,,,,,,,
+#E7XFRKLHZPDBCEVTP5DV7LQ5QR2LZJ65VUST3RBU65G2AGRCT5GQI2567PLPIMNJCBVR7AZ6JEODI
+#\\\|ZRZZF6TWJWR7EP3BF4CSZA77IV5CEVTU2OVUGLJYJEYM42HH4MQ \ / AMOS7 \ YOURUM ::
+#\[7]OPNR2O66UKL5B2NOCV3VFOQ7FDGJ7NCDTCSRT6HQJAFEERRG4SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

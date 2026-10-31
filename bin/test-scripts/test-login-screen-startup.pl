@@ -8,6 +8,7 @@ use FindBin     qw| $RealBin |;
 use Cwd         qw| abs_path |;
 use POSIX       qw| WNOHANG |;
 use Time::HiRes qw| sleep |;
+use Socket;
 
 use constant { TRUE => 5, FALSE => 0 };
 
@@ -124,12 +125,129 @@ ok( !defined $data{'login-screen'}{'auth_helper'}{'pid'},
     'actual helper exit clears the watched pid'
 );
 
+my $lock_command = compile_module('login-screen.cmd.lock');
+my $state_reply  = compile_module('login-screen.handler.session_state_reply');
+my @locked_users;
+$code{'login-screen.show_lock'} = sub {
+    push @locked_users, $ARG[0];
+    $data{'login-screen'}{'state'} = 'locked';
+    return TRUE;
+};
+$code{'login-screen.show_greeter'} = sub {
+    $data{'login-screen'}{'state'} = 'greeter';
+    return TRUE;
+};
+$code{'base.reply.mode_text'} = sub { return ( 'true', $ARG[0]->{'text'} ) };
+
+$data{'login-screen'}{'state'} = 'greeter';
+my $lock_reply = $lock_command->();
+ok( $lock_reply->{'mode'} eq 'false' && !@locked_users,
+    'manual lock is refused without an active session'
+);
+$data{'login-screen'}{'state'}        = 'session';
+$data{'login-screen'}{'session_user'} = 'testuser';
+$lock_reply                           = $lock_command->();
+ok( $lock_reply->{'mode'} eq 'true'
+        && "@locked_users" eq 'testuser'
+        && $data{'login-screen'}{'state'} eq 'locked',
+    'manual lock enters lock state for the session user'
+);
+$data{'login-screen'}{'state'} = 'init';
+$state_reply->( { 'cmd' => 'TRUE', 'text' => 'locked testuser' } );
+ok( $data{'login-screen'}{'state'} eq 'locked'
+        && $locked_users[-1] eq 'testuser',
+    'greeter restart restores a locked session directly'
+);
+$data{'login-screen'}{'state'} = 'init';
+$state_reply->( { 'cmd' => 'TRUE', 'text' => 'active testuser' } );
+ok( $data{'login-screen'}{'state'} eq 'session'
+        && $data{'login-screen'}{'session_user'} eq 'testuser',
+    'active startup reply stays hidden and retains the session user'
+);
+
+{
+
+    package Glib::Timeout;
+    sub add { my ( $class, $milliseconds, $callback ) = @ARG; $callback->() }
+
+    package LoginScreenStartupTest::Widget;
+    sub new           { return bless { 'text' => '' }, shift }
+    sub get_text      { return $ARG[0]->{'text'} }
+    sub set_text      { $ARG[0]->{'text'} = $ARG[1]; return 5 }
+    sub set_sensitive { return 5 }
+    sub set_label     { return 5 }
+
+    package LoginScreenStartupTest::Window;
+    sub new  { return bless { 'hidden' => 0 }, shift }
+    sub hide { $ARG[0]->{'hidden'}++; return 5 }
+}
+require File::Temp;
+my $unlock_tmp = File::Temp::tempdir( CLEANUP => 1 );
+my $mode_path  = File::Spec->catfile( $unlock_tmp, 'mode' );
+socketpair( my $client, my $server, AF_UNIX(), SOCK_STREAM(), PF_UNSPEC() )
+    or die 'cannot create unlock fixture socket';
+binmode( $client, ':raw' );
+binmode( $server, ':raw' );
+my $helper = fork();
+die 'cannot fork unlock fixture' if not defined $helper;
+
+if ( $helper == 0 ) {
+    close($client);
+    sysread( $server, my $header, 4 ) == 4 or POSIX::_exit(120);
+    my $length = unpack( 'N', $header );
+    sysread( $server, my $frame, $length ) == $length or POSIX::_exit(121);
+    my ( undef, undef, $mode ) = unpack( 'n/a* n/a* C', $frame );
+    open( my $mode_fh, '>:raw', $mode_path ) or POSIX::_exit(122);
+    print {$mode_fh} $mode;
+    close($mode_fh);
+    syswrite( $server, "OK\n" );
+    close($server);
+    POSIX::_exit(0);
+}
+close($server);
+$data{'login-screen'}{'state'}             = 'locked';
+$data{'login-screen'}{'session_user'}      = 'testuser';
+$data{'login-screen'}{'auth_in_flight'}    = FALSE;
+$data{'login-screen'}{'lock'}{'grabbed'}   = TRUE;
+$data{'login-screen'}{'auth_helper'}{'fh'} = $client;
+$data{'login-screen'}{'widget'}{'user'} = LoginScreenStartupTest::Widget->new;
+$data{'login-screen'}{'widget'}{'password'}
+    = LoginScreenStartupTest::Widget->new;
+$data{'login-screen'}{'widget'}{'password'}->set_text('secret');
+$data{'login-screen'}{'widget'}{'button'}
+    = LoginScreenStartupTest::Widget->new;
+$data{'login-screen'}{'widget'}{'status'}
+    = LoginScreenStartupTest::Widget->new;
+$data{'login-screen'}{'window'} = LoginScreenStartupTest::Window->new;
+my $released = 0;
+my @unlock_sent;
+$code{'login-screen.release_lock'} = sub { $released++; return TRUE };
+$code{'protocol-7.route-send'}
+    = sub { push @unlock_sent, $ARG[0]; return TRUE };
+my $authenticate = compile_module('login-screen.authenticate');
+$authenticate->();
+close($client);
+waitpid( $helper, 0 );
+open( my $mode_fh, '<:raw', $mode_path ) or die 'missing unlock mode';
+my $unlock_mode = <$mode_fh>;
+close($mode_fh);
+ok( $unlock_mode eq '1', 'unlock uses the helper verify-only request mode' );
+ok( $released == 1
+        && $data{'login-screen'}{'state'} eq 'session'
+        && $data{'login-screen'}{'window'}->{'hidden'} == 1,
+    'successful unlock releases the lock and hides the window'
+);
+ok( @unlock_sent == 1
+        && $unlock_sent[0]->{'command'} eq 'v7-zenki.login-session-locked no',
+    'successful unlock clears v7 state without starting a session'
+);
+
 say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,.,,...,..,,,,.,,,,,,,.,,.,,..,,,.,,,,,,,..,..,,...,...,.,.,,,.,.,.,,,.,,,.,
-#7WTCBKE34JYLMUPH2J45IG7BWSZGGCUJFOYI4EICQQAXCVI55OOJLDKWCZUAWA2VORFOXBCNKLEFK
-#\\\|EKJ2VYBN5K3BJPSYMFJYAVBZYFZGUPJRBX5C7NMHFOBA4GHOYHQ \ / AMOS7 \ YOURUM ::
-#\[7]FFURULQFMF5KFNBPZTRQN7MYB7ACWQB3DIHUG66PGJXE5TLNF4DA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,..,,..,,.,,,.,.,.,,,.,.,,.,,..,,...,...,...,,,.,..,,.,,,.,.,
+#JZGPCJ6RDTQKWRXJPRLXAU36G2NYIWIX2EQOTGWN5PBKSYQHL7RL6FE36ZMBZT6PTSVHXWHCTTGIA
+#\\\|BXVRBOHWOUCTSXOVWMGXAUTHASABNINWNPCLXTSANB4G3P3PK4J \ / AMOS7 \ YOURUM ::
+#\[7]B27RSZFAJPWZIQVQ4A2YROCBCX3CIKXR3ODRMFANIPCQ7JTDQKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

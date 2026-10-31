@@ -111,8 +111,9 @@ sub spawn_helper {
 }
 
 sub request {
-    my ( $fh, $username, $password ) = @ARG;
-    my $frame  = pack( 'n/a* n/a*', $username, $password );
+    my ( $fh, $username, $password, $verify_only ) = @ARG;
+    my $frame
+        = pack( 'n/a* n/a* C', $username, $password, $verify_only // 0 );
     my $wire   = pack( 'N', length($frame) ) . $frame;
     my $offset = 0;
     while ( $offset < length($wire) ) {
@@ -142,6 +143,20 @@ if ( defined $ticket ) {
     my $path = File::Spec->catfile( $grants, $ticket );
     ok( ( ( stat($path) )[2] & 0777 ) == 0600, 'grant file mode is 0600' );
 }
+my @grants_before_verify = glob( File::Spec->catfile( $grants, '*' ) );
+ok( request( $io, 'testuser', $secret, 1 ) eq "OK\n",
+    'verify-only success returns OK without a ticket'
+);
+my @grants_after_verify = glob( File::Spec->catfile( $grants, '*' ) );
+ok( "@grants_after_verify" eq "@grants_before_verify",
+    'verify-only unlock writes no grant file'
+);
+ok( request( $io, 'testuser', 'wrong', 1 ) eq "FAIL\n",
+    'wrong verify-only password gets generic failure'
+);
+ok( request( $io, 'testuser', $secret, 2 ) eq "ERROR\n",
+    'unknown request mode is refused before authentication'
+);
 ok( request( $io, 'testuser', 'wrong' ) eq "FAIL\n",
     'wrong password gets generic failure'
 );
@@ -183,8 +198,9 @@ ok( request( $io, 'ratelimit', 'two' ) eq "FAIL\n",
 ok( request( $io, 'ratelimit', 'three' ) eq "FAIL\n",
     'third failure completes and schedules delay'
 );
-ok( request( $io, 'ratelimit', $secret ) =~ m|^WAIT \d+\n$|,
-    'next request is delayed before crypt' );
+ok( request( $io, 'ratelimit', $secret, 1 ) =~ m|^WAIT \d+\n$|,
+    'verify-only request uses the same rate limit before crypt'
+);
 
 our %data;
 our %code;
@@ -269,8 +285,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,,,,.,,,,,,,..,.,,,,..,,..,.,,,...,,,,,..,,..,,...,...,...,..,,,,.,..,,..,,
-#4R74POW2EO6CP7DVMO6UFMFDHZHUIZHWBPKGUTK7DXDZ73FQ6FOBEJ6T6XGA2KZS24TLPATF45VSW
-#\\\|TQMQMHOEY6VDIQWPMNZVQ7QVOQPUTDDB2CZSA36YH747TKESH4R \ / AMOS7 \ YOURUM ::
-#\[7]CH5MZ2WUX6YHI6CRQM6FYY7R5NVUI7EI4EDTNQFGZTF32SMPKYBI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,.,.,,,,..,.,,,.,,,.,,,..,,.,.,..,,...,...,.,,,...,.,,,,,.,,,.,
+#KNZTADSK2CW7BREDKWZUVVUGZ33VCSHM6MGNT6AXSR62XICHYJZ6YLHMOQDIS4KBWIBJ7SDYFROUG
+#\\\|KIH2GDIJ4N4SX6VHXJZWF3MCPRNAW7KU5RK7FMKU7O3L4Q5YSTP \ / AMOS7 \ YOURUM ::
+#\[7]LSJOYUUYM5K4ZRPTQOZ3YLUJNCXJ5XD7KUYV3XNLRSJHGANCUADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

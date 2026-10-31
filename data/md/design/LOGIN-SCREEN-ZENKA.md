@@ -339,6 +339,26 @@ lock and blank times. X-11 `blank_timeout` [ default 780 ] and dpms follow the
 same policy. after lock and fade, the display turns off through X-11
 `dpms-force-off`.
 
+fade-out before blanking is timed from that policy, never guessed : the
+locked screen and the greeter know the exact blank time and start their
+fade-out at blank time minus the fade duration, so the fade ends exactly as
+the display blanks. input during that fade aborts it and fades back in [ like
+an idle-triggered lock ], and the idle timer restarts. when the policy changes
+the blank time, a pending fade is rescheduled.
+
+optional feature module, wherever backlight control exists [ laptops,
+`/sys/class/backlight/*` ] : the fade-out also lowers the backlight, and the
+fade-in restores the level found at fade start [ the experimental locker did
+this ; owner : really desirable ]. step aware : `max_brightness` often has
+few real steps, so the backlight curve is quantized to those steps
+[ base.curve `quantized` type ] and runs beside the opacity curve, not as an
+interpolated value the hardware would ignore. writing the level needs root or
+a granted path : it goes through a privileged helper or v7-zenki, never the
+greeter directly. hosts without backlight control skip the module. the same
+native control is then exposed to the desktop session : brightness keys
+[ owner had them in the experimental session ] bound through key placement,
+and brightness levels as part of profiles.
+
 ### lock screen elements
 
 decided : password field plus the user name and the time, dimmed [ muted
@@ -377,8 +397,8 @@ restarts a zenka, touches a real host display, installs a setuid file, or
 uses a real user session. real xorg, keyboard focus, actual logout, and
 multi-monitor behavior remain explicit real-host validation steps.
 
-#,,,.,,..,,.,,..,,.,.,.,,,,,.,.,,,.,.,,,,,..,,..,,...,...,,,,,,..,,,,,.,.,,.,,
-#FTHFWSIZB4SIQMHKR4HQRI4JNE7NWYC32OZH77PVMTT57G656N5FEQQGAIJHHTSG4AJCZKBY6IP4G
-#\\\|6CMKADEVWCH22S4JPEFPBTJHTUETEN5TGPZ5EVFB6EIPDDVLA2O \ / AMOS7 \ YOURUM ::
-#\[7]BKSVAOUJXE7LVCLW4J6DWLPS2I6FMFZNS62JP4G4522EHE3M5QDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,..,,...,.,.,,,.,..,,,..,,,.,.,,,..,,...,...,,.,,.,,,,.,,,..,.,.,
+#D2YLIKM7R5JRJR7CMB4MIRCU444TOJIIWI4QIKFHPC7M27UQBWV2DDHNXQBIRGD33FV5LAAF6OXFS
+#\\\|KEB2WKPJTC4ELV6QWQ4JMBS7PIER5XJDT6LOLNQED5D4JTAQ276 \ / AMOS7 \ YOURUM ::
+#\[7]FP7DATSONQMSWS7GHKG2PMGZ7BOBT5DFPUY6FINHPCG3KO6U4AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

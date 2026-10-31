@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = v7-zenki.zenka.cmd.login-session-state
-# descr = greeter startup query : 'active <user>' or 'none'
+# descr = greeter startup query : locked, active or none
 
 ## cube prepends the calling zenka [ source_zenka alias ] ##
 my ( $caller, $extra ) = split( m| +|, $call->{'args'} // '', 2 );
@@ -14,12 +14,14 @@ foreach my $iid (<[v7-zenki.instance_ids]>) {
     next
         if ( $instance->{'status'} // '' ) =~ m{^(?:offline|error|shutdown)$};
     my $user = $instance->{'subname'} // next;
+    return { 'mode' => qw| true |, 'data' => "locked $user" }
+        if ( <v7-zenki.login-session.locked> // '' ) eq $user;
     return { 'mode' => qw| true |, 'data' => "active $user" };
 }
 return { 'mode' => qw| true |, 'data' => qw| none | };
 
-#,,.,,,.,,,.,,,..,.,.,,,,,,..,...,.,.,,.,,,..,..,,...,..,,...,..,,,,,,.,.,...,
-#PI55ECIVESMYH5KKORE66WCVPMKW3PVEUTOGGELYZY3MVIJTSHAG7MHPVTVAZCXR5CGELVXHZE2II
-#\\\|W22NBXMA4WQANLG7CVVSYRKNMJOM3E2T4JJ5QPJWC4WSRITDPHO \ / AMOS7 \ YOURUM ::
-#\[7]DKKOTHYTNK2L6SZPAFGY53JXBBMTOXZRHCMJVP4SAMQX7H4Y5IBA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,,,,,.,,,.,.,,,,,,.,,.,,,...,..,,...,...,,.,,,.,,,.,,.,,,,,,,
+#W4PC6KPVHIH2KFIAF73I4KAALO7FWJ323WPXPTJSWWHRRLS2EPFOSC2HXWJWZYJBKLWLRU3HCAWK2
+#\\\|GFZM2EJV3ESO5QC6KKZC5KCVHNGG6BJK2RSJWGH4LFIQQFG7V7L \ / AMOS7 \ YOURUM ::
+#\[7]YEJ2FVLHNE53PT7CABWQ2QFKSQRQKZIQ3EACHPIVV5JCM6DVBOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

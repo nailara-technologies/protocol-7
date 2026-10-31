@@ -1,30 +1,50 @@
 ## [:< ##
 
 # name = login-screen.authenticate
-# descr = one framed password check, then a granted session
+# descr = one framed password check, then a granted session or an unlock
 
-return FALSE if <login-screen.state> ne qw| greeter |;
-my $username = <login-screen.widget.user>->get_text();
+my $locked = <login-screen.state> eq qw| locked |;
+return FALSE if not $locked and <login-screen.state> ne qw| greeter |;
+return FALSE if <login-screen.auth_in_flight>;
+my $username
+    = $locked
+    ? <login-screen.session_user> // ''
+    : <login-screen.widget.user>->get_text();
 my $password = <login-screen.widget.password>->get_text();
 my $wipe     = sub {
     return if not defined $_[0];
     $_[0] = "\0" x length( $_[0] );
 };
 my $fail = sub {
-    my ($message) = @ARG;
-    <[login-screen.show_greeter]>;
-    <login-screen.widget.status>->set_text($message);
+    my ( $message, $pulse ) = @ARG;
+    <login-screen.auth_in_flight> = FALSE;
+    if ($locked) {
+        return FALSE if <login-screen.state> ne qw| locked |;
+        my $sensitive = <login-screen.lock.grabbed> ? TRUE : FALSE;
+        <login-screen.widget.password>->set_sensitive($sensitive);
+        <login-screen.widget.button>->set_sensitive($sensitive);
+        if ($pulse) {
+            <[login-screen.lock_feedback]>->($message);
+        } else {
+            <login-screen.widget.status>->set_text($message);
+        }
+    } else {
+        <[login-screen.show_greeter]>;
+        <login-screen.widget.status>->set_text($message);
+    }
     return FALSE;
 };
 
-if ( $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|
+if (   $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|
+    or $locked and $username ne ( <login-screen.session_user> // '' )
     or length($password) > 1024 ) {
     $wipe->($password);
     <login-screen.widget.password>->set_text('');
-    return $fail->('authentication failed');
+    return $fail->( 'authentication failed', TRUE );
 }
 
-<login-screen.state> = qw| authenticating |;
+<login-screen.auth_in_flight> = TRUE;
+<login-screen.state>          = qw| authenticating | if not $locked;
 <login-screen.widget.user>->set_sensitive(FALSE);
 <login-screen.widget.password>->set_sensitive(FALSE);
 <login-screen.widget.button>->set_sensitive(FALSE);
@@ -36,7 +56,8 @@ Glib::Timeout->add(
         my $reply = '';
         my $fh    = <login-screen.auth_helper.fh>;
         if ( defined $fh ) {
-            my $frame   = pack( 'n/a* n/a*', $username, $password );
+            my $frame = pack( 'n/a* n/a* C',
+                $username, $password, $locked ? 1 : 0 );
             my $request = pack( 'N', length($frame) ) . $frame;
             $wipe->($frame);
             my $offset = 0;
@@ -48,7 +69,7 @@ Glib::Timeout->add(
             }
             $wipe->($request) if defined $request;
             if (
-                $offset == 4 + 2 + length($username) + 2 + length($password) )
+                $offset == 5 + 2 + length($username) + 2 + length($password) )
             {
                 while ( $reply !~ m|\n$| and length($reply) < 128 ) {
                     my $read = sysread( $fh, my $part, 128 - length($reply) );
@@ -59,11 +80,26 @@ Glib::Timeout->add(
         }
         $wipe->($password);
         <login-screen.widget.password>->set_text('');
+        if ( $locked and <login-screen.state> ne qw| locked |
+            or not $locked and <login-screen.state> ne qw| authenticating | )
+        {
+            $wipe->($reply);
+            $wipe->($username);
+            return FALSE;
+        }
 
-        if ( $reply =~ m|^OK ([0-9a-f]{64})\n$| ) {
+        if ( $locked and $reply eq "OK\n" ) {
+            <[login-screen.release_lock]>;
+            <[protocol-7.route-send]>
+                ->( { 'command' => 'v7-zenki.login-session-locked no' } );
+            <login-screen.state> = qw| session |;
+            <login-screen.widget.status>->set_text('');
+            <login-screen.window>->hide();
+        } elsif ( not $locked and $reply =~ m|^OK ([0-9a-f]{64})\n$| ) {
             my $ticket = ${^CAPTURE}[0];
-            <login-screen.state>  = qw| starting |;
-            <login-screen.ticket> = $ticket;
+            <login-screen.state>        = qw| starting |;
+            <login-screen.session_user> = $username;
+            <login-screen.ticket>       = $ticket;
             <login-screen.widget.status>->set_text('starting session ..,');
             <[protocol-7.route-send]>->(
                 {   'command' =>
@@ -78,7 +114,7 @@ Glib::Timeout->add(
         } elsif ( $reply =~ m|^WAIT (\d+)\n$| ) {
             $fail->( sprintf 'try again in %d s', ${^CAPTURE}[0] );
         } else {
-            $fail->('authentication failed');
+            $fail->( 'authentication failed', TRUE );
         }
         $wipe->($reply);
         $wipe->($username);
@@ -87,8 +123,8 @@ Glib::Timeout->add(
 );
 TRUE;
 
-#,,.,,,..,,.,,,.,,,,.,..,,.,,,.,,,.,.,,,.,,.,,..,,...,...,,,,,,,,,.,,,...,.,.,
-#S5ZWVOQLIJMD3DIO4JEVYQD5BLMO3VRY5EJEN5335JN7MBR5VV4LWEJGK3PPM5MDODXHYEAU5DRQM
-#\\\|KWSBL6RBQFGJE3YXEPGD3L4M2O7NIAUOKWGAJSDP7LINVDKJ4HP \ / AMOS7 \ YOURUM ::
-#\[7]OWV24FMGLVJRKOOD7E7GUPCAUNF5N324EUPY5JLP5UNAQTOXRMBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,,.,,,..,,..,.,.,..,,..,,,,.,..,,...,...,.,.,,.,,,,.,..,,.,,,
+#Y2LTWKGW4T4PNSSM7G3TZLPXZJCLKIQQJII6N7KCIAL7XYGAP347XPWXFILS7JQXZH5RAINGLB6ZA
+#\\\|LKAJ2MKOCO53S73VSLC2KPFJ6KAX7UOPO3HB3IORQPZ5WVHBDOC \ / AMOS7 \ YOURUM ::
+#\[7]ZLMG6NEXLMKG5TUIH4EE43SKXPZVC7GAOO7TWRC2HLBRFG4IIMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

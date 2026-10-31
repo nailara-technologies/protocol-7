@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = login-screen.release_lock
+# descr = release input grabs and cancel lock-only visual callbacks
+
+if ( defined <login-screen.lock.seat> ) {
+    eval { <login-screen.lock.seat>->ungrab() };
+}
+<login-screen.lock.seat>                = undef;
+<login-screen.lock.grabbed>             = FALSE;
+<login-screen.lock.grab_failure_logged> = FALSE;
+<login-screen.auth_in_flight>           = FALSE;
+<[base.curve.cancel]>->(qw| login_screen_lock_fade |);
+<[base.curve.cancel]>->(qw| login_screen_lock_feedback |);
+
+my $window = <login-screen.window>;
+$window->set_opacity(1) if defined $window;
+my $user = <login-screen.widget.user>;
+$user->set_editable(TRUE) if defined $user;
+<login-screen.widget.user_label>->set_text('user');
+<login-screen.widget.user_label>->show();
+$user->show() if defined $user;
+<login-screen.widget.time>->hide();
+<login-screen.widget.button>->set_label('log in');
+TRUE;
+
+#,,,.,...,,.,,,.,,,..,,,.,.,.,,.,,,,,,,,,,.,,,..,,...,...,,,.,,,,,,..,,.,,,,,,
+#BBSBDSCCYCUJ6365YMHKSBGX3CQGJPXIEZIG5DMKBJSPQ33WM6ALSZVPYNNGWNIJRZGWZXRKHNBKW
+#\\\|LV3JVO2ZMY6R5JYPWJMO62OQENYJG477STK4XL4JKKXXJ64XOZJ \ / AMOS7 \ YOURUM ::
+#\[7]Q6AEN4CSKOBHQMOPNYLFFTNG7KKNHS7DR3YV3MNUZ3Z33OBZ6GBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

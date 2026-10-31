@@ -7,17 +7,25 @@ my $reply = shift // {};
 return FALSE if <login-screen.state> ne qw| init |;
 
 my ( undef, $text ) = <[base.reply.mode_text]>->($reply);
-if (    ( $reply->{'cmd'} // '' ) eq qw| TRUE |
-    and ( $text // '' ) =~ m|^active [a-z_][a-z0-9_-]{0,31}$| ) {
-    <login-screen.state> = qw| session |;
-    <[base.log]>->('user session running : greeter stays hidden');
-    return TRUE;
+if ( ( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
+    if ( ( $text // '' ) =~ m|^locked ([a-z_][a-z0-9_-]{0,31})$| ) {
+        my $username = ${^CAPTURE}[0];
+        <login-screen.session_user> = $username;
+        <[base.log]>->('user session locked : restoring lock window');
+        return <[login-screen.show_lock]>->($username);
+    }
+    if ( ( $text // '' ) =~ m|^active ([a-z_][a-z0-9_-]{0,31})$| ) {
+        <login-screen.session_user> = ${^CAPTURE}[0];
+        <login-screen.state>        = qw| session |;
+        <[base.log]>->('user session running : greeter stays hidden');
+        return TRUE;
+    }
 }
 <[login-screen.show_greeter]>;
 TRUE;
 
-#,,..,,..,.,.,...,,..,.,,,...,...,,,.,,,,,.,,,..,,...,...,.,,,..,,..,,,.,,..,,
-#LV4RSHNEQUUMWNM25CBKW2BYZP7K2OSD2NYYUTNCJFGTCWCL64Z7UEBEWM2OD7BTNKIRUSGRMEIXA
-#\\\|4SN24WLS6UHD3WU2LKLNCAN2WD4SOSQ5HXMGREUEJMIDVWPVVS7 \ / AMOS7 \ YOURUM ::
-#\[7]WF7VM7GRP5XUKA2OD4BNGL4LWBPSAIWQQTT6TKZ3K7HVDTSH22AY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,,,,,..,,,,.,,,,,.,.,,,.,.,,,..,,...,...,,.,,..,,,.,,,,,,.,.,
+#J75R7MTTMFAJDQKD6T3JQSVB6FNMTI53FDQ4QZUWST4LWXX6V7QOMAHZ5MKCPBYHKRO6YJR3SFCPA
+#\\\|SECXGV5HC242ICJDLARN5M5MPODH3XICOAT6HXEQN6PYDQ7HIXG \ / AMOS7 \ YOURUM ::
+#\[7]KD5XWSVRHSJKR3I3WECWLR4Y4WETBM2O4JPNFKGJTGD2QFPU36DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

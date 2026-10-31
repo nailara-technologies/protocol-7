@@ -87,6 +87,9 @@ base.has_access
 base.file.which
 base.file.slurp
 base.event.once
+base.curve.tick
+base.curve.init
+base.curve.eval
 base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
@@ -130,6 +133,7 @@ base.handler.auth
 base.get_warnings
 base.file.content
 base.event.add_io
+base.curve.cancel
 base.context.list
 base.cmd.commands
 base.chk-sum.amos
@@ -148,6 +152,7 @@ base.get_file.aref
 base.file.pre_init
 base.file.line_map
 base.event.add_var
+base.curve.compose
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
@@ -173,6 +178,7 @@ base.file.all_files
 base.extract_values
 base.event.pre_init
 base.diff.hash_keys
+base.curve.register
 base.calc_unix_path
 io.ip.tcp.input.open
 base.route.init_code
@@ -200,6 +206,7 @@ base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
+login-screen.cmd.lock
 jobqueue.get_next_job
 jobqueue.get_job_data
 format.yaml.load_file
@@ -223,6 +230,7 @@ base.console.commands
 base.cfg.profile.list
 base.balanced-average
 base.X-11.get_display
+login-screen.show_lock
 login-screen.init_code
 crypt.C25519.sign_data
 base.session.init_code
@@ -279,12 +287,14 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.ntime.delta_seconds
 base.file.zulum_tmp_file
+base.curve.eval.position
 base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 base.buffer.erase_secure
 ui.render.tree.invalidate
 login-screen.show_greeter
+login-screen.release_lock
 login-screen.authenticate
 jobqueue.priorities_table
 io.unix.socket.input.open
@@ -308,6 +318,7 @@ base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 auth.client.distrust_list
 protocol.sftp.read_ssh_env
+login-screen.lock_feedback
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.encrypted_key
@@ -384,6 +395,7 @@ ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 login-screen.start_auth_helper
+login-screen.handler.lock_grab
 login-screen.cmd.session-ended
 crypt.C25519.key_name_and_type
 crypt.C25519.chksum_cache.retr
@@ -497,8 +509,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,,,...,,.,,..,,,,,,...,,.,,,.,,...,,..,..,,...,...,.,,,...,,,.,,..,,.,,
-#K47OUHNJ7PFDHM7MCDKMINMUCLQSX74BNE6OSHFRSRY6T5AKJTPJJTKCXJWDCQMJ5YN3N6YE7GGTE
-#\\\|7XQHSDJHQBSG4LSX6PKMN2NCFHGEXQMP5BL2GMPEMDRCUGRMX2W \ / AMOS7 \ YOURUM ::
-#\[7]KQ72THSGGYW7XS77RK3QLWVYAI6FM7W6LG23EQGDZNUZW34ADUBY 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,,.,,.,,,.,.,.,,,...,,,.,..,,..,,...,...,...,,,.,,.,,..,,..,,
+#7XVLULECD7NUUA65DY3RIYMUJHYLOWMYDEQUFTNW7ZUL4HFEI66OFTUCVAANCWEU54D6YHKQ3P5TG
+#\\\|56BXENVJZS3KATA3YDEFCQHBGHXE64GIIYSIDJ7ELHEAQQGLCHL \ / AMOS7 \ YOURUM ::
+#\[7]E2QL4ORKK324YHHJZV6MW4MNFOPMSTHNPYAS5AOC2RVVNFY2MOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

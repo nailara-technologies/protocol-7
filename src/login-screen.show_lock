@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = login-screen.show_lock
+# descr = show the greeter as a fullscreen grabbed session lock
+
+my $username = shift // <login-screen.session_user> // '';
+return FALSE if $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
+my $window = <login-screen.window> // return FALSE;
+
+<login-screen.session_user>             = $username;
+<login-screen.state>                    = qw| locked |;
+<login-screen.auth_in_flight>           = FALSE;
+<login-screen.lock.grabbed>             = FALSE;
+<login-screen.lock.grab_failure_logged> = FALSE;
+<[base.curve.cancel]>->(qw| login_screen_lock_feedback |);
+
+my $user = <login-screen.widget.user>;
+$user->set_text($username);
+$user->set_editable(FALSE);
+$user->set_sensitive(FALSE);
+<login-screen.widget.user_label>->set_text($username);
+<login-screen.widget.password>->set_text('');
+<login-screen.widget.password>->set_sensitive(FALSE);
+<login-screen.widget.button>->set_label('unlock');
+<login-screen.widget.button>->set_sensitive(FALSE);
+<login-screen.widget.status>->set_text('');
+
+my $show_user = ( <login-screen.lock.show_user> // qw| yes | ) ne qw| no |;
+my $show_time = ( <login-screen.lock.show_time> // qw| yes | ) ne qw| no |;
+$window->set_keep_above(TRUE);
+$window->fullscreen();
+$window->set_opacity(0);
+$window->show_all();
+$window->present();
+$user->set_visible($show_user);
+<login-screen.widget.user_label>->set_visible($show_user);
+<login-screen.widget.time>->set_visible($show_time);
+
+my $update_time = sub {
+    return FALSE if <login-screen.state> ne qw| locked |;
+    <login-screen.widget.time>
+        ->set_text( POSIX::strftime( '%H:%M', localtime ) );
+    return TRUE;
+};
+$update_time->();
+Glib::Timeout->add( 30000, $update_time );
+
+Glib::Timeout->add(
+    500,
+    sub {
+        return FALSE if <login-screen.state> ne qw| locked |;
+        ## the root SubstructureNotify watch replaces this poll in s2b ##
+        my $gdk_window = $window->get_window();
+        $gdk_window->raise() if defined $gdk_window;
+        return TRUE;
+    }
+);
+
+<[base.curve.register]>->(
+    {   id       => qw| login_screen_lock_fade |,
+        from     => 0,
+        to       => 1,
+        duration => 0.7,
+        type     => qw| ease-in-out |,
+        callback => sub {
+            my $value = shift;
+            $window->set_opacity($value)
+                if <login-screen.state> eq qw| locked |;
+        },
+        on_done => sub {
+            return if <login-screen.state> ne qw| locked |;
+            $window->set_opacity(1);
+            <[protocol-7.route-send]>
+                ->( { 'command' => qw| X-11.dpms-force-off | } );
+        },
+    }
+);
+
+Glib::Timeout->add( 200, $code{'login-screen.handler.lock_grab'} )
+    if <[login-screen.handler.lock_grab]>;
+TRUE;
+
+#,,,,,.,,,..,,..,,,.,,,,.,.,,,..,,.,,,.,,,...,..,,...,...,,,.,,..,,,,,,..,.,.,
+#BDPWOVKALBN2WKULFY6RYDJVKIWNRHPPSPZT4HKABYPDGE27MR6YGGQIM36N5ERLXSKJ4G6ZWCW3O
+#\\\|54JW4TCLVJDXGCQCG766CRMTEABPTNEQXYVOHTWXWR6K2PR3GNY \ / AMOS7 \ YOURUM ::
+#\[7]CSECTK64XGNQZPE5BWSP3TE5Z3TC4N2KA7DUSJAKPQ5VLD44ACAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
