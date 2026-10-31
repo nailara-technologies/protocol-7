@@ -522,7 +522,12 @@ inference.model.repeat_last_n  = 256
 inference.model.dry_multiplier      = 0.8
 inference.model.dry_base            = 1.75
 inference.model.dry_allowed_length  = 64
-inference.model.dry_penalty_last_n  = -1  ## -1 = full context window ##
+## 2026-10-31 : -1 [ full context ] also penalized QUOTING : read files and ##
+## the tool-call format from the prompt sit in context -> paraphrased code, ##
+## tool calls as plain text [ 9b fail-open review : 2 failures with -1, a   ##
+## correct tool-written review with 1024 ]. loops happen in the model own   ##
+## recent output : a 1024 window still catches them                         ##
+inference.model.dry_penalty_last_n  = 1024  ## -1 = full context window ##
 
 ## VRAM safety margin for context auto-calculation [calculate_safe_context]    ##
 ## safety = 30% of remaining VRAM, clamped to [min, max]                       ##
@@ -609,8 +614,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,...,.,.,..,,...,,..,.,.,,,,,,,.,,.,,,..,.,.,...,.,.,...,,,.,,..,.,,,..,,
-#K3WVZFMY43L4WKPQDQD74SFK47R7TQ5566QZ7EWMPYTZCWE3QSU3UBE5ONWNFIURI54PVQLWBGR5K
-#\\\|YBMFMXKZTWTKULBGBBQKDQA3FLUG6WZOJBDLD2F4MUXHRJ45QAM \ / AMOS7 \ YOURUM ::
-#\[7]RU4DPPU4ZY57NXIX5BCUG6NLDQ3TDM5KDHJUOIRW4PBQNTAC56DA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,..,...,.,.,...,,,,,,.,,.,.,,..,.,.,...,...,..,,,,.,..,,,,.,,..,
+#4EJBQVJZT4VGRQNP2GQFCFVCQLSJMMTBVZIVURN4L2HCC7KE7CNSUIARCZJIIAUIFEABRXZOMZFAU
+#\\\|PKZX7DSR4IO27YPRG3NRGVAECCZ4SZ6CNPCWWGHSN2DQF4XH5PA \ / AMOS7 \ YOURUM ::
+#\[7]XEOXJVJIMA4QHS52J6QALVIQ6V325F5Y4SXMYKQAITA72JO4E2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

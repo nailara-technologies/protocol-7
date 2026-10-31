@@ -34,8 +34,18 @@ OLD values as `//` fallbacks.
 - results per model and the other fixes : [[project-2026-10-24-local-model-edit-comparison]]
 - older edit-failure notes predate this : [[coding-zenka-edit-failures]]
 
-#,,,,,,,.,,,.,..,,,,,,.,,,,,,,,,.,,,.,.,,,.,.,..,,...,...,.,,,..,,,,,,,..,,,.,
-#VZYBFFYPUVMKBQK7M5VAWNTYJHWJ7ZFOTEDRTUSUXPAPBUWK345U6O7HU5BBQOZ3KVIZFJRO3KPYS
-#\\\|FZEKE5VGAXCL5IZ3IG6TRLUZJDLROKHU4O2FQVEXAXOOXK6JZJC \ / AMOS7 \ YOURUM ::
-#\[7]QLNNIFFI7P477KVSTQHJGMWV5UGXZPG2OYE5JOXUF4AHPVULKIAI 7  DATA SIGNATURE ::
+**2026-10-31 second half** : dry_allowed_length 64 was not enough --
+dry_penalty_last_n = -1 [ full context ] also counts the PROMPT and tool
+results, so quoting a read file [ > 64 tokens ] or the tool-call format
+from the system prompt is penalized. symptoms : invented "quotes" of code,
+tool calls written as plain text [ `<tools><tool>` \ `<code>{..}` ], the
+model 'surprised' by what it said. fixed with dry_penalty_last_n = 1024
+[ loops live in the own recent output ] : the same 9b went from 2 failures
+to a correct, tool-written review. a model failing tool calls : check the
+sampler window FIRST.
+
+#,,.,,..,,,.,,,.,,,.,,,.,,.,,,,.,,,..,..,,..,,.,.,...,...,..,,...,...,,.,,,..,
+#GKR6D3RXXFSM22T4TBUKXQZ5Z67GVE4VHRKZ5XHZ7LAJTXJUORKPG2NSRXOBMPU4ALXMATJQQZNXG
+#\\\|7JWT2ZPUEGVMTHURWKN5WZNIQHID4PEBIUE6LSIZ5CRRXSGH23D \ / AMOS7 \ YOURUM ::
+#\[7]2NKZ5D22CMO7QVL5YEQGYBIPEONHQYZVKLIFOPRBPRCLMOAWGWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
