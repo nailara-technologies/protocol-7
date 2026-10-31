@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = v7-zenki.devmod.request
+# descr = resolve targets and queue a devmod state transition
+
+my ( $call_args, $requested_state ) = @ARG;
+my $params = $call_args->{'args'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'instance id[s] or name[s] expected'
+    }
+    if not defined $params or $params !~ m{\d+|\w+};
+return {
+    'mode' => qw| false |,
+    'data' => 'invalid devmod state requested'
+    }
+    if not defined $requested_state
+    or $requested_state !~ m{^(?:off|safe|full)$};
+
+my $user_re        = <regex.base>->{'usr'};
+my $user_substr_re = <regex.base>->{'usr_subn'};
+my @instance_ids;
+
+foreach my $param_str ( split( m| +|, $params ) ) {
+    if ( $param_str =~ m|^\d+$| ) {
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf(
+                "instance %s not found [ use 'v7-zenki.list' to see IDs ]",
+                $param_str )
+            }
+            if not exists <v7-zenki.zenka.instance>->{$param_str};
+        push @instance_ids, $param_str;
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf( "zenka name '%s' not valid [syntax]", $param_str )
+            }
+            if $param_str !~ $user_re and $param_str !~ $user_substr_re;
+        my @results = <[v7-zenki.zenka-instances.get-ids]>->($param_str);
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf( "no instance matches for zenka '%s'", $param_str )
+            }
+            if not @results;
+        push @instance_ids, @results;
+    }
+}
+
+my $queued_count = 0;
+foreach my $instance_id (@instance_ids) {
+    my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+    next if not defined $instance->{'process'}{'id'};
+
+    $instance->{'devmod_state'} = $requested_state;
+    $instance->{'devmod_queue'} //= [];
+    push $instance->{'devmod_queue'}->@*, $requested_state;
+    $queued_count++ if <[v7-zenki.devmod.send_next]>->($instance_id);
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'queued devmod state %s for %d instance%s',
+        $requested_state, $queued_count,
+        <[base.cnt_s]>->( $queued_count, qw| s | )
+    )
+    }
+    if $queued_count;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no success sending a signal to any process'
+};
+
+#,,,.,.,.,,..,..,,,,.,,,.,,..,,.,,.,.,...,,,,,..,,...,.,.,..,,.,.,.,,,.,,,,..,
+#ZPSRND5UT6UUMEBP7QAJWOH7TQC7V7EGDJNANUCA5HQCN4TZDJWOTANGU6G4IOLOAP5RTRNTDEPNI
+#\\\|CVFGQUSDMSPV7QAMF7545LMFRQNP5ELECYAIHC6PMKYQDRNS2LR \ / AMOS7 \ YOURUM ::
+#\[7]IQG422LOU262KTH3GZD5SIVGK3KHLPMWD5OPCTGJ5Y6D6LIBV6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

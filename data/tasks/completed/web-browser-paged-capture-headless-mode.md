@@ -79,7 +79,7 @@ across 227+ pages. This task adds both.
 
 Add `<web-browser.cfg.headless>` (boolean flag), same status as the
 existing `<web-browser.slideshow.no_scroll>` precedent — settable at
-runtime via `devmod.cmd.set` (`v7.devmod-enable web-browser` +
+runtime via `devmod.cmd.set` (`v7.devmod-enable-rw web-browser` +
 `web-browser.set cfg.headless 1`), not a new command.
 
 When set:
@@ -258,8 +258,8 @@ clobbered the real signature applied after the first commit) — stripped again,
 see `feedback-fake-signature-marks-ai-scratch-content.md`. Fix confirmed
 working; ready for signing + commit.
 
-#,,,.,,,.,..,,..,,..,,...,...,,,,,..,,,..,,,.,..,,...,...,,,,,...,..,,.,,,,..,
-#ZON5LD6O6GT4ZYX3X2C6SXXDMWXCTJKHDQUQSQ7ZFUG323LMLTO6TDLC3W7MCSR6TWWQRPQPVLAVQ
-#\\\|B33EQFDHBEBMOMZ2TTDKEF3H5J7MEDUAVOWAADGWYLHFWBWEODP \ / AMOS7 \ YOURUM ::
-#\[7]C45DZVZYBLCLOTYPUPJWR2VMFPYXFZOQRJGCUDWGZEAAOXTI3QCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,,,.,,.,,,..,.,,,...,,.,,,.,,..,,...,...,...,,,.,.,.,..,,,,,,
+#72OBLRXV6PLNYJ235SLDW3LRZQ6QT7SUTNCPJSTBBHHZUHIKBGUOOWQ6SQT46FYQO6A2O57LHERNW
+#\\\|YAVWGMKBNAU5HBP635WKNLL7Z2WXYCS6M7T5S2BZEA4NY4SGSJL \ / AMOS7 \ YOURUM ::
+#\[7]6EYXG2EDDOUKLFDG2KKUQEQSGJ4VNWFLK6A53DNOIVJUML4XXSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

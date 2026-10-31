@@ -13,10 +13,10 @@ never write `$SIG{SIGNAL}` [ set, `local`, or save\restore ] in code that runs i
 
 **How to apply:** to skip one child's SIGCHLD in v7-zenki, register it in `ignore_child_pid`. quick live check : `/proc/<pid>/status` SigCgt, bit 16 [ signal 17 ] must be 1. related : [[never-feed-command-substitution-into-destructive-cmds]] [ its "dead pids listed online" hypotheses -- this was likely one ]
 
-regression test : `bin/test-scripts/test-signal-handler-aliases.pl` [ 02602af3a ; fails 6 checks against the pre-fix module, `P7_TEST_SIG_SRC=<file>` to point it elsewhere ]. live-verified the fix on all three stop paths : clean stop [ <TERM>, nothing after ], blocked zenka [ mod-test + `devmod.cmd.sleep` via `v7-zenki.devmod-enable` -> <KILL> then a real `signal 9` exit, no liveness line ], heartbeat timeout -> error -> KILL -> restart [ < name > label, real status ]. symptom fingerprint of the bug : `<KILL>ed children` on every stop + liveness line 2-7 s later + `exit code -001`.
+regression test : `bin/test-scripts/test-signal-handler-aliases.pl` [ 02602af3a ; fails 6 checks against the pre-fix module, `P7_TEST_SIG_SRC=<file>` to point it elsewhere ]. live-verified the fix on all three stop paths : clean stop [ <TERM>, nothing after ], blocked zenka [ mod-test + `devmod.cmd.sleep` via `v7-zenki.devmod-enable-rw` -> <KILL> then a real `signal 9` exit, no liveness line ], heartbeat timeout -> error -> KILL -> restart [ < name > label, real status ]. symptom fingerprint of the bug : `<KILL>ed children` on every stop + liveness line 2-7 s later + `exit code -001`.
 
-#,,,,,,..,.,.,..,,,,,,,,.,,..,.,,,,,.,...,,,,,..,,...,.,.,..,,..,,,,.,,.,,,,.,
-#GOS4DXX2S3UOHIZ66265MYQI5YAKYDWVS7HK32JLRKWHZD6G6XYNDFUAEJSZLJNRNKKW7KWTHJXJG
-#\\\|32C53XGOL2PPRXHFNOVO2CGNZTKCLC65VJZHO76RAXGHPZKMUUP \ / AMOS7 \ YOURUM ::
-#\[7]NZEUUZCOZDV7G3ZQYT43DCNT2T6AJSBTFI2VOVBMCJWJBKHMUSDY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,,,.,..,,,,.,.,.,..,,..,,...,..,,...,...,,..,..,,,..,,..,...,
+#X2BSBOGN6SVQKRYBANN24CVSTXKN2DDIOZHHNARBSQE35WC3BOJLJDJTCPHBZGTXSUECF66GQD6QY
+#\\\|WKKNQK2E726IACGKAPZVC3XJTRPRU5B3G42362RY2ICV5QYXASZ \ / AMOS7 \ YOURUM ::
+#\[7]2GPLIQ35RBY753URZN26JZZI5DXGF34B4KY26ZSA4N2E2YMJCSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

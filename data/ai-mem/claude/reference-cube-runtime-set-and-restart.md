@@ -1,14 +1,14 @@
 ---
 name: reference-cube-runtime-set-and-restart
-description: how to change a %data value in a running zenka [ cube ] and restart cube -- devmod-enable first, cube takes bare commands, v7-zenki.restart
+description: how to change a %data value in a running zenka [ cube ] and restart cube -- devmod-enable-rw first, cube takes bare commands, v7-zenki.restart
 metadata:
   type: reference
 ---
 
 - `p7c set <key> <value>` on cube answers `command does not exist` until devmod
-  is loaded : `p7c v7-zenki.devmod-enable cube` first [ user tip 2026-09-29 ].
+  is loaded : `p7c v7-zenki.devmod-enable-rw cube` first [ user tip 2026-09-29 ].
   avoids a temp `zenka.v7` edit + restart for a runtime toggle
-- devmod-enable is PERSISTENT : v7 remembers it and re-enables devmod after
+- devmod-enable-rw is PERSISTENT : v7 remembers it and re-enables devmod after
   every restart of that zenka. `p7c v7-zenki.devmod-clear <zenka>` only
   clears the remembered state [ the next restart comes up without devmod ;
   the running process keeps it until then ]. clearing on another zenka
@@ -23,11 +23,11 @@ metadata:
   instrumentation installed that way needs a zenka restart to go away
 
 **Why:** cost several round trips in the 70ms-stall session [ 9bedf3c4c ].
-**How to apply:** runtime experiments on cube -> devmod-enable + set, not
+**How to apply:** runtime experiments on cube -> devmod-enable-rw + set, not
 config edits. see [[reload-success-doesnt-guarantee-new-file-loaded]].
 
-#,,.,,,.,,.,.,,.,,.,,,,.,,,,.,.,,,.,,,,..,.,,,..,,...,...,,..,..,,,,,,..,,..,,
-#5F6KGS5BC5GHYSAHUXLX3CZY2QWDCVVYVDFFIOTRDAGHO3GZJKDZ4OAUTMWL2SHKIKECF3OOC5JJI
-#\\\|3HLHMM3B4YNPIM4JA5SIYDR6FETFDZSGMT6E664JS2HEMSMM7KD \ / AMOS7 \ YOURUM ::
-#\[7]DZFQXP5E44AQ5YHUULSJ2GBHIYAQXCNZ34TVTVNYYG7KOANKT2AA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,.,,...,,..,.,,,,,,,...,.,.,,.,,..,,...,...,.,.,..,,,.,,,..,...,
+#3O6SIQWFE5DVTSRESAR63CCBYIXSEVSNQHI3GG3NIJTCJY22DTURDERRCIJ6FPKTNBRO36ZOSEH4G
+#\\\|NCI33VQVIWG3JVGPFKVTGDDCERRL24HREHRD6JB3NIT4OZMPPD2 \ / AMOS7 \ YOURUM ::
+#\[7]TD7LC4W5YSEYM5K4QDGG4UJVK332G4JXAE42LFX2TI2IKSFWVUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.devmod-ack
+# param = <off|safe|full|error> <requested-state>
+# descr = ack one devmod transition, release the next signal
+
+my $params = $call->{'args'} // '';
+my ( $source_zenka, $source_sid, $result, $requested_state ) = split m| +|,
+    $params, 4;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'source zenka sid or devmod result not available'
+    }
+    if not defined $source_sid
+    or $source_sid !~ m|^\d+$|
+    or not defined $result
+    or $result !~ m{^(?:off|safe|full|error)$};
+
+my $instance_id;
+foreach my $id (<[v7-zenki.instance_ids]>) {
+    my $candidate = <v7-zenki.zenka.instance>->{$id};
+    if ( defined $candidate->{'cube_sid'}
+        and $candidate->{'cube_sid'} == $source_sid ) {
+        $instance_id = $id;
+        last;
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'caller zenka not managed by v7' }
+    if not defined $instance_id;
+
+my $instance = <v7-zenki.zenka.instance>->{$instance_id};
+my $pending  = $instance->{'devmod_pending'};
+
+if ( $result eq qw| error | ) {
+    <[base.logs]>->(
+        0,            'instance %d devmod transition to %s failed',
+        $instance_id, $requested_state // qw| unknown |
+    );
+} else {
+    $instance->{'devmod_state'} = $result;
+}
+
+if ( defined $pending ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'devmod acknowledgement does not match pending action'
+        }
+        if not defined $requested_state
+        or $pending->{'action'} ne $requested_state;
+
+    shift $instance->{'devmod_queue'}->@*;
+    delete $instance->{'devmod_pending'};
+    <[v7-zenki.devmod.send_next]>->($instance_id);
+}
+
+return { 'mode' => qw| true |, 'data' => 'devmod transition acknowledged' };
+
+#,,,.,.,,,,..,.,.,,..,..,,..,,,..,...,...,,.,,..,,...,...,.,,,,,.,,,.,..,,,,,,
+#GSB3JGXU43XSOLZ6QHB4F6CHN3KAS6BP26DHNN74NM2PRJKNDLJS7Y7IDNUNQOEH6DZAFUSEVSHNA
+#\\\|TSHGCTTLNAJ3GAIQ2GMHOKYS5EJYLNCE4J5CLDZMMDW75QA2P4J \ / AMOS7 \ YOURUM ::
+#\[7]FZGMS5ABYZI3HJBVTGPE2VD5V56RSBBMB4DBY6YSKWFGGNFOREDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

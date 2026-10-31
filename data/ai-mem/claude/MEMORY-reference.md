@@ -104,7 +104,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #\\\|HRLB727R65XMVN3CUAYY57CZ57NPOZTKRY6EQFFUUVZJJKJHPMV \ / AMOS7 \ YOURUM ::
 #\[7]XTVSFC74NFRE35GTXPJY5EVVKTDEPMYNUUBVCGMYTSTGUOAO4OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-- [cube-runtime-set-and-restart](reference-cube-runtime-set-and-restart.md) — `v7-zenki.devmod-enable cube` before `p7c set`, bare cube commands, `v7-zenki.restart cube`, Event hooks need restart
+- [cube-runtime-set-and-restart](reference-cube-runtime-set-and-restart.md) — `v7-zenki.devmod-enable-rw cube` before `p7c set`, bare cube commands, `v7-zenki.restart cube`, Event hooks need restart
 
 #,,..,.,.,,,,,.,.,,,.,..,,...,,.,,,.,,.,,,...,..,,...,...,...,,.,,...,,,.,.,.,
 #66ON3NHDQCTDKOIUMCQDGVA5SFYX76M4JOQDCQ3TDNH3X5SIKVIHBD53KWU7D6EIY7DNHVVAFAVUQ
@@ -116,8 +116,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [twin-restart-and-local-proxy](reference-twin-restart-and-local-proxy.md) — `v7-zenki.restart :twin: <zenka>` restarts without a gap ; a 502 from this shell can be the owner's local proxy, not the server
 - [os-err-for-console-logs](feedback-os-err-for-console-logs.md) — src/* log lines : <[base.str.os_err]> instead of raw $OS_ERROR [ cleaned up for the console ]
 
-#,,,,,,..,,.,,...,,,.,,.,,...,.,.,..,,..,,..,,..,,...,...,...,...,.,,,..,,,..,
-#AWPGFHZ2JHW7TJ7FD4JLARN4YVTZDN3YORYSBLOIMZZDDKLTKAM4IA6P76S4NR5PLV2EIO47V777C
-#\\\|WW6ZRJO4ONPDZVZCUEFUL3UU5TEHJA24PQQQZJJ4MACGU2YBHUP \ / AMOS7 \ YOURUM ::
-#\[7]XMNUT5QVWL4RQKYVBH3OW32WMEXJ36CJAR5EXOSOF4EIMZH4CUBY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,..,..,,.,.,,.,,.,,,,,.,,,.,,,,,..,,...,...,...,,,,,,,,,,.,,...,
+#HA42QH4GFPG6T2C6KHJK6B6HRFVLYZMTYGYPTND3RSDCUAHYCLRWK2RZ6GN2M66XLTJR3NG7HH55O
+#\\\|JUB4FAQD7DUEUNVB6XZNDZKDSOE7O7FO3S2HX4MY3I3V6OKX32V \ / AMOS7 \ YOURUM ::
+#\[7]VYUKRQPWZNH235VYU5WLTIUYXV5IBAHV43OXRZY57E3GLKE7NIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

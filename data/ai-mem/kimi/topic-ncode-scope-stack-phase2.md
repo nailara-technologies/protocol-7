@@ -39,7 +39,7 @@ Implemented data/tasks/ncode-pattern-scope-stack-phase2.md in full, live-verifie
   the return rendering.
 - `ncode.reload source` did NOT pick up the new cmd module; `p7c v7-zenki.terminate ncode`
   (on-demand respawn) did. Same lesson as the chmod-child incident.
-- `p7c v7-zenki.devmod-enable ncode` loads devmod fine, but eval-code still needs an
+- `p7c v7-zenki.devmod-enable-rw ncode` loads full devmod, but eval-code still needs an
   access-list entry — not granted for ncode, deliberately not added.
 - cmd.apply end-to-end used scratch targets under `/tmp/.../src/` (path only
   needs a `src/` component for ns derivation — no repo pollution), 0664
@@ -53,8 +53,8 @@ zenka start/reload re-harmonized signatures: `cfg/protocol-7.src-ver`,
 plus auto-registered untracked `cfg/zenki/ncode/pm-dep/*` — system
 automation, not manual edits. `data/ai-mem/claude/*` was dirty from elsewhere.
 
-#,,..,.,.,.,.,,,,,,,.,,,.,,..,,,,,,.,,...,,,,,..,,...,...,...,,..,..,,.,,,.,,,
-#6BETKZK7HMIUQW5QFKPA6DAGW6WPWJGUBLQT5ROXFEBFIIURL2ESOEXZPHVVVKUX633YYHCOQXFD2
-#\\\|ORRF2VLJX2N4LCHSWX5252UNSJJ23PAHBQP7PZUAYECE7Q56CV5 \ / AMOS7 \ YOURUM ::
-#\[7]QYR47WMRG3AXCVC5VRJZO7GESIPELPZAE4AOAECEZIJCNMOG3WBI 7  DATA SIGNATURE ::
+#,,..,...,,..,,,.,,,,,,,.,.,,,,,.,,.,,,,.,,.,,..,,...,..,,..,,.,.,..,,,,.,,,,,
+#W2VH4YW6KEXHXMMPCJ7POAFYRZE5RGQ5XWCXI5SMXL6BE6KN75DJL5GXPCF7TXNRGP7EG7JXBJXA2
+#\\\|Z55CT5343TSQP32K5JU5PXKELKP7MKPIXLZJF4X2LRYOJUUD6TL \ / AMOS7 \ YOURUM ::
+#\[7]IMQASEG4RAFBR5FCMKQQVD7OFWFR5R4FYK7UMJDNAWTZAVUOIWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

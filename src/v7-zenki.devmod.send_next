@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = v7-zenki.devmod.send_next
+# descr = send the next queued devmod action after the ack
+
+my $instance_id = shift;
+my $instance    = <v7-zenki.zenka.instance>->{$instance_id};
+return FALSE if not defined $instance;
+
+## a pending action without ack for 30 s is dropped [ a zenka that never ##
+## acks must not stall its queue until the next restart ]                ##
+my $pending = $instance->{'devmod_pending'};
+if ( defined $pending ) {
+    return TRUE if time - ( $pending->{'at'} // 0 ) < 30;
+    <[base.logs]>->(
+        0,            'instance %d devmod %s : no ack in 30 s, dropped',
+        $instance_id, $pending->{'action'}
+    );
+    shift $instance->{'devmod_queue'}->@* if $instance->{'devmod_queue'};
+    delete $instance->{'devmod_pending'};
+}
+
+my $queue = $instance->{'devmod_queue'} //= [];
+return TRUE if not @$queue;
+
+my $action = $queue->[0];
+my $pid    = $instance->{'process'}{'id'};
+return FALSE if not defined $pid;
+
+my %signal_for = qw| off 50 safe 51 full 53 |;
+$signal_for{'safe'} = 52
+    if ( $instance->{'devmod_signaled_state'} // qw| off | ) eq qw| full |;
+
+if ( kill $signal_for{$action}, $pid ) {
+    $instance->{'devmod_pending'} = {
+        'action' => $action,
+        'pid'    => $pid,
+        'signal' => $signal_for{$action},
+        'at'     => time,
+    };
+    $instance->{'devmod_signaled_state'} = $action;
+    <[base.logs]>->(
+        1, 'instance %d devmod %s signaled [ SIGNUM%d ]',
+        $instance_id, $action, $signal_for{$action}
+    );
+    return TRUE;
+}
+
+shift @$queue;
+$instance->{'devmod_signaled_state'} = qw| off |;
+return FALSE;
+
+#,,..,,,,,...,,,,,,,.,,,.,,,.,,,.,..,,.,,,,..,..,,...,...,.,.,..,,,,.,..,,,,,,
+#YYG7PLHN2NUVDAFU2PRWTTJZ3BDTUX4VWZPF53GFWRFSAN5VQFZDCWOYNB6HJRV2A75B3L3WQFZMA
+#\\\|55C6XJ35FMJOM6QWYHXHY346NLESY77K6OX35VF7P4ECY2I5NAO \ / AMOS7 \ YOURUM ::
+#\[7]BP3PUWB2OGG24QJ7TVL43ZT4YWD42RWSCLGZ5VX3H33H5REANUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

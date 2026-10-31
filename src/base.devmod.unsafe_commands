@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = base.devmod.unsafe_commands
+# descr = every devmod command not classified as safe
+
+my %safe = map { $ARG => TRUE } <[base.devmod.safe_commands]>;
+
+return <[base.sort]>->(
+    [   grep { not exists $safe{$ARG} }
+        map  { $ARG =~ s|^devmod\.cmd\.||r }
+        grep {m|^devmod\.cmd\.|} <[base.code.file_list]>
+    ]
+);
+
+#,,..,...,,.,,.,,,.,.,,.,,..,,,..,...,,,.,,.,,..,,...,..,,.,,,,,.,...,,..,.,,,
+#2ZCHTWKCJLN3VTQGPTQ3PZGFYVPBBQKZKGHH3XW7GSRA65RAQNAT4DRAMEOGGYJDIDW6GNP6CQTWC
+#\\\|ANQ2OTTGJJ5QLGMDODBYJFOUJDG3RXOBB37HAJPXMNWHNUZYDDR \ / AMOS7 \ YOURUM ::
+#\[7]TC6UZ4R3P7TZ2SOK4QSZMB4BKX2JQL7RESUAPY64H3DNTAN2ASDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

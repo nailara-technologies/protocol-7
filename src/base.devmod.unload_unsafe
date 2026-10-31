@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = base.devmod.unload_unsafe
+# descr = remove all commands not explicitly classified as safe
+
+my @remove_cmd = <[base.devmod.unsafe_commands]>;
+return 0 if not @remove_cmd;
+
+my $unload_count = 0;
+foreach my $cmd_name (@remove_cmd) {
+    my $module_name = sprintf qw| devmod.cmd.%s |, $cmd_name;
+    my $removed     = delete $code{$module_name};
+    <[base.disable_command]>->($cmd_name);
+    $unload_count++ if defined $removed;
+}
+
+<[base.parser.access_conf]>;
+
+return $unload_count;
+
+#,,..,,,,,,,,,,,,,.,.,...,...,,.,,,,,,.,,,,,.,..,,...,...,..,,.,.,.,,,..,,.,.,
+#CKIA7QSKXCJFIJJM5MHTENTL2GRCAFO27RSH3BFLKQZOC4E2F3FRPHOIXANBKRZ35YHFY2727DMVQ
+#\\\|V4ACL5RBANOTD5TTODDATCD7DFTNEYTVDHZOG7FWDCMCN2JC42S \ / AMOS7 \ YOURUM ::
+#\[7]LER5E2IOVRPZHVWVUAWRP6LZNZUA6SZZDWACKIJFB55P2LXGRABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
