@@ -56,11 +56,18 @@ Glib::Timeout->add(
     }
 );
 
+## fade duration [ login-screen.lock.fade_duration, seconds, 0.2 .. 10 ] ##
+my $fade_duration = <login-screen.lock.fade_duration> // 2.0;
+$fade_duration = 2.0
+    if $fade_duration !~ m|^\d+(?:[.]\d+)?$|
+    or $fade_duration < 0.2
+    or $fade_duration > 10;
+
 <[base.curve.register]>->(
     {   id       => qw| login_screen_lock_fade |,
         from     => 0,
         to       => 1,
-        duration => 0.7,
+        duration => $fade_duration,
         type     => qw| ease-in-out |,
         callback => sub {
             my $value = shift;
@@ -80,8 +87,8 @@ Glib::Timeout->add( 200, $code{'login-screen.handler.lock_grab'} )
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,,,,.,,,..,,..,,,.,,,,.,.,,,..,,.,,,.,,,...,..,,...,...,,,.,,..,,,,,,..,.,.,
-#BDPWOVKALBN2WKULFY6RYDJVKIWNRHPPSPZT4HKABYPDGE27MR6YGGQIM36N5ERLXSKJ4G6ZWCW3O
-#\\\|54JW4TCLVJDXGCQCG766CRMTEABPTNEQXYVOHTWXWR6K2PR3GNY \ / AMOS7 \ YOURUM ::
-#\[7]CSECTK64XGNQZPE5BWSP3TE5Z3TC4N2KA7DUSJAKPQ5VLD44ACAI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,,.,,..,,,..,,,,,,.,,..,,.,.,..,,...,...,..,,.,.,,..,...,.,,,
+#3RBFUWKLQKJ5SDX6SJPUY3GR7SQRPWBGOWT6THZM66OGO2Q7SMDUWDHD4SMHRERMJBQNWG3KGNXZS
+#\\\|VDJZMB2BNMWPBEEXJREPTDH6D2OYITNP6K5HOTLWBQSYS7UMPLD \ / AMOS7 \ YOURUM ::
+#\[7]FOVSB2ANREVMRLU4UJIGLRSPOBBH3FGVCVOJYENJ2S2YJLCXVUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
