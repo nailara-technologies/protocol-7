@@ -5,7 +5,9 @@
 # descr = renew certificate for domain from Let's Encrypt
 
 ## $call is provided by compiled-in code header
-my $domain = $call->{'args'};
+my $param = ref $call->{'param'} eq qw| HASH | ? $call->{'param'} : {};
+my $domain
+    = length( $call->{'args'} // '' ) ? $call->{'args'} : $param->{'domain'};
 
 return {
     'mode' => qw| false |,
@@ -16,9 +18,10 @@ return {
 <[base.logs]>->( 2, 'child : renewing certificate for domain : %s', $domain );
 
 ## Get certificate info and retry attempt from parameters
-my $cert_info     = $call->{'param'}{'cert_info'}     // {};
-my $retry_attempt = $call->{'param'}{'retry_attempt'} // 0;
-my $alt_names     = $call->{'param'}{'alt_names'}     // [];
+my $cert_info     = $param->{'cert_info'}     // {};
+my $retry_attempt = $param->{'retry_attempt'} // 0;
+my $alt_names     = $param->{'alt_names'}     // [];
+$alt_names = [ grep {length} split m{\s+}, $alt_names ] if not ref $alt_names;
 
 if ($retry_attempt) {
     <[base.logs]>->( 2, ':. retry attempt : %d', $retry_attempt );
@@ -29,7 +32,7 @@ my @domains = ($domain);
 push @domains, @$alt_names if ref($alt_names) eq qw| ARRAY | && @$alt_names;
 
 ## Get admin email from config or parameters
-my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
+my $email = $param->{'email'} || <letsencr.admin.email>;
 
 ## Substitute :requested-domain: keyword with primary domain
 $email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
@@ -46,8 +49,8 @@ return <[letsencr.child.acme.begin]>->(
     }
 );
 
-#,,.,,,.,,.,.,..,,..,,.,,,.,.,,,,,.,.,...,.,.,..,,...,...,,,,,...,.,,,..,,..,,
-#UH637PKP5TOQMFQFBTZIN4F4NFDYGLSUICX2O2RCJF6IPIXK7B74GWHQ2Z4JQXYD4GUIBE7ZDRT5C
-#\\\|6R2M2GELJEOEKTYSBGGZLNGPA3ZEBLANZ4LWRFA42A2JTW74UNI \ / AMOS7 \ YOURUM ::
-#\[7]TH6ZY7KNSF3KZZTDE37XIGHEQEDXUSMY2BIPHMZQJVCBNLLLNAAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,.,,,,,,,,.,..,,.,,,.,,,,,,,...,..,,...,...,.,.,,,.,,..,..,,.,,,
+#7EUSJV7WQ6ZQF3N3NKCLXLHBFDRV4P2XT4S6TJVLGRWGLZEBVIB4YRL5AN2UJSJI4SXICSY3TSBXI
+#\\\|YGK6WGJYJ7PK3DZYXUIUIX75DU3WEJRKBSSMYPTH4LTQ4WURNM2 \ / AMOS7 \ YOURUM ::
+#\[7]CGCLARW2ZCE4NRN4AJOLDNTEXSCK7R5VFAYHBZT7LZHZIK2QTUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -50,9 +50,9 @@ foreach my $renewal_info (@$renewal_list) {
     my $result = <[protocol-7.command.send.local]>->(
         {   'command'   => $cmd,
             'call_args' => {
-                'args'  => $domain,
                 'param' => {
-                    'alt_names'       => $alt_names,
+                    'domain'          => $domain,
+                    'alt_names'       => join( qw| |, @{$alt_names} ),
                     'account_id'      => $account_id,
                     'certificate_url' => $certificate_url,
                     'retry_attempt'   => 0,
@@ -95,8 +95,8 @@ return {
     queued => $queued_count,
 };
 
-#,,.,,,,,,,..,.,.,,..,..,,.,.,,,.,.,.,.,.,,,.,..,,...,...,...,,,,,,.,,,.,,,..,
-#24YM6ZNQFJWLIBH34II4C4XNGVLKMADUHJZ4EMFD33OR74RLH4WTQITWIIHEFPRD5CAQEEJXSPGRC
-#\\\|D7J4IJWTH4KBFSXCWATMLKV6DN43JUH4SAHTXK7TYQGKSECNCJP \ / AMOS7 \ YOURUM ::
-#\[7]BX76UPJHBL6AFEVDHJMKUKPRQQEWWYXJAZ7Q6RZ47VZCVTYNTODA 7  DATA SIGNATURE ::
+#,,,,,...,...,,,.,,,.,.,.,,..,,..,..,,..,,,,,,..,,...,...,.,.,..,,,..,..,,,.,,
+#3SYCKIDTCYNAO4DGN4L735LYTXBPCLQQWRBK6RIXJXDD46RLRKPHESMCBDDS6CR42D7TVYDMUF47E
+#\\\|5JLHY5I3EOG2USHZ3KG66GNA7ZN54GZNDSIMZRNMJ6EHNHWFQEB \ / AMOS7 \ YOURUM ::
+#\[7]WYKHUKGRXFXIGQ4RS2H5P4FAZRZOY33ORTI3TDJQZJCUDS4YOODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

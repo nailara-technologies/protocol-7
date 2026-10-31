@@ -119,8 +119,10 @@ foreach my $domain ( <[base.sort]>->( @{$new_domains} ) ) {
     my $result = <[protocol-7.command.send.local]>->(
         {   'command'   => qw| child.verify-domain |,
             'call_args' => {
-                'args'  => $domain,
-                'param' => { 'public_addresses' => \@public_addresses, }
+                'param' => {
+                    'domain'           => $domain,
+                    'public_addresses' => join( qw| |, @public_addresses ),
+                }
             },
             'reply' => {
                 'handler' =>
@@ -169,8 +171,8 @@ foreach my $domain ( <[base.sort]>->( @{$new_domains} ) ) {
 
 return { 'status' => qw| success |, 'queued' => $queued };
 
-#,,.,,...,,..,...,,,.,..,,,,.,,,,,...,,,,,.,.,..,,...,..,,..,,,,,,,,,,.,,,,,,,
-#FLSDE65DBHELVW52PEU7L7DEXJDT6GA3NL2QXYJOHTRKOMIGQVVSX2HVBCUPE7ISZXJNUZMM7LMAG
-#\\\|OMKMTJCFNQ33RWRAQBSPZAB6RQIG5FHEP2RKRQ2PRJOPJ6ZWLVN \ / AMOS7 \ YOURUM ::
-#\[7]QPXRBL2FMPYX7ULIN6I2UXZT25HISJDFWAH5LCGF2S2F4XFUQKCA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,...,,..,...,,.,,,.,,,,.,.,,,.,.,..,,...,...,.,.,,..,,,.,.,,,,..,
+#R5SEVVA5UBCIYMXJFV4AN2PKT3GVBITMBFFUX4RNMHFLT5RPLLEWMNKQGETGSQZAXJF2ZTT2NLAKE
+#\\\|62RH3HMSGER225IVHI6KAFFYE2RUHFTFT4U46PRF3PKYR73PCBY \ / AMOS7 \ YOURUM ::
+#\[7]3IRBKVOQTVPO7VUFZXOZRM5A3W5W3GBARQMZ5H6B7YDK5C7XDYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

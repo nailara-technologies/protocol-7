@@ -32,9 +32,9 @@ my $attempt = $retry_data->{attempt} // 2;
 my $result = <[protocol-7.command.send.local]>->(
     {   'command'   => 'child.request-certificate',
         'call_args' => {
-            'args'  => $domain,
             'param' => {
-                'domains' => [$domain],
+                'domain'  => $domain,
+                'domains' => $domain,
                 'email'   => <letsencr.admin.email>,
                 'attempt' => $attempt,
             }
@@ -63,8 +63,8 @@ delete <letsencr.parent.pending_retry>->{$domain};
 
 return FALSE;
 
-#,,,,,.,,,,.,,,,,,,,,,,,,,,..,..,,,.,,,,,,,,,,..,,...,..,,..,,,..,,..,,,,,,,.,
-#MXG43HMX76WPK25ALLC6VGB6QYNOZKDP2SB2VYMDJVXDJSPZTWDPLOBXO6PRXIYSLQX3TC4LRW7EM
-#\\\|D5Y7DUODEREM3DIP2KWXS77PGRG4JKX5VHZMWIFLDXODHEZRBSH \ / AMOS7 \ YOURUM ::
-#\[7]5QNMVZ26Q6XTMOUINAELDQQAKZEWIJBHXB5TAD6MWRWSWQE43QAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,...,...,..,,,,,,.,.,,..,..,,..,,...,..,,,.,,..,,,.,,,,,,,..,
+#NS24YPCDD2KJBDQDZ5TH6VUR63ZZNE2SQWCJCF6LPVUDFYHSIAZW75AMV4WZHWGE7BUQO6UK6DPOE
+#\\\|PEBB5NHR7MKM7AQGPNPJLVM45NRWRWCVIQVELGIPDN4DQORDRFD \ / AMOS7 \ YOURUM ::
+#\[7]LFYSO5UYIZUDY4A6IGKTRUW7WFKQMH7G7AUOKTQOYJV3XDPQRUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

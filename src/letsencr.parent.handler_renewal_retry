@@ -38,9 +38,10 @@ return FALSE unless $cert_info;
 <[protocol-7.command.send.local]>->(
     {   'command'   => qw| child.renew-certificate |,
         'call_args' => {
-            'args'  => $domain,
             'param' => {
-                'alt_names'       => $cert_info->{alt_names} // [],
+                'domain'    => $domain,
+                'alt_names' =>
+                    join( qw| |, @{ $cert_info->{alt_names} // [] } ),
                 'account_id'      => $cert_info->{account_id},
                 'certificate_url' => $cert_info->{certificate_url},
                 'retry_attempt'   => $attempt,
@@ -60,8 +61,8 @@ if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
 
 return TRUE;
 
-#,,.,,.,,,,,.,.,.,.,,,,..,.,,,...,,.,,,,.,.,,,..,,...,...,..,,.,.,..,,,..,...,
-#XEYY3ZOZM7DNAEL2VIDZKPW4SLG2ZE3MWNL26SIIXE55UKN2SVEBKLAF2ZL6CMZPABFTDPO6S2ZZG
-#\\\|H43PHA2ESA5X4RXHQUQ5WMUACPDRQPLKTJUKMU7KSM5RH4CVYFH \ / AMOS7 \ YOURUM ::
-#\[7]UKGVDYYESKAAM4DAKHUNEJWILKIDJLX3SOEUQ5PCXCSPTQTJVQBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,,.,,,..,..,,...,,.,,,,,,.,.,..,,...,..,,.,.,,.,,...,,,.,..,,
+#KOYJAGG7BOZYRY5YR3XG6KNMPSXTQVAK2Z5XRPMFSA6XIBHU3XXRZPOLUKO2MZGYRLWYTCXRA7VOE
+#\\\|BOHB2LUGEUWF553PVP6T52IAV53BQK6JQ5RHZO4FY6IZO2NVMVH \ / AMOS7 \ YOURUM ::
+#\[7]TG2P7MO2AG5OQ6DZWQ63OQMS7CPS46FXBNKE3UBP4HJK2OJLR4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

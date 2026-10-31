@@ -37,15 +37,15 @@ my $cert_info = $certs->{$domain};
 my $certs_dir = <letsencr.certs.dir>;
 
 ## Send revocation command to child process
-my $revoke_cmd = 'letsencr.child.cmd.revoke-certificate ' . $domain;
+my $revoke_cmd = qw| letsencr.child.cmd.revoke-certificate |;
 
 <[base.log]>->( 2, "sending revocation command to child for : $domain" );
 
 my $result = <[protocol-7.command.send.local]>->(
     {   'command'   => $revoke_cmd,
         'call_args' => {
-            'args'  => $domain,
             'param' => {
+                'domain'    => $domain,
                 'cert_path' => $cert_info->{cert_path},
                 'key_path'  => $cert_info->{key_path},
             }
@@ -80,8 +80,8 @@ if ($result) {
     };
 }
 
-#,,,.,,,,,,.,,.,,,...,...,,.,,,,,,,,,,,,,,,,,,..,,...,...,..,,...,,,,,,..,..,,
-#M4HCYUQQ57NTWC5ZQEWE3EKG75RAGXRURMH5RHTMRKOEN34BYRB7WMQ3UB6UQ3FVR72TVHJQ3UI3E
-#\\\|GIEOUITA6TFI24C4G6X2HHUJEGUEJGSC2I62NQDXCYYS6DB4INH \ / AMOS7 \ YOURUM ::
-#\[7]QZRYBFL42BXRICF66W4FD2H3A2KWUT72WRC2EQDNJ6AVABSVMKCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,.,.,.,,,..,,...,.,.,,..,.,,,..,,...,...,..,,.,,,,..,,.,,,,.,
+#4AC4YIAQ6HKL3WOPMKC6HC4JSTGTNSR4EBJITWG2C6MJD7M3QM2OJTJCVOAF2UBE74TKECH7NLPUO
+#\\\|XYEYKKRSEQB5YE7ZLCHNULK7YMLZX4B76IVBFUHEWFZ6OOEOQT5 \ / AMOS7 \ YOURUM ::
+#\[7]DTRNTZEVSFN7HLNPCGRTWNSYWDQIDOYQCS5QTGCIH7XJFPMC6GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
