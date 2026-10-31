@@ -97,6 +97,9 @@ push @hsetroot_params, qw| -fliph |    ##  flipping image when enabled  ##
     if $image_h_flipped and index( $add_options_str, qw| -fliph | ) == -1;
 ##
 
+## no DISPLAY env in xorg mode ##
+local $ENV{q|DISPLAY|} = <X-11.display>->{<X-11.mode>};
+
 if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     <[base.logs]>->(
         0, "cannot execute 'hsetroot' command [ returned %s ]", $CHILD_ERROR
@@ -114,8 +117,8 @@ if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     return TRUE;                             ##  return success  ##
 }
 
-#,,..,,.,,.,.,..,,...,,.,,,..,..,,..,,.,.,..,,..,,...,...,...,..,,..,,,.,,...,
-#BHXDDBAQYCMDOGKWKEIUWI7MJZAG5X4BYVYDFVGX5NCCCFXA3DKM4R6RDUDIONHRNXO57CN2J6QQK
-#\\\|WIJLQDVBUZVXQ2J4TMBKQBKXLXNCKCBRJCT53OIZ2HJTM5TTZXT \ / AMOS7 \ YOURUM ::
-#\[7]FQS2HOCCRIROXFRAATL6VIZDCWRWN75HF3VDP4QM6ZXCSOM3NWBA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,,.,,.,,,.,.,,..,,..,,,.,..,,..,,...,...,...,..,,,..,.,,,,,,,
+#O2K5VVM5BEPNVASOXNBYENOZ2IQQUXM36L7N5XPYINAEA6JI5YAVDGUIBAZHMMUGHKJAF5JYZTRL2
+#\\\|ZCAM6544OMPZG7PBJU5X5NT2TOVK5WYJ2S6G2KZIXOP23MHWRVK \ / AMOS7 \ YOURUM ::
+#\[7]FA5PN6WL6GU2SH5YO7ZZIAANWCP7BBD2QE2LGID3ALH3NVXBNGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
