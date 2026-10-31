@@ -44,7 +44,7 @@ if ( ( $reply->{'cmd'} // '' ) ne qw| TRUE | ) {
 
 $request->{'args'}
     = sprintf( ':wait-up: login-screen-session[%s]', $pending->{'user'} );
-my $result = $code{'v7-zenki.zenka.cmd.start_once'}->($request);
+my $result = <[zenka.cmd.start_once]>->($request);
 if ( ref($result) eq qw| HASH | and $result->{'mode'} ne qw| deferred | ) {
     $revoke->();
     unlink($path) if -f $path and not -l $path;
@@ -52,8 +52,8 @@ if ( ref($result) eq qw| HASH | and $result->{'mode'} ne qw| deferred | ) {
 }
 TRUE;
 
-#,,,,,.,.,,..,,..,...,,.,,,.,,.,,,..,,,.,,,,,,.,.,...,...,.,,,,..,..,,,..,,.,,
-#Y7DLJ5FOUCZD3VUNR63QQGU3U6XZCRBHGHTU2XXJ7B6S5A7I7LHUFO4ATUOEGF3QAJECMGTJ6QXVS
-#\\\|D5TN2EP3QDU7BCLFSHPFAS6724BQ7TBJMWQ5N3XBYQYJHRMUO7T \ / AMOS7 \ YOURUM ::
-#\[7]BQ2IJISKFXRPIWW6VN3VXH2QBB6Q4V2XVZJEWK62O3MBZ6DDFUBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,...,..,,.,,,..,,,,,,...,,,,,,,.,.,.,...,...,..,,,,,,...,..,,,,.,
+#KXB63SII5BPUPH52BQSQO5QUVK7ZGXM6GZYBZRQMAEF4UT2JRKMJHY34LKFZSUZE527UBD6MD7WT6
+#\\\|PAPPUBR5FWSD7RYDPVLGW2HHNY6MEGAN56J5SXAOMZQQXKQUKMJ \ / AMOS7 \ YOURUM ::
+#\[7]PXEOWVR77N6VPVWD5V6QWU543PMRRE5HAZCVB5UYMJUDSS6KWUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
