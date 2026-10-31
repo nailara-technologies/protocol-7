@@ -95,7 +95,7 @@ if ( $server->{'mode'} eq qw| xorg | ) {
         die 'missing xorg authority or user' if not length $x11_user;
         foreach my $local_user ( $x11_user, qw| root | ) {
             $conn->ChangeHosts( qw| Insert ServerInterpreted |,
-                "localuser:$local_user" );
+                "localuser\0$local_user" );
         }
         $conn->SetAccessControl(qw| Enabled |);
         my @hosts = $conn->ListHosts();
@@ -106,7 +106,7 @@ if ( $server->{'mode'} eq qw| xorg | ) {
             my $present = grep {
                         ref($ARG) eq qw| ARRAY |
                     and $ARG->[0] eq qw| ServerInterpreted |
-                    and $ARG->[1] eq "localuser:$local_user"
+                    and $ARG->[1] eq "localuser\0$local_user"
             } @hosts[ 1 .. $#hosts ];
             die "missing SI localuser entry for $local_user" if not $present;
         }
@@ -136,8 +136,8 @@ $server->{'connected'} = TRUE;
 ## resolve jobs waiting on this display ##
 <[jobqueue.check_dependencies]>;
 
-#,,,.,,,,,,,,,.,,,,,.,,.,,...,,..,,..,,,,,..,,..,,...,..,,...,.,,,..,,,.,,.,,,
-#JBDY7GDXIYD46E36ZKC7ROAAZSQ6M7HXDECKXRKO76WRQVWPSW2PEHFZ2K6GUWKAMYICZ2IH5RFTG
-#\\\|PWQCIWT7Q3GDIF2T7YKJOTKXXAQVMSFS7S4VXLPYCFUPCVBOUNV \ / AMOS7 \ YOURUM ::
-#\[7]S5KWCS7CBDM73WW5IDVR6WZRLGLK5CZHUVGW4MHOBOICB73RPWBA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,,,.,,,.,,,..,,...,,.,,...,,,,,..,,...,..,,.,,,,,.,.,,,,.,,.,,,
+#FJMXKZDT5Q45OBPBLBCXSZCGM2SPOB2UJV2R2BHWQ6X54Y2PGHMAM2MMYCJJ2OL2SF6QHCWJLVY4G
+#\\\|J4V3TH34CLTOTVHAQRHUHTDO4ZUP4MS7K22USZHPGDBNHVJJJG6 \ / AMOS7 \ YOURUM ::
+#\[7]4BRCJQLHPA4K7T3ZPOMED6GUXVEEUBLW6YDYH5IZTMGDI3BSVYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
