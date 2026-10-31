@@ -147,7 +147,7 @@ $result = $change_user->( 'Insert', { 'args' => $session_user } );
 ok( $result->{'mode'} eq 'true', 'v7 can grant a session user' );
 ok( $x->{'calls'}->[0]->[1] eq 'Insert'
         && $x->{'calls'}->[0]->[2] eq 'ServerInterpreted'
-        && $x->{'calls'}->[0]->[3] eq "localuser:$session_user",
+        && $x->{'calls'}->[0]->[3] eq "localuser\0$session_user",
     'grant inserts the exact SI localuser entry'
 );
 $result = $change_user->( 'Delete', { 'args' => $session_user } );
@@ -233,8 +233,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,..,.,.,,,.,,..,..,,,,,,.,.,.,.,,.,,.,,,.,.,..,,...,...,,..,..,,.,,,,..,,.,,
-#W2F6AYGPIRO644U2IEKZ6S762YLACJVP3ZMU7IMZLP65BJ25R2ASCFIQPCVGVQKQWJ7N7BHWQOVQM
-#\\\|WT3U4IXMZKYPQW6ENAJITWU5QUO5AFA2K2V76WRFBU2L36LWWDI \ / AMOS7 \ YOURUM ::
-#\[7]DBTPPYATCW643LYMVXJ3S5A7YESLD37CSSEHNIU7VORDVOC4AYBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,..,.,,,,,.,.,.,.,.,..,,..,,,,.,..,,...,..,,..,,.,.,,,,,...,,,,,
+#VDVGBDKWTGSVH5NDQNGWBF2GYUQHV75OA32Q677UXMQ6LSDVL6VFJEC2B4VU33C7MGE22HIVQK6IC
+#\\\|AJAS55X2BLAXHQW4R36ZPX4GKQRSTDJTIJYUWUHCTMFTT44MUDH \ / AMOS7 \ YOURUM ::
+#\[7]N2ES4JMVEOHCHIZ7PQ474ZEO7W7DOVNVGTS4RM6SMQRHGKY5KSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

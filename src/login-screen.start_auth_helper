@@ -74,7 +74,8 @@ die "cannot fork login-screen helper : $OS_ERROR" if not defined $pid;
 if ( $pid == 0 ) {
     close($greeter_fh);
     fcntl( $helper_fh, Fcntl::F_SETFD(), 0 ) or POSIX::_exit(126);
-    my $helper = sprintf( qw| %sbin/login-screen-auth |, <system.root_path> );
+    my $helper
+        = sprintf( qw| %s/bin/login-screen-auth |, <system.root_path> );
     exec {$EXECUTABLE_NAME} $EXECUTABLE_NAME, $helper,
         '--fd',     fileno($helper_fh),
         '--config', <login-screen.auth_helper.config_path>
@@ -90,8 +91,8 @@ $greeter_fh->autoflush(TRUE);
 
 TRUE;
 
-#,,,.,,,,,...,.,,,...,.,.,...,,,,,...,.,,,,.,,..,,...,...,...,..,,,.,,,..,.,,,
-#4VZBXZY254DUA62QODANGHWMZ446TZYANLNPMGJHAUAFTLJVXZG6Z6MPQFWIMFEFN74PCP3MZNHKO
-#\\\|HAOJKLMF6RTOSVFG54SUJO76VI2FN7J7R5UGRH4EG56WHITGAV7 \ / AMOS7 \ YOURUM ::
-#\[7]UXUSA6VVNOJCYGRXHIXMETT6DKENB25JDQB5JHAEJ3LHDA3LQEBA 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,,.,,...,,..,...,..,,,,,,.,.,..,,...,...,,,.,.,.,..,,,..,..,,
+#SGZWJVAQSXYYNCVJMXHL6Y4XHPFCLGL2KWCHZJYZPYJ5ZSEATQNSR53RZM3UKBX5V6MNXHEBBHEZO
+#\\\|5NE43ZSYXOJD5GYYOZE2WBCQCGOLDX4TVLK6CNXNPG3WHZS5UYW \ / AMOS7 \ YOURUM ::
+#\[7]2LW6ZVME5O7BJC7UU4U5FUZKMCOYG56IIT7YBXN6YM5OYBHVPACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

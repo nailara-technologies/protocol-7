@@ -36,7 +36,7 @@ return { 'mode' => qw| false |, 'data' => 'invalid session account' }
 
 my $ok = eval {
     <X-11.obj>->ChangeHosts( $operation, qw| ServerInterpreted |,
-        "localuser:$username" );
+        "localuser\0$username" );
     my @hosts = <X-11.obj>->ListHosts();
     die 'X access control is disabled'
         if not @hosts
@@ -44,7 +44,7 @@ my $ok = eval {
     my $present = grep {
                 ref($ARG) eq qw| ARRAY |
             and $ARG->[0] eq qw| ServerInterpreted |
-            and $ARG->[1] eq "localuser:$username"
+            and $ARG->[1] eq "localuser\0$username"
     } @hosts[ 1 .. $#hosts ];
     die 'X access change was not applied'
         if $operation eq qw| Insert | and not $present
@@ -61,8 +61,8 @@ return {
     : 'session user revoked'
 };
 
-#,,,.,,..,.,.,.,,,.,,,.,.,..,,,.,,.,.,,,,,,,.,.,.,...,...,.,,,,..,,,,,,,,,..,,
-#26ZXONNCF5G7X6FJBMED76OGBLZGQVBLOXWQ6BBEJL3BPSNLLCT6U3KIZXN4TRMQUOY2JOWW3KRA4
-#\\\|R6WCL7I2AZFYC66J25PAOSGXQDEK3RNHGFSOV6277GQKCUK2PNV \ / AMOS7 \ YOURUM ::
-#\[7]JZ3UMHDGLKVX3TKJ23PQ7HQZSKJQYST7E4KTG5QBUVWTJGL7S6DA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,..,,.,.,.,.,,.,,.,.,.,,,,..,.,.,...,...,...,,,,,,.,,,,,,,,,,
+#FPKRD7YNQHBPOSWHAKKCNIS5YA3FQIVZ5BJHZAMQCZZMK6DIFBMYBY2FBZ642GLICRKL4NTSJMPEA
+#\\\|UQDRQ2UOTONSGEVOTAR442ZEG5FIN2TVSOMVCAAOUWKY2WRRPZV \ / AMOS7 \ YOURUM ::
+#\[7]MNWG6LSMWG5PLSZIZHCUZRCGYYEADSCINR4V7GMYIEJFVJLE7ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
