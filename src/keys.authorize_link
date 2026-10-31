@@ -7,14 +7,16 @@
 #         keys.owned_dir and the symlink itself is lchown'ed when running
 #         as root ; refusal messages are printed here, TRUE/FALSE returned
 
-my ( $zenka, $username, $allow_same ) = @ARG;    ## allow_same : a link to ##
-## the same pin = success ##
+my ( $zenka, $username, $allow_same, $registry ) = @ARG;    ## allow_same : ##
+## a link to the same pin = success ; registry : optional directory ##
+## override                                                         ##
 
-my $key_vars_ref  = <[crypt.C25519.key_vars]>;
-my $incoming_dir  = $key_vars_ref->{'incoming_dir'};
-my $auth_base_dir = $key_vars_ref->{'auth_dir'};
-my $uid           = $key_vars_ref->{'uid'};
-my $gid           = $key_vars_ref->{'gid'};
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+my $incoming_dir = $registry->{'incoming_dir'}
+    // $key_vars_ref->{'incoming_dir'};
+my $auth_base_dir = $registry->{'auth_dir'} // $key_vars_ref->{'auth_dir'};
+my $uid           = $registry->{'uid'}      // $key_vars_ref->{'uid'};
+my $gid           = $registry->{'gid'}      // $key_vars_ref->{'gid'};
 
 if ( not defined $incoming_dir or not defined $auth_base_dir ) {
     say "\n  << key registry directories not resolved >>\n";
@@ -91,8 +93,8 @@ if ( $EUID == 0 and defined $uid ) {
 
 return TRUE;
 
-#,,..,,,,,,,,,,,.,,,.,,.,,,,,,..,,,..,,,.,,.,,.,.,...,...,,..,,,,,...,.,,,.,,,
-#7IAMEEZQOYGEW3JXKAB5DDGRMVFCVF5BVXGYZAIAAFIEC26JFGHSFM5AFWEUVJ3LFWZZGEIW5OY2C
-#\\\|ANPLSCQY6DSYYUX5XAZSM5FQS6W3UQSXMOYAGIACEIA7ZWE2IYB \ / AMOS7 \ YOURUM ::
-#\[7]OSXVWULBYN47EPVOQX7OYAJXU6LPQM543K4DRFCFTNWLR2DTLIAQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,,..,...,...,..,,.,,,.,,,..,,,,.,.,.,...,...,...,,,.,,,.,,,.,,,,,
+#7OXXATEE6UEVYC5PDLFVV3PLHN3HUBFIMUM22RZIZPK4SJ7ISFYUG7C6LJPB62HUIIGNVXEWR4CVU
+#\\\|76Y2LOR3INORJSQUSJURTEUZZWPS4TJ2GER3NT4ALSX7YPT57Z2 \ / AMOS7 \ YOURUM ::
+#\[7]TVHZTKTIPAGSUTTYQ7ICW4NCQOMMFOKZ236NEHQPXIUKLUDQFWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

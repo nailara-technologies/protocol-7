@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = authorization.owner_public_key
+# descr = resolve the configured owner public key without choosing a key
+# return = raw public key, or [ list context ] [ undef, clear reason ]
+
+my $owner_b32 = <authorization.owner.public_key>;
+
+return wantarray ? ( undef, 'owner public key not configured' ) : undef
+    if not defined $owner_b32
+    or ref $owner_b32
+    or not length $owner_b32;
+
+return
+    wantarray
+    ? ( undef, 'configured owner public key is not canonical b32' )
+    : undef
+    if $owner_b32 !~ m|\A[A-Z2-7]{52}\z|;
+
+my $owner_pub = eval { Crypt::Misc::decode_b32r($owner_b32) };
+return wantarray
+    ? ( undef, 'configured owner public key is not 32 bytes' )
+    : undef
+    if not defined $owner_pub
+    or bytes::length($owner_pub) != 32
+    or Crypt::Misc::encode_b32r($owner_pub) ne $owner_b32;
+
+return $owner_pub;
+
+#,,,,,,..,...,,,,,.,.,,,,,,..,,,.,.,,,,,,,,,.,..,,...,...,..,,,,.,.,.,,,.,..,,
+#25YGJI3P5TFDEHUCIET33HAOQW6ZRCMCR2FGIPMBTVJNQW3DQKF5NUVJUFXZKU7ZT3TGFNGOBKW2U
+#\\\|KD5TF5ZJXTL6E5TZUVMEO5236GJ5T7WSSM3JAQVVV2MGSZHRKMY \ / AMOS7 \ YOURUM ::
+#\[7]VNHPAGBPSLZ7YKJAOW7QV4U4EFBTYF7R6KA2L2MYX5TJBAKIE4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

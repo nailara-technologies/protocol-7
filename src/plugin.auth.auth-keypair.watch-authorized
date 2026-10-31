@@ -33,20 +33,31 @@ return FALSE
 
 ## authorized/<zenka>/ holds the links, incoming/ their targets ##
 ## [ a re-pin rewrites the target, the link stays ]             ##
-my @targets = ( catfile( $auth_dir, <system.zenka.name> ), $incoming_dir );
+my $host_registry
+    = catfile( <[base.host.config_dir]>, qw| auth remote-keys | );
+my @targets = (
+    catfile( $auth_dir, <system.zenka.name> ),
+    $incoming_dir,
+    catfile( $host_registry, qw| authorized |, <system.zenka.name> ),
+    catfile( $host_registry, qw| incoming | ),
+);
+my %target_root = map { $ARG => $home_dir } @targets[ 0, 1 ];
+$target_root{ $targets[2] } = $host_registry;
+$target_root{ $targets[3] } = $host_registry;
 
 my $watches = <plugin.auth.auth-keypair.watches> //= {};
 
-## deepest existing directory of each target, never above the home dir ##
+## deepest existing directory of each target, never above its registry root ##
 my %wanted;
 foreach my $target (@targets) {
-    my $dir = $target;
+    my $root = $target_root{$target};
+    my $dir  = $target;
     while ( not -d $dir ) {
         ( my $parent = $dir ) =~ s{/+[^/]+/*$}{};
-        last if $parent eq $dir or length $parent < length $home_dir;
+        last if $parent eq $dir or length $parent < length $root;
         $dir = $parent;
     }
-    next if not -d $dir or index( $dir, $home_dir ) != 0;
+    next if not -d $dir or index( $dir, $root ) != 0;
     $wanted{$dir} = TRUE;
 }
 
@@ -116,8 +127,8 @@ foreach my $dir ( sort keys %wanted ) {
 
 return scalar keys $watches->%*;
 
-#,,.,,...,,,.,,.,,.,,,.,,,,,,,,..,,..,..,,,..,..,,...,...,.,.,,,,,,,,,.,,,,..,
-#ACKAJMKYYPNIY5F5NUWC35734WQ2QRZFSIRMMP5W7B3NWXTPFYXKFHMOWIL4HET3JQOUFB4TQ2X72
-#\\\|DQJZWF6J4UJSBOYFPY72GET2QLRU6DE33LM4AIB7CZAEQE3TXPB \ / AMOS7 \ YOURUM ::
-#\[7]BL7IU5INJ42SYCF5CNJJBFCWV6TZZLLF5V3AWELJPUAGABEGK4CA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,,,.,,.,,.,,,,..,,..,,,.,,,.,..,,...,...,...,,..,,..,.,,,,,,,
+#H4X6T7C5YOBXNITKSWYZ2VDUYNT3SI6UQSL7UU3F2Z4OAUAWO3SZIDLXXQZJ24XFDN6YPQOP5ZZB6
+#\\\|ZUKL2A3BYJ2YNCNS2EQR4TVQUPFTYIKJ3C4WJ4E3RR3GXAPJNM5 \ / AMOS7 \ YOURUM ::
+#\[7]X2BCLAYPDBFO2Y3PGOGT7HSTNBUOW7ZUDGQ26YIY5VU5N56IUYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

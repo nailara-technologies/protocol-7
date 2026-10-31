@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = authorization.key_mapping
+# descr = write a host-local public user key and authorized role link
+# param = <requested user> <requested role> <canonical public b32>
+# note  = reuses keys.authorize_link ; never writes the repository
+
+my ( $username, $role, $public_b32 ) = @ARG;
+
+return ( FALSE, 'user or role not valid' )
+    if not defined $username
+    or not defined $role
+    or $username !~ m|\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z|
+    or $role     !~ m|\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z|;
+
+my $key_vars = <[crypt.C25519.key_vars]>;
+return ( FALSE, 'key registry ownership not resolved' )
+    if ref $key_vars ne qw| HASH |
+    or not defined $key_vars->{'uid'}
+    or not defined $key_vars->{'gid'};
+
+my $auth_root = catdir( <[base.host.config_dir]>, qw| auth | );
+my $registry  = catdir( $auth_root,               qw| remote-keys | );
+my $incoming  = catdir( $registry,                qw| incoming | );
+my $auth_dir  = catdir( $registry,                qw| authorized | );
+
+return ( FALSE, "cannot create host authorization directory '$auth_root'" )
+    if not <[keys.owned_dir]>->(
+    $auth_root, 0700, $key_vars->{'uid'}, $key_vars->{'gid'}
+    );
+return ( FALSE, "cannot create host key registry '$registry'" )
+    if not <[keys.owned_dir]>->(
+    $registry, 0700, $key_vars->{'uid'}, $key_vars->{'gid'}
+    );
+return ( FALSE, "cannot create host incoming key directory '$incoming'" )
+    if not <[keys.owned_dir]>->(
+    $incoming, 0700, $key_vars->{'uid'}, $key_vars->{'gid'}
+    );
+
+my $pin_file = catfile( $incoming, "$username.public" );
+if ( -f $pin_file ) {
+    my $current = <[file.slurp]>->($pin_file)->$*;
+    $current //= '';
+    chomp $current;
+    return ( FALSE, "a different host key is already pinned for '$username'" )
+        if $current ne $public_b32;
+} else {
+    require Fcntl;
+    my $pin_fh;
+    return ( FALSE, "cannot exclusively create host key '$pin_file'" )
+        if not sysopen(
+        $pin_fh,
+        $pin_file,
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        0600
+        );
+    binmode $pin_fh, qw| :raw |;
+    my $written = print {$pin_fh} "$public_b32\n";
+    my $closed  = close $pin_fh;
+    if ( not $written or not $closed ) {
+        my $reason = "$OS_ERROR";
+        unlink $pin_file;
+        return ( FALSE, "cannot write host key '$pin_file' : $reason" );
+    }
+}
+
+my $authorized = <[keys.authorize_link]>->(
+    $role,
+    $username,
+    TRUE,
+    {   qw| incoming_dir | => $incoming,
+        qw| auth_dir |     => $auth_dir,
+        qw| uid |          => $key_vars->{'uid'},
+        qw| gid |          => $key_vars->{'gid'},
+    }
+);
+return ( FALSE, "cannot authorize host key '$username' for '$role'" )
+    if not $authorized;
+
+return wantarray
+    ? ( TRUE, $pin_file )
+    : { qw| mode | => qw| true |, qw| data | => $pin_file };
+
+#,,.,,,..,.,.,.,,,,,.,.,,,,,.,...,,.,,.,,,...,..,,...,...,,,.,,..,...,,,,,,.,,
+#H7LKPSSEAQSN3R64LVBFAT26OJTPBXZIYB26NN5NBNVEIASY3B2XE35QJK4TVDIELPJCHA4MJ6T6U
+#\\\|Z3SMCD2NH4XJZBVLOGAYWVCA6WTSFDAENU7PHAFMIKEDA6LYWE6 \ / AMOS7 \ YOURUM ::
+#\[7]NVWT24JHET4BEYS4T4K5ERHH2WHKJW5RTZXYXUHFMSU6MFEP6EDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

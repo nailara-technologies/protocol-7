@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = authorization.decision_message
+# descr = canonical bytes signed for an authorization-buffer decision
+# param = <entry hashref> [ approve ]
+
+my ( $entry, $decision ) = @ARG;
+$decision //= qw| approve |;
+
+return undef
+    if ref $entry ne qw| HASH |
+    or $decision ne qw| approve |;
+
+my $host_id = <[crypt.C25519.cmd.host-root-id]>;
+return undef
+    if ref $host_id ne qw| HASH |
+    or $host_id->{'mode'} ne qw| true |
+    or $host_id->{'data'} !~ m|\A[A-Z2-7]{77}\z|;
+
+my @field = @{$entry}{qw| id fingerprint requested_user requested_role |};
+return undef
+    if grep { not defined $ARG or $ARG =~ m|[\x00-\x20\x7f]| } @field;
+
+return join( "\n",
+    qw| p7 authorization decision v1 |,
+    $decision, $host_id->{'data'}, @field ) . "\n";
+
+#,,,,,,.,,.,,,,,,,,,.,..,,.,,,.,.,.,.,.,,,...,..,,...,...,.,,,.,.,,..,..,,...,
+#PLCRIZMM3XSLV7GGTK2YCR3KOVMA7UDFIFNCUYLKXLYJTK4WF6XXWYUBXLTP2R5AUTLQN3KZUOWGC
+#\\\|T5TU4ER5ZUIM4KX6BBD4NECL2DQX7QAVODDAEOY6PR2C353TVX3 \ / AMOS7 \ YOURUM ::
+#\[7]52VALF6C3LZV5YAQMSCJF4YGITNU4SN4XWWIMXMAVSJI4M77NEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

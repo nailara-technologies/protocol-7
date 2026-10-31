@@ -1,0 +1,150 @@
+## [:< ##
+
+# name  = authorization.buffer.arrive
+# descr = merge a key arrival into the authorization buffer
+# param = { public_b32 channel source requested_user requested_role
+#           [ chain ] [ now ] }
+
+my $param = shift;
+return { qw| mode | => qw| false |, qw| data | => 'parameters not a hash' }
+    if ref $param ne qw| HASH |;
+
+my @required = qw| public_b32 channel source requested_user requested_role |;
+return { qw| mode | => qw| false |, qw| data | => 'arrival field missing' }
+    if grep { not defined $param->{$ARG} or not length $param->{$ARG} }
+    @required;
+
+my $public_b32 = $param->{'public_b32'};
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'public key not canonical b32'
+    }
+    if $public_b32 !~ m|\A[A-Z2-7]{52}\z|;
+my $public_bin = eval { Crypt::Misc::decode_b32r($public_b32) };
+return { qw| mode | => qw| false |, qw| data | => 'public key not 32 bytes' }
+    if not defined $public_bin
+    or bytes::length($public_bin) != 32
+    or Crypt::Misc::encode_b32r($public_bin) ne $public_b32;
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'channel, source, user or role not valid'
+    }
+    if grep { $param->{$ARG} !~ m|\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\z| }
+    qw| channel source requested_user requested_role |;
+
+my $now         = $param->{'now'} // time;
+my $fingerprint = <[trust.key_id]>->($public_bin);
+return { qw| mode | => qw| false |, qw| data | => 'key fingerprint failed' }
+    if not defined $fingerprint;
+
+$data{'authorization.buffer'} //= {};
+$data{'auth.rate'}            //= {};
+my $buffer = $data{'authorization.buffer'};
+
+## expire first ; an expired duplicate is a new arrival, never an approval ##
+foreach my $id ( keys $buffer->%* ) {
+    my $entry = $buffer->{$id};
+    next if $entry->{'expires'} == 0 or $entry->{'expires'} > $now;
+    $entry->{'state'} = qw| expired | if $entry->{'state'} eq qw| pending |;
+}
+
+my $entry;
+foreach my $candidate ( values $buffer->%* ) {
+    next if $candidate->{'fingerprint'} ne $fingerprint;
+    next if $candidate->{'state'} ne qw| pending |;
+    $entry = $candidate;
+    last;
+}
+
+my $duplicate = defined $entry ? TRUE : FALSE;
+if ($duplicate) {
+    $entry->{'channels'} //= [];
+    push $entry->{'channels'}->@*, $param->{'channel'}
+        if not grep { $ARG eq $param->{'channel'} } $entry->{'channels'}->@*;
+    $entry->{'last_seen'}   = $now;
+    $entry->{'last_source'} = $param->{'source'};
+} else {
+    my $limit  = <authorization.buffer.rate_limit>  // 12;
+    my $window = <authorization.buffer.rate_window> // 60;
+    my $rate   = $data{'auth.rate'}->{ $param->{'source'} } //= [];
+    @{$rate} = grep { $ARG > $now - $window } @{$rate};
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => "arrival rate limit exceeded for '$param->{'source'}'"
+        }
+        if @{$rate} >= $limit;
+    push @{$rate}, $now;
+
+    my $created = <[base.ntime.b32]>->( 3, TRUE );
+    my $id = sprintf 'AUTH-%s-%s', $created, substr( $fingerprint, 0, 13 );
+    $entry = {
+        qw| id |          => $id,
+        qw| type |        => qw| key_arrival |,
+        qw| state |       => qw| pending |,
+        qw| public_b32 |  => $public_b32,
+        qw| fingerprint | => $fingerprint,
+        qw| channels |    => [ $param->{'channel'} ],
+        qw| source |      => $param->{'source'},
+        qw| last_source | => $param->{'source'},
+        qw| first_seen |  => $now,
+        qw| last_seen |   => $now,
+        qw| created |     => $created,
+        qw| expires |     => $now + ( <authorization.buffer.ttl> // 86400 ),
+        qw| requested_user | => $param->{'requested_user'},
+        qw| requested_role | => $param->{'requested_role'},
+    };
+    $buffer->{$id} = $entry;
+}
+
+## the only automatic case : a currently valid chain from the configured  ##
+## owner key to this exact public key. duplicate count never enters here. ##
+my $chain = $param->{'chain'};
+if ( defined $chain and not ref $chain ) {
+    ( $chain, my $chain_reason ) = <[trust.chain]>->( qw| split |, $chain );
+    $chain = undef if ref $chain ne qw| ARRAY |;
+}
+if ( ref $chain eq qw| ARRAY | ) {
+    my ($owner_pub) = <[authorization.owner_public_key]>;
+    if ( defined $owner_pub ) {
+        my $owner_fp = <[trust.key_id]>->($owner_pub);
+        my $verified = <[trust.verify]>->(
+            {   qw| chain |   => $chain,
+                qw| anchors | => [$owner_fp],
+                qw| subject | => $public_bin,
+                qw| now |     => $now,
+            }
+        );
+        if ( ref $verified eq qw| HASH | ) {
+            my ( $mapped, $mapping_reason )
+                = <[authorization.key_mapping]>->(
+                $entry->{'requested_user'},
+                $entry->{'requested_role'}, $public_b32
+                );
+            return {
+                qw| mode | => qw| false |,
+                qw| data | => "owner-certified key not "
+                    . "mapped : $mapping_reason"
+                }
+                if not $mapped;
+            $entry->{'state'}    = qw| approved |;
+            $entry->{'decision'} = {
+                qw| method | => qw| auto_owner_cert |,
+                qw| by |     => $owner_fp,
+                qw| at |     => $now,
+            };
+        }
+    }
+}
+
+return {
+    qw| mode |      => qw| true |,
+    qw| data |      => $entry,
+    qw| duplicate | => $duplicate,
+};
+
+#,,.,,,..,.,,,...,..,,,,.,..,,,,.,.,.,,,,,,.,,..,,...,...,..,,.,.,,,,,.,.,,,.,
+#VY7DBGBZWAQADTFY5PCIZRI5TI6J47ETM3VKDPDMRWALHEHRIYJRCEBX4A5K2JQGGCYIYJM7BISJU
+#\\\|R4SNYSPLBNZXZUIEUP6DNCGRI2UKY5Q5K5MJQJJNHIVI45G6UOS \ / AMOS7 \ YOURUM ::
+#\[7]JUY6JGMTNO42Y62KY2TISAZAVIUJORKA3IM7X4MGJPHLFOZHG4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

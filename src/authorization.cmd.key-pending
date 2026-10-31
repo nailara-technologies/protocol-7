@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = authorization.cmd.key-pending
+# descr = list key arrivals oldest first
+
+my @entry = sort { $ARG->{'first_seen'} <=> $ARG->{'first_seen'} }
+    values( ( $data{'authorization.buffer'} // {} )->%* );
+return { qw| mode | => qw| true |, qw| data | => 'no key arrivals' }
+    if not @entry;
+
+my $output = join "\n", qw| ID TYPE STATE USER ROLE FINGERPRINT CHANNELS |;
+foreach my $entry (@entry) {
+    $output .= sprintf "\n%s %s %s %s %s %s %s",
+        @{$entry}
+        {qw| id type state requested_user requested_role fingerprint |},
+        join( ',', $entry->{'channels'}->@* );
+}
+return { qw| mode | => qw| size |, qw| data | => "$output\n" };
+
+#,,,,,..,,,..,,,.,,,.,...,..,,.,.,,..,..,,,,.,..,,...,...,,..,.,,,,..,...,,.,,
+#B6SY6K35WUUJJ5HC5EO44OPCOI27I4WCN6CTNOBARPKNRRU3G2LHWW52EWQKSU5ZLBLWZOCH6IIIW
+#\\\|TSYYL6EZ22SLMOSZVKFWHI5UPLGBRGUI75HMSVQCZ4UULK5KJTZ \ / AMOS7 \ YOURUM ::
+#\[7]KPHOIACEIPS5WYKE6OIWVETHN6GJPRRWGVIN75IXQX5VKHOTDUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

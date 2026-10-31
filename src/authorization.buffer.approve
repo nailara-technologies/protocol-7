@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = authorization.buffer.approve
+# descr = verify an owner decision, then write the host-local key mapping
+# param = <entry id> <owner signature b32> [ now ]
+
+my ( $id, $signature_b32, $now ) = @ARG;
+$now //= time;
+
+my $entry = $data{'authorization.buffer'}->{$id};
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'authorization id not found'
+    }
+    if ref $entry ne qw| HASH |;
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'authorization is not pending'
+    }
+    if $entry->{'state'} ne qw| pending |;
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'authorization has expired'
+    }
+    if $entry->{'expires'} != 0 and $entry->{'expires'} <= $now;
+
+my ( $verified, $verify_reason )
+    = <[authorization.verify_approval]>->( $entry, $signature_b32 );
+return { qw| mode | => qw| false |, qw| data | => $verify_reason }
+    if not $verified;
+
+my ( $mapped, $mapping_reason ) = <[authorization.key_mapping]>->(
+    $entry->{'requested_user'},
+    $entry->{'requested_role'},
+    $entry->{'public_b32'}
+);
+return { qw| mode | => qw| false |, qw| data | => $mapping_reason }
+    if not $mapped;
+
+$entry->{'state'}    = qw| approved |;
+$entry->{'decision'} = {
+    qw| method | => qw| owner_signature |,
+    qw| by |     =>
+        <[trust.key_id]>->( scalar <[authorization.owner_public_key]> ),
+    qw| at | => $now,
+};
+
+return { qw| mode | => qw| true |, qw| data | => $entry };
+
+#,,,,,..,,,.,,,,,,,..,,.,,...,,,,,,.,,,,,,.,,,..,,...,...,...,,..,,.,,.,.,.,,,
+#C55U3DRUSS5TMOGJWPAYFV6SR24AZ5DHGETH676PSVG4LBREP7BEF73UERQSSK4TJY4NQRBOOCPYU
+#\\\|GUIXDGIRQT7QUIL3EYCHPJQPYT4DWWGFPC275Q5D2YXNCE3QOST \ / AMOS7 \ YOURUM ::
+#\[7]3WJNH7TWRV2RTWKEO7C7DKRA7QFL6SLUF7EGT6CQQR6FRRFTF4DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

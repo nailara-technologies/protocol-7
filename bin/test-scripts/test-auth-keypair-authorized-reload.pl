@@ -94,7 +94,8 @@ $code{'file.slurp'} = sub {
     close($fh);
     return \$c;
 };
-$code{'crypt.C25519.key_vars'} = sub { return { auth_dir => $auth_dir } };
+$code{'crypt.C25519.key_vars'}   = sub { return { auth_dir => $auth_dir } };
+$code{'base.host.config_dir'}    = sub { return $auth_dir };
 $data{'system'}{'zenka'}{'name'} = 'cube';
 
 sub put_pub {
@@ -143,7 +144,7 @@ ok( $load->() == 1 && !exists $auth->()->{'mallory'},
 ## unreadable directory : nobody authorized, logged at level 0 ##
 SKIP: {
     if ( $EUID == 0 ) {
-        say '  skip : running as ' . 'root [ chmod 0 readable ]';
+        say '  skip : running as root [ chmod 0 readable ]';
         last SKIP;
     }
     chmod 0000, $cube_dir;
@@ -167,8 +168,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,,,.,,,,.,,..,,,,.,..,,..,,.,,,..,,,.,,..,,...,...,,,.,..,,,,.,,..,.,,,
-#IRCT5ZRBWFPZYITNJGPZVVNV6CHJB4BBKU33M4PQOSXZBEXF7DUHDYKJQUFVDGHTWGU22SZSZV7SM
-#\\\|CJ6C6PWBGBBYYRG3U3QH6VYRUHGTPQMSSVJQ5UVITYMZSKWF57D \ / AMOS7 \ YOURUM ::
-#\[7]Z6PKCJYF5BV3E32OP7MTUWBBO5S7C35OO4Z6LBIM2WQZGEAAXMCQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,..,.,,,.,.,,,,,..,,.,,,.,.,...,..,,...,...,,.,,.,.,.,.,.,.,.,.,
+#BMSZJRXI4EIRHZMXXMVD57WM5ZZA5FW74CAHVHRIWN44TAA6RCVI5YYLUVJW5NK75V2MXQ672LHHA
+#\\\|QQDRIYAEQ6E6XQ4FF67IE25TZMHT2UACDUQDPOLHOTS4MSDOLOR \ / AMOS7 \ YOURUM ::
+#\[7]VTSEMSW2P4DSWDHYQ7TQUMHKCWP57U4IVSWJUMR6MYEDRWCOVCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

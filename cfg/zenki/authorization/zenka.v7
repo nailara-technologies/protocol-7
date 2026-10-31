@@ -1,0 +1,37 @@
+.:[ authorization buffer and owner-signed decisions ]:.
+
+[load_config_file:'shared-params']
+
+system.zenka.verbosity.buffer = 1
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list src-age src-ver show-buffer buffer-erase \
+                      buffer-erase-level request_session \
+                      key-arrive key-submit key-pending key-inspect key-approve
+
+authorization.buffer.ttl        = 86400
+authorization.buffer.rate_limit = 12
+authorization.buffer.rate_window = 60
+
+## the public half only, set in /etc/protocol-7/host-config/authorization.cfg : ##
+## authorization.owner.public_key = <52 character b32>                               ##
+## no default : without it every signed approval is refused                 ##
+
+modules.load = authorization auth.client net protocol io.unix ui crypt.C25519 trust keys
+[load_modules:<modules.load>]
+[init_modules]
+
+[load_host_config]
+[authorization.host_registry_init]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+[zenka.loop]
+
+#,,..,.,,,.,.,,,,,,.,,..,,..,,..,,...,,,,,,,.,..,,...,...,.,,,..,,,,,,,,,,.,.,
+#I3DPH5D6E2E2J6YGZQN6T5BTTY4JUHV6AHCQCMM6QF3N4U6I3YSMORMN4NXDTEK7K6MCYXCT5OFLY
+#\\\|PKD5NX52MBJMVZ4TCMAGKCZYCSALKAXDDDKPP5WRKLW245R4CRD \ / AMOS7 \ YOURUM ::
+#\[7]OVIVMOBOYCBG5RLXJEQMH2GCVY2OKRIO3BJH7NTQSBCWATIOSAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

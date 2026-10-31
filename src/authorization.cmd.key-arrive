@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = authorization.cmd.key-arrive
+# param = <host name> <public b32> [ delegation chain ]
+# descr = discover delivery into the key-arrival buffer
+# note  = cube grants this to discover only ; delivery never approves
+
+my ( $hostname, $public_b32, $chain )
+    = split( m|\s+|, $call->{'args'} // '', 3 );
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'usage : key-arrive <host-name> <public-b32> [chain]'
+    }
+    if not defined $public_b32
+    or not length $public_b32;
+
+return <[authorization.buffer.arrive]>->(
+    {   qw| public_b32 |     => $public_b32,
+        qw| channel |        => qw| discover |,
+        qw| source |         => "discover:$hostname",
+        qw| requested_user | => $hostname,
+        qw| requested_role | => qw| cube |,
+        defined $chain ? ( qw| chain | => $chain ) : (),
+    }
+);
+
+#,,..,,.,,,,,,.,,,,,.,,,,,...,.,,,,,,,,..,,.,,..,,...,...,.,,,,..,..,,,..,..,,
+#AE3DNVTFJPAZTU67ZAESKJJMJNJSMWWJKJGTV3UIPG3X3LXGEUIHYMVYVNIYN2YRBYJNCGVJ4CAJ2
+#\\\|GTGC5FUXGEVJ73U4RYX45X7F2IJGBMWSH72G2LEHQ7ZEBGVXJPS \ / AMOS7 \ YOURUM ::
+#\[7]QAESJ4VSBL56NC6DEQH66TBHLP7X662OUSJCTHXWBOKCG6CMNKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

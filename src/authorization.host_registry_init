@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = authorization.host_registry_init
+# descr = provision the host-local public key registry before privilege drop
+
+my $key_vars = <[crypt.C25519.key_vars]>;
+return FALSE if ref $key_vars ne qw| HASH |;
+
+my $auth_root = catdir( <[base.host.config_dir]>, qw| auth | );
+my $registry  = catdir( $auth_root,               qw| remote-keys | );
+
+foreach my $dir ( $auth_root, $registry ) {
+    return FALSE
+        if not <[keys.owned_dir]>->(
+        $dir, 0700, $key_vars->{'uid'}, $key_vars->{'gid'}
+        );
+}
+return TRUE;
+
+#,,,,,,,,,,,.,,,.,.,.,,,,,.,,,..,,,,,,,.,,...,..,,...,...,.,.,...,,,.,.,,,..,,
+#W27VPOWAS25X4DCXN3MSFJXBQTIJY5SHUGD6D2FPS7VAY6GQUDRCDTQDRN5P2H3UHES2HJ37JJ6UM
+#\\\|DG7NX4LYRRROXBIZBPAL6TV7M4H5UJ42DAYDP52ETM7DMAIEG56 \ / AMOS7 \ YOURUM ::
+#\[7]DHKSKPLMMYLG7DZN434ROIDHCVDALGYJRHFPAFTTVQYKTO4VGECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
