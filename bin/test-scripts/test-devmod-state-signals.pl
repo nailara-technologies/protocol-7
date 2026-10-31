@@ -63,7 +63,7 @@ sub compile_src {
 
 my @safe = qw|
     b32-elf core-subs current-umask decode-harmonic-ref deparse-code dump
-    dump-env dump-keys elf-b32 elf-num extract-line-map get inline-subroutines
+    dump-keys elf-b32 elf-num extract-line-map get inline-subroutines
     list-subs mem-allocated permission-setup receive-multiline since true
     true-int unload-devmod unload-unsafe
     |;
@@ -222,8 +222,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,...,..,,..,,,,.,,.,,,.,,,..,,.,,,..,,..,..,,...,...,..,,...,,..,.,,,.,.,
-#HATBZG47OVNUCRPR7UJGAIU3PCE4XGJG52EYVOQS35PECXJC67HK6GRKDZXIZUQYEMN4JSWHE3BLA
-#\\\|G2FPCP6N6MKTBHSTDWMJJ7JAOM25FTTDAYC5JUEQUDDTQEZLWLQ \ / AMOS7 \ YOURUM ::
-#\[7]GXM5HDDYUQ2GCN2PUITZEDAMEHQRYPAK3UK4HUWA4EWJMJYC4WBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,.,,,.,.,,..,,,.,,,.,,..,,,.,..,,...,...,..,,..,,,.,,.,.,.,.,
+#4J2UWR2G64GGAGY2EVJLL464TY6FU4LGUYC7HSRP5U62C7QA3KCKFMQ6OTV6KFY3ST33XIZVS7O7A
+#\\\|A2TJQEG5DCE2ABUZPUVJUZTH3GQVTSWWHCOW6X4U56DCTTS6HRA \ / AMOS7 \ YOURUM ::
+#\[7]4QNXQSPRBMR5FCXWWPOZI4YQO62BODYW2IYZADQAISLYO36QFUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
