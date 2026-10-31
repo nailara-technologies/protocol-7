@@ -147,6 +147,44 @@ profiles:
       - X11::Protocol::WM
       - X11::Protocol::XSetRoot
 
+  photonic-desktop:
+    description: "openbox desktop base [ data/configs/desktop/photonic ] -- openbox itself is the openbox-n build"
+    includes:
+      - X11-Desktop
+    apt:
+      - tint2            # panel
+      - rofi             # launcher [ photonic.rasi ]
+      - jgmenu           # root menu
+      - pcmanfm          # file manager + desktop icons
+      - gkrellm          # monitors [ invisible-blue skin default ]
+      - hsetroot         # wallpaper
+      - picom            # compositor [ was compton ]
+      - scrot            # screenshots
+      - x11-apps         # xkill
+      - x11-xserver-utils  # xset
+      - xterm            # lxterm
+      - i3lock-fancy     # screen lock
+      - suckless-tools   # slock
+      - wakeonlan
+      ## openbox-n build [ AUTOINSTALL_deb.sh ] ##
+      - gettext
+      - automake
+      - autoconf
+      - autopoint
+      - libtool
+      - libpango1.0-dev
+      - pkg-config
+      - libxml2-dev
+      - libstartup-notification0-dev
+      - xorg-dev
+      - libimlib2-dev
+      - libpangoxft-1.0-0
+      - uuid
+      - build-essential
+      - devscripts
+      - dpkg-dev
+      - docbook-to-man
+
   tools:
     description: "utility tools and scripts [DBI, database tools, etc.]"
     apt:
