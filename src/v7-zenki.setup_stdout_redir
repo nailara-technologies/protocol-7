@@ -81,7 +81,7 @@ if ( defined $admin_group ) {
 
     ## make_path keeps an existing dir's group : after an admin uid \ gid ##
     ## change the parent kept the old gid and denied the admin user       ##
-    foreach my $dir ( dirname($shm_base_dir), $shm_base_dir ) {
+    foreach my $dir ( qw| /dev/shm/.7 |, $shm_base_dir ) {
         next if -l $dir or not -d $dir;
         my @dir_stat = CORE::stat($dir);    ## File::stat is imported ##
         next if not @dir_stat or $dir_stat[5] == $admin_gid;
@@ -198,8 +198,8 @@ push <callbacks.end_code>->@*, qw| v7-zenki.stdout_log.close |;
 
 return TRUE;
 
-#,,..,.,,,...,.,.,,,,,,..,,,.,.,.,,,,,,,,,,,,,..,,...,...,...,...,,.,,.,.,..,,
-#74XFD6ACIAEJY4VXAPSOXLMXPSJSM5FQFLBPPDTHAP4G2WQZX54RMFYJY3DV2XOCHAR4KDGLPUB2Y
-#\\\|E3KIJOUAX56IU34F6SHO73BHH2IJJWSYXZL7YIZEOLNWMRNXH2M \ / AMOS7 \ YOURUM ::
-#\[7]BP5RELKWIRNNJ4SOQFKBKGMD2LTQLRWLDIZP5A526QQO7A57USCY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,,,,,.,,,.,,,,,,,,.,.,.,...,..,,...,...,..,,,..,...,,,,,...,
+#BKLSCYP3ALGCDW7J7HIAOAT3REEKDHXAVQ7JYWUH4KFWUBNECNO64CMIVZDAJOOPIGH5UKEEWFT7Y
+#\\\|KTTSZUG6EZQ4T7FTDGBXWXD7PDRDZHYO7XAN5TFCBJ7KDXN476G \ / AMOS7 \ YOURUM ::
+#\[7]63JV7O72WFAX2YW7YYS32C4B2BGXOXJKFHSAAZIGVLQUX2LRIADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
