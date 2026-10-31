@@ -339,10 +339,12 @@ lock and blank times. X-11 `blank_timeout` [ default 780 ] and dpms follow the
 same policy. after lock and fade, the display turns off through X-11
 `dpms-force-off`.
 
-### open question
+### lock screen elements
 
-for the owner : should the lock screen show password only, or also user name
-and time, dimmed ?
+decided : password field plus the user name and the time, dimmed [ muted
+palette colour ]. each extra element is configurable and can be switched
+off : `login-screen.lock.show_user = yes|no`, `login-screen.lock.show_time =
+yes|no` [ default yes ]. the password field is always shown.
 
 ### implementation slices
 
@@ -375,8 +377,8 @@ restarts a zenka, touches a real host display, installs a setuid file, or
 uses a real user session. real xorg, keyboard focus, actual logout, and
 multi-monitor behavior remain explicit real-host validation steps.
 
-#,,.,,,..,,.,,.,.,,..,,,,,.,,,,,,,,..,...,,,.,..,,...,...,,,.,..,,..,,,.,,,..,
-#6NBLYWAMM6KWKFCPGO7NTUURXQT2QVUPO4HQAS6VRLJKAC4LIYOMGG4P3OZNAXB537QL6QHFPOLLG
-#\\\|ROEFHVA3AF7ZXBQUVEJJQVYDBH72KKXPOE5BJJ7T4FALEZ7454X \ / AMOS7 \ YOURUM ::
-#\[7]4KL2LPOC2VCCJ7XWDUB6KJOPP3OVALHLWIKPJIRYTV6BEZ4A2SDI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,.,.,.,,,,,.,.,,,.,.,,,,,..,,..,,...,...,,,,,,..,,,,,.,.,,.,,
+#FTHFWSIZB4SIQMHKR4HQRI4JNE7NWYC32OZH77PVMTT57G656N5FEQQGAIJHHTSG4AJCZKBY6IP4G
+#\\\|6CMKADEVWCH22S4JPEFPBTJHTUETEN5TGPZ5EVFB6EIPDDVLA2O \ / AMOS7 \ YOURUM ::
+#\[7]BKSVAOUJXE7LVCLW4J6DWLPS2I6FMFZNS62JP4G4522EHE3M5QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
