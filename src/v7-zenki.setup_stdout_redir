@@ -50,7 +50,7 @@ if (    defined <v7-zenki.stdout_log.path>
 ## clean up previous instance if re-initializing with different socket ##
 if ( defined <v7-zenki.stdout_log.fh> ) {
     close(<v7-zenki.stdout_log.fh>)
-        or <[base.s_warn]>->( 'closing old ' . 'stdout log' );
+        or <[base.s_warn]>->('closing old stdout log');
     <v7-zenki.stdout_log.fh> = undef;
 }
 if ( defined <v7-zenki.watchers.stdout_log_rotate> ) {
@@ -78,6 +78,19 @@ if ( defined $admin_group ) {
         $shm_base_dir, 0750, <system.amos-zenka-user>, $admin_group
     );
     $stdout_log_mode = 0640;
+
+    ## make_path keeps an existing dir's group : after an admin uid \ gid ##
+    ## change the parent kept the old gid and denied the admin user       ##
+    foreach my $dir ( dirname($shm_base_dir), $shm_base_dir ) {
+        next if -l $dir or not -d $dir;
+        my @dir_stat = CORE::stat($dir);    ## File::stat is imported ##
+        next if not @dir_stat or $dir_stat[5] == $admin_gid;
+        chown( -1, $admin_gid, $dir )
+            or <[base.logs]>->(
+            0,    'chgrp %s [ %d ] : %s',
+            $dir, $admin_gid, <[base.str.os_err]>
+            );
+    }
 } else {
     <[file.make_path]>->( $shm_base_dir, 0750, <system.amos-zenka-user> );
 }
@@ -181,12 +194,12 @@ push <callbacks.end_code>->@*, qw| v7-zenki.stdout_log.close |;
 
 <[base.logs]>->( 1, ': stdout log buffer [%s]', $unix_socket );
 <[base.logs]>->( 1, ':. %s',                    $shm_log_path );
-<[base.logs]>->( 2, ':. tail ' . '-f %s .:', <v7-zenki.stdout_log.symlink> );
+<[base.logs]>->( 2, ':. tail -f %s .:', <v7-zenki.stdout_log.symlink> );
 
 return TRUE;
 
-#,,..,.,,,..,,.,,,,,,,.,.,,,.,..,,.,,,.,.,,,.,..,,...,...,..,,,.,,...,,..,...,
-#HQ4XN6QY4J3A36P54O6SKFQLXGSNKSCEG35JAT7WKSF3NHPK2DPY7AKQVMH54HV2X6WZUOTRJFFOW
-#\\\|YWBDJQTYJO2JJCTHER53Q7XIELHBCSLN2RZIVUO7VGEA5KWQVD7 \ / AMOS7 \ YOURUM ::
-#\[7]ABRMRDOHLXJQVOMQL2BEHFDMGVLMAJASSOE5LHVSNPRLO77G54AY 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,.,,,,,,..,,,.,.,.,,,,,,,,,,,,,..,,...,...,...,...,,.,,.,.,..,,
+#74XFD6ACIAEJY4VXAPSOXLMXPSJSM5FQFLBPPDTHAP4G2WQZX54RMFYJY3DV2XOCHAR4KDGLPUB2Y
+#\\\|E3KIJOUAX56IU34F6SHO73BHH2IJJWSYXZL7YIZEOLNWMRNXH2M \ / AMOS7 \ YOURUM ::
+#\[7]BP5RELKWIRNNJ4SOQFKBKGMD2LTQLRWLDIZP5A526QQO7A57USCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,10 +17,29 @@ if ( $reply->{'cmd'} eq qw| TRUE | and defined $cube_sid ) {
         "received x11.display from X-11 zenka [cube_sid=$cube_sid]., ["
             . <x11.display>->{$cube_sid} . "]"
     );
+} elsif ( defined $cube_sid ) {
+    ## xorg mode refuses until access control is enforced : ask again ##
+    my $attempt = ( $reply->{'params'}{'attempt'} // 0 ) + 1;
+    if ( $attempt > 60 ) {
+        <[base.logs]>->(
+            0, 'x11.display not received from X-11 [cube_sid=%s]', $cube_sid
+        );
+        return;
+    }
+    <[base.logs]>->(
+        2,         'x11.display refused [cube_sid=%s] : retry %d',
+        $cube_sid, $attempt
+    );
+    <[event.add_timer]>->(
+        {   'after'   => 1,
+            'handler' => qw| v7-zenki.handler.get_display_retry |,
+            'data'    => { 'cube_sid' => $cube_sid, 'attempt' => $attempt },
+        }
+    );
 }
 
-#,,.,,.,.,...,...,...,,.,,,..,,,.,,..,.,,,..,,..,,...,...,,,,,.,.,...,,..,.,,,
-#5TEMWO4XOQJB7PME6V2SBTX3UDUN6R4MM4T3C6O24WYM3DDM4UAQCCQOXRDJSUMWO4XXIQBHAJVRM
-#\\\|I2W5ENMVEHTOUTYIY3IPJR7HHZVAHPTP3CXL4O33B3DTTR3KXMO \ / AMOS7 \ YOURUM ::
-#\[7]TTV4NU7NPIQNMFIVELMLPJTPHD2LQ2WDBHNVCR466LDBPYXWQIAI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,...,..,,..,,,,.,.,.,,,.,,,.,,,.,..,,...,...,,,,,,.,,...,,,.,,,,,
+#5NPZVVKXNVMZ6446XLKEY3YSYBDS3MYE2H2OGD224VPYP23KGZEMPMB2LT5ED5AXHGFCSATVJMGWQ
+#\\\|XRZCHZKFLUZGHGU3ZETXWT3RJ4PJKISEJ3S3CN5BYNVZM655SAY \ / AMOS7 \ YOURUM ::
+#\[7]54TR5RVPP7OKC46TIN2FOERFFOEV3VTQDRBR4HSL4FDVYPPS3EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

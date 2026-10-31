@@ -12,12 +12,18 @@ if ( ( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
     return TRUE;
 }
 
+my ( undef, $reason ) = <[base.reply.mode_text]>->($reply);
+<[base.logs]>->(
+    0,
+    'user session not started : %s',
+    $reason // 'no reason given'
+);
 <[login-screen.show_greeter]>;
 <login-screen.widget.status>->set_text('session could not be started');
 FALSE;
 
-#,,,.,..,,,..,,.,,,.,,...,.,,,,,,,.,,,...,.,,,..,,...,...,,,.,,.,,,,.,..,,...,
-#3WAGJBMUO6EMYECIMSIUOVS7VHVSHSMVFGANWZTHNSHWEZLVT5MIRJ2OREG3QMLYVDVJWDEWPOWRY
-#\\\|N6L3QKZ7ROGZNE36OPBRDHS4O3Z4TUD4BDEN635WRKGQUL6M5JP \ / AMOS7 \ YOURUM ::
-#\[7]3DYUJYBSVY7I4E3ZPX2KNMWQRWEUSIQ5WQ5EMYJTZJJ2RAAXHMAY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,..,,,,,,..,,,.,,,..,.,.,,,,,..,,...,...,.,.,..,,.,,,.,.,,,,,
+#WAHF6EVQ7HAXHLOL5KV5SQOWXMP2H6YXGRCZXFFNQWSVTJ3ZDIOCYIFKHTHEVQVWMIJSGPUFUFJI6
+#\\\|X2DV3ABTHQAEGXMBM5HULSKZ6W2ZQBNSLB5XKRBJPRQULH6LHUI \ / AMOS7 \ YOURUM ::
+#\[7]A3PCI25WNPESSMG6P5QQAGC4WDIOFE55QKRWZEANSUKVAA537WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
