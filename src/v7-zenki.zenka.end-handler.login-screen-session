@@ -21,13 +21,14 @@ if ( $username =~ m|^[a-z_][a-z0-9_-]{0,31}$| ) {
         $username );
     unlink($path) if -f $path and not -l $path;
 }
-<[zenka.cmd.terminate]>->( { 'args' => qw| compton | } );
+<[zenka.cmd.terminate]>->( { 'args' => $ARG } )
+    foreach reverse <[v7-zenki.login-session.zenki]>;
 <[protocol-7.route-send]>
     ->( { 'command' => qw| login-screen.session-ended | } );
 TRUE;
 
-#,,,,,...,,.,,...,,..,,.,,..,,...,.,,,.,.,,,.,..,,...,...,,..,.,.,,..,...,..,,
-#T35VR6UNOXGDGCJ2M5DN2JTNX3DASR2726QSJ3J4RWVD6BBDEJBLTSMSGYHLUD6RJQOUPLMVT36JQ
-#\\\|QCCQHL4LY2QBOKQ2I4HP6ST4B7IVQJ6IW7EB7YFYRGC7OGHVSA6 \ / AMOS7 \ YOURUM ::
-#\[7]7OHCNV7LAZOLHWLEOQOQGNATLLLFCPSCAZKGBTGVNGLCSBRO4SDI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,...,..,,,,,,..,,...,,.,,,..,.,,,..,,...,...,,,.,...,...,.,.,...,
+#ECVMDYIDDNTXVWZPPM75JRDEYXWXHUOGWEDBT37RZMFGRYTWC5CW7TDGLWXUQEN2O4NBYBZDWQAMG
+#\\\|BAOI3CHEDL6MRNHXZBJT2HX3WME3X6I5A2ZDHOGOJI4BGJCLLGL \ / AMOS7 \ YOURUM ::
+#\[7]M3AICVAJD2KC7OUT6WGOBN7TOYVAEM4GTHMMDM654GVBDKXWAWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

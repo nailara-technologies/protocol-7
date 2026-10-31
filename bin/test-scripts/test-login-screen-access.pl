@@ -56,6 +56,10 @@ my $xauth_reply  = compile_module('v7-zenki.login-session.xauth_reply');
 my $access_reply = compile_module('v7-zenki.login-session.access_reply');
 my $end_handler
     = compile_module('v7-zenki.zenka.end-handler.login-screen-session');
+$code{'v7-zenki.login-session.zenki'}
+    = compile_module('v7-zenki.login-session.zenki');
+$data{'v7-zenki'}{'cfg'}{'login_session_zenki'}
+    = 'compton protocol-7-menu bad;name';
 
 my @pw = getpwuid($UID);
 @pw = getpwnam('nobody') if not @pw or $pw[2] < 1000;
@@ -192,7 +196,11 @@ my @desktop_starts;
 my @terminated;
 $code{'zenka.cmd.start_once'} = sub {
     my $args = $ARG[0]->{'args'} // '';
-    if ( $args eq 'compton' ) { push @desktop_starts, $args; return TRUE }
+    ## the session start waits, desktop zenki do not ##
+    if ( $args !~ m|^:wait-up: | ) {
+        push @desktop_starts, $args;
+        return TRUE;
+    }
     $starts++;
     return { 'mode' => 'deferred' };
 };
@@ -222,8 +230,9 @@ ok( $sent[-1]->{'command'} eq 'X-11.grant_session_user' && $starts == 0,
     'xauth handoff requests SI grant before any session start'
 );
 $access_reply->( { 'params' => { 'cube_sid' => 77 }, 'cmd' => 'TRUE' } );
-ok( $starts == 1,                   'successful grant starts the session' );
-ok( "@desktop_starts" eq 'compton', 'admission starts the compton zenka' );
+ok( $starts == 1, 'successful grant starts the session' );
+ok( "@desktop_starts" eq 'compton protocol-7-menu',
+    'admission starts the configured zenki in order [ bad name dropped ]' );
 ok( !grep( { $_->{'command'} eq 'X-11.revoke_session_user' } @sent ),
     'deferred running session keeps its grant' );
 
@@ -253,14 +262,16 @@ ok( $sent[0]->{'command'} eq 'X-11.revoke_session_user'
         && $sent[1]->{'command'} eq 'login-screen.session-ended',
     'session end revokes access before restoring the greeter'
 );
-ok( "@terminated" eq 'compton', 'session end terminates the compton zenka' );
+ok( "@terminated" eq 'protocol-7-menu compton',
+    'session end terminates them in reverse'
+);
 
 say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,..,,,.,,,.,,,,,..,,,,.,...,..,,..,,,,.,,,,,..,,...,...,.,.,...,.,.,..,,.,,,
-#Z7X2ISAFMVPT52Q6PGX3MW3TJDP5D2FXZPEDNZH6NXTDZKKP7CSQL4PHHWJ77GQ5CHCJVZCLOE6QU
-#\\\|6BCJ52L5GH7CIWYB5WGSPVRNJSS35EQ4OO36PXFUACHGV5O5UC2 \ / AMOS7 \ YOURUM ::
-#\[7]GINS2A7QSK52HBV2UZHJ26PD5RS3BSC7LXZOPUH3NXUVUSEIDIDI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,,,,..,.,,,.,.,,,,,,,,,..,,,..,..,,...,...,.,.,...,,.,,,,,,,,,,
+#TXPE6HRTADJJQEV7PZJVXUKRKNX7T5V22EGPLYE2L6APKGH3IBAU2QLKWIHVMSHLWGZ2AYGQBKM7W
+#\\\|PH27IVQZCISMFRBHQFEQ46YE5PWVFSKMGQDR7W6LYMTQYQXGYRW \ / AMOS7 \ YOURUM ::
+#\[7]6QQOC73BAFE6TFOV73BMNUXF2WVLG7UQEIUVPRTY5DYRCVWHOIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
