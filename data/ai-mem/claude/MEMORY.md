@@ -10,7 +10,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [deferred-history-purge](project-2026-10-30-deferred-history-purge.md) — ONE purge-paths run with the owner later : dep-graph .txz + old data/gfx/backgrounds/ images ; no remote re-add [ no origin ]
 - [nameserv-zone-delegation-plan](project-2026-10-30-nameserv-zone-delegation-plan.md) — plan : zenki take over dns [ own nameserv as master ] + mail, then RETIRE atom \ postfix \ inwx-as-master ; snapshots in /data/backup/{dns,mail}/ are the functional reference ; must be REBUILDABLE from tracked config [ reproducibility ] ; zones NOT current yet -> reconcile first
 - [fix-dns-zone-issues-when-seen](feedback-fix-dns-zone-issues-when-seen.md) — owner 2026-10-30 : fix zone defects when seen, name each ; mail paths [ MX, @taeki.v7.ax ] dig-verified before + after ; registrar only via owner-given access
-- [sampler-penalties-break-exact-copy](feedback-sampler-penalties-break-exact-copy.md) — DRY [ short allowed length ] + repeat_penalty make agent models mangle every copied path \ old_string [ 'protocol -7' ] : 9b 14b 35b all failed a 4-line edit until repeat_penalty 1.0 + dry_allowed_length 64 [ 35b3dbe6a ]. outlier fixes go PER MODEL, never into global inference.model.* ; check the sampler before blaming model or tool
+- [sampler-penalties-break-exact-copy](feedback-sampler-penalties-break-exact-copy.md) — DRY [ short allowed length ] + repeat_penalty make agent models mangle every copied path \ old_string [ 'protocol -7' ] : 9b 14b 35b all failed a 4-line edit until repeat_penalty 1.0 + dry_allowed_length 64 [ 35b3dbe6a ]. outlier fixes go PER MODEL ; 2026-10-31 : dry_penalty_last_n -1 [ full ctx ] broke quoting + tool calls -> 1024. check the sampler before blaming model or tool
 - [zenka-open-default-utf8-layer](feedback-zenka-open-default-utf8-layer.md) — every plain open() in src/* carries :encoding(UTF-8) [ bin/Protocol-7 `use open`, deliberate ] : files holding OCTETS [ encode_json, bodies, binary ] need '>:raw' \ '<:raw' on write AND read -- 2026-10-24 site-yaml outbox double-encoded 58 jobs [ 8b2384420 ] ; check bytes on disk, a layered round trip hides it
 - [changed-established-behavior-silently](feedback-changed-established-behavior-silently.md) — 2026-10-11 : switched the unit to Restart=on-failure as a side effect and called it intended ; teardown = restart was the user's habit. never change restart \ start \ default semantics silently -- name old vs new, ask, add new behavior as opt-in [ :no-restart: ]
 - [unix-auth-identity-bypass-fixed](project-2026-09-20-unix-auth-identity-bypass-fixed.md) — FIXED 2026-09-20 (`5afa981f2`, v5.99.1): `plugin.auth.unix`'s unix-socket auth never actually checked the claimed identity against the real kernel-verified peer user (`$client_uname` computed but only used in logs) — any local unix account could claim any configured `auth.setup.usr` alias, including the admin/owner, just by setting `$USER` before invoking `p7c`. Confirmed live cross-account (`another` authenticated as `unix-taeki`). Fixed by comparing against `$client_uname` instead of the allowed-list value compared to itself; template resolution (`<admin-user>` etc.) preserved. Reload gotcha hit again: needed bare `reload plugins` sent to cube, not `reload source` (excludes `plugin.*`) — see [[reload-success-doesnt-guarantee-new-file-loaded]] just below.
@@ -90,8 +90,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,.,.,,.,,.,,,,.,,,,,,..,,..,,,.,,...,..,,..,,...,...,.,,,,.,,,,.,.,,,,,.,
-#STJWJBFPMLRWFUUG6XZNNNV3SYCO2RQ2IKEJBP3BAGUX4GSD7OHSPEE65RZGDQDNHUB65YIIMT5TI
-#\\\|RDYQJ5RTVDYGKJ2LN2AC756Z5MNOG4J3O4P5DBVKQ3BP4XEEZZP \ / AMOS7 \ YOURUM ::
-#\[7]PMVWEN3HMIZX3HRIOHWGAI6RG5XTQV637TNMRJMXFG3PGCJSUSCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,,,,..,,,,,.,.,.,,,.,.,,,,,,,,,..,,...,...,.,.,...,,.,,,,,,..,,
+#UHWUCBIPRR6FS4AXLN2S7VJ7AAUTVUIA36DSH3GBVQZ4DKCCQHGHO26HGEDDL4PGMB3LXIAR46SCO
+#\\\|SJ5TOGTCMUI6OGH7HRCODBGWD747IGBFDEMS6STVU5HGWGWYT6V \ / AMOS7 \ YOURUM ::
+#\[7]CUPN7EHNBXWUYTJUNTOZNNM7Q22WMW43U2WR6KY6BGQUS66XAECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
