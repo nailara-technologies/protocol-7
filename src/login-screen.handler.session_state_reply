@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = login-screen.handler.session_state_reply
+# descr = startup : hide while a user session runs, else show the form
+
+my $reply = shift // {};
+return FALSE if <login-screen.state> ne qw| init |;
+
+my ( undef, $text ) = <[base.reply.mode_text]>->($reply);
+if (    ( $reply->{'cmd'} // '' ) eq qw| TRUE |
+    and ( $text // '' ) =~ m|^active [a-z_][a-z0-9_-]{0,31}$| ) {
+    <login-screen.state> = qw| session |;
+    <[base.logs]>->('user session running : greeter stays hidden');
+    return TRUE;
+}
+<[login-screen.show_greeter]>;
+TRUE;
+
+#,,..,,,,,,,,,.,.,,,.,,,,,,.,,...,.,.,,.,,,..,..,,...,...,...,...,...,,,,,.,.,
+#H4F3MVI5TH4O23WJGBEYWUAPHTXCHMHISFQISOBJI3AVEITYESZ23ZYPODJCWXFHDWFHAY4CSOEXK
+#\\\|365TQNGO22CYU6W42N3HLETZB7Z6BOR2SU6QZLIYHF5JXTRTPHT \ / AMOS7 \ YOURUM ::
+#\[7]OMFVTCG3WPB5FA2QMEN7GGM2MPVC5KKQR2AYMAVFIGC7XJEYQUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

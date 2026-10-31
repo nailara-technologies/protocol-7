@@ -87,14 +87,14 @@ $window->add($grid);
 
 my $title = Gtk3::Label->new('protocol-7');
 $title->get_style_context()->add_class('title');
-$title->set_xalign(0);
+$title->set_xalign(1);
 my $user_label = Gtk3::Label->new('user');
-$user_label->set_xalign(0);
+$user_label->set_xalign(1);
 my $user = Gtk3::Entry->new();
 $user->set_max_length(32);
 $user->set_activates_default(FALSE);
 my $password_label = Gtk3::Label->new('password');
-$password_label->set_xalign(0);
+$password_label->set_xalign(1);
 my $password = Gtk3::Entry->new();
 $password->set_visibility(FALSE);
 $password->set_max_length(1024);
@@ -128,14 +128,28 @@ Glib::Timeout->add( 1000, $code{'login-screen.handler.helper_watch'} );
 <login-screen.widget.password> = $password;
 <login-screen.widget.button>   = $button;
 <login-screen.widget.status>   = $status;
-<login-screen.state>           = qw| greeter |;
-$window->show_all();
+<login-screen.state>           = qw| init |;
 $password->set_text('');
-$user->grab_focus();
+
+## a running user session [ greeter restarted ] : stay hidden, never cover ##
+## it ; no session or no answer : show the login form                      ##
+<[protocol-7.route-send]>->(
+    {   'command' => qw| v7-zenki.login-session-state |,
+        'reply'   =>
+            { 'handler' => qw| login-screen.handler.session_state_reply | }
+    }
+);
+Glib::Timeout->add(
+    5000,
+    sub {
+        <[login-screen.show_greeter]> if <login-screen.state> eq qw| init |;
+        return FALSE;
+    }
+);
 TRUE;
 
-#,,,.,,.,,...,..,,,.,,,,.,..,,..,,,,.,...,...,..,,...,...,...,,,,,,..,..,,..,,
-#NKLMLWLHAWQKTQ6IOSSBGO5WXZXAVFJBJ5ZNDVX4OC3MRILD3OI2SLHT7U2LVCDWALNMZZNACXHDS
-#\\\|VLNTNQPXBPGJHTPGHKSP2ANSY5Y6DVLQGIR5DDR323S2C7AIQDD \ / AMOS7 \ YOURUM ::
-#\[7]BUXCFZOHTFUISOLF6SEJZDPBICX7OFRFSOH3QH6725PJR6W43QAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,...,,,.,..,,,,.,.,,,.,.,,..,.,.,..,,...,..,,...,.,,,,,.,,..,,,.,
+#BVTFYWPKWR5E6Z4VRDPR4X24ZP7OV3XWYYYGUHBDPDQGBXVYUCYC3G3QOBQH5WWYXO4E6TLVTRYCE
+#\\\|ORBN3WAEHEQY3RF3HS75LPASTLKKY2KJT6PLKPTLAOX24IECXA4 \ / AMOS7 \ YOURUM ::
+#\[7]DQNB3LMHPDKSLFBVOK6SBEYA6T356MPZJDVOIMOB3PWPQHCLX4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

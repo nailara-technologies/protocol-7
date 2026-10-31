@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.login-session-state
+# descr = greeter startup query : 'active <user>' or 'none'
+
+## cube prepends the calling zenka [ source_zenka alias ] ##
+my ( $caller, $extra ) = split( m| +|, $call->{'args'} // '', 2 );
+return { 'mode' => qw| false |, 'data' => 'denied : login-screen only' }
+    if ( $caller // '' ) ne qw| login-screen | or defined $extra;
+
+foreach my $iid (<[v7-zenki.instance_ids]>) {
+    my $instance = <v7-zenki.zenka.instance>->{$iid};
+    next if ( $instance->{'zenka_name'} // '' ) ne qw| login-screen-session |;
+    next
+        if ( $instance->{'status'} // '' ) =~ m{^(?:offline|error|shutdown)$};
+    my $user = $instance->{'subname'} // next;
+    return { 'mode' => qw| true |, 'data' => "active $user" };
+}
+return { 'mode' => qw| true |, 'data' => qw| none | };
+
+#,,.,,,.,,,.,,,..,.,.,,,,,,..,...,.,.,,.,,,..,..,,...,..,,...,..,,,,,,.,.,...,
+#PI55ECIVESMYH5KKORE66WCVPMKW3PVEUTOGGELYZY3MVIJTSHAG7MHPVTVAZCXR5CGELVXHZE2II
+#\\\|W22NBXMA4WQANLG7CVVSYRKNMJOM3E2T4JJ5QPJWC4WSRITDPHO \ / AMOS7 \ YOURUM ::
+#\[7]DKKOTHYTNK2L6SZPAFGY53JXBBMTOXZRHCMJVP4SAMQX7H4Y5IBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
