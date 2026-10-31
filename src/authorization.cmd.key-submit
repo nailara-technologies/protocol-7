@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = authorization.cmd.key-submit
+# param = <user> <role> <public b32> [ delegation chain ]
+# descr = manual delivery into the key-arrival buffer
+
+my ( $username, $role, $public_b32, $chain )
+    = split( m|\s+|, $call->{'args'} // '', 4 );
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'usage : key-submit <user> <role> <public-b32> [chain]'
+    }
+    if not defined $public_b32
+    or not length $public_b32;
+
+return <[authorization.buffer.arrive]>->(
+    {   qw| public_b32 |     => $public_b32,
+        qw| channel |        => qw| manual |,
+        qw| source |         => $call->{'session'}->{'user'} // qw| manual |,
+        qw| requested_user | => $username,
+        qw| requested_role | => $role,
+        defined $chain ? ( qw| chain | => $chain ) : (),
+    }
+);
+
+#,,,,,,,.,,.,,.,,,,.,,,.,,,.,,,,.,.,.,..,,.,.,..,,...,...,..,,..,,,.,,,,.,.,,,
+#VL2D5AXQWQ7ZLSWYUGX3CQRBNWQAXZYPIN5C3CVL7P6VXHGU7KCM45K3KEACBZQQJYYZRQVFZ3YFC
+#\\\|XOZERD255XMPMOUJPBB23EMRIUL6BVIE2V5E26MELQKEOT52NMP \ / AMOS7 \ YOURUM ::
+#\[7]4N5STQO2KHHQNKWNCT3LIS36GPLHSKKRGH5RCFXI4FPGMOGELUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

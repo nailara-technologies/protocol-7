@@ -229,8 +229,7 @@ if ( defined $root_fp ) {
         } else {
             <[base.logs]>->(
                 $flood_level->(),
-                "host-root changed for " . "'%s' : dropping packet",
-                $hostname
+                "host-root changed for '%s' : dropping packet", $hostname
             );
             $prev->{'trust'} = qw| invalid |;
             map { $data{'hosts'}->{$ARG}->{'trust'} = qw| invalid | }
@@ -252,6 +251,17 @@ if ( defined $root_fp ) {
 ## [ and shown by discover.cmd.host_details ] ; a bare 'unverified' carries ##
 ## no root an accepted packet resets this sender's flood log level          ##
 delete $data{'discover.host-root-log'}->{$pkey_L13};
+
+## delivery only : the authorization buffer verifies any owner certificate  ##
+## again ; discover's packet verification and pin state never approve a key ##
+<[protocol-7.command.send.local]>->(
+    {   'command'   => qw| authorization.key-arrive |,
+        'call_args' => {
+            'args' => join( ' ',
+                $hostname, $pkey, defined $delegation ? $delegation : () )
+        }
+    }
+);
 
 my %trust_field = ( qw| trust | => $trust );
 $trust_field{'root_fp'}        = $root_fp        if defined $root_fp;
@@ -410,8 +420,8 @@ if ( defined $orbital_p7ref and length $orbital_p7ref ) {
     <[discover.orbital.share_grid_fragment]>->( $hostname, $pkey );
 }
 
-#,,..,,.,,,,,,.,.,,.,,.,,,,.,,,.,,,..,,.,,,,,,..,,...,...,.,.,,..,,..,,,,,.,,,
-#UWMCMIW2R5K2EBBFIN5IAOB3LYZMUIL6QEGOELPMBR3O6ZT4QXJSDYMMX47HXLZZ4TAO6OOYQGD3G
-#\\\|CADNNRZGRF7UCVLJQE4QRJH6EGRCETK7S5OBOQ3ALP6JSHVFVJG \ / AMOS7 \ YOURUM ::
-#\[7]5CXU73OCNZ33XT47LNXBWDVWCO465EWWTP2QQM2DQMXJEOTFXKCA 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,.,,..,,..,,,,,..,,...,,,.,,,.,..,,...,...,..,,,.,,,..,,..,.,.,
+#7URVAVY4MSLOQWB24QL5EKDNMVAPVRHMDH37E3Q5BP6FC5NCDNFFZ4XPQ7DNPQPR4RW43PO3HDZJW
+#\\\|TQXSLQI2U2RI5U524SA5FJATIQQ7MSIVUOFM5G2J3GOHJBSWOAH \ / AMOS7 \ YOURUM ::
+#\[7]2FDMLHHUFWX2UEAM4623GU5NBRPEIPNS25O2YFDV4AYZBXZD6GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

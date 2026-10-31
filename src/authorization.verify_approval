@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = authorization.verify_approval
+# descr = verify an owner-signed approval [ always fail closed ]
+# param = <entry hashref> <signature b32>
+# return = TRUE, or [ list context ] [ FALSE, clear reason ]
+
+my ( $entry, $signature_b32 ) = @ARG;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( FALSE, $reason ) : FALSE;
+};
+
+my ( $owner_pub, $owner_reason ) = <[authorization.owner_public_key]>;
+return $refuse->("approval refused : $owner_reason")
+    if not defined $owner_pub;
+
+my $message = <[authorization.decision_message]>->( $entry, qw| approve | );
+return $refuse->('approval refused : entry cannot be signed canonically')
+    if not defined $message;
+
+return $refuse->('approval refused : signature is not canonical b32')
+    if not defined $signature_b32
+    or ref $signature_b32
+    or $signature_b32 !~ m|\A[A-Z2-7]{103}\z|;
+
+my $signature = eval { Crypt::Misc::decode_b32r($signature_b32) };
+return $refuse->('approval refused : signature is not 64 bytes')
+    if not defined $signature
+    or bytes::length($signature) != 64
+    or Crypt::Misc::encode_b32r($signature) ne $signature_b32;
+
+return $refuse->('approval refused : owner signature not valid')
+    if not Crypt::Ed25519::verify( $message, $owner_pub, $signature );
+
+return TRUE;
+
+#,,.,,,.,,.,,,,,.,,,,,..,,,,,,,,,,.,,,.,,,.,.,..,,...,...,,.,,,,,,.,,,,..,,..,
+#IYLLHQU2OOS4LHYAKSOHFD2FHQ6HFPNI54BMFTO57P4PNLKG5ZTJN3DVGQCJQTJDXLL6WB4GHPKYE
+#\\\|FG22AOREVKSFNFUWQRNQVMLD6KPRKYSZH5AO7CKIHUSMTOUNE2L \ / AMOS7 \ YOURUM ::
+#\[7]ZDZAFWA3ZBH3EHKDKZGTOYG4HCRHP7E2I6DKGKIYN26EHM3PV6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

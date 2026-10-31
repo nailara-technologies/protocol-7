@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = authorization.cmd.key-approve
+# param = <entry id> <owner decision signature b32>
+
+my ( $id, $signature_b32 ) = split( m|\s+|, $call->{'args'} // '' );
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'usage : key-approve <entry-id> <owner-signature-b32>'
+    }
+    if not defined $signature_b32
+    or not length $signature_b32;
+
+return <[authorization.buffer.approve]>->( $id, $signature_b32 );
+
+#,,..,,..,.,.,,.,,...,.,,,,,,,,.,,,,,,...,.,.,..,,...,...,...,.,,,.,.,.,.,,,.,
+#3DGDONTEDME4OBZOL7HI4EC3R7HGUATE6267LG345PVNAOMZAMTZI5AL6ELVUXIGJSIP7QA2YMJWU
+#\\\|IT6JEQYHYRLPQZ25GCMQ36TUAXVJ7LCQUXOPHZ7IN6JWU2UEEBH \ / AMOS7 \ YOURUM ::
+#\[7]5DQCGY7LM7EMKX3HLQIYNKLTCWPQDELVOFOUYRORQZAONQ3M4YDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

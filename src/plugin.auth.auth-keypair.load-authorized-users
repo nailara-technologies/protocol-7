@@ -2,13 +2,19 @@
 
 # name    = plugin.auth.auth-keypair.load-authorized-users
 # descr   = load authorized remote user public keys
-#           from .n/remote-keys/authorized/<zenka>/
+#           from user-home and host-config authorized/<zenka>/ registries
 # return  = count of loaded keys, or undef on error
 
 my $zenka_name    = <system.zenka.name>;
 my $key_vars_ref  = <[crypt.C25519.key_vars]>;
 my $auth_base_dir = $key_vars_ref->{'auth_dir'};
-my $auth_key_dir  = catfile( $auth_base_dir, $zenka_name );
+my @auth_key_dir  = (
+    catfile( $auth_base_dir, $zenka_name ),
+    catfile(
+        <[base.host.config_dir]>, qw| auth remote-keys authorized |,
+        $zenka_name
+    ),
+);
 
 ## the table is REBUILT on every call [ startup, reinit ] : a removed or   ##
 ## replaced key file takes effect on reload, a revoked user never keeps an ##
@@ -17,54 +23,53 @@ my $fresh        = {};
 my $loaded_count = 0;
 my $had_before   = scalar keys( ( $keys{'authorized-remote'} // {} )->%* );
 
-if ( not -d $auth_key_dir ) {
-    $keys{'authorized-remote'} = $fresh;
-    return 0;
-}
+foreach my $auth_key_dir (@auth_key_dir) {
+    next if not -d $auth_key_dir;
 
-## Scan directory for <user>.public files
-if ( opendir( my $dh, $auth_key_dir ) ) {
-    foreach my $filename ( sort readdir($dh) ) {
-        next if $filename     =~ m|^\.|;         ## skip . and ..
-        next unless $filename =~ m|\.public$|;
+    ## scan each user-home or host-local registry for <user>.public files ##
+    if ( opendir( my $dh, $auth_key_dir ) ) {
+        foreach my $filename ( sort readdir($dh) ) {
+            next if $filename     =~ m|^\.|;         ## skip . and .. ##
+            next unless $filename =~ m|\.public$|;
 
-        my $username = $filename;
-        $username =~ s|\.public$||;
+            my $username = $filename;
+            $username =~ s|\.public$||;
 
-        my $pubkey_file = catfile( $auth_key_dir, $filename );
-        my $pubkey_b32  = <[file.slurp]>->($pubkey_file)->$*;
+            my $pubkey_file = catfile( $auth_key_dir, $filename );
+            my $pubkey_b32  = <[file.slurp]>->($pubkey_file)->$*;
 
-        if ( defined $pubkey_b32 and length $pubkey_b32 > 0 ) {
-            chomp $pubkey_b32;
+            if ( defined $pubkey_b32 and length $pubkey_b32 > 0 ) {
+                chomp $pubkey_b32;
 
-            ## Validate it's a valid base32 string
-            my $pubkey_bin = eval { Crypt::Misc::decode_b32r($pubkey_b32) };
-            if ( defined $pubkey_bin and length $pubkey_bin == 32 ) {
-                $fresh->{$username} = {
-                    'public_b32' => $pubkey_b32,
-                    'public'     => $pubkey_bin,
-                    'loaded_at'  => <[base.ntime]>,
-                };
-                $loaded_count++;
-                <[base.logs]>->(
-                    2, ": authorized remote user '%s' loaded", $username
-                );
+                my $pubkey_bin
+                    = eval { Crypt::Misc::decode_b32r($pubkey_b32) };
+                if ( defined $pubkey_bin and length $pubkey_bin == 32 ) {
+                    $fresh->{$username} = {
+                        'public_b32' => $pubkey_b32,
+                        'public'     => $pubkey_bin,
+                        'loaded_at'  => <[base.ntime]>,
+                    };
+                    $loaded_count++;
+                    <[base.logs]>->(
+                        2, ": authorized remote user '%s' loaded", $username
+                    );
+                } else {
+                    <[base.logs]>->(
+                        1,         ": key format not valid for '%s' [ %s ]",
+                        $username, $pubkey_file
+                    );
+                }
             } else {
-                <[base.logs]>->(
-                    1,         ": key format not valid for '%s' [ %s ]",
-                    $username, $pubkey_file
-                );
+                <[base.logs]>->( 1, ": empty key file [ %s ]", $filename );
             }
-        } else {
-            <[base.logs]>->( 1, ": empty key file [ %s ]", $filename );
         }
+        closedir($dh);
+    } else {
+        <[base.logs]>->(
+            0,             ": cannot read %s [ %s ] -- registry skipped",
+            $auth_key_dir, "$OS_ERROR"
+        );
     }
-    closedir($dh);
-} else {
-    <[base.logs]>->(
-        0,             ": cannot read %s [ %s ] -- no remote user authorized",
-        $auth_key_dir, "$OS_ERROR"
-    ) if $had_before;
 }
 $keys{'authorized-remote'} = $fresh;
 
@@ -77,8 +82,8 @@ if ( $loaded_count > 0 ) {
 
 return $loaded_count;
 
-#,,,,,,,,,,..,,,.,,,,,,,,,,..,..,,.,,,..,,,,.,.,.,...,...,..,,.,.,...,..,,,.,,
-#HAW2HI3I6T2XW6IHEJVQBIWLBNKONF453VH5SLDJRWAYU46OO3JP7ASMECWS7LZUOMFTANO4K7CWK
-#\\\|RVBDMNIPC25MESD5BQRBRLQQSPX6D6UFBOEM24LW6Y3I333OOCI \ / AMOS7 \ YOURUM ::
-#\[7]76QVQ6Z4BB5XAPDEGBJDGC53WC4NDMD6UZBLGG3UQZIPFER4FIDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,.,,..,...,..,,.,,,.,,,.,,,...,.,.,...,...,.,.,.,.,.,.,...,.,,,
+#KIFG7QCCL7XH7ZYKBEBZSYV7PTA7RKEADFMA72HZOQRMS3DCL6KF7OHUFSVYJ6PJS446QGOVUSJ64
+#\\\|J6YDPG2BFG4W7QRPSSYUQOMBD6YNCGP4VJBRPJNIHHUYK62JIIS \ / AMOS7 \ YOURUM ::
+#\[7]G32HLNFDT73C3T7YGE3QCVKWU5VOG3QFVIUR5NEDYQD6EUSFUWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

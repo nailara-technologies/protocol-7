@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = authorization.cmd.key-inspect
+# param = <entry id>
+
+my $id    = $call->{'args'} // '';
+my $entry = $data{'authorization.buffer'}->{$id};
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'authorization id not found'
+    }
+    if ref $entry ne qw| HASH |;
+
+my $output = '';
+foreach my $field (
+    qw| id type state public_b32 fingerprint source last_source
+    first_seen last_seen created expires requested_user requested_role |
+) {
+    $output .= sprintf "%s : %s\n", $field, $entry->{$field};
+}
+$output .= sprintf "channels : %s\n", join( ',', $entry->{'channels'}->@* );
+if ( ref $entry->{'decision'} eq qw| HASH | ) {
+    $output .= sprintf "decision : %s by %s at %s\n",
+        @{ $entry->{'decision'} }{qw| method by at |};
+}
+return { qw| mode | => qw| size |, qw| data | => $output };
+
+#,,,,,,,.,.,.,,.,,,,.,.,,,.,.,...,,,.,...,...,..,,...,...,,,,,,,,,,.,,.,,,.,.,
+#AZTL5Y2EMTMYNBHUX5BX2GY5G4R3Z42S2GKDGYMVWOIVCAABJUDM7O24XAX2MECQSKFJCTYXA27NA
+#\\\|IFKC3YSAQFJZW6HZECBHF2RJVM6AUM7ICYTUQMUEG4SXZ3JJKVD \ / AMOS7 \ YOURUM ::
+#\[7]7EKR74DIW2QVPHLOQ2ADQ5K4PXWDFHK6A7WKMRPT6YLOKZGZZ4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,6 +22,11 @@ my $remote_keys_base = catfile( $home_dir,         qw| .n remote-keys | );
 my $incoming_dir     = catfile( $remote_keys_base, qw| incoming | );
 my $authorized_dir
     = catfile( $remote_keys_base, qw| authorized |, $zenka_name );
+my $host_registry
+    = catfile( <[base.host.config_dir]>, qw| auth remote-keys | );
+my $host_incoming_dir = catfile( $host_registry, qw| incoming | );
+my $host_authorized_dir
+    = catfile( $host_registry, qw| authorized |, $zenka_name );
 
 ##  Ensure directories exist  ##
 unless ( -d $incoming_dir ) {
@@ -43,13 +48,24 @@ my $unrestricted_file = catfile( $incoming_dir, "${username}.public" );
 
 ##  Check for authorized symlink in authorized/<zenka>/<user>.public  ##
 my $authorized_link = catfile( $authorized_dir, "${username}.public" );
+my $host_authorized_link
+    = catfile( $host_authorized_dir, "${username}.public" );
 
-##  Determine which incoming file would be used  ##
+## user-home pins take precedence ; the host registry is the second source ##
 my $incoming_file;
+my $registry_authorized_link;
 if ( -f $restricted_file and -r $restricted_file ) {
-    $incoming_file = $restricted_file;
+    $incoming_file            = $restricted_file;
+    $registry_authorized_link = $authorized_link;
 } elsif ( -f $unrestricted_file and -r $unrestricted_file ) {
-    $incoming_file = $unrestricted_file;
+    $incoming_file            = $unrestricted_file;
+    $registry_authorized_link = $authorized_link;
+} else {
+    my $host_file = catfile( $host_incoming_dir, "${username}.public" );
+    if ( -f $host_file and -r $host_file ) {
+        $incoming_file            = $host_file;
+        $registry_authorized_link = $host_authorized_link;
+    }
 }
 
 if ( defined $incoming_file ) {
@@ -75,8 +91,18 @@ if ( defined $incoming_file ) {
         return 2;    ## key mismatch - TOFU violation ##
     }
 
-    ##  Key matches - check if authorized  ##
-    if ( -l $authorized_link and -f $authorized_link ) {
+    ## authorization comes from the registry of the pin selected above and ##
+    ## its link must resolve to the connecting key                         ##
+    ## [ a link straight to a key file stays valid ] ; another key's       ##
+    ## approval never authorizes it                                        ##
+    my $authorized_pubkey_b32;
+    if ( -l $registry_authorized_link and -f $registry_authorized_link ) {
+        my $linked_ref = <[file.slurp]>->($registry_authorized_link);
+        $authorized_pubkey_b32 = $linked_ref->$* if ref $linked_ref;
+        chomp $authorized_pubkey_b32 if defined $authorized_pubkey_b32;
+    }
+    if ( defined $authorized_pubkey_b32
+        and $authorized_pubkey_b32 eq $pubkey_b32 ) {
         ##  Authorized symlink exists - key is valid and authorized  ##
         <[base.logs]>->(
             1,
@@ -178,8 +204,8 @@ if ( defined $incoming_file ) {
 
 1;
 
-#,,,,,,..,..,,.,,,...,...,...,.,.,..,,..,,,,.,.,.,...,..,,...,..,,.,.,.,,,,,.,
-#JGO7RSZEOGO4CP3JJF57ZPL2W3YPTUIYTI4ZNDFHXDG7XCD4LIJPGTDDPUYG3MQHN42ZA6RORWWTQ
-#\\\|GIQYI6IBEMHXFCK2VG24PUGD5TURDEXQQ3HK3GLDAH2C3WOWOR7 \ / AMOS7 \ YOURUM ::
-#\[7]KQBTC6O3CYDDE74GBU3UNXSKFAGTK6KAE474UPF6Q6LTMSHMYMBI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,,..,,,,,,.,,...,,,,,..,,,.,,.,.,...,...,,,.,,.,,.,,,...,,.,,
+#PEUXKU7C54BNQ7TKUW5ZZR3FHL7ISWXXTRCLYJAOAJT7MA5RNXPZFRS3ZCIRAT2WGIZOY4SQ6DIWQ
+#\\\|L55JHCU55YXLZN66JYUBVKZOTL7RR7EWMAGYUE3TONJVC5SS2BQ \ / AMOS7 \ YOURUM ::
+#\[7]XVWWJHSBMO3LWJO5FVKVOBMMRCB7WHSWWWEF4OHB4XB2W5QRFSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

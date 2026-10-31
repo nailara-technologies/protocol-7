@@ -141,8 +141,11 @@ $code{'chk-sum.bmw.L13-str'} = sub {
     return sprintf 'L%u', unpack( '%32C*', $in );
 };
 ## the nodes route : capture what discover sends ##
-$code{'protocol-7.command.send.local'}
-    = sub { push @nodes_sent, $ARG[0]; return TRUE };
+$code{'protocol-7.command.send.local'} = sub {
+    push @nodes_sent, $ARG[0]
+        if $ARG[0]->{'command'} ne qw| authorization.key-arrive |;
+    return TRUE;
+};
 
 sub logged_at {
     my ( $level, $pattern ) = @ARG;
@@ -477,8 +480,8 @@ reset_receiver();
         '  :.. no root_fp stored' );
 }
 
-## invalid : a delegation that fails verify -> packet dropped [ the send ##
-## side would drop the field itself : feed the raw field ]               ##
+## invalid : a delegation that fails verify -> packet dropped         ##
+## [ the send side would drop the field itself : feed the raw field ] ##
 reset_receiver();
 {
     my $packet = make_raw_packet( dlg( bad_sig => 1 ) );
@@ -875,8 +878,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,..,..,,.,.,,,.,,,.,.,,,...,.,,,,.,,.,,,..,,...,...,...,.,.,...,,,,,,,.,
-#VGQVWT4HT6DV7WRBFUS45WWL5TML7GRPF5FCGZGUXOUH2MZQHV3VXTSPNIZQE4XF3G2S2PQ3CVNIC
-#\\\|D77MYBOKYVT2VE4NGMKCLSAKIBQ45OHCJHERUFHOBMH6PSXQW3Y \ / AMOS7 \ YOURUM ::
-#\[7]45IB4VHSRBHJTXK46TN5THAYZLU5IVABELKTUUKCMG6HNKWWXYAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,...,,.,,,..,.,.,..,,,..,,,,,.,,,..,,...,...,.,.,..,,,.,,.,,,,.,,
+#XPYQHIAY3FUJP75ZOT45RZBHARPJ2S7DTZY24CQ3KXVYXMM7N6A7R46FSIHRRLZ6EPIM7JBEBSBQO
+#\\\|3GWI233I64RZBO3G4M22LLLX3VIX3WTB7IEWHMS2DHIS6WS76HQ \ / AMOS7 \ YOURUM ::
+#\[7]GC7KZEIZ4WKG2ZTVGMCSBY4G3NJ5LIFK5RJ7FISUTZTREAS2N4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
