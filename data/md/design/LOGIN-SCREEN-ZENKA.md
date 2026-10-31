@@ -24,7 +24,7 @@ and `v7-zenki.login-session-start` for the narrow admission command.
 - slice 1 is local console login. pam is a possible optional backend later,
   not a reason to put pam or shadow access in the greeter now.
 - slice 1 is not a screen saver, lock screen, tty manager, display manager,
-  remote login service, or browser credential store.
+  remote login service, or browser credential store. lock mode is slice 2.
 
 ## 2. processes and privilege split
 
@@ -255,34 +255,111 @@ openbox configuration exist.
 `login-screen-session` is not a cube-connected zenka and needs no cube user.
 its start config exists only so v7 can supervise the external process.
 
-## 9. later lock-screen mode
+## 9. lock mode
 
-lock mode is the same process and renderer, not a second locker :
+the greeter doubles as the lock screen. it is the same `login-screen` zenka,
+window, renderer, `src/base.gtk.style`, and palette, not a second locker.
 
-- on lock, v7 records the already authenticated session user and switches the
-  greeter from hidden `session` to visible `locked` ;
-- the username is fixed to that session user ; no user switching and no new
-  session grant is possible ;
-- the root helper authenticates with mode `reauth`, requiring the returned
-  identity to equal the locked uid. rate limits remain active ;
-- success asks v7 for a fresh single-use unlock grant, then returns to hidden
-  `session`. the existing session processes are never stopped and restarted ;
-- failure stays locked. helper, xorg, or greeter failure must fail locked,
-  never expose the desktop ;
-- before implementing this mode, greeter crash recovery must reconcile the
-  live session into `locked`, and input grabs \ focus \ multi-monitor coverage
-  need real-host tests. until then slice 1 does not claim to be a secure
-  screen saver.
+### trigger and lock window
+
+a user session runs `p7c login-screen.lock`. cube grants this command only to
+the session user. the openbox `Ctrl+Esc` binding replaces the current `slock`
+binding. a separate command for policy-driven locks follows later.
+
+the lock window is fullscreen and above everything, including override-redirect
+windows. it watches root `SubstructureNotify` events and re-raises above every
+newly mapped or restacked top-level window. it grabs both keyboard and pointer,
+retrying failed grabs. it never reports `locked` until both grabs are held.
+
+### unlock and fail-closed recovery
+
+unlock sends the password to the existing root helper `bin/login-screen-auth`
+for the locked session user only. it creates no grant and starts no session.
+on a match the greeter releases both grabs, transitions out, and hides. failure
+stays locked and the existing session processes remain running. the helper's
+per-user and global rate limits apply to unlock attempts exactly as to logins.
+
+v7-zenki records `session locked` for the running `login-screen-session`. a
+greeter restart while locked therefore comes straight back in lock mode. the
+existing `v7-zenki.login-session-state` startup query gains a `locked <user>`
+reply beside `active <user>` and `none`.
+
+the honest x11 limit remains : any X client can disconnect another with
+`XKillClient`. a v7 restart recovers the lock, but the session may flash
+briefly. X-11 running as the session user is a known separate issue.
+
+### key feedback
+
+feedback is subtle and stays in the palette : a dim `#0055CC` mark per typed
+character and a short dark violet pulse [ about `rgba(26,9,70)` ] on a wrong
+password. there is no red and no flashing.
+
+### shared transition layer stack
+
+lock and login share one layer stack :
+
+1. session background : X-11 color or image, filtered ;
+2. filtered screen snapshot taken at lock time, held in memory only, never
+   written to disk, and discarded after the transition ;
+3. lock or login background, when it differs from layer 1 ;
+4. controls.
+
+on lock, the snapshot dissolves over layer 1 through a translucency curve,
+layer 3 fades in, and controls appear last. on unlock, controls leave first,
+layer 3 dissolves to layer 1, and the live desktop is revealed. unlock never
+uses a stale snapshot.
+
+the same stack serves greeter start, login, and logout ; logout follows the
+lock sequence. each layer has a curve type, duration, and filter. a config key
+such as `login-screen.lock.transition = fade | snapshot-fade | image` selects
+the transition.
+
+curves use the existing `base.curve.*` register, cancel, compose, and eval
+operations, including sigmoid and ease-in-out types, following the usage in
+`src/mpv.handler.audio_fade`. `base.curve.init` ticks every 50 ms, so a 0.7 s
+visual fade gets about 14 frames. a visual tick near 16 ms may therefore be
+needed, either as a per-curve option or a drawing timer, to verify on real
+output.
+
+durations default to 0.7 s or longer. a manual lock is certain once its fade
+starts. an idle-triggered lock can be aborted by any input during the fade ;
+it then fades smoothly back using `base.curve.cancel` and a reverse curve from
+the current value.
+
+### idle, blank, and dpms policy
+
+idle locking, blanking, and dpms form one policy. idle lock defaults to off and
+uses 780 s when enabled. a runtime switch such as
+`login-screen.idle-lock off|on|<seconds>` changes it. first login asks once per
+user.
+
+a later context-aware policy hook considers network, other users or remote
+sessions, battery, lid and dock, own devices nearby, and time of day, returning
+lock and blank times. X-11 `blank_timeout` [ default 780 ] and dpms follow the
+same policy. after lock and fade, the display turns off through X-11
+`dpms-force-off`.
+
+### open question
+
+for the owner : should the lock screen show password only, or also user name
+and time, dimmed ?
+
+### implementation slices
+
+- `s2a` : manual lock, grabs, fail-closed recovery, and simple fade ;
+- `s2b` : shared layer stack and snapshot transitions ;
+- `s2c` : unified idle, blank, and dpms policy.
 
 ## 10. slices
 
 1. native greeter, root crypt helper with fixture-only test mode, root grant,
    v7 per-user supervisor launch, xauthority transfer, openbox + compton +
    native autostart, logout \ crash return, cube entries and fixture tests.
-2. active-session reconciliation after greeter restart, asynchronous helper
-   io in the Gtk loop, shutdown \ reboot controls with separate policy, and
-   x11 focus \ grab hardening on a real test host.
-3. lock \ reauth mode from section 9, including multi-monitor and crash tests.
+2. lock mode from section 9 : `s2a` manual lock + grabs + fail-closed + simple
+   fade, `s2b` layer stack + snapshot, and `s2c` idle policy.
+3. asynchronous helper io in the Gtk loop, shutdown \ reboot controls with
+   separate policy, and remaining x11 focus \ multi-monitor hardening on a real
+   test host.
 4. optional pam backend behind the same helper protocol and account policy.
    crypt \ shadow remains the native default ; pam never moves into Gtk.
 5. installer \ service hardening : dedicated greeter account, protected host
@@ -298,8 +375,8 @@ restarts a zenka, touches a real host display, installs a setuid file, or
 uses a real user session. real xorg, keyboard focus, actual logout, and
 multi-monitor behavior remain explicit real-host validation steps.
 
-#,,,.,.,,,,.,,,,.,,..,...,.,.,,,,,.,,,...,..,,..,,...,...,,..,.,.,...,..,,,..,
-#FKMTN5TYCL2EN3IWBPIFYYD43CYKFQ5F2XYSJIU7XOTOCHNGQLUE5CPZMUHC57JK6PFICTMSWGNCM
-#\\\|3FDO5VSUJG3KLPQXCIS3TDSOZLPRKNWWHRUO6SD7JARHSKAC7OA \ / AMOS7 \ YOURUM ::
-#\[7]QH44SVO3GVQTYGFMAMMSH5WVK5ZZXHWFJ3L2UOOLZDVNC6M5CMCI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,.,,..,,,,,.,,,,,,,,..,...,,,.,..,,...,...,,,.,..,,..,,,.,,,..,
+#6NBLYWAMM6KWKFCPGO7NTUURXQT2QVUPO4HQAS6VRLJKAC4LIYOMGG4P3OZNAXB537QL6QHFPOLLG
+#\\\|ROEFHVA3AF7ZXBQUVEJJQVYDBH72KKXPOE5BJJ7T4FALEZ7454X \ / AMOS7 \ YOURUM ::
+#\[7]4KL2LPOC2VCCJ7XWDUB6KJOPP3OVALHLWIKPJIRYTV6BEZ4A2SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
