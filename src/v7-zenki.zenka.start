@@ -212,6 +212,32 @@ if ( exists $init_result_data->{'start_mode'}
         $prog_usr = $zenka_subname;
     }
 
+    ## <session-user> : the user of the running login session ; no session, ##
+    ## no start [ desktop programs live only inside one ]                   ##
+    if ( defined $prog_usr and $prog_usr eq qw| <session-user> | ) {
+        my $session_user;
+        foreach my $iid (<[v7-zenki.instance_ids]>) {
+            my $other = <v7-zenki.zenka.instance>->{$iid};
+            next
+                if ( $other->{'zenka_name'} // '' ) ne
+                qw| login-screen-session |;
+            next
+                if ( $other->{'status'} // '' )
+                =~ m{^(?:offline|error|shutdown)$};
+            $session_user = $other->{'subname'};
+        }
+        if ( not defined $session_user
+            or $session_user !~ m|^[a-z_][a-z0-9_-]{0,31}$| ) {
+            <[base.logs]>->(
+                0, "<< '%s' exec_usr <session-user> : no login session >>",
+                $zenka_name
+            );
+            <[zenka.change_status]>->( $instance_id, qw| error | );
+            return undef;
+        }
+        $prog_usr = $session_user;
+    }
+
     if ( defined $prog_usr and $prog_usr eq qw| <AMOS-user> | ) {
         if ( defined <system.AMOS-user> ) {
             $prog_usr = <system.AMOS-user>;
@@ -532,8 +558,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,,,,..,,.,,.,,,.,,,.,,,,.,,.,.,,..,,,.,,..,..,,...,...,..,,,,.,,.,,..,,.,,,
-#PIMAI2UYTSYGZ5C4BC5P5K3HKQJNFNR2U5IUNAZU3R6LXWRZAOESZH4LPJ5LRP3AL4GLHJDNOENDK
-#\\\|GJY5ZW3VKQU6SO6PJEHW2IS43FZVXH2PQ5ZLZD4DSWD55GPFWY6 \ / AMOS7 \ YOURUM ::
-#\[7]CKZRE4X2TTREFF2CRMPMGONUUQKZWEUZBSB7A43XVTZFJULVVYAY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,.,,.,,,,..,.,.,,,.,,.,,..,,...,..,,...,...,.,,,.,,,,,,,...,..,,
+#M6OTVHL6IWZ7HCOWTGWP426AQ4MQA5FH2ORIP3DQGEFOYGBJBW6W3E2MY7KVUWBXY6RDVJQLNMYEA
+#\\\|6PF2EGRHDHFXN3YAIUIHMVUNUHBGJQNZCPXGCGMDTSPADI5Z54E \ / AMOS7 \ YOURUM ::
+#\[7]GFJLWFZXGHZCYFCN6T3BPHJLLFSFYZPT6ZFRVA4VW7MTNZMG6MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
