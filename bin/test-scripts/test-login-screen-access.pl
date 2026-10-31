@@ -180,7 +180,7 @@ $code{'base.callback.cmd_reply'} = sub { push @replies, [@ARG]; return TRUE };
 $code{'base.reply.mode_text'}    = sub { return ( 'false', 'stub refusal' ) };
 $code{'base.logs'} //= sub { return TRUE };
 $code{'protocol-7.route-send'} = sub { push @sent, $ARG[0]; return TRUE };
-$code{'v7-zenki.zenka.cmd.start_once'} = sub {
+$code{'zenka.cmd.start_once'}  = sub {
     $starts++;
     return { 'mode' => 'deferred' };
 };
@@ -221,7 +221,7 @@ ok( $starts == 1
 
 pending_session();
 @sent = ();
-$code{'v7-zenki.zenka.cmd.start_once'}
+$code{'zenka.cmd.start_once'}
     = sub { $starts++; return { 'mode' => 'false', 'data' => 'no' } };
 $access_reply->( { 'params' => { 'cube_sid' => 77 }, 'cmd' => 'TRUE' } );
 ok( $sent[0]->{'command'} eq 'X-11.revoke_session_user'
@@ -241,8 +241,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,.,..,,,..,,,,,..,,...,,..,...,,.,,,.,,,.,,..,,...,...,,.,,,..,...,.,,,,.,,
-#WUIFPY3TDSZOB5XN5ZARHDCZRY5AT66CJDOS2L7VLTI2JL56EPMXNKHIW7MEFP7E3U5V5QDNRQB3Q
-#\\\|3QHAZ3HLFPQJOOHZMARIZAQPSOJWV45ISAKT2HFFTSH4KP3RPBL \ / AMOS7 \ YOURUM ::
-#\[7]J422NSHW5ABZXYRKN6H7DAZIYYM7NXW5DFIZBOBR7JH7UAYSHEBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,..,,,..,.,,,,,,,...,.,,,,,,,,,,,..,,...,...,..,,,,.,...,,..,.,,,
+#2YT4XDL6Q23FRKONQ5JUWIVPM24F534R3344LRKR2AJEL4F5ABUG37IV5OYA4RY4AL3XQSK4MCZFO
+#\\\|ZRDVDWROISZMGXLPFNYX4E24RXA4OSYRYPSLE47TD6JXJD5MVG4 \ / AMOS7 \ YOURUM ::
+#\[7]LDD34VMEGK2H7ZLX7O2QMHVHT5KWLKO4NTFGRCGUJN4PLOTONYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
