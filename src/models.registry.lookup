@@ -20,7 +20,7 @@ unless ( keys $registry->%* ) {
 }
 
 ## ':<content>' : the content half alone, any install path ##
-$lookup_id =~ s{^:}{};
+my $content_half = $lookup_id =~ s{^:}{};
 
 ## Check if this is a composite key (contains colon)
 if ( $lookup_id =~ m{:} and exists $registry->{$lookup_id} ) {
@@ -78,6 +78,17 @@ if ( $lookup_id =~ m{:} and exists $registry->{$lookup_id} ) {
         return $matches[0]->{entry};
     }
 
+    ## a bare key next to its composite one is the same model : only two ##
+    ## install paths make a content half ambiguous                       ##
+    my $paths = grep { $ARG->{'key'} =~ m{:} } @matches;
+    if ( $content_half and $paths > 1 ) {
+        <[base.logs]>->(
+            0, '[registry.lookup] ambiguous content id: %d install paths',
+            $paths
+        );
+        return undef;
+    }
+
     ## Multiple matches - prefer primary (non-composite) key first
     foreach my $match (@matches) {
         if ( $match->{key} !~ m{:} ) {
@@ -98,8 +109,8 @@ if ( $lookup_id =~ m{:} and exists $registry->{$lookup_id} ) {
     return $matches[0]->{entry};
 }
 
-#,,..,,,,,...,,.,,.,.,..,,..,,,..,.,.,,,.,,.,,..,,...,...,..,,,,.,...,.,,,,.,,
-#IFZQWOKNVEPVOS47VPYYDPYUNI42WAXAVAGK6XLI37237JRSDWOO4TBCFOYIXRONM6LD6WEN4QRD6
-#\\\|SYB7ES4F6QNNVT7NPJCNV5ZK3IXV7KDLYKBLI4WO4FFMJ6XZNMU \ / AMOS7 \ YOURUM ::
-#\[7]6HUEKSNNCPGABFMEWQMNP4JNV3TXDLR36HDGDZNRUHLV7B3UYCAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,.,.,..,,,..,,,.,,,,,..,,,..,..,,...,...,..,,.,,,,..,,..,,.,,
+#NXMKTMDVBVYWMRITOZIL2PXTKH42PZNW5KFN5SFFRXWWNX4U2R73LAFX4RUZT5HCSHMVK2Z5NJGTS
+#\\\|ETCJJMKVLBSTSP4ANXCAUSIYINGBJD6JQ4ZTVIRFMC626DIRDBC \ / AMOS7 \ YOURUM ::
+#\[7]GJVNQ75IEK4EKYEWYLEYBCY7PWYEJJLSR2TCFGPHGSXN7JYSI6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

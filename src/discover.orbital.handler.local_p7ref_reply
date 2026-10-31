@@ -5,6 +5,13 @@
 
 my $reply = shift;
 
+if ( ( $reply->{'mode'} // '' ) eq qw| false | ) {
+    <[discover.orbital.request_backoff]>->(FALSE);
+    return undef;
+}
+
+<[discover.orbital.request_backoff]>->(TRUE);
+
 ## nodes.orbital-p7ref returns mode=size with plain p7ref string ##
 my $p7ref = $reply->{'data'} // '';
 $p7ref =~ s|^\s+||;
@@ -19,8 +26,8 @@ if ( length $p7ref ) {
 
 return undef;
 
-#,,,,,.,,,...,,.,,,,.,.,.,,.,,,,.,...,,.,,,,,,..,,...,...,,,.,..,,,,,,...,..,,
-#HBL3QUB5M5H2X5JWFOBANRH4H3CKKAYRUL4XJWVCNZD6SLX3J7I46O46RGFVVEDABWBBFFHL3DAME
-#\\\|TO5XCLMT4WLFECONJMWZUALVVKEGUNTNFB2JNM2QE4F45UCNXOE \ / AMOS7 \ YOURUM ::
-#\[7]YWFRJYWMPLKDLLG3SBR63W7Y3O2HOLGB5LDAD54UQDPPZASUXSBA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,,,.,.,.,..,,,..,,,.,...,...,..,,...,...,...,..,,...,,.,,.,.,
+#IM45HLEJPOUVXUXR4CODXSWCPUH7GZNHYNHCI6DE6OFCMTJTB6HOGDCUG2KRTLONVFUCI6RYSWANS
+#\\\|AHITWYEFYTJEBL7NIWSKHIROXE46657QTT5PG23K62MB2F7JKS6 \ / AMOS7 \ YOURUM ::
+#\[7]BMCMGAJY4IEBLV6F22F5CPMH52NVOTKXPQLKOV5CLBVG4TRU36DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

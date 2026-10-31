@@ -41,6 +41,7 @@ use constant UNKNOWN => 2;
 
 our %code;
 our %data;
+our $call;
 
 $OUTPUT_AUTOFLUSH = 1;
 
@@ -85,11 +86,11 @@ $code{'base.logs'}   = sub {return};
 $code{'base.s_warn'} = sub {return};
 
 compile_module($ARG) for qw|
-    models.registry.lookup coding.mode.local_model_id coding.mode.task_model
-    coding.mode.setting |;
+    models.registry.lookup models.resolve.entry models.cmd.get_path_by_amos
+    coding.mode.local_model_id coding.mode.task_model coding.mode.setting |;
 
 ## ---------------------------------------------------------------------- ##
-## registry lookup                                                        ##
+## registry lookup and models zenka path resolution                       ##
 
 my $here  = 'KMUVFQQ:QDBKEXY';
 my $there = 'OFSQC4I:QDBKEXY';
@@ -114,6 +115,30 @@ ok( ( $lookup->($there) // {} )->{'file_path'} eq '/data/models/a/b/9b.gguf',
 );
 ok( !defined $lookup->('ZZZZZZZ:CCCCCCC'), 'unknown content stays unknown' );
 
+$data{'models'}{'registry'}{$here}{'file_path'} = __FILE__;
+for my $id ( $here, ':QDBKEXY' ) {
+    local $call = { 'args' => $id };
+    my $reply = $code{'models.cmd.get_path_by_amos'}->();
+    ok( $reply->{'data'} =~ m|\nfile_path: |, "path lookup resolves $id" );
+}
+
+local $call = { 'args' => ':CCCCCCC' };
+my $reply = $code{'models.cmd.get_path_by_amos'}->();
+ok( $reply->{'data'} =~ m|matches no installed model|,
+    'path lookup reports an unknown content id'
+);
+
+$data{'models'}{'registry'}{$there} = { 'file_path' => __FILE__ };
+ok( !defined $lookup->(':QDBKEXY'), 'ambiguous content half is refused' );
+ok( defined $lookup->('QDBKEXY'),   'bare content keeps legacy resolution' );
+
+local $call = { 'args' => ':QDBKEXY' };
+$reply = $code{'models.cmd.get_path_by_amos'}->();
+ok( $reply->{'data'} =~ m|ambiguous.*2 installed matches|,
+    'path lookup reports an ambiguous content id'
+);
+delete $data{'models'}{'registry'}{$there};
+
 ## ---------------------------------------------------------------------- ##
 ## local model id                                                         ##
 
@@ -133,22 +158,25 @@ ok( $local->('XXXXXXX:BBBBBBB') eq 'AAAAAAA:BBBBBBB',
     'loaded server model counts as known'
 );
 
-## a content-only pin for a model this host has but does not serve right    ##
-## now [ another model loaded ] : the registry supplies the path half, else ##
-## switch-model refuses ':<content>' and the task parks for good            ##
+## a content-only pin for a model this host has but does not serve right   ##
+## now [ another model loaded ] : the registry supplies a unique path half ##
 $data{'coding'}{'model_metadata'} = {
     'DDDDDDD:EEEEEEE' => { 'amos' => 'DDDDDDD:EEEEEEE', 'available' => TRUE },
     'FFFFFFF:EEEEEEE' =>
         { 'amos' => 'FFFFFFF:EEEEEEE', 'available' => FALSE },
     'yaml named' => { 'amos' => 'yaml named' },
 };
-ok( $local->(':EEEEEEE') eq 'DDDDDDD:EEEEEEE',
-    ':<content> not served -> registry id [ available first ]' );
+ok( $local->(':EEEEEEE') eq ':EEEEEEE',
+    'ambiguous :<content> stays unresolved [ never a guess ]' );
 ok( $local->('EEEEEEE') eq 'DDDDDDD:EEEEEEE',
-    '<content> not served -> registry id'
+    'bare content keeps its registry preference'
 );
 ok( $local->(':GGGGGGG') eq ':GGGGGGG',
     'content in neither served nor registry stays as given' );
+$data{'coding'}{'model_metadata'}{$there} = { 'amos' => $there };
+ok( $local->(':QDBKEXY') eq ':QDBKEXY',
+    'loaded and registry copies together are still ambiguous' );
+delete $data{'coding'}{'model_metadata'}{$there};
 ok( $local->('XXXXXXX:BBBBBBB') eq 'AAAAAAA:BBBBBBB',
     'served model still wins over the registry'
 );
@@ -172,8 +200,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,.,.,,.,,,.,,,,,,..,,,,.,.,,,,,.,,..,..,,..,,...,...,,..,.,,,..,,,,.,.,.,
-#FAR4WECNEHA3IAXQBIGGBNRGTTV267C4YAXGYWSLPLIJRZFEP45P5AM5QTBBCPM434SFYX2EA3YXO
-#\\\|M3N42IITEASM6RD26J4J7GOEOWVJ22I5XQDZPOCT5HTXBBI4UE4 \ / AMOS7 \ YOURUM ::
-#\[7]C4LHW6BPK6AIUTMSAWW7QYA2GSEUZTHVFDIC3TRUWG34TS55TMAY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,...,..,,.,,,,.,,.,,,,,,,...,..,,...,...,,..,,,,,,.,,,,,,,.,,
+#ABZN3IQ7REAX53ZX7LQ6XHO2CZPYIDEOZDZKAIYVSWG7UETVUQXUD2PPSMFTYFGZX2OW257XQZ2NG
+#\\\|TS7TAEUVJZE2VGXXYSLBQ2AQLYYATXAGBQHRDSZMJAICM2WUM7O \ / AMOS7 \ YOURUM ::
+#\[7]Q4QOTBSRVQMIVHJW5VOEO2ICIORJJ2T7WOGVWOO4WUI5QEISBEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -323,7 +323,7 @@ sub check_profile {
     } else {
         print_rows(
             @rows, undef,
-            [   'result',          'all dependencies ' . 'installed',
+            [   'result',          'all dependencies installed',
                 "$total / $total", 'ok'
             ]
         );
@@ -893,7 +893,7 @@ sub validate_zenka_declarations {
 
     say frame_section_header('summary');
     print_rows(
-        [   'zenki', "$total_zenka with " . "declared dependencies",
+        [   'zenki', "$total_zenka with declared dependencies",
             undef,   'value'
         ],
         [ 'cpan modules',        $total_pm,  undef, 'value' ],
@@ -951,8 +951,7 @@ sub cmd_detect_hw {
     while (@args) {
         my $arg = shift @args;
         if ( $arg eq '-write' ) {
-            frame_error_exit( $TOOL,
-                'detect-hw -write ' . 'needs a profile name' )
+            frame_error_exit( $TOOL, 'detect-hw -write needs a profile name' )
                 unless @args;
             $write_name = shift @args;
         } else {
@@ -1061,11 +1060,11 @@ sub cmd_detect_hw {
             $result->{suggestions} );
         if ($written) {
             print_rows(
-                [   'profile',                               'written',
-                    "hw-$write_name " . "in $PROFILES_FILE", 'ok'
+                [   'profile',                          'written',
+                    "hw-$write_name in $PROFILES_FILE", 'ok'
                 ],
                 [   'review', 'suggested',
-                    'check the evidence ' . 'comments before install'
+                    'check the evidence comments before install'
                 ],
             );
         } else {
@@ -1275,10 +1274,9 @@ sub load_profiles {
     frame_error_exit( $TOOL, "cannot find $PROFILES_FILE" )
         unless -f $PROFILES_FILE;
 
-    open my $fh, '<',
-        $PROFILES_FILE
-        or frame_error_exit( $TOOL,
-        "cannot read " . "$PROFILES_FILE : $OS_ERROR" );
+    open my $fh, '<', $PROFILES_FILE
+        or
+        frame_error_exit( $TOOL, "cannot read $PROFILES_FILE : $OS_ERROR" );
     my %profiles;
     my $current_profile;
     my $current_section;
@@ -1357,9 +1355,9 @@ sub show_help {
 
     --no-cache .....................  check again, not from the cache
 
-    detect-hw ......................  suggest firmware \ hardware packages
+    detect-hw ......................  suggest firmware \\ hardware packages
                                       [ read-only ] from the kernel log,
-                                      loaded module firmware, pci \ cpu ids
+                                      loaded module firmware, pci \\ cpu ids
     -write <name> .................  save the suggestions as profile
                                       hw-<name> [ evidence as comments ]
 
@@ -1379,16 +1377,16 @@ sub show_help {
 
     host-power [mode] ...............  keep a host's power behavior managed
                                        [ default mode : awake ] mask the
-                                       systemd sleep targets, install \
+                                       systemd sleep targets, install \\
                                        enable an ACPI wakeup-disable oneshot
                                        [ RTC stays enabled ], GNOME idle
                                        suspend -> nothing per session user
                                        [ warn, not failure, without a bus ].
-                                       suspending : manual \ zenka suspend
+                                       suspending : manual \\ zenka suspend
                                        stays available, firmware wake
                                        defaults kept, WakeOnLan persistent
 
-    profiles may pin the mode per install : host_power: awake \ suspending
+    profiles may pin the mode per install : host_power: awake \\ suspending
 
     zenka-modules [zenka] ..........  perl modules the zenki declare
     zenka-packages [zenka] .........  os packages the zenki declare
@@ -1403,8 +1401,8 @@ sub show_help {
 EOL
 }
 
-#,,,,,...,.,,,..,,,,,,,,,,.,,,..,,,..,.,.,,..,..,,...,...,,,,,...,,.,,.,,,,..,
-#NS63TVBYNECUX2UQD4WH2ITCJMUNH5X5R6RJOZB6VVMME5SFSPXRD63FV474W73YQYSSIKBP7CU32
-#\\\|BKLDOO5ZVAHMHSF73NATS4MTSBTZSZYBKGE4TAR2V77TVCVLYSW \ / AMOS7 \ YOURUM ::
-#\[7]I4THEU6ZWOTQETEDAB7OJWYLQI7HJ3GPMTI7GZSVUKAKMMDOE6BY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,...,,,.,...,.,,,...,,..,.,,,..,,...,...,,,,,..,,.,.,,,.,.,.,
+#A6GLW5COM77YZIDKIGNMIL7HIOBNF23MEGKLUWK4SQ36LCOFEPZ22RSUWV55U2XYDO7KF3XLUWSY2
+#\\\|3KSYBZN7T4YFMFRSQZAWWLPEHPZ4PPFP4QVXFOTBDDMCHBRPPXO \ / AMOS7 \ YOURUM ::
+#\[7]6HA7VBMJXV6PI25DHADM46DGTOBMUCEITLRSVXHDFHTEM7RTEECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
