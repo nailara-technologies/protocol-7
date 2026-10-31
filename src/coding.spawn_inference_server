@@ -100,8 +100,7 @@ if ($backend eq qw| gpu |
         my $re = eval {qr{$match}i};
         if ( !defined $re ) {
             <[base.logs]>->(
-                0,
-                '[spawn_inference_server] ' . 'runtime %s : bad match regex',
+                0, '[spawn_inference_server] runtime %s : bad match regex',
                 $name
             );
             next;
@@ -151,6 +150,7 @@ if ($swa_compress) {
 ## clamped to it -- the old fixed 33 kept every model with more layers      ##
 ## partly on the cpu even when it fit [ fablevibes 14b : 40 ]               ##
 my ( $n_cpu_moe, $moe_offload_mb ) = ( 0, 0 );
+my ( $gpu_vram,  $moe_vram_budget_mb );
 if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
     my $shape = <[models.gguf.file.extract_attention]>->($model_path) // {};
     $model_layer_count = $shape->{'block_count'} // 0;
@@ -225,29 +225,31 @@ if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
     if (    ref $experts eq qw| ARRAY |
         and $floor
         and <[base.cfg_bool]>->( <coding.cfg.moe_expert_offload> // 1 ) ) {
-        my $vram   = <[coding.helper.query_gpu_memory]>;
+        $gpu_vram //= <[coding.helper.query_gpu_memory]>;
+        $moe_vram_budget_mb = $gpu_vram->{'free_mb'}
+            - ( <coding.cfg.vram_safety_mb> // 1024 );
         my $ctx_at = sub {
             my ($n) = @ARG;
             my $mb = 0;
             $mb += $experts->[$ARG] // 0 for 0 .. $n - 1;
             $mb /= 1024**2;
             my $r = <[coding.helper.calculate_safe_context]>->(
-                {   model_path    => $model_path,
-                    mmproj_path   => $mmproj_path,
-                    backend       => $backend,
-                    kv_cache_type => $kv_cache_type,
-                    swa_compress  => $swa_compress,
-                    gpu_layers    => $gpu_layers,
-                    layer_count   => $model_layer_count,
-                    offload_mb    => $mb,
-                    vram_total_mb => $vram->{'total_mb'},
+                {   model_path     => $model_path,
+                    mmproj_path    => $mmproj_path,
+                    backend        => $backend,
+                    kv_cache_type  => $kv_cache_type,
+                    swa_compress   => $swa_compress,
+                    gpu_layers     => $gpu_layers,
+                    layer_count    => $model_layer_count,
+                    offload_mb     => $mb,
+                    vram_budget_mb => $moe_vram_budget_mb,
 
                     probe => TRUE,
                 }
             );
             return ( $r->{'calculated'} // 0, $mb );
         };
-        my ($ctx_none) = $vram->{'ok'} ? $ctx_at->(0) : ($floor);
+        my ($ctx_none) = $gpu_vram->{'ok'} ? $ctx_at->(0) : ($floor);
         if ( $ctx_none < $floor ) {
             my ( $lo, $hi ) = ( 1, scalar @$experts );
             my ($ctx_all) = $ctx_at->($hi);
@@ -524,7 +526,8 @@ if ( $backend eq qw| gpu | ) {
     }
 
     ## vram sanity check [ single shared helper, see its own file for why ] ##
-    my $vram = <[coding.helper.query_gpu_memory]>;
+    $gpu_vram //= <[coding.helper.query_gpu_memory]>;
+    my $vram = $gpu_vram;
     if ( $vram->{'ok'} ) {
         my ( $total_mb, $free_mb )
             = ( $vram->{'total_mb'}, $vram->{'free_mb'} );
@@ -638,14 +641,17 @@ my $max_tokens = <inference.model.max_tokens>
 ## more context                                                         ##
 
 my $safe = <[coding.helper.calculate_safe_context]>->(
-    {   model_path    => $model_path,
-        mmproj_path   => $mmproj_path,
-        backend       => $backend,
-        kv_cache_type => $kv_cache_type,
-        swa_compress  => $swa_compress,
-        offload_mb    => $moe_offload_mb,       ## moe experts in ram ##
-        gpu_layers    => $gpu_layers,           ## actual -ngl value used ##
-        layer_count   => $model_layer_count,    ## true total [ gguf ] ##
+    {   model_path      => $model_path,
+        mmproj_path     => $mmproj_path,
+        backend         => $backend,
+        kv_cache_type   => $kv_cache_type,
+        swa_compress    => $swa_compress,
+        offload_mb      => $moe_offload_mb,       ## moe experts in ram ##
+        vram_budget_mb  => $n_cpu_moe > 0 ? $moe_vram_budget_mb : undef,
+        gpu_layers      => $gpu_layers,           ## actual -ngl value used ##
+        layer_count     => $model_layer_count,    ## true total [ gguf ] ##
+        handled_offload => $n_cpu_moe > 0 || ( $model_layer_count > 0
+            and $gpu_layers < $model_layer_count ),
     }
 );
 my $auto_ctx = $safe->{'context_length'};
@@ -1345,8 +1351,8 @@ return {
     'port'    => $port
 };
 
-#,,..,,.,,...,...,.,,,...,,.,,,.,,,,,,.,,,...,..,,...,..,,,,.,,,,,,,,,.,,,,.,,
-#CSSQVQBLZ4BB7Q7P65RQ5UMVXYAM446MFCNMA4FEKS4LZYVHJK2DWO7NG4FRRU3FYNSBEPGDCWEPK
-#\\\|GGTQSPYD4DTEIW43NSR5QMS5C6BNES3BSOGK7474YZAYWYOLLS4 \ / AMOS7 \ YOURUM ::
-#\[7]TSJMVKCWRL227HMLVOPSOM3YZANL7C26LY5GZ5V26ZFWC7OEOMBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,..,,.,,,.,.,,..,,,.,..,,,,.,.,,,..,,...,...,.,.,,,,,.,.,.,.,,..,
+#DEJTVBZL5UPJ2HY47LS22EMYUUGRTJ5Y7574SX735FDMK7WOWD5LN3C3BVQ4LGJWEKUZZT6LCYQXY
+#\\\|FCO3QOHTXJH4AOZ2NV2WVFXGDCXTTU3LKBIRNGFZG7V5ZGFAFNK \ / AMOS7 \ YOURUM ::
+#\[7]RPHF55MZTBUR6CEDHPOKA6XLHEH7JXRNXYRNIL3TRPDQU3EGEMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
