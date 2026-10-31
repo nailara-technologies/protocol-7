@@ -8,6 +8,9 @@ return <discover.orbital.local_p7ref>
     if defined <discover.orbital.local_p7ref>
     and length <discover.orbital.local_p7ref>;
 
+## wait for retry interval after unavailable or failed requests ##
+return undef if <[base.time]>->(5) < <discover.orbital.retry_after>;
+
 ## request fresh value from nodes zenka ##
 my $sent_count = eval {
     <[protocol-7.route-send]>->(
@@ -20,21 +23,19 @@ my $sent_count = eval {
 };
 
 if ($EVAL_ERROR) {
-    <[base.logs]>->( 3, 'orbital p7ref request failed: %s', $EVAL_ERROR );
+    <[discover.orbital.request_backoff]>->(FALSE);
     return undef;
 }
 
 if ( not $sent_count ) {
-    <[base.logs]>->(
-        3, 'orbital p7ref not available [ nodes zenka offline? ]'
-    );
+    <[discover.orbital.request_backoff]>->(FALSE);
     return undef;
 }
 
 return undef;    ## async reply will populate cache ##
 
-#,,,,,,,,,.,,,.,.,..,,,,.,,,,,.,.,.,.,..,,,,,,..,,...,...,,..,..,,.,,,,..,.,.,
-#EFFPEDXB33AHWMYMNJG33XL4PB32YHQO7UF7JPA3VN5KVYAGKCGT5BTNMJVCZJR5L36CHRNWN4W62
-#\\\|4LBA273YKHV33PV2WLZOJOAIQMQHISOOUTD3D7FA3ZABQ4TSYSV \ / AMOS7 \ YOURUM ::
-#\[7]BRQQGQEUUUOWYVLSEQWNNZCKNYYK2RWGIJTK5DKLBONQQGK2BQBA 7  DATA SIGNATURE ::
+#,,,,,..,,...,...,,..,.,,,...,,,.,,..,.,.,...,..,,...,...,..,,,,.,,,,,,..,,,.,
+#3NE4SFVY7JADKLPC56HLXST7SOHWCB2VQ3JQDU6VO3WQ53WD55ABKHGODQJKNNUYHEMGRH7BLW4LE
+#\\\|C4GYN4OWM6YODAKV47QOAIFNZN4MVNL2FG3BILWQIZNXM3TA2IL \ / AMOS7 \ YOURUM ::
+#\[7]YQNPAAB7KAWXD22ME7UGR7UVH5JRVDDFKS3IV7DIFTCRRM7ULSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

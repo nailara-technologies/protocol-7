@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = models.cmd.get_path_by_amos
-# descr = get model metadata by AMOS checksum (composite or single)
+# descr = get model metadata by amos id [ composite or :content ]
 # return = { mode, data } YAML-encoded model entry or error string
 
 use YAML::XS qw| Dump |;
@@ -13,6 +13,28 @@ unless ( defined $amos_id && length $amos_id ) {
         'mode' => 'size',
         'data' => "error: amos_id required (checksum or composite key)\n"
     };
+}
+
+## a content half must name exactly one installed model ##
+if ( $amos_id =~ m|^:([^:]+)$| ) {
+    my $content_part = $1;
+    my $registry     = <models.registry> // {};
+    my @matches      = grep {m|^[^:]+:\Q$content_part\E$|} keys %$registry;
+
+    return {
+        'mode' => 'size',
+        'data' => "error: model content id matches "
+            . "no installed model: $amos_id\n"
+        }
+        if not @matches;
+
+    return {
+        'mode' => 'size',
+        'data' => "error: model content id is ambiguous [ "
+            . scalar(@matches)
+            . " installed matches ]: $amos_id\n"
+        }
+        if @matches > 1;
 }
 
 ## unified lookup: aliases -> definitions -> discovered registry
@@ -35,8 +57,8 @@ unless ( length $entry->{'file_path'} && -f $entry->{'file_path'} ) {
 
 return { 'mode' => 'size', 'data' => Dump($entry) };
 
-#,,.,,,.,,..,,..,,...,,..,,.,,,..,..,,..,,..,,..,,...,...,..,,.,,,,.,,,.,,,,.,
-#ITLHPVQNIL7IJTHYSULNFL5EJUJ6Y6IJHIHD7HDJUIY4FO6TSE4QOTFFSOQAFM2GGWYH7OYJ6ES5Q
-#\\\|FB244R4D46KFQKXBAKQUHWPHJ5L7O3RSKDIYFW6GTMIFU7JVIXP \ / AMOS7 \ YOURUM ::
-#\[7]RBVYL3TAMA7LTJZM3FNYFL6F3NCSDTEXU6CYKMQ6XTO4RPZCQABQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,,.,,.,,,..,,..,,,.,,,,,,.,,,..,,...,...,...,...,.,,,...,,,.,
+#DHT77GZJFBLIRSM4AYL6EY6BEK3LH6MIPMU2DXBJETNK4WBUFHU3EIBR3JGEI64C2G2HEKWIJSG7U
+#\\\|5TFENCYLGJ7QM4B2WQ7BXJZLBXFFGREVY72CJZIGIYXUKPOGNPU \ / AMOS7 \ YOURUM ::
+#\[7]FMTAPJJWLURPAQUH3ZJRUPRR5NYQ5G5TAA6ZXVKN5X3AUGWYI6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

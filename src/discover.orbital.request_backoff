@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = discover.orbital.request_backoff
+# descr = update orbital p7ref request retry interval
+
+my $success = shift;
+
+if ($success) {
+    if ( <discover.orbital.retry_interval>
+        != <discover.cfg.orbital.retry_interval> ) {
+        <[base.logs]>->(
+            2,
+            'orbital p7ref retry interval reset to %s seconds',
+            <discover.cfg.orbital.retry_interval>
+        );
+    }
+    <discover.orbital.retry_interval> = <discover.cfg.orbital.retry_interval>;
+    <discover.orbital.retry_after>    = 0;
+    return;
+}
+
+my $previous_interval = <discover.orbital.retry_interval>;
+<discover.orbital.retry_interval>
+    = sprintf( qw| %.2f |, <discover.orbital.retry_interval> * 1.2 );
+<discover.orbital.retry_interval> = <discover.cfg.orbital.retry_interval_max>
+    if <discover.orbital.retry_interval>
+    > <discover.cfg.orbital.retry_interval_max>;
+<discover.orbital.retry_after>
+    = <[base.time]>->(5) + <discover.orbital.retry_interval>;
+
+## log the start of the back-off and reaching its cap, not every step ##
+if ( $previous_interval == <discover.cfg.orbital.retry_interval>
+    or <discover.orbital.retry_interval> != $previous_interval
+    and <discover.orbital.retry_interval>
+    == <discover.cfg.orbital.retry_interval_max> ) {
+    <[base.logs]>->(
+        3,
+        'orbital p7ref not available [ nodes offline? ] retry in %s seconds',
+        <discover.orbital.retry_interval>
+    );
+}
+
+return;
+
+#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+#,,,.,.,,,..,,..,,.,.,,,,,.,.,.,.,,.,,.,,,,.,,..,,...,...,...,.,,,,,,,,,,,..,,
+#CBRHDUJAQMVPUUGMLX6HL3EYICFEVJDA7NL7H2XRDACATJGZZH54MCLUAFVVBUEPZQKPBIDEVHCGE
+#\\\|TBHXDVTICK6SYXK7DIQLC25LENTL55NFYGRDZM2NKEXH52UP6MP \ / AMOS7 \ YOURUM ::
+#\[7]HUTLPXOGQVXW3GCUNMX2HASAP6S5FRQ5M2S4UEDGKILKEGFN4QBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

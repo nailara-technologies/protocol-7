@@ -134,12 +134,12 @@ if ($async_mode) {
     if ( defined $pinned_model and length $pinned_model ) {
         my $pin_backend = $backend_info->{'backend'} // 'gpu';
 
-        ## a pin still lacking its path half names no model on this host ##
-        ## [ coding.mode.local_model_id found it nowhere ] : fail now,   ##
-        ## parking would wait for a switch that can never happen         ##
+        ## a pin still lacking its path half has no unique match on this ##
+        ## host : fail now, parking would wait for an impossible switch  ##
         my $pin_error
             = $pinned_model !~ m|^[A-Z2-7]{7}:[A-Z2-7]{7}$|i
-            ? "model pin $pinned_model : no such model in the registry"
+            ? "model pin $pinned_model : does not "
+            . "match exactly one installed model"
             : undef;
 
         my $defer_dep_id;
@@ -331,8 +331,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,.,,.,,,...,.,.,...,.,.,.,.,,.,,...,.,.,.,.,.,.,...,...,.,.,,.,,,.,,...,,..,
-#EGSWPHVAP37BTOUPOUZ4FQGDWYLJXTA36SADO55KPYDJIUBEMNYUNL3GF7EVRYCZI22IVFKS3F64E
-#\\\|EXYHM2LYUFCSSUDTPLKWMYUBQRDQP4MN5XYUGAOLXQJHA3HXYKI \ / AMOS7 \ YOURUM ::
-#\[7]ANR6SN7EGFDEFDYQRF3IH753Y2ICYNNGFFJ6XDSMJW2CFW5LYSAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,,,,..,,,,,...,..,,,,,,...,,,,,.,.,...,...,...,,,,,,..,,..,.,,,
+#32RR67EC5VV3VLOKVXJWEI3A2ZW4ON5NINVD37J5NQLK3I3K2YB53XK5VFQT74EPBLEZL74TRUGII
+#\\\|PCSPJUKC6VDL3I72HKIDFQPTEDK5KKYEMAVAOB7JP2LYQQW3XHP \ / AMOS7 \ YOURUM ::
+#\[7]PUOL4H5V3PGUNK5EM5SJCCEZZZ2UXQ757F4QZG3YYTKXUKYVHYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

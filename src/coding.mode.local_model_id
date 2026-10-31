@@ -2,9 +2,9 @@
 
 # name  = coding.mode.local_model_id
 # descr = map a model pin to the id this host knows : '<path>:<content>',
-#         ':<content>' or '<content>' -> the local '<path>:<content>' with
-#         the same content half [ served first, then the registry ], else
-#         the pin as given
+#         a unique ':<content>' or '<content>' -> the local composite id
+#         with the same content half [ served first, then the registry ],
+#         else the pin as given
 # param = $model_id -> model id [ upper case ] | undef
 # note  = the path half differs between hosts [ same file under another
 #         parent dir ], the content half does not -- a repo pin written on
@@ -29,13 +29,16 @@ my @known = grep { defined and length } map { uc( $ARG // '' ) } (
 ## an exact id this host knows stays as it is ##
 return $model_id if defined $path_part and grep { $ARG eq $model_id } @known;
 
-foreach my $known_id (@known) {
-    next unless $known_id =~ m|^[A-Z2-7]{7}:\Q$content_part\E$|;
-    <[base.logs]>->(
-        2,         '[local_model_id] %s -> %s [ same content ]',
-        $model_id, $known_id
-    ) if $known_id ne $model_id;
-    return $known_id;
+my @content_matches = grep {m|^[A-Z2-7]{7}:\Q$content_part\E$|} @known;
+
+if ( $model_id !~ m|^:| ) {
+    foreach my $known_id (@content_matches) {
+        <[base.logs]>->(
+            2,         '[local_model_id] %s -> %s [ same content ]',
+            $model_id, $known_id
+        ) if $known_id ne $model_id;
+        return $known_id;
+    }
 }
 
 ## not served right now : the registry knows the full id of every model on ##
@@ -49,6 +52,19 @@ my @in_registry = sort { ( $b->[1] <=> $a->[1] ) or ( $a->[0] cmp $b->[0] ) }
     grep { uc( $ARG->{'amos'} // '' ) =~ m|^[A-Z2-7]{7}:\Q$content_part\E$| }
     grep { ref $ARG eq qw| HASH | } values %$metadata;
 
+if ( $model_id =~ m|^:| ) {
+    my %unique = map { $ARG => 1 }
+        ( @content_matches, map { $ARG->[0] } @in_registry );
+    return $model_id if keys %unique != 1;
+
+    my ($resolved_id) = keys %unique;
+    <[base.logs]>->(
+        2,         '[local_model_id] %s -> %s [ unique content ]',
+        $model_id, $resolved_id
+    );
+    return $resolved_id;
+}
+
 if (@in_registry) {
     <[base.logs]>->(
         2,         '[local_model_id] %s -> %s [ registry, same content ]',
@@ -59,8 +75,8 @@ if (@in_registry) {
 
 return $model_id;
 
-#,,,.,.,.,..,,.,.,...,,,.,.,.,.,,,.,.,.,,,,.,,..,,...,...,.,,,,,.,.,,,..,,,,,,
-#ZRWBCDYNXJCH47DSHDCA5WGCOFEK2P5NDTTNCPOQ4652PTGNLR5JSGMPB3T6CSVGPZHNJFRLKQCXY
-#\\\|ZGMU3VSXDXL7LAJNAU3SECJPUVUGTMFXO2GZI4LX3W2E7CHUVVO \ / AMOS7 \ YOURUM ::
-#\[7]LMOWKVQEOGOCOQM2ZXPELBKSG3M353PLUGXGTWSET7JF7Z3EKSAY 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,,,,,,.,,,.,,.,.,..,,..,,..,,..,,...,...,.,.,,,,,,.,,,,,,,,.,
+#JDKWEALYSSYDZXTE3KRAUL43XINSL3RLQTYKZZKRM5M24V35LZCYXLIPFLKTHWLGDAZWLYR26RQ7M
+#\\\|GNXWNYQCBCPXGK5ZRL44UT7JX6MRP3BWPLULCTFTOE2SOGHZKM4 \ / AMOS7 \ YOURUM ::
+#\[7]FZUECY6L2FHF4SGO7ABCMXNASYFYP63IEXBXYHQOW3R3VB2CRUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

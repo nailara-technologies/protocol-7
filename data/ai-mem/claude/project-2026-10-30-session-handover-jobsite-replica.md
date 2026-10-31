@@ -84,14 +84,14 @@ metadata:
 
 - slices 3 + 4 LANDED [ 1453c62d3 ], inert until k has 30 samples
 - 87c9a8dd2 p7_soft_require : .pm for one-word names, package names only [ no string eval : stash autoviv is a non-issue for dynamic loads ]
-- trashed-job rescue : dc8bc8770 reassess scores on-disk data [ upsert never resurrects trash ], 71213d07f dispatch.next let reassess entries through, 4cae1da28 manual url of a trashed job -> review whatever the score [ owner : scores jitter up to 3 points ], 2f518aa11 browser posts never plant id-only stubs. LIVE on pri : VSHN4 VKMN6 CTHN4 dispatched -- check their scores ; local new stubs should clear via the replica pull, else check its prune
+- trashed-job rescue : dc8bc8770 reassess scores on-disk data [ upsert never resurrects trash ], 71213d07f dispatch.next let reassess entries through, 4cae1da28 manual url of a trashed job -> review whatever the score [ owner : scores jitter up to 3 points ], 2f518aa11 browser posts never plant id-only stubs. LIVE on pri : VSHN4 VKMN6 CTHN4 reassessed -- CLOSED 2026-10-31 : rescue worked, owner re-trashed VSHN4 + VKMN6 [ no interest ], CTHN4 in review [7]
 - replica LIVE both ways [ local -> pri forward ok after the localhost vhost symlink, owner-made : /var/httpd/localhost -> jobsite.local ; plain http from 172.24.32.1 is refused by design ]. fb7eadd12 a pull that predates a forward is dropped [ race seen : 2 quick clicks ]
 - 0ed404cae jobs.json canonical ; dadc3f1be ui dimensions in base.sort order [ owner reads loc + remote first : relocation decides interest ]
 - sign tool appends an AMOS7 block to .html it is handed [ removed by hand in dadc3f1be ] -- never pass unsigned web files to p7_sign, or fix the tool
-- open : local httpd log not written since 2026-10-30 09:38 [ httpd up 19 h+ ] ; night-brake side-triggers ; stash@{0} letsencr
+- open : night-brake side-triggers ; stash@{0} letsencr
 
-#,,..,,.,,,..,.,,,..,,...,,.,,.,.,,,,,,,.,.,,,..,,...,...,.,,,,,.,,,.,,.,,,.,,
-#QAJQHLHPQXKEBSGZQVYEEJU3VMAYV7NCYAMLTGSEQPNTF2WXNNH4AZFA3XDLEFWJPGC2ANG66CYJ4
-#\\\|RCTTOQNJRZGCKNGJYML75H7JZFLRLHRN2TSRG36DH2HRIEBOB7I \ / AMOS7 \ YOURUM ::
-#\[7]UHTUEAOFWXSONRZ5STO33HUXA3INCD6ZO6X77QESGGVPJHGNLUAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,.,,...,,..,..,,...,,.,,,,.,.,.,..,,...,...,,..,.,.,,,,,,.,,,.,,
+#WL53BEYPJL3Y6CQE6UQJDWRHL7HZ2QOHMXPVYFAC555H42SO63ZNSPQINZ6IAKVZXAUPS643DAMJS
+#\\\|LVMA7AB3AI6W7EK4M77X5WU2OEWSALWJ4VEVC6QL2GWLTSJDSVN \ / AMOS7 \ YOURUM ::
+#\[7]2VV32A7IRR3COTLVBOEAPGTRWORWFHVM26RHWWYWLYZ4WXM4TKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

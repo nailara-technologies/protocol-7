@@ -3,17 +3,22 @@
 # name  = discover.orbital.init_code
 # descr = schedule initial orbital p7ref fetch from nodes zenka
 
+<discover.cfg.orbital.retry_interval>     //= 7;
+<discover.cfg.orbital.retry_interval_max> //= 780;
+<discover.orbital.retry_interval> //= <discover.cfg.orbital.retry_interval>;
+<discover.orbital.retry_after>    //= 0;
+
 ## fetch after short delay to allow nodes zenka to connect first ##
 <[event.add_timer]>->(
-    {   qw| after   | => 7,
+    {   qw| after   | => <discover.cfg.orbital.retry_interval>,
         qw| handler | => qw| discover.orbital.get_local_p7ref |,
     }
 );
 
 <[base.log]>->( 2, 'orbital p7ref fetch scheduled' );
 
-#,,,,,...,,.,,..,,...,,.,,..,,..,,..,,...,..,,..,,...,...,,.,,,..,,,,,...,,..,
-#XMSAO7T2FULGNFBIGFSXWQVESYBMKDELJJ2VKLU2G3D42GYRUHWYVM3ETN3IRLIUXOCVEU637E3IA
-#\\\|H5PV5ITFIPQ7DNUD4QUKVZZO47E42XNUNCIWZ23H7WNV623M5M7 \ / AMOS7 \ YOURUM ::
-#\[7]DKEUTBW6ZRFCUDUQR2NHMPCUEWOQ3XH3MGKOMB65BY3KCXXKXGBI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,..,,,.,,,,,,,,.,.,,,..,,,,,,,,,,..,,...,...,,..,.,,,...,..,,,..,
+#FULXZLGJSFZKCCKZO2NAJLB7FBLTKLIH7MXPUFP2EGVM6S2RH5J74QCIY3LW4XWPOKHFJP2V3Z5X4
+#\\\|ZPEU42SRU24SGPLRD6M5CJ2LO74XB5ZTXQ5Q3RBBJDWDQARL2IK \ / AMOS7 \ YOURUM ::
+#\[7]MOMFK62NO7T2J5QIF4RQPGBYDLUNJZXS774ZO4ZB2OP4COI3YCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
