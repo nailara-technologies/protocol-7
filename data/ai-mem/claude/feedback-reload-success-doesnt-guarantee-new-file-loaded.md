@@ -5,6 +5,19 @@ metadata:
   type: feedback
 ---
 
+## 2026-10-31 : owner, the rule : a plain `<zenka>.reload` [ no parameter ]
+
+`reload source` only compiles ; the swap_subs call that points the short
+`zenka.*` \ own-namespace names at the new code completes in the init step.
+so `reload source` alone keeps running the OLD own-namespace code [ seen :
+v7-zenki.zenka.start fix deployed, reload 'complete', old exec_bin lookup
+still ran ]. **use bare `<zenka>.reload` -- safest in context.** checked
+this memory too late that day : read it BEFORE any reload.
+idea [ owner, later ] : moved subs are tracked -> track the swap_subs calls
+and replay them after `reload source`. owner caveat : breaks when the new
+code changes the swaps themselves -- replay only when they are unchanged,
+else require a full reload.
+
 ## 2026-10-22 : v7-zenki `reload source` left v7-zenki unable to start zenki
 
 on all four remotes the new start code called `<[zenka.profile_refusal]>` ;
@@ -185,8 +198,8 @@ not just as a fallback for when something looks wrong.
 
 **Restart-only changes are defects [ 2026-09-24, per user ]**: the only remaining reason a zenka needs a restart for a code or config change is a handler that is neither registered reload-safe nor reinstalled in an init phase. when such an instance is found, fix it [ make it reload-safe or reinstall it at init ] rather than accepting the restart -- the goal is that no zenka ever needs a restart just for code or config changes.
 
-#,,.,,,,.,...,,,.,,,.,,,,,,..,,,.,,.,,,.,,.,.,...,...,...,..,,.,.,..,,.,.,...,
-#AWNTSFC63S664HSVVLMYW2IDTY3OGYEDBDWWEZLVRLNRAGL3D4K6RQAYU4QDE7I3AC2XB4WNLHENO
-#\\\|AWDGPEUBPH75RKGMK7IGUMG63SYLD3IWZC2VRVLWPVPHJIN3PXA \ / AMOS7 \ YOURUM ::
-#\[7]KSSHZMV3LYS5OPQTHQ5WR7UCXJWCMTCGBHLAUPUYUGVS6WU6DMDY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,...,,.,,.,.,,.,,...,,,,,,,.,...,...,...,.,.,...,..,,..,,..,,
+#AG4COVLZWMMQLP5V77LFLKH6KZDUFFLMHQPDVLOOKYJD5DZF4RWZDEVFBK6AKOSSICNFOKUVQ6BUG
+#\\\|APRQ3RH3PJTAQHT3OQESKJSWJ2JKNUIBQKQPV6K7HW4EN357MFM \ / AMOS7 \ YOURUM ::
+#\[7]HJOD5PR3STBJEFXKTZN6VPY2TYCGAUV6CHBQ7ACYHFZGF3P5IMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
