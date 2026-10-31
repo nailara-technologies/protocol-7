@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = login-screen.handler.lock_grab
+# descr = hold keyboard and pointer before reporting the session locked
+
+return FALSE if <login-screen.state> ne qw| locked |;
+return FALSE if <login-screen.lock.grabbed>;
+
+my $window     = <login-screen.window> // return TRUE;
+my $gdk_window = $window->get_window() // return TRUE;
+my $display    = Gtk3::Gdk::Display::get_default();
+my $seat       = defined $display ? $display->get_default_seat() : undef;
+
+my $status;
+eval {
+    $status = $seat->grab( $gdk_window, 'all', TRUE, undef, undef, undef );
+}
+    if defined $seat;
+if ( not defined $status or $status ne qw| success | ) {
+    if ( not <login-screen.lock.grab_failure_logged> ) {
+        <[base.log]>->( 0, 'lock seat grab failed : retrying every 200 ms' );
+        <login-screen.lock.grab_failure_logged> = TRUE;
+    }
+    return TRUE;
+}
+
+<login-screen.lock.seat>                = $seat;
+<login-screen.lock.grabbed>             = TRUE;
+<login-screen.lock.grab_failure_logged> = FALSE;
+<login-screen.widget.password>->set_sensitive(TRUE);
+<login-screen.widget.button>->set_sensitive(TRUE);
+<login-screen.widget.password>->grab_focus();
+<[protocol-7.route-send]>
+    ->( { 'command' => 'v7-zenki.login-session-locked yes' } );
+FALSE;
+
+#,,.,,..,,,..,,,,,,,,,,..,.,.,.,.,.,,,,.,,...,..,,...,...,...,,,,,..,,.,.,,,.,
+#ZKC34J3RUZRNWJD26JXKUP5H2JMNCXOYO7F6G3EQ2EH6QCYOF67NVJFKWEGVSHXKDNYKN6ZLBQIGG
+#\\\|DU3X2R4SELNBZCP4YWDC2R72JZ3MGZ5BSEEDSNPZAYEC4ISRQWC \ / AMOS7 \ YOURUM ::
+#\[7]4M7S26OBVHC3OZDHIRNP7EAMMJDMWRJP3MQZKNI5JL3B2E5LGKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

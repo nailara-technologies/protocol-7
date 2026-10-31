@@ -6,6 +6,7 @@
 my $instance_id = shift;
 my $instance    = <v7-zenki.zenka.instance>->{$instance_id} // return FALSE;
 my $username    = $instance->{'subname'}                    // '';
+delete <v7-zenki.login-session.locked>;
 <[base.logs]>->(
     0,
     'login session ended [ %s ] : revoking X access, greeter back',
@@ -27,8 +28,8 @@ if ( $username =~ m|^[a-z_][a-z0-9_-]{0,31}$| ) {
     ->( { 'command' => qw| login-screen.session-ended | } );
 TRUE;
 
-#,,..,.,,,,..,...,..,,,,,,..,,...,,.,,,..,.,,,..,,...,...,,,.,...,...,.,.,...,
-#ECVMDYIDDNTXVWZPPM75JRDEYXWXHUOGWEDBT37RZMFGRYTWC5CW7TDGLWXUQEN2O4NBYBZDWQAMG
-#\\\|BAOI3CHEDL6MRNHXZBJT2HX3WME3X6I5A2ZDHOGOJI4BGJCLLGL \ / AMOS7 \ YOURUM ::
-#\[7]M3AICVAJD2KC7OUT6WGOBN7TOYVAEM4GTHMMDM654GVBDKXWAWAY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,,,.,...,,,,,,,.,..,,..,,.,.,..,,...,...,..,,..,,..,,,,,,.,,,
+#ACT3UTBIENF35OONUV6RWBT5CIX3NNOQEZLPOCGJM3OHNO22XTVIKTPSKEJIW5QOQHL6EPYMKEIBY
+#\\\|W3AXKRSXW2QLNJJZ3CMSO6JPFMLBKJ5TJIMH2HMMGGRW2OX2O72 \ / AMOS7 \ YOURUM ::
+#\[7]OCPPCNNMWIYKEULRKDGOSURQTYKAJOOFPCDDQQGKBUJAQEB4XSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

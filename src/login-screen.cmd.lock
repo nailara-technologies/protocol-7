@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = login-screen.cmd.lock
+# descr = lock the active user session with the greeter window
+
+return { 'mode' => qw| false |, 'data' => 'no active user session' }
+    if <login-screen.state> ne qw| session |;
+
+my $username = <login-screen.session_user> // '';
+return { 'mode' => qw| false |, 'data' => 'invalid session user' }
+    if $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
+
+<[login-screen.show_lock]>->($username);
+return { 'mode' => qw| true |, 'data' => "session locked for $username" };
+
+#,,..,,,,,.,,,,..,.,,,,.,,,,.,,,.,.,.,..,,..,,..,,...,...,.,,,.,.,,,.,...,,,,,
+#TXQSHM5WIU4TYP6AUAJ5F2HNTM6YKYL6VVD5G66RVXX5CMIVTAECKB6YJRRKEY3B3FU7VRBP4YNOS
+#\\\|KFL3V5ZQEHCQ54CXXDDVNN7XTX7BKWSWLWATRPKXHDDRDSY6Q4I \ / AMOS7 \ YOURUM ::
+#\[7]YTCNK4UYIWM7MUFS65XLKXVRHAM3ZM2PXXVNZR443FRGQUJCWUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

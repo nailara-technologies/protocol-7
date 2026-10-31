@@ -278,14 +278,16 @@ while (TRUE) {
     my $header = read_exact( $io, 4 ) // last;
     my $length = unpack( 'N', $header );
     wipe($header);
-    last if $length < 4 or $length > $MAX_FRAME;
+    last if $length < 5 or $length > $MAX_FRAME;
     my $frame = read_exact( $io, $length ) // last;
-    my ( $username, $password ) = unpack( 'n/a* n/a*', $frame );
+    my ( $username, $password, $verify_only )
+        = unpack( 'n/a* n/a* C', $frame );
     wipe($frame);
     my $reply = "ERROR\n";
 
-    if ( $username =~ m|^[a-z_][a-z0-9_-]{0,31}$|
-        and length($password) <= $MAX_PASSWORD ) {
+    if (    $username =~ m|^[a-z_][a-z0-9_-]{0,31}$|
+        and length($password) <= $MAX_PASSWORD
+        and ( $verify_only == 0 or $verify_only == 1 ) ) {
         my $now   = time;
         my $state = $user_state{$username} //= {
             'failures' => 0,
@@ -314,15 +316,17 @@ while (TRUE) {
                 && defined $admissible_hash;
             wipe($candidate);
             if ($ok) {
-                my $record = passwd_record($username);
-                my $ticket
-                    = defined $record
-                    ? write_grant( $username, $record->{'uid'} )
-                    : undef;
-                if ( defined $ticket ) {
-                    $state->{'failures'} = 0;
-                    $state->{'next'}     = 0;
-                    $reply               = "OK $ticket\n";
+                $state->{'failures'} = 0;
+                $state->{'next'}     = 0;
+                if ($verify_only) {
+                    $reply = "OK\n";
+                } else {
+                    my $record = passwd_record($username);
+                    my $ticket
+                        = defined $record
+                        ? write_grant( $username, $record->{'uid'} )
+                        : undef;
+                    $reply = "OK $ticket\n" if defined $ticket;
                 }
             } else {
                 $state->{'failures'}++;
@@ -350,8 +354,8 @@ while (TRUE) {
 close($io);
 exit 0;
 
-#,,,,,,,.,.,,,,.,,..,,...,,..,,,.,,,.,...,..,,..,,...,...,.,.,,,.,,..,,,,,...,
-#LC6CHNMM4XLUQPVF6INPBVLOYYUD3HDX2SWEPQQXW6JA5DY2ECTWJFDDWRVRVWNL2AESCZIXTBC44
-#\\\|VYLXBKEVTRKY45Q7WNAFKLKZ6EN5YHGXOHDTN5ADBYANS5ZIAOH \ / AMOS7 \ YOURUM ::
-#\[7]ZDSOJLYVR27DUHRGLXGWXQBIZORXXDWFPSOHZIINORSNEEE3WYDQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,,.,,...,.,,,.,.,..,,...,...,..,,...,...,..,,,,,,,,.,..,,...,
+#Z7U2EOWHSDBKXNNU4JHWNB36PCIGIQT7WLR6GU2IWWUKO5CDW4TZ2PZSF6MYRRC6DY3IT2R7DU6FM
+#\\\|B5EQ75E3D27CXUV7VZYV2MRB3Z3K4XMJU3W76PVWPPT4MEZUJDC \ / AMOS7 \ YOURUM ::
+#\[7]CQODBFS6UZSPMIRF66OBWB3Q6D5PEKSXKBDAKGIUW3EOGWTSVYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

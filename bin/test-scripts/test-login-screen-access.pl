@@ -23,6 +23,7 @@ our %data;
 our %code;
 our $ARG;
 our @ARG;
+our $call;
 
 my $checks = 0;
 my $failed = 0;
@@ -256,8 +257,46 @@ ok( $sent[0]->{'command'} eq 'X-11.revoke_session_user'
 );
 
 @sent = ();
-$data{'v7-zenki'}{'zenka'}{'instance'}{4} = { 'subname' => $session_user };
+$data{'v7-zenki'}{'zenka'}{'instance'}{4} = {
+    'zenka_name' => 'login-screen-session',
+    'status'     => 'running',
+    'subname'    => $session_user,
+};
+$code{'v7-zenki.instance_ids'}
+    = sub { return keys $data{'v7-zenki'}{'zenka'}{'instance'}->%* };
+my $set_locked = compile_module('v7-zenki.zenka.cmd.login-session-locked');
+my $get_state  = compile_module('v7-zenki.zenka.cmd.login-session-state');
+$call = { 'args' => 'login-screen yes' };
+my $lock_result = $set_locked->();
+ok( $lock_result->{'mode'} eq 'true'
+        && $data{'v7-zenki'}{'login-session'}{'locked'} eq $session_user,
+    'login-screen records a held lock for the active session user'
+);
+$call = { 'args' => 'login-screen' };
+my $state_result = $get_state->();
+ok( $state_result->{'data'} eq "locked $session_user",
+    'startup state query reports the locked session user'
+);
+$call        = { 'args' => 'unix-taeki yes' };
+$lock_result = $set_locked->();
+ok( $lock_result->{'mode'} eq 'false'
+        && $data{'v7-zenki'}{'login-session'}{'locked'} eq $session_user,
+    'another cube caller cannot change the lock state'
+);
+$call         = { 'args' => 'login-screen no' };
+$lock_result  = $set_locked->();
+$call         = { 'args' => 'login-screen' };
+$state_result = $get_state->();
+ok( $lock_result->{'mode'} eq 'true'
+        && !defined $data{'v7-zenki'}{'login-session'}{'locked'}
+        && $state_result->{'data'} eq "active $session_user",
+    'unlock clears the recorded state and restores active'
+);
+$call = { 'args' => 'login-screen yes' };
+$set_locked->();
 $end_handler->(4);
+ok( !defined $data{'v7-zenki'}{'login-session'}{'locked'},
+    'session end clears a stale lock record' );
 ok( $sent[0]->{'command'} eq 'X-11.revoke_session_user'
         && $sent[1]->{'command'} eq 'login-screen.session-ended',
     'session end revokes access before restoring the greeter'
@@ -270,8 +309,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,.,,.,,,...,,,,,,..,.,,,.,.,,,,,,,,,..,,,..,..,,...,...,.,.,...,,.,,,,,,,,,,
-#TXPE6HRTADJJQEV7PZJVXUKRKNX7T5V22EGPLYE2L6APKGH3IBAU2QLKWIHVMSHLWGZ2AYGQBKM7W
-#\\\|PH27IVQZCISMFRBHQFEQ46YE5PWVFSKMGQDR7W6LYMTQYQXGYRW \ / AMOS7 \ YOURUM ::
-#\[7]6QQOC73BAFE6TFOV73BMNUXF2WVLG7UQEIUVPRTY5DYRCVWHOIBA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,.,.,.,,,.,,,...,.,.,...,.,,,..,,...,...,.,.,,,,,.,.,,,,,...,
+#GE6DGZPJ7I7T7NIFACGG76Z32THOGOLPT3MB2GLC53ITZYOYIX3UAWL7UE7JOMULZEZXNOGLOOEUC
+#\\\|GO527PBDZCIWOBTTJLRIF7YOEOYXXDP547YNMXNNVNNPR4QNSGK \ / AMOS7 \ YOURUM ::
+#\[7]VCDRAUELJ2AIVN36AQGLG55JYTFIUCDIVM5Z756MOYY26H3JHABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

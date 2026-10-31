@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = v7-zenki.zenka.cmd.login-session-locked
+# param = <yes|no> [ cube prepends the source zenka ]
+# descr = record the greeter's lock state for the session
+
+my ( $caller, $locked, $extra )
+    = split( m| +|, $call->{'args'} // '', 3 );
+return { 'mode' => qw| false |, 'data' => 'denied : login-screen only' }
+    if ( $caller // '' ) ne qw| login-screen |;
+return { 'mode' => qw| false |, 'data' => 'expected yes or no' }
+    if defined $extra
+    or ( $locked // '' ) !~ m{^(?:yes|no)$};
+
+if ( $locked eq qw| no | ) {
+    delete <v7-zenki.login-session.locked>;
+    return { 'mode' => qw| true |, 'data' => 'session unlocked' };
+}
+
+foreach my $iid (<[v7-zenki.instance_ids]>) {
+    my $instance = <v7-zenki.zenka.instance>->{$iid};
+    next if ( $instance->{'zenka_name'} // '' ) ne qw| login-screen-session |;
+    next
+        if ( $instance->{'status'} // '' ) =~ m{^(?:offline|error|shutdown)$};
+    my $user = $instance->{'subname'} // next;
+    return { 'mode' => qw| false |, 'data' => 'invalid session user' }
+        if $user !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
+    <v7-zenki.login-session.locked> = $user;
+    return { 'mode' => qw| true |, 'data' => "session locked for $user" };
+}
+return { 'mode' => qw| false |, 'data' => 'no active user session' };
+
+#,,,.,...,..,,,,,,...,,..,,,,,,,,,,,.,.,,,,,,,..,,...,...,,.,,,..,..,,,.,,,..,
+#4BVYKPO2H3M747PSQVA7AOZAO6YBKHVAS2VA6ZKKGHIXCCUVMRV44J4R4JXHGFUZ4DG7GS4U7TZ52
+#\\\|4COIAEGIH3VFZXQVCL7KT26EAKTVR6SB3YXGRXPPFVF5ZPNCYZJ \ / AMOS7 \ YOURUM ::
+#\[7]A6FBTOTFMHNZ5FBDI3PYL5NAFK6WMIXZFWKW4XN5LPA2GB4IEGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

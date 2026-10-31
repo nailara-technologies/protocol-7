@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = login-screen.lock_feedback
+# descr = one dark violet to muted status pulse after a failed unlock
+
+my $message = shift                        // 'authentication failed';
+my $status  = <login-screen.widget.status> // return FALSE;
+$status->set_text($message);
+
+my $hex = <login-screen.theme.color.muted> // qw| 003A8C |;
+$hex = qw| 003A8C | if $hex !~ m|^[0-9a-fA-F]{6}$|;
+my @muted = map { hex($ARG) } $hex =~ m|(..)|g;
+my @pulse = ( 26, 9, 70 );
+
+<[base.curve.register]>->(
+    {   id       => qw| login_screen_lock_feedback |,
+        from     => 0,
+        to       => 1,
+        duration => 0.35,
+        type     => qw| ease-in-out |,
+        callback => sub {
+            my $value = shift;
+            my @rgb   = map {
+                int(      $pulse[$ARG]
+                        + ( $muted[$ARG] - $pulse[$ARG] ) * $value
+                        + 0.5 )
+            } 0 .. 2;
+            my $rgba = Gtk3::Gdk::RGBA->new();
+            $rgba->parse( sprintf( 'rgba(%d,%d,%d,1)', @rgb ) );
+            $status->override_color( 'normal', $rgba );
+        },
+    }
+);
+TRUE;
+
+#,,,,,...,..,,,..,,.,,,.,,,,.,,,,,,,.,...,,..,..,,...,..,,,.,,.,,,...,.,,,,..,
+#PG7CLFZ7IS76QZCKRSO66XXYB3TTUP5UXW33RLLAOCK37WUCSHQ5L4HZDHGOBTXVON4QARBF2V2P2
+#\\\|KY6TDQCB5IO7PXYFQUZ3RVIOO6TU2JWWZYAOSKP5W7I2DIGM2MO \ / AMOS7 \ YOURUM ::
+#\[7]ZVSKOAVE6MAEE2LKH7HZSDUNL3J5XCBOPLVNCMTCVKJAA5XDGICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
