@@ -6,6 +6,11 @@
 my $instance_id = shift;
 my $instance    = <v7-zenki.zenka.instance>->{$instance_id} // return FALSE;
 my $username    = $instance->{'subname'}                    // '';
+<[base.logs]>->(
+    0,
+    'login session ended [ %s ] : revoking X access, greeter back',
+    length $username ? $username : 'unknown user'
+);
 if ( $username =~ m|^[a-z_][a-z0-9_-]{0,31}$| ) {
     <[protocol-7.route-send]>->(
         {   'command'   => qw| X-11.revoke_session_user |,
@@ -20,8 +25,8 @@ if ( $username =~ m|^[a-z_][a-z0-9_-]{0,31}$| ) {
     ->( { 'command' => qw| login-screen.session-ended | } );
 TRUE;
 
-#,,,,,,,,,..,,,..,,.,,.,.,.,.,,..,...,,,,,,,.,..,,...,...,.,,,.,,,,,,,..,,,,.,
-#JXHWYB5QABTRILX4EW7HDMLP7XY7MX3Q447THSCIXHUB3OBMC6UI5S6XFYQKC4LYXA2SCOIZQ2PCM
-#\\\|LDVEWMTBKSCGCOXVFPIDYJ6GNPCDPUMXF43MVHENODZFMLV7MNJ \ / AMOS7 \ YOURUM ::
-#\[7]K4BB47WDRVB5LJSKJK6TV7QHHHDCS5PJ66U5TBG2OJ4ZATKCKICY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,,,,.,,,,,,,,,,...,,,.,,.,,,,,,..,,...,...,.,.,..,,..,,,.,,.,,,
+#FNPUPSDOKJJKGHCQVPEJY4DHYP4QTGYFDWUOY5RQMR4MUL5ZEX3KRT7ZQDP5YBXWXHLJ7MRDYQEYM
+#\\\|7OYQQDLGHUK2L6CMF3X5CAHJIAVRSVQYRXNJB3TTK74DD2O2ONW \ / AMOS7 \ YOURUM ::
+#\[7]DAVKHA3QFYRNPSBPOTJTCOH3PRZBNTWH6K4FZFQBRVE2K6EMG6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

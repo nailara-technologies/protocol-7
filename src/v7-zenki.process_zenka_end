@@ -67,7 +67,8 @@ if (    defined $instance_id
     <[base.logs]>->( $log_level, ": had status : '%s'", $current_status );
 
     my $zenka_term_callback    ##  custom term handlers  ##
-        = sprintf( qw| v7-zenki.zenka.end-handler.%s |, $zenka_name );
+        ## own zenka.* subs load unprefixed ##
+        = sprintf( qw| zenka.end-handler.%s |, $zenka_name );
 
     if ( exists $code{$zenka_term_callback} ) {
         <[base.logs]>->(
@@ -143,8 +144,8 @@ if (    defined $instance_id
 
 return TRUE;
 
-#,,.,,,..,,,,,,..,.,,,..,,,.,,...,..,,,.,,,,,,..,,...,...,..,,.,,,,.,,.,.,.,.,
-#JTDJOX6KHO5LQ2CO67KYG3P7XONWTHO3JUV74LIZJZUUEWPVZ6FA324QLNHHSR5W7VNUAOPM4NAB2
-#\\\|VS5IGXNSCGOGECOIWRXRDIBLCVI2GCV7NVP7KGUATNR3WVBT47Y \ / AMOS7 \ YOURUM ::
-#\[7]EHIKVGHI4DJHHA4HMMKXGW6CW62BEQF4M7GBNXWMSBZSXUZQN2CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,..,.,.,,,,,..,,..,,.,,,,,,,,,.,..,,...,..,,..,,...,,.,,,..,,,,,
+#QEJIJPHTDHVWJ7QPWQWKFRV6SGPE4DCYBBMC3Q4KJCI3I6PQBEPGYMWBWV5WQP4HWDBU5YU7J7IYS
+#\\\|NV52BICQ3U3WTHBJ5BD5MVXMGSQFLE5DTIYHM6KNGLNKMX7Q5HL \ / AMOS7 \ YOURUM ::
+#\[7]AUH6SSNAN4UX2ZN2SIJWWDRJ6P2FTS744D77C6DXGBN6HKAIPYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
