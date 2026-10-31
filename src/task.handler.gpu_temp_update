@@ -57,9 +57,17 @@ return
         my $idle_held = <[thermal.idle.held]>->(
             $idle, $now, <thermal.cfg.idle.hold> // 600
         );
+
+        ## the idle power is learned while idle holds only -- power_watts ##
+        ## is the current reading, as idle power the gate saw dP = 0      ##
+        if ( $idle_held and defined $watts ) {
+            $idle->{'idle_watts'} //= $watts;
+            $idle->{'idle_watts'}
+                += 0.01 * ( $watts - $idle->{'idle_watts'} );
+        }
         <[thermal.gate.sample]>->(
             <task.thermal.gate>, $temp_1s, $now, $idle_held, $watts,
-            $idle->{'power_watts'}
+            $idle->{'idle_watts'}
         );
         <[thermal.gate.decide]>->( <task.thermal.gate>, $now );
     }
@@ -73,8 +81,8 @@ return
     $reply->{'cmd_id'}
 );
 
-#,,.,,,,,,,..,.,,,,..,,..,...,,,,,.,.,...,.,,,..,,...,...,...,..,,,,.,,,.,,.,,
-#MRT26PD26P75TFRLA4QEFIM4FBYNTWLBCFWRE2NXJZDHSFIS5HB6G6GZVPD4K2PPY2WVGQ7XNMXHU
-#\\\|3VY42CWHD5BMIPS2TFF3VTXOE47DQ3N67FW3MJ5H2EVDQDR66KB \ / AMOS7 \ YOURUM ::
-#\[7]75LTAAXT42CPM37ZMNLR2BP6NLY52XNO463ETVLW4AEURF6GU4DA 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,,,.,,..,.,.,,..,..,,.,,,,,.,..,,...,...,.,.,,,.,,.,,..,,...,
+#RT2JAAT7CIHIH5PMEWP33X4ZNZMJIK2DRREVN7DSSSVXBAYX73E24QCRBM75Y53PNKKDP4Y2GTNA2
+#\\\|VLQAWSTHUTJMVISFG6BTED7OFJP756WTY4KFXIAD3TXX67SU7BK \ / AMOS7 \ YOURUM ::
+#\[7]6OO7KQXTQXKR3FOEALTEMASSMY6EHXQ7VRUZZZQ5FS7EY3VNFKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

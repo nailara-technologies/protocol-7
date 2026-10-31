@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — START HERE [ 2026-10-30 end, last a3d230f86 + memory ] : replica mode LIVE + end-to-end ok [ local = replica of pri ], ui role by verified user, sync-token rotation cmd ; v7-zenki empty-id chain + pull-git hang fixed ; log resend loop fixed. open : claim-expiry task reset [ kimi ], night-brake follow-ups, KKHN2, stashes
+- [session-handover-external-access](project-2026-10-31-session-handover-external-access.md) — START HERE 2026-10-31 [ 42210691a ] : backlog closed, thermal k fit live, external-access design, azurum needs root
+- [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — previous : [ 2026-10-30 end, last a3d230f86 + memory ] : replica mode LIVE + end-to-end ok [ local = replica of pri ], ui role by verified user, sync-token rotation cmd ; v7-zenki empty-id chain + pull-git hang fixed ; log resend loop fixed. open : claim-expiry task reset [ kimi ], night-brake follow-ups, KKHN2, stashes
 - [deferred-history-purge](project-2026-10-30-deferred-history-purge.md) — ONE purge-paths run with the owner later : dep-graph .txz + old data/gfx/backgrounds/ images ; no remote re-add [ no origin ]
 - [nameserv-zone-delegation-plan](project-2026-10-30-nameserv-zone-delegation-plan.md) — plan : zenki take over dns [ own nameserv as master ] + mail, then RETIRE atom \ postfix \ inwx-as-master ; snapshots in /data/backup/{dns,mail}/ are the functional reference ; must be REBUILDABLE from tracked config [ reproducibility ] ; zones NOT current yet -> reconcile first
 - [fix-dns-zone-issues-when-seen](feedback-fix-dns-zone-issues-when-seen.md) — owner 2026-10-30 : fix zone defects when seen, name each ; mail paths [ MX, @taeki.v7.ax ] dig-verified before + after ; registrar only via owner-given access
@@ -89,8 +90,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,..,,,,,.,.,,.,,..,,...,..,,,,.,,,,,..,,..,,...,...,.,,,...,..,,.,.,,..,
-#D5Z4SA7BSZDNBZYEU27LZ27WIXF2TM76OZYEGWJZJN6UBTFDYZ22FWTJJGPH5O4XJDVMRG72DUXXI
-#\\\|XTQVDRUYZ7QMLGUTGRJURPCPRBP3VT3WEACZAH66BGOWOA33PWN \ / AMOS7 \ YOURUM ::
-#\[7]ZMKBMRZ3KDR7GQ3BIJGYVEG4AFYOWAQ5GGRJPCIEJ67COU65E6BI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,,.,,,,,,..,,..,,,.,,...,..,,..,,...,...,.,,,,.,,,,.,.,,,,,.,
+#STJWJBFPMLRWFUUG6XZNNNV3SYCO2RQ2IKEJBP3BAGUX4GSD7OHSPEE65RZGDQDNHUB65YIIMT5TI
+#\\\|RDYQJ5RTVDYGKJ2LN2AC756Z5MNOG4J3O4P5DBVKQ3BP4XEEZZP \ / AMOS7 \ YOURUM ::
+#\[7]PMVWEN3HMIZX3HRIOHWGAI6RG5XTQV637TNMRJMXFG3PGCJSUSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

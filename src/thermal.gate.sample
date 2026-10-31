@@ -43,7 +43,8 @@ if ( not defined $gate->{'last_sample_at'} ) {
 my $base_max = <thermal.cfg.baseline.max> // 55.0;
 $gate->{'baseline'} = $base_max if $gate->{'baseline'} > $base_max;
 
-$gate->{'idle_watts'} = $idle_watts if defined $idle_watts;
+## mirror the caller : undef [ no idle learned yet ] clears a stale value ##
+$gate->{'idle_watts'} = $idle_watts;
 
 if ( defined $watts ) {
     if ( not defined $gate->{'power_avg'} ) {
@@ -224,8 +225,8 @@ $gate->{'last_sample_at'} = $now;
 
 return TRUE;
 
-#,,,.,.,,,,.,,..,,...,,..,.,,,..,,...,,..,...,..,,...,...,.,,,..,,.,.,,,,,.,,,
-#BSMWY2ZNPCCZDMAJZGUC4SWLCDAZRWGBMTSBLQCSUEEKU7LSWCZ4VLKZJOBQ2VZ2ICTQTAVXQGM3O
-#\\\|CAZLNAXK3XT7T6PWOVN4DT52RPUAA3W3Q4S2C33ITZZ3PTFXKBB \ / AMOS7 \ YOURUM ::
-#\[7]S53PU76BFTZDA45VAXBOESFYRE5EGSRAQ7S4AAZY3MDQUKCBUYDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,,,,,,,,..,,,,,..,,...,,.,,,.,,..,,...,...,..,,,.,,.,,,,..,,.,,
+#IEHWDWXGO6KB3Y5YI5MC26NM4QDZL3UM6K52N6ZXZJU6372IANHW5STKS62VLI6KY5JMSLVBZYZBS
+#\\\|HERAYXUQBJSEFQRIH45HEV3V2RJJ7AJ4HCH3XJOBXLO2DP5LGYG \ / AMOS7 \ YOURUM ::
+#\[7]EFWKURTMEED7HP2IJEPVGJZTRVICNGYGTQVCZMZGTLCIGQC2PCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
