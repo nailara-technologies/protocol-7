@@ -74,8 +74,6 @@ $root_path = $cfg->{'root_path'} // $root_path;
 
 my $openbox = executable( $cfg->{'openbox.bin'} // 'openbox' )
     // fail('openbox not found');
-my $compton = executable( $cfg->{'compton.bin'} // 'compton' )
-    // fail('compton not found');
 my $openbox_config = $cfg->{'openbox.config_file'}
     // File::Spec->catfile( $root_path, 'cfg', 'zenki', 'openbox',
     "openbox.$username.xml" );
@@ -116,8 +114,7 @@ sub spawn_child {
 my $openbox_pid = spawn_child( 'openbox', $openbox, '--sm-disable',
     '--config-file', $openbox_config );
 sleep(0.2);
-my $compton_pid = spawn_child( 'compton', $compton, '-d', $display );
-sleep(0.2);
+## compton runs as its zenka [ v7 starts it on admission ] ##
 
 my $config_home = $ENV{'XDG_CONFIG_HOME'}
     // File::Spec->catdir( $home, '.config' );
@@ -135,7 +132,7 @@ while ( not $ending ) {
         my $role = delete $children{$pid} // next;
         next if $role eq 'autostart';
         $ending    = TRUE;
-        $exit_code = 1 if $role eq 'compton' or $CHILD_ERROR != 0;
+        $exit_code = 1 if $CHILD_ERROR != 0;
     }
     last if $ending;
     sleep(0.1);
@@ -148,8 +145,8 @@ kill 'KILL', keys %children if keys %children;
 waitpid( $ARG, WNOHANG ) for keys %children;
 exit $exit_code;
 
-#,,.,,,,,,,,,,,,.,,,,,,,.,.,,,.,.,.,,,,.,,..,,..,,...,...,...,...,,,,,,..,,.,,
-#A6PMLSRK7P26ZDNF6UXUJE4VCBISU45JQEQJR7M66GPMAKFQD445EYBHMV4IIELFTO56LYKYQJJBK
-#\\\|WYI7OJRPHIUEJCJMN744D3IBHEYKNXRYBHFTZ2UMN4YNZZVZS5G \ / AMOS7 \ YOURUM ::
-#\[7]R7NG5P5V5ELTIUTYWAP7T22FFV6GPG3YLHOMBRR3UJ3JDLVECWDY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,...,,,.,,,,,,,.,..,,...,,,.,,,,,..,,...,...,,.,,,,.,,,.,,.,,.,.,
+#VGGQCESFS3YBBTCUXDDQNBNXHKMYKDFASVRVSPJM27XKFZI7FOTCKYC6YJN3U73GK667FDFL52XAE
+#\\\|USCGQ6EJSY7MFVJQB6OCAC2ERIBLQLGVJOIM5HKAE5GM7IPVJIT \ / AMOS7 \ YOURUM ::
+#\[7]75PWRFKEDPYBCXYPQZG43INE63CUIQMGPKQEB3H67WWXTCM7N2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

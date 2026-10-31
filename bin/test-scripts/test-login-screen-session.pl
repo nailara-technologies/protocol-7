@@ -70,7 +70,11 @@ my $xauth           = File::Spec->catfile( $tmp, "$username.Xauthority" );
 write_file( $openbox, <<'EOT', 0755 );
 #!/bin/sh
 printf 'openbox:%s\n' "$*" >> "$LOGIN_TEST_LOG"
-while [ ! -f "$LOGIN_TEST_COMPOSITOR" ]; do sleep 0.05; done
+n=0
+while ! grep -q '^autostart$' "$LOGIN_TEST_LOG" 2>/dev/null; do
+    n=$((n + 1)); [ $n -gt 100 ] && exit 0
+    sleep 0.05
+done
 exit 0
 EOT
 write_file( $compton, <<'EOT', 0755 );
@@ -138,16 +142,16 @@ open( my $log_fh, '<:raw', $log ) or die "missing session log";
 my @lines = grep {length} map {s|\n$||r} <$log_fh>;
 close($log_fh);
 my $sequence_ok
-    = @lines == 3
+    = @lines == 2
     && $lines[0] =~ m|^openbox:|
-    && $lines[1] =~ m|^compton:|
-    && $lines[2] eq 'autostart';
-ok( $sequence_ok, 'openbox, compton, then user autostart sequence' );
+    && $lines[1] eq 'autostart';
+ok( $sequence_ok, 'openbox, then user autostart [ compton is a zenka ]' );
 say 'actual sequence : ' . join( ' | ', @lines ) if not $sequence_ok;
 ok( $lines[0] eq "openbox:--sm-disable --config-file $openbox_config",
     'openbox receives the exact per-user config by list exec'
 );
-ok( $lines[1] eq 'compton:-d :13', 'compton receives the selected display' );
+ok( !grep( {m|^compton:|} @lines ),
+    'the session no longer spawns compton itself' );
 
 unlink($log);
 write_file( $session_config,
@@ -173,8 +177,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,.,,,..,,,,,..,,.,.,.,.,,,.,.,.,..,,,,.,.,,,..,,...,..,,..,,...,.,,,..,,...,
-#E5QRG6VPBEDTBRCKUN5ULB4KJ3MIJD4QXWJC54ICVDBJ5JRCFHYWJ6DFZMFR4N2T4YGYAVPTVD6DI
-#\\\|GSMWMCFDVIA6KQGNPWXCN3TZNA535UIF55V6FTSUDB5CIE6LECY \ / AMOS7 \ YOURUM ::
-#\[7]VTW2QFAZCTONADSBRSGU5NZUC4V7DESU2UVPTTCIIFEWEXAQISAY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,,,.,.,.,,,..,,..,,.,,,.,,,..,,..,,...,...,,,,,...,.,,,,,,,,,.,
+#XX7GP5ZRH3FP27WMGGQMEIQLMFMZJVAKTTYSRAP6G745L2A3SCHT2DVPAB2FMNSUKIRWYKXFFO7I6
+#\\\|2PVCVXFR2I6XXF4BMDWKPN4BAAA4ZGDA2POZEJNEJPWPNRHNQ3R \ / AMOS7 \ YOURUM ::
+#\[7]JZ5QITVE5PRJ4S57J27TGYIRXSYC6EUUXFIJ3M4VWFMMER4MMEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
