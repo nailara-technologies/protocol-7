@@ -6,17 +6,13 @@
 my $operation = shift // '';
 my $call      = shift // {};
 
-my @client_sessions = grep {
-            defined $data{'session'}{$ARG}
-        and defined $data{'session'}{$ARG}{'mode'}
-        and $data{'session'}{$ARG}{'mode'} ne qw| server |
-} keys %{ $data{'session'} // {} };
-my $caller
-    = @client_sessions == 1
-    ? <[base.session.user]>->( $client_sessions[0] )
-    : '';
+## cube prepends the calling zenka                                        ##
+## [ source_zenka alias, cube command_aliases ] : only v7-zenki grants or ##
+## revokes                                                                ##
+my ( $caller, $username, $extra )
+    = split( m| +|, $call->{'args'} // '', 3 );
 return { 'mode' => qw| false |, 'data' => 'denied : v7-zenki only' }
-    if $caller ne qw| v7-zenki |;
+    if ( $caller // '' ) ne qw| v7-zenki |;
 
 return { 'mode' => qw| false |, 'data' => 'invalid access operation' }
     if $operation ne qw| Insert | and $operation ne qw| Delete |;
@@ -25,10 +21,9 @@ return { 'mode' => qw| false |, 'data' => 'xorg access is not ready' }
     or not defined <X-11.obj>
     or not <X-11.servers>->{<X-11.primary_display>}->{'access_ready'};
 
-my ( $username, $extra ) = split( m| +|, $call->{'args'} // '', 2 );
 return { 'mode' => qw| false |, 'data' => 'invalid session user' }
     if defined $extra
-    or $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
+    or ( $username // '' ) !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
 my @pw = getpwnam($username);
 return { 'mode' => qw| false |, 'data' => 'invalid session account' }
     if not @pw
@@ -61,8 +56,8 @@ return {
     : 'session user revoked'
 };
 
-#,,.,,,,,,...,...,..,,.,.,.,.,,.,,.,.,.,,,,..,.,.,...,...,...,,,,,,.,,,,,,,,,,
-#FPKRD7YNQHBPOSWHAKKCNIS5YA3FQIVZ5BJHZAMQCZZMK6DIFBMYBY2FBZ642GLICRKL4NTSJMPEA
-#\\\|UQDRQ2UOTONSGEVOTAR442ZEG5FIN2TVSOMVCAAOUWKY2WRRPZV \ / AMOS7 \ YOURUM ::
-#\[7]MNWG6LSMWG5PLSZIZHCUZRCGYYEADSCINR4V7GMYIEJFVJLE7ODA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,...,,..,,..,,,.,,,,,,,,,,.,,.,.,...,...,.,,,..,,.,.,,..,,..,
+#QHLM2F7TNEKRORBHSJMEJ3ZNYMJ6AI5FESB4YQWHUANUGWAQCG27FQ7IX2JEET5TY5WMOIVL64KUU
+#\\\|BOJ7HAYBKCZWHNLWXGTVND3AGEATBQF2KSLWGAFIAHDIYHZ6Z23 \ / AMOS7 \ YOURUM ::
+#\[7]QOV7TP2LIU5T7N2MQIRMXRWJZV6DCMEK3NWPJ4NKODZJKRX5WKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

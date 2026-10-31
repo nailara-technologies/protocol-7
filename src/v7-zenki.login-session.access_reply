@@ -28,8 +28,15 @@ my $fail = sub {
     return FALSE;
 };
 
-return $fail->('cannot grant X access to session user')
-    if ( $reply->{'cmd'} // '' ) ne qw| TRUE |;
+if ( ( $reply->{'cmd'} // '' ) ne qw| TRUE | ) {
+    my ( undef, $reason ) = <[base.reply.mode_text]>->($reply);
+    <[base.logs]>->(
+        0,
+        'X-11 refused the session user grant : %s',
+        $reason // 'no reason given'
+    );
+    return $fail->('cannot grant X access to session user');
+}
 
 ## the start below is the only admitted one : zenka.start refuses an ##
 ## exec_usr_from_subname start without this single-use mark          ##
@@ -45,8 +52,8 @@ if ( ref($result) eq qw| HASH | and $result->{'mode'} ne qw| deferred | ) {
 }
 TRUE;
 
-#,,,.,,.,,,,,,...,,.,,...,...,...,,.,,...,,.,,.,.,...,..,,,.,,...,.,,,...,,.,,
-#RIJGB74R4HS6F2TY33XGFZCDSVTGOFNJWSPF7LKQLUKAJMLF3LNGVWEBE7TPZWZP4UNKT5EUJNGPW
-#\\\|RIUP6KKSB7XWAJKWYSEAC5SRTXAEX7DFN5V7WJZCWZASFRO6S2G \ / AMOS7 \ YOURUM ::
-#\[7]SLIBK53LFXODZCZLPLDNMR4PS7MU7OK46HHPH7C3OY2TY6ASSEDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,..,...,,.,,,.,,.,,,..,,,.,,,,,,.,.,...,...,.,,,,..,..,,,..,,.,,
+#Y7DLJ5FOUCZD3VUNR63QQGU3U6XZCRBHGHTU2XXJ7B6S5A7I7LHUFO4ATUOEGF3QAJECMGTJ6QXVS
+#\\\|D5TN2EP3QDU7BCLFSHPFAS6724BQ7TBJMWQ5N3XBYQYJHRMUO7T \ / AMOS7 \ YOURUM ::
+#\[7]BQ2IJISKFXRPIWW6VN3VXH2QBB6Q4V2XVZJEWK62O3MBZ6DDFUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

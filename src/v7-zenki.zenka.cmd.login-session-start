@@ -4,24 +4,17 @@
 # param = <authenticated user> <single-use root grant ticket>
 # descr = consume a login grant, start the user x11 session
 
-my @client_sessions = grep {
-            defined $data{'session'}{$ARG}
-        and defined $data{'session'}{$ARG}{'mode'}
-        and $data{'session'}{$ARG}{'mode'} ne qw| server |
-} keys %{ $data{'session'} // {} };
-my $caller
-    = @client_sessions == 1
-    ? <[base.session.user]>->( $client_sessions[0] )
-    : '';
+## cube prepends the calling zenka                                     ##
+## [ source_zenka alias, cube command_aliases ] : only the greeter may ##
+## start a session                                                     ##
+my ( $caller, $username, $ticket, $extra )
+    = split( m| +|, $call->{'args'} // '', 4 );
 return { 'mode' => qw| false |, 'data' => 'denied : login-screen only' }
-    if $caller ne qw| cube | and $caller ne qw| login-screen |;
-
-my ( $username, $ticket, $extra )
-    = split( m| +|, $call->{'args'} // '', 3 );
+    if ( $caller // '' ) ne qw| login-screen |;
 return { 'mode' => qw| false |, 'data' => 'invalid login admission' }
     if defined $extra
-    or $username !~ m|^[a-z_][a-z0-9_-]{0,31}$|
-    or $ticket   !~ m|^[0-9a-f]{64}$|;
+    or ( $username // '' ) !~ m|^[a-z_][a-z0-9_-]{0,31}$|
+    or ( $ticket   // '' ) !~ m|^[0-9a-f]{64}$|;
 
 foreach my $iid (<[v7-zenki.instance_ids]>) {
     my $instance = <v7-zenki.zenka.instance>->{$iid};
@@ -91,8 +84,8 @@ if ( not $sent ) {
 }
 return { 'mode' => qw| deferred | };
 
-#,,,.,,,.,...,.,.,.,,,...,...,,.,,..,,,.,,...,..,,...,...,.,.,.,,,.,.,.,.,,.,,
-#FZG2NWJPSIVQQGJAO3QMZB5OYLVHPQUDAUYKE6IOIIZQVHAFXWZY3WKAJZ563PWSGBCIBFA3S3YXM
-#\\\|QHJQRMVNEAF2MDLATATRRUQU4BNW2LAC7SWEU7JVHFMAKJKFWQ4 \ / AMOS7 \ YOURUM ::
-#\[7]OF7H6NFF6AQMTS5V2SYCYOLZWL5MHRVD76YHP6MNODGXOBXOA4AI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,,,,,,,.,,.,,,.,,,,,,...,,,,,..,,...,..,,.,.,,.,,,..,,.,,...,
+#3BAH46JHUWI6OSURPJZDWL7XSNOFADEJYTT5Q4RYO5MLTSFYG6OFKX34JQJX7ZJWB7SGBR76XFSDU
+#\\\|YWXCT3MWWFUQIN3GSMIDUB26POFAFV2N5R7LLIGPIYLL4FAI4WJ \ / AMOS7 \ YOURUM ::
+#\[7]DO2N5PPBW53DXZFY7M5SGMOR5MCGKS6GC2YGVZYNLNOHJQXSEWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

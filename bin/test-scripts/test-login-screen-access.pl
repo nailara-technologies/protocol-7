@@ -132,7 +132,7 @@ $data{'X-11'}{'display'}{'xorg'}                = ':13';
 $data{'X-11'}{'servers'}{':13'}{'access_ready'} = FALSE;
 $data{'X-11'}{'obj'}                            = $x;
 $data{'session'}{9}                             = { 'mode' => 'client' };
-my $caller = 'v7-zenki';
+my $caller = 'v7-zenki';    ## cube prepends the source zenka [ alias ] ##
 $code{'base.session.user'} = sub { return $caller };
 
 my $result = $get_display->();
@@ -143,25 +143,31 @@ $result = $get_display->();
 ok( $result->{'mode'} eq 'true' && $result->{'data'} eq ':13',
     'ready xorg display is returned normally' );
 
-$result = $change_user->( 'Insert', { 'args' => $session_user } );
+$result = $change_user->( 'Insert', { 'args' => "$caller $session_user" } );
 ok( $result->{'mode'} eq 'true', 'v7 can grant a session user' );
 ok( $x->{'calls'}->[0]->[1] eq 'Insert'
         && $x->{'calls'}->[0]->[2] eq 'ServerInterpreted'
         && $x->{'calls'}->[0]->[3] eq "localuser\0$session_user",
     'grant inserts the exact SI localuser entry'
 );
-$result = $change_user->( 'Delete', { 'args' => $session_user } );
+$result = $change_user->( 'Delete', { 'args' => "$caller $session_user" } );
 ok( $result->{'mode'} eq 'true' && $x->{'calls'}->[2]->[1] eq 'Delete',
     'v7 can revoke the same user' );
 
 my $before = scalar $x->{'calls'}->@*;
 $caller = 'login-screen';
-$result = $change_user->( 'Insert', { 'args' => $session_user } );
+$result = $change_user->( 'Insert', { 'args' => "$caller $session_user" } );
 ok( $result->{'mode'} eq 'false' && scalar( $x->{'calls'}->@* ) == $before,
     'login-screen cannot grant itself SI access' );
+$result = $change_user->(
+    'Insert', { 'args' => "unix-taeki v7-zenki $session_user" }
+);
+ok( $result->{'mode'} eq 'false' && scalar( $x->{'calls'}->@* ) == $before,
+    'a direct caller cannot pose as v7-zenki behind the cube prefix'
+);
 $caller               = 'v7-zenki';
 $data{'X-11'}{'mode'} = 'xvfb';
-$result = $change_user->( 'Insert', { 'args' => $session_user } );
+$result = $change_user->( 'Insert', { 'args' => "$caller $session_user" } );
 ok( $result->{'mode'} eq 'false' && scalar( $x->{'calls'}->@* ) == $before,
     'session grants are refused outside xorg mode' );
 $data{'X-11'}{'mode'} = 'xorg';
@@ -171,7 +177,9 @@ my @replies;
 my $starts = 0;
 $code{'base.X-11.write_xauth_file'} = sub { return TRUE };
 $code{'base.callback.cmd_reply'} = sub { push @replies, [@ARG]; return TRUE };
-$code{'protocol-7.route-send'}   = sub { push @sent, $ARG[0];   return TRUE };
+$code{'base.reply.mode_text'}    = sub { return ( 'false', 'stub refusal' ) };
+$code{'base.logs'} //= sub { return TRUE };
+$code{'protocol-7.route-send'} = sub { push @sent, $ARG[0]; return TRUE };
 $code{'v7-zenki.zenka.cmd.start_once'} = sub {
     $starts++;
     return { 'mode' => 'deferred' };
@@ -233,8 +241,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,.,,,.,,..,,,..,.,,,,,.,.,.,.,.,..,,..,,,,.,..,,...,..,,..,,.,.,,,,,...,,,,,
-#VDVGBDKWTGSVH5NDQNGWBF2GYUQHV75OA32Q677UXMQ6LSDVL6VFJEC2B4VU33C7MGE22HIVQK6IC
-#\\\|AJAS55X2BLAXHQW4R36ZPX4GKQRSTDJTIJYUWUHCTMFTT44MUDH \ / AMOS7 \ YOURUM ::
-#\[7]N2ES4JMVEOHCHIZ7PQ474ZEO7W7DOVNVGTS4RM6SMQRHGKY5KSAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,..,,...,,..,...,,.,,,.,,,.,,..,,...,...,,.,,,..,...,.,,,,.,,
+#WUIFPY3TDSZOB5XN5ZARHDCZRY5AT66CJDOS2L7VLTI2JL56EPMXNKHIW7MEFP7E3U5V5QDNRQB3Q
+#\\\|3QHAZ3HLFPQJOOHZMARIZAQPSOJWV45ISAKT2HFFTSH4KP3RPBL \ / AMOS7 \ YOURUM ::
+#\[7]J422NSHW5ABZXYRKN6H7DAZIYYM7NXW5DFIZBOBR7JH7UAYSHEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
