@@ -103,6 +103,9 @@ profiles:
       - libcairo-perl
       - libglib-perl
       - libglib2.0-dev
+      - libevent-perl                 # Glib::Event [ cpan ] needs Event +
+      - libextutils-pkgconfig-perl    # these two to build
+      - libextutils-depends-perl
       - libgraphics-magick-perl
       - libgtk3-perl
       - libgtk3-webkit2-perl
@@ -118,6 +121,7 @@ profiles:
       - xserver-xorg-core
       - xorg             # X-11 xorg mode : input + video drivers, not only the core
       - xinit
+      - xserver-xorg-legacy  # Xwrapper : X-11 starts xorg rootless, no logind session
       - xserver-xorg-input-libinput
       - xfonts-base
       - xserver-xephyr   # X-11 xephyr mode
@@ -130,6 +134,7 @@ profiles:
       - Convert::Color
       - Font::FreeType
       - Glib
+      - Glib::Event      # Event loop + Gtk main loop [ login-screen, select-region ]
       - Glib::Object::Introspection
       - Graphics::Magick
       - Gtk3
