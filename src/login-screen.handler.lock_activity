@@ -8,9 +8,21 @@ return FALSE if ( <login-screen.lock.blank> // qw| yes | ) eq qw| no |;
 my $panel          = <login-screen.widget.panel>        // return FALSE;
 my $schedule_blank = <login-screen.lock.schedule_blank> // return FALSE;
 
-## the pointer is back with the panel ##
+## typing hides the pointer, moving \ clicking brings it back ##
+my ($event_name) = @ARG;
 my $gdk_window = ( <login-screen.window> // return FALSE )->get_window();
-$gdk_window->set_cursor(undef) if defined $gdk_window;
+if ( defined $gdk_window ) {
+    if ( ( $event_name // '' ) eq qw| key-press-event | ) {
+        $gdk_window->set_cursor(
+            Gtk3::Gdk::Cursor->new_from_name(
+                $gdk_window->get_display(),
+                qw| none |
+            )
+        );
+    } else {
+        $gdk_window->set_cursor(undef);
+    }
+}
 
 my $from = $panel->get_opacity();
 <[base.curve.cancel]>->(qw| login_screen_lock_panel_fade |);
@@ -38,8 +50,8 @@ if ( $from < 1 or <login-screen.lock.panel_fading> ) {
 $schedule_blank->(TRUE);    ## the longer input delay ##
 FALSE;
 
-#,,,.,,,,,.,,,...,..,,,.,,,.,,...,,,.,,.,,..,,.,.,...,...,.,.,,.,,..,,..,,.,,,
-#56ELWBN6ZQDVPM7THCBYVA3PVJVUNH6XIHP2G2EFA2EIETQZIG2N643F3D3WYFY3G5RUFI5BOY47A
-#\\\|3AZQJSCZ2IQP3G6VV5RCYRRQ2D4KZ3AASWD3SRR74O2K3D4HFV2 \ / AMOS7 \ YOURUM ::
-#\[7]773PJ27OBLUKCCA3YSLDUEVBK2S3GFVXSE5AOULGNGDVHNO6FUCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,,.,,...,,,.,,,,,.,,,,..,,,,,.,.,...,...,,,.,.,,,.,,,.,,,,.,,
+#6AYLCMWOPIXG6ALBDHA3ECQEU3QS2F4YWSS7MYN6USQDATLX5RS43HPSBX7KOQPRRYFAZWHG2EBWW
+#\\\|HQWN4Q7CNRIZ6AWOU4WMYC7KVMNS5E3IP5EOCWUABJGRVROPS42 \ / AMOS7 \ YOURUM ::
+#\[7]GV7WTRXO3IR6BHK4C2YM3HZOWALPYSJZTTCY2LYK6D3I3HIAOIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
