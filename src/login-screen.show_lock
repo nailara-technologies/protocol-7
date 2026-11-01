@@ -14,7 +14,7 @@ my $window = <login-screen.window> // return FALSE;
 <login-screen.lock.grab_failure_logged> = FALSE;
 <login-screen.lock.panel_fading>        = FALSE;
 foreach my $timer (qw| blank_timer time_timer raise_timer grab_timer |) {
-    Glib::Source::remove( $data{'login-screen'}{'lock'}{$timer} )
+    Glib::Source->remove( $data{'login-screen'}{'lock'}{$timer} )
         if defined $data{'login-screen'}{'lock'}{$timer};
     delete $data{'login-screen'}{'lock'}{$timer};
 }
@@ -86,7 +86,7 @@ $fade_out_duration = 3.0
 
 my $schedule_blank = sub {
     return FALSE if <login-screen.state> ne qw| locked | or not $blank;
-    Glib::Source::remove(<login-screen.lock.blank_timer>)
+    Glib::Source->remove(<login-screen.lock.blank_timer>)
         if defined <login-screen.lock.blank_timer>;
     <login-screen.lock.blank_timer> = Glib::Timeout->add(
         int( $blank_delay * 1000 ),
@@ -146,8 +146,8 @@ my $schedule_blank = sub {
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,,.,.,,,,..,,,.,..,,.,.,..,,.,.,.,.,,..,...,..,,...,...,..,,,.,,,..,,..,,..,
-#T6UOYU6AUJZNOY7O7A2F74M3QIFPP7VPKFNNHTMDUPTDERVQTRQONGH354B4WIA2CGJOJNZNUQ6M4
-#\\\|GSPULUARB2ZRPCMVPW425MSQWBO2SMHCUHRR3E3YBPZQILH77BJ \ / AMOS7 \ YOURUM ::
-#\[7]6L2RGIG5IG23HENLAHCUMM3XVTZEP2HKQ6O3LETNAMLWIIOAH4CI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,..,,,,.,.,,,...,,,.,,,,,.,.,..,,...,...,...,,,.,.,.,,,,,,..,
+#CH7R2U2KN33FVM22JZGLTMH7DKYPAURELE2LR5TC6RXHVUAKEAXLJ2FIZI2OYOB4HHFBRAZY7AOAS
+#\\\|KFL7N5TIHBL347RFB35KT5GDFJ76TEZXHHYFDANYF5BZVSN2KZL \ / AMOS7 \ YOURUM ::
+#\[7]GSV7YL3SPZPYMEZBTEHFT7HJLEVXXKTTFMY3UCKWIXJWMDBY7GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

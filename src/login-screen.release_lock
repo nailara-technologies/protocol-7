@@ -12,7 +12,7 @@ if ( defined <login-screen.lock.seat> ) {
 <login-screen.auth_in_flight>           = FALSE;
 <login-screen.lock.panel_fading>        = FALSE;
 foreach my $timer (qw| blank_timer time_timer raise_timer grab_timer |) {
-    Glib::Source::remove( $data{'login-screen'}{'lock'}{$timer} )
+    Glib::Source->remove( $data{'login-screen'}{'lock'}{$timer} )
         if defined $data{'login-screen'}{'lock'}{$timer};
     delete $data{'login-screen'}{'lock'}{$timer};
 }
@@ -34,8 +34,8 @@ $user->show() if defined $user;
 <login-screen.widget.button>->set_label('log in');
 TRUE;
 
-#,,.,,.,,,...,.,,,,..,,,.,..,,,.,,...,...,,..,..,,...,...,...,,.,,...,..,,.,.,
-#7KPVVQOIKGFNTZKZB3MTQOAATBRVY3U2HBPJQ6HBNUN74HQPEH2ALFVWTJ3VMTRBCJMG6MA6XDOXY
-#\\\|UVGADNYDTAUMDWIOTPLXIUHUJS3BQOZVQLJEG5OTS2AIK4EQTUN \ / AMOS7 \ YOURUM ::
-#\[7]BE7QCSH45YKYEI7FD5Q3FMZEL5NSL43WHWMVNYUAX3WQH74WGEDY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,,.,,,..,.,,,...,..,,.,,,,,.,..,,...,...,...,...,.,,,..,,,,,,
+#GZZMA2VZJJ3OHTM7I2POYKZEJU2DUIWQRBE2ETZQM23Y2BEQ4WZAAYZQIAKRHCEKU2BCIJNFEKUFE
+#\\\|5OENIX3GSXSN32VNEAE5VM43PLGSHYW3GIT3D6S7YT2VDR7RSPJ \ / AMOS7 \ YOURUM ::
+#\[7]BP6U3EQWWYE5PLNA7KTCUL574E6KPDFBYTO7G2AGFHND3RJJ5EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
