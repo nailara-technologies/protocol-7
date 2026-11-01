@@ -133,7 +133,9 @@ if ( defined $watts ) {
             my $trusted = <[thermal.gate.k_trusted]>->($gate);
             if (    $trusted
                 and $k_obs
-                > $gate->{'k'} * ( <thermal.cfg.k.fault_ratio> // 1.5 ) ) {
+                > $gate->{'k'} * ( <thermal.cfg.k.fault_ratio> // 1.5 )
+                and $gate->{'avg_short'}
+                >= ( <thermal.cfg.k.fault_temp_min> // 70 ) ) {
                 if ( not exists $gate->{'fault'} ) {
                     $gate->{'fault'} = {
                         'since' => $now,
@@ -189,6 +191,17 @@ if ( defined $watts ) {
     }
 }
 
+## below the fault floor there is no cooling emergency to hold ; this also ##
+## clears a stale fault when no new fit passes its acceptance floor        ##
+if ( exists $gate->{'fault'}
+    and $gate->{'avg_long'} < ( <thermal.cfg.k.fault_temp_min> // 70 ) ) {
+    <[base.logs]>->(
+        0, 'thermal cooling fault cleared [ cooled to %.1f C ]',
+        $gate->{'avg_long'}
+    );
+    delete $gate->{'fault'};
+}
+
 ## a fault holds the gate hot, so the load stops and no settled k_obs can ##
 ## clear it : after the hold, real idle back near the baseline lets it    ##
 ## retry -- a cooling still broken sets it again on the next load         ##
@@ -216,8 +229,8 @@ $gate->{'last_sample_at'} = $now;
 
 return TRUE;
 
-#,,.,,,.,,..,,,.,,..,,,,.,...,.,,,,.,,.,,,,,,,..,,...,...,...,,..,.,.,,,,,,.,,
-#W7VCS4QX6MRJZS7Y56HPP7NHQULM36WGUDD5GZ5JBXWYQ7L6J5ZFTKIKCX5ERM5RA6DL6OGENIIEQ
-#\\\|2OZRFCHBBUFXX3TUFDZEURSK4QYEQXO6UJRJUPQU4UPLOLDFYW4 \ / AMOS7 \ YOURUM ::
-#\[7]TBVTP2Q4LZW6WYHOMRXU5KNV4ORLVXUHG4O3VAS4JUVT7ZCECGBQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,.,.,,.,,.,,,,..,,.,,,,,,,.,,..,,...,...,.,.,,.,,,,.,,.,,...,
+#AAZW7UGILNCEJGSJFFJXW66BTTGQHMBJ43CIQIUQ5YGXYKC5TMT6I6H5KCEIWVWIKBDHIPUZSOSSM
+#\\\|HDRJ6ZQZ2DKN5OV3QHS5JIYJ7ASBPYJFVQUMGJMITP25Q3YRGZ3 \ / AMOS7 \ YOURUM ::
+#\[7]NU7FQPQ2I5VY4JQEEH447GYPH7KGFKFW4WIJGYO2IA2GG5MAG4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

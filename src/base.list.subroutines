@@ -1638,7 +1638,6 @@ return [ qw[
         memory.source.session
         memory.render.context
         login-screen.cmd.lock
-        login-screen.cmd.idle-lock
         link.supervisor.start
         link.supervisor.retry
         link.record.cube_port
@@ -1959,9 +1958,7 @@ return [ qw[
         mediainfo.cmd.get_info
         logo-display.init_code
         login-screen.show_lock
-        login-screen.watch_root
         login-screen.init_code
-        login-screen.idle_policy
         letsencr.child.get_jwk
         letsencr.base.pre_init
         kimi.watcher.ws_status
@@ -2294,6 +2291,7 @@ return [ qw[
         memory.tree.render.node
         memory.tree.node.render
         memory.tree.dedup.exact
+        login-screen.watch_root
         link.supervisor.connect
         letsencr.base.post_init
         letsencr.base.init_code
@@ -2610,6 +2608,7 @@ return [ qw[
         memory.maintenance.timer
         login-screen.xauth_setup
         login-screen.open_window
+        login-screen.idle_policy
         lm-vision.select_backend
         link.supervisor.teardown
         link.handler.session_rip
@@ -2918,7 +2917,6 @@ return [ qw[
         melt.trigger.auto_cleanup
         login-screen.unwatch_root
         login-screen.show_greeter
-        login-screen.capture_snapshot
         login-screen.release_lock
         login-screen.authenticate
         link.transport.ssh-w.open
@@ -3217,6 +3215,7 @@ return [ qw[
         memory.tree.summarize.wave
         memory.tree.summarize.node
         login-screen.lock_feedback
+        login-screen.cmd.idle-lock
         llm.service.consensus_vote
         letsencr.parent.cmd.status
         letsencr.child.get_rsa_jwk
@@ -4164,6 +4163,7 @@ return [ qw[
         mod-test.cmd.list-blacklisted
         memory.tree.summarize.handler
         memory.tree.score.rebuild_idf
+        login-screen.capture_snapshot
         lm-vision.handler.read_output
         lm-vision.handler.job_cleanup
         lm-vision.cmd.resume_analysis
@@ -4482,9 +4482,8 @@ return [ qw[
         memory.tree.score.rank_falloff
         melt.handler.frame_count_reply
         login-screen.start_auth_helper
-        login-screen.handler.lock_grab
         login-screen.handler.lock_root
-        login-screen.handler.lock_raise_poll
+        login-screen.handler.lock_grab
         login-screen.cmd.session-ended
         lm-vision.parser.process_chunk
         lm-vision.handler.http_analyze
@@ -5757,6 +5756,7 @@ return [ qw[
         models.callback.object_dispatch_slot
         mod-test.cmd.blacklisted-add-matches
         memory.tree.score.focus_matches_stub
+        login-screen.handler.lock_raise_poll
         lm-vision.handler.poll_coding_status
         letsencr.parent.handler.httpd_online
         letsencr.parent.enroll_backoff_delay
@@ -6447,8 +6447,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,.,,,.,,.,.,,,,,,,.,.,,,.,.,,,.,.,.,..,,.,.,...,...,..,,.,,,...,,.,,.,,,
-#AQEJPVXLUIXKOW3UFLX3CXAMTBXELQTH4BMXFRSPN2LC7Z5AFRRZ4PU2LXE5ILJJH2ODY6ALFEGCY
-#\\\|IMVRZRUCPBBYKAYTG5UXJKNRNIPJJ5JDU73CW4YSNOFV4J2OPX5 \ / AMOS7 \ YOURUM ::
-#\[7]HLWNNNFYNEIN4DPJ27PWDEJ4S5OTL6A22DZRDB2CBFHB4LNC4QCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,...,,..,...,,..,.,.,,.,,..,,.,.,...,..,,.,,,.,,,,..,,.,,.,,,
+#Z7VQ2LHB5DLIJL7K23J66KBVQMTV664PYZSEMJ7IP3UMWX34VOBYYOKPRHGXNZVBYW25MUPWASJ2U
+#\\\|P33OEZVSWGKVEYOSVHK5IQHPLMWQSBE5NLIWSBYA6CWFCPGHJXT \ / AMOS7 \ YOURUM ::
+#\[7]JNX3HFT2WXZFUA7KTMDVKPHFCUX45EWWBFQO3LO5JCI2JIYI2KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

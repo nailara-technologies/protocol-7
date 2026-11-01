@@ -293,6 +293,7 @@ if ( $opt{dot} ) {
     if ( $opt{txz} and not defined $opt{module} ) {
         my $xz_data;
         require IO::Compress::Xz;
+        no warnings qw| once |;
         IO::Compress::Xz::xz( \$dot_output, \$xz_data, Preset => 9 )
             or die ":: xz compression failed: $IO::Compress::Xz::XzError\n";
         my $b32 = encode_b32r($xz_data);
@@ -1865,8 +1866,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,,..,..,,,..,,,,,...,.,,,..,,,,,,,,.,.,.,.,.,...,...,,.,,,,.,...,.,,,...,
-#JPH65EMLZZ5ELLUP4M4YI3PVP42GWMGQ5XCRWWPXLBLSLXZGYMWIR35K2Z5PXWWNIHQD7QFK7EU5S
-#\\\|M2UHDTGP7Q34HTSTVNKPHKMNZJC7GPLFMC7FYTALQGP2Y2LTPRQ \ / AMOS7 \ YOURUM ::
-#\[7]2KEO2M5GIX7EX7XEWWIM32QKPHGJW63OFP3JY4IQBXZENDD76GDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,..,..,,,,,,,..,,,.,,,.,.,.,.,,,.,.,...,.,.,,,,,.,.,,.,,.,.,,,.,
+#SLRNNOH3FD6LMB3C54MN3SKE72TYNPQPMAGSED5PJLI4FZ7K4HODONMNZY7FPFCT4EG6DKJLWTS3I
+#\\\|IVQQYD3X45JXRXPQLW7U4KOEFDDCBAI7LEY5EXW5HSXD7QMG7UL \ / AMOS7 \ YOURUM ::
+#\[7]VW7Y4OZD4VFBLUQNDIQWOKUB42OZ3LB3RTBQBGKD54F2NBSC66AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
