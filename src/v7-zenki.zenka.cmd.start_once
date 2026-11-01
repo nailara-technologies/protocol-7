@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = v7-zenki.zenka.cmd.start_once
-# param = [:wait-up:|:wait-down:] <zenka-id|name>
+# param = [:wait-up:|:wait-down:|:wait-done:] <zenka-id|name>
 # descr = start a new zenka instance [ if not present ]
 # note  = :wait-up: replies once its startup completed or failed,
 #         :wait-down: once it ended [ error end : FALSE + exit code ]
@@ -12,7 +12,15 @@ my $args = $call->{'args'} // '';
 ## first, then the zenka is started ; without a flag the reply stays the
 ## immediate start confirmation
 my $wait_up   = $args =~ s{^:wait-up:\s*}{};
-my $wait_down = $args =~ s{^:wait-down:\s*}{};
+my $wait_down = $args =~ s{^:wait-(?:down|done):\s*}{};    ## done = alias ##
+
+## an unknown flag is no zenka name : name it instead of 'not found' ##
+if ( $args =~ m{^(:[\w-]+:)} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "unknown flag $1 [ expected :wait-up: or :wait-down: ]"
+    };
+}
 
 if ( $wait_up or $wait_down ) {
     return {
@@ -65,8 +73,8 @@ $_[0]->{'once'} = 1;
 
 return <[zenka.cmd.start]>->(@ARG);
 
-#,,.,,,..,.,,,,.,,..,,,,.,.,,,.,,,.,,,,,.,..,,..,,...,...,..,,...,...,.,,,,,.,
-#Z3DHEH6GRZX7WCDK2YXG7A3ZZ6Q4HSHMVWY2L3HOV5Q3LWO3NC63IBAQFBE6HVX4BUDCO23YJZW46
-#\\\|HQULFHMBOQV24BPVMXAVI52XWYQHVMCKVG22QKXFXKXV3A2RAV5 \ / AMOS7 \ YOURUM ::
-#\[7]MXIXFDS5NTBB7NELYGDHXXALWHGEKHIM47ZIHY3HAQTRD2F3X4BY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,,..,.,,,,..,,,.,...,..,,.,.,..,,...,...,...,..,,,.,,...,.,,,
+#HZCZEZWZ44ZYHJVNMPXJJE4QXW7MGGRLK3RQO7HR46DUAAJQB2ICR6TGVEETDE3NTPI7276H7VLTQ
+#\\\|TTUSBLXB5SCD56JXQ33N2YRTQ6AW3GGLQ4EQKIHMYKAJZDPFUUH \ / AMOS7 \ YOURUM ::
+#\[7]RSQ7NC7CSRMB4BMIWJMKSR2CW2FSFKFPAKEI76GMDQK3TXF6SAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
