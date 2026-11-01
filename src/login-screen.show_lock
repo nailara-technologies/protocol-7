@@ -78,15 +78,15 @@ $blank_delay = 1.2
     if $blank_delay !~ m|^\d+(?:[.]\d+)?$|
     or $blank_delay < 0
     or $blank_delay > 60;
-my $fade_out_duration = <login-screen.lock.fade_out_duration> // 3.0;
-$fade_out_duration = 3.0
+my $fade_out_duration = <login-screen.lock.fade_out_duration> // 3.6;
+$fade_out_duration = 3.6
     if $fade_out_duration !~ m|^\d+(?:[.]\d+)?$|
     or $fade_out_duration < 0.2
     or $fade_out_duration > 30;
 
 ## after input the delay is longer : a pause while typing must not fade ##
-my $input_delay = <login-screen.lock.input_delay> // 15;
-$input_delay = 15
+my $input_delay = <login-screen.lock.input_delay> // 24;
+$input_delay = 24
     if $input_delay !~ m|^\d+(?:[.]\d+)?$|
     or $input_delay < 0
     or $input_delay > 300;
@@ -104,6 +104,14 @@ my $schedule_blank = sub {
             return FALSE if <login-screen.state> ne qw| locked |;
             return FALSE if not defined $panel;
             <login-screen.lock.panel_fading> = TRUE;
+            ## the pointer vanishes with the panel [ restored on activity ] ##
+            my $gdk_window = $window->get_window();
+            $gdk_window->set_cursor(
+                Gtk3::Gdk::Cursor->new_from_name(
+                    $gdk_window->get_display(),
+                    qw| none |
+                )
+            ) if defined $gdk_window;
             <[base.curve.register]>->(
                 {   id       => qw| login_screen_lock_panel_fade |,
                     from     => $panel->get_opacity(),
@@ -155,8 +163,8 @@ my $schedule_blank = sub {
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,,.,,.,,.,.,,..,,,,,,,,,,,,,,,,,.,.,,..,.,.,..,,...,..,,..,,..,,,.,,,.,,,,,,
-#6IEQBPOTLKLZUULZN7XZRXJTDLR7EBKPP6XZEGQOHWFXIFO3GR6WSB4LSXXLQTHL4UYSJBA5L2VCC
-#\\\|CUHIU7WBSH6XZQ65JZCXNWWGVM4XAKTGXQTYZLIN6CMF3ZLLEWO \ / AMOS7 \ YOURUM ::
-#\[7]XMO4ZLRGV3OO7LBZ7ZS22T3YYORHOZF7KS3LWNO5QPF3C6U2XWCI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,.,,.,,,,,,,...,,..,..,,..,,.,,,..,,...,...,.,,,.,.,,,,,,,,,.,,,
+#H2R75CAEOJGC7NRASQ57PU7AJF52X56P36QJIKTDTHGJYQT7WL2RNGSKM5DD6CS6LC5MOCOF6MAI4
+#\\\|AXT2AF3SELYBRWRRTTFQJGIGXXPTM3YTT5VIKCOTNU6B52KUVML \ / AMOS7 \ YOURUM ::
+#\[7]MN2AS2VIXPMFJNYSXAOWKELSPXVTEGOVR4NBPSQEOO3EVXPSVUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

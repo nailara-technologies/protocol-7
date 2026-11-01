@@ -24,7 +24,9 @@ foreach my $timer (qw| blank_timer time_timer raise_timer grab_timer |) {
 my $window = <login-screen.window>;
 my $panel  = <login-screen.widget.panel>;
 $window->set_opacity(1) if defined $window;
-$panel->set_opacity(1)  if defined $panel;
+$window->get_window()->set_cursor(undef)
+    if defined $window and defined $window->get_window();
+$panel->set_opacity(1) if defined $panel;
 my $user = <login-screen.widget.user>;
 $user->set_editable(TRUE) if defined $user;
 <login-screen.widget.user_label>->set_text('user');
@@ -34,8 +36,8 @@ $user->show() if defined $user;
 <login-screen.widget.button>->set_label('log in');
 TRUE;
 
-#,,,.,.,,,.,,,.,,,,.,,,..,.,,,...,..,,.,,,,,.,..,,...,...,...,...,.,,,..,,,,,,
-#GZZMA2VZJJ3OHTM7I2POYKZEJU2DUIWQRBE2ETZQM23Y2BEQ4WZAAYZQIAKRHCEKU2BCIJNFEKUFE
-#\\\|5OENIX3GSXSN32VNEAE5VM43PLGSHYW3GIT3D6S7YT2VDR7RSPJ \ / AMOS7 \ YOURUM ::
-#\[7]BP6U3EQWWYE5PLNA7KTCUL574E6KPDFBYTO7G2AGFHND3RJJ5EDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,,,,,,,.,.,.,.,.,,.,,...,,,.,..,,...,...,..,,.,.,...,..,,,.,,
+#74IQNLSP2UIBNG6M4LXYKVRZ2PGDEZ4ACU5BXFFHOPUV6WMOFIGZROY2TQOV47XCXOPNYNA3ZATPK
+#\\\|FHCCH5TDFQY4G7U5Q72BSWGRMIPPYKNFYOR2CFFNTZPTY3EO4QR \ / AMOS7 \ YOURUM ::
+#\[7]Y2UDH7TOIPJ2U5HQ2RPEWR66S2G3F3OMVNRZFTZIWX3QWN3JTIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
