@@ -265,12 +265,14 @@ $main::queue_lock_timers = TRUE;
     }
 
     package LoginScreenStartupTest::Widget;
-    sub set_opacity  { $ARG[0]->{'opacity'} = $ARG[1]; return 5 }
-    sub get_opacity  { return $ARG[0]->{'opacity'} // 1 }
-    sub set_visible  { return 5 }
-    sub set_editable { return 5 }
-    sub show         { return 5 }
-    sub hide         { return 5 }
+    sub set_opacity     { $ARG[0]->{'opacity'} = $ARG[1]; return 5 }
+    sub get_opacity     { return $ARG[0]->{'opacity'} // 1 }
+    sub set_visible     { return 5 }
+    sub set_editable    { return 5 }
+    sub set_from_pixbuf { return 5 }
+    sub clear           { return 5 }
+    sub show            { return 5 }
+    sub hide            { return 5 }
 
     package LoginScreenStartupTest::Window;
     sub set_keep_above { return 5 }
@@ -286,10 +288,17 @@ my $lock_activity = compile_module('login-screen.handler.lock_activity');
 my $release_lock  = compile_module('login-screen.release_lock');
 $code{'login-screen.handler.lock_grab'} = sub { return FALSE };
 $code{'login-screen.release_lock'}      = $release_lock;
+$code{'login-screen.capture_snapshot'}  = sub { return 'pixbuf' };
+$code{'login-screen.watch_root'}        = sub { return TRUE };
+$code{'login-screen.unwatch_root'}      = sub { return TRUE };
 $code{'base.curve.register'}
     = sub { push @lock_curves, $ARG[0]; return TRUE };
 $code{'base.curve.cancel'}
     = sub { push @cancelled_curves, $ARG[0]; return TRUE };
+$data{'login-screen'}{'widget'}{'background'}
+    = LoginScreenStartupTest::Widget->new;
+$data{'login-screen'}{'widget'}{'snapshot'}
+    = LoginScreenStartupTest::Widget->new;
 $data{'login-screen'}{'widget'}{'panel'}
     = LoginScreenStartupTest::Widget->new;
 $data{'login-screen'}{'widget'}{'user_label'}
@@ -309,13 +318,19 @@ sub reset_lock_fixtures {
 
 reset_lock_fixtures();
 $show_lock->('testuser');
-ok( $lock_curves[0]->{'duration'} == 1.7,
-    'lock window fade defaults to 1.7 seconds'
+ok( $lock_curves[0]->{'duration'} == 1.7
+        && !grep( { $ARG->{'ms'} == 500 } @lock_timers ),
+    'layer fade defaults to 1.7 seconds without the old raise poll'
+);
+$lock_curves[1]->{'on_done'}->();
+ok( !defined $data{'login-screen'}{'lock'}{'snapshot'},
+    'snapshot is discarded when its dissolve completes'
 );
 $lock_curves[0]->{'on_done'}->();
+$lock_curves[-1]->{'on_done'}->();
 my ($blank_timer) = grep { $ARG->{'ms'} == 1200 } @lock_timers;
 ok( defined $blank_timer && !@unlock_sent,
-    'fade-in schedules the default blank delay without immediate dpms' );
+    'controls appear before the default blank delay is scheduled' );
 $blank_timer->{'callback'}->();
 my $panel_fade = $lock_curves[-1];
 ok( $panel_fade->{'id'} eq 'login_screen_lock_panel_fade'
@@ -355,6 +370,7 @@ reset_lock_fixtures();
 $data{'login-screen'}{'lock'}{'blank'} = 'no';
 $show_lock->('testuser');
 $lock_curves[0]->{'on_done'}->();
+$lock_curves[-1]->{'on_done'}->();
 ok( !grep( { $ARG->{'ms'} == 1200 } @lock_timers ) && !@unlock_sent,
     'blank = no disables both panel fade-out and dpms'
 );
@@ -365,6 +381,7 @@ $data{'login-screen'}{'lock'}{'blank_delay'}       = 61;
 $data{'login-screen'}{'lock'}{'fade_out_duration'} = 0.1;
 $show_lock->('testuser');
 $lock_curves[0]->{'on_done'}->();
+$lock_curves[-1]->{'on_done'}->();
 ($blank_timer) = grep { $ARG->{'ms'} == 1200 } @lock_timers;
 $blank_timer->{'callback'}->();
 ok( $lock_curves[0]->{'duration'} == 1.7
@@ -374,21 +391,102 @@ ok( $lock_curves[0]->{'duration'} == 1.7
 );
 
 $lock_curves[-1]->{'callback'}->(0.3);
+$data{'login-screen'}{'state'} = 'greeter';
 $release_lock->();
 ok( $data{'login-screen'}{'widget'}{'panel'}->get_opacity() == 1
         && scalar(
         grep { $ARG eq 'login_screen_lock_panel_fade' } @cancelled_curves
         )
-        && scalar(@removed_timers) == 2,
-    'release cancels every lock timer and curve and restores panel opacity'
+        && scalar(@removed_timers) == 1,
+    'release cancels each pending lock timer and curve and restores the panel'
+);
+
+reset_lock_fixtures();
+$show_lock->('testuser');
+$release_lock->();
+ok( $lock_curves[-1]->{'id'} eq 'login_screen_unlock_controls_fade'
+        && $data{'login-screen'}{'lock'}{'unlock_fading'}
+        && !defined $data{'login-screen'}{'lock'}{'snapshot'},
+    'unlock removes controls first without retaining the lock snapshot'
+);
+$lock_curves[-1]->{'on_done'}->();
+ok( $lock_curves[-1]->{'id'} eq 'login_screen_unlock_background_fade',
+    'unlock reveals the live desktop only after controls leave'
+);
+$lock_curves[-1]->{'on_done'}->();
+ok( !$data{'login-screen'}{'lock'}{'unlock_fading'}
+        && $data{'login-screen'}{'window'}->get_opacity() == 0,
+    'completed unlock fade hides the transparent lock window'
+);
+
+{
+
+    package LoginScreenStartupTest::RootX;
+    sub new { return bless { 'events' => [], 'children' => [] }, shift }
+    sub handle_input { return 5 }
+    sub root         { return 1 }
+
+    sub dequeue_event {
+        my $event = shift $ARG[0]->{'events'}->@*;
+        return defined $event ? $event->@* : ();
+    }
+
+    sub QueryTree {
+        $ARG[0]->{'queries'}++;
+        return ( 1, 0, $ARG[0]->{'children'}->@* );
+    }
+
+    sub GetWindowAttributes {
+        $ARG[0]->{'attributes'}++;
+        return (
+            'map_state' => $ARG[0]->{'mapped'} ? 'Viewable' : 'Unmapped' );
+    }
+
+    package LoginScreenStartupTest::RootGdk;
+    sub new   { return bless { 'raises' => 0 }, shift }
+    sub raise { $ARG[0]->{'raises'}++; return 5 }
+
+    package LoginScreenStartupTest::RootWindow;
+
+    sub new {
+        return bless { 'gdk' => LoginScreenStartupTest::RootGdk->new }, shift;
+    }
+    sub get_window { return $ARG[0]->{'gdk'} }
+}
+my $lock_root   = compile_module('login-screen.handler.lock_root');
+my $root_x      = LoginScreenStartupTest::RootX->new;
+my $root_window = LoginScreenStartupTest::RootWindow->new;
+$data{'login-screen'}{'state'}                     = 'locked';
+$data{'login-screen'}{'window'}                    = $root_window;
+$data{'login-screen'}{'lock'}{'root_watch'}{'x'}   = $root_x;
+$data{'login-screen'}{'lock'}{'root_watch'}{'xid'} = 42;
+$root_x->{'events'}   = [ [ 'name' => 'MapNotify', 'window' => 43 ] ];
+$root_x->{'children'} = [ 42, 43 ];
+$root_x->{'mapped'}   = 1;
+$lock_root->();
+ok( $root_window->get_window()->{'raises'} == 1,
+    'root watch raises over a mapped window above the lock'
+);
+$root_x->{'events'}   = [ [ 'name' => 'MapNotify', 'window' => 43 ] ];
+$root_x->{'children'} = [ 43, 42 ];
+$lock_root->();
+ok( $root_window->get_window()->{'raises'} == 1,
+    'root watch ignores a mapped window below the lock'
+);
+$root_x->{'events'}   = [ [ 'name' => 'ConfigureNotify', 'window' => 43 ] ];
+$root_x->{'children'} = [ 42, 43 ];
+$root_x->{'mapped'}   = 0;
+$lock_root->();
+ok( $root_window->get_window()->{'raises'} == 1,
+    'root watch ignores an unmapped window above the lock'
 );
 
 say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,.,,..,,..,.,,,,,,,...,,.,,,.,,,..,..,,.,.,..,,...,...,.,.,,..,,.,,,,,,..,,
-#UBIFAZQOPWL5I4Q7ZBDX7ENNLB7ZMFIHVUPTK3S54QEXWNSQIZ66DDEWXTLKBGNNW7JMPBUTHSXC6
-#\\\|AMIRY476A3UWJHJ4WCRJNHCK5PNKKIQKQFCKLFFJVMAI4RSWK4F \ / AMOS7 \ YOURUM ::
-#\[7]ANWFPMIESZYQ7RGZBA2SWC2JYWAQBMMMACG5GFS63MCBO6TW5EDY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,.,.,.,,,,,,,.,,..,.,,,,,.,..,,..,,...,...,,..,,,,,,,,,.,.,,,,,
+#BNCAOGPN6ZUN5O5K37R7Q52UELQLE6CWEOBGA5XDY6XTQD5K2PEKQS3VKNUF4IHQZS7URAUDVSSQU
+#\\\|HJ7WZESYZWPGR4HBYA7E5P3RKED5JILZT3JJ4T3U6LG462B5YWD \ / AMOS7 \ YOURUM ::
+#\[7]TLWOPBVGGOGC22IEAR53N6HGQSIEARQRJXWNMFN7I4Q2V4PP4WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

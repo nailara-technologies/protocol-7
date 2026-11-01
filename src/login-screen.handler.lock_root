@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = login-screen.handler.lock_root
+# descr = raise the lock only over a mapped or restacked window above it
+
+return FALSE if <login-screen.state> ne qw| locked |;
+my $X = <login-screen.lock.root_watch.x> // return FALSE;
+
+my $handled = eval {
+    $X->handle_input();
+    my $check_stack = FALSE;
+    while ( my @event_data = $X->dequeue_event() ) {
+        my %event = @event_data;
+        next if ( $event{'name'} // '' ) !~ m{^(?:Map|Configure)Notify$};
+        next
+            if defined $event{'window'}
+            and $event{'window'} == <login-screen.lock.root_watch.xid>;
+        $check_stack = TRUE;
+    }
+
+    if ($check_stack) {
+        my ( undef, undef, @children ) = $X->QueryTree( $X->root() );
+        my $lock_xid = <login-screen.lock.root_watch.xid>;
+        my $lock_found
+            = scalar( grep { $ARG == $lock_xid } @children ) ? TRUE : FALSE;
+        my $mapped_above = FALSE;
+        foreach my $xid ( reverse @children ) {
+            last if $xid == $lock_xid;
+            my %attributes = eval { $X->GetWindowAttributes($xid) };
+            next if length $EVAL_ERROR;
+            if ( ( $attributes{'map_state'} // '' ) eq qw| Viewable | ) {
+                $mapped_above = TRUE;
+                last;
+            }
+        }
+        ## not a root child [ reparented ] : raise, never trust the stack ##
+        if ( not $lock_found or $mapped_above ) {
+            my $window     = <login-screen.window>;
+            my $gdk_window = defined $window ? $window->get_window() : undef;
+            $gdk_window->raise() if defined $gdk_window;
+        }
+    }
+    1;
+};
+
+if ( not $handled ) {
+    <[login-screen.unwatch_root]>;
+    <[base.log]>->( 0, 'lock root x11 watch stopped, raise poll takes over' );
+    <[login-screen.handler.lock_raise_poll]>;
+    return FALSE;
+}
+TRUE;
+
+#,,.,,.,,,..,,,.,,.,.,...,,..,,,,,,.,,,..,,.,,..,,...,...,.,.,,..,..,,,.,,,,,,
+#7XCVQB77N23QPUHOC5566WOSGU2PZGNGXHL5A7IOSRAFW4THEVGA4HVOKEFNU27HJE7BRKPWI33SQ
+#\\\|3ZLJEDAC42LTDMME73RY5YRBC6HHQX6TG5CNRFRYTPXHOS2YGZ7 \ / AMOS7 \ YOURUM ::
+#\[7]LL7JO5CFNXIEUDPCHCL6DII5YQNRE7X4PBK2R5Y4NOTIKOZ2GABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

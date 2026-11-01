@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = login-screen.handler.lock_raise_poll
+# descr = fallback : re-raise the lock window every 0.5 s while locked
+
+return FALSE if <login-screen.state> ne qw| locked |;
+return TRUE  if defined <login-screen.lock.raise_timer>;
+<login-screen.lock.raise_timer> = Glib::Timeout->add(
+    500,
+    sub {
+        if ( <login-screen.state> ne qw| locked | ) {
+            <login-screen.lock.raise_timer> = undef;
+            return FALSE;
+        }
+        my $window     = <login-screen.window> // return TRUE;
+        my $gdk_window = $window->get_window();
+        $gdk_window->raise() if defined $gdk_window;
+        return TRUE;
+    }
+);
+TRUE;
+
+#,,,.,,,,,,..,,,,,,,,,,,,,...,.,,,..,,,..,...,..,,...,...,...,...,,,.,,.,,.,.,
+#OE2VTJ5FF5IN7FR6JRZBP2SJS7HWTHMNRIJB5V5VOBGZMBUJHKT3VDOJKR5O7XPNOZMUAK2IQVKMU
+#\\\|3AZ37LWIYOMIWZIC27Q5NDNJVCQU6NFCJ23PENUEY65JR6X74TI \ / AMOS7 \ YOURUM ::
+#\[7]RFAHBHBILKUAISJEYVT4QUJ5L5RAUGSWYJIUSIV7HLMSIQJS6GDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = login-screen.capture_snapshot
+# descr = capture the live root window into an in-memory pixbuf
+
+my $window = <login-screen.window>      // return undef;
+my $screen = $window->get_screen()      // return undef;
+my $root   = $screen->get_root_window() // return undef;
+
+my $pixbuf = eval {
+    Gtk3::Gdk::pixbuf_get_from_window( $root, 0, 0, $root->get_width(),
+        $root->get_height() );
+};
+if ( length $EVAL_ERROR or not defined $pixbuf ) {
+    <[base.log]>
+        ->( 0, 'lock snapshot capture failed; using dark background' );
+    return undef;
+}
+$pixbuf;
+
+#,,.,,..,,,..,.,,,,..,,.,,,,,,,,.,.,,,.,,,...,..,,...,...,.,.,,..,,,,,,.,,,..,
+#OBPHDBYUMKNBKVM4VXZ3CFJNDDC2DHNZ4MGUDFGSQXDOEFNWVILTRIRVFTRTT6KVPK7ZVWNIPFPAY
+#\\\|KDSJS6Y5SVSNSGP276YMSF7IM6KB4D5RXPGRFLAMPOHJPDCJMY7 \ / AMOS7 \ YOURUM ::
+#\[7]L4IYXND3PJWN2UCJZKHOQMGYVFW3DPAZ67CRRHS4DH3GVHYKF2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

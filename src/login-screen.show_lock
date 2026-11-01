@@ -13,17 +13,26 @@ my $window = <login-screen.window> // return FALSE;
 <login-screen.lock.grabbed>             = FALSE;
 <login-screen.lock.grab_failure_logged> = FALSE;
 <login-screen.lock.panel_fading>        = FALSE;
-foreach my $timer (qw| blank_timer time_timer raise_timer grab_timer |) {
+foreach my $timer (qw| blank_timer time_timer grab_timer raise_timer |) {
     Glib::Source->remove( $data{'login-screen'}{'lock'}{$timer} )
         if defined $data{'login-screen'}{'lock'}{$timer};
     delete $data{'login-screen'}{'lock'}{$timer};
 }
-<[base.curve.cancel]>->(qw| login_screen_lock_fade |);
-<[base.curve.cancel]>->(qw| login_screen_lock_panel_fade |);
-<[base.curve.cancel]>->(qw| login_screen_lock_feedback |);
+<[login-screen.unwatch_root]>;
+<login-screen.lock.unlock_fading> = FALSE;
+foreach my $curve (
+    qw| login_screen_lock_fade login_screen_lock_snapshot_fade
+    login_screen_lock_controls_fade login_screen_lock_panel_fade
+    login_screen_lock_feedback login_screen_unlock_controls_fade
+    login_screen_unlock_background_fade |
+) {
+    <[base.curve.cancel]>->($curve);
+}
 
-my $user  = <login-screen.widget.user>;
-my $panel = <login-screen.widget.panel>;
+my $user       = <login-screen.widget.user>;
+my $panel      = <login-screen.widget.panel>;
+my $background = <login-screen.widget.background>;
+my $snapshot   = <login-screen.widget.snapshot>;
 $user->set_text($username);
 $user->set_editable(FALSE);
 $user->set_sensitive(FALSE);
@@ -33,19 +42,33 @@ $user->set_sensitive(FALSE);
 <login-screen.widget.button>->set_label('unlock');
 <login-screen.widget.button>->set_sensitive(FALSE);
 <login-screen.widget.status>->set_text('');
-$panel->set_opacity(1) if defined $panel;
+$panel->set_opacity(0)      if defined $panel;
+$background->set_opacity(0) if defined $background;
+
+my $snapshot_pixbuf = <[login-screen.capture_snapshot]>;
+<login-screen.lock.snapshot> = $snapshot_pixbuf;
+if ( defined $snapshot ) {
+    $snapshot->set_from_pixbuf($snapshot_pixbuf) if defined $snapshot_pixbuf;
+    $snapshot->set_opacity( defined $snapshot_pixbuf ? 1 : 0 );
+}
 
 my $show_user = ( <login-screen.lock.show_user> // qw| yes | ) ne qw| no |;
 my $show_time = ( <login-screen.lock.show_time> // qw| yes | ) ne qw| no |;
 my $blank     = ( <login-screen.lock.blank>     // qw| yes | ) ne qw| no |;
 $window->set_keep_above(TRUE);
 $window->fullscreen();
-$window->set_opacity(0);
+$window->set_opacity(0.995);
 $window->show_all();
 $window->present();
+$snapshot->set_visible( defined $snapshot_pixbuf ? TRUE : FALSE )
+    if defined $snapshot;
 $user->set_visible(FALSE);    ## the dimmed name label already says who ##
 <login-screen.widget.user_label>->set_visible($show_user);
 <login-screen.widget.time>->set_visible($show_time);
+## no root watch : fall back to the raise poll, the lock must stay on top ##
+if ( not <[login-screen.watch_root]> ) {
+    <[login-screen.handler.lock_raise_poll]>;
+}
 
 my $update_time = sub {
     return FALSE if <login-screen.state> ne qw| locked |;
@@ -55,17 +78,6 @@ my $update_time = sub {
 };
 $update_time->();
 <login-screen.lock.time_timer> = Glib::Timeout->add( 30000, $update_time );
-
-<login-screen.lock.raise_timer> = Glib::Timeout->add(
-    500,
-    sub {
-        return FALSE if <login-screen.state> ne qw| locked |;
-        ## the root SubstructureNotify watch replaces this poll in s2b ##
-        my $gdk_window = $window->get_window();
-        $gdk_window->raise() if defined $gdk_window;
-        return TRUE;
-    }
-);
 
 ## fade duration [ login-screen.lock.fade_duration, seconds, 0.2 .. 10 ] ##
 my $fade_duration = <login-screen.lock.fade_duration> // 1.7;
@@ -140,23 +152,60 @@ my $schedule_blank = sub {
 <login-screen.lock.schedule_blank> = $schedule_blank;
 
 <[base.curve.register]>->(
-    {   id   => qw| login_screen_lock_fade |,
-        from => 0,
-        ## never exactly 1 : compton --unredir-if-possible unredirects an  ##
-        ## opaque fullscreen window, that switch flickered at fade end and ##
-        ## the panel fade-out needs compositing anyway                     ##
+    {   id       => qw| login_screen_lock_fade |,
+        from     => 0,
         to       => 0.995,
         duration => $fade_duration,
         type     => qw| ease-in-out |,
         callback => sub {
             my $value = shift;
-            $window->set_opacity($value)
-                if <login-screen.state> eq qw| locked |;
+            $background->set_opacity($value)
+                if <login-screen.state> eq qw| locked |
+                and defined $background;
         },
         on_done => sub {
             return if <login-screen.state> ne qw| locked |;
-            $window->set_opacity(0.995);
-            $schedule_blank->();
+            $background->set_opacity(0.995) if defined $background;
+            <[base.curve.register]>->(
+                {   id       => qw| login_screen_lock_controls_fade |,
+                    from     => $panel->get_opacity(),
+                    to       => 1,
+                    duration => 0.3,
+                    type     => qw| ease-in-out |,
+                    callback => sub {
+                        my $value = shift;
+                        $panel->set_opacity($value)
+                            if <login-screen.state> eq qw| locked |;
+                    },
+                    on_done => sub {
+                        return if <login-screen.state> ne qw| locked |;
+                        $panel->set_opacity(1);
+                        $schedule_blank->();
+                    },
+                }
+            ) if defined $panel;
+        },
+    }
+);
+<[base.curve.register]>->(
+    {   id       => qw| login_screen_lock_snapshot_fade |,
+        from     => 1,
+        to       => 0,
+        duration => $fade_duration,
+        type     => qw| ease-in-out |,
+        callback => sub {
+            my $value = shift;
+            $snapshot->set_opacity($value)
+                if <login-screen.state> eq qw| locked | and defined $snapshot;
+        },
+        on_done => sub {
+            return if <login-screen.state> ne qw| locked |;
+            if ( defined $snapshot ) {
+                $snapshot->clear();
+                $snapshot->set_opacity(0);
+                $snapshot->hide();
+            }
+            <login-screen.lock.snapshot> = undef;
         },
     }
 );
@@ -166,8 +215,8 @@ my $schedule_blank = sub {
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,,.,.,,,,..,...,.,.,.,,,...,,..,.,.,...,.,.,..,,...,...,,..,.,,,,.,,,.,,,,.,
-#DICMXPEZ5SX2HPXBX63DF57YWS5WQOSPY7YMHANMRMWCLPUOAFWXS736BZR5BOSQODW3MXUHOUH64
-#\\\|TXA3WCVHHRWAK4RVS5HFJ3TFYOUECSI23JEWVTP47CQL3UESQLW \ / AMOS7 \ YOURUM ::
-#\[7]H2SFDHVKHPM2XSDESAKI45MGKNWTDONYP7BKE77NF3SWORIYGQCQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,,,,,.,.,,.,,..,,..,,...,...,..,,...,..,,...,..,,.,.,..,,.,,,
+#QNEQIG4WARLPFOPOFFZWY25HPFORIPQQHSTGP3BBWVNCK3DBSPVCOAQO7VICT33PTZUQICKHVFTZU
+#\\\|2MUYHULUPI3BTUVWWP5HTZGSHEBECJGAGH2ZDJQIIS2HXJZT66W \ / AMOS7 \ YOURUM ::
+#\[7]5PTZ56RSPD4EE43KXSWLFBD3IS4HW77UYOJ2HBR2J6ZXF55M7MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
