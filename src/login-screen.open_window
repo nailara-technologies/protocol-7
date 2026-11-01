@@ -66,7 +66,8 @@ $window->set_visual( $screen->get_system_visual() );
         'font_family' => $family,
         'font_size'   => $font_size,
         'css'         => sprintf(
-            ".panel { background-color: rgba( %d, %d, %d, %s ); }\ngrid { "
+            ".panel { background-color: rgba( %d, %d, %d, %s ); "
+                . "}\n.lock-background { background-color: %s; }\ngrid { "
                 . "background-color: transparent; }\n.title { font-size: "
                 . "%dpx; }\n.status { color: %s; font-size: %dpx; }\nentry { "
                 . "padding: 12px; }\nbutton { padding: 14px; }\n",
@@ -74,6 +75,7 @@ $window->set_visual( $screen->get_system_visual() );
                     ( $color->('background') =~ m|#(..)(..)(..)| )
             ),
             $panel_alpha,
+            $color->('background'),
             $title_size,
             $color->('error'),
             $status_size
@@ -87,6 +89,18 @@ $window->set_border_width($padding);
 $window->set_app_paintable(1);
 $window->set_default_size( $screen->get_width(), $screen->get_height() );
 $window->fullscreen();
+
+## shared layers : dark background, transient snapshot, then controls ##
+my $background = Gtk3::EventBox->new();
+$background->get_style_context()->add_class('lock-background');
+$background->set_hexpand(TRUE);
+$background->set_vexpand(TRUE);
+my $snapshot = Gtk3::Image->new();
+$snapshot->set_no_show_all(TRUE);
+$snapshot->set_opacity(0);
+my $layers = Gtk3::Overlay->new();
+$layers->add($background);
+$layers->add_overlay($snapshot);
 
 ## the form sits on a padded panel : its own translucent background ##
 ## [ themeable, image mode shows through ], the grid stays clear    ##
@@ -103,7 +117,8 @@ $grid->set_margin_bottom($panel_padding);
 $grid->set_margin_start($panel_padding);
 $grid->set_margin_end($panel_padding);
 $panel->add($grid);
-$window->add($panel);
+$layers->add_overlay($panel);
+$window->add($layers);
 
 my $title = Gtk3::Label->new('protocol-7');
 $title->get_style_context()->add_class('title');
@@ -159,6 +174,9 @@ $window->signal_connect( 'delete_event' => sub { Gtk3->main_quit } );
 Glib::Timeout->add( 1000, $code{'login-screen.handler.helper_watch'} );
 
 <login-screen.window>            = $window;
+<login-screen.widget.layers>     = $layers;
+<login-screen.widget.background> = $background;
+<login-screen.widget.snapshot>   = $snapshot;
 <login-screen.widget.panel>      = $panel;
 <login-screen.widget.user>       = $user;
 <login-screen.widget.user_label> = $user_label;
@@ -186,8 +204,8 @@ Glib::Timeout->add(
 );
 TRUE;
 
-#,,.,,...,,.,,..,,,.,,.,,,,,.,...,,,,,.,,,..,,..,,...,.,.,.,.,..,,,..,,,.,.,.,
-#5G2QTA7JT2DF3ANW62EQ66C7TJILRE76JDSYEOU4GXNKP3JWKW64P7QASEGPV3OU53GOBORYQ2BPK
-#\\\|KXZO6VEUFZUIBV43T6IQQKTIQARKZSZ3H2PGY4L76EHCOQSWNRO \ / AMOS7 \ YOURUM ::
-#\[7]6IOWM2IZHFIXTNKGM42WOPIOX7ZOKMHYVQSMXAMOS6ABQAFX4QBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,...,,.,,..,,.,,,.,.,.,.,...,..,,...,...,,,.,.,.,,.,,,..,,..,
+#HP7LNVIOKKJZVBTHXBULNH7BH3EW7DWYPFR7XS5HRIOI7OB2VZYFGP2Y3INYAUP3LOGYXQZGXF2BE
+#\\\|CICLFTIUKUTXU4RMPHLQUX63JLOWQOIDDZFDEFDVIXMNAQYFAMX \ / AMOS7 \ YOURUM ::
+#\[7]M7SEQW2RQHOJEXGX3BHGEOE4ZMTUYK3LASNVNE6DYHX7YY4O5YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

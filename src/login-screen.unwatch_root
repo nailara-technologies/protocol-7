@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = login-screen.unwatch_root
+# descr = remove the lock root watch and its event selection
+
+my $watch_id = delete <login-screen.lock.root_watch.id>;
+Glib::Source->remove($watch_id) if defined $watch_id;
+
+my $X = delete <login-screen.lock.root_watch.x>;
+if ( defined $X ) {
+    eval { $X->ChangeWindowAttributes( $X->root(), 'event_mask' => 0 ) };
+}
+delete <login-screen.lock.root_watch.xid>;
+TRUE;
+
+#,,..,,,.,...,,,.,,.,,..,,,.,,.,,,,,,,.,.,...,..,,...,...,.,.,,.,,.,,,..,,,.,,
+#U6WQL5BUPP6VFPK56ENHQ5K4OUVCZXY24GEUFXKCNDXF5YPALCZSBOIYRBGX5HWGMMUXD6ZL4VHLU
+#\\\|OB2ZUJYGCFXYWFJNHSAZPYJ3OF3UL56N6KVG7JHLLU6ZXUPNYDF \ / AMOS7 \ YOURUM ::
+#\[7]ZLKAWRVMJNQ7ZCEQF7VLKTU5AN2XYY6TG6K4RRV4JCON3S2EGMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

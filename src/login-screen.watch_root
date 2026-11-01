@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = login-screen.watch_root
+# descr = watch root map and restack events while the session is locked
+
+return FALSE if <login-screen.state> ne qw| locked |;
+<[login-screen.unwatch_root]>;
+
+my $window     = <login-screen.window> // return FALSE;
+my $gdk_window = $window->get_window() // return FALSE;
+my $lock_xid   = eval { $gdk_window->get_xid() };
+if ( length $EVAL_ERROR or not defined $lock_xid ) {
+    <[base.log]>->( 0, 'cannot watch root without the lock window xid' );
+    return FALSE;
+}
+
+my $X = eval { X11::Protocol->new(<x11.display>) };
+if ( length $EVAL_ERROR or not defined $X ) {
+    <[base.log]>->( 0, 'cannot connect the lock root watch to x11' );
+    return FALSE;
+}
+
+my $selected = eval {
+    $X->ChangeWindowAttributes( $X->root(),
+        'event_mask' => $X->pack_event_mask(qw| SubstructureNotify |) );
+    1;
+};
+if ( not $selected ) {
+    <[base.log]>->( 0, 'cannot select root SubstructureNotify events' );
+    return FALSE;
+}
+
+my $watch_id = eval {
+    Glib::IO->add_watch( fileno( $X->{'connection'}->fh() ),
+        ['in'], $code{'login-screen.handler.lock_root'} );
+};
+if ( length $EVAL_ERROR or not defined $watch_id ) {
+    eval { $X->ChangeWindowAttributes( $X->root(), 'event_mask' => 0 ); };
+    <[base.log]>->( 0, 'cannot install the lock root io watch' );
+    return FALSE;
+}
+
+<login-screen.lock.root_watch.x>   = $X;
+<login-screen.lock.root_watch.xid> = $lock_xid;
+<login-screen.lock.root_watch.id>  = $watch_id;
+TRUE;
+
+#,,,,,,,.,,.,,...,,,,,..,,.,.,.,.,,,.,...,,.,,..,,...,...,.,.,...,.,,,.,,,,,,,
+#KGIRQTFKPX4D7GL4P6JQDE4C22EGI45BS6RTLJ7U45ZA4AZI2574UXTFEOREUGJ5VZOU2RX7JLAJI
+#\\\|2IJMNDANWUQZYECXLAP4NGYJLTPY7M3RJCCAFU5MRGFERFRKMGK \ / AMOS7 \ YOURUM ::
+#\[7]CIV4MZQKMD44RZC73EC7QR33KIR77EUL534BORQGYH5NYIKSIADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

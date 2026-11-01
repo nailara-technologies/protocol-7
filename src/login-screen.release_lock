@@ -11,33 +11,105 @@ if ( defined <login-screen.lock.seat> ) {
 <login-screen.lock.grab_failure_logged> = FALSE;
 <login-screen.auth_in_flight>           = FALSE;
 <login-screen.lock.panel_fading>        = FALSE;
-foreach my $timer (qw| blank_timer time_timer raise_timer grab_timer |) {
+foreach my $timer (qw| blank_timer time_timer grab_timer raise_timer |) {
     Glib::Source->remove( $data{'login-screen'}{'lock'}{$timer} )
         if defined $data{'login-screen'}{'lock'}{$timer};
     delete $data{'login-screen'}{'lock'}{$timer};
 }
+<[login-screen.unwatch_root]>;
 <login-screen.lock.schedule_blank> = undef;
-<[base.curve.cancel]>->(qw| login_screen_lock_fade |);
-<[base.curve.cancel]>->(qw| login_screen_lock_panel_fade |);
-<[base.curve.cancel]>->(qw| login_screen_lock_feedback |);
+<login-screen.lock.unlock_fading>  = FALSE;
+foreach my $curve (
+    qw| login_screen_lock_fade login_screen_lock_snapshot_fade
+    login_screen_lock_controls_fade login_screen_lock_panel_fade
+    login_screen_lock_feedback login_screen_unlock_controls_fade
+    login_screen_unlock_background_fade |
+) {
+    <[base.curve.cancel]>->($curve);
+}
 
-my $window = <login-screen.window>;
-my $panel  = <login-screen.widget.panel>;
-$window->set_opacity(1) if defined $window;
+my $window     = <login-screen.window>;
+my $background = <login-screen.widget.background>;
+my $snapshot   = <login-screen.widget.snapshot>;
+my $panel      = <login-screen.widget.panel>;
 $window->get_window()->set_cursor(undef)
     if defined $window and defined $window->get_window();
-$panel->set_opacity(1) if defined $panel;
-my $user = <login-screen.widget.user>;
-$user->set_editable(TRUE) if defined $user;
-<login-screen.widget.user_label>->set_text('user');
-<login-screen.widget.user_label>->show();
-$user->show() if defined $user;
-<login-screen.widget.time>->hide();
-<login-screen.widget.button>->set_label('log in');
+if ( defined $snapshot ) {
+    $snapshot->clear();
+    $snapshot->set_opacity(0);
+    $snapshot->hide();
+}
+<login-screen.lock.snapshot> = undef;
+
+my $animate_unlock
+    = <login-screen.state> eq qw| locked |
+    && defined $window
+    && defined $background
+    && defined $panel;
+if ($animate_unlock) {
+    <login-screen.lock.unlock_fading> = TRUE;
+    $window->set_opacity(0.995);
+    $background->set_opacity(0.995);
+    <[base.curve.register]>->(
+        {   id       => qw| login_screen_unlock_controls_fade |,
+            from     => $panel->get_opacity(),
+            to       => 0,
+            duration => 0.3,
+            type     => qw| ease-in-out |,
+            callback => sub {
+                my $value = shift;
+                $panel->set_opacity($value)
+                    if <login-screen.lock.unlock_fading>;
+            },
+            on_done => sub {
+                return if not <login-screen.lock.unlock_fading>;
+                $panel->set_opacity(0);
+                my $duration = <login-screen.lock.fade_duration> // 1.7;
+                $duration = 1.7
+                    if $duration !~ m|^\d+(?:[.]\d+)?$|
+                    or $duration < 0.2
+                    or $duration > 10;
+                <[base.curve.register]>->(
+                    {   id       => qw| login_screen_unlock_background_fade |,
+                        from     => 0.995,
+                        to       => 0,
+                        duration => $duration,
+                        type     => qw| ease-in-out |,
+                        callback => sub {
+                            my $value = shift;
+                            if (<login-screen.lock.unlock_fading>) {
+                                $background->set_opacity($value);
+                                $window->set_opacity($value);
+                            }
+                        },
+                        on_done => sub {
+                            return if not <login-screen.lock.unlock_fading>;
+                            <login-screen.lock.unlock_fading> = FALSE;
+                            $background->set_opacity(0);
+                            $window->set_opacity(0);
+                            $window->hide();
+                        },
+                    }
+                );
+            },
+        }
+    );
+} else {
+    $window->set_opacity(1)     if defined $window;
+    $background->set_opacity(1) if defined $background;
+    $panel->set_opacity(1)      if defined $panel;
+    my $user = <login-screen.widget.user>;
+    $user->set_editable(TRUE) if defined $user;
+    <login-screen.widget.user_label>->set_text('user');
+    <login-screen.widget.user_label>->show();
+    $user->show() if defined $user;
+    <login-screen.widget.time>->hide();
+    <login-screen.widget.button>->set_label('log in');
+}
 TRUE;
 
-#,,.,,,,,,.,,,.,,,,,,,,,.,.,.,.,.,,.,,...,,,.,..,,...,...,..,,.,.,...,..,,,.,,
-#74IQNLSP2UIBNG6M4LXYKVRZ2PGDEZ4ACU5BXFFHOPUV6WMOFIGZROY2TQOV47XCXOPNYNA3ZATPK
-#\\\|FHCCH5TDFQY4G7U5Q72BSWGRMIPPYKNFYOR2CFFNTZPTY3EO4QR \ / AMOS7 \ YOURUM ::
-#\[7]Y2UDH7TOIPJ2U5HQ2RPEWR66S2G3F3OMVNRZFTZIWX3QWN3JTIDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,...,..,,,,.,.,.,.,,,...,,..,.,.,..,,...,...,.,.,.,,,,..,,..,,..,
+#KHKX62ZPA5OQ4SJJYNGTFW57UUXUCNSYY76WXGJTGZE4SSQ3SI43GTBY7IR4KFMZ4O3FW5HDJWGZ4
+#\\\|OOPDTOJ2U6WC4I27HVOZOUM3ZTJK7KFCF24VMNHCC4YZGQUVLVB \ / AMOS7 \ YOURUM ::
+#\[7]4UOH4KCHSEG537G3OD4YEPQSOMFVMTHKW2NADUHFKKZKB3RIF6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

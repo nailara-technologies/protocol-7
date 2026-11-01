@@ -94,7 +94,8 @@ Glib::Timeout->add(
                 ->( { 'command' => 'v7-zenki.login-session-locked no' } );
             <login-screen.state> = qw| session |;
             <login-screen.widget.status>->set_text('');
-            <login-screen.window>->hide();
+            <login-screen.window>->hide()
+                if not <login-screen.lock.unlock_fading>;
         } elsif ( not $locked and $reply =~ m|^OK ([0-9a-f]{64})\n$| ) {
             my $ticket = ${^CAPTURE}[0];
             <login-screen.state>        = qw| starting |;
@@ -123,8 +124,8 @@ Glib::Timeout->add(
 );
 TRUE;
 
-#,,,,,..,,.,,,...,,.,,,..,,..,.,.,..,,..,,,,.,..,,...,...,.,.,,.,,,,.,..,,.,,,
-#Y2LTWKGW4T4PNSSM7G3TZLPXZJCLKIQQJII6N7KCIAL7XYGAP347XPWXFILS7JQXZH5RAINGLB6ZA
-#\\\|LKAJ2MKOCO53S73VSLC2KPFJ6KAX7UOPO3HB3IORQPZ5WVHBDOC \ / AMOS7 \ YOURUM ::
-#\[7]ZLMG6NEXLMKG5TUIH4EE43SKXPZVC7GAOO7TWRC2HLBRFG4IIMDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,.,,,.,.,,,.,.,..,,,,.,...,,..,..,,...,..,,.,.,,.,,,,,,.,.,.,,,
+#CA3HVOLD5BFB6EMNH3JPUUONMZSB7EG6IOBYDDTUA3IZQNF6LB3VUWGMQ2IFUX2MKCJ6NROHELYDU
+#\\\|QH7MYVDO63DIZLCIBTRVDKNXPLQEXF464POSDLHDX7AIK2GIMKE \ / AMOS7 \ YOURUM ::
+#\[7]CCIQULNE2XY2SEAJ3WTEF2HROSWRG5CVDD4FQ6YFB5NVFQKFYGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
