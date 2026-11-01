@@ -54,7 +54,10 @@ if ( defined $snapshot ) {
 
 my $show_user = ( <login-screen.lock.show_user> // qw| yes | ) ne qw| no |;
 my $show_time = ( <login-screen.lock.show_time> // qw| yes | ) ne qw| no |;
-my $blank     = ( <login-screen.lock.blank>     // qw| yes | ) ne qw| no |;
+<login-screen.lock.idle_pending> //= FALSE;
+## lock blanking has its own exact fade endpoint, not the server idle timer ##
+<[protocol-7.route-send]>
+    ->( { 'command' => qw| X-11.dpms-blanking-disable | } );
 $window->set_keep_above(TRUE);
 $window->fullscreen();
 $window->set_opacity(0.995);
@@ -85,71 +88,6 @@ $fade_duration = 1.7
     if $fade_duration !~ m|^\d+(?:[.]\d+)?$|
     or $fade_duration < 0.2
     or $fade_duration > 10;
-my $blank_delay = <login-screen.lock.blank_delay> // 1.2;
-$blank_delay = 1.2
-    if $blank_delay !~ m|^\d+(?:[.]\d+)?$|
-    or $blank_delay < 0
-    or $blank_delay > 60;
-my $fade_out_duration = <login-screen.lock.fade_out_duration> // 3.6;
-$fade_out_duration = 3.6
-    if $fade_out_duration !~ m|^\d+(?:[.]\d+)?$|
-    or $fade_out_duration < 0.2
-    or $fade_out_duration > 30;
-
-## after input the delay is longer : a pause while typing must not fade ##
-my $input_delay = <login-screen.lock.input_delay> // 24;
-$input_delay = 24
-    if $input_delay !~ m|^\d+(?:[.]\d+)?$|
-    or $input_delay < 0
-    or $input_delay > 300;
-
-my $schedule_blank = sub {
-    my ($after_input) = @ARG;
-    return FALSE if <login-screen.state> ne qw| locked | or not $blank;
-    my $delay = $after_input ? $input_delay : $blank_delay;
-    Glib::Source->remove(<login-screen.lock.blank_timer>)
-        if defined <login-screen.lock.blank_timer>;
-    <login-screen.lock.blank_timer> = Glib::Timeout->add(
-        int( $delay * 1000 ),
-        sub {
-            <login-screen.lock.blank_timer> = undef;
-            return FALSE if <login-screen.state> ne qw| locked |;
-            return FALSE if not defined $panel;
-            <login-screen.lock.panel_fading> = TRUE;
-            ## the pointer vanishes with the panel [ restored on activity ] ##
-            my $gdk_window = $window->get_window();
-            $gdk_window->set_cursor(
-                Gtk3::Gdk::Cursor->new_from_name(
-                    $gdk_window->get_display(),
-                    qw| none |
-                )
-            ) if defined $gdk_window;
-            <[base.curve.register]>->(
-                {   id       => qw| login_screen_lock_panel_fade |,
-                    from     => $panel->get_opacity(),
-                    to       => 0,
-                    duration => $fade_out_duration,
-                    type     => qw| ease-in-out |,
-                    callback => sub {
-                        my $value = shift;
-                        $panel->set_opacity($value)
-                            if <login-screen.state> eq qw| locked |;
-                    },
-                    on_done => sub {
-                        return if <login-screen.state> ne qw| locked |;
-                        $panel->set_opacity(0);
-                        <login-screen.lock.panel_fading> = FALSE;
-                        <[protocol-7.route-send]>
-                            ->( { 'command' => qw| X-11.dpms-force-off | } );
-                    },
-                }
-            );
-            return FALSE;
-        }
-    );
-    return FALSE;
-};
-<login-screen.lock.schedule_blank> = $schedule_blank;
 
 <[base.curve.register]>->(
     {   id       => qw| login_screen_lock_fade |,
@@ -165,6 +103,7 @@ my $schedule_blank = sub {
         },
         on_done => sub {
             return if <login-screen.state> ne qw| locked |;
+            <login-screen.lock.idle_pending> = FALSE;
             $background->set_opacity(0.995) if defined $background;
             <[base.curve.register]>->(
                 {   id       => qw| login_screen_lock_controls_fade |,
@@ -180,7 +119,8 @@ my $schedule_blank = sub {
                     on_done => sub {
                         return if <login-screen.state> ne qw| locked |;
                         $panel->set_opacity(1);
-                        $schedule_blank->();
+                        my $schedule = <login-screen.policy.schedule_blank>;
+                        $schedule->() if defined $schedule;
                     },
                 }
             ) if defined $panel;
@@ -215,8 +155,8 @@ my $schedule_blank = sub {
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,..,.,,,,,.,,.,,,,,,.,.,,.,,..,,..,,...,...,..,,...,..,,...,..,,.,.,..,,.,,,
-#QNEQIG4WARLPFOPOFFZWY25HPFORIPQQHSTGP3BBWVNCK3DBSPVCOAQO7VICT33PTZUQICKHVFTZU
-#\\\|2MUYHULUPI3BTUVWWP5HTZGSHEBECJGAGH2ZDJQIIS2HXJZT66W \ / AMOS7 \ YOURUM ::
-#\[7]5PTZ56RSPD4EE43KXSWLFBD3IS4HW77UYOJ2HBR2J6ZXF55M7MDY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,...,...,,,.,,,,,,.,,.,.,,,,,.,.,..,,...,...,,,.,,.,,,.,,,,,,,..,
+#ZD6GML57AFQI3IBWD4UBOUBZCO5IRJNLK34KVYTIMHTBBPHMDTAZKQLHO4Q2MUPUMM5EHFCLJEJWK
+#\\\|JYWN6VYBNATY4YPWBSWIWPCTJ6CTSD443Z5FWUUJ5DWTLIGXWY6 \ / AMOS7 \ YOURUM ::
+#\[7]PNH666PGO6W3FY5EFTJFZKMAX2LLS2KAMQGF2JD2NHMLSQTEB6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

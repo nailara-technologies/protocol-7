@@ -4,9 +4,7 @@
 # descr = restore a dimmed lock panel and restart its inactivity delay
 
 return FALSE if <login-screen.state> ne qw| locked |;
-return FALSE if ( <login-screen.lock.blank> // qw| yes | ) eq qw| no |;
-my $panel          = <login-screen.widget.panel>        // return FALSE;
-my $schedule_blank = <login-screen.lock.schedule_blank> // return FALSE;
+my $activity = <login-screen.policy.activity> // return FALSE;
 
 ## typing hides the pointer, moving \ clicking brings it back ##
 my ($event_name) = @ARG;
@@ -24,34 +22,11 @@ if ( defined $gdk_window ) {
     }
 }
 
-my $from = $panel->get_opacity();
-<[base.curve.cancel]>->(qw| login_screen_lock_panel_fade |);
-if ( $from < 1 or <login-screen.lock.panel_fading> ) {
-    <login-screen.lock.panel_fading> = FALSE;
-    <[base.curve.register]>->(
-        {   id       => qw| login_screen_lock_panel_fade |,
-            from     => $from,
-            to       => 1,
-            duration => 0.5,
-            type     => qw| ease-in-out |,
-            callback => sub {
-                my $value = shift;
-                $panel->set_opacity($value)
-                    if <login-screen.state> eq qw| locked |;
-            },
-            on_done => sub {
-                return if <login-screen.state> ne qw| locked |;
-                $panel->set_opacity(1);
-                <login-screen.lock.panel_fading> = FALSE;
-            },
-        }
-    );
-}
-$schedule_blank->(TRUE);    ## the longer input delay ##
+$activity->($event_name);
 FALSE;
 
-#,,.,,,,,,.,.,,,,,,.,,...,,,.,,,,,.,,,,..,,,,,.,.,...,...,,,.,.,,,.,,,.,,,,.,,
-#6AYLCMWOPIXG6ALBDHA3ECQEU3QS2F4YWSS7MYN6USQDATLX5RS43HPSBX7KOQPRRYFAZWHG2EBWW
-#\\\|HQWN4Q7CNRIZ6AWOU4WMYC7KVMNS5E3IP5EOCWUABJGRVROPS42 \ / AMOS7 \ YOURUM ::
-#\[7]GV7WTRXO3IR6BHK4C2YM3HZOWALPYSJZTTCY2LYK6D3I3HIAOIAI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,,,,,..,,..,,,.,,...,,.,,,,.,.,.,...,...,..,,,.,,,.,,,.,,.,,,
+#PSZYCFXM4ZK47HVGSHMXOLQG2AO4IMIZKCN4FNJDLWNPWRM3HLPMRUKEB2I4XZEZZS6O4HDLNGOE2
+#\\\|3JR23ZAPKBDUQMK4CDOHQGNMOXAASKPBY6IONTMWBDQHWMSUBA4 \ / AMOS7 \ YOURUM ::
+#\[7]7QBKLQKUJNYX6TF3HVHJ4HDJ4NZBIRPF7WONC774BLJTQTBP26AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
