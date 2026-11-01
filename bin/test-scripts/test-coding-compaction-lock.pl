@@ -378,10 +378,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,.,,..,,,,.,.,,,,,.,,,,,...,.,,,,,,,.,.,.,.,..,,...,...,...,,,,,.,,,...,.,.,
-#2JB4SHJC5MNFG7HPAOJ435UFXIDNJLNAED6KKRS3KAZQN7LTXUQJSKHQ62KEVG4UYTTEISA3RGCZK
-#\\\|4E2QCQI2UTVDPD746MLWLVY5ZNPLFAGSLHZUJFAL7XKWKXIOZJC \ / AMOS7 \ YOURUM ::
-#\[7]HDUNLNK2K64KV2J6FXMFYPZVJ5MW76QNMT5LDAVOEU24C3F6D2DY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,..,,,..,,..,,..,,.,,,,,,,..,,,,,..,,...,...,...,..,,,,,,,.,,,.,,
+#T4LXSNARNHOE3E5R3IZ5NEPGPKDMT22HLFU5DH3DCXLIGJBUKA5T7JJJ66AQXDP73OU43NVCXL5DO
+#\\\|5FNMJBR2TTAUJC2ODHCT2B7S54JPO25Z4C5LQHYRFYW4ANKHWBJ \ / AMOS7 \ YOURUM ::
+#\[7]G6DQRUYV44OEQGR5M3D7RVAYGZT6JJ7GIUGBLOB5EQDIVQQTGODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

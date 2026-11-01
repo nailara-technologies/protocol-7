@@ -234,6 +234,27 @@ ok( defined $replay_gate->{'k_fit_base'} && $replay_gate->{'baseline'} <= 55,
     'fit intercept is exposed and the gate baseline remains capped'
 );
 
+say ': 5. cool high-k observations do not raise or retain a fault';
+my $cool_gate = {
+    'window'    => qw| day |,
+    'baseline'  => 30,
+    'k'         => 0.25,
+    'k_samples' => 30,
+};
+for my $offset ( 1 .. 600 ) {
+    my $watts = $offset % 120 < 60 ? 82 : 42;
+    my $temp  = 30 + 0.6 * ( $watts - 42 );
+    $code{'thermal.gate.sample'}
+        ->( $cool_gate, $temp, $offset, FALSE, $watts, 42 );
+}
+ok( !exists $cool_gate->{'fault'} && @fault_notices == 1,
+    'a large fitted k below seventy degrees raises no warning'
+);
+$cool_gate->{'fault'} = { 'since' => 600, 'k_obs' => 0.6, 'k' => 0.25 };
+$code{'thermal.gate.sample'}->( $cool_gate, 57, 601, TRUE );
+ok( !exists $cool_gate->{'fault'},
+    'an existing fault clears after cooling below the floor' );
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -242,8 +263,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,.,,,.,,...,,.,,,.,,..,,,,.,,,.,,,.,,,.,..,,...,...,,.,,...,,..,,,,,,,,,
-#4MPWXBLQV76H2TPSG7PX3NVBPKC2CZLA4R3SHWIPS5I7WN6AHZX3BTRGHAZHUCZWAYDN4BHLND35S
-#\\\|SE4GTTV2FLKEUKUUOUVR7WMEMLGA2277QZBJJVEM47IJHBBCZFF \ / AMOS7 \ YOURUM ::
-#\[7]5IXR6NJGJ3BAPZ4PY6E33CTL4Q5YZDI75OHBBPRQVM3JCHL7ZOCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,,.,,,,,,,.,,,,,,..,,,.,.,,,..,,...,...,,.,,.,,,...,.,.,,,.,
+#TT4WTR7EFQMPJYPY5IFBNDW7BGWKQIAPYAKZPSTFZVHC6Q2XCQEPL6XEC6BFL453DVWHE37EJKS5W
+#\\\|CYLTDOKXGFO3Z7O6ELX3QDXIGTF52LAPBDVH4HHXSLU6XTCVC7M \ / AMOS7 \ YOURUM ::
+#\[7]NPJMMYXJCXE33AFIWBDYCZZS7M3JPJXTYMWG4DWMWIV5VBKG4AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

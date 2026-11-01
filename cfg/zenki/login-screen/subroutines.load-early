@@ -207,7 +207,6 @@ base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
 login-screen.cmd.lock
-login-screen.cmd.idle-lock
 jobqueue.get_next_job
 jobqueue.get_job_data
 format.yaml.load_file
@@ -232,9 +231,7 @@ base.cfg.profile.list
 base.balanced-average
 base.X-11.get_display
 login-screen.show_lock
-login-screen.watch_root
 login-screen.init_code
-login-screen.idle_policy
 crypt.C25519.sign_data
 base.session.init_code
 base.required_bin_path
@@ -248,6 +245,7 @@ base.comp-int.is_valid
 base.cfg.profile.apply
 auth.client.owner_pins
 protocol.sftp.init_code
+login-screen.watch_root
 jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
@@ -277,6 +275,7 @@ protocol.https.init_code
 plugin.auth.auth-keypair
 login-screen.xauth_setup
 login-screen.open_window
+login-screen.idle_policy
 io.unix.socket.init_code
 crypt.C25519.single_file
 crypt.C25519.load_single
@@ -298,7 +297,6 @@ base.buffer.erase_secure
 ui.render.tree.invalidate
 login-screen.unwatch_root
 login-screen.show_greeter
-login-screen.capture_snapshot
 login-screen.release_lock
 login-screen.authenticate
 jobqueue.priorities_table
@@ -324,6 +322,7 @@ base.callback.delayed-log
 auth.client.distrust_list
 protocol.sftp.read_ssh_env
 login-screen.lock_feedback
+login-screen.cmd.idle-lock
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.encrypted_key
@@ -377,6 +376,7 @@ base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 auth.client.server_pin.check
 protocol.protocol-7.init_code
+login-screen.capture_snapshot
 crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
@@ -400,9 +400,8 @@ ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 login-screen.start_auth_helper
-login-screen.handler.lock_grab
 login-screen.handler.lock_root
-login-screen.handler.lock_raise_poll
+login-screen.handler.lock_grab
 login-screen.cmd.session-ended
 crypt.C25519.key_name_and_type
 crypt.C25519.chksum_cache.retr
@@ -472,6 +471,7 @@ base.callback.reset_strm_size_timer
 base.callback.report_children_reply
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+login-screen.handler.lock_raise_poll
 graphics-3d.calc.cursor-translucency
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
@@ -517,8 +517,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,.,,,,,,,,,,.,.,...,...,,..,.,.,.,,,...,..,,...,...,.,.,.,,,,,,,,,.,.,,,
-#GVXEQZ5GMMCV4C6NGCSYFTQSCZ6MDYLGDQYQD2AKDVV6IA4CU3UDNF7MAUY6N64PMOCOD3WS6QIXE
-#\\\|OMYVKLPMBQIR6Q4XZPW6P3YHRLDHTWEFER2ZGPKERMUWG7WKNNC \ / AMOS7 \ YOURUM ::
-#\[7]II2KMKNF5U3CCE7H7VTFYG6QCDQMY4LAIACNXFMAL3VJJAWQEGCY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,.,,.,,,,.,,.,.,.,.,.,,,.,,,,,.,..,,...,..,,.,.,.,.,..,,,.,,,,,,
+#OW6YS4POOI2RALCHBLGQLBEJ57BNQDDW7EDS3AGSEB6OKZ2DTDDH6COLAVP3EKV447PVW4522H246
+#\\\|33DTDZ2PQCTOIF4MJOX7CX6EDTOCUZDWNUXLB5YEW62G42PD2GQ \ / AMOS7 \ YOURUM ::
+#\[7]7RI6C4RT5USQUMW32NITFI5X5QP3TVAE3JUMZLQOMOUWQB44AUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

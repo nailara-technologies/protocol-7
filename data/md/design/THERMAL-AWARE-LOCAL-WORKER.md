@@ -138,9 +138,10 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
    k * [ P - P_idle ], outdoor-adjusted. the gate acts on the PREDICTED
    temperature [ hot \ pause before the overshoot, a spawn refused on
    the heat it would bring ].
-   cooling fault guard : a sudden k jump at the same power = a stopped
-   fan \ blocked airflow -> freeze k [ never learn it as the new normal ],
-   crawl or pause, notify the owner. the absolute ceiling stays as the
+   cooling fault guard : a sudden k jump at the same power while the gpu
+   is at least 70 C = a stopped fan \ blocked airflow -> freeze k [ never
+   learn it as the new normal ], crawl or pause, notify the owner. cooling
+   below that floor clears the fault. the absolute ceiling stays as the
    last line, independent of any learned value.
    slices 3 + 4 landed : trusted k drives predicted-temperature thresholds
    and optional expected-watts spawn refusal ; settled cooling faults freeze
@@ -174,8 +175,8 @@ e.g. `quiet` \ `heater` \ `eco`. only if plain windows prove too coarse.
    delays the other worker's next background round.
 8. profiles, if wanted.
 
-#,,,.,,,.,..,,..,,,,,,,,.,,,,,..,,...,,,,,.,,,..,,...,...,.,,,.,.,.,,,,,,,,,.,
-#Z763WSHK6FC2T7ALJVFXJSO42BKHRTGOA7LY4IFICZDT2PMY5C64I5QAAHKEKBNQDKMLV3S6XPEBG
-#\\\|KHPDFCPVUEZGHV2MZGBQ27QH7BJ6F2CETFUBTZBLMY2WVQFUDXH \ / AMOS7 \ YOURUM ::
-#\[7]4SMFP3Y6A2IUJMBPGPAW6HILLIG4Z7UV2SOP5LZRYHBMFQ2NU4AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,.,,,...,.,.,,..,...,,,.,,,.,..,,...,...,...,,..,,.,,,..,,..,
+#NI5LRCZSYSM6D4WVGRBVWSXYIPN3E3SL76K4ZHTRFNW6RJYMFJ5Q4J3XJOSQVU7VVJDRHKX4HZIOW
+#\\\|F56FD662XIFRTF3HKKS7XJJRJ4XAIFIUAAHHT4JZ3J5JWLMO2TQ \ / AMOS7 \ YOURUM ::
+#\[7]AFKGMEHN2COYMBURTPSEN2OSRSQYKEAEYEIL6WEVZFGNLQWQDIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
