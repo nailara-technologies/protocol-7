@@ -10,11 +10,21 @@ if ( defined <login-screen.lock.seat> ) {
 <login-screen.lock.grabbed>             = FALSE;
 <login-screen.lock.grab_failure_logged> = FALSE;
 <login-screen.auth_in_flight>           = FALSE;
+<login-screen.lock.panel_fading>        = FALSE;
+foreach my $timer (qw| blank_timer time_timer raise_timer grab_timer |) {
+    Glib::Source::remove( $data{'login-screen'}{'lock'}{$timer} )
+        if defined $data{'login-screen'}{'lock'}{$timer};
+    delete $data{'login-screen'}{'lock'}{$timer};
+}
+<login-screen.lock.schedule_blank> = undef;
 <[base.curve.cancel]>->(qw| login_screen_lock_fade |);
+<[base.curve.cancel]>->(qw| login_screen_lock_panel_fade |);
 <[base.curve.cancel]>->(qw| login_screen_lock_feedback |);
 
 my $window = <login-screen.window>;
+my $panel  = <login-screen.widget.panel>;
 $window->set_opacity(1) if defined $window;
+$panel->set_opacity(1)  if defined $panel;
 my $user = <login-screen.widget.user>;
 $user->set_editable(TRUE) if defined $user;
 <login-screen.widget.user_label>->set_text('user');
@@ -24,8 +34,8 @@ $user->show() if defined $user;
 <login-screen.widget.button>->set_label('log in');
 TRUE;
 
-#,,,.,...,,.,,,.,,,..,,,.,.,.,,.,,,,,,,,,,.,,,..,,...,...,,,.,,,,,,..,,.,,,,,,
-#BBSBDSCCYCUJ6365YMHKSBGX3CQGJPXIEZIG5DMKBJSPQ33WM6ALSZVPYNNGWNIJRZGWZXRKHNBKW
-#\\\|LV3JVO2ZMY6R5JYPWJMO62OQENYJG477STK4XL4JKKXXJ64XOZJ \ / AMOS7 \ YOURUM ::
-#\[7]Q6AEN4CSKOBHQMOPNYLFFTNG7KKNHS7DR3YV3MNUZ3Z33OBZ6GBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,,,,..,,,.,..,,,.,,...,...,,..,..,,...,...,...,,.,,...,..,,.,.,
+#7KPVVQOIKGFNTZKZB3MTQOAATBRVY3U2HBPJQ6HBNUN74HQPEH2ALFVWTJ3VMTRBCJMG6MA6XDOXY
+#\\\|UVGADNYDTAUMDWIOTPLXIUHUJS3BQOZVQLJEG5OTS2AIK4EQTUN \ / AMOS7 \ YOURUM ::
+#\[7]BE7QCSH45YKYEI7FD5Q3FMZEL5NSL43WHWMVNYUAX3WQH74WGEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
