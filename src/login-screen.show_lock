@@ -140,9 +140,12 @@ my $schedule_blank = sub {
 <login-screen.lock.schedule_blank> = $schedule_blank;
 
 <[base.curve.register]>->(
-    {   id       => qw| login_screen_lock_fade |,
-        from     => 0,
-        to       => 1,
+    {   id   => qw| login_screen_lock_fade |,
+        from => 0,
+        ## never exactly 1 : compton --unredir-if-possible unredirects an  ##
+        ## opaque fullscreen window, that switch flickered at fade end and ##
+        ## the panel fade-out needs compositing anyway                     ##
+        to       => 0.995,
         duration => $fade_duration,
         type     => qw| ease-in-out |,
         callback => sub {
@@ -152,7 +155,7 @@ my $schedule_blank = sub {
         },
         on_done => sub {
             return if <login-screen.state> ne qw| locked |;
-            $window->set_opacity(1);
+            $window->set_opacity(0.995);
             $schedule_blank->();
         },
     }
@@ -163,8 +166,8 @@ my $schedule_blank = sub {
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,..,.,.,,,.,,.,,.,,,,,,,...,,..,..,,..,,.,,,..,,...,...,.,,,.,.,,,,,,,,,.,,,
-#H2R75CAEOJGC7NRASQ57PU7AJF52X56P36QJIKTDTHGJYQT7WL2RNGSKM5DD6CS6LC5MOCOF6MAI4
-#\\\|AXT2AF3SELYBRWRRTTFQJGIGXXPTM3YTT5VIKCOTNU6B52KUVML \ / AMOS7 \ YOURUM ::
-#\[7]MN2AS2VIXPMFJNYSXAOWKELSPXVTEGOVR4NBPSQEOO3EVXPSVUBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,.,.,.,,,...,,..,.,.,...,.,.,..,,...,...,,..,.,,,,.,,,.,,,,.,
+#DICMXPEZ5SX2HPXBX63DF57YWS5WQOSPY7YMHANMRMWCLPUOAFWXS736BZR5BOSQODW3MXUHOUH64
+#\\\|TXA3WCVHHRWAK4RVS5HFJ3TFYOUECSI23JEWVTP47CQL3UESQLW \ / AMOS7 \ YOURUM ::
+#\[7]H2SFDHVKHPM2XSDESAKI45MGKNWTDONYP7BKE77NF3SWORIYGQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
