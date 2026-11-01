@@ -320,7 +320,7 @@ $blank_timer->{'callback'}->();
 my $panel_fade = $lock_curves[-1];
 ok( $panel_fade->{'id'} eq 'login_screen_lock_panel_fade'
         && $panel_fade->{'to'} == 0
-        && $panel_fade->{'duration'} == 3.0,
+        && $panel_fade->{'duration'} == 3.6,
     'blank delay starts the slow panel-only fade-out'
 );
 $panel_fade->{'callback'}->(0.4);
@@ -339,11 +339,11 @@ ok( $lock_curves[-1]->{'from'} == 0.4
     'lock activity restores the panel from its current opacity over 0.5 s'
 );
 ok( scalar( grep { $ARG->{'ms'} == 1200 } @lock_timers ) == 1
-        && scalar( grep { $ARG->{'ms'} == 15000 } @lock_timers ) == 1,
+        && scalar( grep { $ARG->{'ms'} == 24000 } @lock_timers ) == 1,
     'lock activity restarts the delay with the longer input delay'
 );
 $lock_curves[-1]->{'on_done'}->();
-($blank_timer) = grep { $ARG->{'ms'} == 15000 } @lock_timers;
+($blank_timer) = grep { $ARG->{'ms'} == 24000 } @lock_timers;
 $blank_timer->{'callback'}->();
 $lock_curves[-1]->{'on_done'}->();
 ok( @unlock_sent == 1
@@ -368,7 +368,7 @@ $lock_curves[0]->{'on_done'}->();
 ($blank_timer) = grep { $ARG->{'ms'} == 1200 } @lock_timers;
 $blank_timer->{'callback'}->();
 ok( $lock_curves[0]->{'duration'} == 1.7
-        && $lock_curves[-1]->{'duration'} == 3.0
+        && $lock_curves[-1]->{'duration'} == 3.6
         && defined $blank_timer,
     'invalid lock fade values fall back to their defaults'
 );
@@ -387,8 +387,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,.,...,,..,.,,,.,,,.,,,,..,...,,.,,.,.,,,,,..,,...,...,..,,,,.,.,,,.,.,,..,
-#IXALBTIC7QT77WQ3CTPPVFOKS7EBXU4HQJGB63GED5FM2UGKUTXZB2VPUXVX6TZQXLKQX3VQZU2MY
-#\\\|EDJSU2BICECTNT5NW5GENKJ4FQETCVCLAA6S4LHUF4INSCG75NU \ / AMOS7 \ YOURUM ::
-#\[7]PVDGDTCYD3TL4Q4VNYOSZIFDPICVZID6GIPJJIXEDGNADODXH2CY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,...,,.,,,.,,...,,,.,..,,,.,,..,,...,...,,.,,,,,,,,.,,,,,.,,,
+#ZMXVNQPWJ6XYI3VR4QZ5OZXVGVJMH5RPB7SE45TVR4N6SYYY4NKHTKJCZCYO6HW4NXUI45WFDXVLO
+#\\\|UQQBNCPR7QIMAU6ZIYAZCOXDJJZZD64U52ZBDNYDS77JF2S4ZUC \ / AMOS7 \ YOURUM ::
+#\[7]MAY6YOM76AGIV77JUWTMX4RMC6RZFHKDF2XIWERDIGEVJLYWOSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
