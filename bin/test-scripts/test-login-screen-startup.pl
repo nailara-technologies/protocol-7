@@ -338,11 +338,12 @@ ok( $lock_curves[-1]->{'from'} == 0.4
         ),
     'lock activity restores the panel from its current opacity over 0.5 s'
 );
-ok( scalar( grep { $ARG->{'ms'} == 1200 } @lock_timers ) == 2,
-    'lock activity restarts the inactivity delay'
+ok( scalar( grep { $ARG->{'ms'} == 1200 } @lock_timers ) == 1
+        && scalar( grep { $ARG->{'ms'} == 15000 } @lock_timers ) == 1,
+    'lock activity restarts the delay with the longer input delay'
 );
 $lock_curves[-1]->{'on_done'}->();
-($blank_timer) = grep { $ARG->{'ms'} == 1200 } @lock_timers;
+($blank_timer) = grep { $ARG->{'ms'} == 15000 } @lock_timers;
 $blank_timer->{'callback'}->();
 $lock_curves[-1]->{'on_done'}->();
 ok( @unlock_sent == 1
@@ -386,8 +387,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,.,..,,..,,,.,,..,,,,,,.,.,..,,,,.,.,,,,,,,..,,...,...,.,,,,..,.,.,..,,,..,
-#WHLVNIUYR2JG7MTW5NIO7WQECKUZ7CBEPYWTCBTCSCN4TVOMWUOURJWVGN7VA56CECBWT6R4ACB24
-#\\\|FXHTNLPHO72R4AUUGLHI2MX6H2CTPLDWMEZDEFKVCQ245KNZQZL \ / AMOS7 \ YOURUM ::
-#\[7]BWEDM2HPQMFBVDS7FON5B3AAYCHMQFMDZDJASFPLF4NYAACQ3QDQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,,,.,,,.,,,,..,...,,.,,.,.,,,,,..,,...,...,..,,,,.,.,,,.,.,,..,
+#IXALBTIC7QT77WQ3CTPPVFOKS7EBXU4HQJGB63GED5FM2UGKUTXZB2VPUXVX6TZQXLKQX3VQZU2MY
+#\\\|EDJSU2BICECTNT5NW5GENKJ4FQETCVCLAA6S4LHUF4INSCG75NU \ / AMOS7 \ YOURUM ::
+#\[7]PVDGDTCYD3TL4Q4VNYOSZIFDPICVZID6GIPJJIXEDGNADODXH2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

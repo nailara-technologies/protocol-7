@@ -84,12 +84,21 @@ $fade_out_duration = 3.0
     or $fade_out_duration < 0.2
     or $fade_out_duration > 30;
 
+## after input the delay is longer : a pause while typing must not fade ##
+my $input_delay = <login-screen.lock.input_delay> // 15;
+$input_delay = 15
+    if $input_delay !~ m|^\d+(?:[.]\d+)?$|
+    or $input_delay < 0
+    or $input_delay > 300;
+
 my $schedule_blank = sub {
+    my ($after_input) = @ARG;
     return FALSE if <login-screen.state> ne qw| locked | or not $blank;
+    my $delay = $after_input ? $input_delay : $blank_delay;
     Glib::Source->remove(<login-screen.lock.blank_timer>)
         if defined <login-screen.lock.blank_timer>;
     <login-screen.lock.blank_timer> = Glib::Timeout->add(
-        int( $blank_delay * 1000 ),
+        int( $delay * 1000 ),
         sub {
             <login-screen.lock.blank_timer> = undef;
             return FALSE if <login-screen.state> ne qw| locked |;
@@ -146,8 +155,8 @@ my $schedule_blank = sub {
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,,.,.,.,,..,..,,..,,,,.,.,,,...,,,.,,,,,.,.,..,,...,...,...,,,.,.,.,,,,,,..,
-#CH7R2U2KN33FVM22JZGLTMH7DKYPAURELE2LR5TC6RXHVUAKEAXLJ2FIZI2OYOB4HHFBRAZY7AOAS
-#\\\|KFL7N5TIHBL347RFB35KT5GDFJ76TEZXHHYFDANYF5BZVSN2KZL \ / AMOS7 \ YOURUM ::
-#\[7]GSV7YL3SPZPYMEZBTEHFT7HJLEVXXKTTFMY3UCKWIXJWMDBY7GAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,..,,,,,,,,,,,,,,,,,.,.,,..,.,.,..,,...,..,,..,,..,,,.,,,.,,,,,,
+#6IEQBPOTLKLZUULZN7XZRXJTDLR7EBKPP6XZEGQOHWFXIFO3GR6WSB4LSXXLQTHL4UYSJBA5L2VCC
+#\\\|CUHIU7WBSH6XZQ65JZCXNWWGVM4XAKTGXQTYZLIN6CMF3ZLLEWO \ / AMOS7 \ YOURUM ::
+#\[7]XMO4ZLRGV3OO7LBZ7ZS22T3YYORHOZF7KS3LWNO5QPF3C6U2XWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
