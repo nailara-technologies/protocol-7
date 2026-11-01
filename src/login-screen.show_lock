@@ -12,9 +12,18 @@ my $window = <login-screen.window> // return FALSE;
 <login-screen.auth_in_flight>           = FALSE;
 <login-screen.lock.grabbed>             = FALSE;
 <login-screen.lock.grab_failure_logged> = FALSE;
+<login-screen.lock.panel_fading>        = FALSE;
+foreach my $timer (qw| blank_timer time_timer raise_timer grab_timer |) {
+    Glib::Source::remove( $data{'login-screen'}{'lock'}{$timer} )
+        if defined $data{'login-screen'}{'lock'}{$timer};
+    delete $data{'login-screen'}{'lock'}{$timer};
+}
+<[base.curve.cancel]>->(qw| login_screen_lock_fade |);
+<[base.curve.cancel]>->(qw| login_screen_lock_panel_fade |);
 <[base.curve.cancel]>->(qw| login_screen_lock_feedback |);
 
-my $user = <login-screen.widget.user>;
+my $user  = <login-screen.widget.user>;
+my $panel = <login-screen.widget.panel>;
 $user->set_text($username);
 $user->set_editable(FALSE);
 $user->set_sensitive(FALSE);
@@ -24,15 +33,17 @@ $user->set_sensitive(FALSE);
 <login-screen.widget.button>->set_label('unlock');
 <login-screen.widget.button>->set_sensitive(FALSE);
 <login-screen.widget.status>->set_text('');
+$panel->set_opacity(1) if defined $panel;
 
 my $show_user = ( <login-screen.lock.show_user> // qw| yes | ) ne qw| no |;
 my $show_time = ( <login-screen.lock.show_time> // qw| yes | ) ne qw| no |;
+my $blank     = ( <login-screen.lock.blank>     // qw| yes | ) ne qw| no |;
 $window->set_keep_above(TRUE);
 $window->fullscreen();
 $window->set_opacity(0);
 $window->show_all();
 $window->present();
-$user->set_visible($show_user);
+$user->set_visible(FALSE);    ## the dimmed name label already says who ##
 <login-screen.widget.user_label>->set_visible($show_user);
 <login-screen.widget.time>->set_visible($show_time);
 
@@ -43,9 +54,9 @@ my $update_time = sub {
     return TRUE;
 };
 $update_time->();
-Glib::Timeout->add( 30000, $update_time );
+<login-screen.lock.time_timer> = Glib::Timeout->add( 30000, $update_time );
 
-Glib::Timeout->add(
+<login-screen.lock.raise_timer> = Glib::Timeout->add(
     500,
     sub {
         return FALSE if <login-screen.state> ne qw| locked |;
@@ -57,11 +68,59 @@ Glib::Timeout->add(
 );
 
 ## fade duration [ login-screen.lock.fade_duration, seconds, 0.2 .. 10 ] ##
-my $fade_duration = <login-screen.lock.fade_duration> // 2.0;
-$fade_duration = 2.0
+my $fade_duration = <login-screen.lock.fade_duration> // 1.7;
+$fade_duration = 1.7
     if $fade_duration !~ m|^\d+(?:[.]\d+)?$|
     or $fade_duration < 0.2
     or $fade_duration > 10;
+my $blank_delay = <login-screen.lock.blank_delay> // 1.2;
+$blank_delay = 1.2
+    if $blank_delay !~ m|^\d+(?:[.]\d+)?$|
+    or $blank_delay < 0
+    or $blank_delay > 60;
+my $fade_out_duration = <login-screen.lock.fade_out_duration> // 3.0;
+$fade_out_duration = 3.0
+    if $fade_out_duration !~ m|^\d+(?:[.]\d+)?$|
+    or $fade_out_duration < 0.2
+    or $fade_out_duration > 30;
+
+my $schedule_blank = sub {
+    return FALSE if <login-screen.state> ne qw| locked | or not $blank;
+    Glib::Source::remove(<login-screen.lock.blank_timer>)
+        if defined <login-screen.lock.blank_timer>;
+    <login-screen.lock.blank_timer> = Glib::Timeout->add(
+        int( $blank_delay * 1000 ),
+        sub {
+            <login-screen.lock.blank_timer> = undef;
+            return FALSE if <login-screen.state> ne qw| locked |;
+            return FALSE if not defined $panel;
+            <login-screen.lock.panel_fading> = TRUE;
+            <[base.curve.register]>->(
+                {   id       => qw| login_screen_lock_panel_fade |,
+                    from     => $panel->get_opacity(),
+                    to       => 0,
+                    duration => $fade_out_duration,
+                    type     => qw| ease-in-out |,
+                    callback => sub {
+                        my $value = shift;
+                        $panel->set_opacity($value)
+                            if <login-screen.state> eq qw| locked |;
+                    },
+                    on_done => sub {
+                        return if <login-screen.state> ne qw| locked |;
+                        $panel->set_opacity(0);
+                        <login-screen.lock.panel_fading> = FALSE;
+                        <[protocol-7.route-send]>
+                            ->( { 'command' => qw| X-11.dpms-force-off | } );
+                    },
+                }
+            );
+            return FALSE;
+        }
+    );
+    return FALSE;
+};
+<login-screen.lock.schedule_blank> = $schedule_blank;
 
 <[base.curve.register]>->(
     {   id       => qw| login_screen_lock_fade |,
@@ -77,18 +136,18 @@ $fade_duration = 2.0
         on_done => sub {
             return if <login-screen.state> ne qw| locked |;
             $window->set_opacity(1);
-            <[protocol-7.route-send]>
-                ->( { 'command' => qw| X-11.dpms-force-off | } );
+            $schedule_blank->();
         },
     }
 );
 
-Glib::Timeout->add( 200, $code{'login-screen.handler.lock_grab'} )
+<login-screen.lock.grab_timer>
+    = Glib::Timeout->add( 200, $code{'login-screen.handler.lock_grab'} )
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,.,,...,,.,,,..,,.,,..,,,..,,,,,,.,,..,,.,.,..,,...,...,..,,.,.,,..,...,.,,,
-#3RBFUWKLQKJ5SDX6SJPUY3GR7SQRPWBGOWT6THZM66OGO2Q7SMDUWDHD4SMHRERMJBQNWG3KGNXZS
-#\\\|VDJZMB2BNMWPBEEXJREPTDH6D2OYITNP6K5HOTLWBQSYS7UMPLD \ / AMOS7 \ YOURUM ::
-#\[7]FOVSB2ANREVMRLU4UJIGLRSPOBBH3FGVCVOJYENJ2S2YJLCXVUCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,..,,.,.,..,,.,.,.,.,,..,...,..,,...,...,..,,,.,,,..,,..,,..,
+#T6UOYU6AUJZNOY7O7A2F74M3QIFPP7VPKFNNHTMDUPTDERVQTRQONGH354B4WIA2CGJOJNZNUQ6M4
+#\\\|GSPULUARB2ZRPCMVPW425MSQWBO2SMHCUHRR3E3YBPZQILH77BJ \ / AMOS7 \ YOURUM ::
+#\[7]6L2RGIG5IG23HENLAHCUMM3XVTZEP2HKQ6O3LETNAMLWIIOAH4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

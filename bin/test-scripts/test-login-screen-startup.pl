@@ -168,7 +168,15 @@ ok( $data{'login-screen'}{'state'} eq 'session'
 {
 
     package Glib::Timeout;
-    sub add { my ( $class, $milliseconds, $callback ) = @ARG; $callback->() }
+
+    sub add {
+        my ( $class, $milliseconds, $callback ) = @ARG;
+        return $callback->() if not $main::queue_lock_timers;
+        my $id = scalar(@main::lock_timers) + 1;
+        push @main::lock_timers,
+            { 'id' => $id, 'ms' => $milliseconds, 'callback' => $callback };
+        return $id;
+    }
 
     package LoginScreenStartupTest::Widget;
     sub new           { return bless { 'text' => '' }, shift }
@@ -242,12 +250,144 @@ ok( @unlock_sent == 1
     'successful unlock clears v7 state without starting a session'
 );
 
+our @lock_timers;
+our @removed_timers;
+our @lock_curves;
+our @cancelled_curves;
+$main::queue_lock_timers = TRUE;
+{
+
+    package Glib::Source;
+
+    sub remove {
+        push @main::removed_timers, $ARG[0];
+        return 5;
+    }
+
+    package LoginScreenStartupTest::Widget;
+    sub set_opacity  { $ARG[0]->{'opacity'} = $ARG[1]; return 5 }
+    sub get_opacity  { return $ARG[0]->{'opacity'} // 1 }
+    sub set_visible  { return 5 }
+    sub set_editable { return 5 }
+    sub show         { return 5 }
+    sub hide         { return 5 }
+
+    package LoginScreenStartupTest::Window;
+    sub set_keep_above { return 5 }
+    sub fullscreen     { return 5 }
+    sub set_opacity    { $ARG[0]->{'opacity'} = $ARG[1]; return 5 }
+    sub get_opacity    { return $ARG[0]->{'opacity'} // 1 }
+    sub show_all       { return 5 }
+    sub present        { return 5 }
+    sub get_window     { return undef }
+}
+my $show_lock     = compile_module('login-screen.show_lock');
+my $lock_activity = compile_module('login-screen.handler.lock_activity');
+my $release_lock  = compile_module('login-screen.release_lock');
+$code{'login-screen.handler.lock_grab'} = sub { return FALSE };
+$code{'login-screen.release_lock'}      = $release_lock;
+$code{'base.curve.register'}
+    = sub { push @lock_curves, $ARG[0]; return TRUE };
+$code{'base.curve.cancel'}
+    = sub { push @cancelled_curves, $ARG[0]; return TRUE };
+$data{'login-screen'}{'widget'}{'panel'}
+    = LoginScreenStartupTest::Widget->new;
+$data{'login-screen'}{'widget'}{'user_label'}
+    = LoginScreenStartupTest::Widget->new;
+$data{'login-screen'}{'widget'}{'time'}
+    = LoginScreenStartupTest::Widget->new;
+$data{'login-screen'}{'window'} = LoginScreenStartupTest::Window->new;
+
+sub reset_lock_fixtures {
+    @lock_timers                  = ();
+    @removed_timers               = ();
+    @lock_curves                  = ();
+    @cancelled_curves             = ();
+    @unlock_sent                  = ();
+    $data{'login-screen'}{'lock'} = {};
+}
+
+reset_lock_fixtures();
+$show_lock->('testuser');
+ok( $lock_curves[0]->{'duration'} == 1.7,
+    'lock window fade defaults to 1.7 seconds'
+);
+$lock_curves[0]->{'on_done'}->();
+my ($blank_timer) = grep { $ARG->{'ms'} == 1200 } @lock_timers;
+ok( defined $blank_timer && !@unlock_sent,
+    'fade-in schedules the default blank delay without immediate dpms' );
+$blank_timer->{'callback'}->();
+my $panel_fade = $lock_curves[-1];
+ok( $panel_fade->{'id'} eq 'login_screen_lock_panel_fade'
+        && $panel_fade->{'to'} == 0
+        && $panel_fade->{'duration'} == 3.0,
+    'blank delay starts the slow panel-only fade-out'
+);
+$panel_fade->{'callback'}->(0.4);
+ok( $data{'login-screen'}{'widget'}{'panel'}->get_opacity() == 0.4
+        && $data{'login-screen'}{'window'}->get_opacity() == 1
+        && !@unlock_sent,
+    'panel fade never lowers the covering window or blanks early'
+);
+$lock_activity->();
+ok( $lock_curves[-1]->{'from'} == 0.4
+        && $lock_curves[-1]->{'to'} == 1
+        && $lock_curves[-1]->{'duration'} == 0.5
+        && scalar(
+        grep { $ARG eq 'login_screen_lock_panel_fade' } @cancelled_curves
+        ),
+    'lock activity restores the panel from its current opacity over 0.5 s'
+);
+ok( scalar( grep { $ARG->{'ms'} == 1200 } @lock_timers ) == 2,
+    'lock activity restarts the inactivity delay'
+);
+$lock_curves[-1]->{'on_done'}->();
+($blank_timer) = grep { $ARG->{'ms'} == 1200 } @lock_timers;
+$blank_timer->{'callback'}->();
+$lock_curves[-1]->{'on_done'}->();
+ok( @unlock_sent == 1
+        && $unlock_sent[0]->{'command'} eq 'X-11.dpms-force-off',
+    'dpms follows only the completed panel fade-out'
+);
+
+reset_lock_fixtures();
+$data{'login-screen'}{'lock'}{'blank'} = 'no';
+$show_lock->('testuser');
+$lock_curves[0]->{'on_done'}->();
+ok( !grep( { $ARG->{'ms'} == 1200 } @lock_timers ) && !@unlock_sent,
+    'blank = no disables both panel fade-out and dpms'
+);
+
+reset_lock_fixtures();
+$data{'login-screen'}{'lock'}{'fade_duration'}     = 'bad';
+$data{'login-screen'}{'lock'}{'blank_delay'}       = 61;
+$data{'login-screen'}{'lock'}{'fade_out_duration'} = 0.1;
+$show_lock->('testuser');
+$lock_curves[0]->{'on_done'}->();
+($blank_timer) = grep { $ARG->{'ms'} == 1200 } @lock_timers;
+$blank_timer->{'callback'}->();
+ok( $lock_curves[0]->{'duration'} == 1.7
+        && $lock_curves[-1]->{'duration'} == 3.0
+        && defined $blank_timer,
+    'invalid lock fade values fall back to their defaults'
+);
+
+$lock_curves[-1]->{'callback'}->(0.3);
+$release_lock->();
+ok( $data{'login-screen'}{'widget'}{'panel'}->get_opacity() == 1
+        && scalar(
+        grep { $ARG eq 'login_screen_lock_panel_fade' } @cancelled_curves
+        )
+        && scalar(@removed_timers) == 2,
+    'release cancels every lock timer and curve and restores panel opacity'
+);
+
 say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,.,,..,,,,,...,..,,..,,.,,,.,.,.,,,.,.,,.,,..,,...,...,...,,,.,..,,.,,,.,.,
-#JZGPCJ6RDTQKWRXJPRLXAU36G2NYIWIX2EQOTGWN5PBKSYQHL7RL6FE36ZMBZT6PTSVHXWHCTTGIA
-#\\\|BXVRBOHWOUCTSXOVWMGXAUTHASABNINWNPCLXTSANB4G3P3PK4J \ / AMOS7 \ YOURUM ::
-#\[7]B27RSZFAJPWZIQVQ4A2YROCBCX3CIKXR3ODRMFANIPCQ7JTDQKBY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,..,,,,,,.,.,..,,,,.,.,,,,,,,..,,...,...,.,,,,..,.,.,..,,,..,
+#WHLVNIUYR2JG7MTW5NIO7WQECKUZ7CBEPYWTCBTCSCN4TVOMWUOURJWVGN7VA56CECBWT6R4ACB24
+#\\\|FXHTNLPHO72R4AUUGLHI2MX6H2CTPLDWMEZDEFKVCQ245KNZQZL \ / AMOS7 \ YOURUM ::
+#\[7]BWEDM2HPQMFBVDS7FON5B3AAYCHMQFMDZDJASFPLF4NYAACQ3QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

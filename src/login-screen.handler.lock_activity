@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = login-screen.handler.lock_activity
+# descr = restore a dimmed lock panel and restart its inactivity delay
+
+return FALSE if <login-screen.state> ne qw| locked |;
+return FALSE if ( <login-screen.lock.blank> // qw| yes | ) eq qw| no |;
+my $panel          = <login-screen.widget.panel>        // return FALSE;
+my $schedule_blank = <login-screen.lock.schedule_blank> // return FALSE;
+
+my $from = $panel->get_opacity();
+<[base.curve.cancel]>->(qw| login_screen_lock_panel_fade |);
+if ( $from < 1 or <login-screen.lock.panel_fading> ) {
+    <login-screen.lock.panel_fading> = FALSE;
+    <[base.curve.register]>->(
+        {   id       => qw| login_screen_lock_panel_fade |,
+            from     => $from,
+            to       => 1,
+            duration => 0.5,
+            type     => qw| ease-in-out |,
+            callback => sub {
+                my $value = shift;
+                $panel->set_opacity($value)
+                    if <login-screen.state> eq qw| locked |;
+            },
+            on_done => sub {
+                return if <login-screen.state> ne qw| locked |;
+                $panel->set_opacity(1);
+                <login-screen.lock.panel_fading> = FALSE;
+            },
+        }
+    );
+}
+$schedule_blank->();
+FALSE;
+
+#,,.,,,,,,...,.,.,,.,,.,,,...,..,,...,,,,,...,.,.,...,...,,,.,.,.,,.,,,,,,.,,,
+#JLGVGUDPDUM6FR3WPXA6WB2NY3HCUZHHJOQCWMXTZQFJC3A3TN5H5WTSYYQ7FN4AVGRXCK4V2IBGS
+#\\\|RBNQSKCC32GPW6DRUYVU6ZOJOHVVYID6PRLKGOCCZ44SIIIJBCE \ / AMOS7 \ YOURUM ::
+#\[7]UXFJHZ24WEISU2SI5DYWJBEKHEZXHDXJ3VAZR3E6TFJWSNMIDMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
