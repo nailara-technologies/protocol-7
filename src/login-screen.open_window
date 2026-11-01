@@ -153,7 +153,7 @@ $window->add_events(
 foreach
     my $event (qw| key-press-event motion-notify-event button-press-event |) {
     $window->signal_connect(
-        $event => sub {<[login-screen.handler.lock_activity]>} );
+        $event => sub { <[login-screen.handler.lock_activity]>->($event) } );
 }
 $window->signal_connect( 'delete_event' => sub { Gtk3->main_quit } );
 Glib::Timeout->add( 1000, $code{'login-screen.handler.helper_watch'} );
@@ -186,8 +186,8 @@ Glib::Timeout->add(
 );
 TRUE;
 
-#,,,,,.,,,,,.,.,.,...,,,,,,.,,,..,...,.,,,..,,..,,...,...,...,..,,,.,,,.,,..,,
-#3KOWBKAFAVGI67SL23C2EC5AMN7J3LDJH4X6L4YXQWJ6UBNGMZ3DZDOPG6T3BX2XP7MO7QNR4G5UK
-#\\\|77KNTUQ6FQ365Z7LRR43KW2W36PV7JCW4Q6TEEY5UCWRGDDBAQV \ / AMOS7 \ YOURUM ::
-#\[7]MGNHEJ4CPBMJGNH4I2R26O4OVSM5PAO2Q2DHBEXPV6EXG5GGOIDQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,,.,,.,,,,,.,...,,,,,.,,,..,,..,,...,.,.,.,.,..,,,..,,,.,.,.,
+#5G2QTA7JT2DF3ANW62EQ66C7TJILRE76JDSYEOU4GXNKP3JWKW64P7QASEGPV3OU53GOBORYQ2BPK
+#\\\|KXZO6VEUFZUIBV43T6IQQKTIQARKZSZ3H2PGY4L76EHCOQSWNRO \ / AMOS7 \ YOURUM ::
+#\[7]6IOWM2IZHFIXTNKGM42WOPIOX7ZOKMHYVQSMXAMOS6ABQAFX4QBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

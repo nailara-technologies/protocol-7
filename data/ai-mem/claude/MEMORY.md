@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-login-screen](project-2026-10-31-session-handover-login-screen.md) — START HERE [ b70c9d6cc ] : authorization, devmod safe\rw, native login-screen live on azurum, real login untested
+- [session-handover-lock-mode](project-2026-11-01-session-handover-lock-mode.md) — START HERE [ c3b01c609 ] : login chain + lock mode s2a live on azurum, glitchless
+- [session-handover-login-screen](project-2026-10-31-session-handover-login-screen.md) — previous [ b70c9d6cc ]
 - [session-handover-external-access](project-2026-10-31-session-handover-external-access.md) — previous 2026-10-31 [ 42210691a ]
 - [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — previous : [ 2026-10-30 end, last a3d230f86 + memory ] : replica mode LIVE + end-to-end ok [ local = replica of pri ], ui role by verified user, sync-token rotation cmd ; v7-zenki empty-id chain + pull-git hang fixed ; log resend loop fixed. open : claim-expiry task reset [ kimi ], night-brake follow-ups, KKHN2, stashes
 - [deferred-history-purge](project-2026-10-30-deferred-history-purge.md) — ONE purge-paths run with the owner later : dep-graph .txz + old data/gfx/backgrounds/ images ; no remote re-add [ no origin ]
@@ -91,8 +92,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,..,...,.,,,.,,,...,,,.,,,.,..,,..,,,.,,..,,...,..,,.,.,,.,,,,,,.,.,...,
-#SWYIZDUBMDNZIHWSHB5CAACS5PQMU6HGDYQICHJEIJVNUDPY5KWTW5KWD6WEBS4V4JF6DIZDKCBI2
-#\\\|B6J3ME7KQ75EJWUKQOFO75IKQLHR7XNXPMTL3EXAUE5AK5G4QWZ \ / AMOS7 \ YOURUM ::
-#\[7]WLHX343YFPFSK2BTYPB73Y6D7FEEWKCAYQSY43XWEKP2CXARICAA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,,,,,..,,,,,,.,,,,,,,,,,,,,.,..,,...,..,,...,,..,,,,,..,,,,.,
+#VQDBFTXOYOZKGIPYLRF6ICKJS5FCOA2WYT4XI5ILLMOIB6MRUQIHWHOLFONBRTNKSZUQ53BUNCSI6
+#\\\|DS3OOAZNUJC64NKH2AJIOXSWVNQGFK6HGWIGB264LVOB4EXY3MZ \ / AMOS7 \ YOURUM ::
+#\[7]ELCHKT7F4VYA76AZZJLC3KP7FZNGSPIV2BOIB3LPFEWIISSICGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
