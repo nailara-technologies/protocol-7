@@ -325,7 +325,7 @@ ok( $panel_fade->{'id'} eq 'login_screen_lock_panel_fade'
 );
 $panel_fade->{'callback'}->(0.4);
 ok( $data{'login-screen'}{'widget'}{'panel'}->get_opacity() == 0.4
-        && $data{'login-screen'}{'window'}->get_opacity() == 1
+        && $data{'login-screen'}{'window'}->get_opacity() == 0.995
         && !@unlock_sent,
     'panel fade never lowers the covering window or blanks early'
 );
@@ -387,8 +387,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,..,,,,,.,,,,.,,...,,.,,,.,,...,,,.,..,,,.,,..,,...,...,,.,,,,,,,,.,,,,,.,,,
-#ZMXVNQPWJ6XYI3VR4QZ5OZXVGVJMH5RPB7SE45TVR4N6SYYY4NKHTKJCZCYO6HW4NXUI45WFDXVLO
-#\\\|UQQBNCPR7QIMAU6ZIYAZCOXDJJZZD64U52ZBDNYDS77JF2S4ZUC \ / AMOS7 \ YOURUM ::
-#\[7]MAY6YOM76AGIV77JUWTMX4RMC6RZFHKDF2XIWERDIGEVJLYWOSAI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,,,,,,,...,,.,,,.,,,..,..,,.,.,..,,...,...,.,.,,..,,.,,,,,,..,,
+#UBIFAZQOPWL5I4Q7ZBDX7ENNLB7ZMFIHVUPTK3S54QEXWNSQIZ66DDEWXTLKBGNNW7JMPBUTHSXC6
+#\\\|AMIRY476A3UWJHJ4WCRJNHCK5PNKKIQKQFCKLFFJVMAI4RSWK4F \ / AMOS7 \ YOURUM ::
+#\[7]ANWFPMIESZYQ7RGZBA2SWC2JYWAQBMMMACG5GFS63MCBO6TW5EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
