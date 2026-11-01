@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = login-screen.cmd.idle-lock
+# param = off | on | seconds
+# descr = inspect or change the idle lock policy at runtime
+
+my $param = shift            // {};
+my $args  = $param->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+if ( not length $args ) {
+    my $seconds = <login-screen.policy.idle_lock> // 0;
+    return {
+        'mode' => qw| true |,
+        'data' => $seconds ? "idle lock on [$seconds s]" : 'idle lock off'
+    };
+}
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : idle-lock off|on|seconds'
+    }
+    if $args !~ m{^(?:off|on|\d+)$}
+    or $args =~ m|^\d+$| and ( $args < 1 or $args > 86400 );
+
+<login-screen.idle_lock> = $args;
+<[login-screen.idle_policy]>;
+if ( <login-screen.state> eq qw| locked | ) {
+    my $schedule = <login-screen.policy.schedule_blank>;
+    $schedule->() if defined $schedule;
+}
+my $seconds = <login-screen.policy.idle_lock> // 0;
+return {
+    'mode' => qw| true |,
+    'data' => $seconds ? "idle lock on [$seconds s]" : 'idle lock off'
+};
+
+#,,,.,,.,,...,,..,...,.,,,.,,,,..,..,,...,.,,,..,,...,...,.,.,..,,.,,,,.,,,,.,
+#2H2EGKFZJUYBU2MFJLUAX4KVA33YASA5S4W5WVHHBZP7BVU5GSDOPRSCSVI63UT72EGNNQAGIRQQQ
+#\\\|PHSX2YN5GMRIR5AGC52N3IMKYM2VZ4YSLKB2Z6XQDPQE2Z2XA2B \ / AMOS7 \ YOURUM ::
+#\[7]UFOGYL4SRXIKXFSGGO4C4JC3V3IZGPT27H2RPHRXUT6VCPMVJSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

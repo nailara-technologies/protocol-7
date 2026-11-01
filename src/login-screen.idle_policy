@@ -1,0 +1,217 @@
+## [:< ##
+
+# name  = login-screen.idle_policy
+# descr = shared idle lock, timed blank fade, and screen power policy
+
+Glib::Source->remove(<login-screen.policy.timer>)
+    if defined <login-screen.policy.timer>;
+<login-screen.policy.timer> = undef;
+Glib::Source->remove(<login-screen.lock.blank_timer>)
+    if defined <login-screen.lock.blank_timer>;
+<login-screen.lock.blank_timer> = undef;
+<[base.curve.cancel]>->(qw| login_screen_lock_panel_fade |);
+<login-screen.lock.panel_fading> = FALSE;
+
+my $blank       = ( <login-screen.lock.blank> // qw| yes | ) ne qw| no |;
+my $blank_delay = <login-screen.lock.blank_delay> // 1.2;
+$blank_delay = 1.2
+    if $blank_delay !~ m|^\d+(?:[.]\d+)?$|
+    or $blank_delay < 0
+    or $blank_delay > 60;
+my $input_delay = <login-screen.lock.input_delay> // 24;
+$input_delay = 24
+    if $input_delay !~ m|^\d+(?:[.]\d+)?$|
+    or $input_delay < 0
+    or $input_delay > 300;
+my $fade_out_duration = <login-screen.lock.fade_out_duration> // 3.6;
+$fade_out_duration = 3.6
+    if $fade_out_duration !~ m|^\d+(?:[.]\d+)?$|
+    or $fade_out_duration < 0.2
+    or $fade_out_duration > 30;
+my $blank_timeout = <login-screen.blank_timeout> // 780;
+$blank_timeout = 780
+    if $blank_timeout !~ m|^\d+$|
+    or $blank_timeout < 1
+    or $blank_timeout > 86400;
+my $idle_lock = <login-screen.idle_lock> // qw| off |;
+$idle_lock = 780 if $idle_lock =~ m{^(?:on|yes)$};
+$idle_lock = 0   if $idle_lock =~ m{^(?:off|no)$};
+$idle_lock = 0
+    if $idle_lock !~ m|^\d+$|
+    or $idle_lock < 0
+    or $idle_lock > 86400;
+
+<login-screen.policy.blank_timeout> = $blank_timeout;
+<login-screen.policy.idle_lock>     = $idle_lock;
+<login-screen.policy.idle_cycle>    = FALSE;
+<login-screen.policy.idle_previous> = 0;
+
+<[protocol-7.route-send]>->(
+    {     'command' => $blank
+        ? "X-11.dpms-blanking-set $blank_timeout"
+        : qw| X-11.dpms-blanking-disable |
+    }
+);
+
+my $schedule_blank = sub {
+    my ( $after_input, $idle_seconds ) = @ARG;
+    my $state = <login-screen.state> // '';
+    return FALSE if not $blank or $state !~ m{^(?:locked|greeter)$};
+    my $delay
+        = $state eq qw| locked |
+        ? $after_input
+            ? $input_delay
+            : $blank_delay
+        : $blank_timeout - $fade_out_duration - ( $idle_seconds // 0 );
+    $delay = 0 if $delay < 0;
+    Glib::Source->remove(<login-screen.lock.blank_timer>)
+        if defined <login-screen.lock.blank_timer>;
+    <login-screen.lock.blank_timer> = Glib::Timeout->add(
+        int( $delay * 1000 + 0.5 ),
+        sub {
+            <login-screen.lock.blank_timer> = undef;
+            my $state = <login-screen.state> // '';
+            return FALSE if $state !~ m{^(?:locked|greeter)$};
+            my $panel = <login-screen.widget.panel> // return FALSE;
+            <login-screen.lock.panel_fading> = TRUE;
+            if ( $state eq qw| locked | ) {
+                my $window = <login-screen.window>;
+                my $gdk_window
+                    = defined $window ? $window->get_window() : undef;
+                $gdk_window->set_cursor(
+                    Gtk3::Gdk::Cursor->new_from_name(
+                        $gdk_window->get_display(),
+                        qw| none |
+                    )
+                ) if defined $gdk_window;
+            }
+            <[base.curve.register]>->(
+                {   id       => qw| login_screen_lock_panel_fade |,
+                    from     => $panel->get_opacity(),
+                    to       => 0,
+                    duration => $fade_out_duration,
+                    type     => qw| ease-in-out |,
+                    callback => sub {
+                        my $value = shift;
+                        $panel->set_opacity($value)
+                            if <login-screen.state>
+                            =~ m{^(?:locked|greeter)$};
+                    },
+                    on_done => sub {
+                        my $state = <login-screen.state> // '';
+                        return if $state !~ m{^(?:locked|greeter)$};
+                        $panel->set_opacity(0);
+                        <login-screen.lock.panel_fading> = FALSE;
+                        <[protocol-7.route-send]>
+                            ->( { 'command' => qw| X-11.dpms-force-off | } )
+                            if $state eq qw| locked |;
+                    },
+                }
+            );
+            return FALSE;
+        }
+    );
+    return FALSE;
+};
+<login-screen.policy.schedule_blank> = $schedule_blank;
+
+my $activity = sub {
+    my ($event_name) = @ARG;
+    my $state = <login-screen.state> // '';
+    return FALSE if $state !~ m{^(?:locked|greeter|session)$};
+
+    if ( $state eq qw| locked | and <login-screen.lock.idle_pending> ) {
+        <login-screen.lock.idle_pending> = FALSE;
+        <[login-screen.release_lock]>;
+        <login-screen.state> = qw| session |;
+        <[protocol-7.route-send]>
+            ->( { 'command' => 'v7-zenki.login-session-locked no' } );
+        <login-screen.window>->hide()
+            if defined <login-screen.window>
+            and not <login-screen.lock.unlock_fading>;
+        return FALSE;
+    }
+
+    <login-screen.policy.idle_cycle> = FALSE;
+    return FALSE if not $blank;
+    my $panel = <login-screen.widget.panel>;
+    if ( defined $panel and $state ne qw| session | ) {
+        my $from = $panel->get_opacity();
+        <[base.curve.cancel]>->(qw| login_screen_lock_panel_fade |);
+        if ( $from < 1 or <login-screen.lock.panel_fading> ) {
+            <login-screen.lock.panel_fading> = FALSE;
+            <[base.curve.register]>->(
+                {   id       => qw| login_screen_lock_panel_fade |,
+                    from     => $from,
+                    to       => 1,
+                    duration => 0.5,
+                    type     => qw| ease-in-out |,
+                    callback => sub {
+                        my $value = shift;
+                        $panel->set_opacity($value)
+                            if <login-screen.state>
+                            =~ m{^(?:locked|greeter)$};
+                    },
+                    on_done => sub {
+                        return
+                            if <login-screen.state>
+                            !~ m{^(?:locked|greeter)$};
+                        $panel->set_opacity(1);
+                        <login-screen.lock.panel_fading> = FALSE;
+                    },
+                }
+            );
+        }
+    }
+    $schedule_blank->(TRUE) if $state eq qw| locked |;
+    return FALSE;
+};
+<login-screen.policy.activity> = $activity;
+
+my $X = eval { X11::Protocol->new(<x11.display>) };
+if (   length $EVAL_ERROR
+    or not defined $X
+    or not eval { $X->init_extension('MIT-SCREEN-SAVER') } ) {
+    <[base.log]>
+        ->( 0, 'x11 idle queries unavailable; idle lock is disabled' );
+    <login-screen.policy.idle_x> = undef;
+    return TRUE;
+}
+<login-screen.policy.idle_x> = $X;
+<login-screen.policy.timer>  = Glib::Timeout->add(
+    1000,
+    sub {
+        my @info = eval { $X->MitScreenSaverQueryInfo( $X->root() ) };
+        if ( length $EVAL_ERROR or not @info ) {
+            <[base.log]>->(
+                0, 'x11 idle query failed; idle policy poll stopped'
+            );
+            <login-screen.policy.timer> = undef;
+            return FALSE;
+        }
+        my $idle     = $info[3] / 1000;
+        my $previous = <login-screen.policy.idle_previous> // 0;
+        my $state    = <login-screen.state>                // '';
+        $activity->('x11-activity') if $idle < $previous;
+
+        if (    $state eq qw| session |
+            and $idle_lock
+            and $idle >= $idle_lock ) {
+            <login-screen.lock.idle_pending> = TRUE;
+            <[login-screen.show_lock]>->( <login-screen.session_user>, TRUE );
+        } elsif ( $state eq qw| greeter |
+            and not <login-screen.policy.idle_cycle> ) {
+            $schedule_blank->( FALSE, $idle );
+            <login-screen.policy.idle_cycle> = TRUE;
+        }
+        <login-screen.policy.idle_previous> = $idle;
+        return TRUE;
+    }
+);
+TRUE;
+
+#,,.,,,,,,,.,,,..,,,.,.,,,.,.,...,..,,.,.,.,,,..,,...,...,...,.,.,,,.,.,,,...,
+#QQQ7TBOBZLGZEX6VRDDEKY3N5DOCKMYRWRYZMON23GCJYM4VJAFH5CBC7BJXZQOJQD4RAQDRODFH2
+#\\\|UTBQ55B3UPHQAQ2ONKXY2DUQCSD4T5HWJPVXCC5ZG3JDINKFVRN \ / AMOS7 \ YOURUM ::
+#\[7]WHM7757EOBSIUYDRJTIZQVUTYX2P7JEKCYKUCBEQMC6UBCUWPQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

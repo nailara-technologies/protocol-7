@@ -17,8 +17,15 @@ foreach my $timer (qw| blank_timer time_timer grab_timer raise_timer |) {
     delete $data{'login-screen'}{'lock'}{$timer};
 }
 <[login-screen.unwatch_root]>;
-<login-screen.lock.schedule_blank> = undef;
-<login-screen.lock.unlock_fading>  = FALSE;
+<login-screen.lock.idle_pending>  = FALSE;
+<login-screen.lock.unlock_fading> = FALSE;
+my $blank_timeout = <login-screen.policy.blank_timeout> // 780;
+<[protocol-7.route-send]>->(
+    {   'command' => ( <login-screen.lock.blank> // qw| yes | ) eq qw| no |
+        ? qw| X-11.dpms-blanking-disable |
+        : "X-11.dpms-blanking-set $blank_timeout"
+    }
+);
 foreach my $curve (
     qw| login_screen_lock_fade login_screen_lock_snapshot_fade
     login_screen_lock_controls_fade login_screen_lock_panel_fade
@@ -108,8 +115,8 @@ if ($animate_unlock) {
 }
 TRUE;
 
-#,,.,,.,.,,,.,...,..,,,,.,.,.,.,,,...,,..,.,.,..,,...,...,.,.,.,,,,..,,..,,..,
-#KHKX62ZPA5OQ4SJJYNGTFW57UUXUCNSYY76WXGJTGZE4SSQ3SI43GTBY7IR4KFMZ4O3FW5HDJWGZ4
-#\\\|OOPDTOJ2U6WC4I27HVOZOUM3ZTJK7KFCF24VMNHCC4YZGQUVLVB \ / AMOS7 \ YOURUM ::
-#\[7]4UOH4KCHSEG537G3OD4YEPQSOMFVMTHKW2NADUHFKKZKB3RIF6AY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,..,,,..,.,,,.,.,..,,,..,...,.,,,..,,...,...,...,..,,...,.,.,.,.,
+#OSMCARZSFYEUKXAH3BU3UIEKQS5ZOZBO7OGDH4KVB3T42EJTENIEYFCSHSO25SWIXZHLTTMUFWVAI
+#\\\|MRRTEIRZHOMQTG2FGBKUQF6E6FKYEQ45KYKV5AJ4KXOMLMOXD3W \ / AMOS7 \ YOURUM ::
+#\[7]UCOML34FDC7D4XG5LPJ724FXF6S3AQQWFTA4RIWXT3ZXQZPTCUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

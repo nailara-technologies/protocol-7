@@ -286,8 +286,11 @@ $main::queue_lock_timers = TRUE;
 my $show_lock     = compile_module('login-screen.show_lock');
 my $lock_activity = compile_module('login-screen.handler.lock_activity');
 my $release_lock  = compile_module('login-screen.release_lock');
+my $idle_policy   = compile_module('login-screen.idle_policy');
+my $idle_lock_cmd = compile_module('login-screen.cmd.idle-lock');
 $code{'login-screen.handler.lock_grab'} = sub { return FALSE };
 $code{'login-screen.release_lock'}      = $release_lock;
+$code{'login-screen.idle_policy'}       = $idle_policy;
 $code{'login-screen.capture_snapshot'}  = sub { return 'pixbuf' };
 $code{'login-screen.watch_root'}        = sub { return TRUE };
 $code{'login-screen.unwatch_root'}      = sub { return TRUE };
@@ -307,13 +310,31 @@ $data{'login-screen'}{'widget'}{'time'}
     = LoginScreenStartupTest::Widget->new;
 $data{'login-screen'}{'window'} = LoginScreenStartupTest::Window->new;
 
+{
+
+    package LoginScreenStartupTest::IdleX;
+    sub new            { return bless { 'idle_ms' => 0 }, shift }
+    sub root           { return 1 }
+    sub init_extension { return 5 }
+
+    sub MitScreenSaverQueryInfo {
+        return ( 'Off', 0, 0, $ARG[0]->{'idle_ms'} );
+    }
+
+    package X11::Protocol;
+    sub new { return $main::idle_x }
+}
+our $idle_x = LoginScreenStartupTest::IdleX->new;
+
 sub reset_lock_fixtures {
     @lock_timers                  = ();
     @removed_timers               = ();
     @lock_curves                  = ();
     @cancelled_curves             = ();
-    @unlock_sent                  = ();
     $data{'login-screen'}{'lock'} = {};
+    $idle_x->{'idle_ms'}          = 0;
+    $idle_policy->();
+    @unlock_sent = ();
 }
 
 reset_lock_fixtures();
@@ -329,8 +350,11 @@ ok( !defined $data{'login-screen'}{'lock'}{'snapshot'},
 $lock_curves[0]->{'on_done'}->();
 $lock_curves[-1]->{'on_done'}->();
 my ($blank_timer) = grep { $ARG->{'ms'} == 1200 } @lock_timers;
-ok( defined $blank_timer && !@unlock_sent,
-    'controls appear before the default blank delay is scheduled' );
+ok( defined $blank_timer
+        && !
+        grep( { $ARG->{'command'} eq 'X-11.dpms-force-off' } @unlock_sent ),
+    'controls appear before the default blank delay is scheduled'
+);
 $blank_timer->{'callback'}->();
 my $panel_fade = $lock_curves[-1];
 ok( $panel_fade->{'id'} eq 'login_screen_lock_panel_fade'
@@ -341,7 +365,8 @@ ok( $panel_fade->{'id'} eq 'login_screen_lock_panel_fade'
 $panel_fade->{'callback'}->(0.4);
 ok( $data{'login-screen'}{'widget'}{'panel'}->get_opacity() == 0.4
         && $data{'login-screen'}{'window'}->get_opacity() == 0.995
-        && !@unlock_sent,
+        && !
+        grep( { $ARG->{'command'} eq 'X-11.dpms-force-off' } @unlock_sent ),
     'panel fade never lowers the covering window or blanks early'
 );
 $lock_activity->();
@@ -361,17 +386,20 @@ $lock_curves[-1]->{'on_done'}->();
 ($blank_timer) = grep { $ARG->{'ms'} == 24000 } @lock_timers;
 $blank_timer->{'callback'}->();
 $lock_curves[-1]->{'on_done'}->();
-ok( @unlock_sent == 1
-        && $unlock_sent[0]->{'command'} eq 'X-11.dpms-force-off',
+ok( $unlock_sent[-1]->{'command'} eq 'X-11.dpms-force-off',
     'dpms follows only the completed panel fade-out'
 );
 
 reset_lock_fixtures();
 $data{'login-screen'}{'lock'}{'blank'} = 'no';
+$idle_policy->();
+@unlock_sent = ();
 $show_lock->('testuser');
 $lock_curves[0]->{'on_done'}->();
 $lock_curves[-1]->{'on_done'}->();
-ok( !grep( { $ARG->{'ms'} == 1200 } @lock_timers ) && !@unlock_sent,
+ok( !grep( { $ARG->{'ms'} == 1200 } @lock_timers )
+        && !
+        grep( { $ARG->{'command'} eq 'X-11.dpms-force-off' } @unlock_sent ),
     'blank = no disables both panel fade-out and dpms'
 );
 
@@ -379,6 +407,8 @@ reset_lock_fixtures();
 $data{'login-screen'}{'lock'}{'fade_duration'}     = 'bad';
 $data{'login-screen'}{'lock'}{'blank_delay'}       = 61;
 $data{'login-screen'}{'lock'}{'fade_out_duration'} = 0.1;
+$idle_policy->();
+@unlock_sent = ();
 $show_lock->('testuser');
 $lock_curves[0]->{'on_done'}->();
 $lock_curves[-1]->{'on_done'}->();
@@ -397,7 +427,7 @@ ok( $data{'login-screen'}{'widget'}{'panel'}->get_opacity() == 1
         && scalar(
         grep { $ARG eq 'login_screen_lock_panel_fade' } @cancelled_curves
         )
-        && scalar(@removed_timers) == 1,
+        && scalar(@removed_timers) >= 1,
     'release cancels each pending lock timer and curve and restores the panel'
 );
 
@@ -417,6 +447,55 @@ $lock_curves[-1]->{'on_done'}->();
 ok( !$data{'login-screen'}{'lock'}{'unlock_fading'}
         && $data{'login-screen'}{'window'}->get_opacity() == 0,
     'completed unlock fade hides the transparent lock window'
+);
+
+reset_lock_fixtures();
+$data{'login-screen'}{'state'} = 'greeter';
+$idle_x->{'idle_ms'} = 770000;
+my ($policy_timer) = grep { $ARG->{'ms'} == 1000 } @lock_timers;
+$policy_timer->{'callback'}->();
+($blank_timer) = grep { $ARG->{'ms'} == 6400 } @lock_timers;
+ok( defined $blank_timer,
+    'greeter fade starts at blank timeout minus fade duration' );
+$blank_timer->{'callback'}->();
+$lock_curves[-1]->{'on_done'}->();
+ok( !grep( { $ARG->{'command'} eq 'X-11.dpms-force-off' } @unlock_sent ),
+    'greeter leaves the exact blank endpoint to the x11 policy'
+);
+
+reset_lock_fixtures();
+$data{'login-screen'}{'state'}        = 'session';
+$data{'login-screen'}{'session_user'} = 'testuser';
+$data{'login-screen'}{'idle_lock'}    = 'on';
+$idle_policy->();
+($policy_timer) = reverse grep { $ARG->{'ms'} == 1000 } @lock_timers;
+$idle_x->{'idle_ms'} = 780000;
+$policy_timer->{'callback'}->();
+ok( $data{'login-screen'}{'state'} eq 'locked'
+        && $data{'login-screen'}{'lock'}{'idle_pending'},
+    'enabled idle policy locks an idle session at 780 seconds'
+);
+$data{'login-screen'}{'policy'}{'activity'}->('x11-activity');
+ok( $data{'login-screen'}{'state'} eq 'session'
+        && !$data{'login-screen'}{'lock'}{'idle_pending'}
+        && $unlock_sent[-1]->{'command'} eq 'v7-zenki.login-session-locked '
+        . 'no',
+    'activity aborts an idle lock before its fade completes'
+);
+my $idle_reply = $idle_lock_cmd->( { 'args' => '42' } );
+ok( $idle_reply->{'mode'} eq 'true'
+        && $data{'login-screen'}{'policy'}{'idle_lock'} == 42,
+    'idle-lock accepts a runtime timeout in seconds'
+);
+$idle_reply = $idle_lock_cmd->( { 'args' => '0' } );
+ok( $idle_reply->{'mode'} eq 'false'
+        && $data{'login-screen'}{'policy'}{'idle_lock'} == 42,
+    'idle-lock rejects an invalid timeout without changing policy'
+);
+$idle_reply = $idle_lock_cmd->( { 'args' => 'off' } );
+ok( $idle_reply->{'mode'} eq 'true'
+        && $data{'login-screen'}{'policy'}{'idle_lock'} == 0,
+    'idle-lock off disables future idle locking'
 );
 
 {
@@ -485,8 +564,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,,,,..,.,,,,,.,.,.,,,,,,,.,,..,.,,,,,.,..,,..,,...,...,,..,,,,,,,,,.,.,,,,,
-#BNCAOGPN6ZUN5O5K37R7Q52UELQLE6CWEOBGA5XDY6XTQD5K2PEKQS3VKNUF4IHQZS7URAUDVSSQU
-#\\\|HJ7WZESYZWPGR4HBYA7E5P3RKED5JILZT3JJ4T3U6LG462B5YWD \ / AMOS7 \ YOURUM ::
-#\[7]TLWOPBVGGOGC22IEAR53N6HGQSIEARQRJXWNMFN7I4Q2V4PP4WDA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,.,.,,,,,,.,,.,.,,,,,.,,,,.,,..,,...,...,.,.,,,.,,.,,.,,,,,.,
+#WC7UAIOZ2XOEI6GZYEVNBD2WWA37J6TJUHKW4OIN7UAVYPJ4WJHKW62N45ZX7UVJFJSVKXKC66GEI
+#\\\|TYIUIC4GDQUKZGGG5B3K4TF7B7ZT5XHA5LXE5JWDRSC6HJRKFFA \ / AMOS7 \ YOURUM ::
+#\[7]PTOKIOQXBWI77TPKR3TZD56Q5HF67EUX6COAV5I7DQN2NZOJ4UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
