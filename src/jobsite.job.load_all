@@ -123,6 +123,12 @@ for my $id ( keys %jobs ) {
     my $prior_task_id = ( <jobsite.tasks>->{$id} // {} )->{'task_id'} // '';
     my $prior_repair_task_id
         = ( <jobsite.tasks>->{$id} // {} )->{'repair_task_id'} // '';
+    ## watchdog state : watch_extensions reset on every rebuild kept the    ##
+    ## 24-round limit from ever being reached [ '1 of 24' forever ], a lost ##
+    ## watch_kind turned a repair watch into an assess watch                ##
+    my $prior_watch_ext
+        = ( <jobsite.tasks>->{$id} // {} )->{'watch_extensions'};
+    my $prior_watch_kind = ( <jobsite.tasks>->{$id} // {} )->{'watch_kind'};
     <jobsite.tasks>->{$id} = {
         'status' => $job->{'status'} // 'new',
         'stage'  => $keep_inflight ? $prior_stage : ( $job->{'stage'} // '' ),
@@ -133,6 +139,10 @@ for my $id ( keys %jobs ) {
         'score'            => $job->{'score'}            // '',
         'repair_attempted' => $job->{'repair_attempted'} // FALSE,
         'repair_failed'    => $job->{'repair_failed'}    // FALSE,
+        defined $prior_watch_ext ? ( 'watch_extensions' => $prior_watch_ext )
+        : (),
+        defined $prior_watch_kind ? ( 'watch_kind' => $prior_watch_kind )
+        : (),
     };
 }
 
@@ -147,8 +157,8 @@ for my $id ( keys $tasks->%* ) {
 
 return \%jobs;
 
-#,,,.,,,.,.,.,,,.,.,,,,,.,.,.,...,,,,,,.,,..,,..,,...,...,.,.,,..,..,,..,,,..,
-#2L7V7ZHIJHQXFYMA6K2A2Z4NMKLCCPLK435YATE46YLB363U5HJ4USSNMTFPUPRANKMRZTAS7Y2CM
-#\\\|MCNALTDW3SYOA3UPBXRXMTKEVR5AYTQJQWBVJODE7PB4PFWEHLT \ / AMOS7 \ YOURUM ::
-#\[7]JDXEDEKPD7UWKOZJ6ZRATYBGDYMDXPUWSBMIC7BZGII7UDY2VAAY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,..,.,,,..,,,,.,..,,,..,,.,,,,.,..,,...,..,,,..,...,...,..,,,,,,
+#SY57ANSWP5Q6ZDDWL5OUQV735XLEMW57FQGOADKGWVOMMKEXBJ5XEWIKOHFOFBKKIQOQ7V62SVQIK
+#\\\|ISACX3FCEYSMJNJMQCLIPNCOXWYIR7Y7VQVBD4JWKYBZSMY3VGT \ / AMOS7 \ YOURUM ::
+#\[7]BYIKKQK4W7U7AFXF6ZFO4J4OVKCP5ND522TEOBNTZX3KXBCAYUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
