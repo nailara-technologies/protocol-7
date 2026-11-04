@@ -52,6 +52,10 @@ if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
 #[ error \ <false> ]
 return FALSE if not defined $c_fh;
 
+## non-blocking once authenticated : a large buffered command must never ##
+## freeze v7-zenki in syswrite [ base.net.connect, same fix ]            ##
+$c_fh->blocking(0);
+
 <base.log.allow_buffer_send>      = TRUE;    ## enable sending to 'p7-log' ##
 <protocol-7.network.parent_route> = [qw| cube |];
 
@@ -86,8 +90,8 @@ if ( defined <v7-zenki.start_setup.zenki.config> ) {
 #[success]
 return TRUE;
 
-#,,,.,..,,..,,..,,.,,,..,,,,,,,,.,..,,.,.,,..,..,,...,...,...,.,.,...,,,.,.,.,
-#ANKD76XCJOC6HWGB7JEUSZGH7TF5Y2WPI7UEDI4SH7H4AJP5S6DCWLFL2IERVILIIYRTMPNGC5DBE
-#\\\|UVHGEIWD6BYJCCQSB2OWOK4Q4L4WE6XWYUP2HSM4TNZ24EA7KVM \ / AMOS7 \ YOURUM ::
-#\[7]IGHPHNLHVQATT4K76BR2AOOA7SL6NOTFVV2GL6BLRH22ULKCASCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,,..,,..,,..,.,.,.,.,.,,,,,.,..,,...,...,..,,,.,,,.,,,..,,,,,
+#PASZI7Q53RRRFROWSRC6CPHQNSG6FE4BTPZ5FNOO5KXGLMQIYJC4GCXO5V2LJ4BIVEQWM3LWXI4TY
+#\\\|QOECCGHIZDHRNLMG5VXKRI2TAYNZS3OUZW4WSX4HUBUAXZIWLUQ \ / AMOS7 \ YOURUM ::
+#\[7]E35K44CZAB7X2N3C2VRTGKBWRKVCXBE4ZSXTK63LX34BHN4HLQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
