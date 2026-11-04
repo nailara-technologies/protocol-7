@@ -125,12 +125,48 @@ if ( defined $session->{'ignore_chars'} ) {
     }
 }
 
-## Handle a refused multi-line packet [ dropped up to its '.' line ] ##
+## Handle an oversized line [ dropped up to its linefeed, across reads ] a ##
+## line ending in '+' was a multi-line head : its packet follows it to the ##
+## '.' line [ ignore_ml_packet below ]                                     ##
+if ( $session->{'ignore_line'} ) {
+    if ( $input->$* =~ s,^([^\n]*)\n,, ) {
+        my $line_tail
+            = ( $session->{'ignore_line_tail'} // '' ) . ${^CAPTURE}[0];
+        delete $session->{'ignore_line'};
+        delete $session->{'ignore_line_tail'};
+        $session->{'ignore_ml_packet'} = TRUE
+            if $line_tail =~ m,\+[ \t]*$,;
+    } else {
+        $session->{'ignore_line_tail'}
+            = substr( ( $session->{'ignore_line_tail'} // '' ) . $input->$*,
+            -16 );
+        $input->$* = '';
+    }
+    $buffer_length = bytes::length( $input->$* );
+}
+
+## Handle a refused multi-line packet [ dropped up to its '.' line ]     ##
+## ignore_ml_midline : the buffer was cut inside a line -- its rest goes ##
+## first, a '.' only ends the packet at the start of a line              ##
+## [ else a large payload's remainder would run as commands ]            ##
 if ( $session->{'ignore_ml_packet'} ) {
-    if ( $input->$* =~ s,^(?:[^\n]*\n)*?\.\n,, ) {
-        delete $session->{'ignore_ml_packet'};
-    } else {    ## complete lines only, a partial last line waits ##
-        $input->$* =~ s,^.*\n,,s;
+    if ( $session->{'ignore_ml_midline'} ) {
+        if ( $input->$* =~ s,^[^\n]*\n,, ) {
+            delete $session->{'ignore_ml_midline'};
+        } else {
+            $input->$* = '';
+        }
+    }
+    if ( not $session->{'ignore_ml_midline'} ) {
+        if ( $input->$* =~ s,^(?:[^\n]*\n)*?\.\n,, ) {
+            delete $session->{'ignore_ml_packet'};
+        } else {    ## complete lines go, a partial last line : ##
+            $input->$* =~ s,^.*\n,,s;    ## kept only while a '.' ##
+            if ( length $input->$* and $input->$* ne qw| . | ) {
+                $input->$* = '';         ## could still end there ##
+                $session->{'ignore_ml_midline'} = TRUE;
+            }
+        }
     }
     $buffer_length = bytes::length( $input->$* );
 }
@@ -271,12 +307,82 @@ if ( $input->$*
 
 ## incomplete multiple line command ##
 
-elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|)$re->{cmdp})\+[ \t]*\n,o ) {
-    ## same head as the complete-packet match above : what waits here is ##
-    ## what will be taken there [ replies frame with SIZE \ STRM ]       ##
+elsif ( $buffer_length < <size.buffer.input>
+    and $input->$* =~ m,^((\($re->{cmd_id}\)|)$re->{cmdp})\+[ \t]*\n,o ) {
+    ## same head as the complete-packet match above : what waits here is  ##
+    ## what will be taken there [ replies frame with SIZE \ STRM ] a full ##
+    ## buffer can never complete : oversized branch below                 ##
 
     $event->w->start;    ##  restarting input buffer processing  ##
     return 1;            ## command not complete ###
+}
+
+##[ OVERSIZED MULTI-LINE PACKET ]#############################################
+
+## a valid '+' head whose packet fills the input buffer before its '.' line ##
+## : it can never complete [ the reader pauses on a full buffer ].  the     ##
+## sender gets a FALSE reply, the packet is dropped up to its '.' line      ##
+## across reads [ ignore_ml_packet ] -- never parsed from the middle        ##
+
+elsif ( $buffer_length >= <size.buffer.input>
+    and $input->$* =~ m,^(\(($re->{cmd_id})\)|)($re->{cmdp})\+[ \t]*\n,o ) {
+
+    my $err_id
+        = defined ${^CAPTURE}[1] ? sprintf( '(%s)', ${^CAPTURE}[1] ) : '';
+    $err_id = '' if $err_id =~ m|^\(0+\)$|;
+    my $too_large_cmd = ${^CAPTURE}[2] // '';
+
+    $input->$* =~ s,^[^\n]*\n,,;    ## the head line ##
+    $session->{'ignore_ml_packet'} = TRUE;
+    $input->$* =~ s,^.*\n,,s;       ## complete lines, then the partial ##
+    if ( length $input->$* and $input->$* ne qw| . | ) {
+        $input->$* = '';
+        $session->{'ignore_ml_midline'} = TRUE;
+    }
+
+    <[base.logt]>->( 0, qw| 4U6VS3B |, $id, $too_large_cmd, $buffer_length );
+
+    $output->$*
+        .= <[base.sprint_t]>->( qw| NDAQSOR |, $err_id, <size.buffer.input> );
+
+    $event->w->start;               ##  restarting input buffer processing  ##
+    return 0;                       ## comand complete ##
+}
+
+##[ OVERSIZED LINE ]##########################################################
+
+## a full input buffer without any linefeed : one line larger than the   ##
+## buffer [ single-line command, reply or multi-line head ] that never   ##
+## completes. dropped up to its linefeed across reads [ ignore_line ], a ##
+## command with an id gets a FALSE reply                                 ##
+
+elsif ( $buffer_length >= <size.buffer.input>
+    and index( $input->$*, "\n" ) == -1 ) {
+
+    my ( $err_id, $too_large_cmd ) = ( '', '' );
+    if ( $input->$* =~ m,^(\(($re->{cmd_id})\)|)($re->{cmdp}),o ) {
+        $err_id = sprintf( '(%s)', ${^CAPTURE}[1] )
+            if defined ${^CAPTURE}[1];
+        $err_id        = '' if $err_id =~ m|^\(0+\)$|;
+        $too_large_cmd = ${^CAPTURE}[2] // '';
+    }
+
+    $session->{'ignore_line'}      = TRUE;
+    $session->{'ignore_line_tail'} = substr( $input->$*, -16 );
+    $input->$*                     = '';
+
+    <[base.logt]>->(
+        0, qw| 4U6VS3B |, $id, $too_large_cmd || '<line>',
+        $buffer_length
+    );
+
+    ## replies [ upper case words ] are never answered ##
+    $output->$*
+        .= <[base.sprint_t]>->( qw| NDAQSOR |, $err_id, <size.buffer.input> )
+        if length $too_large_cmd and $too_large_cmd ne uc $too_large_cmd;
+
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 0;            ## comand complete ##
 }
 
 ##[ REFUSED MULTI-LINE HEAD ]#################################################
@@ -1278,8 +1384,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,.,,,,..,...,,.,,,..,..,,..,,...,,.,,.,,,..,,...,...,...,,..,,,.,,..,.,,,
-#T6A3TMFRXM6XXFIHO4KQHUSBIBDGH6XZZ5I7EVF7GYRW2543XXZMBUADY3IN5DHK3TDUDNTY436QE
-#\\\|NLWFY2IEB3JKWD424ESSIK2CHST6WJKQODWHNNRY2M643PRHVLQ \ / AMOS7 \ YOURUM ::
-#\[7]LXKJ25RICXO4DWX4W46YJQE4IRL6X2AX7O6ZKQBB6LEFMSYTPMAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,.,,.,.,.,.,...,..,,...,.,.,..,,..,,...,..,,,..,.,,,.,.,,..,,..,
+#LBGGVHKI7BE7NXPTSV7RVHOXJ5P77NJUMMYLCBH26JVHTB2ZBZDD6LPJDDT6B7IN5QE7FUIKGQKHI
+#\\\|XAXA3EITZPWSSJ3FQ7K7L6VI55WRKZUFIE6J65DFVPIVTOSZYSF \ / AMOS7 \ YOURUM ::
+#\[7]ZDSH2FTIW6LZGLETYICTCCAWKHAAVZ3H5BGJK4NYEXX7WT3R4CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
