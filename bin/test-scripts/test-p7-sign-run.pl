@@ -192,6 +192,18 @@ sub run_sign {
     if ( $pid == 0 ) {
         chdir $root or die $OS_ERROR;
         $ENV{'XDG_RUNTIME_DIR'} = $root;
+
+        ## stub p7c first in PATH : the runner's approval notice must never ##
+        ## reach the real notify zenka [ desktop 'signing request' popups ] ##
+        my $stub_dir = File::Spec->catfile( $root, qw| stub-bin | );
+        mkdir $stub_dir;
+        my $stub = File::Spec->catfile( $stub_dir, qw| p7c | );
+        open( my $stub_fh, '>', $stub ) or die "stub p7c : $OS_ERROR";
+        print {$stub_fh} "#!/bin/sh\nexit 0\n";
+        close $stub_fh;
+        chmod 0755, $stub;
+        $ENV{'PATH'} = $stub_dir . ':' . $ENV{'PATH'};
+
         open( STDERR, '>&', \*STDOUT );
         exec $^X, File::Spec->catfile( $root, qw| bin dev p7-sign-run | ),
             qw| -state |, $state, @args;
@@ -329,7 +341,7 @@ say ': 4. slash-less unsigned path refused before work';
     );
 }
 
-say ': 5. already-valid requested paths join the staging list';
+say ': 5. already-valid requested paths stay out of the staging list';
 
 our %code;
 our %data;
@@ -358,17 +370,14 @@ my $result = $sign_list->(
     [qw| src/already-valid src/also-valid |],
     $main::root_path, 0
 );
-ok( join( ' ', $result->{'staged'}->@* ) eq
-        'src/already-valid src/also-valid',
-    'both valid requested paths are staged'
-);
+ok( $result->{'staged'}->@* == 0,    'valid requested paths are not staged' );
 ok( $result->{'written_count'} == 0, 'valid files are not rewritten' );
 
 say $fail_count ? "FAILED : $fail_count checks" : 'all checks passed';
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,,.,,..,...,,,.,,..,...,,.,,..,,,.,,.,,,..,,...,..,,...,.,.,.,.,...,,,,,
-#4R76OOM3MAIT7GAPONVAX5G6NTS5UDTBXF7KL2X7IPYVAPDSYGZHAEQN2NNMRKQI7IF4QFSPLNBKE
-#\\\|KEK7PV6HSYZWADYIONU5RRPDNLD7P5FJJAKJQEAPGYAPU7P33AU \ / AMOS7 \ YOURUM ::
-#\[7]URGF24C4U346YVU4KUJTVZVSLAHDUARN2DA4NB5YODKPKADWKWCI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,.,.,..,,..,,...,.,.,,.,,...,..,,...,.,.,,..,,..,,,.,,..,..,,
+#VA7IQBQRB6T7RUIG6TIGHIT222HPTZHHZUTI6AIQXRJ4RFU6XSWVP2QDI4Y6Q575XAPNL5JRJWL2U
+#\\\|2PH7FD4KLK2KMV4IZJRHP7XXDEP5Z74WZTMKUOK4MEJYVGMFHOT \ / AMOS7 \ YOURUM ::
+#\[7]JP7NQ32UVBEYMBT5BWMZ7UMMJQ5VMK4BG5LK7FA7YKPYXIZY7QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,6 +23,21 @@ my $true_count    = 0;
 my $written_count = 0;
 my @staged_paths;
 
+## worktree paths differing from the index, read once : an already-valid    ##
+## file is staged only when listed here [ signed earlier, never staged ] -- ##
+## staging every valid path made :stage: add the whole scan set             ##
+my %unstaged;
+if ( open my $git_fh,
+    '-|', qw| git |, qw| -C |, $work_tree,
+    qw| -c color.ui=false diff --no-color --name-only -z | ) {
+    local $INPUT_RECORD_SEPARATOR = "\0";
+    while ( my $name = <$git_fh> ) {
+        chomp $name;
+        $unstaged{$name} = 1 if length $name;
+    }
+    close $git_fh;
+}
+
 foreach my $path_rel ( $path_aref->@* ) {
 
     my $path_abs = catfile( $work_tree, $path_rel );
@@ -68,7 +83,7 @@ foreach my $path_rel ( $path_aref->@* ) {
 
     if (    $code_data_ref->{'mode'} eq qw| true |
         and $code_data_ref->{'data'} eq 'still valid. =)' ) {
-        push @staged_paths, $path_rel;
+        push @staged_paths, $path_rel if $unstaged{$path_rel};
         next;
     }
 
@@ -126,8 +141,8 @@ return {
     qw| written_count | => $written_count
 };
 
-#,,,,,,,,,..,,,,,,,,,,,,,,...,..,,,..,,.,,...,..,,...,...,...,.,,,,,.,,,.,.,,,
-#J5RQ2XXH25LE6CGCVEC4X6HFDALZIWLLBMC3W423RWB4FOHP5LDTDMVZ3FXUSTAMIOZRGQ5FRKICE
-#\\\|I3YCBDFB2J25B5FRZYXXOIDWO2SRO2U24M4MWAGTDZQNARPIBC7 \ / AMOS7 \ YOURUM ::
-#\[7]Z7KDT7JZVMIPSFTONVG4AB6YDL4OVXVQRENNJVAAWL266TPDRMDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,.,,,,.,..,,,..,..,,.,,,,,.,..,,..,,...,..,,...,..,,.,.,,..,..,,
+#JS3ZLCBNUKDCGCIVRRWPB56UJGAJ7GLXFGBU6VCD7PFO2GT72K6AN4QO7SAKGW7M3W7RNDN5ZB2JK
+#\\\|FAZWKENMW4SJY6EYX6ZPQH5OGWCRQSSIR6V5DKYYI3GBIKLDP4Y \ / AMOS7 \ YOURUM ::
+#\[7]CGM45PUAVLY6ITZFHNUDHLEZMCEVGMY2453SVQYBP6EWX3OF4QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
