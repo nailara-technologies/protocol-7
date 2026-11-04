@@ -18,7 +18,7 @@ my $pin = uc( shift // '' );
 ## a claim that never completes must not hold its slot for ever [ a job   ##
 ## stuck in coding's 'depending' queue, a task failed by its owner that   ##
 ## this host never hears of ] : claims older than the ttl are dropped and ##
-## the task is failed by the same helper as the stale-claim sweep         ##
+## their still-owned task is reset to pending for another worker          ##
 my $claimed = <models.task.claimed> //= {};
 my $ttl     = <models.cfg.task_claim_ttl> // 1800;
 $ttl = 1800 if $ttl !~ m|^\d+$| or $ttl < 60;
@@ -28,16 +28,14 @@ foreach my $claimed_id ( keys %{$claimed} ) {
         // 0;
     next if time - $claimed_at <= $ttl;
     <[base.logs]>->(
-        0, ': claim of task %s expired after %d s : slot freed, failing task',
+        0, ': claim %s expired after %d s : slot freed, resetting task',
         $claimed_id, $ttl
     );
     <[protocol-7.route-send]>->(
-        {   'command'   => <[models.task.cmd]>->( qw| fail |, $claimed_id ),
+        {   'command'   => <[models.task.cmd]>->( qw| reset |, $claimed_id ),
             'call_args' => {
                 'param' => {
-                    'id'    => $claimed_id,
-                    'error' =>
-                        sprintf( 'models claim expired after %d s', $ttl ),
+                    'id'             => $claimed_id,
                     'expected_agent' => <models.cfg.task_agent>
                         // qw| models |
                 }
@@ -78,8 +76,8 @@ if ( length $pin ) {
 
 return $in_flight < scalar(@ids) ? TRUE : FALSE;
 
-#,,..,,..,,,,,,,,,,.,,,..,,..,...,,.,,,,.,.,,,.,.,...,...,.,.,,,,,.,,,.,.,.,.,
-#AAD2RQLN2P7C2ZMVFY4MDDCOWD64AGZFUEZOE3KAVNIUM2RFTJQSUV2G6R4TSMICC45HMTKTSIUOI
-#\\\|Q4RLSY5MYTHEJ4ASWXBY6FOV5G3HGN5XHPAOWQQJVNNSX7CEZYQ \ / AMOS7 \ YOURUM ::
-#\[7]KXALCFXAHKUD4ASKXLKYXFD2USW46K7TAHCTHYKC4ICCNBV724CI 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,,.,,,..,.,,,,..,...,,,,,,,,,.,.,...,...,..,,,,,,.,.,.,,,..,,
+#IKXPMWF7V6REVDHLQAORX6JCFFJAGCDIX477WBEL6JUOYUYIGPO4U2QMPX3XWFESTNXM6DF2U3BOY
+#\\\|B7PBC6GWVKWBPGGGX2KOLTW6WA24FMM6X2WUMC2UYUPBQQIU4UP \ / AMOS7 \ YOURUM ::
+#\[7]4EKJJIU4HBBNUMJHAJS55EUUGWEFTTAVTYZKXQALJQZHFCN7LYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

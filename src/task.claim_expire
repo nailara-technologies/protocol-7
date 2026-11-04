@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = task.claim_expire
+# param = <task_id> <reason> [ <expected_agent> ]
+# descr = an expired claim [ worker silent : stale-claim sweep, a worker's own
+#         claim ttl ] : the task goes back to pending for another worker,
+#         after max_attempts expiries it fails -- every task ends done or
+#         failed, a waiting wait-done always resolves
+# return = { mode, data }
+
+my ( $task_id, $reason, $expected_agent ) = @ARG;
+$reason //= 'claim expired';
+
+my $task = <task.queue>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+## only a still-active claim expires [ of the expected agent, if named ] ##
+if ( $task->{'status'} ne 'claimed' and $task->{'status'} ne 'in_progress'
+    or length( $expected_agent // '' )
+    and ( $task->{'agent'} // '' ) ne $expected_agent ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'task %s is %s by %s, not an active claim%s',
+            $task_id, $task->{'status'},
+            $task->{'agent'} // '-',
+            length( $expected_agent // '' ) ? " of $expected_agent" : ''
+        )
+    };
+}
+
+my $expiries = ++$task->{'claim_expiries'};
+my $max      = $task->{'max_attempts'} // 5;
+$max = 5 if $max !~ m|^\d+$| or $max < 1;
+
+if ( $expiries >= $max ) {
+    <[base.logs]>->(
+        0, ':. task %s : claim expired %d of %d times -- failing [ %s ]',
+        $task_id, $expiries, $max, $reason
+    );
+    return <[task.fail_task]>->(
+        $task_id,
+        sprintf( 'claim expired %d times [ %s ]', $expiries, $reason ),
+        $expected_agent
+    );
+}
+
+<[base.logs]>->(
+    0,
+    ':. task %s : claim of %s expired [ %d of %d ] -- pending again [ %s ]',
+    $task_id,  $task->{'agent'} // '-',
+    $expiries, $max, $reason
+);
+
+$task->{'status'}     = 'pending';
+$task->{'agent'}      = undef;
+$task->{'updated_at'} = <[base.ntime.b32]>;
+
+<[task.persist.save]>;
+
+return {
+    'mode' => 'true',
+    'data' => sprintf(
+        'reset %s [ claim expiry %d of %d ]',
+        $task_id, $expiries, $max
+    )
+};
+
+#,,,.,.,,,.,,,...,.,.,.,,,,,,,...,,..,...,,.,,..,,...,...,,..,...,...,.,.,.,.,
+#72MRTDK3PJDF3MOVEMHSXN7MBL7VG4FNUBP2TMYESF5XK226RDU4N2ZS35ED4CTZSM4RMBK43EYTE
+#\\\|EBUZHE6PWHMNFTDVUFO7B4QC7CLTA3R5EZXZHWATU762GZ2OBYZ \ / AMOS7 \ YOURUM ::
+#\[7]TBRQ6SXSYX5NNTZGZEII5ZPWP3E6QLCPMNJKUEPEOYSPDRPWU2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
