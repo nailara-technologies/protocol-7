@@ -17,8 +17,8 @@ $sign_verbosity = 2
     or exists $ENV{'SIGN_VERBOSE'}
     and <[base.cfg_bool]>->( $ENV{'SIGN_VERBOSE'} ) == TRUE;
 
-## :stage: re-stages [ via git add ] exactly the requested files that end ##
-## validly signed, whether this run signed them or they already were --   ##
+## :stage: re-stages [ via git add ] the files this run signs, plus valid ##
+## ones whose worktree differs from the index [ signed, never staged ] -- ##
 ## leaves other already-staged/unstaged batches untouched                 ##
 my $stage_files = $command_params =~ s| *:stage: *| |;
 
@@ -612,8 +612,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,..,,.,,.,,,...,...,.,,,..,,,..,..,,,..,...,..,,...,...,..,,,..,,..,,,,,,,.,
-#OCLJLEBAWFSRSVFUJV36DUFWVF3QFH3UWGGS6CGEOSAF54AIBU5MQX6ANENAUQQVUESFPKBWFKUBY
-#\\\|WOVO67BVDDBRWCG6FDGNEGTQBRVS6TPY2W3WDWFNUTI26YMXIXT \ / AMOS7 \ YOURUM ::
-#\[7]RPG3BHDJK5EIFQHIJ3LSMRI2KIFY5XQLBVERWZEJHHVG74MDI6CA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,,,.,.,,,,.,,,,.,.,,,,,,,.,,,..,,...,.,.,..,,...,..,,,..,,.,,
+#FB36BALET7MEIZ2RJSJJZZU6QHV23DE7Q5DDSKYJURZFXBKDKX4E37I7EKUSSLFP7HUX6FXRVEDVY
+#\\\|5HPN5WD3TSSZ5S2JXULGQUSKWGOIQSPV5BKONAZ4NLELJGIVBJE \ / AMOS7 \ YOURUM ::
+#\[7]53KS7VT64R5PJTMHFDUCGC4CCYUDWABZKJ7JLEMWVFSNYCE3PGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
