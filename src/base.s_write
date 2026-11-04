@@ -29,9 +29,24 @@ if ( utf8::is_utf8( $write_string_ref->$* ) ) {
 
 $write_len //= bytes::length( $write_string_ref->$* );
 
-## non-blocking syswrite : returns 0 on EAGAIN, -1 on error ##
-my $size_written
-    = syswrite( $write_fh, $write_string_ref->$*, $write_len, $str_offset );
+## non-blocking syswrite : returns 0 on EAGAIN, -1 on error  5th param :    ##
+## non-blocking for this one write on a socket  [ send + MSG_DONTWAIT ] --  ##
+## the event-driven drain [ base.handler. write ] must never wait on a full ##
+## socket buffer, while synchronous exchanges on the same blocking socket   ##
+## [ whoami, X-11 helpers ] keep their blocking reads and writes. capped    ##
+## per call : no copy of a large buffer for a partial send                  ##
+my $size_written;
+if ( $ARG[4] and -S $write_fh ) {
+    $write_len = 65536 if $write_len > 65536;
+    $size_written
+        = send( $write_fh,
+        bytes::substr( $write_string_ref->$*, $str_offset, $write_len ),
+        Socket::MSG_DONTWAIT() );
+} else {
+    $size_written
+        = syswrite( $write_fh, $write_string_ref->$*, $write_len,
+        $str_offset );
+}
 
 return 0
     if not defined $size_written
@@ -41,8 +56,8 @@ return -1 if not defined $size_written;
 
 return $size_written;
 
-#,,..,,,.,,,.,.,.,,,,,,,,,.,.,,,,,,.,,..,,,.,,.,.,...,...,...,,..,.,,,,,.,,,.,
-#ODW4ZCK3BGLQZUSJLWVNN2OWPZZ6YNVJJTDHHSWO34OOAPIQS7PCXPIUBWHEYRZHGMNYNQIEHQFDQ
-#\\\|LPRWIEP7PWNSNAIIF4B7NOVJVYH4FWIMHY4FM7BBOH6SJEZAUKE \ / AMOS7 \ YOURUM ::
-#\[7]3I4QF4AQ63JSTDFDHSJAGWARPXQNNT3CXOEH2IAP2IOU3CFQQMAY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,.,,,...,,.,,,..,,..,..,,.,,,.,.,...,...,...,...,,,.,,..,,,.,
+#TWI647VFVVBBSA7SEWX76FRSHX26WSZYUCRDTXLJKMOW4KG3ITPBCU3J3LHZNFM557H4R6MIBGVE2
+#\\\|TFPIBXPDRGTT7HXGIYBM5SZLDYX5WDE3BHCS4NATSAAGYRDSAG6 \ / AMOS7 \ YOURUM ::
+#\[7]KM4RQVYWOKPMYNUHMIJLYMDVLJJIU5OERQDWAKF6XSLLRSEQ5EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
