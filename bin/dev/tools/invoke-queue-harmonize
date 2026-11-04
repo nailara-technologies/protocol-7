@@ -38,11 +38,26 @@ use constant {
 
 ##[ MAIN EXECUTION ]##########################################################
 
-my $db_path = "$ENV{HOME}/.invokeai/databases/invokeai.db";
+## invokeai databases : one per install                                    ##
+## [ only one queue runs at a time, memory ] -- each present one is        ##
+## harmonized, a missing one is skipped.  paths given as arguments replace ##
+## the list                                                                ##
+my @db_paths
+    = @ARGV
+    ? @ARGV
+    : map {"$ENV{HOME}/$_/databases/invokeai.db"}
+    qw| .invokeai .invokeai-qwen21 |;
 
-main();
+my @present = grep { -f $_ } @db_paths;
+die "no invokeai database found [ @db_paths ]\n" if not @present;
+
+foreach my $db_path (@present) {
+    say "\n:: $db_path";
+    main($db_path);
+}
 
 sub main {
+    my $db_path = shift;
 
     # 1. Connect to InvokeAI database
     my $dbh = connect_db($db_path);
@@ -143,9 +158,9 @@ sub read_pending_queue {
 
     my $sth
         = $dbh->prepare(
-              "SELECT item_id, session_id, priority FROM session_queue "
-            . "WHERE status = 'pending' ORDER BY priority DESC, item_id ASC"
-        );
+              "SELECT item_id, session_id, priority FROM session_queue WHERE "
+            . "status = 'pending' ORDER BY priority DESC, item_id "
+            . "ASC" );
 
     unless ( $sth->execute ) {
         warn "Failed to query pending items: " . $dbh->errstr . "\n";
@@ -284,8 +299,8 @@ sub update_queue_priorities {
     return;
 }
 
-#,,..,,.,,.,,,,..,.,,,,.,,.,.,,..,,..,..,,,,.,..,,...,...,.,,,.,.,,.,,,,,,,,.,
-#N3FVQW25GR2K7GKJ73OWPPHRSVYPGNOSFVDOREK4UM3NYLOI7QEER3BYQLNEOSOQEEWLXCB7SOYKS
-#\\\|T6I3R5QZHSKMDQXQ7OBTH4SACZVIVZ5LRKXJCSJBWJBUSRKRZGM \ / AMOS7 \ YOURUM ::
-#\[7]MDMYK2R7CKO7UFNA4EOWUUT5IM75R245BOPHSO2C6T7XVWH2GSDQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,.,...,.,.,...,.,.,,,.,,..,..,,..,,...,...,,..,,,,,.,,,.,,,..,,
+#J2XDC6ENY4VTROUGBS2HVEUX4IJVI2P4V6PVO2EWCHOYQ6AZWNYIF76O22DVAY4KXGDUSKND5QSGS
+#\\\|RCYH77FEGWW66H6TNTYZKN3433HWOVTBYLSP2TQ2QYMR4LGAZC3 \ / AMOS7 \ YOURUM ::
+#\[7]7F3SYLD3NYCKNVDKGG5QJB4JUWQOKRF5B5UYBD366WB46N6FVWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
