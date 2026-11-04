@@ -44,9 +44,9 @@ if ( fileno $session->{'handle'} ) {
             $session->{'handle'}, \$session->{'buffer'}->{'output'},
             $write_size
             )
-            : <[base.s_write]>->(
+            : <[base.s_write]>->(    ## non-blocking send on sockets ##
             $session->{'handle'}, \$session->{'buffer'}->{'output'},
-            $write_size
+            $write_size, 0, TRUE
             );
 
         if ( $size_written < 0 ) {
@@ -176,8 +176,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return FALSE;
 
-#,,,,,,..,,..,,.,,,,,,,..,,,,,.,.,...,,.,,,,.,..,,...,...,,..,...,...,...,.,.,
-#PCMZTDXFPMRONTOHAE3XMEEXPZAHAWBGNKIVG7DGBVXBEUSBUWGSLHMB6YCSWO2B2M4CYZJ37LDIG
-#\\\|OTTDMHYHW3PXWZ4KLMO26BJ7O3TY7W67SFYUENYW7B6GA6WVX2N \ / AMOS7 \ YOURUM ::
-#\[7]F4FAAGSQQBXLWLQVSVUV762GI5D3C7JVJIC3HEHZKJMHK4N3XCAY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,,,,,,,.,...,,,.,...,,.,,..,,..,,...,...,..,,,.,,,.,,,,.,.,.,
+#BUQHJAZEELDMDBYM4WB3TKP5MAOYSO3LDJ4J5OCSDVK7WRYT5YYHSOWJOZPAOOUGWXTHQU6JM34JG
+#\\\|U2ECHEQHFOGOKUWBT36AUZRUTEA2VSANCMR2DCMTQ55MQAJQJBC \ / AMOS7 \ YOURUM ::
+#\[7]KOUJCYGQ6QGG2JLF5U36NK6SAUPF6MEE72DSXJAKOWJXLMI47KBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
