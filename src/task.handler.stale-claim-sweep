@@ -26,14 +26,12 @@ foreach my $task_id ( keys %{$queue} ) {
     my $age = <[base.ntime.delta_seconds]>->($updated);
     next if not defined $age or $age <= $max_age;
 
-    <[base.logs]>->(
-        0, ':. task %s : %s by %s, no update for %d s -- failing stale claim',
-        $task_id, $status, $task->{'agent'} // '-', $age
-    );
-    <[task.fail_task]>->(
+    ## pending again for another worker, failed after max_attempts expiries ##
+    ## [ task.claim_expire logs either way ]                                ##
+    <[task.claim_expire]>->(
         $task_id,
         sprintf(
-            'stale claim [ %s by %s, no update for %d s ]',
+            'stale claim : %s by %s, no update for %d s',
             $status, $task->{'agent'} // '-', $age
         )
     );
@@ -41,8 +39,8 @@ foreach my $task_id ( keys %{$queue} ) {
 
 return;
 
-#,,,.,.,,,..,,.,,,,,.,...,..,,.,,,..,,,,,,,..,..,,...,...,..,,.,.,..,,.,,,,,.,
-#UUWLBYOQUDR74WX77LJBEYKO2HMEVHVOFYZZ3IAYT7CU7236JNBIVAWYYYJQHXLXAFEHFDQCN6RNU
-#\\\|7DNGVIOQS2FP6IXSKMDHAPTFVY3NNIYJKWI3BH44LFMVAUIYHTJ \ / AMOS7 \ YOURUM ::
-#\[7]5UMK4YYFXGQ7UY4SIONOKB5O53NJUXJTTU6Z7HJRYJMQYAZDSCAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,..,.,,,,,.,.,,,,..,...,.,.,..,,...,...,...,...,,..,,..,.,,,
+#TYY4VUXKHQGYNQLSBFGBLHPSB55P7NE3QMIBSUWUCWYUB6U3AZJFPPCC2WMRC722GMXZDOSGQFZAO
+#\\\|AJ2PAMNVCMX73526EY7R4DIQKU6TX64N236U5UUVQNWT2WBLZFN \ / AMOS7 \ YOURUM ::
+#\[7]EVNGJ5WHOEFXR5TH4L2J3L43VOTLZHL4P3LEPR5J7GDM3UP5MUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

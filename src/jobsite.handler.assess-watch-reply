@@ -58,6 +58,12 @@ if (    $mode ne qw| false |
         1, 'jss.assess-watch : job %s task %s is %s, waiting on',
         $job_id, $task_id, $status
     );
+
+    ## a claimed \ in_progress task ends done or failed : its claim expiry ##
+    ## [ task.claim_expire ] owns that -- the round does not count against ##
+    ## the watch limit, a never claimed 'pending' task still does          ##
+    $job_rec->{'watch_extensions'}--
+        if $status ne qw| pending | and $job_rec->{'watch_extensions'};
     return;
 }
 
@@ -69,8 +75,8 @@ if (    $mode ne qw| false |
 
 return;
 
-#,,..,.,.,.,,,...,...,.,.,..,,...,,.,,,,.,.,.,..,,...,...,...,.,.,...,,..,.,.,
-#F3YECP34SY2HGPSG6N6IFO6354YH3V32YKLFJ6NBSPJTPU5NBVVQMQ7AHWN76WB2BWESKK6KGAWR2
-#\\\|U2SMJOGMXNSCQIXHKEPLUWLDRCVXJRZJQAP7TJMRHSW5V2YXVYD \ / AMOS7 \ YOURUM ::
-#\[7]TX2C4ZDJEGB6HFVJN4G57GNLDUZU64JSTMETHISMX5W7CWAEKKBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,.,.,.,,,,,,,,,.,,,.,.,.,.,,,..,,...,...,,.,,,,,,.,,,,,.,...,
+#UXSJUIQ5O54XAVZPRGYRUZZN4NB4CYPLUQTIFKWANTRDSUHJ6TWNJT63GA76MMYIZUMSJBROHCQEW
+#\\\|YQV6CADLKCSGKVRXFURUWYNVJ2H34R6M42MSCZZ272QALYEW3VQ \ / AMOS7 \ YOURUM ::
+#\[7]C7F473XNQVDIF2JNLLN3MO6FMZHHCJ7YIO4MSWJPXQ3VAEXXK4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
