@@ -142,6 +142,13 @@ foreach my $c_type (@connection_types) {
     }
 
     if ( defined $cube_sock ) {
+
+        ## non-blocking once authenticated [ the handshake reads in turn ] ##
+        ## : base.handler.write drains the output buffer on EAGAIN -- a    ##
+        ## blocking socket froze the whole zenka in syswrite whenever cube ##
+        ## read slower than a large command arrived [ jobsite scan, 2 MB ] ##
+        $cube_sock->blocking(0);
+
         <[base.session.init]>->(
             $cube_sock, qw| protocol-7 client |, $cube_name
         );
@@ -166,8 +173,8 @@ if ( not defined $cube_sock ) {
     <[base.exit]>->(4);
 }
 
-#,,.,,.,,,,,,,..,,,.,,,..,,..,...,,,,,..,,...,..,,...,..,,,,.,,,,,,.,,,..,..,,
-#CRCNZW7TDG7UFYUD4CZF4N5NDT24MKWKLPBGP7ZC2UGHK6ISYKSIPA5KZM2HUGXXAPX5JOO5FXFEQ
-#\\\|MJJLXXJ3MBR4AD7WROVI226TTRWZ74CMNRUXPONFE6JV65U5MTZ \ / AMOS7 \ YOURUM ::
-#\[7]L63DCED4BZXWZ5CEQQLMC2QOXXH6NDVYIYAGTQQLLMUYXNGPJMDA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,,,,,...,.,.,,,.,.,.,...,...,..,,...,...,...,,.,,...,,,.,.,.,
+#DDZDWUYGUFMMVBUUNY37PTCVX5GF5B3FRDZ6U7PLP53QYLCQTXMZIWU2EDRRW2B2QACWQNNZUYYSE
+#\\\|XI3RIUU2U6CHUI6KZDAF557JOTMNMSVP3XC5MGJ5EOAAP5DO5ZK \ / AMOS7 \ YOURUM ::
+#\[7]BOJ7ZT6O4QLK6FCAXUX3D3KEFRMSUBSI3VGIGDGRWUSMTGB7D2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
