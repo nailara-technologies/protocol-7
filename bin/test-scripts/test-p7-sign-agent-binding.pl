@@ -335,6 +335,13 @@ ok( defined $signature
     'SIGN returns a signature that verifies against the throwaway public key'
 );
 
+my $retry_reply = agent_request( $socket_one, sprintf 'SIGN %s %s %s %d %s',
+    $run_id, encode_b32r($file_rel), $chk_one, $len_one,
+    encode_b32r($buffer) );
+ok( defined $retry_reply && $retry_reply =~ m|^OK |,
+    'a harmonic retry signs the approved content again'
+);
+
 ## the attack this binding exists for : change the file AFTER approval, replay
 ## the exact approved request values -- must refuse
 open( my $mod_fh, qw| >> |, File::Spec->catfile( $tree_one, $file_rel ) )
@@ -356,6 +363,14 @@ ok( defined $end_reply && $end_reply =~ m|^OK |,
 );
 
 stop_agent($pid_one);
+
+my $runs_log_one = File::Spec->catfile( $temp_one, qw| runs.log | );
+open( my $runs_fh_one, qw| < |, $runs_log_one )
+    or die "read $runs_log_one : $OS_ERROR\n";
+my @sign_lines = grep {m| sign \Q$run_id\E \Q$file_rel\E |} <$runs_fh_one>;
+close $runs_fh_one;
+ok( scalar @sign_lines == 1,
+    'two successful SIGN operations produce one per-file audit line' );
 
 ##[ part 2 : stray stdin approval without the test flag ]#####################
 
@@ -504,8 +519,8 @@ if ( $fail_count == 0 ) {
 say "$fail_count check(s) FAILED";
 exit 1;
 
-#,,..,,,.,,..,,,.,,..,.,.,,.,,,..,.,,,.,.,,,.,..,,...,...,,..,,.,,,.,,,.,,,.,,
-#BJ57PDZ776ZEW6ZZMTK3MB2QJMC3QXU5PP3H3YNTCRIPJMW5AHYRVO66QJ2BTBX3RFB4PPGMXMYGI
-#\\\|HIRHEYDIXBHWXCXWDILVWPAUUNHNGBXAWSIN57YOYQTUGNFCKZB \ / AMOS7 \ YOURUM ::
-#\[7]FXJFRYWHIMKPHD352GJXQJBPBRDWTWFYOL5WOVBX2PRDOOIMP4BA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,,..,...,...,.,,,,,,,,..,...,..,,...,...,.,.,.,,,,.,,,..,,.,,
+#FA544A5Y4FA6KOAT45V3S6BZHJ354BGDJ2LVHRCUD3AWBXONCSSQEXHXTKSBDNEB3DELBWML4EFH6
+#\\\|KCDGZ6TGO22GOIA4NHIGZ3IZRISPYSOKEEXWGO32PE3RVXDVIZC \ / AMOS7 \ YOURUM ::
+#\[7]HPX56NODNTLHFHUM3JULKX5V4E6ZZZVAUSV52APPIXBY57VCCGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

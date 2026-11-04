@@ -24,7 +24,9 @@ use warnings;
 ## WITHOUT the passphrase : the unlocked key goes through a pipe kept open
 ## across exec [ -key-fd ], same pid and terminal. only when every repo file
 ## the agent loads [ itself, data/lib-path/pm ] carries a valid signature by
-## this key -- otherwise a passphrase start is needed.
+## this key -- otherwise the change is shown and needs a y first. a fresh
+## start asks the same before the passphrase prompt
+## [ diff vs the last commit ].
 ##
 ## standalone on purpose : needs perl, CryptX, Digest::BMW and the AMOS7
 ## modules in data/lib-path/pm [ AMOS7::13 + AMOS7::Twofish for the encrypted
@@ -129,6 +131,7 @@ my $test_stdin_approval;    ## tests only : --test-stdin-approval ##
 my $script_path   = Cwd::abs_path($PROGRAM_NAME);
 my @argv_original = @ARGV;
 my $key_fd;    ## -key-fd <n> : the unlocked key from a restart [ ctrl-r ] ##
+my $start_unsigned = 0;    ## approved unsigned files at a fresh start ##
 
 Getopt::Long::GetOptions(
     'key=s'               => \$key_name,
@@ -299,6 +302,10 @@ sub key_load {
         if not defined $priv_dec
         or length $priv_dec < 64;
     substr( $priv_dec, 0, 2, '' ) if length $priv_dec == 66;    ## prefix ##
+
+    ## a fresh start runs the same gate as ctrl-r, BEFORE the passphrase is ##
+    ## typed into this code [ the restart checks before its exec ]          ##
+    start_files_gate() if not defined $key_fd;
 
     if ( defined $key_fd ) {
 
@@ -1025,10 +1032,12 @@ sub op_sign {
     ## sign exactly the presented buffer bytes -- the key stays here ##
     my $signature
         = Crypt::Ed25519::sign( $buffer, $key_public, $key_private );
-    run_log_line( qw| sign |, $run_id, $rel, $peer_pid );
-    ## one redraw per FILE : a file takes hundreds of iteration signs and a ##
-    ## redraw on each one floods the terminal                               ##
+    ## one audit line + redraw per FILE : harmonic signing takes hundreds ##
+    ## of iterations, and logging every one grows runs.log without adding ##
+    ## audit information                                                  ##
+    ## [ the repeated lines contain no buffer or signature ]              ##
     if ( not $run->{'signed'}{$rel} ) {
+        run_log_line( qw| sign |, $run_id, $rel, $peer_pid );
         $run->{'signed'}{$rel} = TRUE;
         print STDERR progress_line( $rel, scalar keys $run->{'signed'}->%*,
             $run->{'count'}, $run->{'label_width'} );
@@ -1143,6 +1152,68 @@ sub restart_files {
 ## their diff [ restart_agent ]. returns the unsigned ones
 sub restart_files_check {
     return grep { not file_signature_valid($ARG) } restart_files();
+}
+
+## a fresh start into unsigned code : the same y \ n \ d prompt as ctrl-r ##
+## [ restart_agent ], the diff against the last commit. a warning for     ##
+## changes nobody noticed -- code edited on purpose to skip this can skip ##
+## it, the signatures stay the real check. tests run throwaway keys       ##
+sub start_files_gate {
+    return if $test_stdin_approval;
+    my @unsigned = restart_files_check();
+    return if not @unsigned;
+    $start_unsigned = scalar @unsigned;
+
+    ## no terminal : nobody to ask, and nothing gets approved without one ##
+    ## either -- warn, the run log records the count [ agent-start ]      ##
+    if ( not open( my $tty_fh, qw| < |, qw| /dev/tty | ) ) {
+        printf STDERR "p7-sign-agent : %d unsigned file%s, no terminal "
+            . "to confirm -- starting\n", $start_unsigned,
+            $start_unsigned == 1 ? '' : 's';
+        return;
+    }
+
+    ui_head('p7-sign-agent : start into unsigned code');
+    foreach my $path (@unsigned) {
+        printf STDERR "%s:    %s%s%s\n", $C{'0'}, $C{'2'}, $path, $C{'R'};
+    }
+    ui_rule();
+    my $approved = confirm_key(
+        {   qw| question | => sprintf(
+                'start into %d unsigned file%s ?',
+                scalar @unsigned,
+                @unsigned == 1 ? '' : 's'
+            ),
+            qw| diff | => sub { head_diff(@unsigned) },
+        }
+    );
+    die "p7-sign-agent : start cancelled [ unsigned code ]\n"
+        if not $approved;
+    return;
+}
+
+## files on disk vs the last commit [ the fresh-start view of a change ] ##
+sub head_diff {
+    my @paths = @ARG;
+    my $tree  = Cwd::abs_path( sprintf qw| %s/.. |, $FindBin::Bin );
+    my $read  = sub {
+        open( my $fh, '-|', @ARG ) or return '';
+        local $INPUT_RECORD_SEPARATOR;
+        my $out = <$fh> // '';
+        close $fh;
+        return $out;
+    };
+    my $pager = $read->( qw| git -C |, $tree, qw| config --get core.pager | );
+    $pager =~ s|\s+$||;
+    my $color = length $pager ? qw| always | : qw| never |;
+    my $diff  = $read->(
+        qw| git -C |, $tree, qw| -c |, "color.ui=$color",
+        qw| diff --no-prefix |,
+        "--color=$color", qw| HEAD -- |, @paths
+    );
+    $diff = "[ no difference to the last commit : unsigned there too ]\n"
+        if not length $diff;
+    return ( $diff, { qw| pager | => $pager } );
 }
 
 ## the code this process RUNS, kept at start : an unsigned restart shows
@@ -1285,7 +1356,8 @@ run_log_line(
     qw| agent-start |,
     $PID,
     encode_b32r($key_public),
-    defined $key_fd ? qw| restarted | : ()
+    defined $key_fd ? qw| restarted |                     : (),
+    $start_unsigned ? ( qw| unsigned |, $start_unsigned ) : ()
 );
 
 ## the agent's own terminal : single keys while idle [ ctrl-r restarts ] ##
@@ -1319,8 +1391,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,..,.,.,,,,,,,.,,..,.,.,.,.,,.,,,,,,.,.,...,..,,...,...,,..,,,,,,..,...,,,.,
-#6MIDGPDDC4Y2KU4I6WR2EBL36NJTEKMLKN3VU2PKDMTF5VR5RLZ34VQDBONODOL2PFKUT24HZPYOY
-#\\\|B53NZQAA7VQL3WIBKLRPDYLRDJICFRMFHQDR5N2FHGNOHHHU2OH \ / AMOS7 \ YOURUM ::
-#\[7]EXEWQL72KKLSPDXOZNUTLPG2A74HT27A7NTPBEN3MCF46QH3RKDY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,,,.,,.,,,,.,...,..,,..,,,..,..,,...,...,...,,,.,.,.,..,,.,,,
+#L2AOM2BNCTPEC7D4ICPSH22Z22XQ6ZDPRPPWJWBZ425RKTLOS6GF5VX5TXGWCLCRNSC6XPAYVMTFO
+#\\\|SUIWP5V2WATZRPO3HDP6PDOUA4SSBFKHQQVHW3QZYUYNO3L2NSO \ / AMOS7 \ YOURUM ::
+#\[7]TEWTTSGQ2CGYZ6WZ6VDMQW2V5OYAXTX2PI4XN62KQCGGW5KMZ6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
