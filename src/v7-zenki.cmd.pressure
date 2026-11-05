@@ -1,14 +1,15 @@
 ## [:< ##
 
 # name  = v7-zenki.cmd.pressure
-# descr = show memory pressure level, latest sample and curve
+# descr = show memory \ io pressure levels, latest sample, curve
 
-my $level   = <v7-zenki.pressure.level>   // qw| calm |;
-my $samples = <v7-zenki.pressure.samples> // [];
+my $level    = <v7-zenki.pressure.level>    // qw| calm |;
+my $io_level = <v7-zenki.pressure.io_level> // qw| calm |;
+my $samples  = <v7-zenki.pressure.samples>  // [];
 
 return {
     'mode' => qw| false |,
-    'data' => 'no pressure samples ' . 'collected yet'
+    'data' => 'no pressure samples collected yet'
     }
     if not @{$samples};
 
@@ -26,6 +27,7 @@ my $duration
 my $text = ":\n";
 $text .= sprintf( ": host memory pressure : %s [ in level for %s ]\n",
     uc($level), $duration );
+$text .= sprintf( ": host io pressure     : %s\n", uc($io_level) );
 $text .= ":\n";
 
 if ( not $latest->{'psi'} ) {
@@ -128,8 +130,8 @@ $text .= ":\n";
 
 return { 'mode' => qw| size |, 'data' => $text }
 
-#,,.,,,,.,..,,.,,,,,.,,,.,.,.,.,.,,..,,.,,,..,..,,...,...,.,,,,..,,.,,,,.,,.,,
-#4RJZJSDNUQ7KH2T6T4IMEZENRZCXFIQHOP3UR3MUJIST72ZCMHMU2H7VDYW3J6SODY36UHLSRT7Z6
-#\\\|LL2GITNBTB2MLC3JMRYLGG6QUTF2O4AC3XUIZ43G443B6EMLOJD \ / AMOS7 \ YOURUM ::
-#\[7]4UGJK5VXXVAIVYYAGWOOKQ453LPOAPKLKISBJOT7EJB5IM3PE2DI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,.,,,.,,,.,,,..,.,.,,.,,.,.,...,..,,...,...,..,,.,,,..,,...,,,.,
+#5GHB2F773Z7U4UN4EBZU2ZMX4MEWJ6OBV4CML5SR4TOI6YBUEZPRTZXYNQIDJK7RFMZMO6F5LYBZC
+#\\\|B6LHV6OOHDXFUG2CPV6BU4U5RSUJN2UY2QZZ4AM2DIAXEYOLMEA \ / AMOS7 \ YOURUM ::
+#\[7]I4ULM5H2PHSLL3M245NKIO4E3VMLOGEZUPNPTVKZRSKANE2KJAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

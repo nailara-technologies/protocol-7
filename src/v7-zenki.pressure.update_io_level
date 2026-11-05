@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = v7-zenki.pressure.update_io_level
+# descr = derive calm\elevated\critical io level with hysteresis
+
+my $samples = <v7-zenki.pressure.samples> // [];
+return 0 if not @{$samples};
+
+my $latest = $samples->[-1];
+
+my %severity = ( 'calm' => 0, 'elevated' => 1, 'critical' => 2 );
+
+## thresholds [ config keys, defaults used here ] ##
+my $elev_full10 = <v7-zenki.cfg.pressure.elevated.io_full_avg10> // 5.0;
+my $elev_full60 = <v7-zenki.cfg.pressure.elevated.io_full_avg60> // 2.0;
+my $crit_full10 = <v7-zenki.cfg.pressure.critical.io_full_avg10> // 20.0;
+my $crit_full60 = <v7-zenki.cfg.pressure.critical.io_full_avg60> // 10.0;
+
+## level indicated by this single sample ##
+my $indicated = qw| calm |;
+
+if ($latest->{'psi'}
+    and (  ( $latest->{'io_full_avg10'} // 0 ) >= $elev_full10
+        or ( $latest->{'io_full_avg60'} // 0 ) >= $elev_full60 )
+) {
+    $indicated = qw| elevated |;
+}
+
+if ($latest->{'psi'}
+    and (  ( $latest->{'io_full_avg10'} // 0 ) >= $crit_full10
+        or ( $latest->{'io_full_avg60'} // 0 ) >= $crit_full60 )
+) {
+    $indicated = qw| critical |;
+}
+
+## hysteresis : sustained N samples to enter, M to leave [ no flapping ] ##
+my $current = <v7-zenki.pressure.io_level> //= qw| calm |;
+my $pending = <v7-zenki.pressure.io_pending>
+    //= { 'level' => '', 'count' => 0 };
+
+if ( $indicated eq $current ) {
+    $pending->{'level'} = '';
+    $pending->{'count'} = 0;
+    return 0;
+}
+
+if ( $pending->{'level'} ne $indicated ) {
+    $pending->{'level'} = $indicated;
+    $pending->{'count'} = 1;
+} else {
+    $pending->{'count'}++;
+}
+
+my $need
+    = $severity{$indicated} > $severity{$current}
+    ? <v7-zenki.cfg.pressure.enter_samples> // 3
+    : <v7-zenki.cfg.pressure.leave_samples> // 13;
+
+return 0 if $pending->{'count'} < $need;
+
+## sustained : switch level [ logged once per change, not per sample ] ##
+<v7-zenki.pressure.io_level>       = $indicated;
+<v7-zenki.pressure.io_level_since> = <[base.time]>->(3);
+$pending->{'level'} = '';
+$pending->{'count'} = 0;
+
+## short line on the console [ 1 ], the numbers at 2 [ buffer \ log ] ##
+<[base.logs]>->( 1, ':. io pressure : %s --> %s', $current, $indicated );
+<[base.logs]>->(
+    2,
+    ':. io full avg10 %.2f avg60 %.2f',
+    $latest->{'io_full_avg10'} // 0,
+    $latest->{'io_full_avg60'} // 0
+);
+
+return 0;
+
+#,,.,,..,,,,.,,,.,.,,,.,,,,..,,..,..,,,..,..,,..,,...,.,.,.,.,.,,,,.,,,,.,.,.,
+#W64QGAOXCCCI6YWC3ZTAPXZG3GKJIB7QIAPP5TRPUGGNXQDGY7Q4JY6AZFOPLORUO5ZENNTSFB35Q
+#\\\|TIT5FXRS3YIW7ZXBRSJT6QKU3VSEJS33XFQYMRMWG4YLMOXHCIA \ / AMOS7 \ YOURUM ::
+#\[7]EY55KIFDBAQRHR3NCN3HB5CRKCWNNOGSCUSZDE672VAPR2RZBOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

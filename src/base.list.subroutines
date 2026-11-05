@@ -178,6 +178,7 @@ return [ qw[
         task.post_init
         task.init_code
         task.fail_task
+        task.cmd.touch
         task.cmd.start
         task.cmd.reset
         task.cmd.queue
@@ -402,6 +403,7 @@ return [ qw[
         ticker.calc_decr
         thermal.mem.read
         task.notice.push
+        task.claim_lease
         system.init_code
         storage.9p.wstat
         storage.9p.write
@@ -579,6 +581,7 @@ return [ qw[
         task.cmd.handover
         task.cmd.continue
         task.cmd.complete
+        task.claim_expire
         storage.post_init
         storage.init_code
         storage.cmd.p7ref
@@ -1940,6 +1943,7 @@ return [ qw[
         models.trash.root_path
         models.task.peek-claim
         models.task.parse-show
+        models.task.drop-claim
         models.registry.lookup
         models.cmd.trash-prune
         models.cmd.task-notify
@@ -2529,6 +2533,7 @@ return [ qw[
         source.acquire_checksums
         site-yaml.job.scan_stray
         site-yaml.fetch.schedule
+        site-yaml.cmd.scan-lists
         site-yaml.cmd.import-url
         signal.cancel.cmd.filter
         set-up.cmd.export-config
@@ -2897,6 +2902,7 @@ return [ qw[
         models.storage.check_tier
         models.registry.get_entry
         models.invoke_participant
+        models.handler.task-touch
         models.decision.cost_base
         models.cmd.test_api_limit
         models.cmd.local_discover
@@ -3235,6 +3241,7 @@ return [ qw[
         jobsite.handler.rewire-all
         jobsite.handler.queue-poll
         jobsite.handler.fetch-done
+        jobsite.dispatch.supersede
         jobsite.cmd.liveness-sweep
         jobsite.client_prefs.write
         io.unix.socket.output.open
@@ -3897,6 +3904,7 @@ return [ qw[
         keys.console.decrypt-archive
         keys.console.create-stub-key
         jobsite.util.repair_mojibake
+        jobsite.scan_lists.send_next
         jobsite.repair_encoding.load
         jobsite.handler.task-created
         jobsite.handler.rescan-timer
@@ -4739,6 +4747,7 @@ return [ qw[
         mpv.handler.rescale_video_reply
         models.test.api_limit_detection
         models.registry.list_by_context
+        models.handler.task-touch-reply
         models.handler.refresh_registry
         models.handler.process_response
         models.escape.interpret_literal
@@ -4773,6 +4782,7 @@ return [ qw[
         jobsite.replica.pull_soon-fired
         jobsite.repair_encoding.example
         jobsite.liveness-sweep.complete
+        jobsite.handler.scan-lists-sent
         jobsite.handler.pending-changed
         jobsite.fetched.subscribe-retry
         invoke-web.handler.stats_record
@@ -5148,6 +5158,7 @@ return [ qw[
         v7-zenki.zenka.cmd.devmod-disable
         v7-zenki.zenka.cmd.claim-children
         v7-zenki.sub-process.get_children
+        v7-zenki.pressure.update_io_level
         v7-zenki.parser.dependency_status
         v7-zenki.parent.attach_zenka_logs
         v7-zenki.init_match_name_patterns
@@ -6445,8 +6456,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,..,,,.,,,,,..,,,.,,...,,,.,,,,,,,,,,,,,.,.,...,...,.,.,,,.,.,.,,.,,,.,,
-#EVVPFX2DSXVEFKY6ZJCBQIHIY3QGSKYMWY22FEZFKDZTQJJQAS3BPMNFQHUU67ESYJMY3JQ6NDE3A
-#\\\|IJZTGEEQCQI63PAR4SBEDZGG3CUF2RKI6OLYHUBZQFD3B6MFKML \ / AMOS7 \ YOURUM ::
-#\[7]E25UXVMYLE3F2LZ3VTBSDJJ7HJCHHA54HPEKA44AEOOYCGHVNKAY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,.,,,,,,,..,,,.,,,.,,..,,.,,,.,.,...,...,,,.,.,.,,..,,,,,...,
+#6QTPO6ECCKQNLV5MHIR7QAZY26TDNUH2YSOQMHRXGALKMHCW5UT7GGYCZRCKC4MNFFANGN4BEHX6M
+#\\\|2DST77FWJIGX3XFSZ2Y2EE75THHIS55T46TQXGDKPRXDABVUG7E \ / AMOS7 \ YOURUM ::
+#\[7]6MD3KJA6YFXMCRJUJ2UGLZLOOTS2WJCJND7NLPJ7XIKFD33RB2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
