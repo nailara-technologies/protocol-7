@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — START HERE [ 485d04329 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive ; open : kimi s2c\s2b, devmod files, devmod-ack
+- [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — START HERE [ 4802120dd ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
+- [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — previous [ 485d04329 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive
 - [shm-permissions-forgeable-open](project-2026-10-22-shm-permissions-forgeable-open.md) — OPEN SECURITY, high [ todo FKS ] : AMOS7::SHM::sign_permission is a computable hash -- shm permissions forgeable
 - [signature-valid-truth-map-ignored](project-2026-10-22-signature-valid-truth-map-ignored.md) — OPEN [ todo VWF ] : signature_valid ignores a caller truth map ; owner : highly relevant, features build on it
 - [sync-helpers-need-blocking-cube-socket](feedback-sync-helpers-need-blocking-cube-socket.md) — never flip a shared socket's mode : sync helpers read it ; per-call MSG_DONTWAIT instead
@@ -97,8 +98,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,..,,,.,.,.,...,,,,,,,.,,..,..,,,.,,...,..,,...,..,,.,.,,,,,...,...,..,,
-#2EKNZ667ZIG7T7AYWCA5JSZMFUMSS4WM7SJZNH73YLVOWAB6OWNTT7I6TH75GATOAE5A742ATIGUM
-#\\\|GE2JVOGKOSOHMDN4GPBLRXSOFKU2WE7DWOW2LBBCIJYHISRZLSY \ / AMOS7 \ YOURUM ::
-#\[7]I64WOQ4NZEBUD4UVYKTDNZTLJZC4QLOQJNTF35IFOKUJLUVXJUDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,,,.,..,,.,.,,..,.,,,,,.,,,.,..,,...,...,...,,,.,.,,,..,,,,,,
+#GRKKHFBQC6CWSVOC3RYHADRKUYNDZGDQQ7F22GES4PQBAH5TZOPH44FUWFGRFJLHNODKLNBDNAYIQ
+#\\\|XADIQ4PNQIHJU6BKMXV76MJCOKPEGIMIH4NLQKNP5GC7XSD47U3 \ / AMOS7 \ YOURUM ::
+#\[7]TZPS343CJIVK33P2UVQXXZRZPBQ2IWRLOYRSLWIC7YLYHLLU4QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
