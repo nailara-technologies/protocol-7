@@ -50,7 +50,7 @@ foreach my $sid ( keys $data{'session'}->%* ) {
     );
 
     $session_state->{'timeout'} = <[event.add_timer]>->(
-        {   'after'   => ( <cube.cfg.liveness.interval> // 30 ),
+        {   'after'   => <cube.cfg.liveness.interval>,
             'desc'    => "cube session liveness timeout [$sid]",
             'handler' => qw| cube.liveness.handler.timeout |,
             'data'    => $sid
@@ -60,8 +60,8 @@ foreach my $sid ( keys $data{'session'}->%* ) {
 
 return TRUE;
 
-#,,..,.,.,...,,.,,..,,,..,.,.,.,,,..,,...,,.,,..,,...,..,,..,,,,.,,..,,.,,,.,,
-#GLZNK3P46FHAQPOXOG5NYU6AGYTDOJLQDHUJDNKLTR2THBYK57QJTTW6BRHT5ECAFFSPCDXKU2EKK
-#\\\|WVEIM4YBTLYUAIJ5A6UWXIWDMWXTDFEKQ6V6TRVNZFJ74AECSCF \ / AMOS7 \ YOURUM ::
-#\[7]H5JLJLLGIJIL5SDIGY44SNNNY57WXBLPDFS4267DEZ7WPXGL5CDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,.,,,.,.,,..,,.,,,.,,.,,,,..,..,,...,..,,.,,,,..,.,,,.,.,.,.,
+#4PSHNTQG52DV7VXNDEFH6TVP46GIKS6CYEWNGYPB6E6XU2TPX3OLSOLGBWW4UDEGVOUWZTQK5ZKIW
+#\\\|Y2QHNBQHMDD7PQYWRD6AWAFRWQQSSTTF42YYZCNNIXYYRVWUYE6 \ / AMOS7 \ YOURUM ::
+#\[7]KQ7AIDOEC4BH5KBAZLQGYDTENZ6UAGQ7RVDPCAOYM7SS23P5JEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

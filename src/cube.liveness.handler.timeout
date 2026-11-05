@@ -20,7 +20,7 @@ if (   not defined $session
 }
 
 my $misses     = ++$session_state->{'misses'};
-my $max_misses = <cube.cfg.liveness.misses> // 3;
+my $max_misses = <cube.cfg.liveness.misses> // return FALSE;
 return TRUE if $misses < $max_misses;
 
 my $user        = $session->{'user'} // qw| ----- |;
@@ -37,8 +37,8 @@ delete $state->{$sid};
 
 return TRUE;
 
-#,,,,,,,.,.,,,...,...,,.,,,,.,,.,,,,.,,..,..,,..,,...,...,,,.,,..,.,,,,,,,.,,,
-#5ANJTNS6DILSPH6DKRAP4O33KR4YQ5VKB4EDRWI7RXQE6ARFNODE44ILXAGQLGXQGTIWCRBRCJCIM
-#\\\|QWMXI2XJDOKA633QDGXVG6MDGJOD2XGNTT36X2FL3SIYPYN7RZL \ / AMOS7 \ YOURUM ::
-#\[7]TF4OEDEALJBZGAAEQ2MIARTHO266R2WGLLOPMTUTMJS55RJVA4BI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,,.,,.,,,,.,,,,.,,,.,.,.,,.,,..,,...,...,..,,.,.,,,,,...,,.,,
+#A3Q2DVMCP6SUL7GRHNHN27RNUEWOWFYFM7QDWAZYTQZC5QOEYT3Q2KATTA24U7TKKTH26R4PTIGCG
+#\\\|K6LGCNHCJA54E6A6KETF4FAKHD7EVQJGXU4WOILSSAT5LUS3TVS \ / AMOS7 \ YOURUM ::
+#\[7]7MIPWGUURUTUEZBZFJVZ5T2UEANFXB5PIKN2VS5LP7MQ3YMM7EDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

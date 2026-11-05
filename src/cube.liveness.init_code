@@ -3,7 +3,33 @@
 # name  = cube.liveness.init_code
 # descr = arm the liveness probe timer
 
-my $interval = <cube.cfg.liveness.interval> // 30;
+## no built-in values and no default activation : the probe runs only where  ##
+## both values are configured                                                ##
+## [ owner 2026-11-05, see  data/md/design/ROUTE-COLLAPSE-AND-LIVENESS.md ]. ##
+## without them a running probe timer is stopped                             ##
+## [ a reload switches it off ]                                              ##
+my $interval = <cube.cfg.liveness.interval>;
+my $misses   = <cube.cfg.liveness.misses>;
+
+if (   not defined $interval
+    or not defined $misses
+    or $interval !~ m{^\d+(?:\.\d+)?$}
+    or $misses   !~ m{^\d+$}
+    or $interval <= 0
+    or $misses < 1 ) {
+    if ( defined <cube.liveness.timer>
+        and <cube.liveness.timer>->can(qw| cancel |) ) {
+        <cube.liveness.timer>->cancel;
+    }
+    delete <cube.liveness.timer>;
+    for my $session_state ( values( ( <cube.liveness.state> // {} )->%* ) ) {
+        $session_state->{'timeout'}->cancel
+            if defined $session_state->{'timeout'}
+            and $session_state->{'timeout'}->can(qw| cancel |);
+    }
+    delete <cube.liveness.state>;
+    return TRUE;
+}
 
 if (   not defined <cube.liveness.timer>
     or not <cube.liveness.timer>->can(qw| is_active |)
@@ -19,8 +45,8 @@ if (   not defined <cube.liveness.timer>
 
 return TRUE;
 
-#,,.,,...,,,,,,..,..,,,,.,..,,,.,,..,,.,.,,..,..,,...,...,,..,,,.,...,...,,,,,
-#GXULVTSV2TTBFTJ6M55WUY6TM77VHIGG2UXYHS3E3AJWLGYVCTQL46AZKOM5GK2Q6E54C3I2BCZPQ
-#\\\|N377FA42D76VQ67QFMP34ET4BEMURFIZRXWZRJ35WOWWM7WXKZG \ / AMOS7 \ YOURUM ::
-#\[7]LTLUUPNZOWJ2WOQYVB2Y4A3B7N2HEO5M5ZNAO5CFWFC7XEDZIEAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,..,,,,,,..,,.,.,.,,,.,,,.,,,..,,...,...,,.,,,..,...,.,.,.,.,
+#VJ7ENO2GXMZJ23UZFKGLS3DKR7APKX4YRNCDNAWLKGU44H27GTDSPCRCW3HCKBJRHTPEDQCI32FMK
+#\\\|4LJ4DM5HMVJKGQQKUMP74XZHKCNCSATFLQMFQNYSEPWFEFH3KJJ \ / AMOS7 \ YOURUM ::
+#\[7]VC2E6AFFJ33TNUU3PC3KSKGZ3S45RMHXECGAJJKEUDEJVIUSFMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

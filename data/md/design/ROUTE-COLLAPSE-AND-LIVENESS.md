@@ -28,11 +28,17 @@ every collapse reaches the caller the same way : a `false` reply naming the caus
 seen on pri 2026-11-05 : an nshell session lost its terminal, spun in its stdin watcher for 12 hours
 and stayed connected. user sessions have no heartbeat, so `taeki.name` routed to it hung with no end.
 
-- while a session has at least one forwarded command waiting for its reply, cube sends it `heart`
-  every `cube.cfg.liveness.interval` seconds [ starting value 30 ].
+- **no built-in values, no default activation** : the probe runs only where both
+  `cube.cfg.liveness.interval` and `cube.cfg.liveness.misses` are configured -- the values belong to
+  the context, like every other timeout here. without them nothing is probed.
+- only sessions that DECLARED they answer `heart` are probed [ next step : `declare-liveness`,
+  sent by zenka-based clients ]. legacy `bin/nshell`, `socat`, `p7c` and older zenka versions never
+  declare it and keep the old behaviour.
+- while a probed session is the target of at least one open route, cube sends it `heart` every
+  `interval` seconds ; a caller waiting for a reply is never probed.
 - `heart` is answered by the event loop, not by the busy command : a session working on a long task
   still answers. only a session whose event loop no longer runs misses it.
-- after `cube.cfg.liveness.misses` missed probes in a row [ starting value 3 ] cube closes the session
+- after `misses` missed probes in a row cube closes the session
   and logs why ; its open routes collapse the normal way.
 - sessions with nothing open are never probed : no traffic in the idle case.
 - sessions v7-zenki already heartbeats need no second probe.
@@ -59,8 +65,8 @@ after its hop timed out is dropped and logged at level 2.
 - **no longer completable** : a zone that learns the request can not finish any more [ its input gone,
   its task cancelled upstream ] collapses it at once instead of waiting.
 
-#,,,,,,..,,,.,.,.,,..,.,,,.,.,.,.,,..,..,,,,,,..,,...,...,..,,,.,,,..,.,,,,,.,
-#FO4TFF6TFRWT4CTBT6ASTIPH7CI2WE75IYFTAIMY4XUZ45ZDUM6NDTR5ROXFIFXVPFGLTGOORYP24
-#\\\|J7NUW6TTFURC7LYJPBAMK4LYAP7Z5NTSDGTCOREDXE46ESVEIS7 \ / AMOS7 \ YOURUM ::
-#\[7]XMDZ2RTAAHXLUKOEZ7ULSOQPVD75HORVC5WBLK2BJHOC4MV7YECA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,,..,.,,,.,.,..,,.,,,,,.,,,,,..,,...,...,...,..,,,,,,.,.,,.,,
+#RHRM2G6PJ4YXMZL6DSWHN56Z3FWEFPYRMMDB7LCAD47KY5NCKFNEIK3BS6QCY6FSFOH3BOGFHNCH2
+#\\\|PN2UHZOWFFJ3SUNGGOJ3YRGOOW7PEQIEOGKE6FRI3RH3YJF2F5Z \ / AMOS7 \ YOURUM ::
+#\[7]77KZQEVHYRN4T7E6XVKIW5JFI3A5WPDZHOQMNGKV5WTNAPVQIIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
