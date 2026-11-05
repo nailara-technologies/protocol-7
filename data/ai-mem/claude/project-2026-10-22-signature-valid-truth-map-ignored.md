@@ -11,14 +11,14 @@ caller uses the defaults ].
 
 **Why it matters :** owner 2026-11-05 -- features will build on caller-chosen truth maps, with distinctions
 of topological significance ; the form footer type is the first [ create_harmonic_footer needs truth
-switches as a parameter for form signing ]. todo says priority normal, the owner weighs it higher.
+switches as a parameter for form signing ]. todo priority raised to high 2026-11-05.
 
 **How to apply :** honour the passed map for the TRUTH checks only ; the binding checks [ AMOS match, BMW
 match, Ed25519 ] stay outside it, never relaxable. related : [[project-2026-10-22-shm-permissions-forgeable-open]]
 [ same SIGNED-STATEMENTS review ].
 
-#,,..,,,,,.,.,.,,,,,,,..,,..,,.,,,,..,,.,,,,.,..,,...,...,..,,..,,.,.,,,,,,,.,
-#ZOYQMGBYKRZIZ5CPH7DKUGJ2ULPRQ6BZOXWQNC6ORL5KWDJ7SVAQ64WUFZSTVEBLNDXC7CTIMFE3E
-#\\\|7D33L4QQU7BWOL4SEUABEN5X7FBG3LNJSAQVYH2COGUMOBZBYUW \ / AMOS7 \ YOURUM ::
-#\[7]ZBWM7O5Z5DPPFEQMA5RCPZP5ANB6OPZOJFOHC2AE2JHQDMLVPGAI 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,.,,,.,,..,,.,,.,,,,.,,...,.,,,..,,...,...,.,.,,.,,,,.,,.,,,.,,
+#DGGA74GKDF7FPYJBMG556KXDN6CPZONHDZZQ6Z634ICEZDCFYDXIKTMDRI5DB25I44MCJICVUZ3QC
+#\\\|PAVMY5Q6MNT4C2UN4QVEF3EIIUHBXGRAYGA7QV5XTVXE5EW6H6T \ / AMOS7 \ YOURUM ::
+#\[7]PUXVGK2JVAW3UTGFAQMKDDHT5ZKC5DZ2P6HGBYSAU4K5AGGH76AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
