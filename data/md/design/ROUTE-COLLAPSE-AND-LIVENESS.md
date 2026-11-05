@@ -28,12 +28,12 @@ every collapse reaches the caller the same way : a `false` reply naming the caus
 seen on pri 2026-11-05 : an nshell session lost its terminal, spun in its stdin watcher for 12 hours
 and stayed connected. user sessions have no heartbeat, so `taeki.name` routed to it hung with no end.
 
-- **no built-in values, no default activation** : the probe runs only where both
-  `cube.cfg.liveness.interval` and `cube.cfg.liveness.misses` are configured -- the values belong to
-  the context, like every other timeout here. without them nothing is probed.
-- only sessions that DECLARED they answer `heart` are probed [ next step : `declare-liveness`,
-  sent by zenka-based clients ]. legacy `bin/nshell`, `socat`, `p7c` and older zenka versions never
-  declare it and keep the old behaviour.
+- **no built-in values, no default activation** : a session declares its own policy with
+  `declare-liveness <interval_secs> <misses>`, or removes it with `declare-liveness off`. cube probes
+  only sessions with their own declaration and uses their own values. without a declaration nothing
+  is probed and no probe timer runs.
+- the declaration applies only to the calling session and says it answers `heart`. legacy
+  `bin/nshell`, `socat`, `p7c` and older zenka versions never declare it and keep the old behaviour.
 - while a probed session is the target of at least one open route, cube sends it `heart` every
   `interval` seconds ; a caller waiting for a reply is never probed.
 - `heart` is answered by the event loop, not by the busy command : a session working on a long task
@@ -42,6 +42,9 @@ and stayed connected. user sessions have no heartbeat, so `taeki.name` routed to
   and logs why ; its open routes collapse the normal way.
 - sessions with nothing open are never probed : no traffic in the idle case.
 - sessions v7-zenki already heartbeats need no second probe.
+- cube owns session liveness because it sees every session. v7-zenki keeps its heartbeat for the
+  instances it started [ restart + pressure waits ]. forwarding a declaration to v7-zenki for a
+  managed instance with `heartbeat.disabled` is a later step.
 
 ## 4. opt-in timeouts : per hop, never per route
 
@@ -64,9 +67,19 @@ after its hop timed out is dropped and logged at level 2.
 - **max hops** : a route longer than its allowed hop count collapses before it is forwarded further.
 - **no longer completable** : a zone that learns the request can not finish any more [ its input gone,
   its task cancelled upstream ] collapses it at once instead of waiting.
+- **derived liveness values** [ owner 2026-11-05 ] : statistics replace hand-picked numbers, still
+  only where a session asks for it :
+  - `declare-liveness observe` : cube probes and records answer times, never closes.
+  - suggested values from the record [ e.g. a high percentile plus a margin ], shown with their data ;
+    enabled explicitly by the owner or the session.
+  - `declare-liveness auto` : the session asks to arm the derived values once the statistics are
+    saturated -- minimum samples AND time span, a percentile that stopped moving, and samples taken
+    UNDER LOAD [ memory \ io pressure periods ] : quiet-time numbers would close sessions exactly when
+    v7-zenki deliberately waits. without `auto` nothing is ever armed.
+  - arming logs the values and their source [ percentile, span, samples, pressure periods ].
 
-#,,.,,,.,,,.,,,,,,,..,.,,,.,.,..,,.,,,,,.,,,,,..,,...,...,...,..,,,,,,.,.,,.,,
-#RHRM2G6PJ4YXMZL6DSWHN56Z3FWEFPYRMMDB7LCAD47KY5NCKFNEIK3BS6QCY6FSFOH3BOGFHNCH2
-#\\\|PN2UHZOWFFJ3SUNGGOJ3YRGOOW7PEQIEOGKE6FRI3RH3YJF2F5Z \ / AMOS7 \ YOURUM ::
-#\[7]77KZQEVHYRN4T7E6XVKIW5JFI3A5WPDZHOQMNGKV5WTNAPVQIIAY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,..,,...,...,...,,,,,.,,,,,.,..,,...,...,,..,,,.,...,,.,,.,,,
+#INLT2DJPZ3KQ6JL2R7ZBUO2BMZSNDZJQXTW76I3QJIPQIC7HNAOWDVZIDY5CBHDRHZIKU6ZZOC76E
+#\\\|K5PIDH2VCUTRUWGWBTPAMZZW7MFIH5DG7AIPBG2DDVKLR27LQKD \ / AMOS7 \ YOURUM ::
+#\[7]FO2GCC2OHJNMKNU2NAHECX3QWAM5H522XQNIUFAPQ6LNSEI2XICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

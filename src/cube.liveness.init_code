@@ -1,27 +1,25 @@
 ## [:< ##
 
 # name  = cube.liveness.init_code
-# descr = arm the liveness probe timer
+# descr = schedule probes at the smallest declared session interval
 
-## no built-in values and no default activation : the probe runs only where  ##
-## both values are configured                                                ##
-## [ owner 2026-11-05, see  data/md/design/ROUTE-COLLAPSE-AND-LIVENESS.md ]. ##
-## without them a running probe timer is stopped                             ##
-## [ a reload switches it off ]                                              ##
-my $interval = <cube.cfg.liveness.interval>;
-my $misses   = <cube.cfg.liveness.misses>;
+## the timer only schedules ticks ; each session keeps its own probe times ##
+my $interval;
+foreach my $session ( values $data{'session'}->%* ) {
+    next if $session->{'mode'} ne qw| client |;
+    next if not defined $session->{'liveness'};
+    my $declared_interval = $session->{'liveness'}{'interval'};
+    $interval = $declared_interval
+        if not defined $interval or $declared_interval < $interval;
+}
 
-if (   not defined $interval
-    or not defined $misses
-    or $interval !~ m{^\d+(?:\.\d+)?$}
-    or $misses   !~ m{^\d+$}
-    or $interval <= 0
-    or $misses < 1 ) {
-    if ( defined <cube.liveness.timer>
-        and <cube.liveness.timer>->can(qw| cancel |) ) {
-        <cube.liveness.timer>->cancel;
-    }
-    delete <cube.liveness.timer>;
+if ( defined <cube.liveness.timer>
+    and <cube.liveness.timer>->can(qw| cancel |) ) {
+    <cube.liveness.timer>->cancel;
+}
+delete <cube.liveness.timer>;
+
+if ( not defined $interval ) {
     for my $session_state ( values( ( <cube.liveness.state> // {} )->%* ) ) {
         $session_state->{'timeout'}->cancel
             if defined $session_state->{'timeout'}
@@ -31,22 +29,18 @@ if (   not defined $interval
     return TRUE;
 }
 
-if (   not defined <cube.liveness.timer>
-    or not <cube.liveness.timer>->can(qw| is_active |)
-    or not <cube.liveness.timer>->is_active ) {
-    <cube.liveness.timer> = <[event.add_timer]>->(
-        {   'after'    => $interval,
-            'interval' => $interval,
-            'desc'     => 'cube session liveness probe',
-            'handler'  => qw| cube.liveness.probe_tick |
-        }
-    );
-}
+<cube.liveness.timer> = <[event.add_timer]>->(
+    {   'after'    => $interval,
+        'interval' => $interval,
+        'desc'     => 'cube session liveness probe scheduler',
+        'handler'  => qw| cube.liveness.probe_tick |
+    }
+);
 
 return TRUE;
 
-#,,,.,.,.,,,.,,..,..,,,,,,..,,.,.,.,,,.,,,.,,,..,,...,...,,.,,,..,...,.,.,.,.,
-#VJ7ENO2GXMZJ23UZFKGLS3DKR7APKX4YRNCDNAWLKGU44H27GTDSPCRCW3HCKBJRHTPEDQCI32FMK
-#\\\|4LJ4DM5HMVJKGQQKUMP74XZHKCNCSATFLQMFQNYSEPWFEFH3KJJ \ / AMOS7 \ YOURUM ::
-#\[7]VC2E6AFFJ33TNUU3PC3KSKGZ3S45RMHXECGAJJKEUDEJVIUSFMDA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,,,,,,.,,..,,,,,,,.,,,.,,...,..,,...,...,.,,,...,,,.,,.,,,..,
+#AG4V4IHZVA2IYLGG6MTZRESUCHPBLB6NMYJWIE4LY5SAQZSFLEC5M25KZ3LU6EYQE272NOTJ6GGYE
+#\\\|CN6EIZEF5OM7TZ5QNODLBEKMJWXIDBX2ZLK5S2SHAJU6K4CZ33N \ / AMOS7 \ YOURUM ::
+#\[7]KYQZQLJAJLDPF7U5AOWVP66JC3PUK6AYKV5VXFNRXOHSALR27ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

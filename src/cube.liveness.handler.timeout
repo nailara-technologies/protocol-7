@@ -12,6 +12,7 @@ delete $session_state->{'timeout'};
 my $session = $data{'session'}{$sid};
 if (   not defined $session
     or $session->{'mode'} ne qw| client |
+    or not defined $session->{'liveness'}
     or not grep { ( $data{'route'}{$ARG}{'target'}{'sid'} // -1 ) == $sid }
     values( ( $session->{'route'} // {} )->%* )
     or exists <zenki.heartbeat>->{$sid} ) {
@@ -20,7 +21,7 @@ if (   not defined $session
 }
 
 my $misses     = ++$session_state->{'misses'};
-my $max_misses = <cube.cfg.liveness.misses> // return FALSE;
+my $max_misses = $session->{'liveness'}{'misses'};
 return TRUE if $misses < $max_misses;
 
 my $user        = $session->{'user'} // qw| ----- |;
@@ -37,8 +38,8 @@ delete $state->{$sid};
 
 return TRUE;
 
-#,,,.,..,,.,,,.,,,,.,,.,,,,.,,,,.,,,.,.,.,,.,,..,,...,...,..,,.,.,,,,,...,,.,,
-#A3Q2DVMCP6SUL7GRHNHN27RNUEWOWFYFM7QDWAZYTQZC5QOEYT3Q2KATTA24U7TKKTH26R4PTIGCG
-#\\\|K6LGCNHCJA54E6A6KETF4FAKHD7EVQJGXU4WOILSSAT5LUS3TVS \ / AMOS7 \ YOURUM ::
-#\[7]7MIPWGUURUTUEZBZFJVZ5T2UEANFXB5PIKN2VS5LP7MQ3YMM7EDA 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,.,.,...,,.,,,..,..,,...,...,..,,...,...,,..,..,,.,.,,,.,,,,,
+#GR4YSS2BHKHK2AZNIXYOS6COBC3WHPHXP7EIAHK2MKRZFLXP4LTEIA6OODAVRRUQ5INPDKCS3FTSO
+#\\\|S2FY6MEWLRNQCI42H5DZTHOHFCT4P2KDC42ZW5LNGI4OSROK473 \ / AMOS7 \ YOURUM ::
+#\[7]QGFUAXKNRKKBEYADMWUTRIPTZF6GEDH4DKZOHAPBCPE7JZBXFCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
