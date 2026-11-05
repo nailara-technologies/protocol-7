@@ -121,8 +121,18 @@ if ( <nshell.mode.no_tty_debug> && length <nshell.buffer.debug_input> ) {
                     0, 'nshell: stdin closed [ terminal gone ], exiting'
                 );
                 exit(0);
+            } elsif ( $!{EAGAIN} or $!{EWOULDBLOCK} or $!{EINTR} ) {
+                last;    ## no input yet ##
             } else {
-                last;
+
+                ## any other read error : a hung-up pty answers EIO, not    ##
+                ## eof [ pri 2026-11-05 : the terminal was gone, every read ##
+                ## failed, the watcher refired for 12 hours ]               ##
+                <[base.logs]>->(
+                    0, 'nshell: stdin read failed [ %s ], exiting',
+                    "$OS_ERROR"
+                );
+                exit(0);
             }
         }
         return undef if !length $input_chars;
@@ -130,7 +140,16 @@ if ( <nshell.mode.no_tty_debug> && length <nshell.buffer.debug_input> ) {
 } else {
     ## Piped input: use line-oriented reading
     if ( !length $input_chars ) {
+        $OS_ERROR = 0;    ## eof leaves errno alone : no stale EAGAIN ##
         my $line = <STDIN>;
+
+        ## end of piped input : nothing more will come -- exit instead of ##
+        ## returning to a watcher that refires forever                    ##
+        if (    not defined $line
+            and not( $!{EAGAIN} or $!{EWOULDBLOCK} or $!{EINTR} ) ) {
+            <[base.logs]>->( 1, 'nshell: stdin ended, exiting' );
+            exit(0);
+        }
         $input_chars = $line // '';
         return undef if !length $input_chars;
     }
@@ -397,8 +416,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,..,,...,..,,..,,,,.,...,,..,,..,...,,.,,.,.,...,..,,.,,,,..,.,.,.,,,,,,,
-#PF7ISPAANNC5WZGHPTRCETHFH7Z5F5Y7I6JFUIUFZOI2IOM2J76GXWN36IBFZVXITGYNOYBEUQS5M
-#\\\|VCTDM2JDEDX2WGGMIMMACR6IR2F5RMT3YN5RME35UR2JFEFF7PI \ / AMOS7 \ YOURUM ::
-#\[7]SILC7ZNV7KEN2DEKGKTEZHR3QHXLVPL4IJ4TJDLTOWQMJ3V4N2BY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,,,..,,,.,,,.,,,.,,,,,,.,.,,,.,.,.,...,...,.,.,...,.,.,,..,..,,
+#GTGLNUGBNXOTI2XXSJFKJCXK2BPUW6FE4U7RZQI6LXTRPQ3URM26KGTXCGDWRWBQ3BFYMI5CALT7I
+#\\\|HRJRT7KUD4KX6VCKI5J6JBXSP365OJM4QG6DYB7ZIU655UUB2RN \ / AMOS7 \ YOURUM ::
+#\[7]WPLLLCYVLJB3H6GGNHSFTWREJ7MYSL6UXVTH4LBVRYZ7AUOSV2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
