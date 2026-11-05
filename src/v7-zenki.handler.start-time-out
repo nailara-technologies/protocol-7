@@ -16,17 +16,62 @@ if ( defined $instance->{'timer'}->{'start-time-out'} ) {
     delete $instance->{'timer'} if not keys %{ $instance->{'timer'} };
 }
 
-if ( defined $instance->{'status'}
-    and $instance->{'status'} eq qw| starting | ) {
+return
+    if not defined $instance->{'status'}
+    or $instance->{'status'} ne qw| starting |;
+
+## host memory pressure : a start stalled in reclaim is slow, not broken -- ##
+## same rule as v7-zenki.handler.heartbeat_response_timeout : while the     ##
+## level is elevated \ critical                                             ##
+## [ or the latest sample already crosses the critical avg10 ] wait again,  ##
+## up to heartbeat_ext.<level> times                                        ##
+my $level  = <v7-zenki.pressure.level>  // qw| calm |;
+my $latest = <v7-zenki.pressure.latest> // {};
+$level = qw| critical |
+    if $level eq qw| calm |
+    and ( $latest->{'mem_full_avg10'} // 0 )
+    >= ( <v7-zenki.cfg.pressure.critical.mem_full_avg10> // 5.0 );
+
+my $ext_max
+    = $level eq qw| critical |
+    ? <v7-zenki.cfg.pressure.heartbeat_ext.critical> // 6
+    : $level eq qw| elevated |
+    ? <v7-zenki.cfg.pressure.heartbeat_ext.elevated> // 3
+    : 0;
+my $ext_count = $params->{'pressure_ext'} // 0;
+if ( $ext_max and $ext_count < $ext_max ) {
+    my $ext_secs = <v7-zenki.cfg.pressure.heartbeat_ext.secs> // 17;
     <[base.logs]>->(
-        0, "instance %d ['%s'] start timed out after %.1fs",
-        $instance_id, $zenka_name, $timeout
+        $ext_count ? 2 : 1,
+        "instance %d ['%s'] start slow under %s memory pressure -- "
+            . 'waiting [ %d \ %d ]',
+        $instance_id,
+        $zenka_name,
+        $level,
+        $ext_count + 1,
+        $ext_max
     );
-    <[zenka.change_status]>->( $instance_id, qw| error | );
+    $instance->{'timer'}->{'start-time-out'} = <[event.add_timer]>->(
+        {   'after'   => $ext_secs,
+            'handler' => qw| v7-zenki.handler.start-time-out |,
+            'data'    => {
+                'instance_id'  => $instance_id,
+                'timeout'      => $timeout + $ext_secs,
+                'pressure_ext' => $ext_count + 1,
+            }
+        }
+    );
+    return;
 }
 
-#,,.,,...,.,.,.,,,,.,,,,,,,,,,,,,,,..,..,,,.,,..,,...,...,...,..,,.,,,,,,,,..,
-#JCDQFU5WENKZCO7NTUBABN2G3QAHOQQOZ5WV6IX4MNY2WF65PO6URODARMBCFCBVW3J5Z24GSJZ5S
-#\\\|MUVKIO2GKVG2JGNMIIZHIIHMAC2K7MQSMJ3W5YB5IS66ZS4V7LJ \ / AMOS7 \ YOURUM ::
-#\[7]UH4ZIBAJDL7QEHEZTKEYBSUNQ5O4CTQAS7BXHEFRENQHIF6DBSDA 7  DATA SIGNATURE ::
+<[base.logs]>->(
+    0, "instance %d ['%s'] start timed out after %.1fs",
+    $instance_id, $zenka_name, $timeout
+);
+<[zenka.change_status]>->( $instance_id, qw| error | );
+
+#,,.,,.,.,,,.,.,.,,,.,,,,,...,.,.,.,,,,.,,,.,,..,,...,...,..,,.,,,,..,.,.,,,,,
+#B6RXKTQCJZV52XK77KGYM2DAJFOPCWX7Y5BDFCYTAKLSCQLLLY5KDYU4PL5VWPZAO7DKQ2ZPLKTKS
+#\\\|MG7744F3CGOITH6RFBMNBB6FWLQBDQERKTJTTY2REV5ZLBGQGJE \ / AMOS7 \ YOURUM ::
+#\[7]53HQ2B2YRNHL5ISI2XVC3VO5CZSKCZANXPR4UVWN4CH3T2ZNCQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
