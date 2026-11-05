@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — START HERE [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
+- [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — START HERE [ d02c3b067 ] : shm A landed, grants real ed25519, header v2 ; azurum pull + first menu start open ; next N7FS
+- [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — previous [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
 - [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 : format 1 tested, CLI only, no deployment, no user in src ; owner decisions listed, binary byte form first
 - [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — previous [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
 - [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — previous [ 4802120dd ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
@@ -102,8 +103,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,.,,,,.,,..,,,.,,,..,...,,,,,..,,..,,,..,..,,...,..,,..,,...,,,,,,.,,...,
-#EIYDCL7VL4CRK3JMOVVCXX6QB75PSI2PPNP7AZD5QNWLFHABKYWLRDF5SKKAFAVV663AQWPYGB43I
-#\\\|PPLUTNKG4PWWHS7YQILOZYMUOFUJRNDRTMIZ2OG6NVBD4GSG25G \ / AMOS7 \ YOURUM ::
-#\[7]HKDYBDXHIHQUAUQO2G2DTRR5QFTRVLA4RBL2J5V5YWEKEYTQUMAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,..,,...,.,,,,.,,..,,,,,,,..,,,,,..,,...,...,,..,,.,,,..,...,.,.,
+#HE32VEPPVE4MLG6UMBRNPP63AM23UUUEQ5JP5WJE2ZU5SU475D4TB3FLOQXBPIKZDRHQCYUMGCFGK
+#\\\|W5DK5JHNUYWEHW2OFT6LMOMKJI4ZSZTUOD76NTAJTWZK3CQDZXM \ / AMOS7 \ YOURUM ::
+#\[7]VD6K66QJFBTCBDJ6LZIBCZSYQXGJSR35H4QWV653RWAUGNE3J4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
