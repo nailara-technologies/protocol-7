@@ -132,12 +132,18 @@ my $fetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
 <[jobsite.fetched.subscribe]>->($fetch_zenka)
     if $fetch_zenka ne qw| site-yaml |;
 
+## remote fetch : skip + block lists travel once per scan in parts         ##
+## [ site-yaml.scan-lists ], the imports name them [ lists= ] -- inline in ##
+## every import they outgrew the input buffer                              ##
+my $remote  = $fetch_zenka ne qw| site-yaml | ? TRUE : FALSE;
+my $scan_id = sprintf qw| scan-%d-%d |, time, $PID;
+my @imports;
+
 for my $cat ( sort keys %cat_urls ) {
     my $args_str
-        = $fetch_zenka ne qw| site-yaml |
-        ? sprintf 'url=%s handler=:hold: skip=%s '
-        . 'block_data=%s full=%d cat=%s',
-        $cat_urls{$cat}, $skip_ids, $block_data, ( $full_mode ? 1 : 0 ), $cat
+        = $remote
+        ? sprintf 'url=%s handler=:hold: lists=%s full=%d cat=%s',
+        $cat_urls{$cat}, $scan_id, ( $full_mode ? 1 : 0 ), $cat
         : sprintf 'url=%s handler=%s skip=%s block_file=%s full=%d cat=%s',
         $cat_urls{$cat},
         qw| jobsite.job-upsert |,
@@ -146,15 +152,15 @@ for my $cat ( sort keys %cat_urls ) {
         ( $full_mode ? 1 : 0 ),
         $cat;
 
-    <[protocol-7.route-send]>->(
-        {   'command'   => $fetch_zenka . '.import',
-            'call_args' => { 'args' => $args_str },
-            'reply'     => {
-                'handler' => qw| jobsite.handler.fetch-done |,
-                'params'  => { 'category' => $cat, 'url' => $cat_urls{$cat} },
-            },
-        }
-    );
+    push @imports,
+        {
+        'command'   => $fetch_zenka . '.import',
+        'call_args' => { 'args' => $args_str },
+        'reply'     => {
+            'handler' => qw| jobsite.handler.fetch-done |,
+            'params'  => { 'category' => $cat, 'url' => $cat_urls{$cat} },
+        },
+        };
 }
 
 ## track how many fetch replies we expect
@@ -162,8 +168,44 @@ for my $cat ( sort keys %cat_urls ) {
 ## a cycle cut short counts nothing over ##
 <jobsite.fetch_cycle> = undef;
 
-#,,,.,.,.,.,.,.,.,,.,,.,.,,..,,.,,,,,,.,.,.,,,..,,...,...,.,,,...,.,.,.,.,.,.,
-#7MTDFFEIU4DG4VZB6UAUIPHC5EVAOASR42TDLOJ5YXDL5PEMLSHM6KX5MHZTONFYEFHX2LHXSDUJC
-#\\\|M3PSUNFHTOZ3MODRINKP2ESLFWZFCIZHJUH7UN3YIG54U46P5H5 \ / AMOS7 \ YOURUM ::
-#\[7]V4M24ZQYUPN6X3VAVFINEUQBNCCKDRHV64WS4NSLRDXGW4OHOIDA 7  DATA SIGNATURE ::
+if ( not $remote ) {
+    <[protocol-7.route-send]>->($ARG) foreach @imports;
+    return;
+}
+
+## lists in parts of at most 32 KB, split at commas ##
+my @parts;
+foreach my $list ( [ qw| skip |, $skip_ids ], [ qw| block |, $block_data ] ) {
+    my ( $kind, $joined ) = $list->@*;
+    my $part = '';
+    foreach my $entry ( split m|,|, $joined ) {
+        next if not length $entry;
+        if ( length($part) + length($entry) + 1 > 32768 and length $part ) {
+            push @parts, [ $kind, $part ];
+            $part = '';
+        }
+        $part .= length $part ? ",$entry" : $entry;
+    }
+    push @parts, [ $kind, $part ] if length $part;
+}
+
+<jobsite.scan_lists_out> = {
+    'scan_id'     => $scan_id,
+    'fetch_zenka' => $fetch_zenka,
+    'parts'       => \@parts,
+    'imports'     => \@imports,
+};
+<[base.logs]>->(
+    1,
+    ':: scan lists : %d part%s to %s [ %s ]',
+    scalar @parts,
+    @parts == 1 ? '' : 's',
+    $fetch_zenka, $scan_id
+);
+<[jobsite.scan_lists.send_next]>;
+
+#,,..,,..,,..,,,,,,.,,,.,,.,,,..,,.,,,,.,,,,,,..,,...,...,..,,.,,,.,,,.,,,...,
+#XS7MGI5MTRLSFOHZJPUWXSJBSTXHFWQYBTCGI42LTQ44LH6EBYVSS64UWQF56ZMSN6T2PRJDHJ54M
+#\\\|KZJLYTTHT2IEGYKVXXNCWUJ4ZK4Z2MEBXR3CTSIOHMNO5VASP6T \ / AMOS7 \ YOURUM ::
+#\[7]D4LST4EGC5R7VROC564GVNTBOQKMMDTBBLCNYSRE2GVEO6F5DICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

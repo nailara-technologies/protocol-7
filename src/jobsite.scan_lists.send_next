@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = jobsite.scan_lists.send_next
+# descr = remote scan : send the next skip \ block list part, one at a time
+#         [ each after the previous reply ] -- with none left, the imports
+#         that name the lists [ jobsite.stage.fetch ]
+
+my $out = <jobsite.scan_lists_out> // return;
+
+if ( my $part = shift $out->{'parts'}->@* ) {
+    my ( $kind, $data ) = $part->@*;
+    <[protocol-7.route-send]>->(
+        {   'command'   => $out->{'fetch_zenka'} . '.scan-lists',
+            'call_args' => {
+                'args' => sprintf(
+                    'id=%s kind=%s data=%s',
+                    $out->{'scan_id'}, $kind, $data
+                )
+            },
+            'reply' => {
+                'handler' => qw| jobsite.handler.scan-lists-sent |,
+                'params'  => { 'scan_id' => $out->{'scan_id'} },
+            },
+        }
+    );
+    return;
+}
+
+delete <jobsite.scan_lists_out>;
+<[protocol-7.route-send]>->($ARG) foreach $out->{'imports'}->@*;
+
+return;
+
+#,,..,.,.,..,,,.,,.,,,,.,,,,.,.,,,,,.,,,,,..,,..,,...,...,.,.,,.,,,..,,,.,..,,
+#FAWIVYSLZIU4A6F2A3LIYA2AEPYZ2BOMRANMNEHCPWZ5KWB5JVYQ6U6MVDEJVBA2JEO4SHFJRAJ6K
+#\\\|UZOXKN72B3UWAAXSX4DCXL45YPKE23QGSQPG27IESZUWRER3SZI \ / AMOS7 \ YOURUM ::
+#\[7]QABPUBXQRSJ2DQU7PL3JUJB2NHY5Z6ESOLNH3FYISU2AG37EA2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

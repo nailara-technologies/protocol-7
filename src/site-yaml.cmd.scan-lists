@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = site-yaml.cmd.scan-lists
+# descr = one part of a scan's skip \ block list :
+#         id=<scan-id> kind=<skip|block> data=<comma-list>
+#         -- import lists=<scan-id>
+#         uses them. remote scans send the lists in parts : inline they
+#         outgrew the input buffer [ one 238 KB command per category ]
+
+my $args_str = $call->{'args'} // '';
+my %param    = ( $args_str =~ m|(\w+)=([^\s]+)|g );
+
+my $scan_id = $param{'id'}   // '';
+my $kind    = $param{'kind'} // '';
+my $data    = $param{'data'} // '';
+
+return { 'mode' => 'false', 'data' => 'expected id=<scan-id>' }
+    if $scan_id !~ m|^[\w\-]{1,64}$|;
+return { 'mode' => 'false', 'data' => 'expected kind=skip|block' }
+    if $kind ne qw| skip | and $kind ne qw| block |;
+
+my $store = <site-yaml.scan_lists> //= {};
+
+## stores of finished \ abandoned scans : gone after an hour ##
+foreach my $old_id ( keys $store->%* ) {
+    delete $store->{$old_id}
+        if time - ( $store->{$old_id}->{'time'} // 0 ) > 3600;
+}
+
+my $entry = $store->{$scan_id} //= { 'skip' => [], 'block' => [] };
+$entry->{'time'} = time;
+push $entry->{$kind}->@*, grep {length} split m|,|, $data;
+
+return {
+    'mode' => 'true',
+    'data' => sprintf(
+        '%s %s : %d entries',
+        $scan_id, $kind, scalar $entry->{$kind}->@*
+    )
+};
+
+#,,..,..,,,,.,..,,..,,,..,...,,..,,..,,,.,,.,,..,,...,...,..,,,,,,...,,..,,..,
+#3V7DV3VZQSXH7IV27ELC64TUWMYTS3SEORYIRA4WFXE3TS2VDKFKAZFT53FJWQ5IP3QCWTVFHUEAU
+#\\\|2IA4RQ3Y2VFZK7U2Z7U6QAEPQILUECQUAPEE2ZEVW4F7SCPFMFR \ / AMOS7 \ YOURUM ::
+#\[7]SYH6OW2HODZPLQQJ7XOKNSDKDJGXRG53T7G752W7V2UNBAXAHQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

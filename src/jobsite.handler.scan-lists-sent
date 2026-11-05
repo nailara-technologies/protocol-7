@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = jobsite.handler.scan-lists-sent
+# descr = reply to one scan list part : the next part follows. a refused
+#         part sends the imports at once -- site-yaml then filters with what
+#         arrived [ more pages fetched, the scan still runs ]
+
+my $call = shift // {};
+
+my ( $mode, $text ) = <[base.reply.mode_text]>->($call);
+my $scan_id = $call->{'params'}{'scan_id'} // '';
+
+my $out = <jobsite.scan_lists_out> // return;
+return if $out->{'scan_id'} ne $scan_id;    ## a newer scan owns it ##
+
+if ( $mode eq qw| false | ) {
+    <[base.logs]>->(
+        0,
+        ':: scan lists %s : part refused [ %s ], importing without the rest',
+        $scan_id,
+        $text // ''
+    );
+    $out->{'parts'} = [];
+}
+
+<[jobsite.scan_lists.send_next]>;
+
+return;
+
+#,,,.,.,,,,,.,,.,,,,.,.,.,..,,,,.,..,,..,,,,.,..,,...,...,..,,..,,,,,,,,.,.,.,
+#IFH4LNX2D5CTRNHNRUEOHGWZTD5ZFD67MVKJNPJTZPCY7OQTQMOYC2XXHHB4YZU5MC4Y7OGKYOOXS
+#\\\|FOJRD2LE3VFM76IN5LPOINZLEUID4X7VIJED755VMFPA3MRPRCS \ / AMOS7 \ YOURUM ::
+#\[7]VSVHEW3TLNJSCILTNB34XNBCXHO3IIDPDGCYKZUQS6OVD5TTVAAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
