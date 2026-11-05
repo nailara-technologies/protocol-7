@@ -1,16 +1,21 @@
 ## [:< ##
 
 # name  = task.handler.stale-claim-sweep
-# descr = periodic : fail claimed \ in_progress tasks that did not move for
-#         task.cfg.stale_claim_secs [ the claiming worker died : a claim
-#         has no heartbeat and no expiry, it stayed in_progress for ever ]
-# note  = failed, not reset : the requester's own watchdog [ jobsite :
-#         assess_timeout x assess_watch_extensions, ~5 h ] gave up and
-#         dispatched again long before -- a reset would run it twice
+# descr = periodic : expires claims [ task.claim_expire :
+#         pending again, failed after max_attempts ]. a
+#         renewing worker's claim [ task.touch ] expires one
+#         lease after its last renewal, others after
+#         task.cfg.stale_claim_secs
+# note  = no double run : a requester dispatching again fails the
+#         old task first [ jobsite : superseded ], a failed task is
+#         never reset
 
-my $max_age = <task.cfg.stale_claim_secs> // 21600;
-$max_age = 21600 if $max_age !~ m|^\d+$|;
-return if $max_age < 600;    ## 0 \ small = sweep off ##
+## a renewing worker's claim [ task.touch : keep_alive ] expires one lease  ##
+## after its last renewal ; a worker that never renews keeps the long limit ##
+## [ task.cfg.stale_claim_secs, 0 \ small = off for them ]                  ##
+my $lease     = <[task.claim_lease]>;
+my $stale_max = <task.cfg.stale_claim_secs> // 21600;
+$stale_max = 21600 if $stale_max !~ m|^\d+$|;
 
 my $queue = <task.queue> // {};
 
@@ -23,7 +28,9 @@ foreach my $task_id ( keys %{$queue} ) {
 
     my $updated = $task->{'updated_at'} // '';
     next if not length $updated;
-    my $age = <[base.ntime.delta_seconds]>->($updated);
+    my $age     = <[base.ntime.delta_seconds]>->($updated);
+    my $max_age = $task->{'keep_alive'} ? $lease : $stale_max;
+    next if not $task->{'keep_alive'} and $stale_max < 600;
     next if not defined $age or $age <= $max_age;
 
     ## pending again for another worker, failed after max_attempts expiries ##
@@ -39,8 +46,8 @@ foreach my $task_id ( keys %{$queue} ) {
 
 return;
 
-#,,,.,.,.,,,,,.,,,,..,.,,,,,.,.,,,,..,...,.,.,..,,...,...,...,...,,..,,..,.,,,
-#TYY4VUXKHQGYNQLSBFGBLHPSB55P7NE3QMIBSUWUCWYUB6U3AZJFPPCC2WMRC722GMXZDOSGQFZAO
-#\\\|AJ2PAMNVCMX73526EY7R4DIQKU6TX64N236U5UUVQNWT2WBLZFN \ / AMOS7 \ YOURUM ::
-#\[7]EVNGJ5WHOEFXR5TH4L2J3L43VOTLZHL4P3LEPR5J7GDM3UP5MUDQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,..,,,..,,,.,..,,.,.,...,..,,..,,...,...,.,,,,,,,,,,,,.,,,..,
+#SAM2MZD2E6AGSPXIVDWA6K4HYTFCZII2O26WRGBWAPYIZAGRF4AAJFQKZ3G3SV6TIMHOAWCB4ALSG
+#\\\|KDWZXPILXUB4ZM2LFW4EFD5UIA3CR2GZT35EDQYSVS2NU7YIEGR \ / AMOS7 \ YOURUM ::
+#\[7]AIDIINQQR5RD2ZKFOAAKLGWWQFHY5W2V7WKNVHQP7UOFAPDCUACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

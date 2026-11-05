@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = models.task.drop-claim
+# param = <task_id> <reason>
+# descr = this host gives a claim up [ lease not renewed in time,
+#         a touch refused : superseded \ expired \ failed ] : the
+#         slot is freed, a job not started yet is removed, a running
+#         one finishes but its result is discarded
+#         [ models.handler.task-result ] -- the task may belong to
+#         another worker by then
+
+my $task_id = shift // '';
+my $reason  = shift // 'dropped';
+return FALSE if not length $task_id;
+
+<models.task.dropped>->{$task_id} = time;
+
+## stale markers : a result arrives within hours at the latest ##
+foreach my $old_id ( keys <models.task.dropped>->%* ) {
+    delete <models.task.dropped>->{$old_id}
+        if time - <models.task.dropped>->{$old_id} > 86400;
+}
+
+my $jobs = <models.task.jobs> // {};
+foreach my $job_id ( grep { $jobs->{$ARG} eq $task_id } keys $jobs->%* ) {
+    next if ( <models.task.active_job> // '' ) eq $job_id;    ## running ##
+    <[jobqueue.remove_job]>->($job_id);
+    delete $jobs->{$job_id};
+    <[base.logs]>->(
+        1, ': task %s : queued job %s removed [ %s ]',
+        $task_id, $job_id, $reason
+    );
+}
+
+<[models.task.release-claim]>->($task_id);
+
+return TRUE;
+
+#,,.,,.,,,,..,.,,,..,,...,,,,,,,,,..,,...,,..,..,,...,...,...,...,,.,,.,,,,.,,
+#YY4V2JJBJLAAGGPK7KAG5E3PGORAEOFYYSSJDW43UBG4HPLXIHCK4IZOOI5NFMA4MQTSBQY74NMRC
+#\\\|5YQ6WGHKWFUXYLVHFQPLE62FJCR4VMV2TAKFPGTCEEDTWZVWE5K \ / AMOS7 \ YOURUM ::
+#\[7]NAWYSPLX47BPCALER2VEOVA4LQFDM52SU7R2QJWOMTW2TIF4LWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

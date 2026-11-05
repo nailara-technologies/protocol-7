@@ -115,6 +115,7 @@ while ( $in_flight < $parallel ) {
     my $attempt
         = 1 + ( ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0 );
     <jobsite.tasks>->{$job_id}{'attempt'} = $attempt;
+    <[jobsite.dispatch.supersede]>->( $job_id, $attempt, qw| assess | );
 
     <[protocol-7.route-send]>->(
         {   'command'   => 'task.create',
@@ -138,8 +139,8 @@ while ( $in_flight < $parallel ) {
     $in_flight++;
 }
 
-#,,,,,,,,,,,,,,.,,,..,,,,,,,,,,,,,.,.,.,.,,..,..,,...,...,...,.,.,.,.,..,,..,,
-#Q446WJRVG4NVQRM22LBTSZTA5XOT2RHWRZOHFLW3QFZTXEYNTXKWWFYVDEMN5HKOMA7YWS7OD3NDU
-#\\\|7VQQ3O2UZYIJ3JWRYAMTTTAGWXNXVEPPBU776LJJJND3WA7WTNT \ / AMOS7 \ YOURUM ::
-#\[7]P2VHEZL4GKBQP5EEZVLRBGOBWM6IN2WXH6UUNUZ2CQKWBCM5D4DI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,,,.,,.,,.,.,,.,,.,.,.,,,,,,,..,,...,...,.,.,..,,,..,..,,.,,,
+#YNERZYLYTANJOW3JB2FBUSL4C5IYZI267JFZVGXCT4FLWZOPBC6N5XQSXA5T6TOASLTXNIUNXMG4I
+#\\\|DNNVL7FSE3ED2CJNLGIE4UN7IDOLTBMCYEZYG74JR55LZI7VDK6 \ / AMOS7 \ YOURUM ::
+#\[7]OCALE4R6TWRN4C5ATTML55AITS6OG67SFX4HKVQBB4SIHYH3Z2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

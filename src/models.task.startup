@@ -28,6 +28,18 @@ $old_timer->cancel if defined $old_timer and $old_timer->is_active;
 ## re-scans the queue                                                       ##
 <[models.task.rescan]>;
 
+## claim keep-alive : renews leased claims while their work lives ##
+## [ local and remote task zenki ]                                ##
+my $old_touch = <models.task.touch.timer>;
+$old_touch->cancel if defined $old_touch and $old_touch->is_active;
+<models.task.touch.timer> = <[event.add_timer]>->(
+    {   'after'    => 20,
+        'interval' => 20,
+        'repeat'   => TRUE,
+        'handler'  => qw| models.handler.task-touch |,
+    }
+);
+
 return FALSE if not <[models.task.remote]>;
 
 my @remote = grep { $ARG ne qw| task | } <[models.task.zenki]>;
@@ -61,8 +73,8 @@ $interval = 30 if $interval !~ m|^\d+$| or $interval < 5;
 
 return TRUE;
 
-#,,,.,,,,,...,.,.,.,.,,,.,..,,.,.,...,,,.,...,.,.,...,..,,...,,,.,,,,,.,,,...,
-#MSQ3YVYI5AUHMW5VP25YNG5RB5XR7ED7BFULIEUZVGTVHMJSM4ZOET4NDNIE76HS5TS3KABI37NYW
-#\\\|Y3TYKIP6OWBBJ7UYECRMR4EPXO6NBRYD7KUIHYAZ4M5WEFPN5E6 \ / AMOS7 \ YOURUM ::
-#\[7]JYRUNT5WRP7HVHS24VT7TJRF5Z5NEFTVTNH2E3VA6IK37O4FKECA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,,,..,,.,.,,.,,..,,,..,.,,,.,.,.,.,...,..,,,..,,..,,..,..,,,,.,
+#KBSFGFI2YSEVOHLKVU2RRT5WNO2CYKMF5GTAGOZNCNCY6QVIDZWH4RJOFHCIXVVOPN55JZOJYZ4LA
+#\\\|6JAMY35HY56ZUDNIGKY2TR5SKNPQXRYYKTF7DNLXTWSNZC25F3Q \ / AMOS7 \ YOURUM ::
+#\[7]6UHG24WD2SVX376TZF3QPAQ42P6LEA3CJZGEYWRJ2AMCAHZWIGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

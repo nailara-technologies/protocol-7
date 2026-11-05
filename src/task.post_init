@@ -53,12 +53,13 @@ my $sweep_interval = 15;
     $sweep_interval
 );
 
-## stale claims : a claimed \ in_progress task whose worker died stays so ##
-## for ever -- failed after task.cfg.stale_claim_secs without an update   ##
+## stale claims : a renewing worker's claim expires one lease after its    ##
+## last task.touch, others after task.cfg.stale_claim_secs -- checked each ##
+## minute                                                                  ##
 <task.cfg.stale_claim_secs> //= 21600;
 <[event.add_timer]>->(
     {   'after'    => 60,
-        'interval' => 600,
+        'interval' => 60,
         'repeat'   => TRUE,
         'handler'  => 'task.handler.stale-claim-sweep',
     }
@@ -77,8 +78,8 @@ my $sweep_interval = 15;
 
 0;
 
-#,,,,,,..,,,.,,.,,,,.,,,,,.,,,.,.,,,,,,,,,...,..,,...,...,.,.,...,..,,,,.,,..,
-#UVNXVSNZV56CVDG575SW7YO55RRLUYPIKDQCRDWY2MD3MLAHOCT6SKLODLVHQRNM3C3SGBBBA6WCA
-#\\\|YW5ZD47AF5DAXS7ZWRL723ZHB3HB4ESZPFNI7WAHFZL33P6Q5EB \ / AMOS7 \ YOURUM ::
-#\[7]Y2NW7EURAFQYXCCR45NLTRQZSVOOCUGVK66JU2OY74UJ222TJCCY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,.,,,,.,,..,,,,,,..,,...,.,,,..,,...,...,,,,,..,,...,,..,,..,
+#GIP7SRZKPEC5K3VVLJIOCJOVTORQPQ27G2XSWYO5XIWXIWWQVWQQDPU7VPBCUEPIO4PGGVHD2WGV4
+#\\\|2RRXSQV4POHTBIMR6M2ZDGLGRUYCZCFGYYBOZEKBTXEXQMAODOK \ / AMOS7 \ YOURUM ::
+#\[7]Y3WJ3O5JDSZCWJ4CKA2IVRFUZGCYCXJSWZYX22LNAJSP45LGNKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

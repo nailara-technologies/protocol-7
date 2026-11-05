@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = models.handler.task-touch-reply
+# descr = a claim renewal answered : TRUE renews it
+#         [ the reply names the lease ], FALSE means the task is not this host's claim
+#         any more [ superseded, expired, failed ] -- dropped, the
+#         work stops [ models.task.drop-claim ]
+
+my $call = shift // {};
+
+my ( $mode, $text ) = <[base.reply.mode_text]>->($call);
+my $task_id = $call->{'params'}{'task_id'} // '';
+
+my $claim = ( <models.task.claimed> // {} )->{$task_id};
+return if ref $claim ne qw| HASH |;    ## released meanwhile ##
+delete $claim->{'touch_pending'};
+
+if ( $mode eq qw| false | ) {
+    <[base.logs]>->(
+        0,        ': task %s : renewal refused [ %s ], claim dropped',
+        $task_id, $text // ''
+    );
+    <[models.task.drop-claim]>->( $task_id, 'renewal refused' );
+    return;
+}
+
+$claim->{'touched'} = time;
+$claim->{'lease'}   = $1 if ( $text // '' ) =~ m|\blease (\d+)|;
+
+return;
+
+#,,.,,,,.,.,,,...,...,,,.,,..,...,.,,,,..,..,,..,,...,..,,..,,,..,...,,.,,.,,,
+#4POXTZKBN4HCOJCLWDFKPGJUD7COBT7VVNSJ4HXPY2YCFV5OSJOENUV2BN6WNSPTINB3HQVQ6PY3E
+#\\\|IWA66N7HA4CHJX7ESUHAM6DMFJJ5OZF74WTURZEG3SCYNC2K73N \ / AMOS7 \ YOURUM ::
+#\[7]UG4BDQOPB645Q7IEH7CZSBP3P37YDY2OL3YV4X5YIF4OEO6MRECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
