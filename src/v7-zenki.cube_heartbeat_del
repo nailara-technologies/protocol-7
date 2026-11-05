@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = v7-zenki.cube_heartbeat_del
+# descr = unregister a managed zenka at cube
+
+my $instance_id = shift;
+my $instance    = <v7-zenki.zenka.instance>->{$instance_id} // return FALSE;
+return FALSE if not delete $instance->{'cube_heartbeat_registered'};
+my $cube_sid = $instance->{'cube_sid'} // return FALSE;
+
+<[protocol-7.command.send.local]>->(
+    {   'command' => qw| cube.zenka-heartbeat |,
+        'reply'   => {
+            'handler' => qw| base.handler.warn_nak_reply |,
+            'params'  => "cube.zenka-heartbeat del $cube_sid"
+        },
+        'call_args' => { 'args' => "del $cube_sid" }
+    }
+);
+
+return TRUE;
+
+#,,,,,,.,,.,.,,,.,..,,,,.,,,.,.,.,...,,,.,,..,..,,...,..,,...,,,,,..,,,,.,...,
+#BVCY6Q5CYGYJXWNNMRA3MA2QLV7XRDKEZLUGA7TKKVHIAJ3DK73ZGAUQVUNU3N3AMVRUKL7SJFIHM
+#\\\|EIAAKBX5AIERXSGY4JWHD2TTI6IIKSIR3Y5UROTV2HXW2XWOOCT \ / AMOS7 \ YOURUM ::
+#\[7]RGG5DZAXRIGODD5KSPC56EWJZ2FA7GSVNQKUDTVZD3VSO5CK2WCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

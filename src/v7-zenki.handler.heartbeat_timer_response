@@ -101,6 +101,12 @@ if (    $response->{'cmd'} eq qw| TRUE |
     delete $instance->{'heartbeat'}->{'errors'};
     delete $instance->{'heartbeat'}->{'pressure_ext'};    ## answered again ##
 
+    ## not yet known to cube's liveness probe                         ##
+    ## [ zenki already online at a v7 reload, or a restarted cube ] : ##
+    ## register on the first answer                                   ##
+    <[v7-zenki.cube_heartbeat_set]>->($instance_id)
+        if not $instance->{'cube_heartbeat_registered'};
+
     ##  latency stats [ zenka-stamped, cube : v7 round trip ]  ##
     my ( $latency, $source );
     if ( $response->{'call_args'}->{'args'} =~ m|\[ ([\d.]+) secs \]| ) {
@@ -202,8 +208,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,,.,,.,,,,,,..,,,,,,,,,,.,,,,,,,,,,,..,,,,.,..,,...,...,..,,..,,,.,,,.,,.,.,
-#JD4V7EZEMC3D4WAYZCOEODR443UOTUYO7OE7SJ2LEFBPFY6XP2JOPFW2VYEFCDVELTQNCJRWUKJAS
-#\\\|T7RYNLPJFVF2ORYFEXHRASB6DUI7Q7JW4NHZIQFYL5YJWI5HXI3 \ / AMOS7 \ YOURUM ::
-#\[7]XRZ67OFHV43JU7HBSY3ATGSFLEQZWMJLXAL2SDUDQR6UPEGKQOAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,,,..,,,.,,,,.,,.,,,.,,,,,,,,,,..,,...,..,,,.,,..,,,..,.,.,..,,
+#2GBX7XC6RQTTASO2E7WFIPGQZYVCOIF4TC42HQU7N5CG6D23QEH2IAURZU37QSPHMADV5INN7STF4
+#\\\|TS5NXDWMYWMTL32K7JVM6KU5ZANOJOW3SNPWIXZ7HMZWOSERT5X \ / AMOS7 \ YOURUM ::
+#\[7]E7CNT7DM5JJEH7LT73L6T5YYU2XQXW2J35EYVLVHNAA6QYZ4C2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

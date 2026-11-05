@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = v7-zenki.cube_heartbeat_set
+# descr = register a managed zenka at cube
+
+my $instance_id = shift;
+my $instance    = <v7-zenki.zenka.instance>->{$instance_id} // return FALSE;
+return FALSE if $instance->{'is-cube'};    ## cube is not its own client ##
+my $cube_sid   = $instance->{'cube_sid'}   // return FALSE;
+my $zenka_name = $instance->{'zenka_name'} // return FALSE;
+
+my $globals      = <v7-zenki.start_setup.globals>                     // {};
+my $zenka_config = <v7-zenki.start_setup.zenki.config>->{$zenka_name} // {};
+my $timeout      = 0;
+
+if ( not <[base.cfg_bool]>->( $zenka_config->{'heartbeat'}->{'disabled'} ) ) {
+    $timeout
+        = $zenka_config->{'heartbeat'}->{'timeout'}
+        || $globals->{'heartbeat'}->{'timeout'}
+        || 17;
+}
+
+my $command = sprintf 'cube.zenka-heartbeat set %d %s %s',
+    $cube_sid, $zenka_name, $timeout;
+
+<[protocol-7.command.send.local]>->(
+    {   'command' => qw| cube.zenka-heartbeat |,
+        'reply'   => {
+            'handler' => qw| base.handler.warn_nak_reply |,
+            'params'  => $command
+        },
+        'call_args' => {
+            'args' => sprintf 'set %d %s %s',
+            $cube_sid, $zenka_name, $timeout
+        }
+    }
+);
+$instance->{'cube_heartbeat_registered'} = TRUE;
+
+return TRUE;
+
+#,,.,,.,,,,.,,.,,,,.,,.,,,.,,,..,,,.,,...,.,,,..,,...,..,,,..,,..,,.,,...,,.,,
+#SGSNOWYOW7HZXYF6YTCUMGLNRKK2VTVSV5MMPML7Q6NWDDVZ5FMERK5HAIR4PAUTCTXEMSW6DW3V6
+#\\\|FRNTE32CB3YARWPC66DZE3YZCMOHII2SJGRRW36LXVCS7NDGEVT \ / AMOS7 \ YOURUM ::
+#\[7]4ENMYKT3AKYJGJ4LSUGXH3UQ3ESFINPZCN7YDXO22A424M3TBQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

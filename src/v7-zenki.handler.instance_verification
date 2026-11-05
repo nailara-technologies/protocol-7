@@ -14,6 +14,7 @@ if ( exists $instance->{'timer'}->{'verify_instance'} ) {
 if ( $verification_string eq $instance->{'instance_verification'} ) {
     <[base.log]>->( 1, "instance $instance_id : verified : success =)" );
     delete $instance->{'instance_verification'};
+    <[v7-zenki.cube_heartbeat_set]>->($instance_id);
 
     ## 'online' only once the zenka answers a heartbeat                   ##
     ## [ v7-zenki. startup_probe ] -- one that hangs right after start-up ##
@@ -27,8 +28,8 @@ if ( $verification_string eq $instance->{'instance_verification'} ) {
     <[zenka.change_status]>->( $instance_id, 'error' );
 }
 
-#,,..,.,.,,,.,..,,,..,.,,,.,.,,..,,..,.,.,...,..,,...,...,..,,..,,,..,,,.,,.,,
-#VPJWMG5IRYZFXAHKZOI62X4PBTHKL5SBVTZBQWQHKNJNUGCWO52NAULX3GWC5JOXM7IAT2UKC7WG2
-#\\\|S5WNFFPZZHDCPPVWTJRBPTYNWM3JC6UM3PI6EWG3AIFIYDJDKJF \ / AMOS7 \ YOURUM ::
-#\[7]M725ZXZ2JKEFNUG3EVVLUITYSYKZZF4GEOUZDIXSQCX2MJLDTICI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,.,,,..,,,,,,...,.,,,.,,,..,,..,,...,...,..,,..,,..,,,.,,,,,,
+#FEO7EQN7OOEA5CUA37CEV3VMGEGQCVKU3YG4PRABZNSDXR3EZU3AU7UPDS3VH7EVM32BCFW3GYV2G
+#\\\|7JL62AE6BOJE6Y5ZKEUMCCCNGILB6SRIJYAZ3R2RYQW7WTJ2GFQ \ / AMOS7 \ YOURUM ::
+#\[7]R4LOBLRJMUBC3VUPO7Q3DGZMFLEPL3SBALAEWADDIMK4QADW4YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

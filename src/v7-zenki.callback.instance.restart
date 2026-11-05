@@ -15,6 +15,7 @@ if ( not exists <v7-zenki.zenka.instance>->{$instance_id} ) {
 my $instance = <v7-zenki.zenka.instance>->{$instance_id};
 $instance->{'timer'}->{'restart'}->cancel;
 delete $instance->{'timer'}->{'restart'};
+<[v7-zenki.cube_heartbeat_del]>->($instance_id);
 delete $instance->{'cube_sid'};
 
 return
@@ -24,8 +25,8 @@ return
 
 <[jobqueue.move_job]>->( $instance->{'job_id'}, qw| queued | );
 
-#,,..,,.,,.,.,.,.,...,,,.,,.,,.,,,..,,,.,,.,,,..,,...,...,...,,..,,,,,...,,,.,
-#7WAO55QPYMCQKJHCZI6JQF53RXIJRAW2YZXNUCMBUJXHHZR3MTB4GL47J4PZHVUWIZ6VAPW42RPKK
-#\\\|EJZ77FRKUZAON6ABMTXUILRQI4CMEVHV4VEYGW45E6QSPMEKLPK \ / AMOS7 \ YOURUM ::
-#\[7]QVZY4OBJSBIY7DLBFYA7YVHLX3S7N6ZDJZXFO6B66N5SFUTB3UAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,.,,,,.,,,,,,,.,,,,,,,,,..,,.,,,..,,...,...,,..,...,,..,.,.,,,,,
+#XELB5UOLQDHAJTZCDW3OXR32PC4XVC65QQ32DS4EXOHJXGJ4ZW63ZFO6RAZ5MLCHLT52JW4I3FT2S
+#\\\|WXB4Z65SEZEOKVENIJOYXMVX5WBPOOYHFZQTVKXZ5YSBWKXU6DS \ / AMOS7 \ YOURUM ::
+#\[7]47CHSWCJ3DO3DLEREAQ2OREJFF6SC5HHPV2TDONURUFYSQ24G6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

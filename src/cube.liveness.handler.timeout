@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = cube.liveness.handler.timeout
+# descr = count a missed probe, close at the limit
+
+my $event         = shift;
+my $sid           = $event->w->data;
+my $state         = <cube.liveness.state> //= {};
+my $session_state = $state->{$sid} // return FALSE;
+delete $session_state->{'timeout'};
+
+my $session = $data{'session'}{$sid};
+if (   not defined $session
+    or $session->{'mode'} ne qw| client |
+    or not grep { ( $data{'route'}{$ARG}{'target'}{'sid'} // -1 ) == $sid }
+    values( ( $session->{'route'} // {} )->%* )
+    or exists <zenki.heartbeat>->{$sid} ) {
+    delete $state->{$sid};
+    return FALSE;
+}
+
+my $misses     = ++$session_state->{'misses'};
+my $max_misses = <cube.cfg.liveness.misses> // 3;
+return TRUE if $misses < $max_misses;
+
+my $user        = $session->{'user'} // qw| ----- |;
+my $open_routes = grep {    ## routes TO this session ##
+    ( $data{'route'}{$ARG}{'target'}{'sid'} // -1 ) == $sid
+} values( ( $session->{'route'} // {} )->%* );
+<[base.logs]>->(
+    0, '[%d] liveness : no answer to %d probes, closing session [ %s, %d ]',
+    $sid, $misses, $user, $open_routes
+);
+
+delete $state->{$sid};
+<[base.session.shutdown]>->( $sid, 'liveness : session not answering' );
+
+return TRUE;
+
+#,,,,,,,.,.,,,...,...,,.,,,,.,,.,,,,.,,..,..,,..,,...,...,,,.,,..,.,,,,,,,.,,,
+#5ANJTNS6DILSPH6DKRAP4O33KR4YQ5VKB4EDRWI7RXQE6ARFNODE44ILXAGQLGXQGTIWCRBRCJCIM
+#\\\|QWMXI2XJDOKA633QDGXVG6MDGJOD2XGNTT36X2FL3SIYPYN7RZL \ / AMOS7 \ YOURUM ::
+#\[7]TF4OEDEALJBZGAAEQ2MIARTHO266R2WGLLOPMTUTMJS55RJVA4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
