@@ -30,14 +30,38 @@ my $priority = ( $max_priority // 0 ) + 1;
 
 $dbh->begin_work;
 my $sth = $dbh->prepare(
-    'UPDATE session_queue SET ' . 'priority = ? WHERE item_id = ?' );
+    'UPDATE session_queue SET priority = ? WHERE item_id = ?');
+## invoke.ai writes the same db : a held write lock is an expected retry ##
+## [ last_seen stays, the next tick tries the same items again ] -- loud ##
+## only when it keeps failing, any other error at once                   ##
+my $busy_limit = 5;
+my $failed_err;
+
 foreach my $item_id (@$new_items) {
     next if $sth->execute( $priority, $item_id );
-    <[base.logs]>->( 0, 'queue watch : update failed [ %s ]', $dbh->errstr );
+    $failed_err = $dbh->errstr // 'unknown error';
+    last;
+}
+$failed_err = $dbh->errstr // 'commit failed'
+    if not defined $failed_err and not $dbh->commit;
+
+if ( defined $failed_err ) {
     $dbh->rollback;
+    if ( $failed_err =~ m|database is locked|i ) {
+        my $busy_count = ++<invoke-web.queue.busy_count>;
+        <[base.logs]>->(
+            $busy_count >= $busy_limit ? 0 : 2,
+            'queue watch : db locked by invoke.ai, retry next tick [ %d ]',
+            $busy_count
+        );
+    } else {
+        <[base.logs]>->(
+            0, 'queue watch : update failed [ %s ]', $failed_err
+        );
+    }
     return;
 }
-$dbh->commit;
+<invoke-web.queue.busy_count> = 0;
 
 <invoke-web.queue.last_seen> = $new_items->[-1];
 <[base.logs]>->(
@@ -47,8 +71,8 @@ $dbh->commit;
     @$new_items == 1 ? '' : 's', $priority
 );
 
-#,,.,,,..,,..,,,.,.,.,,.,,...,,.,,.,.,,.,,,,.,..,,...,...,,,.,,..,,..,.,,,.,,,
-#5Z2BL2SBCNWNILV77Q7J4SXP6JLHOBIX6CSOLMKM43XM4USMIHBU3JHUVP45WRN6E2FQDFS6T4EGQ
-#\\\|UZF4M53DDLFHLW3D4DYGDIB2Z2BY4EVW4ZEA7FE3D6GDIGE634O \ / AMOS7 \ YOURUM ::
-#\[7]SQVIFDD6B2X6YCYMUZET75D4AUXIYOLDJH7WNN2IMMEYKG3BDSBY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,.,.,..,,...,.,,,.,,,..,,.,.,..,,...,...,,.,,,..,.,,,,,.,,,,,
+#VR4JN2VGROY27SJEAXZM2GIOXHQZQAYXZMU242B26ZU3ABY5XJRPYVOV73LZQNSFFLVCADEEOKFA4
+#\\\|M3F4AXJ4QGINGADPOYEPMPF3SUZBZAYJW7HXY7TDCICBOUB7CWF \ / AMOS7 \ YOURUM ::
+#\[7]JKXAXPQPLEFXNOAUA67LCQMD24PBV56ZXJXRJKC6NMVTP2QBTEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
