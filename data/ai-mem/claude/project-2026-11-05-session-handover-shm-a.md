@@ -14,11 +14,10 @@ require Crypt::Ed25519. format-code : package files were wrapped as P7 modules, 
 the temp name -- any edit of those .pm files aborted the sign run.
 
 **verified live, desktop** : powershell stream on v2, grantee opens, stranger access_denied, real pointer data at
-offset 4096. protocol-7-menu itself NOT run [ was not running ] : first menu start is the remaining check.
+offset 4096. protocol-7-menu confirmed by the owner : shm open logged, translucency follows the pointer.
 
 **deployed** : hub, srv-U F V A on d02c3b067 ; no segments or shm zenki there, no reload needed.
-azurum NOT pulled : `::: azurum ..` 'user not authorized', the ssh + local p7c try was denied by the session's
-permission classifier. the owner decides ; it has no p7:M segments.
+azurum pulled and restarted by the owner.
 
 **FKS stays open** : a local reader with file rights can still map a segment -- encrypted pages step closes that.
 remaining plan in [[project-2026-11-05-session-handover-pressure-io]] : seal \ open into AMOS7::Twofish, then pages.
@@ -28,8 +27,8 @@ AMOS7::N7FS::Sign at runtime -- the first user of N7FS code outside its tests.
 
 #
 
-#,,..,.,,,.,.,,.,,,,,,.,.,,,,,,.,,,.,,,.,,,..,..,,...,...,..,,,,.,.,.,,..,...,
-#3D6APQKQZCWKZH7QNBOKST7HWHZFRRHOINILYA6ZENSQOZYT5UFQTZPVIE57I56W3BMJ2OEVOMKES
-#\\\|TWG74FN6L6ARI7NWI4ATMRLFC543MKK344EQDW5QCWVFRZIZ3PP \ / AMOS7 \ YOURUM ::
-#\[7]N55Y2A2Z3HWHGJLBS55GPOZ3MALKI6YLANGYSZC7VBJ7U2Z4B4AQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,,,...,,,.,.,.,..,,..,,...,.,.,..,,...,...,,.,,,,,,..,,..,,,,.,
+#C2QCH2INFIOA7AUS3KXIXMZIXE4PM7BLZA4JMK5VTYJY6Q3776DI4F6XEQTQNEK6P3PFQ3A3JA7ZY
+#\\\|OGTIIMXRRSMEWEHER664BXNL5ZUALFSZIZSXWXI7RATGNHW4AXO \ / AMOS7 \ YOURUM ::
+#\[7]4P6CRFBAWMVGMUEUNQJVDSCYRQYIPUCGXOC364GLXD4DV3MPFYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

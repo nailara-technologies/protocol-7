@@ -5,7 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — START HERE [ d02c3b067 ] : shm A landed, grants real ed25519, header v2 ; azurum pull + first menu start open ; next N7FS
+- [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — START HERE [ d02c3b067 ] : shm A landed, grants real ed25519, header v2, live everywhere ; next N7FS
 - [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — previous [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
 - [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 : format 1 tested, CLI only, no deployment, no user in src ; owner decisions listed, binary byte form first
 - [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — previous [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
@@ -103,8 +103,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,,.,..,,..,,...,.,,,,.,,..,,,,,,,..,,,,,..,,...,...,,..,,.,,,..,...,.,.,
-#HE32VEPPVE4MLG6UMBRNPP63AM23UUUEQ5JP5WJE2ZU5SU475D4TB3FLOQXBPIKZDRHQCYUMGCFGK
-#\\\|W5DK5JHNUYWEHW2OFT6LMOMKJI4ZSZTUOD76NTAJTWZK3CQDZXM \ / AMOS7 \ YOURUM ::
-#\[7]VD6K66QJFBTCBDJ6LZIBCZSYQXGJSR35H4QWV653RWAUGNE3J4AI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,.,.,,,.,,,.,.,..,,..,,,..,,.,,..,,...,...,,.,,.,.,,,,,...,.,,,
+#SDMHMXQHDSW6N4QITSMS4YZDJMZ4A32WJ4HVZEVYL7YMQFJ733RIEWXR7WEDDZQCMQLV6RWOKAZR6
+#\\\|7YNTOAP5VPKVW6BRS65IRCQAYJGM26BK7ECBEL3G24FR3OUBBJZ \ / AMOS7 \ YOURUM ::
+#\[7]CPEM4DRUAWAYD5LREDRX4IX2O3ZGIAHQDK6I2L5VW2MWDR3VL6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
