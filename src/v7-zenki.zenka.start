@@ -450,9 +450,6 @@ my @cmd_line_mods
     ##  remembered state is present before exec [ no post-start signal ]  ##
     local $ENV{'PROTOCOL_7_DEVMOD_STATE'} = $instance->{'devmod_state'}
         // qw| off |;
-    delete $instance->{'devmod_pending'};
-    $instance->{'devmod_queue'}          = [];
-    $instance->{'devmod_signaled_state'} = qw| off |;
 
     ##  caller-supplied env override for stdin-zenka mode  ##
     if ( defined $env_override_key ) {
@@ -568,8 +565,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,.,,.,.,.,,,,,,,,..,.,.,.,.,,.,,,.,,.,,,,,.,..,,...,...,.,.,.,,,,,.,...,..,,
-#LMVN2IJCHI6JLELITHV7ZWK2B6VDBCPUXQQFYTW6WCVHCVPVP6DPWICPAN62WTEPZXMJYAHAILND6
-#\\\|BOMXPPGTNX6AKJOTSUTYW4VC6AQ4V3EKX3TR4OLW6KBNCUZKU2U \ / AMOS7 \ YOURUM ::
-#\[7]6TVP5257AJ6Y5DPYSMGZYTXFMRIBY67AUI5PXWYGJJ2THQYZLYDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,,,,,.,,,.,,,.,...,.,,,,,.,.,,,..,,...,...,,.,,,..,,,,,..,,...,
+#YQV47TDMWHX4EMCKUHNLBLAPA7MSRAQO7FHYE5ABD43CK4IBTBTSJ7JEAFWVIZHFEJBY4EEBKJCLU
+#\\\|2ED2D3A7L4D3BBDS4KVJY2Y33NNKTW7AZHKX3QEYJROR47Z2U7V \ / AMOS7 \ YOURUM ::
+#\[7]UDC3B6TMISJDCELZGEOWX5FU3PGSBWYBTINMGH3SYXPY3YTP2ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

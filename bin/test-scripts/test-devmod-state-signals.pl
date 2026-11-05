@@ -171,41 +171,25 @@ $data{'base'}{'devmod'}{'requested_state'} = 'off';
 $process->();
 ok( $data{'base'}{'devmod'}{'state'} eq 'off', 'off state is recorded' );
 
-say ': v7 serializes each instance until its acknowledgement';
-$code{'base.logs'} = sub { return TRUE };
-$code{'v7-zenki.instance_ids'}
-    = sub { return keys $data{'v7-zenki'}{'zenka'}{'instance'}->%* };
-my $send_next = compile_src('v7-zenki.devmod.send_next');
-$code{'v7-zenki.devmod.send_next'} = $send_next;
-my $ack = compile_src('v7-zenki.zenka.cmd.devmod-ack');
-$data{'v7-zenki'}{'zenka'}{'instance'}{7} = {
-    'process'      => { 'id' => 4242 },
-    'cube_sid'     => 77,
-    'devmod_queue' => [ 'safe', 'full' ],
-};
-$send_next->(7);
-$send_next->(7);
-ok( @$sent_signals == 1 && $sent_signals->[0][0] == 51,
-    'safe sends NUM51 and a duplicate call sends nothing'
-);
-$call = { 'args' => 'coding 77 safe safe' };
-$ack->();
-ok( @$sent_signals == 2 && $sent_signals->[1][0] == 53,
-    'the safe ack releases full as NUM53' );
-$call = { 'args' => 'coding 77 full full' };
-$ack->();
-ok( !defined $data{'v7-zenki'}{'zenka'}{'instance'}{7}{'devmod_pending'},
-    'the full ack clears the pending action' );
-
-$data{'v7-zenki'}{'zenka'}{'instance'}{7}{'devmod_queue'} = ['off'];
-$send_next->(7);
-ok( $sent_signals->[-1][0] == 50, 'off sends NUM50' );
-$call = { 'args' => 'coding 77 off off' };
-$ack->();
-$data{'v7-zenki'}{'zenka'}{'instance'}{7}{'devmod_signaled_state'} = 'full';
-$data{'v7-zenki'}{'zenka'}{'instance'}{7}{'devmod_queue'}          = ['safe'];
-$send_next->(7);
+say ': v7 signals each target state directly [ no queue, no ack ]';
+$code{'base.logs'}  = sub { return TRUE };
+$code{'base.cnt_s'} = sub { return $ARG[0] == 1 ? '' : $ARG[1] };
+my $request = compile_src('v7-zenki.devmod.request');
+$data{'v7-zenki'}{'zenka'}{'instance'}{7} = { 'process' => { 'id' => 4242 } };
+my $instance_7 = $data{'v7-zenki'}{'zenka'}{'instance'}{7};
+my $result     = $request->( { 'args' => '7' }, 'safe' );
+ok( $result->{'mode'} eq 'true' && $sent_signals->[-1][0] == 51,
+    'safe sends NUM51' );
+$request->( { 'args' => '7' }, 'full' );
+ok( $sent_signals->[-1][0] == 53 && $instance_7->{'devmod_state'} eq 'full',
+    'full sends NUM53 at once and is recorded' );
+$request->( { 'args' => '7' }, 'safe' );
 ok( $sent_signals->[-1][0] == 52, 'full to safe sends NUM52' );
+$request->( { 'args' => '7' }, 'off' );
+ok( $sent_signals->[-1][0] == 50 && $instance_7->{'devmod_state'} eq 'off',
+    'off sends NUM50' );
+ok( read_src('base.devmod.process_signal') !~ m|devmod-ack|,
+    'zenki send no devmod acknowledgement' );
 
 my $start_src = read_src('v7-zenki.zenka.start');
 ok( $start_src =~ m|local \$ENV\{'PROTOCOL_7_DEVMOD_STATE'\}|,
@@ -222,8 +206,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,.,,...,...,.,,,.,.,,..,,,.,,,.,,..,,,.,..,,...,...,..,,..,,,.,,.,.,.,.,
-#4J2UWR2G64GGAGY2EVJLL464TY6FU4LGUYC7HSRP5U62C7QA3KCKFMQ6OTV6KFY3ST33XIZVS7O7A
-#\\\|A2TJQEG5DCE2ABUZPUVJUZTH3GQVTSWWHCOW6X4U56DCTTS6HRA \ / AMOS7 \ YOURUM ::
-#\[7]4QNXQSPRBMR5FCXWWPOZI4YQO62BODYW2IYZADQAISLYO36QFUAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,.,,...,.,,,,,,,,.,,.,,,...,,.,,..,,...,...,.,,,,,,,,,.,,..,,,.,
+#5XYFSR72YZ4OHYCZ3NGRWSZZELRQKF4QS3TB5VYYA7JTLACZTWYFFEFJVPGSMOVB2NHPBDISJKGES
+#\\\|ND5BS3DOYSYYNFMDTRSXJNMWOGGYRCF6GQC2NDTMX7B47XKIMKA \ / AMOS7 \ YOURUM ::
+#\[7]LKTI7HAD7WWEPENO2NLF7UU2QKLELM7QFUNRM52UHCNAOMQJJKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

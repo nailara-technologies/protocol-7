@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = v7-zenki.devmod.request
-# descr = resolve targets and queue a devmod state transition
+# descr = resolve targets and signal a devmod state transition
 
 my ( $call_args, $requested_state ) = @ARG;
 my $params = $call_args->{'args'};
@@ -51,34 +51,47 @@ foreach my $param_str ( split( m| +|, $params ) ) {
     }
 }
 
-my $queued_count = 0;
+## each signal names an absolute target state : the handler only sets a ##
+## flag, the last one wins -- nothing to serialize, no ack needed       ##
+my %signal_for = qw| off 50 safe 51 full 53 |;
+my @pids;
 foreach my $instance_id (@instance_ids) {
     my $instance = <v7-zenki.zenka.instance>->{$instance_id};
-    next if not defined $instance->{'process'}{'id'};
+    my $pid      = $instance->{'process'}{'id'};
+    next if not defined $pid;
+
+    my $signal = $signal_for{$requested_state};
+    $signal = 52
+        if $requested_state eq qw| safe |
+        and ( $instance->{'devmod_state'} // qw| off | ) eq qw| full |;
+    next if not kill $signal, $pid;
 
     $instance->{'devmod_state'} = $requested_state;
-    $instance->{'devmod_queue'} //= [];
-    push $instance->{'devmod_queue'}->@*, $requested_state;
-    $queued_count++ if <[v7-zenki.devmod.send_next]>->($instance_id);
+    push @pids, $pid;
+    <[base.logs]>->(
+        1, 'instance %d devmod %s signaled [ SIGNUM%d ]',
+        $instance_id, $requested_state, $signal
+    );
 }
 
 return {
     'mode' => qw| true |,
     'data' => sprintf(
-        'queued devmod state %s for %d instance%s',
-        $requested_state, $queued_count,
-        <[base.cnt_s]>->( $queued_count, qw| s | )
+        'signaled devmod state %s to %d instance%s [ %s ]',
+        $requested_state, scalar @pids,
+        <[base.cnt_s]>->( scalar @pids, qw| s | ),
+        join( ',', @pids )
     )
     }
-    if $queued_count;
+    if @pids;
 
 return {
     'mode' => qw| false |,
     'data' => 'no success sending a signal to any process'
 };
 
-#,,,.,.,.,,..,..,,,,.,,,.,,..,,.,,.,.,...,,,,,..,,...,.,.,..,,.,.,.,,,.,,,,..,
-#ZPSRND5UT6UUMEBP7QAJWOH7TQC7V7EGDJNANUCA5HQCN4TZDJWOTANGU6G4IOLOAP5RTRNTDEPNI
-#\\\|CVFGQUSDMSPV7QAMF7545LMFRQNP5ELECYAIHC6PMKYQDRNS2LR \ / AMOS7 \ YOURUM ::
-#\[7]IQG422LOU262KTH3GZD5SIVGK3KHLPMWD5OPCTGJ5Y6D6LIBV6DA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,,,,,.,.,.,.,,.,,,,.,,,.,,.,,..,,...,...,.,.,,,.,.,.,.,.,.,,,
+#YRG5FD2B643SFOIESTEL6OYUAFJU4THETGHW623LO5UMOJALUNMZ25OQRA5RLSYJ4IK32TD2Q5N54
+#\\\|XT4BEMQMLKUUIPDASXHW3YLHJFHMH54F4TRJ6GYYM5F6AOBJJSX \ / AMOS7 \ YOURUM ::
+#\[7]HTJMSRZSZ34ZH3AB6DOG6YI7TSRQT4HHNGG7CQYDXZSVGAJ4V2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,27 +36,10 @@ if ( $requested_state eq qw| off | ) {
     $requested_state, $success ? qw| complete | : qw| failed |
 );
 
-if ( keys $data{'session'}->%* ) {
-    my $result_state = $success ? $requested_state : qw| error |;
-    my @ack_args     = ( $result_state, $requested_state );
-
-    ## cube routes itself : no cube. prefix and no alias injection, its own ##
-    ## name + sid 0 are set here [ as base.log.send-buffer does ]           ##
-    my $is_cube = <system.zenka.name> eq qw| cube |;
-    unshift @ack_args, qw| cube 0 | if $is_cube;
-    <[protocol-7.command.send.local]>->(
-        {   'command' => $is_cube
-            ? qw| v7-zenki.devmod-ack |
-            : qw| cube.v7-zenki.devmod-ack |,
-            'call_args' => { 'args' => join( ' ', @ack_args ) }
-        }
-    );
-}
-
 return $success;
 
-#,,.,,...,,,.,.,.,,,.,.,,,,..,..,,,,.,,,.,,,,,..,,...,...,,,,,,..,,.,,,.,,,,.,
-#EQ65Y4OKM37SEA553F4JVTBSMYBV6FCURI33XLATUAGVYY6CAMXL2IFUKPE2VOZDIS357M6KHY7FI
-#\\\|BZKMOWUGNVL7XSW4BSF35PJ4AXCZ7OCIK3X4XVX33MB5KEEO57I \ / AMOS7 \ YOURUM ::
-#\[7]546W5R3MMAG7MHV7POE6OKIJ4HGBZ42ZJ2PXCNO47GCJFI7ONUDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,,,.,,..,,,,,,,,,,.,,,..,...,..,,...,...,...,.,,,,,,,,.,,,,.,
+#2OWEIZ2ZZJNCTWPOTGCS43YOQJYEUDFI3QW4TCJDTOQFDUUDOHIX3R2P37LD65HDWY4H27HCGU7MK
+#\\\|HFDOVGVPMQ5LLQABEW3JG64PLATJ7D5VWAKGEHVLK273FEEJKWW \ / AMOS7 \ YOURUM ::
+#\[7]D7T3QSIENP3YZHPPL7WY7FDTSEDOZMCGP4XQOIFQONOLM32QRQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
