@@ -9,7 +9,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — previous [ 4802120dd ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
 - [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — previous [ 485d04329 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive
 - [shm-permissions-forgeable-open](project-2026-10-22-shm-permissions-forgeable-open.md) — OPEN SECURITY, high [ todo FKS ] : AMOS7::SHM::sign_permission is a computable hash -- shm permissions forgeable
-- [signature-valid-truth-map-ignored](project-2026-10-22-signature-valid-truth-map-ignored.md) — OPEN [ todo VWF ] : signature_valid ignores a caller truth map ; owner : highly relevant, features build on it
+- [signature-valid-truth-map-ignored](project-2026-10-22-signature-valid-truth-map-ignored.md) — FIXED 2026-11-05 [ 66f759706, VWF ] : signature_valid honours a caller truth map [ truth checks only ] ; non-default map untested until the form footer
 - [sync-helpers-need-blocking-cube-socket](feedback-sync-helpers-need-blocking-cube-socket.md) — never flip a shared socket's mode : sync helpers read it ; per-call MSG_DONTWAIT instead
 - [ondemand-helper-recursion-in-deps-register](feedback-ondemand-helper-recursion-in-deps-register.md) — a new sub on the compile path recurses via register_*_deps : inline it
 - [session-handover-lock-mode](project-2026-11-01-session-handover-lock-mode.md) — previous [ c3b01c609 ] : login chain + lock mode s2a live
@@ -99,8 +99,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,..,,,.,,,,.,...,,..,,,,,,,.,...,,,,,.,.,..,,...,...,...,,,,,...,...,,,.,
-#EXYCX2I5RUNDAKINBWWXU2BA6N33XC7WKWNOV43WPQLG44VOWTQUTKPAZF2UVKJCFHSGYHISUSRF2
-#\\\|7SDEYWY3COMCSEAUZEWE6V7FI77DTWDEGXQRJMFYUDJZBLAPETO \ / AMOS7 \ YOURUM ::
-#\[7]ZAN66VL3ROJKBHJZT24NGOZ3BSEYSNAVVKRU7UESQNHAKANABOAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,.,,,,.,,..,,,.,,...,,,,,.,,,..,,...,...,,.,,...,,..,,,,,,,.,
+#BLRMQ4LQ6EAPCI2Q2VVNNXXQTTI7ERBJKHXJPWFU4KANOONIDMUCKDV6X2U6OC6WESPL2BQ7EKTTA
+#\\\|WLHW6WOFS5QI6H3I3KVEKRVJNG4HT3IUVF7CIUSBYERW57OEMHD \ / AMOS7 \ YOURUM ::
+#\[7]6SJ2NYIF2Z456BZPMYV3Y3NIDRMXNN3OOL6JOK2MKNK4D7DCCEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
