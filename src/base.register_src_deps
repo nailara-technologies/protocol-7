@@ -2,6 +2,17 @@
 
 # name = base.register_src_deps
 
+## an installed tree                                                        ##
+## [ the real /usr/local/protocol-7, not a link to a development tree ]     ##
+## records no deps : a development record, there it blocks pulls as         ##
+## untracked files [ system.src_deps.on_install = yes records them anyway ] ##
+## -- inline : a helper sub compiled on demand would register its own deps  ##
+## here first [ recursion ]                                                 ##
+return TRUE
+    if ( Cwd::abs_path( <system.root_path> // '' ) // '' ) eq
+    qw| /usr/local/protocol-7 |
+    and not <[base.cfg_bool]>->( <system.src_deps.on_install> // qw| no | );
+
 my %np7_src        = map { $ARG => TRUE } @ARG;
 my $zenka          = <system.zenka.name>;
 my $cfg_path       = <system.conf_path>;
@@ -143,8 +154,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,,,,,,.,...,,,,,.,,,.,.,,..,,,.,,.,,.,,,.,,,..,,...,...,...,...,,..,,.,,,,,,
-#NGD3KXD7C7O4SP526MQX7S7C3X6D6MGSGFCNWVCZTQHAZZLCZY3FH3XNXBE6HRGG7AUCUGBVEZTRQ
-#\\\|G5WPCOK5PECAKK4WWW7ODJU5WJVW55PCBMIGUWBTHQAG4K4JXZY \ / AMOS7 \ YOURUM ::
-#\[7]NIONUZ4GO4Z2ES3HPSLVHJZXVLADP6XNTXSSNCTOCGAPN6VDA2DI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,,,.,,..,,,.,,..,,.,,,,,,,..,..,,...,..,,...,.,.,.,.,,,,,,..,
+#QWB3MAFO3K7YVGBL7S2NPSJ3I3WUSHVO5PLBJY5EYSGH4ZOD3OJD5RNQACQVYBBHVHTWFDDDG3VDK
+#\\\|NUPSPELFNXLYSYJPBLVIPTYFE6AVGP74L4Z2AJ2S77XFA3EDBOT \ / AMOS7 \ YOURUM ::
+#\[7]NDMWL6L6EFFTBWO2KCHEFS2P5ZWG4VP2QXYXXYVNGB247G5INGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,6 +2,17 @@
 
 # name = base.register_pm_deps
 
+## an installed tree                                                        ##
+## [ the real /usr/local/protocol-7, not a link to a development tree ]     ##
+## records no deps : a development record, there it blocks pulls as         ##
+## untracked files [ system.src_deps.on_install = yes records them anyway ] ##
+## -- inline : a helper sub compiled on demand would register its own deps  ##
+## here first [ recursion ]                                                 ##
+return TRUE
+    if ( Cwd::abs_path( <system.root_path> // '' ) // '' ) eq
+    qw| /usr/local/protocol-7 |
+    and not <[base.cfg_bool]>->( <system.src_deps.on_install> // qw| no | );
+
 my %pmods     = map { $ARG => TRUE } grep { !m,^AMOS(::.+|$)$, } @ARG;
 my $zenka     = <system.zenka.name>;
 my $root_path = <system.root_path>;
@@ -111,8 +122,8 @@ if (    @not_registered
         @not_registered;
 }
 
-#,,,,,,,.,,..,,,,,..,,,.,,,,,,,..,..,,,..,..,,..,,...,...,...,,,,,,..,,,.,...,
-#TJU3VGZUBGC4RJWOO3SLMWLLO3CN24YXCDL66OBO4VCJWLTAN7DSTMJF5VFJ6SM67M22O2BZ2ZYVS
-#\\\|WWBOIJNJNBLD6DTJLWTDFJWCYNM326S2VIPN3VS22FMG5YXGJCH \ / AMOS7 \ YOURUM ::
-#\[7]DTDAO6Z7BIG5W3F7AKKCREBGDPMXBAJ4YJLAGR257T4J26T7V2BY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,...,...,,,.,,,.,,..,.,,,,..,.,,,..,,...,...,.,,,..,,.,,,...,,.,,
+#2H5HN3HRFF52LCZIJ5PT6UABZNCKPS7NZ2RWMT3IC5Q6TSACB53XRTB56HJ2PD4ZXNHCN5ANBRDMC
+#\\\|UART7ZLYQU6OMOWE523T54HRID3GGMPVPHIRU7RHY3SDQPXGHGP \ / AMOS7 \ YOURUM ::
+#\[7]O4RBYYMUGWUNE3AQNSNBZDARE2X2B3JIXE34GN6BOGZOT4UNRCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
