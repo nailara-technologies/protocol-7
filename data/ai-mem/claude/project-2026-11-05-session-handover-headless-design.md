@@ -32,19 +32,17 @@ pushed to `hub`, pulled on srv-U F V A [ no stash needed any more ]. v7-zenki + 
 1. devmod-ack [ design ] : '. weather . send.local: unknown target : cube [ cmd : v7-zenki.devmod-ack ]'
    -- devmod requests WITHOUT network ; current version races + is noisy everywhere.
 2. owner's editor fixes [ separate topic ] -- includes issues of the todo list command itself.
-3. powershell on-demand start overlap [ local ] : '. powershell . base.get_session_id: socket exception'
-   -- NOT the non-blocking transport [ reads stay blocking ]. cube logged 'ondemand start-up of powershell
-   zenka not successful [ status=error ]', a second session key + pid followed, an older powershell got
-   signal 9 : the losing instance lost its cube link mid-whoami, exit 0110. open : which request caused
-   the overlap, why the first start was marked error.
+3. powershell exit 0110 [ CLOSED, follow-up session ] : NOT an overlap. 0fd160c6a [ 11-04 23:17, cube
+   socket non-blocking after auth ] broke its blocking whoami read ; 70a02805e [ 00:18 ] restored it.
+   failures 23:29 .. 00:11 exactly in that window. max_concurrency = 1 kept anyway.
 - invoke-web queue watch : 'database is locked' = invoke.ai holding the sqlite write lock past the 500 ms
   busy timeout ; now an expected retry [ level 2, loud after 5 in a row ].
 - not changed yet on servers : motd on srv-V [ provider template ] and srv-A [ owner's art, leave ] ;
   pam_motd 10-uname active on all four -- belongs to the console plan apply, not by hand.
 - watch : delta link heartbeat timeouts ; srv-A models 'subscribe refused' towards external.pri.task.
 
-#,,,.,,..,.,,,...,,,.,,.,,.,.,...,,..,,,.,,,,,..,,...,...,.,.,,,.,,,,,...,,,,,
-#JSSBOJNMJOA4RN37YNHULFG3M5DNCCLC3RYNFWZJDLBS2NFP2AXPH56Y3AWFJRYFSV7LFR75FKU36
-#\\\|CAEQ6Z7EKH44IZI7XFX6HMN6LG26XRBLAYT644GG6WFX3QBGU7H \ / AMOS7 \ YOURUM ::
-#\[7]LHACAFCQJOZU7SXLVQR7PHHJHISLXW4DL7VRRJQAPQGSQUFXYSBI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,.,,,..,,.,.,,,,,,,,,,..,,,.,..,,...,...,.,,,.,.,,..,..,,,,,,
+#DJ2NYQ47V2WVVKR73VSHX26BOFMFXSV3ZS5YYOYFPLHZTBMDGTPZLNODLDOAXUWEA7WCHASDBCDCU
+#\\\|NGKI462UIXODMTJRY7YBBEVEHM4IJ4ZYLRIZ6ELQDB3I5PIWBK6 \ / AMOS7 \ YOURUM ::
+#\[7]P7T76T7L6H4WVYZRLA6FB5S6SI36MCY7ICGL7D4O6O6C3HDNVKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
