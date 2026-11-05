@@ -14,7 +14,7 @@ use AMOS7::SHM::Feedback;
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
-## page index region : sits between the 512-byte P7SH mount header and the  ##
+## page index region : sits between the 4096-byte P7SH mount header and the ##
 ## first page of actual data. fixed 32 bytes : 4-byte magic, two packed     ##
 ## 32-bit ints [ total_pages, page_size ], 13-byte bmw-L13 checksum         ##
 ## [ always exactly 13 chars per the harmonize_L13 contract ], padded to 32 ##
@@ -35,7 +35,7 @@ use vars qw| @EXPORT_OK $VERSION |;
     data_offset
     |;
 
-our $VERSION = qw| AMOS7::SHM::Page-VERSION.GYMPOFI |;    ##  -VCS  ##
+our $VERSION = qw| AMOS7::SHM::Page-VERSION.GU4T4GQ |;    ##  -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -229,8 +229,8 @@ sub create {
 
 return TRUE;
 
-#,,,.,...,,.,,..,,...,,.,,...,,..,,..,...,,,,,..,,...,...,...,...,.,.,,,.,,..,
-#T6RCT32GTE5TVK7AIAZGRRIW44WAU44GZ35LIIMI3FVVOGAQRSZEUXOWRXWFPW6X5BMB6M3EIS4O2
-#\\\|QZVPCUZZWP3M4RZOW5V4ERW4XSS74STFJKSZFC4CJOOYMSAPOZP \ / AMOS7 \ YOURUM ::
-#\[7]UEQHFJVXR3MZMHDIFELZZKPJQW6PDWBSO7WV4AI6KQZABZPVU6DA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,...,,,.,,..,..,,.,.,,,,,,.,,..,,...,...,.,.,,..,.,,,.,,,,..,
+#4IWVSH4M7YXAWJIU6RNJLGEHJQLQACU4KMBBUXBE6YUS5S6QE3KFAIJE74MAGMTGV5PX7GPIXXZ4M
+#\\\|BJQDNNWKJHJBNREAAIDLJ6MPJNNY64B2N56NVVAKR5JAU3I37OS \ / AMOS7 \ YOURUM ::
+#\[7]7PDIHDNWROHKFKGF22U27SNNVLZ7VJYVROSVALEQLFAPLZRF5CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

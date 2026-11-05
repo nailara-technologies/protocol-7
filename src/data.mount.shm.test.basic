@@ -7,7 +7,10 @@
 
 ##[ TEST 1: Create SHM Segment ]##############################################
 
-my $test_pubkey = 'TEST1234ABCD5678EFGH9012IJKL3456MNOP7890QRST1234UVWX';
+my $test_seed = substr( 'data.mount.shm.test.basic' . ( "\0" x 32 ), 0, 32 );
+my $test_pubkey
+    = Crypt::Misc::encode_b32r( AMOS7::SHM::derive_pubkey($test_seed) );
+$test_pubkey =~ s{=+\z}{};
 <[base.log]>->( 2, "Creating SHM for pubkey: $test_pubkey" );
 
 my $mount = <[data.mount.shm.create]>->(
@@ -57,10 +60,18 @@ if ( $header->{'owner_pubkey'} ne $test_pubkey ) {
 
 # Write test data to SHM (after header)
 my $test_data = "Protocol-7 SHM Test Data " . <[base.ntime]>;
-substr( ${ $mount->{'mmap_ptr'} }, 512, length($test_data) ) = $test_data;
+substr(
+    ${ $mount->{'mmap_ptr'} },
+    AMOS7::SHM::SHM_HEADER_SIZE(),
+    length($test_data)
+) = $test_data;
 
 # Read it back
-my $read_data = substr( ${ $mount->{'mmap_ptr'} }, 512, length($test_data) );
+my $read_data = substr(
+    ${ $mount->{'mmap_ptr'} },
+    AMOS7::SHM::SHM_HEADER_SIZE(),
+    length($test_data)
+);
 
 if ( $read_data ne $test_data ) {
     <[base.log]>->( 0, "TEST FAIL: Data write/read mismatch" );
@@ -82,8 +93,8 @@ if ( $mount->{'type'} eq 'file' ) {
 
 return TRUE;    ## [success] ##
 
-#,,..,..,,...,..,,.,.,,,.,.,,,,,.,,..,,..,.,,,..,,...,..,,,,.,.,.,.,,,...,,,.,
-#QCV57HKKJWWC6NI47FDHEWHNYVOU3YSOGENRNCDMEHYPAEYUYUWQ57TAX5PZWFI2GDANZK4FBMYR4
-#\\\|JD6LG7236YXD55QXKXEML25WJCRN7NFFLH6N5CXDYALAYC3OUQ5 \ / AMOS7 \ YOURUM ::
-#\[7]X2AQ5AW3LWPFXOGI5BN4STBIIWHXMW2ZPSRIQHUMK2LM34AWZAAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,.,,,,,,,,,,.,,,,.,...,,..,...,..,,...,...,,.,,,,.,..,,,.,,,.,,
+#C7GH4AMH3O4FGXUU7YD65CGCJ25PGUMCVUPW5MU445OBSDGRFWHL7LLNLYA4ORYR2DPCPV3YOPNTS
+#\\\|HDDIBJNXHROEKXRJK2LLGHELDL34QR4W5T6E7OAL3AG4FTCAPRB \ / AMOS7 \ YOURUM ::
+#\[7]VVKUFND4END6QQRO2WGXAZRHIBVTJHM3YQY3MGQNUEXPCS4VBQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

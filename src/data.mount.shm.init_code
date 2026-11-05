@@ -49,8 +49,8 @@ $AMOS7::SHM::log_handler = sub { <[base.log]>->( $ARG[0], $ARG[1] ) };
 
 ##[ CONSTANTS ]###############################################################
 
-<mount.shm.const.header_size>     //= 512;
-<mount.shm.const.default_size>    //= 63 * 1024;    # 63K
+<mount.shm.const.header_size>     //= AMOS7::SHM::SHM_HEADER_SIZE();
+<mount.shm.const.default_size>    //= 63 * 1024;                       # 63K
 <mount.shm.const.max_permissions> //= 16;
 <mount.shm.const.magic>           //= 'P7SH';
 
@@ -102,8 +102,8 @@ push <callbacks.end_code>->@*, qw| data.mount.shm.cleanup |;
 # Init codes must return 0 or 5 for success
 return TRUE;
 
-#,,,.,,.,,..,,,.,,...,,,,,,.,,..,,.,.,,.,,,..,.,.,...,...,...,...,..,,,,,,,.,,
-#Q3UVZZBILZKNRO6VTUGU75ZL5CH6VZEQDBA6EIAAGD2JGS6C3AU3TPDHCZ2E5CH2INJFVJWV2DHXK
-#\\\|J6N32HMDGHBPX53LTK4PPDSRBLQ4EEKEECDES2NJDLRN73BHS3Y \ / AMOS7 \ YOURUM ::
-#\[7]O7IRH6U3EROKSXC7OD7PABGJP4QEUQPPJIEMYB6TACNT3RMAA2DA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,...,...,.,,,,,.,...,..,,,,,,.,.,...,...,..,,...,,..,,,,,...,
+#VVEFENHACRVOY4COYCRLC7LLU43VUCLHJKFLI2LTS6COS7SASJLAUVWMIEXR7GRTF575NNNFZUQAA
+#\\\|3S4OV5SBBOQXWAXUYMGBQZAVG5TGE4TDGKHTT3CTOEYMQMY3KFB \ / AMOS7 \ YOURUM ::
+#\[7]OIB4ARLEOWJO7P3GHLSFWBD2TUVHDTW6LWLCTWWYXSROBSFYUSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

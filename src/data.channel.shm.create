@@ -28,7 +28,8 @@ return undef unless defined $shm;
 # Initialize ring buffer structure in SHM
 my $ring_header = pack( 'NNNN', 0, 0, 0, $shm_size )
     ;    # read_pos, write_pos, wrap_count, capacity
-substr( ${ $shm->{'mmap_ptr'} }, 512, 16 ) = $ring_header;
+substr( ${ $shm->{'mmap_ptr'} }, AMOS7::SHM::SHM_HEADER_SIZE(), 16 )
+    = $ring_header;
 
 # Register channel
 my $channel_id = "$owner_pubkey:$full_path";
@@ -47,8 +48,8 @@ return {
     'capacity'   => $shm_size,
 };
 
-#,,..,,..,,,,,,,.,.,.,,,.,,,.,,,,,,,.,,,.,,,,,..,,...,...,...,..,,,,,,,,.,.,.,
-#KMVO6R2IEFJ4JBLHAUTZMDDWX6W7BYCZVRJ2CNAUX3YSOBRALEWSJKUMFIY35SGDJXM6NYDXVQEPE
-#\\\|GKECMLQD5FKZDZFA2ILZFZFHEAYLEBIQF5EWWPACKCDCVOHCN5T \ / AMOS7 \ YOURUM ::
-#\[7]5KZVKMKAQ73T5GAULMAVSAD4V257V6VDIZA63FDCTNKBFCN2QECA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,.,,,.,,,.,.,.,..,,,..,.,,,,,,,..,,...,...,,.,,,..,.,,,...,.,.,
+#OBKAYQNBIF4Q3ZJTLRKB6BNMLA7NSVE3FILKHWXJ3G4YUPARTK3UJKVP3MOYDIJNY5KWN4E23WZOO
+#\\\|PXFIF3ZISFCCW5DEISVTUMQMTYF4UCUK5JAMDVTENSXYXLPFYNA \ / AMOS7 \ YOURUM ::
+#\[7]YIGETNWNHDA4P7X43ZAARSZCB2INPMBI2MRGCGMXAC2U7GX2VEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

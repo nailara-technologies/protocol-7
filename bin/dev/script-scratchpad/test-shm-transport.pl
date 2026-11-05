@@ -30,6 +30,7 @@ use AMOS7::SHM::Transport qw| shm_announce shm_receive |;
 use AMOS7::SHM            qw| shm_open |;
 use AMOS7::SHM::Page      qw| data_offset |;
 use AMOS7::CHKSUM         qw| amos_chksum |;
+use Crypt::Misc           qw| encode_b32r |;
 
 use POSIX qw| _exit |;
 
@@ -42,15 +43,15 @@ my $payload   = "AMOS7::SHM::Transport cross-process test payload.\n"
 my $content_size   = length($payload);
 my $expected_pages = int( ( $content_size + $page_size - 1 ) / $page_size );
 
-## structural key fixtures, same pattern as every prior SHM test script ##
-my $owner_privkey = 'OWNERTEST' . sprintf( '%031X', time() + $$ );
-my $owner_pubkey  = substr( $owner_privkey, 0, 32 );
+my $owner_privkey = 'owner transport seed' . ( "\0" x 12 );
+my $owner_pubkey  = encode_b32r( AMOS7::SHM::derive_pubkey($owner_privkey) );
+$owner_pubkey =~ s{=+\z}{};
 
-my $reader_privkey = 'READERTEST' . sprintf( '%030X', time() + $$ + 1 );
-my $reader_pubkey  = substr( $reader_privkey, 0, 32 );
+my $reader_privkey = 'reader transport seed' . ( "\0" x 11 );
+my $reader_pubkey  = AMOS7::SHM::derive_pubkey($reader_privkey);
 
-my $intruder_privkey = 'INTRUDERTEST' . sprintf( '%028X', time() + $$ + 2 );
-my $intruder_pubkey  = substr( $intruder_privkey, 0, 32 );
+my $intruder_privkey = 'intruder transport seed' . ( "\0" x 9 );
+my $intruder_pubkey  = AMOS7::SHM::derive_pubkey($intruder_privkey);
 
 my $checksum = amos_chksum( \$payload );
 
@@ -291,8 +292,8 @@ if ( $failed == 0 ) {
     exit 1;
 }
 
-#,,,,,,..,,..,.,,,.,.,,,,,.,.,,.,,.,,,..,,,..,.,.,...,...,.,,,...,.,,,...,...,
-#C5OOB5OF6UWJG2GBVMGDEB6HHX4CHB6JQ6SUNT673G6QMLPPNB2QXBUI7JIKFLTJZ6IYYGVD5BRMC
-#\\\|G46N6WX27DHYCPKBFRDKDRLIIBXD2JVH2DOXYOBOBDFE4CCIL2M \ / AMOS7 \ YOURUM ::
-#\[7]MOSXU4ZECOHDBM2H6EPFX5PAS67YJUZ3YYX3RIFBVJXEL3XLSOAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,..,.,.,,,,,.,,,,.,,,..,,..,,,.,.,.,...,...,.,.,.,,,,..,.,,,,,,,
+#U7RKUCX5YFXDY5EY6HOD2SIBXH55LO75SKGNMZRS2GI4KH6NVJLAMT2JFSNESJANG7UFMNUHKYBBS
+#\\\|7JKQDSXP2KDCEM56JN5JEPFCSUMQVV3B4F7LCRJ65LWQGU5UFBS \ / AMOS7 \ YOURUM ::
+#\[7]UJGGFNTVQKEETZYFMYQ55GVPIWGBLHPHOAQOLTOTZVJ5FDSBKSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

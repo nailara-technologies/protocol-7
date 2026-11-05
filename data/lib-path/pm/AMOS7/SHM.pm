@@ -11,9 +11,10 @@ use warnings;
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
-use constant SHM_HEADER_SIZE      => 512;
+use constant SHM_HEADER_SIZE      => 4096;
 use constant DEFAULT_SEGMENT_SIZE => 63 * 1024;
 use constant MAX_PERMISSIONS      => 16;
+use constant SHM_HEADER_VERSION   => 2;
 
 use Exporter;
 use base qw| Exporter |;
@@ -33,7 +34,7 @@ use vars qw| @EXPORT_OK $VERSION |;
 
 ### use AMOS7::Version; ## to generate new version string ###
 ##
-our $VERSION = qw| AMOS7::SHM-VERSION.76X7JJQ |;
+our $VERSION = qw| AMOS7::SHM-VERSION.6MBGPCI |;
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -62,81 +63,56 @@ sub _log {
 
 ##[ HEADER PACK / UNPACK ]####################################################
 
-## pack header structure into fixed 512-byte text format  identical ##
-## mechanics to data.mount.shm.header.write.pack_shm_header         ##
+## pack a version 2 header into its fixed 4096-byte text format. overflow ##
+## refuses the whole write ; permissions are never dropped or truncated.  ##
 sub pack_shm_header {
 
     my $header = shift;
+
+    return undef unless defined $header && ref($header) eq 'HASH';
+    return undef unless ( $header->{'version'} // 0 ) == SHM_HEADER_VERSION;
+    return undef
+        unless ( $header->{'header_size'} // SHM_HEADER_SIZE )
+        == SHM_HEADER_SIZE;
+
+    my @perms = @{ $header->{'permissions'} // [] };
+    return undef if @perms > MAX_PERMISSIONS;
 
     my $flags_str = join( ',',
         map { $_ . '=' . ( $header->{'flags'}{$_} ? 1 : 0 ) }
         sort keys %{ $header->{'flags'} // {} } );
 
-    my @perms = @{ $header->{'permissions'} // [] };
-
-    ## retry dropping the oldest permission until the header fits within
-    ## SHM_HEADER_SIZE [ accumulated grants across restarts would otherwise
-    ## overflow the fixed-size header, corrupting it ]
-    while (1) {
-        my @perm_strings;
-        for my $perm (@perms) {
-            push @perm_strings,
-                sprintf(
-                "%s|%s|%s|%d|%d|%s",
-                unpack( 'H*', $perm->{'to'} ),       $perm->{'branch'},
-                join( ',', @{ $perm->{'rights'} } ), $perm->{'expiry'},
-                $perm->{'granted'},                  $perm->{'sig'} // '0',
-                );
-        }
-
-        my $packed = sprintf(
-            "P7SH:%d:%s:%d:%d:%d:%s:%s:\n",
-            $header->{'version'} // 1,
-            $header->{'owner_pubkey'},
-            $header->{'created'},
-            $header->{'data_size'},
-            $header->{'header_size'} // SHM_HEADER_SIZE,
-            $flags_str,
-            join( ';', @perm_strings ),
-        );
-
-        if ( length($packed) <= SHM_HEADER_SIZE ) {
-            $packed .= "\0" x ( SHM_HEADER_SIZE - length($packed) );
-            return $packed;
-        }
-
-        if (@perms) {
-            _log( 1,
-                'pack_shm_header: header overflow, dropping oldest permission'
+    my @perm_strings;
+    for my $perm (@perms) {
+        return undef unless defined $perm->{'sig'};
+        push @perm_strings,
+            sprintf(
+            "%s|%s|%s|%d|%d|%s",
+            unpack( 'H*', $perm->{'to'} ),       $perm->{'branch'},
+            join( ',', @{ $perm->{'rights'} } ), $perm->{'expiry'},
+            $perm->{'granted'},                  $perm->{'sig'},
             );
-            shift @perms;
-        } else {
-            ## base header without any permissions still exceeds
-            ## SHM_HEADER_SIZE [ should never happen — owner_pubkey or flags
-            ## are unexpectedly long ]
-            _log( 0,
-                      'pack_shm_header: base header '
-                    . 'exceeds SHM_HEADER_SIZE, truncating' );
-            my $packed_base = sprintf(
-                "P7SH:%d:%s:%d:%d:%d:%s::\n",
-                $header->{'version'} // 1,
-                $header->{'owner_pubkey'},
-                $header->{'created'},
-                $header->{'data_size'},
-                $header->{'header_size'} // SHM_HEADER_SIZE,
-                $flags_str,
-            );
-            $packed_base .= "\0" x ( SHM_HEADER_SIZE - length($packed_base) )
-                if length($packed_base) < SHM_HEADER_SIZE;
-            return substr( $packed_base, 0, SHM_HEADER_SIZE );
-        }
     }
+
+    my $packed = sprintf(
+        "P7SH:%d:%s:%s:%d:%d:%s:%s:\n",
+        SHM_HEADER_VERSION,   $header->{'owner_pubkey'},
+        $header->{'created'}, $header->{'data_size'},
+        SHM_HEADER_SIZE,      $flags_str,
+        join( ';', @perm_strings ),
+    );
+
+    if ( length($packed) > SHM_HEADER_SIZE ) {
+        _log( 1, 'pack_shm_header: header overflow refused' );
+        return undef;
+    }
+
+    $packed .= "\0" x ( SHM_HEADER_SIZE - length($packed) );
+    return $packed;
 }
 
-## unpack 512-byte text header into hash structure  identical mechanics to  ##
-## data.mount.shm.header.read.unpack_shm_header permissions are parsed back ##
-## out so that standalone shm_open can verify signed grants; the on-disk    ##
-## header format is unchanged.                                              ##
+## unpack the fixed 4096-byte version 2 header and parse signed grants back ##
+## into octet strings for verification.                                     ##
 sub unpack_shm_header {
 
     my $raw = shift;
@@ -158,6 +134,9 @@ sub unpack_shm_header {
         my ($version,  $pubkey,    $created, $data_size,
             $hdr_size, $flags_str, $perms_str
         ) = ( $1, $2, $3, $4, $5, $6, $7 );
+
+        return undef unless $version == SHM_HEADER_VERSION;
+        return undef unless $hdr_size == SHM_HEADER_SIZE;
 
         _log( 2, "unpack: matched! version=$version, pubkey=$pubkey" );
 
@@ -222,7 +201,7 @@ sub header_read {
     return $header;
 }
 
-## write a header hash into the first 512 bytes of a mapped scalar ##
+## write a header hash into the fixed-size prefix of a mapped scalar ##
 sub header_write {
 
     my $mmap_ref = shift;
@@ -232,7 +211,7 @@ sub header_write {
     return undef unless defined $header   && ref($header) eq 'HASH';
 
     my $packed = pack_shm_header($header);
-    return undef unless length($packed) == SHM_HEADER_SIZE;
+    return undef unless defined $packed && length($packed) == SHM_HEADER_SIZE;
 
     substr( $$mmap_ref, 0, SHM_HEADER_SIZE ) = $packed;
 
@@ -256,12 +235,30 @@ sub parse_shm_path {
     return undef;
 }
 
-## derive public key from private key [ placeholder, matches existing ] ##
+## derive a raw public key from a 32-byte seed. expanded 64-byte private ##
+## keys need their paired public key [ a hashref with private + public ] ##
+## because the original seed is not recoverable from that form.          ##
 sub derive_pubkey {
 
     my $priv_key = shift;
 
-    return substr( $priv_key, 0, 32 );
+    if ( ref($priv_key) eq 'HASH' ) {
+        return derive_pubkey( $priv_key->{'secret'} )
+            if defined $priv_key->{'secret'};
+        return $priv_key->{'public'}
+            if defined $priv_key->{'private'}
+            && defined $priv_key->{'public'}
+            && length( $priv_key->{'private'} ) == 64
+            && length( $priv_key->{'public'} ) == 32;
+        return undef;
+    }
+    return undef unless defined $priv_key && length($priv_key) == 32;
+
+    my $signer = eval {
+        require AMOS7::N7FS::Sign;
+        AMOS7::N7FS::Sign::seed_signer($priv_key);
+    };
+    return defined $signer ? $signer->public : undef;
 }
 
 ##[ MMAP MAPPING ]############################################################
@@ -419,60 +416,110 @@ sub unlock_memory {
 
 ##[ PERMISSION SIGN / VERIFY ]################################################
 
-## build canonical permission string [ shared by sign + verify ] ##
+## signed bytes, one labelled value per line. variable-length octet strings ##
+## are lowercase hex, so no field can spill into another line or field : p7 ##
+## shm grant v1\nowner_pubkey=<b32>\nsub_path=<hex>\ncreated=<decimal>\n    ##
+## to=<hex>\nbranch=<hex>\nrights=<hex of comma-joined rights>\n            ##
+## expiry=<decimal>\ngranted=<decimal>\n                                    ##
 sub _permission_canonical {
 
-    my $perm = shift;
+    my ( $perm, $segment, $sub_path ) = @ARG;
 
-    return
-          $perm->{'to'} . ':'
-        . $perm->{'branch'} . ':'
-        . join( ',', @{ $perm->{'rights'} } ) . ':'
-        . $perm->{'expiry'} . ':'
-        . $perm->{'granted'};
+    return undef unless defined $perm && defined $segment;
+    return undef unless defined $segment->{'owner_pubkey'};
+    return undef unless defined $segment->{'created'};
+
+    return join( '',
+        "p7 shm grant v1\n",
+        'owner_pubkey=', $segment->{'owner_pubkey'},              "\n",
+        'sub_path=',     unpack( 'H*', $sub_path // '' ),         "\n",
+        'created=',      $segment->{'created'},                   "\n",
+        'to=',           unpack( 'H*', $perm->{'to'} // '' ),     "\n",
+        'branch=',       unpack( 'H*', $perm->{'branch'} // '' ), "\n",
+        'rights=',
+        unpack( 'H*', join( ',', @{ $perm->{'rights'} // [] } ) ), "\n",
+        'expiry=',  $perm->{'expiry'}  // '', "\n",
+        'granted=', $perm->{'granted'} // '', "\n",
+    );
 }
 
-## sign a permission grant with the owner's private key [ placeholder hash, ##
-## identical mechanics to data.mount.shm.permission.add.sign_permission ].  ##
-## the multiplier matches the verifier's use of the derived owner pubkey so ##
-## that privkey/pubkey fixtures of different lengths still verify.          ##
+sub _decode_pubkey {
+    my $pub_key_b32 = shift // '';
+    return undef unless $pub_key_b32 =~ m|\A[A-Z2-7]{52}\z|;
+    my $pub = eval {
+        require Crypt::Misc;
+        Crypt::Misc::decode_b32r($pub_key_b32);
+    };
+    return defined $pub && length($pub) == 32 ? $pub : undef;
+}
+
 sub sign_permission {
 
-    my ( $perm, $priv_key ) = @ARG;
+    my ( $perm, $priv_key, $segment, $sub_path ) = @ARG;
 
-    my $canonical = _permission_canonical($perm);
+    my $canonical = _permission_canonical( $perm, $segment, $sub_path );
+    return undef unless defined $canonical;
 
-    my $sig = 0;
-    for my $i ( 0 .. length($canonical) - 1 ) {
-        $sig
-            = ( $sig * 31 + ord( substr( $canonical, $i, 1 ) ) ) & 0xFFFFFFFF;
+    my $owner_pub = _decode_pubkey( $segment->{'owner_pubkey'} );
+    return undef unless defined $owner_pub;
+
+    ## expanded keys sign through Crypt::Ed25519 : not every caller loaded ##
+    ## it                                                                  ##
+    eval { require Crypt::Ed25519; };
+
+    my $sig;
+    if ( ref($priv_key) eq 'HASH' ) {
+        if ( defined $priv_key->{'secret'} ) {
+            $priv_key = $priv_key->{'secret'};
+        } elsif ( defined $priv_key->{'private'}
+            && defined $priv_key->{'public'} ) {
+            return undef unless $priv_key->{'public'} eq $owner_pub;
+            $sig = eval {
+                Crypt::Ed25519::sign( $canonical, $priv_key->{'public'},
+                    $priv_key->{'private'} );
+            };
+            return defined $sig ? unpack( 'H*', $sig ) : undef;
+        }
     }
-    my $multiplier_key = derive_pubkey($priv_key) // $priv_key;
-    $sig = ( $sig * length( $multiplier_key || '' ) ) & 0xFFFFFFFF
-        if length( $multiplier_key || '' );
 
-    return sprintf( "%08X", $sig );
+    if ( defined $priv_key && !ref($priv_key) && length($priv_key) == 32 ) {
+        my $signer = eval {
+            require AMOS7::N7FS::Sign;
+            AMOS7::N7FS::Sign::seed_signer($priv_key);
+        };
+        return undef unless defined $signer;
+        return undef unless $signer->public eq $owner_pub;
+        $sig = eval { $signer->sign($canonical) };
+    } elsif ( defined $priv_key
+        && !ref($priv_key)
+        && length($priv_key) == 64 ) {
+        $sig = eval {
+            Crypt::Ed25519::sign( $canonical, $owner_pub, $priv_key );
+        };
+    }
+
+    return defined $sig && length($sig) == 64 ? unpack( 'H*', $sig ) : undef;
 }
 
-## verify a permission signature against the owner pubkey ##
 sub _verify_permission_sig {
 
-    my ( $perm, $owner_pubkey ) = @ARG;
+    my ( $perm, $segment, $sub_path ) = @ARG;
 
-    my $canonical = _permission_canonical($perm);
+    return FALSE unless defined $perm->{'sig'};
+    return FALSE unless $perm->{'sig'} =~ m|\A[0-9a-f]{128}\z|;
 
-    my $sig = 0;
-    for my $i ( 0 .. length($canonical) - 1 ) {
-        $sig
-            = ( $sig * 31 + ord( substr( $canonical, $i, 1 ) ) ) & 0xFFFFFFFF;
-    }
-    my $verify_key = derive_pubkey($owner_pubkey) // $owner_pubkey;
-    $sig = ( $sig * length( $verify_key || '' ) ) & 0xFFFFFFFF
-        if length( $verify_key || '' );
+    my $owner_pub = _decode_pubkey( $segment->{'owner_pubkey'} );
+    return FALSE unless defined $owner_pub;
 
-    my $expected_sig = sprintf( "%08X", $sig );
+    my $canonical = _permission_canonical( $perm, $segment, $sub_path );
+    return FALSE unless defined $canonical;
 
-    return $perm->{'sig'} eq $expected_sig;
+    my $verified = eval {
+        require AMOS7::N7FS::Sign;
+        AMOS7::N7FS::Sign::verify( $owner_pub, $canonical,
+            pack( 'H*', $perm->{'sig'} ) );
+    };
+    return $verified ? TRUE : FALSE;
 }
 
 ## glob-style path pattern match ##
@@ -525,8 +572,12 @@ sub permission_verify {
     my $groups           = shift;
 
     return 0 unless defined $header && defined $requester_pubkey;
+    return 0 unless ( $header->{'version'} // 0 ) == SHM_HEADER_VERSION;
 
-    return 1 if $requester_pubkey eq $header->{'owner_pubkey'};
+    my $owner_pubkey = _decode_pubkey( $header->{'owner_pubkey'} );
+    return 0 unless defined $owner_pubkey;
+
+    return 1 if $requester_pubkey eq $owner_pubkey;
 
     for my $perm ( @{ $header->{'permissions'} } ) {
         next if $perm->{'expiry'} < time();
@@ -542,7 +593,7 @@ sub permission_verify {
             unless _rights_sufficient( $requested_rights, $perm->{'rights'} );
 
         next
-            unless _verify_permission_sig( $perm, $header->{'owner_pubkey'} );
+            unless _verify_permission_sig( $perm, $header, $requested_path );
 
         return 1;
     }
@@ -565,12 +616,16 @@ sub shm_create {
     my $size        = shift // DEFAULT_SEGMENT_SIZE;
     my $options     = shift // {};
 
+    ## an owner id that is no key [ amos-term buffers ] stays valid : such ##
+    ## a segment simply cannot carry grants, signing refuses it            ##
     return undef unless defined $pub_key_b32 && length($pub_key_b32) >= 32;
 
-    my $shm_path = sprintf( "/dev/shm/p7:M:%s", $pub_key_b32 );
+    my $sub_path = $options->{'sub_path'} // '';
+    $sub_path =~ s{[^a-zA-Z0-9_:/\-]}{_}g;
 
-    if ( $options->{'sub_path'} ) {
-        $shm_path .= ":" . $options->{'sub_path'};
+    my $shm_path = sprintf( "/dev/shm/p7:M:%s", $pub_key_b32 );
+    if ( length $sub_path ) {
+        $shm_path .= ":$sub_path";
         $shm_path =~ s{[^a-zA-Z0-9_:/\-]}{_}g;
     }
 
@@ -587,7 +642,7 @@ sub shm_create {
 
     my $header = {
         'magic'        => 'P7SH',
-        'version'      => 1,
+        'version'      => SHM_HEADER_VERSION,
         'owner_pubkey' => $pub_key_b32,
         'created'      => $created,
         'data_size'    => $size,
@@ -636,6 +691,7 @@ sub shm_create {
     return {
         'path'       => $shm_path,
         'pub_key'    => $pub_key_b32,
+        'sub_path'   => $sub_path,
         'size'       => $size,
         'total_size' => $total_size,
         'mmap_ptr'   => $mmap_ptr,
@@ -761,7 +817,7 @@ sub sweep_stale_segments {
     return \%summary;
 }
 
-## lightweight header peek : open + read first 512 bytes, no mmap, no lock.
+## lightweight header peek : open + read the fixed header, no mmap, no lock.
 ## this is a maintenance scan, not a real mount -- it should never need the
 ## weight of shm_open's full mmap_file_read + permission_verify machinery.
 sub _read_header_only {
@@ -812,8 +868,8 @@ END {
 
 return TRUE  #################################################################
 
-#,,,.,,.,,...,...,,,.,,,,,,,.,.,.,.,,,,,.,,,,,..,,...,...,...,..,,,,.,...,,.,,
-#QASZXJMLSANITL2I7YUEJ5ACWNKTW4R3SA6RX5XAY6QLW74RGNKKMIJDYT3BCIJYIP5Q2D6SAHDOK
-#\\\|7BOBYLZTJDU73SO2JHFCSFUMUR6BT6CTJQEWC3QOBB7IYENXVLK \ / AMOS7 \ YOURUM ::
-#\[7]RGQ6GRTQRXFFXFQJ3MNKZL6KC2UFXUATIJOAX5T4LQ6W7K2LWQBY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,,..,.,.,,.,,.,,,..,,,,.,,,,,..,,...,...,,..,,,.,,.,,..,,,.,,
+#CHHG7BFWVJ3XTQC3L7RZIZ7XUXCS2OO3AUEHH3WCIAJSAON7I3VV4SBEGRMONGAXKY6Z42SDS2VRA
+#\\\|M7QYLESXI346UZTRJNC4NH26AAPT5KHNXYUP6YVZTZEX6WMAIYL \ / AMOS7 \ YOURUM ::
+#\[7]DX436WT3RS6X4LZMAGMEWNAWCGUCFEPSAVWFXUZAB7PDFCG73YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

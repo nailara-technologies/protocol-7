@@ -3,9 +3,6 @@
 # name = data.mount.shm.permission.add
 # descr = Add sticky permission to SHM header
 
-use constant SHM_HEADER_SIZE => 512;
-use constant MAX_PERMISSIONS => 16;
-
 my $mount          = shift;
 my $permission     = shift;
 my $owner_priv_key = shift;
@@ -20,23 +17,32 @@ $permission->{'expiry'} //= time() + 3600;
 my $header = <[data.mount.shm.header.read]>->( $mount->{'mmap_ptr'} );
 return undef unless defined $header;
 
-if ( @{ $header->{'permissions'} } >= MAX_PERMISSIONS ) {
+if ( @{ $header->{'permissions'} } >= AMOS7::SHM::MAX_PERMISSIONS() ) {
     return {
         'error'   => 'max_permissions_reached',
-        'max'     => MAX_PERMISSIONS,
+        'max'     => AMOS7::SHM::MAX_PERMISSIONS(),
         'current' => scalar( @{ $header->{'permissions'} } ),
     };
 }
 
 $permission->{'granted'} = time();
 $permission->{'sig'} = <[data.mount.shm.permission.add.sign_permission]>->(
-    $permission, $owner_priv_key
+    $permission, $owner_priv_key, $header, $mount->{'sub_path'} // ''
 );
+return { 'error' => 'signing_failed' }
+    unless defined $permission->{'sig'};
 
 push @{ $header->{'permissions'} }, $permission;
 
 my $result
     = <[data.mount.shm.header.write]>->( $mount->{'mmap_ptr'}, $header );
+
+if ( not defined $result ) {
+    pop @{ $header->{'permissions'} };
+    return { 'error' => 'header_overflow' };
+}
+
+$mount->{'header'} = $header;
 
 return {
     'added'      => 1,
@@ -44,8 +50,8 @@ return {
     'total'      => scalar( @{ $header->{'permissions'} } ),
 };
 
-#,,,.,...,...,..,,,,.,...,.,,,...,..,,,..,..,,.,.,...,...,,,,,.,,,,,,,,,.,,,.,
-#GBYO6HPY4E66QNXLPAF5CGFNBCHYXHAKVUPOLAYPZTZDIP4RDTTKFZJ27YBG66WAIDRBAEPQSYTJQ
-#\\\|F7KP26DF3CELS2TP2VMTRBAR2WW4QWDOJ6G6ZIKE7F3JMUNMNDE \ / AMOS7 \ YOURUM ::
-#\[7]LQZZCEPABNEFULHRYGP54PJPB7VH5XRCW4YUQ4JZNP3BCW6SQGCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,.,,,...,.,,,..,,,,,,,,.,.,.,.,.,...,..,,..,,.,,,..,,...,.,.,
+#ZJ7QOESYGLYI6JD5YUAMR6BUQQTRMPQBNSULU4UU3CLRPL2T2RHRFF465BJRBQSUB54Y4YJBETE7G
+#\\\|SXSZJIWFBRYTU5JRAKM7JYI5NI53OZDWSGKPLPF5XS5TEMYUT3H \ / AMOS7 \ YOURUM ::
+#\[7]L3IX3L6RI5LG5D7FAHOGZUOXRA5ZRG5EVB3NQKCTLUNC7AHZ6KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

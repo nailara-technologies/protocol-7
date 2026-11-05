@@ -31,15 +31,17 @@ BEGIN {
 use AMOS7::SHM::Page     ();
 use AMOS7::SHM::Live     qw| live_create live_write live_read |;
 use AMOS7::SHM::Feedback qw| watch_fifo notify_path |;
-use AMOS7::SHM           qw| shm_open |;
+use AMOS7::SHM           qw| shm_open derive_pubkey |;
+use Crypt::Misc          qw| encode_b32r |;
 
 use POSIX qw| _exit |;
 
 ##[ TEST SETUP ]##############################################################
 
 my $capacity = 4 * 1024;
-my $pub_key  = 'LIVETEST' . sprintf( '%024X', $$ + time() );
-my $priv_key = $pub_key;
+my $priv_key = 'live mount seed' . ( "\0" x 17 );
+my $pub_key  = encode_b32r( derive_pubkey($priv_key) );
+$pub_key =~ s{=+\z}{};
 
 my @results;
 
@@ -190,8 +192,11 @@ ok( 'cross-process notify ding fired and delivered 1 byte',
 );
 
 ## no-notify mount has no FIFO at all ##
+my $no_notify_key = encode_b32r(
+    derive_pubkey( substr( 'live no-notify seed' . ( "\0" x 32 ), 0, 32 ) ) );
+$no_notify_key =~ s{=+\z}{};
 my $no_notify_mount
-    = live_create( $pub_key . 'NN', '', $capacity, { 'mlock' => 0 } );
+    = live_create( $no_notify_key, '', $capacity, { 'mlock' => 0 } );
 
 if (ok( 'no-notify live_create succeeded',
         defined $no_notify_mount && !exists $no_notify_mount->{'error'}
@@ -237,8 +242,8 @@ if ( $failed == 0 ) {
     exit 1;
 }
 
-#,,,.,...,,,.,.,.,.,,,,,,,...,..,,,,.,,,,,.,,,..,,...,...,..,,,,.,.,.,.,,,,,.,
-#ZS4SPVYHORHZJQRSXME6NC2DTXWL4PVBSZI3D2KGXOZ7VLLOCQHHMRAZBQ5S4R5F6DAWIGBTVRI7M
-#\\\|K2CBBFGVLKVWWBJHOMTL4563WLDQDGW6F7V764QOD47WS5JDO5F \ / AMOS7 \ YOURUM ::
-#\[7]NHOWDWLD5C4KMDYLXG3VNCSKQ7EZKRBED5GYTGPML3Y4WM5KSMBI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,,..,.,,,.,.,.,,,.,.,,..,...,..,,...,..,,...,...,..,,,,.,,..,
+#ZU4CADWSOS7M2MZDOAW6C7WYRISS6CJLXOVMQMYPHVAUR4NKGB3XLQFWT6NAAHOC7NQ4QGTEIQFXU
+#\\\|IIHVB3AHALGCTEYXZPT5PLQ3PDHATLY7K5ALXXGLJ4NJ76HOBHZ \ / AMOS7 \ YOURUM ::
+#\[7]66TIPTJATF3KSUEHGXAQPQUCNDAER7AHY2HJZTLH3FX5WQL5VOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
