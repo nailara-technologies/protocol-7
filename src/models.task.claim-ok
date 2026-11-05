@@ -27,9 +27,11 @@ foreach my $claimed_id ( keys %{$claimed} ) {
     my $claimed_at = ref $claim eq qw| HASH | ? $claim->{'at'} // 0 : $claim
         // 0;
 
-    ## a leased claim : dropped one lease after its last renewal -- the ##
-    ## same deadline the task zenka expires it at, nothing to send      ##
-    if ( ref $claim eq qw| HASH | and defined $claim->{'lease'} ) {
+    ## a renewed claim : dropped one lease after its last renewal -- the   ##
+    ## same deadline the task zenka expires it at, nothing to send.  never ##
+    ## renewed [ touch not delivered ] : the task zenka has no lease on it ##
+    ## [ task.handler.stale-claim-sweep ], the ttl below applies           ##
+    if ( ref $claim eq qw| HASH | and $claim->{'renewed'} ) {
         next
             if time - ( $claim->{'touched'} // $claimed_at )
             <= $claim->{'lease'};
@@ -46,18 +48,13 @@ foreach my $claimed_id ( keys %{$claimed} ) {
         0, ': claim %s expired after %d s : slot freed, resetting task',
         $claimed_id, $ttl
     );
+    my $agent = <models.cfg.task_agent> // qw| models |;
     <[protocol-7.route-send]>->(
-        {   'command'   => <[models.task.cmd]>->( qw| reset |, $claimed_id ),
-            'call_args' => {
-                'param' => {
-                    'id'             => $claimed_id,
-                    'expected_agent' => <models.cfg.task_agent>
-                        // qw| models |
-                }
-            }
+        {   'command' => <[models.task.cmd]>->( qw| release |, $claimed_id ),
+            'call_args' => { 'args' => "$claimed_id $agent claim ttl" },
         }
     );
-    delete $claimed->{$claimed_id};
+    <[models.task.drop-claim]>->( $claimed_id, 'claim ttl' );
 }
 my $in_flight = scalar keys %{$claimed};
 
@@ -91,8 +88,8 @@ if ( length $pin ) {
 
 return $in_flight < scalar(@ids) ? TRUE : FALSE;
 
-#,,,,,,.,,.,.,.,,,,,.,..,,,..,,..,,,,,,,,,,,,,.,.,...,...,.,.,,.,,.,,,,,,,...,
-#ZZJ4IEM32R5LV5NVM4OLIYQKZQ47RZC6WA2ZRB7P75G77JPHGLLPUUUBJ7XKTHRXKDQWVJ2DOTVC2
-#\\\|PDQYABBR34Z2KN2FHWOWWZRMSZQQEQQEDY4XQCJYQA2I4JOEIAN \ / AMOS7 \ YOURUM ::
-#\[7]QWU4XZA3XHKVFAAML75IK3CJ3OD5CWBQ3MCPCXTASS4F7CLACOCI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,...,.,,,...,,,.,,,.,...,,,,,...,.,.,...,...,.,.,..,,.,,,,..,,..,
+#TXM5KHBL2TSKMHLJ6YTACUTNLJMMU3AL2ADMLA5HKCZAPVNO2W4A2VIVBJ65L7Y5RNJ7GTZW3ZM5A
+#\\\|WUM2T3HH7ZWNZNA34CBT2O7LFZH45CDFPOH42IQC3H5S3GC7JZF \ / AMOS7 \ YOURUM ::
+#\[7]HPIP4Y2YEWFKVKA55ULDYDU44CBEC5EVV3KZ6QEPSDRGHREB3GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

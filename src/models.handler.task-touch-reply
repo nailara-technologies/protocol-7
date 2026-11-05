@@ -2,9 +2,11 @@
 
 # name  = models.handler.task-touch-reply
 # descr = a claim renewal answered : TRUE renews it
-#         [ the reply names the lease ], FALSE means the task is not this host's claim
-#         any more [ superseded, expired, failed ] -- dropped, the
-#         work stops [ models.task.drop-claim ]
+#         [ the reply names the lease ]. only the task zenka's own
+#         answer ends a claim [ superseded, expired, failed ] : dropped,
+#         the work stops [ models.task.drop-claim ]. any other FALSE
+#         [ no permission, route collapsed ] says nothing about the
+#         claim : the work goes on, retried a third of a lease later
 
 my $call = shift // {};
 
@@ -13,24 +15,36 @@ my $task_id = $call->{'params'}{'task_id'} // '';
 
 my $claim = ( <models.task.claimed> // {} )->{$task_id};
 return if ref $claim ne qw| HASH |;    ## released meanwhile ##
-delete $claim->{'touch_pending'};
 
 if ( $mode eq qw| false | ) {
+
+    ## answered by task.cmd.touch itself : not this agent's claim any more ##
+    if ( ( $text // '' ) =~ m{not an active claim|\bnot found\b} ) {
+        <[base.logs]>->(
+            0,        ': task %s : renewal refused [ %s ], claim dropped',
+            $task_id, $text
+        );
+        <[models.task.drop-claim]>->( $task_id, 'renewal refused' );
+        return;
+    }
+
+    ## touch_pending stays : the next try waits a third of the lease ##
     <[base.logs]>->(
-        0,        ': task %s : renewal refused [ %s ], claim dropped',
+        0,        ': task %s : renewal not delivered [ %s ], claim kept',
         $task_id, $text // ''
     );
-    <[models.task.drop-claim]>->( $task_id, 'renewal refused' );
     return;
 }
 
+delete $claim->{'touch_pending'};
 $claim->{'touched'} = time;
+$claim->{'renewed'} = TRUE;    ## the task zenka runs the lease now ##
 $claim->{'lease'}   = $1 if ( $text // '' ) =~ m|\blease (\d+)|;
 
 return;
 
-#,,.,,,,.,.,,,...,...,,,.,,..,...,.,,,,..,..,,..,,...,..,,..,,,..,...,,.,,.,,,
-#4POXTZKBN4HCOJCLWDFKPGJUD7COBT7VVNSJ4HXPY2YCFV5OSJOENUV2BN6WNSPTINB3HQVQ6PY3E
-#\\\|IWA66N7HA4CHJX7ESUHAM6DMFJJ5OZF74WTURZEG3SCYNC2K73N \ / AMOS7 \ YOURUM ::
-#\[7]UG4BDQOPB645Q7IEH7CZSBP3P37YDY2OL3YV4X5YIF4OEO6MRECQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,,,...,,,.,,..,..,,,,.,,,,,...,..,,...,..,,.,,,.,.,,,,,..,,,,.,
+#EWJHOQQI2MJEFZGXOB2C542ORSB4FTG3XW72OAVLLKA4ZFHYNPPMGP5JEAHINMHZ4JSLSTNCM7CH6
+#\\\|5NDVXUDDJ7B37DQCW3BZ2KSJ53CVKHE6EESLLBWPXBGNJR7EGQH \ / AMOS7 \ YOURUM ::
+#\[7]Z3QVAKYN3ZI4D4J7KPDIQ65PIWBDBT4P4WTD5SDBWJLAGACXE6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,6 +23,13 @@ foreach my $task_id ( keys $claimed->%* ) {
             0,        ': task %s : coding instance %s gone, claim dropped',
             $task_id, $claim->{'owner_instance'}
         );
+        ## the claim is still active at the task zenka : hand it back ##
+        <[protocol-7.route-send]>->(
+            {   'command' => <[models.task.cmd]>->( qw| release |, $task_id ),
+                'call_args' =>
+                    { 'args' => "$task_id $agent coding instance gone" },
+            }
+        );
         <[models.task.drop-claim]>->( $task_id, 'coding instance gone' );
         next;
     }
@@ -47,8 +54,8 @@ foreach my $task_id ( keys $claimed->%* ) {
 
 return;
 
-#,,..,.,.,,,,,..,,,,,,.,,,,,.,,..,..,,..,,,,.,..,,...,...,,..,,,,,,,.,,,,,.,,,
-#VSQ4MJYO74SBHKJYCLRZPNLJFZ5K2D4AXTPDXYYQITA4E7SNQGRGBNCIFH46CARRWN2EOBWOIJZTG
-#\\\|CCLIHNJ2ADK6DVYVAAB4NTMQWDISVWE4EWFD3FW32PQSNRXKFZ5 \ / AMOS7 \ YOURUM ::
-#\[7]73OFZQSRBADPDSWBP7J6IGCBSKVX5SDJVQL3A7MTXVQSV3GMUUCI 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,,,.,,,,,.,.,..,,,.,,,..,..,,..,,...,...,.,.,...,.,.,,,.,..,,
+#NYNBXDL2BDOKOXEA6GIUK23FAXT4PQIVSRF5AZWVBT2IFEKSDUOVAOU26JC47CVIV3XIGXC735W42
+#\\\|5DW6ZGSVG7Q5MXN4OD5PPP6KBEPOPKJQZKHL44BAGX2PKQFIZ6Y \ / AMOS7 \ YOURUM ::
+#\[7]5J7Y6LSSLCTLIO6PKGRGTYCPS53DKILULGE7QQTT7ZDZB2OHUOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
