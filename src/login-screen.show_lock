@@ -29,10 +29,11 @@ foreach my $curve (
     <[base.curve.cancel]>->($curve);
 }
 
-my $user       = <login-screen.widget.user>;
-my $panel      = <login-screen.widget.panel>;
-my $background = <login-screen.widget.background>;
-my $snapshot   = <login-screen.widget.snapshot>;
+my $user          = <login-screen.widget.user>;
+my $panel         = <login-screen.widget.panel>;
+my $background    = <login-screen.widget.background>;
+my $snapshot      = <login-screen.widget.snapshot>;
+my $session_image = <login-screen.widget.session_image>;
 $user->set_text($username);
 $user->set_editable(FALSE);
 $user->set_sensitive(FALSE);
@@ -45,9 +46,42 @@ $user->set_sensitive(FALSE);
 $panel->set_opacity(0)      if defined $panel;
 $background->set_opacity(0) if defined $background;
 
-my $snapshot_pixbuf = <[login-screen.capture_snapshot]>;
+my $transition = <login-screen.lock.transition> // qw| snapshot-fade |;
+if ( $transition !~ m{^(?:fade|snapshot-fade|image)$} ) {
+    <[base.log]>->( 0, 'invalid lock transition; using snapshot-fade' );
+    $transition = qw| snapshot-fade |;
+}
+
+my $session_image_pixbuf;
+if ( $transition eq qw| image | ) {
+    my $image_path = <login-screen.lock.image> // '';
+    if (    defined $session_image
+        and -f $image_path
+        and -r $image_path ) {
+        my $screen = $window->get_screen();
+        $session_image_pixbuf = eval {
+            Gtk3::Gdk::Pixbuf->new_from_file_at_scale( $image_path,
+                $screen->get_width(), $screen->get_height(), TRUE );
+        };
+    }
+    if ( not defined $session_image_pixbuf ) {
+        <[base.log]>->( 0, 'lock image unavailable; using dark background' );
+        $transition = qw| fade |;
+    }
+}
+if ( defined $session_image ) {
+    $session_image->clear();
+    $session_image->set_from_pixbuf($session_image_pixbuf)
+        if defined $session_image_pixbuf;
+    $session_image->set_opacity(0);    ## image mode fades it in below ##
+}
+
+my $snapshot_pixbuf;
+$snapshot_pixbuf = <[login-screen.capture_snapshot]>
+    if $transition eq qw| snapshot-fade |;
 <login-screen.lock.snapshot> = $snapshot_pixbuf;
 if ( defined $snapshot ) {
+    $snapshot->clear();
     $snapshot->set_from_pixbuf($snapshot_pixbuf) if defined $snapshot_pixbuf;
     $snapshot->set_opacity( defined $snapshot_pixbuf ? 1 : 0 );
 }
@@ -65,6 +99,8 @@ $window->show_all();
 $window->present();
 $snapshot->set_visible( defined $snapshot_pixbuf ? TRUE : FALSE )
     if defined $snapshot;
+$session_image->set_visible( defined $session_image_pixbuf ? TRUE : FALSE )
+    if defined $session_image;
 $user->set_visible(FALSE);    ## the dimmed name label already says who ##
 <login-screen.widget.user_label>->set_visible($show_user);
 <login-screen.widget.time>->set_visible($show_time);
@@ -89,22 +125,26 @@ $fade_duration = 1.7
     or $fade_duration < 0.2
     or $fade_duration > 10;
 
+## image mode fades the session image in, the dark backdrop stays clear ##
+my $fade_layer = defined $session_image_pixbuf ? $session_image : $background;
+my $fade_target = defined $session_image_pixbuf ? 1             : 0.995;
+
 <[base.curve.register]>->(
     {   id       => qw| login_screen_lock_fade |,
         from     => 0,
-        to       => 0.995,
+        to       => $fade_target,
         duration => $fade_duration,
         type     => qw| ease-in-out |,
         callback => sub {
             my $value = shift;
-            $background->set_opacity($value)
+            $fade_layer->set_opacity($value)
                 if <login-screen.state> eq qw| locked |
-                and defined $background;
+                and defined $fade_layer;
         },
         on_done => sub {
             return if <login-screen.state> ne qw| locked |;
             <login-screen.lock.idle_pending> = FALSE;
-            $background->set_opacity(0.995) if defined $background;
+            $fade_layer->set_opacity($fade_target) if defined $fade_layer;
             <[base.curve.register]>->(
                 {   id       => qw| login_screen_lock_controls_fade |,
                     from     => $panel->get_opacity(),
@@ -155,8 +195,8 @@ $fade_duration = 1.7
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,..,,.,,..,,...,...,,,.,,,,,,.,,.,.,,,,,.,.,..,,...,...,,,.,,.,,,.,,,,,,,..,
-#ZD6GML57AFQI3IBWD4UBOUBZCO5IRJNLK34KVYTIMHTBBPHMDTAZKQLHO4Q2MUPUMM5EHFCLJEJWK
-#\\\|JYWN6VYBNATY4YPWBSWIWPCTJ6CTSD443Z5FWUUJ5DWTLIGXWY6 \ / AMOS7 \ YOURUM ::
-#\[7]PNH666PGO6W3FY5EFTJFZKMAX2LLS2KAMQGF2JD2NHMLSQTEB6BA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,,.,,,..,,,,,...,..,,,.,,.,,,..,,...,.,.,,,.,.,.,,.,,,,,,...,
+#NXQYB7LNP2MK7TSIYONAJPFZAX4VIKNPA3IWIPKFKYCO26XK7LVA34YDBLWPTJOQB6GTVPMTRXZTI
+#\\\|PDUZ2WYD76MPZPM6ZIZUSILIDU27KDQFJXUSDPHOKEI7OUBGR72 \ / AMOS7 \ YOURUM ::
+#\[7]HV2JWC5CDWSEHP6EUT2GYYQCDYKOXOGHLAUK5QJ76FT3FYOSCMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

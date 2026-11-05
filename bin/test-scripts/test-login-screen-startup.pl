@@ -267,12 +267,17 @@ $main::queue_lock_timers = TRUE;
     package LoginScreenStartupTest::Widget;
     sub set_opacity     { $ARG[0]->{'opacity'} = $ARG[1]; return 5 }
     sub get_opacity     { return $ARG[0]->{'opacity'} // 1 }
-    sub set_visible     { return 5 }
+    sub set_visible     { $ARG[0]->{'visible'} = $ARG[1]; return 5 }
     sub set_editable    { return 5 }
-    sub set_from_pixbuf { return 5 }
-    sub clear           { return 5 }
+    sub set_from_pixbuf { $ARG[0]->{'pixbuf'} = $ARG[1]; return 5 }
+    sub clear           { delete $ARG[0]->{'pixbuf'};    return 5 }
     sub show            { return 5 }
     sub hide            { return 5 }
+
+    package LoginScreenStartupTest::Screen;
+    sub new        { return bless {}, shift }
+    sub get_width  { return 1920 }
+    sub get_height { return 1080 }
 
     package LoginScreenStartupTest::Window;
     sub set_keep_above { return 5 }
@@ -282,18 +287,33 @@ $main::queue_lock_timers = TRUE;
     sub show_all       { return 5 }
     sub present        { return 5 }
     sub get_window     { return undef }
+    sub get_screen     { return $main::lock_screen }
+
+    package Gtk3::Gdk::Pixbuf;
+
+    sub new_from_file_at_scale {
+        push @main::image_loads, $ARG[1];
+        return undef if $main::image_load_fails;
+        return 'session-pixbuf';
+    }
 }
 my $show_lock     = compile_module('login-screen.show_lock');
 my $lock_activity = compile_module('login-screen.handler.lock_activity');
 my $release_lock  = compile_module('login-screen.release_lock');
 my $idle_policy   = compile_module('login-screen.idle_policy');
 my $idle_lock_cmd = compile_module('login-screen.cmd.idle-lock');
+our $lock_screen = LoginScreenStartupTest::Screen->new;
+our @image_loads;
+our @lock_logs;
+my $snapshot_captures = 0;
 $code{'login-screen.handler.lock_grab'} = sub { return FALSE };
 $code{'login-screen.release_lock'}      = $release_lock;
 $code{'login-screen.idle_policy'}       = $idle_policy;
-$code{'login-screen.capture_snapshot'}  = sub { return 'pixbuf' };
-$code{'login-screen.watch_root'}        = sub { return TRUE };
-$code{'login-screen.unwatch_root'}      = sub { return TRUE };
+$code{'login-screen.capture_snapshot'}
+    = sub { $snapshot_captures++; return 'pixbuf' };
+$code{'login-screen.watch_root'}   = sub { return TRUE };
+$code{'login-screen.unwatch_root'} = sub { return TRUE };
+$code{'base.log'} = sub { push @lock_logs, $ARG[1]; return TRUE };
 $code{'base.curve.register'}
     = sub { push @lock_curves, $ARG[0]; return TRUE };
 $code{'base.curve.cancel'}
@@ -301,6 +321,8 @@ $code{'base.curve.cancel'}
 $data{'login-screen'}{'widget'}{'background'}
     = LoginScreenStartupTest::Widget->new;
 $data{'login-screen'}{'widget'}{'snapshot'}
+    = LoginScreenStartupTest::Widget->new;
+$data{'login-screen'}{'widget'}{'session_image'}
     = LoginScreenStartupTest::Widget->new;
 $data{'login-screen'}{'widget'}{'panel'}
     = LoginScreenStartupTest::Widget->new;
@@ -331,6 +353,10 @@ sub reset_lock_fixtures {
     @removed_timers               = ();
     @lock_curves                  = ();
     @cancelled_curves             = ();
+    @image_loads                  = ();
+    @lock_logs                    = ();
+    $snapshot_captures            = 0;
+    $main::image_load_fails       = FALSE;
     $data{'login-screen'}{'lock'} = {};
     $idle_x->{'idle_ms'}          = 0;
     $idle_policy->();
@@ -388,6 +414,57 @@ $blank_timer->{'callback'}->();
 $lock_curves[-1]->{'on_done'}->();
 ok( $unlock_sent[-1]->{'command'} eq 'X-11.dpms-force-off',
     'dpms follows only the completed panel fade-out'
+);
+
+reset_lock_fixtures();
+$data{'login-screen'}{'lock'}{'transition'} = 'fade';
+$show_lock->('testuser');
+ok( $snapshot_captures == 0
+        && !defined $data{'login-screen'}{'lock'}{'snapshot'}
+        && !$data{'login-screen'}{'widget'}{'session_image'}{'visible'},
+    'fade skips capture and hides the session image'
+);
+
+reset_lock_fixtures();
+$data{'login-screen'}{'lock'}{'transition'}           = 'image';
+$data{'login-screen'}{'lock'}{'image'}                = $0;
+$data{'login-screen'}{'lock'}{'snapshot'}             = 'stale-pixbuf';
+$data{'login-screen'}{'widget'}{'snapshot'}{'pixbuf'} = 'stale-pixbuf';
+$show_lock->('testuser');
+ok( $snapshot_captures == 0
+        && @image_loads == 1
+        && !defined $data{'login-screen'}{'lock'}{'snapshot'}
+        && !defined $data{'login-screen'}{'widget'}{'snapshot'}{'pixbuf'}
+        && $data{'login-screen'}{'widget'}{'session_image'}{'pixbuf'} eq
+        'session-pixbuf'
+        && $data{'login-screen'}{'widget'}{'session_image'}{'visible'},
+    'image uses the configured file without retaining a screen snapshot'
+);
+$release_lock->();
+ok( !defined $data{'login-screen'}{'widget'}{'session_image'}{'pixbuf'},
+    'unlock discards the configured lock image' );
+
+reset_lock_fixtures();
+$data{'login-screen'}{'lock'}{'transition'} = 'image';
+$data{'login-screen'}{'lock'}{'image'}
+    = '/nonexistent/lo' . 'gin-screen-image';
+$show_lock->('testuser');
+ok( $snapshot_captures == 0
+        && @image_loads == 0
+        && @lock_logs == 1
+        && $lock_logs[0] eq 'lock image unavailable; using dark background'
+        && !$data{'login-screen'}{'widget'}{'session_image'}{'visible'},
+    'unreadable image falls back to fade with one generic log line'
+);
+
+reset_lock_fixtures();
+$data{'login-screen'}{'lock'}{'transition'} = 'invalid';
+$show_lock->('testuser');
+ok( $snapshot_captures == 1
+        && @lock_logs == 1
+        && $lock_logs[0] eq 'invalid lock transition; using snapshot-fade'
+        && $data{'login-screen'}{'lock'}{'snapshot'} eq 'pixbuf',
+    'invalid transition logs once and retains snapshot-fade behavior'
 );
 
 reset_lock_fixtures();
@@ -564,8 +641,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,.,,,,,.,.,,.,,.,.,,,,,,.,,.,.,,,,,.,,,,.,,..,,...,...,.,.,,,.,,.,,.,,,,,.,
-#WC7UAIOZ2XOEI6GZYEVNBD2WWA37J6TJUHKW4OIN7UAVYPJ4WJHKW62N45ZX7UVJFJSVKXKC66GEI
-#\\\|TYIUIC4GDQUKZGGG5B3K4TF7B7ZT5XHA5LXE5JWDRSC6HJRKFFA \ / AMOS7 \ YOURUM ::
-#\[7]PTOKIOQXBWI77TPKR3TZD56Q5HF67EUX6COAV5I7DQN2NZOJ4UAY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,..,,,..,.,.,,,.,,..,..,,.,,,,.,,..,,...,...,.,,,,,,,..,,,,.,...,
+#6CXLEQRLE7YV7YSHRZ76AOHHBFV34QUAL5LDYNIBUAYPRNEQI7YRSHVZB5UMMDZBB4ZBQFGIAHP26
+#\\\|4ZQTLQS27FOLOWJLN474LIKKD6X7NTSZZAL3ZEEQMRSNLHJBGAL \ / AMOS7 \ YOURUM ::
+#\[7]FQB55OBZ7P7DYWATU7ALPLKPIQWTRV3MA227F6TH7CCL6FW36QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
