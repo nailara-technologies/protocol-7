@@ -41,6 +41,9 @@ if ( $content_length > $max_post_size ) {
         1,   '[%d] POST body too large: %d bytes (max: %d)',
         $id, $content_length, $max_post_size
     );
+    ## body never read [ see 405 ] ##
+    $session->{'http'}->{'close'}   = TRUE;
+    $session->{'buffer'}->{'input'} = '';
     return <[httpd.send_error_page]>->( $id, 413 );    ## Payload Too Large
 }
 
@@ -180,13 +183,19 @@ if (   $http_uri =~ m|^/api/certificate|
 } else {
     ## Unsupported POST endpoint
     <[base.logs]>->( 1, '[%d] POST not supported for: %s', $id, $http_uri );
+
+    ## its body is never read : the connection closes after the 405, the    ##
+    ## buffered rest is dropped -- else the body parsed as the next request ##
+    ## [ smuggling pattern, scanners' 'wget -qO-' payloads ]                ##
+    $session->{'http'}->{'close'}   = TRUE;
+    $session->{'buffer'}->{'input'} = '';
     return <[httpd.send_error_page]>->( $id, 405 );    ## Method Not Allowed
 }
 
 return 2;    ## Should not reach here
 
-#,,,,,,.,,..,,...,,,.,,,.,..,,,,,,.,,,.,,,..,,..,,...,...,..,,,.,,...,,,,,.,.,
-#ECQICOIT7G4C76N6B2SJQYFRZWNBR3FWBX4AROFH3AAWV3OZRBFDX4IQ6YJW7CXKZXCKBWWSGRLLC
-#\\\|UQ5HHV6QAEKX5Z54IXOARY2HVC4KDRRUM73LBFKLPRN2SMDISGK \ / AMOS7 \ YOURUM ::
-#\[7]KL3ITCVMSFMLEFZ5HUY53X6QAWD67IZTDZ7W2V37AOZCMJSI6SCA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,,.,,,,,,...,,,,,..,,.,.,,,,,..,,...,...,,,.,..,,,,.,...,..,,
+#XANDW7WADNFD3CC57BEOWG3T3D5J5MDXTWRGPW7MGUG4Y3J4SJMMFKPG57UP4LNGIDE3P5EW26PKQ
+#\\\|BLX36BR7UELQJCTPZFOXQCU2AR3NOPZEQAGUCNMVNYM6CMSU6YM \ / AMOS7 \ YOURUM ::
+#\[7]CIYPN3DRGSORYMI2ZHJJIYJ3V2CII6WSPHZAQ4UV7N75NKBVNIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
