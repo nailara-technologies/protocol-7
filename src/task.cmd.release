@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = task.cmd.release
+# param = <task_id> <agent> [reason]
+# descr = the claiming agent gives its active claim back
+#         [ its work died ] : pending again, counted like an
+#         expiry, failed after max_attempts [ task.claim_expire ].
+#         narrower than task.reset : only the agent's own claim
+
+my ( $task_id, $agent, $reason ) = split m|\s+|, $call->{'args'} // '', 3;
+$task_id = uc( substr( $task_id // '', 0, 7 ) );
+$agent  //= '';
+$reason //= 'no reason given';
+
+return { 'mode' => 'false', 'data' => 'expected <task_id> <agent> [reason]' }
+    if not length $task_id or not length $agent;
+
+return <[task.claim_expire]>->(
+    $task_id, sprintf( 'released by %s : %s', $agent, $reason ), $agent
+);
+
+#,,,,,,.,,,..,,..,.,,,..,,...,,.,,...,.,.,.,,,..,,...,...,...,,,.,...,...,..,,
+#5PE6LG7UVVKHILYPMKRFH2BN6IVTVNFIQQTNAXRMPS6NIEAZ3III6XIQKWQV4FREGTQN4WZE5QHYQ
+#\\\|A5BOEGOF4AVGMB27I5U2RK23NL4422HZACQNOLFLLBMSFA56N44 \ / AMOS7 \ YOURUM ::
+#\[7]RXEAYMGZDUPVM7VSWGXHLGH6R4VBVEGR5Q3GATNBICOOHOI6LGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
