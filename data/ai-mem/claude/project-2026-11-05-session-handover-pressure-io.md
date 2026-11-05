@@ -1,6 +1,6 @@
 ---
 name: project-2026-11-05-session-handover-pressure-io
-description: START HERE 2026-11-05 [ 6e805b179, live on srv-U F V A + azurum ] : devmod-ack removed, editor \ locale \ font fixes, start timeout + io pressure ; next : VWF, then FKS
+description: START HERE 2026-11-05 [ 6dd74e736, live on srv-U F V A + azurum ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
 metadata:
   type: project
 ---
@@ -33,16 +33,49 @@ to `hub` ; srv-U F V A and azurum on 6e805b179, v7-zenki `reload all` success ev
   deploying.
 - copy the p7_sign job id, never retype it [ twice waited on a wrong id ].
 
+**later the same session**
+- 66f759706 VWF fixed : signature_valid honours a caller truth map [ truth checks only ; binding checks
+  never ] ; non-default map untested until the form footer type uses one.
+- c93391a75 nshell.read_from_buffer : exit on any stdin read error but EAGAIN \ EINTR [ a hung-up pty
+  answers EIO, not eof ] and on piped eof. pri.nshell had spun 12 h, `::: pri taeki.name` hung on it.
+- 1c9c7a379 design data/md/design/ROUTE-COLLAPSE-AND-LIVENESS.md : no default \ global reply timeout ;
+  timeouts per hop, opt-in by caller \ target zone \ a per-zenka map [ cubes \ filter zenki may enforce
+  one at a network boundary ] ; later : max hops, no longer completable, derived values [ observe \ auto ].
+- c68fb26d9 cube liveness probe + cube.cmd.zenka-heartbeat [ v7-zenki only : registers its managed zenki,
+  cube never probes them ]. RELAPSE : shipped active with 30 s x 3 -- corrected 0cac3267b, then
+  6dd74e736 per-session `declare-liveness <interval> <misses> | off` [ for the caller only ], nshell
+  declares only with nshell.cfg.liveness.* set [ none are ]. tested : frozen nshell without declaration
+  left alone, with `10 2` closed after 27 s. see [[feedback-no-default-reply-timeouts]].
+- heartbeats need a v7-managed instance : a shell-started nshell has none -- cube owns session liveness.
+- benchmarks [ seal = vault twofish-gcm in chacha20-poly1305 ] : keys once per segment 5 us \ 64 B, 43 us
+  \ 4 KB on desktop + azurum ; ed25519 verify 100-220 us. pri [ srv-U ] slow only from llama-server
+  7 threads on 8 cores.
+
+**shm plan [ FKS ]**
+- derive_pubkey is a placeholder too [ first 32 chars of the private key ] ; protocol-7-menu passes its
+  PUBLIC key as the private one. B [ refuse grants ] would break the pointer stream -> do A.
+- A [ kimi next ] : real Ed25519 derive + grant signatures over a labelled message bound to the segment
+  owner key ; menu passes its private key ; tests for forged \ replayed grants.
+- then : seal \ open moved from AMOS7::Vault into AMOS7::Twofish [ vault format byte-identical, vault
+  tests prove it ] ; then encrypted shm pages [ per-segment keys, nonce per write, ad = owner key + page
+  + write counter ; default only once readers can get the key ].
+
+**lessons**
+- a liveness check that closes things IS a timeout : no default activation, no default values.
+- new cube code goes in cube.* [ base.* is loaded by every zenka -- the sign plan lists showed it ].
+- multi-word `qw| a b |` in a hash = shifted keys [ the probe timer had no handler ].
+- routes are stored on BOTH sessions : a caller waiting for a reply must never be probed.
+
 **open, in order**
-1. VWF [ signature_valid truth map ] -- unblocks the command links.
-2. FKS [ shm permission forgeable, high ].
+1. shm A [ FKS ] -- see the shm plan above. command links [ GLOBAL-COMMAND-LINKS.md ] are unblocked by VWF.
+2. pri.nshell : check that the fixed nshell runs there [ new sessions get c93391a75 ].
 3. todo 5FI : a zenka dying before its log link leaves no reason -- keep early stderr \ start lines.
 4. todo QMH : system zenka per-disk stats from /proc/diskstats.
 5. login-screen image mode : unlock clears at once ; real-display check open.
 - servers : motd \ console plan apply ; watch delta link heartbeat timeouts, srv-A 'subscribe refused'.
 
-#,,..,,.,,,,.,.,.,,..,.,,,.,.,..,,.,.,,,,,,,,,..,,...,..,,,,,,..,,.,.,.,,,.,.,
-#FX54KTW45VBQCLUOL6TTFO57ERJ2T7CU4VHAO6DJD36TU6WR4KGQHXLK26RKMU47VEJN7TYGPXDTA
-#\\\|6NGVPA3JGQHSYDGMQPAW6GEZ6ALVSRHOMS4H2Y4W2VF2SNKYYC2 \ / AMOS7 \ YOURUM ::
-#\[7]T2MVKM3S2OHYUGSYLU5HAIO235KL7RT7ZNIC7P6Q4VNYAM2ZDKBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,...,..,,.,.,.,,,,.,,...,,,.,..,,...,...,...,.,,,.,,,.,,,,,.,
+#NPYW2DYD5V5NVX7S2CVA47ZE7JDEUIMHFQSGXL4L5COKDXW6DRQGKN6YICS6HQOROML3MF53VAMZQ
+#\\\|C6KKQO6A7P5P7D4UZYLI4VDY7ZN3D2IBMUDDPY2DY2MULFDQMYY \ / AMOS7 \ YOURUM ::
+#\[7]OA2JDJJSJ6SVZPWWP5QD4EOA3K73OBWJESJ5X2VK4DH5ZQFRVGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

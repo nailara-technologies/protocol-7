@@ -5,7 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — START HERE [ 6e805b179 ] : devmod-ack removed, editor \ locale \ font fixes, start timeout + io pressure ; next : VWF, then FKS
+- [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — START HERE [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
 - [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — previous [ 4802120dd ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
 - [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — previous [ 485d04329 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive
 - [shm-permissions-forgeable-open](project-2026-10-22-shm-permissions-forgeable-open.md) — OPEN SECURITY, high [ todo FKS ] : AMOS7::SHM::sign_permission is a computable hash -- shm permissions forgeable
@@ -99,8 +99,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,,,,,,,,...,.,,,,.,,..,,,.,,...,,,,,.,,,..,,...,...,,.,,...,,..,,,,,,,.,
-#BLRMQ4LQ6EAPCI2Q2VVNNXXQTTI7ERBJKHXJPWFU4KANOONIDMUCKDV6X2U6OC6WESPL2BQ7EKTTA
-#\\\|WLHW6WOFS5QI6H3I3KVEKRVJNG4HT3IUVF7CIUSBYERW57OEMHD \ / AMOS7 \ YOURUM ::
-#\[7]6SJ2NYIF2Z456BZPMYV3Y3NIDRMXNN3OOL6JOK2MKNK4D7DCCEBQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,,..,,,,,,..,,,,,,.,,,,.,,,.,..,,..,,...,...,.,,,.,,,,..,,..,.,.,
+#C7N6FKOUTUAU2CLYCD5LY3STPHSBL5XIL2RI5RP5WNHHBUFLBV4WO54QRD4YFNZ25ABGTN6THXSZM
+#\\\|RPINHPNBL5RITD272V7NTB67WQ6RDDERF352ZQBONIPMO72THNE \ / AMOS7 \ YOURUM ::
+#\[7]5UCNL4J6HBAUVBO3KXYYT5JUQCUPLN3ASRUDHEW3XN6SC5XZHSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
