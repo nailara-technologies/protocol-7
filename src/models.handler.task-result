@@ -19,7 +19,22 @@ my $job_id  = $params->{'job_id'}  // <models.task.active_job>;
     $task_id, $cmd, $model, $job_id // 'n/a'
 );
 
-## extract response based on reply type
+## extract response based on reply type  a claim this host gave up          ##
+## [ models.task.drop-claim ] : the task may be another worker's now -- its ##
+## late result is discarded                                                 ##
+if ( length $task_id and delete <models.task.dropped>->{$task_id} ) {
+    <[base.logs]>->(
+        1, ': task %s : result discarded, the claim was given up', $task_id
+    );
+    if ( defined $job_id ) {
+        <models.task.active_id>  = undef;
+        <models.task.active_job> = undef;
+        <[jobqueue.move_job]>->( $job_id, qw| error | );
+        delete <models.task.jobs>->{$job_id};
+    }
+    return;
+}
+
 my $response    = '';
 my $job_outcome = qw| completed |;
 
@@ -172,8 +187,8 @@ if ( defined $job_id ) {
 
 return;
 
-#,,,,,,,,,,,.,,,.,.,.,,,.,,,.,,..,,,,,.,.,,.,,.,.,...,...,,..,,.,,..,,...,,.,,
-#3NDTR562YB7W4QX73WTPCFK6QO2PGDF5LPBGLGHPXPYIULRX3VR7DSGBXMTJQ4XAHUBMKZUPHQVOC
-#\\\|36PZHTWZDISGFRCPQMCE4P3M7UKVG5GCXA3DUWFCXICT7ABCDQ3 \ / AMOS7 \ YOURUM ::
-#\[7]J4BCAM5N7CLWFYRZTOFLLWCPIFKFOWEETQFSE5OFTDLJJN6RQ2CY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,.,..,,..,,,..,..,,..,,,.,,,..,.,.,...,...,...,...,...,.,.,,..,
+#5DRU5H52E3UT3HRRE7MIJ2EQLASF7QPA7WXZK5KO3EBOSUCUC2RP6NQHYLJQ4FNTEO2HBM6LCAQGC
+#\\\|WQS4SDBXCAMKRJTRO6PVCB46MRALRHXKQFZORSUZIUBTATEAM5A \ / AMOS7 \ YOURUM ::
+#\[7]TYPB34ZA6LNT3AQSIO57ESODBH3DPFQPWQJV5AJBRAH5UMADQ4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

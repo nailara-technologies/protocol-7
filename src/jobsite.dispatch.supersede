@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = jobsite.dispatch.supersede
+# param = <job_id> <attempt> <kind : assess | repair>
+# descr = a new attempt first fails the job's previous
+#         task of that kind : no stale run keeps a backend busy, a renewing
+#         worker stops at its next task.touch -- and an expired
+#         claim is never put up again [ task.claim_expire resets
+#         active claims only ]. a task already done \ failed just
+#         answers FALSE
+
+my ( $job_id, $attempt, $kind ) = @ARG;
+return if not length( $job_id // '' );
+
+my $rec = <jobsite.tasks>->{$job_id} // return;
+my $old_task
+    = ( $kind // '' ) eq qw| repair |
+    ? $rec->{'repair_task_id'} // ''
+    : $rec->{'task_id'} // '';
+return if not length $old_task;
+
+<[base.logs]>->(
+    1, '[job:%s] attempt %d supersedes task %s',
+    $job_id, $attempt, $old_task
+);
+<[protocol-7.route-send]>->(
+    {   'command'   => 'task.fail',
+        'call_args' => {
+            'args' => sprintf(
+                '%s superseded by attempt %d of job %s',
+                $old_task, $attempt, $job_id
+            )
+        },
+    }
+);
+
+return;
+
+#,,,,,,..,..,,..,,..,,,..,,,,,,,,,...,,,,,,,,,..,,...,.,.,,,.,...,.,,,,..,.,.,
+#L7I46PISMDWWEJANOJFUSEFBKPKAASCK7NG2ZVLJC2MEVW5WS6WVLIA3SACDN7D7LEH65BRQ7Z6PQ
+#\\\|H5VLIAKIHG3RXHP33USMTS6JWGWPJ7D3SOXKWXILKA65Z3U5IHV \ / AMOS7 \ YOURUM ::
+#\[7]BSJPLDAAA6XWHBUTVYNMQ2I2IKJSITJLN42656KRQXPO33OJW6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,6 +26,21 @@ foreach my $claimed_id ( keys %{$claimed} ) {
     my $claim      = $claimed->{$claimed_id};
     my $claimed_at = ref $claim eq qw| HASH | ? $claim->{'at'} // 0 : $claim
         // 0;
+
+    ## a leased claim : dropped one lease after its last renewal -- the ##
+    ## same deadline the task zenka expires it at, nothing to send      ##
+    if ( ref $claim eq qw| HASH | and defined $claim->{'lease'} ) {
+        next
+            if time - ( $claim->{'touched'} // $claimed_at )
+            <= $claim->{'lease'};
+        <[base.logs]>->(
+            0, ': claim %s not renewed within its lease [ %d s ] : dropped',
+            $claimed_id, $claim->{'lease'}
+        );
+        <[models.task.drop-claim]>->( $claimed_id, 'lease expired' );
+        next;
+    }
+
     next if time - $claimed_at <= $ttl;
     <[base.logs]>->(
         0, ': claim %s expired after %d s : slot freed, resetting task',
@@ -76,8 +91,8 @@ if ( length $pin ) {
 
 return $in_flight < scalar(@ids) ? TRUE : FALSE;
 
-#,,..,..,,...,.,,,,.,,,..,.,,,,..,...,,,,,,,,,.,.,...,...,..,,,,,,.,.,.,,,..,,
-#IKXPMWF7V6REVDHLQAORX6JCFFJAGCDIX477WBEL6JUOYUYIGPO4U2QMPX3XWFESTNXM6DF2U3BOY
-#\\\|B7PBC6GWVKWBPGGGX2KOLTW6WA24FMM6X2WUMC2UYUPBQQIU4UP \ / AMOS7 \ YOURUM ::
-#\[7]4EKJJIU4HBBNUMJHAJS55EUUGWEFTTAVTYZKXQALJQZHFCN7LYBI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,,,.,..,,,..,,..,,,,,,,,,,,,,.,.,...,...,.,.,,.,,.,,,,,,,...,
+#ZZJ4IEM32R5LV5NVM4OLIYQKZQ47RZC6WA2ZRB7P75G77JPHGLLPUUUBJ7XKTHRXKDQWVJ2DOTVC2
+#\\\|PDQYABBR34Z2KN2FHWOWWZRMSZQQEQQEDY4XQCJYQA2I4JOEIAN \ / AMOS7 \ YOURUM ::
+#\[7]QWU4XZA3XHKVFAAML75IK3CJ3OD5CWBQ3MCPCXTASS4F7CLACOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

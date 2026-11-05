@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = models.handler.task-touch
+# descr = timer : renews each leased claim [ task.touch ] a third
+#         of its lease after the last renewal -- while its work
+#         lives : a claim whose coding instance is gone [ restart ]
+#         is dropped, not renewed [ models.task.drop-claim ]
+
+my $claimed = <models.task.claimed>         // {};
+my $agent   = <models.cfg.task_agent>       // qw| models |;
+my $coding  = <models.task.coding_instance> // '';
+
+foreach my $task_id ( keys $claimed->%* ) {
+    my $claim = $claimed->{$task_id};
+    next if ref $claim ne qw| HASH | or not defined $claim->{'lease'};
+
+    my $since = time - ( $claim->{'touched'} // $claim->{'at'} // time );
+    next if $since < $claim->{'lease'} / 3;
+
+    if ( length( $claim->{'owner_instance'} // '' )
+        and $claim->{'owner_instance'} ne $coding ) {
+        <[base.logs]>->(
+            0,        ': task %s : coding instance %s gone, claim dropped',
+            $task_id, $claim->{'owner_instance'}
+        );
+        <[models.task.drop-claim]>->( $task_id, 'coding instance gone' );
+        next;
+    }
+
+    ## one renewal in flight -- a lost reply [ route collapsed ] stops ##
+    ## blocking after a third of the lease                             ##
+    next
+        if $claim->{'touch_pending'}
+        and time - $claim->{'touch_pending'} < $claim->{'lease'} / 3;
+    $claim->{'touch_pending'} = time;
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => <[models.task.cmd]>->( qw| touch |, $task_id ),
+            'call_args' => { 'args' => "$task_id $agent" },
+            'reply'     => {
+                'handler' => qw| models.handler.task-touch-reply |,
+                'params'  => { 'task_id' => $task_id },
+            },
+        }
+    );
+}
+
+return;
+
+#,,..,.,.,,,,,..,,,,,,.,,,,,.,,..,..,,..,,,,.,..,,...,...,,..,,,,,,,.,,,,,.,,,
+#VSQ4MJYO74SBHKJYCLRZPNLJFZ5K2D4AXTPDXYYQITA4E7SNQGRGBNCIFH46CARRWN2EOBWOIJZTG
+#\\\|CCLIHNJ2ADK6DVYVAAB4NTMQWDISVWE4EWFD3FW32PQSNRXKFZ5 \ / AMOS7 \ YOURUM ::
+#\[7]73OFZQSRBADPDSWBP7J6IGCBSKVX5SDJVQL3A7MTXVQSV3GMUUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

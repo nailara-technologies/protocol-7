@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = task.claim_lease
+# descr = the claim lease in seconds : a claim not renewed
+#         [ task.touch ] within it expires. one value for the
+#         task zenka and its workers -- claim and touch replies
+#         carry it [ task.cfg.claim_lease, default 600 ]
+
+my $lease = <task.cfg.claim_lease> // 600;
+$lease = 600 if $lease !~ m|^\d+$| or $lease < 60;
+
+return $lease;
+
+#,,,.,,..,.,.,.,.,...,...,..,,,.,,..,,.,,,.,.,..,,...,...,,..,.,.,,,.,,..,.,,,
+#XJIQ2J227DP65PC7RSBWQXIGGZS3WJEEPI7XXOYCBRTLCOLR3HZDKT4HBFIZXDDA4AXERR4RM2MTC
+#\\\|FJMBSF5SLKUUY6JCXNVOP4JWFO4OI4OZXTLULX4IRABCBWYLEBL \ / AMOS7 \ YOURUM ::
+#\[7]I2L7RPB2M47XKS6NOKKPYC2HQ3GYVN4PH2RSYUPYDIFUS37VUACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

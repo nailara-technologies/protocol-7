@@ -1,9 +1,14 @@
 ## [:< ##
 
 # name  = models.task.claim-record
-# descr = claim timestamp with the current coding instance, when known
+# descr = claim record : timestamp, lease, last renewal
+#         and the current coding instance, when known
 
-my $record = { 'at' => time };
+## the lease from the claim reply : models renews within it     ##
+## [ models.handler.task-touch ], 'touched' is the last renewal ##
+my $lease  = shift;
+my $record = { 'at' => time, 'touched' => time };
+$record->{'lease'} = $lease if defined $lease and $lease =~ m|^\d+$|;
 
 my $instance = <models.task.coding_instance> // '';
 if ( length $instance ) {
@@ -13,8 +18,8 @@ if ( length $instance ) {
 
 return $record;
 
-#,,,.,...,,.,,..,,,,.,.,,,,..,,.,,,,.,,,,,,.,,..,,...,..,,,,,,,,,,,.,,.,,,.,.,
-#2DRZE5Z2TBA7GMZQAUMBFDZN3YIHFUZHDWSF3YR67MPI6D53Y6AI724EJSU5BR3TGIABNCTUQ23HS
-#\\\|AQ2HWPLUX46ZPBRU3UM3BH7A4NLRWCSAQCYEHVUQFMFUDXALT77 \ / AMOS7 \ YOURUM ::
-#\[7]SIJIGMR4BHI46V6IMIL67HKNO5SV3YEYJBDQI5VW7DSZVGS3YSCA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,...,,,,,...,...,.,,,,..,..,,,.,,..,,...,...,.,,,,,,,,,.,..,,...,
+#FG4HNPOMCNDSUJVIJWJP42YT5IIQLX43AWZCOG7SJENEYQ6W7J64X75XMKBYWFEPM4OO6BHJR2LE4
+#\\\|MGG7F3KTAA7H3D5RUCNE2QQTC7XVUTRYOHIGQSZMYQSEZEC542F \ / AMOS7 \ YOURUM ::
+#\[7]QY7ZVQYKNZMJGYWM3JPNHSTBOSVWKVFUEMCFN6SPYPYJDITCQEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = task.cmd.touch
+# param = <task_id> <agent>
+# descr = keep-alive of a claim : the claiming agent renews it
+#         while it works, the reply names the lease in seconds.
+#         a claim not renewed within the lease expires
+#         [ task.handler.stale-claim-sweep -> task.claim_expire ] ;
+#         FALSE : not this agent's active claim any more
+#         [ superseded, expired, failed ] -- the worker stops
+
+my ( $task_id, $agent ) = ( '', '' );
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'}    // '';
+    $agent   = $call->{'param'}->{'agent'} // '';
+} else {
+    ( $task_id, $agent ) = split m|\s+|, $call->{'args'} // '';
+}
+$task_id = uc( substr( $task_id // '', 0, 7 ) );
+$agent //= '';
+
+return { 'mode' => 'false', 'data' => 'expected <task_id> <agent>' }
+    if not length $task_id or not length $agent;
+
+my $task = <task.queue>->{$task_id};
+
+return { 'mode' => 'false', 'data' => "task $task_id not found" }
+    if not defined $task;
+
+if ( $task->{'status'} ne 'claimed' and $task->{'status'} ne 'in_progress'
+    or ( $task->{'agent'} // '' ) ne $agent ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'task %s is %s by %s, not an active claim of %s',
+            $task_id, $task->{'status'}, $task->{'agent'} // '-', $agent
+        )
+    };
+}
+
+$task->{'updated_at'} = <[base.ntime.b32]>;    ## the sweep's clock ##
+$task->{'keep_alive'} = TRUE;    ## from now on the lease applies ##
+
+return {
+    'mode' => 'true',
+    'data' => sprintf( 'lease %d', <[task.claim_lease]> )
+};
+
+#,,,,,,,.,,,,,.,,,,.,,..,,..,,,..,.,.,,,,,...,..,,...,...,.,.,,..,,..,.,,,,,,,
+#3YOGH5HQ5S4KNF7JCHEEPB3SPXLC7KHDSWD2RNWMYXTHFJ5SNEUPDKROQW5MBN4F7KDSVOG7OUJ4S
+#\\\|3OOKY6DCU4XKG3B5IMHIEEIMQN6K2WB45V4TUJFXTAXBAR2H7AZ \ / AMOS7 \ YOURUM ::
+#\[7]PN4JYCONUUPNKWQQGLDIPDZPNXRRT7LWBLR4P65RRU4M2FYVIUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,7 +41,9 @@ if ( $step eq 'claimed' ) {
         2, ': claimed %s, starting + fetching details', $task_id
     );
 
-    <models.task.claimed>->{$task_id} = <[models.task.claim-record]>;
+    my ($lease) = ( $args->{'args'} // '' ) =~ m|\blease (\d+)|;
+    <models.task.claimed>->{$task_id}
+        = <[models.task.claim-record]>->($lease);
 
     <[protocol-7.route-send]>->(
         {   'command'   => <[models.task.cmd]>->( qw| start |, $task_id ),
@@ -240,7 +242,9 @@ if ( $step eq 'peek-claimed' ) {
         $task_id, $params->{'model'}
     );
 
-    <models.task.claimed>->{$task_id} = <[models.task.claim-record]>;
+    my ($lease) = ( $args->{'args'} // '' ) =~ m|\blease (\d+)|;
+    <models.task.claimed>->{$task_id}
+        = <[models.task.claim-record]>->($lease);
     <models.task.claimed>->{$task_id}{'target_cmd'} = $params->{'target_cmd'};
 
     <[models.task.enqueue]>->(
@@ -318,8 +322,8 @@ if ( $step eq 'poll-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,,.,.,,,,..,...,...,.,,,,,.,...,..,,..,,.,.,.,.,...,...,.,.,,..,,..,,..,,,,,
-#U22HD6YA6XZ4FJROWFH7OIUUJ4XNXHNCG7F3R677AGRG23OESGZONEXSMPBNMIVSLRDLECHDRRWFA
-#\\\|FVSU7ZYCOGSFHGAOF6AH3WQABPXVN4DPGQTZNX7YDBSDLVAW2PN \ / AMOS7 \ YOURUM ::
-#\[7]VWS6IFZLN3UH2YR4XV4ORPKZVLFA7DCDW3LZIZPZSRIC65PRQEBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,,.,,,,.,.,.,,,.,...,..,,.,.,.,.,...,..,,...,.,.,.,,,...,,,,,
+#OBE46U5NUQ4YPLL6OSGNBOPFHOTOA6ZE6BDAJGWPJEGXHAHSK5LEREXADF55AGJEWEL3WMPXMJHBG
+#\\\|FE26IN4IW4XI57RY7WEY42O47XJZM2CUQ7XD7MZ6SMRUGVBDUKH \ / AMOS7 \ YOURUM ::
+#\[7]AUJDUKEVUMPHDXXXYBDT7TYZFR6TTJ6CNTJK7QUKESBRTIAG4OBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
