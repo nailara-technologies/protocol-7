@@ -32,7 +32,8 @@ if ( not defined <process.TERM_chld.w_fh> ) {
     );
 }
 
-<system.process.status_timer>->cancel if exists <process.status_timer>;
+<system.process.status_timer>->cancel
+    if defined <system.process.status_timer>;
 <system.process.status_timer> = <[event.add_timer]>->(
     {   'after'    => 0,
         'interval' => <process.poll.interval>,
@@ -43,8 +44,8 @@ if ( not defined <process.TERM_chld.w_fh> ) {
 
 0;
 
-#,,,.,,,,,,,,,.,.,..,,...,,,.,..,,.,,,.,.,...,..,,...,.,.,...,.,,,.,,,..,,.,,,
-#SL7DGBL7URL2U7DHFH7RDBX6EMZSMLTXWDPG72472ETCUFVINYOHRZWT3AR7IFPAPGKZXTQKU2UJS
-#\\\|YWAEMIZFYUPFKECH7WYEJ3KOLEZIJXSNRRHTGEQPRLVALGOTVGJ \ / AMOS7 \ YOURUM ::
-#\[7]KGXUZWHOILFC6KJ4YEHWLM5QKZUR62UJWWUJG4LYGTDDY6G67ABY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,,,.,.,.,,,...,,,,,,,.,..,,..,,..,,...,...,.,.,,..,,,,,..,,,,,,
+#A6VU3OKL45F7SGNTNW6DQAAUUTCB5ODT5VETD2VPDGMIXNPHUZ7HT6SUDFJZL67ZU6YDTEJXSWLTA
+#\\\|XPB2D2WJPC25NMQ7NIAOLPUMTLRIRGTLJXYV2B2AF6OLXWIQ64Z \ / AMOS7 \ YOURUM ::
+#\[7]JZTEYUPEIHXYSKQQ2M2RO4NYW2XZLMSXSRIQD37LJGIY2RH5MWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
