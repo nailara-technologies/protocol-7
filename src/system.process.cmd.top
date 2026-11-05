@@ -2,7 +2,8 @@
 
 # name  = system.process.cmd.top
 # param = [pattern] [max_entries]
-# descr = get top process list (cached [5s])
+# descr = get top process list (cached [5s]) : cpu % since
+#         the last poll, 100 = one core
 
 my $filter;
 my $limit = $call->{'args'} // '';
@@ -45,8 +46,8 @@ foreach my $pid (
 
 return { 'mode' => qw| size |, 'data' => $top_table_txt };
 
-#,,,,,,,,,.,.,...,,,.,.,,,,.,,,,,,,..,.,.,.,.,..,,...,...,...,.,.,.,.,,..,.,,,
-#FVDTZEZJC5BH3KZMVETGJBTIB425JTTBDKWRVVJW4FFP7OSQFOCTLDSEUCVNVRYZM7267BUXVGCAO
-#\\\|XDICW3TEU5CZ5YW2CDTSC576Y26CXUIH36EFVPNDH5HFMH2OIGJ \ / AMOS7 \ YOURUM ::
-#\[7]KAFWFE4SN2IJT5FAYL4R4VM3LFMLJGT7QHEHAACU6KTW7VTYGUCI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,.,,,,,.,.,,..,...,..,,.,,,,.,,..,,...,..,,.,.,,,,,,.,,,..,,,,,
+#XZCMNIJ735SLXVATG5TMZPGET3GYTEYMVUW53XHYQFVBUGQSUWOEPEXPXPDWA3F535XQNLSMFMM2S
+#\\\|GWNRXC3JMFR7UI4W67NQXNCCIVXVL2MTA4CABDPQSPPP74Q7UKT \ / AMOS7 \ YOURUM ::
+#\[7]TM2TLSQ5YNKQ4BQ6HAN3ORM7JWOXKAANJELIRYM6666KDIIUK4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
