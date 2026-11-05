@@ -19,14 +19,20 @@ margin. it makes sense only when that zenka knows it signals task failure withou
 false positives, or when it is coordinated with other zenki and network cycles. later collapse kinds
 [ not applicable yet ] : max hops on the route exceeded, request no longer completable.
 
+**relapse the same day [ c68fb26d9 ] :** the cube liveness probe shipped ACTIVE with built-in 30 s x 3
+misses -- a default timeout in all but name, the exact thing ruled out an hour earlier ; it also closed
+clients that can never answer `heart` [ bin/nshell, socat ]. corrected : runs only with configured
+`cube.cfg.liveness.interval` + `.misses`, no fallback values. a liveness check that CLOSES things is a
+timeout : no default activation, no default values, ever -- check that before the first commit.
+
 **How to apply:** the `# [LLL] set up reply timeout` placeholder in base.handler.command becomes an
 OPT-IN : requested by the caller [ call args \ client option ] or assigned by a handler that knows its
 command. fix stuck targets with liveness detection [ heartbeat \ session checks ] so the route collapses
 the normal way. same spirit : [[feedback-no-ack-for-absolute-state-signals]],
 [[feedback-changed-established-behavior-silently]].
 
-#,,,.,..,,.,,,,,,,.,.,.,.,.,.,..,,,,.,..,,,,.,..,,...,...,...,.,,,...,,,.,,..,
-#4K5EEB4P2RFO52YAW6VZP66VZMNHIAXNFSPMQ7DK65F65UP6277M2ZY3O223QZJ7S2JCED5U5XEOG
-#\\\|ZBCMCUILFQZ3RL7AIF6X4RIIKPZMZHWLV5ARSTC5UT3K2GF2X6V \ / AMOS7 \ YOURUM ::
-#\[7]JENVATZQZ5JHU2DPSZGLXAIFOYSEYTENMVSNQTZGNL76MDSEXYAI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,..,,,.,,..,,,..,,,.,...,,.,,..,,...,...,,,,,,..,.,,,...,..,,
+#GXSZHXJ6BISHKUSBV5GNI3HJ4YNHIPUWDDFGTRC5L3QTUPR6J27EDQZ4VNF6L3KFIJQCM74GLMB7S
+#\\\|ANTBVRIOVI4FPVZOF5TKJOCSFO35C533WEPJWSDRNCOQ3MFLJDE \ / AMOS7 \ YOURUM ::
+#\[7]7PXXMFPH4UZGS4DRAHTXMNCXM6O46O6JDORFF3YQRUKSNFEHOADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
