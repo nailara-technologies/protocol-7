@@ -263,3 +263,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|YG7B6Q7S574YKL42NDAFTN34XNYFF43RQSJBPE55GGJ7ML3TDZW \ / AMOS7 \ YOURUM ::
 #\[7]MCBTK7N3CRBVYW2HXDMTAZ6MVWUPHC3JA2FWZK4U57VRCPUZFYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [no-default-reply-timeouts](feedback-no-default-reply-timeouts.md) — never a default \ global reply timeout : opt-in by caller or context ; a stuck target is a liveness problem
+
+#,,..,.,,,,.,,,,,,,.,,,,,,,.,,,.,,,..,,,,,,..,..,,...,.,.,..,,,,.,..,,,..,...,
+#XQ3L25HBWAFUXLNDAM6ZJYB7WR54OQTNO5JQZDING7YKZLA4JGGXF4HLEYMOGELSQAMOXQLJQ2EUM
+#\\\|ATFAJUYL4HPV6HFW224KEMER3IZ53PZZNKNXJLKFULPPW7HFFGB \ / AMOS7 \ YOURUM ::
+#\[7]7JMCESBN3GDUYNDG6PZ55IEKCPIHQ25BTC6OGEFHZUFJLNYZAEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
