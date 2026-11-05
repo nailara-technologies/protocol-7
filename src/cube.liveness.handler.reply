@@ -16,14 +16,15 @@ my $session = $data{'session'}{$sid};
 delete $state->{$sid}
     if not defined $session
     or $session->{'mode'} ne qw| client |
+    or not defined $session->{'liveness'}
     or not grep { ( $data{'route'}{$ARG}{'target'}{'sid'} // -1 ) == $sid }
     values( ( $session->{'route'} // {} )->%* )
     or exists <zenki.heartbeat>->{$sid};
 
 return TRUE;
 
-#,,,.,,,,,,.,,,..,,,,,...,.,.,,,,,...,.,,,,.,,..,,...,...,..,,.,.,,,,,...,,..,
-#7QNPXBWUU27LAHKLAGXWCZIGIAKLZ2XKIH4Q7WVRHPQL26T4MOG43E4MRE4PMAV2JFM2ZH5ZAGH3Q
-#\\\|IF6Y3T26L2QGXUBTUYUIKJIIGIR67XNG5XRZPW4B4LMKUD5BSJE \ / AMOS7 \ YOURUM ::
-#\[7]OHQMA3L4PX3HCWQ2YX7IFXZ3ZTXAFFY4P3EU7HV5NOVEGJFL2YDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,,,.,...,,,,,,.,,,,,,.,,,,.,,..,,...,...,,.,,.,,,,,,,...,,..,
+#33J4FICO3ALTX2OXM3TX4DS6RNMUIXLZOWF6FCTJTRGSVEDV46VKCI2PLAOBBDWSE4RJQ3NDSSJOM
+#\\\|UJAQ7VOYQGNZIDDXC66AJPTQPOL5CCHNQU5P6RGFCQN4VTK2KHP \ / AMOS7 \ YOURUM ::
+#\[7]S7SQM36WDN67KYNMHT5IOKEYA7TX3CBVBUDAMJFYKBYAAEXZ5EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

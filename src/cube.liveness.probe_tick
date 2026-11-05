@@ -10,6 +10,7 @@ foreach my $sid ( keys $state->%* ) {
     next
         if defined $session
         and $session->{'mode'} eq qw| client |
+        and defined $session->{'liveness'}
         and grep { ( $data{'route'}{$ARG}{'target'}{'sid'} // -1 ) == $sid }
         values( ( $session->{'route'} // {} )->%* )
         and not exists <zenki.heartbeat>->{$sid};
@@ -23,6 +24,7 @@ foreach my $sid ( keys $state->%* ) {
 foreach my $sid ( keys $data{'session'}->%* ) {
     my $session = $data{'session'}{$sid};
     next if $session->{'mode'} ne qw| client |;
+    my $liveness = $session->{'liveness'} // next;
 
     ## routes are stored on BOTH ends : only commands this session is the ##
     ## TARGET of count -- a caller waiting for a reply [ p7c ] is never   ##
@@ -35,10 +37,14 @@ foreach my $sid ( keys $data{'session'}->%* ) {
 
     my $session_state = $state->{$sid} //= { 'misses' => 0 };
     next
+        if defined $session_state->{'last_probe'}
+        and time - $session_state->{'last_probe'} < $liveness->{'interval'};
+    next
         if defined $session_state->{'timeout'}
         and $session_state->{'timeout'}->can(qw| is_active |)
         and $session_state->{'timeout'}->is_active;
 
+    $session_state->{'last_probe'} = time;
     <[protocol-7.command.send.local]>->(
         {   'command'   => sprintf( '%d.heart', $sid ),
             'call_args' => { 'args' => '' },
@@ -50,7 +56,7 @@ foreach my $sid ( keys $data{'session'}->%* ) {
     );
 
     $session_state->{'timeout'} = <[event.add_timer]>->(
-        {   'after'   => <cube.cfg.liveness.interval>,
+        {   'after'   => $liveness->{'interval'},
             'desc'    => "cube session liveness timeout [$sid]",
             'handler' => qw| cube.liveness.handler.timeout |,
             'data'    => $sid
@@ -60,8 +66,8 @@ foreach my $sid ( keys $data{'session'}->%* ) {
 
 return TRUE;
 
-#,,,,,.,.,..,,...,.,,,.,.,,..,,.,,,.,,.,,,,..,..,,...,..,,.,,,,..,.,,,.,.,.,.,
-#4PSHNTQG52DV7VXNDEFH6TVP46GIKS6CYEWNGYPB6E6XU2TPX3OLSOLGBWW4UDEGVOUWZTQK5ZKIW
-#\\\|Y2QHNBQHMDD7PQYWRD6AWAFRWQQSSTTF42YYZCNNIXYYRVWUYE6 \ / AMOS7 \ YOURUM ::
-#\[7]KQ7AIDOEC4BH5KBAZLQGYDTENZ6UAGQ7RVDPCAOYM7SS23P5JEDI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,,,,,...,,.,,,,,,,..,,.,,,,,,..,,...,...,,.,,,.,,...,,,,,,..,
+#4FPNQXTU7YOPT2SJZVBNJ5XQUPKFUOGQK3I224YICJNSIRMBFGJTA6343Y6VHL6LMZ6TMHSFMH42G
+#\\\|HARQCPEQWLS6GICJ4GVIKMNBDGJPSZJEJPGPZNSPXPUXBE2MZKI \ / AMOS7 \ YOURUM ::
+#\[7]IBMAYCPBXXOUQDRK32FITV3EDXZ2CK7R6RAYAKMDCR6KQQ26BQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

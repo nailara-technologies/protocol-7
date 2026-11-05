@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = cube.cmd.declare-liveness
+# param = <interval_secs> <misses> | off
+# descr = declare liveness probe policy for the calling session
+
+my $sid     = $call->{'session_id'};
+my $session = $data{'session'}{$sid} // return {
+    'mode' => qw| false |,
+    'data' => 'calling session not found'
+};
+
+my $args = defined $call->{'args'} ? $call->{'args'} : '';
+$args =~ s{^\s+|\s+$}{}g;
+
+if ( $args eq qw| off | ) {
+    delete $session->{'liveness'};
+    my $state   = <cube.liveness.state> //= {};
+    my $timeout = delete $state->{$sid}{'timeout'};
+    $timeout->cancel if defined $timeout and $timeout->can(qw| cancel |);
+    delete $state->{$sid};
+    <[cube.liveness.init_code]>;
+    return {
+        'mode' => qw| true |,
+        'data' => "liveness declaration removed for session $sid"
+    };
+}
+
+my ( $interval, $misses, $extra ) = split m{\s+}, $args;
+return { 'mode' => qw| false |, 'data' => 'too many arguments' }
+    if defined $extra;
+return {
+    'mode' => qw| false |,
+    'data' => 'interval must be a positive number'
+    }
+    if not defined $interval
+    or $interval !~ m{^(?:\d+(?:\.\d+)?|\.\d+)$}
+    or $interval <= 0;
+return {
+    'mode' => qw| false |,
+    'data' => 'misses must be a positive integer'
+    }
+    if not defined $misses
+    or $misses !~ m{^\d+$}
+    or $misses < 1;
+
+my $state   = <cube.liveness.state> //= {};
+my $timeout = delete $state->{$sid}{'timeout'};
+$timeout->cancel if defined $timeout and $timeout->can(qw| cancel |);
+delete $state->{$sid};
+
+$session->{'liveness'} = {
+    'interval' => 0 + $interval,
+    'misses'   => 0 + $misses
+};
+<[cube.liveness.init_code]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => "liveness declared for session $sid [ $interval, $misses ]"
+};
+
+#,,.,,,,,,.,,,,,,,.,,,,..,,,,,,.,,,.,,.,.,,..,..,,...,...,,,.,..,,,.,,...,.,.,
+#566MTA57HZWOVI4IFKD2UYYGC4IDHA6WYP4E7GR57YNTYYKLQSCCZEFH5UEBO7JIFLOAHUKDZ467E
+#\\\|4L2BJD3FM2VHA22FVP2L73LSCFOKHIXBUDM5YTHO5QJBVK36Q6A \ / AMOS7 \ YOURUM ::
+#\[7]TYMXTW7XTQTVGHZDJFFX4A2CRMBL4GYAEJC2HRSD5ICGE7YOLADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
