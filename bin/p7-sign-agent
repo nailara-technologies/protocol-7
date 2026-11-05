@@ -582,6 +582,11 @@ sub run_close {
 sub runs_expire {
     my $now = Time::HiRes::time();
     foreach my $run_id ( sort keys %run_approved ) {
+        my $peer_pid = $run_approved{$run_id}{'peer_pid'};
+        if ( defined $peer_pid and not kill 0, $peer_pid ) {
+            run_close( $run_id, 'requester gone' );    ## at once ##
+            next;
+        }
         run_close( $run_id, qw| idle | )
             if $now - $run_approved{$run_id}{'last'} > $run_idle_seconds;
     }
@@ -676,8 +681,10 @@ sub approve_run {
         {   qw| question | =>
                 sprintf( 'sign these %d files ?', $info->{'count'} ),
             qw| reason | => TRUE,
-            qw| redraw | => sub { request_show($info) },
-            qw| diff   | => sub {
+            ## the requester closing its socket withdraws the request ##
+            qw| cancel_fh | => $info->{'client'},
+            qw| redraw |    => sub { request_show($info) },
+            qw| diff   |    => sub {
                 run_diff( $info->{'work_tree'},
                     [ map { $ARG->{'path'} } $info->{'entries'}->@* ] );
             }
@@ -795,18 +802,18 @@ sub op_run {
     my ( $client, $args_aref, $peer_pid, $peer_uid ) = @ARG;
 
     my ( $run_id, $work_tree_b32, $count ) = $args_aref->@*;
-    return respond_no( $client, qw| run arguments | )
+    return respond_no( $client, 'run arguments' )
         if not defined $run_id
         or $run_id !~ m|^[0-9A-Za-z_.-]{1,80}$|
         or not b32_field_valid($work_tree_b32)
         or not defined $count
         or $count !~ m|^\d+$|
         or $count < 1;
-    return respond_no( $client, qw| run already open | )
+    return respond_no( $client, 'run already open' )
         if exists $run_approved{$run_id};
 
     my $work_tree = decode_b32r($work_tree_b32);
-    return respond_no( $client, qw| work tree | )
+    return respond_no( $client, 'work tree' )
         if not defined $work_tree
         or not length $work_tree
         or index( $work_tree, "\0" ) != -1
@@ -815,18 +822,18 @@ sub op_run {
     my @entries;
     foreach my $n ( 1 .. $count ) {
         my $f_line = read_line_alarm( $client, $request_timeout );
-        return respond_no( $client, qw| file list truncated | )
+        return respond_no( $client, 'file list truncated' )
             if not defined $f_line;
         chomp $f_line;
         my ( $tag, $path_b32, $chk_b32, $len ) = split m| |, $f_line, 4;
-        return respond_no( $client, qw| file list format | )
+        return respond_no( $client, 'file list format' )
             if ( $tag // '' ) ne qw| F |
             or not b32_field_valid($path_b32)
             or not b32_field_valid($chk_b32)
             or not defined $len
             or $len !~ m|^\d+$|;
         my $rel = decode_b32r($path_b32);
-        return respond_no( $client, qw| file list path | )
+        return respond_no( $client, 'file list path' )
             if not rel_path_valid($rel);
         push @entries,
             {
@@ -837,7 +844,7 @@ sub op_run {
     }
 
     my $go_line = read_line_alarm( $client, $request_timeout );
-    return respond_no( $client, qw| file list go | )
+    return respond_no( $client, 'file list go' )
         if not defined $go_line or $go_line ne "GO\n";
 
     ## content binding : read every file NOW, derive the stripped body from ##
@@ -876,7 +883,8 @@ sub op_run {
             qw| count     | => scalar @entries,
             qw| entries   | => \@entries,
             qw| peer_pid  | => $peer_pid,
-            qw| peer_uid  | => $peer_uid
+            qw| peer_uid  | => $peer_uid,
+            qw| client    | => $client
         }
     );
     tty_watch_mode(TRUE);
@@ -886,6 +894,12 @@ sub op_run {
             = length( $deny_reason // '' )
             ? encode_b32r($deny_reason)
             : ();
+        if ( ( $deny_reason // '' ) eq qw| cancelled | ) {
+            run_log_line( qw| withdrawn |, $run_id, scalar @entries );
+            out_line('request withdrawn by the requester');
+            idle_return();
+            return FALSE;
+        }
         run_log_line( qw| denied |, $run_id, scalar @entries, @reason );
         respond_no( $client, qw| denied |, @reason );
         idle_return();    ## the request + prompt leave the screen ##
@@ -965,7 +979,7 @@ sub op_sign {
 
     my ( $run_id, $path_b32, $body_chksum, $body_len, $buffer_b32 )
         = $args_aref->@*;
-    return respond_no( $client, qw| sign arguments | )
+    return respond_no( $client, 'sign arguments' )
         if not defined $run_id
         or not b32_field_valid($path_b32)
         or not b32_field_valid($body_chksum)
@@ -974,7 +988,7 @@ sub op_sign {
         or not b32_field_valid($buffer_b32);
 
     my $run = $run_approved{$run_id};
-    return respond_no( $client, qw| unknown run | ) if not defined $run;
+    return respond_no( $client, 'unknown run' ) if not defined $run;
 
     ## the run dies with its requester : the pid approved at RUN is gone --
     ## close the run. cheap [ one kill 0 ] and safe enough : a same-uid peer
@@ -982,38 +996,47 @@ sub op_sign {
     ## the window open for the short idle budget instead of closing early
     if ( defined $run->{'peer_pid'} and not kill 0, $run->{'peer_pid'} ) {
         run_close( $run_id, 'requester gone' );
-        return respond_no( $client, qw| run closed | );
+        return respond_no( $client, 'run closed' );
     }
 
+    ## a refused signature shows why on the screen ; the run stays open ##
+    ## [ END may still close it ] -- a requester that aborts on it is   ##
+    ## noticed gone within one loop pass [ runs_expire ]                ##
+    my $refuse = sub {
+        my @why = @ARG;
+        out_line( sprintf 'signature refused : %s', join q| |, @why );
+        return respond_no( $client, @why );
+    };
+
     my $rel = decode_b32r($path_b32);
-    return respond_no( $client, qw| path | )
+    return $refuse->(qw| path |)
         if not rel_path_valid($rel);
     my $approved = $run->{'paths'}{$rel};
-    return respond_no( $client, qw| path not in run | )
+    return $refuse->('path not in run')
         if not defined $approved;
 
     my $body_ref = run_file_body( $run, $rel );
-    return respond_no( $client, qw| not a regular file | )
+    return $refuse->('not a regular file')
         if not defined $body_ref;
     my $body = $body_ref->$*;
 
     ## approved-content binding : the disk body must still match what RUN   ##
     ## approved -- not only what this request claims [ todo HX4 follow-up ] ##
-    return respond_no( $client, qw| content changed | )
+    return $refuse->('content changed')
         if length $body != $approved->{'length'};
-    return respond_no( $client, qw| content changed | )
+    return $refuse->('content changed')
         if bmw_b32( 512, $body ) ne $approved->{'chksum'};
 
     ## request binding : the requester's checksum of the unsigned content ##
-    return respond_no( $client, qw| content changed | )
+    return $refuse->('content changed')
         if length $body != $body_len;
-    return respond_no( $client, qw| content changed | )
+    return $refuse->('content changed')
         if bmw_b32( 512, $body ) ne $body_chksum;
 
     ## buffer binding : data-chksum must be BMW-384 over exactly these ##
     ## stripped bytes + the presented header line [ design note ]      ##
     my $buffer = decode_b32r($buffer_b32);
-    return respond_no( $client, qw| buffer format | )
+    return $refuse->('buffer format')
         if not defined $buffer;
     ## the 5 tail bytes are fill_source_template's constant
     ## sig_template_prefix = substr( sign_template, 158, 5 ) -- the real
@@ -1022,9 +1045,9 @@ sub op_sign {
     ## are constrained to exactly that shape instead of any 5 bytes
     my ( $header_line, $footer_bmw, undef )
         = $buffer =~ m|^(\#[,\.]+\n)\#([0-9A-Z]+)\n(\#\\\\\\\x7C)\z|s;
-    return respond_no( $client, qw| buffer format | )
+    return $refuse->('buffer format')
         if not defined $header_line;
-    return respond_no( $client, qw| binding mismatch | )
+    return $refuse->('binding mismatch')
         if footer_bmw_b32( $body, $header_line ) ne $footer_bmw;
 
     $run->{'last'} = Time::HiRes::time();
@@ -1049,7 +1072,7 @@ sub op_sign {
 sub op_end {
     my ( $client, $args_aref ) = @ARG;
     my ($run_id) = $args_aref->@*;
-    return respond_no( $client, qw| unknown run | )
+    return respond_no( $client, 'unknown run' )
         if not defined $run_id
         or not exists $run_approved{$run_id};
     my ( $ntime, $sig_b32 ) = sign_end($run_id);
@@ -1095,7 +1118,7 @@ sub request_handle {
     } elsif ( $op eq qw| END | ) {
         op_end( $client, \@args );
     } else {
-        respond_no( $client, qw| unknown op | );
+        respond_no( $client, 'unknown op' );
     }
     return;
 }
@@ -1391,8 +1414,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,.,,..,,.,,..,,,,.,,.,,,,.,...,..,,..,,,..,..,,...,...,...,,,.,.,.,..,,.,,,
-#L2AOM2BNCTPEC7D4ICPSH22Z22XQ6ZDPRPPWJWBZ425RKTLOS6GF5VX5TXGWCLCRNSC6XPAYVMTFO
-#\\\|SUIWP5V2WATZRPO3HDP6PDOUA4SSBFKHQQVHW3QZYUYNO3L2NSO \ / AMOS7 \ YOURUM ::
-#\[7]TEWTTSGQ2CGYZ6WZ6VDMQW2V5OYAXTX2PI4XN62KQCGGW5KMZ6CI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,,.,,.,.,.,.,,..,,..,.,,,.,,,..,,...,...,,.,,,.,,,..,,,,,,..,
+#QC7WJ3ZUP3ISKJESRSU4MEZL32DJDW4VTWW4655Q3OROF2CBQPI22RPXK3XBAYUIH6CZCZNXVDZWW
+#\\\|DOQUM2U7XPT5YEECP2IDZURDLR5THY27AQ37LJIDEG6GTAM4UXM \ / AMOS7 \ YOURUM ::
+#\[7]XP2S7OCUF7S4LOF46GRMRZNST2EIJOHKFUYP2XL3XUTRKU2DOABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
