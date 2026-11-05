@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = cube.cmd.zenka-heartbeat
+# param = set <sid> <name> <timeout_secs> | del <sid>
+# descr = register sessions v7-zenki already monitors
+
+my $re = <regex.base>;
+
+my $args = defined $call->{'args'} ? $call->{'args'} : '';
+$args =~ s{^\s+|\s+$}{}g;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected set <sid> <name> <timeout_secs> or del <sid>'
+    }
+    if !length $args;
+
+my ( $cmd, $sid, $zenka_name, $timeout, $extra ) = split m|\s+|, $args;
+
+return { 'mode' => qw| false |, 'data' => 'too many arguments' }
+    if defined $extra;
+
+return { 'mode' => qw| false |, 'data' => 'invalid session id' }
+    if not defined $sid
+    or $sid !~ m|^\d+$|;
+
+if ( $cmd eq qw| set | ) {
+    return { 'mode' => qw| false |, 'data' => 'invalid zenka name' }
+        if not defined $zenka_name
+        or $zenka_name !~ m|^$re->{'usr_str'}$|;
+    return {
+        'mode' => qw| false |,
+        'data' => 'timeout must be zero [ no heartbeat ] or a positive number'
+        }
+        if not defined $timeout
+        or $timeout !~ m{^(?:\d+(?:\.\d+)?|\.\d+)$};
+
+    <zenki.heartbeat>->{$sid} = {
+        'name'    => $zenka_name,
+        'timeout' => $timeout,
+        'set_at'  => time
+    };
+    return {
+        'mode' => qw| true |,
+        'data' => "heartbeat registration set for session $sid"
+    };
+} elsif ( $cmd eq qw| del | ) {
+    return { 'mode' => qw| false |, 'data' => 'invalid arguments' }
+        if defined $zenka_name;
+    return {
+        'mode' => qw| false |,
+        'data' => "session $sid is not registered"
+        }
+        if not exists <zenki.heartbeat>->{$sid};
+
+    delete <zenki.heartbeat>->{$sid};
+    return {
+        'mode' => qw| true |,
+        'data' => "heartbeat registration removed for session $sid"
+    };
+}
+
+return { 'mode' => qw| false |, 'data' => 'expected set or del' };
+
+#,,.,,,.,,.,.,..,,,.,,..,,,.,,.,.,,,,,,,.,,,,,..,,...,...,.,,,,.,,.,.,,,,,,,,,
+#2EESCFFXN63MZPENLRPTGXPY465LI2IEYE5XLUD2PUEXZKD5P3HZWXYMQF4MBWKYJBTSY5W35JA7Q
+#\\\|E6YKDI5YNNZNQ2ET7YVM3H5Q3KAOJ2KFNYZKKPKIGVKH7RTJ4GO \ / AMOS7 \ YOURUM ::
+#\[7]IEB5QJXSZ7TG6QD64VTY7M7GZPC6PGKON3IX2JJFTLP4YHJBDSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

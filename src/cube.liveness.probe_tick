@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = cube.liveness.probe_tick
+# descr = probe unmanaged targets of open routes
+
+my $state = <cube.liveness.state> //= {};
+
+foreach my $sid ( keys $state->%* ) {
+    my $session = $data{'session'}{$sid};
+    next
+        if defined $session
+        and $session->{'mode'} eq qw| client |
+        and grep { ( $data{'route'}{$ARG}{'target'}{'sid'} // -1 ) == $sid }
+        values( ( $session->{'route'} // {} )->%* )
+        and not exists <zenki.heartbeat>->{$sid};
+
+    my $timeout = delete $state->{$sid}{'timeout'};
+    $timeout->cancel
+        if defined $timeout and $timeout->can(qw| cancel |);
+    delete $state->{$sid};
+}
+
+foreach my $sid ( keys $data{'session'}->%* ) {
+    my $session = $data{'session'}{$sid};
+    next if $session->{'mode'} ne qw| client |;
+
+    ## routes are stored on BOTH ends : only commands this session is the ##
+    ## TARGET of count -- a caller waiting for a reply [ p7c ] is never   ##
+    ## probed, it can not answer                                          ##
+    next
+        if not
+        grep { ( $data{'route'}{$ARG}{'target'}{'sid'} // -1 ) == $sid }
+        values( ( $session->{'route'} // {} )->%* );
+    next if exists <zenki.heartbeat>->{$sid};
+
+    my $session_state = $state->{$sid} //= { 'misses' => 0 };
+    next
+        if defined $session_state->{'timeout'}
+        and $session_state->{'timeout'}->can(qw| is_active |)
+        and $session_state->{'timeout'}->is_active;
+
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => sprintf( '%d.heart', $sid ),
+            'call_args' => { 'args' => '' },
+            'reply'     => {
+                'handler' => qw| cube.liveness.handler.reply |,
+                'params'  => { 'sid' => $sid }
+            }
+        }
+    );
+
+    $session_state->{'timeout'} = <[event.add_timer]>->(
+        {   'after'   => ( <cube.cfg.liveness.interval> // 30 ),
+            'desc'    => "cube session liveness timeout [$sid]",
+            'handler' => qw| cube.liveness.handler.timeout |,
+            'data'    => $sid
+        }
+    );
+}
+
+return TRUE;
+
+#,,..,.,.,...,,.,,..,,,..,.,.,.,,,..,,...,,.,,..,,...,..,,..,,,,.,,..,,.,,,.,,
+#GLZNK3P46FHAQPOXOG5NYU6AGYTDOJLQDHUJDNKLTR2THBYK57QJTTW6BRHT5ECAFFSPCDXKU2EKK
+#\\\|WVEIM4YBTLYUAIJ5A6UWXIWDMWXTDFEKQ6V6TRVNZFJ74AECSCF \ / AMOS7 \ YOURUM ::
+#\[7]H5JLJLLGIJIL5SDIGY44SNNNY57WXBLPDFS4267DEZ7WPXGL5CDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

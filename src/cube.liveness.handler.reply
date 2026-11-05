@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = cube.liveness.handler.reply
+# descr = reset the miss count when a probed session answers
+
+my $reply         = shift;
+my $sid           = $reply->{'params'}{'sid'} // return FALSE;
+my $state         = <cube.liveness.state> //= {};
+my $session_state = $state->{$sid} // return FALSE;
+
+my $timeout = delete $session_state->{'timeout'};
+$timeout->cancel if defined $timeout and $timeout->can(qw| cancel |);
+$session_state->{'misses'} = 0;
+
+my $session = $data{'session'}{$sid};
+delete $state->{$sid}
+    if not defined $session
+    or $session->{'mode'} ne qw| client |
+    or not grep { ( $data{'route'}{$ARG}{'target'}{'sid'} // -1 ) == $sid }
+    values( ( $session->{'route'} // {} )->%* )
+    or exists <zenki.heartbeat>->{$sid};
+
+return TRUE;
+
+#,,,.,,,,,,.,,,..,,,,,...,.,.,,,,,...,.,,,,.,,..,,...,...,..,,.,.,,,,,...,,..,
+#7QNPXBWUU27LAHKLAGXWCZIGIAKLZ2XKIH4Q7WVRHPQL26T4MOG43E4MRE4PMAV2JFM2ZH5ZAGH3Q
+#\\\|IF6Y3T26L2QGXUBTUYUIKJIIGIR67XNG5XRZPW4B4LMKUD5BSJE \ / AMOS7 \ YOURUM ::
+#\[7]OHQMA3L4PX3HCWQ2YX7IFXZ3ZTXAFFY4P3EU7HV5NOVEGJFL2YDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

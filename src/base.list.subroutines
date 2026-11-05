@@ -2362,6 +2362,7 @@ return [ qw[
         data.get.path_to_module
         data.cmd.list-fs-mounts
         data.channel.shm.create
+        cube.liveness.init_code
         cube.cmd.set-capability
         cube.cmd.present-p7-log
         cube-13.zenka.init_code
@@ -2686,6 +2687,8 @@ return [ qw[
         data.cmd.attach-fs-mount
         cube.set-up.import_rules
         cube.set-up.export_rules
+        cube.liveness.probe_tick
+        cube.cmd.zenka-heartbeat
         cube.cmd.set-initialized
         crypt.C25519.verify_sign
         crypt.C25519.single_file
@@ -3430,6 +3433,8 @@ return [ qw[
         v7-zenki.init_restart_timer
         v7-zenki.extract_short_desc
         v7-zenki.delegation.startup
+        v7-zenki.cube_heartbeat_set
+        v7-zenki.cube_heartbeat_del
         v7-zenki.cmd.reboot-warning
         v7-zenki.cleanup_temp_paths
         v7-zenki.cleanup_temp_files
@@ -3621,6 +3626,7 @@ return [ qw[
         data.handler.indexer.notify
         data.get.coordinate_to_hash
         data.channel.shm.test.basic
+        cube.liveness.handler.reply
         cube.chksum.bmw.cmd.bmw-L13
         cube.chk-sum.cmd.elf-chksum
         cube-13.cmd.receive-entropy
@@ -4243,6 +4249,7 @@ return [ qw[
         data.mount.shm.feedback.write
         data.mount.shm.feedback.watch
         data.get.resolve_interference
+        cube.liveness.handler.timeout
         crypt.C25519.validate_keyname
         crypt.C25519.store_remote_key
         crypt.C25519.signature_exists
@@ -6456,8 +6463,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,..,..,,,..,.,,,,,,,..,,,.,,,.,,..,,.,,,.,.,...,...,,,.,.,.,,..,,,,,...,
-#6QTPO6ECCKQNLV5MHIR7QAZY26TDNUH2YSOQMHRXGALKMHCW5UT7GGYCZRCKC4MNFFANGN4BEHX6M
-#\\\|2DST77FWJIGX3XFSZ2Y2EE75THHIS55T46TQXGDKPRXDABVUG7E \ / AMOS7 \ YOURUM ::
-#\[7]6MD3KJA6YFXMCRJUJ2UGLZLOOTS2WJCJND7NLPJ7XIKFD33RB2BQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,.,,,.,,,.,,.,,,,.,,..,,,.,...,.,.,...,...,,.,,.,.,,.,,..,,.,.,
+#2X5M54HDXNLI76SEKE5BMUKBRTOBS34LFYUAXDRCGLTHFZYHSOOJEU33EGAE6XUSD3IHYK6ZWU4CU
+#\\\|CGXKLDLVPNTAYLDSEROGUD2BZPXGS5MPLG4H656YR7XHRQNNSCF \ / AMOS7 \ YOURUM ::
+#\[7]24E3SN6ND54TZYIVJEIBMMLBCOHSMIBD4KWLXUE3T2ALRYPNSWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

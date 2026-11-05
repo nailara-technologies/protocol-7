@@ -5,6 +5,11 @@
 
 my $instance_id = shift;
 
+## a new cube session : cube's heartbeat registrations are gone with the ##
+## old cube -- every instance registers again on its next heartbeat      ##
+delete $ARG->{'cube_heartbeat_registered'}
+    for values <v7-zenki.zenka.instance>->%*;
+
 my $cube_addr = <protocol-7.network.internal.addr>;
 my $cube_port = <protocol-7.network.internal.port>;
 my $init_data = <v7-zenki.zenka.instance>->{$instance_id}->{'init_data'};
@@ -86,8 +91,8 @@ if ( defined <v7-zenki.start_setup.zenki.config> ) {
 #[success]
 return TRUE;
 
-#,,,.,..,,..,,..,,.,,,..,,,,,,,,.,..,,.,.,,..,..,,...,...,...,.,.,...,,,.,.,.,
-#ANKD76XCJOC6HWGB7JEUSZGH7TF5Y2WPI7UEDI4SH7H4AJP5S6DCWLFL2IERVILIIYRTMPNGC5DBE
-#\\\|UVHGEIWD6BYJCCQSB2OWOK4Q4L4WE6XWYUP2HSM4TNZ24EA7KVM \ / AMOS7 \ YOURUM ::
-#\[7]IGHPHNLHVQATT4K76BR2AOOA7SL6NOTFVV2GL6BLRH22ULKCASCI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,,..,...,.,.,,,.,.,,,,..,,.,,..,,...,...,...,,.,,.,,,..,,,,,,
+#DLYXMURYX7HLRWRG2Y6XVNUPTJDIBWDAH44MRB35HRHIZFDA2TK5VW3K3WXQX7ZYUT3DMQASVUCC6
+#\\\|L7SRTHAHGT6BAZMYBOYRVVFEP3DYOLWJ7Y7DPG4J4ZJRSXUEWH7 \ / AMOS7 \ YOURUM ::
+#\[7]KMNKBLJBTC5YPMGQXLHPIXKNES6DYKZVLDBZNJLHL7YAEEABW2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -86,6 +86,9 @@ if ( $status eq qw| offline | and exists $instance->{'session_id'} ) {
     delete <callback.session.closing_last>;
 }
 
+<[v7-zenki.cube_heartbeat_del]>->($instance_id)
+    if $status ne qw| online | and $status ne qw| extbin |;
+
 delete $instance->{'cube_sid'}
     if $status ne qw| online |
     and $status ne qw| extbin |
@@ -690,8 +693,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,.,.,,,.,,,,.,,..,,..,,.,.,.,.,.,,,,.,,,,.,..,,...,...,.,,,.,,,.,.,,,.,..,,
-#D63PIHOOTWUQYAXP2555TKOMLOOADEXVI3ACYKL5ZTPXBWQ5W4XQJBFL2PCJ3T4M6YDBXU4WJVX7C
-#\\\|MT63U57QOQDG3LMGGOFGFHKQLDC5SQZCTFOXTNSCKIDBHH3DN62 \ / AMOS7 \ YOURUM ::
-#\[7]4RLKG4ZY3M3RUMPZXZMCIEQB2SSIQB4LHXZYGJO5LBJ65RGVMGCA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,,,,.,,.,,,.,.,,..,,,,,..,,.,,,..,,...,...,,..,...,.,.,,,,,.,.,
+#HX7P7T52MRVFBORLCPK3ZNIL2JOGJWU6LUTNSK7H3GF5O7OZDRQ2WOCCMK3QO7CKTVAC6AGLX6NGQ
+#\\\|KHNGRNMEEDJGNCF46PLNX3CU7574TC42AEJVXAU7CK73PNNTSNP \ / AMOS7 \ YOURUM ::
+#\[7]VPM375YKJ7JFVHXCOVFKKMAMZWZKOA2QGRQCWGKUHK7MSR7O44AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
