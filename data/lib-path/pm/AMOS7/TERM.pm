@@ -29,7 +29,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.QUFV3RA |;
+our $VERSION = qw| AMOS7::TERM-VERSION.FBY6ZWA |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -1400,11 +1400,20 @@ sub confirm_key {
         return $reply =~ m{\e\[(\d+);\d+R} ? $1 : undef;
     };
 
-    ## one choice : a key, or a left click on a label of the prompt row.  a
-    ## lone esc rejects ; any other escape sequence
-    ## [ arrows, a click elsewhere ] is no choice
+    ## one choice : a key, or a left click on a label of the prompt row.  a ##
+    ## lone esc rejects ; any other escape sequence                         ##
+    ## [ arrows, a click elsewhere ] is no choice  cancel_fh [ optional ] : ##
+    ## readable = the request behind the prompt is gone                     ##
+    ## [ a requester closed its socket ] -- the prompt ends there           ##
+    my $cancel_fh   = $params->{'cancel_fh'};
     my $read_choice = sub {
         my $row = shift;
+        if ( defined $cancel_fh ) {
+            my $wait = IO::Select->new( $tty_in, $cancel_fh );
+            my @ready;
+            @ready = $wait->can_read() until @ready;
+            return qw| :cancelled: | if grep { $ARG == $cancel_fh } @ready;
+        }
         sysread( $tty_in, my $key, 1 ) or return undef;
         return $key if $key ne "\e";
         my ( $seq, $select ) = ( $key, IO::Select->new($tty_in) );
@@ -1427,14 +1436,17 @@ sub confirm_key {
         return '';
     };
 
-    my ( $answer, $bold ) = ( undef, '' );
+    my ( $answer, $bold, $cancelled ) = ( undef, '', FALSE );
     while ( not defined $answer ) {
         $render->($bold);
         my $row = $use_mouse ? $prompt_row->() : undef;
         $mouse->(1);
         my $key = $read_choice->($row);
         $mouse->(0);
-        if ( not defined $key ) {
+        if ( defined $key and $key eq qw| :cancelled: | ) {
+            ## no reason asked ##
+            ( $answer, $cancelled ) = ( FALSE, TRUE );
+        } elsif ( not defined $key ) {
             $answer = FALSE;    ## eof \ read error : deny ##
         } elsif ( $key eq qw| a | or $key eq qw| y | ) {
             $answer = TRUE;
@@ -1487,8 +1499,8 @@ sub confirm_key {
     ## right \ home \ end move, backspace \ del erase, ctrl-u clears, esc \ ##
     ## ctrl-c \ ctrl-d skip, any other sequence is dropped -- cooked mode   ##
     ## echoed arrow keys as ^[[D into the line                              ##
-    my $reason;
-    if ( not $answer and $params->{'reason'} ) {
+    my $reason = $cancelled ? qw| cancelled | : undef;
+    if ( not $answer and not $cancelled and $params->{'reason'} ) {
         my ( $min_len, $max_len ) = ( 13, 76 );
         my $prompt = $c{'T'} . ' :: reason [ enter skips ] :. ' . $c{'2'};
         print {$tty_out} "\n";
@@ -2345,8 +2357,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,,.,...,,,.,,,,,..,,..,,..,,.,,,..,,.,.,,,,,..,,...,...,.,,,.,,,.,,,,.,,...,
-#DDFYKONM4T5YFYJD55BDJV5YF4N6KT2OEPCQPXFYVTFJHD5WOHX7SG64U5ON5VYUWPI7CNQRG4ENU
-#\\\|3NMSBVNSLVU567VHRPLWAQHTUM63YGYIYHBNZN37JS6XH4S456G \ / AMOS7 \ YOURUM ::
-#\[7]Q3HVBZEBAKIU3JOFWSHSFLF4ERYD2Y3BSNJICBCF6ROO5NAUFIAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,...,,..,..,,..,,,.,,..,,.,,,,,,,..,,...,...,.,.,.,.,.,.,..,,.,.,
+#F47U4HOZES7PWJJKIFMYXFRCAJGMNUXDEIZTRPD72HGTUNEP2BWYLUGM24SKSQLZEAAMYNV2B7I5O
+#\\\|B4DJK73ULLAH2VEHJJN56OYQ2S7GNXA6KVXLRQANABHSZIYSWIV \ / AMOS7 \ YOURUM ::
+#\[7]BTFKRNOPWHR7UXNU4535URM5V4SSUM7JPG7NPDMDAH4R723S7SBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
