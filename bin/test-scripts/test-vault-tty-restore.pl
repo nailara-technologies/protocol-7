@@ -139,12 +139,12 @@ my $h = spawn();
 $h->{'wait'}->( 15,              qr|passphrase| );
 $h->{'send'}->( "pass phrase\r", 1 );
 $h->{'wait'}->( 12,              qr|:: vault ::| );
-$h->{'send'}->( "scratchpad\r",  1.5 );               ## the editor opens ##
-$h->{'wait'}->( 12,              qr|ctrl-x save\+quit| );
+$h->{'send'}->( "scratchpad\r",  1.5 );                ## the editor opens ##
+$h->{'wait'}->( 12,              qr|save \+ quit| );
 my $out        = ${ $h->{'out'} };
-my $frame_seen = $out =~ m|ctrl-x save\+quit| ? TRUE : FALSE;
+my $frame_seen = $out =~ m|save \+ quit| ? TRUE : FALSE;
 $h->{'send'}->( 'X',    0.5 );
-$h->{'send'}->( "\x18", 1 );                          ## ctrl-x save ##
+$h->{'send'}->( "\x18", 1 );                           ## ctrl-x save ##
 $h->{'wait'}->( 12,     qr|stored 'scratchpad'| );
 $out = ${ $h->{'out'} };
 my $stored = $out =~ m|stored 'scratchpad'| ? TRUE : FALSE;
@@ -167,9 +167,11 @@ ok( index( $out, "\e[24;1H\e[?25h\e[0 q\n" ) < 0,
 ## and the editor still comes back up with the saved body ##
 my $mark = length $out;
 $h->{'send'}->( "scratchpad\r", 1.5 );
-$h->{'wait'}->( 12,             qr|ctrl-x save\+quit| );
-my $tail     = substr( ${ $h->{'out'} }, $mark );
-my $reopened = $tail =~ m|:  X\s+:| ? TRUE : FALSE;
+$h->{'wait'}->( 12,             qr|save \+ quit| );
+my $tail = substr( ${ $h->{'out'} }, $mark );
+## colours split the row ##
+( my $plain = $tail ) =~ s|\e\[[0-9;?]*[A-Za-z ]||g;
+my $reopened = $plain =~ m|:\s+X\s+| ? TRUE : FALSE;
 $h->{'send'}->( "\x18",   0.5 );                      ## leave it as it was ##
 $h->{'wait'}->( 3,        qr|stored 'scratchpad'| );
 $h->{'send'}->( "quit\r", 0.5 );
@@ -213,8 +215,8 @@ $h->{'done'}->();
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,,,...,...,,,.,.,,,,.,,,.,,,..,...,.,,,,..,..,,...,...,,..,,,,,...,.,,,...,
-#VTDPSG4YDI6PZH5ZZL7XSTC3U7CA3VGKEVNTSLS2TV7RNTISBCTYKSFQL5ASM5AHXFXY6W2POQFRW
-#\\\|JULGHZ34GJMOVAZ7YKRLVHLFCFSEHAOMP2UIK34DMKE2ZGF67MQ \ / AMOS7 \ YOURUM ::
-#\[7]7Z26ZZP22N7OB3IFZZKZNTHDZXD7JCPGXOQJNSPY453JLDWX2SBI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,...,..,,...,,,.,,..,..,,,,.,..,,...,...,,,,,...,.,.,.,.,,.,,
+#VV2TDPHYCZVC35AG44ITOG6THELOFJJXD5P6YFJSDB35HGSRZOVJG5HFMWR27CNQDSSZZBRHEO2IW
+#\\\|PXHJLB2MST55VDMDCOXS2REQYIEONFZKAE4ORNAY5IM3222N5ET \ / AMOS7 \ YOURUM ::
+#\[7]FZB7YNZ6CFI2BLWJXD55YY4NMJXTLM5DPE5CM6GDHYKXKCNATYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
