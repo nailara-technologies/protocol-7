@@ -5,11 +5,13 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — START HERE [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
+- [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — START HERE [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
+- [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — previous [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
 - [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — previous [ 4802120dd ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
 - [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — previous [ 485d04329 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive
 - [shm-permissions-forgeable-open](project-2026-10-22-shm-permissions-forgeable-open.md) — OPEN SECURITY, high [ todo FKS ] : AMOS7::SHM::sign_permission is a computable hash -- shm permissions forgeable
 - [signature-valid-truth-map-ignored](project-2026-10-22-signature-valid-truth-map-ignored.md) — FIXED 2026-11-05 [ 66f759706, VWF ] : signature_valid honours a caller truth map [ truth checks only ] ; non-default map untested until the form footer
+- [new-task-command-three-lists](feedback-new-task-command-three-lists.md) — a new zenka command needs its own zenka.v7 list + gen-sub-whitelist, worker commands also the host overlay grant ; verify with `<zenka>.commands` and the far cube log
 - [sync-helpers-need-blocking-cube-socket](feedback-sync-helpers-need-blocking-cube-socket.md) — never flip a shared socket's mode : sync helpers read it ; per-call MSG_DONTWAIT instead
 - [ondemand-helper-recursion-in-deps-register](feedback-ondemand-helper-recursion-in-deps-register.md) — a new sub on the compile path recurses via register_*_deps : inline it
 - [session-handover-lock-mode](project-2026-11-01-session-handover-lock-mode.md) — previous [ c3b01c609 ] : login chain + lock mode s2a live
@@ -99,8 +101,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,...,..,,,..,,,,,,..,,,,,,.,,,,.,,,.,..,,..,,...,...,.,,,.,,,,..,,..,.,.,
-#C7N6FKOUTUAU2CLYCD5LY3STPHSBL5XIL2RI5RP5WNHHBUFLBV4WO54QRD4YFNZ25ABGTN6THXSZM
-#\\\|RPINHPNBL5RITD272V7NTB67WQ6RDDERF352ZQBONIPMO72THNE \ / AMOS7 \ YOURUM ::
-#\[7]5UCNL4J6HBAUVBO3KXYYT5JUQCUPLN3ASRUDHEW3XN6SC5XZHSDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,,,.,...,...,..,,.,.,,,.,..,,..,,...,...,,,,,,,,,,.,,,,,,,,.,
+#MOYKRDYTI3CLO6NEEJBFSP5NSZ26IZITBAO3Q65GMGWJNEGS7BHQFKT32GP7UA25GTZNBEBPXINX6
+#\\\|AYZGWTQEUCGCM4TLMSXIIGACYZPO6KZJ2FVNETG5ROC5JRIO5XU \ / AMOS7 \ YOURUM ::
+#\[7]TAWZVV5WHXKX45REPKNCYV5OWETMPEJJFLU4FGSTB2L47TXHGEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
