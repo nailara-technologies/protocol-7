@@ -12,18 +12,29 @@ return $event->w->cancel    ##  not a valid instance entry  ##
 
 my $instance = <v7-zenki.zenka.instance>->{$instance_id};
 
-## host memory pressure [ v7-zenki.pressure ] : a zenka stalled in direct   ##
-## reclaim is not hung -- restarting it adds memory demand and, for         ##
-## invoke-web, kills invoke.ai with it. while the level is elevated \       ##
-## critical, or the latest sample already crosses the critical avg10        ##
+## host memory \ io pressure [ v7-zenki.pressure ] : a stalled zenka is not ##
+## necessarily hung -- restarting one stalled in reclaim adds memory demand ##
+## and, for invoke-web, kills invoke.ai with it ; a disk stall passes too.  ##
+## while either level is elevated \ critical, or the  latest sample already ##
+## crosses a critical avg10 threshold                                       ##
 ## [ the level needs 3 samples to follow a spike ], the timeout is extended ##
 ## instead of counted : up to heartbeat_ext.<level> times                   ##
-my $level  = <v7-zenki.pressure.level>  // qw| calm |;
-my $latest = <v7-zenki.pressure.latest> // {};
-$level = qw| critical |
-    if $level eq qw| calm |
+my $mem_level = <v7-zenki.pressure.level>    // qw| calm |;
+my $io_level  = <v7-zenki.pressure.io_level> // qw| calm |;
+my $latest    = <v7-zenki.pressure.latest>   // {};
+$mem_level = qw| critical |
+    if $mem_level eq qw| calm |
     and ( $latest->{'mem_full_avg10'} // 0 )
     >= ( <v7-zenki.cfg.pressure.critical.mem_full_avg10> // 5.0 );
+$io_level = qw| critical |
+    if $io_level eq qw| calm |
+    and ( $latest->{'io_full_avg10'} // 0 )
+    >= ( <v7-zenki.cfg.pressure.critical.io_full_avg10> // 20.0 );
+
+my %severity = ( 'calm' => 0, 'elevated' => 1, 'critical' => 2 );
+my $pressure_kind
+    = $severity{$io_level} > $severity{$mem_level} ? qw| io | : qw| memory |;
+my $level = $pressure_kind eq qw| io | ? $io_level : $mem_level;
 
 my $ext_max
     = $level eq qw| critical |
@@ -37,10 +48,11 @@ if ( $ext_max and ( $hb->{'pressure_ext'} // 0 ) < $ext_max ) {
     <[base.logs]>->(
         $hb->{'pressure_ext'} == 1 ? 1 : 2,
         'instance %d [ %s ] heartbeat late under '
-            . '%s memory pressure -- waiting [ %d \ %d ]',
+            . '%s %s pressure : waiting [ %d \ %d ]',
         $instance_id,
         $instance->{'zenka_name'},
         $level,
+        $pressure_kind,
         $hb->{'pressure_ext'},
         $ext_max
     );
@@ -120,8 +132,8 @@ if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
         ;    ##  retrying now [0]
 }
 
-#,,,.,.,,,,.,,,.,,...,...,.,,,,,,,.,.,,,,,..,,..,,...,...,...,,,.,,,,,,,.,...,
-#2Q25745NRLPIXYNRWFTSRG2BRAB57MHKZEPKFEPJDNAOTPAHXV2A5EQIQH7HNPV3ZZUAKS5EXRLBG
-#\\\|GCRMIJJAPI3KYTFLZRVAEBDC3P45YKFTDO4ZJPKBOKDFAOB4NM4 \ / AMOS7 \ YOURUM ::
-#\[7]DCLZRQ2G5GZR7F3MXYVV6KMSJTDQANN6JZVS232O5MQYTFFF2SAI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,,,,.,,.,,,,..,,.,,.,,,,,.,.,,,..,,...,...,...,,..,,..,,.,,,,,,
+#62GCP4MIDWOBCKYHPJMP2XNEYNXG7I72HMEJXBLGUIHWHMGXEDXSUX4FHNA6HZTZ4MEIZSCS5XPLM
+#\\\|N7XV4G7VWWQKGSY5MBEAO5XP47X3RWPUN67NTDURE677TMBQ5H4 \ / AMOS7 \ YOURUM ::
+#\[7]2L7K6AQEKX7X7PMOPOCF3AA5ZDWRMESMKMCPATCVWTSIYVIYDYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
