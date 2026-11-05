@@ -35,16 +35,22 @@ foreach my $curve (
     <[base.curve.cancel]>->($curve);
 }
 
-my $window     = <login-screen.window>;
-my $background = <login-screen.widget.background>;
-my $snapshot   = <login-screen.widget.snapshot>;
-my $panel      = <login-screen.widget.panel>;
+my $window        = <login-screen.window>;
+my $background    = <login-screen.widget.background>;
+my $snapshot      = <login-screen.widget.snapshot>;
+my $session_image = <login-screen.widget.session_image>;
+my $panel         = <login-screen.widget.panel>;
 $window->get_window()->set_cursor(undef)
     if defined $window and defined $window->get_window();
 if ( defined $snapshot ) {
     $snapshot->clear();
     $snapshot->set_opacity(0);
     $snapshot->hide();
+}
+if ( defined $session_image ) {
+    $session_image->clear();
+    $session_image->set_opacity(0);
+    $session_image->hide();
 }
 <login-screen.lock.snapshot> = undef;
 
@@ -115,8 +121,8 @@ if ($animate_unlock) {
 }
 TRUE;
 
-#,,..,,..,.,,,..,,,..,.,,,.,.,..,,,..,...,.,,,..,,...,...,...,..,,...,.,.,.,.,
-#OSMCARZSFYEUKXAH3BU3UIEKQS5ZOZBO7OGDH4KVB3T42EJTENIEYFCSHSO25SWIXZHLTTMUFWVAI
-#\\\|MRRTEIRZHOMQTG2FGBKUQF6E6FKYEQ45KYKV5AJ4KXOMLMOXD3W \ / AMOS7 \ YOURUM ::
-#\[7]UCOML34FDC7D4XG5LPJ724FXF6S3AQQWFTA4RIWXT3ZXQZPTCUCY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,,..,..,,,.,,,,,,,..,..,,,,.,..,,...,...,,..,,..,...,,,,,.,,,
+#GDIZZREZ2N32BSFFCK762FQFH6T2V4NN3ZOXRLGCBKGJ5EGTSTF5UWFGUMQQP65EPC66AMDPQU5QE
+#\\\|NBABBDB4QGMP6D5BNIW362BCWEBKUTDGTPFM5QMJPE3MCKMBV4F \ / AMOS7 \ YOURUM ::
+#\[7]DTW44COMA3KSITNVBU4LG732CGCK4H3UXAKJS2ZU5ALOTPE42WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

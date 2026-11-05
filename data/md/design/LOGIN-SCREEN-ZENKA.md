@@ -294,37 +294,133 @@ feedback is subtle and stays in the palette : a dim `#0055CC` mark per typed
 character and a short dark violet pulse [ about `rgba(26,9,70)` ] on a wrong
 password. there is no red and no flashing.
 
-### shared transition layer stack
+### s2b : shared transition layer stack
 
-lock and login share one layer stack :
+lock and login share one stack, built once by `login-screen.open_window` and
+reused rather than creating another window or renderer :
 
-1. session background : X-11 color or image, filtered ;
-2. filtered screen snapshot taken at lock time, held in memory only, never
-   written to disk, and discarded after the transition ;
-3. lock or login background, when it differs from layer 1 ;
-4. controls.
+1. session background : the X-11 root color or image, optionally filtered ;
+2. transient screen snapshot : `login-screen.widget.snapshot`, a `Gtk3::Image`
+   overlay that is hidden and transparent outside a snapshot transition ;
+3. lock or login background : `login-screen.widget.background`, the dark
+   `lock-background` event box, used when this backdrop differs from layer 1 ;
+4. controls : `login-screen.widget.panel`, including its own translucent panel
+   background, labels, password entry, button, and status.
 
-on lock, the snapshot dissolves over layer 1 through a translucency curve,
-layer 3 fades in, and controls appear last. on unlock, controls leave first,
-layer 3 dissolves to layer 1, and the live desktop is revealed. unlock never
-uses a stale snapshot.
+the `Gtk3::Overlay` owns layers 2 through 4 in that order. layer 1 remains
+behind the lock window, so revealing it never requires copying the live desktop
+into a persistent widget. opacity belongs to the individual layer, not to a
+new fullscreen window per effect. the existing whole-window opacity ceiling of
+`0.995` remains : setting it to exactly 1 lets compton's unredirect path cause
+a flicker on the test host.
 
-the same stack serves greeter start, login, and logout ; logout follows the
-lock sequence. each layer has a curve type, duration, and filter. a config key
-such as `login-screen.lock.transition = fade | snapshot-fade | image` selects
-the transition.
+`login-screen.lock.transition = fade | snapshot-fade | image` selects the
+transition. `snapshot-fade` is the normal lock path, `fade` skips capture and
+uses only the dark backdrop, and `image` selects the configured layer 1 image
+without retaining a screen snapshot. each layer can have a curve type,
+duration, and filter ; absent filter configuration means no filter, not an
+implicit external image process.
+
+#### screen snapshot
+
+`login-screen.capture_snapshot` reads the gdk root window at its current full
+width and height with `Gtk3::Gdk::pixbuf_get_from_window`. capture happens
+before `show_all`, `present`, or the lock fade can cover the desktop, so the
+image is the session as it looked at the lock request. it is captured once,
+not refreshed while locked.
+
+the pixbuf has exactly two transient owners : `login-screen.lock.snapshot` and
+the snapshot image widget. it remains in process memory only. it is never
+written to disk, sent through cube, included in logs, or reused for a later
+lock. no thumbnail or scaled history is kept. perl and gtk may retain internal
+copies, so clearing the references is prompt best-effort release, not a claim
+of secure erasure.
+
+at the start of a manual lock, layer 2 is fully visible, layer 3 starts at
+zero, and layer 4 starts at zero. the snapshot fades from 1 to 0 while the dark
+background fades toward `0.995`, both over the configured
+`login-screen.lock.fade_duration` [ current default 1.7 s ]. the controls then
+fade in over 0.3 s. the visual result is a dissolve from the frozen desktop to
+the lock backdrop, not a second exposure of changing session contents.
+
+when the snapshot fade completes, the image is cleared, hidden, and made
+transparent, and `login-screen.lock.snapshot` is cleared. the same cleanup runs
+on unlock, cancellation, greeter reset, and every exit from lock mode. a new
+lock first cancels the old named curves and discards any old snapshot, so an
+old completion callback cannot erase or reveal a newer transition.
+
+capture failure is non-fatal : log only the generic capture failure, hide layer
+2, and run the ordinary dark-background fade. failure to obtain a decorative
+snapshot must never leave the session unlocked or delay the input grabs.
+
+unlock never resurrects the snapshot. controls fade out first, then layer 3
+and the lock window dissolve to the live desktop. the live session may have
+changed while locked, and that current content is intentionally what unlock
+reveals. the same stack serves greeter start, login, and logout ; logout
+follows the lock sequence when a session image is available, while ordinary
+login transitions do not require a snapshot.
+
+#### root-window substructure notify watch
+
+the visual stack does not by itself keep another x11 client below the lock.
+after the lock window is realized and its xid is known,
+`login-screen.watch_root` opens a dedicated `X11::Protocol` connection,
+selects only `SubstructureNotify` on the root window, and attaches that
+connection to the glib io watch. the watch belongs to the visible lock surface,
+from lock setup through its final hide ; it is not a general greeter or session
+monitor.
+
+`login-screen.handler.lock_root` drains the x11 input and coalesces each batch
+into at most one stack check. `MapNotify` and `ConfigureNotify` request the
+check [ new top-level windows and restacks ] ; events for the lock window
+itself do not. this avoids a raise \ configure feedback loop and avoids raising
+for unrelated events below the lock.
+
+the check uses `QueryTree` on the root, whose child order is bottom to top. if
+any root child above the lock xid is `Viewable`, the gdk lock window is raised.
+children below it are irrelevant. if the lock xid is no longer a direct root
+child [ for example after window-manager reparenting ], the handler raises
+conservatively rather than trusting an inapplicable stack comparison. mapped
+override-redirect children are included by the same query ; no window-manager
+honor-above hint is relied upon. a raise caused by this handler may produce
+one more configure event, but the following query finds no mapped window above
+the lock and does nothing.
+
+failure to connect, select root events, install the io watch, read events, or
+query the stack does not unlock or dismiss the surface. the root watch is
+removed and `login-screen.handler.lock_raise_poll` takes over, raising every
+0.5 s while locked. initial watch failure uses the same fallback. the poll is
+a safety net, not the normal reaction path, because event-driven handling
+avoids the poll interval's exposed-window gap.
+
+`login-screen.unwatch_root` removes the glib source, clears this connection's
+root event mask, and drops the connection and saved lock xid. x11 event masks
+are per client, so clearing this dedicated connection does not clear another
+client's root selection. releasing the lock also stops the fallback poll. root
+events carry no authentication authority : they only repair stacking, while
+the s2a keyboard and pointer grabs remain the input boundary. the existing x11
+limit still applies ; a client able to kill the lock connection or process can
+cause a brief session flash until supervision restores the lock.
+
+#### transition timing and verification
 
 curves use the existing `base.curve.*` register, cancel, compose, and eval
 operations, including sigmoid and ease-in-out types, following the usage in
-`src/mpv.handler.audio_fade`. `base.curve.init` ticks every 50 ms, so a 0.7 s
-visual fade gets about 14 frames. a visual tick near 16 ms may therefore be
-needed, either as a per-curve option or a drawing timer, to verify on real
-output.
+`src/mpv.handler.audio_fade`. named curve cancellation and state checks guard
+callbacks ; unlock callbacks additionally require `unlock_fading`. a manual
+lock is certain once its fade starts. an idle-triggered lock can be aborted by
+input during the fade, using `base.curve.cancel` and a reverse curve from the
+current value rather than jumping to an endpoint.
 
-durations default to 0.7 s or longer. a manual lock is certain once its fade
-starts. an idle-triggered lock can be aborted by any input during the fade ;
-it then fades smoothly back using `base.curve.cancel` and a reverse curve from
-the current value.
+`base.curve.init` currently ticks every 50 ms, so the default 1.7 s visual fade
+gets about 34 frames. a visual tick near 16 ms remains a real-host option,
+either as a per-curve option or a drawing timer, if the output is not smooth.
+s2b verification must exercise capture success and failure, repeated lock and
+unlock without stale images, restart during a locked fade, a mapped and a
+restacked override-redirect window, forced root-watch failure with polling
+fallback, and the compton no-flicker opacity ceiling. multi-monitor root
+geometry, image filters, and whether the 50 ms tick is visually sufficient
+remain real-host checks rather than assumptions from the gtk stubs.
 
 ### idle, blank, and dpms policy
 
@@ -397,8 +493,8 @@ restarts a zenka, touches a real host display, installs a setuid file, or
 uses a real user session. real xorg, keyboard focus, actual logout, and
 multi-monitor behavior remain explicit real-host validation steps.
 
-#,,,.,.,,,,,.,..,,...,.,.,,,.,..,,,..,,,.,.,,,..,,...,...,,.,,.,,,,.,,,..,.,.,
-#D2YLIKM7R5JRJR7CMB4MIRCU444TOJIIWI4QIKFHPC7M27UQBWV2DDHNXQBIRGD33FV5LAAF6OXFS
-#\\\|KEB2WKPJTC4ELV6QWQ4JMBS7PIER5XJDT6LOLNQED5D4JTAQ276 \ / AMOS7 \ YOURUM ::
-#\[7]FP7DATSONQMSWS7GHKG2PMGZ7BOBT5DFPUY6FINHPCG3KO6U4AAI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,,..,.,.,..,,,,,,,,,,,..,,..,..,,...,...,,,.,,.,,,..,,.,,..,,
+#BBKBQVP423BECQVZZBIYU6NJATCQQL44YIB4TRNSZ7OYXVEMUKSF5IFQOKEF4GY6UJ5BEFBZSPTGE
+#\\\|RSWHLTEKBKDRQ6SHBZ2QXHFDZECUBX4D4XH5SUDYLA4BCDJM4T5 \ / AMOS7 \ YOURUM ::
+#\[7]4DRYVRXAKVELIME7PZ3PF7WWHMDFBBPDOXVGSUTGM7OEFRFGZKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

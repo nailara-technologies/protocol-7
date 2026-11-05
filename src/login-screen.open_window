@@ -90,7 +90,12 @@ $window->set_app_paintable(1);
 $window->set_default_size( $screen->get_width(), $screen->get_height() );
 $window->fullscreen();
 
-## shared layers : dark background, transient snapshot, then controls ##
+## shared layers : session image, dark background, snapshot, then controls ##
+my $session_image = Gtk3::Image->new();
+$session_image->set_no_show_all(TRUE);
+$session_image->set_opacity(0);
+$session_image->set_hexpand(TRUE);
+$session_image->set_vexpand(TRUE);
 my $background = Gtk3::EventBox->new();
 $background->get_style_context()->add_class('lock-background');
 $background->set_hexpand(TRUE);
@@ -99,7 +104,8 @@ my $snapshot = Gtk3::Image->new();
 $snapshot->set_no_show_all(TRUE);
 $snapshot->set_opacity(0);
 my $layers = Gtk3::Overlay->new();
-$layers->add($background);
+$layers->add($session_image);
+$layers->add_overlay($background);
 $layers->add_overlay($snapshot);
 
 ## the form sits on a padded panel : its own translucent background ##
@@ -173,18 +179,19 @@ foreach
 $window->signal_connect( 'delete_event' => sub { Gtk3->main_quit } );
 Glib::Timeout->add( 1000, $code{'login-screen.handler.helper_watch'} );
 
-<login-screen.window>            = $window;
-<login-screen.widget.layers>     = $layers;
-<login-screen.widget.background> = $background;
-<login-screen.widget.snapshot>   = $snapshot;
-<login-screen.widget.panel>      = $panel;
-<login-screen.widget.user>       = $user;
-<login-screen.widget.user_label> = $user_label;
-<login-screen.widget.time>       = $time;
-<login-screen.widget.password>   = $password;
-<login-screen.widget.button>     = $button;
-<login-screen.widget.status>     = $status;
-<login-screen.state>             = qw| init |;
+<login-screen.window>               = $window;
+<login-screen.widget.layers>        = $layers;
+<login-screen.widget.session_image> = $session_image;
+<login-screen.widget.background>    = $background;
+<login-screen.widget.snapshot>      = $snapshot;
+<login-screen.widget.panel>         = $panel;
+<login-screen.widget.user>          = $user;
+<login-screen.widget.user_label>    = $user_label;
+<login-screen.widget.time>          = $time;
+<login-screen.widget.password>      = $password;
+<login-screen.widget.button>        = $button;
+<login-screen.widget.status>        = $status;
+<login-screen.state>                = qw| init |;
 $password->set_text('');
 <[login-screen.idle_policy]>;
 
@@ -205,8 +212,8 @@ Glib::Timeout->add(
 );
 TRUE;
 
-#,,..,...,,.,,,,,,.,,,.,.,,,,,,..,,.,,..,,.,,,..,,...,...,..,,,.,,.,,,,,,,.,.,
-#TA5AOGQK2PIPWOWQQTENWZN4G3WOOBGMOWA2YQZ3FBQAH6IX33X52PKSHZMCJYCVQITT2OKCLS2BY
-#\\\|6KYCPF4W5W4J7FI6V33NLXAVYZBA7JEVKN4NLX3MLCZAAYIAM65 \ / AMOS7 \ YOURUM ::
-#\[7]MWFVTKGXZ7SGCJIWWB7VFUPQQPYRX2VCYETRSUAVBT2EGPTMA2CQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,,.,,...,,.,,,,,,.,.,.,.,,,,,..,,...,...,..,,...,,,.,..,,,.,,
+#EFTFE6DKA34FGTYRZ6WUAEE3PZJNJPKIZQOCCJMHYTFXWB2HCGRLJDXNMZMP6EBY44WQETR4C3XTE
+#\\\|N4E3P5NB4NNN5UNAKMOZBLJHSAVGJCZLFLXNFJ24WCRGA2RNLCA \ / AMOS7 \ YOURUM ::
+#\[7]NGT3NRP4CJQWZNJEWHP7HMOL4NLLM3OLBTXMSRWP5VANRAF5HWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
