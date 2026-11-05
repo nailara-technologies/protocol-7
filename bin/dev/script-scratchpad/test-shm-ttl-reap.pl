@@ -27,13 +27,22 @@ BEGIN {
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS7::SHM
-    qw| shm_create pack_shm_header unpack_shm_header sweep_stale_segments |;
+    qw| shm_create pack_shm_header unpack_shm_header sweep_stale_segments
+    derive_pubkey SHM_HEADER_SIZE |;
+use Crypt::Misc qw| encode_b32r |;
 
 ##[ TEST SETUP ]##############################################################
 
-my $segment_size  = 4 * 1024;
-my $stale_pub_key = 'TESTTTLREAP0123456789ABCDEF01234';
-my $fresh_pub_key = 'TESTTTLFRESH0123456789ABCDEF0123';
+my $segment_size = 4 * 1024;
+
+sub test_pub_key {
+    my $seed = substr( shift() . ( "\0" x 32 ), 0, 32 );
+    my $pub  = encode_b32r( derive_pubkey($seed) );
+    $pub =~ s{=+\z}{};
+    return $pub;
+}
+my $stale_pub_key = test_pub_key('stale');
+my $fresh_pub_key = test_pub_key('fresh');
 
 my @results;
 
@@ -62,8 +71,9 @@ sub fabricate_staleness {
     binmode($fh);
 
     my $raw;
-    my $got = read( $fh, $raw, 512 );
-    die "short header read on $path" unless defined $got and $got == 512;
+    my $got = read( $fh, $raw, SHM_HEADER_SIZE );
+    die "short header read on $path"
+        unless defined $got and $got == SHM_HEADER_SIZE;
 
     my $header = unpack_shm_header($raw)
         or die "cannot unpack header of $path";
@@ -71,7 +81,8 @@ sub fabricate_staleness {
     $header->{'created'} = time() - 7200;    # two hours ago
 
     my $packed = pack_shm_header($header);
-    die "packed header wrong size" unless length($packed) == 512;
+    die "packed header wrong size"
+        unless length($packed) == SHM_HEADER_SIZE;
 
     seek( $fh, 0, 0 )   or die "cannot seek $path: $!";
     print {$fh} $packed or die "cannot write header to $path: $!";
@@ -167,8 +178,8 @@ if ( $failed == 0 ) {
     exit 1;
 }
 
-#,,,,,,,,,.,.,,,,,..,,,.,,,..,,..,.,.,,,,,,,,,..,,...,...,,..,,,,,,,.,...,,..,
-#HJMY367FZ6WBIR73OF5IB7W6SEMD5MN2DWVMLHWBY3MKPJPH2ARP62RMZ4J7A3T6G7TY7ZKBZWHIM
-#\\\|IZPSWAWJT4IHPV4T3F7DAINY2TAZUJ4U7KB3BGDK43DXG2DPNR6 \ / AMOS7 \ YOURUM ::
-#\[7]4ECYYNZ7PK3UAJONCMSXDHKCRFW7SLEKAGKIEES6CBFQGJCJYUDY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,.,.,.,,,.,,..,.,.,.,,,,,.,,..,..,,...,..,,..,,...,,,,,,,.,,,,,
+#D2SGKIUBIIGM43TESGZ3STRNY5ZDBY4DP4M7DSSQNZ3J3Y2XMWC2GJBA3G5SBTLOYRZEDBZ7C2P4I
+#\\\|47EUCATWJXM4S2EX7GODJHHMSGKABUW3UU7ASRXFIQFUG4FGU2S \ / AMOS7 \ YOURUM ::
+#\[7]DKER32VVBETVZBVFUNUD7TWMW4HMXPU2NMWUH7ZQXK6HDUBLD2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

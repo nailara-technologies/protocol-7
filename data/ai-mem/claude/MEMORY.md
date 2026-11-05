@@ -6,6 +6,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 ## CRITICAL
 - [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — START HERE [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
+- [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 : format 1 tested, CLI only, no deployment, no user in src ; owner decisions listed, binary byte form first
 - [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — previous [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
 - [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — previous [ 4802120dd ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
 - [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — previous [ 485d04329 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive
@@ -101,8 +102,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,,,,,..,...,,,.,...,...,..,,.,.,,,.,..,,..,,...,...,,,,,,,,,,.,,,,,,,,.,
-#MOYKRDYTI3CLO6NEEJBFSP5NSZ26IZITBAO3Q65GMGWJNEGS7BHQFKT32GP7UA25GTZNBEBPXINX6
-#\\\|AYZGWTQEUCGCM4TLMSXIIGACYZPO6KZJ2FVNETG5ROC5JRIO5XU \ / AMOS7 \ YOURUM ::
-#\[7]TAWZVV5WHXKX45REPKNCYV5OWETMPEJJFLU4FGSTB2L47TXHGEBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,..,,,.,,,..,...,,,,,..,,..,,,..,..,,...,..,,..,,...,,,,,,.,,...,
+#EIYDCL7VL4CRK3JMOVVCXX6QB75PSI2PPNP7AZD5QNWLFHABKYWLRDF5SKKAFAVV663AQWPYGB43I
+#\\\|PPLUTNKG4PWWHS7YQILOZYMUOFUJRNDRTMIZ2OG6NVBD4GSG25G \ / AMOS7 \ YOURUM ::
+#\[7]HKDYBDXHIHQUAUQO2G2DTRR5QFTRVLA4RBL2J5V5YWEKEYTQUMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

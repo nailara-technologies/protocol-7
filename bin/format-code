@@ -3141,12 +3141,18 @@ STUB
             : ''
             ) . qq{\n};
     }
-    ## a P7 module is compiled as a sub body by the loader
-    ## [ bin/Protocol-7 : eval "sub {\n# line 1 ..\n" . code . "}" ] -- its
-    ## last value is the return value, not a 'useless use .. in void context'
-    ## ; check the same way. the '#line' reset after the opening brace keeps
-    ## line numbers
-    my $wrap_sub = is_p7_module_text($src) ? TRUE : FALSE;
+    ## a P7 module is compiled as a sub body by the loader                  ##
+    ## [ bin/Protocol-7 : eval "sub {\n# line 1 ..\n" . code . "}" ] -- its ##
+    ## last value is the return value, not a 'useless use .. in void        ##
+    ## context' ; check the same way. the '#line' reset after the opening   ##
+    ## brace keeps line numbers  a package file                             ##
+    ## [ AMOS7::*.pm with the same first line ] is loaded by 'use', never   ##
+    ## as a sub body : wrapped, its file-scope 'my' variables report 'not   ##
+    ## available'. the checked path is a temp copy, so the shape of the     ##
+    ## text decides, not a '.pm' name                                       ##
+    my $is_package_file = $src =~ m{^package\s+[\w:]+\s*;}m ? TRUE : FALSE;
+    my $wrap_sub
+        = ( is_p7_module_text($src) and not $is_package_file ) ? TRUE : FALSE;
     $preamble .= 'my $p7_check_module_body = sub {' . "\n" if $wrap_sub;
     $preamble .= qq{#line 1 "$file_path"\n};
 
@@ -3237,7 +3243,7 @@ STUB
         ## [ the only way they are ever actually used ] is clean, zero      ##
         ## warnings -- %INC correctly guards re-entry once the file IS      ##
         ## being loaded as a real module and not the main program under -c  ##
-        if (    $file_path =~ m{\.pm$}
+        if (    $is_package_file
             and $line =~ m{^Subroutine \S+ redefined at } ) {
             push @benign_once, $line;
             next;
@@ -3418,8 +3424,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,.,.,.,.,,,.,...,,,.,.,.,,.,,,,,,.,.,,,,,..,,...,...,.,,,,..,...,..,,.,,,
-#FHBOMLG3YNO5JOS7FZKRW3OYKQ2SMIXGTIJYD6JMOCRXIWSYIH65LBG4MSHDH2VB7XBCUQEMPQ5UC
-#\\\|QAX26FCYDHCHT36I7YO6JLFZR7QA3TMMULK5BWNRQVSWK3KO5HY \ / AMOS7 \ YOURUM ::
-#\[7]6GEEIYID2ZE4BUF6UXCCCMIAEXW343C7ZJ3QHKAO5KVJZPUQIODA 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,,,.,...,..,,,,.,...,,,,,..,,..,,...,...,,,,,.,,,.,.,,,.,.,,,
+#O246BEC6AJDIIQHAV4YXGT3QIH6QFSCCWRDY2K7I3AFCSQKKBCTSO3ORKOXCY5PKQB6PQVNYHV376
+#\\\|75D2QCBS4G7ZNVMGF2WMBUCJH6624BJ6PW6L7D6LPLEZNZ3GLDW \ / AMOS7 \ YOURUM ::
+#\[7]RFODMHFF2AUWDDZ4TTTOGXII4SVMEZANM5VIDI5SVZICJ2737ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

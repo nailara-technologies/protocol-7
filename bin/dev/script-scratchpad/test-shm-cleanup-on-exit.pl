@@ -26,11 +26,13 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS7::SHM qw| shm_create |;
+use AMOS7::SHM  qw| shm_create derive_pubkey |;
+use Crypt::Misc qw| encode_b32r |;
 
 ##[ TEST SETUP ]##############################################################
 
-my $pub_key      = 'TESTCLEANUP0123456789ABCDEF0123';
+my $pub_key = encode_b32r( derive_pubkey( 'cleanup seed' . ( "\0" x 20 ) ) );
+$pub_key =~ s{=+\z}{};
 my $segment_size = 4 * 1024;
 my @results;
 
@@ -86,7 +88,10 @@ sub ok {
 ##[ TEST 2: SIGTERM triggers END cleanup ]####################################
 
 {
-    my $term_path = sprintf( "/dev/shm/p7:M:%s", $pub_key . 'TERM' );
+    my $term_pub_key
+        = encode_b32r( derive_pubkey( 'cleanup term seed' . ( "\0" x 15 ) ) );
+    $term_pub_key =~ s{=+\z}{};
+    my $term_path = sprintf( "/dev/shm/p7:M:%s", $term_pub_key );
     unlink($term_path)          if -f $term_path;
     unlink("$term_path.notify") if -p "$term_path.notify";
 
@@ -96,8 +101,7 @@ sub ok {
     if ( $pid == 0 ) {
         ## child : create segment, confirm it exists, then sleep until TERM ##
         my $mount
-            = shm_create( $pub_key . 'TERM', $segment_size,
-            { 'mlock' => 0 } );
+            = shm_create( $term_pub_key, $segment_size, { 'mlock' => 0 } );
         exit 1 unless defined $mount;
 
         my $path = $mount->{'path'};
@@ -151,8 +155,8 @@ if ( $failed == 0 ) {
     exit 1;
 }
 
-#,,.,,..,,...,.,.,,.,,.,.,...,,,.,.,,,,.,,,..,..,,...,..,,.,.,...,,,.,..,,,..,
-#BROHHLK7FDF73AOKMD56GZ3HG4VE3GOJQQSZ5BWWUDOS2PD6L3TF45MTU4IGBXLIAD2LITSY275QG
-#\\\|MRMCLLO6JJNLGZCCONUVTYPY6V32PEFYEGGY3D5SOLYS6DPIJVA \ / AMOS7 \ YOURUM ::
-#\[7]MNP7B6MTA3JPO5D4CZJDJPDSTQ2MS5FKTN3MDWWQNSWRRYICEMDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,...,...,...,,,.,,,,,.,.,.,.,.,,,..,,...,...,...,.,.,,,,,..,,,.,,
+#5XIWGBKABURJIQWIA7CEBQMUNXAH26HTSDW5XAJTSCD4EFCFC4SEIGJDYGANGMW5P3QR4KCMB6JXG
+#\\\|3V7LCIZTMMEKKTQXNBES2TBE3FMO6WQR23OQAGIGZX2DBF3UN66 \ / AMOS7 \ YOURUM ::
+#\[7]IQNDVUSLT5RPWZOKHWV7SPGUVNZHBFGITW6PNZGHTACMDRANLMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

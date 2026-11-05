@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = protocol-7-menu.handler.pointer-stream-path
-# descr = receive shm path, open with session pubkey, store mmap_ptr
+# descr = receive shm path, open with session key pair, store mmap_ptr
 
 my $reply = shift                         // {};
 my $cmd   = $reply->{'cmd'}               // '';
@@ -15,15 +15,19 @@ if ( $cmd ne qw| TRUE | or not length $path ) {
 <[base.perlmod.autoload]>->( 'AMOS7::SHM', qw| shm_open | );
 
 my $session_key = $keys{'C25519'}{'session:protocol-7-menu'};
-if ( not defined $session_key or not defined $session_key->{'public'} ) {
-    <[base.log]>->( 0, 'pointer-stream-path : session public key missing' );
+if (   not defined $session_key
+    or not defined $session_key->{'public'}
+    or not defined $session_key->{'private'} ) {
+    <[base.log]>->( 0, 'pointer-stream-path : session key pair missing' );
     return;
 }
 
 my $mount = AMOS7::SHM::shm_open(
     $path,
     { 'mode' => 'read' },
-    $session_key->{'public'}
+    {   'private' => $session_key->{'private'},
+        'public'  => $session_key->{'public'},
+    }
 );
 
 if ( not defined $mount or exists $mount->{'error'} ) {
@@ -38,8 +42,8 @@ if ( not defined $mount or exists $mount->{'error'} ) {
 
 #
 
-#,,,,,,.,,,,.,,,,,,,.,,,.,,,,,,,.,..,,.,,,.,,,..,,...,...,..,,...,,,,,,,.,..,,
-#ZFHLYI24X7BPX53NGJIVV263PN4F3HC2HZPEOPUU7DEBJVWJE5GGQY65BW67QI2JF4TRVUCRDKV56
-#\\\|ZCNDNBMESEVOXUNSUJQEKCN2ATBQGZXDFC7SW4YMHMM7JFD4NEG \ / AMOS7 \ YOURUM ::
-#\[7]CX57OU7MAW7GCY5UTNQ6PIVEFJAHRSAV36A5JEBJUCT4B7EASUBI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,.,.,.,,..,,.,,,..,,.,,...,,,,,..,,...,...,.,,,,,.,...,.,,,...,
+#7JLV3GRYDANFZ4HVXHVYMIPUZGROK2XOUEPESI7U5FUMP2JXASSVAAT7UD7WJ6QI2IQYH3E4WTAHI
+#\\\|4U4VJV53RIDB23DZPVFJZLRPM4OPS6C2FEVI5KF4AE5LDGLBB4F \ / AMOS7 \ YOURUM ::
+#\[7]EM5TRYX7MUN3XW56YXMBJMWM4I3IVZQEXJWSLUSNK366FK5FRMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

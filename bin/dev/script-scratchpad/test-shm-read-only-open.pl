@@ -26,12 +26,14 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS7::SHM qw| shm_create shm_open |;
+use AMOS7::SHM  qw| shm_create shm_open derive_pubkey SHM_HEADER_SIZE |;
+use Crypt::Misc qw| encode_b32r |;
 
 ##[ TEST SETUP ]##############################################################
 
-my $priv_key     = 'TESTPRIVKEY0123456789ABCDEF0123456789ABCDEF';
-my $pub_key      = substr( $priv_key, 0, 32 );
+my $priv_key = 'read only seed' . ( "\0" x 18 );
+my $pub_key  = encode_b32r( derive_pubkey($priv_key) );
+$pub_key =~ s{=+\z}{};
 my $test_data    = 'Protocol-7 read-only open mode test payload';
 my $segment_size = 4 * 1024;
 
@@ -68,13 +70,14 @@ if ( !ok( 'shm_create succeeded', defined $mount_create ) ) {
 
 $created_path = $mount_create->{'path'};
 
-# Write test data into the data region, past the 512-byte header
-substr( ${ $mount_create->{'mmap_ptr'} }, 512, length($test_data) )
+# write test data into the data region, past the fixed-size header
+substr( ${ $mount_create->{'mmap_ptr'} },
+    SHM_HEADER_SIZE, length($test_data) )
     = $test_data;
 
-my $written_back
-    = substr( ${ $mount_create->{'mmap_ptr'} }, 512, length($test_data) );
-ok( 'create-time write/read ' . 'roundtrip',
+my $written_back = substr( ${ $mount_create->{'mmap_ptr'} },
+    SHM_HEADER_SIZE, length($test_data) );
+ok( 'create-time write/read roundtrip',
     $written_back eq $test_data,
     "got: '$written_back'"
 );
@@ -92,9 +95,9 @@ my $ro_ok = ok(
 );
 
 if ($ro_ok) {
-    my $ro_data
-        = substr( ${ $ro_mount->{'mmap_ptr'} }, 512, length($test_data) );
-    ok( 'read-only open sees exact ' . 'written content',
+    my $ro_data = substr( ${ $ro_mount->{'mmap_ptr'} },
+        SHM_HEADER_SIZE, length($test_data) );
+    ok( 'read-only open sees exact written content',
         $ro_data eq $test_data,
         "got: '$ro_data'"
     );
@@ -103,21 +106,22 @@ if ($ro_ok) {
 ##[ TEST 3: Writing through read-only-opened mmap does not silently succeed ]#
 
 if ($ro_ok) {
-    my $original
-        = substr( ${ $ro_mount->{'mmap_ptr'} }, 512, length($test_data) );
+    my $original = substr( ${ $ro_mount->{'mmap_ptr'} },
+        SHM_HEADER_SIZE, length($test_data) );
     my $overwrite = 'ROGUE_WRITE_ATTEMPT_SHOULD_NOT_PERSIST';
 
     my $died = 0;
     eval {
-        substr( ${ $ro_mount->{'mmap_ptr'} }, 512, length($overwrite) )
+        substr( ${ $ro_mount->{'mmap_ptr'} },
+            SHM_HEADER_SIZE, length($overwrite) )
             = $overwrite;
         1;
     } or do {
         $died = 1;
     };
 
-    my $after
-        = substr( ${ $ro_mount->{'mmap_ptr'} }, 512, length($test_data) );
+    my $after = substr( ${ $ro_mount->{'mmap_ptr'} },
+        SHM_HEADER_SIZE, length($test_data) );
     my $did_not_silently_succeed = $died || ( $after eq $original );
 
     ok( 'read-only mmap write is refused or dies',
@@ -136,8 +140,8 @@ my $rw_ok = ok(
 );
 
 if ($rw_ok) {
-    my $rw_data
-        = substr( ${ $rw_mount->{'mmap_ptr'} }, 512, length($test_data) );
+    my $rw_data = substr( ${ $rw_mount->{'mmap_ptr'} },
+        SHM_HEADER_SIZE, length($test_data) );
     ok( 'default mode sees exact written content',
         $rw_data eq $test_data,
         "got: '$rw_data'"
@@ -157,8 +161,8 @@ my $rw2_ok = ok(
 );
 
 if ($rw2_ok) {
-    my $rw_data2
-        = substr( ${ $rw_mount2->{'mmap_ptr'} }, 512, length($test_data) );
+    my $rw_data2 = substr( ${ $rw_mount2->{'mmap_ptr'} },
+        SHM_HEADER_SIZE, length($test_data) );
     ok( 'non-read mode sees exact written content',
         $rw_data2 eq $test_data,
         "got: '$rw_data2'"
@@ -181,8 +185,8 @@ if ( $failed == 0 ) {
     exit 1;
 }
 
-#,,,.,.,.,,..,,,,,.,,,..,,..,,,..,.,,,,..,.,.,..,,...,...,..,,..,,..,,,..,,,.,
-#5AZU7TFEFFDZBDZNPSP22T7ENFGR5SSFKIIZWBGGTLTEYKF5UJOXJXLBALM6A7VWSTFIODX6XNBRG
-#\\\|WIJL6ETM4VTEV4WYHYILODU6KMEXWDPBIKVPDRECHR46WY774I4 \ / AMOS7 \ YOURUM ::
-#\[7]DQRF4QPPD5ITOB6KXYBAV3XZKJKKNGEUBETD5OURRAIPIFQG6YBI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,..,,...,.,,,,,,,,,.,...,..,,,,,,..,,...,...,..,,.,.,.,.,.,,,,..,
+#H6MDVBP6YFGQCJDCSNKAYJKC6VJTZRJ5TKZQGYRHSYQOYQS72GSH6III46O3DFPYLNJUGMPNGYPEM
+#\\\|SVKVBZC2FESPONHNKJUFAK4EF5XAS6PURVSRZ7CRW7AJONAEX6W \ / AMOS7 \ YOURUM ::
+#\[7]KGVTRWDKP4W7MF4P4FHHWC46ZMAURYSG5GYSZJ7XLQMST74GHKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

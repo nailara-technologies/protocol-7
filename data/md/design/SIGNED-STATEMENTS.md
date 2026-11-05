@@ -85,9 +85,14 @@ capabilities, open question 19 ].
   RAW 32-byte subject pub : no label, no time, no action -- cannot be
   ordered or revoked ].
 - **shm permissions** [ `data.mount.shm.permission.*`, `AMOS7::SHM` ] :
-  `sign_permission` is a 32-bit polynomial hash of the canonical string,
-  times the key length. **it is not a signature** : anyone can compute
-  it. the header is 512 bytes for up to 16 permissions.
+  `sign_permission` uses Ed25519 over the exact UTF-8-free octet sequence
+  `p7 shm grant v1\nowner_pubkey=<b32>\nsub_path=<hex>\ncreated=<decimal>\n`
+  followed by `to=<hex>\nbranch=<hex>\nrights=<hex of comma-joined rights>\n`
+  and `expiry=<decimal>\ngranted=<decimal>\n`. hex fields make the line
+  encoding unambiguous. owner, sub-path and segment creation time bind the
+  grant to one segment instance. signatures are 64 bytes stored as 128
+  lowercase hex characters. the version 2 header is 4096 bytes for up to 16
+  permissions ; overflow refuses the write without dropping an old grant.
 - **signed key chains are built** [ TRUST-CHAIN-STEP2, live ] :
   `trust.statement` [ exact bytes of `p7 delegation v1` : issuer, subject,
   name, not_before, not_after, scope ], `trust.chain` [ b32 wires joined
@@ -781,10 +786,10 @@ each is a label table entry, not a new format.
 - **capability** [ one format for files section 9 and the shm
   permissions ] : label fields `host`, `path-prefix` or `branch`,
   `rights`, `cap-id`, `max-uses`, with `not-before` \ `not-after` from
-  v1. the shm header [ 512 bytes ] carries ONE id : the current
-  `p7 shm permissions v1` statement of the mapping [ 77 bytes ]. the
-  placeholder hash in `AMOS7::SHM` goes ; until then shm permissions
-  protect nothing against a writer of the header.
+  v1. a future statement-oriented shm header can carry ONE id : the current
+  `p7 shm permissions v1` statement of the mapping [ 77 bytes ]. the current
+  4096-byte version 2 header instead carries direct `p7 shm grant v1`
+  Ed25519-signed grants as described above.
 - **group manifests** of files stay unsigned content nodes [ their id is
   fixed by the group record ] ; they can use the member line grammar
   now and become `p7 group v1` statements when a group needs a signer.
@@ -962,8 +967,8 @@ each is a label table entry, not a new format.
 - the network witness [ N7FS-SPEC section 4 ]
 - unlinkable credentials [ their own design ]
 
-#,,,.,.,,,,.,,..,,,..,,..,,,.,,,,,,,,,,..,..,,..,,...,...,,,.,..,,,..,,..,,.,,
-#NQSCEOYI5A7UCDDAHUX2BNSZAFPKC4766BC3ZXDTY67HU5RMJZFGECJYING4RJ5MNRED6NWQGV276
-#\\\|OPPW5FYPASBK3Y6JTAWINMEQXHGCG7YFL36IDPVTJU544EKMF2W \ / AMOS7 \ YOURUM ::
-#\[7]UOZ6IEDMYK4U3GWHGKQDLEMZYECBZTNRCWK472JHBLV5NKKXG4BI 7  DATA SIGNATURE ::
+#,,,.,...,,..,...,,,,,..,,,..,,.,,,,,,.,,,.,,,..,,...,...,.,,,.,.,..,,,,.,,.,,
+#YRAPU2IGPOCQSTUXFB4CSAQSFRXUUTRG2DHHF4RO2FBZS7RVAL6J4VM5W4DUXNVS5XIIV64BIHTD4
+#\\\|2IMOCJU52ZZ7YNRQA3Z5PHQNVGLCI6F7Q4XPZMCN2AJ2LDILTF7 \ / AMOS7 \ YOURUM ::
+#\[7]GYUZRJUZ6KZOQLZ43DFQ7SMFCRXKMQNCTHQO2Y5USRRQYAHA5ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

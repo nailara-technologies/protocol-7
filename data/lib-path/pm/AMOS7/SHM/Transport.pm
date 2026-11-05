@@ -24,7 +24,7 @@ use vars qw| @EXPORT_OK $VERSION |;
     shm_receive
     |;
 
-our $VERSION = qw| AMOS7::SHM::Transport-VERSION.ARPMFFI |;    ##  -VCS  ##
+our $VERSION = qw| AMOS7::SHM::Transport-VERSION.UJX37AY |;    ##  -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -111,15 +111,23 @@ sub shm_announce {
         'granted' => time(),
     };
 
-    my $sig = AMOS7::SHM::sign_permission( $perm, $owner_privkey );
-    $perm->{'sig'} = $sig;
-
     return { 'error' => 'permissions_full' }
         if scalar( @{ $mount->{'header'}{'permissions'} } )
         >= AMOS7::SHM::MAX_PERMISSIONS();
 
+    my $sig = AMOS7::SHM::sign_permission( $perm, $owner_privkey,
+        $mount->{'header'}, $mount->{'sub_path'} );
+    return { 'error' => 'signing_failed' } unless defined $sig;
+    $perm->{'sig'} = $sig;
+
     push @{ $mount->{'header'}{'permissions'} }, $perm;
-    AMOS7::SHM::header_write( $mount->{'mmap_ptr'}, $mount->{'header'} );
+    my $written
+        = AMOS7::SHM::header_write( $mount->{'mmap_ptr'},
+        $mount->{'header'} );
+    if ( not defined $written ) {
+        pop @{ $mount->{'header'}{'permissions'} };
+        return { 'error' => 'header_overflow' };
+    }
 
     return {
         'shm_path'     => $mount->{'path'},
@@ -211,8 +219,8 @@ sub shm_receive {
 
 return TRUE  #################################################################
 
-#,,,,,..,,.,.,.,,,.,,,,.,,...,...,..,,.,.,,.,,.,.,...,...,.,.,...,.,,,,..,.,,,
-#3RRTODFO5EMSD6GWALCKK7DB5P3BSNBJQXAL7LXE25IE7UEJYPBKPFNXODUWOVFVKVF5OESZLMTNU
-#\\\|EAMF2OKEX5CMNOUSBHINV3HFW6NZSYWXJDXZYIRZMUECYUTGAEW \ / AMOS7 \ YOURUM ::
-#\[7]7R2VX7LXZZGQI4RSB5DTOCCAY75VMAHJDULOJPJOLYOBBT3EEGCY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,.,,,.,,..,.,.,..,,..,,..,,.,,,.,.,...,...,...,,,,,.,,,,,.,,.,,
+#GZQX7E6WY3VCRYX7CAIAV4XLEIII4LZ3HGILQV3GMXIKEHEQRXVYRBNN74MXUHM7PQ4A2BYCZKCLE
+#\\\|BBKBSOXQPARYHRRFWIM7MF4TAGKKOWETCD6RPRLM2SLTK2AISA7 \ / AMOS7 \ YOURUM ::
+#\[7]BSIKYVFPXCODLOHXKND2EYQSSOKAFTF7CEBH56EHAOPJE462ZCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
