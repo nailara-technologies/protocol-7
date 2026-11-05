@@ -6,6 +6,7 @@
 # args format (single line, key=value pairs):
 #   url=<search-url> handler=<reply-module> skip=<space-separated-ids>
 #   [block_file=<path>] [block_data=<comma-joined-lines>] [full=1] [cat=<name>]
+#   [lists=<scan-id> : skip + block lists sent by site-yaml.scan-lists]
 # legacy bare url is also accepted.
 #
 # The reply handler is restricted to a small allow-list to avoid routing
@@ -61,6 +62,21 @@ if ( length $skip_ids_str ) {
     %skip = map { $ARG => 1 } split m{[\s,]+}, $skip_ids_str;
 }
 
+## lists=<scan-id> : skip \ block lists sent before in parts ##
+## [ site-yaml.cmd.scan-lists ]                              ##
+my $scan_lists = {};
+if ( length( $param{'lists'} // '' ) ) {
+    $scan_lists = ( <site-yaml.scan_lists> // {} )->{ $param{'lists'} };
+    if ( not defined $scan_lists ) {
+        <[base.logs]>->(
+            0, 'site-yaml.import: no scan lists for %s, fetching unfiltered',
+            $param{'lists'}
+        );
+        $scan_lists = {};
+    }
+    $skip{$ARG} = 1 foreach ( $scan_lists->{'skip'} // [] )->@*;
+}
+
 ## optional pre-fetch field-block file  [ generic: caller provides          ##
 ## [<EPOCH>:]<FIELD>:<chksum> ]  remote callers cannot point at a local     ##
 ## path, so the block list may also travel inline as block_data [           ##
@@ -71,6 +87,7 @@ my $block_data = $param{'block_data'} // '';
 my %block;
 my @block_lines;
 push @block_lines, split m{,}, $block_data if length $block_data;
+push @block_lines, ( $scan_lists->{'block'} // [] )->@*;
 if ( length $block_file and -r $block_file ) {
     if ( open my $fh, '<', $block_file ) {
         while ( my $line = <$fh> ) {
@@ -140,8 +157,8 @@ my $import_id = <[base.gen_id]>->( <site-yaml.import_state> //= {} );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,,,,.,.,,..,.,.,.,.,,..,,,.,.,.,,..,.,,,.,.,...,..,,...,.,,,,..,,,,,,..,
-#Z54PU2AHWOFEKWL2Q3G5MBAHEFHHBUGN23PI6RKHM6TVMKDVE2VWDSYTLGHRLNJALL74ID3KTIKFG
-#\\\|5RQ7BJO43F3BOY4T3NGYJIQEODF6HWSTVUFYRY5KE4OL7D5WEZ7 \ / AMOS7 \ YOURUM ::
-#\[7]635F623EVKMNZZF2FXXTJU6CSGG7H2MVOIIHD2GWDVOMHB2JOYBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,,,...,..,,,,,,.,.,,.,,.,,,,.,,.,.,...,...,.,.,.,,,,,.,.,.,..,,
+#S5ZVXROXNTYZJV5232Q2UR7IFEO4MXB2H3NDYQPHU7X4TRFJOFAHWAMST45DGYKUZM5XUHXPS22QE
+#\\\|UF7LYIZQXBOBI5EPDS4H4WICUWMSF6V42ZB55PZRW2JGKIGNZSU \ / AMOS7 \ YOURUM ::
+#\[7]KBNA5GCI2HP72JBBRAWRG4MQCUG7JJSHEDOEURMMF2URKPQRBABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
