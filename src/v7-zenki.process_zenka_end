@@ -133,8 +133,25 @@ if (    defined $instance_id
         <[zenka.change_status]>->( $instance_id, $next_status )
             if $current_status ne $next_status;
 
-        <[v7-zenki.init_restart_timer]>->($instance_id)
-            if $next_status !~ m,offline|shutdown,;
+        ## an external binary                                               ##
+        ## [ no heartbeat : zenka_status' restart gate never sees it ] with ##
+        ## restart.disabled ends on an error exit                           ##
+        ## [ pull-git, dist-upgrade ] -- :wait-down: waiters get FALSE      ##
+        my $zenka_config
+            = ( <v7-zenki.start_setup.zenki.config> // {} )->{$zenka_name}
+            // {};
+        if (    $instance->{'external'}
+            and $next_status eq qw| error |
+            and $zenka_config->{'restart'}->{'disabled'} ) {
+            <[base.logs]>->(
+                ': no auto-restart for external %s [ restart.disabled ]',
+                $zenka_name
+            );
+            <[zenka.cmd.terminate]>
+                ->( { 'args' => $instance_id, 'mode' => qw| implicit | } );
+        } elsif ( $next_status !~ m,offline|shutdown, ) {
+            <[v7-zenki.init_restart_timer]>->($instance_id);
+        }
     }
 } elsif ( defined $instance_id and defined $instance ) {
     delete <v7-zenki.zenka.instance>->{$instance_id};
@@ -144,8 +161,8 @@ if (    defined $instance_id
 
 return TRUE;
 
-#,,.,,,.,,,,,,,..,.,.,,,,,..,,..,,.,,,,,,,,,.,..,,...,..,,..,,...,,.,,,..,,,,,
-#QEJIJPHTDHVWJ7QPWQWKFRV6SGPE4DCYBBMC3Q4KJCI3I6PQBEPGYMWBWV5WQP4HWDBU5YU7J7IYS
-#\\\|NV52BICQ3U3WTHBJ5BD5MVXMGSQFLE5DTIYHM6KNGLNKMX7Q5HL \ / AMOS7 \ YOURUM ::
-#\[7]AUH6SSNAN4UX2ZN2SIJWWDRJ6P2FTS744D77C6DXGBN6HKAIPYBY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,..,,,,,,.,.,.,,,,.,,.,.,,,,,..,,...,...,,,.,,,,,.,.,..,,...,
+#AJYT35PIRQLU5AUFXXTBTNLJFZJCPNTPD2DJ2Q2YOTGFWGZD6EL4FBVCE2SLHYQWOAFXX4E2TXNZ6
+#\\\|NO3TYYWR5J3IFFDKLE5GBMWZVRONTLGIZU6DUK6E2OHYT5YGFVN \ / AMOS7 \ YOURUM ::
+#\[7]MRTR2JGHO4MJJH2YCP7AIAMVV2PJ2IZVFUX6AURD6X32SQ7V2UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
