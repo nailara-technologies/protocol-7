@@ -3,7 +3,8 @@
 # name  = nodes.orbital.init_code
 # descr = derive and publish orbital position from local ip + session key
 
-return if defined <nodes.orbital.session_start>;    ## already initialized ##
+## already initialized ##
+return TRUE if defined <nodes.orbital.session_start>;
 
 ## confirm Net::IP::Lite is available ##
 <[base.perlmod.autoload]>->('Net::IP::Lite');
@@ -104,8 +105,8 @@ my $p7ref = sprintf( "NODE:%s:%s", $chksum7, $addr_b32 );
 
 0;
 
-#,,,.,.,.,.,,,.,,,,,.,,,.,.,,,.,,,..,,,,.,,,.,..,,...,...,,.,,...,..,,,,.,,,.,
-#QXTWTMVTNNMKMJ74ZODUFWUT2ML7M44ZRYCVAH4AS44BFZ4KG4LCZKV3PGWGU7PNYRVD7V2ZKMQR4
-#\\\|3LLDSKK7KCNIZRV2OHYIZWVI6S4IFXKCXUJPYGHZRIIUATURQPL \ / AMOS7 \ YOURUM ::
-#\[7]5YQCAK6DYBYZ2JYBQSIVCLYRIU5RBQZDBWCR5MXSPDBLL74XKMDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,.,...,,..,,.,,.,,,,.,,,.,,,,.,..,,...,...,..,,.,,,.,,,,..,...,
+#OGKIMUFU7RW2GK575PMGZR3EG6LTEP7KYAAGGKG4BLYC5KPVZQQ77XTZM3VMPU5FNXDYMDJM2FUXS
+#\\\|KCPPIWRAFFTS5JTQPAIC6IF4C2SNAMYTXZ3Q4BTVDI5TACCAZUG \ / AMOS7 \ YOURUM ::
+#\[7]Q5XSQZKTEH3BOX6IXEGWPMXLW3WEGEW2E4TM5WWMJ4SVES3E6KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
