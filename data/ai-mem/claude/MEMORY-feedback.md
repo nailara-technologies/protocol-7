@@ -256,3 +256,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|AYFL3ZCJ2ZAOLBZ4I447H3C6OXFFMOFEZNNOGZTAUSJISL7OJV3 \ / AMOS7 \ YOURUM ::
 #\[7]56BELRCX4RLN4ZLANNK4ZLA46ITNQUJYGMYEPLGQS7UIJ2NSTECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [no-ack-for-absolute-state-signals](feedback-no-ack-for-absolute-state-signals.md) — absolute-state signals need no queue \ ack ; devmod-ack [ 861aa1272 ] was unasked, removed 2026-11-05
+
+#,,..,,..,,..,,.,,,,.,.,.,.,,,,,.,,,,,,,.,,..,..,,...,...,,..,.,,,...,,,.,,,,,
+#RSO2P6IABKDLZA6ZIIKEZNAC5RFHZRFRZ2VNRJD3GGAORXTE75PNNE7PJH4B5QHXSY5JB4FQ4ZXAQ
+#\\\|YG7B6Q7S574YKL42NDAFTN34XNYFF43RQSJBPE55GGJ7ML3TDZW \ / AMOS7 \ YOURUM ::
+#\[7]MCBTK7N3CRBVYW2HXDMTAZ6MVWUPHC3JA2FWZK4U57VRCPUZFYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
