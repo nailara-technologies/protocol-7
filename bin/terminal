@@ -60,14 +60,24 @@ push @exec_args, qw| -xrm |, sprintf qw| xterm*geometry:%dx%d |, $x, $y;
 
 map { $ARG =~ s|Size:17|Size:$font_size| } @exec_args if $font_size != 17;
 
+## larger \ smaller-vt-font only step through the font menu sizes : the     ##
+## xterm defaults all sit below our face size, so there was nothing to grow ##
+## to. menu sizes around the configured one, the start size in the middle,  ##
+## and xterm's own shift + keypad plus \ minus steps through them           ##
+my @menu_sizes = map { int( $font_size * $ARG + 0.5 ) } 0.6, 0.8, 1.25, 1.5,
+    1.8, 2.2;
+push @exec_args,
+    map { ( qw| -xrm |, "xterm*faceSize$ARG:" . "$menu_sizes[$ARG - 1]" ) }
+    1 .. 6;
+
 shift(@ARGV) if @ARGV and $ARGV[0] eq qw| -e |;
 
 push( @exec_args, qw| -e |, @ARGV ) if @ARGV;
 
 exec @exec_args;
 
-#,,,,,,,.,...,,..,,.,,...,,,.,..,,,,.,..,,.,.,..,,...,..,,...,,,.,.,.,,,.,,,,,
-#HUIMNAFIIPPTGCROOBLCCFMM2US3KTMJLX5WRPTB37PTFZEBSRDU5N6S6PQWSNS3KYLOQW3OJ7NJM
-#\\\|D4UJUV764IJYMJ7T5MZ4KZJUWQNQ7SLWMMRCDCAWFVDXOQRNBER \ / AMOS7 \ YOURUM ::
-#\[7]EGQKW7W5EQLPHX5H7QGA4TZUCW37237VECH2WWPRMNAT76D47KBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,.,.,.,..,,.,,,,..,.,.,.,.,.,.,..,,...,...,.,,,,,,,.,,,.,.,...,
+#GQSEL62RCY4TU33YSTLCP3GLEVWDA75N6WXOOBYGKGAQPHVBP7BAOS3DHELOU46DCI2TORQ5RTTR4
+#\\\|AFPVP6JJF7F4XKNNUGE22HWO6VLXBVN7LEXG4ZW72WR7B34M4CB \ / AMOS7 \ YOURUM ::
+#\[7]WICIK766OJMF2XU3TE6KSVTK3ZYOKT2XKNQV7H3ZO3D2EVWG5EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
