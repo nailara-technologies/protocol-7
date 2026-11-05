@@ -68,6 +68,20 @@ $ENV{'PATH'} = join( ':',
     ( -d "$home/bin" ? "$home/bin" : () ),
     qw| /usr/local/bin /usr/bin /bin | );
 $ENV{'SHELL'} = $pw[8] if defined $pw[8] and length $pw[8];
+## the system locale [ what pam_env would read ] : without one xterm runs ##
+## in the C locale -- every utf-8 byte takes a cell, rows wrap, symbols   ##
+## vanish                                                                 ##
+if ( not grep { defined $ENV{$ARG} } qw| LANG LC_ALL LC_CTYPE | ) {
+    if ( open( my $locale_fh, '<', '/etc/default/locale' ) ) {
+        while ( my $line = <$locale_fh> ) {
+            next
+                if $line !~ m{^\s*(LANG|LANGUAGE|LC_[A-Z]+)=["']?([^"'\s]+)};
+            $ENV{$1} //= $2;
+        }
+        close $locale_fh;
+    }
+    $ENV{'LANG'} //= 'C.UTF-8';
+}
 my $runtime_dir = "/run/user/$EUID";
 $ENV{'XDG_RUNTIME_DIR'} = $runtime_dir
     if -d $runtime_dir
@@ -156,8 +170,8 @@ kill 'KILL', keys %children if keys %children;
 waitpid( $ARG, WNOHANG ) for keys %children;
 exit $exit_code;
 
-#,,.,,.,.,,,.,.,,,,.,,,.,,,,.,,..,,..,,.,,,,,,..,,...,..,,...,.,.,.,.,,..,,,.,
-#JVA5VXJB5UDL7SWNQNOOU5DABSZOCLZENW6VFERRNBINKMMZL6L2ZDINVQXDMUWL7PNNKOSKF6XXM
-#\\\|ZMBAFFUTHDZLPPQQAOL7263DOXPY22OEWL5366MLYEQVASBN6F4 \ / AMOS7 \ YOURUM ::
-#\[7]DRFW2A5JQIAWVVZGTH7YPJ3PYK6OVXQXF3ZBENETUDKOWR3BYAAI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,.,,,,,.,,..,.,,,,,,,,,,,.,,,..,,...,...,..,,,,.,,.,,...,.,.,
+#YPCW7JJQBJRMAOOUKP6IY36J4WMIZHZ3RWOTZVLZACLIXLJ4YOYSCRYRK4BVTYJQ3X6EKA5KOLPPC
+#\\\|MAF4NENS5RYLXNR6SKZNZUN5ZNSZXWI6YW3FR6C4BKMT7EA2KCS \ / AMOS7 \ YOURUM ::
+#\[7]ED6NPH7UQ7D4BOVBF37TDTUXUC4YPVTJ7VGWNHU5KG4Z6LTEXIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

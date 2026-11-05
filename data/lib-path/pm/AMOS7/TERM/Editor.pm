@@ -140,7 +140,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::TERM::Editor-VERSION.VQ4CHKQ |;
+our $VERSION = qw| AMOS7::TERM::Editor-VERSION.A6ZJZOI |;
 
 @EXPORT_OK = qw|
     edit_text
@@ -1675,9 +1675,14 @@ sub edit_text {
                             and length $cell->[2] )
                         ) ? ' '
                         : ' · ';
+                    ## the last cell carries the ' ·' end mark : it counts ##
+                    ## toward the width, or a wide terminal wraps the row  ##
+                    my $end_mark = $idx == $#keys_bar_cells ? 2 : 0;
                     last
-                        if length($help_text) + length($sep) + length($text)
-                        > $bar_width;
+                        if length($help_text)
+                        + length($sep)
+                        + length($text)
+                        + $end_mark > $bar_width;
                     my $cell_start = length($help_text) + length($sep);
                     if ( length $cell->[2]
                         and exists $action_keys{ $cell->[0] } ) {
@@ -2349,8 +2354,8 @@ sub edit_text {
 
 1;
 
-#,,.,,,.,,..,,,,.,..,,,..,...,...,...,,,,,,,,,..,,...,...,,.,,,.,,,,,,.,,,,,,,
-#RY64PRC5MJFJ5GYNFNBN7WPSLZJYJWGJW6MGGKYLWVCB23BV3TX2FJTJ3BLZYOBZYTLIUWJBIDG2E
-#\\\|LBSXCU536C66FE5KFZ2EHIESNWAVK27GNPMY3KB24MH6TN2R2KS \ / AMOS7 \ YOURUM ::
-#\[7]HG5FVHIVQAX25OTVBH54SMKR7T3K4U3LENB6FWUGJ7IQL6UEUOBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,.,.,.,,,,,.,,,,..,.,.,,,.,,..,..,,...,..,,...,,.,,...,.,,,,,.,
+#2XVP6IITPOA5RZOCJHZKHOE7HYKH7LI3BGERVDOWFTPRC4KRNRBK7NBPHE6NOVTSZC33K6ENRGX6O
+#\\\|KBQKRORDCUUFBO6NFGTQHWAQ5WNGRLMJSM5K4RQHA7ENIDK4B7N \ / AMOS7 \ YOURUM ::
+#\[7]S3GXKZIEIAIDPS4YEIGQJHZEYXI6IPIBHLSBU5EGDMDPY3RWUOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
