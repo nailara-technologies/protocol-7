@@ -10,11 +10,11 @@ use warnings;
 
 ## exercises the real translated module sources against an in-process %data ##
 ## / %code stub environment -- no live coding zenka required.  covers the   ##
-## per-backend extension of the model-path dependency gating [ gpu-only     ##
-## landed 2026-08-26, cpu added on top ] : independent spawn_precondition   ##
-## roots per backend, per-backend in-flight guards, backend tagging of      ##
-## cube.models.get_path_by_amos replies, and the symmetric gpu/cpu spawn    ##
-## blocks in coding.async_spawn_inference_servers                           ##
+## per-backend extension of the model-path dependency gating                ##
+## [ gpu-only landed 2026-08-26, cpu added on top ] : independent           ##
+## spawn_precondition roots per backend, per-backend in-flight guards,      ##
+## backend tagging of cube.models.get_path_by_amos replies, and the         ##
+## symmetric gpu/cpu spawn blocks in coding.async_spawn_inference_servers   ##
 
 use File::Spec;
 use Cwd     qw| abs_path |;
@@ -178,7 +178,7 @@ say ': 3. triggering ok_resolve(root_gpu) fires its own gpu send';
 
 my $ok_gpu_1 = $code{'base.dependency.ok_resolve'}->($root_gpu);
 ok( ( not $ok_gpu_1 ),
-    'dependency.ok_resolve(root_gpu) ' . 'FALSE [ unresolved ]' );
+    'dependency.ok_resolve(root_gpu) FALSE [ unresolved ]' );
 ok( scalar(@send_calls) == 2, 'second send fired [ 2 total ]' );
 ok( ( $send_calls[1]->{'reply'}->{'params'}->{'backend'} // '' ) eq 'gpu',
     'second send carries backend=gpu in reply params' );
@@ -265,6 +265,7 @@ $code{'event.add_timer'} = sub {
     return 1;
 };
 
+$code{'dependency.ok_resolve'} //= $code{'base.dependency.ok_resolve'};
 compile_module('coding.async_spawn_inference_servers');
 
 ## fresh spawn-facing state : both backends enabled + resolved ##
@@ -278,9 +279,9 @@ $data{'inference'}{'backend'}{'cpu'}{'port'} = 8001;
 $data{'coding'}{'dep'}{'spawn_ready_gpu'}    = $root_gpu;
 $data{'coding'}{'dep'}{'spawn_ready_cpu'}    = $root_cpu;
 $data{'coding'}{'spawn_params'}              = {
-    ## src normalizes these with lc() against yes|true|1|auto [ cpu auto =  ##
-    ## fallback-only ] -- the TRUE constant stringifies to '5', which means ##
-    ## 'disabled' : pass the real config strings                            ##
+    ## src normalizes these with lc() against yes|true|1|auto           ##
+    ## [ cpu auto = fallback-only ] -- the TRUE constant stringifies to ##
+    ## '5', which means 'disabled' : pass the real config strings       ##
     'gpu_enabled'  => 'yes',
     'cpu_enabled'  => 'yes',
     'gpu_model_id' => 'test-gpu-model',
@@ -426,6 +427,117 @@ ok( scalar(@spawn_calls) == 0,
     'no spawn calls [ gpu no-ops on its own pid, cpu defers ]' );
 ok( ( not $mixed_ok ), 'returns FALSE while cpu still unresolved' );
 
+say ': 9. memory : busy waits, too small does not';
+
+my $gpu_state = '';
+$code{'coding.spawn_inference_server'} = sub {
+    my $params = shift;
+    push @spawn_calls, $params;
+    return {
+        'success'      => FALSE,
+        'error'        => 'insufficient vram for model load',
+        'memory_state' => $gpu_state
+        }
+        if $params->{'backend'} eq 'gpu' and length $gpu_state;
+    return { 'success' => TRUE, 'pid' => 43000 + scalar @spawn_calls };
+};
+
+my $memory_reset = sub {
+    my %opt = @ARG;
+    @spawn_calls                                   = ();
+    @timer_calls                                   = ();
+    $gpu_state                                     = $opt{'gpu_state'} // '';
+    $data{'coding'}{'spawn_params'}{'cpu_enabled'} = $opt{'cpu'} // 'auto';
+    $data{'inference'}{'model'}{'path'} = '/mnt/models/test-gpu.gguf';
+    $data{'inference'}{'backend'}{'cpu'}{'path'}    = $PROGRAM_NAME;
+    $data{'inference'}{'backend'}{'gpu'}{'on_busy'} = $opt{'on_busy'};
+    delete $data{'inference'}{$ARG} for qw| gpu_pid cpu_pid |;
+    delete $data{'coding'}{$ARG}    for qw|
+        gpu_memory_wait cpu_memory_wait cpu_fallback_requested
+        spawn_retry_count_gpu |;
+    delete $data{'coding'}{'timer'};
+};
+my $timers_of = sub {
+    my $handler = shift;
+    return
+        scalar grep { ( $ARG->{'handler'} // '' ) eq $handler } @timer_calls;
+};
+my $backends = sub {
+    join ' ', map { $ARG->{'backend'} } @spawn_calls;
+};
+
+my $ram_fit = { 'now' => TRUE, 'total' => TRUE };
+$code{'coding.helper.check_resource_fit'} = sub {
+    my $params = shift;
+    return {
+        'fits' => $params->{'pre_filter'}
+        ? $ram_fit->{'total'}
+        : $ram_fit->{'now'},
+        'free_mb'     => 1,
+        'required_mb' => 2
+    };
+};
+
+say ': 9a. gpu busy, default : waits, cpu stays out of it';
+$memory_reset->( 'gpu_state' => 'busy' );
+$code{'coding.async_spawn_inference_servers'}->();
+ok( $backends->() eq 'gpu', 'only the gpu tried' );
+ok( $timers_of->('coding.handler.gpu_fit_recheck') == 1, 'recheck armed' );
+ok( $timers_of->('coding.handler.spawn_servers_deferred') == 0,
+    'no error backoff' );
+ok( !$data{'coding'}{'spawn_retry_count_gpu'},  'no failed attempt counted' );
+ok( !$data{'coding'}{'cpu_fallback_requested'}, 'no cpu fallback' );
+
+say ': 9b. a second busy round arms nothing new';
+$code{'coding.async_spawn_inference_servers'}->();
+ok( $timers_of->('coding.handler.gpu_fit_recheck') == 1, 'still one timer' );
+
+say ': 9c. gpu busy, on_busy = cpu : cpu serves meanwhile, recheck stays';
+$memory_reset->( 'gpu_state' => 'busy', 'on_busy' => 'cpu' );
+$code{'coding.async_spawn_inference_servers'}->();
+ok( $backends->() eq 'gpu cpu', 'gpu tried, then cpu' );
+ok( $timers_of->('coding.handler.gpu_fit_recheck') == 1, 'recheck armed' );
+
+say ': 9d. gpu too small : no waiting, cpu takes over';
+$memory_reset->( 'gpu_state' => 'too-small' );
+$code{'coding.async_spawn_inference_servers'}->();
+ok( $backends->() eq 'gpu cpu', 'gpu tried, then cpu' );
+ok( $timers_of->('coding.handler.gpu_fit_recheck') == 0, 'no recheck' );
+ok( $timers_of->('coding.handler.spawn_servers_deferred') == 0, 'no retry' );
+
+say ': 9e. gpu too small, cpu off : no backend, no retries';
+$memory_reset->( 'gpu_state' => 'too-small', 'cpu' => 'no' );
+my $none_ok = $code{'coding.async_spawn_inference_servers'}->();
+ok( $backends->() eq 'gpu',    'gpu only' );
+ok( !$none_ok,                 'returns FALSE' );
+ok( scalar(@timer_calls) == 0, 'no timers' );
+
+say ': 9f. gpu up, cpu ram busy : cpu waits on its own timer';
+$memory_reset->( 'cpu' => 'yes' );
+$ram_fit = { 'now' => FALSE, 'total' => TRUE };
+$data{'inference'}{'gpu_pid'} = 42001;
+$code{'coding.async_spawn_inference_servers'}->();
+ok( $backends->() eq '', 'nothing spawned' );
+ok( $timers_of->('coding.handler.cpu_fit_recheck') == 1,
+    'cpu recheck armed' );
+
+say ': 9g. cpu ram too small : no retries';
+$memory_reset->( 'cpu' => 'yes' );
+$ram_fit = { 'now' => FALSE, 'total' => FALSE };
+$data{'inference'}{'gpu_pid'} = 42001;
+$code{'coding.async_spawn_inference_servers'}->();
+ok( $backends->() eq '',       'nothing spawned' );
+ok( scalar(@timer_calls) == 0, 'no timers' );
+
+say ': 9h. evaluation pair : gpu and cpu '
+    . 'both enabled, each its own model file';
+$memory_reset->( 'cpu' => 'yes' );
+$ram_fit = { 'now' => TRUE, 'total' => TRUE };
+$code{'coding.async_spawn_inference_servers'}->();
+ok( $backends->() eq 'gpu cpu', 'both spawned' );
+ok( $spawn_calls[0]->{'model_path'} ne $spawn_calls[1]->{'model_path'},
+    'different model files' );
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -434,8 +546,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,,.,...,,,,,..,,..,,..,,,.,,,,,,,,.,,,.,..,,...,..,,...,,,,,,.,,.,,,,,.,
-#SYWPAXXU467LWGBQ3LPKMDVM3ZHFJ2FMWFNK7NBYD7IKE2ZPENONRAJMYDEGQLFVL7PJHYX65DAPK
-#\\\|2DDIFUGGWL4BGLWMWV6V733M6AELUNF6H4P7BCJ266GRVHSLIJS \ / AMOS7 \ YOURUM ::
-#\[7]MVJ67NX5LT6GBGIZ2YKQZLQCWQIOJPL2ZFJ7F3QHO43A5HRLDMDI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,...,.,,,.,,,...,,..,..,,,.,,..,,...,..,,..,,,.,,,,,,,,,,..,,
+#N5ZED67GTSJYKWRMU5STCO5TAVXUOITV2JGLEFLPGRJY5YMTLHV6T7VBAASYYY4J32OKZZ6E6LTHA
+#\\\|GRAT567QHA5ZXRAGFNUXO34OI62DWOCEEDIX5ADMRZOSJRGZSGC \ / AMOS7 \ YOURUM ::
+#\[7]4725WFMU7WC7QPHXVXYXG63AUJLRCLJCGKONFVIFGEGT3ZUGZ2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

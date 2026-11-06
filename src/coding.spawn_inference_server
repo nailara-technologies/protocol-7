@@ -566,11 +566,35 @@ if ( $backend eq qw| gpu | ) {
                 $gpu_layers        = $partial->{'computed_layers'};
                 $model_layer_count = $partial->{'layer_count'} // 0;
             } else {
+                ## busy : this gpu could hold the model, something else has ##
+                ## the vram now. too-small : it never will, waiting is no   ##
+                ## use. same rules as above, against the total              ##
+                my $could_fit = $total_mb >= $model_size_mb + $safety_mb;
+                if ( !$could_fit and $partial_enabled ) {
+                    my $idle
+                        = <[coding.helper.calculate_partial_gpu_layers]>->(
+                        {   model_path        => $model_path,
+                            model_size_mb     => $model_size_mb,
+                            free_mb           => $total_mb,
+                            safety_mb         => $safety_mb,
+                            configured_layers => $gpu_layers,
+                        }
+                        );
+                    $could_fit = TRUE
+                        if defined $idle->{'computed_layers'}
+                        and $idle->{'computed_layers'} >= $min_layers;
+                }
+                my $memory_state = $could_fit ? qw| busy | : qw| too-small |;
+
+                ## a wait is routine, logged once at level 1 ##
                 <[base.logs]>->(
-                    0,
-                    '[spawn_inference_server] insufficient vram: '
-                        . 'free=%d MB model=%.0f MB safety=%d MB%s',
+                    $could_fit ? <coding.gpu_memory_wait> ? 2 : 1 : 0,
+                    '[spawn_inference_server] insufficient vram [ %s ] : '
+                        . 'free=%d MB total=%d MB model=%.0f MB safety=%d '
+                        . 'MB%s',
+                    $memory_state,
                     $free_mb,
+                    $total_mb,
                     $model_size_mb,
                     $safety_mb,
                     (   $partial_enabled
@@ -582,8 +606,9 @@ if ( $backend eq qw| gpu | ) {
                 );
                 <coding.spawning_in_progress> = FALSE;
                 return {
-                    'success' => FALSE,
-                    'error'   => 'insufficient vram for model load'
+                    'success'      => FALSE,
+                    'error'        => 'insufficient vram for model load',
+                    'memory_state' => $memory_state
                 };
             }
         }
@@ -1351,8 +1376,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,.,.,,..,..,,.,,,.,.,,..,,,.,..,,,,.,.,,,..,,...,...,.,.,,,,,.,.,.,.,,..,
-#DEJTVBZL5UPJ2HY47LS22EMYUUGRTJ5Y7574SX735FDMK7WOWD5LN3C3BVQ4LGJWEKUZZT6LCYQXY
-#\\\|FCO3QOHTXJH4AOZ2NV2WVFXGDCXTTU3LKBIRNGFZG7V5ZGFAFNK \ / AMOS7 \ YOURUM ::
-#\[7]RPHF55MZTBUR6CEDHPOKA6XLHEH7JXRNXYRNIL3TRPDQU3EGEMAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,.,.,.,,,...,..,,.,.,...,...,..,,...,...,,,.,.,,,.,.,...,,,,,
+#5I2IXAAMWRNDBEUYGWIDODSKCUOXZXXMHX7MTDA5JDJH2JAD2KPOJZ353AUDYMKDLUZZQXQFZJADQ
+#\\\|MIY6E7ZTFEJEYTDA2CXDOQG4KWGELR6CWNTEMZM2GXZGJIUGWGJ \ / AMOS7 \ YOURUM ::
+#\[7]V5ITFS4D4L2Y2SPIJCVADIAAATOFL7MDTB6ZT3N6USK46FCIBCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
