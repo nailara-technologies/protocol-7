@@ -9,6 +9,7 @@ my $v_id  = $reply->{'params'}->{'v_id'};
 if ( $reply->{'cmd'} eq qw| FALSE | ) {
     delete <zenki.virtual>->{$v_id}->{'starting'};
     delete <zenki.virtual>->{$v_id}->{'starting_since'};
+    <zenki.virtual>->{$v_id}->{'start_status'} = qw| failed |;
     if ( defined <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'} )
     {
         <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'}->cancel;
@@ -37,8 +38,8 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     );
 }
 
-#,,,,,...,,..,..,,,,.,.,,,,,.,.,,,,,,,.,.,,,.,..,,...,...,,.,,..,,,,,,,.,,,,.,
-#LVZCZUGMFJD5QW4DTYWKVONXYOYWDA2J6VWY3JWAPYUDIRC7R65SDJFLQEYKOJR5YFVWDMIHWOJLG
-#\\\|MZLZOSYU644HPXMDR2AOHQAYBWE54ORIP5LOOFCB32C5NBPS2WR \ / AMOS7 \ YOURUM ::
-#\[7]PA7PLADVIE2LTTCPGMR6EGS7XIFXS4UVC6JOHVNTMWTUDAIXZMCA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,...,,..,,,.,..,,.,.,...,..,,..,,...,...,.,.,,,.,...,,..,...,
+#QHMPAHE7EJU3N2HELEC6LAZCY3FJRG64VOAY5W46PJ7BQWF5WWQ5RAHM4K5J2L7LODFNFS6SCSGXU
+#\\\|IPR4FH7DC3QIY6GH2U5C2N3TA5MGPQO3F4YS3XPZEHKAKLLNMDU \ / AMOS7 \ YOURUM ::
+#\[7]GKMJ3AVGUNGZIWXAVAEDUIKIPL72C735NQ5SUSW75SGMFZMOGCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

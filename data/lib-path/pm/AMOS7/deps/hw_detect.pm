@@ -1,5 +1,5 @@
 package AMOS7::deps::hw_detect;
-our $VERSION = qw| AMOS7::deps::hw_detect-VERSION.HLBR6LA |;
+our $VERSION = qw| AMOS7::deps::hw_detect-VERSION.7CJ2WWI |;
 
 use strict;
 use warnings;
@@ -397,9 +397,10 @@ sub _map_file_to_package {
 ##
 ## adds or replaces a 'hw-<name>' profile with an apt list, each package
 ## commented with its evidence. names must match \A[a-z0-9-]+\z -- anything
-## else is refused before the file is read. every byte outside the new \
-## replaced block is kept identical ; the block text is returned so callers
-## can show exactly what changed
+## else is refused before the file is read. a missing file starts with the
+## profiles root key. every byte outside the new \ replaced block is kept
+## identical ; the block text is returned so callers  can show exactly what
+## changed
 sub write_hw_profile {
     my ( $path, $name, $suggestions ) = @_;
 
@@ -412,9 +413,13 @@ sub write_hw_profile {
 
     my $block = _profile_block( $name, $suggestions );
 
-    open my $fh, '<', $path or return ( 0, "cannot read $path : $OS_ERROR" );
-    my $content = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> };
-    close $fh;
+    my $content = "profiles:\n";
+    if ( -e $path ) {
+        open my $fh, '<', $path
+            or return ( 0, "cannot read $path : $OS_ERROR" );
+        $content = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> };
+        close $fh;
+    }
 
     my @lines     = split m|\n|, $content // '', -1;
     my $header_re = qr|\A  (\S+):\s*\z|;
@@ -504,8 +509,8 @@ sub _run_capture {
 
 1;
 
-#,,,,,..,,,..,,.,,.,.,,..,.,,,...,,,.,...,,.,,..,,...,...,,.,,,..,,,,,..,,..,,
-#SELM7WXUALKZNXPJAB566PULLQ4GHNHADP2RZG4YSSIZUEGLNCPF5AZW4IVSB5GERUEQNL5O7E5UG
-#\\\|TJCAUHZ5WIGRNCW7W7PH6QP6TFCVFS63QFFNFNVTLIBML6XZMBF \ / AMOS7 \ YOURUM ::
-#\[7]6QHI5DN3BPL744E6C4EWLOJZSDCH7474ZOYSE2YE23MVRWYLNIBA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,.,.,.,,,,,,,.,.,,,,,,.,,.,.,.,,,..,,...,...,..,,,..,.,.,.,.,.,.,
+#RKHJSYHHMYKJW2DOF5EMSDD4HTJQLTBE2S22EP44WAV4TXSGBH6NYZCH5DHNNBWLCQVCZV2KXW4W2
+#\\\|EA4NIUNHRHPIFB3GJJI5JNLZBZKJEROV62RXPBT5YW5RLHGRWCU \ / AMOS7 \ YOURUM ::
+#\[7]YUGKJBUFXSMHIGNYTIJMAIX6IBGJB3SSYXKTBIVQEMAMA3CGUMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

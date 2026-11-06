@@ -8,8 +8,18 @@ my $reply = shift;
 my $v_id       = $reply->{'params'}->{'v_id'};
 my $zenka_name = <zenki.virtual>->{$v_id}->{'name'};
 
-delete <zenki.virtual>->{$v_id}->{'starting'};
+## several notify_online requests can be outstanding [ watchdog re-fires ]  ##
+## : a reply logs only if a start was open or the status changed ; each one ##
+## still drains the queue                                                   ##
+my $was_starting = delete <zenki.virtual>->{$v_id}->{'starting'};
+my $status     = $reply->{'cmd'} eq qw| FALSE | ? qw| failed | : qw| online |;
+my $log_status = (
+    $was_starting
+        or ( <zenki.virtual>->{$v_id}->{'start_status'} // '' ) ne $status
+);
+<zenki.virtual>->{$v_id}->{'start_status'} = $status;
 delete <zenki.virtual>->{$v_id}->{'starting_since'};
+
 if ( defined <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'} ) {
     <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'}->cancel;
     delete <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'};
@@ -20,7 +30,7 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     <[base.logs]>->(
         0,           'ondemand start-up of %s zenka not successful [ %s ]',
         $zenka_name, $reason
-    );
+    ) if $log_status;
     while ( my $element = shift <zenki.virtual>->{$v_id}->{'queue'}->@* ) {
         my $cmd_id = $element->{'src_cmd_id'};
         my $src_id = $element->{'source_id'};
@@ -35,7 +45,8 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
 ) {
     my $target_sid = $LAST_PAREN_MATCH;
 
-    <[base.logs]>->( 'ondemand %s zenka has come online..,', $zenka_name );
+    <[base.logs]>->( 'ondemand %s zenka has come online..,', $zenka_name )
+        if $log_status;
 
     while ( my $element = shift <zenki.virtual>->{$v_id}->{'queue'}->@* ) {
         ##  source is gone, abort sending  ##
@@ -95,8 +106,8 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     }
 }
 
-#,,,.,..,,...,,.,,.,.,,,.,,.,,,..,,,,,.,,,,..,..,,...,...,,,.,.,.,...,.,,,..,,
-#4SWVZMZAP44MEWOYYBK5XWTN273AFSXGN6GB7SSMB7ZYZQBFZJDXTRMS2EXHYDOONA2UW4APK4CWK
-#\\\|G6BGKQS5WACT6PUFS7TPVIFDWQDJOXFX7OM56LNYLRURYMC3T5A \ / AMOS7 \ YOURUM ::
-#\[7]PDMAVKIWBPN44RKH4IPWMPM476U5V7IR2LQ42PLNAADH5MM73MAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,...,.,,,,,.,,,,,,,,,..,,.,.,.,.,..,,...,..,,.,.,,..,..,,..,,.,.,
+#SAOGVHQ52RIDVOXVEEAKUN5PDXEP6GLDYTIXOIELXZKE55I5WQFQF4GMYMPNQJOOVXWOVRIFWAAT6
+#\\\|ALJCYJNGB7HUI2JHKQNT7PYYJLXT2AUVZ45LQLPRYGSBMO63D55 \ / AMOS7 \ YOURUM ::
+#\[7]Y6PXZ75HH22XMJHSYN7UE5R3NKQZTNK5QP4OIEXJNKSKU7AAYQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

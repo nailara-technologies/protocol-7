@@ -19,7 +19,7 @@ use warnings;
 ## unmapped files never guessed a package, an unreadable kernel log, and    ##
 ## write_hw_profile : profile added, replaced, every other byte unchanged,  ##
 ## bad names refused. the command itself runs once against a copied tree    ##
-## for -write                                                              ##
+## for -write                                                               ##
 
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -162,7 +162,7 @@ my %intel_cmd = (
         my %map = (
             'iwlwifi-6000-4.ucode' => "firmware-iwlwifi: "
                 . "lib/firmware/iwlwifi-6000-4.ucod" . "e\n",
-            'fake-fw.bin' => "firmware-fake: " . "lib/firmware/fake-fw.bin\n",
+            'fake-fw.bin' => "firmware-fake: lib/firmware/fake-fw.bin\n",
         );
         my $file = $cmd[-1];
         return ( 0, $map{$file} // '' );
@@ -340,9 +340,8 @@ my $unmapped_root = make_root(
 my $unmapped_result = detect_hardware(
     root => $unmapped_root,
     run  => make_runner(
-        journalctl => [
-            0, "kernel: Direct firmware load " . "for weird-fw.bin failed\n"
-        ],
+        journalctl =>
+            [ 0, "kernel: Direct firmware load for weird-fw.bin failed\n" ],
         modinfo    => sub { ( 0, "mystery-fw.bin\n" ) },
         'apt-file' => [ 0, '' ],    ## the local index has no match ##
     ),
@@ -518,14 +517,18 @@ check 'command : a refused -write never touched the profiles file',
 
 ( $exit, $out ) = p7_deps(qw| detect-hw -write sandboxtest |);
 check 'command : detect-hw -write exits 0 on this host', $exit == 0;
-check 'command : the profile landed in the copied tree',
-    slurp("$tree/.deps/profiles.yaml") =~ m|^  hw-sandboxtest:$|m;
-check 'command : every pre-existing profile is still intact',
-    index( slurp("$tree/.deps/profiles.yaml"), 'hw-thinkpad-sandybridge' )
-    >= 0;
+check 'command : the profile landed in the ignored local file',
+    slurp("$tree/.deps/profiles.local.yaml") =~ m|^  hw-sandboxtest:$|m;
+check 'command : the tracked profile file stays byte-identical',
+    slurp("$tree/.deps/profiles.yaml") eq $profiles_fixture;
+my $list_out;
+( $exit, $list_out ) = p7_deps(qw| list |);
+check 'command : p7-deps reads the generated local profile',
+    ( $exit == 0 and $list_out =~ m|hw-sandboxtest| );
+
 if ( $out =~ m|(\d+) packages suggested| and $1 > 0 ) {
     check 'command : the written packages carry their evidence comments',
-        slurp("$tree/.deps/profiles.yaml")
+        slurp("$tree/.deps/profiles.local.yaml")
         =~ m{^      - \S+ +# (?:NEEDED|POSSIBLE|HARDWARE) : }m;
 } else {
     check 'command : this host suggested nothing -- nothing to write', 1;
@@ -534,8 +537,8 @@ if ( $out =~ m|(\d+) packages suggested| and $1 > 0 ) {
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,...,,,.,,..,,.,,...,.,,,.,.,,,.,,..,.,.,..,,...,...,,,.,,,,,,.,,,.,,.,.,
-#D2ZSDZQIODNZQRZRZ3BJHKAHCCEPCMTP7BV2EYBL4224LJDSZDC5ML2OHWSHN36ADYP7DXM6MHMHQ
-#\\\|VF33GAFD5NO473Q634YQXIKTJZTWMZFCN55XAYA7VZXFHGUWCLL \ / AMOS7 \ YOURUM ::
-#\[7]XL2UMIMGG7BNNZ5J6B2B2AZA2W7Z4EJDZJYZJEALSUQPDTE5CODA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,,,.,,,,,,,,,.,,,..,,,.,,,,.,..,,...,...,,.,,,..,,,.,,..,..,,
+#2UH72OURH5BJBCXUWMSP5WWKQRLJKWYGRBODZNQS4ZVXARAGFIVKOXUFZHT5Z27VOQHA4PH7XJVAU
+#\\\|QPBRDP6IGRLIK3CFXIMR6OKPM7Z7TRUYEXPA6DWER72S5EOCS3Y \ / AMOS7 \ YOURUM ::
+#\[7]RJTRYX2XWZLSB2OGPYMOVOJHF3QCG534JM7VE3A54PB76E75AAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

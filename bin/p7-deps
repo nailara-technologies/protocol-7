@@ -9,9 +9,9 @@ use warnings;
 ##  p7-deps  ##
 ###         ###
 
-## profile-based dependency installation and verification, plus read-only
-## hardware detection [ firmware \ hardware package suggestions ] and the
-## systemd service unit commands [ see 'bin/p7-deps help' ]
+## profile-based dependency installation and verification, hardware detection
+## [ read-only by default ; -write -install used by the first p7-install ] and
+## the systemd service unit commands [ see 'bin/p7-deps help' ]
 ##
 ## every output goes through the AMOS7::TERM::Frame helpers : a banner
 ## [ ' .: title :. ' ] per command, ':::[ section ]' headers, dot-leader
@@ -85,8 +85,10 @@ my $P7_ROOT = abs_path( rel2abs( catdir( $RealBin, $up_dir ) ) );
 
 my $DEPS_DIR      = catdir( $P7_ROOT, '.deps' );
 my $PROFILES_FILE = File::Spec->catfile( $DEPS_DIR, 'profiles.yaml' );
-my $CACHE_DIR     = catdir( $DEPS_DIR, 'cache' );
-my $ZENKI_DIR     = catdir( $P7_ROOT,  'cfg', 'zenki' );
+my $LOCAL_PROFILES_FILE
+    = File::Spec->catfile( $DEPS_DIR, 'profiles.local.yaml' );
+my $CACHE_DIR = catdir( $DEPS_DIR, 'cache' );
+my $ZENKI_DIR = catdir( $P7_ROOT,  'cfg', 'zenki' );
 
 ## the cache dir is created by update_cache when it first writes -- read ##
 ## only commands [ help, check-service ] write nothing into the checkout ##
@@ -981,27 +983,32 @@ sub validate_zenka_declarations {
 
 ##[ HARDWARE DETECTION ]######################################################
 
-## read-only : suggests firmware \ hardware packages from kernel log        ##
-## failures, the loaded modules' modinfo firmware lists and the pci \ cpu   ##
-## ids -- nothing is installed, no apt-get, no network. -write <name> saves ##
-## the suggestions as a reviewable 'hw-<name>' profile                      ##
+## suggests firmware \ hardware packages from kernel log failures, loaded ##
+## module firmware lists and pci \ cpu ids. detection itself stays        ##
+## read-only [ no network ] ; -write saves a host-local profile, -install ##
+## installs it                                                            ##
 
 sub cmd_detect_hw {
     my (@args) = @_;
 
     my $write_name;
+    my $install = 0;
     while (@args) {
         my $arg = shift @args;
         if ( $arg eq '-write' ) {
             frame_error_exit( $TOOL, 'detect-hw -write needs a profile name' )
                 unless @args;
             $write_name = shift @args;
+        } elsif ( $arg eq '-install' ) {
+            $install = 1;
         } else {
             frame_error_exit( $TOOL,
                       "unknown option [ $arg ] -- "
-                    . 'detect-hw takes -write <name>' );
+                    . 'detect-hw takes -write <name> [ -install ]' );
         }
     }
+    frame_error_exit( $TOOL, 'detect-hw -install needs -write <name>' )
+        if $install and not defined $write_name;
 
     if ( defined $write_name and $write_name !~ m|\A[a-z0-9-]+\z| ) {
         frame_error_exit(
@@ -1012,9 +1019,20 @@ sub cmd_detect_hw {
         );
     }
 
-    banner('hardware detection');
+    my $result = eval { detect_hardware() };
+    if ( not defined $result ) {
+        frame_error_exit(
+            $TOOL,
+            "hardware detection failed : $EVAL_ERROR",
+            { exit => 1 }
+        );
+    }
+    if ( $install and not @{ $result->{suggestions} } ) {
+        say 'hardware detection : no packages suggested';
+        return;
+    }
 
-    my $result = detect_hardware();
+    banner('hardware detection');
 
     ## the kernel log the NEEDED evidence stands on ##
     say frame_section_header('kernel log');
@@ -1094,16 +1112,16 @@ sub cmd_detect_hw {
     );
     say frame_column_line();
 
-    ## -write : the reviewable profile [ every other profile untouched ] ##
+    ## -write : the ignored host-local profile [ other profiles untouched ] ##
     if ( defined $write_name ) {
         say frame_section_header("write hw-$write_name");
         my ( $written, $detail )
-            = write_hw_profile( $PROFILES_FILE, $write_name,
+            = write_hw_profile( $LOCAL_PROFILES_FILE, $write_name,
             $result->{suggestions} );
         if ($written) {
             print_rows(
-                [   'profile',                          'written',
-                    "hw-$write_name in $PROFILES_FILE", 'ok'
+                [   'profile',                                'written',
+                    "hw-$write_name in $LOCAL_PROFILES_FILE", 'ok'
                 ],
                 [   'review', 'suggested',
                     'check the evidence comments before install'
@@ -1111,8 +1129,28 @@ sub cmd_detect_hw {
             );
         } else {
             print_rows( [ 'profile', 'failed', $detail, 'warn' ] );
+            exit 1 if $install;
         }
         say frame_column_line();
+    }
+
+    if ($install) {
+        my %microcode_before = map { $ARG->{pkg} => probe_apt( $ARG->{pkg} ) }
+            grep { $ARG->{pkg} =~ m|(?:intel\|amd64)-microcode| }
+            @{ $result->{suggestions} };
+        my $failed = install_profile("hw-$write_name");
+        for my $pkg ( sort keys %microcode_before ) {
+            next if $microcode_before{$pkg} or not probe_apt($pkg);
+            print_rows(
+                [   'reboot',
+                    'needed',
+                    "$pkg takes effect only after a reboot ; "
+                        . 'p7-deps never reboots',
+                    'warn'
+                ]
+            );
+        }
+        exit( $failed ? 1 : 0 );
     }
 
     my $suggested = scalar @{ $result->{suggestions} };
@@ -1313,12 +1351,19 @@ sub print_rows {
 ##[ HELPER FUNCTIONS ]########################################################
 
 sub load_profiles {
-    frame_error_exit( $TOOL, "cannot find $PROFILES_FILE" )
-        unless -f $PROFILES_FILE;
+    my $profiles = read_profile_file($PROFILES_FILE);
+    return $profiles unless -f $LOCAL_PROFILES_FILE;
+    my $local = read_profile_file($LOCAL_PROFILES_FILE);
+    @{$profiles}{ keys %{$local} } = values %{$local};
+    return $profiles;
+}
 
-    open my $fh, '<', $PROFILES_FILE
-        or
-        frame_error_exit( $TOOL, "cannot read $PROFILES_FILE : $OS_ERROR" );
+sub read_profile_file {
+    my ($path) = @_;
+    frame_error_exit( $TOOL, "cannot find $path" ) unless -f $path;
+
+    open my $fh, '<', $path
+        or frame_error_exit( $TOOL, "cannot read $path : $OS_ERROR" );
     my %profiles;
     my $current_profile;
     my $current_section;
@@ -1402,7 +1447,10 @@ sub show_help {
                                       [ read-only ] from the kernel log,
                                       loaded module firmware, pci \\ cpu ids
     -write <name> .................  save the suggestions as profile
-                                      hw-<name> [ evidence as comments ]
+                                      hw-<name> in the ignored local file
+                                      [ evidence as comments ]
+    -install .......................  install that profile [ with -write ] ;
+                                      microcode reports when reboot is needed
 
     install-service ................  unit, install link, launcher symlinks
     enable-service .................  enable the unit [ systemctl enable ]
@@ -1444,8 +1492,8 @@ sub show_help {
 EOL
 }
 
-#,,,,,,..,,..,,.,,.,.,...,.,.,.,.,..,,,..,,,,,..,,...,..,,.,,,,..,...,..,,...,
-#BI553LUZPJ3CQRFHU3XZX46IFFGQA2Q56AQBDFI5WYQWAXVFYS4HIBFDAVOPSOJVOKJM3MET4SPN6
-#\\\|T2JWMQXEOJ7MJ5B6SAMKLSVWGV5746BOPMV2HXZ7XVGLFPSDSCD \ / AMOS7 \ YOURUM ::
-#\[7]6W2LXPZJTDQ442FP7I4SBXDGMDC5CAYNK6WIAW3MUINKQEUFYWCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,..,,,,.,...,..,,.,.,,..,..,,..,,...,...,,,.,,..,,.,,,,.,,.,,
+#I2ZB74AC3EFW3EOSGK4KA75KS5GELKB5FTLOHGMO4WQQFGQQYRGUHNGXQDEXN7P6LUNDHU2CIKI4S
+#\\\|UOQ6K3DENNKJS3MEGLZDR5AJFA2MGC47WHROTDNUX4LORJIOP3S \ / AMOS7 \ YOURUM ::
+#\[7]ST42L4ZKTOQIXVAJRPQPA3SRJICPNB3YBZ5JLRS2QDLGOIA4MODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
