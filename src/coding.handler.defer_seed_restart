@@ -138,7 +138,9 @@ return TRUE if defined $lock_holder;
     $model_id
 );
 $srv->{'status'} = qw| restart_needed |;
+## both backends : a kept pid reads as 'running', no spawn, stuck for good ##
 <inference.gpu_pid> = 0 if $backend eq qw| gpu |;
+<inference.cpu_pid> = 0 if $backend eq qw| cpu |;
 
 ## the next self-test on this backend continues THIS episode : its retry ##
 ## count stands [ coding.helper.trigger_backend_self_test consumes it ]  ##
@@ -156,8 +158,8 @@ delete <coding.awaiting_resources>
 
 return $finish->();
 
-#,,..,,,,,,.,,.,,,,,,,,.,,...,.,.,,,.,,,,,.,,,..,,...,...,...,..,,.,.,.,,,.,.,
-#HWQ2GONIGMPIZ7Y3E7QSDOLLIEEPUKJXXJS726XTR7ODPFKWNP3XYT7RJNIAYK6DQR67U4YKVECBM
-#\\\|WV476CXYZGGUQZJDI7MSOKIMLXS3NLRMUSF3K7TIYXK4ATGJYAH \ / AMOS7 \ YOURUM ::
-#\[7]ST3EDHEJIJV6G665NLQTNACTVH2TUF5RFM6DN2CGNAZNREDQ24DA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,..,,.,,,..,,,..,,,.,,..,,,,,..,,...,...,..,,,..,,..,.,.,,.,,
+#PQRNMPGFMMMYYK4ZID67YM4CHNEVPUG6WAXXKNJLTZWGCYQARKGHOICQKRLVD4BOZ3UL7C4RM7EUE
+#\\\|EB7PVLQSRI6TISEDCGETMVO64PFO5YSPYJFUEH23TK2CYIYELQB \ / AMOS7 \ YOURUM ::
+#\[7]UNBT3DT6BHFTO2Z4QNSCVPHBFERP4QX352E4KBPEVPA7GGMDQGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
