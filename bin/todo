@@ -79,6 +79,7 @@ binmode( STDOUT, ':utf8' );
 
 my $TERM_WIDTH = 72;
 use constant TEXT_CHECK_WIDTH => 106;
+use constant LIST_WIDTH_CAP   => 140;
 if ($TTY) {
     my $cols = `tput cols 2>/dev/null`;
     chomp $cols if defined $cols;
@@ -86,6 +87,7 @@ if ($TTY) {
         if defined $cols
         and $cols =~ m{^\d+$}
         and $cols >= 40;
+    $TERM_WIDTH = LIST_WIDTH_CAP if $TERM_WIDTH > LIST_WIDTH_CAP;
 }
 
 ##[ color scheme ]############################################################
@@ -95,11 +97,14 @@ if ($TTY) {
     %C = (
         T => $AMOS7::TERM::p7_colors{'p7_fg_0004'},  ## TRUE blue (titles)
         0 => $AMOS7::TERM::p7_colors{'p7_fg_0000'},  ## purple
+        1 => $AMOS7::TERM::p7_colors{'p7_fg_0001'},  ## blue
         2 => $AMOS7::TERM::p7_colors{'p7_fg_0002'},  ## neon orange [ high ]
         3 => $AMOS7::TERM::p7_colors{'p7_fg_0003'},  ## phosphor green [ low ]
         g => $AMOS7::TERM::p7_colors{'p7_fg_0003'},  ## phosphor green
-        B => "\e[1m",                                ## bold
-        R => "\e[0m",                                ## reset
+        B01 => "\e[48;2;9;5;24m",                    ## ncode dark blue
+        B02 => "\e[48;2;9;5;42m",                    ## ncode dark green
+        B   => "\e[1m",                              ## bold
+        R   => "\e[0m",                              ## reset
         dim => "\e[2m",                              ## dim
     );
 }
@@ -500,7 +505,8 @@ sub format_items {
             };
     }
 
-    $max_width = 50 if $max_width < 50;
+    $max_width = 50          if $max_width < 50;
+    $max_width = $TERM_WIDTH if $TTY;
 
     my @lines;
     foreach my $row (@rows) {
@@ -530,6 +536,7 @@ my $option_list = <<'EOL';
 
     list [open|done|all|<tag>] .....  list items [ default : open ]
     long ...........................  list text cut off at 106 columns
+    search [-all] [-no-color] <re> ..  search items [ default : open ]
     add [-h|-l] [-t tag,..] <text> .  add a new item
     done <id> [<id>..] .............  mark item[s] as done
     del <id> .......................  remove an item
@@ -900,6 +907,100 @@ sub cmd_long {
     say 'no items cut off at ' . TEXT_CHECK_WIDTH . ' columns' if not @long;
 }
 
+sub search_highlight {
+    my ( $text, $regex, $color ) = @_;
+    return $text if not $color;
+    $text =~ s|($regex)|$C{B02}$C{B}$C{3}$1$C{R}$C{1}|g;
+    return $text;
+}
+
+sub cmd_search {
+    my @args      = @_;
+    my $show_done = 0;
+    my $no_color  = 0;
+
+    while ( @args and $args[0] =~ m{^-} ) {
+        my $flag = shift @args;
+        if ( $flag eq '-all' ) {
+            $show_done = 1;
+        } elsif ( $flag eq '-no-color' ) {
+            $no_color = 1;
+        } else {
+            die "unknown search flag: $flag\n";
+        }
+    }
+
+    my $pattern = join ' ', @args;
+    if ( not length($pattern) or $pattern eq '.' ) {
+        warn "  :: [search] pattern parameter required ::\n";
+        exit 8;    ## ncode's 0010 ##
+    }
+
+    my $case_insensitive = lc($pattern) eq $pattern;
+    my $regex = eval { $case_insensitive ? qr/$pattern/i : qr/$pattern/; };
+    if ( not defined $regex ) {
+        my $error = $EVAL_ERROR // 'unknown regex error';
+        $error =~ s|\s+at\s+\S+\s+line\s+\d+.*\z||s;
+        chomp $error;
+        warn "todo: invalid search pattern: $error\n";
+        exit 2;
+    }
+
+    if ($no_color) {
+        $_ = '' for values %C;
+    }
+    my $color = $TTY && !$no_color;
+    my $data  = load_data();
+    my @items = grep {
+        ( $show_done or $_->[0]->{status} eq 'open' )
+            and $_->[1] =~ $regex
+    } map {
+        [   $_,
+            join( "\n",
+                $_->{id}   // '',
+                $_->{text} // '',
+                join( ' ', $_->{tags}->@* ),
+                $_->{details} // '' )
+        ]
+    } $data->{items}->@*;
+    @items = map { $_->[0] } @items;
+
+    my $flags = $case_insensitive ? 'i' : '';
+    if ( not @items ) {
+        say "no matches [ search =~ m{$pattern}$flags ]";
+        return;
+    }
+
+    my ( $lines, $content_width ) = format_items( \@items, $show_done );
+    say $color
+        ? "$C{R}$C{B01}$C{1}::: [ search =~ m{$pattern}$flags ] ::$C{R}"
+        : "::: [ search =~ m{$pattern}$flags ] ::";
+
+    for my $index ( 0 .. $#items ) {
+        my $item = $items[$index];
+        say '' if $index;
+        say search_highlight( $lines->[$index], $regex, $color )
+            . ( $C{R} // '' );
+
+        my @details = split m{\n}, $item->{details} // '', -1;
+        my %context;
+        for my $line_num ( 0 .. $#details ) {
+            next if $details[$line_num] !~ $regex;
+            $context{$_} = 1
+                for grep { $_ >= 0 and $_ <= $#details }
+                ( $line_num - 1 .. $line_num + 1 );
+        }
+        for my $line_num ( sort { $a <=> $b } keys %context ) {
+            my $prefix = sprintf ': %03d : ', $line_num + 1;
+            my $text
+                = search_highlight( $details[$line_num], $regex, $color );
+            say $color
+                ? "$C{B01}$C{1}$prefix$C{R} $C{1}$text$C{R}"
+                : "$prefix$text";
+        }
+    }
+}
+
 sub cmd_done {
     my @ids = @_;
     die "expected item id\n" unless @ids;
@@ -1205,6 +1306,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
     cmd_list($filter);
 } elsif ( $cmd eq 'long' ) {
     cmd_long();
+} elsif ( $cmd eq 'search' ) {
+    cmd_search(@ARGV);
 } elsif ( $cmd eq 'add' ) {
     cmd_add(@ARGV);
 } elsif ( $cmd eq 'done' ) {
@@ -1239,8 +1342,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,,..,.,,,..,,...,,..,,..,.,.,.,,,...,,,.,..,,...,..,,...,.,.,,..,,,,,..,,
-#EMEGDVFKVVFAYHTFEMLULIFTICVXAEPAMQM6NV3VP63AJ4ZW56MSODDBK6LLFTMJALRG4IHH654LO
-#\\\|2PYTV3GLZKJDMP3T7MYGVUK5QY2KM6PDSCIZLUHESPXCFV7LLY4 \ / AMOS7 \ YOURUM ::
-#\[7]6PJ43Z27K7KKDNDOIOF5ZM2PSHL6T7NPJPSAJSQLY4PYJ4JBHGCI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,..,,.,,,..,,.,.,,.,,,.,,...,,..,..,,...,...,.,.,,..,...,,,.,,,,,
+#FWDX5SCK4QJG5EBJGNFBHSFKQ2AQVJUU5IS4UQTVHUDABGYQ2QLLFBPRQZ7MWBECB3DPFJ6CKRVVG
+#\\\|CY4JQEPCLUIJMLABGGWVVRBH7UK7CNY5C2DQ4WQXAU5ADHZDLN2 \ / AMOS7 \ YOURUM ::
+#\[7]VBNBTGXKYCFM53UPR25JNL6BNESAXE5SMN2GXJD45VKI4KQKMMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
