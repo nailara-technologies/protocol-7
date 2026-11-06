@@ -146,7 +146,7 @@ $lease->{'pending'} = {
 return TRUE if $lease->{'pending'}->{'unloaded'};
 
 my $sent = <[protocol-7.route-send]>->(
-    {   'command'   => qw| cube.present |,
+    {   'command'   => qw| present |,
         'call_args' => { 'args' => $from },
         'reply'     => {
             'handler' => qw| models.gpu_lease.handler.presence |,
@@ -162,8 +162,8 @@ if ( not $sent ) {
 }
 return TRUE;
 
-#,,,.,.,,,..,,,,.,.,.,,..,.,,,,,.,,..,,..,.,.,..,,...,..,,.,,,..,,.,.,..,,..,,
-#OU5D5JWZ7364E74RT7CE37YBTVL5ED4I6PAS6ZREBNSAGCTCHZ2AKDSN24FMSEBXIDGF2YMWZQHFA
-#\\\|QLQUQIWZ3TIH3AAOCGJTL7MV7RMUTOQYCY6UZV3OFUW4FWE2EU6 \ / AMOS7 \ YOURUM ::
-#\[7]RL63SCB3OJM5S5QQOEKF5ZIUJTJ5MUGE4CI4U5ANR4OAF75IN6CI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,.,,,.,,.,,.,,,,,.,.,,,,..,,,.,..,,...,...,...,,.,,,..,,,.,.,,,
+#XGVDQDREJ4Q4L4P7S36XYN567XPSLKYTOJPAGDX3PP444MNN3SCPDJFDY5E5FRB3MNUNWNNRC4TFS
+#\\\|TDTTBM6DLUEAEGGOQNYSNZKEK7PWA24XBWC3WI7PAP54PO25QSJ \ / AMOS7 \ YOURUM ::
+#\[7]UQERD4ZYPXOBI3AIXBTGRD4A4IBVXV3ZH7Q3ZIRWLJDQN4JKQICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
