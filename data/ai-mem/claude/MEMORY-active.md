@@ -218,7 +218,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [session-handover-deps-service-p7r](project-2026-10-16-session-handover-deps-service-p7r.md) — 2026-10-16 night [ superseded by auth-watcher-add-incoming ] : auto-install live on 4 servers, p7-deps service cmds, ::: over ssh -W, start gate, probe ; OPEN : taeki remote auth [ user runs ], push+deploy c9b156ce5, 4ZW live
 - [auth-watcher-add-incoming](project-2026-10-16-auth-watcher-add-incoming.md) — 2026-10-16 day [ superseded by session-handover-installer-cloud ; holds the PLAN steps 1-7 + style rules ] : taeki auth live on 4 servers, cube inotify re-read of authorized keys, dep-graph plugin scoping [ -954 eager subs ], p7-keys add-incoming ; OPEN : push+pull d5ce1a7cb + srv-U incident test, unit srv-U\srv-F, 4ZW
 - [session-handover-installer-cloud](project-2026-10-17-session-handover-installer-cloud.md) — START HERE 2026-10-17 [ last 5c09e923b ] : deps line done [ frame, tracked, backend, p7-install, p7-deps restyled ], cloud dispatch working [ pty, launch clone, push path ] ; OPEN : root runner, debs + signed repo, legacy scripts, cloud tool polish
-- [clean-bare-host-install-azurum](project-2026-10-28-clean-bare-host-install-azurum.md) — previous [ superseded 2026-10-29 ] 2026-10-28 : azurum bare -> p7-install -> running service clean [ milestone, README updated ] ; boot-early deps, pm-src dirs in /var/protocol-7, styled installer output ; open : route-history verdict, discover peers [ wsl nat + owner root ], nodes orbital-p7ref spam
+- [clean-bare-host-install-srv-16](project-2026-10-28-clean-bare-host-install-srv-16.md) — previous [ superseded 2026-10-29 ] 2026-10-28 : srv-16 bare -> p7-install -> running service clean [ milestone, README updated ] ; boot-early deps, pm-src dirs in /var/protocol-7, styled installer output ; open : route-history verdict, discover peers [ wsl nat + owner root ], nodes orbital-p7ref spam
 - [session-handover-signing-agent-kimi-cli](project-2026-10-29-session-handover-signing-agent-kimi-cli.md) — previous [ superseded 2026-10-29 evening ] 2026-10-29 [ last 40c0fbc6f ] : HX4 follow-up first [ agent approval binds paths not contents ], kimi on the current cli with thinking per dispatch, sign pool 1:45, release v6.48.9 ; new conversation needed for the new mcp schema
 - [session-handover-commit-manager](project-2026-10-29-session-handover-commit-manager.md) — previous [ superseded 2026-10-29 night ] 2026-10-29 evening [ last 18d2a1363 ] : commits go p7_sign -> p7_commit_prepare -> p7_commit [ p7-sign-wait in the background for notifications ] ; sign agent done [ clickable prompt, ctrl-r ] ; next : kimi on stale redraft or RCM
 
@@ -240,8 +240,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [session-handover-thermal-q2k](project-2026-10-30-session-handover-thermal-q2k.md) — previous [ superseded 2026-10-30 ] 2026-10-29 late [ last 344e62e56 ] : Q2K deployed, thermal 1-5 watch-only over night, GDX fixed ; next : night snapshots, wire verdict into the pool
 - [session-handover-night-brake](project-2026-10-30-session-handover-night-brake.md) — START HERE 2026-10-30 [ last 672074350 ] : night brake 68 C live, idle baseline via power, soft swap 7 \ 27 m, stale-claim sweep, temp-boost [ next coding start ], priority pickup ; next : morning checks
 
-#,,,,,...,,,.,,..,,..,..,,...,,,.,,,.,.,,,,.,,..,,...,...,...,,,.,..,,.,.,,,,,
-#M5A4HMXEHSFTZAUY2VYUS7355FZRMB36DT4EUDFPSFMT7JBIW3GAGX4T4CPT3AF6V44BMLOLQK3K2
-#\\\|56FJ4ASRDLIBCOO4B44DAA6B4ARODFWYVR5HT567I3RYTASNVSJ \ / AMOS7 \ YOURUM ::
-#\[7]RC4WKTQ4HAQDXP2YFGSHLSTCU2JHEXVDZWJSNLSGZLO2Y36CPQCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,.,,.,,.,,,,,.,,.,,.,.,..,,...,..,,...,...,,..,,.,,..,,,..,..,,
+#D6CEAOHQM4DXZJ4NNHAYHN6RXRHYOKQ7D5KO3GZ7BPJAVUGPAZJ6TAMZEJ7D37N2SU3JK4SRNWYRY
+#\\\|HGROT66FRFADEWTL5Q7U5SGFKVSY25AO3OZHLCJ6LWQU2P3GCKP \ / AMOS7 \ YOURUM ::
+#\[7]VJNPEYMBEXP5TJ3BDIOQ3AS4IFLPIHD7VW47YGR5M2SEFIP3LYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

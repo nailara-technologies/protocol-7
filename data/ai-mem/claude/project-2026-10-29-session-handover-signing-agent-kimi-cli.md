@@ -5,8 +5,8 @@ metadata:
   type: project
 ---
 
-**where things stand [ 2026-10-29, after the azurum day -- see
-[[project-2026-10-28-clean-bare-host-install-azurum]] ]**
+**where things stand [ 2026-10-29, after the srv-16 day -- see
+[[project-2026-10-28-clean-bare-host-install-srv-16]] ]**
 
 ## next, in order
 
@@ -62,12 +62,12 @@ metadata:
 
 ## still open from 2026-10-28
 
-azurum : route-history verdict pending ; discover peers [ this dev host is
+srv-16 : route-history verdict pending ; discover peers [ this dev host is
 WSL2 behind nat -- `networkingMode=mirrored` or a native host ; owner root
 for trust ] ; nodes orbital-p7ref log spam ; `p7-deps help` drops `\`.
 
-#,,.,,,,.,,..,,,.,,.,,,.,,..,,.,.,..,,,..,...,..,,...,...,.,.,,,.,...,,,.,,.,,
-#TZUBV5TPYMFJVIUWHMZXFG744WL2D4RIQ66FZZVYWOKGBNCPLBXIX7LVI5VIAMEIU6M42EOTH2MK4
-#\\\|RTJB33A3C7DZKHOUUEECW2ZEYER5T2NB2NF4ICA2L2QCEMMSI3N \ / AMOS7 \ YOURUM ::
-#\[7]SOCGFCKOVOHVXZN2XX34OZTXZHPME3TUF63WKUER7DIGPTTIUSDI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,...,,..,...,,..,,.,,..,,,.,,.,,,..,,...,...,...,,,.,,..,,,.,.,,,
+#GZOSMORUOBAMGD5Z3ADMGBMEEMCX4QZ7AZHDAZCALIEGSLRHWXYWGBVGKFOJ2UTFLJPWXTYO4QWRA
+#\\\|PNCJR5JOAKPNXUDW56ZAGCOLHQHGIWTQM56AWETXA3GME4OQIPV \ / AMOS7 \ YOURUM ::
+#\[7]LTMHMIMIBNDEGPU4HTSNYU64HX6VYR7KHW5CE6FNFMDZ64JAICCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

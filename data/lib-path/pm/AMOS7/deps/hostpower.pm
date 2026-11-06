@@ -1,5 +1,5 @@
 package AMOS7::deps::hostpower;
-our $VERSION = qw| AMOS7::deps::hostpower-VERSION.YIAPWKI |;
+our $VERSION = qw| AMOS7::deps::hostpower-VERSION.5QVK52Q |;
 
 use strict;
 use warnings;
@@ -16,7 +16,7 @@ our @EXPORT_OK = qw| parse_wakeup select_wakeup_devices unit_content
 
 ##[ host power management ]###################################################
 ##
-## the azurum lessons, machine-readable
+## the srv-16 lessons, machine-readable
 ## [ runbook :  read-me/md/docs/backlog/host-power-management.md ] :
 ##
 ## 1. mask the systemd sleep targets -- the hard backstop ; no request from
@@ -184,8 +184,7 @@ sub _mask_step {
         push @{$rows}, [ 'sleep targets', 'masked', join ' ', @to_mask ];
         return 0;
     }
-    push @{$rows},
-        [ 'sleep targets', 'failed', "systemctl " . "mask exit $exit" ];
+    push @{$rows}, [ 'sleep targets', 'failed', "systemctl mask exit $exit" ];
     return 1;
 }
 
@@ -529,8 +528,8 @@ sub _gnome_rows {
 
 1;
 
-#,,,.,..,,,,,,.,.,,.,,,.,,.,,,,..,,,.,,.,,,..,.,.,...,...,,..,,,.,,.,,,,.,..,,
-#XJCIR53KPCN7JV3HJ6RFWZHXCR4ETTLMBYWVDU7WW22OGG6R6OKT3QBPTBMAPLDQQDDGI3X4CSUGW
-#\\\|LMAMRNCKW5RABE3DDTBZIIGLXDJKXCAFKCKWXHOBOW6VENEFGHB \ / AMOS7 \ YOURUM ::
-#\[7]T4PLXCDVUOXG4FIXA3JZHPHXBCYOWHNDNKPTZ4WSEIG7OS5UEAAA 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,..,,.,.,,,,,...,..,,,,,,...,.,.,...,...,...,,.,,..,,,.,,...,
+#JAGMNZVGP7ZLMBTFCI3QCK6DY2IFEWKN5XNE4XEG5PPSKZMCNBTXSERR2RIYHBJO3KSKHLC4COVMY
+#\\\|KKOWCJ2KYUDGZE2EXFXUBVYOD42MVDCQVHIC6QPDJOYTK56XTBM \ / AMOS7 \ YOURUM ::
+#\[7]PMVPQPBEZZ2TGK6DOYLCLQHIMGMGKDRSIWZHVENRKQCTVYVRNGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

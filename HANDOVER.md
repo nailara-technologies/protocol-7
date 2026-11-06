@@ -1,9 +1,9 @@
-# Session Handover — 2026-10-27 [ azurum host power + p7-install upgrade ]
+# Session Handover — 2026-10-27 [ srv-16 host power + p7-install upgrade ]
 
 memory : data/ai-mem/kimi/topic-host-power-management.md [ full detail ] ;
 read-me/md/docs/backlog/host-power-management.md [ runbook + design ]
 
-**done + live on azurum** : `bin/p7-deps host-power [awake|suspending]`
+**done + live on srv-16** : `bin/p7-deps host-power [awake|suspending]`
 [ AMOS7::deps::hostpower , 41-check harness test-p7-deps-host-power.pl ].
 awake = mask the 4 sleep targets + guard-based p7-wakeup-disable oneshot
 [ all non-RTC /proc/acpi/wakeup devices, toggle-safe ] + GNOME idle
@@ -17,7 +17,7 @@ systemd-tmpfiles w-lines dedupe by path AND toggle ; boot-time guard list
 must come from the whole device table [ firmware re-enables at boot ] ;
 own marked unit must be rewriteable [ upgrade path ] .
 
-**p7-install upgrade** [ verified live on azurum ] : base-packages apt
+**p7-install upgrade** [ verified live on srv-16 ] : base-packages apt
 runs stream through the AMOS7::deps::aptlog condenser with framed rows [
 port of the dist-upgrade styling ] ; p7-deps bootstraps cpanminus from apt ;
 cpan: profile entries with a debian mapping install the .deb first
@@ -29,7 +29,7 @@ commits a92333739, d8bc276d7, 398741922, 06889b58e, b7f23922c.
 1. KDE \ XFCE idle-suspend keys [ DE detection beside GNOME ].
 2. `host-suspend` counterpart for the v7-zenka host power commands [
    sleep state select + RTC wake alarm ] -- pairs with suspending mode.
-3. azurum wired-NIC WoL verification once cabled [ ethtool | grep Wake ].
+3. srv-16 wired-NIC WoL verification once cabled [ ethtool | grep Wake ].
 4. bare-host p7-install end-to-end [ fresh-clone path unseen live so far ].
 
 ---

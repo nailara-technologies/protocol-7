@@ -1,6 +1,6 @@
 ---
 name: project-2026-11-05-session-handover-shm-a
-description: START HERE 2026-11-05 night [ d02c3b067 ] : shm A landed, real ed25519 grants, header v2 ; azurum pull still open ; next N7FS from the researched state
+description: START HERE 2026-11-05 night [ d02c3b067 ] : shm A landed, real ed25519 grants, header v2 ; srv-16 pull still open ; next N7FS from the researched state
 metadata:
   type: project
 ---
@@ -17,7 +17,7 @@ the temp name -- any edit of those .pm files aborted the sign run.
 offset 4096. protocol-7-menu confirmed by the owner : shm open logged, translucency follows the pointer.
 
 **deployed** : hub, srv-U F V A on d02c3b067 ; no segments or shm zenki there, no reload needed.
-azurum pulled and restarted by the owner.
+srv-16 pulled and restarted by the owner.
 
 **FKS stays open** : a local reader with file rights can still map a segment -- encrypted pages step closes that.
 remaining plan in [[project-2026-11-05-session-handover-pressure-io]] : seal \ open into AMOS7::Twofish, then pages.
@@ -27,8 +27,8 @@ AMOS7::N7FS::Sign at runtime -- the first user of N7FS code outside its tests.
 
 #
 
-#,,,.,,,.,..,,,,,,...,,,.,.,.,..,,..,,...,.,.,..,,...,...,,.,,,,,,..,,..,,,,.,
-#C2QCH2INFIOA7AUS3KXIXMZIXE4PM7BLZA4JMK5VTYJY6Q3776DI4F6XEQTQNEK6P3PFQ3A3JA7ZY
-#\\\|OGTIIMXRRSMEWEHER664BXNL5ZUALFSZIZSXWXI7RATGNHW4AXO \ / AMOS7 \ YOURUM ::
-#\[7]4P6CRFBAWMVGMUEUNQJVDSCYRQYIPUCGXOC364GLXD4DV3MPFYAQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,.,..,,,.,,,,.,..,,,,.,,,.,,..,..,,...,...,.,,,,.,,,.,,,,.,..,,
+#XWNMJAMJ4J4ORR3AHHB6MODNCC7BEV7RD2CZZQIYHAKNEVPX3ZDHYENIUOI5VXRBOC4KY24R2GN4O
+#\\\|5765NKCO73JEGONWH7I4IJDEGBPOZC3BIXFINE7IKP5XBOHLK35 \ / AMOS7 \ YOURUM ::
+#\[7]HWO3VZEZI77UGKG5IORX3FUUUWRWLD5BO2R6GWAUEW3FYRQPN6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

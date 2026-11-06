@@ -1,11 +1,11 @@
 ---
 name: session-handover-login-screen
-description: 2026-10-31 later [ last b70c9d6cc ] : authorization slice 1, devmod safe\rw, desktop base + openbox-n rebase, native login-screen zenka LIVE on azurum [ greeter renders, real login untested ]
+description: 2026-10-31 later [ last b70c9d6cc ] : authorization slice 1, devmod safe\rw, desktop base + openbox-n rebase, native login-screen zenka LIVE on srv-16 [ greeter renders, real login untested ]
 metadata:
   type: project
 ---
 
-**landed 2026-10-31** [ pushed hub ; srv-U F V A at 0ab62b75f ; azurum at b70c9d6cc ]
+**landed 2026-10-31** [ pushed hub ; srv-U F V A at 0ab62b75f ; srv-16 at b70c9d6cc ]
 
 - 10c523648 authorization zenka [ NOT auth.* : `.cmd.` modules load as bare
   commands into every zenka loading the namespace -- auth.cmd.list would
@@ -36,22 +36,22 @@ metadata:
   xserver-xorg-legacy [ + Xwrapper needs_root_rights = yes on the host ],
   Glib::Event via cpan [ libglib-perl does NOT ship it ]
 
-**azurum** : gdm + GNOME purged [ owner : no display managers ] ; overlays
+**srv-16** : gdm + GNOME purged [ owner : no display managers ] ; overlays
 v7-zenki.cfg load.start_setup = desktop-login, X-11.cfg mode xorg,
 login-screen.cfg allow = taeki. the dist-upgrade autoremove purged Xorg
 [ was only a GNOME dep ] -> profiles fixed. openbox 3.7-n deb from
 openbox-n master [ rebased on Mikachu 2026, old master = master-2018,
 bundle /data/backup/openbox-n-rebase-2026.bundle ]
 
-**next** : owner tests a real login on azurum [ openbox + compton as taeki,
+**next** : owner tests a real login on srv-16 [ openbox + compton as taeki,
 logout -> greeter ] ; one 'undefined value as subroutine reference' at
 login-screen zenka.v7 statement 006 seen once -- check ; root-only grant
 tests ; lock mode [ also replaces the lost lock-fade : fade + backlight ] ;
 photonic autostart cleanup [ ~/bin scripts, compton line -> compton zenka ]
 ; thermal k live fit r2 0.74 at last check ; owner key choice for approvals
 
-#,,,,,,.,,,.,,,..,.,,,,.,,.,,,,,,,...,,,.,...,..,,...,...,,,.,,..,...,.,,,,,.,
-#ERM7PFD27L7VUOIOT6FWGL3IYHUA3PG5DT5XHEUYQCDXUT2V7H2VN6CSSCPV43OEN2ZGIVM2XRQ5Q
-#\\\|C5EAXUMQAEL6WWOO4PD5FO5PLVRETGBP3BMZE5DWI54ZCDHW2NK \ / AMOS7 \ YOURUM ::
-#\[7]EETHDUUH2NTF6IFYRVXD3NPNAP5KNJYC7AJ4QPRH3UH7SBB6PSAQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,.,.,,,.,..,,..,,..,,,,.,,,,,..,,...,...,,..,.,,,,,.,.,,,..,,
+#ESZHIYCLC2OH5LKIKANQYLMWL5WRAEV35SDDFXMP3UV6EKG3HRKBKOPPABWAZURZU4EZT4YIW4DC4
+#\\\|JJUMQ6MBE5Y6IPK46DESL3J6MEDMOZU562WMU7OVBGJWLCYXYKP \ / AMOS7 \ YOURUM ::
+#\[7]KPF3NLKDFAUZX3BBYV7BTYWXDWRX6BLGRWYUXYRNUOAKNOMKBYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

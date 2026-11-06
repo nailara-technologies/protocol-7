@@ -1,6 +1,6 @@
 # Host power management for server-duty installs
 
-Background and runbook for what we had to do by hand on host **azurum**
+Background and runbook for what we had to do by hand on host **srv-16**
 (2026-10-27), plus the design notes for turning it into a managed
 installer/provisioning step.
 
@@ -26,7 +26,7 @@ to be addressed, or the symptom returns:
 | BIOS | sleep/wake defaults | untouched in our case |
 
 Debugging shortcut: `journalctl -b | grep -iE 'suspend|sleep'` plus
-`journalctl -b _COMM=systemd-logind` names the requester. On azurum it was
+`journalctl -b _COMM=systemd-logind` names the requester. On srv-16 it was
 `Delay lock is active (..., PID .../gsd-power) but inhibitor timeout is
 reached` — GNOME's power plugin asking, logind complying.
 
@@ -59,7 +59,7 @@ reached` — GNOME's power plugin asking, logind complying.
 
 4. **Trim ACPI wake sources.** Read `/proc/acpi/wakeup`; each enabled
    device is toggled by *writing its name* — writing toggles, it does not
-   set. On azurum the PCIe root ports (RP09/RP07, network) and XHCI (USB)
+   set. On srv-16 the PCIe root ports (RP09/RP07, network) and XHCI (USB)
    were enabled; AWAC (RTC) was left enabled deliberately.
 
    **Persistence gotcha:** `systemd-tmpfiles` `w` lines dedupe by path, so
@@ -126,8 +126,8 @@ Natural next steps : DE detection beyond GNOME [ KDE / XFCE keep their own
 idle-suspend keys ], and a `host-suspend` counterpart command for the
 zenka side [ select the sleep state, set a RTC wake alarm ].
 
-#,,,.,,,.,.,,,,,,,.,.,.,.,...,.,,,.,.,,..,,,.,..,,...,...,..,,,..,,.,,,..,...,
-#UWU7K4M4LIS4QWXXJY7VNMQLVSJSVDVH6IL3OBAYFO2IWCUTGW72OIYYJQQ2LNTHLBHE5GLKHOZBY
-#\\\|WCJRJ4PG4AQ2EPBX6JPWYO4T7ZGCKXE7OBMF55D4KNZHOWCURNB \ / AMOS7 \ YOURUM ::
-#\[7]NLWPNN7BBNBDO5XKKV2RRX6G5ZN7C24PC23GEX36DI3PIM7GOQCI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,.,,,.,,,,.,,,..,.,.,,..,,.,,..,,...,...,,..,,,,,,,.,.,,,,..,
+#HULCKI76CPWDKAOWD2KXH2KMOWUB46Z66YMKF5LFJAXX4S6XU3R257VVLVH7QDQKXLDY5L7DV3HBS
+#\\\|QZZYRNTLPOLVRXGWNRZ7UFOZZMZ77PTLYEPWEWEIOWFDIKKBJ2W \ / AMOS7 \ YOURUM ::
+#\[7]RPY2KZ65BHM3KAFMIFTX2FHQZXSYR5DKCCPZPJK3URYEHJ4PAECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

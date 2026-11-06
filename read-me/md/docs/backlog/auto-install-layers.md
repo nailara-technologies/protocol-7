@@ -1,7 +1,7 @@
 # Auto-install : the layered dependency-completion model
 
 Design reference for how protocol-7 completes missing dependencies —
-written after the 2026-10-27 azurum incident, where a missing
+written after the 2026-10-27 srv-16 incident, where a missing
 `Digest::BMW` killed the system at *compile* time, before any
 install layer could run. The layers exist in the tree; this document
 names them, their gates, and the invariants between them.
@@ -52,7 +52,7 @@ as layer 1** — root + the `auto_install` flag — routed through
 `tracked.yaml` record apply. Without the gate, they fall through to
 the layer-0 SHA-256 names. No site may assume a module is loaded
 because of another site's compile-time side effects — that was the
-azurum root cause: the old `use AMOS7::Assert::Truth` happened to load
+srv-16 root cause: the old `use AMOS7::Assert::Truth` happened to load
 `Digest::BMW`, and the loader silently relied on it.
 
 ## Policy invariants
@@ -69,8 +69,8 @@ azurum root cause: the old `use AMOS7::Assert::Truth` happened to load
    native ones only where the missing primitive forces it, never in
    encoding.
 
-#,,,.,.,,,.,,,,,.,,,,,,..,,.,,..,,.,,,,..,,,.,..,,...,...,.,,,,,,,,,.,,..,,,.,
-#ASM6MYWQSZ3L3FY3JTISLERLHQIHVPG2SOEL7CPFDUNEYB3WWYKQ4OY7MHXFCT26TPXWX5X44KOWS
-#\\\|DDACPEC5MICN7USZRVCOSMXAVGOQHLKOKDEGWN7LYH7Y33HYZFE \ / AMOS7 \ YOURUM ::
-#\[7]HVB22UZJOJZSEMP5DTL6GQFETPTQUGARAJUMV7FS7TR6RTGLM6CA 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,,,,.,,...,.,,,.,,,,.,,.,,,,,.,..,,...,...,.,,,.,,,,,.,,,,,,..,
+#KEGZHAA7HPQG5L35PVAJGQ62HJM2XAOXUJ2YUMXNKNAJVWDOJBLT5UQYIEXN3PJVOOCKGT7KMGMWC
+#\\\|7VCNL2SQUB57H2B3RPQ6TG4YAU77COU7S353WSPYPLKFNTEEVWI \ / AMOS7 \ YOURUM ::
+#\[7]WHN3P7X5R6WNC7BG2DTBLFPLDNQVWJFFO2MMTGANXHLPUKZ2BUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
