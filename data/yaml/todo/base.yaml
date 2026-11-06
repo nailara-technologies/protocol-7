@@ -2085,10 +2085,13 @@ items:
     cpu backend stuck at restart_needed after seed-retry : re-run self-test
 
     coding seed-retry leaves the cpu backend at status restart_needed : after a failed startup self-test [ cat-test 2/3 ] defer_seed_restart respawns the server, the new one runs healthy [ /health ok ] but no new self-test runs and the status stays restart_needed -- every job then waits in the 'depending' queue forever [ pri 2026-10-24, task NSRV3FA ]. the respawn must re-run monitor_startup \ self_test and reset the status
-  done_at: null
+
+
+    fixed 5780ff791 [ defer_seed_restart cleared only the gpu pid ], deployed 2026-11-06. srv-A hit it and recovered ; a real seed retry on a cpu host still to be seen.
+  done_at: 32N2BCPNJM
   id: VNN
   priority: normal
-  status: open
+  status: done
   tags:
   - coding
   - inference
@@ -2547,6 +2550,9 @@ items:
     no matching task on the scanner side, not cleared by a scan. safe [ nothing lost, reassess or delete by hand ] but should not occur : find how they get there.
 
     seen 2026-11-06, 8 jobs, deleted by hand before their ids were recorded -- next time note ids and compare with jobsite on the scanning host before clearing.
+
+
+    fix idea [ owner 2026-11-06 ] : the browser already receives the trash files. correlate by job id : a trash entry arriving clears a 'new' entry with the same id, so leftovers clear themselves once trash is in sync. check first why it cannot correlate today [ id stable across states ? ]. likely cause of the entries : an error or an unreferenced move to trash while the browser had already loaded the job as new. rejected : syncing new jobs only while idle [ narrows the window, delays jobs ].
   done_at: null
   id: P23
   priority: low
@@ -2554,9 +2560,25 @@ items:
   tags:
   - jobsite
   text: "jobsite : unassessed jobs stuck in the tab's own store"
+- added: 32NZ7BVAO4
+  details: |-
+    owner 2026-11-06 : the trash sync runs twice since a recent update, and each time the list disappears completely and reappears when the sync completes. find the double trigger [ check recent changes to the sync path ], update the list in place instead of clearing it. an in-place update also suits the trash correlation of P23.
 
-#,,,,,,..,.,.,,,,,.,.,.,.,.,,,,,.,,,.,.,,,.,.,..,,...,...,...,...,,.,,.,,,,,.,
-#TKSKGTPIMYR4LGBMD7VKJVDRMML5HTKFQ3SSMONVRPUBF5VO62UI2RRPHIKOOXYQKSQSKALFTOPQA
-#\\\|TT6ABNYY4ZUSFFQRCNNH6BSRWPKTTNF5O6MMAZHSDF5JRUQ5DPE \ / AMOS7 \ YOURUM ::
-#\[7]ENON3MLHEDRWITWHH3B7GCLQKHTVA73YB54FC45Y3E57X2SAL2CQ 7  DATA SIGNATURE ::
+
+    owner : the vanishing list existed before, the double sync made it worse -- two separate causes. leads for the double sync, unconfirmed : d0ff178db [ server-sent job events, 2026-10-29 ], 536a365f7 [ replica mode, 2026-10-30 ].
+
+
+    also [ owner ] : a sync aborts what the user is doing in the job columns and resets the view while reading. likely the same cause, the list is rebuilt whole [ not verified ]. the fix must keep focus, open item, scroll and edit state through a sync : update changed rows in place, and hold updates to a row being edited.
+  done_at: null
+  id: 7U6
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  text: 'jobsite : sync vanishes the list, resets views and aborts actions'
+
+#,,,,,,..,.,,,,.,,,..,,,,,,,,,.,,,,,.,,,.,,..,..,,...,...,...,,.,,.,,,,,,,.,,,
+#DW46R6V4S5QG4SYL3R6RTS2ZHOVQW363GOL5NFZXJKLVPKHSJDKXLNDHGVP5TXCHZO2HQHPVAVPEI
+#\\\|BCV5SJZRCPTCMZAKXZV3QCQM26C7S77ALC7WZ5VVWWM4DRGVZG2 \ / AMOS7 \ YOURUM ::
+#\[7]DFGF6CIX3GVF7U35PHSAPH5DIWASDOPVES6UX2Z6VUI3SS5VQMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
