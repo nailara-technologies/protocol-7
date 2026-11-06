@@ -230,16 +230,17 @@ ok( !defined $code{'host-edit.record.path'}->('x/y'),
 
 ## a record named after its host : the name is also its default address ##
 my $name_is_host = $code{'host-edit.record.name_is_host'};
-ok( $name_is_host->('pri.v7.ax'), 'dotted host name ' . 'counts as a host' );
-ok( !$name_is_host->('zz-test'),  'undotted label is not a host' );
+ok( $name_is_host->('host-a.example.net'),
+    'dotted host name counts as a host'
+);
+ok( !$name_is_host->('zz-test'),     'undotted label is not a host' );
 ok( !$name_is_host->('a_b.example'), "'_' is not a host-name character" );
-ok( !$name_is_host->('a-.example'),
-    'label ending in a ' . 'dash is not a host' );
-ok( !$name_is_host->('example.'), 'trailing dot is not a host' );
+ok( !$name_is_host->('a-.example'),  'label ending in a dash is not a host' );
+ok( !$name_is_host->('example.'),    'trailing dot is not a host' );
 
 my $default_fields = $code{'host-edit.record.default_fields'};
-ok( join( q{,}, @{ $default_fields->('pri.v7.ax')->{'addresses'} } ) eq
-        'pri.v7.ax',
+ok( join( q{,}, @{ $default_fields->('host-a.example.net')->{'addresses'} } )
+        eq 'host-a.example.net',
     'default_fields prefills a host-named record with its name as address'
 );
 ok( !@{ $default_fields->('zz-test')->{'addresses'} },
@@ -539,8 +540,8 @@ if ( $fail_count == 0 ) {
 say sprintf '[ done ] %d passed, %d FAILED', $pass_count, $fail_count;
 exit 1;
 
-#,,,.,,.,,,,,,.,.,,..,,..,.,,,...,,,,,..,,,..,..,,...,...,.,.,,,.,,,.,..,,.,.,
-#CZGHENLUK635MQNXL26R22IGI4JKQ2CVNR5ATINXABAAFBEDWGGOD2TGDOHAWKDVG6K2CH4TNGZSS
-#\\\|QLIMEBTUQFQ4TIDEWPHSNESU4LNMJXWAN5ILCQWOJV434K6OMO5 \ / AMOS7 \ YOURUM ::
-#\[7]I7FLMT6OMQB5YXMSFSE2P52LMLAV7LBIJ5HB6ZH62KT52DRJOKDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,.,,,.,.,.,.,,..,,,,,.,,,..,,.,.,..,,...,...,,..,,.,,.,.,,,,,...,
+#7B2QW4R2DYRN3US7ULCJPU3S65BB5LX57GPBPN2YZ6YVXQPOGQY76ZAALQVXCH5BXIABPYMCQRYWQ
+#\\\|SO2TIINR27GLEBVNQFWCCOQFAEGUQOV5VYRMIM6LWT7UKA7FOUY \ / AMOS7 \ YOURUM ::
+#\[7]B75AQPKZEXFTZ4R6Y2BUR7V3JHSLSY3FSDQLQNQTI7NS7WB7EIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

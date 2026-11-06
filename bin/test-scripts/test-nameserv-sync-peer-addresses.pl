@@ -178,10 +178,10 @@ my $gai_calls   = 0;
 
 $gai_results = [
     {   family => Socket::AF_INET(),
-        addr   => { host => '161.97.144.6' }
+        addr   => { host => '203.0.113.6' }
     },
     {   family => Socket::AF_INET6(),
-        addr   => { host => '2a02:c207::1' }
+        addr   => { host => '2001:db8::1' }
     }
 ];
 
@@ -274,15 +274,15 @@ sub unreachable_lines {
 
 ## --- the resolver : ordering and literals ---------------------------- ##
 
-my $list = $code{'nameserv.sync.addresses'}->( 'pri.v7.ax', 7753 );
+my $list = $code{'nameserv.sync.addresses'}->( 'host-a.example.net', 7753 );
 
 check 'name resolves to two addresses', scalar @$list == 2;
 check 'ipv6 ordered first',
     (       $list->[0]{'family'} eq qw| ipv6 |
-        and $list->[0]{'host'} eq '2a02:c207::1' );
+        and $list->[0]{'host'} eq '2001:db8::1' );
 check 'ipv4 ordered second',
     (       $list->[1]{'family'} eq qw| ipv4 |
-        and $list->[1]{'host'} eq '161.97.144.6' );
+        and $list->[1]{'host'} eq '203.0.113.6' );
 
 my $v4 = $code{'nameserv.sync.addresses'}->( '127.0.0.1', 7753 );
 $gai_calls = 0;
@@ -302,10 +302,10 @@ check 'ipv6 literal is a list of one',
 ## --- the peer side : timeout fallback, one-time log, failure path ---- ##
 
 my $peers = $data{'nameserv'}{'sync'}{'peers'};
-my $pkey  = 'pri.v7.ax:7753';
+my $pkey  = 'host-a.example.net:7753';
 
 $peers->{$pkey} = {
-    host       => 'pri.v7.ax',
+    host       => 'host-a.example.net',
     port       => 7753,
     ts         => 'ts0',
     backoff    => 13,
@@ -319,8 +319,8 @@ $peers->{$pkey} = {
 my $peer = $peers->{$pkey};
 
 %sock_plan = (
-    '2a02:c207::1' => 'connect',    ## stuck in syn-sent ##
-    '161.97.144.6' => 'connect'
+    '2001:db8::1' => 'connect',    ## stuck in syn-sent ##
+    '203.0.113.6' => 'connect'
 );
 
 $code{'nameserv.sync.peer.arm'}->($pkey);
@@ -357,9 +357,9 @@ check 'old connect timer cancelled',   not $conn_timer->{'active'};
 
 check 'one fallback log line naming both addresses',
     ( unreachable_lines() == 1
-        and $log_lines[-1] eq ': sync peer pri.v7.ax:7753 : ipv6 '
-        . '2a02:c207::1 unreachable, using ipv4 '
-        . '161.97.144.6' );
+        and $log_lines[-1] eq ': sync peer host-a.example.net:7753 : ipv6 '
+        . '2001:db8::1 unreachable, using ipv4 '
+        . '203.0.113.6' );
 
 ## the ipv4 connect times out as well : the existing failure path ##
 
@@ -368,7 +368,8 @@ $code{'nameserv.sync.peer.handler.timeout'}->( fake_event($pkey) );
 check 'peer entered the failure path',
     (       $peer->{'state'} eq qw| idle |
         and not defined $peer->{'sock'}
-        and scalar grep {m|sync peer pri.v7.ax:7753 failed|} @log_lines );
+        and scalar grep {m|sync peer host-a.example.net:7753 failed|}
+        @log_lines );
 
 my $retry_timer = timer_like(qw| nameserv.sync.peer.arm |);
 check 'backoff retry timer registered',
@@ -390,7 +391,7 @@ check 're-armed through the event-delivered key',
 ## the remembered address is tried first next time ##
 
 $peers->{$pkey}{'state'}       = qw| idle |;
-$peers->{$pkey}{'addr_worked'} = '161.97.144.6';
+$peers->{$pkey}{'addr_worked'} = '203.0.113.6';
 $peers->{$pkey}{'conn_timer'}  = undef;
 $peers->{$pkey}{'watcher'}     = undef;
 $peers->{$pkey}{'sock'}        = undef;
@@ -399,18 +400,18 @@ $code{'nameserv.sync.peer.arm'}->($pkey);
 
 check 'remembered address tried first',
     (       $peer->{'addr_idx'} == 0
-        and $peer->{'addrs'}[0]{'host'} eq '161.97.144.6' );
+        and $peer->{'addrs'}[0]{'host'} eq '203.0.113.6' );
 
 ## --- the client side : fallback, finish with error, remembering ------ ##
 
 %sock_plan = (
-    '2a02:c207::1' => 'connect',    ## stuck in syn-sent ##
-    '161.97.144.6' => 'connect'
+    '2001:db8::1' => 'connect',    ## stuck in syn-sent ##
+    '203.0.113.6' => 'connect'
 );
 
 my $pending = $data{'nameserv'}{'sync'}{'client'}{'pending'};
 my $id      = $code{'nameserv.sync.client.start'}->(
-    {   host     => 'pri.v7.ax',
+    {   host     => 'host-a.example.net',
         port     => 7754,
         zone     => undef,
         reply_id => 'reply-1'
@@ -444,13 +445,13 @@ check 'client timeout fell back to the ipv4 address',
 
 check 'client fallback log names host:port',
     ( unreachable_lines() == 2
-        and $log_lines[-1] eq ': sync peer pri.v7.ax:7754 : ipv6 '
-        . '2a02:c207::1 unreachable, using ipv4 '
-        . '161.97.144.6' );
+        and $log_lines[-1] eq ': sync peer host-a.example.net:7754 : ipv6 '
+        . '2001:db8::1 unreachable, using ipv4 '
+        . '203.0.113.6' );
 
 ## the ipv4 attempt errors out : finish with an error, nothing left ##
 
-$sock_plan{'161.97.144.6'} = 'refused';
+$sock_plan{'203.0.113.6'} = 'refused';
 $os_err = 'Connection refused';
 
 $code{'nameserv.sync.client.handler.connect'}->( fake_event($id) );
@@ -467,13 +468,13 @@ check 'last address failure adds no fallback line', unreachable_lines() == 2;
 ## a literal first address that fails resolves nothing : start refuses ##
 
 %sock_plan = (
-    '2a02:c207::1' => 'fail',        ## route dead at connect time ##
-    '161.97.144.6' => 'connected'    ## immediate connect ##
+    '2001:db8::1' => 'fail',        ## route dead at connect time ##
+    '203.0.113.6' => 'connected'    ## immediate connect ##
 );
 $os_err = 'Network is unreachable';
 
 my $id2 = $code{'nameserv.sync.client.start'}->(
-    {   host     => 'pri.v7.ax',
+    {   host     => 'host-a.example.net',
         port     => 7754,
         zone     => undef,
         reply_id => 'reply-2'
@@ -492,11 +493,11 @@ check 'already-logged family stays silent', unreachable_lines() == 2;
 ## the working address is remembered : tried first next time ##
 
 check 'client remembered the working address',
-    ( $data{'nameserv'}{'sync'}{'client'}{'addr_worked'}{'pri.v7.ax:7754'} eq
-        '161.97.144.6' );
+    ( $data{'nameserv'}{'sync'}{'client'}{'addr_worked'}
+        {'host-a.example.net:7754'} eq '203.0.113.6' );
 
 my $id3 = $code{'nameserv.sync.client.start'}->(
-    {   host     => 'pri.v7.ax',
+    {   host     => 'host-a.example.net',
         port     => 7754,
         zone     => undef,
         reply_id => 'reply-3'
@@ -506,14 +507,14 @@ my $id3 = $code{'nameserv.sync.client.start'}->(
 check 'client start tries the remembered address first',
     (       defined $id3
         and $pending->{$id3}{'addr_idx'} == 0
-        and $pending->{$id3}{'addrs'}[0]{'host'} eq '161.97.144.6' );
+        and $pending->{$id3}{'addrs'}[0]{'host'} eq '203.0.113.6' );
 
 say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,.,,.,.,.,,,,,.,.,.,..,,,.,,...,.,,,...,..,,...,...,,.,,,,,,,,.,.,,,.,,,
-#WRBUCWE3HVUECGZXUXBQZ4BQUZQVWXC7QVYARSPJUGZTTASJRJOPBUU6FW4KLEINEQHIMLFFMYBGO
-#\\\|FB6IN2WWPH6I6ITCPPEDD3M4SGT5T3CLGS2YY4JOIZYGFVGMHOM \ / AMOS7 \ YOURUM ::
-#\[7]53I4EWD6F2M23BMQTHXWZY3RWBRTMB5FDE7UWRD4N6Q5KD4RIECQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,,,.,,,.,.,.,..,,.,,,,.,,..,,..,,...,.,,,...,...,,..,,,.,.,.,
+#EIEKGZFSL3V5VVSW56MQ7WDKZ4DN7UY3HY5JSZIP64TM3XKSACJC4N6QI5R5GBK7T7OKBRF5M37YG
+#\\\|56YQ27JUPTC2B2ZIREUQO5YCUDURIQ2LUA6FS7URXV3EFOXAPCY \ / AMOS7 \ YOURUM ::
+#\[7]QZYPEEKMYOSFP3ZSDZGKPFNNAZPM34HLFYCNHGZYRLKGVG5YBGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

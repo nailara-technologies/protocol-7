@@ -8,7 +8,7 @@ upgrade has two orthogonal improvements:
 1. **multi-endpoint push** — push to ALL configured web endpoints; whichever
    is reachable receives the data. no single point of failure for sync.
 2. **multi-jobsite coordination** — multiple jobsite zenki can run
-   simultaneously (e.g. local + pri.v7.ax). ntime-based merge rules already
+   simultaneously (e.g. local + srv-U). ntime-based merge rules already
    handle conflict resolution implicitly if implemented correctly.
 
 ---
@@ -20,7 +20,7 @@ upgrade has two orthogonal improvements:
 replace single url with a list:
 
 ```
-jobsite.cfg.sync_urls = http://172.24.33.224/jobs-sync https://pri.v7.ax/jobs-sync
+jobsite.cfg.sync_urls = http://<local-host>/jobs-sync https://<srv-U-name>/jobs-sync
 ```
 
 (space-separated; config parser already handles lists with split)
@@ -163,8 +163,8 @@ multi-jobsite reverse fan-out requires auth to be safe.
 
 ## dispatch
 
-#,,..,.,.,,.,,..,,,..,,,.,.,,,..,,,,,,.,.,,,,,..,,...,...,,.,,..,,,.,,.,,,,,.,
-#ZBUFSQA6FNLSH42N5MK4NE7SKQ3HS2V67QJ6EL27IEUZKSQ6H3XBNCKZNHRFDQDKL6ZCRULPSJ6DO
-#\\\|J2JM4LBONXE5UOIMBNK7V7DDD5K4R7CJCXBYTOGNPPIFCT235A4 \ / AMOS7 \ YOURUM ::
-#\[7]WYH6S2OQEEHQL33YTUB3SBEX3JLTFYRWBNCBITH4JPULXKBPGODI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,..,,,,.,.,.,,..,.,.,,.,,,,.,..,,...,...,..,,.,.,,.,,,,,,,.,,
+#7MK6YJH4KCECLVY72MSLQZGM5ZZ4SGKWJ23IQ2IMDMTZMUYRE54FQATL3NBIHAQM4Q7KUYZZT3LO4
+#\\\|YDG6YC4WD2TJUXCWIQEFPRSW3BENDLZPVOPAYEJCGKPMPX6YAYA \ / AMOS7 \ YOURUM ::
+#\[7]RYQLDEROTRMYHV4QCTOK7SE5L2O2Z6H6A5QZSXXSRDM2AYE64KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

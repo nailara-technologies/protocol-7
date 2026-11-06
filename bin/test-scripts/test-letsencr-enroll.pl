@@ -428,7 +428,7 @@ say ': own interfaces as public_addresses [ no network connection ]';
             && !$is_public->('192.168.1.1')
             && !$is_public->('100.64.0.1')
             && !$is_public->('fe80::1')
-            && $is_public->('161.97.144.6')
+            && $is_public->('93.184.216.34')
             && $is_public->('2a01:4f8::1'),
         'address_is_public : rfc 1918 \ cgnat \ link-local no, public yes'
     );
@@ -827,8 +827,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,.,,,,,.,.,,.,,...,.,,,,,.,.,,,.,,,,..,..,,...,...,.,,,,.,,,,.,..,,,,,,
-#RPL3ZJ3GE7YKZGRMBN6QFQGS64YZQ4PPO67GU7WQTGD46HRQUDTUI2JN4I3NB7I7U3VO3F62Q6XDI
-#\\\|WJ4QUMBMSJQCLWRJCOKNB6MA4ARBBEOE6W5KXVQSJWLLAAORIPY \ / AMOS7 \ YOURUM ::
-#\[7]I73WR7CL5FI7LNILXMA2CQIEE3L4ZXEJ2IGFSAC2V32OSCGBKEDA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,,,,.,,.,.,..,,,,,,,,.,,..,,,,,..,,...,...,..,,,..,.,.,,,,,,,,,
+#XTZATFW5FD34RZZX322IBLJK6K2D5F5676NVRWLSHK5EPDJALSNVP3SV2QIPVZNRQGDIIMNBSXILS
+#\\\|I255FDEJA2MBLJXR5RKGJCSZGOGIDIMR7YDQ7C7MVIGYADYZI44 \ / AMOS7 \ YOURUM ::
+#\[7]JQJAHNLAXXYELZYUBWOWNJB6I327NAGH5CYN7QMID5FD3LDQMIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

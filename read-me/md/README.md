@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32NNZAX5OY-10557.0 :::
+::: SOURCE-CODE VERSION :: 32NN5UGYJI-10558.0 :::
 
 # [ [nailara 'protocol seven' network](http://protocol-7.network/) ]
 
@@ -461,7 +461,7 @@ Protocol-7 is a production-active multi-agent system with working HTTPS servers,
 - **Autonomous Coding Zenka**: A fully operational LLM orchestration agent that can read, edit, and improve its own Protocol-7 source code. Runs local inference servers asynchronously (non-blocking spawn with < 100ms init), maintains a tool-calling loop (50+ task templates, XML tool-call parsing, context compaction), and coordinates with external frontier models (Claude, Kimi) for complex multi-session tasks.
 - **Self-Modifying Infrastructure**: The coding zenka completed numerous autonomous extraction and refactoring tasks — inline sub extraction across 30+ modules, style enforcement, cross-namespace wiring — all applied via direct file write tools without human intervention.
 - **Multi-Model Consensus**: Local voting infrastructure exists (`llm.service.consensus_vote`, cubic-topology harmonic certainty aggregation, mock-response fallback if llama-cli isn't installed), but its model list is a stale hardcoded placeholder (Qwen2.5-7B, Mathstral-7B, Aya-23-8B) that predates the current model registry and isn't wired to it — see [`AUTONOMOUS-MODEL-MANAGEMENT.md`](./data/md/design/AUTONOMOUS-MODEL-MANAGEMENT.md) for the autonomous discovery/benchmarking/consensus system meant to replace it. Separately, a dedicated kimi zenka dispatches to external frontier models (Claude, Kimi) for tasks exceeding local model capability — that's task delegation to a single stronger model, not (yet) folded into the voting mechanism itself.
-- **Async HTTP Server**: Full non-blocking HTTP/HTTPS implementation with Range request support, TLS via ACME/Let's Encrypt, SNI-based vhost routing, and event-driven file transfer. Live at `space.v7.ax` and `pri.v7.ax`.
+- **Async HTTP Server**: Full non-blocking HTTP/HTTPS implementation with Range request support, TLS via ACME/Let's Encrypt, SNI-based vhost routing, and event-driven file transfer. Live at `space.v7.ax` and `srv-U`.
 - **Stream Transport Layer (STRM)**: Binary streaming protocol for large files, audio relay, and unbounded streams. Includes cancel propagation, gap-fill pacing, and a working internet radio relay zenka with MPV playback and offline resilience.
 - **Web Template Pipeline**: Server-side template rendering with plugin commands, content-type negotiation, and inline CSS/JS for offline-viewable pages.
 - **Graphics Matrix**: Spatial node visualization with cursor tracking, glow gradients, channel routing, and a live hyperspace field demo at [visual.v7.ax](https://visual.v7.ax/).
@@ -520,8 +520,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,..,,..,,.,,.,,,,.,,.,.,.,.,..,,,..,,..,,,,,..,,...,..,,..,,,,.,..,,,,.,..,,
-#7XN5FCJLTGMC6OUQ4MOFKL5D57F4UB3ZJSLSZCIMPXK5VK5GRVPANX2DJVSXUCCOTVE52L4LQ7F3K
-#\\\|6M25J5J3LNMWGOE7JCG65KQCBDFXA6KCJUBCWNRJVCK5JOCYCMT \ / AMOS7 \ YOURUM ::
-#\[7]55TTSRL46QTVAJUA35OCSBIREPIJRC5CBUUJECBQLIXIM7DGP4DQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,..,,,..,.,,,,..,,..,,.,,,,.,,..,..,,...,...,.,,,,..,..,,.,,,.,,,
+#UEO47XAWUH4ZDYPLKGM3XMVSUY7FVGEUCMX7WFKQX2U42267B42FIOMZQFOMHRUMYOKYHUCKIFKRI
+#\\\|PXDR5T6MELXNJV6ECIULPGDEWUXF7X7IWTJO6FSQEYC52ZQBRMT \ / AMOS7 \ YOURUM ::
+#\[7]RCGXJOPHEGXAWBHB6QZ3B74TGS22K5VTTLOAPL4WGBLFLO6EE4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

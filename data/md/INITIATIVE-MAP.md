@@ -704,7 +704,7 @@ src/data.get.classify_path — path classification
 ```
 async HTTP/HTTPS serving, file transfer, range requests,
 benchmark system, diagnostic tools — all production-deployed
-httpsd live on pri.v7.ax with non-blocking SSL accept
+httpsd live on srv-U with non-blocking SSL accept
 ```
 
 **web zenka** (25 modules):
@@ -841,8 +841,8 @@ D3 (lmstudio inference)  ·  independent, low priority
 E1-E3 (bugs)  ·  independent, opportunistic
 ```
 
-#,,.,,.,.,.,,,,,.,.,.,,,.,,.,,.,.,,,.,,,.,,,,,..,,...,...,.,,,...,,..,..,,,..,
-#ZIY6AARY7QMYPVNAZRRDB3NPKHUKLWFZG6Q5PDZ6XVLMD6YL54FWIDGQKZ5S4KQECYOPBLY7DTL2M
-#\\\|AME7DUHVU7BKDPYAW3GJTKV2SU266QWKXQLN23BGVX2TCPYNM3R \ / AMOS7 \ YOURUM ::
-#\[7]TNGTZUGREDECPWWMDF5M7NTF2E3HWP3TANI4SIRQHY6KKMQ46YBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,,,.,.,,,,..,,.,,,.,,...,.,.,..,,...,...,,,.,.,.,,,.,,,.,,..,
+#2QJGMVJCVN4YLTEEF5X4KFYRJO4ZNSTOD3R2L6MLDPYWRCDYGVJUO3C6B77DX5V4Y5NRBSYEUVBIO
+#\\\|AFYYV2Q525BJRKRXB673WYAQTGWYKCKBLWFPVQWSC5GBCG2GTPO \ / AMOS7 \ YOURUM ::
+#\[7]G4GUWFT465QF65BOJNJZGDAQ6CSZM6555SJXTMGW6WOBZFX5MMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,11 +16,11 @@ read 'idle'.
 ## the managed link [ live, tested : external restart + ssh child kill -> up in ~2 s ]
 - record : pri `/var/protocol-7/host-edit/hosts/delta.json` [ root:protocol-7
   0640, dirs 02750 -- written by hand as root, host-edit as another user
-  cannot rewrite it ] : addresses delta.protocol-7.network:42, ssh
-  protocol-7@delta.protocol-7.network, ssh_port 22, transports ssh-w, af 4,
+  cannot rewrite it ] : addresses srv-V:42, ssh
+  protocol-7@srv-V, ssh_port 22, transports ssh-w, af 4,
   link_user remote-fetch, roles link fetch, pin_from 127.0.0.1_4243
 - pin moved once -> `~protocol-7/.n/remote-keys/servers/delta_42.public`
-- `~protocol-7/.ssh/config` on pri : Host delta.protocol-7.network ->
+- `~protocol-7/.ssh/config` on srv-U : Host srv-V ->
   IdentityFile ~/.ssh/id_ed25519_link + IdentitiesOnly [ ssh-w has no
   identity field ; the link key is not a default identity ]
 - the old `ssh -L 127.0.0.1:4243` tunnel is killed -- never redo it
@@ -48,8 +48,8 @@ open : the mid-stream drop recovery [ stream OPEN when the link drops ] is
 not live-tested yet -- the cycle was assessing ; check the next scan's log
 for refused -> 'next subscribe in 30 s' -> consumer registered.
 
-#,,,.,..,,,,,,..,,,.,,.,.,...,,,,,,..,...,,,.,..,,...,...,,,.,,.,,...,,,,,,,.,
-#7LPPO2R55X3MVTICDWBEVLAJVGCVFUYXMMXN3D6B725PALI3EFQL53X7FYPEQOJK74HVXKXPHZB42
-#\\\|PKTYWPOP4RTE2VRUH6BHHYYMJXBFH2RPXEC5DQAADDSCP3RZRNZ \ / AMOS7 \ YOURUM ::
-#\[7]UYSFAWWCVO3VCJUVI2YMSGJS4ORPVGBCUOKAOV4J4MBGZLI7PEDQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,,,,,..,,.,.,.,,,,.,,.,,,...,..,,...,.,.,.,,,,.,,.,,,,,.,,,.,
+#KK7JAPSSEFALMYODRXGMYLL5ENGAL2QFZ5MFKVPKZSXZDOPORAE7U26O6EGXY6GPDQA5H5FD53TWQ
+#\\\|CMRY24GRBQJAPAYNH25CD2FA7P7SMT3QKDELX4CHXZJP3UUU6LC \ / AMOS7 \ YOURUM ::
+#\[7]O5TLKWSZONFVNCQWZYS5T2CXDJ7N3LVMOOJLZTDBVYSINB64EMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -543,7 +543,7 @@ check 'command shows the last run with its findings',
         and $result->{'data'} =~ m|update glue | );
 
 ## --- a ptr whose first label is the short host name is right ---------- ##
-## [ 'pri' answers as 'pri.v7.ax' : hostname -f fails there ]             ##
+## [ 'host-a' answers as 'host-a.example.net' : hostname -f fails there ] ##
 
 $canned{"PTR $rev_v4"} = FakePacket->new(
     FakeRR->new(
@@ -623,8 +623,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,.,,..,,.,,,,,,,.,,,.,.,,,.,,,,,,..,...,..,,...,...,.,.,,,,,.,.,,..,..,,
-#ELGXTCMQDDRNZTJQW7PH5TYVMIMF5FKH4WFJGL4JOLLESXBKNCQP5OT65HBPTCLQVHZSSV7TWMDH6
-#\\\|PDQ3ABETSNTESVP6FIQ2R2PVGC2TIFWBL64NNYHFEVKL2BKNJTV \ / AMOS7 \ YOURUM ::
-#\[7]2FAJPQSJUEW73DBHPHLDB5GB5XW6VCO2XPCUDZ53MPSPDLSGREDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,.,,,.,.,.,..,,..,,..,,..,,,.,,..,,...,...,,..,,.,,,,.,,,,,.,,,
+#F4IAEXBWLDWBA6BOLBTVZEXD5CBQYG7T6GVOJY35ST42ML5WAEH3Y4RZRJBL7BJEYPIAURDCMP65O
+#\\\|TNLOOUGEHHMODDBUEPBMAQY6X7Z6EUH4VWXV4XEH6RBO27AKUNT \ / AMOS7 \ YOURUM ::
+#\[7]NFY52GDYFJEG4MQP66C6LZFO2GUGXUSB4BPPLPSF44WXLVFUN2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

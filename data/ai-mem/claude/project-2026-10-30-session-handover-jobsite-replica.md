@@ -42,11 +42,11 @@ metadata:
 
 **replica mode : LANDED 536a365f7 [ review done ; fix : forwarded ui actions kept in replica-unsent.json until the primary says ok:true, retry 15 .. 900 s ], pulled on all 4, srv-U [ pri ] web httpd jobsite restarted. stash@{0} is now redundant [ drop ]**
 
-- live test BLOCKED on root config : pri web.cfg needs web.cfg.jobs_sync_ui_users = jobsite-replica [ ui role now keyed on the VERIFIED user, no token copy on pri ] ; local token rotated to a jobsite-replica one [ v7-zenki.jobsite-sync-token ] ; local jobsite.cfg needs primary_url = https://<pri-jobsite-host>/jobs-sync + sync_url_roles ...=ui. then restart local jobsite + compare with bin/dev/jobsite-ui-compare local pri
+- live test BLOCKED on root config : pri web.cfg needs web.cfg.jobs_sync_ui_users = jobsite-replica [ ui role now keyed on the VERIFIED user, no token copy on pri ] ; local token rotated to a jobsite-replica one [ v7-zenki.jobsite-sync-token ] ; local jobsite.cfg needs primary_url = https://<srv-U-jobsite-host>/jobs-sync + sync_url_roles ...=ui. then restart local jobsite + compare with bin/dev/jobsite-ui-compare local pri
 - LIVE 2026-10-30 : local = replica of pri, jobsite-ui-compare identical [ 18 jobs ]. real causes : https body is character-decoded [ decode_json died, fixed 822ff1a0c ] + local web never got the replica plugin code [ deploy restarted web on pri only -- after a plugin change reload plugins on EVERY host running web ]. CORRECTION : 822ff1a0c also claims an undefined $mem -- WRONG, it is declared at plugin line 137 [ the change there is a no-op ]. still to test : one ui stage change local -> pri
 - stash@{0} = letsencr param-only send, half done [ set aside ] ; stash@{1} = old replica stash, redundant [ drop ]
-- [ DROPPED by owner 2026-10-30 : no longer practical ] - letsencr pri : zulum.v7.ax dns-01 fails -- CAUSE FOUND : pri = dns-01 via nameserv alias [ acme.<domain> ], delta = default http-01. INWX lacks _acme-challenge CNAME + acme.<d> NS for zulum.v7.ax [ + zulum.protocol-7.network if wanted ] : 1 CNAME + 3 NS [ dn0000 dn0110 dn1110 = 3 servers ] each. pri.v7.ax = OLD name of pri -> drop it from letsencr config once zulum has its cert [ else failed renewals from ~11-20 ]. <pri-jobsite-host> protocol-7.network <personal-zone> v7.ax ok [ v7.ax acme NS covers all 3 servers ]. owner adds the records at INWX. UNCOMMITTED letsencr param-only send fix [ 3 files ] set aside : param was never delivered next to args
-- 2026-10-30 08:22 : old sync token leaked into pri httpsd log [ pasted in a browser ] -> owner revoked it ; NEW v7-zenki.jobsite-sync-token : `::: srv-U web.auth-issue jobsite-push -ttl 31536000 | :: v7-zenki.jobsite-sync-token+ url=https://<pri-jobsite-host>/jobs-sync` [ token never on argv \ screen ; + form words = key=value headers ]. rotated, pushes ok again. pri still holds jobsite-push session ABIAR3KNEMPRO [ 06:38, unknown owner ]. ui role : keyed on the verified user id [ done ]
+- [ DROPPED by owner 2026-10-30 : no longer practical ] - letsencr srv-U : its host name dns-01 fails -- CAUSE FOUND : srv-U = dns-01 via nameserv alias [ acme.<domain> ], srv-V = default http-01. INWX lacks _acme-challenge CNAME + acme.<d> NS for its names : 1 CNAME + 3 NS [ dn0000 dn0110 dn1110 = 3 servers ] each. its old name -> drop it from letsencr config once the new one has its cert [ else failed renewals from ~11-20 ]. <srv-U-jobsite-host> protocol-7.network <personal-zone> v7.ax ok [ v7.ax acme NS covers all 3 servers ]. owner adds the records at INWX. UNCOMMITTED letsencr param-only send fix [ 3 files ] set aside : param was never delivered next to args
+- 2026-10-30 08:22 : old sync token leaked into pri httpsd log [ pasted in a browser ] -> owner revoked it ; NEW v7-zenki.jobsite-sync-token : `::: srv-U web.auth-issue jobsite-push -ttl 31536000 | :: v7-zenki.jobsite-sync-token+ url=https://<srv-U-jobsite-host>/jobs-sync` [ token never on argv \ screen ; + form words = key=value headers ]. rotated, pushes ok again. pri still holds jobsite-push session ABIAR3KNEMPRO [ 06:38, unknown owner ]. ui role : keyed on the verified user id [ done ]
 
 1. kimi replica mode [ session_f82e3d0d-576c-4123-a4f8-b63f915f5471 ] :
    primary_url, non-blocking pull every 120 s into the local httpd cache,
@@ -90,8 +90,8 @@ metadata:
 - sign tool appends an AMOS7 block to .html it is handed [ removed by hand in dadc3f1be ] -- never pass unsigned web files to p7_sign, or fix the tool
 - open : night-brake side-triggers ; stash@{0} letsencr
 
-#,,,.,,,,,,,,,,.,,...,,..,..,,...,,.,,,,.,.,.,..,,...,...,,..,.,.,,,,,,.,,,.,,
-#WL53BEYPJL3Y6CQE6UQJDWRHL7HZ2QOHMXPVYFAC555H42SO63ZNSPQINZ6IAKVZXAUPS643DAMJS
-#\\\|LVMA7AB3AI6W7EK4M77X5WU2OEWSALWJ4VEVC6QL2GWLTSJDSVN \ / AMOS7 \ YOURUM ::
-#\[7]2VV32A7IRR3COTLVBOEAPGTRWORWFHVM26RHWWYWLYZ4WXM4TKCA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,..,,.,,,.,,,,,,,,..,.,,,,.,,..,,...,...,,.,,.,.,.,,,.,,,,..,
+#VEBERY6JKFMI22WJAEGJI2X53ZY4UCDLWAHNHC6SNUSP6USYX5O6IAOK2KLZ7WOH3OYTNA6IAJGEU
+#\\\|RMCPGUIB3UUPIVRKJZXC7FKGPRETKTPPT5VRHZJFLTGHR7GNPN7 \ / AMOS7 \ YOURUM ::
+#\[7]AQTZOCLVMWP3DOXNHMAOZ3IRLB2UKVYKTLI42CC6TC4AZAVEGADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
