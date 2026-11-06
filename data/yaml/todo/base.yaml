@@ -766,7 +766,7 @@ items:
   - race
   text: keep requests to on-demand zenki in idle shutdown
 - added: 3X27VKX5BY
-  details: ''
+  details: difficulty detection + automatic model switching for coding tasks
   done_at: null
   id: RC7
   priority: normal
@@ -775,7 +775,7 @@ items:
   - coding
   - routing
   - models
-  text: difficulty detection + automatic model switching for coding tasks
+  text: difficulty detection + automatic model switching for coding
 - added: 3X3JTW45KE
   details: "fetch-files.init_code calls <[base.chmod_child.start]>, bin/dev/gen-sub-whitelist fetch-files lists base.chmod_child.request [ called from fetch.file.huggingface.download ] but not .start -- also after regenerating the dependency graph. dep-graph's call regex matches the line, so the filter is elsewhere [ init_code entry point ? ]. harmless : the whitelist only sets compile timing, the module compiles on first use [ live-tested 2026-10-10 ]."
   done_at: null
@@ -861,6 +861,8 @@ items:
   text: isolated loop assertion before failing a task
 - added: 3X3YHV75P4
   details: |-
+    overnight mode : keep model batch results as reviewable patches
+
     the batch harness already captures every task's after-state in the blob store and reverts the tree. an overnight mode keeps that work for review instead of only scoring it.
 
     - per task : a patch [ baseline blob -> after blob, model_batch.diff.text ] stored with score, compile result, tool failures, timing
@@ -878,7 +880,7 @@ items:
   - coding
   - model-batch
   - overnight
-  text: 'overnight mode : keep model batch results as reviewable patches'
+  text: 'overnight mode : keep model batch results'
 - added: 3X3YHWEGOA
   details: |-
     - optional tool group 'todo' [ coding.tools.groups ] : todo_add, todo_show, todo_append, todo_done over bin/todo's list
@@ -916,6 +918,8 @@ items:
   text: retry a round once after a whitespace degeneration abort
 - added: 3X3YJK6VPU
   details: |-
+    work-mode presets : nested modes pick model + settings
+
     work-mode presets : nested modes pick model + settings, queue grouped by model
 
     presets as dotted config keys, nesting from the dots :
@@ -951,9 +955,11 @@ items:
   - routing
   - models
   - work-modes
-  text: 'work-mode presets : nested modes pick model + settings'
+  text: 'work-mode presets : nested modes pick model'
 - added: 3X3Z32FPC4
   details: |-
+    second inference host : benchmark + remote overnight batches
+
     the remote vps got more resources [ 2026-10-11 : 23 GiB ram, 441 GB disk after growpart + online resize2fs, 8 vcpu at 2 GHz, no gpu, no swap yet ].
 
     - first : add an 8 GB swap file [ no swap = oom killer on the first spike ]
@@ -973,9 +979,11 @@ items:
   - remote
   - overnight
   - models
-  text: 'second inference host : benchmark + remote overnight batches'
+  text: 'second inference host : benchmark'
 - added: 3X3Z32FYB4
   details: |-
+    jobsite assessment by a small model : quote-verified + known-answer
+
     jobsite assessment by a small model : quote-verified format + known-answer batch
 
     a small fast model [ 3-4b dense or a small moe ] for jobsite assessments, but one that does not fake [ confident judgements not taken from the ad, invented details ]. two cheap checks that measure it :
@@ -992,9 +1000,11 @@ items:
   - jobsite
   - models
   - quality
-  text: 'jobsite assessment by a small model : quote-verified + known-answer'
+  text: 'jobsite assessment by a small model : quote-verified'
 - added: 3X3Z32GBAM
   details: |-
+    remote bug fixing : model fixes its own branch [ ssh from phone ]
+
     remote bug fixing : model traces + fixes on its own branch, user away [ ssh from a phone ]
 
     the user is away from home, a blocking bug shows up [ e.g. a ui running on the own server ]. over ssh from a phone the user tells the coding model to trace and fix it [ user idea 2026-10-11 ].
@@ -1029,9 +1039,11 @@ items:
   - forensics
   - coding
   - remote
-  text: 'remote bug fixing : model fixes its own branch [ ssh from phone ]'
+  text: 'remote bug fixing : model fixes its own branch'
 - added: 3X32FAGSEM
   details: |-
+    migrate the old host's services to the two new servers, then retire it
+
     move every service off the old low-power host onto the two new servers [ neighbors at the same provider, unlimited traffic between them ], make them resilient and convenient, then retire the old host [ user, 2026-10-11 ]. no host names or addresses in the tree : old host, new server 1 \ 2.
 
     - services : smtpd [ see UZU ], http[s]d, and the rest the old host runs -- list them there first
@@ -1074,7 +1086,7 @@ items:
   - infra
   - migration
   - servers
-  text: migrate the old host's services to the two new servers, then retire it
+  text: migrate the old host's services to the two new servers
 - added: 3X32FAG5LQ
   details: |-
     p7-vault holds ssh keys and passwords [ e.g. for the new servers ] -- new entry types beside login \ contact, a key entry keeps the private key encrypted like any secret field. later : zenki use them [ a remote link or deploy step asks the vault instead of reading ~/.ssh ] [ user, 2026-10-11 ].
@@ -1288,6 +1300,8 @@ items:
   text: 'nameserv[cache] \ nameserv[cache-local] : forwarding dns cache instance'
 - added: 3X42FANRJE
   details: |-
+    proxy -> external link tunnel : native hysteria replacement over STRM
+
     idea 2026-10-12. the desktop browser talks to the local proxy zenka [ 127.0.0.1:8118, selector templates ] ; proxy asks transport for a route [ proxy.transport.select ] ; a new transport handle 'external-link' asks the local external zenka for a tunnel through an external.link.open session [ encrypted, keypair auth, link-upgrade ] to e.g. srv-U ; two STRM streams [ up \ down ] ; the remote side connects to the target and pumps both ways. external is the first user of transport. not tcp-in-tcp [ proxy ends the client connection, the exit opens a new one ] ; head-of-line between tunnels on one link remains -> UDT under the external link later [ plugin.external.udt, transport.handle.udt-tunnel ], nothing above changes. NEEDED : exit permission [ named link users only ; refuse loopback \ private \ link-local targets and the host's own ports by default -- no open relay ], backpressure over STRM [ a slow reader slows the remote read, bounded buffers ], lifecycle [ either side closes both streams, idle timeouts both ends ], tests with two local cubes. hysteria [ srv-F + srv-U, hand-written systemd ] stays until this works ; meanwhile clients use srv-U [ unlimited traffic ], srv-F [ 1 TB limit ] as fallback. transport quality probe : traffic-limit as a cost weight per link.
     session security [ user idea 2026-10-12 ] : C25519 per tunnel session between proxy and exit, cached by the zenka for smooth reconnects. end-to-end : relays on a multi-hop external route only carry. shape : ephemeral X25519 per session signed by the long-term identity [ labelled sig ], keys by HKDF over the handshake transcript [ forward secrecy ], one key per direction + counter nonces [ the 2026-10-05 link-upgrade lesson, fail-closed ]. resumption cache = secret : memory only, minutes, bound to both identities, dropped on key rotation, resume proves possession with fresh nonces from both sides [ no replay ]. after a reconnect each side resends from the last acked byte -> bounded replay buffers, shared limits with the backpressure part. design doc + line-by-line review before code.
     identity via the existing pinning design [ user 2026-10-12 ] : exit key 'proxy-exit' per host, delegated by host-root [ .dlg, like nameserv-sync \ cube S ], verified with trust.verify against the pinned host-root fingerprint [ ~/.n/remote-keys/servers/, first contact like server pins ]. adjust : leaf name must end in '.proxy-exit' [ host-root also delegates cube S and the sync key ]. client side signs with <user>.base, the exit grants key ids in host.cfg [ like sync writer grants ]. resumption cache keyed by pinned host-root fingerprint + exit key id : a pin change or new delegation drops it.
@@ -1309,7 +1323,7 @@ items:
   - proxy
   - external
   - transport
-  text: 'proxy -> external link tunnel : native hysteria replacement over STRM'
+  text: 'proxy -> external link tunnel : native hysteria'
 - added: 3X42L4O2OA
   details: |-
     p7-vault : file import \ export -- encrypted blob store, vault-managed metadata
@@ -1519,6 +1533,8 @@ items:
   text: letsencr \ nameserv leftovers from the jobsite cert [ 2026-10-21 ]
 - added: 32DIBKVMMQ
   details: |-
+    v7-zenki optional dependencies, part 2 : unavailable state handling
+
     v7-zenki optional dependencies, part 2 : unavailable state [ X-11 without display ], failed starts, no restart cascade for optional edges
 
     part 1 landed 2026-10-21 [ optional_dependencies key, left out where disabled ; a disabled hard dependency refuses the start with the reason -- cube answers the waiting on-demand caller ; external : discover optional ; test-v7-zenki-optional-dependencies.pl ]. part 2 [ owner 2026-10-21 ] :
@@ -1537,7 +1553,7 @@ items:
   tags:
   - v7-zenki
   - dependencies
-  text: 'v7-zenki optional dependencies, part 2 : unavailable state handling'
+  text: 'v7-zenki optional dependencies, part 2 : unavailable state'
 - added: 32DIF27XAE
   details: |-
     v7-zenki.backend-restart : teardown of the zenki, then execve itself [ same pid : systemd and non-systemd alike ]
@@ -1603,6 +1619,8 @@ items:
   text: 'p7-vault sealed import : ephemeral X25519 per item'
 - added: 32DJBYVNAE
   details: |-
+    shared assessment queue : coding zenki on several hosts pull from hub
+
     shared assessment queue : coding zenki on several hosts [ srv-U, srv-A, the local desktop ] pull tasks from the hub
 
     owner idea 2026-10-22 : 277 jobsite assessments queued on srv-U [ cpu backend, ttft 60-106 s ] ; the local coding zenka [ gpu ] and srv-A could help.
@@ -1621,7 +1639,7 @@ items:
   - coding
   - jobsite
   - design
-  text: 'shared assessment queue : coding zenki on several hosts pull from hub'
+  text: 'shared assessment queue : coding zenki on several hosts'
 - added: 32DJDGUYMY
   details: |-
     jobsite relay mode : a local jobsite mirrors the hub for a local httpd \ web [ outbound only ]
@@ -1681,6 +1699,8 @@ items:
   text: 'AMOS7::SHM::sign_permission placeholder : permissions forgeable'
 - added: 32DLNVPDIY
   details: |-
+    source.signature_valid ignores caller truth map [ footer prerequisite ]
+
     source.signature_valid ignores a caller truth map [ prerequisite for the form footer type ]
 
     FOUND 2026-10-22 [ SIGNED-STATEMENTS review ] : src/source.signature_valid takes a truth map [ 3rd arg ] and fills it with defaults [ lines 74-75 ], but the checks read its own $truth_check_settings [ e.g. line 354 ] -- a caller map has no effect. harmless today [ all callers use defaults ]. needed by the form footer type : honour the passed map for the TRUTH checks only ; the binding checks [ AMOS match, BMW match, Ed25519 ] stay outside it, never relaxable. also create_harmonic_footer : truth switches as a parameter for form signing
@@ -1691,7 +1711,7 @@ items:
   tags:
   - source
   - signatures
-  text: source.signature_valid ignores caller truth map [ footer prerequisite ]
+  text: source.signature_valid ignores caller truth map
 - added: 32DLZRHYB4
   details: |-
     inference.backend.gpu.enabled = auto must DETECT : resolve once in coding.init_code, all readers use the result ; then auto as the default
@@ -1720,6 +1740,8 @@ items:
   text: coding startup self-test blocks backend for an hour+ on cpu-only host
 - added: 32DL5CGHCM
   details: |-
+    missing perl module at run time : zenka asks v7-zenki to install
+
     missing perl module at run time : the zenka asks v7-zenki, which verifies against the declared markers and installs through debian, start-up held meanwhile
 
     placement [ owner pointer 2026-10-22 ] : this is auto-install STAGE 3. existing : stage 2 = v7-zenki.pre_init bootstrap [ root, synchronous before the loop, core modules, switched off in post_init ] ; the async sys_deps start condition = pre-start gate [ v7-zenki.callback.object.sys_deps -> sys_deps.probe -> handler.deps_install_reply \ debian ]. stage 3 = a NON-root zenka at run time : reuse the sys_deps state machine [ missing -> installing -> ok \ failed, install_timeout, retry_after ] and its debian reply handler, entered by the zenka request instead of the pre-start probe -- and refresh the cached state on that path
@@ -1731,7 +1753,7 @@ items:
   - v7-zenki
   - deps
   - security
-  text: 'missing perl module at run time : zenka asks v7-zenki to install'
+  text: 'missing perl module at run time : zenka asks v7-zenki'
 - added: 32DNBSNDCE
   details: |-
     one shared label function : derive + check srv- \ dom- labels [ prefix, algorithm amos 7 \ bmw-L13 13, length, depth ] -- template order and limits in one place
@@ -1761,6 +1783,8 @@ items:
   text: p-7-r follows ssh aliases to an existing pin [ default on ]
 - added: 32DNTX5GMI
   details: |-
+    measure prefill + ttft per backend and model from llama-server timings
+
     measure prefill + output rate, time to first token per backend and model from the llama-server timings [ last stream chunk ] ; size the data-start timeout and the round soft ceiling from them instead of configured guesses [ a cpu-only server needed round_soft_ceiling 777 in host.cfg, 2026-10-23 ] ; keep the records timestamped for the metrics graphs
 
     coding.async.http_client scales the data-start timeout by est_prompt_tokens / prefill rate ; the rate was one gpu figure [ 1200 \ s ] -> every 4.6K token assessment on a cpu-only server [ srv-U ] hit the 120 s floor, retried once, failed [ 2026-10-22 ]. stop-gap : coding.cfg.prefill_tokens_per_sec_cpu [ default 15 ]. clean : llama-server sends timings [ prompt_n, prompt_ms, prompt_per_second ] in the final streamed chunk -- keep a per-backend, per-model running rate [ like coding.async.stream_tps for decode ], use it for the scaling, keep the configured value only as the first-run default
@@ -1773,9 +1797,12 @@ items:
   - inference
   - timeouts
   - metrics
-  text: measure prefill + ttft per backend and model from llama-server timings
+  text: measure prefill + ttft per backend and model
 - added: 32D4HZW6NE
-  details: jobsite assess watchdog asks task for the task's state before giving up ; re-arm while pending \ in progress
+  details: |-
+    jobsite watchdog re-arms on pending \ in progress before giving up
+
+    jobsite assess watchdog asks task for the task's state before giving up ; re-arm while pending \ in progress
   done_at: null
   id: JMG
   priority: normal
@@ -1784,7 +1811,7 @@ items:
   - jobsite
   - coding
   - timeouts
-  text: jobsite watchdog re-arms on pending \ in progress before giving up
+  text: jobsite watchdog re-arms on pending \ in progress
 - added: 32D4HZXOPE
   details: "review the 15 reply handlers outside jobsite reading 'mode' \\ 'data' : TRUE \\ FALSE replies carry neither [ base.reply.mode_text ]"
   done_at: null
@@ -1831,6 +1858,8 @@ items:
   text: 'short host names : nodes keeps /etc/hosts entries, wildcard warning'
 - added: 32D6BEPXII
   details: |-
+    login admission per design doc : tls + tokens + fair prioritized queue
+
     login admission per data/md/design/LOGIN-ADMISSION.md : no token without tls, BMW-L13 tokens, per source limit, fair prioritized queue with prefix \ AS levels [ no shared budget : no dos lever ], geoloc range table [ local, no per-visitor queries ], forensics reads the failure records
 
     owner 2026-10-23 : geoloc zenki propagate their tables between servers [ one fetches, peers pull -- fast-wired neighbours first, srv-U -> srv-A ] ; modelled on nameserv zone sync 4CJ ; table + BMW checksum + source version, a peer keeps its previous table on mismatch. design section 4
@@ -1845,9 +1874,11 @@ items:
   - auth
   - security
   - geoloc
-  text: 'login admission per design doc : tls + tokens + fair prioritized queue'
+  text: 'login admission per design doc : tls + tokens'
 - added: 32D6BGN2IE
   details: |-
+    nameserv answers by region : geoloc + EDNS Client Subnet [ after 5W7 ]
+
     nameserv answers by region [ us server for north america, the german one for europe .. ] : geoloc country table [ RIR delegated stats, local ], EDNS Client Subnet when present else the resolver's address, short ttl + ecs scope, fallback server -- after the delegation switch [ 5W7 ] ; data/md/design/LOGIN-ADMISSION.md section 7
 
     owner 2026-10-23 : not only by region -- by load and other context too : health [ never answer a down server ], load [ weight down ], capacity weight per server, maintenance \ draining state, which server offers the service ; all from our own servers over the zenka network [ no privacy question ], collected continuously, never per query ; ttl = reaction time, several ordered answers bridge it. design section 7
@@ -1859,7 +1890,7 @@ items:
   - nameserv
   - geoloc
   - dns
-  text: 'nameserv answers by region : geoloc + EDNS Client Subnet [ after 5W7 ]'
+  text: 'nameserv answers by region : geoloc + EDNS Client Subnet'
 - added: 32D6PD4OLQ
   details: "repair the double-encoded job stock [ cause fixed in site-yaml.stepstone.job_from_html : it encoded the fetched page's raw bytes again before decode_json ] : jobsite plain files, the packed trash, the web zenka's copy -- title, company, city, description ; reverse only where latin1-encode + utf8-decode works losslessly [ jobsite.util.fix_encoding ], backup first ; YAML::XS escapes C1 bytes as \\x80 -- detect on the loaded strings, not the raw file"
   done_at: 32EL3UH7HQ
@@ -1872,7 +1903,10 @@ items:
   - encoding
   text: repair double-encoded job stock [ backup first ]
 - added: 32D6PKXELQ
-  details: "salary unit : build_prompt calls every estimate 'jährlich brutto', 14 of 668 stored estimates are monthly-sized [ min 2476 ] and skewed their scores. read baseSalary + unitText [ MONTH \\ YEAR \\ HOUR ] from the JobPosting block too ; keep CESalary's period field [ store the whole block of the next page that has one, to learn its key ] ; size only as a marked fallback [ < ~15000 is not yearly ] ; the prompt states the unit as given ; reassess the 14"
+  details: |-
+    salary unit : read baseSalary unitText, reassess 14 monthly estimates
+
+    salary unit : build_prompt calls every estimate 'jährlich brutto', 14 of 668 stored estimates are monthly-sized [ min 2476 ] and skewed their scores. read baseSalary + unitText [ MONTH \ YEAR \ HOUR ] from the JobPosting block too ; keep CESalary's period field [ store the whole block of the next page that has one, to learn its key ] ; size only as a marked fallback [ < ~15000 is not yearly ] ; the prompt states the unit as given ; reassess the 14
   done_at: null
   id: O3O
   priority: normal
@@ -1881,9 +1915,12 @@ items:
   - jobsite
   - site-yaml
   - salary
-  text: 'salary unit : read baseSalary unitText, reassess 14 monthly estimates'
+  text: 'salary unit : read baseSalary unitText'
 - added: 32D6TAGGIA
-  details: "interim : assess srv-U's backlog on the local gpu [ one host at a time ] -- local jobsite assesses the same job set [ same site-yaml source ], pushes via jobsite.cfg.sync_urls to the remote https /jobs-sync with a jobsite-push token [ local host.cfg only ] ; srv-U's jobsite pauses assessing meanwhile [ find \\ add the switch ]. after kimi's admission queue"
+  details: |-
+    interim : assess srv-U's backlog on the local gpu, one host at a time
+
+    interim : assess srv-U's backlog on the local gpu [ one host at a time ] -- local jobsite assesses the same job set [ same site-yaml source ], pushes via jobsite.cfg.sync_urls to the remote https /jobs-sync with a jobsite-push token [ local host.cfg only ] ; srv-U's jobsite pauses assessing meanwhile [ find \ add the switch ]. after kimi's admission queue
   done_at: null
   id: M3K
   priority: normal
@@ -1892,7 +1929,7 @@ items:
   - jobsite
   - coding
   - gpu
-  text: "interim : assess srv-U's backlog on the local gpu, one host at a time"
+  text: "interim : assess srv-U's backlog on the local gpu, one host"
 - added: 32D6TAGXCI
   details: "build multi-jobsite assessment per data/tasks/jobsite-sync-multiplex.md 'concurrent assessment' : partition by checksum over the present hosts, lease, staggered scans, presence heartbeat [ announced absence, lease as fallback ] ; plus the reverse fan-out"
   done_at: null
@@ -1949,7 +1986,10 @@ items:
   - gpu
   text: models claims from configurable task zenka [ needs external link ]
 - added: 32EK546DG4
-  details: "mail queue assessments as a second task workload for the gpu workers [ local + yourum, beside the job assessments from srv-U's task queue -- ZYH ] : ncode style pattern db as accelerator, the model only for what the patterns leave open ; feasibility proven by the owner, mail volume is low. after ZYH works end to end"
+  details: |-
+    mail queue assessments as second gpu workload [ after ZYH works ]
+
+    mail queue assessments as a second task workload for the gpu workers [ local + yourum, beside the job assessments from srv-U's task queue -- ZYH ] : ncode style pattern db as accelerator, the model only for what the patterns leave open ; feasibility proven by the owner, mail volume is low. after ZYH works end to end
   done_at: null
   id: RTY
   priority: normal
@@ -1959,9 +1999,12 @@ items:
   - task
   - gpu
   - models
-  text: mail queue assessments as second gpu workload [ after ZYH works ]
+  text: mail queue assessments as second gpu workload
 - added: 32ELBV5JOE
-  details: "assessment history per job [ with 3MK : data/tasks/jobsite-sync-multiplex.md ] : 1. a job keeps a LIST of assessments [ score, text, model key, host, time ], the current verdict plus refs [ checksum, model, score, reason : merged \\ reviewed \\ re-assessed ] to the replaced ones. 2. replaced results packed per job [ jobs/assessments/<id>/<checksum>.yxz.B32, the jobs trash pattern ] + jobsite.assessment-history \\ assessment-restore [ restore moves the displaced verdict in too ]. 3. after jobsite.cfg.assessment_trash_epochs [ default 2 ] they move on into the regular trash and its prune ; the refs stay in the job record [ agreement statistics per model pair survive the text ]. 4. merge : same side of jobsite.cfg.threshold and < jobsite.cfg.merge_gap [ 2 ] apart -> fixed rule, preferred model's text ; otherwise status review + a :review: task that sees both and writes its own verdict. keep a small sample of deliberate double assessments after partitioning [ model drift check, yourum's smaller model ]"
+  details: |-
+    assessment history per job [ with 3MK ] : keep, pack, merge verdicts
+
+    assessment history per job [ with 3MK : data/tasks/jobsite-sync-multiplex.md ] : 1. a job keeps a LIST of assessments [ score, text, model key, host, time ], the current verdict plus refs [ checksum, model, score, reason : merged \ reviewed \ re-assessed ] to the replaced ones. 2. replaced results packed per job [ jobs/assessments/<id>/<checksum>.yxz.B32, the jobs trash pattern ] + jobsite.assessment-history \ assessment-restore [ restore moves the displaced verdict in too ]. 3. after jobsite.cfg.assessment_trash_epochs [ default 2 ] they move on into the regular trash and its prune ; the refs stay in the job record [ agreement statistics per model pair survive the text ]. 4. merge : same side of jobsite.cfg.threshold and < jobsite.cfg.merge_gap [ 2 ] apart -> fixed rule, preferred model's text ; otherwise status review + a :review: task that sees both and writes its own verdict. keep a small sample of deliberate double assessments after partitioning [ model drift check, yourum's smaller model ]
   done_at: null
   id: H2N
   priority: normal
@@ -1970,7 +2013,7 @@ items:
   - jobsite
   - assessment
   - sync
-  text: 'assessment history per job [ with 3MK ] : keep, pack, merge verdicts'
+  text: 'assessment history per job [ with 3MK ] : keep, pack, merge'
 - added: 32ELP2OOCI
   details: "letsencr parent -> child : param.public_addresses [ arrayref ] never reached the child -- route-send sent single-line, param dropped ; letsencr.child.cmd.verify-domain always saw [] . send.local now logs 'args set, param \\ data not sent' for these 5 callers [ process_new_domains, request-certificate, handler_enrollment_retry, handler_enroll_verify_reply, queue_renewal_requests ]. fix : domain as a param, addresses space-joined, no args -> multi-line"
   done_at: null
@@ -1992,7 +2035,10 @@ items:
   - httpd
   text: test-web-auth-gate.pl dies at web-relay line 46 [ since 6CJ gate ]
 - added: 32EN5WGRH4
-  details: 'jobsite dispatches assessments strictly one at a time [ dispatch.release_slot -> dispatch.next ] -- so a remote claimer [ ZYH : local models on external.pri.task, live 2026-10-23 ] never sees a second pending task. add jobsite.cfg.assess_parallel [ N tasks in flight, default 1 ] ; pending_count \ watchdog \ release_slot per job already. then the local gpu takes every 2nd job'
+  details: |-
+    jobsite : assess_parallel config for N tasks in flight [ default 1 ]
+
+    jobsite dispatches assessments strictly one at a time [ dispatch.release_slot -> dispatch.next ] -- so a remote claimer [ ZYH : local models on external.pri.task, live 2026-10-23 ] never sees a second pending task. add jobsite.cfg.assess_parallel [ N tasks in flight, default 1 ] ; pending_count \ watchdog \ release_slot per job already. then the local gpu takes every 2nd job
   done_at: null
   id: XNB
   priority: normal
@@ -2001,7 +2047,7 @@ items:
   - jobsite
   - models
   - task
-  text: 'jobsite : assess_parallel config for N tasks in flight [ default 1 ]'
+  text: 'jobsite : assess_parallel config for N tasks in flight'
 - added: 32EOF5PALQ
   details: "address family memory for outgoing connects [ with link stage 3 'af = auto' ] : per destination + family remember connect success \\ failure [ ttl ~1 h ], order the addresses so a recently failed family goes last, first attempt with a short connect timeout [ happy eyeballs light ] -- one module for clients.http\\https.request, link transports, io.ip.tcp.output.open ; record 'af' stays a forced override. DoS-safe by design : only this process's OWN connect results count [ no failure reports from other zenki or the network ] ; a family is only ever DEMOTED [ tried later ], never removed -- every address is still tried, so failures on both families can never lock a destination out ; bounded table [ lru ], entries expire ; a success clears the mark at once"
   done_at: null
@@ -2035,7 +2081,10 @@ items:
   - zyh
   text: 'models.cfg.task_zenka as list : claim from every listed task zenka'
 - added: 32EYJHOWMU
-  details: "coding seed-retry leaves the cpu backend at status restart_needed : after a failed startup self-test [ cat-test 2/3 ] defer_seed_restart respawns the server, the new one runs healthy [ /health ok ] but no new self-test runs and the status stays restart_needed -- every job then waits in the 'depending' queue forever [ pri 2026-10-24, task NSRV3FA ]. the respawn must re-run monitor_startup \\ self_test and reset the status"
+  details: |-
+    cpu backend stuck at restart_needed after seed-retry : re-run self-test
+
+    coding seed-retry leaves the cpu backend at status restart_needed : after a failed startup self-test [ cat-test 2/3 ] defer_seed_restart respawns the server, the new one runs healthy [ /health ok ] but no new self-test runs and the status stays restart_needed -- every job then waits in the 'depending' queue forever [ pri 2026-10-24, task NSRV3FA ]. the respawn must re-run monitor_startup \ self_test and reset the status
   done_at: null
   id: VNN
   priority: normal
@@ -2043,7 +2092,7 @@ items:
   tags:
   - coding
   - inference
-  text: 'cpu backend stuck at restart_needed after seed-retry : re-run self-test'
+  text: cpu backend stuck at restart_needed after seed-retry
 - added: 32H3NI5ONA
   details: |-
     https://pirateface.co/<model> as an alternate or fallback source next to huggingface in the fetch-files zenka ; downloads likely via aria2c [ segmented, resumable ]. check how the site addresses a model [ path layout, file list, checksums ] and how fetch-files picks a source today.
@@ -2058,7 +2107,10 @@ items:
   - models
   text: 'fetch-files : pirateface.co as alternate \ fallback model source'
 - added: 32H4F2FMJM
-  details: "design : data/md/design/HOST-SETUP.md, section 'records : namespaced, vault-backed'. host-edit already has the flow [ probe, pin, fetch_chain, install, run_p7r ] ; missing : hints.* as the prefill source [ no caller yet ], records in p7-vault under usr.<user>.cfg.hosts.<group>.<name> with the owner key over the branch, a host list view as a prefix cut. then srv-16 : user key + external links through it."
+  details: |-
+    host-edit : hints prefill + vault-backed usr.<user>.cfg.hosts.* records [ srv-16 first ]
+
+    design : data/md/design/HOST-SETUP.md, section 'records : namespaced, vault-backed'. host-edit already has the flow [ probe, pin, fetch_chain, install, run_p7r ] ; missing : hints.* as the prefill source [ no caller yet ], records in p7-vault under usr.<user>.cfg.hosts.<group>.<name> with the owner key over the branch, a host list view as a prefix cut. then srv-16 : user key + external links through it.
   done_at: null
   id: 3CQ
   priority: normal
@@ -2067,9 +2119,11 @@ items:
   - host-edit
   - vault
   - hints
-  text: 'host-edit : hints prefill + vault-backed usr.<user>.cfg.hosts.* records [ srv-16 first ]'
+  text: 'host-edit : hints prefill + vault-backed usr.<user>.cfg.hosts.*'
 - added: 32H4V3GBMY
   details: |-
+    update-signatures :temp-key: -- benchmark \ test runs without the owner key ; test-sign-with-temp-key points at a missing test-update-signatures
+
     sourcecode.console.test-sign-with-temp-key swaps a temp key in its OWN process, then says 'run sourcecode test-update-signatures' -- that command does not exist, and a second command would not see the swapped key anyway. test-sign-and-verify signs sequentially [ get-code-signed per file ], never the parallel worker path. proposal : a :temp-key: option on update-signatures itself [ throwaway key, same worker path ] -> worker-count benchmarks [ data/planning/sign-bench style ] and tests without the owner key. related : delegated signing for cloud remote sessions [ ai-mem topic-afk-dispatch-signing-key-system ], key exchange over dns [ TRUST-CHAIN-STEP2.md 'later : a dns back channel' ], throwaway time-locked worker keys [ VERSION-BRANCHES.md 'distributed re-signing' ].
     temp keys keep a public key history : each throwaway key's PUBLIC half is recorded [ name, created, purpose ] when it signs, the secret is discarded. verification : a signature that fails under the owner key walks back through that history and tries the temp keys -- a match reports 'signed by temp key <name> [ <date>, <purpose> ]' instead of a plain failure, so bench \ test output stays explainable and nothing is mistaken for tampering ; no match stays a real failure. same history shape as the release chain [ VERSION-BRANCHES.md ].
     the history works one way only : a temp key match never makes a file trusted, but it CAN make it untrusted -- a signature by a recorded temp key outside its time window [ or its recorded purpose \ scope ] marks the file as suspicious [ a kept or leaked throwaway key used later ] ; external actors who miss the key's window are caught exactly there.
@@ -2082,9 +2136,11 @@ items:
   tags:
   - sourcecode
   - signing
-  text: 'update-signatures :temp-key: -- benchmark \ test runs without the owner key ; test-sign-with-temp-key points at a missing test-update-signatures'
+  text: 'update-signatures :temp-key: -- benchmark \ test runs'
 - added: 32H4ZUOMK4
   details: |-
+    terminal graphing zenka in project style [ cpu \ load \ gpu \ zenka metrics, btop-like ]
+
     live graphs in the terminal, in the project's own style [ violet \ blue dark palette, ':' frame chrome, braille \ block glyph graphs ] -- the sign \ verify worker runs [ 2026-10-28, btop ] showed how useful a load curve is. data from zenka streams [ STRM ], so any zenka metric can be graphed, not only host load. existing pieces : TEMPLATE-RESOLUTION-ENGINE.md sparkline slots [ gpu.sparkline, STRM:X-11.gpu_load ], ascii.frame.* \ AMOS7::TERM::Frame for chrome, the GTK osds [ bin/harmony-osd, bin/show-batt-osd ] as the graphical sibling. keep refresh rates conservative and slowable [ ai-mem : rapid-pattern-visual-disruption-risk ].
     styles as branches in the dot namespace [ user ] : e.g. style.term.graph.base \ style.term.graph.<variant>, a user branch usr.<user>.style.. overrides only what it changes -- easy to branch for refinement \ customization, same layering and prefix logic as the records design [ HOST-SETUP.md ], adoptable upward like any branch.
   done_at: null
@@ -2095,9 +2151,11 @@ items:
   - terminal
   - graphics
   - new-zenki
-  text: terminal graphing zenka in project style [ cpu \ load \ gpu \ zenka metrics, btop-like ]
+  text: terminal graphing zenka in project style
 - added: 32H45XWYNE
   details: |-
+    vault agent : sourcecode signing without passphrase prompts [ first slice of Y7O's agent ]
+
     user 2026-10-29 : fingers hurt from typing signature passphrases -- prioritized. the plan is filed in Y7O's details and data/md/design/CREDENTIAL-LAYERS.md [ vault agent layer ] : an unlocked p7-vault session in the user's OWN process serves requests over a local socket [ ssh-agent model ], the vault key never goes to a zenka. first slice : update-signatures asks the agent instead of prompting ; the agent signs and returns only signatures [ the key never leaves it ] ; approval per run [ no 'always', at most a short window ], the request shows file count + list. the unlock ends with a signed end timestamp [ immutable capability reduction, todo PBS ] ; the parallel worker pool [ 149b7a0ba ] sends its chunks to the agent. menu <-> agent session : B2K. a good kimi lane with claude review [ security-sensitive : the agent socket's peer check is the gate ].
     approval types [ user 2026-10-29 ] : delegation for a working session, in more than one form -- e.g. a protocol-7-menu zenka event that authorizes with an IDLE timeout [ the window stays open while work continues, closes after idle, with a signed end ]. the regular step of the normal workflow : a review window -- code highlighting + a good change overview [ files, per-file diff ] -- approving it is the authorization. matches data/md/design/DEVELOPER-WORKFLOW-ACCELERATION.md [ graphical diff + signing client ]. the review is the security gate made pleasant, not an extra step.
     delegation shapes [ user 2026-10-29 ] : (1) per step -- each signing approved by a mouse event in the review window ; no idle timeout needed. (2) planned multi-commit work -- a delegation sized to the plan : a signing STEP COUNT and \ or an idle timeout fitting the task ; the model clears it early when it marks the plan done [ signed end ]. the grant \ step \ clear events also feed visual notification : the notify zenka, or the ticker zenka showing a status line [ 'signing delegated : 3 of 5 steps left' ].
@@ -2115,9 +2173,11 @@ items:
   - vault
   - signing
   - keys
-  text: "vault agent : sourcecode signing without passphrase prompts [ first slice of Y7O's agent ]"
+  text: 'vault agent : sourcecode signing without passphrase prompts'
 - added: 32H5FCN4NA
   details: |-
+    idea intake : ideas from every channel into one incoming queue ; idle-night model discussion -> prioritized suggestions
+
     user 2026-10-29 : coding \ review zenki, models and users drop ideas into the channels where they arise [ chat channels, task notes, review findings ] ; those are collected into one incoming queue [ deduplicated, with origin ]. at night, when all systems are idle, models discuss the queue together and prepare PRIORITIZED suggestions for the morning -- suggestions only, the user decides. related : XOJ [ overnight results as reviewable patches ], 6WP [ remote overnight batches ], HX4 [ review zenki that would also emit findings ], llm.service.consensus_vote [ for agreeing on priority ]. not the same as the 'idea pool' in NETWORK-SNAPSHOT-AND-IDEA-POOL.md [ that one is a capability view ] -- name them apart.
     admission review [ user ] : the intake has its own security review layer BEFORE an idea is admitted -- the queue feeds models with more overall capability, so an unreviewed idea is a prompt-injection path [ a crafted 'idea' from a page, mail or remote channel steering a more capable model ]. ideas from outside sources are treated as data : screened [ instructions, payloads, links ], tagged with origin and trust, and only admitted ideas reach the night discussion ; rejected ones stay visible for review, never silently dropped.
     why a review, not redundancy [ user ] : the set-up lets ONE model have an idea. making that tamper-evident by redundancy would need e.g. 7 models on the exact same task with the exact same seed entropy and a 5 of 7 agreement -- costly. a security review of what the single model produced is the efficient alternative ; the heavy 5-of-7 form stays available for the cases that warrant it.
@@ -2130,9 +2190,11 @@ items:
   - models
   - overnight
   - ideas
-  text: 'idea intake : ideas from every channel into one incoming queue ; idle-night model discussion -> prioritized suggestions'
+  text: 'idea intake : ideas from every channel into one incoming queue'
 - added: 32H5F45SJ4
   details: |-
+    bit-reproducible inference tasks : reproducible at a distance from a compact descriptor
+
     user 2026-10-29 : a task whose inference is bit-for-bit reproducible can be re-run anywhere from very little transferred entropy -- a descriptor of checksums [ model file, sampler config, input \ context, backend + build ] plus seed and timestamp ; sometimes a hash and a timestamp are enough when the rest is already known by checksum. uses : idea validation [ OLM ], review cross-checks [ HX4 ], proving a result without shipping it, dedup of identical runs. needs : one deterministic backend profile [ same build, same device class, fixed threads \ batch, deterministic sampler -- cf. ai-mem sampler-penalties-break-exact-copy ], a test that two hosts produce identical bytes. fits checksum addressing [ the descriptor IS the result's address ].
     applies to text AND image models [ user ] -- diffusion runs are seeded too : model + scheduler + steps + guidance + seed + prompt checksums describe an image exactly ; the invoke \ image zenki [ invoke-model-manager, image2html ] are the image-side consumers.
   done_at: null
@@ -2143,9 +2205,11 @@ items:
   - models
   - reproducible
   - inference
-  text: 'bit-reproducible inference tasks : reproducible at a distance from a compact descriptor'
+  text: 'bit-reproducible inference tasks : reproducible'
 - added: 32H5RE5ZKE
   details: |-
+    kimi dispatch : move from kimi-legacy to the current kimi cli ; effort + thinking per dispatch
+
     user 2026-10-29 : a session resumed with 'kimi-legacy -y --afk -r' appears stopped after connecting to it, until something is typed -- attaching seems to idle it [ seen twice ; the HX4 first slice looked 'ended mid-fix' ]. kimi-legacy also has no /thinking or /effort -- every dispatch runs at an effort nobody chose. move kimi_dispatch \ kimi_continue [ bin/mcp-server-p7 ] to the current kimi cli binary ; add an 'effort' parameter like claude_cloud_dispatch has ; verify a resumed session keeps running unattended. cost note : resuming a large session sends its whole context each step [ ~340k input tokens per step here ] -- prefer a fresh dispatch with a short brief for small follow-ups.
     found 2026-10-29 : the current cli is installed at ~/.kimi-code/bin/kimi [ 2.3.3 ] -- flags -S\--session [id] to resume, -y\--yolo, -m\--model, -p\--prompt + --output-format ; its --help shows NO effort or thinking flag, so effort may be a config or in-session setting there too -- check before building the parameter. K3.1 is registered in ~/.kimi/config.toml [ kimi-code/k3.1-pro, k3.1-pro-highspeed at 2x ] ; mcp-server-p7 aliases k3.1 \ k3.1-fast added the same day.
     next try [ user 2026-10-29 ] : a nested dispatch -- kimi dispatching itself [ kimi_dispatch or its own subagent, its choice ] with a token-efficiency focus : a short coordinating session hands each piece out as a FRESH dispatch with a short brief, so no step re-sends a large context [ the HX4 slice's resume cost ~340k input tokens per step, 11 % of kimi's week ]. first candidate : the HX4 follow-up [ content-bound approval + the client's join( qw| |, .. ) ].
@@ -2158,9 +2222,11 @@ items:
   - kimi
   - dispatch
   - mcp
-  text: 'kimi dispatch : move from kimi-legacy to the current kimi cli ; effort + thinking per dispatch'
+  text: 'kimi dispatch : move from kimi-legacy to the current kimi cli'
 - added: 32H65TXSAA
   details: |-
+    commit manager : a commit as a requirement chain [ format, versions, dep-graph \ sub-lists, version, one agent approval ], prepared message, operation types -- data/md/design/COMMIT-MANAGER.md
+
     first live finding of dep-graph -affected-zenki [ 2026-10-29 ] : sourcecode.agent.sign is reachable from 'work' but missing from cfg/zenki/work/subroutines.load-early -- exactly the stale list the sub-list step must catch [ gen-sub-whitelist work ]
     slice 2 landed 2026-10-29 : p7_commit_prepare \ p7_commit \ p7_commit_status [ bin/dev/p7-commit ], op on p7_sign. open : the requirement chain, the stale redraft
   done_at: null
@@ -2171,9 +2237,9 @@ items:
   - commit
   - signing
   - tooling
-  text: 'commit manager : a commit as a requirement chain [ format, versions, dep-graph \ sub-lists, version, one agent approval ], prepared message, operation types -- data/md/design/COMMIT-MANAGER.md'
+  text: 'commit manager : a commit as a requirement chain'
 - added: 32H65T4ACI
-  details: ''
+  details: 'p7-sign-agent display : styled startup + request block [ ncode palette, /dev/tty ], after approval clear + format-code progress bar until END ; format-code before RUN in update-signatures :agent:'
   done_at: 32H7LAMCKA
   id: SPI
   priority: normal
@@ -2181,9 +2247,9 @@ items:
   tags:
   - signing
   - ui
-  text: 'p7-sign-agent display : styled startup + request block [ ncode palette, /dev/tty ], after approval clear + format-code progress bar until END ; format-code before RUN in update-signatures :agent:'
+  text: 'p7-sign-agent display : styled startup + request block'
 - added: 32H65T4PDA
-  details: ''
+  details: dep-graph -affected-zenki <sub|ns> [ reverse lookup from the call graph, standalone ] + p7-sourcecode affected-zenki wrapper -- COMMIT-MANAGER.md
   done_at: 32H7TV7HCI
   id: 2SL
   priority: normal
@@ -2191,9 +2257,12 @@ items:
   tags:
   - dep-graph
   - tooling
-  text: dep-graph -affected-zenki <sub|ns> [ reverse lookup from the call graph, standalone ] + p7-sourcecode affected-zenki wrapper -- COMMIT-MANAGER.md
+  text: dep-graph -affected-zenki <sub|ns>
 - added: 32H7LAMQFY
-  details: 'agent part landed 2026-10-29 [ $AMOS7::INLINE::force_pure_perl, /proc maps 0 objects, parity 3714 vectors ] ; sourcecode console zenka part landed 2026-10-29 : bin/Protocol-7 BEGIN sets $AMOS7::INLINE::force_pure_perl when the resolved zenka [ symlink chain or bare argument ] is sourcecode -- the first AMOS7 module compiles during load-early signature verification, before <system.zenka.name> resolution, so the switch must live in BEGIN ; verified : live sourcecode process /proc maps 0 inline-code objects [ argv + p7-sourcecode symlink forms ], other zenki unchanged ; target architecture = the new attested-binaries todo'
+  details: |-
+    inline C objects [ ~/.7/inline-code ] are user-writable and loaded by every AMOS7 process incl. p7-sign-agent -- not covered by signatures ; same at a passphrase start
+
+    agent part landed 2026-10-29 [ $AMOS7::INLINE::force_pure_perl, /proc maps 0 objects, parity 3714 vectors ] ; sourcecode console zenka part landed 2026-10-29 : bin/Protocol-7 BEGIN sets $AMOS7::INLINE::force_pure_perl when the resolved zenka [ symlink chain or bare argument ] is sourcecode -- the first AMOS7 module compiles during load-early signature verification, before <system.zenka.name> resolution, so the switch must live in BEGIN ; verified : live sourcecode process /proc maps 0 inline-code objects [ argv + p7-sourcecode symlink forms ], other zenki unchanged ; target architecture = the new attested-binaries todo
   done_at: null
   id: RCM
   priority: normal
@@ -2201,9 +2270,9 @@ items:
   tags:
   - signing
   - security
-  text: inline C objects [ ~/.7/inline-code ] are user-writable and loaded by every AMOS7 process incl. p7-sign-agent -- not covered by signatures ; same at a passphrase start
+  text: inline C objects [ ~/.7/inline-code ] are user-writable
 - added: 32IIR75SOM
-  details: ''
+  details: "attested binaries : reproducible inline C builds + input manifests, cross-host agreement, backtrace of every change to a review, attestations verified with public keys only, trust thresholds per consumer -- data/md/design/INLINE-OBJECT-TRUST.md 'target architecture' ; first slice : one reproducible inline object + its manifest"
   done_at: null
   id: NCW
   priority: normal
@@ -2212,9 +2281,12 @@ items:
   - security
   - signing
   - builds
-  text: "attested binaries : reproducible inline C builds + input manifests, cross-host agreement, backtrace of every change to a review, attestations verified with public keys only, trust thresholds per consumer -- data/md/design/INLINE-OBJECT-TRUST.md 'target architecture' ; first slice : one reproducible inline object + its manifest"
+  text: 'attested binaries : reproducible inline C builds'
 - added: 32IJDIMNLY
-  details: a 2026-10-29 scan imported exactly 100 new \ 0 skipped in 6 of 9 categories [ a fetch \ page cap ? ] and 0 skipped on a full=0 rescan [ dedup not matching ? ] ; 630 queued, the drain ended with 'no new untracked jobs to assess' [ were any assessed ? ]
+  details: |-
+    jobsite assessment queue : review the 100-cap, 0-skipped dedup and the empty drain
+
+    a 2026-10-29 scan imported exactly 100 new \ 0 skipped in 6 of 9 categories [ a fetch \ page cap ? ] and 0 skipped on a full=0 rescan [ dedup not matching ? ] ; 630 queued, the drain ended with 'no new untracked jobs to assess' [ were any assessed ? ]
   done_at: null
   id: WY5
   priority: normal
@@ -2222,9 +2294,11 @@ items:
   tags:
   - jobsite
   - assessment
-  text: 'jobsite assessment queue : review the 100-cap, 0-skipped dedup and the empty drain'
+  text: 'jobsite assessment queue : review the 100-cap, 0-skipped dedup'
 - added: 32IJX55LE4
   details: |-
+    editor keys bar : cell row, border scroll, hybrid modes, clickable actions, usage order
+
     AMOS7::TERM [ ned + details editor + bin/todo share it ] -- decided 2026-10-29 :
 
     - cell row : whole cells only [ port editor.control.cycler.render_windowed logic, src/* is not usable standalone ]. scroll markers live IN the border : right ' ::' becomes ' >:' when more is right, left ': ' becomes '< ' when scrolled ; both in chip blue ; click = one page of cells, wheel too
@@ -2239,9 +2313,11 @@ items:
   - editor
   - ned
   - ui
-  text: 'editor keys bar : cell row, border scroll, hybrid modes, clickable actions, usage order'
+  text: 'editor keys bar : cell row, border scroll, hybrid modes'
 - added: 32IJ3HU5NY
   details: |-
+    editor top bar : search field [ N7FS files, messages ] + recent-buffer list by time spent
+
     owner idea 2026-10-29 : the free left side of the editor's top bar [ todo details editor, ned ] holds a search field.
 
     - N7FS network file search with automatic listing as you type ; opening a hit = a new buffer [ multi-buffer support later ]
@@ -2263,9 +2339,12 @@ items:
   - editor
   - n7fs
   - ui
-  text: 'editor top bar : search field [ N7FS files, messages ] + recent-buffer list by time spent'
+  text: 'editor top bar : search field [ N7FS files, messages ]'
 - added: 32IKBFGGOI
-  details: "src/set-up.json.import_file merges with Hash::Merge::Simple only at key depth 1 [ its own 'LLL: implement for key depth > 1' ] : a merge of a nested key replaces the whole sub-tree. extend overwrite \\ delete \\ merge rules to key paths of any depth [ e.g. 'a.b.c' ], load order stays the precedence. prerequisite for TJ6 [ partial state reimport ]."
+  details: |-
+    set-up merge : full key depth [ today only depth 1, set-up.json.import_file LLL note ]
+
+    src/set-up.json.import_file merges with Hash::Merge::Simple only at key depth 1 [ its own 'LLL: implement for key depth > 1' ] : a merge of a nested key replaces the whole sub-tree. extend overwrite \ delete \ merge rules to key paths of any depth [ e.g. 'a.b.c' ], load order stays the precedence. prerequisite for TJ6 [ partial state reimport ].
   done_at: null
   id: JX3
   priority: normal
@@ -2273,9 +2352,11 @@ items:
   tags:
   - set-up
   - config
-  text: 'set-up merge : full key depth [ today only depth 1, set-up.json.import_file LLL note ]'
+  text: 'set-up merge : full key depth'
 - added: 32IKBFGWHI
   details: |-
+    set-up ncfg format + devmod state export \ reimport [ test zenki, forensic copies from remote ]
+
     owner 2026-10-29 : set-up [ parked, yaml + json, merge \ overwrite \ delete per key, load order = precedence ] gains the native ncfg format [ parser exists : src/base.parse_ncfg_code ] -- read AND write.
 
     use : devmod exports a zenka's state [ %data branches, existing dump : base.devmod.dump_var \ dump.param_hash ] in ncfg \ yaml \ json and reimports it via set-up :
@@ -2319,9 +2400,11 @@ items:
   - config
   - devmod
   - forensics
-  text: set-up ncfg format + devmod state export \ reimport [ test zenki, forensic copies from remote ]
+  text: set-up ncfg format + devmod state export \ reimport
 - added: 32IM7M52DY
   details: |-
+    jobsite : liveness check for stale job data [ weeks-old site-yaml store, strays ] before assessment
+
     narrowed [ owner, 2026-10-29 ] : site-yaml already drops a posting it cannot fetch [ site-yaml.handler.fetch_tick : 404 \ 410 = gone, no retry ], so a job fetched in this cycle was live at fetch time. the gap is OLD data : job files that reach jobsite from a weeks-old site-yaml store [ the stray path, site-yaml.job.scan_stray \ list-stray-jobs ], plus jobs that wait long between fetch and assessment.
     - gate : a job whose detail fetch is older than N hours [ fetched_at \ store mtime ] gets a liveness check before the llm pass ; fresh ones pass untouched
     - reuse the site-yaml fetch path for it [ same 404 \ 410 rule, same client \ rate limit on the fetch host ], jobsite only acts on the verdict -> status expired, no assessment
@@ -2334,9 +2417,11 @@ items:
   tags:
   - jobsite
   - assessment
-  text: 'jobsite : liveness check for stale job data [ weeks-old site-yaml store, strays ] before assessment'
+  text: 'jobsite : liveness check for stale job data'
 - added: 32IOXEUDBI
   details: |-
+    weather : on-demand start race -- the first weather.temp \ desc .. answers FALSE n|a while the child still fetches, a second call succeeds
+
     - cause [ owner 2026-10-29 ] : an on-demand start answers the parent.cmd.* value getters [ temp desc humid wind clouds location ] before the forked child's first fetch landed -> FALSE n|a ; a second call right after succeeds
     - fix : while the first data for the station is pending, the getters reply DEFERRED and a dispatch routine answers every parked caller when weather.parent.handler.update_current_reply stores the data [ same parameters the getters return already ]
     - a fetch error \ timeout answers the parked callers FALSE with the reason, never hangs them [ own timer ]
@@ -2350,9 +2435,9 @@ items:
   - weather
   - async
   - zenka
-  text: 'weather : on-demand start race -- the first weather.temp \ desc .. answers FALSE n|a while the child still fetches, a second call succeeds'
+  text: 'weather : on-demand start race -- the first weather.temp \ desc'
 - added: 32M4XV56KU
-  details: ''
+  details: 'zenka dying before its log link : keep early stderr \ start-up lines [ powershell exit 0110 left no reason, 2026-11-05 ]'
   done_at: null
   id: 5FI
   priority: normal
@@ -2360,9 +2445,9 @@ items:
   tags:
   - v7-zenki
   - logging
-  text: 'zenka dying before its log link : keep early stderr \ start-up lines [ powershell exit 0110 left no reason, 2026-11-05 ]'
+  text: 'zenka dying before its log link : keep early stderr \ start-up lines'
 - added: 32M4ZDMULU
-  details: ''
+  details: 'system zenka : per-disk stats from /proc/diskstats [ utilization, await, queue depth, read \ write rates ] -- which disk is slow, psi only says that something waits'
   done_at: null
   id: QMH
   priority: normal
@@ -2370,9 +2455,9 @@ items:
   tags:
   - system
   - io
-  text: 'system zenka : per-disk stats from /proc/diskstats [ utilization, await, queue depth, read \ write rates ] -- which disk is slow, psi only says that something waits'
+  text: 'system zenka : per-disk stats from /proc/diskstats'
 - added: 32NKJ3MENI
-  details: ''
+  details: "clean refusal logging : a link label's repeated 'no perm.' and a worker's undelivered renewals [ one summary line per label + command, not per try ], overlay grants missing worker protocol commands named at reload"
   done_at: null
   id: ASF
   priority: normal
@@ -2380,9 +2465,9 @@ items:
   tags:
   - logging
   - task
-  text: "clean refusal logging : a link label's repeated 'no perm.' and a worker's undelivered renewals [ one summary line per label + command, not per try ], overlay grants missing worker protocol commands named at reload"
+  text: "clean refusal logging : a link label's repeated 'no perm.'"
 - added: 32NKJ3MXBQ
-  details: ''
+  details: 'network channel for operational + security notices [ refusals, grant drift ] : after the clean logging, same channel plan as security notifications [ PHASE-7-CHANNELS-AND-NODES-INFRASTRUCTURE.md ]'
   done_at: null
   id: GDA
   priority: low
@@ -2390,9 +2475,9 @@ items:
   tags:
   - network
   - security
-  text: 'network channel for operational + security notices [ refusals, grant drift ] : after the clean logging, same channel plan as security notifications [ PHASE-7-CHANNELS-AND-NODES-INFRASTRUCTURE.md ]'
+  text: network channel for operational + security notices
 - added: 32NLXI67EE
-  details: ''
+  details: "coding : start_model names a srv-U model [ OFSQC4I:QDBKEXY, not on the desktop ] -- plain 'not installed, gpu spawn skipped' line, tracked default -> per-host config"
   done_at: null
   id: ETE
   priority: low
@@ -2400,9 +2485,9 @@ items:
   tags:
   - coding
   - models
-  text: "coding : start_model names a srv-U model [ OFSQC4I:QDBKEXY, not on the desktop ] -- plain 'not installed, gpu spawn skipped' line, tracked default -> per-host config"
+  text: 'coding : start_model names a srv-U model [ OFSQC4I:QDBKEXY ]'
 - added: 32NLXI7WAM
-  details: ''
+  details: agent tools start the on-demand coding zenka [ seen during an invoke render, about 50 s after a kimi mcp server start, exact command not traced ] -- trace it, avoid the start where coding is not needed [ safe-context-size ]
   done_at: null
   id: ZYP
   priority: low
@@ -2410,9 +2495,9 @@ items:
   tags:
   - coding
   - ondemand
-  text: agent tools start the on-demand coding zenka [ seen during an invoke render, about 50 s after a kimi mcp server start, exact command not traced ] -- trace it, avoid the start where coding is not needed [ safe-context-size ]
+  text: agent tools start the on-demand coding zenka
 - added: 32NLXY5JDA
-  details: ''
+  details: "p7-sign-run dies on a bad path before its first state write : p7_sign_status stays 'starting' forever, p7-sign-wait never ends -- write 'failed' with the reason"
   done_at: null
   id: R6D
   priority: low
@@ -2420,9 +2505,11 @@ items:
   tags:
   - sign
   - tools
-  text: "p7-sign-run dies on a bad path before its first state write : p7_sign_status stays 'starting' forever, p7-sign-wait never ends -- write 'failed' with the reason"
+  text: 'p7-sign-run dies on a bad path before its first state write : p7_sign_status'
 - added: 32NOFDVTIU
   details: |-
+    ned : ctrl-v ignores the cursor column, inserts at 0,Y [ before the current line ] instead of at the cursor
+
     proposal : ctrl-v pastes at the cursor, a second key is line oriented. ctrl-shift-v is the same byte 0x16 in a plain terminal and often taken by the terminal itself, so alt-v [ ESC v ] as the portable key, ctrl-shift-v only where the terminal reports it [ kitty protocol, modifyOtherKeys ]. to settle : a killed whole line pasted at the cursor goes in without its line break. help text says line kill stack, paste code not read yet.
     use case that decides it [ owner ] : ctrl-l is the only way to cut from below and move up, commonly a comment line appended after the code of a prior line. so ctrl-v at the cursor inserts a killed line without its line break ; to check : drop its leading indent and keep one space before it when pasted after text.
     direction [ owner ] : paste becomes context dependent [ cursor at end of code, on an empty line, mid line ], the details configurable and pinnable per user. first step stays the plain fix : ctrl-v at the cursor, a line oriented key beside it.
@@ -2436,9 +2523,14 @@ items:
   tags:
   - ned
   - editor
-  text: 'ned : ctrl-v ignores the cursor column, inserts at 0,Y [ before the current line ] instead of at the cursor'
+  text: 'ned : ctrl-v ignores the cursor column, inserts at 0,Y'
 - added: 32NZB2VLK4
-  details: ''
+  details: |-
+    task queues : know tokens per second
+
+    hosts report their recent rate [ coding.async.stream_tps ] with a claim, the last jobs prefer fast hosts instead of draining at the slowest worker's speed.
+
+    optional handover : a slow running job may be aborted and given to a faster idle host, only when the estimate clearly gains [ remaining tokens at the slow rate vs model load + full redo at the fast rate, with a margin ], never near completion, partial output kept where a resume is possible, at most once per job, config-gated.
   done_at: null
   id: D5W
   priority: low
@@ -2447,10 +2539,24 @@ items:
   - models
   - coding
   - task-queue
-  text: "task queues : know tokens per second -- hosts report their recent rate [ coding.async.stream_tps ] with a claim, the last jobs prefer fast hosts instead of draining at the slowest worker's speed. optional handover : a slow running job may be aborted and given to a faster idle host, only when the estimate clearly gains [ remaining tokens at the slow rate vs model load + full redo at the fast rate, with a margin ], never near completion, partial output kept where a resume is possible, at most once per job, config-gated"
+  text: 'task queues : know tokens per second'
+- added: 32NZJRURNU
+  details: |-
+    jobsite : unassessed jobs stuck in the tab's own store
 
-#,,,.,..,,...,,,.,.,,,,.,,,.,,,,.,,,.,...,.,,,..,,...,...,,..,...,,.,,,..,,,,,
-#O7YUSVZF6VVDHJLNKWQNOJ42R2MVSV4TJ4REQDTNUKMRJVKKK2VQJ4WULTTDC4DP7ITJAB7PPRQGO
-#\\\|IRARS3WHYXYZPHPXKKFPKQDWYDDDG6PM5IPWZIDXA2C2HI2YKGS \ / AMOS7 \ YOURUM ::
-#\[7]3KOSVGUZCCN776JVHPIK7NCTXJEDVHTI7ZBW5RAS2G7MXWB6MOBY 7  DATA SIGNATURE ::
+    no matching task on the scanner side, not cleared by a scan. safe [ nothing lost, reassess or delete by hand ] but should not occur : find how they get there.
+
+    seen 2026-11-06, 8 jobs, deleted by hand before their ids were recorded -- next time note ids and compare with jobsite on the scanning host before clearing.
+  done_at: null
+  id: P23
+  priority: low
+  status: open
+  tags:
+  - jobsite
+  text: "jobsite : unassessed jobs stuck in the tab's own store"
+
+#,,,,,,..,.,.,,,,,.,.,.,.,.,,,,,.,,,.,.,,,.,.,..,,...,...,...,...,,.,,.,,,,,.,
+#TKSKGTPIMYR4LGBMD7VKJVDRMML5HTKFQ3SSMONVRPUBF5VO62UI2RRPHIKOOXYQKSQSKALFTOPQA
+#\\\|TT6ABNYY4ZUSFFQRCNNH6BSRWPKTTNF5O6MMAZHSDF5JRUQ5DPE \ / AMOS7 \ YOURUM ::
+#\[7]ENON3MLHEDRWITWHH3B7GCLQKHTVA73YB54FC45Y3E57X2SAL2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
