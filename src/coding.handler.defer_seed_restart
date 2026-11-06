@@ -103,17 +103,29 @@ if ( $now - ( $defer->{'started'} // $now ) > 120 ) {
 
 ## a real task holds the backend [ or is queued for it ] : a respawn here ##
 ## would kill the server mid-request. wait for the next tick              ##
-my $bs = ( <coding.state.backend> // {} )->{$backend} // {};
-if ( defined $bs->{'lock'} or scalar @{ $bs->{'queue'} // [] } ) {
+my $bs          = ( <coding.state.backend> // {} )->{$backend} // {};
+my $lock_holder = $bs->{'lock'};
+
+## real work on this server outweighs a failed riddle, and a restart would ##
+## cut into it : the gap after one task is no idle time, a dispatched job  ##
+## may not hold the lock yet. a self-test probe holds the lock too : wait  ##
+if (
+    (   defined $lock_holder
+        and not defined <coding.self_test_probe_state>->{$lock_holder}
+    )
+    or scalar @{ $bs->{'queue'} // [] }
+    or scalar @{ <coding.task.pending> // [] }
+) {
     <[base.logs]>->(
-        2,
-        '[defer_seed_restart] backend=%s busy [lock=%s queue=%d] : waiting',
+        1,
+        '[defer_seed_restart] backend=%s serves '
+            . 'real tasks : seed restart for %s dropped',
         $backend,
-        $bs->{'lock'} // 'none',
-        scalar @{ $bs->{'queue'} // [] }
+        $model_id
     );
-    return TRUE;
+    return $finish->();
 }
+return TRUE if defined $lock_holder;
 
 ## idle : same restart recipe as the old synchronous path              ##
 ## [ confirmed live ] - spawn_servers_deferred only spawns what ISN'T  ##
@@ -144,8 +156,8 @@ delete <coding.awaiting_resources>
 
 return $finish->();
 
-#,,,,,,.,,..,,..,,..,,.,,,,.,,.,,,.,,,...,..,,..,,...,..,,.,,,,,,,,,.,..,,.,.,
-#UWOGJFFEYTFBHA3UHERTITQI7AKWA4AGSQEL74VWJ47NTJZ7AXPUSNPXXPCKL6C4I2UDW536BJ2QQ
-#\\\|MOSAKCEF6YXLJNFLO2YAHXG7LYSHCWVW6K35MYR3J43PNWL7MK4 \ / AMOS7 \ YOURUM ::
-#\[7]J5PGB4GBBARD6CGHE2XPYRBT4LV2TPJ2KCB3HXI5KHTBWMTKFWBY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,.,,,,,,,,.,,...,.,.,,,.,,,,,.,,,..,,...,...,...,..,,.,.,.,,,.,.,
+#HWQ2GONIGMPIZ7Y3E7QSDOLLIEEPUKJXXJS726XTR7ODPFKWNP3XYT7RJNIAYK6DQR67U4YKVECBM
+#\\\|WV476CXYZGGUQZJDI7MSOKIMLXS3NLRMUSF3K7TIYXK4ATGJYAH \ / AMOS7 \ YOURUM ::
+#\[7]ST3EDHEJIJV6G665NLQTNACTVH2TUF5RFM6DN2CGNAZNREDQ24DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
