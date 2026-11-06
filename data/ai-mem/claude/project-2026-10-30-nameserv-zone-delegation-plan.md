@@ -23,6 +23,10 @@ until then : pri letsencr = dns-01 via nameserv alias [ acme.<domain> ],
 other hosts = default http-01. details of the zulum diagnosis :
 [[project-2026-10-30-session-handover-jobsite-replica]]
 
+**blocked on this [ owner 2026-11-06 ] :** the zulum set-up on pri waits :
+no more per-subdomain acme entries at the registrar ; it continues once our
+dns mirrors the current set-up and is primary.
+
 **registrar snapshot 2026-10-30 :** `/data/backup/dns/registrar-zones/2026-10-30/`
 [ v7.ax protocol-7.network <personal-zone>, raw paste + zone files ]. ESSENTIAL :
 mail for @taeki.v7.ax -- served today as taeki CNAME v7.ax -> v7.ax MX 13
@@ -53,8 +57,8 @@ stays out of the repo [ /data/<project>-data/ or host-config ], the
 structure goes in. test it the way the snapshots define it : rebuild,
 then diff served answers [ dig ] and mappings against the snapshots.
 
-#,,.,,,,,,...,,.,,...,,.,,,.,,..,,,.,,...,...,..,,...,...,...,,,,,.,.,...,...,
-#LZ5XUE57XMMZMC6D7MQRXBT27BO4UHI5PUW42ZQ4AVS2GQXJEMIZ3YL4RSHN5TLB627Z7OBKL24OO
-#\\\|TW6667LFN5H5J2R4SS6K2SWYDOCY2TI2IJPXVEOTV3ZXHB4W6QL \ / AMOS7 \ YOURUM ::
-#\[7]6XLTKWVM5V4X6XYQR4HTK7FP5EPZPI47Y5TCPQNKUROBNRH246AI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,,.,,.,,,..,,.,,,..,,...,...,..,,...,...,...,..,,...,,.,,,,.,
+#GWAZFRH76WQ7RB3FI2M7AZPKX3PG7JO5JYEX47BGMJ4TQ7UJWMTXOKNJGGID5TIYVZP2TV57N6YZC
+#\\\|GP7FWPXNDRIE3AARAFKDHAULI4BF4X3HBBJ5TGJAF7O5EE2WHQ6 \ / AMOS7 \ YOURUM ::
+#\[7]IXAXSBKQVIQVFAJUUAUWVLLR4B43URNY3KPHPUPG2SPQFKPMLMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
