@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = coding.handler.cpu_fit_recheck
+# descr = retry the cpu spawn after its model did not fit in free ram
+# note  = armed by coding.async_spawn_inference_servers, once per wait step
+
+delete <coding.timer.cpu_fit_recheck>;
+
+my $cpu_pid = <inference.cpu_pid> // 0;
+return TRUE if $cpu_pid and kill( 0, $cpu_pid );
+return TRUE if <coding.switch_model_active>;
+
+<[coding.async_spawn_inference_servers]>;
+
+return TRUE;
+
+#,,,.,,.,,,..,...,...,...,,.,,.,.,...,,,.,,.,,..,,...,..,,..,,,.,,.,,,.,,,.,,,
+#XIMUVYPUTZ5BBOY6UD5Z4PFNH7WBI4UW5WAT5KN3OJTO5TQEHHSDFBD54SDV67G44EQFA4G4WU7Q4
+#\\\|7XQOIDG4VQQLWJCV5BXNHLLPO5IGLHHWUXYXSAO5MK76CJA33AF \ / AMOS7 \ YOURUM ::
+#\[7]I67M3NFY4VJLSEIVEIQZ5MKZRAWEXGOCOXM3A5TLKRORDIFLOGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.handler.gpu_fit_recheck
-# descr = retry the gpu spawn once its model fits in vram again
+# descr = retry the gpu spawn until its model fits in vram
 # note  = armed by coding.async_spawn_inference_servers when the gpu fit
 #         check fails [ vram held by another process, e.g. invoke ] ;
 #         stops itself once a gpu server runs
@@ -17,32 +17,18 @@ my $stop = sub {
 my $gpu_pid = <inference.gpu_pid> // 0;
 return $stop->() if $gpu_pid and kill( 0, $gpu_pid );
 
-my $need_gb = <coding.gpu_fit_need_gb> // 0;
-my $fit
-    = $need_gb > 0
-    ? <[coding.helper.check_resource_fit]>
-    ->( { 'backend' => 'gpu', 'size_gb' => $need_gb } )
-    : { 'fits' => TRUE };
+## a switch owns the spawn while it runs ##
+return TRUE if <coding.switch_model_active>;
 
-if ( not $fit->{'fits'} ) {
-    <[base.logs]>->(
-        2,
-        ': gpu recheck : %d MB free, need %d MB - waiting',
-        $fit->{'free_mb'}     // 0,
-        $fit->{'required_mb'} // 0
-    );
-    return TRUE;
-}
-
-<[base.logs]>->(
-    1, ': gpu recheck : model fits ' . 'again - spawning gpu server'
-);
-
-## the fit failure left cpu_fallback_requested set : a call seeing it at ##
-## entry skips the gpu block -- clear it, the model fits now             ##
-$stop->();
+## the spawn decides : only it knows the moe plan and the partial offload.  ##
+## the fallback request set by a busy gpu would skip the gpu block, cleared ##
 <coding.cpu_fallback_requested> = FALSE;
 <[coding.async_spawn_inference_servers]>;
+
+return TRUE if not <inference.gpu_pid>;    ##  still busy, timer continues  ##
+
+<[base.logs]>->( 1, ': gpu recheck : vram free - gpu server spawned' );
+$stop->();
 <[event.add_timer]>->(
     {   'after'   => 10.0,
         'handler' => qw| coding.handler.verify_inference_startup |,
@@ -52,8 +38,8 @@ $stop->();
 
 return TRUE;
 
-#,,,,,...,.,.,..,,..,,,,.,..,,,,.,...,.,,,..,,..,,...,...,..,,.,,,,,.,.,,,,,,,
-#5IP47G5JIFE4PGL3ZIABSJUFAZVZKRL7TZVTDRSPSOKTC2645VNYRBF6L32HI4HWC7R2VD7VFO5AO
-#\\\|775ZWZYMP2KRLXC4M5T7MGR3JN3QG2NSPMUE7JPBGF7DN3U67H4 \ / AMOS7 \ YOURUM ::
-#\[7]LAOIJF4DVEZNWVYFC3FN6WQBKXTT5LLXYXED2VGYZDVCDPCDGGAA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,.,,,,,,.,,,,.,.,.,,,,,.,,,...,..,,...,...,...,,,.,,..,,.,,.,,,
+#HWDHQ5RSSEVSY7SW5F3KJZEYYLM22WZ2PLZ4V2NL7VW4EWNTTD2BUQHK2U32I7OEY6BMPAIVIBER6
+#\\\|M6MSJUYFPY4JFMFTSNVU7NWT47TCP2LHWAAXW2JDQDQIMWQ3MLM \ / AMOS7 \ YOURUM ::
+#\[7]P6GJS25CEMECSINT6A6RYRJPPQLAA7RCSMY4YNYTEVT2UX37SKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
