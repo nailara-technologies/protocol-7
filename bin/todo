@@ -78,6 +78,7 @@ binmode( STDOUT, ':utf8' );
 ##[ terminal width ]##########################################################
 
 my $TERM_WIDTH = 72;
+use constant TEXT_CHECK_WIDTH => 106;
 if ($TTY) {
     my $cols = `tput cols 2>/dev/null`;
     chomp $cols if defined $cols;
@@ -385,37 +386,85 @@ sub center_ellipse {
     return $str;
 }
 
-sub format_items {
-    my ( $items, $show_done ) = @_;
-
+sub max_id_length {
+    my $items      = shift;
     my $max_id_len = 1;
     foreach my $item ( $items->@* ) {
         my $l = length( $item->{id} );
         $max_id_len = $l if $l > $max_id_len;
     }
+    return $max_id_len;
+}
 
-    my $max_width = 0;
+sub item_list_layout {
+    my ( $item, $max_id_len ) = @_;
+
+    ## marker always occupies exactly one column [ space when unused ] ##
+    my $marker = ' ';
+    $marker = '✓' if $item->{status} eq 'done';
+    $marker = '△'
+        if $item->{status} ne 'done' and $item->{priority} eq 'high';
+    $marker = '▽' if $item->{status} ne 'done' and $item->{priority} eq 'low';
+
+    my $id_str = sprintf "%-*s", $max_id_len, $item->{id};
+    my $prefix = "  $marker  $id_str  ·  ";
+    my $tags   = '';
+    if ( $item->{tags} and $item->{tags}->@* ) {
+        $tags = sprintf ' ‧%s ┊', join( ' · ', $item->{tags}->@* );
+    }
+    $tags .= item_has_details($item) ? '┋' : ' ';
+
+    return ( $marker, $prefix, $item->{text} // '', $tags );
+}
+
+sub item_text_budget {
+    my ( $item, $max_id_len, $width ) = @_;
+    my ( $marker, $prefix, $text, $tags )
+        = item_list_layout( $item, $max_id_len );
+    return $width - length($prefix) - length($tags);
+}
+
+sub item_text_cutoff {
+    my ( $item, $max_id_len, $width ) = @_;
+    my $avail = item_text_budget( $item, $max_id_len, $width );
+    return $avail if $avail >= 5 and length( $item->{text} // '' ) > $avail;
+    return undef;
+}
+
+sub warn_text_cutoff {
+    my ( $item, $items ) = @_;
+    my $avail
+        = item_text_cutoff( $item, max_id_length($items), TEXT_CHECK_WIDTH );
+    return if not defined $avail;
+    warn sprintf
+        "todo %s: text exceeds the %d-column list view [ %d chars available "
+        . "]; move the rest to details with 'bin/todo details %s'\n",
+        $item->{id}, TEXT_CHECK_WIDTH, $avail, $item->{id};
+}
+
+sub format_items {
+    my ( $items, $show_done ) = @_;
+
+    my $max_id_len = max_id_length($items);
+    my $max_width  = 0;
     my @rows;
 
     foreach my $item ( $items->@* ) {
-        ## marker always occupies exactly one column [ space when unused ] ##
-        ## so the id/text columns don't shift between marked/unmarked rows ##
-        my ( $marker, $c_start, $c_end ) = ( ' ', '', '' );
+        my ( $marker, $prefix, $text, $tags )
+            = item_list_layout( $item, $max_id_len );
+        my ( $c_start, $c_end ) = ( '', '' );
 
         if ( $item->{status} eq 'done' ) {
-            $marker = '✓';
             if ( $TTY and $show_done ) {
                 $c_start = $C{B} . $C{0};    ## bold blacklight ##
                 $c_end   = $C{R};
             }
         } elsif ( $item->{priority} eq 'high' ) {
-            $marker = '△';
             if ($TTY) {
                 $c_start = $C{3};            ## phosphor green ##
                 $c_end   = $C{R};
             }
         } elsif ( $item->{priority} eq 'low' ) {
-            $marker = '▽';
             if ($TTY) {
                 $c_start = $C{0};            ## blacklight ##
                 $c_end   = $C{R};
@@ -428,23 +477,12 @@ sub format_items {
             }
         }
 
-        my $id_str = sprintf "%-*s", $max_id_len, $item->{id};
-        my $prefix = "  $marker  $id_str  ·  ";
-        my $text   = $item->{text} // '';
-        my $tags   = '';
-        if ( $item->{tags} and $item->{tags}->@* ) {
-            $tags = sprintf ' ‧%s ┊', join( ' · ', $item->{tags}->@* );
-        }
-        ## keep the details-marker column width constant so tag columns ##
-        ## align                                                        ##
-        $tags .= item_has_details($item) ? '┋' : ' ';
-
         if ($TTY) {
             ## precise per-row budget : text center-ellipsizes to fit this  ##
             ## row's own prefix+tags within the real terminal width -- when ##
             ## piped [ $TTY false, width unknowable/irrelevant ] text stays ##
             ## unbounded, cleanly skipping truncation entirely              ##
-            my $avail = $TERM_WIDTH - length($prefix) - length($tags);
+            my $avail = item_text_budget( $item, $max_id_len, $TERM_WIDTH );
             $text = center_ellipse( $text, $avail ) if $avail >= 5;
         }
 
@@ -491,6 +529,7 @@ my $option_list = <<'EOL';
     .: todo command line options :.
 
     list [open|done|all|<tag>] .....  list items [ default : open ]
+    long ...........................  list text cut off at 106 columns
     add [-h|-l] [-t tag,..] <text> .  add a new item
     done <id> [<id>..] .............  mark item[s] as done
     del <id> .......................  remove an item
@@ -847,6 +886,18 @@ sub cmd_add {
         };
 
     save_data($data);
+    warn_text_cutoff( $data->{items}->[-1], $data->{items} );
+}
+
+sub cmd_long {
+    my $data       = load_data();
+    my $max_id_len = max_id_length( $data->{items} );
+    my @long       = grep {
+        defined item_text_cutoff( $_, $max_id_len, TEXT_CHECK_WIDTH )
+    } $data->{items}->@*;
+
+    say "$_->{id} : $_->{text}" for @long;
+    say 'no items cut off at ' . TEXT_CHECK_WIDTH . ' columns' if not @long;
 }
 
 sub cmd_done {
@@ -911,6 +962,7 @@ sub cmd_edit {
         next unless defined $id and $item->{id} eq $id;
         $item->{text} = $text;
         save_data($data);
+        warn_text_cutoff( $item, $data->{items} );
         return;
     }
 
@@ -1151,6 +1203,8 @@ my $cmd = shift @ARGV // 'list';
 if ( $cmd eq 'list' or $cmd eq '' ) {
     my $filter = shift @ARGV // 'open';
     cmd_list($filter);
+} elsif ( $cmd eq 'long' ) {
+    cmd_long();
 } elsif ( $cmd eq 'add' ) {
     cmd_add(@ARGV);
 } elsif ( $cmd eq 'done' ) {
@@ -1185,8 +1239,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,..,,,,.,,.,,,.,,,.,,..,,...,.,.,,,.,...,..,,...,...,...,..,,.,.,..,,.,,,
-#6XOAHDPAOEIIJ4TTSF5FJH76XDV5WJ5OIECHHABUPJPIEOJKYYTQPT76MQWSDAVA7Y3JXJTOTFPYC
-#\\\|5LGS4IGEE2XTAKL2RR2Z5NJEQQA24DGXAWYZFG4ICQTXKEGAHKU \ / AMOS7 \ YOURUM ::
-#\[7]TUPVNG6AWXHGBY5BNR3WKQCEYSTI3WJCSRQB4OGEQNLDLV6LDYBQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,..,,...,,..,,..,.,.,.,,,...,,,.,..,,...,..,,...,.,.,,..,,,,,..,,
+#EMEGDVFKVVFAYHTFEMLULIFTICVXAEPAMQM6NV3VP63AJ4ZW56MSODDBK6LLFTMJALRG4IHH654LO
+#\\\|2PYTV3GLZKJDMP3T7MYGVUK5QY2KM6PDSCIZLUHESPXCFV7LLY4 \ / AMOS7 \ YOURUM ::
+#\[7]6PJ43Z27K7KKDNDOIOF5ZM2PSHL6T7NPJPSAJSQLY4PYJ4JBHGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
