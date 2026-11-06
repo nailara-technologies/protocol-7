@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = keys.console.gen-chksum
+# param = [base32 key]
+# descr = calculate the chksum of a given encoded key
+# note  = reads the key from stdin without parameter ; no key file, no
+#         cache : the cache serves listings of key files. a private key
+#         as a parameter ends up in shell history and the process list
+
+my $key_str    = shift;
+my $from_param = defined $key_str ? TRUE : FALSE;
+
+if ( not $from_param ) {
+    print "  : base32 key : " if -t STDIN;
+    $key_str = <STDIN>;
+}
+$key_str //= '';
+$key_str =~ s{\s+}{}g;
+
+my $key_bin
+    = $key_str =~ m|^[A-Z2-7]+$|
+    ? eval { Crypt::Misc::decode_b32r($key_str) }
+    : undef;
+
+if ( not defined $key_bin
+    or ( length $key_bin != 32 and length $key_bin != 64 ) ) {
+    say "\n  << expected a base32 encoded key [ 32 or 64 bytes ] >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+if ( length $key_bin == 64 ) {
+    say "\n  << private key as a parameter : now "
+        . "in shell history, stdin avoids that >>"
+        if $from_param;
+    say "\n  :: a private key alone : not comparable "
+        . "with the combined chksum of its pair ::";
+}
+
+say "\n  : calculating .," if -t STDOUT;
+my $chksum_str = sprintf "\n  ::  %s  ::\n",
+    <[crypt.C25519.key_bin_checksums]>->($key_bin);
+
+## colorizing ##
+##
+if ( <system.ansi_color> or <system.force_colors> ) {
+    my %C = %AMOS7::C;
+    $chksum_str =~ s|^(.+)$|$C{T}$1$C{R}|mg;
+    $chksum_str =~ s|(<:.+:>)|$C{b}$C{o}$1$C{R}$C{T}|sg;
+}
+
+return say $chksum_str;
+
+#,,..,,,.,,.,,,.,,...,...,.,,,,,,,.,,,,,.,,.,,..,,...,...,..,,,,.,.,,,..,,,,.,
+#6BKAGAYQSWYITETBC26U7LLEUODJBFV77JPRPSJJHEXGEZ3VP3BPNRHUJQTABAA4TL7FMVM2N46SY
+#\\\|MJV5QUIKZTGDIL2R5Z22BSTGK2V3V77ZDACOSP2WSFTUO65WB4C \ / AMOS7 \ YOURUM ::
+#\[7]ACW7WNQA34EOE2A45L5MMOFGATHPJFBNTMCMIVU4NXHZ3A5PGYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
