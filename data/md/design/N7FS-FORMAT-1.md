@@ -43,8 +43,8 @@ alone. deviations from the spec are marked **[ deviation ]**, stand-ins
 - **bmw** : BMW384 [ Digest::BMW ] of the bytes, base32 -> 77 chars
 - **amos** **[ deviation ]** : `amos_chksum( <bmw base32 text> )` -- the
   7-char amos-7 checksum OVER THE BMW TEXT, never over raw bytes.
-  reason : `AMOS7::CHKSUM::amos_chksum` decodes non-utf8 input as utf-8
-  [ lossy for binary content ] and needs the whole input in memory. rule
+  reason : `AMOS7::CHKSUM::amos_chksum` needs the whole input in memory
+  and reads valid utf-8 as characters, not bytes. rule
   name `amos7-of-bmw384-b32`, kept in the state record. `amos-chksum <
   file` does NOT give an address
 - **l13** **[ stand-in ]** : there is no BMW-L13 in an AMOS7 module [ it
@@ -265,8 +265,8 @@ a general signing oracle. anchors then = the host-root public key.
 - what the store key signs [ meta, nodes ]
 - witness beyond this host [ the network's view, spec section 4 ]
 
-#,,..,,..,.,,,,..,.,.,.,,,.,.,.,,,,.,,..,,,,,,..,,...,...,..,,...,,,.,..,,,,,,
-#EKWW4P2RPS7ERL662M4CHYWJI62OCWKV6CHF7NVMW5JRSVKHH25GQURENEFXMKATQU5SHPQ45COQQ
-#\\\|ORRGILKQIE3PHISED7XBFONYC5L3TE2TPK2UFBIUTXKAXPAX5XD \ / AMOS7 \ YOURUM ::
-#\[7]FFDC2GQL2P7XNUFVABYEHFDKJNONZEYHHSU6YKETJ5PRGEH7WMDY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,,,.,,,,,.,.,...,...,.,,,,..,..,,...,...,...,,,,,.,,,,,,,,..,
+#Z52OTOZFBOXFWZENED3CHRBWQ36CXRULXVI3YBZB23FMDTXOYAVU5HB2GXHIBX2LQBUU34YLUXTUM
+#\\\|ZOTHGD5A6MBEXZWQD4NPZS7LZAN2ERX36XURGDCDJNTUWRHDXBJ \ / AMOS7 \ YOURUM ::
+#\[7]2R6Q5TDYOKBAN6JONLIMLU7BUZL7IN23DWALBQGOHVQ26O6ZK4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

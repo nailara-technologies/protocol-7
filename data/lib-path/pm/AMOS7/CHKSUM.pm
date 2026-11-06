@@ -25,7 +25,7 @@ use vars qw| @EXPORT $VERSION %algorithm_set_up |;
 ##  amos-chksum -VCS  ##
 our $ALGORITHM_VERSION = qw| AMOS-CHKSUM-V-GODL3BQ |;
 ##  module source version  ##
-our $VERSION = qw| AMOS7::CHKSUM-VERSION.JO46N2Y |;
+our $VERSION = qw| AMOS7::CHKSUM-VERSION.FRX342I |;
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -355,8 +355,8 @@ sub amos_template_chksum {
 
 return TRUE ##################################################################
 
-#,,,,,,,,,,..,...,.,.,.,,,.,,,,,.,,.,,...,.,,,..,,...,...,.,,,,..,,,,,,,,,...,
-#3W7GNXMKVP225F2GXRGNSLGK5SQHJRTGSAUJD3ZV35R3RHZW7H3HVIRAX2XCZBYQUSC4NQ5UY5RAU
-#\\\|H3IXBJACKQ6ZKLRUGVAL52MOHPLHZOAY72ULO6KUJTFWC3AGKVS \ / AMOS7 \ YOURUM ::
-#\[7]GWTVSHH4CZN3BUUX7DQVNBL2SFILZZ6GNTDQLFPC32KYXYM2EIAA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,,,.,.,.,.,.,..,,..,,,..,,,.,..,,...,...,,..,..,,.,,,,,.,,..,
+#DZ4J4QNLNYFGBUKPBDANLBJEZ4IDWSQUC26ZNOEROP6GFNDPDI7THY55KEXENYRFATQIMLDCJETTI
+#\\\|VOFBNK55CX2LOUP4AJHO4Q5RLWCQAQHIDWV5DT5VBCI345O2INT \ / AMOS7 \ YOURUM ::
+#\[7]UAMEEITAY2TGGYQFMZMPVMQYHA4TGVNGT7JTHM7ECZ4X27CS2ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

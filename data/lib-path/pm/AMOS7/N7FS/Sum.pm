@@ -8,11 +8,11 @@ package AMOS7::N7FS::Sum;    ################################################
 ## streamed. the full-width 'long bmw' of the spec
 ## - amos : the 7-char amos-7 checksum [ AMOS7::CHKSUM::amos_chksum ] taken
 ## over the BASE32 TEXT of the BMW384 digest -- never over raw bytes :
-## amos_chksum decodes non-utf8 input as utf-8 [ lossy for binary data ] and
-## needs the whole input in memory. so 'amos of the content' is 'amos of the
-## content's bmw' here [ a deviation, recorded in the store state as sum rule
-## 'amos7-of-bmw384-b32' -- a converter can change it ].  `amos-chksum < file`
-## does NOT reproduce an address
+## amos_chksum needs the whole input in memory and reads valid utf-8 as
+## characters. so 'amos of the content' is 'amos of the content's bmw' here [
+## a deviation, recorded in the store state as sum rule 'amos7-of-bmw384-b32'
+## -- a converter can change it ].  `amos-chksum < file` does NOT reproduce an
+## address
 ## - l13 : there is NO BMW-L13 in an AMOS7 MODULE -- it exists as
 ## src/base.chk-sum.bmw.L13-str [ zenka code ] and as a script copy in
 ## bin/bmw-L13 [ L13_checksum, not importable ]. id.l13 holds a clearly tagged
@@ -38,7 +38,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Sum-VERSION.ALYHNDY |;
+our $VERSION = qw| AMOS7::N7FS::Sum-VERSION.EJZSJ2Q |;
 
 @EXPORT_OK = qw|
     bmw384_bytes
@@ -171,8 +171,8 @@ sub epoch_window {
 
 1;
 
-#,,.,,,..,,..,..,,,.,,...,,.,,,.,,,..,.,,,.,,,..,,...,..,,.,.,,.,,.,.,.,,,,,.,
-#76NVBZVTQBZYYIXJSK4VCALSDSRCGTHYZWD56DAEF6MGOZVLY3M4LWXGJZVLZ4FILD2OHBPDZS274
-#\\\|B3HKNIODHKQFWQC6TH4GFE7AZXPBVCY4AQTC4MC5EAXCEUK7VT4 \ / AMOS7 \ YOURUM ::
-#\[7]CKOOUYYA77TMEVPMBBIECDBJTSTAZAI42WN7SYAA4KVSHUOB7UBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,...,,,,,.,.,..,,,..,,..,.,,,,.,,..,,...,...,...,...,,,,,,,.,...,
+#3I7LO7GL7DFOBY6NODMVCCCQBZJ6M63R462DK6N4MBZIG4PFS56SWLRZMAS6RPF665MZDGZCIH45W
+#\\\|CJS3J4ZO66QR3F6BKLHXLNALGYTSV63U2QE3XRSI2Z5DSJKLS6M \ / AMOS7 \ YOURUM ::
+#\[7]XXMCA5WFU2WKDP56TDFDEGLRVCSXVMYSQSXZUMZJEI5QSRQPVEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
