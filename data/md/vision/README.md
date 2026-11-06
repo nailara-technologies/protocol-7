@@ -27,7 +27,7 @@ SSH zenka as immediate bridge; native P7 links as destination.
 
 | Document | Summary |
 |----------|---------|
-| `VISION-P7-DEVELOPMENT-ENVIRONMENT.md` | What's already built, the missing tool-use layer, SSH bridge to pri.v7.ax, transition stages |
+| `VISION-P7-DEVELOPMENT-ENVIRONMENT.md` | What's already built, the missing tool-use layer, SSH bridge to srv-U, transition stages |
 | `VISION-TOOL-USE-PROTOCOL.md` | Tool call format, dispatch layer, file/shell/network tool zenki, safety model, implementation checklist |
 
 ---
@@ -70,14 +70,14 @@ What exists now vs what the vision requires:
 - ✅ Data zenka with FUSE mount, SHM, holographic topology (97 modules)
 - ✅ Coding zenka with task queue, model switching, dependency-based spawning
 - ✅ Models zenka with chat, memory system, local model routing
-- ✅ SSH zenka (recovered + improved) — bridge to pri.v7.ax
+- ✅ SSH zenka (recovered + improved) — bridge to srv-U
 - ✅ nshell + ncode — interactive terminal interface
 
 ### Immediate Next Steps
 - [ ] Tool-use dispatch layer in coding zenka (see VISION-TOOL-USE-PROTOCOL.md)
 - [ ] File tool zenki (read/write/edit/search/glob)
 - [ ] Context compaction wave-1 in models.chat buffer
-- [ ] SSH zenka bridge: coding session on pri.v7.ax
+- [ ] SSH zenka bridge: coding session on srv-U
 
 ### Near-term
 - [ ] Session route tracking in data zenka sub-tree
@@ -93,8 +93,8 @@ What exists now vs what the vision requires:
 - [ ] Network zenka tool tier (model as full network participant)
 - [ ] Network desktop prototype with live topology rendering
 
-#,,,.,,..,..,,.,,,,,.,,,.,...,.,,,,,.,..,,,.,,..,,...,..,,...,.,,,,,.,.,.,...,
-#OLWE4KECAHNANUN2KKGOP3V77ARIVRWFKUA44NFU4L744WQA6XVEO54MT5E6BJGFUX4QCPUG3E73Q
-#\\\|5BNOPF4WDWNDEWP2RTJDLAWKUQ3B32KLUNSSRSRETKEKT2DYHGL \ / AMOS7 \ YOURUM ::
-#\[7]WK5RE46N6IZZNEIJHOJUGQLSACY7GFLUU6BNVXDOL35OBZPVT6DA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,..,,..,,,.,...,..,,,..,,,,,..,,..,,...,...,...,..,,.,.,,,,,,.,,
+#AXHD34XG7S5JV5XWXPPRNMDEIH6SEFEY67VXR2VI3XF4UFAKE2H62IXQYNUYVLYDOJ32NCNO7D22C
+#\\\|PEIPWHFIIXCPIURYYWUPMKOQ3YINT5SC57E2MCHD3PC5KKSSCMY \ / AMOS7 \ YOURUM ::
+#\[7]Q5F2QRT6Q3QE5PLLSFRVIO2ZRQELRFG2YN5KVU6LJPOP6E3VOGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

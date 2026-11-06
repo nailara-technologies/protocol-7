@@ -261,7 +261,7 @@ implementation adds:
 - **Identity**: the model accumulates expertise rather than resetting
 - **Integration**: tool results flow into the compaction system, the topology,
   the litter coordination layer
-- **Efficiency**: no Node.js overhead, no API relay, runs on pri.v7.ax directly
+- **Efficiency**: no Node.js overhead, no API relay, runs on srv-U directly
 
 The shell is not being replaced by something worse or even equivalent.
 It is being replaced by something that does everything it does and also
@@ -287,8 +287,8 @@ participates in the network as a full citizen.
 - `data/md/vision/habitat/VISION-CONTEXT-COMPACTION.md` — tool results in compaction
 - `data/md/vision/habitat/VISION-SESSION-IDENTITY.md` — audit trail and route record
 
-#,,..,,..,.,.,,,.,,..,.,.,,..,.,,,..,,,,.,,..,..,,...,...,.,,,.,.,.,.,...,.,,,
-#KP7XB4Q7SLZZW2M7F4WGEMKLYCKHTQPBZJJOYHNDPJ2J3PBXMFNULODQKL5XHV3TKSLIKMKSXWAFG
-#\\\|5ZSWM64SR4BF7BRY7HKJ24INGH4LFWIFT64M2HGJWE5HNXPLXAG \ / AMOS7 \ YOURUM ::
-#\[7]CUCI2SRNY2ZAC5BACHVH3DG6OPDNPZDIZZSXZAUSD6JQTUIUQICQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,,,.,,..,,,,,..,,,..,,..,...,..,,...,...,,.,,.,.,.,,,...,,,.,
+#4IQLR5ZKXJEGW3UHQL3AN2RPTABNSDDIFDGFHKQYMUGOIJOOIY7GPUD5WPP4AMEWFJVSQI5WDPXRI
+#\\\|NMIOZQDDNMK5ZWF4EJAFYIA44PV6COMSTXZRSN5C7DKLBMVNRFG \ / AMOS7 \ YOURUM ::
+#\[7]E4MQXJ4JS6QRGEIRF4LZS23A5Z4SJUKMELRTX5T7TJJVGYKUQOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

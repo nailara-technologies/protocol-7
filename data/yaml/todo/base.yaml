@@ -1213,7 +1213,7 @@ items:
   - host
   text: 'debian zenka : host bootstrap [ mirror, suite, dist-upgrade ]'
 - added: 3X4N7NUKJ4
-  details: "found 2026-10-12 : ipv6 between srv-A [ 2a02:c207 ] and srv-U [ 2a02:c206 ] does not route in either direction, both stacks work otherwise. nameserv.sync.peer.arm and nameserv.sync.client.start create ONE non-blocking IO::Socket::IP to the peer name : it takes the first address [ ipv6 ] and a connect stuck in SYN-SENT never falls back to ipv4 -- the peer loop stalls silently [ no log line ]. fix : resolve the name, try each address with a short connect timeout [ ipv6 first, then ipv4 ], remember the address that worked per peer, log once which family failed. then srv-A's /etc/protocol-7/host-config/nameserv.cfg goes back from 161.97.144.6 to srv-U [ comment there ]."
+  details: "found 2026-10-12 : ipv6 between srv-A and srv-U does not route in either direction, both stacks work otherwise. nameserv.sync.peer.arm and nameserv.sync.client.start create ONE non-blocking IO::Socket::IP to the peer name : it takes the first address [ ipv6 ] and a connect stuck in SYN-SENT never falls back to ipv4 -- the peer loop stalls silently [ no log line ]. fix : resolve the name, try each address with a short connect timeout [ ipv6 first, then ipv4 ], remember the address that worked per peer, log once which family failed. then srv-A's /etc/protocol-7/host-config/nameserv.cfg goes back from the plain ip address to srv-U [ comment there ]."
   done_at: null
   id: YJP
   priority: normal
@@ -2422,8 +2422,8 @@ items:
   - tools
   text: "p7-sign-run dies on a bad path before its first state write : p7_sign_status stays 'starting' forever, p7-sign-wait never ends -- write 'failed' with the reason"
 
-#,,.,,.,,,.,.,.,.,,.,,,.,,.,,,,..,.,.,.,,,,.,,..,,...,..,,,..,,..,,.,,.,.,,..,
-#K4L4XYJBGQ2GMTLQTR75ZVJDVTTM5W46YPTXRJ3XCXXLAH4R3FKSLXHZPEGTX2QO2HUNOAK5IU722
-#\\\|NGH6FJMNEAICCI6GHKB62H7SKNKZJ5C5MNASXKVADV6MRVWBNYJ \ / AMOS7 \ YOURUM ::
-#\[7]YKXLTRLXEUEKXDVB7Y6U3ZEO54QBD3PRPADGLBAFWFNDAPBRAWCI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,,..,,,.,.,.,,..,,,.,...,,,,,..,,...,...,,.,,..,,.,.,...,,,.,
+#7H7FIDOLXJWUZLGGJ4SOPE24YJXFWYVM6DZNVP3LYP3I3NLYGZV3RPEWBXIRMDX5MWMIWCNBEN7LA
+#\\\|A6JCXUU4HFV2FSDVLMDCYGA3VNAUQKJTWIB3SB4UA7TURK7MRAH \ / AMOS7 \ YOURUM ::
+#\[7]FGYZT77ME3E5S6GZEAOA3UUYL7ZDYRCHIBW7NSYY2HPNACCAO6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

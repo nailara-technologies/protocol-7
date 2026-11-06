@@ -12,7 +12,7 @@ protocol-7.network name ], and let nameserv keep the records
 dynamically [ host names, renames, acme challenges ].
 
 **Why:** per-name registrar records [ _acme-challenge CNAME + acme.<d>
-NS ] do not scale : zulum.v7.ax [ pri's new name, pri.v7.ax is the old
+NS ] do not scale : srv-U [ its current name, the former one is the old
 one ] never got them, so its dns-01 enrollment failed -- dropped as no
 longer practical. delegated zones would make that automatic.
 
@@ -31,7 +31,7 @@ never served ]. any switch must keep that chain [ or replace it with
 A + AAAA + own MX ] -- verify `dig MX taeki.v7.ax` against the new
 servers BEFORE changing the delegation. also : protocol-7.network has its
 MX on a name '13' [ apex has none ], <personal-zone> acme.jobsite lists
-dn1110.protocol-7.network twice, pri.v7.ax = old name.
+dn1110.protocol-7.network twice, srv-U's former name = old name.
 
 **end state [ owner 2026-10-30 ] :** zenki map the mail + dns set-up
 functionally, then RETIRE atom, its postfix and inwx as zone master
@@ -53,8 +53,8 @@ stays out of the repo [ /data/<project>-data/ or host-config ], the
 structure goes in. test it the way the snapshots define it : rebuild,
 then diff served answers [ dig ] and mappings against the snapshots.
 
-#,,.,,,,,,,.,,,.,,..,,...,,,.,...,,..,,.,,,.,,..,,...,...,,,.,,.,,.,.,..,,,,,,
-#BBNCUAIFTOH4CL4B6MA7WFJRQYDJA6A3QHVEH3GYJSMJYODHY5FPUTBJCCWOSDPIZJKVKFBUIMA3S
-#\\\|4G4JLQV6SITKJEWXDVL4IQLEOV6EZUO3WHEB3JJ5G5IA2YOUH6M \ / AMOS7 \ YOURUM ::
-#\[7]ZKSVGDDM2SAN6O32SHXBP6XHZLE4DNH7W76WXH2XZDUSFGNRCIDI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,...,,.,,,.,,..,,,.,,...,...,..,,...,...,...,,,,,.,.,...,...,
+#LZ5XUE57XMMZMC6D7MQRXBT27BO4UHI5PUW42ZQ4AVS2GQXJEMIZ3YL4RSHN5TLB627Z7OBKL24OO
+#\\\|TW6667LFN5H5J2R4SS6K2SWYDOCY2TI2IJPXVEOTV3ZXHB4W6QL \ / AMOS7 \ YOURUM ::
+#\[7]6XLTKWVM5V4X6XYQR4HTK7FP5EPZPI47Y5TCPQNKUROBNRH246AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

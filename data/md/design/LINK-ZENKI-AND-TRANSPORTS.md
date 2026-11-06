@@ -181,7 +181,7 @@ four name rules meet here :
 | subname | `base.regex` `sn_str_re` | 1 .. 17 characters incl. `.` `:` `+` |
 
 and two traps : an all-digit name matches `sid_str` [ route_to_target
-tries the session-id form FIRST ], and a record named `pri.v7.ax` [ it
+tries the session-id form FIRST ], and a record named `host-a.example.net` [ it
 exists since 2026-10-20 ] can never be a zenka name -- `external.link.open`
 already refuses it.
 
@@ -564,7 +564,7 @@ untouched.
 two local cubes [ different users \ ports ] stand in for pri and delta
 where no second host is needed ; a real `delta` for the ssh and v6 parts.
 
-- **names** : refused -- `pri.v7.ax`, `123`, `cube`, `external`, `link`,
+- **names** : refused -- `host-a.example.net`, `123`, `cube`, `external`, `link`,
   a configured zenka name, a cube user name, `unix-x`, a 33 char name ;
   accepted -- `delta`, `us-east-1`. v7-zenki refuses a zenka start whose
   name is a running link, and the other way round
@@ -617,8 +617,8 @@ answered 2026-10-23 : 3 rename the record [ `pri`, the dotted name in
    [ `link[delta]` + an alias ] ? recommended B.
 2. **collisions** : validation both ways [ recommended ] or a reserved
    prefix for link names [ `h-delta.` ] ?
-3. **dotted records** : `pri.v7.ax` cannot be a link name. rename the
-   record to `pri` with `pri.v7.ax` in `addresses` [ recommended : the
+3. **dotted records** : `host-a.example.net` cannot be a link name. rename the
+   record to `host-a` with `host-a.example.net` in `addresses` [ recommended : the
    record name stays the link name and the pin stem ], or a separate
    `link_name` field ?
 4. **default transport** : `ssh-w` for managed links [ recommended ], or
@@ -657,7 +657,7 @@ command yet, so :
 `pri` does not exist yet -> answer `y` at the offer-create prompt,
 then set these fields in the form :
 
-    addresses  = pri.v7.ax          # the dotted name lives here
+    addresses  = host-a.example.net          # the dotted name lives here
     ssh        = <p7-user>@<pri-ssh-host>
     ssh_port   = <pri ssh port>
     transports = ssh-w
@@ -698,7 +698,7 @@ on pri, once both are at hand :
 the worker's protocol-7 user also needs pri's ssh host key in its
 `known_hosts` : ssh runs with `BatchMode=yes`, an unknown host key
 fails as a transport error and the link backs off forever. seed it once
-by hand as that user [ `sudo -u protocol-7 ssh <p7-user>@pri.v7.ax
+by hand as that user [ `sudo -u protocol-7 ssh <p7-user>@host-a.example.net
 true`, compare the fingerprint ].
 
 refused until `access.cmd.usr.task-worker` exists in
@@ -717,8 +717,8 @@ retry spin, never a re-pin. routing is unchanged :
 `external.pri.task.<cmd>` from any authorized caller [ models' grant
 for `external.*.task.*` landed in cfg/zenki/cube/access.zenki ].
 
-#,,,,,,,,,...,.,,,.,,,,.,,,.,,,.,,,,,,.,.,...,..,,...,...,.,,,,.,,...,,,,,..,,
-#7VUQIN722E7SEYMBFFYJKWMA36XUQ5ANO6LR2DDGVTG6ZA6D3VHIQB4R6REIVWQI33MSEJKMHDVOK
-#\\\|7W6XORGHEGH65DDNGXY2OIM4HVKFN3A5QJSVXLAKQNI7N3NA4MR \ / AMOS7 \ YOURUM ::
-#\[7]ZTK32V6QURRPFDC3CP45LLADY3CF6XCD7KG6BWHN4GSJLAPIF4DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,..,,,,,,..,,..,,,,.,.,,,,,,,.,,,..,,...,..,,...,.,,,...,.,.,,,,,
+#5YYQYAKN2WEGZV5A4AFVDXNCSMMRVA7NVJ72ADQFLOCQVANOXQDIKNXUYXMH7IZV4QRR4RY7EOSAI
+#\\\|53WF4QJJKRD6RNQU6V7ZIPM77XOWQJJIG5W4EAF2JTEZ47BP3Y5 \ / AMOS7 \ YOURUM ::
+#\[7]APIUU2QHKZ5WUTJGC3DI734PFJEP4JF6M5ZKTUNBOGN2MKX2QSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -28,7 +28,7 @@ client                          our nameserv [ authoritative ]
 - **replay** : nonce + timestamp window ; nonces remembered for the window
 - **no caching** : every name unique [ nonce ], answers ttl 0
 - **answer** : prefer a per-session IPV6 ADDRESS over a port -- pri has a
-  /64 [ 2a02:c206:3016:2071::/64 ] : the address itself is the secret, no
+  /64 [ 2001:db8:3016:2071::/64 ] : the address itself is the secret, no
   scannable port at all. ipv4 hosts : a port, sent in a TXT encrypted to the
   client key
 - **unknown key \ bad sig** : the same NXDOMAIN as any unknown name [ the
@@ -59,8 +59,8 @@ either way the opened ingress is bound to one source for one window.
   records [ key exchange, `nameserv.publish-node` \ `discover-nodes` exist ]
 - order : after the outer cube exists ; nothing to knock for before
 
-#,,,,,,..,,,.,,.,,,.,,..,,...,,.,,..,,..,,,..,..,,...,..,,,.,,.,.,...,...,...,
-#PP3ZTAT5OLZOOHHIVSPBQZOC63DDH7RLNI54DSC7UV6ADWOKO2IBZBCIP7G7RVGH262WAEX4R755Q
-#\\\|4EYPYKYKYL3JTBGBN55EV3PYAJEY5BLDAQBHS7FGH2RKOXCGCYH \ / AMOS7 \ YOURUM ::
-#\[7]JYQFFCHW3WZXMO3YQMM5TWJGGSPF72RUG6OZY7B3NHOIAYRRZWDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,...,.,,,.,.,...,,,,,,,.,,,.,..,,..,,...,...,...,,.,,...,.,,,,.,,
+#FNJP7L5XJITEVY4UTJ6S3CD7YN3XLZGIXJ4LEOLZS2GJBFQOOA7TDSD7F2HVPADR6ZDSOSJNW6WDU
+#\\\|FWG25BIFWAT5GCGCOF6ALMH4WETXMLZVEHME5LRTNOOLW3QR2KO \ / AMOS7 \ YOURUM ::
+#\[7]JGUUBFH2O7LHRR6C4IEKGL6WN75YWPAIFJZ4GC6P2VNE564UUMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

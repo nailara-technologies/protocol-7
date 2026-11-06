@@ -1,7 +1,7 @@
 # Vision: Protocol-7 as Native Development Environment
 
 **Status**: Transition in progress — foundations complete, shell replacement actionable
-**Immediate**: SSH zenka as bridge to pri.v7.ax offload
+**Immediate**: SSH zenka as bridge to srv-U offload
 **Near-term**: Native P7 tool-use protocol replaces shell dependency
 **Long-term**: Shell concept dissolves into zenki network entirely
 
@@ -76,10 +76,10 @@ tool-use protocol is a thin dispatch layer over infrastructure that exists.
 ### Stage 1: SSH Zenka as Bridge (Immediate)
 
 The SSH zenka (recovered and improved by Kimi, Feb 2026) provides remote shell
-access to `pri.v7.ax` as a native zenka — not an external dependency but a
+access to `srv-U` as a native zenka — not an external dependency but a
 first-class network citizen. This enables:
 
-- Heavy work (API calls, inference, context buffers) on pri.v7.ax (11GB RAM,
+- Heavy work (API calls, inference, context buffers) on srv-U (11GB RAM,
   datacenter uplink)
 - Local session becomes a thin nshell connection — minimal memory, minimal CPU
 - Connection drops on the local side no longer lose session state — it lives on
@@ -160,7 +160,7 @@ it means "send me file X" costs a reference, not a transfer.
 
 ## Homogeneous Addressability
 
-Once the development environment is a P7REF intent group on pri.v7.ax:
+Once the development environment is a P7REF intent group on srv-U:
 
 ```
 any device + nshell → same session state
@@ -173,7 +173,7 @@ The future Linux host, a phone via nshell, a colleague's machine — all address
 the same intent group by the same name. The topology of where compute lives
 becomes a configuration detail, not an architectural constraint.
 
-The developer's relationship with their own infrastructure inverts: `pri.v7.ax`
+The developer's relationship with their own infrastructure inverts: `srv-U`
 is not a server you deploy *to*, it is the address of your working environment
 that you connect *from* wherever you happen to be.
 
@@ -181,7 +181,7 @@ that you connect *from* wherever you happen to be.
 
 ## Immediate Next Steps
 
-1. **Verify SSH zenka on pri.v7.ax** — test nshell → SSH zenka → remote shell path
+1. **Verify SSH zenka on srv-U** — test nshell → SSH zenka → remote shell path
 2. **Move coding session context to data zenka sub-tree** — persistence across drops
 3. **Tool-call parser** in coding.handler.process-queued-task — file read/write first
 4. **Register file tool zenki** — thin wrappers over base.file.* infrastructure
@@ -193,8 +193,8 @@ that you connect *from* wherever you happen to be.
 - `data/md/documentation/ASYNC-SPAWNING-INFRASTRUCTURE-STATUS.md` — coding zenka status
 - `data/md/CONCEPT-CUBIC-HYPERSPACE-DESKTOP.md` — long-term desktop vision
 
-#,,,,,..,,..,,,..,,,.,.,,,...,.,,,,,.,,..,,,.,..,,...,...,...,,,,,..,,.,.,..,,
-#UCL2XWX6GAPX2V6EUOJ27ALCRXBAPBHF6BGCIHRFQAMDVOLRRHHPNPOHAKKXLU4KAVJMTC2RRQ6YK
-#\\\|QKG6OSWQC27LXKD5ZZQMDOKJOGOYZ3Y6ZFY7U6XR7YL4ERZ4CBB \ / AMOS7 \ YOURUM ::
-#\[7]EDN3FJJID5PFRFU6O5V5YVVILI7WZP5LDHO6RLYJXVLB3KMEVIDY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,.,,,,..,,.,,..,,...,,.,,,..,..,,...,..,,,..,.,,,,.,,..,,,.,,
+#DYS2KSXPPYUHG2ARBZYVYPGCU5GF5X3XHJDY44Q6QLK45ZBMWJVHX4J4EYOYBIPNDGXTFELFKUXQC
+#\\\|HGFF5DPSWJ6I3YU2FUYOAINY33KYSKQLCHLCDQ37EPPKOASSAUE \ / AMOS7 \ YOURUM ::
+#\[7]GA3HV6A64CE6G6JN2Q3JEANXVYLXPJCP437L66VVRLIKO5XVWMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

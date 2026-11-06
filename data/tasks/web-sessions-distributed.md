@@ -126,12 +126,12 @@ allowing automation scripts to access the HTTP API using their zenka identity.
 
 **lower priority than web-auth-plugin** — the session sync aspect is not
 needed until there are multiple web nodes. implement auth first with
-node-local sessions, add sync later when deploying to pri.v7.ax.
+node-local sessions, add sync later when deploying to srv-U.
 
 ## dispatch
 
-#,,,.,.,.,,.,,..,,,,.,,,,,,,.,.,,,,..,,,.,..,,..,,...,..,,...,,,,,,..,..,,,,.,
-#BFW7ZKRZX3IX44VZSXJIPWAESOV5SMOHN4WDQWWFYU5RI3WG6HWU2HXTE7R5WOBOR6OFSDG5H5ABQ
-#\\\|YKSH7WRLHK3G7WZYKXW6BOBYM2EVOPJIHME5OVEP6IYU2VLSVAE \ / AMOS7 \ YOURUM ::
-#\[7]QESWLE4GHZK5ZMJR7VUP7LDDIOKRRECKECXHTPWTOMENZIWIY2DY 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,.,.,..,,.,.,,,.,.,.,,,,,,,.,..,,...,...,...,,,,,,..,,.,,,,,,
+#JWL6YQGOI5GTRKG464DAGIHBZGXMWFJB4YDLTE7X7J3BCRLQFUL6U2Q4FLOBARTWNSXTOSPQH2GNW
+#\\\|CNDEEIGSFGI52LHVFNWFKIXZQBGU62BU75USZFKNYOLT2AKRV7H \ / AMOS7 \ YOURUM ::
+#\[7]472O2XCRRIAIZZFM5ADIHW2K7AKGLVM7YATC5OTOFKNDK4QGX4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

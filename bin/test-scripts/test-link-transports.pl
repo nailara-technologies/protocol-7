@@ -339,11 +339,11 @@ ok( ( grep { $_ eq '-p' } @argv_lines )
     my $bad = fake_record( 'ssh' => '-evil' );
     my ( $fd, $why ) = $ssh_w_open->($bad);
     ok( !defined $fd && length $why,
-        'ssh-w : target ' . 'starting with - refused' );
+        'ssh-w : target starting with - refused' );
     my $bad_port = fake_record( 'ssh_port' => 99999 );
     ( $fd, $why ) = $ssh_w_open->($bad_port);
     ok( !defined $fd && length $why,
-        'ssh-w : out-of-range ' . 'ssh port refused' );
+        'ssh-w : out-of-range ssh port refused' );
 }
 
 {
@@ -439,7 +439,7 @@ write_pin( '127.0.0.1_4243.public', 'KEY-ID-ALPHA' );
     my $first = <$fh>;
     close($fh);
     ok( $first eq "KEY-ID-ALPHA\n",
-        'pin.migrate : the key id ' . 'is kept [ no new TOFU ]' );
+        'pin.migrate : the key id is kept [ no new TOFU ]' );
     ok( logs_containing(qr{moved}), 'pin.migrate : the move is logged' );
     ( $ok, $why ) = $pin_migrate->( 'delta', 42, '127.0.0.1_4243' );
     ok( $ok, 'pin.migrate : pin_from gone [ moved already ] -> true' );
@@ -469,8 +469,7 @@ write_pin( '127.0.0.1_4243.public', 'KEY-ID-BRAVO' );
         'pin.migrate : refusal changes nothing on disk'
     );
     ok( logs_containing(qr{contradicts}),
-        'pin.migrate : ' . 'the stop is logged'
-    );
+        'pin.migrate : the stop is logged' );
 }
 
 {
@@ -718,11 +717,11 @@ push( @records, fake_record() );
 
 reset_supervisor();
 push( @records, fake_record() );
-$records[0]{'name'} = 'pri.v7.ax';
+$records[0]{'name'} = 'host-a.example.net';
 {
-    $connect->('pri.v7.ax');
-    ok( $data{'external'}{'links'}{'pri.v7.ax'}{'state'} eq qw| refused |
-            && !timer_named(qr{retry}),
+    $connect->('host-a.example.net');
+    ok( $data{'external'}{'links'}{'host-a.example.net'}{'state'} eq
+            qw| refused | && !timer_named(qr{retry}),
         'supervisor : a dotted record name is refused, no retry'
     );
     ok( !grep( { $ARG->[0] eq 'session.open' } @calls ),
@@ -746,8 +745,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,.,,.,,.,.,..,,,..,,.,,,..,,,,,.,.,...,..,,...,...,,,,,,..,...,.,,,,.,,
-#AG53M7MDILJQINOGDONPZLSZEUUHE36D2X2VHGFMREREETCKMSYM2IOTSAGUBDUX3GIBMCVCDUYV4
-#\\\|7ORZSCEW23CFEZBCTN7MPPADTD3DWKFZPTM7K7ONAQIQN7IG475 \ / AMOS7 \ YOURUM ::
-#\[7]TJL2HMJYGRGKMPEVAJYFZ52CMCW5DEL2JXORIC6DCUCHYOPCVOBI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,.,,,.,.,,,,..,,.,,...,,,.,..,,..,,...,...,,,,,...,,,.,...,..,,
+#WF3QPJ4KDINGJXWS3WI3PLXI25JZO5CORKWKDMYBXBQERD7DBUA4TZE6EOGRQ7W3ZZJA7DZGDRVPY
+#\\\|NSRCZNEJTTNN2DWPHKWKU62EPZCZFAQK5Q4MGF55NARKAHRXFP2 \ / AMOS7 \ YOURUM ::
+#\[7]DWBPGNADNATJ5B2C4D6KFFVQBGLAMBPKTUAZUEGP3QLLVTQD64DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
