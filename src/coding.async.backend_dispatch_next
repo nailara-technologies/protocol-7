@@ -21,6 +21,7 @@ $rel_token  //= qw| - |;
 $rel_reason //= qw| dispatch |;
 
 my $bs = <coding.state.backend>->{$backend} // {};
+return undef if $backend eq qw| gpu | and <coding.gpu_lease.dispatch_hold>;
 
 ## the lock stays with its holder ; a paused queue waits for its resume ##
 return undef if defined $bs->{'lock'};
@@ -107,8 +108,8 @@ while (TRUE) {
     return undef if <coding.task.queue_paused>;
 }
 
-#,,.,,...,,,,,...,,,,,,,.,.,,,...,.,,,..,,...,..,,...,...,,.,,...,.,,,,,.,,.,,
-#C2EZTWTEBIKTWDI67O47HZ5MF4YV7CKJSZIDSGXXXO4BTBKHD2ECOVS2MCZRH7BS3YUCJOAAKQRHO
-#\\\|MF5YT5YEW6G37LSFPKNW5STA4J4ZJAQ7A4VC7CWLECSZFX4B3TG \ / AMOS7 \ YOURUM ::
-#\[7]35UV736IAF7DQMDQ6GQARLSEA7G7XKSDCN6IIHO4EKT7QSISHSBI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,,,.,,..,..,,..,,,,.,,..,,..,..,,...,...,,.,,.,.,..,,,.,,,..,
+#EGMMSLB2SUTHHGV6ARXPHBREILVTIXRPRPYMHKYHX7UQI7N4Z64YT3RBA7ZHCGN6DB2LS6NVPBGXG
+#\\\|54TMZZDSTV7GMQ4OH7QUFS4FZ7H6JH62GONL5YZLJRCZ5HY3KMH \ / AMOS7 \ YOURUM ::
+#\[7]H47D6PMJDGFRKSTV2UHOOWOT4XEVW4C2NVNG5PBKH2XEIYFOC2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

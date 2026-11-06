@@ -16,6 +16,17 @@ if ( !length $backend || $backend !~ m{^(gpu|cpu)$} ) {
     return;
 }
 
+if ( $backend eq qw| gpu | and <coding.gpu_lease.dispatch_hold> ) {
+    my $sweep = <coding.model_sweep_state>->{$backend};
+    if ( defined $sweep ) {
+        $sweep->{'pause_requested'} = TRUE;
+        $sweep->{'state'}           = qw| paused |;
+        $sweep->{'paused_reason'}   = qw| gpu-lease |;
+    }
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return TRUE;
+}
+
 my $state = <coding.model_sweep_state>->{$backend};
 if ( !defined $state ) {
     <[base.logs]>->(
@@ -81,7 +92,7 @@ my $clear_cursor = sub {
     if ( length $yaml_str ) {
         <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
             or <[base.logs]>->(
-            1, '[model_sweep] failed to ' . 'clear cursor file [ %s ]',
+            1, '[model_sweep] failed to clear cursor file [ %s ]',
             $cursor_file
             );
     }
@@ -605,8 +616,8 @@ my $orphan_switch_id = $state->{'switch_id'} // '';
 $state->{'idx'} = $total;
 return TRUE;
 
-#,,.,,.,,,,..,,,,,.,.,..,,,..,,..,,.,,,,,,.,,,..,,...,...,.,,,,,.,..,,,,.,,,.,
-#EGQCSSVGQZ2D53KPYF4FBXJK3TK57FO63TR2R2IS2ZQKA7FVZ5C4D63UH5CFWQNWCASS7VQV6XP5O
-#\\\|PQDJ7NMVCKQAHIGVYXLBQ24EWFPEGTZ5UHRIKWGPNJAID26JHUT \ / AMOS7 \ YOURUM ::
-#\[7]EEWWF446M7JNVBJAUYO3D6MRQBELOVYADII3V7QQM6553KQF44BQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,.,.,,..,.,,,.,.,,.,,.,.,..,,..,,...,...,...,...,..,,.,,,,.,,
+#IEO3PAGHS6TTSY5KI52XQXUT4EJY3WEKDZ3CTADUMHWWSFLOIUAZ5YSTOZ3STIMHQVHALMGYN67LE
+#\\\|3BJ3TXPYOPEXRSC6HYFHNIWZZ3TFPWM6BUZ2IQCUFE6OG2OF655 \ / AMOS7 \ YOURUM ::
+#\[7]CTU42BDIMZEJUTY34ULR6E4EZ6EIMVT36YPBJKANVFRZ3PK27SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

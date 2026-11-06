@@ -15,6 +15,45 @@
 
 my $pin = uc( shift // '' );
 
+## another lease holder : refuse work that has only a local gpu backend.  ##
+## unpinned work still fits when cpu is ready ; a pin served by cpu stays ##
+## eligible even when the same model is also loaded on the gpu            ##
+if ( <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE ) ) {
+    my $lease = <[models.gpu_lease.state]>;
+    if ( length $lease->{'holder'} and $lease->{'holder'} ne qw| coding | ) {
+        my $local = <models.task.local_models> // {};
+        my $fresh
+            = ( defined $local->{'at'} and time - $local->{'at'} <= 60 );
+        my %backend_of = %{ $local->{'backends'} // {} };
+        my $cpu_ok     = FALSE;
+        if ($fresh) {
+            if ( length $pin ) {
+                my ($content) = $pin =~ m|([A-Z2-7]{7})$|;
+                $cpu_ok = TRUE if defined $content and grep {
+                    my ($id_content) = m|([A-Z2-7]{7})$|;
+                    defined $id_content
+                        and $id_content eq $content
+                        and grep { $ARG eq qw| cpu | }
+                        @{ $backend_of{$ARG} // [] };
+                } keys %backend_of;
+            } else {
+                $cpu_ok = TRUE if grep {
+                    grep { $ARG eq qw| cpu | } @{ $backend_of{$ARG} // [] }
+                } keys %backend_of;
+            }
+        }
+        if ( not $cpu_ok ) {
+            <[base.logs]>->(
+                1,
+                ': task left pending : gpu lease held '
+                    . 'by %s, no fresh matching cpu backend',
+                $lease->{'holder'}
+            );
+            return FALSE;
+        }
+    }
+}
+
 ## a claim that never completes must not hold its slot for ever [ a job   ##
 ## stuck in coding's 'depending' queue, a task failed by its owner that   ##
 ## this host never hears of ] : claims older than the ttl are dropped and ##
@@ -88,8 +127,8 @@ if ( length $pin ) {
 
 return $in_flight < scalar(@ids) ? TRUE : FALSE;
 
-#,,,.,.,,,..,,...,.,,,...,,,.,,,.,...,,,,,...,.,.,...,...,.,.,..,,.,,,,..,,..,
-#TXM5KHBL2TSKMHLJ6YTACUTNLJMMU3AL2ADMLA5HKCZAPVNO2W4A2VIVBJ65L7Y5RNJ7GTZW3ZM5A
-#\\\|WUM2T3HH7ZWNZNA34CBT2O7LFZH45CDFPOH42IQC3H5S3GC7JZF \ / AMOS7 \ YOURUM ::
-#\[7]HPIP4Y2YEWFKVKA55ULDYDU44CBEC5EVV3KZ6QEPSDRGHREB3GDY 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,,,,.,,,.,,,.,,.,.,,,.,,..,.,,,.,.,...,...,.,,,..,,,.,,..,,...,
+#4S7N4JBOMI2E75LFZM7BCYAMVLZ4UXOTFOMYX6BNYPYFHZENE52WH4W6K4KWV5R62M6GE4JVSLNLE
+#\\\|YD7CF226PNM5FDVFMKGSLL3ZOTANLIBTKLEA6CKXSPKU6JLCIPY \ / AMOS7 \ YOURUM ::
+#\[7]YDY5S33WOE27YAU3F2NLTW53JL5CU4QNZ7U6MIDMOTUYJG5CHACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

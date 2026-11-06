@@ -66,10 +66,36 @@ $cpu_enabled_str = 'auto' if $cpu_enabled_raw eq 'auto';
 ## safe. the cpu block additionally honors the auto/fallback flag set by    ##
 ## the gpu block.                                                           ##
 
+## lease sits above the existing busy \ too-small decision ; cpu is ##
+## separate                                                         ##
+my $gpu_lease
+    = $gpu_enabled_str eq 'yes'
+    && !<inference.gpu_pid> && !$cpu_fallback_requested
+    ? (
+    ( <models.cfg.gpu_lease.enabled> // '' ) =~ m{^(yes|true|1|on)$}i
+    ? <[coding.gpu_lease.gate]>
+    : TRUE
+    )
+    : TRUE;
+
+if ( $gpu_lease == FALSE ) {
+    <[base.logs]>->(
+        <coding.gpu_lease.wait_logged> ? 2 : 1,
+        ': gpu lease held elsewhere : local gpu spawn held'
+    );
+    <coding.gpu_lease.wait_logged> = TRUE;
+    $spawn_ok = FALSE;
+} elsif ( $gpu_lease == UNKNOWN ) {
+    <[base.logs]>->(
+        2, ': models lease unavailable : using the existing gpu memory check'
+    );
+}
+
 # Spawn GPU server if enabled and not already running
 if (    $gpu_enabled_str eq 'yes'
     and not <inference.gpu_pid>
-    and not $cpu_fallback_requested ) {
+    and not $cpu_fallback_requested
+    and $gpu_lease != FALSE ) {
     my $gpu_port   = <inference.backend.gpu.port>    // 8000;
     my $gpu_model  = $spawn_params->{'gpu_model_id'} // qw|gemma3-glitter-4b|;
     my $gpu_binary = $spawn_params->{'gpu_binary'}
@@ -357,8 +383,8 @@ if ($spawn_ok) {
 
 return FALSE;
 
-#,,,,,.,,,,,.,.,,,,,,,...,,..,.,,,,..,..,,,..,..,,...,...,..,,.,.,,.,,.,,,,..,
-#FRRPJTXJ4CC6MG6GW2VWN6LQJVJJ5D3HW5UUZGUQTKKIGBAFDMMUTRC2EEO3EQ3V75RJ37QQ6JTGQ
-#\\\|ZURKCMXVGDITWOF732IPUARJKIUHFJJQF3U5YELJ2VFCLXDHPPN \ / AMOS7 \ YOURUM ::
-#\[7]TCZSH54GFG4SZCKGIE5M436I52UOHODVM4YLAWRN3JXQSNUHCSCY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,,.,,.,.,..,,...,,.,,.,.,,.,,..,,...,..,,.,.,.,,,.,.,.,,,..,,
+#KHDKBJPHDXRTBU5DX67KHWLBU6RM53MVM3U3ESERSQQDCO4CWC7SBKXFE7PQFOPAMXYXSDZCAF4VS
+#\\\|YF4QZJYMDIFFXNHL5C3DBYGMAE3L3U76UG2QNGKZBPC4M5EAR6S \ / AMOS7 \ YOURUM ::
+#\[7]ZCOIAYFDPINXUGIJUVAUELQP62XRPQUTTJ6PHWK23L27LZGTNMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

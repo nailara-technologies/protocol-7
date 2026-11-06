@@ -76,11 +76,23 @@ alias.when-present = when-present SOURCE_ZENKA
 
 # base.devmod.keep_on_reload  = 0  # <-- whether devmod module persists reload
 
+## gpu sole-residency lease [ models coordinates coding \ invoke-web ] :    ##
+## off = existing behavior ; invoke-web wins by default ; timeout = renewal ##
+## expiry ; handover_timeout bounds unacknowledged unloads ; grace = render ##
+## drain delay ; min_free_mb is the requester's default working-vram floor. ##
+## each zenka's load_host_config remains the per-host override point.       ##
+models.cfg.gpu_lease.enabled            = no
+models.cfg.gpu_lease.priority           = invoke-web
+models.cfg.gpu_lease.timeout            = 45
+models.cfg.gpu_lease.handover_timeout   = 60
+models.cfg.gpu_lease.grace              = 120
+models.cfg.gpu_lease.min_free_mb        = 4096
+
 ### feel free to override these values in       ###
 ### './cfg/zenki/<zenka-name>/start' ###
 
-#,,..,..,,..,,.,,,,,.,...,,..,..,,,.,,,,,,,,.,..,,...,...,...,,,,,..,,,,.,..,,
-#VWO4UFGSPCSCRTZFFRNLDR2FGXV3ZVPXZA4RLY3JKDOCPDXH4CR7ZTAN6MIJBI2TKKUDN6S6QMVQE
-#\\\|E5BRZ4DMPJWPN5N2BTL52VMW5IWSPN7FGIBVWVWHE3G6CQ3HL4G \ / AMOS7 \ YOURUM ::
-#\[7]PTM6BKA7XGAJCT647TBSVHD4RLMA4P3OV5RWCQ4FLUL5GHXZAKCA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,,,.,.,,,...,...,,..,,.,,.,.,..,,...,..,,..,,,.,,,,.,..,,.,.,
+#NLW5YXHY62OD6WTS7I7L6DOWLPSOXPAT2TLNGHUPPW6VX6UAKL666MWPDNHLJ5PJ6P4FPUJ3KWVU6
+#\\\|VRGFJJCVZ6AR3EPCK4CAGUHWBNY6BVMJO3CPGPBAQ766AJHNQBB \ / AMOS7 \ YOURUM ::
+#\[7]PQ7QO4I55OPMQBE2GWKCPWNJUH4RYCTLS66FDKM4WLHKWL7L4ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

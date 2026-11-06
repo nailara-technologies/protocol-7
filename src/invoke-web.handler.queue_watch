@@ -7,6 +7,8 @@
 #         a batch keeps its own order [ item_id ASC tie-break ], the next
 #         batch lands ahead of it -- newest work first
 
+<[invoke-web.gpu_lease.queue_changed]>;
+
 if ( not <invoke-web.queue_interactive> ) {    ## switched off meanwhile ##
     my $timer = delete <invoke-web.timer.queue_watch>;
     $timer->cancel if defined $timer and $timer->is_active;
@@ -71,8 +73,8 @@ if ( defined $failed_err ) {
     @$new_items == 1 ? '' : 's', $priority
 );
 
-#,,..,...,,.,,,,,,.,.,..,,...,.,,,.,,,..,,.,.,..,,...,...,,.,,,..,.,,,,,.,,,,,
-#VR4JN2VGROY27SJEAXZM2GIOXHQZQAYXZMU242B26ZU3ABY5XJRPYVOV73LZQNSFFLVCADEEOKFA4
-#\\\|M3F4AXJ4QGINGADPOYEPMPF3SUZBZAYJW7HXY7TDCICBOUB7CWF \ / AMOS7 \ YOURUM ::
-#\[7]JKXAXPQPLEFXNOAUA67LCQMD24PBV56ZXJXRJKC6NMVTP2QBTEAY 7  DATA SIGNATURE ::
+#,,..,...,,,.,..,,,,.,,..,..,,,..,,..,..,,,,.,..,,...,...,...,...,,..,.,,,,,,,
+#ZSHQ375PFVYYOQXE2CSRERLACRLYO7MVUCNPIKVD3HG6NKHRTKHRMLBGC3NQDFOBEECTG563LH3SC
+#\\\|HFOSVT2247IC3FVFJ4ED34FEY6CBMKDOKKRT5RUSKGINCSBNBQC \ / AMOS7 \ YOURUM ::
+#\[7]FFE25E2KBA4AIMBFLXZ3PD23UUANTHICGSG4FZES6Q54TLYKW6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

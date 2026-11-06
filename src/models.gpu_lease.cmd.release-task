@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = models.gpu_lease.cmd.release-task
+# descr = hand a gpu task claim back before coding unloads
+# param = task id
+
+my ($task_id) = split m|\s+|, $call->{'args'} // '';
+return { 'mode' => qw| false |, 'data' => 'task id required' }
+    if not length $task_id;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => <[models.task.cmd]>->( qw| release |, $task_id ),
+        'call_args' => {
+            'args' => sprintf '%s %s gpu lease handover',
+            $task_id, <models.cfg.task_agent> // qw| models |
+        },
+    }
+);
+if ($sent) {
+    <[models.task.release-claim]>->($task_id);
+} else {
+    <[base.logs]>->(
+        0, ': gpu lease task %s release route failed : claim retained',
+        $task_id
+    );
+}
+return { 'mode' => $sent ? qw| true | : qw| false | };
+
+#,,..,,,.,..,,.,,,..,,.,,,.,.,.,,,..,,..,,,,.,..,,...,...,,..,,,,,,.,,,,,,,..,
+#RKCT752X3U7HG4GGXGCQTREKLMDQSZQNMQBWIHMFGM5FTFBFTOKGTW6YO54743SJQMIYAWT6BKDW4
+#\\\|VURQN2F3ORKFOMUZLHONEULEI2IRKAKFFKWXBJXOP2NRAV5QCY5 \ / AMOS7 \ YOURUM ::
+#\[7]NTMH42ADAMI26TNH2TLX3N4D7WBK76TO5Y647FREVFWAM3SJKEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = models.gpu_lease.state
+# descr = current gpu sole-residency lease state
+
+my $lease = <models.gpu_lease> //= {};
+my $now   = <[base.time]>;
+
+if ( ( $lease->{'holder'} // '' ) ne ''
+    and $now - ( $lease->{'touched'} // 0 )
+    > ( <models.cfg.gpu_lease.timeout> // 45 ) ) {
+    <[base.logs]>->( 0, ': gpu lease holder %s expired', $lease->{'holder'} );
+    $lease->{'expired_owner'} = $lease->{'holder'};
+    delete $lease->{'holder'};
+    delete $lease->{'touched'};
+}
+
+return {
+    'enabled' =>
+        <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE ),
+    'holder'  => $lease->{'holder'}  // '',
+    'touched' => $lease->{'touched'} // 0,
+    'pending' => ref $lease->{'pending'} eq qw| HASH |
+    ? { %{ $lease->{'pending'} } }
+    : undef,
+    'wait_reason' => ref $lease->{'pending'} eq qw| HASH |
+    ? $lease->{'pending'}->{'wait_reason'} // ''
+    : '',
+    'waiting' => [ sort keys %{ $lease->{'waiting'} // {} } ],
+};
+
+#,,.,,,,,,.,.,,..,..,,,,.,...,,,,,,..,,.,,..,,..,,...,..,,.,,,,,.,.,.,,,,,.,,,
+#7BVM2OCYQJQMGKW52LHUMELTSO5BE6L65QW3ZDELIMBVMOK53WT6GRL4SR5SG2PPQOYCQJEAVX6JW
+#\\\|IJLB7OV74KS3H35ANTEJAX35BQAGVFGDNHUKAU2MAPZZACFC2GF \ / AMOS7 \ YOURUM ::
+#\[7]Q7YJMF6AMTQOXBY7JY7QXNLEMT7H6LR4JHDD5PGN2TVKOAQFSOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = models.gpu_lease.cmd.state
+# descr = show gpu residency holder, handover and timeout state
+
+my $state  = <[models.gpu_lease.state]>;
+my $lease  = <models.gpu_lease> // {};
+my $output = sprintf "enabled  : %s\nholder   : %s\n",
+    $state->{'enabled'}       ? 'yes'              : 'no',
+    length $state->{'holder'} ? $state->{'holder'} : 'none';
+$output .= sprintf "age      : %d s\n", <[base.time]> - $state->{'touched'}
+    if length $state->{'holder'};
+$output .= sprintf "pending  : %s -> %s%s\n",
+    $state->{'pending'}->{'from'}      // 'none',
+    $state->{'pending'}->{'requester'} // '?',
+    $state->{'pending'}->{'unloaded'} ? ' [ unload acknowledged ]' : ''
+    if defined $state->{'pending'};
+$output .= sprintf "waiting  : %s\n", join ' ', $state->{'waiting'}->@*;
+$output .= sprintf "reason   : %s\n", $state->{'wait_reason'}
+    if length $state->{'wait_reason'};
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,,,,,,,,,.,,.,.,.,,,.,.,..,,..,,,,,,.,,,...,..,,...,...,.,.,,,.,,.,,,.,,...,
+#O3PRBJC3K2WL6NS3N4BA4UKSOQX2S3JGNAKPEIUFIASAXVK2FX7XC2KGFTVWNK3FO3J2R2JKWXE5G
+#\\\|UISUC4QZPYUYETEL7WFLAOFZVYD5GKYI4RIK6XT2JUZKR2PAJZ4 \ / AMOS7 \ YOURUM ::
+#\[7]PUXHT6HYADL6ZIMOXB6PJRSDJAFWD3LREI2EMKI5Q42GKPQADICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

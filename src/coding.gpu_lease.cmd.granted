@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = coding.gpu_lease.cmd.granted
+# descr = models granted coding sole gpu residency
+
+<coding.gpu_lease.holder>           = qw| coding |;
+<coding.gpu_lease.request_inflight> = FALSE;
+<coding.gpu_lease.unavailable>      = FALSE;
+<coding.gpu_lease.wait_logged>      = FALSE;
+<coding.gpu_lease.dispatch_hold>    = FALSE;
+<[base.logs]>->( 1, ': gpu lease acquired : reloading local gpu backend' );
+<[coding.gpu_lease.handler.renew]>;
+<[coding.async_spawn_inference_servers]>;
+<[coding.async.backend_dispatch_next]>->(qw| gpu |)
+    if ( ( <coding.inference_servers> // {} )->{'gpu'}->{'status'} // '' ) eq
+    qw| ready |;
+return { 'mode' => qw| true | };
+
+#,,..,,,.,,,,,..,,,..,,,,,.,.,,,,,...,,,,,,,.,..,,...,...,...,..,,,..,...,,,,,
+#HANQCP3FAL6PWIIF52VMC5QLS2ESY7A4V2RJ3W3UI5POG4OQ2BXHETQSK4RXU4VNBX7X6767MYNNQ
+#\\\|I3K6TWVXPI4FDKU2LBZVZNZIJ5UUVNGD743IDOMHFIWCDTNTLHL \ / AMOS7 \ YOURUM ::
+#\[7]GHVS5VTFFDWBKWDIGQ6SOEHB3GZXL3L6MPPOA6SAD3VX2NCLFSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

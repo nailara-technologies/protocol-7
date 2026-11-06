@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = models.gpu_lease.acquire
+# descr = request sole gpu residency for coding or invoke-web
+# param = owner name [ required free vram MB ]
+
+my ( $owner, $need_mb ) = @ARG;
+$owner //= '';
+return FALSE if $owner ne qw| coding | and $owner ne qw| invoke-web |;
+return FALSE
+    if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
+
+my $lease = <models.gpu_lease> //= {};
+$lease->{'waiting'}->{$owner} = {
+    'at'      => <[base.time]>,
+    'need_mb' => $need_mb // 0,
+};
+<[models.gpu_lease.handler.tick]>;
+
+return ( $lease->{'holder'} // '' ) eq $owner ? TRUE : FALSE;
+
+#,,,,,.,,,..,,,,.,,,,,...,.,,,,,.,..,,,.,,.,.,..,,...,...,,.,,...,.,.,,,.,,,,,
+#DOESZNPU5JO7VE63M4QKWBJDPV2H4Y24IKEI644DXTLQW3KITEABXEJDZMVLEAJBUVOP5BUFDKOGY
+#\\\|QJDD6QB454UTP7C3LBEULWCQGUKOWRW6MTICUWMNAZAQ4HMJSVX \ / AMOS7 \ YOURUM ::
+#\[7]Y7YUQRGCVAACMFKDC7FIBGF6N5EOQFAZASL3LLJ3APUZUJRUG6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

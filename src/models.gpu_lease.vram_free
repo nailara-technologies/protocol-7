@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = models.gpu_lease.vram_free
+# descr = check live llama processes and the requester's working-vram need
+# param = details flag, required free MB
+
+my ( $details, $need_mb ) = @ARG;
+my $mem     = <[coding.helper.query_gpu_memory]>;
+my $minimum = <models.cfg.gpu_lease.min_free_mb> // 4096;
+$minimum = 4096     if $minimum          !~ m|^\d+$|;
+$need_mb = $minimum if ( $need_mb // 0 ) !~ m|^\d+$| or $need_mb < $minimum;
+my $llama = <[models.gpu_lease.llama_compute_pids]>;
+my $ok
+    = ref $mem eq qw| HASH |
+    && $mem->{'ok'}
+    && !@{$llama}
+    && $mem->{'free_mb'} >= $need_mb ? TRUE : FALSE;
+return $ok if not $details;
+return {
+    'ok'       => $ok,
+    'free_mb'  => $mem->{'free_mb'}  // 0,
+    'total_mb' => $mem->{'total_mb'} // 0,
+    'need_mb'  => $need_mb,
+    'llama'    => $llama,
+    'query_ok' => ref $mem eq qw| HASH | && $mem->{'ok'} ? TRUE : FALSE,
+};
+
+#,,,,,..,,,,,,..,,,..,.,.,.,,,,,,,,,.,.,.,.,.,..,,...,...,..,,,,,,,..,,..,..,,
+#ACBOFQJQEJ4PZU27E7XUQMVGDDT6DXTO77GS6RF5GZGGEKJDMKGSBYYOX37IVHNRR7EUCTBLZ7BHW
+#\\\|PI5QVIDGCQFG5K7EAWIQCJGOQUDTKTFHBYYWNVLO5MMOV73GOFD \ / AMOS7 \ YOURUM ::
+#\[7]3UM22I2UOQFKT46GOIT4R6M44AOH2PF3DN4QOUSL4UCHMXLTWIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

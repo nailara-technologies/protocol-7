@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.handler.unload_pause_reply
+# descr = queue pause finished : ask invoke.ai to empty its model cache
+
+my $reply = shift // {};
+<[base.logs]>->(
+    $reply->{'ok'} ? 1 : 0,
+    ': gpu lease queue pause : %s',
+    $reply->{'ok'} ? 'done' : $reply->{'status'}
+);
+<[invoke-web.api_async]>->(
+    'POST', '/api/v2/models/empty_model_cache',
+    undef,  'invoke-web.gpu_lease.handler.empty_cache_reply'
+);
+return TRUE;
+
+#,,,,,,,.,,,.,..,,...,.,,,...,.,.,.,,,..,,,,.,..,,...,...,...,.,.,,,,,..,,.,,,
+#NZLRCD2AGEHTQUUEYPTFRJEGQDVYCZGDNMJXTOHFPNQFTTKPSVDX6UPLARXHZRL6726VCJJI35P6W
+#\\\|DRHN7Y465UOJMM7NOQ7IGDAU2SJT3J6SGYSEYVM5LCQFXBMEHZ4 \ / AMOS7 \ YOURUM ::
+#\[7]457CXJUADMEQ2UNQYZWRG5T2JYFNLFEQI3OOZTXZNXH7YXLG2KBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.handler.empty_cache_reply
+# descr = cache emptying finished : verify vram before acknowledging
+
+my $reply = shift // {};
+if ( not $reply->{'ok'} ) {
+    <[base.logs]>->(
+        0,
+        ': invoke.ai model cache emptying failed [ %s ]',
+        $reply->{'status'} // 'unknown'
+    );
+    if (<[base.cfg_bool]>->(
+            <invoke-web.gpu_lease.stop_on_unload_failure> // FALSE
+        )
+    ) {
+        <[base.logs]>->( 0, ': stopping invoke.ai as the unload fallback' );
+        <[invoke-web.cmd.stop]>->( {} );
+    } else {
+        <invoke-web.gpu_lease.unloading> = FALSE;
+        return FALSE;
+    }
+}
+
+<[event.add_timer]>->(
+    {   'after'   => 0.5,
+        'handler' => qw| invoke-web.gpu_lease.handler.verify_unload |,
+        'data'    => { 'attempt' => 1 },
+    }
+);
+return TRUE;
+
+#,,,,,..,,.,,,,,,,..,,..,,..,,.,,,,.,,,.,,,,.,..,,...,...,..,,...,.,.,,..,.,,,
+#4BGF2RIUE6SFDAFPSJFWVHOR2RWLSY2XCVCXUZMNEPFDYQ2FG3O2PIZW26VZBLHVFPYSLRND73TS4
+#\\\|6O4AHJIMJ3NQMIBRP24EVUDUKPQGLPENM5NL7M7P2RQAFND345R \ / AMOS7 \ YOURUM ::
+#\[7]HK7L77OIEUQOYJCFFYQ5RF7UUF2F6DKB2NMQAXOYFT5XM7BJRODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

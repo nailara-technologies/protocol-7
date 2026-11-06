@@ -27,10 +27,23 @@ my $aref_pending = <coding.task.pending> //= [];
 
 ## prevent duplicates ##
 if ( exists $queue_href->{$task_id} ) {
+    my $existing = $queue_href->{$task_id};
+    if ( delete $existing->{'gpu_lease_requeued'} ) {
+        $existing->{'pause_requested'} = FALSE;
+        <[coding.async.state_machine]>->(
+            'resume', $task_id, { 'reason' => 'gpu lease task requeued' }
+        );
+        return {
+            'success'       => TRUE,
+            'resumed'       => TRUE,
+            'task_id'       => $task_id,
+            'existing_task' => $existing,
+        };
+    }
     return {
         success       => FALSE,
         error         => "task already in queue: $task_id",
-        existing_task => $queue_href->{$task_id}
+        existing_task => $existing
     };
 }
 
@@ -87,8 +100,8 @@ return {
     message    => "task enqueued: $task_id"
 };
 
-#,,,.,,,,,,,.,...,.,,,..,,.,,,...,,..,..,,,,.,..,,...,...,..,,,..,...,,,.,..,,
-#3HT7PFKX677NH6OQWGBVGXOVE7UQHPVOJUH236HTYMOBZS6FJJF7NUDARHZYBB3BRUJ4JXWSK4K2M
-#\\\|CYV57VL7WCID4YVVNK6I6WTJBB4TJNDCL63ZE7STDU66JAOVCSM \ / AMOS7 \ YOURUM ::
-#\[7]V3TPOW2JYDRG7FPLOF6JWZFLLRONCXJSTYB523GMPUSBO6OIQSDI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,.,...,.,,,,,,,.,.,.,,,.,.,...,..,,...,...,.,,,.,,,.,.,.,.,,,.,
+#RWMJ4XZJKQOZAK5VAD33GNMW2OVTPULNHORDSOHB2VHGVSRGHI6IZI3BA4VL3WK6PDOJHPQAVE3HU
+#\\\|PKWXWFD7GZHA2ED5M6DSCJ3RVXHJ6533MH6GA3F57MJTYUVNUUT \ / AMOS7 \ YOURUM ::
+#\[7]GXGWLI5X4LZ3RF6YEJR7YGRJ4XIHMY77WZOIUKENZP252ZEV3GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

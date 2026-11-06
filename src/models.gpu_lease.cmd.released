@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = models.gpu_lease.cmd.released
+# descr = a previous gpu occupant acknowledges its unload
+
+my ( $from, $requester ) = split m|\s+|, $call->{'args'} // '';
+my $lease   = <models.gpu_lease> //= {};
+my $pending = $lease->{'pending'};
+
+return { 'mode' => qw| false |, 'data' => 'no matching handover' }
+    if ref $pending ne qw| HASH |
+    or ( $pending->{'from'}      // '' ) ne ( $from      // '' )
+    or ( $pending->{'requester'} // '' ) ne ( $requester // '' );
+
+$pending->{'unloaded'}    = TRUE;
+$pending->{'wait_reason'} = 'unload acknowledged : checking vram';
+<[models.gpu_lease.handler.tick]>;
+return { 'mode' => qw| true | };
+
+#,,,.,,..,..,,,..,...,,..,,..,.,,,,,,,..,,,..,..,,...,...,,,,,..,,.,.,,..,...,
+#B6WOZLEMJJ3NLDIZHYIR5H4AN2PK3OC2QXLPIRDDIGIJ65ZDLI3SFXOWBWUU7V2RNMSDTYXW4SHGC
+#\\\|CVZ6J6I6527ZLT5WAVZ4F3JPUVYDR2O4CT4CRNYGXVTX7L2ORQB \ / AMOS7 \ YOURUM ::
+#\[7]CBA25CDOK2RUSQ7L7C44ONXIGX6BZJLRI4BBSXWCRG5BWMSGKQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

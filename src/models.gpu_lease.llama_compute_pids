@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = models.gpu_lease.llama_compute_pids
+# descr = live llama compute processes [ invoke python is memory-judged ]
+
+my @pids;
+my $output
+    = qx{ nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits 2>/dev/null };
+return [] if $CHILD_ERROR != 0;
+
+for my $pid ( $output =~ m|(\d+)|g ) {
+    next unless open my $fh, '<', "/proc/$pid/cmdline";
+    my $cmdline = do { local $INPUT_RECORD_SEPARATOR; <$fh> }
+        // '';
+    close $fh;
+    push @pids, $pid if $cmdline =~ m{llama-(?:server|mtmd-cli)};
+}
+return \@pids;
+
+#,,.,,,..,,..,.,.,,..,.,.,,,.,...,.,.,.,.,..,,..,,...,...,...,..,,...,.,.,.,.,
+#BZN7UVIJNRCETCNJQTDEEFWRD6AFR6K3OPHNQYT56BSRN7VIC5TBNIZUKESUK2CKEY44WBGCRA7VU
+#\\\|AEWEGPKGVOURRPMDOZYGF4IW3IBP25CP4F33UEQ44J54DJGM56I \ / AMOS7 \ YOURUM ::
+#\[7]NKEWHNFPLZYVU623FB3DNAPZTGISC2CJNTDM2RFXX2OPE33ANSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

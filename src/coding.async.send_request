@@ -8,10 +8,15 @@ my ($task_id) = @ARG;
 return { success => FALSE, error => 'task_id required' }
     unless defined $task_id;
 
-## hold dispatch while backend is restarting after crash ##
-if (<coding.task.queue_paused>) {
+## hold gpu dispatch during a lease handover ; cpu remains independent ##
+my $lease_hold
+    = (
+    <[coding.helper.task_backend]>->( <coding.task.queue>->{$task_id} ) eq
+        qw| gpu | and <coding.gpu_lease.dispatch_hold> );
+if ( <coding.task.queue_paused> or $lease_hold ) {
     <[base.logs]>->(
-        1, 'send_request: queue paused : rescheduling %s in 5s', $task_id
+        $lease_hold ? 2 : 1,
+        'send_request: queue paused : rescheduling %s in 5s', $task_id
     );
     my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
     my $round = $state->{'round'} // 0;
@@ -413,8 +418,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,..,,.,,,,.,,..,,.,,.,.,.,,,,..,.,.,,,.,...,..,,...,...,...,.,.,,,.,,,,,...,
-#OQDYTGZRLQW2YOPXQVIYCYYNTFGCOMR7TQO77XDEBVS4XNV5TPEEZCZUURD6DUH646TZNXNWECTDC
-#\\\|4UZMK4J4IT4AUUV7WPTE4GZ5PRER34V2N2EYEAQF4IWV3TQ5UGN \ / AMOS7 \ YOURUM ::
-#\[7]CDV3GLCMKEQAEQYJJ7N6LFGGIKH2BGOUXAPOLBYLNFMVPR5QLIAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,.,.,.,.,.,..,,.,,,,,.,...,,,,,..,,...,...,,.,,,..,,,,,.,,,,,.,
+#HMKYTMHXCXKE7T7P6G2P7RAAAAEDBF2E4RJ6FXT33TB4C4YHZZSDO4LDB33PPLD4JUMJVMGWDGE66
+#\\\|B74FDABB35YZ3HSODJZV3SFXPIRYLPR6B7FW6UN5JJZQ7A67M5D \ / AMOS7 \ YOURUM ::
+#\[7]M664SBBPBDF52QYX4IYXSX6IGVDNDOCOEX3YFPSXQJ6IO3RGD6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

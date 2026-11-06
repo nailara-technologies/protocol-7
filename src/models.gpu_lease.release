@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = models.gpu_lease.release
+# descr = release a holder's gpu residency lease
+# param = owner name
+
+my $owner = shift // '';
+return FALSE if $owner ne qw| coding | and $owner ne qw| invoke-web |;
+
+my $lease = <models.gpu_lease> //= {};
+delete $lease->{'waiting'}->{$owner};
+return FALSE if ( $lease->{'holder'} // '' ) ne $owner;
+
+delete $lease->{'holder'};
+delete $lease->{'touched'};
+<[base.logs]>->( 1, ': gpu lease released by %s', $owner );
+<[models.gpu_lease.handler.tick]>;
+return TRUE;
+
+#,,..,.,,,,,.,,,,,,,.,...,..,,..,,,.,,,..,...,..,,...,...,.,.,,.,,,.,,,,,,.,.,
+#V5XFWJMYQRVQFTVJ5LPSNWLX6KQTKE7Y23ILUAWJD44N2Z6KOL5HTTPXDT57TRPY3DRPGVANRA2SE
+#\\\|AASFZW4NADOHOL6LGZHSRT6ACRWYE6WB7A223YPI6KEQM5HZROY \ / AMOS7 \ YOURUM ::
+#\[7]XBAJDHNQEBEHMOUFY6YQ5TB3IPKCMEUX4I6VLSLIKI6CQYWO2CCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

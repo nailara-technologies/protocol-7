@@ -8,6 +8,19 @@ my $params = shift;
 my $backend = $params->{'backend'} // qw| cpu |;
 my $port    = $params->{'port'}    // 8000;
 
+if ( $backend eq qw| gpu |
+    and ( <models.cfg.gpu_lease.enabled> // '' ) =~ m{^(yes|true|1|on)$}i ) {
+    my $lease = <[coding.gpu_lease.gate]>;
+    if ( $lease == FALSE ) {
+        <[base.logs]>->(
+            <coding.gpu_lease.wait_logged> ? 2 : 1,
+            '[spawn_inference_server] gpu lease held elsewhere : spawn held'
+        );
+        <coding.gpu_lease.wait_logged> = TRUE;
+        return { 'success' => FALSE, 'error' => 'gpu lease held elsewhere' };
+    }
+}
+
 ## guard against concurrent spawns : any call path (crash restart, timeout  ##
 ## recovery, model_path_reply, deferred timer) hits this central lock also  ##
 ## enforce a 30s cooldown: the seed sleep(0.0013) yields to the event loop, ##
@@ -1376,8 +1389,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,,,.,,,.,,.,,.,.,.,,,...,..,,.,.,...,...,..,,...,...,,,.,.,,,.,.,...,,,,,
-#5I2IXAAMWRNDBEUYGWIDODSKCUOXZXXMHX7MTDA5JDJH2JAD2KPOJZ353AUDYMKDLUZZQXQFZJADQ
-#\\\|MIY6E7ZTFEJEYTDA2CXDOQG4KWGELR6CWNTEMZM2GXZGJIUGWGJ \ / AMOS7 \ YOURUM ::
-#\[7]V5ITFS4D4L2Y2SPIJCVADIAAATOFL7MDTB6ZT3N6USK46FCIBCAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,,.,,,.,,.,,,.,.,,.,,...,..,,..,,...,...,,..,..,,,.,,,..,,.,,
+#YFUZWHP4D6H5AYPTZ6FHZ3GVM7HHQZXL5UTTNX2SQLDHGDUJFHSJ5SQHY2Y224GV24T24RNPAH4NQ
+#\\\|6X2DWBHYGPCVSZKUDTW3U4BDMZL2OPQZ5O7MOFER2JCCFBOYBEX \ / AMOS7 \ YOURUM ::
+#\[7]IUF53CLHZI44ZRM47CEDT2XOWIMYK5BOPXGLEQU3UYS6ZXL2IGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

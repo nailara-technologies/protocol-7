@@ -1,0 +1,169 @@
+## [:< ##
+
+# name  = models.gpu_lease.handler.tick
+# descr = expire, hand over and grant gpu residency leases
+
+my $event = shift;
+my $lease = <models.gpu_lease> //= {};
+my $now   = <[base.time]>;
+
+return FALSE
+    if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
+
+my $timeout = <models.cfg.gpu_lease.timeout> // 45;
+$timeout = 45 if $timeout !~ m|^\d+$| or $timeout < 5;
+my $handover_timeout = <models.cfg.gpu_lease.handover_timeout> // 60;
+$handover_timeout = 60
+    if $handover_timeout !~ m|^\d+$| or $handover_timeout < 1;
+
+if ( length( $lease->{'holder'} // '' )
+    and $now - ( $lease->{'touched'} // 0 ) > $timeout ) {
+    <[base.logs]>->(
+        0,                  ': gpu lease holder %s expired after %d s',
+        $lease->{'holder'}, $timeout
+    );
+    $lease->{'expired_owner'} = $lease->{'holder'};
+    delete $lease->{'holder'};
+    delete $lease->{'touched'};
+}
+
+my $priority = lc( <models.cfg.gpu_lease.priority> // qw| invoke-web | );
+$priority = $priority eq qw| coding | ? qw| coding | : qw| invoke-web |;
+my @owners
+    = $priority eq qw| coding |
+    ? qw| coding invoke-web |
+    : qw| invoke-web coding |;
+
+delete $lease->{'waiting'}->{ $lease->{'holder'} }
+    if length( $lease->{'holder'} // '' );
+
+my $grant = sub {
+    my $pending = shift;
+    my $owner   = $pending->{'requester'};
+    my $sent    = <[protocol-7.route-send]>->(
+        {   'command'   => "$owner.gpu-lease-granted",
+            'call_args' => { 'args' => $timeout },
+        }
+    );
+    if ( not $sent ) {
+        $pending->{'wait_reason'} = 'grant route failed';
+        return FALSE;
+    }
+    $lease->{'holder'}  = $owner;
+    $lease->{'touched'} = $now;
+    delete $lease->{'waiting'}->{$owner};
+    delete $lease->{'pending'};
+    delete $lease->{'expired_owner'};
+    <[base.logs]>->(
+        $pending->{'timed_out'} ? 0 : 1,
+        ': gpu lease granted to %s [ vram verified free%s ]',
+        $owner,
+        $pending->{'timed_out'} ? ' after handover timeout' : ''
+    );
+    return TRUE;
+};
+
+my $pending = $lease->{'pending'};
+if ( ref $pending eq qw| HASH | ) {
+    if (   !$pending->{'unloaded'}
+        and $now - ( $pending->{'started'} // 0 ) > $handover_timeout
+        and not $pending->{'timeout_logged'} ) {
+        $pending->{'timeout_logged'} = TRUE;
+        $pending->{'timed_out'}      = TRUE;
+        $pending->{'unloaded'}       = TRUE;
+        $pending->{'wait_reason'}    = 'handover timeout : checking vram';
+        <[base.logs]>->(
+            0,
+            ': gpu lease handover %s -> %s timed out after '
+                . '%d s : granting only if vram admits the requester',
+            $pending->{'from'}      // 'none',
+            $pending->{'requester'} // '?',
+            $handover_timeout
+        );
+    }
+
+    if ( $pending->{'unloaded'} ) {
+        my $status = <[models.gpu_lease.vram_free]>->(
+            TRUE, $pending->{'need_mb'} // 0
+        );
+        $grant->($pending) if $status->{'ok'};
+        if ( !$status->{'ok'} and ref $lease->{'pending'} eq qw| HASH | ) {
+            $pending->{'wait_reason'}
+                = sprintf
+                'vram admission refused : %d MB free, %d MB needed%s',
+                $status->{'free_mb'}, $status->{'need_mb'},
+                @{ $status->{'llama'} // [] }
+                ? sprintf( ', llama pids %s',
+                join( ' ', $status->{'llama'}->@* ) )
+                : '';
+            if ( not $pending->{'refusal_logged'} ) {
+                $pending->{'refusal_logged'} = TRUE;
+                <[base.logs]>->(
+                    0,
+                    ': gpu lease for %s waits : %s',
+                    $pending->{'requester'},
+                    $pending->{'wait_reason'}
+                );
+            }
+        }
+    }
+}
+
+if ( length( $lease->{'holder'} // '' ) ) {
+    delete $lease->{'waiting'}->{ $lease->{'holder'} };
+    my ($preempt) = grep {
+                $ARG eq $priority
+            and $ARG ne $lease->{'holder'}
+            and exists $lease->{'waiting'}->{$ARG}
+    } @owners;
+    return TRUE if not defined $preempt;
+    <[base.logs]>->(
+        1,        ': gpu lease priority handover : %s preempts %s',
+        $preempt, $lease->{'holder'}
+    );
+    delete $lease->{'holder'};
+    delete $lease->{'touched'};
+}
+return TRUE if ref $lease->{'pending'} eq qw| HASH |;
+
+my ($requester) = grep { exists $lease->{'waiting'}->{$ARG} } @owners;
+return TRUE if not defined $requester;
+
+my $from    = $requester eq qw| coding | ? qw| invoke-web | : qw| coding |;
+my $request = $lease->{'waiting'}->{$requester};
+my $need_mb = ref $request eq qw| HASH | ? $request->{'need_mb'} // 0 : 0;
+$lease->{'pending'} = {
+    'requester' => $requester,
+    'from'      => $from,
+    'started'   => $now,
+    'need_mb'   => $need_mb,
+    'presence'  => TRUE,
+    'unloaded'  => ( $lease->{'expired_owner'} // '' ) eq $from
+    ? TRUE
+    : FALSE,
+    'wait_reason' => 'checking whether the previous side is connected',
+};
+return TRUE if $lease->{'pending'}->{'unloaded'};
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| cube.present |,
+        'call_args' => { 'args' => $from },
+        'reply'     => {
+            'handler' => qw| models.gpu_lease.handler.presence |,
+            'params'  => { 'from' => $from, 'requester' => $requester },
+        },
+    }
+);
+
+if ( not $sent ) {
+    $lease->{'pending'}->{'unloaded'} = TRUE;
+    $lease->{'pending'}->{'wait_reason'}
+        = 'presence lookup unavailable : checking vram';
+}
+return TRUE;
+
+#,,,.,.,,,..,,,,.,.,.,,..,.,,,,,.,,..,,..,.,.,..,,...,..,,.,,,..,,.,.,..,,..,,
+#OU5D5JWZ7364E74RT7CE37YBTVL5ED4I6PAS6ZREBNSAGCTCHZ2AKDSN24FMSEBXIDGF2YMWZQHFA
+#\\\|QLQUQIWZ3TIH3AAOCGJTL7MV7RMUTOQYCY6UZV3OFUW4FWE2EU6 \ / AMOS7 \ YOURUM ::
+#\[7]RL63SCB3OJM5S5QQOEKF5ZIUJTJ5MUGE4CI4U5ANR4OAF75IN6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -279,6 +279,7 @@ crypt.C25519.key_vars
 crypt.C25519.key_path
 crypt.C25519.gen_keys
 coding.tools.dispatch
+coding.gpu_lease.gate
 coding.async.complete
 clients.http.pre_init
 base.session.shutdown
@@ -500,6 +501,7 @@ base.check_dependency_dirs
 net.read_linewise_estimated
 jobqueue.check_dependencies
 io.unix.socket.output.close
+invoke-web.gpu_lease.unload
 invoke-web.cmd.session-park
 invoke-web.cmd.render-stats
 invoke-web.cmd.model-source
@@ -540,6 +542,7 @@ invoke-web.queue.interactive
 invoke-web.parse_output_line
 invoke-web.handler.hash_poll
 invoke-web.handler.api_reply
+invoke-web.gpu_lease.request
 invoke-web.cmd.fetch-missing
 invoke-web.activity.watch_db
 crypt.C25519.delegation_file
@@ -731,6 +734,9 @@ protocol.amos-chksum.ext-cmd.bytes
 invoke-web.handler.recover_restart
 invoke-web.handler.gpu_pause_reply
 invoke-web.handler.drain_processor
+invoke-web.gpu_lease.queue_changed
+invoke-web.gpu_lease.handler.renew
+invoke-web.gpu_lease.handler.grace
 crypt.C25519.load_keys_from_secret
 crypt.C25519.get_type_from_key_str
 coding.tools.http_inference_client
@@ -837,6 +843,7 @@ base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
 invoke-web.handler.requeue_missing_reply
 invoke-web.handler.recover_requeue_reply
+invoke-web.gpu_lease.handler.renew_reply
 coding.handler.monitor_inference_startup
 coding.callback.object_self_test_pending
 protocol.protocol-7.auth.select-size-mode
@@ -846,6 +853,8 @@ base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
+invoke-web.gpu_lease.handler.verify_unload
+invoke-web.gpu_lease.handler.acquire_reply
 coding.tools.handler.strip_trailing_spaces
 coding.tools.handler.scratchpad_categorize
 coding.model_sweep.handler.cooldown_resume
@@ -854,17 +863,22 @@ coding.self_test.helper.capture_server_tail
 coding.helper.resume_task_queue_for_backend
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
+invoke-web.gpu_lease.handler.acquire_timeout
 coding.callback.object_model_checksum_loaded
 coding.tools.definitions.module_introspection
 base.log.send-buffer.reply-handler.send-reply
+invoke-web.gpu_lease.handler.queue_pause_reply
+invoke-web.gpu_lease.handler.empty_cache_reply
 base.zenki.ondemand.handler.reconcile_starting
 plugin.auth.auth-keypair.validate-incoming-tofu
+invoke-web.gpu_lease.handler.unload_pause_reply
+invoke-web.gpu_lease.handler.queue_resume_reply
 protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,.,.,...,,,.,,..,..,,,,.,...,.,,,,,.,,,.,..,,...,...,..,,.,.,,,.,,..,...,
-#FZNVOPVDHLXYJFNUV5BAZCEVNFGJCXAD2R7L5Y6M2R5CUBRCPTW3X5P2XC2NAUHCSZT2GYW4ETSB2
-#\\\|S7MQTRBTH3LHAJDKQAU6ZCMBLJ2EX5P43MPATC7QJ4EOLLX7XDT \ / AMOS7 \ YOURUM ::
-#\[7]WAURPJ6NDI4E7N4EINRBORZCIUE75EEMH6CQKXXWTT2FOANTIKAA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,...,,,,,.,.,.,.,,,.,,.,,...,..,,...,...,...,,,.,.,.,.,.,...,
+#CUTYU32O6PK2TLMAHTEKZGRDJV4TJSDRUOP2QMGGOJ6SE2S2L4HQYELZJ573DTHMZHX33NXTVLLGS
+#\\\|NFXKJESIA3YBPZVJRCTPHW5PLNOCP6AK2AMAZNQUZQFIVVCETBI \ / AMOS7 \ YOURUM ::
+#\[7]ZJP4WEKGERTMQRZYMLHZSICQ6RWVXUCVUTQCD26MVWGETYJSNIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
