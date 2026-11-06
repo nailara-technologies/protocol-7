@@ -1737,6 +1737,7 @@ return [ qw[
         coding.tools.dispatch
         coding.task.resurrect
         coding.intake.process
+        coding.gpu_lease.gate
         coding.cmd.tree-write
         coding.cmd.temp-boost
         coding.cmd.round-time
@@ -1946,6 +1947,8 @@ return [ qw[
         models.task.parse-show
         models.task.drop-claim
         models.registry.lookup
+        models.gpu_lease.state
+        models.gpu_lease.renew
         models.cmd.trash-prune
         models.cmd.task-notify
         models.cmd.maintenance
@@ -2593,6 +2596,8 @@ return [ qw[
         models.storage.yaml_load
         models.registry.list_all
         models.handler.task-poll
+        models.gpu_lease.release
+        models.gpu_lease.acquire
         models.conversation.save
         models.conversation.load
         models.cmd.test_discover
@@ -2722,6 +2727,7 @@ return [ qw[
         coding.idiom.check_write
         coding.helper.task_chain
         coding.helper.dry_last_n
+        coding.gpu_lease.request
         coding.cmd.restart-round
         coding.cmd.clear-applied
         coding.buffer.task_write
@@ -3215,6 +3221,10 @@ return [ qw[
         models.parser.ellipse_name
         models.handler.task-stream
         models.handler.task-result
+        models.gpu_lease.vram_free
+        models.gpu_lease.init_code
+        models.gpu_lease.cmd.state
+        models.gpu_lease.cmd.renew
         models.conversation_create
         models.conversation.create
         models.cmd.add_participant
@@ -3323,6 +3333,7 @@ return [ qw[
         coding.helper.backend_idle
         coding.handler.spawn_smart
         coding.handler.drain_check
+        coding.gpu_lease.cmd.yield
         coding.context.read_module
         coding.cmd.summarize-reply
         coding.cmd.resume-analysis
@@ -3581,6 +3592,7 @@ return [ qw[
         io.unix.socket.output.close
         io.ssl.ip.handshake.cleanup
         io.ssl.ip.handler.handshake
+        invoke-web.gpu_lease.unload
         invoke-web.cmd.session-park
         invoke-web.cmd.render-stats
         invoke-web.cmd.model-source
@@ -3877,6 +3889,8 @@ return [ qw[
         models.storage.get_tier_path
         models.registry.update_entry
         models.registry.create_entry
+        models.gpu_lease.cmd.release
+        models.gpu_lease.cmd.acquire
         models.conversation_add_turn
         models.conversation.add_turn
         models.cmd.test_api_fallback
@@ -3923,6 +3937,7 @@ return [ qw[
         invoke-web.parse_output_line
         invoke-web.handler.hash_poll
         invoke-web.handler.api_reply
+        invoke-web.gpu_lease.request
         invoke-web.cmd.fetch-missing
         invoke-web.activity.watch_db
         index.cube.format.dir_offset
@@ -3986,6 +4001,7 @@ return [ qw[
         coding.image.mime_from_magic
         coding.image.load_for_vision
         coding.image.expand_messages
+        coding.gpu_lease.cmd.granted
         coding.cmd.summarize-context
         coding.cmd.subscribe-session
         coding.cmd.safe-context-size
@@ -4165,6 +4181,8 @@ return [ qw[
         mpv.handler.event.file-loaded
         models.storage.create_symlink
         models.handler.task-poll-step
+        models.gpu_lease.handler.tick
+        models.gpu_lease.cmd.released
         models.gguf.file.extract_name
         models.get_inference_endpoint
         models.decision.cost_analysis
@@ -4540,6 +4558,7 @@ return [ qw[
         invoke-web.handler.fetch_reply
         invoke-web.handler.drain_check
         invoke-web.handler.claim_child
+        invoke-web.gpu_lease.cmd.yield
         invoke-web.cmd.requeue-missing
         index.callback.wordlist-import
         impressive.cmd.playlist-update
@@ -4622,6 +4641,7 @@ return [ qw[
         coding.handler.gpu_fit_recheck
         coding.handler.cpu_fit_recheck
         coding.handler.await_resources
+        coding.gpu_lease.handler.renew
         coding.analyze.estimate_tokens
         channels.util.get_review_stage
         channels.cmd.ai-review-approve
@@ -5034,6 +5054,7 @@ return [ qw[
         jobsite.handler.liveness-timeout
         jobsite.handler.import-url-reply
         invoke-web.handler.win_mem_reply
+        invoke-web.gpu_lease.cmd.granted
         invoke-web.cmd.requeue-cancelled
         invoke-web.cmd.queue-interactive
         index.cube.format.pack_dir_entry
@@ -5110,6 +5131,7 @@ return [ qw[
         coding.handler.refresh_mem_stats
         coding.handler.lora_train_stdout
         coding.handler.lora_train_stderr
+        coding.gpu_lease.cancel_activity
         channels.cmd.next-data-timestamp
         channels.cmd.last-data-timestamp
         branch.space.symmetry.invariants
@@ -5229,6 +5251,8 @@ return [ qw[
         mpv.handler.event.property-change
         models.storage.discover_directory
         models.registry.base.get_registry
+        models.gpu_lease.handler.presence
+        models.gpu_lease.cmd.release-task
         models.gguf.file.extract_metadata
         models.conversation.route_by_role
         models.cmd.get_inference_endpoint
@@ -5310,6 +5334,7 @@ return [ qw[
         coding.handler.http_stall_timeout
         coding.handler.http_io_parse_line
         coding.handler.defer_seed_restart
+        coding.gpu_lease.handler.unloaded
         coding.file.strip_trailing_spaces
         coding.callback.object_memory_gpu
         coding.callback.object.model_path
@@ -5465,6 +5490,9 @@ return [ qw[
         invoke-web.handler.recover_restart
         invoke-web.handler.gpu_pause_reply
         invoke-web.handler.drain_processor
+        invoke-web.gpu_lease.queue_changed
+        invoke-web.gpu_lease.handler.renew
+        invoke-web.gpu_lease.handler.grace
         impressive.subscribe-screen-change
         image2html.child.cmd.convert_image
         httpsd.discover_active_certificate
@@ -5618,6 +5646,7 @@ return [ qw[
         nameserv.consistency.real-addresses
         nameserv.consistency.handler.answer
         models.storage.adapter.discover_all
+        models.gpu_lease.llama_compute_pids
         models.gguf.file.file_type_to_quant
         models.decision.recommendation_base
         models.conversation.add_participant
@@ -5831,6 +5860,7 @@ return [ qw[
         coding.handler.models_list_all_reply
         coding.handler.models_discover_reply
         coding.handler.fetch_model_discovery
+        coding.gpu_lease.handler.renew_reply
         coding.callback.object_memory_system
         coding.async_spawn_inference_servers
         branch.session.dag.parallel_dispatch
@@ -6054,6 +6084,7 @@ return [ qw[
         coding.handler.switch_model_spawn_done
         coding.handler.inference_crash_restart
         coding.handler.http_data_start_timeout
+        coding.gpu_lease.handler.acquire_reply
         coding.callback.object_model_discovery
         coding.callback.object_model_available
         channels.memory-sync.conflict-resolver
@@ -6177,6 +6208,7 @@ return [ qw[
         jobsite.util.fix_encoding.mojibake-table
         invoke-web.handler.requeue_missing_reply
         invoke-web.handler.recover_requeue_reply
+        invoke-web.gpu_lease.handler.renew_reply
         httpsd.request_certificate_from_letsencr
         graphics.matrix.visual.generate-batch-id
         graphics.matrix.visual.detect-resolution
@@ -6193,6 +6225,7 @@ return [ qw[
         coding.handler.monitor_inference_startup
         coding.handler.models_resolve_path_reply
         coding.handler.fetch_model_discovery_job
+        coding.gpu_lease.handler.acquire_timeout
         coding.callback.object_self_test_pending
         base.stdio.frame.encode.encode_byte_pack
         base.stdio.frame.decode.decode_byte_pack
@@ -6268,6 +6301,8 @@ return [ qw[
         ncode.transform.wave.util.build_llm_prompt
         mpv.handler.event.property-change.seekable
         letsencr.parent.handler_httpd_reload_reply
+        invoke-web.gpu_lease.handler.verify_unload
+        invoke-web.gpu_lease.handler.acquire_reply
         impressive.handler.screen-change_strm_open
         form.handler.field_options_bootstrap_reply
         discover.orbital.handler.local_p7ref_reply
@@ -6332,6 +6367,7 @@ return [ qw[
         plugin.storage.util.visual.calculate_entropy
         nameserv.sync.client.handler.connect-timeout
         letsencr.parent.check_certificate_expiration
+        invoke-web.gpu_lease.handler.acquire_timeout
         fetch.file.huggingface.handler.list_response
         data.topology.interference.map.hash_to_phase
         data.topology.interference.map.PROTOCOL_BLUE
@@ -6365,6 +6401,8 @@ return [ qw[
         plugin.auth.auth-keypair.cleanup-incoming-keys
         models.decision.cost_base.is_latency_sensitive
         llm.service.subprocess_wrapper.estimate_tokens
+        invoke-web.gpu_lease.handler.queue_pause_reply
+        invoke-web.gpu_lease.handler.empty_cache_reply
         fetch.file.huggingface.handler.verify_progress
         fetch.file.huggingface.handler.search_response
         data.topology.interference.map.hash_to_cube_3d
@@ -6378,6 +6416,8 @@ return [ qw[
         models.registry.update_entry.update_model_entry
         models.registry.create_entry.create_model_entry
         letsencr.parent.notify_httpd_certificate_update
+        invoke-web.gpu_lease.handler.unload_pause_reply
+        invoke-web.gpu_lease.handler.queue_resume_reply
         data.topology.interference.map.detect_workholes
         data.topology.interference.map.coord_to_subcube
         data.mount.shm.permission.verify.group_contains
@@ -6466,8 +6506,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,,,,.,,,,,,,,.,,,.,,.,,.,,,,.,,...,,,.,.,.,...,...,...,,,.,,.,,,,.,,.,,
-#HSQQJ2YODAUNDZNEUE7K4RKI5KNEEG7ZPCOZWOR6PMGNYYIKN34YRKLQ22LMXQ24ELL2ENAETB4EC
-#\\\|G3NBGW7K564FFBSY2I774F76533PJ3QB5KKMQPQNAD4WHL4A4KD \ / AMOS7 \ YOURUM ::
-#\[7]DAGPLBNBATTTETO7SR3Y72R6DSTGM47IWME75YCDJLLZRHRVAICY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,..,,.,.,.,,,...,.,,,.,.,.,,,,.,,.,.,...,...,..,,..,,.,.,.,.,.,.,
+#LRUJF2VZXDASELJIRSSHUMF3ZBRUGNDYHYLYVTSKIDIWOX2I227EW45QJKB3MYNWIOC6FGZ7YGMJI
+#\\\|NFKMGDX2RIAHHIC4N3UFG2AQ2YVFUNPPY54KWHN4UTPDF2LDPBA \ / AMOS7 \ YOURUM ::
+#\[7]SFYY3QQLM66T7DQVKZJETU4XM7OHAC7KEG5QEF4U25JZS7S6JMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

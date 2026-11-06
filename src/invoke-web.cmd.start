@@ -7,6 +7,19 @@
 my $status = <invoke-web.status> // 'idle';
 my $pid    = <invoke-web.pid>;
 
+if ( <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE )
+    and ( <invoke-web.gpu_lease.holder> // '' ) ne qw| invoke-web | ) {
+    my $requested = <[invoke-web.gpu_lease.request]>;
+    if ( $requested == FALSE ) {
+        <invoke-web.gpu_lease.start_waiting> = TRUE;
+        <[base.zenki.pause_ondemand_timeout]>;
+        return {
+            mode => qw| size |,
+            data => "invoke.ai start queued : waiting for the gpu lease\n"
+        };
+    }
+}
+
 ## already running or starting : report and return
 if ( $status eq 'running' or $status eq 'starting' ) {
     return {
@@ -209,8 +222,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,.,,,,.,.,.,.,.,,,.,..,,,,,,,.,,.,.,.,.,.,,,..,,...,...,.,.,...,...,,,,,,,.,
-#HJTGXFTN44RH6VOHL3BSJWB4LKS5MTEP24WP6ZOGUKUHGY56PVVZDPN2SZSTFB47SSGPEX5AOHKXS
-#\\\|EAKMABBRMU5QFHSCYB5GAVU273JKV4JZDHBZI7TW3EII4JZZVEE \ / AMOS7 \ YOURUM ::
-#\[7]WOOBW5MYOLNL7AJTCMAWUVRENWZRLUPCVKO52KH2PAOXNYKP3WAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,..,,.,,,.,,,.,,,,,,,.,,.,.,,..,..,,...,...,...,..,,...,...,.,.,
+#Y2J5JBOCEW6DU4VMMLJNF5VOQH32RUSIUIZPCN3TFQ3NQX55KONISLGIWFT2W3MOWJTGRBIRZ6BIQ
+#\\\|FYJ57D4LMDOJBJSTQRO32THKSKLCI5SES5MY5D3AWQDTBQC4CKO \ / AMOS7 \ YOURUM ::
+#\[7]2UNKPHGALJGIMK6QQMKSG5J4ATO6J7J3N6CM6FEXGPYU4GCYX6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

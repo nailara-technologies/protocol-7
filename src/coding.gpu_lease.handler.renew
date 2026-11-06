@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = coding.gpu_lease.handler.renew
+# descr = renew the coding gpu lease before its models-side timeout
+
+return FALSE if ( <coding.gpu_lease.holder> // '' ) ne qw| coding |;
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| models.gpu-lease-renew |,
+        'call_args' => { 'args' => qw| coding | },
+        'reply'     => {
+            'handler' => qw| coding.gpu_lease.handler.renew_reply |,
+            'params'  => {},
+        },
+    }
+);
+my $timeout = <models.cfg.gpu_lease.timeout> // 45;
+$timeout = 45 if $timeout !~ m|^\d+$| or $timeout < 5;
+<coding.gpu_lease.renew_timer> = <[event.add_timer]>->(
+    {   'after'   => $timeout / 3,
+        'handler' => qw| coding.gpu_lease.handler.renew |,
+    }
+);
+return TRUE;
+
+#,,..,...,.,,,,..,,..,,..,.,,,.,,,,,.,..,,.,.,..,,...,...,..,,..,,,,,,,,.,,..,
+#3XI7Y32F2DKF25FMBB7HOPM3BZUML3F2JOLCQNCWUJ5QSNPT6UFXC7DPUQUZY2LZHZHYJAYWNYNH6
+#\\\|BJPOHNA2SFJ5GLLEM4NGQ2DYMTYJ63LUWGYEZWH23YQ56QW5U6D \ / AMOS7 \ YOURUM ::
+#\[7]D2BI2VIQRGQNXAQNCZ5WGEA3YF4FLL7YDSLEQ2KKED4AO4Z47EDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

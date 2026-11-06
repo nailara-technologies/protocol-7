@@ -15,6 +15,7 @@
 my $text = shift // '';
 
 my @ids;
+my %backends;
 my $idle_secs;
 my $idle_used = FALSE;
 my $status    = length $text ? eval { YAML::XS::Load($text) } : undef;
@@ -24,7 +25,8 @@ if ( ref $status eq qw| HASH | ) {
         my $backend_status = $status->{$backend} // {};
         my $id             = uc( $backend_status->{'model_id'} // '' );
         next if $id !~ m|^(?:[A-Z2-7]{7})?:?[A-Z2-7]{7}$|;
-        push @ids, $id;
+        push @ids,                $id;
+        push @{ $backends{$id} }, $backend;
         my $backend_idle = $backend_status->{'idle_secs'};
         if ( defined $backend_idle and $backend_idle =~ m|^\d+$| ) {
             $idle_secs = $backend_idle
@@ -44,6 +46,7 @@ if ( ref $status eq qw| HASH | ) {
 <models.task.local_models> = {
     'at'        => time,
     'ids'       => \@ids,
+    'backends'  => \%backends,
     'idle_secs' => $idle_secs,
     'idle_used' => $idle_used,
 };
@@ -56,8 +59,8 @@ if ( ref $status eq qw| HASH | ) {
 
 return \@ids;
 
-#,,.,,,.,,,,.,..,,,..,,..,.,,,,,,,,,.,..,,,,,,.,.,...,...,...,...,,,.,,.,,,.,,
-#RC4RDFJS7TWWOJVM7OTEFY3N42XCATJLCJHXCQNQI24NAAUQPDV6VKYDB56MERGTYSX5I2JR3KIR4
-#\\\|FXUKM2EG3ENSONRBTSSCJVYNXEWSJYLGL4YMP2IQKYLBPQEZ7RI \ / AMOS7 \ YOURUM ::
-#\[7]PW2ELU4OJLT2QCAMNC3JRQTKICJGZO3YNYSNSXP7BIXUKO67CGBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,.,.,,..,,..,,..,,,,,..,,,.,,.,.,...,..,,,,.,,..,,,,,.,,,.,,,
+#A2RRQCRJ6RHDWR6627GEMQOFRWUGPLTOE4Y5DPRZH2A24OANLLUG4J2U5P6BNF6Y4SDGBD6EX25PY
+#\\\|IHKCSJG3OKACOGQISOD7DYXYW4DGO3X44JI7GQ5NIVIIPT3OLVV \ / AMOS7 \ YOURUM ::
+#\[7]YYTHC74DN3J3334TWDKWANRTGX7L6NE7PBWFAUHLVJPMOXDNYMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

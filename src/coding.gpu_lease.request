@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = coding.gpu_lease.request
+# descr = asynchronously request sole gpu residency from models
+
+return TRUE
+    if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
+return TRUE    if ( <coding.gpu_lease.holder> // '' ) eq qw| coding |;
+return UNKNOWN if <coding.gpu_lease.unavailable>;
+return FALSE   if <coding.gpu_lease.request_inflight>;
+
+my $need_mb    = <models.cfg.gpu_lease.min_free_mb> // 4096;
+my $model_path = <inference.model.path>             // '';
+$need_mb
+    = int( ( -s $model_path ) / 1024**2 )
+    + ( <coding.cfg.vram_safety_mb> // 1024 )
+    if -f $model_path;
+$need_mb = 4096 if $need_mb < 4096;
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| models.gpu-lease-acquire |,
+        'call_args' => { 'args' => "coding $need_mb" },
+        'reply'     => {
+            'handler' => qw| coding.gpu_lease.handler.acquire_reply |,
+            'params'  => {},
+        },
+    }
+);
+<coding.gpu_lease.request_inflight> = $sent ? TRUE : FALSE;
+
+if ($sent) {
+    <[event.add_timer]>->(
+        {   'after'   => 5,
+            'handler' => qw| coding.gpu_lease.handler.acquire_timeout |,
+            'data'    => { 'stage' => qw| timeout | },
+        }
+    );
+} else {
+    <coding.gpu_lease.unavailable> = TRUE;
+    <[event.add_timer]>->(
+        {   'after'   => 30,
+            'handler' => qw| coding.gpu_lease.handler.acquire_timeout |,
+            'data'    => { 'stage' => qw| retry | },
+        }
+    );
+}
+return $sent ? FALSE : UNKNOWN;
+
+#,,.,,...,,..,,.,,,,.,,.,,,..,...,.,,,,,,,..,,..,,...,...,,..,..,,,,.,,.,,...,
+#X6ZU4MDQMVFKCP2NVRDITGEDCETTCEOSRC3OAL6CP7WB3O3KYVDFYB5DRSW4GZSD2V4YACQZBZK6M
+#\\\|UYAYEUAIHKPLBHTIASAFUZ4ZZBC34UODXKYXKVWABB4MMGT4YD4 \ / AMOS7 \ YOURUM ::
+#\[7]HN6DDDJCUOHGFLDH2NS4F3OPNOV4QKP75DGO5ZGJGJP7IAU5OCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

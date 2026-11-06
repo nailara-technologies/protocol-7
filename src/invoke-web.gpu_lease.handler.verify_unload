@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.handler.verify_unload
+# descr = acknowledge only after invoke.ai's vram is actually free
+
+my $event   = shift;
+my $attempt = $event->w->data->{'attempt'} // 1;
+my $mem     = <[coding.helper.query_gpu_memory]>;
+my $minimum = <models.cfg.gpu_lease.min_free_mb> // 4096;
+$minimum = 4096 if $minimum !~ m|^\d+$|;
+my $free
+    = (     ref $mem eq qw| HASH |
+        and $mem->{'ok'}
+        and $mem->{'free_mb'} >= $minimum );
+
+my $timeout = <models.cfg.gpu_lease.handover_timeout> // 60;
+$timeout = 60 if $timeout !~ m|^\d+$| or $timeout < 1;
+if ( not $free and $attempt < $timeout * 2 ) {
+    <[event.add_timer]>->(
+        {   'after'   => 0.5,
+            'handler' => qw| invoke-web.gpu_lease.handler.verify_unload |,
+            'data'    => { 'attempt' => $attempt + 1 },
+        }
+    );
+    return TRUE;
+}
+
+if ( not $free ) {
+    <invoke-web.gpu_lease.unloading> = FALSE;
+    <[base.logs]>->(
+        0, ': invoke.ai unload not verified after %d s : no lease release',
+        $timeout
+    );
+    return FALSE;
+}
+
+my $requester = delete <invoke-web.gpu_lease.unload_requester> // '';
+my $mode      = delete <invoke-web.gpu_lease.unload_mode> // qw| handover |;
+<invoke-web.gpu_lease.unloading> = FALSE;
+my $command
+    = $mode eq qw| release |
+    ? qw| models.gpu-lease-release |
+    : qw| models.gpu-lease-released |;
+my $args
+    = $mode eq qw| release |
+    ? qw| invoke-web |
+    : "invoke-web $requester";
+<[protocol-7.route-send]>
+    ->( { 'command' => $command, 'call_args' => { 'args' => $args } } );
+<[base.logs]>->( 1, ': invoke.ai model cache empty : vram verified free' );
+return TRUE;
+
+#,,,,,,.,,,,,,..,,...,,..,,,,,..,,,,.,...,,,.,..,,...,...,..,,.,,,,.,,,.,,.,,,
+#GRV5NXBD5QECFW55MSX25NZRNZGO3NA5F3667MAZMHSY5RD7QHK5NACWDFKMWOGKSNP7JLBX5JS7A
+#\\\|MGE222PY5K6EZYVAXYHMNWKM36ZGIGOICBUXVWQIXRRXPQFKB4B \ / AMOS7 \ YOURUM ::
+#\[7]MXYLN5T6K5WTU22MRWG62WOYWNJW6ZIZFGF32AVNES4TDYVCPMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

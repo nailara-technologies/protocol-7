@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.handler.acquire_timeout
+# descr = models did not answer : leave the existing render path unchanged
+
+my $event = shift;
+my $stage = $event->w->data->{'stage'} // qw| timeout |;
+if ( $stage eq qw| retry | ) {
+    <invoke-web.gpu_lease.unavailable> = FALSE;
+    return <[invoke-web.gpu_lease.request]>;
+}
+return TRUE if ( <invoke-web.gpu_lease.holder> // '' ) eq qw| invoke-web |;
+return TRUE if not <invoke-web.gpu_lease.request_inflight>;
+<invoke-web.gpu_lease.request_inflight> = FALSE;
+<invoke-web.gpu_lease.unavailable>      = TRUE;
+<invoke-web.gpu_lease.pause_sent>       = FALSE;
+<[base.logs]>->(
+    1,
+    ': models gpu lease request unanswered : existing render path continues'
+);
+<[event.add_timer]>->(
+    {   'after'   => 30,
+        'handler' => qw| invoke-web.gpu_lease.handler.acquire_timeout |,
+        'data'    => { 'stage' => qw| retry | },
+    }
+);
+return TRUE;
+
+#,,..,,.,,,.,,,..,...,.,,,,,.,,,,,,.,,,,,,,,,,..,,...,...,.,,,..,,..,,.,,,,,.,
+#VEBYPZCOABJQLVTR2FIKVUB2Q26VJPLRRLDSW6WVTEBJ6S3QIARSGXCXKXEPXTWSYXJJIRMPBLEBA
+#\\\|TAY633JWCV6AYLSY7GS2YMCJ4XXP4OZRUWXT4NKMH74RNOHX6LY \ / AMOS7 \ YOURUM ::
+#\[7]DGXBZARRXV7MFE5AIY5ZHRT7X2D2IGMSKHYZM6UVZMO2FKGDL6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

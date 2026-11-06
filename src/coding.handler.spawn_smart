@@ -50,6 +50,18 @@ my $dispatch_on_done = sub {
     return $result;
 };
 
+if (    $backend eq qw| gpu |
+    and ( <models.cfg.gpu_lease.enabled> // '' ) =~ m{^(yes|true|1|on)$}i
+    and <[coding.gpu_lease.gate]> == FALSE ) {
+    <[base.logs]>->(
+        <coding.gpu_lease.wait_logged> ? 2 : 1,
+        '[spawn_smart] gpu lease held elsewhere : switch deferred'
+    );
+    <coding.gpu_lease.wait_logged> = TRUE;
+    $dispatch_on_done->(FALSE);
+    return FALSE;
+}
+
 <[base.logs]>->(
     1, '[spawn_smart] evaluating spawn for backend=%s', $backend
 );
@@ -289,8 +301,8 @@ if ($had_live_pid) {
 return
     <[coding.helper.complete_pending_switch]>->( { 'backend' => $backend } );
 
-#,,..,,..,.,,,,..,,..,,.,,.,,,,,.,,..,,,,,..,,.,.,...,...,.,.,,,,,.,.,.,,,,,,,
-#6OPSXYNILZVBZIEBP2ADRGM47TOVVY363ZU2ZH6TOPWW3PHESMRLEDYXJ7TBNCQ6RCXWX5RUK4DSY
-#\\\|6DBQ6F62MTLHLS5PTB3NE6B55TKSJOCHOWRL6XQPBVVJVHLQ42L \ / AMOS7 \ YOURUM ::
-#\[7]Q7WSQAUHSTUGKDJISRH44KYUMZULUUQLDA6ZLFP5APXJGH34HQAA 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,,,,..,...,...,.,.,..,,...,.,.,.,.,...,...,.,.,.,,,..,,,.,,,,.,
+#Z2BI5KSOOSXR4WAMFUXNQK64X673HQC5IXAG5T742NBOZ2N4KZL7KCMT3IYETSSHDDRC7UDHK25EY
+#\\\|SBJV2V7CTCW33UT33CCF7L6L4LUDBZT2K4X66VBOON5XF3LPPKP \ / AMOS7 \ YOURUM ::
+#\[7]OWPQ7B4C6QA6LN3BXZ7B75CVAHSPHRQ6PXWOVSIKCTUZTSOAHUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

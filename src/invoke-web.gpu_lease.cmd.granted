@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.cmd.granted
+# descr = models granted invoke-web sole gpu residency
+
+<invoke-web.gpu_lease.holder>           = qw| invoke-web |;
+<invoke-web.gpu_lease.request_inflight> = FALSE;
+<invoke-web.gpu_lease.unavailable>      = FALSE;
+<invoke-web.gpu_lease.pause_sent>       = FALSE;
+<[invoke-web.gpu_lease.handler.renew]>;
+<[base.logs]>->( 1, ': gpu lease acquired : render queue may resume' );
+if (<invoke-web.gpu_lease.start_waiting>) {
+    delete <invoke-web.gpu_lease.start_waiting>;
+    <[invoke-web.cmd.start]>->( { 'args' => '' } );
+} else {
+    <[invoke-web.api_async]>->(
+        'PUT', '/api/v1/queue/default/processor/resume',
+        undef, 'invoke-web.gpu_lease.handler.queue_resume_reply'
+    );
+}
+return { 'mode' => qw| true | };
+
+#,,.,,.,.,...,,,,,,.,,.,,,.,.,,,.,...,.,.,.,.,..,,...,...,...,...,,..,.,.,..,,
+#2NAGDLYVXWCFDMYLA6ORCCYNDLCADFGMW5Q7JRDAJDVBWZMRTFWZOAUEK725YIXMRCRHDI72W2YXG
+#\\\|RW4P36GG2R37ZSVICGRUEQAPXUHUPQLZWXPTCP5K7WL65IIMDMF \ / AMOS7 \ YOURUM ::
+#\[7]QPYPM3Q2R3WJHPWC7EIXMNSSGI7BQ2KZDXC6DRWIJYPC2NQEKICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

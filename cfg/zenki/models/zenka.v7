@@ -15,7 +15,7 @@ system.zenka.verbosity.logfile  =  0
 system.zenka.verbosity.console  =  1
 #
 modules.load = auth.client net protocol io.unix ui jobqueue \
-               models format.yaml                    devmod ## <-- dev.
+               models format.yaml coding.helper.query_gpu_memory devmod ## dev.
 
 ## Access Control - Commands This Zenka Exposes
 #
@@ -37,6 +37,8 @@ access.cmd.usr.cube = heart verify-instance commands reload show-access \
                       scan-path-del task-notify coding-online set-zenki \
                       delete-model trash-list trash-rescue trash-prune \
                       protect unprotect list-protected \
+                      gpu-lease-state gpu-lease-acquire gpu-lease-release \
+                      gpu-lease-renew gpu-lease-released gpu-lease-release-task \
                       adapter-discover adapter-resolve adapter-repair \
                       adapter-lmstudio-discover adapter-lmstudio-resolve \
                       adapter-lmstudio-repair adapter-export adapter-import \
@@ -111,8 +113,8 @@ models.task.default_model = local
 #
 [zenka.loop]
 
-#,,.,,..,,.,.,,..,,,,,,,.,,.,,,,,,,,.,..,,...,..,,...,...,...,.,,,,,,,...,...,
-#SCVCNIC6DNETOGL6O42XJMQVED4JUMXK3OWCYVGJ6TWHJBS42XEGLXABZZBO5XQWKL4NGLXPOEX3M
-#\\\|TPKCXQW7LNEECYRGV33VLMSGACPI3JYDXPFRWUTYZXUTIEYR6A3 \ / AMOS7 \ YOURUM ::
-#\[7]O3WWI3FGWBEAHLXC7GIIKYVFRNDY6IWWTNG75NP7BTHIG4TIRCBY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,..,,,,.,.,.,.,,,,,.,.,,,...,,..,..,,...,...,,,.,,,.,,.,,,,.,,..,
+#IZW2MPOKTCC6PHCLZQGGC44ATKHUFNWSF76A22LKYDAJYDR73YTCK6TEKDYX7DGG5EXKOSI23LE7I
+#\\\|NL44AERZKT5ULYN5OYW6ZFW2TGAYNUS7SELXAXFR4LR5KICQQBH \ / AMOS7 \ YOURUM ::
+#\[7]Y45AZXVKTZH3KMVGENGK6FHIBKRKCE7JM2CMUT6G2GC5BWXRMWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

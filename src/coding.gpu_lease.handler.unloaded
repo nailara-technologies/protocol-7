@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = coding.gpu_lease.handler.unloaded
+# descr = acknowledge coding gpu process exit without a blocking wait
+
+my $event     = shift;
+my $params    = $event->w->data        // {};
+my $pid       = $params->{'pid'}       // 0;
+my $requester = $params->{'requester'} // '';
+my $attempt   = $params->{'attempt'}   // 1;
+
+if ( $pid and kill( 0, $pid ) and $attempt < 40 ) {
+    <[event.add_timer]>->(
+        {   'after'   => 0.25,
+            'handler' => qw| coding.gpu_lease.handler.unloaded |,
+            'data'    => { %{$params}, 'attempt' => $attempt + 1 },
+        }
+    );
+    return TRUE;
+}
+
+<[base.logs]>->(
+    $pid && kill( 0, $pid ) ? 0 : 1,
+    ': gpu llama-server %s : unload acknowledgement sent',
+    $pid && kill( 0, $pid ) ? 'still exiting' : 'stopped'
+);
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| models.gpu-lease-released |,
+        'call_args' => { 'args' => "coding $requester" },
+    }
+);
+return TRUE;
+
+#,,,,,..,,,..,...,.,.,,,,,,..,.,.,,..,,.,,,.,,..,,...,...,...,,,,,.,,,,,,,...,
+#6YKLF3264JXEVBHTYV7KQLX32QXKU4AOYEV7YWDM6EHOIUXFLRCA344B76ED3VUAFC2ZQ7K5TQRU6
+#\\\|T5ZQEMVZ2AILKW7G2TX3KFCFMUGOYS2TBZ763LN6KY2QX2PEJTE \ / AMOS7 \ YOURUM ::
+#\[7]UDKDJEQDPYJSRV53GG63C2QBKGDA3OYP5ALCVXMPN25ZVV5F3GBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

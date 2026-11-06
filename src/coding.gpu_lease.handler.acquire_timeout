@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = coding.gpu_lease.handler.acquire_timeout
+# descr = models did not answer : use the legacy gpu memory check
+
+my $event = shift;
+my $stage = $event->w->data->{'stage'} // qw| timeout |;
+if ( $stage eq qw| retry | ) {
+    <coding.gpu_lease.unavailable> = FALSE;
+    return <[coding.gpu_lease.request]>;
+}
+return TRUE if ( <coding.gpu_lease.holder> // '' ) eq qw| coding |;
+return TRUE if not <coding.gpu_lease.request_inflight>;
+<coding.gpu_lease.request_inflight> = FALSE;
+<coding.gpu_lease.unavailable>      = TRUE;
+<[base.logs]>->(
+    1, ': models gpu lease request unanswered : using existing memory check'
+);
+<[event.add_timer]>->(
+    {   'after'   => 30,
+        'handler' => qw| coding.gpu_lease.handler.acquire_timeout |,
+        'data'    => { 'stage' => qw| retry | },
+    }
+);
+return TRUE;
+
+#,,.,,,..,.,,,...,...,,,,,,,,,.,,,,,,,.,.,,,.,..,,...,..,,.,,,,.,,.,,,.,.,.,,,
+#URJ3RPQPT74EFWMZALDKXRL2QOGRBSMSXARVRS2DIE3NB62EOECGNDERIIVEUDRL3YG3YGM5VZXAC
+#\\\|DITFQFQ72UNDEKADEMZRZ7JUP5RP4SWHIZ2VVHU4E3OHJIJX2HC \ / AMOS7 \ YOURUM ::
+#\[7]NJENQZ3UUZGWUCX3EFOTT6AKOTSNOV4HDLB4NMR6H3PEUJZ2PCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

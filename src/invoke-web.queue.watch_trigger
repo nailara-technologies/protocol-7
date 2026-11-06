@@ -9,7 +9,9 @@
 #          our own priority update triggers once more, that check finds
 #          nothing new and ends
 
-return if not <invoke-web.queue_interactive>;
+return
+    if not <invoke-web.queue_interactive>
+    and not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
 return if defined <invoke-web.timer.queue_watch_once>;
 
 <invoke-web.timer.queue_watch_once> = <[event.add_timer]>->(
@@ -18,8 +20,8 @@ return if defined <invoke-web.timer.queue_watch_once>;
     }
 );
 
-#,,..,.,,,,,,,,,.,,,,,,,,,,,,,,,.,,..,,.,,..,,..,,...,..,,..,,,,,,.,.,...,,.,,
-#UQ4NPRFTCDIVFSJSXJVWYZQZ4C62ZXYZGSSAOSMT3R4A6NIVB7A2OWT7YLV2PIDA5FIFXBL5V4BVK
-#\\\|HWG6M4ZUZOUD3CTMLSGYIEUYHTFQOXY3HT6EMUVYA2LBYMMCLSA \ / AMOS7 \ YOURUM ::
-#\[7]2D4CGYNRDFYEZZ5PLTACYJG5WCX6ORUP6S7E3MAA3M56PQ2UTABI 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,.,,,...,...,.,,,,.,,,,,,,.,,..,,...,...,,,,,,,,,..,,,,,,...,
+#FJ26KCCOEUKHI3WW3AHTIDZHI4TKTG6WP5VUHLFXL7C5NVCTAUUKVX5XIGTLOCP3STITRDAP23CEG
+#\\\|CN55IRGGICIVTVPJZFQQ46Z6L7O6CXMUB62FNSVHM5RA3KLY4MW \ / AMOS7 \ YOURUM ::
+#\[7]ULHI2QHDTQC34Z74VGDSOZNTGRAX76XITYZUJIBNXFBQ4WZ2U2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

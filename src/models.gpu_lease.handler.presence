@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = models.gpu_lease.handler.presence
+# descr = cube.present reply : yield only to a connected previous holder
+
+my $reply     = shift                  // {};
+my $params    = $reply->{'params'}     // {};
+my $from      = $params->{'from'}      // '';
+my $requester = $params->{'requester'} // '';
+my $pending   = <models.gpu_lease.pending>;
+
+return FALSE
+    if ref $pending ne qw| HASH |
+    or ( $pending->{'from'}      // '' ) ne $from
+    or ( $pending->{'requester'} // '' ) ne $requester
+    or not $pending->{'presence'};
+
+$pending->{'presence'} = FALSE;
+my ($mode) = <[base.reply.mode_text]>->($reply);
+if ( $mode ne qw| true | ) {
+    $pending->{'unloaded'}    = TRUE;
+    $pending->{'wait_reason'} = 'previous side disconnected : checking vram';
+    <[base.logs]>->(
+        1, ': gpu lease previous side %s is disconnected : no yield sent',
+        $from
+    );
+    return <[models.gpu_lease.handler.tick]>;
+}
+
+$pending->{'wait_reason'} = 'waiting for unload acknowledgement';
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => "$from.gpu-lease-yield",
+        'call_args' => { 'args' => $requester },
+    }
+);
+$pending->{'wait_reason'} = 'yield route failed : waiting for vram timeout'
+    if not $sent;
+<[base.logs]>->(
+    $sent ? 1 : 0,
+    ': gpu lease handover requested : %s -> %s%s',
+    $from, $requester, $sent ? '' : ' [ route failed ]'
+);
+return TRUE;
+
+#,,.,,.,.,..,,,,.,...,,..,,..,,.,,...,..,,.,.,..,,...,...,.,.,...,,,,,,.,,.,,,
+#FZH6RWGS7JGFCPMXAROP2SGQX553IIVNSURX7KXT573KOFGDCQHFDQ4JBOTWYJYULGNNAKK2ERDPE
+#\\\|Q2WFKQWZ4HPSFDGX2M5YNTH5QJWBEWYVEZM3WQIYUNIGXMCNMWL \ / AMOS7 \ YOURUM ::
+#\[7]SCJZQED3WABLE5BPLI4SR2OIDHGBHOGZDUU6OG7QD3BINZXDPUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

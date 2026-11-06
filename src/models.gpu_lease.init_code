@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = models.gpu_lease.init_code
+# descr = arm gpu lease expiry and handover processing
+
+my $timer = delete <models.gpu_lease.timer>;
+$timer->cancel if defined $timer and $timer->is_active;
+return TRUE
+    if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
+
+<models.gpu_lease.timer> = <[event.add_timer]>->(
+    {   'after'    => 1,
+        'interval' => 1,
+        'repeat'   => TRUE,
+        'handler'  => qw| models.gpu_lease.handler.tick |,
+        'desc'     => 'gpu residency lease expiry and handover',
+    }
+);
+
+return TRUE;
+
+#,,,,,,..,,.,,,..,,,,,...,.,.,,.,,..,,...,,,,,..,,...,...,..,,..,,.,.,,,,,.,.,
+#K4Z4JBHMTDXBAGNXHMK3L6B5UKRJ7T2Z67VOXXYE6FKX5CF4SE36W2C75JCEI5R2H7FC2F25ZP4ZE
+#\\\|3Y3QDO7LNHMKDL4P7F3NLH7OXFUFTREMOMP6XLGYHI56ONNDXDK \ / AMOS7 \ YOURUM ::
+#\[7]XBM4IMY5MWSUKILFT6EEPYWIHSL5WO73LZO5W6TQXAUOJHKBPKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

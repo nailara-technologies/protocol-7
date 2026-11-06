@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.request
+# descr = asynchronously request sole gpu residency for rendering
+
+return TRUE
+    if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
+return TRUE    if ( <invoke-web.gpu_lease.holder> // '' ) eq qw| invoke-web |;
+return UNKNOWN if <invoke-web.gpu_lease.unavailable>;
+return FALSE   if <invoke-web.gpu_lease.request_inflight>;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| models.gpu-lease-acquire |,
+        'call_args' => { 'args' => qw| invoke-web | },
+        'reply'     => {
+            'handler' => qw| invoke-web.gpu_lease.handler.acquire_reply |,
+            'params'  => {},
+        },
+    }
+);
+<invoke-web.gpu_lease.request_inflight> = $sent ? TRUE : FALSE;
+if ($sent) {
+    <[event.add_timer]>->(
+        {   'after'   => 5,
+            'handler' => qw| invoke-web.gpu_lease.handler.acquire_timeout |,
+            'data'    => { 'stage' => qw| timeout | },
+        }
+    );
+} else {
+    <invoke-web.gpu_lease.unavailable> = TRUE;
+    <[event.add_timer]>->(
+        {   'after'   => 30,
+            'handler' => qw| invoke-web.gpu_lease.handler.acquire_timeout |,
+            'data'    => { 'stage' => qw| retry | },
+        }
+    );
+}
+return $sent ? FALSE : UNKNOWN;
+
+#,,..,...,.,,,...,,..,.,,,..,,..,,..,,,..,,,.,..,,...,...,,.,,,.,,...,,,,,.,,,
+#MH6YUHPCH4IVUH7CSO2EL4TP6TZTKMXGQGN6HQHU3BYZD2IQRA7JYGYRNGCXME3OX46QZBTH2FAM6
+#\\\|QG7RCACGW2IB6JQCPDU5UDIJ4DRKN6FRJTG6XTRVQKR7Z567QNL \ / AMOS7 \ YOURUM ::
+#\[7]X6PVC7TF7DMSLD2VSG454AZ6I5KYYOAR2YPZJT46FAWC7KSBQYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

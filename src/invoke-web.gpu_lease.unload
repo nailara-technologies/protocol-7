@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.unload
+# descr = pause the queue then empty every unlocked invoke.ai cached model
+# param = requester, mode [ handover | release ]
+
+my ( $requester, $mode ) = @ARG;
+$mode //= qw| handover |;
+return FALSE if <invoke-web.gpu_lease.unloading>;
+
+<invoke-web.gpu_lease.holder>           = undef;
+<invoke-web.gpu_lease.request_inflight> = FALSE;
+<invoke-web.gpu_lease.unloading>        = TRUE;
+my $renew = delete <invoke-web.gpu_lease.renew_timer>;
+$renew->cancel if defined $renew and $renew->is_active;
+
+<invoke-web.gpu_lease.unload_requester> = $requester // '';
+<invoke-web.gpu_lease.unload_mode>      = $mode;
+if ( ( <invoke-web.status> // qw| idle | ) !~ m{^(?:running|starting)$} ) {
+    <[event.add_timer]>->(
+        {   'after'   => 0,
+            'handler' => qw| invoke-web.gpu_lease.handler.verify_unload |,
+            'data'    => { 'attempt' => 1 },
+        }
+    );
+    return TRUE;
+}
+<[invoke-web.api_async]>->(
+    'PUT', '/api/v1/queue/default/processor/pause',
+    undef, 'invoke-web.gpu_lease.handler.unload_pause_reply'
+);
+return TRUE;
+
+#,,..,.,.,,,.,,..,...,.,.,,,.,,,,,..,,,,,,.,.,..,,...,...,,,.,,.,,,.,,,.,,,,,,
+#ZPFGR2KQIX7SVIPKK3PW6XKGYTZNXP2HRQIFQHQPL34LSRRBVPHHJR43D2IA3TBTKPMNO2BOD7XL2
+#\\\|HBNLRPZABWG3VD73ZXXWR3JJHZ7OMQBHGYFSVP6JSY3BMBMT75A \ / AMOS7 \ YOURUM ::
+#\[7]WWVPG3VNFQFAZ5C7J3UG4ADSTIGF4IH4YNFAJNLTSYCJNAD3NSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = models.gpu_lease.renew
+# descr = renew a live holder's gpu lease timeout
+# param = owner name
+
+my $owner = shift // '';
+my $lease = <models.gpu_lease> //= {};
+return FALSE if ( $lease->{'holder'} // '' ) ne $owner;
+
+my $timeout = <models.cfg.gpu_lease.timeout> // 45;
+$timeout = 45 if $timeout !~ m|^\d+$| or $timeout < 5;
+return FALSE if <[base.time]> - ( $lease->{'touched'} // 0 ) > $timeout;
+
+$lease->{'touched'} = <[base.time]>;
+return TRUE;
+
+#,,,,,,.,,,.,,,,.,,.,,,,.,,,.,,..,...,,..,.,.,..,,...,...,..,,,..,,,,,,,.,.,.,
+#ITESEV5CUO3LU3BHRF2TSUM7XZEDJJ4EGR4LOYS4HA5UM6S6IWKDDYWVHG4FNTLPNWQ6YI72GSFJK
+#\\\|GSYHV6MLHUUPH5NAV67PHF4X5FWUC7OSQWO4U67GR7XVNJSRQRG \ / AMOS7 \ YOURUM ::
+#\[7]U5WUDJPN6RBDG6RJVY47GNSVA36UOOBZ5UKQ3UCFUPTXQG33SWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

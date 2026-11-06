@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = coding.gpu_lease.cancel_activity
+# descr = stop switch, sweep and self-test work before the gpu server dies
+
+<coding.spawning_in_progress> = FALSE;
+delete <coding.switch_model_active>;
+
+my $fit_timer = delete <coding.timer.gpu_fit_recheck>;
+$fit_timer->cancel if defined $fit_timer and $fit_timer->is_active;
+
+my $pending = delete <coding.pending_switch>->{'gpu'};
+if ( ref $pending eq qw| HASH | ) {
+    my $timer = $pending->{'timer_w'};
+    $timer->cancel if defined $timer and $timer->is_active;
+    delete <coding.switching_backend>->{'gpu'};
+    my $done = $pending->{'on_done'};
+    if ( ref $done eq qw| HASH |
+        and exists $code{ $done->{'handler'} // '' } ) {
+        $code{ $done->{'handler'} }->(
+            {   %{ $done->{'params'} // {} },
+                'spawn_result' => FALSE,
+                'backend'      => qw| gpu |,
+            }
+        );
+    }
+}
+
+my $probes = <coding.self_test_probe_state> // {};
+for my $probe_id ( keys %{$probes} ) {
+    my $probe = $probes->{$probe_id};
+    next if ( $probe->{'backend'} // '' ) ne qw| gpu |;
+    my $timer = $probe->{'timer'};
+    $timer->cancel if defined $timer and $timer->is_active;
+    my $http = $probe->{'http_state'};
+    if ( $probe->{'in_flight'} and ref $http eq qw| HASH | ) {
+        my $callbacks = $http->{'callbacks'} // {};
+        $callbacks->{'on_error'}->('gpu lease handover')
+            if ref $callbacks->{'on_error'} eq qw| CODE |;
+        <[coding.async.http_cleanup]>->($http);
+    }
+    delete $probes->{$probe_id};
+}
+delete <coding.self_test_probe_in_flight>->{'gpu'};
+for my $switch_id ( keys %{ <coding.self_test_switch_state> // {} } ) {
+    delete <coding.self_test_switch_state>->{$switch_id}
+        if ( <coding.self_test_switch_state>->{$switch_id}->{'backend'}
+        // '' ) eq qw| gpu |;
+}
+<coding.self_test_switch_in_progress> = FALSE;
+
+my $sweep = <coding.model_sweep_state>->{'gpu'};
+if ( ref $sweep eq qw| HASH | ) {
+    $sweep->{'pause_requested'} = TRUE;
+    $sweep->{'state'}           = qw| paused |;
+    $sweep->{'paused_reason'}   = qw| gpu-lease |;
+}
+return TRUE;
+
+#,,,,,..,,.,.,,..,,.,,..,,...,.,.,,,,,,..,.,,,..,,...,...,...,,,.,,,,,...,,,,,
+#O6AAI3YNS6FLL26MXGNN3FTZEMDNXHGBUPFREUFPCMTSCS7XIGF6YWHMBPGECUHVEYO4H2QFVE62M
+#\\\|QQFKN3HGHCSHRLONYNHBQGMEOG5SIQFT5ERSZKYIQEYLUNHY3PC \ / AMOS7 \ YOURUM ::
+#\[7]7JVQGKBB5HDAKY46FMZAH6WPRVGZ4WYSWFDI74NQOUJPJHT26QAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

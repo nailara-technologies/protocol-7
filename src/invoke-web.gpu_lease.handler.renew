@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.handler.renew
+# descr = renew the render gpu lease before its models-side timeout
+
+return FALSE if ( <invoke-web.gpu_lease.holder> // '' ) ne qw| invoke-web |;
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| models.gpu-lease-renew |,
+        'call_args' => { 'args' => qw| invoke-web | },
+        'reply'     => {
+            'handler' => qw| invoke-web.gpu_lease.handler.renew_reply |,
+            'params'  => {},
+        },
+    }
+);
+my $timeout = <models.cfg.gpu_lease.timeout> // 45;
+$timeout = 45 if $timeout !~ m|^\d+$| or $timeout < 5;
+<invoke-web.gpu_lease.renew_timer> = <[event.add_timer]>->(
+    {   'after'   => $timeout / 3,
+        'handler' => qw| invoke-web.gpu_lease.handler.renew |,
+    }
+);
+return TRUE;
+
+#,,.,,...,,..,,..,..,,,..,,,,,,.,,...,,..,,.,,..,,...,..,,...,..,,,..,..,,,,.,
+#I322QLO7JFZL2K2EI6QGVPUPCRD5H4GB3O5UPOZLVUKAD4PQDOCOSMCOBUJ7FSDRNOMVAJ3ONDDTY
+#\\\|BYM43ND7XVDP5I5GSXJE74K7AUTVTTHEDZNH3KCXWU33DXGAX3P \ / AMOS7 \ YOURUM ::
+#\[7]WOIVRC7UTTENQDYXQB4XS5WYJYH2NHTC275LOCIGHDPRWJJE52DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = models.gpu_lease.cmd.acquire
+# descr = request the gpu residency lease
+
+my ( $owner, $need_mb ) = split m|\s+|, $call->{'args'} // '';
+my $ok = <[models.gpu_lease.acquire]>->( $owner // '', $need_mb // 0 );
+return {
+    'mode' => $ok ? qw| true | : qw| false |,
+    'data' => $ok ? 'granted'  : 'pending or refused'
+};
+
+#,,,.,,.,,,.,,.,.,,,,,,.,,,..,..,,..,,...,,,,,..,,...,..,,...,,,.,,..,,.,,...,
+#7FCY36P6PTALZEHGTZ2WASDAAQJT56EVT3EB32IPASTUI3ELS7EFOHT2YXD6HZTWIG6CZHEVLA2EM
+#\\\|EIRFMTZGWPADCJLW762KDWNTYMNO5XCWP2RTUXXGUHQ2HK57GZX \ / AMOS7 \ YOURUM ::
+#\[7]GPT4T6QNLKRHI2ZMQ3BPHRTTTBUQR6B56UXLRBWYFZSDAO32T2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

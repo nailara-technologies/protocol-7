@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = coding.gpu_lease.cmd.yield
+# descr = pause gpu work, return claims, stop gpu server
+
+my ($requester) = split m|\s+|, $call->{'args'} // '';
+$requester //= '';
+return { 'mode' => qw| false | } if not length $requester;
+
+<coding.gpu_lease.holder>           = undef;
+<coding.gpu_lease.request_inflight> = FALSE;
+<coding.gpu_lease.dispatch_hold>    = TRUE;
+my $renew = delete <coding.gpu_lease.renew_timer>;
+$renew->cancel if defined $renew and $renew->is_active;
+<[coding.gpu_lease.cancel_activity]>;
+
+my %gpu_tasks;
+foreach my $task_id ( keys %{ <coding.async.task_state> // {} } ) {
+    my $state = <coding.async.task_state>->{$task_id} // {};
+    next if ( $state->{'backend'} // '' ) ne qw| gpu |;
+    $gpu_tasks{$task_id} = TRUE;
+    if ( defined <coding.task.queue>->{$task_id} ) {
+        <coding.task.queue>->{$task_id}->{'pause_requested'}    = TRUE;
+        <coding.task.queue>->{$task_id}->{'gpu_lease_requeued'} = TRUE;
+        <[coding.async.state_machine]>->(
+            'pause', $task_id,
+            { 'reason' => 'gpu lease handover', 'resume_event' => 'requeue' }
+        );
+    }
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| models.gpu-lease-release-task |,
+            'call_args' => { 'args' => $task_id },
+        }
+    );
+}
+
+my $old = delete <coding.inference_servers>->{'gpu'} // {};
+for my $key (
+    qw| watcher_stdout watcher_stderr
+    watcher_drain_stdout watcher_drain_stderr |
+) {
+    my $watcher = $old->{$key};
+    $watcher->cancel if defined $watcher and $watcher->is_active;
+}
+close $old->{$ARG}
+    for grep { defined $old->{$ARG} } qw| io_stdout io_stderr |;
+my $pid = $old->{'pid'} // <inference.gpu_pid> // 0;
+<inference.gpu_pid> = undef;
+kill( 'KILL', -$pid ) if $pid and kill( 0, $pid );
+<[base.logs]>->(
+    1, ': gpu lease yielded to %s : %d gpu task%s requeued',
+    $requester,
+    scalar keys %gpu_tasks,
+    keys %gpu_tasks == 1 ? '' : 's'
+);
+<[event.add_timer]>->(
+    {   'after'   => 0.25,
+        'handler' => qw| coding.gpu_lease.handler.unloaded |,
+        'data'    =>
+            { 'pid' => $pid, 'requester' => $requester, 'attempt' => 1 },
+    }
+);
+return { 'mode' => qw| true | };
+
+#,,.,,,.,,,,,,,..,...,..,,,,,,,.,,.,.,,.,,...,..,,...,...,.,.,..,,.,.,,,,,..,,
+#5YVCUY434KYBFUTCI73X3LUMIVLVZF4GUYQO5TWV4K3I3GSIPCAQ7ZIYRLOPY5LKG5KANT7CZRH62
+#\\\|63IZ57TZOSR2FMKILW7RJKAAPQZMTSJ3AF56LHENLSPWI4CD3SU \ / AMOS7 \ YOURUM ::
+#\[7]HJFW64JCL5ZPSPQRZELYVQUEDE5M53W7AGFVFGJ4EE7L7ABFUEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
