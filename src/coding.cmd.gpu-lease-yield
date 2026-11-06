@@ -1,11 +1,12 @@
 ## [:< ##
 
-# name  = coding.gpu_lease.cmd.yield
+# name  = coding.cmd.gpu-lease-yield
 # descr = pause gpu work, return claims, stop gpu server
 
 my ($requester) = split m|\s+|, $call->{'args'} // '';
 $requester //= '';
-return { 'mode' => qw| false | } if not length $requester;
+return { 'mode' => qw| false |, 'data' => qw| done | }
+    if not length $requester;
 
 <coding.gpu_lease.holder>           = undef;
 <coding.gpu_lease.request_inflight> = FALSE;
@@ -60,10 +61,10 @@ kill( 'KILL', -$pid ) if $pid and kill( 0, $pid );
             { 'pid' => $pid, 'requester' => $requester, 'attempt' => 1 },
     }
 );
-return { 'mode' => qw| true | };
+return { 'mode' => qw| true |, 'data' => qw| done | };
 
-#,,.,,,.,,,,,,,..,...,..,,,,,,,.,,.,.,,.,,...,..,,...,...,.,.,..,,.,.,,,,,..,,
-#5YVCUY434KYBFUTCI73X3LUMIVLVZF4GUYQO5TWV4K3I3GSIPCAQ7ZIYRLOPY5LKG5KANT7CZRH62
-#\\\|63IZ57TZOSR2FMKILW7RJKAAPQZMTSJ3AF56LHENLSPWI4CD3SU \ / AMOS7 \ YOURUM ::
-#\[7]HJFW64JCL5ZPSPQRZELYVQUEDE5M53W7AGFVFGJ4EE7L7ABFUEBY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,,,.,.,.,.,.,..,,,,.,,,.,.,,,..,,...,...,,.,,.,.,...,,,,,.,,,
+#PF4RJ57HGSMKXADPBMMRN2WQBAO5LRJQI5VC3UJDLXSIL7HJUARQAI5YZR3HN7C3MFIWPR6QCL4ZY
+#\\\|C7NR7ACOCTLYOKN3U2KWCWXLVXWJ34V5KCHPYHRSBXPLATJNBEP \ / AMOS7 \ YOURUM ::
+#\[7]IZLSPUB4ROXNIQBLG3MUZIYQEHZ2RQYQ5LCLK5UPS6RRCTJED6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

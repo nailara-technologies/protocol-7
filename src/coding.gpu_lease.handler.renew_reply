@@ -8,10 +8,10 @@ my ($mode) = <[base.reply.mode_text]>->($reply);
 return TRUE if $mode eq qw| true |;
 return TRUE if ( <coding.gpu_lease.holder> // '' ) ne qw| coding |;
 <[base.logs]>->( 0, ': gpu lease renewal refused : yielding gpu residency' );
-return <[coding.gpu_lease.cmd.yield]>->( { 'args' => qw| coding | } );
+return <[coding.cmd.gpu-lease-yield]>->( { 'args' => qw| coding | } );
 
-#,,.,,...,,..,..,,.,,,,,,,,.,,,.,,,..,...,,.,,..,,...,...,...,.,,,,..,...,.,.,
-#UEF5AJAPUUFYNCX232CKHAYTRPICLH2RFPCWBPOZRC4XWZPRU54VQE5O4HU2XV6ZTLHW4OZYBZK26
-#\\\|DN5O4V6NOZ4ZQCCKCJBW7IZ5TH2HQJCD7PSPUTA5BFKGHM2EQ6M \ / AMOS7 \ YOURUM ::
-#\[7]RPLBBGXRRNZII52CGB46LSFPK3J6SSA2M25RA5CBURHEWSZ7SOCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,,,.,,,,,,,..,,.,,,.,,,...,.,,,..,,...,.,.,.,.,,,,,,.,,,..,...,
+#TYUDLG274SZA6MUR6UCPKWGSKHNKGWZRCYWPTCYSNTDG5T2LGAFPI524SIJUM4PSRCPDZY5LUHSKK
+#\\\|5KNFXLNAX3VSBVIWA5RHSJ6GZ7HA3BRQOPFPIOJIC6ZWVVJGKKM \ / AMOS7 \ YOURUM ::
+#\[7]TNRXIF4OMTMDH53DVJ45MERKXWTHZS3DIWHDZ3PZOF24GEBSAEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

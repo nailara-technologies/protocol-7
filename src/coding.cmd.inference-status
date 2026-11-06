@@ -54,7 +54,7 @@ my $plan = sub {
 my $vram_cache = <coding.vram_status_cache> //= {};
 my $now        = <[base.time]>->(3);
 if ( $now - ( $vram_cache->{'at'} // 0 ) > 5 ) {
-    my $vram = <[coding.helper.query_gpu_memory]>;
+    my $vram = <[base.gpu.query_memory]>;
     $vram_cache->{'at'} = $now;
     $vram_cache->{'used_mb'}
         = $vram->{'ok'} ? $vram->{'total_mb'} - $vram->{'free_mb'} : -1;
@@ -109,8 +109,8 @@ if ( length $reply_id ) {
 
 return { 'mode' => qw| size |, 'data' => $yaml };
 
-#,,,.,.,.,..,,,.,,.,,,,,,,,,,,,..,..,,,.,,,,,,..,,...,...,,.,,...,...,.,.,..,,
-#EYR5JAHGLUH2EQYLGJIFKZFQDD6OM22UNNAUXTHJTRVBNJABQO6Y4R7NUFMYDDZHTXNTA53CSAWRU
-#\\\|CWVPDPLXXL2W7VESCADLHDA3YIXGESGSHMK7EWHQCR54F42YSW3 \ / AMOS7 \ YOURUM ::
-#\[7]PB3LEO2LVYTCZYEWYB3EQUVWM3YPBOH7P5WTJHM3IOXX6WB4MWCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,.,,.,,.,.,...,...,,.,,,.,,..,,..,,...,...,,..,.,,,.,.,..,,..,,
+#SSF4NPZBWVU7OXNJC2DT47WCVCFWHHPRT4WS5HFLVPJJXGT7WJ4Y5P2SYJJHEVMST55KHJQXRVVNQ
+#\\\|PUQZJT2VUOR54G6BI3U3DIS5TARYPKX63ZNCI5BRC4XWM3KL3HK \ / AMOS7 \ YOURUM ::
+#\[7]MXSGP6OCGPP33633PQNAKYU3BWGZNFCUHAEHIUEG7XVJ6WPZDWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

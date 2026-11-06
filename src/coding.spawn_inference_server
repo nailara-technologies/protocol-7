@@ -238,7 +238,7 @@ if ( $backend eq qw| gpu | and length $model_path and -f $model_path ) {
     if (    ref $experts eq qw| ARRAY |
         and $floor
         and <[base.cfg_bool]>->( <coding.cfg.moe_expert_offload> // 1 ) ) {
-        $gpu_vram //= <[coding.helper.query_gpu_memory]>;
+        $gpu_vram //= <[base.gpu.query_memory]>;
         $moe_vram_budget_mb = $gpu_vram->{'free_mb'}
             - ( <coding.cfg.vram_safety_mb> // 1024 );
         my $ctx_at = sub {
@@ -539,7 +539,7 @@ if ( $backend eq qw| gpu | ) {
     }
 
     ## vram sanity check [ single shared helper, see its own file for why ] ##
-    $gpu_vram //= <[coding.helper.query_gpu_memory]>;
+    $gpu_vram //= <[base.gpu.query_memory]>;
     my $vram = $gpu_vram;
     if ( $vram->{'ok'} ) {
         my ( $total_mb, $free_mb )
@@ -1389,8 +1389,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,.,,,.,.,,,.,,.,,,.,,.,,,.,.,,.,,...,..,,..,,...,...,,..,..,,,.,,,..,,.,,
-#YFUZWHP4D6H5AYPTZ6FHZ3GVM7HHQZXL5UTTNX2SQLDHGDUJFHSJ5SQHY2Y224GV24T24RNPAH4NQ
-#\\\|6X2DWBHYGPCVSZKUDTW3U4BDMZL2OPQZ5O7MOFER2JCCFBOYBEX \ / AMOS7 \ YOURUM ::
-#\[7]IUF53CLHZI44ZRM47CEDT2XOWIMYK5BOPXGLEQU3UYS6ZXL2IGAI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,,.,,..,,,.,,,,,.,.,,,.,..,,..,,...,...,.,.,,,,,,..,,,.,...,
+#FLX2RWKN3DG77T3ZMCN2A5MPFJ275OJTCYUXM6MWNXTEP7S3AD62VMST224WANQY3VRI4KBR6PYBK
+#\\\|RAFWQ3XLTHXQBQATG4SLKKH4U43RVTESJ47PVA5MOBPWNMWRBNG \ / AMOS7 \ YOURUM ::
+#\[7]YIA7WRAQLBRPHJS6JASGRFFHY4ALA323Q537RJHKORACTZEKRAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

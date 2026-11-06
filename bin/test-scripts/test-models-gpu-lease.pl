@@ -80,7 +80,7 @@ my $vram_ok  = 1;
         push @timers, $timer;
         return MockWatcher->new( $timer->{'data'} // {} );
     },
-    'coding.helper.query_gpu_memory' => sub {
+    'base.gpu.query_memory' => sub {
         return { 'ok' => FALSE } if not $vram_ok;
         return {
             'ok'       => TRUE,
@@ -147,7 +147,7 @@ sub ack {
     presence( $from, $requester, TRUE )
         if $data{'models'}{'gpu_lease'}{'pending'}{'presence'};
     local $call = { 'args' => "$from $requester" };
-    return $code{'models.gpu_lease.cmd.released'}->();
+    return $code{'models.cmd.gpu-lease-released'}->();
 }
 
 sub grant {
@@ -163,14 +163,14 @@ compile_module($ARG) for qw|
     models.gpu_lease.acquire models.gpu_lease.release
     models.gpu_lease.renew models.gpu_lease.handler.tick
     models.gpu_lease.handler.presence
-    models.gpu_lease.cmd.released models.gpu_lease.cmd.release-task
+    models.cmd.gpu-lease-released models.cmd.gpu-lease-release-task
     coding.gpu_lease.request coding.gpu_lease.gate
     coding.gpu_lease.cancel_activity coding.async.send_request
     models.task.claim-ok invoke-web.gpu_lease.queue_changed
     invoke-web.gpu_lease.handler.grace invoke-web.gpu_lease.unload
     invoke-web.gpu_lease.handler.unload_pause_reply
     invoke-web.gpu_lease.handler.verify_unload
-    coding.gpu_lease.cmd.yield coding.spawn_inference_server
+    coding.cmd.gpu-lease-yield coding.spawn_inference_server
     coding.async_spawn_inference_servers coding.task.enqueue
     |;
 
@@ -447,7 +447,7 @@ $data{'coding'} = {
 };
 $code{'coding.async.state_machine'} = sub { return TRUE };
 local $call = { 'args' => 'invoke-web' };
-$code{'coding.gpu_lease.cmd.yield'}->();
+$code{'coding.cmd.gpu-lease-yield'}->();
 my @released
     = grep { $ARG->{'command'} eq 'models.gpu-lease-release-task' } @routes;
 ok( @released == 1 && $released[0]->{'call_args'}{'args'} eq 'GPUID7A',
@@ -571,7 +571,7 @@ ok( !$duplicates, 'no per-zenka enabled copy can drift' );
 ok( !-e File::Spec->catfile(
         $main::root_path, 'src/models.gpu_lease.query_gpu_memory'
     ),
-    'lease reuses coding.helper.query_gpu_memory instead of a duplicate'
+    'lease reuses base.gpu.query_memory instead of a duplicate'
 );
 
 say ': 17. yield cancels switches, self-tests, sweeps and spawn guard';
@@ -642,6 +642,17 @@ ok( @logs && !scalar( grep { ( $ARG->[0] // 0 ) < 2 } @logs ),
     'five-second lease rescheduling logs only at level 2'
 );
 
+say ': reply contract : every lease command returns mode and data';
+foreach my $file ( glob "$main::root_path/src/*.cmd.gpu-lease-*" ) {
+    open my $fh, qw| < |, $file or die "$file : $OS_ERROR";
+    local $INPUT_RECORD_SEPARATOR;
+    my $src = <$fh>;
+    close $fh;
+    my @returns = $src =~ m{return\s*\{\s*('mode'.*?)\}}sg;
+    ok( @returns && !grep( { !m{'data'} or m{'data'\s*=>\s*''} } @returns ),
+        "$file : reply has data" );
+}
+
 say '';
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
@@ -650,8 +661,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,.,,,,.,,..,,.,,,,.,,,.,,..,,,,,,,.,,...,..,,...,..,,...,.,.,,.,,,,,,.,.,
-#MRWFEZAMXKEBJCOOYJHYLTRMY6VCAWLCLHPX4F5PRWKRBETCKN2WYVVSRNKR55O4AR7VITL4ZTUEY
-#\\\|CPD53RDYSGNYBMEJR3VLRCERVKI63YXLFDHLSXYZUVEUMOE7Q26 \ / AMOS7 \ YOURUM ::
-#\[7]4YU45X7FQ7XPSOT435IV2ZQEATKA3VUNU45GAUITCXNXNBNGZWDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,..,,.,,...,,,,,,,.,,,,,,.,,.,,,..,,...,.,.,...,,..,..,,..,,..,,
+#NT5ETJHD2G5ZE4Q2Z57KQSTQZSKK457MHF4DRC5GKO5VRR7W7MK5YIIZYTGF4MZWJKZPHYBGKK3QC
+#\\\|XKA3IP5B335XDNUDBZWFCWB5JTZFMT5XT3LQWU7ZG4FSUQYU5FH \ / AMOS7 \ YOURUM ::
+#\[7]7SMPQ3KP2HLBNOTNY6VHZZ52Y54WNSZWM2ATWYQYLLHNB47CVCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

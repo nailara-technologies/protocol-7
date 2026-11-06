@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = invoke-web.cmd.gpu-lease-yield
+# descr = pause rendering and empty the invoke.ai model cache
+
+my ($requester) = split m|\s+|, $call->{'args'} // '';
+return { 'mode' => qw| false |, 'data' => qw| done | }
+    if not length $requester;
+my $ok = <[invoke-web.gpu_lease.unload]>->( $requester, qw| handover | );
+return { 'mode' => $ok ? qw| true | : qw| false |, 'data' => qw| done | };
+
+#,,,,,,.,,,,,,..,,.,,,.,.,...,...,,..,,,.,...,..,,...,..,,,..,.,.,.,.,,,,,,.,,
+#GQSD32ISYADMYHXAYJ2SX5DVND4XYR2SJKN2PGIUZPJ2W5K5KH7NVRI7CRMPSYYVQTKTR7RFTTT44
+#\\\|BRHY4HR5KYEG6OC6CNTMEJCOGQESJA267MZDY6EDRB6XCDRM7XQ \ / AMOS7 \ YOURUM ::
+#\[7]T2HLPO3AMJQBW2W5DE56UKZKJMT332OLU5DF5GOCGJN4WGDNCKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -220,7 +220,7 @@ $data{'coding'}{'vram_status_cache'} = {
     'used_mb'  => 1,
     'total_mb' => 2
 };
-$code{'coding.helper.query_gpu_memory'}
+$code{'base.gpu.query_memory'}
     = sub { return { 'ok' => TRUE, 'free_mb' => 1, 'total_mb' => 2 } };
 compile_module('coding.cmd.inference-status');
 my $reply  = $code{'coding.cmd.inference-status'}->();
@@ -241,8 +241,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,,,,,,,,.,.,,..,,.,,,..,..,,,,.,,,,,.,.,..,,...,..,,...,..,,,..,,.,,,,.,
-#2OUNF5SVZ27NELDZYHQ7Z27327WPZSVDEF7KIO6RQKETVOFTPUSNYDUYPYN2DKZEKS7O4QGO3RXZ6
-#\\\|RBFWHTYE2M2LEGJD33CGETODZW5BRY4PHKFNGHSKPCPCBQMQSAB \ / AMOS7 \ YOURUM ::
-#\[7]QUB2TYWCRDSY2JUDXNWPVEWEJNKPYLKGIJNUXCV5WIPQO2PW2SCI 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,,,,,,,,,,..,,.,,,,,,.,,,,..,..,,...,.,,,,.,,...,..,,..,,,,,,
+#KV6L7YOARAKIZTH52SSUZD73IYBZX3QTM2LVSP25VB4BQ7ZQKA6QKXPRGNDKQWY6FO5EWOJAWADPI
+#\\\|WIJUPIBKE5RF7GSGK3K7QDZXEWTV7JTPBI4Y6WQA6HDXUWUEWCG \ / AMOS7 \ YOURUM ::
+#\[7]7NWIDBKQK5PXNW5LQEY2RSPUHKBHVNSV2J2DE66SCBFUCVD2ZMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

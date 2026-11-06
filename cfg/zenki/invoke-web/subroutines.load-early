@@ -293,6 +293,7 @@ base.log.format_entry
 base.load_host_config
 base.load_config_file
 base.list.element.add
+base.gpu.query_memory
 base.file.match_files
 base.event.add_signal
 base.dependency.setup
@@ -396,6 +397,7 @@ coding.image.select_refs
 coding.idiom.repair.auto
 coding.helper.task_chain
 coding.helper.dry_last_n
+coding.gpu_lease.request
 coding.buffer.task_write
 coding.async.http_client
 base.zenka.push.pre_init
@@ -626,12 +628,12 @@ invoke-web.handler.fetch_reply
 invoke-web.handler.drain_check
 invoke-web.handler.claim_child
 invoke-web.cmd.requeue-missing
+invoke-web.cmd.gpu-lease-yield
 crypt.C25519.key_name_and_type
 crypt.C25519.chksum_cache.retr
 coding.tools.definitions.notes
 coding.sanitize.jinja_messages
 coding.parser.dependency_chain
-coding.helper.query_gpu_memory
 coding.handler.gpu_temp_update
 coding.handler.gpu_fit_recheck
 coding.handler.cpu_fit_recheck
@@ -677,6 +679,7 @@ base.file.zenka_dir.unlink_file
 invoke-web.handler.win_mem_reply
 invoke-web.cmd.requeue-cancelled
 invoke-web.cmd.queue-interactive
+invoke-web.cmd.gpu-lease-granted
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
 crypt.C25519.decrypt_priv_keystr
@@ -824,6 +827,7 @@ coding.handler.vision_switch_back_done
 coding.handler.switch_model_spawn_done
 coding.handler.inference_crash_restart
 coding.handler.http_data_start_timeout
+coding.gpu_lease.handler.acquire_reply
 base.log.send-buffer.idle-callback-set
 invoke-web.handler.startup_resume_reply
 invoke-web.handler.recover_resume_reply
@@ -845,6 +849,7 @@ invoke-web.handler.requeue_missing_reply
 invoke-web.handler.recover_requeue_reply
 invoke-web.gpu_lease.handler.renew_reply
 coding.handler.monitor_inference_startup
+coding.gpu_lease.handler.acquire_timeout
 coding.callback.object_self_test_pending
 protocol.protocol-7.auth.select-size-mode
 coding.tools.definitions.user_interaction
@@ -877,8 +882,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,,.,,,,,.,,,...,,,,,.,.,.,.,,,.,,.,,...,..,,...,...,...,,,.,.,.,.,.,...,
-#CUTYU32O6PK2TLMAHTEKZGRDJV4TJSDRUOP2QMGGOJ6SE2S2L4HQYELZJ573DTHMZHX33NXTVLLGS
-#\\\|NFXKJESIA3YBPZVJRCTPHW5PLNOCP6AK2AMAZNQUZQFIVVCETBI \ / AMOS7 \ YOURUM ::
-#\[7]ZJP4WEKGERTMQRZYMLHZSICQ6RWVXUCVUTQCD26MVWGETYJSNIAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,,.,,...,.,,,,..,,..,...,,,,,..,,...,...,..,,.,.,,.,,.,,,.,,,
+#FENC3TO3N74GTEFKFIVNNW2JULMZWBJRMVSSBPZSPIAOKBSLDKYAKSACQBJHE6XT7AQ32TMHC7WWG
+#\\\|7FPJZUIHLYT6WXA5YIY32PBD3P6I7XGVB7AS7ZTWXOPOGZGGVHJ \ / AMOS7 \ YOURUM ::
+#\[7]RXKONCKD45MUURGYZGQSYZW4ENTJASP6QKIOCEYV6VOUVA3EQEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
