@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32NLL5XFHA-10553.0 :::
+::: SOURCE-CODE VERSION :: 32NLXZOMKQ-10554.0 :::
 
 # [ [nailara 'protocol seven' network](http://protocol-7.network/) ]
 
@@ -144,13 +144,18 @@ bin/p7-install -dry-run                            # what it would do
 2. **checkout** -- clone \ fast-forward `/usr/local/protocol-7`
 3. **dependencies** -- `bin/p7-deps install <profile>` [ the profile is
    recorded ; a later run without `-profile` uses it ]
-4. **auto-install opt-in** -- reported, set with `-auto-install-deps`
-5. **service unit** -- unit, install link, `Protocol-7` \ `nshell` symlinks
-6. **boot start \ service** -- only with `-enable` \ `-start`
+4. **hardware packages** -- on the first install only, detect hardware, write
+   `hw-<hostname>` with its evidence and install it ; `-no-hw` opts out
+5. **auto-install opt-in** -- reported, set with `-auto-install-deps`
+6. **service unit** -- unit, install link, `Protocol-7` \ `nshell` symlinks
+7. **boot start \ service** -- only with `-enable` \ `-start`
 
 every step looks first and acts only on what is missing : a second run
-changes nothing. the service is never restarted. `-options` lists every
-option.
+changes nothing. the service is never restarted. generated hardware profiles
+live in `.deps/profiles.local.yaml`, which is ignored and merged by `p7-deps`,
+not in the tracked profile file. hardware detection or installation failure
+warns and the install continues. installed microcode reports that a reboot is
+needed ; the installer never reboots. `-options` lists every option.
 
 ### Profiles
 
@@ -515,8 +520,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,,,.,.,,,,,..,,,,,,,.,,.,.,,.,,,.,,,,,,,,,,..,,...,...,.,,,..,,,,,,...,,,.,
-#VJOHZJPYR5DMECHFSJCQAVO77OLZOR4FVVEJGMPRAY3UUAP66UCYGN4IHZGPI4XWIVJ7Q3BRWWGC2
-#\\\|XZ2WZXQPAHEXAE5JIATTBY3JSIK7DB4M4JYJ3BL6YOFCM4QCUH2 \ / AMOS7 \ YOURUM ::
-#\[7]UH3UTCWXX6TJGTN2B37BJQAOX7WJVJ5KKQTC7QM4JEE3EQNYDUAY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,..,.,,,,,.,...,...,...,,,,,...,..,,...,...,...,,..,.,.,,.,,...,
+#PYNEIMX25BCQE4FR5WJRUN44DGS4IQSVXRWGDKLBJ3GLA5FBAK7XMZB6JEZF4ZO5HUCVJGVJQONRY
+#\\\|6HSKJHICK2GSUNXYIJ65VWVYEYEPUEDNOKXOTR3IIUJWSUONCCA \ / AMOS7 \ YOURUM ::
+#\[7]SRXFDBV3LDPKSNV7X5IYCDIZILL6GFX7SNUN6VHJUC7BDKVPBOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

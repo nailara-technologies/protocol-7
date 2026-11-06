@@ -14,9 +14,10 @@ use warnings;
 ## 1. base packages ... perl libcrypt-dev ca-certificates build-essential git
 ## 2. checkout ........ clone \ update /usr/local/protocol-7
 ## 3. dependencies .... bin/p7-deps install <profile>
-## 4. service unit .... bin/p7-deps install-service
-## 5. boot start ...... bin/p7-deps enable-service [ -enable only ]
-## 6. service ......... systemctl start Protocol-7 [ -start only ]
+## 4. hardware ........ detect + install once, first install only [ -no-hw ]
+## 5. service unit .... bin/p7-deps install-service
+## 6. boot start ...... bin/p7-deps enable-service [ -enable only ]
+## 7. service ......... systemctl start Protocol-7 [ -start only ]
 ##
 ## every step looks first and acts only on what is missing -- a second run
 ## changes nothing. the service is never restarted, and started only with
@@ -35,7 +36,8 @@ use warnings;
 use FindBin;
 use Getopt::Long ();
 use File::Spec;
-use File::Path qw| make_path |;
+use File::Path    qw| make_path |;
+use Sys::Hostname qw| hostname |;
 
 BEGIN {
     ## repo layout first, then a copy [ AMOS7/ beside the script ] ##
@@ -83,12 +85,13 @@ my %opt = (
 
 Getopt::Long::Configure(qw| no_ignore_case |);
 Getopt::Long::GetOptions(
-    \%opt,                  'profile=s',
-    'branch=s',             'repo=s',
-    'enable',               'start',
-    'dry-run',              'nc',
-    'profiles',             'auto-install-deps',
-    'no-auto-install-deps', 'help|h|options'
+    \%opt,               'profile=s',
+    'branch=s',          'repo=s',
+    'enable',            'start',
+    'dry-run',           'nc',
+    'profiles',          'no-hw',
+    'auto-install-deps', 'no-auto-install-deps',
+    'help|h|options'
 ) or frame_error_exit( $TOOL, 'unknown option [ -options lists them ]' );
 
 frame_error_exit( $TOOL, sprintf 'unexpected argument [ %s ]', $ARGV[0] )
@@ -115,6 +118,10 @@ frame_error_exit( $TOOL, "repository not valid [ $opt{'repo'} ]" )
 my $DRY_RUN      = $opt{'dry-run'} ? TRUE : FALSE;
 my $INSTALL_ROOT = $ENV{'P7_INSTALL_ROOT'} // '';
 my $TARGET = File::Spec->catdir( $INSTALL_ROOT, qw| usr local protocol-7 | );
+
+## the checkout's existing git metadata is the first-install state marker ##
+my $FIRST_INSTALL
+    = ( not -e File::Spec->catfile( $TARGET, '.git' ) and not -l $TARGET );
 
 ## the profile list comes from p7-deps : the checkout's, else the one ##
 ## beside this script [ a repo copy before the first install ]        ##
@@ -150,6 +157,7 @@ my @steps = (
     [ 'base packages',       \&step_base_packages ],
     [ 'checkout',            \&step_checkout ],
     [ 'dependencies',        \&step_dependencies ],
+    [ 'hardware packages',   \&step_hardware_packages ],
     [ 'auto-install opt-in', \&step_auto_install ],
     [ 'service unit',        \&step_service_unit ],
     [ 'service state',       \&step_service_state ],
@@ -383,7 +391,36 @@ sub resolve_profile {
     return ( qw| minimal |, 'default, none recorded' );
 }
 
-##[ step 3.5 : auto-install opt-in ]##########################################
+##[ step 3.5 : first-install hardware packages ]##############################
+
+sub step_hardware_packages {
+    if ( $opt{'no-hw'} ) {
+        row( 'hardware packages', 'skipped', '-no-hw' );
+        return TRUE;
+    }
+    if ( not $FIRST_INSTALL ) {
+        row( 'hardware packages', 'skipped', 'not the first install' );
+        return TRUE;
+    }
+
+    my $name = lc hostname();
+    $name =~ s|[^a-z0-9-]+|-|g;
+    $name =~ s|\A-+\|-+\z||g;
+    $name ||= qw| host |;
+    my $profile = "hw-$name";
+
+    my $ok = p7_deps_step(
+        'detect-hw -install',
+        $profile, qw| detect-hw -write |,
+        $name,    qw| -install |
+    );
+    row('hardware packages',                                'warning',
+        'detection or install failed -- install continues', 'warn'
+    ) if not $ok;
+    return TRUE;
+}
+
+##[ step 3.6 : auto-install opt-in ]##########################################
 
 ## the per-host opt-in for the strategic dependency install
 ## [ v7-zenki installs missing dependencies at zenka start ] -- off by
@@ -668,6 +705,7 @@ sub print_help {
                             [ never a restart ]
      -dry-run ............  report what would be done, write nothing
      -profiles ...........  list the dependency profiles [ p7-deps list ]
+     -no-hw ...............  skip first-install hardware package detection
      -nc .................  no colours [ also with NO_COLOR, or no terminal ]
      -auto-install-deps ..  host opt-in : v7-zenki installs missing
                             dependencies at zenka start [ default : off ]
@@ -692,8 +730,8 @@ EOL
     return TRUE;
 }
 
-#,,,.,,,.,..,,,.,,..,,...,.,,,,,,,.,,,,.,,,.,,..,,...,...,...,...,,,,,,.,,...,
-#3K4RXJGI232OR2H3E77F5R75N3LGNXHHMAVBIKM2J6QVMATC2ZO2L6LYAP4JYR575XELDAL5SLQG2
-#\\\|L4LHA6Q3K5ZRRJ34SRSUOLKCCZH6QNHYCLFWG4V6Q533P7MNQ5U \ / AMOS7 \ YOURUM ::
-#\[7]KDVQVCTIF74HWGT7UBRFH4MPKKTXIB5PFUKBWWTEWH7P52CFUUCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,..,,,..,,..,,.,,,,,,,.,,...,..,,...,.,.,..,,...,.,,,.,.,.,.,
+#N4WBQJ66PGG7ATVEI5YYXYVECBS4PXGAAODZQ65JYPZDOBFGS5D7TOFJB3NRFUPKKFWFLLSQD6WMY
+#\\\|JOTMB3M3Y543O4LWJIQPRF5OLLQACSNDFI3FMSP6ABKELZKABQU \ / AMOS7 \ YOURUM ::
+#\[7]E3G3SMPAM7GSB2LJFKLIAIW6ZBOJ2SGDDGKYFSM6VWBOWCDMYUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

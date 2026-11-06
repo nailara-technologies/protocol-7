@@ -246,6 +246,19 @@ open my $fh, '>>', "$log_dir/p7-deps-env.log" or die;
 print {$fh} ( $ENV{'P7_DEPS_SERVICE_ROOT'} // '<unset>' ), "\n";
 close $fh;
 exit 1 if -e state_file("p7-deps-fail-$ARGV[0]");
+if ( $ARGV[0] eq 'detect-hw' ) {
+    if ( -e state_file('hw-none') ) {
+        print "hardware detection : no packages suggested\n";
+    } else {
+        print ":: intel-gpu-tools .. hardware [ pci 0000:00:02.0 vendor 0x8086 ]\n";
+        print ":: intel-microcode .. hardware [ cpu vendor_id GenuineIntel ]\n";
+        print ":: reboot .. needed [ intel-microcode takes effect after reboot ]\n";
+        open my $calls, '>>', "$log_dir/p7-deps.log" or die;
+        print {$calls} "install hw-$ARGV[2]\n";
+        close $calls;
+        exit 1 if -e state_file('p7-deps-fail-hw-install');
+    }
+}
 if ( $ARGV[0] eq 'enable-service' ) {
     system( 'systemctl', 'enable', 'Protocol-7' ) == 0 or exit 1;
 }
@@ -265,6 +278,7 @@ sub reset_sandbox {
         'p7-deps', $p7_deps_stub );
     write_file( state_path('installed'),   "perl\n" );
     write_file( state_path('remote-head'), $HEAD_A );
+    write_file( state_path('hw-none'),     '' );
     return TRUE;
 }
 
@@ -372,12 +386,10 @@ reset_sandbox();
     check 'fresh : exit 0', $exit == 0;
     print $out if $exit != 0;
 
-    ## the printed frame [ the stub p7-deps prints nothing -- a real one ##
-    ## nested in a step is not covered here ]                            ##
     my @lines   = split m|\n|, $out;
     my @headers = grep { $lines[$_] =~ m|^:::\[ .+ \]$| } 0 .. $#lines;
-    check 'fresh output : five step headers, each with a \'::\' line below',
-        ( @headers == 5
+    check 'fresh output : six installer steps, each with a \'::\' line below',
+        ( @headers == 7
             and not grep { ( $lines[ $_ + 1 ] // '' ) ne '::' } @headers );
     check 'fresh output : the first step reads as decided',
         $out =~ m|^:\n:::\[ base packages \]\n::\n::   ca-certificates |m;
@@ -390,11 +402,12 @@ reset_sandbox();
     check 'fresh : one apt-get install of the missing packages only',
         (       @installs == 1
             and $installs[0]
-            =~ m|-y install ca-certificates git build-essential$| );
+            =~ m|-y install ca-certificates git build-essential libcrypt-dev$|
+        );
     my %installed = map { $_ => 1 } lines_of( state_path('installed') );
     check 'fresh : all base packages installed now',
-        4 == grep { $installed{$_} }
-        qw| ca-certificates git perl build-essential |;
+        5 == grep { $installed{$_} }
+        qw| ca-certificates git perl build-essential libcrypt-dev |;
 
     check 'fresh : git clone of the base branch into the target',
         calls_matching( 'git',
@@ -402,10 +415,15 @@ reset_sandbox();
     check 'fresh : checkout is at the remote head',
         slurp($head_file) eq $HEAD_A;
 
-    check 'fresh : p7-deps install minimal, then install-service',
-        join( '|', calls('p7-deps') ) eq 'install minimal|install-service';
+    check 'fresh : install, hardware detection, then install-service',
+        join( '|', calls('p7-deps') )
+        =~ m|\Ainstall minimal\|detect-hw -write [a-z0-9-]+ -install\|install-service\z|;
     check 'fresh : p7-deps got the test root as P7_DEPS_SERVICE_ROOT',
-        2 == grep { $_ eq $test_root } lines_of( log_file('p7-deps-env') );
+        3 == grep { $_ eq $test_root } lines_of( log_file('p7-deps-env') );
+    check 'fresh : no suggestions is one short '
+        . 'line and installs no hw profile',
+        ( $out =~ m|^hardware detection : no packages suggested$|m
+            and 0 == calls_matching( 'p7-deps', qr|^install hw-| ) );
     check 'fresh : no enable, start or restart without --enable \ --start',
         ( 0 == calls_matching( 'systemctl', qr{^(enable|start|restart)\b} )
             and not -e state_path('enabled')
@@ -421,13 +439,15 @@ reset_sandbox();
 
     my ( $exit, $out ) = install();
     check 'second run : exit 0', $exit == 0;
-    check 'second run : ' . 'no apt-get call',
+    check 'second run : no apt-get call',
         scalar calls('apt-get') == $apt_before;
     check 'second run : one clone in all, no merge',
         (       calls_matching( 'git', qr|^clone| ) == 1
             and calls_matching( 'git', qr|\bmerge\b| ) == 0 );
     check 'second run : root and stub state unchanged',
         snapshot( $fetch_head, $test_root, $state_dir ) eq $before;
+    check 'second run : hardware detection never repeats',
+        calls_matching( 'p7-deps', qr|^detect-hw| ) == 1;
     check 'second run : still no enable, start or restart',
         0 == calls_matching( 'systemctl', qr{^(enable|start|restart)\b} );
 }
@@ -684,8 +704,73 @@ reset_sandbox();
     check 'no systemctl, nothing asked : exit 0', $exit == 0;
 }
 
-## --- [ 9 ] standalone : a copy [ script + AMOS7/ ] on core perl only ##
-## ------------------                                                  ##
+## --- [ 9 ] first-install hardware detection and its failure policy ##
+## ------------------                                                ##
+
+reset_sandbox();
+{
+    unlink state_path('hw-none');
+    my ( $exit, $out ) = install(qw| -profile extended |);
+    check 'hardware : first install exits 0', $exit == 0;
+    my @deps_calls = calls('p7-deps');
+    check 'hardware : detection and profile '
+        . 'install follow the chosen profile',
+        (       @deps_calls == 4
+            and $deps_calls[0] eq 'install extended'
+            and $deps_calls[1]
+            =~ m|\Adetect-hw -write ([a-z0-9-]+) -install\z|
+            and $deps_calls[2] eq "install hw-$1"
+            and $deps_calls[3] eq 'install-service' );
+    check 'hardware : each package is printed with its evidence',
+        (       $out =~ m|intel-gpu-tools.*pci 0000:00:02\.0 vendor 0x8086|
+            and $out =~ m|intel-microcode.*cpu vendor_id GenuineIntel| );
+    check 'hardware : microcode says a reboot is needed, never reboots',
+        ( $out =~ m|reboot.*needed.*intel-microcode|
+            and 0 == calls_matching( 'systemctl', qr|^reboot| ) );
+
+    ( $exit, $out ) = install(qw| -profile extended |);
+    check 'hardware : second run skips detection and profile installation',
+        (       $exit == 0
+            and calls_matching( 'p7-deps', qr|^detect-hw| ) == 1
+            and calls_matching( 'p7-deps', qr|^install hw-| ) == 1
+            and $out
+            =~ m|hardware packages.*skipped.*not the first install| );
+}
+
+reset_sandbox();
+{
+    my ( $exit, $out ) = install(qw| -no-hw |);
+    check 'hardware : -no-hw skips detection and exits 0',
+        (       $exit == 0
+            and calls_matching( 'p7-deps', qr|^detect-hw| ) == 0
+            and $out =~ m|hardware packages.*skipped.*-no-hw| );
+    check 'hardware : -no-hw still installs the service unit',
+        calls_matching( 'p7-deps', qr|^install-service$| ) == 1;
+}
+
+reset_sandbox();
+{
+    write_file( state_path('p7-deps-fail-detect-hw'), '' );
+    my ( $exit, $out ) = install();
+    check 'hardware : detection failure warns and the install continues',
+        (       $exit == 0
+            and $out =~ m|hardware packages.*warning.*install continues|
+            and calls_matching( 'p7-deps', qr|^install-service$| ) == 1 );
+}
+
+reset_sandbox();
+{
+    unlink state_path('hw-none');
+    write_file( state_path('p7-deps-fail-hw-install'), '' );
+    my ( $exit, $out ) = install();
+    check 'hardware : package failure warns and the install continues',
+        (       $exit == 0
+            and $out =~ m|hardware packages.*warning.*install continues|
+            and calls_matching( 'p7-deps', qr|^install-service$| ) == 1 );
+}
+
+## --- [ 10 ] standalone : a copy [ script + AMOS7/ ] on core perl only ##
+## ------------------                                                   ##
 
 reset_sandbox();
 {
@@ -698,7 +783,7 @@ reset_sandbox();
         File::Spec->catfile( $copy,     @$_ )
         )
         for [qw| AMOS7.pm |], [qw| AMOS7 TERM Frame.pm |],
-        [qw| AMOS7 deps debp.pm |];
+        [qw| AMOS7 deps debp.pm |], [qw| AMOS7 deps aptlog.pm |];
 
     my $inc_log = File::Spec->catfile( $sandbox, 'inc.log' );
     my $script  = File::Spec->catfile( $copy,    'p7-install' );
@@ -739,8 +824,9 @@ EOF
         @loaded > 0 && !@foreign;
     printf "       : %s from %s\n", @$_ for @foreign;
     check 'copy on core perl : the AMOS7 modules came from the copy', (
-        3 == grep {
-            $_->[0] =~ m{^AMOS7(?:\.pm|/TERM/Frame\.pm|/deps/debp\.pm)$}
+        4 == grep {
+            $_->[0]
+                =~ m{^AMOS7(?:\.pm|/TERM/Frame\.pm|/deps/(?:debp|aptlog)\.pm)$}
                 and index( $_->[1], $copy ) == 0
         } @loaded
     );
@@ -751,8 +837,8 @@ EOF
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,...,..,,...,.,.,.,.,...,...,...,,,,,,..,..,,...,...,..,,,..,,,,,,,.,.,,,
-#UPTF4TVYB75D5D3KHSGXZUMUO3P3OZRP5WDG23K3LLLPFBOWQCBXIFA4HOWIQ42KJ725I4FDXYWEK
-#\\\|L5BY2FQDIT7PLCHD4Z6KUQYGKSPS7BFSOKWKO3BWGWBGAO3BHUT \ / AMOS7 \ YOURUM ::
-#\[7]7UPRAANMBIELNE3YCSKTLNZTUXCZ6S34CT6BATJSMUCYK52HU4AY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,,..,,..,,,,,...,,,.,...,,,.,..,,...,...,.,,,,,,,..,,,.,,.,,,
+#WBBWNO6GISBCAIRNMUCWJKRTP4KXKL2AUNPCUUOGRPRSFWEG2RAXLCOVI6ZJTR57VF67O6KHMQBBQ
+#\\\|KEPVZKOYZNQ7BRWNQETBFCCXM52KFK37EXYJFS7PTI2STQHNNHZ \ / AMOS7 \ YOURUM ::
+#\[7]YPRFGG36FWLV25SEDDJOIODFUCQATSXVCE5UL2KTN2EETEBJ3QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
