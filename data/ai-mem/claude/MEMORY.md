@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — START HERE [ d02c3b067 ] : shm A landed, grants real ed25519, header v2, live everywhere ; next N7FS
+- [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — START HERE : host labels, letsencr join fix NOT deployed ; next N7FS
+- [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — previous [ d02c3b067 ] : shm A live
 - [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — previous [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
 - [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 : format 1 tested, CLI only, no deployment, no user in src ; owner decisions listed, binary byte form first
 - [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — previous [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
@@ -103,8 +104,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,..,,,.,,,,.,.,,,.,,,.,.,..,,..,,,..,,.,,..,,...,...,,.,,.,.,,,,,...,.,,,
-#SDMHMXQHDSW6N4QITSMS4YZDJMZ4A32WJ4HVZEVYL7YMQFJ733RIEWXR7WEDDZQCMQLV6RWOKAZR6
-#\\\|7YNTOAP5VPKVW6BRS65IRCQAYJGM26BK7ECBEL3G24FR3OUBBJZ \ / AMOS7 \ YOURUM ::
-#\[7]CPEM4DRUAWAYD5LREDRX4IX2O3ZGIAHQDK6I2L5VW2MWDR3VL6AA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,,,,,,,,,,.,,,,.,...,.,.,,.,,..,,...,...,..,,,..,,,.,...,,.,,
+#IKAHLDB6WB45O4KAWH6CPUVWAVBDGMVJRWI2JVGHV22RKBPDAEFLQ4JALU47IIGKS7ZSKW2RLBMBE
+#\\\|3WYBNT4VPSRYPRUS52DYI5BI55YDBGAPVYLQIEUR5K2YROAI6FD \ / AMOS7 \ YOURUM ::
+#\[7]AFEGH3GEY5E4YFR3UN6IH5CA7ELTHYMCIUBFUV4UE73HBPLDJIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
