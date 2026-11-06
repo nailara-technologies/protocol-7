@@ -19,6 +19,9 @@ you can use those at any time" and "you can restart or reload them anytime".
   bin/admin/restore-p7-permissions instead [ pull --rebase would replay ]
 - zenka restarts \ reloads on the remotes need no per-step ask
 
+- 2026-11-06 owner adds azurum : `ssh root@azurum` under the same terms [ `::: azurum` answers 'user not authorized',
+  its checkout is root-owned ] -- the practical way until better options exist for all hosts
+
 **Why:** the owner wants remote steps done without a round trip each.
 
 **How to apply:** still name each restart in the reply as it happens, and
@@ -27,8 +30,8 @@ not covered : host config secrets [ never print host.cfg whole -- grep keys,
 hash values ; a web.auth.secret leaked into a transcript 2026-10-21 ],
 deleting files I did not create, registrar \ dns provider changes.
 
-#,,,,,.,,,...,.,.,...,...,...,,,.,,,.,,.,,.,.,..,,...,...,,..,.,.,.,,,,,.,...,
-#ARXOHWWJ7TNTMGA7WINJSKOMA5HZN2OB6MWSSA433UWAATR6IV7ACBNTYHX4NVTVUXIXMUEBCWTGQ
-#\\\|C45JFYYEL7N6YYU7NJTEYREJSYUWQCYYG4VM7LI4H7KZBX4HSPJ \ / AMOS7 \ YOURUM ::
-#\[7]734GVDIGUGKNFAOZY5AL7OSLJPO5CCMSN45GTBQ75IL3NRI3P4BY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,.,...,.,,,.,.,.,,,,,.,,..,.,.,..,,...,...,...,.,.,..,,.,,,..,,
+#65WQW4ZD5CA5O4ENKKIUKJ6ZNDDFYZ2VMFNIVKWYRW4V4KMZ5SDTW6TCAP4KL6OGL6XLKLONDTY6S
+#\\\|U3P56DQ5ZBL454B3TCPSOPSUFD4B5IGEV2NISQVJBDPWHPUTJMB \ / AMOS7 \ YOURUM ::
+#\[7]LO3S2J5YWICI6Z3IAAODRXP3HT3DOL7FCSBVL4ATDQV4W7GW4QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
