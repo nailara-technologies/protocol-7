@@ -2421,9 +2421,25 @@ items:
   - sign
   - tools
   text: "p7-sign-run dies on a bad path before its first state write : p7_sign_status stays 'starting' forever, p7-sign-wait never ends -- write 'failed' with the reason"
+- added: 32NOFDVTIU
+  details: |-
+    proposal : ctrl-v pastes at the cursor, a second key is line oriented. ctrl-shift-v is the same byte 0x16 in a plain terminal and often taken by the terminal itself, so alt-v [ ESC v ] as the portable key, ctrl-shift-v only where the terminal reports it [ kitty protocol, modifyOtherKeys ]. to settle : a killed whole line pasted at the cursor goes in without its line break. help text says line kill stack, paste code not read yet.
+    use case that decides it [ owner ] : ctrl-l is the only way to cut from below and move up, commonly a comment line appended after the code of a prior line. so ctrl-v at the cursor inserts a killed line without its line break ; to check : drop its leading indent and keep one space before it when pasted after text.
+    direction [ owner ] : paste becomes context dependent [ cursor at end of code, on an empty line, mid line ], the details configurable and pinnable per user. first step stays the plain fix : ctrl-v at the cursor, a line oriented key beside it.
+    preferred over a second paste key [ owner idea ] : one generic mode toggle key that also serves later selection modes and decides paste : character mode ctrl-v at the cursor, line mode whole lines, block [ rectangle ] possibly a third state, so a cycle not a flip. status line always shows the mode, default mode pinnable, context rules apply in character mode. key still to choose.
+    toggle key proposal [ owner ] : ctrl-b, block, next to v, its own byte 0x02. it is the default tmux prefix, inside tmux it needs a double press or a rebind.
+    where : data/lib-path/pm/AMOS7/TERM/Editor.pm [ edit_text, shared by ned, todo, p7-vault ; header comment documents 'lines above the cursor', update it ]. ctrl-v serves kill stack and clipboard, bracketed paste is a third path. tests : test-term-editor, -pty, test-ned-pty. AMOS7/TERM.pm ctrl-y is a separate line input path. standalone vault copies do not follow.
+  done_at: null
+  id: PCJ
+  priority: low
+  status: open
+  tags:
+  - ned
+  - editor
+  text: 'ned : ctrl-v ignores the cursor column, inserts at 0,Y [ before the current line ] instead of at the cursor'
 
-#,,,.,,,.,...,,..,,..,,,.,.,.,,..,,,.,...,,,,,..,,...,...,,.,,..,,.,.,...,,,.,
-#7H7FIDOLXJWUZLGGJ4SOPE24YJXFWYVM6DZNVP3LYP3I3NLYGZV3RPEWBXIRMDX5MWMIWCNBEN7LA
-#\\\|A6JCXUU4HFV2FSDVLMDCYGA3VNAUQKJTWIB3SB4UA7TURK7MRAH \ / AMOS7 \ YOURUM ::
-#\[7]FGYZT77ME3E5S6GZEAOA3UUYL7ZDYRCHIBW7NSYY2HPNACCAO6AA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,,,,.,,,,,,.,.,,.,,.,.,,.,,...,..,,...,..,,,,.,.,.,,.,,.,,,.,,,
+#OKI5AEGPTN2IUMSF52MP3BXBG4LUULZE6NG5BH3PORXT7ELOVCKVIVJ4AAKTET3T4VMPUMFF72FLC
+#\\\|EWJVVNANBMMZ6F4SQMV5PKLIILHEFJRHIHF4KHTWGP2V3EQ7NNX \ / AMOS7 \ YOURUM ::
+#\[7]XSLQW6GVLIX675ILADFT7ZI2JV7C4GATW7XF5QYBJS6HORMA4KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
