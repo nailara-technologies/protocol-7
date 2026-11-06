@@ -5,7 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — START HERE : host labels, letsencr join fix NOT deployed ; next N7FS
+- [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — START HERE : host labels, letsencr join fix deployed, no history rewrite ; next N7FS
 - [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — previous [ d02c3b067 ] : shm A live
 - [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — previous [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
 - [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 : format 1 tested, CLI only, no deployment, no user in src ; owner decisions listed, binary byte form first
@@ -104,8 +104,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,,,,.,.,,,,,,,,,,,,,,.,,,,.,...,.,.,,.,,..,,...,...,..,,,..,,,.,...,,.,,
-#IKAHLDB6WB45O4KAWH6CPUVWAVBDGMVJRWI2JVGHV22RKBPDAEFLQ4JALU47IIGKS7ZSKW2RLBMBE
-#\\\|3WYBNT4VPSRYPRUS52DYI5BI55YDBGAPVYLQIEUR5K2YROAI6FD \ / AMOS7 \ YOURUM ::
-#\[7]AFEGH3GEY5E4YFR3UN6IH5CA7ELTHYMCIUBFUV4UE73HBPLDJIDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,,..,.,.,,.,,..,,.,.,,,,,,,,,..,,...,...,,.,,,,.,,..,,.,,...,
+#EGAJAPBIR4FJ4GVDV6FDRRZN7YIZBG5YUP3B55H2ZLNSWXIWR7FUDYDAEPEU5XDINF6CGGIRFCPM6
+#\\\|SPTWRZLHX4SNFB2Q3ZNGJJLFTNTDW7L6DJ7MRINCBHJ2HK4IMAJ \ / AMOS7 \ YOURUM ::
+#\[7]MBVQDNH5WDYAOP4ZVWMSMVTUVWKD57AZHCMI6ZNC2YJ32BZJQQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
