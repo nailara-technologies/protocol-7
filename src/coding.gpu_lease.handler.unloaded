@@ -29,10 +29,14 @@ if ( $pid and kill( 0, $pid ) and $attempt < 40 ) {
         'call_args' => { 'args' => "coding $requester" },
     }
 );
+
+## queue up again : nothing spawns while held, so nothing else would ask ##
+<[coding.gpu_lease.request]>;
+
 return TRUE;
 
-#,,,,,..,,,..,...,.,.,,,,,,..,.,.,,..,,.,,,.,,..,,...,...,...,,,,,.,,,,,,,...,
-#6YKLF3264JXEVBHTYV7KQLX32QXKU4AOYEV7YWDM6EHOIUXFLRCA344B76ED3VUAFC2ZQ7K5TQRU6
-#\\\|T5ZQEMVZ2AILKW7G2TX3KFCFMUGOYS2TBZ763LN6KY2QX2PEJTE \ / AMOS7 \ YOURUM ::
-#\[7]UDKDJEQDPYJSRV53GG63C2QBKGDA3OYP5ALCVXMPN25ZVV5F3GBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,,,,.,,,.,,.,,,,..,,..,.,,,.,,,..,,...,..,,,.,,,.,,...,.,.,,.,,
+#VAOL2BF7OXTJ3UG4JACDT56UCFG7EAMHO3QCSHUJRBBLMW2VUT4ZID6SIHBLNBDOUUZ6VOLULDTRS
+#\\\|EKIA2GK2OSWDNNUDGYMFALYKZII4I3GWAR4BL4N5AWO4C3GUCQZ \ / AMOS7 \ YOURUM ::
+#\[7]V2WNOYRVYSOY45JQQHURDZQ6EBMZONWSF2TRBIXKKF34IFF2MADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -70,7 +70,7 @@ sub compile_module {
 
 compile_module('coding.helper.calculate_safe_context');
 ## gpu branch [ split out 2026-09-17 ] ##
-compile_module('coding.helper.query_gpu_memory');
+compile_module('base.gpu.query_memory');
 
 sub ok ($;$) {
     my ( $cond, $label ) = @ARG;
@@ -121,8 +121,9 @@ ok( $small_result->{'limited_by'}
 say ': 2. the exact live-crash shape : 9B-class model against a '
     . 'GPU-tuned coding.cfg.context_max, must NOT reach 144993 blindly';
 
-## model_size_mb ~ 9GB [ Q8_0, matches the live "9b-abliterated-Q8_0.gguf"  ##
-## that crashed ] -- est_params_gb lands in the 7-12 bracket [ 42KB/token ] ##
+## model_size_mb ~ 9GB                                                   ##
+## [ Q8_0, matches the live "9b-abliterated-Q8_0.gguf" that crashed ] -- ##
+## est_params_gb lands in the 7-12 bracket [ 42KB/token ]                ##
 my $nineb_model = sparse_file_of_mb(9000);
 $data{'coding'}{'cfg'}{'context_max'} = 144993;    ## mirror the live cfg ##
 my $nineb_result = $code{'coding.helper.calculate_safe_context'}
@@ -171,10 +172,10 @@ ok( $odd_result->{'context_length'} >= 7777,
 
 say ': 5. GPU backend path unaffected by the CPU-branch restructuring';
 
-## whether or not this host has a real GPU, the GPU branch must behave      ##
-## exactly as before this fix : either real VRAM-based math [ if nvidia-smi ##
-## succeeds here ] or the pre-existing gpu_query_failed fallback -- either  ##
-## way it must never take the new RAM-clamp code path                       ##
+## whether or not this host has a real GPU, the GPU branch must behave   ##
+## exactly as before this fix : either real VRAM-based math              ##
+## [ if nvidia-smi succeeds here ] or the pre-existing gpu_query_failed  ##
+## fallback -- either way it must never take the new RAM-clamp code path ##
 my $gpu_result = $code{'coding.helper.calculate_safe_context'}
     ->( { 'model_path' => $small_model, 'backend' => 'gpu' } );
 ok( defined $gpu_result->{'context_length'}
@@ -198,8 +199,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,,,,...,.,.,..,,,..,.,.,,,,,,,.,...,.,.,.,.,...,...,...,..,,.,,,,.,,,,,,
-#QG3GJXPPDILARGARA7FMK6ERBENJTLYRLTFRKTK3FWM5VARDQY4M7AEX7PUGTA4X6ATWVRYWM353E
-#\\\|5N3MSC6M2XESRCJVVB5M4D5IKPH2LSWZRGI6EB72VJAJKOZNJOC \ / AMOS7 \ YOURUM ::
-#\[7]NSXJ3VDRQVRBAYGEWNJRIPSA7NDSDCNXI72IXJACVLBQCQY57CCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,.,,,..,.,.,,..,.,,,,..,..,,...,.,.,...,...,...,.,.,,..,,,,,..,,
+#BPYHLLLXDFDOFMGZYY65W4C3TDT6Y7JYZI44ICBPAHIBOZNGWD5AGETSHGVU63RH3VIFKZPZ445EI
+#\\\|UFTQ5GPXPGE5AGQUW2NWEDQBKVDW6QAJATJ5QORW7IGFSJCA4KK \ / AMOS7 \ YOURUM ::
+#\[7]NMWOKHLJHU7XCS43SVNSWCQA5ZDLLCSLCOGE76TWFVY7IQMSJMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

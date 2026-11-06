@@ -71,8 +71,8 @@ sub compile_module {
         push @logs, [ $level, sprintf( $format, @args ) ];
         return TRUE;
     },
-    'base.cfg_bool'                  => sub { return shift ? TRUE : FALSE },
-    'coding.helper.query_gpu_memory' => sub {
+    'base.cfg_bool'         => sub { return shift ? TRUE : FALSE },
+    'base.gpu.query_memory' => sub {
         $query_count++;
         return { ok => TRUE, total_mb => 12288, free_mb => 10445 };
     },
@@ -267,8 +267,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,,..,,.,,,,.,,..,,.,,,.,,,..,,..,.,.,,,.,..,,...,...,..,,...,.,,,,.,,,..,
-#QOOHWKHLF3XJ5R2EMIY4AINICVTT2MJUUCZW3IUTPXI3CZREDIJ4PNTNLDPUY4HKLE75TCS6HEI6Q
-#\\\|CLVWXRTLHD2RAUSJSUOFIK25B5TIXORRP6GMTNEHLZYDKPO33KE \ / AMOS7 \ YOURUM ::
-#\[7]HQA7ZZLHFPOCNSAMM5APG42VTFZRXP2EALXMWJX4QRE75SXYC2DI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,.,.,..,,,,.,,..,,,.,,.,,,,,,..,,...,...,...,.,,,,,,,..,,,,.,
+#6TAOYFUY6NV7JCVX2BOCCUHMYVM6Y7Z4XXF4X4QTEF3N3PMQWPRWV2Q24JTZTVDIRKCR3T7W3BLCA
+#\\\|TJSNSQJZKCRFO77NPFKVM2K6ZPB7DO7XE5VYMDL4QTQRYKXKLKD \ / AMOS7 \ YOURUM ::
+#\[7]TTGAVLQDJIOB3ZBN6HKNZYDOS3SQ2DYT57HALVGMNW2DLL5SACBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

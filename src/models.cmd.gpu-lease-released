@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = models.gpu_lease.cmd.released
+# name  = models.cmd.gpu-lease-released
 # descr = a previous gpu occupant acknowledges its unload
 
 my ( $from, $requester ) = split m|\s+|, $call->{'args'} // '';
@@ -15,10 +15,10 @@ return { 'mode' => qw| false |, 'data' => 'no matching handover' }
 $pending->{'unloaded'}    = TRUE;
 $pending->{'wait_reason'} = 'unload acknowledged : checking vram';
 <[models.gpu_lease.handler.tick]>;
-return { 'mode' => qw| true | };
+return { 'mode' => qw| true |, 'data' => qw| done | };
 
-#,,,.,,..,..,,,..,...,,..,,..,.,,,,,,,..,,,..,..,,...,...,,,,,..,,.,.,,..,...,
-#B6WOZLEMJJ3NLDIZHYIR5H4AN2PK3OC2QXLPIRDDIGIJ65ZDLI3SFXOWBWUU7V2RNMSDTYXW4SHGC
-#\\\|CVZ6J6I6527ZLT5WAVZ4F3JPUVYDR2O4CT4CRNYGXVTX7L2ORQB \ / AMOS7 \ YOURUM ::
-#\[7]CBA25CDOK2RUSQ7L7C44ONXIGX6BZJLRI4BBSXWCRG5BWMSGKQDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,,,.,.,..,,,.,,,,,,,.,,...,,.,,..,,...,...,.,.,,..,,.,,.,,,,.,,
+#EUZREB4FRMWIKF4IXQNPBDTSII33XPOLWSPEEXDI3TK67UJDEJIKLOD54AIDI27HLGHPCTCHWPQYI
+#\\\|RJ7KSUQ7NUNEWQGDVKKYBGK74UKRSNOU4LGQGJSBBXSLVKUOLEB \ / AMOS7 \ YOURUM ::
+#\[7]IZMITSNLKOW3GTMZ3NAIGGA7E7UZAIK7W2JEEWGUEYIZDOFDHCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

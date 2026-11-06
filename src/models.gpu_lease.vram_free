@@ -5,7 +5,7 @@
 # param = details flag, required free MB
 
 my ( $details, $need_mb ) = @ARG;
-my $mem     = <[coding.helper.query_gpu_memory]>;
+my $mem     = <[base.gpu.query_memory]>;
 my $minimum = <models.cfg.gpu_lease.min_free_mb> // 4096;
 $minimum = 4096     if $minimum          !~ m|^\d+$|;
 $need_mb = $minimum if ( $need_mb // 0 ) !~ m|^\d+$| or $need_mb < $minimum;
@@ -25,8 +25,8 @@ return {
     'query_ok' => ref $mem eq qw| HASH | && $mem->{'ok'} ? TRUE : FALSE,
 };
 
-#,,,,,..,,,,,,..,,,..,.,.,.,,,,,,,,,.,.,.,.,.,..,,...,...,..,,,,,,,..,,..,..,,
-#ACBOFQJQEJ4PZU27E7XUQMVGDDT6DXTO77GS6RF5GZGGEKJDMKGSBYYOX37IVHNRR7EUCTBLZ7BHW
-#\\\|PI5QVIDGCQFG5K7EAWIQCJGOQUDTKTFHBYYWNVLO5MMOV73GOFD \ / AMOS7 \ YOURUM ::
-#\[7]3UM22I2UOQFKT46GOIT4R6M44AOH2PF3DN4QOUSL4UCHMXLTWIAY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,...,,,,,,..,.,.,,,.,.,.,.,,,.,,,..,,...,...,,..,,,.,,,.,.,.,,,.,
+#YUSM2YJII64BCUTTHIGFYZFY5LRMQFKPVOZJOQ7LT6G22N2ETIKPUHKZV24XDTAUVJX3WH427PANS
+#\\\|EGJ5LES4NKVFRROGUFC2PXH5PXCMLQOK63BG4BDLWY6H2CHC7PK \ / AMOS7 \ YOURUM ::
+#\[7]OOV4XW3UAIQ4CYUMTXTCIXIQRUFNC5K5ZLW5K3V3ZX2WWEUEXICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

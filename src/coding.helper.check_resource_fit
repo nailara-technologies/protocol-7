@@ -51,7 +51,7 @@ if ( $backend eq qw| gpu | ) {
     ## [[project-wsl2-shared-ram-constrains-concurrent-inference]] for the  ##
     ## incident writeup.                                                    ##
     $required_mb = $model_size_mb + 512;    ## model size + 512MB overhead ##
-    my $vram = <[coding.helper.query_gpu_memory]>;
+    my $vram = <[base.gpu.query_memory]>;
     if ( $vram->{'ok'} ) {
         $free_mb = $pre_filter ? $vram->{'total_mb'} : $vram->{'free_mb'};
         $fits    = $free_mb >= $required_mb;
@@ -110,8 +110,8 @@ return {
     required_mb => $required_mb
 };
 
-#,,,.,...,...,,.,,,,,,,.,,...,.,,,,,,,,..,..,,..,,...,...,,.,,...,.,,,,.,,,,,,
-#F6HLQS24ZWQIGHN43RBPD3AYIFGOGVZ4BEZLCCIGK5H562OCF54X2LOOKHFTMWD4EFKXPILGGS4GA
-#\\\|JTXWPQDMRIMKPAKDAMTNOHEFZI6IJ2QGAUQS2RL7YTJLEQEQPAD \ / AMOS7 \ YOURUM ::
-#\[7]TKX3HE7QO2D5SR2WQ2FZY4RKL64T5L6H5YOJCU3FB2AKJSK2N4AY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,.,.,.,.,,.,,,..,,,,,.,,,..,,..,,...,...,.,.,,..,,,,,...,,,,,
+#EASSKEOPWF7ZQK6PIF75LQOFOJEJDHDBK7BVZOXPLSDZJHMRRC4PDU2Y25MWPG3WFVSBMNKLDGYTO
+#\\\|IETJ4CUZMUEXDQ2N7TTXFPW4DC3H6TDRO6FSUAXSJQQCRK54KM3 \ / AMOS7 \ YOURUM ::
+#\[7]GKIQSHP53IMWEQTTBXT7WY2O3ZPJMEGJXGES6GF4HDTZOKRKIWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

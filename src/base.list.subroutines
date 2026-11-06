@@ -1785,6 +1785,7 @@ return [ qw[
         base.list.subroutines
         base.list.element.del
         base.list.element.add
+        base.gpu.query_memory
         base.file_stream.tick
         base.file_stream.init
         base.file.remove_tree
@@ -3224,10 +3225,10 @@ return [ qw[
         models.handler.task-result
         models.gpu_lease.vram_free
         models.gpu_lease.init_code
-        models.gpu_lease.cmd.state
-        models.gpu_lease.cmd.renew
         models.conversation_create
         models.conversation.create
+        models.cmd.gpu-lease-state
+        models.cmd.gpu-lease-renew
         models.cmd.add_participant
         models.cmd.adapter-resolve
         models.callback.send_reply
@@ -3334,12 +3335,12 @@ return [ qw[
         coding.helper.backend_idle
         coding.handler.spawn_smart
         coding.handler.drain_check
-        coding.gpu_lease.cmd.yield
         coding.context.read_module
         coding.cmd.summarize-reply
         coding.cmd.resume-analysis
         coding.cmd.oneline-summary
         coding.cmd.last-compaction
+        coding.cmd.gpu-lease-yield
         coding.cmd.abort-inference
         coding.catalog.track_write
         coding.callback.http_error
@@ -3890,14 +3891,14 @@ return [ qw[
         models.storage.get_tier_path
         models.registry.update_entry
         models.registry.create_entry
-        models.gpu_lease.cmd.release
-        models.gpu_lease.cmd.acquire
         models.conversation_add_turn
         models.conversation.add_turn
         models.cmd.test_api_fallback
         models.cmd.save_conversation
         models.cmd.record_invocation
         models.cmd.load_conversation
+        models.cmd.gpu-lease-release
+        models.cmd.gpu-lease-acquire
         models.chat.process_keywords
         models.backend.coding.invoke
         model_batch.manifest.persist
@@ -4002,10 +4003,10 @@ return [ qw[
         coding.image.mime_from_magic
         coding.image.load_for_vision
         coding.image.expand_messages
-        coding.gpu_lease.cmd.granted
         coding.cmd.summarize-context
         coding.cmd.subscribe-session
         coding.cmd.safe-context-size
+        coding.cmd.gpu-lease-granted
         coding.cmd.complete-analysis
         coding.catalog.corpus.record
         coding.async.compact_context
@@ -4183,13 +4184,13 @@ return [ qw[
         models.storage.create_symlink
         models.handler.task-poll-step
         models.gpu_lease.handler.tick
-        models.gpu_lease.cmd.released
         models.gguf.file.extract_name
         models.get_inference_endpoint
         models.decision.cost_analysis
         models.conversation.analytics
         models.cmd.list_conversations
         models.cmd.invoke_participant
+        models.cmd.gpu-lease-released
         models.checksum.from_metadata
         models.checksum.calculate_all
         model_batch.manifest.checksum
@@ -4559,8 +4560,8 @@ return [ qw[
         invoke-web.handler.fetch_reply
         invoke-web.handler.drain_check
         invoke-web.handler.claim_child
-        invoke-web.gpu_lease.cmd.yield
         invoke-web.cmd.requeue-missing
+        invoke-web.cmd.gpu-lease-yield
         index.callback.wordlist-import
         impressive.cmd.playlist-update
         image2html.base.get_image_size
@@ -4636,7 +4637,6 @@ return [ qw[
         coding.learning.record_outcome
         coding.learning.get_statistics
         coding.helper.subtype_detector
-        coding.helper.query_gpu_memory
         coding.handler.spawn_with_deps
         coding.handler.gpu_temp_update
         coding.handler.gpu_fit_recheck
@@ -5055,9 +5055,9 @@ return [ qw[
         jobsite.handler.liveness-timeout
         jobsite.handler.import-url-reply
         invoke-web.handler.win_mem_reply
-        invoke-web.gpu_lease.cmd.granted
         invoke-web.cmd.requeue-cancelled
         invoke-web.cmd.queue-interactive
+        invoke-web.cmd.gpu-lease-granted
         index.cube.format.pack_dir_entry
         image2html.base.write_image_html
         image2html.base.write_error_page
@@ -5253,9 +5253,9 @@ return [ qw[
         models.storage.discover_directory
         models.registry.base.get_registry
         models.gpu_lease.handler.presence
-        models.gpu_lease.cmd.release-task
         models.gguf.file.extract_metadata
         models.conversation.route_by_role
+        models.cmd.gpu-lease-release-task
         models.cmd.get_inference_endpoint
         models.cmd.analytics_conversation
         models.checksum.calculate_bmw_l13
@@ -6507,8 +6507,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,..,...,.,.,.,,,..,,.,.,...,.,,,.,.,...,.,.,...,...,,.,,,..,,..,.,,,,..,
-#WHMW2TOCOVWHCP626QTOBJHMXLHMN3HZ2LKVORAHKTQW7SJ3TYS5CVBCBWVNOEPEWRR2PRNQVMXY2
-#\\\|ICNWG76VTH2DL5JORCHVVD33HLV4LJRTPJD655WM7RFI7UA63TZ \ / AMOS7 \ YOURUM ::
-#\[7]VTRVID3JXXLP2IARRX3VUINW44O5HY62SSCHHATITD3IXWKV74CI 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,,.,,,,.,.,.,,,.,..,,...,.,.,.,.,...,...,...,,,,,,..,...,.,,,
+#EEZPV344SYLZ2THCUC7ZHJXSS43KXCSV2ZC6IW72PGEBIO35I23SW55VOWNTWUC5WJFCDJ5LTRRYA
+#\\\|7QGMAUFY2WJKNQMWGPRXIS4N2GFLT7HWBCRSEZWZINJDWOBVL7O \ / AMOS7 \ YOURUM ::
+#\[7]76QCB3MAW66LDBJOUGGZCKG55WHT5DY322MMCHQKDKQROD73PMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

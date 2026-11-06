@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = coding.gpu_lease.cmd.granted
+# name  = coding.cmd.gpu-lease-granted
 # descr = models granted coding sole gpu residency
 
 <coding.gpu_lease.holder>           = qw| coding |;
@@ -14,10 +14,10 @@
 <[coding.async.backend_dispatch_next]>->(qw| gpu |)
     if ( ( <coding.inference_servers> // {} )->{'gpu'}->{'status'} // '' ) eq
     qw| ready |;
-return { 'mode' => qw| true | };
+return { 'mode' => qw| true |, 'data' => qw| done | };
 
-#,,..,,,.,,,,,..,,,..,,,,,.,.,,,,,...,,,,,,,.,..,,...,...,...,..,,,..,...,,,,,
-#HANQCP3FAL6PWIIF52VMC5QLS2ESY7A4V2RJ3W3UI5POG4OQ2BXHETQSK4RXU4VNBX7X6767MYNNQ
-#\\\|I3K6TWVXPI4FDKU2LBZVZNZIJ5UUVNGD743IDOMHFIWCDTNTLHL \ / AMOS7 \ YOURUM ::
-#\[7]GHVS5VTFFDWBKWDIGQ6SOEHB3GZXL3L6MPPOA6SAD3VX2NCLFSBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,.,,,,..,.,,,.,,,..,,,..,...,..,,...,...,.,.,.,.,,..,,.,,,..,
+#PXQKUX5PSAD6YJHFN7SQZUBVPZBWAXN4V7NJ5S2GFV6LZRHYWFV4J5QSRUOFEWVL5PSJJJMB4VMPW
+#\\\|4JX7QTYZ5G766XJPTC36A3F5AD6AIVZ4XOKPSB76FBAO4VLJG7I \ / AMOS7 \ YOURUM ::
+#\[7]7F2NO7LDTU57WUBFVOHEQVMYJUJ2XAGETISULM56DKBBVS7G7QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

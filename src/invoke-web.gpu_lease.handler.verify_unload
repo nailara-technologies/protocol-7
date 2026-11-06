@@ -5,7 +5,7 @@
 
 my $event   = shift;
 my $attempt = $event->w->data->{'attempt'} // 1;
-my $mem     = <[coding.helper.query_gpu_memory]>;
+my $mem     = <[base.gpu.query_memory]>;
 my $minimum = <models.cfg.gpu_lease.min_free_mb> // 4096;
 $minimum = 4096 if $minimum !~ m|^\d+$|;
 my $free
@@ -50,8 +50,8 @@ my $args
 <[base.logs]>->( 1, ': invoke.ai model cache empty : vram verified free' );
 return TRUE;
 
-#,,,,,,.,,,,,,..,,...,,..,,,,,..,,,,.,...,,,.,..,,...,...,..,,.,,,,.,,,.,,.,,,
-#GRV5NXBD5QECFW55MSX25NZRNZGO3NA5F3667MAZMHSY5RD7QHK5NACWDFKMWOGKSNP7JLBX5JS7A
-#\\\|MGE222PY5K6EZYVAXYHMNWKM36ZGIGOICBUXVWQIXRRXPQFKB4B \ / AMOS7 \ YOURUM ::
-#\[7]MXYLN5T6K5WTU22MRWG62WOYWNJW6ZIZFGF32AVNES4TDYVCPMCQ 7  DATA SIGNATURE ::
+#,,.,,...,...,.,,,,,,,...,..,,.,.,,,,,.,.,,,,,..,,...,...,.,,,,,,,...,,,,,,,,,
+#L36S2VQ25XYO64W4FIYAMYOZUAL6ZJZCRVNBVN3CSGD6RIBPNZWEHR5A2NNH26BCMCV24T4DRNW6W
+#\\\|NYUFXE3J7JIVGXBDJAJFGTI2K224Y4G4P7QR6UEQRRGKW2MQAHI \ / AMOS7 \ YOURUM ::
+#\[7]ULRN3ZHXVHJZOWCBEZU6YDO4FLKASHGVCT46DCEJKYRDRJA5UEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
