@@ -27,6 +27,8 @@ public repo naming them invites domain grabbers. write "every domain
 added later" instead. owned domains [ protocol-7.network, v7.ax ] are
 public dns data anyway and fine to name.
 
+**Routine host work stays quiet [ owner 2026-11-06 ] : a host that is not a project server gets a derived label too, details may stay in the memory entry, but commit titles do not announce access or fixes on it -- plain title, or fold it into the next related commit. proportion, not secrecy.**
+
 **Host names stay out of CODE COMMENTS and commit messages too [ owner
 2026-10-22 ].** a session wrote `srv-U` into three src comments while fixing
 a cpu-only-host bug [ and five older comments had it, two with the full
@@ -41,8 +43,8 @@ srv-U \ srv-A \ srv-V \ srv-F, never their host names -- also in file
 names and descriptions. a link label that IS a host name lives only in the
 host's /etc/protocol-7/host-config/cube.cfg, never in the tree.
 
-#,,,,,,..,...,,,.,.,.,,..,,..,..,,,..,..,,.,.,..,,...,...,...,.,,,...,...,..,,
-#W6NHTHWADNIWB7CKYCMD5OHRAJIZEH657YC5ICGAV7BY4JLRH46ZX2LNXXNH7ECZGFPMALHXGBCLE
-#\\\|YS6DKIVQERJWACOCN663WQ3ACJWNO2L5USNNKWZR53STYUUMUZ4 \ / AMOS7 \ YOURUM ::
-#\[7]SDRCFZEPKGSG4BKCHJ4TS4V7DMJ7TY64P7MI6PWWWZXILVKXB4AA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,.,,,,,,...,,.,,...,.,.,.,,,..,,..,,...,...,..,,...,,..,...,..,,
+#T6XQVI3MANSWEPFJGRTAG7FTFNLSBHSIUK4FL3MI33H7KACS3JKXZ4XZ3P24T34Y7GKQ4XEYQOOFS
+#\\\|WRRRFRZD2TROD3ZTTW4GNHAP3F5I2R2M7AXSMEFS2DGM3WZVUCT \ / AMOS7 \ YOURUM ::
+#\[7]CFY5OJDXF63PXW3VADJR735MXPUGIQU5NB5OORV2W5N2S2OJBSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

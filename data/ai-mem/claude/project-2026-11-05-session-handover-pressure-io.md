@@ -1,19 +1,19 @@
 ---
 name: project-2026-11-05-session-handover-pressure-io
-description: START HERE 2026-11-05 [ 6dd74e736, live on srv-U F V A + azurum ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
+description: START HERE 2026-11-05 [ 6dd74e736, live on srv-U F V A + srv-16 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
 metadata:
   type: project
 ---
 
 session 2026-11-05 [ follows [[project-2026-11-05-session-handover-headless-design]] ]. all commits pushed
-to `hub` ; srv-U F V A and azurum on 6e805b179, v7-zenki `reload all` success everywhere.
+to `hub` ; srv-U F V A and srv-16 on 6e805b179, v7-zenki `reload all` success everywhere.
 
 **done**
 - 5a228d20a powershell `max_concurrency = 1`.
 - a396fee51 devmod-ack REMOVED : states are absolute, the handler only sets a flag [ last wins ] -- v7-zenki
   records the state at send time again. see [[feedback-no-ack-for-absolute-state-signals]].
 - f78e38386 nodes.orbital.init_code guard `return TRUE` [ reinit reported error on srv-U \ A ].
-- 0f67fb7c5 IO::Pty in zenka-common [ azurum : apt ] ; test-vault-tty-restore follows the reworked keys bar.
+- 0f67fb7c5 IO::Pty in zenka-common [ srv-16 : apt ] ; test-vault-tty-restore follows the reworked keys bar.
 - bc14eaab5 Editor.pm : the ' ·' end mark after the last keys-bar cell was outside the fit check -- at
   124 \ 125 cols the row wrapped, frame one line too high [ ned, p7-vault ]. login-screen-session reads
   /etc/default/locale : xterm ran in the C locale [ utf-8 bytes = cells, todo rows too wide ].
@@ -48,7 +48,7 @@ to `hub` ; srv-U F V A and azurum on 6e805b179, v7-zenki `reload all` success ev
   left alone, with `10 2` closed after 27 s. see [[feedback-no-default-reply-timeouts]].
 - heartbeats need a v7-managed instance : a shell-started nshell has none -- cube owns session liveness.
 - benchmarks [ seal = vault twofish-gcm in chacha20-poly1305 ] : keys once per segment 5 us \ 64 B, 43 us
-  \ 4 KB on desktop + azurum ; ed25519 verify 100-220 us. pri [ srv-U ] slow only from llama-server
+  \ 4 KB on desktop + srv-16 ; ed25519 verify 100-220 us. srv-U slow only from llama-server
   7 threads on 8 cores.
 
 **shm plan [ FKS ]**
@@ -74,8 +74,8 @@ to `hub` ; srv-U F V A and azurum on 6e805b179, v7-zenki `reload all` success ev
 5. login-screen image mode : unlock clears at once ; real-display check open.
 - servers : motd \ console plan apply ; watch delta link heartbeat timeouts, srv-A 'subscribe refused'.
 
-#,,,.,.,,,,,,,..,,...,..,,.,.,.,,,,.,,...,,,.,..,,...,...,...,.,,,.,,,.,,,,,.,
-#NPYW2DYD5V5NVX7S2CVA47ZE7JDEUIMHFQSGXL4L5COKDXW6DRQGKN6YICS6HQOROML3MF53VAMZQ
-#\\\|C6KKQO6A7P5P7D4UZYLI4VDY7ZN3D2IBMUDDPY2DY2MULFDQMYY \ / AMOS7 \ YOURUM ::
-#\[7]OA2JDJJSJ6SVZPWWP5QD4EOA3K73OBWJESJ5X2VK4DH5ZQFRVGAQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,..,,..,,...,..,,...,,,,,,,.,..,,...,...,,.,,,,,,,.,,.,,,,..,
+#S4G47J27OMFFQ4FNT53GUHECPMYMH23S3SP2Y5HK7F5W6VC4XYYODFGH34H23WCK3QY4ZURFGLRGK
+#\\\|F5VBKUONWTMKG7P62QW6MUGUZUJ7DDT3XCJIZGVMBHY5YHDOBZZ \ / AMOS7 \ YOURUM ::
+#\[7]6NJBENELSDOMPXHMCSCEDGXPH4Z4SCIABB2AMWVJO3HQXEDJKSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

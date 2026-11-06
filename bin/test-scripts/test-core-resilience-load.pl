@@ -6,7 +6,7 @@ use warnings;
 
 ###                                                                 ###
 ## core startup resilience : the truth-check chain loads without          ##
-## Digest::BMW \ Crypt::Misc [ azurum 2026-10-27 : minimal profile lacked ##
+## Digest::BMW \ Crypt::Misc [ srv-16 2026-10-27 : minimal profile lacked ##
 ## them and bin/Protocol-7 died at compile time ]                         ##
 ###                                                                 ###
 
@@ -125,7 +125,7 @@ sub run_perl {
         _hide( @{$hidden} ) if @{$hidden};
         eval $code;
         print STDERR $EVAL_ERROR if length $EVAL_ERROR;
-        exit length $EVAL_ERROR ? 1 : 0;
+        exit( length $EVAL_ERROR ? 1 : 0 );
     }
     waitpid $pid, 0;
     my $exit = $CHILD_ERROR >> 8;
@@ -138,8 +138,8 @@ sub run_perl {
     return { 'exit' => $exit, 'out' => $out };
 }
 
-#,,,.,,,,,,.,,...,,,.,..,,.,,,...,.,,,.,.,.,.,.,.,...,...,..,,.,,,,.,,.,.,.,.,
-#OAR65T6PXWZ2RIYT6LRLSJZTFZRTHYXLBDWB4DCLWJNHKES33ACF3EJWE4DZL43245UARVZBUSCVQ
-#\\\|E7D4FE5FTOYPMAKF3TWINM3WPC7VRENN4A2D6YI5LTD2IOFLHRE \ / AMOS7 \ YOURUM ::
-#\[7]4Y43UX6ZCXSBBCKSBWN2TIVXA6CMQROLKFLSM5TXK2EZNW7XFIDA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,,..,,..,..,,,,.,,.,,,..,.,,,.,.,...,.,.,...,...,.,,,..,,,,.,
+#LLMWGOL7G3ABR6SNEII3IBRHI7ZMVI2RIEJDTI7N5DATOYVSCXKWN5G6KKWCMCBYN3G6UIEGSC4JC
+#\\\|SBEMCDJS2UEH3Q2YJWP7TS7PQ5FV2NRCVURLXSXIGS2ZEFYBZBT \ / AMOS7 \ YOURUM ::
+#\[7]JEJJEO6Q3CCL26M2DAKJCJOOS3JVVVOJ5AWRZWRXVNUAP4EJKODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -114,9 +114,9 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 #\\\|U32LHPTFMEUI5HZSGRNSJQTLXC33X2B7JJEWZPVTLU4QP2I7YHR \ / AMOS7 \ YOURUM ::
 #\[7]WVR5VDFQ5YOXO5IJHQMA4TL26TXAKNNXGFILO7E2ST77XIERS6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-## 2026-10-27 handover — azurum host power + p7-install upgrade
+## 2026-10-27 handover — srv-16 host power + p7-install upgrade
 
-- azurum kept suspending to S3 killing SSH : culprit chain GNOME gsd-power
+- srv-16 kept suspending to S3 killing SSH : culprit chain GNOME gsd-power
   idle-suspend -> logind -> systemd [ journalctl _COMM=systemd-logind names
   the requester ]. hand fixes : mask the 4 sleep targets, gsettings
   sleep-inactive-ac/battery-type 'nothing', guard-based wakeup-disable
@@ -133,12 +133,12 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   the aptlog condenser with framed rows ; cpanminus bootstrapped from apt ;
   cpan: entries with a debian mapping install the .deb first [ fresh hosts
   need no XS toolchain ] ; cpanm -q with framed failure tail . verified live
-  on azurum .
+  on srv-16 .
 - open : KDE/XFCE idle-suspend keys ; `host-suspend` counterpart for the
-  v7-zenka host power commands ; azurum wired-NIC WoL check once cabled .
+  v7-zenka host power commands ; srv-16 wired-NIC WoL check once cabled .
 
-#,,,,,.,.,...,..,,...,,,.,.,,,,,.,...,,,,,,,,,...,...,...,...,,.,,.,.,...,..,,
-#ZG3RVVMDMUZREG45O3TFWYZKFBKXMBLIVSYO5BF5PEKAJLUO36ZLRUJPK257NUH4KBGGIPVYTIBG4
-#\\\|C372CCMUDSRURYNMY5BG255CJ24KGIJN7VHDJL5M5RSOHCNATZQ \ / AMOS7 \ YOURUM ::
-#\[7]44SPHFWEMHBRKBHU6QVEGPDER6SL5UJYIQHO2KMSJ5FZPW4N54AY 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,..,,.,.,,..,.,,,..,,,.,,..,,...,...,...,.,.,..,,..,,...,...,
+#4K2FPDOHBFLCXLGXEC6GXSTODMUFRA4MPQTIVROE7IAGSMY26V3ZICZKP76HHLSXVPHMPMBCVRA2K
+#\\\|X3K5YPBLMASVZ35D5HGBZEQ2V5HVEIN6OWKNXHTHFAKILLCVD7R \ / AMOS7 \ YOURUM ::
+#\[7]ULHK3LUNUSMEIZY42FV5WUPID3NBGKWSPSIVOVRUSRXQUQAWUYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

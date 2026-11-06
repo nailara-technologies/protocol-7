@@ -2058,7 +2058,7 @@ items:
   - models
   text: 'fetch-files : pirateface.co as alternate \ fallback model source'
 - added: 32H4F2FMJM
-  details: "design : data/md/design/HOST-SETUP.md, section 'records : namespaced, vault-backed'. host-edit already has the flow [ probe, pin, fetch_chain, install, run_p7r ] ; missing : hints.* as the prefill source [ no caller yet ], records in p7-vault under usr.<user>.cfg.hosts.<group>.<name> with the owner key over the branch, a host list view as a prefix cut. then azurum : user key + external links through it."
+  details: "design : data/md/design/HOST-SETUP.md, section 'records : namespaced, vault-backed'. host-edit already has the flow [ probe, pin, fetch_chain, install, run_p7r ] ; missing : hints.* as the prefill source [ no caller yet ], records in p7-vault under usr.<user>.cfg.hosts.<group>.<name> with the owner key over the branch, a host list view as a prefix cut. then srv-16 : user key + external links through it."
   done_at: null
   id: 3CQ
   priority: normal
@@ -2067,7 +2067,7 @@ items:
   - host-edit
   - vault
   - hints
-  text: 'host-edit : hints prefill + vault-backed usr.<user>.cfg.hosts.* records [ azurum first ]'
+  text: 'host-edit : hints prefill + vault-backed usr.<user>.cfg.hosts.* records [ srv-16 first ]'
 - added: 32H4V3GBMY
   details: |-
     sourcecode.console.test-sign-with-temp-key swaps a temp key in its OWN process, then says 'run sourcecode test-update-signatures' -- that command does not exist, and a second command would not see the swapped key anyway. test-sign-and-verify signs sequentially [ get-code-signed per file ], never the parallel worker path. proposal : a :temp-key: option on update-signatures itself [ throwaway key, same worker path ] -> worker-count benchmarks [ data/planning/sign-bench style ] and tests without the owner key. related : delegated signing for cloud remote sessions [ ai-mem topic-afk-dispatch-signing-key-system ], key exchange over dns [ TRUST-CHAIN-STEP2.md 'later : a dns back channel' ], throwaway time-locked worker keys [ VERSION-BRANCHES.md 'distributed re-signing' ].
@@ -2422,8 +2422,8 @@ items:
   - tools
   text: "p7-sign-run dies on a bad path before its first state write : p7_sign_status stays 'starting' forever, p7-sign-wait never ends -- write 'failed' with the reason"
 
-#,,..,,..,.,,,.,,,,,,,,..,,..,,,.,.,.,,,.,,,,,..,,...,...,,.,,...,,.,,,..,,..,
-#JAHE7QFAYY4HOP6EOWAUAWAZEIXM6MG3S5KM22IVGZLLL577NYXKBYHUNO65J7E3PU3ZOCMOKMPLG
-#\\\|MPCLHWAS3DSVVSDC367RPTCN7G2QZI3KA5Z2ROKCSB3SQPMAQ4Q \ / AMOS7 \ YOURUM ::
-#\[7]RHBGOLQFACPNV6UWKLECVW2JG5UWR2LMUF254ZSV5XL72AAMXCDY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,.,,.,,,.,,.,,,,..,.,.,.,,,,.,,..,,...,..,,,..,,..,,.,,.,.,,..,
+#K4L4XYJBGQ2GMTLQTR75ZVJDVTTM5W46YPTXRJ3XCXXLAH4R3FKSLXHZPEGTX2QO2HUNOAK5IU722
+#\\\|NGH6FJMNEAICCI6GHKB62H7SKNKZJ5C5MNASXKVADV6MRVWBNYJ \ / AMOS7 \ YOURUM ::
+#\[7]YKXLTRLXEUEKXDVB7Y6U3ZEO54QBD3PRPADGLBAFWFNDAPBRAWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

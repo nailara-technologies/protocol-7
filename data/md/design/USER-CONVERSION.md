@@ -1,7 +1,7 @@
 # user conversion : uid \ gid \ home base
 
 starting point for a future conversion zenka. one manual run so far :
-azurum, 2026-10-31, user taeki 1000:1000 /home/taeki -> 5007:5007
+srv-16, 2026-10-31, user taeki 1000:1000 /home/taeki -> 5007:5007
 /users/taeki. profiles later decide what is acceptable per case
 [ fresh install vs a lived-in desktop vs a server ].
 
@@ -11,7 +11,7 @@ azurum, 2026-10-31, user taeki 1000:1000 /home/taeki -> 5007:5007
   - the user's own logins [ ssh, console ] -- ask the owner to log out
   - `systemctl stop user@<old uid>` [ systemd --user : pipewire,
     wireplumber, gnome-keyring, dbus ]
-  - protocol-7 zenki running as the user [ on azurum X-11 ran as taeki ]
+  - protocol-7 zenki running as the user [ on srv-16 X-11 ran as taeki ]
     -> `systemctl stop Protocol-7`
   - check : `pgrep -u <user> -a` is empty
 - the target uid \ gid are free : `getent passwd <uid>`, `getent group <gid>`
@@ -28,7 +28,7 @@ azurum, 2026-10-31, user taeki 1000:1000 /home/taeki -> 5007:5007
    - does NOT re-own files whose GROUP is the old gid : the home itself
      stayed gid 1000
 4. re-own everything still on the old ids, outside the moved home too :
-   `find / -xdev \( -uid <old> -o -gid <old> \)` -- on azurum :
+   `find / -xdev \( -uid <old> -o -gid <old> \)` -- on srv-16 :
    `/var/protocol-7/X-11`, `cfg/zenki/X-11/deps/*` in the tree, the home
    dir group. map uid and gid separately [ chown -h old->new per field ]
    - read-only mounts show up [ an installer iso auto-mounted under
@@ -48,7 +48,7 @@ azurum, 2026-10-31, user taeki 1000:1000 /home/taeki -> 5007:5007
   not hidden by it [ hardening gap, nothing breaks ]
 - snap \ flatpak assume /home [ not used here ]
 - ssh : authorized_keys moves with the home, nothing to do
-- crontabs, mail spools, /var/lib entries keyed by name : none on azurum
+- crontabs, mail spools, /var/lib entries keyed by name : none on srv-16
 
 ## rollback [ owner : part of the first zenka slice, not later ]
 
@@ -67,8 +67,8 @@ azurum, 2026-10-31, user taeki 1000:1000 /home/taeki -> 5007:5007
   a half-done chown pass can be reversed exactly
 - the journal stays after a finished conversion until the owner drops it
 
-#,,..,,..,.,.,..,,...,,,.,...,.,,,..,,...,...,..,,...,...,,.,,,,,,,,,,.,,,.,,,
-#IDEIMDBAYUJMMHSX5GQM2VYNWGVGS4IXPKNIOKCIYYETAU5Q6CGL3WFHBXOK32IUS437C67ZTTSLO
-#\\\|NPWWQS6BADPY43PVAF3WBKOG7RMNXSAVMERNFQHPSQU4QT5RBNK \ / AMOS7 \ YOURUM ::
-#\[7]OFJFIKTKRV5UOJACEQCFELUFB3FTC76GXPRD7MJN4V47JTD2GWCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,.,...,.,,,,.,,.,,,...,...,,..,..,,...,.,,,...,,,.,,,,,...,.,,,
+#U7OZCO4BTZYJEMMTEY3BXXIH276XWZSLUCUBR5UAQNZFMR5K3ZU6ZYPKIIK5CCHYLM54YB45BQQRY
+#\\\|QZ4BGNJV3TFOI4XBFJPJVGZBOUZS4RMVASUH53S6QIO6FJ3DOFK \ / AMOS7 \ YOURUM ::
+#\[7]4PFAOGHV7JD5UMQIZRXFPOJVEQAMBWJ2Q2KT54UZJFUNA5MPOYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

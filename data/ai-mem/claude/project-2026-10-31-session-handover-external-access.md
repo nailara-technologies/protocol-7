@@ -1,6 +1,6 @@
 ---
 name: session-handover-external-access
-description: 2026-10-31 [ last 42210691a ] : backlog closed [ discover back-off, ':<content>' ids, letsencr param sends, thermal k transient fit ] ; EXTERNAL-ACCESS-ARCHITECTURE.md ; azurum reachable but minimal set + no remote user
+description: 2026-10-31 [ last 42210691a ] : backlog closed [ discover back-off, ':<content>' ids, letsencr param sends, thermal k transient fit ] ; EXTERNAL-ACCESS-ARCHITECTURE.md ; srv-16 reachable but minimal set + no remote user
 metadata:
   type: project
 ---
@@ -21,14 +21,14 @@ metadata:
   e2e layer ], filtering relay zenka. slice 1 = key_arrival in the
   authorization buffer [ AUTHORIZATION-BUFFER.md is design only ] -> kimi
 
-**azurum**
+**srv-16**
 
-- WSL regenerates /etc/hosts : ~/.ssh/config Host azurum now has the
-  address + `HostKeyAlias azurum` [ keeps the pinned key ]
+- WSL regenerates /etc/hosts : ~/.ssh/config Host <alias> now has the
+  address + `HostKeyAlias <alias>` [ keeps the pinned key ]
 - running only v7-zenki cube system p7-log [ no pull-git, no discover in
-  its setup ] ; `::: azurum` link + host-root pin ok, then 'user not
-  authorized' [ no remote user entry ] -- needs root@azurum [ not in the
-  standing root authorization, ask ] ; `ssh azurum :: ..` works as taeki
+  its setup ] ; `::: <alias>` link + host-root pin ok, then 'user not
+  authorized' [ no remote user entry ] -- needs root@<alias> [ not in the
+  standing root authorization, ask ] ; `ssh <alias> :: ..` works as taeki
 
 **corrections** : local httpd log was never stuck [ quiet traffic ] ;
 VSHN4 \ VKMN6 owner re-trashed [ no interest ] ; night-brake slices 3 + 4
@@ -71,12 +71,12 @@ devmod-enable-rw retains the old full behavior [ NUM53 ]
 - open : PATH-ROLES steps [ role helper first ], bin-links list [ root
   PATH case unclear -- owner : /usr/local/bin links do not work for root ]
 
-**next** : thermal k offline fit ; azurum to full desktop set [ root ] ;
+**next** : thermal k offline fit ; srv-16 to full desktop set [ root ] ;
 slice 1 of external access ; N7FS [ binary byte form NOT decided -- not
 used yet ]
 
-#,,..,.,,,..,,,,.,...,.,,,.,,,,..,...,,,.,..,,..,,...,...,,.,,,..,,.,,.,,,,,,,
-#6WYFEDA4P4KAIEVYXO3VELW73HOOVENR7EYVKGPR7DIQWMPYSMQTWTPJ4KNVJIK2RQDUZE7Q4YPAS
-#\\\|ZRTKBBQNZJJY5RO4VN4XRH3RYVI65UNKEGRQFN62P4TPQSPXRXY \ / AMOS7 \ YOURUM ::
-#\[7]LJIFU5W6KQZOMIMIZ76CC64XVA6CHDAF54XRKVEIUWIRDXVBSGAA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,,,,.,,,,.,.,,,..,,.,,,,.,,,..,..,,...,...,.,.,..,,...,,,.,,,.,
+#DSFEN23M5R2TJNIVDPQN4L4NPEC3U6MB6Y6AO2EQNBZJZPXBZSVL6X5ENSC4NR665LV5DIMHALBKO
+#\\\|FTKEQ5WWLPHJI2Q6ZVP2XS53YP7JPBWDN44Y6UWOI2GETQAJGQ4 \ / AMOS7 \ YOURUM ::
+#\[7]EOP5A4AJAOLCX2T73E73T5JBWVYRPLHC7IH42472L5IPDZY5S4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

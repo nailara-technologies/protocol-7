@@ -1,11 +1,11 @@
 ---
-name: project-2026-10-28-clean-bare-host-install-azurum
-description: 2026-10-28 milestone : azurum [ fresh debian, root, opted in ] went bare -> p7-install -> running boot-enabled service with extended, first clean pass of the whole chain [ wanted for 25 years ] ; commits cf534de4a .. f64d89267 ; open : route-history verdict, discover peers [ wsl nat, owner root ], nodes orbital-p7ref spam
+name: project-2026-10-28-clean-bare-host-install-srv-16
+description: 2026-10-28 milestone : srv-16 [ fresh debian, root, opted in ] went bare -> p7-install -> running boot-enabled service with extended, first clean pass of the whole chain [ wanted for 25 years ] ; commits cf534de4a .. f64d89267 ; open : route-history verdict, discover peers [ wsl nat, owner root ], nodes orbital-p7ref spam
 metadata:
   type: project
 ---
 
-**state 2026-10-28** : azurum installed clean end to end -- `p7-install
+**state 2026-10-28** : srv-16 installed clean end to end -- `p7-install
 -profile extended -enable -start`, cube \ v7-zenki first boot
 without warnings, the deps a zenka misses installed at its start. README
 gained the p7-install \ profiles \ auto-install sections and the milestone
@@ -34,22 +34,22 @@ line [ user : "after 25 years of wanting that" ].
 
 **open**
 - route history [ 9a9459835 ] waits for the next 'reply to unknown route
-  id' -- the tcpdump install hang on azurum [ debian at its 420s idle edge
+  id' -- the tcpdump install hang on srv-16 [ debian at its 420s idle edge
   after discover's dep jobs ] was not reproducible ; next step if it says
   'removed' : a deletion reason
 - discover peers : this dev host is WSL2 behind NAT -- multicast never
-  reaches the wlan [ tcpdump on azurum saw only its own announces ] ;
+  reaches the wlan [ tcpdump on srv-16 saw only its own announces ] ;
   needs `networkingMode=mirrored` or a native host. trust : the owner root
   [ TRUST-CHAIN-STEP2, p7-keys certify-host \ owner-pin ] is the
   implemented 'parent network key' ; user to choose the owner key
 - discover asks an offline `nodes` for orbital-p7ref every few seconds on
-  azurum [ cube log spam ] -- back off or skip when nodes is absent
+  srv-16 [ cube log spam ] -- back off or skip when nodes is absent
 - `p7-deps help` display drops the `\` in 'firmware \ hardware' etc
 
 related : [[sys-deps-autoinstall-stage1]], [[perl-loader-gotchas-require-path-inline-c-qw]]
 
-#,,..,,,.,,..,...,...,,..,..,,,.,,,..,,.,,,,,,..,,...,...,,,,,,..,,,,,.,.,.,,,
-#PGHKFJPXEJCQ4G6OQVVHLXJFBITX57CIAKBSC3WG5EAEDC3C7VVYBLE45KYTQSOSVYYLECFM6TLUI
-#\\\|3EVFEB7UAWMBO3UQW4JY35M7LHH3FAXGTSYM436DLT7WO3NKFN2 \ / AMOS7 \ YOURUM ::
-#\[7]CEEJYR4DEXTMSH6GYNU2PGBXH6RBLYCUN3RDMHAMJSOQYWVOFCCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,,,.,,,..,,,,.,..,,.,.,,,.,,,.,..,,...,...,...,,.,,.,,,,,.,,.,,
+#4VLCA6YW47B5UYYF5AAM4SNTGPHLMRQ5EQIQM3KY4HPDF7TVCG7ENKKPJEFBXCWV3QEXNDY4Q6TWI
+#\\\|DLJJIVO3F3KF2CWIMCN33YTH4NNENQD5XWPPJZUUVGCZCGEGNLS \ / AMOS7 \ YOURUM ::
+#\[7]RIVPYIUTMQLXL4SE23L7STZHRDFNXX7PHVWEWT7NTYS6IU2LU2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -198,7 +198,7 @@ where host \ user set-ups live, so a broken host, server or disk never
 makes the user re-enter them [ ai-mem : declared-intent-survives-breakage ] :
 
 - **one dot namespace** : `cfg.hosts.<group>.<name>` [ e.g.
-  `cfg.hosts.remote.delta`, `cfg.hosts.local.azurum` ], the same for users
+  `cfg.hosts.remote.delta`, `cfg.hosts.local.srv-16` ], the same for users
   and further set-ups -- clean naming covers the system and the network
 - **views are prefix cuts** : a host list shows `cfg.hosts.*` with the
   prefix stripped ; no separate registry
@@ -224,7 +224,7 @@ makes the user re-enter them [ ai-mem : declared-intent-survives-breakage ] :
   probable context, full dotted paths as absolute ones
 
 first slice [ todo ] : host-edit prefills from hints.*, stores the record
-under `usr.<user>.cfg.hosts.<group>.<name>` in the vault ; azurum is the
+under `usr.<user>.cfg.hosts.<group>.<name>` in the vault ; srv-16 is the
 first host added this way.
 
 ## later
@@ -233,8 +233,8 @@ first host added this way.
 - remove \ rename host [ through the key trash : pin + record together ]
 - several owners per host, roles driving osf-cache peers
 
-#,,.,,...,..,,.,.,.,,,,,.,,,.,...,,..,.,,,,,,,..,,...,..,,,.,,.,.,,,,,,..,,.,,
-#EC67MVVNN4GHEHJZOCGKOFVWN3SF26KYFUXQRI7DI3PN64SJHAIQKMLBSR5EM76IYCWNZVAGREJF2
-#\\\|ISG4YSQ5SGU6L5T3KWE7NCTJQE7HE3BNKPH53VOC2VKDRKBAHDE \ / AMOS7 \ YOURUM ::
-#\[7]RXPCWOURY3C5QGV27RDR622RIPWMAXQV2RKU7WC62YT22ODEVCCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,,,.,,,,..,,,.,,,,,,,.,,.,,.,,,..,,...,...,..,,..,,,,.,,..,,,,,
+#OHFJBSW7QTYN65SCXOIFWILMGG4SO7O2YHS2GRQ4ENI34INACZXDNYJGUAUETOATV7N2HBNWLZOTO
+#\\\|H2K4POBA5EJGUBOKKEB44HVHM2N56PG726BPLSKLZVG5OIQPPDN \ / AMOS7 \ YOURUM ::
+#\[7]AMCRMGXJZ7CZ6QKDVRTSF7U7Z5LR2GDK3ZSMYV3FO4D6TVLQGABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

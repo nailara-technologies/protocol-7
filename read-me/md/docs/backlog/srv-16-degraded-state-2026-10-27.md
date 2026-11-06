@@ -1,6 +1,6 @@
-# Degraded-state audit [ azurum, 2026-10-27 ]
+# Degraded-state audit [ srv-16, 2026-10-27 ]
 
-**CLOSED 2026-10-28** -- azurum installs clean from bare with
+**CLOSED 2026-10-28** -- srv-16 installs clean from bare with
 `bin/p7-install` [ release AMOS7-v6.48.9 ]. the `minimal` profile now
 holds every module of the table below [ the xz reader is
 `IO::Uncompress::UnXz` -- AnyUncompress itself is core ] plus Inline::C ;
@@ -8,7 +8,7 @@ issue 4 is decided : C25519 is essential [ minimal ] ; the pipe-mode
 banner is a one-line notice [ 279611557 ] ; the plan-9 bare `const` uses
 the runtime-guarded helper. the text below is the record as found.
 
-Observed on a fresh azurum install running `cube` with a largely
+Observed on a fresh srv-16 install running `cube` with a largely
 incomplete dependency set. This state is valuable -- it exposes what a
 normal install never shows.
 
@@ -90,7 +90,7 @@ Gap analysis and the strategic fix :
 
 ## Bare 'use' census [ 2026-10-27 ]
 
-The azurum blockers + the Socket exception class are converted to
+The srv-16 blockers + the Socket exception class are converted to
 `<[base.perlmod.load]>` [ 19 templates this round ]. A full sweep
 finds ~90 remaining bare 'use' sites in src/ :
 
@@ -99,14 +99,14 @@ finds ~90 remaining bare 'use' sites in src/ :
   Time::HiRes JSON::PP Data::Dumper Cwd Config Errno ... ] --
   can never be missing, low urgency ; convert for idiom
   consistency when touched
-- NON-core, install-relevant : YAML::XS [ ~15 sites, on azurum's
+- NON-core, install-relevant : YAML::XS [ ~15 sites, on srv-16's
   missing list ], LWP::UserAgent, HTTP::Request, JSON, IPC::Run,
   Text::Unidecode, Glib/Gtk3, Protocol::WebSocket::Frame --
   these belong to the p7-deps profile work and should convert to
   `<[base.perlmod.load]>` so they auto-install on opted-in hosts
 
-#,,.,,..,,...,...,,.,,,,.,..,,...,,,,,.,.,,,,,..,,...,...,.,,,,,,,,.,,...,,,.,
-#BXIVR7RWBMQ4DTBXZGXNGFCHPA2YLHGBY54TX5GPF2DDP5BSZCAYDRVOVH2Y4WOK35FFUNAYXGCYW
-#\\\|FGXYN2AQJU43NCD2SCTAIPRTD6L5P3LS7OLMIDJUZQPSVTICVNQ \ / AMOS7 \ YOURUM ::
-#\[7]TAGTFRZL6OREGISXS3HKGI2A2OOGWSMQIHFWVAVHJMXSF7O5BSDI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,..,,.,.,,..,,..,.,.,,..,...,,,.,..,,...,...,,..,..,,.,,,.,.,...,
+#GEZ66MHLWOGMIQUF7Q2WAPSTKOGN22Z6R2SDA2WVPIJTDBKIET76KBOH3BH7RMXPM7HH3INPCGV4I
+#\\\|YRHQFSECGEZZWNMJKP3MCSB4VWUJDPTUUXNH7YX2DJII4LXJGAE \ / AMOS7 \ YOURUM ::
+#\[7]DJPU3Y7PW3JIHU5SK6W4C5DMU2TGCKVEXBCMORMJITID3ZX5EEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

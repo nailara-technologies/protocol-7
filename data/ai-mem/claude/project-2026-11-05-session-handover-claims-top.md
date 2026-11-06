@@ -6,7 +6,7 @@ metadata:
 ---
 
 session 2026-11-05 evening [ follows [[project-2026-11-05-session-handover-pressure-io]], its shm plan and
-open list still apply ]. all pushed to `hub` ; srv-U F V A and azurum on 2208b3c5b.
+open list still apply ]. all pushed to `hub` ; srv-U F V A and srv-16 on 2208b3c5b.
 
 **jobsite stuck in assessing, 9 h**
 - pri's /etc/protocol-7/host-config/cube.cfg `access.cmd.usr.yourum` lacked task.touch [ ab22753a5 ] : yourum
@@ -33,8 +33,8 @@ open list still apply ]. all pushed to `hub` ; srv-U F V A and azurum on 2208b3c
 2. shm A [ FKS ] in a new session.
 3. todo ASF clean refusal logging, then GDA network channel for notices.
 
-#,,,,,...,.,.,...,.,.,,,,,..,,.,.,..,,...,,..,..,,...,...,...,..,,,,.,,..,,,.,
-#N65XV2M4QXMNBLNDOPDUGFCJXM2MSZNZJTM2ZIQXTLHR3JILMIGL6B5CJQBYSHEL3WVQ6ORGURTGC
-#\\\|UO4G6LGHZBJUENQF4WAVZAME7JIEMGDRJI2W5433PZGAQYGC73U \ / AMOS7 \ YOURUM ::
-#\[7]NGCRCX4EPYBGRWI6KDPY2D2SGONMWHETJVMVFYBKMUPRDEP24QBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,...,..,,,..,...,.,,,,,,,,..,..,,...,..,,..,,,.,,.,.,..,,,,.,
+#T6XYGCGYUIECD2FMZVDA2UH4DA4UNUUJRZVBNVZNBCOTDNXBAJDTVVAIFNTEXLCV3T65IRDBNNTKE
+#\\\|MYRPDYO6NAJ76CLKY2KBL2AUPKE7FJDX6KMAF6ZQVS3DAZ3J7AH \ / AMOS7 \ YOURUM ::
+#\[7]7EG2HK4VDON3IIYF56IR62Q2DLJLHCDTEJ3ICOBQG5WHR6HMOEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

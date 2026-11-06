@@ -16,7 +16,7 @@ table into the repo or memory.
 
 **derivation** [ amos-chksum, 7 chars ] :
 
-    <p>-<d><c>    <c> = amos-chksum -T<d>%s -T<p>-<d>%s -T<P>-<d>%s -L1,<d> <name>
+    <p>-<d><c>    <c> = amos-chksum -T<d>%s -T<p>-<d>%s -T<P>-<d>%s -L<d>,1 <name>
 
 - `<p>` prefix lower case [ srv, dom ], `<P>` the same upper case [ SRV,
   DOM : the internal protocol-7 form ]
@@ -40,7 +40,7 @@ checked against labels already given only, never by recomputing others.
 examples : a planned host whose plain char is taken -> srv-0G ; domains
 dom-0U, dom-0H, and one colliding with dom-0H at depth 0 -> dom-1V.
 
-**later** : the same scheme over BMW-L13 [ 13 chars ] or longer BMW forms
+**later** : automatic labels use length 3 [ lengths 1-2 stay hand-given, so a history search cannot mix them ] ; given labels excluded by a CODE truth template [ hash, disk or network, AMOS7::TEMPLATE takes CODE refs ] -- only wiring is missing ; a later recompute must not count the label under check as excluded. the same scheme over BMW-L13 [ 13 chars ] or longer BMW forms
 for larger namespaces [ internal ids ] ; -L3 with templates gives stable
 ids but a 15-bit fingerprint [ confirms guesses ] -- fine for internal ids,
 not for hiding names ; a keyed variant [ secret in a host-list zenka ]
@@ -51,8 +51,8 @@ history : on 2026-10-22 all 78 commit messages naming servers were
 rewritten to these labels [ filter-branch, tags kept, 24218 in-file commit
 ids remapped, re-signed, force-pushed, remotes reset ].
 
-#,,..,...,,.,,,,.,.,,,,,,,,,,,,,.,,.,,..,,,..,..,,...,..,,,..,.,.,.,.,..,,..,,
-#7CCV36L2HJ22FUEETGA4XPMSV5XPFTKBROGEU47K2XEPWPMFDNIHAHOEZPBWNCPJRTEUU56CJQTUK
-#\\\|AGW3UXRWB6VBT7YSHIRO32LIGBRDZNK5DEBQGOCEN4NIHP4BZR5 \ / AMOS7 \ YOURUM ::
-#\[7]RP42VZTN67RBCOLEL2A63Z3VLFYIR4EIEYD2XBXC4WJQ3BLJPQBI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,.,.,,,,..,,,,,...,,,.,.,.,...,..,,...,...,...,...,,,.,,..,,,,,
+#4NDB26HUQS23YGHABXVPE4GN5U2ZDLGOIQQJQAV4QBDN6ERTCCBTN6BFODU2WCTHAYPRS2T2M55JA
+#\\\|HGT7TUHJJ2SAODEBVA4ENIOC5KDZL6YG546RUD32DV6IMXQNPEF \ / AMOS7 \ YOURUM ::
+#\[7]UGQHKUYUVFZS2SWXHUZZWVVO7ROOFHL6I5B2QC6OSDKKQZAC5ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

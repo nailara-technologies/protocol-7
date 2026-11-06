@@ -7,7 +7,7 @@ status : idea, parked 2026-11-01 [ not implemented ]
 an ext-bin entry only takes static `exec_args`. `compton.startup` builds the
 command line at start from live context :
 
-- display from X-11 [ `-d :13` on azurum, chosen by X-11 ]
+- display from X-11 [ `-d :13` on srv-16, chosen by X-11 ]
 - shadow tint derived from the background colour [ `base.X-11.get_bg_color` ]
 - vsync options by driver [ nvidia ] and mode [ xephyr ]
 - already-running and no-composite handling, xclient error parsing
@@ -55,8 +55,8 @@ whether the command line moves into a generated config file.
 - s3 : luminance \ busyness metrics -> shadow strength, opacity, blur
 - s4 : harmonic tint templates, context profiles
 
-#,,.,,.,.,,,.,...,.,,,,..,...,.,,,,..,...,..,,..,,...,...,..,,,,.,,..,,,,,..,,
-#7IB2NZ7D26DOZPS22EXMEBPNXRHE7MCEMDDZDHLFICOQMZBVIBCLUUITJFX3TSFOZGZJL3RGSQDDW
-#\\\|F3QABWDTBPJBYJTGVA7QTNSNK27FQ7EQL6B3G3TZLYKNBPA5BAB \ / AMOS7 \ YOURUM ::
-#\[7]5P3C7UILIC523XQO5JEAE22MRJZ2LD3QIF73YJBZVCVI3MD24GDQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,.,,.,,,.,.,,..,,,.,.,,,.,.,.,.,..,,...,...,.,,,,,,,..,,,,.,,.,,
+#3N2NWYED7ZOIC7X3CKYAX2PJPHSIVFTY5DOEY46MHDLVYHRMPRNQ4IQK3MZAKFNSIN63L6ZZGZPWC
+#\\\|KJ34OGOLUYSPLY3EYBWP2K7OINHC2D3G7MPBH3QEKJAK3H3G7ST \ / AMOS7 \ YOURUM ::
+#\[7]JLGG74MOO4P57UHCSNMPQCNJX7VDDJKM723QQWG2QNOQTWOBEYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
