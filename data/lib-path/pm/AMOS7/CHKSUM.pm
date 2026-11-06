@@ -23,9 +23,9 @@ use vars qw| @EXPORT $VERSION %algorithm_set_up |;
 @EXPORT = qw| amos_chksum amos_template_chksum $VERSION |;
 
 ##  amos-chksum -VCS  ##
-our $ALGORITHM_VERSION = qw| AMOS-CHKSUM-V-KNDGQPA |;
+our $ALGORITHM_VERSION = qw| AMOS-CHKSUM-V-GODL3BQ |;
 ##  module source version  ##
-our $VERSION = qw| AMOS7::CHKSUM-VERSION.PMKI5VA |;
+our $VERSION = qw| AMOS7::CHKSUM-VERSION.JO46N2Y |;
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -79,6 +79,7 @@ sub amos_chksum {
     my $chksum_elf_mode = $algorithm_set_up{'chksum_elf_mode'};
 
     my $data_ref = shift // '';
+    my $bmw_data_ref;    ##  binary input : the unmodified bytes  ##
 
     my $data_ref_type = ref($data_ref);
     if ( not length $data_ref_type ) {
@@ -136,8 +137,21 @@ sub amos_chksum {
             return undef;
         }
 
-        my $data_copy = Encode::decode( qw| UTF-8 |, $data_ref->$*, 8 );
-        $data_ref = \$data_copy;
+        ## valid utf-8 is text : elf reads its characters. anything else is ##
+        ## binary : every byte counts, no replacement characters [ lossy ]  ##
+        ## and elf upgrades its input in place -- so it gets the copy here, ##
+        ## bmw the untouched bytes                                          ##
+        my $data_copy = eval {
+            Encode::decode( qw| UTF-8 |, $data_ref->$*,
+                Encode::FB_CROAK | Encode::LEAVE_SRC );
+        };
+        if ( defined $data_copy ) {
+            $data_ref = \$data_copy;
+        } else {
+            $bmw_data_ref = $data_ref;
+            $data_copy    = $data_ref->$*;
+            $data_ref     = \$data_copy;
+        }
     }
 
     if ( @elf_modes and @ARG ) {
@@ -190,7 +204,7 @@ sub amos_chksum {
 
     } else {    ##  implement other cases  ##  [LLL]
         my $ctx = Digest::BMW->new(512);
-        $ctx->add( $data_ref->$* );
+        $ctx->add( ( $bmw_data_ref // $data_ref )->$* );
         $bmw_512b = unpack( qw| B512 |, $ctx->digest );
     }
     ##
@@ -341,8 +355,8 @@ sub amos_template_chksum {
 
 return TRUE ##################################################################
 
-#,,,,,...,..,,..,,.,,,,,,,,,.,.,,,...,,.,,...,..,,...,...,..,,..,,,,.,..,,...,
-#5S2ZAU7V5ZLSV7D6S2VWBSAKHBYXYH7Q6U3CNFUTBFQFUY344VTGQLLQ72BRQMEAGUPP5DJZF3ZKC
-#\\\|ZAITKINS5Q25UIUOB7XEIREL5NYEMO2H3P2TVMHD3CXOL3HL7DR \ / AMOS7 \ YOURUM ::
-#\[7]3GSHANWD4PEREO6QIGYKT23Q7HRTPC2K42FA6QZ35TNABRL72CDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,.,.,.,,,.,,,,,.,,.,,...,.,,,..,,...,...,.,,,,..,,,,,,,,,...,
+#3W7GNXMKVP225F2GXRGNSLGK5SQHJRTGSAUJD3ZV35R3RHZW7H3HVIRAX2XCZBYQUSC4NQ5UY5RAU
+#\\\|H3IXBJACKQ6ZKLRUGVAL52MOHPLHZOAY72ULO6KUJTFWC3AGKVS \ / AMOS7 \ YOURUM ::
+#\[7]GWTVSHH4CZN3BUUX7DQVNBL2SFILZZ6GNTDQLFPC32KYXYM2EIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
