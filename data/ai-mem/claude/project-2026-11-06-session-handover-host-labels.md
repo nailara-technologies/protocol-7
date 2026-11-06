@@ -18,15 +18,15 @@ the fix -- deploy before the next renewal window. not checked yet whether a live
 
 **lesson** : qw| | is never a space. a test exiting non-zero with no summary line is a crash, read its tail.
 
-**open** : bare short server names in memory [ word-by-word ] ; exfiltration filter in /etc/protocol-7/ gets the
-fully qualified names and addresses, check that it sees commit messages ; p7_sign says 'started' for a job that died
-at startup, its waiter hangs [ check paths before the fork ] ; unsigned top-level files are staged by hand.
+**open** : bare short server names in memory [ word-by-word ] ; exfiltration filter in /etc/protocol-7/ has the
+long host names [ owner ] : addresses later, check that it sees commit messages ; todo R6D p7_sign says started for a
+job that died at startup ; todo PCJ ned paste modes, design recorded ; unsigned top-level files are staged by hand.
 
 **next** : N7FS, from [[project-2026-11-05-n7fs-current-state]] [ binary byte form first ]. labels later : automatic
 ones in [[reference-host-and-domain-labels]], may follow from the N7FS namespace.
 
-#,,..,.,,,...,,..,...,,.,,...,,,.,,.,,,,.,...,..,,...,...,.,.,,,,,,..,.,.,.,,,
-#HTXZDAWYTLZ5DBYZQZOYCA3PGQ4ITH4WSNL7AEGLRKWA6PSOWI4N6UUJTRXHZGGQBA73STVPWKWPY
-#\\\|RVHU5XPNACHOTHYVORBRYQMJHF7BJFYGCHEFWYAYATZNNNXEQ7M \ / AMOS7 \ YOURUM ::
-#\[7]ITORLZJISODQ7SVBHJ6IZ7YVO2PB7GI5UZTLB2NGGYJBQVF5VSCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,,,,,..,,,..,,..,,.,,..,,,.,,..,,...,...,,..,,,,,,.,,.,,,,..,
+#HQQ7F6H2RETGCRYWMDTQU7C4NKZNP4VZUVAS4HWQDD3O5IM25HMWAIMENUPN4UWIQY3J455QF7P22
+#\\\|ALSL4XOWXXHLFAM5Q4P6A3SCYZQML3CWUL52PJBT2R7WPWIXPJW \ / AMOS7 \ YOURUM ::
+#\[7]RL3L4HV6W5XAPCIFPXLRVHEHI7XOBQFGSCUHVQRBDP3EQRILWGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
