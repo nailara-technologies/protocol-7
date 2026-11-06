@@ -281,14 +281,16 @@ say ': candidate selection [ allowlist off, on ]';
     ok( scalar( grep { $ARG eq qw| child.verify-domain | } @cmds ) == 2,
         'allowlist unset : both candidates queued for verification'
     );
-    ok( ( $sent[0]->{'call_args'}->{'args'} // '' ) eq qw| a.example |,
-        '  :.. processed in sorted order' );
+    ok( ( $sent[0]->{'call_args'}->{'param'}->{'domain'} // '' ) eq
+            qw| a.example |,
+        '  :.. processed in sorted order'
+    );
 
     reset_calls();
     clear_state();    ## the first call left its domains 'pending' ##
     $data{'letsencr'}{'cfg'}{'enroll_domains'} = 'a.example c.example';
     $process->( [qw| b.example a.example c.example |], {} );
-    my @domains = map { $ARG->{'call_args'}->{'args'} } @sent;
+    my @domains = map { $ARG->{'call_args'}->{'param'}->{'domain'} } @sent;
     ok( join( ' ', @domains ) eq 'a.example c.example',
         'allowlist set : only listed domains qualify'
     );
@@ -352,7 +354,7 @@ say ': explicit request claims the domain [ no double order ]';
 
     reset_calls();
     $process->( [qw| vhost.example other.example |], {} );
-    my @verified = map { $ARG->{'call_args'}->{'args'} }
+    my @verified = map { $ARG->{'call_args'}->{'param'}->{'domain'} }
         grep { $ARG->{'command'} eq qw| child.verify-domain | } @sent;
     ok( join( ' ', @verified ) eq qw| other.example |
             && grep( {m|vhost\.example : skipped \[ explicitly requested \]|}
@@ -382,9 +384,8 @@ say ': own interfaces as public_addresses [ no network connection ]';
     my $pinned  = sub {    ## public_addresses sent with the first verify ##
         my ($verify)
             = grep { $ARG->{'command'} eq qw| child.verify-domain | } @sent;
-        return join ' ',
-            @{ ( $verify // {} )->{'call_args'}->{'param'}
-                ->{'public_addresses'} // [] };
+        return ( $verify // {} )->{'call_args'}->{'param'}
+            ->{'public_addresses'} // '';
     };
     local $data{'letsencr'}{'cfg'}{'public_addresses'} = '';
 
@@ -394,6 +395,13 @@ say ': own interfaces as public_addresses [ no network connection ]';
     $process->( [qw| own.example |], {} );
     ok( $pinned->() eq '198.51.100.7',
         'none configured : the own public interface address is pinned' );
+
+    reset_calls();
+    clear_state();
+    local @local_public = qw| 198.51.100.7 2001:db8::7 |;
+    $process->( [qw| own.example |], {} );
+    ok( $pinned->() eq '198.51.100.7 2001:db8::7',
+        'several interface addresses : pinned space separated' );
 
     reset_calls();
     clear_state();
@@ -699,7 +707,7 @@ say ': verify reply [ staging server chosen, backoff on failure ]';
             }
         }
     );
-    ok( !defined $sent[0]->{'call_args'}->{'param'}->{'acme_server'},
+    ok( !length( $sent[0]->{'call_args'}->{'param'}->{'acme_server'} // '' ),
         'staging off : no per-request server [ zenka-wide production ]'
     );
 
@@ -827,8 +835,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,,,,,,,,.,,,,.,,.,.,..,,,,,,,,.,,..,,,,,..,,...,...,..,,,..,.,.,,,,,,,,,
-#XTZATFW5FD34RZZX322IBLJK6K2D5F5676NVRWLSHK5EPDJALSNVP3SV2QIPVZNRQGDIIMNBSXILS
-#\\\|I255FDEJA2MBLJXR5RKGJCSZGOGIDIMR7YDQ7C7MVIGYADYZI44 \ / AMOS7 \ YOURUM ::
-#\[7]JQJAHNLAXXYELZYUBWOWNJB6I327NAGH5CYN7QMID5FD3LDQMIBI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,.,,,..,..,,,..,,,,,,.,,...,,.,,..,,...,..,,..,,,,,,.,,,...,,,.,
+#BXDA3OVFA3V3QMQ2YJYUZ2ZITHSCQTRNMB47TQ5L6RZWOEVNDPTVCUNVVTHX4MZ5Q3IRUMT5U3K6G
+#\\\|HI5G2ALJBL3O7RDDVBOO2AMU3CB7C4L52KHNAWBYRQCXKHAYNHC \ / AMOS7 \ YOURUM ::
+#\[7]PE5Z43TMNULVMLBBQHAZKI7BUT7XIDLC6NVPWXW74DLYZNWW2YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
