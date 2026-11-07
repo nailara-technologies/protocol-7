@@ -6,11 +6,11 @@
 my $zenka_name = shift;
 my $until      = <v7-zenki.zenka.hold>->{$zenka_name}->{'until'} // 0;
 
-return qw| released | if not $until;
+return 'until released' if not $until;
 return sprintf '%d s', $until - <[base.time]>;
 
-#,,,.,,..,,,.,..,,,,.,.,.,.,,,.,,,,,,,..,,..,,..,,...,...,...,.,.,,,,,,..,..,,
-#SF6LDVWBRDG54FY74M7WIC5CK3HRU2IB7QLW53774WG6IG2YX5LZBD5S7HLQGWD7FGSIMAU6O5I4S
-#\\\|4RCYSLGKKKFHEVZ2SSFARWLIBMM6HW3EBUOHW4LVNMIRMBO2KRH \ / AMOS7 \ YOURUM ::
-#\[7]GP66C3ZIO226YVGTPZP2JORQJPPBWZ2T4PDBPJK7GYYTJAWOD6AQ 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,..,,,.,,,..,,..,,.,,...,,,,,..,,...,..,,,..,.,,,,.,,...,.,,,
+#MH5FDJJ3PHV5C6KFDAWTMOJL7FNK75Q3JLV5CIJHKASYR26H4OKH7IJAO6K6NLFUOJCUVZVUFOXNK
+#\\\|EXPA7VLYHEJGAJI3F76HXEILY77VPIG5DNFHUNROCGVR55YBZOV \ / AMOS7 \ YOURUM ::
+#\[7]LR6F2YHKUUH2YCVD6H46K5QBSDHJQL4HBFE6S7PF7BRPOQRPBKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

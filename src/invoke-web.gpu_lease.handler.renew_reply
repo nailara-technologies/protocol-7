@@ -8,17 +8,38 @@ my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 return TRUE if $mode eq qw| true |;
 return TRUE if ( <invoke-web.gpu_lease.holder> // '' ) ne qw| invoke-web |;
 
-## only models saying so ends the lease : an unreachable models is no ##
-## refusal                                                            ##
+## only models saying so ends the lease : an unreachable models is no     ##
+## refusal, stop asking until it is back -- a renewal would also start it ##
+## on demand                                                              ##
 if ( $text ne 'not holder' ) {
-    <[base.logs]>->( 2, ': gpu lease renewal unanswered [ %s ]', $text );
+    my $renew = delete <invoke-web.gpu_lease.renew_timer>;
+    $renew->cancel if defined $renew and $renew->is_active;
+    <invoke-web.gpu_lease.renew_timer> = <[event.add_timer]>->(
+        {   'after'   => 300,    ## a notification can get lost ##
+            'handler' => qw| invoke-web.gpu_lease.handler.renew |,
+        }
+    );
+    return TRUE if <invoke-web.gpu_lease.models_waiting>;
+    <invoke-web.gpu_lease.models_waiting> = TRUE;
+    <[base.logs]>->(
+        1, ': models not reachable [ %s ] : lease renewal waits', $text
+    );
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| v7-zenki.notify_online |,
+            'call_args' => { 'args' => qw| models | },
+            'reply'     => {
+                'handler' => qw| invoke-web.gpu_lease.handler.models_back |,
+                'params'  => {},
+            },
+        }
+    );
     return TRUE;
 }
 <[base.logs]>->( 0, ': gpu lease renewal refused : unloading render models' );
 return <[invoke-web.gpu_lease.unload]>->( qw| coding |, qw| handover | );
 
-#,,.,,,..,.,,,,.,,..,,.,,,..,,.,.,,..,.,,,,..,..,,...,...,,,,,,.,,...,,,.,.,.,
-#4FGPC3UUPNWO5DHZNFCPPVTFVRHGOJKNG4YLP25LU5PMNGYDLKFRW63F42PWBIX3CX4JAW5SNTC6C
-#\\\|Z6BHDGX4REMAAEGXJQVWQKI2OMVMX4ZPMHCAWDQW3VBG3BTQJAA \ / AMOS7 \ YOURUM ::
-#\[7]OHAWJRWU2GUT5IV5IS6DJZ55DJDC4GDEQSULJPMQOF44WFPAAYDQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,,,.,,,,,.,,,,.,,,,,,,.,,,,.,..,,...,...,.,,,,..,..,,...,,.,,
+#IRSM324IQ25D762KXIOR677ASBTK2C3SWENNVVXOCQME2BXVWJKWD5U5TN4QYURKONHT7GBF2LTQC
+#\\\|C24R3CCPXLJNE4SKKY5MWY2I5BE2QD6SY6PBTECAE3HNU5JTGAY \ / AMOS7 \ YOURUM ::
+#\[7]TXV54HCHSL6YVMARBDLWGXMFDRQBR7JEQSBZTHFY3LVAPVFLZSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

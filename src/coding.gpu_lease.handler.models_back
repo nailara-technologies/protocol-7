@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = coding.gpu_lease.handler.models_back
+# descr = models is present again : resume renewing the gpu lease
+# note  = delayed : an instant answer for a models that only dropped one reply
+#         must not become a tight loop
+
+<coding.gpu_lease.models_waiting> = FALSE;
+return TRUE if ( <coding.gpu_lease.holder> // '' ) ne qw| coding |;
+
+my $renew = delete <coding.gpu_lease.renew_timer>;
+$renew->cancel if defined $renew and $renew->is_active;
+<coding.gpu_lease.renew_timer> = <[event.add_timer]>->(
+    {   'after'   => 5,
+        'handler' => qw| coding.gpu_lease.handler.renew |,
+    }
+);
+<[base.logs]>->( 1, ': models present : lease renewal resumes' );
+return TRUE;
+
+#,,,,,..,,...,.,,,,.,,...,,.,,,,.,...,.,,,..,,..,,...,...,...,,..,,..,.,.,...,
+#F4GBVD3XSRGK3NKGMQZCCGUYCMP2WALM3FV7EDIK73PNQN2P6AO3NREUEFD2TDFOPUBNRK7VZLP3W
+#\\\|XLB5YGSDJKX24SKH5BIBJVQYK4V2H5FM652ILP23A3V6OBFEH7X \ / AMOS7 \ YOURUM ::
+#\[7]HYRM4UPTZIXSSODBXCKB2IM7K6OFJYSXHYNCLEUIHWSIKG3SG6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
