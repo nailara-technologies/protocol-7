@@ -5,9 +5,11 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-chksum-lease](project-2026-11-06-session-handover-chksum-lease.md) — START HERE : binary amos_chksum, gpu lease live with pause \ resume ; next N7FS
-- [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — previous : host labels, letsencr join fix
-- [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 : format 1 tested, CLI only, no deployment, no user in src ; byte form settled 2026-11-06
+- [session-handover-n7fs-format3](project-2026-11-07-session-handover-n7fs-format3.md) — START HERE : N7FS format 3 complete [ stages 1-3, pushed ], dogfood on format 3, virtual render queue design ; open items
+- [session-handover-chksum-lease](project-2026-11-06-session-handover-chksum-lease.md) — previous : binary amos_chksum, gpu lease live with pause \ resume
+- [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — older : host labels, letsencr join fix
+- [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 [ OUTDATED : format 3 built 2026-11-07, see the handover ] ; CLI only, no zenka user yet
+- [kimi-wrapper-exit-not-done](feedback-kimi-wrapper-exit-not-done.md) — kimi_dispatch wrapper exit is NOT completion : wait for pgrep -x kimi-code too, never sign while it runs
 - [shm-permissions-forgeable-open](project-2026-10-22-shm-permissions-forgeable-open.md) — grants FIXED d02c3b067 ; open [ todo FKS, normal ] : local readers with file rights can still map a segment, encrypted pages next
 - [signature-valid-truth-map-ignored](project-2026-10-22-signature-valid-truth-map-ignored.md) — FIXED 2026-11-05 [ 66f759706, VWF ] : signature_valid honours a caller truth map [ truth checks only ] ; non-default map untested until the form footer
 - [new-task-command-three-lists](feedback-new-task-command-three-lists.md) — a new zenka command needs its own zenka.v7 list + gen-sub-whitelist, worker commands also the host overlay grant ; verify with `<zenka>.commands` and the far cube log
@@ -97,8 +99,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,,.,,,..,...,...,,,,,,,.,.,.,.,.,,,,,,,,,..,,...,...,,.,,..,,,..,,,.,,,,,
-#6NEU5OXT3QWJS5PKV4ERGBED5JDGOJQ5GJAW7WLLPXP6YMH75LNHFCPSPO4UJLLX4CVLUQSKDDCXQ
-#\\\|BMZIPMDT5QI56CF5EW275TNYCWTB4MPUYNCZNFADD3AKMADNCDN \ / AMOS7 \ YOURUM ::
-#\[7]MLBAO35B2CB5VW4FTUIH4YANJVAYAPZSBCV6UR2TYBECMMIIY2AI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,,,,,.,,..,..,,,..,,..,,.,,,.,,..,,...,...,.,.,.,,,.,,,,,.,,,,,
+#34UJG3P47XORYF7BMQB4VJ4RXPYPRORVNYARI5GQOL56UL4N6BKNBJNMHA3OTXCWXIED37AHLMSRG
+#\\\|YBXHFXPIVRFWZZUSIMX2D5OKBREOY5O5DUNAMRWCAWCDSTGCXCH \ / AMOS7 \ YOURUM ::
+#\[7]5JB3OW36ID2PKUTNVYTM5XXG5CUZF5M32EH5TCSKUKCOB2YLDOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
