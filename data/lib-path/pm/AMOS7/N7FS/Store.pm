@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.ZNIED4A |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.J3YU5BQ |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -116,16 +116,41 @@ sub _list_dir {
     return sort @names;
 }
 
-## format 1 : content + meta/ ##
+our $LINK   = sub { return link( $ARG[0], $ARG[1] ) };
+our $DEVICE = sub { return ( stat $ARG[0] )[0] };
 
-sub _v1_write_node {
+## conversion may ask for a hard link ; every other writer copies into a new
+## temporary node. no path opens existing content for writing
+sub _write_content {
     my ( $dir, $node ) = @ARG;
-    my $addr = $node->{'addr'};
+    my $source = $node->{'content_path'};
+    my $target = "$dir/content";
+    my $addr   = $node->{'addr'};
+    if ( $node->{'link_content'} ) {
+        my @src_st  = lstat $source;
+        my $regular = @src_st && -f _ && not -l _;
+        my $dst_dev = $DEVICE->($dir);
+        if (    $regular
+            and defined $dst_dev
+            and $DEVICE->($source) == $dst_dev ) {
+            fault(qw| convert:before-link |);
+            if ( $LINK->( $source, $target ) ) {
+                $node->{'content_action'} = qw| linked |;
+                fault(qw| convert:after-link |);
+                return TRUE;
+            }
+            $node->{'content_note'} = "hard link failed : $OS_ERROR";
+        } else {
+            $node->{'content_note'} = 'different filesystem';
+        }
+        $node->{'content_action'} = qw| copied |;
+    }
 
-    my ( $src, $st ) = _open_regular( $node->{'content_path'} );
+    my ( $src, $st ) = _open_regular($source);
     my $ctx = Digest::BMW->new(384);
+    fault(qw| convert:before-copy |) if $node->{'link_content'};
     write_new_file_stream(
-        "$dir/content",
+        $target,
         sub {
             my $out = shift;
             while (1) {
@@ -136,11 +161,23 @@ sub _v1_write_node {
                 print {$out} $buf or die "$OS_ERROR\n";
             }
         },
-        0400
+        0444
     );
     close $src;
-    refuse( 'content changed while copying [ %s ]', $node->{'content_path'} )
+    fault(qw| convert:after-copy |) if $node->{'link_content'};
+    refuse( 'content changed while copying [ %s ]', $source )
         if bmw_b32( $ctx->digest ) ne $addr->{'bmw'};
+    $node->{'content_action'} //= qw| copied |;
+    return TRUE;
+}
+
+## format 1 : content + meta/ ##
+
+sub _v1_write_node {
+    my ( $dir, $node ) = @ARG;
+    my $addr = $node->{'addr'};
+
+    _write_content( $dir, $node );
 
     make_dirs( "$dir/meta", 0700 );
     _v1_write_meta( $dir, $_ ) for $node->{'metas'}->@*;
@@ -253,25 +290,7 @@ sub _v2_write_meta {
 sub _v2_write_node {
     my ( $dir, $node, $context ) = @ARG;
     my $addr = $node->{'addr'};
-    my ( $src, $st ) = _open_regular( $node->{'content_path'} );
-    my $ctx = Digest::BMW->new(384);
-    write_new_file_stream(
-        "$dir/content",
-        sub {
-            my $out = shift;
-            while (1) {
-                my $got = sysread( $src, my $buf, 1048576 );
-                die "read : $OS_ERROR\n" if not defined $got;
-                last                     if $got == 0;
-                $ctx->add($buf);
-                print {$out} $buf or die "$OS_ERROR\n";
-            }
-        },
-        0400
-    );
-    close $src;
-    refuse( 'content changed while copying [ %s ]', $node->{'content_path'} )
-        if bmw_b32( $ctx->digest ) ne $addr->{'bmw'};
+    _write_content( $dir, $node );
 
     make_dirs( "$dir/meta", 0700 );
     _v2_write_meta( $dir, $ARG, $addr, $context ) for $node->{'metas'}->@*;
@@ -379,25 +398,7 @@ sub _v3_write_meta {
 sub _v3_write_node {
     my ( $dir, $node, $context ) = @ARG;
     my $addr = $node->{'addr'};
-    my ( $src, $st ) = _open_regular( $node->{'content_path'} );
-    my $ctx = Digest::BMW->new(384);
-    write_new_file_stream(
-        "$dir/content",
-        sub {
-            my $out = shift;
-            while (1) {
-                my $got = sysread( $src, my $buf, 1048576 );
-                die "read : $OS_ERROR\n" if not defined $got;
-                last                     if $got == 0;
-                $ctx->add($buf);
-                print {$out} $buf or die "$OS_ERROR\n";
-            }
-        },
-        0400
-    );
-    close $src;
-    refuse( 'content changed while copying [ %s ]', $node->{'content_path'} )
-        if bmw_b32( $ctx->digest ) ne $addr->{'bmw'};
+    _write_content( $dir, $node );
 
     make_dirs( "$dir/meta", 0700 );
     _v3_write_meta( $dir, $ARG, $addr, $context ) for $node->{'metas'}->@*;
@@ -1014,6 +1015,8 @@ sub assimilate {
     my %opt = @ARG;
     refuse('keep and remove exclude each other')
         if $opt{'keep'} and $opt{'remove'};
+    refuse('assimilate : -prune needs -remove')
+        if $opt{'prune'} and not $opt{'remove'};
     my $remove = $opt{'remove'} ? TRUE : FALSE;
 
     ## index rows are untrusted : removal only below a named base ##
@@ -1062,6 +1065,15 @@ sub assimilate {
         push @skipped, @{$s};
     }
     _walk( $ARG, \@items, \@skipped ) for ( $opt{'paths'} // [] )->@*;
+    my @prune_roots;
+    if ( $opt{'prune'} ) {
+        foreach my $path ( ( $opt{'paths'} // [] )->@*, $index_base ) {
+            next if not defined $path;
+            my @st = lstat $path;
+            next if not @st or -l _ or not -d _;
+            push @prune_roots, abs_path($path) // $path;
+        }
+    }
 
     ## never the store into itself, never the host side [ keys, witness : a ##
     ## holder must not get the store key, a removal must not reset the use  ##
@@ -1161,7 +1173,75 @@ sub assimilate {
             $report{'failed'}++;
         }
     }
+    if ( $opt{'prune'} ) {
+        my %removed;
+        my @emptied;
+        foreach my $entry ( $report{'entries'}->@* ) {
+            my $then = $entry->{'then'} // '';
+            next
+                if $then ne
+                ( $opt{'dry_run'} ? qw| would-remove | : qw| removed | );
+            my $file = abs_path( $entry->{'source'} =~ s|/[^/]+\z||r );
+            next if not defined $file;
+            my ($name) = $entry->{'source'} =~ m|([^/]+)\z|;
+            $removed{"$file/$name"} = TRUE;
+            push @emptied, $file;
+        }
+        $report{'pruned'}
+            = _prune_roots( \@prune_roots, \@emptied, \%removed,
+            $opt{'dry_run'} );
+    }
     return \%report;
+}
+
+## only directories this run emptied : the parents of removed sources, walking
+## upward strictly below a named root. named roots, nested named roots,
+## symlinks and directories that were already empty or still hold anything are
+## kept. a crash mid-prune leaves only empty directories, which a retry no
+## longer knows as its own. dry-run treats the files that would be removed as
+## absent
+sub _prune_roots {
+    my ( $roots, $emptied, $removed, $dry_run ) = @ARG;
+    my %keep = map { $ARG => TRUE } @{$roots};
+    my %candidate;
+    foreach my $dir ( @{$emptied} ) {
+        my $path = $dir;
+        while ( not $keep{$path}
+            and grep { index( $path, "$ARG/" ) == 0 } @{$roots} ) {
+            $candidate{$path} = TRUE;
+            last if $path !~ s|/[^/]+\z||;
+        }
+    }
+    my @pruned;
+    my %gone = %{$removed};
+
+    ## deepest first, so a parent is tried after its emptied children
+    foreach my $path (
+        sort { ( $b =~ tr|/|| ) <=> ( $a =~ tr|/|| ) or $a cmp $b }
+        keys %candidate
+    ) {
+        my @st = lstat $path;
+        next if not @st or -l _ or not -d _;
+        if ($dry_run) {
+            opendir( my $dh, $path )
+                or refuse( 'cannot read %s : %s', $path, $OS_ERROR );
+            my @left = grep {
+                        $ARG ne '.'
+                    and $ARG ne '..'
+                    and not $gone{"$path/$ARG"}
+            } readdir $dh;
+            closedir $dh;
+            next if @left;
+            $gone{$path} = TRUE;
+            push @pruned, $path;
+            next;
+        }
+        fault( 'assimilate:before-prune', $path );
+        next if not rmdir $path;
+        push @pruned, $path;
+        fault( 'assimilate:after-prune', $path );
+    }
+    return \@pruned;
 }
 
 ## newest record of this source : duplicates share a node, each keeps its own
@@ -1393,8 +1473,8 @@ sub _remove_source {
 
 1;
 
-#,,.,,.,.,...,..,,..,,...,,,.,.,,,,..,.,.,..,,..,,...,...,...,...,...,..,,,.,,
-#2M5GOKGRESX2EF4WHEZ2SR7NJNQZNFZWR5Q6EZCNSHSRUWUR44467H3FUKBCCAVYFKMPRRMJ4BXVW
-#\\\|7VXK2YN5K6XUJRSCN7U7Z7ISONOY6P2WXLJM6BP2PZH4XD4G26H \ / AMOS7 \ YOURUM ::
-#\[7]A5LKY4EGDUVZFRV6M5QGD5T4DFEECGGREUOLLQ3XJHUCHKVJ2SBA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,...,..,,,..,...,,,,,.,.,,,,,..,,..,,...,...,.,,,.,,,.,.,..,,..,,
+#EVLFLC5V7RL6OQBJAIDN262EJTPAMQWKOHVAD2SWC7J5KJJVNGKBYE6SJ6LCAQG4JGS6KBIOTSS6A
+#\\\|QK7FVOK4O72EU77RQP64J7MNJ4FUVDJ7NJJ6BTQO74Y5MH74YRM \ / AMOS7 \ YOURUM ::
+#\[7]FNUPMXRW7R4N5ZTR7VVXQKE2ZUJ5QT6UNZUVYGXGMSKYKRXWPKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

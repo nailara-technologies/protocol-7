@@ -146,7 +146,8 @@ foreach my $point (qw| convert:after-node convert:before-switch |) {
 
 {
     my $damaged = 0;
-    local $AMOS7::N7FS::FAULT = sub {
+    local $AMOS7::N7FS::Store::LINK = sub { return 0 };
+    local $AMOS7::N7FS::FAULT       = sub {
         return if $ARG[0] ne 'convert:after-node' or $damaged++;
         my ($n) = store_nodes( $dpath, $E + 2 );
         my $p = "$n->{'path'}/content";
@@ -267,7 +268,7 @@ unchanged_after_v2(
         'confirm re-verifies and refuses damage'
     );
     write_file( $p, $orig );
-    chmod 0400, $p;
+    chmod 0444, $p;
 }
 
 my $c = confirm(%run);
@@ -315,8 +316,8 @@ sub unchanged_after_v2 {
 
 done();
 
-#,,,.,.,,,.,,,.,.,,.,,,.,,,,.,.,.,.,.,,.,,,,.,.,.,...,...,,..,.,.,.,,,,.,,,,.,
-#2DD7H7VIM4GA4FQTUQ756TQQQGVYGTLBC7QFHG6U3ZGC5UQRSSOS5UM33HPLZZGY3MTPHRYZIEUAI
-#\\\|5F4NR45PENAOM3GQVPVYOAX2FYRUWWSLDLRR5V3ZZWPT73XQKBV \ / AMOS7 \ YOURUM ::
-#\[7]EB77UWF4GO36IZV3KJR5HIHL3JHF2ZROCJKNJCGV6X4VIE4ONKCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,...,.,,,...,,,.,...,.,,,..,,.,.,...,...,,.,,.,,,,,.,,.,,...,
+#NKQBSWJOBZK5VTRIRIOW3UZKWZQ7T3OE7HRVGQT4XHFU6RB36EJFCF7WJP2SUCJD7ZPWLORRALKSK
+#\\\|B5RQOHCWGL4M3CRZPHJB3O6ZJQZBKZMJGSY42Q57WZTHS5NYYDO \ / AMOS7 \ YOURUM ::
+#\[7]XXLL6OKOT33YQYDV6QGYTIIAFOVID3UVTMNOC7DVS3FUAJVJHODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

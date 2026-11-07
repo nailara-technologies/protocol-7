@@ -36,9 +36,10 @@ use warnings;
 ## n7fs release-epoch <disk> <epoch> -now
 ##                  end rollback to a confirmed conversion's previous form
 ## n7fs repair <disk>                  finish releases, adopt unjournaled data
-## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -dry-run ]
+## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -prune ] [ -dry-run ]
 ##                 [ -index <image-index.db> [ -index-base <dir> ] ]
 ##                 [ <path> .. ]   index + -remove needs -index-base
+##                 -prune removes empty dirs below named roots, never roots
 ## n7fs upgrade <disk> [ -epoch <n> ]     convert into the next epoch of
 ##                                         the window [ -epoch : tests ]
 ## n7fs confirm <disk>                    confirm an upgrade
@@ -95,8 +96,8 @@ my %o    = ( qw| trust | => [] );
 GetOptionsFromArray(
     \@args, \%o,
     qw| root=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
-        name=s intent=s disk=s index=s index-base=s epoch=s remove keep dry-run
-        out=s format=s chksum=s holder=s all allow-rollback force reason=s
+        name=s intent=s disk=s index=s index-base=s epoch=s remove keep prune
+        dry-run out=s format=s chksum=s holder=s all allow-rollback force reason=s
         free=s older=s now help |
 ) or usage(2);
 usage(0) if $o{'help'};
@@ -686,6 +687,8 @@ sub cmd_repair {
 sub cmd_assimilate {
     fail('assimilate : -keep and -remove exclude each other')
         if $o{'keep'} and $o{'remove'};
+    fail('assimilate : -prune needs -remove')
+        if $o{'prune'} and not $o{'remove'};
     fail('assimilate : no paths and no -index')
         if not @args and not defined $o{'index'};
     my $r = assimilate(
@@ -697,6 +700,7 @@ sub cmd_assimilate {
         qw| index_base | => $o{'index-base'},
         qw| protect | => [ grep {defined} $o{'host-key'}, $o{'parent-key'} ],
         qw| remove |  => $o{'remove'}  ? TRUE : FALSE,
+        qw| prune |   => $o{'prune'}   ? TRUE : FALSE,
         qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
     );
     foreach my $e ( $r->{'entries'}->@* ) {
@@ -709,6 +713,8 @@ sub cmd_assimilate {
             defined $e->{'why'}  ? "[ $e->{'why'} ]"      : ()
         );
     }
+    say_line( $r->{'dry_run'} ? 'would prune ' : 'pruned ', $ARG )
+        for ( $r->{'pruned'} // [] )->@*;
     say_line('dry run : nothing was changed') if $r->{'dry_run'};
     return $r->{'failed'} ? 1 : 0;
 }
@@ -725,9 +731,13 @@ sub cmd_upgrade {
         return 0;
     }
     say_line(
-        sprintf 'format %d -> %d : %d nodes written into epoch %d '
-            . '; the old form stays -- check, then n7fs confirm',
-        $r->{'from'}, $r->{'to'}, $r->{'nodes'}, $r->{'epoch'} );
+        sprintf 'format %d -> %d : %d nodes written into epoch %d [ %d '
+            . 'linked, %d copied ] ; the old form stays -- check, '
+            . 'then n7fs confirm',
+        $r->{'from'},  $r->{'to'},     $r->{'nodes'},
+        $r->{'epoch'}, $r->{'linked'}, $r->{'copied'}
+    );
+    say_line( 'copy note ', $ARG ) for $r->{'notes'}->@*;
     return 0;
 }
 
@@ -742,8 +752,8 @@ sub cmd_confirm {
     return 0;
 }
 
-#,,..,,,,,,,.,,,,,,,.,.,,,,,,,..,,,,.,,,.,.,.,..,,...,...,,..,.,.,..,,,.,,,,.,
-#M5ZLIQFXWWIFFAHD7JXRLPXRPF2HXNAOCTSUTRDZFCCSJ4GBGTOYLL4THPNQXABRMRIMSLX73HZHO
-#\\\|ZAV44YIMMNRDFZKEHANGLEGKS3SB3SMAS3EEEV25OICZJ4M4LBX \ / AMOS7 \ YOURUM ::
-#\[7]JH2FLNLEDU5M3FRG45ROPE6REHIPZDMCLYROFVCA6R7QRIKZEQAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,,,.,.,.,..,,,.,,..,,,,.,,,.,..,,...,...,.,,,,..,.,.,,.,,,,.,
+#ON56QLGTHHO72ZRNH4F3RIZ7ORJ4SINF4LPHKHKX3UNIUGWD2YYXFDBUGLMO6NIUXOF7ZAR7ZOORM
+#\\\|RQMMQEXWO7VJGNQL3GVKJKPHEMYGVY5ZJXQNUDWEPZ2QC2PAH7N \ / AMOS7 \ YOURUM ::
+#\[7]5TFYULIXD2L4XUXAKRSO37GHH7EYIQBG64KKLS56XEC5ZG4MTADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

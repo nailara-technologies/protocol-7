@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.VCFDQRA |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.EKEUUGQ |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -162,13 +162,13 @@ sub refuse {
     die "n7fs : $msg\n";
 }
 
-## fault injection for the tests : a code ref receiving the point name, it
-## dies to simulate a failure there. undef in normal use
+## fault injection for the tests : a code ref receiving the point name and
+## optional context, it dies to simulate a failure there. undef in normal use
 our $FAULT;
 
 sub fault {
     my $point = shift;
-    $FAULT->($point) if ref $FAULT eq qw| CODE |;
+    $FAULT->( $point, @ARG ) if ref $FAULT eq qw| CODE |;
     return;
 }
 
@@ -460,8 +460,8 @@ sub remove_tree {
 
 1;
 
-#,,,.,.,.,...,..,,.,.,,,,,..,,...,,,,,,..,,,.,..,,...,...,..,,.,.,...,.,,,,,,,
-#WIT55HPOXTFSBT4INSFF4ZLMW4XUST6NSMRES2NPF2HHVYKB2VK5UHEC2EEVM6GZ7YXIAN5JCFNIE
-#\\\|Y2DYLC6PMEYNBZXT5F2N7QXASLAYRWO3O5YYVMRIWPJW3P3W4BG \ / AMOS7 \ YOURUM ::
-#\[7]62FKLFYPPCJO7PTLOOHI7A4HTQW5LQRR6VM3R7XV4BBZ74FFW2DQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,.,.,...,..,,,.,,...,.,,,.,.,..,,...,...,.,.,,..,...,..,,...,
+#EMAZSSGHWOIEC6VYIOQNG2T3CHDVI56L4MCVP5EHYTNSBFIPW4HQ33QAYIZTTQSH3CBXUHJKSF2SU
+#\\\|UA6EET3FNXL2WGGJCDVYSUHGML4HBKITF7PZM567CULEZXMNPDL \ / AMOS7 \ YOURUM ::
+#\[7]I3SSCE6STUMUQDX6NYCMCMRIJC3W6PX4SOIAGIDNLCQTD2ZLZSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
