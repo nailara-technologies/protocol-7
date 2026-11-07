@@ -9,9 +9,10 @@ use warnings;
 ##  n7fs  ##
 ###      ###
 
-## N7FS version 1 : checksum-addressed store, standalone
-## [ like p7-vault -- no zenka, no running network ]. format :
-## data/md/design/N7FS-SPEC.md + data/md/design/N7FS-FORMAT-1.md [ as built ].
+## N7FS : checksum-addressed store, standalone
+## [ like p7-vault -- no zenka, no running network ]. new disks use format 2 :
+## the delegated store key signs meta and state. format :
+## data/md/design/N7FS-SPEC.md + data/md/design/N7FS-FORMAT-2.md [ as built ].
 ##
 ## n7fs keygen <file>                     new ed25519 key file [ 0600 ]
 ## n7fs pubkey <file>                     its public key [ base32 ]
@@ -19,7 +20,7 @@ use warnings;
 ## n7fs list                              disks under the root
 ## n7fs attach <disk> [ -allow-rollback ]
 ## n7fs detach <disk>
-## n7fs status <disk>
+## n7fs status <disk> [ -allow-rollback ]
 ## n7fs verify <disk>                     every node of the active epochs
 ## n7fs get <disk> <address|path-name> [ -out <file> ]
 ##                                       verified content [ raw stdout ]
@@ -58,13 +59,14 @@ Getopt::Long::Configure('prefix_pattern=^-');
 BEGIN {
     ## repo layout first, then a copy [ AMOS7/ beside the script ] ##
     unshift @INC, "$FindBin::Bin/../data/lib-path/pm", "$FindBin::Bin";
+    unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
 use AMOS7::N7FS       qw| root_dir host_dir b32 unb32 write_new_file_stream |;
 use AMOS7::N7FS::Sum  qw| bmw_b32 epoch_from_b32 |;
 use AMOS7::N7FS::Sign qw| key_file_signer key_file_write command_signer |;
 use AMOS7::N7FS::Disk qw| disk_init disk_attach disk_detach disk_status
-    disk_read_id state_read |;
+    disk_read_id state_read witness_check_format |;
 use AMOS7::N7FS::Store qw| assimilate store_verify meta_entries node_path
     node_verify |;
 use AMOS7::N7FS::Convert qw| upgrade confirm |;
@@ -144,10 +146,32 @@ sub fail { die "n7fs : $ARG[0]\n" }
 
 sub say_line { say ': ', @ARG }
 
+sub warn_unsigned_names {
+    my ( $disk, $state ) = @ARG;
+    print STDERR "n7fs : warning : disk $disk uses store "
+        . "format 1 ; meta names are unsigned\n"
+        if $state->{'store_format'} == 1;
+    return;
+}
+
 sub host_signer {
     my $file = $o{'host-key'} // host_dir(%common) . '/host.key';
     fail("no host key $file [ n7fs keygen $file ]") if not -e $file;
     return key_file_signer($file);
+}
+
+sub optional_host_signer {
+    my $file = $o{'host-key'} // host_dir(%common) . '/host.key';
+    return undef if not -e $file and not defined $o{'host-key'};
+    return host_signer();
+}
+
+sub read_common {
+    my %read = %common;
+    my $host = optional_host_signer();
+    $read{'host'}           = $host if defined $host;
+    $read{'allow_rollback'} = $o{'allow-rollback'} ? TRUE : FALSE;
+    return %read;
 }
 
 sub parent_signer {
@@ -268,9 +292,11 @@ sub cmd_detach {
 sub cmd_status {
     my $s = disk_status(
         %common,
-        qw| disk | => disk_arg(shift),
-        qw| host | => host_signer(),
+        qw| disk |           => disk_arg(shift),
+        qw| host |           => host_signer(),
+        qw| allow_rollback | => $o{'allow-rollback'} ? TRUE : FALSE,
     );
+    warn_unsigned_names( $s->{'disk'}, $s->{'state'} );
     say_line( 'disk      ', $s->{'disk'} );
     say_line( 'name      ', $s->{'name'} );
     say_line( 'intent    ', $s->{'intent'} );
@@ -298,7 +324,8 @@ sub cmd_status {
 }
 
 sub cmd_verify {
-    my $r = store_verify( %common, qw| disk | => disk_arg(shift) );
+    my %read = read_common();
+    my $r    = store_verify( %read, qw| disk | => disk_arg(shift) );
     say_line( sprintf '%d nodes verified [ format %d ]',
         $r->{'nodes'}, $r->{'state'}{'store_format'} );
     return 0;
@@ -308,16 +335,20 @@ sub cmd_get {
     my $disk   = disk_arg(shift);
     my $target = shift // fail('get needs an address or path name');
     fail('get : unexpected arguments') if @ARG;
-    my $id    = disk_read_id( %common, qw| disk | => $disk );
-    my $state = state_read( $id->{'path'} );
-    my $addr  = _address_arg( $target, $state );
+    my %read  = read_common();
+    my $id    = disk_read_id( %read, qw| disk | => $disk );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    witness_check_format( %read, qw| id | => $id, qw| state | => $state )
+        if ref $read{'host'};
+    warn_unsigned_names( $disk, $state );
+    my $addr = _address_arg( $target, $state );
 
     if ( not defined $addr ) {
         my %nodes;
         ## sources are stored absolute ##
         my $absolute = abs_path($target) // $target;
         foreach my $entry (
-            _latest_meta( meta_entries( %common, qw| disk | => $disk ) ) ) {
+            _latest_meta( meta_entries( %read, qw| disk | => $disk ) ) ) {
             next
                 if ( $entry->{'name'} // '' ) ne $target
                 and ( $entry->{'source'} // '' ) ne $target
@@ -335,7 +366,7 @@ sub cmd_get {
         ($addr) = values %nodes;
     }
 
-    node_verify( $id->{'path'}, $addr, $state->{'store_format'} );
+    node_verify( $id->{'path'}, $addr, $state->{'store_format'}, $id );
     my $content = node_path( $id->{'path'}, $addr ) . '/content';
 
     if ( defined $o{'out'} ) {
@@ -383,11 +414,17 @@ sub cmd_get {
 sub cmd_find {
     my $disk = disk_arg(shift);
     fail('find : unexpected arguments') if @ARG;
+    my %read  = read_common();
+    my $id    = disk_read_id( %read, qw| disk | => $disk );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    witness_check_format( %read, qw| id | => $id, qw| state | => $state )
+        if ref $read{'host'};
+    warn_unsigned_names( $disk, $state );
     my $regex = _name_regex( $o{'name'} );
     my @entries
         = $o{'all'}
-        ? meta_entries( %common, qw| disk | => $disk )
-        : _latest_meta( meta_entries( %common, qw| disk | => $disk ) );
+        ? meta_entries( %read, qw| disk | => $disk )
+        : _latest_meta( meta_entries( %read, qw| disk | => $disk ) );
 
     @entries = grep {
         my $entry = $ARG;
@@ -413,9 +450,15 @@ sub cmd_find {
             = length( $entry->{'source'} // '' )
             ? $entry->{'source'}
             : $entry->{'name'} // '?';
+        my @stamp = (
+            $entry->{'import_ntime'},
+            $entry->{'converted_from_unsigned'}
+            ? 'converted_from_unsigned'
+            : ()
+        );
         say join ' ', $entry->{'address'}, $entry->{'size'} // '?',
             $entry->{'format'} // 'unknown', $label,
-            $o{'all'} ? "[ $entry->{'import_ntime'} ]" : ();
+            $o{'all'} ? '[ ' . join( ' ', @stamp ) . ' ]' : ();
     }
     return 0;
 }
@@ -479,8 +522,8 @@ sub cmd_confirm {
     return 0;
 }
 
-#,,,.,.,.,.,,,.,.,,.,,,,,,.,.,.,,,,,,,,..,,,,,..,,...,...,.,.,,.,,,.,,,..,,.,,
-#Z3DPSSCAU6S4A5QBRMVQK7NQLNN5APAXNQT2QOM3UC73GN6F2DMEEGZABPKVB4AOPONXH77ZPCPYW
-#\\\|Y6Z24LWRRKQCAK6YSDP652ZQLBPXFUOBRD43RVUCE5NRRKEC4A7 \ / AMOS7 \ YOURUM ::
-#\[7]XSQWSZD62UE7YTO4WFSLQVFFYGBSX4OXZA3RAMXT67AUD7BEKGCY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,..,.,,,,,,,,,.,,.,,.,.,..,,.,.,..,,...,..,,...,...,,.,,,..,,.,,
+#E6GGKZM2XJPY2OPPR2SDTEEZTZJQHSOOMZISX5ZW3E3MPTZWTYY4SMCFO5EUXA3AT2J2BKBFFNOVS
+#\\\|WBPSUCDLNSH5PPTIDKCAECKKTO7OXVTHMSO3YDSPP27GOW4UWFD \ / AMOS7 \ YOURUM ::
+#\[7]HR6OC4R26MOJ3FH5RFEAMMNCPSKO62NVZGRZNNCDGKMPVUJA7CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

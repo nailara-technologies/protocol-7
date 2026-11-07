@@ -2,7 +2,7 @@
 
 package AMOS7::N7FS::Disk;    ###############################################
 
-## N7FS version 1 : disk identity, attach \ detach, use window, state.
+## N7FS : disk identity, attach \ detach, use window, signed state.
 ##
 ##   <root>/<disk>/.n7fs/id.record      signed by the PARENT [ spec 3 ]
 ##                       id.amos        amos over id.record = <disk>
@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Disk-VERSION.754TPBQ |;
+our $VERSION = qw| AMOS7::N7FS::Disk-VERSION.SZVYXNA |;
 
 @EXPORT_OK = qw|
     disk_init
@@ -45,9 +45,12 @@ our $VERSION = qw| AMOS7::N7FS::Disk-VERSION.754TPBQ |;
     disk_require_attached
     mount_history
     witness_read
+    witness_note_format
+    witness_check_format
     host_mounts
     state_read
     state_write
+    store_key_signer
     trusted_parents
     |;
 
@@ -58,7 +61,8 @@ use AMOS7::N7FS   qw| root_dir host_dir ntime_now ntime14 b32 unb32
     remove_tree refuse fault |;
 use AMOS7::N7FS::Sum qw| amos_of_bytes l13_standin $AMOS_RULE $BMW_RULE
     $L13_TAG |;
-use AMOS7::N7FS::Sign qw| verify key_file_write new_seed seed_signer |;
+use AMOS7::N7FS::Sign qw| verify key_file_write key_file_signer new_seed
+    seed_signer |;
 
 our $DISK_RE  = qr{\A[A-Z2-7]{7}\z};
 our $MOUNT_RE = qr{\A(\d{14})\.([A-Z2-7]{7})\z};
@@ -121,17 +125,60 @@ sub trusted_parents {
 ##[ STATE RECORDS ]###########################################################
 
 ## the newest valid state record of a store. refuses a damaged newest one
-## [ the state decides what is read -- no silent fallback ]
+## [ the state decides what is read -- no silent fallback ]. format 2 verifies
+## against the store public key of the parent-signed id, never signer_pub
+## alone
 sub state_read {
-    my $disk_path = shift;
-    my @names     = _list( "$disk_path/.n7fs/state", $STATE_RE );
+    my ( $disk_path, $store_pub ) = @ARG;
+    my @names = _list( "$disk_path/.n7fs/state", $STATE_RE );
     refuse( 'no state record in %s', $disk_path ) if not @names;
+
+    my $signed_present = grep {
+        my $bytes = read_file("$disk_path/.n7fs/state/$ARG");
+        defined $bytes and substr( $bytes, 0, 5 ) eq "P7FT\x02";
+    } @names;
+
     my $name  = $names[-1];
     my $bytes = read_file("$disk_path/.n7fs/state/$name");
-    my $rec   = plain_record_parse( qw| state |, $bytes );
-    my $p     = $rec->{'payload'};
+    my $record_format
+        = defined $bytes && length $bytes >= 5
+        ? unpack( qw| C |, substr( $bytes, 4, 1 ) )
+        : 0;
+    my $rec;
+    if ( $record_format == 2 ) {
+        if ( not defined $store_pub ) {
+            my ( $root, $disk ) = $disk_path =~ m|\A(.+)/([^/]+)\z|;
+            refuse( 'cannot derive disk identity from %s', $disk_path )
+                if not defined $disk;
+            $store_pub = disk_read_id(
+                qw| root |    => $root,
+                qw| disk |    => $disk,
+                qw| anchors | => []
+            )->{'store_pub'};
+        }
+        refuse( 'state %s : no store public key for verification', $name )
+            if not defined $store_pub
+            or length $store_pub != 32;
+        $rec = signed_record_parse( qw| state |, $bytes );
+        refuse( 'state %s : signed by a foreign store key', $name )
+            if $rec->{'signer_pub'} ne $store_pub;
+        refuse( 'state %s : store signature does not verify', $name )
+            if not verify( $store_pub, $rec->{'signed'}, $rec->{'sig'} );
+    } else {
+        refuse(
+            'state %s : unsigned state after a '
+                . 'signed state [ store format rollback ]',
+            $name
+        ) if $signed_present;
+        $rec = plain_record_parse( qw| state |, $bytes );
+    }
+
+    my $p = $rec->{'payload'};
     refuse( 'state %s : no store format', $name )
         if ( $p->{'store_format'} // '' ) !~ m|\A\d{1,3}\z|;
+    refuse( 'state %s : record format does not match store format', $name )
+        if $p->{'store_format'} <= 2
+        and $rec->{'format'} != $p->{'store_format'};
     refuse( 'state %s : no epoch list', $name )
         if ref $p->{'epochs'} ne qw| ARRAY |;
     $p->{'_name'} = $name;
@@ -139,9 +186,12 @@ sub state_read {
 }
 
 sub state_write {
-    my ( $disk_path, $payload ) = @ARG;
+    my ( $disk_path, $payload, $store ) = @ARG;
     my %p = %{$payload};
     delete $p{'_name'};
+    my $format = $p{'store_format'} // 1;
+    refuse('state format 2 needs the delegated store key')
+        if $format == 2 and not ref $store;
     my @names = _list( "$disk_path/.n7fs/state", $STATE_RE );
     my $ntime = ntime_now();
     if (@names) {
@@ -150,8 +200,26 @@ sub state_write {
     }
     $p{'written'} = ntime14($ntime);
     my $path = "$disk_path/.n7fs/state/" . ntime14($ntime) . '.state';
-    write_new_file( $path, plain_record_pack( qw| state |, \%p ) );
+    my $bytes
+        = $format == 2
+        ? signed_record_pack( qw| state |, \%p, $store, 2 )
+        : plain_record_pack( qw| state |, \%p );
+    write_new_file( $path, $bytes );
     return $path;
+}
+
+## the delegated secret stays host-side. a second host gets no key through the
+## store ; an operator must provision it separately before writes there
+sub store_key_signer {
+    my %opt  = @ARG;
+    my $id   = $opt{'id'} // disk_read_id(%opt);
+    my $path = host_dir(%opt) . '/stores/' . $id->{'disk'} . '.store.key';
+    refuse( 'no delegated store key %s [ writes need it ]', $path )
+        if not -e $path;
+    my $store = key_file_signer($path);
+    refuse( 'delegated store key %s does not match the disk id', $path )
+        if $store->public ne $id->{'store_pub'};
+    return $store;
 }
 
 ## the physical device below the store
@@ -278,7 +346,7 @@ sub disk_init {
         undef $disk;
         $ntime++;    ## collision : the next ntime, checksum again ##
     }
-    refuse( 'no free disk id ' . 'after %d tries', $INIT_TRIES )
+    refuse( 'no free disk id after %d tries', $INIT_TRIES )
         if not defined $disk;
 
     my $key_path = "$hdir/stores/$disk.store.key";
@@ -294,7 +362,7 @@ sub disk_init {
         write_new_file( "$tmp/.n7fs/id.l13",    l13_standin($record) . "\n" );
         state_write(
             $tmp,
-            {   qw| store_format | => 1,
+            {   qw| store_format | => 2,
                 qw| epochs |       => [],
                 qw| sums |         => {
                     qw| amos | => $AMOS_RULE,
@@ -302,7 +370,8 @@ sub disk_init {
                     qw| l13 |  => $L13_TAG,
                 },
                 qw| device | => _device_info($root),
-            }
+            },
+            $store
         );
         make_dirs( "$hdir/stores", 0700 );
         key_file_write( $key_path, $seed );
@@ -397,14 +466,18 @@ sub witness_read {
     refuse( 'witness %s : not signed by this host', $name )
         if $rec->{'signer_pub'} ne $host->public;
 
-    foreach my $field (qw| first last |) {
+    $p->{'written'} //= $p->{'last'};
+    foreach my $field (qw| first last written |) {
         refuse( 'witness %s : %s-use timestamp missing', $name, $field )
             if ( $p->{$field} // '' ) !~ m|\A\d{14}\z|;
     }
+    refuse( 'witness %s : bad highest store format', $name )
+        if ( $p->{'store_format'} // 1 ) !~ m|\A\d{1,3}\z|
+        or ( $p->{'store_format'} // 1 ) < 1;
     refuse( 'witness %s : record does not match', $name )
         if ( $p->{'disk'} // '' ) ne $opt{'disk'}
         or $p->{'first'} gt $p->{'last'}
-        or "$p->{'last'}.use" ne $name
+        or "$p->{'written'}.use" ne $name
         or ( $p->{'last_record'} // '' ) !~ $MOUNT_RE;
     return $p;
 }
@@ -454,6 +527,8 @@ sub _write_mount_event {
     my $ntime = ntime_now();
     $ntime = $presented + 1   if $ntime <= $presented;
     $ntime = $w->{'last'} + 1 if defined $w and $ntime <= $w->{'last'};
+    $ntime = $w->{'written'} + 1
+        if defined $w and $ntime <= $w->{'written'};
     my $nt14 = ntime14($ntime);
     $mount_ntime //= $nt14;
     my $mount = _mount_handle( $disk, $host->public, $mount_ntime );
@@ -469,14 +544,20 @@ sub _write_mount_event {
         },
         $host
     );
-    my $name = "$nt14.$mount";
-    my $use  = signed_record_pack(
+    my $name    = "$nt14.$mount";
+    my $highest = $id->{'state'}{'store_format'};
+    $highest = $w->{'store_format'} // 1
+        if defined $w
+        and ( $w->{'store_format'} // 1 ) > $highest;
+    my $use = signed_record_pack(
         qw| use |,
-        {   qw| disk |        => $disk,
-            qw| first |       => defined $w ? $w->{'first'} : $nt14,
-            qw| last |        => $nt14,
-            qw| last_record | => $name,
-            qw| last_event |  => $event,
+        {   qw| disk |         => $disk,
+            qw| first |        => defined $w ? $w->{'first'} : $nt14,
+            qw| last |         => $nt14,
+            qw| written |      => $nt14,
+            qw| last_record |  => $name,
+            qw| last_event |   => $event,
+            qw| store_format | => $highest + 0,
         },
         $host
     );
@@ -497,6 +578,60 @@ sub _write_mount_event {
     };
 }
 
+## a format observation is append-only too : 'written' orders the use files,
+## while first \ last remain the mount window and last_record stays a mount
+sub witness_note_format {
+    my %opt   = @ARG;
+    my $host  = _signer( \%opt, qw| host | );
+    my $id    = $opt{'id'} // disk_read_id(%opt);
+    my $state = $opt{'state'}
+        // state_read( $id->{'path'}, $id->{'store_pub'} );
+    my $w = witness_read(%opt);
+    return FALSE if not defined $w;
+    return FALSE if $state->{'store_format'} <= ( $w->{'store_format'} // 1 );
+
+    my $ntime = ntime_now();
+    $ntime = $w->{'written'} + 1 if $ntime <= $w->{'written'};
+    my $written = ntime14($ntime);
+    my $use     = signed_record_pack(
+        qw| use |,
+        {   qw| disk |         => $id->{'disk'},
+            qw| first |        => $w->{'first'},
+            qw| last |         => $w->{'last'},
+            qw| written |      => $written,
+            qw| last_record |  => $w->{'last_record'},
+            qw| last_event |   => $w->{'last_event'},
+            qw| store_format | => $state->{'store_format'} + 0,
+        },
+        $host
+    );
+    my $dir = host_dir(%opt) . '/witness/' . $id->{'disk'};
+    make_dirs( $dir, 0700 );
+    write_new_file( "$dir/$written.use", $use );
+    return TRUE;
+}
+
+sub witness_check_format {
+    my %opt   = @ARG;
+    my $id    = $opt{'id'} // disk_read_id(%opt);
+    my $state = $opt{'state'}
+        // state_read( $id->{'path'}, $id->{'store_pub'} );
+    $opt{'disk'} //= $id->{'disk'};
+    my $w
+        = exists $opt{'witness'} ? $opt{'witness'} : witness_read(%opt);
+    return TRUE if not defined $w;
+    return TRUE
+        if $state->{'store_format'} >= ( $w->{'store_format'} // 1 )
+        or $opt{'allow_rollback'};
+    refuse(
+        '%s : store format %d is below the witnessed '
+            . 'highest %d [ rollback -- refused by policy ]',
+        $id->{'disk'},
+        $state->{'store_format'},
+        $w->{'store_format'} // 1
+    );
+}
+
 sub _checks {
     my %opt = @ARG;
     _signer( \%opt, qw| host | );
@@ -504,6 +639,14 @@ sub _checks {
     my @history = mount_history( $id->{'path'}, $id->{'disk'} );
     my @mine    = host_mounts(%opt);
     my ( $w, $presented, $window ) = _check_window( \%opt, $id, \@history );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    witness_check_format(
+        %opt,
+        qw| id |      => $id,
+        qw| state |   => $state,
+        qw| witness | => $w
+    );
+    $id->{'state'} = $state;
     return ( $id, \@history, \@mine, $w, $presented, $window );
 }
 
@@ -561,14 +704,14 @@ sub disk_status {
             ( @{$mine} and $mine->[-1]{'event'} eq qw| attach | )
         ? $mine->[-1]{'mount'}
         : undef,
-        qw| state | => state_read( $id->{'path'} ),
+        qw| state | => $id->{'state'},
     };
 }
 
 1;
 
-#,,,,,..,,,,.,.,,,.,.,,,.,.,.,,..,...,.,,,...,..,,...,...,..,,,.,,.,,,,..,,,,,
-#SVSB7PQNYRPO2PK442TRZZUJZCNLWOPTHX34CVELE4ON5ENIZJHYG7W43DG4RHRPZ2D3OAQURQ2A2
-#\\\|ONK6VT3QRHDJS363DVBHBC2RRE22XGYXSASEARGDHTHOB4XWSZJ \ / AMOS7 \ YOURUM ::
-#\[7]LCHSFT5WFQNNCGUA2NGQUHSWMADXXZBZD4DVBP5HFTRTLOGXWGDI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,,..,,,,,..,,,,.,,,,,,,,,,.,,..,,...,...,.,,,.,.,,,,,,,.,...,
+#WD6OSS2Q7L2GCTCCSIVSVYSO5Y6ZFFN7XSWCE5Z2Q6ZPYPW4PNJDQMJN4NQOQ3AFIFM6A45P3NEES
+#\\\|HZCLPPVM5KXGT2XZF65FKRFIDYGADFKJ2BUNB7SEPU7LL3BQV4E \ / AMOS7 \ YOURUM ::
+#\[7]KE2CCBJZEUK3EW4OOGCBISCWMZURBINBNGUHFMVNQIK7HMWZJGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

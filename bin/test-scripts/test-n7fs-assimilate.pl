@@ -4,9 +4,9 @@ use strict;
 use English;
 use warnings;
 
-## N7FS version 1 : assimilate [ data/md/design/N7FS-SPEC.md section 7 ] --
-## keep \ remove \ dry-run, a failure at every stage leaves the source, a real
-## amos collision [ two bmw siblings ], the image index as a source list
+## N7FS : assimilate [ data/md/design/N7FS-SPEC.md section 7 ] -- keep \
+## remove \ dry-run, a failure at every stage leaves the source, a real amos
+## collision [ two bmw siblings ], the image index as a source list
 ## [ a tiny fake sqlite db, rows marked as test data ]. temp roots only.
 ##
 ## perl bin/test-scripts/test-n7fs-assimilate.pl  N7FS_TEST_LIB=<dir> puts a
@@ -19,7 +19,7 @@ BEGIN {
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
-use AMOS7::N7FS      qw| read_file plain_record_parse |;
+use AMOS7::N7FS      qw| read_file signed_record_parse |;
 use AMOS7::N7FS::Sum qw| amos_of_bytes bmw_b32 bmw384_bytes epoch_b32
     epoch_int |;
 use AMOS7::N7FS::Disk  qw| disk_init disk_attach disk_detach state_read |;
@@ -144,17 +144,19 @@ ok( -e "$src/link" && -l "$src/link", 'the symlink is untouched' );
 {
     my $nd   = node_dir( $content{'b.png'}, $epoch );
     my ($mf) = glob "$nd/meta/*.meta";
-    my $m    = plain_record_parse( qw| meta |, read_file($mf) );
+    my $m    = signed_record_parse( qw| meta |, read_file($mf) );
     my $p    = $m->{'payload'};
-    ok( substr( read_file($mf), 0, 5 ) eq "P7FN\x01",
-        "meta : 'P7FN' + format 1" );
+    ok( substr( read_file($mf), 0, 5 ) eq "P7FN\x02",
+        "meta : 'P7FN' + format 2" );
     ok( $p->{'name'} eq 'b.png'
             && $p->{'format'} eq 'png'
             && $p->{'size'} == length $content{'b.png'}
             && $p->{'mtime'} == ( stat "$src/b.png" )[9]
             && $p->{'import_ntime'} =~ m|\A\d{14}\z|
-            && $p->{'source'}       =~ m|/src/b\.png\z|,
-        'meta : name, format, size, mtime, import ntime, source'
+            && $p->{'epoch'} eq epoch_b32($epoch)
+            && $p->{'disk'} eq $disk
+            && $p->{'source'} =~ m|/src/b\.png\z|,
+        'meta : source fields and signed location binding'
     );
 }
 ok( state_read("$root/$disk")->{'epochs'}[0] == $epoch,
@@ -415,7 +417,7 @@ SKIP: {
         'relative path skipped' );
     ok( -e $i1 && -e $i2, 'index sources kept [ default ]' );
     my ($mf) = glob node_dir( read_file($i1), $epoch ) . '/meta/*.meta';
-    ok( plain_record_parse( qw| meta |, read_file($mf) )
+    ok( signed_record_parse( qw| meta |, read_file($mf) )
             ->{'payload'}{'index_chksum'} eq 'TESTDATAL13A1',
         'the index checksum is kept in meta'
     );
@@ -622,8 +624,8 @@ ok( $cli_rc != 0 && $cli_out eq '' && $cli_err =~ m|invalid -name regex|,
 
 done();
 
-#,,,.,,,,,,,,,,,,,,.,,.,.,...,...,,,.,,,,,..,,..,,...,...,...,...,..,,...,,,.,
-#QHPZNBMTXXDFZXG4DNHZJEIZ3UT2HLZ6I3W6XZRVOV5OFYVEZ4EBTPNHOIOL55OXSA3T3TZVF4BBI
-#\\\|ZFX7PL6POUIEK34W6XQ4XD62CPV6SQ6GZ4BQQXNR36Q456M64X7 \ / AMOS7 \ YOURUM ::
-#\[7]J3IWLVXBMWWMLJTDZJJCXPO6NOKKTX4HPE55JFODBJVIQSJ2GUDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,.,,.,.,..,,,..,,.,,..,,,..,.,.,..,,...,...,.,,,,,.,..,,..,,..,,
+#LG3AZNY4SGE2B7WFIGMVSLNVRD2X4ZAJQFY4BHCMWGLCXRZZ7HYN3MDNLXK7INRPJTDKDOILHE53G
+#\\\|SL6NEWCKDS4XT2SKGCIU26YCUQBYEZBEI5WSOQTXCOCIFFPMNI5 \ / AMOS7 \ YOURUM ::
+#\[7]36SFQNBUIO7DO2ITHM6OWF24VKCAYMO2VLBTJBZIA7TPMHOK2ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

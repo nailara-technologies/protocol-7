@@ -4,15 +4,14 @@
 # descr = renew the gpu residency lease
 
 my ($owner) = split m|\s+|, $call->{'args'} // '';
+my $renewed = <[models.gpu_lease.renew]>->( $owner // '' );
 return {
-    'mode' => <[models.gpu_lease.renew]>->( $owner // '' )
-    ? qw| true |
-    : qw| false |,
-    'data' => qw| done |
+    'mode' => $renewed ? qw| true | : qw| false |,
+    'data' => $renewed ? qw| done | : 'not holder'
 };
 
-#,,,.,.,,,.,.,..,,,.,,.,.,...,,,.,,,.,,,.,,,,,..,,...,...,.,.,,,.,,..,.,,,...,
-#ORHIYECLMFR7JVYPULDBD6NNVZ6RUDSTBLY2JVYNBYNHGS3GY662CUCGYGJ4TLNLRB6PJGQ5D72HS
-#\\\|PDEB43ZQDA62U6DKZAW5FUXZIXISLUHXUIJ3WHJGAD5SIVO5GXA \ / AMOS7 \ YOURUM ::
-#\[7]K6LR4C7EW3QSQQKZMNDIKR3EIUKXA5TBXXTJYEGICZWRZDFRF6CI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,.,,...,.,,,,.,,.,.,,.,,.,,,,..,..,,...,...,,..,,.,,.,,,...,...,
+#KA5WWX2JMSXTGVGO6AKC256PLXNYOUBILRJTSDGOYWICFUGM5ZV4KJ2ZFL4TV5SIUUOLNSBJREYYI
+#\\\|NIMELP64QTK74PDDSMGPU2VZPEMJRGDS4EMIEZM53LK23OV6H5F \ / AMOS7 \ YOURUM ::
+#\[7]WPWWFSB5YGCVCOXUOOZZKSEY43HB2JEEJ7S5B3MJRXZHCM66MIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -137,11 +137,11 @@ my @mutations = (
         test => 'test-n7fs-convert.pl',
         edit => [
             [   "            \$new->{'verify_node'}->( "
-                    . "\$final, \$node->{'addr'} );\n",
+                    . "\$final, \$node->{'addr'}, \$context );\n",
                 ""
             ],
-            [   "        \$new->{'verify_node'}->( "
-                    . "\$ARG->{'path'}, \$ARG ) for \@written;\n",
+            [   "        \$new->{'verify_node'}->( \$ARG->{'path'}, "
+                    . "\$ARG, \$context )\n            for \@written;\n",
                 ""
             ],
         ],
@@ -160,6 +160,155 @@ my @mutations = (
         file => 'N7FS/Convert.pm',
         test => 'test-n7fs-convert.pl',
         edit => [ [ "        remove_tree(\$edir);\n", "" ] ],
+    },
+    {   name => 'format 2 record labels fall back to v1',
+        file => 'N7FS.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "    return \$LABEL_VERSION{\$kind}{\$format}\n        if "
+                    . "exists \$LABEL_VERSION{\$kind}\n        and exists "
+                    . "\$LABEL_VERSION{\$kind}{\$format};\n",
+                "    return \$LABEL{\$kind} if \$format == 2;\n"
+            ]
+        ],
+    },
+    {   name => 'plain format 2 records allowed',
+        file => 'N7FS.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "        if \$SIGNED_FORMAT{\$kind}{\$format};\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'state signature check removed',
+        file => 'N7FS/Disk.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "            if not verify( \$store_pub, "
+                    . "\$rec->{'signed'}, \$rec->{'sig'} );\n",
+                "            if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'state foreign store key accepted',
+        file => 'N7FS/Disk.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "            if \$rec->{'signer_pub'} ne \$store_pub;\n",
+                "            if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'signed state can claim format 1',
+        file => 'N7FS/Disk.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "        and \$rec->{'format'} != \$p->{'store_format'};\n",
+                "        and 0;\n"
+            ]
+        ],
+    },
+    {   name => 'plain state downgrade with signed states accepted',
+        file => 'N7FS/Disk.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [ "            if \$signed_present;\n", "            if 0;\n" ]
+        ],
+    },
+    {   name => 'witness highest store format ignored',
+        file => 'N7FS/Disk.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "    return TRUE\n        if \$state->{'store_format'} >= ( "
+                    . "\$w->{'store_format'} // 1 )\n        or "
+                    . "\$opt{'allow_rollback'};\n",
+                "    return TRUE;\n"
+            ]
+        ],
+    },
+    {   name => 'meta signature check removed',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "        if not verify( \$id->{'store_pub'}, "
+                    . "\$rec->{'signed'}, \$rec->{'sig'} );\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'meta foreign store key accepted',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "        if \$rec->{'signer_pub'} ne \$id->{'store_pub'};\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'meta location binding removed',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "            if ( \$meta->{\$field} "
+                    . "// '' ) ne \$bind{\$field};\n",
+                "            if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'unsigned meta header accepted',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "        if not defined \$bytes\n        or length \$bytes < "
+                    . "5\n        or substr( \$bytes, 0, 5 ) ne "
+                    . "\"P7FN\\x02\";\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'assimilate store key requirement removed',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "    my \$store  = store_key_signer( "
+                    . "%opt, qw| id | => \$id );\n",
+                "    my \$store  = undef;\n"
+            ]
+        ],
+    },
+    {   name => 'upgrade store key requirement removed',
+        file => 'N7FS/Convert.pm',
+        test => 'test-n7fs-format2.pl',
+        edit => [
+            [   "sub upgrade {\n    my %opt   = \@ARG;\n    my \$id    = "
+                    . "disk_require_attached(%opt);\n    my \$store = "
+                    . "store_key_signer( %opt, qw| id | => \$id );\n",
+                "sub upgrade {\n    my %opt   = \@ARG;\n    my \$id    = "
+                    . "disk_require_attached(%opt);\n    my \$store = "
+                    . "undef;\n"
+            ]
+        ],
+    },
+    {   name => 'conversion provenance marker removed',
+        file => 'N7FS/Convert.pm',
+        test => 'test-n7fs-convert.pl',
+        edit => [
+            [   "                    qw| "
+                    . "converted_from_unsigned | => JSON::PP::true,\n",
+                ""
+            ]
+        ],
+    },
+    {   name => 'upgrade witness format observation removed',
+        file => 'N7FS/Convert.pm',
+        test => 'test-n7fs-convert.pl',
+        edit => [
+            [   "    witness_note_format( %opt, qw| id "
+                    . "| => \$id, qw| state | => \\%next );\n",
+                ""
+            ]
+        ],
     },
 );
 
@@ -202,7 +351,7 @@ foreach my $m (@mutations) {
 
     if ($exit) {
         $caught++;
-        say "  caught    $m->{'name'} " . "[ $m->{'test'} : ", scalar @fails,
+        say "  caught    $m->{'name'} [ $m->{'test'} : ", scalar @fails,
             ' failed ]';
         say "            $ARG"
             for map { s|^\s+FAIL\s+||r =~ s|\n||r }
@@ -216,8 +365,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,..,,..,,,.,...,,.,,.,.,..,,..,,.,,,...,..,,..,,...,...,..,,.,.,.,.,,,,,.,.,
-#C3W2WIXBJJAQD23D3VNGAMRI6YDWCYVCWT5SBNGJO63F3SI5I2ND6XZYCVG5NKEBDTCNGB54L4JYA
-#\\\|XULZMY5L665OSTDZI3IJ254S2DFZMGRLB2YTXJ6BSZWTBHROXQJ \ / AMOS7 \ YOURUM ::
-#\[7]GGUOW2OGFND3P4MRYGOWKJIXTF7RLOHSRQ3HCVUGJNOPJJ5UT6BA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,...,.,,,,..,,.,,.,,,,.,,.,.,,..,..,,...,...,..,,,..,,,,,,,,,,,,,
+#IJZYS56Y3VE3OBQJW4UMYG5ECJY6UBDJG24RWODP6X2BM3UTY2CSDYKH3LKOCCQDHFYBPHEQ46V7Y
+#\\\|H33TSEP3FUZ6BP6N746J2FEO5U377F5HSF46WLPOKUB76AQM7EM \ / AMOS7 \ YOURUM ::
+#\[7]AZLLZJQE4MCKYYRMCMJ3CWRPL2UB5MVTZM52XWYFN5WRR624R2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

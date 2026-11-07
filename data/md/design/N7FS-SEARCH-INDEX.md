@@ -1,11 +1,12 @@
 # N7FS search index : design notes
 
-status : design only, nothing built. `n7fs find` is a plain scan of the meta
-records ; meta records are NOT signed in format 1, the bytes verify against
-their address but a name -> address mapping does not. what follows assumes
-signed meta [ spec : 'store key signs meta and state', still only suggested ]
--- that decision comes before any index relying on it. every index type here is an optional speed-up on top of that scan,
-and the scan stays the fallback. the on-disk details are open.
+status : design only, no search index built. `n7fs find` is a plain scan of
+the meta records. format-1 meta is unsigned : content bytes verify against
+their address but a name -> address mapping does not. format 2 is decided and
+built : the delegated store key signs meta and state, and signed meta also
+binds the name assertion to disk, epoch and content address
+[ `N7FS-FORMAT-2.md` ]. every index type here is an optional speed-up on top
+of that scan, and the scan stays the fallback. the on-disk details are open.
 
 ## index types
 
@@ -25,8 +26,9 @@ signed record inside its directory gives the settings.
   set, a reader learns which types a disk has
 - settings [ lossy width, length buckets, key id ] and the plain type name for
   tools live in the signed record, not in the name
-- existing record labels [ `p7 n7fs meta v1` ] are signed on disk and stay ;
-  moving them to the new form would be a format conversion
+- the v1 record label [ `p7 n7fs meta v1` ] stays with unsigned format-1
+  records ; signed format-2 meta uses `p7 n7fs meta:0001`. conversion does not
+  rename the v1 records left in the previous epoch
 
 ## exact lookup
 
@@ -37,9 +39,10 @@ addresses the result directly. fast, the whole term must be known.
 
 a name is split into words, each word's checksum addresses a reference node
 group. a group does not answer, it narrows : the match is somewhere among its
-members. the meta records decide the real match, signed ones once that exists.
+members. the meta records decide the real match, signed in format 2.
 
-- false positives only cost scanning, with signed meta a wrong result cannot pass the meta check
+- false positives only cost scanning ; with signed meta a wrong result cannot
+  pass the meta check
 - a missing member hides a real result : a tampered group can do this, so
   groups need signing where that matters, and a stale group can too -- new
   files reach the groups before an import counts as finished, or a search also
@@ -103,8 +106,8 @@ one does not undo the exposure if the old one was copied.
 a link tree of names -> addresses, in the way of `source.cmd.update-src-links`,
 built from the same meta entries.
 
-#,,,.,.,,,,.,,,,,,,..,,,,,,.,,.,.,,..,.,.,.,,,..,,...,..,,..,,,..,,,,,,..,,,,,
-#3IV7XTDNT5FC6FWIQOIUUMVF3AGLKDZX7XKPMN5OQQLKJWQCHX6SIEBAYEP2MUFV3WMTH6SBF5GN6
-#\\\|WBO2XQHUPT34ICTXJ6MYIXVKKVWUHC4YRV643RRMT5U2QFSUFJR \ / AMOS7 \ YOURUM ::
-#\[7]3FQWSWSP3UPUMVLASAPA5FLOZXF3FHS4ZGUR6QPQ7HPGZ2RC7EBI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,.,,,..,,,,,,..,.,.,,,,,,,,,.,.,..,,...,...,,,,,,,.,,..,,.,,,,,,
+#N67AEYYTLLGIHE5FVSHR75KLWYIQ46SGLS7SHGVSCMYVWIWWYPIESKWUDEHEAZPZROJZGKWBQMIBE
+#\\\|W2JHQOV3U4QJZ6KMXMGNK5HP5UUXDFBLBFL5BPJ7OJDA3NMUUSH \ / AMOS7 \ YOURUM ::
+#\[7]CYNCOGC2NDTXFHKXDFWLPVD7ACA7HZHBQCTT3SCDQPZWX2O65IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

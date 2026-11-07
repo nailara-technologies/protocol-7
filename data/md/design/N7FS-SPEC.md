@@ -122,7 +122,8 @@ invoke-web image index [ invoke-web.index.backup_path ].
   next, switch when confirmed ; the old form is released when it leaves
   the window
 - the store key signs what the store ASSERTS : meta and state records ;
-  content is verified by its own checksum path [ suggested -- confirm ]
+  content is verified by its own checksum path [ decided ; built as store
+  format 2, see `N7FS-FORMAT-2.md` ]
 - prerequisite : the pure-perl truth fallback must be BIT-IDENTICAL to
   the compiled one -- amos addresses differed between hosts with and
   without Inline::C [ the v1 collision fixture showed it ]
@@ -133,8 +134,8 @@ invoke-web image index [ invoke-web.index.backup_path ].
 - an optional prefix level for very large `<amos>` directories
 - sub-bit distribution and group computation : later layers
 
-#,,..,...,.,.,,..,..,,.,.,,,.,...,,,.,,,.,..,,..,,...,...,,,,,,,.,,.,,..,,..,,
-#TRA545F5PGX23UD34MGML3WXMCWGPHOI6HMAMGMF4SGWCXFB7Y6NEFUXYAQECKXTOEEVPDVZIF7MQ
-#\\\|UZ7LXTJVSDCBAOLKVGDQG4E45OTR2U6TDDBU4S4U576OQEQ2V7Z \ / AMOS7 \ YOURUM ::
-#\[7]6MLMS7MQQA5S6H6PUZZJK4EX3C7USM4WLKJKEDVBC4LMTCSUYCAI 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,,,.,,,.,.,,,..,,..,,,,.,,..,..,,...,...,.,,,,.,,,,,,.,.,,.,,
+#RFYHX2CWQVMSJFNIQLJMKDLIHX3FRWANPWROGVZ6QAC5FXXAWGGCBC6K5KQK3F7WLUPKU223BRPAO
+#\\\|57WVPM5PRRCCHQLDHOXEKBW4K65EHW6KVPJDIIJ66S3IIUXCC42 \ / AMOS7 \ YOURUM ::
+#\[7]52R4TFSAIO45I3HSAVBOBE4GHHVCDILWBEBBOUO77V2HA2ZQS2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

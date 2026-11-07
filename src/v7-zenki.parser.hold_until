@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = v7-zenki.parser.hold_until
+# descr = when a terminate :hold: ends, for the hold list
+
+my $zenka_name = shift;
+my $until      = <v7-zenki.zenka.hold>->{$zenka_name}->{'until'} // 0;
+
+return qw| released | if not $until;
+return sprintf '%d s', $until - <[base.time]>;
+
+#,,,.,,..,,,.,..,,,,.,.,.,.,,,.,,,,,,,..,,..,,..,,...,...,...,.,.,,,,,,..,..,,
+#SF6LDVWBRDG54FY74M7WIC5CK3HRU2IB7QLW53774WG6IG2YX5LZBD5S7HLQGWD7FGSIMAU6O5I4S
+#\\\|4RCYSLGKKKFHEVZ2SSFARWLIBMM6HW3EBUOHW4LVNMIRMBO2KRH \ / AMOS7 \ YOURUM ::
+#\[7]GP66C3ZIO226YVGTPZP2JORQJPPBWZ2T4PDBPJK7GYYTJAWOD6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

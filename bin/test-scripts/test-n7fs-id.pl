@@ -4,7 +4,7 @@ use strict;
 use English;
 use warnings;
 
-## N7FS version 1 : disk identity, attach \ detach, mount records, use window
+## N7FS : disk identity, attach \ detach, mount records, use window
 ## [ data/md/design/N7FS-SPEC.md sections 3 + 4 ]. every refusal is checked
 ## against a full snapshot of root + host dir : NO change on disk.  temp roots
 ## only [ fixtures/n7fs/helpers.pl ].
@@ -52,7 +52,7 @@ ok( $disk =~ m|\A[A-Z2-7]{7}\z|, 'disk id is a 7-char amos' );
 
 my $record = read_file("$root/$disk/.n7fs/id.record");
 ok( substr( $record, 0, 5 ) eq "P7FS\x01",
-    "id.record : magic " . "'P7FS' + format 1"
+    "id.record : magic 'P7FS' + format 1"
 );
 ok( read_file("$root/$disk/.n7fs/id.amos") eq "$disk\n",
     'id.amos = the directory name' );
@@ -64,8 +64,7 @@ ok( index( read_file("$root/$disk/.n7fs/id.l13"), 'stand-in:' ) == 0,
 
 my $parsed = signed_record_parse( qw| id |, $record );
 ok( $parsed->{'signer_pub'} eq $parent->public,
-    'record carries ' . 'the parent key'
-);
+    'record carries the parent key' );
 ok( verify( $parsed->{'signer_pub'}, $parsed->{'signed'}, $parsed->{'sig'} ),
     'parent signature verifies'
 );
@@ -79,8 +78,11 @@ my $keyfile = "$hdir/stores/$disk.store.key";
 ok( -f $keyfile && ( ( stat $keyfile )[2] & 0777 ) == 0600,
     'store key on the host side, 0600' );
 ok( !-e "$root/$disk/.n7fs/store.key", 'no secret key inside the store' );
-ok( state_read("$root/$disk")->{'store_format'} == 1,
-    'state : store ' . 'format 1' );
+ok( state_read("$root/$disk")->{'store_format'} == 2,
+    'state : store format 2' );
+my ($state_file) = glob "$root/$disk/.n7fs/state/*.state";
+ok( substr( read_file($state_file), 0, 5 ) eq "P7FT\x02",
+    'state : signed record format 2' );
 ok( ref disk_read_id( %base, qw| disk | => $disk ) eq 'HASH',
     'the new disk verifies' );
 
@@ -119,7 +121,7 @@ say ':: collision at init -> the next ntime';
     ok( $p2->{'payload'}{'init_ntime'} == $T + 1, 'taken at the next ntime' );
     opendir( my $dh, "$sb2/root/$first" );
     ok( 2 == grep( {1} readdir $dh ),
-        'the occupying ' . 'directory is untouched' );
+        'the occupying directory is untouched' );
 }
 
 say ':: refusals change nothing';
@@ -304,7 +306,7 @@ disk_attach( %base2, qw| disk | => $disk, qw| host | => $host2 );
 disk_detach( %base2, qw| disk | => $disk, qw| host | => $host2 );
 my $a3 = disk_attach( %base, qw| disk | => $disk, qw| host | => $host );
 ok( $a3->{'window'} eq 'travelled',
-    'newer foreign-host ' . 'records : travelled' );
+    'newer foreign-host records : travelled' );
 disk_detach( %base, qw| disk | => $disk, qw| host | => $host );
 
 ## rollback : the older copy presents a state inside [ first, last ) ##
@@ -326,7 +328,7 @@ my $ar      = disk_attach(
     qw| allow_rollback | => TRUE
 );
 ok( $ar->{'window'} eq 'rollback-allowed',
-    'rollback accepted ' . 'only when allowed'
+    'rollback accepted only when allowed'
 );
 
 ## clone : a copy of an older state extended by another host ##
@@ -435,8 +437,7 @@ EOS
     );
     my $id = disk_read_id( %base, qw| disk | => $d );
     ok( $id->{'parent_pub'} eq $plug->public,
-        'disk signed ' . 'through the plug'
-    );
+        'disk signed through the plug' );
     my $foreign = "P7FS\x01" . pack( 'n/a*', 'p7 delegation v1' ) . 'x';
     ok( !defined eval { $cmd->sign($foreign) },
         'the plug refuses a foreign label'
@@ -460,8 +461,8 @@ sub remove_tree_all { AMOS7::N7FS::remove_tree(shift) }
 
 done();
 
-#,,..,,..,,,.,,..,.,,,,,,,.,,,,,.,..,,.,,,.,,,..,,...,...,,.,,,.,,,,.,.,,,.,,,
-#WM42VWOPMG3CAIDE2AKT2GU3W3PAD2CYZIK7R27WACON5SEWGFFRDXCMB362DUO2JFM3OXAJW5GTQ
-#\\\|NG2UGVQZHQ7ABB3MBVMH44RV63ZJZXVMK7MVKI7V6TELXLL3D4C \ / AMOS7 \ YOURUM ::
-#\[7]RIPKW6WIB6WLCUU4LPC3C6RYT44UPABPZO4R7JV532KLS36IYSCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,,..,..,,.,,,.,,,...,...,,,.,..,,...,...,..,,,,,,...,.,,,.,,,
+#DRDOKQ34NG45PNET34IA2XF643UM2QHW5C623TK6TGMEZYJCW7LTI7KP3ODTHQILUQQ6SDEYQGGFM
+#\\\|GLEJNMESS6NBDCGK4DGW35FGEHMV76ACMZ5T3C4F63TFV5EN336 \ / AMOS7 \ YOURUM ::
+#\[7]BXJ4FH3PHFH3I6PQONAFUZ2WHUKWTL5MZSQEZGJRI2VOJF7ULEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
