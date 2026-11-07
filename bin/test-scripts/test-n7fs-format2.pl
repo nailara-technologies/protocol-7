@@ -77,6 +77,13 @@ my $disk       = disk_init(
 );
 my %run   = ( %base, disk => $disk, host => $host );
 my $dpath = "$root/$disk";
+{
+    my $p = state_read($dpath);
+    delete $p->{'_name'};
+    $p->{'store_format'} = 2;
+    state_write( $dpath, $p,
+        key_file_signer("$hdir/stores/$disk.store.key") );
+}
 disk_attach(%run);
 my $source = write_file( "$src/one.txt", "test data : signed one\n" );
 assimilate( %run, paths => [$source] );
@@ -244,6 +251,11 @@ say ':: signed meta cannot move to another disk';
         intent     => 'cross-disk binding test [ test data ]'
     );
     my %run2 = ( %base, disk => $disk2, host => $host );
+    my $p2   = state_read("$root/$disk2");
+    delete $p2->{'_name'};
+    $p2->{'store_format'} = 2;
+    state_write( "$root/$disk2", $p2,
+        key_file_signer("$hdir/stores/$disk2.store.key") );
     disk_attach(%run2);
     assimilate( %run2, paths => [$source] );
     my $id2     = disk_read_id( %base, disk => $disk2 );
@@ -427,8 +439,8 @@ ok( store_verify( %base, disk => $disk )->{'nodes'} == 2,
 
 done();
 
-#,,,,,,..,,..,..,,.,.,,.,,..,,..,,...,..,,,,,,..,,...,...,..,,,.,,.,.,,..,...,
-#2FKFLESSJAOUNRXGUMPVWE252DQUAPP6QFUNSWGUATUKD5R7YKAW732OHVSHDRSSKSZSGMGDHI6R2
-#\\\|U2QOGPIVV5SBPR5UT4N4DPGFMNVGSOCUSZYEJNFXTQ7EVKVAEGR \ / AMOS7 \ YOURUM ::
-#\[7]APLY72RIM4ITKR4CTTWFCJJA46HL3USS32T7AAFLDU2LT6IGTQCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,..,,,,,,.,,,,,,,...,,,,,,,,,,,.,..,,...,...,,,,,,,.,,.,,,,.,.,,,
+#52MBAN4R22777NKUGTWU44IGYCX6JI2BNFELMTANHLC3RFNXWGSO4GPE3T7A4RRWI2PPAM44ULSSO
+#\\\|R4ZWZMY7YL2KBQV4WXMMLO7EIT6TI7YU33UGXF4Z4L427NOWCZS \ / AMOS7 \ YOURUM ::
+#\[7]CUEPNSV2RH5KQIL7OVGRTDBVRJ3SPZMITRFNSTNJMO3TVALINYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

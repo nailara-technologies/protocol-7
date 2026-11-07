@@ -212,9 +212,8 @@ my @mutations = (
     {   name => 'plain state downgrade with signed states accepted',
         file => 'N7FS/Disk.pm',
         test => 'test-n7fs-format2.pl',
-        edit => [
-            [ "            if \$signed_present;\n", "            if 0;\n" ]
-        ],
+        edit =>
+            [ [ "        ) if \$signed_present;\n", "        ) if 0;\n" ] ],
     },
     {   name => 'witness highest store format ignored',
         file => 'N7FS/Disk.pm',
@@ -271,21 +270,46 @@ my @mutations = (
         file => 'N7FS/Store.pm',
         test => 'test-n7fs-format2.pl',
         edit => [
-            [   "    my \$store  = store_key_signer( "
+            [   "    my \$store   = store_key_signer( "
                     . "%opt, qw| id | => \$id );\n",
-                "    my \$store  = undef;\n"
+                "    my \$store   = undef;\n"
             ]
+        ],
+    },
+    {   name => 'the disk lock removed',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "my \$lock    = \$opt{'dry_run'} ? undef : disk_lock(\$id);",
+                "my \$lock    = undef;"
+            ],
+        ],
+    },
+    {   name => 'a journal entry is signed unchecked',
+        file => 'N7FS/Journal.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [ [ "    _operations( \\%payload, \$replay );\n", "" ] ],
+    },
+    {   name => 'an unjournaled node may be imported onto',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "        and not \$replay->{'nodes'}{ \$entry->{'addr'} };",
+                "        and 0;"
+            ],
         ],
     },
     {   name => 'upgrade store key requirement removed',
         file => 'N7FS/Convert.pm',
         test => 'test-n7fs-format2.pl',
         edit => [
-            [   "sub upgrade {\n    my %opt   = \@ARG;\n    my \$id    = "
-                    . "disk_require_attached(%opt);\n    my \$store = "
+            [   "sub upgrade {\n    my %opt     = \@ARG;\n    my \$lock    = "
+                    . "disk_lock( disk_read_id(%opt) );\n    my \$id      = "
+                    . "disk_require_attached(%opt);\n    my \$store   = "
                     . "store_key_signer( %opt, qw| id | => \$id );\n",
-                "sub upgrade {\n    my %opt   = \@ARG;\n    my \$id    = "
-                    . "disk_require_attached(%opt);\n    my \$store = "
+                "sub upgrade {\n    my %opt     = \@ARG;\n    my \$lock    = "
+                    . "disk_lock( disk_read_id(%opt) );\n    my \$id      = "
+                    . "disk_require_attached(%opt);\n    my \$store   = "
                     . "undef;\n"
             ]
         ],
@@ -304,11 +328,202 @@ my @mutations = (
         file => 'N7FS/Convert.pm',
         test => 'test-n7fs-convert.pl',
         edit => [
-            [   "    witness_note_format( %opt, qw| id "
-                    . "| => \$id, qw| state | => \\%next );\n",
+            [   "    witness_note_format( %opt, qw| id | => \$id, qw| state "
+                    . "| => \\%next,\n        qw| journal_seq | => "
+                    . "\$journal_seq );\n",
                 ""
             ]
         ],
+    },
+    {   name => 'journal signature check removed',
+        file => 'N7FS/Journal.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "        if not verify( \$id->{'store_pub'}, "
+                    . "\$rec->{'signed'}, \$rec->{'sig'} );\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'journal foreign store key accepted',
+        file => 'N7FS/Journal.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "        if \$rec->{'signer_pub'} ne \$id->{'store_pub'};\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'journal disk binding removed',
+        file => 'N7FS/Journal.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "        if ( \$p->{'disk'} // '' ) ne \$id->{'disk'};\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'journal contiguous sequence check removed',
+        file => 'N7FS/Journal.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "            if \$p->{'seq'} != \$seq + 1;\n",
+                "            if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'journal previous hash check removed',
+        file => 'N7FS/Journal.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "            if \$p->{'prev'} ne \$previous;\n",
+                "            if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'journal fork check removed',
+        file => 'N7FS/Journal.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "            if \$seen_prev{ \$p->{'prev'} }++;\n",
+                "            if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'reference signature check removed',
+        file => 'N7FS/Reference.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "        if not verify( \$expected->{'store_pub'}, "
+                    . "\$rec->{'signed'},\n        \$rec->{'sig'} );\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'reference foreign store key accepted',
+        file => 'N7FS/Reference.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "        if \$rec->{'signer_pub'} "
+                    . "ne \$expected->{'store_pub'};\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'reference path binding removed',
+        file => 'N7FS/Reference.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "            if ( \$p->{\$field} "
+                    . "// '' ) ne \$expected->{\$field};\n",
+                "            if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'missing journal-set items accepted',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "    if ( \$cmp->{'missing'}->\@* ) {\n        my \$item = "
+                    . "\$cmp->{'missing'}[0];\n        refuse( 'format 3 : "
+                    . "missing",
+                "    if (0) {\n        my \$item = \$cmp->{'missing'}[0];\n "
+                    . "       refuse( 'format 3 : missing"
+            ]
+        ],
+    },
+    {   name => 'unlisted journal-set items accepted',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit =>
+            [ [ "    if ( \$cmp->{'extra'}->\@* ) {\n", "    if (0) {\n" ] ],
+    },
+    {   name => 'repair candidate verification removed',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "        node_verify( \$id->{'path'}, \$node, 3, \$id );\n",
+                ""
+            ]
+        ],
+    },
+    {   name => 'journal witness rollback check removed',
+        file => 'N7FS/Disk.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "    return TRUE\n        if \$seq >= ( \$w->{'journal_seq'} "
+                    . "// 0 )\n        or \$opt{'allow_rollback'};\n",
+                "    return TRUE;\n"
+            ]
+        ],
+    },
+    {   name => 'drop of non-live reference prechecks removed',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [ "        if not \@live;\n", "        if 0;\n" ],
+            [   "        if not \$replay->{'references'}{\$key}\n    "
+                    . "    or \$replay->{'references'}{\$key}{'dropped'};\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'empty assimilate batch writes a journal entry',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [
+            [   "        if (   \$add->{'nodes'}->\@*\n            or "
+                    . "\$add->{'meta'}->\@*\n            or "
+                    . "\$add->{'references'}->\@* ) {\n",
+                "        if (1) {\n"
+            ]
+        ],
+    },
+    {   name => 'conversion 2 to 3 does not rebind the epoch',
+        file => 'N7FS/Convert.pm',
+        test => 'test-n7fs-convert3.pl',
+        edit => [
+            [   "                { %{\$ARG}, qw| epoch | => "
+                    . "epoch_b32( \$node->{'addr'}{'epoch'} ) }\n",
+                "                { %{\$ARG} }\n"
+            ]
+        ],
+    },
+    {   name => 'conversion baseline marker removed',
+        file => 'N7FS/Journal.pm',
+        test => 'test-n7fs-convert3.pl',
+        edit => [
+            [   "    \$payload{'baseline'} = "
+                    . "JSON::PP::true if \$flags->{'baseline'};\n",
+                ""
+            ]
+        ],
+    },
+    {   name => 'converted reference marker removed',
+        file => 'N7FS/Reference.pm',
+        test => 'test-n7fs-convert3.pl',
+        edit => [
+            [   "    \$payload{'converted'} = "
+                    . "JSON::PP::true if \$converted;\n",
+                ""
+            ]
+        ],
+    },
+    {   name => 'format 3 meta signature check removed',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [ [ "        if not \$verified;\n", "        if 0;\n" ] ],
+    },
+    {   name => 'format 3 meta foreign store key accepted',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit => [ [ "        if \$foreign;\n", "        if 0;\n" ] ],
+    },
+    {   name => 'format 3 meta location binding removed',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-format3.pl',
+        edit =>
+            [ [ "            if not \$located;\n", "            if 0;\n" ] ],
     },
 );
 
@@ -322,7 +537,8 @@ foreach my $m (@mutations) {
     mkdir "$tmp/AMOS7";
     mkdir "$tmp/AMOS7/N7FS";
     foreach my $f ( 'N7FS.pm',
-        map {"N7FS/$ARG.pm"} qw| Sum Sign Disk Store Convert | ) {
+        map {"N7FS/$ARG.pm"}
+        qw| Sum Sign Disk Store Convert Journal Reference | ) {
         open( my $in, '<:raw', "$lib/$f" ) or die "read $lib/$f : $OS_ERROR";
         my $text = do { local $INPUT_RECORD_SEPARATOR; <$in> };
         close $in;
@@ -365,8 +581,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,,.,.,,,.,.,...,.,,,,..,,.,,.,,,,.,,.,.,,..,..,,...,...,..,,,..,,,,,,,,,,,,,
-#IJZYS56Y3VE3OBQJW4UMYG5ECJY6UBDJG24RWODP6X2BM3UTY2CSDYKH3LKOCCQDHFYBPHEQ46V7Y
-#\\\|H33TSEP3FUZ6BP6N746J2FEO5U377F5HSF46WLPOKUB76AQM7EM \ / AMOS7 \ YOURUM ::
-#\[7]AZLLZJQE4MCKYYRMCMJ3CWRPL2UB5MVTZM52XWYFN5WRR624R2BA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,...,.,,,.,.,.,,,,,.,..,,,.,,.,,,..,,...,...,..,,,,.,,..,.,,,,.,,
+#ZEB6K52BGNIZBW74ANWJFMABV5ROBYSWX4MPXBIZIPN34P6GG2VINE27MYDBFA5HSXW3KTR4PPFNQ
+#\\\|4GOPVO2VEHZDW4WG6WESHSS5PLJSAOYRGYDGS6CBBCUYBXTE4MG \ / AMOS7 \ YOURUM ::
+#\[7]UGMR5VHDQ3CGHDZSR4Z6MUFGP5LROC2VR7MLVBA2JL5T2LCOI6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

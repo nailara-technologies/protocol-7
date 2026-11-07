@@ -6,11 +6,11 @@ package AMOS7::N7FS::Store;    ##############################################
 ##
 ## <root>/<disk>/<epoch>/<amos>/<bmw>/content  /meta/<ntime14>.<tail8>.meta
 ##
-## content : the file's bytes, unchanged [ no chunking in format 1 or 2 ].
+## content : the file's bytes, unchanged [ no chunking in format 1, 2 or 3 ].
 ## meta : one 'P7FN' record per changed import
-## [ plain in format 1, signed by the delegated store key in format 2 ]. a new
-## source of the same content adds a meta file ; an unchanged repeat keeps the
-## newest one, nothing is rewritten [ sync = union of files ].
+## [ plain in format 1, signed by the delegated store key in format 2 and 3 ].
+## a new source of the same content adds a meta file ; an unchanged repeat
+## keeps the newest one, nothing is rewritten [ sync = union of files ].
 ##
 ## node formats are CODECS [ read \ write \ verify ] keyed by the store format
 ## of the state record ; AMOS7::N7FS::Convert chains them.
@@ -34,12 +34,15 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.MKZ22GQ |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.WKQ2M5Q |;
 
 @EXPORT_OK = qw|
     assimilate
     index_sources
     meta_entries
+    reference_entries
+    reference_drop
+    store_repair
     node_path
     node_verify
     store_nodes
@@ -61,11 +64,16 @@ use AMOS7::N7FS::Sum qw| bmw384_fh bmw_b32 amos_of_bmw epoch_int epoch_num
     epoch_b32 epoch_from_b32 |;
 use AMOS7::N7FS::Sign qw| verify |;
 use AMOS7::N7FS::Disk qw| disk_require_attached disk_read_id state_read
-    state_write store_key_signer witness_check_format |;
+    state_write store_key_signer witness_check_format witness_check_journal
+    witness_note_format disk_lock |;
+use AMOS7::N7FS::Journal   qw| journal_replay journal_head journal_write |;
+use AMOS7::N7FS::Reference qw| reference_write reference_scan
+    reference_drop_write reference_address |;
 
 our $BMW_RE  = qr{\A[A-Z2-7]{77}\z};
 our $AMOS_RE = qr{\A[A-Z2-7]{7}\z};
 our $META_RE = qr{\A(\d{14})\.[A-Z2-7]{8}\.meta\z};
+our $ADDR_RE = qr{\AV7[A-Z2-7]{5}/[A-Z2-7]{7}/[A-Z2-7]{77}\z};
 our $TMP_RE  = qr{\.tmp\.[A-Z2-7]{8}\z};
 
 ##[ CODECS ]##################################################################
@@ -348,6 +356,128 @@ register_codec(
     }
 );
 
+## format 3 : signed meta remains bound to its node. references and the signed
+## journal are checked by the store-set readers below, not by content hashing.
+sub _v3_write_meta {
+    my ( $dir, $meta, $addr, $context ) = @ARG;
+    refuse('format 3 : meta write needs the delegated store key')
+        if ref $context ne qw| HASH |
+        or not ref $context->{'store'};
+    my %bind = _v2_binding( $dir, $meta, $addr, $context );
+    my $name = sprintf qw| %s.%s.meta |, $meta->{'import_ntime'},
+        b32( random_bytes(5) );
+    write_new_file(
+        "$dir/meta/$name",
+        signed_record_pack(
+            qw| meta |, { %{$meta}, %bind },
+            $context->{'store'}, 3
+        )
+    );
+    return $name;
+}
+
+sub _v3_write_node {
+    my ( $dir, $node, $context ) = @ARG;
+    my $addr = $node->{'addr'};
+    my ( $src, $st ) = _open_regular( $node->{'content_path'} );
+    my $ctx = Digest::BMW->new(384);
+    write_new_file_stream(
+        "$dir/content",
+        sub {
+            my $out = shift;
+            while (1) {
+                my $got = sysread( $src, my $buf, 1048576 );
+                die "read : $OS_ERROR\n" if not defined $got;
+                last                     if $got == 0;
+                $ctx->add($buf);
+                print {$out} $buf or die "$OS_ERROR\n";
+            }
+        },
+        0400
+    );
+    close $src;
+    refuse( 'content changed while copying [ %s ]', $node->{'content_path'} )
+        if bmw_b32( $ctx->digest ) ne $addr->{'bmw'};
+
+    make_dirs( "$dir/meta", 0700 );
+    _v3_write_meta( $dir, $ARG, $addr, $context ) for $node->{'metas'}->@*;
+    return TRUE;
+}
+
+sub _v3_read_meta {
+    my ( $dir, $name, $addr, $context ) = @ARG;
+    my $id    = _v2_id($context);
+    my $bytes = read_file("$dir/meta/$name");
+    refuse( 'node %s : meta %s is not signed format 3', $dir, $name )
+        if not defined $bytes
+        or length $bytes < 5
+        or substr( $bytes, 0, 5 ) ne "P7FN\x03";
+    my $rec     = signed_record_parse( qw| meta |, $bytes );
+    my $foreign = $rec->{'signer_pub'} ne $id->{'store_pub'};
+    refuse( 'node %s : meta %s : signed by a foreign store key', $dir, $name )
+        if $foreign;
+    my $verified
+        = verify( $id->{'store_pub'}, $rec->{'signed'}, $rec->{'sig'} );
+    refuse( 'node %s : meta %s : store signature does not verify',
+        $dir, $name )
+        if not $verified;
+    my $meta = $rec->{'payload'};
+    my %bind = (
+        qw| disk |  => $id->{'disk'},
+        qw| epoch | => epoch_b32( $addr->{'epoch'} ),
+        qw| amos |  => $addr->{'amos'},
+        qw| bmw |   => $addr->{'bmw'},
+    );
+
+    foreach my $field ( keys %bind ) {
+        my $located = ( $meta->{$field} // '' ) eq $bind{$field};
+        refuse( 'node %s : meta %s : %s does not match its location',
+            $dir, $name, $field )
+            if not $located;
+    }
+    return $meta;
+}
+
+sub _v3_read_node {
+    my ( $dir, $addr, $context ) = @ARG;
+    my @metas;
+    foreach my $name ( _list_dir("$dir/meta") ) {
+        next if $name =~ $TMP_RE;
+        refuse( 'node %s : unexpected meta entry %s', $dir, $name )
+            if $name !~ $META_RE;
+        push @metas, _v3_read_meta( $dir, $name, $addr, $context );
+    }
+    return { qw| content_path | => "$dir/content", qw| metas | => \@metas };
+}
+
+sub _v3_verify_node {
+    my ( $dir, $addr, $context ) = @ARG;
+    my ( $fh,     $st )   = _open_regular("$dir/content");
+    my ( $digest, $size ) = bmw384_fh($fh);
+    close $fh;
+    refuse( 'node %s : content does not match its bmw', $dir )
+        if bmw_b32($digest) ne $addr->{'bmw'};
+    refuse( 'node %s : bmw does not match its amos', $dir )
+        if amos_of_bmw( $addr->{'bmw'} ) ne $addr->{'amos'};
+    my $node = _v3_read_node( $dir, $addr, $context );
+    refuse( 'node %s : no meta record', $dir ) if not $node->{'metas'}->@*;
+
+    foreach my $meta ( $node->{'metas'}->@* ) {
+        refuse( 'node %s : meta does not describe this content', $dir )
+            if ( $meta->{'size'} // -1 ) != $size;
+    }
+    return $size;
+}
+
+register_codec(
+    3,
+    {   qw| write_node |  => \&_v3_write_node,
+        qw| read_node |   => \&_v3_read_node,
+        qw| verify_node | => \&_v3_verify_node,
+        qw| write_meta |  => \&_v3_write_meta,
+    }
+);
+
 ##[ NODES ]###################################################################
 
 sub node_path {
@@ -391,14 +521,31 @@ sub store_nodes {
     return @nodes;
 }
 
-## every meta record of the active epochs as plain hashes. the codec reader
-## applies the record checks ; content verification stays with node_verify
-sub meta_entries {
+sub _checked_state {
     my %opt   = @ARG;
     my $id    = disk_read_id(%opt);
     my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
-    witness_check_format( %opt, qw| id | => $id, qw| state | => $state )
-        if ref $opt{'host'};
+    if ( ref $opt{'host'} ) {
+        witness_check_format( %opt, qw| id | => $id, qw| state | => $state );
+        if ( $state->{'store_format'} == 3 ) {
+            my $head = journal_head($id);
+            witness_check_journal(
+                %opt,
+                qw| id |          => $id,
+                qw| journal_seq | => $head->{'seq'}
+            );
+            $id->{'journal_seq'}      = $head->{'seq'};
+            $id->{'journal_baseline'} = $head->{'baseline'};
+        }
+    }
+    return ( $id, $state );
+}
+
+## every meta record of the active epochs as plain hashes. the codec reader
+## applies the record checks ; content verification stays with node_verify
+sub meta_entries {
+    my %opt = @ARG;
+    my ( $id, $state ) = _checked_state(%opt);
     my $codec = codec( $state->{'store_format'} );
     my @entries;
 
@@ -428,17 +575,299 @@ sub meta_entries {
     return @entries;
 }
 
-## verifies every node of the active epochs under the store format
-sub store_verify {
-    my %opt   = @ARG;
-    my $id    = disk_read_id(%opt);
-    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
-    witness_check_format( %opt, qw| id | => $id, qw| state | => $state )
-        if ref $opt{'host'};
+sub _key { return join "\0", @ARG }
+
+sub _ref_operation {
+    my $ref = shift;
+    return { map { $ARG => $ref->{$ARG} } qw| node path holder name | };
+}
+
+sub _format3_compare {
+    my ( $id, $state, $replay ) = @ARG;
     my @nodes = store_nodes( $id->{'path'}, $state->{'epochs'}->@* );
-    node_verify( $id->{'path'}, $ARG, $state->{'store_format'}, $id )
-        for @nodes;
-    return { qw| nodes | => scalar @nodes, qw| state | => $state };
+    my ( %nodes, %metas, %refs, %drops );
+    my ( %expected_meta, %expected_ref );
+    push $expected_meta{ $ARG->{'node'} }->@*, $ARG
+        for values $replay->{'metas'}->%*;
+    push $expected_ref{ $ARG->{'node'} }->@*, $ARG
+        for values $replay->{'references'}->%*;
+    foreach my $node (@nodes) {
+        my $addr = reference_address($node);
+        foreach my $meta ( $expected_meta{$addr}->@* ) {
+            refuse( 'format 3 : missing meta %s %s', $addr, $meta->{'name'} )
+                if not -f "$node->{'path'}/meta/$meta->{'name'}";
+        }
+        foreach my $ref ( $expected_ref{$addr}->@* ) {
+            refuse( 'format 3 : missing reference %s %s',
+                $addr, $ref->{'path'} )
+                if not -f "$node->{'path'}/references/$ref->{'path'}";
+            my $drop = $ref->{'path'} =~ s|/addr\z|/drop|r;
+            refuse( 'format 3 : missing drop %s %s', $addr, $drop )
+                if $ref->{'dropped'}
+                and not -f "$node->{'path'}/references/$drop";
+        }
+        node_verify( $id->{'path'}, $node, 3, $id );
+        $nodes{$addr} = $node;
+        foreach my $name ( _list_dir("$node->{'path'}/meta") ) {
+            next if $name =~ $TMP_RE;
+            $metas{ _key( $addr, $name ) }
+                = { qw| node | => $addr, qw| name | => $name };
+        }
+        foreach my $ref ( reference_scan( $node, $id ) ) {
+            my $key = _key( $addr, $ref->{'path'} );
+            $refs{$key}  = $ref;
+            $drops{$key} = $ref if $ref->{'dropped'};
+        }
+    }
+
+    my ( @missing, @extra );
+    foreach my $addr ( sort keys $replay->{'nodes'}->%* ) {
+        push @missing, { qw| type | => 'node', qw| node | => $addr }
+            if not $nodes{$addr};
+    }
+    foreach my $key ( sort keys $replay->{'metas'}->%* ) {
+        push @missing, { qw| type | => 'meta', $replay->{'metas'}{$key}->%* }
+            if not $metas{$key};
+    }
+    foreach my $key ( sort keys $replay->{'references'}->%* ) {
+        my $expected = $replay->{'references'}{$key};
+        push @missing,
+            { qw| type | => 'reference', _ref_operation($expected)->%* }
+            if not $refs{$key};
+        push @missing, { qw| type | => 'drop', _ref_operation($expected)->%* }
+            if $expected->{'dropped'} and not $drops{$key};
+    }
+    foreach my $addr ( sort keys %nodes ) {
+        push @extra, { qw| type | => 'node', qw| node | => $addr }
+            if not $replay->{'nodes'}{$addr};
+    }
+    foreach my $key ( sort keys %metas ) {
+        push @extra, { qw| type | => 'meta', $metas{$key}->%* }
+            if not $replay->{'metas'}{$key};
+    }
+    foreach my $key ( sort keys %refs ) {
+        push @extra,
+            {
+            qw| type | => 'reference',
+            _ref_operation( $refs{$key} )->%*,
+            qw| record | => $refs{$key},
+            }
+            if not $replay->{'references'}{$key};
+    }
+    foreach my $key ( sort keys %drops ) {
+        push @extra,
+            {
+            qw| type | => 'drop',
+            _ref_operation( $drops{$key} )->%*,
+            qw| record | => $drops{$key},
+            }
+            if not $replay->{'references'}{$key}
+            or not $replay->{'references'}{$key}{'dropped'};
+    }
+    return {
+        qw| missing | => \@missing,
+        qw| extra |   => \@extra,
+        qw| nodes |   => \%nodes,
+        qw| refs |    => \%refs,
+    };
+}
+
+sub _set_item_name {
+    my $item = shift;
+    return $item->{'node'} . ' '
+        . ( $item->{'path'} // $item->{'name'} // '' );
+}
+
+## verifies every node and the complete signed store-set assertion in format 3
+sub store_verify {
+    my %opt  = @ARG;
+    my $lock = disk_lock( disk_read_id(%opt), qw| shared | );
+    my ( $id, $state ) = _checked_state(%opt);
+    if ( $state->{'store_format'} != 3 ) {
+        my @nodes = store_nodes( $id->{'path'}, $state->{'epochs'}->@* );
+        node_verify( $id->{'path'}, $ARG, $state->{'store_format'}, $id )
+            for @nodes;
+        return { qw| nodes | => scalar @nodes, qw| state | => $state };
+    }
+    my $replay = journal_replay($id);
+    my $cmp    = _format3_compare( $id, $state, $replay );
+    if ( $cmp->{'missing'}->@* ) {
+        my $item = $cmp->{'missing'}[0];
+        refuse( 'format 3 : missing %s %s',
+            $item->{'type'}, _set_item_name($item) );
+    }
+    if ( $cmp->{'extra'}->@* ) {
+        my $item = $cmp->{'extra'}[0];
+        refuse(
+            'format 3 : unlisted %s %s [ unjournaled data from '
+                . 'a crash or injection ; explicit repair is required ]',
+            $item->{'type'}, _set_item_name($item)
+        );
+    }
+    return {
+        qw| nodes | =>
+            scalar store_nodes( $id->{'path'}, $state->{'epochs'}->@* ),
+        qw| state |   => $state,
+        qw| journal | => $replay,
+    };
+}
+
+## references joined to their import meta. this replays the journal and scans
+## signed meta and reference records, but does not hash content nodes.
+sub reference_entries {
+    my %opt  = @ARG;
+    my $lock = disk_lock( disk_read_id(%opt), qw| shared | );
+    my ( $id, $state ) = _checked_state(%opt);
+    return () if $state->{'store_format'} != 3;
+    my $replay = journal_replay($id);
+    my %refs;
+    foreach my $node ( store_nodes( $id->{'path'}, $state->{'epochs'}->@* ) )
+    {
+        foreach my $ref ( reference_scan( $node, $id ) ) {
+            my $key = _key( $ref->{'node'}, $ref->{'path'} );
+            refuse( 'format 3 : unlisted reference %s', $ref->{'path'} )
+                if not $replay->{'references'}{$key};
+            my $expected = $replay->{'references'}{$key};
+            refuse( 'format 3 : unlisted drop %s', $ref->{'path'} )
+                if $ref->{'dropped'} and not $expected->{'dropped'};
+            refuse( 'format 3 : missing drop %s', $ref->{'path'} )
+                if not $ref->{'dropped'} and $expected->{'dropped'};
+            $refs{$key} = $ref;
+        }
+    }
+    foreach my $key ( sort keys $replay->{'references'}->%* ) {
+        refuse(
+            'format 3 : missing reference %s',
+            $replay->{'references'}{$key}{'path'}
+        ) if not $refs{$key};
+    }
+
+    my @meta = meta_entries(%opt);
+    my @out;
+    foreach my $key ( sort keys %refs ) {
+        my $ref     = $refs{$key};
+        my @history = grep {
+            $ARG->{'address'} eq $ref->{'node'}
+                and ( $ARG->{'source'} // '' ) eq $ref->{'holder'}
+        } @meta;
+        refuse( 'format 3 : missing meta for reference %s', $ref->{'path'} )
+            if not @history;
+        @history
+            = sort { $a->{'import_ntime'} cmp $b->{'import_ntime'} } @history;
+        push @out, { %{$ref}, qw| meta | => \@history };
+    }
+    return @out;
+}
+
+sub _empty_set {
+    return {
+        qw| nodes |      => [],
+        qw| meta |       => [],
+        qw| references | => [],
+        qw| releases |   => []
+    };
+}
+
+sub store_repair {
+    my %opt   = @ARG;
+    my $lock  = disk_lock( disk_read_id(%opt) );
+    my $id    = disk_require_attached(%opt);
+    my $store = store_key_signer( %opt, qw| id | => $id );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    refuse('repair is only available for store format 3')
+        if $state->{'store_format'} != 3;
+    my $replay = journal_replay($id);
+    my $cmp    = _format3_compare( $id, $state, $replay );
+
+    if ( $cmp->{'missing'}->@* ) {
+        my $item = $cmp->{'missing'}[0];
+        refuse( 'repair : missing %s %s cannot be adopted',
+            $item->{'type'}, _set_item_name($item) );
+    }
+    return { qw| adopted | => [], qw| seq | => $replay->{'seq'} }
+        if not $cmp->{'extra'}->@*;
+
+    my $add  = _empty_set();
+    my $drop = _empty_set();
+    foreach my $item ( $cmp->{'extra'}->@* ) {
+        if ( $item->{'type'} eq qw| node | ) {
+            push $add->{'nodes'}->@*, $item->{'node'};
+        } elsif ( $item->{'type'} eq qw| meta | ) {
+            push $add->{'meta'}->@*,
+                {
+                qw| node | => $item->{'node'},
+                qw| name | => $item->{'name'}
+                };
+        } elsif ( $item->{'type'} eq qw| reference | ) {
+            push $add->{'references'}->@*, _ref_operation($item);
+        } elsif ( $item->{'type'} eq qw| drop | ) {
+            push $drop->{'references'}->@*, _ref_operation($item);
+        }
+    }
+    my %flags = ( qw| repaired | => TRUE );
+    $flags{'baseline'} = TRUE
+        if $replay->{'seq'} == 0 and ref $state->{'previous'} eq qw| HASH |;
+    my $journal = journal_write( $id, $store, $add, $drop, \%flags );
+    witness_note_format(
+        %opt,
+        qw| id |          => $id,
+        qw| state |       => $state,
+        qw| journal_seq | => $journal->{'seq'}
+    );
+    return {
+        qw| adopted | => $cmp->{'extra'},
+        qw| seq |     => $journal->{'seq'},
+        qw| journal | => $journal
+    };
+}
+
+sub reference_drop {
+    my %opt    = @ARG;
+    my $target = $opt{'address'} // '';
+    refuse('drop needs a canonical node address') if $target !~ $ADDR_RE;
+    refuse('drop needs a holder') if not length( $opt{'holder'} // '' );
+    my $lock  = disk_lock( disk_read_id(%opt) );
+    my $id    = disk_require_attached(%opt);
+    my $store = store_key_signer( %opt, qw| id | => $id );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    refuse('drop is only available for store format 3')
+        if $state->{'store_format'} != 3;
+    my $replay = journal_replay($id);
+    my ($node)
+        = grep { reference_address($ARG) eq $target }
+        store_nodes( $id->{'path'}, $state->{'epochs'}->@* );
+    refuse( 'drop : unknown node %s', $target ) if not defined $node;
+    my @refs = grep { $ARG->{'holder'} eq $opt{'holder'} }
+        reference_scan( $node, $id );
+    refuse( 'drop : unknown reference [ %s, %s ]', $target, $opt{'holder'} )
+        if not @refs;
+    my @live = grep { not $ARG->{'dropped'} } @refs;
+    refuse( 'drop : reference is not live [ %s, %s ]',
+        $target, $opt{'holder'} )
+        if not @live;
+    refuse( 'drop : several live references [ %s, %s ]',
+        $target, $opt{'holder'} )
+        if @live > 1;
+    my $ref = $live[0];
+    my $key = _key( $target, $ref->{'path'} );
+    refuse( 'drop : reference is not live in the journal [ %s ]',
+        $ref->{'path'} )
+        if not $replay->{'references'}{$key}
+        or $replay->{'references'}{$key}{'dropped'};
+
+    reference_drop_write( $ref, $id, $store );
+    fault(qw| drop:after-record |);
+    my $add  = _empty_set();
+    my $drop = _empty_set();
+    push $drop->{'references'}->@*, _ref_operation($ref);
+    my $journal = journal_write( $id, $store, $add, $drop, {} );
+    witness_note_format(
+        %opt,
+        qw| id |          => $id,
+        qw| state |       => $state,
+        qw| journal_seq | => $journal->{'seq'}
+    );
+    return { qw| reference | => $ref, qw| seq | => $journal->{'seq'} };
 }
 
 ## the epoch new content goes to : the current one, never older than the
@@ -567,12 +996,18 @@ sub assimilate {
             or not -d $index_base;
     }
 
-    my $id      = disk_require_attached(%opt);
-    my $store   = store_key_signer( %opt, qw| id | => $id );
-    my $state   = state_read( $id->{'path'}, $id->{'store_pub'} );
+    my $id    = disk_require_attached(%opt);
+    my $store = store_key_signer( %opt, qw| id | => $id );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    my $lock  = $opt{'dry_run'} ? undef : disk_lock($id);
+    $state = state_read( $id->{'path'}, $id->{'store_pub'} );
     my $codec   = codec( $state->{'store_format'} );
     my $epoch   = write_epoch($state);
     my $context = { qw| id | => $id, qw| store | => $store };
+    my $replay
+        = $state->{'store_format'} == 3
+        ? journal_replay($id)
+        : undef;
 
     my ( @items, @skipped );
     if ( defined $opt{'index'} ) {
@@ -629,8 +1064,8 @@ sub assimilate {
         my $tmp;
         my $ok = eval {
             _assimilate_one(
-                \%opt,  $id,   $state,  $codec, $context,
-                $epoch, $item, \%entry, \$tmp,  $remove
+                \%opt, $id,     $state, $codec,  $context, $epoch,
+                $item, \%entry, \$tmp,  $remove, $replay
             );
             1;
         };
@@ -648,6 +1083,49 @@ sub assimilate {
         push $report{'entries'}->@*, \%entry;
         $state = state_read( $id->{'path'}, $id->{'store_pub'} )
             if not $opt{'dry_run'};
+    }
+
+    if ( $state->{'store_format'} == 3 and not $opt{'dry_run'} ) {
+        my $add  = _empty_set();
+        my $drop = _empty_set();
+        foreach my $entry ( $report{'entries'}->@* ) {
+            next
+                if not $entry->{'verified'}
+                or $entry->{'status'} eq qw| failed |;
+            push $add->{'nodes'}->@*, $entry->{'addr'}
+                if $entry->{'_new_node'};
+            push $add->{'meta'}->@*,
+                {
+                qw| node | => $entry->{'addr'},
+                qw| name | => $entry->{'_meta_name'}
+                }
+                if $entry->{'_meta_name'};
+            push $add->{'references'}->@*,
+                _ref_operation( $entry->{'_reference'} )
+                if $entry->{'_reference'};
+        }
+        if (   $add->{'nodes'}->@*
+            or $add->{'meta'}->@*
+            or $add->{'references'}->@* ) {
+            my $journal = journal_write( $id, $store, $add, $drop, {} );
+            $report{'journal_seq'} = $journal->{'seq'};
+            witness_note_format(
+                %opt,
+                qw| id |          => $id,
+                qw| state |       => $state,
+                qw| journal_seq | => $journal->{'seq'}
+            );
+        }
+        foreach my $entry ( $report{'entries'}->@* ) {
+            next if not $entry->{'_remove_stat'};
+            my $ok = eval { _remove_source($entry); 1 };
+            next if $ok;
+            my $err = $EVAL_ERROR;
+            chomp $err;
+            $entry->{'status'} = qw| failed |;
+            $entry->{'why'}    = $err;
+            $report{'failed'}++;
+        }
     }
     return \%report;
 }
@@ -687,8 +1165,8 @@ sub _meta_unchanged {
 }
 
 sub _assimilate_one {
-    my ($opt,   $id,   $state, $codec,   $context,
-        $epoch, $item, $entry, $tmp_ref, $remove
+    my ($opt,  $id,    $state,   $codec,  $context, $epoch,
+        $item, $entry, $tmp_ref, $remove, $replay
     ) = @ARG;
     my $path = $item->{'path'};
 
@@ -712,6 +1190,7 @@ sub _assimilate_one {
     };
     my $final  = node_path( $id->{'path'}, $addr );
     my $exists = -e $final;
+    my $node   = { %{$addr}, qw| path | => $final };
     $entry->{'addr'} = join '/', epoch_b32($epoch), $addr->{'amos'}, $bmw;
 
     my $ntime = ntime_now();
@@ -735,15 +1214,35 @@ sub _assimilate_one {
     $meta{'index_name'} = $item->{'index_name'}
         if defined $item->{'index_name'};
 
+    my $needs_ref = $state->{'store_format'} == 3 ? TRUE : FALSE;
+    refuse( 'node %s is not journaled [ a crash ? n7fs repair %s ]',
+        $entry->{'addr'}, $id->{'disk'} )
+        if $exists
+        and $needs_ref
+        and not $replay->{'nodes'}{ $entry->{'addr'} };
+    if ( $exists and $needs_ref ) {
+        foreach my $ref ( reference_scan( $node, $id ) ) {
+            my $key      = _key( $entry->{'addr'}, $ref->{'path'} );
+            my $expected = $replay->{'references'}{$key};
+            refuse( 'assimilate : unlisted reference %s', $ref->{'path'} )
+                if not $expected;
+            refuse( 'assimilate : reference drop disagrees with journal %s',
+                $ref->{'path'} )
+                if ( $ref->{'dropped'} ? 1 : 0 )
+                != ( $expected->{'dropped'} ? 1 : 0 );
+            $needs_ref = FALSE
+                if $ref->{'holder'} eq $abs and not $ref->{'dropped'};
+        }
+    }
     my $unchanged = $exists
         && _meta_unchanged(
         _newest_meta( $codec, $final, $meta{'source'}, $addr, $context ),
         \%meta );
     if ( $opt->{'dry_run'} ) {
         $entry->{'status'}
-            = !$exists   ? qw| would-store |
-            : $unchanged ? qw| would-unchanged |
-            :              qw| would-dedup |;
+            = !$exists                  ? qw| would-store |
+            : $unchanged && !$needs_ref ? qw| would-unchanged |
+            :                             qw| would-dedup |;
         $entry->{'then'} = $remove ? qw| would-remove | : qw| keep |;
         return;
     }
@@ -765,7 +1264,8 @@ sub _assimilate_one {
         if ($unchanged) {
             $entry->{'status'} = qw| unchanged |;
         } else {
-            $codec->{'write_meta'}->( $final, \%meta, $addr, $context );
+            $entry->{'_meta_name'}
+                = $codec->{'write_meta'}->( $final, \%meta, $addr, $context );
             $entry->{'status'} = qw| dedup |;
         }
     } else {
@@ -784,7 +1284,12 @@ sub _assimilate_one {
         fault(qw| assimilate:before-publish |);
         publish_dir( ${$tmp_ref}, $final );
         undef ${$tmp_ref};
-        $entry->{'status'} = qw| stored |;
+        $entry->{'status'}    = qw| stored |;
+        $entry->{'_new_node'} = TRUE;
+        my @meta_names = grep { $ARG =~ $META_RE } _list_dir("$final/meta");
+        refuse( 'node %s : new meta record missing', $final )
+            if @meta_names != 1;
+        $entry->{'_meta_name'} = $meta_names[0];
     }
     fault(qw| assimilate:after-publish |);
 
@@ -800,12 +1305,38 @@ sub _assimilate_one {
         or $st2->[7] != $st->[7]
         or $st2->[9] != $st->[9];
     $entry->{'verified'} = TRUE;
+    ## a later source of this batch finds the node on disk ##
+    $replay->{'nodes'}{ $entry->{'addr'} } = TRUE if $needs_ref;
 
+    if ($needs_ref) {
+        $entry->{'_reference'}
+            = reference_write( $node, $id, $context->{'store'},
+            $abs, $meta{'name'}, FALSE );
+        $replay->{'references'}
+            { _key( $entry->{'addr'}, $entry->{'_reference'}{'path'} ) }
+            = { qw| dropped | => FALSE };
+        $entry->{'status'} = qw| dedup |
+            if $entry->{'status'} eq qw| unchanged |;
+    }
+
+    if ( $state->{'store_format'} == 3 and $remove ) {
+        $entry->{'_remove_stat'} = $st;
+        $entry->{'then'}         = qw| remove-pending |;
+        return;
+    }
     if ( not $remove ) {
         $entry->{'then'} = qw| kept |;
         return;
     }
+    $entry->{'_remove_stat'} = $st;
+    _remove_source($entry);
+    return;
+}
 
+sub _remove_source {
+    my $entry = shift;
+    my $path  = $entry->{'source'};
+    my $st    = $entry->{'_remove_stat'};
     fault(qw| assimilate:before-remove |);
     my @last = lstat $path or refuse( '%s : vanished before removal', $path );
     refuse( '%s : replaced before removal', $path )
@@ -821,8 +1352,8 @@ sub _assimilate_one {
 
 1;
 
-#,,,,,..,,,..,.,,,,..,..,,,..,...,,,.,,..,...,..,,...,...,...,,..,...,...,,.,,
-#XBGQVDKANQP6HXFA2Z6SESW6UCNIBYOQE5AHW4MB7T3Z7EIQGUCVLUNZESNJ7AX2546VWCLXEHZOU
-#\\\|LJ2HKF3F4HWFARARCIBUEEDLAZKRWRHLGWUXVOH44IEHNTKIYXG \ / AMOS7 \ YOURUM ::
-#\[7]YH5BWHXR4I2U7G57S5SEPGJINQ3UNPCDFAEC4G3OEGKAOAH4WEDA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,.,.,,..,.,.,.,,,,.,,..,,,,,,..,,...,...,.,.,.,,,.,,,,,,,.,.,
+#R6ADDS7BARBRL6NXWXOSYJAXNDNYIIVICYBAHITS63N6NJN4TPJSOCE2ZIDTUCN3ZUK2AJZYLNBW6
+#\\\|GKKCWQCAHDH46C7BAM4F3QA7UQS2H7PF4ANBCSERN75IFPWKMLO \ / AMOS7 \ YOURUM ::
+#\[7]OBZBM75HKQXUCHSR2QB7KVLT6CKJR2EEOTNT2HR342WD24KVRCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

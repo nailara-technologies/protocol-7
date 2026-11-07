@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Disk-VERSION.SZVYXNA |;
+our $VERSION = qw| AMOS7::N7FS::Disk-VERSION.GTRT4FA |;
 
 @EXPORT_OK = qw|
     disk_init
@@ -47,6 +47,8 @@ our $VERSION = qw| AMOS7::N7FS::Disk-VERSION.SZVYXNA |;
     witness_read
     witness_note_format
     witness_check_format
+    witness_check_journal
+    disk_lock
     host_mounts
     state_read
     state_write
@@ -63,6 +65,9 @@ use AMOS7::N7FS::Sum qw| amos_of_bytes l13_standin $AMOS_RULE $BMW_RULE
     $L13_TAG |;
 use AMOS7::N7FS::Sign qw| verify key_file_write key_file_signer new_seed
     seed_signer |;
+use Fcntl                qw| :flock |;
+use Scalar::Util         qw| weaken |;
+use AMOS7::N7FS::Journal qw| journal_head |;
 
 our $DISK_RE  = qr{\A[A-Z2-7]{7}\z};
 our $MOUNT_RE = qr{\A(\d{14})\.([A-Z2-7]{7})\z};
@@ -125,9 +130,9 @@ sub trusted_parents {
 ##[ STATE RECORDS ]###########################################################
 
 ## the newest valid state record of a store. refuses a damaged newest one
-## [ the state decides what is read -- no silent fallback ]. format 2 verifies
-## against the store public key of the parent-signed id, never signer_pub
-## alone
+## [ the state decides what is read -- no silent fallback ]. format 2 and 3
+## verify against the store public key of the parent-signed id, never
+## signer_pub alone
 sub state_read {
     my ( $disk_path, $store_pub ) = @ARG;
     my @names = _list( "$disk_path/.n7fs/state", $STATE_RE );
@@ -135,7 +140,10 @@ sub state_read {
 
     my $signed_present = grep {
         my $bytes = read_file("$disk_path/.n7fs/state/$ARG");
-        defined $bytes and substr( $bytes, 0, 5 ) eq "P7FT\x02";
+        defined $bytes
+            and length $bytes >= 5
+            and substr( $bytes, 0, 4 ) eq 'P7FT'
+            and unpack( 'C', substr( $bytes, 4, 1 ) ) >= 2;
     } @names;
 
     my $name  = $names[-1];
@@ -145,7 +153,7 @@ sub state_read {
         ? unpack( qw| C |, substr( $bytes, 4, 1 ) )
         : 0;
     my $rec;
-    if ( $record_format == 2 ) {
+    if ( $record_format >= 2 ) {
         if ( not defined $store_pub ) {
             my ( $root, $disk ) = $disk_path =~ m|\A(.+)/([^/]+)\z|;
             refuse( 'cannot derive disk identity from %s', $disk_path )
@@ -177,7 +185,7 @@ sub state_read {
     refuse( 'state %s : no store format', $name )
         if ( $p->{'store_format'} // '' ) !~ m|\A\d{1,3}\z|;
     refuse( 'state %s : record format does not match store format', $name )
-        if $p->{'store_format'} <= 2
+        if $p->{'store_format'} <= 3
         and $rec->{'format'} != $p->{'store_format'};
     refuse( 'state %s : no epoch list', $name )
         if ref $p->{'epochs'} ne qw| ARRAY |;
@@ -190,8 +198,8 @@ sub state_write {
     my %p = %{$payload};
     delete $p{'_name'};
     my $format = $p{'store_format'} // 1;
-    refuse('state format 2 needs the delegated store key')
-        if $format == 2 and not ref $store;
+    refuse('signed state needs the delegated store key')
+        if $format >= 2 and not ref $store;
     my @names = _list( "$disk_path/.n7fs/state", $STATE_RE );
     my $ntime = ntime_now();
     if (@names) {
@@ -201,8 +209,8 @@ sub state_write {
     $p{'written'} = ntime14($ntime);
     my $path = "$disk_path/.n7fs/state/" . ntime14($ntime) . '.state';
     my $bytes
-        = $format == 2
-        ? signed_record_pack( qw| state |, \%p, $store, 2 )
+        = $format >= 2
+        ? signed_record_pack( qw| state |, \%p, $store, $format )
         : plain_record_pack( qw| state |, \%p );
     write_new_file( $path, $bytes );
     return $path;
@@ -355,14 +363,15 @@ sub disk_init {
     ## every check done -- writes from here ##
     my $tmp = "$root/.n7fs-init.tmp." . b32( random_bytes(5) );
     my $ok  = eval {
-        make_dirs( "$tmp/.n7fs/mounts", 0700 );
-        make_dirs( "$tmp/.n7fs/state",  0700 );
+        make_dirs( "$tmp/.n7fs/mounts",  0700 );
+        make_dirs( "$tmp/.n7fs/state",   0700 );
+        make_dirs( "$tmp/.n7fs/journal", 0700 );
         write_new_file( "$tmp/.n7fs/id.record", $record );
         write_new_file( "$tmp/.n7fs/id.amos",   "$disk\n" );
         write_new_file( "$tmp/.n7fs/id.l13",    l13_standin($record) . "\n" );
         state_write(
             $tmp,
-            {   qw| store_format | => 2,
+            {   qw| store_format | => 3,
                 qw| epochs |       => [],
                 qw| sums |         => {
                     qw| amos | => $AMOS_RULE,
@@ -474,6 +483,9 @@ sub witness_read {
     refuse( 'witness %s : bad highest store format', $name )
         if ( $p->{'store_format'} // 1 ) !~ m|\A\d{1,3}\z|
         or ( $p->{'store_format'} // 1 ) < 1;
+    $p->{'journal_seq'} //= 0;
+    refuse( 'witness %s : bad highest journal sequence', $name )
+        if $p->{'journal_seq'} !~ m|\A\d+\z|;
     refuse( 'witness %s : record does not match', $name )
         if ( $p->{'disk'} // '' ) ne $opt{'disk'}
         or $p->{'first'} gt $p->{'last'}
@@ -549,6 +561,9 @@ sub _write_mount_event {
     $highest = $w->{'store_format'} // 1
         if defined $w
         and ( $w->{'store_format'} // 1 ) > $highest;
+    my $journal_seq = $id->{'journal_seq'} // 0;
+    $journal_seq = $w->{'journal_seq'} // 0
+        if defined $w and ( $w->{'journal_seq'} // 0 ) > $journal_seq;
     my $use = signed_record_pack(
         qw| use |,
         {   qw| disk |         => $disk,
@@ -558,6 +573,7 @@ sub _write_mount_event {
             qw| last_record |  => $name,
             qw| last_event |   => $event,
             qw| store_format | => $highest + 0,
+            qw| journal_seq |  => $journal_seq + 0,
         },
         $host
     );
@@ -578,8 +594,9 @@ sub _write_mount_event {
     };
 }
 
-## a format observation is append-only too : 'written' orders the use files,
-## while first \ last remain the mount window and last_record stays a mount
+## a format or journal observation is append-only too : 'written' orders the
+## use files, while first \ last remain the mount window. it runs after the
+## corresponding signed state or journal entry is already on disk.
 sub witness_note_format {
     my %opt   = @ARG;
     my $host  = _signer( \%opt, qw| host | );
@@ -588,7 +605,19 @@ sub witness_note_format {
         // state_read( $id->{'path'}, $id->{'store_pub'} );
     my $w = witness_read(%opt);
     return FALSE if not defined $w;
-    return FALSE if $state->{'store_format'} <= ( $w->{'store_format'} // 1 );
+    my $seq = $opt{'journal_seq'} // $id->{'journal_seq'}
+        // ( $w->{'journal_seq'} // 0 );
+    my $format
+        = $state->{'store_format'} > ( $w->{'store_format'} // 1 )
+        ? $state->{'store_format'}
+        : ( $w->{'store_format'} // 1 );
+    my $highest
+        = $seq > ( $w->{'journal_seq'} // 0 )
+        ? $seq
+        : ( $w->{'journal_seq'} // 0 );
+    return FALSE
+        if $format == ( $w->{'store_format'} // 1 )
+        and $highest == ( $w->{'journal_seq'} // 0 );
 
     my $ntime = ntime_now();
     $ntime = $w->{'written'} + 1 if $ntime <= $w->{'written'};
@@ -601,7 +630,8 @@ sub witness_note_format {
             qw| written |      => $written,
             qw| last_record |  => $w->{'last_record'},
             qw| last_event |   => $w->{'last_event'},
-            qw| store_format | => $state->{'store_format'} + 0,
+            qw| store_format | => $format + 0,
+            qw| journal_seq |  => $highest + 0,
         },
         $host
     );
@@ -632,6 +662,22 @@ sub witness_check_format {
     );
 }
 
+sub witness_check_journal {
+    my %opt = @ARG;
+    my $id  = $opt{'id'} // disk_read_id(%opt);
+    $opt{'disk'} //= $id->{'disk'};
+    my $w
+        = exists $opt{'witness'} ? $opt{'witness'} : witness_read(%opt);
+    return TRUE if not defined $w;
+    my $seq = $opt{'journal_seq'} // $id->{'journal_seq'} // 0;
+    return TRUE
+        if $seq >= ( $w->{'journal_seq'} // 0 )
+        or $opt{'allow_rollback'};
+    refuse( '%s : journal sequence %d is below the witnessed '
+            . 'highest %d [ rollback -- refused by policy ]',
+        $id->{'disk'}, $seq, $w->{'journal_seq'} // 0 );
+}
+
 sub _checks {
     my %opt = @ARG;
     _signer( \%opt, qw| host | );
@@ -646,6 +692,18 @@ sub _checks {
         qw| state |   => $state,
         qw| witness | => $w
     );
+
+    if ( $state->{'store_format'} == 3 ) {
+        my $head = journal_head($id);
+        $id->{'journal_seq'}      = $head->{'seq'};
+        $id->{'journal_baseline'} = $head->{'baseline'};
+        witness_check_journal(
+            %opt,
+            qw| id |          => $id,
+            qw| journal_seq | => $head->{'seq'},
+            qw| witness |     => $w
+        );
+    }
     $id->{'state'} = $state;
     return ( $id, \@history, \@mine, $w, $presented, $window );
 }
@@ -675,7 +733,31 @@ sub disk_detach {
 }
 
 ## for writers : the identity verifies, the window holds, and this host's
-## newest record says attached. returns the id
+## newest record says attached. returns the id  one writer per disk, readers
+## of the store set wait for it : a second writer forks the journal, a reader
+## mid import sees unjournaled data. the kernel drops the lock with its
+## holder, a killed import leaves nothing to clean up.  a nested call shares
+## the outer lock [ confirm verifies, flock would block on a second open ]. a
+## reader never creates it : no lock file = no writer yet
+my %lock_held;
+
+sub disk_lock {
+    my ( $id, $mode ) = @ARG;
+    my $path = "$id->{'path'}/.n7fs/lock";
+    return $lock_held{$path} if defined $lock_held{$path};
+    my $shared = ( $mode // '' ) eq qw| shared |;
+    my $fh;
+    if ( not open( $fh, $shared ? '<' : '>>', $path ) ) {
+        return undef if $shared;
+        refuse( 'cannot open the disk lock %s : %s', $path, $OS_ERROR );
+    }
+    flock( $fh, $shared ? LOCK_SH : LOCK_EX )
+        or refuse( 'cannot lock %s : %s', $path, $OS_ERROR );
+    $lock_held{$path} = $fh;
+    weaken( $lock_held{$path} );
+    return $fh;
+}
+
 sub disk_require_attached {
     my %opt = @ARG;
     my ( $id, $history, $mine ) = _checks(%opt);
@@ -704,14 +786,16 @@ sub disk_status {
             ( @{$mine} and $mine->[-1]{'event'} eq qw| attach | )
         ? $mine->[-1]{'mount'}
         : undef,
-        qw| state | => $id->{'state'},
+        qw| state |            => $id->{'state'},
+        qw| journal_seq |      => $id->{'journal_seq'} // 0,
+        qw| journal_baseline | => $id->{'journal_baseline'} ? TRUE : FALSE,
     };
 }
 
 1;
 
-#,,.,,,,,,..,,.,.,,..,,,,,..,,,,.,,,,,,,,,,.,,..,,...,...,.,,,.,.,,,,,,,.,...,
-#WD6OSS2Q7L2GCTCCSIVSVYSO5Y6ZFFN7XSWCE5Z2Q6ZPYPW4PNJDQMJN4NQOQ3AFIFM6A45P3NEES
-#\\\|HZCLPPVM5KXGT2XZF65FKRFIDYGADFKJ2BUNB7SEPU7LL3BQV4E \ / AMOS7 \ YOURUM ::
-#\[7]KE2CCBJZEUK3EW4OOGCBISCWMZURBINBNGUHFMVNQIK7HMWZJGDI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,...,...,..,,..,,.,,,..,,,,,,..,,...,...,..,,,,,,,.,,..,,,,.,
+#YDXGSFKUSSQOQQXXYLXBPEFHTMLJAASC6A25N4UKFKJYYFVU63AZKCCBHLFJVBGQIBXFM7UE3BV5O
+#\\\|HSMDSQ2HW6ECZJWWUDVZXFDUHATLMTFIFTDBXZ5NXWOZP665RYM \ / AMOS7 \ YOURUM ::
+#\[7]ZNHKZ4DUV7EEZTRO2KUVH2DGXZC3G2ZIIW445COAAOJZ6JNK2QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

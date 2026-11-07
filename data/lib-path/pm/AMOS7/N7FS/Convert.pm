@@ -21,8 +21,9 @@ package AMOS7::N7FS::Convert;    ############################################
 ## any failure before the switch removes the partial new epoch
 ## [ created by this run only ] and leaves the state on the old format.
 ##
-## the 1 -> 2 step marks unauthenticated origin and rebinds meta to the new
-## epoch. a step needs the codec of its target format
+## the 1 -> 2 step marks unauthenticated origin. both steps rebind meta to the
+## new epoch ; 2 -> 3 also writes converted references and the signed
+## baseline.  a step needs the codec of its target format
 ## [ AMOS7::N7FS::Store::register_codec ].
 
 use v5.32.0;
@@ -39,7 +40,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %STEP |;
 
-our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.RKJQX6A |;
+our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.NOWXF2Y |;
 
 @EXPORT_OK = qw|
     register_step
@@ -51,10 +52,14 @@ our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.RKJQX6A |;
 use JSON::PP;
 use AMOS7::N7FS qw| ntime_now b32 random_bytes make_dirs publish_dir
     remove_tree refuse fault |;
-use AMOS7::N7FS::Sum  qw| epoch_int epoch_b32 epoch_next epoch_window |;
-use AMOS7::N7FS::Disk qw| disk_require_attached state_read state_write
+use AMOS7::N7FS::Sum qw| epoch_int epoch_b32 epoch_next epoch_window |;
+use AMOS7::N7FS::Disk
+    qw| disk_lock disk_read_id disk_require_attached state_read state_write
     store_key_signer witness_note_format |;
-use AMOS7::N7FS::Store qw| codec store_nodes node_path write_epoch |;
+use AMOS7::N7FS::Store qw| codec store_nodes node_path write_epoch
+    store_verify |;
+use AMOS7::N7FS::Journal   qw| journal_write |;
+use AMOS7::N7FS::Reference qw| reference_write reference_address |;
 
 ## $transform->( $node, { from, to } ) returns the node for format $to
 sub register_step {
@@ -96,6 +101,22 @@ register_step(
     }
 );
 
+register_step(
+    2,
+    sub {
+        my ( $node, $step ) = @ARG;
+        $node->{'metas'} = [
+            map {
+                {
+                    %{$ARG},
+                        qw| epoch | => epoch_b32( $node->{'addr'}{'epoch'} )
+                }
+            } $node->{'metas'}->@*
+        ];
+        return $node;
+    }
+);
+
 ## $refuse_pending : an upgrade may not run while the old form is still in the
 ## window [ one previous at a time ]. the window is centered on the CURRENT
 ## epoch [ the clock -- epoch_dec ], not on the write epoch [ write_epoch is
@@ -128,6 +149,7 @@ sub _window_release {
 ## [ a test override ; default : next of the window ]
 sub upgrade {
     my %opt     = @ARG;
+    my $lock    = disk_lock( disk_read_id(%opt) );
     my $id      = disk_require_attached(%opt);
     my $store   = store_key_signer( %opt, qw| id | => $id );
     my $state   = state_read( $id->{'path'}, $id->{'store_pub'} );
@@ -166,6 +188,9 @@ sub upgrade {
         push @read,
             [ $n, $old->{'read_node'}->( $n->{'path'}, $n, $context ) ];
     }
+    refuse('conversion to format 3 : a journal exists already')
+        if $to == 3 and glob "$id->{'path'}/.n7fs/journal/*.journal";
+    my ( $baseline_add, $baseline_drop );
 
     ## write beside ##
     my $ok = eval {
@@ -203,6 +228,45 @@ sub upgrade {
             if @written != @nodes;
         $new->{'verify_node'}->( $ARG->{'path'}, $ARG, $context )
             for @written;
+
+        if ( $to == 3 ) {
+            $baseline_add = {
+                qw| nodes |      => [],
+                qw| meta |       => [],
+                qw| references | => [],
+                qw| releases |   => [],
+            };
+            $baseline_drop = {
+                qw| nodes |      => [],
+                qw| meta |       => [],
+                qw| references | => [],
+                qw| releases |   => [],
+            };
+            foreach my $written (@written) {
+                my $addr = reference_address($written);
+                push $baseline_add->{'nodes'}->@*, $addr;
+                my $node = $new->{'read_node'}
+                    ->( $written->{'path'}, $written, $context );
+                my @files = sort glob "$written->{'path'}/meta/*.meta";
+                refuse( 'conversion : meta count changed at %s',
+                    $written->{'path'} )
+                    if @files != $node->{'metas'}->@*;
+                foreach my $file (@files) {
+                    my ($name) = $file =~ m|([^/]+)\z|;
+                    push $baseline_add->{'meta'}->@*,
+                        { qw| node | => $addr, qw| name | => $name };
+                }
+                my %source;
+                foreach my $meta ( $node->{'metas'}->@* ) {
+                    next if $source{ $meta->{'source'} }++;
+                    my $ref = reference_write( $written, $id, $store,
+                        $meta->{'source'}, $meta->{'name'}, TRUE );
+                    push $baseline_add->{'references'}->@*,
+                        { map { $ARG => $ref->{$ARG} }
+                            qw| node path holder name | };
+                }
+            }
+        }
         fault(qw| convert:before-switch |);
         1;
     };
@@ -212,7 +276,7 @@ sub upgrade {
         die $err;
     }
 
-    ## the switch : one new state record ##
+    ## the switch : one new state record, then the format-3 baseline ##
     my %next = %{$state};
     %next = (
         %next,
@@ -226,13 +290,25 @@ sub upgrade {
         qw| converted | => "$from->$to",
     );
     state_write( $id->{'path'}, \%next, $store );
-    witness_note_format( %opt, qw| id | => $id, qw| state | => \%next );
+    my $journal_seq = 0;
+    if ( $to == 3 ) {
+        my $journal = journal_write( $id, $store,
+            $baseline_add, $baseline_drop, { qw| baseline | => TRUE } );
+        $journal_seq = $journal->{'seq'};
+    }
+    witness_note_format(
+        %opt,
+        qw| id |          => $id,
+        qw| state |       => \%next,
+        qw| journal_seq | => $journal_seq
+    );
 
     return {
-        qw| from |  => $from,
-        qw| to |    => $to,
-        qw| epoch | => $epoch,
-        qw| nodes | => scalar @nodes,
+        qw| from |        => $from,
+        qw| to |          => $to,
+        qw| epoch |       => $epoch,
+        qw| nodes |       => scalar @nodes,
+        qw| journal_seq | => $journal_seq,
     };
 }
 
@@ -240,6 +316,7 @@ sub upgrade {
 ## window [ _window_release ]
 sub confirm {
     my %opt     = @ARG;
+    my $lock    = disk_lock( disk_read_id(%opt) );
     my $id      = disk_require_attached(%opt);
     my $store   = store_key_signer( %opt, qw| id | => $id );
     my $state   = state_read( $id->{'path'}, $id->{'store_pub'} );
@@ -251,7 +328,12 @@ sub confirm {
 
     my $codec = codec( $state->{'store_format'} );
     my @nodes = store_nodes( $id->{'path'}, $state->{'epochs'}->@* );
-    $codec->{'verify_node'}->( $ARG->{'path'}, $ARG, $context ) for @nodes;
+    if ( $state->{'store_format'} == 3 ) {
+        store_verify(%opt);
+    } else {
+        $codec->{'verify_node'}->( $ARG->{'path'}, $ARG, $context )
+            for @nodes;
+    }
 
     state_write( $id->{'path'}, { %{$state}, qw| confirmed | => TRUE },
         $store );
@@ -263,8 +345,8 @@ sub confirm {
 
 1;
 
-#,,..,,..,.,.,,.,,..,,...,,,.,,,.,,,,,.,.,..,,..,,...,..,,,.,,.,.,,.,,,..,..,,
-#CSCQOTGZCCVQZGO2T3UHOWL6YD7SLTW3EOYMCAPPYD3OXSYH42RBRLGNNCDC3VIHC75JGRBWRREAK
-#\\\|XFU5ISDN32DDU6PO3AMXZDUUPTNDFNWPMIGPK4JUU3OSBM6LK7L \ / AMOS7 \ YOURUM ::
-#\[7]55ZHHKIUEEEWO7WIQUBTZ3P2XOM6GDWUN5NH6GM4WXAGQYWAFABA 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,,.,,,..,,,.,,,,,,.,,,.,,,,.,..,,...,...,,,.,,..,,,.,..,,,.,,
+#KKP2XAPXT3KJDIRBMQ6KBB5FUUGBT7XC6DW6NOA6GVGJHRXYV5VIGKWA3BABAPSTGAOZMUSUOFLOK
+#\\\|55CULGY57KPS3C6YFB3DKWW4GOY3QIM5PMT2AR3RIQ2FKK75YQG \ / AMOS7 \ YOURUM ::
+#\[7]LV2TQBOAQQRLRTZXWO7NDJARWHYA6LTJZW4DTXD5BLBYO7E7XSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

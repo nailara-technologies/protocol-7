@@ -10,9 +10,9 @@ use warnings;
 ###      ###
 
 ## N7FS : checksum-addressed store, standalone
-## [ like p7-vault -- no zenka, no running network ]. new disks use format 2 :
-## the delegated store key signs meta and state. format :
-## data/md/design/N7FS-SPEC.md + data/md/design/N7FS-FORMAT-2.md [ as built ].
+## [ like p7-vault -- no zenka, no running network ]. new disks use format 3 :
+## the delegated store key signs meta, state, references and the journal.
+## format : data/md/design/N7FS-SPEC.md + N7FS-FORMAT-3.md [ as built ].
 ##
 ## n7fs keygen <file>                     new ed25519 key file [ 0600 ]
 ## n7fs pubkey <file>                     its public key [ base32 ]
@@ -22,10 +22,14 @@ use warnings;
 ## n7fs detach <disk>
 ## n7fs status <disk> [ -allow-rollback ]
 ## n7fs verify <disk>                     every node of the active epochs
-## n7fs get <disk> <address|path-name> [ -out <file> ]
-##                                       verified content [ raw stdout ]
+## n7fs get <disk> <address|path-name> [ -out <file> ] [ -all ]
+##                       verified content [ raw stdout ; -all includes drops ]
 ## n7fs find <disk> [ -name <regex> ] [ -format <fmt> ]
 ##                  [ -chksum <prefix> ] [ -all ]
+##                  live references by default ; -all adds dropped history
+## n7fs drop <disk> <address> -holder <name>
+##                  sign and journal a reference drop ; removes nothing
+## n7fs repair <disk>                  adopt verified unjournaled data, loudly
 ## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -dry-run ]
 ##                 [ -index <image-index.db> [ -index-base <dir> ] ]
 ##                 [ <path> .. ]   index + -remove needs -index-base
@@ -66,10 +70,11 @@ use AMOS7::N7FS       qw| root_dir host_dir b32 unb32 write_new_file_stream |;
 use AMOS7::N7FS::Sum  qw| bmw_b32 epoch_from_b32 |;
 use AMOS7::N7FS::Sign qw| key_file_signer key_file_write command_signer |;
 use AMOS7::N7FS::Disk qw| disk_init disk_attach disk_detach disk_status
-    disk_read_id state_read witness_check_format |;
+    disk_read_id state_read witness_check_format witness_check_journal |;
 use AMOS7::N7FS::Store qw| assimilate store_verify meta_entries node_path
-    node_verify |;
+    node_verify reference_entries reference_drop store_repair |;
 use AMOS7::N7FS::Convert qw| upgrade confirm |;
+use AMOS7::N7FS::Journal qw| journal_head |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -84,7 +89,7 @@ GetOptionsFromArray(
     \@args, \%o,
     qw| root=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
         name=s intent=s disk=s index=s index-base=s epoch=s remove keep dry-run
-        out=s format=s chksum=s all allow-rollback help |
+        out=s format=s chksum=s holder=s all allow-rollback help |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -116,6 +121,8 @@ my %run = (
     qw| verify |     => \&cmd_verify,
     qw| get |        => \&cmd_get,
     qw| find |       => \&cmd_find,
+    qw| drop |       => \&cmd_drop,
+    qw| repair |     => \&cmd_repair,
     qw| assimilate | => \&cmd_assimilate,
     qw| upgrade |    => \&cmd_upgrade,
     qw| confirm |    => \&cmd_confirm,
@@ -320,6 +327,11 @@ sub cmd_status {
         : ()
     );
     say_line( 'epochs    ', join ' ', $s->{'state'}{'epochs'}->@* );
+
+    if ( $s->{'state'}{'store_format'} == 3 ) {
+        say_line( 'journal   ', $s->{'journal_seq'} );
+        say_line( 'baseline  ', $s->{'journal_baseline'} ? 'yes' : 'no' );
+    }
     return 0;
 }
 
@@ -338,8 +350,17 @@ sub cmd_get {
     my %read  = read_common();
     my $id    = disk_read_id( %read, qw| disk | => $disk );
     my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
-    witness_check_format( %read, qw| id | => $id, qw| state | => $state )
-        if ref $read{'host'};
+    if ( ref $read{'host'} ) {
+        witness_check_format( %read, qw| id | => $id, qw| state | => $state );
+        if ( $state->{'store_format'} == 3 ) {
+            my $head = journal_head($id);
+            witness_check_journal(
+                %read,
+                qw| id |          => $id,
+                qw| journal_seq | => $head->{'seq'}
+            );
+        }
+    }
     warn_unsigned_names( $disk, $state );
     my $addr = _address_arg( $target, $state );
 
@@ -347,18 +368,42 @@ sub cmd_get {
         my %nodes;
         ## sources are stored absolute ##
         my $absolute = abs_path($target) // $target;
-        foreach my $entry (
-            _latest_meta( meta_entries( %read, qw| disk | => $disk ) ) ) {
-            next
-                if ( $entry->{'name'} // '' ) ne $target
-                and ( $entry->{'source'} // '' ) ne $target
-                and ( $entry->{'source'} // '' ) ne $absolute;
-            $nodes{ $entry->{'address'} } = {
-                qw| epoch | => $entry->{'epoch'},
-                qw| amos |  => $entry->{'amos'},
-                qw| bmw |   => $entry->{'bmw'},
-            };
+        if ( $state->{'store_format'} == 3 ) {
+            my @matching = grep {
+                       ( $ARG->{'name'}   // '' ) eq $target
+                    or ( $ARG->{'holder'} // '' ) eq $target
+                    or ( $ARG->{'holder'} // '' ) eq $absolute
+            } reference_entries( %read, qw| disk | => $disk );
+            my @live = grep { not $ARG->{'dropped'} } @matching;
+            fail(     "get : name [ $target ] was "
+                    . "dropped ; use -all or an address" )
+                if not $o{'all'}
+                and not @live
+                and @matching;
+            foreach my $ref ( $o{'all'} ? @matching : @live ) {
+                my ( $epoch_name, $amos, $bmw ) = split m|/|, $ref->{'node'};
+                $nodes{ $ref->{'node'} } = {
+                    qw| epoch | => epoch_from_b32($epoch_name),
+                    qw| amos |  => $amos,
+                    qw| bmw |   => $bmw,
+                };
+            }
+        } else {
+            foreach my $entry (
+                _latest_meta( meta_entries( %read, qw| disk | => $disk ) ) ) {
+                next
+                    if ( $entry->{'name'} // '' ) ne $target
+                    and ( $entry->{'source'} // '' ) ne $target
+                    and ( $entry->{'source'} // '' ) ne $absolute;
+                $nodes{ $entry->{'address'} } = {
+                    qw| epoch | => $entry->{'epoch'},
+                    qw| amos |  => $entry->{'amos'},
+                    qw| bmw |   => $entry->{'bmw'},
+                };
+            }
         }
+        fail("get : no live reference named [ $target ]")
+            if not keys %nodes and $state->{'store_format'} == 3;
         fail("get : no node named [ $target ]") if not keys %nodes;
         fail( "get : name resolves to several nodes [ $target ] :\n  "
                 . join( "\n  ", sort keys %nodes ) )
@@ -421,10 +466,30 @@ sub cmd_find {
         if ref $read{'host'};
     warn_unsigned_names( $disk, $state );
     my $regex = _name_regex( $o{'name'} );
-    my @entries
-        = $o{'all'}
-        ? meta_entries( %read, qw| disk | => $disk )
-        : _latest_meta( meta_entries( %read, qw| disk | => $disk ) );
+    my @entries;
+
+    if ( $state->{'store_format'} == 3 ) {
+        foreach my $ref ( reference_entries( %read, qw| disk | => $disk ) ) {
+            next if $ref->{'dropped'} and not $o{'all'};
+            my @meta
+                = $o{'all'}
+                ? $ref->{'meta'}->@*
+                : ( $ref->{'meta'}[-1] );
+            push @entries,
+                {
+                %{$ARG},
+                qw| dropped |   => $ref->{'dropped'},
+                qw| converted | => $ref->{'converted'},
+                qw| ref_path |  => $ref->{'path'},
+                }
+                for @meta;
+        }
+    } else {
+        @entries
+            = $o{'all'}
+            ? meta_entries( %read, qw| disk | => $disk )
+            : _latest_meta( meta_entries( %read, qw| disk | => $disk ) );
+    }
 
     @entries = grep {
         my $entry = $ARG;
@@ -444,6 +509,7 @@ sub cmd_find {
             cmp( $b->{'source'} // $b->{'name'} // '' )
             or $a->{'address'} cmp $b->{'address'}
             or $a->{'import_ntime'} cmp $b->{'import_ntime'}
+            or ( $a->{'ref_path'} // '' ) cmp( $b->{'ref_path'} // '' )
     } @entries;
     foreach my $entry (@entries) {
         my $label
@@ -454,12 +520,48 @@ sub cmd_find {
             $entry->{'import_ntime'},
             $entry->{'converted_from_unsigned'}
             ? 'converted_from_unsigned'
-            : ()
+            : (),
+            $entry->{'converted'} ? 'converted' : (),
+            $entry->{'dropped'}   ? 'dropped'   : (),
         );
         say join ' ', $entry->{'address'}, $entry->{'size'} // '?',
             $entry->{'format'} // 'unknown', $label,
             $o{'all'} ? '[ ' . join( ' ', @stamp ) . ' ]' : ();
     }
+    return 0;
+}
+
+sub cmd_drop {
+    my $disk    = disk_arg(shift);
+    my $address = shift // fail('drop needs an address');
+    fail('drop : unexpected arguments') if @ARG;
+    my $r = reference_drop(
+        %common,
+        qw| disk |    => $disk,
+        qw| host |    => host_signer(),
+        qw| address | => $address,
+        qw| holder |  => $o{'holder'},
+    );
+    say_line( 'dropped ', $r->{'reference'}{'path'},
+        ' [ journal ', $r->{'seq'}, ' ; content and meta kept ]' );
+    return 0;
+}
+
+sub cmd_repair {
+    my $r = store_repair(
+        %common,
+        qw| disk | => disk_arg(shift),
+        qw| host | => host_signer(),
+    );
+    if ( not $r->{'adopted'}->@* ) {
+        say_line('repair : no unjournaled data');
+        return 0;
+    }
+    foreach my $item ( $r->{'adopted'}->@* ) {
+        say_line( 'adopted ', $item->{'type'}, ' ', $item->{'node'}, ' ',
+            $item->{'path'} // $item->{'name'} // '' );
+    }
+    say_line( 'repair journal ', $r->{'seq'} );
     return 0;
 }
 
@@ -522,8 +624,8 @@ sub cmd_confirm {
     return 0;
 }
 
-#,,..,.,.,.,,,,..,.,,,,,,,,,.,,.,,.,.,..,,.,.,..,,...,..,,...,...,,.,,,..,,.,,
-#E6GGKZM2XJPY2OPPR2SDTEEZTZJQHSOOMZISX5ZW3E3MPTZWTYY4SMCFO5EUXA3AT2J2BKBFFNOVS
-#\\\|WBPSUCDLNSH5PPTIDKCAECKKTO7OXVTHMSO3YDSPP27GOW4UWFD \ / AMOS7 \ YOURUM ::
-#\[7]HR6OC4R26MOJ3FH5RFEAMMNCPSKO62NVZGRZNNCDGKMPVUJA7CBA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,,,.,.,.,.,,..,,..,..,,.,,,,..,..,,...,...,,.,,,.,,,,,,,.,,,.,,
+#V56FC35N7OOE6SZZY77HRMYI2NTFKGOTMY7OT7VFP5DSPNWVQBXJ7DZWO7Q54KRN4NEUUFUOKD77E
+#\\\|PHKARWD362JHPCYROSKZPI5B4XJHRNSAW5L6EWRUIT3MH3SUO74 \ / AMOS7 \ YOURUM ::
+#\[7]GO4F2SZ2IB2JH2WTEZBJR4VH6GQQUDPJDH3ZNDUUEBKSFTR6O2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
