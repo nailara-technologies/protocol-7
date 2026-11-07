@@ -304,12 +304,56 @@ ok( ref $dot_reply eq qw| HASH |
     'dot syntax : no longer parsed as a condition [ reads as a zenka name ]'
 );
 
+say ':: terminate :hold:';
+
+## a start that got through : an earlier section left the queueing stubs ##
+my $started = sub {
+    ref $reply eq qw| HASH | and ( $reply->{'data'} // '' ) =~ m|job queued|;
+};
+my $now = 5000;
+$code{'base.time'} = sub {$now};
+profile( 'enabled' => 'cube', 'on-demand' => 'letsencr', 'disabled' => '' );
+my $hold = sub {
+    $data{'v7-zenki'}{'zenka'}{'hold'}{'letsencr'} = { 'until' => shift };
+};
+my $held      = sub { exists $data{'v7-zenki'}{'zenka'}{'hold'}{'letsencr'} };
+my @on_demand = (
+    'v7-zenki.zenka.cmd.start_once',
+    { 'args' => 'letsencr', 'session_id' => 77 }
+);
+
+$hold->(0);
+( $r, $reply ) = try_start(@on_demand);
+ok( $r eq 'refused' && $reply->{'data'} =~ m|on hold| && $held->(),
+    'on-demand start of a held zenka : refused, hold stays'
+);
+
+( $r, $reply ) = try_start( 'v7-zenki.zenka.cmd.start_once',
+    { 'args' => 'letsencr', 'session_id' => 77, 'recursion' => 1 } );
+ok( $started->() && !$held->(), 'as a dependency : starts, hold ended' );
+
+$hold->(0);
+( $r, $reply )
+    = try_start( 'v7-zenki.zenka.cmd.start',
+    { 'args' => 'letsencr', 'session_id' => 77 } );
+ok( $started->() && !$held->(), 'plain start : starts, hold ended' );
+
+$hold->( $now + 10 );
+( $r, $reply ) = try_start(@on_demand);
+ok( $r eq 'refused', 'timed hold still running : refused' );
+$now += 10;
+( $r, $reply ) = try_start(@on_demand);
+ok( $started->() && !$held->(), 'timed hold expired : on-demand starts' );
+
+( $r, $reply ) = try_start(@on_demand);
+ok( $started->(), 'no hold : on-demand path unchanged' );
+
 say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,,,,...,..,,,,,,..,,.,.,,,,,.,.,,,.,,,.,..,,...,...,..,,,,,,.,,,.,,,.,.,
-#HDDLNKBUR4XMBY2XX5P4R27EWXGXUII73ZNLEMVKJ66U3R2WNLEW3OJYNSMXNWQPVQQVE7H6VUIBO
-#\\\|T5H4USAYTOI467INL4RQIFXB3CU7U27PI7YVGC6WND2CPHLC6YC \ / AMOS7 \ YOURUM ::
-#\[7]DHQ6MOQORRKOP6OVZ5S6WKTIEI2C7QGKI5RVU5QQXD36JMDF7MAY 7  DATA SIGNATURE ::
+#,,..,...,,.,,..,,,..,,..,,,,,,,,,.,,,,,,,,.,,..,,...,..,,...,,..,..,,...,,..,
+#JHPJ73RTBRF6TWHTZEO2OG3YLMOGR5QHLNA3FU4V4GHKGFZK3WJ4WRKHEK7KXOD7PK3JD63ELPP6W
+#\\\|CV32SL35QGWWVTWV7GKWSHN4RJPD6SFVTEWXOER6RD456HZMEXR \ / AMOS7 \ YOURUM ::
+#\[7]5VZZL7UHSMO7CY6Q3KFCLBQGBNXCZTWW2TLJOWZTJ3ISQR3LGKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

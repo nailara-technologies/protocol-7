@@ -1,12 +1,18 @@
 ## [:< ##
 
 # name  = v7-zenki.zenka.cmd.terminate
-# param = [:wait-down:] <name[s]|instance[s]>
+# param = [:wait-down:] [:hold:[seconds:]] <name[s]|instance[s]>
 # descr = [manually] shutdown zenka instance[s]
 # note  = :wait-down: registers a notify_offline waiter first, then
-#         terminates ; replies once the instance is down
+#         terminates ; replies once the instance is down. :hold: refuses
+#         on-demand starts until released, by 'start', 'clear-manual' or
+#         the given seconds, or a v7-zenki restart. names only
 
-my $params    = $call->{'args'} // '';
+my $params = $call->{'args'} // '';
+my $hold_for;
+$hold_for = $LAST_PAREN_MATCH // 0
+    if $params =~ s{(?:^|\s):hold:(?:(\d+):)?(?=\s|$)}{};
+$params =~ s{^\s+}{};
 my $wait_down = ( $params =~ s{^:wait-down:\s+}{} ) ? 1 : 0;
 return {
     'mode' => qw| false |,
@@ -72,6 +78,26 @@ return {
         $not_found_name )
     }
     if $not_found;
+
+if ( defined $hold_for ) {
+    my @hold_names = split m| +|, $params;
+    return {
+        'mode' => qw| false |,
+        'data' => ':hold: takes zenka names [ nothing terminated ]'
+        }
+        if grep { $ARG =~ <regex.base.iid> or $ARG =~ m|\[| } @hold_names;
+    foreach my $hold_name (@hold_names) {
+        <v7-zenki.zenka.hold>->{$hold_name} = {
+            'at'    => <[base.ntime]>,
+            'until' => $hold_for ? <[base.time]> + $hold_for : 0
+        };
+        <v7-zenki.zenka.manually_stopped>->{$hold_name} = <[base.ntime]>;
+        <[base.logs]>->(
+            1,          ": << zenka '%s' on hold %s >>",
+            $hold_name, $hold_for ? "for $hold_for s" : 'until released'
+        );
+    }
+}
 
 if ($wait_down) {
     if ( not @instance_ids ) {
@@ -217,8 +243,8 @@ if ($count) {
     };
 }
 
-#,,,,,.,.,,,.,,,,,...,,..,.,,,.,.,..,,,..,...,..,,...,...,..,,.,,,..,,.,.,,..,
-#JYMU57VZS6JT7L7TI64WU37WR5XVXU3TS64IFDPM3773C5NHXR7XA345TLPP2RR3NYTYTYONJYSDS
-#\\\|CSCBCZK7JA7ZM52IVQS5GWP6BAH75M4MGEC4AMQAT4C6D2ZCPC2 \ / AMOS7 \ YOURUM ::
-#\[7]JAK3DXTNDZJ5TBHPJAQ2J3JFQZLSMRRAV2TIR3VBZL7UH4IHHUBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,.,,,..,,,.,,,.,,,,,,.,,,,.,,.,,..,,...,...,,..,...,,.,,.,,,.,,,
+#M3YLFSK32PRBYOE7OBGP43HGX5XSGXMQEXFYTC27SJ2HYN22CO3FOTGVKGTCH77I4ZAQQ2GGKUXEU
+#\\\|RXRVML72ZCIKJHRTI2RQR6NFBIDMGLVOLUVFTU7HESIMXTWO26O \ / AMOS7 \ YOURUM ::
+#\[7]DGKQ4IISRCQETJNZDX7LVRYIV4TV5AIZ2FJKR5BJOGHQFOY3NOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -271,8 +271,9 @@ codec [ `read_node`, `write_node`, `verify_node`, `write_meta` ]. upgrade :
 epoch is the window's previous the old form stays on disk, readable ; a
 later `upgrade` \ `confirm`, once the window moved, releases it -- the
 directory is removed and the state forgets `previous`. the old form is
-released only after a confirmed switch. format 1 ships no step -- the
-proof is `bin/test-scripts/test-n7fs-convert.pl` [ a test-only format 2 ].
+released only after a confirmed switch. the production 1 -> 2 step is built ;
+its signed records and provenance marker are specified in
+[ `N7FS-FORMAT-2.md` ] and covered by `bin/test-scripts/test-n7fs-convert.pl`.
 
 ## the parent signer plug [ host-root ]
 
@@ -280,10 +281,11 @@ the signer interface is `public()` [ 32 bytes ] + `sign( msg )` [ 64
 bytes ] ; secret key bytes never cross it. `-parent-cmd '<argv>'` runs an
 external signer, list-form exec, no shell : `<argv> public` prints the
 base32 public key, `<argv> sign <label>` reads the base32 message on stdin
-and prints the base32 signature. host-root plugs in as a v7-zenki command
-behind p7c [ e.g. `-parent-cmd 'p7c v7-zenki.n7fs-sign'` -- not written
-yet ] that MUST accept only the n7fs labels above : host-root never becomes
-a general signing oracle. anchors then = the host-root public key.
+and prints the base32 signature. it stays the generic plug [ tests, tokens,
+outside signers ]. host-root is planned as a native client signer in an
+AMOS7 module [ todo 6RH, not written yet ] with a v7-zenki command that MUST
+accept only the n7fs labels above : host-root never becomes a general
+signing oracle. anchors then = the host-root public key.
 
 ## open
 
@@ -292,11 +294,13 @@ a general signing oracle. anchors then = the host-root public key.
   bytes in AMOS7::CHKSUM
 - BMW-L13 at the AMOS7 level [ replaces the stand-in through a step ]
 - chunking, packing small files, a prefix level for large `<amos>` dirs
-- what the store key signs [ meta, nodes ]
+- the store key signs meta and state : decided and built in format 2
+  [ `N7FS-FORMAT-2.md` ] ; detecting deleted meta or whole nodes still needs
+  references \ a manifest
 - witness beyond this host [ the network's view, spec section 4 ]
 
-#,,.,,..,,...,,,.,.,,,,..,,,.,,.,,,,,,...,.,,,..,,...,...,...,.,.,.,.,...,,,,,
-#MNO6FUPKPDKGU3ZLJ22KITFFWDK3JEVJ6WBNCEWB73NBL2U3CCLA2WYHEMNCZC2FHJS46BC6VB2HC
-#\\\|S5BKD5QWVT7I5C3RPMFT4KBN4Q4YMI5VI2CCYTKGCRHXV6CMUQG \ / AMOS7 \ YOURUM ::
-#\[7]BDJ2PEUKMXKVGXBQ5YDRKEPM4AASHKEH2YMDFN2X6MHM3KPDVYCY 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,,,,.,,..,,.,,,.,,,.,,,.,.,.,.,..,,...,...,,,.,,.,,.,,,...,..,,
+#5I4ADLM5S4TU7YHAPJ6W6IY4KJDHKUC3EHF4LNMWBXO2SQVKYLAFU4IJ5CSGO44EXTRA55LOV3F6E
+#\\\|QDPMBDZQLTX7ULNWXQPUFBEIXMQEJBJSY7KEPFEFJPAXB2Q7SCU \ / AMOS7 \ YOURUM ::
+#\[7]BPATTWMJTXIKD3XNQ7AUZKNWUOHCN3FCR6GW5FQJWV6INYNRRUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,14 +4,21 @@
 # descr = unload if models says the render lease is no longer ours
 
 my $reply = shift // {};
-my ($mode) = <[base.reply.mode_text]>->($reply);
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 return TRUE if $mode eq qw| true |;
 return TRUE if ( <invoke-web.gpu_lease.holder> // '' ) ne qw| invoke-web |;
+
+## only models saying so ends the lease : an unreachable models is no ##
+## refusal                                                            ##
+if ( $text ne 'not holder' ) {
+    <[base.logs]>->( 2, ': gpu lease renewal unanswered [ %s ]', $text );
+    return TRUE;
+}
 <[base.logs]>->( 0, ': gpu lease renewal refused : unloading render models' );
 return <[invoke-web.gpu_lease.unload]>->( qw| coding |, qw| handover | );
 
-#,,.,,,..,...,,,,,...,..,,...,,.,,,.,,,,.,.,,,..,,...,...,..,,,,.,...,,,.,.,.,
-#ZRQ3AHOGXFBHWUUGQEXVF3V7P2PSTU3SQTU2OH42C24B5AJ5J6X3PXWEFXPZ3HSAHK2MCQNTWFRDM
-#\\\|4PN2MZEVOYF5OFANJFOTAJKFSLDM47LN3R7G4L7GTTAUEI3PW7D \ / AMOS7 \ YOURUM ::
-#\[7]MWJRO2G5MUYJLTPUNWXZFWWSE4IIZAWNNIR74TP4HKMAA4FVOCDI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,.,,..,,.,,,..,,.,.,,..,.,,,,..,..,,...,...,,,,,,.,,...,,,.,.,.,
+#4FGPC3UUPNWO5DHZNFCPPVTFVRHGOJKNG4YLP25LU5PMNGYDLKFRW63F42PWBIX3CX4JAW5SNTC6C
+#\\\|Z6BHDGX4REMAAEGXJQVWQKI2OMVMX4ZPMHCAWDQW3VBG3BTQJAA \ / AMOS7 \ YOURUM ::
+#\[7]OHAWJRWU2GUT5IV5IS6DJZ55DJDC4GDEQSULJPMQOF44WFPAAYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

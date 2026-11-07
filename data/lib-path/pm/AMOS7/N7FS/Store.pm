@@ -2,15 +2,15 @@
 
 package AMOS7::N7FS::Store;    ##############################################
 
-## N7FS version 1 : content nodes and assimilate.
+## N7FS : content nodes and assimilate.
 ##
 ## <root>/<disk>/<epoch>/<amos>/<bmw>/content  /meta/<ntime14>.<tail8>.meta
 ##
-## content : the file's bytes, unchanged [ no chunking in format 1 ]. meta :
-## one plain 'P7FN' record per changed import
-## [ name, format, size, mtime, import ntime, source .. ] -- a new source of
-## the same content adds a meta file ; an unchanged repeat keeps the newest
-## one, nothing is rewritten [ sync = union of files ].
+## content : the file's bytes, unchanged [ no chunking in format 1 or 2 ].
+## meta : one 'P7FN' record per changed import
+## [ plain in format 1, signed by the delegated store key in format 2 ]. a new
+## source of the same content adds a meta file ; an unchanged repeat keeps the
+## newest one, nothing is rewritten [ sync = union of files ].
 ##
 ## node formats are CODECS [ read \ write \ verify ] keyed by the store format
 ## of the state record ; AMOS7::N7FS::Convert chains them.
@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.JWI5ORY |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.MKZ22GQ |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -54,13 +54,14 @@ use Digest::BMW;
 use Cwd           qw| abs_path |;
 use Sys::Hostname qw| hostname |;
 use AMOS7::N7FS   qw| root_dir host_dir ntime_now ntime14 b32 random_bytes
-    plain_record_pack plain_record_parse write_new_file
-    write_new_file_stream read_file make_dirs publish_dir remove_tree
-    refuse fault |;
+    signed_record_pack signed_record_parse plain_record_pack plain_record_parse
+    write_new_file write_new_file_stream read_file make_dirs publish_dir
+    remove_tree refuse fault |;
 use AMOS7::N7FS::Sum qw| bmw384_fh bmw_b32 amos_of_bmw epoch_int epoch_num
     epoch_b32 epoch_from_b32 |;
+use AMOS7::N7FS::Sign qw| verify |;
 use AMOS7::N7FS::Disk qw| disk_require_attached disk_read_id state_read
-    state_write |;
+    state_write store_key_signer witness_check_format |;
 
 our $BMW_RE  = qr{\A[A-Z2-7]{77}\z};
 our $AMOS_RE = qr{\A[A-Z2-7]{7}\z};
@@ -194,6 +195,159 @@ register_codec(
     }
 );
 
+## format 2 : the delegated store key signs every meta record. the payload is
+## bound to disk + epoch + amos + bmw ; verification uses only the public key
+## from the parent-signed disk id
+sub _v2_id {
+    my $context = shift;
+    refuse('format 2 : no verified disk identity')
+        if ref $context ne qw| HASH |
+        or ref $context->{'id'} ne qw| HASH |
+        or length( $context->{'id'}{'store_pub'} // '' ) != 32;
+    return $context->{'id'};
+}
+
+sub _v2_binding {
+    my ( $dir, $meta, $addr, $context ) = @ARG;
+    my $id   = _v2_id($context);
+    my %bind = (
+        qw| disk |  => $id->{'disk'},
+        qw| epoch | => epoch_b32( $addr->{'epoch'} ),
+        qw| amos |  => $addr->{'amos'},
+        qw| bmw |   => $addr->{'bmw'},
+    );
+    foreach my $field ( keys %bind ) {
+        refuse( 'node %s : meta %s does not match its location',
+            $dir, $field )
+            if defined $meta->{$field} and $meta->{$field} ne $bind{$field};
+    }
+    return %bind;
+}
+
+sub _v2_write_meta {
+    my ( $dir, $meta, $addr, $context ) = @ARG;
+    refuse('format 2 : meta write needs the delegated store key')
+        if ref $context ne qw| HASH |
+        or not ref $context->{'store'};
+    my %bind = _v2_binding( $dir, $meta, $addr, $context );
+    my $name = sprintf qw| %s.%s.meta |, $meta->{'import_ntime'},
+        b32( random_bytes(5) );
+    write_new_file(
+        "$dir/meta/$name",
+        signed_record_pack(
+            qw| meta |, { %{$meta}, %bind },
+            $context->{'store'}, 2
+        )
+    );
+    return $name;
+}
+
+sub _v2_write_node {
+    my ( $dir, $node, $context ) = @ARG;
+    my $addr = $node->{'addr'};
+    my ( $src, $st ) = _open_regular( $node->{'content_path'} );
+    my $ctx = Digest::BMW->new(384);
+    write_new_file_stream(
+        "$dir/content",
+        sub {
+            my $out = shift;
+            while (1) {
+                my $got = sysread( $src, my $buf, 1048576 );
+                die "read : $OS_ERROR\n" if not defined $got;
+                last                     if $got == 0;
+                $ctx->add($buf);
+                print {$out} $buf or die "$OS_ERROR\n";
+            }
+        },
+        0400
+    );
+    close $src;
+    refuse( 'content changed while copying [ %s ]', $node->{'content_path'} )
+        if bmw_b32( $ctx->digest ) ne $addr->{'bmw'};
+
+    make_dirs( "$dir/meta", 0700 );
+    _v2_write_meta( $dir, $ARG, $addr, $context ) for $node->{'metas'}->@*;
+    return TRUE;
+}
+
+sub _v2_read_meta {
+    my ( $dir, $name, $addr, $context ) = @ARG;
+    my $id    = _v2_id($context);
+    my $bytes = read_file("$dir/meta/$name");
+    refuse( 'node %s : meta %s is unsigned [ format 2 required ]',
+        $dir, $name )
+        if not defined $bytes
+        or length $bytes < 5
+        or substr( $bytes, 0, 5 ) ne "P7FN\x02";
+
+    my $rec = eval { signed_record_parse( qw| meta |, $bytes ) };
+    if ( not $rec ) {
+        my $err = $EVAL_ERROR // 'invalid record';
+        chomp $err;
+        $err =~ s|\An7fs : ||;
+        refuse( 'node %s : meta %s : %s', $dir, $name, $err );
+    }
+    refuse( 'node %s : meta %s : signed by a foreign store key', $dir, $name )
+        if $rec->{'signer_pub'} ne $id->{'store_pub'};
+    refuse( 'node %s : meta %s : store signature does not verify',
+        $dir, $name )
+        if not verify( $id->{'store_pub'}, $rec->{'signed'}, $rec->{'sig'} );
+
+    my $meta = $rec->{'payload'};
+    my %bind = (
+        qw| disk |  => $id->{'disk'},
+        qw| epoch | => epoch_b32( $addr->{'epoch'} ),
+        qw| amos |  => $addr->{'amos'},
+        qw| bmw |   => $addr->{'bmw'},
+    );
+    foreach my $field ( keys %bind ) {
+        refuse( 'node %s : meta %s : %s does not match its location',
+            $dir, $name, $field )
+            if ( $meta->{$field} // '' ) ne $bind{$field};
+    }
+    return $meta;
+}
+
+sub _v2_read_node {
+    my ( $dir, $addr, $context ) = @ARG;
+    my @metas;
+    foreach my $name ( _list_dir("$dir/meta") ) {
+        next if $name =~ $TMP_RE;
+        refuse( 'node %s : unexpected meta entry %s', $dir, $name )
+            if $name !~ $META_RE;
+        push @metas, _v2_read_meta( $dir, $name, $addr, $context );
+    }
+    return { qw| content_path | => "$dir/content", qw| metas | => \@metas };
+}
+
+sub _v2_verify_node {
+    my ( $dir, $addr, $context ) = @ARG;
+    my ( $fh,     $st )   = _open_regular("$dir/content");
+    my ( $digest, $size ) = bmw384_fh($fh);
+    close $fh;
+    refuse( 'node %s : content does not match its bmw', $dir )
+        if bmw_b32($digest) ne $addr->{'bmw'};
+    refuse( 'node %s : bmw does not match its amos', $dir )
+        if amos_of_bmw( $addr->{'bmw'} ) ne $addr->{'amos'};
+
+    my $node = _v2_read_node( $dir, $addr, $context );
+    refuse( 'node %s : no meta record', $dir ) if not $node->{'metas'}->@*;
+    foreach my $meta ( $node->{'metas'}->@* ) {
+        refuse( 'node %s : meta does not describe this content', $dir )
+            if ( $meta->{'size'} // -1 ) != $size;
+    }
+    return $size;
+}
+
+register_codec(
+    2,
+    {   qw| write_node |  => \&_v2_write_node,
+        qw| read_node |   => \&_v2_read_node,
+        qw| verify_node | => \&_v2_verify_node,
+        qw| write_meta |  => \&_v2_write_meta,
+    }
+);
+
 ##[ NODES ]###################################################################
 
 sub node_path {
@@ -203,9 +357,9 @@ sub node_path {
 }
 
 sub node_verify {
-    my ( $disk_path, $addr, $format ) = @ARG;
+    my ( $disk_path, $addr, $format, $id ) = @ARG;
     return codec($format)->{'verify_node'}
-        ->( node_path( $disk_path, $addr ), $addr );
+        ->( node_path( $disk_path, $addr ), $addr, { qw| id | => $id } );
 }
 
 ## every node under the given epochs : [ { epoch amos bmw path } .. ]. an
@@ -242,13 +396,16 @@ sub store_nodes {
 sub meta_entries {
     my %opt   = @ARG;
     my $id    = disk_read_id(%opt);
-    my $state = state_read( $id->{'path'} );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    witness_check_format( %opt, qw| id | => $id, qw| state | => $state )
+        if ref $opt{'host'};
     my $codec = codec( $state->{'store_format'} );
     my @entries;
 
     foreach my $node ( store_nodes( $id->{'path'}, $state->{'epochs'}->@* ) )
     {
-        my $read = $codec->{'read_node'}->( $node->{'path'} );
+        my $read = $codec->{'read_node'}
+            ->( $node->{'path'}, $node, { qw| id | => $id } );
         foreach my $meta ( $read->{'metas'}->@* ) {
             refuse( 'node %s : meta address does not match', $node->{'path'} )
                 if ( $meta->{'amos'} // '' ) ne $node->{'amos'}
@@ -275,9 +432,12 @@ sub meta_entries {
 sub store_verify {
     my %opt   = @ARG;
     my $id    = disk_read_id(%opt);
-    my $state = state_read( $id->{'path'} );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    witness_check_format( %opt, qw| id | => $id, qw| state | => $state )
+        if ref $opt{'host'};
     my @nodes = store_nodes( $id->{'path'}, $state->{'epochs'}->@* );
-    node_verify( $id->{'path'}, $ARG, $state->{'store_format'} ) for @nodes;
+    node_verify( $id->{'path'}, $ARG, $state->{'store_format'}, $id )
+        for @nodes;
     return { qw| nodes | => scalar @nodes, qw| state | => $state };
 }
 
@@ -407,10 +567,12 @@ sub assimilate {
             or not -d $index_base;
     }
 
-    my $id    = disk_require_attached(%opt);
-    my $state = state_read( $id->{'path'} );
-    my $codec = codec( $state->{'store_format'} );
-    my $epoch = write_epoch($state);
+    my $id      = disk_require_attached(%opt);
+    my $store   = store_key_signer( %opt, qw| id | => $id );
+    my $state   = state_read( $id->{'path'}, $id->{'store_pub'} );
+    my $codec   = codec( $state->{'store_format'} );
+    my $epoch   = write_epoch($state);
+    my $context = { qw| id | => $id, qw| store | => $store };
 
     my ( @items, @skipped );
     if ( defined $opt{'index'} ) {
@@ -467,8 +629,8 @@ sub assimilate {
         my $tmp;
         my $ok = eval {
             _assimilate_one(
-                \%opt, $id,     $state, $codec, $epoch,
-                $item, \%entry, \$tmp,  $remove
+                \%opt,  $id,   $state,  $codec, $context,
+                $epoch, $item, \%entry, \$tmp,  $remove
             );
             1;
         };
@@ -484,15 +646,16 @@ sub assimilate {
             $report{'failed'}++;
         }
         push $report{'entries'}->@*, \%entry;
-        $state = state_read( $id->{'path'} ) if not $opt{'dry_run'};
+        $state = state_read( $id->{'path'}, $id->{'store_pub'} )
+            if not $opt{'dry_run'};
     }
     return \%report;
 }
 
 ## newest record of this source : duplicates share a node, each keeps its own
 sub _newest_meta {
-    my ( $codec, $dir, $source ) = @ARG;
-    my $node = $codec->{'read_node'}->($dir);
+    my ( $codec, $dir, $source, $addr, $context ) = @ARG;
+    my $node = $codec->{'read_node'}->( $dir, $addr, $context );
     my $newest;
     foreach my $meta ( $node->{'metas'}->@* ) {
         next if ( $meta->{'source'} // '' ) ne ( $source // '' );
@@ -524,8 +687,9 @@ sub _meta_unchanged {
 }
 
 sub _assimilate_one {
-    my ( $opt, $id, $state, $codec, $epoch, $item, $entry, $tmp_ref, $remove )
-        = @ARG;
+    my ($opt,   $id,   $state, $codec,   $context,
+        $epoch, $item, $entry, $tmp_ref, $remove
+    ) = @ARG;
     my $path = $item->{'path'};
 
     ## pass 1 : identity + content hash of the source ##
@@ -559,6 +723,7 @@ sub _assimilate_one {
         qw| mtime |        => $st->[9],
         qw| import_ntime | => ntime14($ntime),
         qw| epoch_num |    => epoch_num($ntime),
+        qw| epoch |        => epoch_b32($epoch),
         qw| source |       => $abs,
         qw| host |         => hostname(),
         qw| amos |         => $addr->{'amos'},
@@ -571,7 +736,8 @@ sub _assimilate_one {
         if defined $item->{'index_name'};
 
     my $unchanged = $exists
-        && _meta_unchanged( _newest_meta( $codec, $final, $meta{'source'} ),
+        && _meta_unchanged(
+        _newest_meta( $codec, $final, $meta{'source'}, $addr, $context ),
         \%meta );
     if ( $opt->{'dry_run'} ) {
         $entry->{'status'}
@@ -585,19 +751,21 @@ sub _assimilate_one {
     ## the epoch enters the state before its first node ##
     ## [ readers look there ]                           ##
     if ( not grep { $ARG == $epoch } $state->{'epochs'}->@* ) {
-        state_write( $id->{'path'},
-            { %{$state}, qw| epochs | => [ $state->{'epochs'}->@*, $epoch ] }
+        state_write(
+            $id->{'path'},
+            { %{$state}, qw| epochs | => [ $state->{'epochs'}->@*, $epoch ] },
+            $context->{'store'}
         );
     }
 
     if ($exists) {
         ## dedup : verify first ; unchanged meta is kept, a new source is ##
         ## added                                                          ##
-        $codec->{'verify_node'}->( $final, $addr );
+        $codec->{'verify_node'}->( $final, $addr, $context );
         if ($unchanged) {
             $entry->{'status'} = qw| unchanged |;
         } else {
-            $codec->{'write_meta'}->( $final, \%meta );
+            $codec->{'write_meta'}->( $final, \%meta, $addr, $context );
             $entry->{'status'} = qw| dedup |;
         }
     } else {
@@ -610,7 +778,8 @@ sub _assimilate_one {
             {   qw| addr |         => $addr,
                 qw| content_path | => $path,
                 qw| metas |        => [ \%meta ],
-            }
+            },
+            $context
         );
         fault(qw| assimilate:before-publish |);
         publish_dir( ${$tmp_ref}, $final );
@@ -620,7 +789,7 @@ sub _assimilate_one {
     fault(qw| assimilate:after-publish |);
 
     ## verify the stored node, then the source again ##
-    $codec->{'verify_node'}->( $final, $addr );
+    $codec->{'verify_node'}->( $final, $addr, $context );
     my ( $fh2, $st2 ) = _open_regular($path);
     my ($digest2) = bmw384_fh($fh2);
     close $fh2;
@@ -652,8 +821,8 @@ sub _assimilate_one {
 
 1;
 
-#,,,.,,,,,...,...,,..,...,...,,.,,,..,...,...,..,,...,...,,,.,.,.,.,.,..,,.,.,
-#PEHFRUEDETO7OLPM65O7SQS4AAVQWBZLPQS5LSP4BZTOMOWZDQ2MJTFPTUKHKIOK2GTAM3KCMDQRQ
-#\\\|FYXVAI3KVBRGEQZNRQNZXEMP5DMKRSQLQ6RO4SLBD6CUMMG3LNZ \ / AMOS7 \ YOURUM ::
-#\[7]MNZEMLJKNL2IRN573H6XI3GEP3EKBRMKVYSIQGZWOLT25WODSIBY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,,..,..,,,..,...,,,.,,..,...,..,,...,...,...,,..,...,...,,.,,
+#XBGQVDKANQP6HXFA2Z6SESW6UCNIBYOQE5AHW4MB7T3Z7EIQGUCVLUNZESNJ7AX2546VWCLXEHZOU
+#\\\|LJ2HKF3F4HWFARARCIBUEEDLAZKRWRHLGWUXVOH44IEHNTKIYXG \ / AMOS7 \ YOURUM ::
+#\[7]YH5BWHXR4I2U7G57S5SEPGJINQ3UNPCDFAEC4G3OEGKAOAH4WEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

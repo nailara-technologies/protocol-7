@@ -2,7 +2,7 @@
 
 package AMOS7::N7FS::Convert;    ############################################
 
-## N7FS version 1 : store format conversion [ spec section 6 ].
+## N7FS : store format conversion [ spec section 6 ].
 ##
 ## one STEP per version [ from -> from + 1 ], chained for older stores. an
 ## upgrade reads every node in the old form and writes the new form BESIDE it
@@ -21,8 +21,9 @@ package AMOS7::N7FS::Convert;    ############################################
 ## any failure before the switch removes the partial new epoch
 ## [ created by this run only ] and leaves the state on the old format.
 ##
-## version 1 ships no step : the registry is the interface. a step needs the
-## codec of its target format [ AMOS7::N7FS::Store::register_codec ].
+## the 1 -> 2 step marks unauthenticated origin and rebinds meta to the new
+## epoch. a step needs the codec of its target format
+## [ AMOS7::N7FS::Store::register_codec ].
 
 use v5.32.0;
 use utf8;
@@ -38,7 +39,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %STEP |;
 
-our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.NQRRITA |;
+our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.RKJQX6A |;
 
 @EXPORT_OK = qw|
     register_step
@@ -47,10 +48,12 @@ our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.NQRRITA |;
     confirm
     |;
 
+use JSON::PP;
 use AMOS7::N7FS qw| ntime_now b32 random_bytes make_dirs publish_dir
     remove_tree refuse fault |;
-use AMOS7::N7FS::Sum   qw| epoch_int epoch_b32 epoch_next epoch_window |;
-use AMOS7::N7FS::Disk  qw| disk_require_attached state_read state_write |;
+use AMOS7::N7FS::Sum  qw| epoch_int epoch_b32 epoch_next epoch_window |;
+use AMOS7::N7FS::Disk qw| disk_require_attached state_read state_write
+    store_key_signer witness_note_format |;
 use AMOS7::N7FS::Store qw| codec store_nodes node_path write_epoch |;
 
 ## $transform->( $node, { from, to } ) returns the node for format $to
@@ -76,13 +79,30 @@ sub steps {
     return @chain;
 }
 
+register_step(
+    1,
+    sub {
+        my ( $node, $step ) = @ARG;
+        $node->{'metas'} = [
+            map {
+                {
+                    %{$ARG},
+                        qw| converted_from_unsigned | => JSON::PP::true,
+                        qw| epoch | => epoch_b32( $node->{'addr'}{'epoch'} ),
+                }
+            } $node->{'metas'}->@*
+        ];
+        return $node;
+    }
+);
+
 ## $refuse_pending : an upgrade may not run while the old form is still in the
 ## window [ one previous at a time ]. the window is centered on the CURRENT
 ## epoch [ the clock -- epoch_dec ], not on the write epoch [ write_epoch is
 ## never older than the active epochs, which would push the old form out of
 ## the window at the switch already ]. returns the state, released or not
 sub _window_release {
-    my ( $id, $state, $refuse_pending ) = @ARG;
+    my ( $id, $state, $refuse_pending, $store ) = @ARG;
     return $state
         if ref $state->{'previous'} ne qw| HASH |
         or not $state->{'confirmed'};
@@ -99,7 +119,7 @@ sub _window_release {
     remove_tree( "$id->{'path'}/" . epoch_b32($ARG) ) for @gone;
     my %next = %{$state};
     delete $next{'previous'};
-    state_write( $id->{'path'}, \%next );
+    state_write( $id->{'path'}, \%next, $store );
     return \%next;
 }
 
@@ -107,10 +127,12 @@ sub _window_release {
 ## [ format, default : as far as the registered steps reach ], epoch
 ## [ a test override ; default : next of the window ]
 sub upgrade {
-    my %opt   = @ARG;
-    my $id    = disk_require_attached(%opt);
-    my $state = state_read( $id->{'path'} );
-    my $from  = $state->{'store_format'};
+    my %opt     = @ARG;
+    my $id      = disk_require_attached(%opt);
+    my $store   = store_key_signer( %opt, qw| id | => $id );
+    my $state   = state_read( $id->{'path'}, $id->{'store_pub'} );
+    my $from    = $state->{'store_format'};
+    my $context = { qw| id | => $id, qw| store | => $store };
 
     refuse( 'a previous upgrade [ format %d ] awaits confirm',
         $state->{'previous'}{'store_format'} )
@@ -118,7 +140,7 @@ sub upgrade {
         and not $state->{'confirmed'};
 
     ## a confirmed previous : release it once it leaves the window ##
-    $state = _window_release( $id, $state, TRUE );
+    $state = _window_release( $id, $state, TRUE, $store );
 
     my @chain = steps( $from, $opt{'target'} );
     return { qw| from | => $from, qw| to | => $from, qw| nodes | => 0 }
@@ -140,8 +162,9 @@ sub upgrade {
     my @nodes = store_nodes( $id->{'path'}, $state->{'epochs'}->@* );
     my @read;
     foreach my $n (@nodes) {
-        $old->{'verify_node'}->( $n->{'path'}, $n );
-        push @read, [ $n, $old->{'read_node'}->( $n->{'path'} ) ];
+        $old->{'verify_node'}->( $n->{'path'}, $n, $context );
+        push @read,
+            [ $n, $old->{'read_node'}->( $n->{'path'}, $n, $context ) ];
     }
 
     ## write beside ##
@@ -168,17 +191,18 @@ sub upgrade {
             make_dirs( $final =~ s|/[^/]+\z||r, 0700 );
             my $tmp = sprintf qw| %s.tmp.%s |, $final, b32( random_bytes(5) );
             make_dirs( $tmp, 0700 );
-            $new->{'write_node'}->( $tmp, $node );
+            $new->{'write_node'}->( $tmp, $node, $context );
             publish_dir( $tmp, $final );
             fault(qw| convert:after-node |);
-            $new->{'verify_node'}->( $final, $node->{'addr'} );
+            $new->{'verify_node'}->( $final, $node->{'addr'}, $context );
         }
 
         ## verify the whole new epoch once more, by listing it ##
         my @written = store_nodes( $id->{'path'}, $epoch );
         refuse( 'converted %d of %d nodes', scalar @written, scalar @nodes )
             if @written != @nodes;
-        $new->{'verify_node'}->( $ARG->{'path'}, $ARG ) for @written;
+        $new->{'verify_node'}->( $ARG->{'path'}, $ARG, $context )
+            for @written;
         fault(qw| convert:before-switch |);
         1;
     };
@@ -201,7 +225,8 @@ sub upgrade {
         qw| confirmed | => FALSE,
         qw| converted | => "$from->$to",
     );
-    state_write( $id->{'path'}, \%next );
+    state_write( $id->{'path'}, \%next, $store );
+    witness_note_format( %opt, qw| id | => $id, qw| state | => \%next );
 
     return {
         qw| from |  => $from,
@@ -214,19 +239,22 @@ sub upgrade {
 ## the new form verified again ; the old form released once it leaves the
 ## window [ _window_release ]
 sub confirm {
-    my %opt   = @ARG;
-    my $id    = disk_require_attached(%opt);
-    my $state = state_read( $id->{'path'} );
-    $state = _window_release( $id, $state, FALSE );
+    my %opt     = @ARG;
+    my $id      = disk_require_attached(%opt);
+    my $store   = store_key_signer( %opt, qw| id | => $id );
+    my $state   = state_read( $id->{'path'}, $id->{'store_pub'} );
+    my $context = { qw| id | => $id, qw| store | => $store };
+    $state = _window_release( $id, $state, FALSE, $store );
     refuse('nothing to confirm')
         if ref $state->{'previous'} ne qw| HASH |
         or $state->{'confirmed'};
 
     my $codec = codec( $state->{'store_format'} );
     my @nodes = store_nodes( $id->{'path'}, $state->{'epochs'}->@* );
-    $codec->{'verify_node'}->( $ARG->{'path'}, $ARG ) for @nodes;
+    $codec->{'verify_node'}->( $ARG->{'path'}, $ARG, $context ) for @nodes;
 
-    state_write( $id->{'path'}, { %{$state}, qw| confirmed | => TRUE } );
+    state_write( $id->{'path'}, { %{$state}, qw| confirmed | => TRUE },
+        $store );
     return {
         qw| nodes |  => scalar @nodes,
         qw| format | => $state->{'store_format'}
@@ -235,8 +263,8 @@ sub confirm {
 
 1;
 
-#,,.,,,,.,...,..,,,,.,..,,,..,,.,,.,.,,..,,.,,..,,...,...,,,.,...,..,,.,.,.,,,
-#UL4BIUJCLY2YHWI5VNNFQ2I22HUKYOZ5JGGXN3Z2CYWQTB6OXSINJMYAANUPRVTZRH5PLPZC3KRBE
-#\\\|DSPRVQCKGLIGOGUAHAEIXK3X2WONRIMK65XOOXVJM7PGJMHBSHJ \ / AMOS7 \ YOURUM ::
-#\[7]LWIMF6HIV2OTGQMG3LAHA22G3EF3JBSD7NJEW3Q3I45GF57E5YDA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,..,,...,,,.,,,.,,,,,.,.,..,,..,,...,..,,,.,,.,.,,.,,,..,..,,
+#CSCQOTGZCCVQZGO2T3UHOWL6YD7SLTW3EOYMCAPPYD3OXSYH42RBRLGNNCDC3VIHC75JGRBWRREAK
+#\\\|XFU5ISDN32DDU6PO3AMXZDUUPTNDFNWPMIGPK4JUU3OSBM6LK7L \ / AMOS7 \ YOURUM ::
+#\[7]55ZHHKIUEEEWO7WIQUBTZ3P2XOM6GDWUN5NH6GM4WXAGQYWAFABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

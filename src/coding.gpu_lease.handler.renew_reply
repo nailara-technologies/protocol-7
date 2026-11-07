@@ -4,14 +4,21 @@
 # descr = stop and requeue if models says this lease is no longer ours
 
 my $reply = shift // {};
-my ($mode) = <[base.reply.mode_text]>->($reply);
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 return TRUE if $mode eq qw| true |;
 return TRUE if ( <coding.gpu_lease.holder> // '' ) ne qw| coding |;
+
+## only models saying so ends the lease : an unreachable models is no ##
+## refusal                                                            ##
+if ( $text ne 'not holder' ) {
+    <[base.logs]>->( 2, ': gpu lease renewal unanswered [ %s ]', $text );
+    return TRUE;
+}
 <[base.logs]>->( 0, ': gpu lease renewal refused : yielding gpu residency' );
 return <[coding.cmd.gpu-lease-yield]>->( { 'args' => qw| coding | } );
 
-#,,.,,,.,,..,,,,,,.,,,,,,,..,,.,,,.,,,...,.,,,..,,...,.,.,.,.,,,,,,.,,,..,...,
-#TYUDLG274SZA6MUR6UCPKWGSKHNKGWZRCYWPTCYSNTDG5T2LGAFPI524SIJUM4PSRCPDZY5LUHSKK
-#\\\|5KNFXLNAX3VSBVIWA5RHSJ6GZ7HA3BRQOPFPIOJIC6ZWVVJGKKM \ / AMOS7 \ YOURUM ::
-#\[7]TNRXIF4OMTMDH53DVJ45MERKXWTHZS3DIWHDZ3PZOF24GEBSAEDA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,..,,..,,.,,..,,,,,,,.,,,.,,,,,,..,,...,...,...,,,.,.,.,,..,..,,
+#Y4CT45PBYMHIWIE3GONT44P3SYNJICNJNCC64J6RLSVB3POPQVYBZW4LNQQBK2G5RM4M2SGCWT3XG
+#\\\|AR6E2XTJJT26URBDMUFMGXYQ5UTVP5Z2KPVTNS7IXBGV5O3WBFT \ / AMOS7 \ YOURUM ::
+#\[7]SGD5ZPNGODKFQZFT2TX2XNY3NFFNLISJ7JUECGQRRL4LUTCUGAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

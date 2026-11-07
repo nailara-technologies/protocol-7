@@ -2,10 +2,11 @@
 
 package AMOS7::N7FS;    #####################################################
 
-## N7FS version 1 : common layer -- paths, records, synced writes.
+## N7FS : common layer -- paths, records, synced writes.
 ##
 ## format : data/md/design/N7FS-SPEC.md [ the as-built notes are in
-## data/md/design/N7FS-FORMAT-1.md -- keep both in step with the code ]
+## data/md/design/N7FS-FORMAT-1.md and N7FS-FORMAT-2.md -- keep them in step
+## with the code ]
 ##
 ## standalone like AMOS7::Vault [ no zenka, no running network ]. the write
 ## order is the vault's
@@ -30,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.S5AOMKI |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.KKGEHOQ |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -75,8 +76,9 @@ our %MAGIC = (
     qw| meta |  => qw| P7FN |,    ## node meta [ one per import ] ##
 );
 
-## one label per signed kind : no signature is valid as another kind, and none
-## collides with host-root's 'p7 delegation v1' statements
+## one label per signed kind and record format : no signature is valid as
+## another kind or version, and none collides with host-root's  'p7 delegation
+## v1' statements
 our %LABEL = (
     qw| id |    => 'p7 n7fs disk id v1',
     qw| mount | => 'p7 n7fs mount v1',
@@ -84,10 +86,21 @@ our %LABEL = (
     qw| state | => 'p7 n7fs state v1',
     qw| meta |  => 'p7 n7fs meta v1',
 );
+our %LABEL_VERSION = (
+    qw| state | => { 2 => 'p7 n7fs state:0001' },
+    qw| meta |  => { 2 => 'p7 n7fs meta:0001' },
+);
 
 ## record formats this code reads [ per kind ; the store format is a field of
 ## the state record, converters register further node formats ]
 our %RECORD_FORMAT = map { $ARG => { 1 => TRUE } } keys %MAGIC;
+$RECORD_FORMAT{'state'}{2} = TRUE;
+$RECORD_FORMAT{'meta'}{2}  = TRUE;
+
+our %SIGNED_FORMAT = (
+    qw| state | => { 2 => TRUE },
+    qw| meta |  => { 2 => TRUE },
+);
 
 our $JSON = JSON::PP->new->utf8->canonical;
 
@@ -202,16 +215,26 @@ sub _head {
     return $MAGIC{$kind} . pack( qw| C |, $format // 1 );
 }
 
+sub _label {
+    my ( $kind, $format ) = @ARG;
+    $format //= 1;
+    return $LABEL_VERSION{$kind}{$format}
+        if exists $LABEL_VERSION{$kind}
+        and exists $LABEL_VERSION{$kind}{$format};
+    return $LABEL{$kind} if $format == 1;
+    refuse( '%s record : no label for format %d', $kind, $format );
+}
+
 sub signed_record_pack {
     my ( $kind, $payload, $signer, $format ) = @ARG;
 
     my $pub = $signer->public;
     refuse('signer public key is not 32 bytes') if length $pub != 32;
 
-    my $body
-        = _head( $kind, $format )
+    my $body = _head( $kind, $format )
         . pack( 'n/a* N/a* a32',
-        $LABEL{$kind}, $JSON->encode($payload), $pub );
+        _label( $kind, $format ),
+        $JSON->encode($payload), $pub );
     my $sig = $signer->sign($body);
     refuse('signer returned no 64 byte signature')
         if not defined $sig
@@ -219,9 +242,9 @@ sub signed_record_pack {
     return $body . $sig;
 }
 
-## strict reader : magic, a known format, the label of the kind, exact
-## lengths, no trailing bytes. returns the parsed record ; the signature is
-## checked by the caller with AMOS7::N7FS::Sign::verify over ->{'signed'}
+## strict reader : magic, a known format, the label of the kind and version,
+## exact lengths, no trailing bytes. returns the parsed record ; the signature
+## is checked by the caller with AMOS7::N7FS::Sign::verify over ->{'signed'}
 sub signed_record_parse {
     my ( $kind, $bytes ) = @ARG;
     return _parse( $kind, $bytes, TRUE );
@@ -229,8 +252,12 @@ sub signed_record_parse {
 
 sub plain_record_pack {
     my ( $kind, $payload, $format ) = @ARG;
+    $format //= 1;
+    refuse( '%s record format %d requires a signature', $kind, $format )
+        if $SIGNED_FORMAT{$kind}{$format};
     return _head( $kind, $format )
-        . pack( 'n/a* N/a*', $LABEL{$kind}, $JSON->encode($payload) );
+        . pack( 'n/a* N/a*', _label( $kind, $format ),
+        $JSON->encode($payload) );
 }
 
 sub plain_record_parse {
@@ -250,6 +277,8 @@ sub _parse {
     my $format = unpack( qw| C |, substr( $bytes, 4, 1 ) );
     refuse( '%s record : unknown format %d', $kind, $format )
         if not $RECORD_FORMAT{$kind}{$format};
+    refuse( '%s record format %d is signed', $kind, $format )
+        if not $signed and $SIGNED_FORMAT{$kind}{$format};
 
     my $pos       = 5;
     my $label_len = unpack( qw| n |, substr( $bytes, $pos, 2 ) );
@@ -258,7 +287,8 @@ sub _parse {
         if $pos + $label_len + 4 > length $bytes;
     my $label = substr( $bytes, $pos, $label_len );
     $pos += $label_len;
-    refuse( '%s record : wrong label', $kind ) if $label ne $LABEL{$kind};
+    refuse( '%s record : wrong label', $kind )
+        if $label ne _label( $kind, $format );
 
     my $payload_len = unpack( qw| N |, substr( $bytes, $pos, 4 ) );
     $pos += 4;
@@ -406,8 +436,8 @@ sub remove_tree {
 
 1;
 
-#,,,,,..,,,,,,...,,..,,,,,...,.,,,.,,,,,,,...,..,,...,...,...,.,.,..,,,.,,...,
-#2DZTOXKEIDYXCVYDIFIZBBNTVDWPLMQICAQU27QJTBLBXTOX6PDUS6ME7BFKX5UKIAXCECDRN6C6O
-#\\\|PX3AU4QGOBKEWRX6UAMVYXDVAQTQU4U5QA2Y6Z6IEFY3GEU5NXA \ / AMOS7 \ YOURUM ::
-#\[7]QJSP2LUO565BFFQQ7ZLWU7JKJJVINGTVRKK3P33UBFOFS434V2AI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,,.,,..,,.,.,,,,,.,.,,,,,.,,,..,,...,...,,,.,,.,,,..,..,,...,
+#YYFVJM2HGLDII33ZBAPQVIYCS2L6HP62DMPAA2HRRBIBSEC5OHUKPOOMYCOPVSVWCQLC3LKH5BN5O
+#\\\|34AWNUO3Y5L5ITQUXN7ZONHW6XCJUTSUJ5FQDHKFW7EVNY5DKJQ \ / AMOS7 \ YOURUM ::
+#\[7]GC634DYUMRFHS4CJJRKMBXTF4HBE37ZJQFGJ7FL67JYR4PM4MSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

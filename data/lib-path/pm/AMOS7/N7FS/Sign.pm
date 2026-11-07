@@ -18,12 +18,12 @@ package AMOS7::N7FS::Sign;    ###############################################
 ##                              shell : '<argv> public' prints the public
 ##                              key, '<argv> sign <label>' reads the message
 ##                              [ base32 ] on stdin and prints the signature
-##                              [ base32 ]. THE HOST-ROOT PLUG : a v7-zenki
-##                              command behind p7c holding host-root, e.g.
-##                              command_signer( 'p7c', 'v7-zenki.n7fs-sign' )
-##                              -- it must accept only the n7fs labels
-##                              [ AMOS7::N7FS %LABEL ], so host-root never
-##                              becomes a general signing oracle
+##                              [ base32 ]. the generic plug [ tests, tokens,
+##                              outside signers ]. host-root is planned as a
+##                              native client signer instead [ todo 6RH ] : a
+##                              signer holding it must accept only the n7fs
+##                              labels [ AMOS7::N7FS %LABEL ], so host-root
+##                              never becomes a general signing oracle
 
 use v5.32.0;
 use utf8;
@@ -39,7 +39,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Sign-VERSION.MERSGMQ |;
+our $VERSION = qw| AMOS7::N7FS::Sign-VERSION.TUDE3II |;
 
 @EXPORT_OK = qw|
     seed_signer
@@ -202,8 +202,8 @@ sub _run {
 
 1;
 
-#,,,.,...,..,,,..,.,.,,.,,...,.,.,.,,,.,,,.,,,..,,...,...,.,.,...,.,.,..,,,,.,
-#FJNT3REOEFYSED3T4HLHGMAMQRQDE74SOUPZCWIR5BUH3H5O56AOOZDVHGMO3G3NTBNWQF2Q5ARQ4
-#\\\|EI4AMPAKRSEBNQ36VNQMIRJNIVBM3JV4ASLFPMJV2NRZ762G4DN \ / AMOS7 \ YOURUM ::
-#\[7]NIERBOBVSBD7BHS4ERPU3DMQNK7MI76ZB3HMPG6BZGN2XRH4AABQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,.,,,,,,,,..,...,..,,,,,,,..,..,,...,...,..,,,,,,.,.,,..,.,.,
+#BW2LVWOHD6W3W4VJDCMRNZPU27LB4JARJBWKSAXNQWWCDVLLBB6EYUIHWBLN4LYOLZVUVTKX5WTRS
+#\\\|VZWVW4YYAPC62RUPO7FKUMEED4J7O5ITQLQLKFWSGAUVCKMORHB \ / AMOS7 \ YOURUM ::
+#\[7]COI6Y5AEEL5H3HJ2BGUUN4DNNFOMHOMOEVNZQVM7TQIC2BNE6GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

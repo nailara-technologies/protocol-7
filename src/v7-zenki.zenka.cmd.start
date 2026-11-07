@@ -190,6 +190,31 @@ if ( defined $zenka_subname
         >= $zenka_config->{'max_subname_concurrency'};
 }
 
+## terminate :hold: gates only the on-demand path                         ##
+## [ same test as the gate flag below ] ; any other start is a deliberate ##
+## one and ends the hold                                                  ##
+my $hold = ( <v7-zenki.zenka.hold> // {} )->{$zenka_name};
+if (    defined $hold
+    and $hold->{'until'}
+    and $hold->{'until'} <= <[base.time]> ) {
+    delete <v7-zenki.zenka.hold>->{$zenka_name};
+    undef $hold;
+    <[base.logs]>->( 1, ": zenka '%s' : hold expired", $zenka_name );
+}
+if ( defined $hold ) {
+    if ( $once and not $recursion and defined $call->{'session_id'} ) {
+        <[base.logs]>->(
+            1, ": zenka '%s' on hold : on-demand start refused", $zenka_name
+        );
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( "zenka '%s' is on hold", $zenka_name )
+        };
+    }
+    delete <v7-zenki.zenka.hold>->{$zenka_name};
+    <[base.logs]>->( 1, ": zenka '%s' : hold ended by a start", $zenka_name );
+}
+
 return {
     'mode' => qw| false |,
     'data' => sprintf( "zenka '%s' was 'manually stopped'", $zenka_name )
@@ -377,8 +402,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,,,,,,.,,,,,..,,.,,,,..,...,,,.,..,,.,.,,,,,..,,...,...,.,.,,,.,,,.,,,,,,,,,
-#5WLN7Q6RF3EGTBT6QJ2VGOFPQBTJXTK45ZLEHYTGZBGKBZY3UCNO45EQPIK622EXS64FB7LMAESZK
-#\\\|SB6CEQW2TJNO2JDZSZEXPXWRRJ5RCXJ6QMXSHDAFDDAQKB66CR4 \ / AMOS7 \ YOURUM ::
-#\[7]X4TH2KDYVQUJQEPCF476WSLGVMRKGWR4NGWX74LPQKHZB7D57EAY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,.,,,,,.,,,..,,...,,.,,,..,,,,,..,,...,..,,...,,..,.,.,...,.,.,
+#DHEL2N3GCRLVXJPGZVL2JSQB2COK4EG3VOIPOFD7NIISIBSYM2WUVJLIPVKNUKFCJN6YTSMGV7WJ6
+#\\\|BCHOCPHFB4SBEGROYCZNAVG3GUHEPCV4ZWVMWXS47OZXW75OV2P \ / AMOS7 \ YOURUM ::
+#\[7]CSYX6GG4RP3HGSCPQETHNTHI6MG7SS6NGF4WRQHDY52KFZ5WNSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
