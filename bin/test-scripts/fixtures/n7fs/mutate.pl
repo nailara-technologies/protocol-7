@@ -270,9 +270,13 @@ my @mutations = (
         file => 'N7FS/Store.pm',
         test => 'test-n7fs-format2.pl',
         edit => [
-            [   "    my \$store   = store_key_signer( "
-                    . "%opt, qw| id | => \$id );\n",
-                "    my \$store   = undef;\n"
+            [   "    my \$store = store_key_signer( %opt, qw| id | => \$id "
+                    . ");\n    my \$state = state_read( \$id->{'path'}, "
+                    . "\$id->{'store_pub'} );\n    my \$lock  = "
+                    . "\$opt{'dry_run'} ? undef : disk_lock(\$id);",
+                "    my \$store = undef;\n    my \$state = state_read( "
+                    . "\$id->{'path'}, \$id->{'store_pub'} );\n    my \$lock "
+                    . " = \$opt{'dry_run'} ? undef : disk_lock(\$id);"
             ]
         ],
     },
@@ -280,8 +284,8 @@ my @mutations = (
         file => 'N7FS/Store.pm',
         test => 'test-n7fs-format3.pl',
         edit => [
-            [   "my \$lock    = \$opt{'dry_run'} ? undef : disk_lock(\$id);",
-                "my \$lock    = undef;"
+            [   "my \$lock  = \$opt{'dry_run'} ? undef : disk_lock(\$id);",
+                "my \$lock  = undef;"
             ],
         ],
     },
@@ -328,9 +332,10 @@ my @mutations = (
         file => 'N7FS/Convert.pm',
         test => 'test-n7fs-convert.pl',
         edit => [
-            [   "    witness_note_format( %opt, qw| id | => \$id, qw| state "
-                    . "| => \\%next,\n        qw| journal_seq | => "
-                    . "\$journal_seq );\n",
+            [   "    witness_note_format(\n        %opt,\n        qw| id |   "
+                    . "       => \$id,\n        qw| state |       => "
+                    . "\\%next,\n        qw| journal_seq | => "
+                    . "\$journal_seq\n    );\n",
                 ""
             ]
         ],
@@ -483,9 +488,9 @@ my @mutations = (
         file => 'N7FS/Convert.pm',
         test => 'test-n7fs-convert3.pl',
         edit => [
-            [   "                { %{\$ARG}, qw| epoch | => "
-                    . "epoch_b32( \$node->{'addr'}{'epoch'} ) }\n",
-                "                { %{\$ARG} }\n"
+            [   "                    %{\$ARG},\n                        qw| "
+                    . "epoch | => epoch_b32( \$node->{'addr'}{'epoch'} )\n",
+                "                    %{\$ARG}\n"
             ]
         ],
     },
@@ -525,6 +530,171 @@ my @mutations = (
         edit =>
             [ [ "            if not \$located;\n", "            if 0;\n" ] ],
     },
+    {   name => 'lost tombstone not noticed',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "            if not \$held{\$address};\n",
+                "            if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'stale aside not cleared',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "    remove_tree(\$aside) if "
+                    . "defined \$node and -e \$aside;\n",
+                "    refuse('both') if defined \$node and -e \$aside;\n"
+            ]
+        ],
+    },
+    {   name => 'empty release reason kept',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "            if not defined "
+                    . "\$reason or not length \$reason;\n",
+                "            if not defined \$reason;\n"
+            ]
+        ],
+    },
+    {   name => 'previous form copy not named',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "    if ( ref \$state->{'previous'} eq qw| HASH | ) {\n",
+                "    if (0) {\n"
+            ]
+        ],
+    },
+    {   name => 'release live-reference refusal removed',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "            ) if \@live and not \$opt{'force'};\n",
+                "            ) if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'release amos address validation removed',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "        if not defined \$epoch\n     "
+                    . "   or amos_of_bmw(\$bmw) ne \$amos;\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'reclaim ignores live references',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "        next if grep { not \$ARG->{'dropped'} } \@refs;\n",
+                "        next if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'reclaim dry-run releases nodes',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [ "        next if \$opt{'dry_run'};\n", "        next if 0;\n" ]
+        ],
+    },
+    {   name => 'reclaim age filter removed',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "            and \$newest > ntime_now() - \$opt{'older'};\n",
+                "            and 0;\n"
+            ]
+        ],
+    },
+    {   name => 'tombstone signature check removed',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "        if not verify( \$id->{'store_pub'}, "
+                    . "\$rec->{'signed'}, \$rec->{'sig'} );\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'tombstone write removed',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "    write_new_file( \$path,\n        signed_record_pack( "
+                    . "qw| tombstone |, \\%payload, \$store, 3 ) );\n",
+                ""
+            ]
+        ],
+    },
+    {   name => 'repair does not finish releases',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "    my \$finished\n        = "
+                    . "AMOS7::N7FS::Release::release_repair( \$id, \$state, "
+                    . "\$replay );\n",
+                "    my \$finished = [];\n"
+            ]
+        ],
+    },
+    {   name => 'revival does not advance tombstone ntime',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "        \$ntime = \$tombstone->{'ntime'} + 1\n            "
+                    . "if defined \$tombstone and \$ntime <= "
+                    . "\$tombstone->{'ntime'};\n",
+                ""
+            ]
+        ],
+    },
+    {   name => 'get by released address loses its clear error',
+        file => 'N7FS/Journal.pm',
+        test => 'test-n7fs-release.pl',
+        edit =>
+            [ [ "        \$expected->{'released'}{\$node} = TRUE;\n", "" ] ],
+    },
+    {   name => 'release-epoch now confirmation removed',
+        file => 'N7FS/Convert.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [ [ "        if not \$opt{'now'};\n", "        if 0;\n" ] ],
+    },
+    {   name => 'release-epoch confirmed check removed',
+        file => 'N7FS/Convert.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [ "        if not \$state->{'confirmed'};\n", "        if 0;\n" ]
+        ],
+    },
+    {   name => 'release-epoch active check removed',
+        file => 'N7FS/Convert.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "    refuse('release-epoch : the active epoch cannot be "
+                    . "released')\n        if grep { \$ARG == \$epoch } "
+                    . "\$state->{'epochs'}->\@*;\n",
+                "    refuse('release-epoch : the active "
+                    . "epoch cannot be released')\n        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'repair forgets revived release asides',
+        file => 'N7FS/Release.pm',
+        test => 'test-n7fs-release.pl',
+        edit => [
+            [   "    foreach my \$address ( "
+                    . "\$replay->{'release_order'}->\@* ) {\n",
+                "    foreach my \$address ( keys "
+                    . "\$replay->{'released'}->%* ) {\n"
+            ]
+        ],
+    },
 );
 
 my $filter = shift // '';
@@ -538,7 +708,7 @@ foreach my $m (@mutations) {
     mkdir "$tmp/AMOS7/N7FS";
     foreach my $f ( 'N7FS.pm',
         map {"N7FS/$ARG.pm"}
-        qw| Sum Sign Disk Store Convert Journal Reference | ) {
+        qw| Sum Sign Disk Store Convert Journal Reference Release | ) {
         open( my $in, '<:raw', "$lib/$f" ) or die "read $lib/$f : $OS_ERROR";
         my $text = do { local $INPUT_RECORD_SEPARATOR; <$in> };
         close $in;
@@ -581,8 +751,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,,,,,,,,,.,,...,.,,,.,.,.,,,,,.,..,,,.,,.,,,..,,...,...,..,,,,.,,..,.,,,,.,,
-#ZEB6K52BGNIZBW74ANWJFMABV5ROBYSWX4MPXBIZIPN34P6GG2VINE27MYDBFA5HSXW3KTR4PPFNQ
-#\\\|4GOPVO2VEHZDW4WG6WESHSS5PLJSAOYRGYDGS6CBBCUYBXTE4MG \ / AMOS7 \ YOURUM ::
-#\[7]UGMR5VHDQ3CGHDZSR4Z6MUFGP5LROC2VR7MLVBA2JL5T2LCOI6AQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,.,.,.,,,.,,,,,.,.,.,,,.,,,.,..,,...,...,...,.,,,,,.,,..,,,.,
+#YJCZI3CI2JLJ6L7UTILQ5CFJ3YARZSALL4WB76RL2QYC6LZRCFEDGUMNCEJBETHNIHBTGUMA7IYPA
+#\\\|ALFDVVDPYLSGCEMUDMJIUGZMMQAMKUTDVTAI5YLEZV6HXQVONEK \ / AMOS7 \ YOURUM ::
+#\[7]44U26JAT5DK6D5L2LQ4MDYYOPHYDXBT5BHQDD5MURYCVYI6JLSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

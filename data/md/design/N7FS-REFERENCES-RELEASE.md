@@ -1,9 +1,10 @@
 # N7FS references and release : design for store format 3
 
-status : stage 1 built [ journal, references, reference drops, repair,
-conversion 2 -> 3 and the journal witness ], documented as built in
-`N7FS-FORMAT-3.md`. release, reclaim, tombstones, release-epoch, hard-linked
-conversion, `-prune` and journal checkpoints remain design for later stages.
+status : stages 1 and 2 built [ journal, references, reference drops, repair,
+conversion 2 -> 3, journal witness, release, reclaim, permanent tombstones and
+release-epoch ], documented as built in `N7FS-FORMAT-3.md`. hard-linked
+conversion, `-prune`, journal checkpoints and crypto-shredding remain design
+for later stages.
 builds on `N7FS-FORMAT-2.md`, the owner's answer of 2026-10-22 in
 `FILES-ZENKA.md` [ point 14 ] and the
 `references/<ntime-dec>/<amos>/<bmw>/addr` layout of `N7FS-SPEC.md`.
@@ -119,8 +120,8 @@ marked as converted.
 6. **build order** : journal + references, then release and reclaim, then
    hard-linked conversion and `-prune`. the journal is the base of the rest
 
-#,,,,,.,.,,,,,,..,...,,.,,,.,,...,...,,..,,,.,..,,...,...,,.,,,.,,..,,,,,,..,,
-#QLEQPSLRIL3MICB2A6GGI4W6AJTLABGRWYSRUX6CDMOANBMXCCBV4RLJ2IQLD2WOBLZYIKXCIXPPC
-#\\\|W7H7OOGIXB42YABLZFNH2Z2PSMIU6DY7TEWZQJYUJNVVFRQ7XT6 \ / AMOS7 \ YOURUM ::
-#\[7]WP54HAL756V5JNF3I3WZUNWBA3QV2TEQURPI2PWPXIOFE22NNKBA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,..,..,,,,.,,.,,,.,,,.,,..,,...,..,,...,...,.,.,...,.,.,,,.,...,
+#BFUQ4UYLRZJDLKOIKT3AMRFVOULRVTBVHRNY3LMZYSZH42CCFJQXS6IMAVMYBXDGJTKNIYM2YXFTA
+#\\\|I5OWETJHCZR24QIFAGDVUUYV6RPCZ3KT6MDELFTN7E2N5GNCQLQ \ / AMOS7 \ YOURUM ::
+#\[7]HLYTQB4PW2UE3OENOVX3ZIUS245CUPTXHHDMAXOOXQOPNTOMZQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
