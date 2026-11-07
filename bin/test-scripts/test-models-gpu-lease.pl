@@ -897,6 +897,35 @@ foreach my $file ( glob "$main::root_path/src/*.cmd.gpu-lease-*" ) {
 }
 
 say '';
+say ': models gone during a renewal';
+foreach my $z (qw| invoke-web coding |) {
+    compile_module("$z.gpu_lease.handler.renew_reply");
+    compile_module("$z.gpu_lease.handler.models_back");
+    $code{'base.reply.mode_text'} //= sub {
+        return ( lc $ARG[0]->{'mode'}, $ARG[0]->{'data'} );
+    };
+    my $lease = $data{$z}{'gpu_lease'} = { 'holder' => $z };
+    my @yields;
+    $code{'invoke-web.gpu_lease.unload'} = sub { push @yields, 1; TRUE };
+    $code{'coding.cmd.gpu-lease-yield'}  = sub { push @yields, 1; TRUE };
+    my $reply = $code{"$z.gpu_lease.handler.renew_reply"};
+
+    @routes = ();
+    $reply->( { 'mode' => 'false', 'data' => 'client not present' } );
+    $reply->( { 'mode' => 'false', 'data' => 'client not present' } );
+    ok( !@yields && $lease->{'holder'} eq $z, "$z : unreachable keeps it" );
+    my @waits
+        = grep { $ARG->{'command'} eq 'v7-zenki.notify_online' } @routes;
+    ok( @waits == 1 && $waits[0]{'call_args'}{'args'} eq 'models',
+        "$z : one wait, without :start:" );
+
+    $code{"$z.gpu_lease.handler.models_back"}->( {} );
+    ok( !$lease->{'models_waiting'}, "$z : back ends the wait" );
+
+    $reply->( { 'mode' => 'false', 'data' => 'not holder' } );
+    ok( @yields == 1, "$z : models refusing gives it up" );
+}
+
 if ($fail_count) {
     say "FAILED : $fail_count check[s]";
     exit 1;
@@ -904,8 +933,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,.,,,,,.,..,,.,,,,.,,,.,,,.,,,..,,,,,,,.,..,,...,..,,...,.,.,...,.,,,.,.,
-#UF45HEUUATID6X4GBDZYF6PQO5F3WD6ZY3AK5XQE7WXIG66IC4WYGICUHF32MYVZGSAKDLXKR6Y3M
-#\\\|NK35AV67HO4E5YD2IET5NWF6D3LOMOMGVBD2RNHWKTBTUCYTPHX \ / AMOS7 \ YOURUM ::
-#\[7]BOCSZV5YZ2SOCR4A3FRQZCSREWDSLY6EVMEWWNNEFY6A2K43GICY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,,..,,,.,,..,,.,,...,,..,..,,..,,...,..,,.,,,.,,,.,,,,..,,,.,
+#YWWAP5RO4LL5BS7GXRZKMQPOWTLOZKJ35MW45Y6MLJHBK5BCXEBZVGPRL25LON67Y3VRINJVK5TH4
+#\\\|ARN5IXXEJPG44NDLWY2ZODM3XXB5IL4PNMWZCXAG4OVMI2T3JHI \ / AMOS7 \ YOURUM ::
+#\[7]6G5JJN2HACPNK6Z5XZXK4X2NOKSWKMP7O7QDSEEDOF2FHFAFKCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.handler.models_back
+# descr = models is present again : resume renewing the gpu lease
+# note  = delayed : an instant answer for a models that only dropped one reply
+#         must not become a tight loop
+
+<invoke-web.gpu_lease.models_waiting> = FALSE;
+return TRUE if ( <invoke-web.gpu_lease.holder> // '' ) ne qw| invoke-web |;
+
+my $renew = delete <invoke-web.gpu_lease.renew_timer>;
+$renew->cancel if defined $renew and $renew->is_active;
+<invoke-web.gpu_lease.renew_timer> = <[event.add_timer]>->(
+    {   'after'   => 5,
+        'handler' => qw| invoke-web.gpu_lease.handler.renew |,
+    }
+);
+<[base.logs]>->( 1, ': models present : lease renewal resumes' );
+return TRUE;
+
+#,,,,,,,,,,,,,,,,,..,,...,.,.,..,,.,.,.,.,.,,,..,,...,...,...,,..,,,.,,,.,.,.,
+#SEBXBO6QDQD2MMXBU64RJAG6QVCTO6D4SO4YSTTNZHBWWXGYZUUEWENSYBYMO76LE6YGLCIXST4JM
+#\\\|D45KNBIFY6URQTICC3ZAJM35ANGAYVGISLS5VZDLFOJTPLT6EN4 \ / AMOS7 \ YOURUM ::
+#\[7]AIIRRA3UGPB6RMWN7YF5VKOWFEVQ73EQCO6FDZX2AFLTSJEMYSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
