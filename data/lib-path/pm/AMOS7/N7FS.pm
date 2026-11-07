@@ -5,8 +5,8 @@ package AMOS7::N7FS;    #####################################################
 ## N7FS : common layer -- paths, records, synced writes.
 ##
 ## format : data/md/design/N7FS-SPEC.md [ the as-built notes are in
-## data/md/design/N7FS-FORMAT-1.md and N7FS-FORMAT-2.md -- keep them in step
-## with the code ]
+## data/md/design/N7FS-FORMAT-1.md, N7FS-FORMAT-2.md and N7FS-FORMAT-3.md --
+## keep them in step with the code ]
 ##
 ## standalone like AMOS7::Vault [ no zenka, no running network ]. the write
 ## order is the vault's
@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.KKGEHOQ |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.RG7CYCQ |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -69,11 +69,14 @@ use Crypt::Misc qw| encode_b32r decode_b32r |;
 
 ## 4-byte magic + 1 format byte in every binary header [ spec section 6 ]
 our %MAGIC = (
-    qw| id |    => qw| P7FS |,    ## disk identity record ##
-    qw| mount | => qw| P7FA |,    ## attach \ detach record ##
-    qw| use |   => qw| P7FU |,    ## witness first \ last use window ##
-    qw| state | => qw| P7FT |,    ## store state [ format, epochs ] ##
-    qw| meta |  => qw| P7FN |,    ## node meta [ one per import ] ##
+    qw| id |        => qw| P7FS |,    ## disk identity record ##
+    qw| mount |     => qw| P7FA |,    ## attach \ detach record ##
+    qw| use |       => qw| P7FU |,    ## witness first \ last use window ##
+    qw| state |     => qw| P7FT |,    ## store state [ format, epochs ] ##
+    qw| meta |      => qw| P7FN |,    ## node meta [ one per import ] ##
+    qw| journal |   => qw| P7FJ |,    ## signed store-set operation ##
+    qw| reference | => qw| P7FR |,    ## live source reference ##
+    qw| drop |      => qw| P7FD |,    ## reference drop record ##
 );
 
 ## one label per signed kind and record format : no signature is valid as
@@ -87,19 +90,36 @@ our %LABEL = (
     qw| meta |  => 'p7 n7fs meta v1',
 );
 our %LABEL_VERSION = (
-    qw| state | => { 2 => 'p7 n7fs state:0001' },
-    qw| meta |  => { 2 => 'p7 n7fs meta:0001' },
+    qw| state | => {
+        2 => 'p7 n7fs state:0001',
+        3 => 'p7 n7fs state:0001'
+    },
+    qw| meta | => {
+        2 => 'p7 n7fs meta:0001',
+        3 => 'p7 n7fs meta:0001'
+    },
+    qw| journal |   => { 3 => 'p7 n7fs journal:0001' },
+    qw| reference | => { 3 => 'p7 n7fs reference:0001' },
+    qw| drop |      => { 3 => 'p7 n7fs reference drop:0001' },
 );
 
 ## record formats this code reads [ per kind ; the store format is a field of
 ## the state record, converters register further node formats ]
 our %RECORD_FORMAT = map { $ARG => { 1 => TRUE } } keys %MAGIC;
-$RECORD_FORMAT{'state'}{2} = TRUE;
-$RECORD_FORMAT{'meta'}{2}  = TRUE;
+$RECORD_FORMAT{'state'}{2}     = TRUE;
+$RECORD_FORMAT{'state'}{3}     = TRUE;
+$RECORD_FORMAT{'meta'}{2}      = TRUE;
+$RECORD_FORMAT{'meta'}{3}      = TRUE;
+$RECORD_FORMAT{'journal'}{3}   = TRUE;
+$RECORD_FORMAT{'reference'}{3} = TRUE;
+$RECORD_FORMAT{'drop'}{3}      = TRUE;
 
 our %SIGNED_FORMAT = (
-    qw| state | => { 2 => TRUE },
-    qw| meta |  => { 2 => TRUE },
+    qw| state |     => { 2 => TRUE, 3 => TRUE },
+    qw| meta |      => { 2 => TRUE, 3 => TRUE },
+    qw| journal |   => { 3 => TRUE },
+    qw| reference | => { 3 => TRUE },
+    qw| drop |      => { 3 => TRUE },
 );
 
 our $JSON = JSON::PP->new->utf8->canonical;
@@ -436,8 +456,8 @@ sub remove_tree {
 
 1;
 
-#,,,.,..,,.,,,,.,,,.,,..,,.,.,,,,,.,.,,,,,.,,,..,,...,...,,,.,,.,,,..,..,,...,
-#YYFVJM2HGLDII33ZBAPQVIYCS2L6HP62DMPAA2HRRBIBSEC5OHUKPOOMYCOPVSVWCQLC3LKH5BN5O
-#\\\|34AWNUO3Y5L5ITQUXN7ZONHW6XCJUTSUJ5FQDHKFW7EVNY5DKJQ \ / AMOS7 \ YOURUM ::
-#\[7]GC634DYUMRFHS4CJJRKMBXTF4HBE37ZJQFGJ7FL67JYR4PM4MSCA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,,,.,.,.,.,...,.,,,...,,..,,,.,..,,...,.,.,,,,,,.,,.,,,..,,,.,,
+#H6IVNQNBIKDEXAQ7PH5NLF2HS7QOGTVOTTNSXU544W6TLIWI3H2JSEXQNVJN2IHZFOND2M4FGD6I4
+#\\\|NWN24ML6YBMJUWONPINTELCQT472IQNKAJXOTJAR3H3VOEPX23M \ / AMOS7 \ YOURUM ::
+#\[7]SXHAZ5V4P2K5YYE54FFRRBE7CUTFVNIPSIUOLPP4DEOTYWDIHOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -94,11 +94,8 @@ my @old = store_nodes( $dpath, $E );
 ok( @old == 4, 'version-1 store with 4 nodes [ incl. an amos collision ]' );
 ok( state_read($dpath)->{'store_format'} == 1, 'state : format 1' );
 ok( scalar( steps( 1, 2 ) ) == 1, 'production chain 1 -> 2 : one step' );
-refused(
-    sub { steps( 1, 3 ) },
-    qr|no converter chain|,
-    'no chain to format 3'
-);
+ok( scalar( steps( 1, 3 ) ) == 2,
+    'production chain 1 -> 2 -> 3 : two steps' );
 
 my $old_epoch_dir = "$dpath/" . epoch_b32($E);
 my $old_snap      = snapshot($old_epoch_dir);
@@ -131,7 +128,7 @@ sub unchanged_after {
 }
 
 unchanged_after(
-    sub { upgrade( %run, epoch => $E ) },
+    sub { upgrade( %run, epoch => $E, target => 2 ) },
     qr|belongs to this store already|,
     '-epoch at the current epoch refused [ the window is used, not -epoch ]'
 );
@@ -141,7 +138,7 @@ foreach my $point (qw| convert:after-node convert:before-switch |) {
     local $AMOS7::N7FS::FAULT
         = sub { die "injected fault\n" if $ARG[0] eq $point };
     unchanged_after(
-        sub { upgrade(%run) },
+        sub { upgrade( %run, target => 2 ) },
         qr|injected fault|,
         "fault at $point"
     );
@@ -157,14 +154,14 @@ foreach my $point (qw| convert:after-node convert:before-switch |) {
         write_file( $p, 'damaged' );
     };
     unchanged_after(
-        sub { upgrade(%run) },
+        sub { upgrade( %run, target => 2 ) },
         qr|content does not match its bmw|,
         'a damaged new node is caught before the switch'
     );
 }
 
 say ':: the upgrade : it lands in next, not in the current epoch';
-my $r = upgrade(%run);
+my $r = upgrade( %run, target => 2 );
 ok( $r->{'from'} == 1 && $r->{'to'} == 2 && $r->{'nodes'} == 4,
     'format 1 -> 2 : 4 nodes' );
 ok( $r->{'epoch'} == $E + 2,
@@ -254,7 +251,7 @@ say ':: after the switch';
         'new meta is signed format 2' );
 }
 unchanged_after_v2(
-    sub { upgrade(%run) },
+    sub { upgrade( %run, target => 2 ) },
     qr|awaits confirm|,
     'no second upgrade before confirm'
 );
@@ -288,7 +285,7 @@ say ':: the window : the old form stays, and is released only when it leaves';
         'the old form is still readable while previous'
     );
     refused(
-        sub { upgrade(%run) },
+        sub { upgrade( %run, target => 2 ) },
         qr|still in the window|,
         'the next upgrade refuses while the old form is in the window'
     );
@@ -296,7 +293,7 @@ say ':: the window : the old form stays, and is released only when it leaves';
         'the refusal changed nothing [ the old form stays ]' );
 
     clock_epoch( $E + 2 );    ## window { $E+1, $E+2, $E+3 } : $E left ##
-    my $rel = upgrade(%run);
+    my $rel = upgrade( %run, target => 2 );
     ok( $rel->{'from'} == 2 && $rel->{'to'} == 2,
         'no newer format : the release runs, the upgrade is a no-op' );
     ok( !-e $old_epoch_dir,
@@ -318,8 +315,8 @@ sub unchanged_after_v2 {
 
 done();
 
-#,,,.,.,,,...,,,,,,.,,..,,.,,,.,,,,,,,,.,,..,,.,.,...,...,..,,..,,.,.,,,.,.,.,
-#M6FA6ACBB2YVP6JE3XOIL4A7ZP4CYONARTRYWYTKLUHYSCNIQC7KDSSTYMCR2HP3IBQOSVQ36UMMQ
-#\\\|O57DFYLVNULVXSM3UBCXLUM47D3WLTQR7V44IRFP4K4OHKSDEEZ \ / AMOS7 \ YOURUM ::
-#\[7]AZCWHGYLNMHHCE3VIPNHQERA6BP6AVQMJY4L5632PCHWRF5QNCAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,,.,,,.,,,,.,.,.,.,.,,.,,,,.,.,.,...,...,,..,.,.,.,,,,.,,,,.,
+#2DD7H7VIM4GA4FQTUQ756TQQQGVYGTLBC7QFHG6U3ZGC5UQRSSOS5UM33HPLZZGY3MTPHRYZIEUAI
+#\\\|5F4NR45PENAOM3GQVPVYOAX2FYRUWWSLDLRR5V3ZZWPT73XQKBV \ / AMOS7 \ YOURUM ::
+#\[7]EB77UWF4GO36IZV3KJR5HIHL3JHF2ZROCJKNJCGV6X4VIE4ONKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

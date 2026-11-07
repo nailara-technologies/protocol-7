@@ -78,11 +78,11 @@ my $keyfile = "$hdir/stores/$disk.store.key";
 ok( -f $keyfile && ( ( stat $keyfile )[2] & 0777 ) == 0600,
     'store key on the host side, 0600' );
 ok( !-e "$root/$disk/.n7fs/store.key", 'no secret key inside the store' );
-ok( state_read("$root/$disk")->{'store_format'} == 2,
-    'state : store format 2' );
+ok( state_read("$root/$disk")->{'store_format'} == 3,
+    'state : store format 3' );
 my ($state_file) = glob "$root/$disk/.n7fs/state/*.state";
-ok( substr( read_file($state_file), 0, 5 ) eq "P7FT\x02",
-    'state : signed record format 2' );
+ok( substr( read_file($state_file), 0, 5 ) eq "P7FT\x03",
+    'state : signed record format 3' );
 ok( ref disk_read_id( %base, qw| disk | => $disk ) eq 'HASH',
     'the new disk verifies' );
 
@@ -461,8 +461,8 @@ sub remove_tree_all { AMOS7::N7FS::remove_tree(shift) }
 
 done();
 
-#,,.,,,..,,..,,.,,,..,..,,.,,,.,,,...,...,,,.,..,,...,...,..,,,,,,...,.,,,.,,,
-#DRDOKQ34NG45PNET34IA2XF643UM2QHW5C623TK6TGMEZYJCW7LTI7KP3ODTHQILUQQ6SDEYQGGFM
-#\\\|GLEJNMESS6NBDCGK4DGW35FGEHMV76ACMZ5T3C4F63TFV5EN336 \ / AMOS7 \ YOURUM ::
-#\[7]BXJ4FH3PHFH3I6PQONAFUZ2WHUKWTL5MZSQEZGJRI2VOJF7ULEDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,.,,..,,,,,.,,,...,.,.,...,,..,..,,...,.,.,...,.,,,...,,,,,...,
+#NT6Z4M5QUEIYZXNOZVKX6FAMZOLMOJAFC5KGYWQLQZX6Z7HN5SGGQNGSJ5NCJGNC6IFSVBRYZJOP2
+#\\\|ZNYKF6553NXBK4QOKYDLQYO4LNP6TCDEFP7S5KSZLSAN3MXOLZU \ / AMOS7 \ YOURUM ::
+#\[7]VZLJEWIJK34GNZF667KKERETAFTRFPX6LRDWJ3VRR36YDVOAYOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

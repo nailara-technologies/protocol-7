@@ -124,6 +124,10 @@ invoke-web image index [ invoke-web.index.backup_path ].
 - the store key signs what the store ASSERTS : meta and state records ;
   content is verified by its own checksum path [ decided ; built as store
   format 2, see `N7FS-FORMAT-2.md` ]
+- store format 3 adds the signed expected-set journal and the references below
+  each node. live references drive `find` and name lookup ; drops preserve
+  history without deleting content. the host witness pins the highest journal
+  sequence as well as the format [ stage 1 built ; see `N7FS-FORMAT-3.md` ]
 - prerequisite : the pure-perl truth fallback must be BIT-IDENTICAL to
   the compiled one -- amos addresses differed between hosts with and
   without Inline::C [ the v1 collision fixture showed it ]
@@ -134,8 +138,8 @@ invoke-web image index [ invoke-web.index.backup_path ].
 - an optional prefix level for very large `<amos>` directories
 - sub-bit distribution and group computation : later layers
 
-#,,..,,.,,...,,,.,,,.,,,.,.,,,..,,..,,,,.,,..,..,,...,...,.,,,,.,,,,,,.,.,,.,,
-#RFYHX2CWQVMSJFNIQLJMKDLIHX3FRWANPWROGVZ6QAC5FXXAWGGCBC6K5KQK3F7WLUPKU223BRPAO
-#\\\|57WVPM5PRRCCHQLDHOXEKBW4K65EHW6KVPJDIIJ66S3IIUXCC42 \ / AMOS7 \ YOURUM ::
-#\[7]52R4TFSAIO45I3HSAVBOBE4GHHVCDILWBEBBOUO77V2HA2ZQS2AI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,,,,..,,,,,,,,,,..,..,,...,,.,,..,,...,...,.,.,,,.,.,.,,,,,,,,,
+#4ZOEILJ4AZQ773MCFQGFR5ZXTWOF7PATVBF7JIBBZ5DA2B3KR4DPERGGPEETSMKEESC4WI5ZKOLKC
+#\\\|IYQSNYA2NIMAMZPEQR2IVCI2BWAEQLSM7TDEZMW36HG535AD3MC \ / AMOS7 \ YOURUM ::
+#\[7]BJSKBVFSFXX7XUC32UKG7XZBTD7FN7N3Y5HGFIZVHZDP7RD24ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

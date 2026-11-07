@@ -22,7 +22,9 @@ BEGIN {
 use AMOS7::N7FS      qw| read_file signed_record_parse |;
 use AMOS7::N7FS::Sum qw| amos_of_bytes bmw_b32 bmw384_bytes epoch_b32
     epoch_int |;
-use AMOS7::N7FS::Disk  qw| disk_init disk_attach disk_detach state_read |;
+use AMOS7::N7FS::Disk qw| disk_init disk_attach disk_detach state_read
+    state_write |;
+use AMOS7::N7FS::Sign  qw| key_file_signer |;
 use AMOS7::N7FS::Store qw| assimilate store_verify store_nodes |;
 
 require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
@@ -46,6 +48,15 @@ my $disk = disk_init(
     qw| intent | => 'n7fs assimilate test [ test data ]',
 );
 my %run = ( %base, qw| disk | => $disk, qw| host | => $host );
+
+## keep this legacy-behavior suite on format 2 ; format 3 has its own suite ##
+{
+    my $p = state_read("$root/$disk");
+    delete $p->{'_name'};
+    $p->{'store_format'} = 2;
+    state_write( "$root/$disk", $p,
+        key_file_signer("$hdir/stores/$disk.store.key") );
+}
 
 ## sources [ test data ] ##
 my %content = (
@@ -624,8 +635,8 @@ ok( $cli_rc != 0 && $cli_out eq '' && $cli_err =~ m|invalid -name regex|,
 
 done();
 
-#,,.,,.,,,,..,,.,,.,.,..,,,..,,.,,..,,,..,.,.,..,,...,...,.,,,,,.,..,,..,,..,,
-#LG3AZNY4SGE2B7WFIGMVSLNVRD2X4ZAJQFY4BHCMWGLCXRZZ7HYN3MDNLXK7INRPJTDKDOILHE53G
-#\\\|SL6NEWCKDS4XT2SKGCIU26YCUQBYEZBEI5WSOQTXCOCIFFPMNI5 \ / AMOS7 \ YOURUM ::
-#\[7]36SFQNBUIO7DO2ITHM6OWF24VKCAYMO2VLBTJBZIA7TPMHOK2ICA 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,,,.,,,..,,...,...,.,.,.,,,,.,,..,,...,...,,..,,,,,...,.,,,.,,,
+#IA3AGCNMCFNQUX7QMUYKIKQQ5WRMCLI3GNKYHIMBMTYFFJXYFEFRXFYZMJOZ3CDT6EKXRH3XL56RO
+#\\\|PD3KE6KRIIRWHDZNPXVXFFRBZLUKY33DFSSSFN5RWIABNTLZGZT \ / AMOS7 \ YOURUM ::
+#\[7]SSXFGKPP64FE5GVEEJYD2NNNPQF6FR3WOUNYFIGHQER7D325LWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
