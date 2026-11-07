@@ -16,7 +16,14 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
         delete <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'};
     }
     my $reason = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "ondemand zenka startup not successful [ $reason ]" );
+    ## 'blocked :' = a deliberate refusal by the starter, not a failure ##
+    if ( $reason =~ s{^blocked : }{} ) {
+        <[base.log]>->( 1, "ondemand zenka startup blocked [ $reason ]" );
+    } else {
+        <[base.log]>->(
+            0, "ondemand zenka startup not successful [ $reason ]"
+        );
+    }
     while ( my $element = shift @{ <zenki.virtual>->{$v_id}->{'queue'} } ) {
         my $sid    = $element->{'source_id'};
         my $cmd_id = $element->{'src_cmd_id'} // 0;
@@ -38,8 +45,8 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     );
 }
 
-#,,,.,...,.,.,...,...,,..,,,.,..,,.,.,...,..,,..,,...,...,.,.,,,.,...,,..,...,
-#QHMPAHE7EJU3N2HELEC6LAZCY3FJRG64VOAY5W46PJ7BQWF5WWQ5RAHM4K5J2L7LODFNFS6SCSGXU
-#\\\|IPR4FH7DC3QIY6GH2U5C2N3TA5MGPQO3F4YS3XPZEHKAKLLNMDU \ / AMOS7 \ YOURUM ::
-#\[7]GKMJ3AVGUNGZIWXAVAEDUIKIPL72C735NQ5SUSW75SGMFZMOGCBI 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,.,.,,,,,...,..,,.,,,,..,.,,,..,,...,...,...,,..,.,,,,.,,,,,,
+#DA2RA2IE3L2LDL7S7KKUF4NF35OAK6HNAZYAO4BKPJR7M4N7OLVRUQ6JATNLBVEMYE2N7PGW6Y7J4
+#\\\|PUBRAZJ5LKKV354WTKLZPDPATDHOW7KWMH7YP4NMFMQBUDKT5ZA \ / AMOS7 \ YOURUM ::
+#\[7]HNP2CPM66PL4MPB2K2CWQMJWTLJ6XQZIP2DYXQHP3U2BVIGNVSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
