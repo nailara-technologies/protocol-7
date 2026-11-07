@@ -2,6 +2,9 @@
 
 # name  = invoke-web.gpu_lease.queue_changed
 # descr = acquire for queued renders and release after an empty-queue grace
+# param = resume observed by the processor poll [ repeated resume re-pauses ]
+
+my $resume_observed = shift // FALSE;
 
 return TRUE
     if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
@@ -14,13 +17,42 @@ my ( $in_progress, $pending ) = $dbh->selectrow_array(
 );
 return FALSE if not defined $in_progress or not defined $pending;
 
+my $holder = ( <invoke-web.gpu_lease.holder> // '' ) eq qw| invoke-web |;
+
+## a hand pause keeps the lease only until its release grace expires ##
+if (    defined <invoke-web.gpu_lease.processor_paused>
+    and <invoke-web.gpu_lease.processor_paused>
+    and not <invoke-web.gpu_lease.auto_paused> ) {
+    return TRUE if not $holder;
+    if ( defined <invoke-web.gpu_lease.grace_timer>
+        and not <invoke-web.gpu_lease.grace_user_pause> ) {
+        my $old_grace = delete <invoke-web.gpu_lease.grace_timer>;
+        $old_grace->cancel if $old_grace->is_active;
+    }
+    return TRUE if defined <invoke-web.gpu_lease.grace_timer>;
+    my $grace = <models.cfg.gpu_lease.grace> // 120;
+    $grace = 120 if $grace !~ m|^\d+$|;
+    <invoke-web.gpu_lease.grace_user_pause> = TRUE;
+    <invoke-web.gpu_lease.grace_timer>      = <[event.add_timer]>->(
+        {   'after'   => $grace,
+            'handler' => qw| invoke-web.gpu_lease.handler.grace |,
+            'data'    => { 'user_pause' => TRUE },
+        }
+    );
+    <[base.logs]>->(
+        1, ': render queue paused : gpu lease release in %d s', $grace
+    );
+    return TRUE;
+}
+
 if ( $in_progress or $pending ) {
     my $grace = delete <invoke-web.gpu_lease.grace_timer>;
     $grace->cancel if defined $grace and $grace->is_active;
+    delete <invoke-web.gpu_lease.grace_user_pause>;
     my $requested = <[invoke-web.gpu_lease.request]>;
     if ( $requested == FALSE
-        and not <invoke-web.gpu_lease.pause_sent> ) {
-        <invoke-web.gpu_lease.pause_sent> = TRUE;
+        and ( not <invoke-web.gpu_lease.auto_paused> or $resume_observed ) ) {
+        <invoke-web.gpu_lease.auto_paused> = TRUE;
         <[invoke-web.api_async]>->(
             'PUT', '/api/v1/queue/default/processor/pause',
             undef, 'invoke-web.gpu_lease.handler.queue_pause_reply'
@@ -29,13 +61,15 @@ if ( $in_progress or $pending ) {
     return $requested;
 }
 
-return TRUE if ( <invoke-web.gpu_lease.holder> // '' ) ne qw| invoke-web |;
+return TRUE if not $holder;
 return TRUE if defined <invoke-web.gpu_lease.grace_timer>;
 my $grace = <models.cfg.gpu_lease.grace> // 120;
 $grace = 120 if $grace !~ m|^\d+$|;
-<invoke-web.gpu_lease.grace_timer> = <[event.add_timer]>->(
+<invoke-web.gpu_lease.grace_user_pause> = FALSE;
+<invoke-web.gpu_lease.grace_timer>      = <[event.add_timer]>->(
     {   'after'   => $grace,
         'handler' => qw| invoke-web.gpu_lease.handler.grace |,
+        'data'    => { 'user_pause' => FALSE },
     }
 );
 <[base.logs]>->(
@@ -43,8 +77,8 @@ $grace = 120 if $grace !~ m|^\d+$|;
 );
 return TRUE;
 
-#,,.,,,,,,,..,...,..,,,.,,.,.,.,.,,,.,,..,...,..,,...,...,.,,,...,,,,,,,.,,,,,
-#4XGDHM23QTRCDRKPL4JID5MPV7OUHMTP3Z6SGZQMYJMRFXKTWIU4RBY66FLXKCGK6JZ7EJWGTQ4WK
-#\\\|A43HXXCT55JRTC3FDJRRMCMTAG7RPGCAFSUVI2KTTRAI5FGIWJY \ / AMOS7 \ YOURUM ::
-#\[7]NNTBB6FFPRZOMUCPMFI4U3MB5ZHGRVJPR7BLXFE2HTAIEMH2OYCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,.,,..,,.,,,,.,.,.,,,.,.,,,..,,..,,...,...,,,,,,.,,,,.,.,.,,.,,
+#RU5HOF62TWYJY4LQWQ73PL25ORQL7QXPXBEC6YNYLYGRBUZGSHTI77RBSZVGYN7WR6ZCWBYNIMNBW
+#\\\|SQR2EDPA6FUERZLFB3N2SQQ3CLJBNUAKRE2CMAZ6XJVWWBOARJW \ / AMOS7 \ YOURUM ::
+#\[7]GM43OMUYI7L3CBVPHMSXS5GYYFJ54D53B7U6E7KRIY5YJVGM6IDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

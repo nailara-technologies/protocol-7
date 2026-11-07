@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-22-shm-permissions-forgeable-open
-description: OPEN, high [ todo FKS ] : AMOS7::SHM::sign_permission is a computable hash, not a signature -- shm mapping permissions forgeable by any header writer
+description: grants fixed 2026-11-05 [ d02c3b067 ] ; open, normal [ todo FKS ] : a local reader with file rights can still map a segment
 metadata:
   type: project
 ---
@@ -17,8 +17,8 @@ still open 2026-11-05 [ owner : not closed, high prio ].
 2026-11-05 step A landed [ d02c3b067 ] : the hash is replaced by real ed25519 grants. still open : a local reader
 with file rights can map the segment -- encrypted pages close that, see [[project-2026-11-05-session-handover-shm-a]].
 
-#,,.,,,,.,.,,,,,,,...,,,.,.,.,.,.,,..,.,.,...,..,,...,..,,...,.,.,,..,..,,,.,,
-#T5AE2PB5CWHR5ARUV4A7D3JVZUBQYDIMP4KC2O32UQNJWAARDJ65U4HATI76SA5XXGG3W6KO5DEZI
-#\\\|V4EZ3BY2DNBWE4EABGGPOTGNWJWNSURXAVO3EIDDBTHWD2ENHPS \ / AMOS7 \ YOURUM ::
-#\[7]R6EILRIOWFBLMYX27STDH4UTE63J7CJZMPHNAX2VULOTGCEX24DQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,.,.,..,,...,..,,,..,.,,,.,.,..,,...,...,..,,.,,,,,.,.,,,.,,,
+#AB3DP35KNHVV7GBNPA5SIAC22B6GTZWN2JFGFQLKDIMW7BRJ7SOAZLQKG5AEMSOWVULCJP24VEANE
+#\\\|MT6VCODREYDRQBPIB4PGFHA3R3FLPEPBA7YRZK527UMZDLW27IJ \ / AMOS7 \ YOURUM ::
+#\[7]CFOI7TUEC6FGDFOETAOCIO3DY5CZUP4JELR6OTBONE77Y6CRCKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

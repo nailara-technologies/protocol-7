@@ -168,8 +168,12 @@ compile_module($ARG) for qw|
     coding.gpu_lease.cancel_activity coding.async.send_request
     models.task.claim-ok invoke-web.gpu_lease.queue_changed
     invoke-web.gpu_lease.handler.grace invoke-web.gpu_lease.unload
+    invoke-web.gpu_lease.handler.renew
     invoke-web.gpu_lease.handler.unload_pause_reply
     invoke-web.gpu_lease.handler.verify_unload
+    invoke-web.gpu_lease.handler.processor_poll
+    invoke-web.gpu_lease.handler.processor_reply
+    invoke-web.cmd.gpu-lease-granted
     coding.cmd.gpu-lease-yield coding.spawn_inference_server
     coding.async_spawn_inference_servers coding.task.enqueue
     |;
@@ -370,12 +374,25 @@ ok( @spawns == 2, 'feature off spawns both evaluation backends as before' );
 
 say ': 10. invoke-web queue grace and real cache-empty api sequence';
 reset_lease();
-my ( $db_in_progress, $db_pending ) = ( 0, 0 );
+my @db_items;
 my $db = bless {}, 'MockDB';
 {
 
     package MockDB;
-    sub selectrow_array { return ( $db_in_progress, $db_pending ) }
+
+    sub selectrow_array {
+        my ( $self, $sql, $bind, $park_limit ) = @_;
+        die "unexpected mock query [ $sql ]"
+            if $sql !~ m{SELECT SUM\( status = 'in_progress' \)};
+        my ( $in_progress, $pending ) = ( 0, 0 );
+        foreach my $item (@db_items) {
+            $in_progress++ if $item->{'status'} eq 'in_progress';
+            $pending++
+                if $item->{'status'} eq 'pending'
+                and $item->{'priority'} > $park_limit;
+        }
+        return ( $in_progress, $pending );
+    }
 }
 $data{'invoke_web'} = {};
 $data{'invoke-web'} = {
@@ -393,8 +410,8 @@ ok( defined $grace && $grace->{'after'} == 7,
 );
 my $grace_watcher = MockWatcher->new( $grace->{'data'} // {} );
 $data{'invoke-web'}{'gpu_lease'}{'grace_timer'} = $grace_watcher;
-$db_pending                                     = 1;
-$code{'invoke-web.gpu_lease.request'}           = sub { return TRUE };
+@db_items = ( { 'status' => 'pending', 'priority' => 0 } );
+$code{'invoke-web.gpu_lease.request'} = sub { return TRUE };
 $code{'invoke-web.gpu_lease.queue_changed'}->();
 ok( !$grace_watcher->is_active, 'new render work cancels the grace release' );
 
@@ -642,6 +659,232 @@ ok( @logs && !scalar( grep { ( $ARG->[0] // 0 ) < 2 } @logs ),
     'five-second lease rescheduling logs only at level 2'
 );
 
+my $request_result = FALSE;
+my $request_count  = 0;
+
+sub reset_processor_state {
+    reset_lease();
+    @db_items           = ();
+    @api                = ();
+    @timers             = ();
+    @routes             = ();
+    @logs               = ();
+    $request_result     = FALSE;
+    $request_count      = 0;
+    $data{'invoke_web'} = {};
+    $data{'invoke-web'} = { 'status' => 'running', 'gpu_lease' => {} };
+    compile_module('invoke-web.gpu_lease.unload');
+}
+
+sub processor_status {
+    my $started = shift;
+    return $code{'invoke-web.gpu_lease.handler.processor_reply'}->(
+        {   'ok'   => TRUE,
+            'data' => { 'processor' => { 'is_started' => $started } },
+        }
+    );
+}
+
+$code{'invoke-web.gpu_lease.request'} = sub {
+    $request_count++;
+    return TRUE
+        if ( $data{'invoke-web'}{'gpu_lease'}{'holder'} // '' ) eq
+        'invoke-web';
+    return $request_result if $request_result != FALSE;
+    return FALSE if $data{'invoke-web'}{'gpu_lease'}{'request_inflight'};
+    $data{'invoke-web'}{'gpu_lease'}{'request_inflight'} = TRUE;
+    return FALSE;
+};
+$code{'invoke-web.queue.hold'} = sub { die 'queue hold must not be used' };
+
+say ': 19. processor polling is async, self-rearming and failure safe';
+reset_processor_state();
+$code{'invoke-web.gpu_lease.handler.processor_poll'}
+    ->( MockEvent->new( {} ) );
+my ($processor_timer) = grep {
+    ( $ARG->{'handler'} // '' ) eq
+        'invoke-web.gpu_lease.handler.processor_poll'
+} @timers;
+ok( @api == 1
+        && $api[0]->[0] eq 'GET'
+        && $api[0]->[1] eq '/api/v1/queue/default/status'
+        && defined $processor_timer
+        && $processor_timer->{'after'} == 2,
+    'non-holder poll uses async status and a two-second rearm'
+);
+@api = ();
+$code{'invoke-web.gpu_lease.handler.processor_poll'}
+    ->( MockEvent->new( {} ) );
+ok( @api == 0, 'a slow status reply does not overlap another request' );
+$data{'invoke-web'}{'gpu_lease'}{'status_inflight'} = FALSE;
+$data{'invoke-web'}{'gpu_lease'}{'holder'}          = 'invoke-web';
+$code{'invoke-web.gpu_lease.handler.processor_poll'}
+    ->( MockEvent->new( {} ) );
+($processor_timer) = grep {
+    ( $ARG->{'handler'} // '' ) eq
+        'invoke-web.gpu_lease.handler.processor_poll'
+} reverse @timers;
+ok( @api == 1 && $processor_timer->{'after'} == 15,
+    'holder poll uses the fifteen-second interval'
+);
+$data{'models'}{'cfg'}{'gpu_lease'}{'enabled'} = 'no';
+@api = ();
+$code{'invoke-web.gpu_lease.handler.processor_poll'}
+    ->( MockEvent->new( {} ) );
+ok( @api == 0, 'disabled polling rearms without calling invoke.ai' );
+$data{'models'}{'cfg'}{'gpu_lease'}{'enabled'} = 'yes';
+$data{'invoke-web'}{'gpu_lease'}{'processor_paused'} = FALSE;
+$code{'invoke-web.gpu_lease.handler.processor_reply'}
+    ->( { 'ok' => FALSE, 'data' => 'unavailable' } );
+ok( defined $data{'invoke-web'}{'gpu_lease'}{'processor_paused'}
+        && !$data{'invoke-web'}{'gpu_lease'}{'processor_paused'},
+    'failed status replies preserve the previous processor state'
+);
+
+say ': 20. hand pause grace covers pending, parked and running items';
+reset_processor_state();
+$data{'invoke-web'}{'gpu_lease'}{'holder'} = 'invoke-web';
+@db_items = (
+    { 'status' => 'pending', 'priority' =>  0 },
+    { 'status' => 'pending', 'priority' => -1000000 },
+);
+processor_status(FALSE);
+my $pause_grace = $data{'invoke-web'}{'gpu_lease'}{'grace_timer'};
+ok( defined $pause_grace
+        && $pause_grace->data->{'user_pause'}
+        && $request_count == 0,
+    'user pause arms grace without acquiring despite pending and parked items'
+);
+$code{'invoke-web.gpu_lease.queue_changed'}->();
+ok( $pause_grace->is_active && $request_count == 0,
+    'pending work neither cancels pause grace nor requests the lease' );
+my @unload_calls;
+$code{'invoke-web.gpu_lease.unload'}
+    = sub { push @unload_calls, [@ARG]; return TRUE };
+unshift @db_items, { 'status' => 'in_progress', 'priority' => 0 };
+$code{'invoke-web.gpu_lease.handler.grace'}
+    ->( MockEvent->new( $pause_grace->data ) );
+my $recheck = $data{'invoke-web'}{'gpu_lease'}{'grace_timer'};
+ok( @unload_calls == 0 && defined $recheck && $recheck->data->{'user_pause'},
+    'running item keeps the paused lease through a short grace recheck'
+);
+shift @db_items;
+$code{'invoke-web.gpu_lease.handler.grace'}
+    ->( MockEvent->new( $recheck->data ) );
+ok( @unload_calls == 1 && $unload_calls[0]->[1] eq 'release',
+    'paused lease releases once no item remains in progress'
+);
+reset_processor_state();
+$data{'invoke-web'}{'gpu_lease'}{'holder'} = 'invoke-web';
+@db_items = ( { 'status' => 'pending', 'priority' => 0 } );
+processor_status(FALSE);
+$pause_grace = $data{'invoke-web'}{'gpu_lease'}{'grace_timer'};
+processor_status(TRUE);
+ok( !$pause_grace->is_active, 'processor resume cancels the pause grace' );
+
+say ': 21. resume re-pauses for work and repeated resumes stay owned';
+reset_processor_state();
+@db_items = ( { 'status' => 'pending', 'priority' => 0 } );
+processor_status(FALSE);
+ok( $request_count == 0 && @api == 0,
+    'a hand-paused non-holder neither requests nor pauses again' );
+processor_status(TRUE);
+processor_status(TRUE);
+my @pauses = grep {
+           $ARG->[0] eq 'PUT'
+        && $ARG->[1] eq '/api/v1/queue/default/processor/pause'
+} @api;
+ok( $request_count == 2 && @pauses == 2,
+    'first and second resumes each request and pause while auto-paused' );
+ok( $data{'invoke-web'}{'gpu_lease'}{'auto_paused'},
+    'repeated automatic pauses retain resume ownership'
+);
+for my $fallback ( UNKNOWN, TRUE ) {
+    reset_processor_state();
+    @db_items       = ( { 'status' => 'pending', 'priority' => 0 } );
+    $request_result = $fallback;
+    processor_status(TRUE);
+    ok( @api == 0 && !$data{'invoke-web'}{'gpu_lease'}{'auto_paused'},
+        $fallback == UNKNOWN
+        ? 'models-unavailable fallback leaves the render path untouched'
+        : 'an open lease gate leaves the render path untouched'
+    );
+}
+reset_processor_state();
+@db_items = ( { 'status' => 'in_progress', 'priority' => 0 } );
+processor_status(TRUE);
+ok( $request_count == 1 && @api == 1,
+    'a dequeued running item is enough to request and auto-pause' );
+
+say ': 22. grants resume only automatic pauses and handovers requeue';
+reset_processor_state();
+$data{'invoke-web'}{'gpu_lease'}{'auto_paused'} = TRUE;
+$code{'invoke-web.cmd.gpu-lease-granted'}->();
+ok( @api == 1
+        && $api[0]->[1] eq '/api/v1/queue/default/processor/resume'
+        && !$data{'invoke-web'}{'gpu_lease'}{'auto_paused'},
+    'grant resumes an automatic pause and clears its ownership'
+);
+reset_processor_state();
+$data{'invoke-web'}{'gpu_lease'}{'processor_paused'} = TRUE;
+$code{'invoke-web.cmd.gpu-lease-granted'}->();
+ok( @api == 0, 'grant leaves a hand-paused processor paused' );
+processor_status(FALSE);
+ok( $data{'invoke-web'}{'gpu_lease'}{'grace_user_pause'},
+    'hand-paused grant enters the user-pause release path'
+);
+reset_processor_state();
+$data{'invoke-web'}{'gpu_lease'}{'auto_paused'}      = TRUE;
+$data{'invoke-web'}{'gpu_lease'}{'handover_waiting'} = TRUE;
+@db_items = ( { 'status' => 'pending', 'priority' => 0 } );
+processor_status(FALSE);
+$data{'invoke-web'}{'gpu_lease'}{'request_inflight'} = FALSE;
+processor_status(FALSE);
+ok( $request_count == 2 && !scalar( grep { ( $ARG->[0] // 0 ) < 2 } @logs ),
+    'each post-handover poll requeues quietly after the acquire reply'
+);
+
+say ': 23. releases preserve hand pauses and idle releases stay idle';
+reset_processor_state();
+$data{'invoke-web'}{'gpu_lease'}{'holder'}           = 'invoke-web';
+$data{'invoke-web'}{'gpu_lease'}{'processor_paused'} = TRUE;
+$code{'invoke-web.gpu_lease.unload'}->( '', 'release' );
+ok( !$data{'invoke-web'}{'gpu_lease'}{'auto_paused'},
+    'release after a user pause does not claim resume ownership'
+);
+reset_processor_state();
+$data{'invoke-web'}{'gpu_lease'}{'holder'}           = 'invoke-web';
+$data{'invoke-web'}{'gpu_lease'}{'processor_paused'} = FALSE;
+$code{'invoke-web.gpu_lease.unload'}->( '', 'release' );
+ok( $data{'invoke-web'}{'gpu_lease'}{'auto_paused'},
+    'empty-queue release owns the pause needed for a later resume' );
+$code{'invoke-web.gpu_lease.handler.verify_unload'}
+    ->( MockEvent->new( { 'attempt' => 1 } ) );
+processor_status(FALSE);
+ok( $request_count == 0, 'an idle auto-paused release does not reacquire' );
+@db_items = ( { 'status' => 'pending', 'priority' => 0 } );
+$code{'invoke-web.gpu_lease.queue_changed'}->();
+$code{'invoke-web.cmd.gpu-lease-granted'}->();
+ok( $request_count == 1
+        && !$data{'invoke-web'}{'gpu_lease'}{'auto_paused'}
+        && ( grep { $ARG->[1] eq '/api/v1/queue/default/processor/resume' }
+        @api ) == 1,
+    'new work after release acquires and resumes the automatic pause'
+);
+reset_processor_state();
+$data{'invoke-web'}{'gpu_lease'}{'holder'} = 'invoke-web';
+$code{'invoke-web.gpu_lease.unload'}->( '', 'release', FALSE );
+ok( $data{'invoke-web'}{'gpu_lease'}{'auto_paused'},
+    'empty release needs no processor cache to retain resume ownership' );
+reset_processor_state();
+$data{'invoke-web'}{'gpu_lease'}{'auto_paused'} = TRUE;
+processor_status(TRUE);
+ok( $request_count == 0,
+    'idle started processor does not request the lease' );
+@db_items = ( { 'status' => 'pending', 'priority' => -1000000 } );
+processor_status(TRUE);
+ok( $request_count == 0, 'parked work alone never drives a resume request' );
+
 say ': reply contract : every lease command returns mode and data';
 foreach my $file ( glob "$main::root_path/src/*.cmd.gpu-lease-*" ) {
     open my $fh, qw| < |, $file or die "$file : $OS_ERROR";
@@ -661,8 +904,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,,.,,,,.,,..,,.,,...,,,,,,,.,,,,,,.,,.,,,..,,...,.,.,...,,..,..,,..,,..,,
-#NT5ETJHD2G5ZE4Q2Z57KQSTQZSKK457MHF4DRC5GKO5VRR7W7MK5YIIZYTGF4MZWJKZPHYBGKK3QC
-#\\\|XKA3IP5B335XDNUDBZWFCWB5JTZFMT5XT3LQWU7ZG4FSUQYU5FH \ / AMOS7 \ YOURUM ::
-#\[7]7SMPQ3KP2HLBNOTNY6VHZZ52Y54WNSZWM2ATWYQYLLHNB47CVCCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,..,,.,,,,.,,,.,,,.,,,..,,,,,,,.,..,,...,..,,...,.,.,...,.,,,.,.,
+#UF45HEUUATID6X4GBDZYF6PQO5F3WD6ZY3AK5XQE7WXIG66IC4WYGICUHF32MYVZGSAKDLXKR6Y3M
+#\\\|NK35AV67HO4E5YD2IET5NWF6D3LOMOMGVBD2RNHWKTBTUCYTPHX \ / AMOS7 \ YOURUM ::
+#\[7]BOCSZV5YZ2SOCR4A3FRQZCSREWDSLY6EVMEWWNNEFY6A2K43GICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

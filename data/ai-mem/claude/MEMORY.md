@@ -5,22 +5,14 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — START HERE : host labels, letsencr join fix deployed, no history rewrite ; next N7FS
-- [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — previous [ d02c3b067 ] : shm A live
-- [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — previous [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
-- [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 : format 1 tested, CLI only, no deployment, no user in src ; owner decisions listed, binary byte form first
-- [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — previous [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
-- [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — previous [ 4802120dd ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
-- [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — previous [ 485d04329 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive
-- [shm-permissions-forgeable-open](project-2026-10-22-shm-permissions-forgeable-open.md) — OPEN SECURITY, high [ todo FKS ] : AMOS7::SHM::sign_permission is a computable hash -- shm permissions forgeable
+- [session-handover-chksum-lease](project-2026-11-06-session-handover-chksum-lease.md) — START HERE : binary amos_chksum, gpu lease live with pause \ resume ; next N7FS
+- [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — previous : host labels, letsencr join fix
+- [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 : format 1 tested, CLI only, no deployment, no user in src ; byte form settled 2026-11-06
+- [shm-permissions-forgeable-open](project-2026-10-22-shm-permissions-forgeable-open.md) — grants FIXED d02c3b067 ; open [ todo FKS, normal ] : local readers with file rights can still map a segment, encrypted pages next
 - [signature-valid-truth-map-ignored](project-2026-10-22-signature-valid-truth-map-ignored.md) — FIXED 2026-11-05 [ 66f759706, VWF ] : signature_valid honours a caller truth map [ truth checks only ] ; non-default map untested until the form footer
 - [new-task-command-three-lists](feedback-new-task-command-three-lists.md) — a new zenka command needs its own zenka.v7 list + gen-sub-whitelist, worker commands also the host overlay grant ; verify with `<zenka>.commands` and the far cube log
 - [sync-helpers-need-blocking-cube-socket](feedback-sync-helpers-need-blocking-cube-socket.md) — never flip a shared socket's mode : sync helpers read it ; per-call MSG_DONTWAIT instead
 - [ondemand-helper-recursion-in-deps-register](feedback-ondemand-helper-recursion-in-deps-register.md) — a new sub on the compile path recurses via register_*_deps : inline it
-- [session-handover-lock-mode](project-2026-11-01-session-handover-lock-mode.md) — previous [ c3b01c609 ] : login chain + lock mode s2a live
-- [session-handover-login-screen](project-2026-10-31-session-handover-login-screen.md) — previous [ b70c9d6cc ]
-- [session-handover-external-access](project-2026-10-31-session-handover-external-access.md) — previous 2026-10-31 [ 42210691a ]
-- [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — previous [ a3d230f86 ] : replica mode live
 - [deferred-history-purge](project-2026-10-30-deferred-history-purge.md) — ONE purge-paths run with the owner later : dep-graph .txz + old data/gfx/backgrounds/ images ; no remote re-add [ no origin ]
 - [nameserv-zone-delegation-plan](project-2026-10-30-nameserv-zone-delegation-plan.md) — plan : zenki take over dns [ own nameserv as master ] + mail, then RETIRE atom \ postfix \ inwx-as-master ; snapshots in /data/backup/{dns,mail}/ are the functional reference ; must be REBUILDABLE from tracked config [ reproducibility ] ; zones NOT current yet -> reconcile first
 - [fix-dns-zone-issues-when-seen](feedback-fix-dns-zone-issues-when-seen.md) — owner 2026-10-30 : fix zone defects when seen, name each ; mail paths [ MX, @taeki.v7.ax ] dig-verified before + after ; registrar only via owner-given access
@@ -104,8 +96,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,,,,...,.,,,,..,.,.,,.,,..,,.,.,,,,,,,,,..,,...,...,,.,,,,.,,..,,.,,...,
-#EGAJAPBIR4FJ4GVDV6FDRRZN7YIZBG5YUP3B55H2ZLNSWXIWR7FUDYDAEPEU5XDINF6CGGIRFCPM6
-#\\\|SPTWRZLHX4SNFB2Q3ZNGJJLFTNTDW7L6DJ7MRINCBHJ2HK4IMAJ \ / AMOS7 \ YOURUM ::
-#\[7]MBVQDNH5WDYAOP4ZVWMSMVTUVWKD57AZHCMI6ZNC2YJ32BZJQQBQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,.,,,.,.,,,.,.,,.,,..,,,..,..,,..,,...,.,.,...,.,,,.,.,,,.,,,,,
+#A6PMZLTY6FV2LLGF43L7ZXIGP4XRJDJUKULIUS2JOCK5CAGWNSAZ2ISVS32RTCBG7LJJD3JM6HH44
+#\\\|UJGVPYF4AU3YL7MMQCE3U2FUU5YWH7YW5M63KBM3ZC7UXUSEPCM \ / AMOS7 \ YOURUM ::
+#\[7]ZAY557HV5YPGAY5CPRQF3O3UBZ3W75KV4LEHISQYNCC77U646KBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

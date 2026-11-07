@@ -6,13 +6,14 @@
 <invoke-web.gpu_lease.holder>           = qw| invoke-web |;
 <invoke-web.gpu_lease.request_inflight> = FALSE;
 <invoke-web.gpu_lease.unavailable>      = FALSE;
-<invoke-web.gpu_lease.pause_sent>       = FALSE;
+<invoke-web.gpu_lease.handover_waiting> = FALSE;
 <[invoke-web.gpu_lease.handler.renew]>;
-<[base.logs]>->( 1, ': gpu lease acquired : render queue may resume' );
+<[base.logs]>->( 1, ': gpu lease acquired' );
 if (<invoke-web.gpu_lease.start_waiting>) {
     delete <invoke-web.gpu_lease.start_waiting>;
     <[invoke-web.cmd.start]>->( { 'args' => '' } );
-} else {
+} elsif (<invoke-web.gpu_lease.auto_paused>) {
+    <invoke-web.gpu_lease.auto_paused> = FALSE;
     <[invoke-web.api_async]>->(
         'PUT', '/api/v1/queue/default/processor/resume',
         undef, 'invoke-web.gpu_lease.handler.queue_resume_reply'
@@ -20,8 +21,8 @@ if (<invoke-web.gpu_lease.start_waiting>) {
 }
 return { 'mode' => qw| true |, 'data' => qw| done | };
 
-#,,,,,...,,,,,,,.,,..,..,,,,,,..,,...,...,.,,,..,,...,...,...,...,..,,...,,,,,
-#7EINY2WQ2LFIXA7OIWALMH4R67E4TX5VCXAKJTPM3GK2AZAFJQ35JHSYUOBKF6V5F6JWFA6I57ZYW
-#\\\|WB6ZIBLN7VBL54OLI6F33A7I247JWMJL7GJDHJCSULOKXFHH6PO \ / AMOS7 \ YOURUM ::
-#\[7]S62QR3TMBUFAJRCX3QU75X7A3PJKYSQN4XPWWILGMINXBGI4JSBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,,,.,,,,,,.,,.,.,.,.,..,,,.,,..,,...,...,,.,,..,,,.,,.,,,.,.,
+#3XIBAKVU6MKAMQ2BMUCOZPKJK46YHKZRJGCNUWHXUK6IDTXHH4A6RDH5TDD6Q46KKVIWLWKALNXIM
+#\\\|PA4BEMKC5UMWXTF7ACGR3EIOQVFLULE3USSAX7QQOCBHRMNOXRK \ / AMOS7 \ YOURUM ::
+#\[7]GXO2IZPJRFVCHLHCMBI3OSHH6OSYJIK2SPA6OVCE3NIPW2CTHWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

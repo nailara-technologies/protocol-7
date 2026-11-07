@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.handler.processor_reply
+# descr = cached processor state drives gpu lease pause and resume handling
+
+my $reply = shift // {};
+<invoke-web.gpu_lease.status_inflight> = FALSE;
+return TRUE
+    if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
+return TRUE if ( <invoke-web.status> // '' ) ne qw| running |;
+return TRUE if not $reply->{'ok'} or ref $reply->{'data'} ne qw| HASH |;
+
+my $processor = $reply->{'data'}->{'processor'} // {};
+return TRUE
+    if ref $processor ne qw| HASH |
+    or not exists $processor->{'is_started'};
+
+<invoke-web.gpu_lease.processor_paused>
+    = $processor->{'is_started'} ? FALSE : TRUE;
+return TRUE if <invoke-web.gpu_lease.unloading>;
+
+my $holder = ( <invoke-web.gpu_lease.holder> // '' ) eq qw| invoke-web |;
+
+if (<invoke-web.gpu_lease.processor_paused>) {
+    if ($holder) {
+        return TRUE if <invoke-web.gpu_lease.auto_paused>;
+        return <[invoke-web.gpu_lease.queue_changed]>;
+    }
+    return TRUE if not <invoke-web.gpu_lease.auto_paused>;
+    if (<invoke-web.gpu_lease.handover_waiting>) {
+        return TRUE if <invoke-web.gpu_lease.request_inflight>;
+        return <[invoke-web.gpu_lease.request]>;
+    }
+    return <[invoke-web.gpu_lease.queue_changed]>;
+}
+
+if (<invoke-web.gpu_lease.grace_user_pause>) {
+    my $grace = delete <invoke-web.gpu_lease.grace_timer>;
+    $grace->cancel if defined $grace and $grace->is_active;
+    delete <invoke-web.gpu_lease.grace_user_pause>;
+}
+
+## a started processor with work requests the lease before pausing again ##
+return <[invoke-web.gpu_lease.queue_changed]>->(TRUE);
+
+#,,.,,,,.,..,,.,.,,,.,,.,,,,.,.,.,.,,,.,.,,..,..,,...,...,,.,,...,,,,,.,,,..,,
+#LLENEGKCVEJWJTVAY2WCEPX52GERBDEWQIGRVC65XCBDVXOZDN7PFTGAXMDLXRSMRW2UQT77UVOJ6
+#\\\|R77NYUULT6P7LGM2DJXRVD5I4CADCORDM3OQG533CMED52I6SU3 \ / AMOS7 \ YOURUM ::
+#\[7]BI7BVTH5KOAHNUBJBW7NMV3V5J3GZITECIN4Q34UB3QCZW3EJICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@ metadata:
   type: reference
 ---
 
-`bin/todo details <id> [<text>]` (`cmd_details`, `bin/todo` ~line 1283):
+**FIXED, argv works [ checked 2026-11-06 ]. history :** `bin/todo details <id> [<text>]` (`cmd_details`, `bin/todo` ~line 1283):
 even the `if (@_)` "non-interactive" branch calls `edit_details_interactive
 ($item)` — the same function as the true interactive path — and ignores
 whatever text was passed as extra args entirely. There's no way to set an
@@ -23,8 +23,8 @@ afterward (`perl -MYAML::XS -e 'YAML::XS::LoadFile(...)'` to sanity-check).
 it's fully non-interactive, uses `ntime_B32_current()` for the `done_at`
 timestamp correctly, and is safe to call directly.
 
-#,,..,..,,,,,,.,,,..,,,.,,.,.,,..,,,.,,..,.,.,.,.,...,...,,..,...,,,.,.,,,...,
-#GNA5WTQANXJP4RV3JYADDWDESBYTOHXA3QYUHT2KW6DKAQYZQHEXB2T5OBIO6KNBD2L7SB4X46AY4
-#\\\|4BLJPRD52CKLO4SXB6CBYIXMGQWOA4FT2N3FE5SS6XJYJN43LDD \ / AMOS7 \ YOURUM ::
-#\[7]EAQUBSXWYSBVZY5FJHQBKFGB45VYU67MBPUY67BCUCNJHFH2Q6AQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,...,,,,,...,,.,,.,.,,,,,,..,.,,,.,.,...,...,...,.,,,,,.,.,,,,,,,
+#YTI2FFLQZHTP3A2MJKX5YSCRGQCWTO55H7XP26SFIFND7AOUPORBWN2VO4XLK6HW2X5LYQKYJYAX6
+#\\\|VNG544DXHOQWL2SIAK3C2SIQ6CFNXAUXDV6YXZLYVREWPPP6K5H \ / AMOS7 \ YOURUM ::
+#\[7]PAO67JJ7NZ4U2FTJRV2LGVIVERL5VBVFD34646YO5YL52UQ5UQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

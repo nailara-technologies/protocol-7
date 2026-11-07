@@ -140,8 +140,7 @@ foreach my $name ( sort keys %$variants ) {
         or $name eq qw| default |
         or ref $cfg ne qw| HASH | ) {
         <[base.logs]>->(
-            0,
-            'invoke.ai install [ %s ] : ' . 'invalid variant name or config',
+            0, 'invoke.ai install [ %s ] : invalid variant name or config',
             $name
         );
         next;
@@ -149,7 +148,7 @@ foreach my $name ( sort keys %$variants ) {
     my ( $env, $root ) = ( $cfg->{'env'} // '', $cfg->{'root'} // '' );
     if ( $env !~ m{^[\w.-]+$} or not length $root or not defined $run_home ) {
         <[base.logs]>->(
-            0, 'invoke.ai install [ %s ' . '] : env \ root missing', $name
+            0, 'invoke.ai install [ %s ] : env \ root missing', $name
         );
         next;
     }
@@ -344,6 +343,16 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 <dependency.object>->{$gpu_dep_id}->{'min_free_mb'}
     = <invoke-web.start.min_free_vram_mb> // 4096;
 
+## processor state polling : one self-rearming timer survives source reload ##
+if (   not defined <invoke-web.gpu_lease.processor_timer>
+    or not eval { <invoke-web.gpu_lease.processor_timer>->is_active } ) {
+    <invoke-web.gpu_lease.processor_timer> = <[event.add_timer]>->(
+        {   'after'   => 0,
+            'handler' => qw| invoke-web.gpu_lease.handler.processor_poll |,
+        }
+    );
+}
+
 ## schedule periodic health check timer [ every 30 seconds ]
 <[event.add_timer]>->(
     {   'after'    => 30,
@@ -357,8 +366,8 @@ my $gpu_dep_id = <invoke-web.dep.memory_gpu>;
 
 0;
 
-#,,.,,.,.,,,.,,.,,...,,..,,..,..,,.,.,..,,..,,..,,...,...,,,,,,..,,,.,,..,,,.,
-#BZ562LKZJ3N22724236HJYBMLEVSGYJCZ2FYKPXSRTGF6BPWX4LL3OUV3AK62NP7K3HGMNB5ZL6OI
-#\\\|F5R5GWSL3OGIQNZ7GZWANR34EFI2UB2HVJOUSVGQNUWJUDDSFK4 \ / AMOS7 \ YOURUM ::
-#\[7]IGGQPEBIKMCCADAISEGIB6363IAO7XY2OO2FL4ANF72EDHHOW6AA 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,,,,.,,..,,,,.,.,.,...,.,.,,.,,..,,...,...,,..,,..,,,.,,..,...,
+#SF6GCOMBA5CNGGERW6P2XH2EG5HYW44AGLCJVRKMU7XZXU2TNT2SKEHBABIBD4Z27LUGXKRNXDFDM
+#\\\|TDNFPONOLAO4MPL26JMSW2WXZIDSVECQYCGX2ZI2QFL6AIYXQ7H \ / AMOS7 \ YOURUM ::
+#\[7]LFVKFFKBIV52EHCQCVPKQOULHU7MIBQOFDR6OOCAD6D4AOGQI2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
