@@ -7,10 +7,10 @@ package AMOS7::N7FS::Store;    ##############################################
 ## <root>/<disk>/<epoch>/<amos>/<bmw>/content  /meta/<ntime14>.<tail8>.meta
 ##
 ## content : the file's bytes, unchanged [ no chunking in format 1 ]. meta :
-## one plain 'P7FN' record per import
-## [ name, format, size, mtime, import ntime, source .. ] -- a second import
-## of the same content adds a meta file, nothing is rewritten
-## [ sync = union of files ].
+## one plain 'P7FN' record per changed import
+## [ name, format, size, mtime, import ntime, source .. ] -- a new source of
+## the same content adds a meta file ; an unchanged repeat keeps the newest
+## one, nothing is rewritten [ sync = union of files ].
 ##
 ## node formats are CODECS [ read \ write \ verify ] keyed by the store format
 ## of the state record ; AMOS7::N7FS::Convert chains them.
@@ -34,11 +34,12 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.MYYML5Y |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.JWI5ORY |;
 
 @EXPORT_OK = qw|
     assimilate
     index_sources
+    meta_entries
     node_path
     node_verify
     store_nodes
@@ -234,6 +235,40 @@ sub store_nodes {
         }
     }
     return @nodes;
+}
+
+## every meta record of the active epochs as plain hashes. the codec reader
+## applies the record checks ; content verification stays with node_verify
+sub meta_entries {
+    my %opt   = @ARG;
+    my $id    = disk_read_id(%opt);
+    my $state = state_read( $id->{'path'} );
+    my $codec = codec( $state->{'store_format'} );
+    my @entries;
+
+    foreach my $node ( store_nodes( $id->{'path'}, $state->{'epochs'}->@* ) )
+    {
+        my $read = $codec->{'read_node'}->( $node->{'path'} );
+        foreach my $meta ( $read->{'metas'}->@* ) {
+            refuse( 'node %s : meta address does not match', $node->{'path'} )
+                if ( $meta->{'amos'} // '' ) ne $node->{'amos'}
+                or ( $meta->{'bmw'} // '' ) ne $node->{'bmw'};
+            refuse( 'node %s : meta has no import ntime', $node->{'path'} )
+                if ( $meta->{'import_ntime'} // '' ) !~ m|\A\d{14}\z|;
+            push @entries,
+                {
+                %{$meta},
+                qw| epoch |   => $node->{'epoch'},
+                qw| amos |    => $node->{'amos'},
+                qw| bmw |     => $node->{'bmw'},
+                qw| address | => join( '/',
+                    epoch_b32( $node->{'epoch'} ), $node->{'amos'},
+                    $node->{'bmw'} ),
+                qw| node_path | => $node->{'path'},
+                };
+        }
+    }
+    return @entries;
 }
 
 ## verifies every node of the active epochs under the store format
@@ -454,6 +489,40 @@ sub assimilate {
     return \%report;
 }
 
+## newest record of this source : duplicates share a node, each keeps its own
+sub _newest_meta {
+    my ( $codec, $dir, $source ) = @ARG;
+    my $node = $codec->{'read_node'}->($dir);
+    my $newest;
+    foreach my $meta ( $node->{'metas'}->@* ) {
+        next if ( $meta->{'source'} // '' ) ne ( $source // '' );
+        $newest = $meta
+            if not defined $newest
+            or ( $meta->{'import_ntime'} // '' ) gt $newest->{'import_ntime'};
+    }
+    return $newest;
+}
+
+sub _meta_unchanged {
+    my ( $old, $new ) = @ARG;
+    return FALSE if not defined $old;
+    foreach my $field (qw| name source format |) {
+        return FALSE if ( $old->{$field} // '' ) ne ( $new->{$field} // '' );
+    }
+    foreach my $field (qw| size mtime |) {
+        return FALSE
+            if not defined $old->{$field}
+            or $old->{$field} != $new->{$field};
+    }
+    foreach my $field (qw| index_chksum index_name |) {
+        return FALSE if defined $old->{$field} != defined $new->{$field};
+        return FALSE
+            if defined $old->{$field}
+            and $old->{$field} ne $new->{$field};
+    }
+    return TRUE;
+}
+
 sub _assimilate_one {
     my ( $opt, $id, $state, $codec, $epoch, $item, $entry, $tmp_ref, $remove )
         = @ARG;
@@ -481,12 +550,6 @@ sub _assimilate_one {
     my $exists = -e $final;
     $entry->{'addr'} = join '/', epoch_b32($epoch), $addr->{'amos'}, $bmw;
 
-    if ( $opt->{'dry_run'} ) {
-        $entry->{'status'} = $exists ? qw| would-dedup |  : qw| would-store |;
-        $entry->{'then'}   = $remove ? qw| would-remove | : qw| keep |;
-        return;
-    }
-
     my $ntime = ntime_now();
     my $abs   = abs_path($path) // $path;
     my %meta  = (
@@ -507,6 +570,18 @@ sub _assimilate_one {
     $meta{'index_name'} = $item->{'index_name'}
         if defined $item->{'index_name'};
 
+    my $unchanged = $exists
+        && _meta_unchanged( _newest_meta( $codec, $final, $meta{'source'} ),
+        \%meta );
+    if ( $opt->{'dry_run'} ) {
+        $entry->{'status'}
+            = !$exists   ? qw| would-store |
+            : $unchanged ? qw| would-unchanged |
+            :              qw| would-dedup |;
+        $entry->{'then'} = $remove ? qw| would-remove | : qw| keep |;
+        return;
+    }
+
     ## the epoch enters the state before its first node ##
     ## [ readers look there ]                           ##
     if ( not grep { $ARG == $epoch } $state->{'epochs'}->@* ) {
@@ -516,10 +591,15 @@ sub _assimilate_one {
     }
 
     if ($exists) {
-        ## dedup : the stored node must verify before it gains a meta ##
+        ## dedup : verify first ; unchanged meta is kept, a new source is ##
+        ## added                                                          ##
         $codec->{'verify_node'}->( $final, $addr );
-        $codec->{'write_meta'}->( $final, \%meta );
-        $entry->{'status'} = qw| dedup |;
+        if ($unchanged) {
+            $entry->{'status'} = qw| unchanged |;
+        } else {
+            $codec->{'write_meta'}->( $final, \%meta );
+            $entry->{'status'} = qw| dedup |;
+        }
     } else {
         my $amos_dir = $final =~ s|/[^/]+\z||r;
         make_dirs( $amos_dir, 0700 );
@@ -572,8 +652,8 @@ sub _assimilate_one {
 
 1;
 
-#,,..,,..,,,,,..,,..,,.,,,,,.,,,,,,.,,...,,,,,..,,...,..,,..,,,..,...,,..,.,.,
-#DODZJOKK2NNC4I5KE7S5XWJXXQ7WNFC4CORURFK62RJFNXXBR72XHOSOQ74SKTKXK46E3X5X6ILWY
-#\\\|LWGZMURM6QQT6UPWOZCG64674N3SO6DB3J7NBFI22HJS3NCRICJ \ / AMOS7 \ YOURUM ::
-#\[7]E44WBUUVNVVC2OBW4O5ZIAEMDEAGCPQR6WB2LC5VIPWC2APWKUCA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,...,,..,...,...,,.,,,..,...,...,..,,...,...,,,.,.,.,.,.,..,,.,.,
+#PEHFRUEDETO7OLPM65O7SQS4AAVQWBZLPQS5LSP4BZTOMOWZDQ2MJTFPTUKHKIOK2GTAM3KCMDQRQ
+#\\\|FYXVAI3KVBRGEQZNRQNZXEMP5DMKRSQLQ6RO4SLBD6CUMMG3LNZ \ / AMOS7 \ YOURUM ::
+#\[7]MNZEMLJKNL2IRN573H6XI3GEP3EKBRMKVYSIQGZWOLT25WODSIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

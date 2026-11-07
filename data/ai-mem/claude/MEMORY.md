@@ -28,6 +28,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [request-signed-version-before-each-batch-commit](feedback-request-signed-version-before-each-batch-commit.md) — for batch/multiple commits in a session, explicitly request a fresh signed version number from the user before EACH commit, not just once — stated 2026-09-17, don't chain commits on one earlier sign-off.
 - [amend-env-and-unsigned-files-staging](feedback-amend-env-and-unsigned-files-staging.md) — amend with `AMEND=1 git commit --amend` [ hook wants a new version otherwise ] ; stage unsigned files [ bin/c_src/*.c ] myself before the sign run, it only stages signed ones ; BUT it stages EVERY modified signed file [ incl. an agent's half-done edits -- unstage unreviewed ] and reformats via format-code -r -- re-check the STAGED content [ perl -c \ run ] right before committing
 - [mcp-sign-commit-workflow](reference-mcp-sign-commit-workflow.md) — 2026-10-30 : sign via p7_sign [ -> p7-signing-agent ], commit via p7_commit_prepare \ p7_commit [ + _status tools ] -- not the old manual path
+- [sign-amend-before-commit-drops-version](feedback-sign-amend-before-commit-drops-version.md) — p7_sign op amend before the commit exists rewinds the version, hook refuses : use op new + version true until committed
 - [warn-dont-restrict-user-choices](feedback-warn-dont-restrict-user-choices.md) — user-facing tools : support every reasonable usage form, WARN on weak choices, never refuse them [ restrictions get circumvented / block adoption ] ; special set-ups = wrappers. protocol verification stays fail-closed
 - [remote-root-ssh-restart-authorized](feedback-remote-root-ssh-restart-authorized.md) — 2026-10-21 : root@ ssh to the four servers [ srv-U F V A : Host aliases in ~/.ssh/config, label = amos-chksum -L1 <alias> ] any time ; remote zenka restarts \ reloads need no per-step ask [ still name them ; never print host.cfg whole ]
 - [token-budget-pacing-early-week](feedback-token-budget-pacing-early-week.md) — pace Claude token use from the START of each 7-day usage window, not reactively once tight — flagged 2026-09-17 after ~50%/7d on day 1. Favor one targeted check over repeated live Monitor-polling loops, delegate implementation-heavy/low-risk work to kimi_dispatch/subagents. NOT license to leave a real defect half-fixed to save tokens (user explicitly confirmed this, see [[feedback-fix-immediately-reduces-cognitive-load]]) — trim redundant procedural overhead only, never real fixes/verification.
@@ -96,8 +97,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,...,,,,,.,.,,,.,.,,,.,.,,.,,..,,,..,..,,..,,...,.,.,...,.,,,.,.,,,.,,,,,
-#A6PMZLTY6FV2LLGF43L7ZXIGP4XRJDJUKULIUS2JOCK5CAGWNSAZ2ISVS32RTCBG7LJJD3JM6HH44
-#\\\|UJGVPYF4AU3YL7MMQCE3U2FUU5YWH7YW5M63KBM3ZC7UXUSEPCM \ / AMOS7 \ YOURUM ::
-#\[7]ZAY557HV5YPGAY5CPRQF3O3UBZ3W75KV4LEHISQYNCC77U646KBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,...,,,,,,,.,.,.,.,.,,,,,,,,,..,,...,...,,.,,..,,,..,,,.,,,,,
+#6NEU5OXT3QWJS5PKV4ERGBED5JDGOJQ5GJAW7WLLPXP6YMH75LNHFCPSPO4UJLLX4CVLUQSKDDCXQ
+#\\\|BMZIPMDT5QI56CF5EW275TNYCWTB4MPUYNCZNFADD3AKMADNCDN \ / AMOS7 \ YOURUM ::
+#\[7]MLBAO35B2CB5VW4FTUIH4YANJVAYAPZSBCV6UR2TYBECMMIIY2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

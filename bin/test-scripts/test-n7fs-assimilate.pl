@@ -76,6 +76,22 @@ sub entry_for {
     return $e // {};
 }
 
+sub cli_n7fs {
+    my @args = @ARG;
+    my $out  = "$box->{'base'}/cli.stdout";
+    my $err  = "$box->{'base'}/cli.stderr";
+    my $pid  = fork // die "fork : $OS_ERROR";
+    if ( $pid == 0 ) {
+        open( STDOUT, '>:raw', $out ) or exit 98;
+        open( STDERR, '>:raw', $err ) or exit 98;
+        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+            '-host-dir', $hdir, @args )
+            or exit 99;
+    }
+    waitpid $pid, 0;
+    return ( $CHILD_ERROR >> 8, read_file($out), read_file($err) );
+}
+
 say ':: not attached';
 {
     my $before = snapshot( $root, $hdir, $src );
@@ -118,7 +134,7 @@ foreach my $name ( sort keys %content ) {
     ok( $e->{'status'} eq 'stored' && $e->{'then'} eq 'kept',
         "$name : stored, kept" );
     ok( read_file("$src/$name") eq $content{$name},
-        "$name : source " . "unchanged" );
+        "$name : source unchanged" );
     my $nd = node_dir( $content{$name}, $epoch );
     ok( read_file("$nd/content") eq $content{$name},
         "$name : content at <epoch>/<amos>/<bmw>/content"
@@ -131,7 +147,7 @@ ok( -e "$src/link" && -l "$src/link", 'the symlink is untouched' );
     my $m    = plain_record_parse( qw| meta |, read_file($mf) );
     my $p    = $m->{'payload'};
     ok( substr( read_file($mf), 0, 5 ) eq "P7FN\x01",
-        "meta : 'P7FN' " . "+ format 1" );
+        "meta : 'P7FN' + format 1" );
     ok( $p->{'name'} eq 'b.png'
             && $p->{'format'} eq 'png'
             && $p->{'size'} == length $content{'b.png'}
@@ -146,13 +162,79 @@ ok( state_read("$root/$disk")->{'epochs'}[0] == $epoch,
 ok( store_verify( %base, qw| disk | => $disk )->{'nodes'} == 3,
     'store verifies [ 3 nodes ]' );
 
-say ':: dedup';
+say ':: dedup and unchanged';
 {
+    my $nd         = node_dir( $content{'a.txt'}, $epoch );
+    my $meta_count = sub {
+        my @meta = glob "$nd/meta/*.meta";
+        return scalar @meta;
+    };
+
+    my $before = snapshot( $root, $hdir, $src );
+    my $dry    = assimilate(
+        %run,
+        qw| paths |   => ["$src/a.txt"],
+        qw| dry_run | => TRUE,
+        qw| remove |  => TRUE
+    );
+    ok( entry_for( $dry, "$src/a.txt" )->{'status'} eq 'would-unchanged'
+            && entry_for( $dry, "$src/a.txt" )->{'then'} eq 'would-remove',
+        'dry run reports the unchanged outcome'
+    );
+    ok( snap_equal( $before, snapshot( $root, $hdir, $src ) ),
+        'unchanged dry run changes nothing' );
+
     my $r2 = assimilate( %run, qw| paths | => ["$src/a.txt"] );
-    ok( entry_for( $r2, "$src/a.txt" )->{'status'} eq 'dedup',
-        'same content : dedup' );
-    my @meta = glob node_dir( $content{'a.txt'}, $epoch ) . '/meta/*.meta';
-    ok( @meta == 2, 'a second meta record, nothing rewritten' );
+    ok( entry_for( $r2, "$src/a.txt" )->{'status'} eq 'unchanged'
+            && entry_for( $r2, "$src/a.txt" )->{'then'} eq 'kept',
+        'same path and meta : unchanged, kept'
+    );
+    ok( $meta_count->() == 1, 'repeat import adds zero meta records' );
+
+    my $copy = write_file( "$src/a-copy.txt", $content{'a.txt'} );
+    my $rc   = assimilate( %run, qw| paths | => [$copy] );
+    ok( entry_for( $rc, $copy )->{'status'} eq 'dedup',
+        'same content at a new path : dedup'
+    );
+    ok( $meta_count->() == 2, 'a new path adds one meta record' );
+
+    my $moved = "$src/a-moved.txt";
+    rename $copy, $moved or die "rename $copy : $OS_ERROR";
+    my $rm = assimilate( %run, qw| paths | => [$moved] );
+    ok( entry_for( $rm, $moved )->{'status'} eq 'dedup',
+        'moved path : dedup' );
+    ok( $meta_count->() == 3, 'moved path adds exactly one meta record' );
+
+    ## duplicates share a node : each source compares with its own record ##
+    my $rd = assimilate( %run, qw| paths | => [ "$src/a.txt", $moved ] );
+    ok( entry_for( $rd, "$src/a.txt" )->{'status'} eq 'unchanged'
+            && entry_for( $rd, $moved )->{'status'} eq 'unchanged',
+        'repeat of duplicate sources : both unchanged'
+    );
+    ok( $meta_count->() == 3, 'repeat of duplicates adds zero meta records' );
+
+    my $mtime = ( stat "$src/a.txt" )[9];
+    utime $mtime + 1, $mtime + 1, "$src/a.txt" or die "utime : $OS_ERROR";
+    my $rt = assimilate( %run, qw| paths | => ["$src/a.txt"] );
+    ok( entry_for( $rt, "$src/a.txt" )->{'status'} eq 'dedup'
+            && $meta_count->() == 4,
+        'a changed mtime adds one meta record'
+    );
+
+    my $f = write_file( "$src/unchanged-remove",
+        "test data : unchanged remove\n" );
+    assimilate( %run, qw| paths | => [$f] );
+    my $rr = assimilate( %run, qw| paths | => [$f], qw| remove | => TRUE );
+    ok( entry_for( $rr, $f )->{'status'} eq 'unchanged'
+            && entry_for( $rr, $f )->{'verified'}
+            && entry_for( $rr, $f )->{'then'} eq 'removed'
+            && !-e $f,
+        'unchanged with -remove still verifies and removes the source'
+    );
+    my @remove_meta
+        = glob node_dir( "test data : unchanged remove\n", $epoch )
+        . '/meta/*.meta';
+    ok( @remove_meta == 1, 'unchanged -remove adds no meta record' );
 }
 
 say ':: keep + remove exclude each other';
@@ -168,7 +250,7 @@ say ':: keep + remove exclude each other';
             );
         },
         qr|exclude each other|,
-        'keep + remove ' . 'refused'
+        'keep + remove refused'
     );
     ok( snap_equal( $before, snapshot( $root, $hdir, $src ) ), 'no change' );
 }
@@ -185,8 +267,7 @@ say ':: remove';
     );
     ok( !-e $f, 'the source is gone' );
     ok( read_file(
-            node_dir( "test data : " . "to be removed\n", $epoch )
-                . '/content'
+            node_dir( "test data : to be removed\n", $epoch ) . '/content'
         ) eq "test data : to be removed\n",
         'its content is in the store'
     );
@@ -204,7 +285,7 @@ foreach my $point (
     my $rf = assimilate( %run, qw| paths | => [$f], qw| remove | => TRUE );
     my $e  = entry_for( $rf, $f );
     ok( $e->{'status'} eq 'failed' && $rf->{'failed'} == 1,
-        "$point : " . "reported " . "failed" );
+        "$point : reported failed" );
     ok( read_file($f) eq $body, "$point : source untouched" );
     my $nd = node_dir( $body, $epoch );
 
@@ -212,7 +293,7 @@ foreach my $point (
         ok( !-e $nd, "$point : nothing published" );
         my $amos_dir = $nd =~ s|/[^/]+\z||r;
         ok( !grep( {m|\.tmp\.|} glob("$amos_dir/*") ),
-            "$point : no " . "temp left" );
+            "$point : no temp left" );
     }
     unlink $f;
 }
@@ -245,7 +326,7 @@ foreach my $point (
     my $f  = write_file( "$src/again", $body );
     my $rd = assimilate( %run, qw| paths | => [$f], qw| remove | => TRUE );
     ok( entry_for( $rd, $f )->{'status'} eq 'failed',
-        'damaged node ' . ': dedup fails' );
+        'damaged node : dedup fails' );
     ok( read_file($f) eq $body, 'damaged node : source untouched' );
     refused(
         sub { store_verify( %base, qw| disk | => $disk ) },
@@ -309,11 +390,11 @@ SKIP: {
             . 'TEXT, path TEXT, session_id TEXT, created_at TEXT, '
             . 'source_rowid INTEGER )' );
     my $i1 = write_file( "$src/idx-1.png",
-        "\x89PNG\r\n\x1a\n " . "test data : index one" );
+        "\x89PNG\r\n\x1a\n test data : index one" );
     my $i2 = write_file( "$src/idx-2.png",
-        "\x89PNG\r\n\x1a\n " . "test data : index two" );
-    my $ins = $dbh->prepare(
-        'INSERT INTO sources ' . 'VALUES ( ?, ?, ?, ?, ?, ? )' );
+        "\x89PNG\r\n\x1a\n test data : index two" );
+    my $ins
+        = $dbh->prepare('INSERT INTO sources VALUES ( ?, ?, ?, ?, ?, ? )');
     ## TEST DATA : fake rows, fake checksums [ not real L13 values ] ##
     $ins->execute( 'idx-1.png', 'TESTDATAL13A1', $i1,   'test', 'test', 1 );
     $ins->execute( 'idx-2.png', 'TESTDATAL13A2', $i2,   'test', 'test', 2 );
@@ -339,7 +420,7 @@ SKIP: {
         'the index checksum is kept in meta'
     );
     ok( snap_equal( $db_before, snapshot($idx) ),
-        'the index db is unchanged ' . '[ read-only ]'
+        'the index db is unchanged [ read-only ]'
     );
 
     ## index + remove : refused without a base ; rows outside it skipped ##
@@ -355,9 +436,9 @@ SKIP: {
         'refused : no change' );
 
     my $outside = write_file( "$box->{'base'}/outside.png",
-        "\x89PNG\r\n\x1a\n " . "test data : outside the base" );
+        "\x89PNG\r\n\x1a\n test data : outside the base" );
     my $i3 = write_file( "$src/idx-3.png",
-        "\x89PNG\r\n\x1a\n " . "test data : index three" );
+        "\x89PNG\r\n\x1a\n test data : index three" );
     $dbh = DBI->connect( "dbi:SQLite:dbname=$idx", '', '',
         { RaiseError => 1 } );
     ## TEST DATA : fake rows ##
@@ -416,10 +497,133 @@ disk_detach(%run);
     ok( snap_equal( $before, snapshot( $root, $hdir, $src ) ), 'no change' );
 }
 
+say ':: get and find [ detached ]';
+disk_attach(%run);
+my $empty = write_file( "$src/empty.bin", '' );
+mkdir "$src/amb-one";
+mkdir "$src/amb-two";
+my $amb1
+    = write_file( "$src/amb-one/same.txt", "test data : ambiguous one\n" );
+my $amb2
+    = write_file( "$src/amb-two/same.txt", "test data : ambiguous two\n" );
+my $get_import = assimilate( %run, qw| paths | => [ $empty, $amb1, $amb2 ] );
+my $empty_addr = entry_for( $get_import, $empty )->{'addr'};
+my $amb1_addr  = entry_for( $get_import, $amb1 )->{'addr'};
+my $amb2_addr  = entry_for( $get_import, $amb2 )->{'addr'};
+my $png_addr   = entry_for( $r,          "$src/b.png" )->{'addr'};
+my $a_addr     = entry_for( $r,          "$src/a.txt" )->{'addr'};
+disk_detach(%run);
+
+my ( $cli_rc, $cli_out, $cli_err ) = cli_n7fs( 'get', $disk, $png_addr );
+ok( $cli_rc == 0 && $cli_out eq $content{'b.png'} && $cli_err eq '',
+    'get : binary stdout round trip [ detached ]' );
+
+( $cli_rc, $cli_out, $cli_err ) = cli_n7fs( 'get', $disk, 'b.png' );
+ok( $cli_rc == 0 && $cli_out eq $content{'b.png'},
+    'get : a unique meta name resolves'
+);
+
+( $cli_rc, $cli_out, $cli_err ) = cli_n7fs( 'get', $disk, $empty_addr );
+ok( $cli_rc == 0 && $cli_out eq '' && $cli_err eq '',
+    'get : empty stdout round trip' );
+
+my $png_out = "$box->{'base'}/get-b.png";
+( $cli_rc, $cli_out, $cli_err )
+    = cli_n7fs( 'get', $disk, $png_addr, '-out', $png_out );
+ok( $cli_rc == 0
+        && read_file($png_out) eq $content{'b.png'}
+        && $cli_out =~ m|verified|,
+    'get -out : binary file round trip'
+);
+
+( $cli_rc, $cli_out, $cli_err )
+    = cli_n7fs( 'get', $disk, $png_addr, '-out', $png_out );
+ok( $cli_rc != 0
+        && $cli_err =~ m|exists|
+        && read_file($png_out) eq $content{'b.png'},
+    'get -out : refuses to overwrite'
+);
+
+my $empty_out = "$box->{'base'}/get-empty.bin";
+( $cli_rc, $cli_out, $cli_err )
+    = cli_n7fs( 'get', $disk, $empty_addr, '-out', $empty_out );
+ok( $cli_rc == 0 && -f $empty_out && read_file($empty_out) eq '',
+    'get -out : empty file round trip' );
+
+{
+    my $content_path = node_dir( $content{'b.png'}, $epoch ) . '/content';
+    my $orig         = read_file($content_path);
+    chmod 0600, $content_path;
+    write_file( $content_path, "tampered\x00\xff" );
+    my $refused_out = "$box->{'base'}/refused.bin";
+    ( $cli_rc, $cli_out, $cli_err )
+        = cli_n7fs( 'get', $disk, $png_addr, '-out', $refused_out );
+    ok( $cli_rc != 0
+            && $cli_err =~ m|content does not match|
+            && $cli_out eq ''
+            && !-e $refused_out
+            && !glob("$refused_out.tmp.*"),
+        'get -out : tamper refused, no output or temp file left'
+    );
+    ( $cli_rc, $cli_out, $cli_err ) = cli_n7fs( 'get', $disk, $png_addr );
+    ok( $cli_rc != 0 && $cli_out eq '',
+        'get stdout : tamper refused before output' );
+    write_file( $content_path, $orig );
+    chmod 0400, $content_path;
+}
+
+( $cli_rc, $cli_out, $cli_err ) = cli_n7fs( 'get', $disk, 'same.txt' );
+ok( $cli_rc != 0
+        && $cli_out eq ''
+        && $cli_err =~ m|several nodes|
+        && $cli_err =~ m|\Q$amb1_addr\E|
+        && $cli_err =~ m|\Q$amb2_addr\E|,
+    'get : an ambiguous name is refused with both addresses'
+);
+
+( $cli_rc, $cli_out, $cli_err )
+    = cli_n7fs( 'find', $disk, '-name', 'a\.txt\z' );
+my @find_lines = grep {length} split m|\n|, $cli_out;
+ok( $cli_rc == 0
+        && @find_lines == 1
+        && $find_lines[0] =~ m|\A\Q$a_addr\E \d+ txt \S*/a\.txt\z|,
+    'find : name filter and newest record per node + source'
+);
+
+( $cli_rc, $cli_out, $cli_err )
+    = cli_n7fs( 'find', $disk, '-all', '-name', 'a\.txt\z' );
+@find_lines = grep {length} split m|\n|, $cli_out;
+ok( $cli_rc == 0
+        && @find_lines == 2
+        && !grep( { !m|\[ \d{14} \]\z| } @find_lines ),
+    'find -all : every record with its import ntime'
+);
+
+( $cli_rc, $cli_out, $cli_err ) = cli_n7fs( 'find', $disk, '-format', 'png' );
+ok( $cli_rc == 0
+        && $cli_out =~ m|^\Q$png_addr\E \d+ png \S*/b\.png$|m
+        && $cli_out !~ m|a\.txt|,
+    'find : format filter'
+);
+
+my ( undef, $png_amos, $png_bmw ) = split m|/|, $png_addr;
+( $cli_rc, $cli_out, $cli_err )
+    = cli_n7fs( 'find', $disk, '-chksum', $png_amos );
+ok( $cli_rc == 0 && $cli_out =~ m|\A\Q$png_addr\E |,
+    'find : amos checksum prefix' );
+( $cli_rc, $cli_out, $cli_err )
+    = cli_n7fs( 'find', $disk, '-chksum', substr( $png_bmw, 0, 17 ) );
+ok( $cli_rc == 0 && $cli_out =~ m|\A\Q$png_addr\E |,
+    'find : bmw checksum prefix' );
+
+( $cli_rc, $cli_out, $cli_err ) = cli_n7fs( 'find', $disk, '-name', '[' );
+ok( $cli_rc != 0 && $cli_out eq '' && $cli_err =~ m|invalid -name regex|,
+    'find : an invalid regex is a clean refusal' );
+
 done();
 
-#,,,.,.,.,,.,,.,.,..,,.,,,,.,,...,.,.,,,,,,,,,..,,...,..,,..,,,,,,,..,,,.,,,.,
-#TS5VBAQURIJT3S676EJE73YZHOMDHI23CO6YL77NNLNWOAUJEQPR7VJ46XWKL3PI5MSK6JXA4K2XS
-#\\\|4VJNYCBBFR7LUXGELYLDBS3Q53RKTCCEBA7PSADHL2GVPAE25LS \ / AMOS7 \ YOURUM ::
-#\[7]S5QCNBTJQN2YFBNOWHYK2CM5SEHYGICSVRUTJ64MTZRVP43BOECA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,,.,,.,.,...,...,,,.,,,,,..,,..,,...,...,...,...,..,,...,,,.,
+#QHPZNBMTXXDFZXG4DNHZJEIZ3UT2HLZ6I3W6XZRVOV5OFYVEZ4EBTPNHOIOL55OXSA3T3TZVF4BBI
+#\\\|ZFX7PL6POUIEK34W6XQ4XD62CPV6SQ6GZ4BQQXNR36Q456M64X7 \ / AMOS7 \ YOURUM ::
+#\[7]J3IWLVXBMWWMLJTDZJJCXPO6NOKKTX4HPE55JFODBJVIQSJ2GUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
