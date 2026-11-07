@@ -572,8 +572,8 @@ my @mutations = (
         file => 'N7FS/Release.pm',
         test => 'test-n7fs-release.pl',
         edit => [
-            [   "            ) if \@live and not \$opt{'force'};\n",
-                "            ) if 0;\n"
+            [   "            if \@live and not \$opt{'force'};\n",
+                "            if 0;\n"
             ]
         ],
     },
@@ -695,6 +695,82 @@ my @mutations = (
             ]
         ],
     },
+    {   name => 'prune without remove accepted',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-link.pl',
+        edit => [
+            [   "        if \$opt{'prune'} and not \$opt{'remove'};\n",
+                "        if 0;\n"
+            ]
+        ],
+    },
+    {   name => 'conversion ignores st_dev',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-link.pl',
+        edit => [
+            [   "            and \$DEVICE->(\$source) == \$dst_dev ) {",
+                "            and 1 ) {"
+            ]
+        ],
+    },
+    {   name => 'conversion does not fall back after a failed link',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-link.pl',
+        edit => [
+            [   "            \$node->{'content_note'} "
+                    . "= \"hard link failed : \$OS_ERROR\";",
+                "            refuse('hard link failed');"
+            ]
+        ],
+    },
+    {   name => 'new content is writable',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-link.pl',
+        edit => [ [ "        0444\n    );", "        0600\n    );" ] ],
+    },
+    {   name => 'prune follows symlinks',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-link.pl',
+        edit => [
+            [   "        my \@st   = lstat \$path;",
+                "        my \@st   = stat \$path;"
+            ]
+        ],
+    },
+    {   name => 'prune removes named roots',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-link.pl',
+        edit =>
+            [ [ "        while ( not \$keep{\$path}", "        while ( 1" ] ],
+    },
+    {   name => 'prune dry-run removes directories',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-link.pl',
+        edit => [ [ "        if (\$dry_run) {", "        if (0) {" ] ],
+    },
+    {   name => 'prune recursively removes non-empty directories',
+        file => 'N7FS/Store.pm',
+        test => 'test-n7fs-link.pl',
+        edit => [
+            [   "        next if not rmdir \$path;",
+                "        next if not remove_tree(\$path);"
+            ]
+        ],
+    },
+    {   name => 'linked content is not verified after linking',
+        file => 'N7FS/Convert.pm',
+        test => 'test-n7fs-link.pl',
+        edit => [
+            [   "            \$new->{'verify_node'}->( "
+                    . "\$final, \$node->{'addr'}, \$context );\n",
+                ""
+            ],
+            [   "        \$new->{'verify_node'}->( \$ARG->{'path'}, "
+                    . "\$ARG, \$context )\n            for \@written;\n",
+                ""
+            ]
+        ],
+    },
 );
 
 my $filter = shift // '';
@@ -751,8 +827,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,.,,...,.,.,.,,,.,.,.,,,.,,,,,.,.,.,,,.,,,.,..,,...,...,...,.,,,,,.,,..,,,.,
-#YJCZI3CI2JLJ6L7UTILQ5CFJ3YARZSALL4WB76RL2QYC6LZRCFEDGUMNCEJBETHNIHBTGUMA7IYPA
-#\\\|ALFDVVDPYLSGCEMUDMJIUGZMMQAMKUTDVTAI5YLEZV6HXQVONEK \ / AMOS7 \ YOURUM ::
-#\[7]44U26JAT5DK6D5L2LQ4MDYYOPHYDXBT5BHQDD5MURYCVYI6JLSAQ 7  DATA SIGNATURE ::
+#,,,.,...,...,,,,,,,,,,,.,.,,,...,.,.,...,.,,,..,,...,...,,..,...,...,..,,...,
+#C3LYX4KBOC7VVBWKEB74YF32TSFO4W3MGQXIDMUWHFUUVSY4MAY6LR3BRTI6LP726VAMVSUWNIFCK
+#\\\|6M3QOEVF4PKXI3CFUHXVF4W5UA3XN542IAG5Z6LJW4N4PXZP2QH \ / AMOS7 \ YOURUM ::
+#\[7]UZZOEXQHTHAQIVPXLTCMTVZZE6L5RTTRGSI2YP73TABGRK3J3IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

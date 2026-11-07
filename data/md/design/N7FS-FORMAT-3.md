@@ -1,14 +1,15 @@
-# N7FS format 3 : stages 1 and 2 as built
+# N7FS format 3 : stages 1, 2 and 3 as built
 
 2026-11-07. the signed journal, references, reference drops, crash repair,
-conversion 2 -> 3, release, reclaim, permanent tombstones and early epoch
-release implement [ `N7FS-REFERENCES-RELEASE.md` ]. format 1 and 2 readers keep
-their existing behavior and warnings. paths, content addressing, immutable
-writes, mount records and the epoch conversion window are unchanged.
+conversion 2 -> 3, release, reclaim, permanent tombstones, early epoch release,
+hard-linked conversion and empty-directory pruning implement
+[ `N7FS-REFERENCES-RELEASE.md` ]. format 1 and 2 readers keep their existing
+behavior and warnings. paths, content addressing, immutable writes, mount
+records and the epoch conversion window are unchanged.
 
-hard-linked conversion, `-prune`, journal checkpoints and crypto-shredding are
-not included. release removes the live node ; it does not prove its old bytes
-unrecoverable on copy-on-write or journaling filesystems, in backups or in other
+journal checkpoints and crypto-shredding are not included. release removes the
+live node ; it does not prove its old bytes unrecoverable on copy-on-write or
+journaling filesystems, in backups, in linked previous epochs or in other
 copies. every release and reclaim command says so.
 
 ## records
@@ -81,6 +82,21 @@ and all `get` paths wait on a shared lock, so they never see an import half
 journaled. a writer refuses an entry replay would refuse before signing it, and
 an import onto an unjournaled node refuses and names `repair`. reclaim dry-run
 takes no lock and creates no lock file.
+
+## empty-directory pruning
+
+`assimilate -remove -prune` prunes after all journal writes, source verification
+and source unlinks, under the same exclusive assimilate lock. `-prune` without
+`-remove` refuses. pruning is off by default. it removes only the directories
+this run emptied : the parents of sources it removed, walking upward strictly
+below the named directory roots, or `-index-base` for index imports, deepest
+first. a directory that was already empty is kept, since an empty directory can
+mean something. every named root, including a nested named root, is kept.
+symlinks are never followed. removal uses `rmdir` only, so a directory that is
+non-empty at removal time remains. dry-run lists the same paths and changes
+nothing. a crash before or during pruning leaves only empty directories ; a
+retry no longer knows them as its own and keeps them. pruning has no journal
+records of its own.
 
 ## references and drops
 
@@ -213,8 +229,24 @@ network-wide currency proof.
 
 the production codec is installed with `register_codec`, and the 2 -> 3
 transform with `register_step`. chains from 1 -> 2 -> 3 work through the
-existing `upgrade` and `confirm` operations. content is copied into the next
-epoch, never hard-linked. `release-epoch` can remove the confirmed previous
+existing `upgrade` and `confirm` operations. when the old content and new node
+directory have the same `st_dev`, conversion hard-links the immutable content
+instead of copying it. different filesystems and failed `link` calls fall back
+per node to copying with a counted note. upgrade reports linked and copied node
+counts. newly copied content is mode `0444` ; existing read-only modes are
+preserved when linked. meta, references, state, journal and every other signed
+record are still written fresh. the new node is checksummed after either method,
+and the entire new epoch verifies again before the state switch. no writer opens
+existing content for writing : assimilation onto a node writes only new meta and
+references, repair adopts verified records, and conversion retry writes a fresh
+temporary node.
+
+a hard link shares the inode, not independent bytes. releasing the active node
+removes only its directory entry ; the previous-form warning still names the
+old address, whose content remains readable. `release-epoch` removes only the
+confirmed previous epoch's entries, dropping the link count while active content
+stays intact and verifies. previous-form verification and rollback remain
+available until that release. `release-epoch` can remove the confirmed previous
 form early, after which a pending upgrade no longer refuses the window.
 
 after the new epoch verifies, each distinct existing source receives a live
@@ -228,8 +260,8 @@ baseline authenticates what was found at conversion, not what might have
 existed earlier. a fresh disk has no baseline and status reports `baseline no`.
 status prints the current journal sequence and whether a baseline exists.
 
-#,,.,,,..,,..,,,.,,.,,,,,,,..,,,.,..,,,,.,..,,..,,...,...,...,.,.,.,.,..,,...,
-#UQTNN3JYSJFU5T5ZKW6K7VSJUNNDLZWRCWK3LRAKICGGIABFNMN5X5CKVDW7QJ4KSKYIMVI4SLTTO
-#\\\|QMRKV7MWD6NB73VEGP3VYBFWMKAVFAY3GGUKIRJ2EJB3TOXMHIP \ / AMOS7 \ YOURUM ::
-#\[7]G64CGSPMPA3MQTGA7ASSZOIJHOT76YTC7EIMMKFVFASU5F7N5ABI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,.,,,,,.,,,,.,,,,.,.,,,,,,,...,..,,...,...,..,,,,.,...,,,,,.,,,
+#G2WHHEQLEDQ7P33JVKBYU65DNSMIZEKHITJGFIIA3L7WXVDJ5YEO4IBC4H2DCU3PLJMYJQEFSYBK6
+#\\\|UI2QROMJXHYLO5XLDEJ5N2NKSJAROA2L35ZDY3QISZ63VD6S4KM \ / AMOS7 \ YOURUM ::
+#\[7]2NJKOKXT6WWT6VOXJR2TXC4QF4LBHBICY6Y75YJEJYF76G5CQ2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

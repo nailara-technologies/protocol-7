@@ -40,7 +40,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %STEP |;
 
-our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.WG2LVFI |;
+our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.6B7TL5I |;
 
 @EXPORT_OK = qw|
     register_step
@@ -194,6 +194,7 @@ sub upgrade {
     my ( $baseline_add, $baseline_drop );
 
     ## write beside ##
+    my ( $linked, $copied, @notes ) = ( 0, 0 );
     my $ok = eval {
         make_dirs( $edir, 0700 );
         foreach my $pair (@read) {
@@ -217,7 +218,16 @@ sub upgrade {
             make_dirs( $final =~ s|/[^/]+\z||r, 0700 );
             my $tmp = sprintf qw| %s.tmp.%s |, $final, b32( random_bytes(5) );
             make_dirs( $tmp, 0700 );
+            $node->{'link_content'} = TRUE;
             $new->{'write_node'}->( $tmp, $node, $context );
+            if ( ( $node->{'content_action'} // '' ) eq qw| linked | ) {
+                $linked++;
+            } else {
+                $copied++;
+                push @notes,
+                    "$n->{'amos'}/$n->{'bmw'} : $node->{'content_note'}"
+                    if defined $node->{'content_note'};
+            }
             publish_dir( $tmp, $final );
             fault(qw| convert:after-node |);
             $new->{'verify_node'}->( $final, $node->{'addr'}, $context );
@@ -309,6 +319,9 @@ sub upgrade {
         qw| to |          => $to,
         qw| epoch |       => $epoch,
         qw| nodes |       => scalar @nodes,
+        qw| linked |      => $linked,
+        qw| copied |      => $copied,
+        qw| notes |       => \@notes,
         qw| journal_seq | => $journal_seq,
     };
 }
@@ -374,8 +387,8 @@ sub release_epoch {
 
 1;
 
-#,,,,,,,,,.,.,,,.,,..,,,,,,,.,,,,,...,.,.,,,,,..,,...,...,..,,.,,,.,.,,,,,..,,
-#UKXKDMPJ7W36O6QQNQQSQ6SNSXWEX453PEUCWFQBKTPTWQ4L33Z76R7LXBEUMIMA26FU3VA3EUHD4
-#\\\|HDKJ4CT3NAVQJBVYCOZF7LUYGL6F7CQQNRMACA3PTV4MAWCD2FA \ / AMOS7 \ YOURUM ::
-#\[7]Y7CBN7HSS6SDOQDEMA2T4N6XGZDBTZY22VKF6GOYG6JUYNRCGUDI 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,..,,...,.,.,..,,,,,,,,.,.,.,..,,...,...,...,.,,,...,.,,,...,
+#QAS5Q5E63ICXO733RU6VJ3GEKT3DM6I6VEPV2JLBIOLIHCQJKAZDTOIDQPTRAJ5LEAPBTEN4E2GCQ
+#\\\|N2UB6S6YHJIKVOA5EQTE54EADBACDCFBZ7X3SDAMAX5S6EJ54R3 \ / AMOS7 \ YOURUM ::
+#\[7]5SBQUMJ5YDFPRB5773EPIYQ5RSXXBFW3MARX3NNBXA2EE6MPLYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
