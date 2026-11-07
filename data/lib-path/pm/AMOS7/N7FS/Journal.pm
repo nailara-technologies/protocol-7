@@ -21,7 +21,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.5UP4CGI |;
+our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.WVQEOXA |;
 
 @EXPORT_OK = qw| journal_replay journal_head journal_write |;
 
@@ -77,8 +77,6 @@ sub _record {
     }
     refuse( 'journal %s : drop releases is not a list', $path )
         if ref $p->{'drop'}{'releases'} ne qw| ARRAY |;
-    refuse( 'journal %s : releases are not implemented in stage 1', $path )
-        if $p->{'drop'}{'releases'}->@*;
     return { qw| bytes | => $bytes, qw| payload | => $p };
 }
 
@@ -86,12 +84,17 @@ sub _ref_id { return join "\0", @ARG[ 0, 1 ] }
 
 sub _operations {
     my ( $p, $expected ) = @ARG;
+    $expected->{'released'}      //= {};
+    $expected->{'meta_history'}  //= {};
+    $expected->{'ref_history'}   //= {};
+    $expected->{'release_order'} //= [];
     foreach my $which (qw| add drop |) {
         foreach my $node ( $p->{$which}{'nodes'}->@* ) {
             refuse( 'journal seq %d : bad node address', $p->{'seq'} )
                 if ( $node // '' ) !~ $ADDR_RE;
             if ( $which eq qw| add | ) {
                 $expected->{'nodes'}{$node} = TRUE;
+                delete $expected->{'released'}{$node};
             } else {
                 delete $expected->{'nodes'}{$node};
             }
@@ -106,7 +109,8 @@ sub _operations {
                 refuse( 'journal seq %d : meta names an unlisted node %s',
                     $p->{'seq'}, $meta->{'node'} )
                     if not $expected->{'nodes'}{ $meta->{'node'} };
-                $expected->{'metas'}{$key} = $meta;
+                $expected->{'metas'}{$key}        = $meta;
+                $expected->{'meta_history'}{$key} = $meta;
             } else {
                 delete $expected->{'metas'}{$key};
             }
@@ -129,14 +133,33 @@ sub _operations {
                 refuse( 'journal seq %d : duplicate reference %s',
                     $p->{'seq'}, $ref->{'path'} )
                     if exists $expected->{'references'}{$key};
-                $expected->{'references'}{$key}
-                    = { %{$ref}, qw| dropped | => FALSE };
+                my $history = { %{$ref}, qw| dropped | => FALSE };
+                $expected->{'references'}{$key}  = $history;
+                $expected->{'ref_history'}{$key} = $history;
             } else {
                 refuse( 'journal seq %d : drop of a non-live reference %s',
                     $p->{'seq'}, $ref->{'path'} )
                     if not $expected->{'references'}{$key}
                     or $expected->{'references'}{$key}{'dropped'};
                 $expected->{'references'}{$key}{'dropped'} = TRUE;
+            }
+        }
+    }
+    foreach my $node ( $p->{'drop'}{'releases'}->@* ) {
+        refuse( 'journal seq %d : bad release address', $p->{'seq'} )
+            if ( $node // '' ) !~ $ADDR_RE;
+        refuse( 'journal seq %d : release of an unlisted node %s',
+            $p->{'seq'}, $node )
+            if not $expected->{'nodes'}{$node};
+        delete $expected->{'nodes'}{$node};
+        $expected->{'released'}{$node} = TRUE;
+        push $expected->{'release_order'}->@*, $node;
+        foreach my $set (qw| metas references |) {
+            foreach my $key ( keys $expected->{$set}->%* ) {
+                my $item = $expected->{$set}{$key};
+                next if $item->{'node'} ne $node;
+                $item->{'released'} = TRUE;
+                delete $expected->{$set}{$key};
             }
         }
     }
@@ -184,12 +207,16 @@ sub journal_replay {
             };
     }
     return {
-        qw| seq |        => $seq,
-        qw| baseline |   => $baseline,
-        qw| nodes |      => $expected{'nodes'},
-        qw| metas |      => $expected{'metas'},
-        qw| references | => $expected{'references'},
-        qw| entries |    => \@entries,
+        qw| seq |           => $seq,
+        qw| baseline |      => $baseline,
+        qw| nodes |         => $expected{'nodes'},
+        qw| metas |         => $expected{'metas'},
+        qw| references |    => $expected{'references'},
+        qw| released |      => $expected{'released'},
+        qw| meta_history |  => $expected{'meta_history'},
+        qw| ref_history |   => $expected{'ref_history'},
+        qw| release_order | => $expected{'release_order'},
+        qw| entries |       => \@entries,
     };
 }
 
@@ -273,8 +300,8 @@ sub journal_write {
 
 1;
 
-#,,,.,,..,.,.,,..,...,,,,,.,,,..,,,.,,,,,,.,.,.,.,...,...,...,,..,,..,,,.,.,,,
-#H3FCUAEOMADLOPSB4PPEELTVEWYBPNSFIDH5BQHA742WGTN3463MRKP5CUBLG25IUM6Q53UAW727O
-#\\\|D3M6ZSNIUJ5FTRDVG352GVXO2ADRHX4I4K6H44GZKTQQ3ZQC6N2 \ / AMOS7 \ YOURUM ::
-#\[7]DUEA7KMVQW7PV4LGCFR3NOTIRD2V2H5CI4OTILQ6SQEZZVN32EAI 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,,.,,,,,,...,...,..,,..,,,.,,.,.,...,...,..,,,,,,,,,,.,.,.,.,
+#S2POYTFRJP2SC3ZMAHBS2VDLEGTL37ZUG2QQZRTNB5Z7PZV36YWC7IAIJCAOEWIHIVN5IYO3SM4LG
+#\\\|TMWC45XM3IVDVBO2MN3G3FZX7EHHTWZMVOSBZ6DOBQSVJ4POQQZ \ / AMOS7 \ YOURUM ::
+#\[7]XVBLRJK7FFCCUUNKAAJYGTWVAG3LF7DMTS5FPW5IVS36MYJ3UCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

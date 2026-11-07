@@ -29,7 +29,13 @@ use warnings;
 ##                  live references by default ; -all adds dropped history
 ## n7fs drop <disk> <address> -holder <name>
 ##                  sign and journal a reference drop ; removes nothing
-## n7fs repair <disk>                  adopt verified unjournaled data, loudly
+## n7fs release <disk> <address> [ -force ] [ -reason <text> ]
+##                  tombstone, journal and remove now ; live references refuse
+## n7fs reclaim <disk> [ -free <size> ] [ -older <age> ] [ -dry-run ]
+##                  oldest garbage first ; sizes accept K/M/G, ages s/m/h/d/w
+## n7fs release-epoch <disk> <epoch> -now
+##                  end rollback to a confirmed conversion's previous form
+## n7fs repair <disk>                  finish releases, adopt unjournaled data
 ## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -dry-run ]
 ##                 [ -index <image-index.db> [ -index-base <dir> ] ]
 ##                 [ <path> .. ]   index + -remove needs -index-base
@@ -70,11 +76,12 @@ use AMOS7::N7FS       qw| root_dir host_dir b32 unb32 write_new_file_stream |;
 use AMOS7::N7FS::Sum  qw| bmw_b32 epoch_from_b32 |;
 use AMOS7::N7FS::Sign qw| key_file_signer key_file_write command_signer |;
 use AMOS7::N7FS::Disk qw| disk_init disk_attach disk_detach disk_status
-    disk_read_id state_read witness_check_format witness_check_journal |;
+    disk_read_id disk_lock state_read witness_check_format witness_check_journal |;
 use AMOS7::N7FS::Store qw| assimilate store_verify meta_entries node_path
     node_verify reference_entries reference_drop store_repair |;
-use AMOS7::N7FS::Convert qw| upgrade confirm |;
-use AMOS7::N7FS::Journal qw| journal_head |;
+use AMOS7::N7FS::Convert qw| upgrade confirm release_epoch |;
+use AMOS7::N7FS::Journal qw| journal_head journal_replay |;
+use AMOS7::N7FS::Release qw| release_node store_reclaim |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -89,7 +96,8 @@ GetOptionsFromArray(
     \@args, \%o,
     qw| root=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
         name=s intent=s disk=s index=s index-base=s epoch=s remove keep dry-run
-        out=s format=s chksum=s holder=s all allow-rollback help |
+        out=s format=s chksum=s holder=s all allow-rollback force reason=s
+        free=s older=s now help |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -111,21 +119,24 @@ if ( $o{'trust'}->@* ) {
 }
 
 my %run = (
-    qw| keygen |     => \&cmd_keygen,
-    qw| pubkey |     => \&cmd_pubkey,
-    qw| init |       => \&cmd_init,
-    qw| list |       => \&cmd_list,
-    qw| attach |     => \&cmd_attach,
-    qw| detach |     => \&cmd_detach,
-    qw| status |     => \&cmd_status,
-    qw| verify |     => \&cmd_verify,
-    qw| get |        => \&cmd_get,
-    qw| find |       => \&cmd_find,
-    qw| drop |       => \&cmd_drop,
-    qw| repair |     => \&cmd_repair,
-    qw| assimilate | => \&cmd_assimilate,
-    qw| upgrade |    => \&cmd_upgrade,
-    qw| confirm |    => \&cmd_confirm,
+    qw| keygen |        => \&cmd_keygen,
+    qw| pubkey |        => \&cmd_pubkey,
+    qw| init |          => \&cmd_init,
+    qw| list |          => \&cmd_list,
+    qw| attach |        => \&cmd_attach,
+    qw| detach |        => \&cmd_detach,
+    qw| status |        => \&cmd_status,
+    qw| verify |        => \&cmd_verify,
+    qw| get |           => \&cmd_get,
+    qw| find |          => \&cmd_find,
+    qw| drop |          => \&cmd_drop,
+    qw| release |       => \&cmd_release,
+    qw| reclaim |       => \&cmd_reclaim,
+    qw| release-epoch | => \&cmd_release_epoch,
+    qw| repair |        => \&cmd_repair,
+    qw| assimilate |    => \&cmd_assimilate,
+    qw| upgrade |       => \&cmd_upgrade,
+    qw| confirm |       => \&cmd_confirm,
 );
 usage(2) if not exists $run{$command};
 
@@ -349,6 +360,7 @@ sub cmd_get {
     fail('get : unexpected arguments') if @ARG;
     my %read  = read_common();
     my $id    = disk_read_id( %read, qw| disk | => $disk );
+    my $lock  = disk_lock( $id, qw| shared | );
     my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
     if ( ref $read{'host'} ) {
         witness_check_format( %read, qw| id | => $id, qw| state | => $state );
@@ -374,13 +386,18 @@ sub cmd_get {
                     or ( $ARG->{'holder'} // '' ) eq $target
                     or ( $ARG->{'holder'} // '' ) eq $absolute
             } reference_entries( %read, qw| disk | => $disk );
-            my @live = grep { not $ARG->{'dropped'} } @matching;
+            my @live
+                = grep { not $ARG->{'dropped'} and not $ARG->{'released'} }
+                @matching;
+            fail("get : name [ $target ] was released")
+                if not @live and grep { $ARG->{'released'} } @matching;
             fail(     "get : name [ $target ] was "
                     . "dropped ; use -all or an address" )
                 if not $o{'all'}
                 and not @live
                 and @matching;
             foreach my $ref ( $o{'all'} ? @matching : @live ) {
+                next if $ref->{'released'};
                 my ( $epoch_name, $amos, $bmw ) = split m|/|, $ref->{'node'};
                 $nodes{ $ref->{'node'} } = {
                     qw| epoch | => epoch_from_b32($epoch_name),
@@ -411,6 +428,13 @@ sub cmd_get {
         ($addr) = values %nodes;
     }
 
+    if ( $state->{'store_format'} == 3
+        and not -e node_path( $id->{'path'}, $addr ) ) {
+        my $replay = journal_replay($id);
+        fail(     "get : address [ $target ] was released ; "
+                . 'import the same content to revive it' )
+            if $replay->{'released'}{$target};
+    }
     node_verify( $id->{'path'}, $addr, $state->{'store_format'}, $id );
     my $content = node_path( $id->{'path'}, $addr ) . '/content';
 
@@ -470,7 +494,9 @@ sub cmd_find {
 
     if ( $state->{'store_format'} == 3 ) {
         foreach my $ref ( reference_entries( %read, qw| disk | => $disk ) ) {
-            next if $ref->{'dropped'} and not $o{'all'};
+            next
+                if ( $ref->{'dropped'} or $ref->{'released'} )
+                and not $o{'all'};
             my @meta
                 = $o{'all'}
                 ? $ref->{'meta'}->@*
@@ -480,6 +506,7 @@ sub cmd_find {
                 %{$ARG},
                 qw| dropped |   => $ref->{'dropped'},
                 qw| converted | => $ref->{'converted'},
+                qw| released |  => $ref->{'released'},
                 qw| ref_path |  => $ref->{'path'},
                 }
                 for @meta;
@@ -523,6 +550,7 @@ sub cmd_find {
             : (),
             $entry->{'converted'} ? 'converted' : (),
             $entry->{'dropped'}   ? 'dropped'   : (),
+            $entry->{'released'}  ? 'released'  : (),
         );
         say join ' ', $entry->{'address'}, $entry->{'size'} // '?',
             $entry->{'format'} // 'unknown', $label,
@@ -547,12 +575,102 @@ sub cmd_drop {
     return 0;
 }
 
+sub _size_value {
+    my $value = shift // return undef;
+    fail("bad size [ $value ]")
+        if $value !~ m|\A(\d+(?:\.\d+)?)([KMGT]?)B?\z|i;
+    my %factor = (
+        '' => 1,
+        K  => 1024,
+        M  => 1024**2,
+        G  => 1024**3,
+        T  => 1024**4
+    );
+    return $1 * $factor{ uc $2 };
+}
+
+sub _age_value {
+    my $value = shift // return undef;
+    fail("bad age [ $value ]")
+        if $value !~ m|\A(\d+(?:\.\d+)?)([smhdw]?)\z|i;
+    my %seconds = (
+        '' => 1,
+        s  => 1,
+        m  => 60,
+        h  => 3600,
+        d  => 86400,
+        w  => 604800
+    );
+    return $1 * $seconds{ lc $2 } * 4200;
+}
+
+sub cmd_release {
+    my $disk    = disk_arg(shift);
+    my $address = shift // fail('release needs an address');
+    fail('release : unexpected arguments') if @ARG;
+    my $r = release_node(
+        %common,
+        qw| disk |    => $disk,
+        qw| host |    => host_signer(),
+        qw| address | => $address,
+        qw| force |   => $o{'force'} ? TRUE : FALSE,
+        qw| reason |  => $o{'reason'} // 'explicit release',
+    );
+    warn "n7fs : warning : release breaks live reference $_\n"
+        for $r->{'live'}->@*;
+    warn "n7fs : warning : the previous form still holds these "
+        . "bytes at $_ [ n7fs release-epoch $disk <epoch> -now ]\n"
+        for $r->{'copies'}->@*;
+    say_line( 'released ', $address, ' [ journal ', $r->{'seq'}, ' ]' );
+    say_line( 'release does not prove the bytes unrecoverable ; copies, '
+            . 'backups and filesystem history may retain them' );
+    return 0;
+}
+
+sub cmd_reclaim {
+    my $disk = disk_arg(shift);
+    fail('reclaim : unexpected arguments') if @ARG;
+    my $r = store_reclaim(
+        %common,
+        qw| disk |    => $disk,
+        qw| host |    => host_signer(),
+        qw| free |    => _size_value( $o{'free'} ),
+        qw| older |   => _age_value( $o{'older'} ),
+        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
+    );
+    foreach my $item ( $r->{'released'}->@* ) {
+        say_line( $o{'dry-run'} ? 'would release ' : 'released ',
+            $item->{'address'}, ' [ ', $item->{'size'}, ' content bytes ]' );
+    }
+    say_line('dry run : nothing was changed') if $o{'dry-run'};
+    say_line( 'release does not prove the bytes unrecoverable ; copies, '
+            . 'backups and filesystem history may retain them' );
+    return 0;
+}
+
+sub cmd_release_epoch {
+    my $disk  = disk_arg(shift);
+    my $epoch = shift // fail('release-epoch needs a previous epoch');
+    fail('release-epoch : unexpected arguments') if @ARG;
+    my $r = release_epoch(
+        %common,
+        qw| disk |  => $disk,
+        qw| host |  => host_signer(),
+        qw| epoch | => $epoch,
+        qw| now |   => $o{'now'} ? TRUE : FALSE,
+    );
+    say_line( 'released previous epoch ',
+        $r->{'epoch'}, ' ; rollback to that form has ended' );
+    return 0;
+}
+
 sub cmd_repair {
     my $r = store_repair(
         %common,
         qw| disk | => disk_arg(shift),
         qw| host | => host_signer(),
     );
+    say_line( 'finished release ', $ARG ) for ( $r->{'finished'} // [] )->@*;
     if ( not $r->{'adopted'}->@* ) {
         say_line('repair : no unjournaled data');
         return 0;
@@ -624,8 +742,8 @@ sub cmd_confirm {
     return 0;
 }
 
-#,,,.,...,.,,,.,,,.,.,.,.,,..,,..,..,,.,,,,..,..,,...,...,,.,,,.,,,,,,,.,,,.,,
-#V56FC35N7OOE6SZZY77HRMYI2NTFKGOTMY7OT7VFP5DSPNWVQBXJ7DZWO7Q54KRN4NEUUFUOKD77E
-#\\\|PHKARWD362JHPCYROSKZPI5B4XJHRNSAW5L6EWRUIT3MH3SUO74 \ / AMOS7 \ YOURUM ::
-#\[7]GO4F2SZ2IB2JH2WTEZBJR4VH6GQQUDPJDH3ZNDUUEBKSFTR6O2DI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,,,,,.,.,,,,,,,..,,,,.,,,.,.,.,..,,...,...,,..,.,.,..,,,.,,,,.,
+#M5ZLIQFXWWIFFAHD7JXRLPXRPF2HXNAOCTSUTRDZFCCSJ4GBGTOYLL4THPNQXABRMRIMSLX73HZHO
+#\\\|ZAV44YIMMNRDFZKEHANGLEGKS3SB3SMAS3EEEV25OICZJ4M4LBX \ / AMOS7 \ YOURUM ::
+#\[7]JH2FLNLEDU5M3FRG45ROPE6REHIPZDMCLYROFVCA6R7QRIKZEQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

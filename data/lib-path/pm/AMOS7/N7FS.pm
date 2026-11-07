@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.RG7CYCQ |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.VCFDQRA |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -77,6 +77,7 @@ our %MAGIC = (
     qw| journal |   => qw| P7FJ |,    ## signed store-set operation ##
     qw| reference | => qw| P7FR |,    ## live source reference ##
     qw| drop |      => qw| P7FD |,    ## reference drop record ##
+    qw| tombstone | => qw| P7FX |,    ## released content address ##
 );
 
 ## one label per signed kind and record format : no signature is valid as
@@ -101,6 +102,7 @@ our %LABEL_VERSION = (
     qw| journal |   => { 3 => 'p7 n7fs journal:0001' },
     qw| reference | => { 3 => 'p7 n7fs reference:0001' },
     qw| drop |      => { 3 => 'p7 n7fs reference drop:0001' },
+    qw| tombstone | => { 3 => 'p7 n7fs tombstone:0001' },
 );
 
 ## record formats this code reads [ per kind ; the store format is a field of
@@ -113,6 +115,7 @@ $RECORD_FORMAT{'meta'}{3}      = TRUE;
 $RECORD_FORMAT{'journal'}{3}   = TRUE;
 $RECORD_FORMAT{'reference'}{3} = TRUE;
 $RECORD_FORMAT{'drop'}{3}      = TRUE;
+$RECORD_FORMAT{'tombstone'}{3} = TRUE;
 
 our %SIGNED_FORMAT = (
     qw| state |     => { 2 => TRUE, 3 => TRUE },
@@ -120,6 +123,7 @@ our %SIGNED_FORMAT = (
     qw| journal |   => { 3 => TRUE },
     qw| reference | => { 3 => TRUE },
     qw| drop |      => { 3 => TRUE },
+    qw| tombstone | => { 3 => TRUE },
 );
 
 our $JSON = JSON::PP->new->utf8->canonical;
@@ -456,8 +460,8 @@ sub remove_tree {
 
 1;
 
-#,,..,.,.,,,,,.,,,.,.,.,.,...,.,,,...,,..,,,.,..,,...,.,.,,,,,,.,,.,,,..,,,.,,
-#H6IVNQNBIKDEXAQ7PH5NLF2HS7QOGTVOTTNSXU544W6TLIWI3H2JSEXQNVJN2IHZFOND2M4FGD6I4
-#\\\|NWN24ML6YBMJUWONPINTELCQT472IQNKAJXOTJAR3H3VOEPX23M \ / AMOS7 \ YOURUM ::
-#\[7]SXHAZ5V4P2K5YYE54FFRRBE7CUTFVNIPSIUOLPP4DEOTYWDIHOAI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,..,,.,.,,,,,..,,...,,,,,,..,,,.,..,,...,...,..,,.,.,...,.,,,,,,,
+#WIT55HPOXTFSBT4INSFF4ZLMW4XUST6NSMRES2NPF2HHVYKB2VK5UHEC2EEVM6GZ7YXIAN5JCFNIE
+#\\\|Y2DYLC6PMEYNBZXT5F2N7QXASLAYRWO3O5YYVMRIWPJW3P3W4BG \ / AMOS7 \ YOURUM ::
+#\[7]62FKLFYPPCJO7PTLOOHI7A4HTQW5LQRR6VM3R7XV4BBZ74FFW2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

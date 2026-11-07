@@ -40,13 +40,14 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %STEP |;
 
-our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.NOWXF2Y |;
+our $VERSION = qw| AMOS7::N7FS::Convert-VERSION.WG2LVFI |;
 
 @EXPORT_OK = qw|
     register_step
     steps
     upgrade
     confirm
+    release_epoch
     |;
 
 use JSON::PP;
@@ -343,10 +344,38 @@ sub confirm {
     };
 }
 
+## explicit early release of the confirmed previous form. rollback to it ends
+## here ; the current form and its active epochs are never candidates.
+sub release_epoch {
+    my %opt   = @ARG;
+    my $lock  = disk_lock( disk_read_id(%opt) );
+    my $id    = disk_require_attached(%opt);
+    my $store = store_key_signer( %opt, qw| id | => $id );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    refuse('release-epoch needs -now : it ends rollback to the old form')
+        if not $opt{'now'};
+    my $epoch = $opt{'epoch'} // '';
+    refuse('release-epoch : bad epoch') if $epoch !~ m|\A\d+\z|;
+    refuse('release-epoch : the active epoch cannot be released')
+        if grep { $ARG == $epoch } $state->{'epochs'}->@*;
+    refuse('release-epoch : no previous conversion')
+        if ref $state->{'previous'} ne qw| HASH |;
+    refuse('release-epoch : conversion is not confirmed')
+        if not $state->{'confirmed'};
+    refuse('release-epoch : epoch is not the confirmed previous form')
+        if not grep { $ARG == $epoch } $state->{'previous'}{'epochs'}->@*;
+    remove_tree( "$id->{'path'}/" . epoch_b32($epoch) );
+    my %next = %{$state};
+    delete $next{'previous'};
+    delete $next{'confirmed'};
+    state_write( $id->{'path'}, \%next, $store );
+    return { qw| epoch | => $epoch + 0, qw| state | => \%next };
+}
+
 1;
 
-#,,..,...,...,.,.,,.,,,..,,,.,,,,,,.,,,.,,,,.,..,,...,...,,,.,,..,,,.,..,,,.,,
-#KKP2XAPXT3KJDIRBMQ6KBB5FUUGBT7XC6DW6NOA6GVGJHRXYV5VIGKWA3BABAPSTGAOZMUSUOFLOK
-#\\\|55CULGY57KPS3C6YFB3DKWW4GOY3QIM5PMT2AR3RIQ2FKK75YQG \ / AMOS7 \ YOURUM ::
-#\[7]LV2TQBOAQQRLRTZXWO7NDJARWHYA6LTJZW4DTXD5BLBYO7E7XSCI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,,..,,,,,,,.,,,,,...,.,.,,,,,..,,...,...,..,,.,,,.,.,,,,,..,,
+#UKXKDMPJ7W36O6QQNQQSQ6SNSXWEX453PEUCWFQBKTPTWQ4L33Z76R7LXBEUMIMA26FU3VA3EUHD4
+#\\\|HDKJ4CT3NAVQJBVYCOZF7LUYGL6F7CQQNRMACA3PTV4MAWCD2FA \ / AMOS7 \ YOURUM ::
+#\[7]Y7CBN7HSS6SDOQDEMA2T4N6XGZDBTZY22VKF6GOYG6JUYNRCGUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

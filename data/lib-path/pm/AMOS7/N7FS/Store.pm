@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.WKQ2M5Q |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.ZNIED4A |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -690,7 +690,15 @@ sub store_verify {
         return { qw| nodes | => scalar @nodes, qw| state | => $state };
     }
     my $replay = journal_replay($id);
-    my $cmp    = _format3_compare( $id, $state, $replay );
+    require AMOS7::N7FS::Release;
+    AMOS7::N7FS::Release::tombstone_verify( $id, $replay );
+    my $cmp = _format3_compare( $id, $state, $replay );
+    foreach my $address ( sort keys $replay->{'released'}->%* ) {
+        refuse(
+            'format 3 : released node still present %s [ n7fs repair %s ]',
+            $address, $id->{'disk'} )
+            if $cmp->{'nodes'}{$address};
+    }
     if ( $cmp->{'missing'}->@* ) {
         my $item = $cmp->{'missing'}[0];
         refuse( 'format 3 : missing %s %s',
@@ -723,6 +731,8 @@ sub reference_entries {
     my %refs;
     foreach my $node ( store_nodes( $id->{'path'}, $state->{'epochs'}->@* ) )
     {
+        refuse( 'format 3 : released node still present %s', $node->{'path'} )
+            if $replay->{'released'}{ reference_address($node) };
         foreach my $ref ( reference_scan( $node, $id ) ) {
             my $key = _key( $ref->{'node'}, $ref->{'path'} );
             refuse( 'format 3 : unlisted reference %s', $ref->{'path'} )
@@ -744,17 +754,32 @@ sub reference_entries {
 
     my @meta = meta_entries(%opt);
     my @out;
-    foreach my $key ( sort keys %refs ) {
-        my $ref     = $refs{$key};
+    foreach my $key ( sort keys $replay->{'ref_history'}->%* ) {
+        my $history = $replay->{'ref_history'}{$key};
+        my $ref     = $refs{$key} // $history;
         my @history = grep {
             $ARG->{'address'} eq $ref->{'node'}
                 and ( $ARG->{'source'} // '' ) eq $ref->{'holder'}
         } @meta;
+        if ( not @history and $history->{'released'} ) {
+            @history = {
+                qw| address |      => $ref->{'node'},
+                qw| source |       => $ref->{'holder'},
+                qw| name |         => $ref->{'name'},
+                qw| import_ntime | => $ref->{'ntime'},
+                qw| released |     => TRUE,
+            };
+        }
         refuse( 'format 3 : missing meta for reference %s', $ref->{'path'} )
             if not @history;
         @history
             = sort { $a->{'import_ntime'} cmp $b->{'import_ntime'} } @history;
-        push @out, { %{$ref}, qw| meta | => \@history };
+        push @out,
+            {
+            %{$ref},
+            qw| released | => $history->{'released'} ? TRUE : FALSE,
+            qw| meta |     => \@history
+            };
     }
     return @out;
 }
@@ -777,7 +802,16 @@ sub store_repair {
     refuse('repair is only available for store format 3')
         if $state->{'store_format'} != 3;
     my $replay = journal_replay($id);
-    my $cmp    = _format3_compare( $id, $state, $replay );
+    require AMOS7::N7FS::Release;
+    my $finished
+        = AMOS7::N7FS::Release::release_repair( $id, $state, $replay );
+    return {
+        qw| adopted |  => [],
+        qw| finished | => $finished,
+        qw| seq |      => $replay->{'seq'}
+        }
+        if $finished->@*;
+    my $cmp = _format3_compare( $id, $state, $replay );
 
     if ( $cmp->{'missing'}->@* ) {
         my $item = $cmp->{'missing'}[0];
@@ -1194,8 +1228,15 @@ sub _assimilate_one {
     $entry->{'addr'} = join '/', epoch_b32($epoch), $addr->{'amos'}, $bmw;
 
     my $ntime = ntime_now();
-    my $abs   = abs_path($path) // $path;
-    my %meta  = (
+    if ( $state->{'store_format'} == 3 ) {
+        require AMOS7::N7FS::Release;
+        my $tombstone
+            = AMOS7::N7FS::Release::tombstone_latest( $id, $entry->{'addr'} );
+        $ntime = $tombstone->{'ntime'} + 1
+            if defined $tombstone and $ntime <= $tombstone->{'ntime'};
+    }
+    my $abs  = abs_path($path) // $path;
+    my %meta = (
         qw| name |         => ( $path =~ m|([^/]+)\z| )[0],
         qw| format |       => $format,
         qw| size |         => $size,
@@ -1311,7 +1352,7 @@ sub _assimilate_one {
     if ($needs_ref) {
         $entry->{'_reference'}
             = reference_write( $node, $id, $context->{'store'},
-            $abs, $meta{'name'}, FALSE );
+            $abs, $meta{'name'}, FALSE, $ntime );
         $replay->{'references'}
             { _key( $entry->{'addr'}, $entry->{'_reference'}{'path'} ) }
             = { qw| dropped | => FALSE };
@@ -1352,8 +1393,8 @@ sub _remove_source {
 
 1;
 
-#,,..,,,,,,,,,...,.,.,,..,.,.,.,,,,.,,..,,,,,,..,,...,...,.,.,.,,,.,,,,,,,.,.,
-#R6ADDS7BARBRL6NXWXOSYJAXNDNYIIVICYBAHITS63N6NJN4TPJSOCE2ZIDTUCN3ZUK2AJZYLNBW6
-#\\\|GKKCWQCAHDH46C7BAM4F3QA7UQS2H7PF4ANBCSERN75IFPWKMLO \ / AMOS7 \ YOURUM ::
-#\[7]OBZBM75HKQXUCHSR2QB7KVLT6CKJR2EEOTNT2HR342WD24KVRCAY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,..,,..,,...,,,.,.,,,,..,.,.,..,,..,,...,...,...,...,...,..,,,.,,
+#2M5GOKGRESX2EF4WHEZ2SR7NJNQZNFZWR5Q6EZCNSHSRUWUR44467H3FUKBCCAVYFKMPRRMJ4BXVW
+#\\\|7VXK2YN5K6XUJRSCN7U7Z7ISONOY6P2WXLJM6BP2PZH4XD4G26H \ / AMOS7 \ YOURUM ::
+#\[7]A5LKY4EGDUVZFRV6M5QGD5T4DFEECGGREUOLLQ3XJHUCHKVJ2SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

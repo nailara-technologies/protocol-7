@@ -24,7 +24,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Reference-VERSION.UCSDLTI |;
+our $VERSION = qw| AMOS7::N7FS::Reference-VERSION.PQ5M3CI |;
 
 @EXPORT_OK = qw| reference_write reference_scan reference_drop_write
     reference_address |;
@@ -139,7 +139,7 @@ sub reference_scan {
 }
 
 sub reference_write {
-    my ( $node, $id, $store, $holder, $name, $converted ) = @ARG;
+    my ( $node, $id, $store, $holder, $name, $converted, $minimum ) = @ARG;
     refuse('reference write needs the delegated store key') if not ref $store;
     refuse('reference holder and name must not be empty')
         if not defined $holder
@@ -154,6 +154,7 @@ sub reference_write {
             $ntime = $old + 1 if $ntime <= $old;
         }
     }
+    $ntime = $minimum if defined $minimum and $ntime < $minimum;
     my $nt14    = ntime14($ntime);
     my $dir     = join '/', $base, $nt14, $node->{'amos'}, $node->{'bmw'};
     my %payload = (
@@ -194,8 +195,8 @@ sub reference_drop_write {
 
 1;
 
-#,,,.,,,.,.,,,,,,,.,.,,..,,..,...,.,.,,.,,...,.,.,...,..,,,,,,..,,.,.,..,,,.,,
-#VWBRTVQRR5WA6WE6SVSFYUWK3PQMSA5WBNGERN72VV7JLPAQEKNXFKOZAYSPSRTCYIBIOBROW6LF6
-#\\\|ZTA3HHKOQMZGOHQHN2KBGOPDJY35YACFHSB3CQZLEGSTTWFAROL \ / AMOS7 \ YOURUM ::
-#\[7]2O6OJ3UMCMXZJZKRHYMKGKKUMZ46V5PNVELER4OPJIQEAJXPZMAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,.,,,.,,,.,,.,,.,.,..,,,,.,...,.,.,...,...,...,..,,...,,..,,,,,
+#FXACT6SLOBYW3URL3QOUNE5JPIQJTRXWSZ2JEXBMUX2MNOVJYSPPI5NSEMO6VPPYQR4CMHZN6CE44
+#\\\|Z27DG53B2WRFH2B2PWOUS6B4NJQYICJS4POEWDP5PVRXTMN2RYF \ / AMOS7 \ YOURUM ::
+#\[7]HLJ26QGPKYE5X4AV5SOJVREG7NYI4OYJEGNMCM7BFYFEKRKHV6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
