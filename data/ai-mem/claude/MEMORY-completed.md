@@ -48,6 +48,15 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   ZDMAPAY:AR3OCKQ (vision-capable, VRAM-tuned), self-test retry+restart resilience (2 bugs found
   live-testing the fix itself), bin/ptd exclusion regex, SUGGESTION-INTEGRATION-QUEUE.md marked
   blocker-level. task-append backend-lock-leak bug diagnosed + unstuck live, NOT yet code-fixed.
+- [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — previous [ d02c3b067 ] : shm A live
+- [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — previous [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
+- [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — previous [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
+- [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — previous [ 4802120dd ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
+- [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — previous [ 485d04329 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive
+- [session-handover-lock-mode](project-2026-11-01-session-handover-lock-mode.md) — previous [ c3b01c609 ] : login chain + lock mode s2a live
+- [session-handover-login-screen](project-2026-10-31-session-handover-login-screen.md) — previous [ b70c9d6cc ]
+- [session-handover-external-access](project-2026-10-31-session-handover-external-access.md) — previous 2026-10-31 [ 42210691a ]
+- [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — previous [ a3d230f86 ] : replica mode live
 
 ## System Status
 - [next-steps](topic-next-steps.md) — queue, roadmap
@@ -189,8 +198,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   p7-deps styles the whole stream with TERM::Frame and uses the house `\b\b` SIGINT clean-exit.
   Live-verified on delta: ~8s real run through v7, framed, unattended.
 
-#,,,.,,.,,..,,...,,,.,,,,,..,,,..,..,,.,.,,,,,..,,...,...,.,.,...,,..,...,,.,,
-#4BCQ65M43VDWECWLPZYSBWBG4PYVOFIMLCTIXWN4LIVWJMF4XRM5FBFNSHGOVJAC66BK5DHKZL6P6
-#\\\|NJKZNIXHLXMQ535AR3BQD4HBEH2G4WO2OZHIANFEGMTWUH225RQ \ / AMOS7 \ YOURUM ::
-#\[7]LG5MPMPYM5ZS6ZCYDX45QPGYF7KKH7TFHZDFNLRIPX7ZO2KNNUCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,.,,,,,..,,,.,,,,,,,,.,,,,,,.,,..,,...,...,.,,,,,.,,,.,,..,...,
+#SJCGHEGI3RWVTAOPLZICEXWFQTENJZOMMTASI4ALGZK2POQZOB2GCGPCXGTUCDI3LIX4SB3PBBXV2
+#\\\|64RAOWEYSOUJQCOU4YX7ZCFL2B54KUIVG3372CEQFR5MM6ADNZD \ / AMOS7 \ YOURUM ::
+#\[7]QXC47W7QM5JUPHSOH5UHOXDPIKOR3KVX7U3B5X4Z5F647WIRDSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

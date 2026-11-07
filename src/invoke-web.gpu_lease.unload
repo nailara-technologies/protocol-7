@@ -2,15 +2,33 @@
 
 # name  = invoke-web.gpu_lease.unload
 # descr = pause the queue then empty every unlocked invoke.ai cached model
-# param = requester, mode [ handover | release ]
+# param = requester, mode [ handover | release ], grace was a user pause
 
-my ( $requester, $mode ) = @ARG;
+my ( $requester, $mode, $user_pause ) = @ARG;
 $mode //= qw| handover |;
 return FALSE if <invoke-web.gpu_lease.unloading>;
+
+## release ownership comes from its grace origin, not an unknown cache ##
+if ( $mode eq qw| release | ) {
+    if ($user_pause
+        or ( ( <invoke-web.gpu_lease.processor_paused> // FALSE )
+            and not <invoke-web.gpu_lease.auto_paused> )
+    ) {
+        <invoke-web.gpu_lease.auto_paused> = FALSE;
+    } else {
+        <invoke-web.gpu_lease.auto_paused> = TRUE;
+    }
+} elsif ( not <invoke-web.gpu_lease.auto_paused>
+    and defined <invoke-web.gpu_lease.processor_paused>
+    and not <invoke-web.gpu_lease.processor_paused> ) {
+    <invoke-web.gpu_lease.auto_paused> = TRUE;
+}
 
 <invoke-web.gpu_lease.holder>           = undef;
 <invoke-web.gpu_lease.request_inflight> = FALSE;
 <invoke-web.gpu_lease.unloading>        = TRUE;
+<invoke-web.gpu_lease.handover_waiting>
+    = $mode eq qw| handover | ? TRUE : FALSE;
 my $renew = delete <invoke-web.gpu_lease.renew_timer>;
 $renew->cancel if defined $renew and $renew->is_active;
 
@@ -31,8 +49,8 @@ if ( ( <invoke-web.status> // qw| idle | ) !~ m{^(?:running|starting)$} ) {
 );
 return TRUE;
 
-#,,..,.,.,,,.,,..,...,.,.,,,.,,,,,..,,,,,,.,.,..,,...,...,,,.,,.,,,.,,,.,,,,,,
-#ZPFGR2KQIX7SVIPKK3PW6XKGYTZNXP2HRQIFQHQPL34LSRRBVPHHJR43D2IA3TBTKPMNO2BOD7XL2
-#\\\|HBNLRPZABWG3VD73ZXXWR3JJHZ7OMQBHGYFSVP6JSY3BMBMT75A \ / AMOS7 \ YOURUM ::
-#\[7]WWVPG3VNFQFAZ5C7J3UG4ADSTIGF4IH4YNFAJNLTSYCJNAD3NSDY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,,..,..,,..,,..,,,.,,,,,,.,.,..,,...,...,,,.,,.,,...,,.,,.,.,
+#X7KI6OEYLMZAVVHEKXQOQJDKUBMVAV76VGJXZFISSHBIHSYUEWOKZTISS7HCTTZUHILHUZDPVUJV4
+#\\\|CZRIXEZYUMVHO3A5EWR63SFNV5DKJFLIIBYDGGU5IGAECO5XLOA \ / AMOS7 \ YOURUM ::
+#\[7]JJQYOCLCXIC6XQNZ7CHF4TXIG3I4RRQV75KT6TZ4DFZCQ76DYSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

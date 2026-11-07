@@ -1688,15 +1688,18 @@ items:
     AMOS7::SHM::sign_permission is a placeholder hash, not a signature : shm mapping permissions can be forged
 
     FOUND 2026-10-22 in the SIGNED-STATEMENTS review : data/lib-path/pm/AMOS7/SHM.pm sign_permission [ ~439 ] = a 31-multiplier polynomial hash of the canonical permission string times the key length -- computable by anyone, no private key needed. used by data.mount.shm.permission.* via data.mount.shm.open. any writer of a mapping header can add permissions that verify. bounded by the unix rights on the segment, but it must not read as protection. FIX direction : SIGNED-STATEMENTS.md p7 capability v1 + p7 shm permissions v1 [ the header carries ONE statement id ], adoption step 7 ; until then either a real Ed25519 signature over the canonical string or refuse to treat header permissions as authority
+
+
+    2026-11-05 step A landed [ d02c3b067 ] : forged permissions fixed, real ed25519 grants, tested live. remaining : a local reader with file rights can still map a segment -- seal \ open in AMOS7::Twofish, then encrypted pages. priority lowered from high 2026-11-06, needs local file access.
   done_at: null
   id: FKS
-  priority: high
+  priority: normal
   status: open
   tags:
   - security
   - shm
   - data
-  text: 'AMOS7::SHM::sign_permission placeholder : permissions forgeable'
+  text: 'shm : encrypted pages, local readers can still map a segment'
 - added: 32DLNVPDIY
   details: |-
     source.signature_valid ignores caller truth map [ footer prerequisite ]
@@ -2576,9 +2579,29 @@ items:
   tags:
   - jobsite
   text: 'jobsite : sync vanishes the list, resets views and aborts actions'
+- added: 32N6VWEBIY
+  details: ''
+  done_at: null
+  id: XAH
+  priority: low
+  status: open
+  tags:
+  - invoke-web
+  - gpu
+  text: "gpu lease : 'render queue empty' repeats between images, parked items never release"
+- added: 32N6VWE7LI
+  details: ''
+  done_at: null
+  id: ILS
+  priority: low
+  status: open
+  tags:
+  - models
+  - gpu
+  text: 'gpu lease : redundant handover request right after a release'
 
-#,,,,,,..,.,,,,.,,,..,,,,,,,,,.,,,,,.,,,.,,..,..,,...,...,...,,.,,.,,,,,,,.,,,
-#DW46R6V4S5QG4SYL3R6RTS2ZHOVQW363GOL5NFZXJKLVPKHSJDKXLNDHGVP5TXCHZO2HQHPVAVPEI
-#\\\|BCV5SJZRCPTCMZAKXZV3QCQM26C7S77ALC7WZ5VVWWM4DRGVZG2 \ / AMOS7 \ YOURUM ::
-#\[7]DFGF6CIX3GVF7U35PHSAPH5DIWASDOPVES6UX2Z6VUI3SS5VQMCI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,..,,,.,,.,.,,.,,..,,..,,,,,,..,,...,...,,.,,.,,,,..,..,,,..,
+#5PBWUUBQU3JYXSG3SJ4YNOADHZU25AX3RWWDCCVL27LOAW5DQGYOFT7AJUC6BYYGD5MZ6NI2ZIKYA
+#\\\|PZJ7EORKYXZI245IYFY4DIYBAOHHB3ADZNRSCBYU5ORN26M2HCJ \ / AMOS7 \ YOURUM ::
+#\[7]4QXICRHTDKFNJJZEL4P5KW7RYXFD3PYPPNAT4U42YACWDK36TOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

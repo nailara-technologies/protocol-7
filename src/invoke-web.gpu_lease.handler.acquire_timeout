@@ -13,7 +13,14 @@ return TRUE if ( <invoke-web.gpu_lease.holder> // '' ) eq qw| invoke-web |;
 return TRUE if not <invoke-web.gpu_lease.request_inflight>;
 <invoke-web.gpu_lease.request_inflight> = FALSE;
 <invoke-web.gpu_lease.unavailable>      = TRUE;
-<invoke-web.gpu_lease.pause_sent>       = FALSE;
+## models is gone : our own pause must not strand the queue ##
+if (<invoke-web.gpu_lease.auto_paused>) {
+    <invoke-web.gpu_lease.auto_paused> = FALSE;
+    <[invoke-web.api_async]>->(
+        'PUT', '/api/v1/queue/default/processor/resume',
+        undef, 'invoke-web.gpu_lease.handler.queue_resume_reply'
+    );
+}
 <[base.logs]>->(
     1,
     ': models gpu lease request unanswered : existing render path continues'
@@ -26,8 +33,8 @@ return TRUE if not <invoke-web.gpu_lease.request_inflight>;
 );
 return TRUE;
 
-#,,..,,.,,,.,,,..,...,.,,,,,.,,,,,,.,,,,,,,,,,..,,...,...,.,,,..,,..,,.,,,,,.,
-#VEBYPZCOABJQLVTR2FIKVUB2Q26VJPLRRLDSW6WVTEBJ6S3QIARSGXCXKXEPXTWSYXJJIRMPBLEBA
-#\\\|TAY633JWCV6AYLSY7GS2YMCJ4XXP4OZRUWXT4NKMH74RNOHX6LY \ / AMOS7 \ YOURUM ::
-#\[7]DGXBZARRXV7MFE5AIY5ZHRT7X2D2IGMSKHYZM6UVZMO2FKGDL6CI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,.,.,.,.,...,..,,,.,,.,,,..,,..,,...,...,,..,...,..,,...,...,
+#K4SS3YGUJCQEH26I56CEDMDNLGCKEHBJ5OME6AP2OJCG3MHVAB4FA7VBOVXSYN7ELBMVIREZUR6OG
+#\\\|L63YECJYAFQUPNALTYVSGNKUVWC3HR2WQZCSXPWAYSCYZAOZEIK \ / AMOS7 \ YOURUM ::
+#\[7]FEJYCHJNVP5R3DDJRCTTHBQPXLOJZTLFZD5V4FNJMUVOSDW6I2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

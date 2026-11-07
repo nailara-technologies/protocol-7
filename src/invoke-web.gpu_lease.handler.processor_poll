@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = invoke-web.gpu_lease.handler.processor_poll
+# descr = self-rearming async invoke.ai queue processor status poll
+
+delete <invoke-web.gpu_lease.processor_timer>;
+
+my $after
+    = ( <invoke-web.gpu_lease.holder> // '' ) eq qw| invoke-web |
+    ? 15
+    : 2;
+<invoke-web.gpu_lease.processor_timer> = <[event.add_timer]>->(
+    {   'after'   => $after,
+        'handler' => qw| invoke-web.gpu_lease.handler.processor_poll |,
+    }
+);
+
+return TRUE
+    if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
+return TRUE if ( <invoke-web.status> // '' ) ne qw| running |;
+return TRUE if <invoke-web.gpu_lease.status_inflight>;
+
+<invoke-web.gpu_lease.status_inflight> = TRUE;
+my $sent = <[invoke-web.api_async]>->(
+    'GET', '/api/v1/queue/default/status',
+    undef, 'invoke-web.gpu_lease.handler.processor_reply'
+);
+<invoke-web.gpu_lease.status_inflight> = FALSE if not $sent;
+return TRUE;
+
+#,,,,,.,.,,.,,.,,,,..,.,,,,.,,...,,.,,...,,,,,..,,...,..,,...,,..,.,,,,,.,,,,,
+#67HSFP2QGACGORVITMJSANIPUME6AXLGPNCQ55T7BESW7Y2TGGT27HX6LERC2W6XHRNUAO2VCW3GI
+#\\\|JUMSMDOIWWG7EGD2FPNER6TTMY4HJM2MD3C5FBA5U2DOWJM7UP4 \ / AMOS7 \ YOURUM ::
+#\[7]MZ4DQS74Y5GMFZJMLP4JAPBLLSRWWJIBKTUT6KJKRTQCIXTF2GCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
