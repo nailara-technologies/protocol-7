@@ -143,8 +143,8 @@ the file's bytes, mode 0400. no chunking in format 1 [ spec : open ].
 - a node or a new disk : built under a temp name, published by ONE rename
   after checking the target is absent [ rename onto an empty directory
   succeeds on linux ]
-- nothing is ever rewritten : a second import of a content adds a meta
-  file ; a state change adds a state file
+- nothing is ever rewritten : a changed repeat import adds a meta file, an
+  unchanged repeat adds none ; a state change adds a state file
 - **[ deviation ]** the spec lets a damaged newest version fall back to
   the older one. format 1 REFUSES instead for the records that decide
   trust or layout -- the newest state, the newest witness record, any
@@ -186,16 +186,20 @@ ntime is above the disk's newest record and the witness's last.
 per source : lstat [ symlinks and non-regular files skipped ] -> open
 O_NOFOLLOW, fstat must equal lstat -> hash [ bmw + size ] -> address in
 the write epoch -> new node built + published, or the existing node
-verified and a meta file added -> the stored node verified [ full re-hash
-] -> the source re-hashed, dev \ inode \ size \ mtime unchanged -> ONLY
-with `-remove` : lstat once more, then unlink. default KEEP. any failure
-: the source is untouched, a temp node is removed, the entry reported
-`failed`. `-dry-run` hashes and lists, writes nothing. never taken as a
-source : anything inside the root, the host dir [ keys, witness -- a
-holder must not get the store key, a removal must not reset the use
-window ] or a configured key file. replication to N holders is NOT in
-format 1. secrets are NOT detected : 'secrets enter only as ciphertext'
-is not enforced -- assimilating `~/.ssh` stores the keys as they are.
+verified. an existing node gains a meta file when name, source, size,
+mtime, format or the optional index checksum \ name differs from the
+newest meta of that source ; an unchanged repeat adds none and reports `unchanged`.
+then the stored node is verified [ full re-hash ] -> the source re-hashed,
+dev \ inode \ size \ mtime unchanged -> ONLY with `-remove` : lstat once
+more, then unlink. default KEEP. any failure : the source is untouched, a
+temp node is removed, the entry reported `failed`. `-dry-run` hashes and
+lists the same `would-store` \ `would-dedup` \ `would-unchanged` outcome,
+writes nothing. never taken as a source : anything inside the root, the
+host dir [ keys, witness -- a holder must not get the store key, a removal
+must not reset the use window ] or a configured key file. replication to N
+holders is NOT in format 1. secrets are NOT detected : 'secrets enter only
+as ciphertext' is not enforced -- assimilating `~/.ssh` stores the keys as
+they are.
 
 write epoch : the current epoch, never older than the newest active one
 [ after a conversion ], never one of `previous`.
@@ -205,6 +209,32 @@ write epoch : the current epoch, never older than the newest active one
 or with a relative path are skipped and listed. rows are untrusted : with
 `-remove` an `-index-base <dir>` is required, rows resolving outside it
 are skipped.
+
+## get \ find
+
+both commands verify the disk identity and read the active epochs through
+the state's codec ; the disk does not need to be attached. no index or link
+tree is written.
+
+`get <disk> <address|path-name> [ -out <file> ]` accepts the printed
+`<epoch>/<amos>/<bmw>` address, or an exact meta name \ source. name lookup
+uses the newest record per node + source ; if it resolves to different node
+addresses, `get` refuses and lists them. the selected node is verified
+before output. stdout is raw bytes, including an empty byte stream for an
+empty file. `-out` refuses an existing name, streams through a temporary
+file while checking the content checksum again, and publishes only after
+that check. a relative path is also tried as its absolute source. name
+lookup and `find` trust meta records, which format 1 does not sign : the
+bytes are verified against the address, the name -> address mapping is not.
+stdout verification and streaming are separate reads : a
+concurrent replacement between them cannot be recalled from the pipe.
+
+`find <disk> [ -name <regex> ] [ -format <fmt> ] [ -chksum <prefix> ]
+[ -all ]` scans meta records directly with the codec reader. `-name`
+matches the meta name or source, `-format` is exact, and `-chksum` is a
+prefix of either amos or bmw. output is `<address> <size> <format>
+<source-or-name>`, sorted by source, newest record per node + source by
+default. `-all` includes every record and appends `[ <import_ntime> ]`.
 
 the amos collision test uses two real fixtures found offline [ a bounded
 single-process search ] : `n7fs amos collision fixture 2042` and
@@ -265,8 +295,8 @@ a general signing oracle. anchors then = the host-root public key.
 - what the store key signs [ meta, nodes ]
 - witness beyond this host [ the network's view, spec section 4 ]
 
-#,,.,,...,,.,,,..,,,.,,,,,.,.,...,...,.,,,,..,..,,...,...,...,,,,,.,,,,,,,,..,
-#Z52OTOZFBOXFWZENED3CHRBWQ36CXRULXVI3YBZB23FMDTXOYAVU5HB2GXHIBX2LQBUU34YLUXTUM
-#\\\|ZOTHGD5A6MBEXZWQD4NPZS7LZAN2ERX36XURGDCDJNTUWRHDXBJ \ / AMOS7 \ YOURUM ::
-#\[7]2R6Q5TDYOKBAN6JONLIMLU7BUZL7IN23DWALBQGOHVQ26O6ZK4BQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,.,.,,,,..,,,.,,.,,,,,,...,.,,,..,,...,...,...,.,.,.,.,...,,,,,
+#MNO6FUPKPDKGU3ZLJ22KITFFWDK3JEVJ6WBNCEWB73NBL2U3CCLA2WYHEMNCZC2FHJS46BC6VB2HC
+#\\\|S5BKD5QWVT7I5C3RPMFT4KBN4Q4YMI5VI2CCYTKGCRHXV6CMUQG \ / AMOS7 \ YOURUM ::
+#\[7]BDJ2PEUKMXKVGXBQ5YDRKEPM4AASHKEH2YMDFN2X6MHM3KPDVYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,6 +21,10 @@ use warnings;
 ## n7fs detach <disk>
 ## n7fs status <disk>
 ## n7fs verify <disk>                     every node of the active epochs
+## n7fs get <disk> <address|path-name> [ -out <file> ]
+##                                       verified content [ raw stdout ]
+## n7fs find <disk> [ -name <regex> ] [ -format <fmt> ]
+##                  [ -chksum <prefix> ] [ -all ]
 ## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -dry-run ]
 ##                 [ -index <image-index.db> [ -index-base <dir> ] ]
 ##                 [ <path> .. ]   index + -remove needs -index-base
@@ -43,6 +47,8 @@ use warnings;
 ## single-dash long options, the house form -- no -- forms exist.
 
 use FindBin;
+use Cwd qw| abs_path |;
+use Digest::BMW;
 use Getopt::Long qw| GetOptionsFromArray |;
 
 ## our own long options take ONE dash : the prefix pattern rejects the gnu
@@ -54,10 +60,13 @@ BEGIN {
     unshift @INC, "$FindBin::Bin/../data/lib-path/pm", "$FindBin::Bin";
 }
 
-use AMOS7::N7FS          qw| root_dir host_dir b32 unb32 |;
-use AMOS7::N7FS::Sign    qw| key_file_signer key_file_write command_signer |;
-use AMOS7::N7FS::Disk    qw| disk_init disk_attach disk_detach disk_status |;
-use AMOS7::N7FS::Store   qw| assimilate store_verify |;
+use AMOS7::N7FS       qw| root_dir host_dir b32 unb32 write_new_file_stream |;
+use AMOS7::N7FS::Sum  qw| bmw_b32 epoch_from_b32 |;
+use AMOS7::N7FS::Sign qw| key_file_signer key_file_write command_signer |;
+use AMOS7::N7FS::Disk qw| disk_init disk_attach disk_detach disk_status
+    disk_read_id state_read |;
+use AMOS7::N7FS::Store qw| assimilate store_verify meta_entries node_path
+    node_verify |;
 use AMOS7::N7FS::Convert qw| upgrade confirm |;
 
 ##[ global constants ]##
@@ -73,7 +82,7 @@ GetOptionsFromArray(
     \@args, \%o,
     qw| root=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
         name=s intent=s disk=s index=s index-base=s epoch=s remove keep dry-run
-        allow-rollback help |
+        out=s format=s chksum=s all allow-rollback help |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -103,6 +112,8 @@ my %run = (
     qw| detach |     => \&cmd_detach,
     qw| status |     => \&cmd_status,
     qw| verify |     => \&cmd_verify,
+    qw| get |        => \&cmd_get,
+    qw| find |       => \&cmd_find,
     qw| assimilate | => \&cmd_assimilate,
     qw| upgrade |    => \&cmd_upgrade,
     qw| confirm |    => \&cmd_confirm,
@@ -152,6 +163,42 @@ sub parent_signer {
 sub disk_arg {
     my $disk = shift // $o{'disk'} // fail('which disk ?');
     return $disk;
+}
+
+sub _latest_meta {
+    my %latest;
+    foreach my $entry (@ARG) {
+        my $key = join "\0", $entry->{'address'},
+            $entry->{'source'} // $entry->{'name'} // '';
+        if ( not exists $latest{$key}
+            or $entry->{'import_ntime'} gt $latest{$key}{'import_ntime'} ) {
+            $latest{$key} = $entry;
+        }
+    }
+    return values %latest;
+}
+
+sub _name_regex {
+    my $pattern = shift // return undef;
+    my $regex   = eval {qr/$pattern/};
+    if ( not defined $regex ) {
+        my $err = $EVAL_ERROR // 'invalid regex';
+        chomp $err;
+        fail("find : invalid -name regex [ $err ]");
+    }
+    return $regex;
+}
+
+sub _address_arg {
+    my ( $target, $state ) = @ARG;
+    return undef
+        if $target !~ m|\A(V7[A-Z2-7]{5})/([A-Z2-7]{7})/([A-Z2-7]{77})\z|;
+    my ( $epoch_name, $amos, $bmw ) = ( $1, $2, $3 );
+    my $epoch = epoch_from_b32($epoch_name);
+    fail("get : not a canonical address [ $target ]") if not defined $epoch;
+    fail("get : address epoch is not active [ $target ]")
+        if not grep { $ARG == $epoch } $state->{'epochs'}->@*;
+    return { qw| epoch | => $epoch, qw| amos | => $amos, qw| bmw | => $bmw };
 }
 
 ##[ COMMANDS ]################################################################
@@ -241,7 +288,7 @@ sub cmd_status {
         ? ( ' [ from ',
             $s->{'state'}{'previous'}{'store_format'},
             $s->{'state'}{'confirmed'}
-            ? ', confirmed ' . ']'
+            ? ', confirmed ]'
             : ', unconfirmed ]'
             )
         : ()
@@ -254,6 +301,122 @@ sub cmd_verify {
     my $r = store_verify( %common, qw| disk | => disk_arg(shift) );
     say_line( sprintf '%d nodes verified [ format %d ]',
         $r->{'nodes'}, $r->{'state'}{'store_format'} );
+    return 0;
+}
+
+sub cmd_get {
+    my $disk   = disk_arg(shift);
+    my $target = shift // fail('get needs an address or path name');
+    fail('get : unexpected arguments') if @ARG;
+    my $id    = disk_read_id( %common, qw| disk | => $disk );
+    my $state = state_read( $id->{'path'} );
+    my $addr  = _address_arg( $target, $state );
+
+    if ( not defined $addr ) {
+        my %nodes;
+        ## sources are stored absolute ##
+        my $absolute = abs_path($target) // $target;
+        foreach my $entry (
+            _latest_meta( meta_entries( %common, qw| disk | => $disk ) ) ) {
+            next
+                if ( $entry->{'name'} // '' ) ne $target
+                and ( $entry->{'source'} // '' ) ne $target
+                and ( $entry->{'source'} // '' ) ne $absolute;
+            $nodes{ $entry->{'address'} } = {
+                qw| epoch | => $entry->{'epoch'},
+                qw| amos |  => $entry->{'amos'},
+                qw| bmw |   => $entry->{'bmw'},
+            };
+        }
+        fail("get : no node named [ $target ]") if not keys %nodes;
+        fail( "get : name resolves to several nodes [ $target ] :\n  "
+                . join( "\n  ", sort keys %nodes ) )
+            if keys %nodes > 1;
+        ($addr) = values %nodes;
+    }
+
+    node_verify( $id->{'path'}, $addr, $state->{'store_format'} );
+    my $content = node_path( $id->{'path'}, $addr ) . '/content';
+
+    if ( defined $o{'out'} ) {
+        my $out = $o{'out'};
+        fail('get : -out needs a file') if not length $out;
+        fail("get : $out exists")       if -e $out or -l $out;
+        write_new_file_stream(
+            $out,
+            sub {
+                my $out_fh = shift;
+                open( my $in, '<:raw', $content )
+                    or die "cannot open $content : $OS_ERROR\n";
+                my $ctx = Digest::BMW->new(384);
+                while (1) {
+                    my $got = sysread( $in, my $buf, 1048576 );
+                    die "read $content : $OS_ERROR\n" if not defined $got;
+                    last                              if $got == 0;
+                    $ctx->add($buf);
+                    print {$out_fh} $buf or die "$OS_ERROR\n";
+                }
+                close $in or die "close $content : $OS_ERROR\n";
+                die "content does not match its address [ $target ]\n"
+                    if bmw_b32( $ctx->digest ) ne $addr->{'bmw'};
+            }
+        );
+        say_line( 'get ', $target, ' -> ', $out, ' [ verified ]' );
+        return 0;
+    }
+
+    ## the second read can race a writer ; bytes already on stdout cannot be
+    ## withdrawn, so verification must finish before streaming starts
+    binmode STDOUT, qw| :raw |;
+    open( my $in, '<:raw', $content )
+        or fail("cannot open $content : $OS_ERROR");
+    while (1) {
+        my $got = sysread( $in, my $buf, 1048576 );
+        fail("read $content : $OS_ERROR") if not defined $got;
+        last                              if $got == 0;
+        print {*STDOUT} $buf or fail("stdout : $OS_ERROR");
+    }
+    close $in or fail("close $content : $OS_ERROR");
+    return 0;
+}
+
+sub cmd_find {
+    my $disk = disk_arg(shift);
+    fail('find : unexpected arguments') if @ARG;
+    my $regex = _name_regex( $o{'name'} );
+    my @entries
+        = $o{'all'}
+        ? meta_entries( %common, qw| disk | => $disk )
+        : _latest_meta( meta_entries( %common, qw| disk | => $disk ) );
+
+    @entries = grep {
+        my $entry = $ARG;
+        (          not defined $regex
+                or ( $entry->{'name'}   // '' ) =~ $regex
+                or ( $entry->{'source'} // '' ) =~ $regex
+            )
+            and ( not defined $o{'format'}
+            or ( $entry->{'format'} // '' ) eq $o{'format'} )
+            and ( not defined $o{'chksum'}
+            or index( $entry->{'amos'}, $o{'chksum'} ) == 0
+            or index( $entry->{'bmw'},  $o{'chksum'} ) == 0 )
+    } @entries;
+
+    @entries = sort {
+        ( $a->{'source'} // $a->{'name'} // '' )
+            cmp( $b->{'source'} // $b->{'name'} // '' )
+            or $a->{'address'} cmp $b->{'address'}
+            or $a->{'import_ntime'} cmp $b->{'import_ntime'}
+    } @entries;
+    foreach my $entry (@entries) {
+        my $label
+            = length( $entry->{'source'} // '' )
+            ? $entry->{'source'}
+            : $entry->{'name'} // '?';
+        say join ' ', $entry->{'address'}, $entry->{'size'} // '?',
+            $entry->{'format'} // 'unknown', $label,
+            $o{'all'} ? "[ $entry->{'import_ntime'} ]" : ();
+    }
     return 0;
 }
 
@@ -316,8 +479,8 @@ sub cmd_confirm {
     return 0;
 }
 
-#,,.,,...,,,.,,,.,,,.,,..,.,.,..,,,,,,,.,,.,,,..,,...,...,,.,,...,,,.,.,,,...,
-#WO26YNXNC7VZGDFUPB25QBXS2IUFHXJ2K3D5YA6H5BO73S5ESCJSSC2Z4SAOU4BE4P26FODEHKME2
-#\\\|WCVSSO27VRUHIW4F5VBZLSLMTBR5CRJ4ZPHFWUUZIZPDZKIM4KO \ / AMOS7 \ YOURUM ::
-#\[7]I4AQ7OKMBVTCO3CV4ABJAZVJSA4G4S3C27VNRRKJ57BXVHJYJSBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,,.,,,,,,.,.,.,,,,,,,,..,,,,,..,,...,...,.,.,,.,,,.,,,..,,.,,
+#Z3DPSSCAU6S4A5QBRMVQK7NQLNN5APAXNQT2QOM3UC73GN6F2DMEEGZABPKVB4AOPONXH77ZPCPYW
+#\\\|Y6Z24LWRRKQCAK6YSDP652ZQLBPXFUOBRD43RVUCE5NRRKEC4A7 \ / AMOS7 \ YOURUM ::
+#\[7]XSQWSZD62UE7YTO4WFSLQVFFYGBSX4OXZA3RAMXT67AUD7BEKGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
