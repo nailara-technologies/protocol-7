@@ -155,10 +155,13 @@ my $child_pid;
 if ( not defined $spawn_err ) {
     local $ENV{'PYTHONUNBUFFERED'} = 1;
 
-    ## invoke.ai's model downloads : python reads the proxy from the env ##
+    ## the proxy : http[s]_proxy for its libraries [ huggingface_hub .. ], ##
+    ## INVOKEAI_DOWNLOAD_PROXY for its model downloader -- a guarded       ##
+    ## session [ ssrf policy ] that ignores the ambient proxy env          ##
     my $proxy = <invoke-web.proxy> // '';
     $proxy =~ s{^\s+|\s+$}{}g;
-    my @proxy_vars = qw| http_proxy https_proxy HTTP_PROXY HTTPS_PROXY |;
+    my @proxy_vars = qw| http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
+        INVOKEAI_DOWNLOAD_PROXY |;
     local %ENV = %ENV;    ## the zenka's own env stays untouched ##
     if ( lc $proxy eq qw| none | ) {
         delete @ENV{@proxy_vars};
@@ -254,8 +257,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,..,...,.,,,.,.,,.,,,..,,..,..,,.,,,,.,,...,..,,...,...,.,,,..,,.,,,,.,,,,,,
-#6OIZEWM7CIQZZXBONDOJWNCI53XSREDZ5YWXDV37ZWOR74AREUBCNHDWP3S3BZAHT5GL6JHFQ7ODE
-#\\\|XPQZTSDICW76ZQ2C4KGTV5U64YH3RCFOXATH667QPR5LHLICTVG \ / AMOS7 \ YOURUM ::
-#\[7]2DMZ2VE2YDEX3QXMA4PRH6WKSQYTFBDNQNOCPW2XIBP3OJIEM4CQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,,,.,..,,...,,,,,,,.,...,..,,..,,...,...,...,,..,..,,,,.,,,.,
+#UI3BPPUUKC2PNOCITO3IUSS2YH3WZERARO2DT736WVW2UL3V7O5G5WABKDSLDXC7MSUXLV4I6QM32
+#\\\|3JQHFIQXAZGNG3B7QHVTNODKFWCYUZHXX326Y54NRBRIEF4QHLZ \ / AMOS7 \ YOURUM ::
+#\[7]IN5FIUGYCC35OWJVJNAKVKHKHJBXWMYBCHTYWDZBACQF4RVZXQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
