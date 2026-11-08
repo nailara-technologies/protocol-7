@@ -27,9 +27,9 @@ if (<invoke-web.gpu_lease.auto_paused>) {
     1,
     ': models gpu lease request unanswered : existing render path continues'
 ) if not <invoke-web.gpu_lease.probe>;
-## back off while models stays silent : 30 s doubling up to 600 s ##
+## back off while models stays silent : 30 s doubling up to 780 s ##
 my $after = <invoke-web.gpu_lease.retry_after> // 15;
-$after = $after * 2 > 600 ? 600 : $after * 2;
+$after = $after * 2 > 780 ? 780 : $after * 2;
 <invoke-web.gpu_lease.retry_after> = $after;
 <[event.add_timer]>->(
     {   'after'   => $after,
@@ -39,8 +39,8 @@ $after = $after * 2 > 600 ? 600 : $after * 2;
 );
 return TRUE;
 
-#,,..,.,,,.,,,.,,,,,,,,.,,,,,,.,,,,..,.,,,.,,,..,,...,...,.,.,...,,,,,,..,...,
-#VHRNK3KB7IHNAAHCCYPABDMRUXSFAO4POKA2J2KCESGY25U64RIHAQDB7L55ZET6RT3EGS7ABYIHA
-#\\\|WT2FDL4G7FTYNWVOBHZS3EVBV6UUQTRJPJP5HBSFSVIHUWWYUXA \ / AMOS7 \ YOURUM ::
-#\[7]5HPZEEO6JDTBTYJTN2BYDSU2LEXJDXHAZBOTJAD2TQQOYJU22KAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,...,...,...,,,.,...,,,,,,..,,.,,..,,...,..,,.,,,.,.,,.,,.,,,..,,
+#HMN5CVAGDWLV4BJBSXFFTWA3HLYPN7CT2MBPM7NDCDE3MHT6TLDUUZVDHU73ULCD6EAYGH526BF5I
+#\\\|KP3XWBK4M3DI2QG5GG6V7NGPG5FWIHDK3CLLZ5F3GH6P67X3WON \ / AMOS7 \ YOURUM ::
+#\[7]PEWPXAHJIBTOUBWTGALAOO7VWK5IFWCSQPW3XNAGOO5YLBOELEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
