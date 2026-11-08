@@ -2618,9 +2618,27 @@ items:
   - deps
   - invoke-web
   text: 'p7-deps : an os/pip dependency kind with per conda env targets'
+- added: 32PI5FVRDQ
+  details: status stays at cycle scanning over a day after the stream closed [ imports had no errors, 2026-11-08 ]. the closed stream likely never clears the scanning state, so hourly jobsite.scan requests do nothing. hypothesis, not checked in code.
+  done_at: null
+  id: UFG
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  text: 'jobsite : cycle stays scanning after the stream closed'
+- added: 32PI5FWBKM
+  details: the timetable entry jobsite-scan at HH:13:07 sent jobsite.scan twice, 3.8 ms apart in the same second [ 2026-11-08 15:13:07 ]. likely no already-fired-this-second guard, or a double registration. check the other timetable entries too.
+  done_at: null
+  id: NZ2
+  priority: normal
+  status: open
+  tags:
+  - events
+  text: 'events : a timetable entry fires twice in one second'
 
-#,,,.,..,,,,.,.,,,.,.,,,,,.,,,.,,,,,.,..,,...,..,,...,.,.,.,.,...,,,.,,,.,.,,,
-#6UQNTJP3LF4QQZPHSEPVZWBYTDLXO5H37PU4CFUEIM5HUWWKT6VSG3B52WTPPO4USCWTGFXDMVIS2
-#\\\|MXR546PSAOLP22VGA5A5RRIXOSC6IYKALYYVKUZY7FJQYIBHZD3 \ / AMOS7 \ YOURUM ::
-#\[7]SIKOIIMT2P6536LSTFGP7YBXDMCABJWPYSATF3OXNX2O7HZLAGBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,...,.,.,.,.,,..,,,.,.,.,,..,..,,...,..,,...,..,,.,.,,..,,,.,
+#Y6V67EQQMBJYIDSGHB52MPALVNK5USQYMWD4CCXWIUCXG5XJQTB3AW7F25SOF6DIE7IKJFQXHFVOQ
+#\\\|NYF7CX3O367TRIY2ACFQOTMNRM2QTXOCABH2ZWMQXFOVLAJUKZY \ / AMOS7 \ YOURUM ::
+#\[7]IFJNWMVLA572HYJIFRBM57V42OXMGARRCHZAT4NA6BB2JAWWM4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

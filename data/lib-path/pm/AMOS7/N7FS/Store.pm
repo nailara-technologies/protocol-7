@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.FTB5JMA |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.BRTIRFI |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -717,7 +717,7 @@ sub store_verify {
     require AMOS7::N7FS::Category;
     my $trees
         = AMOS7::N7FS::Tree::tree_records_verify( $id, $state, $replay );
-    my ( $categories, $assignments )
+    my ( $categories, $assignments, $batches )
         = AMOS7::N7FS::Category::category_records_verify( $id, $replay );
     return {
         qw| nodes | =>
@@ -727,6 +727,7 @@ sub store_verify {
         qw| trees |       => $trees,
         qw| categories |  => $categories,
         qw| assignments | => $assignments,
+        qw| batches |     => $batches,
     };
 }
 
@@ -822,6 +823,11 @@ sub _quarantine_unjournaled_records {
             qw| assignments |,
             qw| assignment |,
             'assignment_history'
+        ],
+        [   qw| batch |,
+            qw| batch-assignments |,
+            qw| batch-assignment |,
+            'batch_history'
         ],
     );
     foreach my $kind (@kinds) {
@@ -1260,16 +1266,24 @@ sub assimilate {
             and ( defined $opt{'category'}
                 or ( $opt{'category_rules'} // [] )->@* )
         ) {
+            ## a pool import never pulls a sorted reference back ##
+            my $to_pool = ( ( $opt{'category'} // '' ) eq qw| incoming |
+                    and not @{ $opt{'category_rules'} // [] } );
+            my %live;
+            foreach my $key ( keys $replay->{'references'}->%* ) {
+                my $ref = $replay->{'references'}{$key};
+                next if $ref->{'dropped'};
+                next if $to_pool and $replay->{'assignments'}{$key};
+                push $live{"$ref->{'node'}\0$ref->{'holder'}"}->@*, $ref;
+            }
             foreach my $entry ( $report{'entries'}->@* ) {
                 next
                     if not $entry->{'verified'}
                     or $entry->{'_reference'}
                     or not defined $entry->{'addr'};
-                push @new_refs, grep {
-                            $ARG->{'node'} eq $entry->{'addr'}
-                        and $ARG->{'holder'} eq $entry->{'source'}
-                        and not $ARG->{'dropped'}
-                } values $replay->{'references'}->%*;
+                push @new_refs,
+                    ( $live{"$entry->{'addr'}\0$entry->{'source'}"} // [] )
+                    ->@*;
             }
         }
         my $records_ok = eval {
@@ -1647,8 +1661,8 @@ sub _remove_source {
 
 1;
 
-#,,,.,,.,,,,,,...,,,.,,.,,,,,,...,...,,,.,.,.,..,,...,...,...,,,,,,.,,...,..,,
-#IFEGKPPJRHZKOTWSIN5V7OQF3E7LSFOJ544XOGN77JIY7MRXTK4UQCZJH5NUC4L2R5T5UJHMC6TJS
-#\\\|7FBOLWH6WNNZBYISWILYVO2BGQ3D74LPUD54RUGG4DPPWBZ7ORC \ / AMOS7 \ YOURUM ::
-#\[7]EM4LAIPOQYDDN4QBX2ZFZP7X22LWOHX22FLMUYXGIYW2SHXTVQCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,,.,,.,.,...,,,,,,.,,.,,,,,,,..,,...,...,,,,,,..,...,.,,,...,
+#LPJZ2FEM5U56ZQHKHCWIQBUFZOY6TQQZ5L6NROQSJCRKQZWI3D6LAOFD43DSMAOQD5XMIPWLEU7W6
+#\\\|2N63FNVKBTOC2CYOFEUWIFIY4K7A6EK4FTKEPQOEUABJQBNQWWJ \ / AMOS7 \ YOURUM ::
+#\[7]2YRMY4V3YX3D6W2X3WYSHZQNOFRJTU7CUQ2IU3D2ZMDL4BZEDSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

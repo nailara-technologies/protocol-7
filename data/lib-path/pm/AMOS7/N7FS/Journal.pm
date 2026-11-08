@@ -21,7 +21,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.RYW3AZY |;
+our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.N5PXSMI |;
 
 @EXPORT_OK = qw| journal_replay journal_head journal_write |;
 
@@ -77,7 +77,7 @@ sub _record {
     }
     refuse( 'journal %s : drop releases is not a list', $path )
         if ref $p->{'drop'}{'releases'} ne qw| ARRAY |;
-    foreach my $part (qw| trees categories assignments |) {
+    foreach my $part (qw| trees categories assignments batches |) {
         $p->{'add'}{$part} //= [];
         refuse( 'journal %s : add %s is not a list', $path, $part )
             if ref $p->{'add'}{$part} ne qw| ARRAY |;
@@ -91,7 +91,7 @@ sub _record {
 sub _ref_id { return join "\0", @ARG[ 0, 1 ] }
 
 sub _operations {
-    my ( $p, $expected ) = @ARG;
+    my ( $p, $expected, $id ) = @ARG;
     $expected->{'released'}      //= {};
     $expected->{'meta_history'}  //= {};
     $expected->{'ref_history'}   //= {};
@@ -209,6 +209,28 @@ sub _operations {
         $expected->{'assignment_history'}{ $assignment->{'path'} }
             = $assignment;
     }
+    foreach my $batch ( $p->{'add'}{'batches'}->@* ) {
+        refuse( 'journal seq %d : bad batch operation', $p->{'seq'} )
+            if ref $batch ne qw| HASH |
+            or ( $batch->{'path'} // '' )
+            !~ m|\A\d{14}\.[A-Z2-7]{8}\.batch-assignment\z|;
+        require AMOS7::N7FS::Batch;
+        my $record = AMOS7::N7FS::Batch::batch_read( $id, $batch->{'path'} );
+        $expected->{'batch_history'}{ $batch->{'path'} } = $batch;
+        foreach my $ref ( $record->{'references'}->@* ) {
+            my $key = _ref_id( $ref->{'node'}, $ref->{'reference'} );
+            refuse( 'journal seq %d : batch names an unknown reference',
+                $p->{'seq'} )
+                if not $expected->{'ref_history'}{$key};
+            $expected->{'assignments'}{$key} = {
+                qw| node |      => $ref->{'node'},
+                qw| reference | => $ref->{'reference'},
+                qw| path |      => $batch->{'path'},
+                qw| category |  => $record->{'category'},
+                qw| batch |     => TRUE,
+            };
+        }
+    }
     foreach my $node ( $p->{'drop'}{'releases'}->@* ) {
         refuse( 'journal seq %d : bad release address', $p->{'seq'} )
             if ( $node // '' ) !~ $ADDR_RE;
@@ -259,7 +281,7 @@ sub journal_replay {
             if $p->{'prev'} ne $previous;
         refuse( 'journal %s : baseline is only valid at sequence 1', $name )
             if $p->{'baseline'} and $p->{'seq'} != 1;
-        _operations( $p, \%expected );
+        _operations( $p, \%expected, $id );
         $baseline = TRUE if $p->{'baseline'};
         $previous = bmw_b32( bmw384_bytes( $r->{'bytes'} ) );
         $seq      = $p->{'seq'};
@@ -287,6 +309,7 @@ sub journal_replay {
         qw| category_history |   => $expected{'category_history'}   // {},
         qw| assignments |        => $expected{'assignments'}        // {},
         qw| assignment_history | => $expected{'assignment_history'} // {},
+        qw| batch_history |      => $expected{'batch_history'}      // {},
         qw| entries |            => \@entries,
     };
 }
@@ -338,6 +361,7 @@ sub journal_write {
             qw| trees |       => [ ( $add->{'trees'}       // [] )->@* ],
             qw| categories |  => [ ( $add->{'categories'}  // [] )->@* ],
             qw| assignments | => [ ( $add->{'assignments'} // [] )->@* ],
+            qw| batches |     => [ ( $add->{'batches'}     // [] )->@* ],
         },
         qw| drop | => {
             qw| nodes |      => [ $drop->{'nodes'}->@* ],
@@ -351,7 +375,7 @@ sub journal_write {
     $payload{'repaired'} = JSON::PP::true if $flags->{'repaired'};
 
     ## never sign what replay would refuse : one such entry ends the disk ##
-    _operations( \%payload, $replay );
+    _operations( \%payload, $replay, $id );
 
     my $dir = "$id->{'path'}/.n7fs/journal";
     make_dirs( $dir, 0700 );
@@ -375,8 +399,8 @@ sub journal_write {
 
 1;
 
-#,,,.,.,.,.,.,.,.,..,,...,,..,...,..,,.,,,.,,,.,.,...,...,,,,,,,.,,,.,...,..,,
-#VQVY3KOKNB4VDJ2XWVGM5D2TLGNAMLMD2K7QS332RELPPNDFPEX6UFVKGRNZ6MLCR4JTHVMC5ICHG
-#\\\|GFSENREYDSCDNNYLNT4MX72XGYEF6R3LFJJSCZ2AKBCRPH7GYSL \ / AMOS7 \ YOURUM ::
-#\[7]ILVUMBINUPSH2OK2LMGZ5FOEQNLKA7UWBXH4WTNLVL64OQ4YA4BQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,,,,,..,.,,,,,,,,,.,,,,,,..,,,,,.,.,...,...,.,.,,..,..,,,.,,.,,,
+#7RPVNOVZOGJFGJHLUUQWKKIJD2Y6DOBAPADYIGKR6W5VHL7E7B43K2GDGUT7N3ZI2NOXJSYNC2LCY
+#\\\|5YANSNX3BV6AT5LK3EGJOLW66JDVU6UICFQLQZKK6FY7TPTJ4RW \ / AMOS7 \ YOURUM ::
+#\[7]ETMC35MSG74K5BDEGESECMIXST5QFRLGTZMGUY5DSMIRBBMHHEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

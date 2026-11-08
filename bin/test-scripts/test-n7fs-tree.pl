@@ -470,10 +470,10 @@ my $cat2 = category_set(
     local_encryption => 'cascade'
 );
 my @definitions = category_list( $id, journal_replay($id) );
-ok( @definitions == 2
-        && $definitions[1]->{'copies'} == 3
-        && $definitions[1]->{'priority'} == 4
-        && $definitions[1]->{'local_encryption'} eq 'cascade',
+ok( @definitions == 3
+        && $definitions[2]->{'copies'} == 3
+        && $definitions[2]->{'priority'} == 4
+        && $definitions[2]->{'local_encryption'} eq 'cascade',
     'category versions retain fields and latest definition wins'
 );
 ok( 2 == keys journal_replay($id)->{'category_history'}->%*,
@@ -819,8 +819,8 @@ ok( $cli_rc == 0 && $cli_out =~ m|repair|,
 
 done();
 
-#,,.,,.,,,..,,,,.,..,,..,,..,,,.,,,,,,,..,,.,,..,,...,...,.,,,,..,.,.,,,.,..,,
-#CLSWOWH3GMURVIR66TN5QFTFKY53MN7Y2TRYT3SNEDD3FZLED7PQHXSJTMUFVYEZELRTCCAE6RXG6
-#\\\|ND5HO2FIL2VJ4I3JQSNDWOWJRK3BDGO4K5BQNVA5LDPAWF5FUXJ \ / AMOS7 \ YOURUM ::
-#\[7]RULOLB2FKIKX67DFAOKIQKZ7HSG5WYG2LWBVSSZKZOWHZACJTIDY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,,.,,.,.,,,.,..,,.,,,...,..,,..,,...,...,..,,.,.,,,,,,.,,.,.,
+#2MNNJNJFPW6HUKUTIZ6EY4HSB7WUDDMJYY25EFCCSL7ALUMXO6GYDAGBIN2JFAMB6LKLOSDAGAMPY
+#\\\|YN5VFWOYZ642PZBNY3GEL4XQOQ3VFXFMGYQDPXKPJWRRCZTBOU6 \ / AMOS7 \ YOURUM ::
+#\[7]CKOO6HKUMTXS3H45AFJHRQJ7QHEEETZNNDWOYHS2SDAJSFWEBUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
