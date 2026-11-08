@@ -36,7 +36,19 @@ use warnings;
 ## n7fs release-epoch <disk> <epoch> -now
 ##                  end rollback to a confirmed conversion's previous form
 ## n7fs repair <disk>                  finish releases, adopt unjournaled data
+## n7fs trees <disk>                   list live tree manifests
+## n7fs tree-drop <disk> <name>        journal tree removal ; removes no bytes
+## n7fs restore <disk> <tree> <target> [ -owners ] [ -dry-run ]
+## n7fs category <disk> set <name>     [ -local-encryption none|cascade ]
+##                  [ -copies <n> ] [ -priority <n> ] [ -replica full|manifest ]
+##                  [ -want <holder,..> ] [ -foreign-work no|yes ]
+##                  [ -layer private|generic ]
+## n7fs category <disk> list           category definitions
+## n7fs category <disk> show <address> reference and effective policies
+## n7fs set-category <disk> <address|tree:path-prefix> <name>
 ## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -prune ] [ -dry-run ]
+##                 [ -tree <name> ] [ -category <name> ]
+##                 [ -category-rule <glob>=<name> ] [ first match wins ]
 ##                 [ -index <image-index.db> [ -index-base <dir> ] ]
 ##                 [ <path> .. ]   index + -remove needs -index-base
 ##                 -prune removes empty dirs below named roots, never roots
@@ -83,6 +95,10 @@ use AMOS7::N7FS::Store qw| assimilate store_verify meta_entries node_path
 use AMOS7::N7FS::Convert qw| upgrade confirm release_epoch |;
 use AMOS7::N7FS::Journal qw| journal_head journal_replay |;
 use AMOS7::N7FS::Release qw| release_node store_reclaim |;
+use AMOS7::N7FS::Tree    qw| tree_list tree_drop tree_restore |;
+use AMOS7::N7FS::Category
+    qw| category_set category_list category_set_reference
+    category_report |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -98,7 +114,9 @@ GetOptionsFromArray(
     qw| root=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
         name=s intent=s disk=s index=s index-base=s epoch=s remove keep prune
         dry-run out=s format=s chksum=s holder=s all allow-rollback force reason=s
-        free=s older=s now help |
+        free=s older=s now tree=s category=s category-rule=s@ owners
+        local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
+        layer=s help |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -135,6 +153,11 @@ my %run = (
     qw| reclaim |       => \&cmd_reclaim,
     qw| release-epoch | => \&cmd_release_epoch,
     qw| repair |        => \&cmd_repair,
+    qw| trees |         => \&cmd_trees,
+    qw| tree-drop |     => \&cmd_tree_drop,
+    qw| restore |       => \&cmd_restore,
+    qw| category |      => \&cmd_category,
+    qw| set-category |  => \&cmd_set_category,
     qw| assimilate |    => \&cmd_assimilate,
     qw| upgrade |       => \&cmd_upgrade,
     qw| confirm |       => \&cmd_confirm,
@@ -619,6 +642,8 @@ sub cmd_release {
     );
     warn "n7fs : warning : release breaks live reference $_\n"
         for $r->{'live'}->@*;
+    warn "n7fs : warning : release drops live tree $_\n"
+        for ( $r->{'trees'} // [] )->@*;
     warn "n7fs : warning : the previous form still holds these "
         . "bytes at $_ [ n7fs release-epoch $disk <epoch> -now ]\n"
         for $r->{'copies'}->@*;
@@ -672,8 +697,12 @@ sub cmd_repair {
         qw| host | => host_signer(),
     );
     say_line( 'finished release ', $ARG ) for ( $r->{'finished'} // [] )->@*;
+    say_line( 'quarantined ', $ARG->{'type'}, ' ', $ARG->{'path'}, ' -> ',
+        $ARG->{'quarantine'} )
+        for ( $r->{'quarantined'} // [] )->@*;
     if ( not $r->{'adopted'}->@* ) {
-        say_line('repair : no unjournaled data');
+        say_line('repair : no unjournaled data')
+            if not @{ $r->{'quarantined'} // [] };
         return 0;
     }
     foreach my $item ( $r->{'adopted'}->@* ) {
@@ -681,6 +710,145 @@ sub cmd_repair {
             $item->{'path'} // $item->{'name'} // '' );
     }
     say_line( 'repair journal ', $r->{'seq'} );
+    return 0;
+}
+
+sub _tree_context {
+    my $disk  = shift;
+    my %read  = read_common();
+    my $id    = disk_read_id( %read, qw| disk | => $disk );
+    my $lock  = disk_lock( $id, qw| shared | );
+    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    fail('trees and categories are only available for store format 3')
+        if $state->{'store_format'} != 3;
+    my $replay = journal_replay($id);
+    return ( $id, $state, $replay );
+}
+
+sub cmd_trees {
+    my ( $id, $state, $replay ) = _tree_context( disk_arg(shift) );
+    fail('trees : unexpected arguments') if @ARG;
+    say join ' ', $ARG->{'name'}, $ARG->{'manifest'}, $ARG->{'created'}
+        for tree_list( $id, $state, $replay );
+    return 0;
+}
+
+sub cmd_tree_drop {
+    my $disk = disk_arg(shift);
+    my $name = shift // fail('tree-drop needs a tree name');
+    fail('tree-drop : unexpected arguments') if @ARG;
+    my $r = tree_drop(
+        %common,
+        qw| disk | => $disk,
+        qw| host | => host_signer(),
+        qw| name | => $name
+    );
+    say_line( 'dropped tree ',
+        $name, ' [ journal ', $r->{'seq'}, ' ; content kept ]' );
+    return 0;
+}
+
+sub cmd_restore {
+    my $disk   = disk_arg(shift);
+    my $name   = shift // fail('restore needs a tree name');
+    my $target = shift // fail('restore needs a target');
+    fail('restore : unexpected arguments') if @ARG;
+    my $r = tree_restore(
+        %common,
+        qw| disk |    => $disk,
+        qw| name |    => $name,
+        qw| target |  => $target,
+        qw| owners |  => $o{'owners'}  ? TRUE : FALSE,
+        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
+    );
+    say_line(
+        $r->{'dry_run'} ? 'would restore ' : 'restored ',
+        sprintf '%d files, %d directories, %d symlinks [ verified ]',
+        $r->{'files'},
+        $r->{'directories'},
+        $r->{'symlinks'}
+    );
+    say_line( 'not applied ', "$ARG $r->{'omitted'}{$ARG}" )
+        for grep { $r->{'omitted'}{$ARG} } sort keys $r->{'omitted'}->%*;
+    return 0;
+}
+
+sub _policy_line {
+    my $p = shift;
+    return join ' ', $p->{'name'},
+        "local-encryption=" . "$p->{'local_encryption'}",
+        "copies=$p->{'copies'}",   "priority=$p->{'priority'}",
+        "replica=$p->{'replica'}", 'want=' . join( ',', $p->{'want'}->@* ),
+        "foreign-work=$p->{'foreign_work'}", "layer=$p->{'layer'}";
+}
+
+sub cmd_category {
+    my $disk   = disk_arg(shift);
+    my $action = shift // fail('category needs set, list or show');
+    if ( $action eq qw| set | ) {
+        my $name = shift // fail('category set needs a name');
+        fail('category set : unexpected arguments') if @ARG;
+        my $r = category_set(
+            %common,
+            qw| disk |             => $disk,
+            qw| host |             => host_signer(),
+            qw| name |             => $name,
+            qw| local_encryption | => $o{'local-encryption'},
+            qw| copies |           => $o{'copies'},
+            qw| priority |         => $o{'priority'},
+            qw| replica |          => $o{'replica'},
+            defined $o{'want'}
+            ? ( qw| want | => [ grep {length} split m|,|, $o{'want'} ] )
+            : (),
+            qw| foreign_work | => $o{'foreign-work'},
+            qw| layer |        => $o{'layer'},
+        );
+        say_line( 'category ', _policy_line( $r->{'category'} ),
+            ' [ journal ', $r->{'seq'}, ' ]' );
+        say_line( 'cascade is stored policy only '
+                . '; no encryption is enforced yet' )
+            if $r->{'category'}{'local_encryption'} eq qw| cascade |;
+        return 0;
+    }
+    my ( $id, $state, $replay ) = _tree_context($disk);
+    if ( $action eq qw| list | ) {
+        fail('category list : unexpected arguments') if @ARG;
+        say _policy_line($ARG) for category_list( $id, $replay );
+        return 0;
+    }
+    if ( $action eq qw| show | ) {
+        my $address = shift // fail('category show needs an address');
+        fail('category show : unexpected arguments') if @ARG;
+        my $r = category_report( $id, $replay, $address );
+        foreach my $item ( $r->{'references'}->@* ) {
+            say join ' ', $item->{'reference'}{'path'}, $item->{'category'},
+                $item->{'reference'}{'holder'};
+        }
+        say 'effective ', _policy_line( $r->{'effective'} );
+        return 0;
+    }
+    fail('category needs set, list or show');
+}
+
+sub cmd_set_category {
+    my $disk   = disk_arg(shift);
+    my $target = shift
+        // fail('set-category needs an address or tree prefix');
+    my $name = shift // fail('set-category needs a category');
+    fail('set-category : unexpected arguments') if @ARG;
+    my $r = category_set_reference(
+        %common,
+        qw| disk |     => $disk,
+        qw| host |     => host_signer(),
+        qw| target |   => $target,
+        qw| category | => $name,
+    );
+    say_line(
+        'assigned ', $name, ' to ',
+        scalar $r->{'assignments'}->@*,
+        ' references [ journal ',
+        $r->{'seq'}, ' ]'
+    );
     return 0;
 }
 
@@ -702,6 +870,9 @@ sub cmd_assimilate {
         qw| remove |  => $o{'remove'}  ? TRUE : FALSE,
         qw| prune |   => $o{'prune'}   ? TRUE : FALSE,
         qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
+        qw| tree |           => $o{'tree'},
+        qw| category |       => $o{'category'},
+        qw| category_rules | => $o{'category-rule'} // [],
     );
     foreach my $e ( $r->{'entries'}->@* ) {
         say_line(
@@ -712,6 +883,20 @@ sub cmd_assimilate {
             defined $e->{'then'} ? "[ $e->{'then'} ]"     : (),
             defined $e->{'why'}  ? "[ $e->{'why'} ]"      : ()
         );
+    }
+    if ( $r->{'tree'} ) {
+        say_line(
+            'tree ', $r->{'tree'}{'record'}{'name'},
+            ' -> ',  $r->{'tree'}{'address'}
+        );
+        say_line( 'skipped special ', $ARG ) for $r->{'tree'}{'skipped'}->@*;
+        say_line(
+            'skipped source errors ',
+            $r->{'tree'}{'skipped_errors'},
+            ' ; tree completed with a nonzero status'
+        ) if $r->{'tree'}{'skipped_errors'};
+        say_line( 'xattr read failures ', $r->{'tree'}{'xattr_errors'} )
+            if $r->{'tree'}{'xattr_errors'};
     }
     say_line( $r->{'dry_run'} ? 'would prune ' : 'pruned ', $ARG )
         for ( $r->{'pruned'} // [] )->@*;
@@ -752,8 +937,8 @@ sub cmd_confirm {
     return 0;
 }
 
-#,,.,,,,,,,.,,,,.,,,.,.,.,..,,,.,,..,,,,.,,,.,..,,...,...,.,,,,..,.,.,,.,,,,.,
-#ON56QLGTHHO72ZRNH4F3RIZ7ORJ4SINF4LPHKHKX3UNIUGWD2YYXFDBUGLMO6NIUXOF7ZAR7ZOORM
-#\\\|RQMMQEXWO7VJGNQL3GVKJKPHEMYGVY5ZJXQNUDWEPZ2QC2PAH7N \ / AMOS7 \ YOURUM ::
-#\[7]5TFYULIXD2L4XUXAKRSO37GHH7EYIQBG64KKLS56XEC5ZG4MTADY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,,,,,..,,,,.,,,,,...,,..,,,,,..,,...,..,,..,,,,,,..,,..,,,,,,
+#BLRNWCSCAJSSRFFXNIOVFZFW35KJUSBSX47M4VKUD6U33ULJV5XHOHBFN56VFNXAZKBNWT2EYONY6
+#\\\|XQJP2ELHD5SMUGWMZRAN767JXT43BAA5GP33V7IVO7F5B6IMMF6 \ / AMOS7 \ YOURUM ::
+#\[7]VJXXKSPKQFBR7PX7HAZSL77Z5KJQUTQ7FGVWRRC4L3CFOT7JRSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

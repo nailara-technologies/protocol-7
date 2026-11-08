@@ -479,7 +479,9 @@ my @mutations = (
         edit => [
             [   "        if (   \$add->{'nodes'}->\@*\n            or "
                     . "\$add->{'meta'}->\@*\n            or "
-                    . "\$add->{'references'}->\@* ) {\n",
+                    . "\$add->{'references'}->\@*\n            or "
+                    . "\$add->{'trees'}->\@*\n            or "
+                    . "\$add->{'assignments'}->\@* ) {\n",
                 "        if (1) {\n"
             ]
         ],
@@ -572,7 +574,8 @@ my @mutations = (
         file => 'N7FS/Release.pm',
         test => 'test-n7fs-release.pl',
         edit => [
-            [   "            if \@live and not \$opt{'force'};\n",
+            [   "            if ( \@live or "
+                    . "\@live_trees ) and not \$opt{'force'};\n",
                 "            if 0;\n"
             ]
         ],
@@ -732,8 +735,10 @@ my @mutations = (
         file => 'N7FS/Store.pm',
         test => 'test-n7fs-link.pl',
         edit => [
-            [   "        my \@st   = lstat \$path;",
-                "        my \@st   = stat \$path;"
+            [   "        my \@st = lstat \$path;\n      "
+                    . "  next if not \@st or -l _ or not -d _;",
+                "        my \@st = stat \$path;\n      "
+                    . "  next if not \@st or -l _ or not -d _;"
             ]
         ],
     },
@@ -771,6 +776,51 @@ my @mutations = (
             ]
         ],
     },
+    {   name => 'manifest absolute paths accepted',
+        file => 'N7FS/Tree.pm',
+        test => 'test-n7fs-tree.pl',
+        edit => [
+            [   "refuse('manifest path is absolute') if \$path =~ m|\\A/|;",
+                "refuse('manifest path is absolute') if 0;"
+            ]
+        ],
+    },
+    {   name => 'manifest unsafe components accepted',
+        file => 'N7FS/Tree.pm',
+        test => 'test-n7fs-tree.pl',
+        edit => [
+            [   "        if grep { not length \$ARG or "
+                    . "\$ARG eq '.' or \$ARG eq '..' } \@parts;",
+                "        if 0;"
+            ]
+        ],
+    },
+    {   name => 'manifest symlink parents accepted',
+        file => 'N7FS/Tree.pm',
+        test => 'test-n7fs-tree.pl',
+        edit => [
+            [ "            if \$symlinks->{\$prefix};", "            if 0;" ]
+        ],
+    },
+    {   name => 'manifest duplicate paths accepted',
+        file => 'N7FS/Tree.pm',
+        test => 'test-n7fs-tree.pl',
+        edit => [
+            [   "refuse( 'manifest has a duplicate "
+                    . "path' ) if \$paths{\$path}++;",
+                "refuse( 'manifest has a duplicate path' ) if 0;"
+            ]
+        ],
+    },
+    {   name => 'restore parent lstat checks removed',
+        file => 'N7FS/Tree.pm',
+        test => 'test-n7fs-tree.pl',
+        edit => [
+            [   "            if not \@st or -l _ or not -d _;",
+                "            if 0;"
+            ]
+        ],
+    },
 );
 
 my $filter = shift // '';
@@ -782,9 +832,12 @@ foreach my $m (@mutations) {
     my $tmp = tempdir( 'n7fs-mutant-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
     mkdir "$tmp/AMOS7";
     mkdir "$tmp/AMOS7/N7FS";
-    foreach my $f ( 'N7FS.pm',
+    foreach my $f (
+        'N7FS.pm',
         map {"N7FS/$ARG.pm"}
-        qw| Sum Sign Disk Store Convert Journal Reference Release | ) {
+        qw| Sum Sign Disk Store Convert Journal Reference Release Record Tree
+        Category |
+    ) {
         open( my $in, '<:raw', "$lib/$f" ) or die "read $lib/$f : $OS_ERROR";
         my $text = do { local $INPUT_RECORD_SEPARATOR; <$in> };
         close $in;
@@ -827,8 +880,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,,.,...,...,,,,,,,,,,,.,.,,,...,.,.,...,.,,,..,,...,...,,..,...,...,..,,...,
-#C3LYX4KBOC7VVBWKEB74YF32TSFO4W3MGQXIDMUWHFUUVSY4MAY6LR3BRTI6LP726VAMVSUWNIFCK
-#\\\|6M3QOEVF4PKXI3CFUHXVF4W5UA3XN542IAG5Z6LJW4N4PXZP2QH \ / AMOS7 \ YOURUM ::
-#\[7]UZZOEXQHTHAQIVPXLTCMTVZZE6L5RTTRGSI2YP73TABGRK3J3IDY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,.,,,.,,,...,,..,,..,..,,.,,,..,,...,...,.,,,,,,,,.,,...,,,,,
+#PJA5QMQNS2ECXBCTFDWTMNMRU763BL5AWUWXFGLZJDWUHFGWGTHJ5UOKKH24ITCSFZQES7SZMCDWU
+#\\\|GA2XP7WBUGLPOVNF6UAHASB6N2KLTUNGKFRJK6X2DCDSY3UUKZL \ / AMOS7 \ YOURUM ::
+#\[7]KP76DBGDJWDCLY42KZ2XL37SFE7C3EABORSMNLGW54JEKPGJESBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
