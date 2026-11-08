@@ -50,7 +50,8 @@ if ( $in_progress or $pending ) {
     $grace->cancel if defined $grace and $grace->is_active;
     delete <invoke-web.gpu_lease.grace_user_pause>;
     my $requested = <[invoke-web.gpu_lease.request]>;
-    if ( $requested == FALSE
+    if (    $requested == FALSE
+        and not <invoke-web.gpu_lease.probe>
         and ( not <invoke-web.gpu_lease.auto_paused> or $resume_observed ) ) {
         <invoke-web.gpu_lease.auto_paused> = TRUE;
         <[invoke-web.api_async]>->(
@@ -77,8 +78,8 @@ $grace = 120 if $grace !~ m|^\d+$|;
 );
 return TRUE;
 
-#,,.,,,,,,...,.,.,,..,,.,,,,.,.,.,,,.,.,,,..,,..,,...,...,,,,,,.,,,,.,.,.,,.,,
-#RU5HOF62TWYJY4LQWQ73PL25ORQL7QXPXBEC6YNYLYGRBUZGSHTI77RBSZVGYN7WR6ZCWBYNIMNBW
-#\\\|SQR2EDPA6FUERZLFB3N2SQQ3CLJBNUAKRE2CMAZ6XJVWWBOARJW \ / AMOS7 \ YOURUM ::
-#\[7]GM43OMUYI7L3CBVPHMSXS5GYYFJ54D53B7U6E7KRIY5YJVGM6IDA 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,,,.,..,,,,,,.,,,...,,..,...,..,,...,...,.,.,.,.,.,,,.,.,.,,,
+#M57MRDO7GDFX6BWHICPPKRESKXNRCALIZP7GITBDXDVJS5CN7EBAZDDPPNVCC64WBV56HE74ZAULY
+#\\\|FN5HTWE47GE7HT343BBAKJLDRS2PPJ4I5IFN4YNHREOAX5KD64V \ / AMOS7 \ YOURUM ::
+#\[7]4BMJZ5KDPZNYBMIBA6DZR5SMZIPWZQK4N2JJTWUAGQ6FGPEIGCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

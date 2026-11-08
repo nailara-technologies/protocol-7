@@ -15,17 +15,21 @@ return TRUE if not <coding.gpu_lease.request_inflight>;
 <coding.gpu_lease.unavailable>      = TRUE;
 <[base.logs]>->(
     1, ': models gpu lease request unanswered : using existing memory check'
-);
+) if not defined <coding.gpu_lease.retry_after>;
+## back off while models stays silent : 30 s doubling up to 600 s ##
+my $after = <coding.gpu_lease.retry_after> // 15;
+$after = $after * 2 > 600 ? 600 : $after * 2;
+<coding.gpu_lease.retry_after> = $after;
 <[event.add_timer]>->(
-    {   'after'   => 30,
+    {   'after'   => $after,
         'handler' => qw| coding.gpu_lease.handler.acquire_timeout |,
         'data'    => { 'stage' => qw| retry | },
     }
 );
 return TRUE;
 
-#,,.,,,..,.,,,...,...,,,,,,,,,.,,,,,,,.,.,,,.,..,,...,..,,.,,,,.,,.,,,.,.,.,,,
-#URJ3RPQPT74EFWMZALDKXRL2QOGRBSMSXARVRS2DIE3NB62EOECGNDERIIVEUDRL3YG3YGM5VZXAC
-#\\\|DITFQFQ72UNDEKADEMZRZ7JUP5RP4SWHIZ2VVHU4E3OHJIJX2HC \ / AMOS7 \ YOURUM ::
-#\[7]NJENQZ3UUZGWUCX3EFOTT6AKOTSNOV4HDLB4NMR6H3PEUJZ2PCCQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,.,,,.,,,,,,,..,,.,.,,,.,,.,,..,,...,...,,,.,,..,...,.,,,..,,
+#EQEPQTLJMSG4QYCDIHAY46W4JQDPNF7WEJCPLSDQWBE2NKGCS4VLS5XPHSXKAPEFTCJQFQOYWGOLK
+#\\\|JZMWQPDJV2C226KGJM56GJTKEZTZYPP3TN4QLIM75KY7LV4FFNY \ / AMOS7 \ YOURUM ::
+#\[7]3PBSGMXUJUEGPM5SJFZVNCHLHZ4CX3EWXMGWUKHHYQTVGMOM5MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

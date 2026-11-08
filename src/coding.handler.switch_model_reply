@@ -3,8 +3,12 @@
 # name  = coding.handler.switch_model_reply
 # descr = Handle model path reply and execute server restart for switch-model
 
-my $reply        = shift;
-my $reply_data   = $reply->{'data'}   // '';
+my $reply = shift;
+## a FALSE reply [ models on hold : blocked start ] carries no 'data' : its ##
+## text joins the plain error path below                                    ##
+my ( $reply_mode, $reply_data ) = <[base.reply.mode_text]>->($reply);
+$reply_data = 'error: ' . ( $reply_data || 'models refused' )
+    if $reply_mode eq qw| false | and $reply_data !~ m|^error:|;
 my $reply_params = $reply->{'params'} // {};
 
 ## request identity travels with THIS reply via 'params' - not shared ##
@@ -197,8 +201,8 @@ if ( $backend eq qw| auto | ) {
 
 return TRUE;
 
-#,,,.,,,,,.,,,..,,,.,,.,,,.,.,,.,,...,..,,,..,.,.,...,.,,,..,,..,,.,.,,.,,..,,
-#4SBVX44S6DNE52VKYAYM5RKUA7XUVXRKRY7Y5WJ5U74LBWHNE3XBAKUJPQLZWKISMPHAPMP66YWHO
-#\\\|LFQIVHEQI6Q7POI6XHM3JGREUON6ZUIVELDCRCPFDUBF73NKBPD \ / AMOS7 \ YOURUM ::
-#\[7]5BQWW3REF2E5IRPKEVGLMHQL66MGCSYW4QALMBONT5T2RMIYGEBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,..,,.,.,..,,,..,..,,.,.,,..,.,.,...,..,,,.,,...,.,,,,,,,,.,,
+#I3C2FQLKI4BQK5JYNEMHTFZG6LZHG3YNNGIGPTCEESOGPIJ2RTTELMKZO7DXBN4ZRVF4H27F5R6WW
+#\\\|RO5JJFZBKMVBQ2J7NX3YBJ4HW74Y7GEEMBEEOIVOWGROIXAXPRF \ / AMOS7 \ YOURUM ::
+#\[7]FW4FVNMSCHLET4ICGZU7MLO3XMQE2W6E4ZVPFCOCZ5B62HHPRACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,9 @@
 my $event = shift;
 my $stage = $event->w->data->{'stage'} // qw| timeout |;
 if ( $stage eq qw| retry | ) {
+    ## a probe : the queue keeps rendering until models answers [ on hold ] ##
     <invoke-web.gpu_lease.unavailable> = FALSE;
+    <invoke-web.gpu_lease.probe>       = TRUE;
     return <[invoke-web.gpu_lease.request]>;
 }
 return TRUE if ( <invoke-web.gpu_lease.holder> // '' ) eq qw| invoke-web |;
@@ -24,17 +26,21 @@ if (<invoke-web.gpu_lease.auto_paused>) {
 <[base.logs]>->(
     1,
     ': models gpu lease request unanswered : existing render path continues'
-);
+) if not <invoke-web.gpu_lease.probe>;
+## back off while models stays silent : 30 s doubling up to 600 s ##
+my $after = <invoke-web.gpu_lease.retry_after> // 15;
+$after = $after * 2 > 600 ? 600 : $after * 2;
+<invoke-web.gpu_lease.retry_after> = $after;
 <[event.add_timer]>->(
-    {   'after'   => 30,
+    {   'after'   => $after,
         'handler' => qw| invoke-web.gpu_lease.handler.acquire_timeout |,
         'data'    => { 'stage' => qw| retry | },
     }
 );
 return TRUE;
 
-#,,,.,.,.,,..,.,.,.,.,.,.,...,..,,,.,,.,,,..,,..,,...,...,,..,...,..,,...,...,
-#K4SS3YGUJCQEH26I56CEDMDNLGCKEHBJ5OME6AP2OJCG3MHVAB4FA7VBOVXSYN7ELBMVIREZUR6OG
-#\\\|L63YECJYAFQUPNALTYVSGNKUVWC3HR2WQZCSXPWAYSCYZAOZEIK \ / AMOS7 \ YOURUM ::
-#\[7]FEJYCHJNVP5R3DDJRCTTHBQPXLOJZTLFZD5V4FNJMUVOSDW6I2DA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,,,,,,,,.,,,,,,.,,,,..,.,,,.,,,..,,...,...,.,.,...,,,,,,..,...,
+#VHRNK3KB7IHNAAHCCYPABDMRUXSFAO4POKA2J2KCESGY25U64RIHAQDB7L55ZET6RT3EGS7ABYIHA
+#\\\|WT2FDL4G7FTYNWVOBHZS3EVBV6UUQTRJPJP5HBSFSVIHUWWYUXA \ / AMOS7 \ YOURUM ::
+#\[7]5HPZEEO6JDTBTYJTN2BYDSU2LEXJDXHAZBOTJAD2TQQOYJU22KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

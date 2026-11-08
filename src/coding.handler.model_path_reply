@@ -21,7 +21,17 @@ my $backend       = $reply->{'params'}->{'backend'}       // 'gpu';
 ## -- per-backend now, so a cpu reply doesn't clear an in-flight gpu one    ##
 <coding.model_path_request_in_flight>->{$backend} = FALSE;
 
-my $response_text = $reply->{'data'} // '';
+## a FALSE reply [ models on hold : blocked start ] carries no 'data' -- ##
+## reading only 'data' logged an empty 'YAML parse failed'               ##
+my ( $reply_mode, $response_text ) = <[base.reply.mode_text]>->($reply);
+if ( $reply_mode eq qw| false | ) {
+    <[base.logs]>->(
+        1,
+        '[model_path_reply] models refused the lookup : %s',
+        $response_text || 'no reason'
+    );
+    return FALSE;
+}
 
 <[base.logs]>->(
     2, '[model_path_reply] response data length=%d',
@@ -160,8 +170,8 @@ if ( not $backend_pid or $needs_respawn ) {
 
 return TRUE;
 
-#,,..,,,,,,,,,..,,.,,,,..,,,,,,,,,,,,,,,.,,..,..,,...,...,,.,,...,...,.,,,.,.,
-#FCT7HVOIXLSDKL6EQE6LQCHBOCOPZ7UPQ6EJMIRGAH7LOI2MTA4J2EQAADVZ74QTPPRRJCFHYZ3P2
-#\\\|D6YUZTENYZ5AIHHLZKSTWNLATZ7XA74QCX7QMBJ24XXOHJSN4LQ \ / AMOS7 \ YOURUM ::
-#\[7]UWGJNVMSXLNS4OPWBP4AK2PXELPQEZEB5IBNNMNSDXLSLAAEA4DA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,..,,,,,...,..,,.,,,..,,...,...,..,,...,...,.,.,.,,,,.,,,..,...,
+#OEZBDYUG7MTUPTS5V7CM5TW4ZPJL6U44RPSBZQ736CAD4JR7OPYPWCJJEBUDEAROXWWGR3FIKDL3K
+#\\\|PBBAOSBNVTBSDSYZZROODRSBJZOF5HAN7V2CXUH2FRYGB54G7LF \ / AMOS7 \ YOURUM ::
+#\[7]H5A5EFTEH5THSMJRYN53HUXRSFU3UVULFEB3UIV6DBWT56DXJAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
