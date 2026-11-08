@@ -20,14 +20,15 @@ my $dbh = <[invoke-web.queue.db]> // return undef;
 my $interrupted = $dbh->selectcol_arrayref(
     "SELECT item_id FROM session_queue WHERE status = 'in_progress'") // [];
 if (@$interrupted) {
-    <invoke-web.recover>->{'interrupted'} = [@$interrupted]
-        if defined <invoke-web.recover>;
+    ## a plain stop \ restart cut them off too : retry them the same way ##
+    ## [ kind restart ; an item retried before is never retried again ]  ##
+    <invoke-web.recover> //= { 'kind' => qw| restart |, 'time' => time };
+    <invoke-web.recover>->{'interrupted'} = [@$interrupted];
     <[base.logs]>->(
         1,
-        'queue : interrupted item%s %s%s',
+        'queue : interrupted item%s %s : retried after the start',
         @$interrupted == 1 ? '' : 's',
-        join( ' ', @$interrupted ),
-        defined <invoke-web.recover> ? '' : ' [ requeue <id> ]'
+        join( ' ', @$interrupted )
     );
 }
 
@@ -51,8 +52,8 @@ return 0 if not $held;
 
 return $held;
 
-#,,,,,,..,...,,..,,,,,,,,,,.,,,.,,,..,.,.,,..,..,,...,...,...,...,..,,,,.,.,,,
-#FBNDMKGKLPTGTEMBPN3J2U4UESQ2JS6G6NP7GUIPAKT3FYHQAONAYFNZSCBEJRNPRI42XH2BG7DBS
-#\\\|OHHGKOHVSW43GREZC7ERCBB7EXT6VU4BFHPEEM5IWGBJU5KQQD5 \ / AMOS7 \ YOURUM ::
-#\[7]ME6KAY7XQCIMDSUM2FDPZCSMGTUK3CNBESVUUX4S2GBCBTZKIOAY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,.,,,..,,.,,..,,,..,.,.,,,.,,,.,..,,...,...,,.,,...,,.,,...,,.,,
+#VCCBPO44G2ASIRQ6EMUXLOSSQWSTXIWFVGSOJKO33XHJLCVKKNAUOXDLH7OJASGJ2PKPKN24DIDEM
+#\\\|4KRCAFXNDDXGH5J223WFTMLYMZVUWSH5RXLUCJ3NK7VCHO4Y3ZI \ / AMOS7 \ YOURUM ::
+#\[7]BQCB5UXNBI7IA2454MC34ZX3UEILCOCXEJAPDMBMV7LX2BZOFIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
