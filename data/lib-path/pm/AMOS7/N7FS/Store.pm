@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.J3YU5BQ |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.FTB5JMA |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -713,11 +713,20 @@ sub store_verify {
             $item->{'type'}, _set_item_name($item)
         );
     }
+    require AMOS7::N7FS::Tree;
+    require AMOS7::N7FS::Category;
+    my $trees
+        = AMOS7::N7FS::Tree::tree_records_verify( $id, $state, $replay );
+    my ( $categories, $assignments )
+        = AMOS7::N7FS::Category::category_records_verify( $id, $replay );
     return {
         qw| nodes | =>
             scalar store_nodes( $id->{'path'}, $state->{'epochs'}->@* ),
-        qw| state |   => $state,
-        qw| journal | => $replay,
+        qw| state |       => $state,
+        qw| journal |     => $replay,
+        qw| trees |       => $trees,
+        qw| categories |  => $categories,
+        qw| assignments | => $assignments,
     };
 }
 
@@ -787,11 +796,60 @@ sub reference_entries {
 
 sub _empty_set {
     return {
-        qw| nodes |      => [],
-        qw| meta |       => [],
-        qw| references | => [],
-        qw| releases |   => []
+        qw| nodes |       => [],
+        qw| meta |        => [],
+        qw| references |  => [],
+        qw| releases |    => [],
+        qw| trees |       => [],
+        qw| categories |  => [],
+        qw| assignments | => [],
     };
+}
+
+sub _quarantine_unjournaled_records {
+    my ( $id, $replay ) = @ARG;
+    require AMOS7::N7FS::Record;
+    my @quarantined;
+    my @kinds = (
+        [ qw| tree |,      qw| trees |,      qw| tree |, 'tree_history' ],
+        [ qw| tree_drop |, qw| tree-drops |, qw| tree-drop |, 'tree_drops' ],
+        [   qw| category |,
+            qw| categories |,
+            qw| category |,
+            'category_history'
+        ],
+        [   qw| assignment |,
+            qw| assignments |,
+            qw| assignment |,
+            'assignment_history'
+        ],
+    );
+    foreach my $kind (@kinds) {
+        my ( $record_kind, $subdir, $suffix, $expected ) = @{$kind};
+        foreach my $record (
+            AMOS7::N7FS::Record::record_scan(
+                $id, $record_kind, $subdir, $suffix
+            )
+        ) {
+            next if $replay->{$expected}{ $record->{'path'} };
+            my $destination_dir = "$id->{'path'}/.n7fs/quarantine/$subdir";
+            make_dirs( $destination_dir, 0700 );
+            my $destination = "$destination_dir/$record->{'path'}";
+            refuse( 'repair : quarantine target exists [ %s ]', $destination )
+                if -e $destination or -l $destination;
+            rename $record->{'full_path'},
+                $destination
+                or refuse( 'repair : cannot quarantine %s : %s',
+                $record->{'path'}, $OS_ERROR );
+            push @quarantined,
+                {
+                qw| type |       => $record_kind,
+                qw| path |       => $record->{'path'},
+                qw| quarantine | => $destination
+                };
+        }
+    }
+    return \@quarantined;
 }
 
 sub store_repair {
@@ -812,14 +870,19 @@ sub store_repair {
         qw| seq |      => $replay->{'seq'}
         }
         if $finished->@*;
-    my $cmp = _format3_compare( $id, $state, $replay );
+    my $quarantined = _quarantine_unjournaled_records( $id, $replay );
+    my $cmp         = _format3_compare( $id, $state, $replay );
 
     if ( $cmp->{'missing'}->@* ) {
         my $item = $cmp->{'missing'}[0];
         refuse( 'repair : missing %s %s cannot be adopted',
             $item->{'type'}, _set_item_name($item) );
     }
-    return { qw| adopted | => [], qw| seq | => $replay->{'seq'} }
+    return {
+        qw| adopted |     => [],
+        qw| seq |         => $replay->{'seq'},
+        qw| quarantined | => $quarantined
+        }
         if not $cmp->{'extra'}->@*;
 
     my $add  = _empty_set();
@@ -850,9 +913,10 @@ sub store_repair {
         qw| journal_seq | => $journal->{'seq'}
     );
     return {
-        qw| adopted | => $cmp->{'extra'},
-        qw| seq |     => $journal->{'seq'},
-        qw| journal | => $journal
+        qw| adopted |     => $cmp->{'extra'},
+        qw| seq |         => $journal->{'seq'},
+        qw| journal |     => $journal,
+        qw| quarantined | => $quarantined,
     };
 }
 
@@ -980,7 +1044,17 @@ sub _walk {
     } elsif ( -l _ ) {
         push @{$skipped}, { qw| source | => $path, qw| why | => 'symlink' };
     } elsif ( -d _ ) {
-        _walk( "$path/$ARG", $items, $skipped ) for _list_dir($path);
+        my @names;
+        my $read = eval { @names = _list_dir($path); 1 };
+        if ( not $read ) {
+            push @{$skipped},
+                {
+                qw| source | => $path,
+                qw| why |    => 'unreadable directory'
+                };
+        } else {
+            _walk( "$path/$ARG", $items, $skipped ) for @names;
+        }
     } elsif ( -f _ ) {
         push @{$items}, { qw| path | => $path };
     } else {
@@ -1045,6 +1119,35 @@ sub assimilate {
         = $state->{'store_format'} == 3
         ? journal_replay($id)
         : undef;
+    my $new_records = (
+               defined $opt{'tree'}
+            or defined $opt{'category'}
+            or ( $opt{'category_rules'} // [] )->@*
+    );
+    refuse('trees and categories are only available for store format 3')
+        if $new_records and $state->{'store_format'} != 3;
+    refuse('assimilate : -tree needs exactly one directory path and no index')
+        if defined $opt{'tree'}
+        and ( ( $opt{'paths'} // [] )->@* != 1 or defined $opt{'index'} );
+
+    if ( defined $opt{'tree'} ) {
+        refuse( 'tree : bad tree name [ %s ]', $opt{'tree'} )
+            if $opt{'tree'} !~ m|\A[^\x00/]+\z|;
+        refuse( 'tree : duplicate live tree [ %s ]', $opt{'tree'} )
+            if $replay->{'trees'}{ $opt{'tree'} };
+        my @root = lstat $opt{'paths'}[0];
+        refuse( 'tree root %s is not a directory', $opt{'paths'}[0] )
+            if not @root
+            or -l _
+            or not -d _;
+    }
+    my $category_chooser;
+    if ($new_records) {
+        require AMOS7::N7FS::Category;
+        $category_chooser
+            = AMOS7::N7FS::Category::category_assignment_plan( $id, $replay,
+            \%opt );
+    }
 
     my ( @items, @skipped );
     if ( defined $opt{'index'} ) {
@@ -1134,6 +1237,7 @@ sub assimilate {
     if ( $state->{'store_format'} == 3 and not $opt{'dry_run'} ) {
         my $add  = _empty_set();
         my $drop = _empty_set();
+        my @new_refs;
         foreach my $entry ( $report{'entries'}->@* ) {
             next
                 if not $entry->{'verified'}
@@ -1149,10 +1253,78 @@ sub assimilate {
             push $add->{'references'}->@*,
                 _ref_operation( $entry->{'_reference'} )
                 if $entry->{'_reference'};
+            push @new_refs, $entry->{'_reference'}
+                if $entry->{'_reference'};
+        }
+        if (defined $category_chooser
+            and ( defined $opt{'category'}
+                or ( $opt{'category_rules'} // [] )->@* )
+        ) {
+            foreach my $entry ( $report{'entries'}->@* ) {
+                next
+                    if not $entry->{'verified'}
+                    or $entry->{'_reference'}
+                    or not defined $entry->{'addr'};
+                push @new_refs, grep {
+                            $ARG->{'node'} eq $entry->{'addr'}
+                        and $ARG->{'holder'} eq $entry->{'source'}
+                        and not $ARG->{'dropped'}
+                } values $replay->{'references'}->%*;
+            }
+        }
+        my $records_ok = eval {
+            if ( defined $opt{'tree'} ) {
+                require AMOS7::N7FS::Tree;
+                my $created
+                    = AMOS7::N7FS::Tree::tree_create( $id, $store, $state,
+                    $replay, $opt{'paths'}[0], $opt{'tree'}, \%report );
+                push $add->{'nodes'}->@*, $created->{'address'}
+                    if $created->{'new_node'};
+                push $add->{'meta'}->@*,
+                    {
+                    qw| node | => $created->{'address'},
+                    qw| name | => $created->{'meta_name'}
+                    }
+                    if $created->{'meta_name'};
+                push $add->{'trees'}->@*,
+                    {
+                    qw| name |     => $created->{'record'}{'name'},
+                    qw| path |     => $created->{'record'}{'path'},
+                    qw| manifest | => $created->{'address'},
+                    qw| created |  => $created->{'record'}{'created'}
+                    };
+                $report{'tree'} = $created;
+                $report{'failed'} += $created->{'skipped_errors'};
+                $report{'failed'} += $created->{'xattr_errors'};
+            }
+            if ( defined $category_chooser and @new_refs ) {
+                $add->{'assignments'}
+                    = AMOS7::N7FS::Category::category_assignments( $id,
+                    $store, \@new_refs, $category_chooser );
+            }
+            1;
+        };
+        if ( not $records_ok ) {
+            my $err = $EVAL_ERROR;
+            if (   $add->{'nodes'}->@*
+                or $add->{'meta'}->@*
+                or $add->{'references'}->@*
+                or $add->{'trees'}->@* ) {
+                my $journal = journal_write( $id, $store, $add, $drop, {} );
+                witness_note_format(
+                    %opt,
+                    qw| id |          => $id,
+                    qw| state |       => $state,
+                    qw| journal_seq | => $journal->{'seq'}
+                );
+            }
+            die $err;
         }
         if (   $add->{'nodes'}->@*
             or $add->{'meta'}->@*
-            or $add->{'references'}->@* ) {
+            or $add->{'references'}->@*
+            or $add->{'trees'}->@*
+            or $add->{'assignments'}->@* ) {
             my $journal = journal_write( $id, $store, $add, $drop, {} );
             $report{'journal_seq'} = $journal->{'seq'};
             witness_note_format(
@@ -1295,6 +1467,8 @@ sub _assimilate_one {
     my ( $digest, $size ) = bmw384_fh($fh);
     close $fh;
     refuse( '%s : size changed while reading', $path ) if $size != $st->[7];
+    $entry->{'_source_size'}  = $st->[7];
+    $entry->{'_source_mtime'} = $st->[9];
 
     my $bmw  = bmw_b32($digest);
     my $addr = {
@@ -1473,8 +1647,8 @@ sub _remove_source {
 
 1;
 
-#,,,.,,,.,.,.,...,..,,,..,...,,,,,.,.,,,,,..,,..,,...,...,.,,,.,,,.,.,..,,..,,
-#EVLFLC5V7RL6OQBJAIDN262EJTPAMQWKOHVAD2SWC7J5KJJVNGKBYE6SJ6LCAQG4JGS6KBIOTSS6A
-#\\\|QK7FVOK4O72EU77RQP64J7MNJ4FUVDJ7NJJ6BTQO74Y5MH74YRM \ / AMOS7 \ YOURUM ::
-#\[7]FNUPMXRW7R4N5ZTR7VVXQKE2ZUJ5QT6UNZUVYGXGMSKYKRXWPKAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,...,,,.,,.,,,,,,...,...,,,.,.,.,..,,...,...,...,,,,,,.,,...,..,,
+#IFEGKPPJRHZKOTWSIN5V7OQF3E7LSFOJ544XOGN77JIY7MRXTK4UQCZJH5NUC4L2R5T5UJHMC6TJS
+#\\\|7FBOLWH6WNNZBYISWILYVO2BGQ3D74LPUD54RUGG4DPPWBZ7ORC \ / AMOS7 \ YOURUM ::
+#\[7]EM4LAIPOQYDDN4QBX2ZFZP7X22LWOHX22FLMUYXGIYW2SHXTVQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

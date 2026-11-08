@@ -32,8 +32,9 @@ returns one file. a desktop needs more :
 
 ## 2. categories
 
-a category is a named policy. a node has one, set at assimilate
-[ `-category <name>` or a path rule ] and changeable later.
+a category is a named policy, set per reference at assimilate
+[ `-category <name>` or a path rule ] and changeable later. dedup can hold one
+node in several categories : the node's effective policy is the strictest.
 
 | field | values |
 |---|---|
@@ -341,8 +342,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,.,,,.,,,..,,,,,,,,,,.,,,..,.,,,,,.,,.,,,.,,..,,...,...,...,..,,,..,.,,,.,,,
-#KM4TMK4PCDD23AAPDEFQP44UKGWWPDKTMN4MHPFVPQUQXW7NLVUNF6TGETC7UIOFNSC2BXT5NAOCC
-#\\\|PYVIE5ZOYDFNECFJ2UWIEGYPKEIIWR3Z7H3ZWLAWQSUWIVCRBKX \ / AMOS7 \ YOURUM ::
-#\[7]CQUYJ7LTHKEHGO2NBKORB4EDVC7VNENUJM2S45IYAWNHTIN26UBQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,.,.,.,.,,,.,.,,,,,.,,.,,,,.,..,,...,.,.,,.,,.,,,,..,...,,..,
+#U4YRYMGMW3YVNDU2MTHLUHI7MPIUDJX44HKAS2WK5EPWWGQLBBHR2G3BSRXU2YTKVICI7J2ZARGQM
+#\\\|T477YG3WTDBNFHORB43QZY3L5HVWORYRP443WVE3C2QRCRYFZSK \ / AMOS7 \ YOURUM ::
+#\[7]DM6QATDFH4UEXKD3DIF2AYLKV5RPA6ERJHTZ35A2CJ3MSBDH6AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

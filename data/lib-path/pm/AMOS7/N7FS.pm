@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.EKEUUGQ |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.23UYPZQ |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -69,15 +69,19 @@ use Crypt::Misc qw| encode_b32r decode_b32r |;
 
 ## 4-byte magic + 1 format byte in every binary header [ spec section 6 ]
 our %MAGIC = (
-    qw| id |        => qw| P7FS |,    ## disk identity record ##
-    qw| mount |     => qw| P7FA |,    ## attach \ detach record ##
-    qw| use |       => qw| P7FU |,    ## witness first \ last use window ##
-    qw| state |     => qw| P7FT |,    ## store state [ format, epochs ] ##
-    qw| meta |      => qw| P7FN |,    ## node meta [ one per import ] ##
-    qw| journal |   => qw| P7FJ |,    ## signed store-set operation ##
-    qw| reference | => qw| P7FR |,    ## live source reference ##
-    qw| drop |      => qw| P7FD |,    ## reference drop record ##
-    qw| tombstone | => qw| P7FX |,    ## released content address ##
+    qw| id |         => qw| P7FS |,    ## disk identity record ##
+    qw| mount |      => qw| P7FA |,    ## attach \ detach record ##
+    qw| use |        => qw| P7FU |,    ## witness first \ last use window ##
+    qw| state |      => qw| P7FT |,    ## store state [ format, epochs ] ##
+    qw| meta |       => qw| P7FN |,    ## node meta [ one per import ] ##
+    qw| journal |    => qw| P7FJ |,    ## signed store-set operation ##
+    qw| reference |  => qw| P7FR |,    ## live source reference ##
+    qw| drop |       => qw| P7FD |,    ## reference drop record ##
+    qw| tombstone |  => qw| P7FX |,    ## released content address ##
+    qw| tree |       => qw| P7FM |,    ## named tree manifest ##
+    qw| tree_drop |  => qw| P7FL |,    ## tree removal record ##
+    qw| category |   => qw| P7FC |,    ## versioned category policy ##
+    qw| assignment | => qw| P7FB |,    ## per-reference category ##
 );
 
 ## one label per signed kind and record format : no signature is valid as
@@ -99,31 +103,43 @@ our %LABEL_VERSION = (
         2 => 'p7 n7fs meta:0001',
         3 => 'p7 n7fs meta:0001'
     },
-    qw| journal |   => { 3 => 'p7 n7fs journal:0001' },
-    qw| reference | => { 3 => 'p7 n7fs reference:0001' },
-    qw| drop |      => { 3 => 'p7 n7fs reference drop:0001' },
-    qw| tombstone | => { 3 => 'p7 n7fs tombstone:0001' },
+    qw| journal |    => { 3 => 'p7 n7fs journal:0001' },
+    qw| reference |  => { 3 => 'p7 n7fs reference:0001' },
+    qw| drop |       => { 3 => 'p7 n7fs reference drop:0001' },
+    qw| tombstone |  => { 3 => 'p7 n7fs tombstone:0001' },
+    qw| tree |       => { 3 => 'p7 n7fs tree:0001' },
+    qw| tree_drop |  => { 3 => 'p7 n7fs tree drop:0001' },
+    qw| category |   => { 3 => 'p7 n7fs category:0001' },
+    qw| assignment | => { 3 => 'p7 n7fs category assignment:0001' },
 );
 
 ## record formats this code reads [ per kind ; the store format is a field of
 ## the state record, converters register further node formats ]
 our %RECORD_FORMAT = map { $ARG => { 1 => TRUE } } keys %MAGIC;
-$RECORD_FORMAT{'state'}{2}     = TRUE;
-$RECORD_FORMAT{'state'}{3}     = TRUE;
-$RECORD_FORMAT{'meta'}{2}      = TRUE;
-$RECORD_FORMAT{'meta'}{3}      = TRUE;
-$RECORD_FORMAT{'journal'}{3}   = TRUE;
-$RECORD_FORMAT{'reference'}{3} = TRUE;
-$RECORD_FORMAT{'drop'}{3}      = TRUE;
-$RECORD_FORMAT{'tombstone'}{3} = TRUE;
+$RECORD_FORMAT{'state'}{2}      = TRUE;
+$RECORD_FORMAT{'state'}{3}      = TRUE;
+$RECORD_FORMAT{'meta'}{2}       = TRUE;
+$RECORD_FORMAT{'meta'}{3}       = TRUE;
+$RECORD_FORMAT{'journal'}{3}    = TRUE;
+$RECORD_FORMAT{'reference'}{3}  = TRUE;
+$RECORD_FORMAT{'drop'}{3}       = TRUE;
+$RECORD_FORMAT{'tombstone'}{3}  = TRUE;
+$RECORD_FORMAT{'tree'}{3}       = TRUE;
+$RECORD_FORMAT{'tree_drop'}{3}  = TRUE;
+$RECORD_FORMAT{'category'}{3}   = TRUE;
+$RECORD_FORMAT{'assignment'}{3} = TRUE;
 
 our %SIGNED_FORMAT = (
-    qw| state |     => { 2 => TRUE, 3 => TRUE },
-    qw| meta |      => { 2 => TRUE, 3 => TRUE },
-    qw| journal |   => { 3 => TRUE },
-    qw| reference | => { 3 => TRUE },
-    qw| drop |      => { 3 => TRUE },
-    qw| tombstone | => { 3 => TRUE },
+    qw| state |      => { 2 => TRUE, 3 => TRUE },
+    qw| meta |       => { 2 => TRUE, 3 => TRUE },
+    qw| journal |    => { 3 => TRUE },
+    qw| reference |  => { 3 => TRUE },
+    qw| drop |       => { 3 => TRUE },
+    qw| tombstone |  => { 3 => TRUE },
+    qw| tree |       => { 3 => TRUE },
+    qw| tree_drop |  => { 3 => TRUE },
+    qw| category |   => { 3 => TRUE },
+    qw| assignment | => { 3 => TRUE },
 );
 
 our $JSON = JSON::PP->new->utf8->canonical;
@@ -451,6 +467,7 @@ sub remove_tree {
     if ( -l $path or not -d _ ) {
         return unlink($path) ? TRUE : FALSE;
     }
+    chmod 0700, $path;
     opendir( my $dh, $path ) or return FALSE;
     my @entries = grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
     closedir $dh;
@@ -460,8 +477,8 @@ sub remove_tree {
 
 1;
 
-#,,,,,,..,,,,,..,,.,.,...,..,,,.,,...,.,,,.,.,..,,...,...,.,.,,..,...,..,,...,
-#EMAZSSGHWOIEC6VYIOQNG2T3CHDVI56L4MCVP5EHYTNSBFIPW4HQ33QAYIZTTQSH3CBXUHJKSF2SU
-#\\\|UA6EET3FNXL2WGGJCDVYSUHGML4HBKITF7PZM567CULEZXMNPDL \ / AMOS7 \ YOURUM ::
-#\[7]I3SSCE6STUMUQDX6NYCMCMRIJC3W6PX4SOIAGIDNLCQTD2ZLZSAY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,,,...,.,,,...,...,.,,,,..,.,.,..,,...,...,...,,..,,.,,.,,,,..,
+#4UEEO4IJT5XPFASSM3FZ56OJTJRO75NRP7BMJRFF7RNKTYEMXI7HSWFUV4RPB23QJLEKJ5LTIR5SG
+#\\\|SGV6TDWND3PLZ4T3UWS42ITWU7EZEPTVJHMW5D7NQ445ZVDGTTM \ / AMOS7 \ YOURUM ::
+#\[7]SA5CNS2NVBCEPPANN6RDN4ZNOZJUWD5O6RNTR2ZMT4HW5GQKPWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

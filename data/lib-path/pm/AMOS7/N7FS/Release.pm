@@ -19,7 +19,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Release-VERSION.YULHKZI |;
+our $VERSION = qw| AMOS7::N7FS::Release-VERSION.NQIQSHQ |;
 
 @EXPORT_OK = qw| release_node store_reclaim release_repair tombstone_read
     tombstone_latest tombstone_verify |;
@@ -39,10 +39,13 @@ our $TOMB_RE = qr{\A(\d{14})\.([A-Z2-7]{7})\.([A-Z2-7]{77})\.tombstone\z};
 
 sub _empty_set {
     return {
-        qw| nodes |      => [],
-        qw| meta |       => [],
-        qw| references | => [],
-        qw| releases |   => []
+        qw| nodes |       => [],
+        qw| meta |        => [],
+        qw| references |  => [],
+        qw| releases |    => [],
+        qw| trees |       => [],
+        qw| categories |  => [],
+        qw| assignments | => [],
     };
 }
 
@@ -191,6 +194,10 @@ sub release_node {
     refuse( 'release : epoch is not active [ %s ]', $address )
         if not grep { $ARG == $addr->{'epoch'} } $state->{'epochs'}->@*;
     my $replay = journal_replay($id);
+    require AMOS7::N7FS::Tree;
+    my $tree_held
+        = AMOS7::N7FS::Tree::tree_live_addresses( $id, $state, $replay );
+    my @live_trees = sort keys %{ $tree_held->{$address} // {} };
     my @live;
     my @copies;
     my ($node)
@@ -206,15 +213,43 @@ sub release_node {
         node_verify( $id->{'path'}, $node, 3, $id );
         @live = grep { not $ARG->{'dropped'} } reference_scan( $node, $id );
         refuse(
-            "release : live references [ use -force to break them ] :\n  "
-                . join( "\n  ", map { $ARG->{'holder'} } @live ), )
-            if @live and not $opt{'force'};
+                  "release : live references or trees "
+                . "[ use -force to break them ] :\n  "
+                . join( "\n  ",
+                ( map { $ARG->{'holder'} } @live ),
+                ( map {"tree:$ARG"} @live_trees ) ),
+            )
+            if ( @live or @live_trees )
+            and not $opt{'force'};
         my $reason = $opt{'reason'};
         $reason = 'explicit release'
             if not defined $reason or not length $reason;
         _tombstone_write( $id, $store, $address, $reason );
         my $add  = _empty_set();
         my $drop = _empty_set();
+
+        if ( $opt{'force'} ) {
+            require AMOS7::N7FS::Record;
+            foreach my $name (@live_trees) {
+                my $tree      = $replay->{'trees'}{$name};
+                my $tree_drop = AMOS7::N7FS::Record::record_write(
+                    $id, $store,
+                    qw| tree_drop |,
+                    qw| tree-drops |,
+                    qw| tree-drop |,
+                    {   qw| disk | => $id->{'disk'},
+                        qw| name | => $name,
+                        qw| tree | => $tree->{'path'}
+                    }
+                );
+                push $drop->{'trees'}->@*,
+                    {
+                    qw| name | => $name,
+                    qw| path | => $tree_drop->{'path'},
+                    qw| tree | => $tree->{'path'}
+                    };
+            }
+        }
         push $drop->{'releases'}->@*, $address;
         fault(qw| release:before-journal |);
         my $journal = journal_write( $id, $store, $add, $drop, {} );
@@ -240,6 +275,7 @@ sub release_node {
         qw| address | => $address,
         qw| seq |     => $opt{'_seq'} // $replay->{'seq'},
         qw| live |    => [ map { $ARG->{'holder'} } @live ],
+        qw| trees |   => \@live_trees,
     };
 }
 
@@ -251,11 +287,16 @@ sub store_reclaim {
     refuse('reclaim is only available for store format 3')
         if $state->{'store_format'} != 3;
     my $replay = journal_replay($id);
+    require AMOS7::N7FS::Tree;
+    my $tree_held
+        = AMOS7::N7FS::Tree::tree_live_addresses( $id, $state, $replay );
     my @garbage;
+
     foreach my $node ( store_nodes( $id->{'path'}, $state->{'epochs'}->@* ) )
     {
         my @refs = reference_scan( $node, $id );
         next if grep { not $ARG->{'dropped'} } @refs;
+        next if $tree_held->{ reference_address($node) };
         my $read = codec(3)->{'read_node'}
             ->( $node->{'path'}, $node, { qw| id | => $id } );
         my $newest = 0;
@@ -315,8 +356,8 @@ sub release_repair {
 
 1;
 
-#,,..,,,,,,,,,..,,,.,,,.,,,..,...,.,,,.,.,,,,,..,,...,...,..,,,.,,,.,,.,,,..,,
-#VRHQRRRPTKMLMPKRHSQRQIQUJROP7KY3RP25DLF65ZKVXOLATZC3HA4XEVZLK3KZXZXEZZ76H4TSM
-#\\\|ZWITBRLCEBYPR525NLXX272C3EBAZZYUAKQAF4HTHYDXQX5W3S6 \ / AMOS7 \ YOURUM ::
-#\[7]LRXUOU7QRG22GTOZ3FTVVUFMPOT4ABPNZ6L3BN4A4XROSZNQCSCI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,.,,,...,...,...,,,,,,,,,,,.,..,,...,...,...,.,,,..,,.,.,...,
+#UMRFRLQDOCE7TSWIZLOZNRNQIQSW434YTC26BL2QFLJLTEF7T75Q5M2LIAALZA52DB2JBMCHX5BLC
+#\\\|GFT72RNR4AOOPFHAXWORNPFFVGGEFD5XSBQBMR6UKEKAN3IUPX3 \ / AMOS7 \ YOURUM ::
+#\[7]K55DCZ6BAPLMYTT37WQVXJR6WOSRLAHRLGDAITZJWQBKILLXAQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,7 +21,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.WVQEOXA |;
+our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.RYW3AZY |;
 
 @EXPORT_OK = qw| journal_replay journal_head journal_write |;
 
@@ -77,6 +77,14 @@ sub _record {
     }
     refuse( 'journal %s : drop releases is not a list', $path )
         if ref $p->{'drop'}{'releases'} ne qw| ARRAY |;
+    foreach my $part (qw| trees categories assignments |) {
+        $p->{'add'}{$part} //= [];
+        refuse( 'journal %s : add %s is not a list', $path, $part )
+            if ref $p->{'add'}{$part} ne qw| ARRAY |;
+    }
+    $p->{'drop'}{'trees'} //= [];
+    refuse( 'journal %s : drop trees is not a list', $path )
+        if ref $p->{'drop'}{'trees'} ne qw| ARRAY |;
     return { qw| bytes | => $bytes, qw| payload | => $p };
 }
 
@@ -145,6 +153,62 @@ sub _operations {
             }
         }
     }
+    foreach my $tree ( $p->{'add'}{'trees'}->@* ) {
+        refuse( 'journal seq %d : bad tree operation', $p->{'seq'} )
+            if ref $tree ne qw| HASH |
+            or ( $tree->{'name'} // '' ) !~ m|\A[^\x00/]+\z|
+            or ( $tree->{'path'} // '' ) !~ m|\A\d{14}\.[A-Z2-7]{8}\.tree\z|
+            or ( $tree->{'manifest'} // '' ) !~ $ADDR_RE;
+        refuse( 'journal seq %d : duplicate live tree %s',
+            $p->{'seq'}, $tree->{'name'} )
+            if $expected->{'trees'}{ $tree->{'name'} };
+        $expected->{'trees'}{ $tree->{'name'} }        = $tree;
+        $expected->{'tree_history'}{ $tree->{'path'} } = $tree;
+        refuse( 'journal seq %d : tree names an unlisted manifest %s',
+            $p->{'seq'}, $tree->{'manifest'} )
+            if not $expected->{'nodes'}{ $tree->{'manifest'} };
+    }
+    foreach my $tree ( $p->{'drop'}{'trees'}->@* ) {
+        refuse( 'journal seq %d : bad tree drop operation', $p->{'seq'} )
+            if ref $tree ne qw| HASH |
+            or ( $tree->{'name'} // '' ) !~ m|\A[^\x00/]+\z|
+            or ( $tree->{'path'} // '' )
+            !~ m|\A\d{14}\.[A-Z2-7]{8}\.tree-drop\z|
+            or ( $tree->{'tree'} // '' ) !~ m|\A\d{14}\.[A-Z2-7]{8}\.tree\z|;
+        refuse( 'journal seq %d : drop of a non-live tree %s',
+            $p->{'seq'}, $tree->{'name'} )
+            if not $expected->{'trees'}{ $tree->{'name'} }
+            or $expected->{'trees'}{ $tree->{'name'} }{'path'} ne
+            $tree->{'tree'};
+        $expected->{'tree_drops'}{ $tree->{'path'} } = $tree;
+        delete $expected->{'trees'}{ $tree->{'name'} };
+    }
+    foreach my $category ( $p->{'add'}{'categories'}->@* ) {
+        refuse( 'journal seq %d : bad category operation', $p->{'seq'} )
+            if ref $category ne qw| HASH |
+            or ( $category->{'name'} // '' ) !~ m|\A[^\x00/]+\z|
+            or ( $category->{'path'} // '' )
+            !~ m|\A\d{14}\.[A-Z2-7]{8}\.category\z|;
+        $expected->{'categories'}{ $category->{'name'} }       = $category;
+        $expected->{'category_history'}{ $category->{'path'} } = $category;
+    }
+    foreach my $assignment ( $p->{'add'}{'assignments'}->@* ) {
+        refuse( 'journal seq %d : bad category assignment', $p->{'seq'} )
+            if ref $assignment ne qw| HASH |
+            or ( $assignment->{'node'}      // '' ) !~ $ADDR_RE
+            or ( $assignment->{'reference'} // '' ) !~ $REF_RE
+            or ( $assignment->{'path'}      // '' )
+            !~ m|\A\d{14}\.[A-Z2-7]{8}\.assignment\z|
+            or not length( $assignment->{'category'} // '' );
+        my $key
+            = _ref_id( $assignment->{'node'}, $assignment->{'reference'} );
+        refuse( 'journal seq %d : assignment names an unknown reference',
+            $p->{'seq'} )
+            if not $expected->{'ref_history'}{$key};
+        $expected->{'assignments'}{$key} = $assignment;
+        $expected->{'assignment_history'}{ $assignment->{'path'} }
+            = $assignment;
+    }
     foreach my $node ( $p->{'drop'}{'releases'}->@* ) {
         refuse( 'journal seq %d : bad release address', $p->{'seq'} )
             if ( $node // '' ) !~ $ADDR_RE;
@@ -207,16 +271,23 @@ sub journal_replay {
             };
     }
     return {
-        qw| seq |           => $seq,
-        qw| baseline |      => $baseline,
-        qw| nodes |         => $expected{'nodes'},
-        qw| metas |         => $expected{'metas'},
-        qw| references |    => $expected{'references'},
-        qw| released |      => $expected{'released'},
-        qw| meta_history |  => $expected{'meta_history'},
-        qw| ref_history |   => $expected{'ref_history'},
-        qw| release_order | => $expected{'release_order'},
-        qw| entries |       => \@entries,
+        qw| seq |                => $seq,
+        qw| baseline |           => $baseline,
+        qw| nodes |              => $expected{'nodes'},
+        qw| metas |              => $expected{'metas'},
+        qw| references |         => $expected{'references'},
+        qw| released |           => $expected{'released'},
+        qw| meta_history |       => $expected{'meta_history'},
+        qw| ref_history |        => $expected{'ref_history'},
+        qw| release_order |      => $expected{'release_order'},
+        qw| trees |              => $expected{'trees'}              // {},
+        qw| tree_history |       => $expected{'tree_history'}       // {},
+        qw| tree_drops |         => $expected{'tree_drops'}         // {},
+        qw| categories |         => $expected{'categories'}         // {},
+        qw| category_history |   => $expected{'category_history'}   // {},
+        qw| assignments |        => $expected{'assignments'}        // {},
+        qw| assignment_history | => $expected{'assignment_history'} // {},
+        qw| entries |            => \@entries,
     };
 }
 
@@ -261,15 +332,19 @@ sub journal_write {
         qw| prev | => $previous,
         qw| disk | => $id->{'disk'},
         qw| add |  => {
-            qw| nodes |      => [ $add->{'nodes'}->@* ],
-            qw| meta |       => [ $add->{'meta'}->@* ],
-            qw| references | => [ $add->{'references'}->@* ],
+            qw| nodes |       => [ $add->{'nodes'}->@* ],
+            qw| meta |        => [ $add->{'meta'}->@* ],
+            qw| references |  => [ $add->{'references'}->@* ],
+            qw| trees |       => [ ( $add->{'trees'}       // [] )->@* ],
+            qw| categories |  => [ ( $add->{'categories'}  // [] )->@* ],
+            qw| assignments | => [ ( $add->{'assignments'} // [] )->@* ],
         },
         qw| drop | => {
             qw| nodes |      => [ $drop->{'nodes'}->@* ],
             qw| meta |       => [ $drop->{'meta'}->@* ],
             qw| references | => [ $drop->{'references'}->@* ],
             qw| releases |   => [ $drop->{'releases'}->@* ],
+            qw| trees |      => [ ( $drop->{'trees'} // [] )->@* ],
         },
     );
     $payload{'baseline'} = JSON::PP::true if $flags->{'baseline'};
@@ -300,8 +375,8 @@ sub journal_write {
 
 1;
 
-#,,,,,,..,...,,.,,,.,,,,,,...,...,..,,..,,,.,,.,.,...,...,..,,,,,,,,,,.,.,.,.,
-#S2POYTFRJP2SC3ZMAHBS2VDLEGTL37ZUG2QQZRTNB5Z7PZV36YWC7IAIJCAOEWIHIVN5IYO3SM4LG
-#\\\|TMWC45XM3IVDVBO2MN3G3FZX7EHHTWZMVOSBZ6DOBQSVJ4POQQZ \ / AMOS7 \ YOURUM ::
-#\[7]XVBLRJK7FFCCUUNKAAJYGTWVAG3LF7DMTS5FPW5IVS36MYJ3UCAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,..,,...,,..,...,..,,.,,,.,,,.,.,...,...,,,,,,,.,,,.,...,..,,
+#VQVY3KOKNB4VDJ2XWVGM5D2TLGNAMLMD2K7QS332RELPPNDFPEX6UFVKGRNZ6MLCR4JTHVMC5ICHG
+#\\\|GFSENREYDSCDNNYLNT4MX72XGYEF6R3LFJJSCZ2AKBCRPH7GYSL \ / AMOS7 \ YOURUM ::
+#\[7]ILVUMBINUPSH2OK2LMGZ5FOEQNLKA7UWBXH4WTNLVL64OQ4YA4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
