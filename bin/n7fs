@@ -46,7 +46,11 @@ use warnings;
 ## n7fs category <disk> list           category definitions
 ## n7fs category <disk> show <address> reference and effective policies
 ## n7fs set-category <disk> <address|tree:path-prefix> <name>
+## n7fs incoming <disk> list [ -under <prefix> ] [ -depth <n> ] [ -limit <n> ]
+## n7fs incoming <disk> tag <prefix|glob|address> <category>
+## n7fs incoming <disk> done         exit 0 when empty, 1 while nonempty
 ## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -prune ] [ -dry-run ]
+##                 [ -incoming ]    unclassified roots, each gets its own tree
 ##                 [ -tree <name> ] [ -category <name> ]
 ##                 [ -category-rule <glob>=<name> ] [ first match wins ]
 ##                 [ -index <image-index.db> [ -index-base <dir> ] ]
@@ -85,20 +89,20 @@ BEGIN {
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
-use AMOS7::N7FS       qw| root_dir host_dir b32 unb32 write_new_file_stream |;
+use AMOS7::N7FS qw| root_dir host_dir b32 unb32 write_new_file_stream
+    ntime_now ntime14 |;
 use AMOS7::N7FS::Sum  qw| bmw_b32 epoch_from_b32 |;
 use AMOS7::N7FS::Sign qw| key_file_signer key_file_write command_signer |;
 use AMOS7::N7FS::Disk qw| disk_init disk_attach disk_detach disk_status
     disk_read_id disk_lock state_read witness_check_format witness_check_journal |;
 use AMOS7::N7FS::Store qw| assimilate store_verify meta_entries node_path
     node_verify reference_entries reference_drop store_repair |;
-use AMOS7::N7FS::Convert qw| upgrade confirm release_epoch |;
 use AMOS7::N7FS::Journal qw| journal_head journal_replay |;
-use AMOS7::N7FS::Release qw| release_node store_reclaim |;
-use AMOS7::N7FS::Tree    qw| tree_list tree_drop tree_restore |;
 use AMOS7::N7FS::Category
     qw| category_set category_list category_set_reference
     category_report |;
+use AMOS7::N7FS::Incoming qw| incoming_refs incoming_summary incoming_groups
+    incoming_tag |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -116,7 +120,7 @@ GetOptionsFromArray(
         dry-run out=s format=s chksum=s holder=s all allow-rollback force reason=s
         free=s older=s now tree=s category=s category-rule=s@ owners
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
-        layer=s help |
+        layer=s incoming under=s depth=i limit=i help |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -158,6 +162,7 @@ my %run = (
     qw| restore |       => \&cmd_restore,
     qw| category |      => \&cmd_category,
     qw| set-category |  => \&cmd_set_category,
+    qw| incoming |      => \&cmd_incoming,
     qw| assimilate |    => \&cmd_assimilate,
     qw| upgrade |       => \&cmd_upgrade,
     qw| confirm |       => \&cmd_confirm,
@@ -332,9 +337,10 @@ sub cmd_detach {
 }
 
 sub cmd_status {
-    my $s = disk_status(
+    my $disk = disk_arg(shift);
+    my $s    = disk_status(
         %common,
-        qw| disk |           => disk_arg(shift),
+        qw| disk |           => $disk,
         qw| host |           => host_signer(),
         qw| allow_rollback | => $o{'allow-rollback'} ? TRUE : FALSE,
     );
@@ -366,6 +372,28 @@ sub cmd_status {
     if ( $s->{'state'}{'store_format'} == 3 ) {
         say_line( 'journal   ', $s->{'journal_seq'} );
         say_line( 'baseline  ', $s->{'journal_baseline'} ? 'yes' : 'no' );
+        my ( $id, $state, $replay ) = _tree_context($disk);
+        ## status is what one reads on a damaged disk : never die for this ##
+        my $refs = eval {
+            incoming_refs(
+                read_common(),
+                qw| disk |    => $disk,
+                qw| _id |     => $id,
+                qw| _replay | => $replay
+            );
+        };
+        if ( not $refs ) {
+            say_line('incoming  unavailable [ run verify ]');
+            return 0;
+        }
+        my $pool = incoming_summary($refs);
+        say_line(
+            'incoming  ',
+            $pool->{'count'},
+            ' references, ',
+            $pool->{'bytes'},
+            ' bytes'
+        );
     }
     return 0;
 }
@@ -629,6 +657,8 @@ sub _age_value {
 }
 
 sub cmd_release {
+    require AMOS7::N7FS::Release;
+    AMOS7::N7FS::Release->import(qw| release_node store_reclaim |);
     my $disk    = disk_arg(shift);
     my $address = shift // fail('release needs an address');
     fail('release : unexpected arguments') if @ARG;
@@ -654,6 +684,8 @@ sub cmd_release {
 }
 
 sub cmd_reclaim {
+    require AMOS7::N7FS::Release;
+    AMOS7::N7FS::Release->import(qw| release_node store_reclaim |);
     my $disk = disk_arg(shift);
     fail('reclaim : unexpected arguments') if @ARG;
     my $r = store_reclaim(
@@ -675,6 +707,8 @@ sub cmd_reclaim {
 }
 
 sub cmd_release_epoch {
+    require AMOS7::N7FS::Convert;
+    AMOS7::N7FS::Convert->import(qw| upgrade confirm release_epoch |);
     my $disk  = disk_arg(shift);
     my $epoch = shift // fail('release-epoch needs a previous epoch');
     fail('release-epoch : unexpected arguments') if @ARG;
@@ -726,6 +760,8 @@ sub _tree_context {
 }
 
 sub cmd_trees {
+    require AMOS7::N7FS::Tree;
+    AMOS7::N7FS::Tree->import(qw| tree_list tree_drop tree_restore |);
     my ( $id, $state, $replay ) = _tree_context( disk_arg(shift) );
     fail('trees : unexpected arguments') if @ARG;
     say join ' ', $ARG->{'name'}, $ARG->{'manifest'}, $ARG->{'created'}
@@ -734,6 +770,8 @@ sub cmd_trees {
 }
 
 sub cmd_tree_drop {
+    require AMOS7::N7FS::Tree;
+    AMOS7::N7FS::Tree->import(qw| tree_list tree_drop tree_restore |);
     my $disk = disk_arg(shift);
     my $name = shift // fail('tree-drop needs a tree name');
     fail('tree-drop : unexpected arguments') if @ARG;
@@ -749,6 +787,8 @@ sub cmd_tree_drop {
 }
 
 sub cmd_restore {
+    require AMOS7::N7FS::Tree;
+    AMOS7::N7FS::Tree->import(qw| tree_list tree_drop tree_restore |);
     my $disk   = disk_arg(shift);
     my $name   = shift // fail('restore needs a tree name');
     my $target = shift // fail('restore needs a target');
@@ -852,28 +892,84 @@ sub cmd_set_category {
     return 0;
 }
 
-sub cmd_assimilate {
-    fail('assimilate : -keep and -remove exclude each other')
-        if $o{'keep'} and $o{'remove'};
-    fail('assimilate : -prune needs -remove')
-        if $o{'prune'} and not $o{'remove'};
-    fail('assimilate : no paths and no -index')
-        if not @args and not defined $o{'index'};
-    my $r = assimilate(
+sub cmd_incoming {
+    my $disk   = disk_arg(shift);
+    my $action = shift // fail('incoming needs list, tag or done');
+    my ( $id, $state, $replay ) = _tree_context($disk);
+    my %read = read_common();
+    my $refs = incoming_refs(
+        %read,
+        qw| disk |    => $disk,
+        qw| _id |     => $id,
+        qw| _replay | => $replay
+    );
+    my $summary = incoming_summary($refs);
+    if ( $action eq qw| done | ) {
+        fail('incoming done : unexpected arguments') if @ARG;
+        say_line( 'incoming ', $summary->{'count'}, ' references, ',
+            $summary->{'bytes'}, ' bytes',
+            $summary->{'count'} ? '' : ' [ empty ]' );
+        return $summary->{'count'} ? 1 : 0;
+    }
+    if ( $action eq qw| list | ) {
+        fail('incoming list : unexpected arguments') if @ARG;
+        binmode STDOUT, qw| :raw |;
+        my $groups
+            = incoming_groups( $refs, $o{'under'}, $o{'depth'}, $o{'limit'} );
+        say join ' ', $ARG->{'count'}, $ARG->{'bytes'}, $ARG->{'path'}
+            for @{$groups};
+        say_line( 'incoming ', $summary->{'count'}, ' references, ',
+            $summary->{'bytes'}, ' bytes' );
+        return 0;
+    }
+    if ( $action eq qw| tag | ) {
+        my $selector = shift // fail('incoming tag needs a selector');
+        my $category = shift // fail('incoming tag needs a category');
+        fail('incoming tag : unexpected arguments') if @ARG;
+        my $r = incoming_tag(
+            %common,
+            qw| disk |     => $disk,
+            qw| host |     => host_signer(),
+            qw| selector | => $selector,
+            qw| category | => $category,
+        );
+        say_line(
+            'tagged ',
+            $r->{'count'},
+            ' references, ',
+            $r->{'bytes'},
+            ' bytes as ',
+            $r->{'category'},
+            ' [ journal ',
+            $r->{'seq'},
+            ' ]'
+        );
+        return 0;
+    }
+    fail('incoming needs list, tag or done');
+}
+
+sub _assimilate_options {
+    my ( $paths, $tree, $category ) = @ARG;
+    return (
         %common,
         qw| disk |       => disk_arg(),
         qw| host |       => host_signer(),
-        qw| paths |      => [@args],
+        qw| paths |      => $paths,
         qw| index |      => $o{'index'},
         qw| index_base | => $o{'index-base'},
         qw| protect | => [ grep {defined} $o{'host-key'}, $o{'parent-key'} ],
         qw| remove |  => $o{'remove'}  ? TRUE : FALSE,
         qw| prune |   => $o{'prune'}   ? TRUE : FALSE,
         qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
-        qw| tree |           => $o{'tree'},
-        qw| category |       => $o{'category'},
+        qw| tree |           => $tree,
+        qw| category |       => $category,
         qw| category_rules | => $o{'category-rule'} // [],
     );
+}
+
+sub _assimilate_report {
+    my $r = shift;
     foreach my $e ( $r->{'entries'}->@* ) {
         say_line(
             join ' ',
@@ -904,7 +1000,62 @@ sub cmd_assimilate {
     return $r->{'failed'} ? 1 : 0;
 }
 
+sub cmd_assimilate {
+    fail('assimilate : -keep and -remove exclude each other')
+        if $o{'keep'} and $o{'remove'};
+    fail('assimilate : -prune needs -remove')
+        if $o{'prune'} and not $o{'remove'};
+    fail('assimilate : no paths and no -index')
+        if not @args and not defined $o{'index'};
+    if ( $o{'incoming'} ) {
+        fail('assimilate : -incoming excludes -tree, -category and -index')
+            if defined $o{'tree'}
+            or defined $o{'category'}
+            or defined $o{'index'};
+        fail('assimilate : -incoming needs paths') if not @args;
+        my $failed = 0;
+        foreach my $path (@args) {
+            my $tree;
+            my @st = lstat $path;
+            if ( not @st ) {
+                print STDERR "n7fs : $path : $OS_ERROR\n";
+                $failed = 1;
+                next;
+            }
+            if ( not -l _ and -d _ ) {
+                ## the name is a label : the manifest keeps the true path ##
+                require Cwd;
+                my $base = Cwd::abs_path($path) // $path;
+                $base =~ s|/+\z||;
+                $base =~ s|.*/||s;
+                $base =~ s|[^A-Za-z0-9._-]+|_|g;
+                $base = substr( $base, 0, 64 );
+                $base = 'root' if not length $base;
+                $tree = join ':', 'incoming', ntime14( ntime_now() ), $base;
+            }
+            my $r = eval {
+                assimilate(
+                    _assimilate_options( [$path], $tree, 'incoming' ) );
+            };
+            if ( not $r ) {
+                my $err = $EVAL_ERROR;
+                print STDERR $err;
+                $failed = 1;
+                next;
+            }
+            my $path_failed = _assimilate_report($r);
+            $failed = 1 if $path_failed;
+        }
+        return $failed;
+    }
+    my $r = assimilate(
+        _assimilate_options( [@args], $o{'tree'}, $o{'category'} ) );
+    return _assimilate_report($r);
+}
+
 sub cmd_upgrade {
+    require AMOS7::N7FS::Convert;
+    AMOS7::N7FS::Convert->import(qw| upgrade confirm release_epoch |);
     my $r = upgrade(
         %common,
         qw| disk | => disk_arg(shift),
@@ -927,6 +1078,8 @@ sub cmd_upgrade {
 }
 
 sub cmd_confirm {
+    require AMOS7::N7FS::Convert;
+    AMOS7::N7FS::Convert->import(qw| upgrade confirm release_epoch |);
     my $r = confirm(
         %common,
         qw| disk | => disk_arg(shift),
@@ -937,8 +1090,8 @@ sub cmd_confirm {
     return 0;
 }
 
-#,,,.,..,,.,,,.,,,,,,,..,,,,.,,,,,...,,..,,,,,..,,...,..,,..,,,,,,..,,..,,,,,,
-#BLRNWCSCAJSSRFFXNIOVFZFW35KJUSBSX47M4VKUD6U33ULJV5XHOHBFN56VFNXAZKBNWT2EYONY6
-#\\\|XQJP2ELHD5SMUGWMZRAN767JXT43BAA5GP33V7IVO7F5B6IMMF6 \ / AMOS7 \ YOURUM ::
-#\[7]VJXXKSPKQFBR7PX7HAZSL77Z5KJQUTQ7FGVWRRC4L3CFOT7JRSBA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,,,.,..,,,,,,...,.,.,..,,,,,,..,,...,..,,...,.,,,,,,,...,..,,
+#CNGMECHNK27LIZITPVN47A5NTZ6SQQBVK2DHAI4UDVQP7B55GEX4SQS2JBBAEQFD4APDQ5NTA46NQ
+#\\\|FYIUV2VJVZEL2OQDMYR27F6NWPVVNFFHD436FKCTW26BW5Q4AEG \ / AMOS7 \ YOURUM ::
+#\[7]JV4CX5JH66L6MQVF75WXD3IKPKGH5JHCH2IGVIRUARJMTBFPGOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

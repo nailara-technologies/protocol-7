@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Category-VERSION.J57GANI |;
+our $VERSION = qw| AMOS7::N7FS::Category-VERSION.AQPPBSA |;
 
 @EXPORT_OK
     = qw| category_default category_definitions category_set category_list
@@ -87,7 +87,15 @@ sub _policy {
 
 sub category_definitions {
     my ( $id, $replay ) = @ARG;
-    my %out = ( qw| default | => category_default() );
+    my %out = (
+        qw| default |  => category_default(),
+        qw| incoming | => {
+            %{ category_default() },
+            qw| name |     => qw| incoming |,
+            qw| copies |   => 2,
+            qw| priority | => 50,
+        },
+    );
     foreach my $path ( sort keys $replay->{'category_history'}->%* ) {
         my ($record)
             = grep { $ARG->{'path'} eq $path }
@@ -140,7 +148,9 @@ sub category_records_verify {
         refuse( 'format 3 : unlisted category assignment %s', $path )
             if not $replay->{'assignment_history'}{$path};
     }
-    return ( scalar @categories, scalar @assignments );
+    require AMOS7::N7FS::Batch;
+    my $batches = AMOS7::N7FS::Batch::batch_records_verify( $id, $replay );
+    return ( scalar @categories, scalar @assignments, $batches );
 }
 
 sub category_set {
@@ -197,7 +207,7 @@ sub _glob_regex {
     my $regex = quotemeta $glob;
     $regex =~ s|\\\*|.*|g;
     $regex =~ s|\\\?|.|g;
-    return qr|\A$regex\z|;
+    return qr|\A$regex\z|s;
 }
 
 sub category_assignment_plan {
@@ -360,8 +370,8 @@ sub category_report {
 
 1;
 
-#,,.,,.,.,,,,,,,,,.,,,.,.,,,.,..,,,,.,.,,,,,.,..,,...,...,,,.,.,,,,.,,..,,...,
-#HAT7ITKDY4ONCMC33LZKYZCSS6RKTIEGU7W2VM3NPUMXWSF7TSQ6WOVBPBJ7GX4IJY7BKHSIPY57O
-#\\\|LAME5QG7OYRWJQHRQVKLQQWAT7E4NXVD6ELFA4CKLEZSRBP2KMJ \ / AMOS7 \ YOURUM ::
-#\[7]RRXXBYASIIQ2BTOLVTIMHKDV2VWE4G75HCCOFJXT74GZZTB2AWAI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,,..,,,,,...,,..,.,,,,,.,,..,..,,...,...,,,.,...,..,,,..,,.,,
+#ES7XKGEIB5H4VZHONB4IXQPJG3DMBJKNXDF37I4E54U2WJFQGHOARLCWTD7NAPWJMYCCCRGJWRC64
+#\\\|TYKLU5YF5KCFDYIZ4PQBQS3HBENO6BKLOWAKOFSK4VAEAI5TQDZ \ / AMOS7 \ YOURUM ::
+#\[7]2FYDLIMLAH7WIFFZGQLZ2YPBDWQPP7IKEBCGWR4A5AF7G2CER4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

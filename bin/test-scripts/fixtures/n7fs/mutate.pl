@@ -292,7 +292,8 @@ my @mutations = (
     {   name => 'a journal entry is signed unchecked',
         file => 'N7FS/Journal.pm',
         test => 'test-n7fs-format3.pl',
-        edit => [ [ "    _operations( \\%payload, \$replay );\n", "" ] ],
+        edit =>
+            [ [ "    _operations( \\%payload, \$replay, \$id );\n", "" ] ],
     },
     {   name => 'an unjournaled node may be imported onto',
         file => 'N7FS/Store.pm',
@@ -574,8 +575,8 @@ my @mutations = (
         file => 'N7FS/Release.pm',
         test => 'test-n7fs-release.pl',
         edit => [
-            [   "            if ( \@live or "
-                    . "\@live_trees ) and not \$opt{'force'};\n",
+            [   "            if ( \@live or \@live_trees "
+                    . ")\n            and not \$opt{'force'};\n",
                 "            if 0;\n"
             ]
         ],
@@ -780,7 +781,7 @@ my @mutations = (
         file => 'N7FS/Tree.pm',
         test => 'test-n7fs-tree.pl',
         edit => [
-            [   "refuse('manifest path is absolute') if \$path =~ m|\\A/|;",
+            [   "refuse('manifest path is absolute')   if \$path =~ m|\\A/|;",
                 "refuse('manifest path is absolute') if 0;"
             ]
         ],
@@ -806,9 +807,9 @@ my @mutations = (
         file => 'N7FS/Tree.pm',
         test => 'test-n7fs-tree.pl',
         edit => [
-            [   "refuse( 'manifest has a duplicate "
-                    . "path' ) if \$paths{\$path}++;",
-                "refuse( 'manifest has a duplicate path' ) if 0;"
+            [   "refuse('manifest has a duplicate "
+                    . "path') if \$paths{\$path}++;",
+                "refuse('manifest has a duplicate path') if 0;"
             ]
         ],
     },
@@ -816,8 +817,37 @@ my @mutations = (
         file => 'N7FS/Tree.pm',
         test => 'test-n7fs-tree.pl',
         edit => [
-            [   "            if not \@st or -l _ or not -d _;",
+            [   "            if not \@st\n          "
+                    . "  or -l _\n            or not -d _;",
                 "            if 0;"
+            ]
+        ],
+    },
+    {   name => 'batch signature check removed',
+        file => 'N7FS/Batch.pm',
+        test => 'test-n7fs-incoming.pl',
+        edit => [
+            [   "        if not verify( \$id->{'store_pub'}, "
+                    . "\$rec->{'signed'}, \$rec->{'sig'} );",
+                "        if 0;"
+            ],
+            [   "    my \@records = record_scan( \$id, qw| batch |, qw| "
+                    . "batch-assignments |,\n        qw| batch-assignment | "
+                    . ");",
+                "    my \@records = map { my \$p = \$ARG; \$p =~ s|.*/||; "
+                    . "batch_read( \$id, \$p ) } glob "
+                    . "\"\$id->{'path'}/.n7fs/batch-assignments/*.batch-assig"
+                    . "nment\";"
+            ]
+        ],
+    },
+    {   name => 'incoming unknown category accepted',
+        file => 'N7FS/Incoming.pm',
+        test => 'test-n7fs-incoming.pl',
+        edit => [
+            [   "        if not exists category_definitions( "
+                    . "\$id, \$replay )->{\$category};",
+                "        if 0;"
             ]
         ],
     },
@@ -836,7 +866,7 @@ foreach my $m (@mutations) {
         'N7FS.pm',
         map {"N7FS/$ARG.pm"}
         qw| Sum Sign Disk Store Convert Journal Reference Release Record Tree
-        Category |
+        Category Batch Incoming |
     ) {
         open( my $in, '<:raw', "$lib/$f" ) or die "read $lib/$f : $OS_ERROR";
         my $text = do { local $INPUT_RECORD_SEPARATOR; <$in> };
@@ -880,8 +910,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,..,,.,,..,,.,.,.,,,.,,,...,,..,,..,..,,.,,,..,,...,...,.,,,,,,,,.,,...,,,,,
-#PJA5QMQNS2ECXBCTFDWTMNMRU763BL5AWUWXFGLZJDWUHFGWGTHJ5UOKKH24ITCSFZQES7SZMCDWU
-#\\\|GA2XP7WBUGLPOVNF6UAHASB6N2KLTUNGKFRJK6X2DCDSY3UUKZL \ / AMOS7 \ YOURUM ::
-#\[7]KP76DBGDJWDCLY42KZ2XL37SFE7C3EABORSMNLGW54JEKPGJESBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,...,,.,,.,,,.,,,,..,.,,,,.,,,..,..,,...,...,,,.,.,,,.,,,..,,,,.,
+#PLW2HTOHGYSJOGG7WAVFXV2KHZF5EUF66VBSRSOEB6AD3NNB4PASMEKFU2M3O6EQIBETEHRS6UISA
+#\\\|3FODJ55XFJBYAZVZLQBDYT6DQVGELWLMSHPIGAIYIPOVZ4YRHTU \ / AMOS7 \ YOURUM ::
+#\[7]AFVCXVJT3IQ3KTHN4CFBZI3ZUF7BY6VCHWFKPIEMXDZPX7OZCEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.23UYPZQ |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.EPYLZ7A |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -82,6 +82,7 @@ our %MAGIC = (
     qw| tree_drop |  => qw| P7FL |,    ## tree removal record ##
     qw| category |   => qw| P7FC |,    ## versioned category policy ##
     qw| assignment | => qw| P7FB |,    ## per-reference category ##
+    qw| batch |      => qw| P7FI |,    ## batched reference categories ##
 );
 
 ## one label per signed kind and record format : no signature is valid as
@@ -111,6 +112,7 @@ our %LABEL_VERSION = (
     qw| tree_drop |  => { 3 => 'p7 n7fs tree drop:0001' },
     qw| category |   => { 3 => 'p7 n7fs category:0001' },
     qw| assignment | => { 3 => 'p7 n7fs category assignment:0001' },
+    qw| batch |      => { 3 => 'p7 n7fs category batch:0001' },
 );
 
 ## record formats this code reads [ per kind ; the store format is a field of
@@ -128,6 +130,7 @@ $RECORD_FORMAT{'tree'}{3}       = TRUE;
 $RECORD_FORMAT{'tree_drop'}{3}  = TRUE;
 $RECORD_FORMAT{'category'}{3}   = TRUE;
 $RECORD_FORMAT{'assignment'}{3} = TRUE;
+$RECORD_FORMAT{'batch'}{3}      = TRUE;
 
 our %SIGNED_FORMAT = (
     qw| state |      => { 2 => TRUE, 3 => TRUE },
@@ -140,6 +143,7 @@ our %SIGNED_FORMAT = (
     qw| tree_drop |  => { 3 => TRUE },
     qw| category |   => { 3 => TRUE },
     qw| assignment | => { 3 => TRUE },
+    qw| batch |      => { 3 => TRUE },
 );
 
 our $JSON = JSON::PP->new->utf8->canonical;
@@ -477,8 +481,8 @@ sub remove_tree {
 
 1;
 
-#,,.,,,.,,.,,,.,,,...,.,,,...,...,.,,,,..,.,.,..,,...,...,...,,..,,.,,.,,,,..,
-#4UEEO4IJT5XPFASSM3FZ56OJTJRO75NRP7BMJRFF7RNKTYEMXI7HSWFUV4RPB23QJLEKJ5LTIR5SG
-#\\\|SGV6TDWND3PLZ4T3UWS42ITWU7EZEPTVJHMW5D7NQ445ZVDGTTM \ / AMOS7 \ YOURUM ::
-#\[7]SA5CNS2NVBCEPPANN6RDN4ZNOZJUWD5O6RNTR2ZMT4HW5GQKPWAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,.,,,.,,.,,.,.,,..,.,,,.,.,..,,..,,...,...,...,...,,,,,...,,,.,
+#HOIRS6FBIFCENEYCP4UYWAHMNO3CHPOTTCRSENOVSUXRQTTEZSZFHDG5H5UTR7ZG7YTC2XDWYOWQA
+#\\\|6MQPGYFGMFB6HOMCVB5KKBNVCGK6CZVAEWWX55SCZNV634F4WZB \ / AMOS7 \ YOURUM ::
+#\[7]JV5FN5TZEL5XU5O43RUDECBISMZG2PVAFPE6Q3WVD6YS67FZT2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
