@@ -15,6 +15,12 @@ return TRUE if ( <invoke-web.gpu_lease.holder> // '' ) eq qw| invoke-web |;
 return TRUE if not <invoke-web.gpu_lease.request_inflight>;
 <invoke-web.gpu_lease.request_inflight> = FALSE;
 <invoke-web.gpu_lease.unavailable>      = TRUE;
+## a start waiting for the lease goes ahead without it, like rendering ##
+if ( my $waiting = delete <invoke-web.gpu_lease.start_waiting> ) {
+    <[base.logs]>->( 1, ': no gpu lease : invoke.ai starts without it' );
+    <[invoke-web.cmd.start]>->(
+        { 'args' => ref $waiting eq qw| HASH | ? $waiting->{'args'} : '' } );
+}
 ## models is gone : our own pause must not strand the queue ##
 if (<invoke-web.gpu_lease.auto_paused>) {
     <invoke-web.gpu_lease.auto_paused> = FALSE;
@@ -39,8 +45,8 @@ $after = $after * 2 > 780 ? 780 : $after * 2;
 );
 return TRUE;
 
-#,,,.,,.,,,,,,...,...,...,,,.,...,,,,,,..,,.,,..,,...,..,,.,,,.,.,,.,,.,,,..,,
-#HMN5CVAGDWLV4BJBSXFFTWA3HLYPN7CT2MBPM7NDCDE3MHT6TLDUUZVDHU73ULCD6EAYGH526BF5I
-#\\\|KP3XWBK4M3DI2QG5GG6V7NGPG5FWIHDK3CLLZ5F3GH6P67X3WON \ / AMOS7 \ YOURUM ::
-#\[7]PEWPXAHJIBTOUBWTGALAOO7VWK5IFWCSQPW3XNAGOO5YLBOELEAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,.,,.,,,,..,.,,,,,,,,,.,,,,,.,.,..,,...,...,.,.,,,,,,,,,...,,,,,
+#BPYJ43GD634TDBBDKZLWA4SWT22TPAXKA2MBCP3ULJ6KHW2TZL4JU3VKEWFTWXFVRFAVEQATSS7EA
+#\\\|EOHCLJWNFVDNG2VNXBJKEY4EYOCGGPNSPELLWLUMJPS2SP3HNA4 \ / AMOS7 \ YOURUM ::
+#\[7]2RLP7UWWLQ45GQOF5BL3OSWOHRVCAXDMKRJO4CZFDPPCBZ4AHKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
