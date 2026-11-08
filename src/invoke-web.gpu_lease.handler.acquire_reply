@@ -3,11 +3,19 @@
 # name  = invoke-web.gpu_lease.handler.acquire_reply
 # descr = acquire command completed [ a grant arrives separately ]
 
+## a refusal [ models on hold : blocked start ] counts as no answer : the   ##
+## acquire timeout marks models unavailable and backs off                   ##
+## [ cleared here, every processor poll sent a new request, once a second ] ##
+my ($mode) = <[base.reply.mode_text]>->( shift // {} );
+return TRUE if $mode eq qw| false |;
 <invoke-web.gpu_lease.request_inflight> = FALSE;
+## models answered : a probe ends, the normal pause and yield apply again ##
+delete <invoke-web.gpu_lease.probe>;
+delete <invoke-web.gpu_lease.retry_after>;
 return TRUE;
 
-#,,.,,.,,,.,,,,..,,,,,.,.,,,.,,,.,...,.,,,,..,..,,...,...,..,,..,,.,,,.,.,,,,,
-#HLSMJRK4WHAXLPO3PP6333HONZYPADWCCFTZEB66KGATLNAFWGS6CLC5MMQ73NYDWKSBZH3JQD2NG
-#\\\|ASCTOPO5TT7HAIF2QUMYRNKXNOURNH542K2Y7GXDFXLMGQRVFK3 \ / AMOS7 \ YOURUM ::
-#\[7]O43SSJDWED4UZFIJXOXL2GK2CTBHX357H6S3HWH5GPMOPVO5HMBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,.,.,,,.,.,.,,,,,,,,,.,,..,,,,,..,,...,...,.,.,,,,,,,,,.,.,..,,
+#NKIEIXCTXI73TOULICORRXFDK36LPTVW37CPHLIOIK5B6Z4RR5J4Y2DOKTU4SWXBVDRIGHZICTK46
+#\\\|GG7U6FHHVWCQP3COL77IDCGVNBNJZP4NIPZYXZ4ZLTWIAMDOCIQ \ / AMOS7 \ YOURUM ::
+#\[7]JVPQVKCCTTNS3EEBZ4ENMOF7OVXGY557PVFDIVKGM3CSRZ6PY2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

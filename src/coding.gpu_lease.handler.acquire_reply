@@ -3,11 +3,16 @@
 # name  = coding.gpu_lease.handler.acquire_reply
 # descr = acquire command completed [ a grant arrives separately ]
 
+## a refusal [ models on hold : blocked start ] counts as no answer : the ##
+## acquire timeout marks models unavailable and backs off                 ##
+my ($mode) = <[base.reply.mode_text]>->( shift // {} );
+return TRUE if $mode eq qw| false |;
 <coding.gpu_lease.request_inflight> = FALSE;
+delete <coding.gpu_lease.retry_after>;
 return TRUE;
 
-#,,..,,..,.,,,,,,,...,.,.,,..,.,.,,..,..,,.,,,..,,...,..,,..,,..,,,.,,,.,,,.,,
-#7XWAC4R6M4P5WY4GCI6J2YYVZR6PETYLEUTAMTS35SE34DSDSL35ZLBMQ5T4E3KRQ6CYBT7ZJLD6S
-#\\\|BRCD34QOKWPJU6HHXCBCAHMLQBLP23U7HTTQ7LXF2TVL2FPVDVW \ / AMOS7 \ YOURUM ::
-#\[7]FJ7KCSKAMQRZ7CEZIALUPRMMU6T2LKQLRLHZIYXM5J2B35WRCIBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,,,.,.,,,.,.,,,,,.,.,.,,,,,,,.,..,,...,...,,,,,.,.,,.,,,,,,.,,,
+#4ZAOJOYLBF6CQXGAPQOQJLCN5P33QIR5VTJNSELUI4MLXRDYIS7E4CORDMHL3QBY35O4XHZGNOEFI
+#\\\|F4CNVS7NVM3NRGQTCVMAFUMTIDUHXRP5HPS5KTSZH5FREB75P3O \ / AMOS7 \ YOURUM ::
+#\[7]FWFXSDI7ZLENY3G4QRJQTO2KGLYRIXJUBIMSLYE4JG3GY2B7KIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

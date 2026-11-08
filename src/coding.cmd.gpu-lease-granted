@@ -6,8 +6,9 @@
 <coding.gpu_lease.holder>           = qw| coding |;
 <coding.gpu_lease.request_inflight> = FALSE;
 <coding.gpu_lease.unavailable>      = FALSE;
-<coding.gpu_lease.wait_logged>      = FALSE;
-<coding.gpu_lease.dispatch_hold>    = FALSE;
+delete <coding.gpu_lease.retry_after>;
+<coding.gpu_lease.wait_logged>   = FALSE;
+<coding.gpu_lease.dispatch_hold> = FALSE;
 <[base.logs]>->( 1, ': gpu lease acquired : reloading local gpu backend' );
 <[coding.gpu_lease.handler.renew]>;
 <[coding.async_spawn_inference_servers]>;
@@ -16,8 +17,8 @@
     qw| ready |;
 return { 'mode' => qw| true |, 'data' => qw| done | };
 
-#,,,.,,.,,,.,,,,,,.,,,,..,.,,,.,,,..,,,..,...,..,,...,...,.,.,.,.,,..,,.,,,..,
-#PXQKUX5PSAD6YJHFN7SQZUBVPZBWAXN4V7NJ5S2GFV6LZRHYWFV4J5QSRUOFEWVL5PSJJJMB4VMPW
-#\\\|4JX7QTYZ5G766XJPTC36A3F5AD6AIVZ4XOKPSB76FBAO4VLJG7I \ / AMOS7 \ YOURUM ::
-#\[7]7F2NO7LDTU57WUBFVOHEQVMYJUJ2XAGETISULM56DKBBVS7G7QDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,,,,.,,,,.,,,.,,,.,..,,,,,,..,,..,,...,...,..,,,,,,..,,,.,,...,
+#PYLQ6GHE6NFT77BC3PWN736RETBVEVEIW63OV4TF7NXGQK6G5634ZFMM6BRIZCVHGRW56IEPP3S4M
+#\\\|3VBH4X2UULEEZMVNK4WHJ5WIA53WCLYQ6QDTP7A5AOSPUSHK6UB \ / AMOS7 \ YOURUM ::
+#\[7]5NYJ4ZTDAE5XUS55TLJOBGWWFDUP5KOQKSNLY3V7EV5OU42ITMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,8 +7,11 @@
 <invoke-web.gpu_lease.request_inflight> = FALSE;
 <invoke-web.gpu_lease.unavailable>      = FALSE;
 <invoke-web.gpu_lease.handover_waiting> = FALSE;
+delete <invoke-web.gpu_lease.probe>;
+delete <invoke-web.gpu_lease.retry_after>;
 <[invoke-web.gpu_lease.handler.renew]>;
 <[base.logs]>->( 1, ': gpu lease acquired' );
+
 if (<invoke-web.gpu_lease.start_waiting>) {
     delete <invoke-web.gpu_lease.start_waiting>;
     <[invoke-web.cmd.start]>->( { 'args' => '' } );
@@ -21,8 +24,8 @@ if (<invoke-web.gpu_lease.start_waiting>) {
 }
 return { 'mode' => qw| true |, 'data' => qw| done | };
 
-#,,.,,,,.,,.,,,.,,,,.,,,,,,.,,.,.,.,.,..,,,.,,..,,...,...,,.,,..,,,.,,.,,,.,.,
-#3XIBAKVU6MKAMQ2BMUCOZPKJK46YHKZRJGCNUWHXUK6IDTXHH4A6RDH5TDD6Q46KKVIWLWKALNXIM
-#\\\|PA4BEMKC5UMWXTF7ACGR3EIOQVFLULE3USSAX7QQOCBHRMNOXRK \ / AMOS7 \ YOURUM ::
-#\[7]GXO2IZPJRFVCHLHCMBI3OSHH6OSYJIK2SPA6OVCE3NIPW2CTHWDY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,,.,,.,.,.,,,.,.,,,.,..,,,..,..,,...,..,,.,,,...,.,.,...,..,,
+#CY56BJUUOWO6X3DP5DC6UKCI6PU7FDM4HH5E3VYQBNUWL6WT2VPZRCRJNHHXFASHXU2VZSWMUYX7E
+#\\\|RZCMV3H6JNB252KHZZOTFCT4AXY57CONBYZKTCEJE5UPKM6SVXJ \ / AMOS7 \ YOURUM ::
+#\[7]QO5OJSDOUCO7ESEYX7IRKPGHCDB3OE4OPTXDUW5U62X3DUX2RYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
