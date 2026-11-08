@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.F627Z2Y |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.GCWLNGA |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -481,6 +481,12 @@ sub tree_records_verify {
                 if ( $tree{$path}{$field} // '' ) ne
                 ( $expected->{$field} // '' );
         }
+        refuse( 'format 3 : tree record %s origin differs from journal',
+            $path )
+            if ( $tree{$path}{'origin'}{'id'} // $path ) ne
+            ( $expected->{'origin'}{'id'}       // $path )
+            or ( $tree{$path}{'origin'}{'disk'} // $id->{'disk'} ) ne
+            ( $expected->{'origin'}{'disk'}     // $id->{'disk'} );
     }
     foreach my $path ( sort keys %tree ) {
         refuse( 'format 3 : unlisted tree record %s', $path )
@@ -495,6 +501,11 @@ sub tree_records_verify {
                 if ( $drop{$path}{$field} // '' ) ne
                 ( $expected->{$field} // '' );
         }
+        refuse( 'format 3 : tree drop %s origin differs from journal', $path )
+            if ( $drop{$path}{'origin'}{'id'} // $path ) ne
+            ( $expected->{'origin'}{'id'}       // $path )
+            or ( $drop{$path}{'origin'}{'disk'} // $id->{'disk'} ) ne
+            ( $expected->{'origin'}{'disk'}     // $id->{'disk'} );
     }
     foreach my $path ( sort keys %drop ) {
         refuse( 'format 3 : unlisted tree drop %s', $path )
@@ -861,8 +872,8 @@ sub tree_restore {
 
 1;
 
-#,,,,,,,.,..,,..,,,.,,,..,,,.,,,,,..,,..,,,..,..,,...,...,,.,,,..,.,.,.,,,...,
-#YDING2VPBGXSVCPTVB5IG6ZO7OCDOTHYRM5YN2VIYUZJIMOTHLPWWUB364V7AF5FWGL6THOS5QB26
-#\\\|B5Z57TX6Q6Z3LDULY6UVFXYXPI7NPOE4YIRGDRFLCHBPNFTERQC \ / AMOS7 \ YOURUM ::
-#\[7]WR3W5VUYPVQTGQ25VAVYDO4TFHKMGWAIAIG6HP5WXEFVG7GVA6DI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,..,,..,,..,,...,,.,,,,,,,.,,,..,..,,...,..,,..,,..,,,..,.,.,...,
+#TYRL6CP7PL3OIZWVZXQSCHEFPIYCWWC27DZCRHAFF3MX4BHGH3OUE36U36EWSY7V6KYIMXIP53LLA
+#\\\|LXHWV5G3JFM2LTNW7FACN7C4LMNTVXWGGN42X33CCZ3LHNTZDMZ \ / AMOS7 \ YOURUM ::
+#\[7]Q2WLP53F3MKOD5TETS4EZBVK3MTYEXQ6A26SDB7XU4ENAWC53UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

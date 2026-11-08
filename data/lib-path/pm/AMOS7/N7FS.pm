@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.EPYLZ7A |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.UFDBFHA |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -69,20 +69,22 @@ use Crypt::Misc qw| encode_b32r decode_b32r |;
 
 ## 4-byte magic + 1 format byte in every binary header [ spec section 6 ]
 our %MAGIC = (
-    qw| id |         => qw| P7FS |,    ## disk identity record ##
-    qw| mount |      => qw| P7FA |,    ## attach \ detach record ##
-    qw| use |        => qw| P7FU |,    ## witness first \ last use window ##
-    qw| state |      => qw| P7FT |,    ## store state [ format, epochs ] ##
-    qw| meta |       => qw| P7FN |,    ## node meta [ one per import ] ##
-    qw| journal |    => qw| P7FJ |,    ## signed store-set operation ##
-    qw| reference |  => qw| P7FR |,    ## live source reference ##
-    qw| drop |       => qw| P7FD |,    ## reference drop record ##
-    qw| tombstone |  => qw| P7FX |,    ## released content address ##
-    qw| tree |       => qw| P7FM |,    ## named tree manifest ##
-    qw| tree_drop |  => qw| P7FL |,    ## tree removal record ##
-    qw| category |   => qw| P7FC |,    ## versioned category policy ##
-    qw| assignment | => qw| P7FB |,    ## per-reference category ##
-    qw| batch |      => qw| P7FI |,    ## batched reference categories ##
+    qw| id |            => qw| P7FS |, ## disk identity record ##
+    qw| mount |         => qw| P7FA |, ## attach \ detach record ##
+    qw| use |           => qw| P7FU |, ## witness first \ last use window ##
+    qw| state |         => qw| P7FT |, ## store state [ format, epochs ] ##
+    qw| meta |          => qw| P7FN |, ## node meta [ one per import ] ##
+    qw| journal |       => qw| P7FJ |, ## signed store-set operation ##
+    qw| reference |     => qw| P7FR |, ## live source reference ##
+    qw| drop |          => qw| P7FD |, ## reference drop record ##
+    qw| tombstone |     => qw| P7FX |, ## released content address ##
+    qw| tree |          => qw| P7FM |, ## named tree manifest ##
+    qw| tree_drop |     => qw| P7FL |, ## tree removal record ##
+    qw| category |      => qw| P7FC |, ## versioned category policy ##
+    qw| assignment |    => qw| P7FB |, ## per-reference category ##
+    qw| batch |         => qw| P7FI |, ## batched reference categories ##
+    qw| sync_cursor |   => qw| P7FY |, ## per-source sync position ##
+    qw| sync_conflict | => qw| P7FZ |, ## unresolved concurrent sync change ##
 );
 
 ## one label per signed kind and record format : no signature is valid as
@@ -104,46 +106,52 @@ our %LABEL_VERSION = (
         2 => 'p7 n7fs meta:0001',
         3 => 'p7 n7fs meta:0001'
     },
-    qw| journal |    => { 3 => 'p7 n7fs journal:0001' },
-    qw| reference |  => { 3 => 'p7 n7fs reference:0001' },
-    qw| drop |       => { 3 => 'p7 n7fs reference drop:0001' },
-    qw| tombstone |  => { 3 => 'p7 n7fs tombstone:0001' },
-    qw| tree |       => { 3 => 'p7 n7fs tree:0001' },
-    qw| tree_drop |  => { 3 => 'p7 n7fs tree drop:0001' },
-    qw| category |   => { 3 => 'p7 n7fs category:0001' },
-    qw| assignment | => { 3 => 'p7 n7fs category assignment:0001' },
-    qw| batch |      => { 3 => 'p7 n7fs category batch:0001' },
+    qw| journal |       => { 3 => 'p7 n7fs journal:0001' },
+    qw| reference |     => { 3 => 'p7 n7fs reference:0001' },
+    qw| drop |          => { 3 => 'p7 n7fs reference drop:0001' },
+    qw| tombstone |     => { 3 => 'p7 n7fs tombstone:0001' },
+    qw| tree |          => { 3 => 'p7 n7fs tree:0001' },
+    qw| tree_drop |     => { 3 => 'p7 n7fs tree drop:0001' },
+    qw| category |      => { 3 => 'p7 n7fs category:0001' },
+    qw| assignment |    => { 3 => 'p7 n7fs category assignment:0001' },
+    qw| batch |         => { 3 => 'p7 n7fs category batch:0001' },
+    qw| sync_cursor |   => { 3 => 'p7 n7fs sync cursor:0001' },
+    qw| sync_conflict | => { 3 => 'p7 n7fs sync conflict:0001' },
 );
 
 ## record formats this code reads [ per kind ; the store format is a field of
 ## the state record, converters register further node formats ]
 our %RECORD_FORMAT = map { $ARG => { 1 => TRUE } } keys %MAGIC;
-$RECORD_FORMAT{'state'}{2}      = TRUE;
-$RECORD_FORMAT{'state'}{3}      = TRUE;
-$RECORD_FORMAT{'meta'}{2}       = TRUE;
-$RECORD_FORMAT{'meta'}{3}       = TRUE;
-$RECORD_FORMAT{'journal'}{3}    = TRUE;
-$RECORD_FORMAT{'reference'}{3}  = TRUE;
-$RECORD_FORMAT{'drop'}{3}       = TRUE;
-$RECORD_FORMAT{'tombstone'}{3}  = TRUE;
-$RECORD_FORMAT{'tree'}{3}       = TRUE;
-$RECORD_FORMAT{'tree_drop'}{3}  = TRUE;
-$RECORD_FORMAT{'category'}{3}   = TRUE;
-$RECORD_FORMAT{'assignment'}{3} = TRUE;
-$RECORD_FORMAT{'batch'}{3}      = TRUE;
+$RECORD_FORMAT{'state'}{2}         = TRUE;
+$RECORD_FORMAT{'state'}{3}         = TRUE;
+$RECORD_FORMAT{'meta'}{2}          = TRUE;
+$RECORD_FORMAT{'meta'}{3}          = TRUE;
+$RECORD_FORMAT{'journal'}{3}       = TRUE;
+$RECORD_FORMAT{'reference'}{3}     = TRUE;
+$RECORD_FORMAT{'drop'}{3}          = TRUE;
+$RECORD_FORMAT{'tombstone'}{3}     = TRUE;
+$RECORD_FORMAT{'tree'}{3}          = TRUE;
+$RECORD_FORMAT{'tree_drop'}{3}     = TRUE;
+$RECORD_FORMAT{'category'}{3}      = TRUE;
+$RECORD_FORMAT{'assignment'}{3}    = TRUE;
+$RECORD_FORMAT{'batch'}{3}         = TRUE;
+$RECORD_FORMAT{'sync_cursor'}{3}   = TRUE;
+$RECORD_FORMAT{'sync_conflict'}{3} = TRUE;
 
 our %SIGNED_FORMAT = (
-    qw| state |      => { 2 => TRUE, 3 => TRUE },
-    qw| meta |       => { 2 => TRUE, 3 => TRUE },
-    qw| journal |    => { 3 => TRUE },
-    qw| reference |  => { 3 => TRUE },
-    qw| drop |       => { 3 => TRUE },
-    qw| tombstone |  => { 3 => TRUE },
-    qw| tree |       => { 3 => TRUE },
-    qw| tree_drop |  => { 3 => TRUE },
-    qw| category |   => { 3 => TRUE },
-    qw| assignment | => { 3 => TRUE },
-    qw| batch |      => { 3 => TRUE },
+    qw| state |         => { 2 => TRUE, 3 => TRUE },
+    qw| meta |          => { 2 => TRUE, 3 => TRUE },
+    qw| journal |       => { 3 => TRUE },
+    qw| reference |     => { 3 => TRUE },
+    qw| drop |          => { 3 => TRUE },
+    qw| tombstone |     => { 3 => TRUE },
+    qw| tree |          => { 3 => TRUE },
+    qw| tree_drop |     => { 3 => TRUE },
+    qw| category |      => { 3 => TRUE },
+    qw| assignment |    => { 3 => TRUE },
+    qw| batch |         => { 3 => TRUE },
+    qw| sync_cursor |   => { 3 => TRUE },
+    qw| sync_conflict | => { 3 => TRUE },
 );
 
 our $JSON = JSON::PP->new->utf8->canonical;
@@ -481,8 +489,8 @@ sub remove_tree {
 
 1;
 
-#,,,,,.,.,...,.,.,,,.,,.,,.,.,,..,.,,,.,.,..,,..,,...,...,...,...,,,,,...,,,.,
-#HOIRS6FBIFCENEYCP4UYWAHMNO3CHPOTTCRSENOVSUXRQTTEZSZFHDG5H5UTR7ZG7YTC2XDWYOWQA
-#\\\|6MQPGYFGMFB6HOMCVB5KKBNVCGK6CZVAEWWX55SCZNV634F4WZB \ / AMOS7 \ YOURUM ::
-#\[7]JV5FN5TZEL5XU5O43RUDECBISMZG2PVAFPE6Q3WVD6YS67FZT2DA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,.,,,.,.,.,..,,,..,..,,.,,,,..,..,,...,...,..,,.,,,,,,,...,..,,
+#MSQ6ASLGRDD6XA2WGDVNCHB5CQFJAFYONQKKV3K5HHNQA2LQHAVJL74NHF5NV5WBYVVMXMYZ4VTHW
+#\\\|QAS2DUB7U4YG7G5FPT465R7T24KNHMBHX6MUAA7DBGFALXOR2UA \ / AMOS7 \ YOURUM ::
+#\[7]KTAPAUMLIUWFWXWMMWXONNV3XT4THR2PCGUM5ZK35NGBIQN7EGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

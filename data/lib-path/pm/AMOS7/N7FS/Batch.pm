@@ -14,7 +14,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Batch-VERSION.OCROJXQ |;
+our $VERSION = qw| AMOS7::N7FS::Batch-VERSION.TSZSCGQ |;
 
 @EXPORT_OK = qw| batch_write batch_read batch_records_verify |;
 
@@ -67,15 +67,16 @@ sub batch_read {
 }
 
 sub batch_write {
-    my ( $id, $store, $category, $references, $bytes ) = @ARG;
+    my ( $id, $store, $category, $references, $bytes, $origin ) = @ARG;
     my $record = record_write(
         $id, $store,
         qw| batch |,
         qw| batch-assignments |,
         qw| batch-assignment |,
-        {   qw| disk |       => $id->{'disk'},
-            qw| category |   => $category,
-            qw| bytes |      => $bytes + 0,
+        {   qw| disk |     => $id->{'disk'},
+            qw| category | => $category,
+            qw| bytes |    => $bytes + 0,
+            defined $origin ? ( qw| origin | => $origin ) : (),
             qw| references | => [
                 map {
                     {
@@ -107,6 +108,12 @@ sub batch_records_verify {
                 qw| batch |, read_file( $records{$path}{'full_path'} )
             )
         );
+        refuse( 'format 3 : batch %s origin differs from journal', $path )
+            if ( $records{$path}{'origin'}{'id'} // $path ) ne
+            ( $replay->{'batch_history'}{$path}{'origin'}{'id'} // $path )
+            or ( $records{$path}{'origin'}{'disk'} // $id->{'disk'} ) ne
+            ( $replay->{'batch_history'}{$path}{'origin'}{'disk'}
+                // $id->{'disk'} );
     }
     foreach my $path ( sort keys %records ) {
         refuse( 'format 3 : unlisted batch record %s', $path )
@@ -117,8 +124,8 @@ sub batch_records_verify {
 
 1;
 
-#,,,,,..,,.,.,,.,,,..,,..,.,.,...,,,.,.,,,,,.,..,,...,...,,,,,..,,.,,,..,,.,.,
-#QLXHM63BEIUXAAVP2JFXFSY4IXJN2KYEHNCFJYNM3GVRLBB3LSX5FWPA2HJIWUMQ2DEMCZZBOJH7Q
-#\\\|374KCSUYYS7YFOXLOWIBPOQDBZMEEJZ3LACBDHJFGDSP2XZPB43 \ / AMOS7 \ YOURUM ::
-#\[7]SCDCHDZ73LOXVZXLC2EWZD67KTFCQ2TIUT7CZFCWZ6K26PTIBQDA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,.,,,,,,,.,.,.,,,.,...,...,.,,,..,,...,...,.,.,.,.,.,.,,.,,,.,,
+#P6RAK5UMVVR7ZGJJKQG4YPYEBGJ3BM74ISHFSPQO3XBK2NUYKNZX5IVZFZQL5D5STH67H7QIKZUSS
+#\\\|CRS6Y7DZNFA3MM5XBQZDICBZ2OQSEP44NN4MC3M4G5HN344QDRV \ / AMOS7 \ YOURUM ::
+#\[7]FPH7CC5K2UTDCEJEP3HD5N6C55QS5J344EOCTERVKDXQCMJLSIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

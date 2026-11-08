@@ -17,12 +17,12 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Category-VERSION.AQPPBSA |;
+our $VERSION = qw| AMOS7::N7FS::Category-VERSION.WPKVGIQ |;
 
 @EXPORT_OK
     = qw| category_default category_definitions category_set category_list
     category_records_verify category_assignments category_set_reference
-    category_report category_assignment_plan |;
+    category_report category_assignment_plan category_strict_merge |;
 
 use AMOS7::N7FS qw| refuse fault |;
 use AMOS7::N7FS::Disk
@@ -129,6 +129,12 @@ sub category_records_verify {
             if $categories{$path}{'name'} ne
             $replay->{'category_history'}{$path}{'name'};
         _policy( $categories{$path} );
+        refuse( 'format 3 : category %s origin differs from journal', $path )
+            if ( $categories{$path}{'origin'}{'id'} // $path ) ne
+            ( $replay->{'category_history'}{$path}{'origin'}{'id'} // $path )
+            or ( $categories{$path}{'origin'}{'disk'} // $id->{'disk'} ) ne
+            ( $replay->{'category_history'}{$path}{'origin'}{'disk'}
+                // $id->{'disk'} );
     }
     foreach my $path ( sort keys %categories ) {
         refuse( 'format 3 : unlisted category record %s', $path )
@@ -143,6 +149,12 @@ sub category_records_verify {
                 if ( $assignments{$path}{$field} // '' ) ne
                 ( $expected->{$field} // '' );
         }
+        refuse( 'format 3 : assignment %s origin differs from journal',
+            $path )
+            if ( $assignments{$path}{'origin'}{'id'} // $path ) ne
+            ( $expected->{'origin'}{'id'}              // $path )
+            or ( $assignments{$path}{'origin'}{'disk'} // $id->{'disk'} ) ne
+            ( $expected->{'origin'}{'disk'}            // $id->{'disk'} );
     }
     foreach my $path ( sort keys %assignments ) {
         refuse( 'format 3 : unlisted category assignment %s', $path )
@@ -297,7 +309,21 @@ sub category_set_reference {
         sub { return $category } );
     my $add = _empty_set();
     $add->{'assignments'} = $assignments;
-    my $journal = journal_write( $id, $store, $add, _empty_set(), {} );
+    my $drop     = _empty_set();
+    my %resolved = map { $ARG->{'path'} => TRUE } @refs;
+    if ( keys $replay->{'sync_conflicts'}->%* ) {
+        my %records = map { $ARG->{'path'} => $ARG } record_scan(
+            $id,
+            qw| sync_conflict |,
+            qw| sync-conflicts |,
+            qw| sync-conflict |
+        );
+        foreach my $path ( keys $replay->{'sync_conflicts'}->%* ) {
+            push $drop->{'conflicts'}->@*, { qw| path | => $path }
+                if $resolved{ $records{$path}{'reference'} // '' };
+        }
+    }
+    my $journal = journal_write( $id, $store, $add, $drop, {} );
     witness_note_format(
         %opt,
         qw| id |          => $id,
@@ -340,6 +366,13 @@ sub _effective {
     return \%effective;
 }
 
+sub category_strict_merge {
+    my ( $name, @policies ) = @ARG;
+    my $merged = _effective(@policies);
+    $merged->{'name'} = $name;
+    return $merged;
+}
+
 sub category_report {
     my ( $id, $replay, $address ) = @ARG;
     my $definitions = category_definitions( $id, $replay );
@@ -370,8 +403,8 @@ sub category_report {
 
 1;
 
-#,,..,.,,,,,.,.,,,,..,,,,,...,,..,.,,,,,.,,..,..,,...,...,,,.,...,..,,,..,,.,,
-#ES7XKGEIB5H4VZHONB4IXQPJG3DMBJKNXDF37I4E54U2WJFQGHOARLCWTD7NAPWJMYCCCRGJWRC64
-#\\\|TYKLU5YF5KCFDYIZ4PQBQS3HBENO6BKLOWAKOFSK4VAEAI5TQDZ \ / AMOS7 \ YOURUM ::
-#\[7]2FYDLIMLAH7WIFFZGQLZ2YPBDWQPP7IKEBCGWR4A5AF7G2CER4BY 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,,,,,,..,...,.,,,,,.,.,.,.,,,..,,...,...,.,,,,..,,,.,,,,,,,,,
+#QLOVSOIS7IDH7VDZXWVHNYITQWSKFONZQVR2NFIOCXJ5WQCLXM7LDFWT6TV6Z7GMO2LKG52KFAMN4
+#\\\|ZKUNZ2M33VIQPIJXXOH62IUHQGB2IK73GLXXLTOI5NTZOY6DNL6 \ / AMOS7 \ YOURUM ::
+#\[7]NSPTDBEUYA3273A5BK4JRV46CPYYUQIQZ656GR6VZNJFANLUPWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
