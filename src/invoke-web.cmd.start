@@ -166,6 +166,23 @@ if ( not defined $spawn_err ) {
         @ENV{@proxy_vars} = ($proxy) x @proxy_vars;
         @ENV{qw| no_proxy NO_PROXY |} = ('localhost,127.0.0.1') x 2;
         <[base.logs]>->( 1, 'invoke.ai downloads use the configured proxy' );
+
+        ## a socks url needs pysocks [ requests ] + socksio [ httpx ] in ##
+        ## the env : warn, never refuse -- rendering works without them  ##
+        my $env_dir = $binary =~ s{/bin/[^/]+$}{}r;
+        my @missing = grep {
+            my $mod = $ARG;
+            not grep { -e "$ARG/$mod" or -e "$ARG/$mod.py" }
+                glob "$env_dir/lib/python3*/site-packages";
+        } qw| socks socksio |;
+        <[base.logs]>->(
+            0,
+            'proxy %s needs pysocks socksio in %s '
+                . ': %s/bin/pip install pysocks socksio',
+            $proxy   =~ s{//[^@/]*@}{//}r,
+            $env_dir =~ s{^.*/}{}r,
+            $env_dir
+        ) if $proxy =~ m{^socks}i and @missing;
     }
     $child_pid = eval {
         IPC::Open3::open3(
@@ -237,8 +254,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,.,,,.,,.,,,,,,,,..,,..,.,.,,..,,.,,,.,,...,..,,...,...,..,,.,,,,,.,..,,,.,,
-#SD7RISYIL2ONH5N4HC4D3XK7PK7SJZWHFTOKULS34SMMZPX3C7TMRVV6CYCQ2EGWNMSSWXORXQFGG
-#\\\|3W4NVTOCMJHOE24ASY7GC2DFN4MIZSGMQCIEVSY4H36UI2WCTLY \ / AMOS7 \ YOURUM ::
-#\[7]4FYC64QWA2EF4GYV3DBZQFKLFLZUTTPUEGROT4VNVRYURI5YM2CI 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,.,,.,,,..,,..,..,,.,,,,.,,...,..,,...,...,.,,,..,,.,,,,.,,,,,,
+#6OIZEWM7CIQZZXBONDOJWNCI53XSREDZ5YWXDV37ZWOR74AREUBCNHDWP3S3BZAHT5GL6JHFQ7ODE
+#\\\|XPQZTSDICW76ZQ2C4KGTV5U64YH3RCFOXATH667QPR5LHLICTVG \ / AMOS7 \ YOURUM ::
+#\[7]2DMZ2VE2YDEX3QXMA4PRH6WKSQYTFBDNQNOCPW2XIBP3OJIEM4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
