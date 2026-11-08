@@ -111,13 +111,14 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #\\\|KWTQ65VJRERYB5H6W5VRPUHMPFA55BCVFFOMDWH2URPJAYF742Y \ / AMOS7 \ YOURUM ::
 #\[7]OIEYRD5AMBCK4QQUUHAMQITFE25YCFBVO7ZJKFAPXDRZ2PBXG2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [invokeai-model-install-quirks](reference-invokeai-model-install-quirks.md) — install api calls ; downloader ignores env proxy [ INVOKEAI_DOWNLOAD_PROXY ] ; never pause+resume local installs ; encoders found BY NAME ; qwen lora rekey ; complete broken installs via fetch-files
 - [invoke-web-run-user-and-invokeai-facts](reference-invoke-web-run-user-and-invokeai-facts.md) — zenka-as-other-user pattern [ zenka-user.current + check-zenka-paths ], InvokeAI port 4707 / databases/ / queue resumes on start, never cancel the running item
 - [image-surface-rooms-spec](reference-image-surface-rooms-spec.md) — in-image screens as addressable surfaces live in design-specs/fractal-data-architecture-holographic-tty.md under keyword 'room' [ blank display templates, rooms-within-rooms ] ; geometry step = data/tasks/image-surface-addressing.md
 - [twin-restart-and-local-proxy](reference-twin-restart-and-local-proxy.md) — `v7-zenki.restart :twin: <zenka>` restarts without a gap ; a 502 from this shell can be the owner's local proxy, not the server
 - [os-err-for-console-logs](feedback-os-err-for-console-logs.md) — src/* log lines : <[base.str.os_err]> instead of raw $OS_ERROR [ cleaned up for the console ]
 
-#,,,.,.,.,,,.,.,.,,,.,...,..,,.,,,...,...,..,,..,,...,...,.,,,.,,,..,,,,.,.,.,
-#23GAER6IJAZUGKYEHZJS6U6IO5INPPKGERWWSLVEME6VIHPERUEK2FB54BXGDJ3EWLNS3QKO4NKYK
-#\\\|P7TST6CZHF2GAIIQJOTRWTQLC6H2LP4YHCQDX7TKCY77Z7U7OFF \ / AMOS7 \ YOURUM ::
-#\[7]PWA3LD5PLCNNFXYEUNKXVWGTVCR2RGCUSGVZS5MZMZDS2B6KT2AA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,.,.,,,.,,,,,,.,,,.,,,,.,,,.,..,,...,...,,..,...,...,,.,,,.,,
+#DUE6SGO2WIXU26P4WGIDFJLIG3URGDV3XPQGDFR5EXYV2AU7AM7PAP6K4SU7GD4VTPTYSTKNL33VI
+#\\\|BVU27CWVRZHP5ONODZKZGYWZKJ7YTNU7RCX5Z3MNLEP4JR5XCRR \ / AMOS7 \ YOURUM ::
+#\[7]NLZO53QHSGNSAONT4W2XAXDE7GCACLKEROWDCGAMLTTWAWQDLIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
