@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [n7fs-host-migration-goal](project-2026-11-08-n7fs-host-migration-goal.md) — NEXT WORK : N7FS sync + blind remote replicas for the native linux move ; decisions, see design N7FS-SEALED-REPLICAS.md
 - [session-handover-lease-loop-invoke-proxy](project-2026-11-08-session-handover-lease-loop-invoke-proxy.md) — START HERE : gpu lease loop with models on hold fixed, invoke.ai proxy + restart requeue, qwen21 holds the legacy models ; open items
 - [session-handover-n7fs-format3](project-2026-11-07-session-handover-n7fs-format3.md) — previous : N7FS format 3 complete [ stages 1-3, pushed ], dogfood on format 3, virtual render queue design
 - [session-handover-chksum-lease](project-2026-11-06-session-handover-chksum-lease.md) — previous : binary amos_chksum, gpu lease live with pause \ resume
@@ -100,8 +101,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,.,,,,..,,..,..,,.,,,,.,,...,.,.,..,,...,..,,...,..,,.,.,,,,,,,,,.,.,..,,
-#MUMOUFIWXKD4FUXPQAK5LSTGPNGPAFQJCM4CFHPZBNBKPMJCEAOKQOAAMZ3HJPUDAI3E5LLYKQZCO
-#\\\|T36NGOW3T2FACXF7UCVJYPJK7AXCYPRCGHIZFJT5OISUESUJYHT \ / AMOS7 \ YOURUM ::
-#\[7]XK4PALCHRUTHC6JX7I6FUSD5QBMY5AEQTDTNUD325WZASUCAMGDI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,,,,,,,.,...,..,,.,,,,..,..,,..,,...,...,,,.,,,.,,..,..,,,..,
+#H4GMQPYVR23QW5NLRD2HCHVYDGNRCUI4T3TPEJWM762FDWN3W2O5OF4NLNKVFNUWW4DD26ESTX5TM
+#\\\|LDRWRGXUI2QLQIGDXGCZC4AVYMG5RQYDGPM3NEKI5UBROA4PXNQ \ / AMOS7 \ YOURUM ::
+#\[7]JYFPJ7JCD5PCXWNK6Y7TG43Z7KBBXYWTKBLUY67CY5QIBAHRRIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

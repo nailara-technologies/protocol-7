@@ -1,0 +1,348 @@
+# N7FS : categories, incoming pool, sealed replicas, placement
+
+status : design, nothing here is built. follows `N7FS-FORMAT-3.md` and builds
+on the owner answers of 2026-10-22 in `FILES-ZENKA.md` [ questions 13, 14, 18 ].
+this note adds only what those do not settle.
+
+## goal
+
+move everything essential off one host and keep it in sync across the host
+group : a full desktop with its files restored from N7FS, later the laptops.
+part of the group are machines owned by others. they hold data without being
+able to read it, and no mount or content key ever exists on them.
+
+## terms
+
+- **home** : a host holding keys [ owned hardware ]
+- **holder** : any host storing blobs. a **blind holder** has no key at all
+- **blob** : what a blind holder stores, addressed by the checksum of its
+  ciphertext
+- **sealed map** : home's mapping from a local address to its blob
+
+## 1. tree layer
+
+assimilate today skips symlinks and keeps size and mtime only, and `get`
+returns one file. a desktop needs more :
+
+- a signed tree manifest : paths, symlinks, modes, owners, xattrs, empty
+  directories, each regular file by address
+- `n7fs restore <disk> <manifest> <target>`, verified, refuses to overwrite
+- a filesystem that cannot express a field records that the field is absent,
+  never a made-up value [ windows sources ]
+
+## 2. categories
+
+a category is a named policy. a node has one, set at assimilate
+[ `-category <name>` or a path rule ] and changeable later.
+
+| field | values |
+|---|---|
+| local encryption | none \ cascade |
+| target copies | number of durable copies, per failure domain |
+| priority | number used when space runs out |
+| replica | full bytes \ manifest only [ re-fetchable, source recorded ] |
+| layer | private [ default, full price ] \ generic [ not user data, may be shared and deduplicated across owners, each stack separates the two ] |
+| want-set | which holders must keep it [ laptops ] |
+| foreign work | may a node key reach a host not owned : no [ default ] \ yes. a state-level attack on every hoster at once is assumed possible |
+
+- **leaving owned hardware is always sealed.** a category can add protection
+  there, never remove it. a holder not marked as owned refuses plaintext at
+  the sender, fail closed
+- changing target, priority, replica or want-set is free : a new signed record
+- changing local encryption rewrites the node [ `C` is over the ciphertext for
+  protected content ]. from plain to encrypted, the old plaintext is released
+  and the tool says that bytes on ssd \ journaling media are not proven gone
+- protected content keeps the 2026-10-22 rules : a random key, never
+  deduplicated, plaintext id never stored
+- each category has its own key [ section 4 ], so shredding a category is one
+  step, the shape of question 18
+
+## 3. incoming pool
+
+an assimilate target that needs no classification, worked on in batches until
+it is empty.
+
+- `assimilate -incoming <paths>` stores into the built-in category `incoming`
+- the existing guarantee holds : a source is removed only after its stored
+  copy and the source verified again, and only with `-remove`
+- `incoming` is treated as if important until someone says otherwise : sealed
+  when leaving, a replica target, and counted in the status warnings
+- `n7fs incoming [ list | tag | done ]` : browse by original path, apply a
+  category to a batch, see what remains. tagging only moves a reference out
+  of the pool
+
+## 4. sealing
+
+- **suite** : one suite, recorded in the format byte. twofish in ctr mode
+  inside, chacha20-poly1305 outside, independent keys per layer and per node.
+  the outer tag rejects tampering before any twofish work
+- **no aes** : owner decision 2026-11-08, not offered as an option
+- **nonces and counters, content** : derived from the chunk index, the
+  final-chunk flag and the layer [ owner rule ] ; unique by construction
+  only because the key is per node
+- **twofish counter block** [ 128 bits, fixed widths ] : chunk index 56 bits,
+  final flag 8 bits, block counter 64 bits, big-endian. the implementation is
+  configured so the carry stays inside the low 64 bits, and a known-answer
+  test across that rollover pins it
+- **nonces under long-lived keys** : a chunk index means nothing here, and
+  this is the class of the 2026-10-05 link-upgrade nonce reuse
+  - a wrap : from the wrapped key's unique id + a re-wrap counter
+  - the head : a monotonic version counter, journaled BEFORE use
+  - random nonces are not used for either
+  - a test fails if two wraps or two head versions share a nonce
+- **key hierarchy** [ envelope ] : node key <- category key <- root key. wraps
+  use the same suite. layers wrap keys, never content, so re-wrapping leaves
+  blobs and `C` unchanged
+- **key material comes straight from os entropy**, with a test that fails
+  otherwise. the two layer keys of a node are two independent draws, no kdf
+- **derivations** [ the head locator ] use BMW384, no sha-2 kdf
+- **a host doing work on content receives node keys per fetch, never a
+  category key or the map** [ the 2026-10-22 per-fetch rule ]. a compromise,
+  hoster level included, then exposes the nodes it was given while
+  compromised and nothing else
+- **chunks** : large files split into fixed chunks. fixed chunks round a size
+  up, they do not hide it
+- **packs** : small files are sealed individually under their own node keys,
+  then concatenated into pack blobs. this solves inode cost and keeps
+  per-node shredding ; a released entry is dead space until a repack
+- proposed size for chunks and packs : 16 MiB [ open ]
+
+### shredding
+
+deleting a node = destroying its wrapped key. the bytes become noise at once
+and physical removal is lazy : garbage, no longer counted toward any target,
+reclaimed by a home-signed delete when space is wanted. the exception is
+someone who already took the unwrapped key.
+
+a holder never could read the blob, so what a shred defends against is a
+LATER theft of a parent key. and old sealed map versions still hold the old
+wrap, on holders that ignored a delete and on media where overwrite proves
+nothing. so the guarantee comes in three steps :
+
+1. **drop the wrap** [ instant, per file ] : journaled, gone from the current
+   map. holds against anyone who does not also have an old map + its keys
+2. **rotate the category key** [ batched, cheap ] : a new category key, the
+   surviving node keys re-wrapped, the old key destroyed. wraps only, no blob
+   changes. a later theft of the category key opens nothing shredded before
+3. **rotate the root key** [ rare, deliberate ] : also replaces the offline
+   copies. needed against old heads retained by a holder + a later root theft
+
+`n7fs status` names which step each shred has reached.
+
+- a shred covers the sealed side only. a plain node at home is released there
+  too, and plaintext on ssd \ journaling media is not proven gone. content
+  that must be shreddable needs a category with local encryption
+- a plain node shared by several references is shredded only when none is
+  live. protected content is never shared
+- wraps are symmetric : 256-bit symmetric wraps do not add the exposure of a
+  public-key wrap to future key-breaking on data held by others for years.
+  a C25519 wrap to a category public key stays possible later for one case :
+  a device that may add files without being able to read old ones
+
+### add-only writers
+
+a host that produces data it may never read back [ logs on a remote ]. it
+holds a category PUBLIC key only.
+
+- each segment is sealed under a fresh node key, the node key wrapped to the
+  category public key with an ephemeral C25519 key [ the wrap needs no nonce
+  rule ]. the content suite stays the same
+- the writer cannot open any closed segment, and has no delete authority
+- honest limit : the host sees a line as it is made. add-only protects the
+  past, not the present
+- integrity : a public key lets anyone seal, so sealing proves nothing about
+  who wrote. a hash chain alone [ the log chain of FILES-ZENKA ] does not help
+  either : a compromised writer re-encrypts and rebuilds it for everything
+  not yet seen outside its control. two measures close that window :
+  - **anchors** : the chain position and checksum go out per segment and on a
+    short timer, to at least one holder in a different CONTROL domain [ not
+    only another failure domain : another admin path, home is best ]. the
+    receiver timestamps them, so they cannot be backdated
+  - **forward-secure ratchet** : each segment carries a mac under `k[i]`, then
+    `k[i+1] = BMW384( k[i] )` and `k[i]` is erased. home alone keeps `k[0]`.
+    an attacker arriving at step T holds `k[T]` and cannot forge any earlier
+    segment, even one never anchored. the ratchet key lives in locked memory
+    only [ overwrite on ssd proves nothing ], and a restart begins a new chain
+    seeded from home
+  - what remains : everything after T can be forged, the open segment is
+    exposed, a tail back to the last anchor can be CUT [ seen as a gap against
+    the anchors, not prevented ], and a hypervisor operator reads memory
+    directly
+- epoch keys : a new keypair per period. retention = destroying a period's
+  private key, then nobody can read that period, its owner included
+- these wraps are public-key, so the long-term exposure noted under shredding
+  applies to them. acceptable for logs, not the default for other categories
+
+### coercion
+
+the aim : a demanded key does not help, and that is visible in advance, so
+the attempt is less likely to be made.
+
+- an operator of a blind holder or an add-only writer holds no key that opens
+  anything. the design says so publicly
+- a destroyed key [ shredding steps 2, 3 ; expired log epochs ] cannot be
+  produced by anyone
+- **provable beats deniable** : hidden volumes make a demand unable to end,
+  since nothing can show that no more exists. this design relies on keys that
+  verifiably do not exist or are not held by the person asked
+- a single root that opens everything is the one thing worth demanding. so
+  compartments [ open, decide before stage 4 ] : independent roots, each with
+  its own map and head, none derived from another, and offline shares split
+  k-of-n across places or people [ question 18's levels fit on top ]. the
+  trade : more shares that can be lost, and the acceptance test must cover
+  them
+
+### comparing parallel work
+
+the same deterministic work on hosts in different control domains, compared.
+a compromised host can then only pass by doing the real work and returning
+the real result : for the output, a compromise is reduced to a theft of
+resources.
+
+- **commit before reveal** : each host first publishes a checksum over its
+  result and a host-specific salt, and reveals only after all commitments are
+  in. otherwise a host copies the honest answer without doing the work
+- two hosts detect a difference, three settle which one is wrong
+- **blob storage is the first user** : both holders of a blob answer a random
+  challenge `BMW384( challenge : chunk )`. the bytes are identical, so home
+  compares them without keeping the data, and answering needs the real bytes.
+  this strengthens the spot-checks of safety rule 2. colluding holders can
+  still share one copy, hence different control domains
+- **logs compare only where two sides saw the same event** : a route or a
+  transfer is recorded at both ends. purely local lines have no second witness
+- full doubling costs twice the resources ; random audits of a fraction,
+  unannounced, keep most of the deterrent
+- limits : the work must be deterministic ; identical output says nothing of
+  side effects outside the compared result [ exfiltration, abuse of the host's
+  credentials ] ; a host working on plaintext has read that plaintext, so
+  "theft of resources only" needs input that is sealed, public, or not
+  sensitive
+
+### plain nodes leaving home
+
+locally a plain node is addressed by its plaintext `C`. a blind holder must
+never see that : it could confirm possession of any known file. so the remote
+copy gets a random key, and the sealed map gives `local C -> { blob, offset,
+length, wrapped key }`. this is question 13's `plain_bmw` shape, for anything
+leaving owned hardware [ owner confirmed 2026-11-08 ].
+
+- dedup happens at home, before sealing, through the map
+- **the map is as critical as the keys** : it is itself sealed, journaled and
+  placed with the highest target
+- two home hosts sealing the same content produce different blobs, so the map
+  must be shared between home hosts or uploads duplicate. not designed here
+
+### finding the map from nothing
+
+blobs are opaque, so a clean machine needs a start point : a **head** blob at
+a locator derived from the root key, holding the signed journal position and
+the map's root. holders see one blob that changes.
+
+- rollback : homes pin the newest head seen. a clean machine has no pin, so it
+  takes the newest validly signed head of ALL reachable holders, and can only
+  be as current as they are. this limit is stated in the restore output
+
+## 5. holders and placement
+
+- a holder has a role [ intake \ durable ], a quota, a reserve the store never
+  touches, and a failure-domain label. hosts at one provider share a domain
+- home signs a placement record per blob : blob id, size, target copies,
+  priority number. no names, categories appear as numbers only
+- holders move ciphertext among themselves from those records, in the
+  background, without home being online
+
+- when keys and map are held apart from the blobs, a node needs BOTH sides, so
+  the loss risks add up. targets are set per side and the status reports the
+  joint result. keys and map are tiny, so they get many holders, as k-of-n
+  shares : more copies of a whole key would raise the theft risk, shares
+  raise survival and theft resistance together
+
+### safety rules
+
+1. an intake copy counts as zero redundancy
+2. intake evicts only after signed receipts from enough durable holders ;
+   receipts are checked by random spot-checks from home
+3. a holder never deletes on its own say. a delete is a home-signed record,
+   so one compromised holder cannot wipe others through background sync
+4. a blind holder cannot read the journal, so it cannot apply the tombstone
+   rule. home drives deletion, and a holder ignoring a delete is what
+   crypto-shredding covers
+5. a holder verifies ciphertext checksums on its own [ scrubbing ], and holds
+   no signing key of the store
+
+### when data does not fit
+
+- reclaim first from blobs above their target, then the lowest priority
+- never take a blob below its target to make room for lower priority
+- what cannot be placed goes into an **under-replicated list** with the bytes
+  missing. never dropped silently, always shown by `n7fs status`
+
+laptops are holders with a small quota and a want-set. offline changes meeting
+each other remain to be designed.
+
+## 6. acceptance
+
+recovery counts as working only after this : on a clean machine, with only the
+offline key copy and ONE holder, restore a tree and verify it. offline key
+copies exist in two places before the first upload.
+
+attack on scratch disks at each stage, as for format 3 : crash points during
+seal \ upload \ eviction, a holder serving old or wrong blobs, forged receipts,
+nonce uniqueness across resumed uploads.
+
+## 7. stages
+
+1. tree layer and categories
+2. incoming pool
+3. union sync between two local disks [ honors a tombstone only when the
+   journal lists its release ]
+4. sealing, the map, head, one durable holder over ssh, the acceptance test
+5. placement, receipts, under-replicated list
+6. intake holders and background relays
+7. native signer and n7fs zenka [ todo 6RH ] driving sync
+8. laptops : want-sets, offline change merge
+
+stage 4 is the first that gets essential data off the host.
+
+## open
+
+- compartments and k-of-n root shares : one root or several [ before stage 4 ]
+- add-only writers : which stage, after sealing and one holder work
+- long horizon, kept possible by placement : a "copy" stays abstract so it can
+  later be a share ; key and map holders disjoint from blob holders, in other
+  control domains ; data always moving, which needs each move to change the
+  bits [ share refresh ], otherwise a move only makes more copies
+- calculated placement [ stage 5 starts with integer targets, then grows into
+  this ] : a category states a durability and an availability goal instead of
+  a copy count. home computes copies \ shares from measured holder reliability,
+  correlation by domain, capacity and transfer cost, spending the next byte
+  where priority x survival gained is highest. integer floors stay as hard
+  limits the calculation cannot go below [ at least two control domains, one
+  of them owned ], with hysteresis so estimates do not cause constant moves
+- erasure coding as the form of a "copy" : k-of-n fragments over sealed chunks.
+  a placement rule : at most n-k fragments of a stripe per control domain.
+  fragments differ between holders, so the two-holder challenge of identical
+  bytes does not apply : needs per-fragment challenge tokens prepared at seal
+  time, or sampled recomputation. repair and every read need k holders online
+- distribution as a protection layer : holds for secret sharing, and for slices
+  of sealed data when the mapping is itself distributed and dynamic. holding
+  slices is then not being able to serialize them : the mapping acts as a key
+  as large as the slice count. it must survive like a key [ k-of-n ], be
+  checkable only keyed or over the whole, since a checksum open per partial
+  order is a solving oracle, and slices must change form when they move, or
+  traffic links them. on unsealed data slices reassemble statistically, so the
+  sealing stays under it. n-of-n across groups, each group replicated inside one
+  control domain : one uncompromised group keeps the rest at zero information,
+  one failed host does not lose the share. refresh deltas sum to zero
+- chunk and pack size
+- where the root key lives for the standalone CLI before the vault agent
+  issues handles
+- wire form between holders [ plain ssh first, cube routes later ]
+- does a holder know a blob's priority at all, or does only home decide and
+  send explicit move orders
+
+#,,.,,,.,,,..,,,,,,,,,,.,,,..,.,,,,,.,,.,,,.,,..,,...,...,...,..,,,..,.,,,.,,,
+#KM4TMK4PCDD23AAPDEFQP44UKGWWPDKTMN4MHPFVPQUQXW7NLVUNF6TGETC7UIOFNSC2BXT5NAOCC
+#\\\|PYVIE5ZOYDFNECFJ2UWIEGYPKEIIWR3Z7H3ZWLAWQSUWIVCRBKX \ / AMOS7 \ YOURUM ::
+#\[7]CQUYJ7LTHKEHGO2NBKORB4EDVC7VNENUJM2S45IYAWNHTIN26UBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
