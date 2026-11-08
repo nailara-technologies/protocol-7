@@ -831,9 +831,9 @@ my @mutations = (
                     . "\$rec->{'signed'}, \$rec->{'sig'} );",
                 "        if 0;"
             ],
-            [   "    my \@records = record_scan( \$id, qw| batch |, qw| "
-                    . "batch-assignments |,\n        qw| batch-assignment | "
-                    . ");",
+            [   "    my \@records = record_scan(\n        \$id, qw| batch "
+                    . "|,\n        qw| batch-assignments |,\n        qw| "
+                    . "batch-assignment |\n    );",
                 "    my \@records = map { my \$p = \$ARG; \$p =~ s|.*/||; "
                     . "batch_read( \$id, \$p ) } glob "
                     . "\"\$id->{'path'}/.n7fs/batch-assignments/*.batch-assig"
@@ -848,6 +848,50 @@ my @mutations = (
             [   "        if not exists category_definitions( "
                     . "\$id, \$replay )->{\$category};",
                 "        if 0;"
+            ]
+        ],
+    },
+    {   name => 'sync origin matching removed',
+        file => 'N7FS/Sync.pm',
+        test => 'test-n7fs-sync.pl',
+        edit => [ [ "    return if defined \$existing;\n", "" ] ],
+    },
+    {   name => 'sync cursor hash check removed',
+        file => 'N7FS/Sync.pm',
+        test => 'test-n7fs-sync.pl',
+        edit => [
+            [   "            or _source_hash(\$entry) "
+                    . "ne \$cursor->{'source_hash'};",
+                "            or 0;"
+            ]
+        ],
+    },
+    {   name => 'sync tombstone journal check removed',
+        file => 'N7FS/Sync.pm',
+        test => 'test-n7fs-sync.pl',
+        edit => [
+            [   "        _retained_release( \$c, \$ARG "
+                    . ") for \$p->{'drop'}{'releases'}->\@*;",
+                "        _retained_release( \$c, \$ARG ) for "
+                    . "\$p->{'drop'}{'releases'}->\@*,\n            "
+                    . "\$c->{'unjournaled_releases'}->\@*;"
+            ],
+            [   "        next if not \$ref->{'released'};",
+                "        next if 0;"
+            ],
+            [   "    return if "
+                    . "\$c->{'source_replay'}{'nodes'}{\$source_address};",
+                "    return if 0;"
+            ]
+        ],
+    },
+    {   name => 'sync node verification before publish removed',
+        file => 'N7FS/Sync.pm',
+        test => 'test-n7fs-sync.pl',
+        edit => [
+            [   "    node_verify( \$c->{'from'}{'path'}, "
+                    . "\$source_addr, 3, \$c->{'from'} );\n",
+                ""
             ]
         ],
     },
@@ -866,7 +910,7 @@ foreach my $m (@mutations) {
         'N7FS.pm',
         map {"N7FS/$ARG.pm"}
         qw| Sum Sign Disk Store Convert Journal Reference Release Record Tree
-        Category Batch Incoming |
+        Category Batch Incoming Sync |
     ) {
         open( my $in, '<:raw', "$lib/$f" ) or die "read $lib/$f : $OS_ERROR";
         my $text = do { local $INPUT_RECORD_SEPARATOR; <$in> };
@@ -910,8 +954,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,.,,,,,,,,.,...,,.,,.,,,.,,,,..,.,,,,.,,,..,..,,...,...,,,.,.,,,.,,,..,,,,.,
-#PLW2HTOHGYSJOGG7WAVFXV2KHZF5EUF66VBSRSOEB6AD3NNB4PASMEKFU2M3O6EQIBETEHRS6UISA
-#\\\|3FODJ55XFJBYAZVZLQBDYT6DQVGELWLMSHPIGAIYIPOVZ4YRHTU \ / AMOS7 \ YOURUM ::
-#\[7]AFVCXVJT3IQ3KTHN4CFBZI3ZUF7BY6VCHWFKPIEMXDZPX7OZCEDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,..,,,,,,.,,,..,,,.,,..,,,,.,..,,...,.,.,,.,,,,.,,..,.,.,,,,,
+#KORMKABYOTH563IXIZK5RZYKXR7V5ZCKQWEOMU3VQPQY5UU4L5EVZ2ENKLWSSUD7GG6BNQN5D6VK6
+#\\\|ODGJPOG6G4MA5LWY5A4M6YCYCIPLBDO3SXR2PZWIQ755GAEUPKX \ / AMOS7 \ YOURUM ::
+#\[7]KUK3NV2BNKQGLLTXUXKPU5EGEG6PDDEVXRQAOJPU6AUWLTFWUQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -49,6 +49,9 @@ use warnings;
 ## n7fs incoming <disk> list [ -under <prefix> ] [ -depth <n> ] [ -limit <n> ]
 ## n7fs incoming <disk> tag <prefix|glob|address> <category>
 ## n7fs incoming <disk> done         exit 0 when empty, 1 while nonempty
+## n7fs sync <from-disk> <to-disk> [ -dry-run ] [ -trees-only ]
+## n7fs sync-conflicts <disk>         unresolved concurrent sync changes
+## n7fs sync-conflicts <disk> resolve <record-name> [ keep receiver value ]
 ## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -prune ] [ -dry-run ]
 ##                 [ -incoming ]    unclassified roots, each gets its own tree
 ##                 [ -tree <name> ] [ -category <name> ]
@@ -120,7 +123,7 @@ GetOptionsFromArray(
         dry-run out=s format=s chksum=s holder=s all allow-rollback force reason=s
         free=s older=s now tree=s category=s category-rule=s@ owners
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
-        layer=s incoming under=s depth=i limit=i help |
+        layer=s incoming under=s depth=i limit=i trees-only help |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -142,30 +145,32 @@ if ( $o{'trust'}->@* ) {
 }
 
 my %run = (
-    qw| keygen |        => \&cmd_keygen,
-    qw| pubkey |        => \&cmd_pubkey,
-    qw| init |          => \&cmd_init,
-    qw| list |          => \&cmd_list,
-    qw| attach |        => \&cmd_attach,
-    qw| detach |        => \&cmd_detach,
-    qw| status |        => \&cmd_status,
-    qw| verify |        => \&cmd_verify,
-    qw| get |           => \&cmd_get,
-    qw| find |          => \&cmd_find,
-    qw| drop |          => \&cmd_drop,
-    qw| release |       => \&cmd_release,
-    qw| reclaim |       => \&cmd_reclaim,
-    qw| release-epoch | => \&cmd_release_epoch,
-    qw| repair |        => \&cmd_repair,
-    qw| trees |         => \&cmd_trees,
-    qw| tree-drop |     => \&cmd_tree_drop,
-    qw| restore |       => \&cmd_restore,
-    qw| category |      => \&cmd_category,
-    qw| set-category |  => \&cmd_set_category,
-    qw| incoming |      => \&cmd_incoming,
-    qw| assimilate |    => \&cmd_assimilate,
-    qw| upgrade |       => \&cmd_upgrade,
-    qw| confirm |       => \&cmd_confirm,
+    qw| keygen |         => \&cmd_keygen,
+    qw| pubkey |         => \&cmd_pubkey,
+    qw| init |           => \&cmd_init,
+    qw| list |           => \&cmd_list,
+    qw| attach |         => \&cmd_attach,
+    qw| detach |         => \&cmd_detach,
+    qw| status |         => \&cmd_status,
+    qw| verify |         => \&cmd_verify,
+    qw| get |            => \&cmd_get,
+    qw| find |           => \&cmd_find,
+    qw| drop |           => \&cmd_drop,
+    qw| release |        => \&cmd_release,
+    qw| reclaim |        => \&cmd_reclaim,
+    qw| release-epoch |  => \&cmd_release_epoch,
+    qw| repair |         => \&cmd_repair,
+    qw| trees |          => \&cmd_trees,
+    qw| tree-drop |      => \&cmd_tree_drop,
+    qw| restore |        => \&cmd_restore,
+    qw| category |       => \&cmd_category,
+    qw| set-category |   => \&cmd_set_category,
+    qw| incoming |       => \&cmd_incoming,
+    qw| sync |           => \&cmd_sync,
+    qw| sync-conflicts | => \&cmd_sync_conflicts,
+    qw| assimilate |     => \&cmd_assimilate,
+    qw| upgrade |        => \&cmd_upgrade,
+    qw| confirm |        => \&cmd_confirm,
 );
 usage(2) if not exists $run{$command};
 
@@ -949,6 +954,79 @@ sub cmd_incoming {
     fail('incoming needs list, tag or done');
 }
 
+sub cmd_sync {
+    require AMOS7::N7FS::Sync;
+    AMOS7::N7FS::Sync->import(qw| store_sync sync_conflict_list |);
+    my $from = shift // fail('sync needs a source disk');
+    my $to   = shift // fail('sync needs a receiver disk');
+    fail('sync : unexpected arguments') if @ARG;
+    my $r = eval {
+        store_sync(
+            %common,
+            qw| from |           => $from,
+            qw| to |             => $to,
+            qw| host |           => host_signer(),
+            qw| allow_rollback | => $o{'allow-rollback'} ? TRUE : FALSE,
+            qw| dry_run |        => $o{'dry-run'}        ? TRUE : FALSE,
+            qw| trees_only |     => $o{'trees-only'}     ? TRUE : FALSE,
+        );
+    };
+    if ( not defined $r ) {
+        my $err = $EVAL_ERROR // "sync failed\n";
+        print STDERR "n7fs : run n7fs repair $to before retrying the sync\n";
+        die $err;
+    }
+    say_line($ARG) for $r->{'messages'}->@*;
+    foreach my $field (
+        qw| nodes bytes references trees categories assignments
+        drops conflicts |
+    ) {
+        say_line( $field, $r->{'count'}{$field} // 0 );
+    }
+    say_line( 'journal ', $r->{'journal_seq'} )
+        if defined $r->{'journal_seq'};
+    say_line('dry run : nothing was changed') if $r->{'dry_run'};
+    say_line('no changes ; no journal entry') if not $r->{'changed'};
+    my ( $id, $state, $replay ) = _tree_context($to);
+    my $remaining = scalar sync_conflict_list( $id, $replay );
+    return ( $r->{'count'}{'conflicts'} or $remaining ) ? 1 : 0;
+}
+
+sub cmd_sync_conflicts {
+    require AMOS7::N7FS::Sync;
+    AMOS7::N7FS::Sync->import(
+        qw| store_sync sync_conflict_list
+            sync_conflict_resolve |
+    );
+    my $disk = disk_arg(shift);
+    if ( @ARG and $ARG[0] eq qw| resolve | ) {
+        shift @ARG;
+        my $name = shift
+            // fail('sync-conflicts resolve needs a record name');
+        fail('sync-conflicts resolve : unexpected arguments') if @ARG;
+        my $r = sync_conflict_resolve(
+            %common,
+            qw| disk | => $disk,
+            qw| host | => host_signer(),
+            qw| name | => $name,
+        );
+        say_line( 'resolved ', $name, ' [ journal ', $r->{'seq'},
+            ' ; receiver value kept ]' );
+        return 0;
+    }
+    my ( $id, $state, $replay ) = _tree_context($disk);
+    fail('sync-conflicts : unexpected arguments') if @ARG;
+    my @conflicts = sync_conflict_list( $id, $replay );
+    foreach my $conflict (@conflicts) {
+        say join ' ', $conflict->{'path'}, $conflict->{'kind'},
+            $conflict->{'origin'}{'disk'}, $conflict->{'origin'}{'id'},
+            'receiver=' . ( $conflict->{'receiver'} // '' ),
+            'source=' .   ( $conflict->{'source'}   // '' );
+    }
+    say_line( 'conflicts ', scalar @conflicts );
+    return 0;
+}
+
 sub _assimilate_options {
     my ( $paths, $tree, $category ) = @ARG;
     return (
@@ -1090,8 +1168,8 @@ sub cmd_confirm {
     return 0;
 }
 
-#,,.,,,.,,.,.,..,,,,.,..,,,,,,...,.,.,..,,,,,,..,,...,..,,...,.,,,,,,,...,..,,
-#CNGMECHNK27LIZITPVN47A5NTZ6SQQBVK2DHAI4UDVQP7B55GEX4SQS2JBBAEQFD4APDQ5NTA46NQ
-#\\\|FYIUV2VJVZEL2OQDMYR27F6NWPVVNFFHD436FKCTW26BW5Q4AEG \ / AMOS7 \ YOURUM ::
-#\[7]JV4CX5JH66L6MQVF75WXD3IKPKGH5JHCH2IGVIRUARJMTBFPGOAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,.,.,,,,,...,.,.,..,,,,,,,,,,..,,...,..,,...,,.,,.,.,,..,,,.,
+#XPW2FKYX5TYS7TDXO5NWQ63ZMNGEAITXM2V6TMMOGKWLK7BIGGGZKVXYTRWJI2VLMUBIQNH4D6HPC
+#\\\|GVX6IJDRDRIQ6C72XMB3ODOOMRGM4KFUKGFIC3AHLNATFKC5MEZ \ / AMOS7 \ YOURUM ::
+#\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

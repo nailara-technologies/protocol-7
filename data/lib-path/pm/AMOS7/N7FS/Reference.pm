@@ -24,7 +24,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Reference-VERSION.PQ5M3CI |;
+our $VERSION = qw| AMOS7::N7FS::Reference-VERSION.TU5INOY |;
 
 @EXPORT_OK = qw| reference_write reference_scan reference_drop_write
     reference_address |;
@@ -73,6 +73,11 @@ sub _check_payload {
     refuse( 'reference %s : empty holder or name', $path )
         if not length $p->{'holder'}
         or not length $p->{'name'};
+    refuse( 'reference %s : bad origin', $path )
+        if defined $p->{'origin'}
+        and ( ref $p->{'origin'} ne qw| HASH |
+        or ( $p->{'origin'}{'disk'} // '' ) !~ m|\A[A-Z2-7]{7}\z|
+        or not length( $p->{'origin'}{'id'} // '' ) );
     return;
 }
 
@@ -121,6 +126,14 @@ sub reference_scan {
                             $relative, $field )
                             if $d->{'payload'}{$field} ne $p->{$field};
                     }
+                    refuse( 'reference %s : drop origin differs from addr',
+                        $relative )
+                        if ( $d->{'payload'}{'origin'}{'id'}
+                        // $p->{'ntime'} ) ne
+                        ( $p->{'origin'}{'id'} // $p->{'ntime'} )
+                        or ( $d->{'payload'}{'origin'}{'disk'}
+                        // $expected{'disk'} ) ne
+                        ( $p->{'origin'}{'disk'} // $expected{'disk'} );
                 }
                 push @out,
                     {
@@ -139,7 +152,8 @@ sub reference_scan {
 }
 
 sub reference_write {
-    my ( $node, $id, $store, $holder, $name, $converted, $minimum ) = @ARG;
+    my ( $node, $id, $store, $holder, $name, $converted, $minimum, $origin )
+        = @ARG;
     refuse('reference write needs the delegated store key') if not ref $store;
     refuse('reference holder and name must not be empty')
         if not defined $holder
@@ -165,6 +179,7 @@ sub reference_write {
         qw| ntime |  => $nt14,
     );
     $payload{'converted'} = JSON::PP::true if $converted;
+    $payload{'origin'}    = $origin        if defined $origin;
     make_dirs( $dir, 0700 );
     write_new_file( "$dir/addr",
         signed_record_pack( qw| reference |, \%payload, $store, 3 ) );
@@ -186,6 +201,7 @@ sub reference_drop_write {
     my %payload
         = map { $ARG => $ref->{$ARG} } qw| disk addr holder name ntime |;
     $payload{'converted'} = $ref->{'converted'} if $ref->{'converted'};
+    $payload{'origin'}    = $ref->{'origin'}    if $ref->{'origin'};
     refuse( 'reference %s : disk binding changed', $ref->{'path'} )
         if $payload{'disk'} ne $id->{'disk'};
     write_new_file( $ref->{'drop_path'},
@@ -195,8 +211,8 @@ sub reference_drop_write {
 
 1;
 
-#,,,.,,.,,,,,,.,.,,,.,,,.,,.,,.,.,..,,,,.,...,.,.,...,...,...,..,,...,,..,,,,,
-#FXACT6SLOBYW3URL3QOUNE5JPIQJTRXWSZ2JEXBMUX2MNOVJYSPPI5NSEMO6VPPYQR4CMHZN6CE44
-#\\\|Z27DG53B2WRFH2B2PWOUS6B4NJQYICJS4POEWDP5PVRXTMN2RYF \ / AMOS7 \ YOURUM ::
-#\[7]HLJ26QGPKYE5X4AV5SOJVREG7NYI4OYJEGNMCM7BFYFEKRKHV6DQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,..,,.,,,.,,,,,.,.,,,,..,,,,,.,.,...,...,..,,.,.,,,.,,..,,,.,
+#75IKZHU532TCMAYQVFGBJ6HGV52IER5PQHDX6YW43VQKGRNXK63NCIC2EUUEU2EHXJWWY3YDRF65A
+#\\\|QUB6QGUWJB5ZBNEHPYOEJA2EWF4GJSJOYL44XZUVH6YTWG2UAPQ \ / AMOS7 \ YOURUM ::
+#\[7]2CHULF5JBAF2EUCKQ4544TCDFU2AYFKOWEGT4IMISGHEVQNAPYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

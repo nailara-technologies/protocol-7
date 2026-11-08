@@ -21,7 +21,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.N5PXSMI |;
+our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.BPKG5TQ |;
 
 @EXPORT_OK = qw| journal_replay journal_head journal_write |;
 
@@ -85,6 +85,18 @@ sub _record {
     $p->{'drop'}{'trees'} //= [];
     refuse( 'journal %s : drop trees is not a list', $path )
         if ref $p->{'drop'}{'trees'} ne qw| ARRAY |;
+    $p->{'drop'}{'sync_releases'} //= [];
+    $p->{'drop'}{'conflicts'}     //= [];
+    $p->{'add'}{'conflicts'}      //= [];
+    $p->{'add'}{'sync_cursors'}   //= [];
+    foreach my $part (qw| sync_releases conflicts |) {
+        refuse( 'journal %s : drop %s is not a list', $path, $part )
+            if ref $p->{'drop'}{$part} ne qw| ARRAY |;
+    }
+    foreach my $part (qw| conflicts sync_cursors |) {
+        refuse( 'journal %s : add %s is not a list', $path, $part )
+            if ref $p->{'add'}{$part} ne qw| ARRAY |;
+    }
     return { qw| bytes | => $bytes, qw| payload | => $p };
 }
 
@@ -96,6 +108,21 @@ sub _operations {
     $expected->{'meta_history'}  //= {};
     $expected->{'ref_history'}   //= {};
     $expected->{'release_order'} //= [];
+    foreach my $which (qw| add drop |) {
+        foreach my $part ( keys $p->{$which}->%* ) {
+            next if ref $p->{$which}{$part} ne qw| ARRAY |;
+            foreach my $operation ( $p->{$which}{$part}->@* ) {
+                next
+                    if ref $operation ne qw| HASH |
+                    or not defined $operation->{'origin'};
+                refuse( 'journal seq %d : bad origin', $p->{'seq'} )
+                    if ref $operation->{'origin'} ne qw| HASH |
+                    or ( $operation->{'origin'}{'disk'} // '' )
+                    !~ m|\A[A-Z2-7]{7}\z|
+                    or not length( $operation->{'origin'}{'id'} // '' );
+            }
+        }
+    }
     foreach my $which (qw| add drop |) {
         foreach my $node ( $p->{$which}{'nodes'}->@* ) {
             refuse( 'journal seq %d : bad node address', $p->{'seq'} )
@@ -228,7 +255,58 @@ sub _operations {
                 qw| path |      => $batch->{'path'},
                 qw| category |  => $record->{'category'},
                 qw| batch |     => TRUE,
+                $batch->{'origin'}
+                ? ( qw| origin | => $batch->{'origin'} )
+                : (),
             };
+        }
+    }
+    foreach my $release ( $p->{'drop'}{'sync_releases'}->@* ) {
+        refuse( 'journal seq %d : bad retained release', $p->{'seq'} )
+            if ref $release ne qw| HASH |
+            or ( $release->{'node'} // '' ) !~ $ADDR_RE
+            or ref $release->{'origin'} ne qw| HASH |
+            or ref $release->{'references'} ne qw| ARRAY |;
+        $expected->{'sync_releases'}{ $release->{'node'} } = $release;
+        push $expected->{'sync_release_order'}->@*, $release;
+        foreach my $ref ( $release->{'references'}->@* ) {
+            my $key = _ref_id( $ref->{'node'}, $ref->{'path'} );
+            refuse(
+                'journal seq %d : retained release drops unknown reference',
+                $p->{'seq'} )
+                if not $expected->{'references'}{$key};
+            $expected->{'references'}{$key}{'dropped'} = TRUE;
+        }
+    }
+    foreach my $cursor ( $p->{'add'}{'sync_cursors'}->@* ) {
+        refuse( 'journal seq %d : bad sync cursor', $p->{'seq'} )
+            if ref $cursor ne qw| HASH |
+            or ( $cursor->{'source'}      // '' ) !~ m|\A[A-Z2-7]{7}\z|
+            or ( $cursor->{'source_seq'}  // '' ) !~ m|\A\d+\z|
+            or ( $cursor->{'source_hash'} // '' ) !~ m|\A[A-Z2-7]{77}\z|
+            or ( $cursor->{'path'}        // '' )
+            !~ m|\A\d{14}\.[A-Z2-7]{8}\.sync-cursor\z|;
+        $expected->{'sync_cursors'}{ $cursor->{'source'} }      = $cursor;
+        $expected->{'sync_cursor_history'}{ $cursor->{'path'} } = $cursor;
+    }
+    foreach my $which (qw| add drop |) {
+        foreach my $conflict ( $p->{$which}{'conflicts'}->@* ) {
+            refuse( 'journal seq %d : bad sync conflict', $p->{'seq'} )
+                if ref $conflict ne qw| HASH |
+                or ( $conflict->{'path'} // '' )
+                !~ m|\A\d{14}\.[A-Z2-7]{8}\.sync-conflict\z|;
+            if ( $which eq qw| add | ) {
+                $expected->{'sync_conflicts'}{ $conflict->{'path'} }
+                    = $conflict;
+            } else {
+                refuse( 'journal seq %d : unknown sync conflict resolution',
+                    $p->{'seq'} )
+                    if
+                    not $expected->{'sync_conflicts'}{ $conflict->{'path'} };
+                delete $expected->{'sync_conflicts'}{ $conflict->{'path'} };
+            }
+            $expected->{'sync_conflict_history'}{ $conflict->{'path'} }
+                = $conflict;
         }
     }
     foreach my $node ( $p->{'drop'}{'releases'}->@* ) {
@@ -293,23 +371,30 @@ sub journal_replay {
             };
     }
     return {
-        qw| seq |                => $seq,
-        qw| baseline |           => $baseline,
-        qw| nodes |              => $expected{'nodes'},
-        qw| metas |              => $expected{'metas'},
-        qw| references |         => $expected{'references'},
-        qw| released |           => $expected{'released'},
-        qw| meta_history |       => $expected{'meta_history'},
-        qw| ref_history |        => $expected{'ref_history'},
-        qw| release_order |      => $expected{'release_order'},
-        qw| trees |              => $expected{'trees'}              // {},
-        qw| tree_history |       => $expected{'tree_history'}       // {},
-        qw| tree_drops |         => $expected{'tree_drops'}         // {},
-        qw| categories |         => $expected{'categories'}         // {},
-        qw| category_history |   => $expected{'category_history'}   // {},
-        qw| assignments |        => $expected{'assignments'}        // {},
-        qw| assignment_history | => $expected{'assignment_history'} // {},
-        qw| batch_history |      => $expected{'batch_history'}      // {},
+        qw| seq |                   => $seq,
+        qw| baseline |              => $baseline,
+        qw| nodes |                 => $expected{'nodes'},
+        qw| metas |                 => $expected{'metas'},
+        qw| references |            => $expected{'references'},
+        qw| released |              => $expected{'released'},
+        qw| meta_history |          => $expected{'meta_history'},
+        qw| ref_history |           => $expected{'ref_history'},
+        qw| release_order |         => $expected{'release_order'},
+        qw| trees |                 => $expected{'trees'}               // {},
+        qw| tree_history |          => $expected{'tree_history'}        // {},
+        qw| tree_drops |            => $expected{'tree_drops'}          // {},
+        qw| categories |            => $expected{'categories'}          // {},
+        qw| category_history |      => $expected{'category_history'}    // {},
+        qw| assignments |           => $expected{'assignments'}         // {},
+        qw| assignment_history |    => $expected{'assignment_history'}  // {},
+        qw| batch_history |         => $expected{'batch_history'}       // {},
+        qw| sync_cursors |          => $expected{'sync_cursors'}        // {},
+        qw| sync_cursor_history |   => $expected{'sync_cursor_history'} // {},
+        qw| sync_conflicts |        => $expected{'sync_conflicts'}      // {},
+        qw| sync_conflict_history | => $expected{'sync_conflict_history'}
+            // {},
+        qw| sync_releases |      => $expected{'sync_releases'}      // {},
+        qw| sync_release_order | => $expected{'sync_release_order'} // [],
         qw| entries |            => \@entries,
     };
 }
@@ -355,20 +440,24 @@ sub journal_write {
         qw| prev | => $previous,
         qw| disk | => $id->{'disk'},
         qw| add |  => {
-            qw| nodes |       => [ $add->{'nodes'}->@* ],
-            qw| meta |        => [ $add->{'meta'}->@* ],
-            qw| references |  => [ $add->{'references'}->@* ],
-            qw| trees |       => [ ( $add->{'trees'}       // [] )->@* ],
-            qw| categories |  => [ ( $add->{'categories'}  // [] )->@* ],
-            qw| assignments | => [ ( $add->{'assignments'} // [] )->@* ],
-            qw| batches |     => [ ( $add->{'batches'}     // [] )->@* ],
+            qw| nodes |        => [ $add->{'nodes'}->@* ],
+            qw| meta |         => [ $add->{'meta'}->@* ],
+            qw| references |   => [ $add->{'references'}->@* ],
+            qw| trees |        => [ ( $add->{'trees'}        // [] )->@* ],
+            qw| categories |   => [ ( $add->{'categories'}   // [] )->@* ],
+            qw| assignments |  => [ ( $add->{'assignments'}  // [] )->@* ],
+            qw| batches |      => [ ( $add->{'batches'}      // [] )->@* ],
+            qw| sync_cursors | => [ ( $add->{'sync_cursors'} // [] )->@* ],
+            qw| conflicts |    => [ ( $add->{'conflicts'}    // [] )->@* ],
         },
         qw| drop | => {
-            qw| nodes |      => [ $drop->{'nodes'}->@* ],
-            qw| meta |       => [ $drop->{'meta'}->@* ],
-            qw| references | => [ $drop->{'references'}->@* ],
-            qw| releases |   => [ $drop->{'releases'}->@* ],
-            qw| trees |      => [ ( $drop->{'trees'} // [] )->@* ],
+            qw| nodes |         => [ $drop->{'nodes'}->@* ],
+            qw| meta |          => [ $drop->{'meta'}->@* ],
+            qw| references |    => [ $drop->{'references'}->@* ],
+            qw| releases |      => [ $drop->{'releases'}->@* ],
+            qw| trees |         => [ ( $drop->{'trees'}         // [] )->@* ],
+            qw| sync_releases | => [ ( $drop->{'sync_releases'} // [] )->@* ],
+            qw| conflicts |     => [ ( $drop->{'conflicts'}     // [] )->@* ],
         },
     );
     $payload{'baseline'} = JSON::PP::true if $flags->{'baseline'};
@@ -399,8 +488,8 @@ sub journal_write {
 
 1;
 
-#,,.,,...,...,,,,,,..,.,,,,,,,,,.,,,,,,..,,,,,.,.,...,...,.,.,,..,..,,,.,,.,,,
-#7RPVNOVZOGJFGJHLUUQWKKIJD2Y6DOBAPADYIGKR6W5VHL7E7B43K2GDGUT7N3ZI2NOXJSYNC2LCY
-#\\\|5YANSNX3BV6AT5LK3EGJOLW66JDVU6UICFQLQZKK6FY7TPTJ4RW \ / AMOS7 \ YOURUM ::
-#\[7]ETMC35MSG74K5BDEGESECMIXST5QFRLGTZMGUY5DSMIRBBMHHEDQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,,,.,.,,,,,,,.,,,,,.,,,,,.,.,.,.,...,...,,,.,.,.,.,.,,..,,..,
+#YNWCFCDHQSM5LD2OLJS2OVN26KV3ATGW7TOUSWLYNVZJAXIXORFY3NK35FGA6GGT52MFMAFUYIX2Y
+#\\\|OAOSROJBEHCNNVVHJYKCNQUFUMQZAM3URJVMTA6XL57CBUQBZKR \ / AMOS7 \ YOURUM ::
+#\[7]PZIAP5VBXYV674BYLFADMRHZVXU7HIAJURSPCVDPJD76NTOARMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

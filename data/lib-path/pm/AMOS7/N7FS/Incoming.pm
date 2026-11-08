@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Incoming-VERSION.VS6M2XY |;
+our $VERSION = qw| AMOS7::N7FS::Incoming-VERSION.Y4JNK2Y |;
 
 @EXPORT_OK
     = qw| incoming_refs incoming_summary incoming_groups incoming_tag |;
@@ -168,7 +168,24 @@ sub incoming_tag {
     my $add    = _empty_set();
     push $add->{'batches'}->@*,
         { qw| path | => $record->{'path'}, qw| category | => $category };
-    my $journal = journal_write( $id, $store, $add, _empty_set(), {} );
+    my $drop     = _empty_set();
+    my %resolved = map { $ARG->{'path'} => TRUE } @matching;
+
+    if ( keys $replay->{'sync_conflicts'}->%* ) {
+        my %records
+            = map { $ARG->{'path'} => $ARG }
+            AMOS7::N7FS::Record::record_scan(
+            $id,
+            qw| sync_conflict |,
+            qw| sync-conflicts |,
+            qw| sync-conflict |
+            );
+        foreach my $path ( keys $replay->{'sync_conflicts'}->%* ) {
+            push $drop->{'conflicts'}->@*, { qw| path | => $path }
+                if $resolved{ $records{$path}{'reference'} // '' };
+        }
+    }
+    my $journal = journal_write( $id, $store, $add, $drop, {} );
     witness_note_format(
         %opt,
         qw| id |          => $id,
@@ -186,8 +203,8 @@ sub incoming_tag {
 
 1;
 
-#,,,.,,,,,.,,,,..,.,.,..,,,.,,,,,,.,,,.,,,,.,,..,,...,...,..,,,.,,,..,.,,,.,,,
-#NWC45S7UB4WIS3FPWRFC5ADE37ONFBMXWNXMXNJOZF6Y6EQSTTBPPRRF7V45DLTSC4PQXCF7TFJWY
-#\\\|HN2C2ZPRPMULH5CKS4RNHQIAZVSWDJPRAD5KOZUJ3FEOFOKSVPH \ / AMOS7 \ YOURUM ::
-#\[7]3WDNWBFLJANXJ326URN2CQ45CE3ZVROTXGJGQR65MIRPUQS7MIBQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,,.,,,..,,,.,..,,,.,,.,.,.,.,,.,,..,,...,...,.,,,.,.,.,.,.,.,.,,,
+#SFLCKEDN527BNWW5EB5ZSCDBQIOGQQPAAG7GJD35GUOXBWAVO2CG7MTBJAWFYT4UE4CGQ6NJCNKQU
+#\\\|QMMRIDNUHTRRKHV4CQIN4R6HK7AY3WNVDUWV36E6CSHUQAERDGK \ / AMOS7 \ YOURUM ::
+#\[7]3PLBQNCXNGCWQOEVJWCDA7OLR3YOJG62WGMA6YYV7KLGTENYCABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

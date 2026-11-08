@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.BRTIRFI |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.YAGDDTI |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -580,7 +580,10 @@ sub _key { return join "\0", @ARG }
 
 sub _ref_operation {
     my $ref = shift;
-    return { map { $ARG => $ref->{$ARG} } qw| node path holder name | };
+    return {
+        ( map { $ARG => $ref->{$ARG} } qw| node path holder name | ),
+        $ref->{'origin'} ? ( qw| origin | => $ref->{'origin'} ) : (),
+    };
 }
 
 sub _format3_compare {
@@ -719,6 +722,9 @@ sub store_verify {
         = AMOS7::N7FS::Tree::tree_records_verify( $id, $state, $replay );
     my ( $categories, $assignments, $batches )
         = AMOS7::N7FS::Category::category_records_verify( $id, $replay );
+    require AMOS7::N7FS::Sync;
+    my ( $cursors, $conflicts )
+        = AMOS7::N7FS::Sync::sync_records_verify( $id, $replay );
     return {
         qw| nodes | =>
             scalar store_nodes( $id->{'path'}, $state->{'epochs'}->@* ),
@@ -749,6 +755,12 @@ sub reference_entries {
             refuse( 'format 3 : unlisted reference %s', $ref->{'path'} )
                 if not $replay->{'references'}{$key};
             my $expected = $replay->{'references'}{$key};
+            refuse( 'format 3 : reference origin differs from journal %s',
+                $ref->{'path'} )
+                if ( $ref->{'origin'}{'id'} // $ref->{'path'} ) ne
+                ( $expected->{'origin'}{'id'}   // $expected->{'path'} )
+                or ( $ref->{'origin'}{'disk'}   // $id->{'disk'} ) ne
+                ( $expected->{'origin'}{'disk'} // $id->{'disk'} );
             refuse( 'format 3 : unlisted drop %s', $ref->{'path'} )
                 if $ref->{'dropped'} and not $expected->{'dropped'};
             refuse( 'format 3 : missing drop %s', $ref->{'path'} )
@@ -828,6 +840,16 @@ sub _quarantine_unjournaled_records {
             qw| batch-assignments |,
             qw| batch-assignment |,
             'batch_history'
+        ],
+        [   qw| sync_cursor |,
+            qw| sync-cursors |,
+            qw| sync-cursor |,
+            'sync_cursor_history'
+        ],
+        [   qw| sync_conflict |,
+            qw| sync-conflicts |,
+            qw| sync-conflict |,
+            'sync_conflict_history'
         ],
     );
     foreach my $kind (@kinds) {
@@ -1661,8 +1683,8 @@ sub _remove_source {
 
 1;
 
-#,,.,,,..,,,,,.,,,,.,,.,.,...,,,,,,.,,.,,,,,,,..,,...,...,,,,,,..,...,.,,,...,
-#LPJZ2FEM5U56ZQHKHCWIQBUFZOY6TQQZ5L6NROQSJCRKQZWI3D6LAOFD43DSMAOQD5XMIPWLEU7W6
-#\\\|2N63FNVKBTOC2CYOFEUWIFIY4K7A6EK4FTKEPQOEUABJQBNQWWJ \ / AMOS7 \ YOURUM ::
-#\[7]2YRMY4V3YX3D6W2X3WYSHZQNOFRJTU7CUQ2IU3D2ZMDL4BZEDSBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,.,,.,,,,,,,.,,...,..,,.,.,,..,..,,...,..,,..,,...,,,.,...,..,,
+#FC64YR55CVFTR64M4SQ5CRKCEJBTO5Y6SW6CGU3OIEAVLYH3R474YILW6OSE6VNU27UGY5ISZOIFK
+#\\\|CXQKY5XDIEYPZ4ZQHCKOHLQ5FT7XI5DCVJ2OT5E6ZAWE2UGARH3 \ / AMOS7 \ YOURUM ::
+#\[7]PBMBBCNZUKYHKDBRRNQGEC3IWDQOTN3TVKDUSUZDBBK4GEXP4MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

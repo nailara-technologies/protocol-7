@@ -19,7 +19,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Release-VERSION.NQIQSHQ |;
+our $VERSION = qw| AMOS7::N7FS::Release-VERSION.YPDC3DY |;
 
 @EXPORT_OK = qw| release_node store_reclaim release_repair tombstone_read
     tombstone_latest tombstone_verify |;
@@ -139,14 +139,31 @@ sub tombstone_verify {
     }
     refuse( 'unexpected tombstone entry %s', $names[0] )
         if grep { $ARG !~ $TOMB_RE } @names;
-    my %held
-        = map { tombstone_read( $id, "$dir/$ARG" )->{'addr'} => TRUE } @names;
+    my %held;
+    push $held{ tombstone_read( $id, "$dir/$ARG" )->{'addr'} }->@*,
+        tombstone_read( $id, "$dir/$ARG" )
+        for @names;
 
     ## tombstones are permanent : every journaled release must still have one
     foreach my $address ( ( $replay->{'release_order'} // [] )->@* ) {
         refuse( 'format 3 : missing tombstone for released node %s',
             $address )
             if not $held{$address};
+    }
+    foreach my $release ( ( $replay->{'sync_release_order'} // [] )->@* ) {
+        refuse( 'format 3 : missing tombstone for retained release %s',
+            $release->{'node'} )
+            if not $held{ $release->{'node'} };
+        my ($tombstone) = grep {
+            ( $ARG->{'origin'}{'disk'}         // '' ) eq
+                ( $release->{'origin'}{'disk'} // '' )
+                and ( $ARG->{'origin'}{'id'}   // '' ) eq
+                ( $release->{'origin'}{'id'}   // '' )
+        } $held{ $release->{'node'} }->@*;
+        refuse(
+            'format 3 : retained release origin differs from tombstone %s',
+            $release->{'node'} )
+            if not defined $tombstone;
     }
     return scalar @names;
 }
@@ -356,8 +373,8 @@ sub release_repair {
 
 1;
 
-#,,,.,,.,,,,,,,,.,.,,,...,...,...,,,,,,,,,,,.,..,,...,...,...,.,,,..,,.,.,...,
-#UMRFRLQDOCE7TSWIZLOZNRNQIQSW434YTC26BL2QFLJLTEF7T75Q5M2LIAALZA52DB2JBMCHX5BLC
-#\\\|GFT72RNR4AOOPFHAXWORNPFFVGGEFD5XSBQBMR6UKEKAN3IUPX3 \ / AMOS7 \ YOURUM ::
-#\[7]K55DCZ6BAPLMYTT37WQVXJR6WOSRLAHRLGDAITZJWQBKILLXAQBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,..,,.,,,.,.,,,.,,.,,...,.,,,..,,...,...,,.,,,,.,,,,,,.,,.,.,
+#LGMNPF4QNQIXROYJNFOKRXZFN4S7FBVBCUYQIJ4LB5OCPLRSOLIYFIAM77QXEQEVZWO7ZHA43NGAY
+#\\\|FIQIJWFHHGH3FFONIJIZ5TNVTJTO5Q7OP76AIHU2RMMY4LJI3LW \ / AMOS7 \ YOURUM ::
+#\[7]V3NWUNKODHIYDMWI3UO523D7Y3TGNU6ZVKZWBKMKYDK5VZU4YCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

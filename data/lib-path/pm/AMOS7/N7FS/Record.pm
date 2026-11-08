@@ -14,7 +14,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Record-VERSION.BQKQ7CY |;
+our $VERSION = qw| AMOS7::N7FS::Record-VERSION.FCDTWBQ |;
 
 @EXPORT_OK = qw| record_write record_scan |;
 
@@ -77,6 +77,12 @@ sub record_scan {
             if
             not verify( $id->{'store_pub'}, $rec->{'signed'}, $rec->{'sig'} );
         my $p = $rec->{'payload'};
+        if ( defined $p->{'origin'} ) {
+            refuse( '%s %s : bad origin', $kind, $name )
+                if ref $p->{'origin'} ne qw| HASH |
+                or ( $p->{'origin'}{'disk'} // '' ) !~ m|\A[A-Z2-7]{7}\z|
+                or not length( $p->{'origin'}{'id'} // '' );
+        }
         my ($ntime) = $name =~ m|\A(\d{14})|;
         refuse( '%s %s : disk or ntime does not match its path',
             $kind, $name )
@@ -89,8 +95,8 @@ sub record_scan {
 
 1;
 
-#,,,.,,,.,.,,,,..,,,.,...,,..,...,.,.,.,.,...,..,,...,...,.,,,.,,,,,.,..,,,..,
-#MS7MEQDGP4YD7HY2PKN67AMQYSC3GXFPREONZHIMTGKD2ZESBGZ2BOCTSFUTT465UAI4ZQ5UHFT4A
-#\\\|7ZOYMDHGXNERM4ZXQBWD3FNECRX37RRMFCELUT4UVBC55CENCXS \ / AMOS7 \ YOURUM ::
-#\[7]DN4Z4WBLS5ZUWYCK5YMT6UCW4BNMTYZFAERDVECYEAX2GDQN3KCA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,...,..,,,,,,.,.,,.,,...,,..,..,,..,,...,...,..,,,..,.,.,,.,,,,,,
+#2KZ7FLWZNR4OKPDUC4ZNLZHXZLHKF5M4WA62EMHARZA47O6T5QKYBD3KNGXW7GLELAVRN25YZUC5S
+#\\\|BJMAGSYAE266DTSFPISA23L6OPNRYWSE4UVKLRCTXTUS26CQFXD \ / AMOS7 \ YOURUM ::
+#\[7]BYKJT3NZBKITEE64U5VOD2BBF2NNYWLY4PPVDZ564UU6AL2DPGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
