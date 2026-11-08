@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-n7fs-format3](project-2026-11-07-session-handover-n7fs-format3.md) — START HERE : N7FS format 3 complete [ stages 1-3, pushed ], dogfood on format 3, virtual render queue design ; open items
+- [session-handover-lease-loop-invoke-proxy](project-2026-11-08-session-handover-lease-loop-invoke-proxy.md) — START HERE : gpu lease loop with models on hold fixed, invoke.ai proxy + restart requeue, qwen21 holds the legacy models ; open items
+- [session-handover-n7fs-format3](project-2026-11-07-session-handover-n7fs-format3.md) — previous : N7FS format 3 complete [ stages 1-3, pushed ], dogfood on format 3, virtual render queue design
 - [session-handover-chksum-lease](project-2026-11-06-session-handover-chksum-lease.md) — previous : binary amos_chksum, gpu lease live with pause \ resume
 - [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — older : host labels, letsencr join fix
 - [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 [ OUTDATED : format 3 built 2026-11-07, see the handover ] ; CLI only, no zenka user yet
@@ -72,7 +73,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   jobsite ui/assessment, streaming transport & reply modes, web-browser capture/replay/waypoints,
   reasoning namespace, orbital/STRM push, credential-fabric transport, ondemand watchdog, p7-log utf8.
 
-- **[MEMORY-reference.md](MEMORY-reference.md)** (64 pointers) — durable how-to + settled rules.
+- **[MEMORY-reference.md](MEMORY-reference.md)** (65 pointers) — durable how-to + settled rules.
   open for: how a convention works or the "right way" to do something — cube auth. prefix, .cmd. reply
   contract (mode/data STRING), send.local vs base., timer undef-interval, config-reload clobber,
   file-io API, deferred-init callbacks, C25519 config paths, ntime; zenka catalog (site-yaml, git-watch,
@@ -99,8 +100,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,,,,,,,,.,,,,,.,,..,..,,,..,,..,,.,,,.,,..,,...,...,.,.,.,,,.,,,,,.,,,,,
-#34UJG3P47XORYF7BMQB4VJ4RXPYPRORVNYARI5GQOL56UL4N6BKNBJNMHA3OTXCWXIED37AHLMSRG
-#\\\|YBXHFXPIVRFWZZUSIMX2D5OKBREOY5O5DUNAMRWCAWCDSTGCXCH \ / AMOS7 \ YOURUM ::
-#\[7]5JB3OW36ID2PKUTNVYTM5XXG5CUZF5M32EH5TCSKUKCOB2YLDOBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,..,,.,,,,.,,...,.,.,..,,...,..,,...,..,,.,.,,,,,,,,,.,.,..,,
+#MUMOUFIWXKD4FUXPQAK5LSTGPNGPAFQJCM4CFHPZBNBKPMJCEAOKQOAAMZ3HJPUDAI3E5LLYKQZCO
+#\\\|T36NGOW3T2FACXF7UCVJYPJK7AXCYPRCGHIZFJT5OISUESUJYHT \ / AMOS7 \ YOURUM ::
+#\[7]XK4PALCHRUTHC6JX7I6FUSD5QBMY5AEQTDTNUD325WZASUCAMGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
