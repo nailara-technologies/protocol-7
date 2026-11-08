@@ -44,6 +44,13 @@ invoke-web.autofetch.mode    = off
 invoke-web.autofetch.max_gb  = 0
 invoke-web.autofetch.timeout = 7200
 
+## proxy for invoke.ai's own model downloads [ its python honours the      ##
+## http[s]_proxy env ] : empty = inherit the zenka's env ; none = strip it ##
+## ; a url [ socks5h:// needs pysocks in the env ] = set it, localhost     ##
+## stays direct. applies at the next invoke.ai start                       ##
+## [ the url : host-config/invoke-web.cfg, never this file ]               ##
+invoke-web.proxy =
+
 ## image index : local primary in the zenka data dir                   ##
 ## [ state/image-index.db ], lazy external backup copy [ empty = off ] ##
 invoke-web.index.backup_path = /mnt/ext-xfs-data/p7-images/image-index.db
@@ -109,8 +116,8 @@ modules.load = auth.client net protocol io.unix ui invoke-web clients.http \
 
 [zenka.loop]
 
-#,,,.,,.,,...,.,.,,..,.,,,..,,.,,,..,,,,.,.,.,..,,...,...,,,,,...,..,,,.,,.,.,
-#BR7MW2DE2CUCUSGPEHT5GX7NUXUB5BC2FSY4DRG3V53WM4DXRZGFNL7CH6EXWRLYIQVC6YD572YTE
-#\\\|W5KIHNLXUBNIPLATB4I6OH4HFU5F6E4XTHT6PCC4PX6M3PKHHRG \ / AMOS7 \ YOURUM ::
-#\[7]5NNTO6FBV3WC222SFUZHRKTNNN5B4RAI2PJRRQHP7NRBSEUJVWBA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,...,.,.,,..,,,.,.,.,,..,..,,..,,...,...,,..,...,,,,,,,.,...,
+#3GHYZKAGRFE3QARKQ6MLG7OKWFVGHBR6CEZUYILU5C3OQRUTTAMABN3YTRK6WHBVMXOGLF3S5KDRK
+#\\\|K6HY3S42JMZ33UYKW4PW7TTCLW2AJSIHEALQGJT5F52ZV2D454X \ / AMOS7 \ YOURUM ::
+#\[7]ZI7MVF4MWJ3S7FSVGTBT3S6EFSSLXWNZGQ62JYBH4EFFM4W4P6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

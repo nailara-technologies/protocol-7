@@ -11,7 +11,9 @@ if ( <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE )
     and ( <invoke-web.gpu_lease.holder> // '' ) ne qw| invoke-web | ) {
     my $requested = <[invoke-web.gpu_lease.request]>;
     if ( $requested == FALSE ) {
-        <invoke-web.gpu_lease.start_waiting> = TRUE;
+        ## keep the args : the grant or the no-lease fallback starts it ##
+        <invoke-web.gpu_lease.start_waiting>
+            = { 'args' => $call->{'args'} // '' };
         <[base.zenki.pause_ondemand_timeout]>;
         return {
             mode => qw| size |,
@@ -152,6 +154,19 @@ my $spawn_err
 my $child_pid;
 if ( not defined $spawn_err ) {
     local $ENV{'PYTHONUNBUFFERED'} = 1;
+
+    ## invoke.ai's model downloads : python reads the proxy from the env ##
+    my $proxy = <invoke-web.proxy> // '';
+    $proxy =~ s{^\s+|\s+$}{}g;
+    my @proxy_vars = qw| http_proxy https_proxy HTTP_PROXY HTTPS_PROXY |;
+    local %ENV = %ENV;    ## the zenka's own env stays untouched ##
+    if ( lc $proxy eq qw| none | ) {
+        delete @ENV{@proxy_vars};
+    } elsif ( length $proxy ) {
+        @ENV{@proxy_vars} = ($proxy) x @proxy_vars;
+        @ENV{qw| no_proxy NO_PROXY |} = ('localhost,127.0.0.1') x 2;
+        <[base.logs]>->( 1, 'invoke.ai downloads use the configured proxy' );
+    }
     $child_pid = eval {
         IPC::Open3::open3(
             '<&' . fileno($null_in),
@@ -222,8 +237,8 @@ return {
     data => sprintf( "invoke.ai starting [pid:%d]\n", $child_pid )
 };
 
-#,,,,,.,.,,,,,,..,,.,,,.,,,.,,,,,,,.,,.,.,,..,..,,...,...,...,..,,...,...,.,.,
-#Y2J5JBOCEW6DU4VMMLJNF5VOQH32RUSIUIZPCN3TFQ3NQX55KONISLGIWFT2W3MOWJTGRBIRZ6BIQ
-#\\\|FYJ57D4LMDOJBJSTQRO32THKSKLCI5SES5MY5D3AWQDTBQC4CKO \ / AMOS7 \ YOURUM ::
-#\[7]2UNKPHGALJGIMK6QQMKSG5J4ATO6J7J3N6CM6FEXGPYU4GCYX6CA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,..,,..,.,.,,..,,.,,,.,,...,..,,...,...,..,,.,,,,,.,..,,,.,,
+#SD7RISYIL2ONH5N4HC4D3XK7PK7SJZWHFTOKULS34SMMZPX3C7TMRVV6CYCQ2EGWNMSSWXORXQFGG
+#\\\|3W4NVTOCMJHOE24ASY7GC2DFN4MIZSGMQCIEVSY4H36UI2WCTLY \ / AMOS7 \ YOURUM ::
+#\[7]4FYC64QWA2EF4GYV3DBZQFKLFLZUTTPUEGROT4VNVRYURI5YM2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
