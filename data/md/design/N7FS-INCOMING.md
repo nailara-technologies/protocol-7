@@ -72,6 +72,8 @@ it reports reference count, bytes and journal sequence. `done` prints remaining
 count and bytes, exits 1 while nonempty and exits 0 with `[ empty ]` when done.
 `status` prints the same current totals.
 
+`tag -from <file>` applies many `<selector> <category>` lines in one run : the first matching rule wins for each reference, one batch record per category, one journal entry and one replay, so 255 name buckets cost about what one tag costs. an unknown category refuses the whole file ; a rule matching nothing is reported. `list -group-by name:<n>` groups by the first n characters of the filename. selectors stay globs, there are no character classes.
+
 ## performance notes
 
 startup profiling used `strace -c` and repeated `Time::HiRes` wall-clock
@@ -106,8 +108,8 @@ record and one journal operation handled the tag. the dominant remaining cost
 is authenticated record and directory I/O, not per-tag record creation; runtime
 is linear in references rather than quadratic.
 
-#,,,.,,,,,,.,,.,.,...,,,,,,,.,.,,,,,,,,,,,.,,,..,,...,...,,..,...,,.,,,.,,.,.,
-#JNWW5ETWTH5DHRB7YJBBI3VKMQWYGP3SFRNLOUG374LMW76BFUKDMXZVWQHEXCLXGWPNI76A7YYWU
-#\\\|WGEH6ID7CFMJOCU23MAQKX4DVAIGFPMDIXZWNG5HVVNFK2TRUZQ \ / AMOS7 \ YOURUM ::
-#\[7]CZVE5VCOPEGLSWAENDHA4MTN7GY7L4FHBKYPOTO55SI3DRSYHGCY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,,.,..,,.,.,...,...,,,,,..,,..,,...,...,...,,..,..,,,.,,,,,,
+#SZTFWC2TKSKPWSLXJJZDN2DYQYYOJAB7E3Q3DFWWITRXJ3JPC2GZMYRAXYMO5EJLRQML6KAOTE7FS
+#\\\|C63SDF7ZOWYRD4NIO7UPLWIBFQ67NBTZE3KWQXGMJUQYF5XOPHD \ / AMOS7 \ YOURUM ::
+#\[7]BT27J5ALHQ22FSS5554X4R6K6BZHC7STV4BKZXJ6KAZ6GWKW4EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

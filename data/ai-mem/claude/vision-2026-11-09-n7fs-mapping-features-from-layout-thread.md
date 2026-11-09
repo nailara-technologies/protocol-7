@@ -55,6 +55,10 @@ earlier sources found by the owner, read these before building [ only the matchi
 
 one hop per cycle allows faster hyperspace trunks as a consequence : a trunk is one logical hop over a long distance. attack warning time is then bounded by distance to the nearest trunk exit. the same assertion results that check distance and timing also inform where to route something [ owner ].
 
+topology form : seed / 13^k is random access into a deterministic field, a second value selects the bit slice. the block length of 1/13^k is 6 x 13^(k-1). that skip-ahead is the feature here and the flaw for key derivation.
+
+recovery key idea [ owner ] : a disaster copy must come back from a passphrase and files already public. keep the random root and derive only its wrapping key. long running derivation combined with argon2, `BMW384( label, argon2, long )`, so either alone still protects. the long part : a truth-template driven search [ amos harmonization, and all assertions of a signature template must be true ] as the gate on a 384-bit chained state ; the assertions decide extra rounds and mix-back. the gate alone is too narrow to be the state. `-key-file` inputs to root init and convert. not built.
+
 keys [ owner ] : nested delegation plus immutability bound key theft. the higher in the tree the rarer and more planned the signing ; below a ring radius of the key map disk, air-gapped signing with passphrase-entropy keys. temporal work copies of powerful keys that dissolve quickly, watched until expiry ; nothing issued under one outlives it without review. second signer return route : the second level cannot alter what is signed, only authorize or reject with an optional reason, usable for work reviews and payments for work.
 
 semantic layer [ owner ] : routing as a crystal substrate keeps anonymous elements apart in a larger address space containing inverse views ; recognizable elements carry polarities that push session networks apart. sessions are cryptographic trees, so nobody plants elements in another session. stays a layer beside verified-contact rules for spaces of children, and abuse material needs detection and reporting regardless.
@@ -70,8 +74,8 @@ semantic layer [ owner ] : routing as a crystal substrate keeps anonymous elemen
 - **disjoint planes** : 5th sub-bit parallel streams ; validators are not the hops, trunk does not know what it carries, validators have no access window. recording is the threat timing does not cover, sealing and a moving map cover it
 - **relative tags** : relative addresses valid for a reference frame, entropy only as wide as that scale needs, derivable from division-13 streams [ bin/dev/division-13-table, zulum zenka, cube-13 : read these first ]. location and time binding stops reuse ; forgery by a compromised hop still needs a secret input, since a hop knows its own position and time
 
-#,,.,,,,.,,.,,,..,.,.,.,,,.,,,...,.,.,,..,.,,,..,,...,..,,.,.,.,,,.,.,,..,.,.,
-#32XHUD4MF2DHLTGVZDBGWKSY4RZAX2NGEY6SAJVXKKRM3X4CPVODT7NUC4W7ECIOWRYS3SBYPWNXU
-#\\\|LPH7VI2FHKFRS2BAUVFJX3V65HIO6SZ3JPHT5YOD7AYXIJIOWNS \ / AMOS7 \ YOURUM ::
-#\[7]77L2TXSFBDOBPMCKWO24OSJMGUMGDWO4PQDZEIJXW4MM7WEEBCDI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,..,,,.,,,,,,...,...,,.,,,,.,..,,...,...,,,.,.,.,.,,,,.,,,,.,
+#3OYAVG4S7TR4OLXCFI6RNZX3B7ADZLWWKGGYJJZKM4Q6AUYA3PCNR3XSKQE23HACGDZ66RXS7HAZW
+#\\\|FWSGHWN5TLAJFL2TRQAMQVKABVO57E2B23GWVDEAPLNBKIW25PW \ / AMOS7 \ YOURUM ::
+#\[7]2SYDOPVC42DGXD2JK2EH2GECBCEKV66G2QFRLG54ETUUMCRQ7GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
