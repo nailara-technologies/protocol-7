@@ -62,6 +62,16 @@ use warnings;
 ## n7fs upgrade <disk> [ -epoch <n> ]     convert into the next epoch of
 ##                                         the window [ -epoch : tests ]
 ## n7fs confirm <disk>                    confirm an upgrade
+## n7fs root init <file>                   new sealed-replica root key
+## n7fs root export-check <file>           open a copy with the passphrase
+## n7fs seal <disk> -root-key <file> -out <dir> [ -category <name> |
+##                  -tree <name> .. | -all-trees | <address>.. ]
+## n7fs unseal <disk> -root-key <file> -from <dir> <tree-or-address> <target>
+## n7fs seal-recover -root-key <file> -from <dir> [ -tree <name> ] <target-dir>
+## n7fs shred <disk> -root-key <file> -out <dir> <address>
+##
+## sealing : -pass-fd <n> reads the passphrase from that descriptor -argon-m
+## <KiB> -argon-t <n> -argon-p <n> override root init
 ##
 ## common : -root <dir>        [ N7FS_ROOT, default /N7FS -- never created ]
 ##          -host-dir <dir>    [ N7FS_HOST_DIR, default ~/.n/n7fs ]
@@ -107,6 +117,13 @@ use AMOS7::N7FS::Category
 use AMOS7::N7FS::Incoming qw| incoming_refs incoming_summary incoming_groups
     incoming_tag |;
 
+$AMOS7::N7FS::FAULT = sub {
+    my $point = shift;
+    die "n7fs : injected fault $point\n"
+        if ( $ENV{'N7FS_TEST_FAULT'} // '' ) eq $point;
+    }
+    if defined $ENV{'N7FS_TEST_FAULT'};
+
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
@@ -118,16 +135,19 @@ my @args = @ARGV;
 my %o    = ( qw| trust | => [] );
 GetOptionsFromArray(
     \@args, \%o,
-    qw| root=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
+    qw| root=s root-key=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
         name=s intent=s disk=s index=s index-base=s epoch=s remove keep prune
         dry-run out=s format=s chksum=s holder=s all allow-rollback force reason=s
-        free=s older=s now tree=s category=s category-rule=s@ owners
+        free=s older=s now tree=s@ all-trees category=s category-rule=s@ owners
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
-        layer=s incoming under=s depth=i limit=i trees-only help |
+        layer=s incoming under=s depth=i limit=i trees-only help
+        from=s pass-fd=i argon-m=i argon-t=i argon-p=i |
 ) or usage(2);
 usage(0) if $o{'help'};
 
 my $command = shift @args // usage(2);
+$o{'tree'} = $o{'tree'}[-1]
+    if ref $o{'tree'} and $command ne qw| seal |;
 
 my %common;
 $common{'root'}     = $o{'root'}     if defined $o{'root'};
@@ -171,6 +191,11 @@ my %run = (
     qw| assimilate |     => \&cmd_assimilate,
     qw| upgrade |        => \&cmd_upgrade,
     qw| confirm |        => \&cmd_confirm,
+    qw| root |           => \&cmd_seal_root,
+    qw| seal |           => \&cmd_seal,
+    qw| unseal |         => \&cmd_unseal,
+    qw| seal-recover |   => \&cmd_seal_recover,
+    qw| shred |          => \&cmd_shred,
 );
 usage(2) if not exists $run{$command};
 
@@ -1168,8 +1193,149 @@ sub cmd_confirm {
     return 0;
 }
 
+sub _seal_root {
+    require AMOS7::N7FS::Keys;
+    return AMOS7::N7FS::Keys::root_open(
+        qw| path | => $o{'root-key'}
+            // fail('sealing needs -root-key <file>'),
+        qw| pass_fd | => $o{'pass-fd'},
+    );
+}
+
+sub cmd_seal_root {
+    require AMOS7::N7FS::Keys;
+    my $action = shift // fail('root needs init or export-check');
+    my $file   = shift // fail('root needs a file');
+    fail('root : unexpected arguments') if @ARG;
+    if ( $action eq qw| init | ) {
+        AMOS7::N7FS::Keys::root_init(
+            qw| path |    => $file,
+            qw| pass_fd | => $o{'pass-fd'},
+            qw| argon_m | => $o{'argon-m'},
+            qw| argon_t | => $o{'argon-t'},
+            qw| argon_p | => $o{'argon-p'},
+        );
+        say_line( 'sealed root ', $file );
+        return 0;
+    }
+    if ( $action eq qw| export-check | ) {
+        require File::Temp;
+        my $tmp = File::Temp::tempdir(
+            qw| n7fs-root-check-XXXXXX |,
+            qw| TMPDIR |  => 1,
+            qw| CLEANUP | => 1
+        );
+        require File::Copy;
+        File::Copy::copy( $file, "$tmp/root" )
+            or fail("cannot copy root file : $OS_ERROR");
+        chmod 0600, "$tmp/root";
+        AMOS7::N7FS::Keys::root_open(
+            qw| path |    => "$tmp/root",
+            qw| pass_fd | => $o{'pass-fd'},
+        );
+        say_line('root copy opens with the supplied passphrase');
+        return 0;
+    }
+    fail('root needs init or export-check');
+}
+
+sub cmd_seal {
+    require AMOS7::N7FS::Seal;
+    my $disk  = disk_arg(shift);
+    my @nodes = @ARG;
+    fail('seal needs -out <holder-dir>') if not defined $o{'out'};
+    fail('seal needs -category, -tree, -all-trees or addresses')
+        if not defined $o{'category'}
+        and not @nodes
+        and not $o{'all-trees'}
+        and not @{ $o{'tree'} // [] };
+    my $r = AMOS7::N7FS::Seal::seal_nodes(
+        qw| disk | => $disk,
+        defined $o{'root'}     ? ( qw| disk_root | => $o{'root'} )     : (),
+        defined $o{'host-dir'} ? ( qw| host_dir |  => $o{'host-dir'} ) : (),
+        qw| root |      => _seal_root(),
+        qw| holder |    => $o{'out'},
+        qw| category |  => $o{'category'},
+        qw| trees |     => $o{'tree'} // [],
+        qw| all_trees | => $o{'all-trees'} ? TRUE : FALSE,
+        qw| addresses | => \@nodes,
+    );
+    say_line( 'sealed ', $r->{'sealed'}, ' new nodes [ head ',
+        $r->{'version'}, ' ]' );
+    say_line( 'new writer on a clean holder starts at the '
+            . 'local counter ; no newer head was visible' )
+        if $r->{'new_holder'};
+    return 0;
+}
+
+sub cmd_unseal {
+    require AMOS7::N7FS::Seal;
+    my $disk    = disk_arg(shift);
+    my $address = shift // fail('unseal needs an address');
+    my $target  = shift // fail('unseal needs a target');
+    fail('unseal : unexpected arguments')   if @ARG;
+    fail('unseal needs -from <holder-dir>') if not defined $o{'from'};
+    AMOS7::N7FS::Seal::unseal_address(
+        qw| disk |    => $disk,
+        qw| root |    => _seal_root(),
+        qw| holder |  => $o{'from'},
+        qw| address | => $address,
+        qw| target |  => $target,
+        qw| owners |  => $o{'owners'} ? TRUE : FALSE,
+    );
+    say_line( 'unsealed ', $address, ' [ verified ]' );
+    return 0;
+}
+
+sub cmd_seal_recover {
+    require AMOS7::N7FS::Seal;
+    my $target = shift // fail('seal-recover needs a target directory');
+    fail('seal-recover : unexpected arguments')   if @ARG;
+    fail('seal-recover needs -from <holder-dir>') if not defined $o{'from'};
+    my $r = AMOS7::N7FS::Seal::seal_recover(
+        qw| root |   => _seal_root(),
+        qw| holder | => $o{'from'},
+        qw| target | => $target,
+        qw| tree |   => $o{'tree'},
+        qw| owners | => $o{'owners'} ? TRUE : FALSE,
+    );
+    say_line(
+        'recovered ',
+        $r->{'nodes'} // $r->{'files'} // 0,
+        ' nodes [ head ',
+        $r->{'version'}, ' ]'
+    );
+    say_line( 'clean recovery accepts the reachable signed '
+            . 'head ; a holder can withhold newer versions' );
+    return 0;
+}
+
+sub cmd_shred {
+    require AMOS7::N7FS::Seal;
+    my $disk    = disk_arg(shift);
+    my $address = shift // fail('shred needs an address');
+    fail('shred : unexpected arguments')  if @ARG;
+    fail('shred needs -out <holder-dir>') if not defined $o{'out'};
+    my $version = AMOS7::N7FS::Seal::shred_node(
+        qw| disk |    => $disk,
+        qw| root |    => _seal_root(),
+        qw| holder |  => $o{'out'},
+        qw| address | => $address,
+    );
+    say_line( 'shred step 1 : wrap dropped [ head ',
+        $version, ' ; local content and old maps retained ]' );
+    return 0;
+}
+
 #,,,.,,,,,,.,,,.,,.,.,,,,,...,.,.,..,,,,,,,,,,..,,...,..,,...,,.,,.,.,,..,,,.,
+
 #XPW2FKYX5TYS7TDXO5NWQ63ZMNGEAITXM2V6TMMOGKWLK7BIGGGZKVXYTRWJI2VLMUBIQNH4D6HPC
 #\\\|GVX6IJDRDRIQ6C72XMB3ODOOMRGM4KFUKGFIC3AHLNATFKC5MEZ \ / AMOS7 \ YOURUM ::
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,.,,,,..,..,,,..,.,,,,,,,.,.,.,.,,..,,,,,..,,...,...,.,.,,.,,.,,,,,.,,.,,
+#VPVPUYVWW2E4FRHVC6IUN46FMBY7Q4IDYUS5HF54RSH5WNGRCWQMQRP74HF6NKOZB2IWI6CBHFLL6
+#\\\|ZN2TQ7O5BLGSSFBFVZZDFUEAXYO7NVDIC23J3KTGMU4G4IDQJKP \ / AMOS7 \ YOURUM ::
+#\[7]GREAK7QIWEJJS4PAVDAVEKJXTJRS2A7HWDH67GUCXTWOO6KHGQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

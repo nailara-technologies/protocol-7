@@ -86,8 +86,10 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 
 - [checksum windows + provable ranges](vision-2026-10-29-checksum-windows-and-provable-ranges.md) — size:chksum, provably collision-free sizes vs pigeonhole, collision-free branches, path checksums for routing, fixed  content-defined  sliding windows
 
-#,,..,.,.,,.,,,,,,...,,,,,,,.,.,,,,..,,.,,...,...,...,...,,..,,..,.,,,,,,,.,,,
-#DNHX3D3FL2XN66KL6YJHXQPVK3B2TOGVTKSSPXKYWIVOCI7TM24DNODBJHYZMHWWUQRHPGBUSX4SC
-#\\\|3HPZ6KH3NE6VQSWG4TG5Q6UUAFH5BTR6L6QTD7SXLCJSXKTVLTM \ / AMOS7 \ YOURUM ::
-#\[7]JNOPQFSDRCVSJYEDWCPATPXAVEQRB7NF3MVT7E67VB4NQ5G4VMCQ 7  DATA SIGNATURE ::
+- [n7fs-mapping-features-from-layout-thread](vision-2026-11-09-n7fs-mapping-features-from-layout-thread.md) — 35-bit amos = a year in ms ; layout modes, catalog nesting, 5 of 7, trickle checks, relative tags
+
+#,,,,,.,.,.,,,,,.,,,,,,,.,,,.,,..,.,,,.,,,.,.,...,...,...,..,,.,,,,.,,.,.,.,.,
+#MUZKWZOY6X3ZMVGTRRMOSC63IKXAAEYN6GG2PBE6IGIVWH6VLZNCGH65MWRLA2T4STOWPOX7Q332E
+#\\\|424S7CN4RF5SMFCQUOUOFY3M6N4YFCGCYUBXB2HQT6HHEYEBLBG \ / AMOS7 \ YOURUM ::
+#\[7]2JD3DM7WNFJDLZ6EDHPAF4FIEN3TL64K65EDNZJR4UZ2HCY52AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

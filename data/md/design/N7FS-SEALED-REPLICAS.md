@@ -335,15 +335,20 @@ stage 4 is the first that gets essential data off the host.
   sealing stays under it. n-of-n across groups, each group replicated inside one
   control domain : one uncompromised group keeps the rest at zero information,
   one failed host does not lose the share. refresh deltas sum to zero
-- chunk and pack size
-- where the root key lives for the standalone CLI before the vault agent
-  issues handles
+- layout modes beside `complete` [ segment of a parent, catalog of subdisks ],
+  catalog nesting and reduced branch counts, 5 of 7 with alternates, trickle
+  checks over the whole range, movement as proof, disjoint data and validation
+  planes, relative tags, booked time cells, threshold opened neighbours : see
+  `data/ai-mem/claude/vision-2026-11-09-n7fs-mapping-features-from-layout-thread.md`
+  and the dancing zenki formation [ `DANCING-ZENKI-RHIZOME-STATE.md` ] first
+- the default chunk layout [ 16 MiB now, header 0 ] : settle before the first
+  real upload
 - wire form between holders [ plain ssh first, cube routes later ]
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,..,,,,,,,,,..,,.,.,.,.,,,.,.,,,,,.,,.,,,,.,..,,...,.,.,,.,,.,,,,..,...,,..,
-#U4YRYMGMW3YVNDU2MTHLUHI7MPIUDJX44HKAS2WK5EPWWGQLBBHR2G3BSRXU2YTKVICI7J2ZARGQM
-#\\\|T477YG3WTDBNFHORB43QZY3L5HVWORYRP443WVE3C2QRCRYFZSK \ / AMOS7 \ YOURUM ::
-#\[7]DM6QATDFH4UEXKD3DIF2AYLKV5RPA6ERJHTZ35A2CJ3MSBDH6AAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,,,.,,.,,.,,,,,.,.,,,...,,,.,..,,...,...,,..,,..,,..,...,.,.,
+#4WCFFRNXQOFQP7R3TY43WRTNUKH6AVZK2KRJZQZCLL62ZZLBLIUTDWYGS35CG2VUM6K4L2IB5EDJM
+#\\\|7NXO3CGTG52QB2IUUBHKWFV5AUNLKABWBSJZFQ73FTM7P72ZEV3 \ / AMOS7 \ YOURUM ::
+#\[7]TT2IPNH54YJ5HDSCHGXMC2TUHXBSKRC3IUEETLQIA7OAFFGUNQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
