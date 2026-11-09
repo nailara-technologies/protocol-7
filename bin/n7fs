@@ -69,6 +69,7 @@ use warnings;
 ## n7fs unseal <disk> -root-key <file> -from <dir> <tree-or-address> <target>
 ## n7fs seal-recover -root-key <file> -from <dir> [ -tree <name> ] <target-dir>
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
+## n7fs holder-check <holder> -root-key <file>
 ##
 ## sealing : -pass-fd <n> reads the passphrase from that descriptor -argon-m
 ## <KiB> -argon-t <n> -argon-p <n> override root init
@@ -141,7 +142,7 @@ GetOptionsFromArray(
         free=s older=s now tree=s@ all-trees category=s category-rule=s@ owners
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
         layer=s incoming under=s depth=i limit=i trees-only help
-        from=s pass-fd=i argon-m=i argon-t=i argon-p=i |
+        from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -196,6 +197,7 @@ my %run = (
     qw| unseal |         => \&cmd_unseal,
     qw| seal-recover |   => \&cmd_seal_recover,
     qw| shred |          => \&cmd_shred,
+    qw| holder-check |   => \&cmd_holder_check,
 );
 usage(2) if not exists $run{$command};
 
@@ -1310,6 +1312,20 @@ sub cmd_seal_recover {
     return 0;
 }
 
+sub cmd_holder_check {
+    require AMOS7::N7FS::Seal;
+    my $holder = shift // fail('holder-check needs a holder');
+    fail('holder-check : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Seal::holder_check(
+        qw| root |    => _seal_root(),
+        qw| holder |  => $holder,
+        qw| samples | => $o{'samples'},
+    );
+    say_line( 'holder ok : ', $r->{'nodes'}, ' blobs, ', $r->{'chunks'},
+        ' chunks checked' );
+    return 0;
+}
+
 sub cmd_shred {
     require AMOS7::N7FS::Seal;
     my $disk    = disk_arg(shift);
@@ -1334,8 +1350,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,.,,,,..,..,,,..,.,,,,,,,.,.,.,.,,..,,,,,..,,...,...,.,.,,.,,.,,,,,.,,.,,
-#VPVPUYVWW2E4FRHVC6IUN46FMBY7Q4IDYUS5HF54RSH5WNGRCWQMQRP74HF6NKOZB2IWI6CBHFLL6
-#\\\|ZN2TQ7O5BLGSSFBFVZZDFUEAXYO7NVDIC23J3KTGMU4G4IDQJKP \ / AMOS7 \ YOURUM ::
-#\[7]GREAK7QIWEJJS4PAVDAVEKJXTJRS2A7HWDH67GUCXTWOO6KHGQAI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,...,..,,.,.,,..,,,,,,,.,,.,,..,,...,...,..,,,,.,.,,,.,.,...,
+#HL7RZUKQ3272P36BYPWRH6XBSKVPPG6JWG75AZXRFKADCII72UV3VYXJXC6A4LM4TOR4A52I7UQ5Y
+#\\\|3CYFZNRTQK4ZNJLV42A56MVT4AKZI27VZFTW7FVXUPC5JC327XK \ / AMOS7 \ YOURUM ::
+#\[7]KUGTCU452EJNTA5MKJINB7MGZQ66O7RXVFVMZF3QF4SH4DXXUABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

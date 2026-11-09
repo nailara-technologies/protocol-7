@@ -932,6 +932,31 @@ my @mutations = (
             ]
         ],
     },
+    {   name => 'holder head published before blobs',
+        file => 'N7FS/Seal.pm',
+        test => 'test-n7fs-holder.pl',
+        edit => [
+            [   "    \$map->{'_root_keys'} = \$root->{'keys'};\n",
+                "    \$map->{'_root_keys'} = \$root->{'keys'};\n   "
+                    . " _commit( \$root, \$dir, \$counter, \$map, {} );\n"
+            ]
+        ],
+    },
+    {   name => 'holder readback check removed',
+        file => 'N7FS/Holder.pm',
+        test => 'test-n7fs-holder.pl',
+        edit => [
+            [   "sub holder_verify {\n",
+                "sub holder_verify {\n    return 1;\n"
+            ]
+        ],
+    },
+    {   name => 'holder remote path quoting removed',
+        file => 'N7FS/Holder.pm',
+        test => 'test-n7fs-holder.pl',
+        edit =>
+            [ [ "    \$text =~ s|'|'\"'\"'|g;", "    \$text =~ s|'|'|g;" ] ],
+    },
 );
 
 my $filter = shift // '';
@@ -947,7 +972,7 @@ foreach my $m (@mutations) {
         'N7FS.pm',
         map {"N7FS/$ARG.pm"}
         qw| Sum Sign Disk Store Convert Journal Reference Release Record Tree
-        Category Batch Incoming Sync Seal Keys |
+        Category Batch Incoming Sync Seal Keys Holder |
     ) {
         open( my $in, '<:raw', "$lib/$f" ) or die "read $lib/$f : $OS_ERROR";
         my $text = do { local $INPUT_RECORD_SEPARATOR; <$in> };
@@ -991,8 +1016,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,,,,.,.,,.,,,,.,,,,,,..,.,,,,,,,,.,,.,.,..,,..,,...,...,..,,,..,.,.,.,,,,,,,
-#J4MIK5HYKVL6PST563H4GCK6DU2M7N22JKEFMCTG7JAWS5F4JP7EDEPBHHOWO6VP4NCEGSEOIUKBY
-#\\\|2AFGFQZC35MB6T3X6DMHARHLLBVAMXGGDINBRXHIGSQEECIL74V \ / AMOS7 \ YOURUM ::
-#\[7]PQS7UJCYDEUAUBYEYDHZB7UFTAX54GIZHYNWP6CIIRTCJQOJTKBI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,.,.,,,..,,..,,,,.,,,.,,..,.,.,..,,...,...,.,,,...,..,,,..,.,.,
+#DAB4LWSJGMHWDLVEXJBL5FWYWQOTIE5QK5P3V7W4ZPRZE5XSIHMC2FVKWTSYVJFUTFH7R6KYD2352
+#\\\|GKO7UX366VDUIKEKJQJJYD4FBPRMSSVZPBDXOPJSIFEWVO5QB72 \ / AMOS7 \ YOURUM ::
+#\[7]ZJYHRXL3RDUPQKKPKL4D5LOOA6QY5NJEIKBCEHUUE2V5JAUK2SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

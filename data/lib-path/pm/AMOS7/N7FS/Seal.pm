@@ -17,10 +17,10 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.OHU3UPI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.GCXGSRY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
-    seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
+    holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
 
 use JSON::PP;
 use Digest::BMW;
@@ -37,6 +37,9 @@ use AMOS7::N7FS::Disk     qw| disk_read_id disk_lock state_read |;
 use AMOS7::N7FS::Store    qw| node_path node_verify |;
 use AMOS7::N7FS::Journal  qw| journal_replay |;
 use AMOS7::N7FS::Category qw| category_report category_definitions |;
+use AMOS7::N7FS::Holder   qw| holder_parse holder_canonical holder_mkdir
+    holder_read holder_size holder_put holder_delete holder_verify
+    holder_download holder_read_range |;
 
 use constant CHUNK_SIZE => 16 * 1024 * 1024;
 my $JSON = JSON::PP->new->utf8->canonical;
@@ -234,9 +237,18 @@ sub _head_name {
 }
 
 sub _write_blob {
-    my ( $dir, $bytes ) = @_;
-    make_dirs( $dir, 0700 );
+    my ( $root, $dir, $bytes, $kind ) = @_;
     my $name = bmw_b32( bmw384_bytes($bytes) );
+    if ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
+        my $spool = _state_dir($root) . '/spool';
+        make_dirs( $spool, 0700 );
+        my $path = "$spool/$name";
+        write_new_file( $path, $bytes ) if not -e $path;
+        holder_put( $dir, $path, $name, $kind, FALSE );
+        unlink $path or refuse('cannot remove confirmed spool');
+        return $name;
+    }
+    holder_mkdir($dir);
     my $path = "$dir/$name";
     if ( -e $path ) {
         refuse( 'ciphertext address collision or changed blob %s', $name )
@@ -250,7 +262,8 @@ sub _write_blob {
 sub _read_blob {
     my ( $dir, $name ) = @_;
     refuse('bad blob name') if ( $name // '' ) !~ m|\A[A-Z2-7]{77}\z|;
-    my $bytes = read_file("$dir/$name") // refuse( 'missing blob %s', $name );
+    my $bytes = holder_read( $dir, $name )
+        // refuse( 'missing blob %s', $name );
     refuse( 'blob address mismatch %s', $name )
         if bmw_b32( bmw384_bytes($bytes) ) ne $name;
     return $bytes;
@@ -259,7 +272,7 @@ sub _read_blob {
 sub _head_open {
     my ( $root, $dir, $required ) = @_;
     my $name  = _head_name($root);
-    my $bytes = read_file("$dir/$name");
+    my $bytes = holder_read( $dir, $name );
     refuse('sealed head not found')    if not defined $bytes and $required;
     return undef                       if not defined $bytes;
     refuse('sealed head is truncated') if length $bytes < 24 + 16;
@@ -303,10 +316,12 @@ sub _head_bytes {
 
 sub _context {
     my ( $root, $dir, $recover ) = @_;
-    refuse('holder is not a directory') if not -d $dir;
-    $dir = abs_path($dir) // refuse('cannot canonicalize holder');
+    holder_mkdir($dir) if not $recover;
+    $dir = holder_canonical($dir);
     my $state = _state_read($root);
     my $head  = _head_open( $root, $dir, FALSE );
+    refuse('pinned holder head is missing')
+        if not defined $head and ( $state->{'pins'}{$dir} // 0 ) > 0;
     $state->{'new_holder'} = not defined $head;
     if ( defined $head ) {
         my $pinned = $state->{'pins'}{$dir} // 0;
@@ -344,7 +359,7 @@ sub _context {
 
 sub _commit {
     my ( $root, $dir, $state, $map, $operation ) = @_;
-    $dir = abs_path($dir) // refuse('cannot canonicalize holder');
+    $dir = holder_canonical($dir);
     my $writer  = _writer($state);
     my $version = $state->{'version'} + 1;
     fault(qw| seal:before-version |);
@@ -373,7 +388,7 @@ sub _commit {
     my $map_bytes = $writer
         . seal_bytes( $root->{'keys'}, $JSON->encode( \%stored ),
         qw| map |, $writer, $version );
-    my $map_name = _write_blob( $dir, $map_bytes );
+    my $map_name = _write_blob( $root, $dir, $map_bytes, qw| map | );
     fault(qw| seal:after-map |);
     my $journal = $JSON->encode(
         {   qw| writer |    => b32($writer),
@@ -383,15 +398,28 @@ sub _commit {
         }
     );
     my $journal_name = _write_blob(
-        $dir,
+        $root, $dir,
         $writer
             . seal_bytes(
             $root->{'keys'}, $journal, qw| journal |, $writer, $version
-            )
+            ),
+        qw| journal |
     );
     fault(qw| seal:after-journal |);
-    _replace_file( "$dir/" . _head_name($root),
-        _head_bytes( $root, $writer, $version, $map_name, $journal_name ) );
+    my $head_name = _head_name($root);
+    my $head_bytes
+        = _head_bytes( $root, $writer, $version, $map_name, $journal_name );
+
+    if ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
+        my $spool = "$state_dir/spool";
+        make_dirs( $spool, 0700 );
+        my $path = "$spool/$head_name";
+        write_new_file( $path, $head_bytes ) if not -e $path;
+        holder_put( $dir, $path, $head_name, qw| head |, TRUE );
+        unlink $path or refuse('cannot remove confirmed head spool');
+    } else {
+        _replace_file( "$dir/$head_name", $head_bytes );
+    }
     $state->{'pins'}{$dir} = $version;
     _state_write( $root, { %{$state}, qw| version | => $version } );
     fault(qw| seal:after-head |);
@@ -434,11 +462,17 @@ sub _node_keys {
 }
 
 sub _node_blob {
-    my ( $content, $keys, $dir, $expected_bmw ) = @_;
+    my ( $content, $keys, $dir, $expected_bmw, $root ) = @_;
     my $size   = -s $content;
     my $chunks = $size ? int( ( $size + CHUNK_SIZE - 1 ) / CHUNK_SIZE ) : 1;
-    make_dirs( $dir, 0700 );
-    my $tmp = "$dir/.sealing." . b32( random_bytes(8) );
+    my $remote = holder_parse($dir)->{'type'} eq qw| ssh |;
+    my $spool  = $remote ? _state_dir($root) . '/spool' : $dir;
+    make_dirs( $spool, 0700 );
+    my $tmp
+        = $remote
+        ? "$spool/.sealing.$expected_bmw"
+        : "$spool/.sealing." . b32( random_bytes(8) );
+    unlink $tmp if -e $tmp;
     open( my $in, '<:raw', $content )
         or refuse( 'cannot open node %s : %s', $content, $OS_ERROR );
     my $plain_sum = Digest::BMW->new(384);
@@ -476,6 +510,11 @@ sub _node_blob {
     $ctx->addfile($sealed);
     close $sealed;
     my $name = bmw_b32( $ctx->digest );
+    if ($remote) {
+        holder_put( $dir, $tmp, $name, qw| content |, FALSE );
+        unlink $tmp or refuse('cannot remove confirmed content spool');
+        return ( $name, $chunks );
+    }
     refuse('ciphertext blob already exists') if -e "$dir/$name";
     rename $tmp, "$dir/$name"
         or refuse( 'cannot publish content blob : %s', $OS_ERROR );
@@ -579,7 +618,7 @@ sub seal_nodes {
     my ( $root, $dir ) = @opt{qw| root holder |};
     my ( $id, $replay, $addresses, $trees, $node_categories )
         = _select_addresses(%opt);
-    make_dirs( $dir, 0700 );
+    holder_mkdir($dir);
     my ( $counter, $head, $map ) = _context( $root, $dir, FALSE );
     $map->{'_root_keys'} = $root->{'keys'};
     my $tree_changes = grep {
@@ -588,6 +627,7 @@ sub seal_nodes {
     } keys %{$trees};
     $map->{'trees'} = { %{ $map->{'trees'} // {} }, %{$trees} };
     my @new;
+    my @pending_files;
     my ( $sealed, $batch_bytes ) = ( 0, 0 );
     foreach my $address ( @{$addresses} ) {
         next if exists $map->{'nodes'}{$address};
@@ -595,11 +635,45 @@ sub seal_nodes {
         my $path = _content_path( $id, $address );
         refuse( 'local node is missing : %s', $address ) if not -f $path;
         my @categories = sort keys $node_categories->{$address}->%*;
-        my $node_id    = random_bytes(16);
-        my $keys       = new_keypair();
+        my $pending;
+        my ( $node_id, $keys );
+        if ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
+            my $pending_dir = _state_dir($root) . '/pending';
+            make_dirs( $pending_dir, 0700 );
+            $pending = "$pending_dir/" . bmw_b32( bmw384_bytes($address) );
+            if ( -f $pending ) {
+                my $saved = $JSON->decode( read_file($pending) );
+                $node_id = unb32( $saved->{'node_id'} );
+                $keys
+                    = unwrap_bytes( $root->{'keys'},
+                    unb32( $saved->{'wrap'} ),
+                    qw| pending | );
+            } else {
+                $node_id = random_bytes(16);
+                $keys    = new_keypair();
+                write_new_file(
+                    $pending,
+                    $JSON->encode(
+                        {   qw| node_id | => b32($node_id),
+                            qw| wrap |    => b32(
+                                wrap_bytes(
+                                    $root->{'keys'}, $keys,
+                                    $node_id,        0,
+                                    qw| pending |
+                                )
+                            )
+                        }
+                    )
+                );
+            }
+            push @pending_files, $pending;
+        } else {
+            $node_id = random_bytes(16);
+            $keys    = new_keypair();
+        }
         fault(qw| seal:before-blob |);
-        my ( $name, $chunks ) = _node_blob( $path, $keys, $dir, $bmw );
-        my $length = -s "$dir/$name";
+        my ( $name, $chunks ) = _node_blob( $path, $keys, $dir, $bmw, $root );
+        my $length = holder_size( $dir, $name );
         fault(qw| seal:after-blob |);
         my %wraps;
 
@@ -637,6 +711,8 @@ sub seal_nodes {
             @new          = ();
             $batch_bytes  = 0;
             $tree_changes = 0;
+            unlink for @pending_files;
+            @pending_files = ();
         }
     }
     delete $map->{'_root_keys'};
@@ -645,6 +721,7 @@ sub seal_nodes {
             = _commit( $root, $dir, $counter, $map,
             { qw| seal | => [@new] } );
     }
+    unlink for @pending_files;
     return {
         qw| sealed |     => $sealed,
         qw| version |    => $counter->{'version'},
@@ -717,6 +794,15 @@ sub _restore_node {
     my $chunk_size = $layout->{'chunk_size'};
     my $keys       = _node_keys( $root, $map, $entry );
     my $path       = "$dir/$entry->{'blob'}";
+    my $downloaded;
+
+    if ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
+        my $spool = _state_dir($root) . '/spool';
+        make_dirs( $spool, 0700 );
+        $path = "$spool/$entry->{'blob'}";
+        holder_download( $dir, $entry->{'blob'}, $path );
+        $downloaded = TRUE;
+    }
     my ( $check, $head, $chunks )
         = _content_fh( $path, $entry->{'chunks'}, $layout );
     my $cipher_sum = Digest::BMW->new(384);
@@ -757,6 +843,7 @@ sub _restore_node {
                 if bmw_b32( $plain_sum->digest ) ne $bmw;
         }
     );
+    unlink $path if $downloaded and -e $path;
 }
 
 sub _unseal_tree {
@@ -900,6 +987,63 @@ sub seal_recover {
     };
 }
 
+sub holder_check {
+    my %opt = @_;
+    my ( undef, $head, $map ) = _context( @opt{qw| root holder |}, TRUE );
+    refuse('no sealed head to check') if not defined $head;
+    my @candidates;
+    foreach my $address ( sort keys $map->{'nodes'}->%* ) {
+        my $entry = $map->{'nodes'}{$address};
+        my $size  = holder_size( $opt{'holder'}, $entry->{'blob'} );
+        refuse( 'mapped blob is missing or has the wrong size : %s',
+            $entry->{'blob'} )
+            if not defined $size
+            or $size != $entry->{'length'};
+        my $head
+            = holder_read_range( $opt{'holder'}, $entry->{'blob'}, 0, 26 );
+        refuse('mapped blob header cannot be read') if not defined $head;
+        my $chunks = unpack qw| Q> |, substr( $head, 18, 8 );
+        refuse('mapped blob chunk count differs')
+            if $chunks != $entry->{'chunks'};
+        my $pos = 26;
+
+        for my $index ( 0 .. $chunks - 1 ) {
+            my $raw = holder_read_range( $opt{'holder'}, $entry->{'blob'},
+                $pos, 4 );
+            my $len = unpack qw| N |, $raw;
+            push @candidates,
+                [
+                $address, $entry, $index, $pos + 4, $len,
+                $index == $chunks - 1 ? TRUE : FALSE
+                ];
+            $pos += 4 + $len;
+        }
+    }
+    my $wanted = $opt{'samples'} // 16;
+    refuse('samples must be a positive integer')
+        if $wanted !~ m|\A[1-9]\d*\z|;
+    for ( my $i = @candidates - 1; $i > 0; $i-- ) {
+        my $j = unpack( 'N', random_bytes(4) ) % ( $i + 1 );
+        @candidates[ $i, $j ] = @candidates[ $j, $i ];
+    }
+    @candidates = @candidates[ 0 .. (
+            $wanted < @candidates ? $wanted - 1 : $#candidates ) ];
+    foreach my $sample (@candidates) {
+        my ( $address, $entry, $index, $offset, $len, $final ) = @{$sample};
+        my $sealed = holder_read_range( $opt{'holder'}, $entry->{'blob'},
+            $offset, $len );
+        refuse('sampled chunk cannot be read') if not defined $sealed;
+        my $keys = _node_keys( $opt{'root'}, $map, $entry );
+        open_sealed_bytes( $keys, $sealed, qw| content |, '', 0,
+            $index, $final );
+    }
+    return {
+        qw| nodes |   => scalar keys $map->{'nodes'}->%*,
+        qw| chunks |  => scalar @candidates,
+        qw| samples | => scalar @candidates
+    };
+}
+
 sub shred_node {
     my %opt = @_;
     my ( $counter, $head, $map ) = _context( @opt{qw| root holder |}, FALSE );
@@ -913,8 +1057,8 @@ sub shred_node {
 
 1;
 
-#,,,.,,,,,.,.,,..,,,.,,,.,..,,.,,,.,,,...,,,,,..,,...,...,...,.,,,,.,,.,,,.,.,
-#II47RL7CE5RCTH45FNIC2AMTH4KFJO62P272WTYXJFLSTIU4VVQRG3EAEYUPKFKFSKLKR2NNYB3DE
-#\\\|JWW6JPGF4RJ6H7WQCDP6Y4VT2XTK3QDWK4CSAGSE6FCS3PA4KL2 \ / AMOS7 \ YOURUM ::
-#\[7]LEQQP63DT6457TZI6MWQ6NNUTAQYMBEM6BEFCA24XVX4VPOZ3CCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,...,,..,,.,,,.,,..,,..,,...,.,,,..,,...,...,..,,,,,,,.,,,.,,,.,,
+#E3NXYBSV2IT525I7N7KDLNJS62Z7XUSEGTRO554AN6EHB6KYAMPUPZKENFF37JT7QZLTMGAQNZRUC
+#\\\|A7MXWYWU5TSYPUOJPVZOYHJM2R72D4GGBYJXRRIZ2HCX2WPAFVQ \ / AMOS7 \ YOURUM ::
+#\[7]DHYYGVBKYF2XA25C6OOCZKTKM5NL6LT6RG2Y6EZNAJDFKNUEMCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
