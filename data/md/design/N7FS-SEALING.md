@@ -62,8 +62,12 @@ This is one local or SSH holder at a time, not replication or placement. No pack
 
 2026-11-09, one owned host over real ssh, throwaway key and scratch tree : seal, repeat run sends nothing, clean recovery of a named tree with only the root file and the holder [ bytes identical, modes identical, timestamps within the known microsecond limit ], ssh killed during a 400 MB upload and resumed by the retry, `holder-check`. the holder listing held ciphertext names only and no plaintext marker. this supersedes any statement above that no real server was tested ; foreign hosts and the owner's real root key are still untested.
 
-#,,..,,,,,,.,,..,,...,,.,,.,,,...,,..,,.,,,,.,..,,...,...,,.,,,.,,,.,,..,,,,,,
-#QWKWBMVVSWHNY3V655BYJDYKSXGATV2WNMSXF46R24VU3IGXY4J7VZ6IU7BA4ONWLYV5UEQRFJTHQ
-#\\\|OMRS55KPMSYIXJDFZEHT45XD4URMBIYRDUJQYPSTQ5URNOSG7ED \ / AMOS7 \ YOURUM ::
-#\[7]GHJEZHM22BJIPDA6RUAPHJYYTQYT26U6W7PXFUI4ETU6MZPVIWDI 7  DATA SIGNATURE ::
+## vault roots
+
+`-root-key` and `root init` also accept `vault:<name>`, a note entry titled `n7fs root <name>` in a p7-vault [ `-vault-dir`, `P7_VAULT_DIR`, default `~/.n/vault` ], unlocked with the vault passphrase and locked again after use. `n7fs root convert <from> <to>` moves a root between a passphrase file and the vault in either direction. only the wrapping of the 96-byte root changes : blobs, maps, heads and holders are untouched and no data is re-encrypted. the source stays until the owner removes it, so one conversion leaves two ways to open the same data. the counter and holder pins carry over and the writer id does not, so both copies may be used safely. a vault root keeps its state in `<host-dir>/seal-roots/<root-id>.state`. `root export-check` takes files only : convert a vault root to a file for the offline copies, then check those.
+
+#,,.,,...,.,,,,,,,,,,,,.,,,.,,,.,,..,,...,.,.,..,,...,...,...,,..,..,,...,,,.,
+#C75YGYOBIRYTCRMXK25HOO5TNVAD2JYRLW4CPVKEQ7OIY3AIMDKKABWLP5LQ7GA6Y7BA5V7OKATTE
+#\\\|PR2PA6CKJI753DLVZKUELXW24RGMD22OO7NEKSMHTXUGK4YBRD7 \ / AMOS7 \ YOURUM ::
+#\[7]GNEMMO66LQY4U23QCOSUDRMRGOIEJPPRW2CJKY5QYD73TZU5LSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
