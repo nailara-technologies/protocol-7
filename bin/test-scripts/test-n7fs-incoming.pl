@@ -321,6 +321,39 @@ ok( $out =~ m|^incoming:\d{14}:odd_name_ |m,
 ok( $rc == 0 && pool_count() == 0, 'edge pool emptied and verifies' )
     or print "rc $rc pool ", pool_count(), " err $err\n";
 
+## many rules in one run ##
+my $bulk = "$src/bulk";
+make_dirs($bulk);
+write_file( "$bulk/$ARG", "bulk $ARG" )
+    for qw| AA1.png AA2.png AB1.png CD1.png |;
+( $rc, $out, $err )
+    = cli_n7fs( 'assimilate', '-disk', $disk, '-incoming', '-keep', $bulk );
+ok( $rc == 0 && pool_count() == 4, 'bulk pool imported' );
+( $rc, $out )
+    = cli_n7fs( 'incoming', $disk, 'list', '-under', $bulk,
+    '-group-by', 'name:2' );
+ok( $out =~ m|^2 \d+ AA$|m && $out =~ m|^1 \d+ CD$|m,
+    'group-by buckets on the start of the filename'
+);
+my $rules = "$box->{'base'}/rules";
+write_file( $rules,
+          "# review list\n\n*/AA* default\n*/AA1* "
+        . "incoming\n*/ZZ* default\n*/AB* default\n" );
+my $seq_before = journal_replay($id)->{'seq'};
+( $rc, $out, $err ) = cli_n7fs( 'incoming', $disk, 'tag', '-from', $rules );
+ok( $rc == 0 && pool_count() == 1, 'rules applied, first match wins' )
+    or say "$out$err";
+ok( journal_replay($id)->{'seq'} == $seq_before + 1,
+    'many rules cost one journal entry' );
+ok( $out =~ m|matched nothing : \*/ZZ|, 'an empty rule is reported' );
+write_file( $rules, "*/CD* nosuchcategory\n" );
+( $rc, $out, $err ) = cli_n7fs( 'incoming', $disk, 'tag', '-from', $rules );
+ok( $rc != 0 && pool_count() == 1,
+    'unknown category refuses the whole file' );
+( $rc, $out ) = cli_n7fs( 'incoming', $disk, 'tag', '*', 'default' );
+( $rc, $out, $err ) = cli_n7fs( 'verify', $disk );
+ok( $rc == 0 && pool_count() == 0, 'bulk pool emptied and verifies' );
+
 if ( $ENV{'N7FS_INCOMING_SCALE'} ) {
     my $count       = $ENV{'N7FS_INCOMING_SCALE'} + 0;
     my $scale_root  = "$src/scale";
@@ -407,8 +440,8 @@ if ( $ENV{'N7FS_INCOMING_SCALE'} ) {
 
 done();
 
-#,,,.,,,,,,..,,,,,,,,,...,,..,...,,,,,,,.,,.,,..,,...,...,..,,..,,..,,,..,..,,
-#SGNRBHULBE6ED7F2TQ5MHSMTFQ4TFFGJRGOIXHC3S4LQHJAGEHVG57ZTJ3OEEN5LDQFZG3SSCTP4Y
-#\\\|GJKJFUJA6JEZ6CLW4S3FG4MA7TNWA4G7TW5EZ33SV425DQ4UPMN \ / AMOS7 \ YOURUM ::
-#\[7]UHSYMR4CS3BMPXJDSWPZD2E5KWXBEUG3YARPQQJKNVECSQQJLUAA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,.,,.,.,..,,...,,.,,...,,,.,.,.,..,,...,...,...,,,,,,.,,..,,,..,
+#IMEUXKTUMQQG5LPSFNFMSEA7IURI762E4QNFL67CSCDWRD6XS4A4VWQYO4733RO25XXXOAW7CY5FW
+#\\\|DEEGHBYNIQOCKPSZ3T3HX4ZKVDOOGF6HI3KAEEL55J74R4WLQ7H \ / AMOS7 \ YOURUM ::
+#\[7]42POJQYR7ZTKUMTFO7CTJO6HALJL2ZCKBIEQNCZKBJCTMC37PYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

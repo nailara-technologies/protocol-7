@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Incoming-VERSION.Y4JNK2Y |;
+our $VERSION = qw| AMOS7::N7FS::Incoming-VERSION.PI4V6MI |;
 
 @EXPORT_OK
     = qw| incoming_refs incoming_summary incoming_groups incoming_tag |;
@@ -95,12 +95,15 @@ sub _dirname {
 }
 
 sub incoming_groups {
-    my ( $refs, $under, $depth, $limit ) = @ARG;
+    my ( $refs, $under, $depth, $limit, $name_len ) = @ARG;
     my %groups;
     foreach my $ref ( @{$refs} ) {
         next if defined $under and not _under( $ref->{'holder'}, $under );
         my $group = _dirname( $ref->{'holder'} );
-        if ( defined $depth ) {
+        if ( defined $name_len ) {
+            ( my $name = $ref->{'holder'} ) =~ s|.*/||s;
+            $group = substr( $name, 0, $name_len );
+        } elsif ( defined $depth ) {
             ( my $base = $under // '' ) =~ s|/+\z||;
             my @parts = grep {length} split m|/|,
                 substr( $group, length $base );
@@ -132,42 +135,75 @@ sub _empty_set {
     };
 }
 
+## a canonical address, a glob over the whole path, or a path prefix ##
+sub _matcher {
+    my $selector = shift;
+    return sub { $ARG[0]->{'node'} eq $selector }
+        if $selector =~ $ADDR_RE;
+    if ( $selector =~ m|[?*]| ) {
+        my $glob = quotemeta $selector;
+        $glob =~ s|\\\*|.*|g;
+        $glob =~ s|\\\?|.|g;
+        my $regex = qr|\A$glob\z|s;
+        return sub { $ARG[0]->{'holder'} =~ $regex };
+    }
+    return sub { _under( $ARG[0]->{'holder'}, $selector ) };
+}
+
 sub incoming_tag {
-    my %opt      = @ARG;
-    my $selector = $opt{'selector'} // '';
-    my $category = $opt{'category'} // '';
-    refuse('incoming tag : the selector is empty') if not length $selector;
+    my %opt = @ARG;
+    ## one selector, or many rules in one run : first matching rule wins ##
+    my @rules
+        = $opt{'rules'}
+        ? $opt{'rules'}->@*
+        : ( [ $opt{'selector'} // '', $opt{'category'} // '' ] );
+    refuse('incoming tag : no rules') if not @rules;
+    foreach my $rule (@rules) {
+        refuse('incoming tag : the selector is empty')
+            if not length $rule->[0];
+    }
     my $lock  = disk_lock( disk_read_id(%opt) );
     my $id    = disk_require_attached(%opt);
     my $store = store_key_signer( %opt, qw| id | => $id );
     my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
     refuse('incoming is only available for store format 3')
         if $state->{'store_format'} != 3;
-    my $replay = journal_replay($id);
-    refuse( 'unknown category [ %s ]', $category )
-        if not exists category_definitions( $id, $replay )->{$category};
-    my $refs = incoming_refs( %opt, _id => $id, _replay => $replay );
-    my @matching;
+    my $replay  = journal_replay($id);
+    my $defined = category_definitions( $id, $replay );
 
-    if ( $selector =~ $ADDR_RE ) {
-        @matching = grep { $ARG->{'node'} eq $selector } @{$refs};
-    } elsif ( $selector =~ m|[?*]| ) {
-        my $glob = quotemeta $selector;
-        $glob =~ s|\\\*|.*|g;
-        $glob =~ s|\\\?|.|g;
-        my $regex = qr|\A$glob\z|s;
-        @matching = grep { $ARG->{'holder'} =~ $regex } @{$refs};
-    } else {
-        @matching = grep { _under( $ARG->{'holder'}, $selector ) } @{$refs};
+    foreach my $rule (@rules) {
+        refuse( 'unknown category [ %s ]', $rule->[1] )
+            if not exists $defined->{ $rule->[1] };
     }
-    refuse( 'incoming tag : no pool references match [ %s ]', $selector )
+    my @left = incoming_refs( %opt, _id => $id, _replay => $replay )->@*;
+    my ( %by_category, @matching, @empty );
+    foreach my $rule (@rules) {
+        my $test = _matcher( $rule->[0] );
+        my ( @hit, @rest );
+        foreach my $ref (@left) {
+            if   ( $test->($ref) ) { push @hit,  $ref }
+            else                   { push @rest, $ref }
+        }
+        @left = @rest;
+        push @empty,                         $rule->[0] if not @hit;
+        push $by_category{ $rule->[1] }->@*, @hit;
+        push @matching,                      @hit;
+    }
+    refuse( 'incoming tag : no pool references match [ %s ]', $rules[0][0] )
         if not @matching;
     my $bytes = 0;
     $bytes += $ARG->{'size'} for @matching;
-    my $record = batch_write( $id, $store, $category, \@matching, $bytes );
-    my $add    = _empty_set();
-    push $add->{'batches'}->@*,
-        { qw| path | => $record->{'path'}, qw| category | => $category };
+    my $add = _empty_set();
+    my $record;
+    foreach my $category ( sort keys %by_category ) {
+        my $list = $by_category{$category};
+        next if not @{$list};
+        my $size = 0;
+        $size += $ARG->{'size'} for @{$list};
+        $record = batch_write( $id, $store, $category, $list, $size );
+        push $add->{'batches'}->@*,
+            { qw| path | => $record->{'path'}, qw| category | => $category };
+    }
     my $drop     = _empty_set();
     my %resolved = map { $ARG->{'path'} => TRUE } @matching;
 
@@ -195,16 +231,18 @@ sub incoming_tag {
     return {
         qw| count |    => scalar @matching,
         qw| bytes |    => $bytes,
-        qw| category | => $category,
+        qw| category | => $rules[0][1],
         qw| record |   => $record,
         qw| seq |      => $journal->{'seq'},
+        qw| rules |    => scalar @rules,
+        qw| empty |    => \@empty,
     };
 }
 
 1;
 
-#,,,,,..,,...,,.,,,..,,,.,..,,,.,,.,.,.,.,,.,,..,,...,...,.,,,.,.,.,.,.,.,.,,,
-#SFLCKEDN527BNWW5EB5ZSCDBQIOGQQPAAG7GJD35GUOXBWAVO2CG7MTBJAWFYT4UE4CGQ6NJCNKQU
-#\\\|QMMRIDNUHTRRKHV4CQIN4R6HK7AY3WNVDUWV36E6CSHUQAERDGK \ / AMOS7 \ YOURUM ::
-#\[7]3PLBQNCXNGCWQOEVJWCDA7OLR3YOJG62WGMA6YYV7KLGTENYCABA 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,.,.,,,,.,,.,,,.,.,.,.,.,,,,.,,..,,...,...,.,,,,,,,..,,.,,,...,
+#2FLLIYL6TTURZV5P237LHMGFAZM4PRWQCADBOHETB6C6Q2HKODZWH7MZK37MTWLAMISTTDA6RA7S4
+#\\\|F3GR3EL32M4NWXY3BLZ6BDH2V5R7CM3T2HCYQM2ZJXNQHBZFXLZ \ / AMOS7 \ YOURUM ::
+#\[7]Y6CBHZOCTOE4NFKGLXLNBLLZC476FSO6VV47A3JVIK6BQKIEAODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

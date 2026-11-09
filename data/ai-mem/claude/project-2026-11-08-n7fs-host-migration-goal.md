@@ -24,6 +24,10 @@ resource economy : already written in read-me/documentation/dev/NRT.NRD.asc and 
 continues [[session-handover-n7fs-format3]].
 
 
+## threat model addition [ owner 2026-11-09 ]
+
+loss of ALL owned hardware at once is a real, experienced case, so recovery must work from something outside owned hardware plus what the owner carries or remembers. a wrapped root reachable outside owned hardware is therefore wanted, not a mistake : it needs a strong, separate passphrase, and the access path to a holder [ ssh key, provider login ] must survive too.
+
 ## stage 4 decisions [ owner 2026-11-09 ]
 
 - one root now, the format names a root id so compartments and k-of-n can follow without a rewrite
@@ -32,8 +36,8 @@ continues [[session-handover-n7fs-format3]].
 - all four remote servers are foreign : blind holders only, one shared failure domain. owned today : the local WSL host and one other local machine
 - stages 1-3 committed : 14de12a84, 3411f5fa7, 10781a08e [ local, not pushed ]. stage 4 is split to spare kimi quota
 
-#,,.,,...,...,,,.,,..,..,,,,,,..,,.,,,,,,,,,.,..,,...,...,...,,..,,..,.,.,,,.,
-#AB6R7M4HBWRBL3E6IOQHLPTCVJLZ5HXONZWRAJUTHNOWLI5CZYJF5BMV6M7XU25QLZQD2SEYSGOPC
-#\\\|4IXWJMNLNT7UHDLMCU5VRTFUH5EYLNNHRFVE3KJAM3ZM53EXZTK \ / AMOS7 \ YOURUM ::
-#\[7]UQKXMNOLKR3ZXVTGTGFUGPFTPVGLTHCTZI3OLWQ6URUTTVHPIQCI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,,,.,.,,,,,.,...,,,,,...,,,,,..,,...,...,...,,,,,...,.,,,,,,,
+#GW6RBIXDBNOL7BOXNHDDSTWFYO3QXIA5RWP7UACYZ5MP5QI7RGPOVVLHVCKZZZ7CKVNIORFKI2FNM
+#\\\|C6AAJ5UEUSTA76M2OFOPTQOM2RQNHWUILEZD3IXS4KAPEJS4U6I \ / AMOS7 \ YOURUM ::
+#\[7]TRN3PMK6ETRWBNK4XQS4WTYJ3CPIO27B4WAP67LP4YRLUMD2IEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -48,6 +48,8 @@ use warnings;
 ## n7fs set-category <disk> <address|tree:path-prefix> <name>
 ## n7fs incoming <disk> list [ -under <prefix> ] [ -depth <n> ] [ -limit <n> ]
 ## n7fs incoming <disk> tag <prefix|glob|address> <category>
+## n7fs incoming <disk> tag -from <file>  lines of <selector> <category> ; one run
+## n7fs incoming <disk> list -group-by name:<n>  buckets by filename start
 ## n7fs incoming <disk> done         exit 0 when empty, 1 while nonempty
 ## n7fs sync <from-disk> <to-disk> [ -dry-run ] [ -trees-only ]
 ## n7fs sync-conflicts <disk>         unresolved concurrent sync changes
@@ -142,7 +144,7 @@ GetOptionsFromArray(
         dry-run out=s format=s chksum=s holder=s all allow-rollback force reason=s
         free=s older=s now tree=s@ all-trees category=s category-rule=s@ owners
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
-        layer=s incoming under=s depth=i limit=i trees-only help
+        layer=s incoming under=s depth=i limit=i group-by=s trees-only help
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i |
 ) or usage(2);
 usage(0) if $o{'help'};
@@ -202,6 +204,10 @@ my %run = (
 );
 usage(2) if not exists $run{$command};
 
+## the process list shows the tool and its command, never its arguments ##
+our $SCRIPT = $PROGRAM_NAME;
+$PROGRAM_NAME = "n7fs $command";
+
 my $code = eval { $run{$command}->(@args) };
 if ( not defined $code ) {
     my $err = $EVAL_ERROR || "n7fs : failed\n";
@@ -214,7 +220,7 @@ exit $code;
 
 sub usage {
     my $exit = shift;
-    open( my $fh, '<', $PROGRAM_NAME ) or exit $exit;
+    open( my $fh, '<', $main::SCRIPT // $PROGRAM_NAME ) or exit $exit;
     while ( my $line = <$fh> ) {
         last                  if $line =~ m|^use FindBin|;
         print {*STDERR} $line if $line =~ m|^## |;
@@ -947,8 +953,15 @@ sub cmd_incoming {
     if ( $action eq qw| list | ) {
         fail('incoming list : unexpected arguments') if @ARG;
         binmode STDOUT, qw| :raw |;
+        my $name_len;
+        if ( defined $o{'group-by'} ) {
+            ($name_len) = $o{'group-by'} =~ m|\Aname:([1-9]\d*)\z|;
+            fail('incoming list : -group-by takes name:<n>')
+                if not defined $name_len;
+        }
         my $groups
-            = incoming_groups( $refs, $o{'under'}, $o{'depth'}, $o{'limit'} );
+            = incoming_groups( $refs, $o{'under'}, $o{'depth'}, $o{'limit'},
+            $name_len );
         say join ' ', $ARG->{'count'}, $ARG->{'bytes'}, $ARG->{'path'}
             for @{$groups};
         say_line( 'incoming ', $summary->{'count'}, ' references, ',
@@ -956,16 +969,34 @@ sub cmd_incoming {
         return 0;
     }
     if ( $action eq qw| tag | ) {
-        my $selector = shift // fail('incoming tag needs a selector');
-        my $category = shift // fail('incoming tag needs a category');
-        fail('incoming tag : unexpected arguments') if @ARG;
+        my ( $selector, $category, @rules );
+        if ( defined $o{'from'} ) {
+            fail('incoming tag : -from takes no selector') if @ARG;
+            open( my $fh, '<:raw', $o{'from'} )
+                or fail("cannot read $o{'from'} : $OS_ERROR");
+            while ( my $line = <$fh> ) {
+                $line =~ s|\r?\n\z||;
+                next if $line =~ m|\A\s*(?:#.*)?\z|;
+                my ( $sel, $cat ) = $line =~ m|\A\s*(.*\S)\s+(\S+)\s*\z|;
+                fail("incoming tag : bad line [ $line ]") if not defined $cat;
+                push @rules, [ $sel, $cat ];
+            }
+            close $fh;
+            fail('incoming tag : no rules in the file') if not @rules;
+        } else {
+            $selector = shift // fail('incoming tag needs a selector');
+            $category = shift // fail('incoming tag needs a category');
+            fail('incoming tag : unexpected arguments') if @ARG;
+        }
         my $r = incoming_tag(
             %common,
-            qw| disk |     => $disk,
-            qw| host |     => host_signer(),
-            qw| selector | => $selector,
-            qw| category | => $category,
+            qw| disk | => $disk,
+            qw| host | => host_signer(),
+            @rules
+            ? ( qw| rules | => \@rules )
+            : ( qw| selector | => $selector, qw| category | => $category ),
         );
+        say_line( 'rule matched nothing : ', $ARG ) for $r->{'empty'}->@*;
         say_line(
             'tagged ',
             $r->{'count'},
@@ -1371,8 +1402,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,.,,,..,,.,,,,,,,..,.,,,,..,,,,,..,,.,,,..,,...,...,,.,,..,,,..,,,,,..,,
-#3SGOFNGC6OCPNEOFAVGHJY7JTNYN4K5BKNDV5Y3MAGXYBQYLKKR7E7SSVG6777QQD6CVWB6MDRLAQ
-#\\\|PI26TJCIMHQSSNXWTV2CJRWDSG2SQXRO4P3ZTQMX62Q5MR6XLG3 \ / AMOS7 \ YOURUM ::
-#\[7]DTIU2AGO6JYO5FNYAZ23ZV4P3PJQVEDCPW565OKJBQIKD7MYT6DI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,...,..,,,.,,,,,,...,,..,.,.,,.,,..,,...,..,,...,,,,,,.,,.,.,,,.,
+#E7WDYZG35O5JXXERNIVXB5ATCJPR7CZZ2SMLEYEVICJVT5MH57TWUEZAKDUWYXNVBW2KWSKLAKMBE
+#\\\|QJSXXUKGLZLYZJX6YTAHZHWS5PUCHQLUQMC46OEZGYM7RNEXM5T \ / AMOS7 \ YOURUM ::
+#\[7]OB573BELEXIYMB35OPFBHOIF2EVDJQOBATER2QPENSIZJ5YB6AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
