@@ -62,7 +62,8 @@ use warnings;
 ## n7fs upgrade <disk> [ -epoch <n> ]     convert into the next epoch of
 ##                                         the window [ -epoch : tests ]
 ## n7fs confirm <disk>                    confirm an upgrade
-## n7fs root init <file>                   new sealed-replica root key
+## n7fs root init <file|vault:<name>>      [ -vault-dir <dir> ]
+## n7fs root convert <from> <to>           file or vault:<name> ; rewraps only
 ## n7fs root export-check <file>           open a copy with the passphrase
 ## n7fs seal <disk> -root-key <file> -out <dir> [ -category <name> |
 ##                  -tree <name> .. | -all-trees | <address>.. ]
@@ -136,7 +137,7 @@ my @args = @ARGV;
 my %o    = ( qw| trust | => [] );
 GetOptionsFromArray(
     \@args, \%o,
-    qw| root=s root-key=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
+    qw| root=s root-key=s vault-dir=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
         name=s intent=s disk=s index=s index-base=s epoch=s remove keep prune
         dry-run out=s format=s chksum=s holder=s all allow-rollback force reason=s
         free=s older=s now tree=s@ all-trees category=s category-rule=s@ owners
@@ -1200,22 +1201,42 @@ sub _seal_root {
     return AMOS7::N7FS::Keys::root_open(
         qw| path | => $o{'root-key'}
             // fail('sealing needs -root-key <file>'),
-        qw| pass_fd | => $o{'pass-fd'},
+        qw| pass_fd |   => $o{'pass-fd'},
+        qw| vault_dir | => $o{'vault-dir'},
     );
 }
 
 sub cmd_seal_root {
     require AMOS7::N7FS::Keys;
-    my $action = shift // fail('root needs init or export-check');
-    my $file   = shift // fail('root needs a file');
+    my $action = shift // fail('root needs init, convert or export-check');
+    my $file   = shift // fail('root needs a file or vault:<name>');
+    if ( $action eq qw| convert | ) {
+        my $to = shift // fail('root convert needs a target');
+        fail('root : unexpected arguments') if @ARG;
+        AMOS7::N7FS::Keys::root_convert(
+            qw| from |      => $file,
+            qw| to |        => $to,
+            qw| pass_fd |   => $o{'pass-fd'},
+            qw| vault_dir | => $o{'vault-dir'},
+            qw| argon_m |   => $o{'argon-m'},
+            qw| argon_t |   => $o{'argon-t'},
+            qw| argon_p |   => $o{'argon-p'},
+        );
+        say_line( 'root converted to ',
+            $to, ' ; data and holders unchanged' );
+        say_line( 'the source key still exists ; '
+                . 'remove it yourself when ready' );
+        return 0;
+    }
     fail('root : unexpected arguments') if @ARG;
     if ( $action eq qw| init | ) {
         AMOS7::N7FS::Keys::root_init(
-            qw| path |    => $file,
-            qw| pass_fd | => $o{'pass-fd'},
-            qw| argon_m | => $o{'argon-m'},
-            qw| argon_t | => $o{'argon-t'},
-            qw| argon_p | => $o{'argon-p'},
+            qw| path |      => $file,
+            qw| pass_fd |   => $o{'pass-fd'},
+            qw| vault_dir | => $o{'vault-dir'},
+            qw| argon_m |   => $o{'argon-m'},
+            qw| argon_t |   => $o{'argon-t'},
+            qw| argon_p |   => $o{'argon-p'},
         );
         say_line( 'sealed root ', $file );
         return 0;
@@ -1238,7 +1259,7 @@ sub cmd_seal_root {
         say_line('root copy opens with the supplied passphrase');
         return 0;
     }
-    fail('root needs init or export-check');
+    fail('root needs init, convert or export-check');
 }
 
 sub cmd_seal {
@@ -1350,8 +1371,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,.,,,...,.,.,...,..,,.,.,,..,,,,,,,.,,.,,..,,...,...,..,,,,.,.,,,.,.,...,
-#HL7RZUKQ3272P36BYPWRH6XBSKVPPG6JWG75AZXRFKADCII72UV3VYXJXC6A4LM4TOR4A52I7UQ5Y
-#\\\|3CYFZNRTQK4ZNJLV42A56MVT4AKZI27VZFTW7FVXUPC5JC327XK \ / AMOS7 \ YOURUM ::
-#\[7]KUGTCU452EJNTA5MKJINB7MGZQ66O7RXVFVMZF3QF4SH4DXXUABI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,.,,,,,,,..,.,,,,..,,,,,..,,.,,,..,,...,...,,.,,..,,,..,,,,,..,,
+#3SGOFNGC6OCPNEOFAVGHJY7JTNYN4K5BKNDV5Y3MAGXYBQYLKKR7E7SSVG6777QQD6CVWB6MDRLAQ
+#\\\|PI26TJCIMHQSSNXWTV2CJRWDSG2SQXRO4P3ZTQMX62Q5MR6XLG3 \ / AMOS7 \ YOURUM ::
+#\[7]DTIU2AGO6JYO5FNYAZ23ZV4P3PJQVEDCPW565OKJBQIKD7MYT6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
