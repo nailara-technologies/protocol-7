@@ -32,6 +32,18 @@ The head locator is BMW384 of a labelled root-key derivation. Its signed plainte
 
 `n7fs seal-recover -root-key <file> -from <dir> [-tree <name>] <target-dir>` needs only the root file and holder. Without `-tree` it writes verified address files. With `-tree` it restores the named sealed tree without any disk or journal on the clean host.
 
+## local and SSH holders
+
+`-out`, `-from`, `shred -out`, and `holder-check` accept a local directory or `ssh:<host-alias>:<absolute-dir>`. `AMOS7::N7FS::Holder` is the only transport layer. SSH aliases and directories are restricted to safe ASCII without leading dashes or shell metacharacters. Every remote path is POSIX single-quoted, `ssh` is executed as an argument list with `BatchMode=yes`, and `N7FS_SSH` can select a test implementation.
+
+A blind holder needs only sshd, POSIX sh, and coreutils. No remote Perl, N7FS code, key material, passphrase, plaintext name, or nonce is used. SSH receives exactly one remote command string with connect/server-alive options. Uploads append to a ciphertext-named `.upload` temporary from its reported size, with five bounded attempts and configurable backoff. Node ids and keys are wrapped under the root keys in root-state pending storage until the map commit. A process failure on rerun produces the same ciphertext and continues the same temporary. Spooled files are deleted only after confirmation; non-content temporary uploads are discarded before retry.
+
+Head and map readback must match the local ciphertext. Content checks include total size and sampled whole-chunk readback using `tail` and `head`, never byte-wise `dd`. Restore streams into a resumable local spool instead of slurping the blob. `holder-check -samples <n>` checks every blob's size, then authenticates 16 chunks by default across the holder using node keys, without downloading whole blobs or writing plaintext. Missing files are distinct from transport failure; a pinned holder with no head refuses to become clean. SIGPIPE is ignored and checked, stdout/stderr are drained concurrently, and diagnostics are bounded.
+
+Uploads use `sync` when available, with a warning otherwise, then atomic `mv`. Content is published before map, journal, and head; the head is always last. Existing confirmed blobs are skipped. Old, truncated, deleted, or wrong holder data is refused.
+
+`bin/test-scripts/test-n7fs-holder.pl` uses a POSIX-sh fake SSH in a sandbox, never a real host. It covers clean tree recovery with metadata, upload interruption and process resume, readback corruption, persistent failure, old heads, alias rejection, argv secrecy, publication ordering, and deleted/corrupted blobs. Mutants cover head-before-blobs, removed readback, and path quoting.
+
 ## shredding and local encryption
 
 `n7fs shred <disk> -root-key <file> -out <dir> <address>` implements step 1 only: it journals removal of the node's wrap from the current map and advances the signed head. Other nodes still recover. Local plaintext, ciphertext blobs, old sealed maps, and old heads are retained. Steps 2 and 3 are not implemented.
@@ -44,10 +56,14 @@ The head locator is BMW384 of a labelled root-key derivation. Its signed plainte
 
 ## honest limits
 
-This is one local holder directory at a time, not replication or placement. No pack format exists. Clean recovery cannot detect withheld newer heads. Old maps defeat step-1 shredding if retained with their keys. Map JSON and individual 16 MiB chunks are held in memory; very large maps are not yet streamed.
+This is one local or SSH holder at a time, not replication or placement. No pack format exists. Clean recovery cannot detect withheld newer heads. Old maps defeat step-1 shredding if retained with their keys. Map JSON and individual 16 MiB chunks are held in memory; very large maps are not yet streamed. Restore spool storage is one blob, while network reads and holder-check authentication are chunked. **No real SSH server has been tested yet**; all SSH acceptance coverage uses the sandboxed POSIX-sh fake.
 
-#,,.,,,,.,.,,,,,.,,..,.,,,.,.,,,.,.,,,.,,,.,,,..,,...,...,...,..,,,,.,,,,,,,,,
-#X37MNXNRV4XH4QQ6JTIGPRKLC3ZBJFZZCCTSJMQZSO57FXCOVM5PS6TUSY4YL2UMPFRZ55MRY7ISG
-#\\\|MJV3EG3TLF53XHDZJPJRPGCFZD5UQGM2IPBLSKL7I2PFT5T76XU \ / AMOS7 \ YOURUM ::
-#\[7]5MJJP2G3MH4QFOCKSO2UUGZ4EVJCD7VOAECGDTRHB4DJXVIA22AQ 7  DATA SIGNATURE ::
+## real holder test
+
+2026-11-09, one owned host over real ssh, throwaway key and scratch tree : seal, repeat run sends nothing, clean recovery of a named tree with only the root file and the holder [ bytes identical, modes identical, timestamps within the known microsecond limit ], ssh killed during a 400 MB upload and resumed by the retry, `holder-check`. the holder listing held ciphertext names only and no plaintext marker. this supersedes any statement above that no real server was tested ; foreign hosts and the owner's real root key are still untested.
+
+#,,..,,,,,,.,,..,,...,,.,,.,,,...,,..,,.,,,,.,..,,...,...,,.,,,.,,,.,,..,,,,,,
+#QWKWBMVVSWHNY3V655BYJDYKSXGATV2WNMSXF46R24VU3IGXY4J7VZ6IU7BA4ONWLYV5UEQRFJTHQ
+#\\\|OMRS55KPMSYIXJDFZEHT45XD4URMBIYRDUJQYPSTQ5URNOSG7ED \ / AMOS7 \ YOURUM ::
+#\[7]GHJEZHM22BJIPDA6RUAPHJYYTQYT26U6W7PXFUI4ETU6MZPVIWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
