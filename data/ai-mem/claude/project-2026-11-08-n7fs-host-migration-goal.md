@@ -23,8 +23,17 @@ resource economy : already written in read-me/documentation/dev/NRT.NRD.asc and 
 
 continues [[session-handover-n7fs-format3]].
 
-#,,,,,.,.,,.,,..,,,,,,,,,,..,,,,.,..,,,,,,,..,..,,...,..,,,.,,...,,,.,,..,,,,,
-#7TBSDSQXQBWSNDEKFTQ3ZFK2ZTO7M3VVDM7RMOYMY2UORA7MVX357AI5KJEOASONIIZOCPUDAZJMY
-#\\\|TMU4EFOG3PKQRLQ26UITOLT6PEN6HXTPKSMIRB2PGQWH4HHNTXI \ / AMOS7 \ YOURUM ::
-#\[7]LU5UWK3DCCZ7RMUXY57V76SDFRZ2IB4D6YTWJM7VMXJEUMXM3ICQ 7  DATA SIGNATURE ::
+
+## stage 4 decisions [ owner 2026-11-09 ]
+
+- one root now, the format names a root id so compartments and k-of-n can follow without a rewrite
+- root key : passphrase-encrypted file on owned hosts, unlocked per session ; two offline copies before the first upload
+- chunks and packs 16 MiB
+- all four remote servers are foreign : blind holders only, one shared failure domain. owned today : the local WSL host and one other local machine
+- stages 1-3 committed : 14de12a84, 3411f5fa7, 10781a08e [ local, not pushed ]. stage 4 is split to spare kimi quota
+
+#,,.,,...,...,,,.,,..,..,,,,,,..,,.,,,,,,,,,.,..,,...,...,...,,..,,..,.,.,,,.,
+#AB6R7M4HBWRBL3E6IOQHLPTCVJLZ5HXONZWRAJUTHNOWLI5CZYJF5BMV6M7XU25QLZQD2SEYSGOPC
+#\\\|4IXWJMNLNT7UHDLMCU5VRTFUH5EYLNNHRFVE3KJAM3ZM53EXZTK \ / AMOS7 \ YOURUM ::
+#\[7]UQKXMNOLKR3ZXVTGTGFUGPFTPVGLTHCTZI3OLWQ6URUTTVHPIQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -895,6 +895,43 @@ my @mutations = (
             ]
         ],
     },
+    {   name => 'seal final flag not authenticated',
+        file => 'N7FS/Seal.pm',
+        test => 'test-n7fs-seal.pl',
+        edit => [
+            [   "        \$nonce = _content_iv( 1, \$chunk, \$final );",
+                "        \$nonce = _content_iv( 1, \$chunk, 0 );"
+            ]
+        ],
+    },
+    {   name => 'seal wrap nonce ignores counter',
+        file => 'N7FS/Seal.pm',
+        test => 'test-n7fs-seal.pl',
+        edit => [
+            [   "                . pack( qw| Q> |, \$counter )\n        ),",
+                "                . pack( qw| Q> |, 0 )\n        ),"
+            ]
+        ],
+    },
+    {   name => 'seal ciphertext returned before decrypt order',
+        file => 'N7FS/Seal.pm',
+        test => 'test-n7fs-seal.pl',
+        edit => [
+            [   "    return twofish_crypt(\n       "
+                    . " \$inner,\n        defined \$chunk",
+                "    return \$middle;\n        defined \$chunk"
+            ]
+        ],
+    },
+    {   name => 'seal head rollback refusal removed',
+        file => 'N7FS/Seal.pm',
+        test => 'test-n7fs-seal.pl',
+        edit => [
+            [   "            if \$head->{'version'} < \$pinned;",
+                "            if 0;"
+            ]
+        ],
+    },
 );
 
 my $filter = shift // '';
@@ -910,7 +947,7 @@ foreach my $m (@mutations) {
         'N7FS.pm',
         map {"N7FS/$ARG.pm"}
         qw| Sum Sign Disk Store Convert Journal Reference Release Record Tree
-        Category Batch Incoming Sync |
+        Category Batch Incoming Sync Seal Keys |
     ) {
         open( my $in, '<:raw', "$lib/$f" ) or die "read $lib/$f : $OS_ERROR";
         my $text = do { local $INPUT_RECORD_SEPARATOR; <$in> };
@@ -954,8 +991,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,.,,.,,,,.,,,.,,..,,,,,,.,,,..,,,.,,..,,,,.,..,,...,.,.,,.,,,,.,,..,.,.,,,,,
-#KORMKABYOTH563IXIZK5RZYKXR7V5ZCKQWEOMU3VQPQY5UU4L5EVZ2ENKLWSSUD7GG6BNQN5D6VK6
-#\\\|ODGJPOG6G4MA5LWY5A4M6YCYCIPLBDO3SXR2PZWIQ755GAEUPKX \ / AMOS7 \ YOURUM ::
-#\[7]KUK3NV2BNKQGLLTXUXKPU5EGEG6PDDEVXRQAOJPU6AUWLTFWUQBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,,,,,,..,.,,,,,,,,.,,.,.,..,,..,,...,...,..,,,..,.,.,.,,,,,,,
+#J4MIK5HYKVL6PST563H4GCK6DU2M7N22JKEFMCTG7JAWS5F4JP7EDEPBHHOWO6VP4NCEGSEOIUKBY
+#\\\|2AFGFQZC35MB6T3X6DMHARHLLBVAMXGGDINBRXHIGSQEECIL74V \ / AMOS7 \ YOURUM ::
+#\[7]PQS7UJCYDEUAUBYEYDHZB7UFTAX54GIZHYNWP6CIIRTCJQOJTKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

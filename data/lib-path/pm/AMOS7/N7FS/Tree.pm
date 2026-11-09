@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.GCWLNGA |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.VTRQQBI |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -436,7 +436,18 @@ sub _path {
 
 sub _each_manifest {
     my ( $id, $state, $tree, $code ) = @ARG;
-    my ($fh) = manifest_open( $id, $state, $tree );
+    my $fh;
+    if ( defined $id->{'_manifest_path'} ) {
+        open( $fh, '<:raw', $id->{'_manifest_path'} )
+            or refuse( 'cannot open supplied tree manifest : %s', $OS_ERROR );
+        my $head    = <$fh>;
+        my $decoded = eval { $JSON->decode($head) };
+        refuse('supplied manifest has a bad header')
+            if ref $decoded ne qw| HASH |
+            or ( $decoded->{'manifest'} // 0 ) != 1;
+    } else {
+        ($fh) = manifest_open( $id, $state, $tree );
+    }
     while ( my $entry = manifest_entry_read($fh) ) {
         _path($entry);
         $code->($entry);
@@ -694,14 +705,23 @@ sub tree_restore {
     my $target = $opt{'target'} // '';
     refuse('restore needs a target') if not length $target;
     $target =~ s|/+\z||              if length $target > 1;
-    my $id    = disk_read_id(%opt);
-    my $lock  = disk_lock( $id, qw| shared | );
-    my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
-    refuse('restore is only available for store format 3')
-        if $state->{'store_format'} != 3;
-    my $replay = journal_replay($id);
-    my ($tree)
-        = grep { $ARG->{'name'} eq $name } tree_list( $id, $state, $replay );
+    my ( $id, $lock, $state, $tree );
+    if ( defined $opt{'tree_record'} ) {
+        $id = { qw| _manifest_path | => $opt{'manifest_path'}
+                // refuse('supplied tree needs a manifest path') };
+        $state = {};
+        $tree  = $opt{'tree_record'};
+    } else {
+        $id    = disk_read_id(%opt);
+        $lock  = disk_lock( $id, qw| shared | );
+        $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+        refuse('restore is only available for store format 3')
+            if $state->{'store_format'} != 3;
+        my $replay = journal_replay($id);
+        ($tree)
+            = grep { $ARG->{'name'} eq $name }
+            tree_list( $id, $state, $replay );
+    }
     refuse( 'restore : no live tree [ %s ]', $name ) if not defined $tree;
     my $manifest_symlinks = _manifest_preflight( $id, $state, $tree );
 
@@ -753,34 +773,38 @@ sub tree_restore {
                     refuse('manifest file has no address')
                         if not $entry->{'a'};
                     my $addr = _address( $entry->{'a'} );
-                    node_verify( $id->{'path'}, $addr, 3, $id );
+                    node_verify( $id->{'path'}, $addr, 3, $id )
+                        if not ref $opt{'content_source'};
                     $files++;
                     return if $opt{'dry_run'};
                     my $dest = "$tmp/$relative";
                     make_dirs( $dest =~ s|/[^/]+\z||r, 0700 );
-                    my $source
-                        = node_path( $id->{'path'}, $addr ) . '/content';
-                    sysopen( my $in, $source, O_RDONLY | O_NOFOLLOW )
-                        or
-                        refuse( 'cannot open %s : %s', $source, $OS_ERROR );
-                    binmode $in;
-                    sysopen( my $out, $dest,
-                        O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0600 )
-                        or
-                        refuse( 'cannot create %s : %s', $dest, $OS_ERROR );
-                    binmode $out;
-
-                    while (1) {
-                        my $got = sysread( $in, my $buf, 1048576 );
-                        refuse( 'read %s : %s', $source, $OS_ERROR )
-                            if not defined $got;
-                        last if $got == 0;
-                        print {$out} $buf
-                            or refuse( 'write %s failed', $dest );
+                    if ( ref $opt{'content_source'} ) {
+                        $opt{'content_source'}->( $entry->{'a'}, $dest );
+                    } else {
+                        my $source
+                            = node_path( $id->{'path'}, $addr ) . '/content';
+                        sysopen( my $in, $source, O_RDONLY | O_NOFOLLOW )
+                            or refuse( 'cannot open %s : %s',
+                            $source, $OS_ERROR );
+                        binmode $in;
+                        sysopen( my $out, $dest,
+                            O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0600 )
+                            or refuse( 'cannot create %s : %s',
+                            $dest, $OS_ERROR );
+                        binmode $out;
+                        while (1) {
+                            my $got = sysread( $in, my $buf, 1048576 );
+                            refuse( 'read %s : %s', $source, $OS_ERROR )
+                                if not defined $got;
+                            last if $got == 0;
+                            print {$out} $buf
+                                or refuse( 'write %s failed', $dest );
+                        }
+                        close $in;
+                        $out->sync;
+                        close $out or refuse( 'close %s failed', $dest );
                     }
-                    close $in;
-                    $out->sync;
-                    close $out or refuse( 'close %s failed', $dest );
                     _restore_metadata( $dest, $entry, $owners, \%omitted );
                     _restore_time( $dest, $entry, \%omitted, FALSE );
                 } elsif ( $type eq qw| dir | ) {
@@ -872,8 +896,8 @@ sub tree_restore {
 
 1;
 
-#,,,,,.,.,,,.,..,,..,,..,,...,,.,,,,,,,.,,,..,..,,...,..,,..,,..,,,..,.,.,...,
-#TYRL6CP7PL3OIZWVZXQSCHEFPIYCWWC27DZCRHAFF3MX4BHGH3OUE36U36EWSY7V6KYIMXIP53LLA
-#\\\|LXHWV5G3JFM2LTNW7FACN7C4LMNTVXWGGN42X33CCZ3LHNTZDMZ \ / AMOS7 \ YOURUM ::
-#\[7]Q2WLP53F3MKOD5TETS4EZBVK3MTYEXQ6A26SDB7XU4ENAWC53UCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,..,,..,,.,,,.,.,.,.,,.,,,.,,..,,...,...,...,,,,,..,,.,.,,,.,
+#FLGJTAEIOPC3GWZYFMSNY7PYHFMOWUPUTVRNDDPUGKV4IYDRC3247QIUQIRSL7MEGZUO5OYL7CDD2
+#\\\|HHXIOZQRFLCABD4CXLBMR47W3MGZEMQDTNHDOYDLU2D7GFEBMSR \ / AMOS7 \ YOURUM ::
+#\[7]3NFAZWANBBZPXT7V3NKFY3JC7PRXAYKNRBJD2GFFKDC34KJHUCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
