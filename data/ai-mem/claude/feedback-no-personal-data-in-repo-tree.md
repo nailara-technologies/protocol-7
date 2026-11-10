@@ -43,8 +43,10 @@ srv-U \ srv-A \ srv-V \ srv-F, never their host names -- also in file
 names and descriptions. a link label that IS a host name lives only in the
 host's /etc/protocol-7/host-config/cube.cfg, never in the tree.
 
-#,,,.,,..,,.,,,.,,,,,,...,,.,,...,.,.,.,,,..,,..,,...,...,..,,...,,..,...,..,,
-#T6XQVI3MANSWEPFJGRTAG7FTFNLSBHSIUK4FL3MI33H7KACS3JKXZ4XZ3P24T34Y7GKQ4XEYQOOFS
-#\\\|WRRRFRZD2TROD3ZTTW4GNHAP3F5I2R2M7AXSMEFS2DGM3WZVUCT \ / AMOS7 \ YOURUM ::
-#\[7]CFY5OJDXF63PXW3VADJR735MXPUGIQU5NB5OORV2W5N2S2OJBSAA 7  DATA SIGNATURE ::
+**2026-11-10 correction [ owner ]** : this also covers the owner's personal setup : which hosts exist and are owned or rented, disk ids and layout, which folders hold what, crash history, deployment plans, personal history. those go to ~/.n/private-notes/ [ outside the repo ], never into data/ai-mem or design docs. a session had written them into the tracked migration memory.
+
+#,,.,,..,,.,,,..,,,.,,,..,..,,.,,,...,,..,..,,..,,...,..,,...,,.,,..,,,,,,,..,
+#ZNR332EF2Y6AGLOCC52HME5LLWXZTPFJDQV7WBIOMODKF33H3ZT6LT5AAO6L6OI22DBHQ253IVF6K
+#\\\|FCU3LZGI2T7MT7TFOZCIQB4TV374U42UOOAEGYENAO335PIZLKB \ / AMOS7 \ YOURUM ::
+#\[7]KJVHL334GSXCPLGTPP3KDX2KW26DXAE5FQA6PMZ766ZR35ONRQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
