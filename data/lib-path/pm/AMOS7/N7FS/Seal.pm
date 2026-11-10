@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.GCXGSRY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.KULNLVY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -39,9 +39,19 @@ use AMOS7::N7FS::Journal  qw| journal_replay |;
 use AMOS7::N7FS::Category qw| category_report category_definitions |;
 use AMOS7::N7FS::Holder   qw| holder_parse holder_canonical holder_mkdir
     holder_read holder_size holder_put holder_delete holder_verify
-    holder_download holder_read_range |;
+    holder_download holder_read_range holder_sizes |;
 
 use constant CHUNK_SIZE => 16 * 1024 * 1024;
+
+## sealed nodes up to 1 MiB are concatenated into pack blobs of about
+## PACK_SIZE : one upload, one file and one inode for many small nodes, each
+## still under its own node keys
+sub _pack_limit { return $ENV{'N7FS_TEST_PACK_LIMIT'} // 1024 * 1024 }
+## remote packs fetched during this command, removed when it ends ##
+our @PACK_CACHE;
+END { unlink $ARG for @PACK_CACHE }
+
+sub _pack_size { return $ENV{'N7FS_TEST_PACK_SIZE'} // CHUNK_SIZE }
 my $JSON = JSON::PP->new->utf8->canonical;
 
 sub new_keypair {
@@ -462,7 +472,7 @@ sub _node_keys {
 }
 
 sub _node_blob {
-    my ( $content, $keys, $dir, $expected_bmw, $root ) = @_;
+    my ( $content, $keys, $dir, $expected_bmw, $root, $packing ) = @_;
     my $size   = -s $content;
     my $chunks = $size ? int( ( $size + CHUNK_SIZE - 1 ) / CHUNK_SIZE ) : 1;
     my $remote = holder_parse($dir)->{'type'} eq qw| ssh |;
@@ -510,6 +520,11 @@ sub _node_blob {
     $ctx->addfile($sealed);
     close $sealed;
     my $name = bmw_b32( $ctx->digest );
+    if ( $packing and -s $tmp <= _pack_limit() ) {
+        my $bytes = read_file($tmp);
+        unlink $tmp;
+        return ( $name, $chunks, $bytes );
+    }
     if ($remote) {
         holder_put( $dir, $tmp, $name, qw| content |, FALSE );
         unlink $tmp or refuse('cannot remove confirmed content spool');
@@ -629,6 +644,14 @@ sub seal_nodes {
     my @new;
     my @pending_files;
     my ( $sealed, $batch_bytes ) = ( 0, 0 );
+    my %pack  = ( qw| bytes | => "P7SP\x01", qw| entries | => [] );
+    my $flush = sub {
+        return if not $pack{'entries'}->@*;
+        my $name = _write_blob( $root, $dir, $pack{'bytes'}, qw| pack | );
+        $ARG->{'blob'} = $name for $pack{'entries'}->@*;
+        %pack = ( qw| bytes | => "P7SP\x01", qw| entries | => [] );
+        fault(qw| seal:after-pack |);
+    };
     foreach my $address ( @{$addresses} ) {
         next if exists $map->{'nodes'}{$address};
         my ( $epoch, $amos, $bmw ) = split m|/|, $address;
@@ -672,8 +695,16 @@ sub seal_nodes {
             $keys    = new_keypair();
         }
         fault(qw| seal:before-blob |);
-        my ( $name, $chunks ) = _node_blob( $path, $keys, $dir, $bmw, $root );
-        my $length = holder_size( $dir, $name );
+        my ( $name, $chunks, $packed )
+            = _node_blob( $path, $keys, $dir, $bmw, $root, TRUE );
+        my ( $length, $offset ) = ( undef, 0 );
+        if ( defined $packed ) {
+            $offset = length $pack{'bytes'};
+            $length = length $packed;
+            $pack{'bytes'} .= $packed;
+        } else {
+            $length = holder_size( $dir, $name );
+        }
         fault(qw| seal:after-blob |);
         my %wraps;
 
@@ -688,9 +719,10 @@ sub seal_nodes {
             );
         }
         $map->{'nodes'}{$address} = {
-            qw| id |       => b32($node_id),
-            qw| blob |     => $name,
-            qw| offset |   => 0,
+            qw| id |   => b32($node_id),
+            qw| blob | => $name,
+            defined $packed ? ( qw| node | => $name ) : (),
+            qw| offset |   => $offset,
             qw| length |   => $length,
             qw| chunks |   => $chunks,
             qw| category | => $categories[0],
@@ -701,11 +733,15 @@ sub seal_nodes {
                 qw| header_size | => 0,
             },
         };
+        push $pack{'entries'}->@*, $map->{'nodes'}{$address}
+            if defined $packed;
+        $flush->() if length $pack{'bytes'} >= _pack_size();
         push @new, $address;
         $sealed++;
         $batch_bytes += $length;
         if (   @new >= ( $ENV{'N7FS_TEST_SEAL_BATCH'} // 1000 )
             or $batch_bytes >= 1024**3 ) {
+            $flush->();
             $counter->{'version'} = _commit( $root, $dir, $counter, $map,
                 { qw| seal | => [@new] } );
             @new          = ();
@@ -715,6 +751,7 @@ sub seal_nodes {
             @pending_files = ();
         }
     }
+    $flush->();
     delete $map->{'_root_keys'};
     if ( @new or $tree_changes ) {
         $counter->{'version'}
@@ -795,8 +832,37 @@ sub _restore_node {
     my $keys       = _node_keys( $root, $map, $entry );
     my $path       = "$dir/$entry->{'blob'}";
     my $downloaded;
+    my $expect = $entry->{'node'} // $entry->{'blob'};
 
-    if ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
+    if ( defined $entry->{'node'} ) {
+        ## a packed node : only its own range is read ##
+        my $spool = _state_dir($root) . '/spool';
+        make_dirs( $spool, 0700 );
+        $path = "$spool/$entry->{'node'}";
+        my $bytes;
+        if ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
+            ## a remote pack is fetched once per command and cut locally ##
+            my $whole = "$spool/pack.$entry->{'blob'}";
+            if ( not -f $whole ) {
+                unlink "$whole.part";
+                holder_download( $dir, $entry->{'blob'}, "$whole.part" );
+                rename "$whole.part", $whole
+                    or refuse( 'cannot keep pack %s', $entry->{'blob'} );
+                push @PACK_CACHE, $whole;
+            }
+            $bytes = holder_read_range( $spool, "pack.$entry->{'blob'}",
+                $entry->{'offset'}, $entry->{'length'} );
+        } else {
+            $bytes = holder_read_range( $dir, $entry->{'blob'},
+                $entry->{'offset'}, $entry->{'length'} );
+        }
+        refuse( 'packed node cannot be read from %s', $entry->{'blob'} )
+            if not defined $bytes
+            or length $bytes != $entry->{'length'};
+        unlink $path if -e $path;
+        write_new_file( $path, $bytes );
+        $downloaded = TRUE;
+    } elsif ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
         my $spool = _state_dir($root) . '/spool';
         make_dirs( $spool, 0700 );
         $path = "$spool/$entry->{'blob'}";
@@ -813,8 +879,8 @@ sub _restore_node {
             pack( 'N/a*', _content_chunk( $check, $chunk_size ) ) );
     }
     _content_end($check);
-    refuse( 'blob address mismatch %s', $entry->{'blob'} )
-        if bmw_b32( $cipher_sum->digest ) ne $entry->{'blob'};
+    refuse( 'blob address mismatch %s', $expect )
+        if bmw_b32( $cipher_sum->digest ) ne $expect;
 
     my ( $in, undef, undef ) = _content_fh( $path, $chunks, $layout );
     my $plain_sum = Digest::BMW->new(384);
@@ -991,56 +1057,63 @@ sub holder_check {
     my %opt = @_;
     my ( undef, $head, $map ) = _context( @opt{qw| root holder |}, TRUE );
     refuse('no sealed head to check') if not defined $head;
-    my @candidates;
-    foreach my $address ( sort keys $map->{'nodes'}->%* ) {
+    my $sizes     = holder_sizes( $opt{'holder'} );
+    my @addresses = sort keys $map->{'nodes'}->%*;
+    my %blobs;
+    foreach my $address (@addresses) {
         my $entry = $map->{'nodes'}{$address};
-        my $size  = holder_size( $opt{'holder'}, $entry->{'blob'} );
+        my $size  = $sizes->{ $entry->{'blob'} };
+        my $need  = ( $entry->{'offset'} // 0 ) + $entry->{'length'};
         refuse( 'mapped blob is missing or has the wrong size : %s',
             $entry->{'blob'} )
             if not defined $size
-            or $size != $entry->{'length'};
-        my $head
-            = holder_read_range( $opt{'holder'}, $entry->{'blob'}, 0, 26 );
-        refuse('mapped blob header cannot be read') if not defined $head;
-        my $chunks = unpack qw| Q> |, substr( $head, 18, 8 );
-        refuse('mapped blob chunk count differs')
-            if $chunks != $entry->{'chunks'};
-        my $pos = 26;
-
-        for my $index ( 0 .. $chunks - 1 ) {
-            my $raw = holder_read_range( $opt{'holder'}, $entry->{'blob'},
-                $pos, 4 );
-            my $len = unpack qw| N |, $raw;
-            push @candidates,
-                [
-                $address, $entry, $index, $pos + 4, $len,
-                $index == $chunks - 1 ? TRUE : FALSE
-                ];
-            $pos += 4 + $len;
-        }
+            or ( defined $entry->{'node'} ? $size < $need : $size != $need );
+        $blobs{ $entry->{'blob'} } = TRUE;
     }
     my $wanted = $opt{'samples'} // 16;
     refuse('samples must be a positive integer')
         if $wanted !~ m|\A[1-9]\d*\z|;
-    for ( my $i = @candidates - 1; $i > 0; $i-- ) {
+    for ( my $i = @addresses - 1; $i > 0; $i-- ) {
         my $j = unpack( 'N', random_bytes(4) ) % ( $i + 1 );
-        @candidates[ $i, $j ] = @candidates[ $j, $i ];
+        @addresses[ $i, $j ] = @addresses[ $j, $i ];
     }
-    @candidates = @candidates[ 0 .. (
-            $wanted < @candidates ? $wanted - 1 : $#candidates ) ];
-    foreach my $sample (@candidates) {
-        my ( $address, $entry, $index, $offset, $len, $final ) = @{$sample};
-        my $sealed = holder_read_range( $opt{'holder'}, $entry->{'blob'},
-            $offset, $len );
+    my $checked = 0;
+    foreach my $address (@addresses) {
+        last if $checked >= $wanted;
+        my $entry = $map->{'nodes'}{$address};
+        my $base  = $entry->{'offset'} // 0;
+        my $blob  = holder_read_range( $opt{'holder'}, $entry->{'blob'},
+            $base, 26 );
+        refuse('mapped blob header cannot be read')
+            if not defined $blob
+            or length $blob != 26;
+        my ( $mode, $chunk_size ) = unpack( 'C Q>', substr( $blob, 5, 9 ) );
+        my $chunks = unpack qw| Q> |, substr( $blob, 18, 8 );
+        refuse('mapped blob chunk count differs')
+            if $chunks != $entry->{'chunks'} or $mode != 0;
+        ## every chunk before the last has the same sealed length ##
+        my $index = unpack( 'N', random_bytes(4) ) % $chunks;
+        my $pos   = $base + 26 + $index * ( 4 + $chunk_size + 16 );
+        my $raw
+            = holder_read_range( $opt{'holder'}, $entry->{'blob'}, $pos, 4 );
+        refuse('sampled chunk cannot be read')
+            if not defined $raw
+            or length $raw != 4;
+        my $sealed = holder_read_range(
+            $opt{'holder'}, $entry->{'blob'},
+            $pos + 4,       unpack( qw| N |, $raw )
+        );
         refuse('sampled chunk cannot be read') if not defined $sealed;
-        my $keys = _node_keys( $opt{'root'}, $map, $entry );
-        open_sealed_bytes( $keys, $sealed, qw| content |, '', 0,
-            $index, $final );
+        open_sealed_bytes( _node_keys( $opt{'root'}, $map, $entry ),
+            $sealed, qw| content |, '', 0, $index,
+            $index == $chunks - 1 ? TRUE : FALSE );
+        $checked++;
     }
     return {
-        qw| nodes |   => scalar keys $map->{'nodes'}->%*,
-        qw| chunks |  => scalar @candidates,
-        qw| samples | => scalar @candidates
+        qw| nodes |   => scalar @addresses,
+        qw| blobs |   => scalar keys %blobs,
+        qw| chunks |  => $checked,
+        qw| samples | => $checked
     };
 }
 
@@ -1057,8 +1130,8 @@ sub shred_node {
 
 1;
 
-#,,.,,,.,,,.,,...,,..,,.,,,.,,..,,..,,...,.,,,..,,...,...,..,,,,,,,.,,,.,,,.,,
-#E3NXYBSV2IT525I7N7KDLNJS62Z7XUSEGTRO554AN6EHB6KYAMPUPZKENFF37JT7QZLTMGAQNZRUC
-#\\\|A7MXWYWU5TSYPUOJPVZOYHJM2R72D4GGBYJXRRIZ2HCX2WPAFVQ \ / AMOS7 \ YOURUM ::
-#\[7]DHYYGVBKYF2XA25C6OOCZKTKM5NL6LT6RG2Y6EZNAJDFKNUEMCDQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,,,,,.,,,.,.,..,,,..,.,.,..,,..,,...,...,...,,.,,.,.,,,,,.,,,
+#2UEYCF5RWX7GU7I3JVJNV3K3M5IBEZL4JKMZMDZBO446JWDL6HSYWXYO5YEDVQXAASSAKU2QISDAU
+#\\\|CGRDHNZR6DULPKMXTDH35HHVOOY76N2ADQRFMB3PLDCW2UP7ZCA \ / AMOS7 \ YOURUM ::
+#\[7]H2BCTRKUPDDRUJDTNLAMTPDB5UC3R4FNIWCJH5HMFFKZJIGQOWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

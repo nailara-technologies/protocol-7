@@ -1,0 +1,133 @@
+#!/usr/bin/perl
+use v5.32.0;
+use strict;
+use English;
+use warnings;
+
+## small sealed nodes packed into shared blobs : recovery, checks, damage.
+
+use FindBin;
+BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+
+use AMOS7::N7FS qw| make_dirs |;
+
+require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+
+my $box  = sandbox();
+my $base = $box->{'base'};
+my ( $root, $hdir, $src ) = @{$box}{qw| root host src |};
+$ENV{'N7FS_TEST_PACK_SIZE'} = 64 * 1024;
+
+sub cli {
+    my ( $pass, @args ) = @ARG;
+    my $pf = "$base/pass";
+    write_file( $pf, $pass );
+    my $out = "$base/out";
+    my $pid = fork // die "fork : $OS_ERROR";
+    if ( $pid == 0 ) {
+        open( STDIN,  '<',     $pf )      or exit 98;
+        open( STDOUT, '>:raw', $out )     or exit 98;
+        open( STDERR, '>&',    \*STDOUT ) or exit 98;
+        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+            '-host-dir', $hdir, @args, '-pass-fd', 0 )
+            or exit 99;
+    }
+    waitpid $pid, 0;
+    my $rc = $CHILD_ERROR >> 8;
+    open( my $fh, '<:raw', $out ) or die;
+    local $INPUT_RECORD_SEPARATOR;
+    return ( $rc, scalar <$fh> );
+}
+
+sub slurp {
+    open( my $fh, '<:raw', shift ) or return undef;
+    local $INPUT_RECORD_SEPARATOR;
+    return scalar <$fh>;
+}
+
+my ( $rc, $out ) = cli( '', 'keygen', "$hdir/host.key" );
+( $rc, $out ) = cli( '', 'keygen', "$hdir/parent.key" );
+( $rc, $out ) = cli( '', 'pubkey', "$hdir/parent.key" );
+write_file( "$hdir/trusted-parents", $out );
+( $rc, $out ) = cli( '', 'init', '-name', 't', '-intent', 'x' );
+my ($disk)
+    = grep { !m|^\.| } do { opendir( my $d, $root ) or die; readdir $d };
+( $rc, $out ) = cli( '', 'attach', $disk );
+
+my $tree = "$src/many";
+make_dirs("$tree/sub");
+write_file( "$tree/f$ARG",     "small file $ARG\n" x $ARG ) for 1 .. 300;
+write_file( "$tree/sub/empty", '' );
+open( my $big, '>:raw', "$tree/big.bin" ) or die;
+print {$big} pack( 'N', $ARG ) x 300000 for 1 .. 2;
+close $big;
+( $rc, $out )
+    = cli( '', 'assimilate', '-disk', $disk, '-keep', '-tree', 't', $tree );
+ok( $rc == 0, 'fixture imported' ) or say $out;
+( $rc, $out )
+    = cli( "pw\npw\n", 'root', 'init', "$base/rk", '-argon-m', 1024,
+    '-argon-t', 1 );
+my $holder = "$base/holder";
+( $rc, $out )
+    = cli( "pw\n", 'seal', $disk, '-root-key', "$base/rk", '-out',
+    $holder, '-all-trees' );
+ok( $rc == 0, 'sealed with packs' ) or say $out;
+my @blobs
+    = grep {m|\A[A-Z2-7]{77}\z|} do { opendir( my $d, $holder ); readdir $d };
+ok( @blobs < 40,
+    'about 300 small nodes stored in few blobs [ ' . scalar(@blobs) . ' ]' );
+my @packs
+    = grep { substr( slurp("$holder/$ARG") // '', 0, 5 ) eq "P7SP\x01" }
+    @blobs;
+ok( @packs > 1, 'several packs at the test pack size' );
+ok( !grep( { index( slurp("$holder/$ARG"), 'small file' ) >= 0 } @blobs ),
+    'no plaintext in any blob' );
+
+( $rc, $out ) = cli(
+    "pw\n",  'seal-recover', '-root-key', "$base/rk",
+    '-from', $holder,        '-tree',     't',
+    "$base/rec"
+);
+ok( $rc == 0, 'clean recovery of the packed tree' ) or say $out;
+my $same = 1;
+foreach my $n ( 1 .. 300 ) {
+    $same = 0 if ( slurp("$base/rec/f$n") // 'x' ) ne slurp("$tree/f$n");
+}
+$same = 0 if ( slurp("$base/rec/big.bin") // 'x' ) ne slurp("$tree/big.bin");
+$same = 0 if not -f "$base/rec/sub/empty" or -s "$base/rec/sub/empty";
+ok( $same, 'every packed, empty and large file is identical' );
+
+( $rc, $out )
+    = cli( "pw\n", 'holder-check', $holder, '-root-key',
+    "$base/rk", '-samples', 400 );
+ok( $rc == 0, 'holder check passes over packed nodes' ) or say $out;
+
+( $rc, $out )
+    = cli( "pw\n", 'seal', $disk, '-root-key', "$base/rk", '-out',
+    $holder, '-all-trees' );
+ok( $rc == 0 && $out =~ m|sealed 0 new|, 'a repeat run adds nothing' );
+
+## damage one byte inside a pack : the node in that range fails alone ##
+my $pack  = $packs[0];
+my $bytes = slurp("$holder/$pack");
+substr( $bytes, 200, 1 ) = chr( ord( substr( $bytes, 200, 1 ) ) ^ 1 );
+chmod 0600, "$holder/$pack";
+write_file( "$holder/$pack", $bytes );
+( $rc, $out ) = cli(
+    "pw\n",  'seal-recover', '-root-key', "$base/rk",
+    '-from', $holder,        '-tree',     't',
+    "$base/rec2"
+);
+ok( $rc != 0, 'a damaged packed node refuses recovery of the tree' );
+( $rc, $out )
+    = cli( "pw\n", 'holder-check', $holder, '-root-key',
+    "$base/rk", '-samples', 400 );
+ok( $rc != 0, 'holder check finds the damaged packed node' );
+
+done();
+
+#,,..,..,,.,.,,,,,.,,,,..,,..,..,,...,.,.,,.,,..,,...,...,.,,,.,,,,..,..,,.,,,
+#UXRJGSPT4GKNCCKTMYC6VSX5IWBRO2XO3QAG2PHOQL2ENTKVEOORIG3BAHS23O5G6SX774O7IOS52
+#\\\|Z4DPIQCPFAULDL2OFQ2QUIRII5BQV3JKSUA7AQN636B2U6CLSFY \ / AMOS7 \ YOURUM ::
+#\[7]Y2TTCJQL5KUTTIRVBHJZA4UZ7UF4HGCBVENOVCED4ZCHBSWETQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

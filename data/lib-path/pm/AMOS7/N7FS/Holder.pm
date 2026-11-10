@@ -13,9 +13,10 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.MS3XCDQ |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.3IX2PMQ |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
+    holder_sizes
     holder_size holder_put holder_delete holder_verify holder_download
     holder_read_range |;
 
@@ -202,6 +203,31 @@ sub holder_size {
     return 0 + $1;
 }
 
+## every blob name with its size, in one listing ##
+sub holder_sizes {
+    my $spec = shift;
+    my $h    = holder_parse($spec);
+    my %size;
+    if ( $h->{'type'} eq qw| local | ) {
+        opendir( my $dh, $h->{'dir'} ) or return {};
+        foreach my $name ( readdir $dh ) {
+            next if $name !~ m|\A[A-Z2-7]{77}\z|;
+            $size{$name} = -s "$h->{'dir'}/$name";
+        }
+        closedir $dh;
+        return \%size;
+    }
+    my ( $status, $out )
+        = _result( $h, 'cd ' . _quote( $h->{'dir'} ) . ' && ls -ln' );
+    refuse('ssh holder listing failed') if $status;
+    foreach my $line ( split m|\n|, $out ) {
+        my @f = split ' ', $line;
+        next if @f < 9 or $f[-1] !~ m|\A[A-Z2-7]{77}\z|;
+        $size{ $f[-1] } = $f[4] + 0;
+    }
+    return \%size;
+}
+
 sub holder_delete {
     my ( $spec, $name ) = @_;
     my $h = holder_parse($spec);
@@ -267,6 +293,22 @@ sub holder_verify {
     my $remote_size = holder_size( $spec, $name );
     refuse( 'holder readback size mismatch for %s', $name )
         if not defined $remote_size or $remote_size != $expected;
+    if ( $kind eq qw| pack | ) {
+        ## a pack is checked by two random ranges, not read back whole ##
+        for ( 1 .. 2 ) {
+            my $len = $expected < 65536 ? $expected : 65536;
+            my $offset
+                = unpack( 'N', random_bytes(4) ) % ( $expected - $len + 1 );
+            my $remote = holder_read_range( $spec, $name, $offset, $len );
+            open( my $cf, '<:raw', $local ) or refuse('cannot read pack');
+            seek $cf, $offset, 0;
+            read( $cf, my $local_part, $len );
+            close $cf;
+            refuse( 'holder pack readback mismatch for %s', $name )
+                if not defined $remote or $remote ne $local_part;
+        }
+        return 1;
+    }
     if ( $kind ne qw| content | ) {
         my $back = holder_read( $spec, $name );
         refuse( 'holder readback checksum mismatch for %s', $name )
@@ -353,8 +395,8 @@ sub holder_put {
 
 1;
 
-#,,..,,,.,,.,,,,.,,..,..,,,,.,,..,.,,,..,,..,,..,,...,...,.,,,...,.,.,,..,,.,,
-#JQVU6TH4RCVFQTMEPYTWYYN3JB4M52Q7WMA6MAY5HTGEEKESBMMY2PNW3CJXJQLSTVUEFEC523WRK
-#\\\|ZN2ORVWAZEUR7VFCDEQ5NFKJ7BVTB6UB3T3OJ6L73EO2Q7XMOJA \ / AMOS7 \ YOURUM ::
-#\[7]RM75MLNJTLXJDSQRJQAE3KTPKHQJLZNAXDXMXGCOEYHC4FKUJ2DY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,...,.,.,.,,,...,,,,,..,,.,,,..,,...,...,,..,,,,,,,.,.,,,.,.,
+#WEAQY55A4267JSX5QQE5Z3YT36LXJJHFSKVP24HAKD7264CHJAZEHV5JZ6DELFKHEONIMRWPTFN6Q
+#\\\|3MKZWWLLVDBAFGNWWM6G6HDUMZMNMUMYY2IZLV6UVEGPQKISCBJ \ / AMOS7 \ YOURUM ::
+#\[7]FODD2XF7WZY5VPS6D2IZKFMKEMRC4BGD3T2UGIPMVGJPPKHQFQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

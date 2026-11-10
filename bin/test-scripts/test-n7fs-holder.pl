@@ -25,6 +25,9 @@ use AMOS7::N7FS::Keys;
 
 require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
 
+## these checks address single node blobs ; packs : test-n7fs-pack.pl ##
+$ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
+
 my $box  = sandbox();
 my $cli  = "$FindBin::Bin/../n7fs";
 my $fake = "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh";
@@ -297,8 +300,8 @@ cli(1,              'wrong truncated remote data refuses recovery',
 
 done();
 
-#,,,,,,,,,,.,,,,,,,,.,..,,,..,,,,,,.,,,..,,.,,..,,...,...,.,.,...,,.,,,.,,,.,,
-#72HZPNL3ANCJ5V7XBSGU7SE7QKHACFKQVFOYE7VJWAQZU3C4RLBPZOO2XGJ2F3KHP3IAAO6MSVGP4
-#\\\|LETA33SC24VOOQBSFMAVHEVVQLIRPW76W7BJNWGMCIBA7SNMPP3 \ / AMOS7 \ YOURUM ::
-#\[7]GFNLGMM5YWU5XIJ5HMSD457MIDJB74WTIL24XPPXZRXIASWLEYCY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,.,.,.,,,,,.,...,.,.,...,.,.,..,,...,...,,..,...,...,,.,,.,,,
+#H6PT2KXPT7XCNXMFWDKBCACQUTJI6EYUI3WABAETI272RMQAVAEP7WVQAMEB6A74WQJMFDI42ERQY
+#\\\|DTAPE3B6MOK6P4OH5H6QZRLUSNXV2DDAGR5IRA2PQDZPZPVBPVI \ / AMOS7 \ YOURUM ::
+#\[7]IH2RWSYAN4QRLGEI4Y55NJJHYJNRLD656GQAJKBRJJS7VNREB4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,6 +27,9 @@ use AMOS7::N7FS::Seal
 
 require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
 
+## these checks address single node blobs ; packs : test-n7fs-pack.pl ##
+$ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
+
 my $box      = sandbox();
 my $cli      = "$FindBin::Bin/../n7fs";
 my $passfile = "$box->{'base'}/pass";
@@ -585,8 +588,8 @@ cli( 1, 'cascade refused rather than ignored',
 
 done();
 
-#,,.,,.,,,,.,,...,.,.,,..,..,,,.,,..,,,,.,,,,,..,,...,...,...,,.,,,,.,,,,,,..,
-#JW6NLRF4T4JMLRFIUUWQVJVNUAYIE27XEPQQLG7KCCSRZK3QBCQMQEJKG4CIKER2PJZZ2UIUJLS7K
-#\\\|WYSKXJRZZZSBBHT4QMKL76N3MYYKIEEVNZX5MZGBFBUFB6RQL63 \ / AMOS7 \ YOURUM ::
-#\[7]IEVKJI2SYYTDIL2N4R5QWYIAR5FVTIYTB4WCQ36MZDAOXBPFHQBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,.,.,,,..,,.,,,..,,...,,..,,,.,..,,...,...,.,,,.,,,.,,,..,,.,,,
+#BFBFQVGQGF75AFFDWM6554U3BG4XK7QNZMJP7LZU3RNPWAZ5GK3YNPGHAILYERONGK4CYJYBHW2PC
+#\\\|DYH7CLW7TRC3AAPH7PGHQPZFZLZAY6BPZVFQA7Z4NCYJI5EFSWN \ / AMOS7 \ YOURUM ::
+#\[7]MHNWKCWKTHTP5KJJAYJHMCJB4RBXPGJ7DUDYJE6X5JYLON5642CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
