@@ -72,7 +72,12 @@ use warnings;
 ## n7fs unseal <disk> -root-key <file> -from <dir> <tree-or-address> <target>
 ## n7fs seal-recover -root-key <file> -from <dir> [ -tree <name> ] <target-dir>
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
-## n7fs holder-check <holder> -root-key <file>
+## n7fs holder-check <holder> -root-key <file>   also writes a receipt
+## n7fs holder add <name> <holder> -role durable|intake -domain <label>
+##                 [ -owned ] [ -quota <size> ] [ -reserve <size> ]
+## n7fs holder list | remove <name>         registry in the vault
+## n7fs placement <disk> -root-key <key>    copies per category, report only
+## n7fs place <disk> -root-key <key> [ -dry-run ]  seal what is missing
 ##
 ## sealing : -pass-fd <n> reads the passphrase from that descriptor -argon-m
 ## <KiB> -argon-t <n> -argon-p <n> override root init
@@ -145,7 +150,8 @@ GetOptionsFromArray(
         free=s older=s now tree=s@ all-trees category=s category-rule=s@ owners
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
         layer=s incoming under=s depth=i limit=i group-by=s trees-only help
-        from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i |
+        from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
+        role=s domain=s owned quota=s reserve=s |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -201,6 +207,9 @@ my %run = (
     qw| seal-recover |   => \&cmd_seal_recover,
     qw| shred |          => \&cmd_shred,
     qw| holder-check |   => \&cmd_holder_check,
+    qw| holder |         => \&cmd_holder,
+    qw| placement |      => \&cmd_placement,
+    qw| place |          => \&cmd_place,
 );
 usage(2) if not exists $run{$command};
 
@@ -1375,6 +1384,150 @@ sub cmd_holder_check {
     );
     say_line( 'holder ok : ', $r->{'nodes'}, ' nodes in ', $r->{'blobs'},
         ' blobs, ', $r->{'chunks'}, ' chunks checked' );
+    ## a receipt needs this host's key ; a recovery machine may have none ##
+    my $signer = optional_host_signer();
+    if ( not $signer ) {
+        say_line('no host key here : no receipt written');
+        return 0;
+    }
+    require AMOS7::N7FS::Placement;
+    require AMOS7::N7FS::Holder;
+    AMOS7::N7FS::Placement::receipt_write(
+        qw| host_dir | => host_dir(%common),
+        qw| signer |   => $signer,
+        qw| spec |     => AMOS7::N7FS::Holder::holder_canonical($holder),
+        qw| root_id |  => $r->{'root_id'},
+        qw| version |  => $r->{'version'},
+        qw| nodes |    => $r->{'nodes'},
+        qw| samples |  => $r->{'samples'},
+    );
+    say_line('receipt written [ counts for placement for 7 days ]');
+    return 0;
+}
+
+sub _vault_opt {
+    return (
+        qw| pass_fd |   => $o{'pass-fd'},
+        qw| vault_dir | => $o{'vault-dir'}
+    );
+}
+
+sub cmd_holder {
+    require AMOS7::N7FS::Placement;
+    my $action = shift // fail('holder needs add, list or remove');
+    if ( $action eq qw| add | ) {
+        my $name = shift // fail('holder add needs a name');
+        my $spec = shift // fail('holder add needs a holder');
+        fail('holder add : unexpected arguments') if @ARG;
+        my $h = AMOS7::N7FS::Placement::holder_add(
+            _vault_opt(),
+            qw| name |    => $name,
+            qw| spec |    => $spec,
+            qw| role |    => $o{'role'},
+            qw| domain |  => $o{'domain'},
+            qw| owned |   => $o{'owned'},
+            qw| quota |   => $o{'quota'},
+            qw| reserve | => $o{'reserve'},
+        );
+        say_line( 'holder ', $name, ' : ', $h->{'role'}, ' in ',
+            $h->{'domain'}, $h->{'owned'} ? ' [ owned ]' : '' );
+        return 0;
+    }
+    if ( $action eq qw| list | ) {
+        fail('holder list : unexpected arguments') if @ARG;
+        my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+        foreach my $name ( sort keys %{$holders} ) {
+            my $h = $holders->{$name};
+            say join ' ', $name, $h->{'role'}, $h->{'domain'},
+                $h->{'owned'} ? 'owned' : 'foreign', $h->{'spec'},
+                defined $h->{'quota'} ? "quota=$h->{'quota'}" : ();
+        }
+        return 0;
+    }
+    if ( $action eq qw| remove | ) {
+        my $name = shift // fail('holder remove needs a name');
+        fail('holder remove : unexpected arguments') if @ARG;
+        AMOS7::N7FS::Placement::holder_remove( _vault_opt(),
+            qw| name | => $name );
+        say_line( 'holder ', $name, ' removed from the registry' );
+        return 0;
+    }
+    fail('holder needs add, list or remove');
+}
+
+sub _placement_opt {
+    my $disk = shift;
+    return (
+        %common, _vault_opt(),
+        qw| disk | => $disk,
+        defined $o{'root'} ? ( qw| disk_root | => $o{'root'} ) : (),
+        qw| root |     => _seal_root(),
+        qw| host_dir | => host_dir(%common),
+        qw| host_pub | => host_signer()->public,
+    );
+}
+
+sub cmd_placement {
+    require AMOS7::N7FS::Placement;
+    my $disk = disk_arg(shift);
+    fail('placement : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Placement::placement_report( _placement_opt($disk) );
+    foreach my $name ( sort keys $r->{'holders'}->%* ) {
+        my $h = $r->{'holders'}{$name};
+        say_line(
+            'holder ',
+            $name,
+            ' [ ',
+            $h->{'domain'},
+            ' ] ',
+            $h->{'state'},
+            ' : ',
+            $h->{'count'} // 0,
+            ' nodes, ',
+            $h->{'used'} // 0,
+            ' bytes'
+        );
+    }
+    foreach my $c ( sort keys $r->{'categories'}->%* ) {
+        my $x = $r->{'categories'}{$c};
+        say_line(
+            'category ',
+            $c,
+            ' target ',
+            $x->{'target'},
+            ' : ',
+            join ', ',
+            map {"$x->{'count'}{$ARG}{'nodes'} nodes at $ARG"}
+                sort { $a <=> $b } keys $x->{'count'}->%*
+        );
+        say_line(
+            '  under-replicated ',
+            $x->{'missing_nodes'},
+            ' nodes, ',
+            $x->{'missing_bytes'},
+            ' bytes missing'
+        ) if $x->{'missing_nodes'};
+    }
+    return 0;
+}
+
+sub cmd_place {
+    require AMOS7::N7FS::Placement;
+    my $disk = disk_arg(shift);
+    fail('place : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Placement::place_missing( _placement_opt($disk),
+        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE );
+    foreach my $name ( sort keys $r->{'plan'}->%* ) {
+        say_line(
+            $o{'dry-run'} ? 'would place ' : 'placed ',
+            $r->{'plan'}{$name},
+            ' nodes on ', $name
+        );
+    }
+    say_line( 'still under-replicated : ', $r->{'unplaced'}, ' nodes' )
+        if $r->{'unplaced'};
+    say_line('run holder-check on each holder so the new copies count')
+        if not $o{'dry-run'} and keys $r->{'plan'}->%*;
     return 0;
 }
 
@@ -1402,8 +1555,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,,..,,,.,.,,,,,.,.,.,...,.,,,..,,..,,..,,..,,...,...,.,,,,..,.,,,,..,.,,,
-#EK6W2P3L4G5VYPJVCAVWPO2DUYNJSX2PCP7M7BKE6OWTKOQP6WKNQHYUKQORVUZJSYBHZKGWOMPIG
-#\\\|WGT33UOL3NIU3WK5U7C47NM72JFXBEMN3E4D2RX46MWXPHTGOH4 \ / AMOS7 \ YOURUM ::
-#\[7]IPYMZ7IXFP2V46673MAGEELHZQFVGTZQI6ZRU3AO3PEDEMG4GODI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,...,...,,..,.,.,,,,,.,,,,,.,..,,...,...,..,,.,,,.,,,.,,,,,.,
+#3TNAQBGDTO6JYH67OPHM7DURHY253UMJQXTEZ4LECINGUHUTRVNS5T47YPUQUYHNR27TCG6QXW7KG
+#\\\|L4BU5JKTMJVG2G7PJRJMVBNKM73VPIM6KQVRQPPUQMTSCNDRACX \ / AMOS7 \ YOURUM ::
+#\[7]IXQTAC2OHRMUJ5FJTQXSC4VUAMXBEMTQYXNQ2WAJ2IZBNDMP3MDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

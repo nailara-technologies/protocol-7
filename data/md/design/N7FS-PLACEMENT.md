@@ -1,4 +1,4 @@
-# N7FS stage 5 : placement, receipts, under-replicated list [ plan ]
+# N7FS stage 5 : placement, receipts, under-replicated list
 
 2026-11-10. follows `N7FS-SEALED-REPLICAS.md` section 5 and `N7FS-SEALING.md`.
 this note fixes the first, integer-target part. calculated placement, erasure
@@ -66,6 +66,27 @@ placed stays listed. it uses packs and the existing commit rules.
 deletes on holders [ home-signed ], moving between holders, eviction from
 intake, holder-to-holder copying, calculated placement, erasure coding.
 
+## as built [ 2026-11-10 ]
+
+- the registry is the vault note `n7fs holders`, json, one entry per holder
+  with spec, role, domain, owned, quota and reserve. the vault keeps earlier
+  versions. one vault unlock per command serves the root and the registry
+- `holder-check` writes a receipt to `<host-dir>/receipts/`, named by a
+  checksum of the holder, signed by the host key. it counts for 7 days and
+  only for the same root
+- `placement` opens each holder's head and map with the root. a holder
+  counts when it is durable, reachable, has a head and a fresh receipt ;
+  copies count once per failure domain. it updates a holder's pin as any
+  read does, and changes nothing else
+- `place` plans per node : domains not yet holding it, owned holders first,
+  then most quota left, never past a quota. it seals each holder's share
+  with packs, and a holder that receives any file of a tree also receives
+  that tree, so it can recover it by name. new copies count after the next
+  `holder-check`
+- `reserve` is stored but not enforced : free space on a remote is not
+  measured yet. the size of a node is its local content size, not its sealed
+  size
+
 ## owner decisions [ 2026-11-10 ]
 
 1. the holder registry lives in the vault, as a note entry titled
@@ -77,8 +98,8 @@ intake, holder-to-holder copying, calculated placement, erasure coding.
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,..,,..,.,,,.,,,...,.,.,.,,,.,.,.,.,.,.,,..,..,,...,..,,..,,,..,...,,,,,,,,,
-#OIFD3BYKUCVVQFTGEA3JB2BG6OE2SFKGQJOEGFYARTECNEKWEALJXTHT3QNXKE4P2QQNY5KJUVIY2
-#\\\|XB2O7DGFJRF4OWRNYVCZF6KHBC63WY63BCD5KAJ7K2VCGT45HZS \ / AMOS7 \ YOURUM ::
-#\[7]6CLVVQZBFKDBJCNEMZO4JRK4YVZM2M4YSXBUQOLXPZE7OE2UL6CY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,.,.,,,,,,,.,,,.,.,,,,,,,.,,..,..,,...,..,,,.,,,.,,.,,,,,.,,,.,
+#QWPZOGNGPGPRVFS4HOGDDT33UWTOU2DDGNEVLQFEUGYU72QTPGVJDQJKLKGVOTOJLM4D7Z4GMFLE2
+#\\\|VHTAH3BLFJ3A7M5X3S6WNHNP47NGANIMJ6RBDIWNCM7JLPQGWFR \ / AMOS7 \ YOURUM ::
+#\[7]66ZCAW26R4AGIX3YO4GXAAJJVD3ZT2L7SK7QSB7UFL2T74QQ4YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

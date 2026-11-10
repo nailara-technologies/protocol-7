@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.KULNLVY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.LIEXJHY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -1110,6 +1110,8 @@ sub holder_check {
         $checked++;
     }
     return {
+        qw| version | => $head->{'version'},
+        qw| root_id | => $opt{'root'}{'root_id'},
         qw| nodes |   => scalar @addresses,
         qw| blobs |   => scalar keys %blobs,
         qw| chunks |  => $checked,
@@ -1130,8 +1132,8 @@ sub shred_node {
 
 1;
 
-#,,..,...,.,,,,.,,,,,,.,,,.,.,..,,,..,.,.,..,,..,,...,...,...,,.,,.,.,,,,,.,,,
-#2UEYCF5RWX7GU7I3JVJNV3K3M5IBEZL4JKMZMDZBO446JWDL6HSYWXYO5YEDVQXAASSAKU2QISDAU
-#\\\|CGRDHNZR6DULPKMXTDH35HHVOOY76N2ADQRFMB3PLDCW2UP7ZCA \ / AMOS7 \ YOURUM ::
-#\[7]H2BCTRKUPDDRUJDTNLAMTPDB5UC3R4FNIWCJH5HMFFKZJIGQOWAA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,.,,,.,.,.,,.,,,.,,,..,,,.,..,,..,,...,...,.,.,,,.,,.,,,.,,..,,
+#X2DYYMB6KGB3MOC3X3RIZ6ESQWWITUQ57OSDRBMLGXYGZA6N43DR335IRUOI6ULDSZSZ5QXQUF6IU
+#\\\|AQTRE7X6D45UNBUV7OJBWPDP7QZZTI4UTAW22DHR4ZOKVSWCT4O \ / AMOS7 \ YOURUM ::
+#\[7]JTEBJ7DZJASATTWSMZQRZI4FHABWQS2V2ACMMSA42OYPAYELR4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
