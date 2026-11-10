@@ -236,6 +236,153 @@ able to drop the password [ `login.methods = key` in their credential
 record ], so a phished password is worth nothing for them. token paste
 stays for machine and admin use.
 
+### [ d ] key derived from a passphrase in the browser [ option, not built ]
+
+[ b ] needs the user's own machine once. this variant needs only the
+passphrase, so an identity comes back after every device is lost. the
+hashing cost moves to the client.
+
+```
+seed     = argon2id( passphrase, salt, params )    [ 32 bytes, in the browser ]
+keypair  = Ed25519( seed )
+server   keeps : public key, salt, params
+login    = sign the same challenge message as [ b ]
+```
+
+the cost lives in argon2id ; generating the C25519 key itself is nearly
+free. the browser can afford 64 MiB or more because it is the user's own
+memory, the server spends only one verify, and a stolen user table still
+costs a full argon2id run per guess. it holds no password equivalent.
+
+- **registration** : the browser draws a salt of at least 16 bytes from
+  `crypto.getRandomValues`, and sends public key, salt and params. none
+  are secret, the server hands salt and params back before the challenge
+- **the client refuses params below a built-in minimum** at login, so a
+  compromised server cannot lower the cost to make a passphrase crackable
+- **unknown users** get a fake salt derived from the username and a server
+  secret, and the default params, so existence stays hidden
+- **raising the cost** : after a login, derive a new key with new salt and
+  params, and send the new public key signed by the old one
+- **the same message binding as [ b ]** : challenge, origin, ts. no second
+  message format
+- **a server that is gone takes the salt with it.** an identity that must
+  survive that uses a salt recomputed from the username and a fixed label.
+  an attacker can then precompute guesses for that name, so such a
+  passphrase must be long and random, about 8 diceware words
+
+**the tension with [ b ].** that section rejects vendored js crypto because
+a private key would sit in a js byte array. this variant cannot fully avoid
+it : argon2id is not in webcrypto, so it needs a vendored wasm build, and
+the seed exists in page memory until it is imported. keep that window to
+the login call, import as a non-extractable key [ pkcs8 ] and overwrite the
+buffer. the wasm file is served by the same origin and pinned by checksum.
+
+**limits.** the server delivers the code, so a compromised server can
+capture the passphrase : this protects against theft of the table, not
+against a live compromise of the host. a weak passphrase stays weak, only
+each guess costs more. check the memory setting on the weakest supported
+phone. passkeys [ webauthn ] are the alternative with no passphrase and
+phishing resistance, and depend on devices surviving.
+
+**passwords verified on the server, if used.** a fast hash is acceptable
+only for generated secrets of about 128 bits. for human passwords stay with
+argon2id : 19 MiB, t=2 or 7 MiB, t=5 are still far stronger than any fast
+hash, and limiting concurrent logins to one or two caps the total memory.
+
+### escalation : layered signatures on one action [ option, not built ]
+
+a session passphrase for ordinary use and a second one for moving value or
+reaching more sensitive data, working like `sudo` for an identity.
+
+```
+session seed     = argon2id( passphrase 1, salt 1, params )
+escalation wrap  = argon2id( session seed + passphrase 2, salt 2, params )
+escalation key   = random, wrapped under the escalation wrap
+```
+
+- **both are needed** : a capture of either passphrase alone opens nothing
+  that moves value, and the two may be entered at different times or on
+  different devices. malware on one device that sees both typed gets both,
+  so the second prompt belongs off the device where the first is routine
+- **the key is wrapped, not derived**, so a passphrase change is a rewrap and
+  the escalated identity stays the same
+- **escalation is short and scoped** : it issues one temporary work copy for
+  one purpose. nothing stays unlocked for the session
+- **a surface the page cannot draw** : a page can fake the second prompt, so
+  it should come from a local signer or a separate device
+- **changing the first passphrase needs a signature of the second**, so a
+  stolen everyday passphrase cannot lock the owner out. the same rule covers
+  adding a device, changing recovery routes and raising limits
+- **changing the second needs both and a waiting period**, with a notice to
+  the other sessions, so that it can still be vetoed
+- forgetting the second blocks those changes, so a separate recovery route
+  under the same waiting period is required
+
+**the approval ladder** : mouse click per step, short numerical PIN, full
+passphrase, then the second passphrase for value and irreversible actions,
+plus sized delegations. it builds on the planned levels in `data/yaml/todo/
+base.yaml` and `topic-write-access-security-infrastructure`
+[ `ui.caller.security-level`, cred-mesh ui-show ], not a parallel mechanism.
+
+**the PIN** is a trigger for a key already held in locked memory, typed so
+an observer never learns the passphrase. it never encrypts anything on disk.
+
+- the second wrong PIN unloads the session key by default, and only the
+  passphrase brings it back
+- the counter lives with the key. a restart or reconnect does not reset it,
+  only a correct PIN does
+- nothing is spent silently. after one wrong attempt the prompt says `one
+  attempt left until the session key is forgotten`. a correct PIN after a
+  failed one reports it, with a short note : if that was not you, consider
+  postponing to a safer location
+- being asked for the passphrase unexpectedly therefore shows that someone
+  else spent the attempts
+- a failed PIN is a security event, notified at once on all unlocked devices,
+  with an optional audible beep for when the owner is in acoustic range. the
+  notice is signed, and it never asks for a credential, so a forged alert
+  cannot be used to lure a passphrase
+
+**other invalidation events.** these need a local signer or device agent,
+since a page cannot reliably see them :
+
+- lid closed unloads the session key. a device being picked up [ hall sensor,
+  accelerometer ] locks until the PIN, since the owner does that constantly
+- leaving a zone [ bank, office network ] : the zone is proven by a fresh
+  signed challenge answered within a short time, not by the device's opinion
+  of where it is. no answer counts as having left, so jamming equals leaving
+- a key valid only during work hours stops at the end of its window, even if
+  it was left running on a desk. the verifier enforces this against network
+  time, so a compromised machine cannot set its clock back. as the window
+  closes it can ask for an extension confirmed with the same PIN, limited in
+  length and count. after the window has passed, only the passphrase helps.
+  real keyboard or mouse input may auto-extend it once, capped at 32 minutes,
+  before the PIN is asked anyway
+
+**home zenki as the policy layer.** they already gate who may open a session
+with the owner, from the middle of the network [ lambda principle, see
+`NESTED-CHECKSUM-HARMONIZATION-AND-ADDRESSING.md` section 6 ], so unwanted
+packets never use the owner's link. the same zenki can sign actions they know
+are usual, as a third signature from an uncompromised position, and insist on
+escalation for what is unusual and irreversible. for high value this is a 5
+of 7 vote across control domains, failing closed. they can arrange a shorter
+route to an approved contact, still with hops. if they are seized the owner
+is cut off, so a recovery route must be able to replace them.
+
+**signature levels on one action.** the first signature fixes the content.
+every later level signs the checksum of that content and can only authorize
+or reject, with an optional reason ; none can alter it :
+
+| level | who | what it adds |
+|---|---|---|
+| 1 | the actor | what is to be done |
+| 2 | the actor's second factor | that the actor really means it |
+| 3 | the owner of the resources commandeered | agency : consent of whoever pays for or hosts the work |
+
+the same record serves work reviews, provisional changes and payment
+release. each level has a deadline, and without the required signature by
+then the action is not valid. a third party authorizes only the scope and
+time window named in the record, so its signature cannot be reused.
+
 ## 2. per-user rights at the gate
 
 rights attach to the **relayed command** of a route [ its `command:`
@@ -481,8 +628,8 @@ bright surfaces ]. `#auth-overlay` becomes a small tabbed box :
 - password reset by email : no mail flow ; resets are admin-issued.
 - multi-host session sharing beyond one host's shared dir.
 
-#,,,,,,,,,.,,,...,,.,,,,,,.,.,.,.,.,.,,..,.,.,..,,...,..,,..,,.,,,.,.,,..,,..,
-#E7UBFYHJZ7RJVODLK4LZJHMOYN55PPOEZEXKWKVEDZ6J5Q4TLNKR64MC3NMMISLQJIZZLJQWYVRF4
-#\\\|EZCJQDCQ2TD2V2WGBZ2ABBWDXJSPUDQ5FWVX6IMGTD5NHDX5CCE \ / AMOS7 \ YOURUM ::
-#\[7]KYBMZBALEBVPFQUA4LCVC257OVLW2WOJOLRYWJC223T7VFZDY2DI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,.,.,,,.,,,,,..,,,,,,,..,...,..,,...,...,...,,,.,,.,,,.,,,,,,
+#ZJWJSSYDJ3XKI5ENUB7KTHKYQP5YWIMWZVOGZD5OEBAPM7IA2TYKKZR2BB3VBMVSL5CHKPFY7GVZ4
+#\\\|PES7O34XYBCJRL3NWXEORBB3L4CGOOA6T6AGMQ4DL3RI7B2GAFW \ / AMOS7 \ YOURUM ::
+#\[7]TKLZOZNJRKAWZDVX4OSP7JYKFG7AOE2MJLMPEN4PUQZVG46MFMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

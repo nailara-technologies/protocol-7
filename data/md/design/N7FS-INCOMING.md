@@ -76,6 +76,8 @@ count and bytes, exits 1 while nonempty and exits 0 with `[ empty ]` when done.
 
 ## performance notes
 
+an import writes one signed batch record per category once a category has 16 or more new references, instead of one assignment record each [ 105000 single records took about 2.5 hours on the first real import ]. within one run each deduplicated node is fully verified once, and later duplicates only check their new record : 10000 empty files had made the old path quadratic.
+
 startup profiling used `strace -c` and repeated `Time::HiRes` wall-clock
 measurements. on this host a cold trivial `list` invocation took about 0.48 s;
 warm invocations were about 0.09 s. module lookup and loading dominated startup,
@@ -108,8 +110,8 @@ record and one journal operation handled the tag. the dominant remaining cost
 is authenticated record and directory I/O, not per-tag record creation; runtime
 is linear in references rather than quadratic.
 
-#,,,,,.,,,...,,.,,,,.,..,,.,.,...,...,,,,,..,,..,,...,...,...,,..,..,,,.,,,,,,
-#SZTFWC2TKSKPWSLXJJZDN2DYQYYOJAB7E3Q3DFWWITRXJ3JPC2GZMYRAXYMO5EJLRQML6KAOTE7FS
-#\\\|C63SDF7ZOWYRD4NIO7UPLWIBFQ67NBTZE3KWQXGMJUQYF5XOPHD \ / AMOS7 \ YOURUM ::
-#\[7]BT27J5ALHQ22FSS5554X4R6K6BZHC7STV4BKZXJ6KAZ6GWKW4EBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,.,.,...,...,,,.,...,,..,..,,..,,...,...,.,,,,,.,,.,,,..,...,
+#QKZJG4OQ4K5LQFLAHHIZKKZDD6NOFE3X6VEZTBW4JOAE46CGG3FTO5KOA7AEDYDE3RMEICAD4TXBA
+#\\\|K3SOUE3XBVC2J5NFCK5M2WPWPH65UJH3A7BCPNBYUTW45QVFXAL \ / AMOS7 \ YOURUM ::
+#\[7]IBQNV472WC73VPKHEO5GWFTRTCLTP6OTKSTQYXUXHTIP2OBBPMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
