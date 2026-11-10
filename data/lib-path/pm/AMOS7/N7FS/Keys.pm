@@ -14,9 +14,10 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.U2AMVPI |;
+our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.Q225LXQ |;
 
-@EXPORT_OK = qw| root_init root_open root_convert root_passphrase |;
+@EXPORT_OK = qw| root_init root_open root_convert root_passphrase
+    vault_note_load vault_note_save |;
 
 use JSON::PP;
 use Crypt::KeyDerivation qw| argon2_pbkdf |;
@@ -88,9 +89,17 @@ sub _vault_name {
     return $name;
 }
 
+## one unlock per command : the root and the holder registry share it.  the
+## key is wiped when the command ends
+our %VAULT_OPEN;
+END { AMOS7::Vault::vault_lock($ARG) for values %VAULT_OPEN }
+
 sub _vault_open {
     my %opt = @_;
     require AMOS7::Vault;
+    my $cache = $opt{'vault_dir'} // $ENV{'P7_VAULT_DIR'} // '';
+    return $VAULT_OPEN{$cache}
+        if $VAULT_OPEN{$cache} and defined $VAULT_OPEN{$cache}{'key'};
     my $dir = $opt{'vault_dir'} // $ENV{'P7_VAULT_DIR'}
         // sprintf( '%s/.n/vault', $ENV{'HOME'} // '' );
     my ( $vault, $err ) = AMOS7::Vault::vault_open($dir);
@@ -99,7 +108,41 @@ sub _vault_open {
     my $open = AMOS7::Vault::vault_unlock( $vault, $pass );
     AMOS7::Vault::secret_wipe( \$pass );
     refuse('vault passphrase does not unlock the vault') if not $open;
-    return $vault;
+    return $VAULT_OPEN{$cache} = $vault;
+}
+
+## a note entry found by its exact title in an unlocked vault
+sub _vault_find_title {
+    my ( $vault, $title ) = @_;
+    my $versions = AMOS7::Vault::entry_versions($vault);
+    foreach my $id ( sort keys %{$versions} ) {
+        my ($record) = AMOS7::Vault::entry_load( $vault, $id );
+        next                    if ref $record ne qw| HASH |;
+        return ( $id, $record ) if ( $record->{'title'} // '' ) eq $title;
+    }
+    return;
+}
+
+sub vault_note_load {
+    my ( $title, %opt )    = @_;
+    my ( $id,    $record ) = _vault_find_title( _vault_open(%opt), $title );
+    return $record ? $record->{'body'} : undef;
+}
+
+## replaces the note's body ; the vault keeps the earlier versions
+sub vault_note_save {
+    my ( $title, $body, %opt ) = @_;
+    my $vault = _vault_open(%opt);
+    my ( $id, $record ) = _vault_find_title( $vault, $title );
+    AMOS7::Vault::entry_save(
+        $vault, $id,
+        {   %{ $record // {} },
+            qw| type |  => qw| note |,
+            qw| title | => $title,
+            qw| body |  => $body,
+        }
+    );
+    return;
 }
 
 sub _vault_title { return 'n7fs root ' . _vault_name(shift) }
@@ -129,7 +172,6 @@ sub _vault_store {
             qw| body |  => b32($secret),
         }
     );
-    AMOS7::Vault::vault_lock($vault);
     return;
 }
 
@@ -137,7 +179,6 @@ sub _vault_load {
     my ( $ref, %opt ) = @_;
     my $vault = _vault_open(%opt);
     my ( undef, $record ) = _vault_find( $vault, $ref );
-    AMOS7::Vault::vault_lock($vault);
     refuse( 'vault holds no root named %s', _vault_name($ref) )
         if not $record;
     my $secret = unb32( $record->{'body'} // '' );
@@ -275,8 +316,8 @@ sub root_convert {
 
 1;
 
-#,,,,,,,,,...,..,,.,.,,..,,,,,.,.,.,.,,.,,,,.,..,,...,...,.,,,,..,.,,,,..,...,
-#UMM3YHKG3BCRJX5IPSYS4CJHATUSEEGV6S5ZX5WPNSIQMU5SLOD3TSCANRNNGFHXXJYB3KA3I433Y
-#\\\|UTBTHNMEXGQSRY52BM4RAMQIDLR76ZTCLGS47OHYQ7FFPWSG2UF \ / AMOS7 \ YOURUM ::
-#\[7]FZIX6744CR3TFY7ZXREYK2UVXBZIQX6VT6YPWAHBJBWC2RUNYOAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,,.,,,,,,,,,,...,,,.,.,,,,,.,..,,...,...,,.,,,,,,.,,,.,,,.,.,
+#KKHQWFYYAHTPGPMSKDBUTFAXSRTIZCL2AM4ABO5MW3Z4LDVB5ZQRYXCESXMLBK2L375CFWH2P4LBO
+#\\\|JOSFCMCWR2HEI332SNHU3LMAJYMYTYRZBFRHSYONQSMSMCRYKMD \ / AMOS7 \ YOURUM ::
+#\[7]YIIPM66GAVMNNW75OXH6HZVC5BKRW7DYKWJEVURUZECIREJFLCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
