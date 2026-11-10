@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.YAGDDTI |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.3QLHZBY |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -807,6 +807,9 @@ sub reference_entries {
     return @out;
 }
 
+## below this many references of one category, single records stay ##
+our $BATCH_MIN = 16;
+
 sub _empty_set {
     return {
         qw| nodes |       => [],
@@ -816,6 +819,7 @@ sub _empty_set {
         qw| trees |       => [],
         qw| categories |  => [],
         qw| assignments | => [],
+        qw| batches |     => [],
     };
 }
 
@@ -1294,7 +1298,8 @@ sub assimilate {
             my %live;
             foreach my $key ( keys $replay->{'references'}->%* ) {
                 my $ref = $replay->{'references'}{$key};
-                next if $ref->{'dropped'};
+                ## references added by this run carry no holder here ##
+                next if $ref->{'dropped'} or not defined $ref->{'holder'};
                 next if $to_pool and $replay->{'assignments'}{$key};
                 push $live{"$ref->{'node'}\0$ref->{'holder'}"}->@*, $ref;
             }
@@ -1334,9 +1339,33 @@ sub assimilate {
                 $report{'failed'} += $created->{'xattr_errors'};
             }
             if ( defined $category_chooser and @new_refs ) {
+                ## one signed batch per category instead of one record per ##
+                ## reference : 100000 records took hours on a large import ##
+                my %by_category;
+                push $by_category{ $category_chooser->( $ARG->{'holder'} ) }
+                    ->@*, $ARG
+                    for @new_refs;
+                my @single;
+                foreach my $category ( sort keys %by_category ) {
+                    my $refs = $by_category{$category};
+                    if ( @{$refs} < $BATCH_MIN ) {
+                        push @single, @{$refs};
+                        next;
+                    }
+                    require AMOS7::N7FS::Batch;
+                    my $record
+                        = AMOS7::N7FS::Batch::batch_write( $id, $store,
+                        $category, $refs, 0 );
+                    push $add->{'batches'}->@*,
+                        {
+                        qw| path |     => $record->{'path'},
+                        qw| category | => $category
+                        };
+                }
                 $add->{'assignments'}
                     = AMOS7::N7FS::Category::category_assignments( $id,
-                    $store, \@new_refs, $category_chooser );
+                    $store, \@single, $category_chooser )
+                    if @single;
             }
             1;
         };
@@ -1551,7 +1580,16 @@ sub _assimilate_one {
         if $exists
         and $needs_ref
         and not $replay->{'nodes'}{ $entry->{'addr'} };
-    if ( $exists and $needs_ref ) {
+    ## one full check per node and run : a node shared by thousands of     ##
+    ## paths would otherwise verify every earlier record again for each of ##
+    ## them                                                                ##
+    my $seen
+        = ( $exists and $needs_ref )
+        ? $replay->{'_seen_nodes'}{ $entry->{'addr'} }
+        : undef;
+    $needs_ref = FALSE if $seen and $seen->{'holders'}{$abs};
+    my %holders;
+    if ( $exists and $needs_ref and not $seen ) {
         foreach my $ref ( reference_scan( $node, $id ) ) {
             my $key      = _key( $entry->{'addr'}, $ref->{'path'} );
             my $expected = $replay->{'references'}{$key};
@@ -1563,12 +1601,16 @@ sub _assimilate_one {
                 != ( $expected->{'dropped'} ? 1 : 0 );
             $needs_ref = FALSE
                 if $ref->{'holder'} eq $abs and not $ref->{'dropped'};
+            $holders{ $ref->{'holder'} } = TRUE if not $ref->{'dropped'};
         }
     }
     my $unchanged = $exists
         && _meta_unchanged(
-        _newest_meta( $codec, $final, $meta{'source'}, $addr, $context ),
-        \%meta );
+          $seen
+        ? $seen->{'meta'}{ $meta{'source'} }
+        : _newest_meta( $codec, $final, $meta{'source'}, $addr, $context ),
+        \%meta
+        );
     if ( $opt->{'dry_run'} ) {
         $entry->{'status'}
             = !$exists                  ? qw| would-store |
@@ -1591,13 +1633,18 @@ sub _assimilate_one {
     if ($exists) {
         ## dedup : verify first ; unchanged meta is kept, a new source is ##
         ## added                                                          ##
-        $codec->{'verify_node'}->( $final, $addr, $context );
+        $codec->{'verify_node'}->( $final, $addr, $context ) if not $seen;
         if ($unchanged) {
             $entry->{'status'} = qw| unchanged |;
         } else {
             $entry->{'_meta_name'}
                 = $codec->{'write_meta'}->( $final, \%meta, $addr, $context );
             $entry->{'status'} = qw| dedup |;
+            ## the record just written is still read back and checked ##
+            $seen->{'meta'}{ $meta{'source'} }
+                = _v3_read_meta( $final, $entry->{'_meta_name'},
+                $addr, $context )
+                if $seen;
         }
     } else {
         my $amos_dir = $final =~ s|/[^/]+\z||r;
@@ -1625,7 +1672,7 @@ sub _assimilate_one {
     fault(qw| assimilate:after-publish |);
 
     ## verify the stored node, then the source again ##
-    $codec->{'verify_node'}->( $final, $addr, $context );
+    $codec->{'verify_node'}->( $final, $addr, $context ) if not $seen;
     my ( $fh2, $st2 ) = _open_regular($path);
     my ($digest2) = bmw384_fh($fh2);
     close $fh2;
@@ -1648,6 +1695,24 @@ sub _assimilate_one {
             = { qw| dropped | => FALSE };
         $entry->{'status'} = qw| dedup |
             if $entry->{'status'} eq qw| unchanged |;
+    }
+
+    if ( $state->{'store_format'} == 3 ) {
+        if ( not $seen ) {
+            my %newest;
+            foreach my $m (
+                $codec->{'read_node'}->( $final, $addr, $context )->{'metas'}
+                ->@* ) {
+                my $source = $m->{'source'} // '';
+                $newest{$source} = $m
+                    if not $newest{$source}
+                    or $m->{'import_ntime'}
+                    gt $newest{$source}{'import_ntime'};
+            }
+            $seen = $replay->{'_seen_nodes'}{ $entry->{'addr'} }
+                = { qw| holders | => \%holders, qw| meta | => \%newest };
+        }
+        $seen->{'holders'}{$abs} = TRUE;
     }
 
     if ( $state->{'store_format'} == 3 and $remove ) {
@@ -1683,8 +1748,8 @@ sub _remove_source {
 
 1;
 
-#,,.,,.,.,,,.,.,.,,.,,,,,,,.,,...,..,,.,.,,..,..,,...,..,,..,,...,,,.,...,..,,
-#FC64YR55CVFTR64M4SQ5CRKCEJBTO5Y6SW6CGU3OIEAVLYH3R474YILW6OSE6VNU27UGY5ISZOIFK
-#\\\|CXQKY5XDIEYPZ4ZQHCKOHLQ5FT7XI5DCVJ2OT5E6ZAWE2UGARH3 \ / AMOS7 \ YOURUM ::
-#\[7]PBMBBCNZUKYHKDBRRNQGEC3IWDQOTN3TVKDUSUZDBBK4GEXP4MAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,.,,..,,.,,,,,,,,.,,,,,,,.,,.,,..,,...,...,,..,,.,,,..,,..,,,,,
+#YAJVQCYKD3Y347MWVFXP25AAQQGCT6S2FQJPCZ3YNR5TLFK6XUM2ZRJLPPZPATA3A7HABM77IX73M
+#\\\|UYS65CVCYQZBD7H5724PJDQQT5SCMSOM3I257HTBGULUO6MKR4A \ / AMOS7 \ YOURUM ::
+#\[7]26RBO3Y6XNRMVIIHIPNJXOPRISMTNL5NGH3OP7MDRWTPCJEMNMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
