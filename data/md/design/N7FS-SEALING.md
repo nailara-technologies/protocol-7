@@ -66,8 +66,16 @@ This is one local or SSH holder at a time, not replication or placement. No pack
 
 `-root-key` and `root init` also accept `vault:<name>`, a note entry titled `n7fs root <name>` in a p7-vault [ `-vault-dir`, `P7_VAULT_DIR`, default `~/.n/vault` ], unlocked with the vault passphrase and locked again after use. `n7fs root convert <from> <to>` moves a root between a passphrase file and the vault in either direction. only the wrapping of the 96-byte root changes : blobs, maps, heads and holders are untouched and no data is re-encrypted. the source stays until the owner removes it, so one conversion leaves two ways to open the same data. the counter and holder pins carry over and the writer id does not, so both copies may be used safely. a vault root keeps its state in `<host-dir>/seal-roots/<root-id>.state`. `root export-check` takes files only : convert a vault root to a file for the offline copies, then check those.
 
-#,,.,,...,.,,,,,,,,,,,,.,,,.,,,.,,..,,...,.,.,..,,...,...,...,,..,..,,...,,,.,
-#C75YGYOBIRYTCRMXK25HOO5TNVAD2JYRLW4CPVKEQ7OIY3AIMDKKABWLP5LQ7GA6Y7BA5V7OKATTE
-#\\\|PR2PA6CKJI753DLVZKUELXW24RGMD22OO7NEKSMHTXUGK4YBRD7 \ / AMOS7 \ YOURUM ::
-#\[7]GNEMMO66LQY4U23QCOSUDRMRGOIEJPPRW2CJKY5QYD73TZU5LSCA 7  DATA SIGNATURE ::
+## packs [ stage 4 part 3 ]
+
+a sealed node of at most 1 MiB is not uploaded on its own : it is appended to a pack blob of about 16 MiB, starting `P7SP` and suite byte `1`, which is named by BMW384 of its whole content like every other blob. each node inside keeps its own node keys, nonces and node header, so packing changes no crypto. its map entry names the pack in `blob`, its own ciphertext checksum in `node`, and `offset` and `length` inside the pack. entries without `node` are whole-blob nodes as before. a pack is written before the map commit that references it.
+
+recovery reads only a packed node's range from a local holder. from an ssh holder it fetches each pack once per command into the spool and cuts the nodes out locally ; the copies are removed when the command ends. each cut range is checked against its `node` checksum before it is opened. `holder-check` takes one listing of the holder for every size, then authenticates random chunks by computed offset, so it no longer costs ssh calls per node. a pack upload is confirmed by size and two random ranges.
+
+measured against a real owned holder over ssh : 500 small files sealed in 15 s as one pack [ about 33 minutes before ], recovered in 3.2 s [ 2 minutes 44 with one range read per node ]. shredding a packed node drops its wrap ; its bytes stay in the pack until a repack.
+
+#,,,,,,,,,.,.,.,,,,.,,,,,,,,,,.,,,.,.,,..,.,.,..,,...,.,.,.,,,..,,,..,.,,,,,,,
+#L574HFJF6UXZQGA4J4AFTDJ26SQGBEKD43JHKML5SCLNFTLWWWQN74FXS7FGFQMKYYZ334XHWA45O
+#\\\|BUJTUKTW2PFXMAECQF4HGBQGUAHABISZFQUMKTHWKY32BNCO67F \ / AMOS7 \ YOURUM ::
+#\[7]55KQYCIEHQNOS63HZQHGONKGYLXTZM4EHMKSLIZXFT4GWZDDK6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
