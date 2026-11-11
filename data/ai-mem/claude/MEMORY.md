@@ -5,7 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [n7fs-first-live-round](project-2026-11-11-n7fs-first-live-round.md) — NEWEST : first live N7FS round done, all holders checked ; transport fixes ; open items
+- [n7fs-first-live-round](project-2026-11-11-n7fs-first-live-round.md) — NEWEST : first live N7FS round done, all holders checked ; transport fixes ; events harmonic jitter + list events ; open items
 - [n7fs-relay-fanout-filters](project-2026-11-11-n7fs-relay-fanout-filters.md) — previous : stage 6 relay, push fan-out, holder filters landed ; hub topology ; next = live deploy
 - [session-handover-n7fs-rescue-chain](project-2026-11-11-session-handover-n7fs-rescue-chain.md) — START HERE : N7FS stages 1-5 part 1, drain \ move, first proven rescue copy ; jobsite stall ; open items
 - [54m-timer-during-long-kimi-runs](feedback-54m-timer-during-long-kimi-runs.md) — long waits : 54 minute background timer keeps the one hour cache alive
@@ -105,8 +105,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,.,.,,..,..,,.,.,,.,,,,,,,,,,.,.,...,,..,..,,...,...,,.,,,,,,,,,,.,.,..,,
-#IFJG4C6VCXLZI4BC46RLO2BA3OQ3Z6KNAS344U2TGNS6OSB7R2MXDWSXKP6V37OWGDOFZHPYP7L62
-#\\\|IRZUWGWGNUIQQ3EU4IBDLFKIY6AOUUL7VO3P23F4AIGUF2P6S3U \ / AMOS7 \ YOURUM ::
-#\[7]W3HLZY4JL6MZ6PCWNKLHGHZBWHSGPOPWWMTIKSJDDKQXPVKMJIDA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,..,,..,,,.,,,,.,,,,,,..,,..,..,,...,...,..,,,,,,.,,,,.,,,.,,
+#JNNUKLOUUH5YVNCG3OGPOCDJF42OSB4A63JQRJXBYXLKZFZAHEPTS44REDBT7JVWJVQSRXQXYDRBG
+#\\\|BLZ3NH5HVX3FAOAR2KAI7JTKCXJWU75OA5GSTLY2NVTHZ3IF5G6 \ / AMOS7 \ YOURUM ::
+#\[7]3APLKTCPE6LOW65SUXNCWDHQGNCA5I7EG5L6BGXRERX2NBVSMWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
