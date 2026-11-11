@@ -45,8 +45,10 @@ host's /etc/protocol-7/host-config/cube.cfg, never in the tree.
 
 **2026-11-10 correction [ owner ]** : this also covers the owner's personal setup : which hosts exist and are owned or rented, disk ids and layout, which folders hold what, crash history, deployment plans, personal history. those go to ~/.n/private-notes/ [ outside the repo ], never into data/ai-mem or design docs. a session had written them into the tracked migration memory.
 
-#,,.,,..,,.,,,..,,,.,,,..,..,,.,,,...,,..,..,,..,,...,..,,...,,.,,..,,,,,,,..,
-#ZNR332EF2Y6AGLOCC52HME5LLWXZTPFJDQV7WBIOMODKF33H3ZT6LT5AAO6L6OI22DBHQ253IVF6K
-#\\\|FCU3LZGI2T7MT7TFOZCIQB4TV374U42UOOAEGYENAO335PIZLKB \ / AMOS7 \ YOURUM ::
-#\[7]KJVHL334GSXCPLGTPP3KDX2KW26DXAE5FQA6PMZ766ZR35ONRQBY 7  DATA SIGNATURE ::
+**Extends to network layout [ 2026-11-11 ].** a handover memory carried private layout details ; the user caught it before the commit. a correction that names the category of the leak still leaks : 'which host does X' narrows it to a few candidates. layout details of any kind go only to `~/.n/private-notes/`, tracked files say nothing about them, not even what kind of detail is kept there.
+
+#,,..,.,.,,.,,...,.,.,,,.,...,.,.,...,,.,,...,..,,...,...,..,,..,,.,.,.,,,.,,,
+#7U6RHDB5TZB65O43GESGG2BHCDMXI2ILTQ3OQ3MFTJYIJCMH5R5IPYUT3TVORM6BUSQYBASEPDZZU
+#\\\|CEGSUUQJANYIA7HTIIZMNZNB5N2FCHWJZVIGOMKIBQRWPLQEK32 \ / AMOS7 \ YOURUM ::
+#\[7]NJZPG2F3QOWOXSMQEV5ZFELBORGH7JNZ6F3I5UUKLWW3CH4PSOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
