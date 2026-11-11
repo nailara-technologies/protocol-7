@@ -99,6 +99,11 @@ ok( $rc == 0, 'place seals the missing copies' ) or say $out;
 ok( $out =~ m|one \[ a \] no fresh receipt|,
     'copies count only after a receipt'
 ) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main', '-dry-run' );
+ok( $rc == 0 && $out !~ m|would place [1-9]|,
+    'unchecked copies are pending : place sends nothing elsewhere' )
+    or say $out;
 
 foreach my $i ( 0 .. 2 ) {
     ( $rc, $out )
@@ -193,8 +198,8 @@ ok( $rc != 0, 'registry needs the vault passphrase' );
 
 done();
 
-#,,,.,..,,,..,.,,,,,,,,..,...,..,,.,,,,,,,,..,..,,...,...,..,,,,,,,..,.,.,..,,
-#D4DSQOB6T5BIFVU736QNUTRCEXQ33VLT22C7QB4XACB72TS34ZQ3L5JGGDHDKJZG36NLRPUUWNSS4
-#\\\|TB4A5FFCH64W635KEKA2QXNPS2PASQ7BJYGIFGLF4PFI6PIK7BN \ / AMOS7 \ YOURUM ::
-#\[7]XPLEHOMJSVSV3ESUI4LHNDWVABXSXZZZXRAWRG74ZUOFQRDBLOAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,.,,,.,,,.,.,,,,,,,.,...,,,.,..,,...,...,,,,,,.,,..,,,,,,.,.,
+#AUNQCR66O3JLZLWT6EXTL26A45ZOMXWRD67T56O3SBSSPSHMZ5ZSBG3AMOQHEBCH66EBHMVCWVJEI
+#\\\|NIY3HAIRNZEG4NZUICHQFHIPILY2B4BKNJGIULACXSGN5HBX7PB \ / AMOS7 \ YOURUM ::
+#\[7]7YMPPKU3WMG6JRYQSOXYNJA6IAODBUCYZONQB6DIRUL7LWVS4QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

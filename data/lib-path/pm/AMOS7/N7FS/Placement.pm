@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.3YXGZVA |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.I5JWONQ |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh placement_report place_missing parse_size holder_drain
@@ -349,6 +349,16 @@ sub place_missing {
     foreach my $address ( sort keys %{$nodes} ) {
         my $n    = $nodes->{$address};
         my %have = %{ $copies->{$address} // {} };
+        ## a durable holder that maps the node but lacks a receipt for its  ##
+        ## current head is pending, not missing : place waits for its check ##
+        ## instead of sending the node to another domain                    ##
+        ## [ drain still counts only checked copies ]                       ##
+        foreach my $name ( keys %{$holders} ) {
+            next if $holders->{$name}{'role'} ne qw| durable |;
+            next if $status->{$name}{'state'} ne 'no fresh receipt';
+            $have{ $holders->{$name}{'domain'} } = TRUE
+                if $status->{$name}{'nodes'}{$address};
+        }
         my $need = $n->{'target'} - scalar keys %have;
         next if $need <= 0;
         foreach my $name (
@@ -454,8 +464,8 @@ sub holder_drain {
 
 1;
 
-#,,,,,,..,,.,,..,,,.,,.,.,,.,,,..,.,,,,..,,,.,..,,...,...,.,.,,..,,,,,,.,,,,,,
-#MZK26A7VRGKIIPAFWXJPBYPQ42SEHNV727WBUJDTCAD6TNH2U4LD45JKEHW77UOXRD24DX2RDJBBS
-#\\\|QV66AJNLIIYSVSEBISOIAHVBCF77ZGUHNA3F4SCQQEBJXQW6ILW \ / AMOS7 \ YOURUM ::
-#\[7]OTZUM36M32IC74KNYJTYKHYFH5B3BHMI7TYFEGJU5MQBOFZWAMAY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,..,,,,.,,,.,,,.,...,...,,,.,.,.,..,,...,..,,.,.,..,,,,.,,.,,..,,
+#SA72ZDAKLAL3EW4HH3VXHMLS2YKPWZKJPYI4R26SOB3CPPV5LF7ZE3OHSXZFGMP7TLQ6SBJN2P32I
+#\\\|OTUFRCNYAAHANJOB5Z5D4XFFNIQ3LTYVIXRDDHPQE5LMY2MOUPS \ / AMOS7 \ YOURUM ::
+#\[7]SRKZOVOQ6SJI5ED2PEIC2Y6KJWPGUKKBAAV5F33NIS2W6DU6GOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
