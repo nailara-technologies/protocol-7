@@ -18,10 +18,11 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.GHFZBIA |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.SXPL56I |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
-    receipt_fresh placement_report place_missing parse_size holder_drain |;
+    receipt_fresh placement_report place_missing parse_size holder_drain
+    holder_room |;
 
 use JSON::PP;
 use AMOS7::N7FS qw| b32 unb32 read_file write_new_file make_dirs refuse |;
@@ -218,6 +219,11 @@ sub _copies {
         elsif ( not $receipt ) {
             $state = 'no fresh receipt';
         }
+        ## a receipt vouches for the head it checked : any later commit ##
+        ## [ place, relay, drain ] waits for the next holder-check      ##
+        elsif ( ( $receipt->{'version'} // -1 ) != $head->{'version'} ) {
+            $state = 'no fresh receipt';
+        }
         $state = 'excluded' if $excluded{$name} and $state eq 'counted';
         my $used = 0;
         foreach my $address ( keys %{ $map->{'nodes'} // {} } ) {
@@ -266,6 +272,24 @@ sub placement_report {
     };
 }
 
+## bytes n7fs may still put on a holder : its quota less what it holds, and
+## never into the reserve. unknown free space with a reserve allows nothing
+sub holder_room {
+    my ( $h, $used ) = @_;
+    my $left
+        = defined $h->{'quota'}
+        ? $h->{'quota'} - ( $used // 0 )
+        : 9**20;
+    ## the reserve is space on the holder's disk n7fs never takes ##
+    if ( defined $h->{'reserve'} ) {
+        require AMOS7::N7FS::Holder;
+        my $free = AMOS7::N7FS::Holder::holder_free( $h->{'spec'} );
+        my $room = defined $free ? $free - $h->{'reserve'} : 0;
+        $left = $room if $room < $left;
+    }
+    return $left;
+}
+
 ## seal each under-replicated node to holders in domains not yet holding it :
 ## owned first, then most quota left. nothing is taken from another node.
 sub place_missing {
@@ -289,20 +313,7 @@ sub place_missing {
         next if $status->{$name}{'state'} eq 'unreachable';
         next if $status->{$name}{'state'} eq 'excluded';
         $left{$name}
-            = defined $holders->{$name}{'quota'}
-            ? $holders->{$name}{'quota'} - $status->{$name}{'used'}
-            : 9**20;
-        ## the reserve is space on the holder's disk n7fs never takes ##
-        if ( defined $holders->{$name}{'reserve'} ) {
-            require AMOS7::N7FS::Holder;
-            my $free = AMOS7::N7FS::Holder::holder_free(
-                $holders->{$name}{'spec'} );
-            my $room
-                = defined $free
-                ? $free - $holders->{$name}{'reserve'}
-                : 0;
-            $left{$name} = $room if $room < $left{$name};
-        }
+            = holder_room( $holders->{$name}, $status->{$name}{'used'} );
     }
     my @unplaced;
     foreach my $address ( sort keys %{$nodes} ) {
@@ -370,7 +381,9 @@ sub holder_drain {
         my $n         = $nodes->{$address};
         my $target    = $n ? $n->{'target'} : 0;
         my %elsewhere = %{ $copies->{$address} // {} };
-        delete $elsewhere{ $h->{'domain'} };
+        ## an intake copy counts zero, so a durable copy in its own domain ##
+        ## still counts for it                                             ##
+        delete $elsewhere{ $h->{'domain'} } if $h->{'role'} eq qw| durable |;
         if ( scalar keys %elsewhere >= $target ) {
             push @drop, $address;
             $bytes += $n ? $n->{'size'} : 0;
@@ -408,8 +421,8 @@ sub holder_drain {
 
 1;
 
-#,,..,.,,,...,...,...,...,,,,,.,.,,,.,...,,.,,..,,...,...,.,,,,,.,...,,,,,,,.,
-#LZBA6LBHFG7UAZZ2LXXW7G7BL4ASVJXQ72KBXQLFF4SBXLVI5KPUMAR7N2SRL5UMPYUOBOLXV3UQG
-#\\\|FWAX63GYARSTZGPJLMFDA3DUYV57G6SI2KWXDV2XFLNIF6E4GFB \ / AMOS7 \ YOURUM ::
-#\[7]HUR7FJCG6C7KGJSW6C3DJOA2UPJ3YUPGL4G4X5QDZJNQRZHDU6BY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,...,.,,,.,,,..,,.,,,,.,,...,.,.,..,,...,...,.,,,...,,.,,.,,,,.,,
+#ZKOL5MRTCUS76U7KS537YTL5UXT6C4E5RZZN24FBBNRGQNVGLW2CMYMJL77ATKUN2GELPVN5K2BTA
+#\\\|26MOVNOTSQGDYHYFMLTLCSYG3L7REDWB6P2PSFVPJW734JSX2OB \ / AMOS7 \ YOURUM ::
+#\[7]AFLFLW6Y5ETB2EAX5PL6ESDNY5AZ74ISVHRFART6JXUKJBGTAQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
