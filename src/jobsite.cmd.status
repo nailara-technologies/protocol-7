@@ -57,8 +57,14 @@ if ( ref $fetch eq qw| HASH | ) {
 
 ## the drain poll while scanning [ UFG ] ##
 my $poll = <jobsite.queue_poll>;
-if ( ( <jobsite.cycle> // '' ) eq qw| scanning | and ref $poll eq qw| HASH | )
+if ( ( <jobsite.cycle> // '' ) eq qw| scanning | and ref $poll ne qw| HASH | )
 {
+    my $t = <jobsite.queue_poll_timer>;
+    push @lines, sprintf ' :  poll timer   : %s',
+        ( defined $t and $t->can(qw| is_active |) and $t->is_active )
+        ? 'running, not polled yet'
+        : 'NONE [ the next scan resets the cycle ]';
+} elsif ( ( <jobsite.cycle> // '' ) eq qw| scanning | ) {
     push @lines,
         sprintf ' :  poll         : sent %d replies %d last reply %s',
         $poll->{'sent'}, $poll->{'replies'},
@@ -76,8 +82,8 @@ push @lines, ' :.';
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) . "\n" };
 
-#,,.,,,,,,,..,,..,,.,,.,,,,..,.,,,,..,,,.,.,,,..,,...,...,..,,,.,,,,.,..,,,,,,
-#I56BUNUOPZJWJGKPAIK733KAQZKYDWI5QOS3FOZEVZOGVUYI3MXJVT2DFQ5MECTPHVWIU2MEBHANG
-#\\\|B7QTEX7ZJYZFMNVJFQTVIXVQBRSZPOJUF76TNGYHW35EJI6KYSE \ / AMOS7 \ YOURUM ::
-#\[7]47PSAMGQQ5OGS3PTJBUTFT7VQTPWEKRTIQMYR6MTIFVP4AWG3MBY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,.,..,,,,.,..,,...,,,,,,,.,,.,,..,,...,...,.,.,...,..,,,.,,.,.,
+#2DCFOQ6QQZAJUUQIR4HP73NFYVAEF57KEBISI2E4MHCFK4X5RO27UY4RLFQUUEDZUTG7XPMC4ZAJ4
+#\\\|5HSPQFMBHWJIKDUZ5PYIKFBXDK727CAIJTXMHIRBZID6HR73X23 \ / AMOS7 \ YOURUM ::
+#\[7]3VUOF53PWJCBQ4J5WRJZIUOMGS5QZUK6TTBGSVN4ESY4T2FAPGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
