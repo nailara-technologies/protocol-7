@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.LIEXJHY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.QV77Q2I |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -1119,6 +1119,37 @@ sub holder_check {
     };
 }
 
+## blobs a holder keeps that the current head no longer references :
+## superseded maps and journals, and nodes dropped from the map. a holder may
+## hold other roots, whose blobs look the same from outside, so this only runs
+## when the owner states the holder serves this root alone
+sub holder_gc {
+    my %opt = @_;
+    refuse(   'holder-gc needs -only-root : a holder may also hold '
+            . 'other roots, and their blobs cannot be told apart' )
+        if not $opt{'only_root'};
+    my ( undef, $head, $map ) = _context( @opt{qw| root holder |}, TRUE );
+    refuse('no sealed head on this holder') if not defined $head;
+    my %keep = map { $ARG => TRUE } _head_name( $opt{'root'} ),
+        $head->{'map'}, $head->{'journal'};
+    $keep{ $map->{'nodes'}{$ARG}{'blob'} } = TRUE
+        for keys $map->{'nodes'}->%*;
+    my $sizes = holder_sizes( $opt{'holder'} );
+    my @drop  = sort grep { not $keep{$ARG} } keys %{$sizes};
+    my $bytes = 0;
+    $bytes += $sizes->{$ARG} for @drop;
+
+    if ( $opt{'delete'} ) {
+        holder_delete( $opt{'holder'}, $ARG ) for @drop;
+    }
+    return {
+        qw| kept |    => scalar( keys %{$sizes} ) - scalar @drop,
+        qw| removed | => scalar @drop,
+        qw| bytes |   => $bytes,
+        qw| deleted | => $opt{'delete'} ? TRUE : FALSE,
+    };
+}
+
 sub shred_node {
     my %opt = @_;
     my ( $counter, $head, $map ) = _context( @opt{qw| root holder |}, FALSE );
@@ -1132,8 +1163,8 @@ sub shred_node {
 
 1;
 
-#,,.,,...,.,,,.,.,,,.,.,.,,.,,,.,,,..,,,.,..,,..,,...,...,.,.,,,.,,.,,,.,,..,,
-#X2DYYMB6KGB3MOC3X3RIZ6ESQWWITUQ57OSDRBMLGXYGZA6N43DR335IRUOI6ULDSZSZ5QXQUF6IU
-#\\\|AQTRE7X6D45UNBUV7OJBWPDP7QZZTI4UTAW22DHR4ZOKVSWCT4O \ / AMOS7 \ YOURUM ::
-#\[7]JTEBJ7DZJASATTWSMZQRZI4FHABWQS2V2ACMMSA42OYPAYELR4BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,.,.,,,,.,,,,.,...,.,.,,,,,,.,,..,,...,...,,.,,..,,.,,,.,,,,..,
+#SM3MWFTHHEJE3Q5UOGO7CZWS5OUJZ2CNON2JPFKLGHREFZO4U44ATUVCCSU7KQXNYDQVGFKIKCHXG
+#\\\|DIOLUYFQ32MKLMGY5YTPJMVZ3FZBJY6WARU52SBAFB25QZ4D7SQ \ / AMOS7 \ YOURUM ::
+#\[7]DAW62J6ZT254BFE7GW6M67TB4LANTJLSDKTMJUYDEHLFAIO3V6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
