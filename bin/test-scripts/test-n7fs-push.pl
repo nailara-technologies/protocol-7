@@ -65,8 +65,12 @@ sub receive {
         open( STDIN,  '<:raw', $pf )              or exit 98;
         open( STDOUT, '>:raw', "$base/recv-out" ) or exit 98;
         open( STDERR, '>&',    \*STDOUT )         or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs-receive",
-            $dir, @extra )
+        ## '-first' : the options before the directory ##
+        my @args
+            = ( $extra[0] // '' ) eq '-first'
+            ? ( @extra[ 1 .. $#extra ], $dir )
+            : ( $dir, @extra );
+        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs-receive", @args )
             or exit 99;
     }
     waitpid $pid, 0;
@@ -214,6 +218,16 @@ my $more = "more ciphertext\n";
     'put ' . bmw_b32( bmw384_bytes($more) ) . ' ' . length $more,
     $more, '-max-bytes', 20 );
 ok( $rc == 5, 'a full holder refuses a put' ) or say $out;
+( $rc, $out )
+    = receive( $box2,
+    'put ' . bmw_b32( bmw384_bytes($more) ) . ' ' . length $more,
+    $more, '-first', '-max-bytes', 20 );
+ok( $rc == 5, '-max-bytes before the directory works the same' )
+    or say $out;
+( $rc, $out ) = receive( $box2, "has $name", undef, '-first', '-bogus' );
+ok( $rc != 0 && $out =~ m|unexpected arguments|,
+    'an unknown option is refused' )
+    or say $out;
 ( $rc, $out ) = receive( $box2, "has $name $other" );
 ok( $rc == 0 && $out eq "$name " . length($bytes) . "\n",
     'has lists only the named blobs present' )
@@ -254,8 +268,8 @@ unlink "$box2/.receive.$tmp_name.3333";
 
 done();
 
-#,,.,,.,,,,.,,,,,,,,,,.,,,..,,.,.,,.,,..,,,,,,..,,...,...,..,,.,,,,,,,,..,,,,,
-#CVGF2JVFA6H7ELQOZC3ODMZWUZTNQMIMQVSUTH363WP6YRGGADK5QKWWAOR4YFVGILCCUI4B2QLFE
-#\\\|TFE465YBUDK65UCICK3UVQG224X7445THWFSILALQWQCSI2MKUG \ / AMOS7 \ YOURUM ::
-#\[7]KSX6RCQQJFOYYXDEJANMGCXSBHVFTSJNI5J4L2ZSJLSRR3WMN4CQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,,.,,...,,,,,.,,,.,,,..,,,,,,..,,...,...,,,,,,,.,,,,,,,,,.,,,
+#I6U66HT2ICN4JRT4FQLE6IHBTSCKJGI3O3XFL6VQICLOGA5YPC2G5EDNV2Z6TV6HO7MMNHIALFUMQ
+#\\\|WDJV7IYX2WIVCPEVMKQYYG5KM7FPBRW6SRQSTIIGHSMHGXBPXAL \ / AMOS7 \ YOURUM ::
+#\[7]J34MKE3CICM4F6GZIJRWHNPFWZTTD3J2KPESVJG3NXIIJPTXIKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
