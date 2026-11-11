@@ -77,26 +77,45 @@ foreach my $name (@names) {
         $skipped++;
         next;
     }
-    open( my $in, '<:raw', $path ) or out("cannot read $name : $OS_ERROR");
-    my $pid = open( my $to, '|-', @ssh, "put $name $size" )
-        // out("ssh failed : $OS_ERROR");
-    binmode $to;
-    my ( $start, $done ) = ( time, 0 );
-    while ( my $got = sysread( $in, my $buf, 65536 ) ) {
-        print {$to} $buf or last;
-        $done += $got;
-        if ($bwlimit) {
-            my $ahead = $done / $bwlimit - ( time - $start );
-            sleep $ahead if $ahead > 0;
+    ## a dropped connection fails this try, not the whole push : retried ##
+    ## with growing pauses [ N7FS_PUSH_BACKOFF, seconds ]                ##
+    my @delays = map { 0 + $ARG } split m|,|,
+        $ENV{'N7FS_PUSH_BACKOFF'} // '5,15,30,60';
+    my $ok = 0;
+    my $code;
+    foreach my $try ( 0 .. @delays ) {
+        open( my $in, '<:raw', $path )
+            or out("cannot read $name : $OS_ERROR");
+        my $pid = open( my $to, '|-', @ssh, "put $name $size" )
+            // out("ssh failed : $OS_ERROR");
+        binmode $to;
+        my ( $start, $done ) = ( time, 0 );
+        {
+            local $SIG{'PIPE'} = 'IGNORE';
+            while ( my $got = sysread( $in, my $buf, 65536 ) ) {
+                print {$to} $buf or last;
+                $done += $got;
+                if ($bwlimit) {
+                    my $ahead = $done / $bwlimit - ( time - $start );
+                    sleep $ahead if $ahead > 0;
+                }
+            }
+            close $in;
+            $ok = close $to;
         }
+        $code = $CHILD_ERROR >> 8;
+        last if $ok;
+        ## 3 \ 4 \ 5 : wrong bytes, another size, full : final ##
+        last if $code == 3 or $code == 4 or $code == 5;
+        last if $try == @delays;
+        print STDERR "n7fs-push : retry $name in $delays[$try] s [ $code ]\n";
+        sleep $delays[$try];
     }
-    close $in;
-    if ( close $to ) {
+    if ($ok) {
         $sent++;
         $bytes += $size;
     } else {
-        print STDERR "n7fs-push : receiver refused $name [ "
-            . ( $CHILD_ERROR >> 8 ) . " ]\n";
+        print STDERR "n7fs-push : receiver refused $name [ $code ]\n";
         $failed++;
     }
 }
@@ -104,8 +123,8 @@ print ": sent $sent blobs, $bytes bytes ; $skipped already there"
     . ( $failed ? " ; $failed failed" : '' ) . "\n";
 exit( $failed ? 1 : 0 );
 
-#,,..,.,,,...,,..,,.,,,..,.,,,,,.,.,,,,,,,..,,..,,...,...,...,,,.,,,.,.,,,.,,,
-#3OXX6GT3AE7AFPBNV4UUBWQ2DLB6JHJGNSNCNX6PJFUISO57TASZHYPYBJZH4ITUB6JPIMCFJQNWS
-#\\\|H7V5STWUI22CKBITBELMKQ6TR3N47XYTYTOLNO4I2R5SQQPRRB6 \ / AMOS7 \ YOURUM ::
-#\[7]BEKEJOEBH37IUEALYRRUOY36QIDMEGCFIJUJKTNB44TQNXRFEECA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,.,..,,.,.,,,,,,..,,.,,,.,,,,,,..,,...,..,,.,.,,..,,.,,,,.,..,,
+#AK3CUZFZVOOX6WRH3MZ5YZFWLVJQKHOW4EESFRXOAWX3SE5MHLXXZXHNCPJVQKYJVAMPCWJGLAD3U
+#\\\|MTZIHELC6FHNRKY7N5SQYO2SJYEB7GAZ4H6MI62QNYEFWV54OUE \ / AMOS7 \ YOURUM ::
+#\[7]XUA6HJTMFRQEOACTJH4ONOJWLZUKNVMB2UEXKLKYTHZQWWTYCICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
