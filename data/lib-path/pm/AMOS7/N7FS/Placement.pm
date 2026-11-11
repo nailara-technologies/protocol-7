@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.MBV2PEI |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.CI3KUPA |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh placement_report place_missing parse_size |;
@@ -288,6 +288,17 @@ sub place_missing {
             = defined $holders->{$name}{'quota'}
             ? $holders->{$name}{'quota'} - $status->{$name}{'used'}
             : 9**20;
+        ## the reserve is space on the holder's disk n7fs never takes ##
+        if ( defined $holders->{$name}{'reserve'} ) {
+            require AMOS7::N7FS::Holder;
+            my $free = AMOS7::N7FS::Holder::holder_free(
+                $holders->{$name}{'spec'} );
+            my $room
+                = defined $free
+                ? $free - $holders->{$name}{'reserve'}
+                : 0;
+            $left{$name} = $room if $room < $left{$name};
+        }
     }
     my @unplaced;
     foreach my $address ( sort keys %{$nodes} ) {
@@ -341,8 +352,8 @@ sub place_missing {
 
 1;
 
-#,,,.,.,,,,..,..,,,.,,,..,,,,,.,,,,,,,..,,.,,,..,,...,..,,.,.,..,,,,.,,,.,.,,,
-#2QWOWRUEQLDTFOCIIBJBP7I7377X7Y3GY3MGNLVY6FPXGBFAHDAUB4WSZSO2RCDMFK7UDM7RMHQEU
-#\\\|UHLGSXIVVVMOOHY7TP3RVBOWT3QGGJGGNZHWW3IRSSTHPK6WRYK \ / AMOS7 \ YOURUM ::
-#\[7]UHN4S5C33HO4Q476CTB5XBHWXPMYWNS7LCG7H7DYCM7UHJX25GDA 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,,.,,.,.,,..,,,.,..,,..,,.,,,..,,...,...,,,.,,.,,,,.,...,,,.,
+#GQ4GEN3PT6YQWQTNYETJOBCF3QHPR7G2AP2KP4QVMCY2KIR3WUNIHQGEXFGB6YGZZUFCIDV5QCCTI
+#\\\|GWDMNAGEQXVX7C7AGWXXN25A4I6KYSCAR4Q7BHBYFDODHGRNQ6Y \ / AMOS7 \ YOURUM ::
+#\[7]F6WZJNFMK743OZBLNCY5UGVJHR3TZ7NATUYMUJ34RPCTKF2DBOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

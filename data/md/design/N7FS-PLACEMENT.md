@@ -83,9 +83,12 @@ intake, holder-to-holder copying, calculated placement, erasure coding.
   with packs, and a holder that receives any file of a tree also receives
   that tree, so it can recover it by name. new copies count after the next
   `holder-check`
-- `reserve` is stored but not enforced : free space on a remote is not
-  measured yet. the size of a node is its local content size, not its sealed
-  size
+- `reserve` is enforced : `place` reads free space with one `df` on the
+  holder and never fills past the reserve ; unknown free space places
+  nothing there. the size of a node is its local content size, not its
+  sealed size
+- `-bwlimit <size>` caps uploads to ssh holders per second, for links that
+  fail under sustained load
 
 ## owner decisions [ 2026-11-10 ]
 
@@ -98,8 +101,8 @@ intake, holder-to-holder copying, calculated placement, erasure coding.
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,,,,,.,,,,.,,,.,.,,,,,,,.,,,.,.,,,,,,,.,,..,..,,...,..,,,.,,,.,,.,,,,,.,,,.,
-#QWPZOGNGPGPRVFS4HOGDDT33UWTOU2DDGNEVLQFEUGYU72QTPGVJDQJKLKGVOTOJLM4D7Z4GMFLE2
-#\\\|VHTAH3BLFJ3A7M5X3S6WNHNP47NGANIMJ6RBDIWNCM7JLPQGWFR \ / AMOS7 \ YOURUM ::
-#\[7]66ZCAW26R4AGIX3YO4GXAAJJVD3ZT2L7SK7QSB7UFL2T74QQ4YBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,,,.,.,,..,,,,,.,.,.,,,.,.,...,..,,...,...,,.,,.,,,,..,..,,.,,,
+#HIVSILNOB5VAJHYEPCTSO2W5M26WXPAAQ3RQONIQS5WZ4A3JO7JM7V6SDADQJMIV3PZYISDRG6UJC
+#\\\|NELLKVBNFKE2YFUHCHW2BZTQGBTPEKXFLTSOP5SNMOP2IQAMWMC \ / AMOS7 \ YOURUM ::
+#\[7]F7E7FBCO465CDVZRY4AWXGXVKHGLR2DHA5GVO4TGFXL7VUBY7QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

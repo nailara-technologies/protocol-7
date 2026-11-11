@@ -13,10 +13,10 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.3IX2PMQ |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.QMJO6MY |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
-    holder_sizes
+    holder_sizes holder_free
     holder_size holder_put holder_delete holder_verify holder_download
     holder_read_range |;
 
@@ -73,6 +73,38 @@ sub _delays {
     return ( 2, 5, 15, 30, 0 );
 }
 
+## upload rate cap in bytes per second, 0 = none [ n7fs -bwlimit ] : a
+## wireless link under sustained full load has taken a host down
+our $BWLIMIT = 0;
+
+sub _throttle {
+    my ( $start, $sent ) = @_;
+    return if not $BWLIMIT;
+    my $ahead = $sent / $BWLIMIT - ( Time::HiRes::time() - $start );
+    Time::HiRes::sleep($ahead) if $ahead > 0;
+    return;
+}
+
+## free bytes at a holder's directory, undef when unknown ##
+sub holder_free {
+    my $spec = shift;
+    my $h    = holder_parse($spec);
+    my $out;
+    if ( $h->{'type'} eq qw| local | ) {
+        open( my $fh, '-|', 'df', '-Pk', $h->{'dir'} ) or return undef;
+        local $INPUT_RECORD_SEPARATOR;
+        $out = <$fh>;
+        close $fh;
+    } else {
+        my $status;
+        ( $status, $out ) = _result( $h, 'df -Pk ' . _quote( $h->{'dir'} ) );
+        return undef if $status;
+    }
+    my @line = split ' ', ( split m|\n|, $out // '' )[-1] // '';
+    return undef if ( $line[3] // '' ) !~ m|\A\d+\z|;
+    return $line[3] * 1024;
+}
+
 sub _ssh {
     my ( $h, $command, $input, $output ) = @_;
     my $program = $ENV{'N7FS_SSH'} // 'ssh';
@@ -90,8 +122,10 @@ sub _ssh {
     {
         local $SIG{'PIPE'} = 'IGNORE';
         if ( ref $input ) {
+            require Time::HiRes;
+            my ( $start, $sent ) = ( Time::HiRes::time(), 0 );
             while (1) {
-                my $got = sysread( $input, my $buf, 1048576 );
+                my $got = sysread( $input, my $buf, 65536 );
                 $write_ok = 0 if not defined $got;
                 last if not $got;
                 my $offset = 0;
@@ -103,6 +137,8 @@ sub _ssh {
                     $offset += $put;
                 }
                 last if not $write_ok;
+                $sent += $got;
+                _throttle( $start, $sent );
             }
         } elsif ( defined $input ) {
             my $offset = 0;
@@ -395,8 +431,8 @@ sub holder_put {
 
 1;
 
-#,,,,,.,,,...,.,.,...,.,.,.,,,...,,,,,..,,.,,,..,,...,...,,..,,,,,,,.,.,,,.,.,
-#WEAQY55A4267JSX5QQE5Z3YT36LXJJHFSKVP24HAKD7264CHJAZEHV5JZ6DELFKHEONIMRWPTFN6Q
-#\\\|3MKZWWLLVDBAFGNWWM6G6HDUMZMNMUMYY2IZLV6UVEGPQKISCBJ \ / AMOS7 \ YOURUM ::
-#\[7]FODD2XF7WZY5VPS6D2IZKFMKEMRC4BGD3T2UGIPMVGJPPKHQFQAI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,.,,,,,.,,,,,,,.,.,,,..,,.,,,..,,...,...,..,,...,.,.,...,,,.,
+#MKHCVMYU2WOERCUD6SDK4GESN27E24DVL4LSSL55SSBO3PXTW552XEHP4MUZ7CVHIML3TOVGAT3ES
+#\\\|QH3N5Z67MYDE5JKIAFGFTA7V7K3GIMG4QEWMOEBKHWQLAMVI36W \ / AMOS7 \ YOURUM ::
+#\[7]ISSLN6QSYFGOEVB76DJ7J2QLFML5PY4TEC6UEICHZ3ZCIIBHZQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

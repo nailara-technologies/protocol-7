@@ -133,13 +133,23 @@ ok( $out =~ m|under-replicated|, 'removing a holder shows the shortfall' )
     = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main', '-dry-run' );
 ok( $out =~ m|still under-replicated|, 'quota keeps a holder from filling' )
     or say $out;
+( $rc, $out ) = cli(
+    ['vp'], 'holder',   'add', 'full', "$base/h6", '-domain',
+    'e',    '-reserve', '1000000T'
+);
+make_dirs("$base/h6");
+( $rc, $out )
+    = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main', '-dry-run' );
+ok( $out !~ m|on full|,
+    'a holder whose reserve exceeds its free space receives nothing' )
+    or say $out;
 ( $rc, $out ) = cli( ['wrong'], 'holder', 'list' );
 ok( $rc != 0, 'registry needs the vault passphrase' );
 
 done();
 
-#,,..,.,.,.,.,..,,.,,,.,,,,.,,,..,...,,,,,,,,,..,,...,...,...,.,,,.,,,,,,,,,.,
-#2V3HRXV5755BGBANTF6AS2F33XHUGMQPYWHONNA4EI7CTHR75Y33XDK46M6YYCWY3B7CW7S3XOGMM
-#\\\|MOFFCFLSFQT2G66QNJTNLTKJADJ7SYDEYOUSS7FEH4NTE5CHEPP \ / AMOS7 \ YOURUM ::
-#\[7]Q3H5KCDDLM34TESNPMN2A4KNK7ADEHNNSX4ONOWQ7UOUGBZ75UDA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,.,,,...,,,.,...,.,,,,,.,,.,,..,,...,...,...,,..,..,,,,.,,,,,
+#WLEAH2KBGAGOF7CY3SACUGFIBXN7YJ746ZLPNQDF35542DLUF7TUMWCBYAF7PMUKOQYYLF5N6DBAM
+#\\\|UNCEJ54VW5PSVVUTEWO3GTDMCOTBM3KOB755GV22QBAPD7Z2L3Y \ / AMOS7 \ YOURUM ::
+#\[7]QNIVXIBB5RLVI2DKHWFFZCKGR5JRBJTECC2YAV7SG43I2HAECUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

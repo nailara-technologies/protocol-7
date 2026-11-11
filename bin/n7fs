@@ -78,6 +78,7 @@ use warnings;
 ## n7fs holder list | remove <name>         registry in the vault
 ## n7fs placement <disk> -root-key <key>    copies per category, report only
 ## n7fs place <disk> -root-key <key> [ -dry-run ]  seal what is missing
+## -bwlimit <size>                         cap uploads to ssh holders, per second
 ##
 ## sealing : -pass-fd <n> reads the passphrase from that descriptor -argon-m
 ## <KiB> -argon-t <n> -argon-p <n> override root init
@@ -151,7 +152,7 @@ GetOptionsFromArray(
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
         layer=s incoming under=s depth=i limit=i group-by=s trees-only help
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
-        role=s domain=s owned quota=s reserve=s |
+        role=s domain=s owned quota=s reserve=s bwlimit=s |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -212,6 +213,14 @@ my %run = (
     qw| place |          => \&cmd_place,
 );
 usage(2) if not exists $run{$command};
+
+if ( defined $o{'bwlimit'} ) {
+    require AMOS7::N7FS::Placement;
+    require AMOS7::N7FS::Holder;
+    no warnings qw| once |;
+    $AMOS7::N7FS::Holder::BWLIMIT
+        = AMOS7::N7FS::Placement::parse_size( $o{'bwlimit'} );
+}
 
 ## the process list shows the tool and its command, never its arguments ##
 our $SCRIPT = $PROGRAM_NAME;
@@ -1555,8 +1564,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,...,,.,,,..,...,...,,..,.,.,,,,,.,,,,,.,..,,...,...,..,,.,,,.,,,.,,,,,.,
-#3TNAQBGDTO6JYH67OPHM7DURHY253UMJQXTEZ4LECINGUHUTRVNS5T47YPUQUYHNR27TCG6QXW7KG
-#\\\|L4BU5JKTMJVG2G7PJRJMVBNKM73VPIM6KQVRQPPUQMTSCNDRACX \ / AMOS7 \ YOURUM ::
-#\[7]IXQTAC2OHRMUJ5FJTQXSC4VUAMXBEMTQYXNQ2WAJ2IZBNDMP3MDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,,..,.,.,.,.,.,.,,,.,,..,.,.,..,,...,..,,,,,,,,,,,..,.,,,.,,,
+#3S5ISA6FDP4DQSM2XVXJCH3CA64JWW7GZQK2IRLSPZAJBR4HB5UEUJWDSTUDYDYPVIAF3INOGQTGK
+#\\\|TSHGUT5QFRFQFNKN46OQM3GKNDE6ZOD4DXLKZ3GX2O7VW3377CC \ / AMOS7 \ YOURUM ::
+#\[7]MJ3Z5HWRHNAXTAYNSPUOZSADU2JIIWM7MDLCFWZL2SU6AMJMLMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
