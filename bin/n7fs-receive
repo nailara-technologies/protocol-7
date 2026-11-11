@@ -1,0 +1,110 @@
+#!/usr/bin/perl
+use v5.32.0;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+## n7fs-receive : the only command a relay key may run on a durable holder.
+## it adds new ciphertext blobs and never replaces, reads or deletes one.
+##
+## authorized_keys on the receiving host [ one line, the sending host's key ]
+## : command="<repo>/bin/n7fs-receive <holder-dir>",restrict ssh-ed25519
+## AAAA..
+##
+## the sender asks through the ssh command line [ SSH_ORIGINAL_COMMAND ] :
+##   has <name> ..        prints '<name> <size>' for those present
+##   put <name> <size>    reads exactly <size> bytes from stdin
+##
+## a blob is accepted only when its bytes match its checksum name. the head of
+## a store is not named by its checksum, so it can never be written here.
+## [ -max-bytes <n> ] refuses a put that would grow the directory past n
+
+use FindBin;
+BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
+use Fcntl            qw| O_WRONLY O_CREAT O_EXCL |;
+use AMOS7::N7FS::Sum qw| bmw_b32 |;
+use Digest::BMW;
+
+my $NAME = qr|\A[A-Z2-7]{77}\z|;
+
+sub out { print STDERR "n7fs-receive : $ARG[0]\n"; exit( $ARG[1] // 2 ) }
+
+my $dir = shift // out('needs the holder directory');
+my $max;
+if ( @ARGV and $ARGV[0] eq '-max-bytes' ) {
+    shift;
+    $max = shift // '';
+    out('-max-bytes needs a number') if $max !~ m|\A\d+\z|;
+}
+out('unexpected arguments')            if @ARGV;
+out('holder directory does not exist') if not -d $dir;
+
+my @word = split ' ', $ENV{'SSH_ORIGINAL_COMMAND'} // '';
+my $verb = shift @word // '';
+
+if ( $verb eq 'has' ) {
+    foreach my $name (@word) {
+        out('invalid blob name') if $name !~ $NAME;
+        my $size = -s "$dir/$name";
+        print "$name $size\n" if defined $size;
+    }
+    exit 0;
+}
+out('unknown request') if $verb ne 'put' or @word != 2;
+my ( $name, $size ) = @word;
+out('invalid blob name') if $name !~ $NAME;
+out('invalid size')      if $size !~ m|\A\d+\z|;
+if ( -e "$dir/$name" ) {
+    out( 'blob exists with another size', 4 ) if -s "$dir/$name" != $size;
+    exit 0;
+}
+if ( defined $max ) {
+    my $used = 0;
+    opendir( my $dh, $dir ) or out('cannot list the holder');
+    $used += -s "$dir/$ARG" // 0 for grep {m|$NAME|} readdir $dh;
+    closedir $dh;
+    out( 'holder is full', 5 ) if $used + $size > $max;
+}
+
+my $tmp = "$dir/.receive.$name.$PID";
+sysopen( my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600 )
+    or out("cannot create a temporary : $OS_ERROR");
+binmode $fh;
+binmode STDIN;
+my $ctx  = Digest::BMW->new(384);
+my $left = $size;
+while ( $left > 0 ) {
+    my $got = sysread( STDIN, my $buf, $left < 1048576 ? $left : 1048576 );
+    if ( not $got ) {
+        unlink $tmp;
+        out( 'input ended early', 6 );
+    }
+    $ctx->add($buf);
+    print {$fh} $buf or do { unlink $tmp; out("write failed : $OS_ERROR") };
+    $left -= $got;
+}
+if ( not close $fh ) {
+    unlink $tmp;
+    out("close failed : $OS_ERROR");
+}
+if ( bmw_b32( $ctx->digest ) ne $name ) {
+    unlink $tmp;
+    out( 'bytes do not match the blob name', 3 );
+}
+## link, not rename : an existing name is never replaced ##
+if ( not link $tmp, "$dir/$name" ) {
+    my $err = $OS_ERROR;
+    unlink $tmp;
+    exit 0 if -e "$dir/$name" and -s "$dir/$name" == $size;
+    out("cannot publish : $err");
+}
+unlink $tmp;
+system( 'sync', '--', "$dir/$name" );
+exit 0;
+
+#,,,,,,,,,,,.,,,,,...,,..,.,.,,.,,...,,,.,,,,,..,,...,...,.,.,,.,,..,,,..,,,.,
+#4T64JVNNN4DUVZLOKYGQIPMG2YE7I264KSDPP753FKFM52SE3RRJSM6HCRL6N5447MMLRCBQGOGAU
+#\\\|IHWASZVU7S3FTPRHBABX3IN7KLJXEYBY5LSSPO7D6VSJERO5MLI \ / AMOS7 \ YOURUM ::
+#\[7]OU5VQQBQZHTD73OO7BJ2HLQQDQ6VYOBTFG4J6JVNLVUPY7BZDCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

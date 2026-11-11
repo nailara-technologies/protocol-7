@@ -1,0 +1,111 @@
+#!/usr/bin/perl
+use v5.32.0;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+## n7fs-push : runs on a sending holder host, without any n7fs key. it reads a
+## relay list home wrote into the holder directory and sends each listed blob
+## to a receiving host, whose key runs only n7fs-receive.
+##
+##   n7fs-push <holder-dir> <list-file> <ssh-alias> [ -bwlimit <bytes/s> ]
+##
+## the list holds blob names only, which the sender already sees. a blob the
+## receiver has is skipped, so a rerun after an interruption continues
+
+use FindBin;
+BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
+use JSON::PP;
+use Time::HiRes qw| time sleep |;
+
+sub out { print STDERR "n7fs-push : $ARG[0]\n"; exit 2 }
+
+my ( $dir, $list, $alias ) = splice @ARGV, 0, 3;
+out('usage : n7fs-push <holder-dir> <list-file> <ssh-alias>')
+    if not defined $alias;
+my $bwlimit = 0;
+if ( @ARGV and $ARGV[0] eq '-bwlimit' ) {
+    shift;
+    $bwlimit = shift // '';
+    out('-bwlimit needs bytes per second') if $bwlimit !~ m|\A\d+\z|;
+}
+out('unexpected arguments') if @ARGV;
+out('ssh alias is invalid')
+    if $alias !~ m|\A[A-Za-z0-9_.][A-Za-z0-9_.-]*\z|;
+my $NAME = qr|\A[A-Z2-7]{77}\z|;
+$list = "$dir/$list" if $list !~ m|/|;
+open( my $lf, '<:raw', $list ) or out("cannot read the list : $OS_ERROR");
+my $data = eval {
+    local $INPUT_RECORD_SEPARATOR;
+    decode_json(<$lf>);
+} // out('the list is not valid json');
+close $lf;
+my @names = @{ $data->{'blobs'} // [] };
+foreach my $name (@names) {
+    out('invalid blob name in list') if $name !~ $NAME;
+}
+
+my @ssh = (
+    $ENV{'N7FS_SSH'} // 'ssh',
+    qw| -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=30
+        -o ServerAliveCountMax=4 |, $alias
+);
+
+## what the receiver has, in batches that keep the command line short ##
+my %have;
+for ( my $i = 0; $i < @names; $i += 100 ) {
+    my $last = $i + 99 < $#names ? $i + 99 : $#names;
+    open( my $fh, '-|', @ssh, join ' ', 'has', @names[ $i .. $last ] )
+        or out("ssh failed : $OS_ERROR");
+    while ( my $line = <$fh> ) {
+        my ( $name, $size ) = split ' ', $line;
+        $have{$name} = $size if defined $size;
+    }
+    close $fh or out('the receiver refused the listing');
+}
+my ( $sent, $bytes, $skipped, $failed ) = ( 0, 0, 0, 0 );
+foreach my $name (@names) {
+    my $path = "$dir/$name";
+    my $size = -s $path;
+    if ( not defined $size ) {
+        print STDERR "n7fs-push : not here : $name\n";
+        $failed++;
+        next;
+    }
+    if ( defined $have{$name} and $have{$name} == $size ) {
+        $skipped++;
+        next;
+    }
+    open( my $in, '<:raw', $path ) or out("cannot read $name : $OS_ERROR");
+    my $pid = open( my $to, '|-', @ssh, "put $name $size" )
+        // out("ssh failed : $OS_ERROR");
+    binmode $to;
+    my ( $start, $done ) = ( time, 0 );
+    while ( my $got = sysread( $in, my $buf, 65536 ) ) {
+        print {$to} $buf or last;
+        $done += $got;
+        if ($bwlimit) {
+            my $ahead = $done / $bwlimit - ( time - $start );
+            sleep $ahead if $ahead > 0;
+        }
+    }
+    close $in;
+    if ( close $to ) {
+        $sent++;
+        $bytes += $size;
+    } else {
+        print STDERR "n7fs-push : receiver refused $name [ "
+            . ( $CHILD_ERROR >> 8 ) . " ]\n";
+        $failed++;
+    }
+}
+print ": sent $sent blobs, $bytes bytes ; $skipped already there"
+    . ( $failed ? " ; $failed failed" : '' ) . "\n";
+exit( $failed ? 1 : 0 );
+
+#,,..,.,,,...,,..,,.,,,..,.,,,,,.,.,,,,,,,..,,..,,...,...,...,,,.,,,.,.,,,.,,,
+#3OXX6GT3AE7AFPBNV4UUBWQ2DLB6JHJGNSNCNX6PJFUISO57TASZHYPYBJZH4ITUB6JPIMCFJQNWS
+#\\\|H7V5STWUI22CKBITBELMKQ6TR3N47XYTYTOLNO4I2R5SQQPRRB6 \ / AMOS7 \ YOURUM ::
+#\[7]BEKEJOEBH37IUEALYRRUOY36QIDMEGCFIJUJKTNB44TQNXRFEECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
