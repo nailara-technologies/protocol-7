@@ -113,11 +113,28 @@ foreach my $ev_id ( keys( <events.timetable>->%* ) ) {
                 if $key eq 'end';
         }
     }
+
+    ## jitter = <seconds> [harmonic] : one random offset per run, for the   ##
+    ## whole entry [ at, or start and end together ] ; drawn again when the ##
+    ## entry is recalculated for its next run                               ##
+    if ( defined <events.timetable>->{$ev_id}->{'jitter'} ) {
+        my $offset = <[events.jitter_offset]>->(
+            <events.timetable>->{$ev_id}->{'jitter'}, $ev_name
+        );
+        if ( defined $offset ) {
+            foreach my $key ( 'at', 'start', 'end' ) {
+                <events.unix.timetable>->{$ev_id}->{$key} += $offset
+                    if defined <events.unix.timetable>->{$ev_id}->{$key};
+            }
+            <events.unix.timetable>->{$ev_id}->{'jitter'} = $offset;
+            <[base.logs]>->( 2, "[%s] jitter %s s", $ev_name, $offset );
+        }
+    }
 }
 <[base.log]>->( 2, ": nothing to do.." ) if !$new_events;
 
-#,,,.,,..,,..,,.,,,,.,,,,,,.,,...,...,..,,..,,..,,...,..,,,.,,,.,,,..,,,,,,,,,
-#24ICXN2DOJBP3WSKRSOIH54LIP7A55EREODJ2DAMFVNF2YINVMJ4OIKGUHITJGHVPSSDEKELKWBWM
-#\\\|POCELNXDOCOHKSZWYGKJTTNGBHARQWOBIHAFZSU4GMVPWPDHCCW \ / AMOS7 \ YOURUM ::
-#\[7]OHMA4WCEG3RGIAKJMA73EWNVDGIOAJZYHP2NZCNMLBMQBOZ62QCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,...,...,,,,,.,,,.,,,,,.,,.,,..,,...,...,,..,...,.,,,.,.,,,.,
+#LHKC5PMODZ23VPYGYPLXHEN5HFXEUTDGXVGULVJD6MT26EEZJKPG36N4SOSYOA4FWERQPT72DIJ36
+#\\\|4ISGWK2THO56INWVMMSSRRUZI43MPQVF3WJDHWJEL73QEPXDATH \ / AMOS7 \ YOURUM ::
+#\[7]VZDOLIACN6GH6SV4XPPQ3FJBH2I2DDUIZD6OXI6OUXVR7HCO6ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

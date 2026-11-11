@@ -1,0 +1,50 @@
+## [:< ##
+
+# name   = events.jitter_offset
+# descr  = random offset for a timetable entry [ ms precision ], harmonic filter
+# args   = string <jitter> [ '<seconds> [harmonic]' ], string <event name>
+# return = offset in seconds [ 3 decimals ] or undef when the value is invalid
+
+## the precision adds entropy : true values exist in any window, so the   ##
+## harmonic filter only redraws. capped as base.gen_id, then it warns and ##
+## takes the last draw                                                    ##
+
+my $jitter  = shift // '';
+my $ev_name = shift // '';
+
+my ( $window, @flags ) = split m| +|, $jitter;
+if ( not defined $window or $window !~ m|\A\d+(\.\d+)?\z| or $window <= 0 ) {
+    <[base.s_warn]>->(
+        "[%s] jitter '%s' : a positive number of seconds expected",
+        $ev_name, $jitter
+    );
+    return undef;
+}
+my $harmonic = 0;
+foreach my $flag (@flags) {
+    if ( $flag eq qw| harmonic | ) {
+        $harmonic = 1;
+        next;
+    }
+    <[base.s_warn]>->( "[%s] jitter flag '%s' unknown", $ev_name, $flag );
+    return undef;
+}
+
+my $max_draws = 512;
+my $offset;
+for my $draw ( 1 .. $max_draws ) {
+    $offset = sprintf( '%.3f', <base.prng.fortuna>->double( 0 + $window ) );
+    return $offset if not $harmonic;
+    return $offset if AMOS7::Assert::Truth::is_true($offset);
+}
+<[base.s_warn]>->(
+    "[%s] no harmonic jitter in %d draws, taking %s",
+    $ev_name, $max_draws, $offset
+);
+return $offset;
+
+#,,..,,,,,,,,,,.,,...,..,,.,,,,..,,,.,,,,,,,.,..,,...,...,,.,,..,,.,,,,.,,,..,
+#4KYHM3ZB3SFINYBMUOLD6HNBTPLUI4S33ERWWAYXJUQXCWNHCVVV2A43WUMXMXZ34734MPWQ7W7HI
+#\\\|RY662KDHMAADKD3SEP5DGLWPVS26QE5ESLCMD2CFZO64A5GYFCQ \ / AMOS7 \ YOURUM ::
+#\[7]3KD5JXAWCHPPFCIJZWPHDYLARVOW3A3RZQ54UQFW66SQ63DSZECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
