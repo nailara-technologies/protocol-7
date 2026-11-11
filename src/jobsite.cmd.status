@@ -63,6 +63,9 @@ if ( ( <jobsite.cycle> // '' ) eq qw| scanning | and ref $poll ne qw| HASH | )
     push @lines, sprintf ' :  poll timer   : %s',
         ( defined $t and $t->can(qw| is_active |) and $t->is_active )
         ? 'running, not polled yet'
+        : <jobsite.fetch_pending>
+        ? sprintf( 'none yet [ %d imports pending ]',
+        <jobsite.fetch_pending> )
         : 'NONE [ the next scan resets the cycle ]';
 } elsif ( ( <jobsite.cycle> // '' ) eq qw| scanning | ) {
     push @lines,
@@ -82,8 +85,8 @@ push @lines, ' :.';
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) . "\n" };
 
-#,,,,,...,,..,,,.,..,,,,.,..,,...,,,,,,,.,,.,,..,,...,...,.,.,...,..,,,.,,.,.,
-#2DCFOQ6QQZAJUUQIR4HP73NFYVAEF57KEBISI2E4MHCFK4X5RO27UY4RLFQUUEDZUTG7XPMC4ZAJ4
-#\\\|5HSPQFMBHWJIKDUZ5PYIKFBXDK727CAIJTXMHIRBZID6HR73X23 \ / AMOS7 \ YOURUM ::
-#\[7]3VUOF53PWJCBQ4J5WRJZIUOMGS5QZUK6TTBGSVN4ESY4T2FAPGCI 7  DATA SIGNATURE ::
+#,,..,...,...,..,,...,,.,,,,.,..,,.,.,.,,,,,.,..,,...,...,..,,,..,...,,..,,..,
+#XNL5CFP6S2OORF3A34NUWS5L43EFCH6ALOYYRE24UNNBXWG6LH2FGGUFG6D3NVDL66I3HE3DFJXDS
+#\\\|QL56QOYGOS7ZELGULZWH4QT2N2I4KAH663WBARTF4A2DPO7X4YY \ / AMOS7 \ YOURUM ::
+#\[7]ALYF6PJ2LLFZEKPSI2YJ4XM6Z2ENVTAO7Z3RN7N5XGK5EY3WZ2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
