@@ -76,6 +76,8 @@ use warnings;
 ## n7fs holder add <name> <holder> -role durable|intake -domain <label>
 ##                 [ -owned ] [ -quota <size> ] [ -reserve <size> ]
 ## n7fs holder list | remove <name>         registry in the vault
+## n7fs holder-gc <holder> -root-key <key> -only-root [ -delete ]
+##                 unreferenced blobs of a one-root holder ; dry run by default
 ## n7fs placement <disk> -root-key <key>    copies per category, report only
 ## n7fs place <disk> -root-key <key> [ -dry-run ]  seal what is missing
 ## -bwlimit <size>                         cap uploads to ssh holders, per second
@@ -152,7 +154,7 @@ GetOptionsFromArray(
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
         layer=s incoming under=s depth=i limit=i group-by=s trees-only help
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
-        role=s domain=s owned quota=s reserve=s bwlimit=s |
+        role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -209,6 +211,7 @@ my %run = (
     qw| shred |          => \&cmd_shred,
     qw| holder-check |   => \&cmd_holder_check,
     qw| holder |         => \&cmd_holder,
+    qw| holder-gc |      => \&cmd_holder_gc,
     qw| placement |      => \&cmd_placement,
     qw| place |          => \&cmd_place,
 );
@@ -1414,6 +1417,29 @@ sub cmd_holder_check {
     return 0;
 }
 
+sub cmd_holder_gc {
+    require AMOS7::N7FS::Seal;
+    my $holder = shift // fail('holder-gc needs a holder');
+    fail('holder-gc : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Seal::holder_gc(
+        qw| root |      => _seal_root(),
+        qw| holder |    => $holder,
+        qw| only_root | => $o{'only-root'} ? TRUE : FALSE,
+        qw| delete |    => $o{'delete'}    ? TRUE : FALSE,
+    );
+    say_line(
+        $r->{'deleted'} ? 'removed ' : 'would remove ',
+        $r->{'removed'},
+        ' unreferenced blobs, ',
+        $r->{'bytes'},
+        ' bytes ; ',
+        $r->{'kept'},
+        ' kept'
+    );
+    say_line('dry run : add -delete to remove them') if not $r->{'deleted'};
+    return 0;
+}
+
 sub _vault_opt {
     return (
         qw| pass_fd |   => $o{'pass-fd'},
@@ -1564,8 +1590,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,.,,,,,,..,,,..,.,.,.,.,.,.,,,.,,..,.,.,..,,...,..,,,,,,,,,,,..,.,,,.,,,
-#3S5ISA6FDP4DQSM2XVXJCH3CA64JWW7GZQK2IRLSPZAJBR4HB5UEUJWDSTUDYDYPVIAF3INOGQTGK
-#\\\|TSHGUT5QFRFQFNKN46OQM3GKNDE6ZOD4DXLKZ3GX2O7VW3377CC \ / AMOS7 \ YOURUM ::
-#\[7]MJ3Z5HWRHNAXTAYNSPUOZSADU2JIIWM7MDLCFWZL2SU6AMJMLMAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,,,,,...,.,.,..,,.,,,...,,,,,..,,...,...,.,,,.,.,.,,,,,.,,..,
+#XH3SZP3AEM7ZTZAAT5RNBGVD7ICCEHSTG4JDQHAM27SSRY5VICS2PB67WCC7526MXRXGAG7MLDVCM
+#\\\|UDFTRACJYFP55DOFFONF2FSYQOF4FPEPY77Q2IBM5VW7QEQ7XOG \ / AMOS7 \ YOURUM ::
+#\[7]EM4OBSAB5VNW7CBUD35XTBXQLHEHGFJDOWBXT64MAFZHHPUJ6MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

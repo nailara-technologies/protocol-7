@@ -74,8 +74,12 @@ recovery reads only a packed node's range from a local holder. from an ssh holde
 
 measured against a real owned holder over ssh : 500 small files sealed in 15 s as one pack [ about 33 minutes before ], recovered in 3.2 s [ 2 minutes 44 with one range read per node ]. shredding a packed node drops its wrap ; its bytes stay in the pack until a repack.
 
-#,,,,,,,,,.,.,.,,,,.,,,,,,,,,,.,,,.,.,,..,.,.,..,,...,.,.,.,,,..,,,..,.,,,,,,,
-#L574HFJF6UXZQGA4J4AFTDJ26SQGBEKD43JHKML5SCLNFTLWWWQN74FXS7FGFQMKYYZ334XHWA45O
-#\\\|BUJTUKTW2PFXMAECQF4HGBQGUAHABISZFQUMKTHWKY32BNCO67F \ / AMOS7 \ YOURUM ::
-#\[7]55KQYCIEHQNOS63HZQHGONKGYLXTZM4EHMKSLIZXFT4GWZDDK6DY 7  DATA SIGNATURE ::
+## holder-gc
+
+`n7fs holder-gc <holder> -root-key <key> -only-root [ -delete ]` removes the blobs the current head no longer references : superseded maps and journals, and node blobs dropped from the map. it lists them by default and deletes only with `-delete`. a holder may hold several roots, and their blobs cannot be told apart from outside, so it refuses without `-only-root`, which states that this holder serves this root alone. it must not run while a seal to the same holder is in progress. it is the local form of the home-signed delete of stage 5 part 2 ; a holder that ignores it is what shredding covers.
+
+#,,..,.,.,.,.,...,,.,,,.,,.,.,.,,,.,,,,..,.,.,..,,...,...,,.,,,,.,,.,,.,.,,,.,
+#4NUYLOIBG2YK5NWFISIXFFPLQLGIVNXW3BADPLGWMZVT6PKQCATMKUZLRJAAZ2W3GQP7X67574JKM
+#\\\|YD7UDPUUDIANMLPIFQ3ZYD3ATBY3UMYJYTOUL7S54ETJSP7GAGL \ / AMOS7 \ YOURUM ::
+#\[7]HQLXNL5NETGBJJQPMT5GMZGNO4B4NEVMU4YKYBLRNR6FSUVCPAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

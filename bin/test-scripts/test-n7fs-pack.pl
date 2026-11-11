@@ -107,6 +107,48 @@ ok( $rc == 0, 'holder check passes over packed nodes' ) or say $out;
     $holder, '-all-trees' );
 ok( $rc == 0 && $out =~ m|sealed 0 new|, 'a repeat run adds nothing' );
 
+## superseded maps and journals : a second seal leaves the first ones ##
+write_file( "$tree/later", 'a later file' );
+( $rc, $out )
+    = cli( '', 'assimilate', '-disk', $disk, '-keep', '-tree', 't2', $tree );
+( $rc, $out )
+    = cli( "pw\n", 'seal', $disk, '-root-key', "$base/rk", '-out',
+    $holder, '-all-trees' );
+( $rc, $out ) = cli( "pw\n", 'holder-gc', $holder, '-root-key', "$base/rk" );
+ok( $rc != 0 && $out =~ m|only-root|,
+    'holder-gc refuses without -only-root' );
+my $count = sub {
+    scalar grep {m|\A[A-Z2-7]{77}\z|}
+        do { opendir( my $d, $holder ); readdir $d }
+};
+my $before = $count->();
+( $rc, $out )
+    = cli( "pw\n", 'holder-gc', $holder, '-root-key', "$base/rk",
+    '-only-root' );
+ok( $rc == 0 && $out =~ m|would remove [1-9]| && $count->() == $before,
+    'a dry run lists superseded blobs and deletes nothing'
+) or say $out;
+( $rc, $out ) = cli(
+    "pw\n",     'holder-gc',  $holder, '-root-key',
+    "$base/rk", '-only-root', '-delete'
+);
+ok( $rc == 0 && $count->() < $before, 'superseded blobs removed' )
+    or say $out;
+( $rc, $out ) = cli(
+    "pw\n",  'seal-recover', '-root-key', "$base/rk",
+    '-from', $holder,        '-tree',     't2',
+    "$base/rec3"
+);
+ok( $rc == 0
+        && ( slurp("$base/rec3/later") // '' ) eq 'a later file'
+        && ( slurp("$base/rec3/f9")    // '' ) eq slurp("$tree/f9"),
+    'the holder still recovers fully after gc'
+) or say $out;
+( $rc, $out )
+    = cli( "pw\n", 'holder-gc', $holder, '-root-key', "$base/rk",
+    '-only-root' );
+ok( $out =~ m|would remove 0 |, 'nothing left to collect' ) or say $out;
+
 ## damage one byte inside a pack : the node in that range fails alone ##
 my $pack  = $packs[0];
 my $bytes = slurp("$holder/$pack");
@@ -126,8 +168,8 @@ ok( $rc != 0, 'holder check finds the damaged packed node' );
 
 done();
 
-#,,..,..,,.,.,,,,,.,,,,..,,..,..,,...,.,.,,.,,..,,...,...,.,,,.,,,,..,..,,.,,,
-#UXRJGSPT4GKNCCKTMYC6VSX5IWBRO2XO3QAG2PHOQL2ENTKVEOORIG3BAHS23O5G6SX774O7IOS52
-#\\\|Z4DPIQCPFAULDL2OFQ2QUIRII5BQV3JKSUA7AQN636B2U6CLSFY \ / AMOS7 \ YOURUM ::
-#\[7]Y2TTCJQL5KUTTIRVBHJZA4UZ7UF4HGCBVENOVCED4ZCHBSWETQCQ 7  DATA SIGNATURE ::
+#,,,.,...,...,,,.,,,,,,.,,,,.,...,.,,,,.,,,,.,..,,...,...,.,.,,..,.,.,,..,,.,,
+#4W7PCYP5WIBOUENGMPUCTBUATIHOLHWVL2UP3U6NYEXN2KNQPB3BFU4O76LYWRRMQW7BG3JIF6MOA
+#\\\|QITFNK5GIHY6UB564WB344B4SV55R5I6SBAP7FMOSBPGOEMG3DS \ / AMOS7 \ YOURUM ::
+#\[7]JHYWB4IGUNNRMZMKYJDNN5KW5IKHL4TVPSILIPACPNN3UB5U6SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
