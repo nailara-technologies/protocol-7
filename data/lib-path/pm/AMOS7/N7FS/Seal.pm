@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.Z3LAQBA |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.KZS3NPQ |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -1230,6 +1230,44 @@ sub unmap_nodes {
     };
 }
 
+## several blobs in flight : one blob's download, readback, sync and rename
+## leave the line idle, a second upload fills it. N7FS_RELAY_JOBS [ 2 ], 1 =
+## one after the other. the first failure starts no new blob, the running ones
+## finish, then it refuses ; nothing is mapped before the commit
+sub _parallel {
+    my ( $work, $names ) = @_;
+    my $jobs = $ENV{'N7FS_RELAY_JOBS'} // 2;
+    $jobs = 2 if $jobs !~ m|\A[1-9]\d?\z|;
+    if ( $jobs == 1 or @{$names} < 2 ) {
+        $work->($ARG) for @{$names};
+        return;
+    }
+    require POSIX;
+    my @queue = @{$names};
+    my ( %running, $failed, $reason );
+    while ( @queue or %running ) {
+        while ( @queue and keys %running < $jobs ) {
+            my $name = shift @queue;
+            my $pid  = fork // refuse('cannot fork a relay worker');
+            if ( $pid == 0 ) {
+                my $ok = eval { $work->($name); 1 };
+                print STDERR $EVAL_ERROR if not $ok;
+                POSIX::_exit( $ok ? 0 : 1 );
+            }
+            $running{$pid} = $name;
+        }
+        my $pid = waitpid( -1, 0 );
+        last if $pid <= 0;
+        my $name = delete $running{$pid} // next;
+        if ($CHILD_ERROR) {
+            $failed //= $name;
+            @queue = ();
+        }
+    }
+    refuse( 'relay of blob %s failed', $failed ) if defined $failed;
+    return;
+}
+
 ## copy the ciphertext of nodes from one holder to another and map them there.
 ## the copy is blind : each blob is checked against its own checksum name, so
 ## a wrong or changed blob from the source is refused. the node keys move by
@@ -1327,26 +1365,30 @@ sub relay_nodes {
 
     my $spool = _state_dir($root) . '/spool/relay';
     make_dirs( $spool, 0700 );
-    foreach my $name ( sort keys %blob ) {
-        next if ( $tsizes->{$name} // -1 ) == $fsizes->{$name};
+    my @todo = grep { ( $tsizes->{$ARG} // -1 ) != $fsizes->{$ARG} }
+        sort keys %blob;
+    foreach my $name (@todo) {
         refuse( 'target holds %s with another size', $name )
             if defined $tsizes->{$name};
+    }
+    holder_mkdir($to) if @todo;
+    my $copy = sub {
+        my $name = shift;
         my $path = "$spool/$name";
         unlink $path;
         holder_download( $from, $name, $path );
         open( my $fh, '<:raw', $path ) or refuse('cannot read relay spool');
         my ($sum) = AMOS7::N7FS::Sum::bmw384_fh($fh);
         close $fh;
-
         if ( bmw_b32($sum) ne $name ) {
             unlink $path;
             refuse( 'relayed blob does not match its name : %s', $name );
         }
-        holder_mkdir($to);
         holder_put( $to, $path, $name, $blob{$name}, FALSE );
         unlink $path;
         fault(qw| relay:after-blob |);
-    }
+    };
+    _parallel( $copy, \@todo );
     ## the keys : unwrap under the source's category, wrap under the target's
     $tmap->{'_root_keys'} = $root->{'keys'};
     foreach my $address (@addresses) {
@@ -1415,8 +1457,8 @@ sub shred_node {
 
 1;
 
-#,,..,,,.,,,.,,,.,.,.,..,,,..,.,,,.,.,.,,,.,.,..,,...,...,.,.,,..,,.,,...,,..,
-#R46LLPGUXAWV7YLIE6ARYLP4CPZ4GXWMZY2DW275JHL56ILWM56EUUVPXYULSS2PVI2VCWXA3LF4G
-#\\\|2OVCNSJ6FT6ZV4KF4773UJH32QJ3FHV5C4WZLJJKM3YNM24IQGT \ / AMOS7 \ YOURUM ::
-#\[7]KQ3HB7TRI5RPD6XMIV7O6D7U5MYUV7KZHZWOMBHA4IV4UJDQNOCI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,...,,,.,,,,,..,,..,,,..,,,.,...,..,,...,..,,,.,,..,,.,.,,,.,,,,,
+#H3ALOQCBNWAAOP6LNEDJIN5Q63QUOLBS335X4B7BNIP2JDQ3CNQOMF7CQ75TRNZ5U3EY6PGIK3PF4
+#\\\|3ZDWAEGWXFH2BIG4ZS5CXD4CB6OPW62NZATDMWSDCIK5VZGKI25 \ / AMOS7 \ YOURUM ::
+#\[7]B5TBSFTCQHMXNNTAEDGU7G2YMFYUIQQBBLCTWVZMMWAV65IARSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
