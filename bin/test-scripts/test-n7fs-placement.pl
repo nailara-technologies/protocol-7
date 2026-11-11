@@ -193,6 +193,17 @@ make_dirs("$base/h6");
 ok( $out !~ m|on full|,
     'a holder whose reserve exceeds its free space receives nothing' )
     or say $out;
+## holder-check takes a registered name as well as a spec ##
+( $rc, $out )
+    = cli( ['vp'], 'holder-check', 'five', '-root-key', 'vault:main' );
+ok( $rc == 0 && $out =~ m|holder ok| && $out =~ m|receipt written|,
+    'holder-check by registry name' )
+    or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-check', 'nosuch', '-root-key', 'vault:main' );
+ok( $rc != 0 && $out =~ m|no holder named nosuch|,
+    'an unknown name is refused' )
+    or say $out;
 ## rename : one registry write, a new spec carries the pin ##
 ( $rc, $out ) = cli( ['vp'], 'holder', 'rename', 'two', 'two-b' );
 ( $rc, my $listed ) = cli( ['vp'], 'holder', 'list' );
@@ -288,8 +299,8 @@ ok( $rc != 0, 'registry needs the vault passphrase' );
 
 done();
 
-#,,,,,,..,...,,,.,,..,,,,,,.,,...,.,.,,.,,,..,..,,...,...,,,.,,.,,..,,...,.,.,
-#FY4B54G7EBBN2LBHQU22WNNFTZ3NBZ2CN7W33DOC3RTRDQRMHBXGL24AYEHDVQLA4SY77MT6TR7VA
-#\\\|7DXEAREQZDWMC6IVTQZQAOEJLORMSNJZS53F6BNSENK524RPZ6U \ / AMOS7 \ YOURUM ::
-#\[7]EQBB5GUFYJRGWTIIKDNRQVXZQRMSTB7AN4Q56SDTIA52DODTTSBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,,,.,.,..,,,..,,,.,,.,,,..,.,,,..,,...,...,.,.,,.,,...,..,,.,.,
+#V7RVEWKZ2GGSISSLFNFWGRSVRX7GJXZJUAZW65E65XBHEG6EH5IZ74TWYXXY3WLUWNQNCEESI5YZ2
+#\\\|AWSYZ2RVMJV4GKWGBKRJRM3NK4ZXNGQO77YJF4LW6E42VDOT7SD \ / AMOS7 \ YOURUM ::
+#\[7]MGCVGWMRH3NEGTIZH64WONOXIHHMDXCBSWJZXUVLO2A4CWBBCWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
