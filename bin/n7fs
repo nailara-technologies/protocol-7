@@ -243,6 +243,23 @@ if ( defined $o{'bwlimit'} ) {
 our $SCRIPT = $PROGRAM_NAME;
 $PROGRAM_NAME = "n7fs $command";
 
+## commands that write to holders run one at a time per host : a gc must ##
+## never delete what a running place \ seal \ relay just published       ##
+my %holder_writer
+    = map { $ARG => 1 } qw| seal place relay holder-drain holder-gc shred |;
+our $HOLDER_LOCK;
+if ( $holder_writer{$command} and not $o{'dry-run'} ) {
+    require Fcntl;
+    my $dir = host_dir(%common);
+    AMOS7::N7FS::make_dirs( $dir, 0700 ) if not -d $dir;
+    open( $HOLDER_LOCK, '>>', "$dir/holders.lock" )
+        or fail("cannot open the holder lock : $OS_ERROR");
+    flock( $HOLDER_LOCK, Fcntl::LOCK_EX() | Fcntl::LOCK_NB() )
+        or fail( 'another n7fs command is writing to holders on this host [ '
+            . 'seal, place, relay, holder-drain, holder-gc, shred ] '
+            . ': wait for it to finish' );
+}
+
 my $code = eval { $run{$command}->(@args) };
 if ( not defined $code ) {
     my $err = $EVAL_ERROR || "n7fs : failed\n";
@@ -1788,8 +1805,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,...,..,,,..,..,,.,.,.,,,.,,,,,.,,..,...,..,,...,...,..,,.,.,,,.,,,.,.,.,
-#DXZHOCGOCD6V4T3RIWACHELUSEBVK52RZH4JFBMMOUJTDK7XVIRMQTDXMTICKSXW3PCATJNFE2K6U
-#\\\|CSJDBC34UKYDVTIVOYCXX5UVVYDYTUSKZEKXUSC2VOU7JYWBKDQ \ / AMOS7 \ YOURUM ::
-#\[7]HMD4CUMYY5N5TA7QKB32DXJXHRGUYG4UCVF7JGRMU32QUU4PQUDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,,..,.,,,.,.,.,,,...,.,,,...,..,,...,...,,,.,,..,.,,,,,,,...,
+#TRMU65THMNHXZN7L2P4AER5QQNYNW2O32PTGPYR2A6RGQKCK6463A5MB75GO5E4I2BE64PXG3IKJO
+#\\\|LIOCGNS7JVMYHIMR3OXWBECP6M547XMJDCMWUJHWDY7UTDKEU4Q \ / AMOS7 \ YOURUM ::
+#\[7]FSAR7XGBA7KM5LZD7TUWZPZRUFLKTDKRQBZP7LWBCNFGOC3F5UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
