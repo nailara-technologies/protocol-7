@@ -18,7 +18,8 @@ use warnings;
 ##
 ## a blob is accepted only when its bytes match its checksum name. the head of
 ## a store is not named by its checksum, so it can never be written here.
-## [ -max-bytes <n> ] refuses a put that would grow the directory past n
+## [ -max-bytes <n> ] refuses a put that would grow the directory past n ;
+## before or after the directory
 
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
@@ -30,14 +31,20 @@ my $NAME = qr|\A[A-Z2-7]{77}\z|;
 
 sub out { print STDERR "n7fs-receive : $ARG[0]\n"; exit( $ARG[1] // 2 ) }
 
-my $dir = shift // out('needs the holder directory');
-my $max;
-if ( @ARGV and $ARGV[0] eq '-max-bytes' ) {
-    shift;
-    $max = shift // '';
-    out('-max-bytes needs a number') if $max !~ m|\A\d+\z|;
+## <holder-dir> and -max-bytes <n> in either order ##
+my ( $dir, $max );
+while (@ARGV) {
+    my $arg = shift;
+    if ( $arg eq '-max-bytes' ) {
+        $max = shift // '';
+        out('-max-bytes needs a number') if $max !~ m|\A\d+\z|;
+    } elsif ( not defined $dir and $arg !~ m|\A-| ) {
+        $dir = $arg;
+    } else {
+        out('unexpected arguments');
+    }
 }
-out('unexpected arguments')            if @ARGV;
+out('needs the holder directory')      if not defined $dir;
 out('holder directory does not exist') if not -d $dir;
 
 my @word = split ' ', $ENV{'SSH_ORIGINAL_COMMAND'} // '';
@@ -117,8 +124,8 @@ unlink $tmp;
 system( 'sync', '--', "$dir/$name" );
 exit 0;
 
-#,,,.,,..,,..,,,.,,,,,.,,,..,,,..,,,,,.,,,...,..,,...,...,,.,,,,,,...,..,,,..,
-#AGWUDYLJMZKDQSKIIIMKIELGCVJTA7RG7XVVBG47E6FVUEOWMFW2PMH6TLSXSHKK3XIHULTL6E4XI
-#\\\|O7TWI6NIE3QXQVUKEKPUYZJRYZSXRR2JQGHBF3JHRI7RHFAY45H \ / AMOS7 \ YOURUM ::
-#\[7]TBFU6NUNKAFNBET2LGC6J4JFMRSWIOEFYV7SCB2RVGAZ36MD2WCA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,,.,,,..,..,,..,,...,,.,,...,..,,...,...,.,.,...,...,...,.,,,
+#GVZQWW3GGC75FHUITDDT2LUMXCV7D5H2ZH6PWKBYJJ7V5Z7I5GYPXIWHHYJ5C6E7ARSR5ZGMBRDPU
+#\\\|YLDEP4TLDW4AXZZPRTTQCMUZPEHAKLSUSGLERR2HR2V24MAU72G \ / AMOS7 \ YOURUM ::
+#\[7]IMTV3K5XXPCELXQAB4XL2B3ZLNSDROE2IYHENS7X6J4BBQBLGABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
