@@ -18,11 +18,11 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.FROETJA |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.BVGH4CQ |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh placement_report place_missing parse_size holder_drain
-    holder_room holder_accepts |;
+    holder_prune holder_room holder_accepts |;
 
 use JSON::PP;
 use AMOS7::N7FS qw| b32 unb32 read_file write_new_file make_dirs refuse |;
@@ -495,10 +495,94 @@ sub holder_drain {
     };
 }
 
+## unmap orphans after checking every disk attached on this host. an entry ##
+## tagged for a detached disk stays : that disk's live set is unknown here ##
+sub holder_prune {
+    my %opt     = @_;
+    my $holders = holders_load(%opt);
+    my $name    = $opt{'name'}      // '';
+    my $h       = $holders->{$name} // refuse( 'no holder named %s', $name );
+    require AMOS7::N7FS::Seal;
+    my ( undef, $head, $map )
+        = AMOS7::N7FS::Seal::_context( $opt{'root'}, $h->{'spec'}, TRUE );
+    refuse('no sealed head on this holder') if not defined $head;
+
+    my %disk_opt = %opt;
+    delete @disk_opt{qw| root name dry_run |};
+    $disk_opt{'root'} = $opt{'disk_root'} if defined $opt{'disk_root'};
+    my $root_dir = AMOS7::N7FS::root_dir(%disk_opt);
+    opendir( my $dh, $root_dir )
+        or refuse( 'cannot read disk root %s', $root_dir );
+    my @disks = sort grep {m|\A[A-Z2-7]{7}\z|} readdir $dh;
+    closedir $dh;
+
+    my ( %live, %seen, %tree_files );
+    foreach my $disk (@disks) {
+        $disk_opt{'disk'} = $disk;
+        my $attached
+            = eval { AMOS7::N7FS::Disk::disk_require_attached(%disk_opt); 1 };
+        if ( not $attached ) {
+            my $err = $EVAL_ERROR // '';
+            die $err if $err !~ m|is not attached here|;
+            next;
+        }
+        my ( $id, $nodes, $replay ) = _disk_nodes(%disk_opt);
+        $seen{$disk} = $nodes;
+        $live{$ARG}  = TRUE for keys %{$nodes};
+        foreach my $tree ( keys $replay->{'trees'}->%* ) {
+            my $manifest = $replay->{'trees'}{$tree}{'manifest'};
+            $tree_files{$tree}{$ARG} = TRUE
+                for AMOS7::N7FS::Seal::_manifest_files( $id, $manifest );
+        }
+    }
+    my ( @drop, $bytes, $legacy_kept );
+    ( $bytes, $legacy_kept ) = ( 0, 0 );
+    foreach my $address ( sort keys $map->{'nodes'}->%* ) {
+        next if $live{$address};
+        my $entry = $map->{'nodes'}{$address};
+        my %disks = %{
+            ref $entry->{'disks'} eq qw| HASH |
+            ? $entry->{'disks'}
+            : {}
+        };
+        ## no disk ids : it may belong to a detached disk or another host's ##
+        ## disk, so only an explicit -legacy drops it                       ##
+        if ( not %disks and not $opt{'legacy'} ) {
+            $legacy_kept++;
+            next;
+        }
+        next
+            if grep { not exists $seen{$ARG} or $seen{$ARG}{$address} }
+            keys %disks;
+        push @drop, $address;
+        $bytes += $entry->{'length'} // 0;
+    }
+    my $result = { qw| removed | => 0, qw| trees | => 0 };
+    if ( @drop and not $opt{'dry_run'} ) {
+        $result = AMOS7::N7FS::Seal::unmap_nodes(
+            %opt,
+            qw| holder |     => $h->{'spec'},
+            qw| addresses |  => \@drop,
+            qw| tree_files | => {
+                map { $ARG => [ sort keys $tree_files{$ARG}->%* ] }
+                    keys %tree_files
+            },
+        );
+    }
+    return {
+        %{$result},
+        qw| drop |      => scalar @drop,
+        qw| addresses | => \@drop,
+        qw| bytes |     => $bytes,
+        qw| kept |      => scalar( keys $map->{'nodes'}->%* ) - scalar @drop,
+        qw| legacy_kept | => $legacy_kept,
+    };
+}
+
 1;
 
-#,,,.,,,.,,..,...,,,.,.,.,.,,,,..,,,,,,,.,..,,..,,...,...,,.,,...,.,.,..,,,,.,
-#7FSZSZDJOSWMP5AKOK67GNWXEJBTQUX2HEEMELST7UDPD5C43GVYBUYREMDH5JSSJ6HXGFJ2AZZFQ
-#\\\|FD6HV3PDG3X4KLRENPI7WDTSWHWV7WNPL2UU2VINYR4GKSXNQA6 \ / AMOS7 \ YOURUM ::
-#\[7]TDETMTSGN6MFHRE262O6RQB6ZMFLEJNHSUKMIAHQHO4GUNRCTIBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,,,,,,,.,,,.,,,,,.,...,.,.,..,,..,,...,...,.,.,..,,...,,,,,.,,,
+#RPPAY4SQOCDPB2KVQOVCVS3IXCBIHSWME4WPC2ISCCPL7VTMBJ56RT2AMHSMPWI6T7SREMKYCLUFW
+#\\\|3CLM5BCZYVI3VU5FWKFGNISPCA7U6IEOIX663NLEK4TXLBLOQC4 \ / AMOS7 \ YOURUM ::
+#\[7]C5ED4CF6GZ5ROQEAGJCGT5YKSS6TVRTKMEBGPIA4X6Q5NRTM4AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
