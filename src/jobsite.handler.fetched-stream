@@ -55,9 +55,8 @@ my $registered = <[strm.local.register]>->(
             }
         },
         'on_eof' => sub {
-            ## stream closed [ remote auto-terminate or peer gone ] : just ##
-            ## forget it -- the next import re-subscribes. a close for an  ##
-            ## older stream leaves the newer one                           ##
+            ## stream closed [ remote auto-terminate or peer gone ] :      ##
+            ## forget it. a close for an older stream leaves the newer one ##
             return if ( <jobsite.fetched.cmd_id> // -1 ) != $cmd_id;
             <jobsite.fetched.cmd_id>      = undef;
             <jobsite.fetched.subscribed>  = FALSE;
@@ -65,6 +64,12 @@ my $registered = <[strm.local.register]>->(
             <[base.logs]>->(
                 1, 'jobsite.fetched-stream: closed [ cmd_id=%d ]', $cmd_id
             );
+
+            ## mid-cycle a remote outbox still holds this scan's jobs : ##
+            ## resubscribe through the backoff, not at the next import  ##
+            ## [ UFG ]                                                  ##
+            <[jobsite.fetched.subscribe-retry]>->($fetch_zenka)
+                if ( <jobsite.cycle> // qw| idle | ) ne qw| idle |;
         },
     }
 );
@@ -87,8 +92,8 @@ if ( not $registered ) {
 
 return;
 
-#,,.,,,..,,.,,...,.,,,...,...,,.,,,..,.,.,,.,,.,.,...,...,,.,,.,.,,,.,,.,,,,,,
-#FFM2EW57EZBCUJOKCPPAUPKHBZOP2XJOSMFJRRQAEMARW5RIL4NKZL7WVIDGNV2JB43PF5H4C2DBM
-#\\\|2HH3J3E45QSJKBRVYS6R6ZVEQXS5NUJITKDCQU2JLRR47QEV4N4 \ / AMOS7 \ YOURUM ::
-#\[7]L4TLOV4V65CRTMXQTKKIHQ42YGMBGFGOAV7ZE667XCVEIMMZ24BQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,,.,...,...,...,,.,,..,,,,,,.,.,...,...,..,,..,,..,,.,,,,,,,
+#N5FK6WRWRXEIQRCX3OREEEZ7N3ZPM3VYWCYIMGC43UJBCBZ2NMQBMSHXU7MAONB4IVYHWKCMLAIYW
+#\\\|34ZDSYMFNBVSYVBIHK65ZWCUAJWOD3LP7WB3M53JO44QVWZCZGV \ / AMOS7 \ YOURUM ::
+#\[7]JKCI75LUPECCZWFI4K6WAJTS2XI3L6WEZTCV2TWGO7JWLCZQM6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,6 +11,21 @@ my $event_name  = $ev_data->{'name'};
 my $action      = $ev_data->{'action'};
 my $action_type = $action->{'type'};
 
+## already-fired-this-slot guard [ NZ2 ] : one entry \ type \ second fires ##
+## once, whatever timer duplicates a recalc left behind                    ##
+my $slot      = int( $event->{'at'} // time );
+my $fired_key = join qw| : |, $ev_id, $ev_type;
+if ( ( <events.fired_slot>->{$fired_key} // -1 ) == $slot ) {
+    <[base.logs]>->(
+        1,
+        "[IGNORED] event '%s' [%s] already fired for slot %d",
+        $event_name // $ev_id,
+        $ev_type, $slot
+    );
+    return;
+}
+<events.fired_slot>->{$fired_key} = $slot;
+
 if (   not defined <events.enabled>->{$event_name}
     or not <events.enabled>->{$event_name} ) {
     <[base.logs]>->(
@@ -216,8 +231,8 @@ if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
         if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
 }
 
-#,,.,,...,,,,,,.,,,.,,.,,,.,.,...,,,.,.,.,,,.,..,,...,...,...,,,,,,.,,.,,,,,,,
-#2TJT56O3EZPDQKBN3YUFOWU5V3M2XMPNOT6MLJABSTUFJRRRU2NI3QIQW46ZIWAGO2N5FB3KSFXRA
-#\\\|KI5C42UKBQZ2D426WXNW3W7E4WQF57YT5CMXLN4TZ7RNXRMNGPL \ / AMOS7 \ YOURUM ::
-#\[7]66LNPYTW33PFS2NF4WI6RA37LF72AA7VOUGMGGJSKG4I652UI2BY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,...,..,,..,,...,...,.,.,,.,,..,,...,..,,...,,,.,,,.,,.,,.,.,
+#E44Q3DRSOVXWSQTWLUZH2OWZOOYH6L2XMT2ZIG24BMES5S5OUFWMACXS5MOUNSPXLPFOFTJQEFFOW
+#\\\|PDK2I7CU7T5BCZ3OUAUX7VMF43JVLASSVUWXZ4S5AUYANF257EI \ / AMOS7 \ YOURUM ::
+#\[7]ADB7J6JNPX4D5JK3CG3GRBJYVNIM57PQ7O7HOFH2CKZNXUKL2ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

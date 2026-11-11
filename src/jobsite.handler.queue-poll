@@ -3,6 +3,68 @@
 # name  = jobsite.handler.queue-poll
 # descr = timer handler : ask site-yaml for its async fetch queue depth
 
+my $poll = <jobsite.queue_poll> //= {
+    'sent'    => 0,
+    'replies' => 0,
+    'started' => time,
+    'same'    => 0,
+    'missed'  => 0,
+};
+
+## the previous poll got no reply before this one is due : level 0 on the ##
+## first miss of a streak, then every 100 misses                          ##
+if ( $poll->{'sent'} > $poll->{'replies'} ) {
+    $poll->{'missed'}++;
+    <[base.logs]>->(
+        0,
+        ': fetch : queue-depth poll got no reply before the '
+            . 'next one [ sent %d replies %d, %d missed in a row ]',
+        $poll->{'sent'},
+        $poll->{'replies'},
+        $poll->{'missed'}
+        )
+        if $poll->{'missed'} == 1
+        or $poll->{'missed'} % 100 == 0;
+} else {
+    $poll->{'missed'} = 0;
+}
+
+## backstop : no queue-depth reply for queue_poll_timeout seconds ends the ##
+## cycle the way a fetch with nothing queued does -- a cause was missed    ##
+my $timeout = <jobsite.cfg.queue_poll_timeout> // 900;
+my $since   = $poll->{'last_reply'} // $poll->{'started'} // time;
+if ( ( <jobsite.cycle> // '' ) eq qw| scanning |
+    and time - $since >= $timeout ) {
+    my $why = sprintf
+        'no queue-depth reply for %d s [ sent %d replies %d ]',
+        time - $since, $poll->{'sent'}, $poll->{'replies'};
+    <[base.logs]>->(
+        0, ': fetch : BACKSTOP : %s -- a cause was missed, ending the cycle',
+        $why
+    );
+    if ( defined <jobsite.queue_poll_timer> ) {
+        <jobsite.queue_poll_timer>->cancel;
+        <jobsite.queue_poll_timer> = undef;
+    }
+    <jobsite.fetch_saw_queue> = FALSE;
+    <jobsite.last_fetch> //= { 'replies' => 0, 'failed' => 0 };
+    <jobsite.last_fetch>->{'failed'} ||= 1;
+    <jobsite.last_fetch>->{'why'} = "poll backstop : $why";
+    <jobsite.last_fetch>->{'at'}  = time;
+
+    <[jobsite.stray.check]>;
+    <[jobsite.dispatch.assessments]>;
+
+    ## nothing to assess leaves 'scanning' only while the poll timer runs ; ##
+    ## it is gone now, so the cycle must not stay scanning                  ##
+    if ( ( <jobsite.cycle> // '' ) eq qw| scanning | ) {
+        <jobsite.cycle> = qw| idle |;
+        <[jobsite.state.persist]>;
+    }
+    return;
+}
+
+$poll->{'sent'}++;
 <[base.logs]>->( 2, 'fetch: polling site-yaml queue depth' );
 
 <[protocol-7.route-send]>->(
@@ -14,8 +76,8 @@
 
 return;
 
-#,,..,,,.,...,...,,,,,,,,,...,,.,,.,.,,..,,..,..,,...,...,,,.,...,,.,,..,,.,.,
-#PHPSWQB3565XOMQECP72QPO6G2TTFCVJX47YOT7F6X43GRMBOWXHEJXZF46IXXQOTJQHVFQ6Y7GWA
-#\\\|QTRAEEKJZT6KQ6SMRYZYZUGZFLPS67EJXZJXK5WALAJ6Z6VEO4A \ / AMOS7 \ YOURUM ::
-#\[7]3KPJBYPL7HVGLJ5UKXURRRRAIQFSOW2EZZPW4MXILCZFGADKRWCY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,,,.,,,,,...,,,.,,,,,,,.,,..,..,,...,..,,,,.,.,,,.,,,...,..,,
+#4NCLVGJVESLQTQVGKNO7WDEZY7SBA5RPLYI5MDNGBJV3OOWFYNWA5BLPRQPD23L55GUQ67Y65BZFO
+#\\\|MZV656UR64W2KA7WT3SW6MIV5EI4CCQBIUNBLXSGAXSTFDYK4YQ \ / AMOS7 \ YOURUM ::
+#\[7]OT5X4Y4TGIJAY36LQSEQ365ZR5S565LGOS4AAK2L7REMX6GZAQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
