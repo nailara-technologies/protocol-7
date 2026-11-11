@@ -15,15 +15,20 @@ my $config_filename = sprintf qw| event-setup.%s |, $config_name;
     'sort_key' => qw| name |,
     'descr'    => 'events, their IDs, next run and jitter offset',
     'mask'     => 'name:event_name <key>:event_ID '
-        . 'next:next_run offset:jitter',
+        . 'next:next_run offset:jitter left:in',
     'defaults' => { 'offset' => '-' },
     'align'    => {
         'name'     => qw| right |,
         'event_ID' => qw| center-1 |,
         'next'     => qw| left |,
+        'left'     => qw| right |,
         'offset'   => qw| right |
     },
-    'filters' => { 'next' => qw| events.parser.next_run | }
+    'filters' => {
+        'next'       => qw| events.parser.next_run |,
+        'left'       => qw| events.parser.time_left |,
+        'left_param' => 2    ## time float precision, as 'list sessions' ##
+    }
 };
 
 <events.setup>     //= {};
@@ -173,8 +178,8 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 
 0;
 
-#,,,.,..,,...,,,.,...,...,,,.,,.,,,.,,,..,.,,,..,,...,...,...,,,.,,.,,,,,,.,.,
-#ZOEJNGUE2CGT6F5ILZX3FD4J4PWG5WUJFKWAJFJV773XNJ4L3PAXXTXUDETM4RKJSV4IT25IF6TEM
-#\\\|OGFBW5N7ICNHSUHOEPLTA26NTA6SQLWW7RBNU32HTVA7HX4BKHN \ / AMOS7 \ YOURUM ::
-#\[7]KJI7ZZPTUYMHOS4LMTVKCDQ6T4Z2V5S7FYTP66JVWL4FOEHMVMDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,,,,,,.,,,,.,.,,,..,,,.,,..,,..,,...,...,...,,.,,..,,.,,,...,
+#IVKZWR6UX3YUXHHTWSABCDITPSECPLV3M62LHNX2MLOVH2JKADXM3U44R4736NMHWYEGOV7APEWVI
+#\\\|HV2K2BHFMGKHAUOFEW4JVR4C2H7GWDK3QT7MQHZRRXUWIYMFTWH \ / AMOS7 \ YOURUM ::
+#\[7]SAJ2SVQIB4NXIXHSFCIUFYEAAK7AEOU3WRNIJTLD7X7SLYXHRCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
