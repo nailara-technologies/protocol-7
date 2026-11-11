@@ -193,13 +193,34 @@ make_dirs("$base/h6");
 ok( $out !~ m|on full|,
     'a holder whose reserve exceeds its free space receives nothing' )
     or say $out;
+## one holder-writing command at a time per host ##
+{
+    require Fcntl;
+    open( my $lock, '>>', "$hdir/holders.lock" ) or die;
+    flock( $lock, Fcntl::LOCK_EX() )             or die;
+    ( $rc, $out )
+        = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main' );
+    ok( $rc != 0 && $out =~ m|another n7fs command is writing|,
+        'place waits for no one : refused while another writer holds the lock'
+    ) or say $out;
+    ( $rc, $out )
+        = cli( ['vp'], 'holder-gc', $h[0], '-root-key',
+        'vault:main', '-only-root', '-delete' );
+    ok( $rc != 0, 'gc is refused while another writer holds the lock' )
+        or say $out;
+    ( $rc, $out )
+        = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main',
+        '-dry-run' );
+    ok( $rc == 0, 'a dry run needs no lock' ) or say $out;
+    close $lock;
+}
 ( $rc, $out ) = cli( ['wrong'], 'holder', 'list' );
 ok( $rc != 0, 'registry needs the vault passphrase' );
 
 done();
 
-#,,.,,,.,,...,,..,.,,,.,,,.,.,,,,,,,.,...,,,.,..,,...,...,,,,,,.,,..,,,,,,.,.,
-#AUNQCR66O3JLZLWT6EXTL26A45ZOMXWRD67T56O3SBSSPSHMZ5ZSBG3AMOQHEBCH66EBHMVCWVJEI
-#\\\|NIY3HAIRNZEG4NZUICHQFHIPILY2B4BKNJGIULACXSGN5HBX7PB \ / AMOS7 \ YOURUM ::
-#\[7]7YMPPKU3WMG6JRYQSOXYNJA6IAODBUCYZONQB6DIRUL7LWVS4QAI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,.,,,.,,.,,,.,,.,.,.,,,.,,,.,,,..,,...,...,.,.,.,.,...,,.,,.,.,
+#JCGQ565BWVUQLRMT6VYU7C34JKREWL2WALFGKVG7EYJDAPSZBT2C636I5D5UFA2R4CTQDXTQXIFE2
+#\\\|X2ZOHOHQI2YXW4MERLGMK2WIVAXE4HMNEX4TUTLM3QZXMZ6FMAY \ / AMOS7 \ YOURUM ::
+#\[7]Q53S2OHYWQDUF5TGINWFTNDULCGSPM5G6T7FRKXAAPOGRK65MIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
