@@ -5,9 +5,10 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [session-handover-n7fs-rescue-chain](project-2026-11-11-session-handover-n7fs-rescue-chain.md) — START HERE : N7FS stages 1-5 part 1, drain \ move, first proven rescue copy ; jobsite stall ; open items
 - [54m-timer-during-long-kimi-runs](feedback-54m-timer-during-long-kimi-runs.md) — long waits : 54 minute background timer keeps the one hour cache alive
 - [n7fs-host-migration-goal](project-2026-11-08-n7fs-host-migration-goal.md) — NEXT WORK : N7FS sync + blind remote replicas for the native linux move ; decisions, see design N7FS-SEALED-REPLICAS.md
-- [session-handover-lease-loop-invoke-proxy](project-2026-11-08-session-handover-lease-loop-invoke-proxy.md) — START HERE : gpu lease loop with models on hold fixed, invoke.ai proxy + restart requeue, qwen21 holds the legacy models ; open items
+- [session-handover-lease-loop-invoke-proxy](project-2026-11-08-session-handover-lease-loop-invoke-proxy.md) — previous : gpu lease loop with models on hold fixed, invoke.ai proxy + restart requeue, qwen21 holds the legacy models ; open items
 - [session-handover-n7fs-format3](project-2026-11-07-session-handover-n7fs-format3.md) — previous : N7FS format 3 complete [ stages 1-3, pushed ], dogfood on format 3, virtual render queue design
 - [session-handover-chksum-lease](project-2026-11-06-session-handover-chksum-lease.md) — previous : binary amos_chksum, gpu lease live with pause \ resume
 - [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — older : host labels, letsencr join fix
@@ -102,8 +103,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,,,,.,.,,,.,.,,,,,,,..,,.,,,...,..,,,.,,..,,...,...,,,,,,,,,.,,,,,.,,,,,
-#UMQ4XU2YF2WSANMKS2ZBTFSJ34LAK2CXD33P6K4QYTSJ63XIFWYLLIFMLIKTZMO6QRFKWNVLVL4D6
-#\\\|HGSPM2SXYSQJQWWUF6UGAWQHEBK2VWPTJFJYG3DLH26AXL6ORH7 \ / AMOS7 \ YOURUM ::
-#\[7]PSVCRFGOWDKMZTSMW6JPYVKQ7M7CJ2JSD2M44G27CA5LTERWHKBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,...,.,.,...,.,,,,.,,.,,,,,,,,..,..,,...,...,.,.,.,.,...,...,,,.,
+#G5RZL6ZX2EEL7UWMUECDZFLELPEGHECWYNL5DHULMJ227XBRNO5Y76OZLTDPCKJKMLXV7Y5TI4GE2
+#\\\|CYC6VJSG4VWBIJM7UDFGBAE4E62P6CWTFSZ63SVNHN32JPJ7NEZ \ / AMOS7 \ YOURUM ::
+#\[7]JTAJS6P5Q5XCO2VZRPHEJ74DXB3SKXYL46D7PQ4VPFFRHQWCJSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
