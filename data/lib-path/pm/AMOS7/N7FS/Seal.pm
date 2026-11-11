@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.JR56PHQ |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.Z3LAQBA |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -365,6 +365,26 @@ sub _context {
         $map->{'trees'} //= {};
     }
     return ( $state, $head, $map );
+}
+
+## a holder reached under a new spec : its head must be there and not older
+## than the pin of the old spec, then the pin moves over
+sub holder_respec {
+    my ( $root, $old, $new, $dry_run ) = @_;
+    $old = holder_canonical($old);
+    $new = holder_canonical($new);
+    my $state  = _state_read($root);
+    my $pinned = $state->{'pins'}{$old} // 0;
+    my $head   = _head_open( $root, $new, FALSE );
+    refuse('no sealed head under the new spec') if not defined $head;
+    refuse( 'the new spec serves an older head [ %d, pinned %d ]',
+        $head->{'version'}, $pinned )
+        if $head->{'version'} < $pinned;
+    return $head->{'version'} if $dry_run;
+    $state->{'pins'}{$new} = $head->{'version'};
+    delete $state->{'pins'}{$old};
+    _state_write( $root, $state );
+    return $head->{'version'};
 }
 
 sub _commit {
@@ -1395,8 +1415,8 @@ sub shred_node {
 
 1;
 
-#,,,,,,.,,,,,,,.,,,..,.,,,..,,.,.,.,.,,.,,,,,,..,,...,..,,.,.,,.,,.,.,.,.,,.,,
-#MOF2CTJKYZTLJZWPAOAJA443E72LBVY25ICTN67ZASYEGGSQEHODEEHNZLSXOPAELAI6VHOU4JPW2
-#\\\|HC3TXUWSLXKGHFEUIUZDURMPLG5UQRD3Q4LMM4LBFN4G3FJOBPD \ / AMOS7 \ YOURUM ::
-#\[7]FKA3GOOW5VFBQ3V4EMQ25LEQWTNPZZSRJLPQUDROF5AROUT3PYDY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,.,.,..,,,..,.,,,.,.,.,,,.,.,..,,...,...,.,.,,..,,.,,...,,..,
+#R46LLPGUXAWV7YLIE6ARYLP4CPZ4GXWMZY2DW275JHL56ILWM56EUUVPXYULSS2PVI2VCWXA3LF4G
+#\\\|2OVCNSJ6FT6ZV4KF4773UJH32QJ3FHV5C4WZLJJKM3YNM24IQGT \ / AMOS7 \ YOURUM ::
+#\[7]KQ3HB7TRI5RPD6XMIV7O6D7U5MYUV7KZHZWOMBHA4IV4UJDQNOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

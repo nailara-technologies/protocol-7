@@ -18,11 +18,11 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.BVGH4CQ |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.I24ZZBA |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh placement_report place_missing parse_size holder_drain
-    holder_prune holder_room holder_accepts |;
+    holder_prune holder_rename holder_room holder_accepts |;
 
 use JSON::PP;
 use AMOS7::N7FS qw| b32 unb32 read_file write_new_file make_dirs refuse |;
@@ -113,6 +113,44 @@ sub holder_remove {
     delete $holders->{ $opt{'name'} };
     _holders_save( $holders, %opt );
     return;
+}
+
+## one registry write : the entry is never missing in between. a new spec
+## moves the rollback pin, after its head proved to be the same holder ; the
+## receipt is bound to the old spec, so the holder needs a new check
+sub holder_rename {
+    my %opt = @_;
+    my ( $old, $new ) = @opt{qw| name new_name |};
+    $old //= '';
+    $new //= $old;
+    refuse( 'holder name is invalid [ %s ]', $new )
+        if $new !~ m|\A[A-Za-z0-9_.-]{1,64}\z|;
+    my $holders = holders_load(%opt);
+    refuse( 'no holder named %s', $old ) if not exists $holders->{$old};
+    refuse( 'a holder named %s exists already', $new )
+        if $new ne $old and exists $holders->{$new};
+    my %h      = %{ $holders->{$old} };
+    my $result = { qw| spec | => $h{'spec'}, qw| respec | => FALSE };
+
+    if ( defined $opt{'new_spec'} ) {
+        require AMOS7::N7FS::Holder;
+        my $spec = AMOS7::N7FS::Holder::holder_canonical( $opt{'new_spec'} );
+        if ( $spec ne $h{'spec'} ) {
+            refuse('a new spec needs -root-key') if not ref $opt{'root'};
+            require AMOS7::N7FS::Seal;
+            $result->{'version'}
+                = AMOS7::N7FS::Seal::holder_respec( $opt{'root'}, $h{'spec'},
+                $spec, $opt{'dry_run'} );
+            @{$result}{qw| spec respec |} = ( $spec, TRUE );
+            $h{'spec'} = $spec;
+        }
+    }
+    refuse('nothing to rename') if $new eq $old and not $result->{'respec'};
+    return $result              if $opt{'dry_run'};
+    delete $holders->{$old};
+    $holders->{$new} = \%h;
+    _holders_save( $holders, %opt );
+    return $result;
 }
 
 sub _receipt_path {
@@ -581,8 +619,8 @@ sub holder_prune {
 
 1;
 
-#,,..,,,.,,,.,.,,,,,,,.,,,.,,,,,.,...,.,.,..,,..,,...,...,.,.,..,,...,,,,,.,,,
-#RPPAY4SQOCDPB2KVQOVCVS3IXCBIHSWME4WPC2ISCCPL7VTMBJ56RT2AMHSMPWI6T7SREMKYCLUFW
-#\\\|3CLM5BCZYVI3VU5FWKFGNISPCA7U6IEOIX663NLEK4TXLBLOQC4 \ / AMOS7 \ YOURUM ::
-#\[7]C5ED4CF6GZ5ROQEAGJCGT5YKSS6TVRTKMEBGPIA4X6Q5NRTM4AAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,,,,,.,.,.,,,,,,..,..,,...,,,,,..,,...,...,.,.,.,,,,.,,.,,,,..,
+#AZSRQVD3FRNNMKUOM5KFB7SR6TNFF3VZMHQSFXYHBMEVMEPCNO3GV4FKBIKNRXVKOXJSNF4RHYTMO
+#\\\|GMTC42PB2YK7KK56FO7V6PALOFLGYBYW3CPUBOJEDKDOF2Y72JL \ / AMOS7 \ YOURUM ::
+#\[7]6ISYD6DI6TXW7VAVT746ICUXMHVWBUF4B3F6I3QKWIOOTUFNL6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -193,6 +193,43 @@ make_dirs("$base/h6");
 ok( $out !~ m|on full|,
     'a holder whose reserve exceeds its free space receives nothing' )
     or say $out;
+## rename : one registry write, a new spec carries the pin ##
+( $rc, $out ) = cli( ['vp'], 'holder', 'rename', 'two', 'two-b' );
+( $rc, my $listed ) = cli( ['vp'], 'holder', 'list' );
+ok( $rc == 0 && $listed =~ m|^two-b durable a|m && $listed !~ m|^two |m,
+    'rename keeps the entry under the new name' )
+    or say $listed;
+( $rc, $out ) = cli( ['vp'], 'holder', 'rename', 'two-b', 'one' );
+ok( $rc != 0 && $out =~ m|exists already|,
+    'rename onto a taken name is refused'
+) or say $out;
+make_dirs("$base/h8");
+( $rc, $out ) = cli(
+    ['vp'], 'holder', 'rename',   'five',
+    'five', '-spec',  "$base/h8", '-root-key',
+    'vault:main'
+);
+ok( $rc != 0 && $out =~ m|no sealed head under the new spec|,
+    'a new spec without the holder\'s head is refused'
+) or say $out;
+system( 'cp', '-a', "$base/h7/.", "$base/h8/" ) == 0 or die;
+( $rc, $out ) = cli(
+    ['vp'], 'holder', 'rename',   'five',
+    'five', '-spec',  "$base/h8", '-root-key',
+    'vault:main'
+);
+ok( $rc == 0 && $out =~ m|matches the pin|,
+    'a new spec reaching the same head moves the pin'
+) or say $out;
+( $rc, $out ) = cli(
+    ['vp'], 'holder', 'rename',   'five',
+    'five', '-spec',  "$base/h7", '-root-key',
+    'vault:main'
+);
+( $rc, $listed ) = cli( ['vp'], 'holder', 'list' );
+ok( $rc == 0 && $listed =~ m|^five .*h7|m, 'rename back to the first spec' )
+    or say $listed;
+
 ## a second disk on the same holder : drain touches only its own disk ##
 ( $rc, $out ) = cli( [], 'init', '-name', 'u', '-intent', 'y' );
 my ($disk2)
@@ -251,8 +288,8 @@ ok( $rc != 0, 'registry needs the vault passphrase' );
 
 done();
 
-#,,,.,..,,...,,,.,..,,..,,,..,...,,.,,,..,,..,..,,...,...,...,,,.,,.,,,..,,,.,
-#IO54MY4LWTXDP35DYD63PQHU7F24YDSYDWQSQBEJZ3EQXIZY3OMNEBNOETVQNEW7VJT4KMPG42PKS
-#\\\|KFZXQNP7QZSQHZVD7KCUJQJUKCLIOMWXTGEAJBJP6U6B3TC5KLV \ / AMOS7 \ YOURUM ::
-#\[7]RRPS5QWGWX5A4S2WHBUEVLW2YBICR2MKQQPXLZNM4656QRLHRMAI 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,,..,,,,,,.,,...,.,.,,.,,,..,..,,...,...,,,.,,.,,..,,...,.,.,
+#FY4B54G7EBBN2LBHQU22WNNFTZ3NBZ2CN7W33DOC3RTRDQRMHBXGL24AYEHDVQLA4SY77MT6TR7VA
+#\\\|7DXEAREQZDWMC6IVTQZQAOEJLORMSNJZS53F6BNSENK524RPZ6U \ / AMOS7 \ YOURUM ::
+#\[7]EQBB5GUFYJRGWTIIKDNRQVXZQRMSTB7AN4Q56SDTIA52DODTTSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
