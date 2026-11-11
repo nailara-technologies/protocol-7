@@ -221,10 +221,41 @@ ok( $rc == 0 && $out eq "$name " . length($bytes) . "\n",
 opendir( my $dh, $box2 ) or die;
 ok( !grep( {m|^\.receive|} readdir $dh ), 'no temporaries are left' );
 
+## stale temporaries : a has request sweeps what is older than 1 hour ##
+my $stale_name = bmw_b32( bmw384_bytes('stale') );
+my $old_tmp    = "$box2/.receive.$stale_name.1111";
+my $new_tmp    = "$box2/.receive.$stale_name.2222";
+write_file( $old_tmp, 'abandoned' );
+write_file( $new_tmp, 'in flight' );
+my $now = time;
+utime $now - 7200, $now - 7200, $old_tmp;
+utime $now,        $now,        $new_tmp;
+( $rc, $out ) = receive( $box2, "has $stale_name" );
+ok( $rc == 0 && !-e $old_tmp && -e $new_tmp,
+    'a has request sweeps only temporaries older than an hour' )
+    or say $out;
+unlink $new_tmp;
+
+## -max-bytes counts transfers in progress, not only finished blobs ##
+my $tmp_name = bmw_b32( bmw384_bytes('temp') );
+write_file( "$box2/.receive.$tmp_name.3333", '0123456789' );
+my $fill      = "fill the holder\n";
+my $fill_name = bmw_b32( bmw384_bytes($fill) );
+( $rc, $out ) = receive( $box2, "put $fill_name " . length $fill,
+    $fill, '-max-bytes', length($bytes) + length $fill );
+ok( !-e "$box2/$fill_name", 'finished blobs alone fit under the cap' )
+    or say $out;
+( $rc, $out ) = receive( $box2, "put $fill_name " . length $fill,
+    $fill, '-max-bytes', length($bytes) + 10 + length($fill) - 1 );
+ok( $rc == 5 && !-e "$box2/$fill_name",
+    'a temporary in progress counts against the cap' )
+    or say $out;
+unlink "$box2/.receive.$tmp_name.3333";
+
 done();
 
-#,,..,...,,.,,,.,,...,,..,...,.,,,,,.,,..,,,,,..,,...,...,,.,,,,,,,,.,.,.,...,
-#63ICPDRGVFSGW7BGNH45GFSQIXA26SMFYW6QJW7643NFBJD5JTTDS5BEMZIRXTVT6JT3EZMHFXAJG
-#\\\|S24VQFPA6UBRKIKDQKJM3QQHY6T55LUXDFHUJ6O5J22BJILJBEY \ / AMOS7 \ YOURUM ::
-#\[7]YGIRAFFC776D6GBAMBWZX44ZRIGB4ITAZFMFSPC72AODAZDWJMDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,,,,,.,,,..,,.,.,,.,,..,,,,,,..,,...,...,..,,.,,,,,,,,..,,,,,
+#CVGF2JVFA6H7ELQOZC3ODMZWUZTNQMIMQVSUTH363WP6YRGGADK5QKWWAOR4YFVGILCCUI4B2QLFE
+#\\\|TFE465YBUDK65UCICK3UVQG224X7445THWFSILALQWQCSI2MKUG \ / AMOS7 \ YOURUM ::
+#\[7]KSX6RCQQJFOYYXDEJANMGCXSBHVFTSJNI5J4L2ZSJLSRR3WMN4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

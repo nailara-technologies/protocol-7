@@ -43,6 +43,16 @@ out('holder directory does not exist') if not -d $dir;
 my @word = split ' ', $ENV{'SSH_ORIGINAL_COMMAND'} // '';
 my $verb = shift @word // '';
 
+## a killed put leaves its temporary forever : drop those older than 1 hour ##
+sub sweep_stale {
+    opendir( my $dh, $dir ) or return;
+    my @stale = grep {m|\A\.receive\.[A-Z2-7]{77}\.\d+\z|}
+        grep { -M "$dir/$ARG" > 1 / 24 } readdir $dh;
+    closedir $dh;
+    foreach my $tmp (@stale) { unlink "$dir/$tmp" }
+}
+sweep_stale();
+
 if ( $verb eq 'has' ) {
     foreach my $name (@word) {
         out('invalid blob name') if $name !~ $NAME;
@@ -62,7 +72,11 @@ if ( -e "$dir/$name" ) {
 if ( defined $max ) {
     my $used = 0;
     opendir( my $dh, $dir ) or out('cannot list the holder');
-    $used += -s "$dir/$ARG" // 0 for grep {m|$NAME|} readdir $dh;
+    ## count finished blobs, in-progress temporaries and the incoming ##
+    ## declared size together, so parallel puts cannot pass the cap   ##
+    $used += -s "$dir/$ARG" // 0
+        for grep { m|$NAME| or m|\A\.receive\.[A-Z2-7]{77}\.\d+\z| }
+        readdir $dh;
     closedir $dh;
     out( 'holder is full', 5 ) if $used + $size > $max;
 }
@@ -103,8 +117,8 @@ unlink $tmp;
 system( 'sync', '--', "$dir/$name" );
 exit 0;
 
-#,,,,,,,,,,,.,,,,,...,,..,.,.,,.,,...,,,.,,,,,..,,...,...,.,.,,.,,..,,,..,,,.,
-#4T64JVNNN4DUVZLOKYGQIPMG2YE7I264KSDPP753FKFM52SE3RRJSM6HCRL6N5447MMLRCBQGOGAU
-#\\\|IHWASZVU7S3FTPRHBABX3IN7KLJXEYBY5LSSPO7D6VSJERO5MLI \ / AMOS7 \ YOURUM ::
-#\[7]OU5VQQBQZHTD73OO7BJ2HLQQDQ6VYOBTFG4J6JVNLVUPY7BZDCDI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,.,,,,,.,,,..,,,..,,,,,.,,,...,..,,...,...,,.,,,,,,...,..,,,..,
+#AGWUDYLJMZKDQSKIIIMKIELGCVJTA7RG7XVVBG47E6FVUEOWMFW2PMH6TLSXSHKK3XIHULTL6E4XI
+#\\\|O7TWI6NIE3QXQVUKEKPUYZJRYZSXRR2JQGHBF3JHRI7RHFAY45H \ / AMOS7 \ YOURUM ::
+#\[7]TBFU6NUNKAFNBET2LGC6J4JFMRSWIOEFYV7SCB2RVGAZ36MD2WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
