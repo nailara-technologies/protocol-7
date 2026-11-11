@@ -146,9 +146,18 @@ $ENV{'FORCED_PERL'}    = $EXECUTABLE_NAME;
 $ENV{'FORCED_RECEIVE'} = "$FindBin::Bin/../n7fs-receive";
 $ENV{'FORCED_DIR'}     = $far;
 chmod 0755, $ENV{'N7FS_SSH'};
-( $rc, $out ) = run( [], "$FindBin::Bin/../n7fs-push", $hub, $list, 'far' );
+{
+    ## the first put drops its connection : the blob is retried, not lost ##
+    local $ENV{'FORCED_DROP_ONCE'}  = "$base/drop-once";
+    local $ENV{'N7FS_PUSH_BACKOFF'} = '0,0';
+    ( $rc, $out )
+        = run( [], "$FindBin::Bin/../n7fs-push", $hub, $list, 'far' );
+}
 ok( $rc == 0 && $out =~ m|sent 4 blobs|, 'the hub pushes without any key' )
     or say $out;
+ok( -e "$base/drop-once" && $out =~ m|retry \S+ in 0 s \[ 255 \]|,
+    'a dropped connection is retried, the push goes on'
+) or say $out;
 ( $rc, $out ) = run( [], "$FindBin::Bin/../n7fs-push", $hub, $list, 'far' );
 ok( $rc == 0 && $out =~ m|sent 0 blobs| && $out =~ m|4 already there|,
     'a second push skips what arrived' )
@@ -268,8 +277,8 @@ unlink "$box2/.receive.$tmp_name.3333";
 
 done();
 
-#,,,,,.,,,...,,,.,,.,,...,,,,,.,,,.,,,..,,,,,,..,,...,...,,,,,,,.,,,,,,,,,.,,,
-#I6U66HT2ICN4JRT4FQLE6IHBTSCKJGI3O3XFL6VQICLOGA5YPC2G5EDNV2Z6TV6HO7MMNHIALFUMQ
-#\\\|WDJV7IYX2WIVCPEVMKQYYG5KM7FPBRW6SRQSTIIGHSMHGXBPXAL \ / AMOS7 \ YOURUM ::
-#\[7]J34MKE3CICM4F6GZIJRWHNPFWZTTD3J2KPESVJG3NXIIJPTXIKCI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,.,,,,,.,.,.,.,,,.,,,,,,,.,...,..,,...,...,...,.,,,..,,.,,,,,.,
+#KG257NQY4QJUU2TRD3HBCXV5AE6FEGFZPETV5CILE7BGZ2ZQE22SJ7L7RDVXQOWYLXIZFQIK7ETU2
+#\\\|5T6KLYCFA62ZFUD55QHVSLRQZYFEO3TWDR5K3PMYOD6JHH766AM \ / AMOS7 \ YOURUM ::
+#\[7]LHZO2RWJINZ2SDS63M7HJRJO46GBU6BSFUF37GITVIL2P5QY72CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
