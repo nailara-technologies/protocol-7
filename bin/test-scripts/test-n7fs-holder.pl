@@ -139,6 +139,20 @@ ok( readlink("$target/link") eq 'plain-name.txt', 'remote symlink matches' );
         'seal-recover', "$box->{'base'}/download-target"
     );
 }
+{
+    local $ENV{'FAKE_SSH_SHORT_ONCE'} = "$box->{'base'}/short-once";
+    cli(0,              'a clean short read is retried and completes',
+        '-root-key',    $clean_root,
+        '-from',        $spec,
+        '-tree',        'holder-tree',
+        'seal-recover', "$box->{'base'}/short-target"
+    );
+    ok( -e "$box->{'base'}/short-once"
+            && read_file("$box->{'base'}/short-target/plain-name.txt") eq
+            read_file($source),
+        'the short read happened and the content is whole'
+    );
+}
 cli(0,              'download resumes from the local spool size',
     '-root-key',    $clean_root,
     '-from',        $spec,
@@ -300,8 +314,8 @@ cli(1,              'wrong truncated remote data refuses recovery',
 
 done();
 
-#,,.,,,,.,...,,,.,.,.,.,,,,,.,...,.,.,...,.,.,..,,...,...,,..,...,...,,.,,.,,,
-#H6PT2KXPT7XCNXMFWDKBCACQUTJI6EYUI3WABAETI272RMQAVAEP7WVQAMEB6A74WQJMFDI42ERQY
-#\\\|DTAPE3B6MOK6P4OH5H6QZRLUSNXV2DDAGR5IRA2PQDZPZPVBPVI \ / AMOS7 \ YOURUM ::
-#\[7]IH2RWSYAN4QRLGEI4Y55NJJHYJNRLD656GQAJKBRJJS7VNREB4AA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,..,,,..,.,.,...,.,,,..,,,,.,..,,...,...,.,,,..,,.,,,.,,,..,,
+#PWUC5YNAWE42VFAUUG537XZICP5T7Q5UXFXYU5MFD7HS3RMI26L25NBYUQ27DGMGQHECL3VQFC3DS
+#\\\|2F3ZTBTKWDTLLCYZHWB5UZS2PFF4HV5C4QPPZYIEJEMIWJCYVYO \ / AMOS7 \ YOURUM ::
+#\[7]X5IVXADGJJ773XVGNSVCTRXPP35SZKYTS4XVUMUOUWP76ZFZROAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

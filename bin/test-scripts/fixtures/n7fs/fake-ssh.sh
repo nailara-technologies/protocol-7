@@ -21,6 +21,23 @@ if [ "${FAKE_SSH_READ_FAIL:-0}" = "1" ]; then
         *'cat -- '*|*'wc -c '*|*'tail -c '*) exit 74 ;;
     esac
 fi
+## the first download ends short but exits 0 [ a clean short read ] : only
+## a cat right after a size query of the same file, as holder_download does
+if [ -n "${FAKE_SSH_SHORT_ONCE:-}" ] && [ ! -e "$FAKE_SSH_SHORT_ONCE" ]; then
+    case $cmd in
+        *'wc -c '*)
+            printf '%s' "${cmd##* }" > "$FAKE_SSH_SHORT_ONCE.wc"
+            ;;
+        *'cat -- '*)
+            if [ -e "$FAKE_SSH_SHORT_ONCE.wc" ] &&
+                [ "$(cat "$FAKE_SSH_SHORT_ONCE.wc")" = "${cmd##* }" ]; then
+                : > "$FAKE_SSH_SHORT_ONCE"
+                sh -c "$cmd" | head -c 5
+                exit 0
+            fi
+            ;;
+    esac
+fi
 if [ -n "${FAKE_SSH_DOWNLOAD_DROP:-}" ]; then
     case $cmd in
         *'cat -- '*)
@@ -47,8 +64,8 @@ case $cmd in
 esac
 exec sh -c "$cmd"
 
-#,,..,.,.,..,,,..,.,.,,,.,...,,,.,...,...,,,,,..,,...,...,,.,,...,,,,,,.,,..,,
-#2RYJSY56EQEEQKXXHVFGUIXEK2HRZ4FQRY32HIYDUOHA5YG7RNQC5IZZTSYRLOXVB6FEQXT4VDQAO
-#\\\|HUSZVSI67RMFM4ZSOIH3MC4OUC6CRP2VLUGPCN5PAVMLT6FF35P \ / AMOS7 \ YOURUM ::
-#\[7]URBGEKY6P7KIQXU3YNT3ZJ36JUFUIJL6AA7DTXDLV3MKF67ZLYBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,...,..,,,..,,..,.,,,..,,...,..,,...,...,...,.,,,,..,,.,,.,.,
+#YRVO5J7RUJA6KFK62CXGRJBFFZV5WMCC7KRFGRJYFGIHYOV23UUINWALDBYR7SLIKDHJI6TK3L4PY
+#\\\|6VLY477CG5K5AS24VMDMAPEBYJ75QP5ASKAQHODDB4FQYQA4HI5 \ / AMOS7 \ YOURUM ::
+#\[7]NLJUEPBGX4G2L3QYXKEDJZJZI7OWAYQGQHUTI4NQ2Z3NGVH354CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

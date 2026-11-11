@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.3CMG2BQ |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.HK346XQ |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_free
@@ -334,8 +334,16 @@ sub holder_download {
         refuse('download spool is larger than remote content')
             if $have > $remote_size;
         last if $have == $remote_size;
-        ($status) = _ssh( $h, "cat -- $path", undef, $local );
-        last                if not $status;
+        ## resume : only the bytes after what the spool holds ##
+        my $read
+            = $have
+            ? 'tail -c +' . ( $have + 1 ) . " -- $path"
+            : "cat -- $path";
+        ($status) = _ssh( $h, $read, undef, $local );
+        ## a clean exit with bytes missing is a short read : the next try ##
+        ## appends the rest                                               ##
+        $status = 1 if not $status and ( -s $local // 0 ) != $remote_size;
+        last        if not $status;
         sleep $delays[$try] if $try < $#delays;
     }
     refuse('holder download failed after retries') if $status;
@@ -452,8 +460,8 @@ sub holder_put {
 
 1;
 
-#,,,.,,.,,...,...,.,.,,,,,...,,.,,.,.,,.,,,,,,..,,...,...,,,.,,,.,..,,...,,,.,
-#6QQIFPEMHYP4L55LRU7AMPK7MUTYGKHK3ZL2JBBPLT2TOTDOEW6662UJ42PKE3PWGPTFXHZOVDV3K
-#\\\|3FCUKZLXWQUHUX4FRNJNMR6RREM76WP3URMDDE5ZP7OLVN5SJKM \ / AMOS7 \ YOURUM ::
-#\[7]VEIG2I4GSADML6ZT6BDD5SFNZENXPJQ56QWIBPLSZCIC3TMU36CA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,...,,..,...,...,..,,...,...,..,,...,...,.,,,...,,,.,,.,,...,
+#F4JMATSJYDIWJCUY6BBLMQ34JCSM7VAC5S6NXJY7OQFRDQCGLGXGBR2JYQJWPHENIGAFJD37P3BPM
+#\\\|PJM54STP5MI7J5IBZ2GJUSWJEN2DYNMFGFHI5ERQYK3CCEBDSPJ \ / AMOS7 \ YOURUM ::
+#\[7]VC5DHOBBD4P2FEQEVBRKL7UXKD7WJZ4AFR4YTMUZVUIVPHEDH2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
