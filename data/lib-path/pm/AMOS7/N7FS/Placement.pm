@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.I5JWONQ |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.FROETJA |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh placement_report place_missing parse_size holder_drain
@@ -243,7 +243,8 @@ sub _copies {
             $used += $map->{'nodes'}{$address}{'length'} // 0;
             $copies{$address}{ $h->{'domain'} } = TRUE
                 if $state eq 'counted';
-            $status{$name}{'nodes'}{$address} = TRUE;
+            ## the entry itself : drain reads its disk ids ##
+            $status{$name}{'nodes'}{$address} = $map->{'nodes'}{$address};
         }
         $status{$name}{'state'} = $state;
         $status{$name}{'used'}  = $used;
@@ -417,26 +418,52 @@ sub holder_drain {
     my $name = $opt{'name'}      // '';
     my $h    = $holders->{$name} // refuse( 'no holder named %s', $name );
     my $held = $status->{$name}{'nodes'} // {};
-    my @drop;
-    my ( $kept, $kept_bytes, $bytes ) = ( 0, 0, 0 );
+    my $disk = $id->{'disk'};
+    my ( @drop, @untag );
+    my ( $kept, $kept_bytes, $bytes, $unknown, $unknown_bytes, $other )
+        = ( 0, 0, 0, 0, 0, 0 );
 
     foreach my $address ( sort keys %{$held} ) {
-        my $n         = $nodes->{$address};
+        my $entry = $held->{$address};
+        my $n     = $nodes->{$address};
+        my %disks
+            = %{ ref $entry eq qw| HASH | ? $entry->{'disks'} // {} : {} };
+        ## only nodes of THIS disk : tagged with its id, or untagged and ##
+        ## live here [ maps from before disk ids ]. an untagged node not ##
+        ## live here may belong to any disk : kept and reported          ##
+        if ( not %disks ) {
+            if ( not $n ) {
+                $unknown++;
+                $unknown_bytes += $entry->{'length'} // 0
+                    if ref $entry eq qw| HASH |;
+                next;
+            }
+        } elsif ( not $disks{$disk} ) {
+            $other++;
+            next;
+        }
+        delete $disks{$disk};
         my $target    = $n ? $n->{'target'} : 0;
         my %elsewhere = %{ $copies->{$address} // {} };
         ## an intake copy counts zero, so a durable copy in its own domain ##
         ## still counts for it                                             ##
         delete $elsewhere{ $h->{'domain'} } if $h->{'role'} eq qw| durable |;
         if ( scalar keys %elsewhere >= $target ) {
-            push @drop, $address;
-            $bytes += $n ? $n->{'size'} : 0;
+            if (%disks) {
+                ## still another disk's node : drop only this disk's id ##
+                push @untag, $address;
+            } else {
+                push @drop, $address;
+                $bytes += $n ? $n->{'size'} : 0;
+            }
         } else {
             $kept++;
             $kept_bytes += $n ? $n->{'size'} : 0;
         }
     }
-    my $result = { qw| removed | => 0, qw| trees | => 0 };
-    if ( @drop and not $opt{'dry_run'} ) {
+    my $result
+        = { qw| removed | => 0, qw| trees | => 0, qw| untagged | => 0 };
+    if ( ( @drop or @untag ) and not $opt{'dry_run'} ) {
         require AMOS7::N7FS::Seal;
         my %tree_files;
         foreach my $t ( keys $replay->{'trees'}->%* ) {
@@ -450,22 +477,28 @@ sub holder_drain {
             %opt,
             qw| holder |     => $h->{'spec'},
             qw| addresses |  => \@drop,
+            qw| untag |      => \@untag,
+            qw| disk |       => $disk,
             qw| tree_files | => \%tree_files,
         );
     }
     return {
         %{$result},
-        qw| drop |       => scalar @drop,
-        qw| bytes |      => $bytes,
-        qw| kept |       => $kept,
-        qw| kept_bytes | => $kept_bytes,
+        qw| drop |          => scalar @drop,
+        qw| untag |         => scalar @untag,
+        qw| bytes |         => $bytes,
+        qw| kept |          => $kept,
+        qw| kept_bytes |    => $kept_bytes,
+        qw| unknown |       => $unknown,
+        qw| unknown_bytes | => $unknown_bytes,
+        qw| other_disks |   => $other,
     };
 }
 
 1;
 
-#,,.,,...,.,.,..,,,,.,,,.,,,.,...,...,,,.,.,.,..,,...,..,,.,.,..,,,,.,,.,,..,,
-#SA72ZDAKLAL3EW4HH3VXHMLS2YKPWZKJPYI4R26SOB3CPPV5LF7ZE3OHSXZFGMP7TLQ6SBJN2P32I
-#\\\|OTUFRCNYAAHANJOB5Z5D4XFFNIQ3LTYVIXRDDHPQE5LMY2MOUPS \ / AMOS7 \ YOURUM ::
-#\[7]SRKZOVOQ6SJI5ED2PEIC2Y6KJWPGUKKBAAV5F33NIS2W6DU6GOAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,...,,,.,.,.,.,,,,..,,,,,,,.,..,,..,,...,...,,.,,...,.,.,..,,,,.,
+#7FSZSZDJOSWMP5AKOK67GNWXEJBTQUX2HEEMELST7UDPD5C43GVYBUYREMDH5JSSJ6HXGFJ2AZZFQ
+#\\\|FD6HV3PDG3X4KLRENPI7WDTSWHWV7WNPL2UU2VINYR4GKSXNQA6 \ / AMOS7 \ YOURUM ::
+#\[7]TDETMTSGN6MFHRE262O6RQB6ZMFLEJNHSUKMIAHQHO4GUNRCTIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

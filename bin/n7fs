@@ -79,7 +79,8 @@ use warnings;
 ##                 may put there ; one passing category is enough
 ## n7fs holder list | remove <name>         registry in the vault
 ## n7fs holder-drain <disk> <name> -root-key <key> [ -dry-run ]
-##                 drop what is safely held elsewhere ; never below a target
+##                 drop what is safely held elsewhere ; never below a target ;
+##                 only nodes of that disk [ disk ids in the map entries ]
 ## n7fs holder-gc <holder> -root-key <key> -only-root [ -delete ]
 ##                 unreferenced blobs of a one-root holder ; dry run by default
 ## n7fs relay <from> <to> -root-key <key> [ -dry-run ]  registered holders :
@@ -1470,6 +1471,14 @@ sub cmd_holder_drain {
     say_line( 'kept ', $r->{'kept'}, ' nodes, ', $r->{'kept_bytes'},
         ' bytes : too few counted copies elsewhere' )
         if $r->{'kept'};
+    say_line( $o{'dry-run'} ? 'would untag ' : 'untagged ',
+        $r->{'untag'}, ' nodes : still mapped for other disks' )
+        if $r->{'untag'};
+    say_line( 'kept ', $r->{'unknown'}, ' nodes, ', $r->{'unknown_bytes'},
+        ' bytes : no disk id and not live on this disk' )
+        if $r->{'unknown'};
+    say_line( 'left ', $r->{'other_disks'}, ' nodes of other disks' )
+        if $r->{'other_disks'};
     say_line('bytes stay until holder-gc')
         if $r->{'drop'} and not $o{'dry-run'};
     return 0;
@@ -1805,8 +1814,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,.,,,,,,,.,,,,..,.,,,.,.,.,,,...,.,,,...,..,,...,...,,,.,,..,.,,,,,,,...,
-#TRMU65THMNHXZN7L2P4AER5QQNYNW2O32PTGPYR2A6RGQKCK6463A5MB75GO5E4I2BE64PXG3IKJO
-#\\\|LIOCGNS7JVMYHIMR3OXWBECP6M547XMJDCMWUJHWDY7UTDKEU4Q \ / AMOS7 \ YOURUM ::
-#\[7]FSAR7XGBA7KM5LZD7TUWZPZRUFLKTDKRQBZP7LWBCNFGOC3F5UCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,.,.,,.,,,,.,...,.,.,,,.,...,..,,...,...,,.,,.,.,...,.,.,...,
+#E3NJA7KKGSEOJLP4CNRHJIX3TAXZ4DVHZH3WQKR6M3SB7ZMDLVQRO6QYPI45GVF62RD4IN2AFZJQO
+#\\\|UY7QNTLHABWKIRXHJ7P4YPSTT37YRDEIBGDTYLY2W3KR34HI34Z \ / AMOS7 \ YOURUM ::
+#\[7]3LWKCECE76UBIPYKHVSFA5BCSTXA44QSZM6XXM7NQEE6I6NXPGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

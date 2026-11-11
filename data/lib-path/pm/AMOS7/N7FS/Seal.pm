@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.DGT26VY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.R2DQZEY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -643,7 +643,7 @@ sub seal_nodes {
     $map->{'trees'} = { %{ $map->{'trees'} // {} }, %{$trees} };
     my @new;
     my @pending_files;
-    my ( $sealed, $batch_bytes ) = ( 0, 0 );
+    my ( $sealed, $batch_bytes, $tagged ) = ( 0, 0, 0 );
     my %pack  = ( qw| bytes | => "P7SP\x01", qw| entries | => [] );
     my $flush = sub {
         return if not $pack{'entries'}->@*;
@@ -653,7 +653,17 @@ sub seal_nodes {
         fault(qw| seal:after-pack |);
     };
     foreach my $address ( @{$addresses} ) {
-        next if exists $map->{'nodes'}{$address};
+        ## a node already mapped from another disk gains this disk's id ##
+        if ( exists $map->{'nodes'}{$address} ) {
+            my $entry = $map->{'nodes'}{$address};
+            refuse( 'local node is missing : %s', $address )
+                if not -f _content_path( $id, $address );
+            if ( not $entry->{'disks'}{ $id->{'disk'} } ) {
+                $entry->{'disks'}{ $id->{'disk'} } = TRUE;
+                $tagged++;
+            }
+            next;
+        }
         my ( $epoch, $amos, $bmw ) = split m|/|, $address;
         my $path = _content_path( $id, $address );
         refuse( 'local node is missing : %s', $address ) if not -f $path;
@@ -726,6 +736,7 @@ sub seal_nodes {
             qw| length |   => $length,
             qw| chunks |   => $chunks,
             qw| category | => $categories[0],
+            qw| disks |    => { $id->{'disk'} => TRUE },
             qw| wraps |    => \%wraps,
             qw| layout |   => {
                 qw| mode |        => qw| complete |,
@@ -747,13 +758,14 @@ sub seal_nodes {
             @new          = ();
             $batch_bytes  = 0;
             $tree_changes = 0;
+            $tagged       = 0;
             unlink for @pending_files;
             @pending_files = ();
         }
     }
     $flush->();
     delete $map->{'_root_keys'};
-    if ( @new or $tree_changes ) {
+    if ( @new or $tree_changes or $tagged ) {
         $counter->{'version'}
             = _commit( $root, $dir, $counter, $map,
             { qw| seal | => [@new] } );
@@ -1160,8 +1172,19 @@ sub unmap_nodes {
     refuse('no sealed head on this holder') if not defined $head;
     my %gone = map { $ARG => TRUE }
         grep { exists $map->{'nodes'}{$ARG} } $opt{'addresses'}->@*;
-    return { qw| removed | => 0, qw| trees | => 0 } if not %gone;
+    ## untag : the node stays mapped for its other disks  no        ##
+    ## autovivification : a missing entry or disk set stays missing ##
+    my @untag = grep {
+        my $e = $map->{'nodes'}{$ARG};
+        not $gone{$ARG}
+            and ref $e eq qw| HASH |
+            and ref $e->{'disks'} eq qw| HASH |
+            and $e->{'disks'}{ $opt{'disk'} // '' }
+    } @{ $opt{'untag'} // [] };
+    return { qw| removed | => 0, qw| trees | => 0, qw| untagged | => 0 }
+        if not %gone and not @untag;
     delete $map->{'nodes'}{$ARG} for keys %gone;
+    delete $map->{'nodes'}{$ARG}{'disks'}{ $opt{'disk'} } for @untag;
     my @trees;
     foreach my $name ( sort keys %{ $map->{'trees'} // {} } ) {
         my $files = $opt{'tree_files'}{$name} // [];
@@ -1170,12 +1193,20 @@ sub unmap_nodes {
             or grep { $gone{$ARG} } @{$files};
     }
     delete $map->{'trees'}{$ARG} for @trees;
-    $counter->{'version'} = _commit( @opt{qw| root holder |}, $counter, $map,
-        { qw| unmap | => [ sort keys %gone ] } );
+    $counter->{'version'} = _commit(
+        @opt{qw| root holder |},
+        $counter, $map,
+        {   qw| unmap | => [ sort keys %gone ],
+            @untag
+            ? ( qw| untag | => { $opt{'disk'} => [ sort @untag ] } )
+            : ()
+        }
+    );
     return {
-        qw| removed | => scalar keys %gone,
-        qw| trees |   => scalar @trees,
-        qw| version | => $counter->{'version'},
+        qw| untagged | => scalar @untag,
+        qw| removed |  => scalar keys %gone,
+        qw| trees |    => scalar @trees,
+        qw| version |  => $counter->{'version'},
     };
 }
 
@@ -1306,6 +1337,7 @@ sub relay_nodes {
         my %copy = %{$entry};
         delete $copy{'wrap'};
         $copy{'wraps'} = \%wraps;
+        $copy{'disks'} = { %{ $entry->{'disks'} } } if $entry->{'disks'};
         $tmap->{'nodes'}{$address} = \%copy;
     }
     delete $tmap->{'_root_keys'};
@@ -1342,8 +1374,8 @@ sub shred_node {
 
 1;
 
-#,,.,,,.,,,,.,,,,,,..,,..,,,.,,..,.,,,..,,,.,,..,,...,...,...,,,,,,,,,.,.,,,.,
-#BWNBVQ36P72OUW4AADFZG5Q22P4Z25M5GK4SAB4GVGZWQXC5YQCXAWN32MLQWJBKMQ5KOAXFKZ6LG
-#\\\|SOHAURLLZOBPB7PEJTEVI3FAWPGDMQN5QC4I5LLRNS2AGTNATQ5 \ / AMOS7 \ YOURUM ::
-#\[7]CSJ7Z5KCIUM5MUN35CU2TPVHQYGZIYHNYXW7FFZL2YOLUYMAE2DA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,.,,,..,..,,.,,,,,,,,.,,...,,..,..,,...,...,..,,.,.,,,,,,,.,,.,,
+#UG5MLS4QOZ4HDI2IUHKJY67SRSQSQ5N4DSZJGKUTCEQWDPP7W35RIPXYTAYULDC24GYDXZGHW6RZM
+#\\\|2BTPER6E2675YGHETW5YBMH6AA323L2E3U7AH4AWIUFUA55VG55 \ / AMOS7 \ YOURUM ::
+#\[7]5MZGE7BRBESDMTKJDC5W7HGVIBLWW7WGGNGLUOMG53FC2U75ZKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
