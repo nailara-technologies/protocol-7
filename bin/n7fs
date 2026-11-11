@@ -76,10 +76,13 @@ use warnings;
 ## n7fs holder add <name> <holder> -role durable|intake -domain <label>
 ##                 [ -owned ] [ -quota <size> ] [ -reserve <size> ]
 ## n7fs holder list | remove <name>         registry in the vault
+## n7fs holder-drain <disk> <name> -root-key <key> [ -dry-run ]
+##                 drop what is safely held elsewhere ; never below a target
 ## n7fs holder-gc <holder> -root-key <key> -only-root [ -delete ]
 ##                 unreferenced blobs of a one-root holder ; dry run by default
 ## n7fs placement <disk> -root-key <key>    copies per category, report only
 ## n7fs place <disk> -root-key <key> [ -dry-run ]  seal what is missing
+##                 -exclude <holder> : do not count it [ before draining it ]
 ## -bwlimit <size>                         cap uploads to ssh holders, per second
 ##
 ## sealing : -pass-fd <n> reads the passphrase from that descriptor -argon-m
@@ -154,7 +157,7 @@ GetOptionsFromArray(
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
         layer=s incoming under=s depth=i limit=i group-by=s trees-only help
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
-        role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete |
+        role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@ |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -212,6 +215,7 @@ my %run = (
     qw| holder-check |   => \&cmd_holder_check,
     qw| holder |         => \&cmd_holder,
     qw| holder-gc |      => \&cmd_holder_gc,
+    qw| holder-drain |   => \&cmd_holder_drain,
     qw| placement |      => \&cmd_placement,
     qw| place |          => \&cmd_place,
 );
@@ -1417,6 +1421,33 @@ sub cmd_holder_check {
     return 0;
 }
 
+sub cmd_holder_drain {
+    require AMOS7::N7FS::Placement;
+    my $disk = disk_arg(shift);
+    my $name = shift // fail('holder-drain needs a holder name');
+    fail('holder-drain : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Placement::holder_drain(
+        _placement_opt($disk),
+        qw| name |    => $name,
+        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE
+    );
+    say_line(
+        $o{'dry-run'} ? 'would drop ' : 'dropped ',
+        $r->{'drop'},
+        ' nodes, ',
+        $r->{'bytes'},
+        ' bytes from ',
+        $name,
+        $r->{'trees'} ? " and $r->{'trees'} trees" : ''
+    );
+    say_line( 'kept ', $r->{'kept'}, ' nodes, ', $r->{'kept_bytes'},
+        ' bytes : too few counted copies elsewhere' )
+        if $r->{'kept'};
+    say_line('bytes stay until holder-gc')
+        if $r->{'drop'} and not $o{'dry-run'};
+    return 0;
+}
+
 sub cmd_holder_gc {
     require AMOS7::N7FS::Seal;
     my $holder = shift // fail('holder-gc needs a holder');
@@ -1499,6 +1530,7 @@ sub _placement_opt {
         qw| root |     => _seal_root(),
         qw| host_dir | => host_dir(%common),
         qw| host_pub | => host_signer()->public,
+        qw| exclude |  => $o{'exclude'} // [],
     );
 }
 
@@ -1590,8 +1622,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,.,,,,..,.,,,,,,,...,.,.,..,,.,,,...,,,,,..,,...,...,.,,,.,.,.,,,,,.,,..,
-#XH3SZP3AEM7ZTZAAT5RNBGVD7ICCEHSTG4JDQHAM27SSRY5VICS2PB67WCC7526MXRXGAG7MLDVCM
-#\\\|UDFTRACJYFP55DOFFONF2FSYQOF4FPEPY77Q2IBM5VW7QEQ7XOG \ / AMOS7 \ YOURUM ::
-#\[7]EM4OBSAB5VNW7CBUD35XTBXQLHEHGFJDOWBXT64MAFZHHPUJ6MDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,,,.,.,.,,..,,,.,,.,,,..,.,.,..,,...,...,..,,.,.,,,,,.,,,,..,
+#F3VKUB42YSQHC2S7OHEY454J3H23TCA2OWDPFPST7POOMA5LKZTFIN7CF35JCN5ZEVQXCQ52EO4GW
+#\\\|V5SV2GLLLSCX7OID6OPCJXKDRNY7PBTMYPOS52MRHBZ6B4Z2DLB \ / AMOS7 \ YOURUM ::
+#\[7]7LPTMVLMORDXBIPRMVY7TBYH5LDIYJQRMSQ4XX2MCCMA4RARYKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

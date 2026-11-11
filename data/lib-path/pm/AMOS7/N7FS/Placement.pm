@@ -18,10 +18,10 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.CI3KUPA |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.GHFZBIA |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
-    receipt_fresh placement_report place_missing parse_size |;
+    receipt_fresh placement_report place_missing parse_size holder_drain |;
 
 use JSON::PP;
 use AMOS7::N7FS qw| b32 unb32 read_file write_new_file make_dirs refuse |;
@@ -200,6 +200,8 @@ sub _copies {
     my %copies;
     my %status;
     require AMOS7::N7FS::Seal;
+    ## an excluded holder is read but not counted [ moving away from it ] ##
+    my %excluded = map { $ARG => TRUE } @{ $opt{'exclude'} // [] };
     foreach my $name ( sort keys %{$holders} ) {
         my $h       = $holders->{$name};
         my $receipt = receipt_fresh(
@@ -216,6 +218,7 @@ sub _copies {
         elsif ( not $receipt ) {
             $state = 'no fresh receipt';
         }
+        $state = 'excluded' if $excluded{$name} and $state eq 'counted';
         my $used = 0;
         foreach my $address ( keys %{ $map->{'nodes'} // {} } ) {
             $used += $map->{'nodes'}{$address}{'length'} // 0;
@@ -284,6 +287,7 @@ sub place_missing {
     foreach my $name ( keys %{$holders} ) {
         next if $holders->{$name}{'role'} ne qw| durable |;
         next if $status->{$name}{'state'} eq 'unreachable';
+        next if $status->{$name}{'state'} eq 'excluded';
         $left{$name}
             = defined $holders->{$name}{'quota'}
             ? $holders->{$name}{'quota'} - $status->{$name}{'used'}
@@ -350,10 +354,62 @@ sub place_missing {
     };
 }
 
+## remove from one holder every node whose copies elsewhere still meet its
+## target without it : counted holders in other failure domains only
+sub holder_drain {
+    my %opt = @_;
+    my ( $id,      $nodes,  $replay ) = _disk_nodes(%opt);
+    my ( $holders, $copies, $status ) = _copies(%opt);
+    my $name = $opt{'name'}      // '';
+    my $h    = $holders->{$name} // refuse( 'no holder named %s', $name );
+    my $held = $status->{$name}{'nodes'} // {};
+    my @drop;
+    my ( $kept, $kept_bytes, $bytes ) = ( 0, 0, 0 );
+
+    foreach my $address ( sort keys %{$held} ) {
+        my $n         = $nodes->{$address};
+        my $target    = $n ? $n->{'target'} : 0;
+        my %elsewhere = %{ $copies->{$address} // {} };
+        delete $elsewhere{ $h->{'domain'} };
+        if ( scalar keys %elsewhere >= $target ) {
+            push @drop, $address;
+            $bytes += $n ? $n->{'size'} : 0;
+        } else {
+            $kept++;
+            $kept_bytes += $n ? $n->{'size'} : 0;
+        }
+    }
+    my $result = { qw| removed | => 0, qw| trees | => 0 };
+    if ( @drop and not $opt{'dry_run'} ) {
+        require AMOS7::N7FS::Seal;
+        my %tree_files;
+        foreach my $t ( keys $replay->{'trees'}->%* ) {
+            $tree_files{$t} = [
+                AMOS7::N7FS::Seal::_manifest_files(
+                    $id, $replay->{'trees'}{$t}{'manifest'}
+                )
+            ];
+        }
+        $result = AMOS7::N7FS::Seal::unmap_nodes(
+            %opt,
+            qw| holder |     => $h->{'spec'},
+            qw| addresses |  => \@drop,
+            qw| tree_files | => \%tree_files,
+        );
+    }
+    return {
+        %{$result},
+        qw| drop |       => scalar @drop,
+        qw| bytes |      => $bytes,
+        qw| kept |       => $kept,
+        qw| kept_bytes | => $kept_bytes,
+    };
+}
+
 1;
 
-#,,..,.,,,...,,..,,.,,.,.,,..,,,.,..,,..,,.,,,..,,...,...,,,.,,.,,,,.,...,,,.,
-#GQ4GEN3PT6YQWQTNYETJOBCF3QHPR7G2AP2KP4QVMCY2KIR3WUNIHQGEXFGB6YGZZUFCIDV5QCCTI
-#\\\|GWDMNAGEQXVX7C7AGWXXN25A4I6KYSCAR4Q7BHBYFDODHGRNQ6Y \ / AMOS7 \ YOURUM ::
-#\[7]F6WZJNFMK743OZBLNCY5UGVJHR3TZ7NATUYMUJ34RPCTKF2DBOBQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,...,...,,,,,.,.,,,.,...,,.,,..,,...,...,.,,,,,.,...,,,,,,,.,
+#LZBA6LBHFG7UAZZ2LXXW7G7BL4ASVJXQ72KBXQLFF4SBXLVI5KPUMAR7N2SRL5UMPYUOBOLXV3UQG
+#\\\|FWAX63GYARSTZGPJLMFDA3DUYV57G6SI2KWXDV2XFLNIF6E4GFB \ / AMOS7 \ YOURUM ::
+#\[7]HUR7FJCG6C7KGJSW6C3DJOA2UPJ3YUPGL4G4X5QDZJNQRZHDU6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
