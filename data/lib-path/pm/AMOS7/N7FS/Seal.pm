@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.NT44QMI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.DGT26VY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -1134,6 +1134,8 @@ sub holder_gc {
         $head->{'map'}, $head->{'journal'};
     $keep{ $map->{'nodes'}{$ARG}{'blob'} } = TRUE
         for keys $map->{'nodes'}->%*;
+    ## pushed by a relay, not adopted yet ##
+    $keep{$ARG} = TRUE for @{ $opt{'keep'} // [] };
     my $sizes = holder_sizes( $opt{'holder'} );
     my @drop  = sort grep { not $keep{$ARG} } keys %{$sizes};
     my $bytes = 0;
@@ -1213,6 +1215,20 @@ sub relay_nodes {
     }
     my %have = map { $ARG => TRUE } @missing;
     @addresses = grep { not $have{$ARG} } @addresses;
+    ## adopt only : map what a push already delivered, copy nothing ##
+    my $waiting = 0;
+    if ( $opt{'adopt_only'} ) {
+        my @arrived = grep {
+            my $name = $fmap->{'nodes'}{$ARG}{'blob'};
+            ( $tsizes->{$name} // -1 ) == $fsizes->{$name}
+        } @addresses;
+        $waiting   = @addresses - @arrived;
+        @addresses = @arrived;
+        %blob      = map {
+            $fmap->{'nodes'}{$ARG}{'blob'} =>
+                $blob{ $fmap->{'nodes'}{$ARG}{'blob'} }
+        } @addresses;
+    }
     my ( $copied, $bytes ) = ( 0, 0 );
     foreach my $name ( sort keys %blob ) {
         next if ( $tsizes->{$name} // -1 ) == $fsizes->{$name};
@@ -1227,8 +1243,17 @@ sub relay_nodes {
         qw| bytes |   => $bytes,
         qw| missing | => scalar @missing,
         qw| used |    => $used,
+        qw| waiting | => $waiting,
+        ## the blobs a push still has to deliver, for a relay list ##
+        qw| names | => [
+            sort grep { ( $tsizes->{$ARG} // -1 ) != $fsizes->{$ARG} }
+                keys %blob
+        ],
     };
-    return $result if $opt{'dry_run'} or not @addresses;
+    return $result
+        if $opt{'dry_run'}
+        or $opt{'list_only'}
+        or not @addresses;
     ## quota and reserve of the target, as place keeps them ##
     if ( ref $opt{'room'} eq qw| CODE | ) {
         my $room = $opt{'room'}->($used);
@@ -1317,8 +1342,8 @@ sub shred_node {
 
 1;
 
-#,,.,,...,,..,..,,.,,,.,.,,..,.,,,,..,...,,.,,..,,...,...,.,,,,.,,..,,,.,,.,,,
-#SQUNVKHH3JDEX3ATB2WYUOXXYL5V3M44XNCKX3QBBIQLNSLN2WSJFBSPSRMG7F664VWCXTEQ4NIJE
-#\\\|NSJGQZ2T3LVPEKTHXDXF7ILEVXXKCOND3UWPXG5SJDFKHBXEM3T \ / AMOS7 \ YOURUM ::
-#\[7]2CJXAG44EEWVYG3FOE5ULXTMSMK7OBV2RCHRO7V5TIBT76ODTQBI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,,..,,..,,,.,,..,.,,,..,,,.,,..,,...,...,...,,,,,,,,,.,.,,,.,
+#BWNBVQ36P72OUW4AADFZG5Q22P4Z25M5GK4SAB4GVGZWQXC5YQCXAWN32MLQWJBKMQ5KOAXFKZ6LG
+#\\\|SOHAURLLZOBPB7PEJTEVI3FAWPGDMQN5QC4I5LLRNS2AGTNATQ5 \ / AMOS7 \ YOURUM ::
+#\[7]CSJ7Z5KCIUM5MUN35CU2TPVHQYGZIYHNYXW7FFZL2YOLUYMAE2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

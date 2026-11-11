@@ -83,6 +83,8 @@ use warnings;
 ## n7fs relay <from> <to> -root-key <key> [ -dry-run ]  registered holders :
 ##                 copy sealed nodes blind, rewrap their keys at home, map
 ##                 them on <to> ; they count after its next holder-check
+##                 -list : only write the blob list for n7fs-push on <from>
+##                 -adopt : only map what a push delivered to <to>
 ## n7fs placement <disk> -root-key <key>    copies per category, report only
 ## n7fs place <disk> -root-key <key> [ -dry-run ]  seal what is missing
 ##                 -exclude <holder> : do not count it [ before draining it ]
@@ -160,7 +162,8 @@ GetOptionsFromArray(
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
         layer=s incoming under=s depth=i limit=i group-by=s trees-only help
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
-        role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@ |
+        role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
+        list adopt |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -1464,15 +1467,42 @@ sub cmd_relay {
     }
     fail('relay target must be a durable holder')
         if $holders->{$to}{'role'} ne qw| durable |;
+    fail('relay : -list and -adopt exclude each other')
+        if $o{'list'} and $o{'adopt'};
     my $r = AMOS7::N7FS::Seal::relay_nodes(
-        qw| root |    => _seal_root(),
-        qw| from |    => $holders->{$from}{'spec'},
-        qw| to |      => $holders->{$to}{'spec'},
-        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
-        qw| room |    => sub {
+        qw| root |       => _seal_root(),
+        qw| from |       => $holders->{$from}{'spec'},
+        qw| to |         => $holders->{$to}{'spec'},
+        qw| dry_run |    => $o{'dry-run'} ? TRUE : FALSE,
+        qw| list_only |  => $o{'list'}    ? TRUE : FALSE,
+        qw| adopt_only | => $o{'adopt'}   ? TRUE : FALSE,
+        qw| room |       => sub {
             AMOS7::N7FS::Placement::holder_room( $holders->{$to}, shift );
         },
     );
+    my $tag = _relay_tag( $holders->{$to}{'spec'} );
+    if ( $o{'list'} ) {
+        _relay_list_write(
+            $holders->{$from}{'spec'},
+            $holders->{$to}{'spec'},
+            $tag, $r->{'names'}
+        ) if not $o{'dry-run'};
+        say_line(
+            $o{'dry-run'} ? 'would list ' : 'listed ',
+            scalar $r->{'names'}->@*,
+            " blobs, $r->{'bytes'} bytes for $to on $from"
+        );
+        say_line("on $from : n7fs-push <holder-dir> relay-list.$tag <alias>")
+            if not $o{'dry-run'};
+        say_line("then : n7fs relay $from $to -adopt") if not $o{'dry-run'};
+        return 0;
+    }
+    _relay_pending_clear( $holders->{$to}{'spec'}, $tag )
+        if $o{'adopt'}
+        and not $o{'dry-run'}
+        and not $r->{'waiting'};
+    say_line( $r->{'waiting'}, ' nodes wait : their blobs have not arrived' )
+        if $r->{'waiting'};
     say_line(
         $o{'dry-run'} ? 'would relay ' : 'relayed ',
         $r->{'nodes'},
@@ -1491,6 +1521,87 @@ sub cmd_relay {
     return 0;
 }
 
+## a relay list is named by a tag of its target, not the target's name ##
+sub _relay_tag {
+    require AMOS7::N7FS::Sum;
+    require AMOS7::N7FS::Holder;
+    my $spec = AMOS7::N7FS::Holder::holder_canonical(shift);
+    return substr(
+        bmw_b32(
+            AMOS7::N7FS::Sum::bmw384_bytes( "p7 n7fs relay v1\0" . $spec )
+        ),
+        0, 13
+    );
+}
+
+sub _relay_pending_path {
+    my $tag = shift;
+    return host_dir(%common) . "/relay-pending/$tag.json";
+}
+
+## the list goes onto the sending holder ; home keeps the same names as
+## pending, so holder-gc on the target leaves them until they are adopted
+sub _relay_list_write {
+    my ( $from, $to, $tag, $names ) = @ARG;
+    require AMOS7::N7FS::Holder;
+    require JSON::PP;
+    my $json = JSON::PP->new->canonical;
+    my $dir  = host_dir(%common) . '/relay-pending';
+    AMOS7::N7FS::make_dirs( $dir, 0700 );
+    my $pending = _relay_pending_path($tag);
+    my %all;
+
+    if ( -f $pending ) {
+        my $old = eval { $json->decode( AMOS7::N7FS::read_file($pending) ) };
+        $all{$ARG} = TRUE for @{ $old->{'blobs'} // [] };
+    }
+    $all{$ARG} = TRUE for @{$names};
+    my $tmp = "$pending.new";
+    unlink $tmp;
+    AMOS7::N7FS::write_new_file(
+        $tmp,
+        $json->encode(
+            { qw| holder | => $to, qw| blobs | => [ sort keys %all ] }
+        )
+    );
+    rename $tmp, $pending or fail("cannot keep the pending list : $OS_ERROR");
+    my $body = $json->encode( { qw| blobs | => $names } );
+    my $h    = AMOS7::N7FS::Holder::holder_parse($from);
+
+    if ( $h->{'type'} eq qw| local | ) {
+        my $final = "$h->{'dir'}/relay-list.$tag";
+        unlink "$final.new";
+        AMOS7::N7FS::write_new_file( "$final.new", $body );
+        rename "$final.new", $final
+            or fail("cannot write the list : $OS_ERROR");
+        return;
+    }
+    my $list = "$dir/relay-list.$tag";
+    unlink $list;
+    AMOS7::N7FS::write_new_file( $list, $body );
+    AMOS7::N7FS::Holder::holder_put( $from, $list, "relay-list.$tag",
+        qw| list |, TRUE );
+    unlink $list;
+    return;
+}
+
+sub _relay_pending_clear {
+    my ( $to, $tag ) = @ARG;
+    unlink _relay_pending_path($tag);
+    return;
+}
+
+## blob names a push may have delivered to this holder, not yet adopted ##
+sub _relay_pending_names {
+    my $spec = shift;
+    require JSON::PP;
+    my $path = _relay_pending_path( _relay_tag($spec) );
+    return () if not -f $path;
+    my $data = eval { JSON::PP::decode_json( AMOS7::N7FS::read_file($path) ) }
+        // fail("pending relay list is invalid : $path");
+    return @{ $data->{'blobs'} // [] };
+}
+
 sub cmd_holder_gc {
     require AMOS7::N7FS::Seal;
     my $holder = shift // fail('holder-gc needs a holder');
@@ -1498,6 +1609,7 @@ sub cmd_holder_gc {
     my $r = AMOS7::N7FS::Seal::holder_gc(
         qw| root |      => _seal_root(),
         qw| holder |    => $holder,
+        qw| keep |      => [ _relay_pending_names($holder) ],
         qw| only_root | => $o{'only-root'} ? TRUE : FALSE,
         qw| delete |    => $o{'delete'}    ? TRUE : FALSE,
     );
@@ -1665,8 +1777,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,,.,...,,,.,,.,,,,.,.,,,.,.,,.,,...,,,.,..,,...,.,.,..,,,,.,.,,,.,.,...,
-#VYWFJQLC7LTNX4KUYYXVTITC3BDVH23ZW4EVVQKMJQAAWITAIAOTBPZAVSMBPXPTRXHVQSS3KXU74
-#\\\|KMWQSSW2TIR4TUYTSLYYJQY2J767VB4VBMZLZBHKG2XGRPJUCEN \ / AMOS7 \ YOURUM ::
-#\[7]WW22LQQ76Q7PSGI6LHMFIHP3EWA2QTLAKJIQLC7PGRB6KOBNISDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,,.,,,..,...,..,,.,.,,..,.,,,..,,...,...,..,,,.,,,,.,.,,,..,,
+#QGE6S4LQPZUAP3DNBBJHVGJT4BTVV7XZGTL5WNTD2WN63FIE2UQ525KOFAHRAPA3AT6KHVKRO7X7W
+#\\\|D7GFNPQ7FCTPTBETLHN4MO77I5B3ZMW4PUOKTME3JZSIHN2XATU \ / AMOS7 \ YOURUM ::
+#\[7]PO7SSYMD4BNQVJEYURIVJ35WDJWFA6ITRTI3Y5NC2HXFWUK6N2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

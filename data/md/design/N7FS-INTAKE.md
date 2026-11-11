@@ -58,27 +58,62 @@ interrupted copy finished, old receipt ignored, drain within one domain,
 recovery from the target, packed and single content blobs, a reserve refused,
 relays to and from an ssh holder through the fake ssh ].
 
+## as built [ part 2 : fan-out by push ]
+
+with several remote holders, home seals and uploads ONCE, to a hub holder,
+and the hub pushes the same ciphertext on. home's uplink carries the data
+once instead of once per holder ; home only adopts [ small map uploads ].
+
+```
+n7fs relay <hub> <far> -root-key <key> -list    at home : list + pending
+n7fs-push <holder-dir> relay-list.<tag> <alias>  on the hub : no n7fs key
+n7fs relay <hub> <far> -root-key <key> -adopt   at home : map what arrived
+holder-check <far>                              then it counts
+```
+
+- `-list` writes `relay-list.<tag>` into the hub's holder directory : blob
+  names only [ ciphertext the hub already holds ]. `<tag>` is a checksum of
+  the target, not its name. home keeps the same names under
+  `<host-dir>/relay-pending/`
+- `n7fs-push` asks the receiver which listed blobs it has, sends the rest one
+  by one, and is safe to rerun. `-bwlimit <bytes/s>` caps it
+- `n7fs-receive` is the forced command on the receiving host. it answers
+  `has <names>` and `put <name> <size>` only ; it accepts a blob only when
+  its bytes match its checksum name, publishes by link [ never replaces ],
+  and refuses everything else. a store head is not named by its checksum, so
+  it can never be written. `-max-bytes <n>` caps the directory
+- `-adopt` maps the nodes whose blobs arrived with the right size and reports
+  how many still wait. pending names clear once nothing waits
+- `holder-gc` on the target keeps pending names until they are adopted
+
+the receiving host's `authorized_keys`, one line per sending host :
+
+```
+command="<repo>/bin/n7fs-receive <holder-dir>",restrict ssh-ed25519 AAAA..
+```
+
+the sending host needs that key's private half and a `Host` alias for the
+receiver in its own `~/.ssh/config`. a stolen sending key can only add blobs
+that match their names ; `-max-bytes` bounds how much. running `n7fs-push`
+from a timer on the hub is a deployment step, not built here.
+
+tests : `bin/test-scripts/test-n7fs-push.pl` [ list, adopt before arrival,
+push, rerun, gc keeps pending, adopt, check, recovery ; the receiver refusing
+wrong bytes, a head, a replacement, other requests, a path, a full holder ].
+
 ## open [ owner decisions ]
 
-1. **background push without home** : a small agent on the intake host pushes
-   blobs straight to a durable host. that needs an ssh key on the intake host
-   that the durable host accepts. proposal : a forced command in the durable
-   host's `authorized_keys` that only appends new blobs into the holder
-   directory [ write to `<name>.upload`, check the name against the checksum,
-   rename ; never overwrite, never delete, refuse the head locator ]. this
-   changes the rented servers' trust set-up, so it is the owner's call
-2. **what the agent pushes** : home writes a relay list to the intake, the
-   blob names to forward and the destination, signed by the host key. names
-   are ciphertext the intake already holds, so the list reveals nothing new.
-   a dishonest intake can only skip or add blobs ; adoption checks both
-3. **adoption timing** : with background pushes, blobs wait unmapped on the
-   durable host until home adopts. `holder-gc` must then skip names in a
-   pending-relay list, or gc runs only after adoption
-4. whether `place` should seal to an intake first when it is the fastest
-   holder, and relay from there [ the intake as a write cache ]
+1. **which hosts push to which** : one hub with a key into each other remote
+   [ simplest, one origin ], or pairwise keys. the hub then also needs the
+   bandwidth to every other provider
+2. **the first receiver's role** : an intake that counts zero until the
+   copies are confirmed, or a durable holder that counts at once and forwards.
+   both work with the commands above ; drain only applies to an intake
+3. whether `place` should seal to the hub only and relay from there by
+   itself [ the hub as a write cache ], instead of the manual list \ adopt
 
-#,,,,,..,,.,,,,,,,,,,,..,,...,,..,,..,..,,,.,,..,,...,...,,.,,...,.,.,,,,,.,.,
-#3ZMHVX77S4WT7AMS7SDBJUV64IP2F24LRQW4QAZ35PD2K5N5BUN2FHFRKBFOL25AWPVOH3CGKKOC2
-#\\\|Y5KFB6A3QWGQEFGUTDSIHGHGPOL2Y46THNIL3THWPVNESUI3TH4 \ / AMOS7 \ YOURUM ::
-#\[7]LTIT4JNV4YAOBELWNFDQXEAGS5H2UAOKXWAOLYCMFQQZ7WNPBGAA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,...,...,,..,,,.,...,,,.,,..,..,,...,...,...,,.,,..,,..,,...,
+#XRBUTR4QNKYWSD3ODPCG4XSU45SFMYWCSKJ5RVMF2XA4STQGLNGLGDLXK7O7FJI4RNVTKVWDG4LZ4
+#\\\|5UQUHP5UFJJE24AN4AXPQADKZWATR6YIPYFIWPF4EMO5OG7E4RF \ / AMOS7 \ YOURUM ::
+#\[7]K3W53434T3GYZDWVH2GOTU2E4PTGJWSNHET3N2ZVR2IPHXHMAKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
