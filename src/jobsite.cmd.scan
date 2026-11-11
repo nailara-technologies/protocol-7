@@ -13,6 +13,36 @@ return {
 my $args      = $call->{'args'} // '';
 my $full_mode = ( $args =~ m{:full:} ) ? TRUE : FALSE;
 
+## a scanning cycle whose drain poll timer is gone can never finish : the ##
+## poll's own backstop cannot run without the timer                       ##
+## [ UFG : seen live, no poll at all while the remote queue was empty ]   ##
+if ( <jobsite.cycle> eq qw| scanning | ) {
+    my $timer = <jobsite.queue_poll_timer>;
+    my $live
+        = (     defined $timer
+            and $timer->can(qw| is_active |)
+            and $timer->is_active ) ? TRUE : FALSE;
+    my $poll  = <jobsite.queue_poll>  // {};
+    my $since = $poll->{'last_reply'} // $poll->{'started'}
+        // <jobsite.last_scan> // 0;
+    my $limit = <jobsite.cfg.queue_poll_timeout> // 900;
+    if ( not $live and time - $since >= $limit ) {
+        my $why = sprintf 'scanning for %d s with no live drain poll timer',
+            time - $since;
+        <[base.logs]>->(
+            0, ': scan : BACKSTOP : %s -- a cause was missed, resetting', $why
+        );
+        <jobsite.last_fetch> //= { 'replies' => 0, 'failed' => 0 };
+        <jobsite.last_fetch>->{'failed'} ||= 1;
+        <jobsite.last_fetch>->{'why'} = "scan backstop : $why";
+        <jobsite.last_fetch>->{'at'}  = time;
+        <jobsite.queue_poll_timer>    = undef;
+        <jobsite.fetch_saw_queue>     = FALSE;
+        <jobsite.cycle>               = qw| idle |;
+        <[jobsite.state.persist]>;
+    }
+}
+
 if ( <jobsite.cycle> ne qw| idle | ) {
     return {
         'mode' => qw| false |,
@@ -27,8 +57,8 @@ if ( <jobsite.cycle> ne qw| idle | ) {
 my $msg = $full_mode ? 'full scan started' : 'scan started';
 return { 'mode' => qw| true |, 'data' => $msg };
 
-#,,..,,.,,,..,...,.,.,.,,,.,,,,,.,,..,.,,,...,..,,...,...,..,,...,...,,..,,..,
-#33ELIEONEIKB4EZHSJFWQI44OPFLCXVXY2O7XBJS5RRF3S23PLIFWFS6QHNRI5SBTJM4PMAHFWVL2
-#\\\|G3JW4VIKZT3TQBESV6LBZQYQALSWP4IWL34VSW35UK37AV4A4OX \ / AMOS7 \ YOURUM ::
-#\[7]LO43ANA7CZDNOG6RDMZZRKHR4UVMPBL42YGW3V7VP3P3AXTXM6DI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,..,,,,,...,..,,.,,,...,.,.,,.,,..,,...,...,,..,,..,,.,,.,.,,,,,
+#6BOEVX76OB65MOOHO3LFRW4OW5ZM2B3WSBG7RXSVUPYAQZNWS7SDPISMXIXBXDAZPUZRZ7DIS4KCS
+#\\\|ZSAEPSABDIG522QSQJMF25CIWXSEDXXFNZIDPX5AIDX7L7SHG7O \ / AMOS7 \ YOURUM ::
+#\[7]WDRSGHIZMBE6D4AKNKSQOC65C4UD6XKJKEOXFS4YF7H45GYL7CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
