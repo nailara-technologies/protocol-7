@@ -72,7 +72,8 @@ use warnings;
 ## n7fs unseal <disk> -root-key <file> -from <dir> <tree-or-address> <target>
 ## n7fs seal-recover -root-key <file> -from <dir> [ -tree <name> ] <target-dir>
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
-## n7fs holder-check <holder> -root-key <file>   also writes a receipt
+## n7fs holder-check <holder> -root-key <file>   also writes a receipt ;
+##                 <holder> : a spec or a registered name [ also holder-gc ]
 ## n7fs holder add <name> <holder> -role durable|intake -domain <label>
 ##                 [ -owned ] [ -quota <size> ] [ -reserve <size> ]
 ##                 [ -categories <a,b> ] [ -min-priority <n> ]  what place
@@ -1424,9 +1425,20 @@ sub cmd_seal_recover {
     return 0;
 }
 
+## a holder argument : a spec [ has ':' or '/' ] or a registry name ##
+sub _holder_arg {
+    my $arg = shift;
+    return $arg if $arg =~ m{[:/]};
+    require AMOS7::N7FS::Placement;
+    my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+    my $h       = $holders->{$arg}
+        // fail("no holder named $arg [ a spec holds ':' or '/' ]");
+    return $h->{'spec'};
+}
+
 sub cmd_holder_check {
     require AMOS7::N7FS::Seal;
-    my $holder = shift // fail('holder-check needs a holder');
+    my $holder = _holder_arg( shift // fail('holder-check needs a holder') );
     fail('holder-check : unexpected arguments') if @ARG;
     my $r = AMOS7::N7FS::Seal::holder_check(
         qw| root |    => _seal_root(),
@@ -1679,7 +1691,7 @@ sub _relay_pending_names {
 
 sub cmd_holder_gc {
     require AMOS7::N7FS::Seal;
-    my $holder = shift // fail('holder-gc needs a holder');
+    my $holder = _holder_arg( shift // fail('holder-gc needs a holder') );
     fail('holder-gc : unexpected arguments') if @ARG;
     my $r = AMOS7::N7FS::Seal::holder_gc(
         qw| root |      => _seal_root(),
@@ -1882,8 +1894,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,.,.,,,,,,..,,.,,,,.,.,,,,,.,..,,...,...,..,,...,...,.,,,,,.,,,.,.,.,.,,,
-#JEBTGXVSCCRFYFUWMGDF6AYNPG2IU7GQFQWZ335XVPSFJTF4ZFPARBD5WTDRMUGT757ARWCEQDNWU
-#\\\|IPOLYTEI6SSPQIAW6KPURMOJUZTFP3SOLYKVU22S5ITBLUU327D \ / AMOS7 \ YOURUM ::
-#\[7]CMV34I3NHS5JKNBX2YQJBQ35VUR2MYOUDMTOARYE2L2AMQRYDMBY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,,,..,,.,,,,,,,,.,,,,,,,,,,,,,,..,,...,...,,.,,..,,,..,.,.,.,,,
+#7BVFVJNYUMDI4KCF2243XBJCCRKYSOPM2MO2ZSKU4X5U4VZDWCZY5GNWQQZEPDDZYQ6KOBXB43LAO
+#\\\|U6XZL6B7EMHVOCY4472ACJKLLGAWWC4M4RA5R4BAK7NUCKUABJ2 \ / AMOS7 \ YOURUM ::
+#\[7]2VPMM2ECG7AQNHECZREFIIIAJB7DKN5QBTW3FBW3RI7GSVXSPABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
