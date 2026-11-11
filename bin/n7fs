@@ -81,6 +81,9 @@ use warnings;
 ## n7fs holder-drain <disk> <name> -root-key <key> [ -dry-run ]
 ##                 drop what is safely held elsewhere ; never below a target ;
 ##                 only nodes of that disk [ disk ids in the map entries ]
+## n7fs holder-prune <holder> -root-key <key> [ -legacy ] [ -dry-run ]
+##                 unmap entries no attached disk still lists as live ;
+##                 entries without disk ids only with -legacy
 ## n7fs holder-gc <holder> -root-key <key> -only-root [ -delete ]
 ##                 unreferenced blobs of a one-root holder ; dry run by default
 ## n7fs relay <from> <to> -root-key <key> [ -dry-run ]  registered holders :
@@ -159,7 +162,7 @@ my %o    = ( qw| trust | => [] );
 GetOptionsFromArray(
     \@args, \%o,
     qw| root=s root-key=s vault-dir=s host-dir=s host-key=s parent-key=s parent-cmd=s trust=s@
-        name=s intent=s disk=s index=s index-base=s epoch=s remove keep prune
+        name=s intent=s disk=s index=s index-base=s epoch=s remove keep prune legacy
         dry-run out=s format=s chksum=s holder=s all allow-rollback force reason=s
         free=s older=s now tree=s@ all-trees category=s category-rule=s@ owners
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
@@ -226,6 +229,7 @@ my %run = (
     qw| holder |         => \&cmd_holder,
     qw| holder-gc |      => \&cmd_holder_gc,
     qw| holder-drain |   => \&cmd_holder_drain,
+    qw| holder-prune |   => \&cmd_holder_prune,
     qw| relay |          => \&cmd_relay,
     qw| placement |      => \&cmd_placement,
     qw| place |          => \&cmd_place,
@@ -246,8 +250,8 @@ $PROGRAM_NAME = "n7fs $command";
 
 ## commands that write to holders run one at a time per host : a gc must ##
 ## never delete what a running place \ seal \ relay just published       ##
-my %holder_writer
-    = map { $ARG => 1 } qw| seal place relay holder-drain holder-gc shred |;
+my %holder_writer = map { $ARG => 1 }
+    qw| seal place relay holder-drain holder-prune holder-gc shred |;
 our $HOLDER_LOCK;
 if ( $holder_writer{$command} and not $o{'dry-run'} ) {
     require Fcntl;
@@ -257,8 +261,8 @@ if ( $holder_writer{$command} and not $o{'dry-run'} ) {
         or fail("cannot open the holder lock : $OS_ERROR");
     flock( $HOLDER_LOCK, Fcntl::LOCK_EX() | Fcntl::LOCK_NB() )
         or fail( 'another n7fs command is writing to holders on this host [ '
-            . 'seal, place, relay, holder-drain, holder-gc, shred ] '
-            . ': wait for it to finish' );
+            . 'seal, place, relay, holder-drain, holder-prune, '
+            . 'holder-gc, shred ] : wait for it to finish' );
 }
 
 my $code = eval { $run{$command}->(@args) };
@@ -1484,6 +1488,38 @@ sub cmd_holder_drain {
     return 0;
 }
 
+sub cmd_holder_prune {
+    require AMOS7::N7FS::Placement;
+    my $name = shift // fail('holder-prune needs a holder name');
+    fail('holder-prune : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Placement::holder_prune(
+        _placement_opt(undef),
+        qw| host |    => host_signer(),
+        qw| name |    => $name,
+        qw| legacy |  => $o{'legacy'}  ? TRUE : FALSE,
+        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE
+    );
+    say_line(
+        $o{'dry-run'} ? 'would drop ' : 'dropped ',
+        $r->{'drop'},
+        ' nodes, ',
+        $r->{'bytes'},
+        ' bytes from ',
+        $name,
+        $r->{'trees'} ? " and $r->{'trees'} trees" : ''
+    );
+    say_line( 'kept ', $r->{'kept'}, ' nodes still live or unconfirmed' );
+    say_line( 'kept ', $r->{'legacy_kept'},
+        ' nodes without disk ids : -legacy drops them too' )
+        if $r->{'legacy_kept'};
+    if ( $o{'dry-run'} ) {
+        say_line( 'would drop ', $ARG ) for $r->{'addresses'}->@*;
+    }
+    say_line('bytes stay until holder-gc')
+        if $r->{'drop'} and not $o{'dry-run'};
+    return 0;
+}
+
 sub cmd_relay {
     require AMOS7::N7FS::Placement;
     require AMOS7::N7FS::Seal;
@@ -1542,6 +1578,13 @@ sub cmd_relay {
         " bytes from $from to $to",
         $r->{'trees'} ? " with $r->{'trees'} trees" : ''
     );
+    say_line(
+        $o{'dry-run'}
+        ? 'would merge disk ids for '
+        : 'merged disk ids for ',
+        $r->{'merged'},
+        ' existing nodes'
+    ) if $r->{'merged'};
     say_line( 'skipped ', $r->{'missing'},
         ' nodes : their blob is missing on the source' )
         if $r->{'missing'};
@@ -1814,8 +1857,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,.,,,,,,,,,,.,.,,.,,,,.,...,.,.,,,.,...,..,,...,...,,.,,.,.,...,.,.,...,
-#E3NJA7KKGSEOJLP4CNRHJIX3TAXZ4DVHZH3WQKR6M3SB7ZMDLVQRO6QYPI45GVF62RD4IN2AFZJQO
-#\\\|UY7QNTLHABWKIRXHJ7P4YPSTT37YRDEIBGDTYLY2W3KR34HI34Z \ / AMOS7 \ YOURUM ::
-#\[7]3LWKCECE76UBIPYKHVSFA5BCSTXA44QSZM6XXM7NQEE6I6NXPGAY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,..,,...,,..,,,.,,,.,,,,,.,,,..,,...,...,,,,,...,,.,,,..,.,.,
+#GSLONVSOTZ4UXQIPAASWYJLXT7SI3NOD5IUFQE2GINO7LYVGCKMVP37PNAC4FDQ33VPVTP56ADJSM
+#\\\|AOBYJHNE532YUYIZL7Z2KUDGGNE6HUHD3RXB5AVELRJFLGMXEXW \ / AMOS7 \ YOURUM ::
+#\[7]QJCELWWRQ4SMRWIGODYFONDVIZBUE6BKLBKJVLLHQA7FKECIDMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

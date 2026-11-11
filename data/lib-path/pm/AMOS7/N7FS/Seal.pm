@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.R2DQZEY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.JR56PHQ |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -1224,11 +1224,22 @@ sub relay_nodes {
     my ( undef, $fhead, $fmap ) = _context( $root, $from, TRUE );
     refuse('no sealed head on the source holder') if not defined $fhead;
     my ( $counter, $thead, $tmap ) = _context( $root, $to, FALSE );
-    my %wanted    = map { $ARG => TRUE } @{ $opt{'addresses'} // [] };
-    my @addresses = sort grep {
-        not exists $tmap->{'nodes'}{$ARG}
-            and ( not %wanted or $wanted{$ARG} )
-    } keys $fmap->{'nodes'}->%*;
+    my %wanted = map { $ARG => TRUE } @{ $opt{'addresses'} // [] };
+    my ( @addresses, @merges );
+
+    foreach my $address ( sort keys $fmap->{'nodes'}->%* ) {
+        next if %wanted and not $wanted{$address};
+        if ( not exists $tmap->{'nodes'}{$address} ) {
+            push @addresses, $address;
+            next;
+        }
+        my $source = $fmap->{'nodes'}{$address}{'disks'};
+        my $target = $tmap->{'nodes'}{$address}{'disks'};
+        next         if ref $source ne qw| HASH |;
+        $target = {} if ref $target ne qw| HASH |;
+        push @merges, $address
+            if grep { not $target->{$ARG} } keys %{$source};
+    }
     my $fsizes = holder_sizes($from);
     ## blobs an interrupted relay left there are reused, head or not ##
     my $tsizes = holder_sizes($to);
@@ -1270,6 +1281,7 @@ sub relay_nodes {
     $used += $ARG->{'length'} // 0 for values $tmap->{'nodes'}->%*;
     my $result = {
         qw| nodes |   => scalar @addresses,
+        qw| merged |  => scalar @merges,
         qw| blobs |   => $copied,
         qw| bytes |   => $bytes,
         qw| missing | => scalar @missing,
@@ -1284,7 +1296,7 @@ sub relay_nodes {
     return $result
         if $opt{'dry_run'}
         or $opt{'list_only'}
-        or not @addresses;
+        or not @addresses and not @merges;
     ## quota and reserve of the target, as place keeps them ##
     if ( ref $opt{'room'} eq qw| CODE | ) {
         my $room = $opt{'room'}->($used);
@@ -1340,6 +1352,11 @@ sub relay_nodes {
         $copy{'disks'} = { %{ $entry->{'disks'} } } if $entry->{'disks'};
         $tmap->{'nodes'}{$address} = \%copy;
     }
+    foreach my $address (@merges) {
+        my $source = $fmap->{'nodes'}{$address}{'disks'};
+        my $target = $tmap->{'nodes'}{$address}{'disks'} //= {};
+        $target->{$ARG} = TRUE for keys %{$source};
+    }
     delete $tmap->{'_root_keys'};
     my $trees = 0;
     foreach my $name ( sort keys %{ $fmap->{'trees'} // {} } ) {
@@ -1352,8 +1369,12 @@ sub relay_nodes {
         $trees++;
     }
     fault(qw| relay:before-commit |);
-    $counter->{'version'} = _commit( $root, $to, $counter, $tmap,
-        { qw| relay | => \@addresses } );
+    $counter->{'version'} = _commit(
+        $root, $to, $counter, $tmap,
+        {   qw| relay | => \@addresses,
+            @merges ? ( qw| merge_disks | => \@merges ) : ()
+        }
+    );
     return {
         %{$result},
         qw| trees |   => $trees,
@@ -1374,8 +1395,8 @@ sub shred_node {
 
 1;
 
-#,,..,,,,,..,,,.,,,..,..,,.,,,,,,,,.,,...,,..,..,,...,...,..,,.,.,,,,,,,.,,.,,
-#UG5MLS4QOZ4HDI2IUHKJY67SRSQSQ5N4DSZJGKUTCEQWDPP7W35RIPXYTAYULDC24GYDXZGHW6RZM
-#\\\|2BTPER6E2675YGHETW5YBMH6AA323L2E3U7AH4AWIUFUA55VG55 \ / AMOS7 \ YOURUM ::
-#\[7]5MZGE7BRBESDMTKJDC5W7HGVIBLWW7WGGNGLUOMG53FC2U75ZKDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,.,,,..,.,,,..,,.,.,.,.,,.,,,,,,..,,...,..,,.,.,,.,,.,.,.,.,,.,,
+#MOF2CTJKYZTLJZWPAOAJA443E72LBVY25ICTN67ZASYEGGSQEHODEEHNZLSXOPAELAI6VHOU4JPW2
+#\\\|HC3TXUWSLXKGHFEUIUZDURMPLG5UQRD3Q4LMM4LBFN4G3FJOBPD \ / AMOS7 \ YOURUM ::
+#\[7]FKA3GOOW5VFBQ3V4EMQ25LEQWTNPZZSRJLPQUDROF5AROUT3PYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

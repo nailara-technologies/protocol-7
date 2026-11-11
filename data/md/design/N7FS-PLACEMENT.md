@@ -72,11 +72,20 @@ yet allow a drain. bytes stay until `holder-gc`.
 
 each map entry carries the ids of the disks it was sealed from [ `disks` ;
 seal adds the id when a node is already mapped from another disk, relay
-copies the set ]. a drain looks only at nodes of the named disk : a node that
-other disks still name loses this disk's id and stays mapped, an entry with
-no disk ids [ maps from before disk ids ] counts as the disk's only while it
-is live there, otherwise it is kept and reported. a wrong disk argument so
-leaves the holder as it was.
+copies the set and merges it into an entry the target already holds ]. a drain
+looks only at nodes of the named disk : a node that other disks still name
+loses this disk's id and stays mapped, an entry with no disk ids [ maps from
+before disk ids ] counts as the disk's only while it is live there, otherwise
+it is kept and reported. a wrong disk argument so leaves the holder as it was.
+
+`holder-prune <holder> -root-key <key> [ -dry-run ]` is the explicit cleanup
+for orphaned map entries. it reads every disk attached on this host under the
+disk root and drops an entry only when none lists it as live and its disk ids
+are all confirmed stale. an entry without disk ids may belong to a detached
+disk or to another host's disk : it goes only with `-legacy`. an entry tagged for a detached disk stays,
+because that disk's live set cannot be checked. the dry run prints every
+address it would drop. pruning uses the same map commit and holder-writer lock
+as draining ; bytes stay until `holder-gc`.
 
 `place -exclude <name>` and `placement -exclude <name>` read that holder but
 do not count it, so a move is :
@@ -145,8 +154,8 @@ as described above. relays and intake draining : `N7FS-INTAKE.md`.
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,..,...,,..,.,,,.,.,,.,,,,.,...,..,,...,.,,,..,,...,...,..,,,,,,,.,,.,.,,..,
-#BVRIINDBFN5W26R3UYLFPIIGD5KREEVKBIXODV4UOCFUBV4JAPGEWBIRKOUWYHJ6JNHJQWE42VAS4
-#\\\|COXZETA3UEIVB5VFQZL2DCF7WFPXRQJF342BQO2J7ZUPSV5POSQ \ / AMOS7 \ YOURUM ::
-#\[7]46XAISZLEOTAHGKLARGNFXNJMBJBRGJSWORSUUSK44QVHLFBDABI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,.,,..,.,,,,..,,,,,,,.,...,...,..,,...,...,,,.,...,,,.,...,.,.,
+#4R42MTJDIZI2OOMFE3M7QQ663GM2LK5WMF6AVMVMVMCP4VZ4FXZAVBDO6LHOII7TV7PCECICUQCU2
+#\\\|F37XEJOBVOI3EHUCHWU7WFEZOQTWHEUXHGEL2A5LOXTIEY45V6N \ / AMOS7 \ YOURUM ::
+#\[7]KJGHC4SCGNF4VXDCOKIUIJSUFTU4AUNCHROJG35BDEIRT43W7EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
