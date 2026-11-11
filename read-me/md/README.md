@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32Q5REUMEA-10622.0 :::
+::: SOURCE-CODE VERSION :: 32Q5VN46AA-10623.0 :::
 
 # [ [nailara 'protocol seven' network](http://protocol-7.network/) ]
 
@@ -520,8 +520,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,.,.,.,,.,,..,,.,,,,,.,.,,,,,.,,,,,,..,,.,,..,,...,...,.,,,...,.,,,,..,.,,,
-#B6J6SGDS4BWOTY6NMWMHLWWVM7MDRN3VJWPVP3DWSZ2L54YZI3FFFIKTQBM2EXA6WDHBXV6WRI3GU
-#\\\|V7X34WO5NLKGHW47G4EQWRQIQIOUKRIE5ALIQDG5L73PKQZWFAY \ / AMOS7 \ YOURUM ::
-#\[7]DAQL4XCVXDJTTPG42MVMVVXUXSTZ6MMWKEN7UDLZ4KUJUZJVR2DY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,,,..,,..,,,,,,,.,,.,.,...,,.,,..,,...,...,..,,..,,.,,,,.,,,,.,
+#7QGCX7IMBAS7QQ673C6VJOMT7H6UM6ENGU2HCSMTWMC2X35KGXIN3VGB2MO327CEAZ2HXZSHLTHDM
+#\\\|ZTBGDFJFQPUH62XMX6H6PIVLR5KD7BGMJRMUJSFERLHLBVS7LXE \ / AMOS7 \ YOURUM ::
+#\[7]65DBACEQYFMRNWHVDYQSL4QM32BPPXX7QRDR35PSOETJTOYMDIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
