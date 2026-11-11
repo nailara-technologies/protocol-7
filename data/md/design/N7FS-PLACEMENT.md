@@ -107,6 +107,19 @@ intake, holder-to-holder copying, calculated placement, erasure coding.
 - `-bwlimit <size>` caps uploads to ssh holders per second, for links that
   fail under sustained load
 
+## holder filters [ 2026-11-11 ]
+
+```
+holder add <name> <spec> ... [ -categories <a,b> ] [ -min-priority <n> ]
+```
+
+`place` puts a node on a holder only when one of the node's categories is in
+the holder's list [ when it has one ] and its priority is at least the
+holder's lowest. a holder without either takes every category. for small
+off-site holders that should carry only what matters most, while the large
+ones take everything. what the filters exclude stays in the under-replicated
+list, never dropped. `holder list` shows them.
+
 ## receipts bind a head version [ 2026-11-11 ]
 
 a receipt counts only while the holder's head is the version it checked, so
@@ -124,8 +137,8 @@ as described above. relays and intake draining : `N7FS-INTAKE.md`.
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,.,,,..,,..,,,.,.,,,...,..,,..,,...,,,.,.,,,..,,...,...,..,,..,,,.,,..,,..,,
-#5GY4QNWQ3OKE5TQ5ZUC7J3BRXPI3LXI7M372OYZOPWLMNWMGQTZLH5A6TPCKGM7FMLTRCU2SADDOU
-#\\\|E2A5C5CYCBAGTGVXEIRUVTNGHISIFEJHFPZNYC2RROWLQPL5PEP \ / AMOS7 \ YOURUM ::
-#\[7]WDT54DC27NGWPIES467LOXZJB7J4ISSAEFUFOIHEUPCTT6OTS4BI 7  DATA SIGNATURE ::
+#,,,,,...,...,,,.,,..,,..,..,,,..,,,.,..,,.,,,..,,...,...,.,.,.,,,...,.,,,..,,
+#4QYNUKFICLAV3HGYAKZ6ZBN5IXE27CY2RAUJGQV7KCZJ55UX3HDKLAVQH23DMXMNN4KKCLJ7I6GES
+#\\\|WW6L7PG6LZA2NO7ETYLHO6DUNCELM5ZK2BTJ5YHCX3RG7IU5WEB \ / AMOS7 \ YOURUM ::
+#\[7]DEAVL567JCCUXFU7WU2VCVUSDUXGYHRZLGRBWY4544SDWCZWHADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

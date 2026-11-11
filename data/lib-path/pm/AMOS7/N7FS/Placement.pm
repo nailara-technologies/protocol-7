@@ -18,11 +18,11 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.SXPL56I |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.3YXGZVA |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh placement_report place_missing parse_size holder_drain
-    holder_room |;
+    holder_room holder_accepts |;
 
 use JSON::PP;
 use AMOS7::N7FS qw| b32 unb32 read_file write_new_file make_dirs refuse |;
@@ -79,8 +79,21 @@ sub holder_add {
     my $domain = $opt{'domain'} // '';
     refuse('a holder needs -domain <label>')
         if $domain !~ m|\A[A-Za-z0-9_.:-]{1,64}\z|;
+    ## which categories place may put there : a list, a lowest priority ##
+    my @categories = grep {length} split m|,|, $opt{'categories'} // '';
+    foreach my $c (@categories) {
+        refuse( 'category name is invalid [ %s ]', $c )
+            if $c !~ m|\A[A-Za-z0-9_.-]{1,64}\z|;
+    }
+    refuse('-min-priority must be a whole number')
+        if defined $opt{'min_priority'}
+        and $opt{'min_priority'} !~ m|\A\d+\z|;
     my $holders = holders_load(%opt);
     $holders->{$name} = {
+        @categories ? ( qw| categories | => [ sort @categories ] ) : (),
+        defined $opt{'min_priority'}
+        ? ( qw| min_priority | => $opt{'min_priority'} + 0 )
+        : (),
         qw| spec |    => $spec,
         qw| role |    => $role,
         qw| domain |  => $domain,
@@ -191,7 +204,7 @@ sub _disk_nodes {
                 // 0,
         };
     }
-    return ( $id, \%nodes, $replay );
+    return ( $id, \%nodes, $replay, $definitions );
 }
 
 ## which domains hold each node, from the holders' own maps
@@ -272,6 +285,23 @@ sub placement_report {
     };
 }
 
+## may place put a node there : one of its categories is in the holder's list
+## [ when it has one ] and at or above its lowest priority. a holder without
+## either takes every category
+sub holder_accepts {
+    my ( $h, $categories, $definitions ) = @_;
+    my %allowed = map { $ARG => TRUE } @{ $h->{'categories'} // [] };
+    foreach my $c ( @{$categories} ) {
+        next if %allowed and not $allowed{$c};
+        next
+            if defined $h->{'min_priority'}
+            and ( $definitions->{$c}{'priority'} // 0 )
+            < $h->{'min_priority'};
+        return TRUE;
+    }
+    return FALSE;
+}
+
 ## bytes n7fs may still put on a holder : its quota less what it holds, and
 ## never into the reserve. unknown free space with a reserve allows nothing
 sub holder_room {
@@ -294,7 +324,7 @@ sub holder_room {
 ## owned first, then most quota left. nothing is taken from another node.
 sub place_missing {
     my %opt = @_;
-    my ( $id,      $nodes,  $replay ) = _disk_nodes(%opt);
+    my ( $id, $nodes, $replay, $definitions ) = _disk_nodes(%opt);
     my ( $holders, $copies, $status ) = _copies(%opt);
     ## a holder that gets any file of a tree also gets the tree, so it can
     ## recover it by name
@@ -334,6 +364,9 @@ sub place_missing {
             next if $have{$domain};
             next if $status->{$name}{'nodes'}{$address};
             next if $left{$name} < $n->{'size'};
+            next
+                if not holder_accepts( $holders->{$name}, $n->{'categories'},
+                $definitions );
             push $plan{$name}->@*, $address;
             $left{$name} -= $n->{'size'};
             $have{$domain} = TRUE;
@@ -421,8 +454,8 @@ sub holder_drain {
 
 1;
 
-#,,..,.,.,,..,...,.,,,.,,,..,,.,,,,.,,...,.,.,..,,...,...,.,,,...,,.,,.,,,,.,,
-#ZKOL5MRTCUS76U7KS537YTL5UXT6C4E5RZZN24FBBNRGQNVGLW2CMYMJL77ATKUN2GELPVN5K2BTA
-#\\\|26MOVNOTSQGDYHYFMLTLCSYG3L7REDWB6P2PSFVPJW734JSX2OB \ / AMOS7 \ YOURUM ::
-#\[7]AFLFLW6Y5ETB2EAX5PL6ESDNY5AZ74ISVHRFART6JXUKJBGTAQBY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,..,,,.,,.,.,,.,,,..,.,,,,..,,,.,..,,...,...,.,.,,..,,,,,,.,,,,,,
+#MZK26A7VRGKIIPAFWXJPBYPQ42SEHNV727WBUJDTCAD6TNH2U4LD45JKEHW77UOXRD24DX2RDJBBS
+#\\\|QV66AJNLIIYSVSEBISOIAHVBCF77ZGUHNA3F4SCQQEBJXQW6ILW \ / AMOS7 \ YOURUM ::
+#\[7]OTZUM36M32IC74KNYJTYKHYFH5B3BHMI7TYFEGJU5MQBOFZWAMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
