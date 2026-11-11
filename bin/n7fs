@@ -75,6 +75,8 @@ use warnings;
 ## n7fs holder-check <holder> -root-key <file>   also writes a receipt
 ## n7fs holder add <name> <holder> -role durable|intake -domain <label>
 ##                 [ -owned ] [ -quota <size> ] [ -reserve <size> ]
+##                 [ -categories <a,b> ] [ -min-priority <n> ]  what place
+##                 may put there ; one passing category is enough
 ## n7fs holder list | remove <name>         registry in the vault
 ## n7fs holder-drain <disk> <name> -root-key <key> [ -dry-run ]
 ##                 drop what is safely held elsewhere ; never below a target
@@ -163,6 +165,7 @@ GetOptionsFromArray(
         layer=s incoming under=s depth=i limit=i group-by=s trees-only help
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
+        categories=s min-priority=s
         list adopt |
 ) or usage(2);
 usage(0) if $o{'help'};
@@ -1642,13 +1645,15 @@ sub cmd_holder {
         fail('holder add : unexpected arguments') if @ARG;
         my $h = AMOS7::N7FS::Placement::holder_add(
             _vault_opt(),
-            qw| name |    => $name,
-            qw| spec |    => $spec,
-            qw| role |    => $o{'role'},
-            qw| domain |  => $o{'domain'},
-            qw| owned |   => $o{'owned'},
-            qw| quota |   => $o{'quota'},
-            qw| reserve | => $o{'reserve'},
+            qw| name |         => $name,
+            qw| spec |         => $spec,
+            qw| role |         => $o{'role'},
+            qw| domain |       => $o{'domain'},
+            qw| owned |        => $o{'owned'},
+            qw| quota |        => $o{'quota'},
+            qw| reserve |      => $o{'reserve'},
+            qw| categories |   => $o{'categories'},
+            qw| min_priority | => $o{'min-priority'},
         );
         say_line( 'holder ', $name, ' : ', $h->{'role'}, ' in ',
             $h->{'domain'}, $h->{'owned'} ? ' [ owned ]' : '' );
@@ -1661,7 +1666,13 @@ sub cmd_holder {
             my $h = $holders->{$name};
             say join ' ', $name, $h->{'role'}, $h->{'domain'},
                 $h->{'owned'} ? 'owned' : 'foreign', $h->{'spec'},
-                defined $h->{'quota'} ? "quota=$h->{'quota'}" : ();
+                defined $h->{'quota'} ? "quota=$h->{'quota'}" : (),
+                $h->{'categories'}
+                ? 'categories=' . join( ',', @{ $h->{'categories'} } )
+                : (),
+                defined $h->{'min_priority'}
+                ? "min-priority=$h->{'min_priority'}"
+                : ();
         }
         return 0;
     }
@@ -1777,8 +1788,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,.,,,,.,,..,,,.,,,..,...,..,,.,.,,..,.,,,..,,...,...,..,,,.,,,,.,.,,,..,,
-#QGE6S4LQPZUAP3DNBBJHVGJT4BTVV7XZGTL5WNTD2WN63FIE2UQ525KOFAHRAPA3AT6KHVKRO7X7W
-#\\\|D7GFNPQ7FCTPTBETLHN4MO77I5B3ZMW4PUOKTME3JZSIHN2XATU \ / AMOS7 \ YOURUM ::
-#\[7]PO7SSYMD4BNQVJEYURIVJ35WDJWFA6ITRTI3Y5NC2HXFWUK6N2DQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,,..,..,,.,.,.,,,.,,,,,.,,..,...,..,,...,...,..,,.,.,,,.,,,.,.,.,
+#DXZHOCGOCD6V4T3RIWACHELUSEBVK52RZH4JFBMMOUJTDK7XVIRMQTDXMTICKSXW3PCATJNFE2K6U
+#\\\|CSJDBC34UKYDVTIVOYCXX5UVVYDYTUSKZEKXUSC2VOU7JYWBKDQ \ / AMOS7 \ YOURUM ::
+#\[7]HMD4CUMYY5N5TA7QKB32DXJXHRGUYG4UCVF7JGRMU32QUU4PQUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
