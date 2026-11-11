@@ -46,10 +46,11 @@ foreach my $name (@names) {
     out('invalid blob name in list') if $name !~ $NAME;
 }
 
+## a silent link is given up after 77 s [ 11 x 7 ], then retried ##
 my @ssh = (
     $ENV{'N7FS_SSH'} // 'ssh',
-    qw| -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=30
-        -o ServerAliveCountMax=4 |, $alias
+    qw| -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=11
+        -o ServerAliveCountMax=7 |, $alias
 );
 
 ## what the receiver has, in batches that keep the command line short ##
@@ -123,8 +124,8 @@ print ": sent $sent blobs, $bytes bytes ; $skipped already there"
     . ( $failed ? " ; $failed failed" : '' ) . "\n";
 exit( $failed ? 1 : 0 );
 
-#,,..,,,.,.,.,.,.,..,,.,.,,,,,,..,,.,,,.,,,,,,..,,...,..,,.,.,,..,,.,,,,.,..,,
-#AK3CUZFZVOOX6WRH3MZ5YZFWLVJQKHOW4EESFRXOAWX3SE5MHLXXZXHNCPJVQKYJVAMPCWJGLAD3U
-#\\\|MTZIHELC6FHNRKY7N5SQYO2SJYEB7GAZ4H6MI62QNYEFWV54OUE \ / AMOS7 \ YOURUM ::
-#\[7]XUA6HJTMFRQEOACTJH4ONOJWLZUKNVMB2UEXKLKYTHZQWWTYCICA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,...,..,,..,,,.,,.,,,.,.,...,..,,...,...,.,.,,,,,,.,,...,,,.,
+#GJ2ZGKDE2TD23LYCZPNJKLVWJ4VBLKXCFRFGZ7XHYYNZLQ3O2YAVVLWFFBFAOOKIKLTCGDBH6URV4
+#\\\|C55M67RD57DUXEGZWG4OTKVDFUBP6U7LLJHROAFF5HZISU4FLDE \ / AMOS7 \ YOURUM ::
+#\[7]2HRXV4SAVFF647XYFSREV7CCTZTPJLKPAAPUXGN4THNHKO4WBUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.HK346XQ |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.KKDFKYI |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_free
@@ -130,10 +130,11 @@ sub _ssh {
     my $program = $ENV{'N7FS_SSH'} // 'ssh';
     my $err     = gensym;
     my ( $in, $out ) = ( undef, gensym );
+    ## a silent link is given up after 77 s [ 11 x 7 ], then retried ##
     my $pid = open3(
         $in, $out, $err, $program,
-        qw| -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=30
-            -o ServerAliveCountMax=4 |,
+        qw| -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=11
+            -o ServerAliveCountMax=7 |,
         _mux_options(),
         $h->{'alias'}, $command
     );
@@ -460,8 +461,8 @@ sub holder_put {
 
 1;
 
-#,,..,,,,,,,,,.,.,...,,..,...,...,..,,...,...,..,,...,...,.,,,...,,,.,,.,,...,
-#F4JMATSJYDIWJCUY6BBLMQ34JCSM7VAC5S6NXJY7OQFRDQCGLGXGBR2JYQJWPHENIGAFJD37P3BPM
-#\\\|PJM54STP5MI7J5IBZ2GJUSWJEN2DYNMFGFHI5ERQYK3CCEBDSPJ \ / AMOS7 \ YOURUM ::
-#\[7]VC5DHOBBD4P2FEQEVBRKL7UXKD7WJZ4AFR4YTMUZVUIVPHEDH2BY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,..,,.,,,.,,,.,,,,.,.,,,,,.,,.,,..,,...,..,,...,,,,,,,.,,.,,...,
+#PGIE35RNGZGMCHWAKSA5X3WB2OIKJRZG6BMWH47AA7W3HO73GW3OLBG546OA47LWXH6SDHWTW76LK
+#\\\|WEVNHLPIH3426FHP47C4E7JXAPDCHZXOKKOUODNFP24UR3YWOCE \ / AMOS7 \ YOURUM ::
+#\[7]O4SEJSWRWCLSEGWPKEJFDXQBD4JP2SZZ7DK633IOBUAWF3PMC6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
