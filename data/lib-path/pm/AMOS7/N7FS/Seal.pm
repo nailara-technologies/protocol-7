@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.QV77Q2I |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.NIXCYUI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -1150,6 +1150,33 @@ sub holder_gc {
     };
 }
 
+## drop nodes, and the trees that named any of them, from a holder's current
+## map in one commit. bytes stay until holder-gc
+sub unmap_nodes {
+    my %opt = @_;
+    my ( $counter, $head, $map ) = _context( @opt{qw| root holder |}, FALSE );
+    refuse('no sealed head on this holder') if not defined $head;
+    my %gone = map { $ARG => TRUE }
+        grep { exists $map->{'nodes'}{$ARG} } $opt{'addresses'}->@*;
+    return { qw| removed | => 0, qw| trees | => 0 } if not %gone;
+    delete $map->{'nodes'}{$ARG} for keys %gone;
+    my @trees;
+    foreach my $name ( sort keys %{ $map->{'trees'} // {} } ) {
+        my $files = $opt{'tree_files'}{$name} // [];
+        push @trees, $name
+            if $gone{ $map->{'trees'}{$name}{'manifest'} }
+            or grep { $gone{$ARG} } @{$files};
+    }
+    delete $map->{'trees'}{$ARG} for @trees;
+    $counter->{'version'} = _commit( @opt{qw| root holder |}, $counter, $map,
+        { qw| unmap | => [ sort keys %gone ] } );
+    return {
+        qw| removed | => scalar keys %gone,
+        qw| trees |   => scalar @trees,
+        qw| version | => $counter->{'version'},
+    };
+}
+
 sub shred_node {
     my %opt = @_;
     my ( $counter, $head, $map ) = _context( @opt{qw| root holder |}, FALSE );
@@ -1163,8 +1190,8 @@ sub shred_node {
 
 1;
 
-#,,.,,.,.,,..,,,.,.,,,,.,,,,.,...,.,.,,,,,,.,,..,,...,...,,.,,..,,.,,,.,,,,..,
-#SM3MWFTHHEJE3Q5UOGO7CZWS5OUJZ2CNON2JPFKLGHREFZO4U44ATUVCCSU7KQXNYDQVGFKIKCHXG
-#\\\|DIOLUYFQ32MKLMGY5YTPJMVZ3FZBJY6WARU52SBAFB25QZ4D7SQ \ / AMOS7 \ YOURUM ::
-#\[7]DAW62J6ZT254BFE7GW6M67TB4LANTJLSDKTMJUYDEHLFAIO3V6AY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,.,,,,..,..,,.,,,,..,,,.,,,.,..,,...,...,..,,,.,,,.,,,,.,..,,
+#P7S7FBXO742CEIND7LVZJVHZDR7HRMT2KU5A7GHFK6NB3ZH73LFTYOKW332GNMDAZEUJJS5VUIBAG
+#\\\|HRFVJFKEHX4TMQXAWSN7HOSU2XOE43WRYDL4EHTW4MBHYJRJTTS \ / AMOS7 \ YOURUM ::
+#\[7]5BFYG3UMNRARKCUHQBUJVINKQ4AFDMCDQAFNRBZLTJNLX6POLSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -121,6 +121,51 @@ ok( $rc == 0 && -f "$base/rec/f7", 'a placed holder recovers the tree' )
 ( $rc, $out ) = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main' );
 ok( $rc == 0 && $out !~ m|placed|, 'a second place has nothing to do' )
     or say $out;
+## draining : 'one' and 'three' each hold every node [ target 2 ] ##
+( $rc, $out )
+    = cli( ['vp'], 'holder-drain', $disk, 'one', '-root-key',
+    'vault:main', '-dry-run' );
+ok( $out =~ m|kept 20 nodes|,
+    'drain keeps nodes that would fall below their target' )
+    or say $out;
+make_dirs("$base/h7");
+( $rc, $out )
+    = cli( ['vp'], 'holder', 'add', 'five', "$base/h7", '-domain', 'f' );
+( $rc, $out )
+    = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main',
+    '-exclude', 'one' );
+ok( $out =~ m|placed \d+ nodes on five|,
+    'place with -exclude fills the new holder for a move' )
+    or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-drain', $disk, 'one', '-root-key',
+    'vault:main', '-dry-run' );
+ok( $out =~ m|kept|, 'a copy without a receipt does not count yet' )
+    or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-check', "$base/h7", '-root-key', 'vault:main' );
+( $rc, $out )
+    = cli( ['vp'], 'holder-drain', $disk, 'one', '-root-key', 'vault:main' );
+ok( $rc == 0 && $out =~ m|dropped [1-9]\d* nodes| && $out !~ m|kept|,
+    'after a receipt elsewhere the holder drains' )
+    or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-gc', $h[0], '-root-key', 'vault:main',
+    '-only-root', '-delete' );
+ok( $rc == 0 && $out =~ m|removed [1-9]|, 'gc frees the drained blobs' )
+    or say $out;
+( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
+ok( $out =~ m|category two target 2 : \d+ nodes at 2| && $out !~ m|under-rep|,
+    'targets still met after drain and gc'
+) or say $out;
+( $rc, $out ) = cli(
+    ['vp'],  'seal-recover', '-root-key', 'vault:main',
+    '-from', "$base/h7",     '-tree',     't',
+    "$base/rec7"
+);
+ok( $rc == 0 && -f "$base/rec7/f7", 'the new holder recovers the tree' )
+    or say $out;
+
 ( $rc, $out ) = cli( ['vp'], 'holder', 'remove', 'three' );
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
 ok( $out =~ m|under-replicated|, 'removing a holder shows the shortfall' )
@@ -131,7 +176,7 @@ ok( $out =~ m|under-replicated|, 'removing a holder shows the shortfall' )
 );
 ( $rc, $out )
     = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main', '-dry-run' );
-ok( $out =~ m|still under-replicated|, 'quota keeps a holder from filling' )
+ok( $out !~ m|on small|, 'quota keeps a holder from filling' )
     or say $out;
 ( $rc, $out ) = cli(
     ['vp'], 'holder',   'add', 'full', "$base/h6", '-domain',
@@ -148,8 +193,8 @@ ok( $rc != 0, 'registry needs the vault passphrase' );
 
 done();
 
-#,,,,,.,,,...,..,,.,,,...,,,.,...,.,,,,,.,,.,,..,,...,...,...,,..,..,,,,.,,,,,
-#WLEAH2KBGAGOF7CY3SACUGFIBXN7YJ746ZLPNQDF35542DLUF7TUMWCBYAF7PMUKOQYYLF5N6DBAM
-#\\\|UNCEJ54VW5PSVVUTEWO3GTDMCOTBM3KOB755GV22QBAPD7Z2L3Y \ / AMOS7 \ YOURUM ::
-#\[7]QNIVXIBB5RLVI2DKHWFFZCKGR5JRBJTECC2YAV7SG43I2HAECUDA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,,,,,,,,..,...,..,,.,,,,,,,,..,..,,...,...,..,,,,,,,..,.,.,..,,
+#D4DSQOB6T5BIFVU736QNUTRCEXQ33VLT22C7QB4XACB72TS34ZQ3L5JGGDHDKJZG36NLRPUUWNSS4
+#\\\|TB4A5FFCH64W635KEKA2QXNPS2PASQ7BJYGIFGLF4PFI6PIK7BN \ / AMOS7 \ YOURUM ::
+#\[7]XPLEHOMJSVSV3ESUI4LHNDWVABXSXZZZXRAWRG74ZUOFQRDBLOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -61,6 +61,23 @@ a domain not yet holding it, then owned before foreign, then most free quota.
 it never goes below another node's target to make room, and what cannot be
 placed stays listed. it uses packs and the existing commit rules.
 
+## draining and moving [ stage 5 part 2, first part ]
+
+`holder-drain <disk> <name>` removes from one holder's map every node whose
+counted copies in other failure domains still meet its target without it, in
+one commit, together with every tree that named a removed node. nothing that
+would fall below its target is touched ; the rest is reported as kept. a copy
+counts only with a fresh receipt, so a holder that was just filled does not
+yet allow a drain. bytes stay until `holder-gc`.
+
+`place -exclude <name>` and `placement -exclude <name>` read that holder but
+do not count it, so a move is :
+
+```
+holder add <new> ... ; place -exclude <old> ; holder-check <new>
+holder-drain <old> ; holder-gc <old> -only-root -delete
+```
+
 ## not in this part
 
 deletes on holders [ home-signed ], moving between holders, eviction from
@@ -101,8 +118,8 @@ intake, holder-to-holder copying, calculated placement, erasure coding.
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,,,,,.,,,,.,,,,,.,.,,..,,,,,.,.,.,,,.,.,...,..,,...,...,,.,,.,,,,..,..,,.,,,
-#HIVSILNOB5VAJHYEPCTSO2W5M26WXPAAQ3RQONIQS5WZ4A3JO7JM7V6SDADQJMIV3PZYISDRG6UJC
-#\\\|NELLKVBNFKE2YFUHCHW2BZTQGBTPEKXFLTSOP5SNMOP2IQAMWMC \ / AMOS7 \ YOURUM ::
-#\[7]F7E7FBCO465CDVZRY4AWXGXVKHGLR2DHA5GVO4TGFXL7VUBY7QDY 7  DATA SIGNATURE ::
+#,,..,..,,...,,..,.,,,...,...,.,.,,,,,,.,,.,,,..,,...,...,..,,,.,,.,,,...,..,,
+#OCD4FODGO6ZR62PUS4INDZ7UAVVGB3RVNKPMXXHJZSIBH6T2IS4RPQ4S3E6UDLRWD4L35XL6CKLMM
+#\\\|5KQ55V3YIP5KJRH5PPWYRHEQSCINQNCGTE3W3MR5LAT42LZSEIX \ / AMOS7 \ YOURUM ::
+#\[7]5MBG2KTOJWJOSHO25LUWCW6XXWB3MW7XL7UVD5ES3K5A7BZZESDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
