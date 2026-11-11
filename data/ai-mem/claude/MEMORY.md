@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [n7fs-relay-fanout-filters](project-2026-11-11-n7fs-relay-fanout-filters.md) — NEWEST : stage 6 relay, push fan-out, holder filters landed ; hub topology ; next = live deploy
 - [session-handover-n7fs-rescue-chain](project-2026-11-11-session-handover-n7fs-rescue-chain.md) — START HERE : N7FS stages 1-5 part 1, drain \ move, first proven rescue copy ; jobsite stall ; open items
 - [54m-timer-during-long-kimi-runs](feedback-54m-timer-during-long-kimi-runs.md) — long waits : 54 minute background timer keeps the one hour cache alive
 - [n7fs-host-migration-goal](project-2026-11-08-n7fs-host-migration-goal.md) — NEXT WORK : N7FS sync + blind remote replicas for the native linux move ; decisions, see design N7FS-SEALED-REPLICAS.md
@@ -103,8 +104,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,.,.,,,,,...,.,.,...,.,,,,.,,.,,,,,,,,..,..,,...,...,.,.,.,.,...,...,,,.,
-#G5RZL6ZX2EEL7UWMUECDZFLELPEGHECWYNL5DHULMJ227XBRNO5Y76OZLTDPCKJKMLXV7Y5TI4GE2
-#\\\|CYC6VJSG4VWBIJM7UDFGBAE4E62P6CWTFSZ63SVNHN32JPJ7NEZ \ / AMOS7 \ YOURUM ::
-#\[7]JTAJS6P5Q5XCO2VZRPHEJ74DXB3SKXYL46D7PQ4VPFFRHQWCJSDA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,,.,,,,.,,,,,,,.,..,,.,.,...,..,,...,...,.,,,,.,,,..,,..,,,.,
+#K245NX33GOHMDUPUQSPYOOH4QNGQBPWNZUSOZRYQBYHXMAIBEGTBUGTE3RORUVGOXBUT44VZPVYIK
+#\\\|FF6LBARGE6ZMWX4QD6537POD5GX4CN2XVASEYEX6RIDYVZTH7XJ \ / AMOS7 \ YOURUM ::
+#\[7]LJJDTFQXXXJ2DEROWEC7MW4LCMGGP4XGMMIY22CAQCPPB6VT4MCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
