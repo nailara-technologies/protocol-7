@@ -1,0 +1,27 @@
+## [:< ##
+
+# name   = events.parser.next_run
+# descr  = list filter : unix time of the next run as clock time + time left
+# args   = number <unix time>
+# return = 'HH:MM:SS [ in 1h 02m 03s ]' or 'n/a'
+
+my $time = shift;
+return qw| n/a | if not defined $time or $time !~ m|\A\d+(\.\d+)?\z|;
+
+my $left = int( $time - <[base.time]> );
+my $when = <[base.parser.timestamp]>->( qw| time |, $time );
+return sprintf( '%s [ passed ]', $when ) if $left < 0;
+
+my ( $h, $m, $s )
+    = ( int( $left / 3600 ), int( $left % 3600 / 60 ), $left % 60 );
+my $in
+    = $h ? sprintf( '%dh %02dm %02ds', $h, $m, $s )
+    : $m ? sprintf( '%dm %02ds', $m, $s )
+    :      sprintf( '%ds', $s );
+return sprintf( '%s [ in %s ]', $when, $in );
+
+#,,..,,,,,..,,.,.,...,,,,,...,.,.,,..,.,,,,..,..,,...,...,.,,,..,,..,,...,.,,,
+#GWI74VEOJ7EW3BE6JXFOM4KX52CYYH5PY5TXMFTZ2M2HVJ2GAVHNDS5AHSLJOVXWQALUAF5WLTCXU
+#\\\|TMSYBNDYRCM5AN7ACUGF3UMBE4LP7BZ3M7FRIWBAVTWHA62PILP \ / AMOS7 \ YOURUM ::
+#\[7]S5M22EAVH4OQIUFDWKLG33ZRGD7JTLHBLNVLPK2BW7SYRD4LOYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

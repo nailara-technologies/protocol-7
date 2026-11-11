@@ -127,14 +127,20 @@ foreach my $ev_id ( keys( <events.timetable>->%* ) ) {
                     if defined <events.unix.timetable>->{$ev_id}->{$key};
             }
             <events.unix.timetable>->{$ev_id}->{'jitter'} = $offset;
+            <events.timetable>->{$ev_id}->{'offset'}      = $offset;
             <[base.logs]>->( 2, "[%s] jitter %s s", $ev_name, $offset );
         }
     }
+
+    ## the next run for 'list events' [ events.parser.next_run ] ##
+    <events.timetable>->{$ev_id}->{'next'}
+        = <events.unix.timetable>->{$ev_id}->{'at'}
+        // <events.unix.timetable>->{$ev_id}->{'start'};
 }
 <[base.log]>->( 2, ": nothing to do.." ) if !$new_events;
 
-#,,.,,,,.,.,.,,,,,...,...,,,,,.,,,.,,,,,.,,.,,..,,...,...,,..,...,.,,,.,.,,,.,
-#LHKC5PMODZ23VPYGYPLXHEN5HFXEUTDGXVGULVJD6MT26EEZJKPG36N4SOSYOA4FWERQPT72DIJ36
-#\\\|4ISGWK2THO56INWVMMSSRRUZI43MPQVF3WJDHWJEL73QEPXDATH \ / AMOS7 \ YOURUM ::
-#\[7]VZDOLIACN6GH6SV4XPPQ3FJBH2I2DDUIZD6OXI6OUXVR7HCO6ODI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,..,,,,.,..,,,..,.,.,,,,,.,.,..,,...,...,...,..,,,,,,,.,,,,.,
+#4CGZKGJYSPHXJXPUPAIBOMYP75MJBJT7USTMJX25UBPWYHO7HQQ4WQU4Z6D2Q5OPA442VSQW76FAA
+#\\\|J7YX3PUKLDODSFJXYOQDRE5SRT3B7N2Q4PMD7QRJ2SJ4CWHVQAD \ / AMOS7 \ YOURUM ::
+#\[7]NHBLRCMCVV344ESL33PP4CRMAHXPZVDP446KLBTZZCTNKG5QNIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
