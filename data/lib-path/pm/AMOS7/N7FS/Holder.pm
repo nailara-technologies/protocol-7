@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.QMJO6MY |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.3CMG2BQ |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_free
@@ -105,6 +105,26 @@ sub holder_free {
     return $line[3] * 1024;
 }
 
+## one shared ssh connection per holder host : a blob costs about ten ssh
+## calls [ sizes, upload, readback, sync, rename ], each a full handshake
+## without it. off with N7FS_SSH_MUX=0 ; a test ssh [ N7FS_SSH ] gets none
+sub _mux_options {
+    return ()
+        if defined $ENV{'N7FS_SSH'}
+        or ( $ENV{'N7FS_SSH_MUX'} // 1 ) eq '0';
+    my $dir = ( $ENV{'HOME'} // return () ) . '/.n/n7fs/ssh-mux';
+    if ( not -d $dir ) {
+        require File::Path;
+        File::Path::make_path( $dir, { qw| mode | => 0700 } );
+    }
+    return () if not -d $dir or not -o $dir;
+    chmod 0700, $dir;
+    return (
+        qw| -o ControlMaster=auto |, '-o',
+        "ControlPath=$dir/%C",       qw| -o ControlPersist=60 |
+    );
+}
+
 sub _ssh {
     my ( $h, $command, $input, $output ) = @_;
     my $program = $ENV{'N7FS_SSH'} // 'ssh';
@@ -114,6 +134,7 @@ sub _ssh {
         $in, $out, $err, $program,
         qw| -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=30
             -o ServerAliveCountMax=4 |,
+        _mux_options(),
         $h->{'alias'}, $command
     );
     binmode $in;
@@ -431,8 +452,8 @@ sub holder_put {
 
 1;
 
-#,,.,,,,.,...,,.,,.,,,,,.,,,,,,,.,.,,,..,,.,,,..,,...,...,..,,...,.,.,...,,,.,
-#MKHCVMYU2WOERCUD6SDK4GESN27E24DVL4LSSL55SSBO3PXTW552XEHP4MUZ7CVHIML3TOVGAT3ES
-#\\\|QH3N5Z67MYDE5JKIAFGFTA7V7K3GIMG4QEWMOEBKHWQLAMVI36W \ / AMOS7 \ YOURUM ::
-#\[7]ISSLN6QSYFGOEVB76DJ7J2QLFML5PY4TEC6UEICHZ3ZCIIBHZQAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,.,.,,,,,...,,.,,.,.,,.,,,,,,..,,...,...,,,.,,,.,..,,...,,,.,
+#6QQIFPEMHYP4L55LRU7AMPK7MUTYGKHK3ZL2JBBPLT2TOTDOEW6662UJ42PKE3PWGPTFXHZOVDV3K
+#\\\|3FCUKZLXWQUHUX4FRNJNMR6RREM76WP3URMDDE5ZP7OLVN5SJKM \ / AMOS7 \ YOURUM ::
+#\[7]VEIG2I4GSADML6ZT6BDD5SFNZENXPJQ56QWIBPLSZCIC3TMU36CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
