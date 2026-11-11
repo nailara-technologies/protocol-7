@@ -17,10 +17,10 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.NIXCYUI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.NT44QMI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
-    holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
+    relay_nodes holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
 
 use JSON::PP;
 use Digest::BMW;
@@ -1177,6 +1177,133 @@ sub unmap_nodes {
     };
 }
 
+## copy the ciphertext of nodes from one holder to another and map them there.
+## the copy is blind : each blob is checked against its own checksum name, so
+## a wrong or changed blob from the source is refused. the node keys move by
+## rewrapping under the target's categories, at home ; the target's map gets
+## the nodes in one commit, together with the trees whose manifest it now
+## holds. relayed blobs stay unmapped only until that commit [ holder-gc ]
+sub relay_nodes {
+    my %opt = @_;
+    my ( $root, $from, $to ) = @opt{qw| root from to |};
+    refuse('relay needs two different holders')
+        if holder_canonical($from) eq holder_canonical($to);
+    my ( undef, $fhead, $fmap ) = _context( $root, $from, TRUE );
+    refuse('no sealed head on the source holder') if not defined $fhead;
+    my ( $counter, $thead, $tmap ) = _context( $root, $to, FALSE );
+    my %wanted    = map { $ARG => TRUE } @{ $opt{'addresses'} // [] };
+    my @addresses = sort grep {
+        not exists $tmap->{'nodes'}{$ARG}
+            and ( not %wanted or $wanted{$ARG} )
+    } keys $fmap->{'nodes'}->%*;
+    my $fsizes = holder_sizes($from);
+    ## blobs an interrupted relay left there are reused, head or not ##
+    my $tsizes = holder_sizes($to);
+    my %blob;
+    my @missing;
+    foreach my $address (@addresses) {
+        my $entry = $fmap->{'nodes'}{$address};
+        my $name  = $entry->{'blob'};
+        if ( not defined $fsizes->{$name} ) {
+            push @missing, $address;
+            next;
+        }
+        $blob{$name}
+            //= defined $entry->{'node'} ? qw| pack | : qw| content |;
+    }
+    my %have = map { $ARG => TRUE } @missing;
+    @addresses = grep { not $have{$ARG} } @addresses;
+    my ( $copied, $bytes ) = ( 0, 0 );
+    foreach my $name ( sort keys %blob ) {
+        next if ( $tsizes->{$name} // -1 ) == $fsizes->{$name};
+        $copied++;
+        $bytes += $fsizes->{$name};
+    }
+    my $used = 0;
+    $used += $ARG->{'length'} // 0 for values $tmap->{'nodes'}->%*;
+    my $result = {
+        qw| nodes |   => scalar @addresses,
+        qw| blobs |   => $copied,
+        qw| bytes |   => $bytes,
+        qw| missing | => scalar @missing,
+        qw| used |    => $used,
+    };
+    return $result if $opt{'dry_run'} or not @addresses;
+    ## quota and reserve of the target, as place keeps them ##
+    if ( ref $opt{'room'} eq qw| CODE | ) {
+        my $room = $opt{'room'}->($used);
+        refuse( 'relay needs %d bytes, the target has room for %d',
+            $bytes, $room > 0 ? $room : 0 )
+            if $bytes > $room;
+    }
+
+    my $spool = _state_dir($root) . '/spool/relay';
+    make_dirs( $spool, 0700 );
+    foreach my $name ( sort keys %blob ) {
+        next if ( $tsizes->{$name} // -1 ) == $fsizes->{$name};
+        refuse( 'target holds %s with another size', $name )
+            if defined $tsizes->{$name};
+        my $path = "$spool/$name";
+        unlink $path;
+        holder_download( $from, $name, $path );
+        open( my $fh, '<:raw', $path ) or refuse('cannot read relay spool');
+        my ($sum) = AMOS7::N7FS::Sum::bmw384_fh($fh);
+        close $fh;
+
+        if ( bmw_b32($sum) ne $name ) {
+            unlink $path;
+            refuse( 'relayed blob does not match its name : %s', $name );
+        }
+        holder_mkdir($to);
+        holder_put( $to, $path, $name, $blob{$name}, FALSE );
+        unlink $path;
+        fault(qw| relay:after-blob |);
+    }
+    ## the keys : unwrap under the source's category, wrap under the target's
+    $tmap->{'_root_keys'} = $root->{'keys'};
+    foreach my $address (@addresses) {
+        my $entry   = $fmap->{'nodes'}{$address};
+        my $keys    = _node_keys( $root, $fmap, $entry );
+        my $node_id = unb32( $entry->{'id'} );
+        my %wraps;
+        my @categories = sort keys %{ $entry->{'wraps'} // {} };
+        @categories = ( $entry->{'category'} ) if not @categories;
+        foreach my $category (@categories) {
+            my $cat = _category( $tmap, $category );
+            $wraps{$category} = b32(
+                wrap_bytes(
+                    $cat->{'_key'}, $keys,
+                    $node_id,       0,
+                    'node:' . $entry->{'id'}
+                )
+            );
+        }
+        my %copy = %{$entry};
+        delete $copy{'wrap'};
+        $copy{'wraps'} = \%wraps;
+        $tmap->{'nodes'}{$address} = \%copy;
+    }
+    delete $tmap->{'_root_keys'};
+    my $trees = 0;
+    foreach my $name ( sort keys %{ $fmap->{'trees'} // {} } ) {
+        my $tree = $fmap->{'trees'}{$name};
+        next if not exists $tmap->{'nodes'}{ $tree->{'manifest'} };
+        next
+            if ( $tmap->{'trees'}{$name}{'manifest'} // '' ) eq
+            $tree->{'manifest'};
+        $tmap->{'trees'}{$name} = { %{$tree} };
+        $trees++;
+    }
+    fault(qw| relay:before-commit |);
+    $counter->{'version'} = _commit( $root, $to, $counter, $tmap,
+        { qw| relay | => \@addresses } );
+    return {
+        %{$result},
+        qw| trees |   => $trees,
+        qw| version | => $counter->{'version'},
+    };
+}
+
 sub shred_node {
     my %opt = @_;
     my ( $counter, $head, $map ) = _context( @opt{qw| root holder |}, FALSE );
@@ -1190,8 +1317,8 @@ sub shred_node {
 
 1;
 
-#,,,.,.,.,..,,,,.,.,,,,..,..,,.,,,,..,,,.,,,.,..,,...,...,..,,,.,,,.,,,,.,..,,
-#P7S7FBXO742CEIND7LVZJVHZDR7HRMT2KU5A7GHFK6NB3ZH73LFTYOKW332GNMDAZEUJJS5VUIBAG
-#\\\|HRFVJFKEHX4TMQXAWSN7HOSU2XOE43WRYDL4EHTW4MBHYJRJTTS \ / AMOS7 \ YOURUM ::
-#\[7]5BFYG3UMNRARKCUHQBUJVINKQ4AFDMCDQAFNRBZLTJNLX6POLSCI 7  DATA SIGNATURE ::
+#,,.,,...,,..,..,,.,,,.,.,,..,.,,,,..,...,,.,,..,,...,...,.,,,,.,,..,,,.,,.,,,
+#SQUNVKHH3JDEX3ATB2WYUOXXYL5V3M44XNCKX3QBBIQLNSLN2WSJFBSPSRMG7F664VWCXTEQ4NIJE
+#\\\|NSJGQZ2T3LVPEKTHXDXF7ILEVXXKCOND3UWPXG5SJDFKHBXEM3T \ / AMOS7 \ YOURUM ::
+#\[7]2CJXAG44EEWVYG3FOE5ULXTMSMK7OBV2RCHRO7V5TIBT76ODTQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

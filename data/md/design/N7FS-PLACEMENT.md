@@ -107,6 +107,12 @@ intake, holder-to-holder copying, calculated placement, erasure coding.
 - `-bwlimit <size>` caps uploads to ssh holders per second, for links that
   fail under sustained load
 
+## receipts bind a head version [ 2026-11-11 ]
+
+a receipt counts only while the holder's head is the version it checked, so
+copies committed after it [ place, relay ] wait for the next `holder-check`,
+as described above. relays and intake draining : `N7FS-INTAKE.md`.
+
 ## owner decisions [ 2026-11-10 ]
 
 1. the holder registry lives in the vault, as a note entry titled
@@ -118,8 +124,8 @@ intake, holder-to-holder copying, calculated placement, erasure coding.
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,..,..,,...,,..,.,,,...,...,.,.,,,,,,.,,.,,,..,,...,...,..,,,.,,.,,,...,..,,
-#OCD4FODGO6ZR62PUS4INDZ7UAVVGB3RVNKPMXXHJZSIBH6T2IS4RPQ4S3E6UDLRWD4L35XL6CKLMM
-#\\\|5KQ55V3YIP5KJRH5PPWYRHEQSCINQNCGTE3W3MR5LAT42LZSEIX \ / AMOS7 \ YOURUM ::
-#\[7]5MBG2KTOJWJOSHO25LUWCW6XXWB3MW7XL7UVD5ES3K5A7BZZESDI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,.,,,...,..,,..,,...,,,.,.,,,..,,...,...,..,,..,,,.,,..,,..,,
+#5GY4QNWQ3OKE5TQ5ZUC7J3BRXPI3LXI7M372OYZOPWLMNWMGQTZLH5A6TPCKGM7FMLTRCU2SADDOU
+#\\\|E2A5C5CYCBAGTGVXEIRUVTNGHISIFEJHFPZNYC2RROWLQPL5PEP \ / AMOS7 \ YOURUM ::
+#\[7]WDT54DC27NGWPIES467LOXZJB7J4ISSAEFUFOIHEUPCTT6OTS4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

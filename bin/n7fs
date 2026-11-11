@@ -80,6 +80,9 @@ use warnings;
 ##                 drop what is safely held elsewhere ; never below a target
 ## n7fs holder-gc <holder> -root-key <key> -only-root [ -delete ]
 ##                 unreferenced blobs of a one-root holder ; dry run by default
+## n7fs relay <from> <to> -root-key <key> [ -dry-run ]  registered holders :
+##                 copy sealed nodes blind, rewrap their keys at home, map
+##                 them on <to> ; they count after its next holder-check
 ## n7fs placement <disk> -root-key <key>    copies per category, report only
 ## n7fs place <disk> -root-key <key> [ -dry-run ]  seal what is missing
 ##                 -exclude <holder> : do not count it [ before draining it ]
@@ -216,6 +219,7 @@ my %run = (
     qw| holder |         => \&cmd_holder,
     qw| holder-gc |      => \&cmd_holder_gc,
     qw| holder-drain |   => \&cmd_holder_drain,
+    qw| relay |          => \&cmd_relay,
     qw| placement |      => \&cmd_placement,
     qw| place |          => \&cmd_place,
 );
@@ -1448,6 +1452,45 @@ sub cmd_holder_drain {
     return 0;
 }
 
+sub cmd_relay {
+    require AMOS7::N7FS::Placement;
+    require AMOS7::N7FS::Seal;
+    my $from = shift // fail('relay needs a source holder name');
+    my $to   = shift // fail('relay needs a target holder name');
+    fail('relay : unexpected arguments') if @ARG;
+    my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+    foreach my $name ( $from, $to ) {
+        fail("no holder named $name") if not $holders->{$name};
+    }
+    fail('relay target must be a durable holder')
+        if $holders->{$to}{'role'} ne qw| durable |;
+    my $r = AMOS7::N7FS::Seal::relay_nodes(
+        qw| root |    => _seal_root(),
+        qw| from |    => $holders->{$from}{'spec'},
+        qw| to |      => $holders->{$to}{'spec'},
+        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
+        qw| room |    => sub {
+            AMOS7::N7FS::Placement::holder_room( $holders->{$to}, shift );
+        },
+    );
+    say_line(
+        $o{'dry-run'} ? 'would relay ' : 'relayed ',
+        $r->{'nodes'},
+        ' nodes in ',
+        $r->{'blobs'},
+        ' blobs, ',
+        $r->{'bytes'},
+        " bytes from $from to $to",
+        $r->{'trees'} ? " with $r->{'trees'} trees" : ''
+    );
+    say_line( 'skipped ', $r->{'missing'},
+        ' nodes : their blob is missing on the source' )
+        if $r->{'missing'};
+    say_line("copies count after the next holder-check of $to")
+        if $r->{'nodes'} and not $o{'dry-run'};
+    return 0;
+}
+
 sub cmd_holder_gc {
     require AMOS7::N7FS::Seal;
     my $holder = shift // fail('holder-gc needs a holder');
@@ -1622,8 +1665,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,,.,,...,,,,,,,.,.,.,,..,,,.,,.,,,..,.,.,..,,...,...,..,,.,.,,,,,.,,,,..,
-#F3VKUB42YSQHC2S7OHEY454J3H23TCA2OWDPFPST7POOMA5LKZTFIN7CF35JCN5ZEVQXCQ52EO4GW
-#\\\|V5SV2GLLLSCX7OID6OPCJXKDRNY7PBTMYPOS52MRHBZ6B4Z2DLB \ / AMOS7 \ YOURUM ::
-#\[7]7LPTMVLMORDXBIPRMVY7TBYH5LDIYJQRMSQ4XX2MCCMA4RARYKCI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,,.,,,,.,.,,,.,.,,.,,...,,,.,..,,...,.,.,..,,,,.,.,,,.,.,...,
+#VYWFJQLC7LTNX4KUYYXVTITC3BDVH23ZW4EVVQKMJQAAWITAIAOTBPZAVSMBPXPTRXHVQSS3KXU74
+#\\\|KMWQSSW2TIR4TUYTSLYYJQY2J767VB4VBMZLZBHKG2XGRPJUCEN \ / AMOS7 \ YOURUM ::
+#\[7]WW22LQQ76Q7PSGI6LHMFIHP3EWA2QTLAKJIQLC7PGRB6KOBNISDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
