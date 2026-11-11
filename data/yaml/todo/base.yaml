@@ -2619,7 +2619,7 @@ items:
   - invoke-web
   text: 'p7-deps : an os/pip dependency kind with per conda env targets'
 - added: 32PI5FVRDQ
-  details: status stays at cycle scanning over a day after the stream closed [ imports had no errors, 2026-11-08 ]. the closed stream likely never clears the scanning state, so hourly jobsite.scan requests do nothing. hypothesis, not checked in code. 2026-11-11 [ not deployed, not committed ] -- DONE -- 1. visibility -- jobsite.queue_poll counts sent polls \ replies [ set in jobsite.handler.fetch-done ], queue-poll logs level 0 when a poll had no reply before the next one [ first miss, then every 100 ], queue-depth-reply logs level 1 every 100 unchanged depths, jobsite.status shows 'poll -- sent X replies Y last reply Zs ago' + the poll timer while scanning. 2. on_eof in jobsite.handler.fetched-stream resubscribes via jobsite.fetched.subscribe-retry while the cycle is not idle [ remote fetch zenka only ]. 3. backstop in queue-poll -- scanning with no queue-depth reply for jobsite.cfg.queue_poll_timeout [ default 900 s ] logs level 0 'a cause was missed', cancels the poll timer, records it in jobsite.last_fetch, ends the cycle like a nothing-queued fetch. UNPROVEN -- the root cause -- whether the poll timer stopped or its replies were lost ; the new counters tell which on the next stall. live 2026-11-11 after the fix deployed, no poll at all for 15 s while the remote queue was empty, so the drain poll TIMER itself was gone [ not lost replies ]. why it died is still open ; jobsite.scan now resets a scanning cycle without a live poll timer after the limit.
+  details: status stays at cycle scanning over a day after the stream closed [ imports had no errors, 2026-11-08 ]. the closed stream likely never clears the scanning state, so hourly jobsite.scan requests do nothing. hypothesis, not checked in code. 2026-11-11 [ not deployed, not committed ] -- DONE -- 1. visibility -- jobsite.queue_poll counts sent polls \ replies [ set in jobsite.handler.fetch-done ], queue-poll logs level 0 when a poll had no reply before the next one [ first miss, then every 100 ], queue-depth-reply logs level 1 every 100 unchanged depths, jobsite.status shows 'poll -- sent X replies Y last reply Zs ago' + the poll timer while scanning. 2. on_eof in jobsite.handler.fetched-stream resubscribes via jobsite.fetched.subscribe-retry while the cycle is not idle [ remote fetch zenka only ]. 3. backstop in queue-poll -- scanning with no queue-depth reply for jobsite.cfg.queue_poll_timeout [ default 900 s ] logs level 0 'a cause was missed', cancels the poll timer, records it in jobsite.last_fetch, ends the cycle like a nothing-queued fetch. UNPROVEN -- the root cause -- whether the poll timer stopped or its replies were lost ; the new counters tell which on the next stall. live 2026-11-11 after the fix deployed, no poll at all for 15 s while the remote queue was empty, so the drain poll TIMER itself was gone [ not lost replies ]. why it died is still open ; jobsite.scan now resets a scanning cycle without a live poll timer after the limit. ruled out 2026-11-11 -- a dying callback [ Event keeps the watcher, base.event.handler.exceptions only logs, nothing was logged ], a restart and a source reload [ both set the cycle idle ], the jobsite cancel points and a rescan [ each logs first, none did ]. left -- the timer dropped from outside jobsite, for example its data subtree replaced. the status line shows it next time.
   done_at: null
   id: UFG
   priority: normal
@@ -2637,8 +2637,8 @@ items:
   - events
   text: 'events : a timetable entry fires twice in one second'
 
-#,,,.,...,...,.,,,,..,,.,,...,,.,,..,,,,.,,..,..,,...,.,.,.,,,,,.,...,,,.,..,,
-#XLQ57PURRPJLGH4ANTUBN7IDPICUU5I4TYD4UIGS7KSHUVXSXQA73QTP76VTM2K3W4FMG4Y4SUF7S
-#\\\|XYJ2C6HIFMHK67LSEKOUZ4BG2H3J3UY3Q3YMSGO5DOE2M4BX52E \ / AMOS7 \ YOURUM ::
-#\[7]CJ3N3NU37TLQEM2JYSX3WCQY3JV2GE3UTHKMXPMURT2ERIX5A6AI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,.,,,.,,..,,,,,,..,.,.,,,,,,..,..,,...,...,...,,.,,...,,.,,...,
+#4JYKAOC3VBKOPAIN7XE66REDWY7FYOFTGOTMEACMINNAOH2WTZVZMCNKRXWEOIWTUDICJM7JPTE5O
+#\\\|PRZC6IL7IIT3HYGEHTR7J74WT7QH5PJS23OPLVVO6RPJI5QXDW2 \ / AMOS7 \ YOURUM ::
+#\[7]Q5XHM4C35HYLUZWNPSKCFVVOHYLJ2FPWGLRS3ZKCGKIJJP2TVICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
