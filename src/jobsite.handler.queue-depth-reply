@@ -11,6 +11,28 @@ my $call = shift // {};
 ## drained 3 s after the import                                         ##
 ## [ 1127 queued on delta, assessment started on a fraction ]           ##
 my ( $ok, $depth, $why ) = <[base.reply.value]>->( $call, qw| int | );
+
+## poll accounting [ UFG ] : any reply counts, a known depth also tracks ##
+## how long it stood still                                               ##
+my $poll = <jobsite.queue_poll> //= { 'sent' => 0, 'replies' => 0 };
+$poll->{'replies'}++;
+$poll->{'last_reply'} = time;
+if ($ok) {
+    if ( defined $poll->{'last_depth'} and $poll->{'last_depth'} == $depth ) {
+        $poll->{'same'}++;
+        <[base.logs]>->(
+            1,
+            ': fetch : queue depth still %d after '
+                . '%d unchanged polls [ %d polls sent ]',
+            $depth,
+            $poll->{'same'},
+            $poll->{'sent'}
+        ) if $poll->{'same'} % 100 == 0;
+    } else {
+        $poll->{'same'} = 0;
+    }
+    $poll->{'last_depth'} = $depth;
+}
 if ( not $ok ) {
     <[base.logs]>->(
         0, ': fetch : queue depth unknown [ %s ], polling on', $why
@@ -64,8 +86,8 @@ for my $category ( sort keys %{$queued_cat} ) {
 
 return;
 
-#,,,,,.,.,..,,,,,,,,,,,,.,...,,,,,,,.,.,.,.,,,.,.,...,...,.,.,.,.,,,.,..,,...,
-#6EJ3DQGFR7466DAXMKGQFNL6AUHUEYW6BQWWCYW6CCL3IK4EMJCIKQDGMBXJEBD5KMFZUTVNIBRCO
-#\\\|RCKAFYIE5HFLHISXQMLIPXJ4ZXB2JGGOSWULTMRSPK3QT2EG5PP \ / AMOS7 \ YOURUM ::
-#\[7]YWISMC634DW57XMP344VUPX7SXGEFQ4ETLRY6YEDXUXVJHXT2MCY 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,.,...,,..,...,,..,,,.,..,,,,,,.,.,...,...,.,,,,..,,,.,..,,...,
+#ZNUMVWT2BUK3PQYAZS3BJA2M4LAJFYJWFUGWKENKHIZQEMU2PBLTAUWH2JPF66U4WWXQYHZVQ663Y
+#\\\|A4ROJKJ4UL4OMNVZGJGIBQBODEEKDZQD37EE37P76XSVLIOHJLH \ / AMOS7 \ YOURUM ::
+#\[7]KDFNBVGVO57A2EQOYYCISUZMF26AXO74QHURPEMKRBRE4UDCPEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

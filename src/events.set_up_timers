@@ -12,17 +12,18 @@ if ( length $mode and $mode ne qw| recalc | ) {
 <events.timers>         //= {};
 <events.unix.timetable> //= {};
 
-map {
-    if ( defined <event.timers>->{$ARG} ) {
-
-        # LLL: trigger 'end' handler ..,
-        <event.timers>->{$ARG}->cancel if <event.timers>->{$ARG}->is_active;
-        delete <event.timers>->{$ARG};
-        <[base.logs]>->(
-            0, "cancelled timer for event %s [ no longer defined ]", $ARG
-        );
+## cancel the timers of events no longer in the timetable [ NZ2 : this read ##
+## <event.timers>, a hash nothing fills -- no timer was ever cancelled ]    ##
+for my $ev_id ( keys <events.timers>->%* ) {
+    next if exists <events.unix.timetable>->{$ev_id};
+    for my $timer ( values %{ <events.timers>->{$ev_id} // {} } ) {
+        $timer->cancel if defined $timer and $timer->is_active;
     }
-} keys <events.unix.timetable>->%*;
+    delete <events.timers>->{$ev_id};
+    <[base.logs]>->(
+        0, "cancelled timer for event %s [ no longer defined ]", $ev_id
+    );
+}
 
 my $current_time = <[base.time]>->(2);
 
@@ -49,6 +50,12 @@ foreach my $ev_id ( keys <events.unix.timetable>->%* ) {
         2, "[timer setup] event %s [..in %s seconds..] [ %s ]",
         $ev_id, $event_in, $e_start
     );
+    ## a recalc re-adds the timers of every pending entry : cancel the   ##
+    ## previous ones first, or both fire [ NZ2 : jobsite.scan sent twice ##
+    ## 3.8 ms apart after another entry's recalc ]                       ##
+    for my $timer ( values %{ <events.timers>->{$ev_id} // {} } ) {
+        $timer->cancel if defined $timer and $timer->is_active;
+    }
     <events.timers>->{$ev_id} = {};
     my $all_in_past = 1;
     map { $all_in_past = 0 if $u_event->{$ARG} >= $current_time }
@@ -60,6 +67,7 @@ foreach my $ev_id ( keys <events.unix.timetable>->%* ) {
                 'handler' => qw| events.handler.event_triggered |,
                 'data'    => {
                     'type' => $ARG,
+                    'at'   => $u_event->{$ARG},
                     'id'   => $ev_id,
                     'name' => $t_event->{'name'}
                 }
@@ -91,8 +99,8 @@ foreach my $ev_id ( keys <events.unix.timetable>->%* ) {
     } @timer_types;
 }
 
-#,,,,,...,.,.,,,.,,,.,..,,,.,,,..,.,,,.,.,,,.,..,,...,...,..,,,,.,..,,.,.,,..,
-#33VUBW2XVJ2DMDSWH6LL25CUSHJX57FASI747Q3HSUEAH5IA7HE6RYBC7FGKW44COGRLNKKU4NKZW
-#\\\|6H5MJW354TJJAMSBJZRNP45GEUNYJ6DNMWHGUBYLYBK4JWTDRPD \ / AMOS7 \ YOURUM ::
-#\[7]32R37EVBVSPMOM4DJQ2BPTZNOG34EKVRMEDH56WZV45OMML5HMDI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,,,..,,,,,,..,,,.,,.,.,,,,,...,..,,...,...,,.,,.,.,.,,,.,,,...,
+#75IINLD7D7EGN254T7GKQZC4Y3FYAWUDJGXB4DNRSNOL3J5VPTFUUU54LNIAVCBP3RFKGCE2BZ7WW
+#\\\|JYP6RUMO4AIUAJXQWSS2TSE4JCX6W6IQPHQS3UVH5RX63JBLVMC \ / AMOS7 \ YOURUM ::
+#\[7]E2BET2GBSBZCS4WB4K5HG7QOUFV6BTCIGZRNVZJX2GTZ3ZWMYWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

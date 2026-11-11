@@ -70,6 +70,18 @@ if ( $total_queued > 0 ) {
         <jobsite.queue_poll_timer> = undef;
     }
 
+    ## poll accounting for jobsite.status and the no-reply backstop        ##
+    ## [ UFG : a poll that stopped hearing back left 'scanning' for days ] ##
+    <jobsite.queue_poll> = {
+        'sent'       => 0,
+        'replies'    => 0,
+        'started'    => time,
+        'last_reply' => undef,
+        'last_depth' => undef,
+        'same'       => 0,
+        'missed'     => 0,
+    };
+
     <jobsite.queue_poll_timer> = <[event.add_timer]>->(
         {   after    => 3,
             repeat   => TRUE,
@@ -100,8 +112,8 @@ if ( <jobsite.pending_count> == 0 ) {
     <[jobsite.sync.push]>->( undef, FALSE );
 }
 
-#,,.,,..,,,..,.,,,,..,,,.,...,,.,,,..,,.,,...,..,,...,...,,..,...,..,,...,...,
-#UEQIXH3DSVNXC7NCJDHCJHV753OJMVO3LFWXQ4CGZZ6A4XGCNULGZD4GFPSAL2DYG2D5WTBXOT4L2
-#\\\|2ERFTCVVI2AFH5TRJI5JT5BE4PORN4QYMKX7T4AVBHMVGNBHM7J \ / AMOS7 \ YOURUM ::
-#\[7]HRJHJV6VC5LRFSVFHVI2IACDQ2BQCAADZFNY6QZAW72DSI7K76AI 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,.,.,,..,,,.,,,,,,,.,,,,,..,,..,,...,...,,,.,,..,...,,,,,,.,,
+#F5WEIMY5HXAZYWRA32CVYACA4QWSTRBMED6YNTMNF7VQVYRB77UA7EWMZGFIQDMX56MGUBFL3CQMC
+#\\\|66RWK2BYA3Y6QLAG5PTGNNSI3LDBDNQVHPQKZJTN7GKDWZMGXKK \ / AMOS7 \ YOURUM ::
+#\[7]7AMBXUYBHCK33TW2CKYWEGZR3WTQNUH6AMEM4IIR4REKD3UZ3EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

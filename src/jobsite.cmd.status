@@ -54,6 +54,20 @@ if ( ref $fetch eq qw| HASH | ) {
         : sprintf( '%d imports ok', $fetch->{'replies'} );
     push @lines, sprintf ' :  last fetch   : %s', $outcome;
 }
+
+## the drain poll while scanning [ UFG ] ##
+my $poll = <jobsite.queue_poll>;
+if ( ( <jobsite.cycle> // '' ) eq qw| scanning | and ref $poll eq qw| HASH | )
+{
+    push @lines,
+        sprintf ' :  poll         : sent %d replies %d last reply %s',
+        $poll->{'sent'}, $poll->{'replies'},
+        defined $poll->{'last_reply'}
+        ? sprintf( '%ds ago', time - $poll->{'last_reply'} )
+        : 'never';
+    push @lines, sprintf ' :  poll timer   : %s',
+        defined <jobsite.queue_poll_timer> ? 'running' : 'NONE';
+}
 push @lines, ' :';
 for my $st ( <[base.sort]>->( keys %counts ) ) {
     push @lines, sprintf ' :  %-12s : %d', $st, $counts{$st};
@@ -62,8 +76,8 @@ push @lines, ' :.';
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) . "\n" };
 
-#,,,,,..,,,..,.,,,,..,.,.,..,,,,,,...,..,,...,..,,...,..,,,,,,.,,,.,.,,,,,.,.,
-#I2BGXOO43OKUY7YLTRMOPBCTQNYZICMQ5S6AYJGUN4XRWDVFQDBCXGOC7AYPG633VVIGK655NCZKU
-#\\\|B2L2VARJQJAO36X7NKYBVI7GU66JWYFLY452ROTIA3BCZGWOWTC \ / AMOS7 \ YOURUM ::
-#\[7]QIMZUT47KARTK47CXX4TKSCUYUDNNJNFSD7OPVMALKR2ND3HVSCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,..,,.,,.,,,,..,.,,,,..,,,.,.,,,..,,...,...,..,,,.,,,,.,..,,,,,,
+#I56BUNUOPZJWJGKPAIK733KAQZKYDWI5QOS3FOZEVZOGVUYI3MXJVT2DFQ5MECTPHVWIU2MEBHANG
+#\\\|B7QTEX7ZJYZFMNVJFQTVIXVQBRSZPOJUF76TNGYHW35EJI6KYSE \ / AMOS7 \ YOURUM ::
+#\[7]47PSAMGQQ5OGS3PTJBUTFT7VQTPWEKRTIQMYR6MTIFVP4AWG3MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2619,7 +2619,7 @@ items:
   - invoke-web
   text: 'p7-deps : an os/pip dependency kind with per conda env targets'
 - added: 32PI5FVRDQ
-  details: status stays at cycle scanning over a day after the stream closed [ imports had no errors, 2026-11-08 ]. the closed stream likely never clears the scanning state, so hourly jobsite.scan requests do nothing. hypothesis, not checked in code.
+  details: status stays at cycle scanning over a day after the stream closed [ imports had no errors, 2026-11-08 ]. the closed stream likely never clears the scanning state, so hourly jobsite.scan requests do nothing. hypothesis, not checked in code. 2026-11-11 [ not deployed, not committed ] : DONE -- 1. visibility : jobsite.queue_poll counts sent polls \ replies [ set in jobsite.handler.fetch-done ], queue-poll logs level 0 when a poll had no reply before the next one [ first miss, then every 100 ], queue-depth-reply logs level 1 every 100 unchanged depths, jobsite.status shows 'poll : sent X replies Y last reply Zs ago' + the poll timer while scanning. 2. on_eof in jobsite.handler.fetched-stream resubscribes via jobsite.fetched.subscribe-retry while the cycle is not idle [ remote fetch zenka only ]. 3. backstop in queue-poll : scanning with no queue-depth reply for jobsite.cfg.queue_poll_timeout [ default 900 s ] logs level 0 'a cause was missed', cancels the poll timer, records it in jobsite.last_fetch, ends the cycle like a nothing-queued fetch. UNPROVEN : the root cause -- whether the poll timer stopped or its replies were lost ; the new counters tell which on the next stall.
   done_at: null
   id: UFG
   priority: normal
@@ -2628,7 +2628,7 @@ items:
   - jobsite
   text: 'jobsite : cycle stays scanning after the stream closed'
 - added: 32PI5FWBKM
-  details: the timetable entry jobsite-scan at HH:13:07 sent jobsite.scan twice, 3.8 ms apart in the same second [ 2026-11-08 15:13:07 ]. likely no already-fired-this-second guard, or a double registration. check the other timetable entries too.
+  details: the timetable entry jobsite-scan at HH:13:07 sent jobsite.scan twice, 3.8 ms apart in the same second [ 2026-11-08 15:13:07 ]. likely no already-fired-this-second guard, or a double registration. check the other timetable entries too. 2026-11-11 [ not deployed, not committed ] : found in code -- events.set_up_timers cancelled old timers through <event.timers> [ typo, never filled ] and overwrote <events.timers>->{id} without cancelling, so every recalc [ after any at \ end event ] added a second live timer for each pending entry. fixed for ALL entries : cancel an entry's previous timers before re-adding, cancel timers of entries gone from the timetable ; plus an already-fired-this-slot guard [ id : type : second ] in events.handler.event_triggered. UNPROVEN live : that this recalc path is what happened at 15:13:07 [ fits the 3.8 ms gap, not traced in a log ].
   done_at: null
   id: NZ2
   priority: normal
@@ -2637,8 +2637,8 @@ items:
   - events
   text: 'events : a timetable entry fires twice in one second'
 
-#,,,,,.,.,,..,.,.,...,.,.,.,.,,..,,,.,.,.,,..,..,,...,..,,...,..,,.,.,,..,,,.,
-#Y6V67EQQMBJYIDSGHB52MPALVNK5USQYMWD4CCXWIUCXG5XJQTB3AW7F25SOF6DIE7IKJFQXHFVOQ
-#\\\|NYF7CX3O367TRIY2ACFQOTMNRM2QTXOCABH2ZWMQXFOVLAJUKZY \ / AMOS7 \ YOURUM ::
-#\[7]IFJNWMVLA572HYJIFRBM57V42OXMGARRCHZAT4NA6BB2JAWWM4DI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,,,,,.,.,..,,,.,,.,.,...,,.,,..,,...,..,,,,,,...,.,,,,,.,.,.,
+#N3GBPBAUMSBNK2DZSK5YH67EX3NFP6EVWECLL3VWI73BO4CBYO7EFVXFA7WAPVE2LFXII6CAFY3OC
+#\\\|QKZHGR5KFQ2F6AWKJOXT6GK4WF3T22JSESVV7CQWRUZTDFQGBRX \ / AMOS7 \ YOURUM ::
+#\[7]UC4B3NX24R3LLSI5B7KOF5S3X7CWRCPJGTS37AEEOTAFCSDHPSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
