@@ -70,6 +70,14 @@ would fall below its target is touched ; the rest is reported as kept. a copy
 counts only with a fresh receipt, so a holder that was just filled does not
 yet allow a drain. bytes stay until `holder-gc`.
 
+each map entry carries the ids of the disks it was sealed from [ `disks` ;
+seal adds the id when a node is already mapped from another disk, relay
+copies the set ]. a drain looks only at nodes of the named disk : a node that
+other disks still name loses this disk's id and stays mapped, an entry with
+no disk ids [ maps from before disk ids ] counts as the disk's only while it
+is live there, otherwise it is kept and reported. a wrong disk argument so
+leaves the holder as it was.
+
 `place -exclude <name>` and `placement -exclude <name>` read that holder but
 do not count it, so a move is :
 
@@ -137,8 +145,8 @@ as described above. relays and intake draining : `N7FS-INTAKE.md`.
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,,,,...,...,,,.,,..,,..,..,,,..,,,.,..,,.,,,..,,...,...,.,.,.,,,...,.,,,..,,
-#4QYNUKFICLAV3HGYAKZ6ZBN5IXE27CY2RAUJGQV7KCZJ55UX3HDKLAVQH23DMXMNN4KKCLJ7I6GES
-#\\\|WW6L7PG6LZA2NO7ETYLHO6DUNCELM5ZK2BTJ5YHCX3RG7IU5WEB \ / AMOS7 \ YOURUM ::
-#\[7]DEAVL567JCCUXFU7WU2VCVUSDUXGYHRZLGRBWY4544SDWCZWHADQ 7  DATA SIGNATURE ::
+#,,..,...,,..,.,,,.,.,,.,,,,.,...,..,,...,.,,,..,,...,...,..,,,,,,,.,,.,.,,..,
+#BVRIINDBFN5W26R3UYLFPIIGD5KREEVKBIXODV4UOCFUBV4JAPGEWBIRKOUWYHJ6JNHJQWE42VAS4
+#\\\|COXZETA3UEIVB5VFQZL2DCF7WFPXRQJF342BQO2J7ZUPSV5POSQ \ / AMOS7 \ YOURUM ::
+#\[7]46XAISZLEOTAHGKLARGNFXNJMBJBRGJSWORSUUSK44QVHLFBDABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

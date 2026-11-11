@@ -193,6 +193,38 @@ make_dirs("$base/h6");
 ok( $out !~ m|on full|,
     'a holder whose reserve exceeds its free space receives nothing' )
     or say $out;
+## a second disk on the same holder : drain touches only its own disk ##
+( $rc, $out ) = cli( [], 'init', '-name', 'u', '-intent', 'y' );
+my ($disk2)
+    = grep { !m|^\.| and $ARG ne $disk }
+    do { opendir( my $d, $root ) or die; readdir $d };
+( $rc, $out ) = cli( [], 'attach', $disk2 );
+my $tree2 = "$src/u";
+make_dirs($tree2);
+write_file( "$tree2/g$ARG", "other $ARG\n" ) for 1 .. 5;
+( $rc, $out )
+    = cli( [], 'assimilate', '-disk', $disk2, '-keep', '-tree', 'u', $tree2 );
+( $rc, $out ) = cli(
+    ['vp'],       'seal', $disk2,     '-root-key',
+    'vault:main', '-out', "$base/h7", '-tree',
+    'u'
+);
+ok( $rc == 0, 'second disk sealed to the same holder' ) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-drain', $disk, 'five', '-root-key', 'vault:main' );
+ok( $rc == 0, 'drain of the first disk on the shared holder runs' )
+    or say $out;
+( $rc, $out ) = cli(
+    ['vp'],       'holder-gc',  "$base/h7", '-root-key',
+    'vault:main', '-only-root', '-delete'
+);
+( $rc, $out ) = cli(
+    ['vp'],  'seal-recover', '-root-key', 'vault:main',
+    '-from', "$base/h7",     '-tree',     'u',
+    "$base/rec-u"
+);
+ok( $rc == 0 && -f "$base/rec-u/g3", 'the other disk\'s tree still recovers' )
+    or say $out;
 ## one holder-writing command at a time per host ##
 {
     require Fcntl;
@@ -219,8 +251,8 @@ ok( $rc != 0, 'registry needs the vault passphrase' );
 
 done();
 
-#,,.,,,..,,,.,,,.,,,.,,.,,,.,,.,.,.,,,.,,,.,,,..,,...,...,.,.,.,.,...,,.,,.,.,
-#JCGQ565BWVUQLRMT6VYU7C34JKREWL2WALFGKVG7EYJDAPSZBT2C636I5D5UFA2R4CTQDXTQXIFE2
-#\\\|X2ZOHOHQI2YXW4MERLGMK2WIVAXE4HMNEX4TUTLM3QZXMZ6FMAY \ / AMOS7 \ YOURUM ::
-#\[7]Q53S2OHYWQDUF5TGINWFTNDULCGSPM5G6T7FRKXAAPOGRK65MIBQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,..,,..,,,..,...,,.,,,..,,..,..,,...,...,...,,,.,,.,,,..,,,.,
+#IO54MY4LWTXDP35DYD63PQHU7F24YDSYDWQSQBEJZ3EQXIZY3OMNEBNOETVQNEW7VJT4KMPG42PKS
+#\\\|KFZXQNP7QZSQHZVD7KCUJQJUKCLIOMWXTGEAJBJP6U6B3TC5KLV \ / AMOS7 \ YOURUM ::
+#\[7]RRPS5QWGWX5A4S2WHBUEVLW2YBICR2MKQQPXLZNM4656QRLHRMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
