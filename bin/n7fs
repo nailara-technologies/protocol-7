@@ -78,6 +78,9 @@ use warnings;
 ##                 [ -categories <a,b> ] [ -min-priority <n> ]  what place
 ##                 may put there ; one passing category is enough
 ## n7fs holder list | remove <name>         registry in the vault
+## n7fs holder rename <old> <new> [ -spec <holder> -root-key <key> ]
+##                 one registry write ; a new spec moves the rollback pin
+##                 [ its head must match ] and needs a new holder-check
 ## n7fs holder-drain <disk> <name> -root-key <key> [ -dry-run ]
 ##                 drop what is safely held elsewhere ; never below a target ;
 ##                 only nodes of that disk [ disk ids in the map entries ]
@@ -169,7 +172,7 @@ GetOptionsFromArray(
         layer=s incoming under=s depth=i limit=i group-by=s trees-only help
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
-        categories=s min-priority=s
+        categories=s min-priority=s spec=s
         list adopt |
 ) or usage(2);
 usage(0) if $o{'help'};
@@ -1753,7 +1756,29 @@ sub cmd_holder {
         say_line( 'holder ', $name, ' removed from the registry' );
         return 0;
     }
-    fail('holder needs add, list or remove');
+    if ( $action eq qw| rename | ) {
+        my $old = shift // fail('holder rename needs the old name');
+        my $new = shift // $old;
+        fail('holder rename : unexpected arguments') if @ARG;
+        my $r = AMOS7::N7FS::Placement::holder_rename(
+            _vault_opt(),
+            qw| name |     => $old,
+            qw| new_name | => $new,
+            defined $o{'spec'}
+            ? ( qw| new_spec | => $o{'spec'}, qw| root | => _seal_root() )
+            : (),
+            qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE
+        );
+        say_line( $o{'dry-run'} ? 'would rename ' : 'renamed ',
+            $old, ' to ', $new, $r->{'respec'} ? " at $r->{'spec'}" : '' );
+        say_line(
+            'head version ',
+            $r->{'version'}, ' matches the pin ; run holder-check ',
+            $r->{'spec'},    ' for a new receipt'
+        ) if $r->{'respec'};
+        return 0;
+    }
+    fail('holder needs add, list, remove or rename');
 }
 
 sub _placement_opt {
@@ -1857,8 +1882,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,..,.,.,,.,,..,,...,,..,,,.,,,.,,,,,.,,,..,,...,...,,,,,...,,.,,,..,.,.,
-#GSLONVSOTZ4UXQIPAASWYJLXT7SI3NOD5IUFQE2GINO7LYVGCKMVP37PNAC4FDQ33VPVTP56ADJSM
-#\\\|AOBYJHNE532YUYIZL7Z2KUDGGNE6HUHD3RXB5AVELRJFLGMXEXW \ / AMOS7 \ YOURUM ::
-#\[7]QJCELWWRQ4SMRWIGODYFONDVIZBUE6BKLBKJVLLHQA7FKECIDMCQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,,.,,,,.,.,,,,,.,..,,...,...,..,,...,...,.,,,,,.,,,.,.,.,.,,,
+#JEBTGXVSCCRFYFUWMGDF6AYNPG2IU7GQFQWZ335XVPSFJTF4ZFPARBD5WTDRMUGT757ARWCEQDNWU
+#\\\|IPOLYTEI6SSPQIAW6KPURMOJUZTFP3SOLYKVU22S5ITBLUU327D \ / AMOS7 \ YOURUM ::
+#\[7]CMV34I3NHS5JKNBX2YQJBQ35VUR2MYOUDMTOARYE2L2AMQRYDMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
