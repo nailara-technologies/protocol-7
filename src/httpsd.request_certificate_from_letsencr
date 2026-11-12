@@ -2,6 +2,8 @@
 
 # name = httpsd.request_certificate_from_letsencr
 # descr = request certificate provisioning from letsencr zenka
+#         [ route-send only buffers : the reply arrives asynchronously in
+#           httpsd.handler.cert_request_reply -- no synchronous answer ]
 # return = { status => 'pending'|'failed', message => description }
 
 ## get the hostname we're provisioning for
@@ -12,62 +14,43 @@ my $hostname = shift // <system.host.hostname> // 'unknown';
     $hostname
 );
 
-## request certificate from letsencr using zenka IPC
-my $request_result = eval {
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => 'letsencr.parent.cmd.request-certificate',
-            'call_args' => { 'args' => $hostname },
+## route-send buffers the command for letsencr [ starts it on demand ] ##
+my $num_clients = <[protocol-7.route-send]>->(
+    {   'command'   => qw| letsencr.request-certificate |,
+        'call_args' => { 'args' => $hostname },
+        'reply'     => {
+            'handler' => qw| httpsd.handler.cert_request_reply |,
+            'params'  => { 'hostname' => $hostname }
         }
+    }
+);
+
+if ( !defined $num_clients || $num_clients == 0 ) {
+    <[base.logs]>->(
+        2, 'httpsd: letsencr not reachable for certificate request'
     );
+    return {
+        status  => 'failed',
+        message => 'letsencr did not accept the certificate request'
+    };
+}
+
+<[base.logs]>->(
+    2,
+    'httpsd: certificate request routed to letsencr '
+        . 'for %s [ reply handled asynchronously ]',
+    $hostname
+);
+
+return {
+    status  => 'pending',
+    message => "certificate request sent to letsencr for '$hostname'"
 };
-
-if ($EVAL_ERROR) {
-    <[base.logs]>->(
-        2, 'httpsd: error requesting certificate from letsencr: %s',
-        $EVAL_ERROR
-    );
-    return {
-        status  => 'failed',
-        message => "cannot contact letsencr: $EVAL_ERROR"
-    };
-}
-
-unless ( defined $request_result ) {
-    <[base.logs]>->(
-        2, 'httpsd: letsencr returned undef for certificate request'
-    );
-    return {
-        status  => 'failed',
-        message => 'letsencr did not respond to certificate request'
-    };
-}
-
-## interpret letsencr response: { mode => 'true'|'false', data => ... }
-my $mode = $request_result->{mode} // 'false';
-my $data = $request_result->{data} // 'no response data';
-
-if ( $mode eq qw| true | ) {
-    ## cert available OR request successfully initiated
-    <[base.logs]>->(
-        2, 'httpsd: certificate available or request initiated: %s', $data
-    );
-    return {
-        status  => 'pending',
-        message => $data
-    };
-} else {
-    ## request failed
-    <[base.logs]>->( 2, 'httpsd: certificate request failed: %s', $data );
-    return {
-        status  => 'failed',
-        message => $data
-    };
-}
 
 0;
 
-#,,,,,.,,,...,,,,,,..,,.,,,..,..,,.,,,,..,.,.,..,,...,...,..,,...,,,,,..,,..,,
-#22NZIPS5OPU4IMX6KI3R77IGRTB3EOR7SHME3OHQAJJQLYOA3JST52DBD35ZAEEQ2KNGD72N5BARA
-#\\\|VUJLYOUWKTZAFKUKUXXO3OMDDIDKEPCSHXIGKBVUPR5QM5LDNVW \ / AMOS7 \ YOURUM ::
-#\[7]34TUW3W6ZKDK2AKTWHSQJLBH53PWAORWF5B3EXUEECTVBAJJXACQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,...,,,.,..,,,,,,..,,..,,,,.,..,,...,...,.,.,,.,,..,,...,...,
+#Q7HSWMLFTJFZUM5SYK74I6GNASY5BA7EIQBFDTTIHCVK46OGIRSCOSERWI7CA5Q3VYK2BYRYPW5WC
+#\\\|FY2G5RSUYZRNZ2QU2HCFCSJX2SNNONGUVE7W2Y5BYATLOADD4IU \ / AMOS7 \ YOURUM ::
+#\[7]2CEXJ5IYY7DAS6BUMOKENKQS4AVA5K5L6HKWAFTCO354TDYEJ6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

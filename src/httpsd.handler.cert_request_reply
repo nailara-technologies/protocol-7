@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = httpsd.handler.cert_request_reply
+# descr = reply handler for the routed letsencr.request-certificate call
+#         [ route-send only buffers : this handler receives the answer ]
+
+my $reply = shift // {};
+
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my $hostname = $reply->{'params'}{'hostname'} // 'unknown';
+
+if ( $mode eq qw| true | ) {
+    <[base.logs]>->(
+        2, 'httpsd: letsencr accepted certificate request for %s : %s',
+        $hostname, $text
+    );
+} else {
+    <[base.logs]>->(
+        1,         'httpsd: letsencr refused certificate request for %s : %s',
+        $hostname, $text
+    );
+}
+
+return TRUE;
+
+#,,,,,.,,,.,,,,..,...,,.,,,.,,...,,,.,,..,,..,..,,...,...,..,,..,,,..,,,,,.,,,
+#KH2YOKVVHCEW7HYE7PATBPNCWGCGLFOA4QSYV2OXYPV27FPKGKDYHDBLWUPTEP4DG7LOS35FPEKIO
+#\\\|PE3G6J5N6AMRMMLB73C43IBFW3EFQAKIBLNNACMCCMT3AO7YME6 \ / AMOS7 \ YOURUM ::
+#\[7]GB23T7Q5DWSFVWXTXTQ6ZDFACCIMUNRRPDGGHJMLTEIOCV2254AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

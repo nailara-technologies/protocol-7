@@ -1,0 +1,176 @@
+## [:< ##
+
+# name  = httpsd.cert_watch.check
+# descr = certificate watchdog : per vhost hostname resolve the cert like
+#         SNI [ exact, then parent ], read notAfter and track state
+#         [ ok, margin, expired, missing ] in <httpsd.certificates>
+#         on margin \ expired \ missing : route-send letsencr.renew and
+#         shorten the check interval [ 3900 -> 1300 -> 433 floor ]
+
+my $event = shift;
+my $data  = $event->w->data // {};
+
+my $now            = time();
+my $certs_dir      = <letsencr.certs.dir> // qw| /etc/protocol-7/certs |;
+my $margin_seconds = ( <httpsd.cert_watch.margin_days> // 21 ) * 86400;
+my $current        = <httpsd.cert_watch.current_interval>
+    // <httpsd.cert_watch.interval> // 3900;
+
+<[base.perlmod.autoload]>->( 'Crypt::OpenSSL::X509', qw( FORMAT_PEM ) );
+<[base.perlmod.autoload]>->( 'Date::Parse',          qw( str2time ) );
+
+## cert expiry helper [ 0 when unreadable ] ##
+my $cert_expires = sub {
+    my $file = shift;
+    return 0 unless -f $file;
+    my $x509 = eval { Crypt::OpenSSL::X509->new_from_file($file) };
+    return 0 unless defined $x509;
+    my $expiry = str2time( $x509->notAfter );
+    return $expiry // 0;
+};
+
+## resolve cert file like SNI [ exact, then parent domain ] ##
+my $resolve_cert = sub {
+    my $host = shift;
+    my $cert = sprintf '%s/%s.pem', $certs_dir, $host;
+    return $cert if -f $cert;
+    if ( $host =~ m|^[^.]+\.(.+[.].+)$| ) {
+        my $parent_cert = sprintf '%s/%s.pem', $certs_dir, $LAST_PAREN_MATCH;
+        return $parent_cert if -f $parent_cert;
+    }
+    return undef;
+};
+
+my $hostnames  = <httpd.cfg.hostnames> // {};
+my $worst      = qw| ok |;
+my $need_renew = 0;
+
+## local \ placeholder hostnames never get a letsencr.renew route ##
+my %is_local = map { $ARG => 1 } qw| default localhost 127.0.0.1 ::1 |;
+
+## the default cert [ SSL_cert_file ] : served to every host without one of ##
+## its own -- its own row, 'missing' only applies to it                     ##
+my $default_file    = <httpsd.cfg.certificate_path> // '';
+my $default_expires = $default_file ? $cert_expires->($default_file) : 0;
+
+## rebuilt every check : removed vhosts leave the table ##
+<httpsd.certificates> = {};
+
+my %rows = map { $ARG => $resolve_cert->($ARG) } keys $hostnames->%*;
+$rows{'<default>'} = $default_file;
+
+foreach my $host ( sort keys %rows ) {
+    my $file    = $rows{$host};
+    my $expires = $file ? $cert_expires->($file) : 0;
+
+    my $state;
+    if ( not defined $file and $host ne '<default>' ) {
+        ## SNI falls back to the default cert : its row tracks expiry ##
+        <httpsd.certificates>->{$host} = {
+            name       => $host,
+            file       => '<default>',
+            expires    => $default_expires,
+            state      => qw| default |,
+            next_check => $now + $current,
+        };
+        next;
+    } elsif ( not length( $file // '' ) or $expires == 0 ) {
+        $state = qw| missing |;
+    } elsif ( $expires <= $now ) {
+        $state = qw| expired |;
+    } elsif ( $expires - $now <= $margin_seconds ) {
+        $state = qw| margin |;
+    } else {
+        $state = qw| ok |;
+    }
+
+    <httpsd.certificates>->{$host} = {
+        name       => $host,
+        file       => $file // '',
+        expires    => $expires,
+        state      => $state,
+        next_check => $now + $current,
+    };
+
+    if ( $state eq qw| missing | or $state eq qw| expired | ) {
+        $worst      = $state if $worst eq qw| ok | or $worst eq qw| margin |;
+        $need_renew = 1 unless $is_local{$host};
+        <[base.logs]>->(
+            1,     'cert watch : %s %s [ %s ]',
+            $host, $state, ( $file // 'no certificate' )
+        );
+    } elsif ( $state eq qw| margin | ) {
+        $worst      = qw| margin | if $worst eq qw| ok |;
+        $need_renew = 1 unless $is_local{$host};
+        <[base.logs]>->( 2, 'cert watch : %s within margin', $host );
+    }
+}
+
+## default cert change detection [ only the default cert needs a reload ] ##
+my $prev_default = <httpsd.cert_watch.default_cert> // {};
+
+if (   ( $prev_default->{file} // q{} ) ne $default_file
+    or ( $prev_default->{expires} // 0 ) != $default_expires ) {
+    ## a vanished \ unreadable default cert is no reason to restart onto it ##
+    if (    defined $prev_default->{file}
+        and length $prev_default->{file}
+        and $default_expires > 0 ) {
+        <[base.logs]>->(
+            2, 'cert watch : default certificate changed [ %s ]',
+            $default_file
+        );
+        <[httpsd.reload_certificates]>;
+    }
+    <httpsd.cert_watch.default_cert> = {
+        file    => $default_file,
+        expires => $default_expires,
+    };
+}
+
+## ask letsencr to renew [ starts it on demand ] ##
+if ($need_renew) {
+    <[base.logs]>->( 2, 'cert watch : requesting renewals from letsencr' );
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| letsencr.renew |,
+            'call_args' => { 'args' => '' },
+        }
+    );
+}
+
+## interval adjustment ##
+my $target = $current;
+if ( $worst eq qw| ok | ) {
+    $target = <httpsd.cert_watch.interval> // 3900;
+} elsif ( $current > 1300 ) {
+    $target = 1300;
+} else {
+    $target = 433;    ## floor : ACME rate limit ##
+}
+
+if ( $target != $current ) {
+    <[base.logs]>->(
+        2,        'cert watch : check interval %d -> %d',
+        $current, $target
+    );
+    <httpsd.cert_watch.current_interval> = $target;
+    if ( defined <httpsd.cert_watch.timer>
+        and <httpsd.cert_watch.timer>->is_active ) {
+        <httpsd.cert_watch.timer>->cancel;
+    }
+    <httpsd.cert_watch.timer> = <[event.add_timer]>->(
+        {   'after'    => $target,
+            'interval' => $target,
+            'handler'  => qw| httpsd.cert_watch.check |,
+            'repeat'   => 1,
+            'data'     => $data,
+        }
+    );
+}
+
+return TRUE;
+
+#,,.,,,,,,..,,.,,,.,,,,.,,...,.,.,.,,,.,,,,..,..,,...,...,,.,,,,,,...,...,,.,,
+#XXYCHALEOFD3MHWWVAP2N5QBFRGAXKU5IY3FOBZZUZ5MWRUIE5ETSZZG57XRVRR2PFYMTRY33BROO
+#\\\|UQLXMJGC5XNYWRW27DPGDP7ZSHX3GFZVZX6IFSW4PEHZLWUCN77 \ / AMOS7 \ YOURUM ::
+#\[7]VQUBR2Y3D3EH4CVIC3SEZEJARZKNKKZOHFXGWPTXJGCKWBCCL4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

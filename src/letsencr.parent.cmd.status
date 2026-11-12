@@ -116,13 +116,39 @@ $status_report .= sprintf(
 );
 $status_report .= ":.\n\n";
 
+## Parseable section [ one line per entry, space separated ] ##
+$status_report .= ":: parseable ::\n";
+foreach my $domain ( sort keys %$certs ) {
+    my $cert       = $certs->{$domain};
+    my $expires_at = $cert->{expires_at} // 0;
+    my $status     = $cert->{status}     // 'unknown';
+    $status_report .= sprintf "cert %s %d %s\n", $domain, $expires_at,
+        $status;
+}
+my $challenges = <letsencr.parent.pending_challenges> // {};
+foreach my $domain ( sort keys %$renewals ) {
+    my $renewal = $renewals->{$domain};
+    my $state   = $renewal->{status} // 'pending';
+    $status_report
+        .= sprintf "registration %s %s %d\n",
+        $domain, $state, $renewal->{attempts} // 0;
+}
+foreach my $domain ( sort keys %$challenges ) {
+    my $challenge = $challenges->{$domain};
+    $status_report .= sprintf "registration %s %s %d\n",
+        $domain,
+        $challenge->{status}   // 'challenge',
+        $challenge->{attempts} // 0;
+}
+$status_report .= ":.\n\n";
+
 return {
     mode => 'size',
     data => $status_report,
 };
 
-#,,,.,,.,,,.,,.,.,,,.,,..,,,.,.,,,.,,,,..,.,.,..,,...,...,.,,,.,,,,..,...,.,.,
-#KDSDX3C3JUP4SIMPJJZ646ETMTX3HQR4K35RMNZTVDM7IEJ5VBKCYUZEWKALEXNESNRMXYIRXNMSW
-#\\\|R67WO55CPLOJ2X6KEBQZ6AY24GUM45WONKUUKPPGMX3C6AH3DU4 \ / AMOS7 \ YOURUM ::
-#\[7]SHOAELY4KUGKH3AR3E4LTFJSQJDVECAOM4RNCNOE5HYTVS65IOCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,,,,,,,.,..,,.,,,...,,..,..,,..,,...,...,..,,,.,,...,...,.,.,
+#YMPHBXBM2YW4F7CDDTWSDL4PH7QOPIC7TQDYL67K54Z64FBQDLY4JKIYOEAPAY47AWDFUOBQL3P4A
+#\\\|F47N4F7UUZSQZY33BBR2ZZEXKP4BFUI3LPXB7LGSCKV6AR4O7WG \ / AMOS7 \ YOURUM ::
+#\[7]6BULGOQOBUXYCNC7A7LDZP7DNGILINHGPBR2FQMSZGBXLGIRBOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

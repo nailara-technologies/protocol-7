@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = letsencr.parent.cmd.force-renew
+# descr = queue a renewal for one domain regardless of expiry
+#         [ respects the <letsencr.parent.ratelimit> limiter ]
+
+my $domain = $call->{'call_args'}->{'args'} // $call->{'args'};
+
+unless ($domain) {
+    return {
+        mode => qw| false |,
+        data => 'domain name required',
+    };
+}
+
+$domain = lc $domain;
+
+<[base.logs]>->( 2, 'force-renew command received for : %s', $domain );
+
+## rate limiter [ <letsencr.parent.ratelimit> state from parent init ] ##
+my $ratelimit = <letsencr.parent.ratelimit> // {};
+my $now       = time();
+
+if ( $ratelimit->{enabled} ) {
+    my $max_hour = $ratelimit->{max_hour} // 5;
+    $ratelimit->{history} //= [];
+    my $window_start = $now - 3600;
+    @{ $ratelimit->{history} }
+        = grep { $_ >= $window_start } @{ $ratelimit->{history} };
+
+    if ( scalar @{ $ratelimit->{history} } >= $max_hour ) {
+        <[base.logs]>->(
+            1, 'force-renew refused for %s : rate limit %d per hour reached',
+            $domain, $max_hour
+        );
+        return {
+            mode => qw| false |,
+            data => sprintf 'rate limit %d requests per hour reached',
+            $max_hour,
+        };
+    }
+    push @{ $ratelimit->{history} }, $now;
+}
+
+## queue regardless of expiry [ days_remaining -1 marks forced ] ##
+my $cert_info = <letsencr.parent.certs>->{$domain} // {};
+
+my $queue_result = <[letsencr.parent.queue_renewal_requests]>->( [
+        {   domain          => $domain,
+            days_remaining  => -1,
+            alt_names       => $cert_info->{alt_names} // [],
+            account_id      => $cert_info->{account_id},
+            certificate_url => $cert_info->{certificate_url},
+        },
+    ]
+);
+
+if (    $queue_result
+    and ref $queue_result eq qw| HASH |
+    and $queue_result->{status} eq qw| success |
+    and $queue_result->{queued} > 0 ) {
+    <[letsencr.parent.activity_logger]>->(
+        qw| renewal |, $domain, qw| pending |, qq| force-renew requested |
+    );
+    return {
+        mode => qw| true |,
+        data => sprintf "forced renewal queued for '%s'",
+        $domain,
+    };
+} else {
+    return {
+        mode => qw| false |,
+        data => sprintf "failed to queue forced renewal for '%s'",
+        $domain,
+    };
+}
+
+#,,,.,.,.,,..,.,.,..,,,,,,.,,,..,,.,,,,,.,...,..,,...,...,..,,,..,,,.,.,.,,..,
+#GLGRVDCTSMCT5DEOCG5IK7FKWOR4UACIACCE3SLJQZ2EIR7355NFD3ILISTXNWAX7JQKSVA4AEWQS
+#\\\|IBMLFT7NH2EPWFRH3DVRUWFDHDZTQRW4RDQ5FHX3OLCS72N52KU \ / AMOS7 \ YOURUM ::
+#\[7]IJ4EB4SE2GEMF2CXIO4H5J36MBOHKDWVBAYB2HKEXVYVC7YZXKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

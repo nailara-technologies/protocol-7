@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = letsencr.parent.cmd.renew
+# descr = run a renewal check now [ due certificates only ]
+
+<[base.log]>->( 2, 'renew command received : running renewal check now' );
+
+## same code path as the periodic timer [ due certificates only ] ##
+<[letsencr.parent.handler_renewal_check]>->( {} );
+
+return {
+    mode => qw| true |,
+    data => 'renewal check started',
+};
+
+#,,.,,,.,,,,,,,,,,,..,.,,,,,.,,.,,,.,,,.,,.,,,..,,...,...,...,,.,,...,..,,,..,
+#EAN7SOHXQYETXLIVBQCNE7ANTPAFV5G5DT6X77TTGOS37NBWAZFHBN7ZHLAAO2LEXV7PTIJLUZANG
+#\\\|2DZEZDTQSJAB4KNRBCAIBPTULKERSA44QHAF5P4LRYIVDJ2NHHM \ / AMOS7 \ YOURUM ::
+#\[7]ZB5QRFI6FYHLJSJE5QFMIQHWSZR3NUD7EY7MSVYUL5KPIXIT3KAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

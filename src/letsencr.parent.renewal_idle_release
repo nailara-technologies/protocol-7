@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = letsencr.parent.renewal_idle_release
+# descr = mark one renewal as done [ success or failure ] and resume the
+#         on-demand idle timeout once none are in flight anymore [ pairs
+#         with letsencr.parent.renewal_idle_hold ]
+
+<letsencr.parent.renewals_in_flight> //= 0;
+<letsencr.parent.renewals_in_flight>--
+    if <letsencr.parent.renewals_in_flight> > 0;
+<letsencr.parent.renewals_in_flight> = 0
+    if <letsencr.parent.renewals_in_flight> < 0;
+
+<[base.zenki.resume_ondemand_timeout]>
+    if <letsencr.parent.renewals_in_flight> == 0;
+
+#,,.,,,.,,,.,,.,.,,..,,,,,,..,,,.,,,,,.,,,...,..,,...,...,.,.,...,,,.,,..,,.,,
+#6BKNEMYOVEB4URCX5RCBBLCOLVGODIY6TV6CFK4AIMBEZRCS6Y23SMNJDV6J34V6GTM4YSINF6V3C
+#\\\|DIITKLW3ICY7LJDIVOG6EVLP2AE3VPMSI5KCV2SC2SBEUFXSDX4 \ / AMOS7 \ YOURUM ::
+#\[7]7AG4OKUYRH5HHV3MWNWHM7I2TYLCI5BNG2TWTSKPCEDC6KMLB4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
