@@ -13,6 +13,9 @@ nameserv.bind.addr = 0:0:0:0:0:0:0:0
 nameserv.bind.port = 53
 nameserv.zone_dir  = '/var/protocol-7/nameserv/zones'
 
+## rfc 1035 master files for apply-zone-source [ <zone>.zone per zone ] ##
+nameserv.cfg.zone_source_dir = '/etc/protocol-7/nameserv/zones'
+
 ## dns over tcp [ rfc 7766 ] : connections beyond the limit are closed at ##
 ## once, idle ones after the timeout [ seconds, reset per query ]         ##
 # nameserv.cfg.tcp.max_connections = 77
@@ -38,7 +41,7 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       get-record show-zone list-zones discover-nodes \
                       add-txt remove-txt ensure-zone last-data-timestamp \
                       remove-zone restore-zone sync-pull sign-zone \
-                      add-record consistency
+                      add-record apply-zone-source consistency
 
 ## logging verbosity
 system.zenka.verbosity.buffer  = 2
@@ -74,8 +77,8 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml \
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,.,,,,,,,..,...,.,,,,,,,.,.,,,.,,,.,...,...,..,,...,...,,..,.,.,..,,,..,..,,
-#PI35Q22F5T2UWEOTL6AMTTICSEDIQO7ANPHIXA5EFOL44UXMFIA7I3JL6AQD5MJPWITPNPXOMKDKQ
-#\\\|WWN5WFQXLEURCKCBCY4R7ZYYRYXSYHY6KXRLQMVRYRFQFURO3VQ \ / AMOS7 \ YOURUM ::
-#\[7]FXJOTIITW2K4L7ZJFAPF5L5IH5Q7LPXMBKRDEYVOMI6F64YYSGAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,..,,,.,,,,,,..,,..,,,,.,...,,.,,..,,...,.,.,...,,,,,..,,..,,.,.,
+#Z6ITVIBC4A7AUAAI5JDFT7RF7KPXA32QZBTM5KFVOG7BXLWH276J2A7SIBPYV4CUXJSNO34RCBK7M
+#\\\|AN3OKBTEVGNM72WXKF3YNNNZO6MNLA4QR526UBTG32PKZ4GOKSE \ / AMOS7 \ YOURUM ::
+#\[7]VYE6OCAD7XOQDQMVBP5VXAQW2LZ43SL7DRIYTYWAIO3GGWZM7IBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

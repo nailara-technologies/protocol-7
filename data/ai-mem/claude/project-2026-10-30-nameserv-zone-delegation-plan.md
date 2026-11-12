@@ -57,8 +57,16 @@ stays out of the repo [ /data/<project>-data/ or host-config ], the
 structure goes in. test it the way the snapshots define it : rebuild,
 then diff served answers [ dig ] and mappings against the snapshots.
 
-#,,.,,,,.,,..,,,,,,.,,.,,,..,,.,,,..,,...,...,..,,...,...,...,..,,...,,.,,,,.,
-#GWAZFRH76WQ7RB3FI2M7AZPKX3PG7JO5JYEX47BGMJ4TQ7UJWMTXOKNJGGID5TIYVZP2TV57N6YZC
-#\\\|GP7FWPXNDRIE3AARAFKDHAULI4BF4X3HBBJ5TGJAF7O5EE2WHQ6 \ / AMOS7 \ YOURUM ::
-#\[7]IXAXSBKQVIQVFAJUUAUWVLLR4B43URNY3KPHPUPG2SPQFKPMLMDI 7  DATA SIGNATURE ::
+**state 2026-11-12 :** srv-U nameserv holds ONLY acme.* subzones [ 8 ], no parent zone.
+owner decided : zone sources live in /etc/protocol-7/nameserv/ [ host config, not the repo ] ;
+recreatability later via an N7FS host-config tree. gaps found in nameserv.answer before it
+can serve a parent zone : no CNAME answer for other types [ breaks MX taeki.v7.ax ], no
+wildcard '*', no SOA in authority on NXDOMAIN \ NODATA, empty non-terminals [ us.v7.ax ]
+answer NXDOMAIN ; no zone-source import [ ensure-zone is acme.-only ]. per-record ttl
+and longest-suffix zone match exist already.
+
+#,,.,,,.,,,,,,...,.,,,,..,...,..,,..,,..,,,,,,..,,...,...,..,,,,,,..,,...,..,,
+#XLXDZKG56NMZPDGZAFQ7MNPKAPTFWDVGNU57AMKJHMKPIBC5TUL43KEZN6S4PL5RVVHAIK6WCH5N6
+#\\\|VNMYY4DXJDTO26VU4FRLMKYOYX6HT4VKY2OB7ZGW2J23TITAEKH \ / AMOS7 \ YOURUM ::
+#\[7]GSLOI2YPWNHTWFOSQOMAMTNRUDTXMKHIWWT4HRL4UAQZ4IBJUMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

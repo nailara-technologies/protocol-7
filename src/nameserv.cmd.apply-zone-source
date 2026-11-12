@@ -1,0 +1,247 @@
+## [:< ##
+
+# name  = nameserv.cmd.apply-zone-source
+# descr = apply an rfc 1035 zone file : add missing records
+# param = <zone> | :all: [ :diff: ]
+#
+# reads <zone>.zone from nameserv.cfg.zone_source_dir [ rfc 1035 master ##
+# file : $origin, $ttl, '@', relative + absolute names, per-record ttl,  ##
+# IN class, ';' comments, types A AAAA CNAME MX NS TXT SOA SRV CAA ].    ##
+# creates the zone when missing [ unlike ensure-zone there is no acme.  ##
+# prefix restriction -- the source dir alone decides which zones may    ##
+# exist here ]. records already in the zone are kept : only missing     ##
+# ones are added [ soa \ cname replace their single value ]. records in  ##
+# the zone but absent in the source are reported as extra, never        ##
+# removed. ':diff:' reports missing \ extra \ differing [ e.g. ttl ]     ##
+# records without changing anything. idempotent : a second run adds     ##
+# nothing.
+
+my @parts = grep {length} split m|\s+|, lc( $call->{'args'} // '' );
+
+my $usage = {
+    mode => 'false',
+    data => 'usage: apply-zone-source <zone> | :all: [ :diff: ]'
+};
+return $usage if not @parts or @parts > 2;
+
+my $arg      = shift @parts;
+my $diff_arg = shift @parts // '';
+return $usage if $diff_arg ne '' and $diff_arg ne qw| :diff: |;
+my $diff_only = $diff_arg eq qw| :diff: | ? 1 : 0;
+
+my $src_dir = <nameserv.cfg.zone_source_dir>
+    // '/etc/protocol-7/nameserv/zones';
+
+my @zones_wanted;
+if ( $arg eq qw| :all: | ) {
+    opendir my $dh,
+        $src_dir
+        or return {
+        mode => 'false',
+        data => "source dir not readable: $src_dir"
+        };
+    @zones_wanted = sort map {s{\.zone\z}{}r}
+        grep {m|^[a-z0-9.-]+\.zone\z|} readdir $dh;
+    closedir $dh;
+    return { mode => 'false', data => 'no zone files found in ' . $src_dir }
+        if not @zones_wanted;
+} else {
+    my $zone_name = $arg;
+    $zone_name =~ s{\.+$}{};
+    return { mode => 'false', data => "invalid zone name: $zone_name" }
+        if $zone_name !~ m|\A[a-z0-9.-]+\z| or $zone_name !~ m|\.|;
+    @zones_wanted = ($zone_name);
+}
+
+my $zones = <nameserv.zones> //= {};
+
+## parse one zone file into a flat want-list ##
+my $parse_source = sub {
+    my ( $zone_name, $path ) = @_;
+    return ( undef, "source file not found: $path" ) if not -f $path;
+
+    my $have_zf = eval { require Net::DNS::ZoneFile; 1 } // 0;
+    return ( undef, 'Net::DNS::ZoneFile is not available' )
+        if not $have_zf;
+
+    my $zf = eval { Net::DNS::ZoneFile->new( $path, $zone_name ) };
+    return ( undef, "cannot parse $path : $EVAL_ERROR" )
+        if not defined $zf or $EVAL_ERROR;
+
+    my @want;
+    while ( my $rr = eval { $zf->read } ) {
+        next if not defined $rr;
+        my $class = uc( $rr->class // '' );
+        next if $class ne qw| IN |;
+        my $type = uc( $rr->type // '' );
+        next
+            if $type !~ m{\A(?:A|AAAA|CNAME|MX|NS|TXT|SOA|SRV|CAA)\z};
+        my $name = lc( $rr->name // '' );
+        $name =~ s{\.+$}{};
+        my $value = eval { $rr->rdstring } // $rr->rdatastr // '';
+        $value =~ s{;[^\n]*}{}g;     ## drop rdstring field comments ##
+        $value =~ s{\s+}{ }g;
+        $value =~ s{^\s+|\s+$}{}g;
+        push @want,
+            {
+            name  => $name,
+            type  => $type,
+            value => $value,
+            ttl   => $rr->ttl,
+            };
+    }
+    return ( undef,  "error reading $path : $EVAL_ERROR" ) if $EVAL_ERROR;
+    return ( \@want, undef );
+};
+
+my @report;
+my $any_diff = 0;
+
+for my $zone_name (@zones_wanted) {
+    my $path = sprintf '%s/%s.zone', $src_dir, $zone_name;
+    my ( $want, $error ) = $parse_source->( $zone_name, $path );
+    if ( defined $error ) {
+        push @report, "$zone_name : $error";
+        $any_diff = 1;
+        next;
+    }
+
+    my $zone = $zones->{$zone_name};
+
+    if ( not $zone and not $diff_only ) {
+        ## create the zone from the source [ no acme. restriction ] ##
+        $zones->{$zone_name} = {
+            serial  => time(),
+            ttl     => <nameserv.cfg.default_ttl>,
+            records => [],
+        };
+        $zone = $zones->{$zone_name};
+    }
+
+    my @live
+        = $zone ? @{ $zone->{'records'} // [] } : ();
+    my %want_identity
+        = map { <[nameserv.entry.identity]>->( $zone_name, $ARG ) => $ARG }
+        @$want;
+
+    my ( @missing, @differing );
+    for my $rec (@$want) {
+        my $identity = <[nameserv.entry.identity]>->( $zone_name, $rec );
+        my ($same) = grep {
+            <[nameserv.entry.identity]>->( $zone_name, $ARG ) eq $identity
+        } @live;
+        push @missing, $rec if not $same;
+        next if not $same;
+        ## same identity : value [ single-value types ] or ttl can differ ##
+        push @differing, $rec
+            if $same->{'value'} ne $rec->{'value'}
+            or ( $same->{'ttl'} // '' ) ne ( $rec->{'ttl'} // '' );
+    }
+    my @extra = grep {
+        not exists $want_identity{
+            <[nameserv.entry.identity]>->( $zone_name, $ARG ) }
+    } @live;
+
+    my $fmt_rec = sub {
+        my $rec = shift;
+        return sprintf '%s %s %s', $rec->{'name'}, $rec->{'type'},
+            $rec->{'value'};
+    };
+
+    if ($diff_only) {
+        $any_diff = 1
+            if @missing
+            or @differing
+            or @extra
+            or not $zone;
+        push @report, "$zone_name : zone missing [ all records missing ]"
+            if not $zone;
+        my @lines = (
+            ( map { 'missing  : ' . $fmt_rec->($ARG) } @missing ),
+            ( map { 'differing: ' . $fmt_rec->($ARG) } @differing ),
+            ( map { 'extra    : ' . $fmt_rec->($ARG) } @extra ),
+        );
+        push @report, @lines
+            ? ( "$zone_name :", @lines )
+            : "$zone_name : in sync";
+        next;
+    }
+
+    ## apply : add missing records [ add-record semantics ], replace       ##
+    ## differing ones [ set-record semantics : a replaced value of another ##
+    ## identity gets a tombstone ]                                         ##
+    my ( $added, $changed ) = ( 0, 0 );
+
+    my $store_rec = sub {
+        my $rec     = shift;
+        my $new_rec = {
+            name  => $rec->{'name'},
+            type  => $rec->{'type'},
+            value => $rec->{'value'},
+            ts    => <[base.ntime.b32]>,
+        };
+        $new_rec->{'ttl'} = $rec->{'ttl'} if defined $rec->{'ttl'};
+        <[nameserv.sync.sign]>->( $zone_name, $new_rec );
+        push @{ $zone->{'records'} }, $new_rec;
+        <[nameserv.zone.tombstone.clear]>->( $zone_name, $new_rec );
+        return $new_rec;
+    };
+
+    for my $rec (@missing) {
+        $store_rec->($rec);
+        $added++;
+    }
+
+    for my $rec (@differing) {
+        my $identity = <[nameserv.entry.identity]>->( $zone_name, $rec );
+        my @kept     = ();
+        ## only soa \ cname drop every value of the name + type ; a   ##
+        ## multi-value type [ ns, a, .. ] replaces just this identity ##
+        my $single = $rec->{'type'} =~ m{\A(?:SOA|CNAME)\z};
+        for my $old ( @{ $zone->{'records'} } ) {
+            my $old_id = <[nameserv.entry.identity]>->( $zone_name, $old );
+            if (    lc( $old->{'name'} =~ s{\.+$}{}r ) eq $rec->{'name'}
+                and $old->{'type'} eq $rec->{'type'}
+                and ( $single or $old_id eq $identity ) ) {
+                <[nameserv.zone.tombstone.add]>->( $zone_name, $old )
+                    if <[nameserv.entry.identity]>->( $zone_name, $old ) ne
+                    $identity;
+            } else {
+                push @kept, $old;
+            }
+        }
+        $zone->{'records'} = \@kept;
+        $store_rec->($rec);
+        $changed++;
+    }
+
+    if ( $added or $changed ) {
+        $zone->{'serial'} = time();
+        <[nameserv.zone.save]>->($zone_name);
+        <[nameserv.event.emit]>->( 'data-changed', { 'zone' => $zone_name } );
+    }
+
+    <[base.logs]>->(
+        1, ': zone source applied : %s [ %d added, %d changed ]',
+        $zone_name, $added, $changed
+    ) if $added or $changed;
+
+    push @report,
+        sprintf '%s : %d added, %d changed%s', $zone_name, $added, $changed,
+        @extra
+        ? sprintf( ', %d extra [ kept ] :', scalar @extra ) . join '',
+        map { "\n  extra : " . $fmt_rec->($ARG) } @extra
+        : ', no extra records';
+}
+
+return {
+    mode => ( $diff_only and $any_diff ) ? 'false' : 'true',
+    data => join "\n",
+    @report
+};
+
+#,,.,,,,.,.,,,,..,,..,,..,...,..,,..,,,,,,,,.,..,,...,...,.,,,,.,,,.,,..,,..,,
+#UD56TRKBVOM7W6RKIJH52HJ6G37ODFM3TPZAL2Z25SY2HCKD77E2G6A564SCCX2VQ3EE55NLUS7SO
+#\\\|2SJKJX7VVPXCP3R5NXG6PCMRZCJXEIZCTWHQTSABFQ6UGVCAPIN \ / AMOS7 \ YOURUM ::
+#\[7]3KOOXBNWU7226PDBFBJWWB7DRVOEXBUQHFPJ7QY3RG26E4VW6OBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
