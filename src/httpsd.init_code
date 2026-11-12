@@ -159,6 +159,33 @@ if ( defined <https.handler.get> ) {
 <httpsd.sessions>         = {};
 <httpsd.connection_count> = 0;
 
+## certificate registry [ filled by httpsd.cert_watch.check ] ##
+<httpsd.certificates> = {};
+
+<list.certificates> = {
+    'var'      => qw| data |,
+    'key'      => qw| httpsd.certificates |,
+    'descr'    => 'TLS certificates per virtual host and their state',
+    'mask'     => '<key>:host file expires in state next_check',
+    'defaults' => { 'file' => '-', 'state' => 'unknown' },
+    'align'    => {
+        'host'       => qw| left+2 |,
+        'file'       => qw| left |,
+        'expires'    => qw| center-1 |,
+        'in'         => qw| right |,
+        'state'      => qw| center-1 |,
+        'next_check' => qw| center-1 |
+    },
+    'filters' => {
+        'expires'    => qw| base.parser.timestamp |,
+        'in'         => qw| base.parser.time_left |,
+        'next_check' => qw| base.parser.timestamp |
+    }
+};
+
+## certificate watchdog [ per-vhost expiry tracking + letsencr renewals ] ##
+<[httpsd.cert_watch.start]>;
+
 # SSL handshake tracking for non-blocking accept
 $data{'ssl_handshake'} = {};
 
@@ -195,8 +222,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // TRUE ) ) {
 
 0;
 
-#,,,.,,,.,,.,,...,.,.,,,,,.,.,,.,,.,,,,,.,...,..,,...,...,...,.,.,...,..,,,..,
-#KVVJCJVZTXILZ4KXMMYSR6QD3CU3JQ4GY2DX4DRDHWFYOHQJUVQWSMDQ4FYBW52XGL6OMQZHFE2WK
-#\\\|QGENSWC52BIEYKJRSPQ5T3OEOMLOTLPG66JYJYFIWR6RJD7DQYY \ / AMOS7 \ YOURUM ::
-#\[7]T72KH5N5XCH7HHABXUONFXPII54TCYGNOGAKSVAS4DOE4C6C6KDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,..,,,.,,..,,.,.,.,.,.,,,,.,,,,.,..,,...,..,,...,,.,,,,,,..,,,.,,
+#RAKXWZISHDXNR4ORJJLNZHU24QLEI32Z3AGYJHE3SHY5YOTNF3YJHY7RPJ6TBVHSCRTLQM3SMJ4ZC
+#\\\|XMSY7TOTBSQCTVO5LA6DSI3XABQQZL35G2DENHLZLULCIBDUUIF \ / AMOS7 \ YOURUM ::
+#\[7]6JYF26TDOZAQXQU2MPSGT3QVDKEBR5WBGHLOFIHDDLPR2RPQ2YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

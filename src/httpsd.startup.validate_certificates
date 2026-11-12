@@ -34,25 +34,18 @@ unless ( defined $request_result ) {
     goto GRACEFUL_FAILURE;
 }
 
-## phase 3: wait for certificate with timeout
+## the request only buffers at letsencr [ route-send ] : the reply arrives  ##
+## asynchronously in httpsd.handler.cert_request_reply -- do not wait for a ##
+## synchronous answer here, the periodic retry picks the cert up            ##
 if ( $request_result->{status} ne 'failed' ) {
-    ## status is either 'pending' or other (letsencr is working on it)
     <[base.logs]>->(
-        2, 'httpsd: waiting for certificate availability (up to 30 seconds)'
+        2,
+        'httpsd: certificate request routed to letsencr, '
+            . 'will pick the certificate up on the next retry'
     );
-
-    my $cert_available = <[httpsd.wait_for_certificate]>->(30);
-
-    if ($cert_available) {
-        <[base.logs]>->(
-            2, 'httpsd: certificate is now available, proceeding'
-        );
-        <httpsd.startup.retry_count> = 0;    ## reset retry counter on success
-        return TRUE;
-    }
 }
 
-## graceful failure: certificate not available after timeout
+## graceful failure: certificate not available yet [ retry later ]
 GRACEFUL_FAILURE:
 
 <[base.logs]>->(
@@ -71,8 +64,8 @@ GRACEFUL_FAILURE:
 ## periodic retry handler
 return FALSE;
 
-#,,,,,,..,,,,,,..,,.,,...,..,,.,,,,,.,,,,,,,.,..,,...,..,,.,.,...,,,.,...,.,.,
-#5SNNTK2HFI7ICFE5R4V4LRO26A3QZPPBVO3BNIKVWNN4BRTXGGIHVFASYDDWFIYG7RADC6L6PEGBK
-#\\\|526GDZDVLEEC2IVLD4JVQEB72CXUKKST3JR6DXHAP6IOFAG6GQG \ / AMOS7 \ YOURUM ::
-#\[7]6HFRYIWJBGRY4NZ4BUNXT2AIPWI3U56BRIZWVYYXUEXCPDRX7WCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,..,,,,,,.,,,,.,,,,,,...,,,.,..,,...,...,...,,,.,..,,,,,,..,,
+#AR22LCZJEBNJ233NF6MDI3PX52X23XJCPNHRKTFUNO6GUHPEWLV6OVWEBMYSV4F6G6AUVMS6FEHAG
+#\\\|NQMPXZC4OTLNM57EZTCKZIXDZP4E2DXWA7UD7ZS2IQRN4QFQPVZ \ / AMOS7 \ YOURUM ::
+#\[7]MEBLAP5OKEHMU3M5Y3T7LP3EBTKHTSCVWJNCALQSFABNYIVMOSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

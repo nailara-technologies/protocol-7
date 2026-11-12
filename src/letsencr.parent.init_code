@@ -13,6 +13,7 @@
 <letsencr.parent.acme_account>       = {};
 <letsencr.parent.renewal_timers>     = {};
 <letsencr.parent.pending_challenges> = {};
+<letsencr.parent.renewals_in_flight> = 0;
 
 ## load stored certificates from disk into memory registry
 my $load_result = <[letsencr.parent.load_certificate_registry]>;
@@ -34,8 +35,8 @@ if ( $load_status eq qw| partial | ) {
 }
 
 ## Initialize renewal check timer using event system  fires after 0.7s on
-## startup, then every <letsencr.renewal.check-interval> seconds (3600 = 1
-## hour)
+## startup, then every <letsencr.renewal.check-interval> seconds
+## [ 3900 = 65 minutes ]
 <letsencr.parent.renewal_check_timer> = <[event.add_timer]>->(
     {   'after'    => 0.7,
         'interval' => <letsencr.renewal.check-interval>,
@@ -142,8 +143,8 @@ if ( not exists <buffer.acme-activity> ) {
 
 0;
 
-#,,.,,.,,,...,.,.,.,,,,.,,...,.,.,,..,,,.,,,,,..,,...,..,,,..,,,.,,.,,,,.,.,,,
-#Y56NHLPFDSLOWY5UQQXGIDE3FOXGQQOI33BDJ2GAJ6I6CQ7PGXVBNM43T4ZUPEK5HP5ZWPDES2RRE
-#\\\|RBI4FDVOR7K6VMW63WYYYDEXMBPCH7MEWVZ4WYDLD3WWI42FQCB \ / AMOS7 \ YOURUM ::
-#\[7]M7FOYWQTXR7NI53JJAFLJWQEYGMJ5ISRLV6R4PZFQC7H77FC4QDA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,.,,..,,,.,,,,.,..,,,,.,,.,,,,.,..,,...,...,,.,,...,...,.,.,,,.,
+#7A4IFK3KI6EXFAEKODJC4OIYVJ4HKA6JYMYV24H4P3B6I7UPZXSR4GKGQLB777SQDXUK7XTKZIKRO
+#\\\|3AXUCUUFYC2SGRCT5PQRNZSZS74JU3T3VXZGCPDPGOSN2HFVUUJ \ / AMOS7 \ YOURUM ::
+#\[7]K2RVRC6NNLIVHK2ZEHHU6VVZFD6W3LIIZNQEMMY4IECDWC3XAEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

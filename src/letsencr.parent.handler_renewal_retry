@@ -35,6 +35,7 @@ return FALSE unless $cert_info;
 
 ## Send renewal command to child via parent pipe (same as
 ## queue_renewal_requests)
+<[letsencr.parent.renewal_idle_hold]>;    ## hold on-demand idle exit ##
 <[protocol-7.command.send.local]>->(
     {   'command'   => qw| child.renew-certificate |,
         'call_args' => {
@@ -61,8 +62,8 @@ if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
 
 return TRUE;
 
-#,,,.,,.,,.,.,,..,.,.,..,,.,,,..,,.,,,..,,,,,,..,,...,...,...,...,,,.,,,,,..,,
-#7WW3EPYQ4RZ62HPNFGUT7UUQCWWEOMKAGKBGE2SYSVFAJRS3ZJODPRTJIVS6FRBFRNBHXFENE473I
-#\\\|KBVUT3ZVVHDNA6LHPOSIDERWSOXG6BUDFHGL7PRKOVQNRV74PZD \ / AMOS7 \ YOURUM ::
-#\[7]5ZLIXYADA36ZUYZ5MEEQ5JHUWQTLUN62C6GJ5UX745JWGYL2CIDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,,,.,,,,.,,.,,,,,,,,,,,,,,,,.,,..,,...,...,..,,,..,,,.,,,,,,,.,
+#7UBT7VVU7CWMEFLDCQ2JQEYW3NAX4RAMUIA6NHI7C46Z2APRW7NFNQRT75HCFFVHZWJ5HZJI7ZEF6
+#\\\|EWUUL52C7CYEKWTIYZNZTGPQXNDOMB2Y4LILH5PROYMSPX323CX \ / AMOS7 \ YOURUM ::
+#\[7]WE7PJ3ZDHPNVME3VRNFRF4XH56ONI6MXJR36JAPCPWB2QOUZ34CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

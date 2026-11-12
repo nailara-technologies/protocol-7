@@ -6,6 +6,9 @@
 
 my $msg = shift;
 
+## renewal done [ failed ] : allow on-demand idle exit again ##
+<[letsencr.parent.renewal_idle_release]>;
+
 my $domain     = $msg->{domain};
 my $error      = $msg->{error};
 my $error_code = $msg->{error_code};
@@ -62,8 +65,8 @@ if ( $attempts < $max_retries ) {
 
 return FALSE;
 
-#,,.,,..,,.,,,,,.,,.,,.,,,.,,,..,,.,,,..,,,,.,..,,...,..,,..,,.,,,,,.,.,.,..,,
-#S7PYOCZ6V7ZL27XR4CBKOCC5L2R7DLZKB3IPKEJ4TQWYKV3IRCHYUAUZM66KFFOYORP6CFY2PSGQA
-#\\\|LUI4AHP4YI33SY5PTIGQPRT4VEYGSNZZIKJSYZJOOUUJSHZMFSP \ / AMOS7 \ YOURUM ::
-#\[7]J6IQGBDV436RTGOJROLTACO6ANQFQTBMHX6TENT2SNHW6QYDMUCY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,,,.,.,,,.,,,...,..,,,,.,...,..,,...,...,,,,,.,,,,..,,.,,,,.,
+#XZPINA3VKG3GNLFU5XRU6OLMIMTGCIXPDCUUBRZEJZP24WA2Y6HTV5DGPE3Z4WQMED63SUUBAZSMQ
+#\\\|H7RHKYTWE64OWC3HBJVZFFNHASD2PDPH37JCBOFCXZZEBGGS4DI \ / AMOS7 \ YOURUM ::
+#\[7]OPGIIOL4RTDQBIXOW5N2N2DR4AAHFAI7QDK7ZTYF7FG7VDOIG6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

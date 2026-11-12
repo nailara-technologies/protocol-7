@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = letsencr.parent.renewal_idle_hold
+# descr = mark one more renewal in flight and pause the on-demand idle
+#         timeout [ pair with letsencr.parent.renewal_idle_release on the
+#         success and failure paths -- an idle exit can never kill a
+#         running ACME child ]
+
+<letsencr.parent.renewals_in_flight> //= 0;
+<letsencr.parent.renewals_in_flight>++;
+
+<[base.zenki.pause_ondemand_timeout]>;
+
+#,,,,,,.,,,.,,.,.,.,.,,.,,,..,..,,...,...,,,.,..,,...,...,.,,,,,.,.,,,..,,.,,,
+#GOHJAEK7UNQYINVPCJNJY7E2UK2CVWB37W7T5SDDF55BZCKX67K4Q7POSECB53QQV5BIHB7NUFEW2
+#\\\|V5OXQZB6GZAQ2XXDICW36LAGHZL3QI63XULLGFMAKYRJUQUNL7E \ / AMOS7 \ YOURUM ::
+#\[7]QWZLOX65C3X4MVAT2JS5POWFNITE3JLATBUB5LYQSBXSW25SGSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,6 +10,9 @@ my $cert_data = $msg->{cert};
 
 <[base.log]>->( 2, "certificate ready for domain : $domain" );
 
+## renewal done : allow on-demand idle exit again ##
+<[letsencr.parent.renewal_idle_release]>;
+
 ## Store certificate info in parent registry
 <letsencr.parent.certs>->{$domain} = {
     issued_at   => time(),
@@ -40,8 +43,8 @@ delete <letsencr.parent.renewal_timers>->{$domain}
 ## TODO: Notify HTTPSD or other services when certificates are updated This
 ## would be done via: cube.httpd.cert-updated with domain as args
 
-#,,..,,,,,,.,,,,.,...,...,..,,,,.,,..,..,,..,,..,,...,..,,...,.,.,,.,,,..,..,,
-#MLJHJX7UWNE7JD6VVOMXAF2LJK2HL2PPKY7RI2HURXLYOVL3DUZL3WZ5O2SICDOBW7ATFVVZP3U54
-#\\\|EY3RRGNW5M6EFPHC7VU6DASILY7TG65BNQTEXZQINVNUTW3KPOT \ / AMOS7 \ YOURUM ::
-#\[7]JNWMRAAL6MODQL6LNWAKNUONPVSNKXNTTL526SRRWRIVZ2EXZYDQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,,,,,...,,.,,.,,,,.,,.,.,.,.,..,,...,...,,,.,,,,,,,,,,.,,.,.,
+#3MJHC42MWP46JRZTXJ7HGIP6PKG5BAOHFFRGATMW2CYKV6MLMD75JM4VVLOT6JTLBJBB3HWKFSVA2
+#\\\|RM4JSSDYECLASRVFKDYM6C32R37FC7WE57BO35PD5PDKBRPOMMI \ / AMOS7 \ YOURUM ::
+#\[7]INYSNXPVDFQSPFDBTG5QG5QGA7XLI3SCNBJLZTTUVM6CSKREXCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

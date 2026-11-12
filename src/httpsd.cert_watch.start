@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = httpsd.cert_watch.start
+# descr = start the certificate watchdog timer [ repeating, interval
+#           <httpsd.cert_watch.interval> defaults to 3900 seconds ]
+
+<httpsd.cert_watch.interval>         //= 3900;
+<httpsd.cert_watch.margin_days>      //= 21;
+<httpsd.cert_watch.current_interval> //= <httpsd.cert_watch.interval>;
+
+## cancel a previous timer instance [ reload safety ] ##
+if ( defined <httpsd.cert_watch.timer>
+    and <httpsd.cert_watch.timer>->is_active ) {
+    <httpsd.cert_watch.timer>->cancel;
+}
+
+<httpsd.cert_watch.timer> = <[event.add_timer]>->(
+    {   'after'    => 13,
+        'interval' => <httpsd.cert_watch.current_interval>,
+        'handler'  => qw| httpsd.cert_watch.check |,
+        'repeat'   => 1,
+        'data'     => { 'started' => time() },
+    }
+);
+
+<[base.logs]>->(
+    2,
+    'httpsd: certificate watchdog started [ interval %d s, margin %d d ]',
+    <httpsd.cert_watch.current_interval>,
+    <httpsd.cert_watch.margin_days>
+);
+
+return TRUE;
+
+#,,.,,...,.,,,.,.,...,.,.,,.,,,,.,,.,,,,,,,,.,..,,...,...,...,,..,,,,,..,,.,.,
+#NK5E2WVSXSUBJHOUJVXLSCHXVG5CAHSVO6YS3PQRG5C5HDCMBFETJWGZIWPIE7ZMU5K6KY2BLRZI4
+#\\\|KDLCLBVEJSO7XPZ564W3JVXU3ORYMOKLS6FG3J7OURQIKQKPRPE \ / AMOS7 \ YOURUM ::
+#\[7]PUW4MEFEAOCQ4JNPCWZ7PPTWG2V45H5AKMMXGJ7URK2DBALGG4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

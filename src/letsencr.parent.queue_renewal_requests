@@ -68,6 +68,9 @@ foreach my $renewal_info (@$renewal_list) {
     if ($result) {
         <[base.logs]>->( 3, "renewal command queued for %s", $domain );
 
+        ## hold the on-demand idle timeout for the renewal in flight ##
+        <[letsencr.parent.renewal_idle_hold]>;
+
         ## Track renewal attempt
         <letsencr.parent.renewal_timers>->{$domain} = {
             started  => $now,
@@ -95,8 +98,8 @@ return {
     queued => $queued_count,
 };
 
-#,,,,,,,,,..,,.,,,.,.,.,,,.,,,.,,,.,.,.,,,,,,,..,,...,...,.,,,,,.,.,,,.,.,,,,,
-#5BQWGJXTLKZA7P5GWJSQAF3ECBAHX3DAJ7EI2DGMWIBP6QHFP7UZZPT5J7UHTR2NK4SADM457P3UU
-#\\\|HLY3CZA33OMD7PXC6GEQY6V5JYNH4XRW5QH5UGTDH2DH7RXRQAW \ / AMOS7 \ YOURUM ::
-#\[7]6PPWBXHKRBJ3YPIOMN2GDU7NGKPK5GHP6HJK2EWCV6JLJO44C2AY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,.,,.,,,,.,,,,,.,,,.,.,,,.,,,,,..,,...,...,...,,,,,...,,,,,,..,
+#AGA4C4SCI3LSZ3JHILBUFTZLVCNQDXP4HGCXRDZTLNLYHWEM7POHYHUYDYXQTMFG2M2N7NNWVRCMQ
+#\\\|ZZ67VNSRH3AJJMIJS7W2TTIJMUQ2DAC6LJKAKBJA7HW4MWXYQS3 \ / AMOS7 \ YOURUM ::
+#\[7]7M5DXDGFBYS35B4KSY3DKQ425AKYRZDGHMJO456AW6XTGVPPQ6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
