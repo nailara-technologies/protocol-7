@@ -112,6 +112,7 @@
             ## cfg/zenki/cube/access.users ] -- a compromised httpd can no longer  ##
             ## mint tokens. httpsd authenticates as user 'httpsd' : its own grant  ##
             ## below, only what the https jobsite ui and templates relay         ##
+            ## + letsencr renew \ request-certificate for its cert_watch         ##
             access.cmd.usr.httpsd =  web.process_template_ipc \
                                      web.jobs-data web.jobs-events web.jobs-sync \
                                      web.jobs-sync-foreign \
@@ -120,7 +121,9 @@
                                      web.auth-logout web.auth-bearer \
                                      jobsite.list-trashed jobsite.rescue-http \
                                      jobsite.import-url-http \
-                                     jobsite.get-prefs jobsite.set-prefs
+                                     jobsite.get-prefs jobsite.set-prefs \
+                                     letsencr.request-certificate \
+                                     letsencr.renew
 
             access.cmd.usr.httpd  =  web.process_template_ipc \
                                      web.jobs-data web.jobs-events web.jobs-sync \
@@ -264,6 +267,7 @@
 
            access.cmd.usr.events  =  content.update v7-zenki.start_once \
                                      jobsite.scan \
+                                     letsencr.renew \
                                      tile.add_overlay \
                                      tile.remove_overlay \
                                      tile.reset-group \
@@ -575,8 +579,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,,,,.,,,...,,,.,,,.,..,,.,,,,,,,,.,,..,,...,.,.,...,...,.,.,...,.,,,,..,..,,
-#PP24PI4FMOX62OXVWOBF35P67KB2P6GJPHFRHVDZWXEONDCY7ENPAOTYYGN3D3TZ7OIO57J2NX7ZO
-#\\\|QDBNWV5Y437SBN7HCY3IC4RZK4AMY6QGZIJN4TXXE4LVTYTLCSY \ / AMOS7 \ YOURUM ::
-#\[7]BS3Z27E4YVKDLT2WX5H7GIBZVUJRN7KNNLLBXGVB326SRUYJXAAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,.,.,..,,,,,,...,..,,,.,,.,,,.,.,...,...,...,,.,,...,,.,,.,,,
+#EORXWIKYBDMZUQUCIXGERQAUDMDSTYDRZUR6K7XORCFIAQWHL4BS3XVVYKPG4BIN7ZI7ECFW47U22
+#\\\|4HK72IQNM2ZDL4ZJVUL2LEUIA6ZZUGS3ROJI2ITQ4ZACPFSBUHD \ / AMOS7 \ YOURUM ::
+#\[7]MZCYCKNQGHU7MGH7LD4UE2ELK7FK3UEOAUZB6F2U7WECXAWQ3WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
