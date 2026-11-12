@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [n7fs-first-live-round](project-2026-11-11-n7fs-first-live-round.md) — NEWEST : first live N7FS round done, all holders checked ; transport fixes ; events harmonic jitter + list events ; open items
+- [cert-watch-daily-renew](project-2026-11-12-cert-watch-daily-renew.md) — NEWEST : letsencr daily renew + httpsd cert_watch live on 4 hosts ; CONFIRM the first nightly renew 2026-11-13
+- [n7fs-first-live-round](project-2026-11-11-n7fs-first-live-round.md) — previous : first live N7FS round done, all holders checked ; transport fixes ; events harmonic jitter + list events ; open items
 - [n7fs-relay-fanout-filters](project-2026-11-11-n7fs-relay-fanout-filters.md) — previous : stage 6 relay, push fan-out, holder filters landed ; hub topology ; next = live deploy
 - [session-handover-n7fs-rescue-chain](project-2026-11-11-session-handover-n7fs-rescue-chain.md) — START HERE : N7FS stages 1-5 part 1, drain \ move, first proven rescue copy ; jobsite stall ; open items
 - [54m-timer-during-long-kimi-runs](feedback-54m-timer-during-long-kimi-runs.md) — long waits : 54 minute background timer keeps the one hour cache alive
@@ -105,8 +106,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,,..,,.,,...,..,,..,,,.,,,,.,,,,,,..,,..,..,,...,...,..,,,,,,.,,,,.,,,.,,
-#JNNUKLOUUH5YVNCG3OGPOCDJF42OSB4A63JQRJXBYXLKZFZAHEPTS44REDBT7JVWJVQSRXQXYDRBG
-#\\\|BLZ3NH5HVX3FAOAR2KAI7JTKCXJWU75OA5GSTLY2NVTHZ3IF5G6 \ / AMOS7 \ YOURUM ::
-#\[7]3APLKTCPE6LOW65SUXNCWDHQGNCA5I7EG5L6BGXRERX2NBVSMWBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,..,,...,.,.,.,.,...,...,.,,,..,,...,...,..,,,..,,,,,,..,,,.,
+#OSEY4FIEF2QCIOZXA6CUGFZTTGVNPRVXR7L73AWARJEW27PQGGJXVPIUGMTNIEPXCDUQ36D7PJC4A
+#\\\|PO3ZMJCACILRCLUUYBH2KLADFV2Y5X6TYOKIOGGGOUUN5G6DQQV \ / AMOS7 \ YOURUM ::
+#\[7]QHLTFXQ2A4OYZFMZKYW3VRJZDKJJWS5WCAGFNCGEQ5AUNTFWZIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
