@@ -7,6 +7,8 @@
 #         on margin \ expired \ missing : route-send letsencr.renew and
 #         shorten the check interval [ 3900 -> 1300 -> 433 floor ]
 
+use POSIX ();
+
 my $event = shift;
 my $data  = $event->w->data // {};
 
@@ -67,11 +69,11 @@ foreach my $host ( sort keys %rows ) {
     if ( not defined $file and $host ne '<default>' ) {
         ## SNI falls back to the default cert : its row tracks expiry ##
         <httpsd.certificates>->{$host} = {
-            name       => $host,
-            file       => '<default>',
-            expires    => $default_expires,
-            state      => qw| default |,
-            next_check => $now + $current,
+            name    => $host,
+            file    => qw| <default> |,
+            path    => $default_file,
+            expires => $default_expires,
+            state   => qw| default |,
         };
         next;
     } elsif ( not length( $file // '' ) or $expires == 0 ) {
@@ -85,11 +87,11 @@ foreach my $host ( sort keys %rows ) {
     }
 
     <httpsd.certificates>->{$host} = {
-        name       => $host,
-        file       => $file // '',
-        expires    => $expires,
-        state      => $state,
-        next_check => $now + $current,
+        name    => $host,
+        file    => ( $file // q{-} ) =~ s{.*/}{}r,
+        path    => $file // q{},
+        expires => $expires,
+        state   => $state,
     };
 
     if ( $state eq qw| missing | or $state eq qw| expired | ) {
@@ -167,10 +169,22 @@ if ( $target != $current ) {
     );
 }
 
+## display columns [ the list sizes them from the stored value, so they are ##
+## stored formatted -- expires stays a unix time for the in filter ]        ##
+my $next_check = $now + <httpsd.cert_watch.current_interval>;
+foreach my $row ( values <httpsd.certificates>->%* ) {
+    $row->{expiry}
+        = $row->{expires}
+        ? POSIX::strftime( q{%Y-%m-%d %H:%M}, localtime $row->{expires} )
+        : q{-};
+    $row->{next_check}
+        = POSIX::strftime( q{%H:%M:%S}, localtime $next_check );
+}
+
 return TRUE;
 
-#,,.,,,,,,..,,.,,,.,,,,.,,...,.,.,.,,,.,,,,..,..,,...,...,,.,,,,,,...,...,,.,,
-#XXYCHALEOFD3MHWWVAP2N5QBFRGAXKU5IY3FOBZZUZ5MWRUIE5ETSZZG57XRVRR2PFYMTRY33BROO
-#\\\|UQLXMJGC5XNYWRW27DPGDP7ZSHX3GFZVZX6IFSW4PEHZLWUCN77 \ / AMOS7 \ YOURUM ::
-#\[7]VQUBR2Y3D3EH4CVIC3SEZEJARZKNKKZOHFXGWPTXJGCKWBCCL4DI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,..,,.,,,..,,...,..,,,..,..,,..,,...,...,.,,,,..,,,,,...,.,,,
+#AIHF5OKAJDY23O5KLSC7TO2YOIGJPDDJBTKIIIE27YCBMV2OZOVFF4W5AY6JZD75QFO6R5CRMPQB6
+#\\\|BTWBF4Q6ABE34PPI7KXPMVNEXGHUPUQOBLWYCRFO3TNTPVPWLBJ \ / AMOS7 \ YOURUM ::
+#\[7]QSEFYBVI3LEHBPTJ2XDZ6PVWSKPXIC7OLEIAIPDZA6QJP5U24QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -163,24 +163,18 @@ if ( defined <https.handler.get> ) {
 <httpsd.certificates> = {};
 
 <list.certificates> = {
-    'var'      => qw| data |,
-    'key'      => qw| httpsd.certificates |,
-    'descr'    => 'TLS certificates per virtual host and their state',
-    'mask'     => '<key>:host file expires in state next_check',
+    'var'   => qw| data |,
+    'key'   => qw| httpsd.certificates |,
+    'descr' => 'TLS certificates per virtual host and their state',
+    'mask'  => '<key>:host file expiry:expires expires:in state next_check',
     'defaults' => { 'file' => '-', 'state' => 'unknown' },
     'align'    => {
-        'host'       => qw| left+2 |,
-        'file'       => qw| left |,
-        'expires'    => qw| center-1 |,
-        'in'         => qw| right |,
+        'expiry'     => qw| center-1 |,
+        'expires'    => qw| right |,
         'state'      => qw| center-1 |,
         'next_check' => qw| center-1 |
     },
-    'filters' => {
-        'expires'    => qw| base.parser.timestamp |,
-        'in'         => qw| base.parser.time_left |,
-        'next_check' => qw| base.parser.timestamp |
-    }
+    'filters' => { 'expires' => qw| base.parser.time_left | }
 };
 
 ## certificate watchdog [ per-vhost expiry tracking + letsencr renewals ] ##
@@ -222,8 +216,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // TRUE ) ) {
 
 0;
 
-#,,,.,.,.,,,,,..,,,.,,..,,.,.,.,.,.,,,,.,,,,.,..,,...,..,,...,,.,,,,,,..,,,.,,
-#RAKXWZISHDXNR4ORJJLNZHU24QLEI32Z3AGYJHE3SHY5YOTNF3YJHY7RPJ6TBVHSCRTLQM3SMJ4ZC
-#\\\|XMSY7TOTBSQCTVO5LA6DSI3XABQQZL35G2DENHLZLULCIBDUUIF \ / AMOS7 \ YOURUM ::
-#\[7]6JYF26TDOZAQXQU2MPSGT3QVDKEBR5WBGHLOFIHDDLPR2RPQ2YAI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,..,...,,,.,..,,,,,,..,,.,,,,,,,..,,...,...,,.,,,.,,.,.,...,..,,
+#I5INX22S42676EFYJQTFLUDUK35OKRGK65WP4WQLVSZBRYIEJAEZP7D2WBKPQPZ5OUEE6E4MVHWWM
+#\\\|RMO6OHUTQOVIGNDBD4WYOKASTMRAX5OI2OFTMQTW3NYWXVZ7ACK \ / AMOS7 \ YOURUM ::
+#\[7]LVG32M2JTM6H3EE2O744CEVTLV6XN7WK7DZC6WOW4GQQSK2PNICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
