@@ -37,16 +37,95 @@ $reply->header->id( $packet->header->id );
 $reply->header->qr(1);    ## set as response
 $reply->header->aa(1);    ## authoritative answer
 
-## find matching zone [ longest suffix match ]
-my $zone_match = <[nameserv.zone.lookup]>->($qname);
+my ( $zone_match, $zone_name ) = <[nameserv.zone.lookup]>->($qname);
 
 my $found_answer = 0;
 my $name_exists  = 0;
 
 if ($zone_match) {
-    my $ttl = $zone_match->{'ttl'};
+    my $ttl     = $zone_match->{'ttl'};
+    my $records = $zone_match->{'records'} // [];
 
-    ## search records for match
+    ## record names may be stored with or without a trailing dot ##
+    my $norm_name = sub {
+        my $name = lc( shift // '' );
+        $name =~ s{\.+$}{};
+        return $name;
+    };
+
+    my @zone_recs = map { [ $norm_name->( $ARG->{'name'} ), $ARG ] }
+        grep { ref $ARG eq qw| HASH | } @$records;
+
+    ## every name that exists in the zone : record owners plus their       ##
+    ## parents [ empty non-terminals exist per rfc 4592 and block wildcard ##
+    ## synthesis below them ]                                              ##
+    my %names = map { $_->[0] => 1 } @zone_recs;
+    for my $pair (@zone_recs) {
+        my $n = $pair->[0];
+        while ( $n =~ s|^[^.]+\.|| and $n =~ m|\Q$zone_name\E\z| ) {
+            $names{$n} = 1;
+        }
+    }
+
+    my $push_rr = sub {
+        my ( $name, $rec, $type ) = @_;
+
+        ## per-record ttl overrides the zone default
+        my $rr_ttl = $rec->{'ttl'}   // $ttl;
+        my $value  = $rec->{'value'} // '';
+        my $rr     = eval {
+            Net::DNS::RR->new( sprintf '%s %d IN %s %s',
+                $name, $rr_ttl, $type, $value );
+        };
+        if ( defined $rr ) {
+            $reply->push( answer => $rr );
+            return 1;
+        }
+        <[base.logs]>->( 0, "failed to create rr for %s: %s", $name, $@ )
+            if $@;
+        return 0;
+    };
+
+    ## records of a normalised name inside a [ normalised ] record list ##
+    my $find_recs = sub {
+        my $name = shift;
+        my $list = shift // \@zone_recs;
+        return map { $_->[1] } grep { $_->[0] eq $name } @$list;
+    };
+
+    ## cname chain : answer the cname rr, then follow its target while the ##
+    ## target is inside a zone we hold                                     ##
+    ## [ at most 8 steps, loops and out-of-zone targets stop the chain ]   ##
+    my $answer_cname = sub {
+        my ( $display, $cname_rec ) = @_;
+        my $answered = $push_rr->( $display, $cname_rec, qw| CNAME | );
+        my $target   = $norm_name->( $cname_rec->{'value'} );
+        my %seen     = ( $display => 1 );
+        my $steps    = 0;
+        while ( length $target and $steps < 8 and not $seen{$target} ) {
+            $seen{$target} = 1;
+            $steps++;
+            my ($t_zone) = <[nameserv.zone.lookup]>->($target);
+            last if not $t_zone;
+            my @t_norm = map { [ $norm_name->( $ARG->{'name'} ), $ARG ] }
+                grep { ref $ARG eq qw| HASH | }
+                @{ $t_zone->{'records'} // [] };
+            my @t_recs = $find_recs->( $target, \@t_norm );
+            last if not @t_recs;
+            my @t_ans = grep { $_->{'type'} eq $qtype } @t_recs;
+
+            if (@t_ans) {
+                $answered += $push_rr->( $target, $_, $qtype ) for @t_ans;
+                last;
+            }
+            my ($t_cn) = grep { $_->{'type'} eq qw| CNAME | } @t_recs;
+            last if not $t_cn;
+            $answered += $push_rr->( $target, $t_cn, qw| CNAME | );
+            $target = $norm_name->( $t_cn->{'value'} );
+        }
+        return $answered;
+    };
+
     if ( $qname =~ m|^_protocol7\._tcp\.| ) {
         $found_answer = <[nameserv.handler.p7ref_lookup]>->(
             {   reply      => $reply,
@@ -56,35 +135,55 @@ if ($zone_match) {
             }
         );
     } else {
-        for my $rec ( @{ $zone_match->{'records'} } ) {
-            my $rec_name = lc( $rec->{'name'} // '' );
-            my $rec_type = $rec->{'type'} // '';
+        my @exact = $find_recs->($qname);
+        $name_exists = 1 if @exact;
 
-            $name_exists = 1 if $rec_name eq $qname;
-
-            ## match name and type
-            next if $rec_name ne $qname;
-            next if $rec_type ne $qtype;
-
-            ## per-record ttl overrides the zone default
-            my $rr_ttl = $rec->{'ttl'} // $ttl;
-
-            ## build rr using string-form constructor (phase-1 simple
-            ## approach)
-            my $value = $rec->{'value'} // '';
-            my $rr_str
-                = sprintf( "%s %d IN %s %s", $qname, $rr_ttl, $qtype,
-                $value );
-
-            my $rr = eval { Net::DNS::RR->new($rr_str) };
-            if ( defined $rr ) {
-                $reply->push( answer => $rr );
-                $found_answer = 1;
+        if (@exact) {
+            my ($cname) = grep { $_->{'type'} eq qw| CNAME | } @exact;
+            if ( $cname and $qtype ne qw| CNAME | ) {
+                ## a name with a cname answers mx \ a \ aaaa \ .. through ##
+                ## it [ rfc 1034 3.6.2, 2181 10.3 ]                       ##
+                $found_answer = $answer_cname->( $qname, $cname );
             } else {
-                <[base.logs]>->(
-                    0,      "failed to create rr for %s: %s",
-                    $qname, $@
-                ) if $@;
+                for my $rec ( grep { $_->{'type'} eq $qtype } @exact ) {
+                    $found_answer = 1
+                        if $push_rr->( $qname, $rec, $qtype );
+                }
+            }
+        }
+
+        if ( not $name_exists ) {
+            if ( $names{$qname} ) {
+                $name_exists = 1;    ## empty non-terminal : NOERROR NODATA
+            } else {
+                ## wildcard [ rfc 4592 ] : the source of synthesis is '*.' ##
+                ## + the closest enclosing existing name                   ##
+                my $closest = '';
+                for my $n ( keys %names ) {
+                    next          if $qname !~ m|\.\Q$n\E\z|;
+                    $closest = $n if length $n > length $closest;
+                }
+                my @wild_recs
+                    = length $closest
+                    ? $find_recs->( '*.' . $closest )
+                    : ();
+                if (@wild_recs) {
+                    ## a matching wildcard makes the name exist : a type it ##
+                    ## lacks is NODATA, never NXDOMAIN [ rfc 4592 ]         ##
+                    $name_exists = 1;
+                    my ($w_cn)
+                        = grep { $_->{'type'} eq qw| CNAME | } @wild_recs;
+                    if ( $w_cn and $qtype ne qw| CNAME | ) {
+                        $found_answer = $answer_cname->( $qname, $w_cn );
+                    } else {
+                        for my $rec ( grep { $_->{'type'} eq $qtype }
+                            @wild_recs ) {
+                            ## the answer rr carries the qname, not '*'
+                            $found_answer = 1
+                                if $push_rr->( $qname, $rec, $qtype );
+                        }
+                    }
+                }
             }
         }
     }
@@ -96,6 +195,28 @@ if ($zone_match) {
     } else {
         $reply->header->rcode('NXDOMAIN');
     }
+
+    ## negative answers [ nxdomain and nodata ] carry the zone soa in the ##
+    ## authority section, ttl = min of the soa ttl and its minimum field  ##
+    if ( not $found_answer ) {
+        my ($soa_rec) = grep { $_->[1]{'type'} eq qw| SOA | } @zone_recs;
+        if ($soa_rec) {
+            my $soa_ttl = $soa_rec->[1]{'ttl'} // $ttl;
+            my $minimum = ( split m|\s+|, $soa_rec->[1]{'value'} // '' )[-1]
+                // $soa_ttl;
+            my $auth_ttl = $soa_ttl < $minimum ? $soa_ttl : $minimum;
+            my $soa_rr   = eval {
+                Net::DNS::RR->new( sprintf '%s %d IN SOA %s',
+                    $soa_rec->[0], $auth_ttl, $soa_rec->[1]{'value'} // '' );
+            };
+            if ( defined $soa_rr ) {
+                $reply->push( authority => $soa_rr );
+            } else {
+                <[base.logs]>->( 0, 'failed to create soa rr: %s', $@ )
+                    if $@;
+            }
+        }
+    }
 } else {
     ## no zone match : not authoritative for it ##
     $reply->header->aa(0);
@@ -104,8 +225,8 @@ if ($zone_match) {
 
 return $reply;
 
-#,,,.,...,.,.,,,,,..,,,.,,..,,.,,,,,,,.,.,...,..,,...,...,..,,...,,.,,.,.,,..,
-#FUZ4Z76NDC3VLC27QDIOMEP4EJBEEV2K4CYQ32A4LQENETR2677XMRMJW2Y7JAAVMYVVCCQUOQR7C
-#\\\|23VJEQC7J77X4BRNZSURFCP5V4KM5L2MTT6CBWXS4AFBVXLWKIR \ / AMOS7 \ YOURUM ::
-#\[7]HOVU2IRI5LV22NQB27LHSBF7Y3VJR2TSSTOUUJUN3R4CIMRV2EBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,,,.,.,.,,,.,.,.,,.,,..,,..,,..,,...,...,,,,,,.,,,,.,,.,,.,.,
+#K6COKGLAJA5WQJSYF7A53ZWGXLZZASDLBCIYP5EFJD3XQUA5E5SJ73C46JGFY5CM27FLMSR2T2DCA
+#\\\|CIXKUWRFAOR4YSB3X6OMFOWRBUVWJPBNDPA5MYYWRURFIDAO2RI \ / AMOS7 \ YOURUM ::
+#\[7]Y4VNIQXVARGG42V4UXC7FSKGVDBX5R3Z2WXEKFIILRMQGVF3K6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
