@@ -61,6 +61,11 @@ my $default_expires = $default_file ? $cert_expires->($default_file) : 0;
 my %rows = map { $ARG => $resolve_cert->($ARG) } keys $hostnames->%*;
 $rows{'<default>'} = $default_file;
 
+## without a real domain letsencr has nothing to issue : a missing default ##
+## cert is shown but asks for no renewals [ yourum : localhost, skins ]    ##
+my $has_domain = grep { m|\.| and not $is_local{$ARG} and not m|\A[\d.:]+\z| }
+    keys $hostnames->%*;
+
 foreach my $host ( sort keys %rows ) {
     my $file    = $rows{$host};
     my $expires = $file ? $cert_expires->($file) : 0;
@@ -72,7 +77,7 @@ foreach my $host ( sort keys %rows ) {
             name    => $host,
             file    => qw| <default> |,
             path    => $default_file,
-            expires => $default_expires,
+            expires => $default_expires || q{},
             state   => qw| default |,
         };
         next;
@@ -90,9 +95,11 @@ foreach my $host ( sort keys %rows ) {
         name    => $host,
         file    => ( $file // q{-} ) =~ s{.*/}{}r,
         path    => $file // q{},
-        expires => $expires,
+        expires => $expires || q{},
         state   => $state,
     };
+
+    next if $host eq q{<default>} and not $has_domain;
 
     if ( $state eq qw| missing | or $state eq qw| expired | ) {
         $worst      = $state if $worst eq qw| ok | or $worst eq qw| margin |;
@@ -183,8 +190,8 @@ foreach my $row ( values <httpsd.certificates>->%* ) {
 
 return TRUE;
 
-#,,..,,.,,,,,,,,,,..,,.,,,..,,...,..,,,..,..,,..,,...,...,.,,,,..,,,,,...,.,,,
-#AIHF5OKAJDY23O5KLSC7TO2YOIGJPDDJBTKIIIE27YCBMV2OZOVFF4W5AY6JZD75QFO6R5CRMPQB6
-#\\\|BTWBF4Q6ABE34PPI7KXPMVNEXGHUPUQOBLWYCRFO3TNTPVPWLBJ \ / AMOS7 \ YOURUM ::
-#\[7]QSEFYBVI3LEHBPTJ2XDZ6PVWSKPXIC7OLEIAIPDZA6QJP5U24QDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,,..,..,,,,.,.,.,.,,,,..,,..,..,,...,...,..,,.,.,,,,,,.,,..,,
+#GTT5SS47ROTXJ7WBDCN62IRQ4DRHNPRCS6AAUI7HLFZJGP7IH3JQDGZEJSXHB3LTJUHVHRWITFHHM
+#\\\|JXVIGX6WWQ5OKUJZOFT37FJD2QSW2FXVNGZ77WKCDGXLARVPJX4 \ / AMOS7 \ YOURUM ::
+#\[7]QIVAPLSRGZ7JX5YUZBC6QNOJ3MSRSYBQ7QJAXANOMEGB5W6FGMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
