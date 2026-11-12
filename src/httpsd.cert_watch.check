@@ -136,12 +136,14 @@ if (   ( $prev_default->{file} // q{} ) ne $default_file
     };
 }
 
-## ask letsencr to renew [ starts it on demand ] ##
+## ask letsencr to renew [ starts it on demand ] -- zenka.push queues the ##
+## latest request and retries while the cube session is not up yet        ##
 if ($need_renew) {
     <[base.logs]>->( 2, 'cert watch : requesting renewals from letsencr' );
-    <[protocol-7.route-send]>->(
+    <[zenka.push]>->(
         {   'command'   => qw| letsencr.renew |,
-            'call_args' => { 'args' => '' },
+            'args'      => { 'args' => '' },
+            'queue_max' => 1,
         }
     );
 }
@@ -190,8 +192,8 @@ foreach my $row ( values <httpsd.certificates>->%* ) {
 
 return TRUE;
 
-#,,.,,.,.,,,,,,,.,,..,..,,,,.,.,.,.,,,,..,,..,..,,...,...,..,,.,.,,,,,,.,,..,,
-#GTT5SS47ROTXJ7WBDCN62IRQ4DRHNPRCS6AAUI7HLFZJGP7IH3JQDGZEJSXHB3LTJUHVHRWITFHHM
-#\\\|JXVIGX6WWQ5OKUJZOFT37FJD2QSW2FXVNGZ77WKCDGXLARVPJX4 \ / AMOS7 \ YOURUM ::
-#\[7]QIVAPLSRGZ7JX5YUZBC6QNOJ3MSRSYBQ7QJAXANOMEGB5W6FGMDA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,..,,,,,,.,,,,..,..,,.,,,..,,..,,...,...,,..,..,,,.,,,,.,..,,
+#B536EDAMMRIIFEWBIESD734JDKCGG43O33RWVA57S7DTD3S7FUXGAXDIQ6KB465IOMQ76VT6TMGQK
+#\\\|UHGFDCUKLRQQKLTXLRPTH7MS5S4RX7DPVXXJ767ZJCIOBCMDIN3 \ / AMOS7 \ YOURUM ::
+#\[7]UOIU745BJGTA5XUKEDHIYCNFRJURZPHL37RVBMM7JXDZXSDUBYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

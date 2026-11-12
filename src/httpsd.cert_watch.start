@@ -15,7 +15,8 @@ if ( defined <httpsd.cert_watch.timer>
 }
 
 <httpsd.cert_watch.timer> = <[event.add_timer]>->(
-    {   'after'    => 13,
+    ## once the event loop runs [ post drop_privs ] ##
+    {   'after'    => 0,
         'interval' => <httpsd.cert_watch.current_interval>,
         'handler'  => qw| httpsd.cert_watch.check |,
         'repeat'   => 1,
@@ -32,8 +33,8 @@ if ( defined <httpsd.cert_watch.timer>
 
 return TRUE;
 
-#,,.,,...,.,,,.,.,...,.,.,,.,,,,.,,.,,,,,,,,.,..,,...,...,...,,..,,,,,..,,.,.,
-#NK5E2WVSXSUBJHOUJVXLSCHXVG5CAHSVO6YS3PQRG5C5HDCMBFETJWGZIWPIE7ZMU5K6KY2BLRZI4
-#\\\|KDLCLBVEJSO7XPZ564W3JVXU3ORYMOKLS6FG3J7OURQIKQKPRPE \ / AMOS7 \ YOURUM ::
-#\[7]PUW4MEFEAOCQ4JNPCWZ7PPTWG2V45H5AKMMXGJ7URK2DBALGG4AQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,,..,.,.,,..,,..,...,..,,.,.,..,,...,...,.,,,,.,,,..,..,,..,,
+#SMXC4XOCSQLDTOILCREBMYBH6SUPDFKGGAXOAQ4DOYSLN5YXVCAXSLLGAST2GGAMTIP5QXPZRTKEO
+#\\\|4FZEGSBBX5AHPD6OS6DULMA4SFODVY3UYJTHUU2TDIECJHV7MYW \ / AMOS7 \ YOURUM ::
+#\[7]Z2TLJFNEVNIUSBFHDMGGONRPZDXS4JTH72M5X36QXVDRMKFTEMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
