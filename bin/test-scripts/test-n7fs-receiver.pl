@@ -176,7 +176,7 @@ ok( $rc == 0, 'seal publishes a newer signed head through put-head' )
     or say $out;
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'rx', 'local', '-root-key', 'vault:main' );
-ok( $rc == 0 && $out =~ m|relayed 4 nodes|,
+ok( $rc == 0 && $out =~ m|relayed 3 nodes|,
     'relay reads a receiver source and writes a local target' )
     or say $out;
 
@@ -188,7 +188,7 @@ add_tree( 'third', 'two' );
 );
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'local', 'rx', '-root-key', 'vault:main' );
-ok( $rc == 0 && $out =~ m|relayed 4 nodes|,
+ok( $rc == 0 && $out =~ m|relayed 3 nodes|,
     'relay writes a receiver target from a local source' )
     or say $out;
 ( $rc, $out )
@@ -337,8 +337,8 @@ ok( $rc == 3 && $out =~ m|outer signature|,
 
 done();
 
-#,,..,,..,..,,,.,,,.,,...,..,,,..,,..,.,,,,,,,..,,...,...,..,,.,,,.,.,,..,...,
-#LU55563RAXER3KQSRD75LPAUUPDRQZGUVVFL6C36AHZZC5H7QOGJJKFR7MFNCSECXLHWQVKAYHUYK
-#\\\|MLISC3CZQP2OV2TY5X54SIEGNO55Q7FKZJLFAMMSQB76LDMRBBB \ / AMOS7 \ YOURUM ::
-#\[7]3S5OFTY52YBCMZGLIEFX7VZH2RSMMV6R67IWS4RYEZHWU2HOWEBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,,..,.,,,.,,,,..,...,..,,.,.,..,,...,.,.,,,.,,,.,,,,,.,,,,,.,
+#EYQLIUSEVXD2RSAYSIMTHEWFOV3D7XIRN33DPZZDWVYJ7QQMFPGIGMBDR7BBCEWBNYDMNM73YEDDM
+#\\\|YHGO5LLSDF3BMA6FMQYPK7NBYAZYRJZ42PYKC4HXVVEUOUDE4D3 \ / AMOS7 \ YOURUM ::
+#\[7]46F64WI2RRBDT2UA4YYF7M7TUBIARG5JPEERYRZR5YWSLRBZRMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

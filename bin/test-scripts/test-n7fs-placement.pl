@@ -126,7 +126,7 @@ ok( $rc == 0
 ) or say $out;
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
 ok( $out =~ m|one \[ a \] counted \[ sampled receipt \]|
-        && $out =~ m|covered 21, pending 0, coverage sampled|,
+        && $out =~ m|covered 20, pending 0, coverage sampled|,
     'the receipt follows the head : the copies count at once'
 ) or say $out;
 ( $rc, $out )
@@ -403,8 +403,8 @@ ok( $rc == 0 && $out =~ m|coverage full|,
 ( $rc, $out )
     = cli( ['vp'], 'holder-check', 'five', '-root-key', 'vault:main' );
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-ok( $out =~ m|six \[ g \] counted .* covered 21, pending 0|
-        && $out =~ m|one .* covered 21, pending 0, coverage full|,
+ok( $out =~ m|six \[ g \] counted .* covered 20, pending 0|
+        && $out =~ m|one .* covered 20, pending 0, coverage full|,
     'the move targets hold their copies and place\'s own checks count them'
 ) or say $out;
 ( $rc, $out )
@@ -540,8 +540,8 @@ write_file( "$tree_a/x$ARG", "alpha $ARG\n" ) for 1 .. 3;
 ( $rc, $out )
     = cli( ['vp'], 'holder-check', '-full', $h12, '-root-key', 'vault:main' );
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-ok( $out =~ m|twelve \[ j \] counted : 4 nodes|
-        && $out =~ m|covered 4, pending 0, coverage full|,
+ok( $out =~ m|twelve \[ j \] counted : 3 nodes|
+        && $out =~ m|covered 3, pending 0, coverage full|,
     'a full receipt covers the sealed holder'
 ) or say $out;
 my $tree_b = "$src/tb";
@@ -556,8 +556,8 @@ write_file( "$tree_b/y$ARG", "beta $ARG\n" ) for 1 .. 2;
     'tb'
 );
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-ok( $out =~ m|twelve \[ j \] counted : 7 nodes|
-        && $out =~ m|covered 4, pending 3, coverage full|,
+ok( $out =~ m|twelve \[ j \] counted : 5 nodes|
+        && $out =~ m|covered 3, pending 2, coverage full|,
     'an add-only commit keeps the receipt : old covered, new pending'
 ) or say $out;
 ( $rc, $out )
@@ -568,22 +568,29 @@ ok( $rc == 0 && $out !~ m|would place [1-9]|,
 ( $rc, $out )
     = cli( ['vp'], 'holder-check', '-full', $h12, '-root-key', 'vault:main' );
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-ok( $out =~ m|twelve .* covered 7, pending 0, coverage full|,
+ok( $out =~ m|twelve .* covered 5, pending 0, coverage full|,
     'a new check covers the grown head' )
     or say $out;
 ## dropping a covered entry voids the receipt : the covered digest no longer
 ## matches, and the holder counts zero until its next check
 ( $rc, $out ) = cli( [], 'trees', $disk );
 my ($mani_a) = $out =~ m|^ta (\S+)|m;
+require AMOS7::N7FS::Disk;
+require AMOS7::N7FS::Seal;
+my $tree_id = AMOS7::N7FS::Disk::disk_read_id(
+    qw| root | => $root,
+    qw| disk | => $disk
+);
+my ($file_a) = AMOS7::N7FS::Seal::_manifest_files( $tree_id, $mani_a );
 ( $rc, $out )
     = cli( ['vp'], 'shred', $disk, '-root-key',
-    'vault:main', '-out', $h12, $mani_a );
+    'vault:main', '-out', $h12, $file_a );
 ok( $rc == 0, 'a shred drops one entry from the holder\'s map' ) or say $out;
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-ok( $out =~ m|twelve \[ j \] no fresh receipt : 6 nodes|,
+ok( $out =~ m|twelve \[ j \] no fresh receipt : 4 nodes|,
     'a dropped covered entry voids the receipt'
 ) or say $out;
-ok( $out =~ m|twelve .* covered 0, pending 6|,
+ok( $out =~ m|twelve .* covered 0, pending 4|,
     'a void receipt counts no copy of its old covered entries' )
     or say $out;
 ( $rc, $out ) = cli(
@@ -594,7 +601,7 @@ ok( $out =~ m|twelve .* covered 0, pending 6|,
 ( $rc, $out )
     = cli( ['vp'], 'holder-check', '-full', $h12, '-root-key', 'vault:main' );
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-ok( $out =~ m|twelve .* covered 7, pending 0, coverage full|,
+ok( $out =~ m|twelve .* covered 5, pending 0, coverage full|,
     'resealing the dropped entry and a new check restore the count'
 ) or say $out;
 ## an old receipt without the covered digest binds the exact head version :
@@ -616,8 +623,8 @@ ok( $out =~ m|twelve .* covered 7, pending 0, coverage full|,
     write_file( $rpath, $json->encode($data) );
     ( $rc, $out )
         = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-    ok( $out =~ m|twelve \[ j \] counted : 7 nodes|
-            && $out =~ m|covered 7, pending 0|,
+    ok( $out =~ m|twelve \[ j \] counted : 5 nodes|
+            && $out =~ m|covered 5, pending 0|,
         'an old receipt at the exact head version still counts every entry'
     ) or say $out;
     my $tree_c = "$src/tc";
@@ -633,7 +640,7 @@ ok( $out =~ m|twelve .* covered 7, pending 0, coverage full|,
     );
     ( $rc, $out )
         = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-    ok( $out =~ m|twelve \[ j \] no fresh receipt : 9 nodes|,
+    ok( $out =~ m|twelve \[ j \] no fresh receipt : 6 nodes|,
         'an old receipt without a digest keeps the exact-version rule'
     ) or say $out;
     ( $rc, $out )
@@ -641,7 +648,7 @@ ok( $out =~ m|twelve .* covered 7, pending 0, coverage full|,
         'vault:main' );
     ( $rc, $out )
         = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-    ok( $out =~ m|twelve .* covered 9, pending 0, coverage full|,
+    ok( $out =~ m|twelve .* covered 6, pending 0, coverage full|,
         'a new receipt covers the grown head again' )
         or say $out;
 }
@@ -660,7 +667,7 @@ write_file( "$tree5/q$ARG", "grace $ARG\n" ) for 1 .. 3;
 ( $rc, $out )
     = cli( ['vp'], 'place', $disk, '-root-key',
     'vault:main', '-exclude', 'one', '-no-check' );
-ok( $rc == 0 && $out =~ m|placed 4 nodes on eleven| && $out !~ m|checked|,
+ok( $rc == 0 && $out =~ m|placed 3 nodes on eleven| && $out !~ m|checked|,
     '-no-check places without the holder-check' )
     or say $out;
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
@@ -681,12 +688,12 @@ write_file( "$tree6/r$ARG", "checked $ARG\n" ) for 1 .. 2;
     = cli( ['vp'], 'place', $disk, '-root-key',
     'vault:main', '-exclude', 'one' );
 ok( $rc == 0
-        && $out =~ m|placed 3 nodes on eleven|
+        && $out =~ m|placed 2 nodes on eleven|
         && $out =~ m|checked eleven|,
     'place checks every holder it wrote, and the receipt covers all of it'
 ) or say $out;
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-ok( $out =~ m|eleven .* covered 7, pending 0, coverage sampled|,
+ok( $out =~ m|eleven .* covered 5, pending 0, coverage sampled|,
     'the check follows the head, pending entries included'
 ) or say $out;
 
@@ -703,7 +710,7 @@ ok( $out =~ m|eleven .* covered 7, pending 0, coverage sampled|,
 rename $h11, "$base/h11.away" or die "rename away : $OS_ERROR";
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
 ok( $out =~ m|eleven \[ i \] unreachable, counted \[ receipt \d+.|
-        && $out =~ m|eleven .* covered 7, pending 0, coverage sampled|,
+        && $out =~ m|eleven .* covered 5, pending 0, coverage sampled|,
     'within the grace the covered entries keep counting'
 ) or say $out;
 ( $rc, $out )
@@ -714,7 +721,7 @@ ok( $rc == 0 && $out !~ m|would place [1-9]|,
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'two-b', '-root-key',
     'vault:main', '-dry-run' );
-ok( $rc == 0 && $out !~ m|would drop [1-9]| && $out =~ m|kept 4 nodes|,
+ok( $rc == 0 && $out !~ m|would drop [1-9]| && $out =~ m|kept 3 nodes|,
     'drain never trusts an unreachable holder, grace or not'
 ) or say $out;
 ## past the grace the same receipt counts zero again
@@ -726,7 +733,7 @@ ok( $out =~ m|eleven \[ i \] unreachable : |,
 ) or say $out;
 ( $rc, $out )
     = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main', '-dry-run' );
-ok( $rc == 0 && $out =~ m|would place 3 nodes on one|,
+ok( $rc == 0 && $out =~ m|would place 2 nodes on one|,
     'after the grace the sole copies are re-placed elsewhere'
 ) or say $out;
 ( $rc, $out )
@@ -759,7 +766,7 @@ write_file( "$tree7/s$ARG", "partial $ARG\n" ) for 1 .. 2;
     't7'
 );
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
-ok( $out =~ m|eleven .* covered 7, pending 3, coverage full|,
+ok( $out =~ m|eleven .* covered 5, pending 2, coverage full|,
     'entries added after the receipt stay uncovered'
 ) or say $out;
 ( $rc, $out )
@@ -768,7 +775,7 @@ ok( $out =~ m|eleven .* covered 7, pending 3, coverage full|,
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'two-b', '-root-key',
     'vault:main', '-dry-run' );
-ok( $rc == 0 && $out =~ m|would drop 4| && $out =~ m|kept 3 nodes|,
+ok( $rc == 0 && $out =~ m|would drop 3| && $out =~ m|kept 2 nodes|,
     'drain trusts the covered entries only, never the uncovered ones'
 ) or say $out;
 ( $rc, $out )
@@ -776,14 +783,14 @@ ok( $rc == 0 && $out =~ m|would drop 4| && $out =~ m|kept 3 nodes|,
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'two-b', '-root-key',
     'vault:main', '-dry-run' );
-ok( $rc == 0 && $out =~ m|would drop 7|,
+ok( $rc == 0 && $out =~ m|would drop 5|,
     'once checked, the same holder vouches for the whole drain' )
     or say $out;
 
 done();
 
-#,,..,,.,,.,.,,,.,.,,,.,,,..,,,.,,...,,,.,.,,,..,,...,...,,,.,..,,.,.,,..,..,,
-#CETHF2KOM6TT7EJIET2EAQRQZKDUZOWPYNPX7AEUBDEPBNCL22R2OMSOVNICIMURHVYTRJCSNR62M
-#\\\|N3GR5AJJW5MLVVC7EUDUQ6COLZQWXB65ZRZLSGEAS6PBH2H5B2U \ / AMOS7 \ YOURUM ::
-#\[7]U3BNF2GBY7CGILYADR7XXWOY46ALWYLQWYI5OF56JCXM7FOHZQBA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,..,,.,,.,,,,.,,,,.,.,,,.,,,..,,..,,...,..,,...,,,,,,,.,.,,,,,,,
+#L7UX5FFLGF4M5UZMDLHSOJWXZPBRPBB2UQHIAAUGO3INTVFDJ24KPL5UI7PNI5O4AL4NJMK6XOOVS
+#\\\|VTCALHFGGHF4VM2MNA2BPD6ZOSXY4DLULLXT4KD6E5TZQ7HARNX \ / AMOS7 \ YOURUM ::
+#\[7]U2V5HW6XAYJNA6XA7ESZXMI6EBTSAWFHYDNHY3YXHYA6L4T7P4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

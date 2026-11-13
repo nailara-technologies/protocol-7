@@ -19,7 +19,7 @@ BEGIN {
 use JSON::PP;
 use AMOS7::N7FS        qw| read_file write_new_file make_dirs unb32 |;
 use AMOS7::N7FS::Sum   qw| bmw384_bytes bmw_b32 |;
-use AMOS7::N7FS::Disk  qw| disk_init disk_attach |;
+use AMOS7::N7FS::Disk  qw| disk_init disk_attach disk_read_id |;
 use AMOS7::N7FS::Store qw| assimilate |;
 use AMOS7::N7FS::Seal;
 use AMOS7::N7FS::Keys;
@@ -87,7 +87,7 @@ write_new_file( $source, 'blind holder acceptance content' );
 chmod 0644, $source;
 utime 123456789, 123456789, $source;
 symlink 'plain-name.txt', "$box->{'src'}/link" or die $OS_ERROR;
-assimilate(
+my $import = assimilate(
     qw| root |           => $box->{'root'},
     qw| host_dir |       => $box->{'host'},
     qw| disk |           => $disk,
@@ -98,6 +98,13 @@ assimilate(
     qw| category_rules | => [],
     qw| protect |        => [],
 );
+my $tree_id
+    = disk_read_id( qw| root | => $box->{'root'}, qw| disk | => $disk );
+require AMOS7::N7FS::Journal;
+my $tree_replay = AMOS7::N7FS::Journal::journal_replay($tree_id);
+my ($file_address)
+    = grep { $ARG ne $tree_replay->{'trees'}{'holder-tree'}{'manifest'} }
+    keys $tree_replay->{'nodes'}->%*;
 
 say ':: seal and clean recovery';
 cli( 0, 'seal tree over fake ssh',
@@ -199,7 +206,7 @@ make_dirs( $crash_remote, 0700 );
     $ENV{'FAKE_SSH_FAIL_AFTER_DROP'} = 1;
     cli( 1, 'process fails after a partial upload',
         '-root-key', $rootfile,
-        '-out', 'ssh:crash:/holder', '-tree', 'holder-tree', 'seal', $disk );
+        '-out', 'ssh:crash:/holder', 'seal', $disk, $file_address );
     delete $ENV{'FAKE_SSH_DROP'};
     delete $ENV{'FAKE_SSH_FAIL_AFTER_DROP'};
     my ($pending_file) = glob "$rootfile.state/pending/*";
@@ -210,12 +217,9 @@ make_dirs( $crash_remote, 0700 );
     ok( @pending_spools == 1,
         'interrupted spool uses a deterministic pending name' );
     my $partial_log = read_file($log);
-    cli(0,           'rerun continues the same ciphertext temporary',
-        '-root-key', $rootfile,
-        '-out',      'ssh:crash:/holder',
-        '-tree',     'holder-tree',
-        'seal',      $disk
-    );
+    cli( 0, 'rerun continues the same ciphertext temporary',
+        '-root-key', $rootfile, '-out', 'ssh:crash:/holder', 'seal', $disk,
+        $file_address );
     my ($temp_name)
         = $partial_log
         =~ m|crash cat >> '/holder/(r-[A-Z2-7]{7}/[A-Z2-7]+[.]upload)'|;
@@ -277,20 +281,8 @@ my $head_path
 my $holder_sub = "$remote/" . AMOS7::N7FS::Seal::root_subdir($root);
 write_new_file( "$head_path.upload", 'stale head bytes' );
 copy( $head_path, "$box->{'base'}/old-head" ) or die $OS_ERROR;
-cli(0,
-    'advance remote head',
-    '-root-key',
-    $rootfile,
-    '-out', $spec, 'shred', $disk,
-    do {
-        my $id = AMOS7::N7FS::Disk::disk_read_id(
-            qw| root | => $box->{'root'},
-            qw| disk | => $disk
-        );
-        my $replay = AMOS7::N7FS::Journal::journal_replay($id);
-        ( sort keys $replay->{'nodes'}->%* )[0];
-    }
-);
+cli( 0, 'advance remote head',
+    '-root-key', $rootfile, '-out', $spec, 'shred', $disk, $file_address );
 copy( $head_path, "$box->{'base'}/saved-head" ) or die $OS_ERROR;
 copy( "$box->{'base'}/old-head", $head_path )   or die $OS_ERROR;
 cli(1,              'old remote head refused',
@@ -304,6 +296,8 @@ unlink $head_path                               or die $OS_ERROR;
 cli( 1, 'deleted head on a pinned holder is refused',
     '-root-key', $rootfile, 'holder-check', $spec );
 copy( "$box->{'base'}/saved-head", $head_path ) or die $OS_ERROR;
+cli( 0, 'reseal content for corruption checks',
+    '-root-key', $rootfile, '-out', $spec, 'seal', $disk, $file_address );
 my ( undef, undef, $current_map )
     = AMOS7::N7FS::Seal::_context( $root, $spec, 0 );
 my $victim = ( map { $ARG->{'blob'} } values $current_map->{'nodes'}->%* )[0];
@@ -359,8 +353,8 @@ refused(
 
 done();
 
-#,,,,,.,,,..,,..,,,,.,.,,,,,,,,.,,,..,,,,,.,,,..,,...,...,...,,,,,,,.,,..,.,,,
-#ER6ORK76CSXC4VAVYFPS5YR2NMAECPC2LFKJZJUP7QOW5BW6YTR7LRBUKI6HKZFFJ4KVWVBKRRG54
-#\\\|KQBX4SMFO5OY5FEZHCTSMRM76KDWQJC5NH2QON45D5DSAFZCUBG \ / AMOS7 \ YOURUM ::
-#\[7]EOYB62UV3TCARQULTYTIXBYLXDLVTEVVL2GUTBMLCNIT7L6KD6CI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,...,...,,,,,..,,,,.,.,,,..,,,,,,..,,...,...,.,,,,.,,,..,,..,,,.,
+#ZXBLTG3WOKGCYPT4RHTY2BY3U2BG5HCFXNMUJMLO3TVI44KLDGLRVCBXBYJOTKRWR7ZUK5QJKJYYK
+#\\\|AEM4WUGURSEZ7O25TDCXMTOKDZ3LDF5CBUO7WE4Y5WLSMEXYQVS \ / AMOS7 \ YOURUM ::
+#\[7]YVEW52KFQHFNL4X6ME4FJ4MZ2UMMSIE5ZIYVSMVFBYKUZIR4GYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
