@@ -88,6 +88,17 @@ This is one local or SSH holder at a time, not replication or placement. No pack
 
 `-root-key` and `root init` also accept `vault:<name>`, a note entry titled `n7fs root <name>` in a p7-vault [ `-vault-dir`, `P7_VAULT_DIR`, default `~/.n/vault` ], unlocked with the vault passphrase and locked again after use. `n7fs root convert <from> <to>` moves a root between a passphrase file and the vault in either direction. only the wrapping of the 96-byte root changes : blobs, maps, heads and holders are untouched and no data is re-encrypted. the source stays until the owner removes it, so one conversion leaves two ways to open the same data. the counter and holder pins carry over and the writer id does not, so both copies may be used safely. a vault root keeps its state in `<host-dir>/seal-roots/<root-id>.state`. `root export-check` takes files only : convert a vault root to a file for the offline copies, then check those.
 
+## disk and category binding [ 2026-11-13, review finding 6 ]
+
+the first `seal` of a disk writes `<disk>/.n7fs/seal-root`, signed by the
+sealing root [ ed25519 over `disk \0 root_id` ] ; every later `seal`,
+`place` and tree `unseal` of that disk refuses any other root, and an
+unverifiable binding is refused outright. `n7fs category <disk> set <name>
+-seal-root <root-id>` binds a category the same way. this is what makes a
+service root [ `N7FS-PLACEMENT.md`, finding 6 ] unable to read or write
+the main root's disks and categories by mistake or under compromise of
+the hourly job. `bin/test-scripts/test-n7fs-service-root.pl` covers it.
+
 ## packs [ stage 4 part 3 ]
 
 a sealed node of at most 1 MiB is not uploaded on its own : it is appended to a pack blob of about 16 MiB, starting `P7SP` and suite byte `1`, which is named by BMW384 of its whole content like every other blob. each node inside keeps its own node keys, nonces and node header, so packing changes no crypto. its map entry names the pack in `blob`, its own ciphertext checksum in `node`, and `offset` and `length` inside the pack. entries without `node` are whole-blob nodes as before. a pack is written before the map commit that references it.
@@ -114,8 +125,8 @@ receiver names use the same fixed `r-<tag>/<name>` form : one level, no `..`, no
 
 it must not run while a seal to the same holder is in progress [ the host lock of 2026-11-11 covers every holder-writing command ]. a holder that ignores a signed delete is still what shredding covers. **review finding 2 is fully addressed** ; `test-n7fs-receiver.pl` exercises the whole workflow and refusal cases against the forced-command fixture.
 
-#,,.,,..,,..,,.,.,...,,.,,.,.,,.,,,.,,.,,,,,.,..,,...,...,...,,,.,...,.,.,..,,
-#SUWYYPZEE65KYK6IV7KXMZPSIJOALVOEVFCDT3XVPSSB5QLU4S3KQP6SMICZM2KDZN2BXL3DTQ2S6
-#\\\|W54TLVJTMULZMVF4PMB5DTVFEGPPK3JO7XBSOCPKNHPILFTXXCC \ / AMOS7 \ YOURUM ::
-#\[7]SZJUQP3YX46JAXKA2GRLOXFWYWJMUTQBYZYFSAKIRBPBYBNHP4DA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,,.,,.,,,..,,,.,,,.,,...,..,,..,,...,...,..,,,,.,..,,...,,.,,
+#W563IYOB7LKLENLX7D4EGKTZ3TUPSZAESETB535ZVHZ237CN2QZCTNYMYWINPQAYOQU7EXHBAFNMO
+#\\\|UWI3O36L5KNRAP6KUUQTVGDXSRPG7RYNY7ISZ47MK3NPJEDN6OV \ / AMOS7 \ YOURUM ::
+#\[7]OLFAQ4H66RZ3SQVDH442IXLUNQ3BYY4OJG3UBWVNG33BZZDE6EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

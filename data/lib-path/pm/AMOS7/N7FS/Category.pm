@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Category-VERSION.WPKVGIQ |;
+our $VERSION = qw| AMOS7::N7FS::Category-VERSION.LUJTOKI |;
 
 @EXPORT_OK
     = qw| category_default category_definitions category_set category_list
@@ -82,6 +82,9 @@ sub _policy {
     refuse('category : want must be a list')
         if ref $p->{'want'} ne qw| ARRAY |
         or grep { not defined $ARG or not length $ARG } $p->{'want'}->@*;
+    refuse('category : root must be a root id [ A-Z2-7, 77 chars ]')
+        if defined $p->{'root'}
+        and $p->{'root'} !~ m|\A[A-Z2-7]{77}\z|;
     return $p;
 }
 
@@ -190,6 +193,9 @@ sub category_set {
         qw| want |         => $opt{'want'}         // $old->{'want'},
         qw| foreign_work | => $opt{'foreign_work'} // $old->{'foreign_work'},
         qw| layer |        => $opt{'layer'}        // $old->{'layer'},
+        defined $opt{'seal_root'} || defined $old->{'root'}
+        ? ( qw| root | => $opt{'seal_root'} // $old->{'root'} )
+        : (),
     );
     _policy( \%payload );
     my $record = record_write( $id, $store, qw| category |, qw| categories |,
@@ -403,8 +409,8 @@ sub category_report {
 
 1;
 
-#,,..,...,...,,.,,,,,,,..,...,.,,,,,.,.,.,.,,,..,,...,...,.,,,,..,,,.,,,,,,,,,
-#QLOVSOIS7IDH7VDZXWVHNYITQWSKFONZQVR2NFIOCXJ5WQCLXM7LDFWT6TV6Z7GMO2LKG52KFAMN4
-#\\\|ZKUNZ2M33VIQPIJXXOH62IUHQGB2IK73GLXXLTOI5NTZOY6DNL6 \ / AMOS7 \ YOURUM ::
-#\[7]NSPTDBEUYA3273A5BK4JRV46CPYYUQIQZ656GR6VZNJFANLUPWAI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,,..,,,,,.,.,,,.,..,,,.,,...,..,,...,...,...,,..,.,.,,.,,.,,,
+#VS3MT7F4VDPEW2NCPF44SVDF5JJDH4ZT3AS3H6FENYHVGCGDEQEIJS6EL3ARXYEOMNWF3XKQUSB5O
+#\\\|SZ43GJTM7NWJT3YMFKSYNDGZS735DX5RGAZILL45RZHPFFEIOQH \ / AMOS7 \ YOURUM ::
+#\[7]3OKFRZFOX4MSQOPSQ6DVOUK5U3G6EFQO2AACK5PPIKDGWHIZHUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

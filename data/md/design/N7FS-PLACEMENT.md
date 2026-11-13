@@ -257,6 +257,87 @@ what changed :
 - a remote publish syncs the directory after the rename, so the new blob
   name survives a crash [ local publish too ].
 
+## a service root for the unattended hourly job [ 2026-11-13, review finding 6 ]
+
+review finding 6 : `place`, `relay -adopt` and `holder-check` all need the
+root. an hourly timer means the vault passphrase and the full-shell ssh key
+sit usable on an online machine around the clock — and the root opens
+EVERYTHING.
+
+what already existed : independent sealing roots need no new command —
+`n7fs root init <file>` [ or `vault:<name>` ] creates a fully independent
+root [ its own 96 bytes of entropy, its own root id, map and head ], and a
+passphrase file root needs only its own passphrase, never the main vault
+passphrase. the per-root holder layout [ finding 2 ] already keeps each
+root's blobs in its own `r-<tag>/`, and `bin/n7fs-receive` already accepts
+repeated `-root-pub` \ `-head-name` pairs. the gaps were binding and the
+multi-root receiver line :
+
+- **disk seal binding** : the first `seal` of a disk writes
+  `<disk>/.n7fs/seal-root` — canonical JSON `{ v, disk, root_id, pub, sig }`
+  where the signature is the sealing root's ed25519 signature over
+  `disk \0 root_id`. every later `seal`, `place` [ same code path ] and
+  tree `unseal` of that disk refuses any other root
+  [ `disk is sealed under another root [ tag .. ]` ], and a binding that
+  does not verify is refused outright. disks sealed before this change
+  bind at their next seal. the binding is self-certifying : it guards
+  against MISTAKES [ the wrong root key on a command line ], not against
+  someone who can write the disk -- deleting `seal-root` lets the next
+  seal bind afresh. the security boundary is the crypto on the holders
+  and the plaintext itself : keep the main root's disks off the online
+  machine, then its key has nothing of theirs to seal or read.
+- **category binding** : `n7fs category <disk> set <name> -seal-root
+  <root-id>` binds a category to one root ; `seal` \ `place` refuse the
+  category under any other root. within a disk already bound to one root
+  this is the finer scoping ; across roots it makes the refusal explicit
+  per category.
+- **multi-root receiver line** : `n7fs holder-receiver-line <holder>
+  -root-key <key> [ -also-root-key <key> ]..` prints one
+  `-root-pub`/`-head-name` pair per distinct root [ one passphrase line per
+  root, in listing order ] ; the receiver keeps serving each root only in
+  its own `r-<tag>/` — a signed request from one root naming another
+  root's tag is refused [ `request path belongs to another root` ].
+
+setup for the hourly job :
+
+1. `n7fs root init /path/service.root` — its own passphrase, 0600, kept
+   out of the main vault ; the main root's secrets are never involved.
+   seal the service disks under it once by hand [ that writes the disk
+   bindings and the categories ].
+2. the holder's authorized_keys line comes from `holder-receiver-line`
+   with `-root-key vault:main -also-root-key /path/service.root` — ONE
+   forced command serving both roots, each boxed in its own `r-<tag>/`.
+3. the timer [ systemd unit or cron ] runs only
+   `n7fs place <service-disk> -root-key /path/service.root`,
+   `n7fs relay <a> <b> -root-key /path/service.root -adopt` and
+   `n7fs holder-check <holder> -root-key /path/service.root`, with
+   `-pass-fd` reading the service passphrase from a 0600 file or an
+   askpass helper — never argv.
+
+what the job can and cannot do : with only the service root it can seal,
+place, relay [ adopt ] and holder-check the service root's own disks,
+categories and holders. it cannot read, seal, place, relay, check, shred
+or unmap the main root's data — the disk \ category bindings refuse the
+attempts at home, and on holders the main root's head has another locator,
+another root id and another `r-<tag>/`, which the receiver enforces on
+every signed request. `unseal` \ `seal-recover` of a node address without
+a disk read are refused by the crypto itself [ wrong head locator, wrong
+root id, wrap domains ].
+
+threat model : a compromised online machine exposes the service root only.
+the service root's passphrase file opens the service root's data — one
+compartment, not the vault ; the main vault passphrase and root never sit
+on that machine. on the holder the forced command boxes the service key
+into the service `r-<tag>/` : it can add valid blobs [ bounded by quota ]
+and sign changes only inside its own subdirectory, never touch the main
+root's head, blobs or trash. the honest limit stays : the compromise of
+the machine that holds a root defeats anything that root could do anyway,
+so the main root simply is not kept there.
+
+**finding 6 is addressed**. the longer-term **add-only writer** — the hub
+seals to a category public key and home never pulls plaintext — stays open
+[ `N7FS-SEALED-REPLICAS.md` ].
+
 ## owner decisions [ 2026-11-10 ]
 
 1. the holder registry lives in the vault, as a note entry titled
@@ -268,8 +349,8 @@ what changed :
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,,.,,..,..,,,,.,.,,,,.,,.,,,...,,..,.,,,,..,..,,...,...,...,,,.,...,..,,,,,,
-#4KBMFSUNTLP3RJ2DBGXEPUAJNSGAUAYTFTS75MJVP2NA3GT6LC4XS5C3OIPS5C5N2HU6NKSZ64B5A
-#\\\|POHGV6N5SOKAZ25NLKFL22YOM7HCXSGUJIRK6BR2RL7WJSZJXKK \ / AMOS7 \ YOURUM ::
-#\[7]OFWWIGOXYK7BQGW4WYHJMHXUWZUJNNDCT7D63RPLXS76TDOCRQCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,,.,,.,,,,.,,.,.,,.,,,,.,..,,..,,...,...,,..,,.,,.,.,..,,.,.,
+#LYMQUBCQ2INTOG2ZJGJE4UKYBGI2NWG43RXYPSDR6EQ2O4NZ4DSBBXJDKUQNZZFPBV5DNBBALN3VQ
+#\\\|L2ITEO6JDILO5AEWQ4KUBNE7OBUQR72X2DBL662SRT3Z445SXY4 \ / AMOS7 \ YOURUM ::
+#\[7]GBXZKB6V6K7YNLPHYDW5VHBMCKUE2RDF22V2GTJFHHQEDQAQ42CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
