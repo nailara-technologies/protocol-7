@@ -51,11 +51,19 @@ sub done {
 ## a fresh sandbox : { base root host home src }. HOME and the n7fs env point
 ## into it
 sub sandbox {
+    ## the compiled inline objects stay in the real home : a fresh HOME ##
+    ## would rebuild them with make in every sandbox  the first sandbox ##
+    ## remembers it : later ones run under a sandbox HOME               ##
+    state $inline = ( $ENV{'HOME'} // '' ) . qw| /.7/inline-code |;
     my $base = tempdir( qw| n7fs-test-XXXXXXXX |, TMPDIR => 1, CLEANUP => 1 );
     my %box  = ( qw| base | => $base );
     foreach my $sub (qw| root host home src |) {
         mkdir "$base/$sub", 0700 or die "mkdir $base/$sub : $OS_ERROR";
         $box{$sub} = "$base/$sub";
+    }
+    if ( -d $inline and not -l $inline ) {
+        mkdir "$box{'home'}/.7", 0700;
+        symlink $inline, "$box{'home'}/.7/inline-code";
     }
     $ENV{'HOME'}          = $box{'home'};
     $ENV{'N7FS_ROOT'}     = $box{'root'};
@@ -117,7 +125,7 @@ sub snap_equal {
     my %k    = map  { $ARG => 1 } keys %{$a}, keys %{$b};
     my @diff = grep { ( $a->{$ARG} // '-' ) ne ( $b->{$ARG} // '-' ) }
         sort keys %k;
-    say "        " . "changed : $ARG"
+    say "        changed : $ARG"
         for @diff[ 0 .. ( $#diff < 4 ? $#diff : 4 ) ];
     return @diff ? 0 : 1;
 }
@@ -150,8 +158,8 @@ sub copy_tree {
 
 1;
 
-#,,..,.,.,..,,,,.,,,.,,.,,,,.,,,.,...,,..,.,.,..,,...,...,..,,.,,,,..,,.,,,..,
-#NRZ6TLPEPZNX4YALZO3DAL5BMXSVQZ3B4RKTW7UWRZDTLJNQSJ5ZX7L3GDV4LG4KBJF4EBBL55QQU
-#\\\|CJBBKB35SBG5ASQU6IOZW7GGIQEWQ6H6FL6FHE56VCZZHZLN5YG \ / AMOS7 \ YOURUM ::
-#\[7]PB252J3DEBFE4IUHEENTVWDFLIPMCJCI5RB2UAX34KBBGTSI26DI 7  DATA SIGNATURE ::
+#,,,.,...,...,...,,..,,,.,.,.,,,,,...,,,,,.,,,..,,...,..,,...,,..,...,,,,,,,,,
+#XL6AAQ55FFDPY5PMBM3QNH7VVOGAFJQGVRIFJW72M3P77QPDOCGVHOSAPHKS3G4BVEGMMCPJUP4O6
+#\\\|JTPPNNJCRHMMMCATLE2MXAEOOWFCSJTGMWWQCDKMCA5SJ7UU33S \ / AMOS7 \ YOURUM ::
+#\[7]DHKNPPOL7ZSW3AALH74VSB24LHW3XP2ZNNS63QPSPUFRNRFKRYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
