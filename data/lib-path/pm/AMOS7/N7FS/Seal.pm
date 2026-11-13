@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.5XUH52Y |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.TTXKNKA |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -349,7 +349,7 @@ sub _head_open {
 }
 
 sub _head_bytes {
-    my ( $root, $writer, $version, $map, $journal ) = @_;
+    my ( $root, $writer, $version, $map, $journal, $map_size ) = @_;
     my $head = {
         qw| root_id | => $root->{'root_id'},
         qw| writer |  => b32($writer),
@@ -357,6 +357,7 @@ sub _head_bytes {
         qw| map |     => $map,
         qw| journal | => $journal,
         qw| pub |     => b32( $root->{'signer'}->public ),
+        defined $map_size ? ( qw| map_size | => $map_size ) : (),
     };
     $head->{'sig'} = b32( $root->{'signer'}->sign( $JSON->encode($head) ) );
     my $plain = $JSON->encode($head);
@@ -386,6 +387,8 @@ sub _map_plain {
         if not defined $bytes
         and defined $alt
         and $alt ne $base;
+    refuse('sealed map blob size does not match its descriptor')
+        if defined $desc->{'size'} and length($bytes) != $desc->{'size'};
     refuse('map writer does not match its descriptor')
         if substr( $bytes, 0, 16 ) ne $writer;
     my $plain = open_sealed_bytes(
@@ -465,6 +468,9 @@ sub _context {
             {   qw| blob |    => $head->{'map'},
                 qw| writer |  => $head->{'writer'},
                 qw| version | => $head->{'version'},
+                defined $head->{'map_size'}
+                ? ( qw| size | => $head->{'map_size'} )
+                : (),
             }
         );
         my $stored = eval { $JSON->decode($plain) };
@@ -481,6 +487,7 @@ sub _context {
         $map->{'trees'}      = $stored->{'trees'}      // {};
         $map->{'retention'}  = $stored->{'retention'}  // {};
         $map->{'pins'}       = $stored->{'pins'}       // {};
+        $map->{'superseded'} = $stored->{'superseded'} // {};
         $map->{'_shards'}    = $stored->{'shards'};
         $map->{'_tree_blob'} = $stored->{'tree_blob'};
 
@@ -648,6 +655,7 @@ sub _commit {
             qw| checksum | => $sum,
             qw| writer   | => b32($writer),
             qw| version  | => $version,
+            qw| size     | => length($bytes),
         };
     };
     my $nodes  = tied %{ $map->{'nodes'} };
@@ -671,8 +679,9 @@ sub _commit {
         qw| depth |      => 1,
         qw| root_id |    => $root->{'root_id'},
         qw| categories | => $categories,
-        qw| retention |  => $map->{'retention'} // {},
-        qw| pins |       => $map->{'pins'}      // {},
+        qw| retention |  => $map->{'retention'}  // {},
+        qw| pins |       => $map->{'pins'}       // {},
+        qw| superseded | => $map->{'superseded'} // {},
         qw| shards |     => \%shards,
     };
     if ( length $tree_plain >= 1024**2 ) {
@@ -684,7 +693,8 @@ sub _commit {
     } else {
         $stored->{'trees'} = $map->{'trees'} // {};
     }
-    my $map_name = $seal_map->( $JSON->encode($stored), qw| map | )->{'blob'};
+    my $map_desc = $seal_map->( $JSON->encode($stored), qw| map | );
+    my $map_name = $map_desc->{'blob'};
     $map->{'_shards'}    = \%shards;
     $map->{'_tree_blob'} = $stored->{'tree_blob'};
     $nodes->{'shards'}   = \%shards;
@@ -705,9 +715,9 @@ sub _commit {
         qw| journal |
     );
     fault(qw| seal:after-journal |);
-    my $head_name = _head_name($root);
-    my $head_bytes
-        = _head_bytes( $root, $writer, $version, $map_name, $journal_name );
+    my $head_name  = _head_name($root);
+    my $head_bytes = _head_bytes( $root, $writer, $version, $map_name,
+        $journal_name, $map_desc->{'size'} );
 
     if ( holder_parse($base)->{'type'} eq qw| ssh | ) {
         my $spool = "$state_dir/spool";
@@ -870,6 +880,7 @@ sub _manifest_seal {
         qw| id |       => b32($id),
         qw| writer |   => b32($writer),
         qw| version |  => $version,
+        qw| size |     => length($bytes),
     };
 }
 
@@ -891,6 +902,8 @@ sub _manifest_plain {
         die $EVAL_ERROR if not defined $alt or $alt eq $base;
         $bytes = _read_blob( $alt, $desc->{'blob'} );
     }
+    refuse('sealed manifest size does not match its descriptor')
+        if defined $desc->{'size'} and length($bytes) != $desc->{'size'};
     refuse('manifest writer does not match its descriptor')
         if substr( $bytes, 0, 16 ) ne $writer;
     my $plain = open_sealed_bytes( $root->{'keys'}, substr( $bytes, 16 ),
@@ -969,7 +982,7 @@ sub _chunk_tree_manifest {
     };
 }
 
-sub _manifest_read {
+sub _manifest_index_read {
     my ( $root, $base, $alt, $tree ) = @_;
     refuse('legacy single-blob tree manifest is refused')
         if ref $tree ne qw| HASH |
@@ -985,22 +998,47 @@ sub _manifest_read {
         or ref $index->{'chunks'} ne qw| ARRAY |
         or $JSON->encode( $index->{'chunks'} ) ne
         $JSON->encode( $tree->{'chunks'} );
+    return $index;
+}
+
+sub _manifest_chunk_read {
+    my ( $root, $base, $alt, $chunk ) = @_;
+    refuse('sealed manifest chunk position list is invalid')
+        if ref $chunk->{'positions'} ne qw| ARRAY |;
+    my $plain
+        = _manifest_plain( $root, $base, $alt, $chunk, qw| manifest-chunk | );
+    my $entries = eval { $JSON->decode($plain) };
+    refuse('sealed manifest chunk is invalid')
+        if ref $entries ne qw| ARRAY |
+        or @{$entries} != @{ $chunk->{'positions'} };
+    return $entries;
+}
+
+sub _manifest_read {
+    my ( $root, $base, $alt, $tree ) = @_;
+    my $index = _manifest_index_read( $root, $base, $alt, $tree );
     my @entries;
     foreach my $chunk ( $index->{'chunks'}->@* ) {
-        refuse('sealed manifest chunk position list is invalid')
-            if ref $chunk->{'positions'} ne qw| ARRAY |;
-        my $plain = _manifest_plain( $root, $base, $alt, $chunk,
-            qw| manifest-chunk | );
-        my $entries = eval { $JSON->decode($plain) };
-        refuse('sealed manifest chunk is invalid')
-            if ref $entries ne qw| ARRAY |
-            or @{$entries} != @{ $chunk->{'positions'} };
+        my $entries = _manifest_chunk_read( $root, $base, $alt, $chunk );
         push @entries,
             map { [ $chunk->{'positions'}[$ARG], $entries->[$ARG] ] }
             0 .. $#{$entries};
     }
     return ( $index->{'header'},
         map { $ARG->[1] } sort { $a->[0] <=> $b->[0] } @entries );
+}
+
+sub _manifest_verify {
+    my ( $root, $base, $alt, $name, $tree ) = @_;
+    my ( $head, @entries ) = _manifest_read( $root, $base, $alt, $tree );
+    my $plain = join '',
+        $JSON->encode($head) . "\n",
+        map { $JSON->encode($ARG) . "\n" } @entries;
+    my ( undef, undef, $expected ) = split m|/|, $tree->{'manifest'} // '';
+    refuse( 'rebuilt tree manifest does not match : %s', $name )
+        if not defined $expected
+        or bmw_b32( bmw384_bytes($plain) ) ne $expected;
+    return TRUE;
 }
 
 sub _manifest_restore {
@@ -1729,6 +1767,48 @@ sub _sampled_chunks {
     return $checked;
 }
 
+sub _sampled_manifest_chunks {
+    my ( $opt, $map, $sizes ) = @_;
+    my $wanted = $opt->{'samples'} // 16;
+    refuse('samples must be a positive integer')
+        if $wanted !~ m|\A[1-9]\d*\z|;
+    my @chunks;
+    foreach my $name ( sort keys $map->{'trees'}->%* ) {
+        my $tree = $map->{'trees'}{$name};
+        _manifest_index_read( @{$opt}{qw| root holder |}, undef, $tree );
+        push @chunks, map {
+            {
+                qw| chunk |      => $ARG,
+                    qw| weight | => $sizes->{ $ARG->{'blob'} } // 1,
+            }
+        } $tree->{'chunks'}->@*;
+    }
+    return 0 if not @chunks;
+    my $rng = $opt->{'rng'} // sub { random_bytes(8) };
+    my @selected;
+    if ( $wanted >= @chunks and not $opt->{'rng'} ) {
+        @selected = @chunks;
+    } else {
+        my $total = 0;
+        $total += $ARG->{'weight'} for @chunks;
+        my %seen;
+        my $rolls = 0;
+        while ( @selected < $wanted and $rolls < $wanted * 8 ) {
+            $rolls++;
+            my $pos   = unpack( 'Q>', $rng->() ) % $total;
+            my $index = 0;
+            $pos -= $chunks[$index]{'weight'}, $index++
+                while $index < $#chunks
+                and $pos >= $chunks[$index]{'weight'};
+            next if $seen{$index}++;
+            push @selected, $chunks[$index];
+        }
+    }
+    _manifest_chunk_read( @{$opt}{qw| root holder |}, undef, $ARG->{'chunk'} )
+        for @selected;
+    return scalar @selected;
+}
+
 sub holder_check {
     my %opt = @_;
     my ( undef, $head, $map, $base )
@@ -1751,6 +1831,19 @@ sub holder_check {
     foreach my $name ( keys %blobs ) {
         refuse( 'mapped blob is missing : %s', $name )
             if not defined $sizes->{$name};
+    }
+    refuse('map root has the wrong size')
+        if defined $head->{'map_size'}
+        and $sizes->{ $head->{'map'} } != $head->{'map_size'};
+    my @descriptors = values $map->{'_shards'}->%*;
+    push @descriptors, $map->{'_tree_blob'} if $map->{'_tree_blob'};
+    foreach my $tree ( values $map->{'trees'}->%* ) {
+        push @descriptors, $tree->{'index'}, $tree->{'chunks'}->@*;
+    }
+    foreach my $desc ( grep { defined $ARG->{'size'} } @descriptors ) {
+        refuse( 'mapped metadata blob has the wrong size : %s',
+            $desc->{'blob'} )
+            if $sizes->{ $desc->{'blob'} } != $desc->{'size'};
     }
 
     foreach my $address (@addresses) {
@@ -1782,6 +1875,9 @@ sub holder_check {
         ) if not $result->{'clean'};
         $checked = $result->{'ok'};
     } elsif ( $coverage eq qw| full | ) {
+        _manifest_verify( @opt{qw| root holder |}, undef, $ARG,
+            $map->{'trees'}{$ARG} )
+            for sort keys $map->{'trees'}->%*;
         foreach my $address (@addresses) {
             my $entry = $map->{'nodes'}{$address};
             my ( $base, $chunk_size, $chunks )
@@ -1793,7 +1889,9 @@ sub holder_check {
             $checked += $chunks;
         }
     } elsif ( $coverage eq qw| sampled | ) {
-        $checked = _sampled_chunks( \%opt, $map, \@addresses, \%hits );
+        $checked = _sampled_chunks( \%opt, $map, \@addresses, \%hits )
+            if @addresses;
+        $checked += _sampled_manifest_chunks( \%opt, $map, $sizes );
     }
     ## sizes-only falls through : the size pass above is the whole check ##
     ## the incremental-receipt digest : the entries this version covers, ##
@@ -2026,16 +2124,32 @@ sub repack_packs {
             refuse( 'cannot read live pack entry : %s', $address )
                 if not defined $sealed
                 or length $sealed != $entry->{'length'};
+            refuse( 'live pack entry checksum does not match : %s', $address )
+                if bmw_b32( bmw384_bytes($sealed) ) ne $entry->{'node'};
             $entry->{'_repack_offset'} = length $bytes;
             $bytes .= $sealed;
         }
         my $new = _write_blob( $opt{'root'}, $base, $bytes, qw| pack | );
+        foreach my $item ( $packs{$old}->@* ) {
+            my ( $address, $entry ) = @{$item};
+            my $sealed
+                = holder_read_range( $base, $new, $entry->{'_repack_offset'},
+                $entry->{'length'} );
+            refuse( 'cannot read moved pack entry : %s', $address )
+                if not defined $sealed
+                or length $sealed != $entry->{'length'};
+            refuse( 'moved pack entry checksum does not match : %s',
+                $address )
+                if bmw_b32( bmw384_bytes($sealed) ) ne $entry->{'node'};
+        }
+        fault(qw| repack:before-commit |);
         foreach my $item ( $packs{$old}->@* ) {
             my $entry = $item->[1];
             $entry->{'blob'}   = $new;
             $entry->{'offset'} = delete $entry->{'_repack_offset'};
             $entry->{'added'}  = $counter->{'version'} + 1;
         }
+        $map->{'superseded'}{$old} = $counter->{'version'} + 1;
         my $version
             = _commit( $opt{'root'}, $base,
             holder_canonical( $opt{'holder'} ),
@@ -2052,7 +2166,7 @@ sub repack_packs {
             or not grep { $map->{'nodes'}{$ARG}{'blob'} eq $new }
             @{ $checked->{'covered_list'} };
         require AMOS7::N7FS::Placement;
-        AMOS7::N7FS::Placement::receipt_write(
+        my $receipt = AMOS7::N7FS::Placement::receipt_write(
             qw| host_dir |          => $opt{'host_dir'},
             qw| signer |            => $opt{'signer'},
             qw| spec |              => holder_canonical( $opt{'holder'} ),
@@ -2068,11 +2182,13 @@ sub repack_packs {
         $receipts++;
         fault(qw| repack:after-receipt |);
         my $gc = holder_gc(
-            qw| root |   => $opt{'root'},
-            qw| holder | => $opt{'holder'},
-            qw| delete | => TRUE,
+            qw| root |    => $opt{'root'},
+            qw| holder |  => $opt{'holder'},
+            qw| receipt | => $receipt,
+            qw| delete |  => TRUE,
             defined $opt{'grace'} ? ( qw| grace | => $opt{'grace'} ) : (),
         );
+        $counter->{'version'} = $gc->{'version'};
         push @done,
             {
             %{$candidate},
@@ -2102,7 +2218,7 @@ sub repack_packs {
 ## cannot be told apart from outside, so the flat layout keeps requiring it
 sub holder_gc {
     my %opt = @_;
-    my ( undef, $head, $map, $base )
+    my ( $counter, $head, $map, $base )
         = _context( @opt{qw| root holder |}, TRUE );
     refuse('no sealed head on this holder') if not defined $head;
     my $per_root = $base ne holder_canonical( $opt{'holder'} );
@@ -2112,10 +2228,30 @@ sub holder_gc {
     warn "n7fs : -only-root is redundant : this holder "
         . "keeps each root in its own subdirectory\n"
         if $per_root and $opt{'only_root'};
+    my $receipt = $opt{'receipt'};
+    my %covered;
+
+    if (    ref $receipt eq qw| HASH |
+        and ( $receipt->{'coverage'} // '' ) eq qw| full |
+        and ( $receipt->{'version'}  // 0 ) >= $head->{'version'} ) {
+        %covered = map { $ARG => TRUE }
+            grep { $receipt->{'version'} >= $map->{'superseded'}{$ARG} }
+            keys $map->{'superseded'}->%*;
+    }
+    if ( $opt{'delete'} and keys %covered ) {
+        delete $map->{'superseded'}{$ARG} for keys %covered;
+        _commit( $opt{'root'}, $base, holder_canonical( $opt{'holder'} ),
+            $counter, $map,
+            { qw| gc_superseded | => [ sort keys %covered ] } );
+        ( undef, $head, $map, $base )
+            = _context( @opt{qw| root holder |}, TRUE );
+    }
     my %keep = map { $ARG => TRUE } _head_name( $opt{'root'} ),
         _map_blob_names( $head, $map );
     $keep{ $map->{'nodes'}{$ARG}{'blob'} } = TRUE
         for keys $map->{'nodes'}->%*;
+    $keep{$ARG} = TRUE
+        for grep { not $covered{$ARG} } keys $map->{'superseded'}->%*;
     ## pushed by a relay, not adopted yet ##
     $keep{$ARG} = TRUE for @{ $opt{'keep'} // [] };
     my $grace = $opt{'grace'} // parse_y_age('6Y3');
@@ -2138,6 +2274,7 @@ sub holder_gc {
         holder_move( $base, $ARG, ".trash/$day/$ARG" ) for @drop;
     }
     return {
+        qw| version |  => $head->{'version'},
         qw| kept |     => scalar( keys %{$stats} ) - scalar @drop,
         qw| removed |  => scalar @drop,
         qw| young |    => scalar @young,
@@ -2624,8 +2761,8 @@ sub shred_node {
 
 1;
 
-#,,.,,,..,,,.,.,,,..,,,..,..,,.,,,,..,..,,.,.,..,,...,...,.,.,,.,,..,,,,,,,,.,
-#KTTX66NIGN6DDDCWGTIP5WN4AGQDRRPEZYIP5ANP2M6M6BDNQUGXVPRJGDQ2CKBDYZLTRC4Z462FQ
-#\\\|UGFTM5EP6T4QIH7ICN33LKGRG4IORAPGIQKZUYGP3CGWOBVXZRA \ / AMOS7 \ YOURUM ::
-#\[7]UUH43XVG72B3UPGVUPVXQRGOYFGQVRCLJEED7YZXSFKZASPXG4BA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,.,,.,.,..,,...,..,,.,,,.,,,,.,,..,,...,...,,.,,,.,,..,,,,,,,..,
+#O4PJ4RR226UEIPR3FQU2HUQCSXM5JS7VSFRDKYVQAGRS6RAJUGTUK4V4V3NASR7IXO3AGU6EJMPBS
+#\\\|PABIPCQGIAPIL4Y7D3B2TXV6LJVVOZGCGYZYXF4VIL57VDUC4ZB \ / AMOS7 \ YOURUM ::
+#\[7]F4BJQEXNGBJGU2INX6LO6T7HCTVV7TMTCJ2MFGDXPC3T5XONAABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

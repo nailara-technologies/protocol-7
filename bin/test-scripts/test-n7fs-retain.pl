@@ -19,6 +19,7 @@ use AMOS7::N7FS::Disk  qw| disk_read_id |;
 use AMOS7::N7FS::Store qw| assimilate |;
 use AMOS7::N7FS::Sign  qw| key_file_signer |;
 use AMOS7::N7FS::Keys;
+use AMOS7::N7FS::Placement;
 use AMOS7::N7FS::Seal;
 
 require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
@@ -212,6 +213,35 @@ ok( exists $referenced_map->{'nodes'}{$unique_file},
 ok( $rc == 0 && $out =~ m|dropped 1 nodes|,
     'an explicitly released expired file is pruned before repack' )
     or say $out;
+( my $before_corrupt_head, undef ) = read_map();
+{
+    no warnings qw| redefine |;
+    local *AMOS7::N7FS::Seal::holder_read_range = sub {
+        my ( undef, $name ) = @ARG;
+        my $bytes = AMOS7::N7FS::Holder::holder_read_range(@ARG);
+        substr( $bytes, 0, 1 ) = chr( ord( substr( $bytes, 0, 1 ) ) ^ 1 )
+            if $name ne $old_pack;
+        return $bytes;
+    };
+    eval {
+        AMOS7::N7FS::Seal::repack_packs(
+            qw| root |      => open_root(),
+            qw| holder |    => $holder,
+            qw| host_dir |  => $hdir,
+            qw| signer |    => key_file_signer("$hdir/host.key"),
+            qw| grace |     => 0,
+            qw| threshold | => 0,
+        );
+    };
+}
+my $corrupt_error = $EVAL_ERROR;
+( my $after_corrupt_head, my $after_corrupt_map ) = read_map();
+ok( $corrupt_error =~ m|moved pack entry checksum does not match|
+        && $after_corrupt_head->{'version'}
+        == $before_corrupt_head->{'version'}
+        && $after_corrupt_map->{'nodes'}{$shared}{'blob'} eq $old_pack,
+    'a corrupted moved entry refuses before the map commit'
+) or say $corrupt_error;
 {
     local $ENV{'N7FS_TEST_FAULT'} = 'repack:after-commit';
     ( $rc, $out ) = cli(
@@ -222,6 +252,20 @@ ok( $rc == 0 && $out =~ m|dropped 1 nodes|,
 }
 ok( $rc != 0 && -f "$sub/$old_pack",
     'an interruption before the fresh receipt never releases the old pack' );
+( $rc, $out )
+    = cli( ['vp'], 'holder-gc', $holder, '-root-key', $root_key,
+    '-delete', '-grace', '0' );
+ok( $rc == 0 && -f "$sub/$old_pack",
+    'plain gc keeps the superseded pack without a covering receipt' )
+    or say $out;
+( $rc, $out ) = cli(
+    ['vp'],    'repack', $disk, '-root-key',
+    $root_key, '-grace', '0',   '-threshold',
+    '0'
+);
+ok( $rc == 0 && $out =~ m|repacked 0 packs| && -f "$sub/$old_pack",
+    'a repack rerun after the crash leaves the protected old pack alone'
+) or say $out;
 ( $rc, $out )
     = cli( ['vp'], 'holder-check', '-full', $holder, '-root-key', $root_key );
 ok( $rc == 0 && -f "$sub/$old_pack",
@@ -269,6 +313,7 @@ ok( substr( $new_bytes, $entry->{'offset'}, $entry->{'length'} ) eq substr(
 ok( $rc == 0 && read_file("$base/recovered/shared") eq "shared\n",
     'restore verifies after repack' )
     or say $out;
+
 ( my $under_before, undef ) = read_map();
 ( $rc, $out ) = cli( ['vp'], 'repack', $disk, '-root-key', $root_key );
 ( my $under_after, undef ) = read_map();
@@ -287,6 +332,128 @@ ok( $rc == 0
 ok( $rc == 0 && $out !~ m|snap|,
     'retain-clear and tree-unpin remove the sealed settings' )
     or say $out;
+
+( $rc, $out )
+    = cli( ['vp'], 'holder-check', '-full', $holder, '-root-key', $root_key );
+die $out if $rc;
+my $receipt_path = AMOS7::N7FS::Placement::_receipt_path( $hdir, $holder,
+    open_root()->{'root_id'} );
+my $receipt_before = read_file($receipt_path);
+( my $authenticated_head, my $authenticated_map ) = read_map();
+foreach my $case (
+    [   'manifest chunk',
+        $authenticated_map->{'trees'}{'snap.current'}{'chunks'}[0]{'blob'}
+    ],
+    [   'manifest index',
+        $authenticated_map->{'trees'}{'snap.current'}{'index'}{'blob'}
+    ],
+    [   'map shard', ( values $authenticated_map->{'_shards'}->%* )[0]{'blob'}
+    ],
+    [ 'map root', $authenticated_head->{'map'} ],
+) {
+    my ( $kind, $name ) = @{$case};
+    my $good = read_file("$sub/$name");
+    substr( $good, 20, 1 ) = chr( ord( substr( $good, 20, 1 ) ) ^ 1 );
+    write_file( "$sub/$name", $good );
+    ( $rc, $out )
+        = cli( ['vp'], 'holder-check', '-full', $holder,
+        '-root-key', $root_key );
+    ok( $rc != 0 && read_file($receipt_path) eq $receipt_before,
+        "a damaged $kind produces no full receipt" )
+        or say $out;
+    substr( $good, 20, 1 ) = chr( ord( substr( $good, 20, 1 ) ) ^ 1 );
+    write_file( "$sub/$name", $good );
+}
+
+foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
+    $box  = sandbox();
+    $base = $box->{'base'};
+    ( $root, $hdir, $src ) = @{$box}{qw| root host src |};
+    $vdir                 = "$base/vault";
+    $holder               = "$base/holder";
+    $ENV{'N7FS_HOST_DIR'} = $hdir;
+    vault_init( $vdir, 'vp', undef, t => 1, m => 1024, p => 1 );
+    write_file( "$base/root-pass", "vp\n" );
+    ( $rc, $out ) = cli( [], 'keygen', "$hdir/host.key" );
+    ( $rc, $out ) = cli( [], 'keygen', "$hdir/parent.key" );
+    ( $rc, $out ) = cli( [], 'pubkey', "$hdir/parent.key" );
+    write_file( "$hdir/trusted-parents", $out );
+    ( $rc, $out ) = cli( ['vp'], 'root', 'init', $root_key );
+    ( $rc, $out )
+        = cli( ['vp'], 'holder', 'add', 'main', $holder, '-domain',
+        'sandbox' );
+    ( $rc, $out ) = cli( [], 'init', '-name', $fault, '-intent', 'sandbox' );
+    ($disk)
+        = grep { !m|^\.| } do { opendir( my $d, $root ) or die; readdir $d };
+    ( $rc, $out ) = cli( [], 'attach', $disk );
+    import_tree(
+        'snap.old', $clock - 20 * $y4,
+        'unique' => "old unique\n",
+        'shared' => "shared\n"
+    );
+    import_tree( 'snap.current', $clock, 'shared' => "shared\n" );
+    ( $rc, $out )
+        = cli( ['vp'], 'seal', $disk, '-root-key', $root_key,
+        '-out', $holder, '-all-trees' );
+    ( $rc, $out )
+        = cli( ['vp'], 'retain-set', $disk, '-root-key', $root_key,
+        'snap.', '1Y4' );
+    ( $rc, $out )
+        = cli( ['vp'], 'retain', $disk, '-root-key', $root_key,
+        '-grace', '0Y3' );
+    AMOS7::N7FS::Seal::unmap_nodes(
+        qw| root |      => open_root(),
+        qw| holder |    => $holder,
+        qw| addresses | => [$unique_file],
+    );
+    ( my $fault_head_before, my $fault_map_before ) = read_map();
+    my $crash_pack = $fault_map_before->{'nodes'}{$shared}{'blob'};
+    $sub = holder_sub($holder);
+    {
+        local $ENV{'N7FS_TEST_FAULT'} = $fault;
+        ( $rc, $out ) = cli(
+            ['vp'],    'repack', $disk, '-root-key',
+            $root_key, '-grace', '0Y3', '-threshold',
+            '0'
+        );
+    }
+    ok( $rc != 0 && $out =~ m|injected fault \Q$fault\E|,
+        "$fault stops repack at the requested point"
+    ) or say $out;
+    if ( $fault eq qw| repack:before-commit | ) {
+        ( my $fault_head_after, my $fault_map_after ) = read_map();
+        ok( $fault_head_after->{'version'} == $fault_head_before->{'version'}
+                && $fault_map_after->{'nodes'}{$shared}{'blob'} eq
+                $crash_pack,
+            'a crash before commit leaves the previous head authoritative'
+        );
+        ( $rc, $out ) = cli(
+            ['vp'],    'repack', $disk, '-root-key',
+            $root_key, '-grace', '0Y3', '-threshold',
+            '0'
+        );
+    } else {
+        ok( -f "$sub/$crash_pack",
+            'a crash after the receipt leaves the superseded pack in place' );
+        ( $rc, $out ) = cli(
+            ['vp'],    'holder-gc', $holder,  '-root-key',
+            $root_key, '-delete',   '-grace', '0Y3'
+        );
+    }
+    ok( $rc == 0 && !-f "$sub/$crash_pack",
+        "recovery after $fault releases only the verified old pack" )
+        or say $out;
+    ( $rc, $out ) = cli(
+        ['vp'],      'seal-recover',
+        '-root-key', $root_key,
+        '-from',     $holder,
+        '-tree',     'snap.current',
+        "$base/recovered"
+    );
+    ok( $rc == 0 && read_file("$base/recovered/shared") eq "shared\n",
+        "restore works after recovery from $fault" )
+        or say $out;
+}
 
 ## r1, r2 and r8a : detached disks and split holder settings stay safe ##
 {
@@ -472,8 +639,8 @@ ok( $rc == 0 && $out !~ m|snap|,
 
 done();
 
-#,,,,,...,,..,,,.,,,,,.,.,...,...,,,.,..,,,.,,..,,...,..,,..,,.,.,,.,,...,,.,,
-#SVRXUOWKMVJ4MPST736X3EJGGNWNZRZOG7CM6GS2DOB7HRIXZYTGE2ORI35DO2XLF7Q5MD2TE4GG2
-#\\\|RLUQOJGVVYEV54HR5OMZAUY3CKANGYLCG7IHIF6DBMXPWX3FXUY \ / AMOS7 \ YOURUM ::
-#\[7]AGQOBPTJDV5RDMD3LBAT7BRGH2VOB7AIFVHN3LFAPU746Q6AH6BA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,,,.,,,,..,,,.,.,.,,.,,.,.,,..,..,,...,...,.,,,,,.,..,,,,,,...,
+#QPZYBY7NSFRUBGUIFPQ67XSLNFREA6YSGQOVFMZYPCYWXEORGZXEHMOHJNHNZYFZ4FPAF6YRYEFV2
+#\\\|QXQ7XBHZDTYUIMAXJUBQRTDD6YIH7J7UTPLRNWNKNBXWGE75NLE \ / AMOS7 \ YOURUM ::
+#\[7]NUNKHPFLCZF7VGBQO7GJ2PAJS67NFD3GQVTGNA4RQ5UXRAGTYKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

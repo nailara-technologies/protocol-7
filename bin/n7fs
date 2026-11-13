@@ -2090,11 +2090,18 @@ sub _relay_pending_names {
 sub cmd_holder_gc {
     require AMOS7::N7FS::Seal;
     require AMOS7::N7FS::Placement;
+    require AMOS7::N7FS::Holder;
     my $holder = _holder_arg( shift // fail('holder-gc needs a holder') );
     fail('holder-gc : unexpected arguments') if @ARG;
+    my $root = _seal_root();
+    my $receipt
+        = AMOS7::N7FS::Placement::receipt_fresh( host_dir(%common),
+        host_signer()->public, AMOS7::N7FS::Holder::holder_canonical($holder),
+        $root->{'root_id'}, );
     my $r = AMOS7::N7FS::Seal::holder_gc(
-        qw| root |      => _seal_root(),
+        qw| root |      => $root,
         qw| holder |    => $holder,
+        qw| receipt |   => $receipt,
         qw| keep |      => [ _relay_pending_names($holder) ],
         qw| only_root | => $o{'only-root'} ? TRUE : FALSE,
         qw| delete |    => $o{'delete'}    ? TRUE : FALSE,
@@ -2113,6 +2120,7 @@ sub cmd_holder_gc {
     );
     say_line( $r->{'young'}, ' kept : younger than the grace age [ -grace ]' )
         if $r->{'young'};
+
     if ( not $r->{'deleted'} ) {
         say_line('dry run : add -delete to move them to the trash');
     } elsif ( $r->{'removed'} ) {
@@ -2493,8 +2501,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,..,,,,,,...,..,,,.,,..,,,,,,...,,,.,,..,..,,...,...,,,.,,..,,,,,,,,,.,.,
-#II2327AV3IWDIBXFCMYXWX2MQFHSLUQ6ROCNKBZEP42W3JWDBGGH25UNSJXVZLVTQVEMGTLXPRIT4
-#\\\|UXVLLZFTG6TPKR5TWFF5SFHUX6D4WELVM3HBHLDKW2LDMPMVUZO \ / AMOS7 \ YOURUM ::
-#\[7]DCARRTND3NHLVNNVKHVWQLIP7AXANVXPLUDEVHXTLDSEUSCKE6DY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,..,,,,,,..,.,.,,,,,,,,,,,,,.,,,..,,...,...,,.,,...,.,,,.,.,,,,,
+#UVKM5RUKVNDUFZ3IMWFCYJJ4YPHXSY5FZANVYHZOI25MGYIWIGC63YMGLQ27HDO2KK4BSKWGCKECM
+#\\\|3FON2HOIGKGLRYE6ZZJQNYF2AMST4DH2J53VDFKOIL2IT6HZBQ7 \ / AMOS7 \ YOURUM ::
+#\[7]7Q2RD6BXLMFQBNSHT5YZWJOF7J3YNEY7FAJHGU3T4OA7HZIKLIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
