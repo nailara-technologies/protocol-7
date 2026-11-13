@@ -21,13 +21,15 @@ through with kimi + review. commits [ base, pushed up to a869f77f4 ] :
   `.n7fs/seal-root` = a guard against MISTAKES, not a boundary ], multi-root
   holder-receiver-line ; service root = `n7fs root init <file>`
 
-DEPLOY NOTES [ nothing live yet ] : all hosts with n7fs upgrade TOGETHER [ new head
-format ] ; run `holder-migrate` on every flat holder BEFORE receiver mode [ flat
+DEPLOY NOTES : code is ON all hosts [ pulled with the needrestart exemption ], but
+n7fs is NOT in use anywhere until all clear -- no holder \ place \ pull runs yet ;
+all hosts with n7fs upgrade TOGETHER [ new head format ] ; run `holder-migrate` on every flat holder BEFORE receiver mode [ flat
 holders do not separate roots ] ; then switch holders to `ssh-receiver:`.
 
-OPEN : finding 5 [ map sharding, commit by bytes \ time, chunked manifests,
-retention per tree prefix e.g. 24 hourly 30 daily, repack -- DESIGN CHOICES for the
-owner first, fresh session ] ; 7 [ rollback : signed head time + other holders'
+OPEN : finding 5 DESIGN DECIDED [ N7FS-SEALED-REPLICAS.md 'map growth and
+retention' : 256 shards, 64 MiB \ time commits, chunked manifests, retain ladder
+in the sealed map, repack ; all times ntime, durations in Y levels = ntime year
+/ 13^n [ owner : YOURUM = 13, no base 60 \ unix ] ] -> implement next ; 7 [ rollback : signed head time + other holders'
 versions, tree complete \ partial, registry in the sealed map ] ; 8 [ snapshot
 before pull ] ; 9 [ `n7fs cycle`, monthly restore drill ] ; 10 small [ receipts
 signed by the same host key, local clock ].
@@ -49,8 +51,8 @@ CPU to 545 MHz ] -- killed, updated, fixed ; check `% Processor Performance` fir
 next time. kimi cost : see [[kimi-dispatch-model-verify-before-send]].
 [[n7fs-first-live-round]] [[n7fs-host-migration-goal]]
 
-#,,,.,.,,,,,.,.,,,...,...,..,,...,.,.,,.,,.,.,..,,...,.,,,,..,,,,,..,,.,,,..,,
-#U5JKAXTJ26IS5AAVZPASKKWMM5HZAIAQLTY2H6SIYNWKRR2DGM2MS7UIGMEV3TD27T5EAFKOXKYEA
-#\\\|Q6F7HZXVVYEV4QGNCIHZLYOUQQV7LVUXQU7T26FYQPPFDP6RTG5 \ / AMOS7 \ YOURUM ::
-#\[7]AOW5CCXCHYRD6XH43UHDVZZ5NGSD7TE2C37STC3FRJ2FZDFWFWBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,.,.,,,,,.,.,.,,,,,,.,,.,,,..,,..,,...,...,,.,,,..,,..,,.,,,..,
+#5PG53N3LAPMGRGNDYQUCAVGHUJ4CSNSYRIZKCVFO7IDIWMJPC7FEUQ4X27PBB53FYZWXBPU6SZ7KG
+#\\\|QBVW65FW6PQC7MUQOAKVBAYCB56EFRW5ZTCBS7SLU3N2DLD4XO7 \ / AMOS7 \ YOURUM ::
+#\[7]5H5Y4N3ZA3KD765HO3YXICTKGLZIKSATPKWUQKOGCGLTS5M7ZYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

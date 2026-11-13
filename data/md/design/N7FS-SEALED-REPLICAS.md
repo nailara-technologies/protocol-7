@@ -335,6 +335,52 @@ and crypto-shredding remains the protection for ignored deletes. legacy
 laptops are holders with a small quota and a want-set. offline changes meeting
 each other remain to be designed.
 
+### map growth and retention [ 2026-11-13, review finding 5, decided ]
+
+- **sharded map** : 256 shards by the first address byte under a small sealed
+  root listing each shard's checksum [ plus a `depth` field, so two levels
+  later need no migration ]. a commit uploads the changed shards and the root
+  only ; `placement` \ `place` \ `drain` fetch the root and only the shards
+  they need. the old single-map form is refused [ nothing live holds one ]
+- **commit trigger** : 64 MiB or Y5 x 4 [ ~ 5 min ] sealed, whichever comes
+  first, and always at the end of a run [ not every 1000 nodes ]
+- **chunked manifests** : a tree manifest is split into content-addressed
+  chunks per directory ; an unchanged directory reuses the previous tree's
+  chunk, so a new snapshot costs only what changed. no delta chains : every
+  tree drops on its own
+- **retention per tree prefix**, rules kept in the sealed map [ every holder
+  sees the same ] ; a hand-pinned tree always wins. `retain` computes the
+  drops, then tree-drop -> prune -> gc [ trash + grace as before ]
+- **repack** : a pack over 30 % dead bytes has its live blobs rewritten into a
+  new pack ; the new pack's receipt lands BEFORE the old pack goes to trash.
+  runs in the same cycle as retain, before the snapshot job runs for long
+
+#### time : ntime and Y levels, no unix \ base 60
+
+all n7fs times are ntime [ stored, compared, shown ] ; a file mtime is
+converted to ntime where it is read, the only unix input. durations use
+**Y levels**, the ntime year [ 365 d ] divided by 13 [ YOURUM ] per level :
+
+| level | length | ~ base 60 |
+|---|---|---|
+| Y0 | year | 365 d |
+| Y1 | year / 13 = one epoch | 28.08 d |
+| Y2 | year / 169 | 2.16 d |
+| Y3 | year / 2197 | 3.99 h |
+| Y4 | year / 28561 | 18.4 min |
+| Y5 | year / 371293 | 85 s |
+
+ages read `<n>Y<level>` [ `-grace 6Y3` ~ 1 d, `-unreachable-grace 1Y2` ~ 2.2 d,
+receipt age `3Y2` ~ 6.5 d ] ; the old `s m h d w` forms are still accepted with
+a warning. thirteen of a level span one of the level above, so a retention rule
+is a ladder on the ntime grid [ not local midnight ] :
+
+    snap/ : 13 Y4  13 Y3  13 Y2  13 Y1
+
+keeps the newest tree of every Y4 for one Y3, of every Y3 for one Y2, and so on
+up to one year. the snapshot job runs every Y4 [ the prefix is `snap/`, not
+`hourly/` ].
+
 ## 6. acceptance
 
 recovery counts as working only after this : on a clean machine, with only the
@@ -401,8 +447,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,.,,,,,,.,.,...,..,,,,,,,..,..,,..,,.,,,,.,,..,,...,..,,...,,,.,..,,.,,,.,,,
-#KLD74ZLVQVICI4L7ZFAWBYAUXFZY25IHW4Y3REZ4E7RHTPI7HU6EZYBJLFJXLAVTZE5RY2WJLR3W6
-#\\\|JF4HOL3XC3X3AWNUCTNZUEJOH5BUL5A346W5J42NVECMPHQJZLT \ / AMOS7 \ YOURUM ::
-#\[7]MN46A6DZZ2PXQIBENKTRSM56TQDQVG4N7KKXJEPJGDKSFJHAZKBI 7  DATA SIGNATURE ::
+#,,..,...,.,.,...,..,,..,,...,...,.,,,.,,,.,.,..,,...,...,...,,,.,.,.,.,,,,..,
+#7ACFSLSIXQQDFBDN6JSXN3GKX7Q3XIH3IIO4SW7L5CX2X7OLBL6I3HXYBMWR3KYG624NNE5MC6JPI
+#\\\|SLBEZOOFW7REZG277L4H7B4JXXCLYA3EOPZC7Z4Z3VOIR6QQP4R \ / AMOS7 \ YOURUM ::
+#\[7]LQ7CYK4T5AES5A2XHNU6J7APSIFREDKBOIGWWUVVZSS4B2KCR2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
