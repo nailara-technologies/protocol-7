@@ -38,6 +38,15 @@ use warnings;
 ## n7fs repair <disk>                  finish releases, adopt unjournaled data
 ## n7fs trees <disk>                   list live tree manifests
 ## n7fs tree-drop <disk> <name>        journal tree removal ; removes no bytes
+## n7fs retain-set <disk> -root-key <key> <prefix> <rule>
+##                 store a ladder such as '13 Y4 13 Y3 13 Y2 13 Y1'
+## n7fs retain-show <disk> -root-key <key>
+## n7fs retain-clear <disk> -root-key <key> <prefix>
+## n7fs tree-pin | tree-unpin <disk> -root-key <key> <tree>
+## n7fs retain <disk> -root-key <key> [ -dry-run ] [ -repack ]
+##                 tree-drop -> prune -> gc on every registered holder
+## n7fs repack <disk> -root-key <key> [ -threshold <pct> ] [ -dry-run ]
+##                 move live sealed pack bytes ; full receipt before gc
 ## n7fs restore <disk> <tree> <target> [ -owners ] [ -dry-run ]
 ## n7fs category <disk> set <name>     [ -local-encryption none|cascade ]
 ##                  [ -copies <n> ] [ -priority <n> ] [ -replica full|manifest ]
@@ -230,7 +239,7 @@ GetOptionsFromArray(
         full scrub sizes-only nonce=s
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
         categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
-        no-check check-full
+        no-check check-full repack threshold=f
         list adopt seal-root=s also-root-key=s@ |
 ) or usage(2);
 usage(0) if $o{'help'};
@@ -272,6 +281,13 @@ my %run = (
     qw| repair |               => \&cmd_repair,
     qw| trees |                => \&cmd_trees,
     qw| tree-drop |            => \&cmd_tree_drop,
+    qw| retain-set |           => \&cmd_retain_set,
+    qw| retain-show |          => \&cmd_retain_show,
+    qw| retain-clear |         => \&cmd_retain_clear,
+    qw| tree-pin |             => \&cmd_tree_pin,
+    qw| tree-unpin |           => \&cmd_tree_unpin,
+    qw| retain |               => \&cmd_retain,
+    qw| repack |               => \&cmd_repack,
     qw| restore |              => \&cmd_restore,
     qw| category |             => \&cmd_category,
     qw| set-category |         => \&cmd_set_category,
@@ -318,7 +334,8 @@ $PROGRAM_NAME = "n7fs $command";
 ## never delete what a running place \ seal \ relay just published       ##
 my %holder_writer = map { $ARG => 1 }
     qw| seal place relay holder-drain holder-prune holder-gc shred
-    holder-trash-purge holder-trash-restore holder-migrate |;
+    holder-trash-purge holder-trash-restore holder-migrate retain repack
+    retain-set retain-clear tree-pin tree-unpin |;
 our $HOLDER_LOCK;
 if ( $holder_writer{$command} and not $o{'dry-run'} ) {
     require Fcntl;
@@ -939,6 +956,206 @@ sub cmd_tree_drop {
     );
     say_line( 'dropped tree ',
         $name, ' [ journal ', $r->{'seq'}, ' ; content kept ]' );
+    return 0;
+}
+
+sub _retention_holders {
+    my $root = shift;
+    require AMOS7::N7FS::Placement;
+    require AMOS7::N7FS::Seal;
+    my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+    my @out;
+    foreach my $name ( sort keys %{$holders} ) {
+        my ( undef, $head, $map ) = eval {
+            AMOS7::N7FS::Seal::_context( $root, $holders->{$name}{'spec'},
+                TRUE );
+        };
+        next if $EVAL_ERROR or not defined $head;
+        push @out, [ $name, $holders->{$name}{'spec'}, $map ];
+    }
+    return @out;
+}
+
+sub _retention_change {
+    my $disk   = disk_arg(shift);
+    my $action = shift // fail('retention action is missing');
+    my $name   = shift // fail("$action needs a tree prefix or name");
+    my $rule   = shift;
+    fail("$action : unexpected arguments") if @ARG;
+    my $root    = _seal_root();
+    my @holders = _retention_holders($root);
+    fail('retention needs a registered holder with a sealed head')
+        if not @holders;
+
+    foreach my $holder (@holders) {
+        AMOS7::N7FS::Seal::retention_update(
+            qw| root |   => $root,
+            qw| holder | => $holder->[1],
+            qw| action | => $action,
+            qw| name |   => $name,
+            defined $rule ? ( qw| rule | => $rule ) : (),
+        );
+    }
+    say_line( $action, ' ', $name, ' on ', scalar @holders, ' holders' );
+    return 0;
+}
+
+sub cmd_retain_set {
+    my $disk   = disk_arg(shift);
+    my $prefix = shift // fail('retain-set needs a tree prefix');
+    my $rule   = join ' ', @ARG;
+    fail('retain-set needs a retention rule') if not length $rule;
+    @ARG = ();
+    return _retention_change( $disk, qw| set |, $prefix, $rule );
+}
+
+sub cmd_retain_clear {
+    my $disk = disk_arg(shift);
+    return _retention_change( $disk, qw| clear |, shift @ARG );
+}
+
+sub cmd_tree_pin {
+    my $disk = disk_arg(shift);
+    return _retention_change( $disk, qw| pin |, shift @ARG );
+}
+
+sub cmd_tree_unpin {
+    my $disk = disk_arg(shift);
+    return _retention_change( $disk, qw| unpin |, shift @ARG );
+}
+
+sub cmd_retain_show {
+    my $disk = disk_arg(shift);
+    fail('retain-show : unexpected arguments') if @ARG;
+    my $root = _seal_root();
+    my ($holder) = _retention_holders($root);
+    fail('retain-show needs a registered holder with a sealed head')
+        if not defined $holder;
+    say join ' ', $ARG, $holder->[2]{'retention'}{$ARG}
+        for sort keys %{ $holder->[2]{'retention'} // {} };
+    say join ' ', qw| pinned |, $ARG
+        for sort keys %{ $holder->[2]{'pins'} // {} };
+    return 0;
+}
+
+sub _repack_holders {
+    my ( $root, $dry_run ) = @_;
+    my @holders = _retention_holders($root);
+    my ( $packs, $receipts ) = ( 0, 0 );
+    foreach my $holder (@holders) {
+        my $r = AMOS7::N7FS::Seal::repack_packs(
+            qw| root |      => $root,
+            qw| holder |    => $holder->[1],
+            qw| host_dir |  => host_dir(%common),
+            qw| signer |    => host_signer(),
+            qw| threshold | => $o{'threshold'} // 30,
+            qw| dry_run |   => $dry_run,
+            defined $o{'grace'}
+            ? ( qw| grace | =>
+                    AMOS7::N7FS::Placement::parse_age( $o{'grace'} ) )
+            : (),
+        );
+        foreach my $pack ( $r->{'packs'}->@* ) {
+            say_line(
+                $dry_run ? 'would repack ' : 'repacked ',
+                $pack->{'pack'},
+                ' on ',
+                $holder->[0],
+                ' : ',
+                sprintf( '%.1f', $pack->{'percent'} ),
+                ' % dead, ',
+                $pack->{'nodes'},
+                ' live entries',
+                $dry_run ? '' : " -> $pack->{'new_pack'}"
+            );
+        }
+        $packs    += scalar $r->{'packs'}->@*;
+        $receipts += $r->{'receipts'} // 0;
+    }
+    say_line( $dry_run ? 'would repack ' : 'repacked ',
+        $packs, ' packs', $dry_run ? '' : " ; $receipts fresh receipts" );
+    return 0;
+}
+
+sub cmd_repack {
+    my $disk = disk_arg(shift);
+    fail('repack : unexpected arguments') if @ARG;
+    return _repack_holders( _seal_root(), $o{'dry-run'} ? TRUE : FALSE );
+}
+
+sub cmd_retain {
+    require AMOS7::N7FS::Tree;
+    require AMOS7::N7FS::Seal;
+    my $disk = disk_arg(shift);
+    fail('retain : unexpected arguments') if @ARG;
+    my ( $id, $state, $replay ) = _tree_context($disk);
+    my $root     = _seal_root();
+    my ($holder) = _retention_holders($root);
+    my $map      = defined $holder ? $holder->[2] : {};
+    my $trees    = { map { $ARG->{'name'} => $ARG->{'created'} }
+            AMOS7::N7FS::Tree::tree_list( $id, $state, $replay ) };
+    my $plan = AMOS7::N7FS::Seal::retention_plan(
+        qw| trees | => $trees,
+        qw| rules | => $map->{'retention'} // {},
+        qw| pins |  => $map->{'pins'}      // {},
+    );
+    my ( @keep, @drop );
+
+    foreach my $item ( @{$plan} ) {
+        push @{ $item->{'keep'} ? \@keep : \@drop }, $item;
+        say_line( $item->{'keep'} ? 'keep ' : 'drop ',
+            $item->{'tree'}, ' [ ', $item->{'reason'}, ' ]' );
+    }
+    if ( not $o{'dry-run'} ) {
+        my @expired;
+        foreach my $item (@drop) {
+            my $manifest = $replay->{'trees'}{ $item->{'tree'} }{'manifest'};
+            push @expired, $manifest,
+                AMOS7::N7FS::Seal::_manifest_files( $id, $manifest );
+        }
+        foreach my $item (@drop) {
+            AMOS7::N7FS::Tree::tree_drop(
+                %common,
+                qw| disk | => $disk,
+                qw| host | => host_signer(),
+                qw| name | => $item->{'tree'},
+            );
+        }
+        my @placement = (
+            %common, _vault_opt(),
+            qw| disk | => $disk,
+            defined $o{'root'} ? ( qw| disk_root | => $o{'root'} ) : (),
+            qw| root |     => $root,
+            qw| host |     => host_signer(),
+            qw| host_dir | => host_dir(%common),
+            qw| host_pub | => host_signer()->public,
+        );
+        foreach my $target ( _retention_holders($root) ) {
+            AMOS7::N7FS::Placement::holder_prune(
+                @placement,
+                qw| name |           => $target->[0],
+                qw| tree_addresses | => \@expired,
+            );
+            AMOS7::N7FS::Seal::holder_gc(
+                qw| root |   => $root,
+                qw| holder | => $target->[1],
+                qw| delete | => TRUE,
+                defined $o{'grace'}
+                ? ( qw| grace | =>
+                        AMOS7::N7FS::Placement::parse_age( $o{'grace'} ) )
+                : (),
+            );
+        }
+    }
+    say_line(
+        $o{'dry-run'} ? 'would retain ' : 'retained ',
+        scalar @keep,
+        ' trees ; ',
+        $o{'dry-run'} ? 'would drop ' : 'dropped ',
+        scalar @drop,
+        ' trees'
+    );
+    _repack_holders( $root, $o{'dry-run'} ? TRUE : FALSE ) if $o{'repack'};
     return 0;
 }
 
@@ -2224,8 +2441,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,,.,..,,.,,,..,,,,.,,,,,...,.,.,...,,.,,..,,...,...,..,,.,.,..,,,.,,.,,,
-#2BAURYWPN6SMTJN6LH6QXWTHDL2NDK7Y3Q2YXK6LE2LR4O4S35PJGXNVDQRU5GR6BHSNKD3WF3NWS
-#\\\|BZFJXYIHUDDLYQKHACO3SLAJDDX5A6737XQRLS6S5NEQVF7RDI2 \ / AMOS7 \ YOURUM ::
-#\[7]2CBMWIHMLTX5KPNJJR3735EDLO2F6BKFKRI24BOVQIYSBZIL4CDQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,..,,,,,.,.,..,,.,,,...,.,,,,,,,..,,...,...,,.,,,..,...,,.,,...,
+#5VULST4S3K7ENDJ75CGVFRCZKPXDYYQ55QVQXGZX3IOZTWDERONKVZUOACE63CWPNQ3QHM7VEXCDY
+#\\\|CMSHRVNFVWGHMTB6LCS6ISGDSMWGAUR6GL63VFLJMMNE4DM5PIJ \ / AMOS7 \ YOURUM ::
+#\[7]J36BSETPYSPFGJPVDH5CVMX53ZUJAVK4EWEDDG6WMNOY67X7MQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

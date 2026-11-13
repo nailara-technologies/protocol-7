@@ -1,0 +1,31 @@
+---
+name: fable-access-window
+description: Fable 5.2 included in the plan until about 2026-11-16 ; the N7FS review by Fable produced much valid work -- plan its use before it ends
+metadata:
+  type: project
+---
+
+2026-11-13 : owner says 3 days of Fable 5.2 access remain in the plan [ ends about
+2026-11-16 ]. the one earlier use, the N7FS review [ ~/.n/private-notes/fable-n7fs-review-2026-11-11.md ],
+gave many valid findings.
+
+**Why:** a scarce, high-yield reviewer ; unused days are lost.
+
+**How to apply:** spend it on review \ design where a fresh strong reader pays most :
+1. review of finding 5 stages 1-4 [ e0c4b7916 1061c8697 38f26e53b + stage 4 ] -- crypto \
+   nonce domains, release order, retain bucketing [ stage 2 already had a nonce reuse
+   only caught in review ]
+2. design of the open findings 7 [ rollback ] 8 [ snapshot before pull ] 9 [ n7fs cycle,
+   restore drill ]
+3. the add-only log mount sketch before it is built
+dispatch via the Agent tool with model fable, a self-contained prompt.
+RESETS [ owner 2026-11-13, claude UI ] : one Fable reset, expires 2026-11-17 08:59 CET [ refills the 5h window + Fable allowance AND gives back what Fable used of the week -- not the whole week ] ; one full reset, expires 2026-12-10 23:00 CET [ the whole week ]. so Fable runs are effectively free of week cost once the Fable reset is used : spend Fable freely, use the Fable reset late on 11-16 or early 11-17 before it expires ; keep the full reset for a tight week.
+COST : run 1 [ design 7 8 9, effort high ] started at claude 7d 22.0 % [ 4d 09h44 left ] -- compare after, to size run 2.
+RUN 1 DONE 2026-11-13 : ~/.n/private-notes/fable-n7fs-design-7-8-9-2026-11-13.md -- design 7 8 9 10 in 12 stages, 15 owner questions [ 1-6 before stage 2 ], 14 defects D1-D14 [ D1 place seals whole tree past filters \ quota, D2 receipts shared across roots, D3 service root still needs vault, D7 future receipts accepted, D13 tree names refuse "/" -> prefix snap: not snap/ ]. stage 1 [ receipts per root + clock floor ] can start at once.
+[[session-handover-n7fs-review-findings]]
+
+#,,,.,,,.,...,.,,,.,.,,..,.,,,,..,,..,...,...,..,,...,...,..,,...,.,,,,,,,,..,
+#XG5P35YK4RGC4YQBOSA4LFNNSW56TE43AQ4EKM7FFUZKJVRCVCCIWR45BSKG3HN4OBSL52SV7A2D6
+#\\\|LNW74FRV3QL7WV36CPMD55ZDD2IPO6AWBPUPP5L5GJ2P2HEE45D \ / AMOS7 \ YOURUM ::
+#\[7]RCEVMOO32LTVK564YJKOFY4BQQ42MQERP42YNME22QQASWA5RAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

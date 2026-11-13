@@ -348,12 +348,18 @@ each other remain to be designed.
   chunks per directory ; an unchanged directory reuses the previous tree's
   chunk, so a new snapshot costs only what changed. no delta chains : every
   tree drops on its own
-- **retention per tree prefix**, rules kept in the sealed map [ every holder
-  sees the same ] ; a hand-pinned tree always wins. `retain` computes the
-  drops, then tree-drop -> prune -> gc [ trash + grace as before ]
-- **repack** : a pack over 30 % dead bytes has its live blobs rewritten into a
-  new pack ; the new pack's receipt lands BEFORE the old pack goes to trash.
-  runs in the same cycle as retain, before the snapshot job runs for long
+- **retention per tree prefix** [ built ] : rules and pins are kept in the
+  sealed map root [ every holder sees the same ]. `retain-set`, `retain-show`,
+  `retain-clear`, `tree-pin` and `tree-unpin` maintain them on every registered
+  holder with this root's head. a hand-pinned tree always wins. `retain` reads
+  the tree record's ntime `created`, computes the drops, then tree-drop ->
+  prune -> gc [ trash + grace as before ] ; `-repack` compacts at the end
+- **repack** [ built ] : a pack over 30 % dead bytes [ `-threshold` ] has its
+  live sealed entries moved byte-for-byte into a new pack, without opening or
+  resealing content. after the map commit, a fresh full-coverage receipt must
+  cover the new pack before gc can move the old pack to trash. a failed check
+  leaves the old pack live. runs in the same cycle as retain, before the
+  snapshot job runs for long
 
 #### time : ntime and Y levels, no unix \ base 60
 
@@ -447,8 +453,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,..,...,.,.,...,..,,..,,...,...,.,,,.,,,.,.,..,,...,...,...,,,.,.,.,.,,,,..,
-#7ACFSLSIXQQDFBDN6JSXN3GKX7Q3XIH3IIO4SW7L5CX2X7OLBL6I3HXYBMWR3KYG624NNE5MC6JPI
-#\\\|SLBEZOOFW7REZG277L4H7B4JXXCLYA3EOPZC7Z4Z3VOIR6QQP4R \ / AMOS7 \ YOURUM ::
-#\[7]LQ7CYK4T5AES5A2XHNU6J7APSIFREDKBOIGWWUVVZSS4B2KCR2DY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,.,.,.,.,,..,...,,..,.,.,,.,,..,,...,...,...,..,,...,.,,,.,,,
+#37ECZSQ3JFIXQ5IHC7ETXHV6JUSALWJ32VBDLYZFC6LNZ3EGV7SHJT2TGE72Z772EA4AHKOTU75JK
+#\\\|URH32ABDAGY3QHVM545WCLMQCWSVQPIVO7AJXJWVHRGNS47GEOR \ / AMOS7 \ YOURUM ::
+#\[7]LANEYURRHHS7LQXUSGNUDKNHDLHQPEOJOLU3FVNQOPNDR55B4SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

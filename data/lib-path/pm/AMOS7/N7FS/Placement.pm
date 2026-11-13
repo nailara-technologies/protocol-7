@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.SVWVI6I |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.IS6WKUI |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage receipt_covered receipt_digest
@@ -839,6 +839,18 @@ sub holder_prune {
     }
     my @tree_drop
         = grep { not exists $tree_files{$ARG} } keys $map->{'trees'}->%*;
+    if ( ref $opt{'tree_addresses'} eq qw| ARRAY | ) {
+        my %live_tree_node = map { $ARG => TRUE }
+            map { keys $tree_files{$ARG}->%* } keys %tree_files;
+        my %drop = map { $ARG => TRUE } @drop;
+        foreach my $address ( @{ $opt{'tree_addresses'} } ) {
+            next if $drop{$address} or $live_tree_node{$address};
+            next if not exists $map->{'nodes'}{$address};
+            push @drop, $address;
+            $drop{$address} = TRUE;
+            $bytes += $map->{'nodes'}{$address}{'length'} // 0;
+        }
+    }
     my $result = { qw| removed | => 0, qw| trees | => 0 };
     if ( ( @drop or @tree_drop ) and not $opt{'dry_run'} ) {
         $result = AMOS7::N7FS::Seal::unmap_nodes(
@@ -864,8 +876,8 @@ sub holder_prune {
 
 1;
 
-#,,.,,,,,,,.,,,..,,,,,,,,,,,.,,.,,..,,..,,.,,,..,,...,...,.,,,,..,..,,,..,..,,
-#EARSSBIPAAMVEUFOVQ53P6FHF7PSQOS3XWRFDF24G6Q2VA7ART64E43RYN4YPK2MTLITWXRMEQOFM
-#\\\|IVL5JBLANZVEJ54ZBCCWDOW6TPIRRLA5FL6BL2GXXLKEELP6S3T \ / AMOS7 \ YOURUM ::
-#\[7]KH5TIDIL42TECD5VUKPYEMQU3RODJ4VZAKJIXVGROHUAXLJCYMCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,,..,...,.,.,,,.,,..,.,.,.,,,..,,...,...,..,,.,.,.,.,,..,,,.,
+#HUVCO4KWK4C7BIL74LUZAMOGG25HAF3SNF5MZLM6QSNTPMOJNH5OBQU5YYZVS3SGB7POHF2OCAM6Q
+#\\\|HUKHZIST3IXPB5BF3LCJ33JALVDNBGV3HZVAUCJTKJ5PVF2TTBS \ / AMOS7 \ YOURUM ::
+#\[7]T4KZ63U2E644QVFWFMF5ZR7CBVY7TU7SSLQG5ANCA2LGZ4VNHUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
