@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.YC57TAA |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.EVIXYKA |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -642,8 +642,79 @@ sub _manifest_files {
     return @files;
 }
 
+## disk <-> root binding [ review finding 6 ] : the first seal of a disk    ##
+## writes <disk>/.n7fs/seal-root, signed by the sealing root. every later   ##
+## seal or unseal of that disk refuses any other root, so an unattended job ##
+## holding only a service root can neither read nor write a disk            ##
+## [ or its categories ] that belong to the main root                       ##
+sub _binding_signed {
+    my ( $root, $disk ) = @_;
+    return "p7 n7fs disk seal binding v1\0" . $disk . "\0"
+        . $root->{'root_id'};
+}
+
+sub _disk_binding_check {
+    my ( $id, $root, $bind ) = @_;
+    my $path  = "$id->{'path'}/.n7fs/seal-root";
+    my $bytes = read_file($path);
+    if ( not defined $bytes ) {
+        return TRUE if not $bind;
+        my $binding = {
+            qw| v |       => 1,
+            qw| disk |    => $id->{'disk'},
+            qw| root_id | => $root->{'root_id'},
+            qw| pub |     => b32( $root->{'signer'}->public ),
+            qw| sig |     => b32(
+                $root->{'signer'}
+                    ->sign( _binding_signed( $root, $id->{'disk'} ) )
+            ),
+        };
+        my $tmp = "$path.new";
+        refuse('disk seal binding temporary exists') if -e $tmp or -l $tmp;
+        write_new_file( $tmp, $JSON->encode($binding) );
+        rename $tmp, $path
+            or
+            refuse( 'cannot publish the disk seal binding : %s', $OS_ERROR );
+        sync_dir("$id->{'path'}/.n7fs");
+        return TRUE;
+    }
+    my $binding = eval { $JSON->decode($bytes) };
+    my $bad     = (
+               ref $binding ne qw| HASH |
+            or ( $binding->{'v'}       // '' ) != 1
+            or ( $binding->{'disk'}    // '' ) ne $id->{'disk'}
+            or ( $binding->{'root_id'} // '' ) !~ m|\A[A-Z2-7]{77}\z|
+    );
+    my $pub = $bad ? undef : unb32( $binding->{'pub'} // '' );
+    my $sig = $bad ? undef : unb32( $binding->{'sig'} // '' );
+    $bad = TRUE
+        if not $bad
+        and (
+           not defined $pub
+        or not defined $sig
+        or b32( bmw384_bytes( 'p7 n7fs seal root id v1' . $pub ) ) ne
+        $binding->{'root_id'}
+        or not verify(
+            $pub,
+            "p7 n7fs disk seal binding v1\0"
+                . $id->{'disk'} . "\0"
+                . $binding->{'root_id'},
+            $sig
+        )
+        );
+    refuse('disk seal binding is invalid') if $bad;
+    refuse(
+        'disk is sealed under another root [ tag %s ]',
+        substr( $binding->{'root_id'}, 0, 7 )
+    ) if $binding->{'root_id'} ne $root->{'root_id'};
+    return TRUE;
+}
+
 sub _select_addresses {
     my %opt = @_;
+    ## the sealing root id, for category binding checks, before the hash is ##
+    ## dropped for the disk helpers                                         ##
+    my $root_id = ref $opt{'root'} ? $opt{'root'}{'root_id'} : undef;
     delete $opt{'root'};
     my $id = disk_read_id(
         %opt,
@@ -702,6 +773,14 @@ sub _select_addresses {
                 )
                 if defined $policy
                 and $policy->{'local_encryption'} eq qw| cascade |;
+            ## a category bound to one root refuses every other root        ##
+            ## [ review finding 6 ] : the service root cannot seal or place ##
+            ## what belongs to the main root, and vice versa                ##
+            refuse( 'category %s is sealed under another root', $category )
+                if defined $root_id
+                and defined $policy
+                and defined $policy->{'root'}
+                and $policy->{'root'} ne $root_id;
         }
     }
     return ( $id, $replay, \@addresses, \%trees, \%node_categories );
@@ -712,6 +791,8 @@ sub seal_nodes {
     my ( $root, $dir ) = @opt{qw| root holder |};
     my ( $id, $replay, $addresses, $trees, $node_categories )
         = _select_addresses(%opt);
+    ## bind the disk to this root on its first seal ; refuse any other root ##
+    _disk_binding_check( $id, $root, TRUE );
     holder_mkdir($dir);
     my ( $counter, $head, $map, $base ) = _context( $root, $dir, FALSE );
     my $pin = holder_canonical($dir);
@@ -1015,6 +1096,7 @@ sub _unseal_tree {
         : (),
         qw| disk | => $opt{'disk'}
     );
+    _disk_binding_check( $id, $opt{'root'}, FALSE );
     my $replay = journal_replay($id);
     my $tree   = $replay->{'trees'}{ $opt{'address'} }
         // refuse( 'no live tree named %s', $opt{'address'} );
@@ -1836,8 +1918,8 @@ sub shred_node {
 
 1;
 
-#,,,,,.,,,...,..,,,..,.,.,,,.,.,.,.,.,..,,,,.,..,,...,...,,,.,.,,,,,.,.,.,,,,,
-#QY3LE2XMG6NPCK5OZFHLUE3WNEHN66X65G4YGUTNRK2YJFZ46WS5J276V7FMAEPY2MLRUR2RWEJR6
-#\\\|S4QJ3NLVH3TS5AIELLLRGLI7ZAOVCYORXGVITMFSJEKDRI7VVCH \ / AMOS7 \ YOURUM ::
-#\[7]LKSYQUVAEZZWSG2QCKL25QR3WGPR3WPSPEH4AXARH5SRBKMTY6AY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,,,.,.,,.,,...,,.,,,..,..,,.,.,..,,...,...,.,.,.,,,...,.,.,.,.,
+#CUSCUP4FSZQHLNNR5JNGPS3QF7KQFSPQFFHZPMMRZ7GCKP3WGSEES3NOM7YJDFB5HGD4SW5ARXHTS
+#\\\|FEBR2JIFZYUN574YRIUH2CMQGKT5QSWQHYQ53RNYEHN7HIVLROG \ / AMOS7 \ YOURUM ::
+#\[7]6JFX7SJHZDUMMI3KWDSV2RJCGTUWOZLC2MG5V6XJ4LCPVG3XTOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

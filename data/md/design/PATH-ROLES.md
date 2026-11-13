@@ -51,6 +51,13 @@ it hurts, it is not `/var`.
   from the disk under it. disks belong in the address where they mean
   something [ N7FS : the `<disk>` level under `/N7FS/` ], not as a
   top-level folder
+- **backing mounts are fine** : the store BEHIND an N7FS disk is a plain
+  mount, `/data/disks/<name>` [ e.g. `/data/disks/p7-log-archive` ]. it is
+  not an address : nothing is read or named through it, `/N7FS/<disk id>`
+  is. the rule above only works because `/N7FS/` exists -- data is
+  centralized in one address, mounts stay decentralized where the
+  hardware needs them. `/data/disk/` [ singular ] stays the one mount of
+  the fs zenka
 - **today's exception** : `/var/protocol-7/` still holds data that must
   NOT be wiped -- `/var/protocol-7/jobsite/` and everything zenki work
   with. it moves out by the ownership rule as N7FS takes over storage ;
@@ -145,8 +152,8 @@ by side :
 4. the owner moves the dev checkout to `/data/source/protocol-7`
 5. `/data/network/` mappings, protocol by protocol
 
-#,,,.,.,,,..,,.,,,.,.,...,,.,,,,.,,..,,,.,.,,,..,,...,...,..,,.,,,,.,,,..,,.,,
-#J2N2LMEQLAHX4P7H5NPEFTACGIXBAAKXPTRM7QLVGJFNZQIHZCXQ34T5WQQWNJQLHOK2KFD3UBZ5Q
-#\\\|YYBTOFBOWLOEIPAOPKLYNHLUFN64PPPNTCAPFY5IYWIVTDP3NKS \ / AMOS7 \ YOURUM ::
-#\[7]IBY5YV6WS3K46PQKWJ5XDP6QVNK7DJTNTCBTYQEOI3J66UBGAMBA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,.,,...,,.,,,,,,.,,,,,.,..,,,..,..,,...,...,..,,..,,.,.,,.,,...,
+#BIC2YJJ5UQ2KHRGOQ7CVAUBZRV5JEM6C4BOKAZRJARHAJYHRMES5F2C636L2OUDNOK3A73EMRPNPC
+#\\\|S225P6RXSEMH2IFGJSBQLS2INY4EWREV64XYEYSXLVK5LLYX5V5 \ / AMOS7 \ YOURUM ::
+#\[7]3VD3CNWY4TK7JB7RJXILVZIEVSX7ITBCFIC657WTDJFQ4RTAMACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

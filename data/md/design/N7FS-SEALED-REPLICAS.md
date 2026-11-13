@@ -191,7 +191,11 @@ the attempt is less likely to be made.
   its own map and head, none derived from another, and offline shares split
   k-of-n across places or people [ question 18's levels fit on top ]. the
   trade : more shares that can be lost, and the acceptance test must cover
-  them
+  them. **first compartment landed 2026-11-13 [ review finding 6 ] :
+  independent roots already existed ; disks and categories now bind to one
+  root on first seal, and a receiver holder serves several roots, each only
+  in its own `r-<tag>/` — see `N7FS-PLACEMENT.md`. the add-only writer
+  [ below ] stays open**
 
 ### comparing parallel work
 
@@ -397,8 +401,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,,,,...,.,,,..,,...,..,,,.,,,,.,,,.,,..,,,.,..,,...,...,..,,...,,,,,.,,,.,,,
-#EYYI33TUIT6AGL5JBOJQMUSS7LHGVOIGI7VSTOVIMKILYN5ITQ5ADNAXYBV2TXYHFAZ4S467656YE
-#\\\|GM4KIJGHKN3BWY77KE3PMETSFX36A6ALKA7Q5JTCFUEWBAK5NKP \ / AMOS7 \ YOURUM ::
-#\[7]ZZUZOTZSAUMMIDO232IAWXBZKAKGRBNMFUEV3GGX7OAXWPSSQODQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,..,,,,,,,..,..,,..,,.,,,,.,,..,,...,..,,...,,,.,..,,.,,,.,,,
+#KLD74ZLVQVICI4L7ZFAWBYAUXFZY25IHW4Y3REZ4E7RHTPI7HU6EZYBJLFJXLAVTZE5RY2WJLR3W6
+#\\\|JF4HOL3XC3X3AWNUCTNZUEJOH5BUL5A346W5J42NVECMPHQJZLT \ / AMOS7 \ YOURUM ::
+#\[7]MN46A6DZZ2PXQIBENKTRSM56TQDQVG4N7KKXJEPJGDKSFJHAZKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

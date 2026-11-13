@@ -212,8 +212,16 @@ cli(['vp'],       'seal', $disk, '-root-key',
     'vault:main', '-out', $h3,   '-tree',
     't'
 );
-cli([ 'pw', 'pw' ],     'seal', $disk, '-root-key',
-    "$base/root-b.key", '-out', $h3,   '-tree',
+## a disk binds to one root [ review finding 6 ] : root B seals its own ##
+## disk onto the same holder, each root into its own r-<tag>/           ##
+cli( [], 'init', '-name', 'b', '-intent', 'x' );
+my ($disk_b)
+    = grep { $_ ne $disk && !m|^\.| }
+    do { opendir( my $d, $root ) or die; readdir $d };
+cli( [], 'attach', $disk_b );
+cli( [], 'assimilate', '-disk', $disk_b, '-keep', '-tree', 't', $tree );
+cli([ 'pw', 'pw' ],     'seal', $disk_b, '-root-key',
+    "$base/root-b.key", '-out', $h3,     '-tree',
     't'
 );
 my @subs = sort grep { m|\Ar-[A-Z2-7]{7}\z| and -d "$h3/$ARG" }
@@ -370,8 +378,8 @@ sub _today {
 
 done();
 
-#,,..,,,,,,,.,,.,,,.,,..,,,,,,,.,,...,.,,,...,..,,...,...,,.,,.,,,.,,,.,,,,..,
-#CGAXMN4QGABCYSFTPW3AMGWD2N27J35AEIRBAI76QBO2GB5MGJ5YF272LLJMK3X3ARXHVR22GCB3I
-#\\\|4NQ345J5NJEPCE63NJTDRK3FFMOV7THYNQCOE5RVWGEL6SHWA7C \ / AMOS7 \ YOURUM ::
-#\[7]RWFKSCP5CNTEWQL4SOC5HSGMWBXNM2MPSMBPEHDVZV7KA5VDBYCQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,,.,,..,,,,,,..,,.,.,.,,,...,..,,...,...,...,,,.,...,,..,,,.,
+#33YBJQMA2OBCU4PSAXLKZTZFDJ24CD76IDEL7NYCLAIY36ARCH7U4KUPORM4XJGA6UY2IPAA6RARI
+#\\\|AONN2UW3ATYMMETBNR3G7ILTE43AFSPTJOTDQ6EYVR6CQF7THPR \ / AMOS7 \ YOURUM ::
+#\[7]ZBHHDPKT5SMJLYTSJES7JZ6NKGIHMKVLXYM4CFH5JHVSSQOLEODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

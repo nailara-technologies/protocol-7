@@ -5,10 +5,11 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [cert-watch-daily-renew](project-2026-11-12-cert-watch-daily-renew.md) — NEWEST : letsencr daily renew + cert_watch live on 4 hosts ; first nightly CONFIRMED 11-13 ; real renew srv-U / F ~11-20
+- [session-handover-n7fs-review-findings](project-2026-11-13-session-handover-n7fs-review-findings.md) — NEWEST, START HERE : Fable N7FS findings 2 3 4 6 landed ; open 5 [ design first, fresh session ] 7 8 9 ; deploy notes ; add-only log mount sketch
+- [cert-watch-daily-renew](project-2026-11-12-cert-watch-daily-renew.md) — previous : letsencr daily renew + cert_watch live on 4 hosts ; first nightly CONFIRMED 11-13 ; real renew srv-U / F ~11-20
 - [n7fs-first-live-round](project-2026-11-11-n7fs-first-live-round.md) — previous : first live N7FS round done, all holders checked ; transport fixes ; events harmonic jitter + list events ; open items
 - [n7fs-relay-fanout-filters](project-2026-11-11-n7fs-relay-fanout-filters.md) — previous : stage 6 relay, push fan-out, holder filters landed ; hub topology ; next = live deploy
-- [session-handover-n7fs-rescue-chain](project-2026-11-11-session-handover-n7fs-rescue-chain.md) — START HERE : N7FS stages 1-5 part 1, drain \ move, first proven rescue copy ; jobsite stall ; open items
+- [session-handover-n7fs-rescue-chain](project-2026-11-11-session-handover-n7fs-rescue-chain.md) — older : N7FS stages 1-5 part 1, drain \ move, first proven rescue copy ; jobsite stall ; open items
 - [54m-timer-during-long-kimi-runs](feedback-54m-timer-during-long-kimi-runs.md) — long waits : 54 minute background timer keeps the one hour cache alive
 - [n7fs-host-migration-goal](project-2026-11-08-n7fs-host-migration-goal.md) — NEXT WORK : N7FS sync + blind remote replicas for the native linux move ; decisions, see design N7FS-SEALED-REPLICAS.md
 - [session-handover-lease-loop-invoke-proxy](project-2026-11-08-session-handover-lease-loop-invoke-proxy.md) — previous : gpu lease loop with models on hold fixed, invoke.ai proxy + restart requeue, qwen21 holds the legacy models ; open items
@@ -106,8 +107,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,,,,,.,,,,,,,,.,,,.,,,,,,.,.,...,...,.,.,..,,...,.,,,..,,.,,,.,.,.,.,..,,
-#CGQHFF67W5NX4RCHNCZF3GR37ZHOTRE3MOUOA6PD2LHJWIR24GR67VG564A5GC5ONESBRT3VASHSO
-#\\\|BYWLLPMZNHOMELWUMLWVZWUS5EPAILBDLCKPBNR2JY4FMCUKBGF \ / AMOS7 \ YOURUM ::
-#\[7]Q3FW2PFHMSJB2QRWZ2FSMR2LL4KKFP6RNSFIQBGRWH2JJ7FHSABA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,,,,.,,..,,,..,.,,,,,.,.,.,..,,..,,...,...,...,...,,,.,,,,,,,.,
+#U2B42R6OV2TF4PVIXC7MJSKQSNFAELJIGHTBR6NFXLQH5IDNFI7WKLMXVT62VVER3FEUF6QN4Y66K
+#\\\|ASFSRHOMLTQ7NZCCMV5TQHILVNWUOJNQQEJF3S3MXC5U6LMZMJP \ / AMOS7 \ YOURUM ::
+#\[7]KRR3D6QPFQT7DZDBDURVZNJ4S4L5AXRX2EVYPABLEP5NY7TFHCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

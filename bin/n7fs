@@ -42,7 +42,10 @@ use warnings;
 ## n7fs category <disk> set <name>     [ -local-encryption none|cascade ]
 ##                  [ -copies <n> ] [ -priority <n> ] [ -replica full|manifest ]
 ##                  [ -want <holder,..> ] [ -foreign-work no|yes ]
-##                  [ -layer private|generic ]
+##                  [ -layer private|generic ] [ -seal-root <root-id> ]
+##                  the last binds the category to one sealing root :
+##                  seal \ place under any other root refuse it
+##                  [ review finding 6 ]
 ## n7fs category <disk> list           category definitions
 ## n7fs category <disk> show <address> reference and effective policies
 ## n7fs set-category <disk> <address|tree:path-prefix> <name>
@@ -69,6 +72,9 @@ use warnings;
 ## n7fs root export-check <file>           open a copy with the passphrase
 ## n7fs seal <disk> -root-key <file> -out <dir> [ -category <name> |
 ##                  -tree <name> .. | -all-trees | <address>.. ]
+##                  the disk binds to the root of its first seal
+##                  [ <disk>/.n7fs/seal-root, root-signed ] ; seal \ place \
+##                  unseal under any other root refuse [ finding 6 ]
 ## n7fs unseal <disk> -root-key <file> -from <dir> <tree-or-address> <target>
 ## n7fs seal-recover -root-key <file> -from <dir> [ -tree <name> ] <target-dir>
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
@@ -95,8 +101,11 @@ use warnings;
 ## n7fs holder rename <old> <new> [ -spec <holder> -root-key <key> ]
 ##                 one registry write ; a new spec moves the rollback pin
 ##                 [ its head must match ] and needs a new holder-check
-## n7fs holder-receiver-line <holder> -root-key <key>
+## n7fs holder-receiver-line <holder> -root-key <key> [ -also-root-key <key>.. ]
 ##                 print the restricted authorized_keys command=...,restrict
+##                 line ; one -root-pub \ -head-name pair per listed root, so
+##                 a receiver holder serves several roots, each only in its
+##                 own r-<tag>/ [ review finding 6 ]
 ## n7fs holder receiver <name> -root-key <key>
 ##                 switch ssh: to ssh-receiver: after installing that line ;
 ##                 the receiver must already serve the same signed head
@@ -222,7 +231,7 @@ GetOptionsFromArray(
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
         categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
         no-check check-full
-        list adopt |
+        list adopt seal-root=s also-root-key=s@ |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -975,7 +984,8 @@ sub _policy_line {
         "local-encryption=" . "$p->{'local_encryption'}",
         "copies=$p->{'copies'}",   "priority=$p->{'priority'}",
         "replica=$p->{'replica'}", 'want=' . join( ',', $p->{'want'}->@* ),
-        "foreign-work=$p->{'foreign_work'}", "layer=$p->{'layer'}";
+        "foreign-work=$p->{'foreign_work'}", "layer=$p->{'layer'}",
+        $p->{'root'} ? "root=" . substr( $p->{'root'}, 0, 7 ) : ();
 }
 
 sub cmd_category {
@@ -998,6 +1008,9 @@ sub cmd_category {
             : (),
             qw| foreign_work | => $o{'foreign-work'},
             qw| layer |        => $o{'layer'},
+            defined $o{'seal-root'}
+            ? ( qw| seal_root | => $o{'seal-root'} )
+            : (),
         );
         say_line( 'category ', _policy_line( $r->{'category'} ),
             ' [ journal ', $r->{'seq'}, ' ]' );
@@ -1942,19 +1955,33 @@ sub cmd_holder_receiver_line {
     fail('holder-receiver-line : unexpected arguments') if @ARG;
     my $h = AMOS7::N7FS::Holder::holder_parse($holder);
     fail('receiver lines are for ssh holders') if $h->{'type'} ne qw| ssh |;
-    my $root    = _seal_root();
-    my $head    = AMOS7::N7FS::Seal::_head_name($root);
     my $program = "$FindBin::Bin/n7fs-receive";
     fail('receiver path must be absolute ASCII without whitespace or quotes')
         if $program !~ m|\A/[A-Za-z0-9_./-]+\z|;
     my $spec = AMOS7::N7FS::Holder::holder_canonical($holder);
     $spec =~ s|\Assh:|ssh-receiver:|;
-    my @line = (
-        $program,     $h->{'dir'},
-        '-holder-id', AMOS7::N7FS::Receiver::holder_id($spec),
-        '-root-pub',  b32( $root->{'signer'}->public ),
-        '-head-name', "$root->{'root_id'}:$head",
+    ## one pair per distinct root [ review finding 6 ] : the receiver     ##
+    ## accepts each root's signed requests only in its own r-<tag>/ ; the ##
+    ## pass-fd supplies one passphrase line per root, in listing order    ##
+    my @refs = (
+        $o{'root-key'} // fail('holder-receiver-line needs -root-key <key>'),
+        @{ $o{'also-root-key'} // [] }
     );
+    my ( @line, %seen ) = (
+        $program, $h->{'dir'}, '-holder-id',
+        AMOS7::N7FS::Receiver::holder_id($spec)
+    );
+    foreach my $ref (@refs) {
+        my $root = AMOS7::N7FS::Keys::root_open(
+            qw| path |      => $ref,
+            qw| pass_fd |   => $o{'pass-fd'},
+            qw| vault_dir | => $o{'vault-dir'},
+        );
+        next if $seen{ $root->{'root_id'} }++;
+        push @line, '-root-pub', b32( $root->{'signer'}->public ),
+            '-head-name',
+            "$root->{'root_id'}:" . AMOS7::N7FS::Seal::_head_name($root);
+    }
     say 'command="' . join( ' ', @line ) . '",restrict';
     return 0;
 }
@@ -2209,8 +2236,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,.,,,,.,,,,,,,,,,..,,...,..,,,..,,,.,,,,,..,,...,...,,,.,,,,,,..,.,,,,,,,
-#E5A6XAR4JQC5TQ5TSNXAQA2ZSYYGON4HFN4HFBDV27QH52WWQR6WZADLIC6IW32GYPKYWLVNP4V3A
-#\\\|DINX5DMTTNVLGAGYJLM52MEOCD3JMWAGE7HMNVOIMPW4HQ3KDI3 \ / AMOS7 \ YOURUM ::
-#\[7]ZFKDTHUSJGGBDOSTC7SZQ6C6SFL6ID3I4W7OEB7ZKOMVNPWEL2CY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,...,,.,,,,,,,..,,.,,,.,,..,,,..,..,,...,...,,,.,,.,,,,,,...,..,,
+#RKI6PACR44JQAWZRCXEG6NDXC7LIR6R7TCS4PXHWICIN53W47REGHVNST6CIUAJU35AZW3H2YAP4O
+#\\\|PXKP3QHKSYCPGA5IHNFBN5HOHMPANCVVMR7EWPLCGJXRMQWSSCE \ / AMOS7 \ YOURUM ::
+#\[7]G52W7DILPBWX6Y3VREJEK5ZXRUIQGSIQ766L4MDDD62TC6GG3SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
