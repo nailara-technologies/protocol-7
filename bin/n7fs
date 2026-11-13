@@ -95,6 +95,11 @@ use warnings;
 ## n7fs holder rename <old> <new> [ -spec <holder> -root-key <key> ]
 ##                 one registry write ; a new spec moves the rollback pin
 ##                 [ its head must match ] and needs a new holder-check
+## n7fs holder-receiver-line <holder> -root-key <key>
+##                 print the restricted authorized_keys command=...,restrict
+## n7fs holder receiver <name> -root-key <key>
+##                 switch ssh: to ssh-receiver: after installing that line ;
+##                 the receiver must already serve the same signed head
 ## n7fs holder-drain <disk> <name> -root-key <key> [ -dry-run ]
 ##                 drop what is safely held elsewhere ; never below a target ;
 ##                 only nodes of that disk [ disk ids in the map entries ]
@@ -264,6 +269,7 @@ my %run = (
     qw| shred |                => \&cmd_shred,
     qw| holder-check |         => \&cmd_holder_check,
     qw| holder-scrub |         => \&cmd_holder_scrub,
+    qw| holder-receiver-line | => \&cmd_holder_receiver_line,
     qw| holder |               => \&cmd_holder,
     qw| holder-gc |            => \&cmd_holder_gc,
     qw| holder-trash-purge |   => \&cmd_holder_trash_purge,
@@ -1913,6 +1919,32 @@ sub _vault_opt {
     );
 }
 
+sub cmd_holder_receiver_line {
+    require AMOS7::N7FS::Holder;
+    require AMOS7::N7FS::Receiver;
+    require AMOS7::N7FS::Seal;
+    my $holder
+        = _holder_arg( shift // fail('holder-receiver-line needs a holder') );
+    fail('holder-receiver-line : unexpected arguments') if @ARG;
+    my $h = AMOS7::N7FS::Holder::holder_parse($holder);
+    fail('receiver lines are for ssh holders') if $h->{'type'} ne qw| ssh |;
+    my $root    = _seal_root();
+    my $head    = AMOS7::N7FS::Seal::_head_name($root);
+    my $program = "$FindBin::Bin/n7fs-receive";
+    fail('receiver path must be absolute ASCII without whitespace or quotes')
+        if $program !~ m|\A/[A-Za-z0-9_./-]+\z|;
+    my $spec = AMOS7::N7FS::Holder::holder_canonical($holder);
+    $spec =~ s|\Assh:|ssh-receiver:|;
+    my @line = (
+        $program,     $h->{'dir'},
+        '-holder-id', AMOS7::N7FS::Receiver::holder_id($spec),
+        '-root-pub',  b32( $root->{'signer'}->public ),
+        '-head-name', "$root->{'root_id'}:$head",
+    );
+    say 'command="' . join( ' ', @line ) . '",restrict';
+    return 0;
+}
+
 sub cmd_holder {
     require AMOS7::N7FS::Placement;
     my $action = shift // fail('holder needs add, list or remove');
@@ -1961,6 +1993,32 @@ sub cmd_holder {
         say_line( 'holder ', $name, ' removed from the registry' );
         return 0;
     }
+    if ( $action eq qw| receiver | ) {
+        require AMOS7::N7FS::Holder;
+        my $name = shift // fail('holder receiver needs a name');
+        fail('holder receiver : unexpected arguments') if @ARG;
+        my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+        my $h       = $holders->{$name} // fail("no holder named $name");
+        my $parsed  = AMOS7::N7FS::Holder::holder_parse( $h->{'spec'} );
+        fail('holder receiver is for an ssh holder')
+            if $parsed->{'type'} ne qw| ssh |;
+        fail('holder is already in receiver mode') if $parsed->{'receiver'};
+        my $spec = $h->{'spec'} =~ s|\Assh:|ssh-receiver:|r;
+        my $r    = AMOS7::N7FS::Placement::holder_rename(
+            _vault_opt(),
+            qw| name |     => $name,
+            qw| new_name | => $name,
+            qw| new_spec | => $spec,
+            qw| root |     => _seal_root(),
+            qw| dry_run |  => $o{'dry-run'} ? TRUE : FALSE,
+        );
+        say_line( $o{'dry-run'} ? 'would switch ' : 'switched ',
+            $name, ' to ', $r->{'spec'} );
+        say_line( 'head version ',
+            $r->{'version'},
+            ' matches the pin ; run holder-check for a new receipt' );
+        return 0;
+    }
     if ( $action eq qw| rename | ) {
         my $old = shift // fail('holder rename needs the old name');
         my $new = shift // $old;
@@ -1983,7 +2041,7 @@ sub cmd_holder {
         ) if $r->{'respec'};
         return 0;
     }
-    fail('holder needs add, list, remove or rename');
+    fail('holder needs add, list, remove, receiver or rename');
 }
 
 sub _placement_opt {
@@ -2091,8 +2149,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,.,,,..,,,..,,,,,,.,,,,.,,..,,.,,,..,,.,,..,,...,..,,..,,,,,,.,,,.,.,,..,
-#TTLF2P6RZD5LANIFHVHCP4CTSVYSOAUKDNNMFXZ4ZCFSA6SVNWO3E5U6T3ANFW3F7AU4DUE7HTQT2
-#\\\|5TZBS3FMDBGQXT5JBOQTOR7IPL7YS4TFB3XFQG4VR5QAKAL4CTO \ / AMOS7 \ YOURUM ::
-#\[7]NGYXYJT27B3HGQOLIXBSESIJ73MKPHNE2BVDRWQG43LDFE4TE6AA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,.,.,,.,,.,,,..,,...,.,,,..,,..,,...,...,.,,,.,.,.,.,,..,.,.,
+#7NEB5SIQRC2ORGKGBVIOBT5BLKJF4GHUZJOVW3EHCT2RM2ASM24PO74C3VOYZSPNYBHHXFBLJ4UQW
+#\\\|EHBPQ6VNOTDJ3FJF7F6ABNG7GMCUAX3PLSGG3J4HNRM6VBTSVXE \ / AMOS7 \ YOURUM ::
+#\[7]WXCTT4NO3ZMJFZNHVUYZ5IVMDZ6QHIVKFZ2HDOT7FWCVXMN7MGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

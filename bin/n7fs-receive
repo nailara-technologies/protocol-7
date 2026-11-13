@@ -5,62 +5,82 @@ use strict;
 use English;
 use warnings;
 
-## n7fs-receive : the only command a relay key may run on a durable holder.
-## it adds new ciphertext blobs and never replaces, reads or deletes one.
+## n7fs-receive : a forced command for durable holders. reads and new blobs
+## need no n7fs key ; replacement, moves and deletion need a root signature.
 ##
 ## authorized_keys on the receiving host [ one line, the sending host's key ]
-## : command="<repo>/bin/n7fs-receive <holder-dir>",restrict ssh-ed25519
-## AAAA..
+## : command="<repo>/bin/n7fs-receive <holder-dir> -holder-id <b32>
+## -root-pub <b32> -head-name <root-id>:<head>",restrict ssh-ed25519 AAAA..
+## -root-pub and -head-name repeat for several roots. a relay-only line can
+## omit all three : it then serves reads, puts, has and scrub, nothing signed.
 ##
-## the sender asks through the ssh command line [ SSH_ORIGINAL_COMMAND ] :
-##   has <name> ..        prints '<name> <size>' for those present
-##   put <name> <size>    reads exactly <size> bytes from stdin
+## requests in SSH_ORIGINAL_COMMAND :
+##   list [ <dir> ]           files : f <name> <size> <mtime> ; dirs : d ..
+##   has <name> ..            prints '<name> <size>' for those present
+##   get-range <name> <offset> <length>
+##   put <name> <size>        reads exactly <size> bytes, add only
+##   put-head <name> <size> <request>
+##   put-list <name> <size> <request>
+##   move <from> <to> <request>
+##   migrate <name> <r-tag> <request>
+##   purge-day <.trash/day> <request>
+##   delete <name> <request>
+##   free                     available bytes, or an empty reply when unknown
 ##   scrub [ -nonce <b32> ] [ <name> .. ]
-##                        keyless : recomputes the name checksum of every
-##                        listed blob, or of every checksum-named file with
-##                        no list. one line per blob : 'ok <name>',
-##                        'bad <name>', 'missing <name>' ; with -nonce every
-##                        present blob answers 'ans <name> <digest>', the
-##                        digest over nonce-bytes + blob-bytes, so home
-##                        compares two holders' answers to one challenge
-##                        without reading the blobs. exit 0 when clean, 7
-##                        when a blob is bad or missing.
-##                        the head is never named by its checksum : a
-##                        list-less scrub reports it as bad by design, so
-##                        verification always passes the map's blob names
 ##
-## a blob is accepted only when its bytes match its checksum name. the head of
-## a store is not named by its checksum, so it can never be written here.
-## [ -max-bytes <n> ] refuses a put that would grow the directory past n ;
-## before or after the directory
+## names are checksum names, optionally below one r-<tag> directory. list also
+## serves .trash and one .trash/<day> below the holder or one root. get-range,
+## has, put and scrub never serve trash. no path follows a symlink.
 ##
-## a name may also be r-<tag>/<name> : one level of a per-root holder's root
-## subdirectory, created on first put [ review finding 2 ]. the tag is r- plus
-## seven base32 characters, nothing else -- no second level, no dot-dot, no
-## absolute path. .trash/ is never read or written here, and a blob that sits
-## only in the trash counts as missing
+## a request token binds its operation, full root id, holder id, counter,
+## nonce and exact arguments to the root's ed25519 signature. counters
+## increase per root on both sides ; a counter already accepted here is a
+## replay. the holder locks verify + action + counter update, and syncs the
+## counter afterwards.  a head also carries its exact digest, clear version
+## and writer in the signed arguments. its detached outer signature is
+## verified with the root public key ; the clear fields must match and its
+## version must grow before atomic replacement. the inner signed payload stays
+## sealed and unreadable here.
 
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
-use Fcntl            qw| O_WRONLY O_CREAT O_EXCL |;
-use AMOS7::N7FS      qw| sync_dir |;
-use AMOS7::N7FS::Sum qw| bmw_b32 |;
+use Fcntl            qw| O_RDONLY O_WRONLY O_CREAT O_EXCL LOCK_EX |;
+use AMOS7::N7FS      qw| b32 unb32 read_file make_dirs remove_tree sync_dir |;
+use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
+use AMOS7::N7FS::Sign     qw| verify |;
+use AMOS7::N7FS::Receiver qw| root_id_for_public root_tag_for_public
+    request_parse request_verify |;
 use Digest::BMW;
 
-my $NAME = qr|\A[A-Z2-7]{77}\z|;
-## a blob name, optionally under one per-root subdirectory level : the tag ##
-## form is fixed, so no dot-dot, no second level, no absolute path passes  ##
-my $PATHNAME = qr|\A(?:r-[A-Z2-7]{7}/)?[A-Z2-7]{77}\z|;
+my $NAME     = qr|\A[A-Z2-7]{77}\z|;
+my $TAG      = qr|r-[A-Z2-7]{7}|;
+my $DAY      = qr|\d{4}-\d{2}-\d{2}|;
+my $PATHNAME = qr|\A(?:$TAG/)?[A-Z2-7]{77}\z|;
 
 sub out { print STDERR "n7fs-receive : $ARG[0]\n"; exit( $ARG[1] // 2 ) }
 
-## <holder-dir> and -max-bytes <n> in either order ##
-my ( $dir, $max );
+my ( $dir, $max, $holder_id );
+my ( %root_pub, %head_name );
 while (@ARGV) {
     my $arg = shift;
     if ( $arg eq '-max-bytes' ) {
         $max = shift // '';
         out('-max-bytes needs a number') if $max !~ m|\A\d+\z|;
+    } elsif ( $arg eq '-holder-id' ) {
+        $holder_id = shift // '';
+        out('-holder-id is invalid') if $holder_id !~ m|$NAME|;
+    } elsif ( $arg eq '-root-pub' ) {
+        my $text = shift // '';
+        my $pub  = unb32($text);
+        out('-root-pub is not an ed25519 public key')
+            if not defined $pub
+            or length $pub != 32;
+        $root_pub{ root_id_for_public($pub) } = $pub;
+    } elsif ( $arg eq '-head-name' ) {
+        my $text = shift // '';
+        my ( $root, $name ) = $text =~ m|\A([A-Z2-7]{77}):([A-Z2-7]{77})\z|;
+        out('-head-name needs <root-id>:<head-name>') if not defined $name;
+        $head_name{$root} = $name;
     } elsif ( not defined $dir and $arg !~ m|\A-| ) {
         $dir = $arg;
     } else {
@@ -69,35 +89,218 @@ while (@ARGV) {
 }
 out('needs the holder directory')      if not defined $dir;
 out('holder directory does not exist') if not -d $dir;
+out('holder directory is a symlink')   if -l $dir;
+out('-head-name needs its -root-pub')
+    if grep { not exists $root_pub{$ARG} } keys %head_name;
 
 my @word = split ' ', $ENV{'SSH_ORIGINAL_COMMAND'} // '';
 my $verb = shift @word // '';
 
-## a killed put leaves its temporary forever : drop those older than 1 ##
-## hour, in the holder directory and in every root subdirectory        ##
+sub _safe_dir {
+    my $path = shift;
+    return -d $path && not -l $path;
+}
+
+sub _safe_file {
+    my $path = shift;
+    return -f $path && not -l $path;
+}
+
+## every existing parent below the trusted holder directory is a real dir ##
+sub _parents_ok {
+    my $rel  = shift;
+    my @part = split m|/|, $rel;
+    pop @part;
+    my $path = $dir;
+    foreach my $part (@part) {
+        $path .= "/$part";
+        return 0 if -e $path and not _safe_dir($path);
+    }
+    return 1;
+}
+
+sub _blob {
+    my $name = shift // '';
+    out('invalid blob name') if $name !~ $PATHNAME;
+    my $path = "$dir/$name";
+    if ( $name =~ m|\A($TAG)/| ) {
+        out('invalid root directory')
+            if -e "$dir/$1" and not _safe_dir("$dir/$1");
+    }
+    return $path;
+}
+
+sub _list_dir {
+    my $rel = shift // '';
+    out('invalid list directory')
+        if length $rel
+        and $rel
+        !~ m{\A(?:r-[A-Z2-7]{7}|[.]trash|[.]trash/\d{4}-\d{2}-\d{2}|r-[A-Z2-7]{7}/[.]trash|r-[A-Z2-7]{7}/[.]trash/\d{4}-\d{2}-\d{2})\z};
+    my $path = length $rel ? "$dir/$rel" : $dir;
+    out( 'list directory is missing', 44 ) if not -e $path;
+    out('invalid list directory')          if not _safe_dir($path);
+    if ( $rel =~ m|/| ) {
+        my $parent = $path;
+        $parent =~ s|/[^/]+\z||;
+        out('invalid list directory') if not _safe_dir($parent);
+        if ( $rel =~ m|($TAG)/[.]trash| ) {
+            out('invalid list directory') if not _safe_dir("$dir/$1");
+        }
+    }
+    return $path;
+}
+
+sub _root_path {
+    my ( $request, $name ) = @_;
+    my $root = $request->{'root_id'};
+    my ($tag) = $name =~ m|\A($TAG)/|;
+    out('request path belongs to another root')
+        if defined $tag and $tag ne root_tag_for_public( $root_pub{$root} );
+    return;
+}
+
+sub _args_exact {
+    my ( $request, @keys ) = @_;
+    my %want = map { $ARG => 1 } @keys;
+    my @got  = keys $request->{'args'}->%*;
+    out('signed request arguments differ')
+        if @got != @keys
+        or grep { not $want{$ARG} } @got;
+    return $request->{'args'};
+}
+
+sub _state_path {
+    my $root = shift;
+    return "$dir/.n7fs-receive/$root.counter";
+}
+
+sub _request_begin {
+    my ( $token, $op ) = @_;
+    out('this holder has no request target') if not defined $holder_id;
+    my $parsed = request_parse($token);
+    my $root   = $parsed->{'payload'}{'root_id'};
+    out('request root key is not installed') if not exists $root_pub{$root};
+    my $request = request_verify( $token, $root_pub{$root}, $holder_id, $op );
+    my $state   = _state_path($root);
+    make_dirs( "$dir/.n7fs-receive", 0700 ) if not -d "$dir/.n7fs-receive";
+    out('invalid request state directory')
+        if not _safe_dir("$dir/.n7fs-receive");
+    open( my $lock, '>>', "$dir/.n7fs-receive/$root.lock" )
+        or out('cannot open the request counter lock');
+    flock( $lock, LOCK_EX() ) or out('cannot lock the request counter');
+    my $last = read_file($state) // "0\n";
+    chomp $last;
+    out('request counter state is invalid') if $last !~ m|\A\d+\z|;
+    out( 'replayed holder request', 8 )     if $request->{'counter'} <= $last;
+    ## at most once : the counter is spent before the action runs, so a ##
+    ## crash between the two never leaves the token usable again        ##
+    _counter_store($request);
+    return ( $request, $lock );
+}
+
+sub _request_done {
+    my ( $request, $lock ) = @_;
+    close $lock;
+    return;
+}
+
+sub _counter_store {
+    my $request = shift;
+    my $path    = _state_path( $request->{'root_id'} );
+    my $tmp     = "$path.$PID.tmp";
+    sysopen( my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600 )
+        or out('cannot write the request counter');
+    print {$fh} "$request->{'counter'}\n"
+        or out('cannot write the request counter');
+    $fh->sync or out('cannot sync the request counter');
+    close $fh or out('cannot close the request counter');
+    rename $tmp, $path or out('cannot publish the request counter');
+    sync_dir("$dir/.n7fs-receive") or out('cannot sync the request counter');
+    return;
+}
+
+## a killed put leaves its temporary forever : drop those older than one hour
 sub sweep_stale {
     opendir( my $top, $dir ) or return;
-    my @sub = grep { m|\Ar-[A-Z2-7]{7}\z| and -d "$dir/$ARG" } readdir $top;
+    my @sub = grep { m|\A$TAG\z| and _safe_dir("$dir/$ARG") } readdir $top;
     closedir $top;
     foreach my $d ( $dir, map {"$dir/$ARG"} @sub ) {
         opendir( my $dh, $d ) or next;
-        my @stale = grep {m|\A\.receive\.[A-Z2-7]{77}\.\d+\z|}
+        my @stale = grep {m|\A\.receive\.[A-Za-z0-9_.-]+\z|}
             grep { -M "$d/$ARG" > 1 / 24 } readdir $dh;
         closedir $dh;
-        foreach my $tmp (@stale) { unlink "$d/$tmp" }
+        foreach my $tmp (@stale) { unlink "$d/$tmp" if not -l "$d/$tmp" }
     }
 }
 sweep_stale();
 
-if ( $verb eq 'has' ) {
-    foreach my $name (@word) {
-        out('invalid blob name') if $name !~ $PATHNAME;
-        my $size = -s "$dir/$name";
-        print "$name $size\n" if defined $size;
+if ( $verb eq 'list' ) {
+    out('list takes at most one directory') if @word > 1;
+    my $path = _list_dir( $word[0] // '' );
+    opendir( my $dh, $path ) or out('cannot list the holder');
+    my @entries = sort grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
+    closedir $dh;
+    foreach my $name (@entries) {
+        my $full = "$path/$name";
+        if ( $name =~ m|$NAME| and _safe_file($full) ) {
+            my @st = stat $full or next;
+            say "f $name $st[7] $st[9]";
+        } elsif ( _safe_dir($full)
+            and ( $name =~ m|\A$TAG\z| or $name =~ m|\A$DAY\z| ) ) {
+            my @st = stat $full or next;
+            say "d $name $st[9]";
+        }
     }
     exit 0;
 }
-out('unknown request') if $verb ne 'put' and $verb ne 'scrub';
+
+if ( $verb eq 'has' ) {
+    out('has needs at least one name') if not @word;
+    foreach my $name (@word) {
+        my $path = _blob($name);
+        print "$name " . ( -s $path ) . "\n" if _safe_file($path);
+    }
+    exit 0;
+}
+
+if ( $verb eq 'free' ) {
+    out('free takes no arguments') if @word;
+    open( my $fh, '-|', 'df', '-Pk', $dir ) or exit 0;
+    my @line = <$fh>;
+    close $fh;
+    my @field = split ' ', ( split m|\n|, $line[-1] // '' )[-1] // '';
+    say $field[3] * 1024 if ( $field[3] // '' ) =~ m|\A\d+\z|;
+    exit 0;
+}
+
+if ( $verb eq 'get-range' ) {
+    out('get-range needs a name, offset and length') if @word != 3;
+    my ( $name, $offset, $length ) = @word;
+    my $path = _blob($name);
+    out('invalid holder range')
+        if $offset !~ m|\A\d+\z| or $length !~ m|\A[1-9]\d*\z|;
+    out( 'blob is missing', 44 ) if not _safe_file($path);
+    sysopen( my $fh, $path, O_RDONLY ) or out('cannot read the blob');
+    binmode $fh;
+    binmode STDOUT;
+    sysseek( $fh, $offset, 0 ) if $offset;
+    my $left = $length;
+
+    while ($left) {
+        my $got = sysread( $fh, my $buf, $left < 1048576 ? $left : 1048576 );
+        out('cannot read the blob') if not defined $got;
+        last                        if not $got;
+        my $at = 0;
+        while ( $at < length $buf ) {
+            my $put = syswrite( STDOUT, $buf, length($buf) - $at, $at );
+            out('cannot write the range') if not defined $put;
+            $at += $put;
+        }
+        $left -= $got;
+    }
+    close $fh;
+    exit 0;
+}
 
 if ( $verb eq 'scrub' ) {
     my $nonce = '';
@@ -106,40 +309,35 @@ if ( $verb eq 'scrub' ) {
         $nonce = shift @word // '';
         out('invalid nonce') if $nonce !~ m|\A[A-Z2-7]{1,64}\z|;
     }
-    out('invalid blob name') if grep { $ARG !~ $PATHNAME } @word;
     my @list = @word;
     if ( not @list ) {
-        opendir( my $dh, $dir ) or out('cannot list the holder');
+        my $path = _list_dir('');
+        opendir( my $dh, $path ) or out('cannot list the holder');
         @list = sort grep {m|$NAME|} readdir $dh;
         closedir $dh;
     }
     my ( $ok, $bad, $missing ) = ( 0, 0, 0 );
     foreach my $name (@list) {
-        my $path = "$dir/$name";
-        ## the checksum names the blob, not the subdirectory prefix ##
-        my ($bare) = $name =~ m|\A(?:r-[A-Z2-7]{7}/)?([A-Z2-7]{77})\z|;
-        if ( not -e $path ) { say "missing $name"; $missing++; next }
-        ## stream in 1 MiB reads : blobs can be far larger than memory ##
-        open( my $fh, '<:raw', $path ) or do {
+        my $path = _blob($name);
+        my ($bare) = $name =~ m|\A(?:$TAG/)?([A-Z2-7]{77})\z|;
+        if ( not _safe_file($path) ) { say "missing $name"; $missing++; next }
+        sysopen( my $fh, $path, O_RDONLY ) or do {
             say "missing $name";
             $missing++;
             next;
         };
+        binmode $fh;
         my $ctx = Digest::BMW->new(384);
         $ctx->add($nonce) if length $nonce;
         while (1) {
             my $got = sysread( $fh, my $buf, 1048576 );
-            if ( not defined $got ) {
-                close $fh;
-                out("cannot read $name");
-            }
-            last if $got == 0;
+            out("cannot read $name") if not defined $got;
+            last                     if not $got;
             $ctx->add($buf);
         }
         close $fh;
         my $digest = bmw_b32( $ctx->digest );
         if ( length $nonce ) {
-            ## the answer is the digest : home compares two holders ##
             $ok++;
             say "ans $name $digest";
         } elsif ( $digest eq $bare ) {
@@ -154,87 +352,304 @@ if ( $verb eq 'scrub' ) {
         . "$bad bad, $missing missing\n";
     exit( $bad || $missing ? 7 : 0 );
 }
-out('put needs a name and a size') if @word != 2;
-my ( $name, $size ) = @word;
-out('invalid blob name') if $name !~ $PATHNAME;
-out('invalid size')      if $size !~ m|\A\d+\z|;
-## a per-root put lands in the root's subdirectory, created on first put ##
-my $target = $dir;
-if ( $name =~ s|\A(r-[A-Z2-7]{7})/|| ) {
-    $target = "$dir/$1";
-    if ( not -d $target ) {
-        mkdir $target, 0700;
-        out("cannot create $1 : $OS_ERROR") if not -d $target;
-        ## the new directory's name lives in the holder directory ##
-        print STDERR "n7fs-receive : warning : directory sync failed\n"
-            if not sync_dir($dir);
+
+sub _target_dir {
+    my $name = shift;
+    return $dir if $name !~ m|\A($TAG)/|;
+    my $target = "$dir/$1";
+    if ( not -e $target ) {
+        make_dirs( $target, 0700 );
+        sync_dir($dir);
     }
+    out('invalid root directory') if not _safe_dir($target);
+    return $target;
 }
-if ( -e "$target/$name" ) {
-    out( 'blob exists with another size', 4 )
-        if -s "$target/$name" != $size;
-    exit 0;
-}
-if ( defined $max ) {
+
+sub _room {
+    my ( $incoming, $replace ) = @_;
+    return if not defined $max;
     my $used = 0;
-    ## the cap is for the whole holder : the top level and every root ##
-    ## subdirectory, or a sender splits its puts over new subdirs     ##
     opendir( my $top, $dir ) or out('cannot list the holder');
-    my @sub = grep { m|\Ar-[A-Z2-7]{7}\z| and -d "$dir/$ARG" } readdir $top;
+    my @sub = grep { m|\A$TAG\z| and _safe_dir("$dir/$ARG") } readdir $top;
     closedir $top;
     foreach my $d ( $dir, map {"$dir/$ARG"} @sub ) {
         opendir( my $dh, $d ) or out('cannot list the holder');
-        ## count finished blobs, in-progress temporaries and the incoming ##
-        ## declared size together, so parallel puts cannot pass the cap   ##
         $used += -s "$d/$ARG" // 0
-            for grep { m|$NAME| or m|\A\.receive\.[A-Z2-7]{77}\.\d+\z| }
-            readdir $dh;
+            for grep { m|$NAME| or m|\A\.receive\.[A-Za-z0-9_.-]+\z| }
+            grep { not -l "$d/$ARG" } readdir $dh;
         closedir $dh;
     }
-    out( 'holder is full', 5 ) if $used + $size > $max;
+    $used -= $replace // 0;
+    out( 'holder is full', 5 ) if $used + $incoming > $max;
+    return;
 }
 
-my $tmp = "$target/.receive.$name.$PID";
-sysopen( my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600 )
-    or out("cannot create a temporary : $OS_ERROR");
-binmode $fh;
-binmode STDIN;
-my $ctx  = Digest::BMW->new(384);
-my $left = $size;
-while ( $left > 0 ) {
-    my $got = sysread( STDIN, my $buf, $left < 1048576 ? $left : 1048576 );
-    if ( not $got ) {
-        unlink $tmp;
-        out( 'input ended early', 6 );
+## stream into a new temporary in the final directory ; digest is raw bytes ##
+sub _upload {
+    my ( $target, $size, $stem ) = @_;
+    out('invalid size') if $size !~ m|\A\d+\z|;
+    out('invalid temporary name')
+        if ( $stem // '' ) !~ m|\A[A-Za-z0-9_.-]+\z|;
+    my $tmp = "$target/.receive.$stem.$PID";
+    sysopen( my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600 )
+        or out("cannot create a temporary : $OS_ERROR");
+    binmode $fh;
+    binmode STDIN;
+    my $ctx  = Digest::BMW->new(384);
+    my $left = $size;
+
+    while ($left) {
+        my $got
+            = sysread( STDIN, my $buf, $left < 1048576 ? $left : 1048576 );
+        if ( not $got ) {
+            unlink $tmp;
+            out( 'input ended early', 6 );
+        }
+        $ctx->add($buf);
+        print {$fh} $buf or do {
+            unlink $tmp;
+            out("write failed : $OS_ERROR");
+        };
+        $left -= $got;
     }
-    $ctx->add($buf);
-    print {$fh} $buf or do { unlink $tmp; out("write failed : $OS_ERROR") };
-    $left -= $got;
+    $fh->sync or do { unlink $tmp; out("sync failed : $OS_ERROR") };
+    close $fh or do { unlink $tmp; out("close failed : $OS_ERROR") };
+    return ( $tmp, $ctx->digest );
 }
-if ( not close $fh ) {
-    unlink $tmp;
-    out("close failed : $OS_ERROR");
-}
-if ( bmw_b32( $ctx->digest ) ne $name ) {
-    unlink $tmp;
-    out( 'bytes do not match the blob name', 3 );
-}
-## link, not rename : an existing name is never replaced ##
-if ( not link $tmp, "$target/$name" ) {
-    my $err = $OS_ERROR;
-    unlink $tmp;
-    exit 0 if -e "$target/$name" and -s "$target/$name" == $size;
-    out("cannot publish : $err");
-}
-unlink $tmp;
-system( 'sync', '--', "$target/$name" );
-## the file is durable, the directory entry that names it is not yet ##
-print STDERR "n7fs-receive : warning : directory sync failed\n"
-    if not sync_dir($target);
-exit 0;
 
-#,,..,,,.,.,,,,,,,,,,,,.,,,,,,,.,,,,,,,..,,,,,..,,...,...,,..,..,,,.,,..,,,..,
-#66ZIL2EHDQQMVJP4O7URYC3S5LGA52NM7SEVFPVTDVQJRNQ6TL4LDX5W6GKUK6NPLQNMSXZFYUWDC
-#\\\|PQ4YZMMJOJUMBDZYXWOCBFL27IY4J7ORLTIWFNNMSOLO75QNOWS \ / AMOS7 \ YOURUM ::
-#\[7]BDTRS4SGIJPA6OJQQUPVPTCCZ5SRG3FSFG6I34B52ORVDBXWJCDA 7  DATA SIGNATURE ::
+if ( $verb eq 'put' ) {
+    out('put needs a name and a size') if @word != 2;
+    my ( $name, $size ) = @word;
+    my $path = _blob($name);
+    out('invalid size') if $size !~ m|\A\d+\z|;
+    my $target = _target_dir($name);
+    my ($bare) = $name =~ m|\A(?:$TAG/)?([A-Z2-7]{77})\z|;
+    if ( -e $path ) {
+        out('blob path is not a regular file')    if not _safe_file($path);
+        out( 'blob exists with another size', 4 ) if -s $path != $size;
+        exit 0;
+    }
+    _room($size);
+    my ( $tmp, $digest ) = _upload( $target, $size, $bare );
+    if ( bmw_b32($digest) ne $bare ) {
+        unlink $tmp;
+        out( 'bytes do not match the blob name', 3 );
+    }
+    if ( not link $tmp, $path ) {
+        my $err = $OS_ERROR;
+        unlink $tmp;
+        exit 0 if _safe_file($path) and -s $path == $size;
+        out("cannot publish : $err");
+    }
+    unlink $tmp;
+    sync_dir($target) or out('directory sync failed');
+    exit 0;
+}
+
+if ( $verb eq 'put-head' or $verb eq 'put-list' ) {
+    out("$verb needs a name, size and signed request") if @word != 3;
+    my ( $name, $size, $token ) = @word;
+    my ( $request, $lock ) = _request_begin( $token, $verb );
+    my $args = _args_exact(
+        $request,
+        qw| path size digest |,
+        $verb eq 'put-head' ? qw| version writer | : ()
+    );
+    out('signed path or size differs')
+        if $args->{'path'} ne $name
+        or ( $args->{'size'} // '' ) !~ m|\A\d+\z|
+        or $args->{'size'} != $size
+        or ( $args->{'digest'} // '' ) !~ m|$NAME|;
+    my $digest_want = unb32( $args->{'digest'} );
+    if ( $verb eq 'put-head' ) {
+        out('invalid head path') if $name !~ $PATHNAME;
+        _root_path( $request, $name );
+        my ($bare) = $name =~ m|\A(?:$TAG/)?([A-Z2-7]{77})\z|;
+        out('head name is not installed for this root')
+            if ( $head_name{ $request->{'root_id'} } // '' ) ne $bare;
+        out('signed head version or writer is invalid')
+            if ( $args->{'version'} // '' ) !~ m|\A[1-9]\d*\z|
+            or ( $args->{'writer'} // '' ) !~ m|\A[A-Z2-7]{26}\z|;
+    } else {
+        out('invalid relay list name')
+            if $name !~ m|\Arelay-list[.][A-Z2-7]{13}\z|;
+    }
+    my $stem = $name;
+    $stem =~ s|\A$TAG/||;
+    my $path   = "$dir/$name";
+    my $target = _target_dir($name);
+    if ( $verb eq 'put-head' and -e $path ) {
+        out('existing head is not a regular file') if not _safe_file($path);
+        sysopen( my $old, $path, O_RDONLY )
+            or out('cannot read the old head');
+        sysread( $old, my $head, 24 );
+        close $old;
+        out('existing head is truncated') if length $head != 24;
+        my $old_version = unpack qw| Q> |, substr( $head, 0, 8 );
+        out('head version does not increase')
+            if $args->{'version'} <= $old_version;
+    }
+    _room( $size, -e $path ? -s $path : 0 );
+    my ( $tmp, $digest ) = _upload( $target, $size, $stem );
+    if ( $digest ne $digest_want ) {
+        unlink $tmp;
+        out( 'bytes do not match the signed digest', 3 );
+    }
+    if ( $verb eq 'put-head' ) {
+        my $head_bytes = read_file($tmp);
+        if (   not defined $head_bytes
+            or length $head_bytes < 24 + 16 + 69
+            or substr( $head_bytes, -69, 5 ) ne "P7SH\x01"
+            or not verify(
+                $root_pub{ $request->{'root_id'} },
+                "p7 n7fs sealed head exterior v1\0"
+                    . substr( $head_bytes, 0, -69 ),
+                substr( $head_bytes, -64 )
+            )
+        ) {
+            unlink $tmp;
+            out( 'new head has no valid outer signature', 3 );
+        }
+        my $version = unpack qw| Q> |, substr( $head_bytes, 0, 8 );
+        my $writer  = substr( $head_bytes, 8, 16 );
+        if ( $version != $args->{'version'}
+            or b32($writer) ne $args->{'writer'} ) {
+            unlink $tmp;
+            out('clear head fields differ from their signature');
+        }
+    }
+    rename $tmp, $path or do {
+        my $err = $OS_ERROR;
+        unlink $tmp;
+        out("cannot publish : $err");
+    };
+    sync_dir($target) or out('directory sync failed');
+    _request_done( $request, $lock );
+    exit 0;
+}
+
+if ( $verb eq 'move' ) {
+    out('move needs two paths and a signed request') if @word != 3;
+    my ( $from, $to, $token ) = @word;
+    my ( $request, $lock ) = _request_begin( $token, 'move' );
+    my $args = _args_exact( $request, qw| from to | );
+    out('signed move paths differ')
+        if $args->{'from'} ne $from
+        or $args->{'to'} ne $to;
+    my $pre = qr|(?:$TAG/)?|;
+    out('move is not between a blob and its own trash')
+        if $from  !~ m|\A($pre)([A-Z2-7]{77})\z|
+        and $from !~ m|\A($pre)[.]trash/$DAY/[A-Z2-7]{77}\z|;
+    my $forward = $from =~ m|\A($pre)([A-Z2-7]{77})\z|;
+    my ( $root_pre, $bare, $day );
+
+    if ($forward) {
+        ( $root_pre, $bare ) = ( $1, $2 );
+        ($day) = $to =~ m|\A\Q$root_pre\E[.]trash/($DAY)/\Q$bare\E\z|;
+    } else {
+        ( $root_pre, $day, $bare )
+            = $from =~ m|\A($pre)[.]trash/($DAY)/([A-Z2-7]{77})\z|;
+        out('move is not between a blob and its own trash')
+            if $to ne "$root_pre$bare";
+    }
+    out('move is not between a blob and its own trash') if not defined $day;
+    out('invalid move parent directory')
+        if not _parents_ok($from)
+        or not _parents_ok($to);
+    _root_path( $request, length $root_pre ? "$root_pre$bare" : $bare );
+    my ( $source, $target ) = ( "$dir/$from", "$dir/$to" );
+    if ( not -e $source and _safe_file($target) ) {
+        _request_done( $request, $lock );
+        exit 0;
+    }
+    out( 'move source is missing', 44 ) if not _safe_file($source);
+    out('move destination exists')      if -e $target or -l $target;
+    my $parent = $target;
+    $parent =~ s|/[^/]+\z||;
+    make_dirs( $parent, 0700 )                if not -e $parent;
+    out('invalid move destination directory') if not _safe_dir($parent);
+    rename $source, $target or out("cannot move : $OS_ERROR");
+    my $source_dir = $source;
+    $source_dir =~ s|/[^/]+\z||;
+    sync_dir($source_dir) or out('source directory sync failed');
+    sync_dir($parent)     or out('target directory sync failed');
+    _request_done( $request, $lock );
+    exit 0;
+}
+
+if ( $verb eq 'migrate' ) {
+    out('migrate needs a name, root tag and signed request') if @word != 3;
+    my ( $name, $tag, $token ) = @word;
+    my ( $request, $lock ) = _request_begin( $token, 'migrate' );
+    my $args = _args_exact( $request, qw| name tag | );
+    out('signed migrate arguments differ')
+        if $args->{'name'} ne $name
+        or $args->{'tag'} ne $tag;
+    out('invalid migrate name') if $name !~ m|$NAME| or $tag !~ m|\A$TAG\z|;
+    out('migrate root differs')
+        if $tag ne root_tag_for_public( $root_pub{ $request->{'root_id'} } );
+    my ( $source, $target ) = ( "$dir/$name", "$dir/$tag/$name" );
+
+    if ( not -e $source and _safe_file($target) ) {
+        _request_done( $request, $lock );
+        exit 0;
+    }
+    out( 'migrate source is missing', 44 ) if not _safe_file($source);
+    out('migrate destination exists')      if -e $target or -l $target;
+    my $target_dir = _target_dir("$tag/$name");
+    rename $source, $target or out("cannot migrate : $OS_ERROR");
+    sync_dir($dir)        or out('source directory sync failed');
+    sync_dir($target_dir) or out('target directory sync failed');
+    _request_done( $request, $lock );
+    exit 0;
+}
+
+if ( $verb eq 'purge-day' ) {
+    out('purge-day needs a path and signed request') if @word != 2;
+    my ( $rel,     $token ) = @word;
+    my ( $request, $lock )  = _request_begin( $token, 'purge-day' );
+    my $args = _args_exact( $request, qw| path | );
+    out('signed purge path differs') if $args->{'path'} ne $rel;
+    out('invalid trash day path')
+        if $rel !~ m|\A(?:$TAG/)?[.]trash/$DAY\z|
+        or not _parents_ok($rel);
+    _root_path( $request, $rel );
+    my $path = "$dir/$rel";
+
+    if ( -e $path ) {
+        out('trash day is not a real directory') if not _safe_dir($path);
+        remove_tree($path) or out('cannot remove the trash day');
+        my $parent = $path;
+        $parent =~ s|/[^/]+\z||;
+        sync_dir($parent) or out('trash directory sync failed');
+    }
+    _request_done( $request, $lock );
+    exit 0;
+}
+
+if ( $verb eq 'delete' ) {
+    out('delete needs a name and signed request') if @word != 2;
+    my ( $name,    $token ) = @word;
+    my ( $request, $lock )  = _request_begin( $token, 'delete' );
+    my $args = _args_exact( $request, qw| path | );
+    out('signed delete path differs') if $args->{'path'} ne $name;
+    my $path = _blob($name);
+    _root_path( $request, $name );
+    if ( -e $path ) {
+        out('delete path is not a regular file') if not _safe_file($path);
+        unlink $path or out('cannot delete the blob');
+        my $parent = $path;
+        $parent =~ s|/[^/]+\z||;
+        sync_dir($parent) or out('directory sync failed');
+    }
+    _request_done( $request, $lock );
+    exit 0;
+}
+
+out('unknown request');
+
+#,,.,,,..,,.,,,,.,.,,,,,,,...,,.,,,,.,,.,,,..,..,,...,...,.,.,,,.,,.,,,..,.,.,
+#LDSX7BBQMZ4DFPBL7BRVYDS762XPBNMEQFFBPHYNBNBPZM3S6EVKHQKJ7VHBDVQA7L7NSJ2I4QOLA
+#\\\|7I3MYCDQ37UUZVMJVVYOFNFNTK4JMO3H6445UXJU2PHMMIW2FAW \ / AMOS7 \ YOURUM ::
+#\[7]APHUHKQGM32Q5JE7CDMPL6BVPPVTGWIGJFEQ5P2KIIWF7S2MGCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
