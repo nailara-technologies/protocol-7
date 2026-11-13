@@ -960,7 +960,7 @@ sub cmd_tree_drop {
 }
 
 sub _retention_holders {
-    my $root = shift;
+    my ( $root, $unavailable ) = @_;
     require AMOS7::N7FS::Placement;
     require AMOS7::N7FS::Seal;
     my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
@@ -970,7 +970,14 @@ sub _retention_holders {
             AMOS7::N7FS::Seal::_context( $root, $holders->{$name}{'spec'},
                 TRUE );
         };
-        next if $EVAL_ERROR or not defined $head;
+        if ( $EVAL_ERROR or not defined $head ) {
+            if ( ref $unavailable eq qw| HASH | ) {
+                my $error = $EVAL_ERROR // 'no sealed head';
+                chomp $error;
+                $unavailable->{$name} = $error;
+            }
+            next;
+        }
         push @out, [ $name, $holders->{$name}{'spec'}, $map ];
     }
     return @out;
@@ -982,22 +989,67 @@ sub _retention_change {
     my $name   = shift // fail("$action needs a tree prefix or name");
     my $rule   = shift;
     fail("$action : unexpected arguments") if @ARG;
-    my $root    = _seal_root();
-    my @holders = _retention_holders($root);
+    my $root = _seal_root();
+    my %unavailable;
+    my @holders = _retention_holders( $root, \%unavailable );
     fail('retention needs a registered holder with a sealed head')
         if not @holders;
 
+    my @failed = sort keys %unavailable;
     foreach my $holder (@holders) {
-        AMOS7::N7FS::Seal::retention_update(
-            qw| root |   => $root,
-            qw| holder | => $holder->[1],
-            qw| action | => $action,
-            qw| name |   => $name,
-            defined $rule ? ( qw| rule | => $rule ) : (),
-        );
+        eval {
+            AMOS7::N7FS::Seal::retention_update(
+                qw| root |   => $root,
+                qw| holder | => $holder->[1],
+                qw| action | => $action,
+                qw| name |   => $name,
+                defined $rule ? ( qw| rule | => $rule ) : (),
+            );
+        };
+        push @failed, $holder->[0] if $EVAL_ERROR;
     }
     say_line( $action, ' ', $name, ' on ', scalar @holders, ' holders' );
+    fail( "$action $name did not reach holders : " . join( ', ', @failed ) )
+        if @failed;
     return 0;
+}
+
+sub _retention_settings {
+    my $root = shift;
+    my %unavailable;
+    my @holders = _retention_holders( $root, \%unavailable );
+    fail('retain needs a registered holder with a sealed head')
+        if not @holders;
+    fail(     'retain cannot read holders : '
+            . join( ', ', sort keys %unavailable )
+            . ' ; no trees were dropped' )
+        if %unavailable;
+    my ( %rules, %pins, %rule_holder );
+    foreach my $holder (@holders) {
+        my $map = $holder->[2];
+        foreach my $prefix ( keys %{ $map->{'retention'} // {} } ) {
+            my $rule = $map->{'retention'}{$prefix};
+            if ( exists $rules{$prefix} and $rules{$prefix} ne $rule ) {
+                fail(     "retention rules differ for $prefix : "
+                        . "$rule_holder{$prefix} has $rules{$prefix} ; "
+                        . "$holder->[0] has $rule ; run retain-set to "
+                        . "repair" );
+            }
+            $rules{$prefix}       = $rule;
+            $rule_holder{$prefix} = $holder->[0];
+        }
+        $pins{$ARG} = TRUE for keys %{ $map->{'pins'} // {} };
+    }
+    foreach my $holder (@holders) {
+        foreach my $prefix ( keys %rules ) {
+            next if exists $holder->[2]{'retention'}{$prefix};
+            fail(     "retention rules differ for $prefix : "
+                    . "$rule_holder{$prefix} has $rules{$prefix} ; "
+                    . "$holder->[0] has no rule ; run retain-set to "
+                    . "repair" );
+        }
+    }
+    return ( \%rules, \%pins, \@holders );
 }
 
 sub cmd_retain_set {
@@ -1027,14 +1079,9 @@ sub cmd_tree_unpin {
 sub cmd_retain_show {
     my $disk = disk_arg(shift);
     fail('retain-show : unexpected arguments') if @ARG;
-    my $root = _seal_root();
-    my ($holder) = _retention_holders($root);
-    fail('retain-show needs a registered holder with a sealed head')
-        if not defined $holder;
-    say join ' ', $ARG, $holder->[2]{'retention'}{$ARG}
-        for sort keys %{ $holder->[2]{'retention'} // {} };
-    say join ' ', qw| pinned |, $ARG
-        for sort keys %{ $holder->[2]{'pins'} // {} };
+    my ( $rules, $pins ) = _retention_settings( _seal_root() );
+    say join ' ', $ARG,         $rules->{$ARG} for sort keys %{$rules};
+    say join ' ', qw| pinned |, $ARG           for sort keys %{$pins};
     return 0;
 }
 
@@ -1089,15 +1136,14 @@ sub cmd_retain {
     my $disk = disk_arg(shift);
     fail('retain : unexpected arguments') if @ARG;
     my ( $id, $state, $replay ) = _tree_context($disk);
-    my $root     = _seal_root();
-    my ($holder) = _retention_holders($root);
-    my $map      = defined $holder ? $holder->[2] : {};
-    my $trees    = { map { $ARG->{'name'} => $ARG->{'created'} }
+    my $root = _seal_root();
+    my ( $rules, $pins, $holders ) = _retention_settings($root);
+    my $trees = { map { $ARG->{'name'} => $ARG->{'created'} }
             AMOS7::N7FS::Tree::tree_list( $id, $state, $replay ) };
     my $plan = AMOS7::N7FS::Seal::retention_plan(
         qw| trees | => $trees,
-        qw| rules | => $map->{'retention'} // {},
-        qw| pins |  => $map->{'pins'}      // {},
+        qw| rules | => $rules,
+        qw| pins |  => $pins,
     );
     my ( @keep, @drop );
 
@@ -1130,7 +1176,7 @@ sub cmd_retain {
             qw| host_dir | => host_dir(%common),
             qw| host_pub | => host_signer()->public,
         );
-        foreach my $target ( _retention_holders($root) ) {
+        foreach my $target ( @{$holders} ) {
             AMOS7::N7FS::Placement::holder_prune(
                 @placement,
                 qw| name |           => $target->[0],
@@ -1867,8 +1913,14 @@ sub cmd_holder_prune {
     say_line( 'kept ', $r->{'legacy_kept'},
         ' nodes without disk ids : -legacy drops them too' )
         if $r->{'legacy_kept'};
+    say_line( 'kept tree ', $ARG, ' [ unknown or detached disk ]' )
+        for $r->{'tree_kept'}->@*;
+    say_line( 'kept tree ', $ARG, ' [ no disk id ; -legacy drops it ]' )
+        for $r->{'legacy_tree_kept'}->@*;
+
     if ( $o{'dry-run'} ) {
-        say_line( 'would drop ', $ARG ) for $r->{'addresses'}->@*;
+        say_line( 'would drop ',      $ARG ) for $r->{'addresses'}->@*;
+        say_line( 'would drop tree ', $ARG ) for $r->{'tree_addresses'}->@*;
     }
     say_line('bytes stay until holder-gc')
         if $r->{'drop'} and not $o{'dry-run'};
@@ -2441,8 +2493,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,,..,,.,,,,.,,.,,.,,,,.,,,,,,..,,.,.,.,,,..,,...,...,..,,,.,,,.,,,.,,.,,,
-#PSIDEKSDHXF7AZ6QYWPLZOYLOT2V7NRB4RMXTN3CD3JWM3QRJCMYWZYBRHI3YNPA3YZAQLMNZNRG4
-#\\\|OHNBEJFFMNOKPVIHEHQJCG62HA6Z2E6ZATX2BIBYEKM7LTOBBBZ \ / AMOS7 \ YOURUM ::
-#\[7]BC2ANBB3BRK5H4SIKK45TTMW622O3KJ5F6PV3YKXVBWYCSOJS6CI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,...,..,,,.,,..,,,,,,...,,,.,,..,..,,...,...,,,.,,..,,,,,,,,,.,.,
+#II2327AV3IWDIBXFCMYXWX2MQFHSLUQ6ROCNKBZEP42W3JWDBGGH25UNSJXVZLVTQVEMGTLXPRIT4
+#\\\|UXVLLZFTG6TPKR5TWFF5SFHUX6D4WELVM3HBHLDKW2LDMPMVUZO \ / AMOS7 \ YOURUM ::
+#\[7]DCARRTND3NHLVNNVKHVWQLIP7AXANVXPLUDEVHXTLDSEUSCKE6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

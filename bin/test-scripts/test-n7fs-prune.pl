@@ -218,6 +218,23 @@ ok( $rc == 0 && $out =~ m|would drop 0 nodes| && $out =~ m|kept 1 nodes|,
     'prune keeps entries live on an attached disk' )
     or say $out;
 
+( $rc, $out ) = cli( [], 'detach', $disk2 );
+( $rc, $out )
+    = cli( ['vp'], 'holder-prune', 'legacy', '-root-key',
+    $root_key, '-dry-run' );
+ok( $rc == 0
+        && $out =~ m|kept tree u \[ unknown or detached disk \]|
+        && $out !~ m|would drop tree u|,
+    'the prune dry run reports and keeps the detached disk tree'
+) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-prune', 'legacy', '-root-key', $root_key );
+( undef, $legacy_map ) = read_map( $holder{'legacy'} );
+ok( $rc == 0 && exists $legacy_map->{'trees'}{'u'},
+    'prune drops no tree whose owning disk is detached'
+) or say $out;
+( $rc, $out ) = cli( [], 'attach', $disk2 );
+
 my @legacy_addresses = sort keys $legacy_map->{'nodes'}->%*;
 foreach my $address (@legacy_addresses) {
     ( $rc, $out )
@@ -276,8 +293,9 @@ ok( $rc == 0 && $out =~ m|would drop 0 nodes| && $out =~ m|kept 1 nodes|,
 ( undef, my $after_dry ) = read_map( $holder{'shared'} );
 ok( $rc == 0
         && $out =~ m|would drop 1 nodes|
+        && $out =~ m|would drop tree t|
         && keys $after_dry->{'nodes'}->%* == 1,
-    'a tagged orphan dry run changes nothing'
+    'an orphan dry run changes nothing and names the tree it would drop'
 ) or say $out;
 ( $rc, $out )
     = cli( ['vp'], 'holder-prune', 'shared', '-root-key', $root_key );
@@ -286,6 +304,50 @@ ok( $rc == 0
         && $out =~ m|dropped 1 nodes|
         && !keys $shared_map->{'nodes'}->%*,
     'prune drops entries after all their disks stop listing them'
+) or say $out;
+
+make_dirs("$src/recoverable");
+write_file( "$src/recoverable/one", "first file\n" );
+write_file( "$src/recoverable/two", "second file\n" );
+( $rc, $out )
+    = cli( [], 'assimilate', '-disk', $disk, '-keep', '-tree',
+    'recoverable', "$src/recoverable" );
+ok( $rc == 0, 'the live-tree recovery fixture assimilates' ) or say $out;
+( $rc, $out ) = cli(
+    ['vp'],    'seal', $disk,             '-root-key',
+    $root_key, '-out', $holder{'source'}, '-tree',
+    'recoverable'
+);
+ok( $rc == 0, 'the live-tree recovery fixture seals' ) or say $out;
+( undef, my $recoverable_map ) = read_map( $holder{'source'} );
+my $recoverable_id = AMOS7::N7FS::Disk::disk_read_id(
+    qw| root | => $root,
+    qw| disk | => $disk
+);
+my @recoverable_files = AMOS7::N7FS::Seal::_manifest_files( $recoverable_id,
+    $recoverable_map->{'trees'}{'recoverable'}{'manifest'} );
+my ($dropped_file) = sort @recoverable_files;
+( $rc, $out ) = cli( [], 'find', $disk );
+my ($ref_holder) = $out =~ m{^\Q$dropped_file\E \S+ \S+ (\S+)}m;
+( $rc, $out )
+    = cli( [], 'drop', $disk, $dropped_file, '-holder', $ref_holder );
+ok( $rc == 0, 'a live tree file loses its import reference' ) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-prune', 'source', '-root-key', $root_key );
+( undef, $recoverable_map ) = read_map( $holder{'source'} );
+ok( $rc == 0
+        && exists $recoverable_map->{'nodes'}{$dropped_file}
+        && exists $recoverable_map->{'trees'}{'recoverable'},
+    'prune keeps an unreferenced file named by a live tree'
+) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'seal-recover', '-root-key', $root_key,
+    '-from', $holder{'source'}, '-tree', 'recoverable',
+    "$base/recovered-live-tree" );
+ok( $rc == 0
+        && read_file("$base/recovered-live-tree/one") eq "first file\n"
+        && read_file("$base/recovered-live-tree/two") eq "second file\n",
+    'the live tree still recovers after its reference is dropped'
 ) or say $out;
 
 {
@@ -302,8 +364,8 @@ ok( $rc == 0
 
 done();
 
-#,,,.,,,,,,.,,,,,,,,.,.,.,,..,,,,,,..,...,,,.,..,,...,...,..,,,,.,,.,,...,,..,
-#W5WNTAVPDQYXOZ3R373XJG7C2YJILKDWCLVJGIBC6NILBEJ5AUP6BVKA6JYBWTHYW3SKWGEM3ESSM
-#\\\|L6CVESGCTH6VGDRVGCNMCHOSHIXJZNPAKYPATWAFII5C7VVEJCH \ / AMOS7 \ YOURUM ::
-#\[7]U3VPK6RLO7HYZIDM7EUTOE7U63YCDTKFGDMQPL2GYQQ7MXCSMMAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,..,,,,,,,,.,..,,,.,,.,,,,,.,,.,,..,,...,...,,,,,...,.,,,,,,,,..,
+#7MSOJ4OU4VFZ2VKGAAMPGLAAV4F3P3ZRSDXAKJPWVTBQ3LYQSH2WFLXZRTDSR72QC2QK6UCBG7YDY
+#\\\|XGLWARGY6SXT2SAFCBCXZFU2LSLYHSO3VGIGA3ZR5QMWFDB6T2A \ / AMOS7 \ YOURUM ::
+#\[7]5QMILKQD4LEQWJGVYPRUZZZPULF3FBCMTIYSFLJDY5UIZSWEB2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

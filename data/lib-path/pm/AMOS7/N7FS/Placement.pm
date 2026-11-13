@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.D3E7QZI |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.CXOLRGI |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage receipt_covered receipt_digest n7fs_now
@@ -370,11 +370,17 @@ sub _disk_nodes {
     my %manifests = map { $replay->{'trees'}{$ARG}{'manifest'} => TRUE }
         keys $replay->{'trees'}->%*;
     require AMOS7::N7FS::Seal;
+    my %tree_nodes;
+    foreach my $tree ( values $replay->{'trees'}->%* ) {
+        $tree_nodes{$ARG} = TRUE
+            for AMOS7::N7FS::Seal::_manifest_files( $id,
+            $tree->{'manifest'} );
+    }
     my %nodes;
     foreach my $address ( keys $replay->{'nodes'}->%* ) {
         next if $manifests{$address};
         my @c = sort keys %{ $cats{$address} // {} };
-        next if not @c and not $manifests{$address};
+        next if not @c and not $tree_nodes{$address};
         @c = (qw| default |) if not @c;
         my $target = 0;
         foreach my $c (@c) {
@@ -833,7 +839,7 @@ sub holder_prune {
     my @disks = sort grep {m|\A[A-Z2-7]{7}\z|} readdir $dh;
     closedir $dh;
 
-    my ( %live, %seen, %tree_files );
+    my ( %live, %seen, %tree_files, %tree_live );
     foreach my $disk (@disks) {
         $disk_opt{'disk'} = $disk;
         my $attached
@@ -848,6 +854,7 @@ sub holder_prune {
         $live{$ARG}  = TRUE for keys %{$nodes};
         foreach my $tree ( keys $replay->{'trees'}->%* ) {
             my $manifest = $replay->{'trees'}{$tree}{'manifest'};
+            $tree_live{$disk}{$tree} = TRUE;
             $tree_files{$tree}{$ARG} = TRUE
                 for AMOS7::N7FS::Seal::_manifest_files( $id, $manifest );
         }
@@ -874,27 +881,66 @@ sub holder_prune {
         push @drop, $address;
         $bytes += $entry->{'length'} // 0;
     }
-    my @tree_drop
-        = grep { not exists $tree_files{$ARG} } keys $map->{'trees'}->%*;
+    my ( @tree_drop, @tree_kept, @legacy_tree_kept );
+    foreach my $tree ( sort keys $map->{'trees'}->%* ) {
+        my %owners = %{
+            ref $map->{'trees'}{$tree}{'disks'} eq qw| HASH |
+            ? $map->{'trees'}{$tree}{'disks'}
+            : {}
+        };
+        if ( not %owners ) {
+            if ( $opt{'legacy'} ) {
+                push @tree_drop, $tree;
+            } else {
+                push @legacy_tree_kept, $tree;
+            }
+            next;
+        }
+        if ( grep { not exists $seen{$ARG} } keys %owners ) {
+            push @tree_kept, $tree;
+            next;
+        }
+        next if grep { $tree_live{$ARG}{$tree} } keys %owners;
+        push @tree_drop, $tree;
+    }
+    my @untag;
     if ( ref $opt{'tree_addresses'} eq qw| ARRAY | ) {
-        my %live_tree_node = map { $ARG => TRUE }
-            map { keys $tree_files{$ARG}->%* } keys %tree_files;
+        refuse('tree address untagging needs a disk')
+            if not defined $opt{'disk'};
         my %drop = map { $ARG => TRUE } @drop;
         foreach my $address ( @{ $opt{'tree_addresses'} } ) {
-            next if $drop{$address} or $live_tree_node{$address};
-            next if not exists $map->{'nodes'}{$address};
-            push @drop, $address;
-            $drop{$address} = TRUE;
-            $bytes += $map->{'nodes'}{$address}{'length'} // 0;
+            next if $drop{$address} or $live{$address};
+            my $entry = $map->{'nodes'}{$address} // next;
+            my %disks = %{
+                ref $entry->{'disks'} eq qw| HASH |
+                ? $entry->{'disks'}
+                : {}
+            };
+            next if %disks and not $disks{ $opt{'disk'} };
+            delete $disks{ $opt{'disk'} };
+            if (%disks) {
+                push @untag, $address;
+            } else {
+                push @drop, $address;
+                $drop{$address} = TRUE;
+                $bytes += $entry->{'length'} // 0;
+            }
         }
     }
-    my $result = { qw| removed | => 0, qw| trees | => 0 };
-    if ( ( @drop or @tree_drop ) and not $opt{'dry_run'} ) {
+    my %tree_drop = map { $ARG => TRUE } @tree_drop;
+    my $result    = {
+        qw| removed |  => 0,
+        qw| trees |    => scalar @tree_drop,
+        qw| untagged | => 0
+    };
+    if ( ( @drop or @untag or @tree_drop ) and not $opt{'dry_run'} ) {
         $result = AMOS7::N7FS::Seal::unmap_nodes(
             %opt,
             qw| holder |     => $h->{'spec'},
             qw| addresses |  => \@drop,
-            qw| live_trees | => [ keys %tree_files ],
+            qw| untag |      => \@untag,
+            qw| live_trees | =>
+                [ grep { not $tree_drop{$ARG} } keys $map->{'trees'}->%* ],
             qw| tree_files | => {
                 map { $ARG => [ sort keys $tree_files{$ARG}->%* ] }
                     keys %tree_files
@@ -907,14 +953,17 @@ sub holder_prune {
         qw| addresses | => \@drop,
         qw| bytes |     => $bytes,
         qw| kept |      => scalar( keys $map->{'nodes'}->%* ) - scalar @drop,
-        qw| legacy_kept | => $legacy_kept,
+        qw| legacy_kept |      => $legacy_kept,
+        qw| tree_addresses |   => \@tree_drop,
+        qw| tree_kept |        => \@tree_kept,
+        qw| legacy_tree_kept | => \@legacy_tree_kept,
     };
 }
 
 1;
 
-#,,..,.,.,.,,,,.,,,,.,,,,,...,..,,,,,,..,,,,,,..,,...,...,.,,,,.,,,,,,,,,,...,
-#QCLPC3GJRL7HFP5QBNYBLBDFTAUJF7IOXAAMWCS5XQG65VAF5MHFHVG3PRWIFATGAQ2OVPDNVA4JU
-#\\\|2TGMQUVKVVTQKEGZTEXJPYSU54IEI72BGVQ2B7TWSMKONWDZRNI \ / AMOS7 \ YOURUM ::
-#\[7]DOYRHY23XGSKMMQPSO7FGU5ZJICLGZ6DPROCJKXCYWQ7NX3VL4CQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,,,,,,,.,,,,,,,.,,,,,,,,,,..,..,,...,...,.,,,.,.,,,.,,,.,..,,
+#B7H3QRSOBJHYOR4Y33ZK5VZU2L47CP7LHG5Y7EHK52HQFFPKBYIHQMEMIGQ57EXRQ4XE7LPU3ZGSI
+#\\\|KRXGEG4L2PF2ZB3IT5NPHQGQJOEKZG4WRIOUMRR3DD6HBLWHBTB \ / AMOS7 \ YOURUM ::
+#\[7]2XSSXFD6CXSSLOZ7FOKIPDY7KIAJMFCY6QSHKLKVOOJXBJQDYGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

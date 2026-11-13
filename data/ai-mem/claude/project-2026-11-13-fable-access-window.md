@@ -22,12 +22,13 @@ dispatch via the Agent tool with model fable, a self-contained prompt.
 RESETS [ owner 2026-11-13, claude UI ] : one Fable reset, expires 2026-11-17 08:59 CET [ refills the 5h window + Fable allowance AND gives back what Fable used of the week -- not the whole week ] ; one full reset, expires 2026-12-10 23:00 CET [ the whole week ]. so Fable runs are effectively free of week cost once the Fable reset is used : spend Fable freely, use the Fable reset late on 11-16 or early 11-17 before it expires ; keep the full reset for a tight week.
 COST : run 1 [ design 7 8 9, effort high ] started at claude 7d 22.0 % [ 4d 09h44 left ] -- compare after, to size run 2.
 RUN 1 COST : claude 7d 22.0 -> 28.0 % [ incl. my own stage 4 review ], 5h 72 % after -- one high run ~ 5 % week, most of a 5h window.
+RUN 2 [ review finding 5, high ] : real baseline before start claude 7d 29 %, 5h 80 % ; the first ~2 minutes [ initial reading ] already took it to 7d 31 %, 5h 90 % -- the big read costs up front. RUN 2 DONE : 7d 29 -> 39 % [ 10 %, ~25 min ], 5h 61 % of a fresh window. result ~/.n/private-notes/fable-n7fs-review-finding5-2026-11-13.md : 17 findings R1-R17 ; R1 critical [ holder-prune / retain drop trees of detached disks ], R3 shard key = first char of the b32 address -> always ONE shard [ verified ; test hardcodes 56 ] ; repair order R1 R2 R8 -> R5 R7 -> R3 R6 R4 -> clock -> R9 with head v2. retain must not run on multi-disk / multi-holder roots until R1 R2 R8 land.
 RESET PLAN [ owner ] : before 11-17 08:59 plan a whole 5h [ or 10h ] window ahead for Fable-only work, then use the Fable reset right after it.
 RUN 1 DONE 2026-11-13 : ~/.n/private-notes/fable-n7fs-design-7-8-9-2026-11-13.md -- design 7 8 9 10 in 12 stages, 15 owner questions [ 1-6 before stage 2 ], 14 defects D1-D14 [ D1 place seals whole tree past filters \ quota, D2 receipts shared across roots, D3 service root still needs vault, D7 future receipts accepted, D13 tree names refuse "/" -> prefix snap: not snap/ ]. stage 1 [ receipts per root + clock floor ] can start at once.
 [[session-handover-n7fs-review-findings]]
 
-#,,,.,.,.,,..,,..,.,,,.,.,,..,,..,,.,,,.,,,..,..,,...,.,.,...,,.,,...,...,,..,
-#RNQIK5FJ244PXH5GMFIED6DIGXLMTPKAXN5PXHYF22BEG63I5CXOK7MO6CQSAFWCBWHBXCZF3UI5I
-#\\\|UKKNNVNT6GNQLDXJAA26ZUDNFHANGNV2XRCPBIVJFX2ATOFPSEC \ / AMOS7 \ YOURUM ::
-#\[7]EHCSGLRFCIBDXIHPA4XDYHNXYPQLYTP3OKPTTKGBIA2V3E2LZSAI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,,,..,,,,.,,..,.,,,.,,,,,.,,.,,..,,...,..,,.,.,.,,,,,.,.,,,,,.,
+#JXBTYQYMGYICFJ7DXR5GZTU2J5PCME75LJWGW425WUGDI5VDGJIMBAYI5BSOVV7ZOKRFN2WKKDLCI
+#\\\|437IHMZ2VDWLZGWBFARRIWU5A3546E7I2UP5GFGWYEU2AC3WWQC \ / AMOS7 \ YOURUM ::
+#\[7]CIVWG3FCMHJTOGIRV7QIMZ5RXS7K2WNECUJCRJ5UXMQU3AZ3OSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
