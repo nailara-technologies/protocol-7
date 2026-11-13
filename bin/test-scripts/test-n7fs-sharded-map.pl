@@ -167,10 +167,7 @@ AMOS7::N7FS::Seal::holder_gc(
     qw| delete | => 1,
     qw| grace |  => 0,
 );
-my ($day) = do {
-    my @t = gmtime;
-    sprintf '%04d-%02d-%02d', $t[5] + 1900, $t[4] + 1, $t[3];
-};
+my $day            = AMOS7::N7FS::Seal::_trash_day();
 my @current_shards = map { $ARG->{'blob'} } values $root2->{'shards'}->%*;
 ok( ( !grep { !-e "$sub/$ARG" } $head2->{'map'}, @current_shards )
         && -e "$sub/.trash/$day/$head1->{'map'}"
@@ -234,8 +231,8 @@ my $clock       = 1_000_000;
 
 done();
 
-#,,.,,,..,.,,,...,,,.,.,,,,,,,,,.,,.,,,,,,,.,,..,,...,...,...,.,.,,,,,...,..,,
-#IJOXUL4RAP2EUX5WQ3OKE74DPZX7QIEYOJXYE64DFPRAJZD625KVZKOVB5V5W3SZZF4LM4MFABYFA
-#\\\|OFMJ24INHGBMRXUJ7SJLMUALNDCDLL3XCIIGCM4LRERQ66MOFCX \ / AMOS7 \ YOURUM ::
-#\[7]HFBXQRVTCPGZKQJ6SU5KC6I3G6Q6MSOHAC2L7ECZD7ZB7WJHWQCA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,.,.,,,.,,,...,..,,,,,,...,.,.,..,,...,...,...,.,,,.,,,...,,,,,
+#ANRA25OE2TLRZZRON5GQT4D4CXZLYBVZ24ITOSTXESYXU46S4Z5WFFWZGDASWZYJ4P6VAMBCELESW
+#\\\|W72SKLGPY2472OAZHQS3OG5OHVS67RNC5GUDFOLMWV7U7GSILWB \ / AMOS7 \ YOURUM ::
+#\[7]XAF7Q2K3LPNNSWU2IJFSO3Y3DMCDILMA4Q4QKB32CCUHESX76CBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

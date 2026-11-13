@@ -128,14 +128,14 @@ use warnings;
 ##                 [ -grace <n>Y<level> ]   unreferenced blobs of a one-root
 ##                 holder ; dry run by default. never touches a blob younger
 ##                 than the grace age [ default 6Y3 ] ; -delete moves them to
-##                 .trash/<YYYY-MM-DD>/<name> inside the holder dir, never
+##                 .trash/<ntime14>/<name> inside the holder dir, never
 ##                 rm. on a per-root holder [ see holder-migrate ] the root's
 ##                 subdirectory is listed, so -only-root is redundant there
 ## n7fs holder-trash-purge <holder> -root-key <key> [ -older <n>Y<level> ]
-##                 [ -delete ]   remove trash day dirs older than the age
+##                 [ -delete ]   remove trash buckets older than the age
 ##                 [ default 3Y2, the receipt age ] ; dry run by default
 ## n7fs holder-trash-restore <holder> -root-key <key> <name>..
-##                 [ -all-since <YYYY-MM-DD> ]   move blobs back out of
+##                 [ -all-since <ntime14> ]   move blobs back out of
 ##                 the trash ; a blob already at the holder is skipped
 ## n7fs holder-migrate <holder> -root-key <key> [ -delete ]
 ##                 move this root's referenced blobs + head, map and journal
@@ -333,7 +333,7 @@ $PROGRAM_NAME = "n7fs $command";
 ## commands that write to holders run one at a time per host : a gc must ##
 ## never delete what a running place \ seal \ relay just published       ##
 my %holder_writer = map { $ARG => 1 }
-    qw| seal place relay holder-drain holder-prune holder-gc shred
+    qw| seal place relay holder-check holder-drain holder-prune holder-gc shred
     holder-trash-purge holder-trash-restore holder-migrate retain repack
     retain-set retain-clear tree-pin tree-unpin |;
 our $HOLDER_LOCK;
@@ -345,8 +345,8 @@ if ( $holder_writer{$command} and not $o{'dry-run'} ) {
         or fail("cannot open the holder lock : $OS_ERROR");
     flock( $HOLDER_LOCK, Fcntl::LOCK_EX() | Fcntl::LOCK_NB() )
         or fail( 'another n7fs command is writing to holders on this host [ '
-            . 'seal, place, relay, holder-drain, holder-prune, '
-            . 'holder-gc, shred, holder-trash-purge, '
+            . 'seal, place, relay, holder-check, holder-drain, '
+            . 'holder-prune, holder-gc, shred, holder-trash-purge, '
             . 'holder-trash-restore, holder-migrate ] : wait for it '
             . 'to finish' );
 }
@@ -1763,7 +1763,7 @@ sub cmd_holder_check {
     );
     say_line( 'receipt written : coverage ',
         $r->{'coverage'}, ', covered ', $r->{'covered_nodes'},
-        ' nodes [ counts for placement for 7 days ]' );
+        ' nodes [ counts for placement for 3Y2 ]' );
     return 0;
 }
 
@@ -2441,8 +2441,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,..,,,.,,,..,,,,,.,.,..,,.,,,...,.,,,,,,,..,,...,...,,.,,,..,...,,.,,...,
-#5VULST4S3K7ENDJ75CGVFRCZKPXDYYQ55QVQXGZX3IOZTWDERONKVZUOACE63CWPNQ3QHM7VEXCDY
-#\\\|CMSHRVNFVWGHMTB6LCS6ISGDSMWGAUR6GL63VFLJMMNE4DM5PIJ \ / AMOS7 \ YOURUM ::
-#\[7]J36BSETPYSPFGJPVDH5CVMX53ZUJAVK4EWEDDG6WMNOY67X7MQCA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,,.,,.,,,,.,,,,,,..,,.,.,.,,,..,,...,...,..,,,.,,,.,,,.,,.,,,
+#PSIDEKSDHXF7AZ6QYWPLZOYLOT2V7NRB4RMXTN3CD3JWM3QRJCMYWZYBRHI3YNPA3YZAQLMNZNRG4
+#\\\|OHNBEJFFMNOKPVIHEHQJCG62HA6Z2E6ZATX2BIBYEKM7LTOBBBZ \ / AMOS7 \ YOURUM ::
+#\[7]BC2ANBB3BRK5H4SIKK45TTMW622O3KJ5F6PV3YKXVBWYCSOJS6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

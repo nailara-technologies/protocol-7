@@ -407,14 +407,13 @@ my $h5_blob;
 }
 
 sub _today {
-    my @t = gmtime;
-    return sprintf '%04d-%02d-%02d', $t[5] + 1900, $t[4] + 1, $t[3];
+    return AMOS7::N7FS::Seal::_trash_day();
 }
 
 done();
 
-#,,.,,..,,,,,,..,,.,,,,.,,,.,,,.,,,,,,..,,,..,..,,...,...,...,.,.,,,,,,.,,..,,
-#NLP6OD4RN4JPO6UMXAII47GXUVJOU7AUL2F2C52HHTLVGDLAOPDT6AZCJART42FVZTE5O4SDVOJHE
-#\\\|DPF7EXXNJESLM4HGTIFON2CODUX4AQSD2PJAXORDRL4NOU4RKUM \ / AMOS7 \ YOURUM ::
-#\[7]OJJ65TW5G7AVCD5YQML3JWXI6OXX5SL32LOMWHL2XHZFAIBTPQAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,..,,,..,,..,,,,,,.,,,..,,,,,..,,...,...,.,,,...,,,.,...,...,
+#2ZUNZQLKRTGFWSJUPQ7ASE6GRZFUPN4SCDLJ2ZXIFC4ANM5N74QIIKWBOYYR7MGY47FDOOA6M6SGO
+#\\\|W6DHJSISAT2LNZ24W6BUNXYB2Y5IGX54KY7UNTHDI2KZHVJW2SJ \ / AMOS7 \ YOURUM ::
+#\[7]OMUH2VUQHSXB4LFNYOSYVPQMYETYH6A3BK2SRQW3CVQTIERTKMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

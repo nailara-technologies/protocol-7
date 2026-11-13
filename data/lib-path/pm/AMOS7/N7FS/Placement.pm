@@ -18,17 +18,18 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.IS6WKUI |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.D3E7QZI |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
-    receipt_fresh receipt_coverage receipt_covered receipt_digest
+    receipt_fresh receipt_coverage receipt_covered receipt_digest n7fs_now
     placement_report place_missing parse_size
     parse_age holder_drain holder_prune holder_rename holder_room
     holder_accepts |;
 
 use JSON::PP;
-use AMOS7::NTIME qw| ntime_now parse_y_age unix_to_ntime |;
-use AMOS7::N7FS  qw| b32 unb32 read_file write_new_file make_dirs refuse |;
+use AMOS7::NTIME qw| parse_y_age |;
+use AMOS7::N7FS  qw| b32 unb32 random_bytes read_file write_new_file make_dirs
+    sync_dir refuse fault ntime_now |;
 use AMOS7::N7FS::Sum      qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Sign     qw| verify |;
 use AMOS7::N7FS::Disk     qw| disk_read_id state_read |;
@@ -37,8 +38,9 @@ use AMOS7::N7FS::Category qw| category_definitions |;
 
 my $JSON = JSON::PP->new->utf8->canonical;
 
-our $REGISTRY    = 'n7fs holders';
-our $RECEIPT_AGE = parse_y_age('3Y2');
+our $REGISTRY     = 'n7fs holders';
+our $RECEIPT_AGE  = parse_y_age('3Y2');
+our $RECEIPT_SKEW = parse_y_age('1Y5');
 
 sub parse_size {
     my $text = shift // return undef;
@@ -176,11 +178,49 @@ sub holder_rename {
 }
 
 sub _receipt_path {
-    my ( $host_dir, $spec ) = @_;
+    my ( $host_dir, $spec, $root_id ) = @_;
     return
-          "$host_dir/receipts/"
+          "$host_dir/receipts/$root_id/"
         . bmw_b32( bmw384_bytes( "p7 n7fs receipt v1\0" . $spec ) )
         . '.receipt';
+}
+
+sub _clock_floor_path {
+    my ( $host_dir, $root_id ) = @_;
+    return "$host_dir/clock-floor/$root_id";
+}
+
+sub _replace_file {
+    my ( $path, $bytes ) = @_;
+    my $tmp = "$path.tmp." . b32( random_bytes(5) );
+    write_new_file( $tmp, $bytes );
+    fault(qw| receipt:before-rename |);
+    rename $tmp, $path
+        or refuse( 'cannot replace %s : %s', $path, $OS_ERROR );
+    my $dir = $path;
+    $dir =~ s|/[^/]+\z||;
+    sync_dir($dir);
+    return;
+}
+
+## the highest ntime seen by this root is the floor for every later read ##
+sub n7fs_now {
+    my ( $host_dir, $root_id, $now ) = @_;
+    $now //= ntime_now();
+    refuse('n7fs clock is not whole ntime') if $now !~ m|\A\d+\z|;
+    my $path  = _clock_floor_path( $host_dir, $root_id );
+    my $bytes = read_file($path);
+    my $floor = 0;
+    if ( defined $bytes ) {
+        $bytes =~ s|\s+\z||;
+        refuse('n7fs clock floor is not whole ntime')
+            if $bytes !~ m|\A\d+\z|;
+        $floor = $bytes + 0;
+    }
+    return $floor if $now <= $floor;
+    make_dirs( "$host_dir/clock-floor", 0700 );
+    _replace_file( $path, "$now\n" );
+    return $now + 0;
 }
 
 ## the addresses a receipt for $version covers : every entry added at or below
@@ -214,10 +254,7 @@ sub receipt_digest {
 ## when it was written [ the digest binds cache and receipt ]
 sub _covered_cache_path {
     my ( $host_dir, $spec, $root_id ) = @_;
-    return
-          _receipt_path( $host_dir, $spec ) . '.'
-        . substr( $root_id, 0, 7 )
-        . '.covered';
+    return _receipt_path( $host_dir, $spec, $root_id ) . '.covered';
 }
 
 sub _covered_cache_read {
@@ -235,10 +272,11 @@ sub _covered_cache_read {
 ## a holder-check result, signed by the host key
 sub receipt_write {
     my %opt     = @_;
+    my $now     = n7fs_now( @opt{qw| host_dir root_id |} );
     my $payload = {
         qw| holder |   => $opt{'spec'},
         qw| root_id |  => $opt{'root_id'},
-        qw| time |     => ntime_now(),
+        qw| time |     => $now,
         qw| version |  => $opt{'version'} + 0,
         qw| nodes |    => $opt{'nodes'} + 0,
         qw| samples |  => $opt{'samples'} + 0,
@@ -250,10 +288,11 @@ sub receipt_write {
         : (),
     };
     my $signed = $JSON->encode($payload);
-    my $path   = _receipt_path( $opt{'host_dir'}, $opt{'spec'} );
-    make_dirs( "$opt{'host_dir'}/receipts", 0700 );
-    unlink $path;
-    write_new_file(
+    my $path   = _receipt_path( @opt{qw| host_dir spec root_id |} );
+    my $dir    = $path;
+    $dir =~ s|/[^/]+\z||;
+    make_dirs( $dir, 0700 );
+    _replace_file(
         $path,
         $JSON->encode(
             {   qw| receipt | => $payload,
@@ -264,12 +303,10 @@ sub receipt_write {
     );
     ## the covered-address cache is rewritten with the receipt ; without
     ## covered data an old cache must not linger and match a newer receipt
-    my $cache = _covered_cache_path( $opt{'host_dir'}, $opt{'spec'},
-        $opt{'root_id'} );
+    my $cache = _covered_cache_path( @opt{qw| host_dir spec root_id |} );
     if ( defined $opt{'covered'}
         and ref $opt{'covered_addresses'} eq qw| ARRAY | ) {
-        unlink $cache;
-        write_new_file(
+        _replace_file(
             $cache,
             $JSON->encode(
                 {   qw| version | => $opt{'version'} + 0,
@@ -286,7 +323,7 @@ sub receipt_write {
 
 sub receipt_fresh {
     my ( $host_dir, $host_pub, $spec, $root_id, $now ) = @_;
-    my $bytes = read_file( _receipt_path( $host_dir, $spec ) );
+    my $bytes = read_file( _receipt_path( $host_dir, $spec, $root_id ) );
     return undef if not defined $bytes;
     my $data = eval { $JSON->decode($bytes) } // return undef;
     my $r    = $data->{'receipt'};
@@ -298,11 +335,11 @@ sub receipt_fresh {
         or ( $r->{'holder'}  // '' ) ne $spec
         or ( $r->{'root_id'} // '' ) ne $root_id;
 
-    ## receipts before ntime stored unix seconds ; verify before converting ##
     $r->{'time'} //= 0;
-    return undef if $r->{'time'} !~ m|\A\d+(?:\.\d+)?\z|;
-    $r->{'time'} = unix_to_ntime( $r->{'time'} ) if $r->{'time'} < 1e12;
-    return undef if ( $now // ntime_now() ) - $r->{'time'} > $RECEIPT_AGE;
+    return undef if $r->{'time'} !~ m|\A\d+\z|;
+    $now = n7fs_now( $host_dir, $root_id, $now );
+    return undef if $r->{'time'} > $now + $RECEIPT_SKEW;
+    return undef if $now - $r->{'time'} > $RECEIPT_AGE;
     return $r;
 }
 
@@ -362,7 +399,7 @@ sub _disk_nodes {
 sub _copies {
     my %opt     = @_;
     my $holders = holders_load(%opt);
-    my $now     = ntime_now();
+    my $now     = n7fs_now( $opt{'host_dir'}, $opt{'root'}{'root_id'} );
     my %copies;
     my %proven;
     my %status;
@@ -876,8 +913,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,,,,,..,..,,,..,...,.,.,,,.,,..,.,.,.,,,..,,...,...,..,,.,.,.,.,,..,,,.,
-#HUVCO4KWK4C7BIL74LUZAMOGG25HAF3SNF5MZLM6QSNTPMOJNH5OBQU5YYZVS3SGB7POHF2OCAM6Q
-#\\\|HUKHZIST3IXPB5BF3LCJ33JALVDNBGV3HZVAUCJTKJ5PVF2TTBS \ / AMOS7 \ YOURUM ::
-#\[7]T4KZ63U2E644QVFWFMF5ZR7CBVY7TU7SSLQG5ANCA2LGZ4VNHUAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,,,.,,,,,...,..,,,,,,..,,,,,,..,,...,...,.,,,,.,,,,,,,,,,...,
+#QCLPC3GJRL7HFP5QBNYBLBDFTAUJF7IOXAAMWCS5XQG65VAF5MHFHVG3PRWIFATGAQ2OVPDNVA4JU
+#\\\|2TGMQUVKVVTQKEGZTEXJPYSU54IEI72BGVQ2B7TWSMKONWDZRNI \ / AMOS7 \ YOURUM ::
+#\[7]DOYRHY23XGSKMMQPSO7FGU5ZJICLGZ6DPROCJKXCYWQ7NX3VL4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
