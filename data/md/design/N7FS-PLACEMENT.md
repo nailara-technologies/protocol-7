@@ -92,8 +92,33 @@ do not count it, so a move is :
 
 ```
 holder add <new> ... ; place -exclude <old> ; holder-check <new>
-holder-drain <old> ; holder-gc <old> -only-root -delete
+holder-drain <old> ; holder-gc <old> [-only-root] -delete
 ```
+
+## trash, grace and the per-root layout [ 2026-11-13, review finding 2 ]
+
+`holder-gc` never deletes and never touches a blob younger than a grace age
+[ default 1 day, `-grace <age>`, the holder-side mtime in one batched
+listing ]. with `-delete` it moves each old unreferenced blob to
+`.trash/<YYYY-MM-DD>/<name>` inside the holder directory, local and ssh alike.
+`holder-trash-restore` moves blobs back [ by name or `-all-since <date>` ],
+`holder-trash-purge` removes trash day dirs older than the receipt age
+[ `-older <age>`, dry run unless `-delete` ]. a blob present only in trash
+counts as missing everywhere : placement reads maps, holder-check and scrub
+never look into `.trash/`.
+
+a holder in the new layout keeps each root's head, map, journal and blobs in
+`<holder>/r-<tag>/` [ seven characters of the root id ]. gc then lists only
+that root's subdirectory : `-only-root` is structural and redundant there,
+while the old flat layout keeps requiring it. `holder-migrate` moves a flat
+holder into the layout, rename-only, idempotent, resumable, dry run by
+default ; detection is by existence [ subdirectory present, no flat head ].
+gc, purge, restore and migrate take the same host lock as every
+holder-writing command.
+
+the finding's remaining parts stay open : a forced command for home's own
+holder key, and root-signed deletes [ the trash is the local, home-driven
+form until then ].
 
 ## not in this part
 
@@ -189,8 +214,8 @@ what changed :
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,,,,,.,,,,.,,..,.,,,,,.,,.,,..,,,.,,,..,,,.,..,,...,...,,..,.,.,,.,,.,,,,,.,
-#SVWPN6XAF4ZISAZI7W56BX7NXTK6TOJPHCBFDKME5XJ57WGKEUHMYCFKA2NHODGEG6B75ZSGIKZSS
-#\\\|UOC5KIOKA4IFF4B5FDX5NP6T2S37LVL6RLDXK3IG3N3YTYZELXD \ / AMOS7 \ YOURUM ::
-#\[7]URMRL7OY3IZ7KPUQERNZLOTJOP4UWC77VBZOSZOMGSFXP4BB2GBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,.,,,...,,,,,,..,,..,.,,,..,,..,,...,...,...,..,,,,,,,,.,,.,,
+#ZKTZHDGQ3UOS5LCC7KHQMQ3V2E62TFQUWYC6C6G3D3DN57LBEORVH3L2WRNDLS2IK2VB5VBWAZSMK
+#\\\|YPEMHCFBFFB7IZ3HZWG5XOZCF3WTZ6ZWJNWDDLCOHSUEK6WJRAC \ / AMOS7 \ YOURUM ::
+#\[7]J5LEWQKQGCKZQFXBLWHIZLGMR5UEB3OLYSY64DPMOERC6DXOMGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

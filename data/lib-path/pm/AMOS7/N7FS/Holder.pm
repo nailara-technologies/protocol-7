@@ -13,10 +13,12 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.7WDEFUI |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.6HN7MAI |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
-    holder_sizes holder_free
+    holder_sizes holder_stats holder_free holder_isdir holder_sub_spec
+    holder_make_path holder_move holder_trash_days holder_trash_list
+    holder_remove_day
     holder_size holder_put holder_delete holder_verify holder_download
     holder_read_range holder_scrub |;
 
@@ -26,7 +28,8 @@ use IPC::Open3 qw| open3 |;
 use Symbol     qw| gensym |;
 use Digest::BMW;
 use AMOS7::N7FS
-    qw| random_bytes read_file write_new_file make_dirs refuse b32 sync_dir |;
+    qw| random_bytes read_file write_new_file make_dirs remove_tree refuse
+    b32 sync_dir |;
 use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
 
 sub holder_parse {
@@ -66,6 +69,53 @@ sub _quote {
     my $text = shift;
     $text =~ s|'|'"'"'|g;
     return "'$text'";
+}
+
+## relative paths inside a holder : one level or more, no way out ##
+sub _rel_ok {
+    my $rel = shift // '';
+    refuse('invalid holder path')
+        if $rel !~ m|\A[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\z|
+        or grep { $ARG eq '..' or $ARG eq '.' } split m|/|, $rel;
+    return $rel;
+}
+
+## the directory a relative path sits in, '' for the holder dir itself ##
+sub _rel_dir {
+    my $rel = shift;
+    return '' if $rel !~ s|/[^/]+\z||;
+    return $rel;
+}
+
+sub _rel_path {    ## a relative directory as a full path ##
+    my ( $h, $rel ) = @_;
+    return length $rel ? "$h->{'dir'}/$rel" : $h->{'dir'};
+}
+
+## one root subdirectory of a holder as a spec of its own : the            ##
+## subdirectory is a holder directory like any other, so every holder_*    ##
+## call serves it unchanged [ review finding 2, per-root layout ]. the tag ##
+## is r- plus seven root-id characters, the form the restricted receiver   ##
+## accepts                                                                 ##
+sub holder_sub_spec {
+    my ( $spec, $tag ) = @_;
+    my $h = holder_parse($spec);
+    refuse( 'invalid root subdirectory tag [ %s ]', $tag // '' )
+        if ( $tag // '' ) !~ m|\Ar-[A-Z2-7]{7}\z|;
+    return $h->{'type'} eq qw| ssh |
+        ? "ssh:$h->{'alias'}:$h->{'dir'}/$tag"
+        : "$h->{'dir'}/$tag";
+}
+
+sub holder_isdir {
+    my ( $spec, $rel ) = @_;
+    my $h = holder_parse($spec);
+    _rel_ok($rel);
+    return -d "$h->{'dir'}/$rel" if $h->{'type'} eq qw| local |;
+    my ( $status, $out )
+        = _result( $h,
+        '[ -d ' . _quote("$h->{'dir'}/$rel") . ' ] || exit 44' );
+    return $status == 44 ? 0 : 1;
 }
 
 sub _delays {
@@ -262,29 +312,163 @@ sub holder_size {
     return 0 + $1;
 }
 
-## every blob name with its size, in one listing ##
-sub holder_sizes {
+## every blob name with its size and holder-side mtime, in one listing.  the
+## mtime is the blob's age at the holder, what gc's grace reads ; ssh gets it
+## in the same single call, never one call per blob
+sub holder_stats {
     my $spec = shift;
     my $h    = holder_parse($spec);
-    my %size;
+    my %stat;
     if ( $h->{'type'} eq qw| local | ) {
         opendir( my $dh, $h->{'dir'} ) or return {};
         foreach my $name ( readdir $dh ) {
             next if $name !~ m|\A[A-Z2-7]{77}\z|;
-            $size{$name} = -s "$h->{'dir'}/$name";
+            my @st = stat "$h->{'dir'}/$name";
+            next if not @st;
+            $stat{$name}
+                = { qw| size | => $st[7], qw| mtime | => $st[9] };
         }
         closedir $dh;
-        return \%size;
+        return \%stat;
     }
-    my ( $status, $out )
-        = _result( $h, 'cd ' . _quote( $h->{'dir'} ) . ' && ls -ln' );
+    ## one ssh call : stat every checksum-shaped name in a shell loop ##
+    my ( $status, $out ) = _result( $h,
+              'cd '
+            . _quote( $h->{'dir'} )
+            . ' && for f in *; do case $f in [A-Z2-7]*) stat '
+            . '-c \'%n %s %Y\' -- "$f" 2>/dev/null;; esac; done' );
     refuse('ssh holder listing failed') if $status;
     foreach my $line ( split m|\n|, $out ) {
-        my @f = split ' ', $line;
-        next if @f < 9 or $f[-1] !~ m|\A[A-Z2-7]{77}\z|;
-        $size{ $f[-1] } = $f[4] + 0;
+        my ( $name, $size, $mtime ) = split ' ', $line;
+        next if not defined $mtime or $name !~ m|\A[A-Z2-7]{77}\z|;
+        $stat{$name} = { qw| size | => $size + 0, qw| mtime | => $mtime + 0 };
     }
-    return \%size;
+    return \%stat;
+}
+
+## every blob name with its size, in one listing ##
+sub holder_sizes {
+    my $spec  = shift;
+    my $stats = holder_stats($spec);
+    return { map { $ARG => $stats->{$ARG}{'size'} } keys %{$stats} };
+}
+
+## mkdir -p of a relative path inside the holder [ trash day dirs ] ##
+sub holder_make_path {
+    my ( $spec, $rel, $mode ) = @_;
+    my $h = holder_parse($spec);
+    _rel_ok($rel);
+    return make_dirs( "$h->{'dir'}/$rel", $mode // 0700 )
+        if $h->{'type'} eq qw| local |;
+    _retry( $h, 'mkdir -p -- ' . _quote("$h->{'dir'}/$rel") );
+    return;
+}
+
+## a rename inside the holder, never across filesystems ; both directory ##
+## entries are synced, the removal at the source and the arrival at the  ##
+## target, so a crash cannot lose or duplicate the name                  ##
+sub holder_move {
+    my ( $spec, $from, $to ) = @_;
+    my $h = holder_parse($spec);
+    _rel_ok($_) for ( $from, $to );
+    if ( $h->{'type'} eq qw| local | ) {
+        rename( "$h->{'dir'}/$from", "$h->{'dir'}/$to" )
+            or refuse( 'cannot move %s : %s', $from, $OS_ERROR );
+        sync_dir( _rel_path( $h, _rel_dir($from) ) );
+        sync_dir( _rel_path( $h, _rel_dir($to) ) );
+        return;
+    }
+    _retry( $h,
+              'mv -f -- '
+            . _quote("$h->{'dir'}/$from") . ' '
+            . _quote("$h->{'dir'}/$to") );
+    foreach my $d ( _rel_dir($from), _rel_dir($to) ) {
+        my ( $s, undef, $e )
+            = _ssh( $h, 'sync -- ' . _quote( _rel_path( $h, $d ) ) );
+        warn "n7fs : remote directory sync unavailable : $e" if $s;
+    }
+    return;
+}
+
+## trash day directories with their holder-side mtime ##
+sub holder_trash_days {
+    my $spec = shift;
+    my $h    = holder_parse($spec);
+    my %day;
+    if ( $h->{'type'} eq qw| local | ) {
+        opendir( my $dh, "$h->{'dir'}/.trash" ) or return {};
+        foreach my $d ( readdir $dh ) {
+            next if $d !~ m|\A\d{4}-\d{2}-\d{2}\z|;
+            my @st = stat "$h->{'dir'}/.trash/$d";
+            $day{$d} = $st[9] if @st;
+        }
+        closedir $dh;
+        return \%day;
+    }
+    my ( $status, $out ) = _result( $h,
+              'cd '
+            . _quote( $h->{'dir'} )
+            . ' && for d in .trash/*/; do [ -d "$d" ] && '
+            . 'stat -c \'%n %Y\' -- "$d" 2>/dev/null; done' );
+    refuse('ssh trash listing failed') if $status;
+    foreach my $line ( split m|\n|, $out ) {
+        my ( $path, $mtime ) = split ' ', $line;
+        next if not defined $mtime;
+        my ($d) = $path =~ m|\A[.]trash/(\d{4}-\d{2}-\d{2})/\z|;
+        $day{$d} = $mtime + 0 if defined $d;
+    }
+    return \%day;
+}
+
+## every trashed blob : day -> name -> size ##
+sub holder_trash_list {
+    my $spec = shift;
+    my $h    = holder_parse($spec);
+    my %list;
+    if ( $h->{'type'} eq qw| local | ) {
+        foreach my $d ( keys %{ holder_trash_days($spec) } ) {
+            opendir( my $dh, "$h->{'dir'}/.trash/$d" ) or next;
+            foreach my $n ( readdir $dh ) {
+                next if $n !~ m|\A[A-Z2-7]{77}\z|;
+                $list{$d}{$n} = -s "$h->{'dir'}/.trash/$d/$n";
+            }
+            closedir $dh;
+        }
+        return \%list;
+    }
+    my ( $status, $out ) = _result( $h,
+              'cd '
+            . _quote( $h->{'dir'} )
+            . ' && for f in .trash/*/*; do [ -f "$f" ] && '
+            . 'stat -c \'%n %s\' -- "$f" 2>/dev/null; done' );
+    refuse('ssh trash listing failed') if $status;
+    foreach my $line ( split m|\n|, $out ) {
+        my ( $path, $size ) = split ' ', $line;
+        next if not defined $size;
+        my ( $d, $n )
+            = $path =~ m|\A[.]trash/(\d{4}-\d{2}-\d{2})/([A-Z2-7]{77})\z|;
+        $list{$d}{$n} = $size + 0 if defined $n;
+    }
+    return \%list;
+}
+
+## one trash day directory, actually removed [ holder-trash-purge -delete ] ##
+sub holder_remove_day {
+    my ( $spec, $rel ) = @_;
+    my $h = holder_parse($spec);
+    refuse('invalid trash day path')
+        if ( $rel // '' ) !~ m|\A\.trash/\d{4}-\d{2}-\d{2}\z|;
+    if ( $h->{'type'} eq qw| local | ) {
+        remove_tree("$h->{'dir'}/$rel")
+            or refuse( 'cannot remove %s', $rel );
+        sync_dir("$h->{'dir'}/.trash");
+        return;
+    }
+    _retry( $h, 'rm -rf -- ' . _quote("$h->{'dir'}/$rel") );
+    my ( $s, undef, $e )
+        = _ssh( $h, 'sync -- ' . _quote("$h->{'dir'}/.trash") );
+    warn "n7fs : remote trash sync unavailable : $e" if $s;
+    return;
 }
 
 sub holder_delete {
@@ -472,10 +656,12 @@ sub _scrub_dir {
 }
 
 sub _scrub_parse {
-    my $out    = shift // '';
+    my ( $out, $tag ) = @_;
     my $result = _scrub_result();
-    foreach my $line ( split m|\n|, $out ) {
+    foreach my $line ( split m|\n|, $out // '' ) {
         my ( $state, $name, $digest ) = split ' ', $line;
+        ## the receiver echoes the asked name : the subdir prefix is ours ##
+        $name =~ s|\A\Q$tag\E/|| if defined $tag;
         if    ( $state eq qw| ok | ) { $result->{'ok'}++ }
         elsif ( $state eq qw| ans | ) {
             $result->{'ok'}++;
@@ -497,25 +683,37 @@ sub _scrub_clean {
 }
 
 sub holder_scrub {
-    my ( $spec, $names, $nonce ) = @_;
+    my ( $spec, $names, $nonce, $tag ) = @_;
     my $h = holder_parse($spec);
     refuse('scrub nonce is invalid')
         if defined $nonce
         and $nonce !~ m|\A[A-Z2-7]{1,64}\z|;
+    refuse( 'invalid root subdirectory tag [ %s ]', $tag // '' )
+        if defined $tag and $tag !~ m|\Ar-[A-Z2-7]{7}\z|;
     my @names = @{ $names // [] };
     refuse('invalid blob name')
         if grep { $ARG !~ m|\A[A-Z2-7]{77}\z| } @names;
+    return _scrub_clean( _scrub_dir( "$h->{'dir'}/$tag", \@names, $nonce ) )
+        if $h->{'type'} eq qw| local | and defined $tag;
     return _scrub_clean( _scrub_dir( $h->{'dir'}, \@names, $nonce ) )
         if $h->{'type'} eq qw| local |;
     ## ssh : the restricted receiver answers scrub -- read-only, keyless ##
+    if ( defined $tag ) {
+        ## a list-less scrub of a subdirectory lists it first : the   ##
+        ## receiver's own list-less form reads the holder's top level ##
+        @names
+            = sort keys %{ holder_stats( holder_sub_spec( $spec, $tag ) ) };
+        return _scrub_clean( _scrub_result() ) if not @names;
+    }
     my @delays = _delays();
     my $result = _scrub_result();
     ## keep every command line short ##
     for ( my $i = 0; $i < @names or $i == 0; $i += 400 ) {
         my @part
             = @names[ $i .. ( $i + 399 < $#names ? $i + 399 : $#names ) ];
+        my @asked   = defined $tag ? map {"$tag/$ARG"} @part : @part;
         my $request = join ' ', qw| scrub |,
-            ( defined $nonce ? ( '-nonce', $nonce ) : () ), @part;
+            ( defined $nonce ? ( '-nonce', $nonce ) : () ), @asked;
         my ( $status, $out, $err );
         for my $try ( 0 .. $#delays ) {
             ( $status, $out, $err ) = _ssh( $h, $request );
@@ -525,7 +723,7 @@ sub holder_scrub {
         ## 7 is the answer too [ corruption or absence ], not a failure ##
         refuse( 'holder scrub failed : %s', $err )
             if $status and $status != 7;
-        my $part_result = _scrub_parse($out);
+        my $part_result = _scrub_parse( $out, $tag );
         $result->{'ok'} += $part_result->{'ok'};
         push $result->{'bad'}->@*,     $part_result->{'bad'}->@*;
         push $result->{'missing'}->@*, $part_result->{'missing'}->@*;
@@ -592,8 +790,8 @@ sub holder_put {
 
 1;
 
-#,,,,,,..,,..,,,.,.,.,.,,,,..,...,...,,,,,,,.,..,,...,...,.,.,...,,,,,.,.,...,
-#QIXYBHGLQGHBHWHXI7J62ASTIIVGARBZ5O4UMNYZRXQXVSEIUOWXNKXRZYB3ORFY2ZLURLJE4CGO6
-#\\\|VQ3YS3MZC5QINU4RA446DDEXDFV5JVVQBNP5IW2KBATIFMLUUTT \ / AMOS7 \ YOURUM ::
-#\[7]2R5737EVDLQK76QTSALREQ7ND5JFMTHHBAV65AANM5CTQNTZMUDQ 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,,..,.,,,,,.,.,.,,,.,.,,,,,.,..,,...,..,,,..,,,.,...,.,,,,,,,
+#VDN4RTXNWIXY2VKAJQWIRHEPNA3HPFJ2EICG2HBCC3DELOAHK6SKV3OY25GTNXN4GFQCI2DPWRZ4M
+#\\\|OJJ6MWJFHDTNYBK72QYYV7L7IDUREJMMUU6FMQGEFEC6OA3FEJS \ / AMOS7 \ YOURUM ::
+#\[7]LNXHJG7SHFUTJQQJQBIBO3MQPJJO65EHLQVIIYVBEPGXIARJQABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

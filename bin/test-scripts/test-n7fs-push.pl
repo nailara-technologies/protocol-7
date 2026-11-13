@@ -51,7 +51,16 @@ sub cli {
 sub blobs {
     my $dir = shift;
     opendir( my $d, $dir ) or return ();
-    return sort grep {m|\A[A-Z2-7]{77}\z|} readdir $d;
+    my @top = grep { $ARG ne '.' and $ARG ne '..' } readdir $d;
+    closedir $d;
+    my @names = grep {m|\A[A-Z2-7]{77}\z|} @top;
+    ## a per-root holder keeps its blobs in the root's subdirectory ##
+    foreach my $s ( grep { m|\Ar-[A-Z2-7]{7}\z| and -d "$dir/$ARG" } @top ) {
+        opendir( my $sd, "$dir/$s" ) or next;
+        push @names, grep {m|\A[A-Z2-7]{77}\z|} readdir $sd;
+        closedir $sd;
+    }
+    return sort @names;
 }
 
 ## receive directly, as the forced command would run ##
@@ -103,6 +112,11 @@ make_dirs($ARG) for $hub, $far;
     't'
 );
 ok( $rc == 0, 'sealed once, to the hub' ) or say $out;
+## a fresh holder starts in the per-root layout [ review finding 2 ] ##
+my ($hub_sub) = glob("$hub/r-*");
+ok( defined $hub_sub && -d $hub_sub,
+    'sealing a fresh holder starts the per-root layout' )
+    or say $out;
 ## far gets a head first, so gc there has something to protect ##
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'hub', 'far', '-root-key', 'vault:main' );
@@ -203,11 +217,14 @@ ok( $rc == 3 && !-e "$box2/$other",
     'bytes not matching the name are refused' )
     or say $out;
 my ($head)
-    = grep { bmw_b32( bmw384_bytes( read_file("$hub/$ARG") ) ) ne $ARG }
-    blobs($hub);
-( $rc, $out )
-    = receive( $box2, "put $head " . -s "$hub/$head",
-    read_file("$hub/$head") );
+    = grep { bmw_b32( bmw384_bytes( read_file("$hub_sub/$ARG") ) ) ne $ARG }
+    grep   {m|\A[A-Z2-7]{77}\z|}
+    do { opendir( my $hd, $hub_sub ) or die $OS_ERROR; readdir $hd };
+( $rc, $out ) = receive(
+    $box2,
+    "put $head " . -s "$hub_sub/$head",
+    read_file("$hub_sub/$head")
+);
 ok( $rc == 3 && !-e "$box2/$head", 'a head can never be written' )
     or say $out;
 ( $rc, $out )
@@ -303,9 +320,11 @@ ok( $rc == 0 && $out =~ m|^ok \S+|m && $out !~ m|^bad|m,
 ) or say $out;
 ## the hub keeps a head, the one file never named by its checksum ##
 my ($hub_head)
-    = grep { bmw_b32( bmw384_bytes( read_file("$hub/$ARG") ) ) ne $ARG }
-    blobs($hub);
-( $rc, $out ) = receive( $hub, 'scrub' );
+    = grep { bmw_b32( bmw384_bytes( read_file("$hub_sub/$ARG") ) ) ne $ARG }
+    grep   {m|\A[A-Z2-7]{77}\z|}
+    do { opendir( my $hd, $hub_sub ) or die $OS_ERROR; readdir $hd };
+## a list-less scrub reads the directory it is given : the root's own ##
+( $rc, $out ) = receive( $hub_sub, 'scrub' );
 my @scrub_bad = $out =~ m|^bad (\S+)|mg;
 ok( $rc == 7
         && @scrub_bad == 1
@@ -314,10 +333,61 @@ ok( $rc == 7
     'a list-less scrub reports exactly the non-checksum-named head as bad'
 ) or say $out;
 
+## per-root subdirectory names [ review finding 2 ] ##
+( $rc, $out ) = receive( $box2, 'put ../x 1', 'x' );
+ok( $rc != 0, 'a dot-dot put name is refused' ) or say $out;
+( $rc, $out ) = receive( $box2, 'put r-x/y/z 1', 'x' );
+ok( $rc != 0, 'a two-level put name is refused' ) or say $out;
+( $rc, $out ) = receive( $box2, "put /$name 1", 'x' );
+ok( $rc != 0, 'an absolute put name is refused' ) or say $out;
+( $rc, $out )
+    = receive( $box2, 'put r-ABCDEFG/' . ( 'A' x 77 ) . ' 1', 'x' );
+ok( $rc == 3 && -d "$box2/r-ABCDEFG",
+    'a well-formed subdir put creates the subdirectory' )
+    or say $out;
+my $sbytes = "subdir ciphertext\n";
+my $sname  = bmw_b32( bmw384_bytes($sbytes) );
+( $rc, $out )
+    = receive( $box2, "put r-ABCDEFG/$sname " . length $sbytes, $sbytes );
+ok( $rc == 0 && read_file("$box2/r-ABCDEFG/$sname") eq $sbytes,
+    'a subdir put lands in the subdirectory' )
+    or say $out;
+( $rc, $out ) = receive( $box2, "has r-ABCDEFG/$sname $sname" );
+ok( $rc == 0 && $out eq "r-ABCDEFG/$sname " . length($sbytes) . "\n",
+    'has reads the subdirectory form' )
+    or say $out;
+( $rc, $out ) = receive( $box2, "scrub r-ABCDEFG/$sname" );
+ok( $rc == 0 && $out =~ m|^ok r-ABCDEFG/$sname$|m,
+    'scrub verifies a subdir blob' )
+    or say $out;
+## the cap covers the whole holder : a put into a new subdirectory still ##
+## counts the bytes held in the others                                   ##
+my $cbytes = "cap ciphertext\n";
+my $cname  = bmw_b32( bmw384_bytes($cbytes) );
+( $rc, $out ) = receive( $box2, "put r-HIJKLMN/$cname " . length $cbytes,
+    $cbytes, '-max-bytes', length($sbytes) + length($cbytes) - 1 );
+ok( $rc == 5 && !-e "$box2/r-HIJKLMN/$cname",
+    'a subdir put counts every root subdirectory against the cap' )
+    or say $out;
+## .trash is invisible to has and scrub : a trashed blob counts as missing ##
+make_dirs("$box2/.trash/2026-11-13");
+write_file( "$box2/.trash/2026-11-13/$name", $bytes );
+unlink "$box2/$name" or die $OS_ERROR;
+( $rc, $out ) = receive( $box2, "has $name" );
+ok( $rc == 0 && $out eq '', 'has ignores the trash' ) or say $out;
+( $rc, $out ) = receive( $box2, "scrub $name" );
+ok( $rc == 7 && $out =~ m|^missing $name$|m,
+    'a blob present only in trash counts as missing'
+) or say $out;
+( $rc, $out ) = receive( $box2, 'scrub' );
+ok( $rc == 0 && $out !~ m|^bad|m && $out !~ m|trash|,
+    'a list-less scrub never reads the trash'
+) or say $out;
+
 done();
 
-#,,,,,,,,,...,...,,.,,,.,,..,,..,,.,,,,.,,..,,..,,...,...,,..,,..,.,,,.,,,.,.,
-#GS4JVJPI4PDEZNP7NTIR4IVJWLOHXGT6SOR3HTABRYGCNWBIBDXM55UHDYWTCZLORCRWTR7EBE2A6
-#\\\|HFTC4VG4756YOMON5FZABK3YLB26YRVPSS3ZC7FSLPITTWC42GI \ / AMOS7 \ YOURUM ::
-#\[7]Z4IEUNNZC4AWMB7V434V23N77KVWHQB4ZAN4VWLXLVY25VA4ISDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,..,,.,,,,,.,.,.,,.,,,,,,...,..,,...,...,..,,,..,.,.,...,.,,,
+#LXKQBXXV74KLLDUACPS4ZAPMKEMAV4DTFHZJ2Z6TQAZWBY7V2MRX5HLB2BN6QDXZDKSRT5JK2IBOY
+#\\\|TEJZ6I2OA3PUYVJJH3JZIHVZHUBVHZFQ3X7PKDN2XSIYGXZIWQE \ / AMOS7 \ YOURUM ::
+#\[7]ST3UF3WTARJYIHUO7QI5MNFRSID7Y5VVWXZZSUKF4AGMFXOH2AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

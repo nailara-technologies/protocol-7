@@ -76,12 +76,26 @@ recovery reads only a packed node's range from a local holder. from an ssh holde
 
 measured against a real owned holder over ssh : 500 small files sealed in 15 s as one pack [ about 33 minutes before ], recovered in 3.2 s [ 2 minutes 44 with one range read per node ]. shredding a packed node drops its wrap ; its bytes stay in the pack until a repack.
 
-## holder-gc
+## holder-gc, trash and the per-root layout [ 2026-11-13, review finding 2 ]
 
-`n7fs holder-gc <holder> -root-key <key> -only-root [ -delete ]` removes the blobs the current head no longer references : superseded maps and journals, and node blobs dropped from the map. it lists them by default and deletes only with `-delete`. a holder may hold several roots, and their blobs cannot be told apart from outside, so it refuses without `-only-root`, which states that this holder serves this root alone. it must not run while a seal to the same holder is in progress. it is the local form of the home-signed delete of stage 5 part 2 ; a holder that ignores it is what shredding covers.
+`n7fs holder-gc <holder> -root-key <key> [ -only-root ] [ -delete ] [ -grace <age> ]` collects the blobs the current head no longer references : superseded maps and journals, and node blobs dropped from the map. it never deletes. a blob younger than the grace age [ default 1 day, holder-side mtime, one listing ] is always kept, so a seal, relay or push in flight cannot lose its bytes to a concurrent gc. with `-delete` each old unreferenced blob is MOVED to `.trash/<YYYY-MM-DD>/<name>` inside the holder directory [ rename, same filesystem, local and ssh ], never `rm`. the listing is one batched call, local or over ssh.
 
-#,,.,,,,,,..,,,,.,,,,,,,,,.,.,.,,,,..,.,,,.,,,..,,...,...,,..,,,,,...,,..,..,,
-#HSKQY5GE6AJAGYPYUJQDYGFOHVWBTRALU4Z2377WAXKCH43V23LC3733SH5XZCAI63KF5HKZ75GJC
-#\\\|7DOSDR7MGP2T5W6RYIW4OUQMIMAMUNMVGBXTT73FT7O2LH7MFL7 \ / AMOS7 \ YOURUM ::
-#\[7]IT47O7JILXYEQQUUOI3HMDCZ3UYO3J2MCTJQ6OYM7PCBMUOUDUDI 7  DATA SIGNATURE ::
+the trash is useful, so :
+
+- `n7fs holder-trash-restore <holder> -root-key <key> <name>..` moves blobs back [ or `-all-since <YYYY-MM-DD>` ]. a blob already back at the holder is skipped, never overwritten.
+- `n7fs holder-trash-purge <holder> -root-key <key> [ -older <age> ] [ -delete ]` removes trash day directories older than the age [ default 7 days, the receipt age ]. dry run unless `-delete`.
+- `has` and `scrub` never read `.trash/` : a blob present only in trash counts as missing everywhere [ placement, holder-check, scrub ].
+
+one holder subdirectory per root : a holder in the new layout keeps each root's head, map, journal and blobs in `<holder>/r-<tag>/`, the tag seven characters of the root id [ short, stable, no secret ]. `holder-gc` then lists only that root's subdirectory, so `-only-root` is structural there -- the flag is still accepted and warned redundant. a holder with the old flat layout keeps working read-only and for gc as today, and still requires `-only-root` : a second root added later on the same holder would otherwise have its blobs collected by the first root's gc. detection is by existence : the subdirectory present and no flat head means the per-root layout ; a flat head means the old layout, even mid-migration. new holders start per-root ; every writer [ seal, place, relay, push, n7fs-receive put, drain ] writes into the subdirectory.
+
+`n7fs holder-migrate <holder> -root-key <key> [ -delete ]` moves a flat holder into the per-root layout : this root's referenced blobs, its map, journal and head, rename-only, idempotent, resumable after an interruption [ the head moves last, as the commit point ]. dry run by default. unreferenced flat blobs stay and are reported -- they may belong to another root. reads refuse while a migrate is interrupted midway [ missing blob ] until a rerun finishes it ; gc and migrate itself stay safe throughout. it takes the same host lock as gc.
+
+the restricted receiver keeps refusing anything but its existing requests, and a put name may be `r-<tag>/<name>` : one level, fixed tag charset, no `..`, no other path. the subdirectory is created on first put. it still cannot overwrite, and still cannot accept a head. a relay list names the subdirectory, so `n7fs-push` reads and writes the right directory on both ends.
+
+it must not run while a seal to the same holder is in progress [ the host lock of 2026-11-11 covers every holder-writing command ]. it is the local form of the home-signed delete of stage 5 part 2 ; a holder that ignores it is what shredding covers. **open** : the forced command for home's own key and root-signed deletes remain unimplemented [ review finding 2, remaining parts ].
+
+#,,..,,,.,,,,,..,,,,,,,..,,,,,,,,,.,.,...,.,.,..,,...,..,,..,,.,,,,.,,,..,,,.,
+#ITYKVWIUSTYZS2LMSPID76FTIPULHDLUDMUI6KJEQ3IDFMMTRJH72Z6YVBKVS2RBRZ7ZOJSJEHQKG
+#\\\|UNWNQY5NFFBQ6YSY32UEHNPC3S3U5JBFCYRRM44P4AG2MUDDIRZ \ / AMOS7 \ YOURUM ::
+#\[7]BN6MS34RJSAMA2ZHHAHI6GEFMEYMIL2P2EKBODNHX6CHM576RMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -159,9 +159,18 @@ ok( $out =~ m|kept|, 'a copy without a receipt does not count yet' )
 ok( $rc == 0 && $out =~ m|dropped [1-9]\d* nodes| && $out !~ m|kept|,
     'after a receipt elsewhere the holder drains' )
     or say $out;
+## the default grace keeps them : the drained blobs are younger than a day ##
 ( $rc, $out )
     = cli( ['vp'], 'holder-gc', $h[0], '-root-key', 'vault:main',
-    '-only-root', '-delete' );
+    '-only-root' );
+ok( $rc == 0 && $out =~ m|would remove 0| && $out =~ m|young|,
+    'gc never touches a blob younger than the grace age'
+) or say $out;
+( $rc, $out ) = cli(
+    ['vp'],       'holder-gc',  $h[0],     '-root-key',
+    'vault:main', '-only-root', '-delete', '-grace',
+    '0'
+);
 ok( $rc == 0 && $out =~ m|removed [1-9]|, 'gc frees the drained blobs' )
     or say $out;
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
@@ -441,9 +450,11 @@ ok( $rc == 0 && $out =~ m|would drop [1-9]|,
     ## a zero-filled blob of the right size is caught ##
     my @bblobs = sort
         keys %{ { map { $ARG->{'blob'} => 1 } values $bmap->{'nodes'}->%* } };
-    my $victim   = $bblobs[0];
-    my $victim_f = "$bigholder/$victim";
-    my $saved    = read_file($victim_f);
+    my $victim = $bblobs[0];
+    ## a per-root holder keeps the blobs in the root's subdirectory ##
+    my $victim_f
+        = "$bigholder/" . AMOS7::N7FS::Seal::root_subdir($sroot) . "/$victim";
+    my $saved = read_file($victim_f);
     write_file( $victim_f, "\0" x length $saved );
     ( $rc, $out )
         = cli( ['vp'], 'holder-scrub', $bigholder, '-root-key',
@@ -471,8 +482,8 @@ ok( $rc == 0 && $out =~ m|would drop [1-9]|,
 
 done();
 
-#,,..,,,.,,..,.,,,.,,,,.,,.,.,,.,,,.,,.,.,.,.,..,,...,...,..,,,.,,...,,.,,.,,,
-#DNQGDRLESFXZF2DPOGURMNUWUBE57LUQRRWNKOVV4T5AOK4334FNUFZFH56A5HLVHJNFLEWKMVLY2
-#\\\|ZCA4W3DIBIWNWPD3BFYBWCJZRUNYDANX5DHXENKT3LHV54RL6DO \ / AMOS7 \ YOURUM ::
-#\[7]3Z4W6ZK6HUGI7Z3ELXCQT34XU47JMVJU6OSQZMNKQPGTH62DAUBI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,,.,,,,.,,.,,,.,,.,.,.,.,,.,,..,,...,...,.,.,,,.,.,,,.,.,,.,,
+#SENODGM535FPPYJOZTKVDEHJ2JLKIDZCFLQGBFONZ5FSO5LHB6GJQF2EOHEQMCY7EJ3HAKI4CBWHI
+#\\\|XYGWFFQLPAYUEAUP5REASYOU4BXM4DHMHPR6JZRBKKXUBQBRVFS \ / AMOS7 \ YOURUM ::
+#\[7]E7CAFCJAIUXBFTAUTI5ZYDOG44DS2B3SM2KURLFMZQKKHTVI2GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -151,9 +151,11 @@ cli(0,      'seal all sizes', '-root-key', $rootfile,
     '-out', $holder,          'seal',      $disk,
     @addresses
 );
+my $hsub = holder_sub($holder);
+ok( defined $hsub, 'a fresh holder starts in the per-root layout' );
 my $initial_root = root_at($rootfile);
 my $initial_head_path
-    = "$holder/" . AMOS7::N7FS::Seal::_head_name($initial_root);
+    = "$hsub/" . AMOS7::N7FS::Seal::_head_name($initial_root);
 my $initial_head_bytes = read_file($initial_head_path);
 cli( 0, 'seal is idempotent',
     '-root-key', $rootfile, '-out', $holder, 'seal', $disk, @addresses );
@@ -172,11 +174,8 @@ foreach my $index ( 0 .. $#addresses ) {
 
 say ':: holder opacity and clean recovery';
 my $opaque = 1;
-opendir( my $dh, $holder ) or die $OS_ERROR;
-my @blobs = grep { $ARG ne '.' and $ARG ne '..' } readdir $dh;
-closedir $dh;
-foreach my $name (@blobs) {
-    my $bytes = read_file("$holder/$name");
+foreach my $name ( holder_blobs($holder) ) {
+    my $bytes = read_file("$hsub/$name");
     $opaque = 0 if index( $bytes, 'plaintext-must-never-leak-37' ) >= 0;
     $opaque = 0
         if index( $bytes, bmw384_bytes('plaintext-must-never-leak-37') ) >= 0;
@@ -259,7 +258,7 @@ my $root = root_at($rootfile);
 my ( undef, $head, $map ) = AMOS7::N7FS::Seal::_context( $root, $holder, 0 );
 my $small     = $addresses[3];
 my $entry     = $map->{'nodes'}{$small};
-my $blob_path = "$holder/$entry->{'blob'}";
+my $blob_path = "$hsub/$entry->{'blob'}";
 my $good_blob = read_file($blob_path);
 write_new_file( "$box->{'base'}/pristine-blob", $good_blob );
 substr( $good_blob, 20, 1 ) = chr( ord( substr( $good_blob, 20, 1 ) ) ^ 1 );
@@ -296,7 +295,7 @@ cli( 0, 'other node survives shred',
 
 say ':: truncation, reorder and blob swap';
 copy( "$box->{'base'}/pristine-blob", $blob_path ) or die $OS_ERROR;
-my $other_path     = "$holder/" . $map->{'nodes'}{ $addresses[0] }{'blob'};
+my $other_path     = "$hsub/" . $map->{'nodes'}{ $addresses[0] }{'blob'};
 my $other_pristine = read_file($other_path);
 write_new_file( "$box->{'base'}/other-pristine", $other_pristine );
 my $truncated = substr( $other_pristine, 0, -1 );
@@ -321,7 +320,7 @@ write_new_file( "$box->{'base'}/small-again", $small_again );
 write_new_file( "$box->{'base'}/other-again", $other_again );
 copy( "$box->{'base'}/small-again", $blob_path )  or die $OS_ERROR;
 copy( "$box->{'base'}/other-again", $other_path ) or die $OS_ERROR;
-my $large_path = "$holder/" . $map->{'nodes'}{ $addresses[2] }{'blob'};
+my $large_path = "$hsub/" . $map->{'nodes'}{ $addresses[2] }{'blob'};
 my $large      = read_file($large_path);
 my $first_len  = unpack 'N', substr( $large, 26, 4 );
 my $first      = substr( $large, 26, 4 + $first_len );
@@ -380,24 +379,24 @@ cli( 0, 'first writer seals version one',
 cli( 0, 'second state seals version one elsewhere',
     '-root-key', $writer_root2,
     '-out', $writer_holder2, 'seal', $disk, $small );
-my $writer1 = root_at($writer_root1);
-my $writer2 = root_at($writer_root2);
-my $writer_head1
-    = AMOS7::N7FS::Seal::_head_open( $writer1, $writer_holder1, 1 );
-my $writer_head2
-    = AMOS7::N7FS::Seal::_head_open( $writer2, $writer_holder2, 1 );
-my $writer_bytes1 = read_file(
-    "$writer_holder1/" . AMOS7::N7FS::Seal::_head_name($writer1) );
-my $writer_bytes2 = read_file(
-    "$writer_holder2/" . AMOS7::N7FS::Seal::_head_name($writer2) );
+my $writer1      = root_at($writer_root1);
+my $writer2      = root_at($writer_root2);
+my $whsub1       = holder_sub($writer_holder1);
+my $whsub2       = holder_sub($writer_holder2);
+my $writer_head1 = AMOS7::N7FS::Seal::_head_open( $writer1, $whsub1, 1 );
+my $writer_head2 = AMOS7::N7FS::Seal::_head_open( $writer2, $whsub2, 1 );
+my $writer_bytes1
+    = read_file( "$whsub1/" . AMOS7::N7FS::Seal::_head_name($writer1) );
+my $writer_bytes2
+    = read_file( "$whsub2/" . AMOS7::N7FS::Seal::_head_name($writer2) );
 ok( $writer_head1->{'writer'} ne $writer_head2->{'writer'}
         and $writer_bytes1 ne $writer_bytes2,
     'state loss cannot repeat a head nonce'
 );
-my $writer_map1     = read_file("$writer_holder1/$writer_head1->{'map'}");
-my $writer_map2     = read_file("$writer_holder2/$writer_head2->{'map'}");
-my $writer_journal1 = read_file("$writer_holder1/$writer_head1->{'journal'}");
-my $writer_journal2 = read_file("$writer_holder2/$writer_head2->{'journal'}");
+my $writer_map1     = read_file("$whsub1/$writer_head1->{'map'}");
+my $writer_map2     = read_file("$whsub2/$writer_head2->{'map'}");
+my $writer_journal1 = read_file("$whsub1/$writer_head1->{'journal'}");
+my $writer_journal2 = read_file("$whsub2/$writer_head2->{'journal'}");
 ok( $writer_map1 ne $writer_map2 and $writer_journal1 ne $writer_journal2,
     'map and journal nonces differ across writers' );
 ok( substr( $writer_bytes1, 8, 16 ) ne substr( $writer_bytes2, 8, 16 )
@@ -415,9 +414,8 @@ chmod 0600, $writer_root3;
 cli( 0, 'new state starts above the visible head',
     '-root-key', $writer_root3,
     '-out', $writer_holder2, 'seal', $disk, $addresses[1] );
-my $writer3 = root_at($writer_root3);
-my $writer_head3
-    = AMOS7::N7FS::Seal::_head_open( $writer3, $writer_holder2, 1 );
+my $writer3      = root_at($writer_root3);
+my $writer_head3 = AMOS7::N7FS::Seal::_head_open( $writer3, $whsub2, 1 );
 ok( $writer_head3->{'version'} == 3,
     'new writer version follows the newest visible head' );
 my $writer_recovery = "$box->{'base'}/writer-recovery";
@@ -554,7 +552,7 @@ ok(
 }
 
 say ':: old head and cascade refusal';
-my $head_path = "$holder/" . AMOS7::N7FS::Seal::_head_name($root);
+my $head_path = "$hsub/" . AMOS7::N7FS::Seal::_head_name($root);
 copy( $head_path, "$box->{'base'}/old-head" ) or die $OS_ERROR;
 cli(0,      'advance head', '-root-key', $rootfile,
     '-out', $holder,        'shred',     $disk,
@@ -588,8 +586,8 @@ cli( 1, 'cascade refused rather than ignored',
 
 done();
 
-#,,..,.,,,,,,,.,.,.,,,..,,.,,,..,,...,,..,,,.,..,,...,...,.,,,.,,,.,,,..,,.,,,
-#BFBFQVGQGF75AFFDWM6554U3BG4XK7QNZMJP7LZU3RNPWAZ5GK3YNPGHAILYERONGK4CYJYBHW2PC
-#\\\|DYH7CLW7TRC3AAPH7PGHQPZFZLZAY6BPZVFQA7Z4NCYJI5EFSWN \ / AMOS7 \ YOURUM ::
-#\[7]MHNWKCWKTHTP5KJJAYJHMCJB4RBXPGJ7DUDYJE6X5JYLON5642CY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,,.,,.,.,,,.,.,.,...,...,...,..,,...,...,..,,...,,,,,.,.,.,.,
+#64GHGD2TLEDA4H4LQAJG7YHCK53QX2ZFUOJTI7BEVSE6PMVYUHW5363RGUBYFS5N7U3SLU7TEC5MQ
+#\\\|B4QMWNDZEKQ6NERJ4HLRUYHZN2KLNRDFDTPK4RU4NM3D4SS6PXD \ / AMOS7 \ YOURUM ::
+#\[7]O6KZQMYRRRD6JDO4WOCO2W6KWQLOMBEN6GYBLSXE762HB53ERWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

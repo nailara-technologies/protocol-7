@@ -17,10 +17,12 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.IQPKQ7Y |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.RMYAC6Y |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
-    relay_nodes holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
+    relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
+    holder_migrate root_subdir
+    seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
 
 use JSON::PP;
 use Digest::BMW;
@@ -39,7 +41,9 @@ use AMOS7::N7FS::Journal  qw| journal_replay |;
 use AMOS7::N7FS::Category qw| category_report category_definitions |;
 use AMOS7::N7FS::Holder   qw| holder_parse holder_canonical holder_mkdir
     holder_read holder_size holder_put holder_delete holder_verify
-    holder_download holder_read_range holder_sizes holder_scrub |;
+    holder_download holder_read_range holder_sizes holder_stats holder_scrub
+    holder_isdir holder_sub_spec holder_make_path holder_move
+    holder_trash_days holder_trash_list holder_remove_day |;
 
 use constant CHUNK_SIZE => 16 * 1024 * 1024;
 
@@ -246,6 +250,31 @@ sub _head_name {
         bmw384_bytes( "p7 n7fs seal head locator v1\0" . $root->{'keys'} ) );
 }
 
+## one holder subdirectory per root [ review finding 2 ] : r- plus seven
+## root-id characters -- short, stable, and no secret, the root id is a
+## public-key derivation already carried in every head and map. the
+## subdirectory holds that root's head, map, journal and blobs, so a gc of one
+## root never lists another root's blobs. a holder is per-root when its
+## subdirectory exists and no flat head remains ; a flat-layout holder stays
+## flat until holder-migrate moves it
+sub root_subdir {
+    my $root = shift;
+    return 'r-' . substr( $root->{'root_id'}, 0, 7 );
+}
+
+## where this root's head lives : the flat head wins when both exist, so a ##
+## holder interrupted mid-migration still reads as the old layout and a    ##
+## rerun of migrate finishes it                                            ##
+sub _head_locate {
+    my ( $root, $dir ) = @_;
+    my $head = _head_open( $root, $dir, FALSE );
+    return ( $head, $dir ) if defined $head;
+    my $tag = root_subdir($root);
+    return ( undef, $dir ) if not holder_isdir( $dir, $tag );
+    my $base = holder_sub_spec( $dir, $tag );
+    return ( _head_open( $root, $base, FALSE ), $base );
+}
+
 sub _write_blob {
     my ( $root, $dir, $bytes, $kind ) = @_;
     my $name = bmw_b32( bmw384_bytes($bytes) );
@@ -329,7 +358,14 @@ sub _context {
     holder_mkdir($dir) if not $recover;
     $dir = holder_canonical($dir);
     my $state = _state_read($root);
-    my $head  = _head_open( $root, $dir, FALSE );
+    my ( $head, $base ) = _head_locate( $root, $dir );
+    if ( not defined $head and not $recover ) {
+        ## a writer on a holder with no head anywhere starts it in the    ##
+        ## per-root layout : the subdirectory is created before any write ##
+        my $tag = root_subdir($root);
+        $base = holder_sub_spec( $dir, $tag );
+        holder_mkdir($base) if not holder_isdir( $dir, $tag );
+    }
     refuse('pinned holder head is missing')
         if not defined $head and ( $state->{'pins'}{$dir} // 0 ) > 0;
     $state->{'new_holder'} = not defined $head;
@@ -352,7 +388,14 @@ sub _context {
     if ( defined $head ) {
         my $writer = unb32( $head->{'writer'} // '' );
         refuse('head writer id is invalid') if not defined $writer;
-        my $bytes = _read_blob( $dir, $head->{'map'} );
+        ## mid-migration the map may already sit in the other layout dir :  ##
+        ## the name is the checksum of its bytes, so the fallback reads the ##
+        ## same authenticated content, never a different map                ##
+        my $bytes = eval { _read_blob( $base, $head->{'map'} ) };
+        if ( not defined $bytes ) {
+            my $alt = holder_sub_spec( $dir, root_subdir($root) );
+            $bytes = _read_blob( $alt, $head->{'map'} ) if $alt ne $base;
+        }
         refuse('map writer does not match its head')
             if substr( $bytes, 0, 16 ) ne $writer;
         my $plain = open_sealed_bytes( $root->{'keys'}, substr( $bytes, 16 ),
@@ -364,7 +407,7 @@ sub _context {
             or ( $map->{'root_id'} // '' ) ne $root->{'root_id'};
         $map->{'trees'} //= {};
     }
-    return ( $state, $head, $map );
+    return ( $state, $head, $map, $base );
 }
 
 ## a holder reached under a new spec : its head must be there and not older
@@ -375,7 +418,7 @@ sub holder_respec {
     $new = holder_canonical($new);
     my $state  = _state_read($root);
     my $pinned = $state->{'pins'}{$old} // 0;
-    my $head   = _head_open( $root, $new, FALSE );
+    my ($head) = _head_locate( $root, $new );
     refuse('no sealed head under the new spec') if not defined $head;
     refuse( 'the new spec serves an older head [ %d, pinned %d ]',
         $head->{'version'}, $pinned )
@@ -388,8 +431,7 @@ sub holder_respec {
 }
 
 sub _commit {
-    my ( $root, $dir, $state, $map, $operation ) = @_;
-    $dir = holder_canonical($dir);
+    my ( $root, $base, $pin, $state, $map, $operation ) = @_;
     my $writer  = _writer($state);
     my $version = $state->{'version'} + 1;
     fault(qw| seal:before-version |);
@@ -418,7 +460,7 @@ sub _commit {
     my $map_bytes = $writer
         . seal_bytes( $root->{'keys'}, $JSON->encode( \%stored ),
         qw| map |, $writer, $version );
-    my $map_name = _write_blob( $root, $dir, $map_bytes, qw| map | );
+    my $map_name = _write_blob( $root, $base, $map_bytes, qw| map | );
     fault(qw| seal:after-map |);
     my $journal = $JSON->encode(
         {   qw| writer |    => b32($writer),
@@ -428,7 +470,7 @@ sub _commit {
         }
     );
     my $journal_name = _write_blob(
-        $root, $dir,
+        $root, $base,
         $writer
             . seal_bytes(
             $root->{'keys'}, $journal, qw| journal |, $writer, $version
@@ -440,17 +482,17 @@ sub _commit {
     my $head_bytes
         = _head_bytes( $root, $writer, $version, $map_name, $journal_name );
 
-    if ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
+    if ( holder_parse($base)->{'type'} eq qw| ssh | ) {
         my $spool = "$state_dir/spool";
         make_dirs( $spool, 0700 );
         my $path = "$spool/$head_name";
         write_new_file( $path, $head_bytes ) if not -e $path;
-        holder_put( $dir, $path, $head_name, qw| head |, TRUE );
+        holder_put( $base, $path, $head_name, qw| head |, TRUE );
         unlink $path or refuse('cannot remove confirmed head spool');
     } else {
-        _replace_file( "$dir/$head_name", $head_bytes );
+        _replace_file( "$base/$head_name", $head_bytes );
     }
-    $state->{'pins'}{$dir} = $version;
+    $state->{'pins'}{$pin} = $version;
     _state_write( $root, { %{$state}, qw| version | => $version } );
     fault(qw| seal:after-head |);
     return $version;
@@ -654,7 +696,8 @@ sub seal_nodes {
     my ( $id, $replay, $addresses, $trees, $node_categories )
         = _select_addresses(%opt);
     holder_mkdir($dir);
-    my ( $counter, $head, $map ) = _context( $root, $dir, FALSE );
+    my ( $counter, $head, $map, $base ) = _context( $root, $dir, FALSE );
+    my $pin = holder_canonical($dir);
     $map->{'_root_keys'} = $root->{'keys'};
     my $tree_changes = grep {
         ( $map->{'trees'}{$ARG}{'manifest'} // '' ) ne
@@ -667,7 +710,7 @@ sub seal_nodes {
     my %pack  = ( qw| bytes | => "P7SP\x01", qw| entries | => [] );
     my $flush = sub {
         return if not $pack{'entries'}->@*;
-        my $name = _write_blob( $root, $dir, $pack{'bytes'}, qw| pack | );
+        my $name = _write_blob( $root, $base, $pack{'bytes'}, qw| pack | );
         $ARG->{'blob'} = $name for $pack{'entries'}->@*;
         %pack = ( qw| bytes | => "P7SP\x01", qw| entries | => [] );
         fault(qw| seal:after-pack |);
@@ -726,14 +769,14 @@ sub seal_nodes {
         }
         fault(qw| seal:before-blob |);
         my ( $name, $chunks, $packed )
-            = _node_blob( $path, $keys, $dir, $bmw, $root, TRUE );
+            = _node_blob( $path, $keys, $base, $bmw, $root, TRUE );
         my ( $length, $offset ) = ( undef, 0 );
         if ( defined $packed ) {
             $offset = length $pack{'bytes'};
             $length = length $packed;
             $pack{'bytes'} .= $packed;
         } else {
-            $length = holder_size( $dir, $name );
+            $length = holder_size( $base, $name );
         }
         fault(qw| seal:after-blob |);
         my %wraps;
@@ -773,8 +816,8 @@ sub seal_nodes {
         if (   @new >= ( $ENV{'N7FS_TEST_SEAL_BATCH'} // 1000 )
             or $batch_bytes >= 1024**3 ) {
             $flush->();
-            $counter->{'version'} = _commit( $root, $dir, $counter, $map,
-                { qw| seal | => [@new] } );
+            $counter->{'version'} = _commit( $root, $base, $pin, $counter,
+                $map, { qw| seal | => [@new] } );
             @new          = ();
             $batch_bytes  = 0;
             $tree_changes = 0;
@@ -787,7 +830,7 @@ sub seal_nodes {
     delete $map->{'_root_keys'};
     if ( @new or $tree_changes or $tagged ) {
         $counter->{'version'}
-            = _commit( $root, $dir, $counter, $map,
+            = _commit( $root, $base, $pin, $counter, $map,
             { qw| seal | => [@new] } );
     }
     unlink for @pending_files;
@@ -1052,21 +1095,27 @@ sub _restore_sealed_tree {
 
 sub unseal_address {
     my %opt = @_;
-    my ( undef, undef, $map ) = _context( @opt{qw| root holder |}, FALSE );
-    return _restore_sealed_tree( %opt, qw| map | => $map )
-        if $opt{'address'} !~ m|\AV7[A-Z2-7]{5}/|;
-    _restore_node( @opt{qw| root holder |}, $map, $opt{'address'},
+    my ( undef, undef, $map, $base )
+        = _context( @opt{qw| root holder |}, FALSE );
+    return _restore_sealed_tree(
+        %opt,
+        qw| holder | => $base,
+        qw| map |    => $map
+    ) if $opt{'address'} !~ m|\AV7[A-Z2-7]{5}/|;
+    _restore_node( $opt{'root'}, $base, $map, $opt{'address'},
         $opt{'target'} );
     return TRUE;
 }
 
 sub seal_recover {
     my %opt = @_;
-    my ( undef, $head, $map ) = _context( @opt{qw| root holder |}, TRUE );
+    my ( undef, $head, $map, $base )
+        = _context( @opt{qw| root holder |}, TRUE );
     refuse('no sealed head to recover') if not defined $head;
     if ( defined $opt{'tree'} ) {
         my $r = _restore_sealed_tree(
             %opt,
+            qw| holder |  => $base,
             qw| address | => $opt{'tree'},
             qw| map |     => $map
         );
@@ -1076,7 +1125,7 @@ sub seal_recover {
     foreach my $address ( sort keys $map->{'nodes'}->%* ) {
         my $safe = $address;
         $safe =~ s|/|_|g;
-        _restore_node( @opt{qw| root holder |}, $map, $address,
+        _restore_node( $opt{'root'}, $base, $map, $address,
             $opt{'target'} . "/$safe" );
     }
     return {
@@ -1185,12 +1234,21 @@ sub _sampled_chunks {
 
 sub holder_check {
     my %opt = @_;
-    my ( undef, $head, $map ) = _context( @opt{qw| root holder |}, TRUE );
+    my ( undef, $head, $map, $base )
+        = _context( @opt{qw| root holder |}, TRUE );
     refuse('no sealed head to check') if not defined $head;
     my $coverage = $opt{'coverage'} // qw| sampled |;
     refuse('coverage must be sizes-only, sampled, full or scrub')
         if $coverage !~ m{\A(?:sizes-only|sampled|full|scrub)\z};
-    my $sizes     = holder_sizes( $opt{'holder'} );
+    ## every blob read happens in the root's subdirectory on a per-root   ##
+    ## holder ; the scrub names carry the tag for the restricted receiver ##
+    my $tag
+        = $base ne holder_canonical( $opt{'holder'} )
+        ? root_subdir( $opt{'root'} )
+        : undef;
+    my $top = $opt{'holder'};
+    $opt{'holder'} = $base;
+    my $sizes     = holder_sizes($base);
     my @addresses = sort keys $map->{'nodes'}->%*;
     my %blobs;
 
@@ -1215,7 +1273,7 @@ sub holder_check {
         ## checks authenticate with the root                                ##
         my @names = sort keys %blobs;
         push @names, $head->{'map'}, $head->{'journal'};
-        my $result = holder_scrub( $opt{'holder'}, \@names );
+        my $result = holder_scrub( $top, \@names, undef, $tag );
         refuse(
             'holder scrub is not clean : %s bad, %s missing',
             scalar $result->{'bad'}->@*,
@@ -1250,35 +1308,213 @@ sub holder_check {
 }
 
 ## blobs a holder keeps that the current head no longer references :
-## superseded maps and journals, and nodes dropped from the map. a holder may
-## hold other roots, whose blobs look the same from outside, so this only runs
-## when the owner states the holder serves this root alone
+## superseded maps and journals, and nodes dropped from the map. instead of
+## deleting, gc MOVES each one to .trash/<YYYY-MM-DD>/<name> inside the holder
+## directory [ rename, same filesystem ], and never touches a blob younger
+## than the grace age [ default 1 day, -grace ] : a seal, relay or push in
+## flight must not lose its bytes to a concurrent gc. the age is the
+## holder-side mtime, listed in one call.
+##
+## on a per-root holder the listing is the root's own subdirectory, so
+## -only-root is structural there and the flag is redundant [ warned ] ; a
+## holder may still hold other roots in the old flat layout, whose blobs
+## cannot be told apart from outside, so the flat layout keeps requiring it
 sub holder_gc {
     my %opt = @_;
+    my ( undef, $head, $map, $base )
+        = _context( @opt{qw| root holder |}, TRUE );
+    refuse('no sealed head on this holder') if not defined $head;
+    my $per_root = $base ne holder_canonical( $opt{'holder'} );
     refuse(   'holder-gc needs -only-root : a holder may also hold '
             . 'other roots, and their blobs cannot be told apart' )
-        if not $opt{'only_root'};
-    my ( undef, $head, $map ) = _context( @opt{qw| root holder |}, TRUE );
-    refuse('no sealed head on this holder') if not defined $head;
+        if not $per_root and not $opt{'only_root'};
+    warn "n7fs : -only-root is redundant : this holder "
+        . "keeps each root in its own subdirectory\n"
+        if $per_root and $opt{'only_root'};
     my %keep = map { $ARG => TRUE } _head_name( $opt{'root'} ),
         $head->{'map'}, $head->{'journal'};
     $keep{ $map->{'nodes'}{$ARG}{'blob'} } = TRUE
         for keys $map->{'nodes'}->%*;
     ## pushed by a relay, not adopted yet ##
     $keep{$ARG} = TRUE for @{ $opt{'keep'} // [] };
-    my $sizes = holder_sizes( $opt{'holder'} );
-    my @drop  = sort grep { not $keep{$ARG} } keys %{$sizes};
+    my $grace = $opt{'grace'} // 86400;
+    my $now   = time;
+    my $stats = holder_stats($base);
+    my ( @drop, @young );
+    foreach my $name ( sort grep { not $keep{$ARG} } keys %{$stats} ) {
+        if ( $now - $stats->{$name}{'mtime'} < $grace ) {
+            push @young, $name;
+        } else {
+            push @drop, $name;
+        }
+    }
     my $bytes = 0;
-    $bytes += $sizes->{$ARG} for @drop;
+    $bytes += $stats->{$ARG}{'size'} for @drop;
 
-    if ( $opt{'delete'} ) {
-        holder_delete( $opt{'holder'}, $ARG ) for @drop;
+    if ( $opt{'delete'} and @drop ) {
+        my $day = _trash_day();
+        holder_make_path( $base, ".trash/$day", 0700 );
+        holder_move( $base, $ARG, ".trash/$day/$ARG" ) for @drop;
     }
     return {
-        qw| kept |    => scalar( keys %{$sizes} ) - scalar @drop,
-        qw| removed | => scalar @drop,
+        qw| kept |     => scalar( keys %{$stats} ) - scalar @drop,
+        qw| removed |  => scalar @drop,
+        qw| young |    => scalar @young,
+        qw| bytes |    => $bytes,
+        qw| deleted |  => $opt{'delete'} ? TRUE : FALSE,
+        qw| per_root | => $per_root,
+    };
+}
+
+## the trash bucket of today, by utc date ##
+sub _trash_day {
+    my @t = gmtime;
+    return sprintf '%04d-%02d-%02d', $t[5] + 1900, $t[4] + 1, $t[3];
+}
+
+## the holder directory gc, purge and restore act on : the root's  ##
+## subdirectory on a per-root holder, the flat directory otherwise ##
+sub _trash_base {
+    my %opt = @_;
+    my ( undef, undef, undef, $base )
+        = _context( @opt{qw| root holder |}, TRUE );
+    return $base;
+}
+
+## holder-trash-purge : remove trash day directories whose holder-side mtime
+## is older than the age [ the receipt age by default, set by the caller ].
+## dry run unless -delete
+sub holder_trash_purge {
+    my %opt   = @_;
+    my $base  = _trash_base(%opt);
+    my $older = $opt{'older'} // refuse('trash purge needs an age');
+    my $now   = time;
+    my $days  = holder_trash_days($base);
+    my $list  = holder_trash_list($base);
+    my @old   = sort grep { $now - $days->{$ARG} > $older } keys %{$days};
+    my ( $bytes, $removed ) = ( 0, 0 );
+
+    foreach my $day (@old) {
+        $bytes += $ARG for values %{ $list->{$day} // {} };
+        next if not $opt{'delete'};
+        holder_remove_day( $base, ".trash/$day" );
+        $removed++;
+    }
+    return {
+        qw| days |    => scalar @old,
+        qw| removed | => $removed,
         qw| bytes |   => $bytes,
         qw| deleted | => $opt{'delete'} ? TRUE : FALSE,
+    };
+}
+
+## holder-trash-restore : move blobs back out of the trash. named blobs, or
+## everything in day directories since a date [ -all-since ]. a blob already
+## back at the holder is skipped, never overwritten
+sub holder_trash_restore {
+    my %opt  = @_;
+    my $base = _trash_base(%opt);
+    my $list = holder_trash_list($base);
+    my @jobs;    ## [ day, name ] ##
+    my $missing = 0;
+    if ( defined $opt{'all_since'} ) {
+        refuse( 'bad date [ %s ]', $opt{'all_since'} )
+            if $opt{'all_since'} !~ m|\A\d{4}-\d{2}-\d{2}\z|;
+        foreach my $day (
+            sort grep { $ARG ge $opt{'all_since'} }
+            keys %{$list}
+        ) {
+            push @jobs, map { [ $day, $ARG ] } sort keys %{ $list->{$day} };
+        }
+    } else {
+        my @names = @{ $opt{'names'} // [] };
+        refuse('trash restore needs blob names or -all-since') if not @names;
+        foreach my $name (@names) {
+            refuse( 'invalid blob name [ %s ]', $name )
+                if $name !~ m|\A[A-Z2-7]{77}\z|;
+            my ($day) = grep { exists $list->{$ARG}{$name} }
+                sort keys %{$list};
+            if ( not defined $day ) { $missing++; next }
+            push @jobs, [ $day, $name ];
+        }
+    }
+    my $have = holder_stats($base);
+    my ( $restored, $skipped ) = ( 0, 0 );
+    foreach my $job (@jobs) {
+        my ( $day, $name ) = @{$job};
+        if ( $have->{$name} ) { $skipped++; next }
+        holder_move( $base, ".trash/$day/$name", $name );
+        $restored++;
+    }
+    return {
+        qw| restored | => $restored,
+        qw| skipped |  => $skipped,
+        qw| missing |  => $missing,
+    };
+}
+
+## holder-migrate : move this root's referenced blobs, its map, journal and
+## head from the flat layout into its subdirectory. rename-only, idempotent,
+## resumable after an interruption -- the head moves LAST as the commit point
+## of the new layout. a holder interrupted midway has its blobs in the
+## subdirectory and its head still flat : reads refuse [ missing blob ] until
+## a rerun finishes the move, never a silent wrong answer. blobs already in
+## the subdirectory are skipped, which is what makes a rerun cheap.
+## unreferenced flat blobs stay and are reported : they may belong to another
+## root. dry run unless -delete
+sub holder_migrate {
+    my %opt = @_;
+    my ( undef, $head, $map, $base )
+        = _context( @opt{qw| root holder |}, TRUE );
+    my $top = holder_canonical( $opt{'holder'} );
+    return {
+        qw| already | => TRUE,
+        qw| moved |   => 0,
+        qw| left |    => 0,
+        qw| deleted | => $opt{'delete'} ? TRUE : FALSE,
+        }
+        if $base ne $top;
+    refuse('no sealed head on this holder') if not defined $head;
+    my $tag       = root_subdir( $opt{'root'} );
+    my $head_name = _head_name( $opt{'root'} );
+    my %move      = map { $ARG => TRUE } $head->{'map'}, $head->{'journal'},
+        ( map { $map->{'nodes'}{$ARG}{'blob'} } keys $map->{'nodes'}->%* ),
+        @{ $opt{'keep'} // [] };
+    my @blobs = sort grep { $ARG ne $head_name } keys %move;
+    my $flat  = holder_stats($top);
+    my @left  = sort grep { not $move{$ARG} } keys %{$flat};
+    my $there
+        = holder_isdir( $top, $tag )
+        ? holder_stats( holder_sub_spec( $top, $tag ) )
+        : {};
+    ## a rerun skips what an interrupted run already moved ; a pending ##
+    ## relay blob that never arrived is simply not there               ##
+    my @todo  = grep { $flat->{$ARG} and not $there->{$ARG} } @blobs;
+    my $bytes = 0;
+    $bytes += $flat->{$ARG}{'size'} // 0 for @todo;
+    return {
+        qw| already | => FALSE,
+        qw| moved |   => scalar @todo,
+        qw| present | => scalar( @blobs - @todo ),
+        qw| left |    => scalar @left,
+        qw| bytes |   => $bytes,
+        qw| deleted | => $opt{'delete'} ? TRUE : FALSE,
+        }
+        if not $opt{'delete'};
+    holder_make_path( $top, $tag, 0700 );
+    holder_move( $top, $ARG, "$tag/$ARG" ) for @todo;
+    fault(qw| migrate:after-blobs |);
+    ## the head last : its move is the commit point of the new layout ##
+    holder_move( $top, $head_name, "$tag/$head_name" )
+        if not $there->{$head_name};
+    fault(qw| migrate:after-head |);
+    return {
+        qw| already | => FALSE,
+        qw| moved |   => scalar @todo,
+        qw| present | => scalar( @blobs - @todo ),
+        qw| left |    => scalar @left,
+        qw| bytes |   => $bytes,
+        qw| deleted | => TRUE,
     };
 }
 
@@ -1286,7 +1522,9 @@ sub holder_gc {
 ## map in one commit. bytes stay until holder-gc
 sub unmap_nodes {
     my %opt = @_;
-    my ( $counter, $head, $map ) = _context( @opt{qw| root holder |}, FALSE );
+    my ( $counter, $head, $map, $base )
+        = _context( @opt{qw| root holder |}, FALSE );
+    my $pin = holder_canonical( $opt{'holder'} );
     refuse('no sealed head on this holder') if not defined $head;
     my %gone = map { $ARG => TRUE }
         grep { exists $map->{'nodes'}{$ARG} } $opt{'addresses'}->@*;
@@ -1312,8 +1550,8 @@ sub unmap_nodes {
     }
     delete $map->{'trees'}{$ARG} for @trees;
     $counter->{'version'} = _commit(
-        @opt{qw| root holder |},
-        $counter, $map,
+        $opt{'root'},
+        $base, $pin, $counter, $map,
         {   qw| unmap | => [ sort keys %gone ],
             @untag
             ? ( qw| untag | => { $opt{'disk'} => [ sort @untag ] } )
@@ -1377,9 +1615,9 @@ sub relay_nodes {
     my ( $root, $from, $to ) = @opt{qw| root from to |};
     refuse('relay needs two different holders')
         if holder_canonical($from) eq holder_canonical($to);
-    my ( undef, $fhead, $fmap ) = _context( $root, $from, TRUE );
+    my ( undef, $fhead, $fmap, $fbase ) = _context( $root, $from, TRUE );
     refuse('no sealed head on the source holder') if not defined $fhead;
-    my ( $counter, $thead, $tmap ) = _context( $root, $to, FALSE );
+    my ( $counter, $thead, $tmap, $tbase ) = _context( $root, $to, FALSE );
     my %wanted = map { $ARG => TRUE } @{ $opt{'addresses'} // [] };
     my ( @addresses, @merges );
 
@@ -1396,9 +1634,9 @@ sub relay_nodes {
         push @merges, $address
             if grep { not $target->{$ARG} } keys %{$source};
     }
-    my $fsizes = holder_sizes($from);
+    my $fsizes = holder_sizes($fbase);
     ## blobs an interrupted relay left there are reused, head or not ##
-    my $tsizes = holder_sizes($to);
+    my $tsizes = holder_sizes($tbase);
     my %blob;
     my @missing;
     foreach my $address (@addresses) {
@@ -1443,6 +1681,11 @@ sub relay_nodes {
         qw| missing | => scalar @missing,
         qw| used |    => $used,
         qw| waiting | => $waiting,
+        ## the root's subdirectory on a per-root target : the relay list ##
+        ## names it so n7fs-push reads and writes the right directory    ##
+        qw| subdir | => $tbase ne holder_canonical($to)
+        ? root_subdir($root)
+        : undef,
         ## the blobs a push still has to deliver, for a relay list ##
         qw| names | => [
             sort grep { ( $tsizes->{$ARG} // -1 ) != $fsizes->{$ARG} }
@@ -1469,12 +1712,12 @@ sub relay_nodes {
         refuse( 'target holds %s with another size', $name )
             if defined $tsizes->{$name};
     }
-    holder_mkdir($to) if @todo;
+    holder_mkdir($tbase) if @todo;
     my $copy = sub {
         my $name = shift;
         my $path = "$spool/$name";
         unlink $path;
-        holder_download( $from, $name, $path );
+        holder_download( $fbase, $name, $path );
         open( my $fh, '<:raw', $path ) or refuse('cannot read relay spool');
         my ($sum) = AMOS7::N7FS::Sum::bmw384_fh($fh);
         close $fh;
@@ -1482,7 +1725,7 @@ sub relay_nodes {
             unlink $path;
             refuse( 'relayed blob does not match its name : %s', $name );
         }
-        holder_put( $to, $path, $name, $blob{$name}, FALSE );
+        holder_put( $tbase, $path, $name, $blob{$name}, FALSE );
         unlink $path;
         fault(qw| relay:after-blob |);
     };
@@ -1530,7 +1773,9 @@ sub relay_nodes {
     }
     fault(qw| relay:before-commit |);
     $counter->{'version'} = _commit(
-        $root, $to, $counter, $tmap,
+        $root, $tbase,
+        holder_canonical($to),
+        $counter, $tmap,
         {   qw| relay | => \@addresses,
             @merges ? ( qw| merge_disks | => \@merges ) : ()
         }
@@ -1544,19 +1789,22 @@ sub relay_nodes {
 
 sub shred_node {
     my %opt = @_;
-    my ( $counter, $head, $map ) = _context( @opt{qw| root holder |}, FALSE );
+    my ( $counter, $head, $map, $base )
+        = _context( @opt{qw| root holder |}, FALSE );
+    my $pin = holder_canonical( $opt{'holder'} );
     refuse( 'address is not in the current sealed map : %s', $opt{'address'} )
         if not exists $map->{'nodes'}{ $opt{'address'} };
     delete $map->{'nodes'}{ $opt{'address'} };
-    $counter->{'version'} = _commit( @opt{qw| root holder |}, $counter, $map,
+    $counter->{'version'}
+        = _commit( $opt{'root'}, $base, $pin, $counter, $map,
         { qw| shred | => $opt{'address'} } );
     return $counter->{'version'};
 }
 
 1;
 
-#,,.,,,,.,,..,,,.,..,,.,.,,,.,...,,.,,,..,.,,,..,,...,...,,,,,.,.,,,,,.,,,,.,,
-#KEL54HI3WOX5ZA3FGNJSZVIOH26LUSWA35MC3E43Y7MMOAD22LY6NIRYQQ2HDYGXZXK2PEIPYBLMM
-#\\\|CENAQBNVYVDXSOAAHXZPC75CQ2EHLAJLBHDHUFHXY5Q2GDWT7BU \ / AMOS7 \ YOURUM ::
-#\[7]DH567JBXNKYT77HM3YA7GAJGZZZJ4BR6IV3C5UKJ2RDW2OPUXSAY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,,,.,.,,,,..,,.,,...,,,,,,,.,..,,...,...,,.,,,,,,..,,.,,,,.,,
+#XONM7RUHW2W3XEPFQSTF2D627XL5BUIZ45XVQQ3FJK67KM3LE6H64PZKJWQ2MFNO5PAA2ESGLNGLM
+#\\\|PGLNUQJTAYVUSUOB4UQTH2QKHK5Q46KY44I33ETWN33QX4JYGC3 \ / AMOS7 \ YOURUM ::
+#\[7]JSUX7ONNY72U33XH2EXFY7VAMP67RUSVJJMTL4534QILHXOF4SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

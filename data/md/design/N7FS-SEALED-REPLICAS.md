@@ -275,6 +275,23 @@ the map's root. holders see one blob that changes.
 5. a holder verifies ciphertext checksums on its own [ scrubbing ], and holds
    no signing key of the store
 
+### delete path status [ 2026-11-13, review finding 2 ]
+
+deletes were plain `rm` with no grace, and gc kept only what one head
+referenced : a second root added later on the same holder would have had its
+blobs collected by the first root's gc. addressed since :
+
+- gc has a grace age [ default 1 day ] and never `rm`s : it moves unreferenced
+  blobs to `.trash/<YYYY-MM-DD>/` inside the holder dir ; restore and purge
+  [ older than the receipt age ] complete it [ N7FS-PLACEMENT.md ]
+- one holder subdirectory per root [ `r-<tag>/` ] : gc of one root never
+  lists another's blobs ; `-only-root` is structural on the new layout, and
+  `holder-migrate` moves a flat holder into it [ N7FS-SEALING.md ]
+
+still open : a forced command for home's own holder key, and root-signed
+deletes [ a delete is still home-driven local gc, not a signed record a
+holder can apply ].
+
 ### when data does not fit
 
 - reclaim first from blobs above their target, then the lowest priority
@@ -351,8 +368,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,.,,,..,,..,,,.,,.,,...,...,.,.,.,,,...,,..,..,,...,...,,.,,...,,,,,,.,,.,,,
-#XD2NGUWXJVCFYX6FTAWR5PBNTWPJIQNJFOJEDWBG3YA5PCE5DPDCAQBLYEP6YS5WOFBLUVXWQQ344
-#\\\|HVFUZNQKWAEQGSYTO7XC636BQKBSVZBJ5THDKI2JMS7R3FLTUY7 \ / AMOS7 \ YOURUM ::
-#\[7]24IZ5P2GQLHXPIEHLY34F2QAT6I4FWTR5IMV6PNAZ3XL3GE6GIAY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,.,,,..,,,,,,,,,..,,.,.,,.,,..,,..,,...,...,,,,,...,..,,,..,..,,
+#G6BJUU6QHIEHET4WK65MPVORU2KO5UIPE4GYBBVKVHOPHF6SNTIX7ZSGQCTTV37FQVLMIQLI5IPXO
+#\\\|NXLERUWUUTAN23SDXBUCPS64K24O7FJHOIH3TU6PP2DIDVZZAOZ \ / AMOS7 \ YOURUM ::
+#\[7]XV27OQSEH7FQELICMKU4HQI6LALW7SLY3KHBHQSH6WE5SUAPBEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

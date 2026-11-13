@@ -131,11 +131,12 @@ ok( $rc == 0, 'holders contain one shared and one disk-specific tree' )
 ## strip disk ids in the sandbox instead of adding a production test switch ##
 {
     my $root_open = open_root();
-    my ( $state, undef, $map )
+    my ( $state, undef, $map, $base )
         = AMOS7::N7FS::Seal::_context( $root_open, $holder{'legacy'}, FALSE );
     delete $ARG->{'disks'} for values $map->{'nodes'}->%*;
-    AMOS7::N7FS::Seal::_commit( $root_open, $holder{'legacy'}, $state, $map,
-        { qw| test_legacy | => TRUE } );
+    AMOS7::N7FS::Seal::_commit( $root_open, $base,
+        AMOS7::N7FS::Holder::holder_canonical( $holder{'legacy'} ),
+        $state, $map, { qw| test_legacy | => TRUE } );
 }
 ( undef, my $legacy_map ) = read_map( $holder{'legacy'} );
 ok( !( grep { exists $ARG->{'disks'} } values $legacy_map->{'nodes'}->%* ),
@@ -301,8 +302,8 @@ ok( $rc == 0
 
 done();
 
-#,,..,.,.,,.,,.,.,,,.,,..,,,.,..,,..,,.,,,...,..,,...,...,..,,,,.,...,..,,..,,
-#BYXQ2IN4IQBGLU6SZZFV5EXUSLIR2CTZWSMI7QVGPASCHUOVCSKYXYSKKYEXX544JLUSQSWYLUHH4
-#\\\|IAH2SVHJ2PSMGEK3L6MCOZZ65PCUJ3OS4U37Y6WN6TJRVGKMCXH \ / AMOS7 \ YOURUM ::
-#\[7]2D5245FGAXILMLHRQDHZPE2EGPDHKYIMV4NKCQDXEZOWRENFBECI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,,.,,,,,,...,,.,,.,.,,.,,,,.,..,,...,...,..,,,.,,,,,,,,,,.,,,
+#FW2FIPFASF7P4KETROH3AXL4W6G4MUZ3XGI2HHKGLXXOLCGWMKPRXMXWNICTBFDNRDJECOSKBOVXI
+#\\\|QOOUFFMDHCQQ4WTYF6SMMLUI5NPUCKCCIY2IVZLFL5SYTXVJSVC \ / AMOS7 \ YOURUM ::
+#\[7]6CCAOKR3IURPCP6GIDDLFP5XIY722NJR3SWHQAL6JMLZWO5CNCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
