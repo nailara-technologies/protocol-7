@@ -1,5 +1,5 @@
 package AMOS7::deps::dist_upgr;
-our $VERSION = qw| AMOS7::deps::dist_upgr-VERSION.OF2ZQQQ |;
+our $VERSION = qw| AMOS7::deps::dist_upgr-VERSION.3ELIMCI |;
 
 use strict;
 use warnings;
@@ -118,8 +118,20 @@ sub run {
 sub _run_step {
     my ( $cmd, $emit ) = @_;
 
+    ## a child sharing the terminal may change its modes [ onlcr off ] and ##
+    ## not restore them : snapshot before, put back after every step       ##
+    my $tty_mode;
+    if ( -t STDIN ) {
+        $tty_mode = qx{stty -g 2>/dev/null};
+        chomp $tty_mode if defined $tty_mode;
+        undef $tty_mode if not length( $tty_mode // '' );
+    }
+
     my $pid = open( my $fh, '-|', $cmd );
-    return undef unless defined $pid;
+    if ( not defined $pid ) {
+        system( 'stty', $tty_mode ) if defined $tty_mode;
+        return undef;
+    }
 
     ## the child may talk in tty progress protocol : status updates        ##
     ## terminated by '\r' [ overwrite-in-place ] -- split on \r as well as ##
@@ -135,6 +147,7 @@ sub _run_step {
     }
     close($fh);
     my $exit = $?;
+    system( 'stty', $tty_mode ) if defined $tty_mode;
 
     ## the dropped-routine-lines summary belongs to this step ##
     my $result
@@ -146,8 +159,8 @@ sub _run_step {
 
 1;
 
-#,,.,,.,.,...,..,,,,,,.,.,..,,,,.,.,,,.,.,...,.,.,...,...,,,.,.,.,,.,,...,.,.,
-#PDVQDP7VYEXOGIZUY7DYBOTZ5WL7EYZZG6AUXWZDWLYU43TEKYDXCQTYMPGKVSPPXA6YDMQGEG5E6
-#\\\|7WZOPJZP5CPDLHGH6Q3WWE7W4I2VYZTOQ5ILUDATYIARWXXZBSU \ / AMOS7 \ YOURUM ::
-#\[7]GS65LSRVXVJ6A6EKJC3VAB6QKFQD5OKZ5HFXUH3LJULK3RS2PYAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,..,.,.,..,,,,,,,..,,.,,..,,.,.,.,.,...,...,,,.,.,,,..,,...,,,,,
+#66AGNMVC4N6WQTJVCJHHPYVKYRFFD25CJGR4VJ6W5DNWNLAOMXUJXWLEJSDHTFF5D3RI5O6ZSJHBA
+#\\\|76HARNAB3KH3MT7HANQYBVVW5P5IJNR67SDMGI2HZCNF4NCWVZ4 \ / AMOS7 \ YOURUM ::
+#\[7]7JYAGZBEZEG6CRXDQQCOAG4PBA7DS7GGADRP7AMKARO3GIP35ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
