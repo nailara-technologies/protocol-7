@@ -12,11 +12,15 @@ metadata:
 - next candidate : data/gfx/backgrounds/ images, once replaced by a better set
 - filter-repo only drops a remote named 'origin' -- this repo has none
   [ hub \ ext-bundle \ session-work ], nothing to re-add
+- 2026-11-13 : also a CONTENT rewrite [ filter-repo --replace-text, not purge-paths ] :
+  the per-service mail aliases + the mail name in data/ai-mem/claude/ [ removed from the
+  tree 2026-11-13 ; list of the strings in /data/backup/mail/atom/MAIL-CHAIN-NOTES.md ] --
+  they help guess external account addresses
 - **Why:** a rewrite for 666 KB alone [ ~3665 new hashes ] was not worth it
 - **How to apply:** do it WITH the owner, never alone ; bundle every path
 
-#,,..,.,.,,..,,..,.,.,.,,,.,,,..,,,.,,,,.,,..,..,,...,...,...,,.,,,,,,..,,,,.,
-#M3IGRI5JXZKTETM5CZBLNG3A7RWTM6PEDLC4D6GF62D2YXJ4J5YMKDEKOKBHIDWP53TKEFSUAPH2G
-#\\\|RM427BDNXOHOFQBWBKZ2NHCJ7UCPTAK4CA6L6F3KB74QKAETJAQ \ / AMOS7 \ YOURUM ::
-#\[7]VDI64WG5FBB2RROGYPHKVAAGFI7KZQMWEY5ZHAIMC6IBYINX64DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,...,...,..,,,.,,,.,,.,,,,..,,,.,..,,...,..,,,,.,...,,..,.,,,.,,,
+#XUBBUATM7KXG5LLMPNBCY36QTI5ZVR55EWCGLLPZPXIIEEI3NRKE23UTAHVSR7L7TQ5AE2KYCZPBY
+#\\\|AZDGQV56EF67TBNTQQ6IMHH3AKFSMGZWOPGKWLW6VQRE4SWRO3O \ / AMOS7 \ YOURUM ::
+#\[7]X2Q3F24HHP3WJNSKEBFXMV4GKQ4CAEXMXPVL73DT43FTONOTGIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

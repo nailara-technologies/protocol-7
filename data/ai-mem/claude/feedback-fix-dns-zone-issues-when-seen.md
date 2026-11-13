@@ -15,13 +15,13 @@ only carry over.
 
 **How to apply:** fix them directly in the zones we manage [ nameserv ],
 name each fix in the report. anything on a MAIL path [ MX, the CNAME
-chain behind it -- @taeki.v7.ax is essential ] : `dig MX` against the
+chain behind it -- see /data/backup/mail/atom/MAIL-CHAIN-NOTES.md ] : `dig MX` against the
 serving nameservers before and after, keep the served answer identical
 unless the owner asked to change it. registrar [ inwx ] edits : only
 through access the owner set up, never with credentials found elsewhere.
 
-#,,..,,,,,,..,.,.,.,.,,,,,...,..,,..,,,,,,...,..,,...,...,,,.,.,,,,,,,.,,,..,,
-#TR6KGMWRBUTM2KWAW475R3X2HXCCQQSTWY2POMOAEGC2BIPKBJ377GNK7G5XPEEN5NGBH2AX5V42I
-#\\\|WKQWJWYOUXFTZU55DUISPRF772WJTGHV5ZNOMRETSORQ4IYM4BW \ / AMOS7 \ YOURUM ::
-#\[7]TZN7XN4JVPLDPHNUSMNI2D6ZRL7QUA3OBOXJ6ENQGJZQOV7S5SBY 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,.,.,...,,,,,,.,,..,,,,.,,..,..,,...,...,,,,,,..,,,,,,,.,..,,
+#C46UVYIGRZVRL2ATGZYSWJH3BG3VO7FXREULZ7FRFL5E35KUKFYDU77XSDAD5TZXF4UTQIULXQF36
+#\\\|2FDFSCQPPNBYD3W6IIM76VB5KXZFQ7WKAP4L6HL552ZMOXDJMPP \ / AMOS7 \ YOURUM ::
+#\[7]SOYJNO32CMJYR6BBCNYCZDRJQTJUZAT65LUOC34K6X6SMGGJ3MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

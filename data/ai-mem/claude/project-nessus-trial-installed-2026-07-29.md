@@ -14,7 +14,7 @@ relevant capability to a prospective employer. nessus-agent specifically
 was originally deprioritized as "needs a proprietary license, can't be
 live-tested" until Tenable's trial signup unexpectedly delivered a
 direct `.deb` download plus an activation email
-(`nessus@taeki.v7.ax`) with a working code.
+with a working code.
 
 **State as of 2026-07-29 ~21:00**: `Nessus-10.12.2-debian10_amd64.deb`
 installed via `dpkg`, `nessusd` systemd service running, activation code
@@ -56,8 +56,8 @@ changes. The license itself is still time-limited (2026-08-05) — check
 `systemctl status nessusd` before assuming it's even running in a
 future session.
 
-#,,.,,.,,,..,,,,,,,..,,,.,,.,,,,.,.,.,.,.,..,,..,,...,..,,.,.,.,,,,,,,.,,,.,,,
-#HSKFFZMUOSKFBZ65PQXJJ72BVP6FKROSPVNOTTJAVSB6YEW5FA4UOEEWJDEQSKEBJGRPDMHVZQ546
-#\\\|BJE56AMGPOU34U66AEUKYIDJK6UZSSS5Y5YCG5I7M7VI5EP4PYB \ / AMOS7 \ YOURUM ::
-#\[7]D3TLYESGL7EVRZJGLVEG6FI3IVYIE5MRJOOUP5DYBFSLKMMVJICI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,.,,,.,,,,.,,,,.,.,,,,,,,,.,,..,,...,...,...,...,..,,.,,,..,,
+#MSIG7L5EHB3VF3KBR4Q53TSUNGTPVGKMWYTSQLMKTEQCCTVIXLVUFCIWDUWF4HUTYL4GYXN4M3QAY
+#\\\|A4DHDW2W6LT2PA7JMTRNUG2JXUM64DO73B3TUWDTOZXQVXKBWO2 \ / AMOS7 \ YOURUM ::
+#\[7]YRV5ARBHK5X6ADU32CKJO4FPZWAMTJ5XIARLPFL4V6QWPYX7YOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
