@@ -1,5 +1,5 @@
 package AMOS7::deps::service;
-our $VERSION = qw| AMOS7::deps::service-VERSION.EBF54MI |;
+our $VERSION = qw| AMOS7::deps::service-VERSION.RNIYSEY |;
 
 use strict;
 use warnings;
@@ -53,6 +53,13 @@ sub target_paths {
         'protocol7_bin' =>
             File::Spec->catfile( $p7_root, 'bin', 'Protocol-7' ),
         'nshell_bin' => File::Spec->catfile( $p7_root, 'bin', 'nshell' ),
+        'repo_needrestart' => File::Spec->catfile(
+            $p7_root, 'data', 'lib-path', 'needrestart',
+            'conf.d', 'protocol-7.conf'
+        ),
+        'needrestart_conf' => File::Spec->catfile(
+            $prefix, 'etc', 'needrestart', 'conf.d', 'protocol-7.conf'
+        ),
     };
 }
 
@@ -107,6 +114,36 @@ sub install {
         }
     }
 
+    ## needrestart exclusion : an apt run must never restart the service ##
+    ## [ it carries the desktop in X \ native mode ] -- written whether  ##
+    ## needrestart is installed or not, so a later install honours it    ##
+    my $nr_repo = _slurp( $P->{'repo_needrestart'} );
+    if ( not defined $nr_repo ) {
+        push(
+            @report,
+            [   'needrestart exclusion',
+                'failed',
+                sprintf( 'repo copy not found : %s',
+                    $P->{'repo_needrestart'} )
+            ]
+        );
+    } else {
+        my $nr_installed = _slurp( $P->{'needrestart_conf'} );
+        if ( defined $nr_installed and $nr_installed eq $nr_repo ) {
+            push( @report, [ 'needrestart exclusion', 'ok', undef ] );
+        } elsif ( _write_file( $P->{'needrestart_conf'}, $nr_repo ) ) {
+            push( @report, [ 'needrestart exclusion', 'set', undef ] );
+        } else {
+            push(
+                @report,
+                [   'needrestart exclusion',
+                    'failed',
+                    sprintf( 'cannot write %s', $P->{'needrestart_conf'} )
+                ]
+            );
+        }
+    }
+
     ## checkout link and launcher symlinks -- a server cloned straight to ##
     ## /usr/local/protocol-7 has the checkout itself there : ok           ##
     push(
@@ -114,8 +151,7 @@ sub install {
         _is_the_checkout( $P->{'install_link'}, $P->{'checkout'} )
         ? [ 'install link', 'ok', 'the checkout itself' ]
         : _install_link(
-            'install ' . 'link',
-            $P->{'install_link'}, $P->{'checkout'}
+            'install link', $P->{'install_link'}, $P->{'checkout'}
         )
     );
     push(
@@ -201,6 +237,19 @@ sub check {
     } else {
         push( @report, [ 'unit', 'differs', undef ] );
         $all_ok = 0;
+    }
+
+    ## needrestart exclusion ##
+    my $nr_repo      = _slurp( $P->{'repo_needrestart'} );
+    my $nr_installed = _slurp( $P->{'needrestart_conf'} );
+    if ( not defined $nr_installed ) {
+        push( @report, [ 'needrestart exclusion', 'missing', undef ] );
+        $all_ok = 0;
+    } elsif ( not defined $nr_repo or $nr_installed ne $nr_repo ) {
+        push( @report, [ 'needrestart exclusion', 'differs', undef ] );
+        $all_ok = 0;
+    } else {
+        push( @report, [ 'needrestart exclusion', 'ok', undef ] );
     }
 
     ## checkout link and launcher symlinks ##
@@ -369,8 +418,8 @@ sub _write_file {
 
 1;
 
-#,,..,.,.,,,.,.,,,.,,,...,..,,,,,,.,.,.,,,,,,,..,,...,...,.,.,.,.,..,,,,.,,..,
-#RUK52V6XHO7HNWHVENGSJOUHUXL5UPSZ4MLGRQ5UQPD2IZE6CHJLNBDUHBIHHUYPRMGLS7G777GX6
-#\\\|6TV4UC2FXDWVKRFNNPNPWAAWGSWUFGVYS5ERUPWPDWTC7L7ODMJ \ / AMOS7 \ YOURUM ::
-#\[7]LGBIP6OBNCN2EVPOQ4ZVLGHHIQOQWU4LFVDOSC5AN5676XBCQKAI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,.,,,.,,..,.,.,...,,.,,,.,,...,..,,...,..,,.,,,,,,,,.,,..,,,,.,
+#IJORE2EMHCAKJHPPO73BSHWMLGLMBIALW3YWPW7GWCLQHPD4CY7OZQ5WKD2UE3FBJGIPYOEB44HIM
+#\\\|Z6ZB4ZTMVYESBOI2MNPBQ6YW7NH727LSRZIYWJF6AGCAWNNV5LG \ / AMOS7 \ YOURUM ::
+#\[7]CT6VKOC6WU6WC7XNJFTDNGJTHRMI7AHRGRN3U6X6M6DCFMUTR2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

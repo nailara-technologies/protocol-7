@@ -348,8 +348,10 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
         check 'install-service refuses without root', $exit == 1;
         ( $exit, $out ) = p7_deps(qw| enable-service |);
         check 'enable-service refuses without root', $exit == 1;
-        ( $exit, undef ) = p7_deps(qw| check-service |);
-        check 'check-service still runs without root', $exit == 0;
+        ## exit 1 = a part missing on this real host, still a normal run ##
+        ( $exit, $out ) = p7_deps(qw| check-service |);
+        check 'check-service still runs without root',
+            ( $exit == 0 or $exit == 1 ) && $out =~ m|needrestart exclusion|;
     }
 }
 
@@ -362,14 +364,25 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
         = File::Spec->catdir( $server_root, qw| usr local protocol-7 | );
     my $unit_dir
         = File::Spec->catdir( $checkout, qw| data lib-path systemd system | );
-    File::Path::make_path( $unit_dir,
-        File::Spec->catdir( $checkout, 'bin' ) );
+    File::Path::make_path(
+        $unit_dir,
+        File::Spec->catdir( $checkout, 'bin' ),
+        File::Spec->catdir(
+            $checkout, qw| data lib-path needrestart conf.d |
+        )
+    );
     for my $file (
         [   File::Spec->catfile( $unit_dir, 'Protocol-7.service' ),
             "[Unit]\n"
         ],
         [ File::Spec->catfile( $checkout, qw| bin Protocol-7 | ), "#!\n" ],
         [ File::Spec->catfile( $checkout, qw| bin nshell | ),     "#!\n" ],
+        [   File::Spec->catfile(
+                $checkout,
+                qw| data lib-path needrestart conf.d protocol-7.conf |
+            ),
+            "## test\n"
+        ],
     ) {
         open( my $fh, '>', $file->[0] ) or die;
         print {$fh} $file->[1];
@@ -389,11 +402,20 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
         -f $unit && ( ( stat $unit )[2] & 07777 ) == 0644;
     check 'server : no temporary unit file left',
         !glob( $unit . '.p7-deps.*' );
+    my $nr = File::Spec->catfile( $server_root,
+        qw| etc needrestart conf.d protocol-7.conf | );
+    check 'server : needrestart exclusion written from the repo copy',
+        -f $nr && do { local ( @ARGV, $/ ) = $nr; <> }
+        eq "## test\n";
 
     my ( $checked, $all_ok ) = AMOS7::deps::service::check($checkout);
     my ($clink) = grep { $_->[0] eq 'install link' } @{ $checked // [] };
     check 'server : check-service reports the checkout itself ok',
         defined $clink && $clink->[1] eq 'ok';
+    my ($cnr)
+        = grep { $_->[0] eq 'needrestart exclusion' } @{ $checked // [] };
+    check 'server : check-service reports the needrestart exclusion ok',
+        defined $cnr && $cnr->[1] eq 'ok';
 
     ## another real directory at the install path : still left alone ##
     my $other   = tempdir( CLEANUP => 1 );
@@ -443,7 +465,7 @@ EOF
 
     my $cpanm_calls = slurp($cpanm_log) // '';
     my ($build_arg) = split m|\n|, $cpanm_calls;
-    check 'cpanm was called ' . 'once',
+    check 'cpanm was called once',
         ( $cpanm_calls =~ m|\n$| and $cpanm_calls !~ m|\n.*\n| );
     check 'cpanm built from a temp copy',
         (       defined $build_arg
@@ -704,8 +726,8 @@ check 'missing unit logs exactly one level 0 line', level0_count(qr|^|) == 1;
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,.,,.,.,,..,...,...,,..,..,,,..,,.,,...,..,,...,..,,,,.,...,,,.,...,..,,
-#T52E2NL5OG5XYLIEMOKUOSA4RNP6ZO2ZLAJQ4JYSJNGKAAANVQZMZLB4EORXBGEZGT6SUSU5MPAJG
-#\\\|SHFHDKTNRBKQE77WRMDA4277O43J6O7R6LOH55BENZHPIGIWWNT \ / AMOS7 \ YOURUM ::
-#\[7]KDDDCFEOKL7YEWLGZI4SXP4H7JGRSN74BML6ICSLNTFS3CQ4NIAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,,..,...,,..,...,,.,,,,.,.,,,..,,...,..,,..,,.,.,.,,,..,,..,,
+#XWD44ABJQ3YZ7VE3UVHIAZNVZQCO67VWBFXFV664XTK6KWYFXLTHZMHUIYLS4CKQGBNXNQDAPVIY6
+#\\\|QDBOV6DZ7BC5RKEZ42LXJPR67PJ5O77Z4VAURUTPLRQGE7RZ4DL \ / AMOS7 \ YOURUM ::
+#\[7]MEF5WUXBEEXJS25UEUHL5AI4TIVZKYILS6KEET54JQFAOZJTH6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
