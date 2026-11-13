@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [fable-access-window](project-2026-11-13-fable-access-window.md) — Fable 5.2 in plan until ~2026-11-16 : use for finding 5 review, findings 7 8 9 design
 - [session-handover-n7fs-review-findings](project-2026-11-13-session-handover-n7fs-review-findings.md) — NEWEST, START HERE : Fable N7FS findings 2 3 4 6 landed ; open 5 [ design first, fresh session ] 7 8 9 ; deploy notes ; add-only log mount sketch
 - [cert-watch-daily-renew](project-2026-11-12-cert-watch-daily-renew.md) — previous : letsencr daily renew + cert_watch live on 4 hosts ; first nightly CONFIRMED 11-13 ; real renew srv-U / F ~11-20
 - [n7fs-first-live-round](project-2026-11-11-n7fs-first-live-round.md) — previous : first live N7FS round done, all holders checked ; transport fixes ; events harmonic jitter + list events ; open items
@@ -107,8 +108,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,.,,.,,,.,,,,.,,..,,,..,.,,,,,.,.,.,..,,..,,...,...,...,...,,,.,,,,,,,.,
-#U2B42R6OV2TF4PVIXC7MJSKQSNFAELJIGHTBR6NFXLQH5IDNFI7WKLMXVT62VVER3FEUF6QN4Y66K
-#\\\|ASFSRHOMLTQ7NZCCMV5TQHILVNWUOJNQQEJF3S3MXC5U6LMZMJP \ / AMOS7 \ YOURUM ::
-#\[7]KRR3D6QPFQT7DZDBDURVZNJ4S4L5AXRX2EVYPABLEP5NY7TFHCBY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,.,,.,.,,.,,,,.,,..,,,.,..,,,..,..,,...,...,,..,,,,,..,,..,,...,
+#CFDKWKY5F6ZTFJKRPZC22I3VEWLC5LRACLDDGRXSE2RWWA4FTNYOJ6LBC252254RXR72F37EMULWM
+#\\\|U4UEN36KIXTYJFBQKTMML6XPZLKK4W7SEVQTZPBMAVZ2O2SG43W \ / AMOS7 \ YOURUM ::
+#\[7]ANLJESCD7BCLNRTKGB227BZ2HSV5RFNOKQALY2FWV65B47FU3YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

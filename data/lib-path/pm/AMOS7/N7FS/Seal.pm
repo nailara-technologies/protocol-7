@@ -17,11 +17,11 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.D5BEBHA |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.QAT7YJY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
-    holder_migrate root_subdir
+    holder_migrate root_subdir retention_update retention_plan repack_packs
     seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
 
 use JSON::PP;
@@ -31,7 +31,7 @@ use Fcntl qw| O_RDONLY |;
 use Crypt::Mode::CTR;
 use Crypt::AuthEnc::ChaCha20Poly1305 qw| chacha20poly1305_encrypt_authenticate
     chacha20poly1305_decrypt_verify |;
-use AMOS7::NTIME qw| ntime_now parse_y_age |;
+use AMOS7::NTIME qw| ntime_now parse_y_age y_level_ntime |;
 use AMOS7::N7FS  qw| b32 unb32 random_bytes read_file write_new_file
     write_new_file_stream make_dirs sync_dir refuse fault |;
 use AMOS7::N7FS::Sum      qw| bmw384_bytes bmw_b32 epoch_from_b32 |;
@@ -479,6 +479,8 @@ sub _context {
             or ( $stored->{'root_id'} // '' ) ne $root->{'root_id'};
         $map->{'categories'} = $stored->{'categories'} // {};
         $map->{'trees'}      = $stored->{'trees'}      // {};
+        $map->{'retention'}  = $stored->{'retention'}  // {};
+        $map->{'pins'}       = $stored->{'pins'}       // {};
         $map->{'_shards'}    = $stored->{'shards'};
         $map->{'_tree_blob'} = $stored->{'tree_blob'};
 
@@ -669,6 +671,8 @@ sub _commit {
         qw| depth |      => 1,
         qw| root_id |    => $root->{'root_id'},
         qw| categories | => $categories,
+        qw| retention |  => $map->{'retention'} // {},
+        qw| pins |       => $map->{'pins'}      // {},
         qw| shards |     => \%shards,
     };
     if ( length $tree_plain >= 1024**2 ) {
@@ -1806,6 +1810,275 @@ sub holder_check {
     };
 }
 
+sub _retention_rule {
+    my $rule = shift // '';
+    my @terms;
+    while ( $rule =~ m|([1-9]\d*)\s*Y([0-7])|ig ) {
+        push @terms, { qw| count | => $1 + 0, qw| level | => $2 + 0 };
+    }
+    my $canonical = join ' ', map {"$ARG->{'count'}Y$ARG->{'level'}"}
+        sort { $b->{'level'} <=> $a->{'level'} } @terms;
+    my $compact = $rule;
+    $compact =~ s|\s+||g;
+    refuse( 'retention rule must be a ladder of <count> Y<level> [ %s ]',
+        $rule )
+        if not @terms
+        or uc($canonical) ne
+        uc( join ' ', map {"$ARG->{'count'}Y$ARG->{'level'}"} @terms )
+        or uc(
+        join( '', map { "$ARG->{'count'}" . "Y$ARG->{'level'}" } @terms ) )
+        ne uc($compact);
+    return $canonical;
+}
+
+## rules and pins live in the same sealed root on every holder ##
+sub retention_update {
+    my %opt = @_;
+    my ( $counter, $head, $map, $base )
+        = _context( @opt{qw| root holder |}, FALSE );
+    refuse('no sealed head on this holder') if not defined $head;
+    my $action = $opt{'action'} // '';
+    my $name   = $opt{'name'}   // '';
+    refuse('retention needs a nonempty tree prefix or name')
+        if not length $name
+        or index( $name, "\0" ) >= 0;
+    $map->{'retention'} //= {};
+    $map->{'pins'}      //= {};
+    my $before = $JSON->encode(
+        {   qw| retention | => $map->{'retention'},
+            qw| pins |      => $map->{'pins'}
+        }
+    );
+
+    if ( $action eq qw| set | ) {
+        $map->{'retention'}{$name} = _retention_rule( $opt{'rule'} );
+    } elsif ( $action eq qw| clear | ) {
+        delete $map->{'retention'}{$name};
+    } elsif ( $action eq qw| pin | ) {
+        $map->{'pins'}{$name} = TRUE;
+    } elsif ( $action eq qw| unpin | ) {
+        delete $map->{'pins'}{$name};
+    } else {
+        refuse( 'unknown retention action [ %s ]', $action );
+    }
+    my $after = $JSON->encode(
+        {   qw| retention | => $map->{'retention'},
+            qw| pins |      => $map->{'pins'}
+        }
+    );
+    return { qw| changed | => FALSE, qw| version | => $head->{'version'} }
+        if $before eq $after;
+    my $version
+        = _commit( $opt{'root'}, $base, holder_canonical( $opt{'holder'} ),
+        $counter, $map, { qw| retention | => $action, qw| name | => $name } );
+    return { qw| changed | => TRUE, qw| version | => $version };
+}
+
+## pure planner : tree times are whole ntime values, buckets share the grid ##
+sub retention_plan {
+    my %opt   = @_;
+    my $now   = $opt{'now'}   // ntime_now();
+    my $rules = $opt{'rules'} // {};
+    my $pins  = $opt{'pins'}  // {};
+    my %time;
+    foreach my $name ( keys %{ $opt{'trees'} // {} } ) {
+        my $record = $opt{'trees'}{$name};
+        my $time = ref $record eq qw| HASH | ? $record->{'created'} : $record;
+        refuse( 'tree %s has no whole ntime creation time', $name )
+            if ( $time // '' ) !~ m|\A\d+\z|;
+        $time{$name} = $time;
+    }
+    ## the longest matching prefix owns a tree ##
+    my $owner = sub {
+        my $tree = shift;
+        my ($best) = sort { length($b) <=> length($a) || $a cmp $b }
+            grep { index( $tree, $ARG ) == 0 } keys %{$rules};
+        return $best // '';
+    };
+    my @out;
+    foreach my $name ( sort keys %time ) {
+        my $time = $time{$name};
+        if ( $pins->{$name} ) {
+            push @out,
+                {
+                qw| tree |   => $name,
+                qw| keep |   => TRUE,
+                qw| reason | => qw| pinned |
+                };
+            next;
+        }
+        my $prefix = $owner->($name);
+        if ( not length $prefix ) {
+            push @out,
+                {
+                qw| tree |   => $name,
+                qw| keep |   => TRUE,
+                qw| reason | => qw| no retention rule |
+                };
+            next;
+        }
+        my @terms;
+        foreach my $text ( split ' ', $rules->{$prefix} ) {
+            my ( $count, $level ) = $text =~ m|\A([1-9]\d*)Y([0-7])\z|;
+            push @terms,
+                { qw| count | => $count + 0, qw| level | => $level + 0 };
+        }
+        my $finest = ( sort { $b->{'level'} <=> $a->{'level'} } @terms )[0];
+        my $fine_unit = y_level_ntime( $finest->{'level'} );
+        if ( $time >= int( $now / $fine_unit ) * $fine_unit ) {
+            push @out,
+                {
+                qw| tree |   => $name,
+                qw| keep |   => TRUE,
+                qw| reason | =>
+                    "current $finest->{'count'}Y$finest->{'level'} bucket"
+                };
+            next;
+        }
+        my $reason;
+        foreach my $term (@terms) {
+            my $unit = y_level_ntime( $term->{'level'} );
+            my %newest;
+            foreach my $other ( keys %time ) {
+                ## a tree under a longer prefix with its own rule belongs ##
+                ## to that ladder, it never takes a bucket from this one  ##
+                next if $owner->($other) ne $prefix;
+                my $bucket = int( $time{$other} / $unit );
+                $newest{$bucket} = $other
+                    if not exists $newest{$bucket}
+                    or $time{$other} > $time{ $newest{$bucket} };
+            }
+            my @buckets
+                = ( sort { $b <=> $a } keys %newest )
+                [ 0 .. $term->{'count'} - 1 ];
+            if ( grep { defined $newest{$ARG} and $newest{$ARG} eq $name }
+                @buckets ) {
+                $reason = "$term->{'count'} Y$term->{'level'}";
+                last;
+            }
+        }
+        push @out,
+            {
+            qw| tree | => $name,
+            qw| keep | => defined $reason ? TRUE : FALSE,
+            defined $reason
+            ? ( qw| reason | => $reason )
+            : ( qw| reason | => "outside $prefix ladder" )
+            };
+    }
+    return \@out;
+}
+
+## move live pack members byte-for-byte ; no content is opened or resealed ##
+sub repack_packs {
+    my %opt       = @_;
+    my $threshold = $opt{'threshold'} // 30;
+    refuse('repack threshold must be between 0 and 100')
+        if $threshold !~ m|\A\d+(?:\.\d+)?\z| or $threshold > 100;
+    my ( $counter, $head, $map, $base )
+        = _context( @opt{qw| root holder |}, FALSE );
+    refuse('no sealed head on this holder') if not defined $head;
+    my $sizes = holder_sizes($base);
+    my %packs;
+    foreach my $address ( keys $map->{'nodes'}->%* ) {
+        my $entry = $map->{'nodes'}{$address};
+        next if not defined $entry->{'node'};
+        push @{ $packs{ $entry->{'blob'} } }, [ $address, $entry ];
+    }
+    my @candidates;
+    foreach my $name ( sort keys %packs ) {
+        my $size = $sizes->{$name} // refuse( 'pack is missing : %s', $name );
+        my $live = 5;
+        $live += $ARG->[1]{'length'} for $packs{$name}->@*;
+        my $dead = $size - $live;
+        refuse( 'pack live entries exceed its size : %s', $name )
+            if $dead < 0;
+        my $pct = $size ? 100 * $dead / $size : 0;
+        push @candidates,
+            {
+            qw| pack |    => $name,
+            qw| bytes |   => $size,
+            qw| dead |    => $dead,
+            qw| percent | => $pct,
+            qw| nodes |   => scalar $packs{$name}->@*
+            }
+            if $pct > $threshold;
+    }
+    return { qw| packs | => \@candidates, qw| repacked | => 0 }
+        if $opt{'dry_run'};
+    my ( @done, $receipts );
+    foreach my $candidate (@candidates) {
+        my $old   = $candidate->{'pack'};
+        my $bytes = "P7SP\x01";
+        foreach my $item ( sort { $a->[0] cmp $b->[0] } $packs{$old}->@* ) {
+            my ( $address, $entry ) = @{$item};
+            my $sealed = holder_read_range( $base, $old, $entry->{'offset'},
+                $entry->{'length'} );
+            refuse( 'cannot read live pack entry : %s', $address )
+                if not defined $sealed
+                or length $sealed != $entry->{'length'};
+            $entry->{'_repack_offset'} = length $bytes;
+            $bytes .= $sealed;
+        }
+        my $new = _write_blob( $opt{'root'}, $base, $bytes, qw| pack | );
+        foreach my $item ( $packs{$old}->@* ) {
+            my $entry = $item->[1];
+            $entry->{'blob'}   = $new;
+            $entry->{'offset'} = delete $entry->{'_repack_offset'};
+            $entry->{'added'}  = $counter->{'version'} + 1;
+        }
+        my $version
+            = _commit( $opt{'root'}, $base,
+            holder_canonical( $opt{'holder'} ),
+            $counter, $map, { qw| repack | => $old, qw| pack | => $new } );
+        $counter->{'version'} = $version;
+        fault(qw| repack:after-commit |);
+        my $checked = holder_check(
+            qw| root |     => $opt{'root'},
+            qw| holder |   => $opt{'holder'},
+            qw| coverage | => qw| full |,
+        );
+        refuse('repack receipt does not cover the new pack')
+            if $checked->{'version'} != $version
+            or not grep { $map->{'nodes'}{$ARG}{'blob'} eq $new }
+            @{ $checked->{'covered_list'} };
+        require AMOS7::N7FS::Placement;
+        AMOS7::N7FS::Placement::receipt_write(
+            qw| host_dir |          => $opt{'host_dir'},
+            qw| signer |            => $opt{'signer'},
+            qw| spec |              => holder_canonical( $opt{'holder'} ),
+            qw| root_id |           => $checked->{'root_id'},
+            qw| version |           => $checked->{'version'},
+            qw| nodes |             => $checked->{'nodes'},
+            qw| samples |           => $checked->{'samples'},
+            qw| coverage |          => $checked->{'coverage'},
+            qw| covered |           => $checked->{'covered'},
+            qw| covered_nodes |     => $checked->{'covered_nodes'},
+            qw| covered_addresses | => $checked->{'covered_list'},
+        );
+        $receipts++;
+        fault(qw| repack:after-receipt |);
+        my $gc = holder_gc(
+            qw| root |   => $opt{'root'},
+            qw| holder | => $opt{'holder'},
+            qw| delete | => TRUE,
+            defined $opt{'grace'} ? ( qw| grace | => $opt{'grace'} ) : (),
+        );
+        push @done,
+            {
+            %{$candidate},
+            qw| new_pack | => $new,
+            qw| version |  => $version,
+            qw| trashed |  => $gc->{'removed'}
+            };
+    }
+    return {
+        qw| packs |    => \@done,
+        qw| repacked | => scalar @done,
+        qw| receipts | => $receipts
+    };
+}
+
 ## blobs a holder keeps that the current head no longer references :
 ## superseded maps and journals, and nodes dropped from the map. instead of
 ## deleting, gc MOVES each one to .trash/<YYYY-MM-DD>/<name> inside the holder
@@ -2326,8 +2599,8 @@ sub shred_node {
 
 1;
 
-#,,,.,,,,,,,,,.,,,,..,,.,,,,,,,,,,,.,,,,,,,,.,..,,...,...,,,,,...,,,,,,..,,..,
-#3G75GKV2NXSGMEZSXXZCVF5E3G7XDZDOGGYASUNMX2BH33SRC4W25GGHFZITRBLZ6IPPPBWX4Y56G
-#\\\|FNU77BXTYDBPV77YCRVHSY76ZKAK5X5LZKKJ2KNDA4STY7OVXDZ \ / AMOS7 \ YOURUM ::
-#\[7]HWOGC4ANQVZAEVY2PJDYUGJBRGMR2UX44OLCGUGB6T3AVRQU7KAA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,..,,..,..,,,.,,...,,.,,...,..,,..,,...,...,.,.,,,,,.,.,,,,,.,,,
+#YB4JCQTSPUSBXRPMVMN4ETGQJRXU3THHQTDCWQKEBGIM5VZ5UOWQDIDQPHPTPCIKWMTD7ZWLYDIK6
+#\\\|IQXARFBGZZXRIYC7JUGUA5JRTVVYN7IKNMJNPH7DFL7EXBML4NS \ / AMOS7 \ YOURUM ::
+#\[7]T7UDYOZMSBTPGKPXH4XYPZJK6S3EJMEXOYEAZW4N463Q65CSTEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
