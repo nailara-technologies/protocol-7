@@ -42,13 +42,15 @@ MADV_DONTDUMP memory cache, best effort -- a restart loses readability, never
 data ; strict mode = write-only. rotation by size \ time. names \ sizes stay
 visible unless chunks go checksum-named with a sealed index.
 
+DONE [ same day ] : `p7-deps install-service` writes /etc/needrestart/conf.d/protocol-7.conf [ needrestart never restarts Protocol-7.service -- it would kill the desktop in X \ native mode ] ; check-service reports it. run `sudo bin/p7-deps install-service` once per host.
+
 ALSO : the slow-host day was FanControl holding PROCHOT EXT [ board throttled the
 CPU to 545 MHz ] -- killed, updated, fixed ; check `% Processor Performance` first
 next time. kimi cost : see [[kimi-dispatch-model-verify-before-send]].
 [[n7fs-first-live-round]] [[n7fs-host-migration-goal]]
 
-#,,,,,,..,,,.,.,.,...,..,,...,,.,,,..,...,,,,,..,,...,...,...,..,,,,.,..,,.,,,
-#5ARBR3XGTYMDNH4S5CVQSDXA6FZPCKDKVXZ27ZLOAKWOIT6HVZ3GVNEYWLC3T2MPACCDTI3R62LDC
-#\\\|R2626ZI45D4ONRMMBIO433EJB5H5IS3NJVW6VIJI2MY3GZNGG72 \ / AMOS7 \ YOURUM ::
-#\[7]E7W46QHCLX3HYX3LQALVYADK7ULIAOHGWIL254IOQ46QNMYMICBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,,,...,...,..,,...,.,.,,.,,.,.,..,,...,.,,,,..,,,,,..,,.,,,..,,
+#U5JKAXTJ26IS5AAVZPASKKWMM5HZAIAQLTY2H6SIYNWKRR2DGM2MS7UIGMEV3TD27T5EAFKOXKYEA
+#\\\|Q6F7HZXVVYEV4QGNCIHZLYOUQQV7LVUXQU7T26FYQPPFDP6RTG5 \ / AMOS7 \ YOURUM ::
+#\[7]AOW5CCXCHYRD6XH43UHDVZZ5NGSD7TE2C37STC3FRJ2FZDFWFWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
