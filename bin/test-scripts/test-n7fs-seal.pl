@@ -432,7 +432,7 @@ my $batch_root   = "$box->{'base'}/batch.key";
 copy( $rootfile, $batch_root ) or die $OS_ERROR;
 chmod 0600, $batch_root;
 {
-    local $ENV{'N7FS_TEST_SEAL_BATCH'} = 2;
+    local $ENV{'N7FS_TEST_SEAL_BYTES'} = 1;
     local $ENV{'N7FS_TEST_FAULT'}      = 'seal:after-head';
     cli( 1, 'fault after a mid-run commit',
         '-root-key', $batch_root,
@@ -441,7 +441,7 @@ chmod 0600, $batch_root;
     my ($batch_out) = cli( 0, 'resume after mid-run commit',
         '-root-key', $batch_root, '-out', $batch_holder,
         'seal',      $disk,       @addresses[ 0 .. 2 ] );
-    ok( $batch_out =~ m|1 new nodes|,
+    ok( $batch_out =~ m|2 new nodes|,
         'earlier committed nodes are not resealed' );
 }
 require AMOS7::N7FS::Category;
@@ -586,8 +586,8 @@ cli( 1, 'cascade refused rather than ignored',
 
 done();
 
-#,,,,,...,,.,,..,,,.,,.,.,,,.,.,.,...,...,...,..,,...,...,..,,...,,,,,.,.,.,.,
-#64GHGD2TLEDA4H4LQAJG7YHCK53QX2ZFUOJTI7BEVSE6PMVYUHW5363RGUBYFS5N7U3SLU7TEC5MQ
-#\\\|B4QMWNDZEKQ6NERJ4HLRUYHZN2KLNRDFDTPK4RU4NM3D4SS6PXD \ / AMOS7 \ YOURUM ::
-#\[7]O6KZQMYRRRD6JDO4WOCO2W6KWQLOMBEN6GYBLSXE762HB53ERWAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,..,,,,.,..,,...,.,,,...,,..,..,,...,...,.,,,.,.,.,,,...,.,,,
+#7IG6M23DX3W2LJHL4IIEM7ALGNLRLKGEEGMMM5NKL2PNUHGWIVOMKATWQFCACJV6RBUBDXDATHUOG
+#\\\|X5ZBQDWVTCUXIH7C7SLIOUF3G2ZK6F4G2EMZ5UENYV26ORFKQ5C \ / AMOS7 \ YOURUM ::
+#\[7]YWIBKOZQPFRDWHZ25D6OJDLQIHFR53EEIVDBSN2HSGSZ4AFI4UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

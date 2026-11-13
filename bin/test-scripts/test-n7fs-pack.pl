@@ -76,7 +76,8 @@ my $hsub = holder_sub($holder);
 ok( defined $hsub, 'a fresh holder starts in the per-root layout' )
     or say $out;
 my @blobs = holder_blobs($holder);
-ok( @blobs < 40,
+## the map adds up to 256 shard blobs + root + journal : packs stay few ##
+ok( @blobs < 40 + 258,
     'about 300 small nodes stored in few blobs [ ' . scalar(@blobs) . ' ]' );
 my @packs
     = grep { substr( slurp("$hsub/$ARG") // '', 0, 5 ) eq "P7SP\x01" } @blobs;
@@ -168,8 +169,8 @@ ok( $rc != 0, 'holder check finds the damaged packed node' );
 
 done();
 
-#,,.,,..,,..,,.,,,,,,,...,...,,.,,...,,,.,.,,,..,,...,..,,,.,,,,,,,,.,.,.,.,.,
-#G2VLJ2RSCDQ5ZNPPHVP72VGN4E77DAUX5EDYGICFPJLQMDVSP6ROJLWTPDZ22YHWLW544CTQ6DGSI
-#\\\|ZAT5BZZY2QHRWRU4KX5CLIK2RJLAVJPXUEUESG2UZTGZFFLLCPM \ / AMOS7 \ YOURUM ::
-#\[7]G2Z6P766AVTG3O7WIWR2G7URJAKUS5A3B3ZLSWFH4OBLKRO75QCQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,,..,,,.,,,.,,,,,.,.,,..,.,.,..,,...,...,,..,...,,.,,,.,,,,.,
+#CCLLJQZS7MAUJL6RGUXTULYXUA6RXST7ET7WMQPHOHUVVCZOKICBSXW2SXUVOFDYT3DGL3SF6NZRC
+#\\\|KBDCWJTIW2PG6DYZ6HBJOTJH56BHX7YGAAFCWB7E2K2XNUNEFNQ \ / AMOS7 \ YOURUM ::
+#\[7]P4NJJITWHUXF46JU3KRJIUQAT47AILANURU7MJ4OJQWTGNOWE4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
