@@ -266,7 +266,13 @@ the map's root. holders see one blob that changes.
    its coverage [ sizes-only \ sampled \ full ] and eviction relies only on
    full-coverage receipts : a sampled receipt never vouches for bytes
    another holder is about to lose [ review finding 4, addressed :
-   N7FS-PLACEMENT.md ]
+   N7FS-PLACEMENT.md ]. receipts are **incremental** since 2026-11-13 :
+   each map entry records the head version that added it and a receipt
+   carries a digest over the entries its version covers, so a commit that
+   only added entries no longer voids what the receipt proved ; eviction
+   relies on the covered entries of full-coverage receipts only, never on
+   anything a partially covered or unreachable holder maps outside them
+   [ review finding 3, addressed : N7FS-PLACEMENT.md ]
 3. a holder never deletes on its own say. a delete is a home-signed record,
    so one compromised holder cannot wipe others through background sync
 4. a blind holder cannot read the journal, so it cannot apply the tombstone
@@ -391,8 +397,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,,.,,,,,..,,,..,,..,.,,,.,,,.,.,.,,,,..,,,.,..,,...,...,,..,..,,,..,,,,,...,
-#5AZ2K466U6YBS4GNUILLJULEDE5A5RMCPD3HS5HVYYAT4VMAY5PDG372BIOQX3M6W4NBEU3PGP7DK
-#\\\|ZK2EKPKVH6RC3CXXBIWI4VJ5BDNGMUVCYSWX6TX5P4H22HBLRUU \ / AMOS7 \ YOURUM ::
-#\[7]KSE6MGCOV6PYHJHRAUECKB5EZWXUAHHTZXVLNSYRMUAZA7QZOSAY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,..,,...,..,,,.,,,,.,,,.,,..,,,.,..,,...,...,..,,...,,,,,.,,,.,,,
+#EYYI33TUIT6AGL5JBOJQMUSS7LHGVOIGI7VSTOVIMKILYN5ITQ5ADNAXYBV2TXYHFAZ4S467656YE
+#\\\|GM4KIJGHKN3BWY77KE3PMETSFX36A6ALKA7Q5JTCFUEWBAK5NKP \ / AMOS7 \ YOURUM ::
+#\[7]ZZUZOTZSAUMMIDO232IAWXBZKAKGRBNMFUEV3GGX7OAXWPSSQODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

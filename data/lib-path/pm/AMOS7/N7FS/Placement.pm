@@ -18,10 +18,11 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.J27AU7I |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.T6IFYCY |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
-    receipt_fresh receipt_coverage placement_report place_missing parse_size
+    receipt_fresh receipt_coverage receipt_covered receipt_digest
+    placement_report place_missing parse_size
     parse_age holder_drain holder_prune holder_rename holder_room
     holder_accepts |;
 
@@ -174,6 +175,55 @@ sub _receipt_path {
         . '.receipt';
 }
 
+## the addresses a receipt for $version covers : every entry added at or below
+## that head version. entries from before the added field read as 0, so an old
+## map is covered by any receipt that digested it
+sub receipt_covered {
+    my ( $map, $version ) = @_;
+    return sort grep { ( $map->{'nodes'}{$ARG}{'added'} // 0 ) <= $version }
+        keys %{ $map->{'nodes'} // {} };
+}
+
+## a digest over the covered entries' placement fields
+## [ address, blob, offset, length, chunks, pack ] : a receipt for $version
+## stores it, and _copies recomputes it over the current map -- an equal
+## digest proves the covered part only grew since the receipt, never changed
+## or lost an entry
+sub receipt_digest {
+    my ( $map, $version ) = @_;
+    my @lines;
+    foreach my $address ( receipt_covered( $map, $version ) ) {
+        my $e = $map->{'nodes'}{$address};
+        push @lines, join "\0", $address, $e->{'blob'} // '',
+            $e->{'offset'} // 0, $e->{'length'} // 0,
+            $e->{'chunks'} // 0, $e->{'node'}   // '';
+    }
+    return bmw_b32( bmw384_bytes( join "\n", @lines ) );
+}
+
+## the covered-address cache beside a receipt : an unreachable holder cannot
+## be read, so place planning falls back to the addresses the receipt listed
+## when it was written [ the digest binds cache and receipt ]
+sub _covered_cache_path {
+    my ( $host_dir, $spec, $root_id ) = @_;
+    return
+          _receipt_path( $host_dir, $spec ) . '.'
+        . substr( $root_id, 0, 7 )
+        . '.covered';
+}
+
+sub _covered_cache_read {
+    my ( $host_dir, $spec, $root_id ) = @_;
+    my $bytes
+        = read_file( _covered_cache_path( $host_dir, $spec, $root_id ) );
+    return undef if not defined $bytes;
+    my $data = eval { $JSON->decode($bytes) } // return undef;
+    return undef
+        if ref $data ne qw| HASH |
+        or ref $data->{'covered'} ne qw| ARRAY |;
+    return $data;
+}
+
 ## a holder-check result, signed by the host key
 sub receipt_write {
     my %opt     = @_;
@@ -185,6 +235,11 @@ sub receipt_write {
         qw| nodes |    => $opt{'nodes'} + 0,
         qw| samples |  => $opt{'samples'} + 0,
         qw| coverage | => $opt{'coverage'} // qw| sampled |,
+        defined $opt{'covered'}
+        ? ( qw| covered |       => $opt{'covered'},
+            qw| covered_nodes | => $opt{'covered_nodes'} + 0
+            )
+        : (),
     };
     my $signed = $JSON->encode($payload);
     my $path   = _receipt_path( $opt{'host_dir'}, $opt{'spec'} );
@@ -199,6 +254,25 @@ sub receipt_write {
             }
         )
     );
+    ## the covered-address cache is rewritten with the receipt ; without
+    ## covered data an old cache must not linger and match a newer receipt
+    my $cache = _covered_cache_path( $opt{'host_dir'}, $opt{'spec'},
+        $opt{'root_id'} );
+    if ( defined $opt{'covered'}
+        and ref $opt{'covered_addresses'} eq qw| ARRAY | ) {
+        unlink $cache;
+        write_new_file(
+            $cache,
+            $JSON->encode(
+                {   qw| version | => $opt{'version'} + 0,
+                    qw| digest |  => $opt{'covered'},
+                    qw| covered | => [ sort @{ $opt{'covered_addresses'} } ],
+                }
+            )
+        );
+    } else {
+        unlink $cache;
+    }
     return $payload;
 }
 
@@ -268,10 +342,13 @@ sub _disk_nodes {
 
 ## which domains hold each node, from the holders' own maps. two answers :
 ## %copies counts any fresh receipt [ place planning ], %proven counts only
-## full-coverage receipts [ drain and gc on other holders rely on those ]
+## full-coverage receipts [ drain and gc on other holders rely on those ].  an
+## incremental receipt [ carrying a covered digest ] vouches for exactly the
+## entries its version covers, as long as the covered part is unchanged
 sub _copies {
     my %opt     = @_;
     my $holders = holders_load(%opt);
+    my $now     = time;
     my %copies;
     my %proven;
     my %status;
@@ -288,34 +365,103 @@ sub _copies {
             AMOS7::N7FS::Seal::_context( $opt{'root'}, $h->{'spec'}, TRUE );
         };
         my $state = qw| counted |;
-        if    ($EVAL_ERROR)                     { $state = 'unreachable' }
-        elsif ( not defined $head )             { $state = 'empty' }
-        elsif ( $h->{'role'} ne qw| durable | ) { $state = 'intake' }
-        elsif ( not $receipt ) {
+        my $covered;
+        if ($EVAL_ERROR) {
+            $state = qw| unreachable |;
+            ## within the grace a fresh receipt keeps the covered entries ##
+            ## counting in place planning, from the cache it wrote ; the  ##
+            ## cache must match the receipt's digest. it never counts for ##
+            ## drain : only place passes a grace                          ##
+            my $age   = $receipt ? $now - ( $receipt->{'time'} // 0 ) : undef;
+            my $grace = $opt{'unreachable_grace'} // 0;
+            my $cache
+                = $receipt
+                ? _covered_cache_read( $opt{'host_dir'}, $h->{'spec'},
+                $opt{'root'}{'root_id'} )
+                : undef;
+            if (    $grace > 0
+                and defined $age
+                and $age <= $grace
+                and defined $cache
+                and ( $receipt->{'covered'} // '' ) ne ''
+                and $cache->{'digest'} eq $receipt->{'covered'} ) {
+                $state   = 'unreachable, counted';
+                $covered = { map { $ARG => TRUE } @{ $cache->{'covered'} } };
+            }
+        } elsif ( not defined $head ) {
+            $state = qw| empty |;
+        } elsif ( $h->{'role'} ne qw| durable | ) {
+            $state = qw| intake |;
+        } elsif ( not $receipt ) {
             $state = 'no fresh receipt';
+        } elsif ( not defined $receipt->{'covered'} ) {
+            ## a receipt from before the covered digest binds the exact ##
+            ## head version it checked : any commit, even one that only ##
+            ## added entries, waits for the next holder-check           ##
+            if ( ( $receipt->{'version'} // -1 ) != $head->{'version'} ) {
+                $state = 'no fresh receipt';
+            } else {
+                ## the exact version : it vouches for every mapped entry ##
+                $covered = {
+                    map { $ARG => TRUE }
+                        keys %{ $map->{'nodes'} // {} }
+                };
+            }
+        } else {
+            ## entries the receipt's version covers ; a changed or dropped ##
+            ## covered entry changes the digest and voids the receipt      ##
+            if ( receipt_digest( $map, $receipt->{'version'} ) ne
+                $receipt->{'covered'} ) {
+                ## a void receipt vouches for nothing : no copy, no proof ##
+                $state = 'no fresh receipt';
+            } else {
+                $covered = { map { $ARG => TRUE }
+                        receipt_covered( $map, $receipt->{'version'} ) };
+            }
         }
-        ## a receipt vouches for the head it checked : any later commit ##
-        ## [ place, relay, drain ] waits for the next holder-check      ##
-        elsif ( ( $receipt->{'version'} // -1 ) != $head->{'version'} ) {
-            $state = 'no fresh receipt';
+        if ( $excluded{$name} and $state eq 'counted' ) {
+            $state   = 'excluded';
+            $covered = undef;
         }
-        $state = 'excluded' if $excluded{$name} and $state eq 'counted';
         $status{$name}{'state'} = $state;
         $status{$name}{'coverage'}
             = $receipt ? receipt_coverage($receipt) : undef;
-        my $full = receipt_coverage($receipt) eq qw| full |;
-        my $used = 0;
-        foreach my $address ( keys %{ $map->{'nodes'} // {} } ) {
-            $used += $map->{'nodes'}{$address}{'length'} // 0;
-            if ( $state eq 'counted' ) {
-                $copies{$address}{ $h->{'domain'} } = TRUE;
-                $proven{$address}{ $h->{'domain'} } = TRUE if $full;
+        $status{$name}{'receipt_version'}
+            = ref $receipt eq qw| HASH | ? $receipt->{'version'} : undef;
+        $status{$name}{'receipt_age'}
+            = ref $receipt eq qw| HASH | ? $now - $receipt->{'time'} : undef;
+        my $full          = receipt_coverage($receipt) eq qw| full |;
+        my $used          = 0;
+        my $covered_count = 0;
+
+        if ( $state eq 'unreachable, counted' ) {
+            ## the map cannot be read : the cache lists what the receipt ##
+            ## covers, counting for place planning only, never for drain ##
+            $covered_count                  = scalar keys %{$covered};
+            $copies{$ARG}{ $h->{'domain'} } = TRUE for sort keys %{$covered};
+            $status{$name}{'nodes'}         = {};
+        } elsif ( defined $map ) {
+            foreach my $address ( keys %{ $map->{'nodes'} // {} } ) {
+                $used += $map->{'nodes'}{$address}{'length'} // 0;
+                if ( $covered and $covered->{$address} ) {
+                    $covered_count++;
+                    $copies{$address}{ $h->{'domain'} } = TRUE;
+                    $proven{$address}{ $h->{'domain'} } = TRUE if $full;
+                }
+                ## the entry itself : drain reads its disk ids ##
+                $status{$name}{'nodes'}{$address}
+                    = $map->{'nodes'}{$address};
             }
-            ## the entry itself : drain reads its disk ids ##
-            $status{$name}{'nodes'}{$address} = $map->{'nodes'}{$address};
         }
-        $status{$name}{'used'}  = $used;
-        $status{$name}{'count'} = scalar keys %{ $map->{'nodes'} // {} };
+        $status{$name}{'covered_set'} = $covered;
+        $status{$name}{'covered'}     = $covered_count;
+        $status{$name}{'used'}        = $used;
+        $status{$name}{'count'}
+            = defined $map ? scalar keys %{ $map->{'nodes'} // {} } : 0;
+        ## unreachable holders map nothing readable : their covered set ##
+        ## comes from the cache, so there is no pending count either    ##
+        $status{$name}{'pending'}
+            = defined $map ? $status{$name}{'count'} - $covered_count : 0;
     }
     return ( $holders, \%copies, \%status, \%proven );
 }
@@ -408,7 +554,7 @@ sub place_missing {
     my %left;
     foreach my $name ( keys %{$holders} ) {
         next if $holders->{$name}{'role'} ne qw| durable |;
-        next if $status->{$name}{'state'} eq 'unreachable';
+        next if $status->{$name}{'state'} =~ m|\Aunreachable|;
         next if $status->{$name}{'state'} eq 'excluded';
         $left{$name}
             = holder_room( $holders->{$name}, $status->{$name}{'used'} );
@@ -417,13 +563,17 @@ sub place_missing {
     foreach my $address ( sort keys %{$nodes} ) {
         my $n    = $nodes->{$address};
         my %have = %{ $copies->{$address} // {} };
-        ## a durable holder that maps the node but lacks a receipt for its  ##
-        ## current head is pending, not missing : place waits for its check ##
-        ## instead of sending the node to another domain                    ##
-        ## [ drain still counts only checked copies ]                       ##
+        ## a durable holder that maps the node without a receipt covering ##
+        ## it is pending, not missing : place waits for its check instead ##
+        ## of sending the node to another domain                          ##
+        ## [ drain still counts only checked copies ]                     ##
         foreach my $name ( keys %{$holders} ) {
             next if $holders->{$name}{'role'} ne qw| durable |;
-            next if $status->{$name}{'state'} ne 'no fresh receipt';
+            next if $status->{$name}{'state'} =~ m|\Aunreachable|;
+            next if $status->{$name}{'state'} eq 'excluded';
+            next
+                if $status->{$name}{'covered_set'}
+                and $status->{$name}{'covered_set'}{$address};
             $have{ $holders->{$name}{'domain'} } = TRUE
                 if $status->{$name}{'nodes'}{$address};
         }
@@ -469,10 +619,51 @@ sub place_missing {
             $done{$name} = $r->{'sealed'};
         }
     }
+    ## the receipt follows the head : every holder written this run is checked
+    ## before place returns, so its copies count at once. a failing check is
+    ## reported and never undoes the placement
+    my %checks;
+    if ( not $opt{'dry_run'} and not $opt{'no_check'} ) {
+        my $coverage = $opt{'check_coverage'} // qw| sampled |;
+        foreach my $name ( sort keys %done ) {
+            my $r = eval {
+                AMOS7::N7FS::Seal::holder_check(
+                    qw| root |     => $opt{'root'},
+                    qw| holder |   => $holders->{$name}{'spec'},
+                    qw| samples |  => $opt{'samples'},
+                    qw| coverage | => $coverage,
+                );
+            };
+            if ( not defined $r ) {
+                my $err = $EVAL_ERROR // 'holder-check failed';
+                chomp $err;
+                $checks{$name} = { qw| ok | => FALSE, qw| error | => $err };
+                next;
+            }
+            if ( ref $opt{'signer'} ) {
+                receipt_write(
+                    qw| host_dir |          => $opt{'host_dir'},
+                    qw| signer |            => $opt{'signer'},
+                    qw| spec |              => $holders->{$name}{'spec'},
+                    qw| root_id |           => $r->{'root_id'},
+                    qw| version |           => $r->{'version'},
+                    qw| nodes |             => $r->{'nodes'},
+                    qw| samples |           => $r->{'samples'},
+                    qw| coverage |          => $r->{'coverage'},
+                    qw| covered |           => $r->{'covered'},
+                    qw| covered_nodes |     => $r->{'covered_nodes'},
+                    qw| covered_addresses | => $r->{'covered_list'},
+                );
+            }
+            $checks{$name}
+                = { qw| ok | => TRUE, qw| coverage | => $r->{'coverage'} };
+        }
+    }
     return {
         qw| plan |   => { map { $ARG => scalar $plan{$ARG}->@* } keys %plan },
         qw| sealed | => \%done,
         qw| unplaced | => scalar @unplaced,
+        qw| checks |   => \%checks,
     };
 }
 
@@ -659,8 +850,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,,.,,,,,.,,,,,,,,,.,.,.,,,.,,.,,,,.,,,.,..,,...,...,.,,,,.,,,..,,.,,,,,,
-#6XXJN3QLJPZD6GBA4AXHNZ64CKSG74MBZJXU47LUTDD5GC6727ZMYMKFQQN4GIGMC3BG3EPZRRERS
-#\\\|MKFUYC2C5LOYE2SWYQHAOSGC47HH3RDWQ45ERGOV3EOYE4KRGV4 \ / AMOS7 \ YOURUM ::
-#\[7]LD2F3NWHBB4AEXCUGM6A7YPLZYMUFHYNNM7CY6ZIYUMK7QN3MWCY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,..,,..,,,..,.,.,,,.,.,,,.,,,...,..,,...,..,,,,.,...,..,,.,,,.,.,
+#VIT7SBAAD2GOKA6KIPI62Z3TBNG5PPZK37EKHBIXAIYQ4CFIMPCY634HYAKJPKNXXZGSIFU5H6IVA
+#\\\|6JGCVEHWZ26OVF77VFLAGCYWKIQDNM2EAAIYXM6BD3JIVLHDM4N \ / AMOS7 \ YOURUM ::
+#\[7]D2T6PMPMI4RFUNUHRR75NX6DHGMZPZ7ZYYVQZIIGYW62NWX3LECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
