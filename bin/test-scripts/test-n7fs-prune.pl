@@ -147,8 +147,8 @@ ok( !( grep { exists $ARG->{'disks'} } values $legacy_map->{'nodes'}->%* ),
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'legacy', '-root-key', $root_key );
 ok( $rc == 0
-        && $out =~ m|dropped 2 nodes|
-        && $out =~ m|kept 2 nodes, \d+ bytes : no disk id|,
+        && $out =~ m|dropped 1 nodes|
+        && $out =~ m|kept 1 nodes, \d+ bytes : no disk id|,
     'legacy drain takes live-here entries and reports the others'
 ) or say $out;
 ( undef, $legacy_map ) = read_map( $holder{'legacy'} );
@@ -158,7 +158,7 @@ ok( !exists $legacy_map->{'trees'}{'t'} && exists $legacy_map->{'trees'}{'u'},
 
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'source', 'shared', '-root-key', $root_key );
-ok( $rc == 0 && $out =~ m|relayed 2 nodes|,
+ok( $rc == 0 && $out =~ m|relayed 1 nodes|,
     'the shared holder starts with the first disk\'s ids' )
     or say $out;
 ( my $before_merge, undef ) = read_map( $holder{'shared'} );
@@ -167,7 +167,7 @@ ok( $rc == 0 && $out =~ m|relayed 2 nodes|,
 ( my $after_merge, my $shared_map ) = read_map( $holder{'shared'} );
 ok( $rc == 0
         && $out =~ m|relayed 0 nodes|
-        && $out =~ m|merged disk ids for 2 existing nodes|
+        && $out =~ m|merged disk ids for 1 existing nodes|
         && $after_merge->{'version'} > $before_merge->{'version'},
     'relay merges disk ids into existing entries and commits'
 ) or say $out;
@@ -190,7 +190,7 @@ ok( $rc == 0
     '-root-key', $root_key );
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'shared', '-root-key', $root_key );
-ok( $rc == 0 && $out =~ m|dropped 0 nodes| && $out =~ m|untagged 2 nodes|,
+ok( $rc == 0 && $out =~ m|dropped 0 nodes| && $out =~ m|untagged 1 nodes|,
     'draining one of two disks only removes its tags' )
     or say $out;
 ( undef, $shared_map ) = read_map( $holder{'shared'} );
@@ -214,7 +214,7 @@ ok( $rc == 0 && read_file("$base/recovered/file") eq "shared content\n",
 ( $rc, $out )
     = cli( ['vp'], 'holder-prune', 'shared', '-root-key',
     $root_key, '-dry-run' );
-ok( $rc == 0 && $out =~ m|would drop 0 nodes| && $out =~ m|kept 2 nodes|,
+ok( $rc == 0 && $out =~ m|would drop 0 nodes| && $out =~ m|kept 1 nodes|,
     'prune keeps entries live on an attached disk' )
     or say $out;
 
@@ -229,14 +229,14 @@ foreach my $address (@legacy_addresses) {
     $root_key, '-dry-run' );
 ok( $rc == 0
         && $out =~ m|would drop 0 nodes|
-        && $out =~ m|kept 2 nodes without disk ids|,
+        && $out =~ m|kept 1 nodes without disk ids|,
     'legacy orphans stay without -legacy'
 ) or say $out;
 ( $rc, $out )
     = cli( ['vp'], 'holder-prune', 'legacy', '-root-key',
     $root_key, '-legacy', '-dry-run' );
 ok( $rc == 0
-        && $out =~ m|would drop 2 nodes|
+        && $out =~ m|would drop 1 nodes|
         && $out =~ m|would drop \Q$legacy_addresses[0]\E|,
     'a legacy orphan dry run prints the addresses it would drop'
 ) or say $out;
@@ -245,7 +245,7 @@ ok( $rc == 0
     $root_key, '-legacy' );
 ( undef, $legacy_map ) = read_map( $holder{'legacy'} );
 ok( $rc == 0
-        && $out =~ m|dropped 2 nodes|
+        && $out =~ m|dropped 1 nodes|
         && !keys $legacy_map->{'nodes'}->%*,
     'prune drops confirmed legacy orphans'
 ) or say $out;
@@ -266,7 +266,7 @@ foreach my $address (@shared_addresses) {
 ( $rc, $out )
     = cli( ['vp'], 'holder-prune', 'shared', '-root-key',
     $root_key, '-dry-run' );
-ok( $rc == 0 && $out =~ m|would drop 0 nodes| && $out =~ m|kept 2 nodes|,
+ok( $rc == 0 && $out =~ m|would drop 0 nodes| && $out =~ m|kept 1 nodes|,
     'prune keeps stale tags whose disk is detached' )
     or say $out;
 ( $rc, $out ) = cli( [], 'attach', $disk2 );
@@ -275,15 +275,15 @@ ok( $rc == 0 && $out =~ m|would drop 0 nodes| && $out =~ m|kept 2 nodes|,
     $root_key, '-dry-run' );
 ( undef, my $after_dry ) = read_map( $holder{'shared'} );
 ok( $rc == 0
-        && $out =~ m|would drop 2 nodes|
-        && keys $after_dry->{'nodes'}->%* == 2,
+        && $out =~ m|would drop 1 nodes|
+        && keys $after_dry->{'nodes'}->%* == 1,
     'a tagged orphan dry run changes nothing'
 ) or say $out;
 ( $rc, $out )
     = cli( ['vp'], 'holder-prune', 'shared', '-root-key', $root_key );
 ( undef, $shared_map ) = read_map( $holder{'shared'} );
 ok( $rc == 0
-        && $out =~ m|dropped 2 nodes|
+        && $out =~ m|dropped 1 nodes|
         && !keys $shared_map->{'nodes'}->%*,
     'prune drops entries after all their disks stop listing them'
 ) or say $out;
@@ -302,8 +302,8 @@ ok( $rc == 0
 
 done();
 
-#,,..,,.,,.,,,,..,,.,,,,,,...,,.,,.,.,,.,,,,.,..,,...,...,..,,,.,,,,,,,,,,.,,,
-#FW2FIPFASF7P4KETROH3AXL4W6G4MUZ3XGI2HHKGLXXOLCGWMKPRXMXWNICTBFDNRDJECOSKBOVXI
-#\\\|QOOUFFMDHCQQ4WTYF6SMMLUI5NPUCKCCIY2IVZLFL5SYTXVJSVC \ / AMOS7 \ YOURUM ::
-#\[7]6CCAOKR3IURPCP6GIDDLFP5XIY722NJR3SWHQAL6JMLZWO5CNCAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,,,.,.,.,,..,,,,,,..,...,,,.,..,,...,...,..,,,,.,,.,,...,,..,
+#W5WNTAVPDQYXOZ3R373XJG7C2YJILKDWCLVJGIBC6NILBEJ5AUP6BVKA6JYBWTHYW3SKWGEM3ESSM
+#\\\|L6CVESGCTH6VGDRVGCNMCHOSHIXJZNPAKYPATWAFII5C7VVEJCH \ / AMOS7 \ YOURUM ::
+#\[7]U3VPK6RLO7HYZIDM7EUTOE7U63YCDTKFGDMQPL2GYQQ7MXCSMMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -120,7 +120,7 @@ ok( defined $hub_sub && -d $hub_sub,
 ## far gets a head first, so gc there has something to protect ##
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'hub', 'far', '-root-key', 'vault:main' );
-ok( $rc == 0 && $out =~ m|relayed 9 nodes|,
+ok( $rc == 0 && $out =~ m|relayed 8 nodes|,
     'first tree relayed through home'
 ) or say $out;
 
@@ -143,7 +143,7 @@ my $before = () = blobs($far);
     = cli( ['vp'], 'relay', 'hub', 'far', '-root-key', 'vault:main',
     '-list' );
 my ($list) = $out =~ m|(relay-list\.[A-Z2-7]{13})|;
-ok( $rc == 0 && $out =~ m|listed 4 blobs| && defined $list && -f "$hub/$list",
+ok( $rc == 0 && $out =~ m|listed 5 blobs| && defined $list && -f "$hub/$list",
     'home writes a relay list onto the hub'
 ) or say $out;
 ok( scalar( () = blobs($far) ) == $before, 'listing copies nothing' );
@@ -151,7 +151,7 @@ ok( scalar( () = blobs($far) ) == $before, 'listing copies nothing' );
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'hub', 'far', '-root-key', 'vault:main',
     '-adopt' );
-ok( $rc == 0 && $out =~ m|relayed 0 nodes| && $out =~ m|4 nodes wait|,
+ok( $rc == 0 && $out =~ m|relayed 0 nodes| && $out =~ m|3 nodes wait|,
     'adopt before the push maps nothing and says what waits'
 ) or say $out;
 
@@ -168,27 +168,27 @@ chmod 0755, $ENV{'N7FS_SSH'};
     ( $rc, $out )
         = run( [], "$FindBin::Bin/../n7fs-push", $hub, $list, 'far' );
 }
-ok( $rc == 0 && $out =~ m|sent 4 blobs|, 'the hub pushes without any key' )
+ok( $rc == 0 && $out =~ m|sent 5 blobs|, 'the hub pushes without any key' )
     or say $out;
 ok( -e "$base/drop-once" && $out =~ m|retry \S+ in 0 s \[ 255 \]|,
     'a dropped connection is retried, the push goes on'
 ) or say $out;
 ( $rc, $out ) = run( [], "$FindBin::Bin/../n7fs-push", $hub, $list, 'far' );
-ok( $rc == 0 && $out =~ m|sent 0 blobs| && $out =~ m|4 already there|,
+ok( $rc == 0 && $out =~ m|sent 0 blobs| && $out =~ m|5 already there|,
     'a second push skips what arrived' )
     or say $out;
 
 ( $rc, $out )
     = cli( ['vp'], 'holder-gc', $far, '-root-key', 'vault:main',
     '-only-root', '-delete' );
-ok( $rc == 0 && scalar( () = blobs($far) ) >= $before + 4,
+ok( $rc == 0 && scalar( () = blobs($far) ) >= $before + 5,
     'gc keeps pushed blobs that wait for adoption'
 ) or say $out;
 
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'hub', 'far', '-root-key', 'vault:main',
     '-adopt' );
-ok( $rc == 0 && $out =~ m|relayed 4 nodes in 0 blobs| && $out !~ m|wait|,
+ok( $rc == 0 && $out =~ m|relayed 3 nodes in 0 blobs| && $out !~ m|wait|,
     'home adopts the pushed nodes without copying' )
     or say $out;
 ( $rc, $out )
@@ -387,8 +387,8 @@ ok( $rc == 0 && $out !~ m|^bad|m && $out !~ m|trash|,
 
 done();
 
-#,,,,,.,,,...,.,,,..,,..,,,,,,,..,.,.,..,,,..,..,,...,.,.,.,.,...,,,.,,,.,.,,,
-#YK7EOXPUP6PB3E5JT3VXIM3VQK5NUUB4QZYEWSTQKEZ3PS6G5IBWGDUP7AVGS6ROJIL5HOOUAVCPG
-#\\\|HXDNRYDSBHKUH3WEQDBCCI3D6VJFPEC2Z7BOMXAP3D2ATMKILBK \ / AMOS7 \ YOURUM ::
-#\[7]CZ3E6WYKTYCTKQQJS3RYRGGXQ6HDNHZJ26A74QELLJIEFQAJXKCI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,.,,,,..,,,,,,,.,,,,,.,.,...,..,,...,...,.,.,..,,,,,,...,,.,,
+#KMGSGJW3IWOLWVZKYILW3SEJR6NDT5MCZ57UGS6W3JK7PNQPBHV6DQ4XXST7H4ILCEWH2APRT54RA
+#\\\|JCC3EAAPW2HC4TX6DQAG4YUIR4Z5HHO4PQMCN23MBMQBUGL7JJ5 \ / AMOS7 \ YOURUM ::
+#\[7]OYCMOVWVYK7V5EW3VQX7TW775I3S5IE7XBW73TDDZV3PAIJGZ2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

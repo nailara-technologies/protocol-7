@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.6R6DIWQ |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.D5BEBHA |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -125,7 +125,7 @@ sub _long_aad {
     my ( $domain, $id, $counter ) = @_;
     return "P7SE\x01" . $domain . pack( qw| Q> |, $counter )
         if $domain
-        !~ m{\A(?:head|map|map-shard-[0-9A-F]{2}|map-tree|journal)\z};
+        !~ m{\A(?:head|map|map-shard-[0-9A-F]{2}|map-tree|journal|manifest-index|manifest-chunk)\z};
     return "P7SE\x01" . pack( 'n/a* a16 Q>', $domain, $id, $counter );
 }
 
@@ -418,6 +418,8 @@ sub _map_blob_names {
     my %names = map { $ARG => TRUE } $head->{'map'}, $head->{'journal'},
         ( map { $ARG->{'blob'} } values $map->{'_shards'}->%* );
     $names{ $map->{'_tree_blob'}{'blob'} } = TRUE if $map->{'_tree_blob'};
+    $names{$ARG} = TRUE
+        for map { _manifest_blob_names($ARG) } values $map->{'trees'}->%*;
     return keys %names;
 }
 
@@ -846,6 +848,179 @@ sub _manifest_files {
     return @files;
 }
 
+sub _manifest_entry_limit {
+    return $ENV{'N7FS_TEST_MANIFEST_ENTRIES'} // 1024;
+}
+
+sub _manifest_seal {
+    my ( $root, $base, $plain, $domain, $version ) = @_;
+    my $sum    = bmw_b32( bmw384_bytes($plain) );
+    my $id     = substr( bmw384_bytes($plain), 0, 16 );
+    my $writer = _writer( _state_read($root) );
+    my $bytes
+        = $writer
+        . seal_bytes( $root->{'keys'}, $plain, $domain, $id, $version );
+    return {
+        qw| blob |     => _write_blob( $root, $base, $bytes, qw| manifest | ),
+        qw| checksum | => $sum,
+        qw| id |       => b32($id),
+        qw| writer |   => b32($writer),
+        qw| version |  => $version,
+    };
+}
+
+sub _manifest_plain {
+    my ( $root, $base, $alt, $desc, $domain ) = @_;
+    refuse('sealed manifest descriptor is invalid')
+        if ref $desc ne qw| HASH |
+        or ( $desc->{'version'} // '' ) !~ m|\A[1-9]\d*\z|;
+    my $id = unb32( $desc->{'id'} // '' );
+    refuse('sealed manifest id is invalid')
+        if not defined $id
+        or length $id != 16;
+    my $writer = unb32( $desc->{'writer'} // '' );
+    refuse('sealed manifest writer is invalid')
+        if not defined $writer
+        or length $writer != 16;
+    my $bytes = eval { _read_blob( $base, $desc->{'blob'} ) };
+    if ( not defined $bytes ) {
+        die $EVAL_ERROR if not defined $alt or $alt eq $base;
+        $bytes = _read_blob( $alt, $desc->{'blob'} );
+    }
+    refuse('manifest writer does not match its descriptor')
+        if substr( $bytes, 0, 16 ) ne $writer;
+    my $plain = open_sealed_bytes( $root->{'keys'}, substr( $bytes, 16 ),
+        $domain, $id, $desc->{'version'} );
+    refuse('sealed manifest checksum does not match')
+        if bmw_b32( bmw384_bytes($plain) ) ne ( $desc->{'checksum'} // '' );
+    return $plain;
+}
+
+sub _chunk_tree_manifest {
+    my ( $root, $base, $id, $tree, $previous, $version ) = @_;
+    open( my $fh, '<:raw', _content_path( $id, $tree->{'manifest'} ) )
+        or refuse( 'cannot read tree manifest %s', $tree->{'manifest'} );
+    my $line = <$fh>;
+    my $head = eval { $JSON->decode( $line // '' ) };
+    refuse('tree manifest header is invalid')
+        if ref $head ne qw| HASH |
+        or ( $head->{'manifest'} // 0 ) != 1;
+    my ( @order, %directories );
+    my $position = 0;
+    while ( my $line = <$fh> ) {
+        my $entry = eval { $JSON->decode($line) };
+        refuse('tree manifest entry is invalid') if ref $entry ne qw| HASH |;
+        my $path
+            = ( $entry->{'p'} // '' ) eq ''
+            ? ''
+            : unb32( $entry->{'p'} // '' );
+        refuse('tree manifest path is invalid') if not defined $path;
+        my $parent = $path;
+        $parent =~ s|/?[^/]+\z||;
+        push @order, $parent if not exists $directories{$parent};
+        push @{ $directories{$parent} }, [ $position++, $entry ];
+    }
+    close $fh;
+    my %previous
+        = map { join( "\0", @{$ARG}{qw| path part checksum |} ) => $ARG }
+        @{ $previous->{'chunks'} // [] };
+    my @chunks;
+    foreach my $path (@order) {
+        my $entries = $directories{$path};
+        my $limit   = _manifest_entry_limit();
+        refuse('manifest directory chunk size must be positive')
+            if $limit !~ m|\A[1-9]\d*\z|;
+        for ( my $start = 0; $start < @{$entries}; $start += $limit ) {
+            my $part = int( $start / $limit );
+            my $end  = $start + $limit - 1;
+            $end = $#{$entries} if $end > $#{$entries};
+            my @slice = @{$entries}[ $start .. $end ];
+            my $plain = $JSON->encode( [ map { $ARG->[1] } @slice ] );
+            my $sum   = bmw_b32( bmw384_bytes($plain) );
+            my $key   = join "\0", $path, $part, $sum;
+            my $desc  = $previous{$key}
+                // _manifest_seal( $root, $base, $plain,
+                qw| manifest-chunk |, $version );
+            push @chunks,
+                {
+                %{$desc},
+                qw| path |      => $path,
+                qw| part |      => $part,
+                qw| positions | => [ map { $ARG->[0] } @slice ],
+                };
+        }
+    }
+    my $index_plain = $JSON->encode(
+        {   qw| format | => qw| n7fs-chunked-manifest-v1 |,
+            qw| header | => $head,
+            qw| chunks | => \@chunks,
+        }
+    );
+    return {
+        %{$tree},
+        qw| chunks | => \@chunks,
+        qw| index |  => _manifest_seal(
+            $root, $base, $index_plain, qw| manifest-index |, $version
+        ),
+    };
+}
+
+sub _manifest_read {
+    my ( $root, $base, $alt, $tree ) = @_;
+    refuse('legacy single-blob tree manifest is refused')
+        if ref $tree ne qw| HASH |
+        or ref $tree->{'index'} ne qw| HASH |
+        or ref $tree->{'chunks'} ne qw| ARRAY |;
+    my $plain = _manifest_plain( $root, $base, $alt, $tree->{'index'},
+        qw| manifest-index | );
+    my $index = eval { $JSON->decode($plain) };
+    refuse('sealed manifest index is invalid')
+        if ref $index ne qw| HASH |
+        or ( $index->{'format'} // '' ) ne qw| n7fs-chunked-manifest-v1 |
+        or ref $index->{'header'} ne qw| HASH |
+        or ref $index->{'chunks'} ne qw| ARRAY |
+        or $JSON->encode( $index->{'chunks'} ) ne
+        $JSON->encode( $tree->{'chunks'} );
+    my @entries;
+    foreach my $chunk ( $index->{'chunks'}->@* ) {
+        refuse('sealed manifest chunk position list is invalid')
+            if ref $chunk->{'positions'} ne qw| ARRAY |;
+        my $plain = _manifest_plain( $root, $base, $alt, $chunk,
+            qw| manifest-chunk | );
+        my $entries = eval { $JSON->decode($plain) };
+        refuse('sealed manifest chunk is invalid')
+            if ref $entries ne qw| ARRAY |
+            or @{$entries} != @{ $chunk->{'positions'} };
+        push @entries,
+            map { [ $chunk->{'positions'}[$ARG], $entries->[$ARG] ] }
+            0 .. $#{$entries};
+    }
+    return ( $index->{'header'},
+        map { $ARG->[1] } sort { $a->[0] <=> $b->[0] } @entries );
+}
+
+sub _manifest_restore {
+    my ( $root, $base, $alt, $tree, $target ) = @_;
+    my ( $head, @entries ) = _manifest_read( $root, $base, $alt, $tree );
+    write_new_file(
+        $target,
+        join( '',
+            $JSON->encode($head) . "\n",
+            map { $JSON->encode($ARG) . "\n" } @entries )
+    );
+    return TRUE;
+}
+
+sub _manifest_blob_names {
+    my $tree = shift;
+    refuse('legacy single-blob tree manifest is refused')
+        if ref $tree ne qw| HASH |
+        or ref $tree->{'index'} ne qw| HASH |
+        or ref $tree->{'chunks'} ne qw| ARRAY |;
+    return ( $tree->{'index'}{'blob'},
+        map { $ARG->{'blob'} } $tree->{'chunks'}->@* );
+}
+
 ## disk <-> root binding [ review finding 6 ] : the first seal of a disk    ##
 ## writes <disk>/.n7fs/seal-root, signed by the sealing root. every later   ##
 ## seal or unseal of that disk refuses any other root, so an unattended job ##
@@ -956,7 +1131,7 @@ sub _select_addresses {
             qw| manifest | => $tree->{'manifest'},
             qw| created |  => $tree->{'created'}
         };
-        $selected{$ARG} = 1 for $tree->{'manifest'}, @files;
+        $selected{$ARG} = 1 for @files;
     }
     foreach my $name ( $opt{'trees'}->@* ) {
         refuse( 'no live tree named %s', $name ) if not exists $trees{$name};
@@ -1005,7 +1180,19 @@ sub seal_nodes {
         ( $map->{'trees'}{$ARG}{'manifest'} // '' ) ne
             $trees->{$ARG}{'manifest'}
     } keys %{$trees};
-    $map->{'trees'} = { %{ $map->{'trees'} // {} }, %{$trees} };
+    foreach my $name ( keys %{$trees} ) {
+        next
+            if ( $map->{'trees'}{$name}{'manifest'} // '' ) eq
+            $trees->{$name}{'manifest'};
+        my $previous = {
+            qw| chunks | => [
+                map { @{ $ARG->{'chunks'} // [] } }
+                    values $map->{'trees'}->%*
+            ]
+        };
+        $map->{'trees'}{$name} = _chunk_tree_manifest( $root, $base, $id,
+            $trees->{$name}, $previous, $counter->{'version'} + 1 );
+    }
     my @new;
     my @pending_files;
     my ( $sealed, $batch_bytes, $tagged ) = ( 0, 0, 0 );
@@ -1313,31 +1500,17 @@ sub _unseal_tree {
         qw| disk | => $opt{'disk'}
     );
     _disk_binding_check( $id, $opt{'root'}, FALSE );
-    my $replay = journal_replay($id);
-    my $tree   = $replay->{'trees'}{ $opt{'address'} }
+    my $tree = $opt{'map'}{'trees'}{ $opt{'address'} }
         // refuse( 'no live tree named %s', $opt{'address'} );
     refuse('tree restore target exists')
         if -e $opt{'target'}
         or -l $opt{'target'};
     my $tmp = $opt{'target'} . '.incomplete.' . b32( random_bytes(5) );
     make_dirs( $tmp, 0700 );
-    _restore_node(
-        @opt{qw| root holder |}, $opt{'map'},
-        $tree->{'manifest'},     "$tmp/.manifest"
-    );
-    open( my $manifest, '<:raw', "$tmp/.manifest" )
-        or refuse('cannot read restored manifest');
-    my $head = <$manifest>;
-    my @entries;
-
-    while ( my $line = <$manifest> ) {
-        my $entry = eval { $JSON->decode($line) };
-        refuse('bad restored manifest entry') if ref $entry ne qw| HASH |;
-        push @entries, $entry;
-    }
-    close $manifest;
-    unlink "$tmp/.manifest";
+    my ( $head, @entries )
+        = _manifest_read( $opt{'root'}, $opt{'holder'}, undef, $tree );
     my @links;
+
     foreach my $entry (@entries) {
         my $relative = _tree_path( $entry->{'p'} );
         my $dest     = "$tmp/$relative";
@@ -1379,11 +1552,6 @@ sub _unseal_tree {
 sub _restore_sealed_tree {
     my %opt  = @_;
     my $tree = $opt{'map'}{'trees'}{ $opt{'address'} };
-    if ( not defined $tree and $opt{'disk'} ) {
-        my $id     = disk_read_id( qw| disk | => $opt{'disk'} );
-        my $replay = journal_replay($id);
-        $tree = $replay->{'trees'}{ $opt{'address'} };
-    }
     refuse( 'no live tree named %s', $opt{'address'} ) if not defined $tree;
     require File::Temp;
     my $tmp = File::Temp::tempdir(
@@ -1392,10 +1560,8 @@ sub _restore_sealed_tree {
         CLEANUP => 1
     );
     my $manifest = "$tmp/manifest";
-    _restore_node(
-        @opt{qw| root holder |}, $opt{'map'},
-        $tree->{'manifest'},     $manifest
-    );
+    _manifest_restore( $opt{'root'}, $opt{'holder'}, undef,
+        $tree, $manifest );
     require AMOS7::N7FS::Tree;
     return AMOS7::N7FS::Tree::tree_restore(
         qw| name |           => $opt{'address'},
@@ -1568,7 +1734,11 @@ sub holder_check {
     $opt{'holder'} = $base;
     my $sizes     = holder_sizes($base);
     my @addresses = sort keys $map->{'nodes'}->%*;
-    my %blobs;
+    my %blobs     = map { $ARG => TRUE } _map_blob_names( $head, $map );
+    foreach my $name ( keys %blobs ) {
+        refuse( 'mapped blob is missing : %s', $name )
+            if not defined $sizes->{$name};
+    }
 
     foreach my $address (@addresses) {
         my $entry = $map->{'nodes'}{$address};
@@ -1866,12 +2036,18 @@ sub unmap_nodes {
             and ref $e->{'disks'} eq qw| HASH |
             and $e->{'disks'}{ $opt{'disk'} // '' }
     } @{ $opt{'untag'} // [] };
+    my %live_trees = map  { $ARG => TRUE } @{ $opt{'live_trees'} // [] };
+    my @stale      = grep { not $live_trees{$ARG} } keys $map->{'trees'}->%*
+        if defined $opt{'live_trees'};
     return { qw| removed | => 0, qw| trees | => 0, qw| untagged | => 0 }
-        if not %gone and not @untag;
+        if not %gone
+        and not @untag
+        and not @stale;
     delete $map->{'nodes'}{$ARG} for keys %gone;
     delete $map->{'nodes'}{$ARG}{'disks'}{ $opt{'disk'} } for @untag;
-    my @trees;
+    my @trees = @stale;
     foreach my $name ( sort keys %{ $map->{'trees'} // {} } ) {
+        next if defined $opt{'live_trees'};
         my $files = $opt{'tree_files'}{$name} // [];
         push @trees, $name
             if $gone{ $map->{'trees'}{$name}{'manifest'} }
@@ -1994,6 +2170,25 @@ sub relay_nodes {
                 $blob{ $fmap->{'nodes'}{$ARG}{'blob'} }
         } @addresses;
     }
+    my %incoming = map { $ARG => TRUE } @addresses;
+    my @tree_names;
+    foreach my $name ( sort keys %{ $fmap->{'trees'} // {} } ) {
+        my $tree = $fmap->{'trees'}{$name};
+        next
+            if ( $tmap->{'trees'}{$name}{'manifest'} // '' ) eq
+            $tree->{'manifest'};
+        my ( undef, @entries )
+            = _manifest_read( $root, $fbase, undef, $tree );
+        next if grep {
+                    ( $ARG->{'t'} // '' ) eq qw| file |
+                and not exists $tmap->{'nodes'}{ $ARG->{'a'} }
+                and not $incoming{ $ARG->{'a'} }
+        } @entries;
+        my @names = _manifest_blob_names($tree);
+        next if grep { not defined $fsizes->{$ARG} } @names;
+        $blob{$ARG} //= qw| manifest | for @names;
+        push @tree_names, $name;
+    }
     my ( $copied, $bytes ) = ( 0, 0 );
     foreach my $name ( sort keys %blob ) {
         next if ( $tsizes->{$name} // -1 ) == $fsizes->{$name};
@@ -2024,7 +2219,9 @@ sub relay_nodes {
     return $result
         if $opt{'dry_run'}
         or $opt{'list_only'}
-        or not @addresses and not @merges;
+        or not @addresses
+        and not @merges
+        and not @tree_names;
     ## quota and reserve of the target, as place keeps them ##
     if ( ref $opt{'room'} eq qw| CODE | ) {
         my $room = $opt{'room'}->($used);
@@ -2093,13 +2290,8 @@ sub relay_nodes {
     }
     delete $tmap->{'_root_keys'};
     my $trees = 0;
-    foreach my $name ( sort keys %{ $fmap->{'trees'} // {} } ) {
-        my $tree = $fmap->{'trees'}{$name};
-        next if not exists $tmap->{'nodes'}{ $tree->{'manifest'} };
-        next
-            if ( $tmap->{'trees'}{$name}{'manifest'} // '' ) eq
-            $tree->{'manifest'};
-        $tmap->{'trees'}{$name} = { %{$tree} };
+    foreach my $name (@tree_names) {
+        $tmap->{'trees'}{$name} = { %{ $fmap->{'trees'}{$name} } };
         $trees++;
     }
     fault(qw| relay:before-commit |);
@@ -2134,8 +2326,8 @@ sub shred_node {
 
 1;
 
-#,,..,..,,,,,,,,,,.,,,,,,,...,.,,,...,,.,,,,.,..,,...,...,,,.,.,,,...,,,.,,..,
-#TG7HZCUT2IJRPD2BKPPE6BK7BLK3HC4AL3P6GIZIUH35S33QM6D2D2GXWME6GUKLCUY7BI2QVY6BM
-#\\\|XTAZ7BFQT2QN6GJ6VMO4NKTJYQH4QA7A3LZWYSVMSFHLJ7R42UM \ / AMOS7 \ YOURUM ::
-#\[7]372QCRUNJCZOGRFTAWWP6U3E7THVPEKN2DLB4OVWVIWI7EDPUWDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,,..,,.,,,,,,,,,,,.,,,,,,,,.,..,,...,...,,,,,...,,,,,,..,,..,
+#3G75GKV2NXSGMEZSXXZCVF5E3G7XDZDOGGYASUNMX2BH33SRC4W25GGHFZITRBLZ6IPPPBWX4Y56G
+#\\\|FNU77BXTYDBPV77YCRVHSY76ZKAK5X5LZKKJ2KNDA4STY7OVXDZ \ / AMOS7 \ YOURUM ::
+#\[7]HWOGC4ANQVZAEVY2PJDYUGJBRGMR2UX44OLCGUGB6T3AVRQU7KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

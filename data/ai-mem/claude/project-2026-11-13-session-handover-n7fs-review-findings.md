@@ -29,7 +29,11 @@ holders do not separate roots ] ; then switch holders to `ssh-receiver:`.
 OPEN : finding 5 DESIGN DECIDED [ N7FS-SEALED-REPLICAS.md 'map growth and
 retention' : 256 shards, 64 MiB \ time commits, chunked manifests, retain ladder
 in the sealed map, repack ; all times ntime, durations in Y levels = ntime year
-/ 13^n [ owner : YOURUM = 13, no base 60 \ unix ] ] -> implement next ; 7 [ rollback : signed head time + other holders'
+/ 13^n [ owner : YOURUM = 13, no base 60 \ unix ] ] ; stage 1 Y ages e0c4b7916,
+stage 2 sharded map 1061c8697 [ kimi sealed root + all shards under ONE nonce --
+caught in review, now per-blob domains map-shard-XX \ map-tree ; check nonce
+domains in every new sealed kind ] ; next stage 3 chunked manifests, 4 retain +
+repack ; 7 [ rollback : signed head time + other holders'
 versions, tree complete \ partial, registry in the sealed map ] ; 8 [ snapshot
 before pull ] ; 9 [ `n7fs cycle`, monthly restore drill ] ; 10 small [ receipts
 signed by the same host key, local clock ].
@@ -51,8 +55,8 @@ CPU to 545 MHz ] -- killed, updated, fixed ; check `% Processor Performance` fir
 next time. kimi cost : see [[kimi-dispatch-model-verify-before-send]].
 [[n7fs-first-live-round]] [[n7fs-host-migration-goal]]
 
-#,,,.,,.,,,,.,.,.,.,,,,,.,.,.,,,,,,.,,.,,,..,,..,,...,...,,.,,,..,,..,,.,,,..,
-#5PG53N3LAPMGRGNDYQUCAVGHUJ4CSNSYRIZKCVFO7IDIWMJPC7FEUQ4X27PBB53FYZWXBPU6SZ7KG
-#\\\|QBVW65FW6PQC7MUQOAKVBAYCB56EFRW5ZTCBS7SLU3N2DLD4XO7 \ / AMOS7 \ YOURUM ::
-#\[7]5H5Y4N3ZA3KD765HO3YXICTKGLZIKSATPKWUQKOGCGLTS5M7ZYDY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,..,,.,,,,,.,..,,.,,,.,,,.,,,..,,...,...,,,.,,,.,...,.,,,.,.,
+#DNP74AICZAD3GJA2ODN7LDEYIPCP7BKFBGQAMYXNAAFCGNSZ4OX75R6RCEIHQM6QD2UQIX2CCCNL2
+#\\\|67LEECVGZYUZ46GOQAZNWSAIZJDFUOSDVRUA3OQJV7LQLNADX4F \ / AMOS7 \ YOURUM ::
+#\[7]3S5BVECUI7PIYGL7RPRYJLZSN5HJSMUB2DUSCL2K3Z4RCWPYX2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.66HQDZI |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.SVWVI6I |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage receipt_covered receipt_digest
@@ -335,6 +335,7 @@ sub _disk_nodes {
     require AMOS7::N7FS::Seal;
     my %nodes;
     foreach my $address ( keys $replay->{'nodes'}->%* ) {
+        next if $manifests{$address};
         my @c = sort keys %{ $cats{$address} // {} };
         next if not @c and not $manifests{$address};
         @c = (qw| default |) if not @c;
@@ -558,8 +559,7 @@ sub place_missing {
     foreach my $name ( keys $replay->{'trees'}->%* ) {
         my $t = $replay->{'trees'}{$name};
         $tree_of{$ARG} = $name
-            for $t->{'manifest'},
-            AMOS7::N7FS::Seal::_manifest_files( $id, $t->{'manifest'} );
+            for AMOS7::N7FS::Seal::_manifest_files( $id, $t->{'manifest'} );
     }
     my %plan;
     my %left;
@@ -621,7 +621,7 @@ sub place_missing {
                 %opt,
                 qw| holder |    => $holders->{$name}{'spec'},
                 qw| addresses | => $plan{$name},
-                ## a placed manifest brings its tree name for recovery ##
+                ## a placed file brings its chunked tree for recovery ##
                 qw| trees | => [
                     sort grep {defined}
                     map       { $tree_of{$ARG} } $plan{$name}->@*
@@ -837,12 +837,15 @@ sub holder_prune {
         push @drop, $address;
         $bytes += $entry->{'length'} // 0;
     }
+    my @tree_drop
+        = grep { not exists $tree_files{$ARG} } keys $map->{'trees'}->%*;
     my $result = { qw| removed | => 0, qw| trees | => 0 };
-    if ( @drop and not $opt{'dry_run'} ) {
+    if ( ( @drop or @tree_drop ) and not $opt{'dry_run'} ) {
         $result = AMOS7::N7FS::Seal::unmap_nodes(
             %opt,
             qw| holder |     => $h->{'spec'},
             qw| addresses |  => \@drop,
+            qw| live_trees | => [ keys %tree_files ],
             qw| tree_files | => {
                 map { $ARG => [ sort keys $tree_files{$ARG}->%* ] }
                     keys %tree_files
@@ -861,8 +864,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,.,,,,,,,.,,,...,...,..,,,..,...,..,,,,.,..,,...,...,.,,,.,,,...,.,.,...,
-#63OG42LF3CTFL3CPH2LLWRXJW4MFCZQXQRF4BS2SZY2RNJ7T6JFJANYWPWPEJ52TSTTVNCSG6T5MM
-#\\\|KZN3LGOYP5ROEDN23IWUARK54GLWLTLGIL2BNJE5CGRTQGBUHS2 \ / AMOS7 \ YOURUM ::
-#\[7]D7DZD5GVGGAJQYJXU6XA3LY7Q2HEGLX6T2XPXUGDYDL2CHEIFGBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,..,,,,,,,,,,,.,,.,,..,,..,,.,,,..,,...,...,.,,,,..,..,,,..,..,,
+#EARSSBIPAAMVEUFOVQ53P6FHF7PSQOS3XWRFDF24G6Q2VA7ART64E43RYN4YPK2MTLITWXRMEQOFM
+#\\\|IVL5JBLANZVEJ54ZBCCWDOW6TPIRRLA5FL6BL2GXXLKEELP6S3T \ / AMOS7 \ YOURUM ::
+#\[7]KH5TIDIL42TECD5VUKPYEMQU3RODJ4VZAKJIXVGROHUAXLJCYMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

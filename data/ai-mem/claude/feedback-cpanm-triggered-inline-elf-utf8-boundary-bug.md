@@ -104,7 +104,8 @@ every attempt I made) and built a working two-step recovery tool.
 **Recovery harness, preserved durably** (originally at `/tmp/p7-elf-ab/`,
 which will not survive — copied and path-fixed to
 `data/ai-mem/kimi/p7-elf-ab-recovery-harness/recover_key.pl`, syntax
-verified): `derive` mode (run under `/usr/bin/perl5.40-x86_64-linux-gnu`)
+verified ; REMOVED from the tree 2026-11-13 by the owner, still in git at
+521f5f867 : `git show 521f5f867:data/ai-mem/kimi/p7-elf-ab-recovery-harness/recover_key.pl`): `derive` mode (run under `/usr/bin/perl5.40-x86_64-linux-gnu`)
 boots the old `inline_elf`+`bit_string_to_num` `.so` files and calls the
 real `AMOS7::13::key_32(\$pass)` with them, prompting for the passphrase
 via STDIN — never touching an AI session or shell history. `decrypt` mode
@@ -327,8 +328,8 @@ since `Inline->bind` validates it exists rather than creating it. Full
 recipe in [[torch-worker-zenka-foundation]], which needs this pattern
 for its planned `torch.init_code` module.
 
-#,,,,,...,,..,,,.,..,,,..,,..,.,.,,..,,.,,.,.,.,.,...,..,,..,,,,,,..,,..,,..,,
-#AHQI2RII772XCOAFWC3IVA6JZLFYJ65D3X5Y6NFVDFSNKIL2SQSGTN5NIWDOOCJXOB4MP4BYJY4TU
-#\\\|KM32RDDXETP25NAMH34432DOIAIOSJVUX27HH2ONIVBCDRRUND4 \ / AMOS7 \ YOURUM ::
-#\[7]GHKTLFDHOPVZBNZTZKI7C7V63GHYFIOGJQ4YRDXVT7FQEKXLRWBQ 7  DATA SIGNATURE ::
+#,,..,...,..,,..,,,,,,,..,..,,,.,,,,.,.,,,...,.,.,...,...,...,,..,..,,,..,,..,
+#UIWIPWVJTABJZMK7TL43L2LK4RI3LYBDEWTULDGRKBDIDSAQNYWN3O3TUX7WBHWLOAMNCPIEN5MJK
+#\\\|B22JLDHP3TQMALBSI56R4IN7H6GGBM3FVCCFVVAKFAI23D5YGU3 \ / AMOS7 \ YOURUM ::
+#\[7]CZF4ZYOFUXE6RWWXATGHXCFKVFOPPTIWKID6V4TNQDNDAICKVYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

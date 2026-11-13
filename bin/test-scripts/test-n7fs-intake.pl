@@ -93,7 +93,7 @@ ok( $rc != 0 && $out =~ m|durable|, 'relay into an intake holder is refused' )
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'in', 'dur', '-root-key', 'vault:main',
     '-dry-run' );
-ok( $rc == 0 && $out =~ m|would relay 13 nodes| && !blobs($dur),
+ok( $rc == 0 && $out =~ m|would relay 12 nodes| && !blobs($dur),
     'dry run plans every node and copies nothing' )
     or say $out;
 
@@ -109,8 +109,11 @@ my $bad  = $good;
 substr( $bad, 60, 1 ) = chr( ord( substr( $bad, 60, 1 ) ) ^ 1 );
 unlink "$in_sub/$victim";
 write_file( "$in_sub/$victim", $bad );
-( $rc, $out )
-    = cli( ['vp'], 'relay', 'in', 'dur', '-root-key', 'vault:main' );
+{
+    local $ENV{'N7FS_RELAY_JOBS'} = 1;
+    ( $rc, $out )
+        = cli( ['vp'], 'relay', 'in', 'dur', '-root-key', 'vault:main' );
+}
 ok( $rc != 0 && $out =~ m|does not match its name|,
     'a changed blob on the source is refused'
 ) or say $out;
@@ -137,13 +140,13 @@ write_file( "$in_sub/$victim", $good );
 }
 my $dur_sub = holder_sub($dur);
 foreach my $name (@in_blobs) {
-    next if $name eq $victim;
+    next if $name eq $victim or -e "$dur_sub/$name";
     next if bmw_b32( bmw384_bytes( read_file("$in_sub/$name") ) ) ne $name;
     link "$in_sub/$name", "$dur_sub/$name" or die "link : $OS_ERROR";
 }
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'in', 'dur', '-root-key', 'vault:main' );
-ok( $rc == 0 && $out =~ m|relayed 13 nodes| && $out =~ m|with 1 trees|,
+ok( $rc == 0 && $out =~ m|relayed 12 nodes| && $out =~ m|with 1 trees|,
     'relay completes after an interrupted copy' )
     or say $out;
 ( $rc, $out )
@@ -180,22 +183,22 @@ write_file( "$src/u/g$ARG", "more $ARG\n" ) for 1 .. 3;
 my $content_blobs
     = grep { substr( read_file("$in_sub/$ARG"), 0, 5 ) eq "P7SB\x01" }
     blobs($in);
-ok( $content_blobs >= 4, 'the second tree is sealed as content blobs' );
+ok( $content_blobs >= 3, 'the second tree is sealed as content blobs' );
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'in', 'dur', '-root-key', 'vault:main' );
-ok( $rc == 0 && $out =~ m|relayed 4 nodes|, 'second tree relayed' )
+ok( $rc == 0 && $out =~ m|relayed 3 nodes|, 'second tree relayed' )
     or say $out;
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'in', '-root-key',
     'vault:main', '-dry-run' );
-ok( $out =~ m|would drop 0 nodes| && $out =~ m|kept 17 nodes|,
+ok( $out =~ m|would drop 0 nodes| && $out =~ m|kept 15 nodes|,
     'an older receipt does not vouch for a newer head'
 ) or say $out;
 ( $rc, $out )
     = cli( ['vp'], 'holder-check', '-full', $dur, '-root-key', 'vault:main' );
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'in', '-root-key', 'vault:main' );
-ok( $rc == 0 && $out =~ m|dropped 17 nodes| && $out !~ m|kept|,
+ok( $rc == 0 && $out =~ m|dropped 15 nodes| && $out !~ m|kept|,
     'the intake drains into a durable holder of its own domain'
 ) or say $out;
 ( $rc, $out ) = cli(
@@ -249,7 +252,7 @@ $ENV{'N7FS_SSH_BACKOFF'} = '0,0,0,0,0';
     '-domain', 'r' );
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'dur', 'rem', '-root-key', 'vault:main' );
-ok( $rc == 0 && $out =~ m|relayed 17 nodes| && $out =~ m|with 2 trees|,
+ok( $rc == 0 && $out =~ m|relayed 15 nodes| && $out =~ m|with 2 trees|,
     'relay to an ssh holder' )
     or say $out;
 ( $rc, $out )
@@ -261,7 +264,7 @@ make_dirs("$base/back");
     = cli( ['vp'], 'holder', 'add', 'back', "$base/back", '-domain', 'k' );
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'rem', 'back', '-root-key', 'vault:main' );
-ok( $rc == 0 && $out =~ m|relayed 17 nodes|, 'relay from an ssh holder' )
+ok( $rc == 0 && $out =~ m|relayed 15 nodes|, 'relay from an ssh holder' )
     or say $out;
 ( $rc, $out ) = cli(
     ['vp'],  'seal-recover', '-root-key', 'vault:main',
@@ -274,8 +277,8 @@ ok( $rc == 0 && read_file("$base/rec-back/g3") eq "more 3\n",
 
 done();
 
-#,,,,,..,,,,,,,,.,.,.,.,,,,.,,,..,,,,,,..,,..,..,,...,...,..,,,,.,,.,,.,.,...,
-#7LJJTLE6IYHKGMZMCDXXX3IRLBUFZ55BCLLAE5YSG7JMLWHI7R7LG62HBPNYJ6IM5UOPSKP4GFLRQ
-#\\\|PN3TNZKIBD3DGTESWSSOW5E5EOZ3RATEUY5FDIDNSU6LFEZVJUU \ / AMOS7 \ YOURUM ::
-#\[7]T6F4SO3RFI6EZJJFCNIOARMOSFPBDP6AA5GEDBS3ISOM32SALADI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,...,,..,.,.,.,,,...,,..,,.,,..,,...,...,,,.,...,,,.,.,.,...,
+#5NT7RCC75CYB7UHXTLQ4YSZSHQIGTSZXRMVU3HIFKZANK2S5MK73E3P54B24RE2VALXOF6K7G4TRO
+#\\\|ZESN7JRTTEDKJXEMI27OZ4TACTS6YONSNYZDNALBJM7DARJZ22R \ / AMOS7 \ YOURUM ::
+#\[7]F5DFPWMNYP44WI5OFRREHGHTOQ7SOGAXNMOMOQOFN364233FHYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
