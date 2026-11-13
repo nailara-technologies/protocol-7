@@ -94,17 +94,22 @@ seal_trees('two');
 my ( $first, $sub ) = current_map();
 my $one = $first->{'trees'}{'one'};
 my $two = $first->{'trees'}{'two'};
-ok( @{ $one->{'chunks'} } >= 3
+my $one_index
+    = AMOS7::N7FS::Seal::_manifest_index_read( $root, $sub, undef, $one );
+my $two_index
+    = AMOS7::N7FS::Seal::_manifest_index_read( $root, $sub, undef, $two );
+ok( @{ $one_index->{'chunks'} } >= 3
         && ref $one->{'index'} eq 'HASH'
+        && !exists $one->{'chunks'}
         && !exists $first->{'nodes'}{ $one->{'manifest'} },
-    'a tree is an index plus directory chunks, not a sealed manifest node'
+    'a tree map record names only its index, not its manifest chunks'
 );
-ok( join( ' ', map { $ARG->{'blob'} } @{ $one->{'chunks'} } ) eq
-        join( ' ', map { $ARG->{'blob'} } @{ $two->{'chunks'} } ),
+ok( join( ' ', map { $ARG->{'blob'} } @{ $one_index->{'chunks'} } ) eq
+        join( ' ', map { $ARG->{'blob'} } @{ $two_index->{'chunks'} } ),
     'identical directories share content-addressed chunks across trees'
 );
 
-my ( $left, $right ) = @{ $one->{'chunks'} }[ 0, 1 ];
+my ( $left, $right ) = @{ $one_index->{'chunks'} }[ 0, 1 ];
 my $left_bytes  = read_file("$sub/$left->{'blob'}");
 my $right_bytes = read_file("$sub/$right->{'blob'}");
 my $left_open   = eval {
@@ -152,10 +157,12 @@ my @manifest_writes;
     };
     seal_trees('one');
 }
-my ($second)    = current_map();
-my $new_one     = $second->{'trees'}{'one'};
-my %old_by_path = map { $ARG->{'path'} => $ARG } @{ $one->{'chunks'} };
-my %new_by_path = map { $ARG->{'path'} => $ARG } @{ $new_one->{'chunks'} };
+my ($second) = current_map();
+my $new_one = $second->{'trees'}{'one'};
+my $new_index
+    = AMOS7::N7FS::Seal::_manifest_index_read( $root, $sub, undef, $new_one );
+my %old_by_path = map { $ARG->{'path'} => $ARG } @{ $one_index->{'chunks'} };
+my %new_by_path = map { $ARG->{'path'} => $ARG } @{ $new_index->{'chunks'} };
 ok( @manifest_writes == 2
         && $old_by_path{'a'}{'blob'} ne $new_by_path{'a'}{'blob'}
         && $old_by_path{'b'}{'blob'} eq $new_by_path{'b'}{'blob'}
@@ -163,6 +170,22 @@ ok( @manifest_writes == 2
         $two->{'index'}{'blob'},
     'one changed directory uploads exactly one chunk and a new index'
 );
+
+my @snapshot_uploads;
+foreach my $name (qw| three four |) {
+    import_tree($name);
+    my $upload   = 0;
+    my $original = \&AMOS7::N7FS::Seal::_write_blob;
+    no warnings qw| redefine |;
+    local *AMOS7::N7FS::Seal::_write_blob = sub {
+        $upload += length $ARG[2];
+        return $original->(@ARG);
+    };
+    seal_trees($name);
+    push @snapshot_uploads, $upload;
+}
+ok( $snapshot_uploads[1] <= $snapshot_uploads[0] + 1024,
+    'another snapshot does not re-upload the chunk lists of kept trees' );
 
 AMOS7::N7FS::Seal::unmap_nodes(
     qw| root |       => $root,
@@ -179,13 +202,17 @@ AMOS7::N7FS::Seal::holder_gc(
 );
 my ($shared) = current_map();
 my @shared_names
-    = AMOS7::N7FS::Seal::_manifest_blob_names( $shared->{'trees'}{'two'} );
+    = AMOS7::N7FS::Seal::_manifest_blob_names( $root, $sub, undef,
+    $shared->{'trees'}{'two'} );
 ok( !exists $shared->{'trees'}{'one'}
         && !( grep { !-e "$sub/$ARG" } @shared_names ),
     'dropping one tree retains every chunk shared by the remaining tree'
 );
 
-my $damaged = $shared->{'trees'}{'two'}{'chunks'}[0];
+my $shared_index
+    = AMOS7::N7FS::Seal::_manifest_index_read( $root, $sub, undef,
+    $shared->{'trees'}{'two'} );
+my $damaged = $shared_index->{'chunks'}[0];
 my $good    = read_file("$sub/$damaged->{'blob'}");
 substr( $good, 20, 1 ) = chr( ord( substr( $good, 20, 1 ) ) ^ 1 );
 write_file( "$sub/$damaged->{'blob'}", $good );
@@ -215,8 +242,8 @@ refused(
 
 done();
 
-#,,,.,.,.,,,,,.,,,,..,..,,..,,,.,,.,,,...,,.,,..,,...,...,.,,,.,.,,,.,.,.,,,.,
-#2RQYZZJF4E6X3RDGOSPUKJ7YVFQT6W2VBSDNMV4I7FSIKD5LE4WK7AN5EYOG3DCUNSA6EWBM44QAU
-#\\\|VDRKU3QPPPYS3WSUTDHWSTOLE3YXH3AKGSIU4HQTGI2R3GFM5UQ \ / AMOS7 \ YOURUM ::
-#\[7]3XLOBD7KUJBCXIPF4NKEPYLLSEDUBWRIG5UZZ2CL4A73YGSEISBI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,.,.,,,,,,,,,.,,,,..,..,,,.,,..,,...,...,,,.,,.,,,..,,,.,,,,,
+#AUSTR6M4HQNNN2MH237U76L6N7GPKYF3HHM576ZGNSZSOIMSMNVSIKQ4LVUCHP3MPAM44AUDVIVVK
+#\\\|DGLC4Y2OZDUQMHZEJFOQO3SHW4O2RHJWEYB52PRTDRM3PBMNUID \ / AMOS7 \ YOURUM ::
+#\[7]XRFZZHOIKVXZUTRAACCAHSYRGM5AXLLNOF7ETRH6JUQWSYRXOQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

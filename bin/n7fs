@@ -1153,18 +1153,66 @@ sub cmd_retain {
             $item->{'tree'}, ' [ ', $item->{'reason'}, ' ]' );
     }
     if ( not $o{'dry-run'} ) {
-        my @expired;
-        foreach my $item (@drop) {
+        my ( @expired, %expired, %kept, %import_roots, %reference_dropped,
+            %preserved );
+        foreach my $item (@keep) {
             my $manifest = $replay->{'trees'}{ $item->{'tree'} }{'manifest'};
-            push @expired, $manifest,
-                AMOS7::N7FS::Seal::_manifest_files( $id, $manifest );
+            $kept{$ARG} = TRUE
+                for AMOS7::N7FS::Seal::_manifest_files( $id, $manifest );
         }
         foreach my $item (@drop) {
+            my $tree     = $replay->{'trees'}{ $item->{'tree'} };
+            my $manifest = $tree->{'manifest'};
+            push @expired, $manifest,
+                AMOS7::N7FS::Seal::_manifest_files( $id, $manifest );
+            my ( $fh, $head )
+                = AMOS7::N7FS::Tree::manifest_open( $id, $state, $tree );
+            close $fh;
+            my $source = unb32( $head->{'root_b32'} // '' )
+                // fail('retain : a tree manifest has no valid source root');
+            push $import_roots{ $tree->{'created'} }->@*, $source;
+        }
+        %expired = map { $ARG => TRUE } @expired;
+        foreach my $target ( @{$holders} ) {
+            foreach my $address ( keys $target->[2]{'nodes'}->%* ) {
+                next if not $expired{$address};
+                my $disks = $target->[2]{'nodes'}{$address}{'disks'} // {};
+                $preserved{$address} = TRUE
+                    if grep { $ARG ne $id->{'disk'} } keys %{$disks};
+            }
+        }
+        foreach my $item (@drop) {
+            my $tree = $replay->{'trees'}{ $item->{'tree'} };
+            my @refs = map {
+                $replay->{'references'}{ join "\0", @{$ARG}{qw| node path |} }
+                    // ()
+            } $tree->{'references'}->@*;
+            if ( not $tree->{'references'} ) {
+                push @refs, grep {
+                    my $ref = $ARG;
+                    $ref->{'ntime'} eq $tree->{'created'}
+                        and grep {
+                        my $source = $ARG;
+                        $ref->{'holder'} eq $source
+                            or index( $ref->{'holder'}, "$source/" ) == 0
+                        } $import_roots{ $ref->{'ntime'} }->@*
+                } values $replay->{'references'}->%*;
+            }
+            @refs = grep {
+                        $expired{ $ARG->{'node'} }
+                    and not $kept{ $ARG->{'node'} }
+                    and not $preserved{ $ARG->{'node'} }
+                    and not $reference_dropped{ join "\0",
+                    @{$ARG}{qw| node path |} }
+            } @refs;
+            $reference_dropped{ join "\0", @{$ARG}{qw| node path |} } = TRUE
+                for @refs;
             AMOS7::N7FS::Tree::tree_drop(
                 %common,
-                qw| disk | => $disk,
-                qw| host | => host_signer(),
-                qw| name | => $item->{'tree'},
+                qw| disk |       => $disk,
+                qw| host |       => host_signer(),
+                qw| name |       => $item->{'tree'},
+                qw| references | => \@refs,
             );
         }
         my @placement = (
@@ -1181,6 +1229,7 @@ sub cmd_retain {
                 @placement,
                 qw| name |           => $target->[0],
                 qw| tree_addresses | => \@expired,
+                qw| keep_addresses | => [ keys %preserved ],
             );
             AMOS7::N7FS::Seal::holder_gc(
                 qw| root |   => $root,
@@ -2501,8 +2550,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,...,..,,,..,,,,,,..,.,.,,,,,,,,,,,,,.,,,..,,...,...,,.,,...,.,,,.,.,,,,,
-#UVKM5RUKVNDUFZ3IMWFCYJJ4YPHXSY5FZANVYHZOI25MGYIWIGC63YMGLQ27HDO2KK4BSKWGCKECM
-#\\\|3FON2HOIGKGLRYE6ZZJQNYF2AMST4DH2J53VDFKOIL2IT6HZBQ7 \ / AMOS7 \ YOURUM ::
-#\[7]7Q2RD6BXLMFQBNSHT5YZWJOF7J3YNEY7FAJHGU3T4OA7HZIKLIBQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,.,,,,,.,.,,.,,,.,,...,...,..,,..,,...,...,.,.,,.,,,,,,...,...,
+#RIHE75CCXJDORRZZNZCVEMYFKFDVYQOUAOPYRTXZAQQH4GEMYXSRHFV5KV6XW6SNJBCRHKJAEM5Q2
+#\\\|P2YDWUEYCPNJSXAAMELOTAUMTMPYWO65WLZXDBDJOXGGZZS55Q4 \ / AMOS7 \ YOURUM ::
+#\[7]CPRJBONCXPEC33RYKWVWB3URQWF3BP5ODRD36BVL2YGQBTBEPUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

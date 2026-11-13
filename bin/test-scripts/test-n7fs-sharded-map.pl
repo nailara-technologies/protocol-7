@@ -50,8 +50,8 @@ disk_attach(
     qw| disk |     => $disk,
     qw| host |     => $signer,
 );
-my @paths = map {"$box->{'src'}/node-$ARG"} 0 .. 3;
-write_new_file( $paths[$ARG], "node $ARG\n" ) for 0 .. 3;
+my @paths = map {"$box->{'src'}/node-$ARG"} 0 .. 319;
+write_new_file( $paths[$ARG], "node $ARG\n" ) for 0 .. 319;
 my $import = assimilate(
     qw| root |           => $box->{'root'},
     qw| host_dir |       => $box->{'host'},
@@ -148,7 +148,12 @@ my @map_writes;
         write_new_file( "$dir/$name", $bytes ) if not -e "$dir/$name";
         return $name;
     };
-    seal( $holder, [ $addresses[1] ] );
+    my ($next_address) = grep {
+        $ARG ne $addresses[0]
+            and AMOS7::N7FS::Seal::_node_shard($ARG) eq
+            AMOS7::N7FS::Seal::_node_shard( $addresses[0] )
+    } @addresses;
+    seal( $holder, [$next_address] );
 }
 my ( $head2, $root2 ) = current_root();
 my @changed = grep {
@@ -169,10 +174,22 @@ AMOS7::N7FS::Seal::holder_gc(
 );
 my $day            = AMOS7::N7FS::Seal::_trash_day();
 my @current_shards = map { $ARG->{'blob'} } values $root2->{'shards'}->%*;
+my ($old_shard)    = keys $root1->{'shards'}->%*;
 ok( ( !grep { !-e "$sub/$ARG" } $head2->{'map'}, @current_shards )
         && -e "$sub/.trash/$day/$head1->{'map'}"
-        && -e "$sub/.trash/$day/$root1->{'shards'}{'56'}{'blob'}",
+        && -e "$sub/.trash/$day/$root1->{'shards'}{$old_shard}{'blob'}",
     'gc keeps every current shard and trashes the superseded root and shard'
+);
+
+my $spread_holder = "$base/spread";
+seal( $spread_holder, \@addresses );
+my ( undef, $spread ) = current_root($spread_holder);
+ok( keys( $spread->{'shards'}->%* ) > 200,
+    '320 digest-sharded nodes spread over more than 200 shards' );
+ok( ( keys $spread->{'shards'}->%* ) == scalar keys(
+        { map { AMOS7::N7FS::Seal::_node_shard($ARG) => 1 } @addresses }->%*
+    ),
+    'every root shard is the two-character bmw prefix of its node addresses'
 );
 
 my $legacy = "$base/legacy";
@@ -231,8 +248,8 @@ my $clock       = 1_000_000;
 
 done();
 
-#,,..,,.,,.,.,,,.,.,,,.,,,...,..,,,,,,...,.,.,..,,...,...,...,.,,,.,,,...,,,,,
-#ANRA25OE2TLRZZRON5GQT4D4CXZLYBVZ24ITOSTXESYXU46S4Z5WFFWZGDASWZYJ4P6VAMBCELESW
-#\\\|W72SKLGPY2472OAZHQS3OG5OHVS67RNC5GUDFOLMWV7U7GSILWB \ / AMOS7 \ YOURUM ::
-#\[7]XAF7Q2K3LPNNSWU2IJFSO3Y3DMCDILMA4Q4QKB32CCUHESX76CBI 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,,.,,.,,,...,..,,...,,,,,.,.,..,,...,..,,.,.,,,.,,.,,,,,,.,.,
+#5IB2SNG7FMIKC4K26MNW5NJI3TLCUSBQDKGYKLSGBZJEPZZLMRLETWV6QPDKR6C5GOWTVAIZEGBRW
+#\\\|CJB3XD6HF6QYCO46YH27QKI23JCFNRA5Q5LR7ONZGXABANELQR5 \ / AMOS7 \ YOURUM ::
+#\[7]KFFTLF5DVDVH7NINDVSZWISZLLGBN55VCTRL3BM4XPSMCY63VEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
