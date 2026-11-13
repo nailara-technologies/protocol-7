@@ -45,8 +45,7 @@ sub cli {
 
 sub blobs {
     my $dir = shift;
-    opendir( my $d, $dir ) or return ();
-    return sort grep {m|\A[A-Z2-7]{77}\z|} readdir $d;
+    return holder_blobs($dir);
 }
 
 my ( $rc, $out ) = cli( [], 'keygen', "$hdir/host.key" );
@@ -100,14 +99,16 @@ ok( $rc == 0 && $out =~ m|would relay 13 nodes| && !blobs($dur),
 
 ## a wrong blob on the intake is refused and the target map stays empty ##
 my @in_blobs = blobs($in);
+my $in_sub   = holder_sub($in);
 my ($victim)
-    = grep { substr( read_file("$in/$ARG"), 0, 5 ) eq "P7SP\x01" } @in_blobs;
+    = grep { substr( read_file("$in_sub/$ARG"), 0, 5 ) eq "P7SP\x01" }
+    @in_blobs;
 die 'no pack on the intake' if not defined $victim;
-my $good = read_file("$in/$victim");
+my $good = read_file("$in_sub/$victim");
 my $bad  = $good;
 substr( $bad, 60, 1 ) = chr( ord( substr( $bad, 60, 1 ) ) ^ 1 );
-unlink "$in/$victim";
-write_file( "$in/$victim", $bad );
+unlink "$in_sub/$victim";
+write_file( "$in_sub/$victim", $bad );
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'in', 'dur', '-root-key', 'vault:main' );
 ok( $rc != 0 && $out =~ m|does not match its name|,
@@ -116,16 +117,29 @@ ok( $rc != 0 && $out =~ m|does not match its name|,
 ( $rc, $out )
     = cli( ['vp'], 'holder-check', $dur, '-root-key', 'vault:main' );
 ok( $rc != 0, 'the target has no head after a refused relay' ) or say $out;
-unlink "$in/$victim";
-write_file( "$in/$victim", $good );
+unlink "$in_sub/$victim";
+write_file( "$in_sub/$victim", $good );
 
 ## a crash after the blobs, before the map : the rerun maps them. the head ##
 ## is never relayed [ one locator on every holder ] : it is the one blob   ##
-## not named by its own checksum                                           ##
+## not named by its own checksum  the target is per-root too : the         ##
+## interrupted copy lands in its subdir                                    ##
+{
+    require AMOS7::N7FS::Keys;
+    require AMOS7::N7FS::Seal;
+    open( my $pass, '<:raw', "$base/pass" ) or die $OS_ERROR;
+    my $sroot = AMOS7::N7FS::Keys::root_open(
+        qw| path |      => 'vault:main',
+        qw| vault_dir | => $vdir,
+        qw| pass_fd |   => fileno($pass)
+    );
+    make_dirs( "$dur/" . AMOS7::N7FS::Seal::root_subdir($sroot) );
+}
+my $dur_sub = holder_sub($dur);
 foreach my $name (@in_blobs) {
     next if $name eq $victim;
-    next if bmw_b32( bmw384_bytes( read_file("$in/$name") ) ) ne $name;
-    link "$in/$name", "$dur/$name" or die "link : $OS_ERROR";
+    next if bmw_b32( bmw384_bytes( read_file("$in_sub/$name") ) ) ne $name;
+    link "$in_sub/$name", "$dur_sub/$name" or die "link : $OS_ERROR";
 }
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'in', 'dur', '-root-key', 'vault:main' );
@@ -164,7 +178,8 @@ write_file( "$src/u/g$ARG", "more $ARG\n" ) for 1 .. 3;
     );
 }
 my $content_blobs
-    = grep { substr( read_file("$in/$ARG"), 0, 5 ) eq "P7SB\x01" } blobs($in);
+    = grep { substr( read_file("$in_sub/$ARG"), 0, 5 ) eq "P7SB\x01" }
+    blobs($in);
 ok( $content_blobs >= 4, 'the second tree is sealed as content blobs' );
 ( $rc, $out )
     = cli( ['vp'], 'relay', 'in', 'dur', '-root-key', 'vault:main' );
@@ -183,9 +198,11 @@ ok( $out =~ m|would drop 0 nodes| && $out =~ m|kept 17 nodes|,
 ok( $rc == 0 && $out =~ m|dropped 17 nodes| && $out !~ m|kept|,
     'the intake drains into a durable holder of its own domain'
 ) or say $out;
-( $rc, $out )
-    = cli( ['vp'], 'holder-gc', $in, '-root-key', 'vault:main',
-    '-only-root', '-delete' );
+( $rc, $out ) = cli(
+    ['vp'],       'holder-gc',  $in,       '-root-key',
+    'vault:main', '-only-root', '-delete', '-grace',
+    '0'
+);
 ok( $rc == 0 && $out =~ m|removed [1-9]|, 'gc frees the intake' ) or say $out;
 ( $rc, $out ) = cli(
     ['vp'],  'seal-recover', '-root-key', 'vault:main',
@@ -256,8 +273,8 @@ ok( $rc == 0 && read_file("$base/rec-back/g3") eq "more 3\n",
 
 done();
 
-#,,..,.,,,,.,,.,,,..,,,,,,...,..,,,,.,.,.,.,,,..,,...,...,.,,,.,.,..,,,,.,...,
-#R7TLE6RN3Y7YAH6HZ26BUHAQYTLOOP3KUYW6R2WHWZK4PEEECLXJNECUML77YIO2HKYOF4BAKW4TA
-#\\\|C6UORWDEV3WJMQYRNTGAMRJL4RISS4HBG3FPMFY4JESV4CKHBN2 \ / AMOS7 \ YOURUM ::
-#\[7]MPHYEG3CE7I65OIAZRDGXWTLMIKNPALV4C36WKYW6HDEDH3M3QBI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,,,.,.,..,,..,,,,,,.,.,,.,,,..,..,,...,.,.,..,,.,,,,.,,...,..,,
+#6VWO63F5UZZSECGFHIHK52A2QN32NUI4MDOAYPKU76WELIQZR5VHIX4R2R45TWDEGB6OB4UM4VHSM
+#\\\|UUVVULFOABV4GYFP4UTYAJVCFXFRZ2SCUZHXPWXQZWZALSUXC27 \ / AMOS7 \ YOURUM ::
+#\[7]KZ7NRLHPJQ2EZUVI4URC5W6ROHGTEPJWYOPHUIK5KJC5YLP36YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

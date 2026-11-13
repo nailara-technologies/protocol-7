@@ -72,15 +72,16 @@ my $holder = "$base/holder";
     = cli( "pw\n", 'seal', $disk, '-root-key', "$base/rk", '-out',
     $holder, '-all-trees' );
 ok( $rc == 0, 'sealed with packs' ) or say $out;
-my @blobs
-    = grep {m|\A[A-Z2-7]{77}\z|} do { opendir( my $d, $holder ); readdir $d };
+my $hsub = holder_sub($holder);
+ok( defined $hsub, 'a fresh holder starts in the per-root layout' )
+    or say $out;
+my @blobs = holder_blobs($holder);
 ok( @blobs < 40,
     'about 300 small nodes stored in few blobs [ ' . scalar(@blobs) . ' ]' );
 my @packs
-    = grep { substr( slurp("$holder/$ARG") // '', 0, 5 ) eq "P7SP\x01" }
-    @blobs;
+    = grep { substr( slurp("$hsub/$ARG") // '', 0, 5 ) eq "P7SP\x01" } @blobs;
 ok( @packs > 1, 'several packs at the test pack size' );
-ok( !grep( { index( slurp("$holder/$ARG"), 'small file' ) >= 0 } @blobs ),
+ok( !grep( { index( slurp("$hsub/$ARG"), 'small file' ) >= 0 } @blobs ),
     'no plaintext in any blob' );
 
 ( $rc, $out ) = cli(
@@ -114,26 +115,25 @@ write_file( "$tree/later", 'a later file' );
 ( $rc, $out )
     = cli( "pw\n", 'seal', $disk, '-root-key', "$base/rk", '-out',
     $holder, '-all-trees' );
+## a per-root holder needs no -only-root : the listing is its own subdir ##
 ( $rc, $out ) = cli( "pw\n", 'holder-gc', $holder, '-root-key', "$base/rk" );
-ok( $rc != 0 && $out =~ m|only-root|,
-    'holder-gc refuses without -only-root' );
-my $count = sub {
-    scalar grep {m|\A[A-Z2-7]{77}\z|}
-        do { opendir( my $d, $holder ); readdir $d }
-};
+ok( $rc == 0 && $out =~ m|would remove|,
+    'per-root gc needs no -only-root [ review finding 2 ]' )
+    or say $out;
+my $count  = sub { scalar holder_blobs($holder) };
 my $before = $count->();
 ( $rc, $out )
     = cli( "pw\n", 'holder-gc', $holder, '-root-key', "$base/rk",
-    '-only-root' );
+    '-grace', '0' );
 ok( $rc == 0 && $out =~ m|would remove [1-9]| && $count->() == $before,
     'a dry run lists superseded blobs and deletes nothing'
 ) or say $out;
-( $rc, $out ) = cli(
-    "pw\n",     'holder-gc',  $holder, '-root-key',
-    "$base/rk", '-only-root', '-delete'
-);
-ok( $rc == 0 && $count->() < $before, 'superseded blobs removed' )
-    or say $out;
+( $rc, $out )
+    = cli( "pw\n", 'holder-gc', $holder, '-root-key',
+    "$base/rk", '-delete', '-grace', '0' );
+ok( $rc == 0 && $count->() < $before,
+    'superseded blobs removed to the trash'
+) or say $out;
 ( $rc, $out ) = cli(
     "pw\n",  'seal-recover', '-root-key', "$base/rk",
     '-from', $holder,        '-tree',     't2',
@@ -151,10 +151,10 @@ ok( $out =~ m|would remove 0 |, 'nothing left to collect' ) or say $out;
 
 ## damage one byte inside a pack : the node in that range fails alone ##
 my $pack  = $packs[0];
-my $bytes = slurp("$holder/$pack");
+my $bytes = slurp("$hsub/$pack");
 substr( $bytes, 200, 1 ) = chr( ord( substr( $bytes, 200, 1 ) ) ^ 1 );
-chmod 0600, "$holder/$pack";
-write_file( "$holder/$pack", $bytes );
+chmod 0600, "$hsub/$pack";
+write_file( "$hsub/$pack", $bytes );
 ( $rc, $out ) = cli(
     "pw\n",  'seal-recover', '-root-key', "$base/rk",
     '-from', $holder,        '-tree',     't',
@@ -168,8 +168,8 @@ ok( $rc != 0, 'holder check finds the damaged packed node' );
 
 done();
 
-#,,,.,...,...,,,.,,,,,,.,,,,.,...,.,,,,.,,,,.,..,,...,...,.,.,,..,.,.,,..,,.,,
-#4W7PCYP5WIBOUENGMPUCTBUATIHOLHWVL2UP3U6NYEXN2KNQPB3BFU4O76LYWRRMQW7BG3JIF6MOA
-#\\\|QITFNK5GIHY6UB564WB344B4SV55R5I6SBAP7FMOSBPGOEMG3DS \ / AMOS7 \ YOURUM ::
-#\[7]JHYWB4IGUNNRMZMKYJDNN5KW5IKHL4TVPSILIPACPNN3UB5U6SBY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,,,,,,,...,...,,.,,...,,,.,.,,,..,,...,..,,,.,,,,,,,,.,.,.,.,.,
+#G2VLJ2RSCDQ5ZNPPHVP72VGN4E77DAUX5EDYGICFPJLQMDVSP6ROJLWTPDZ22YHWLW544CTQ6DGSI
+#\\\|ZAT5BZZY2QHRWRU4KX5CLIK2RJLAVJPXUEUESG2UZTGZFFLLCPM \ / AMOS7 \ YOURUM ::
+#\[7]G2Z6P766AVTG3O7WIWR2G7URJAKUS5A3B3ZLSWFH4OBLKRO75QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

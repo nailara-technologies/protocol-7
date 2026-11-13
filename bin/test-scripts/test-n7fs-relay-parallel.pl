@@ -82,8 +82,7 @@ make_dirs($ARG) for $from, $to;
     );
 }
 ok( $rc == 0, 'source sealed' ) or say $out;
-my @blobs
-    = grep { !m|^\.| } do { opendir( my $d, $from ) or die; readdir $d };
+my @blobs = holder_blobs($from);
 ok( @blobs > 4, 'the source has several blobs' );
 
 my $root_key = open_root();
@@ -126,8 +125,8 @@ ok( $rc == 0 && -f "$base/rec/f8", 'the relayed copy recovers' ) or say $out;
 
 done();
 
-#,,..,..,,.,,,,..,.,.,.,.,...,...,,.,,.,.,.,.,..,,...,...,,,.,,,.,,..,,,.,,..,
-#HSVMX4322QOXFL4UMEJDG3ASLZ7SV4VBEUXVJ6S2RJIMO5S6MIBWHPR7NXFNS67DFOL7FZKTMFRZW
-#\\\|QEOSAS6ZNLFLASMBLHQVRL5RIZNHFIRYKMPVPG7GWMYQTMCLZ5T \ / AMOS7 \ YOURUM ::
-#\[7]VYN6GS2265J7BLNFKEVSP6Q5GE26BN4Z75SFHEQRBNH2ROFOVCDI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,,,,.,,,,.,,..,,.,,,.,,...,.,,,..,,...,..,,,.,,.,.,..,,,,,,.,.,
+#ZFDI2IWUKKNWSY2SUYB6DEI3KC5CNVWWW6FOL2P4DRYM77CABUXVFIZWIAN4B73TVEEFUV4DG3HHC
+#\\\|7D6FZB6WRGI3DXAKUS63YLKWEMJRGIO322L3UFCCC3UU5NY3NLS \ / AMOS7 \ YOURUM ::
+#\[7]3TCGCJYQ5673TEL24CYLM2YQW6PQ6C6EMOFXHGO7GTFM5QQ6NGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

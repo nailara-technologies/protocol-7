@@ -45,6 +45,12 @@ my @names = @{ $data->{'blobs'} // [] };
 foreach my $name (@names) {
     out('invalid blob name in list') if $name !~ $NAME;
 }
+## a per-root target : the blobs live in the root's subdirectory on both   ##
+## ends [ same root, same tag ] and the receiver expects the prefixed name ##
+my $subdir = $data->{'subdir'} // '';
+out('invalid subdirectory in list')
+    if length $subdir and $subdir !~ m|\Ar-[A-Z2-7]{7}\z|;
+my $pre = length $subdir ? "$subdir/" : '';
 
 ## a silent link is given up after 77 s [ 11 x 7 ], then retried ##
 my @ssh = (
@@ -57,17 +63,21 @@ my @ssh = (
 my %have;
 for ( my $i = 0; $i < @names; $i += 100 ) {
     my $last = $i + 99 < $#names ? $i + 99 : $#names;
-    open( my $fh, '-|', @ssh, join ' ', 'has', @names[ $i .. $last ] )
+    open( my $fh, '-|', @ssh,
+        join ' ', 'has', map {"$pre$ARG"} @names[ $i .. $last ] )
         or out("ssh failed : $OS_ERROR");
     while ( my $line = <$fh> ) {
         my ( $name, $size ) = split ' ', $line;
+        ## the receiver echoes the asked name : the prefix is ours ##
+        $name =~ s|\A\Q$pre\E||
+            if length $pre and defined $name;
         $have{$name} = $size if defined $size;
     }
     close $fh or out('the receiver refused the listing');
 }
 my ( $sent, $bytes, $skipped, $failed ) = ( 0, 0, 0, 0 );
 foreach my $name (@names) {
-    my $path = "$dir/$name";
+    my $path = "$dir/$pre$name";
     my $size = -s $path;
     if ( not defined $size ) {
         print STDERR "n7fs-push : not here : $name\n";
@@ -87,7 +97,7 @@ foreach my $name (@names) {
     foreach my $try ( 0 .. @delays ) {
         open( my $in, '<:raw', $path )
             or out("cannot read $name : $OS_ERROR");
-        my $pid = open( my $to, '|-', @ssh, "put $name $size" )
+        my $pid = open( my $to, '|-', @ssh, "put $pre$name $size" )
             // out("ssh failed : $OS_ERROR");
         binmode $to;
         my ( $start, $done ) = ( time, 0 );
@@ -124,8 +134,8 @@ print ": sent $sent blobs, $bytes bytes ; $skipped already there"
     . ( $failed ? " ; $failed failed" : '' ) . "\n";
 exit( $failed ? 1 : 0 );
 
-#,,,,,,.,,...,,..,...,..,,..,,,.,,.,,,.,.,...,..,,...,...,.,.,,,,,,.,,...,,,.,
-#GJ2ZGKDE2TD23LYCZPNJKLVWJ4VBLKXCFRFGZ7XHYYNZLQ3O2YAVVLWFFBFAOOKIKLTCGDBH6URV4
-#\\\|C55M67RD57DUXEGZWG4OTKVDFUBP6U7LLJHROAFF5HZISU4FLDE \ / AMOS7 \ YOURUM ::
-#\[7]2HRXV4SAVFF647XYFSREV7CCTZTPJLKPAAPUXGN4THNHKO4WBUBQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,.,.,.,,.,,,.,,,,.,.,,,,,.,,,,,..,,...,...,..,,,.,,,,.,.,.,,.,,
+#SZGKBUUQTMTGG2HAFFFKF5OJIB37YJFRXZJOWQXXN6FFDQSX7W6IIW23CTWDEF4752RTQODJDCB6A
+#\\\|A7FRIZ75H2E7ZA333KDWQNRPBF6KQGDPEOJQNE2E4IBG4VBEOMM \ / AMOS7 \ YOURUM ::
+#\[7]4SYYQJUKMMAFU4IJN3Y3XVW6STUFJGIXAJQ2UXX72HNBRPSRQ4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,11 +18,12 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.YGWLWQQ |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.J27AU7I |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage placement_report place_missing parse_size
-    holder_drain holder_prune holder_rename holder_room holder_accepts |;
+    parse_age holder_drain holder_prune holder_rename holder_room
+    holder_accepts |;
 
 use JSON::PP;
 use AMOS7::N7FS qw| b32 unb32 read_file write_new_file make_dirs refuse |;
@@ -44,6 +45,18 @@ sub parse_size {
         if not defined $n;
     my %f = ( '' => 1, K => 1024, M => 1024**2, G => 1024**3, T => 1024**4 );
     return $n * $f{ uc $unit };
+}
+
+## durations in seconds : plain seconds or with an s m h d w suffix
+## [ the reclaim age form ]. gc's -grace and the trash purge's -older read
+## these
+sub parse_age {
+    my $text = shift // return undef;
+    my ( $n, $unit ) = $text =~ m|\A(\d+(?:\.\d+)?)([smhdw]?)\z|i;
+    refuse( 'age must be a number with an optional s m h d w [ %s ]', $text )
+        if not defined $n;
+    my %f = ( '' => 1, s => 1, m => 60, h => 3600, d => 86400, w => 604800 );
+    return int( $n * $f{ lc $unit } );
 }
 
 sub holders_load {
@@ -646,8 +659,8 @@ sub holder_prune {
 
 1;
 
-#,,..,..,,.,.,,,.,,..,,..,.,.,,,,,,..,.,,,...,..,,...,..,,...,,..,,..,...,,..,
-#RFPPZIJHDV4UCNI3AL3QT5NU4AHP2S2PT5DLIIX62DZJWRHUUHW6ML2ZSBA4PF22HUOOCNTEKFDM6
-#\\\|Y3AVDASRJP3464JPPUOVLVPD6YTJ4WZYS2K4PO52OP6HZGVJEU3 \ / AMOS7 \ YOURUM ::
-#\[7]J5C2BH24FTEIBJCPZJ4POIT6UG2DSWU5D5LUWQ4AASKDGL7BDGBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,,,,,,,,,.,.,.,,,.,,.,,,,.,,,.,..,,...,...,.,,,,.,,,..,,.,,,,,,
+#6XXJN3QLJPZD6GBA4AXHNZ64CKSG74MBZJXU47LUTDD5GC6727ZMYMKFQQN4GIGMC3BG3EPZRRERS
+#\\\|MKFUYC2C5LOYE2SWYQHAOSGC47HH3RDWQ45ERGOV3EOYE4KRGV4 \ / AMOS7 \ YOURUM ::
+#\[7]LD2F3NWHBB4AEXCUGM6A7YPLZYMUFHYNNM7CY6ZIYUMK7QN3MWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

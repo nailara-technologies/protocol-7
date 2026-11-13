@@ -216,7 +216,8 @@ make_dirs( $crash_remote, 0700 );
         'seal',      $disk
     );
     my ($temp_name)
-        = $partial_log =~ m|crash cat >> '/holder/([A-Z2-7]+[.]upload)'|;
+        = $partial_log
+        =~ m|crash cat >> '/holder/(r-[A-Z2-7]{7}/[A-Z2-7]+[.]upload)'|;
     my $resumed_log = read_file($log);
     ok( index( $resumed_log, "crash cat >> '/holder/$temp_name'" ) >= 0,
         'partial ciphertext name is reused after process failure'
@@ -267,10 +268,12 @@ my ($first_head)
 ok( defined $first_head and $first_head > $first_upload,
     'head is published only after content, map and journal uploads'
 );
-ok( read_file($log) =~ m|sync -- '/holder'$|m,
+ok( read_file($log) =~ m|sync -- '/holder/r-[A-Z2-7]{7}'$|m,
     'the remote directory is synced after a publish'
 );
-my $head_path = "$remote/$head_name";
+my $head_path
+    = "$remote/" . AMOS7::N7FS::Seal::root_subdir($root) . "/$head_name";
+my $holder_sub = "$remote/" . AMOS7::N7FS::Seal::root_subdir($root);
 write_new_file( "$head_path.upload", 'stale head bytes' );
 copy( $head_path, "$box->{'base'}/old-head" ) or die $OS_ERROR;
 cli(0,
@@ -303,10 +306,10 @@ copy( "$box->{'base'}/saved-head", $head_path ) or die $OS_ERROR;
 my ( undef, undef, $current_map )
     = AMOS7::N7FS::Seal::_context( $root, $spec, 0 );
 my $victim = ( map { $ARG->{'blob'} } values $current_map->{'nodes'}->%* )[0];
-ok( unlink("$remote/$victim") == 1, 'delete a currently mapped blob' );
+ok( unlink("$holder_sub/$victim") == 1, 'delete a currently mapped blob' );
 cli( 1, 'holder-check detects deleted blob',
     '-root-key', $rootfile, 'holder-check', $spec );
-write_new_file( "$remote/$victim", 'wrong bytes' );
+write_new_file( "$holder_sub/$victim", 'wrong bytes' );
 cli( 1, 'holder-check detects corrupted blob',
     '-root-key', $rootfile, 'holder-check', $spec );
 cli(1,              'wrong truncated remote data refuses recovery',
@@ -355,8 +358,8 @@ refused(
 
 done();
 
-#,,.,,,.,,,,,,.,.,..,,.,.,...,..,,...,...,,..,..,,...,...,...,,..,,,.,.,.,,.,,
-#6M3R2WS3RSX4JVQOPOSKSK4PJZPW6BHTSNDESO4EGSXPMGWBIUIT4FWDSZRJAKM2LBUMQPCNHEH32
-#\\\|EEGZTZMZXXL7NVZUC5T4EVFUKZNX2H3WM2G6COC5QTUVEEGGVOK \ / AMOS7 \ YOURUM ::
-#\[7]4724X5WZOHXGGCQRRY3D4CNDJ4CUMGLULBCEGTIURH42UIUW3OAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,..,,,..,..,,,,.,...,,..,.,,,..,,...,...,,,,,.,.,.,,,.,.,,.,,
+#OICEUUB7LEQVACVE2QIMIYAO5H7R2XA5JI22SE7TQJX533QFI7EILKZKSAEKPGHKMAFR4TEBGCJQE
+#\\\|UYKT437BGADV45576MCLK67HAWN6TMTLJI6UW7BJNL6AMBYBA2E \ / AMOS7 \ YOURUM ::
+#\[7]UBMYSB6EIH56VGIDFRWLWHQBQ5G7TO5DET4WU6TSMTRVGIEFE6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

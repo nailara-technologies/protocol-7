@@ -156,10 +156,35 @@ sub copy_tree {
     return $to;
 }
 
+## the root subdirectory of a per-root holder, undef on a flat one ##
+sub holder_sub {
+    my $dir = shift;
+    opendir( my $d, $dir ) or return undef;
+    my ($s) = grep { m|\Ar-[A-Z2-7]{7}\z| and -d "$dir/$ARG" } readdir $d;
+    closedir $d;
+    return defined $s ? "$dir/$s" : undef;
+}
+
+## blob names at a holder's top level and in its root subdirectories ##
+sub holder_blobs {
+    my $dir = shift;
+    opendir( my $d, $dir ) or return ();
+    my @top = grep { $ARG ne '.' and $ARG ne '..' } readdir $d;
+    closedir $d;
+    my @names = grep {m|\A[A-Z2-7]{77}\z|} @top;
+    foreach my $s ( grep { m|\Ar-[A-Z2-7]{7}\z| and -d "$dir/$ARG" } @top ) {
+        opendir( my $sd, "$dir/$s" ) or next;
+        push @names, grep {m|\A[A-Z2-7]{77}\z|} readdir $sd;
+        closedir $sd;
+    }
+    @names = sort @names;
+    return wantarray ? @names : scalar @names;
+}
+
 1;
 
-#,,,.,...,...,...,,..,,,.,.,.,,,,,...,,,,,.,,,..,,...,..,,...,,..,...,,,,,,,,,
-#XL6AAQ55FFDPY5PMBM3QNH7VVOGAFJQGVRIFJW72M3P77QPDOCGVHOSAPHKS3G4BVEGMMCPJUP4O6
-#\\\|JTPPNNJCRHMMMCATLE2MXAEOOWFCSJTGMWWQCDKMCA5SJ7UU33S \ / AMOS7 \ YOURUM ::
-#\[7]DHKNPPOL7ZSW3AALH74VSB24LHW3XP2ZNNS63QPSPUFRNRFKRYAA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,...,.,,,..,,,,.,,,.,..,,...,.,.,..,,...,...,.,.,...,,.,,..,,.,.,
+#VEXHWHNNPHPD7DUNTNOUNCVMPRKVPNNS5MTKSLBH7LWOY2KILQHWRRQORHDPMZJ6LIEFNEY6YYTAE
+#\\\|WK3QCPUZCQS75IOXUPEMUV5YPXQFOC2VERXFDNMW7OQW4MRCPFC \ / AMOS7 \ YOURUM ::
+#\[7]IFREAITID3VMKWRTBCSO2NMZHGKFQTD4OZISRSJAL5SBR2SVGUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

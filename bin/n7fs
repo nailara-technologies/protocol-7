@@ -102,7 +102,26 @@ use warnings;
 ##                 unmap entries no attached disk still lists as live ;
 ##                 entries without disk ids only with -legacy
 ## n7fs holder-gc <holder> -root-key <key> -only-root [ -delete ]
-##                 unreferenced blobs of a one-root holder ; dry run by default
+##                 [ -grace <age> ]   unreferenced blobs of a one-root
+##                 holder ; dry run by default. never touches a blob younger
+##                 than the grace age [ default 1d ] ; -delete moves them to
+##                 .trash/<YYYY-MM-DD>/<name> inside the holder dir, never
+##                 rm. on a per-root holder [ see holder-migrate ] the root's
+##                 subdirectory is listed, so -only-root is redundant there
+## n7fs holder-trash-purge <holder> -root-key <key> [ -older <age> ]
+##                 [ -delete ]   remove trash day dirs older than the age
+##                 [ default 7d, the receipt age ] ; dry run by default
+## n7fs holder-trash-restore <holder> -root-key <key> <name>..
+##                 [ -all-since <YYYY-MM-DD> ]   move blobs back out of
+##                 the trash ; a blob already at the holder is skipped
+## n7fs holder-migrate <holder> -root-key <key> [ -delete ]
+##                 move this root's referenced blobs + head, map and journal
+##                 from the flat layout into its r-<tag> subdirectory ;
+##                 rename-only, idempotent, resumable ; dry run by default.
+##                 the head moves last : an interrupted migrate leaves reads
+##                 refusing until a rerun finishes it. a holder is per-root
+##                 when the subdirectory exists and no flat head remains ;
+##                 new holders start per-root
 ## n7fs relay <from> <to> -root-key <key> [ -dry-run ]  registered holders :
 ##                 copy sealed nodes blind, rewrap their keys at home, map
 ##                 them on <to> ; they count after its next holder-check
@@ -187,7 +206,7 @@ GetOptionsFromArray(
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
         full scrub sizes-only nonce=s
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
-        categories=s min-priority=s spec=s
+        categories=s min-priority=s spec=s grace=s all-since=s
         list adopt |
 ) or usage(2);
 usage(0) if $o{'help'};
@@ -212,46 +231,49 @@ if ( $o{'trust'}->@* ) {
 }
 
 my %run = (
-    qw| keygen |         => \&cmd_keygen,
-    qw| pubkey |         => \&cmd_pubkey,
-    qw| init |           => \&cmd_init,
-    qw| list |           => \&cmd_list,
-    qw| attach |         => \&cmd_attach,
-    qw| detach |         => \&cmd_detach,
-    qw| status |         => \&cmd_status,
-    qw| verify |         => \&cmd_verify,
-    qw| get |            => \&cmd_get,
-    qw| find |           => \&cmd_find,
-    qw| drop |           => \&cmd_drop,
-    qw| release |        => \&cmd_release,
-    qw| reclaim |        => \&cmd_reclaim,
-    qw| release-epoch |  => \&cmd_release_epoch,
-    qw| repair |         => \&cmd_repair,
-    qw| trees |          => \&cmd_trees,
-    qw| tree-drop |      => \&cmd_tree_drop,
-    qw| restore |        => \&cmd_restore,
-    qw| category |       => \&cmd_category,
-    qw| set-category |   => \&cmd_set_category,
-    qw| incoming |       => \&cmd_incoming,
-    qw| sync |           => \&cmd_sync,
-    qw| sync-conflicts | => \&cmd_sync_conflicts,
-    qw| assimilate |     => \&cmd_assimilate,
-    qw| upgrade |        => \&cmd_upgrade,
-    qw| confirm |        => \&cmd_confirm,
-    qw| root |           => \&cmd_seal_root,
-    qw| seal |           => \&cmd_seal,
-    qw| unseal |         => \&cmd_unseal,
-    qw| seal-recover |   => \&cmd_seal_recover,
-    qw| shred |          => \&cmd_shred,
-    qw| holder-check |   => \&cmd_holder_check,
-    qw| holder-scrub |   => \&cmd_holder_scrub,
-    qw| holder |         => \&cmd_holder,
-    qw| holder-gc |      => \&cmd_holder_gc,
-    qw| holder-drain |   => \&cmd_holder_drain,
-    qw| holder-prune |   => \&cmd_holder_prune,
-    qw| relay |          => \&cmd_relay,
-    qw| placement |      => \&cmd_placement,
-    qw| place |          => \&cmd_place,
+    qw| keygen |               => \&cmd_keygen,
+    qw| pubkey |               => \&cmd_pubkey,
+    qw| init |                 => \&cmd_init,
+    qw| list |                 => \&cmd_list,
+    qw| attach |               => \&cmd_attach,
+    qw| detach |               => \&cmd_detach,
+    qw| status |               => \&cmd_status,
+    qw| verify |               => \&cmd_verify,
+    qw| get |                  => \&cmd_get,
+    qw| find |                 => \&cmd_find,
+    qw| drop |                 => \&cmd_drop,
+    qw| release |              => \&cmd_release,
+    qw| reclaim |              => \&cmd_reclaim,
+    qw| release-epoch |        => \&cmd_release_epoch,
+    qw| repair |               => \&cmd_repair,
+    qw| trees |                => \&cmd_trees,
+    qw| tree-drop |            => \&cmd_tree_drop,
+    qw| restore |              => \&cmd_restore,
+    qw| category |             => \&cmd_category,
+    qw| set-category |         => \&cmd_set_category,
+    qw| incoming |             => \&cmd_incoming,
+    qw| sync |                 => \&cmd_sync,
+    qw| sync-conflicts |       => \&cmd_sync_conflicts,
+    qw| assimilate |           => \&cmd_assimilate,
+    qw| upgrade |              => \&cmd_upgrade,
+    qw| confirm |              => \&cmd_confirm,
+    qw| root |                 => \&cmd_seal_root,
+    qw| seal |                 => \&cmd_seal,
+    qw| unseal |               => \&cmd_unseal,
+    qw| seal-recover |         => \&cmd_seal_recover,
+    qw| shred |                => \&cmd_shred,
+    qw| holder-check |         => \&cmd_holder_check,
+    qw| holder-scrub |         => \&cmd_holder_scrub,
+    qw| holder |               => \&cmd_holder,
+    qw| holder-gc |            => \&cmd_holder_gc,
+    qw| holder-trash-purge |   => \&cmd_holder_trash_purge,
+    qw| holder-trash-restore | => \&cmd_holder_trash_restore,
+    qw| holder-migrate |       => \&cmd_holder_migrate,
+    qw| holder-drain |         => \&cmd_holder_drain,
+    qw| holder-prune |         => \&cmd_holder_prune,
+    qw| relay |                => \&cmd_relay,
+    qw| placement |            => \&cmd_placement,
+    qw| place |                => \&cmd_place,
 );
 usage(2) if not exists $run{$command};
 
@@ -270,7 +292,8 @@ $PROGRAM_NAME = "n7fs $command";
 ## commands that write to holders run one at a time per host : a gc must ##
 ## never delete what a running place \ seal \ relay just published       ##
 my %holder_writer = map { $ARG => 1 }
-    qw| seal place relay holder-drain holder-prune holder-gc shred |;
+    qw| seal place relay holder-drain holder-prune holder-gc shred
+    holder-trash-purge holder-trash-restore holder-migrate |;
 our $HOLDER_LOCK;
 if ( $holder_writer{$command} and not $o{'dry-run'} ) {
     require Fcntl;
@@ -281,7 +304,9 @@ if ( $holder_writer{$command} and not $o{'dry-run'} ) {
     flock( $HOLDER_LOCK, Fcntl::LOCK_EX() | Fcntl::LOCK_NB() )
         or fail( 'another n7fs command is writing to holders on this host [ '
             . 'seal, place, relay, holder-drain, holder-prune, '
-            . 'holder-gc, shred ] : wait for it to finish' );
+            . 'holder-gc, shred, holder-trash-purge, '
+            . 'holder-trash-restore, holder-migrate ] : wait for it '
+            . 'to finish' );
 }
 
 my $code = eval { $run{$command}->(@args) };
@@ -1512,14 +1537,19 @@ sub cmd_holder_scrub {
     ## home names the mapped blobs from the holder's own map ; the holder ##
     ## side stays keyless -- it recomputes checksum names, never opens    ##
     ## anything                                                           ##
-    my ( undef, $head, $map )
-        = AMOS7::N7FS::Seal::_context( _seal_root(), $holder, TRUE );
+    my $sroot = _seal_root();
+    my ( undef, $head, $map, $base )
+        = AMOS7::N7FS::Seal::_context( $sroot, $holder, TRUE );
     fail('no sealed head on this holder') if not defined $head;
+    my $tag
+        = $base ne AMOS7::N7FS::Holder::holder_canonical($holder)
+        ? AMOS7::N7FS::Seal::root_subdir($sroot)
+        : undef;
     my %blobs = map { $ARG->{'blob'} => TRUE } values $map->{'nodes'}->%*;
     my @names = sort keys %blobs;
     push @names, $head->{'map'}, $head->{'journal'};
-    my $r
-        = AMOS7::N7FS::Holder::holder_scrub( $holder, \@names, $o{'nonce'} );
+    my $r = AMOS7::N7FS::Holder::holder_scrub( $holder, \@names, $o{'nonce'},
+        $tag );
     say_line(
         'scrubbed ', $r->{'ok'}, ' blobs : ', scalar $r->{'bad'}->@*,
         ' bad, ',    scalar $r->{'missing'}->@*,
@@ -1634,7 +1664,7 @@ sub cmd_relay {
         _relay_list_write(
             $holders->{$from}{'spec'},
             $holders->{$to}{'spec'},
-            $tag, $r->{'names'}
+            $tag, $r->{'names'}, $r->{'subdir'}
         ) if not $o{'dry-run'};
         say_line(
             $o{'dry-run'} ? 'would list ' : 'listed ',
@@ -1696,9 +1726,11 @@ sub _relay_pending_path {
 }
 
 ## the list goes onto the sending holder ; home keeps the same names as
-## pending, so holder-gc on the target leaves them until they are adopted
+## pending, so holder-gc on the target leaves them until they are adopted.  a
+## per-root target's subdirectory is named in it : the same root tag serves
+## the read side on the sender and the put side on the receiver
 sub _relay_list_write {
-    my ( $from, $to, $tag, $names ) = @ARG;
+    my ( $from, $to, $tag, $names, $subdir ) = @ARG;
     require AMOS7::N7FS::Holder;
     require JSON::PP;
     my $json = JSON::PP->new->canonical;
@@ -1721,8 +1753,12 @@ sub _relay_list_write {
         )
     );
     rename $tmp, $pending or fail("cannot keep the pending list : $OS_ERROR");
-    my $body = $json->encode( { qw| blobs | => $names } );
-    my $h    = AMOS7::N7FS::Holder::holder_parse($from);
+    my $body = $json->encode(
+        {   qw| blobs | => $names,
+            defined $subdir ? ( qw| subdir | => $subdir ) : (),
+        }
+    );
+    my $h = AMOS7::N7FS::Holder::holder_parse($from);
 
     if ( $h->{'type'} eq qw| local | ) {
         my $final = "$h->{'dir'}/relay-list.$tag";
@@ -1760,6 +1796,7 @@ sub _relay_pending_names {
 
 sub cmd_holder_gc {
     require AMOS7::N7FS::Seal;
+    require AMOS7::N7FS::Placement;
     my $holder = _holder_arg( shift // fail('holder-gc needs a holder') );
     fail('holder-gc : unexpected arguments') if @ARG;
     my $r = AMOS7::N7FS::Seal::holder_gc(
@@ -1768,17 +1805,104 @@ sub cmd_holder_gc {
         qw| keep |      => [ _relay_pending_names($holder) ],
         qw| only_root | => $o{'only-root'} ? TRUE : FALSE,
         qw| delete |    => $o{'delete'}    ? TRUE : FALSE,
+        defined $o{'grace'}
+        ? ( qw| grace | => AMOS7::N7FS::Placement::parse_age( $o{'grace'} ) )
+        : (),
     );
     say_line(
         $r->{'deleted'} ? 'removed ' : 'would remove ',
         $r->{'removed'},
-        ' unreferenced blobs, ',
+        ' unreferenced blobs to the trash, ',
         $r->{'bytes'},
         ' bytes ; ',
         $r->{'kept'},
         ' kept'
     );
+    say_line( $r->{'young'}, ' kept : younger than the grace age [ -grace ]' )
+        if $r->{'young'};
+    if ( not $r->{'deleted'} ) {
+        say_line('dry run : add -delete to move them to the trash');
+    } elsif ( $r->{'removed'} ) {
+        say_line( 'trash : .trash/<day>/<name> under the holder ; '
+                . 'holder-trash-restore brings blobs back, '
+                . 'holder-trash-purge removes old days' );
+    }
+    return 0;
+}
+
+sub cmd_holder_trash_purge {
+    require AMOS7::N7FS::Seal;
+    require AMOS7::N7FS::Placement;
+    my $holder
+        = _holder_arg( shift // fail('holder-trash-purge needs a holder') );
+    fail('holder-trash-purge : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Seal::holder_trash_purge(
+        qw| root |   => _seal_root(),
+        qw| holder | => $holder,
+        qw| older |  => defined $o{'older'}
+        ? AMOS7::N7FS::Placement::parse_age( $o{'older'} )
+        : do {
+            no warnings qw| once |;
+            $AMOS7::N7FS::Placement::RECEIPT_AGE;
+        },
+        qw| delete | => $o{'delete'} ? TRUE : FALSE,
+    );
+    say_line(
+        $r->{'deleted'} ? 'purged ' : 'would purge ',
+        $r->{'days'},  ' trash day directories, ',
+        $r->{'bytes'}, ' bytes'
+    );
     say_line('dry run : add -delete to remove them') if not $r->{'deleted'};
+    return 0;
+}
+
+sub cmd_holder_trash_restore {
+    require AMOS7::N7FS::Seal;
+    my $holder
+        = _holder_arg( shift // fail('holder-trash-restore needs a holder') );
+    my @names = @ARG;
+    fail('holder-trash-restore needs blob names or -all-since')
+        if not @names and not defined $o{'all-since'};
+    fail('holder-trash-restore : names and -all-since exclude each other')
+        if @names and defined $o{'all-since'};
+    my $r = AMOS7::N7FS::Seal::holder_trash_restore(
+        qw| root |   => _seal_root(),
+        qw| holder | => $holder,
+        @names                  ? ( qw| names |     => \@names )         : (),
+        defined $o{'all-since'} ? ( qw| all_since | => $o{'all-since'} ) : (),
+    );
+    say_line( 'restored ', $r->{'restored'}, ' blobs from the trash' );
+    say_line( $r->{'skipped'}, ' skipped : already at the holder' )
+        if $r->{'skipped'};
+    say_line( $r->{'missing'}, ' not found in the trash' )
+        if $r->{'missing'};
+    return 0;
+}
+
+sub cmd_holder_migrate {
+    require AMOS7::N7FS::Seal;
+    my $holder
+        = _holder_arg( shift // fail('holder-migrate needs a holder') );
+    fail('holder-migrate : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Seal::holder_migrate(
+        qw| root |   => _seal_root(),
+        qw| holder | => $holder,
+        qw| keep |   => [ _relay_pending_names($holder) ],
+        qw| delete | => $o{'delete'} ? TRUE : FALSE,
+    );
+    if ( $r->{'already'} ) {
+        say_line('already in the per-root layout : nothing to move');
+        return 0;
+    }
+    say_line( $r->{'deleted'} ? 'moved ' : 'would move ',
+        $r->{'moved'}, ' blobs, ', $r->{'bytes'},
+        ' bytes into the root subdirectory' );
+    say_line( $r->{'present'}, ' already in the subdirectory' )
+        if $r->{'present'};
+    say_line( $r->{'left'},
+        ' unreferenced flat blobs stay : they may belong to another root' )
+        if $r->{'left'};
+    say_line('dry run : add -delete to move them') if not $r->{'deleted'};
     return 0;
 }
 
@@ -1967,8 +2091,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,..,,.,.,...,,,,,.,.,..,,,,.,,,.,.,.,.,,,..,,...,...,..,,..,,..,,.,,,,.,,
-#54ES3IVT4UXLMUJIYNKVDTC54TXV5CPRQ75ETOM536JASEEDWDOLNTDKJVIQAE3T2OPEXSEDUXM7C
-#\\\|TVIE7ARZQSLYS735GPYOBVS7O4NPAQXRFVX45JXR5ETIRCFGIMR \ / AMOS7 \ YOURUM ::
-#\[7]BZ5DIXJHDZAAM7RAAVJ3OSMC6R3FSBNFYYYJVTXTP23W6WZXMUCI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,..,,,,,,.,,,,.,,..,,.,,,..,,.,,..,,...,..,,..,,,,,,.,,,.,.,,..,
+#TTLF2P6RZD5LANIFHVHCP4CTSVYSOAUKDNNMFXZ4ZCFSA6SVNWO3E5U6T3ANFW3F7AU4DUE7HTQT2
+#\\\|5TZBS3FMDBGQXT5JBOQTOR7IPL7YS4TFB3XFQG4VR5QAKAL4CTO \ / AMOS7 \ YOURUM ::
+#\[7]NGYXYJT27B3HGQOLIXBSESIJ73MKPHNE2BVDRWQG43LDFE4TE6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

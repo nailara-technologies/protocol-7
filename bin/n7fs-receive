@@ -33,6 +33,12 @@ use warnings;
 ## a store is not named by its checksum, so it can never be written here.
 ## [ -max-bytes <n> ] refuses a put that would grow the directory past n ;
 ## before or after the directory
+##
+## a name may also be r-<tag>/<name> : one level of a per-root holder's root
+## subdirectory, created on first put [ review finding 2 ]. the tag is r- plus
+## seven base32 characters, nothing else -- no second level, no dot-dot, no
+## absolute path. .trash/ is never read or written here, and a blob that sits
+## only in the trash counts as missing
 
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
@@ -42,6 +48,9 @@ use AMOS7::N7FS::Sum qw| bmw_b32 |;
 use Digest::BMW;
 
 my $NAME = qr|\A[A-Z2-7]{77}\z|;
+## a blob name, optionally under one per-root subdirectory level : the tag ##
+## form is fixed, so no dot-dot, no second level, no absolute path passes  ##
+my $PATHNAME = qr|\A(?:r-[A-Z2-7]{7}/)?[A-Z2-7]{77}\z|;
 
 sub out { print STDERR "n7fs-receive : $ARG[0]\n"; exit( $ARG[1] // 2 ) }
 
@@ -64,19 +73,25 @@ out('holder directory does not exist') if not -d $dir;
 my @word = split ' ', $ENV{'SSH_ORIGINAL_COMMAND'} // '';
 my $verb = shift @word // '';
 
-## a killed put leaves its temporary forever : drop those older than 1 hour ##
+## a killed put leaves its temporary forever : drop those older than 1 ##
+## hour, in the holder directory and in every root subdirectory        ##
 sub sweep_stale {
-    opendir( my $dh, $dir ) or return;
-    my @stale = grep {m|\A\.receive\.[A-Z2-7]{77}\.\d+\z|}
-        grep { -M "$dir/$ARG" > 1 / 24 } readdir $dh;
-    closedir $dh;
-    foreach my $tmp (@stale) { unlink "$dir/$tmp" }
+    opendir( my $top, $dir ) or return;
+    my @sub = grep { m|\Ar-[A-Z2-7]{7}\z| and -d "$dir/$ARG" } readdir $top;
+    closedir $top;
+    foreach my $d ( $dir, map {"$dir/$ARG"} @sub ) {
+        opendir( my $dh, $d ) or next;
+        my @stale = grep {m|\A\.receive\.[A-Z2-7]{77}\.\d+\z|}
+            grep { -M "$d/$ARG" > 1 / 24 } readdir $dh;
+        closedir $dh;
+        foreach my $tmp (@stale) { unlink "$d/$tmp" }
+    }
 }
 sweep_stale();
 
 if ( $verb eq 'has' ) {
     foreach my $name (@word) {
-        out('invalid blob name') if $name !~ $NAME;
+        out('invalid blob name') if $name !~ $PATHNAME;
         my $size = -s "$dir/$name";
         print "$name $size\n" if defined $size;
     }
@@ -91,7 +106,7 @@ if ( $verb eq 'scrub' ) {
         $nonce = shift @word // '';
         out('invalid nonce') if $nonce !~ m|\A[A-Z2-7]{1,64}\z|;
     }
-    out('invalid blob name') if grep { $ARG !~ $NAME } @word;
+    out('invalid blob name') if grep { $ARG !~ $PATHNAME } @word;
     my @list = @word;
     if ( not @list ) {
         opendir( my $dh, $dir ) or out('cannot list the holder');
@@ -101,6 +116,8 @@ if ( $verb eq 'scrub' ) {
     my ( $ok, $bad, $missing ) = ( 0, 0, 0 );
     foreach my $name (@list) {
         my $path = "$dir/$name";
+        ## the checksum names the blob, not the subdirectory prefix ##
+        my ($bare) = $name =~ m|\A(?:r-[A-Z2-7]{7}/)?([A-Z2-7]{77})\z|;
         if ( not -e $path ) { say "missing $name"; $missing++; next }
         ## stream in 1 MiB reads : blobs can be far larger than memory ##
         open( my $fh, '<:raw', $path ) or do {
@@ -125,7 +142,7 @@ if ( $verb eq 'scrub' ) {
             ## the answer is the digest : home compares two holders ##
             $ok++;
             say "ans $name $digest";
-        } elsif ( $digest eq $name ) {
+        } elsif ( $digest eq $bare ) {
             $ok++;
             say "ok $name";
         } else {
@@ -139,25 +156,45 @@ if ( $verb eq 'scrub' ) {
 }
 out('put needs a name and a size') if @word != 2;
 my ( $name, $size ) = @word;
-out('invalid blob name') if $name !~ $NAME;
+out('invalid blob name') if $name !~ $PATHNAME;
 out('invalid size')      if $size !~ m|\A\d+\z|;
-if ( -e "$dir/$name" ) {
-    out( 'blob exists with another size', 4 ) if -s "$dir/$name" != $size;
+## a per-root put lands in the root's subdirectory, created on first put ##
+my $target = $dir;
+if ( $name =~ s|\A(r-[A-Z2-7]{7})/|| ) {
+    $target = "$dir/$1";
+    if ( not -d $target ) {
+        mkdir $target, 0700;
+        out("cannot create $1 : $OS_ERROR") if not -d $target;
+        ## the new directory's name lives in the holder directory ##
+        print STDERR "n7fs-receive : warning : directory sync failed\n"
+            if not sync_dir($dir);
+    }
+}
+if ( -e "$target/$name" ) {
+    out( 'blob exists with another size', 4 )
+        if -s "$target/$name" != $size;
     exit 0;
 }
 if ( defined $max ) {
     my $used = 0;
-    opendir( my $dh, $dir ) or out('cannot list the holder');
-    ## count finished blobs, in-progress temporaries and the incoming ##
-    ## declared size together, so parallel puts cannot pass the cap   ##
-    $used += -s "$dir/$ARG" // 0
-        for grep { m|$NAME| or m|\A\.receive\.[A-Z2-7]{77}\.\d+\z| }
-        readdir $dh;
-    closedir $dh;
+    ## the cap is for the whole holder : the top level and every root ##
+    ## subdirectory, or a sender splits its puts over new subdirs     ##
+    opendir( my $top, $dir ) or out('cannot list the holder');
+    my @sub = grep { m|\Ar-[A-Z2-7]{7}\z| and -d "$dir/$ARG" } readdir $top;
+    closedir $top;
+    foreach my $d ( $dir, map {"$dir/$ARG"} @sub ) {
+        opendir( my $dh, $d ) or out('cannot list the holder');
+        ## count finished blobs, in-progress temporaries and the incoming ##
+        ## declared size together, so parallel puts cannot pass the cap   ##
+        $used += -s "$d/$ARG" // 0
+            for grep { m|$NAME| or m|\A\.receive\.[A-Z2-7]{77}\.\d+\z| }
+            readdir $dh;
+        closedir $dh;
+    }
     out( 'holder is full', 5 ) if $used + $size > $max;
 }
 
-my $tmp = "$dir/.receive.$name.$PID";
+my $tmp = "$target/.receive.$name.$PID";
 sysopen( my $fh, $tmp, O_WRONLY | O_CREAT | O_EXCL, 0600 )
     or out("cannot create a temporary : $OS_ERROR");
 binmode $fh;
@@ -183,21 +220,21 @@ if ( bmw_b32( $ctx->digest ) ne $name ) {
     out( 'bytes do not match the blob name', 3 );
 }
 ## link, not rename : an existing name is never replaced ##
-if ( not link $tmp, "$dir/$name" ) {
+if ( not link $tmp, "$target/$name" ) {
     my $err = $OS_ERROR;
     unlink $tmp;
-    exit 0 if -e "$dir/$name" and -s "$dir/$name" == $size;
+    exit 0 if -e "$target/$name" and -s "$target/$name" == $size;
     out("cannot publish : $err");
 }
 unlink $tmp;
-system( 'sync', '--', "$dir/$name" );
+system( 'sync', '--', "$target/$name" );
 ## the file is durable, the directory entry that names it is not yet ##
 print STDERR "n7fs-receive : warning : directory sync failed\n"
-    if not sync_dir($dir);
+    if not sync_dir($target);
 exit 0;
 
-#,,,.,.,,,.,,,.,,,,..,,,,,..,,,,.,..,,,,,,,,,,..,,...,...,..,,.,.,,,.,,.,,..,,
-#B33B3NXEPQGCDWEEPTEPPUVDRE6BQW44ZN722AS3HCIIY5YBPB5VDFV55LVCSPD4D3J57BF3FLV5O
-#\\\|H53IIXAHT2OLGYKASEMI4OTBTBI4LJKIJ4ARKCY6IH32GUMPSXD \ / AMOS7 \ YOURUM ::
-#\[7]S7CXL5H3HVAUM26D43Z7YRRMTPQ4VKE6CQMHN6R7WYLXKAXK7ODQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,,,,,,.,,,,,,,.,,,,,,,..,,,,,..,,...,...,,..,..,,,.,,..,,,..,
+#66ZIL2EHDQQMVJP4O7URYC3S5LGA52NM7SEVFPVTDVQJRNQ6TL4LDX5W6GKUK6NPLQNMSXZFYUWDC
+#\\\|PQ4YZMMJOJUMBDZYXWOCBFL27IY4J7ORLTIWFNNMSOLO75QNOWS \ / AMOS7 \ YOURUM ::
+#\[7]BDTRS4SGIJPA6OJQQUPVPTCCZ5SRG3FSFG6I34B52ORVDBXWJCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
