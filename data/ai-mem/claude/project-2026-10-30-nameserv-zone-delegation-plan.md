@@ -88,8 +88,11 @@ the master copies [ six NS in all three ].
 **smtpd state [ 2026-11-12 ] :** the smtpd zenka [ 14 modules, on-demand ] is a mail PROCESSOR
 only : inject \ parse \ classify \ route [ jobs -> jobsite, * -> mail.store ], archive.
 missing for atom's job : smtp listener [ 25, esmtp, starttls, limits, anti-relay, recipient
-check ], mailbox access, outbound + the 4 forwards. zones carry NO spf \ dkim \ dmarc TXT ;
+check per DOMAIN only ], mailbox access, outbound + the 4 forwards. zones carry NO spf \ dkim \ dmarc TXT ;
 atom postfix uses the snakeoil cert [ tls may ].
+**catch-all decision [ owner 2026-11-13 ] :** smtpd keeps the existing catch-alls and never
+rejects unknown local parts on them ; a block list per address. details : private notes
+/data/backup/mail/atom/MAIL-CHAIN-NOTES.md.
 
 **contabo ipv6 outage [ 2026-11-13 ] :** srv-U \ srv-A v6 dead in and out [ fe80::1 resolved,
 no replies, no firewall drops ] -- dig with v6 glue waited ~9 s. srv-U came back by itself,
@@ -98,8 +101,8 @@ mtr after recovery : 25 % \ 55 % outbound loss from contabo's first hop [ AS5116
 inbound from delta clean. ticket sent [ german, with mtr ] ; mtr-tiny now on U \ A \ V.
 on recurrence : capture ip -6 neigh + mtr -6 BEFORE any restart. glue \ zones stay as they are.
 
-#,,..,,..,,..,...,,,.,...,,.,,,.,,...,.,.,,.,,..,,...,...,.,.,,..,.,,,,,.,,,.,
-#XXJACLMGMYRPKR4UIQ4NZIEZN2OGYQRNSBLUTHWYS72FSBQPBJ2UL2LCTD52PLB52EDN26A2PGV3Y
-#\\\|L5TEVLXP52IKO32C4H3U6Z2GNJSLQANBDDGOZTO5NEMGEBO66R3 \ / AMOS7 \ YOURUM ::
-#\[7]4JROTL5LEWBZCHDAVDGOAPE6QR74VSI2GZWWBDBQ5AV3CZMFASBY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,.,,..,,,.,,.,.,,..,...,,.,,,,.,..,,...,...,..,,.,.,.,,,...,,..,
+#EEFI6YZC2WRXZ2C6KEYGZ2XJ4MP24F7PWPGPD3EHZEFNYSVDB6MNQSNZKHP27W6IIZYTVIF53HSK4
+#\\\|RZUZ4GXUA6NBEVVBWUV3NFFHVTCPWJSHR43AUKY2M4QDDZWNZJR \ / AMOS7 \ YOURUM ::
+#\[7]753L46CYLPLTHRABQGBAM5R2HUCG3QAUZVS5OQXFVYFRKR3H7KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
