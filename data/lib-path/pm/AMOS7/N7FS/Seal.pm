@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.EVIXYKA |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.OCKOAVQ |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -31,7 +31,8 @@ use Fcntl qw| O_RDONLY |;
 use Crypt::Mode::CTR;
 use Crypt::AuthEnc::ChaCha20Poly1305 qw| chacha20poly1305_encrypt_authenticate
     chacha20poly1305_decrypt_verify |;
-use AMOS7::N7FS qw| b32 unb32 random_bytes read_file write_new_file
+use AMOS7::NTIME qw| ntime_now parse_y_age |;
+use AMOS7::N7FS  qw| b32 unb32 random_bytes read_file write_new_file
     write_new_file_stream make_dirs sync_dir refuse fault |;
 use AMOS7::N7FS::Sum      qw| bmw384_bytes bmw_b32 epoch_from_b32 |;
 use AMOS7::N7FS::Sign     qw| verify |;
@@ -1424,9 +1425,9 @@ sub holder_check {
 ## superseded maps and journals, and nodes dropped from the map. instead of
 ## deleting, gc MOVES each one to .trash/<YYYY-MM-DD>/<name> inside the holder
 ## directory [ rename, same filesystem ], and never touches a blob younger
-## than the grace age [ default 1 day, -grace ] : a seal, relay or push in
+## than the grace age [ default 6Y3, -grace ] : a seal, relay or push in
 ## flight must not lose its bytes to a concurrent gc. the age is the
-## holder-side mtime, listed in one call.
+## holder-side mtime converted to ntime, listed in one call.
 ##
 ## on a per-root holder the listing is the root's own subdirectory, so
 ## -only-root is structural there and the flag is redundant [ warned ] ; a
@@ -1450,8 +1451,8 @@ sub holder_gc {
         for keys $map->{'nodes'}->%*;
     ## pushed by a relay, not adopted yet ##
     $keep{$ARG} = TRUE for @{ $opt{'keep'} // [] };
-    my $grace = $opt{'grace'} // 86400;
-    my $now   = time;
+    my $grace = $opt{'grace'} // parse_y_age('6Y3');
+    my $now   = ntime_now();
     my $stats = holder_stats($base);
     my ( @drop, @young );
     foreach my $name ( sort grep { not $keep{$ARG} } keys %{$stats} ) {
@@ -1501,7 +1502,7 @@ sub holder_trash_purge {
     my %opt   = @_;
     my $base  = _trash_base(%opt);
     my $older = $opt{'older'} // refuse('trash purge needs an age');
-    my $now   = time;
+    my $now   = ntime_now();
     my $days  = holder_trash_days($base);
     my $list  = holder_trash_list($base);
     my @old   = sort grep { $now - $days->{$ARG} > $older } keys %{$days};
@@ -1918,8 +1919,8 @@ sub shred_node {
 
 1;
 
-#,,..,.,.,,,.,.,,,.,.,,.,,...,,.,,,..,..,,.,.,..,,...,...,.,.,.,,,...,.,.,.,.,
-#CUSCUP4FSZQHLNNR5JNGPS3QF7KQFSPQFFHZPMMRZ7GCKP3WGSEES3NOM7YJDFB5HGD4SW5ARXHTS
-#\\\|FEBR2JIFZYUN574YRIUH2CMQGKT5QSWQHYQ53RNYEHN7HIVLROG \ / AMOS7 \ YOURUM ::
-#\[7]6JFX7SJHZDUMMI3KWDSV2RJCGTUWOZLC2MG5V6XJ4LCPVG3XTOBY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,...,.,.,,,,,,,.,...,.,.,.,,,..,,...,...,.,.,,,.,,,,,...,.,,,
+#QUPNBQAUVHYJRYXUMS3ZWRDHGFKXYSVZ5L64RDARFA6PFINKDN6ZRJJRKHPDSHCNU5XLXRUYRFFEG
+#\\\|FLY35RX3C23NAMNZM7BEK6LRNGFSQMVKZBPSOPF5ODQKFBTWSEV \ / AMOS7 \ YOURUM ::
+#\[7]ORXC4QL726AMGIWFMXU4O5WEY2Q7UA7TFQMPQE4GUOJHM7Q4QABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.HKXED2I |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.7IHXM7A |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_free holder_isdir holder_sub_spec
@@ -27,6 +27,7 @@ use IO::Select;
 use IPC::Open3 qw| open3 |;
 use Symbol     qw| gensym |;
 use Digest::BMW;
+use AMOS7::NTIME qw| unix_to_ntime |;
 use AMOS7::N7FS
     qw| random_bytes read_file write_new_file make_dirs remove_tree refuse
     b32 sync_dir |;
@@ -448,8 +449,10 @@ sub holder_stats {
             next if $name !~ m|\A[A-Z2-7]{77}\z|;
             my @st = stat "$h->{'dir'}/$name";
             next if not @st;
-            $stat{$name}
-                = { qw| size | => $st[7], qw| mtime | => $st[9] };
+            $stat{$name} = {
+                qw| size |  => $st[7],
+                qw| mtime | => unix_to_ntime( $st[9] )
+            };
         }
         closedir $dh;
         return \%stat;
@@ -464,8 +467,10 @@ sub holder_stats {
                 if ( $kind // '' ) ne 'f'
                 or not defined $mtime
                 or $name !~ m|\A[A-Z2-7]{77}\z|;
-            $stat{$name}
-                = { qw| size | => $size + 0, qw| mtime | => $mtime + 0 };
+            $stat{$name} = {
+                qw| size |  => $size + 0,
+                qw| mtime | => unix_to_ntime( $mtime + 0 )
+            };
         }
         return \%stat;
     }
@@ -479,7 +484,10 @@ sub holder_stats {
     foreach my $line ( split m|\n|, $out ) {
         my ( $name, $size, $mtime ) = split ' ', $line;
         next if not defined $mtime or $name !~ m|\A[A-Z2-7]{77}\z|;
-        $stat{$name} = { qw| size | => $size + 0, qw| mtime | => $mtime + 0 };
+        $stat{$name} = {
+            qw| size |  => $size + 0,
+            qw| mtime | => unix_to_ntime( $mtime + 0 )
+        };
     }
     return \%stat;
 }
@@ -556,7 +564,7 @@ sub holder_trash_days {
         foreach my $d ( readdir $dh ) {
             next if $d !~ m|\A\d{4}-\d{2}-\d{2}\z|;
             my @st = stat "$h->{'dir'}/.trash/$d";
-            $day{$d} = $st[9] if @st;
+            $day{$d} = unix_to_ntime( $st[9] ) if @st;
         }
         closedir $dh;
         return \%day;
@@ -571,7 +579,7 @@ sub holder_trash_days {
                 if ( $kind // '' ) ne 'd'
                 or not defined $mtime
                 or $d !~ m|\A\d{4}-\d{2}-\d{2}\z|;
-            $day{$d} = $mtime + 0;
+            $day{$d} = unix_to_ntime( $mtime + 0 );
         }
         return \%day;
     }
@@ -585,7 +593,7 @@ sub holder_trash_days {
         my ( $path, $mtime ) = split ' ', $line;
         next if not defined $mtime;
         my ($d) = $path =~ m|\A[.]trash/(\d{4}-\d{2}-\d{2})/\z|;
-        $day{$d} = $mtime + 0 if defined $d;
+        $day{$d} = unix_to_ntime( $mtime + 0 ) if defined $d;
     }
     return \%day;
 }
@@ -1047,8 +1055,8 @@ sub holder_put {
 
 1;
 
-#,,,.,,.,,,,.,,,.,,..,..,,..,,,..,...,.,,,,..,..,,...,...,..,,...,.,.,..,,...,
-#6RJJJUU6TIHPCZITRLQM6FF4QP5VZH5BJFGP3LIDS7K6LKLBONHSSOSBRX3MUQUBUZEA3ET7GIU6A
-#\\\|FARCQC3CNDLVIEJXOEK6L6LCX27EK3POIWV4SD3YFDTB7BQLIQ5 \ / AMOS7 \ YOURUM ::
-#\[7]ZFNDE47BDJ76N6AHOLHRW674VYOWGFP7EPDZJN5JQK6IZTVMQAAA 7  DATA SIGNATURE ::
+#,,.,,,..,...,..,,.,.,...,..,,..,,,..,,..,.,,,..,,...,...,,..,,,,,.,.,.,,,,.,,
+#4T4RGMY7WQVI5RT2AGXHIB574YZZP2H7UQDPA42BSPCU7C6AHB6UFCBKG3MBQRTSSXXG5QSQRTYFK
+#\\\|ZZ2WFAU7EU2L6MF5YPLYBXHZ3OWEOC4LDLR57U25CD3J42WAGD5 \ / AMOS7 \ YOURUM ::
+#\[7]SX4C6FRQPYCLFZ5FKHSHCPG3R7OCYFA3HXZF544PKNQE4CWR6IDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

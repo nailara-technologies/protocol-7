@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.T6IFYCY |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.66HQDZI |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage receipt_covered receipt_digest
@@ -27,7 +27,8 @@ our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.T6IFYCY |;
     holder_accepts |;
 
 use JSON::PP;
-use AMOS7::N7FS qw| b32 unb32 read_file write_new_file make_dirs refuse |;
+use AMOS7::NTIME qw| ntime_now parse_y_age unix_to_ntime |;
+use AMOS7::N7FS  qw| b32 unb32 read_file write_new_file make_dirs refuse |;
 use AMOS7::N7FS::Sum      qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Sign     qw| verify |;
 use AMOS7::N7FS::Disk     qw| disk_read_id state_read |;
@@ -37,7 +38,7 @@ use AMOS7::N7FS::Category qw| category_definitions |;
 my $JSON = JSON::PP->new->utf8->canonical;
 
 our $REGISTRY    = 'n7fs holders';
-our $RECEIPT_AGE = 7 * 24 * 3600;
+our $RECEIPT_AGE = parse_y_age('3Y2');
 
 sub parse_size {
     my $text = shift // return undef;
@@ -48,16 +49,23 @@ sub parse_size {
     return $n * $f{ uc $unit };
 }
 
-## durations in seconds : plain seconds or with an s m h d w suffix
-## [ the reclaim age form ]. gc's -grace and the trash purge's -older read
-## these
+## durations are ntime : <n>Y<level>, with deprecated unix second forms ##
 sub parse_age {
-    my $text = shift // return undef;
+    my $text  = shift // return undef;
+    my $ntime = parse_y_age($text);
+    return $ntime if defined $ntime;
+
     my ( $n, $unit ) = $text =~ m|\A(\d+(?:\.\d+)?)([smhdw]?)\z|i;
-    refuse( 'age must be a number with an optional s m h d w [ %s ]', $text )
+    refuse( 'age must use <n>Y<level> [ level 0..7 ; %s ]', $text )
         if not defined $n;
+    state %warned;
+    my ( $file, $line ) = (caller)[ 1, 2 ];
+    if ( not $warned{"$file:$line"}++ ) {
+        warn "n7fs : age '$text' uses deprecated "
+            . "unix units ; use <n>Y<level> instead\n";
+    }
     my %f = ( '' => 1, s => 1, m => 60, h => 3600, d => 86400, w => 604800 );
-    return int( $n * $f{ lc $unit } );
+    return int( $n * $f{ lc $unit } * 4200 );
 }
 
 sub holders_load {
@@ -230,7 +238,7 @@ sub receipt_write {
     my $payload = {
         qw| holder |   => $opt{'spec'},
         qw| root_id |  => $opt{'root_id'},
-        qw| time |     => time,
+        qw| time |     => ntime_now(),
         qw| version |  => $opt{'version'} + 0,
         qw| nodes |    => $opt{'nodes'} + 0,
         qw| samples |  => $opt{'samples'} + 0,
@@ -288,8 +296,13 @@ sub receipt_fresh {
         or not verify( $host_pub, $JSON->encode($r),
         unb32( $data->{'sig'} // '' ) // '' )
         or ( $r->{'holder'}  // '' ) ne $spec
-        or ( $r->{'root_id'} // '' ) ne $root_id
-        or ( $now            // time ) - ( $r->{'time'} // 0 ) > $RECEIPT_AGE;
+        or ( $r->{'root_id'} // '' ) ne $root_id;
+
+    ## receipts before ntime stored unix seconds ; verify before converting ##
+    $r->{'time'} //= 0;
+    return undef if $r->{'time'} !~ m|\A\d+(?:\.\d+)?\z|;
+    $r->{'time'} = unix_to_ntime( $r->{'time'} ) if $r->{'time'} < 1e12;
+    return undef if ( $now // ntime_now() ) - $r->{'time'} > $RECEIPT_AGE;
     return $r;
 }
 
@@ -348,7 +361,7 @@ sub _disk_nodes {
 sub _copies {
     my %opt     = @_;
     my $holders = holders_load(%opt);
-    my $now     = time;
+    my $now     = ntime_now();
     my %copies;
     my %proven;
     my %status;
@@ -357,10 +370,8 @@ sub _copies {
     my %excluded = map { $ARG => TRUE } @{ $opt{'exclude'} // [] };
     foreach my $name ( sort keys %{$holders} ) {
         my $h       = $holders->{$name};
-        my $receipt = receipt_fresh(
-            $opt{'host_dir'}, $opt{'host_pub'},
-            $h->{'spec'},     $opt{'root'}{'root_id'}
-        );
+        my $receipt = receipt_fresh( $opt{'host_dir'}, $opt{'host_pub'},
+            $h->{'spec'}, $opt{'root'}{'root_id'}, $now );
         my ( undef, $head, $map ) = eval {
             AMOS7::N7FS::Seal::_context( $opt{'root'}, $h->{'spec'}, TRUE );
         };
@@ -850,8 +861,8 @@ sub holder_prune {
 
 1;
 
-#,,..,,,.,..,,..,,..,,,..,.,.,,,.,.,,,.,,,...,..,,...,..,,,,.,...,..,,.,,,.,.,
-#VIT7SBAAD2GOKA6KIPI62Z3TBNG5PPZK37EKHBIXAIYQ4CFIMPCY634HYAKJPKNXXZGSIFU5H6IVA
-#\\\|6JGCVEHWZ26OVF77VFLAGCYWKIQDNM2EAAIYXM6BD3JIVLHDM4N \ / AMOS7 \ YOURUM ::
-#\[7]D2T6PMPMI4RFUNUHRR75NX6DHGMZPZ7ZYYVQZIIGYW62NWX3LECY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,...,...,..,,,..,...,..,,,,.,..,,...,...,.,,,.,,,...,.,.,...,
+#63OG42LF3CTFL3CPH2LLWRXJW4MFCZQXQRF4BS2SZY2RNJ7T6JFJANYWPWPEJ52TSTTVNCSG6T5MM
+#\\\|KZN3LGOYP5ROEDN23IWUARK54GLWLTLGIL2BNJE5CGRTQGBUHS2 \ / AMOS7 \ YOURUM ::
+#\[7]D7DZD5GVGGAJQYJXU6XA3LY7Q2HEGLX6T2XPXUGDYDL2CHEIFGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

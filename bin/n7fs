@@ -31,8 +31,8 @@ use warnings;
 ##                  sign and journal a reference drop ; removes nothing
 ## n7fs release <disk> <address> [ -force ] [ -reason <text> ]
 ##                  tombstone, journal and remove now ; live references refuse
-## n7fs reclaim <disk> [ -free <size> ] [ -older <age> ] [ -dry-run ]
-##                  oldest garbage first ; sizes accept K/M/G, ages s/m/h/d/w
+## n7fs reclaim <disk> [ -free <size> ] [ -older <n>Y<level> ] [ -dry-run ]
+##                  oldest garbage first ; sizes accept K/M/G, ages use Y levels
 ## n7fs release-epoch <disk> <epoch> -now
 ##                  end rollback to a confirmed conversion's previous form
 ## n7fs repair <disk>                  finish releases, adopt unjournaled data
@@ -116,15 +116,15 @@ use warnings;
 ##                 unmap entries no attached disk still lists as live ;
 ##                 entries without disk ids only with -legacy
 ## n7fs holder-gc <holder> -root-key <key> -only-root [ -delete ]
-##                 [ -grace <age> ]   unreferenced blobs of a one-root
+##                 [ -grace <n>Y<level> ]   unreferenced blobs of a one-root
 ##                 holder ; dry run by default. never touches a blob younger
-##                 than the grace age [ default 1d ] ; -delete moves them to
+##                 than the grace age [ default 6Y3 ] ; -delete moves them to
 ##                 .trash/<YYYY-MM-DD>/<name> inside the holder dir, never
 ##                 rm. on a per-root holder [ see holder-migrate ] the root's
 ##                 subdirectory is listed, so -only-root is redundant there
-## n7fs holder-trash-purge <holder> -root-key <key> [ -older <age> ]
+## n7fs holder-trash-purge <holder> -root-key <key> [ -older <n>Y<level> ]
 ##                 [ -delete ]   remove trash day dirs older than the age
-##                 [ default 7d, the receipt age ] ; dry run by default
+##                 [ default 3Y2, the receipt age ] ; dry run by default
 ## n7fs holder-trash-restore <holder> -root-key <key> <name>..
 ##                 [ -all-since <YYYY-MM-DD> ]   move blobs back out of
 ##                 the trash ; a blob already at the holder is skipped
@@ -143,7 +143,7 @@ use warnings;
 ##                 -adopt : only map what a push delivered to <to>
 ## n7fs placement <disk> -root-key <key>    copies per category, report only
 ## n7fs place <disk> -root-key <key> [ -dry-run ] [ -no-check ]
-##                 [ -check-full ] [ -unreachable-grace <age> ]
+##                 [ -check-full ] [ -unreachable-grace <n>Y<level> ]
 ##                 seal what is missing ; a place ends with a holder-check
 ##                 of every holder it wrote [ sampled ; -check-full
 ##                 authenticates every chunk, -no-check leaves the new
@@ -151,7 +151,7 @@ use warnings;
 ##                 check is reported and makes place exit non-zero, never
 ##                 undoing the placement. an unreachable holder with a
 ##                 fresh receipt keeps counting its covered entries for
-##                 -unreachable-grace [ default 2d ] : no re-placement
+##                 -unreachable-grace [ default 1Y2 ] : no re-placement
 ##                 -exclude <holder> : do not count it [ before draining it ]
 ## -bwlimit <size>                         cap uploads to ssh holders, per second
 ##
@@ -808,17 +808,8 @@ sub _size_value {
 
 sub _age_value {
     my $value = shift // return undef;
-    fail("bad age [ $value ]")
-        if $value !~ m|\A(\d+(?:\.\d+)?)([smhdw]?)\z|i;
-    my %seconds = (
-        '' => 1,
-        s  => 1,
-        m  => 60,
-        h  => 3600,
-        d  => 86400,
-        w  => 604800
-    );
-    return $1 * $seconds{ lc $2 } * 4200;
+    require AMOS7::N7FS::Placement;
+    return AMOS7::N7FS::Placement::parse_age($value);
 }
 
 sub cmd_release {
@@ -2099,11 +2090,8 @@ sub _placement_opt {
 }
 
 sub _age_label {
-    my $seconds = shift // 0;
-    return sprintf '%dd', int( $seconds / 86400 ) if $seconds >= 86400;
-    return sprintf '%dh', int( $seconds / 3600 )  if $seconds >= 3600;
-    return sprintf '%dm', int( $seconds / 60 )    if $seconds >= 60;
-    return sprintf '%ds', $seconds;
+    require AMOS7::NTIME;
+    return AMOS7::NTIME::y_age_str( shift // 0 );
 }
 
 sub cmd_placement {
@@ -2113,7 +2101,7 @@ sub cmd_placement {
     my $r = AMOS7::N7FS::Placement::placement_report( _placement_opt($disk),
         qw| unreachable_grace | => defined $o{'unreachable-grace'}
         ? AMOS7::N7FS::Placement::parse_age( $o{'unreachable-grace'} )
-        : 2 * 86400, );
+        : AMOS7::N7FS::Placement::parse_age('1Y2'), );
     foreach my $name ( sort keys $r->{'holders'}->%* ) {
         my $h     = $r->{'holders'}{$name};
         my $state = $h->{'state'};
@@ -2179,7 +2167,7 @@ sub cmd_place {
         qw| check_coverage | => $o{'check-full'} ? qw| full | : qw| sampled |,
         qw| unreachable_grace | => defined $o{'unreachable-grace'}
         ? AMOS7::N7FS::Placement::parse_age( $o{'unreachable-grace'} )
-        : 2 * 86400,
+        : AMOS7::N7FS::Placement::parse_age('1Y2'),
     );
     foreach my $name ( sort keys $r->{'plan'}->%* ) {
         say_line(
@@ -2236,8 +2224,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,..,,..,,...,,.,,,,,,,..,,.,,,.,,..,,,..,..,,...,...,,,.,,.,,,,,,...,..,,
-#RKI6PACR44JQAWZRCXEG6NDXC7LIR6R7TCS4PXHWICIN53W47REGHVNST6CIUAJU35AZW3H2YAP4O
-#\\\|PXKP3QHKSYCPGA5IHNFBN5HOHMPANCVVMR7EWPLCGJXRMQWSSCE \ / AMOS7 \ YOURUM ::
-#\[7]G52W7DILPBWX6Y3VREJEK5ZXRUIQGSIQ766L4MDDD62TC6GG3SBI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,..,,,,.,,,,,...,.,.,...,,.,,..,,...,...,..,,.,.,..,,,.,,.,,,
+#2BAURYWPN6SMTJN6LH6QXWTHDL2NDK7Y3Q2YXK6LE2LR4O4S35PJGXNVDQRU5GR6BHSNKD3WF3NWS
+#\\\|BZFJXYIHUDDLYQKHACO3SLAJDDX5A6737XQRLS6S5NEQVF7RDI2 \ / AMOS7 \ YOURUM ::
+#\[7]2CBMWIHMLTX5KPNJJR3735EDLO2F6BKFKRI24BOVQIYSBZIL4CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

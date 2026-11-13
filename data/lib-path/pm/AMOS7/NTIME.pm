@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::NTIME-VERSION.5E2RMPI |;
+our $VERSION = qw| AMOS7::NTIME-VERSION.HCAAIRI |;
 
 @EXPORT_OK = qw|
     NTIME_START
@@ -43,6 +43,9 @@ our $VERSION = qw| AMOS7::NTIME-VERSION.5E2RMPI |;
     b32_to_ntime
     b32_to_unix
     ntime_step_back
+    y_level_ntime
+    parse_y_age
+    y_age_str
     duration_str
     relative_str
     localtime_str
@@ -54,6 +57,40 @@ use Crypt::Misc qw| encode_b32r decode_b32r |;
 our $HARMONY_RETRIES = 24;    ## base.ntime's limit ##
 
 ##[ NUMERIC ]#################################################################
+
+## one ntime year [ 365 days ] divided by 13 for each Y level ##
+sub y_level_ntime {
+    my $level = shift // return undef;
+    return undef if $level !~ m|\A[0-7]\z|;
+    return 4200 * 86400 * 365 / 13**$level;
+}
+
+sub parse_y_age {
+    my $text = shift // return undef;
+    my ( $count, $level ) = $text =~ m|\A(\d+(?:\.\d+)?)Y([0-7])\z|i;
+    return undef if not defined $count;
+    return int( $count * y_level_ntime($level) );
+}
+
+## greedy from the largest unit, with at most two terms ##
+sub y_age_str {
+    my $units = shift // return undef;
+    return undef if $units !~ m|\A\d+(?:\.\d+)?\z|;
+
+    my @terms;
+    foreach my $level ( 0 .. 7 ) {
+        my $length = y_level_ntime($level);
+        my $count  = int( $units / $length );
+        ## parsed exact boundaries can be truncated by one ntime unit ##
+        $count++ if ( $count + 1 ) * $length - $units <= 1;
+        next     if not $count;
+        push @terms, sprintf '%dY%d', $count, $level;
+        $units -= $count * $length;
+        $units = 0 if $units < 0;
+        last       if @terms == 2;
+    }
+    return @terms ? join( ' ', @terms ) : qw| 0Y0 |;
+}
 
 ## unix seconds [ fractional ok ] -> decimal ntime string with $precision
 ## fraction digits. truncated, never rounded up : a time value is never in the
@@ -249,8 +286,8 @@ sub _harmony_loaded {
 
 1;
 
-#,,,.,...,,,.,..,,,..,,,.,,,.,,,,,...,,.,,.,.,..,,...,...,...,,..,,,,,.,.,.,.,
-#5WGE2QFLXHUWNISK7IY57RSADY3FYO36I57XPPGV4LTVW2SIM2DAKZBOI27O4VUY5AHKBYJT2XWPY
-#\\\|WBDTGRJRLKOAJDJJRXWRAVGKPGXWSHVZPFMULQ2RXQU3DYTCYEQ \ / AMOS7 \ YOURUM ::
-#\[7]JORKCLG2RYLOMWTLPB3U6N3MH6E2IP2UWZ6FSYOZBTSBREB7FUAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,,..,,.,,,.,,,,,,.,,,...,,.,,..,,...,...,...,,,,,,,,,...,,,,,
+#YZP6J6KZFKJUITGNNCT4UMWK75XT5US6Z5RMZT5EB3ID5I3O2IDESGCOCOMGZ7LHJGNUCCXPAJ7DW
+#\\\|QGSWE2CGCRCT4DEHK7N5MUQVBY2GI2GBUGJBHMLEDRKGJ5N4MQE \ / AMOS7 \ YOURUM ::
+#\[7]U27S7BJAUL2464BYPNRUC34TWOXMN4MBYZ623H4V2GPQURAASIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

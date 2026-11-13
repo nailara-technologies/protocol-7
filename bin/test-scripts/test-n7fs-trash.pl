@@ -16,6 +16,8 @@ use AMOS7::N7FS::Disk    qw| disk_read_id |;
 use AMOS7::N7FS::Journal qw| journal_replay |;
 use AMOS7::N7FS::Keys;
 use AMOS7::N7FS::Seal;
+use AMOS7::NTIME           qw| y_level_ntime parse_y_age y_age_str |;
+use AMOS7::N7FS::Placement qw| parse_age |;
 
 require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
 
@@ -28,6 +30,37 @@ my ( $root, $hdir, $src ) = @{$box}{qw| root host src |};
 my $vdir = "$base/vault";
 $ENV{'N7FS_HOST_DIR'} = $hdir;
 vault_init( $vdir, 'vp', undef, t => 1, m => 1024, p => 1 );
+
+##[ Y-level ages ]############################################################
+
+ok( y_level_ntime(0) == 4200 * 86400 * 365
+        && y_level_ntime(1) == y_level_ntime(0) / 13,
+    'Y levels divide the 365-day ntime year by thirteen'
+);
+ok( parse_y_age('6Y3') == int( 6 * y_level_ntime(3) )
+        && parse_y_age('0.5Y2') == int( 0.5 * y_level_ntime(2) )
+        && !defined parse_y_age('1Y8'),
+    'parse_y_age accepts integer and decimal levels 0..7 only'
+);
+ok( y_age_str( parse_y_age('6Y3') ) eq '6Y3',
+    'y_age_str round-trips one Y term'
+);
+my $two_terms = parse_y_age('1Y2') + parse_y_age('4Y3');
+ok( y_age_str($two_terms) eq '1Y2 4Y3',
+    'y_age_str uses at most two greedy terms'
+);
+my ( @legacy, @warnings );
+{
+    local $SIG{'__WARN__'} = sub { push @warnings, @_ };
+    @legacy = map { parse_age('1d') } 1 .. 2;
+    parse_age('1Y2');
+}
+ok( @legacy == 2 && $legacy[0] == 86400 * 4200,
+    'legacy age units convert to ntime'
+);
+ok( @warnings == 1 && $warnings[0] =~ m|deprecated unix units|,
+    'legacy age units warn once per call site, Y ages do not warn'
+);
 
 sub cli {
     my ( $lines, @args ) = @ARG;
@@ -118,10 +151,11 @@ my $h1_blob = mapped_blob( $main_root, $h1, $address );
 cli( ['vp'], 'shred', $disk, '-root-key', 'vault:main',
     '-out', $h1, $address );
 my ( $rc, $out )
-    = cli( ['vp'], 'holder-gc', $h1, '-root-key', 'vault:main', '-delete' );
+    = cli( ['vp'], 'holder-gc', $h1, '-root-key',
+    'vault:main', '-delete', '-grace', '6Y3' );
 ok( $rc == 0 && $out =~ m|young| && -e "$h1/$sub_tag/$h1_blob",
-    'gc skips a blob younger than the grace age' )
-    or say $out;
+    'gc skips a blob younger than a Y-level grace age'
+) or say $out;
 
 ##[ trash : gc moves, restore brings back, purge drops only old days ]########
 
@@ -378,8 +412,8 @@ sub _today {
 
 done();
 
-#,,..,,.,,,,.,,,,,,.,,..,,,,,,..,,.,.,.,,,...,..,,...,...,...,,,.,...,,..,,,.,
-#33YBJQMA2OBCU4PSAXLKZTZFDJ24CD76IDEL7NYCLAIY36ARCH7U4KUPORM4XJGA6UY2IPAA6RARI
-#\\\|AONN2UW3ATYMMETBNR3G7ILTE43AFSPTJOTDQ6EYVR6CQF7THPR \ / AMOS7 \ YOURUM ::
-#\[7]ZBHHDPKT5SMJLYTSJES7JZ6NKGIHMKVLXYM4CFH5JHVSSQOLEODI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,..,,..,,...,,,,,,,,,,,,,,,,,..,,...,...,,,,,,,.,,,.,,,,,..,,
+#MXE4DSM55N2F5PFEUNCX2TWZWRQ63ETV5XNIY5FNMDXXHPJAZCHK45FD2XMHLXJU24GBUDYOIHC4M
+#\\\|U3HEKUEIRW2243FY2JSVDSFIZ66NLF3UWWOJ3WXGIJR277CW5QP \ / AMOS7 \ YOURUM ::
+#\[7]LKC3E4OQC5U4Y45LF5ZBHLGQLH5Z5FXUDFOLFJAYGECZGTVWB2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

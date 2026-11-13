@@ -50,7 +50,7 @@ write_file( "$hdir/trusted-parents", $out );
 
 ## re-signs a holder's receipt with its time moved back [ unreachable grace ]
 sub age_receipt {
-    my ( $spec, $seconds ) = @ARG;
+    my ( $spec, $ntime ) = @ARG;
     require AMOS7::N7FS::Holder;
     require AMOS7::N7FS::Sign;
     my $json = JSON::PP->new->utf8->canonical;
@@ -62,7 +62,7 @@ sub age_receipt {
         )
         ) . '.receipt';
     my $data = $json->decode( read_file($path) );
-    $data->{'receipt'}{'time'} -= $seconds;
+    $data->{'receipt'}{'time'} -= $ntime;
     my $signer = AMOS7::N7FS::Sign::key_file_signer("$hdir/host.key");
     $data->{'sig'}
         = b32( $signer->sign( $json->encode( $data->{'receipt'} ) ) );
@@ -718,7 +718,8 @@ ok( $rc == 0 && $out !~ m|would drop [1-9]| && $out =~ m|kept 4 nodes|,
     'drain never trusts an unreachable holder, grace or not'
 ) or say $out;
 ## past the grace the same receipt counts zero again
-age_receipt( $h11, 4 * 86400 );
+require AMOS7::NTIME;
+age_receipt( $h11, AMOS7::NTIME::parse_y_age('2Y2') );
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
 ok( $out =~ m|eleven \[ i \] unreachable : |,
     'after the grace the receipt no longer counts'
@@ -730,7 +731,7 @@ ok( $rc == 0 && $out =~ m|would place 3 nodes on one|,
 ) or say $out;
 ( $rc, $out )
     = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main',
-    '-unreachable-grace', '5d' );
+    '-unreachable-grace', '3Y2' );
 ok( $out =~ m|eleven \[ i \] unreachable, counted|,
     '-unreachable-grace extends the counting window'
 ) or say $out;
@@ -781,8 +782,8 @@ ok( $rc == 0 && $out =~ m|would drop 7|,
 
 done();
 
-#,,..,.,.,,..,,,.,...,,.,,,,.,..,,..,,...,,..,..,,...,...,...,...,,.,,..,,,.,,
-#7XOG6WBRPVOI7E4QLHUUVGT32YDJSZK5DBHXOEK5RFNGRVFRQM3EPHTJTHEJD53SO5IXVYKCM5MWM
-#\\\|SDNOJKYHXSS45JDVPFQVXVCEOQ4KMCNKIC27VVS3HSJDARIT6MQ \ / AMOS7 \ YOURUM ::
-#\[7]263II4FBCZL6VYK6OQ3UAF5WK37G5SN4735472INYAJ2ISDHMGAA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,.,.,,,.,,,..,,,.,,...,,,.,.,,,..,,...,...,,,.,..,,.,.,,..,..,,
+#CETHF2KOM6TT7EJIET2EAQRQZKDUZOWPYNPX7AEUBDEPBNCL22R2OMSOVNICIMURHVYTRJCSNR62M
+#\\\|N3GR5AJJW5MLVVC7EUDUQ6COLZQWXB65ZRZLSGEAS6PBH2H5B2U \ / AMOS7 \ YOURUM ::
+#\[7]U3BNF2GBY7CGILYADR7XXWOY46ALWYLQWYI5OF56JCXM7FOHZQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
