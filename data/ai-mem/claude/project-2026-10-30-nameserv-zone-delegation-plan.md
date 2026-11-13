@@ -29,11 +29,9 @@ dns mirrors the current set-up and is primary.
 
 **registrar snapshot 2026-10-30 :** `/data/backup/dns/registrar-zones/2026-10-30/`
 [ v7.ax protocol-7.network <personal-zone>, raw paste + zone files ]. ESSENTIAL :
-mail for @taeki.v7.ax -- served today as taeki CNAME v7.ax -> v7.ax MX 13
-mail.v7.ax [ the extra taeki MX record is invalid next to the CNAME and
-never served ]. any switch must keep that chain [ or replace it with
-A + AAAA + own MX ] -- verify `dig MX taeki.v7.ax` against the new
-servers BEFORE changing the delegation. also : protocol-7.network has its
+one mail chain [ CNAME + MX ] must survive every switch -- the
+private notes /data/backup/mail/atom/MAIL-CHAIN-NOTES.md say which and how to
+dig-check it BEFORE \ after changing a delegation. also : protocol-7.network has its
 MX on a name '13' [ apex has none ], <personal-zone> acme.jobsite lists
 dn1110.protocol-7.network twice, srv-U's former name = old name.
 
@@ -42,9 +40,9 @@ functionally, then RETIRE atom, its postfix and inwx as zone master
 [ inwx stays registrar only ]. functional reference = the two snapshots :
 dns `/data/backup/dns/registrar-zones/2026-10-30/`, mail
 `/data/backup/mail/atom/2026-10-30/` [ README : postfix only, local
-delivery to taeki, catch-alls, 4 external forwards, snakeoil tls ].
-a replacement is done when it reproduces every mapping there [ @taeki.v7.ax
-first ]. atom main.cf : mydestination lines end in '\' [ not a postfix
+delivery to the owner, catch-alls, 4 external forwards, snakeoil tls ].
+a replacement is done when it reproduces every mapping there [ that mail
+chain first ]. atom main.cf : mydestination lines end in '\' [ not a postfix
 continuation -- stray '\' destinations, harmless ] -- moot once retired.
 
 **reproducibility [ owner 2026-10-30, next essential logic ] :** the
@@ -60,13 +58,48 @@ then diff served answers [ dig ] and mappings against the snapshots.
 **state 2026-11-12 :** srv-U nameserv holds ONLY acme.* subzones [ 8 ], no parent zone.
 owner decided : zone sources live in /etc/protocol-7/nameserv/ [ host config, not the repo ] ;
 recreatability later via an N7FS host-config tree. gaps found in nameserv.answer before it
-can serve a parent zone : no CNAME answer for other types [ breaks MX taeki.v7.ax ], no
+can serve a parent zone : no CNAME answer for other types [ broke the mail chain ], no
 wildcard '*', no SOA in authority on NXDOMAIN \ NODATA, empty non-terminals [ us.v7.ax ]
 answer NXDOMAIN ; no zone-source import [ ensure-zone is acme.-only ]. per-record ttl
 and longest-suffix zone match exist already.
 
-#,,.,,,.,,,,,,...,.,,,,..,...,..,,..,,..,,,,,,..,,...,...,..,,,,,,..,,...,..,,
-#XLXDZKG56NMZPDGZAFQ7MNPKAPTFWDVGNU57AMKJHMKPIBC5TUL43KEZN6S4PL5RVVHAIK6WCH5N6
-#\\\|VNMYY4DXJDTO26VU4FRLMKYOYX6HT4VKY2OB7ZGW2J23TITAEKH \ / AMOS7 \ YOURUM ::
-#\[7]GSLOI2YPWNHTWFOSQOMAMTNRUDTXMKHIWWT4HRL4UAQZ4IBJUMBA 7  DATA SIGNATURE ::
+**roadmap [ owner 2026-11-12 ] :** dns first [ parent zones served + delegated ], then the
+smtpd zenka [ suitable tls params, letsencr certs per mx host ], then move all work off
+atom and retire it ; add two small hosts in two more us cities [ like delta ] : same or less
+cost than atom, ~6x capacity, 3 locations. MX order : pri [ rename to zulum completes ]
+primary, yourum second [ both non-us ], the us hosts as fallbacks [ connectivity first ].
+
+**LIVE 2026-11-12 [ 0b77e807e ] :** the three parent zones are served by dn0000 \ dn0110 \
+dn1110 [ apply-zone-source on srv-U, sources in /etc/protocol-7/nameserv/zones, sync grants
+added on srv-V \ srv-A ]. dig compare vs the registrar : every record equal, the mail chain
+and the private zone's MX names correct ; the only diffs = acme.* NS [ we answer from the
+child zone, registrar refers -- expected ] and ~1/40 udp timeouts on both sides [ local
+path ]. NOT delegated yet : owner switches at the registrar ; dn0000 glue was pending.
+atom retire : private checklist /data/backup/mail/atom/ATOM-RETIRE-CHECKLIST.md [ accounts
+still on the returned old domain -- move them before atom goes ].
+
+**switch 1 [ 2026-11-12 ] :** the private zone is delegated to the six dn names [ glue for all
+six ; INWX 'Master IP' left empty ; all .re tld servers switched ]. INWX still holds its old
+copy : no record changes in that zone until 2026-11-13 evening [ old NS ttl 86400 ], then
+DELETE the zone at INWX [ owner ]. next : one real mail on atom for the private zone, then
+protocol-7.network, v7.ax last -- same INWX cleanup a day after each. sources on srv-U are
+the master copies [ six NS in all three ].
+
+**smtpd state [ 2026-11-12 ] :** the smtpd zenka [ 14 modules, on-demand ] is a mail PROCESSOR
+only : inject \ parse \ classify \ route [ jobs -> jobsite, * -> mail.store ], archive.
+missing for atom's job : smtp listener [ 25, esmtp, starttls, limits, anti-relay, recipient
+check ], mailbox access, outbound + the 4 forwards. zones carry NO spf \ dkim \ dmarc TXT ;
+atom postfix uses the snakeoil cert [ tls may ].
+
+**contabo ipv6 outage [ 2026-11-13 ] :** srv-U \ srv-A v6 dead in and out [ fe80::1 resolved,
+no replies, no firewall drops ] -- dig with v6 glue waited ~9 s. srv-U came back by itself,
+srv-A only after a panel restart. sporadic since install, also between our own hosts.
+mtr after recovery : 25 % \ 55 % outbound loss from contabo's first hop [ AS51167 ],
+inbound from delta clean. ticket sent [ german, with mtr ] ; mtr-tiny now on U \ A \ V.
+on recurrence : capture ip -6 neigh + mtr -6 BEFORE any restart. glue \ zones stay as they are.
+
+#,,..,,..,,..,...,,,.,...,,.,,,.,,...,.,.,,.,,..,,...,...,.,.,,..,.,,,,,.,,,.,
+#XXJACLMGMYRPKR4UIQ4NZIEZN2OGYQRNSBLUTHWYS72FSBQPBJ2UL2LCTD52PLB52EDN26A2PGV3Y
+#\\\|L5TEVLXP52IKO32C4H3U6Z2GNJSLQANBDDGOZTO5NEMGEBO66R3 \ / AMOS7 \ YOURUM ::
+#\[7]4JROTL5LEWBZCHDAVDGOAPE6QR74VSI2GZWWBDBQ5AV3CZMFASBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
