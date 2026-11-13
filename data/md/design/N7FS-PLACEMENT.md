@@ -145,8 +145,9 @@ calculated placement, erasure coding.
 - `place` plans per node : domains not yet holding it, owned holders first,
   then most quota left, never past a quota. it seals each holder's share
   with packs, and a holder that receives any file of a tree also receives
-  that tree, so it can recover it by name. new copies count after the next
-  `holder-check`
+  that tree, so it can recover it by name. it ends with a `holder-check` of
+  every holder it wrote, so new copies count at once [ `-no-check` defers
+  that to a later `holder-check` ]
 - `reserve` is enforced : `place` reads free space with one `df` on the
   holder and never fills past the reserve ; unknown free space places
   nothing there. the size of a node is its local content size, not its
@@ -172,6 +173,54 @@ list, never dropped. `holder list` shows them.
 a receipt counts only while the holder's head is the version it checked, so
 copies committed after it [ place, relay ] wait for the next `holder-check`,
 as described above. relays and intake draining : `N7FS-INTAKE.md`.
+
+## incremental receipts, place-then-check, unreachable grace
+## [ 2026-11-13, review finding 3 ]
+
+review finding 3 : the version rule above voided a receipt for ALL of a
+holder's nodes after ANY commit -- an hourly `place` committing to holder A
+left every node on A uncounted until the next `holder-check`, and one
+unreachable run did the same. addressed since :
+
+- every map entry carries the head version that **added** it [ `added`,
+  stamped in `seal` and `relay` when the entry is created ; old entries
+  without the field read as 0 ]. a receipt for version V vouches for every
+  entry with `added <= V`, as long as the covered part **only grew** since
+  the receipt : no covered entry removed or changed [ blob, offset, length,
+  chunks, pack ].
+- "only grew" is proved cheaply : the receipt stores a **covered digest**
+  over the sorted covered entries' placement fields, and the reader
+  recomputes that digest over the current map's entries with `added <= V`.
+  an equal digest proves the covered part unchanged ; a changed or dropped
+  covered entry voids the receipt for the whole holder, and entries added
+  after V stay **pending** [ mapped but never counted, never proven ] until
+  a newer receipt covers them.
+- **coverage applies to the covered part only** : a `full` receipt for V
+  proves exactly the covered entries. `place` planning counts any fresh
+  receipt's covered entries ; `holder-drain` relies only on covered entries
+  proven by `full`-coverage receipts and never on anything a partially
+  covered or unreachable holder maps outside its covered set.
+- receipts written before the digest keep the exact-version rule, so old
+  receipts verify unchanged.
+- `place` ends with a `holder-check` of **every holder it wrote to** in that
+  run [ sampled by default ; `-check-full` authenticates every chunk,
+  `-no-check` skips, leaving the new copies pending for a later
+  `holder-check` ]. a failing check is reported and makes `place` exit
+  non-zero, never undoing the placement.
+- an **unreachable holder** with a fresh receipt keeps counting its covered
+  entries in place planning for an **unreachable grace** [ default 2 days,
+  `-unreachable-grace <age>` on `place` and `placement` ] : no re-placement
+  elsewhere during that time, reported as `unreachable, counted
+  [ receipt <age> ]`. the covered addresses come from a cache written beside
+  the receipt, bound to it by the digest. it **never** counts for drain, and
+  after the grace it counts zero again.
+- the reports state per holder : receipt version, covered nodes, pending
+  nodes and coverage.
+
+**finding 3 is addressed** : a commit no longer voids what it did not
+touch, `place` leaves a fresh receipt on every holder it wrote, and an
+unreachable holder keeps counting its proven covered entries for a bounded
+grace instead of silently dropping to zero.
 
 ## receipt coverage and keyless scrub [ 2026-11-13, review finding 4 ]
 
@@ -219,8 +268,8 @@ what changed :
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,,,,.,.,..,,..,,,,,,,.,,,.,,..,,.,,,,..,.,,,..,,...,..,,..,,..,,,.,,..,,.,,,
-#P5DCAGA4W2LGEN2EGF3NMYGCL7UE7HKIYU73IHICI6VZPIS2OGQWFEROUP5OSHOCN2AC7ZBLR32JU
-#\\\|O6O573YKYS7XSGEQ2E3OK5YMCEIPDKHBBBDYBFKBVCMUDDD3Y6E \ / AMOS7 \ YOURUM ::
-#\[7]GPJHIS6D3OJJZVWSDA63SKCYPQVWBMLIQ2HAYILEER3TK3DUEWDI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,.,,,,.,,.,,,...,,..,.,,,,..,..,,...,...,...,,,.,...,..,,,,,,
+#4KBMFSUNTLP3RJ2DBGXEPUAJNSGAUAYTFTS75MJVP2NA3GT6LC4XS5C3OIPS5C5N2HU6NKSZ64B5A
+#\\\|POHGV6N5SOKAZ25NLKFL22YOM7HCXSGUJIRK6BR2RL7WJSZJXKK \ / AMOS7 \ YOURUM ::
+#\[7]OFWWIGOXYK7BQGW4WYHJMHXUWZUJNNDCT7D63RPLXS76TDOCRQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

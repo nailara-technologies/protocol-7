@@ -133,7 +133,16 @@ use warnings;
 ##                 -list : only write the blob list for n7fs-push on <from>
 ##                 -adopt : only map what a push delivered to <to>
 ## n7fs placement <disk> -root-key <key>    copies per category, report only
-## n7fs place <disk> -root-key <key> [ -dry-run ]  seal what is missing
+## n7fs place <disk> -root-key <key> [ -dry-run ] [ -no-check ]
+##                 [ -check-full ] [ -unreachable-grace <age> ]
+##                 seal what is missing ; a place ends with a holder-check
+##                 of every holder it wrote [ sampled ; -check-full
+##                 authenticates every chunk, -no-check leaves the new
+##                 copies pending for a later holder-check ]. a failing
+##                 check is reported and makes place exit non-zero, never
+##                 undoing the placement. an unreachable holder with a
+##                 fresh receipt keeps counting its covered entries for
+##                 -unreachable-grace [ default 2d ] : no re-placement
 ##                 -exclude <holder> : do not count it [ before draining it ]
 ## -bwlimit <size>                         cap uploads to ssh holders, per second
 ##
@@ -211,7 +220,8 @@ GetOptionsFromArray(
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
         full scrub sizes-only nonce=s
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
-        categories=s min-priority=s spec=s grace=s all-since=s
+        categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
+        no-check check-full
         list adopt |
 ) or usage(2);
 usage(0) if $o{'help'};
@@ -1518,17 +1528,21 @@ sub cmd_holder_check {
     require AMOS7::N7FS::Placement;
     require AMOS7::N7FS::Holder;
     AMOS7::N7FS::Placement::receipt_write(
-        qw| host_dir | => host_dir(%common),
-        qw| signer |   => $signer,
-        qw| spec |     => AMOS7::N7FS::Holder::holder_canonical($holder),
-        qw| root_id |  => $r->{'root_id'},
-        qw| version |  => $r->{'version'},
-        qw| nodes |    => $r->{'nodes'},
-        qw| samples |  => $r->{'samples'},
-        qw| coverage | => $r->{'coverage'},
+        qw| host_dir |      => host_dir(%common),
+        qw| signer |        => $signer,
+        qw| spec |          => AMOS7::N7FS::Holder::holder_canonical($holder),
+        qw| root_id |       => $r->{'root_id'},
+        qw| version |       => $r->{'version'},
+        qw| nodes |         => $r->{'nodes'},
+        qw| samples |       => $r->{'samples'},
+        qw| coverage |      => $r->{'coverage'},
+        qw| covered |       => $r->{'covered'},
+        qw| covered_nodes | => $r->{'covered_nodes'},
+        qw| covered_addresses | => $r->{'covered_list'},
     );
     say_line( 'receipt written : coverage ',
-        $r->{'coverage'}, ' [ counts for placement for 7 days ]' );
+        $r->{'coverage'}, ', covered ', $r->{'covered_nodes'},
+        ' nodes [ counts for placement for 7 days ]' );
     return 0;
 }
 
@@ -1593,7 +1607,7 @@ sub cmd_holder_drain {
         ' bytes : too few counted copies elsewhere' )
         if $r->{'kept'};
     say_line( 'kept ', $r->{'sampled_kept'},
-        ' nodes : copies elsewhere hold only a sampled receipt' )
+        ' nodes : copies elsewhere lack a full-coverage receipt' )
         if $r->{'sampled_kept'};
     say_line( $o{'dry-run'} ? 'would untag ' : 'untagged ',
         $r->{'untag'}, ' nodes : still mapped for other disks' )
@@ -2057,20 +2071,32 @@ sub _placement_opt {
     );
 }
 
+sub _age_label {
+    my $seconds = shift // 0;
+    return sprintf '%dd', int( $seconds / 86400 ) if $seconds >= 86400;
+    return sprintf '%dh', int( $seconds / 3600 )  if $seconds >= 3600;
+    return sprintf '%dm', int( $seconds / 60 )    if $seconds >= 60;
+    return sprintf '%ds', $seconds;
+}
+
 sub cmd_placement {
     require AMOS7::N7FS::Placement;
     my $disk = disk_arg(shift);
     fail('placement : unexpected arguments') if @ARG;
-    my $r = AMOS7::N7FS::Placement::placement_report( _placement_opt($disk) );
+    my $r = AMOS7::N7FS::Placement::placement_report( _placement_opt($disk),
+        qw| unreachable_grace | => defined $o{'unreachable-grace'}
+        ? AMOS7::N7FS::Placement::parse_age( $o{'unreachable-grace'} )
+        : 2 * 86400, );
     foreach my $name ( sort keys $r->{'holders'}->%* ) {
-        my $h = $r->{'holders'}{$name};
+        my $h     = $r->{'holders'}{$name};
+        my $state = $h->{'state'};
+        $state .= sprintf ' [ receipt %s ]', _age_label( $h->{'receipt_age'} )
+            if $state eq 'unreachable, counted';
         say_line(
             'holder ',
-            $name,
-            ' [ ',
+            $name, ' [ ',
             $h->{'domain'},
-            ' ] ',
-            $h->{'state'},
+            ' ] ', $state,
             $h->{'state'} eq 'counted'
                 && ( $h->{'coverage'} // '' ) ne 'full'
             ? " [ $h->{'coverage'} receipt ]"
@@ -2079,7 +2105,15 @@ sub cmd_placement {
             $h->{'count'} // 0,
             ' nodes, ',
             $h->{'used'} // 0,
-            ' bytes'
+            ' bytes',
+            defined $h->{'receipt_version'} ? sprintf(
+                ' [ receipt v%s, covered %s, pending %s, coverage %s ]',
+                $h->{'receipt_version'},
+                $h->{'covered'}  // 0,
+                $h->{'pending'}  // 0,
+                $h->{'coverage'} // '?'
+                )
+            : ()
         );
     }
     foreach my $c ( sort keys $r->{'categories'}->%* ) {
@@ -2109,8 +2143,17 @@ sub cmd_place {
     require AMOS7::N7FS::Placement;
     my $disk = disk_arg(shift);
     fail('place : unexpected arguments') if @ARG;
-    my $r = AMOS7::N7FS::Placement::place_missing( _placement_opt($disk),
-        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE );
+    my $r = AMOS7::N7FS::Placement::place_missing(
+        _placement_opt($disk),
+        qw| dry_run |        => $o{'dry-run'} ? TRUE : FALSE,
+        qw| signer |         => host_signer(),
+        qw| no_check |       => $o{'no-check'} ? TRUE : FALSE,
+        qw| samples |        => $o{'samples'},
+        qw| check_coverage | => $o{'check-full'} ? qw| full | : qw| sampled |,
+        qw| unreachable_grace | => defined $o{'unreachable-grace'}
+        ? AMOS7::N7FS::Placement::parse_age( $o{'unreachable-grace'} )
+        : 2 * 86400,
+    );
     foreach my $name ( sort keys $r->{'plan'}->%* ) {
         say_line(
             $o{'dry-run'} ? 'would place ' : 'placed ',
@@ -2120,9 +2163,26 @@ sub cmd_place {
     }
     say_line( 'still under-replicated : ', $r->{'unplaced'}, ' nodes' )
         if $r->{'unplaced'};
+    ## the checks place ran on the holders it wrote : a failure is reported,
+    ## never undone -- the copies wait for a later holder-check
+    my $failed = 0;
+    foreach my $name ( sort keys $r->{'checks'}->%* ) {
+        my $c = $r->{'checks'}{$name};
+        if ( $c->{'ok'} ) {
+            say_line( 'checked ', $name,
+                " : coverage $c->{'coverage'}, receipt written" );
+        } else {
+            $failed++;
+            say_line( 'check FAILED on ', $name, ' : ', $c->{'error'} );
+        }
+    }
+    say_line('the placement stays ; run holder-check when the holder answers')
+        if $failed;
     say_line('run holder-check on each holder so the new copies count')
-        if not $o{'dry-run'} and keys $r->{'plan'}->%*;
-    return 0;
+        if not $o{'dry-run'}
+        and $o{'no-check'}
+        and keys $r->{'plan'}->%*;
+    return $failed ? 1 : 0;
 }
 
 sub cmd_shred {
@@ -2149,8 +2209,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,,,,,..,.,.,.,.,,.,,.,,,..,,...,.,,,..,,..,,...,...,.,,,.,.,.,.,,..,.,.,
-#7NEB5SIQRC2ORGKGBVIOBT5BLKJF4GHUZJOVW3EHCT2RM2ASM24PO74C3VOYZSPNYBHHXFBLJ4UQW
-#\\\|EHBPQ6VNOTDJ3FJF7F6ABNG7GMCUAX3PLSGG3J4HNRM6VBTSVXE \ / AMOS7 \ YOURUM ::
-#\[7]WXCTT4NO3ZMJFZNHVUYZ5IVMDZ6QHIVKFZ2HDOT7FWCVXMN7MGBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,,,,,,,..,,...,..,,,..,,,.,,,,,..,,...,...,,,.,,,,,,..,.,,,,,,,
+#E5A6XAR4JQC5TQ5TSNXAQA2ZSYYGON4HFN4HFBDV27QH52WWQR6WZADLIC6IW32GYPKYWLVNP4V3A
+#\\\|DINX5DMTTNVLGAGYJLM52MEOCD3JMWAGE7HMNVOIMPW4HQ3KDI3 \ / AMOS7 \ YOURUM ::
+#\[7]ZFKDTHUSJGGBDOSTC7SZQ6C6SFL6ID3I4W7OEB7ZKOMVNPWEL2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

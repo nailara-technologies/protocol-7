@@ -104,6 +104,8 @@ a careful review [ which caught the real defects in both stages anyway ].
 
 **2026-10-30 : K3.1 low = new default [ owner ]** : K3.1 on the low setting costs ~1 % of the 7d window per task -- over 2x less than k2.8 -- at the best result quality seen from kimi so far. prefer it over k2.8 \ k3 for dispatches ; both are the dispatch defaults -- a bare kimi_dispatch already uses K3.1 low, no model arg needed.
 
+**2026-11-13 : cost per tier, N7FS review rounds** : K2.8 Preview high [ 50 % promo rate ] = 7d +2..3 per finding [ ~500-1000 lines + tests ] ; K3.1 HIGH on a permission-model change [ forced-command receiver, signed deletes, ~900 lines ] = 7d +8 \ 5h +18. K2.8 high on finding 3 [ incremental receipts ] = 7d +3 \ 5h +7 ; its tests checked report state lines only and missed two counting bugs -- review the counts, not the labels. owner : worth it at any price for security-sensitive code holding valuable data -- fixing later costs more. use K3.1 high for permission / crypto / data-loss paths, K2.8 / K3.1 low for the rest.
+
 #,,,.,..,,,..,,..,,,,,,.,,,,.,...,..,,,,.,,..,..,,...,...,...,.,.,.,,,,,,,..,,
 #DPNOESVJ7ACGP3Y7QZN4IDTXFH3OL6Z7CMEYL4CDOGUEZMAKKWSBBC4WFMKS253AN5DGRIFH7YDTC
 #\\\|XKKIEZIDPUSEPHIFNRUYOQRL3NS2KGT5Q4FZ2ZSYMRJEIOZ3ETX \ / AMOS7 \ YOURUM ::
@@ -118,8 +120,8 @@ orphan hash when the caller's node was undef ] -- review every k3.1 diff
 for data-node ownership. strategy : claude = review \ decisions \ live
 debugging ; k3.1 low = precise-spec implementation, one step per dispatch.
 
-#,,.,,...,,..,,,.,,.,,.,.,.,,,.,,,,,.,.,,,,..,..,,...,..,,...,,.,,,..,,.,,,..,
-#DIM2LGXTN2JW2VCDJDN7CS6W7ZJK5LT7EGXIFJUZAXYQEYHGFTZQBCLA5W7TYTSV23OCF7DLJYVPW
-#\\\|KVUHUH4C3MPNTHXL23PEJMZEITB23FTOVTS6UMCMKUX4IHOUIP4 \ / AMOS7 \ YOURUM ::
-#\[7]OWRXLGXCJKSVP4FSBWDOBK3DTCYEVUTGHF4ITXBWHEP3POFHREBQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,..,,.,,...,.,,,.,,,...,...,,..,..,,...,...,,,.,.,.,,,,,,.,,.,,,
+#SQEZSHRFHTS56RUNGBJWW4A4TU7Y7Z3PPPQYF5JJHWUVH4IVTQJYKL5OURYK4ADSIMG3FSKN52SUQ
+#\\\|3QG3SJ7SVNBLWTEBQC5HLDJAG7XZCYVQXWMTAJG44YEGKUUXCIT \ / AMOS7 \ YOURUM ::
+#\[7]3YPVJEULZZPR5LR6TSIP647WPBN5Z5YV7XBQ7HDZXQRLD5BBKWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

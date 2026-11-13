@@ -29,12 +29,12 @@ nightly runs fire at the jittered times.
 kimi : weekly quota hit 2026-11-11 mid-task ; a read-only review cost ~1 % \ 5h on K2.8.
 
 open : the hourly jobsite timer \ place round ; map sharding + tree retention
-[ Fable finding 5 ] ; 1 + 4 done [ 4 = 02327836a : coverage, keyless holder-scrub, drain needs full receipts ], 2 done [ e317e4eb6 lock, e1bc31c26 grace + trash + per-root r-<tag>/ + holder-migrate, then receiver mode : ssh-receiver: holders, root-signed requests + replay counter, P7SH head signature -- hosts must upgrade together, migrate before receiver mode ], 3 partly [ 22f334d32 pending ], 6 7 8 9 open, of ~/.n/private-notes/fable-n7fs-review-2026-11-11.md ;
+[ Fable finding 5 ] ; 1 + 4 done [ 4 = 02327836a : coverage, keyless holder-scrub, drain needs full receipts ], 2 done [ e317e4eb6 lock, e1bc31c26 grace + trash + per-root r-<tag>/ + holder-migrate, then receiver mode : ssh-receiver: holders, root-signed requests + replay counter, P7SH head signature -- hosts must upgrade together, migrate before receiver mode ], 3 done [ 22f334d32 pending, then incremental receipts : entry added-version + covered digest, place ends with holder-check, 2 d unreachable grace ], 6 7 8 9 open, of ~/.n/private-notes/fable-n7fs-review-2026-11-11.md ;
 a transport of its own [ UDT idea ] ; n7fs-push could reuse one ssh connection too.
 [[n7fs-relay-fanout-filters]] [[n7fs-host-migration-goal]]
 
-#,,,,,,..,,.,,,..,,.,,.,,,...,..,,,,.,,..,,,.,..,,...,...,...,,.,,.,,,,,,,,,.,
-#TXRSWIPSWY6GGDVMFF2XBSYGWIQVCCKMRECR2E5BTH7NOIER3XZEH74YE5JBWC6HYKX5ATFLATSQK
-#\\\|RHIFJCSEQ7B7NSQ7GHDA7YII7O5LOT4VT76ITTSM5ZYOPQZXG45 \ / AMOS7 \ YOURUM ::
-#\[7]67NF2L5YAZJH3SRZCB6LB57TBHDSOM3OGQFDZUMAGGH6LBKLZOCY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,,,...,...,.,.,.,,,,.,,..,,,,.,..,,...,..,,,..,.,.,,.,,.,.,,,.,
+#3RTX5J3FRRI6RXRW4T6NWQCHCLMY7QJD7XLPZIQZ6SHVKLNFVJUODWIKIRSM5KTPC4FFOOTCBUTY2
+#\\\|TVFRPAWEMGAVF3YNUKPY4KAIPFA6GZGPTPZXYTCZVRVSAEWIT7J \ / AMOS7 \ YOURUM ::
+#\[7]M3AHSM6T24OAEXUDISHCIZMB7K4H7E64AWBYKUQ3ZYTQEQMKPMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.7NU23ZI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.YC57TAA |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -818,7 +818,10 @@ sub seal_nodes {
             qw| category | => $categories[0],
             qw| disks |    => { $id->{'disk'} => TRUE },
             qw| wraps |    => \%wraps,
-            qw| layout |   => {
+            ## the head version that added the entry : incremental receipts
+            ## cover every entry added at or below their version
+            qw| added |  => $counter->{'version'} + 1,
+            qw| layout | => {
                 qw| mode |        => qw| complete |,
                 qw| chunk_size |  => CHUNK_SIZE,
                 qw| header_size | => 0,
@@ -1312,6 +1315,12 @@ sub holder_check {
         $checked = _sampled_chunks( \%opt, $map, \@addresses, \%hits );
     }
     ## sizes-only falls through : the size pass above is the whole check ##
+    ## the incremental-receipt digest : the entries this version covers, ##
+    ## over their placement fields -- the receipt stores it and _copies  ##
+    ## recomputes it to prove the covered part only grew                 ##
+    require AMOS7::N7FS::Placement;
+    my @covered_list
+        = AMOS7::N7FS::Placement::receipt_covered( $map, $head->{'version'} );
     return {
         qw| version |  => $head->{'version'},
         qw| root_id |  => $opt{'root'}{'root_id'},
@@ -1320,7 +1329,12 @@ sub holder_check {
         qw| chunks |   => $checked,
         qw| samples |  => $checked,
         qw| coverage | => $coverage eq qw| scrub | ? qw| full | : $coverage,
-        qw| by_node |  => \%hits,
+        qw| covered |  => AMOS7::N7FS::Placement::receipt_digest(
+            $map, $head->{'version'}
+        ),
+        qw| covered_nodes | => scalar @covered_list,
+        qw| covered_list |  => \@covered_list,
+        qw| by_node |       => \%hits,
     };
 }
 
@@ -1769,6 +1783,8 @@ sub relay_nodes {
         my %copy = %{$entry};
         delete $copy{'wrap'};
         $copy{'wraps'} = \%wraps;
+        ## a new entry on the target : its own head version, not the source's
+        $copy{'added'} = $counter->{'version'} + 1;
         $copy{'disks'} = { %{ $entry->{'disks'} } } if $entry->{'disks'};
         $tmap->{'nodes'}{$address} = \%copy;
     }
@@ -1820,8 +1836,8 @@ sub shred_node {
 
 1;
 
-#,,,.,..,,...,.,,,,,,,,..,..,,,,.,.,.,.,,,,,,,..,,...,...,,..,,,,,,,,,...,..,,
-#EGIY7L3IZQEEI2XZDMXFCHDQV5EM4O5AKDDYSBJ6ONKRG6ICUZEKN376DZFS23YACY5TBBVLZBXLE
-#\\\|THMRDEDGI34DFQ5EU6UMYQF5QBQTU6RCXDIL2ZVNJORGCQ62LQ2 \ / AMOS7 \ YOURUM ::
-#\[7]BGGGRWIBP7W6MJVQQRDBFVPUDFSBC7A63HHCTG5TKOZR73RJIWAY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,,..,.,.,,,.,.,.,.,.,..,,,,.,..,,...,...,,,.,.,,,,,.,.,.,,,,,
+#QY3LE2XMG6NPCK5OZFHLUE3WNEHN66X65G4YGUTNRK2YJFZ46WS5J276V7FMAEPY2MLRUR2RWEJR6
+#\\\|S4QJ3NLVH3TS5AIELLLRGLI7ZAOVCYORXGVITMFSJEKDRI7VVCH \ / AMOS7 \ YOURUM ::
+#\[7]LKSYQUVAEZZWSG2QCKL25QR3WGPR3WPSPEH4AXARH5SRBKMTY6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
