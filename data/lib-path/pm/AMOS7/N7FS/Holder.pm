@@ -13,19 +13,20 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.KKDFKYI |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.7WDEFUI |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_free
     holder_size holder_put holder_delete holder_verify holder_download
-    holder_read_range |;
+    holder_read_range holder_scrub |;
 
 use Cwd qw| abs_path |;
 use IO::Select;
 use IPC::Open3 qw| open3 |;
 use Symbol     qw| gensym |;
+use Digest::BMW;
 use AMOS7::N7FS
-    qw| random_bytes read_file write_new_file make_dirs refuse b32 |;
+    qw| random_bytes read_file write_new_file make_dirs refuse b32 sync_dir |;
 use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
 
 sub holder_parse {
@@ -410,6 +411,130 @@ sub holder_verify {
     return 1;
 }
 
+## keyless integrity : a blob's name is the bmw384 base32 of its own        ##
+## ciphertext, so a holder verifies every byte it keeps without any key.    ##
+## with a nonce the digest runs over nonce-bytes + blob-bytes : home sends  ##
+## one nonce to two holders and compares their answers, without reading the ##
+## blobs. the head is never named by its checksum -- list-less scrub        ##
+## reports it among the bad, so verification always passes the map's blob   ##
+## names [ holder-check -scrub, n7fs holder-scrub ]                         ##
+sub _scrub_bytes {
+    my ( $path, $name, $nonce ) = @_;
+    open( my $fh, '<:raw', $path ) or return undef;
+    my $ctx = Digest::BMW->new(384);
+    $ctx->add($nonce) if defined $nonce;
+    while (1) {
+        my $got = sysread( $fh, my $buf, 1048576 );
+        if ( not defined $got ) { close $fh; return undef }
+        last if $got == 0;
+        $ctx->add($buf);
+    }
+    close $fh;
+    return bmw_b32( $ctx->digest );
+}
+
+sub _scrub_result {
+    return {
+        qw| ok |      => 0,
+        qw| bad |     => [],
+        qw| missing | => [],
+        qw| answer |  => {}
+    };
+}
+
+## every name checked against its own bytes, streamed : nothing large in ##
+## memory                                                                ##
+sub _scrub_dir {
+    my ( $dir, $names, $nonce ) = @_;
+    my @list = @{ $names // [] };
+    if ( not @list ) {
+        opendir( my $dh, $dir ) or refuse('cannot list the holder');
+        @list = sort grep {m|\A[A-Z2-7]{77}\z|} readdir $dh;
+        closedir $dh;
+    }
+    my $result = _scrub_result();
+    foreach my $name (@list) {
+        my $path = "$dir/$name";
+        if ( not -e $path ) { push $result->{'missing'}->@*, $name; next }
+        my $digest = _scrub_bytes( $path, $name, $nonce );
+        refuse('cannot read a blob during scrub') if not defined $digest;
+        if ( defined $nonce ) {
+            ## the answer is the digest : home compares two holders ##
+            $result->{'ok'}++;
+            $result->{'answer'}{$name} = $digest;
+        } elsif ( $digest eq $name ) {
+            $result->{'ok'}++;
+        } else {
+            push $result->{'bad'}->@*, $name;
+        }
+    }
+    return $result;
+}
+
+sub _scrub_parse {
+    my $out    = shift // '';
+    my $result = _scrub_result();
+    foreach my $line ( split m|\n|, $out ) {
+        my ( $state, $name, $digest ) = split ' ', $line;
+        if    ( $state eq qw| ok | ) { $result->{'ok'}++ }
+        elsif ( $state eq qw| ans | ) {
+            $result->{'ok'}++;
+            $result->{'answer'}{$name} = $digest;
+        } elsif ( $state eq qw| bad | ) {
+            push $result->{'bad'}->@*, $name;
+        } elsif ( $state eq qw| missing | ) {
+            push $result->{'missing'}->@*, $name;
+        }
+    }
+    return $result;
+}
+
+sub _scrub_clean {
+    my $result = shift;
+    $result->{'clean'}
+        = $result->{'bad'}->@* || $result->{'missing'}->@* ? 0 : 1;
+    return $result;
+}
+
+sub holder_scrub {
+    my ( $spec, $names, $nonce ) = @_;
+    my $h = holder_parse($spec);
+    refuse('scrub nonce is invalid')
+        if defined $nonce
+        and $nonce !~ m|\A[A-Z2-7]{1,64}\z|;
+    my @names = @{ $names // [] };
+    refuse('invalid blob name')
+        if grep { $ARG !~ m|\A[A-Z2-7]{77}\z| } @names;
+    return _scrub_clean( _scrub_dir( $h->{'dir'}, \@names, $nonce ) )
+        if $h->{'type'} eq qw| local |;
+    ## ssh : the restricted receiver answers scrub -- read-only, keyless ##
+    my @delays = _delays();
+    my $result = _scrub_result();
+    ## keep every command line short ##
+    for ( my $i = 0; $i < @names or $i == 0; $i += 400 ) {
+        my @part
+            = @names[ $i .. ( $i + 399 < $#names ? $i + 399 : $#names ) ];
+        my $request = join ' ', qw| scrub |,
+            ( defined $nonce ? ( '-nonce', $nonce ) : () ), @part;
+        my ( $status, $out, $err );
+        for my $try ( 0 .. $#delays ) {
+            ( $status, $out, $err ) = _ssh( $h, $request );
+            last                if not $status or $status == 7;
+            sleep $delays[$try] if $try < $#delays;
+        }
+        ## 7 is the answer too [ corruption or absence ], not a failure ##
+        refuse( 'holder scrub failed : %s', $err )
+            if $status and $status != 7;
+        my $part_result = _scrub_parse($out);
+        $result->{'ok'} += $part_result->{'ok'};
+        push $result->{'bad'}->@*,     $part_result->{'bad'}->@*;
+        push $result->{'missing'}->@*, $part_result->{'missing'}->@*;
+        $result->{'answer'}{$ARG} = $part_result->{'answer'}{$ARG}
+            foreach keys $part_result->{'answer'}->%*;
+    }
+    return _scrub_clean($result);
+}
+
 sub holder_put {
     my ( $spec, $local, $name, $kind, $replace ) = @_;
     my $h = holder_parse($spec);
@@ -418,6 +543,8 @@ sub holder_put {
         refuse('holder destination exists') if -e $final and not $replace;
         unlink $final                       if $replace  and -e $final;
         link $local, $final or refuse('cannot publish local holder blob');
+        ## the directory entry must survive a crash as well ##
+        sync_dir( $h->{'dir'} );
         return;
     }
     my $size = -s $local;
@@ -456,13 +583,17 @@ sub holder_put {
               'mv -f -- '
             . _quote( _path( $h, $temp ) ) . ' '
             . _quote( _path( $h, $name ) ) );
+    ## renaming leaves the directory entry unsynced : persist it too ##
+    my ( $dir_status, undef, $dir_err )
+        = _ssh( $h, 'sync -- ' . _quote( $h->{'dir'} ) );
+    warn "n7fs : remote directory sync unavailable : $dir_err" if $dir_status;
     return;
 }
 
 1;
 
-#,,,.,.,.,,.,,,..,,.,,,.,,,.,,,,.,.,,,,,.,,.,,..,,...,..,,...,,,,,,,.,,.,,...,
-#PGIE35RNGZGMCHWAKSA5X3WB2OIKJRZG6BMWH47AA7W3HO73GW3OLBG546OA47LWXH6SDHWTW76LK
-#\\\|WEVNHLPIH3426FHP47C4E7JXAPDCHZXOKKOUODNFP24UR3YWOCE \ / AMOS7 \ YOURUM ::
-#\[7]O4SEJSWRWCLSEGWPKEJFDXQBD4JP2SZZ7DK633IOBUAWF3PMC6BQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,.,.,.,,,,..,...,...,,,,,,,.,..,,...,...,.,.,...,,,,,.,.,...,
+#QIXYBHGLQGHBHWHXI7J62ASTIIVGARBZ5O4UMNYZRXQXVSEIUOWXNKXRZYB3ORFY2ZLURLJE4CGO6
+#\\\|VQ3YS3MZC5QINU4RA446DDEXDFV5JVVQBNP5IW2KBATIFMLUUTT \ / AMOS7 \ YOURUM ::
+#\[7]2R5737EVDLQK76QTSALREQ7ND5JFMTHHBAV65AANM5CTQNTZMUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

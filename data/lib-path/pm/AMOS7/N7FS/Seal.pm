@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.KZS3NPQ |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.IQPKQ7Y |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
@@ -39,7 +39,7 @@ use AMOS7::N7FS::Journal  qw| journal_replay |;
 use AMOS7::N7FS::Category qw| category_report category_definitions |;
 use AMOS7::N7FS::Holder   qw| holder_parse holder_canonical holder_mkdir
     holder_read holder_size holder_put holder_delete holder_verify
-    holder_download holder_read_range holder_sizes |;
+    holder_download holder_read_range holder_sizes holder_scrub |;
 
 use constant CHUNK_SIZE => 16 * 1024 * 1024;
 
@@ -1085,13 +1085,115 @@ sub seal_recover {
     };
 }
 
+## the sealed header of a mapped blob : chunk size and chunk count, checked ##
+## against the map entry. only pack members carry a real offset             ##
+sub _blob_meta {
+    my ( $holder, $entry ) = @_;
+    my $base = $entry->{'offset'} // 0;
+    my $head = holder_read_range( $holder, $entry->{'blob'}, $base, 26 );
+    refuse('mapped blob header cannot be read')
+        if not defined $head
+        or length $head != 26;
+    my ( $mode, $chunk_size ) = unpack( 'C Q>', substr( $head, 5, 9 ) );
+    my $chunks = unpack qw| Q> |, substr( $head, 18, 8 );
+    refuse('mapped blob chunk count differs')
+        if $chunks != $entry->{'chunks'} or $mode != 0;
+    return ( $base, $chunk_size, $chunks );
+}
+
+sub _checked_chunk {
+    my ( $holder, $root, $map, $entry, $base, $index, $chunk_size, $chunks )
+        = @_;
+    my $pos = $base + 26 + $index * ( 4 + $chunk_size + 16 );
+    my $raw = holder_read_range( $holder, $entry->{'blob'}, $pos, 4 );
+    refuse('sealed chunk cannot be read')
+        if not defined $raw
+        or length $raw != 4;
+    my $sealed
+        = holder_read_range( $holder, $entry->{'blob'},
+        $pos + 4, unpack( qw| N |, $raw ) );
+    refuse('sealed chunk cannot be read') if not defined $sealed;
+    open_sealed_bytes( _node_keys( $root, $map, $entry ),
+        $sealed, qw| content |, '', 0, $index,
+        $index == $chunks - 1 ? TRUE : FALSE );
+    return TRUE;
+}
+
+## authenticate $wanted chunks, drawing sample positions from the sealed    ##
+## byte space : a large pack is sampled proportionally more often than a    ##
+## small one. uniform-by-node sampling missed a 1 % rot in ~85 % of runs at ##
+## 24k nodes [ review finding 4 ]                                           ##
+sub _sampled_chunks {
+    my ( $opt, $map, $addresses, $hits ) = @_;
+    my $wanted = $opt->{'samples'} // 16;
+    refuse('samples must be a positive integer')
+        if $wanted !~ m|\A[1-9]\d*\z|;
+    my @weight;
+    my $total = 0;
+    foreach my $address ( @{$addresses} ) {
+        my $length = $map->{'nodes'}{$address}{'length'} // 0;
+        $length = 1 if $length < 1;
+        push @weight, $length;
+        $total += $length;
+    }
+    my $rng = $opt->{'rng'} // sub { random_bytes(8) };
+    my ( %seen,  %meta );
+    my ( $rolls, $checked ) = ( 0, 0 );
+    ## enough samples for every node : each node gets one chunk first, the ##
+    ## rest goes by bytes [ a tiny damaged node is never skipped then ]    ##
+    if ( $wanted >= @{$addresses} and not $opt->{'rng'} ) {
+        foreach my $address ( @{$addresses} ) {
+            my $entry = $map->{'nodes'}{$address};
+            my ( $base, $chunk_size, $chunks )
+                = @{ $meta{$address}
+                    //= [ _blob_meta( $opt->{'holder'}, $entry ) ] };
+            my $index = unpack( 'Q>', $rng->() ) % $chunks;
+            $seen{"$address\0$index"}++;
+            _checked_chunk( @{$opt}{qw| holder root |},
+                $map, $entry, $base, $index, $chunk_size, $chunks );
+            $hits->{$address}++;
+            $checked++;
+        }
+    }
+    ## the roll cap only guards a pathological store : every roll that  ##
+    ## lands on an already checked chunk is skipped, and duplicates are ##
+    ## never counted toward $wanted                                     ##
+    while ( $checked < $wanted and $rolls < $wanted * 8 ) {
+        $rolls++;
+        my $pos = unpack( 'Q>', $rng->() ) % $total;
+        ## the node whose byte range covers the sample position ##
+        my ( $idx, $upton ) = ( 0, 0 );
+        while ( $idx < $#{$addresses} ) {
+            $upton += $weight[$idx];
+            last if $pos < $upton;
+            $idx++;
+        }
+        my $address = $addresses->[$idx];
+        my $entry   = $map->{'nodes'}{$address};
+        my ( $base, $chunk_size, $chunks )
+            = @{ $meta{$address}
+                //= [ _blob_meta( $opt->{'holder'}, $entry ) ] };
+        my $index = unpack( 'Q>', $rng->() ) % $chunks;
+        next if $seen{"$address\0$index"}++;
+        _checked_chunk( @{$opt}{qw| holder root |},
+            $map, $entry, $base, $index, $chunk_size, $chunks );
+        $hits->{$address}++;
+        $checked++;
+    }
+    return $checked;
+}
+
 sub holder_check {
     my %opt = @_;
     my ( undef, $head, $map ) = _context( @opt{qw| root holder |}, TRUE );
     refuse('no sealed head to check') if not defined $head;
+    my $coverage = $opt{'coverage'} // qw| sampled |;
+    refuse('coverage must be sizes-only, sampled, full or scrub')
+        if $coverage !~ m{\A(?:sizes-only|sampled|full|scrub)\z};
     my $sizes     = holder_sizes( $opt{'holder'} );
     my @addresses = sort keys $map->{'nodes'}->%*;
     my %blobs;
+
     foreach my $address (@addresses) {
         my $entry = $map->{'nodes'}{$address};
         my $size  = $sizes->{ $entry->{'blob'} };
@@ -1102,52 +1204,48 @@ sub holder_check {
             or ( defined $entry->{'node'} ? $size < $need : $size != $need );
         $blobs{ $entry->{'blob'} } = TRUE;
     }
-    my $wanted = $opt{'samples'} // 16;
-    refuse('samples must be a positive integer')
-        if $wanted !~ m|\A[1-9]\d*\z|;
-    for ( my $i = @addresses - 1; $i > 0; $i-- ) {
-        my $j = unpack( 'N', random_bytes(4) ) % ( $i + 1 );
-        @addresses[ $i, $j ] = @addresses[ $j, $i ];
+    my ( $checked, %hits ) = ( 0, () );
+    if ( $coverage eq qw| scrub | ) {
+        ## keyless full coverage : a blob's name is the checksum of its own ##
+        ## ciphertext, so verifying every mapped name verifies every byte   ##
+        ## the holder keeps. the map and the journal are content-named too  ##
+        ## ; only the head is not, and it stays covered by the signed       ##
+        ## chain, never by a scrub. this proves ciphertext integrity -- it  ##
+        ## says nothing about the map's key material, which the chunked     ##
+        ## checks authenticate with the root                                ##
+        my @names = sort keys %blobs;
+        push @names, $head->{'map'}, $head->{'journal'};
+        my $result = holder_scrub( $opt{'holder'}, \@names );
+        refuse(
+            'holder scrub is not clean : %s bad, %s missing',
+            scalar $result->{'bad'}->@*,
+            scalar $result->{'missing'}->@*
+        ) if not $result->{'clean'};
+        $checked = $result->{'ok'};
+    } elsif ( $coverage eq qw| full | ) {
+        foreach my $address (@addresses) {
+            my $entry = $map->{'nodes'}{$address};
+            my ( $base, $chunk_size, $chunks )
+                = _blob_meta( $opt{'holder'}, $entry );
+            foreach my $index ( 0 .. $chunks - 1 ) {
+                _checked_chunk( @opt{qw| holder root |},
+                    $map, $entry, $base, $index, $chunk_size, $chunks );
+            }
+            $checked += $chunks;
+        }
+    } elsif ( $coverage eq qw| sampled | ) {
+        $checked = _sampled_chunks( \%opt, $map, \@addresses, \%hits );
     }
-    my $checked = 0;
-    foreach my $address (@addresses) {
-        last if $checked >= $wanted;
-        my $entry = $map->{'nodes'}{$address};
-        my $base  = $entry->{'offset'} // 0;
-        my $blob  = holder_read_range( $opt{'holder'}, $entry->{'blob'},
-            $base, 26 );
-        refuse('mapped blob header cannot be read')
-            if not defined $blob
-            or length $blob != 26;
-        my ( $mode, $chunk_size ) = unpack( 'C Q>', substr( $blob, 5, 9 ) );
-        my $chunks = unpack qw| Q> |, substr( $blob, 18, 8 );
-        refuse('mapped blob chunk count differs')
-            if $chunks != $entry->{'chunks'} or $mode != 0;
-        ## every chunk before the last has the same sealed length ##
-        my $index = unpack( 'N', random_bytes(4) ) % $chunks;
-        my $pos   = $base + 26 + $index * ( 4 + $chunk_size + 16 );
-        my $raw
-            = holder_read_range( $opt{'holder'}, $entry->{'blob'}, $pos, 4 );
-        refuse('sampled chunk cannot be read')
-            if not defined $raw
-            or length $raw != 4;
-        my $sealed = holder_read_range(
-            $opt{'holder'}, $entry->{'blob'},
-            $pos + 4,       unpack( qw| N |, $raw )
-        );
-        refuse('sampled chunk cannot be read') if not defined $sealed;
-        open_sealed_bytes( _node_keys( $opt{'root'}, $map, $entry ),
-            $sealed, qw| content |, '', 0, $index,
-            $index == $chunks - 1 ? TRUE : FALSE );
-        $checked++;
-    }
+    ## sizes-only falls through : the size pass above is the whole check ##
     return {
-        qw| version | => $head->{'version'},
-        qw| root_id | => $opt{'root'}{'root_id'},
-        qw| nodes |   => scalar @addresses,
-        qw| blobs |   => scalar keys %blobs,
-        qw| chunks |  => $checked,
-        qw| samples | => $checked
+        qw| version |  => $head->{'version'},
+        qw| root_id |  => $opt{'root'}{'root_id'},
+        qw| nodes |    => scalar @addresses,
+        qw| blobs |    => scalar keys %blobs,
+        qw| chunks |   => $checked,
+        qw| samples |  => $checked,
+        qw| coverage | => $coverage eq qw| scrub | ? qw| full | : $coverage,
+        qw| by_node |  => \%hits,
     };
 }
 
@@ -1457,8 +1555,8 @@ sub shred_node {
 
 1;
 
-#,,,.,,..,.,.,...,,,.,,,,,..,,..,,,..,,,.,...,..,,...,..,,,.,,..,,.,.,,,.,,,,,
-#H3ALOQCBNWAAOP6LNEDJIN5Q63QUOLBS335X4B7BNIP2JDQ3CNQOMF7CQ75TRNZ5U3EY6PGIK3PF4
-#\\\|3ZDWAEGWXFH2BIG4ZS5CXD4CB6OPW62NZATDMWSDCIK5VZGKI25 \ / AMOS7 \ YOURUM ::
-#\[7]B5TBSFTCQHMXNNTAEDGU7G2YMFYUIQQBBLCTWVZMMWAV65IARSBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,..,,.,.,,,.,...,,.,,,..,.,,,..,,...,...,,,,,.,.,,,,,.,,,,.,,
+#KEL54HI3WOX5ZA3FGNJSZVIOH26LUSWA35MC3E43Y7MMOAD22LY6NIRYQQ2HDYGXZXK2PEIPYBLMM
+#\\\|CENAQBNVYVDXSOAAHXZPC75CQ2EHLAJLBHDHUFHXY5Q2GDWT7BU \ / AMOS7 \ YOURUM ::
+#\[7]DH567JBXNKYT77HM3YA7GAJGZZZJ4BR6IV3C5UKJ2RDW2OPUXSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

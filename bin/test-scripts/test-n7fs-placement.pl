@@ -8,8 +8,10 @@ use warnings;
 
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
-use AMOS7::Vault qw| vault_init |;
-use AMOS7::N7FS  qw| make_dirs |;
+use JSON::PP;
+use AMOS7::Vault     qw| vault_init |;
+use AMOS7::N7FS      qw| make_dirs read_file b32 |;
+use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
 
 require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
 
@@ -106,8 +108,10 @@ ok( $rc == 0 && $out !~ m|would place [1-9]|,
     or say $out;
 
 foreach my $i ( 0 .. 2 ) {
+    ## a drain relies on full-coverage receipts : check with -full ##
     ( $rc, $out )
-        = cli( ['vp'], 'holder-check', $h[$i], '-root-key', 'vault:main' );
+        = cli( ['vp'], 'holder-check', '-full', $h[$i], '-root-key',
+        'vault:main' );
     say "        check $i : $out" if $rc != 0;
 }
 ( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
@@ -148,7 +152,8 @@ ok( $out =~ m|placed \d+ nodes on five|,
 ok( $out =~ m|kept|, 'a copy without a receipt does not count yet' )
     or say $out;
 ( $rc, $out )
-    = cli( ['vp'], 'holder-check', "$base/h7", '-root-key', 'vault:main' );
+    = cli( ['vp'], 'holder-check', '-full', "$base/h7", '-root-key',
+    'vault:main' );
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'one', '-root-key', 'vault:main' );
 ok( $rc == 0 && $out =~ m|dropped [1-9]\d* nodes| && $out !~ m|kept|,
@@ -297,10 +302,177 @@ ok( $rc == 0 && -f "$base/rec-u/g3", 'the other disk\'s tree still recovers' )
 ( $rc, $out ) = cli( ['wrong'], 'holder', 'list' );
 ok( $rc != 0, 'registry needs the vault passphrase' );
 
+## review finding 4 : a sampled receipt never vouches for a drain ##
+make_dirs("$base/h9");
+( $rc, $out )
+    = cli( ['vp'], 'holder', 'add', 'six', "$base/h9", '-domain', 'g' );
+( $rc, $out )
+    = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main',
+    '-exclude', 'five' );
+ok( $rc == 0 && $out =~ m|placed \d+ nodes on one|,
+    'a move target receives the copies' )
+    or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-check', 'one', '-root-key', 'vault:main' );
+ok( $rc == 0 && $out =~ m|coverage sampled|,
+    'a plain check records a sampled receipt'
+) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-drain', $disk, 'five', '-root-key',
+    'vault:main', '-dry-run' );
+ok( $rc == 0 && $out !~ m|would drop [1-9]| && $out =~ m|sampled receipt|,
+    'drain refuses to rely on a sampled receipt' )
+    or say $out;
+( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
+ok( $out =~ m|one \[ a \] counted \[ sampled receipt \]|,
+    'the placement report states the coverage'
+) or say $out;
+## a receipt without a coverage field reads as sampled ##
+{
+    require AMOS7::N7FS::Holder;
+    require AMOS7::N7FS::Sign;
+    my $json  = JSON::PP->new->utf8->canonical;
+    my $spec1 = AMOS7::N7FS::Holder::holder_canonical("$base/h1");
+    my $rpath
+        = "$hdir/receipts/"
+        . bmw_b32( bmw384_bytes( "p7 n7fs receipt v1\0" . $spec1 ) )
+        . '.receipt';
+    my $data = $json->decode( read_file($rpath) );
+    delete $data->{'receipt'}{'coverage'};
+    my $signer = AMOS7::N7FS::Sign::key_file_signer("$hdir/host.key");
+    $data->{'sig'}
+        = b32( $signer->sign( $json->encode( $data->{'receipt'} ) ) );
+    write_file( $rpath, $json->encode($data) );
+    ( $rc, $out )
+        = cli( ['vp'], 'holder-drain', $disk, 'five', '-root-key',
+        'vault:main', '-dry-run' );
+    ok( $rc == 0 && $out !~ m|would drop [1-9]| && $out =~ m|sampled receipt|,
+        'an old receipt without a coverage field reads as sampled'
+    ) or say $out;
+}
+## a keyless scrub is a full-coverage check as well ##
+( $rc, $out )
+    = cli( ['vp'], 'holder-check', '-scrub', 'one', '-root-key',
+    'vault:main' );
+ok( $rc == 0 && $out =~ m|coverage full|,
+    'holder-check -scrub records a full receipt'
+) or say $out;
+## five needs a counted state for -exclude to apply to it ##
+( $rc, $out )
+    = cli( ['vp'], 'holder-check', 'five', '-root-key', 'vault:main' );
+( $rc, $out )
+    = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main',
+    '-exclude', 'five' );
+ok( $rc == 0 && $out =~ m|placed \d+ nodes on six|,
+    'a second move target fills the other domain'
+) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-check', '-scrub', 'six', '-root-key',
+    'vault:main' );
+ok( $rc == 0 && $out =~ m|coverage full|,
+    'the second target passes a keyless scrub'
+) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-drain', $disk, 'five', '-root-key',
+    'vault:main', '-dry-run' );
+ok( $rc == 0 && $out =~ m|would drop [1-9]|,
+    'two full receipts vouch for the drain'
+) or say $out;
+## sampling draws by bytes : the large pack takes the sample ##
+{
+    require AMOS7::N7FS::Keys;
+    require AMOS7::N7FS::Seal;
+    my $bigsrc = "$src/big";
+    make_dirs($bigsrc);
+    write_file( "$bigsrc/s$ARG", "small $ARG\n" ) for 1 .. 50;
+    write_file( "$bigsrc/large", 'L' x ( 3 * 1024 * 1024 ) );
+    ( $rc, $out )
+        = cli( [], 'assimilate', '-disk', $disk, '-keep', '-tree',
+        'big', $bigsrc );
+    my $bigholder = "$base/bigholder";
+    make_dirs($bigholder);
+    ( $rc, $out ) = cli(
+        ['vp'],       'seal', $disk,      '-root-key',
+        'vault:main', '-out', $bigholder, '-tree',
+        'big'
+    );
+    ok( $rc == 0, 'a tree with one large file sealed' ) or say $out;
+    open( my $pass, '<:raw', "$base/pass" )             or die $OS_ERROR;
+    my $sroot = AMOS7::N7FS::Keys::root_open(
+        qw| path |      => 'vault:main',
+        qw| vault_dir | => $vdir,
+        qw| pass_fd |   => fileno($pass)
+    );
+    my ( undef, undef, $bmap )
+        = AMOS7::N7FS::Seal::_context( $sroot, $bigholder, 1 );
+    my ($big) = sort {
+        $bmap->{'nodes'}{$b}{'length'} <=> $bmap->{'nodes'}{$a}{'length'}
+    } keys $bmap->{'nodes'}->%*;
+    my ($first_small) = sort grep { $ARG ne $big } keys $bmap->{'nodes'}->%*;
+    ## a position inside the large node, from the cumulative byte ranges ##
+    my ( $big_at, $seen ) = ( 0, 0 );
+    foreach my $a ( sort keys $bmap->{'nodes'}->%* ) {
+        $big_at = $seen + 100 if $a eq $big;
+        $seen += $bmap->{'nodes'}{$a}{'length'} // 0;
+    }
+    my $r = AMOS7::N7FS::Seal::holder_check(
+        qw| root |     => $sroot,
+        qw| holder |   => $bigholder,
+        qw| samples |  => 4,
+        qw| coverage | => 'sampled',
+        ## a fixed position deep inside the large node, every roll ##
+        qw| rng | => sub { pack qw| Q> |, $big_at },
+    );
+    ok( ( keys $r->{'by_node'}->%* ) == 1 && exists $r->{'by_node'}{$big},
+        'byte-weighted sampling picks the large pack' )
+        or say $out;
+    $r = AMOS7::N7FS::Seal::holder_check(
+        qw| root |     => $sroot,
+        qw| holder |   => $bigholder,
+        qw| samples |  => 4,
+        qw| coverage | => 'sampled',
+        ## position 5 is inside the first small node ##
+        qw| rng | => sub { pack qw| Q> |, 5 },
+    );
+    ok( ( keys $r->{'by_node'}->%* ) == 1
+            && exists $r->{'by_node'}{$first_small},
+        'a low position picks a small node, not a random one'
+    ) or say $out;
+    ## a zero-filled blob of the right size is caught ##
+    my @bblobs = sort
+        keys %{ { map { $ARG->{'blob'} => 1 } values $bmap->{'nodes'}->%* } };
+    my $victim   = $bblobs[0];
+    my $victim_f = "$bigholder/$victim";
+    my $saved    = read_file($victim_f);
+    write_file( $victim_f, "\0" x length $saved );
+    ( $rc, $out )
+        = cli( ['vp'], 'holder-scrub', $bigholder, '-root-key',
+        'vault:main' );
+    ok( $rc == 1 && $out =~ m|bad : $victim|, 'holder-scrub catches the rot' )
+        or say $out;
+    ( $rc, $out )
+        = cli( ['vp'], 'holder-check', '-full', $bigholder,
+        '-root-key', 'vault:main' );
+    ok( $rc != 0, 'holder-check -full catches the rot' ) or say $out;
+    ## -sizes-only still writes a receipt, with its coverage stated ##
+    ( $rc, $out )
+        = cli( ['vp'], 'holder-check', '-sizes-only', $bigholder,
+        '-root-key', 'vault:main' );
+    ok( $rc == 0 && $out =~ m|coverage sizes-only|,
+        '-sizes-only records its coverage'
+    ) or say $out;
+    write_file( $victim_f, $saved );
+    ( $rc, $out )
+        = cli( ['vp'], 'holder-scrub', $bigholder, '-root-key',
+        'vault:main' );
+    ok( $rc == 0, 'the holder is clean again after the restore' )
+        or say $out;
+}
+
 done();
 
-#,,.,,,,,,,,.,,,,,.,.,..,,,..,,,.,,.,,,..,.,,,..,,...,...,.,.,,.,,...,..,,.,.,
-#V7RVEWKZ2GGSISSLFNFWGRSVRX7GJXZJUAZW65E65XBHEG6EH5IZ74TWYXXY3WLUWNQNCEESI5YZ2
-#\\\|AWSYZ2RVMJV4GKWGBKRJRM3NK4ZXNGQO77YJF4LW6E42VDOT7SD \ / AMOS7 \ YOURUM ::
-#\[7]MGCVGWMRH3NEGTIZH64WONOXIHHMDXCBSWJZXUVLO2A4CWBBCWDY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,,,.,,,,.,,.,.,,.,,,.,,.,.,.,.,..,,...,...,..,,,.,,...,,.,,.,,,
+#DNQGDRLESFXZF2DPOGURMNUWUBE57LUQRRWNKOVV4T5AOK4334FNUFZFH56A5HLVHJNFLEWKMVLY2
+#\\\|ZCA4W3DIBIWNWPD3BFYBWCJZRUNYDANX5DHXENKT3LHV54RL6DO \ / AMOS7 \ YOURUM ::
+#\[7]3Z4W6ZK6HUGI7Z3ELXCQT34XU47JMVJU6OSQZMNKQPGTH62DAUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

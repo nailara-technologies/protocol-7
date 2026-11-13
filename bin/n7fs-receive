@@ -15,6 +15,19 @@ use warnings;
 ## the sender asks through the ssh command line [ SSH_ORIGINAL_COMMAND ] :
 ##   has <name> ..        prints '<name> <size>' for those present
 ##   put <name> <size>    reads exactly <size> bytes from stdin
+##   scrub [ -nonce <b32> ] [ <name> .. ]
+##                        keyless : recomputes the name checksum of every
+##                        listed blob, or of every checksum-named file with
+##                        no list. one line per blob : 'ok <name>',
+##                        'bad <name>', 'missing <name>' ; with -nonce every
+##                        present blob answers 'ans <name> <digest>', the
+##                        digest over nonce-bytes + blob-bytes, so home
+##                        compares two holders' answers to one challenge
+##                        without reading the blobs. exit 0 when clean, 7
+##                        when a blob is bad or missing.
+##                        the head is never named by its checksum : a
+##                        list-less scrub reports it as bad by design, so
+##                        verification always passes the map's blob names
 ##
 ## a blob is accepted only when its bytes match its checksum name. the head of
 ## a store is not named by its checksum, so it can never be written here.
@@ -24,6 +37,7 @@ use warnings;
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
 use Fcntl            qw| O_WRONLY O_CREAT O_EXCL |;
+use AMOS7::N7FS      qw| sync_dir |;
 use AMOS7::N7FS::Sum qw| bmw_b32 |;
 use Digest::BMW;
 
@@ -68,7 +82,62 @@ if ( $verb eq 'has' ) {
     }
     exit 0;
 }
-out('unknown request') if $verb ne 'put' or @word != 2;
+out('unknown request') if $verb ne 'put' and $verb ne 'scrub';
+
+if ( $verb eq 'scrub' ) {
+    my $nonce = '';
+    if ( @word and $word[0] eq '-nonce' ) {
+        shift @word;
+        $nonce = shift @word // '';
+        out('invalid nonce') if $nonce !~ m|\A[A-Z2-7]{1,64}\z|;
+    }
+    out('invalid blob name') if grep { $ARG !~ $NAME } @word;
+    my @list = @word;
+    if ( not @list ) {
+        opendir( my $dh, $dir ) or out('cannot list the holder');
+        @list = sort grep {m|$NAME|} readdir $dh;
+        closedir $dh;
+    }
+    my ( $ok, $bad, $missing ) = ( 0, 0, 0 );
+    foreach my $name (@list) {
+        my $path = "$dir/$name";
+        if ( not -e $path ) { say "missing $name"; $missing++; next }
+        ## stream in 1 MiB reads : blobs can be far larger than memory ##
+        open( my $fh, '<:raw', $path ) or do {
+            say "missing $name";
+            $missing++;
+            next;
+        };
+        my $ctx = Digest::BMW->new(384);
+        $ctx->add($nonce) if length $nonce;
+        while (1) {
+            my $got = sysread( $fh, my $buf, 1048576 );
+            if ( not defined $got ) {
+                close $fh;
+                out("cannot read $name");
+            }
+            last if $got == 0;
+            $ctx->add($buf);
+        }
+        close $fh;
+        my $digest = bmw_b32( $ctx->digest );
+        if ( length $nonce ) {
+            ## the answer is the digest : home compares two holders ##
+            $ok++;
+            say "ans $name $digest";
+        } elsif ( $digest eq $name ) {
+            $ok++;
+            say "ok $name";
+        } else {
+            $bad++;
+            say "bad $name";
+        }
+    }
+    print STDERR "n7fs-receive : scrub : $ok ok, "
+        . "$bad bad, $missing missing\n";
+    exit( $bad || $missing ? 7 : 0 );
+}
+out('put needs a name and a size') if @word != 2;
 my ( $name, $size ) = @word;
 out('invalid blob name') if $name !~ $NAME;
 out('invalid size')      if $size !~ m|\A\d+\z|;
@@ -122,10 +191,13 @@ if ( not link $tmp, "$dir/$name" ) {
 }
 unlink $tmp;
 system( 'sync', '--', "$dir/$name" );
+## the file is durable, the directory entry that names it is not yet ##
+print STDERR "n7fs-receive : warning : directory sync failed\n"
+    if not sync_dir($dir);
 exit 0;
 
-#,,..,.,.,,,,,,,,,,.,,,..,..,,..,,...,,.,,...,..,,...,...,.,.,...,...,...,.,,,
-#GVZQWW3GGC75FHUITDDT2LUMXCV7D5H2ZH6PWKBYJJ7V5Z7I5GYPXIWHHYJ5C6E7ARSR5ZGMBRDPU
-#\\\|YLDEP4TLDW4AXZZPRTTQCMUZPEHAKLSUSGLERR2HR2V24MAU72G \ / AMOS7 \ YOURUM ::
-#\[7]IMTV3K5XXPCELXQAB4XL2B3ZLNSDROE2IYHENS7X6J4BBQBLGABQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,,..,,,,,..,,,,.,..,,,,,,,,,,..,,...,...,..,,.,.,,,.,,.,,..,,
+#B33B3NXEPQGCDWEEPTEPPUVDRE6BQW44ZN722AS3HCIIY5YBPB5VDFV55LVCSPD4D3J57BF3FLV5O
+#\\\|H53IIXAHT2OLGYKASEMI4OTBTBI4LJKIJ4ARKCY6IH32GUMPSXD \ / AMOS7 \ YOURUM ::
+#\[7]S7CXL5H3HVAUM26D43Z7YRRMTPQ4VKE6CQMHN6R7WYLXKAXK7ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

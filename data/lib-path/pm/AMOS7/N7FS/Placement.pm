@@ -18,11 +18,11 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.I24ZZBA |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.YGWLWQQ |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
-    receipt_fresh placement_report place_missing parse_size holder_drain
-    holder_prune holder_rename holder_room holder_accepts |;
+    receipt_fresh receipt_coverage placement_report place_missing parse_size
+    holder_drain holder_prune holder_rename holder_room holder_accepts |;
 
 use JSON::PP;
 use AMOS7::N7FS qw| b32 unb32 read_file write_new_file make_dirs refuse |;
@@ -165,12 +165,13 @@ sub _receipt_path {
 sub receipt_write {
     my %opt     = @_;
     my $payload = {
-        qw| holder |  => $opt{'spec'},
-        qw| root_id | => $opt{'root_id'},
-        qw| time |    => time,
-        qw| version | => $opt{'version'} + 0,
-        qw| nodes |   => $opt{'nodes'} + 0,
-        qw| samples | => $opt{'samples'} + 0,
+        qw| holder |   => $opt{'spec'},
+        qw| root_id |  => $opt{'root_id'},
+        qw| time |     => time,
+        qw| version |  => $opt{'version'} + 0,
+        qw| nodes |    => $opt{'nodes'} + 0,
+        qw| samples |  => $opt{'samples'} + 0,
+        qw| coverage | => $opt{'coverage'} // qw| sampled |,
     };
     my $signed = $JSON->encode($payload);
     my $path   = _receipt_path( $opt{'host_dir'}, $opt{'spec'} );
@@ -203,6 +204,13 @@ sub receipt_fresh {
         or ( $r->{'root_id'} // '' ) ne $root_id
         or ( $now            // time ) - ( $r->{'time'} // 0 ) > $RECEIPT_AGE;
     return $r;
+}
+
+## receipts from before the coverage field read as sampled ##
+sub receipt_coverage {
+    my $receipt = shift;
+    return ( ref $receipt eq qw| HASH | ? $receipt->{'coverage'} : undef )
+        // qw| sampled |;
 }
 
 ## every live node of the disk with its categories and size
@@ -245,11 +253,14 @@ sub _disk_nodes {
     return ( $id, \%nodes, $replay, $definitions );
 }
 
-## which domains hold each node, from the holders' own maps
+## which domains hold each node, from the holders' own maps. two answers :
+## %copies counts any fresh receipt [ place planning ], %proven counts only
+## full-coverage receipts [ drain and gc on other holders rely on those ]
 sub _copies {
     my %opt     = @_;
     my $holders = holders_load(%opt);
     my %copies;
+    my %proven;
     my %status;
     require AMOS7::N7FS::Seal;
     ## an excluded holder is read but not counted [ moving away from it ] ##
@@ -276,25 +287,30 @@ sub _copies {
             $state = 'no fresh receipt';
         }
         $state = 'excluded' if $excluded{$name} and $state eq 'counted';
+        $status{$name}{'state'} = $state;
+        $status{$name}{'coverage'}
+            = $receipt ? receipt_coverage($receipt) : undef;
+        my $full = receipt_coverage($receipt) eq qw| full |;
         my $used = 0;
         foreach my $address ( keys %{ $map->{'nodes'} // {} } ) {
             $used += $map->{'nodes'}{$address}{'length'} // 0;
-            $copies{$address}{ $h->{'domain'} } = TRUE
-                if $state eq 'counted';
+            if ( $state eq 'counted' ) {
+                $copies{$address}{ $h->{'domain'} } = TRUE;
+                $proven{$address}{ $h->{'domain'} } = TRUE if $full;
+            }
             ## the entry itself : drain reads its disk ids ##
             $status{$name}{'nodes'}{$address} = $map->{'nodes'}{$address};
         }
-        $status{$name}{'state'} = $state;
         $status{$name}{'used'}  = $used;
         $status{$name}{'count'} = scalar keys %{ $map->{'nodes'} // {} };
     }
-    return ( $holders, \%copies, \%status );
+    return ( $holders, \%copies, \%status, \%proven );
 }
 
 sub placement_report {
     my %opt = @_;
     my ( $id, $nodes ) = _disk_nodes(%opt);
-    my ( $holders, $copies, $status ) = _copies(%opt);
+    my ( $holders, $copies, $status, undef ) = _copies(%opt);
     my %by;
     foreach my $address ( keys %{$nodes} ) {
         my $n    = $nodes->{$address};
@@ -364,7 +380,7 @@ sub holder_room {
 sub place_missing {
     my %opt = @_;
     my ( $id, $nodes, $replay, $definitions ) = _disk_nodes(%opt);
-    my ( $holders, $copies, $status ) = _copies(%opt);
+    my ( $holders, $copies, $status, undef ) = _copies(%opt);
     ## a holder that gets any file of a tree also gets the tree, so it can
     ## recover it by name
     require AMOS7::N7FS::Seal;
@@ -448,18 +464,21 @@ sub place_missing {
 }
 
 ## remove from one holder every node whose copies elsewhere still meet its
-## target without it : counted holders in other failure domains only
+## target without it : counted holders in other failure domains only. the
+## copies elsewhere must be proven by full-coverage receipts -- a sampled
+## receipt never vouches for bytes another holder is about to lose
 sub holder_drain {
     my %opt = @_;
-    my ( $id,      $nodes,  $replay ) = _disk_nodes(%opt);
-    my ( $holders, $copies, $status ) = _copies(%opt);
+    my ( $id, $nodes, $replay ) = _disk_nodes(%opt);
+    my ( $holders, $copies, $status, $proven ) = _copies(%opt);
     my $name = $opt{'name'}      // '';
     my $h    = $holders->{$name} // refuse( 'no holder named %s', $name );
     my $held = $status->{$name}{'nodes'} // {};
     my $disk = $id->{'disk'};
     my ( @drop, @untag );
-    my ( $kept, $kept_bytes, $bytes, $unknown, $unknown_bytes, $other )
-        = ( 0, 0, 0, 0, 0, 0 );
+    my ( $kept, $kept_bytes, $bytes, $unknown, $unknown_bytes, $other,
+        $sampled_kept )
+        = ( 0, 0, 0, 0, 0, 0, 0 );
 
     foreach my $address ( sort keys %{$held} ) {
         my $entry = $held->{$address};
@@ -486,7 +505,10 @@ sub holder_drain {
         ## an intake copy counts zero, so a durable copy in its own domain ##
         ## still counts for it                                             ##
         delete $elsewhere{ $h->{'domain'} } if $h->{'role'} eq qw| durable |;
-        if ( scalar keys %elsewhere >= $target ) {
+        my %proven_elsewhere = %{ $proven->{$address} // {} };
+        delete $proven_elsewhere{ $h->{'domain'} }
+            if $h->{'role'} eq qw| durable |;
+        if ( scalar keys %proven_elsewhere >= $target ) {
             if (%disks) {
                 ## still another disk's node : drop only this disk's id ##
                 push @untag, $address;
@@ -497,6 +519,10 @@ sub holder_drain {
         } else {
             $kept++;
             $kept_bytes += $n ? $n->{'size'} : 0;
+            ## enough copies exist, but at least one of them vouches only ##
+            ## by a sampled receipt : report why the node stays           ##
+            $sampled_kept++
+                if scalar keys %elsewhere >= $target;
         }
     }
     my $result
@@ -527,6 +553,7 @@ sub holder_drain {
         qw| bytes |         => $bytes,
         qw| kept |          => $kept,
         qw| kept_bytes |    => $kept_bytes,
+        qw| sampled_kept |  => $sampled_kept,
         qw| unknown |       => $unknown,
         qw| unknown_bytes | => $unknown_bytes,
         qw| other_disks |   => $other,
@@ -619,8 +646,8 @@ sub holder_prune {
 
 1;
 
-#,,..,.,.,.,,,,,,,,,.,.,.,,,,,,..,..,,...,,,,,..,,...,...,.,.,.,,,,.,,.,,,,..,
-#AZSRQVD3FRNNMKUOM5KFB7SR6TNFF3VZMHQSFXYHBMEVMEPCNO3GV4FKBIKNRXVKOXJSNF4RHYTMO
-#\\\|GMTC42PB2YK7KK56FO7V6PALOFLGYBYW3CPUBOJEDKDOF2Y72JL \ / AMOS7 \ YOURUM ::
-#\[7]6ISYD6DI6TXW7VAVT746ICUXMHVWBUF4B3F6I3QKWIOOTUFNL6AA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,,..,,..,.,.,,,,,,..,.,,,...,..,,...,..,,...,,..,,..,...,,..,
+#RFPPZIJHDV4UCNI3AL3QT5NU4AHP2S2PT5DLIIX62DZJWRHUUHW6ML2ZSBA4PF22HUOOCNTEKFDM6
+#\\\|Y3AVDASRJP3464JPPUOVLVPD6YTJ4WZYS2K4PO52OP6HZGVJEU3 \ / AMOS7 \ YOURUM ::
+#\[7]J5C2BH24FTEIBJCPZJ4POIT6UG2DSWU5D5LUWQ4AASKDGL7BDGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

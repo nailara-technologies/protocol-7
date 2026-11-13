@@ -275,10 +275,49 @@ ok( $rc == 5 && !-e "$box2/$fill_name",
     or say $out;
 unlink "$box2/.receive.$tmp_name.3333";
 
+## scrub : the keyless read-only request [ review finding 4 ] ##
+( $rc, $out ) = receive( $box2, "scrub $name" );
+ok( $rc == 0 && $out =~ m|^ok $name$|m, 'scrub verifies a good blob' )
+    or say $out;
+( $rc, $out ) = receive( $box2, "scrub $other" );
+ok( $rc == 7 && $out =~ m|^missing $other$|m,
+    'scrub reports a listed blob that is absent'
+) or say $out;
+write_file( "$box2/$name", "\0" x length($bytes) );
+( $rc, $out ) = receive( $box2, "scrub $name" );
+ok( $rc == 7 && $out =~ m|^bad $name$|m,
+    'a zero-filled blob of the right size fails the name check' )
+    or say $out;
+write_file( "$box2/$name", $bytes );
+my $nonce  = 'ABCDE';
+my $answer = bmw_b32( bmw384_bytes( $nonce . $bytes ) );
+( $rc, $out ) = receive( $box2, "scrub -nonce $nonce $name" );
+ok( $rc == 0 && $out =~ m|^ans $name $answer$|m,
+    'a nonce challenge answers with the digest of nonce + blob' )
+    or say $out;
+( $rc, $out ) = receive( $box2, "scrub -nonce bad! $name" );
+ok( $rc != 0, 'an invalid nonce is refused' ) or say $out;
+( $rc, $out ) = receive( $box2, 'scrub' );
+ok( $rc == 0 && $out =~ m|^ok \S+|m && $out !~ m|^bad|m,
+    'a list-less scrub reads every checksum-named file'
+) or say $out;
+## the hub keeps a head, the one file never named by its checksum ##
+my ($hub_head)
+    = grep { bmw_b32( bmw384_bytes( read_file("$hub/$ARG") ) ) ne $ARG }
+    blobs($hub);
+( $rc, $out ) = receive( $hub, 'scrub' );
+my @scrub_bad = $out =~ m|^bad (\S+)|mg;
+ok( $rc == 7
+        && @scrub_bad == 1
+        && $scrub_bad[0] eq $hub_head
+        && $out =~ m|^ok \S+|m,
+    'a list-less scrub reports exactly the non-checksum-named head as bad'
+) or say $out;
+
 done();
 
-#,,.,,...,,,.,,,.,,,,,.,.,.,.,,,.,,,,,,,.,...,..,,...,...,...,.,,,..,,.,,,,,.,
-#KG257NQY4QJUU2TRD3HBCXV5AE6FEGFZPETV5CILE7BGZ2ZQE22SJ7L7RDVXQOWYLXIZFQIK7ETU2
-#\\\|5T6KLYCFA62ZFUD55QHVSLRQZYFEO3TWDR5K3PMYOD6JHH766AM \ / AMOS7 \ YOURUM ::
-#\[7]LHZO2RWJINZ2SDS63M7HJRJO46GBU6BSFUF37GITVIL2P5QY72CQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,,.,,,.,,..,,..,,.,,,,.,,..,,..,,...,...,,..,,..,.,,,.,,,.,.,
+#GS4JVJPI4PDEZNP7NTIR4IVJWLOHXGT6SOR3HTABRYGCNWBIBDXM55UHDYWTCZLORCRWTR7EBE2A6
+#\\\|HFTC4VG4756YOMON5FZABK3YLB26YRVPSS3ZC7FSLPITTWC42GI \ / AMOS7 \ YOURUM ::
+#\[7]Z4IEUNNZC4AWMB7V434V23N77KVWHQB4ZAN4VWLXLVY25VA4ISDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

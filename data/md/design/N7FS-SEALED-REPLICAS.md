@@ -262,7 +262,11 @@ the map's root. holders see one blob that changes.
 
 1. an intake copy counts as zero redundancy
 2. intake evicts only after signed receipts from enough durable holders ;
-   receipts are checked by random spot-checks from home
+   receipts are checked by random spot-checks from home. a receipt carries
+   its coverage [ sizes-only \ sampled \ full ] and eviction relies only on
+   full-coverage receipts : a sampled receipt never vouches for bytes
+   another holder is about to lose [ review finding 4, addressed :
+   N7FS-PLACEMENT.md ]
 3. a holder never deletes on its own say. a delete is a home-signed record,
    so one compromised holder cannot wipe others through background sync
 4. a blind holder cannot read the journal, so it cannot apply the tombstone
@@ -347,8 +351,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,.,,.,,,,,.,,..,,,.,,.,,.,,,,,.,.,,,...,,,.,..,,...,...,,..,,..,,..,...,.,.,
-#4WCFFRNXQOFQP7R3TY43WRTNUKH6AVZK2KRJZQZCLL62ZZLBLIUTDWYGS35CG2VUM6K4L2IB5EDJM
-#\\\|7NXO3CGTG52QB2IUUBHKWFV5AUNLKABWBSJZFQ73FTM7P72ZEV3 \ / AMOS7 \ YOURUM ::
-#\[7]TT2IPNH54YJ5HDSCHGXMC2TUHXBSKRC3IUEETLQIA7OAFFGUNQCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,,.,,...,...,.,.,.,,,...,,..,..,,...,...,,.,,...,,,,,,.,,.,,,
+#XD2NGUWXJVCFYX6FTAWR5PBNTWPJIQNJFOJEDWBG3YA5PCE5DPDCAQBLYEP6YS5WOFBLUVXWQQ344
+#\\\|HVFUZNQKWAEQGSYTO7XC636BQKBSVZBJ5THDKI2JMS7R3FLTUY7 \ / AMOS7 \ YOURUM ::
+#\[7]24IZ5P2GQLHXPIEHLY34F2QAT6I4FWTR5IMV6PNAZ3XL3GE6GIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

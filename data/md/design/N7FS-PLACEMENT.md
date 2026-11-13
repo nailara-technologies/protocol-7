@@ -143,6 +143,41 @@ a receipt counts only while the holder's head is the version it checked, so
 copies committed after it [ place, relay ] wait for the next `holder-check`,
 as described above. relays and intake draining : `N7FS-INTAKE.md`.
 
+## receipt coverage and keyless scrub [ 2026-11-13, review finding 4 ]
+
+review finding 4 : `holder-check` verified all blob sizes but authenticated
+only 16 random nodes — one chunk each, uniform by node — and the receipt it
+wrote then vouched for everything for 7 days ; drain and gc relied on it.
+a zero-filled or bit-rotted pack of the right size was missed with high
+probability [ at 24k nodes, 1 % damage was found in ~15 % of checks ].
+
+what changed :
+
+- every receipt now carries a **coverage** field : `sizes-only`,
+  `sampled` or `full`. `holder-check` writes `sampled` by default and
+  gains `-full` [ authenticate every chunk, slow ], `-scrub` and
+  `-sizes-only`. receipts written before the field read as `sampled`.
+- sampling draws chunk positions **by bytes**, weighted by node length, so
+  a large pack is sampled proportionally more often than a small one.
+- **keyless scrub** : a blob's name is the checksum of its own ciphertext,
+  so a holder verifies every byte it keeps without any key. the restricted
+  receiver answers `n7fs-receive <dir> scrub [ -nonce <b32> ] [ <name> .. ]`
+  read-only, streamed ; `n7fs holder-scrub <holder> -root-key <key>` names
+  the mapped blobs from the holder's own map and reports bad and missing.
+  with `-nonce` the digest runs over nonce-bytes + blob-bytes, so home
+  compares two holders' answers to one challenge without reading the
+  blobs. a passing scrub plus the size check is `full` coverage of
+  ciphertext integrity — it says nothing about the map's key material,
+  which only the chunked checks authenticate. the head is never named by
+  its checksum : a list-less scrub reports it as bad by design.
+- `holder-drain` [ and the gc that follows it ] relies **only** on copies
+  proven by `full`-coverage receipts. `place` planning still counts
+  `sampled` receipts. reports state the coverage : the placement report
+  shows `counted [ sampled receipt ]`, drain reports
+  `kept N nodes : copies elsewhere hold only a sampled receipt`.
+- a remote publish syncs the directory after the rename, so the new blob
+  name survives a crash [ local publish too ].
+
 ## owner decisions [ 2026-11-10 ]
 
 1. the holder registry lives in the vault, as a note entry titled
@@ -154,8 +189,8 @@ as described above. relays and intake draining : `N7FS-INTAKE.md`.
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,,.,,,.,.,,,.,.,,..,.,,,,..,,,,,,,.,...,...,..,,...,...,,,.,...,,,.,...,.,.,
-#4R42MTJDIZI2OOMFE3M7QQ663GM2LK5WMF6AVMVMVMCP4VZ4FXZAVBDO6LHOII7TV7PCECICUQCU2
-#\\\|F37XEJOBVOI3EHUCHWU7WFEZOQTWHEUXHGEL2A5LOXTIEY45V6N \ / AMOS7 \ YOURUM ::
-#\[7]KJGHC4SCGNF4VXDCOKIUIJSUFTU4AUNCHROJG35BDEIRT43W7EAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,.,,,,,.,,.,,..,,,.,,,..,,,.,..,,...,...,,..,.,.,,.,,.,,,,,.,
+#SVWPN6XAF4ZISAZI7W56BX7NXTK6TOJPHCBFDKME5XJ57WGKEUHMYCFKA2NHODGEG6B75ZSGIKZSS
+#\\\|UOC5KIOKA4IFF4B5FDX5NP6T2S37LVL6RLDXK3IG3N3YTYZELXD \ / AMOS7 \ YOURUM ::
+#\[7]URMRL7OY3IZ7KPUQERNZLOTJOP4UWC77VBZOSZOMGSFXP4BB2GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

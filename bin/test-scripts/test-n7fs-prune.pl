@@ -141,7 +141,7 @@ ok( $rc == 0, 'holders contain one shared and one disk-specific tree' )
 ok( !( grep { exists $ARG->{'disks'} } values $legacy_map->{'nodes'}->%* ),
     'the legacy fixture has no disk ids' );
 ( $rc, $out )
-    = cli( ['vp'], 'holder-check', $holder{'source'},
+    = cli( ['vp'], 'holder-check', '-full', $holder{'source'},
     '-root-key', $root_key );
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'legacy', '-root-key', $root_key );
@@ -185,7 +185,7 @@ ok( $rc == 0
 ) or say $out;
 
 ( $rc, $out )
-    = cli( ['vp'], 'holder-check', $holder{'second'},
+    = cli( ['vp'], 'holder-check', '-full', $holder{'second'},
     '-root-key', $root_key );
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'shared', '-root-key', $root_key );
@@ -301,8 +301,8 @@ ok( $rc == 0
 
 done();
 
-#,,,.,,,.,..,,..,,...,..,,,,,,,..,,,.,...,,,,,..,,...,...,...,,,.,...,,,,,.,.,
-#7YO45JKETUNTFUZDSYUXDQHH7GXHAPTWPJEJXKAISFFCPN4FAERG5P35JHWD3LDSTYORP5UDFEXF4
-#\\\|BE7L6TL7TRTUGHEM2LANTRK3O4HK5ZELHQKIC4FTIJ63G5Q52OD \ / AMOS7 \ YOURUM ::
-#\[7]6GOVRRW2OUJJW4QI5GC22WV335WPKQ36HGXZFPS424TWIKRLXYBY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,,,.,,..,,,.,..,,..,,.,,,...,..,,...,...,..,,,,.,...,..,,..,,
+#BYXQ2IN4IQBGLU6SZZFV5EXUSLIR2CTZWSMI7QVGPASCHUOVCSKYXYSKKYEXX544JLUSQSWYLUHH4
+#\\\|IAH2SVHJ2PSMGEK3L6MCOZZ65PCUJ3OS4U37Y6WN6TJRVGKMCXH \ / AMOS7 \ YOURUM ::
+#\[7]2D5245FGAXILMLHRQDHZPE2EGPDHKYIMV4NKCQDXEZOWRENFBECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
