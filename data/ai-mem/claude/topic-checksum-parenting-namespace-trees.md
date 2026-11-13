@@ -249,6 +249,84 @@ all transformations" — the next construction of any `epoch_v7`-based
 reference simply uses the new chain end-to-end; no branching for
 old/new format in code.
 
+## Implicit anchors : the empty parent and time as an address (2026-11-14)
+
+owner riff during the n7fs finding 5 work. two anchors that need no storage,
+because every party computes them alike [ the lambda principle again :
+derived, not stored ] :
+
+- **the empty-string checksum as implicit parent.** every new file was empty
+  before its first write, so the checksum of the empty string is its natural
+  parent : a well-known constant, a provable common root of every version
+  history. all new files share it, so the parent alone only says "this was a
+  beginning" -- `name` [ or the creator key ] in `(notation, parent, name)`
+  carries the whole difference at the start ; after the first write the
+  content checksum takes over. open : should a re-creation after a delete be
+  distinguishable from a first creation [ both start at the same root ] ?
+- **ntime as a fuzzy address.** a base32 ntime is itself a prefix address :
+  a shorter prefix is a coarser window, the Y levels are its natural steps
+  [ the n7fs retention ladder already buckets on that grid ]. routing toward
+  an ntime lands among similarly recent things without any index. owner :
+  no truncation is needed -- follow the full timestamp character by character
+  while it matches exactly, then stop and look around. the depth where it
+  breaks off states the closeness by itself [ longest-prefix match, the same
+  shape as kademlia's shared-leading-bits distance ]. one search for
+  everything : content addresses, keys and times live in one base32 tree.
+- **planning ahead.** a future network cycle window is also just an address :
+  parties that compute the same window meet there [ the "booked time cells" of
+  N7FS-SEALED-REPLICAS.md ]. the epoch that n7fs placement joins against key
+  grinding [ address + holder key + epoch ] marks the same cell.
+
+- **the fireworks rocket : a search with a hop budget.** owner image. two
+  phases : the ASCENT is logical discovery -- placement is derived, so the
+  search knows where a thing should be and follows the prefix there in few
+  hops ; the BURST spends the rest of the budget circling the target for
+  copies -- reachability \ redundancy. "it should be here, if it exists" :
+  because placement is computed, an empty burst is a meaningful negative
+  answer, which a blind search never gives. the budget bounds every search
+  [ no flooding ] ; the ascent \ burst split is a parameter. n7fs use : a
+  holder check or restore drill flies to the computed holders and counts the
+  copies it finds = measured redundancy.
+- **example : an audio zenka asked for the best psytrance with given
+  attributes.** ascent to the field of those attributes, a local scan scoring
+  matches against every attribute known to be loved, then streamed back
+  best-first on the home route [ the lambda return path ]. a rich field could
+  "sound" rich from afar [ purr channel ].
+- **two ways to find "like this".** (a) SCATTERED BUT MULTIPLE [ owner ] :
+  every word \ attribute has its own checksum address as a meeting point ;
+  the search visits each in parallel and closeness = how many of them a
+  candidate appears at [ an inverted index spread over the network, works
+  with plain checksums ]. efficient : rarest term first, carry only its
+  candidates [ or a bloom filter ] to the others ; a popular term is a hot
+  spot, spread over several holders by derived, epoch-weighted placement.
+  (b) LOCALITY-PRESERVING positions [ embedding \ cubic-space coordinates,
+  locality-sensitive hashing ] for "sounds like this" where no word exists --
+  checksums scatter near-identical things on purpose, right for identity,
+  wrong for similarity. both use the same "follow while it matches, then look
+  around".
+
+- **ranking : the loves_it mapping beside the semantic core triangle**
+  [ owner ]. the dedup tree's semantic core triangle says WHAT a thing is ;
+  loves_it says HOW MUCH it is loved. the rocket searches by the first and
+  sorts its burst \ best-first return by the second [ `loves_it > likes`,
+  `08_NETWORK_INTELLIGENCE/LOVES_IT_RESOURCE_ALLOCATION.md` ; love as
+  attraction in semantic space, `SEMANTIC-PROXIMITY-MAGNETIC-ATTRACTION.md` ;
+  only-rising weight, the justice framework ]. caveat already in
+  `data/tasks/loves-it-gpu-allocator-phase1.md` [ ~337 ] and the open item in
+  `RESOURCE-ECONOMY-DEMYSTIFICATION.md` : a loves_it computed from the
+  REQUEST hash can be ground [ perturb until 13 ] and today fires almost
+  always. same answer as for keys and content : earned history [ engagement,
+  repeated choice ], only rising, epoch-joined -- earned love cannot be
+  ground, like reliable holding history. owner : a loves_it may feed a
+  resource POOL per declaration, and the pool can be spent to zero -- the
+  COUNT of declarations stays, like a blockchain keeps every prior hash,
+  not just the current one. balance is derived, history is append-only and
+  checkable entry by entry, which is what makes the count hard to fake. a
+  natural first non-file user of the n7fs add-only writer : a love ledger.
+
+see `data/md/design/N7FS-SEALED-REPLICAS.md` [ open : derived placement,
+home zenki ring ] and [[topic-checksum-addressing]].
+
 ## Status update: 0/1 harmonization suffix already landed in code (2026-06-12)
 
 User already changed `base.ntime.harmonized_epoch`'s suffix from `;`/`:` to
@@ -965,8 +1043,8 @@ User said "let us first dispatch something" while still mid-riff — dispatched
 to opus via claude_dispatch to draft a design doc capturing this material
 (see commit/doc once written). More nodes in this tree are expected to follow.
 
-#,,,,,,.,,,,.,,.,,..,,..,,.,.,,,.,,,,,,,.,..,,..,,...,...,,..,...,.,,,.,,,,..,
-#3WMLSFHVCJNDIN4KLYZE6X7XTEGK7BYNKKARATW22AQPGQCHDVXZ536DCZLDYSWILGPYVEGHMWKHA
-#\\\|P235PBHFOH3LVXMSWRBITCTL6K7M25T76G7QJ4I27EFN3C3JTIL \ / AMOS7 \ YOURUM ::
-#\[7]DMBZTC7MRHTIETZQ7AVVAMO3MDQD6SFKSUCMGWLMN3Y7SOHC2UDA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,..,,,,,,..,,,,,,.,,,..,..,,...,..,,...,...,,..,.,,,,,,,.,.,,,.,
+#JJBBHVZBJE5AQXCB4YU4CGGXYAKVV2ZTLNIZR3GTCFJZ5LUM6S4WVA7O3KLKAW4IQ5BK6NO5ONUD6
+#\\\|JJYE3LG7OCEEIEZ7UEW2G6H3OQTI5FOUDRG32DZEWJLYREUVX4S \ / AMOS7 \ YOURUM ::
+#\[7]VDA5DA3EHHP2UZ4DMIJNFVS6SQWW3RVTXUZR4QSWHS4HBATIMSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

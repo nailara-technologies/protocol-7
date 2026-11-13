@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.3QLHZBY |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.SYI7L7Q |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -1329,10 +1329,11 @@ sub assimilate {
                     if $created->{'meta_name'};
                 push $add->{'trees'}->@*,
                     {
-                    qw| name |     => $created->{'record'}{'name'},
-                    qw| path |     => $created->{'record'}{'path'},
-                    qw| manifest | => $created->{'address'},
-                    qw| created |  => $created->{'record'}{'created'}
+                    qw| name |       => $created->{'record'}{'name'},
+                    qw| path |       => $created->{'record'}{'path'},
+                    qw| manifest |   => $created->{'address'},
+                    qw| created |    => $created->{'record'}{'created'},
+                    qw| references | => $created->{'record'}{'references'}
                     };
                 $report{'tree'} = $created;
                 $report{'failed'} += $created->{'skipped_errors'};
@@ -1748,8 +1749,8 @@ sub _remove_source {
 
 1;
 
-#,,,.,,,,,,.,,,,.,,..,,.,,,,,,,,.,,,,,,,.,,.,,..,,...,...,,..,,.,,,..,,..,,,,,
-#YAJVQCYKD3Y347MWVFXP25AAQQGCT6S2FQJPCZ3YNR5TLFK6XUM2ZRJLPPZPATA3A7HABM77IX73M
-#\\\|UYS65CVCYQZBD7H5724PJDQQT5SCMSOM3I257HTBGULUO6MKR4A \ / AMOS7 \ YOURUM ::
-#\[7]26RBO3Y6XNRMVIIHIPNJXOPRISMTNL5NGH3OP7MDRWTPCJEMNMAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,..,.,,,,,,,...,,.,,,.,,,.,,..,,...,...,...,.,,,,,,,,,,,.,,,
+#VYAI7E3OBFHZYZJCBMLLEAC6F7SPTCNQ4Z4NKMLDNM75YC57XH7NA7HVK35F2DHH3NKKIQ5KMDOAI
+#\\\|CZS3MDI6QXRZM4XEBBA2X5TVXVYVEXKQOILVJ7BSP6QSJ7GACBH \ / AMOS7 \ YOURUM ::
+#\[7]KIDE5YOZEUIYODL2VPIV2NUZ4LVLTKKP35BKS6MGJBWR2XXS6AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

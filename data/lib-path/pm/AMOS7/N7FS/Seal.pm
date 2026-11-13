@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.TTXKNKA |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.6BPFMBQ |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -125,7 +125,7 @@ sub _long_aad {
     my ( $domain, $id, $counter ) = @_;
     return "P7SE\x01" . $domain . pack( qw| Q> |, $counter )
         if $domain
-        !~ m{\A(?:head|map|map-shard-[0-9A-F]{2}|map-tree|journal|manifest-index|manifest-chunk)\z};
+        !~ m{\A(?:head|map|map-shard-[A-Z2-7]{2}|map-tree|journal|manifest-index|manifest-chunk)\z};
     return "P7SE\x01" . pack( 'n/a* a16 Q>', $domain, $id, $counter );
 }
 
@@ -405,8 +405,9 @@ sub _map_plain {
 
 sub _node_shard {
     my $address = shift // '';
-    refuse('node address is empty') if not length $address;
-    return uc unpack( 'H2', substr( $address, 0, 1 ) );
+    refuse('node address is invalid')
+        if $address !~ m|\AV7[A-Z2-7]{5}/[A-Z2-7]{7}/([A-Z2-7]{77})\z|;
+    return substr( $1, 0, 2 );
 }
 
 sub _lazy_nodes {
@@ -417,12 +418,13 @@ sub _lazy_nodes {
 }
 
 sub _map_blob_names {
-    my ( $head, $map ) = @_;
+    my ( $root, $base, $alt, $head, $map ) = @_;
     my %names = map { $ARG => TRUE } $head->{'map'}, $head->{'journal'},
         ( map { $ARG->{'blob'} } values $map->{'_shards'}->%* );
     $names{ $map->{'_tree_blob'}{'blob'} } = TRUE if $map->{'_tree_blob'};
     $names{$ARG} = TRUE
-        for map { _manifest_blob_names($ARG) } values $map->{'trees'}->%*;
+        for map { _manifest_blob_names( $root, $base, $alt, $ARG ) }
+        values $map->{'trees'}->%*;
     return keys %names;
 }
 
@@ -566,7 +568,8 @@ sub DELETE {
 
 sub CLEAR {
     my $self = shift;
-    _load( $self, sprintf '%02X', $ARG ) for 0 .. 255;
+    _load( $self, $ARG )
+        for keys %{ $self->{'shards'} }, keys %{ $self->{'cache'} };
     $ARG->%* = () for values $self->{'cache'}->%*;
     return;
 }
@@ -574,9 +577,10 @@ sub CLEAR {
 sub FIRSTKEY {
     my $self = shift;
     my @addresses;
-    foreach my $index ( 0 .. 255 ) {
-        my $nodes = _load( $self, sprintf '%02X', $index );
-        push @addresses, keys %{$nodes};
+    my %shards = map { $ARG => 1 }
+        keys %{ $self->{'shards'} }, keys %{ $self->{'cache'} };
+    foreach my $shard ( keys %shards ) {
+        push @addresses, keys %{ _load( $self, $shard ) };
     }
     @addresses = sort @addresses;
     $self->{'iteration'} = \@addresses;
@@ -586,10 +590,11 @@ sub FIRSTKEY {
 sub NEXTKEY { return shift $ARG[0]->{'iteration'}->@* }
 
 sub SCALAR {
-    my $self  = shift;
-    my $count = 0;
-    $count += scalar keys %{ _load( $self, sprintf '%02X', $ARG ) }
-        for 0 .. 255;
+    my $self   = shift;
+    my $count  = 0;
+    my %shards = map { $ARG => 1 }
+        keys %{ $self->{'shards'} }, keys %{ $self->{'cache'} };
+    $count += scalar keys %{ _load( $self, $ARG ) } for keys %shards;
     return $count;
 }
 
@@ -658,10 +663,11 @@ sub _commit {
             qw| size     | => length($bytes),
         };
     };
-    my $nodes  = tied %{ $map->{'nodes'} };
-    my %shards = %{ $map->{'_shards'} // {} };
-    foreach my $index ( 0 .. 255 ) {
-        my $shard = sprintf '%02X', $index;
+    my $nodes       = tied %{ $map->{'nodes'} };
+    my %shards      = %{ $map->{'_shards'} // {} };
+    my %shard_names = map { $ARG => TRUE }
+        keys %shards, keys %{ $nodes->{'cache'} };
+    foreach my $shard ( keys %shard_names ) {
         next if not exists $nodes->{'cache'}{$shard} and $shards{$shard};
         ## an empty shard has no blob : the root simply does not list it ##
         if ( not %{ $nodes->{'cache'}{$shard} // {} } ) {
@@ -975,8 +981,7 @@ sub _chunk_tree_manifest {
     );
     return {
         %{$tree},
-        qw| chunks | => \@chunks,
-        qw| index |  => _manifest_seal(
+        qw| index | => _manifest_seal(
             $root, $base, $index_plain, qw| manifest-index |, $version
         ),
     };
@@ -986,8 +991,7 @@ sub _manifest_index_read {
     my ( $root, $base, $alt, $tree ) = @_;
     refuse('legacy single-blob tree manifest is refused')
         if ref $tree ne qw| HASH |
-        or ref $tree->{'index'} ne qw| HASH |
-        or ref $tree->{'chunks'} ne qw| ARRAY |;
+        or ref $tree->{'index'} ne qw| HASH |;
     my $plain = _manifest_plain( $root, $base, $alt, $tree->{'index'},
         qw| manifest-index | );
     my $index = eval { $JSON->decode($plain) };
@@ -995,9 +999,7 @@ sub _manifest_index_read {
         if ref $index ne qw| HASH |
         or ( $index->{'format'} // '' ) ne qw| n7fs-chunked-manifest-v1 |
         or ref $index->{'header'} ne qw| HASH |
-        or ref $index->{'chunks'} ne qw| ARRAY |
-        or $JSON->encode( $index->{'chunks'} ) ne
-        $JSON->encode( $tree->{'chunks'} );
+        or ref $index->{'chunks'} ne qw| ARRAY |;
     return $index;
 }
 
@@ -1054,13 +1056,10 @@ sub _manifest_restore {
 }
 
 sub _manifest_blob_names {
-    my $tree = shift;
-    refuse('legacy single-blob tree manifest is refused')
-        if ref $tree ne qw| HASH |
-        or ref $tree->{'index'} ne qw| HASH |
-        or ref $tree->{'chunks'} ne qw| ARRAY |;
+    my ( $root, $base, $alt, $tree ) = @_;
+    my $index = _manifest_index_read( $root, $base, $alt, $tree );
     return ( $tree->{'index'}{'blob'},
-        map { $ARG->{'blob'} } $tree->{'chunks'}->@* );
+        map { $ARG->{'blob'} } $index->{'chunks'}->@* );
 }
 
 ## disk <-> root binding [ review finding 6 ] : the first seal of a disk    ##
@@ -1230,7 +1229,11 @@ sub seal_nodes {
             $trees->{$name}{'manifest'} ) {
             my $previous = {
                 qw| chunks | => [
-                    map { @{ $ARG->{'chunks'} // [] } }
+                    map {
+                        @{ _manifest_index_read( $root, $base, undef, $ARG )
+                                ->{'chunks'} }
+                    }
+                    grep { ref $ARG->{'index'} eq qw| HASH | }
                         values $map->{'trees'}->%*
                 ]
             };
@@ -1775,13 +1778,15 @@ sub _sampled_manifest_chunks {
     my @chunks;
     foreach my $name ( sort keys $map->{'trees'}->%* ) {
         my $tree = $map->{'trees'}{$name};
-        _manifest_index_read( @{$opt}{qw| root holder |}, undef, $tree );
+        my $index
+            = _manifest_index_read( @{$opt}{qw| root holder |}, undef,
+            $tree );
         push @chunks, map {
             {
                 qw| chunk |      => $ARG,
                     qw| weight | => $sizes->{ $ARG->{'blob'} } // 1,
             }
-        } $tree->{'chunks'}->@*;
+        } $index->{'chunks'}->@*;
     }
     return 0 if not @chunks;
     my $rng = $opt->{'rng'} // sub { random_bytes(8) };
@@ -1824,10 +1829,16 @@ sub holder_check {
         ? root_subdir( $opt{'root'} )
         : undef;
     my $top = $opt{'holder'};
+    my $alt
+        = $base eq $top
+        ? holder_sub_spec( $top, root_subdir( $opt{'root'} ) )
+        : undef;
     $opt{'holder'} = $base;
     my $sizes     = holder_sizes($base);
     my @addresses = sort keys $map->{'nodes'}->%*;
-    my %blobs     = map { $ARG => TRUE } _map_blob_names( $head, $map );
+    my %blobs     = map { $ARG => TRUE }
+        _map_blob_names( $opt{'root'}, $base, $alt, $head, $map );
+
     foreach my $name ( keys %blobs ) {
         refuse( 'mapped blob is missing : %s', $name )
             if not defined $sizes->{$name};
@@ -1838,7 +1849,8 @@ sub holder_check {
     my @descriptors = values $map->{'_shards'}->%*;
     push @descriptors, $map->{'_tree_blob'} if $map->{'_tree_blob'};
     foreach my $tree ( values $map->{'trees'}->%* ) {
-        push @descriptors, $tree->{'index'}, $tree->{'chunks'}->@*;
+        my $index = _manifest_index_read( $opt{'root'}, $base, undef, $tree );
+        push @descriptors, $tree->{'index'}, $index->{'chunks'}->@*;
     }
     foreach my $desc ( grep { defined $ARG->{'size'} } @descriptors ) {
         refuse( 'mapped metadata blob has the wrong size : %s',
@@ -1866,7 +1878,8 @@ sub holder_check {
         ## says nothing about the map's key material, which the chunked     ##
         ## checks authenticate with the root                                ##
         my @names = sort keys %blobs;
-        push @names, _map_blob_names( $head, $map );
+        push @names,
+            _map_blob_names( $opt{'root'}, $base, $alt, $head, $map );
         my $result = holder_scrub( $top, \@names, undef, $tag );
         refuse(
             'holder scrub is not clean : %s bad, %s missing',
@@ -2247,7 +2260,7 @@ sub holder_gc {
             = _context( @opt{qw| root holder |}, TRUE );
     }
     my %keep = map { $ARG => TRUE } _head_name( $opt{'root'} ),
-        _map_blob_names( $head, $map );
+        _map_blob_names( $opt{'root'}, $base, undef, $head, $map );
     $keep{ $map->{'nodes'}{$ARG}{'blob'} } = TRUE
         for keys $map->{'nodes'}->%*;
     $keep{$ARG} = TRUE
@@ -2395,7 +2408,10 @@ sub holder_migrate {
     refuse('no sealed head on this holder') if not defined $head;
     my $tag       = root_subdir( $opt{'root'} );
     my $head_name = _head_name( $opt{'root'} );
-    my %move      = map { $ARG => TRUE } _map_blob_names( $head, $map ),
+    my %move
+        = map { $ARG => TRUE }
+        _map_blob_names( $opt{'root'}, $base, holder_sub_spec( $top, $tag ),
+        $head, $map ),
         ( map { $map->{'nodes'}{$ARG}{'blob'} } keys $map->{'nodes'}->%* ),
         @{ $opt{'keep'} // [] };
     my @blobs = sort grep { $ARG ne $head_name } keys %move;
@@ -2610,7 +2626,7 @@ sub relay_nodes {
                 and not exists $tmap->{'nodes'}{ $ARG->{'a'} }
                 and not $incoming{ $ARG->{'a'} }
         } @entries;
-        my @names = _manifest_blob_names($tree);
+        my @names = _manifest_blob_names( $root, $fbase, undef, $tree );
         next if grep { not defined $fsizes->{$ARG} } @names;
         $blob{$ARG} //= qw| manifest | for @names;
         push @tree_names, $name;
@@ -2761,8 +2777,8 @@ sub shred_node {
 
 1;
 
-#,,.,,.,.,.,,,,.,,.,.,..,,...,..,,.,,,.,,,,.,,..,,...,...,,.,,,.,,..,,,,,,,..,
-#O4PJ4RR226UEIPR3FQU2HUQCSXM5JS7VSFRDKYVQAGRS6RAJUGTUK4V4V3NASR7IXO3AGU6EJMPBS
-#\\\|PABIPCQGIAPIL4Y7D3B2TXV6LJVVOZGCGYZYXF4VIL57VDUC4ZB \ / AMOS7 \ YOURUM ::
-#\[7]F4BJQEXNGBJGU2INX6LO6T7HCTVV7TMTCJ2MFGDXPC3T5XONAABY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,.,,,...,,,,,,,,,,.,,...,,,.,..,,...,...,.,,,..,,,..,,.,,,.,,
+#GACT3H2LINX324XFNZI3IDIPGSYKBSBDD2CQH6T3HNKU7YFJM2RQFZQJKZYECQ7DOGS55I5YGTPRY
+#\\\|C5JV3JNRWWM37QHQVJ4X6YCLZOJLWTUR5CO32H7OOCSINT4N3KR \ / AMOS7 \ YOURUM ::
+#\[7]COUQ2UY7QJM4TLLG3EVHOKCAYLBDZQIEOQFH5KLWTYXZCPDD5ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

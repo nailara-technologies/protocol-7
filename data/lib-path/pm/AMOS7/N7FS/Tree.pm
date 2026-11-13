@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.VTRQQBI |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.FB7T5NY |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -31,7 +31,8 @@ use AMOS7::N7FS
     make_dirs publish_dir remove_tree sync_dir refuse fault |;
 use AMOS7::N7FS::Sum qw| bmw384_fh bmw_b32 amos_of_bmw epoch_b32
     epoch_from_b32 epoch_num |;
-use AMOS7::N7FS::Store qw| codec node_path node_verify |;
+use AMOS7::N7FS::Store     qw| codec node_path node_verify store_nodes |;
+use AMOS7::N7FS::Reference qw| reference_scan reference_drop_write |;
 use AMOS7::N7FS::Disk
     qw| disk_lock disk_read_id disk_require_attached state_read
     store_key_signer witness_note_format |;
@@ -389,10 +390,20 @@ sub tree_create {
         qw| tree |,
         qw| trees |,
         qw| tree |,
-        {   qw| disk |     => $id->{'disk'},
-            qw| name |     => $name,
-            qw| manifest | => $address,
-            qw| created |  => $created,
+        {   qw| disk |       => $id->{'disk'},
+            qw| name |       => $name,
+            qw| manifest |   => $address,
+            qw| created |    => $created,
+            qw| references | => [
+                map {
+                    {
+                        qw| node |     => $ARG->{'addr'},
+                            qw| path | => $ARG->{'_reference'}{'path'},
+                    }
+                }
+                grep { defined $ARG->{'_reference'} }
+                    $report->{'entries'}->@*
+            ],
         }
     );
     fault(qw| tree:after-record |);
@@ -556,6 +567,29 @@ sub tree_drop {
     my $tree   = $replay->{'trees'}{$name};
     refuse( 'tree-drop : no live tree [ %s ]', $name ) if not defined $tree;
     _tree_record( $id, $tree->{'path'} );
+    my %wanted = map { join( "\0", @{$ARG}{qw| node path |} ) => $ARG }
+        @{ $opt{'references'} // [] };
+    my @reference_drops;
+
+    if (%wanted) {
+        foreach
+            my $node ( store_nodes( $id->{'path'}, $state->{'epochs'}->@* ) )
+        {
+            foreach my $ref ( reference_scan( $node, $id ) ) {
+                my $key = join "\0", $ref->{'node'}, $ref->{'path'};
+                next if not exists $wanted{$key};
+                refuse( 'reference %s is not live', $ref->{'path'} )
+                    if $ref->{'dropped'};
+                reference_drop_write( $ref, $id, $store );
+                push @reference_drops,
+                    { map { $ARG => $ref->{$ARG} }
+                        qw| node path holder name | };
+                delete $wanted{$key};
+            }
+        }
+        refuse('tree-drop : an import reference is missing')
+            if keys %wanted;
+    }
     my $drop = record_write(
         $id, $store,
         qw| tree_drop |,
@@ -571,7 +605,8 @@ sub tree_drop {
         $id, $store,
         _empty_set(),
         {   %{ _empty_set() },
-            qw| trees | => [
+            qw| references | => \@reference_drops,
+            qw| trees |      => [
                 {   qw| name | => $name,
                     qw| path | => $drop->{'path'},
                     qw| tree | => $tree->{'path'}
@@ -896,8 +931,8 @@ sub tree_restore {
 
 1;
 
-#,,,.,,,,,,,,,,,,,..,,..,,.,,,.,.,.,.,,.,,,.,,..,,...,...,...,,,,,..,,.,.,,,.,
-#FLGJTAEIOPC3GWZYFMSNY7PYHFMOWUPUTVRNDDPUGKV4IYDRC3247QIUQIRSL7MEGZUO5OYL7CDD2
-#\\\|HHXIOZQRFLCABD4CXLBMR47W3MGZEMQDTNHDOYDLU2D7GFEBMSR \ / AMOS7 \ YOURUM ::
-#\[7]3NFAZWANBBZPXT7V3NKFY3JC7PRXAYKNRBJD2GFFKDC34KJHUCAQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,,,...,...,,..,.,.,,,,,,,,,,..,..,,...,...,,,.,.,,,,,.,.,,,,.,,
+#7HUTVMNZFPD2ED3JWEG3ALQOHFP6LRXZLRS3LXIBO6EFCYIYOX5FCWAWUKF2HERNNREAHZ3RCZFZM
+#\\\|HSWJVTB2Y6FM2Z4WMR6YGP7T6O6WP6H3L3BUHO5IFTUYL534F5N \ / AMOS7 \ YOURUM ::
+#\[7]LXUIFMQ3PEYHOCTCB2AC6UOVCGQMTXM6IB75VACPKYTJHVUN3GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

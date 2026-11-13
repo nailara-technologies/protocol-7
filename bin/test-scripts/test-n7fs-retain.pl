@@ -203,16 +203,29 @@ ok( $rc == 0
     = cli( ['vp'], 'retain', $disk, '-root-key', $root_key, '-grace', '0' );
 ok( $rc == 0, 'retention, prune and gc complete' ) or say $out;
 ( undef, my $referenced_map ) = read_map();
-ok( exists $referenced_map->{'nodes'}{$unique_file},
-    'an expired tree file stays while its import reference remains' );
+ok( !exists $referenced_map->{'nodes'}{$unique_file}
+        && exists $referenced_map->{'nodes'}{$shared},
+    'retention drops only expired import references and their unique nodes'
+);
 ( $rc, $out )
-    = cli( [], 'release', $disk, $unique_file, '-force',
-    '-reason', 'retain test' );
-( $rc, $out )
-    = cli( ['vp'], 'holder-prune', 'main', '-root-key', $root_key );
-ok( $rc == 0 && $out =~ m|dropped 1 nodes|,
-    'an explicitly released expired file is pruned before repack' )
+    = cli( ['vp'], 'holder-check', '-full', $holder, '-root-key', $root_key );
+( $rc, $out ) = cli( ['vp'], 'placement', $disk, '-root-key', $root_key );
+ok( $rc == 0 && $out !~ m|under-replicated|,
+    'dropped tree files are not under-replicated after retention' )
     or say $out;
+( $rc, $out ) = cli( ['vp'], 'place', $disk, '-root-key', $root_key );
+( undef, my $placed_map ) = read_map();
+ok( $rc == 0
+        && !exists $placed_map->{'nodes'}{$unique_file}
+        && $out !~ m|placed [1-9]|,
+    'place does not upload dropped tree files again'
+) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'retain', $disk, '-root-key', $root_key, '-grace', '0' );
+( undef, my $retained_map ) = read_map();
+ok( $rc == 0 && !exists $retained_map->{'nodes'}{$unique_file},
+    'a second retain leaves only the kept trees nodes'
+) or say $out;
 ( my $before_corrupt_head, undef ) = read_map();
 {
     no warnings qw| redefine |;
@@ -342,7 +355,10 @@ my $receipt_before = read_file($receipt_path);
 ( my $authenticated_head, my $authenticated_map ) = read_map();
 foreach my $case (
     [   'manifest chunk',
-        $authenticated_map->{'trees'}{'snap.current'}{'chunks'}[0]{'blob'}
+        AMOS7::N7FS::Seal::_manifest_index_read(
+            open_root(), $sub,
+            undef,       $authenticated_map->{'trees'}{'snap.current'}
+        )->{'chunks'}[0]{'blob'}
     ],
     [   'manifest index',
         $authenticated_map->{'trees'}{'snap.current'}{'index'}{'blob'}
@@ -639,8 +655,8 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
 
 done();
 
-#,,..,.,.,,,.,,,,,.,,,,..,,,.,.,.,,.,,.,.,,..,..,,...,...,.,,,,,.,..,,,,,,...,
-#QPZYBY7NSFRUBGUIFPQ67XSLNFREA6YSGQOVFMZYPCYWXEORGZXEHMOHJNHNZYFZ4FPAF6YRYEFV2
-#\\\|QXQ7XBHZDTYUIMAXJUBQRTDD6YIH7J7UTPLRNWNKNBXWGE75NLE \ / AMOS7 \ YOURUM ::
-#\[7]NUNKHPFLCZF7VGBQO7GJ2PAJS67NFD3GQVTGNA4RQ5UXRAGTYKAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,..,,,,,,.,,,.,.,.,,,,.,,,,.,..,,...,...,...,,..,.,.,.,,,.,.,
+#ZYDZIAS2QXTVLHXVLO23EN5O3MVUX6JN2OHZQP4EYWARZ6CV5KOWYBPB34GXG2SX7M4KCKWGMAW7M
+#\\\|PBLVPY7BI5OXEHKB4RWMVQ6H3ZYA67UN4KS32SO5IP33L2CSPHP \ / AMOS7 \ YOURUM ::
+#\[7]77QAKK4TISMBW5AJOVNPWV4WYC3CJREZGH5B2YGMTWJL2C6CQOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

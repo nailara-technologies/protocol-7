@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.CXOLRGI |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.MXOUFGQ |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage receipt_covered receipt_digest n7fs_now
@@ -861,8 +861,9 @@ sub holder_prune {
     }
     my ( @drop, $bytes, $legacy_kept );
     ( $bytes, $legacy_kept ) = ( 0, 0 );
+    my %keep_address = map { $ARG => TRUE } @{ $opt{'keep_addresses'} // [] };
     foreach my $address ( sort keys $map->{'nodes'}->%* ) {
-        next if $live{$address};
+        next if $live{$address} or $keep_address{$address};
         my $entry = $map->{'nodes'}{$address};
         my %disks = %{
             ref $entry->{'disks'} eq qw| HASH |
@@ -909,7 +910,10 @@ sub holder_prune {
             if not defined $opt{'disk'};
         my %drop = map { $ARG => TRUE } @drop;
         foreach my $address ( @{ $opt{'tree_addresses'} } ) {
-            next if $drop{$address} or $live{$address};
+            next
+                if $drop{$address}
+                or $live{$address}
+                or $keep_address{$address};
             my $entry = $map->{'nodes'}{$address} // next;
             my %disks = %{
                 ref $entry->{'disks'} eq qw| HASH |
@@ -962,8 +966,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,.,,,.,,,,,,,,,,,,.,,,,,,,.,,,,,,,,,,..,..,,...,...,.,,,.,.,,,.,,,.,..,,
-#B7H3QRSOBJHYOR4Y33ZK5VZU2L47CP7LHG5Y7EHK52HQFFPKBYIHQMEMIGQ57EXRQ4XE7LPU3ZGSI
-#\\\|KRXGEG4L2PF2ZB3IT5NPHQGQJOEKZG4WRIOUMRR3DD6HBLWHBTB \ / AMOS7 \ YOURUM ::
-#\[7]2XSSXFD6CXSSLOZ7FOKIPDY7KIAJMFCY6QSHKLKVOOJXBJQDYGDQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,,,,,..,,.,.,...,,..,.,.,,.,,..,,...,...,,.,,.,.,,,.,...,.,.,
+#XX63WTD2ELCCAWQ4ZQ7UR2PCFXMWYYGVWBNFYXC3GCBUPOHAKMN4G6MD3FMSOOCIVAOLQQZJN6VVK
+#\\\|NSWJKGP5SAGQ27SKYBT7KZ7AWW7CBRJSHW4HQJ7JRLS6NQAKS56 \ / AMOS7 \ YOURUM ::
+#\[7]EN4RL36RKAOSYDCFV4JLCVLDMZPQSSPFD56WLUAOPD32VNWOTIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -337,9 +337,12 @@ each other remain to be designed.
 
 ### map growth and retention [ 2026-11-13, review finding 5, decided ]
 
-- **sharded map** : 256 shards by the first address byte under a small sealed
-  root listing each shard's checksum [ plus a `depth` field, so two levels
-  later need no migration ]. a commit uploads the changed shards and the root
+- **sharded map** : shards keyed by a base32 prefix of the address's bmw
+  part [ `V7<epoch>/<amos>/<bmw>` : the header chars are constant, the
+  entropy starts in `<bmw>` ; depth 1 = 2 chars = 1024 shards, a deeper
+  level appends chars, no rename ], under a small sealed root listing each
+  populated shard's checksum [ review R3 : the first key used the constant
+  `V`, one shard ]. a commit uploads the changed shards and the root
   only ; `placement` \ `place` \ `drain` fetch the root and only the shards
   they need. the old single-map form is refused [ nothing live holds one ]
 - **commit trigger** : 64 MiB or Y5 x 4 [ ~ 5 min ] sealed, whichever comes
@@ -347,7 +350,8 @@ each other remain to be designed.
 - **chunked manifests** : a tree manifest is split into content-addressed
   chunks per directory ; an unchanged directory reuses the previous tree's
   chunk, so a new snapshot costs only what changed. no delta chains : every
-  tree drops on its own
+  tree drops on its own. the map keeps only each tree's index descriptor,
+  the chunk list lives in the index alone [ review R6 ]
 - **retention per tree prefix** [ built ] : rules and pins are kept in the
   sealed map root [ every holder sees the same ]. `retain-set`, `retain-show`,
   `retain-clear`, `tree-pin` and `tree-unpin` maintain them on every registered
@@ -426,6 +430,51 @@ stage 4 is the first that gets essential data off the host.
   where priority x survival gained is highest. integer floors stay as hard
   limits the calculation cannot go below [ at least two control domains, one
   of them owned ], with hysteresis so estimates do not cause constant moves
+- derived placement, the lambda principle applied to holders [ "route identity
+  = relationship identity", derived, not stored -- see
+  `data/ai-mem/claude/topic-checksum-addressing.md`,
+  `topic-checksum-parenting-namespace-trees.md` ] : a blob address joined with
+  a holder key gives a weight every party computes alike ; a blob goes to the
+  holders of highest weight [ rendezvous \ highest-random-weight hashing ]. no
+  registry is needed to know who should hold a blob, a joining or leaving
+  holder moves only its own share, and capacity or a long reliable history
+  [ the purr channel's overtones, `SPATIAL-AUDIO-AND-PURR-CHANNEL.md` ] enter
+  as weights. this is an implicit form of discovery : knowing the holder keys
+  is enough to find any blob. per base32 prefix level the same calculation
+  picks a node field, then a holder inside it, as deep as the namespace grows
+  [ the map shards' prefix `depth` is the first instance ]. integer floors
+  and control domains stay hard limits on top. a position derived from a
+  public key is claimed by a signature over a challenge : nobody without the
+  matching private key can take it, everyone who honestly holds one can prove
+  it, no authority grants it. caveat, key grinding : anyone can make keys
+  until one lands next to a chosen position. against it : an ntime epoch
+  joins the weight [ address + holder key + epoch ], so a ground key is
+  worthless at the next epoch change ; three epochs are valid at any time
+  [ previous, current, next -- the rolling "3 valid" epoch index ], so
+  reindexing spreads evenly over time instead of a cliff at each change,
+  and happens as part of travel : a blob that moves or is checked anyway
+  is placed and validated for the current epoch on the way ; a new key's weight grows with proven,
+  checked holding time [ history is not cheap, keys are ] ; the floors keep
+  every blob across several control domains whatever the keys. the same
+  holds for a content address [ or size plus checksum : a second, free
+  constraint, a wrong blob is refused before any hashing ] : whoever has the
+  bytes proves it, no authority needed. content can be ground as well [ a few
+  varied bytes reach a chosen short prefix, e.g. to load one node field ],
+  so the address stays the IDENTITY while the placement weight also joins
+  holder key and epoch : grinding content controls its name, never where
+  it lands
+  [ implicit anchors -- the empty-string parent, ntime as a fuzzy address
+  followed while it matches : `data/ai-mem/claude/topic-checksum-parenting-namespace-trees.md` ]
+- home as the first instance of the home zenki ring : today one host holds
+  the root, decides placement and collects receipts, the only party that can
+  anchor identity. at scale home becomes a ring of rotating home zenki [ the
+  dancing zenki formation : two at rest, three during a handover ] that keeps
+  presence like a radar : one or two rotating points cover the ring because
+  the afterglow outlasts a turn -- in n7fs terms a receipt is that afterglow,
+  valid until the next pass [ 3Y2 ]. open : the ring's handover state machine,
+  shared with `data/tasks/design-open-questions-2026-10-02.md` question 4, so
+  home moves without losing the anchor [ heads, peers, offline anchor of
+  findings 7 and 10 ]
 - erasure coding as the form of a "copy" : k-of-n fragments over sealed chunks.
   a placement rule : at most n-k fragments of a stripe per control domain.
   fragments differ between holders, so the two-holder challenge of identical
@@ -453,8 +502,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,,.,.,.,.,.,,..,.,.,.,.,,..,...,,..,.,.,,.,,..,,...,...,...,..,,...,.,,,.,,,
-#37ECZSQ3JFIXQ5IHC7ETXHV6JUSALWJ32VBDLYZFC6LNZ3EGV7SHJT2TGE72Z772EA4AHKOTU75JK
-#\\\|URH32ABDAGY3QHVM545WCLMQCWSVQPIVO7AJXJWVHRGNS47GEOR \ / AMOS7 \ YOURUM ::
-#\[7]LANEYURRHHS7LQXUSGNUDKNHDLHQPEOJOLU3FVNQOPNDR55B4SBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,.,,,,.,,.,,,,,.,,.,,...,,,.,..,,...,...,.,,,,,.,,..,.,.,,,,,
+#CO5BV635SVC7IQM6ADHB57OXQUXEAVC5NLPADSFFZIYGPEUT2LLUYT2GR26GYFMW6C5VXV3OGIWX4
+#\\\|LSW5EZN5XW74AIRDAIIPN6Y4UX56RNFY6ROQGHPSBUDXF7Z337S \ / AMOS7 \ YOURUM ::
+#\[7]CLCSGKDAEA2LNJZI7MK3SWBG5R6TDVJW23ROFZ2T5YKEPDSEUGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
