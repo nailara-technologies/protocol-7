@@ -201,6 +201,17 @@ ok( $rc == 0
 ( $rc, $out )
     = cli( ['vp'], 'retain', $disk, '-root-key', $root_key, '-grace', '0' );
 ok( $rc == 0, 'retention, prune and gc complete' ) or say $out;
+( undef, my $referenced_map ) = read_map();
+ok( exists $referenced_map->{'nodes'}{$unique_file},
+    'an expired tree file stays while its import reference remains' );
+( $rc, $out )
+    = cli( [], 'release', $disk, $unique_file, '-force',
+    '-reason', 'retain test' );
+( $rc, $out )
+    = cli( ['vp'], 'holder-prune', 'main', '-root-key', $root_key );
+ok( $rc == 0 && $out =~ m|dropped 1 nodes|,
+    'an explicitly released expired file is pruned before repack' )
+    or say $out;
 {
     local $ENV{'N7FS_TEST_FAULT'} = 'repack:after-commit';
     ( $rc, $out ) = cli(
@@ -231,7 +242,7 @@ ok( exists $after_map->{'trees'}{'snap.pinned'}
 ok( !exists $after_map->{'nodes'}{$old_unique}
         && !exists $after_map->{'nodes'}{$unique_file}
         && exists $after_map->{'nodes'}{$shared},
-    'dropped unique nodes are garbage while shared nodes stay mapped'
+    'released unique nodes are garbage while shared nodes stay mapped'
     )
     or say join ' ', 'map flags:',
     exists( $after_map->{'nodes'}{$old_unique} ),
@@ -277,10 +288,192 @@ ok( $rc == 0 && $out !~ m|snap|,
     'retain-clear and tree-unpin remove the sealed settings' )
     or say $out;
 
+## r1, r2 and r8a : detached disks and split holder settings stay safe ##
+{
+    $box  = sandbox();
+    $base = $box->{'base'};
+    ( $root, $hdir, $src ) = @{$box}{qw| root host src |};
+    $vdir                 = "$base/vault";
+    $holder               = "$base/a-hub";
+    $ENV{'N7FS_HOST_DIR'} = $hdir;
+    vault_init( $vdir, 'vp', undef, t => 1, m => 1024, p => 1 );
+    write_file( "$base/root-pass", "vp\n" );
+    ( $rc, $out ) = cli( [], 'keygen', "$hdir/host.key" );
+    ( $rc, $out ) = cli( [], 'keygen', "$hdir/parent.key" );
+    ( $rc, $out ) = cli( [], 'pubkey', "$hdir/parent.key" );
+    write_file( "$hdir/trusted-parents", $out );
+    ( $rc, $out ) = cli( ['vp'], 'root', 'init', $root_key );
+    my %holders = ( 'a-hub' => "$base/a-hub", 'b-far' => "$base/b-far" );
+
+    foreach my $name ( sort keys %holders ) {
+        ( $rc, $out )
+            = cli( ['vp'], 'holder', 'add', $name, $holders{$name},
+            '-domain', "dom-$name" );
+    }
+
+    ( $rc, $out )
+        = cli( [], 'init', '-name', 'disk-a', '-intent', 'sandbox' );
+    my ($disk_a)
+        = grep { !m|^\.| } do { opendir( my $d, $root ) or die; readdir $d };
+    ( $rc, $out ) = cli( [], 'attach', $disk_a );
+    $disk = $disk_a;
+    my $shared = "the same bytes on both disks\n";
+    import_tree(
+        'snap.old', $clock - 20 * $y4,
+        'shared' => $shared,
+        'old'    => "old unique\n"
+    );
+    import_tree( 'snap.pinned', $clock - 19 * $y4, 'pinned' => "pinned\n" );
+    import_tree( 'snap.new',    $clock,            'new' => "new state\n" );
+    ( $rc, $out )
+        = cli( [], 'init', '-name', 'disk-b', '-intent', 'sandbox' );
+    my ($disk_b)
+        = grep { !m|^\.| and $ARG ne $disk_a }
+        do { opendir( my $d, $root ) or die; readdir $d };
+    ( $rc, $out ) = cli( [], 'attach', $disk_b );
+    $disk = $disk_b;
+    import_tree( 'docs.b1', $clock, 'copy' => $shared );
+
+    my $id_a = disk_read_id( qw| root | => $root, qw| disk | => $disk_a );
+    my $id_b = disk_read_id( qw| root | => $root, qw| disk | => $disk_b );
+    my %docs_files = map { $ARG => TRUE } AMOS7::N7FS::Seal::_manifest_files(
+        $id_b,
+        AMOS7::N7FS::Journal::journal_replay($id_b)
+            ->{'trees'}{'docs.b1'}{'manifest'}
+    );
+    my ($shared_address)
+        = grep { $docs_files{$ARG} } AMOS7::N7FS::Seal::_manifest_files(
+        $id_a,
+        AMOS7::N7FS::Journal::journal_replay($id_a)
+            ->{'trees'}{'snap.old'}{'manifest'}
+        );
+
+    foreach my $name ( sort keys %holders ) {
+        ( $rc, $out )
+            = cli( ['vp'], 'seal', $disk_a, '-root-key', $root_key,
+            '-out', $holders{$name}, '-all-trees' );
+        ok( $rc == 0, "disk a seals to $name with tree disk ids" )
+            or say $out;
+    }
+    ( $rc, $out )
+        = cli( ['vp'], 'seal', $disk_b, '-root-key', $root_key,
+        '-out', $holders{'a-hub'}, '-all-trees' );
+    ok( $rc == 0, 'disk b seals its tree to the first holder' ) or say $out;
+    ( $rc, $out ) = cli( [], 'detach', $disk_b );
+
+    ( $rc, $out )
+        = cli( ['vp'], 'retain', $disk_a, '-root-key', $root_key,
+        '-grace', '0Y3' );
+    $holder = $holders{'a-hub'};
+    ( undef, my $detached_map ) = read_map();
+    ok( $rc == 0
+            && exists $detached_map->{'trees'}{'docs.b1'}
+            && exists $detached_map->{'trees'}{'snap.old'},
+        'retain without a rule drops nothing of a detached disk'
+    ) or say $out;
+    ok( $detached_map->{'trees'}{'docs.b1'}{'disks'}{$disk_b},
+        'the detached tree record names its owning disk'
+    );
+
+    ( $rc, $out )
+        = cli( ['vp'], 'retain-set', $disk_a, '-root-key', $root_key,
+        'snap.', '1Y4' );
+    ok( $rc == 0, 'the initial rule reaches both holders' ) or say $out;
+    rename $holders{'a-hub'}, "$holders{'a-hub'}.away" or die;
+    ( $rc, $out ) = cli(
+        ['vp'],    'tree-pin', $disk_a, '-root-key',
+        $root_key, 'snap.pinned'
+    );
+    ok( $rc != 0 && $out =~ m|did not reach holders : a-hub|,
+        'a pin written with one holder away fails and names that holder'
+    ) or say $out;
+    rename "$holders{'a-hub'}.away", $holders{'a-hub'} or die;
+    ( $rc, $out )
+        = cli( ['vp'], 'retain-show', $disk_a, '-root-key', $root_key );
+    ok( $rc == 0 && $out =~ m|pinned snap.pinned|,
+        'retain-show merges a pin present on any holder'
+    ) or say $out;
+    ( $rc, $out )
+        = cli( ['vp'], 'retain', $disk_a, '-root-key', $root_key,
+        '-dry-run' );
+    ok( $rc == 0
+            && $out =~ m|keep snap.pinned \[ pinned|
+            && $out =~ m|drop snap.old|,
+        'the offline pin protects the tree when the first holder returns'
+    ) or say $out;
+
+    rename $holders{'a-hub'}, "$holders{'a-hub'}.away" or die;
+    ( $rc, $out )
+        = cli( ['vp'], 'retain-set', $disk_a, '-root-key', $root_key,
+        'snap.', '2Y4' );
+    rename "$holders{'a-hub'}.away", $holders{'a-hub'} or die;
+    ( $rc, $out )
+        = cli( ['vp'], 'retain', $disk_a, '-root-key', $root_key,
+        '-dry-run' );
+    ok( $rc != 0
+            && $out =~ m|retention rules differ for snap.|
+            && $out =~ m|2Y4|,
+        'different rules on reachable holders refuse retention'
+    ) or say $out;
+    ( $rc, $out )
+        = cli( ['vp'], 'retain-set', $disk_a, '-root-key', $root_key,
+        'snap.', '1Y4' );
+    ok( $rc == 0, 'retain-set repairs the differing rules' ) or say $out;
+
+    rename $holders{'a-hub'}, "$holders{'a-hub'}.away" or die;
+    ( $rc, $out )
+        = cli( ['vp'], 'retain-clear', $disk_a, '-root-key',
+        $root_key, 'snap.' );
+    rename "$holders{'a-hub'}.away", $holders{'a-hub'} or die;
+    ( $rc, $out )
+        = cli( ['vp'], 'retain', $disk_a, '-root-key', $root_key,
+        '-dry-run' );
+    ok( $rc != 0 && $out =~ m|b-far has no rule|,
+        'a rule missing on one reachable holder refuses retention' )
+        or say $out;
+    ( $rc, $out )
+        = cli( ['vp'], 'retain-set', $disk_a, '-root-key', $root_key,
+        'snap.', '1Y4' );
+    ok( $rc == 0, 'retain-set repairs a rule missing on one holder' )
+        or say $out;
+
+    rename $holders{'a-hub'}, "$holders{'a-hub'}.away" or die;
+    rename $holders{'b-far'}, "$holders{'b-far'}.away" or die;
+    ( $rc, $out )
+        = cli( ['vp'], 'retain', $disk_a, '-root-key', $root_key,
+        '-dry-run' );
+    ok( $rc != 0 && $out =~ m|retain needs a registered holder|,
+        'retain refuses when no holder is reachable'
+    ) or say $out;
+    rename "$holders{'a-hub'}.away", $holders{'a-hub'} or die;
+    rename "$holders{'b-far'}.away", $holders{'b-far'} or die;
+
+    ( $rc, $out )
+        = cli( ['vp'], 'retain', $disk_a, '-root-key', $root_key,
+        '-grace', '0Y3' );
+    ok( $rc == 0, 'merged retention completes on both holders' ) or say $out;
+    foreach my $name ( sort keys %holders ) {
+        $holder = $holders{$name};
+        ( undef, my $map ) = read_map();
+        ok( exists $map->{'trees'}{'snap.pinned'}
+                && exists $map->{'trees'}{'snap.new'}
+                && !exists $map->{'trees'}{'snap.old'},
+            "$name keeps the pin and drops only the expired tree"
+        );
+        ok( exists $map->{'nodes'}{$shared_address},
+            "$name keeps the detached disk's shared node"
+        );
+    }
+    $holder = $holders{'a-hub'};
+    ( undef, $detached_map ) = read_map();
+    ok( exists $detached_map->{'trees'}{'docs.b1'},
+        'the detached disk tree survives the real retention run' );
+}
+
 done();
 
-#,,..,,..,.,.,.,,,..,,,,.,,,.,,..,,..,.,.,,..,..,,...,...,.,,,...,,..,...,,,,,
-#7U3TMJHTYSFZJ4ZNATEYBLYNQGKUCY2UCSAYMOTLZFC3PABUIUGDG3PEJ7G76SFZ3FG5UATOEM6BG
-#\\\|AXWVAF6THEHWXFXL26K6XBM52Z5MZ2644LGO2KMUSOYX4ROZL65 \ / AMOS7 \ YOURUM ::
-#\[7]KUHUD4K5X2RJ73Q5ESHYA3JDPBMJI2BVDP2XO2MIIBDJGPHY5WCA 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,.,,,,,.,.,...,...,,,.,..,,,.,,..,,...,..,,..,,.,.,,.,,...,,.,,
+#SVRXUOWKMVJ4MPST736X3EJGGNWNZRZOG7CM6GS2DOB7HRIXZYTGE2ORI35DO2XLF7Q5MD2TE4GG2
+#\\\|RLUQOJGVVYEV54HR5OMZAUY3CKANGYLCG7IHIF6DBMXPWX3FXUY \ / AMOS7 \ YOURUM ::
+#\[7]AGQOBPTJDV5RDMD3LBAT7BRGH2VOB7AIFVHN3LFAPU746Q6AH6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

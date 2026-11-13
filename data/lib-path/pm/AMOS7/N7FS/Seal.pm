@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.7ZCXTDA |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.5XUH52Y |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -1180,22 +1180,31 @@ sub seal_nodes {
     my ( $counter, $head, $map, $base ) = _context( $root, $dir, FALSE );
     my $pin = holder_canonical($dir);
     $map->{'_root_keys'} = $root->{'keys'};
-    my $tree_changes = grep {
-        ( $map->{'trees'}{$ARG}{'manifest'} // '' ) ne
-            $trees->{$ARG}{'manifest'}
-    } keys %{$trees};
+    my $tree_changes = 0;
     foreach my $name ( keys %{$trees} ) {
-        next
-            if ( $map->{'trees'}{$name}{'manifest'} // '' ) eq
-            $trees->{$name}{'manifest'};
-        my $previous = {
-            qw| chunks | => [
-                map { @{ $ARG->{'chunks'} // [] } }
-                    values $map->{'trees'}->%*
-            ]
+        my %owners = %{
+            ref $map->{'trees'}{$name}{'disks'} eq qw| HASH |
+            ? $map->{'trees'}{$name}{'disks'}
+            : {}
         };
-        $map->{'trees'}{$name} = _chunk_tree_manifest( $root, $base, $id,
-            $trees->{$name}, $previous, $counter->{'version'} + 1 );
+        $owners{ $id->{'disk'} } = TRUE;
+        if ( ( $map->{'trees'}{$name}{'manifest'} // '' ) ne
+            $trees->{$name}{'manifest'} ) {
+            my $previous = {
+                qw| chunks | => [
+                    map { @{ $ARG->{'chunks'} // [] } }
+                        values $map->{'trees'}->%*
+                ]
+            };
+            $map->{'trees'}{$name}
+                = _chunk_tree_manifest( $root, $base, $id, $trees->{$name},
+                $previous, $counter->{'version'} + 1 );
+            $map->{'trees'}{$name}{'disks'} = \%owners;
+            $tree_changes++;
+        } elsif ( not $map->{'trees'}{$name}{'disks'}{ $id->{'disk'} } ) {
+            $map->{'trees'}{$name}{'disks'} = \%owners;
+            $tree_changes++;
+        }
     }
     my @new;
     my @pending_files;
@@ -2318,14 +2327,14 @@ sub unmap_nodes {
         and not @stale;
     delete $map->{'nodes'}{$ARG} for keys %gone;
     delete $map->{'nodes'}{$ARG}{'disks'}{ $opt{'disk'} } for @untag;
-    my @trees = @stale;
+    my %trees = map { $ARG => TRUE } @stale;
     foreach my $name ( sort keys %{ $map->{'trees'} // {} } ) {
-        next if defined $opt{'live_trees'};
         my $files = $opt{'tree_files'}{$name} // [];
-        push @trees, $name
+        $trees{$name} = TRUE
             if $gone{ $map->{'trees'}{$name}{'manifest'} }
             or grep { $gone{$ARG} } @{$files};
     }
+    my @trees = sort keys %trees;
     delete $map->{'trees'}{$ARG} for @trees;
     $counter->{'version'} = _commit(
         $opt{'root'},
@@ -2444,12 +2453,19 @@ sub relay_nodes {
         } @addresses;
     }
     my %incoming = map { $ARG => TRUE } @addresses;
-    my @tree_names;
+    my ( @tree_names, @tree_merges );
     foreach my $name ( sort keys %{ $fmap->{'trees'} // {} } ) {
         my $tree = $fmap->{'trees'}{$name};
-        next
-            if ( $tmap->{'trees'}{$name}{'manifest'} // '' ) eq
-            $tree->{'manifest'};
+        if ( ( $tmap->{'trees'}{$name}{'manifest'} // '' ) eq
+            $tree->{'manifest'} ) {
+            my $source = $tree->{'disks'};
+            my $target = $tmap->{'trees'}{$name}{'disks'};
+            next         if ref $source ne qw| HASH |;
+            $target = {} if ref $target ne qw| HASH |;
+            push @tree_merges, $name
+                if grep { not $target->{$ARG} } keys %{$source};
+            next;
+        }
         my ( undef, @entries )
             = _manifest_read( $root, $fbase, undef, $tree );
         next if grep {
@@ -2494,7 +2510,8 @@ sub relay_nodes {
         or $opt{'list_only'}
         or not @addresses
         and not @merges
-        and not @tree_names;
+        and not @tree_names
+        and not @tree_merges;
     ## quota and reserve of the target, as place keeps them ##
     if ( ref $opt{'room'} eq qw| CODE | ) {
         my $room = $opt{'room'}->($used);
@@ -2565,7 +2582,15 @@ sub relay_nodes {
     my $trees = 0;
     foreach my $name (@tree_names) {
         $tmap->{'trees'}{$name} = { %{ $fmap->{'trees'}{$name} } };
+        $tmap->{'trees'}{$name}{'disks'}
+            = { %{ $fmap->{'trees'}{$name}{'disks'} } }
+            if ref $fmap->{'trees'}{$name}{'disks'} eq qw| HASH |;
         $trees++;
+    }
+    foreach my $name (@tree_merges) {
+        my $source = $fmap->{'trees'}{$name}{'disks'};
+        my $target = $tmap->{'trees'}{$name}{'disks'} //= {};
+        $target->{$ARG} = TRUE for keys %{$source};
     }
     fault(qw| relay:before-commit |);
     $counter->{'version'} = _commit(
@@ -2599,8 +2624,8 @@ sub shred_node {
 
 1;
 
-#,,.,,,,.,...,,,.,,..,,..,,,,,...,...,,,,,.,.,..,,...,...,..,,,..,.,.,,..,,..,
-#YAXBOI7EIKQ4QFBPDQ22DDEVDMZU5R3U3U7UT2VHC4ECLZAPLIOKYMUBRJEXXFXUESGYORU5FCFYK
-#\\\|BKMBAVLPEERAWWABKKLVBULIE4UCDPC3YLJFAJ5NHAMLSEKWYR5 \ / AMOS7 \ YOURUM ::
-#\[7]ZLHTXBJRBNB2Y5OJVRLTXBPAQJ7ZPDTHWRJSNF2RUNP2MDESV2DY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,..,,,..,..,,.,,,,..,..,,.,.,..,,...,...,.,.,,.,,..,,,,,,,,.,
+#KTTX66NIGN6DDDCWGTIP5WN4AGQDRRPEZYIP5ANP2M6M6BDNQUGXVPRJGDQ2CKBDYZLTRC4Z462FQ
+#\\\|UGFTM5EP6T4QIH7ICN33LKGRG4IORAPGIQKZUYGP3CGWOBVXZRA \ / AMOS7 \ YOURUM ::
+#\[7]UUH43XVG72B3UPGVUPVXQRGOYFGQVRCLJEED7YZXSFKZASPXG4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
