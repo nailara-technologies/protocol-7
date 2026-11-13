@@ -5,7 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [cert-watch-daily-renew](project-2026-11-12-cert-watch-daily-renew.md) — NEWEST : letsencr daily renew + httpsd cert_watch live on 4 hosts ; CONFIRM the first nightly renew 2026-11-13
+- [cert-watch-daily-renew](project-2026-11-12-cert-watch-daily-renew.md) — NEWEST : letsencr daily renew + cert_watch live on 4 hosts ; first nightly CONFIRMED 11-13 ; real renew srv-U / F ~11-20
 - [n7fs-first-live-round](project-2026-11-11-n7fs-first-live-round.md) — previous : first live N7FS round done, all holders checked ; transport fixes ; events harmonic jitter + list events ; open items
 - [n7fs-relay-fanout-filters](project-2026-11-11-n7fs-relay-fanout-filters.md) — previous : stage 6 relay, push fan-out, holder filters landed ; hub topology ; next = live deploy
 - [session-handover-n7fs-rescue-chain](project-2026-11-11-session-handover-n7fs-rescue-chain.md) — START HERE : N7FS stages 1-5 part 1, drain \ move, first proven rescue copy ; jobsite stall ; open items
@@ -106,8 +106,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,.,,,.,,,...,,.,,..,,..,,.,,,.,,,,..,..,,..,,...,..,,.,.,..,,,,.,.,,,,,,,
-#2NJMBRAGRMRFTLYUZ3W5L5W46QGS5A45TGNT3YFK4F5IIEV4GDHEBDSVHUS63HCKTC2CVP4R5BT6W
-#\\\|IUZ7GGQ2HYCMUYTH22HDZMMSV5IKBPIZRT5PC4YO543WY6KVG6K \ / AMOS7 \ YOURUM ::
-#\[7]QP6VQN52FV4FCP2DDB5ZQ4ZQLYRCAZAD4STUYYV6DCJCW4G54UDI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,,,,.,,,.,,,,,,.,.,...,...,.,.,..,,...,.,,,..,,.,,,.,.,.,.,..,,
+#CGQHFF67W5NX4RCHNCZF3GR37ZHOTRE3MOUOA6PD2LHJWIR24GR67VG564A5GC5ONESBRT3VASHSO
+#\\\|BYWLLPMZNHOMELWUMLWVZWUS5EPAILBDLCKPBNR2JY4FMCUKBGF \ / AMOS7 \ YOURUM ::
+#\[7]Q3FW2PFHMSJB2QRWZ2FSMR2LL4KKFP6RNSFIQBGRWH2JJ7FHSABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
