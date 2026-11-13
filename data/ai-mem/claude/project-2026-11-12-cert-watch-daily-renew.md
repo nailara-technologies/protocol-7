@@ -24,13 +24,14 @@ commits dc11284dd 0351433f7 743009ce7 7b0d6efbe 2850a90ef. srv-A got its first c
 kimi K2.8 Preview [ 50 % rate ] did the first draft : 7d +1 \ 5h +2, good quality.
 test harness : scratchpad certtest/run.pl [ openssl -not_after certs, stubs ].
 
-TO CONFIRM [ 2026-11-13 ] : on each host events.show-buffer shows letsencr.renew sent at
-the jittered time, no 'no perm.' in the cube log, letsencr exited on its idle timeout.
+CONFIRMED 2026-11-13 : first nightly renew sent on all 4 [ starts 04:39 - 04:44 ], 0 needed,
+no 'no perm.' in any cube log, letsencr gone by 05:01 - 05:10 [ 'present letsencr' gives last seen ].
+first REAL renew due ~2026-11-20 on srv-U [ exp 2026-12-20 ] + srv-F [ exp 2026-12-21 ] : check it then.
 open : srv-U's postponed cert issue ; letsencr status 'parseable' section unused yet ;
 httpsd.wait_for_certificate has no caller. [[n7fs-first-live-round]]
 
-#,,,,,,..,,,.,,,.,.,,,.,,,,.,,...,..,,...,.,.,..,,...,...,,..,...,..,,..,,,,.,
-#7SAUSGNYH4WXEAS6IYGGN5MYZU3JBH45XC7N72HXCULBFMB3ZXPNL3CJPX55XKUBOWQSB2RABAVZU
-#\\\|JL37YR7ZG77MA6Y3B3GW52W4HAKM62Y6XUGDQKI26ZCNLHBTJRJ \ / AMOS7 \ YOURUM ::
-#\[7]5VNLC2ABT74ZJZKVUS63ZEQDJUJGSR672VOGM7VZ6RFOVMU4Z4CY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,.,,,..,,,,.,,,.,,,.,.,.,...,..,,...,...,...,...,,,.,.,.,...,
+#AGKKOJMGGOBDT7FN7VWTMGEJMWO34YMUD77KCSQCHKVXLH5ANO5LRHE4CSQA4TQQWMM5VFEEWFNHU
+#\\\|YKLF3NVTRUDLBKWCQRF7UPXOUGF7V7HB4SXODS4R6POZV5WLWC6 \ / AMOS7 \ YOURUM ::
+#\[7]YZ4OB3T2YGIYKJEFDK5PM3ZD2P527QTCZ6H7MFS6VGLISLZRBODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
