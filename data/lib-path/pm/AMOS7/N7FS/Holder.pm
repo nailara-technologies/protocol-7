@@ -13,12 +13,12 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.6HN7MAI |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.HKXED2I |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_free holder_isdir holder_sub_spec
     holder_make_path holder_move holder_trash_days holder_trash_list
-    holder_remove_day
+    holder_remove_day holder_authorize
     holder_size holder_put holder_delete holder_verify holder_download
     holder_read_range holder_scrub |;
 
@@ -30,13 +30,23 @@ use Digest::BMW;
 use AMOS7::N7FS
     qw| random_bytes read_file write_new_file make_dirs remove_tree refuse
     b32 sync_dir |;
-use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
+use AMOS7::N7FS::Sum      qw| bmw384_bytes bmw_b32 |;
+use AMOS7::N7FS::Receiver qw| request_token |;
+
+## root authority is per process and per canonical holder spec. subdirectories
+## inherit the top spec so a signed request names the forced command's target
+my %AUTHORITY;
 
 sub holder_parse {
     my $spec = shift // '';
-    return { qw| type | => qw| local |, qw| dir | => $spec }
-        if $spec !~ m|\Assh:|;
-    my ( $alias, $dir ) = $spec =~ m|\Assh:([^:]+):(/[^:]+)\z|;
+    return {
+        qw| type | => qw| local |,
+        qw| dir |  => $spec,
+        qw| spec | => $spec
+        }
+        if $spec !~ m|\Assh:| and $spec !~ m|\Assh-receiver:|;
+    my ( $kind, $alias, $dir )
+        = $spec =~ m{\A(ssh|ssh-receiver):([^:]+):(/[^:]+)\z};
     refuse('ssh holder alias or directory is invalid')
         if not defined $alias
         or $alias !~ m|\A[A-Za-z0-9_.][A-Za-z0-9_.-]*\z|
@@ -44,11 +54,63 @@ sub holder_parse {
         or index( $dir, '..' ) >= 0
         or index( $dir, '//' ) >= 0;
     return {
-        qw| type |  => qw| ssh |,
-        qw| alias | => $alias,
-        qw| dir |   => $dir,
-        qw| spec |  => "ssh:$alias:$dir"
+        qw| type |     => qw| ssh |,
+        qw| receiver | => $kind eq qw| ssh-receiver | ? 1 : 0,
+        qw| alias |    => $alias,
+        qw| dir |      => $dir,
+        qw| spec |     => "$kind:$alias:$dir"
     };
+}
+
+sub holder_authorize {
+    my ( $spec, $root, $request_spec ) = @_;
+    my $canonical = holder_canonical($spec);
+    my $h         = holder_parse($canonical);
+    return if $h->{'type'} eq qw| local |;
+    $request_spec //= $canonical;
+    $AUTHORITY{$canonical} = {
+        qw| root | => $root,
+        qw| spec | => $request_spec,
+    };
+    return;
+}
+
+sub _authority {
+    my $h = shift;
+    return $AUTHORITY{ $h->{'spec'} };
+}
+
+sub _root {
+    my $h    = shift;
+    my $auth = _authority($h)
+        // refuse( 'receiver operation has no root authority : %s',
+        $h->{'spec'} );
+    return ( $auth->{'root'}, $auth->{'spec'} );
+}
+
+sub _legacy_write {
+    my ( $h, $operation ) = @_;
+    warn "n7fs : warning : legacy full-shell "
+        . "ssh $operation on $h->{'spec'}\n";
+    return;
+}
+
+## names are relative to the forced command's holder directory, also when this
+## spec is the root subdirectory derived from it
+sub _recv_name {
+    my ( $h, $name ) = @_;
+    my $auth = _authority($h);
+    if ($auth) {
+        my $origin = holder_parse( $auth->{'spec'} )->{'dir'};
+        my $prefix = $h->{'dir'};
+        if ( $prefix ne $origin and index( $prefix, "$origin/" ) == 0 ) {
+            substr( $prefix, 0, length("$origin/"), '' );
+            return "$prefix/$name";
+        }
+        return $name;
+    }
+    return "$1/$name" if $h->{'dir'} =~ m|/(r-[A-Z2-7]{7})\z|;
+    return $name;
 }
 
 sub holder_canonical {
@@ -102,9 +164,15 @@ sub holder_sub_spec {
     my $h = holder_parse($spec);
     refuse( 'invalid root subdirectory tag [ %s ]', $tag // '' )
         if ( $tag // '' ) !~ m|\Ar-[A-Z2-7]{7}\z|;
-    return $h->{'type'} eq qw| ssh |
-        ? "ssh:$h->{'alias'}:$h->{'dir'}/$tag"
+    my $sub
+        = $h->{'type'} eq qw| ssh |
+        ? ( $h->{'receiver'} ? 'ssh-receiver' : 'ssh' )
+        . ":$h->{'alias'}:$h->{'dir'}/$tag"
         : "$h->{'dir'}/$tag";
+    if ( my $auth = _authority($h) ) {
+        holder_authorize( $sub, $auth->{'root'}, $auth->{'spec'} );
+    }
+    return $sub;
 }
 
 sub holder_isdir {
@@ -112,9 +180,10 @@ sub holder_isdir {
     my $h = holder_parse($spec);
     _rel_ok($rel);
     return -d "$h->{'dir'}/$rel" if $h->{'type'} eq qw| local |;
-    my ( $status, $out )
-        = _result( $h,
-        '[ -d ' . _quote("$h->{'dir'}/$rel") . ' ] || exit 44' );
+    my ( $status, $out ) = _result( $h,
+        $h->{'receiver'}
+        ? 'list ' . _recv_name( $h, $rel )
+        : '[ -d ' . _quote("$h->{'dir'}/$rel") . ' ] || exit 44' );
     return $status == 44 ? 0 : 1;
 }
 
@@ -146,6 +215,11 @@ sub holder_free {
         local $INPUT_RECORD_SEPARATOR;
         $out = <$fh>;
         close $fh;
+    } elsif ( $h->{'receiver'} ) {
+        my $status;
+        ( $status, $out ) = _result( $h, 'free' );
+        return undef if $status or ( $out // '' ) !~ m|\A(\d+)\s*\z|;
+        return 0 + $1;
     } else {
         my $status;
         ( $status, $out ) = _result( $h, 'df -Pk ' . _quote( $h->{'dir'} ) );
@@ -280,9 +354,35 @@ sub _result {
     refuse( 'ssh holder read failed after retries : %s', $err );
 }
 
+## signed changes are not blindly retried : a lost reply must not turn the
+## same counter into a replay. a rerun reserves a fresh counter instead
+sub _signed {
+    my ( $h, $op, $args, $input ) = @_;
+    my ( $root, $target ) = _root($h);
+    my $token = request_token( $root, $target, $op, $args );
+    my $command;
+    if ( $op eq 'put-head' or $op eq 'put-list' ) {
+        $command = join ' ', $op, @{$args}{qw| path size |}, $token;
+    } elsif ( $op eq 'move' ) {
+        $command = join ' ', $op, @{$args}{qw| from to |}, $token;
+    } elsif ( $op eq 'migrate' ) {
+        $command = join ' ', $op, @{$args}{qw| name tag |}, $token;
+    } elsif ( $op eq 'purge-day' or $op eq 'delete' ) {
+        $command = join ' ', $op, $args->{'path'}, $token;
+    } else {
+        refuse( 'unknown signed holder operation : %s', $op );
+    }
+    my ( $status, undef, $err ) = _ssh( $h, $command, $input );
+    return $status                                      if $status == 44;
+    refuse( 'signed holder %s failed : %s', $op, $err ) if $status;
+    return 0;
+}
+
 sub holder_mkdir {
     my $h = holder_parse(shift);
     return make_dirs( $h->{'dir'}, 0700 ) if $h->{'type'} eq qw| local |;
+    return                                if $h->{'receiver'};
+    _legacy_write( $h, 'mkdir' );
     _retry( $h, 'mkdir -p -- ' . _quote( $h->{'dir'} ) );
     return;
 }
@@ -291,6 +391,12 @@ sub holder_read {
     my ( $spec, $name ) = @_;
     my $h = holder_parse($spec);
     return read_file( _path( $h, $name ) ) if $h->{'type'} eq qw| local |;
+    if ( $h->{'receiver'} ) {
+        my $size = holder_size( $spec, $name );
+        return undef if not defined $size;
+        return ''    if not $size;
+        return holder_read_range( $spec, $name, 0, $size );
+    }
     my $path = _quote( _path( $h, $name ) );
     my ( $status, $out )
         = _result( $h, "[ -e $path ] || exit 44; cat -- $path" );
@@ -303,6 +409,15 @@ sub holder_size {
     my ( $spec, $name ) = @_;
     my $h = holder_parse($spec);
     return -s _path( $h, $name ) if $h->{'type'} eq qw| local |;
+    if ( $h->{'receiver'} ) {
+        my $remote = _recv_name( $h, $name );
+        my ( $status, $out ) = _result( $h, "has $remote" );
+        refuse( 'ssh holder size failed : %s', $name ) if $status;
+        return undef                                   if not length $out;
+        refuse( 'ssh holder size reply is invalid : %s', $name )
+            if $out !~ m|\A\Q$remote\E (\d+)\n\z|;
+        return 0 + $1;
+    }
     my $path = _quote( _path( $h, $name ) );
     my ( $status, $out )
         = _result( $h, "[ -e $path ] || exit 44; wc -c < $path" );
@@ -315,6 +430,14 @@ sub holder_size {
 ## every blob name with its size and holder-side mtime, in one listing.  the
 ## mtime is the blob's age at the holder, what gc's grace reads ; ssh gets it
 ## in the same single call, never one call per blob
+sub _receiver_list {
+    my ( $h, $rel ) = @_;
+    my $dir = _recv_name( $h, $rel // '' );
+    $dir =~ s|/\z||;
+    my $command = join ' ', 'list', length $dir ? $dir : ();
+    return _result( $h, $command );
+}
+
 sub holder_stats {
     my $spec = shift;
     my $h    = holder_parse($spec);
@@ -329,6 +452,21 @@ sub holder_stats {
                 = { qw| size | => $st[7], qw| mtime | => $st[9] };
         }
         closedir $dh;
+        return \%stat;
+    }
+    if ( $h->{'receiver'} ) {
+        my ( $status, $out ) = _receiver_list( $h, '' );
+        return {}                           if $status == 44;
+        refuse('ssh holder listing failed') if $status;
+        foreach my $line ( split m|\n|, $out ) {
+            my ( $kind, $name, $size, $mtime ) = split ' ', $line;
+            next
+                if ( $kind // '' ) ne 'f'
+                or not defined $mtime
+                or $name !~ m|\A[A-Z2-7]{77}\z|;
+            $stat{$name}
+                = { qw| size | => $size + 0, qw| mtime | => $mtime + 0 };
+        }
         return \%stat;
     }
     ## one ssh call : stat every checksum-shaped name in a shell loop ##
@@ -360,6 +498,8 @@ sub holder_make_path {
     _rel_ok($rel);
     return make_dirs( "$h->{'dir'}/$rel", $mode // 0700 )
         if $h->{'type'} eq qw| local |;
+    return if $h->{'receiver'};
+    _legacy_write( $h, 'mkdir' );
     _retry( $h, 'mkdir -p -- ' . _quote("$h->{'dir'}/$rel") );
     return;
 }
@@ -378,6 +518,22 @@ sub holder_move {
         sync_dir( _rel_path( $h, _rel_dir($to) ) );
         return;
     }
+    if ( $h->{'receiver'} ) {
+        if (    $from =~ m|\A([A-Z2-7]{77})\z|
+            and $to =~ m|\A(r-[A-Z2-7]{7})/\Q$from\E\z| ) {
+            _signed( $h, 'migrate',
+                { qw| name | => $from, qw| tag | => $1 } );
+            return;
+        }
+        _signed(
+            $h, 'move',
+            {   qw| from | => _recv_name( $h, $from ),
+                qw| to |   => _recv_name( $h, $to ),
+            }
+        );
+        return;
+    }
+    _legacy_write( $h, 'move' );
     _retry( $h,
               'mv -f -- '
             . _quote("$h->{'dir'}/$from") . ' '
@@ -403,6 +559,20 @@ sub holder_trash_days {
             $day{$d} = $st[9] if @st;
         }
         closedir $dh;
+        return \%day;
+    }
+    if ( $h->{'receiver'} ) {
+        my ( $status, $out ) = _receiver_list( $h, '.trash' );
+        return {}                          if $status == 44;
+        refuse('ssh trash listing failed') if $status;
+        foreach my $line ( split m|\n|, $out ) {
+            my ( $kind, $d, $mtime ) = split ' ', $line;
+            next
+                if ( $kind // '' ) ne 'd'
+                or not defined $mtime
+                or $d !~ m|\A\d{4}-\d{2}-\d{2}\z|;
+            $day{$d} = $mtime + 0;
+        }
         return \%day;
     }
     my ( $status, $out ) = _result( $h,
@@ -436,6 +606,22 @@ sub holder_trash_list {
         }
         return \%list;
     }
+    if ( $h->{'receiver'} ) {
+        foreach my $d ( keys %{ holder_trash_days($spec) } ) {
+            my ( $status, $out ) = _receiver_list( $h, ".trash/$d" );
+            next                               if $status == 44;
+            refuse('ssh trash listing failed') if $status;
+            foreach my $line ( split m|\n|, $out ) {
+                my ( $kind, $n, $size, $mtime ) = split ' ', $line;
+                next
+                    if ( $kind // '' ) ne 'f'
+                    or not defined $mtime
+                    or $n !~ m|\A[A-Z2-7]{77}\z|;
+                $list{$d}{$n} = $size + 0;
+            }
+        }
+        return \%list;
+    }
     my ( $status, $out ) = _result( $h,
               'cd '
             . _quote( $h->{'dir'} )
@@ -464,6 +650,11 @@ sub holder_remove_day {
         sync_dir("$h->{'dir'}/.trash");
         return;
     }
+    if ( $h->{'receiver'} ) {
+        _signed( $h, 'purge-day', { qw| path | => _recv_name( $h, $rel ) } );
+        return;
+    }
+    _legacy_write( $h, 'delete' );
     _retry( $h, 'rm -rf -- ' . _quote("$h->{'dir'}/$rel") );
     my ( $s, undef, $e )
         = _ssh( $h, 'sync -- ' . _quote("$h->{'dir'}/.trash") );
@@ -475,6 +666,11 @@ sub holder_delete {
     my ( $spec, $name ) = @_;
     my $h = holder_parse($spec);
     return unlink( _path( $h, $name ) ) if $h->{'type'} eq qw| local |;
+    if ( $h->{'receiver'} ) {
+        _signed( $h, 'delete', { qw| path | => _recv_name( $h, $name ) } );
+        return;
+    }
+    _legacy_write( $h, 'delete' );
     _retry( $h, 'rm -f -- ' . _quote( _path( $h, $name ) ) );
     return;
 }
@@ -491,6 +687,14 @@ sub holder_read_range {
         my $got = read( $fh, my $buf, $len );
         close $fh;
         return $buf;
+    }
+    if ( $h->{'receiver'} ) {
+        my $remote = _recv_name( $h, $name );
+        my ( $status, $out )
+            = _result( $h, "get-range $remote $offset $len" );
+        return undef                                     if $status == 44;
+        refuse( 'holder range read failed : %s', $name ) if $status;
+        return $out;
     }
     my $quoted = _quote($path);
     my $start  = $offset + 1;
@@ -522,9 +726,11 @@ sub holder_download {
         last if $have == $remote_size;
         ## resume : only the bytes after what the spool holds ##
         my $read
-            = $have
-            ? 'tail -c +' . ( $have + 1 ) . " -- $path"
-            : "cat -- $path";
+            = $h->{'receiver'} ? join( ' ',
+            'get-range', _recv_name( $h, $name ),
+            $have,       $remote_size - $have )
+            : $have ? 'tail -c +' . ( $have + 1 ) . " -- $path"
+            :         "cat -- $path";
         ($status) = _ssh( $h, $read, undef, $local );
         ## a clean exit with bytes missing is a short read : the next try ##
         ## appends the rest                                               ##
@@ -698,7 +904,7 @@ sub holder_scrub {
     return _scrub_clean( _scrub_dir( $h->{'dir'}, \@names, $nonce ) )
         if $h->{'type'} eq qw| local |;
     ## ssh : the restricted receiver answers scrub -- read-only, keyless ##
-    if ( defined $tag ) {
+    if ( defined $tag and not @names ) {
         ## a list-less scrub of a subdirectory lists it first : the   ##
         ## receiver's own list-less form reads the holder's top level ##
         @names
@@ -746,6 +952,56 @@ sub holder_put {
         return;
     }
     my $size = -s $local;
+    if ( $h->{'receiver'} ) {
+        if ( $kind eq qw| head | or $kind eq qw| list | ) {
+            refuse('receiver head replacement needs its explicit flag')
+                if $kind eq qw| head | and not $replace;
+            my $bytes = read_file($local);
+            refuse('cannot read the signed upload') if not defined $bytes;
+            my $args = {
+                qw| path |   => _recv_name( $h, $name ),
+                qw| size |   => $size,
+                qw| digest | => bmw_b32( bmw384_bytes($bytes) ),
+            };
+            if ( $kind eq qw| head | ) {
+                refuse('new head is truncated') if $size < 24 + 16 + 69;
+                my $writer = substr( $bytes, 8, 16 );
+                @{$args}{qw| version writer |} = (
+                    unpack( qw| Q> |, substr( $bytes, 0, 8 ) ),
+                    b32($writer)
+                );
+            }
+            open( my $in, '<:raw', $local )
+                or refuse('cannot read upload spool');
+            _signed( $h, $kind eq qw| head | ? 'put-head' : 'put-list',
+                $args, $in );
+            close $in;
+            holder_verify( $spec, $name, $local, $kind )
+                if $kind eq qw| head |;
+            return;
+        }
+        refuse('receiver put cannot replace a blob') if $replace;
+        my $remote = _recv_name( $h, $name );
+        if ( defined holder_size( $spec, $name ) ) {
+            refuse( 'holder final blob has the wrong size : %s', $name )
+                if holder_size( $spec, $name ) != $size;
+            holder_verify( $spec, $name, $local, $kind );
+            return;
+        }
+        my @delays = _delays();
+        my $status = 1;
+        for my $try ( 0 .. $#delays ) {
+            open( my $in, '<:raw', $local )
+                or refuse('cannot read upload spool');
+            ($status) = _ssh( $h, "put $remote $size", $in );
+            close $in;
+            last                if not $status or $status == 4;
+            sleep $delays[$try] if $try < $#delays;
+        }
+        refuse( 'receiver upload failed for %s', $name ) if $status;
+        holder_verify( $spec, $name, $local, $kind );
+        return;
+    }
     if (    not $replace
         and defined holder_size( $spec, $name )
         and holder_size( $spec, $name ) == $size ) {
@@ -755,6 +1011,7 @@ sub holder_put {
     refuse( 'holder final blob has the wrong size : %s', $name )
         if defined holder_size( $spec, $name )
         and not $replace;
+    _legacy_write( $h, 'put' );
     my $temp = "$name.upload";
     holder_delete( $spec, $temp ) if $kind ne qw| content |;
     my @delays = _delays();
@@ -790,8 +1047,8 @@ sub holder_put {
 
 1;
 
-#,,..,...,..,,,.,,,..,.,,,,,.,.,.,,,.,.,,,,,.,..,,...,..,,,..,,,.,...,.,,,,,,,
-#VDN4RTXNWIXY2VKAJQWIRHEPNA3HPFJ2EICG2HBCC3DELOAHK6SKV3OY25GTNXN4GFQCI2DPWRZ4M
-#\\\|OJJ6MWJFHDTNYBK72QYYV7L7IDUREJMMUU6FMQGEFEC6OA3FEJS \ / AMOS7 \ YOURUM ::
-#\[7]LNXHJG7SHFUTJQQJQBIBO3MQPJJO65EHLQVIIYVBEPGXIARJQABQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,..,..,,..,,,..,...,.,,,,..,..,,...,...,..,,...,.,.,..,,...,
+#6RJJJUU6TIHPCZITRLQM6FF4QP5VZH5BJFGP3LIDS7K6LKLBONHSSOSBRX3MUQUBUZEA3ET7GIU6A
+#\\\|FARCQC3CNDLVIEJXOEK6L6LCX27EK3POIWV4SD3YFDTB7BQLIQ5 \ / AMOS7 \ YOURUM ::
+#\[7]ZFNDE47BDJ76N6AHOLHRW674VYOWGFP7EPDZJN5JQK6IZTVMQAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -287,10 +287,33 @@ blobs collected by the first root's gc. addressed since :
 - one holder subdirectory per root [ `r-<tag>/` ] : gc of one root never
   lists another's blobs ; `-only-root` is structural on the new layout, and
   `holder-migrate` moves a flat holder into it [ N7FS-SEALING.md ]
+- **finding 2 is fully addressed** : an `ssh-receiver:` holder reaches
+  `bin/n7fs-receive` through ssh `command=`, never a full shell. the request
+  set is `list`, `has`, `get-range`, `put`, `put-head`, `put-list`, `move`,
+  `migrate`, `purge-day`, `delete`, `free` and `scrub`. directories and sync
+  are implicit in authorized writes ; paths and names are fixed-form, and no
+  request follows a symlink
+- a replacement, move or delete carries canonical JSON signed by the root's
+  existing ed25519 key. the record contains the operation, full root id,
+  holder id, exact paths or day, a strictly increasing counter and a random
+  nonce. the authorized_keys line installs only the public keys and head
+  names. home reserves counters under the root state ; the holder locks,
+  checks and stores the last accepted counter per root, so an old or replayed
+  record is refused
+- new heads have a detached outer ed25519 signature over the clear version,
+  writer and complete sealed head. the receiver verifies that signature, the
+  signed request's byte digest and increasing version before replacement ;
+  home still reads the older head form. no symmetric sealing key is needed
+  on the holder
 
-still open : a forced command for home's own holder key, and root-signed
-deletes [ a delete is still home-driven local gc, not a signed record a
-holder can apply ].
+threat model : theft of the home ssh key now permits ciphertext listing,
+reading, scrubbing and adding valid new blobs, plus filling the holder's
+remaining quota. it cannot replace a head or relay list, move or migrate a
+blob, purge trash or delete anything. those need the root signing key. a
+malicious holder itself can still withhold or destroy its own files and roll
+back its own counter storage ; signed requests do not make the holder honest,
+and crypto-shredding remains the protection for ignored deletes. legacy
+`ssh:` holders retain the old shell transport and warn on every write.
 
 ### when data does not fit
 
@@ -368,8 +391,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,.,,,,.,.,.,,.,,,..,,,,,,,,,..,,.,.,,.,,..,,..,,...,...,,,,,...,..,,,..,..,,
-#G6BJUU6QHIEHET4WK65MPVORU2KO5UIPE4GYBBVKVHOPHF6SNTIX7ZSGQCTTV37FQVLMIQLI5IPXO
-#\\\|NXLERUWUUTAN23SDXBUCPS64K24O7FJHOIH3TU6PP2DIDVZZAOZ \ / AMOS7 \ YOURUM ::
-#\[7]XV27OQSEH7FQELICMKU4HQI6LALW7SLY3KHBHQSH6WE5SUAPBEAI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,..,,..,.,,,.,,,.,.,.,,,,..,,,.,..,,...,...,,..,..,,,..,,,,,...,
+#5AZ2K466U6YBS4GNUILLJULEDE5A5RMCPD3HS5HVYYAT4VMAY5PDG372BIOQX3M6W4NBEU3PGP7DK
+#\\\|ZK2EKPKVH6RC3CXXBIWI4VJ5BDNGMUVCYSWX6TX5P4H22HBLRUU \ / AMOS7 \ YOURUM ::
+#\[7]KSE6MGCOV6PYHJHRAUECKB5EZWXUAHHTZXVLNSYRMUAZA7QZOSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

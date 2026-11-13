@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.RMYAC6Y |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.7NU23ZI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -43,7 +43,7 @@ use AMOS7::N7FS::Holder   qw| holder_parse holder_canonical holder_mkdir
     holder_read holder_size holder_put holder_delete holder_verify
     holder_download holder_read_range holder_sizes holder_stats holder_scrub
     holder_isdir holder_sub_spec holder_make_path holder_move
-    holder_trash_days holder_trash_list holder_remove_day |;
+    holder_trash_days holder_trash_list holder_remove_day holder_authorize |;
 
 use constant CHUNK_SIZE => 16 * 1024 * 1024;
 
@@ -315,9 +315,21 @@ sub _head_open {
     refuse('sealed head not found')    if not defined $bytes and $required;
     return undef                       if not defined $bytes;
     refuse('sealed head is truncated') if length $bytes < 24 + 16;
-    my $version = unpack qw| Q> |, substr( $bytes, 0, 8 );
-    my $writer  = substr( $bytes, 8, 16 );
-    my $plain   = open_sealed_bytes( $root->{'keys'}, substr( $bytes, 24 ),
+    my $sealed = $bytes;
+    ## new heads carry a second, clear signature over the complete sealed  ##
+    ## head : a blind receiver verifies it without the root symmetric keys ##
+    if ( length $bytes >= 69 and substr( $bytes, -69, 5 ) eq "P7SH\x01" ) {
+        refuse('outer head signature does not verify')
+            if not verify(
+            $root->{'signer'}->public,
+            "p7 n7fs sealed head exterior v1\0" . substr( $bytes, 0, -69 ),
+            substr( $bytes, -64 )
+            );
+        $sealed = substr( $bytes, 0, -69 );
+    }
+    my $version = unpack qw| Q> |, substr( $sealed, 0, 8 );
+    my $writer  = substr( $sealed, 8, 16 );
+    my $plain   = open_sealed_bytes( $root->{'keys'}, substr( $sealed, 24 ),
         qw| head |, $writer, $version );
     my $head = eval { $JSON->decode($plain) };
     refuse('head payload is invalid') if ref $head ne qw| HASH |;
@@ -346,17 +358,21 @@ sub _head_bytes {
     };
     $head->{'sig'} = b32( $root->{'signer'}->sign( $JSON->encode($head) ) );
     my $plain = $JSON->encode($head);
-    return
-          pack( qw| Q> |, $version )
+    my $sealed
+        = pack( qw| Q> |, $version )
         . $writer
         . seal_bytes( $root->{'keys'}, $plain, qw| head |, $writer,
         $version );
+    my $outer = $root->{'signer'}
+        ->sign( "p7 n7fs sealed head exterior v1\0" . $sealed );
+    return $sealed . "P7SH\x01" . $outer;
 }
 
 sub _context {
     my ( $root, $dir, $recover ) = @_;
     holder_mkdir($dir) if not $recover;
     $dir = holder_canonical($dir);
+    holder_authorize( $dir, $root );
     my $state = _state_read($root);
     my ( $head, $base ) = _head_locate( $root, $dir );
     if ( not defined $head and not $recover ) {
@@ -416,6 +432,7 @@ sub holder_respec {
     my ( $root, $old, $new, $dry_run ) = @_;
     $old = holder_canonical($old);
     $new = holder_canonical($new);
+    holder_authorize( $new, $root );
     my $state  = _state_read($root);
     my $pinned = $state->{'pins'}{$old} // 0;
     my ($head) = _head_locate( $root, $new );
@@ -1803,8 +1820,8 @@ sub shred_node {
 
 1;
 
-#,,.,,..,,,.,,.,.,,,.,.,,,,..,,.,,...,,,,,,,.,..,,...,...,,.,,,,,,..,,.,,,,.,,
-#XONM7RUHW2W3XEPFQSTF2D627XL5BUIZ45XVQQ3FJK67KM3LE6H64PZKJWQ2MFNO5PAA2ESGLNGLM
-#\\\|PGLNUQJTAYVUSUOB4UQTH2QKHK5Q46KY44I33ETWN33QX4JYGC3 \ / AMOS7 \ YOURUM ::
-#\[7]JSUX7ONNY72U33XH2EXFY7VAMP67RUSVJJMTL4534QILHXOF4SAA 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,,,,,,,,..,..,,,,.,.,.,.,,,,,,,..,,...,...,,..,,,,,,,,,...,..,,
+#EGIY7L3IZQEEI2XZDMXFCHDQV5EM4O5AKDDYSBJ6ONKRG6ICUZEKN376DZFS23YACY5TBBVLZBXLE
+#\\\|THMRDEDGI34DFQ5EU6UMYQF5QBQTU6RCXDIL2ZVNJORGCQ62LQ2 \ / AMOS7 \ YOURUM ::
+#\[7]BGGGRWIBP7W6MJVQQRDBFVPUDFSBC7A63HHCTG5TKOZR73RJIWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

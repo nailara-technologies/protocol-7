@@ -116,14 +116,19 @@ default ; detection is by existence [ subdirectory present, no flat head ].
 gc, purge, restore and migrate take the same host lock as every
 holder-writing command.
 
-the finding's remaining parts stay open : a forced command for home's own
-holder key, and root-signed deletes [ the trash is the local, home-driven
-form until then ].
+**finding 2 is fully addressed**. an `ssh-receiver:` registration uses only
+`bin/n7fs-receive` through ssh `command=`. gc and restore carry root-signed
+`move` records ; flat migration uses the narrower signed `migrate` request ;
+purge and direct deletion require signed `purge-day` and `delete` records.
+records bind root, holder, exact arguments, counter and nonce, and holder-side
+last-counter storage refuses replay. heads and relay lists are replaceable
+only with signatures. `N7FS-SEALING.md` specifies the complete request set,
+outer head signature, migration steps and stolen-key threat model.
 
 ## not in this part
 
-deletes on holders [ home-signed ], moving between holders, eviction from
-intake, holder-to-holder copying, calculated placement, erasure coding.
+moving between holders, eviction from intake, holder-to-holder copying,
+calculated placement, erasure coding.
 
 ## as built [ 2026-11-10 ]
 
@@ -214,8 +219,8 @@ what changed :
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,,,,,..,,,,,.,.,.,,,...,,,,,,..,,..,.,,,..,,..,,...,...,...,..,,,,,,,,.,,.,,
-#ZKTZHDGQ3UOS5LCC7KHQMQ3V2E62TFQUWYC6C6G3D3DN57LBEORVH3L2WRNDLS2IK2VB5VBWAZSMK
-#\\\|YPEMHCFBFFB7IZ3HZWG5XOZCF3WTZ6ZWJNWDDLCOHSUEK6WJRAC \ / AMOS7 \ YOURUM ::
-#\[7]J5LEWQKQGCKZQFXBLWHIZLGMR5UEB3OLYSY64DPMOERC6DXOMGAI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,,,,,,.,,,.,,..,,.,,,,..,.,,,..,,...,..,,..,,..,,,.,,..,,.,,,
+#P5DCAGA4W2LGEN2EGF3NMYGCL7UE7HKIYU73IHICI6VZPIS2OGQWFEROUP5OSHOCN2AC7ZBLR32JU
+#\\\|O6O573YKYS7XSGEQ2E3OK5YMCEIPDKHBBBDYBFKBVCMUDDD3Y6E \ / AMOS7 \ YOURUM ::
+#\[7]GPJHIS6D3OJJZVWSDA63SKCYPQVWBMLIQ2HAYILEER3TK3DUEWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
