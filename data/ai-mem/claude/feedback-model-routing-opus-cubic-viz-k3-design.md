@@ -10,12 +10,12 @@ metadata:
 - **Opus's standout area: cubic-space-visualization performance upgrades and
   refactorings** — user's exact framing: "each always one pass and error
   free, and with better results than hoped for." **Confirmed citation**:
-  commit `492b55ff4` ("Upgrade cubic topology visualization to v14 with
+  commit `d61881f73` [ was `492b55ff4` before a history rewrite ] ("Upgrade cubic topology visualization to v14 with
   independently controllable layers", Wed Feb 11 2026), commit message
   states "Opus 4.6 generated" directly — 6-12 FPS baseline → 15-60 FPS,
   layered/independently-controllable rendering architecture, both
   `.refactored.html`/`.optimized.html` variants of
-  `grid-v14-layered.*.html` landed in this single commit
+  `grid-v14-layered.*.html` landed in this single commit [ CORRECTED 2026-11-13 : both names are ONE file, the final of 3 passes in claude.ai chat ffdd1360 of 2026-02-10 -- pass 1 refactor, pass 2 b-key fix, pass 3 main grid ; passes rebuilt exactly from /data/backup/claude/conversations.json ]
   (`data/web-root/vhosts/visual.v7.ax/`, archived copies in
   `data/asc/what-AI-thinks/html-form/visualizations/cubic-space/`).
   `f751626bf` afterward was a pure directory-consolidation rename (0-byte
@@ -55,8 +55,8 @@ metadata:
   cheaper stand-in — safe to hand it real complementing work, not just
   overflow.
 
-#,,.,,...,,,,,,,,,.,,,,,.,.,,,.,.,.,,,.,,,.,,,.,.,...,...,,.,,.,.,,,,,.,,,,,.,
-#FP75TYCJHYW7YDVBUCWI4ZDBFL34VT7A4BT5WA2WE5LZRHX5EE4V367XA76QNUDL2HTHTXNHWF2BE
-#\\\|TCS2ILRDYHUZ3NG6IKFPAYD6PDYAJV3P5CXIFT2EBTHXUNEXDS7 \ / AMOS7 \ YOURUM ::
-#\[7]BLL2AXXNKE6BSQCRKI7ZNJQFAOENBFDF3N67TNINKV2SDC6KFGDA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,,.,,,,,,,.,,..,,,,,,..,,..,,.,.,...,...,.,,,.,.,.,,,,..,.,,,
+#DEJFV2ZSYTEKL5PTHRRXKL356YJCL3RHKP7PTE4FAXOJOQ3LUW6B3FBBPPELJ2IWR32CB2RDUXRNC
+#\\\|UY3PJV7QEGZUQRXYTCZUDGOJYKGXA5FYK6DLSA2TCAS2EINZH3Q \ / AMOS7 \ YOURUM ::
+#\[7]OAZZ2ZTXH6EUAVRT3BS6IJEZ4KCMM3M2XNMA4R332XTRLGV436CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

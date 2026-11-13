@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.QAT7YJY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.7ZCXTDA |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -33,7 +33,7 @@ use Crypt::AuthEnc::ChaCha20Poly1305 qw| chacha20poly1305_encrypt_authenticate
     chacha20poly1305_decrypt_verify |;
 use AMOS7::NTIME qw| ntime_now parse_y_age y_level_ntime |;
 use AMOS7::N7FS  qw| b32 unb32 random_bytes read_file write_new_file
-    write_new_file_stream make_dirs sync_dir refuse fault |;
+    write_new_file_stream make_dirs sync_dir refuse fault ntime14 |;
 use AMOS7::N7FS::Sum      qw| bmw384_bytes bmw_b32 epoch_from_b32 |;
 use AMOS7::N7FS::Sign     qw| verify |;
 use AMOS7::N7FS::Disk     qw| disk_read_id disk_lock state_read |;
@@ -2081,7 +2081,7 @@ sub repack_packs {
 
 ## blobs a holder keeps that the current head no longer references :
 ## superseded maps and journals, and nodes dropped from the map. instead of
-## deleting, gc MOVES each one to .trash/<YYYY-MM-DD>/<name> inside the holder
+## deleting, gc MOVES each one to .trash/<ntime14>/<name> inside the holder
 ## directory [ rename, same filesystem ], and never touches a blob younger
 ## than the grace age [ default 6Y3, -grace ] : a seal, relay or push in
 ## flight must not lose its bytes to a concurrent gc. the age is the
@@ -2138,10 +2138,10 @@ sub holder_gc {
     };
 }
 
-## the trash bucket of today, by utc date ##
+## the trash bucket of the current 1Y2 interval ##
 sub _trash_day {
-    my @t = gmtime;
-    return sprintf '%04d-%02d-%02d', $t[5] + 1900, $t[4] + 1, $t[3];
+    my $unit = y_level_ntime(2);
+    return ntime14( int( int( ntime_now() / $unit ) * $unit ) );
 }
 
 ## the holder directory gc, purge and restore act on : the root's  ##
@@ -2191,7 +2191,7 @@ sub holder_trash_restore {
     my $missing = 0;
     if ( defined $opt{'all_since'} ) {
         refuse( 'bad date [ %s ]', $opt{'all_since'} )
-            if $opt{'all_since'} !~ m|\A\d{4}-\d{2}-\d{2}\z|;
+            if $opt{'all_since'} !~ m|\A(?:[0-9]{14}\|\d{4}-\d{2}-\d{2})\z|;
         foreach my $day (
             sort grep { $ARG ge $opt{'all_since'} }
             keys %{$list}
@@ -2599,8 +2599,8 @@ sub shred_node {
 
 1;
 
-#,,..,.,.,..,,,..,,..,..,,,.,,...,,.,,...,..,,..,,...,...,.,.,,,,,.,.,,,,,.,,,
-#YB4JCQTSPUSBXRPMVMN4ETGQJRXU3THHQTDCWQKEBGIM5VZ5UOWQDIDQPHPTPCIKWMTD7ZWLYDIK6
-#\\\|IQXARFBGZZXRIYC7JUGUA5JRTVVYN7IKNMJNPH7DFL7EXBML4NS \ / AMOS7 \ YOURUM ::
-#\[7]T7UDYOZMSBTPGKPXH4XYPZJK6S3EJMEXOYEAZW4N463Q65CSTEDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,,..,,..,,,,,...,...,,,,,.,.,..,,...,...,..,,,..,.,.,,..,,..,
+#YAXBOI7EIKQ4QFBPDQ22DDEVDMZU5R3U3U7UT2VHC4ECLZAPLIOKYMUBRJEXXFXUESGYORU5FCFYK
+#\\\|BKMBAVLPEERAWWABKKLVBULIE4UCDPC3YLJFAJ5NHAMLSEKWYR5 \ / AMOS7 \ YOURUM ::
+#\[7]ZLHTXBJRBNB2Y5OJVRLTXBPAQJ7ZPDTHWRJSNF2RUNP2MDESV2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

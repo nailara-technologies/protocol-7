@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.7IHXM7A |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.LA35EFQ |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_free holder_isdir holder_sub_spec
@@ -562,7 +562,7 @@ sub holder_trash_days {
     if ( $h->{'type'} eq qw| local | ) {
         opendir( my $dh, "$h->{'dir'}/.trash" ) or return {};
         foreach my $d ( readdir $dh ) {
-            next if $d !~ m|\A\d{4}-\d{2}-\d{2}\z|;
+            next if $d !~ m|\A(?:[0-9]{14}\|\d{4}-\d{2}-\d{2})\z|;
             my @st = stat "$h->{'dir'}/.trash/$d";
             $day{$d} = unix_to_ntime( $st[9] ) if @st;
         }
@@ -578,7 +578,7 @@ sub holder_trash_days {
             next
                 if ( $kind // '' ) ne 'd'
                 or not defined $mtime
-                or $d !~ m|\A\d{4}-\d{2}-\d{2}\z|;
+                or $d !~ m|\A(?:[0-9]{14}\|\d{4}-\d{2}-\d{2})\z|;
             $day{$d} = unix_to_ntime( $mtime + 0 );
         }
         return \%day;
@@ -592,7 +592,8 @@ sub holder_trash_days {
     foreach my $line ( split m|\n|, $out ) {
         my ( $path, $mtime ) = split ' ', $line;
         next if not defined $mtime;
-        my ($d) = $path =~ m|\A[.]trash/(\d{4}-\d{2}-\d{2})/\z|;
+        my ($d)
+            = $path =~ m|\A[.]trash/((?:[0-9]{14}\|\d{4}-\d{2}-\d{2}))/\z|;
         $day{$d} = unix_to_ntime( $mtime + 0 ) if defined $d;
     }
     return \%day;
@@ -640,7 +641,8 @@ sub holder_trash_list {
         my ( $path, $size ) = split ' ', $line;
         next if not defined $size;
         my ( $d, $n )
-            = $path =~ m|\A[.]trash/(\d{4}-\d{2}-\d{2})/([A-Z2-7]{77})\z|;
+            = $path
+            =~ m|\A[.]trash/((?:[0-9]{14}\|\d{4}-\d{2}-\d{2}))/([A-Z2-7]{77})\z|;
         $list{$d}{$n} = $size + 0 if defined $n;
     }
     return \%list;
@@ -651,7 +653,7 @@ sub holder_remove_day {
     my ( $spec, $rel ) = @_;
     my $h = holder_parse($spec);
     refuse('invalid trash day path')
-        if ( $rel // '' ) !~ m|\A\.trash/\d{4}-\d{2}-\d{2}\z|;
+        if ( $rel // '' ) !~ m|\A\.trash/(?:[0-9]{14}\|\d{4}-\d{2}-\d{2})\z|;
     if ( $h->{'type'} eq qw| local | ) {
         remove_tree("$h->{'dir'}/$rel")
             or refuse( 'cannot remove %s', $rel );
@@ -1055,8 +1057,8 @@ sub holder_put {
 
 1;
 
-#,,.,,,..,...,..,,.,.,...,..,,..,,,..,,..,.,,,..,,...,...,,..,,,,,.,.,.,,,,.,,
-#4T4RGMY7WQVI5RT2AGXHIB574YZZP2H7UQDPA42BSPCU7C6AHB6UFCBKG3MBQRTSSXXG5QSQRTYFK
-#\\\|ZZ2WFAU7EU2L6MF5YPLYBXHZ3OWEOC4LDLR57U25CD3J42WAGD5 \ / AMOS7 \ YOURUM ::
-#\[7]SX4C6FRQPYCLFZ5FKHSHCPG3R7OCYFA3HXZF544PKNQE4CWR6IDA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,,,.,,..,.,,,.,,,...,,,,,,,,,..,,...,...,,..,,,.,,..,,..,,,.,
+#NDUXGXOLEGSWRTZXXZAUCJLEI7ZVIDCPQZM56M4ICVUSTF6S3CEB5YI5YFOOY4DH45VIQ2XEZMOIG
+#\\\|ZYCUWRAN332W2MAYFFNLVD7FWKPCIDBICQJ25A4FMM4K3TLMXGG \ / AMOS7 \ YOURUM ::
+#\[7]HJ77KT2BC2LGKX4M4PQSOVUCZIZ53NZ6MGOU7UCBT5AW4F6QMKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

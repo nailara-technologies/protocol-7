@@ -53,8 +53,9 @@ sub age_receipt {
     my ( $spec, $ntime ) = @ARG;
     require AMOS7::N7FS::Holder;
     require AMOS7::N7FS::Sign;
-    my $json = JSON::PP->new->utf8->canonical;
-    my $path = "$hdir/receipts/"
+    my $json            = JSON::PP->new->utf8->canonical;
+    my ($root_receipts) = glob "$hdir/receipts/*";
+    my $path            = "$root_receipts/"
         . bmw_b32(
         bmw384_bytes(
             "p7 n7fs receipt v1\0"
@@ -331,6 +332,11 @@ ok( $rc == 0 && -f "$base/rec-u/g3", 'the other disk\'s tree still recovers' )
     ok( $rc != 0, 'gc is refused while another writer holds the lock' )
         or say $out;
     ( $rc, $out )
+        = cli( ['vp'], 'holder-check', 'five', '-root-key', 'vault:main' );
+    ok( $rc != 0 && $out =~ m|another n7fs command is writing|,
+        'holder-check takes the holder-writer lock'
+    ) or say $out;
+    ( $rc, $out )
         = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main',
         '-dry-run' );
     ok( $rc == 0, 'a dry run needs no lock' ) or say $out;
@@ -370,10 +376,11 @@ ok( $out =~ m|one \[ a \] counted \[ sampled receipt \]|,
 {
     require AMOS7::N7FS::Holder;
     require AMOS7::N7FS::Sign;
-    my $json  = JSON::PP->new->utf8->canonical;
-    my $spec1 = AMOS7::N7FS::Holder::holder_canonical("$base/h1");
+    my $json            = JSON::PP->new->utf8->canonical;
+    my $spec1           = AMOS7::N7FS::Holder::holder_canonical("$base/h1");
+    my ($root_receipts) = glob "$hdir/receipts/*";
     my $rpath
-        = "$hdir/receipts/"
+        = "$root_receipts/"
         . bmw_b32( bmw384_bytes( "p7 n7fs receipt v1\0" . $spec1 ) )
         . '.receipt';
     my $data = $json->decode( read_file($rpath) );
@@ -607,8 +614,9 @@ ok( $out =~ m|twelve .* covered 5, pending 0, coverage full|,
 ## an old receipt without the covered digest binds the exact head version :
 ## the same add-only commit that kept the new receipt now voids it
 {
-    my $json  = JSON::PP->new->utf8->canonical;
-    my $rpath = "$hdir/receipts/"
+    my $json            = JSON::PP->new->utf8->canonical;
+    my ($root_receipts) = glob "$hdir/receipts/*";
+    my $rpath           = "$root_receipts/"
         . bmw_b32(
         bmw384_bytes(
             "p7 n7fs receipt v1\0"
@@ -789,8 +797,8 @@ ok( $rc == 0 && $out =~ m|would drop 5|,
 
 done();
 
-#,,,.,,,.,.,,,,..,,.,,.,,,,.,,,,.,.,,,.,,,..,,..,,...,..,,...,,,,,,,.,.,,,,,,,
-#L7UX5FFLGF4M5UZMDLHSOJWXZPBRPBB2UQHIAAUGO3INTVFDJ24KPL5UI7PNI5O4AL4NJMK6XOOVS
-#\\\|VTCALHFGGHF4VM2MNA2BPD6ZOSXY4DLULLXT4KD6E5TZQ7HARNX \ / AMOS7 \ YOURUM ::
-#\[7]U2V5HW6XAYJNA6XA7ESZXMI6EBTSAWFHYDNHY3YXHYA6L4T7P4DY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,,..,...,...,.,,,...,,,.,...,..,,...,...,.,,,,,.,,,,,,.,,,,.,
+#B7G7PTUGGSZQHEKMQVFLEK5CKZYSL7D6WZPTU7RS6ZR3Q3G5KNKCOKS3RYV2FS3TUD4L65A36XU4O
+#\\\|XQQCAC75DST23DUTOX2NYJTWPEA33F37MYLQKRA7OXWENYN443R \ / AMOS7 \ YOURUM ::
+#\[7]DUQI6GUPAE5DAE4GCCT4BDF46B32Z3N3SECQI3JFAVIXR4LIZQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

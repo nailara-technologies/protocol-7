@@ -231,8 +231,7 @@ utime $old, $old, "$remote/$tag/$blob" or die $OS_ERROR;
 ( $rc, $out )
     = cli( ['vp'], 'holder-gc', 'rx', '-root-key', 'vault:main',
     '-delete', '-grace', '0' );
-my @t   = gmtime;
-my $day = sprintf '%04d-%02d-%02d', $t[5] + 1900, $t[4] + 1, $t[3];
+my $day = AMOS7::N7FS::Seal::_trash_day();
 ok( $rc == 0 && -f "$remote/$tag/.trash/$day/$blob",
     'gc moves an old unreferenced blob with a signed move'
 ) or say $out;
@@ -337,8 +336,8 @@ ok( $rc == 3 && $out =~ m|outer signature|,
 
 done();
 
-#,,,.,.,.,..,,,..,,..,.,,,.,,,,..,...,..,,.,.,..,,...,.,.,,,.,,,.,,,,,.,,,,,.,
-#EYQLIUSEVXD2RSAYSIMTHEWFOV3D7XIRN33DPZZDWVYJ7QQMFPGIGMBDR7BBCEWBNYDMNM73YEDDM
-#\\\|YHGO5LLSDF3BMA6FMQYPK7NBYAZYRJZ42PYKC4HXVVEUOUDE4D3 \ / AMOS7 \ YOURUM ::
-#\[7]46F64WI2RRBDT2UA4YYF7M7TUBIARG5JPEERYRZR5YWSLRBZRMAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,..,,,,.,,..,..,,.,,,,..,.,,,..,,..,,...,..,,,.,,,,.,,..,.,,,,,,,
+#LBGYJTPVPKX43OM64RGBIT6RAWFJPYQSRBTKAQDHMLLFAVTSYNGFRTRSG67KF2B77EWVQIFVPOCVI
+#\\\|JBZQZTASNU2JCRQRZ7DLUMGWXK3YGDXZCGIIJPBBFHAKFNN5EWP \ / AMOS7 \ YOURUM ::
+#\[7]RIFGKMIEUPNBCLTKDHSG3NR6QDYG7TGMAO5IG7W5MPKZGBDCZODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

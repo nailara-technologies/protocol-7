@@ -54,7 +54,7 @@ use Digest::BMW;
 
 my $NAME     = qr|\A[A-Z2-7]{77}\z|;
 my $TAG      = qr|r-[A-Z2-7]{7}|;
-my $DAY      = qr|\d{4}-\d{2}-\d{2}|;
+my $DAY      = qr|(?:[0-9]{14}\|\d{4}-\d{2}-\d{2})|;
 my $PATHNAME = qr|\A(?:$TAG/)?[A-Z2-7]{77}\z|;
 
 sub out { print STDERR "n7fs-receive : $ARG[0]\n"; exit( $ARG[1] // 2 ) }
@@ -135,7 +135,7 @@ sub _list_dir {
     out('invalid list directory')
         if length $rel
         and $rel
-        !~ m{\A(?:r-[A-Z2-7]{7}|[.]trash|[.]trash/\d{4}-\d{2}-\d{2}|r-[A-Z2-7]{7}/[.]trash|r-[A-Z2-7]{7}/[.]trash/\d{4}-\d{2}-\d{2})\z};
+        !~ m{\A(?:r-[A-Z2-7]{7}|[.]trash|[.]trash/(?:[0-9]{14}|\d{4}-\d{2}-\d{2})|r-[A-Z2-7]{7}/[.]trash|r-[A-Z2-7]{7}/[.]trash/(?:[0-9]{14}|\d{4}-\d{2}-\d{2}))\z};
     my $path = length $rel ? "$dir/$rel" : $dir;
     out( 'list directory is missing', 44 ) if not -e $path;
     out('invalid list directory')          if not _safe_dir($path);
@@ -648,8 +648,8 @@ if ( $verb eq 'delete' ) {
 
 out('unknown request');
 
-#,,.,,,..,,.,,,,.,.,,,,,,,...,,.,,,,.,,.,,,..,..,,...,...,.,.,,,.,,.,,,..,.,.,
-#LDSX7BBQMZ4DFPBL7BRVYDS762XPBNMEQFFBPHYNBNBPZM3S6EVKHQKJ7VHBDVQA7L7NSJ2I4QOLA
-#\\\|7I3MYCDQ37UUZVMJVVYOFNFNTK4JMO3H6445UXJU2PHMMIW2FAW \ / AMOS7 \ YOURUM ::
-#\[7]APHUHKQGM32Q5JE7CDMPL6BVPPVTGWIGJFEQ5P2KIIWF7S2MGCCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,.,,,,,.,,,.,,,.,.,.,,.,,,,,,..,,...,...,...,.,,,,,,,,.,,,..,
+#43X5JO7CFGJZSZHRNCSOYYNM735CVYUTNPPNBNZT35XVLGN4ADREO7M63UBY47XCAX77VYVMB3PZW
+#\\\|RUWAEXYKKM3DI4L2J7B2RCNMOMXFGUGYHXE7VIZLJ4FUJZS2UA2 \ / AMOS7 \ YOURUM ::
+#\[7]WNDOMJ5C2Y4WETHETJ7WCCE2554GDA2HORM2KGWHXE2WEHUD6YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
