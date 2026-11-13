@@ -177,7 +177,7 @@ ok( $out =~ m|would drop 0 nodes| && $out =~ m|kept 17 nodes|,
     'an older receipt does not vouch for a newer head'
 ) or say $out;
 ( $rc, $out )
-    = cli( ['vp'], 'holder-check', $dur, '-root-key', 'vault:main' );
+    = cli( ['vp'], 'holder-check', '-full', $dur, '-root-key', 'vault:main' );
 ( $rc, $out )
     = cli( ['vp'], 'holder-drain', $disk, 'in', '-root-key', 'vault:main' );
 ok( $rc == 0 && $out =~ m|dropped 17 nodes| && $out !~ m|kept|,
@@ -256,8 +256,8 @@ ok( $rc == 0 && read_file("$base/rec-back/g3") eq "more 3\n",
 
 done();
 
-#,,.,,,,.,,.,,,,.,.,,,...,.,,,,,.,...,.,,,,,,,..,,...,...,...,..,,...,,,.,.,.,
-#RPJAGCG74M43MT643YPA6BKRX2ZAMMZZLN5SK6LVJMJW6EKKZOKX6VO7KHMIZBRK6CFZ7MVANMWKC
-#\\\|GJHVUZBMBAUHHMPUWNJST4EZ5RSJM2YSRXBQPKLUYXC4QN5S4RB \ / AMOS7 \ YOURUM ::
-#\[7]F45OFTZGW32HMNFMQ77753IROAZHXKLBCV5WP3EZOMMAVDUJSABA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,..,,,,,,...,..,,,,.,.,.,.,,,..,,...,...,.,,,.,.,..,,,,.,...,
+#R7TLE6RN3Y7YAH6HZ26BUHAQYTLOOP3KUYW6R2WHWZK4PEEECLXJNECUML77YIO2HKYOF4BAKW4TA
+#\\\|C6UORWDEV3WJMQYRNTGAMRJL4RISS4HBG3FPMFY4JESV4CKHBN2 \ / AMOS7 \ YOURUM ::
+#\[7]MPHYEG3CE7I65OIAZRDGXWTLMIKNPALV4C36WKYW6HDEDH3M3QBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

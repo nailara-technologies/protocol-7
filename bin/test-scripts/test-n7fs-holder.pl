@@ -18,6 +18,7 @@ BEGIN {
 
 use JSON::PP;
 use AMOS7::N7FS        qw| read_file write_new_file make_dirs unb32 |;
+use AMOS7::N7FS::Sum   qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Disk  qw| disk_init disk_attach |;
 use AMOS7::N7FS::Store qw| assimilate |;
 use AMOS7::N7FS::Seal;
@@ -266,6 +267,9 @@ my ($first_head)
 ok( defined $first_head and $first_head > $first_upload,
     'head is published only after content, map and journal uploads'
 );
+ok( read_file($log) =~ m|sync -- '/holder'$|m,
+    'the remote directory is synced after a publish'
+);
 my $head_path = "$remote/$head_name";
 write_new_file( "$head_path.upload", 'stale head bytes' );
 copy( $head_path, "$box->{'base'}/old-head" ) or die $OS_ERROR;
@@ -312,10 +316,47 @@ cli(1,              'wrong truncated remote data refuses recovery',
     'seal-recover', "$box->{'base'}/corrupt-target"
 );
 
+say ':: keyless scrub';
+my $scrub_dir = "$box->{'base'}/scrub-holder";
+make_dirs($scrub_dir);
+my @content = map {"holder scrub content $ARG\n"} 1 .. 3;
+my @snames  = map { bmw_b32( bmw384_bytes($ARG) ) } @content;
+write_new_file( "$scrub_dir/$snames[$_]", $content[$_] ) for 0 .. 2;
+my $scrub = AMOS7::N7FS::Holder::holder_scrub( $scrub_dir, \@snames );
+ok( $scrub->{'clean'} && $scrub->{'ok'} == 3,
+    'a local scrub verifies every blob keylessly'
+);
+my $victim_blob = $snames[1];
+my $saved_blob  = read_file("$scrub_dir/$victim_blob");
+write_file( "$scrub_dir/$victim_blob", "\0" x length $saved_blob );
+$scrub = AMOS7::N7FS::Holder::holder_scrub( $scrub_dir, \@snames );
+ok( !$scrub->{'clean'} && $scrub->{'bad'}[0] eq $victim_blob,
+    'a zero-filled blob of the right size is caught'
+);
+write_file( "$scrub_dir/$victim_blob", $saved_blob );
+my $challenge = 'N7FSTEST';
+$scrub = AMOS7::N7FS::Holder::holder_scrub( $scrub_dir, [$victim_blob],
+    $challenge );
+my $answer = bmw_b32( bmw384_bytes( $challenge . $saved_blob ) );
+ok( $scrub->{'clean'} && $scrub->{'answer'}{$victim_blob} eq $answer,
+    'a nonce challenge answers with the digest of nonce + blob'
+);
+$scrub = AMOS7::N7FS::Holder::holder_scrub( $scrub_dir,
+    [ $snames[0], 'A' x 77 ] );
+ok( !$scrub->{'clean'} && $scrub->{'missing'}[0] eq ( 'A' x 77 ),
+    'a listed blob that is absent reads as missing'
+);
+refused(
+    sub { AMOS7::N7FS::Holder::holder_scrub( $scrub_dir, [], 'not-base32!' ) }
+    ,
+    qr|nonce|,
+    'an invalid nonce is refused'
+);
+
 done();
 
-#,,..,..,,,.,,,,,,..,,,..,.,.,...,.,,,..,,,,.,..,,...,...,.,,,..,,.,,,.,,,..,,
-#PWUC5YNAWE42VFAUUG537XZICP5T7Q5UXFXYU5MFD7HS3RMI26L25NBYUQ27DGMGQHECL3VQFC3DS
-#\\\|2F3ZTBTKWDTLLCYZHWB5UZS2PFF4HV5C4QPPZYIEJEMIWJCYVYO \ / AMOS7 \ YOURUM ::
-#\[7]X5IVXADGJJ773XVGNSVCTRXPP35SZKYTS4XVUMUOUWP76ZFZROAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,..,,.,.,...,..,,...,...,,..,..,,...,...,...,,..,,,.,.,.,,.,,
+#6M3R2WS3RSX4JVQOPOSKSK4PJZPW6BHTSNDESO4EGSXPMGWBIUIT4FWDSZRJAKM2LBUMQPCNHEH32
+#\\\|EEGZTZMZXXL7NVZUC5T4EVFUKZNX2H3WM2G6COC5QTUVEEGGVOK \ / AMOS7 \ YOURUM ::
+#\[7]4724X5WZOHXGGCQRRY3D4CNDJ4CUMGLULBCEGTIURH42UIUW3OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -74,6 +74,19 @@ use warnings;
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
 ## n7fs holder-check <holder> -root-key <file>   also writes a receipt ;
 ##                 <holder> : a spec or a registered name [ also holder-gc ]
+##                 [ -full ] authenticate every chunk [ coverage full ]
+##                 [ -scrub ] keyless full coverage : verify every mapped
+##                 blob's checksum name on the holder, no key material
+##                 proved [ coverage full ]
+##                 [ -sizes-only ] sizes, no chunk authentication
+##                 receipts without -full \ -scrub read as sampled :
+##                 place counts them, drain never relies on them
+## n7fs holder-scrub <holder> -root-key <file> [ -nonce <b32> ]
+##                 keyless on the holder : recompute every mapped blob's
+##                 checksum name there and report bad and missing ; home
+##                 names the blobs from the holder's own map. with -nonce
+##                 the digest runs over nonce + blob, so two holders answer
+##                 one challenge the same way and home compares the answers
 ## n7fs holder add <name> <holder> -role durable|intake -domain <label>
 ##                 [ -owned ] [ -quota <size> ] [ -reserve <size> ]
 ##                 [ -categories <a,b> ] [ -min-priority <n> ]  what place
@@ -172,6 +185,7 @@ GetOptionsFromArray(
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
         layer=s incoming under=s depth=i limit=i group-by=s trees-only help
         from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
+        full scrub sizes-only nonce=s
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
         categories=s min-priority=s spec=s
         list adopt |
@@ -230,6 +244,7 @@ my %run = (
     qw| seal-recover |   => \&cmd_seal_recover,
     qw| shred |          => \&cmd_shred,
     qw| holder-check |   => \&cmd_holder_check,
+    qw| holder-scrub |   => \&cmd_holder_scrub,
     qw| holder |         => \&cmd_holder,
     qw| holder-gc |      => \&cmd_holder_gc,
     qw| holder-drain |   => \&cmd_holder_drain,
@@ -1440,13 +1455,29 @@ sub cmd_holder_check {
     require AMOS7::N7FS::Seal;
     my $holder = _holder_arg( shift // fail('holder-check needs a holder') );
     fail('holder-check : unexpected arguments') if @ARG;
+    my $coverage
+        = $o{'full'}       ? qw| full |
+        : $o{'scrub'}      ? qw| scrub |
+        : $o{'sizes-only'} ? qw| sizes-only |
+        :                    qw| sampled |;
     my $r = AMOS7::N7FS::Seal::holder_check(
-        qw| root |    => _seal_root(),
-        qw| holder |  => $holder,
-        qw| samples | => $o{'samples'},
+        qw| root |     => _seal_root(),
+        qw| holder |   => $holder,
+        qw| samples |  => $o{'samples'},
+        qw| coverage | => $coverage,
     );
-    say_line( 'holder ok : ', $r->{'nodes'}, ' nodes in ', $r->{'blobs'},
-        ' blobs, ', $r->{'chunks'}, ' chunks checked' );
+    say_line(
+        'holder ok : ',
+        $r->{'nodes'},
+        ' nodes in ',
+        $r->{'blobs'},
+        ' blobs, ',
+        $r->{'chunks'},
+        $coverage eq qw| full |         ? ' chunks authenticated'
+        : $coverage eq qw| scrub |      ? ' blobs scrubbed, keyless'
+        : $coverage eq qw| sizes-only | ? ' sizes checked'
+        :                                 ' chunks sampled'
+    );
     ## a receipt needs this host's key ; a recovery machine may have none ##
     my $signer = optional_host_signer();
     if ( not $signer ) {
@@ -1463,9 +1494,44 @@ sub cmd_holder_check {
         qw| version |  => $r->{'version'},
         qw| nodes |    => $r->{'nodes'},
         qw| samples |  => $r->{'samples'},
+        qw| coverage | => $r->{'coverage'},
     );
-    say_line('receipt written [ counts for placement for 7 days ]');
+    say_line( 'receipt written : coverage ',
+        $r->{'coverage'}, ' [ counts for placement for 7 days ]' );
     return 0;
+}
+
+sub cmd_holder_scrub {
+    require AMOS7::N7FS::Seal;
+    require AMOS7::N7FS::Holder;
+    my $holder = _holder_arg( shift // fail('holder-scrub needs a holder') );
+    fail('holder-scrub : unexpected arguments') if @ARG;
+    fail('holder-scrub -nonce needs base32 [ A-Z2-7, up to 64 chars ]')
+        if defined $o{'nonce'}
+        and $o{'nonce'} !~ m|\A[A-Z2-7]{1,64}\z|;
+    ## home names the mapped blobs from the holder's own map ; the holder ##
+    ## side stays keyless -- it recomputes checksum names, never opens    ##
+    ## anything                                                           ##
+    my ( undef, $head, $map )
+        = AMOS7::N7FS::Seal::_context( _seal_root(), $holder, TRUE );
+    fail('no sealed head on this holder') if not defined $head;
+    my %blobs = map { $ARG->{'blob'} => TRUE } values $map->{'nodes'}->%*;
+    my @names = sort keys %blobs;
+    push @names, $head->{'map'}, $head->{'journal'};
+    my $r
+        = AMOS7::N7FS::Holder::holder_scrub( $holder, \@names, $o{'nonce'} );
+    say_line(
+        'scrubbed ', $r->{'ok'}, ' blobs : ', scalar $r->{'bad'}->@*,
+        ' bad, ',    scalar $r->{'missing'}->@*,
+        ' missing'
+    );
+    say_line("bad : $ARG")     for $r->{'bad'}->@*;
+    say_line("missing : $ARG") for $r->{'missing'}->@*;
+    ## with a nonce the answers are the comparison : run two holders with ##
+    ## one nonce and diff their 'answer' lines                            ##
+    say_line( 'answer ', $ARG, ' ', $r->{'answer'}{$ARG} )
+        for sort keys $r->{'answer'}->%*;
+    return $r->{'clean'} ? 0 : 1;
 }
 
 sub cmd_holder_drain {
@@ -1490,6 +1556,9 @@ sub cmd_holder_drain {
     say_line( 'kept ', $r->{'kept'}, ' nodes, ', $r->{'kept_bytes'},
         ' bytes : too few counted copies elsewhere' )
         if $r->{'kept'};
+    say_line( 'kept ', $r->{'sampled_kept'},
+        ' nodes : copies elsewhere hold only a sampled receipt' )
+        if $r->{'sampled_kept'};
     say_line( $o{'dry-run'} ? 'would untag ' : 'untagged ',
         $r->{'untag'}, ' nodes : still mapped for other disks' )
         if $r->{'untag'};
@@ -1820,6 +1889,10 @@ sub cmd_placement {
             $h->{'domain'},
             ' ] ',
             $h->{'state'},
+            $h->{'state'} eq 'counted'
+                && ( $h->{'coverage'} // '' ) ne 'full'
+            ? " [ $h->{'coverage'} receipt ]"
+            : '',
             ' : ',
             $h->{'count'} // 0,
             ' nodes, ',
@@ -1894,8 +1967,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,..,,..,,.,,,..,,.,,,,,,,,.,,,,,,,,,,,,,,..,,...,...,,.,,..,,,..,.,.,.,,,
-#7BVFVJNYUMDI4KCF2243XBJCCRKYSOPM2MO2ZSKU4X5U4VZDWCZY5GNWQQZEPDDZYQ6KOBXB43LAO
-#\\\|U6XZL6B7EMHVOCY4472ACJKLLGAWWC4M4RA5R4BAK7NUCKUABJ2 \ / AMOS7 \ YOURUM ::
-#\[7]2VPMM2ECG7AQNHECZREFIIIAJB7DKN5QBTW3FBW3RI7GSVXSPABI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,,,,,.,.,..,,,,.,,,.,.,.,.,,,..,,...,...,..,,..,,..,,.,,,,.,,
+#54ES3IVT4UXLMUJIYNKVDTC54TXV5CPRQ75ETOM536JASEEDWDOLNTDKJVIQAE3T2OPEXSEDUXM7C
+#\\\|TVIE7ARZQSLYS735GPYOBVS7O4NPAQXRFVX45JXR5ETIRCFGIMR \ / AMOS7 \ YOURUM ::
+#\[7]BZ5DIXJHDZAAM7RAAVJ3OSMC6R3FSBNFYYYJVTXTP23W6WZXMUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
