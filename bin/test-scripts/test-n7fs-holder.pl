@@ -31,7 +31,8 @@ $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 
 my $box  = sandbox();
 my $cli  = "$FindBin::Bin/../n7fs";
-my $fake = "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh";
+my $fake = "$box->{'base'}/fake-ssh.sh";
+copy_tree( "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh", $fake );
 chmod 0755, $fake or die $OS_ERROR;
 my $remote = "$box->{'base'}/remote";
 make_dirs( $remote, 0700 );
@@ -358,8 +359,8 @@ refused(
 
 done();
 
-#,,.,,,,,,,.,,..,,..,,,..,..,,,,.,...,,..,.,,,..,,...,...,,,,,.,.,.,,,.,.,,.,,
-#OICEUUB7LEQVACVE2QIMIYAO5H7R2XA5JI22SE7TQJX533QFI7EILKZKSAEKPGHKMAFR4TEBGCJQE
-#\\\|UYKT437BGADV45576MCLK67HAWN6TMTLJI6UW7BJNL6AMBYBA2E \ / AMOS7 \ YOURUM ::
-#\[7]UBMYSB6EIH56VGIDFRWLWHQBQ5G7TO5DET4WU6TSMTRVGIEFE6CQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,..,,,,.,.,,,,,,,,.,,,..,,,,,.,,,..,,...,...,...,,,,,,,.,,..,.,,,
+#ER6ORK76CSXC4VAVYFPS5YR2NMAECPC2LFKJZJUP7QOW5BW6YTR7LRBUKI6HKZFFJ4KVWVBKRRG54
+#\\\|KQBX4SMFO5OY5FEZHCTSMRM76KDWQJC5NH2QON45D5DSAFZCUBG \ / AMOS7 \ YOURUM ::
+#\[7]EOYB62UV3TCARQULTYTIXBYLXDLVTEVVL2GUTBMLCNIT7L6KD6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

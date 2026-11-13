@@ -155,7 +155,8 @@ ok( $rc == 0 && $out =~ m|relayed 0 nodes| && $out =~ m|4 nodes wait|,
     'adopt before the push maps nothing and says what waits'
 ) or say $out;
 
-$ENV{'N7FS_SSH'}       = "$FindBin::Bin/fixtures/n7fs/forced-ssh.sh";
+$ENV{'N7FS_SSH'} = "$base/forced-ssh.sh";
+copy_tree( "$FindBin::Bin/fixtures/n7fs/forced-ssh.sh", $ENV{'N7FS_SSH'} );
 $ENV{'FORCED_PERL'}    = $EXECUTABLE_NAME;
 $ENV{'FORCED_RECEIVE'} = "$FindBin::Bin/../n7fs-receive";
 $ENV{'FORCED_DIR'}     = $far;
@@ -386,8 +387,8 @@ ok( $rc == 0 && $out !~ m|^bad|m && $out !~ m|trash|,
 
 done();
 
-#,,.,,,.,,,.,,.,.,..,,.,,,,,.,.,.,,.,,,,,,...,..,,...,...,..,,,..,.,.,...,.,,,
-#LXKQBXXV74KLLDUACPS4ZAPMKEMAV4DTFHZJ2Z6TQAZWBY7V2MRX5HLB2BN6QDXZDKSRT5JK2IBOY
-#\\\|TEJZ6I2OA3PUYVJJH3JZIHVZHUBVHZFQ3X7PKDN2XSIYGXZIWQE \ / AMOS7 \ YOURUM ::
-#\[7]ST3UF3WTARJYIHUO7QI5MNFRSID7Y5VVWXZZSUKF4AGMFXOH2AAY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,..,,..,,,,,,,..,.,.,..,,,..,..,,...,.,.,.,.,...,,,.,,,.,.,,,
+#YK7EOXPUP6PB3E5JT3VXIM3VQK5NUUB4QZYEWSTQKEZ3PS6G5IBWGDUP7AVGS6ROJIL5HOOUAVCPG
+#\\\|HXDNRYDSBHKUH3WEQDBCCI3D6VJFPEC2Z7BOMXAP3D2ATMKILBK \ / AMOS7 \ YOURUM ::
+#\[7]CZ3E6WYKTYCTKQQJS3RYRGGXQ6HDNHZJ26A74QELLJIEFQAJXKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

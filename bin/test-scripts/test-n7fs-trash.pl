@@ -353,7 +353,8 @@ ok( $rc == 0, 'gc after migrate is structural, no -only-root' )
 
 ##[ the same over fake ssh ]##################################################
 
-my $fake = "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh";
+my $fake = "$base/fake-ssh.sh";
+copy_tree( "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh", $fake );
 chmod 0755, $fake or die $OS_ERROR;
 my $remote = "$base/remote";
 make_dirs( $remote, 0700 );
@@ -412,8 +413,8 @@ sub _today {
 
 done();
 
-#,,,,,,..,,,,,,,,,..,,..,,...,,,,,,,,,,,,,,,,,..,,...,...,,,,,,,.,,,.,,,,,..,,
-#MXE4DSM55N2F5PFEUNCX2TWZWRQ63ETV5XNIY5FNMDXXHPJAZCHK45FD2XMHLXJU24GBUDYOIHC4M
-#\\\|U3HEKUEIRW2243FY2JSVDSFIZ66NLF3UWWOJ3WXGIJR277CW5QP \ / AMOS7 \ YOURUM ::
-#\[7]LKC3E4OQC5U4Y45LF5ZBHLGQLH5Z5FXUDFOLFJAYGECZGTVWB2DA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,..,,.,,,,.,,,.,,,.,,,,,,..,,,..,..,,...,...,...,.,.,,,,,,.,,..,,
+#NLP6OD4RN4JPO6UMXAII47GXUVJOU7AUL2F2C52HHTLVGDLAOPDT6AZCJART42FVZTE5O4SDVOJHE
+#\\\|DPF7EXXNJESLM4HGTIFON2CODUX4AQSD2PJAXORDRL4NOU4RKUM \ / AMOS7 \ YOURUM ::
+#\[7]OJJ65TW5G7AVCD5YQML3JWXI6OXX5SL32LOMWHL2XHZFAIBTPQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -235,7 +235,8 @@ ok( $rc != 0 && $out =~ m|room for 0| && !blobs("$base/full"),
 ) or say $out;
 
 ## over ssh : to a remote holder and back from it ##
-my $fake = "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh";
+my $fake = "$base/fake-ssh.sh";
+copy_tree( "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh", $fake );
 chmod 0755, $fake or die $OS_ERROR;
 make_dirs( "$base/remote", 0700 );
 write_file( "$base/ssh.log", '' );
@@ -273,8 +274,8 @@ ok( $rc == 0 && read_file("$base/rec-back/g3") eq "more 3\n",
 
 done();
 
-#,,.,,..,,..,,,,,,.,.,..,,..,,,,,,.,.,,.,,,..,..,,...,.,.,..,,.,,,,.,,...,..,,
-#6VWO63F5UZZSECGFHIHK52A2QN32NUI4MDOAYPKU76WELIQZR5VHIX4R2R45TWDEGB6OB4UM4VHSM
-#\\\|UUVVULFOABV4GYFP4UTYAJVCFXFRZ2SCUZHXPWXQZWZALSUXC27 \ / AMOS7 \ YOURUM ::
-#\[7]KZ7NRLHPJQ2EZUVI4URC5W6ROHGTEPJWYOPHUIK5KJC5YLP36YBY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,.,.,.,,,,.,,,..,,,,,,..,,..,..,,...,...,..,,,,.,,.,,.,.,...,
+#7LJJTLE6IYHKGMZMCDXXX3IRLBUFZ55BCLLAE5YSG7JMLWHI7R7LG62HBPNYJ6IM5UOPSKP4GFLRQ
+#\\\|PN3TNZKIBD3DGTESWSSOW5E5EOZ3RATEUY5FDIDNSU6LFEZVJUU \ / AMOS7 \ YOURUM ::
+#\[7]T6F4SO3RFI6EZJJFCNIOARMOSFPBDP6AA5GEDBS3ISOM32SALADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

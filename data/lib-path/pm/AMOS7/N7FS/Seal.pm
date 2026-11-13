@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.OCKOAVQ |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.6R6DIWQ |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -124,7 +124,8 @@ sub _open_outer {
 sub _long_aad {
     my ( $domain, $id, $counter ) = @_;
     return "P7SE\x01" . $domain . pack( qw| Q> |, $counter )
-        if $domain !~ m{\A(?:head|map|journal)\z};
+        if $domain
+        !~ m{\A(?:head|map|map-shard-[0-9A-F]{2}|map-tree|journal)\z};
     return "P7SE\x01" . pack( 'n/a* a16 Q>', $domain, $id, $counter );
 }
 
@@ -369,6 +370,57 @@ sub _head_bytes {
     return $sealed . "P7SH\x01" . $outer;
 }
 
+## every sealed map blob of one commit shares writer and version : the ##
+## domain [ map \ map-shard-XX \ map-tree ] keeps each nonce unique    ##
+sub _map_plain {
+    my ( $root, $base, $alt, $desc, $domain ) = @_;
+    refuse('sealed map blob descriptor is invalid')
+        if ref $desc ne qw| HASH |
+        or ( $desc->{'version'} // '' ) !~ m|\A[1-9]\d*\z|;
+    my $writer = unb32( $desc->{'writer'} // '' );
+    refuse('sealed map blob writer is invalid')
+        if not defined $writer
+        or length $writer != 16;
+    my $bytes = eval { _read_blob( $base, $desc->{'blob'} ) };
+    $bytes = _read_blob( $alt, $desc->{'blob'} )
+        if not defined $bytes
+        and defined $alt
+        and $alt ne $base;
+    refuse('map writer does not match its descriptor')
+        if substr( $bytes, 0, 16 ) ne $writer;
+    my $plain = open_sealed_bytes(
+        $root->{'keys'},
+        substr( $bytes, 16 ),
+        $domain // qw| map |,
+        $writer, $desc->{'version'}
+    );
+    refuse('sealed map shard checksum does not match')
+        if defined $desc->{'checksum'}
+        and bmw_b32( bmw384_bytes($plain) ) ne $desc->{'checksum'};
+    return $plain;
+}
+
+sub _node_shard {
+    my $address = shift // '';
+    refuse('node address is empty') if not length $address;
+    return uc unpack( 'H2', substr( $address, 0, 1 ) );
+}
+
+sub _lazy_nodes {
+    my ( $root, $base, $alt, $shards ) = @_;
+    my %nodes;
+    tie %nodes, 'AMOS7::N7FS::Seal::LazyNodes', $root, $base, $alt, $shards;
+    return \%nodes;
+}
+
+sub _map_blob_names {
+    my ( $head, $map ) = @_;
+    my %names = map { $ARG => TRUE } $head->{'map'}, $head->{'journal'},
+        ( map { $ARG->{'blob'} } values $map->{'_shards'}->%* );
+    $names{ $map->{'_tree_blob'}{'blob'} } = TRUE if $map->{'_tree_blob'};
+    return keys %names;
+}
+
 sub _context {
     my ( $root, $dir, $recover ) = @_;
     holder_mkdir($dir) if not $recover;
@@ -399,33 +451,138 @@ sub _context {
     my $map = {
         qw| root_id |    => $root->{'root_id'},
         qw| categories | => {},
-        qw| nodes |      => {},
         qw| trees |      => {},
+        qw| _shards |    => {},
     };
+    $map->{'nodes'} = _lazy_nodes( $root, $base, undef, $map->{'_shards'} );
     if ( defined $head ) {
-        my $writer = unb32( $head->{'writer'} // '' );
-        refuse('head writer id is invalid') if not defined $writer;
-        ## mid-migration the map may already sit in the other layout dir :  ##
-        ## the name is the checksum of its bytes, so the fallback reads the ##
-        ## same authenticated content, never a different map                ##
-        my $bytes = eval { _read_blob( $base, $head->{'map'} ) };
-        if ( not defined $bytes ) {
-            my $alt = holder_sub_spec( $dir, root_subdir($root) );
-            $bytes = _read_blob( $alt, $head->{'map'} ) if $alt ne $base;
+        my $alt = holder_sub_spec( $dir, root_subdir($root) );
+        ## mid-migration the root may already sit in the other layout dir ##
+        my $plain = _map_plain(
+            $root, $base, $alt,
+            {   qw| blob |    => $head->{'map'},
+                qw| writer |  => $head->{'writer'},
+                qw| version | => $head->{'version'},
+            }
+        );
+        my $stored = eval { $JSON->decode($plain) };
+        refuse(   'legacy single-map form is refused '
+                . '; reseal into a sharded map' )
+            if ref $stored eq qw| HASH | and exists $stored->{'nodes'};
+        refuse('sealed map root is invalid')
+            if ref $stored ne qw| HASH |
+            or ( $stored->{'format'} // '' ) ne qw| n7fs-sharded-map-v1 |
+            or ( $stored->{'depth'}  // 0 ) != 1
+            or ref $stored->{'shards'} ne qw| HASH |
+            or ( $stored->{'root_id'} // '' ) ne $root->{'root_id'};
+        $map->{'categories'} = $stored->{'categories'} // {};
+        $map->{'trees'}      = $stored->{'trees'}      // {};
+        $map->{'_shards'}    = $stored->{'shards'};
+        $map->{'_tree_blob'} = $stored->{'tree_blob'};
+
+        if ( $map->{'_tree_blob'} ) {
+            my $tree_plain
+                = _map_plain( $root, $base, $alt, $map->{'_tree_blob'},
+                qw| map-tree | );
+            $map->{'trees'} = eval { $JSON->decode($tree_plain) };
+            refuse('sealed map trees are invalid')
+                if ref $map->{'trees'} ne qw| HASH |;
         }
-        refuse('map writer does not match its head')
-            if substr( $bytes, 0, 16 ) ne $writer;
-        my $plain = open_sealed_bytes( $root->{'keys'}, substr( $bytes, 16 ),
-            qw| map |, $writer, $head->{'version'} );
-        $map = eval { $JSON->decode($plain) };
-        refuse('sealed map is invalid')
-            if ref $map ne qw| HASH |
-            or ref $map->{'nodes'} ne qw| HASH |
-            or ( $map->{'root_id'} // '' ) ne $root->{'root_id'};
-        $map->{'trees'} //= {};
+        $map->{'nodes'}
+            = _lazy_nodes( $root, $base, $alt, $map->{'_shards'} );
     }
     return ( $state, $head, $map, $base );
 }
+
+package AMOS7::N7FS::Seal::LazyNodes;
+
+use English;
+
+sub TIEHASH {
+    my ( $class, $root, $base, $alt, $shards ) = @_;
+    return bless {
+        qw| root |   => $root,
+        qw| base |   => $base,
+        qw| alt |    => $alt,
+        qw| shards | => $shards,
+        qw| cache |  => {},
+        qw| plain |  => {},
+    }, $class;
+}
+
+sub _load {
+    my ( $self, $shard ) = @_;
+    return $self->{'cache'}{$shard} if exists $self->{'cache'}{$shard};
+    my $desc = $self->{'shards'}{$shard} // return $self->{'cache'}{$shard}
+        = {};
+    my $key = join "\0", $shard, @{$desc}{qw| blob writer version |};
+    $self->{'plain'}{$key}
+        //= AMOS7::N7FS::Seal::_map_plain( @{$self}{qw| root base alt |},
+        $desc, qq|map-shard-$shard| );
+    my $plain = $self->{'plain'}{$key};
+    my $nodes = eval { $JSON->decode($plain) };
+    AMOS7::N7FS::refuse('sealed map shard is invalid')
+        if ref $nodes ne qw| HASH |;
+    return $self->{'cache'}{$shard} = $nodes;
+}
+
+sub FETCH {
+    my ( $self, $address ) = @_;
+    return _load( $self, AMOS7::N7FS::Seal::_node_shard($address) )
+        ->{$address};
+}
+
+sub EXISTS {
+    my ( $self, $address ) = @_;
+    return
+        exists _load( $self, AMOS7::N7FS::Seal::_node_shard($address) )
+        ->{$address};
+}
+
+sub STORE {
+    my ( $self, $address, $entry ) = @_;
+    _load( $self, AMOS7::N7FS::Seal::_node_shard($address) )->{$address}
+        = $entry;
+    return $entry;
+}
+
+sub DELETE {
+    my ( $self, $address ) = @_;
+    return
+        delete _load( $self, AMOS7::N7FS::Seal::_node_shard($address) )
+        ->{$address};
+}
+
+sub CLEAR {
+    my $self = shift;
+    _load( $self, sprintf '%02X', $ARG ) for 0 .. 255;
+    $ARG->%* = () for values $self->{'cache'}->%*;
+    return;
+}
+
+sub FIRSTKEY {
+    my $self = shift;
+    my @addresses;
+    foreach my $index ( 0 .. 255 ) {
+        my $nodes = _load( $self, sprintf '%02X', $index );
+        push @addresses, keys %{$nodes};
+    }
+    @addresses = sort @addresses;
+    $self->{'iteration'} = \@addresses;
+    return shift $self->{'iteration'}->@*;
+}
+
+sub NEXTKEY { return shift $ARG[0]->{'iteration'}->@* }
+
+sub SCALAR {
+    my $self  = shift;
+    my $count = 0;
+    $count += scalar keys %{ _load( $self, sprintf '%02X', $ARG ) }
+        for 0 .. 255;
+    return $count;
+}
+
+package AMOS7::N7FS::Seal;
 
 ## a holder reached under a new spec : its head must be there and not older
 ## than the pin of the old spec, then the pin moves over
@@ -467,18 +624,64 @@ sub _commit {
     fault(qw| seal:after-reservation |);
     _state_write( $root, { %{$state}, qw| version | => $version } );
     fault(qw| seal:after-version |);
-    my %stored = %{$map};
-    delete $stored{'_root_keys'};
-    $stored{'categories'} = {};
+    my $categories = {};
 
     foreach my $name ( keys $map->{'categories'}->%* ) {
-        $stored{'categories'}{$name} = { $map->{'categories'}{$name}->%* };
-        delete $stored{'categories'}{$name}{'_key'};
+        $categories->{$name} = { $map->{'categories'}{$name}->%* };
+        delete $categories->{$name}{'_key'};
     }
-    my $map_bytes = $writer
-        . seal_bytes( $root->{'keys'}, $JSON->encode( \%stored ),
-        qw| map |, $writer, $version );
-    my $map_name = _write_blob( $root, $base, $map_bytes, qw| map | );
+    my %sealed_map;
+    my $seal_map = sub {
+        my ( $plain, $domain ) = @_;
+        my $sum = bmw_b32( bmw384_bytes($plain) );
+        return $sealed_map{"$domain\0$sum"} if $sealed_map{"$domain\0$sum"};
+        my $bytes
+            = $writer
+            . seal_bytes( $root->{'keys'}, $plain, $domain, $writer,
+            $version );
+        return $sealed_map{"$domain\0$sum"} = {
+            qw| blob |     => _write_blob( $root, $base, $bytes, qw| map | ),
+            qw| checksum | => $sum,
+            qw| writer   | => b32($writer),
+            qw| version  | => $version,
+        };
+    };
+    my $nodes  = tied %{ $map->{'nodes'} };
+    my %shards = %{ $map->{'_shards'} // {} };
+    foreach my $index ( 0 .. 255 ) {
+        my $shard = sprintf '%02X', $index;
+        next if not exists $nodes->{'cache'}{$shard} and $shards{$shard};
+        ## an empty shard has no blob : the root simply does not list it ##
+        if ( not %{ $nodes->{'cache'}{$shard} // {} } ) {
+            delete $shards{$shard};
+            next;
+        }
+        my $plain = $JSON->encode( $nodes->{'cache'}{$shard} );
+        my $sum   = bmw_b32( bmw384_bytes($plain) );
+        next if ( $shards{$shard}{'checksum'} // '' ) eq $sum;
+        $shards{$shard} = $seal_map->( $plain, qq|map-shard-$shard| );
+    }
+    my $tree_plain = $JSON->encode( $map->{'trees'} // {} );
+    my $stored     = {
+        qw| format |     => qw| n7fs-sharded-map-v1 |,
+        qw| depth |      => 1,
+        qw| root_id |    => $root->{'root_id'},
+        qw| categories | => $categories,
+        qw| shards |     => \%shards,
+    };
+    if ( length $tree_plain >= 1024**2 ) {
+        my $tree_sum = bmw_b32( bmw384_bytes($tree_plain) );
+        $stored->{'tree_blob'}
+            = ( $map->{'_tree_blob'}{'checksum'} // '' ) eq $tree_sum
+            ? $map->{'_tree_blob'}
+            : $seal_map->( $tree_plain, qw| map-tree | );
+    } else {
+        $stored->{'trees'} = $map->{'trees'} // {};
+    }
+    my $map_name = $seal_map->( $JSON->encode($stored), qw| map | )->{'blob'};
+    $map->{'_shards'}    = \%shards;
+    $map->{'_tree_blob'} = $stored->{'tree_blob'};
+    $nodes->{'shards'}   = \%shards;
     fault(qw| seal:after-map |);
     my $journal = $JSON->encode(
         {   qw| writer |    => b32($writer),
@@ -806,8 +1009,19 @@ sub seal_nodes {
     my @new;
     my @pending_files;
     my ( $sealed, $batch_bytes, $tagged ) = ( 0, 0, 0 );
-    my %pack  = ( qw| bytes | => "P7SP\x01", qw| entries | => [] );
-    my $flush = sub {
+    my $commit_bytes = $opt{'commit_bytes'} // $ENV{'N7FS_TEST_SEAL_BYTES'}
+        // 64 * 1024**2;
+    my $commit_age = $opt{'commit_age'} // $ENV{'N7FS_TEST_SEAL_AGE'}
+        // parse_y_age('4Y5');
+    $commit_age = parse_y_age($commit_age)
+        if defined $commit_age and $commit_age !~ m|\A\d+(?:\.\d+)?\z|;
+    refuse('seal commit byte limit must be positive')
+        if $commit_bytes !~ m|\A\d+(?:\.\d+)?\z| or $commit_bytes <= 0;
+    refuse('seal commit age must be a positive ntime or Y age')
+        if not defined $commit_age or $commit_age <= 0;
+    my $last_commit = ntime_now();
+    my %pack        = ( qw| bytes | => "P7SP\x01", qw| entries | => [] );
+    my $flush       = sub {
         return if not $pack{'entries'}->@*;
         my $name = _write_blob( $root, $base, $pack{'bytes'}, qw| pack | );
         $ARG->{'blob'} = $name for $pack{'entries'}->@*;
@@ -915,8 +1129,8 @@ sub seal_nodes {
         push @new, $address;
         $sealed++;
         $batch_bytes += $length;
-        if (   @new >= ( $ENV{'N7FS_TEST_SEAL_BATCH'} // 1000 )
-            or $batch_bytes >= 1024**3 ) {
+        if ( $batch_bytes >= $commit_bytes
+            or ntime_now() - $last_commit >= $commit_age ) {
             $flush->();
             $counter->{'version'} = _commit( $root, $base, $pin, $counter,
                 $map, { qw| seal | => [@new] } );
@@ -924,6 +1138,7 @@ sub seal_nodes {
             $batch_bytes  = 0;
             $tree_changes = 0;
             $tagged       = 0;
+            $last_commit  = ntime_now();
             unlink for @pending_files;
             @pending_files = ();
         }
@@ -1375,7 +1590,7 @@ sub holder_check {
         ## says nothing about the map's key material, which the chunked     ##
         ## checks authenticate with the root                                ##
         my @names = sort keys %blobs;
-        push @names, $head->{'map'}, $head->{'journal'};
+        push @names, _map_blob_names( $head, $map );
         my $result = holder_scrub( $top, \@names, undef, $tag );
         refuse(
             'holder scrub is not clean : %s bad, %s missing',
@@ -1446,7 +1661,7 @@ sub holder_gc {
         . "keeps each root in its own subdirectory\n"
         if $per_root and $opt{'only_root'};
     my %keep = map { $ARG => TRUE } _head_name( $opt{'root'} ),
-        $head->{'map'}, $head->{'journal'};
+        _map_blob_names( $head, $map );
     $keep{ $map->{'nodes'}{$ARG}{'blob'} } = TRUE
         for keys $map->{'nodes'}->%*;
     ## pushed by a relay, not adopted yet ##
@@ -1591,7 +1806,7 @@ sub holder_migrate {
     refuse('no sealed head on this holder') if not defined $head;
     my $tag       = root_subdir( $opt{'root'} );
     my $head_name = _head_name( $opt{'root'} );
-    my %move      = map { $ARG => TRUE } $head->{'map'}, $head->{'journal'},
+    my %move      = map { $ARG => TRUE } _map_blob_names( $head, $map ),
         ( map { $map->{'nodes'}{$ARG}{'blob'} } keys $map->{'nodes'}->%* ),
         @{ $opt{'keep'} // [] };
     my @blobs = sort grep { $ARG ne $head_name } keys %move;
@@ -1919,8 +2134,8 @@ sub shred_node {
 
 1;
 
-#,,,.,..,,,..,,,.,...,.,.,,,,,,,.,...,.,.,.,,,..,,...,...,.,.,,,.,,,,,...,.,,,
-#QUPNBQAUVHYJRYXUMS3ZWRDHGFKXYSVZ5L64RDARFA6PFINKDN6ZRJJRKHPDSHCNU5XLXRUYRFFEG
-#\\\|FLY35RX3C23NAMNZM7BEK6LRNGFSQMVKZBPSOPF5ODQKFBTWSEV \ / AMOS7 \ YOURUM ::
-#\[7]ORXC4QL726AMGIWFMXU4O5WEY2Q7UA7TFQMPQE4GUOJHM7Q4QABA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,,,.,,,,,,,...,.,,,...,,.,,,,.,..,,...,...,,,.,.,,,...,,,.,,..,
+#TG7HZCUT2IJRPD2BKPPE6BK7BLK3HC4AL3P6GIZIUH35S33QM6D2D2GXWME6GUKLCUY7BI2QVY6BM
+#\\\|XTAZ7BFQT2QN6GJ6VMO4NKTJYQH4QA7A3LZWYSVMSFHLJ7R42UM \ / AMOS7 \ YOURUM ::
+#\[7]372QCRUNJCZOGRFTAWWP6U3E7THVPEKN2DLB4OVWVIWI7EDPUWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
