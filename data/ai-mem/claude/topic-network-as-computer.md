@@ -176,6 +176,175 @@ computation ; the place computes, machines are only its current occupants.
   method is the EXOSKELETON OF AGENCY -- only true in stable recursion at
   scale [ the same rules holding at every level, cell to root ; a rule
   that changes between scales breaks the skeleton ].
+- **self-shaping zenki and two-way templates** [ owner ] : a zenka shapes
+  its immediate infrastructure, the sum of its perspectives is its
+  worldview ; on a deduplicated world all worldviews share one base, so
+  personalization adds RESOLUTION [ local detail ] instead of fragmenting.
+  zenki see the templates users already use [ their vision ] ; what a zenka
+  refines for itself flows back into user templates when it is the most
+  refined matching pattern that already exists. overlaps are shared,
+  differences coexist, nothing has to win. bound : self-shaping happens
+  inside the same gates [ tests as proof, sign-off, access rules ].
+- **one functional visual language** : parent environment, zenki and user
+  templates speak the same [ somewhat psychedelic ] visual language, so
+  nested embedding anywhere needs no conversion or recomposition and
+  machines get the highest quality too ; a style upgrade happens only as
+  an intended, graceful step that could not exist before. frame
+  intelligence [ `VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md` ] : "load
+  distribution, storage allocation, and routing are the same operation :
+  field equalization" ; the technology is invisible because it is balanced,
+  the intelligence is in the frame, not the content.
+- **povray as the precision skeleton** [ `VISUAL-INPUT-PIPELINE-AND-LIVING-TEMPLATES.md`,
+  `LIVING-BACKGROUND-SYSTEM.md`, `VISUAL-GENERATION-NATIVE-ZENKA.md` ] : the
+  povray zenka renders exact geometry from live P7 data [ iris ring torus
+  stack, darksun core, orbital field, one sphere per active zenka ] ; its
+  depth \ normal \ edge maps condition a t2i model that cannot violate the
+  structure [ controlnet ] -- a deterministic skeleton, a living skin : the
+  stable method and living values again, in pixels. checksum-cached,
+  distributed as scene slices, 5-of-7 consensus groups ; templates filled
+  from namespace state via `povray.template.resolve`. owner, CONFIRMED in
+  practice : the JS visualizations serve as skeleton just as well -- their
+  parameters are recreatable, and t2i rendering given one as a reference
+  image aligns perfectly to it and its grid, even in the darkest, almost
+  invisible form. a faint parameterized grid is enough structure ; the
+  skeleton need not be visible to steer the skin [ frame intelligence :
+  balanced, near invisible, still decisive ]. what povray adds that the
+  JS views hardly can : PRECISE LAYERING -- the same scene rendered as
+  separate translucent layers [ same camera, same geometry, one layer per
+  element \ resource \ state ], recombined dynamically later. the layers
+  align pixel-exact because they come from one scene, so a view can show,
+  hide or reweight layers live without re-rendering -- the translucency
+  and overlap principle as a render pipeline, each layer cacheable by its
+  own checksum. owner : ideal for LIGHT-BASED SCANNING CYCLES of complex
+  network states -- a light sweep moves over the layered render [ the radar
+  sweep made visible ], lighting layer by layer or region by region ; what
+  it passes glows and fades as afterglow, so many states are read one
+  after another in one stable frame. slow, easily slowed sweeps [ owner
+  visual rule ]. owner : the sweep need not contain the states -- it is a
+  SCAN MASK [ pure light geometry, rendered once, cacheable ] ; data x mask
+  at composition time, and what crosses a THRESHOLD lights up and leaves
+  an afterglow, the rest stays dark [ non-resonance invisible ]. the
+  composite can be READ OUT OPTICALLY as a ranged state [ brightness per
+  region = a value in a range ], so one image is a display for people and
+  a sensor for zenki -- the assertion echo as a picture : the sweep asks,
+  the brightness answers. owner : an infinitely complex but easy to
+  inspect and optimize STATE MACHINE as an image -- translucent colours
+  proportional to existing resources [ area x opacity = amount, the image
+  IS the ledger, like the iris ring ledger ], and the HISTOGRAM validates
+  in one pass that all pixel totals lie in the protocol-defined ranges and
+  proportions : a conservation check like a checksum. keep : the histogram
+  checks totals, not positions [ pair it with the per-region optical
+  readout ] ; overlapping translucent colours mix, so exact accounting uses
+  one layer \ channel per resource [ povray precise layering ] with a
+  histogram per layer -- the mixed picture is for viewing, the layers are
+  for counting. owner : WHERE, WHAT and HOW share one visual parent
+  [ infrastructure ] language -- where = position \ ring \ arc, what =
+  colour \ category \ layer, how = brightness \ phase \ motion. one
+  picture states all three, and the same picture is ledger, map and state
+  machine. owner : because of that compatibility the layers can be
+  BALANCED while still OVERLAPPING in sufficient saturation -- the overlap
+  is the optimized burst capacity, and its RELIABILITY is an infrastructure
+  component of its own [ measured, kept, shown like any holder : the
+  alternates of the latency grid made visible as overlap density ]. owner :
+  and it SCALES PROPORTIONALLY -- what works small only gets more resolution
+  in the input data tree ; the function per cell and per iteration needs no
+  more memory, processing or time. precisely : per cell constant ; in total
+  more cells = more work, but each new cell comes with the node taking it
+  and that node's resources, so cost PER PARTICIPANT stays constant ;
+  questions about the whole run over tree levels, which grow only
+  logarithmically, each level the same small histogram pass. owner : and
+  that holds because the integration of the large-scale data already
+  happened on the ROUTE to the local processing layer, in self-sufficient
+  parallelism like a tree -- each branch aggregates its own subtree
+  independently [ a tree reduction ], so what arrives locally is already
+  integrated and the local step stays the same small one. owner : the
+  parallelism works because integration does NOT SKEW position upward along
+  the tree -- each aggregate covers exactly its subtree's region, so
+  neighbouring aggregates fit seamlessly on the next level, like povray
+  layers aligning pixel-exact from one scene. a cleanly aligned pyramid,
+  not a skewed one [ a shifted boundary leaks contributions into the
+  neighbour and errors add up upward ]. guaranteed by construction : base32
+  prefixes have exact boundaries, each Y level is exactly 13 of the next
+  finer, rings and arcs are exact. owner : NESTED RECT-TEMPLATE TREES
+  reduce position tracking further -- a child rect's place follows from its
+  index in the parent, so position is a PATH, not coordinates [ like a
+  base32 prefix ; a quadtree \ n-tree on the grid divisions ], and the
+  downscaling is a precise CASCADE, each level an exact fraction of the one
+  above. fits : `DECODER-VTERM-ARCHITECTURE.md` [ layer damage = the last
+  dirty rect, the compositor reads only it -- here "dirty" is a path, only
+  that branch recomputes, ancestors update their aggregate ] and
+  `data/tasks/image-surface-addressing.md` [ full rect rendered, entity mask
+  cuts it, visible fraction stored -- the scan-mask principle on rects ].
+- **holographic storage : perspective is the key** [ owner ]. the same data
+  readable, even nested, from one perspective and totally invisible from
+  another -- on its own and in network cycles. the thread through data/ :
+  "the branch tree is the spiral viewed from the side. view from above =
+  routing phase, view from the side = version\fork tree. same object, two
+  projections" [ `ORBITAL-CYCLE-CLOCK-AND-MAPPING-CANVAS.md`,
+  `HARMONIC-CUBE-ROUTING-MATHEMATICS.md` ; the iris \ layer stack \ vortex
+  triple ] ; "a non-compliant node becomes geometrically unreachable, not
+  blocked -- invisible" [ orbital archive ] ; the outer topology becomes
+  invisible from the route chain [ `NESTED-CUBE-NETWORK-SEGMENTATION.md` ] ;
+  "the observer does not configure proximity -- the key tree determines
+  it" [ `KEY-TREE-AUTHORITY-FIELD.md` ]. in cycles the perspective rotates
+  [ epoch, sweep, phase ] and things appear and vanish : time-gated
+  readability, the 3-valid-epoch window made visible. keep : geometric
+  invisibility is only as strong as the key behind it -- excluded by the
+  protocol is real, unseen by convention is obscurity ; true invisibility is
+  sealing [ the seeing perspective holds the key, every other sees noise,
+  provably ], as n7fs already does. owner : the base is that perspectives
+  DO NOT LIE ABOUT PRESENCE -- what something APPEARS as may differ per
+  perspective, all at once, respecting the intended privacy threshold by
+  the physics of optics in the cubic grid : READABLE from one angle,
+  SYMBOLIC from all others [ a glyph \ colour \ size-class : "something of
+  this kind is here", not what ]. privacy lives in resolution, not in
+  denying existence. keep : presence itself is information [ existence,
+  size, change timing ] -- two honest modes side by side : HONEST PRESENCE
+  [ default : visible everywhere, readable from one angle, symbolic from
+  the rest ] and UNLISTED [ without the terms no address at all -- for what
+  should only be reached deliberately ]. owner : and even the contextually
+  [ almost or totally ] invisible must still be REPRESENTED IN RESOURCES,
+  or it would just not be there -- not phase shifted, never in context. so
+  invisible-making can only happen with the awareness of a PARENT FRAME,
+  which is also the reference frame for overlaps, projections and the
+  cancellation itself : it keeps the account [ histogram, totals, ledger
+  show the consumed resources without content -- conservation holds ], it
+  defines what appears as what from where, and like destructive
+  interference [ waves cancel in one place, the energy is still there ] a
+  cancellation is only consistent while a frame keeps the balance. the
+  UNLISTED mode too : no address without the terms, but its resources are
+  accounted at the parent -- honest for the whole, invisible in detail.
+  owner : and even in a cancelled [ sub- ]system, distance, focal length
+  and angular rotation still reveal as SHIMMER what is in a cancelled
+  [ translucent canvas ] state -- like an initialized liquid crystal
+  display seen at an angle -- without disturbing the intentionally visible
+  layers, the ambience or the filter \ translucency layers : a quiet
+  texture of presence beneath them. honest presence in physical form, its
+  reference the parent frame, its cause the conserved resources. keep :
+  for UNLISTED content the shimmer may show that something is there and
+  roughly how large, never anything that works as an address.
+- **nested displays that dissolve when done** [ owner ] : a dynamic
+  structure of nested displays, each sub-display visible while its task is
+  open and intending to become invisible as the task is solved -- it
+  cancels into the translucent \ shimmer state and RETURNS its visual
+  representation requirement to the parent, which rearranges ; when all
+  children are done the parent dissolves into the next one up. the display
+  shrinks toward calm as work completes, the eye always drawn to what is
+  open -- the tree reduction in visual form [ completion moves up as
+  integration moved down ]. a gate open = visible ; completion fades as
+  afterglow [ gentle, owner visual rule ] ; the finished task keeps its
+  resources and receipt in the parent's account -- invisible but
+  RECALLABLE from the parent's ledger. owner : a done sub-display always
+  keeps a MINIATURIZED representation in the parent -- it returns its
+  space to become eternal again, on parent tap [ the 1x1 \ 3x3 parent
+  level of the colour-wheel pyramid, the precise downscaling cascade :
+  done work lives on as its own small, exact thumbnail, expandable on
+  demand ]. owner : even at 1x1 its essence echoes as MODULATION of
+  precision, hue and translucency -- the available colour precision,
+  especially as colour SEQUENCES over time, is endless, beyond the static
+  capability of the final display device. the data keeps full precision
+  [ wide floats per channel, a temporal sequence adds bits per frame ] ;
+  a display is only a quantized view of it, a zenka reads the full value.
 - **the frame** : "life itself interpreted as a sorting algorithm operating
   on entropy through a tree of overarching harmonic rhythms"
   [ `reference-tree-architecture.md`, `CONTEXT-TREE-UNIFIED-ARCHITECTURE.md` ] --
@@ -197,8 +366,8 @@ storage and addressing side.
 - [[harmonic-mathematics]] — generator 076923, the attractor values
 - [[project-vision-origin]] — 24-year foundational vision, threshold reached
 
-#,,.,,.,.,,,,,,..,,,,,.,.,..,,,,,,.,,,,,.,,,.,..,,...,...,...,,,,,.,,,,..,,,,,
-#KA6LQ3D3NDUC2J2TKGXWEFSM7GS6S67AHMUCNZ2RYZRKCG2OD3HPKNAAZIVWTWLX4NAKZMWQWRU2M
-#\\\|4LHLY7BR6G5FQFCDS25LPZMJJQRILC7OZQLJGGQ3PDC3TULTP3A \ / AMOS7 \ YOURUM ::
-#\[7]NXJ6ZJBBLLWFSLLBNO6LKTVY3WFMJBV6C3VUPQARPTM2ULKHIWCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,...,,,.,.,.,,..,.,,,...,..,,..,,...,...,..,,,,.,,.,,,..,,.,,
+#IIHDTP4EW7RKBE5LBFYJHJ3CZLGLAYTFN6GXOBPNE2S742JTYCQUE2VM63CY6JSMW6YFUGUZ7VFX6
+#\\\|L7KYNFPEBS3AFEPX3GZ44CD7ELR2U6FRKGDFUZSTMDBQTUK4SGB \ / AMOS7 \ YOURUM ::
+#\[7]36GL6TYSFKQEE6TURD24UB5PIZI5BTKIP5BCRVIHDPHRYIQMGMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
