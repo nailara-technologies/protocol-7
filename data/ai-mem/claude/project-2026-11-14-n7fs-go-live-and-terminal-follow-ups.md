@@ -47,6 +47,11 @@ metadata:
   degradation warning, compare canonical bytes on real map data first [ SIV names ].
   step 2 : a json-free n7fs format version [ shards, manifests, journal ] -- design stage,
   dual reader or re-seal, Fable window candidate.
+- send buffer [ owner idea 2026-11-14 ] : -bwlimit is a peak, the gaps [ commits, sealing,
+  one upload in flight, _throttle restarting per blob ] stay unused. one long-lived sender
+  per holder draining a bounded spool queue [ ~256 MB ] at the cap with one token bucket ;
+  sealer + commits only enqueue ; a commit is a barrier [ wait for its blobs, then the
+  head ]. flat predictable traffic, gentler on the usb wlan. before more parallel uploads.
 - -check-full : 3 ssh range reads per node ; use holder-check -scrub for full coverage until
   it is batched.
 
@@ -61,8 +66,8 @@ empty. b611a3601 background uploads ; script now ~/.n/n7fs/golive-2.sh [ -bwlimi
 owner order : wire the LAN cable, finish the re-seal, then the native linux install.
 [[n7fs-host-migration-goal]] [[session-handover-n7fs-fable-design-built]]
 
-#,,..,,,,,..,,,,,,..,,..,,,,.,,,.,,..,.,,,.,,,..,,...,..,,..,,.,,,.,.,,,,,,,,,
-#LAMWQ22GCNUYQ7YQ3FPMSYIGMU4VVQSJL6SB4EP3M54AU34WRJXKKZKJSJCZLFNP4YXEMOFPZ5RI2
-#\\\|DYQRNIRWPK3B2HLGNWFS4PKYKSX33NGCQWXNOUKQKSKQUV6UGFE \ / AMOS7 \ YOURUM ::
-#\[7]VE32C3I7KRHXHJYNNXXR3YGOUPE7EUXL46ZHFEUMHDBOLFWSTKAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,..,,,,.,...,,,.,,,.,.,.,...,..,,...,..,,,..,..,,...,,..,..,,
+#3RCL5M6JEDUK7GXAOER5LGU7B7ZQI77QKU4GRKVS44VVIOT2LGB5WBI7POSJGAJYW6OIVSIRVKVPU
+#\\\|62IRBJXUZNPN2GRZGPMS3RT5Q3NLV5G4TM66KWUOI7H3UZGS3ZP \ / AMOS7 \ YOURUM ::
+#\[7]B66QJ4JSFTA2ODO4B3WYD4FT3C7ZCUYTCLYHL4AV5V6Z572624AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
