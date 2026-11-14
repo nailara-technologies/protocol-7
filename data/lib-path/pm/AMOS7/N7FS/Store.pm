@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.U4BALDA |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.2A7YECQ |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -725,6 +725,8 @@ sub store_verify {
     require AMOS7::N7FS::Sync;
     my ( $cursors, $conflicts )
         = AMOS7::N7FS::Sync::sync_records_verify( $id, $replay );
+    require AMOS7::N7FS::Hold;
+    my $holds = AMOS7::N7FS::Hold::hold_records_verify( $id, $replay );
     return {
         qw| nodes | =>
             scalar store_nodes( $id->{'path'}, $state->{'epochs'}->@* ),
@@ -734,6 +736,7 @@ sub store_verify {
         qw| categories |  => $categories,
         qw| assignments | => $assignments,
         qw| batches |     => $batches,
+        qw| holds |       => $holds,
     };
 }
 
@@ -855,6 +858,7 @@ sub _quarantine_unjournaled_records {
             qw| sync-conflict |,
             'sync_conflict_history'
         ],
+        [ qw| hold |, qw| holds |, qw| hold |, 'hold_history' ],
     );
     foreach my $kind (@kinds) {
         my ( $record_kind, $subdir, $suffix, $expected ) = @{$kind};
@@ -1750,8 +1754,8 @@ sub _remove_source {
 
 1;
 
-#,,.,,.,,,.,,,,.,,,.,,,,.,...,,.,,,,,,.,,,...,..,,...,...,.,,,..,,.,.,..,,,,,,
-#CFMJQBV5M4UG5OGG6N4A52WHX4SIWYXJZCSWM5PLSG7NUZGNJBQDPTVSRMSN32QDOPEBKOFWCWXEQ
-#\\\|RN4GDWZ5FXRN7EYSGLPONJ2B6JVODKMOZGZAGBLDEE4O2QDL5QF \ / AMOS7 \ YOURUM ::
-#\[7]4XZEXTXANR7BE4UIHTELCZUF75XMTXJS3RQS6KTSI2TPQJHI5YDY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,.,.,,,..,,..,,,.,,.,.,,,,,.,.,..,,...,...,...,,..,.,,,,.,,,.,,
+#2FESODP2KDF3LXNQPJF5MCKPH3YVUW6GN5URDTEUNH2VNHV5GFDUIALQ7JB4WCO6FKHT6CCADE4PE
+#\\\|FTDPMJT5L5IBXOIFHF45IK5RFKCFV2D3XAGXFXZKU4N4ROUEFIB \ / AMOS7 \ YOURUM ::
+#\[7]DIESG7L3EWJE7OX4BR2PWLE5Z3SCJJSTCZLFDACGJZDWF3WFHAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

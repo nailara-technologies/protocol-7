@@ -48,6 +48,10 @@ use warnings;
 ## n7fs repack <disk> -root-key <key> [ -threshold <pct> ] [ -dry-run ]
 ##                 move live sealed pack bytes ; full receipt before gc
 ## n7fs restore <disk> <tree> <target> [ -owners ] [ -dry-run ]
+##                  [ -at <seq|hold> ]   restore the tree at that journal point
+## n7fs hold <disk> [ -reason <text> ] [ -for <n>Y<level> ]
+## n7fs holds <disk>                   live holds and what they protect
+## n7fs hold-release <disk> <id>      release a hold before its expiry
 ## n7fs category <disk> set <name>     [ -local-encryption none|cascade ]
 ##                  [ -copies <n> ] [ -priority <n> ] [ -replica full|manifest ]
 ##                  [ -want <holder,..> ] [ -foreign-work no|yes ]
@@ -64,6 +68,7 @@ use warnings;
 ## n7fs incoming <disk> list -group-by name:<n>  buckets by filename start
 ## n7fs incoming <disk> done         exit 0 when empty, 1 while nonempty
 ## n7fs sync <from-disk> <to-disk> [ -dry-run ] [ -trees-only ]
+##                  [ -hold <n>Y<level> ] [ -no-hold ]   default hold 1Y1
 ## n7fs sync-conflicts <disk>         unresolved concurrent sync changes
 ## n7fs sync-conflicts <disk> resolve <record-name> [ keep receiver value ]
 ## n7fs snapshot <disk> <source> -method <cmd|reflink|copy-verify|hardlink>
@@ -268,7 +273,8 @@ GetOptionsFromArray(
         no-check check-full repack threshold=f allow-stale min-version=i anchor
         list adopt seal-root=s also-root-key=s@ accept-clock show reset
         via=s access=s holders import-holders all-holders state-dir=s
-        method=s snapshot-cmd=s staging=s keep-staging=i shrink-limit=f |
+        method=s snapshot-cmd=s staging=s keep-staging=i shrink-limit=f
+        hold=s no-hold for=s at=s |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -319,6 +325,9 @@ my %run = (
     qw| retain |               => \&cmd_retain,
     qw| repack |               => \&cmd_repack,
     qw| restore |              => \&cmd_restore,
+    qw| hold |                 => \&cmd_hold,
+    qw| holds |                => \&cmd_holds,
+    qw| hold-release |         => \&cmd_hold_release,
     qw| category |             => \&cmd_category,
     qw| set-category |         => \&cmd_set_category,
     qw| incoming |             => \&cmd_incoming,
@@ -909,6 +918,11 @@ sub cmd_reclaim {
         say_line( $o{'dry-run'} ? 'would release ' : 'released ',
             $item->{'address'}, ' [ ', $item->{'size'}, ' content bytes ]' );
     }
+    say_line(
+        'reclaim kept ',
+        scalar keys $r->{'held'}->%*,
+        ' nodes under live holds'
+    ) if keys $r->{'held'}->%*;
     say_line('dry run : nothing was changed') if $o{'dry-run'};
     say_line( 'release does not prove the bytes unrecoverable ; copies, '
             . 'backups and filesystem history may retain them' );
@@ -1325,6 +1339,7 @@ sub cmd_restore {
         qw| target |  => $target,
         qw| owners |  => $o{'owners'}  ? TRUE : FALSE,
         qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
+        qw| at |      => $o{'at'},
     );
     say_line(
         $r->{'dry_run'} ? 'would restore ' : 'restored ',
@@ -1335,6 +1350,58 @@ sub cmd_restore {
     );
     say_line( 'not applied ', "$ARG $r->{'omitted'}{$ARG}" )
         for grep { $r->{'omitted'}{$ARG} } sort keys $r->{'omitted'}->%*;
+    return 0;
+}
+
+sub cmd_hold {
+    require AMOS7::N7FS::Hold;
+    my $disk = disk_arg(shift);
+    fail('hold : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Hold::hold_create(
+        %common,
+        qw| disk |     => $disk,
+        qw| host |     => host_signer(),
+        qw| reason |   => $o{'reason'} // 'manual hold',
+        qw| hold_age | => _age_value( $o{'for'} // '1Y1' ),
+    );
+    say_line( 'hold ', $r->{'path'}, ' [ journal ', $r->{'seq'},
+        ' ; expires ', $r->{'expires'}, ' ]' );
+    return 0;
+}
+
+sub cmd_holds {
+    require AMOS7::N7FS::Hold;
+    my ( $id, $state, $replay ) = _tree_context( disk_arg(shift) );
+    fail('holds : unexpected arguments') if @ARG;
+    my $now = ntime_now();
+    foreach my $hold ( AMOS7::N7FS::Hold::hold_list( $id, $state, $replay ) )
+    {
+        say join ' ', $hold->{'path'},
+            'created=' . $hold->{'ntime'},
+            'expires=' . $hold->{'expires'},
+            'seq=' . $hold->{'seq'},
+            'state=' . ( $hold->{'expires'} <= $now ? 'expired' : 'live' ),
+            'trees=' . ( join( ',', $hold->{'trees'}->@* ) || '-' ),
+            "references=$hold->{'references'}",
+            defined $hold->{'source'} ? "source=$hold->{'source'}" : (),
+            'reason=' . $hold->{'reason'};
+    }
+    return 0;
+}
+
+sub cmd_hold_release {
+    require AMOS7::N7FS::Hold;
+    my $disk = disk_arg(shift);
+    my $name = shift // fail('hold-release needs a hold id');
+    fail('hold-release : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Hold::hold_release(
+        %common,
+        qw| disk | => $disk,
+        qw| host | => host_signer(),
+        qw| name | => $name,
+    );
+    say_line( 'released hold ',
+        $r->{'path'}, ' [ journal ', $r->{'journal_seq'}, ' ]' );
     return 0;
 }
 
@@ -1509,6 +1576,11 @@ sub cmd_sync {
     my $from = shift // fail('sync needs a source disk');
     my $to   = shift // fail('sync needs a receiver disk');
     fail('sync : unexpected arguments') if @ARG;
+    fail('sync : -hold and -no-hold exclude each other')
+        if defined $o{'hold'} and $o{'no-hold'};
+    warn "n7fs : warning : -no-hold leaves "
+        . "sync drops without a restore hold\n"
+        if $o{'no-hold'};
     my $r = eval {
         store_sync(
             %common,
@@ -1518,6 +1590,10 @@ sub cmd_sync {
             qw| allow_rollback | => $o{'allow-rollback'} ? TRUE : FALSE,
             qw| dry_run |        => $o{'dry-run'}        ? TRUE : FALSE,
             qw| trees_only |     => $o{'trees-only'}     ? TRUE : FALSE,
+            qw| no_hold |        => $o{'no-hold'}        ? TRUE : FALSE,
+            defined $o{'hold'}
+            ? ( qw| hold_age | => _age_value( $o{'hold'} ) )
+            : (),
         );
     };
     if ( not defined $r ) {
@@ -2943,8 +3019,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,.,,,..,.,.,,.,,..,,,,,,,.,,,..,,,,,...,..,,...,..,,.,,,.,,,,,,,.,.,.,,,
-#TWRZRIYNTWU5LNKDMVOGUUUAWH35S2KMGO37J7X76BUD4I45WWJ3JH62HGVUFR3LKPW22INSJNU54
-#\\\|ADAGCDJ2HREBQBCLPGBHSWN5G2EKCLB2NSFX3WKHFR2MFQR6P4R \ / AMOS7 \ YOURUM ::
-#\[7]MOOSWG4LE4WX55JCJELUEHMEBXFFWPL3L5Q63FQRV3WX3HTRNABA 7  DATA SIGNATURE ::
+#,,,.,...,...,,,,,..,,...,,,,,..,,.,,,,,.,.,,,..,,...,..,,,.,,,,,,...,.,,,...,
+#MLQ3ENLWHG6YG7F4IXKG6H6ANKFKLRJJBXI2MVTP4AJ2KZMF3PRTTJO5576WV7SJTPOKKZZG3TJXK
+#\\\|I7PWERGM5K7EEBB2M5BVMHWDDYKJEDTCTAVJJQ5BMM5IOXA254A \ / AMOS7 \ YOURUM ::
+#\[7]ELVKZIU4AGXFW6KE6QP5GXQKVWHZBEHBMK5VRFXGH5MKJPGFLUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.XPDMSVI |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.ORFEWXA |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -767,11 +767,22 @@ sub tree_restore {
         refuse('restore is only available for store format 3')
             if $state->{'store_format'} != 3;
         my $replay = journal_replay($id);
+        if ( defined $opt{'at'} ) {
+            require AMOS7::N7FS::Hold;
+            my $seq
+                = AMOS7::N7FS::Hold::hold_selector_seq( $replay, $opt{'at'} );
+            $replay = journal_replay( $id, qw| upto | => $seq );
+        }
         ($tree)
             = grep { $ARG->{'name'} eq $name }
             tree_list( $id, $state, $replay );
     }
-    refuse( 'restore : no live tree [ %s ]', $name ) if not defined $tree;
+    refuse(
+        defined $opt{'at'}
+        ? 'restore : no tree at the requested journal point [ %s ]'
+        : 'restore : no live tree [ %s ]',
+        $name
+    ) if not defined $tree;
     my $manifest_symlinks = _manifest_preflight( $id, $state, $tree );
 
     if ( -e $target or -l $target ) {
@@ -945,8 +956,8 @@ sub tree_restore {
 
 1;
 
-#,,,,,,..,,..,,..,,..,...,.,.,,.,,..,,.,.,.,.,..,,...,...,.,,,.,,,.,.,..,,...,
-#ZKQGOFOI7YDTHNJX5HJIHDXXOCI7P2V2C6MM6H4L4BTS6QWDXXKVNY3ZM5TRU42FH6O4P5KU5HDDA
-#\\\|6BLTRFWSE4W2J26KM6BXNCKQW35NI76JK7W5ZBGYHB5YEOOKEVV \ / AMOS7 \ YOURUM ::
-#\[7]CHVS2GXENYH4RPTJAHXILCRBUMBJILQYIL6R4AJVTXM5MVA6U6AY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,.,,,.,...,..,,...,.,.,,.,,,,.,..,,...,...,,.,,..,,,,,,,,,,,..,
+#M3TGATPBZUVZISM3XJLAUNZEDWDTL4D5YBDV6V2JPZVKBYCP3H3OO7JJA2WXMW5BBFQ5EKKJ44AAK
+#\\\|OBEDBIRH3UAVTT46GP2EFLVEGASYCVNQWESSU3AJD4HRL27IKGG \ / AMOS7 \ YOURUM ::
+#\[7]5LK2SQWVKY6PAO3KZLCX4YZFEUCE36IJXOB2BUM3RYI3KQ23BGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
