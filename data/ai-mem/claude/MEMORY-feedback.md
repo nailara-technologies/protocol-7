@@ -166,6 +166,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [perl-self-signal-and-pty-test-traps](feedback-perl-self-signal-and-pty-test-traps.md) — re-raising a signal inside its own perl handler is blocked [ use STOP for TSTP ] ; a lost pty reads as EIO not eof ; pty harnesses : orphaned pgrp discards TSTP, closed-master drain waits 0 s
 - [verification-commands-no-side-effects-no-truncated-negatives](feedback-verification-commands-no-side-effects-no-truncated-negatives.md) — check commands stay read-only [ a `|| git stash` fallback ran ] ; no 'none exist' claim from a head-truncated listing
 
+## moved from MEMORY.md 2026-11-14 [ index size ]
+- [sampler-penalties-break-exact-copy](feedback-sampler-penalties-break-exact-copy.md) — DRY [ short allowed length ] + repeat_penalty make agent models mangle every copied path \ old_string [ 'protocol -7' ] : 9b 14b 35b all failed a 4-line edit until repeat_penalty 1.0 + dry_allowed_length 64 [ 35b3dbe6a ]. outlier fixes go PER MODEL ; 2026-10-31 : dry_penalty_last_n -1 [ full ctx ] broke quoting + tool calls -> 1024. check the sampler before blaming model or tool
+- [cpanm-force-install-blast-radius](feedback-cpanm-force-install-blast-radius.md) — `sudo cpanm --force <module>` for one narrow CPAN need can silently pull in an apt dependency chain that upgrades shared system crypto libs AND shift the effective default perl version — check `dpkg.log`/`apt list --upgradable` before *and* after any force-install on this host, flag explicitly even when the target module has nothing to do with crypto
+
 #,,.,,,.,,,..,,,,,.,.,.,,,...,,.,,.,,,,.,,.,.,..,,...,...,...,..,,,..,.,,,,,.,
 #7LE2BK4UQ5RUKQX7QWLXLNBIR2XONH62DQSG6BRKT2TPB35ATXEMHGU7EGYJ2DARMNR6URZTEAFLM
 #\\\|6MZ7LEMTWQTI6A375A5NGRCO3RLRKE2ESZNLZVJFQKPS2KJMWQX \ / AMOS7 \ YOURUM ::
@@ -265,8 +269,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [no-default-reply-timeouts](feedback-no-default-reply-timeouts.md) — never a default \ global reply timeout : opt-in by caller or context ; a stuck target is a liveness problem
 
-#,,..,.,,,,.,,,,,,,.,,,,,,,.,,,.,,,..,,,,,,..,..,,...,.,.,..,,,,.,..,,,..,...,
-#XQ3L25HBWAFUXLNDAM6ZJYB7WR54OQTNO5JQZDING7YKZLA4JGGXF4HLEYMOGELSQAMOXQLJQ2EUM
-#\\\|ATFAJUYL4HPV6HFW224KEMER3IZ53PZZNKNXJLKFULPPW7HFFGB \ / AMOS7 \ YOURUM ::
-#\[7]7JMCESBN3GDUYNDG6PZ55IEKCPIHQ25BTC6OGEFHZUFJLNYZAEAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,.,...,,..,,,,,...,..,,,..,,,.,..,,...,...,,,.,...,..,,.,.,...,
+#BI4T6CE2K5U4N7ZFBCUK6CY3XF5LHECCFL7APK6LIALNSSNEQSUZMCCORQ62SZ2BTGKP554EMNYP4
+#\\\|MML4JPABEV7TNNPJME4TJT5EOTSJIOJWQ5XDFUKTKXCMKOB5FDV \ / AMOS7 \ YOURUM ::
+#\[7]F2NOZJTC5T4DWZ3CNHWSCVQUNB2VFT5DYKLIDZUNTYZLO74LXOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

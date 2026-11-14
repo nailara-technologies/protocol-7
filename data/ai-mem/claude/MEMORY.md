@@ -5,31 +5,19 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [session-handover-n7fs-fable-design-built](project-2026-11-14-session-handover-n7fs-fable-design-built.md) — NEWEST, START HERE : Fable N7FS design 5 7 8 9 10 fully built + pushed ; nothing live until owner all-clear ; Fable window plan
 - [kimi-restores-files-it-did-not-touch](feedback-kimi-restores-files-it-did-not-touch.md) — kimi git-restored my notes twice + deleted a memory file : prompts forbid touching files it did not change ; commit notes first
 - [p7-config-style-not-json](feedback-p7-config-style-not-json.md) — hand-editable files : p7 config style, `=` and `:` equivalent, never json [ owner 2026-11-13 ]
 - [fable-access-window](project-2026-11-13-fable-access-window.md) — Fable 5.2 in plan until ~2026-11-16 : use for finding 5 review, findings 7 8 9 design
-- [session-handover-n7fs-review-findings](project-2026-11-13-session-handover-n7fs-review-findings.md) — NEWEST, START HERE : Fable N7FS findings 2 3 4 6 landed ; open 5 [ design first, fresh session ] 7 8 9 ; deploy notes ; add-only log mount sketch
-- [cert-watch-daily-renew](project-2026-11-12-cert-watch-daily-renew.md) — previous : letsencr daily renew + cert_watch live on 4 hosts ; first nightly CONFIRMED 11-13 ; real renew srv-U / F ~11-20
-- [n7fs-first-live-round](project-2026-11-11-n7fs-first-live-round.md) — previous : first live N7FS round done, all holders checked ; transport fixes ; events harmonic jitter + list events ; open items
-- [n7fs-relay-fanout-filters](project-2026-11-11-n7fs-relay-fanout-filters.md) — previous : stage 6 relay, push fan-out, holder filters landed ; hub topology ; next = live deploy
-- [session-handover-n7fs-rescue-chain](project-2026-11-11-session-handover-n7fs-rescue-chain.md) — older : N7FS stages 1-5 part 1, drain \ move, first proven rescue copy ; jobsite stall ; open items
+- [session-handover-n7fs-review-findings](project-2026-11-13-session-handover-n7fs-review-findings.md) — previous : Fable N7FS findings 2 3 4 6 landed ; open 5 [ design first, fresh session ] 7 8 9 ; deploy notes ; add-only log mount sketch
 - [54m-timer-during-long-kimi-runs](feedback-54m-timer-during-long-kimi-runs.md) — long waits : 54 minute background timer keeps the one hour cache alive
 - [n7fs-host-migration-goal](project-2026-11-08-n7fs-host-migration-goal.md) — NEXT WORK : N7FS sync + blind remote replicas for the native linux move ; decisions, see design N7FS-SEALED-REPLICAS.md
-- [session-handover-lease-loop-invoke-proxy](project-2026-11-08-session-handover-lease-loop-invoke-proxy.md) — previous : gpu lease loop with models on hold fixed, invoke.ai proxy + restart requeue, qwen21 holds the legacy models ; open items
-- [session-handover-n7fs-format3](project-2026-11-07-session-handover-n7fs-format3.md) — previous : N7FS format 3 complete [ stages 1-3, pushed ], dogfood on format 3, virtual render queue design
-- [session-handover-chksum-lease](project-2026-11-06-session-handover-chksum-lease.md) — previous : binary amos_chksum, gpu lease live with pause \ resume
-- [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — older : host labels, letsencr join fix
-- [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 [ OUTDATED : format 3 built 2026-11-07, see the handover ] ; CLI only, no zenka user yet
 - [kimi-wrapper-exit-not-done](feedback-kimi-wrapper-exit-not-done.md) — kimi_dispatch wrapper exit is NOT completion : wait for pgrep -x kimi-code too, never sign while it runs
 - [shm-permissions-forgeable-open](project-2026-10-22-shm-permissions-forgeable-open.md) — grants FIXED d02c3b067 ; open [ todo FKS, normal ] : local readers with file rights can still map a segment, encrypted pages next
 - [signature-valid-truth-map-ignored](project-2026-10-22-signature-valid-truth-map-ignored.md) — FIXED 2026-11-05 [ 66f759706, VWF ] : signature_valid honours a caller truth map [ truth checks only ] ; non-default map untested until the form footer
 - [new-task-command-three-lists](feedback-new-task-command-three-lists.md) — a new zenka command needs its own zenka.v7 list + gen-sub-whitelist, worker commands also the host overlay grant ; verify with `<zenka>.commands` and the far cube log
 - [sync-helpers-need-blocking-cube-socket](feedback-sync-helpers-need-blocking-cube-socket.md) — never flip a shared socket's mode : sync helpers read it ; per-call MSG_DONTWAIT instead
 - [ondemand-helper-recursion-in-deps-register](feedback-ondemand-helper-recursion-in-deps-register.md) — a new sub on the compile path recurses via register_*_deps : inline it
-- [deferred-history-purge](project-2026-10-30-deferred-history-purge.md) — ONE purge-paths run with the owner later : dep-graph .txz + old data/gfx/backgrounds/ images ; no remote re-add [ no origin ]
-- [nameserv-zone-delegation-plan](project-2026-10-30-nameserv-zone-delegation-plan.md) — plan : zenki take over dns [ own nameserv as master ] + mail, then RETIRE atom \ postfix \ inwx-as-master ; snapshots in /data/backup/{dns,mail}/ are the functional reference ; must be REBUILDABLE from tracked config [ reproducibility ] ; zones NOT current yet -> reconcile first
-- [fix-dns-zone-issues-when-seen](feedback-fix-dns-zone-issues-when-seen.md) — owner 2026-10-30 : fix zone defects when seen, name each ; mail paths [ MX + CNAME chain ] dig-verified before + after ; registrar only via owner-given access
-- [sampler-penalties-break-exact-copy](feedback-sampler-penalties-break-exact-copy.md) — DRY [ short allowed length ] + repeat_penalty make agent models mangle every copied path \ old_string [ 'protocol -7' ] : 9b 14b 35b all failed a 4-line edit until repeat_penalty 1.0 + dry_allowed_length 64 [ 35b3dbe6a ]. outlier fixes go PER MODEL ; 2026-10-31 : dry_penalty_last_n -1 [ full ctx ] broke quoting + tool calls -> 1024. check the sampler before blaming model or tool
 - [zenka-open-default-utf8-layer](feedback-zenka-open-default-utf8-layer.md) — every plain open() in src/* carries :encoding(UTF-8) [ bin/Protocol-7 `use open`, deliberate ] : files holding OCTETS [ encode_json, bodies, binary ] need '>:raw' \ '<:raw' on write AND read -- 2026-10-24 site-yaml outbox double-encoded 58 jobs [ 8b2384420 ] ; check bytes on disk, a layered round trip hides it
 - [changed-established-behavior-silently](feedback-changed-established-behavior-silently.md) — 2026-10-11 : switched the unit to Restart=on-failure as a side effect and called it intended ; teardown = restart was the user's habit. never change restart \ start \ default semantics silently -- name old vs new, ask, add new behavior as opt-in [ :no-restart: ]
 - [unix-auth-identity-bypass-fixed](project-2026-09-20-unix-auth-identity-bypass-fixed.md) — FIXED 2026-09-20 [ 5afa981f2 ] : unix-socket auth now checks the claimed identity against the kernel peer user ; reload plugins, not reload source
@@ -69,7 +57,6 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [editing-p7-owned-data-files-reowns-them](feedback-editing-p7-owned-data-files-reowns-them.md) — hand-editing a protocol-7-owned data file (e.g. a users.* record) via Edit/Write silently reassigns it to my own unix user, and the owning zenka then reports the record as NOT FOUND, not a permission error — check `ls -la` ownership before ever hand-editing such a file
 - [rename-scope-policy](feedback-rename-scope-policy.md) — never cite scope/blast-radius as a reason to hesitate on a rename; judge renames on improvement only — `bin/ncode` makes even large ones mechanical, and commercial deployments elsewhere forked off `base` years ago so nobody tracking `base` is disrupted
 - [hour-of-day-hedging-not-genuine](feedback-hour-of-day-hedging-not-genuine.md) — citing "the hour"/lateness as a reason to suggest stopping is a disengagement tic, not real signal (I don't know the user's actual local time); if a hard problem isn't converging, name the real uncertainty directly instead
-- [cpanm-force-install-blast-radius](feedback-cpanm-force-install-blast-radius.md) — `sudo cpanm --force <module>` for one narrow CPAN need can silently pull in an apt dependency chain that upgrades shared system crypto libs AND shift the effective default perl version — check `dpkg.log`/`apt list --upgradable` before *and* after any force-install on this host, flag explicitly even when the target module has nothing to do with crypto
 - [cpanm-triggered-inline-elf-utf8-boundary-bug](feedback-cpanm-triggered-inline-elf-utf8-boundary-bug.md) — CLOSED 2026-08-26 [ 521f5f867 a833fd4ec ] : 3 bugs in AMOS7::CHKSUM::ELF + crypt.C25519.load_keypair ; read before touching those or a bulk re-sign
 - [git-color-forced-verification-pitfall](feedback-git-color-forced-verification-pitfall.md) — this shell's git output is color-forced even when piped : hand-filtered "diff is empty" checks lie [ 2026-09-23 ] AND scripts parsing git output break silently [ 2026-10-14 : rewrite-hash-refs read ESC-wrapped `git grep -l` names, updated 0 of 5703 files ]. always `git -c color.ui=false <cmd> --no-color` in tools, never skip per-file failures silently
 - [git-restore-worktree-needs-source-head](feedback-git-restore-worktree-needs-source-head.md) — `git restore --worktree` with no `--source` restores from the INDEX, not HEAD; only safe in the instant right after `--staged` on the same paths, unsafe later if anything (e.g. a concurrent signing/commit tool) re-stages them first. Use `git restore --source=HEAD --staged --worktree -- <paths>` together, always. Same 2026-09-23 session, same false-corruption scare as the entry above
@@ -110,8 +97,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,.,.,,..,.,,,,,.,,..,,..,.,.,.,,,.,,,.,,,..,,...,...,..,,..,,..,,..,,,..,
-#VU6UERQSGRIXLXZ3FULEQGIZTDGS54FBT5CPZKCGA5RGOL6TC5PONWVI7TLWJTIWYCZSYDOSQ3RHY
-#\\\|23MYTRCOVAWGXQWYFX3ZLJ5CKQOW6G244GC7DFEY5F6LB36EUYV \ / AMOS7 \ YOURUM ::
-#\[7]LR4U2KHK5QZS26WEW4XFWXRMYJG4YSD2NJFP26EIAXJEJBW4YWAQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,,.,,,,,,,..,,.,,..,,,..,,,,,..,,...,..,,...,..,,,..,,..,,,,,
+#W7VMYBB2QLGGK6N4GT4ZO7JWK6TGFE6APW55NQMJLKKYL7UDFT2M2YTM6N5LBMEU2XXBTSH727L2E
+#\\\|HA5B6U6QMIDCHMGMQFKL5EMVJHAEGK46LQJ2C5RHZ4SUG7J5Z4H \ / AMOS7 \ YOURUM ::
+#\[7]BQ6HUQ7TAFGYPYZ3M64EPJY2GKXERJ5QQF4NJDVOGWJ3DUSYHQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

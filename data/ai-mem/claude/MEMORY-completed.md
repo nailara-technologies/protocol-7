@@ -198,8 +198,19 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   p7-deps styles the whole stream with TERM::Frame and uses the house `\b\b` SIGINT clean-exit.
   Live-verified on delta: ~8s real run through v7, framed, unattended.
 
-#,,,,,.,,,,,.,.,.,,,,,..,,,.,,,,,,,,.,,,,,,.,,..,,...,...,.,,,,,.,,,.,,..,...,
-#SJCGHEGI3RWVTAOPLZICEXWFQTENJZOMMTASI4ALGZK2POQZOB2GCGPCXGTUCDI3LIX4SB3PBBXV2
-#\\\|64RAOWEYSOUJQCOU4YX7ZCFL2B54KUIVG3372CEQFR5MM6ADNZD \ / AMOS7 \ YOURUM ::
-#\[7]QXC47W7QM5JUPHSOH5UHOXDPIKOR3KVX7U3B5X4Z5F647WIRDSCA 7  DATA SIGNATURE ::
+## older session handovers [ moved from MEMORY.md 2026-11-14 ]
+- [cert-watch-daily-renew](project-2026-11-12-cert-watch-daily-renew.md) — previous : letsencr daily renew + cert_watch live on 4 hosts ; first nightly CONFIRMED 11-13 ; real renew srv-U / F ~11-20
+- [n7fs-first-live-round](project-2026-11-11-n7fs-first-live-round.md) — previous : first live N7FS round done, all holders checked ; transport fixes ; events harmonic jitter + list events ; open items
+- [n7fs-relay-fanout-filters](project-2026-11-11-n7fs-relay-fanout-filters.md) — previous : stage 6 relay, push fan-out, holder filters landed ; hub topology ; next = live deploy
+- [session-handover-n7fs-rescue-chain](project-2026-11-11-session-handover-n7fs-rescue-chain.md) — older : N7FS stages 1-5 part 1, drain \ move, first proven rescue copy ; jobsite stall ; open items
+- [session-handover-lease-loop-invoke-proxy](project-2026-11-08-session-handover-lease-loop-invoke-proxy.md) — previous : gpu lease loop with models on hold fixed, invoke.ai proxy + restart requeue, qwen21 holds the legacy models ; open items
+- [session-handover-n7fs-format3](project-2026-11-07-session-handover-n7fs-format3.md) — previous : N7FS format 3 complete [ stages 1-3, pushed ], dogfood on format 3, virtual render queue design
+- [session-handover-chksum-lease](project-2026-11-06-session-handover-chksum-lease.md) — previous : binary amos_chksum, gpu lease live with pause \ resume
+- [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — older : host labels, letsencr join fix
+- [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 [ OUTDATED : format 3 built 2026-11-07, see the handover ] ; CLI only, no zenka user yet
+
+#,,,,,...,.,.,,..,.,.,..,,.,,,...,.,.,,.,,.,.,..,,...,...,.,,,,..,,.,,.,.,...,
+#LP6VJ7UYXGFBJ2PZ5WAMK7GXMRVCDYWT4TUUVOPYTS7EEIWO3KOMCOLU3IWILAQZUWXUVACJXTIVU
+#\\\|JTPHMINJJ5ZJ3M4PLXLRZ3SPKX4N3FCJ4IXESUDR53IJAZB3DTP \ / AMOS7 \ YOURUM ::
+#\[7]2PG346B4C2XALPDEEWJES7KRORFM6J63P5HXBXZIZF52DEBZZADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
