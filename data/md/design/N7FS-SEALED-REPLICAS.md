@@ -479,6 +479,72 @@ stage 4 is the first that gets essential data off the host.
   shared with `data/tasks/design-open-questions-2026-10-02.md` question 4, so
   home moves without losing the anchor [ heads, peers, offline anchor of
   findings 7 and 10 ]
+- graphical views as zenki, tied by this spec [ owner 2026-11-14 ] : the
+  n7fs core stays a headless cli ; zenki read its status \ heads \ receipts
+  \ drill records and provide views : holders as arcs grouped by control
+  domain [ colour ], receipt freshness as brightness [ the afterglow ],
+  copies as translucent overlap, gaps = under-replicated ; `n7fs cycle` as
+  route commitment [ done dim, current bright, the gate that did not open ] ;
+  snapshot trees on the Y-level spiral with the retention ladder thinning
+  outwards ; opt-in browse categories on the colour wheel [ 1x1 parents,
+  refined ring by ring ]. dark violet \ blue themes, slow easily slowed
+  motion [ owner rules ]. in overlap these views are LAYERS, PERSPECTIVES
+  AND COMPLEMENTS of the same data as the checksums and numbers, meeting in
+  a functional visual core on many scales -- likely closer to the network
+  core than raw numbers alone [ the iris \ layer stack \ vortex triple of
+  `data/md/development/VORTEX-LAYER-IRIS-CONNECTION.md`, the iris task modes
+  in data/tasks/ ]. the simplest tie into the spec is OPTIONAL AWARENESS :
+  records [ trees, holders, receipts, browse entries ] may carry native
+  metadata or mapped network attributes [ 1x1 mean colour, colour-wheel
+  position, control domain, ring \ arc slot, Y level ] ; the core carries
+  them unchanged and ignores what it does not need, a view zenka uses what
+  it recognizes -- no view-specific interface, a new view needs only a new
+  optional attribute. the next level : the same attributes feed INTERNAL
+  CURVES [ threshold, amplitude, shape ] whose output steers decisions and
+  preference -- placement weights from receipt freshness \ holder history,
+  retention \ prefetch priority from loves_it \ age \ category, the burst
+  alternate a request gets from aura \ latency. rules : curves are part of
+  the spec [ named, versioned, inspectable, drawable in the views -- why a
+  decision was made, not only that it was ] and carry hysteresis at their
+  thresholds [ no flapping, as calculated placement already requires ].
+  drawn, a curve makes the OPTIMUM a visible place : it can be aligned
+  towards [ distance and direction from the current state ], projected
+  [ the trend into the next Y4 \ Y3 window ] or encountered [ an activity
+  reaching it unplanned shows where the curve should really sit ]. curves
+  that correlate AND raise efficiency together become magnetic to each
+  other in resonance [ `SEMANTIC-PROXIMITY-MAGNETIC-ATTRACTION.md` applied
+  to curves ] : tuned together, shown together, families forming without
+  hand grouping. the attraction is earned : it strengthens only while the
+  coupling measurably improves efficiency and decays when it does not --
+  co-movement alone can be chance or a third factor. INVERSION AWARE : a
+  curve moving exactly against another is equally informative -- together
+  they are often one slower wave, so the system catches lower frequencies
+  \ longer-cycle oscillations instead of seeing noise [ the 1001 inversion
+  marker ]. and LACK of resonance is equally important : what does not
+  resonate passes through without being absorbed, never diluting the
+  working entropy with what does not work, and the non-resonance itself
+  says "not here", so it is sorted ELSEWHERE [ the empty rocket burst on a
+  larger scale ]. three responses : resonance [ bind ], inverse resonance
+  [ the other half of a slower wave ], non-resonance [ pass, route
+  elsewhere ]. generalized : inversion is the 180 degree case of a PHASE
+  OFFSET of scalar waveforms in a clock-synchronized system [ shared ntime
+  \ epochs make phase comparable network-wide ] -- the relation of two
+  curves is an angle : 0 resonance [ bind ], 90 QUADRATURE [ owner : a
+  case of its own -- like sine and cosine the pair describes a ROTATION,
+  angle and amplitude readable at every moment, i\q style ; the CCW spin of
+  the vortex, a rotating radar spoke IS two waves at 90 ], 180 inversion
+  [ the other half of a slower wave ]. non-resonance is something else : NO
+  stable phase relation, a wandering phase -- that passes and is sorted
+  elsewhere. ties to the even \ odd cycle principle : even \ odd is the
+  alternating bit, the 180 half-cycle ; the 90 offset turns that
+  alternation into a DIRECTION -- as in a quadrature encoder, which of two
+  waves 90 apart leads gives the rotation sign [ CW \ CCW ], the step
+  parity counts. a candidate answer to the open link "which mechanism feeds
+  a rotational parity bit into a spatial up\down sign"
+  [ `ORBITAL-CYCLE-CLOCK-AND-MAPPING-CANVAS.md` open item 3 ] and to
+  "torque = accumulated integer" [ the encoder's counter ]. in between : partial coupling with a measurable lead \ lag [ a curve leading another
+  by a quarter cycle is a prediction ]. phase becomes a SPACE coordinate,
+  like the CCW radar spokes finding sync points from aligned phase angles
 - erasure coding as the form of a "copy" : k-of-n fragments over sealed chunks.
   a placement rule : at most n-k fragments of a stripe per control domain.
   fragments differ between holders, so the two-holder challenge of identical
@@ -506,8 +572,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,,,,,.,,,.,,,..,,..,,..,,,,,.,,,...,.,.,,.,,..,,...,...,,..,,,.,.,,,,,,,,..,
-#OMHZOM5JHV62C5IHAR3VG65DORGHMM7EZBLKKSFWN4SZNH7EGTR7NCXR2OJOMJKWFBRCXT5EKFEP4
-#\\\|QDWU6L7FCAYKJ264NYNROWLY4YHUPGQ6RNGWJVMUB26C4MOVZ6O \ / AMOS7 \ YOURUM ::
-#\[7]AW6W3T6GINQSZQCS54N7RIQ3N7AIGGV2WIVMB76V7IN346QKAICQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,.,.,,..,,..,.,,,,.,,,,,,...,..,,...,...,,,.,,.,,,.,,.,.,,..,
+#PHZU32VYXCIA5S2AHVO6LJXNTWEPZK4JMZZ25MD2CX7HMEQFPNCHVQ6QBU7C7J3FULIULHVDV5YWO
+#\\\|EDNOVJDYX76PIEX3OZ54SO3SAVGW2UITWVZ57BZKP5Y4MRZVHQH \ / AMOS7 \ YOURUM ::
+#\[7]DDCAZIOMRJ2CHEM4XJXBLFGPNETIESMCZPOQZ2CYBIE65TYO6AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
