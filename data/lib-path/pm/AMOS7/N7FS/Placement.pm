@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.2YZOH7A |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.GYE5GGY |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -76,7 +76,7 @@ sub registry_path {
     my $root = shift // refuse('a registry file needs the open root');
     refuse('a vault root keeps its registry in the vault')
         if $root->{'vault'};
-    return "$root->{'path'}.state/registry";
+    return ( $root->{'state_dir'} // "$root->{'path'}.state" ) . '/registry';
 }
 
 ## the file-root and sealed form : one aligned config block per holder. the
@@ -1207,8 +1207,8 @@ sub holder_prune {
 
 1;
 
-#,,.,,..,,..,,..,,...,,.,,.,.,..,,,,,,.,,,,,,,..,,...,...,...,.,.,...,,..,.,.,
-#JDL7SEDLIRAARQO4UGLBJQ3EDOSYU76VJZK4VIMSJ6RSL7SSMS7EOLQJ423OGGD5VVEZNT46F5WRE
-#\\\|23G2KH34CX7PXRC5TJ6OHC3JA6Y33VRAJ27AJSHST6HJPCZFOL4 \ / AMOS7 \ YOURUM ::
-#\[7]JY4R2QAFHJ44MQUAD3HBLXQVS3F6HLPBA2NYL5RGK36OBB6BXUDI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,,,,..,,,,,,,,,.,.,,,,,,,.,,..,..,,...,...,,,.,,..,..,,,,,,,..,
+#EVPFU3NALJBLQPW3IUTIE5XTVVFKLUSIP4VOQYAPSFPEQUQ3MY7QCVHIAFAPTB7KUHL3V6AVKB73E
+#\\\|RXMCAYYVJH6RXPVCFSNHPF4WLYXROJEDJP4RHLZXRWG6VSJOPYT \ / AMOS7 \ YOURUM ::
+#\[7]ZLVRX6PBRMX4ZZPTQJWGPXO5VFZSA2QXCRFPYAUSSHOCWCNO7SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

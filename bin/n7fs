@@ -92,6 +92,11 @@ use warnings;
 ##                 or partial n of m per holder ; -partial lists missing paths
 ##                 -holders prints the sealed registry ; -import-holders makes
 ##                 it this root's authority ; -all-holders adds every holder
+##                 recovery writes no key-side state ; -state-dir <dir>
+##                 redirects it, otherwise recovery uses a temporary directory
+## n7fs drill <root-key> -from <holder> [ -tree <name> ]
+##                 restore the newest complete tree in a clean temporary
+##                 context, verify it and append a root-signed drill record
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
 ## n7fs heads -root-key <file> [ <holder>.. ] [ -anchor ]
 ##                 head versions, freshness verdicts and offline anchor
@@ -257,7 +262,7 @@ GetOptionsFromArray(
         categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
         no-check check-full repack threshold=f allow-stale min-version=i anchor
         list adopt seal-root=s also-root-key=s@ accept-clock show reset
-        via=s access=s holders import-holders all-holders |
+        via=s access=s holders import-holders all-holders state-dir=s |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -320,6 +325,7 @@ my %run = (
     qw| seal |                 => \&cmd_seal,
     qw| unseal |               => \&cmd_unseal,
     qw| seal-recover |         => \&cmd_seal_recover,
+    qw| drill |                => \&cmd_drill,
     qw| shred |                => \&cmd_shred,
     qw| holder-check |         => \&cmd_holder_check,
     qw| heads |                => \&cmd_heads,
@@ -1695,12 +1701,30 @@ my $SEAL_ROOT;
 sub _seal_root {
     return $SEAL_ROOT if defined $SEAL_ROOT;
     require AMOS7::N7FS::Keys;
-    return $SEAL_ROOT = AMOS7::N7FS::Keys::root_open(
+    my $root = AMOS7::N7FS::Keys::root_open(
         qw| path | => $o{'root-key'}
             // fail('sealing needs -root-key <file>'),
         qw| pass_fd |   => $o{'pass-fd'},
         qw| vault_dir | => $o{'vault-dir'},
     );
+    $root->{'host_dir'} = host_dir(%common);
+    if ( $command eq qw| seal-recover | or $command eq qw| drill | ) {
+        $root->{'state_dir'} = $o{'state-dir'};
+        my $key_state = "$root->{'path'}.state";
+        if (not defined $root->{'state_dir'}
+            and ( $command eq qw| drill |
+                or not -d $key_state and not $o{'import-holders'} )
+        ) {
+            require File::Temp;
+            $root->{'state_dir'} = File::Temp::tempdir(
+                'n7fs-recovery-state-XXXXXX',
+                TMPDIR  => 1,
+                CLEANUP => 1
+            );
+        }
+        $root->{'state_dir'} //= $key_state;
+    }
+    return $SEAL_ROOT = $root;
 }
 
 sub cmd_seal_root {
@@ -1926,6 +1950,29 @@ sub cmd_seal_recover {
             ' nodes'
         );
     }
+    return 0;
+}
+
+sub cmd_drill {
+    require AMOS7::N7FS::Drill;
+    $o{'root-key'} //= shift // fail('drill needs <root-key>');
+    fail('drill needs -from <holder>')   if not defined $o{'from'};
+    fail('drill : unexpected arguments') if @ARG;
+    my $root = _seal_root();
+    my $r    = AMOS7::N7FS::Drill::drill_run(
+        qw| root |     => $root,
+        qw| host_dir | => host_dir(%common),
+        qw| holder |   => $o{'from'},
+        defined $o{'tree'} ? ( qw| tree | => $o{'tree'} ) : (),
+    );
+    say_line( 'drill ', substr( $r->{'holder_id'}, 0, 7 ),
+        ' : head v', $r->{'head_version'} );
+    say_line( 'restored ', $r->{'tree'}, ' : ', $r->{'files'},
+        ' files, ', $r->{'bytes'}, ' bytes' );
+    say_line('verified : contents, manifest, metadata');
+    say_line( 'drill passed [ root-signed record in ',
+        host_dir(%common), '/receipts/', $root->{'root_id'},
+        '/drills.json ]' );
     return 0;
 }
 
@@ -2809,8 +2856,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,..,..,,.,,,,..,.,.,.,.,...,,,,,..,,,.,,..,,...,..,,..,,..,,,,,,,.,,,,,,
-#PRLTSFUNVXH47OFFC622VC7W2HJIRGMGGVLT7HM62ZR3MLCH4LWQ42KQSWPFXQI5BFUAXWSPYVL26
-#\\\|WSHPTZD3FAKBEM7XTSFYDGSFPHXACKZT6WN3IKZ7MJQ3HA3DYI4 \ / AMOS7 \ YOURUM ::
-#\[7]J23Q3S6YXGM7AO5CQZ7EAW4KIBGOZ5HUZMUFIRLXCEPQQZJXBCCY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,,,.,,,.,,,,.,,...,,.,,...,.,,,..,,...,...,...,...,,,.,,,.,..,,
+#3HDTE4YTJQ35UFMZNS7RMELHQ6DRGYUVNJO2VOJWJ3KSTRN4ZOL465BNIZF5QGSNQNNILXIZZ4J52
+#\\\|UDYLFM3TNRLPZ5ZGPT5R2HO5W6ALW4CZYZLYEFIJ5KR643YAZOW \ / AMOS7 \ YOURUM ::
+#\[7]OB744RPPJNHV7IP4ISLVO3JLDCWPOTRH45RMCQ7Z6CC65XSYQOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

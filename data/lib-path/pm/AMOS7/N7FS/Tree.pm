@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.2VDGPNQ |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.CEM3ZOA |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -260,6 +260,7 @@ sub _walk_manifest {
             for @names;
         return;
     } elsif ( -f _ ) {
+        $entry{'size'} = $st[7];
         my $inode = join ':', @st[ 0, 1 ];
         if ( exists $seen->{$inode} ) {
             $entry{'t'} = qw| hardlink |;
@@ -940,8 +941,8 @@ sub tree_restore {
 
 1;
 
-#,,,,,,..,.,,,,,,,,..,.,,,,..,,..,,,,,,.,,,.,,..,,...,...,.,.,,,.,,..,,.,,,,,,
-#DTIRXE6S36JFFM5TWXRHB7DOANONLAZPHG2TOYSMNUXIYWB5LXT3MRDQ22NJHQDXLSQROKF4T2VTG
-#\\\|2MZNVVG2ASHLONCTCA7R522S37MLGU52VPU2W3QCAF5WNMKC6PO \ / AMOS7 \ YOURUM ::
-#\[7]FKVDZSJY6534CHT6EBMSQ3L6TH5GDUCBJY5YDUB2JWHVPCYPFUAA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,.,,,,,.,,.,,,..,,..,.,.,.,,,..,,...,...,,..,,,.,.,.,,..,.,.,
+#662XCPS276HKC7UWO72R7JVWF43GHHRABLPOO4LKTJOQYSAEYVLQGCCZQPWYFJYDDYBVMYPDU3IKW
+#\\\|AKNAYHYNJLDSVXC2FML4Z2CP5CWRS4AZMD5LHHFU4H3C7DT4TMY \ / AMOS7 \ YOURUM ::
+#\[7]GC2Y2PSGOYNLJLXG23B6EU4POCCECN5DC6WPZO5LXBBWLIBE6OBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
