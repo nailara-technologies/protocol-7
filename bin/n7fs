@@ -122,23 +122,28 @@ use warnings;
 ##                 drill is due now [ host-local protocol-7 config state ]
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
 ##
-## n7fs heads -root-key <file> [ <holder>.. ] [ -anchor ]  head versions,
-## freshness verdicts and offline anchor  n7fs head-refresh -root-key <file>
-## [ <holder>.. ]  re-sign current heads without resealing their maps  n7fs
-## holder-check <holder> -root-key <file>   also writes a receipt ;
-## [ -accept-clock ] allows a floor jump larger than 1Y2  n7fs clock-floor
-## <root-id> -show | -reset  inspect or clear the per-root receipt clock floor
-## <holder> : a spec or a registered name [ also holder-gc ]  [ -full ]
-## authenticate every chunk [ coverage full ]  [ -scrub ] keyless full
-## coverage : verify every mapped  blob's checksum name on the holder, no key
-## material  proved [ coverage full ]  [ -sizes-only ] sizes, no chunk
-## authentication  receipts without -full \ -scrub read as sampled :  place
-## counts them, drain never relies on them  n7fs holder-scrub <holder>
-## -root-key <file> [ -nonce <b32> ] keyless on the holder : recompute every
-## mapped blob's  checksum name there and report bad and missing ; home  names
-## the blobs from the holder's own map. with -nonce  the digest runs over
-## nonce + blob, so two holders answer  one challenge the same way and home
-## compares the answers
+## n7fs heads -root-key <file> [ <holder>.. ] [ -anchor ]
+##                 head versions, freshness verdicts and offline anchor
+## n7fs head-refresh -root-key <file> [ <holder>.. ]
+##                 re-sign current heads without resealing their maps
+## n7fs holder-check <holder> -root-key <file>   also writes a receipt ;
+##                 [ -accept-clock ] allows a floor jump larger than 1Y2
+##                 <holder> : a spec or a registered name [ also holder-gc ]
+##                 [ -full ] authenticate every chunk [ coverage full ]
+##                 [ -scrub ] keyless full coverage : verify every mapped
+##                 blob's checksum name on the holder, no key material
+##                 proved [ coverage full ]
+##                 [ -sizes-only ] sizes, no chunk authentication
+##                 receipts without -full \ -scrub read as sampled :
+##                 place counts them, drain never relies on them
+## n7fs clock-floor <root-id>   -show | -reset
+##                 inspect or clear the per-root receipt clock floor
+## n7fs holder-scrub <holder> -root-key <file> [ -nonce <b32> ]
+##                 keyless on the holder : recompute every mapped blob's
+##                 checksum name there and report bad and missing ; home
+##                 names the blobs from the holder's own map. with -nonce
+##                 the digest runs over nonce + blob, so two holders answer
+##                 one challenge the same way and home compares the answers
 ##
 ## n7fs holder add <name> <holder> -role durable|intake -domain <label>
 ##                 [ -owned ] [ -quota <size> ] [ -reserve <size> ]
@@ -205,8 +210,7 @@ use warnings;
 ##                 -unreachable-grace [ default 1Y2 ] : no re-placement
 ##                 -exclude <holder> : do not count it [ before draining it ]
 ##
-## -bwlimit <size>                         cap uploads to ssh holders, per
-## second
+## -bwlimit <size>                      cap uploads to ssh holders, per second
 ##
 ## sealing : -pass-fd <n> reads the passphrase from that descriptor -argon-m
 ## <KiB> -argon-t <n> -argon-p <n> override root init
@@ -3122,8 +3126,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,.,,,,.,,,.,,,.,,...,.,,,,,,,,,,,,,.,.,,,..,,...,...,,,,,..,,,,.,...,.,,,
-#XVMSUANJTIXYEDXBMQXL7UP2RIDUMEXNNRGUX4GG2RWBGKTDNCX5PYKBMROWC7KP4OXI2VR3TBSGW
-#\\\|52MB676PEN5SFV6YXG4GYMDFOPVKZ4OJNMURDVXYMRF2QDMVX4E \ / AMOS7 \ YOURUM ::
-#\[7]UTNMH6LQHYSSRCBF536D5P32FESIUH5SGQ2RG2O5R4M4WMXJN6BI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,.,,..,,...,,.,,,,,,.,,,.,,,,.,,..,,...,..,,...,,,.,.,,,,..,...,
+#VA3PMHTE73CASI62SJEJCIY64MX7STZJLNFWQ473RABCIREBNNAI72YE6AC7RGIT5AMZBPOMNNTG2
+#\\\|HUVYN6MW3OMCSGJBXX2Q7RAKOYFPYTKAYDSPCAOZ63OK5BFWRAV \ / AMOS7 \ YOURUM ::
+#\[7]3XD34RM4BK7HWML3AHRFDLUMTB2ZYJOW7Q3DBHHZ77KMRVU54ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
