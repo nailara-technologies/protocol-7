@@ -131,9 +131,10 @@ make_dirs($tree);
 write_file( "$tree/f$ARG", "file $ARG\n" ) for 1 .. 6;
 cli( [], 'assimilate', '-disk', $disk, '-keep', '-tree', 't', $tree );
 my ($address) = do {
-    my $id     = disk_read_id( qw| root | => $root, qw| disk | => $disk );
-    my $replay = journal_replay($id);
-    sort keys $replay->{'nodes'}->%*;
+    my $id       = disk_read_id( qw| root | => $root, qw| disk | => $disk );
+    my $replay   = journal_replay($id);
+    my $manifest = $replay->{'trees'}{'t'}{'manifest'};
+    sort grep { $ARG ne $manifest } keys $replay->{'nodes'}->%*;
 };
 my $main_root = open_main_root();
 my $sub_tag   = AMOS7::N7FS::Seal::root_subdir($main_root);
@@ -212,6 +213,32 @@ ok( $rc == 0 && -e "$h1/$sub_tag/$h1_blob",
     'restore -all-since brings the day back'
 ) or say $out;
 
+make_dirs("$h1/$sub_tag/.trash/2026-01-01");
+write_file( "$h1/$sub_tag/.trash/2026-01-01/$fake_blob", 'old trash bytes' );
+rename "$h1/$sub_tag/$h1_blob", "$h1/$sub_tag/.trash/$day/$h1_blob"
+    or die $OS_ERROR;
+( $rc, $out )
+    = cli( ['vp'], 'holder-trash-restore', $h1,
+    '-root-key', 'vault:main', '-all-since', '2026-01-01' );
+ok( $rc == 0 && -e "$h1/$sub_tag/$h1_blob" && -e "$h1/$sub_tag/$fake_blob",
+    'a date cutoff compares ntime buckets by time' )
+    or say $out;
+make_dirs("$h1/$sub_tag/.trash/2026-01-01");
+write_file( "$h1/$sub_tag/.trash/2026-01-01/$fake_blob", 'old trash bytes' );
+rename "$h1/$sub_tag/$h1_blob", "$h1/$sub_tag/.trash/$day/$h1_blob"
+    or die $OS_ERROR;
+( $rc, $out )
+    = cli( ['vp'], 'holder-trash-restore', $h1,
+    '-root-key', 'vault:main', '-all-since', $day );
+ok( $rc == 0
+        && -e "$h1/$sub_tag/$h1_blob"
+        && -e "$h1/$sub_tag/.trash/2026-01-01/$fake_blob",
+    'an ntime cutoff excludes older date buckets'
+) or say $out;
+( $rc, $out )
+    = cli( ['vp'], 'holder-trash-restore', $h1,
+    '-root-key', 'vault:main', $fake_blob );
+
 ## r11 : destructive age decisions refuse an implausible clock disagreement ##
 {
     no warnings qw| redefine |;
@@ -273,6 +300,24 @@ ok( $rc == 1 && $out =~ m|missing : $h2_blob|,
     '-root-key', 'vault:main', $h2_blob );
 ( $rc, $out ) = cli( ['vp'], 'holder-check', $h2, '-root-key', 'vault:main' );
 ok( $rc == 0, 'the holder checks clean after the restore' ) or say $out;
+{
+    my $original = \&AMOS7::N7FS::Seal::holder_scrub;
+    my $names;
+    no warnings qw| redefine |;
+    local *AMOS7::N7FS::Seal::holder_scrub = sub {
+        $names = [ @{ $ARG[1] } ];
+        return $original->(@ARG);
+    };
+    my $checked = AMOS7::N7FS::Seal::holder_check(
+        qw| root |     => $main_root,
+        qw| holder |   => $h2,
+        qw| coverage | => qw| scrub |,
+    );
+    my %unique = map { $ARG => 1 } @{$names};
+    ok( @{$names} == keys %unique && $checked->{'chunks'} == keys %unique,
+        'holder scrub checks and counts every blob only once'
+    );
+}
 
 ##[ two roots on one holder : gc of one never touches the other ]#############
 
@@ -448,8 +493,8 @@ sub _today {
 
 done();
 
-#,,,.,,..,..,,,..,.,.,.,,,,,.,.,,,.,,,,..,...,..,,...,...,..,,.,,,,.,,,..,...,
-#GKUNPTUPNLBNONOG76EISYFWWJRERBGOMAMND74QVVY3FCXJD2H3PVTOEWOMC34SET74GFCJVV7AQ
-#\\\|2MKRR7NC4EV55OISCYBUZLVAJQJHTJW3IHM3GNMKQIJACTE55XP \ / AMOS7 \ YOURUM ::
-#\[7]GL4OV6AUS7NIIFAJUZSIKT3GTXRCUGX3KV45AME4J24CQFIZFOAA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,,.,,,..,...,,,.,.,,,...,,..,..,,...,...,.,.,,,,,,,.,.,,,.,,,
+#Y7O3SHISQ7XGKX3WWBJ5BOJOHOSC4ULZEOFKJ7C5K2X7HE3BGWGG6Q645LAHACOPEGHC42BK6ELKG
+#\\\|VENBXIJKLBPQ5BTHXJZAZ4T72ENGG5ROEE6BQLFX72W655BPF6J \ / AMOS7 \ YOURUM ::
+#\[7]XBSMZMR3M2WYBPTTWRAQ2FGXRDYZWDFW2HFAOES26JZZVAFJUKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [kimi-restores-files-it-did-not-touch](feedback-kimi-restores-files-it-did-not-touch.md) — kimi git-restored my notes twice + deleted a memory file : prompts forbid touching files it did not change ; commit notes first
 - [p7-config-style-not-json](feedback-p7-config-style-not-json.md) — hand-editable files : p7 config style, `=` and `:` equivalent, never json [ owner 2026-11-13 ]
 - [fable-access-window](project-2026-11-13-fable-access-window.md) — Fable 5.2 in plan until ~2026-11-16 : use for finding 5 review, findings 7 8 9 design
 - [session-handover-n7fs-review-findings](project-2026-11-13-session-handover-n7fs-review-findings.md) — NEWEST, START HERE : Fable N7FS findings 2 3 4 6 landed ; open 5 [ design first, fresh session ] 7 8 9 ; deploy notes ; add-only log mount sketch
@@ -109,8 +110,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,.,.,,,.,,,.,,,.,..,,...,,.,,,..,,,,,.,,,..,,...,...,...,,,.,,,,,,,,,,.,,
-#SBDHQISSPQ55QV7D46F3J4CE7RKBLGEGDM3EYSP6TGTZGF674RVOKZYIAQNXLYTZRD3NZVITJHKKO
-#\\\|HHJM5MVM4IB6KWJZIYFPD3RIQQKORSGKJC2S5SUAIB6B3RSTXQL \ / AMOS7 \ YOURUM ::
-#\[7]NLJID2S7RMGH63U7GI5LUID2MKQPSLWYZ2LJITDEJSERFGXAE6AY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,,,.,,..,,..,.,.,.,,,.,,,.,,,..,,...,...,..,,..,,..,,..,,,..,
+#VU6UERQSGRIXLXZ3FULEQGIZTDGS54FBT5CPZKCGA5RGOL6TC5PONWVI7TLWJTIWYCZSYDOSQ3RHY
+#\\\|23MYTRCOVAWGXQWYFX3ZLJ5CKQOW6G244GC7DFEY5F6LB36EUYV \ / AMOS7 \ YOURUM ::
+#\[7]LR4U2KHK5QZS26WEW4XFWXRMYJG4YSD2NJFP26EIAXJEJBW4YWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

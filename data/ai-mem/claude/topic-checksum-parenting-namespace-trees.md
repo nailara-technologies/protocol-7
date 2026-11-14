@@ -324,6 +324,47 @@ derived, not stored ] :
   checkable entry by entry, which is what makes the count hard to fake. a
   natural first non-file user of the n7fs add-only writer : a love ledger.
 
+- **search terms as the key : a storage type** [ owner, 2026-11-14 ]. the
+  checksum search mode extended : the search terms of a content group derive
+  both its ADDRESS and its ENCRYPTION KEY. who knows what to search for finds
+  it and can read it ; holders store sealed bytes blindly. three modes, case
+  insensitive : `strict` [ order kept ], `sorted` [ order free ],
+  `normalized` [ includes sorted, plus spelling : case, whitespace, unicode
+  form ]. derivation rules : address and key from separate domains over the
+  same terms [ the address must never reveal the key ] ; the MODE joins the
+  derivation [ sorted and strict over the same words differ ] ; terms have
+  little entropy, so secret-by-knowledge, not by key -- a memory-hard KDF
+  [ argon2 ] against mass guessing plus the epoch \ zulum salt against
+  precomputed dictionaries [ the NRT.NRD PIN lesson : iterations that can be
+  jumped are no work ]. in n7fs : a category whose key comes from the terms,
+  not from the root. use : separate worlds side by side [ e.g. nudity ],
+  reached only deliberately, likely through a handshake chain of specific
+  intention ; for such content the chain also needs a checkable adult
+  attestation [ terms prove knowledge, not age ] and signed, withdrawable
+  consent of those shown [ crypto-shredding ]. it also keeps visual entropy
+  streams from mixing across categories [ cleaner dedup, compression,
+  field resonance ].
+- **the index layer** [ owner ] : a category entry [ keyed by its terms ]
+  encrypts the file's PLAINTEXT CHECKSUM, and that checksum is the key of
+  the in-network blob [ convergent encryption ]. the same file seals to the
+  same blob, stored once, member of many categories, each protected on its
+  own ; knowing the checksum alone opens the file. rules : the blob's public
+  address must NOT be the plaintext checksum [ H( "addr" . checksum ) or the
+  ciphertext hash -- else the address is the key ] ; convergent encryption
+  allows confirmation of a file and guessing of low-variation files [ forms ]
+  -- fine for shareable material, private material stays root-keyed [ root
+  salt, dedup only inside that root ]. two storage kinds side by side, the
+  index layer over both. a BROWSE layer [ previews, semantic positions,
+  earned quality weights, best-first ] is a separate opt-in by the
+  publisher ; mixing categories stays possible but costs one set of terms +
+  one memory-hard derivation each -- a filter for intent. owner : the
+  convergent key can still be SALTED -- a dial between dedup and privacy :
+  no salt [ dedup across all, confirmable always ] -> epoch [ dedup inside an
+  epoch, confirmation only within the 3-valid window, blobs re-encrypt in
+  passing as epochs roll ] -> timestamp [ near root-keyed ] -> name as the
+  next layer [ an identity-bound compartment ]. same stacking as the
+  registration form `<epoch>:<key>:<name>` : content, epoch, name.
+
 see `data/md/design/N7FS-SEALED-REPLICAS.md` [ open : derived placement,
 home zenki ring ] and [[topic-checksum-addressing]].
 
@@ -1043,8 +1084,8 @@ User said "let us first dispatch something" while still mid-riff — dispatched
 to opus via claude_dispatch to draft a design doc capturing this material
 (see commit/doc once written). More nodes in this tree are expected to follow.
 
-#,,,,,..,,,.,,,..,,,,,,..,,,,,,.,,,..,..,,...,..,,...,...,,..,.,,,,,,,.,.,,,.,
-#JJBBHVZBJE5AQXCB4YU4CGGXYAKVV2ZTLNIZR3GTCFJZ5LUM6S4WVA7O3KLKAW4IQ5BK6NO5ONUD6
-#\\\|JJYE3LG7OCEEIEZ7UEW2G6H3OQTI5FOUDRG32DZEWJLYREUVX4S \ / AMOS7 \ YOURUM ::
-#\[7]VDA5DA3EHHP2UZ4DMIJNFVS6SQWW3RVTXUZR4QSWHS4HBATIMSAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,.,.,.,,,.,,,,..,,..,,,.,...,..,,...,...,,..,,,.,...,,,.,...,
+#Y7HLRKDUHC2V3PUYF2YCYSCRJP3WTCVB72GST4KXK5WFPJYPQI2EHNPRLCK3SWBPBTM3SUXXLZG2S
+#\\\|ACBTT5WFYRFEIFCOO3ASSIO6LNV7SAKG54C3NL7GKIECSRQLPUO \ / AMOS7 \ YOURUM ::
+#\[7]7W427CBZ5TBTYSGRYNDZ6R4OSY5YPUG2F7Y4XPJXJPTGIH5A3WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
