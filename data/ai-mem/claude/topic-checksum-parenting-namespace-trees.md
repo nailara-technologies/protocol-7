@@ -458,7 +458,41 @@ derived, not stored ] :
   `iris-negotiation-window` [ remaining time per hop as a shrinking arc --
   the hop budget \ gate timing ], `iris-temporal-mode` [ radius = time since
   change, angle = BMW384 arc -- "the iris as a git log organized by field
-  topology" ]. several are in data/tasks/needs-testing/.
+  topology" ]. several are in data/tasks/needs-testing/. owner : the ring
+  and sphere layers expand exponentially outwards [ each outer layer has
+  more room ; with a branching factor per layer, b^n places ] while the
+  distance from the core stays LINEAR in the ring number -- log depth, the
+  reason prefix trees and kademlia scale [ base32 : 2 rings 1024 places, 4
+  rings ~1e6, 8 rings ~1e12, one hop per ring ]. the CCW inward spiral is
+  mapped onto ARCS of rings : still rings [ stable discrete addresses, a new
+  outer ring touches nothing inside ] but the arcs trace the path a spiral
+  would take, each arc's end bordering the next arc on the neighbouring
+  inward ring -- a continuous traversal with neighbour alignment, locality
+  preserved like a space-filling curve ; inward = toward convergence
+  [ vortex-iris-overhead.yaml : arc start outer = where reasoning began,
+  end inner = where it converges ]. COLOUR is the third channel : grouping
+  [ hue = arc \ category \ resource class ], branching [ a hue splitting
+  into neighbouring shades = a group dividing into sub-arcs ], energy flow
+  [ brightness along the path = resources \ attention moving ]. ring =
+  address and depth, arc on the spiral = path and neighbourhood, colour =
+  group, branch and flow. owner : colour AND TRANSLUCENCY belong together,
+  and translucency needs mentioning on its own -- its topological function :
+  layers stay visible through each other, so overlap \ matrix alignment
+  scales [ many layers read at once, where they coincide is visible as
+  added density -- the kitten filter's quorum shimmer, the iris alpha
+  density modes ] instead of the top layer hiding the rest.
+  owner : the COLOUR WHEEL is the ultimate parent grouping of any image
+  scaled down to 1x1 pixel [ mean colour : hue = angle, saturation =
+  distance from the centre ] ; 2x2, 3x3 .. are the next rings, a resolution
+  pyramid as ring structure [ `data/tasks/images-elfdb-feature-collection.md`
+  "colour wheel -> 3d spiral", `project-images-elfdb-planning-base.md`
+  1x1 .. 3x3 core ring, `VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md` hue ->
+  azimuth ]. this IS the locality-preserving search kind : similar images
+  land close and refine closeness ring by ring -- the checksum stays the
+  exact identity beside it. note : at 1x1 many different images average to
+  muddy mid tones near the centre, so the parent level splits colourful
+  images sharply and dull ones only in the next rings -- colourfulness
+  becomes the radius, a clear first sort.
 
 see `data/md/design/N7FS-SEALED-REPLICAS.md` [ open : derived placement,
 home zenki ring ] and [[topic-checksum-addressing]].
@@ -1179,8 +1213,8 @@ User said "let us first dispatch something" while still mid-riff — dispatched
 to opus via claude_dispatch to draft a design doc capturing this material
 (see commit/doc once written). More nodes in this tree are expected to follow.
 
-#,,.,,,,.,,,.,,,,,.,.,,.,,.,,,...,.,,,.,,,..,,..,,...,...,.,.,...,,.,,..,,..,,
-#GJMF2KBQN53WTN3P6PGYZ3QTDJK6BM2VGKCLLM4QTECOOTQN5EUZMFF3ICWHMZ5I4NA7FJF3IVVB4
-#\\\|ZZ6U73765K7LJE5SQSW6KE2NQOUVEEBMJ5TDUBGDQ4P2NEMLBL7 \ / AMOS7 \ YOURUM ::
-#\[7]YFORPPCXOXAUMKLJPF4YCWOCWVIMHNU6LCUSZ7SYIZXOXEWIHIAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,,,,,,,...,.,.,,..,,.,,,,.,.,.,..,,...,...,.,,,.,,,,..,,.,,,..,
+#57ZMBGEPEI2V5XANVKTY5OKQMLD2FIDZIRCG7HUUB5TSW2OAM2RMYJF7PSXH7CN3H4SEGSXBL2Z6G
+#\\\|ZWPHHULQTQJHER4GY7JDTNYT7EDG5LLR4NNFHO6XG5DHWLPV77M \ / AMOS7 \ YOURUM ::
+#\[7]AMMAYCRYTCGSD6VTJQCWXEROZIZEV3KAQPI2HGR7UEWGCU2HMQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
