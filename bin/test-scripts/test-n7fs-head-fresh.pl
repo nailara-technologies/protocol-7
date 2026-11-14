@@ -110,6 +110,34 @@ ok( !exists $head_b->{'peers'}{ $head_b->{'holder'} },
     'the peers vector excludes its own holder'
 );
 
+my $checked_a = AMOS7::N7FS::Seal::holder_check(
+    qw| root |     => $root,
+    qw| holder |   => $holder_a,
+    qw| coverage | => qw| full |,
+);
+AMOS7::N7FS::Placement::receipt_write(
+    qw| host_dir |          => $box->{'host'},
+    qw| root |              => $root,
+    qw| spec |              => $holder_a,
+    qw| version |           => $checked_a->{'version'},
+    qw| nodes |             => $checked_a->{'nodes'},
+    qw| samples |           => $checked_a->{'samples'},
+    qw| coverage |          => $checked_a->{'coverage'},
+    qw| covered |           => $checked_a->{'covered'},
+    qw| covered_nodes |     => $checked_a->{'covered_nodes'},
+    qw| covered_addresses | => $checked_a->{'covered_list'},
+);
+AMOS7::N7FS::Seal::head_refresh( $root, $holder_b );
+( $head_b, $sub_b ) = current_head( $root, $holder_b );
+my $summary = $head_b->{'peers'}{ $head_a->{'holder'} }{'r'};
+ok( ref $summary eq 'HASH'
+        and $summary->{'v'} == $checked_a->{'version'}
+        and $summary->{'t'} > 0
+        and $summary->{'c'} eq 'full'
+        and $summary->{'n'} == $checked_a->{'covered_nodes'},
+    'a signed head carries the other holder receipt summary'
+);
+
 my $survey = AMOS7::N7FS::Seal::head_survey( $root,
     { qw| a | => $holder_a, qw| b | => $holder_b } );
 ok( !$survey->{'a'}{'stale'} && !$survey->{'b'}{'stale'},
@@ -127,6 +155,20 @@ ok( $clean_survey->{'a'}{'stale'}
         and $clean_survey->{'a'}{'floor'} == $head_a->{'version'}
         and $clean_survey->{'a'}{'witness'} eq 'b',
     'another holder proves an older valid head stale without home state'
+);
+my $clean_recovery = AMOS7::N7FS::Seal::seal_recover(
+    qw| root |   => $clean_root,
+    qw| holder | => $holder_b,
+    qw| target | => "$base/clean-recovery",
+);
+ok( $clean_recovery->{'receipts'}->@* == 1
+        and $clean_recovery->{'receipts'}[0]{'holder'} eq $head_a->{'holder'}
+        and $clean_recovery->{'receipts'}[0]{'version'}
+        == $checked_a->{'version'}
+        and $clean_recovery->{'receipts'}[0]{'coverage'} eq 'full'
+        and $clean_recovery->{'receipts'}[0]{'nodes'}
+        == $checked_a->{'covered_nodes'},
+    'clean recovery with root and one holder sees the other receipt summary'
 );
 
 my %registry = (
@@ -236,17 +278,14 @@ ok( receipt_digest( $map_after, $before->{'version'} ) eq $digest,
     'head-refresh leaves the covered receipt digest valid'
 );
 
+my $cli_root = "$base/refresh.key";
+
 sub cli {
     my @args = @ARG;
     open( my $fh, '<:raw', $pass ) or die $OS_ERROR;
     my ( $in, $out, $err ) = ( undef, undef, gensym );
-    my $pid = open3(
-        $in,         $out,
-        $err,        "$FindBin::Bin/../n7fs",
-        '-pass-fd',  fileno($fh),
-        '-root-key', "$base/refresh.key",
-        @args
-    );
+    my $pid = open3( $in, $out, $err, "$FindBin::Bin/../n7fs",
+        '-pass-fd', fileno($fh), '-root-key', $cli_root, @args );
     close $in;
     my $stdout = do { local $INPUT_RECORD_SEPARATOR; <$out> }
         // '';
@@ -257,6 +296,18 @@ sub cli {
 }
 
 write_file( "$sub_a/" . AMOS7::N7FS::Seal::_head_name($root), $current_a );
+write_file( "$base/cli-clean.key", read_file("$base/root.key") );
+chmod 0600, "$base/cli-clean.key";
+$cli_root = "$base/cli-clean.key";
+my ( $recover_rc, $recover_out, $recover_err )
+    = cli( '-from', $holder_b, 'seal-recover', "$base/cli-peer-recovery" );
+my $receipt_tag = substr( $head_a->{'holder'}, 0, 7 );
+ok( $recover_rc == 0
+        and $recover_out
+        =~ m|receipt \Q$receipt_tag\E known from this head : v\Q$checked_a->{'version'}\E, .* full, covered \Q$checked_a->{'covered_nodes'}\E nodes|,
+    'clean seal-recover prints peer receipt summaries after a home loss'
+) or say "$recover_out$recover_err";
+$cli_root = "$base/refresh.key";
 my ( $rc, $out, $err ) = cli( 'heads', '-anchor', $holder_a, $holder_b );
 ok( $rc == 0 and $out =~ m|holder .*: head v\d+, age .*floor v\d+, current|,
     'n7fs heads prints the holder table' )
@@ -274,8 +325,8 @@ ok( $tag eq substr( $root->{'root_id'}, 0, 7 )
 
 done();
 
-#,,.,,..,,,,.,,,.,.,.,,,.,.,,,.,,,,.,,.,,,,..,..,,...,...,...,.,,,.,.,.,,,..,,
-#6GSM7HIJYW3I76WMRW5D667AVZED7SDT4AGYOE5I4LN2BR7V6ROTIVVPFNCUGLD66LVR2EGSI7OUA
-#\\\|WU5NQKRKSPKKVCJJ4WNHHXRFHJ54C4NYDZCY25CQF7ULJLEVB2J \ / AMOS7 \ YOURUM ::
-#\[7]SDAZEP3N54633UPIWV2SBFU7C4G7ZXL4PQSN53VC24LHDDY53YCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,.,,.,.,,..,,,,,...,.,,,.,,,,,,,..,,...,...,,,.,,,.,.,.,,,.,..,,
+#MWHQ3QZM3O5GPPYX3IARV3B73E4SNO3HKLPHHWNARBESAIWNVZZRMTT5IQLLM66SX5MUE7E2UHKLA
+#\\\|NAMSF43ZVEFGUSYU4JBRSXUOB3KKVSOYRTNQNZQJQF6W4L3HMNU \ / AMOS7 \ YOURUM ::
+#\[7]4HXTZ3ZWOH3KSAPIUBEWUT4GMFI7IVD5F2BMDDT4FOJDJAXCPKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

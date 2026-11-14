@@ -7,9 +7,10 @@ use warnings;
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
 use JSON::PP;
-use AMOS7::NTIME     qw| parse_y_age |;
-use AMOS7::N7FS      qw| b32 make_dirs read_file |;
-use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
+use AMOS7::NTIME      qw| parse_y_age |;
+use AMOS7::N7FS       qw| b32 make_dirs read_file |;
+use AMOS7::N7FS::Sum  qw| bmw384_bytes bmw_b32 |;
+use AMOS7::N7FS::Sign qw| verify |;
 use AMOS7::N7FS::Placement;
 
 require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
@@ -18,21 +19,34 @@ my $box    = sandbox();
 my $hdir   = $box->{'host'};
 my $holder = "$box->{'base'}/holder";
 make_dirs($holder);
-my $signer = test_signer();
-my $pub    = $signer->public;
-my $root_a = bmw_b32( bmw384_bytes('receipt root a') );
-my $root_b = bmw_b32( bmw384_bytes('receipt root b') );
-my $json   = JSON::PP->new->utf8->canonical;
-my $now    = AMOS7::N7FS::ntime_now();
+my $host_signer = test_signer();
+my $root_a      = bmw_b32( bmw384_bytes('receipt root a') );
+my $root_b      = bmw_b32( bmw384_bytes('receipt root b') );
+my $root_c      = bmw_b32( bmw384_bytes('receipt root c') );
+my $root_old    = bmw_b32( bmw384_bytes('old path root') );
+my %roots       = map {
+    my $id = $ARG;
+    $id => {
+        qw| signer |  => test_signer(),
+        qw| root_id | => $id,
+        qw| path |    => "$box->{'base'}/$id.key",
+    }
+} $root_a, $root_b, $root_c, $root_old;
+my $host_as_root = {
+    qw| signer |  => $host_signer,
+    qw| root_id | => $root_a,
+    qw| path |    => "$box->{'base'}/host-as-root.key",
+};
+my $json = JSON::PP->new->utf8->canonical;
+my $now  = AMOS7::N7FS::ntime_now();
 local $AMOS7::N7FS::CLOCK = sub { return $now };
 
 sub write_receipt {
     my ( $root_id, $accept_clock ) = @ARG;
     return AMOS7::N7FS::Placement::receipt_write(
         qw| host_dir |     => $hdir,
-        qw| signer |       => $signer,
+        qw| root |         => $roots{$root_id},
         qw| spec |         => $holder,
-        qw| root_id |      => $root_id,
         qw| accept_clock | => $accept_clock ? 1 : 0,
         qw| version |      => 1,
         qw| nodes |        => 1,
@@ -42,9 +56,9 @@ sub write_receipt {
 }
 
 sub fresh {
-    my $root_id = shift;
-    return AMOS7::N7FS::Placement::receipt_fresh( $hdir, $pub, $holder,
-        $root_id );
+    my ( $root_id, $verify_root ) = @ARG;
+    return AMOS7::N7FS::Placement::receipt_fresh( $hdir,
+        $verify_root // $roots{$root_id}, $holder );
 }
 
 my $first = write_receipt($root_a);
@@ -62,20 +76,59 @@ ok( $path_a ne $path_b
 ok( fresh($root_a) && fresh($root_b),
     'checking a second root leaves both receipts fresh' );
 
+my $good   = read_file($path_a);
+my $data   = $json->decode($good);
+my $sig    = AMOS7::N7FS::unb32( $data->{'sig'} );
+my $signed = "p7 n7fs receipt v2\0" . $json->encode( $data->{'receipt'} );
+ok( $data->{'pub'} eq b32( $roots{$root_a}{'signer'}->public )
+        && verify( $roots{$root_a}{'signer'}->public, $signed, $sig )
+        && !verify( $host_signer->public,             $signed, $sig ),
+    'the receipt signature verifies with the root and fails with the host key'
+);
+ok( !fresh( $root_a, $host_as_root ),
+    'receipt freshness refuses host-key verification' );
+
+my $other_host = "$box->{'base'}/other-host";
+make_dirs( "$other_host/receipts/$root_a", 0700 );
+my $other_path
+    = AMOS7::N7FS::Placement::_receipt_path( $other_host, $holder, $root_a );
+write_file( $other_path, $good );
+ok( AMOS7::N7FS::Placement::receipt_fresh(
+        $other_host, $roots{$root_a}, $holder
+    ),
+    'the same root verifies its receipt from a second host directory'
+);
+
+$data->{'receipt'}{'nodes'}++;
+write_file( $path_a, $json->encode($data) );
+ok( !fresh($root_a), 'an altered receipt payload is refused' );
+$data          = $json->decode($good);
+$data->{'pub'} = b32( $host_signer->public );
+$data->{'sig'} = b32( $host_signer->sign($signed) );
+write_file( $path_a, $json->encode($data) );
+ok( !fresh($root_a), 'a host-signed forgery is refused' );
+$data->{'sig'}
+    = b32( $host_signer->sign( $json->encode( $data->{'receipt'} ) ) );
+write_file( $path_a, $json->encode($data) );
+ok( !fresh($root_a), 'an old host-signed receipt reads as missing' );
+write_file( $path_a, $good );
+
 my $old_path
     = "$hdir/receipts/"
     . bmw_b32( bmw384_bytes( "p7 n7fs receipt v1\0" . $holder ) )
     . '.receipt';
-write_file( $old_path, read_file($path_a) );
-my $root_old = bmw_b32( bmw384_bytes('old path root') );
+write_file( $old_path, $good );
 ok( !fresh($root_old),
     'an old-path receipt reads as missing, never crashes' );
 unlink $old_path;
 
-my $good = read_file($path_a);
-my $data = $json->decode($good);
+$data                      = $json->decode($good);
 $data->{'receipt'}{'time'} = $now + parse_y_age('1Y5') + 1;
-$data->{'sig'} = b32( $signer->sign( $json->encode( $data->{'receipt'} ) ) );
+$data->{'sig'}             = b32(
+    $roots{$root_a}{'signer'}->sign(
+        "p7 n7fs receipt v2\0" . $json->encode( $data->{'receipt'} )
+    )
+);
 write_file( $path_a, $json->encode($data) );
 ok( !fresh($root_a), 'a receipt later than now plus 1Y5 is not fresh' );
 write_file( $path_a, $good );
@@ -110,7 +163,6 @@ ok( $floored->{'time'} == $expired_floor
 
 ok( fresh($root_b),
     'one root\'s clock floor does not age another root\'s receipt' );
-my $root_c = bmw_b32( bmw384_bytes('receipt root c') );
 $now = $first->{'time'};
 write_receipt($root_c);
 $now += parse_y_age('1Y1');
@@ -157,8 +209,8 @@ ok( $floor_rc == 0
 
 done();
 
-#,,.,,,.,,..,,,,,,,.,,,.,,.,,,.,.,...,,.,,,,.,..,,...,..,,...,,,,,,.,,,.,,...,
-#JM43CMFPBRILMHLZ5YQJOPA53E532BSX2Y3U5OLNNU324MP6SEKJ6CVN4LZ573EAW3Z7ZFVI6PXCK
-#\\\|MADGECAHZB6YRU7RDTSLJ547QBELD5Y3K4IFIVPPYBGZC2B3UIL \ / AMOS7 \ YOURUM ::
-#\[7]LBGXHXFGYOHC4R7ZWCRPOZBPPGVZKXKVOONQUIW277Z4XFBPRICQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,,..,,,,,,.,,,,.,,,,,...,,.,,..,,...,...,,..,,..,,..,.,.,,,.,
+#ICZFDLU4CXKJKRAGVTSNUZ6WKSFJAUTNVEDF3DPERQ5VQGYNPMTX2SRRXVSKYCK3RUXDVTLUV3CA4
+#\\\|IVJSV6PGPLZ77MAUGZABG4EA7NJL4NS4CDDNK5QPHIAMYIRXA5O \ / AMOS7 \ YOURUM ::
+#\[7]THUNUPG22RVZLGPSLGLPC7OQLXCXZ77CVLSFKZMFBRN4PTLA3CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
