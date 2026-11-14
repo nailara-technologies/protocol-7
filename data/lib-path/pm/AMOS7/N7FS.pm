@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.43LC7PY |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.BXBP6AY |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -167,8 +167,11 @@ our $DEFAULT_ROOT = qw| /N7FS |;
 ## the root is /N7FS unless overridden [ option, then N7FS_ROOT ] -- tests
 ## never see the default
 sub root_dir {
-    my %opt  = @ARG;
-    my $root = $opt{'root'} // $ENV{'N7FS_ROOT'} // $DEFAULT_ROOT;
+    my %opt = @ARG;
+    ## a seal root [ hash ] shares the 'root' key in placement options : ##
+    ## only a plain directory name is a disk root                        ##
+    my $root = ( ref $opt{'root'} ? undef : $opt{'root'} )
+        // $ENV{'N7FS_ROOT'} // $DEFAULT_ROOT;
     $root =~ s|/+\z|| if length $root > 1;
     return $root;
 }
@@ -502,8 +505,8 @@ sub remove_tree {
 
 1;
 
-#,,.,,,..,...,..,,..,,,,,,,,.,..,,..,,...,,..,..,,...,...,.,,,,..,,,,,.,,,.,.,
-#TRJM3YXA2VMI6XQVU6BFBHM7F3BV6CCFTZP2POSSVJ3B42AXXP36TKGR3OBDDED2ZBOSAREYHEGZO
-#\\\|TDBWSLX435E2IOTK4EORO6V4FYARPI6MVZT6ZUIAH54W4AGVA5B \ / AMOS7 \ YOURUM ::
-#\[7]3O4Y4XHTLDXEPHH3GDBNP6CE7O5FDD2PRHXWNN55BIA23HFU34BA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,.,,,.,,,,,,,,,.,,,,,.,,,,..,..,,...,...,..,,.,.,,,,,..,,,.,,
+#JJL52Q4VSRBI3UORDL6JAPAKGMKI5ETDJGI7XWYBJ6VEOJVBQOE3VPWCSHUPZ7JNLWOW5DLZ3QRBC
+#\\\|MN5RUHGBFKGBZ5QWPN3JJ2IVEJGXCXLHU2D7G3WUV52M5AWIJQI \ / AMOS7 \ YOURUM ::
+#\[7]KXUBR5GJGT6IZIZTOA2EVPDHZZ7Y5RIFWKKGSFZMIBEK7P5HW4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
