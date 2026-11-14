@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.GYE5GGY |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.4BTFI4Q |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -710,8 +710,8 @@ sub _copies {
             = ref $receipt eq qw| HASH | ? $receipt->{'version'} : undef;
         $status{$name}{'receipt_age'}
             = ref $receipt eq qw| HASH | ? $now - $receipt->{'time'} : undef;
-        my $full          = receipt_coverage($receipt) eq qw| full |;
-        my $used          = 0;
+        my $full = receipt_coverage($receipt) =~ m{\A(?:full|scrub)\z};
+        my $used = 0;
         my $covered_count = 0;
 
         if ( $state eq 'unreachable, counted' ) {
@@ -833,6 +833,8 @@ sub place_missing {
     my %left;
     foreach my $name ( keys %{$holders} ) {
         next if $holders->{$name}{'role'} ne qw| durable |;
+        ## a far holder is fed by relay from its hub, never sealed directly ##
+        next if defined $holders->{$name}{'via'};
         next if $status->{$name}{'state'} =~ m|\Aunreachable|;
         next if $status->{$name}{'state'} eq 'excluded';
         next if $status->{$name}{'state'} eq 'rolled back';
@@ -1207,8 +1209,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,.,,,...,.,,,,..,,,,,,,,,.,.,,,,,,,.,,..,..,,...,...,,,.,,..,..,,,,,,,..,
-#EVPFU3NALJBLQPW3IUTIE5XTVVFKLUSIP4VOQYAPSFPEQUQ3MY7QCVHIAFAPTB7KUHL3V6AVKB73E
-#\\\|RXMCAYYVJH6RXPVCFSNHPF4WLYXROJEDJP4RHLZXRWG6VSJOPYT \ / AMOS7 \ YOURUM ::
-#\[7]ZLVRX6PBRMX4ZZPTQJWGPXO5VFZSA2QXCRFPYAUSSHOCWCNO7SDI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,,,.,,,.,,,,,.,.,,.,,,,,,.,.,..,,...,...,...,,,,,,.,,,,,,,,.,
+#QXJX6QOCT3ATADX7RWM745PBHM3BXQR6HATXANSGIRIESRYHLTHK632AVSQPNG765HYUIRWQFDFTQ
+#\\\|2V2I2UK3LL5FQIMMLWAQR2O4KB7OVIZFQLC5VY7E3MQWBQPF7EP \ / AMOS7 \ YOURUM ::
+#\[7]37UNVTJM4IADCSDFRSS5BBZBAB4SBS3J7ZKAJYCEOF2KBRWUSUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
