@@ -212,6 +212,42 @@ ok( $rc == 0 && -e "$h1/$sub_tag/$h1_blob",
     'restore -all-since brings the day back'
 ) or say $out;
 
+## r11 : destructive age decisions refuse an implausible clock disagreement ##
+{
+    no warnings qw| redefine |;
+    local *AMOS7::N7FS::Seal::holder_now = sub {
+        return AMOS7::N7FS::ntime_now() + parse_y_age('1Y1');
+    };
+    refused(
+        sub {
+            AMOS7::N7FS::Seal::holder_gc(
+                qw| root |   => $main_root,
+                qw| holder | => $h1,
+                qw| keep |   => [],
+                qw| delete | => 1,
+                qw| grace |  => 0,
+            );
+        },
+        qr|clocks disagree.*refusing a destructive age decision|,
+        'gc refuses instead of voiding grace under an implausible clock'
+    );
+    refused(
+        sub {
+            AMOS7::N7FS::Seal::holder_trash_purge(
+                qw| root |   => $main_root,
+                qw| holder | => $h1,
+                qw| older |  => 0,
+                qw| delete | => 1,
+            );
+        },
+        qr|clocks disagree.*refusing a destructive age decision|,
+        'trash purge refuses instead of deleting under an implausible clock'
+    );
+    ok( -f "$h1/$sub_tag/$h1_blob" && -d "$h1/$sub_tag/.trash/$day",
+        'both clock refusals leave blobs and trash untouched'
+    );
+}
+
 ##[ a blob present only in trash counts as missing ]##########################
 
 my $h2 = "$base/h2";
@@ -412,8 +448,8 @@ sub _today {
 
 done();
 
-#,,.,,.,.,,,,,,,.,..,,,..,,..,,,,,,.,,,..,,,,,..,,...,...,.,,,...,,,.,...,...,
-#2ZUNZQLKRTGFWSJUPQ7ASE6GRZFUPN4SCDLJ2ZXIFC4ANM5N74QIIKWBOYYR7MGY47FDOOA6M6SGO
-#\\\|W6DHJSISAT2LNZ24W6BUNXYB2Y5IGX54KY7UNTHDI2KZHVJW2SJ \ / AMOS7 \ YOURUM ::
-#\[7]OMUH2VUQHSXB4LFNYOSYVPQMYETYH6A3BK2SRQW3CVQTIERTKMCQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,.,.,.,,,,,.,.,,,.,,,,..,...,..,,...,...,..,,.,,,,.,,,..,...,
+#GKUNPTUPNLBNONOG76EISYFWWJRERBGOMAMND74QVVY3FCXJD2H3PVTOEWOMC34SET74GFCJVV7AQ
+#\\\|2MKRR7NC4EV55OISCYBUZLVAJQJHTJW3IHM3GNMKQIJACTE55XP \ / AMOS7 \ YOURUM ::
+#\[7]GL4OV6AUS7NIIFAJUZSIKT3GTXRCUGX3KV45AME4J24CQFIZFOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

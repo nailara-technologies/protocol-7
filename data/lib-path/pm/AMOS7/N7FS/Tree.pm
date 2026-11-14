@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.FB7T5NY |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.2VDGPNQ |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -300,8 +300,17 @@ sub tree_create {
     my $tmp = sprintf qw| %s/manifest.%s |, $tmp_dir,
         b32( AMOS7::N7FS::random_bytes(5) );
     my @skipped;
-    my $stats   = { qw| errors | => 0, qw| xattr_errors | => 0 };
-    my $created = ntime14( ntime_now() );
+    my $stats  = { qw| errors | => 0, qw| xattr_errors | => 0 };
+    my $now    = ntime_now();
+    my $newest = 0;
+
+    foreach my $tree ( values $replay->{'trees'}->%* ) {
+        my $time = $tree->{'created'} // 0;
+        $newest = $time if $time =~ m|\A\d+\z| and $time > $newest;
+    }
+    ## a clock setback must never make a new snapshot older than its ancestors
+    $now = $newest + 1 if $now <= $newest;
+    my $created = ntime14($now);
     fault(qw| tree:before-walk |);
     write_new_file_stream(
         $tmp,
@@ -931,8 +940,8 @@ sub tree_restore {
 
 1;
 
-#,,..,,..,.,,,.,,,...,...,,..,.,.,,,,,,,,,,..,..,,...,...,,,.,.,,,,,.,.,,,,.,,
-#7HUTVMNZFPD2ED3JWEG3ALQOHFP6LRXZLRS3LXIBO6EFCYIYOX5FCWAWUKF2HERNNREAHZ3RCZFZM
-#\\\|HSWJVTB2Y6FM2Z4WMR6YGP7T6O6WP6H3L3BUHO5IFTUYL534F5N \ / AMOS7 \ YOURUM ::
-#\[7]LXUIFMQ3PEYHOCTCB2AC6UOVCGQMTXM6IB75VACPKYTJHVUN3GAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,,,,..,.,,,,..,,..,,,,,,.,,,.,,..,,...,...,.,.,,,.,,..,,.,,,,,,
+#DTIRXE6S36JFFM5TWXRHB7DOANONLAZPHG2TOYSMNUXIYWB5LXT3MRDQ22NJHQDXLSQROKF4T2VTG
+#\\\|2MZNVVG2ASHLONCTCA7R522S37MLGU52VPU2W3QCAF5WNMKC6PO \ / AMOS7 \ YOURUM ::
+#\[7]FKVDZSJY6534CHT6EBMSQ3L6TH5GDUCBJY5YDUB2JWHVPCYPFUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

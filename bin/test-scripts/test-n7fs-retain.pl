@@ -120,6 +120,45 @@ ok( $decision{'snap.a-new'}{'reason'} eq '3 Y4'
     );
 }
 
+## r15 : one bucket pass per term, deterministic ties and complete reasons ##
+{
+    my $p = AMOS7::N7FS::Seal::retention_plan(
+        qw| trees | => {
+            'other'    => int( $now - $y4 ),
+            'snap.tie' => int( $now - $y4 ),
+            'snap.zie' => int( $now - $y4 ),
+        },
+        qw| rules | => { 'snap.' => '1Y4' },
+        qw| now |   => $now,
+    );
+    my %d = map { $ARG->{'tree'} => $ARG } @{$p};
+    ok( $d{'snap.zie'}{'keep'}
+            && !$d{'snap.tie'}{'keep'}
+            && $d{'other'}{'reason'} eq 'no retention rule'
+            && !exists $d{'other'}{'retention'},
+        'ties use names and an unmatched tree gets the full reason'
+    );
+    require Time::HiRes;
+    my $many_now = int( $now + 2000 * $y4 );
+    my %many     = map {
+        sprintf( 'snap.%04d', $ARG ) => int( $many_now - $ARG * $y4 )
+    } 0 .. 1999;
+    my @warnings;
+    my $start = Time::HiRes::time();
+    {
+        local $SIG{'__WARN__'} = sub { push @warnings, @_ };
+        $p = AMOS7::N7FS::Seal::retention_plan(
+            qw| trees | => \%many,
+            qw| rules | => { 'snap.' => '13Y4 13Y3 13Y2 13Y1' },
+            qw| now |   => $many_now,
+        );
+    }
+    my $elapsed = Time::HiRes::time() - $start;
+    ok( @{$p} == 2000 && !@warnings && $elapsed < 1,
+        sprintf '2000 trees plan without warnings in %.3f seconds',
+        $elapsed );
+}
+
 my ( $rc, $out ) = cli( [], 'keygen', "$hdir/host.key" );
 ( $rc, $out ) = cli( [], 'keygen', "$hdir/parent.key" );
 ( $rc, $out ) = cli( [], 'pubkey', "$hdir/parent.key" );
@@ -199,9 +238,26 @@ ok( $rc == 0
         && $out =~ m|keep snap.pinned \[ pinned|,
     'the retention dry run prints drop and pin reasons without dropping'
 ) or say $out;
+## r13 : retain's internal gc protects the same pending relay names ##
+require JSON::PP;
+my $relay_blob = AMOS7::N7FS::Sum::bmw_b32(
+    AMOS7::N7FS::Sum::bmw384_bytes('pending relay bytes') );
+write_file( "$sub/$relay_blob", 'pending relay bytes' );
+my $relay_tag = substr(
+    AMOS7::N7FS::Sum::bmw_b32(
+        AMOS7::N7FS::Sum::bmw384_bytes( "p7 n7fs relay v1\0" . $holder )
+    ),
+    0, 13
+);
+make_dirs("$hdir/relay-pending");
+write_file( "$hdir/relay-pending/$relay_tag.json",
+    JSON::PP::encode_json( { qw| blobs | => [$relay_blob] } ) );
 ( $rc, $out )
     = cli( ['vp'], 'retain', $disk, '-root-key', $root_key, '-grace', '0' );
-ok( $rc == 0, 'retention, prune and gc complete' ) or say $out;
+ok( $rc == 0 && -f "$sub/$relay_blob",
+    'retention gc keeps a pending relay blob'
+) or say $out;
+unlink "$hdir/relay-pending/$relay_tag.json", "$sub/$relay_blob";
 ( undef, my $referenced_map ) = read_map();
 ok( !exists $referenced_map->{'nodes'}{$unique_file}
         && exists $referenced_map->{'nodes'}{$shared},
@@ -242,6 +298,7 @@ ok( $rc == 0 && !exists $retained_map->{'nodes'}{$unique_file},
             qw| holder |    => $holder,
             qw| host_dir |  => $hdir,
             qw| signer |    => key_file_signer("$hdir/host.key"),
+            qw| keep |      => [],
             qw| grace |     => 0,
             qw| threshold | => 0,
         );
@@ -651,12 +708,38 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
     ( undef, $detached_map ) = read_map();
     ok( exists $detached_map->{'trees'}{'docs.b1'},
         'the detached disk tree survives the real retention run' );
+
+    ## r14 : a clock setback cannot make the newest snapshot the oldest ##
+    $disk = $disk_a;
+    my ($previous_newest) = sort { $b <=> $a }
+        map { $ARG->{'created'} }
+        values AMOS7::N7FS::Journal::journal_replay($id_a)->{'trees'}->%*;
+    import_tree(
+        'snap.after-setback',
+        $previous_newest - 100 * $y4,
+        'new' => "after clock setback\n"
+    );
+    my $after_created = AMOS7::N7FS::Journal::journal_replay($id_a)
+        ->{'trees'}{'snap.after-setback'}{'created'};
+    ok( $after_created > $previous_newest,
+        'a snapshot after a clock setback is stamped after the newest tree' );
+    my $setback_plan = AMOS7::N7FS::Seal::retention_plan(
+        qw| trees | => {
+            'snap.new'           => $previous_newest,
+            'snap.after-setback' => $after_created,
+        },
+        qw| rules | => { 'snap.' => '1Y4' },
+        qw| now |   => $after_created + $y4,
+    );
+    my %setback = map { $ARG->{'tree'} => $ARG } @{$setback_plan};
+    ok( $setback{'snap.after-setback'}{'keep'},
+        'the retention ladder keeps the newest snapshot after a setback' );
 }
 
 done();
 
-#,,,.,,,,,.,,,.,,,..,,,,,,.,,,.,.,.,,,,.,,,,.,..,,...,...,...,,..,.,.,.,,,.,.,
-#ZYDZIAS2QXTVLHXVLO23EN5O3MVUX6JN2OHZQP4EYWARZ6CV5KOWYBPB34GXG2SX7M4KCKWGMAW7M
-#\\\|PBLVPY7BI5OXEHKB4RWMVQ6H3ZYA67UN4KS32SO5IP33L2CSPHP \ / AMOS7 \ YOURUM ::
-#\[7]77QAKK4TISMBW5AJOVNPWV4WYC3CJREZGH5B2YGMTWJL2C6CQOCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,.,,,.,.,.,.,.,,,,,.,,,,,,.,,..,,...,...,...,.,.,.,,,,,.,.,.,
+#WKGPZB2YRPGKW7BQVGNI52WK4VHBYCJKR6WLRY3CM6BT2HM54DCGOUA2RQ5BSJQK3K5W7A7543OIG
+#\\\|MJL4FDUPGD7DJQ5JDAZKVH75N2AIR4W2ZTCWZUXV32JGRTGOMYU \ / AMOS7 \ YOURUM ::
+#\[7]TPOXKMNLWNUJJAHCNXPE7XATDRHE5YRBFPHROYA3WHA2CZFZICAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

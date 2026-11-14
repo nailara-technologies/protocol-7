@@ -88,6 +88,9 @@ use warnings;
 ## n7fs seal-recover -root-key <file> -from <dir> [ -tree <name> ] <target-dir>
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
 ## n7fs holder-check <holder> -root-key <file>   also writes a receipt ;
+##                 [ -accept-clock ] allows a floor jump larger than 1Y2
+## n7fs clock-floor <root-id> -show | -reset
+##                 inspect or clear the per-root receipt clock floor
 ##                 <holder> : a spec or a registered name [ also holder-gc ]
 ##                 [ -full ] authenticate every chunk [ coverage full ]
 ##                 [ -scrub ] keyless full coverage : verify every mapped
@@ -240,7 +243,7 @@ GetOptionsFromArray(
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
         categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
         no-check check-full repack threshold=f
-        list adopt seal-root=s also-root-key=s@ |
+        list adopt seal-root=s also-root-key=s@ accept-clock show reset |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -303,6 +306,7 @@ my %run = (
     qw| seal-recover |         => \&cmd_seal_recover,
     qw| shred |                => \&cmd_shred,
     qw| holder-check |         => \&cmd_holder_check,
+    qw| clock-floor |          => \&cmd_clock_floor,
     qw| holder-scrub |         => \&cmd_holder_scrub,
     qw| holder-receiver-line | => \&cmd_holder_receiver_line,
     qw| holder |               => \&cmd_holder,
@@ -1091,12 +1095,14 @@ sub _repack_holders {
     my ( $packs, $receipts ) = ( 0, 0 );
     foreach my $holder (@holders) {
         my $r = AMOS7::N7FS::Seal::repack_packs(
-            qw| root |      => $root,
-            qw| holder |    => $holder->[1],
-            qw| host_dir |  => host_dir(%common),
-            qw| signer |    => host_signer(),
-            qw| threshold | => $o{'threshold'} // 30,
-            qw| dry_run |   => $dry_run,
+            qw| root |         => $root,
+            qw| holder |       => $holder->[1],
+            qw| host_dir |     => host_dir(%common),
+            qw| signer |       => host_signer(),
+            qw| threshold |    => $o{'threshold'} // 30,
+            qw| dry_run |      => $dry_run,
+            qw| accept_clock | => $o{'accept-clock'} ? TRUE : FALSE,
+            _holder_gc_opt( $holder->[1] ),
             defined $o{'grace'}
             ? ( qw| grace | =>
                     AMOS7::N7FS::Placement::parse_age( $o{'grace'} ) )
@@ -1140,6 +1146,11 @@ sub cmd_retain {
     my ( $rules, $pins, $holders ) = _retention_settings($root);
     my $trees = { map { $ARG->{'name'} => $ARG->{'created'} }
             AMOS7::N7FS::Tree::tree_list( $id, $state, $replay ) };
+    my $now = ntime_now();
+    my ($future) = sort { $b <=> $a } grep { $ARG > $now } values %{$trees};
+    fail(     'newest tree is later than the local clock [ '
+            . "$future > $now ] ; refusing retention" )
+        if defined $future;
     my $plan = AMOS7::N7FS::Seal::retention_plan(
         qw| trees | => $trees,
         qw| rules | => $rules,
@@ -1235,6 +1246,7 @@ sub cmd_retain {
                 qw| root |   => $root,
                 qw| holder | => $target->[1],
                 qw| delete | => TRUE,
+                _holder_gc_opt( $target->[1] ),
                 defined $o{'grace'}
                 ? ( qw| grace | =>
                         AMOS7::N7FS::Placement::parse_age( $o{'grace'} ) )
@@ -1808,6 +1820,28 @@ sub _holder_arg {
     return $h->{'spec'};
 }
 
+sub cmd_clock_floor {
+    require AMOS7::N7FS::Placement;
+    my $root_id = shift // fail('clock-floor needs a root id');
+    fail('clock-floor : unexpected arguments') if @ARG;
+    fail('clock-floor : root id is not base32')
+        if $root_id !~ m|\A[A-Z2-7]{77}\z|;
+    fail('clock-floor needs exactly one of -show or -reset')
+        if !$o{'show'} == !$o{'reset'};
+    if ( $o{'reset'} ) {
+        AMOS7::N7FS::Placement::clock_floor_reset( host_dir(%common),
+            $root_id );
+        say_line( 'clock floor reset for ', $root_id );
+        return 0;
+    }
+    my $local = ntime_now();
+    my $floor = AMOS7::N7FS::Placement::n7fs_now( host_dir(%common), $root_id,
+        $local );
+    say_line( 'root ', $root_id, ' ; floor ', $floor, ' ; local ', $local,
+        $floor > $local ? ' ; local clock is behind the floor' : '' );
+    return 0;
+}
+
 sub cmd_holder_check {
     require AMOS7::N7FS::Seal;
     my $holder = _holder_arg( shift // fail('holder-check needs a holder') );
@@ -1855,6 +1889,7 @@ sub cmd_holder_check {
         qw| covered |       => $r->{'covered'},
         qw| covered_nodes | => $r->{'covered_nodes'},
         qw| covered_addresses | => $r->{'covered_list'},
+        qw| accept_clock |      => $o{'accept-clock'} ? TRUE : FALSE,
     );
     say_line( 'receipt written : coverage ',
         $r->{'coverage'}, ', covered ', $r->{'covered_nodes'},
@@ -2136,6 +2171,14 @@ sub _relay_pending_names {
     return @{ $data->{'blobs'} // [] };
 }
 
+sub _holder_gc_opt {
+    my $holder = shift;
+    return (
+        qw| keep |      => [ _relay_pending_names($holder) ],
+        qw| only_root | => $o{'only-root'} ? TRUE : FALSE,
+    );
+}
+
 sub cmd_holder_gc {
     require AMOS7::N7FS::Seal;
     require AMOS7::N7FS::Placement;
@@ -2148,12 +2191,11 @@ sub cmd_holder_gc {
         host_signer()->public, AMOS7::N7FS::Holder::holder_canonical($holder),
         $root->{'root_id'}, );
     my $r = AMOS7::N7FS::Seal::holder_gc(
-        qw| root |      => $root,
-        qw| holder |    => $holder,
-        qw| receipt |   => $receipt,
-        qw| keep |      => [ _relay_pending_names($holder) ],
-        qw| only_root | => $o{'only-root'} ? TRUE : FALSE,
-        qw| delete |    => $o{'delete'}    ? TRUE : FALSE,
+        qw| root |    => $root,
+        qw| holder |  => $holder,
+        qw| receipt | => $receipt,
+        _holder_gc_opt($holder),
+        qw| delete | => $o{'delete'} ? TRUE : FALSE,
         defined $o{'grace'}
         ? ( qw| grace | => AMOS7::N7FS::Placement::parse_age( $o{'grace'} ) )
         : (),
@@ -2408,10 +2450,11 @@ sub _placement_opt {
         %common, _vault_opt(),
         qw| disk | => $disk,
         defined $o{'root'} ? ( qw| disk_root | => $o{'root'} ) : (),
-        qw| root |     => _seal_root(),
-        qw| host_dir | => host_dir(%common),
-        qw| host_pub | => host_signer()->public,
-        qw| exclude |  => $o{'exclude'} // [],
+        qw| root |         => _seal_root(),
+        qw| host_dir |     => host_dir(%common),
+        qw| host_pub |     => host_signer()->public,
+        qw| exclude |      => $o{'exclude'} // [],
+        qw| accept_clock | => $o{'accept-clock'} ? TRUE : FALSE,
     );
 }
 
@@ -2550,8 +2593,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,,,,,,,,,,,.,,,,,.,.,,.,,,.,,...,...,..,,..,,...,...,.,.,,.,,,,,,...,...,
-#RIHE75CCXJDORRZZNZCVEMYFKFDVYQOUAOPYRTXZAQQH4GEMYXSRHFV5KV6XW6SNJBCRHKJAEM5Q2
-#\\\|P2YDWUEYCPNJSXAAMELOTAUMTMPYWO65WLZXDBDJOXGGZZS55Q4 \ / AMOS7 \ YOURUM ::
-#\[7]CPRJBONCXPEC33RYKWVWB3URQWF3BP5ODRD36BVL2YGQBTBEPUCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,,,,.,,,..,,,,,.,,,...,,,,,,..,..,,...,...,,.,,,..,...,.,,,,.,,
+#FFFJYTNDZQ5YLL23T3ZIDYVON7VUOLFGOCQYBQI3LNMCDMHT4CMBRL75RODXXYPRURYNZYOJVR4FE
+#\\\|CBRSSQMWWI6RX7RQFDZVJKPODCOJNK3J4Y2VS5QZZ7SVDZRJTX7 \ / AMOS7 \ YOURUM ::
+#\[7]UUAEZQOHFTMGC2W67FVV3DPUS7UJRZLWH2BYUYTQCBOCNEMNGIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

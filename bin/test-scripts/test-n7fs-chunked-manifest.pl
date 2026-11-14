@@ -197,6 +197,7 @@ AMOS7::N7FS::Seal::unmap_nodes(
 AMOS7::N7FS::Seal::holder_gc(
     qw| root |   => $root,
     qw| holder | => $holder,
+    qw| keep |   => [],
     qw| delete | => 1,
     qw| grace |  => 0,
 );
@@ -242,8 +243,8 @@ refused(
 
 done();
 
-#,,.,,,..,,..,,.,,.,.,,,,,,,,,.,,,,..,..,,,.,,..,,...,...,,,.,,.,,,..,,,.,,,,,
-#AUSTR6M4HQNNN2MH237U76L6N7GPKYF3HHM576ZGNSZSOIMSMNVSIKQ4LVUCHP3MPAM44AUDVIVVK
-#\\\|DGLC4Y2OZDUQMHZEJFOQO3SHW4O2RHJWEYB52PRTDRM3PBMNUID \ / AMOS7 \ YOURUM ::
-#\[7]XRFZZHOIKVXZUTRAACCAHSYRGM5AXLLNOF7ETRH6JUQWSYRXOQCQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,.,,,.,,,,.,,,..,.,,,...,.,,,..,,...,..,,...,,..,.,.,...,...,
+#74OYSM7HGXHMHX5Y5WCYX35TFT56WK4X76IJ46KWD6A6HJQFELOC5Y3I3HIA3XGLJNNPKYXY3CDTE
+#\\\|VGBCCR75TW3F3GB6K6N4OZ7R22LAHJWEBL3VGNZLYCV6ZEXLHDZ \ / AMOS7 \ YOURUM ::
+#\[7]JZWIK77JQEVFPVYIB4U4UAJJNNIKSRDGTHOJ3I5ZDOEVRDP3P4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,10 +13,10 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.LA35EFQ |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.4ANWKZI |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
-    holder_sizes holder_stats holder_free holder_isdir holder_sub_spec
+    holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
     holder_make_path holder_move holder_trash_days holder_trash_list
     holder_remove_day holder_authorize
     holder_size holder_put holder_delete holder_verify holder_download
@@ -30,7 +30,7 @@ use Digest::BMW;
 use AMOS7::NTIME qw| unix_to_ntime |;
 use AMOS7::N7FS
     qw| random_bytes read_file write_new_file make_dirs remove_tree refuse
-    b32 sync_dir |;
+    b32 sync_dir ntime_now |;
 use AMOS7::N7FS::Sum      qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Receiver qw| request_token |;
 
@@ -437,6 +437,19 @@ sub _receiver_list {
     $dir =~ s|/\z||;
     my $command = join ' ', 'list', length $dir ? $dir : ();
     return _result( $h, $command );
+}
+
+## age decisions use the holder's clock, on the same scale as its mtimes
+sub holder_now {
+    my $spec = shift;
+    my $h    = holder_parse($spec);
+    return ntime_now() if $h->{'type'} eq qw| local |;
+    my ( $status, $out )
+        = _result( $h, $h->{'receiver'} ? 'time' : 'date +%s' );
+    refuse('holder clock query failed') if $status;
+    my ($seconds) = $out =~ m|\A\s*(\d+)|;
+    refuse('holder clock reply is invalid') if not defined $seconds;
+    return unix_to_ntime( $seconds + 0 );
 }
 
 sub holder_stats {
@@ -1057,8 +1070,8 @@ sub holder_put {
 
 1;
 
-#,,..,,..,,.,,...,,,.,,..,.,,,.,,,...,,,,,,,,,..,,...,...,,..,,,.,,..,,..,,,.,
-#NDUXGXOLEGSWRTZXXZAUCJLEI7ZVIDCPQZM56M4ICVUSTF6S3CEB5YI5YFOOY4DH45VIQ2XEZMOIG
-#\\\|ZYCUWRAN332W2MAYFFNLVD7FWKPCIDBICQJ25A4FMM4K3TLMXGG \ / AMOS7 \ YOURUM ::
-#\[7]HJ77KT2BC2LGKX4M4PQSOVUCZIZ53NZ6MGOU7UCBT5AW4F6QMKBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,,..,.,.,,,,,..,,,..,,..,,..,..,,...,...,,,.,..,,..,,..,,,.,,
+#GK5ZHHKW5L7GQSQBMQQK6YRAV2FAHRJAGKPO23J5UQ66O3U22H2EGWFQX2MSJPFA3PWHUM7L46Q2M
+#\\\|2LJQBK7YKCUVAYOO7OBOOXYF3UHK63XL6HWK23JGVQCDS4PARUU \ / AMOS7 \ YOURUM ::
+#\[7]XTEWZT5FZF6ZRIPJWO4MORIHNXGSWRTPA6GDESCKW4F7QVAIJECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

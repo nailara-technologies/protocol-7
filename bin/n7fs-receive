@@ -16,6 +16,7 @@ use warnings;
 ##
 ## requests in SSH_ORIGINAL_COMMAND :
 ##   list [ <dir> ]           files : f <name> <size> <mtime> ; dirs : d ..
+##   time                     holder unix time for age decisions
 ##   has <name> ..            prints '<name> <size>' for those present
 ##   get-range <name> <offset> <length>
 ##   put <name> <size>        reads exactly <size> bytes, add only
@@ -251,6 +252,12 @@ if ( $verb eq 'list' ) {
             say "d $name $st[9]";
         }
     }
+    exit 0;
+}
+
+if ( $verb eq 'time' ) {
+    out('time takes no arguments') if @word;
+    say time;
     exit 0;
 }
 
@@ -648,8 +655,8 @@ if ( $verb eq 'delete' ) {
 
 out('unknown request');
 
-#,,,,,,,.,.,.,,,,,.,,,,,.,,,.,,,.,.,.,,.,,,,,,..,,...,...,...,.,,,,,,,,.,,,..,
-#43X5JO7CFGJZSZHRNCSOYYNM735CVYUTNPPNBNZT35XVLGN4ADREO7M63UBY47XCAX77VYVMB3PZW
-#\\\|RUWAEXYKKM3DI4L2J7B2RCNMOMXFGUGYHXE7VIZLJ4FUJZS2UA2 \ / AMOS7 \ YOURUM ::
-#\[7]WNDOMJ5C2Y4WETHETJ7WCCE2554GDA2HORM2KGWHXE2WEHUD6YCA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,,,.,,,,.,,,.,,.,,,.,.,...,,..,..,,...,...,,,,,..,,...,.,,,,,,,
+#7FARVUU6DUKJV4RVIODM3CSR32CZIKGQ7PG6OU5M2URSB3FDSQUCRBB7TVYV6XTOIBGY42K2H7WDK
+#\\\|7HJDTJHL5ENDOB7OCZHFMQUDBP5GKFBREJI2G44DCQCHT52XMQW \ / AMOS7 \ YOURUM ::
+#\[7]PEYTT7CCCCMKDZBFQFRQD5O2ID7UOTPBJ5WQCJZ5MYHVWXGOFICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

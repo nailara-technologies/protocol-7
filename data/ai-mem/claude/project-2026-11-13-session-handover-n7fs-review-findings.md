@@ -33,7 +33,7 @@ in the sealed map, repack ; all times ntime, durations in Y levels = ntime year
 stage 2 sharded map 1061c8697 [ kimi sealed root + all shards under ONE nonce --
 caught in review, now per-blob domains map-shard-XX \ map-tree ; check nonce
 domains in every new sealed kind ] ; next stage 3 chunked manifests, 4 retain +
-repack ; 7 [ rollback : signed head time + other holders'
+repack ; PENDING DOC REFS for the next commit [ N7FS-SEALED-REPLICAS.md derived placement paragraph ] : data/md/design/EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md [ rolling validity window prev/current/next, totp shape ; first seen rule ], data/md/design/CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md §2 [ epoch as temporal network root, <epoch>:<key>[:<name>] auto-closing collision exclusion ], data/tasks/epoch-validity-search-protocol.md [ search result checksum IS its route = the rocket ] ; 7 [ rollback : signed head time + other holders'
 versions, tree complete \ partial, registry in the sealed map ] ; 8 [ snapshot
 before pull ] ; 9 [ `n7fs cycle`, monthly restore drill ] ; 10 small [ receipts
 signed by the same host key, local clock ].
@@ -55,8 +55,8 @@ CPU to 545 MHz ] -- killed, updated, fixed ; check `% Processor Performance` fir
 next time. kimi cost : see [[kimi-dispatch-model-verify-before-send]].
 [[n7fs-first-live-round]] [[n7fs-host-migration-goal]]
 
-#,,,,,,,.,.,.,,,,,..,,.,,,,,.,..,,.,,,.,,,.,,,..,,...,...,,,.,,,.,...,.,,,.,.,
-#DNP74AICZAD3GJA2ODN7LDEYIPCP7BKFBGQAMYXNAAFCGNSZ4OX75R6RCEIHQM6QD2UQIX2CCCNL2
-#\\\|67LEECVGZYUZ46GOQAZNWSAIZJDFUOSDVRUA3OQJV7LQLNADX4F \ / AMOS7 \ YOURUM ::
-#\[7]3S5BVECUI7PIYGL7RPRYJLZSN5HJSMUB2DUSCL2K3Z4RCWPYX2AY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,...,.,.,.,,,,..,.,.,...,..,,...,..,,...,..,,.,,,..,,...,,.,,,,.,
+#JRE3YRECOI75P2FEDEZ6VNI7RZ7EYYUFA3RO27VVON3DT6CZY65MPO2X4PEQWBUUTP2GDF2U2YFWS
+#\\\|PWFYMPHSAGAGJYW4SXK77SP7FOCXIJ6OWDI3K2P7YXYN7I7JBS7 \ / AMOS7 \ YOURUM ::
+#\[7]6B2NMCPUC24PA5ARYOTMCCFIUTSIQOEEXMW63QBYIN6JD2K24QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
