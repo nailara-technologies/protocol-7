@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.SYI7L7Q |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.U4BALDA |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -1318,7 +1318,8 @@ sub assimilate {
                 require AMOS7::N7FS::Tree;
                 my $created
                     = AMOS7::N7FS::Tree::tree_create( $id, $store, $state,
-                    $replay, $opt{'paths'}[0], $opt{'tree'}, \%report );
+                    $replay, $opt{'paths'}[0], $opt{'tree'}, \%report,
+                    $opt{'snapshot'} );
                 push $add->{'nodes'}->@*, $created->{'address'}
                     if $created->{'new_node'};
                 push $add->{'meta'}->@*,
@@ -1749,8 +1750,8 @@ sub _remove_source {
 
 1;
 
-#,,,.,,..,.,.,.,,,,..,.,,,,,,,...,,.,,,.,,,.,,..,,...,...,...,.,,,,,,,,,,,.,,,
-#VYAI7E3OBFHZYZJCBMLLEAC6F7SPTCNQ4Z4NKMLDNM75YC57XH7NA7HVK35F2DHH3NKKIQ5KMDOAI
-#\\\|CZS3MDI6QXRZM4XEBBA2X5TVXVYVEXKQOILVJ7BSP6QSJ7GACBH \ / AMOS7 \ YOURUM ::
-#\[7]KIDE5YOZEUIYODL2VPIV2NUZ4LVLTKKP35BKS6MGJBWR2XXS6AAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,.,,,.,,,,.,...,,.,,,,,,.,,,...,..,,...,...,.,,,..,,.,.,..,,,,,,
+#CFMJQBV5M4UG5OGG6N4A52WHX4SIWYXJZCSWM5PLSG7NUZGNJBQDPTVSRMSN32QDOPEBKOFWCWXEQ
+#\\\|RN4GDWZ5FXRN7EYSGLPONJ2B6JVODKMOZGZAGBLDEE4O2QDL5QF \ / AMOS7 \ YOURUM ::
+#\[7]4XZEXTXANR7BE4UIHTELCZUF75XMTXJS3RQS6KTSI2TPQJHI5YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

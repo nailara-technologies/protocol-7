@@ -545,6 +545,56 @@ stage 4 is the first that gets essential data off the host.
   "torque = accumulated integer" [ the encoder's counter ]. in between : partial coupling with a measurable lead \ lag [ a curve leading another
   by a quarter cycle is a prediction ]. phase becomes a SPACE coordinate,
   like the CCW radar spokes finding sync points from aligned phase angles
+- recipe copies sourced through P7REFS [ owner 2026-11-14 ; `base.p7refs.*`,
+  `TYPE:<chksum>:<b32_addr>`, anonymized mode without the type for
+  untrusted peers ] : a "copy" may be a RECIPE instead of stored bytes -- an
+  on-demand inference with the same parameters, or any zenka work result
+  produced independently but BIT-EXACT. the content checksum is known in
+  advance, so independent recomputation is validation : 5-of-7 where the
+  validators do not check a copy but create it [ reproducible builds for
+  data ]. condition : bit-exactness is not automatic -- a recipe pins model
+  checksum, quantization, sampler, seed, library versions and a
+  deterministic compute mode [ gpu kernels may differ in the last bits ] ;
+  only tasks proven reproducible count as copies, the first independent
+  recomputation is the proof. a dial between holding bytes and holding the
+  recipe, by which is cheaper. owner : ideal for images -- deleted or
+  miniaturized, an image keeps its miniature + recipe and is recreated
+  with gpu cycles on a tap in the parent. EXACT = a copy [ same recipe,
+  same checksum ] ; BETTER [ newer model, higher resolution ] = a NEW
+  VERSION with its own checksum, keeping the original recipe as its parent
+  [ lineage ] so the original stays exactly recreatable. three forms side
+  by side : full bytes, miniature + recipe, recipe only. owner : an
+  incentive to VISUALLY INDEX EVERYTHING -- even data that cannot be kept
+  for space reasons or was lost to too little redundancy can be recreated
+  from the index [ better, without being described again ], and each
+  quality increase aligns with deduplication ; content stops being
+  bit-static. honesty rule : RECOVERED [ bit-exact, same checksum ] is the
+  original ; RECONSTRUCTED [ from index \ miniature, no exact recipe ] is
+  not -- marked "reconstructed from index", its own checksum, the index
+  entry as its parent. never mistakable for the original, above all for
+  images that document something [ real events, evidence, records ]. a
+  third path, REPAIRED [ owner ] : data that could not be kept for quality
+  reasons [ irritating rendering defects ] is fixed by a model [ e.g.
+  qwen2.1 ] through an implicit shared STYLE TRANSLATION CHAIN -- into a
+  shared, normalized intermediate style where the defects do not fit and
+  fall away, then exported to any target style. the transitional styles
+  carry information the final image no longer shows, and since many images
+  pass the same intermediate style it is a natural DEDUP LAYER [ content
+  converges there whatever style it came from or goes to ]. lineage : the
+  repaired image is a new version, the defective original its parent ; the
+  chain [ model, intermediate style, target, parameters ] is its recipe --
+  repeatable, re-exportable later ; skeleton [ intermediate ] and skin
+  [ target ] again. owner : each single success becomes an INSTANT
+  PIPELINE for a stream of it -- the stored recipe is the template, every
+  similar defective item runs the same chain [ templates densify where
+  they resonate ; a failure on one item stays local and does not stop
+  the stream ]. owner : so the network tries something out intuitively
+  and KEEPS it once it works, never shutting it down again -- only
+  transforming it into a better instantiation or refinement [ the old one
+  stays as the parent in the lineage ]. sustainable because idle
+  pipelines go DORMANT [ a miniature in the parent, no resources, waking
+  on a tap ] and wrong ones are TRANSFORMED into their corrected version,
+  never left running beside it
 - erasure coding as the form of a "copy" : k-of-n fragments over sealed chunks.
   a placement rule : at most n-k fragments of a stripe per control domain.
   fragments differ between holders, so the two-holder challenge of identical
@@ -572,8 +622,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,.,,,,,,.,.,.,,,.,.,,..,,..,.,,,,.,,,,,,...,..,,...,...,,,.,,.,,,.,,.,.,,..,
-#PHZU32VYXCIA5S2AHVO6LJXNTWEPZK4JMZZ25MD2CX7HMEQFPNCHVQ6QBU7C7J3FULIULHVDV5YWO
-#\\\|EDNOVJDYX76PIEX3OZ54SO3SAVGW2UITWVZ57BZKP5Y4MRZVHQH \ / AMOS7 \ YOURUM ::
-#\[7]DDCAZIOMRJ2CHEM4XJXBLFGPNETIESMCZPOQZ2CYBIE65TYO6AAI 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,,,.,,..,,..,,,,,.,.,,,.,,.,,..,,...,..,,,..,,,,,,..,,,,,,..,
+#ETX3S6AKDCKRJZZUWBIJI5P6TCZOH6XUXD7KP425LBSLTLKULTX62CHPF7F5XQWMVS3Y6XHQAW6YQ
+#\\\|LGNJLNYNNN4K5AZAJTI46XEWNP2MHNOFSP7AGZ4K6LT6AW23XZD \ / AMOS7 \ YOURUM ::
+#\[7]HEWTZSGA2V72F2IWLQZHD673JMBYKVXSLK23XD2XZHNO4B7432BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
