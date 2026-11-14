@@ -108,9 +108,13 @@ use warnings;
 ##                 it this root's authority ; -all-holders adds every holder
 ##                 recovery writes no key-side state ; -state-dir <dir>
 ##                 redirects it, otherwise recovery uses a temporary directory
-## n7fs drill <root-key> -from <holder> [ -tree <name> ]
-##                 restore the newest complete tree in a clean temporary
-##                 context, verify it and append a root-signed drill record
+## n7fs drill [ -offline ] <root-key> -from <holder> [ -tree <name> ]
+##                 [ -max-bytes <size> ]  restore in a clean temporary context,
+##                 verify and append a root-signed record ; a budget restores
+##                 a byte-weighted sample after reading every manifest chunk ;
+##                 -offline checks <root-key>.anchor against the holder head
+## n7fs key-copy-moved <root-id>          a copy was made or moved : its offline
+##                 drill is due now [ host-local protocol-7 config state ]
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
 ## n7fs heads -root-key <file> [ <holder>.. ] [ -anchor ]
 ##                 head versions, freshness verdicts and offline anchor
@@ -278,7 +282,8 @@ GetOptionsFromArray(
         list adopt seal-root=s also-root-key=s@ accept-clock show reset
         via=s access=s holders import-holders all-holders state-dir=s
         method=s snapshot-cmd=s staging=s keep-staging=i shrink-limit=f
-        hold=s no-hold for=s at=s status no-destructive accept-shrink |
+        hold=s no-hold for=s at=s status no-destructive accept-shrink
+        offline max-bytes=s |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -347,6 +352,7 @@ my %run = (
     qw| unseal |               => \&cmd_unseal,
     qw| seal-recover |         => \&cmd_seal_recover,
     qw| drill |                => \&cmd_drill,
+    qw| key-copy-moved |       => \&cmd_key_copy_moved,
     qw| shred |                => \&cmd_shred,
     qw| holder-check |         => \&cmd_holder_check,
     qw| heads |                => \&cmd_heads,
@@ -626,6 +632,16 @@ sub cmd_status {
             $pool->{'bytes'},
             ' bytes'
         );
+    }
+    require AMOS7::N7FS::Drill;
+    my $drill_root = AMOS7::N7FS::Drill::drill_disk_root(
+        disk_read_id( %common, qw| disk | => $disk ) );
+    if ( defined $drill_root ) {
+        my $items = AMOS7::N7FS::Drill::drill_status(
+            qw| host_dir | => host_dir(%common),
+            qw| root |     => $drill_root,
+        );
+        AMOS7::N7FS::Drill::drill_status_say($items);
     }
     return 0;
 }
@@ -2123,6 +2139,7 @@ sub cmd_seal_recover {
 
 sub cmd_drill {
     require AMOS7::N7FS::Drill;
+    require AMOS7::N7FS::Placement;
     $o{'root-key'} //= shift // fail('drill needs <root-key>');
     fail('drill needs -from <holder>')   if not defined $o{'from'};
     fail('drill : unexpected arguments') if @ARG;
@@ -2131,16 +2148,53 @@ sub cmd_drill {
         qw| root |     => $root,
         qw| host_dir | => host_dir(%common),
         qw| holder |   => $o{'from'},
+        qw| offline |  => $o{'offline'} ? TRUE : FALSE,
         defined $o{'tree'} ? ( qw| tree | => $o{'tree'} ) : (),
+        defined $o{'max-bytes'}
+        ? ( qw| max_bytes | =>
+                AMOS7::N7FS::Placement::parse_size( $o{'max-bytes'} ) )
+        : (),
     );
     say_line( 'drill ', substr( $r->{'holder_id'}, 0, 7 ),
         ' : head v', $r->{'head_version'} );
-    say_line( 'restored ', $r->{'tree'}, ' : ', $r->{'files'},
-        ' files, ', $r->{'bytes'}, ' bytes' );
-    say_line('verified : contents, manifest, metadata');
-    say_line( 'drill passed [ root-signed record in ',
-        host_dir(%common), '/receipts/', $root->{'root_id'},
-        '/drills.json ]' );
+    say_line(
+        'restored ',
+        $r->{'tree'},
+        ' : ',
+        $r->{'files'},
+        ' files, ',
+        $r->{'bytes'},
+        ' bytes',
+        defined $o{'max-bytes'} ? ' [ byte-budgeted sample ]' : ''
+    );
+    say_line(
+        'verified : contents, manifest',
+        defined $o{'max-bytes'} ? ''                 : ', metadata',
+        $o{'offline'}           ? ', offline anchor' : ''
+    );
+    say_line(
+        'drill passed [ mode ',      $r->{'mode'},
+        ' ; root-signed record in ', host_dir(%common),
+        '/receipts/',                $root->{'root_id'},
+        '/drills.json ]'
+    );
+    return 0;
+}
+
+sub cmd_key_copy_moved {
+    require AMOS7::N7FS::Drill;
+    my $root_id = shift // fail('key-copy-moved needs <root-id>');
+    fail('key-copy-moved : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Drill::key_copy_moved(
+        qw| host_dir | => host_dir(%common),
+        qw| root_id |  => $root_id,
+    );
+    say_line(
+        'key copy made or moved [ root ',
+        substr( $root_id, 0, 7 ),
+        ' ] ; offline-copy drill due now [ ',
+        $r->{'due'}, ' ]'
+    );
     return 0;
 }
 
@@ -3049,8 +3103,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,..,...,,..,..,,,..,,,.,,..,...,,..,,,,,..,,...,...,,,,,,..,,..,,,,,...,
-#Y3ANOAYZO22OW63T5DNHVYXSPXML3NZQWZHBPZ4EXGP45IGLTPEJCZV37VC4RECXRVCM3VJWAENMI
-#\\\|27CQ3LHQK5KCOSQF2HUTVZXIHU5NN3XQI6SFSQVY3RPXV6XDJ6E \ / AMOS7 \ YOURUM ::
-#\[7]MBC5IJVUWKONX63RSVLVRUTRBBBSS475F4RRUGM7JQCY7EPRDMCA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,.,,,..,,,..,,.,,,,,,,,,,,,.,..,,...,..,,...,,,.,,,,,,,.,,,,,
+#O26CXF65MEXQQ5MXIA77RIMBZBNAOS3TD75KVCNIDF4PNIFJE4TKCDCA5TEWTUEXSISDMJUFJPVKQ
+#\\\|7YECAZIME2Y2ESSBDLZKWJVDB7U36E6PFJKG4YLC5WNDYW7YAB5 \ / AMOS7 \ YOURUM ::
+#\[7]U7OIHH3V2XV6EFXDBGOIJCVB3BOVHHQH3AQRHSP3BXCEAV5TQEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

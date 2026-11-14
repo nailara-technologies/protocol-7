@@ -1,16 +1,14 @@
 # N7FS stage 5 : placement, receipts, under-replicated list
 
 2026-11-10. follows `N7FS-SEALED-REPLICAS.md` section 5 and `N7FS-SEALING.md`.
-this note fixes the first, integer-target part. calculated placement, erasure
-coding and holder-to-holder relays stay later.
+the integer-target placement, receipts, relays, retention and cycles described
+below are built. calculated placement and erasure coding stay later.
 
-## what exists
+## starting point on 2026-11-10 [ superseded by the built sections below ]
 
-- `seal` writes one root's nodes to one holder, `holder-check` samples one
-  holder, `seal-recover` reads one holder
-- categories carry `copies`, `priority`, `want` and `foreign-work`, stored
-  but not acted on
-- nothing knows how many holders keep a node
+- `seal` wrote one root's nodes to one holder and `holder-check` sampled it
+- category copy targets and priorities were stored but not yet acted on
+- no report joined holders, maps and receipts into a copy count
 
 ## holders
 
@@ -24,8 +22,13 @@ n7fs holder list
 n7fs holder remove <name>
 ```
 
-- stored as one signed record per change under `<host-dir>/holders/`, signed
-  by the host key, latest wins, history kept
+- the registry decision is the middle way [ 2026-11-13, built ] : a vault root
+  keeps the vault note `n7fs holders` as authority ; a file root has a 0600
+  protocol-7 config registry in its own root state, so D3 is resolved and the
+  service cycle needs no main-vault unlock. both publish a sealed `registry`
+  blob under its own SIV `_long_aad` domain to every holder. entries include
+  ids, specs, roles, domains, ownership, quotas, reserves, filters, `via` and
+  free-text access hints ; no hand-editable registry state is JSON
 - `domain` is a failure domain label. hosts at one provider share one, and
   an owned machine has its own
 - `-owned` marks hardware the owner controls. it is the only thing that
@@ -38,9 +41,10 @@ n7fs holder remove <name>
 a node counts on a holder only when that holder's current head maps it, its
 blob exists with the right size, and a receipt for that holder is fresh :
 
-- **receipt** : the result of a `holder-check`, signed by the host key, with
-  time, holder, head version, blob count and sampled chunks. fresh means
-  younger than a set age [ default 7 days ]
+- **receipt** : the root-signed result of a `holder-check`, with time, holder,
+  head version, coverage and a digest of the entries it covers. freshness is
+  `3Y2` [ about 6.5 days ] ; peer heads carry its summary so it remains visible
+  after a home-state loss
 - an intake holder counts zero, as the design's safety rule 1 says
 - several holders in one failure domain count as one copy toward the target
 
@@ -125,19 +129,20 @@ last-counter storage refuses replay. heads and relay lists are replaceable
 only with signatures. `N7FS-SEALING.md` specifies the complete request set,
 outer head signature, migration steps and stolen-key threat model.
 
-## not in this part
+## outside integer placement
 
-moving between holders, eviction from intake, holder-to-holder copying,
-calculated placement, erasure coding.
+calculated placement and erasure coding stay open. holder relay, adoption,
+intake-aware placement and cycle-driven list handling are built ; the registry's
+`via` field sends placement to the hub rather than directly to the far holder.
 
-## as built [ 2026-11-10 ]
+## as built [ 2026-11-10, registry and receipts updated 2026-11-14 ]
 
-- the registry is the vault note `n7fs holders`, json, one entry per holder
-  with spec, role, domain, owned, quota and reserve. the vault keeps earlier
-  versions. one vault unlock per command serves the root and the registry
-- `holder-check` writes a receipt to `<host-dir>/receipts/`, named by a
-  checksum of the holder, signed by the host key. it counts for 7 days and
-  only for the same root
+- the registry uses the middle way described above : vault-note authority for a
+  vault root, per-root protocol-7 config for a file root, sealed copies on all
+  holders. this supersedes the original single JSON vault-note implementation
+- `holder-check` writes a root-signed receipt under
+  `<host-dir>/receipts/<root-id>/`. it counts for `3Y2`, only for the same root,
+  and its covered-entry digest survives unrelated additive commits
 - `placement` opens each holder's head and map with the root. a holder
   counts when it is durable, reachable, has a head and a fresh receipt ;
   copies count once per failure domain. it updates a holder's pin as any
@@ -340,17 +345,17 @@ seals to a category public key and home never pulls plaintext — stays open
 
 ## owner decisions [ 2026-11-10 ]
 
-1. the holder registry lives in the vault, as a note entry titled
-   `n7fs holders`, so it survives a total loss together with the root
-2. a receipt counts for 7 days ; lower later with better connectivity
+1. superseded by the 2026-11-13 middle way above : the vault note remains
+   authoritative for a vault root ; a file root uses its own config registry
+2. implemented as `3Y2` [ about 6.5 days ], with root-signed receipts
 3. targets stay `default` 1 and `incoming` 2 for now, likely higher once the
    laptops join
 4. rented servers can sit at more than one provider and region. a provider
    is one control domain, a region its own failure domain. which hosts are
    where stays in the vault registry, never in this repository
 
-#,,,.,,,,,,..,,,.,,.,,.,,,,.,,.,.,,.,,,,.,..,,..,,...,...,,..,,.,,.,.,..,,.,.,
-#LYMQUBCQ2INTOG2ZJGJE4UKYBGI2NWG43RXYPSDR6EQ2O4NZ4DSBBXJDKUQNZZFPBV5DNBBALN3VQ
-#\\\|L2ITEO6JDILO5AEWQ4KUBNE7OBUQR72X2DBL662SRT3Z445SXY4 \ / AMOS7 \ YOURUM ::
-#\[7]GBXZKB6V6K7YNLPHYDW5VHBMCKUE2RDF22V2GTJFHHQEDQAQ42CI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,..,,,..,..,,,..,,.,,,,,,..,,,..,..,,...,...,.,.,,,,,,.,,..,,...,
+#IPVDADIZZMJFLVUHPAAIQOWQU4EARZP2JGCHI6YZ4EHNO66GOS2KUG2HJ2HLYMQ6ZBWHTSXIKMUVY
+#\\\|2BSLOYQC5MD353CQGFON42FYJNHLJ3NVX5WGG47RCPZA22LVCWU \ / AMOS7 \ YOURUM ::
+#\[7]FTEE2WDHNQ76YPIEPKDVEZBEZ5MYPMO4NQQGDUYFTT7MBPBKBKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

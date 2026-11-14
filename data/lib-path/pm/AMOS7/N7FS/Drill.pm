@@ -17,14 +17,17 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Drill-VERSION.YYUH6HQ |;
+our $VERSION = qw| AMOS7::N7FS::Drill-VERSION.JRRHCAY |;
 
-@EXPORT_OK = qw| drill_run drill_write drill_records drill_latest |;
+@EXPORT_OK = qw| drill_run drill_write drill_records drill_latest drill_status
+    key_copy_moved |;
 
 use JSON::PP;
-use Fcntl             qw| LOCK_EX |;
-use File::Temp        qw| tempdir |;
-use AMOS7::N7FS       qw| b32 unb32 read_file make_dirs refuse ntime_now |;
+use Fcntl        qw| LOCK_EX |;
+use File::Temp   qw| tempdir |;
+use AMOS7::NTIME qw| parse_y_age y_age_str |;
+use AMOS7::N7FS  qw| b32 unb32 read_file write_new_file make_dirs sync_dir
+    random_bytes refuse ntime_now ntime14 |;
 use AMOS7::N7FS::Sign qw| verify |;
 
 my $JSON = JSON::PP->new->utf8->canonical;
@@ -32,6 +35,12 @@ my $JSON = JSON::PP->new->utf8->canonical;
 sub _drill_path {
     my ( $host_dir, $root ) = @_;
     return "$host_dir/receipts/$root->{'root_id'}/drills.json";
+}
+
+sub _root_public {
+    my $root = shift;
+    return $root->{'signer'}->public if ref $root->{'signer'};
+    return $root->{'public'};
 }
 
 sub _record_verify {
@@ -43,10 +52,10 @@ sub _record_verify {
     refuse('drill record root id does not match')
         if ( $record->{'root_id'} // '' ) ne $root->{'root_id'};
     refuse('drill record is signed by another key')
-        if ( $data->{'pub'} // '' ) ne b32( $root->{'signer'}->public );
+        if ( $data->{'pub'} // '' ) ne b32( _root_public($root) // '' );
     refuse('drill record signature does not verify')
         if not verify(
-        $root->{'signer'}->public,
+        _root_public($root),
         "p7 n7fs drill v1\0" . $JSON->encode($record),
         unb32( $data->{'sig'} // '' ) // ''
         );
@@ -55,12 +64,16 @@ sub _record_verify {
         refuse("drill record $field is not whole ntime or a count")
             if ( $record->{$field} // '' ) !~ m|\A\d+\z|;
     }
+    refuse('drill record byte budget is invalid')
+        if defined $record->{'max_bytes'}
+        and $record->{'max_bytes'} !~ m|\A\d+\z|;
     refuse('drill record holder id is invalid')
         if ( $record->{'holder_id'} // '' ) !~ m|\A[A-Z2-7]{26}\z|;
     refuse('drill record result is invalid')
         if ( $record->{'result'} // '' ) !~ m{\A(?:passed|failed)\z};
     refuse('drill record mode is invalid')
-        if ( $record->{'mode'} // '' ) ne qw| full |;
+        if ( $record->{'mode'} // '' )
+        !~ m{\A(?:full|attended|sampled|offline)\z};
     return $record;
 }
 
@@ -77,11 +90,13 @@ sub drill_records {
 }
 
 sub drill_latest {
-    my ( $host_dir, $root, $spec ) = @_;
-    my $records = drill_records( $host_dir, $root );
+    my ( $host_dir, $root, $spec, $modes ) = @_;
+    my $records  = drill_records( $host_dir, $root );
+    my %mode     = map { $ARG => TRUE } @{ $modes // [] };
     my ($latest) = grep {
-        $ARG->{'result'} eq qw| passed|
+                $ARG->{'result'} eq qw| passed|
             and ( not defined $spec or $ARG->{'holder'} eq $spec )
+            and ( not keys %mode or $mode{ $ARG->{'mode'} } )
     } reverse @{$records};
     return $latest;
 }
@@ -101,8 +116,11 @@ sub drill_write {
         qw| bytes |        => $opt{'bytes'}        // 0,
         qw| took |         => $opt{'took'}         // 0,
         qw| head_version | => $opt{'head_version'} // 0,
-        qw| mode |         => qw| full |,
+        qw| mode |         => $opt{'mode'}         // qw| full |,
         qw| result |       => $opt{'result'},
+        defined $opt{'max_bytes'}
+        ? ( qw| max_bytes | => $opt{'max_bytes'} + 0 )
+        : (),
         defined $opt{'error'} ? ( qw| error | => $opt{'error'} ) : (),
         qw| root_id | => $root->{'root_id'},
     };
@@ -213,6 +231,72 @@ sub _metadata_verify {
     return $bytes;
 }
 
+sub _offline_anchor {
+    my ( $root, $head ) = @_;
+    my $copy = $root->{'key_ref'} // '';
+    refuse('offline drill needs a file key copy') if $copy =~ m|\Avault:|;
+    my $path = "$copy.anchor";
+    my $line = read_file($path)
+        // refuse( 'offline drill needs its heads -anchor line [ %s ]',
+        $path );
+    $line =~ s|\s+\z||;
+    my ( $tag, $version, $time, $extra ) = split m|\s+|, $line;
+    refuse( 'offline anchor must be <root tag> <version> <ntime> [ %s ]',
+        $path )
+        if defined $extra
+        or ( $tag     // '' ) !~ m|\A[A-Z2-7]{7}\z|
+        or ( $version // '' ) !~ m|\A[1-9]\d*\z|
+        or ( $time    // '' ) !~ m|\A\d+\z|;
+    refuse( 'offline anchor belongs to another root [ %s ]', $tag )
+        if $tag ne substr( $root->{'root_id'}, 0, 7 );
+    refuse( 'offline anchor mismatch : holder head v%d is below anchor v%d',
+        $head->{'version'}, $version )
+        if $head->{'version'} < $version;
+    refuse( 'offline anchor mismatch : holder head time %d is before %d',
+        $head->{'time'}, $time )
+        if $head->{'version'} == $version and $head->{'time'} < $time;
+    return {
+        qw| tag |     => $tag,
+        qw| version | => $version,
+        qw| time |    => $time
+    };
+}
+
+sub _sampled_restore {
+    my ( $root, $base, $map, $entries, $scratch, $budget ) = @_;
+    my %candidates;
+    foreach
+        my $entry ( grep { ( $ARG->{'t'} // '' ) eq qw| file | } @{$entries} )
+    {
+        my $address = $entry->{'a'} // next;
+        $candidates{$address} = $entry->{'size'} // 0;
+    }
+    make_dirs( "$scratch/sample", 0700 );
+    my ( $files, $bytes ) = ( 0, 0 );
+    while ( keys %candidates ) {
+        my $total = 0;
+        $total += $candidates{$ARG} || 1 for keys %candidates;
+        my $roll = unpack( 'Q>', random_bytes(8) ) % $total;
+        my $address;
+        foreach my $candidate ( sort keys %candidates ) {
+            $roll -= $candidates{$candidate} || 1;
+            if ( $roll < 0 ) {
+                $address = $candidate;
+                last;
+            }
+        }
+        my $size = delete $candidates{$address};
+        next if $bytes + $size > $budget;
+        my $safe = $address;
+        $safe =~ s|/|_|g;
+        AMOS7::N7FS::Seal::_restore_node( $root, $base, $map, $address,
+            "$scratch/sample/$safe" );
+        $files++;
+        $bytes += $size;
+    }
+    return { qw| files | => $files, qw| bytes | => $bytes };
+}
+
 sub drill_run {
     my %opt     = @_;
     my $root    = $opt{'root'}   // refuse('a drill needs the open root');
@@ -226,19 +310,28 @@ sub drill_run {
         qw| head_version | => 0,
         qw| files |        => 0,
         qw| bytes |        => 0,
-        qw| result |       => qw| failed |,
+        qw| mode |         => $opt{'offline'} ? qw| offline |
+        : defined $opt{'max_bytes'} ? qw| sampled |
+        : $opt{'mode'} // qw| attended |,
+        qw| result | => qw| failed |,
+        defined $opt{'max_bytes'} ? ( qw| max_bytes | => $opt{'max_bytes'} )
+        : (),
     };
     my ( $result, $restored );
     my $ok = eval {
         require AMOS7::N7FS::Seal;
         require AMOS7::N7FS::Holder;
+        refuse('drill byte budget must be a positive count or zero')
+            if defined $opt{'max_bytes'} and $opt{'max_bytes'} !~ m|\A\d+\z|;
         $record->{'holder'} = AMOS7::N7FS::Holder::holder_canonical($holder);
         my ( undef, $head, $map, $base )
             = AMOS7::N7FS::Seal::_context( $root, $holder, TRUE );
         refuse('drill found no sealed head') if not defined $head;
         @{$record}{qw| holder_id head_version |}
             = ( $head->{'holder'}, $head->{'version'} );
+        _offline_anchor( $root, $head ) if $opt{'offline'};
         my $name = $opt{'tree'};
+
         if ( not defined $name ) {
             my @trees = sort {
                 ( $map->{'trees'}{$b}{'created'} // '' )
@@ -258,16 +351,22 @@ sub drill_run {
             $name, $tree );
         my ( $header, @entries )
             = AMOS7::N7FS::Seal::_manifest_read( $root, $base, undef, $tree );
-        $restored = AMOS7::N7FS::Seal::seal_recover(
-            qw| root |    => $root,
-            qw| holders | => [$holder],
-            qw| target |  => "$scratch/tree",
-            qw| tree |    => $name,
-        );
+        if ( defined $opt{'max_bytes'} ) {
+            $restored = _sampled_restore( $root, $base, $map, \@entries,
+                $scratch, $opt{'max_bytes'} );
+            $record->{'bytes'} = $restored->{'bytes'};
+        } else {
+            $restored = AMOS7::N7FS::Seal::seal_recover(
+                qw| root |    => $root,
+                qw| holders | => [$holder],
+                qw| target |  => "$scratch/tree",
+                qw| tree |    => $name,
+            );
+            $record->{'bytes'}
+                = _metadata_verify( "$scratch/tree", \@entries, $restored );
+        }
         $record->{'snapshot'} = $header->{'snapshot'}
             if defined $header->{'snapshot'};
-        $record->{'bytes'}
-            = _metadata_verify( "$scratch/tree", \@entries, $restored );
         $record->{'files'}  = $restored->{'files'};
         $record->{'result'} = qw| passed |;
         $result             = $record;
@@ -279,6 +378,8 @@ sub drill_run {
     $record->{'took'} = 0 if $record->{'took'} < 0;
     if ($ok) {
         drill_write( %opt, %{$record} );
+        _key_copy_ack( $opt{'host_dir'} // $root->{'host_dir'}, $root )
+            if $opt{'offline'};
         require File::Path;
         File::Path::remove_tree($scratch);
         return $result;
@@ -290,10 +391,182 @@ sub drill_run {
         . ": $error ; scratch kept : $scratch\n";
 }
 
+sub drill_disk_root {
+    my $id      = shift // refuse('drill status needs a disk id');
+    my $bytes   = read_file("$id->{'path'}/.n7fs/seal-root") // return undef;
+    my $binding = eval { $JSON->decode($bytes) };
+    my $pub
+        = ref $binding eq qw| HASH |
+        ? unb32( $binding->{'pub'} // '' )
+        : undef;
+    my $sig
+        = ref $binding eq qw| HASH |
+        ? unb32( $binding->{'sig'} // '' )
+        : undef;
+    require AMOS7::N7FS::Sum;
+    refuse('disk seal binding is invalid')
+        if ref $binding ne qw| HASH |
+        or ( $binding->{'v'}       // '' ) != 1
+        or ( $binding->{'disk'}    // '' ) ne $id->{'disk'}
+        or ( $binding->{'root_id'} // '' ) !~ m|\A[A-Z2-7]{77}\z|
+        or not defined $pub
+        or not defined $sig
+        or b32(
+        AMOS7::N7FS::Sum::bmw384_bytes( 'p7 n7fs seal root id v1' . $pub ) )
+        ne $binding->{'root_id'}
+        or not verify(
+        $pub,
+        "p7 n7fs disk seal binding v1\0"
+            . $id->{'disk'} . "\0"
+            . $binding->{'root_id'},
+        $sig
+        );
+    return { qw| root_id | => $binding->{'root_id'}, qw| public | => $pub };
+}
+
+sub _key_copy_path {
+    my ( $host_dir, $root_id ) = @_;
+    refuse('key-copy-moved needs a valid root id')
+        if ( $root_id // '' ) !~ m|\A[A-Z2-7]{77}\z|;
+    return "$host_dir/receipts/$root_id/key-copies.cfg";
+}
+
+sub _key_copy_state {
+    my ( $host_dir, $root_id ) = @_;
+    my $body = read_file( _key_copy_path( $host_dir, $root_id ) ) // '';
+    my %state;
+    foreach my $line ( split m|\n|, $body ) {
+        next if $line =~ m|\A\s*(?:#.*)?\z|;
+        my ( $key, $value )
+            = $line =~ m|\A\s*([A-Za-z0-9_.-]+)\s*[:=]\s*(\d+)\s*\z|;
+        refuse( 'invalid key-copy state line [ %s ]', $line )
+            if not defined $value;
+        refuse( 'duplicate key-copy state key [ %s ]', $key )
+            if exists $state{$key};
+        $state{$key} = $value + 0;
+    }
+    return \%state;
+}
+
+sub _key_copy_write {
+    my ( $host_dir, $root_id, $state ) = @_;
+    my $path = _key_copy_path( $host_dir, $root_id );
+    my $dir  = $path;
+    $dir =~ s|/[^/]+\z||;
+    make_dirs( $dir, 0700 );
+    my $tmp = "$path.tmp." . b32( random_bytes(5) );
+    write_new_file( $tmp,
+              "format : 1\nkey-copy.last-moved : "
+            . "$state->{'moved'}\nkey-copy.pending : "
+            . "$state->{'pending'}\noffline-drill.due : "
+            . "$state->{'due'}\n" );
+    chmod 0600, $tmp or refuse('cannot protect key-copy state');
+    rename $tmp, $path or refuse('cannot publish key-copy state');
+    sync_dir($dir);
+    return;
+}
+
+sub key_copy_moved {
+    my %opt      = @_;
+    my $host_dir = $opt{'host_dir'}
+        // refuse('key-copy-moved needs a host dir');
+    my $root_id = $opt{'root_id'};
+    my $now     = ntime_now();
+    _key_copy_write( $host_dir, $root_id,
+        { qw| moved | => $now, qw| pending | => 1, qw| due | => $now } );
+    return {
+        qw| root_id | => $root_id,
+        qw| moved |   => $now,
+        qw| due |     => $now
+    };
+}
+
+sub _key_copy_ack {
+    my ( $host_dir, $root ) = @_;
+    my $state = _key_copy_state( $host_dir, $root->{'root_id'} );
+    return if not keys %{$state};
+    my $now = ntime_now();
+    _key_copy_write(
+        $host_dir,
+        $root->{'root_id'},
+        {   qw| moved |   => $state->{'key-copy.last-moved'} // 0,
+            qw| pending | => 0,
+            qw| due |     => $now + parse_y_age('3Y1'),
+        }
+    );
+    return;
+}
+
+sub drill_status {
+    my %opt      = @_;
+    my $host_dir = $opt{'host_dir'}
+        // refuse('drill status needs a host dir');
+    my $root           = $opt{'root'} // refuse('drill status needs a root');
+    my $now            = $opt{'now'}  // ntime_now();
+    my $holder_cadence = parse_y_age( $opt{'holder_every'} // '1Y1' )
+        // parse_y_age('1Y1');
+    my $key_copy = _key_copy_state( $host_dir, $root->{'root_id'} );
+    my $moved    = $key_copy->{'key-copy.last-moved'} // 0;
+    my $pending  = $key_copy->{'key-copy.pending'}    // 0;
+    my @items;
+
+    foreach my $spec (
+        {   qw| name |    => 'holder drill',
+            qw| modes |   => [qw| full |],
+            qw| every |   => $holder_cadence,
+            qw| cadence | => $opt{'holder_every'} // '1Y1',
+        },
+        {   qw| name |    => 'attended main-root drill',
+            qw| modes |   => [qw| attended sampled |],
+            qw| every |   => parse_y_age('1Y1'),
+            qw| cadence | => '1Y1',
+        },
+        {   qw| name |    => 'offline-copy drill',
+            qw| modes |   => [qw| offline |],
+            qw| every |   => parse_y_age('3Y1'),
+            qw| cadence | => '3Y1',
+        },
+    ) {
+        my $latest
+            = drill_latest( $host_dir, $root, undef, $spec->{'modes'} );
+        my $last = $latest->{'time'} // 0;
+        my $due  = $last + $spec->{'every'};
+        my $movement_due
+            = $spec->{'name'} eq 'offline-copy drill' && $pending;
+        $due = $moved if $movement_due;
+        push @items,
+            {
+            %{$spec},
+            qw| last |         => $last,
+            qw| due |          => $due,
+            qw| overdue |      => $now >= $due  ? TRUE : FALSE,
+            qw| movement_due | => $movement_due ? TRUE : FALSE,
+            };
+    }
+    return \@items;
+}
+
+sub drill_status_say {
+    my $items = shift;
+    my $now   = shift // ntime_now();
+    foreach my $item ( @{$items} ) {
+        say ': ', $item->{'name'}, ' : ',
+            $item->{'overdue'}
+            ? ( $item->{'movement_due'} ? 'due now' : 'overdue' )
+            : 'current',
+            ' [ last ', $item->{'last'} || '-',
+            ', due ', $item->{'due'}, $item->{'overdue'}
+            ? ''
+            : ', in ' . y_age_str( $item->{'due'} - $now ),
+            ', cadence ', $item->{'cadence'}, ' ]';
+    }
+    return;
+}
+
 1;
 
-#,,,.,,,,,..,,,..,.,,,,..,,.,,,.,,..,,,,,,.,,,..,,...,...,,..,,..,,.,,..,,..,,
-#UUAQMF2ZTYGQP7YL2MYTIOS5RJZSRMFQZX2ZEFYZB7CHV6JULL7TZGDCKZLSDDE3LFPAVNXCRSRUA
-#\\\|SKCLAOSEGK6EF6LOWWN45ROG6ARANELZY6X52ZU34PHN56BCWOQ \ / AMOS7 \ YOURUM ::
-#\[7]ZEE5BLQNZZLWJ437BOIQY3EVSTNDMTXBVP3JVFAWVXGXTSQDFMDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,.,,,,.,,,,,..,,.,,,.,.,.,,,,..,..,,...,...,...,.,.,.,.,,.,,,.,,
+#OYPHKZKJGI6WF3AQ25AK2HV6CMDANEZHPRZKELL4L2PGBCFTD56H3IE4DSSQ2XVZ23UONPO6DHPSC
+#\\\|XLJQ3PGPZIJ4MWO2Z6IQ23FUZIC2DIDXUBXTA324WWS6DJ3AEEF \ / AMOS7 \ YOURUM ::
+#\[7]7H5B3G56BNUTRIVEUEPOW2M2J7RJB5R4KBHZ5B6AARPFNMG4COCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.H55YUTQ |;
+our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.RUHFS4Q |;
 
 @EXPORT_OK = qw| config_read state_read cycle_gate cycle_run cycle_status |;
 
@@ -25,7 +25,7 @@ use Fcntl qw| LOCK_EX LOCK_NB |;
 use JSON::PP;
 use AMOS7::NTIME qw| parse_y_age y_age_str |;
 use AMOS7::N7FS  qw| read_file write_new_file make_dirs sync_dir random_bytes
-    b32 refuse fault ntime_now ntime14 |;
+    b32 unb32 refuse fault ntime_now ntime14 |;
 use AMOS7::N7FS::Sum  qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Sign qw| key_file_signer |;
 
@@ -603,7 +603,8 @@ sub _gate_evidence {
 
     require AMOS7::N7FS::Drill;
     my $drill_ok = eval {
-        $gate{'drill'} = AMOS7::N7FS::Drill::drill_latest( $host_dir, $root );
+        $gate{'drill'} = AMOS7::N7FS::Drill::drill_latest( $host_dir, $root,
+            undef, [qw| full |] );
         $gate{'drill_max_age'} = 2 * parse_y_age( $c->{'drill-every'} );
         1;
     };
@@ -1389,6 +1390,9 @@ sub cycle_run {
         qw| format |       => 1,
         qw| cycle |        => $name,
         qw| period |       => $c->{'period'},
+        qw| root.id |      => $root->{'root_id'},
+        qw| root.pub |     => b32( $root->{'signer'}->public ),
+        qw| drill.every |  => $c->{'drill-every'},
         qw| last.started | => ntime14( ntime_now() ),
     };
     my $previous = state_read( $host_dir, $name );
@@ -1847,6 +1851,7 @@ sub cycle_run {
                     qw| host_dir | => $host_dir,
                     qw| holder |   => $holders->{$hname}{'spec'},
                     qw| tree |     => $tree,
+                    qw| mode |     => qw| full |,
                 );
             };
             $state->{'drill.next-due'}
@@ -1966,6 +1971,19 @@ sub cycle_status {
         $due || '-',
         $due > $now ? ' [ in ' . y_age_str( $due - $now ) . ' ]' : ' [ due ]'
     );
+    if ( defined $state->{'root.id'} and defined $state->{'root.pub'} ) {
+        require AMOS7::N7FS::Drill;
+        my $items = AMOS7::N7FS::Drill::drill_status(
+            qw| host_dir | => $host_dir,
+            qw| root |     => {
+                qw| root_id | => $state->{'root.id'},
+                qw| public |  => unb32( $state->{'root.pub'} ),
+            },
+            qw| holder_every | => $state->{'drill.every'} // '1Y1',
+            qw| now |          => $now,
+        );
+        AMOS7::N7FS::Drill::drill_status_say( $items, $now );
+    }
     my $last   = $state->{'last.ok'} // 0;
     my $period = parse_y_age( $state->{'period'} // '1Y4' )
         // parse_y_age('1Y4');
@@ -1981,8 +1999,8 @@ sub cycle_status {
 
 1;
 
-#,,..,,..,,.,,...,,,.,,..,...,.,.,,..,.,.,..,,..,,...,...,,,,,.,.,,,.,,,.,,..,
-#P2UFOXTSTLRAP7RBXPTVTN7WYVHFPVTW2FV75EIYGFQV3PC7OI4SGHNHHN6FQTS7CIO32JOKOP4OQ
-#\\\|YRX52QORKXVK67YCPR5D4AGPEJZWQDIKPGQXB7ROMPSWVMSXKTC \ / AMOS7 \ YOURUM ::
-#\[7]RA3RXEXJZ3T67XRMV2YK73YZWFV6ZQ5GDA4Y6KR5WCZMN5NNUWDA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,..,,,,,,.,.,,.,,,,.,,,.,,..,,,.,..,,...,...,..,,.,.,,..,.,,,.,.,
+#42ZN6SXL46VGRQYXFEW7LJSGTC5SJHVWHGSXTNA27MQFKH6F62PI7AQEX3P4A52MO2AJ7OTBG76OG
+#\\\|G7VFUUPA6PUHUDCZLK7N4LJVIUMVLWOU5D5YL2H7T2ULPCTMZSH \ / AMOS7 \ YOURUM ::
+#\[7]262QN4MD277LR473QQJ2UI6UTGD3Y52CF3GXWYYE225TSODP2OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

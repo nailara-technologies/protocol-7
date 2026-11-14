@@ -19,7 +19,7 @@ use AMOS7::N7FS::Disk  qw| disk_init disk_attach |;
 use AMOS7::N7FS::Store qw| assimilate |;
 use AMOS7::N7FS::Keys  qw| root_open |;
 use AMOS7::N7FS::Seal;
-use AMOS7::N7FS::Drill qw| drill_records drill_latest |;
+use AMOS7::N7FS::Drill qw| drill_records drill_latest drill_status |;
 
 require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
 
@@ -59,8 +59,9 @@ my ( $rc, $out )
     = cli( 'root', 'init', $key, '-argon-m', 1024, '-argon-t', 1 );
 ok( $rc == 0, 'root key created' ) or say $out;
 
-my $host_signer = test_signer();
-my $disk        = disk_init(
+my $host_signer
+    = AMOS7::N7FS::Sign::key_file_write("$box->{'host'}/host.key");
+my $disk = disk_init(
     qw| root |     => $box->{'root'},
     qw| host_dir | => $box->{'host'},
     qw| parent |   => test_signer(),
@@ -105,6 +106,11 @@ my $clean = "$base/offline";
 make_dirs($clean);
 copy( $key, "$clean/root.key" ) or die $OS_ERROR;
 chmod 0600, "$clean/root.key";
+( $rc, $out ) = cli( 'heads', '-root-key', $key, $holder, '-anchor' );
+my ($anchor_line) = $out =~ m|^([A-Z2-7]{7} \d+ \d+)$|m;
+ok( $rc == 0 && defined $anchor_line, 'the offline anchor line is recorded' )
+    or say $out;
+write_file( "$clean/root.key.anchor", "$anchor_line\n" );
 chmod 0500, $clean or die $OS_ERROR;
 my $before = snapshot($clean);
 my $target = "$base/recovered";
@@ -181,6 +187,138 @@ ok( defined $peer
     'the next head summarizes the last passing drill in its peers'
 );
 
+( $rc, $out )
+    = cli( '-host-dir', $box->{'host'}, 'drill', '-offline',
+    "$clean/root.key", '-from', $holder );
+ok( $rc == 0 && $out =~ m|drill passed \[ mode offline|,
+    'the attended offline drill opens the copy and verifies its anchor' )
+    or say $out;
+$records = drill_records( $box->{'host'}, $root );
+ok( $records->[-1]{'mode'} eq 'offline'
+        && $records->[-1]{'result'} eq 'passed',
+    'the offline drill writes a verified root-signed offline record'
+);
+ok( snap_equal( $before, snapshot($clean) ),
+    'the offline drill writes nothing on the read-only key copy' );
+
+chmod 0700, $clean or die $OS_ERROR;
+my ( $tag, $version, $time ) = split ' ', $anchor_line;
+write_file( "$clean/root.key.anchor",
+    join( ' ', $tag, $version + 1, $time ) . "\n" );
+chmod 0500, $clean or die $OS_ERROR;
+( $rc, $out )
+    = cli( '-host-dir', $box->{'host'}, 'drill', '-offline',
+    "$clean/root.key", '-from', $holder );
+ok( $rc != 0 && $out =~ m|offline anchor mismatch.*below anchor|,
+    'a wrong offline anchor is reported as rollback evidence'
+) or say $out;
+$records = drill_records( $box->{'host'}, $root );
+ok( $records->[-1]{'mode'} eq 'offline'
+        && $records->[-1]{'result'} eq 'failed',
+    'a wrong anchor leaves a signed failed offline record'
+);
+chmod 0700, $clean or die $OS_ERROR;
+write_file( "$clean/root.key.anchor", "$anchor_line\n" );
+chmod 0500, $clean or die $OS_ERROR;
+
+( $rc, $out )
+    = cli( '-host-dir', $box->{'host'}, 'drill', $key,
+    '-from', $holder, '-max-bytes', 10 );
+$records = drill_records( $box->{'host'}, $root );
+ok( $rc == 0
+        && $records->[-1]{'mode'} eq 'sampled'
+        && $records->[-1]{'max_bytes'} == 10
+        && $records->[-1]{'bytes'} <= 10,
+    'the attended main-root drill honours its byte budget'
+) or say $out;
+
+( $rc, $out ) = cli( 'key-copy-moved', $root->{'root_id'} );
+ok( $rc == 0 && $out =~ m|offline-copy drill due now|,
+    'key-copy-moved makes the offline drill due immediately'
+) or say $out;
+my $items = drill_status(
+    qw| host_dir | => $box->{'host'},
+    qw| root |     => $root,
+);
+my ($offline_item)
+    = grep { $ARG->{'name'} eq 'offline-copy drill' } @{$items};
+ok( $offline_item->{'movement_due'} && $offline_item->{'overdue'},
+    'overdue reporting includes the key-copy movement event'
+);
+( $rc, $out )
+    = cli( '-host-dir', $box->{'host'}, 'drill', '-offline',
+    "$clean/root.key", '-from', $holder );
+ok( $rc == 0, 'an offline drill clears the movement due event' ) or say $out;
+$items = drill_status(
+    qw| host_dir | => $box->{'host'},
+    qw| root |     => $root,
+);
+($offline_item) = grep { $ARG->{'name'} eq 'offline-copy drill' } @{$items};
+ok( !$offline_item->{'overdue'},
+    'the offline cadence is current after a drill' );
+$records = drill_records( $box->{'host'}, $root );
+{
+    local $ENV{'N7FS_TEST_NTIME'} = $records->[-1]{'time'};
+    ( $rc, $out ) = cli( 'key-copy-moved', $root->{'root_id'} );
+}
+$items = drill_status(
+    qw| host_dir | => $box->{'host'},
+    qw| root |     => $root,
+);
+($offline_item) = grep { $ARG->{'name'} eq 'offline-copy drill' } @{$items};
+ok( $offline_item->{'movement_due'},
+    'a copy moved in the same ntime unit as its last drill is still due' );
+{
+    local $ENV{'N7FS_TEST_NTIME'} = $records->[-1]{'time'};
+    ( $rc, $out )
+        = cli( '-host-dir', $box->{'host'}, 'drill', '-offline',
+        "$clean/root.key", '-from', $holder );
+}
+ok( $rc == 0, 'a same-ntime offline drill acknowledges the movement' )
+    or say $out;
+$items = drill_status(
+    qw| host_dir | => $box->{'host'},
+    qw| root |     => $root,
+);
+($offline_item) = grep { $ARG->{'name'} eq 'offline-copy drill' } @{$items};
+ok( !$offline_item->{'movement_due'},
+    'the same-ntime movement pending flag is cleared' );
+$records = drill_records( $box->{'host'}, $root );
+require AMOS7::NTIME;
+my $later = $records->[-1]{'time'} + AMOS7::NTIME::parse_y_age('3Y1');
+$items = drill_status(
+    qw| host_dir | => $box->{'host'},
+    qw| root |     => $root,
+    qw| now |      => $later,
+);
+($offline_item) = grep { $ARG->{'name'} eq 'offline-copy drill' } @{$items};
+ok( $offline_item->{'overdue'}, 'the offline drill is overdue after 3Y1' );
+{
+    local $ENV{'N7FS_TEST_NTIME'} = $later;
+    ( $rc, $out )
+        = cli( '-host-dir', $box->{'host'}, 'drill', '-offline',
+        "$clean/root.key", '-from', $holder );
+}
+ok( $rc == 0, 'a later attended offline drill can clear the cadence' )
+    or say $out;
+$items = drill_status(
+    qw| host_dir | => $box->{'host'},
+    qw| root |     => $root,
+    qw| now |      => $later,
+);
+($offline_item) = grep { $ARG->{'name'} eq 'offline-copy drill' } @{$items};
+ok( !$offline_item->{'overdue'},
+    'the 3Y1 overdue state clears after a drill' );
+ok( snap_equal( $before, snapshot($clean) ),
+    'all offline drill outcomes leave the key copy unchanged' );
+( $rc, $out ) = cli( 'status', $disk );
+ok( $rc == 0
+        && $out =~ m|holder drill : overdue|
+        && $out =~ m|attended main-root drill :|
+        && $out =~ m|offline-copy drill : current|,
+    'n7fs status shows all three drill schedules without opening the root'
+) or say $out;
+
 my $good_record = read_file($drill_path);
 my $decoded     = JSON::PP::decode_json( [ split m|\n|, $good_record ]->[0] );
 $decoded->{'drill'}{'files'}++;
@@ -226,8 +364,8 @@ ok( snap_equal( $before, snapshot($clean) ),
 chmod 0700, $clean or die $OS_ERROR;
 done();
 
-#,,,,,,.,,...,.,,,...,,.,,..,,..,,.,.,,,.,...,..,,...,...,.,,,.,,,,,.,..,,.,.,
-#3ORVBSULA5PX6ZZRE6EMBEOV2FTVOUYRQCEAQUMUWTEV6TXZJ6TKYW7RW5KXC7KMYYXBGUJUTEGOI
-#\\\|KFRXZJPMJM3WLFR5WJI6VDHZBGA6IC3FJHWUN7RQU2WVFA5URBI \ / AMOS7 \ YOURUM ::
-#\[7]47Q3IX6NQWIOQJSRORD6KMG567XVGDBBVCWK623L4PKSQI6JI2DQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,.,,..,.,,,...,.,.,,..,.,,,...,..,,...,...,..,,,,,,,..,.,,,.,.,
+#NPQHV27OBK5GRYCOVW6P4CNCJ6PXN77WCSYXCVZBMHSR7WOR5KYUCFOA7HCDRRT2UOL3JJVDHZ22Q
+#\\\|XYZXJL2TPBCE52YOJCIC5VMVBOP2BDNGFEFL7KEXLEBHKV45VXL \ / AMOS7 \ YOURUM ::
+#\[7]5S5Q7YIF5AQ2O7Z2CXPNLRPDEQUCODRJEHYW5JLSYXM5WZDLFYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,8 +1,9 @@
 # N7FS : categories, incoming pool, sealed replicas, placement
 
-status : design, nothing here is built. follows `N7FS-FORMAT-3.md` and builds
-on the owner answers of 2026-10-22 in `FILES-ZENKA.md` [ questions 13, 14, 18 ].
-this note adds only what those do not settle.
+status : the tree layer, categories, incoming pool, sealed replicas, integer
+placement, snapshots, cycles and restore drills are built ; later items remain
+open below. follows `N7FS-FORMAT-3.md` and builds on the owner answers of
+2026-10-22 in `FILES-ZENKA.md` [ questions 13, 14, 18 ].
 
 ## goal
 
@@ -21,8 +22,9 @@ able to read it, and no mount or content key ever exists on them.
 
 ## 1. tree layer
 
-assimilate today skips symlinks and keeps size and mtime only, and `get`
-returns one file. a desktop needs more :
+built : signed tree manifests and verified restores preserve symlinks, modes,
+owners, xattrs, empty directories, hardlinks, sizes and mtimes ; unsupported
+fields are recorded as absent rather than invented :
 
 - a signed tree manifest : paths, symlinks, modes, owners, xattrs, empty
   directories, each regular file by address
@@ -243,9 +245,13 @@ blobs are opaque, so a clean machine needs a start point : a **head** blob at
 a locator derived from the root key, holding the signed journal position and
 the map's root. holders see one blob that changes.
 
-- rollback : homes pin the newest head seen. a clean machine has no pin, so it
-  takes the newest validly signed head of ALL reachable holders, and can only
-  be as current as they are. this limit is stated in the restore output
+- rollback [ finding 7, built ] : signed head v2 records carry holder ids,
+  times, map descriptors and peer versions. homes pin the newest version per
+  holder ; clean recovery surveys all supplied holders and refuses a head below
+  another holder's floor. `heads` shows the witness and `-anchor` prints
+  `<root tag> <highest version> <ntime>` for storage beside an offline key copy.
+  a uniform rollback across every reachable holder remains undetectable without
+  that offline anchor, and recovery says so
 
 ## 5. holders and placement
 
@@ -335,7 +341,7 @@ and crypto-shredding remains the protection for ignored deletes. legacy
 laptops are holders with a small quota and a want-set. offline changes meeting
 each other remain to be designed.
 
-### map growth and retention [ 2026-11-13, review finding 5, decided ]
+### map growth and retention [ 2026-11-13, review finding 5, built ]
 
 - **sharded map** : shards keyed by a base32 prefix of the address's bmw
   part [ `V7<epoch>/<amos>/<bmw>` : the header chars are constant, the
@@ -385,17 +391,50 @@ receipt age `3Y2` ~ 6.5 d ] ; the old `s m h d w` forms are still accepted with
 a warning. thirteen of a level span one of the level above, so a retention rule
 is a ladder on the ntime grid [ not local midnight ] :
 
-    snap/ : 13 Y4  13 Y3  13 Y2  13 Y1
+    snap: : 13 Y4  13 Y3  13 Y2  13 Y1
 
 keeps the newest tree of every Y4 for one Y3, of every Y3 for one Y2, and so on
-up to one year. the snapshot job runs every Y4 [ the prefix is `snap/`, not
+up to one year. the snapshot job runs every Y4 [ the prefix is `snap:`, not
 `hourly/` ].
+
+### snapshots and cycles [ findings 8 and 9, built ]
+
+`n7fs snapshot` stages a complete source with `cmd`, `reflink`, `copy-verify`
+or `hardlink`, then assimilates `snap:<ntime14>` with a snapshot header. it
+retries changing files, refuses skipped staging entries, retains previous
+staging copies, and freezes retention after a shrink beyond the configured
+limit until `snapshot-confirm` or a one-run `-accept-shrink`.
+
+`n7fs cycle` runs additive snapshot, placement, relay, receipt, head refresh and
+drill steps before its strict gate ; retain, repack, gc, trash purge and
+optional local reclaim run only when that gate opens. state is protocol-7 config
+under `<host-dir>/cycle/`, not JSON, and `cycle <name> -status` reads it without
+a key.
+
+### restore drills [ findings 7, 9 and 10, built ]
+
+`n7fs drill <key> -from <holder>` restores the newest complete tree in a clean
+context, verifies content, the rebuilt manifest and metadata, and appends a
+root-signed record. `-max-bytes <size>` instead reads every manifest chunk and
+restores a byte-weighted sample within that budget, recording `mode : sampled`.
+The unattended cycle rotates durable holders every `drill-every` [ default
+`1Y1` ] and records `mode : full` ; an attended main-root drill is due every
+`1Y1`.
+
+`n7fs drill -offline <key-copy> -from <holder>` proves that the offline copy
+opens on a read-only medium and writes nothing beside it. it checks the root
+tag, version and ntime in `<key-copy>.anchor` against the live holder head,
+then performs the same restore and writes `mode : offline`. the offline-copy
+drill is due every `3Y1` and immediately after `n7fs key-copy-moved <root-id>`
+records that a copy was made or moved. `n7fs status` and `cycle -status` report
+all three cadences and whether each is current or overdue.
 
 ## 6. acceptance
 
-recovery counts as working only after this : on a clean machine, with only the
-offline key copy and ONE holder, restore a tree and verify it. offline key
-copies exist in two places before the first upload.
+built and covered by the drill tests : a clean context with only a read-only
+offline key copy and ONE holder restores a tree and verifies it, including its
+offline anchor. operational practice remains offline key copies in two places
+before the first upload.
 
 attack on scratch disks at each stage, as for format 3 : crash points during
 seal \ upload \ eviction, a holder serving old or wrong blobs, forged receipts,
@@ -669,8 +708,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,,.,...,.,,,.,,,...,.,.,,,,,...,,.,,,.,,,,.,..,,...,...,...,...,...,,,.,.,,,
-#64YYNLRRGSSSW2NJSQIIAHFPO777OMTLHS2KDLEVCCP43H2BKP4AEGOLA6R5P5G43PKVXJK5GXEFY
-#\\\|IB5GPZ3U3GMHYJTTAAMBJ5OJUANGYT55356COCFGQY27ILIGUO6 \ / AMOS7 \ YOURUM ::
-#\[7]NAJLXK2IWDJ6MAUFNK4L3ZXMRQXOLFCVUI5FSBGQJUYCRHWTTIBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,..,.,,,..,,...,.,,,,,.,,.,,,..,..,,...,...,,,.,,..,,..,...,..,,
+#XYID67CUM66FV34K27Y4FC7NT7NG2CP53UBXA7NHBND66SVZ6S5QLX3UBUI6VDY5MCTQWX6AV72DI
+#\\\|YX65OKLOYCEKWRFCBA4NWHYRP6ZGG4VMXLOVMKTSCZBXIOLDHKA \ / AMOS7 \ YOURUM ::
+#\[7]2DQFBEIKUUUM34W6ECTN4ZQRFKBHXYCTGDDENKLVUDZORWS2PMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
