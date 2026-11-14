@@ -13,14 +13,14 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.3QBI4SA |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.KQJRJWA |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
     holder_make_path holder_move holder_trash_days holder_trash_list
     holder_remove_day holder_authorize
     holder_size holder_put holder_delete holder_verify holder_download
-    holder_read_range holder_scrub |;
+    holder_read_range holder_scrub holder_put_batch |;
 
 use Cwd qw| abs_path |;
 use IO::Select;
@@ -965,6 +965,99 @@ sub holder_scrub {
     return _scrub_clean($result);
 }
 
+## many small blobs in three ssh calls instead of several each : one size
+## probe, one tar upload into a temporary subdirectory moved into place only
+## where no blob exists, one tar read back compared byte for byte. a commit
+## writes up to 1024 map shards, so a per-blob put turned a place into days
+## [ 2026-11-14 ]. items are [ local path, name, kind ] with the spool file
+## named like its blob ; receiver holders, content and odd items go one by one
+sub holder_put_batch {
+    my ( $spec, $items ) = @_;
+    my $h = holder_parse($spec);
+    my ( @batch, @single );
+    foreach my $item ( @{$items} ) {
+        my ( $local, $name, $kind ) = @{$item};
+        my ($base) = $local =~ m|([^/]+)\z|;
+        if (    $h->{'type'} eq qw| ssh |
+            and not $h->{'receiver'}
+            and $kind ne qw| content |
+            and $kind ne qw| pack |
+            and $kind ne qw| head |
+            and ( $base // '' ) eq $name
+            and $name =~ m|\A[A-Z2-7]{77}\z| ) {
+            push @batch, $item;
+        } else {
+            push @single, $item;
+        }
+    }
+    if ( @batch < 2 ) {
+        push @single, @batch;
+        @batch = ();
+    }
+    holder_put( $spec, $ARG->[0], $ARG->[1], $ARG->[2], 0 ) for @single;
+    return if not @batch;
+
+    _legacy_write( $h, 'put-batch' );
+    my %item  = map { $ARG->[1] => $ARG } @batch;
+    my @names = sort keys %item;
+    my $dir   = _quote( $h->{'dir'} );
+    my ( $status, $out, $err ) = _result( $h,
+              "cd $dir || exit 44 ; for n in @names ; do [ -e \"\$n\" ] && "
+            . "printf '%s %s\\n' \"\$n\" \"\$( wc -c < \"\$n\" )\" ; "
+            . "done ; exit 0" );
+    refuse( 'ssh holder directory missing : %s', $h->{'dir'} ) if $status;
+    my %have = map { split m| +| } grep {length} split m|\n|, $out;
+    my @send;
+
+    foreach my $name (@names) {
+        my $size = -s $item{$name}[0];
+        refuse( 'holder final blob has the wrong size : %s', $name )
+            if defined $have{$name} and $have{$name} != $size;
+        push @send, $name if not defined $have{$name};
+    }
+    if (@send) {
+        require Archive::Tar;
+        my $tar = Archive::Tar->new;
+        foreach my $name (@send) {
+            $tar->add_data( $name, read_file( $item{$name}[0] ) );
+        }
+        my $stream = $tar->write;
+        my $tmp    = '.batch.' . b32( random_bytes(8) );
+        ## mv only where no blob exists : a rerun after a lost reply is a
+        ## no-op
+        my @delays = _delays();
+        for my $try ( 0 .. $#delays ) {
+            ( $status, $out, $err ) = _ssh(
+                $h,
+                "cd $dir || exit 44 ; rm -rf $tmp ; mkdir $tmp && tar -x -f "
+                    . "- -C $tmp && for n in @send ; do [ -e \"\$n\" ] || mv "
+                    . "\"$tmp/\$n\" \"\$n\" ; done ; rc=\$? ; rm -rf $tmp ; "
+                    . "sync ; exit \$rc",
+                $stream
+            );
+            last                if not $status or $status == 44;
+            sleep $delays[$try] if $try < $#delays;
+        }
+        refuse( 'ssh holder batch upload failed : %s', $err ) if $status;
+    }
+    ## read back every blob of the batch, also those that were already there
+    ( $status, $out, $err )
+        = _result( $h, "cd $dir || exit 44 ; tar -c -f - @names" );
+    refuse( 'ssh holder batch readback failed : %s', $err ) if $status;
+    require Archive::Tar;
+    require IO::Handle;
+    open( my $back_fh, '<:raw', \$out )
+        or refuse('cannot open batch readback');
+    my %back = map { $ARG->name => $ARG->get_content }
+        Archive::Tar->new($back_fh)->get_files;
+    foreach my $name (@names) {
+        refuse( 'holder readback checksum mismatch for %s', $name )
+            if not defined $back{$name}
+            or $back{$name} ne read_file( $item{$name}[0] );
+    }
+    return;
+}
+
 sub holder_put {
     my ( $spec, $local, $name, $kind, $replace ) = @_;
     my $h = holder_parse($spec);
@@ -1007,10 +1100,11 @@ sub holder_put {
             return;
         }
         refuse('receiver put cannot replace a blob') if $replace;
-        my $remote = _recv_name( $h, $name );
-        if ( defined holder_size( $spec, $name ) ) {
+        my $remote   = _recv_name( $h, $name );
+        my $existing = holder_size( $spec, $name );
+        if ( defined $existing ) {
             refuse( 'holder final blob has the wrong size : %s', $name )
-                if holder_size( $spec, $name ) != $size;
+                if $existing != $size;
             holder_verify( $spec, $name, $local, $kind );
             return;
         }
@@ -1028,15 +1122,14 @@ sub holder_put {
         holder_verify( $spec, $name, $local, $kind );
         return;
     }
-    if (    not $replace
-        and defined holder_size( $spec, $name )
-        and holder_size( $spec, $name ) == $size ) {
+    ## one size probe : each one is an ssh round trip ##
+    my $existing = $replace ? undef : holder_size( $spec, $name );
+    if ( defined $existing and $existing == $size ) {
         holder_verify( $spec, $name, $local, $kind );
         return;
     }
     refuse( 'holder final blob has the wrong size : %s', $name )
-        if defined holder_size( $spec, $name )
-        and not $replace;
+        if defined $existing;
     _legacy_write( $h, 'put' );
     my $temp = "$name.upload";
     holder_delete( $spec, $temp ) if $kind ne qw| content |;
@@ -1074,8 +1167,8 @@ sub holder_put {
 
 1;
 
-#,,,,,...,,.,,,,,,...,...,..,,.,.,.,,,,,,,.,,,..,,...,...,,,.,,..,...,,.,,,..,
-#Y2ETRL2LIGHUKVY6MT3GK64UXQBIB2ANBFZ7TI7DCTXQBNWMILFJEB3RESF3FZSFZR6GFEX2ZBM72
-#\\\|7GFXNMJ6W66Q4EIDWI5EMR273WRML4SXZM7VPADIFN4BRHPSKCC \ / AMOS7 \ YOURUM ::
-#\[7]5M6KW2YE5ONHKWB3DVEVHPP3UFAUGZ5WPPGEIAMKTOPQNMXPEYAA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,,.,,,..,,,.,.,.,..,,,,,,,.,,..,,...,...,..,,,,.,..,,,,,,,,.,
+#Q3FPXQFBWDTOCV4IBW37YZEOAM422SPC6ORBQ325YOZDENYPKU5JO6PRGIFXLLYVMPMIMMLLVF2OK
+#\\\|3OED52NV2WX3BJ45SBG3KYK777EFT7GRPP5DJVQASKLU4A4HVVS \ / AMOS7 \ YOURUM ::
+#\[7]T5NMJK7X4K66BK6AMNSSJXOU7X56TRNZVZC4HENQPNWRZUWS7ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

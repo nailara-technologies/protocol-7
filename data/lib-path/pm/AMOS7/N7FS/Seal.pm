@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.FVPHWNI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.7N7XQMA |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -44,7 +44,7 @@ use AMOS7::N7FS::Journal  qw| journal_replay |;
 use AMOS7::N7FS::Category qw| category_report category_definitions |;
 use AMOS7::N7FS::Holder   qw| holder_parse holder_canonical holder_mkdir
     holder_read holder_size holder_put holder_delete holder_verify
-    holder_download holder_read_range holder_sizes holder_stats holder_now
+    holder_download holder_read_range holder_sizes holder_stats holder_now holder_put_batch
     holder_scrub holder_isdir holder_sub_spec holder_make_path holder_move
     holder_trash_days holder_trash_list holder_remove_day holder_authorize |;
 
@@ -321,13 +321,18 @@ sub _head_locate {
 }
 
 sub _write_blob {
-    my ( $root, $dir, $bytes, $kind ) = @_;
+    my ( $root, $dir, $bytes, $kind, $batch ) = @_;
     my $name = bmw_b32( bmw384_bytes($bytes) );
     if ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
         my $spool = _state_dir($root) . '/spool';
         make_dirs( $spool, 0700 );
         my $path = "$spool/$name";
         write_new_file( $path, $bytes ) if not -e $path;
+        ## a commit collects its blobs : one batch before the head ##
+        if ( ref $batch ) {
+            push $batch->@*, [ $path, $name, $kind ];
+            return $name;
+        }
         holder_put( $dir, $path, $name, $kind, FALSE );
         unlink $path or refuse('cannot remove confirmed spool');
         return $name;
@@ -863,6 +868,7 @@ sub _commit {
         delete $categories->{$name}{'_key'};
     }
     my %sealed_map;
+    my @batch;
     my $seal_map = sub {
         my ( $plain, $domain ) = @_;
         my $sum = bmw_b32( bmw384_bytes($plain) );
@@ -873,7 +879,8 @@ sub _commit {
             . substr( $id, 16 )
             . seal_bytes( $root->{'keys'}, $plain, $domain, $id, $version );
         return $sealed_map{"$domain\0$sum"} = {
-            qw| blob |     => _write_blob( $root, $base, $bytes, qw| map | ),
+            qw| blob | =>
+                _write_blob( $root, $base, $bytes, qw| map |, \@batch ),
             qw| checksum | => $sum,
             qw| id |       => b32($id),
             qw| writer   | => b32($writer),
@@ -946,8 +953,12 @@ sub _commit {
             $root->{'keys'}, $journal, qw| journal |,
             $journal_id,     $version
             ),
-        qw| journal |
+        qw| journal |,
+        \@batch
     );
+    ## every map, shard, registry and journal blob before the head ##
+    holder_put_batch( $base, \@batch );
+    unlink $ARG->[0] for @batch;
     fault(qw| seal:after-journal |);
     my $head_name = _head_name($root);
     my $head_bytes
@@ -1192,6 +1203,8 @@ sub _node_blob {
     $ctx->addfile($sealed);
     close $sealed;
     my $name = bmw_b32( $ctx->digest );
+    ## the sealed length is known here : no size probe on the holder ##
+    my $length = -s $tmp;
     if ( $packing and -s $tmp <= _pack_limit() ) {
         my $bytes = read_file($tmp);
         unlink $tmp;
@@ -1200,13 +1213,13 @@ sub _node_blob {
     if ($remote) {
         holder_put( $dir, $tmp, $name, qw| content |, FALSE );
         unlink $tmp or refuse('cannot remove confirmed content spool');
-        return ( $name, $chunks );
+        return ( $name, $chunks, undef, $length );
     }
     refuse('ciphertext blob already exists') if -e "$dir/$name";
     rename $tmp, "$dir/$name"
         or refuse( 'cannot publish content blob : %s', $OS_ERROR );
     sync_dir($dir);
-    return ( $name, $chunks );
+    return ( $name, $chunks, undef, $length );
 }
 
 sub _content_path {
@@ -1727,7 +1740,7 @@ sub seal_nodes {
             $keys    = new_keypair();
         }
         fault(qw| seal:before-blob |);
-        my ( $name, $chunks, $packed )
+        my ( $name, $chunks, $packed, $blob_length )
             = _node_blob( $path, $keys, $base, $bmw, $root, TRUE );
         my ( $length, $offset ) = ( undef, 0 );
         if ( defined $packed ) {
@@ -1735,7 +1748,7 @@ sub seal_nodes {
             $length = length $packed;
             $pack{'bytes'} .= $packed;
         } else {
-            $length = holder_size( $base, $name );
+            $length = $blob_length // holder_size( $base, $name );
         }
         fault(qw| seal:after-blob |);
         my %wraps;
@@ -3443,8 +3456,8 @@ sub shred_node {
 
 1;
 
-#,,,.,,,,,..,,,,.,.,,,,.,,,,.,,.,,,..,...,,,,,..,,...,...,,,.,...,..,,,.,,..,,
-#I2ZO5X3DC5DJ6BWL4MTNMZ5PBL4BJYL6YO4QETF3HB3S4YGPX76BQAB6THGMSV6UX7YMCQF4B5RNM
-#\\\|OUN7LETLN47EGD2E5TZNQVOQBXLW6HPEZPKHKK6CALP2JHNLZZP \ / AMOS7 \ YOURUM ::
-#\[7]ZC6S2KFFYMKEQY7AXHYQOMJYCPVHJI5CHKB2UXLU4XB3J2SBTGDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,.,,,,..,,,.,,,.,,.,,...,.,.,..,,...,...,...,..,,.,.,.,,,,,.,
+#2MOLS7UQMBHF52ERGRZLQ4MYYO2PC4YXR5ZFWZIDZW4X3O3UFD3DGEXSS3MSQPAIM2B7FIWY3QDNM
+#\\\|TVL5URLS6NUI3O3P6NRS62DQNCTHSZ6GZY5ROLDDLWE3F3J52XS \ / AMOS7 \ YOURUM ::
+#\[7]GHGBWHTDQRKJSAWOZ7EUPSABU7NVNKXTWZI6VHTDATUUIUG54ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
