@@ -71,7 +71,21 @@ sub read_map {
 }
 
 write_file( "$base/root-pass", "vp\n" );
-my $y4    = y_level_ntime(4);
+my $y4 = y_level_ntime(4);
+## keep all fixture times in one epoch ; move an unsafe override forward by ##
+## the least amount that puts the oldest fixture inside the epoch           ##
+my $clock = $ENV{'N7FS_TEST_NTIME'}
+    // int( 318 * $AMOS7::N7FS::Sum::EPOCH_DIVISOR
+        + $AMOS7::N7FS::Sum::EPOCH_DIVISOR / 2 );
+my $epoch_start
+    = int(
+    AMOS7::N7FS::Sum::epoch_int($clock) * $AMOS7::N7FS::Sum::EPOCH_DIVISOR )
+    + 4200;
+$clock = int( $clock + $epoch_start - ( $clock - 20 * $y4 ) ) + 1
+    if $clock - 20 * $y4 < $epoch_start;
+## the cli margin covers a second tree imported at the same fixture time ##
+$ENV{'N7FS_TEST_NTIME'}       = $clock + 1;
+$ENV{'N7FS_TEST_QUIET_CLOCK'} = 1;
 my $now   = int( 1000 * $y4 );
 my %trees = (
     'snap.current' => $now,
@@ -177,7 +191,7 @@ sub import_tree {
     my $dir = "$src/$name";
     make_dirs($dir);
     write_file( "$dir/$ARG", $file{$ARG} ) for keys %file;
-    local $AMOS7::N7FS::CLOCK = sub { return int $time };
+    local $ENV{'N7FS_TEST_NTIME'} = int $time;
     return assimilate(
         qw| root |           => $root,
         qw| host_dir |       => $hdir,
@@ -191,7 +205,6 @@ sub import_tree {
     );
 }
 
-my $clock = AMOS7::N7FS::ntime_now();
 import_tree(
     'snap.old', $clock - 20 * $y4,
     'unique' => "old unique\n",
@@ -796,8 +809,8 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
 
 done();
 
-#,,,.,.,.,,.,,...,.,.,..,,,,.,.,.,,,,,...,.,.,..,,...,...,...,..,,,,.,..,,...,
-#IUXAQJAXNHUA5JTNV22QCCX3ESIY3JV3PH2DKUPQPXOJMUKWKIJ6EZAFBJ7LFVXCLCYLOMJO26H6U
-#\\\|FJBSHOXFRJWFIW7NIW3FQNFHQEW2RHAMJLHABAUTTJXPJG76VFS \ / AMOS7 \ YOURUM ::
-#\[7]IVIQN5DCAXUUI3R3MGY6PA27I6B772DE6KOSUC32LUXFIJ6SE6AY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,..,,.,,,...,...,...,,.,,,.,,..,,...,...,,..,,.,,.,,,,,,,..,,
+#UF3M7VI7RQ5BIQZMTGY4ZWCYXQQMMBADSZUPZGQQULSVPZVDM6JCVJN5HVRSP4XF5F6L7M3CPNH3I
+#\\\|R4VCKXV45GRIZU2UD2IEGKOVVEVBE5VPW633UYI2MCCC2TSGOL7 \ / AMOS7 \ YOURUM ::
+#\[7]2IXSW3VSCYLCUTVSIYBJWELMKJ72RPBOKYTEPCOELNRAO4EGRWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

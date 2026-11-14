@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.JZAUYGQ |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.43LC7PY |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -207,10 +207,19 @@ sub fault {
 ##[ NETWORK TIME ]############################################################
 
 ## whole ntime units [ AMOS7::NTIME ] ; injectable for the tests
+## N7FS_TEST_NTIME fixes the clock for test cli subprocesses
 our $CLOCK = sub { return AMOS7::NTIME::unix_to_ntime( time, 0 ) };
 
+## the test override never applies silently : one warning per process ##
+my $test_clock_warned;
+
 sub ntime_now {
-    my $ntime = $CLOCK->();
+    if ( defined $ENV{'N7FS_TEST_NTIME'} and not $test_clock_warned++ ) {
+        warn "n7fs : clock overridden by N7FS_TEST_NTIME "
+            . "[ test only, not the real time ]\n"
+            if not $ENV{'N7FS_TEST_QUIET_CLOCK'};
+    }
+    my $ntime = $ENV{'N7FS_TEST_NTIME'} // $CLOCK->();
     refuse('clock returned no ntime')
         if not defined $ntime
         or $ntime !~ m|\A\d+\z|;
@@ -493,8 +502,8 @@ sub remove_tree {
 
 1;
 
-#,,..,..,,.,,,,.,,..,,,.,,.,.,,,,,,.,,,.,,,..,..,,...,..,,.,.,..,,,.,,,.,,..,,
-#6OORVLYELNTYKJOW5YD46GPCNUFVLLB63L76HYL47Y7E63S4MWSOGXYPLVEFWW3VWKWEWS6WCTOSM
-#\\\|56IUWJ5LQAY2WYNVSR76OJWEBQNKMQ6QUBYPJX4C5QJ3H4JLYH5 \ / AMOS7 \ YOURUM ::
-#\[7]AKWKJGVXHIM6IWA2WLDRUWYPCZ3G6HNXNEO6UDXHGJ42UAS4JQBI 7  DATA SIGNATURE ::
+#,,.,,,..,...,..,,..,,,,,,,,.,..,,..,,...,,..,..,,...,...,.,,,,..,,,,,.,,,.,.,
+#TRJM3YXA2VMI6XQVU6BFBHM7F3BV6CCFTZP2POSSVJ3B42AXXP36TKGR3OBDDED2ZBOSAREYHEGZO
+#\\\|TDBWSLX435E2IOTK4EORO6V4FYARPI6MVZT6ZUIAH54W4AGVA5B \ / AMOS7 \ YOURUM ::
+#\[7]3O4Y4XHTLDXEPHH3GDBNP6CE7O5FDD2PRHXWNN55BIA23HFU34BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
