@@ -1820,6 +1820,22 @@ sub cmd_seal_recover {
     );
     say_line( 'clean recovery accepts the reachable signed '
             . 'head ; a holder can withhold newer versions' );
+
+    foreach my $receipt ( $r->{'receipts'}->@* ) {
+        say_line(
+            'receipt ',
+            substr( $receipt->{'holder'}, 0, 7 ),
+            ' known from this head : v',
+            $receipt->{'version'},
+            ', ',
+            AMOS7::NTIME::y_age_str( $receipt->{'age'} ),
+            ' old, ',
+            $receipt->{'coverage'},
+            ', covered ',
+            $receipt->{'nodes'},
+            ' nodes'
+        );
+    }
     return 0;
 }
 
@@ -1945,8 +1961,9 @@ sub cmd_holder_check {
         : $o{'scrub'}      ? qw| scrub |
         : $o{'sizes-only'} ? qw| sizes-only |
         :                    qw| sampled |;
-    my $r = AMOS7::N7FS::Seal::holder_check(
-        qw| root |     => _seal_root(),
+    my $root = _seal_root();
+    my $r    = AMOS7::N7FS::Seal::holder_check(
+        qw| root |     => $root,
         qw| holder |   => $holder,
         qw| samples |  => $o{'samples'},
         qw| coverage | => $coverage,
@@ -1963,19 +1980,12 @@ sub cmd_holder_check {
         : $coverage eq qw| sizes-only | ? ' sizes checked'
         :                                 ' chunks sampled'
     );
-    ## a receipt needs this host's key ; a recovery machine may have none ##
-    my $signer = optional_host_signer();
-    if ( not $signer ) {
-        say_line('no host key here : no receipt written');
-        return 0;
-    }
     require AMOS7::N7FS::Placement;
     require AMOS7::N7FS::Holder;
     AMOS7::N7FS::Placement::receipt_write(
         qw| host_dir |      => host_dir(%common),
-        qw| signer |        => $signer,
+        qw| root |          => $root,
         qw| spec |          => AMOS7::N7FS::Holder::holder_canonical($holder),
-        qw| root_id |       => $r->{'root_id'},
         qw| version |       => $r->{'version'},
         qw| nodes |         => $r->{'nodes'},
         qw| samples |       => $r->{'samples'},
@@ -2282,8 +2292,8 @@ sub cmd_holder_gc {
     my $root = _seal_root();
     my $receipt
         = AMOS7::N7FS::Placement::receipt_fresh( host_dir(%common),
-        host_signer()->public, AMOS7::N7FS::Holder::holder_canonical($holder),
-        $root->{'root_id'}, );
+        $root, AMOS7::N7FS::Holder::holder_canonical($holder),
+        );
     my $r = AMOS7::N7FS::Seal::holder_gc(
         qw| root |    => $root,
         qw| holder |  => $holder,
@@ -2688,8 +2698,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,.,,,,,.,,,,,,,,,,,.,..,,..,,,.,,,,.,,..,..,,...,...,,..,,,,,..,,,,,,..,,
-#YU53P4IFI57CAKPB3WNOHCGR3ZNMAXLJVJCTJO4ZI3EV35Y7XF43IYWKRHJNHIFIYJCYYIFZOLGWG
-#\\\|4XAHE3WHGM3ST2HMX7LPL7QWBDKC7NX2M5Y6EIJ4GOIOVLVH7RM \ / AMOS7 \ YOURUM ::
-#\[7]4VME2UNAD6KLBQWFUHMVKO7ZLMGIHZORGBACB2UBPL42A2NPS4CA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,,,.,.,,,,,,,,,,..,,.,,,,,,.,.,..,,...,...,,,,,,,.,,.,,..,,,.,,
+#LGD5B3C34JAYE6MAOJFAGX2RKFGECCTD57BFGPTBG7JTJH45H3GTZNTKZTNRTPFBLUBHDP3MXOLCA
+#\\\|BXJ3NFB57GYS7KLTQRMINFYOLUCPQ56VGUYPE6736ZJXDBNCZZD \ / AMOS7 \ YOURUM ::
+#\[7]JOM2KCBSBOP77DWKDZOORMFX2HKZM5J6DTFXSZSYQ4OIFQUNCCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

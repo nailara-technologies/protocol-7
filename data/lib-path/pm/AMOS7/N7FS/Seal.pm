@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.VPZRVMI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.YQ4OP4A |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -403,13 +403,34 @@ sub _head_open {
     return $head;
 }
 
+sub receipt_record {
+    my ( $root, $spec, $receipt ) = @_;
+    my $state = _state_read($root);
+    my ($holder)
+        = grep { ( $state->{'holders'}{$ARG}{'spec'} // '' ) eq $spec }
+        keys $state->{'holders'}->%*;
+    return undef if not defined $holder;
+    $state->{'holders'}{$holder}{'receipt'} = {
+        qw| v | => $receipt->{'version'} + 0,
+        qw| t | => $receipt->{'time'} + 0,
+        qw| c | => $receipt->{'coverage'} // qw| sampled |,
+        qw| n | => $receipt->{'covered_nodes'} + 0,
+    };
+    _state_write( $root, $state );
+    return $holder;
+}
+
 sub _peers {
     my ( $state, $holder ) = @_;
     return {
         map {
+            my $known = $state->{'holders'}{$ARG};
             $ARG => {
-                qw| v | => $state->{'holders'}{$ARG}{'version'} // 0,
-                qw| t | => $state->{'holders'}{$ARG}{'time'}    // 0,
+                qw| v | => $known->{'version'} // 0,
+                qw| t | => $known->{'time'}    // 0,
+                ref $known->{'receipt'} eq qw| HASH |
+                ? ( qw| r | => { $known->{'receipt'}->%{qw| v t c n |} } )
+                : (),
             }
         }
         grep { $ARG ne $holder } keys $state->{'holders'}->%*
@@ -550,6 +571,9 @@ sub _context {
             qw| spec |    => $dir,
             qw| version | => $head->{'version'},
             qw| time |    => $head->{'time'},
+            ref $known->{'receipt'} eq qw| HASH |
+            ? ( qw| receipt | => $known->{'receipt'} )
+            : (),
         };
     }
     _state_write( $root, $state );
@@ -724,6 +748,11 @@ sub holder_respec {
         qw| spec |    => $new,
         qw| version | => $head->{'version'},
         qw| time |    => $head->{'time'},
+        (   defined $old_id
+                and ref $state->{'holders'}{$old_id}{'receipt'} eq qw| HASH |
+            )
+        ? ( qw| receipt | => $state->{'holders'}{$old_id}{'receipt'} )
+        : (),
     };
     _state_write( $root, $state );
     return $head->{'version'};
@@ -857,6 +886,9 @@ sub _commit {
         qw| spec |    => $pin,
         qw| version | => $version,
         qw| time |    => $time,
+        ref $state->{'holders'}{$holder}{'receipt'} eq qw| HASH |
+        ? ( qw| receipt | => $state->{'holders'}{$holder}{'receipt'} )
+        : (),
     };
     $state->{'last_time'} = $time;
     _state_write( $root, { %{$state}, qw| version | => $version } );
@@ -906,6 +938,15 @@ sub head_survey {
                 if ref $peer ne qw| HASH |
                 or ( $peer->{'v'} // '' ) !~ m|\A\d+\z|
                 or ( $peer->{'t'} // '' ) !~ m|\A\d+\z|;
+            my $r = $peer->{'r'};
+            refuse('signed head receipt summary is invalid')
+                if defined $r
+                and ( ref $r ne qw| HASH |
+                or ( $r->{'v'} // '' ) !~ m|\A\d+\z|
+                or ( $r->{'t'} // '' ) !~ m|\A\d+\z|
+                or ( $r->{'n'} // '' ) !~ m|\A\d+\z|
+                or ( $r->{'c'} // '' )
+                !~ m{\A(?:sizes-only|sampled|full)\z} );
             next if $peer->{'v'} <= $item->{'floor'};
             $item->{'floor'}   = $peer->{'v'};
             $item->{'witness'} = $other_name;
@@ -961,6 +1002,9 @@ sub head_refresh {
         qw| spec |    => $pin,
         qw| version | => $version,
         qw| time |    => $time,
+        ref $state->{'holders'}{$holder}{'receipt'} eq qw| HASH |
+        ? ( qw| receipt | => $state->{'holders'}{$holder}{'receipt'} )
+        : (),
     };
     $state->{'last_time'} = $time;
     _state_write( $root, { %{$state}, qw| version | => $version } );
@@ -1849,13 +1893,37 @@ sub seal_recover {
     my ( undef, $head, $map, $base )
         = _context( @opt{qw| root holder |}, TRUE );
     refuse('no sealed head to recover') if not defined $head;
-    my $age = ntime_now() - $head->{'time'};
+    my $now = ntime_now();
+    my $age = $now - $head->{'time'};
     $age = 0 if $age < 0;
+    my @receipts;
+
+    foreach my $holder ( sort keys $served->{'peers'}->%* ) {
+        my $r = $served->{'peers'}{$holder}{'r'} // next;
+        refuse('signed head receipt summary is invalid')
+            if ref $r ne qw| HASH |
+            or ( $r->{'v'} // '' ) !~ m|\A\d+\z|
+            or ( $r->{'t'} // '' ) !~ m|\A\d+\z|
+            or ( $r->{'n'} // '' ) !~ m|\A\d+\z|
+            or ( $r->{'c'} // '' ) !~ m{\A(?:sizes-only|sampled|full)\z};
+        my $receipt_age = $now - $r->{'t'};
+        $receipt_age = 0 if $receipt_age < 0;
+        push @receipts,
+            {
+            qw| holder |   => $holder,
+            qw| version |  => $r->{'v'} + 0,
+            qw| time |     => $r->{'t'} + 0,
+            qw| age |      => $receipt_age,
+            qw| coverage | => $r->{'c'},
+            qw| nodes |    => $r->{'n'} + 0,
+            };
+    }
     my $fresh = {
         qw| version |    => $head->{'version'},
         qw| head_time |  => $head->{'time'},
         qw| head_age |   => $age,
         qw| unverified | => $freshness->{'verdict'} eq qw| unverified |,
+        qw| receipts |   => \@receipts,
     };
 
     if ( defined $opt{'tree'} ) {
@@ -2408,9 +2476,8 @@ sub repack_packs {
     require AMOS7::N7FS::Placement;
     my $receipt = AMOS7::N7FS::Placement::receipt_write(
         qw| host_dir |          => $opt{'host_dir'},
-        qw| signer |            => $opt{'signer'},
+        qw| root |              => $opt{'root'},
         qw| spec |              => holder_canonical( $opt{'holder'} ),
-        qw| root_id |           => $checked->{'root_id'},
         qw| version |           => $checked->{'version'},
         qw| nodes |             => $checked->{'nodes'},
         qw| samples |           => $checked->{'samples'},
@@ -3032,8 +3099,8 @@ sub shred_node {
 
 1;
 
-#,,,.,.,.,.,.,.,,,,..,.,,,,,,,,,,,.,,,.,.,,..,..,,...,...,,.,,,.,,.,,,,.,,.,,,
-#PQSTMJXKTFUQFFO2E4NG7IBJJLDXH664SYTVLOW2FLDHXKLST6KNLEDFK2UPCJTGTJDOF25QFY5MK
-#\\\|QVLA4T7XBR2EJ5X6PE4FJ4T64UKK7WLHBO5LTGXB37NHSGCNN4Z \ / AMOS7 \ YOURUM ::
-#\[7]TJBSV4N2R7JYUUT4Z5UBWZ2S7YJG2TI7RB34ZNW6JF7C4MZS2IAA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,..,,,,.,,..,,..,,..,..,,,.,,..,,..,,...,...,,,,,,,,,..,,.,.,.,,,
+#J6VV7IRJZA44DNURZXESYX67R5X7X4GANIFQIGNBFZ4XD4IBZI3UZOAEHG43AYYTMFX6D7DB6AVJ2
+#\\\|WEF7G377GFOWGKSCE32UIACXZT4L2NVDPY5IMS5TAPJFB65ZUYP \ / AMOS7 \ YOURUM ::
+#\[7]DMJSG7BZRTM7BFRZBPVCI5ZPQJRX3LRELEIDYCBY6X2CCZHSFSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

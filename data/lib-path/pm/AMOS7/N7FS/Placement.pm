@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.PTPZYVQ |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.7JFONUA |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage receipt_covered receipt_digest n7fs_now
@@ -297,15 +297,17 @@ sub _covered_cache_read {
     return $data;
 }
 
-## a holder-check result, signed by the host key
+## a holder-check result, signed by the root key
 sub receipt_write {
     my %opt       = @_;
+    my $root      = $opt{'root'} // refuse('a receipt needs the open root');
+    my $root_id   = $root->{'root_id'};
     my $local_now = ntime_now();
-    my $now       = n7fs_now( @opt{qw| host_dir root_id |},
+    my $now       = n7fs_now( $opt{'host_dir'}, $root_id,
         $local_now, TRUE, $opt{'accept_clock'} );
     my $payload = {
         qw| holder |     => $opt{'spec'},
-        qw| root_id |    => $opt{'root_id'},
+        qw| root_id |    => $root_id,
         qw| time |       => $now,
         qw| local_time | => $local_now,
         qw| version |    => $opt{'version'} + 0,
@@ -318,8 +320,8 @@ sub receipt_write {
             )
         : (),
     };
-    my $signed = $JSON->encode($payload);
-    my $path   = _receipt_path( @opt{qw| host_dir spec root_id |} );
+    my $signed = "p7 n7fs receipt v2\0" . $JSON->encode($payload);
+    my $path   = _receipt_path( $opt{'host_dir'}, $opt{'spec'}, $root_id );
     my $dir    = $path;
     $dir =~ s|/[^/]+\z||;
     make_dirs( $dir, 0700 );
@@ -327,14 +329,15 @@ sub receipt_write {
         $path,
         $JSON->encode(
             {   qw| receipt | => $payload,
-                qw| pub |     => b32( $opt{'signer'}->public ),
-                qw| sig |     => b32( $opt{'signer'}->sign($signed) ),
+                qw| pub |     => b32( $root->{'signer'}->public ),
+                qw| sig |     => b32( $root->{'signer'}->sign($signed) ),
             }
         )
     );
     ## the covered-address cache is rewritten with the receipt ; without
     ## covered data an old cache must not linger and match a newer receipt
-    my $cache = _covered_cache_path( @opt{qw| host_dir spec root_id |} );
+    my $cache
+        = _covered_cache_path( $opt{'host_dir'}, $opt{'spec'}, $root_id );
     if ( defined $opt{'covered'}
         and ref $opt{'covered_addresses'} eq qw| ARRAY | ) {
         _replace_file(
@@ -349,20 +352,27 @@ sub receipt_write {
     } else {
         unlink $cache;
     }
+    require AMOS7::N7FS::Seal;
+    AMOS7::N7FS::Seal::receipt_record( $root, $opt{'spec'}, $payload );
     return $payload;
 }
 
 sub receipt_fresh {
-    my ( $host_dir, $host_pub, $spec, $root_id, $now ) = @_;
-    my $bytes = read_file( _receipt_path( $host_dir, $spec, $root_id ) );
+    my ( $host_dir, $root, $spec, $now ) = @_;
+    my $root_id = $root->{'root_id'};
+    my $bytes   = read_file( _receipt_path( $host_dir, $spec, $root_id ) );
     return undef if not defined $bytes;
     my $data = eval { $JSON->decode($bytes) } // return undef;
-    my $r    = $data->{'receipt'};
+    return undef if ref $data ne qw| HASH |;
+    my $r = $data->{'receipt'};
     return undef
         if ref $r ne qw| HASH |
-        or ( $data->{'pub'} // '' ) ne b32($host_pub)
-        or not verify( $host_pub, $JSON->encode($r),
-        unb32( $data->{'sig'} // '' ) // '' )
+        or ( $data->{'pub'} // '' ) ne b32( $root->{'signer'}->public )
+        or not verify(
+        $root->{'signer'}->public,
+        "p7 n7fs receipt v2\0" . $JSON->encode($r),
+        unb32( $data->{'sig'} // '' ) // ''
+        )
         or ( $r->{'holder'}  // '' ) ne $spec
         or ( $r->{'root_id'} // '' ) ne $root_id;
 
@@ -446,10 +456,11 @@ sub _copies {
     ## an excluded holder is read but not counted [ moving away from it ] ##
     my %excluded = map { $ARG => TRUE } @{ $opt{'exclude'} // [] };
     foreach my $name ( sort keys %{$holders} ) {
-        my $h       = $holders->{$name};
-        my $fresh   = $survey->{$name};
-        my $receipt = receipt_fresh( $opt{'host_dir'}, $opt{'host_pub'},
-            $h->{'spec'}, $opt{'root'}{'root_id'}, $now );
+        my $h     = $holders->{$name};
+        my $fresh = $survey->{$name};
+        my $receipt
+            = receipt_fresh( $opt{'host_dir'}, $opt{'root'}, $h->{'spec'},
+            $now );
         refuse(
             'holder %s serves a rolled back head [ v%d, '
                 . 'floor v%d via %s ; use -allow-stale to proceed ]',
@@ -742,22 +753,19 @@ sub place_missing {
                 $checks{$name} = { qw| ok | => FALSE, qw| error | => $err };
                 next;
             }
-            if ( ref $opt{'signer'} ) {
-                receipt_write(
-                    qw| host_dir |          => $opt{'host_dir'},
-                    qw| signer |            => $opt{'signer'},
-                    qw| spec |              => $holders->{$name}{'spec'},
-                    qw| root_id |           => $r->{'root_id'},
-                    qw| version |           => $r->{'version'},
-                    qw| nodes |             => $r->{'nodes'},
-                    qw| samples |           => $r->{'samples'},
-                    qw| coverage |          => $r->{'coverage'},
-                    qw| covered |           => $r->{'covered'},
-                    qw| covered_nodes |     => $r->{'covered_nodes'},
-                    qw| covered_addresses | => $r->{'covered_list'},
-                    qw| accept_clock |      => $opt{'accept_clock'},
-                );
-            }
+            receipt_write(
+                qw| host_dir |          => $opt{'host_dir'},
+                qw| root |              => $opt{'root'},
+                qw| spec |              => $holders->{$name}{'spec'},
+                qw| version |           => $r->{'version'},
+                qw| nodes |             => $r->{'nodes'},
+                qw| samples |           => $r->{'samples'},
+                qw| coverage |          => $r->{'coverage'},
+                qw| covered |           => $r->{'covered'},
+                qw| covered_nodes |     => $r->{'covered_nodes'},
+                qw| covered_addresses | => $r->{'covered_list'},
+                qw| accept_clock |      => $opt{'accept_clock'},
+            );
             $checks{$name}
                 = { qw| ok | => TRUE, qw| coverage | => $r->{'coverage'} };
         }
@@ -1015,8 +1023,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,.,,,,,,,..,,,.,.,.,...,...,..,,,..,..,,..,,...,...,..,,...,,.,,.,,,,,,,
-#BHNWZ5IWYZ2NVT5MSSIEMH5U25M7OIJQ3AWQCXYGJZGAIDCQL5B2E4VY6TP4BSYVOFKAHF3NK7SMW
-#\\\|ONZELWHVWLUGW5CQ7IATCBI5KKKYHT67WJRRVIUHCIDAUETSU37 \ / AMOS7 \ YOURUM ::
-#\[7]XXATOA55VAEWMP6A2LWH7PD3X7GPRJKZZ47OTJ7XJCEQ6JXJMCDI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,..,,,.,.,.,.,,,.,,,,.,,.,.,.,.,..,,...,...,...,..,,,,,,,.,,,.,,
+#7U7SISGO2V2YMDV3E3SJWT62GRVHUH5QZDN6T7KGWN5JATTN32NK7EWC6TT32GN36Q5XIYAKYY4LG
+#\\\|IFFJJWTMCRZJSFXYHXK6F7KKLKZROUAPZSIQZUDUZBMEOYXPB7E \ / AMOS7 \ YOURUM ::
+#\[7]UK2QK4TIJ4TU4SDTM4EWSB6NRQ7AFW2RZH5NC5Y2JGPZYMLHWGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

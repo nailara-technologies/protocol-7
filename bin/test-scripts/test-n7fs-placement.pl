@@ -48,11 +48,25 @@ my ( $rc, $out ) = cli( [], 'keygen', "$hdir/host.key" );
 ( $rc, $out ) = cli( [], 'pubkey', "$hdir/parent.key" );
 write_file( "$hdir/trusted-parents", $out );
 
+sub receipt_resign {
+    my ( $json, $receipt ) = @ARG;
+    require AMOS7::N7FS::Keys;
+    write_file( "$base/receipt-pass", "vp\n" );
+    open( my $pass, '<:raw', "$base/receipt-pass" ) or die $OS_ERROR;
+    my $root = AMOS7::N7FS::Keys::root_open(
+        qw| path |      => 'vault:main',
+        qw| pass_fd |   => fileno($pass),
+        qw| vault_dir | => $vdir,
+    );
+    close $pass;
+    return b32( $root->{'signer'}
+            ->sign( "p7 n7fs receipt v2\0" . $json->encode($receipt) ) );
+}
+
 ## re-signs a holder's receipt with its time moved back [ unreachable grace ]
 sub age_receipt {
     my ( $spec, $ntime ) = @ARG;
     require AMOS7::N7FS::Holder;
-    require AMOS7::N7FS::Sign;
     my $json            = JSON::PP->new->utf8->canonical;
     my ($root_receipts) = glob "$hdir/receipts/*";
     my $path            = "$root_receipts/"
@@ -64,9 +78,7 @@ sub age_receipt {
         ) . '.receipt';
     my $data = $json->decode( read_file($path) );
     $data->{'receipt'}{'time'} -= $ntime;
-    my $signer = AMOS7::N7FS::Sign::key_file_signer("$hdir/host.key");
-    $data->{'sig'}
-        = b32( $signer->sign( $json->encode( $data->{'receipt'} ) ) );
+    $data->{'sig'} = receipt_resign( $json, $data->{'receipt'} );
     write_file( $path, $json->encode($data) );
     return;
 }
@@ -375,7 +387,6 @@ ok( $out =~ m|one \[ a \] counted \[ sampled receipt \]|,
 ## a receipt without a coverage field reads as sampled ##
 {
     require AMOS7::N7FS::Holder;
-    require AMOS7::N7FS::Sign;
     my $json            = JSON::PP->new->utf8->canonical;
     my $spec1           = AMOS7::N7FS::Holder::holder_canonical("$base/h1");
     my ($root_receipts) = glob "$hdir/receipts/*";
@@ -385,9 +396,7 @@ ok( $out =~ m|one \[ a \] counted \[ sampled receipt \]|,
         . '.receipt';
     my $data = $json->decode( read_file($rpath) );
     delete $data->{'receipt'}{'coverage'};
-    my $signer = AMOS7::N7FS::Sign::key_file_signer("$hdir/host.key");
-    $data->{'sig'}
-        = b32( $signer->sign( $json->encode( $data->{'receipt'} ) ) );
+    $data->{'sig'} = receipt_resign( $json, $data->{'receipt'} );
     write_file( $rpath, $json->encode($data) );
     ( $rc, $out )
         = cli( ['vp'], 'holder-drain', $disk, 'five', '-root-key',
@@ -625,9 +634,7 @@ ok( $out =~ m|twelve .* covered 5, pending 0, coverage full|,
         ) . '.receipt';
     my $data = $json->decode( read_file($rpath) );
     delete $data->{'receipt'}{$_} for qw| covered covered_nodes |;
-    my $signer = AMOS7::N7FS::Sign::key_file_signer("$hdir/host.key");
-    $data->{'sig'}
-        = b32( $signer->sign( $json->encode( $data->{'receipt'} ) ) );
+    $data->{'sig'} = receipt_resign( $json, $data->{'receipt'} );
     write_file( $rpath, $json->encode($data) );
     ( $rc, $out )
         = cli( ['vp'], 'placement', $disk, '-root-key', 'vault:main' );
@@ -797,8 +804,8 @@ ok( $rc == 0 && $out =~ m|would drop 5|,
 
 done();
 
-#,,..,...,,.,,,..,,..,...,...,.,,,...,,,.,...,..,,...,...,.,,,,,.,,,,,,.,,,,.,
-#B7G7PTUGGSZQHEKMQVFLEK5CKZYSL7D6WZPTU7RS6ZR3Q3G5KNKCOKS3RYV2FS3TUD4L65A36XU4O
-#\\\|XQQCAC75DST23DUTOX2NYJTWPEA33F37MYLQKRA7OXWENYN443R \ / AMOS7 \ YOURUM ::
-#\[7]DUQI6GUPAE5DAE4GCCT4BDF46B32Z3N3SECQI3JFAVIXR4LIZQBI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,..,,.,,,,,,,,,,,,.,,.,,,...,,..,..,,...,...,...,.,.,.,,,...,,,.,
+#RCNOZFIAYLS543DG7WPBAMUSDBBHUN22CVB6O6P6AWU54264HORJT4RBGT5SJQX3ST6RPIWNCQPBI
+#\\\|LNQJCPWHZNK4JZYUSYCOTZJRZ3GTYYWBZ43KYO6ZH6TF27WW3X7 \ / AMOS7 \ YOURUM ::
+#\[7]4MD43RL77NYNZNJTL2GGMYUBMCRADTCVXJUY2K7IL37BPT4Q46DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
