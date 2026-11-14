@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.7JFONUA |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.MYTDVAY |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage receipt_covered receipt_digest n7fs_now
@@ -652,8 +652,8 @@ sub place_missing {
     my %opt = @_;
     my ( $id, $nodes, $replay, $definitions ) = _disk_nodes(%opt);
     my ( $holders, $copies, $status, undef ) = _copies(%opt);
-    ## a holder that gets any file of a tree also gets the tree, so it can
-    ## recover it by name
+    ## a holder that gets any file of a tree also gets its manifest ; the tree
+    ## inventory says partial until every file is there
     require AMOS7::N7FS::Seal;
     my %tree_of;
     foreach my $name ( keys $replay->{'trees'}->%* ) {
@@ -715,37 +715,65 @@ sub place_missing {
         }
         push @unplaced, $address if $need > 0;
     }
-    my %done;
+    my ( %done, %results );
     if ( not $opt{'dry_run'} ) {
         require AMOS7::N7FS::Seal;
         foreach my $name ( sort keys %plan ) {
-            my $r = AMOS7::N7FS::Seal::seal_nodes(
-                %opt,
-                qw| holder |    => $holders->{$name}{'spec'},
-                qw| addresses | => $plan{$name},
-                ## a placed file brings its chunked tree for recovery ##
-                qw| trees | => [
-                    sort grep {defined}
-                    map       { $tree_of{$ARG} } $plan{$name}->@*
-                ],
-            );
-            $done{$name} = $r->{'sealed'};
+            $results{$name} = { qw| ok | => FALSE, qw| sealed | => 0 };
+            my $r = eval {
+                AMOS7::N7FS::Seal::seal_nodes(
+                    %opt,
+                    qw| holder |    => $holders->{$name}{'spec'},
+                    qw| addresses | => $plan{$name},
+                    ## only the planned files ; the tree supplies a ##
+                    ## manifest                                     ##
+                    qw| tree_manifests | => [
+                        sort grep {defined}
+                        map       { $tree_of{$ARG} } $plan{$name}->@*
+                    ],
+                );
+            };
+            if ( not defined $r ) {
+                my $err = $EVAL_ERROR // 'seal failed';
+                chomp $err;
+                $results{$name}{'error'} = $err;
+                next;
+            }
+            $done{$name}    = $r->{'sealed'};
+            $results{$name} = {
+                qw| ok |      => TRUE,
+                qw| sealed |  => $r->{'sealed'},
+                qw| version | => $r->{'version'},
+            };
         }
     }
-    ## the receipt follows the head : every holder written this run is checked
-    ## before place returns, so its copies count at once. a failing check is
-    ## reported and never undoes the placement
+    ## every attempted holder is checked : a seal can fail after a commit, and
+    ## one bad holder must not leave another holder's new copies pending
     my %checks;
     if ( not $opt{'dry_run'} and not $opt{'no_check'} ) {
         my $coverage = $opt{'check_coverage'} // qw| sampled |;
-        foreach my $name ( sort keys %done ) {
+        foreach my $name ( sort keys %results ) {
             my $r = eval {
-                AMOS7::N7FS::Seal::holder_check(
+                my $check = AMOS7::N7FS::Seal::holder_check(
                     qw| root |     => $opt{'root'},
                     qw| holder |   => $holders->{$name}{'spec'},
                     qw| samples |  => $opt{'samples'},
                     qw| coverage | => $coverage,
                 );
+                receipt_write(
+                    qw| host_dir |          => $opt{'host_dir'},
+                    qw| root |              => $opt{'root'},
+                    qw| spec |              => $holders->{$name}{'spec'},
+                    qw| version |           => $check->{'version'},
+                    qw| nodes |             => $check->{'nodes'},
+                    qw| samples |           => $check->{'samples'},
+                    qw| coverage |          => $check->{'coverage'},
+                    qw| covered |           => $check->{'covered'},
+                    qw| covered_nodes |     => $check->{'covered_nodes'},
+                    qw| covered_addresses | => $check->{'covered_list'},
+                    qw| accept_clock |      => $opt{'accept_clock'},
+                );
+                $check;
             };
             if ( not defined $r ) {
                 my $err = $EVAL_ERROR // 'holder-check failed';
@@ -753,19 +781,6 @@ sub place_missing {
                 $checks{$name} = { qw| ok | => FALSE, qw| error | => $err };
                 next;
             }
-            receipt_write(
-                qw| host_dir |          => $opt{'host_dir'},
-                qw| root |              => $opt{'root'},
-                qw| spec |              => $holders->{$name}{'spec'},
-                qw| version |           => $r->{'version'},
-                qw| nodes |             => $r->{'nodes'},
-                qw| samples |           => $r->{'samples'},
-                qw| coverage |          => $r->{'coverage'},
-                qw| covered |           => $r->{'covered'},
-                qw| covered_nodes |     => $r->{'covered_nodes'},
-                qw| covered_addresses | => $r->{'covered_list'},
-                qw| accept_clock |      => $opt{'accept_clock'},
-            );
             $checks{$name}
                 = { qw| ok | => TRUE, qw| coverage | => $r->{'coverage'} };
         }
@@ -773,6 +788,7 @@ sub place_missing {
     return {
         qw| plan |   => { map { $ARG => scalar $plan{$ARG}->@* } keys %plan },
         qw| sealed | => \%done,
+        qw| results |  => \%results,
         qw| unplaced | => scalar @unplaced,
         qw| checks |   => \%checks,
     };
@@ -1023,8 +1039,8 @@ sub holder_prune {
 
 1;
 
-#,,.,,..,,,.,,,..,,,.,.,.,.,,,.,,,,.,,.,.,.,.,..,,...,...,...,..,,,,,,,.,,,.,,
-#7U7SISGO2V2YMDV3E3SJWT62GRVHUH5QZDN6T7KGWN5JATTN32NK7EWC6TT32GN36Q5XIYAKYY4LG
-#\\\|IFFJJWTMCRZJSFXYHXK6F7KKLKZROUAPZSIQZUDUZBMEOYXPB7E \ / AMOS7 \ YOURUM ::
-#\[7]UK2QK4TIJ4TU4SDTM4EWSB6NRQ7AFW2RZH5NC5Y2JGPZYMLHWGCY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,,,.,...,,.,,,,.,.,.,,,.,.,.,..,,...,..,,...,,.,,..,,,,,,,.,,
+#CGGJ5VRSOGPUEZXAMDHU6Q75GZV2KAUXSRIHTGJE5ATLYOZRBOYTCDG536U4TNDDTSLUFIZ2BNJEO
+#\\\|FM7B3IPOZJKTKCTSEDNZAUOAMU6VECPV4CIRQROMPHHKGHNH27M \ / AMOS7 \ YOURUM ::
+#\[7]UEGOMPBARQ3XYGDZ657T3FITM4OYSSXJ3XB2B4IXWRGVU7HTBAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

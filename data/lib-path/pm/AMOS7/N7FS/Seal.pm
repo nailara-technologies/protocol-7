@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.YQ4OP4A |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.VVU7JHI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -1322,14 +1322,16 @@ sub _manifest_verify {
 }
 
 sub _manifest_restore {
-    my ( $root, $base, $alt, $tree, $target ) = @_;
+    my ( $root, $base, $alt, $tree, $target, $name ) = @_;
     my ( $head, @entries ) = _manifest_read( $root, $base, $alt, $tree );
-    write_new_file(
-        $target,
-        join( '',
-            $JSON->encode($head) . "\n",
-            map { $JSON->encode($ARG) . "\n" } @entries )
-    );
+    my $plain = join '',
+        $JSON->encode($head) . "\n",
+        map { $JSON->encode($ARG) . "\n" } @entries;
+    my ( undef, undef, $expected ) = split m|/|, $tree->{'manifest'} // '';
+    refuse( 'rebuilt tree manifest does not match : %s', $name // '' )
+        if not defined $expected
+        or bmw_b32( bmw384_bytes($plain) ) ne $expected;
+    write_new_file( $target, $plain );
     return TRUE;
 }
 
@@ -1410,6 +1412,7 @@ sub _disk_binding_check {
 
 sub _select_addresses {
     my %opt = @_;
+    $opt{'trees'} //= [];
     ## the sealing root id, for category binding checks, before the hash is ##
     ## dropped for the disk helpers                                         ##
     my $root_id = ref $opt{'root'} ? $opt{'root'}{'root_id'} : undef;
@@ -1438,6 +1441,8 @@ sub _select_addresses {
             keys $replay->{'nodes'}->%*;
     }
     my %trees;
+    my %manifest_only
+        = map { $ARG => TRUE } @{ $opt{'tree_manifests'} // [] };
     foreach my $name ( keys $replay->{'trees'}->%* ) {
         my $tree   = $replay->{'trees'}{$name};
         my $wanted = $opt{'all_trees'}
@@ -1445,14 +1450,20 @@ sub _select_addresses {
         my @files = _manifest_files( $id, $tree->{'manifest'} );
         $wanted ||= grep { $selected{$ARG} } @files
             if defined $opt{'category'};
-        next if not $wanted;
+        next if not $wanted and not $manifest_only{$name};
+        my %distinct = map { $ARG => TRUE } @files;
         $trees{$name} = {
-            qw| manifest | => $tree->{'manifest'},
-            qw| created |  => $tree->{'created'}
+            qw| manifest |        => $tree->{'manifest'},
+            qw| created |         => $tree->{'created'},
+            qw| files |           => scalar keys %distinct,
+            qw| _file_addresses | => [ sort keys %distinct ],
         };
-        $selected{$ARG} = 1 for @files;
+        if ($wanted) {
+            $selected{$ARG} = 1 for @files;
+        }
     }
-    foreach my $name ( $opt{'trees'}->@* ) {
+    foreach my $name ( $opt{'trees'}->@*, @{ $opt{'tree_manifests'} // [] } )
+    {
         refuse( 'no live tree named %s', $name ) if not exists $trees{$name};
     }
     my @addresses = sort keys %selected;
@@ -1482,6 +1493,25 @@ sub _select_addresses {
         }
     }
     return ( $id, $replay, \@addresses, \%trees, \%node_categories );
+}
+
+sub _tree_inventory {
+    my ( $map, $trees ) = @_;
+    my $changes = 0;
+    foreach my $name ( keys %{$trees} ) {
+        my $record = $map->{'trees'}{$name} // next;
+        my $held   = grep { exists $map->{'nodes'}{$ARG} }
+            @{ $trees->{$name}{'_file_addresses'} // [] };
+        my $files = $trees->{$name}{'files'} // 0;
+        my $state = $held == $files ? qw| complete | : qw| partial |;
+        next
+            if ( $record->{'files'} // -1 ) == $files
+            and ( $record->{'held'}  // -1 ) == $held
+            and ( $record->{'state'} // '' ) eq $state;
+        @{$record}{qw| files held state |} = ( $files, $held, $state );
+        $changes++;
+    }
+    return $changes;
 }
 
 sub seal_nodes {
@@ -1515,8 +1545,13 @@ sub seal_nodes {
                         values $map->{'trees'}->%*
                 ]
             };
+            my $source = {
+                qw| manifest | => $trees->{$name}{'manifest'},
+                qw| created |  => $trees->{$name}{'created'},
+                qw| files |    => $trees->{$name}{'files'},
+            };
             $map->{'trees'}{$name}
-                = _chunk_tree_manifest( $root, $base, $id, $trees->{$name},
+                = _chunk_tree_manifest( $root, $base, $id, $source,
                 $previous, $counter->{'version'} + 1 );
             $map->{'trees'}{$name}{'disks'} = \%owners;
             $tree_changes++;
@@ -1525,6 +1560,7 @@ sub seal_nodes {
             $tree_changes++;
         }
     }
+    $tree_changes += _tree_inventory( $map, $trees );
     my @new;
     my @pending_files;
     my ( $sealed, $batch_bytes, $tagged ) = ( 0, 0, 0 );
@@ -1651,6 +1687,7 @@ sub seal_nodes {
         if ( $batch_bytes >= $commit_bytes
             or ntime_now() - $last_commit >= $commit_age ) {
             $flush->();
+            _tree_inventory( $map, $trees );
             $counter->{'version'} = _commit( $root, $base, $pin, $counter,
                 $map, { qw| seal | => [@new] } );
             @new          = ();
@@ -1663,6 +1700,7 @@ sub seal_nodes {
         }
     }
     $flush->();
+    $tree_changes += _tree_inventory( $map, $trees );
     delete $map->{'_root_keys'};
     if ( @new or $tree_changes or $tagged ) {
         $counter->{'version'}
@@ -1827,6 +1865,11 @@ sub _restore_sealed_tree {
     my %opt  = @_;
     my $tree = $opt{'map'}{'trees'}{ $opt{'address'} };
     refuse( 'no live tree named %s', $opt{'address'} ) if not defined $tree;
+    my $sources = $opt{'sources'} // [
+        {   qw| holder | => $opt{'holder'},
+            qw| map |    => $opt{'map'},
+        }
+    ];
     require File::Temp;
     my $tmp = File::Temp::tempdir(
         'n7fs-sealed-tree-XXXXXX',
@@ -1835,7 +1878,7 @@ sub _restore_sealed_tree {
     );
     my $manifest = "$tmp/manifest";
     _manifest_restore( $opt{'root'}, $opt{'holder'}, undef,
-        $tree, $manifest );
+        $tree, $manifest, $opt{'address'} );
     require AMOS7::N7FS::Tree;
     return AMOS7::N7FS::Tree::tree_restore(
         qw| name |           => $opt{'address'},
@@ -1845,8 +1888,14 @@ sub _restore_sealed_tree {
         qw| manifest_path |  => $manifest,
         qw| content_source | => sub {
             my ( $address, $dest ) = @_;
-            _restore_node( @opt{qw| root holder |},
-                $opt{'map'}, $address, $dest );
+            my ($source)
+                = grep { exists $ARG->{'map'}{'nodes'}{$address} }
+                @{$sources};
+            refuse( 'address is not in the supplied sealed maps : %s',
+                $address )
+                if not defined $source;
+            _restore_node( $opt{'root'}, $source->{'holder'},
+                $source->{'map'}, $address, $dest );
         },
     );
 }
@@ -1866,35 +1915,76 @@ sub unseal_address {
 }
 
 sub seal_recover {
-    my %opt         = @_;
-    my $peers       = $opt{'peers'} // { qw| recovery | => $opt{'holder'} };
-    my $survey      = head_survey( $opt{'root'}, $peers );
-    my ($freshness) = grep {
-        ( $ARG->{'spec'} // '' ) eq holder_canonical( $opt{'holder'} )
-    } values %{$survey};
-    refuse('recovery holder is missing from the head survey')
-        if not defined $freshness;
-    my $served = $freshness->{'head'};
-    refuse('no sealed head to recover') if not defined $served;
-    refuse( 'head version %d is below -min-version %d',
-        $served->{'version'}, $opt{'min_version'} )
-        if defined $opt{'min_version'}
-        and $served->{'version'} < $opt{'min_version'};
-    refuse( 'refusing a rolled back head [ holder v%d, '
-            . 'floor v%d via %s ; use -allow-stale to proceed ]',
-        $served->{'version'}, $freshness->{'floor'}, $freshness->{'witness'} )
-        if $freshness->{'stale'} and not $opt{'allow_stale'};
-    warn "n7fs : warning : recovering from a "
-        . "proven-stale head [ -allow-stale ]\n"
-        if $freshness->{'stale'};
+    my %opt = @_;
+    my @specs
+        = ref $opt{'holders'} eq qw| ARRAY |
+        ? $opt{'holders'}->@*
+        : ( $opt{'holder'} );
+    refuse('seal-recover needs -from <holder-dir>') if not @specs;
+    my %seen;
+    @specs = grep { not $seen{ holder_canonical($ARG) }++ } @specs;
+    my $peers = $opt{'peers'} // {
+        map {
+            ( @specs == 1 ? qw| recovery | : "recovery-$ARG" ) => $specs[$ARG]
+        } 0 .. $#specs
+    };
+    my $survey = head_survey( $opt{'root'}, $peers );
+    my @sources;
+    foreach my $spec (@specs) {
+        my ($freshness)
+            = grep { ( $ARG->{'spec'} // '' ) eq holder_canonical($spec) }
+            values %{$survey};
+        refuse('recovery holder is missing from the head survey')
+            if not defined $freshness;
+        my $served = $freshness->{'head'};
+        if ( not defined $served ) {
+            refuse('no sealed head to recover') if @specs == 1;
+            warn "n7fs : warning : no sealed head on $spec ; skipping it\n";
+            next;
+        }
+        if ( defined $opt{'min_version'}
+            and $served->{'version'} < $opt{'min_version'} ) {
+            refuse( 'head version %d is below -min-version %d',
+                $served->{'version'}, $opt{'min_version'} )
+                if @specs == 1;
+            warn "n7fs : warning : head on $spec is "
+                . "below -min-version ; skipping it\n";
+            next;
+        }
+        if ( $freshness->{'stale'} and not $opt{'allow_stale'} ) {
+            refuse( 'refusing a rolled back head [ holder v%d, '
+                    . 'floor v%d via %s ; use -allow-stale to proceed ]',
+                $served->{'version'},
+                $freshness->{'floor'}, $freshness->{'witness'} )
+                if @specs == 1;
+            warn "n7fs : warning : skipping a rolled back head on $spec\n";
+            next;
+        }
+        warn "n7fs : warning : recovering from a "
+            . "proven-stale head [ -allow-stale ]\n"
+            if $freshness->{'stale'};
+        my ( undef, $head, $map, $base )
+            = _context( $opt{'root'}, $spec, TRUE );
+        refuse('no sealed head to recover') if not defined $head;
+        push @sources,
+            {
+            qw| spec |      => $spec,
+            qw| holder |    => $base,
+            qw| map |       => $map,
+            qw| head |      => $head,
+            qw| freshness | => $freshness,
+            };
+    }
+    refuse('no usable sealed head to recover') if not @sources;
     warn "n7fs : warning : no second holder was reachable "
         . "; a withheld newer head cannot be seen from here\n"
-        if $freshness->{'verdict'} eq qw| unverified |;
-    my ( undef, $head, $map, $base )
-        = _context( @opt{qw| root holder |}, TRUE );
-    refuse('no sealed head to recover') if not defined $head;
-    my $now = ntime_now();
-    my $age = $now - $head->{'time'};
+        if @sources == 1
+        and $sources[0]{'freshness'}{'verdict'} eq qw| unverified |;
+    my $primary = $sources[0];
+    my $head    = $primary->{'head'};
+    my $served  = $primary->{'freshness'}{'head'};
+    my $now     = ntime_now();
+    my $age     = $now - $head->{'time'};
     $age = 0 if $age < 0;
     my @receipts;
 
@@ -1922,27 +2012,137 @@ sub seal_recover {
         qw| version |    => $head->{'version'},
         qw| head_time |  => $head->{'time'},
         qw| head_age |   => $age,
-        qw| unverified | => $freshness->{'verdict'} eq qw| unverified |,
-        qw| receipts |   => \@receipts,
+        qw| unverified | => $primary->{'freshness'}{'verdict'} eq
+            qw| unverified |,
+        qw| receipts | => \@receipts,
     };
 
+    if ( $opt{'list'} ) {
+        my @list;
+        foreach my $source (@sources) {
+            foreach my $name ( sort keys $source->{'map'}{'trees'}->%* ) {
+                next if defined $opt{'tree'} and $name ne $opt{'tree'};
+                my $tree  = $source->{'map'}{'trees'}{$name};
+                my $files = $tree->{'files'};
+                my $held  = $tree->{'held'};
+                if ( not defined $files or not defined $held ) {
+                    my ( undef, @entries )
+                        = _manifest_read( $opt{'root'}, $source->{'holder'},
+                        undef, $tree );
+                    my %distinct = map { $ARG->{'a'} => TRUE }
+                        grep { ( $ARG->{'t'} // '' ) eq qw| file | } @entries;
+                    $files = scalar keys %distinct;
+                    $held  = grep { exists $source->{'map'}{'nodes'}{$ARG} }
+                        keys %distinct;
+                }
+                push @list,
+                    {
+                    qw| holder |  => $source->{'spec'},
+                    qw| version | => $source->{'head'}{'version'},
+                    qw| name |    => $name,
+                    qw| created | => $tree->{'created'},
+                    qw| files |   => $files,
+                    qw| held |    => $held,
+                    qw| state |   => $held == $files
+                    ? qw| complete |
+                    : qw| partial |,
+                    };
+            }
+        }
+        return { %{$fresh}, qw| list | => \@list };
+    }
+
     if ( defined $opt{'tree'} ) {
+        my ( $tree, $manifest_source );
+        foreach my $source (@sources) {
+            my $candidate = $source->{'map'}{'trees'}{ $opt{'tree'} } // next;
+            if ( defined $tree
+                and $tree->{'manifest'} ne $candidate->{'manifest'} ) {
+                refuse(
+                    'tree %s has different manifests on %s and %s',
+                    $opt{'tree'}, $manifest_source->{'spec'},
+                    $source->{'spec'}
+                );
+            }
+            if ( not defined $tree
+                or $source->{'head'}{'version'}
+                > $manifest_source->{'head'}{'version'} ) {
+                $tree            = $candidate;
+                $manifest_source = $source;
+            }
+        }
+        refuse( 'no live tree named %s', $opt{'tree'} )
+            if not defined $tree;
+        my ( undef, @entries )
+            = _manifest_read( $opt{'root'}, $manifest_source->{'holder'},
+            undef, $tree );
+        my %files = map { $ARG->{'a'} => TRUE }
+            grep { ( $ARG->{'t'} // '' ) eq qw| file | } @entries;
+        my ( @missing, %missing );
+        foreach my $entry ( grep { ( $ARG->{'t'} // '' ) eq qw| file | }
+            @entries ) {
+            my $address = $entry->{'a'};
+            next
+                if grep { exists $ARG->{'map'}{'nodes'}{$address} } @sources;
+            $missing{$address} = TRUE;
+            my $path
+                = ( $entry->{'p'} // '' ) eq ''
+                ? ''
+                : unb32( $entry->{'p'} // '' );
+            refuse('tree manifest path is invalid') if not defined $path;
+            push @missing, { qw| path | => $path, qw| address | => $address };
+        }
+        if (@missing) {
+            my $held = scalar keys(%files) - scalar keys(%missing);
+            if ( not $opt{'partial'} ) {
+                refuse(
+                    'tree %s is partial on %s [ %d of %d '
+                        . 'files ] ; add -from <holder> or -partial',
+                    $opt{'tree'},
+                    $manifest_source->{'spec'},
+                    $held,
+                    scalar keys %files
+                ) if @sources == 1;
+                refuse(
+                    'tree %s is partial across the supplied holders [ '
+                        . '%d of %d files ] ; add -from <holder> or -partial',
+                    $opt{'tree'}, $held, scalar keys %files
+                );
+            }
+            return {
+                %{$fresh},
+                qw| tree |    => $opt{'tree'},
+                qw| partial | => TRUE,
+                qw| files |   => scalar keys %files,
+                qw| held |    => $held,
+                qw| missing | => \@missing,
+            };
+        }
         my $r = _restore_sealed_tree(
             %opt,
-            qw| holder |  => $base,
+            qw| holder |  => $manifest_source->{'holder'},
             qw| address | => $opt{'tree'},
-            qw| map |     => $map
+            qw| map |     => $manifest_source->{'map'},
+            qw| sources | => \@sources,
         );
         return { %{$r}, %{$fresh} };
     }
-    make_dirs( $opt{'target'}, 0700 );
-    foreach my $address ( sort keys $map->{'nodes'}->%* ) {
-        my $safe = $address;
-        $safe =~ s|/|_|g;
-        _restore_node( $opt{'root'}, $base, $map, $address,
-            $opt{'target'} . "/$safe" );
+    my %address_source;
+    foreach my $source (@sources) {
+        foreach my $address ( keys $source->{'map'}{'nodes'}->%* ) {
+            $address_source{$address} = $source
+                if not exists $address_source{$address};
+        }
     }
-    return { %{$fresh}, qw| nodes | => scalar keys $map->{'nodes'}->%*, };
+    make_dirs( $opt{'target'}, 0700 );
+    foreach my $address ( sort keys %address_source ) {
+        my $source = $address_source{$address};
+        my $safe   = $address;
+        $safe =~ s|/|_|g;
+        _restore_node( $opt{'root'}, $source->{'holder'}, $source->{'map'},
+            $address, $opt{'target'} . "/$safe" );
+    }
+    return { %{$fresh}, qw| nodes | => scalar keys %address_source, };
 }
 
 ## the sealed header of a mapped blob : chunk size and chunk count, checked ##
@@ -2087,6 +2287,21 @@ sub _sampled_manifest_chunks {
     return scalar @selected;
 }
 
+sub _tree_claims_verify {
+    my ( $root, $base, $map ) = @_;
+    foreach my $name ( sort keys $map->{'trees'}->%* ) {
+        my $tree = $map->{'trees'}{$name};
+        next if ( $tree->{'state'} // qw| complete | ) ne qw| complete |;
+        my ( undef, @entries ) = _manifest_read( $root, $base, undef, $tree );
+        foreach my $entry ( grep { ( $ARG->{'t'} // '' ) eq qw| file | }
+            @entries ) {
+            refuse( 'complete tree %s does not map %s', $name, $entry->{'a'} )
+                if not exists $map->{'nodes'}{ $entry->{'a'} };
+        }
+    }
+    return TRUE;
+}
+
 sub holder_check {
     my %opt = @_;
     my ( undef, $head, $map, $base )
@@ -2174,6 +2389,8 @@ sub holder_check {
             if @addresses;
         $checked += _sampled_manifest_chunks( \%opt, $map, $sizes );
     }
+    _tree_claims_verify( $opt{'root'}, $base, $map )
+        if $coverage eq qw| full | or $coverage eq qw| scrub |;
     ## sizes-only falls through : the size pass above is the whole check ##
     ## the incremental-receipt digest : the entries this version covers, ##
     ## over their placement fields -- the receipt stores it and _copies  ##
@@ -2928,7 +3145,7 @@ sub relay_nodes {
         } @addresses;
     }
     my %incoming = map { $ARG => TRUE } @addresses;
-    my ( @tree_names, @tree_merges );
+    my ( @tree_names, @tree_merges, %tree_files );
     foreach my $name ( sort keys %{ $fmap->{'trees'} // {} } ) {
         my $tree = $fmap->{'trees'}{$name};
         if ( ( $tmap->{'trees'}{$name}{'manifest'} // '' ) eq
@@ -2951,6 +3168,11 @@ sub relay_nodes {
         my @names = _manifest_blob_names( $root, $fbase, undef, $tree );
         next if grep { not defined $fsizes->{$ARG} } @names;
         $blob{$ARG} //= qw| manifest | for @names;
+        $tree_files{$name} = keys %{
+            {   map  { $ARG->{'a'} => TRUE }
+                grep { ( $ARG->{'t'} // '' ) eq qw| file | } @entries
+            }
+        };
         push @tree_names, $name;
     }
     my ( $copied, $bytes ) = ( 0, 0 );
@@ -3057,6 +3279,8 @@ sub relay_nodes {
     my $trees = 0;
     foreach my $name (@tree_names) {
         $tmap->{'trees'}{$name} = { %{ $fmap->{'trees'}{$name} } };
+        @{ $tmap->{'trees'}{$name} }{qw| files held state |}
+            = ( $tree_files{$name}, $tree_files{$name}, qw| complete | );
         $tmap->{'trees'}{$name}{'disks'}
             = { %{ $fmap->{'trees'}{$name}{'disks'} } }
             if ref $fmap->{'trees'}{$name}{'disks'} eq qw| HASH |;
@@ -3099,8 +3323,8 @@ sub shred_node {
 
 1;
 
-#,,.,,..,,,..,..,,,,.,,..,,..,,..,..,,,.,,..,,..,,...,...,,,,,,,,,..,,.,.,.,,,
-#J6VV7IRJZA44DNURZXESYX67R5X7X4GANIFQIGNBFZ4XD4IBZI3UZOAEHG43AYYTMFX6D7DB6AVJ2
-#\\\|WEF7G377GFOWGKSCE32UIACXZT4L2NVDPY5IMS5TAPJFB65ZUYP \ / AMOS7 \ YOURUM ::
-#\[7]DMJSG7BZRTM7BFRZBPVCI5ZPQJRX3LRELEIDYCBY6X2CCZHSFSAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,.,.,.,..,,.,.,.,.,..,,.,.,,,,,..,,...,...,,,,,...,..,,.,.,.,.,
+#FU5YZZDPBU34QQYOHMVJJPFLE5WQJ3TKRIJ52W4476XO5DOFXWQB5SPUK7IRTRHNDBPDTWATU625U
+#\\\|HFAPDU7K3WNWMIJGURR6TOEPAVDIIIBNQ2OQBQ4YMWB4TETSV36 \ / AMOS7 \ YOURUM ::
+#\[7]KV3MVKF4TPWKAJMZ4VMRSULE5OG4423CA42YU5AH62OLRDPADUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -85,7 +85,10 @@ use warnings;
 ##                  [ <disk>/.n7fs/seal-root, root-signed ] ; seal \ place \
 ##                  unseal under any other root refuse [ finding 6 ]
 ## n7fs unseal <disk> -root-key <file> -from <dir> <tree-or-address> <target>
-## n7fs seal-recover -root-key <file> -from <dir> [ -tree <name> ] <target-dir>
+## n7fs seal-recover -root-key <file> -from <dir> [ -from <dir> ]..
+##                 [ -list ] [ -tree <name> ] [ -partial ] [ <target-dir> ]
+##                 several holders combine one restore ; -list shows complete
+##                 or partial n of m per holder ; -partial lists missing paths
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
 ## n7fs heads -root-key <file> [ <holder>.. ] [ -anchor ]
 ##                 head versions, freshness verdicts and offline anchor
@@ -242,8 +245,8 @@ GetOptionsFromArray(
         free=s older=s now tree=s@ all-trees category=s category-rule=s@ owners
         local-encryption=s copies=i priority=i replica=s want=s foreign-work=s
         layer=s incoming under=s depth=i limit=i group-by=s trees-only help
-        from=s pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
-        full scrub sizes-only nonce=s
+        from=s@ pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
+        full scrub sizes-only nonce=s partial
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
         categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
         no-check check-full repack threshold=f allow-stale min-version=i anchor
@@ -254,6 +257,8 @@ usage(0) if $o{'help'};
 my $command = shift @args // usage(2);
 $o{'tree'} = $o{'tree'}[-1]
     if ref $o{'tree'} and $command ne qw| seal |;
+$o{'from'} = $o{'from'}[-1]
+    if ref $o{'from'} and $command ne qw| seal-recover |;
 
 my %common;
 $common{'root'}     = $o{'root'}     if defined $o{'root'};
@@ -1794,14 +1799,25 @@ sub cmd_unseal {
 
 sub cmd_seal_recover {
     require AMOS7::N7FS::Seal;
-    my $target = shift // fail('seal-recover needs a target directory');
-    fail('seal-recover : unexpected arguments')   if @ARG;
-    fail('seal-recover needs -from <holder-dir>') if not defined $o{'from'};
+    my $target = shift;
+    fail('seal-recover : unexpected arguments') if @ARG;
+    fail('seal-recover needs a target directory')
+        if not defined $target and not $o{'list'};
+    fail('seal-recover -list takes no target directory')
+        if defined $target and $o{'list'};
+    fail('seal-recover needs -from <holder-dir>')
+        if ref $o{'from'} ne qw| ARRAY |
+        or not $o{'from'}->@*;
+    fail('seal-recover -partial needs -tree')
+        if $o{'partial'} and not defined $o{'tree'};
     my $r = AMOS7::N7FS::Seal::seal_recover(
         qw| root |        => _seal_root(),
-        qw| holder |      => $o{'from'},
+        qw| holder |      => $o{'from'}[0],
+        qw| holders |     => $o{'from'},
         qw| target |      => $target,
         qw| tree |        => $o{'tree'},
+        qw| list |        => $o{'list'}        ? TRUE : FALSE,
+        qw| partial |     => $o{'partial'}     ? TRUE : FALSE,
         qw| owners |      => $o{'owners'}      ? TRUE : FALSE,
         qw| allow_stale | => $o{'allow-stale'} ? TRUE : FALSE,
         defined $o{'min-version'}
@@ -1809,6 +1825,32 @@ sub cmd_seal_recover {
         : (),
     );
     require AMOS7::NTIME;
+
+    if ( $o{'list'} ) {
+        foreach my $tree ( $r->{'list'}->@* ) {
+            say_line(
+                'holder ',
+                $tree->{'holder'},
+                ' tree ',
+                $tree->{'name'},
+                ' created ',
+                $tree->{'created'} // '-',
+                ' : ',
+                $tree->{'held'},
+                ' of ',
+                $tree->{'files'},
+                ' files, ',
+                $tree->{'state'}
+            );
+        }
+        return 0;
+    }
+    if ( $r->{'partial'} ) {
+        say_line( 'tree ', $r->{'tree'}, ' is partial [ ',
+            $r->{'held'}, ' of ', $r->{'files'}, ' files ]' );
+        say_line( 'missing ', $ARG->{'path'} ) for $r->{'missing'}->@*;
+        return 1;
+    }
     say_line(
         'recovered ',
         $r->{'nodes'} // $r->{'files'} // 0,
@@ -2643,18 +2685,25 @@ sub cmd_place {
         ? AMOS7::N7FS::Placement::parse_age( $o{'unreachable-grace'} )
         : AMOS7::N7FS::Placement::parse_age('1Y2'),
     );
+    my $failed = 0;
     foreach my $name ( sort keys $r->{'plan'}->%* ) {
-        say_line(
-            $o{'dry-run'} ? 'would place ' : 'placed ',
-            $r->{'plan'}{$name},
-            ' nodes on ', $name
-        );
+        if ( $o{'dry-run'} ) {
+            say_line( 'would place ', $r->{'plan'}{$name},
+                ' nodes on ', $name );
+            next;
+        }
+        my $result = $r->{'results'}{$name};
+        if ( $result->{'ok'} ) {
+            say_line( 'placed ', $result->{'sealed'}, ' nodes on ', $name );
+        } else {
+            $failed++;
+            say_line( 'place FAILED on ', $name, ' : ', $result->{'error'} );
+        }
     }
     say_line( 'still under-replicated : ', $r->{'unplaced'}, ' nodes' )
         if $r->{'unplaced'};
     ## the checks place ran on the holders it wrote : a failure is reported,
     ## never undone -- the copies wait for a later holder-check
-    my $failed = 0;
     foreach my $name ( sort keys $r->{'checks'}->%* ) {
         my $c = $r->{'checks'}{$name};
         if ( $c->{'ok'} ) {
@@ -2698,8 +2747,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,..,,,,.,,,,,.,.,,,,,,,,,,..,,.,,,,,,.,.,..,,...,...,,,,,,,.,,.,,..,,,.,,
-#LGD5B3C34JAYE6MAOJFAGX2RKFGECCTD57BFGPTBG7JTJH45H3GTZNTKZTNRTPFBLUBHDP3MXOLCA
-#\\\|BXJ3NFB57GYS7KLTQRMINFYOLUCPQ56VGUYPE6736ZJXDBNCZZD \ / AMOS7 \ YOURUM ::
-#\[7]JOM2KCBSBOP77DWKDZOORMFX2HKZM5J6DTFXSZSYQ4OIFQUNCCCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,,,.,.,.,.,,,.,.,,.,,,.,,.,,,..,,...,..,,...,,..,,,,,...,,,.,
+#KQNQKBY4K7LPKDKOMXO2LFE7WO35BZP6R36VYUD3MLWB7RPN2UQRP5TOO4IHOKIDBMGSVIJVAOW7K
+#\\\|QQJKXJY7LOIFTSOZISSNDJBOKUNELGHERQYRZRWYLEN2FDMWM7H \ / AMOS7 \ YOURUM ::
+#\[7]ZPGSKJOJZW5KTAWTZZALKH3A46FHABDEK5G7D5FE6NG6HOBW4IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
