@@ -190,8 +190,11 @@ rename $pass, "$pass.away" or die $OS_ERROR;
 ok( $rc == 0
         && $out =~ m|A0-preflight|
         && $out =~ m|next drill due|
+        && $out =~ m|holder drill : current|
+        && $out =~ m|attended main-root drill : overdue|
+        && $out =~ m|offline-copy drill : overdue|
         && $out !~ m|cycle pass|,
-    'cycle -status reads state without any key or passphrase file'
+    'cycle -status reads state and all drill cadences without a key'
 ) or say "$out$err";
 rename "$key.away",  $key  or die $OS_ERROR;
 rename "$pass.away", $pass or die $OS_ERROR;
@@ -216,8 +219,8 @@ ok( $rc == 4 && $err =~ m|needs disk and root-key|,
 
 done();
 
-#,,,.,,.,,...,,,.,,.,,,.,,.,,,,.,,.,,,...,.,,,..,,...,...,,.,,,.,,,..,,,.,..,,
-#ZJX4GVE3KWEYUSS75URJJZKDC5Z6FK5OEJJS4ZTW4PFEZTEGMIQZAPSR55766R6JT2KJZV4NP2SEW
-#\\\|D6DYNOSHMTRINTBCGG3WRIYLJQ5O3PQIGLVXMXPW7KF3F6W7GCV \ / AMOS7 \ YOURUM ::
-#\[7]UXVGGJZMMDIDGU65LHWGWK5PZHCITFRJXSKKIWUECTD57MN4DEDA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,.,,,,,,,,..,.,,,,.,,.,.,,,,,..,,...,...,.,.,.,,,,,,,.,.,.,.,
+#D2IA4IJMLZPO42I7DFBIMQIXDU2N4XDVLJAXWUYQBX7OMQ7GY2SH72TC7B4KEHBHBT2DLIEMQEUVQ
+#\\\|XO5ZTCPTKEFZK7YSJLWQ5L5I5TSB5E3RIB32AIYDUJ22455CPXY \ / AMOS7 \ YOURUM ::
+#\[7]MUFFZGSCXKLJI7W3KELVFWKVFTZNHCVCOBBUSKHZKALS3VKLSIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
