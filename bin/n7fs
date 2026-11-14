@@ -66,6 +66,11 @@ use warnings;
 ## n7fs sync <from-disk> <to-disk> [ -dry-run ] [ -trees-only ]
 ## n7fs sync-conflicts <disk>         unresolved concurrent sync changes
 ## n7fs sync-conflicts <disk> resolve <record-name> [ keep receiver value ]
+## n7fs snapshot <disk> <source> -method <cmd|reflink|copy-verify|hardlink>
+##                 [ -tree <name> ] [ -staging <dir> ] [ -keep-staging <n> ]
+##                 [ -shrink-limit <percent> ] [ -snapshot-cmd <words> ]
+## n7fs snapshot-confirm <disk> <prefix>
+##                 confirm a shrink ; unfreeze retention for that snap: prefix
 ## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -prune ] [ -dry-run ]
 ##                 [ -incoming ]    unclassified roots, each gets its own tree
 ##                 [ -tree <name> ] [ -category <name> ]
@@ -262,7 +267,8 @@ GetOptionsFromArray(
         categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
         no-check check-full repack threshold=f allow-stale min-version=i anchor
         list adopt seal-root=s also-root-key=s@ accept-clock show reset
-        via=s access=s holders import-holders all-holders state-dir=s |
+        via=s access=s holders import-holders all-holders state-dir=s
+        method=s snapshot-cmd=s staging=s keep-staging=i shrink-limit=f |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -319,6 +325,8 @@ my %run = (
     qw| sync |                 => \&cmd_sync,
     qw| sync-conflicts |       => \&cmd_sync_conflicts,
     qw| assimilate |           => \&cmd_assimilate,
+    qw| snapshot |             => \&cmd_snapshot,
+    qw| snapshot-confirm |     => \&cmd_snapshot_confirm,
     qw| upgrade |              => \&cmd_upgrade,
     qw| confirm |              => \&cmd_confirm,
     qw| root |                 => \&cmd_seal_root,
@@ -1180,6 +1188,19 @@ sub cmd_retain {
         qw| rules | => $rules,
         qw| pins |  => $pins,
     );
+    require AMOS7::N7FS::Snapshot;
+
+    foreach my $prefix ( sort keys %{$rules} ) {
+        my $frozen = AMOS7::N7FS::Snapshot::retention_frozen(
+            %common,
+            qw| disk |   => $disk,
+            qw| prefix | => $prefix,
+        );
+        fail(     "retention is frozen for $prefix after a shrunk snapshot [ "
+                . "$frozen->{'tree'} ] ; inspect it, then run n7fs "
+                . "snapshot-confirm $disk $prefix" )
+            if defined $frozen;
+    }
     my ( @keep, @drop );
 
     foreach my $item ( @{$plan} ) {
@@ -1604,6 +1625,72 @@ sub _assimilate_report {
         for ( $r->{'pruned'} // [] )->@*;
     say_line('dry run : nothing was changed') if $r->{'dry_run'};
     return $r->{'failed'} ? 1 : 0;
+}
+
+sub cmd_snapshot {
+    require AMOS7::N7FS::Snapshot;
+    my $disk   = disk_arg(shift);
+    my $source = shift // fail('snapshot needs a source');
+    fail('snapshot : unexpected arguments') if @ARG;
+    my $r = AMOS7::N7FS::Snapshot::snapshot_run(
+        %common,
+        qw| disk |           => $disk,
+        qw| source |         => $source,
+        qw| host |           => host_signer(),
+        qw| method |         => $o{'method'} // 'copy-verify',
+        qw| tree |           => $o{'tree'}   // 'snap',
+        qw| staging |        => $o{'staging'},
+        qw| keep_staging |   => $o{'keep-staging'} // 1,
+        qw| shrink_limit |   => $o{'shrink-limit'} // 30,
+        qw| snapshot_cmd |   => $o{'snapshot-cmd'},
+        qw| category |       => $o{'category'},
+        qw| category_rules | => $o{'category-rule'} // [],
+        qw| protect | => [ grep {defined} $o{'host-key'}, $o{'parent-key'} ],
+        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
+    );
+    if ( $r->{'dry_run'} ) {
+        say_line( 'would snapshot ',
+            $source, ' into ',       $r->{'staging'},
+            ' [ ',   $r->{'method'}, ' ; nothing changed ]' );
+        return 0;
+    }
+    say_line(
+        'snapshot ',
+        $r->{'tree'},
+        ' [ ',
+        $r->{'method'},
+        ', ',
+        $r->{'files'},
+        ' files, ',
+        $r->{'bytes'},
+        ' bytes, ',
+        $r->{'unstable'},
+        ' unstable ]'
+    );
+    if ( $r->{'shrunk'} ) {
+        say_line(
+            'SHRUNK ',
+            $r->{'prefix'},
+            ' : retention is frozen ; '
+                . "inspect the snapshot, then n7fs snapshot-confirm $disk "
+                . $r->{'prefix'}
+        );
+    }
+    return 0;
+}
+
+sub cmd_snapshot_confirm {
+    require AMOS7::N7FS::Snapshot;
+    my $disk   = disk_arg(shift);
+    my $prefix = shift // fail('snapshot-confirm needs a tree prefix');
+    fail('snapshot-confirm : unexpected arguments') if @ARG;
+    my $tree = AMOS7::N7FS::Snapshot::snapshot_confirm(
+        %common,
+        qw| disk |   => $disk,
+        qw| prefix | => $prefix,
+    );
+    say_line( 'shrink confirmed for ', $tree, ' ; retention unfrozen' );
+    return 0;
 }
 
 sub cmd_assimilate {
@@ -2856,8 +2943,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,.,,..,,.,,,.,,,.,,,,.,,...,,.,,...,.,,,..,,...,...,...,...,,,.,,,.,..,,
-#3HDTE4YTJQ35UFMZNS7RMELHQ6DRGYUVNJO2VOJWJ3KSTRN4ZOL465BNIZF5QGSNQNNILXIZZ4J52
-#\\\|UDYLFM3TNRLPZ5ZGPT5R2HO5W6ALW4CZYZLYEFIJ5KR643YAZOW \ / AMOS7 \ YOURUM ::
-#\[7]OB744RPPJNHV7IP4ISLVO3JLDCWPOTRH45RMCQ7Z6CC65XSYQOBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,.,,.,,..,,,,,,,.,,,..,,,,,...,..,,...,..,,.,,,.,,,,,,,.,.,.,,,
+#TWRZRIYNTWU5LNKDMVOGUUUAWH35S2KMGO37J7X76BUD4I45WWJ3JH62HGVUFR3LKPW22INSJNU54
+#\\\|ADAGCDJ2HREBQBCLPGBHSWN5G2EKCLB2NSFX3WKHFR2MFQR6P4R \ / AMOS7 \ YOURUM ::
+#\[7]MOOSWG4LE4WX55JCJELUEHMEBXFFWPL3L5Q63FQRV3WX3HTRNABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

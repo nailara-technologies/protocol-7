@@ -365,7 +365,17 @@ computation ; the place computes, machines are only its current occupants.
   tree as the AUTO-PILOT of a space adventure by definition -- one will not
   know exactly how it will look, but that it is one and feels like one :
   the method fixed, the journey open [ stable in how it works, alive in
-  what it knows ].
+  what it knows ]. owner : the elements are like components in an electric
+  circuit, OUTCOME ORIENTED -- the choice to take part was made when
+  becoming an element, but the purpose is the COMBINED FUNCTION. so a
+  working element is kept and only transformed into a better one, never
+  switched off : its meaning is in what the circuit does. owner : and an
+  individual success does not stay localized -- its PARAMETERS are copied
+  to other instances of the closest or exact template, into groups that
+  are enriched and made more efficient by the new element. it spreads
+  like the dedup waves : offered to its neighbours on the template tree,
+  kept where it resonates [ proves itself there ], passing where it does
+  not.
 - **one structure** [ owner, closing ] : resonance is the cable ; the
   layered representation of the invisible as one coherent system creates
   the stability in projected structure for the self-similar emergence of
@@ -393,8 +403,8 @@ storage and addressing side.
 - [[harmonic-mathematics]] — generator 076923, the attractor values
 - [[project-vision-origin]] — 24-year foundational vision, threshold reached
 
-#,,.,,,,,,,,,,,,,,.,,,.,.,,..,.,,,.,,,,,.,..,,..,,...,...,..,,,.,,,,.,...,.,,,
-#4QCK5EFKOPJXCEJYPD52GCKPS72YGOOHDP7WAUQYJFSKWU47VDYHWDKZK2A5HJZOBIK6CFPF6UHSY
-#\\\|FVEE6HDM7THL5NPAQ6J2UR4RIN7I5BIOXCJJA3GALDDCDQY5D7K \ / AMOS7 \ YOURUM ::
-#\[7]XDIXVZZOR462RKH7MMCIKL2WX2OW7EDATRSZ7ADOSY54GN3OGUCY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,,..,,.,,,.,,...,,..,,,,,.,.,..,,...,...,...,,..,,..,,.,,.,,,
+#75B3RX34KFR4HDIC2VMXETYT7X7ENXD2Q6NODL6XXWD6F5THRLGPZQR4XJIH5J35U2XZNM2ICKBBK
+#\\\|E4IFBWBAZDAP6S2ZMQ5MGUJD353KWQJJEO5GYV2U2VEAZVN3P7V \ / AMOS7 \ YOURUM ::
+#\[7]PJIVM3SU6HAH7PDBSY334G73FCIYPEN3IDLUX5GAVG3LG6CLKSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

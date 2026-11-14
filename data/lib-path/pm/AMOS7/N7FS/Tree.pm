@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.CEM3ZOA |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.XPDMSVI |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -281,7 +281,8 @@ sub _walk_manifest {
 }
 
 sub tree_create {
-    my ( $id, $store, $state, $replay, $root, $name, $report ) = @ARG;
+    my ( $id, $store, $state, $replay, $root, $name, $report, $snapshot )
+        = @ARG;
     refuse('tree : only store format 3 has trees')
         if $state->{'store_format'} != 3;
     refuse( 'tree : bad tree name [ %s ]', $name // '' )
@@ -321,6 +322,9 @@ sub tree_create {
                 {   qw| manifest | => 1,
                     qw| root_b32 | => b32( abs_path($root) // $root ),
                     qw| created |  => $created,
+                    defined $snapshot
+                    ? ( qw| snapshot | => $snapshot )
+                    : (),
                 }
                 ),
                 "\n"
@@ -941,8 +945,8 @@ sub tree_restore {
 
 1;
 
-#,,,.,..,,.,.,,,.,.,,,,,.,,.,,,..,,..,.,.,.,,,..,,...,...,,..,,,.,.,.,,..,.,.,
-#662XCPS276HKC7UWO72R7JVWF43GHHRABLPOO4LKTJOQYSAEYVLQGCCZQPWYFJYDDYBVMYPDU3IKW
-#\\\|AKNAYHYNJLDSVXC2FML4Z2CP5CWRS4AZMD5LHHFU4H3C7DT4TMY \ / AMOS7 \ YOURUM ::
-#\[7]GC2Y2PSGOYNLJLXG23B6EU4POCCECN5DC6WPZO5LXBBWLIBE6OBI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,,..,...,.,.,,.,,..,,.,.,.,.,..,,...,...,.,,,.,,,.,.,..,,...,
+#ZKQGOFOI7YDTHNJX5HJIHDXXOCI7P2V2C6MM6H4L4BTS6QWDXXKVNY3ZM5TRU42FH6O4P5KU5HDDA
+#\\\|6BLTRFWSE4W2J26KM6BXNCKQW35NI76JK7W5ZBGYHB5YEOOKEVV \ / AMOS7 \ YOURUM ::
+#\[7]CHVS2GXENYH4RPTJAHXILCRBUMBJILQYIL6R4AJVTXM5MVA6U6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
