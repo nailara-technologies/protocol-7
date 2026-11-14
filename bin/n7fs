@@ -420,10 +420,15 @@ exit $code;
 sub usage {
     my $exit = shift;
     open( my $fh, '<', $main::SCRIPT // $PROGRAM_NAME ) or exit $exit;
+    ## the source keeps its ## comments, the screen gets the .: title :. form
+    print {*STDERR} "\n .: N7FS :.\n :\n";
     while ( my $line = <$fh> ) {
-        last                  if $line =~ m|^use FindBin|;
-        print {*STDERR} $line if $line =~ m|^## |;
+        last if $line =~ m|^use FindBin|;
+        next if $line =~ m|^##\s+n7fs\s+##|;
+        next if $line !~ s|^## | : |;
+        print {*STDERR} $line;
     }
+    print {*STDERR} " :.\n\n";
     exit $exit;
 }
 
@@ -433,7 +438,7 @@ sub say_line { say ': ', @ARG }
 
 sub warn_unsigned_names {
     my ( $disk, $state ) = @ARG;
-    print STDERR "n7fs : warning : disk $disk uses store "
+    print STDERR ": n7fs : warning : disk $disk uses store "
         . "format 1 ; meta names are unsigned\n"
         if $state->{'store_format'} == 1;
     return;
@@ -909,11 +914,11 @@ sub cmd_release {
         qw| force |   => $o{'force'} ? TRUE : FALSE,
         qw| reason |  => $o{'reason'} // 'explicit release',
     );
-    warn "n7fs : warning : release breaks live reference $_\n"
+    warn ": n7fs : warning : release breaks live reference $_\n"
         for $r->{'live'}->@*;
-    warn "n7fs : warning : release drops live tree $_\n"
+    warn ": n7fs : warning : release drops live tree $_\n"
         for ( $r->{'trees'} // [] )->@*;
-    warn "n7fs : warning : the previous form still holds these "
+    warn ": n7fs : warning : the previous form still holds these "
         . "bytes at $_ [ n7fs release-epoch $disk <epoch> -now ]\n"
         for $r->{'copies'}->@*;
     say_line( 'released ', $address, ' [ journal ', $r->{'seq'}, ' ]' );
@@ -1599,7 +1604,7 @@ sub cmd_sync {
     fail('sync : unexpected arguments') if @ARG;
     fail('sync : -hold and -no-hold exclude each other')
         if defined $o{'hold'} and $o{'no-hold'};
-    warn "n7fs : warning : -no-hold leaves "
+    warn ": n7fs : warning : -no-hold leaves "
         . "sync drops without a restore hold\n"
         if $o{'no-hold'};
     my $r = eval {
@@ -1619,7 +1624,8 @@ sub cmd_sync {
     };
     if ( not defined $r ) {
         my $err = $EVAL_ERROR // "sync failed\n";
-        print STDERR "n7fs : run n7fs repair $to before retrying the sync\n";
+        print STDERR ": n7fs : run n7fs repair $to "
+            . "before retrying the sync\n";
         die $err;
     }
     say_line($ARG) for $r->{'messages'}->@*;
@@ -1808,7 +1814,7 @@ sub cmd_assimilate {
             my $tree;
             my @st = lstat $path;
             if ( not @st ) {
-                print STDERR "n7fs : $path : $OS_ERROR\n";
+                print STDERR ": n7fs : $path : $OS_ERROR\n";
                 $failed = 1;
                 next;
             }
@@ -3103,8 +3109,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,.,.,,.,,,,.,.,,,..,,,..,,.,,,,,,,,,,,,.,..,,...,..,,...,,,.,,,,,,,.,,,,,
-#O26CXF65MEXQQ5MXIA77RIMBZBNAOS3TD75KVCNIDF4PNIFJE4TKCDCA5TEWTUEXSISDMJUFJPVKQ
-#\\\|7YECAZIME2Y2ESSBDLZKWJVDB7U36E6PFJKG4YLC5WNDYW7YAB5 \ / AMOS7 \ YOURUM ::
-#\[7]U7OIHH3V2XV6EFXDBGOIJCVB3BOVHHQH3AQRHSP3BXCEAV5TQEAA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,.,,.,,.,.,,,.,,,.,,..,.,.,...,..,,...,...,..,,.,,,,,.,,,.,.,.,
+#RPZFF55A6JREDFXU6LL4CPALSI6GRADRO4TXQAEDPR6AHHZXLHCWQDVNO33YK4BVBKAJEI2FZKMYI
+#\\\|5CUL7DNHGFDWRCWUQJYKNFRAVA5QOI7C4THXGPOC7FPFKO2WTRK \ / AMOS7 \ YOURUM ::
+#\[7]EBMO57JLEDI5JRFAR56WXMR2PYUWJZNGILDAG5VT5WZOZVNII4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

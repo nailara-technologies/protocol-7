@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.4ANWKZI |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.IIHLA2I |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -91,7 +91,7 @@ sub _root {
 
 sub _legacy_write {
     my ( $h, $operation ) = @_;
-    warn "n7fs : warning : legacy full-shell "
+    warn ": n7fs : warning : legacy full-shell "
         . "ssh $operation on $h->{'spec'}\n";
     return;
 }
@@ -562,7 +562,7 @@ sub holder_move {
     foreach my $d ( _rel_dir($from), _rel_dir($to) ) {
         my ( $s, undef, $e )
             = _ssh( $h, 'sync -- ' . _quote( _rel_path( $h, $d ) ) );
-        warn "n7fs : remote directory sync unavailable : $e" if $s;
+        warn ": n7fs : remote directory sync unavailable : $e" if $s;
     }
     return;
 }
@@ -681,7 +681,7 @@ sub holder_remove_day {
     _retry( $h, 'rm -rf -- ' . _quote("$h->{'dir'}/$rel") );
     my ( $s, undef, $e )
         = _ssh( $h, 'sync -- ' . _quote("$h->{'dir'}/.trash") );
-    warn "n7fs : remote trash sync unavailable : $e" if $s;
+    warn ": n7fs : remote trash sync unavailable : $e" if $s;
     return;
 }
 
@@ -1056,7 +1056,7 @@ sub holder_put {
     holder_verify( $spec, $temp, $local, $kind );
     my ( $sync_status, undef, $sync_err )
         = _ssh( $h, 'sync ' . _quote( _path( $h, $temp ) ) );
-    warn "n7fs : remote sync unavailable : $sync_err" if $sync_status;
+    warn ": n7fs : remote sync unavailable : $sync_err" if $sync_status;
     _retry( $h,
               'mv -f -- '
             . _quote( _path( $h, $temp ) ) . ' '
@@ -1064,14 +1064,15 @@ sub holder_put {
     ## renaming leaves the directory entry unsynced : persist it too ##
     my ( $dir_status, undef, $dir_err )
         = _ssh( $h, 'sync -- ' . _quote( $h->{'dir'} ) );
-    warn "n7fs : remote directory sync unavailable : $dir_err" if $dir_status;
+    warn ": n7fs : remote directory sync unavailable : $dir_err"
+        if $dir_status;
     return;
 }
 
 1;
 
-#,,,.,,,,,,..,...,,..,.,.,,,,,..,,,..,,..,,..,..,,...,...,,,.,..,,..,,..,,,.,,
-#GK5ZHHKW5L7GQSQBMQQK6YRAV2FAHRJAGKPO23J5UQ66O3U22H2EGWFQX2MSJPFA3PWHUM7L46Q2M
-#\\\|2LJQBK7YKCUVAYOO7OBOOXYF3UHK63XL6HWK23JGVQCDS4PARUU \ / AMOS7 \ YOURUM ::
-#\[7]XTEWZT5FZF6ZRIPJWO4MORIHNXGSWRTPA6GDESCKW4F7QVAIJECQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,..,,,..,,,,,,..,,,.,.,.,,,.,..,,...,...,..,,..,,,,,,,,.,,,.,
+#D7XU3QHD6PNXVXYVSXCWCIJ67DEDB3HRWPX4MIUVPTCZ557SWIHUZBWHEUZSJCM5QNOYOH4YLCB3U
+#\\\|EQW4INJQKC5IGQKS5NUZX34O5ML7RZAFUYJ4WCTD3LAKWS4VKOM \ / AMOS7 \ YOURUM ::
+#\[7]3CTWTRWG7YGRLKIE53G7JZECPV7KH6D3VVSF4AIWNSXX35FB2GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
