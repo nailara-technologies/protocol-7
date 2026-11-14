@@ -14,7 +14,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.5WTMMXI |;
+our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.NY76BDA |;
 
 @EXPORT_OK = qw| root_init root_open root_convert root_passphrase
     vault_note_load vault_note_save |;
@@ -26,7 +26,7 @@ use AMOS7::N7FS          qw| b32 unb32 random_bytes read_file write_new_file
 use AMOS7::N7FS::Sign qw| seed_signer |;
 use AMOS7::N7FS::Sum  qw| bmw384_bytes |;
 
-my $JSON = JSON::PP->new->utf8->canonical;
+my $JSON = AMOS7::N7FS::json_codec();
 
 sub root_passphrase {
     my %opt = @_;
@@ -319,8 +319,8 @@ sub root_convert {
 
 1;
 
-#,,.,,,,.,.,,,,,.,,,,,,.,,,..,,..,.,,,..,,,..,..,,...,...,..,,,,.,.,,,.,,,...,
-#TJGHCYXT3EIP2EVCLAJK6SSAIRYQXTSVOHK2OV3HBVJIVZL5VXTO3WI3X35FKZTAMWEKQX7BLOXZE
-#\\\|CCKFPUHXUIAXZAMLJYOW3XPMULXJGCW5W6UPN6ZFCTHE2MUCBFT \ / AMOS7 \ YOURUM ::
-#\[7]QK47VN2E4CSO4VOGU5ISWRZB2QDL4AFRVKCIESD5A5OS7D5GDSAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,..,,,,,,.,.,...,..,,,.,,,..,,,,,..,,...,..,,.,,,.,.,.,,,,.,,.,.,
+#L7IBEGXSOGKQBLTXW6ICKN6WWYV7NOJXAH3JQVUQH6FJ45COY7AVRZY3BVP5LDACZ5ECJDOFNBAA2
+#\\\|EEA6SUMXMPBYP3XQ2GTPBAZ76AHXGQTHOJJTIXWW7ETQNEU5JNW \ / AMOS7 \ YOURUM ::
+#\[7]UBD3MGY6GRSN5W2UMYMB7GYCZY27LODK4NWOW3BMEQV3AS477WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

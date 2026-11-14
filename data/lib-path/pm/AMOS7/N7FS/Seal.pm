@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.EB2OW5I |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.AZ6L3AI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -59,7 +59,7 @@ our @PACK_CACHE;
 END { unlink $ARG for @PACK_CACHE }
 
 sub _pack_size { return $ENV{'N7FS_TEST_PACK_SIZE'} // CHUNK_SIZE }
-my $JSON = JSON::PP->new->utf8->canonical;
+my $JSON = AMOS7::N7FS::json_codec();
 
 sub new_keypair {
     my $inner = random_bytes(32);
@@ -3515,8 +3515,8 @@ sub shred_node {
 
 1;
 
-#,,,,,,,,,.,.,,.,,,,,,...,,,,,,..,...,.,,,.,,,..,,...,...,,..,..,,..,,.,.,,..,
-#DIGVWX4RSLXQNWGDCEDGJRQRSVOZP6API5G2JP25ZITZNIK7I4KBYVBBIGLP7PFFTUWFDMOD34AM2
-#\\\|LBMGUERYC3CWLFT4RUCZPYHI44HE3RYU2UYZ3VWBR2JXJ4V3TP2 \ / AMOS7 \ YOURUM ::
-#\[7]IZFWBURE2FJEG4LSKR7FBGROLKOOX2EAQXFKOGHOQENJROFTPQDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,..,,,..,,..,.,.,,.,,,,.,.,.,..,,...,...,,,,,.,,,.,.,..,,...,
+#HOP6X25K2TM5ZBB2NG5357HH35QAE4XSSAZJGERDFNKJTJA6YMLQEYABKS35NGE2SO6NOMUVJ2V7I
+#\\\|XR7IWCK4ERQRHLXUQKIPN4WMLOVJXO27G7MDWEDPU5FWT6TQPL7 \ / AMOS7 \ YOURUM ::
+#\[7]UMYA2JV6BQIGJ6VSBF4AQCGVEGSWE2LG47JL75YQHWA3DMZLRMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.RUHFS4Q |;
+our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.QKHI5IA |;
 
 @EXPORT_OK = qw| config_read state_read cycle_gate cycle_run cycle_status |;
 
@@ -29,7 +29,7 @@ use AMOS7::N7FS  qw| read_file write_new_file make_dirs sync_dir random_bytes
 use AMOS7::N7FS::Sum  qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Sign qw| key_file_signer |;
 
-my $JSON  = JSON::PP->new->utf8->canonical;
+my $JSON  = AMOS7::N7FS::json_codec();
 my @STEPS = qw| A0-preflight A1-snapshot A2-place A3-relay A4-check
     A5-refresh A6-drill gate D1-retain D2-repack D3-gc D4-purge D5-reclaim |;
 
@@ -1999,8 +1999,8 @@ sub cycle_status {
 
 1;
 
-#,,.,,...,,,.,..,,,,,,.,.,,.,,,,.,,,.,,..,,,.,..,,...,...,..,,.,.,,..,.,,,.,.,
-#42ZN6SXL46VGRQYXFEW7LJSGTC5SJHVWHGSXTNA27MQFKH6F62PI7AQEX3P4A52MO2AJ7OTBG76OG
-#\\\|G7VFUUPA6PUHUDCZLK7N4LJVIUMVLWOU5D5YL2H7T2ULPCTMZSH \ / AMOS7 \ YOURUM ::
-#\[7]262QN4MD277LR473QQJ2UI6UTGD3Y52CF3GXWYYE225TSODP2OAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,..,...,,,.,,,,,.,.,,,.,..,,..,,...,...,...,,,,,.,,,.,,,,,.,
+#X7GU7B6T4WUFEJQ7VZOYEDNS557FKQKQFWGH4D3K3RTDLGVUPYAL4GUYO5JLPRQ2XFKLJZU5MOYFO
+#\\\|FMP534RIF2MN2GWBZCZYSFEXJASBPFS6TZUFWJXMSYER74LXPD7 \ / AMOS7 \ YOURUM ::
+#\[7]7EKJK5DAV4DKE433IKYP3RFPJBTE5GTTGEXTFAL5QEMRMFMPREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

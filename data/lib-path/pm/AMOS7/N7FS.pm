@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.WKXNK2I |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.SRSIG5Y |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -158,7 +158,26 @@ our %SIGNED_FORMAT = (
     qw| hold |          => { 3 => TRUE },
 );
 
-our $JSON = JSON::PP->new->utf8->canonical;
+## one json codec for every n7fs module : JSON::XS when installed, the same
+## canonical bytes as JSON::PP [ checked on a live journal ] and ~150x faster
+## to decode. without it JSON::PP, with one warning : the format stays json
+## only until the json-free n7fs format
+sub json_codec {
+    ## a loaded module is not enough : it must also build a codec ##
+    state $class = eval {
+        require JSON::XS;
+        defined JSON::XS->new ? qw| JSON::XS | : undef;
+    } // do {
+        ## silent in a compile-only check [ perl -c ] ##
+        warn "\r\n: n7fs : warning : JSON::XS is not "
+            . "installed, JSON::PP is ~150x slower to decode\n"
+            if not $COMPILING;
+        qw| JSON::PP |;
+    };
+    return $class->new->utf8->canonical;
+}
+
+our $JSON = json_codec();
 
 our $DEFAULT_ROOT = qw| /N7FS |;
 
@@ -505,8 +524,8 @@ sub remove_tree {
 
 1;
 
-#,,,.,,..,...,.,.,,,.,.,.,..,,,,.,,.,,,,,,..,,..,,...,...,.,.,,.,,.,,,..,,.,.,
-#IBTZ5NG4PIBIG3E3KZETLM5DXKIRESUJ27CNB2FZ26N2BUUXLI3VD3DOTAAGN7CWCBJZHLLG3FJ34
-#\\\|YV2I55PPRHUFS33NJ2K5OTHFHPZBR6ZTEGBLN2JNSRXOJBNFKVY \ / AMOS7 \ YOURUM ::
-#\[7]LYLYKA5EWEM32DBQ7SNLHQWRXHSYZ2J4IQMNNACJ6YYQHEMPYSAQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,..,,,,,,.,,,.,,,,,.,,.,,..,,,,.,..,,...,...,,..,.,,,,,,,,,,,...,
+#YJ3CWDWLVR7NHIHHBERB7Y5MQ7I2AT4PQMDQJ2BSOC2AZQVTTK2XAXPOFSEDNDJSGED3UOEX4MGPS
+#\\\|A7AFVD7OR5MMDGIBVPU3MRXEXXEUH74PEDXW7PEY6D2MICYAB3N \ / AMOS7 \ YOURUM ::
+#\[7]MSW4H3LLSXCAPOUWB43BHH2FIDNA6CP55ZQ2MIQ6FZTGQGHPFKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.CO2Q2HY |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.PWKH7TI |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -36,7 +36,7 @@ use AMOS7::N7FS::Disk     qw| disk_read_id state_read |;
 use AMOS7::N7FS::Journal  qw| journal_replay |;
 use AMOS7::N7FS::Category qw| category_definitions |;
 
-my $JSON = JSON::PP->new->utf8->canonical;
+my $JSON = AMOS7::N7FS::json_codec();
 
 our $REGISTRY         = 'n7fs holders';
 our $RECEIPT_AGE      = parse_y_age('3Y2');
@@ -1240,8 +1240,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,,,,..,,,,,,.,.,...,.,.,...,,,.,...,,..,..,,...,...,.,,,.,,,,.,,..,,,.,,
-#VONY5VSS56BF3L3BSHXO5T5YWWSDMTWJRC5BMHOA7RM2A46LCXYPKUMJ5NVQDRXJIYNAQ3D2UVWNW
-#\\\|OV3M5F7WXBZ2QRG4BPVCDFJRFK2JDTTZ7RBOVEJLVTMYC7KVDKK \ / AMOS7 \ YOURUM ::
-#\[7]GCZTRZQRIKOMFYZOD335NJLW223OB5Z4ZAH23VASFG6XRKO3PIDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,..,,.,.,...,..,,,..,,,,,,..,,,.,..,,...,..,,.,.,...,,,,,.,,,.,.,
+#FIZ7JBZ6ADF4RUFVODGM4I4RLO2MXO7ZAN7U6OYTYTUBNY5LNOFU734MXDPM3PFUMXFOOR3XXG7XK
+#\\\|L6VK7D2QOEM3FHJIBORU5AZET7GFXHFL77U46VJKDEIUKAQ4WET \ / AMOS7 \ YOURUM ::
+#\[7]GPQZIDRO4T5HUZIL4HWHS43I6EVSVPBRLNXWJLIRI3FZ4P4EGSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

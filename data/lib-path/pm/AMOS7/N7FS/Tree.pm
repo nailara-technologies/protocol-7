@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.ORFEWXA |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.LZTY54Y |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -39,7 +39,7 @@ use AMOS7::N7FS::Disk
 use AMOS7::N7FS::Journal qw| journal_replay journal_write |;
 use AMOS7::N7FS::Record  qw| record_write record_scan |;
 
-our $JSON    = JSON::PP->new->utf8->canonical;
+our $JSON    = AMOS7::N7FS::json_codec();
 our $ADDR_RE = qr{\AV7[A-Z2-7]{5}/[A-Z2-7]{7}/[A-Z2-7]{77}\z};
 
 sub _address {
@@ -956,8 +956,8 @@ sub tree_restore {
 
 1;
 
-#,,,.,.,,,,,,,.,.,,,.,...,..,,...,.,.,,.,,,,.,..,,...,...,,.,,..,,,,,,,,,,,..,
-#M3TGATPBZUVZISM3XJLAUNZEDWDTL4D5YBDV6V2JPZVKBYCP3H3OO7JJA2WXMW5BBFQ5EKKJ44AAK
-#\\\|OBEDBIRH3UAVTT46GP2EFLVEGASYCVNQWESSU3AJD4HRL27IKGG \ / AMOS7 \ YOURUM ::
-#\[7]5LK2SQWVKY6PAO3KZLCX4YZFEUCE36IJXOB2BUM3RYI3KQ23BGCY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,.,,,,.,,,,.,,,.,.,,,,,.,..,,..,,...,...,..,,,,,,.,,,..,,,,.,
+#C3BXGADLZQ5AFIY6OL6TIXMSJTP3F3LU66LISCS6C3IMX6P3U5BKU2GWRTD3XD7RTLCF65W2TJG5C
+#\\\|QOFHADGLBE7CEUJ3X2ZXSO4CW5ETIROOOO2QLYWCGRX3LIJCMHW \ / AMOS7 \ YOURUM ::
+#\[7]O6YTKDXPWAF72URBGHY7X4GDZX2WIRWEGW2ZETETLT5MVA5DTIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

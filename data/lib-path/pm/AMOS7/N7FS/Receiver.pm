@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Receiver-VERSION.ENNH4BY |;
+our $VERSION = qw| AMOS7::N7FS::Receiver-VERSION.3Z3763Y |;
 
 @EXPORT_OK
     = qw| holder_id root_id_for_public root_tag_for_public request_token
@@ -26,7 +26,7 @@ use AMOS7::N7FS qw| b32 unb32 random_bytes read_file write_new_file make_dirs
 use AMOS7::N7FS::Sum  qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Sign qw| verify |;
 
-my $JSON   = JSON::PP->new->utf8->canonical;
+my $JSON   = AMOS7::N7FS::json_codec();
 my $DOMAIN = "p7 n7fs holder request v1\0";
 
 sub holder_id {
@@ -151,8 +151,8 @@ sub request_verify {
 
 1;
 
-#,,,.,..,,..,,.,.,,..,,.,,...,,,.,...,,.,,,,,,..,,...,...,.,,,,..,..,,,,,,.,.,
-#GCVF6DZWT56RDUG4JJZMXT2UCTVWJ26APY75KCHCFPFAD3KFIWD5AXBVUDNHZNPM4MA23POUGZXOM
-#\\\|GTS7GVXCE3SQJMJWTA4XNF7KIUI63LSBAUGGWEJWC55YXTMNRJL \ / AMOS7 \ YOURUM ::
-#\[7]TQK2NJSQSB3IUPRS67B5C7MBVOOQPC7SQL6WFND5DGJEONSXRMDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,.,,.,,,.,.,..,,.,.,.,.,...,,,,,..,,...,..,,,,.,,.,,,.,,...,.,.,
+#WRRH5OAAQTZ67ZI4BSB5YAYHRIYYXFYJI4QESBQ5R67W4UJKN5I4FXJDGI63EZHJPHMIL5GWMYBRM
+#\\\|XMW7JCEY576ZXJDB6PKQF47OERRFA5ITKFIPNGMJIVPRJVHQ6V5 \ / AMOS7 \ YOURUM ::
+#\[7]N3E77AQ4CCSCW2QEEZOSUQE4SUTIGGU73XE5OPAUAMLGRWQ76ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

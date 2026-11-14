@@ -5,8 +5,8 @@ use English;
 use warnings;
 
 ## holder_put_batch : many small blobs in three ssh calls
-## [ probe, tar upload, sha256sum readback ] ; tar fallback, existing blobs
-## kept, a wrong size or checksum refused
+## [ probe, tar upload, tar read back ] ; existing blobs kept, a wrong size or
+## changed bytes refused
 
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
@@ -63,30 +63,7 @@ foreach my $item (@items) {
 ok( $all, 'every blob on the holder byte for byte' );
 my @left = glob "$remote/holder/.batch.*";
 ok( !@left, 'no temporary batch directory left' );
-ok( ( read_file($log) // '' ) =~ m|sha256sum --|,
-    'holder verifies the batch with sha256sum'
-);
-
-## no sha256sum in the remote path : the tar readback takes over
-my @fallback = ( spooled('fallback one'), spooled('fallback two') );
-my $no_sha   = "$base/no-sha";
-make_dirs($no_sha);
-foreach
-    my $tool (qw| sh sed tar wc mv mkdir rm sync cat df stat date tail head |)
-{
-    symlink "/usr/bin/$tool", "$no_sha/$tool"
-        or die "symlink $tool : $OS_ERROR";
-}
-$before = calls();
-{
-    local $ENV{'PATH'} = $no_sha;
-    $ok = eval { holder_put_batch( $spec, \@fallback ); 1 };
-}
-ok( $ok && calls() - $before == 4,
-    'sha256sum absence falls back to one tar readback' )
-    or say $EVAL_ERROR;
-
-## equal sizes do not hide changed bytes from the checksum readback
+## equal sizes do not hide changed bytes from the readback
 my @changed = ( spooled('changed one'), spooled('changed two') );
 write_new_file( "$remote/holder/$changed[0][1]",
     read_file( $changed[0][0] ) );
@@ -129,8 +106,8 @@ ok( !grep( { !-e "$remote/holder/$ARG->[1]" } @many ),
 
 done();
 
-#,,.,,...,,..,,.,,,,.,.,.,.,.,,..,..,,,..,.,,,..,,...,..,,..,,.,,,,.,,...,.,.,
-#HZMNR4EQOUJTCLLALFKYDDDSHQNYZG2CEYHEPMYV2NIIINGPBNUAAY27UPWEWNJI2CEBDZUI73X4M
-#\\\|QPJ2BPH7HIPDCNZC35RUZ5TY723ODLPURRDJVI2VMOFJCEWXSOJ \ / AMOS7 \ YOURUM ::
-#\[7]XWG7ZXQZEE462RNTURR2UB6PPQLIZTYE4M54QBOXSGTS2HJSMIDY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,.,...,,..,.,,,,.,,,..,,..,...,..,,...,...,.,,,,,,,,.,,,..,,..,
+#7O5VLZIHSSNDSVCTUXK5JF7IOFJOMGEK63ION4QMG6EYVVX3RE374YTSTMJGJJLUDINWZW2IKUVB4
+#\\\|2KRCMWI46SE75QXED2TBCO4HX5EZ6V3IX2GLVL5VAUTWGCHKG3Q \ / AMOS7 \ YOURUM ::
+#\[7]YEZSSIPLP7CCR2XZNUGDKKV7AC3GKMSGJQDKRNKCIZQWIKSPXCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Drill-VERSION.JRRHCAY |;
+our $VERSION = qw| AMOS7::N7FS::Drill-VERSION.HMGS3SQ |;
 
 @EXPORT_OK = qw| drill_run drill_write drill_records drill_latest drill_status
     key_copy_moved |;
@@ -30,7 +30,7 @@ use AMOS7::N7FS  qw| b32 unb32 read_file write_new_file make_dirs sync_dir
     random_bytes refuse ntime_now ntime14 |;
 use AMOS7::N7FS::Sign qw| verify |;
 
-my $JSON = JSON::PP->new->utf8->canonical;
+my $JSON = AMOS7::N7FS::json_codec();
 
 sub _drill_path {
     my ( $host_dir, $root ) = @_;
@@ -565,8 +565,8 @@ sub drill_status_say {
 
 1;
 
-#,,..,,.,,,,,,,.,,,,.,,,,,..,,.,,,.,.,.,,,,..,..,,...,...,...,.,.,.,.,,.,,,.,,
-#OYPHKZKJGI6WF3AQ25AK2HV6CMDANEZHPRZKELL4L2PGBCFTD56H3IE4DSSQ2XVZ23UONPO6DHPSC
-#\\\|XLJQ3PGPZIJ4MWO2Z6IQ23FUZIC2DIDXUBXTA324WWS6DJ3AEEF \ / AMOS7 \ YOURUM ::
-#\[7]7H5B3G56BNUTRIVEUEPOW2M2J7RJB5R4KBHZ5B6AARPFNMG4COCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,...,.,,,,..,.,.,,,,,..,,,.,,..,,...,...,..,,..,,,,.,.,.,.,.,
+#WTLG53LNE5XIG6AH2XQ4S5HDEW6UOBYHCEEPB5ZL5VU7IWKJ2KGZXPIP7CWQ3O34BKN36X6QU6PBO
+#\\\|GSN5DTXV6H7MMAIFAAS7EXPIM5GIDJG2BRGJMECMRO4JRFDK4W5 \ / AMOS7 \ YOURUM ::
+#\[7]BCRJZU3QMBG4UCYYT3Q4HBZZQWLORSX7G4BW25NYY4RP2HFOG4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

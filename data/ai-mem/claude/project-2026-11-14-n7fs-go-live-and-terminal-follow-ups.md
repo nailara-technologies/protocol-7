@@ -50,14 +50,19 @@ metadata:
 - -check-full : 3 ssh range reads per node ; use holder-check -scrub for full coverage until
   it is batched.
 
+**never edit the tree a live n7fs runs from** : n7fs requires some modules lazily [ Seal
+requires Drill at line 488 ] : my uncommitted json_codec edit made the live place fail on
+pri [ 2026-11-14 18:5x, home-packed had finished ]. work in a git worktree, or deploy and
+restart deliberately.
+
 **live state 2026-11-14 evening** : host hard-crashed under the sustained wlan push [ usb
 wlan, same as every holder push ; /tmp wiped ] ; home-packed 12 G of ~16.3 G committed, pri
 empty. b611a3601 background uploads ; script now ~/.n/n7fs/golive-2.sh [ -bwlimit 4M ].
 owner order : wire the LAN cable, finish the re-seal, then the native linux install.
 [[n7fs-host-migration-goal]] [[session-handover-n7fs-fable-design-built]]
 
-#,,,.,,,,,.,.,.,.,.,,,,,.,,,.,,.,,.,.,.,.,..,,..,,...,...,..,,,.,,...,,..,..,,
-#6ETOZO3U5HBLI6IOT3JQ6KPJMITJRC5SRERC3SGJCY6WDJ2X4FEOSIOZCHUC2MLMGUCFKFPCIE2VE
-#\\\|6CFB7AJCZW7KWRCARYWLE77LF6ZCKX3RVZXXXV3N7CYVB7RN5R4 \ / AMOS7 \ YOURUM ::
-#\[7]P4MC6HKJJSPK3A6Q3WDHBUYCA7XGSU7JPPDCKNKTAJXNB6WO3MDQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,..,,..,,,,.,,,.,,..,.,,,.,,,..,,...,..,,..,,.,,,.,.,,,,,,,,,
+#LAMWQ22GCNUYQ7YQ3FPMSYIGMU4VVQSJL6SB4EP3M54AU34WRJXKKZKJSJCZLFNP4YXEMOFPZ5RI2
+#\\\|DYQRNIRWPK3B2HLGNWFS4PKYKSX33NGCQWXNOUKQKSKQUV6UGFE \ / AMOS7 \ YOURUM ::
+#\[7]VE32C3I7KRHXHJYNNXXR3YGOUPE7EUXL46ZHFEUMHDBOLFWSTKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

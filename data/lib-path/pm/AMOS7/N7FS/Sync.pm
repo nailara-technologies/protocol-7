@@ -19,7 +19,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Sync-VERSION.LWAAWKY |;
+our $VERSION = qw| AMOS7::N7FS::Sync-VERSION.DUIYHRQ |;
 
 @EXPORT_OK = qw| store_sync sync_conflict_list sync_conflict_resolve
     sync_records_verify |;
@@ -45,7 +45,7 @@ use AMOS7::N7FS::Batch    qw| batch_read batch_write |;
 use AMOS7::N7FS::Tree     qw| manifest_open manifest_entry_read |;
 use AMOS7::N7FS::Hold     qw| hold_create |;
 
-our $JSON    = JSON::PP->new->utf8->canonical;
+our $JSON    = AMOS7::N7FS::json_codec();
 our $ADDR_RE = qr{\AV7[A-Z2-7]{5}/[A-Z2-7]{7}/[A-Z2-7]{77}\z};
 
 sub _empty_set {
@@ -1271,8 +1271,8 @@ sub sync_records_verify {
 
 1;
 
-#,,,.,,,.,..,,..,,..,,,,.,,,.,,,.,.,.,.,,,.,.,.,.,...,...,.,,,..,,,,.,.,,,.,.,
-#JRB7K43GXQOYENDRKIWCZXW55ZUGOXLDK2GDXM2FDZVEQDG2EOJULGVJYRVTC7ROWRACEPS3IEEDM
-#\\\|NES56YAI2SLWWH54MX4Z7WJ737RQRXQ7HWC3Z5HUBNSO2T26HAK \ / AMOS7 \ YOURUM ::
-#\[7]TXMCRLG2EDN2VEUZPWXSBNPW47ZC6MAJ22IKN2NZOWNOUU6XNKAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,.,,,,..,,..,.,.,...,...,.,.,.,.,...,...,..,,.,,,...,,,.,.,.,
+#5KHCP6GDZCNFWHG4F3QNPFB4VZF35YPGXMKREVUFBT2RAVYHRJEPM4KM7UC7TXMTPPWFZ2RPJ7BPY
+#\\\|ET6SL4QNZJ2UQ5DTMZVUQMKUPBHDVAZPQV4JIWEX6WQ4ZOESVNK \ / AMOS7 \ YOURUM ::
+#\[7]VBBVYOCUB3GKD34MMNZJEPPFNCYVUCXT7QL5PG4KX34WQ6NYQ4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

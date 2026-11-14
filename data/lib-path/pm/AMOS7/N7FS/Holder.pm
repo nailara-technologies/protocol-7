@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.FWC54CA |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.YUXFXII |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -967,11 +967,12 @@ sub holder_scrub {
 
 ## many small blobs in three ssh calls instead of several each : one size
 ## probe, one tar upload into a temporary subdirectory moved into place only
-## where no blob exists, one sha256sum readback compared with local digests.
-## the tar readback remains for holders without sha256sum. a commit writes up
-## to 1024 map shards, so a per-blob put turned a place into days
-## [ 2026-11-14 ]. items are [ local path, name, kind ] with the spool file
-## named like its blob ; receiver holders, content and odd items go one by one
+## where no blob exists, one tar read back compared byte for byte
+## [ no foreign hash on the holder : receiver holders scrub by BMW names ]. a
+## commit writes up to 1024 map shards, so a per-blob put turned a place into
+## days [ 2026-11-14 ]. items are [ local path, name, kind ] with the spool
+## file named like its blob ; receiver holders, content and odd items go one
+## by one
 sub holder_put_batch {
     my ( $spec, $items ) = @_;
     my $h = holder_parse($spec);
@@ -1046,50 +1047,19 @@ sub holder_put_batch {
         }
         refuse( 'ssh holder batch upload failed : %s', $err ) if $status;
     }
-    ## check every blob of the batch, also those that were already there ##
-    my $checksum_unavailable = 0;
-    my @delays               = _delays();
-    for my $try ( 0 .. $#delays ) {
-        ( $status, $out, $err )
-            = _ssh( $h, "cd $dir || exit 44 ; sha256sum -- @names" );
-        $checksum_unavailable = 1
-            if $status == 127
-            or not $status and not length $out;
-        last                if not $status or $status == 127;
-        sleep $delays[$try] if $try < $#delays;
-    }
-    my %back;
-    if ($checksum_unavailable) {
-        ( $status, $out, $err )
-            = _result( $h, "cd $dir || exit 44 ; tar -c -f - @names" );
-        refuse( 'ssh holder batch readback failed : %s', $err ) if $status;
-        require Archive::Tar;
-        require IO::Handle;
-        open( my $back_fh, '<:raw', \$out )
-            or refuse('cannot open batch readback');
-        %back = map { $ARG->name => $ARG->get_content }
-            Archive::Tar->new($back_fh)->get_files;
-        foreach my $name (@names) {
-            refuse( 'holder readback checksum mismatch for %s', $name )
-                if not defined $back{$name}
-                or $back{$name} ne read_file( $item{$name}[0] );
-        }
-        return;
-    }
+    ## read back every blob of the batch, also those that were already there
+    ( $status, $out, $err )
+        = _result( $h, "cd $dir || exit 44 ; tar -c -f - @names" );
     refuse( 'ssh holder batch readback failed : %s', $err ) if $status;
-    require Digest::SHA;
-    foreach my $line ( split m|\n|, $out ) {
-        my ( $sum, $name ) = $line =~ m|\A([0-9a-f]{64})  (\S+)\z|;
-        $back{$name} = $sum if defined $name;
-    }
+    require Archive::Tar;
+    open( my $back_fh, '<:raw', \$out )
+        or refuse('cannot open batch readback');
+    my %back = map { $ARG->name => $ARG->get_content }
+        Archive::Tar->new($back_fh)->get_files;
     foreach my $name (@names) {
-        open( my $fh, '<:raw', $item{$name}[0] )
-            or refuse('cannot open batch readback');
-        my $sum = Digest::SHA->new(256)->addfile($fh)->hexdigest;
-        close $fh;
         refuse( 'holder readback checksum mismatch for %s', $name )
             if not defined $back{$name}
-            or $back{$name} ne $sum;
+            or $back{$name} ne read_file( $item{$name}[0] );
     }
     return;
 }
@@ -1203,8 +1173,8 @@ sub holder_put {
 
 1;
 
-#,,,.,,.,,.,.,,..,.,,,,.,,,,,,.,.,,..,..,,,,,,..,,...,...,,,,,.,.,,,,,.,.,.,.,
-#BIG4PZZZT7ZXHMB4EC6N7RF75XHAR22E34TXUSRPFHJLC5I4JDJ2NIWTDKEUCKQMC6TUOW3OEZ4WK
-#\\\|EYTGNRL7XKUUJAWJGVUUUWRXABPALX7WUA3R6A4ZWWSPFLCACSX \ / AMOS7 \ YOURUM ::
-#\[7]M2VQZSAVAOWW44FRGUW6E3WXTH5R6ECPPFTUSDVCJRCNLVYAKGAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,,.,,,,,,..,,,,.,...,,,.,,,,,..,,...,...,.,.,.,.,..,,,.,,,.,,
+#YNPENSEEH7LYCGHESSL2ZI2MORU3LBRODAOYHAOIQJWTZCZNDJPJ45YB72WIDHI7PXJXP75NDA2TU
+#\\\|AETHVE54Q5HFRZBXLAVODV3H5ZKE2LOCK23BY357462CBNKIMKA \ / AMOS7 \ YOURUM ::
+#\[7]MTPFY5AMGCSVIM4JL77NW2FACUTDJC63LYTSXGU2KCVGZZGCG4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
