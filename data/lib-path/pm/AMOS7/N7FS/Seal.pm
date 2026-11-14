@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.OV6SUCA |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.FVPHWNI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -579,12 +579,12 @@ sub _context {
         refuse( 'pinned head rollback [ holder %d, pinned %d ]',
             $head->{'version'}, $pinned )
             if $head->{'version'} < $pinned;
-        warn "n7fs : signed head time moved "
+        warn ": n7fs : signed head time moved "
             . "backwards under a higher version\n"
             if $head->{'version'} > $pinned
             and defined $known->{'time'}
             and $head->{'time'} < $known->{'time'};
-        warn "n7fs : signed head time is more than 1Y4 ahead of the clock\n"
+        warn ": n7fs : signed head time is more than 1Y4 ahead of the clock\n"
             if $head->{'time'} > ntime_now() + parse_y_age('1Y4');
         $state->{'version'} = $head->{'version'}
             if $head->{'version'} > $state->{'version'};
@@ -2058,7 +2058,7 @@ sub seal_recover {
         my $served = $freshness->{'head'};
         if ( not defined $served ) {
             refuse('no sealed head to recover') if @specs == 1;
-            warn "n7fs : warning : no sealed head on $spec ; skipping it\n";
+            warn ": n7fs : warning : no sealed head on $spec ; skipping it\n";
             next;
         }
         if ( defined $opt{'min_version'}
@@ -2066,7 +2066,7 @@ sub seal_recover {
             refuse( 'head version %d is below -min-version %d',
                 $served->{'version'}, $opt{'min_version'} )
                 if @specs == 1;
-            warn "n7fs : warning : head on $spec is "
+            warn ": n7fs : warning : head on $spec is "
                 . "below -min-version ; skipping it\n";
             next;
         }
@@ -2076,10 +2076,10 @@ sub seal_recover {
                 $served->{'version'},
                 $freshness->{'floor'}, $freshness->{'witness'} )
                 if @specs == 1;
-            warn "n7fs : warning : skipping a rolled back head on $spec\n";
+            warn ": n7fs : warning : skipping a rolled back head on $spec\n";
             next;
         }
-        warn "n7fs : warning : recovering from a "
+        warn ": n7fs : warning : recovering from a "
             . "proven-stale head [ -allow-stale ]\n"
             if $freshness->{'stale'};
         my ( undef, $head, $map, $base )
@@ -2095,7 +2095,7 @@ sub seal_recover {
             };
     }
     refuse('no usable sealed head to recover') if not @sources;
-    warn "n7fs : warning : no second holder was reachable "
+    warn ": n7fs : warning : no second holder was reachable "
         . "; a withheld newer head cannot be seen from here\n"
         if @sources == 1
         and $sources[0]{'freshness'}{'verdict'} eq qw| unverified |;
@@ -2887,7 +2887,7 @@ sub holder_gc {
     refuse(   'holder-gc needs -only-root : a holder may also hold '
             . 'other roots, and their blobs cannot be told apart' )
         if not $per_root and not $opt{'only_root'};
-    warn "n7fs : -only-root is redundant : this holder "
+    warn ": n7fs : -only-root is redundant : this holder "
         . "keeps each root in its own subdirectory\n"
         if $per_root and $opt{'only_root'};
     my $receipt = $opt{'receipt'};
@@ -3443,8 +3443,8 @@ sub shred_node {
 
 1;
 
-#,,.,,,,.,,..,..,,.,,,,,.,,.,,,,,,,.,,,,.,,..,..,,...,...,.,,,.,,,,,,,.,.,,,,,
-#LQU7MRC6FGRPWKVWGA4OHQ4IXGMWSPGPNCCHHYAFWNZZI4TPJZWIG4YNM4PH4GLXEG2QZFHA6E5FM
-#\\\|FLOHUPHL65JS27ZYRUQH7B4WFR2KKUPFAFAN4HEINUHGSFXHENB \ / AMOS7 \ YOURUM ::
-#\[7]QDX3QY5IRX24KBSRZDZY7YMLA5X6223PEV4MVFUSQYDP3H7ZMQDY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,.,.,,,,.,,,,.,,.,,,..,...,,,,,..,,...,...,,,.,...,..,,,.,,..,,
+#I2ZO5X3DC5DJ6BWL4MTNMZ5PBL4BJYL6YO4QETF3HB3S4YGPX76BQAB6THGMSV6UX7YMCQF4B5RNM
+#\\\|OUN7LETLN47EGD2E5TZNQVOQBXLW6HPEZPKHKK6CALP2JHNLZZP \ / AMOS7 \ YOURUM ::
+#\[7]ZC6S2KFFYMKEQY7AXHYQOMJYCPVHJI5CHKB2UXLU4XB3J2SBTGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

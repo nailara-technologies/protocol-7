@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.4BTFI4Q |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.DBOJORY |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -65,7 +65,7 @@ sub parse_age {
     state %warned;
     my ( $file, $line ) = (caller)[ 1, 2 ];
     if ( not $warned{"$file:$line"}++ ) {
-        warn "n7fs : age '$text' uses deprecated "
+        warn ": n7fs : age '$text' uses deprecated "
             . "unix units ; use <n>Y<level> instead\n";
     }
     my %f = ( '' => 1, s => 1, m => 60, h => 3600, d => 86400, w => 604800 );
@@ -635,7 +635,7 @@ sub _copies {
             $name,             $fresh->{'head'}{'version'},
             $fresh->{'floor'}, $fresh->{'witness'}
         ) if $fresh->{'stale'} and not $opt{'allow_stale'};
-        warn "n7fs : warning : holder $name is stale ; "
+        warn ": n7fs : warning : holder $name is stale ; "
             . "counting no copies from it [ -allow-stale ]\n"
             if $fresh->{'stale'};
         my ( undef, $head, $map ) = eval {
@@ -1209,8 +1209,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,..,.,.,..,,,,.,,,.,,,,,.,.,,.,,,,,,.,.,..,,...,...,...,,,,,,.,,,,,,,,.,
-#QXJX6QOCT3ATADX7RWM745PBHM3BXQR6HATXANSGIRIESRYHLTHK632AVSQPNG765HYUIRWQFDFTQ
-#\\\|2V2I2UK3LL5FQIMMLWAQR2O4KB7OVIZFQLC5VY7E3MQWBQPF7EP \ / AMOS7 \ YOURUM ::
-#\[7]37UNVTJM4IADCSDFRSS5BBZBAB4SBS3J7ZKAJYCEOF2KBRWUSUBI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,.,,.,,,,,,...,,,,,.,,,,,,,,,,,..,,...,...,.,.,,..,,,,,..,,,.,,
+#YC7NSILLYNFQ67MPEWUCXKS7YJGMHQPMJDGH5I6C2UBRSFJTXIQHBSTMTTB37JVGYZGLZIMRDULRM
+#\\\|NOHCWGCJGTLBWQFQXD6EYHISVUV2CPSMCCEOU5Q6MYGO46BJE2O \ / AMOS7 \ YOURUM ::
+#\[7]AGQX6HKFSDMOTVVATYDJQTDWSAUHYH7I4MS3UAU6BUBORNJCJMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

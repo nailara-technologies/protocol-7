@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION   = qw| AMOS7::N7FS::Snapshot-VERSION.UXZLPDQ |;
+our $VERSION   = qw| AMOS7::N7FS::Snapshot-VERSION.SGXCLOQ |;
 our $UNSTABLE  = 0;
 our $COPY_HOOK = undef;
 
@@ -572,7 +572,7 @@ sub snapshot_run {
     my $final = "$staging/$stamp";
     refuse( 'snapshot staging already exists [ %s ]', $stamp )
         if -e $tmp or -e $final;
-    warn "n7fs : warning : hardlink snapshots share in-place source writes "
+    warn ": n7fs : warning : hardlink snapshots share in-place source writes "
         . "; use only when every source file is replaced by rename\n"
         if $method eq qw| hardlink |;
     local $UNSTABLE = 0;
@@ -626,8 +626,8 @@ sub snapshot_run {
 
 1;
 
-#,,,.,..,,.,.,.,,,.,.,.,,,..,,.,.,.,,,,,,,..,,..,,...,...,.,,,.,.,...,.,.,,,.,
-#JQ3DD3RC2KKSULFHOPALLN6HTG6CDCERRQXHXBFN5VNT4E72JKMRFTYFQ3F5K53IOUFI5DWYZDEY2
-#\\\|N5DX3CFPNDO34RAOVYIZ2NHA2LG3BUARGB2SQWU3R4JZ6O75JEB \ / AMOS7 \ YOURUM ::
-#\[7]FW2DDJYUYEXWAFMSBGPMFFTD4KO63XPBUH6RQ3GVAZIB6WZL3EBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,.,.,,,,,,..,,..,.,,,,,,,...,..,,...,...,...,,,.,,.,,,.,,,,,,
+#DR3EN4PGBVDTFYVXTE4NJKBZBRFMWDFC2SGTMMSCAHN4ZTPISHRAT6QHKDR4QDBIL3ZUM7AU3E7PO
+#\\\|4ZZD6DWGSYFY25A6YSJ5PLK6AXEFD4EIQ4GXISF5K47UKK5KPR6 \ / AMOS7 \ YOURUM ::
+#\[7]QHDGYXFRNGR5Z3GJNUJUT4JHAYIRSZDY4AKV4LSLHLJWGODERCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

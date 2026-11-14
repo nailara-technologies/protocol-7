@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.BXBP6AY |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.WKXNK2I |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -218,7 +218,7 @@ my $test_clock_warned;
 
 sub ntime_now {
     if ( defined $ENV{'N7FS_TEST_NTIME'} and not $test_clock_warned++ ) {
-        warn "n7fs : clock overridden by N7FS_TEST_NTIME "
+        warn ": n7fs : clock overridden by N7FS_TEST_NTIME "
             . "[ test only, not the real time ]\n"
             if not $ENV{'N7FS_TEST_QUIET_CLOCK'};
     }
@@ -505,8 +505,8 @@ sub remove_tree {
 
 1;
 
-#,,,,,,,,,,.,,,.,,.,,,.,,,,,,,,,.,,,,,.,,,,..,..,,...,...,..,,.,.,,,,,..,,,.,,
-#JJL52Q4VSRBI3UORDL6JAPAKGMKI5ETDJGI7XWYBJ6VEOJVBQOE3VPWCSHUPZ7JNLWOW5DLZ3QRBC
-#\\\|MN5RUHGBFKGBZ5QWPN3JJ2IVEJGXCXLHU2D7G3WUV52M5AWIJQI \ / AMOS7 \ YOURUM ::
-#\[7]KXUBR5GJGT6IZIZTOA2EVPDHZZ7Y5RIFWKKGSFZMIBEK7P5HW4AI 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,.,,,.,.,.,..,,,,.,,.,,,,,,..,,..,,...,...,.,.,,.,,.,,,..,,.,.,
+#IBTZ5NG4PIBIG3E3KZETLM5DXKIRESUJ27CNB2FZ26N2BUUXLI3VD3DOTAAGN7CWCBJZHLLG3FJ34
+#\\\|YV2I55PPRHUFS33NJ2K5OTHFHPZBR6ZTEGBLN2JNSRXOJBNFKVY \ / AMOS7 \ YOURUM ::
+#\[7]LYLYKA5EWEM32DBQ7SNLHQWRXHSYZ2J4IQMNNACJ6YYQHEMPYSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
