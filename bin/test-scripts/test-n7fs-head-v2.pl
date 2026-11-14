@@ -211,6 +211,21 @@ ok( substr( $map_a, 0, 32 ) eq unb32( $head_a2->{'map'}{'id'} )
         and substr( $shard_a, 0, 32 ) eq unb32( $shard_a_desc->{'id'} ),
     'map and shard exteriors carry the ids stored in their descriptors'
 );
+my ( undef, $outer_key ) = AMOS7::N7FS::Seal::_keys( $copy_a->{'keys'} );
+my $writer            = unb32( $head_a2->{'map'}{'writer'} );
+my $encryption_key_id = $writer
+    . substr(
+    AMOS7::N7FS::Sum::bmw384_bytes(
+        "p7 n7fs siv v1\0" . $outer_key . 'map' . $map_a_plain
+    ),
+    0, 16
+    );
+ok( unb32( $head_a2->{'map'}{'id'} ) ne $encryption_key_id
+        && unb32( $head_a2->{'map'}{'id'} ) eq AMOS7::N7FS::Seal::_long_id(
+        $copy_a->{'keys'}, $writer, 'map', $map_a_plain
+        ),
+    'siv ids use a dedicated subkey instead of the encryption key'
+);
 
 AMOS7::N7FS::Seal::_context( $copy_b, $holder_b, 1 );
 my $head_name = AMOS7::N7FS::Seal::_head_name($copy_b);
@@ -308,8 +323,8 @@ refused(
 
 done();
 
-#,,.,,..,,..,,,,.,,.,,.,.,.,.,,.,,,..,..,,..,,..,,...,...,..,,,,.,,,,,,,,,,.,,
-#2RJ4ID4IFVYN327K2JMMNH2JYUXEWX2ELLVMNN7KE6Y7NNK6BWRB4CULHH456ROOSZ4MC4YJGKHGY
-#\\\|6F6FZABVF2BDHUZDA42UCTZIEXR7TCFONRCTQ6F4ZCZBWV4P436 \ / AMOS7 \ YOURUM ::
-#\[7]LR6SAJ4QNOX6ZASA5QY32UT5UXM3IKLMAKWMSL7OWAXZ3VNVNMDY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,,,.,...,...,,,.,.,,,,,,,,.,,..,,...,..,,.,.,.,.,,.,,...,...,
+#NBZNH5Z4UCCUEJ67QDN7YCXWTPU6YMZYBTDXURR3ZMRRFDMXP5KD33O7BZX5OW3ZINREKAG2E6BSK
+#\\\|FRH4UIXTK2XZCDUPOFEFM5UWLFYCQYOAN5AFNWRJEG2OHKDLEUK \ / AMOS7 \ YOURUM ::
+#\[7]DZZ74LWLTR6BTE2X7PFY2FMQSDKQSACKNXBX245JVJZDZXV72ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

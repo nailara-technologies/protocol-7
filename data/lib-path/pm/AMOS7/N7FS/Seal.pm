@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.LR6C3BI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.4YDMPFY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -31,7 +31,8 @@ use Fcntl qw| O_RDONLY |;
 use Crypt::Mode::CTR;
 use Crypt::AuthEnc::ChaCha20Poly1305 qw| chacha20poly1305_encrypt_authenticate
     chacha20poly1305_decrypt_verify |;
-use AMOS7::NTIME qw| parse_y_age y_level_ntime |;
+use Time::Local  qw| timegm |;
+use AMOS7::NTIME qw| parse_y_age y_level_ntime unix_to_ntime |;
 use AMOS7::N7FS  qw| b32 unb32 random_bytes read_file write_new_file
     write_new_file_stream make_dirs sync_dir refuse fault ntime_now ntime14 |;
 use AMOS7::N7FS::Sum      qw| bmw384_bytes bmw_b32 epoch_from_b32 |;
@@ -140,14 +141,22 @@ sub _long_aad {
     return "P7SE\x01" . pack( 'n/a* a32 Q>', $domain, $id, $counter );
 }
 
+sub _siv_key {
+    my $keys = shift;
+    my ( undef, $outer ) = _keys($keys);
+    return bmw384_bytes( "p7 n7fs siv key v1\0" . $outer );
+}
+
 sub _long_id {
     my ( $keys, $writer, $domain, $plain ) = @_;
     refuse('long-key writer id is not 16 bytes') if length $writer != 16;
-    my ( undef, $outer ) = _keys($keys);
     return $writer
         . substr(
-        bmw384_bytes( "p7 n7fs siv v1\0" . $outer . $domain . $plain ),
-        0, 16 );
+        bmw384_bytes(
+            "p7 n7fs siv v1\0" . _siv_key($keys) . $domain . $plain
+        ),
+        0, 16
+        );
 }
 
 sub seal_bytes {
@@ -1928,9 +1937,7 @@ sub holder_check {
         ## chain, never by a scrub. this proves ciphertext integrity -- it  ##
         ## says nothing about the map's key material, which the chunked     ##
         ## checks authenticate with the root                                ##
-        my @names = sort keys %blobs;
-        push @names,
-            _map_blob_names( $opt{'root'}, $base, $alt, $head, $map );
+        my @names  = sort keys %blobs;
         my $result = holder_scrub( $top, \@names, undef, $tag );
         refuse(
             'holder scrub is not clean : %s bad, %s missing',
@@ -2184,7 +2191,10 @@ sub repack_packs {
     }
     return { qw| packs | => \@candidates, qw| repacked | => 0 }
         if $opt{'dry_run'};
-    my ( @done, $receipts );
+    return { qw| packs | => [], qw| repacked | => 0, qw| receipts | => 0 }
+        if not @candidates;
+
+    my @prepared;
     foreach my $candidate (@candidates) {
         my $old   = $candidate->{'pack'};
         my $bytes = "P7SP\x01";
@@ -2213,68 +2223,83 @@ sub repack_packs {
                 $address )
                 if bmw_b32( bmw384_bytes($sealed) ) ne $entry->{'node'};
         }
-        fault(qw| repack:before-commit |);
+        push @prepared, { %{$candidate}, qw| new_pack | => $new };
+    }
+
+    fault(qw| repack:before-commit |);
+    my $version = $counter->{'version'} + 1;
+    foreach my $candidate (@prepared) {
+        my $old = $candidate->{'pack'};
+        my $new = $candidate->{'new_pack'};
         foreach my $item ( $packs{$old}->@* ) {
             my $entry = $item->[1];
             $entry->{'blob'}   = $new;
             $entry->{'offset'} = delete $entry->{'_repack_offset'};
-            $entry->{'added'}  = $counter->{'version'} + 1;
+            $entry->{'added'}  = $version;
         }
-        $map->{'superseded'}{$old} = $counter->{'version'} + 1;
-        my $version
-            = _commit( $opt{'root'}, $base,
-            holder_canonical( $opt{'holder'} ),
-            $counter, $map, { qw| repack | => $old, qw| pack | => $new } );
-        $counter->{'version'} = $version;
-        fault(qw| repack:after-commit |);
-        my $checked = holder_check(
-            qw| root |     => $opt{'root'},
-            qw| holder |   => $opt{'holder'},
-            qw| coverage | => qw| full |,
-        );
-        refuse('repack receipt does not cover the new pack')
-            if $checked->{'version'} != $version
-            or not grep { $map->{'nodes'}{$ARG}{'blob'} eq $new }
-            @{ $checked->{'covered_list'} };
-        require AMOS7::N7FS::Placement;
-        my $receipt = AMOS7::N7FS::Placement::receipt_write(
-            qw| host_dir |          => $opt{'host_dir'},
-            qw| signer |            => $opt{'signer'},
-            qw| spec |              => holder_canonical( $opt{'holder'} ),
-            qw| root_id |           => $checked->{'root_id'},
-            qw| version |           => $checked->{'version'},
-            qw| nodes |             => $checked->{'nodes'},
-            qw| samples |           => $checked->{'samples'},
-            qw| coverage |          => $checked->{'coverage'},
-            qw| covered |           => $checked->{'covered'},
-            qw| covered_nodes |     => $checked->{'covered_nodes'},
-            qw| covered_addresses | => $checked->{'covered_list'},
-            qw| accept_clock |      => $opt{'accept_clock'},
-        );
-        $receipts++;
-        fault(qw| repack:after-receipt |);
-        my $gc = holder_gc(
-            qw| root |      => $opt{'root'},
-            qw| holder |    => $opt{'holder'},
-            qw| receipt |   => $receipt,
-            qw| keep |      => $opt{'keep'},
-            qw| only_root | => $opt{'only_root'},
-            qw| delete |    => TRUE,
-            defined $opt{'grace'} ? ( qw| grace | => $opt{'grace'} ) : (),
-        );
-        $counter->{'version'} = $gc->{'version'};
-        push @done,
-            {
-            %{$candidate},
-            qw| new_pack | => $new,
-            qw| version |  => $version,
-            qw| trashed |  => $gc->{'removed'}
-            };
+        $map->{'superseded'}{$old} = $version;
     }
+    $version = _commit(
+        $opt{'root'},
+        $base,
+        holder_canonical( $opt{'holder'} ),
+        $counter, $map,
+        {   qw| repack | => [ map { $ARG->{'pack'} } @prepared ],
+            qw| pack |   => [ map { $ARG->{'new_pack'} } @prepared ]
+        }
+    );
+    $counter->{'version'} = $version;
+    fault(qw| repack:after-commit |);
+    my $checked = holder_check(
+        qw| root |     => $opt{'root'},
+        qw| holder |   => $opt{'holder'},
+        qw| coverage | => qw| full |,
+    );
+    refuse('repack receipt has the wrong version')
+        if $checked->{'version'} != $version;
+    foreach my $candidate (@prepared) {
+        my $new = $candidate->{'new_pack'};
+        refuse('repack receipt does not cover every new pack')
+            if not grep { $map->{'nodes'}{$ARG}{'blob'} eq $new }
+            @{ $checked->{'covered_list'} };
+    }
+    require AMOS7::N7FS::Placement;
+    my $receipt = AMOS7::N7FS::Placement::receipt_write(
+        qw| host_dir |          => $opt{'host_dir'},
+        qw| signer |            => $opt{'signer'},
+        qw| spec |              => holder_canonical( $opt{'holder'} ),
+        qw| root_id |           => $checked->{'root_id'},
+        qw| version |           => $checked->{'version'},
+        qw| nodes |             => $checked->{'nodes'},
+        qw| samples |           => $checked->{'samples'},
+        qw| coverage |          => $checked->{'coverage'},
+        qw| covered |           => $checked->{'covered'},
+        qw| covered_nodes |     => $checked->{'covered_nodes'},
+        qw| covered_addresses | => $checked->{'covered_list'},
+        qw| accept_clock |      => $opt{'accept_clock'},
+    );
+    fault(qw| repack:after-receipt |);
+    my $gc = holder_gc(
+        qw| root |      => $opt{'root'},
+        qw| holder |    => $opt{'holder'},
+        qw| receipt |   => $receipt,
+        qw| keep |      => $opt{'keep'},
+        qw| only_root | => $opt{'only_root'},
+        qw| delete |    => TRUE,
+        defined $opt{'grace'} ? ( qw| grace | => $opt{'grace'} ) : (),
+    );
+    $counter->{'version'} = $gc->{'version'};
+    my @done = map {
+        {
+            %{$ARG},
+                qw| version | => $version,
+                qw| trashed | => $gc->{'removed'}
+        }
+    } @prepared;
     return {
         qw| packs |    => \@done,
         qw| repacked | => scalar @done,
-        qw| receipts | => $receipts
+        qw| receipts | => 1
     };
 }
 
@@ -2418,6 +2443,16 @@ sub holder_trash_purge {
     };
 }
 
+sub _trash_bucket_time {
+    my $bucket = shift // '';
+    return $bucket + 0 if $bucket =~ m|\A[0-9]{14}\z|;
+    my ( $year, $month, $day ) = $bucket =~ m|\A(\d{4})-(\d{2})-(\d{2})\z|;
+    refuse( 'bad date [ %s ]', $bucket ) if not defined $day;
+    my $unix = eval { timegm( 0, 0, 0, $day, $month - 1, $year ) };
+    refuse( 'bad date [ %s ]', $bucket ) if not defined $unix;
+    return unix_to_ntime($unix);
+}
+
 ## holder-trash-restore : move blobs back out of the trash. named blobs, or
 ## everything in day directories since a date [ -all-since ]. a blob already
 ## back at the holder is skipped, never overwritten
@@ -2428,10 +2463,9 @@ sub holder_trash_restore {
     my @jobs;    ## [ day, name ] ##
     my $missing = 0;
     if ( defined $opt{'all_since'} ) {
-        refuse( 'bad date [ %s ]', $opt{'all_since'} )
-            if $opt{'all_since'} !~ m|\A(?:[0-9]{14}\|\d{4}-\d{2}-\d{2})\z|;
+        my $since = _trash_bucket_time( $opt{'all_since'} );
         foreach my $day (
-            sort grep { $ARG ge $opt{'all_since'} }
+            sort grep { _trash_bucket_time($ARG) >= $since }
             keys %{$list}
         ) {
             push @jobs, map { [ $day, $ARG ] } sort keys %{ $list->{$day} };
@@ -2856,8 +2890,8 @@ sub shred_node {
 
 1;
 
-#,,..,,,,,.,.,..,,,,.,...,,..,,..,,..,,.,,.,,,..,,...,...,.,.,,,,,,,,,.,.,,.,,
-#B272XP72H7RCPIS3VXTHT6OKJIYJLU2LO2SIC5O5ZIIKZHXICUD6MKVJA4AED5MOZFRE3VJP7IFGC
-#\\\|OL3JV3WJANJCDQSHDMFQNPBMRNFZWCPFF6TIPK4MOHWSL7YLOXI \ / AMOS7 \ YOURUM ::
-#\[7]VPLZKZYR376XOM7QBRYHDYPVRRGPI74J2F2UFNG33M45EFUQF2CA 7  DATA SIGNATURE ::
+#,,,,,...,..,,..,,.,,,.,,,.,,,.,.,.,,,,..,,,,,..,,...,..,,.,.,,,,,..,,,.,,.,.,
+#FTLQO2P77XGTCUIW4VU7L2I5MJCEQKU5ZAUN7I2E4HMBYIZMCEN6OGMYB2PJ7H74OPURYMJG7QTYK
+#\\\|DTHUZFVWIEMZM3R5UVP5AJF5CGZLFHVAPV3XC27DD5YZF2JRPWY \ / AMOS7 \ YOURUM ::
+#\[7]S5ANPCLUNFPR443V7VPT7HSNTTWAD343OTUSE4BPFGC5KSS64ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

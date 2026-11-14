@@ -31,7 +31,7 @@ my $vdir     = "$base/vault";
 my $root_key = 'vault:main';
 my $holder   = "$base/holder";
 $ENV{'N7FS_HOST_DIR'}       = $hdir;
-$ENV{'N7FS_TEST_PACK_SIZE'} = 1024 * 1024;
+$ENV{'N7FS_TEST_PACK_SIZE'} = 1024;
 vault_init( $vdir, 'vp', undef, t => 1, m => 1024, p => 1 );
 
 sub cli {
@@ -464,13 +464,29 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
         'unique' => "old unique\n",
         'shared' => "shared\n"
     );
-    import_tree( 'snap.current', $clock, 'shared' => "shared\n" );
-    ( $rc, $out )
-        = cli( ['vp'], 'seal', $disk, '-root-key', $root_key,
-        '-out', $holder, '-all-trees' );
+    import_tree(
+        'snap.old-b', $clock - 20 * $y4,
+        'unique-b' => "old unique b\n",
+        'shared-b' => "shared b\n"
+    );
+    import_tree( 'snap.pinned',  $clock - 19 * $y4, 'pinned' => "pinned\n" );
+    import_tree( 'snap.current', $clock,            'shared' => "shared\n" );
+    import_tree( 'snap.current-b', $clock, 'shared-b' => "shared b\n" );
+
+    foreach my $tree (
+        qw| snap.old snap.old-b snap.pinned snap.current snap.current-b |) {
+        ( $rc, $out ) = cli(
+            ['vp'],    'seal', $disk,   '-root-key',
+            $root_key, '-out', $holder, '-tree',
+            $tree
+        );
+    }
     ( $rc, $out )
         = cli( ['vp'], 'retain-set', $disk, '-root-key', $root_key,
         'snap.', '1Y4' );
+    ( $rc, $out )
+        = cli( ['vp'], 'tree-pin', $disk, '-root-key', $root_key,
+        'snap.pinned' );
     ( $rc, $out )
         = cli( ['vp'], 'retain', $disk, '-root-key', $root_key,
         '-grace', '0Y3' );
@@ -481,6 +497,10 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
     );
     ( my $fault_head_before, my $fault_map_before ) = read_map();
     my $crash_pack = $fault_map_before->{'nodes'}{$shared}{'blob'};
+    my %crash_pack = map { $fault_map_before->{'nodes'}{$ARG}{'blob'} => 1 }
+        grep { defined $fault_map_before->{'nodes'}{$ARG}{'node'} }
+        keys $fault_map_before->{'nodes'}->%*;
+    my @crash_packs = sort keys %crash_pack;
     $sub = holder_sub($holder);
     {
         local $ENV{'N7FS_TEST_FAULT'} = $fault;
@@ -500,12 +520,47 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
                 $crash_pack,
             'a crash before commit leaves the previous head authoritative'
         );
-        ( $rc, $out ) = cli(
-            ['vp'],    'repack', $disk, '-root-key',
-            $root_key, '-grace', '0Y3', '-threshold',
-            '0'
-        );
+        my @events;
+        my $original_check   = \&AMOS7::N7FS::Seal::holder_check;
+        my $original_receipt = \&AMOS7::N7FS::Placement::receipt_write;
+        my $original_gc      = \&AMOS7::N7FS::Seal::holder_gc;
+        no warnings qw| redefine |;
+        local *AMOS7::N7FS::Seal::holder_check = sub {
+            push @events, qw| check |;
+            return $original_check->(@ARG);
+        };
+        local *AMOS7::N7FS::Placement::receipt_write = sub {
+            push @events, qw| receipt |;
+            return $original_receipt->(@ARG);
+        };
+        local *AMOS7::N7FS::Seal::holder_gc = sub {
+            push @events, qw| gc |;
+            return $original_gc->(@ARG);
+        };
+        my $batch = eval {
+            AMOS7::N7FS::Seal::repack_packs(
+                qw| root |      => open_root(),
+                qw| holder |    => $holder,
+                qw| host_dir |  => $hdir,
+                qw| signer |    => key_file_signer("$hdir/host.key"),
+                qw| keep |      => [],
+                qw| grace |     => 0,
+                qw| threshold | => 0,
+            );
+        };
+        @crash_packs = map { $ARG->{'pack'} } $batch->{'packs'}->@*
+            if defined $batch;
+        $rc  = $EVAL_ERROR ? 1 : 0;
+        $out = $EVAL_ERROR // '';
+        ok( defined $batch
+                && $batch->{'repacked'} >= 2
+                && $batch->{'receipts'} == 1
+                && join( ' ', @events ) eq 'check receipt gc',
+            'several packs share one check, one receipt and one gc'
+        ) or say join ' ', $out, scalar @crash_packs, @events;
     } else {
+        ( undef, my $faulted_map ) = read_map();
+        @crash_packs = sort keys $faulted_map->{'superseded'}->%*;
         ok( -f "$sub/$crash_pack",
             'a crash after the receipt leaves the superseded pack in place' );
         ( $rc, $out ) = cli(
@@ -513,8 +568,9 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
             $root_key, '-delete',   '-grace', '0Y3'
         );
     }
-    ok( $rc == 0 && !-f "$sub/$crash_pack",
-        "recovery after $fault releases only the verified old pack" )
+    my $packs_left = grep { -f "$sub/$ARG" } @crash_packs;
+    ok( $rc == 0 && !$packs_left,
+        "recovery after $fault releases only the verified old packs" )
         or say $out;
     ( $rc, $out ) = cli(
         ['vp'],      'seal-recover',
@@ -738,8 +794,8 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
 
 done();
 
-#,,,,,..,,..,,.,.,,..,.,.,.,.,..,,,,,,,.,,,,,,..,,...,.,,,,..,,..,...,..,,.,.,
-#JY4QMAKIBEDXLCK2EWRHIZ4THBOSQDTIQFVZQR4WDDINSPQEAN64UXHND2Q56LKR2MKKELU6ZBZLK
-#\\\|YYHYV45DT3BAU2Z2DQ6ZOBUZZNEISHQMT5HPN6MN2NLDP4G2CHQ \ / AMOS7 \ YOURUM ::
-#\[7]27BZGGXO74A3D3TEB7XILKUHWVKQVTXTHR5GXQFHD4KJOO47UUBA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,,,.,,,.,,,.,.,,..,,..,,.,,,.,,..,,...,...,..,,,,.,.,,,...,.,.,
+#I23KQSBQYFYLKL6KU2YX7QDKNKWD5P726FYXQRQTK67ZURR5O7R3YCHEZFCU4RXVYVA5CGKTG3RJW
+#\\\|MLLPUMBGT7E6J4JZ556ZZK7OVUC36HRXDBTJGEXIP3M6B6SS7NM \ / AMOS7 \ YOURUM ::
+#\[7]J4NZE4M7JBOHWD5VUGPSYB3JHJI65OTXSAQXDFZGHJWMAIBTOKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
