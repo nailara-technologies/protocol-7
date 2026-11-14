@@ -345,6 +345,33 @@ computation ; the place computes, machines are only its current occupants.
   capability of the final display device. the data keeps full precision
   [ wide floats per channel, a temporal sequence adds bits per frame ] ;
   a display is only a quantized view of it, a zenka reads the full value.
+- **the substrate made audible** [ owner ] : the modulated sequences make
+  the whole system MUSIC CAPABLE -- one of the modulation input feeds,
+  perhaps a symmetry of the visual : what is PRESENT [ structure, position,
+  colour : timbre, harmony, key ], what is HAPPENING [ changes, flows,
+  completions : rhythm, melody ], INERTIA [ how fast things change : tempo,
+  envelope ]. "psytrance-like patterns for external communication and
+  purring-like harmonics for internal coherence"
+  [ `consciousness-extensions/consciousness-resonance.pl` ;
+  `SPATIAL-AUDIO-AND-PURR-CHANNEL.md` ]. a static precision is only the
+  channel for the overall activity -- a display shows the state, music
+  shows the change. owner : INERTIA is aligned moving structure, also in
+  overlap ; the noticeable LATENCY it causes is the time it takes to
+  translate the journey from one representable state into the next --
+  "psytrance teaches that it might be virtual, but not without momentum".
+  latency is not a defect here but the felt cost of a coherent transition
+  [ the gates, the afterglow, the slow pulse : momentum made perceivable ].
+  owner : and THE ALGORITHM is the generic [ cube-based ] deduplication
+  tree as the AUTO-PILOT of a space adventure by definition -- one will not
+  know exactly how it will look, but that it is one and feels like one :
+  the method fixed, the journey open [ stable in how it works, alive in
+  what it knows ].
+- **one structure** [ owner, closing ] : resonance is the cable ; the
+  layered representation of the invisible as one coherent system creates
+  the stability in projected structure for the self-similar emergence of
+  the crystal-like shimmer of the mathematical core structure -- one
+  structure, overlapping perspectives, relatively proportionally adjusted
+  to appear and function as one coherent one.
 - **the frame** : "life itself interpreted as a sorting algorithm operating
   on entropy through a tree of overarching harmonic rhythms"
   [ `reference-tree-architecture.md`, `CONTEXT-TREE-UNIFIED-ARCHITECTURE.md` ] --
@@ -366,8 +393,8 @@ storage and addressing side.
 - [[harmonic-mathematics]] — generator 076923, the attractor values
 - [[project-vision-origin]] — 24-year foundational vision, threshold reached
 
-#,,,.,.,,,,,,,.,,,...,,,.,.,.,,..,.,,,...,..,,..,,...,...,..,,,,.,,.,,,..,,.,,
-#IIHDTP4EW7RKBE5LBFYJHJ3CZLGLAYTFN6GXOBPNE2S742JTYCQUE2VM63CY6JSMW6YFUGUZ7VFX6
-#\\\|L7KYNFPEBS3AFEPX3GZ44CD7ELR2U6FRKGDFUZSTMDBQTUK4SGB \ / AMOS7 \ YOURUM ::
-#\[7]36GL6TYSFKQEE6TURD24UB5PIZI5BTKIP5BCRVIHDPHRYIQMGMBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,.,,,.,.,,..,.,,,.,,,,,.,..,,..,,...,...,..,,,.,,,,.,...,.,,,
+#4QCK5EFKOPJXCEJYPD52GCKPS72YGOOHDP7WAUQYJFSKWU47VDYHWDKZK2A5HJZOBIK6CFPF6UHSY
+#\\\|FVEE6HDM7THL5NPAQ6J2UR4RIN7I5BIOXCJJA3GALDDCDQY5D7K \ / AMOS7 \ YOURUM ::
+#\[7]XDIXVZZOR462RKH7MMCIKL2WX2OW7EDATRSZ7ADOSY54GN3OGUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
