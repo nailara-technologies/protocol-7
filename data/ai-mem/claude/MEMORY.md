@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [n7fs-go-live-and-terminal-follow-ups](project-2026-11-14-n7fs-go-live-and-terminal-follow-ups.md) — NEWEST : go-live in progress, v1 holders re-sealed from source, upload regression fixed 32383cdf4 ; follow-ups AMOS7::SSH, progress line, ncode confirm
 - [session-handover-n7fs-fable-design-built](project-2026-11-14-session-handover-n7fs-fable-design-built.md) — NEWEST, START HERE : Fable N7FS design 5 7 8 9 10 fully built + pushed ; nothing live until owner all-clear ; Fable window plan
 - [kimi-restores-files-it-did-not-touch](feedback-kimi-restores-files-it-did-not-touch.md) — kimi git-restored my notes twice + deleted a memory file : prompts forbid touching files it did not change ; commit notes first
 - [p7-config-style-not-json](feedback-p7-config-style-not-json.md) — hand-editable files : p7 config style, `=` and `:` equivalent, never json [ owner 2026-11-13 ]
@@ -97,8 +98,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,..,,,,,,.,.,,.,,,,,,,..,,.,,..,,,..,,,,,..,,...,..,,...,..,,,..,,..,,,,,
-#W7VMYBB2QLGGK6N4GT4ZO7JWK6TGFE6APW55NQMJLKKYL7UDFT2M2YTM6N5LBMEU2XXBTSH727L2E
-#\\\|HA5B6U6QMIDCHMGMQFKL5EMVJHAEGK46LQJ2C5RHZ4SUG7J5Z4H \ / AMOS7 \ YOURUM ::
-#\[7]BQ6HUQ7TAFGYPYZ3M64EPJY2GKXERJ5QQF4NJDVOGWJ3DUSYHQAQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,.,.,.,,,,..,,.,,,.,,...,,,,,..,,...,..,,..,,,.,,.,.,,..,.,,,
+#J76DDU4LKQV2FVKJI75T3277PLC66AD7ZSICGUW2WN4OJ2Y7XYBA7W4OJZQF4ND66XU2HBIWD7ONQ
+#\\\|LPKCYA3YPSA7QRATFZ5L3XPDLGX4IERIAOV2R32B6LCW5PA7GV3 \ / AMOS7 \ YOURUM ::
+#\[7]MONOZFCII4S2BJVD3S4SMNSKTRNJBKLWTJCBWNB6HWMRTJ326QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

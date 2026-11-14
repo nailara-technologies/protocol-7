@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.7N7XQMA |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.WFAGSHQ |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -1253,16 +1253,17 @@ sub _manifest_entry_limit {
 }
 
 sub _manifest_seal {
-    my ( $root, $base, $plain, $domain, $version ) = @_;
-    my $sum    = bmw_b32( bmw384_bytes($plain) );
-    my $writer = _writer( _state_read($root) );
-    my $id     = _long_id( $root->{'keys'}, $writer, $domain, $plain );
+    my ( $root, $base, $plain, $domain, $version, $batch, $writer ) = @_;
+    my $sum = bmw_b32( bmw384_bytes($plain) );
+    $writer //= _writer( _state_read($root) );
+    my $id = _long_id( $root->{'keys'}, $writer, $domain, $plain );
     my $bytes
         = $writer
         . substr( $id, 16 )
         . seal_bytes( $root->{'keys'}, $plain, $domain, $id, $version );
     return {
-        qw| blob |     => _write_blob( $root, $base, $bytes, qw| manifest | ),
+        qw| blob | =>
+            _write_blob( $root, $base, $bytes, qw| manifest |, $batch ),
         qw| checksum | => $sum,
         qw| id |       => b32($id),
         qw| writer |   => b32($writer),
@@ -1330,6 +1331,10 @@ sub _chunk_tree_manifest {
         = map { join( "\0", @{$ARG}{qw| path part checksum |} ) => $ARG }
         @{ $previous->{'chunks'} // [] };
     my @chunks;
+    ## one writer read and one holder batch for the whole tree : a chunk ##
+    ## per directory made thousands of single puts [ 2026-11-14 ]        ##
+    my $writer = _writer( _state_read($root) );
+    my @batch;
     foreach my $path (@order) {
         my $entries = $directories{$path};
         my $limit   = _manifest_entry_limit();
@@ -1344,8 +1349,8 @@ sub _chunk_tree_manifest {
             my $sum   = bmw_b32( bmw384_bytes($plain) );
             my $key   = join "\0", $path, $part, $sum;
             my $desc  = $previous{$key}
-                // _manifest_seal( $root, $base, $plain,
-                qw| manifest-chunk |, $version );
+                // _manifest_seal( $root, $base, $plain, qw| manifest-chunk |,
+                $version, \@batch, $writer );
             push @chunks,
                 {
                 %{$desc},
@@ -1361,12 +1366,12 @@ sub _chunk_tree_manifest {
             qw| chunks | => \@chunks,
         }
     );
-    return {
-        %{$tree},
-        qw| index | => _manifest_seal(
-            $root, $base, $index_plain, qw| manifest-index |, $version
-        ),
-    };
+    my $index
+        = _manifest_seal( $root, $base, $index_plain, qw| manifest-index |,
+        $version, \@batch, $writer );
+    holder_put_batch( $base, \@batch );
+    unlink $ARG->[0] for @batch;
+    return { %{$tree}, qw| index | => $index };
 }
 
 sub _manifest_index_read {
@@ -3456,8 +3461,8 @@ sub shred_node {
 
 1;
 
-#,,.,,,.,,,..,...,.,,,,..,,,.,,,.,,.,,...,.,.,..,,...,...,...,..,,.,.,.,,,,,.,
-#2MOLS7UQMBHF52ERGRZLQ4MYYO2PC4YXR5ZFWZIDZW4X3O3UFD3DGEXSS3MSQPAIM2B7FIWY3QDNM
-#\\\|TVL5URLS6NUI3O3P6NRS62DQNCTHSZ6GZY5ROLDDLWE3F3J52XS \ / AMOS7 \ YOURUM ::
-#\[7]GHGBWHTDQRKJSAWOZ7EUPSABU7NVNKXTWZI6VHTDATUUIUG54ACY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,...,,..,...,,.,,.,.,.,.,.,,,..,,...,.,,,...,,,.,,.,,,.,,.,,,
+#JSAN2NXFUTKPRECUQJSYM5BRRG3ZMQCUGYEX7SFUV4FSLWSOIWXDVQG7EHW5PNMKMJF5JODIE3ENY
+#\\\|4UHJY7BFPJP6VBIQZEDMFKBA7BS6GSSHM43IPN3LBRJTY4E4TZ3 \ / AMOS7 \ YOURUM ::
+#\[7]BZYOVPUGJQGDXCQM4T4BZ3QQKNN7ERTKRV3D7JCGDRPWWKYMUCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
