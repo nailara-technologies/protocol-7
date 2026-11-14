@@ -34,10 +34,30 @@ metadata:
   "\r\n" so no shared state ; cursor hidden while it runs, restored on END \ INT \ TERM ;
   confirms like bin/ncode user_confirmed [ one key, raw mode ] and warn_apply [ blinking
   .: A P P L Y I N G :. , any key aborts ] before destructive cycle phases ; no tty = flags.
+- cores : the start [ placement, dry run, place each replay the journal over 92k nodes ]
+  and sealing are single core. first a cached replay state shared by the three, then N
+  forked sealers building their own packs [ parent maps + commits, head last ] ; default
+  workers = twice the cores [ owner 2026-11-14 ], an option overrides. a shared queue,
+  not fixed columns : workers pull small batches when free, biggest nodes first, so the
+  end does not taper off [ like _parallel in the relay ]. reuse the
+  multi-core pattern of update-signatures \ verify-p7-signatures [ sourcecode zenka, src/ ].
+- json : n7fs was meant to be json-free, only the registry \ cycle state moved [ 973608c34 ].
+  JSON::PP is the single-core hot spot : 1024 shards encode 3.1 s vs 0.12 s XS, decode
+  23.8 s vs 0.16 s. step 1 [ after the kimi run ] : JSON::XS, JSON::PP fallback with a
+  degradation warning, compare canonical bytes on real map data first [ SIV names ].
+  step 2 : a json-free n7fs format version [ shards, manifests, journal ] -- design stage,
+  dual reader or re-seal, Fable window candidate.
+- -check-full : 3 ssh range reads per node ; use holder-check -scrub for full coverage until
+  it is batched.
+
+**live state 2026-11-14 evening** : host hard-crashed under the sustained wlan push [ usb
+wlan, same as every holder push ; /tmp wiped ] ; home-packed 12 G of ~16.3 G committed, pri
+empty. b611a3601 background uploads ; script now ~/.n/n7fs/golive-2.sh [ -bwlimit 4M ].
+owner order : wire the LAN cable, finish the re-seal, then the native linux install.
 [[n7fs-host-migration-goal]] [[session-handover-n7fs-fable-design-built]]
 
-#,,,.,.,.,,.,,.,,,...,..,,.,.,.,.,.,.,...,...,..,,...,...,...,,.,,.,.,.,,,,.,,
-#J24WOIBBEZBAYO72QRY3GW5IDDD7GDJXG27CB4QAT6IGA7QOIFLASTXITDBRGRCSK7I5AUZDZGLYS
-#\\\|QL2XTUV3QOT4MXDSINYIRIOY7VWH5ZWQHXPSFOSQRJ3JUILZPYT \ / AMOS7 \ YOURUM ::
-#\[7]ZX556OYK7KPKRCFXZOCHWLM7SAZDUKLU2BLZSU5EUCUWS3VCFABA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,.,,,,,.,,,.,,.,,.,.,.,.,..,,..,,...,...,..,,,.,,...,,..,..,,
+#6ETOZO3U5HBLI6IOT3JQ6KPJMITJRC5SRERC3SGJCY6WDJ2X4FEOSIOZCHUC2MLMGUCFKFPCIE2VE
+#\\\|6CFB7AJCZW7KWRCARYWLE77LF6ZCKX3RVZXXXV3N7CYVB7RN5R4 \ / AMOS7 \ YOURUM ::
+#\[7]P4MC6HKJJSPK3A6Q3WDHBUYCA7XGSU7JPPDCKNKTAJXNB6WO3MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

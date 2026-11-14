@@ -18,13 +18,13 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.DBOJORY |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.CO2Q2HY |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
     receipt_coverage receipt_covered receipt_digest n7fs_now clock_floor_reset
     placement_report place_missing parse_size parse_age holder_drain
-    holder_prune holder_rename holder_room holder_accepts |;
+    holder_prune holder_rename holder_room holder_accepts journal_replay_cached |;
 
 use JSON::PP;
 use AMOS7::NTIME qw| parse_y_age |;
@@ -559,6 +559,37 @@ sub receipt_coverage {
         // qw| sampled |;
 }
 
+## planning and the seals it starts share an authenticated replay. journal
+## entries are immutable : the directory and newest entry identify its
+## position
+my %REPLAY;
+
+sub _journal_position {
+    my $id  = shift;
+    my $dir = "$id->{'path'}/.n7fs/journal";
+    return 'missing' if not -d $dir;
+    opendir( my $dh, $dir ) or refuse('cannot read the disk journal');
+    my @names = sort grep {m|\A\d{14}[.]journal\z|} readdir $dh;
+    closedir $dh;
+    my @dir_stat  = stat $dir;
+    my @last_stat = @names ? stat "$dir/$names[-1]" : ();
+    return join ':', @dir_stat[ 0, 1, 7, 9, 10 ], scalar @names,
+        @names ? ( $names[0], $names[-1], @last_stat[ 0, 1, 7, 9, 10 ] ) : ();
+}
+
+sub journal_replay_cached {
+    my ( $id, $replay_fn ) = @_;
+    $replay_fn //= \&journal_replay;
+    return $replay_fn->($id)
+        if ( $ENV{'N7FS_JOURNAL_CACHE'} // 1 ) eq '0';
+    my $disk     = join "\0", @{$id}{qw| path store_pub |};
+    my $position = _journal_position($id);
+    return $REPLAY{"$disk\0$position"}
+        if exists $REPLAY{"$disk\0$position"};
+    delete @REPLAY{ grep { index( $ARG, "$disk\0" ) == 0 } keys %REPLAY };
+    return $REPLAY{"$disk\0$position"} = $replay_fn->($id);
+}
+
 ## every live node of the disk with its categories and size
 sub _disk_nodes {
     my %opt = @_;
@@ -567,7 +598,7 @@ sub _disk_nodes {
         defined $opt{'disk_root'} ? ( qw| root | => $opt{'disk_root'} ) : (),
         qw| disk | => $opt{'disk'}
     );
-    my $replay      = journal_replay($id);
+    my $replay      = journal_replay_cached($id);
     my $definitions = category_definitions( $id, $replay );
     my %cats;
     foreach my $ref ( values $replay->{'ref_history'}->%* ) {
@@ -1209,8 +1240,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,..,.,,,,,.,,.,,,,,,...,,,,,.,,,,,,,,,,,..,,...,...,.,.,,..,,,,,..,,,.,,
-#YC7NSILLYNFQ67MPEWUCXKS7YJGMHQPMJDGH5I6C2UBRSFJTXIQHBSTMTTB37JVGYZGLZIMRDULRM
-#\\\|NOHCWGCJGTLBWQFQXD6EYHISVUV2CPSMCCEOU5Q6MYGO46BJE2O \ / AMOS7 \ YOURUM ::
-#\[7]AGQX6HKFSDMOTVVATYDJQTDWSAUHYH7I4MS3UAU6BUBORNJCJMAA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,,,.,.,...,.,.,...,,,.,...,,..,..,,...,...,.,,,.,,,,.,,..,,,.,,
+#VONY5VSS56BF3L3BSHXO5T5YWWSDMTWJRC5BMHOA7RM2A46LCXYPKUMJ5NVQDRXJIYNAQ3D2UVWNW
+#\\\|OV3M5F7WXBZ2QRG4BPVCDFJRFK2JDTTZ7RBOVEJLVTMYC7KVDKK \ / AMOS7 \ YOURUM ::
+#\[7]GCZTRZQRIKOMFYZOD335NJLW223OB5Z4ZAH23VASFG6XRKO3PIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

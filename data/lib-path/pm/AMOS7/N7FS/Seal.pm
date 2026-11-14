@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.OEX2PSY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.EB2OW5I |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -1585,7 +1585,9 @@ sub _select_addresses {
     );
     my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
     refuse('sealing needs store format 3') if $state->{'store_format'} != 3;
-    my $replay      = journal_replay($id);
+    require AMOS7::N7FS::Placement;
+    my $replay = AMOS7::N7FS::Placement::journal_replay_cached( $id,
+        \&journal_replay );
     my $definitions = category_definitions( $id, $replay );
     my %node_categories;
 
@@ -3513,8 +3515,8 @@ sub shred_node {
 
 1;
 
-#,,.,,...,..,,..,,.,.,,,.,,,.,..,,,.,,...,,.,,..,,...,...,,..,..,,...,,..,...,
-#4N2KRPGET4YRZ7PCWDS3A5TIQKOJ4SGBZCB2S76TGGD6AREEYGMNDIPGCPCGUK27SSDMQM4QOCQ6O
-#\\\|77NQDWNDRAGZOLVVPASU6NI3URMUGNFAYDW2RG3WCNP236HT5FG \ / AMOS7 \ YOURUM ::
-#\[7]NC7FYYFWV2Z2YSLR7KS22EV5OWSDDJDODQEUQHWC2SK4OLQFLKDY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,.,,,,,,...,,,,,,..,...,.,,,.,,,..,,...,...,,..,..,,..,,.,.,,..,
+#DIGVWX4RSLXQNWGDCEDGJRQRSVOZP6API5G2JP25ZITZNIK7I4KBYVBBIGLP7PFFTUWFDMOD34AM2
+#\\\|LBMGUERYC3CWLFT4RUCZPYHI44HE3RYU2UYZ3VWBR2JXJ4V3TP2 \ / AMOS7 \ YOURUM ::
+#\[7]IZFWBURE2FJEG4LSKR7FBGROLKOOX2EAQXFKOGHOQENJROFTPQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

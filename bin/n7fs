@@ -192,6 +192,7 @@ use warnings;
 ## n7fs placement <disk> -root-key <key>    copies per category, report only
 ## n7fs place <disk> -root-key <key> [ -dry-run ] [ -no-check ]
 ##                 [ -check-full ] [ -unreachable-grace <n>Y<level> ]
+##                 [ -commit-bytes <size> ] [ -commit-age <n>Y<level> ]
 ##                 seal what is missing ; a place ends with a holder-check
 ##                 of every holder it wrote [ sampled ; -check-full
 ##                 authenticates every chunk, -no-check leaves the new
@@ -283,7 +284,7 @@ GetOptionsFromArray(
         via=s access=s holders import-holders all-holders state-dir=s
         method=s snapshot-cmd=s staging=s keep-staging=i shrink-limit=f
         hold=s no-hold for=s at=s status no-destructive accept-shrink
-        offline max-bytes=s |
+        offline max-bytes=s commit-bytes=s commit-age=s |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -3021,6 +3022,14 @@ sub cmd_place {
         qw| unreachable_grace | => defined $o{'unreachable-grace'}
         ? AMOS7::N7FS::Placement::parse_age( $o{'unreachable-grace'} )
         : AMOS7::N7FS::Placement::parse_age('1Y2'),
+        defined $o{'commit-bytes'}
+        ? ( qw| commit_bytes | =>
+                AMOS7::N7FS::Placement::parse_size( $o{'commit-bytes'} ) )
+        : (),
+        defined $o{'commit-age'}
+        ? ( qw| commit_age | => AMOS7::NTIME::parse_y_age( $o{'commit-age'} )
+            )
+        : (),
     );
     my $failed = 0;
     foreach my $name ( sort keys $r->{'plan'}->%* ) {
@@ -3109,8 +3118,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,,.,.,.,,,.,,.,,.,.,,,.,,,.,,..,.,.,...,..,,...,...,..,,.,,,,,.,,,.,.,.,
-#RPZFF55A6JREDFXU6LL4CPALSI6GRADRO4TXQAEDPR6AHHZXLHCWQDVNO33YK4BVBKAJEI2FZKMYI
-#\\\|5CUL7DNHGFDWRCWUQJYKNFRAVA5QOI7C4THXGPOC7FPFKO2WTRK \ / AMOS7 \ YOURUM ::
-#\[7]EBMO57JLEDI5JRFAR56WXMR2PYUWJZNGILDAG5VT5WZOZVNII4DA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,,,..,,.,.,..,,...,,.,,.,,,,,.,..,,...,...,...,...,.,.,,,.,...,
+#PEDKONR4RUOUGFPIT63A3TA4OMW2VW2HXCFC3GHSBJJIP7MORWCYMGWXYYEAFCC7WTNKDI264EO56
+#\\\|HZUIY3D3HHABVLFXO4UFZBPBD6HTM2UK3O5OQLVAIBH4K7SHMIO \ / AMOS7 \ YOURUM ::
+#\[7]6U42MKACFWDXWXOKW3YRILKJ4SY5YBJNXRWEDHIYSJQYD6XXH2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
