@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.IIHLA2I |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.3QBI4SA |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -91,6 +91,9 @@ sub _root {
 
 sub _legacy_write {
     my ( $h, $operation ) = @_;
+    ## once per holder and operation : a place writes thousands of blobs ##
+    state %warned;
+    return if $warned{"$h->{'spec'}\0$operation"}++;
     warn ": n7fs : warning : legacy full-shell "
         . "ssh $operation on $h->{'spec'}\n";
     return;
@@ -1071,8 +1074,8 @@ sub holder_put {
 
 1;
 
-#,,.,,..,,.,,,.,,,..,,,..,,,,,,..,,,.,.,.,,,.,..,,...,...,..,,..,,,,,,,,.,,,.,
-#D7XU3QHD6PNXVXYVSXCWCIJ67DEDB3HRWPX4MIUVPTCZ557SWIHUZBWHEUZSJCM5QNOYOH4YLCB3U
-#\\\|EQW4INJQKC5IGQKS5NUZX34O5ML7RZAFUYJ4WCTD3LAKWS4VKOM \ / AMOS7 \ YOURUM ::
-#\[7]3CTWTRWG7YGRLKIE53G7JZECPV7KH6D3VVSF4AIWNSXX35FB2GCY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,...,...,..,,.,.,.,,,,,,,.,,,..,,...,...,,,.,,..,...,,.,,,..,
+#Y2ETRL2LIGHUKVY6MT3GK64UXQBIB2ANBFZ7TI7DCTXQBNWMILFJEB3RESF3FZSFZR6GFEX2ZBM72
+#\\\|7GFXNMJ6W66Q4EIDWI5EMR273WRML4SXZM7VPADIFN4BRHPSKCC \ / AMOS7 \ YOURUM ::
+#\[7]5M6KW2YE5ONHKWB3DVEVHPP3UFAUGZ5WPPGEIAMKTOPQNMXPEYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
