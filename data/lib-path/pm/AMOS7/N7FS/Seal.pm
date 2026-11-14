@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.6PVS27Y |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.NEY5CFI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -228,7 +228,9 @@ sub unwrap_bytes {
         $domain, $id, $counter );
 }
 
-sub _state_dir { return "$ARG[0]->{'path'}.state" }
+sub _state_dir {
+    return $ARG[0]->{'state_dir'} // "$ARG[0]->{'path'}.state";
+}
 
 sub _replace_file {
     my ( $path, $bytes ) = @_;
@@ -421,15 +423,31 @@ sub receipt_record {
 }
 
 sub _peers {
-    my ( $state, $holder ) = @_;
+    my ( $state, $holder, $root ) = @_;
     return {
         map {
             my $known = $state->{'holders'}{$ARG};
+            my $drill;
+            if ( defined $root and defined $root->{'host_dir'} ) {
+                require AMOS7::N7FS::Drill;
+                $drill
+                    = AMOS7::N7FS::Drill::drill_latest( $root->{'host_dir'},
+                    $root, $known->{'spec'} );
+            }
             $ARG => {
                 qw| v | => $known->{'version'} // 0,
                 qw| t | => $known->{'time'}    // 0,
                 ref $known->{'receipt'} eq qw| HASH |
                 ? ( qw| r | => { $known->{'receipt'}->%{qw| v t c n |} } )
+                : (),
+                defined $drill
+                ? ( qw| d | => {
+                        qw| t |  => $drill->{'time'} + 0,
+                        qw| tr | => $drill->{'tree'},
+                        qw| f |  => $drill->{'files'} + 0,
+                        qw| b |  => $drill->{'bytes'} + 0,
+                    }
+                    )
                 : (),
             }
         }
@@ -581,7 +599,7 @@ sub _context {
             : (),
         };
     }
-    _state_write( $root, $state );
+    _state_write( $root, $state ) if not $recover;
     $state->{'new_holder'} = not defined $head;
     $state->{'holder_id'}
         = defined $head ? $head->{'holder'}
@@ -934,7 +952,7 @@ sub _commit {
     my $head_name = _head_name($root);
     my $head_bytes
         = _head_bytes( $root, $writer, $version, $holder, $time,
-        $map_desc, $journal_name, _peers( $state, $holder ),
+        $map_desc, $journal_name, _peers( $state, $holder, $root ),
         $registry_desc );
 
     if ( holder_parse($base)->{'type'} eq qw| ssh | ) {
@@ -1057,7 +1075,7 @@ sub head_refresh {
         : _manifest_seal( $root, $base, $registry, qw| registry |, $version );
     my $head_bytes
         = _head_bytes( $root, $writer, $version, $holder, $time,
-        $head->{'map'}, $head->{'journal'}, _peers( $state, $holder ),
+        $head->{'map'}, $head->{'journal'}, _peers( $state, $holder, $root ),
         $registry_desc );
     my $head_name = _head_name($root);
 
@@ -3425,8 +3443,8 @@ sub shred_node {
 
 1;
 
-#,,.,,,,.,,..,,,.,,,.,,,,,,.,,.,,,,,.,.,.,,.,,..,,...,...,.,.,,,,,..,,.,,,.,,,
-#2HQYTOEMFZA3I7ELFT4EEDX34FT4MR7JWUL3D7ZILWFYNUR65DBHFRHWWPWV4Y53UZJ5QRBKYBRMG
-#\\\|WPDR2KYFWYQ67TBPKB46QHD773Y5DJJ66AMDVBOXO5MGRXRKRMX \ / AMOS7 \ YOURUM ::
-#\[7]74DZOKW2CEK7ZNY4MBIQIC3EYDHAMTGIFXRP3K477RCMEVI7SICY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,...,.,,,,,,,,..,.,.,,,,,,.,,..,,...,...,,,.,..,,,.,,.,,,..,,
+#SCFEZK5T3IDXQGCU3QV5UG3U6T32U62FCELRKF7WTPYTIC7V7JH5FNDXYL7NMO6CRMSAGM3SDU7QU
+#\\\|4TSMMK27LQPCTNRUW2RXAPOAO4H774SNLMB6RYOZXHE5KHZ6ESO \ / AMOS7 \ YOURUM ::
+#\[7]4CURQOGM7CP7UDOVH4DUC4K7JMBIUC5W2MKJLIPDNWP5MU7HR4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

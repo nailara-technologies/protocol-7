@@ -408,6 +408,57 @@ derived, not stored ] :
   completes it, so starting means meaning it ; a user merely probing
   whether it would pass gets, by unfailing statistics, a pass-through no-op
   [ answered, never executed ] -- probing costs nothing and commits nothing.
+  owner : the STATISTICAL SORTING incentive -- a user has no reason to ruin
+  their own statistics by sabotaging self-initiated activity : after the
+  final confirmation of the exact agreement it may not even be possible,
+  and if it is, their history pushes their next proposals back among
+  similar ones [ less immediacy ]. no punishment needed, the sorting does
+  it. fairness : an abort through no fault of one's own [ a holder dropping
+  out, the network breaking ] must stay neutral -- the gated states name
+  the gate that did not open and so WHO missed their own condition ; only
+  that party loses ranking.
+- **the latency grid : predictability over raw speed** [ owner ]. the
+  handshake steps are clean enough that technical reasons can POSTPONE a
+  final confirmation but never degrade statistics. activities fit into a
+  grid of time and resources ; landing in the predicted slot matters more
+  to the network than the lowest latency at every attribute does to a user
+  -- alignment precision reduces time friction, which raises throughput in
+  cycle count, also for the user's own activity. matching, not maximum : a
+  slow system needs no lowest-latency resource and could not saturate the
+  widest bandwidth anyway. nothing is overbooked : a geometrically fitted
+  drop-in system of ALTERNATES with overlap, redundancy kept as integer
+  floors, while covering optimum saturation. the overlap is the slack that
+  absorbs prediction error without breaking the grid. = the "booked time
+  cells" of N7FS-SEALED-REPLICAS.md on the Y grid, with placement's integer
+  floors. bursts are pre-registered : `space.orbit.aura.register` books a
+  burst capacity profile BEFORE traffic arrives, the aura built from the
+  node's reference history [ `SPACE-ENGINE-MASTER.md` ] -- earned, not
+  claimed, so not grindable. and `TASK-CUBE-CONSENSUS-ARCHITECTURE.md` :
+  burst capacity is guaranteed by participation ; the worst case is WAITING
+  for the accumulated resource threshold, never an outright denial --
+  postpone, never degrade.
+- **visualization as a functional key again** [ owner ]. in layers the
+  picture is a way of READING, not an illustration : the cake diagram
+  [ `topic-checksum-addressing.md` : colour = one of 26 arcs = time range \
+  resource \ request window, angle = fine position, spiral depth = cycle
+  count ] is the latency grid's slot as a place ; the CCW radar spokes at
+  harmonic speed ratios give sync points without a timestamp field [ the
+  home ring's radar sweep ] ; the kitten hologram resource filter
+  [ `KITTEN-HOLOGRAM-RESOURCE-FILTER.md` ] stacks one filter layer per
+  kitten over the resource colour stream, the quorum signature emerging
+  where layers overlap -- the same shape as category keys and index layers :
+  each layer a key, only the overlap of all passes what is meant. and the
+  iris [ arcs on rings, spirals -- `VORTEX-LAYER-IRIS-CONNECTION.md` : iris,
+  layer stack and vortex are one object seen from above, the side, in
+  motion ] already DISPLAYS these mechanisms : `iris-ring-ledger-mode` [ the
+  disc as a living NRT resource ledger, a 3-bit octal counter per arc per
+  ring, consumption clears bits -- the pool ledger schema that
+  loves-it-tree.md :409 calls missing ], `iris-route-commitment` [ future
+  arcs bright, past dim, current brightest -- the gated transaction states ],
+  `iris-negotiation-window` [ remaining time per hop as a shrinking arc --
+  the hop budget \ gate timing ], `iris-temporal-mode` [ radius = time since
+  change, angle = BMW384 arc -- "the iris as a git log organized by field
+  topology" ]. several are in data/tasks/needs-testing/.
 
 see `data/md/design/N7FS-SEALED-REPLICAS.md` [ open : derived placement,
 home zenki ring ] and [[topic-checksum-addressing]].
@@ -1128,8 +1179,8 @@ User said "let us first dispatch something" while still mid-riff — dispatched
 to opus via claude_dispatch to draft a design doc capturing this material
 (see commit/doc once written). More nodes in this tree are expected to follow.
 
-#,,,,,...,,.,,,,,,..,,.,,,,.,,,,.,.,,,...,.,.,..,,...,...,...,,.,,.,,,.,,,,..,
-#VWJTEYGI7ZRGUFTB4TZSLZJMS2H3OGK3A7GHTE5XSMVIJIWDMLM74DWT3TUUPUBHXZHTNKZR2OXK6
-#\\\|QMI6VW3ITR4MS2A2PAMR5WRT7WWFXZAEU2Q4K3B7SBI2FCJMRU6 \ / AMOS7 \ YOURUM ::
-#\[7]5S3MIIQUWMT62J5KYZHIWQPOOVBIVGAZWWP4IACOU2MULYKG4ACI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,.,.,,.,,.,,,...,.,,,.,,,..,,..,,...,...,.,.,...,,.,,..,,..,,
+#GJMF2KBQN53WTN3P6PGYZ3QTDJK6BM2VGKCLLM4QTECOOTQN5EUZMFF3ICWHMZ5I4NA7FJF3IVVB4
+#\\\|ZZ6U73765K7LJE5SQSW6KE2NQOUVEEBMJ5TDUBGDQ4P2NEMLBL7 \ / AMOS7 \ YOURUM ::
+#\[7]YFORPPCXOXAUMKLJPF4YCWOCWVIMHNU6LCUSZ7SYIZXOXEWIHIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
