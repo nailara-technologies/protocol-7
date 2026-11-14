@@ -287,6 +287,8 @@ system( 'cp', '-a', "$base/h7/.", "$base/h8/" ) == 0 or die;
 ok( $rc == 0 && $out =~ m|matches the pin|,
     'a new spec reaching the same head moves the pin'
 ) or say $out;
+## registry publication advanced h8 ; moving back needs its current head ##
+system( 'cp', '-a', "$base/h8/.", "$base/h7/" ) == 0 or die;
 ( $rc, $out ) = cli(
     ['vp'], 'holder', 'rename',   'five',
     'five', '-spec',  "$base/h7", '-root-key',
@@ -804,8 +806,8 @@ ok( $rc == 0 && $out =~ m|would drop 5|,
 
 done();
 
-#,,,.,,.,,..,,..,,.,,,,,,,,,,,,.,,.,,,...,,..,..,,...,...,...,.,.,.,,,...,,,.,
-#RCNOZFIAYLS543DG7WPBAMUSDBBHUN22CVB6O6P6AWU54264HORJT4RBGT5SJQX3ST6RPIWNCQPBI
-#\\\|LNQJCPWHZNK4JZYUSYCOTZJRZ3GTYYWBZ43KYO6ZH6TF27WW3X7 \ / AMOS7 \ YOURUM ::
-#\[7]4MD43RL77NYNZNJTL2GGMYUBMCRADTCVXJUY2K7IL37BPT4Q46DQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,,.,,.,,,,.,,.,.,,,.,,..,.,,,..,,...,...,,.,,,..,,..,.,,,,.,,
+#PYJDEHS6CIRVYDOIQDJTYHXFPAHY7U4347Y4SULXKOAXYWMWD7AZJZRGZKKOLTAL5GMZKTNJIYKQQ
+#\\\|H7JFWGYL6N32UNTMVSLYDDIMAQS7RVXTUJTO37BPI7XIGVCHYH2 \ / AMOS7 \ YOURUM ::
+#\[7]CN4OIYBYAG3BVHSW6QQWIBR5B6H62KAJOZOCICNI2647266IZQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -196,25 +196,37 @@ ok( $rc != 0 && $out =~ m|sealed under another root|,
 ) or say $out;
 
 ## relay and holder-check under the wrong root refuse on their own : the ##
-## other root's head has another locator and another root id             ##
+## other root's head has another locator and another root id. each file  ##
+## root owns its registry ; no vault exists for these operations         ##
 my $holder_far = "$base/holder-far";
+rename $vdir, "$base/vault.absent" or die "remove vault : $OS_ERROR";
+for my $service ( [ 'main', 'main-pass' ], [ 'svc', 'svc-pass' ] ) {
+    my ( $key, $pass ) = @{$service};
+    for my $entry (
+        [ 'm1', $holder_main, 'a' ],
+        [ 'f1', $holder_far,  'b' ],
+        [ 's1', $holder_svc,  'a' ]
+    ) {
+        ( $rc, $out ) = cli(
+            [$pass],     'holder',  'add',       $entry->[0],
+            $entry->[1], '-domain', $entry->[2], '-root-key',
+            "$base/$key.key"
+        );
+        die $out if $rc;
+    }
+}
 ( $rc, $out )
-    = cli( ['vp'], 'holder', 'add', 'm1', $holder_main, '-domain', 'a' );
-( $rc, $out )
-    = cli( ['vp'], 'holder', 'add', 'f1', $holder_far, '-domain', 'b' );
-( $rc, $out )
-    = cli( ['vp'], 'holder', 'add', 's1', $holder_svc, '-domain', 'a' );
-( $rc, $out ) = cli( [ 'vp', 'svc-pass' ],
-    'relay', 'm1', 'f1', '-root-key', "$base/svc.key" );
-ok( $rc != 0 && $out =~ m|sealed head|,
-    'relay with the service root finds no main-root head' )
+    = cli( ['svc-pass'], 'relay', 'm1', 'f1', '-root-key', "$base/svc.key" );
+ok( $rc != 0 && $out =~ m|sealed head| && !-e $vdir,
+    'relay with the service root finds no main-root head, without a vault' )
     or say $out;
-( $rc, $out ) = cli( [ 'vp', 'svc-pass' ],
-    'holder-check', 'm1', '-root-key', "$base/svc.key" );
+( $rc, $out )
+    = cli( ['svc-pass'], 'holder-check', 'm1', '-root-key', "$base/svc.key" );
 ok( $rc != 0 && $out =~ m|sealed head|,
     'holder-check with the service root refuses the main holder' )
     or say $out;
-( $rc, $out ) = cli( [ 'vp', 'main-pass' ],
+( $rc, $out )
+    = cli( ['main-pass'],
     'relay', 's1', 'f1', '-root-key', "$base/main.key" );
 ok( $rc != 0 && $out =~ m|sealed head|,
     'the main root cannot relay the service holder' )
@@ -225,11 +237,8 @@ ok( $rc != 0 && $out =~ m|sealed head|,
 my $remote = "$base/remote";
 make_dirs($remote);
 my $spec = 'ssh-receiver:fake:/holder';
-( $rc, $out ) = cli( ['vp'], 'holder', 'add', 'rx', $spec, '-domain', 'b' );
-ok( $rc == 0, 'receiver holder registered' ) or say $out;
-
-( $rc, $out ) = cli( [ 'vp', 'svc-pass', 'main-pass' ],
-    'holder-receiver-line', 'rx',
+( $rc, $out ) = cli( [ 'svc-pass', 'main-pass' ],
+    'holder-receiver-line', $spec,
     '-root-key', "$base/svc.key", '-also-root-key', "$base/main.key" );
 my @pairs = $out =~ m|-root-pub|g;
 ok( $rc == 0
@@ -261,6 +270,12 @@ $ENV{'FORCED_RECEIVE'}   = "$FindBin::Bin/../n7fs-receive";
 $ENV{'FORCED_DIR'}       = $remote;
 $ENV{'FORCED_ARGS'}      = join ' ', @receiver_args;
 $ENV{'N7FS_SSH_BACKOFF'} = '0,0,0,0,0';
+( $rc, $out ) = cli(
+    ['svc-pass'], 'holder',  'add', 'rx',
+    $spec,        '-domain', 'b',   '-root-key',
+    "$base/svc.key"
+);
+ok( $rc == 0, 'receiver holder registered' ) or say $out;
 
 my $svc_tag  = AMOS7::N7FS::Seal::root_subdir($svc);
 my $main_tag = AMOS7::N7FS::Seal::root_subdir($main);
@@ -346,8 +361,8 @@ ok( !-e "$remote/$main_tag/$svc_blob",
 
 done();
 
-#,,,,,,..,,,,,,.,,.,.,,.,,,,,,.,,,...,,,.,,,.,..,,...,...,,,.,..,,,.,,,.,,,,.,
-#QE2DUK2GXGQ56BXX435R6AUDU3LGWONLY5IEEHZ24J5RC7UUT3QZVTIAMTERSU7UEYFQ57VHMEINE
-#\\\|SQYXJ4HENOFIB2JVKHSUHBU4NLXQFY2WQCTXOUGGMPZAZUF42JE \ / AMOS7 \ YOURUM ::
-#\[7]6HSZT5LUA2DPTW6QWFMBUFYTHUGDAFLE4D3PLJVWRRZ2RYSSZYAY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,..,,.,,...,.,,,...,,.,,.,,,,.,,..,,...,...,...,...,.,.,.,,,.,,,
+#NWOXHX7SZEBNDCVEYV3WFTUZZXS3SIWGXNPCCUQKVXQIC2GZA4MAMMW2T4F2TGRUUWTJZRSKYYNGC
+#\\\|AJXR46PV3MTVIRTBWMMNCKSRP3FNKJOIDAUWIRHNMMK6XA5MEPB \ / AMOS7 \ YOURUM ::
+#\[7]RPMROPCVNRLVUBWSQGPLQQEQFGLVFEGTNMN6RX4VB5JNLUDFLYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
