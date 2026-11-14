@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.PQWUMBA |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.OV6SUCA |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -2708,7 +2708,7 @@ sub repack_packs {
     refuse('repack threshold must be between 0 and 100')
         if $threshold !~ m|\A\d+(?:\.\d+)?\z| or $threshold > 100;
     my ( $counter, $head, $map, $base )
-        = _context( @opt{qw| root holder |}, FALSE );
+        = _context( @opt{qw| root holder |}, $opt{'dry_run'} ? TRUE : FALSE );
     refuse('no sealed head on this holder') if not defined $head;
     my $sizes = holder_sizes($base);
     my %packs;
@@ -3443,8 +3443,8 @@ sub shred_node {
 
 1;
 
-#,,.,,,.,,,..,...,,,,,,,,,.,,,.,.,.,.,.,,,,,.,..,,...,...,,.,,.,,,...,.,,,...,
-#5OBSBC6TMNXT2QYOZY3ALIHLUCWDKOUXN5D2WQSFAEJ7JHPWVUDBAZWKQLK2WAAP5XP4YAGR67VJO
-#\\\|2NY36ZWL265RADNFS3SNEWDVW7UOWWPWDIG2CDL7IHT2YKRZTPK \ / AMOS7 \ YOURUM ::
-#\[7]DYXREVJNGW23ZD2P3NJBDCL2U5OWTYCCIPKPE7MSX5UPJUTJGEAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,.,,,,,.,,.,,,,,,,.,,,,.,,..,..,,...,...,.,,,.,,,,,,,.,.,,,,,
+#LQU7MRC6FGRPWKVWGA4OHQ4IXGMWSPGPNCCHHYAFWNZZI4TPJZWIG4YNM4PH4GLXEG2QZFHA6E5FM
+#\\\|FLOHUPHL65JS27ZYRUQH7B4WFR2KKUPFAFAN4HEINUHGSFXHENB \ / AMOS7 \ YOURUM ::
+#\[7]QDX3QY5IRX24KBSRZDZY7YMLA5X6223PEV4MVFUSQYDP3H7ZMQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

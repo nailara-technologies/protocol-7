@@ -2,7 +2,7 @@
 
 package AMOS7::N7FS::Cycle;    ##############################################
 
-## host-local additive cycles : snapshot, place, relay, check, refresh, drill.
+## host-local cycles : additive placement, a strict gate and guarded cleanup.
 
 use v5.32.0;
 use utf8;
@@ -17,9 +17,9 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.PNJ6MHA |;
+our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.H55YUTQ |;
 
-@EXPORT_OK = qw| config_read state_read cycle_run cycle_status |;
+@EXPORT_OK = qw| config_read state_read cycle_gate cycle_run cycle_status |;
 
 use Fcntl qw| LOCK_EX LOCK_NB |;
 use JSON::PP;
@@ -31,7 +31,7 @@ use AMOS7::N7FS::Sign qw| key_file_signer |;
 
 my $JSON  = JSON::PP->new->utf8->canonical;
 my @STEPS = qw| A0-preflight A1-snapshot A2-place A3-relay A4-check
-    A5-refresh A6-drill |;
+    A5-refresh A6-drill gate D1-retain D2-repack D3-gc D4-purge D5-reclaim |;
 
 sub _cycle_dir { return shift . '/cycle' }
 
@@ -130,23 +130,30 @@ sub config_read {
     }
     my @known = qw| disk root-key pass-file vault-dir source snapshot prefix
         staging keep-staging shrink-limit snapshot-cmd category period check
-        scrub-every refresh drill-every drill-scratch pending-max |;
+        scrub-every refresh drill-every drill-scratch pending-max retain repack
+        gc-grace trash-age reclaim-local snapshot-only |;
     my %known = map { $ARG => TRUE } @known;
     refuse( 'unknown cycle config key [ %s ]', $ARG )
         for grep { not $known{$ARG} } sort keys %c;
     refuse( 'cycle %s needs disk and root-key', $name )
         if not length( $c{'disk'} // '' )
         or not length( $c{'root-key'} // '' );
-    $c{'snapshot'}     //= 'copy-verify';
-    $c{'prefix'}       //= 'snap';
-    $c{'keep-staging'} //= 1;
-    $c{'shrink-limit'} //= 30;
-    $c{'period'}       //= '1Y4';
-    $c{'check'}        //= 'sampled';
-    $c{'scrub-every'}  //= '1Y2';
-    $c{'refresh'}      //= 'yes';
-    $c{'drill-every'}  //= '1Y1';
-    $c{'pending-max'}  //= '3Y3';
+    $c{'snapshot'}      //= 'copy-verify';
+    $c{'prefix'}        //= 'snap';
+    $c{'keep-staging'}  //= 1;
+    $c{'shrink-limit'}  //= 30;
+    $c{'period'}        //= '1Y4';
+    $c{'check'}         //= 'sampled';
+    $c{'scrub-every'}   //= '1Y2';
+    $c{'refresh'}       //= 'yes';
+    $c{'drill-every'}   //= '1Y1';
+    $c{'pending-max'}   //= '3Y3';
+    $c{'retain'}        //= 'yes';
+    $c{'repack'}        //= 'yes';
+    $c{'gc-grace'}      //= '6Y3';
+    $c{'trash-age'}     //= '3Y2';
+    $c{'reclaim-local'} //= 'no';
+    $c{'snapshot-only'} //= 'no';
     refuse( 'cycle check must be sampled or full', $c{'check'} )
         if $c{'check'} ne qw| sampled | and $c{'check'} ne qw| full |;
     refuse('cycle keep-staging must be a positive whole number')
@@ -155,12 +162,22 @@ sub config_read {
         if $c{'shrink-limit'} !~ m|\A\d+(?:\.\d+)?\z|
         or $c{'shrink-limit'} > 100;
 
-    foreach my $field (qw| period scrub-every drill-every pending-max |) {
+    foreach my $field (
+        qw| period scrub-every drill-every pending-max gc-grace trash-age |) {
         refuse( 'cycle %s must use <n>Y<level>', $field )
             if not defined parse_y_age( $c{$field} );
     }
-    $c{'refresh'} = _bool( $c{'refresh'}, 'refresh' );
-    $c{'config'}  = $path;
+    refuse('cycle reclaim-local must be no or exactly 13Y2')
+        if lc( $c{'reclaim-local'} ) ne qw| no |
+        and $c{'reclaim-local'} ne qw| 13Y2 |;
+    $c{'refresh'}       = _bool( $c{'refresh'},       'refresh' );
+    $c{'retain'}        = _bool( $c{'retain'},        'retain' );
+    $c{'repack'}        = _bool( $c{'repack'},        'repack' );
+    $c{'snapshot-only'} = _bool( $c{'snapshot-only'}, 'snapshot-only' );
+    refuse('cycle reclaim-local needs snapshot-only = yes')
+        if lc( $c{'reclaim-local'} ) ne qw| no |
+        and not $c{'snapshot-only'};
+    $c{'config'} = $path;
     return \%c;
 }
 
@@ -373,10 +390,956 @@ sub _newest_snapshot {
     return $tree;
 }
 
+## the replication rule is a parameter so a holder quorum can replace strict
+## domain coverage without changing the other gate conditions or the pipeline
+sub cycle_gate {
+    my %opt  = @_;
+    my $rule = $opt{'rule'} // 'strict';
+    refuse('cycle gate rule must be strict or a code reference')
+        if ref $rule ne qw| CODE | and $rule ne qw| strict |;
+    my @conditions;
+    push @conditions,
+        {
+        qw| name |   => qw| additive |,
+        qw| ok |     => $opt{'additive_ok'} ? TRUE : FALSE,
+        qw| detail | => $opt{'additive_detail'}
+            // 'every additive step finished'
+        };
+    my @stale = @{ $opt{'stale'} // [] };
+    push @conditions,
+        {
+        qw| name |   => qw| stale-head |,
+        qw| ok |     => not( $opt{'stale_error'} or @stale ) ? TRUE : FALSE,
+        qw| detail | => $opt{'stale_error'}
+            // ( @stale ? join( ', ', @stale ) : 'no holder head is stale' )
+        };
+    my $frozen = $opt{'frozen'};
+    push @conditions,
+        {
+        qw| name | => qw| shrink-freeze |,
+        qw| ok |   => not( $opt{'freeze_error'}
+            or ( $frozen and not $opt{'accept_shrink'} ) )
+        ? TRUE
+        : FALSE,
+        qw| detail | => $opt{'freeze_error'} // (
+            $frozen
+            ? "freeze at $frozen->{'tree'}"
+                . ( $opt{'accept_shrink'} ? ' accepted for this run' : '' )
+            : 'no shrink-guard freeze'
+        )
+        };
+
+    my $clock_limit = parse_y_age('1Y4');
+    my $clock_delta
+        = ( $opt{'effective_now'} // 0 ) - ( $opt{'local_now'} // 0 );
+    my @clock_future = @{ $opt{'clock_future'} // [] };
+    my $clock_bad
+        = $opt{'clock_error'}
+        || $clock_delta > $clock_limit
+        || @clock_future;
+    push @conditions,
+        {
+        qw| name |   => qw| clock |,
+        qw| ok |     => $clock_bad ? FALSE : TRUE,
+        qw| detail | => $opt{'clock_error'} // (
+              @clock_future ? 'future heads : ' . join( ', ', @clock_future )
+            : $clock_delta > $clock_limit
+            ? "clock floor is $clock_delta ntime ahead [ limit $clock_limit ]"
+            : 'local clock, floor and head times are plausible'
+        )
+        };
+
+    my @under;
+    if ( not $opt{'coverage_error'} ) {
+        my $nodes  = $opt{'nodes'}  // {};
+        my $proofs = $opt{'proofs'} // {};
+        foreach my $address ( sort keys %{$nodes} ) {
+            my $node  = $nodes->{$address};
+            my $proof = $proofs->{$address}
+                // { qw| domains | => {}, qw| holders | => {} };
+            my $covered
+                = ref $rule eq qw| CODE |
+                ? $rule->( $address, $node, $proof )
+                : scalar( keys $proof->{'domains'}->%* ) >= $node->{'target'};
+            push @under, [ $address, $node, $proof ] if not $covered;
+        }
+    }
+    my $coverage_detail = $opt{'coverage_error'} // (
+        @under
+        ? sprintf '%d nodes below target [ first %s : %d '
+            . 'holder proofs, %d domains, target %d ]',
+            scalar @under,
+            $under[0][0],
+            scalar( keys $under[0][2]{'holders'}->%* ),
+            scalar( keys $under[0][2]{'domains'}->%* ),
+            $under[0][1]{'target'}
+        : 'every node meets its target on fresh full receipts'
+    );
+    push @conditions,
+        {
+        qw| name | => qw| replication |,
+        qw| ok |   => not( $opt{'coverage_error'} or @under ) ? TRUE : FALSE,
+        qw| detail | => $coverage_detail
+        };
+
+    my $drill = $opt{'drill'};
+    my $drill_bad
+        = $opt{'drill_error'}
+        || !defined $drill
+        || ( $drill->{'time'} // 0 )
+        > ( $opt{'effective_now'} // 0 ) + $clock_limit
+        || ( $opt{'effective_now'} // 0 ) - ( $drill->{'time'} // 0 )
+        > ( $opt{'drill_max_age'} // 0 );
+    push @conditions,
+        {
+        qw| name |   => qw| drill |,
+        qw| ok |     => $drill_bad ? FALSE : TRUE,
+        qw| detail | => $opt{'drill_error'} // (
+            defined $drill
+            ? "last pass $drill->{'tree'} on "
+                . "$drill->{'holder'} at $drill->{'time'}"
+            : 'no passing restore drill'
+        )
+        };
+    my $ok = not grep { not $ARG->{'ok'} } @conditions;
+    return {
+        qw| ok |         => $ok ? TRUE : FALSE,
+        qw| conditions | => \@conditions,
+        qw| under |      => \@under,
+        qw| rule |       => ref $rule eq qw| CODE | ? qw| custom | : $rule,
+    };
+}
+
+sub _gate_evidence {
+    my ( $c, $root, $host_dir, $disk_root, $state, $accept_shrink, $rule )
+        = @_;
+    my %gate = (
+        qw| rule |          => $rule // 'strict',
+        qw| accept_shrink | => $accept_shrink ? TRUE : FALSE,
+        qw| local_now |     => ntime_now(),
+    );
+    my @failed
+        = grep { ( $state->{"step.$ARG.result"} // '' ) eq qw| failed | }
+        @STEPS[ 0 .. 6 ];
+    $gate{'additive_ok'} = not @failed;
+    $gate{'additive_detail'}
+        = @failed
+        ? 'failed additive steps : ' . join( ', ', @failed )
+        : 'every additive step of this run finished';
+    $gate{'effective_now'} = $gate{'local_now'};
+    my $clock_ok = eval {
+        $gate{'effective_now'} = AMOS7::N7FS::Placement::n7fs_now( $host_dir,
+            $root->{'root_id'} );
+        1;
+    };
+    $gate{'clock_error'} = $EVAL_ERROR if not $clock_ok;
+
+    my $survey_ok = eval {
+        my $holders
+            = AMOS7::N7FS::Placement::holders_load( qw| root | => $root );
+        my $survey = AMOS7::N7FS::Seal::head_survey( $root,
+            { map { $ARG => $holders->{$ARG}{'spec'} } keys %{$holders} } );
+        $gate{'stale'}
+            = [ sort grep { $survey->{$ARG}{'stale'} } keys %{$holders} ];
+        $gate{'clock_future'} = [
+            sort grep {
+                defined $survey->{$ARG}{'head'}
+                    and $survey->{$ARG}{'head'}{'time'}
+                    > $gate{'local_now'}
+                    + parse_y_age('1Y4')
+            } keys %{$holders}
+        ];
+        1;
+    };
+    $gate{'stale_error'} = $EVAL_ERROR if not $survey_ok;
+
+    my $prefix = $c->{'prefix'};
+    $prefix =~ s|:+\z||;
+    $prefix .= ':';
+    require AMOS7::N7FS::Snapshot;
+    my $freeze_ok = eval {
+        $gate{'frozen'} = AMOS7::N7FS::Snapshot::retention_frozen(
+            qw| host_dir | => $host_dir,
+            qw| disk |     => $c->{'disk'},
+            qw| prefix |   => $prefix,
+        );
+        1;
+    };
+    $gate{'freeze_error'} = $EVAL_ERROR if not $freeze_ok;
+
+    my $copies_ok = eval {
+        my %placement = (
+            qw| host_dir |          => $host_dir,
+            qw| disk |              => $c->{'disk'},
+            qw| root |              => $root,
+            qw| allow_stale |       => TRUE,
+            qw| unreachable_grace | => 0,
+        );
+        $placement{'disk_root'} = $disk_root if defined $disk_root;
+        my ( undef, $nodes )
+            = AMOS7::N7FS::Placement::_disk_nodes(%placement);
+        my ( $holders, undef, $status, $proven )
+            = AMOS7::N7FS::Placement::_copies(%placement);
+        my %proofs;
+        foreach my $address ( keys %{$nodes} ) {
+            $proofs{$address}{'domains'} = $proven->{$address} // {};
+            $proofs{$address}{'holders'} = {};
+            foreach my $name ( keys %{$holders} ) {
+                next
+                    if $holders->{$name}{'role'} ne qw| durable |
+                    or $status->{$name}{'state'} ne qw| counted |
+                    or ( $status->{$name}{'coverage'} // '' )
+                    !~ m{\A(?:full|scrub)\z}
+                    or not $status->{$name}{'covered_set'};
+                $proofs{$address}{'holders'}{$name} = TRUE
+                    if $status->{$name}{'covered_set'}{$address};
+            }
+        }
+        $gate{'nodes'}  = $nodes;
+        $gate{'proofs'} = \%proofs;
+        1;
+    };
+    $gate{'coverage_error'} = $EVAL_ERROR if not $copies_ok;
+
+    require AMOS7::N7FS::Drill;
+    my $drill_ok = eval {
+        $gate{'drill'} = AMOS7::N7FS::Drill::drill_latest( $host_dir, $root );
+        $gate{'drill_max_age'} = 2 * parse_y_age( $c->{'drill-every'} );
+        1;
+    };
+    $gate{'drill_error'} = $EVAL_ERROR if not $drill_ok;
+    for my $key (
+        qw| stale_error coverage_error drill_error freeze_error clock_error |)
+    {
+        next if not defined $gate{$key};
+        chomp $gate{$key};
+        $gate{$key} =~ s|\s+| |g;
+    }
+    return cycle_gate(%gate);
+}
+
+sub _gate_report {
+    my ( $state, $gate, $rule ) = @_;
+    foreach my $condition ( $gate->{'conditions'}->@* ) {
+        my $name   = $condition->{'name'};
+        my $result = $condition->{'ok'} ? qw| ok | : qw| shut |;
+        my $detail = $condition->{'detail'} // '';
+        $detail =~ s|\s+| |g;
+        $state->{"gate.$name.result"} = $result;
+        $state->{"gate.$name.detail"} = $detail;
+        _say( 'gate ', $name, ' : ', $result, ' [ ', $detail, ' ]' );
+    }
+    my $result = $gate->{'ok'} ? qw| open | : qw| shut |;
+    $state->{'step.gate.result'} = $result;
+    $state->{'step.gate.detail'}
+        = $gate->{'ok'}
+        ? 'all conditions passed'
+        : 'destructive phase skipped';
+    $state->{'gate.rule'} = ref $rule eq qw| CODE | ? qw| custom | : $rule;
+    _say( 'gate ', $result,
+        $gate->{'ok'} ? '' : ' [ no destructive step ran ]' );
+    return;
+}
+
+sub _retention_prepare {
+    my ( $c, $root, $host_dir, $disk_root, $host, $accept_shrink, $issues )
+        = @_;
+    require AMOS7::N7FS::Disk;
+    require AMOS7::N7FS::Journal;
+    require AMOS7::N7FS::Tree;
+    require AMOS7::N7FS::Snapshot;
+    my $registered
+        = AMOS7::N7FS::Placement::holders_load( qw| root | => $root );
+    my @holders;
+    foreach my $name ( sort keys %{$registered} ) {
+        next if $issues->{$name};
+        my ( undef, $head, $map )
+            = AMOS7::N7FS::Seal::_context( $root,
+            $registered->{$name}{'spec'}, TRUE );
+        push @holders, [ $name, $registered->{$name}{'spec'}, $map ];
+    }
+    refuse('retain needs a registered holder with a sealed head')
+        if not @holders;
+
+    my ( %rules, %pins, %rule_holder );
+    foreach my $holder (@holders) {
+        my $map = $holder->[2];
+        foreach my $prefix ( keys %{ $map->{'retention'} // {} } ) {
+            my $rule = $map->{'retention'}{$prefix};
+            refuse( 'retention rules differ for %s : %s has %s ; %s has %s',
+                $prefix,      $rule_holder{$prefix}, $rules{$prefix},
+                $holder->[0], $rule )
+                if exists $rules{$prefix} and $rules{$prefix} ne $rule;
+            $rules{$prefix}       = $rule;
+            $rule_holder{$prefix} = $holder->[0];
+        }
+        $pins{$ARG} = TRUE for keys %{ $map->{'pins'} // {} };
+    }
+    foreach my $holder (@holders) {
+        foreach my $prefix ( keys %rules ) {
+            refuse( 'retention rule %s is missing on %s',
+                $prefix, $holder->[0] )
+                if not exists $holder->[2]{'retention'}{$prefix};
+        }
+    }
+    my $accepted_prefix = $c->{'prefix'};
+    $accepted_prefix =~ s|:+\z||;
+    $accepted_prefix .= ':';
+    foreach my $prefix ( sort keys %rules ) {
+        next if $accept_shrink and $prefix eq $accepted_prefix;
+        my $frozen = AMOS7::N7FS::Snapshot::retention_frozen(
+            qw| host_dir | => $host_dir,
+            qw| disk |     => $c->{'disk'},
+            qw| prefix |   => $prefix,
+        );
+        refuse( 'retention is frozen for %s after a shrunk snapshot [ %s ]',
+            $prefix, $frozen->{'tree'} )
+            if defined $frozen;
+    }
+
+    my %disk_opt = (
+        qw| host_dir | => $host_dir,
+        qw| disk |     => $c->{'disk'},
+    );
+    $disk_opt{'root'} = $disk_root if defined $disk_root;
+    my $id = AMOS7::N7FS::Disk::disk_read_id(%disk_opt);
+    my $stored
+        = AMOS7::N7FS::Disk::state_read( $id->{'path'}, $id->{'store_pub'} );
+    refuse('retain is only available for store format 3')
+        if $stored->{'store_format'} != 3;
+    my $replay = AMOS7::N7FS::Journal::journal_replay($id);
+    my $trees  = { map { $ARG->{'name'} => $ARG->{'created'} }
+            AMOS7::N7FS::Tree::tree_list( $id, $stored, $replay ) };
+    my $now
+        = AMOS7::N7FS::Placement::n7fs_now( $host_dir, $root->{'root_id'} );
+    my ($future) = sort { $b <=> $a } grep { $ARG > $now } values %{$trees};
+    refuse( 'newest tree is later than the local clock [ %s > %s ]',
+        $future, $now )
+        if defined $future;
+    my $plan = AMOS7::N7FS::Seal::retention_plan(
+        qw| trees | => $trees,
+        qw| rules | => \%rules,
+        qw| pins |  => \%pins,
+        qw| now |   => $now,
+    );
+    my ( @keep, @drop );
+
+    foreach my $item ( @{$plan} ) {
+        push @{ $item->{'keep'} ? \@keep : \@drop }, $item;
+    }
+    return {
+        qw| id |       => $id,
+        qw| stored |   => $stored,
+        qw| replay |   => $replay,
+        qw| holders |  => \@holders,
+        qw| keep |     => \@keep,
+        qw| drop |     => \@drop,
+        qw| disk_opt | => \%disk_opt,
+        qw| host |     => $host,
+    };
+}
+
+sub _retention_addresses {
+    my $prep = shift;
+    my ( $id, $replay, $holders )
+        = @{$prep}{qw| id replay holders |};
+    my ( @expired, %expired, %kept, %preserved );
+    foreach my $item ( $prep->{'keep'}->@* ) {
+        my $manifest = $replay->{'trees'}{ $item->{'tree'} }{'manifest'};
+        $kept{$ARG} = TRUE
+            for AMOS7::N7FS::Seal::_manifest_files( $id, $manifest );
+    }
+    foreach my $item ( $prep->{'drop'}->@* ) {
+        my $manifest = $replay->{'trees'}{ $item->{'tree'} }{'manifest'};
+        push @expired, $manifest,
+            AMOS7::N7FS::Seal::_manifest_files( $id, $manifest );
+    }
+    %expired = map { $ARG => TRUE } @expired;
+    foreach my $target ( @{$holders} ) {
+        foreach my $address ( keys $target->[2]{'nodes'}->%* ) {
+            next if not $expired{$address};
+            my $disks = $target->[2]{'nodes'}{$address}{'disks'} // {};
+            $preserved{$address} = TRUE
+                if grep { $ARG ne $id->{'disk'} } keys %{$disks};
+        }
+    }
+    return ( \@expired, \%kept, \%preserved );
+}
+
+sub _retention_drop_local {
+    my $prep = shift;
+    my ( $id, $replay, $host )
+        = @{$prep}{qw| id replay host |};
+    my ( $expired, $kept, $preserved ) = _retention_addresses($prep);
+    my %expired = map { $ARG => TRUE } @{$expired};
+    my ( %import_roots, %reference_dropped );
+    foreach my $item ( $prep->{'drop'}->@* ) {
+        my $tree = $replay->{'trees'}{ $item->{'tree'} };
+        my ( $fh, $head )
+            = AMOS7::N7FS::Tree::manifest_open( $id, $prep->{'stored'},
+            $tree );
+        close $fh;
+        require AMOS7::N7FS;
+        my $source = AMOS7::N7FS::unb32( $head->{'root_b32'} // '' )
+            // refuse('retain : a tree manifest has no valid source root');
+        push $import_roots{ $tree->{'created'} }->@*, $source;
+    }
+    foreach my $item ( $prep->{'drop'}->@* ) {
+        my $tree = $replay->{'trees'}{ $item->{'tree'} };
+        my @refs = map {
+            $replay->{'references'}{ join "\0", @{$ARG}{qw| node path |} }
+                // ()
+        } $tree->{'references'}->@*;
+        if ( not $tree->{'references'} ) {
+            push @refs, grep {
+                my $ref = $ARG;
+                $ref->{'ntime'} eq $tree->{'created'}
+                    and grep {
+                    my $source = $ARG;
+                    $ref->{'holder'} eq $source
+                        or index( $ref->{'holder'}, "$source/" ) == 0
+                    } $import_roots{ $ref->{'ntime'} }->@*
+            } values $replay->{'references'}->%*;
+        }
+        @refs = grep {
+                    $expired{ $ARG->{'node'} }
+                and not $kept->{ $ARG->{'node'} }
+                and not $preserved->{ $ARG->{'node'} }
+                and
+                not $reference_dropped{ join "\0", @{$ARG}{qw| node path |} }
+        } @refs;
+        $reference_dropped{ join "\0", @{$ARG}{qw| node path |} } = TRUE
+            for @refs;
+        AMOS7::N7FS::Tree::tree_drop(
+            $prep->{'disk_opt'}->%*,
+            qw| host |       => $host,
+            qw| name |       => $item->{'tree'},
+            qw| references | => \@refs,
+        );
+    }
+    return scalar $prep->{'drop'}->@*;
+}
+
+sub _retention_prune {
+    my ( $prep, $target, $root, $host_dir, $disk_root, $host ) = @_;
+    my ( $expired, undef, $preserved ) = _retention_addresses($prep);
+    return AMOS7::N7FS::Placement::holder_prune(
+        $prep->{'disk_opt'}->%*,
+        defined $disk_root ? ( qw| disk_root | => $disk_root ) : (),
+        qw| root |           => $root,
+        qw| host_dir |       => $host_dir,
+        qw| host |           => $host,
+        qw| host_pub |       => $host->public,
+        qw| name |           => $target->[0],
+        qw| tree_addresses | => $expired,
+        qw| keep_addresses | => [ keys %{$preserved} ],
+    );
+}
+
+sub _pending_names {
+    my ( $host_dir, $root, $spec ) = @_;
+    my $path = _relay_pending_path( $host_dir, $root, $spec );
+    return [] if not -f $path;
+    my $data = eval { $JSON->decode( read_file($path) ) };
+    refuse( 'pending relay list is invalid [ %s ]', $path )
+        if ref $data ne qw| HASH |
+        or ref $data->{'blobs'} ne qw| ARRAY |;
+    return $data->{'blobs'};
+}
+
+sub _destructive_phase {
+    my %opt       = @_;
+    my $state     = $opt{'state'};
+    my $run_step  = $opt{'run_step'};
+    my $c         = $opt{'config'};
+    my $root      = $opt{'root'};
+    my $host      = $opt{'host'};
+    my $host_dir  = $opt{'host_dir'};
+    my $disk_root = $opt{'disk_root'};
+    my $dry       = $opt{'dry_run'} ? TRUE : FALSE;
+    my $rule      = $opt{'rule'} // 'strict';
+    require AMOS7::N7FS::Seal;
+    require AMOS7::N7FS::Placement;
+    my $gate = _gate_evidence( $c, $root, $host_dir, $disk_root, $state,
+        $opt{'accept_shrink'}, $rule );
+
+    if ($dry) {
+        my ($additive)
+            = grep { $ARG->{'name'} eq qw| additive | }
+            $gate->{'conditions'}->@*;
+        $additive->{'detail'}
+            = 'additive changes not run [ dry-run ] ; current state checked';
+    }
+    _gate_report( $state, $gate, $rule );
+    return { qw| gate | => $gate, qw| failed | => FALSE }
+        if not $gate->{'ok'} and not $dry;
+
+    my $registered
+        = AMOS7::N7FS::Placement::holders_load( qw| root | => $root );
+    my @names      = sort keys %{$registered};
+    my $error_text = sub {
+        my $error = shift // 'step failed';
+        chomp $error;
+        $error =~ s|\s+| |g;
+        return $error;
+    };
+    my ( %blocked, %issues );
+    foreach my $name (@names) {
+        my ( undef, $head ) = eval {
+            AMOS7::N7FS::Seal::_context( $root, $registered->{$name}{'spec'},
+                TRUE );
+        };
+        $issues{$name} = $error_text->($EVAL_ERROR) if $EVAL_ERROR;
+        $issues{$name} = 'no sealed head'
+            if not $EVAL_ERROR and not defined $head;
+        $blocked{$name} = TRUE if $issues{$name};
+    }
+    my $skip_blocked = sub {
+        my ( $step, $name ) = @_;
+        _holder_result( $state, $step, $name, qw| skipped |,
+            'holder unavailable or an earlier destructive step failed' );
+        return;
+    };
+    my $guarded_step = $run_step;
+    $run_step = sub {
+        my ( $step, $code ) = @_;
+        my $result = $guarded_step->( $step, $code );
+        if ( ( $state->{"step.$step.result"} // '' ) eq qw| failed | ) {
+            $blocked{$ARG} = TRUE for @names;
+        }
+        return $result;
+    };
+
+    $run_step->(
+        'D1-retain',
+        sub {
+            my $wait = grep { $issues{$ARG} ne 'no sealed head' }
+                grep { $issues{$ARG} } @names;
+            if ( not $c->{'retain'} ) {
+                _holder_result( $state, 'D1-retain', $ARG, qw| skipped |,
+                    'retain = no' )
+                    for @names;
+                return {
+                    $wait ? ( qw| result | => qw| degraded | ) : (),
+                    qw| detail | => 'retention disabled'
+                };
+            }
+            my $prep = eval {
+                _retention_prepare( $c, $root, $host_dir, $disk_root, $host,
+                    $opt{'accept_shrink'}, \%issues );
+            };
+            if ( not defined $prep ) {
+                my $error = $error_text->($EVAL_ERROR);
+                $blocked{$ARG} = TRUE for @names;
+                _holder_result( $state, 'D1-retain', $ARG, qw| failed |,
+                    $error )
+                    for @names;
+                return {
+                    qw| result | => qw| failed |,
+                    qw| detail | => $error
+                };
+            }
+            foreach my $name (@names) {
+                next if not $issues{$name};
+                _holder_result(
+                    $state,
+                    'D1-retain',
+                    $name,
+                    $issues{$name} eq 'no sealed head'
+                    ? qw| skipped |
+                    : qw| degraded |,
+                    $issues{$name}
+                );
+            }
+            foreach my $item ( $prep->{'keep'}->@*, $prep->{'drop'}->@* ) {
+                _say( '  ', $item->{'keep'} ? 'keep ' : 'drop ',
+                    $item->{'tree'}, ' [ ', $item->{'reason'}, ' ]' );
+            }
+            my ($expired) = _retention_addresses($prep);
+            my $drops = scalar $prep->{'drop'}->@*;
+            if ($dry) {
+                foreach my $target ( $prep->{'holders'}->@* ) {
+                    _holder_result(
+                        $state,
+                        'D1-retain',
+                        $target->[0],
+                        qw| ok |,
+                        "would drop $drops trees locally and prune at most "
+                            . scalar( @{$expired} )
+                            . ' expired addresses'
+                    );
+                }
+                return {
+                    $wait ? ( qw| result | => qw| degraded | ) : (),
+                    qw| detail | => "would drop $drops "
+                        . "trees ; nothing changed"
+                };
+            }
+            if ( $wait and $drops ) {
+                my $error
+                    = "retention has $drops drops planned "
+                    . "while a holder is unreachable"
+                    . ' ; its pins and disk tags cannot be checked';
+                $blocked{$ARG} = TRUE for @names;
+                _holder_result( $state, 'D1-retain', $ARG, qw| failed |,
+                    $error )
+                    for grep { not $issues{$ARG} } @names;
+                return {
+                    qw| result | => qw| failed |,
+                    qw| detail | => $error
+                };
+            }
+            my $local = eval { _retention_drop_local($prep) };
+            if ( not defined $local ) {
+                my $error = $error_text->($EVAL_ERROR);
+                $blocked{$ARG} = TRUE for @names;
+                _holder_result( $state, 'D1-retain', $ARG, qw| failed |,
+                    "local retain : $error" )
+                    for @names;
+                return {
+                    qw| result | => qw| failed |,
+                    qw| detail | => $error
+                };
+            }
+            my $bad = FALSE;
+            foreach my $target ( $prep->{'holders'}->@* ) {
+                my $r = eval {
+                    _retention_prune( $prep, $target, $root, $host_dir,
+                        $disk_root, $host );
+                };
+                if ( not defined $r ) {
+                    my $error = $error_text->($EVAL_ERROR);
+                    $blocked{ $target->[0] } = TRUE;
+                    $bad = TRUE;
+                    _holder_result( $state, 'D1-retain', $target->[0],
+                        qw| failed |, $error );
+                    next;
+                }
+                _holder_result( $state, 'D1-retain', $target->[0], qw| ok |,
+                          "dropped $drops trees locally ; pruned "
+                        . "$r->{'drop'} nodes and $r->{'trees'} "
+                        . "trees" );
+            }
+            return {
+                  $bad  ? ( qw| result | => qw| failed | )
+                : $wait ? ( qw| result | => qw| degraded | )
+                : (),
+                qw| detail | => "$drops trees dropped locally"
+            };
+        }
+    );
+
+    $run_step->(
+        'D2-repack',
+        sub {
+            my ( $bad, $packs ) = ( FALSE, 0 );
+            foreach my $name (@names) {
+                if ( $blocked{$name} ) {
+                    $skip_blocked->( 'D2-repack', $name );
+                    next;
+                }
+                if ( not $c->{'repack'} ) {
+                    _holder_result( $state, 'D2-repack', $name, qw| skipped |,
+                        'repack = no' );
+                    next;
+                }
+                my $spec = $registered->{$name}{'spec'};
+                my $r    = eval {
+                    AMOS7::N7FS::Seal::repack_packs(
+                        qw| root |      => $root,
+                        qw| holder |    => $spec,
+                        qw| host_dir |  => $host_dir,
+                        qw| signer |    => $host,
+                        qw| threshold | => 30,
+                        qw| dry_run |   => $dry,
+                        qw| grace |     => parse_y_age( $c->{'gc-grace'} ),
+                        qw| keep |      =>
+                            _pending_names( $host_dir, $root, $spec ),
+                        qw| only_root | => FALSE,
+                    );
+                };
+                if ( not defined $r ) {
+                    my $error = $error_text->($EVAL_ERROR);
+                    $blocked{$name} = TRUE;
+                    $bad = TRUE;
+                    _holder_result( $state, 'D2-repack', $name, qw| failed |,
+                        $error );
+                    next;
+                }
+                $packs += scalar $r->{'packs'}->@*;
+                _holder_result(
+                    $state,
+                    'D2-repack',
+                    $name,
+                    qw| ok |,
+                    sprintf '%s%d packs',
+                    $dry ? 'would repack ' : 'repacked ',
+                    scalar $r->{'packs'}->@*
+                );
+            }
+            return {
+                $bad ? ( qw| result | => qw| failed | ) : (),
+                qw| detail | => ( $dry ? 'would repack ' : 'repacked ' )
+                    . "$packs packs"
+            };
+        }
+    );
+
+    $run_step->(
+        'D3-gc',
+        sub {
+            my ( $bad, $removed, $bytes ) = ( FALSE, 0, 0 );
+            foreach my $name (@names) {
+                if ( $blocked{$name} ) {
+                    $skip_blocked->( 'D3-gc', $name );
+                    next;
+                }
+                my $spec = $registered->{$name}{'spec'};
+                my $r    = eval {
+                    my $receipt
+                        = AMOS7::N7FS::Placement::receipt_fresh( $host_dir,
+                        $root, $spec, ntime_now() );
+                    AMOS7::N7FS::Seal::holder_gc(
+                        qw| root |    => $root,
+                        qw| holder |  => $spec,
+                        qw| receipt | => $receipt,
+                        qw| grace |   => parse_y_age( $c->{'gc-grace'} ),
+                        qw| keep |    =>
+                            _pending_names( $host_dir, $root, $spec ),
+                        qw| only_root | => FALSE,
+                        qw| delete |    => $dry ? FALSE : TRUE,
+                    );
+                };
+                if ( not defined $r ) {
+                    my $error = $error_text->($EVAL_ERROR);
+                    $blocked{$name} = TRUE;
+                    $bad = TRUE;
+                    _holder_result( $state, 'D3-gc', $name, qw| failed |,
+                        $error );
+                    next;
+                }
+                $removed += $r->{'removed'};
+                $bytes   += $r->{'bytes'};
+                _holder_result(
+                    $state,
+                    'D3-gc',
+                    $name,
+                    qw| ok |,
+                    sprintf '%s%d blobs, %d bytes [ %d young kept ]',
+                    $dry ? 'would trash ' : 'trashed ',
+                    $r->{'removed'},
+                    $r->{'bytes'},
+                    $r->{'young'}
+                );
+            }
+            return {
+                $bad ? ( qw| result | => qw| failed | ) : (),
+                qw| detail | => ( $dry ? 'would trash ' : 'trashed ' )
+                    . "$removed blobs, $bytes bytes"
+            };
+        }
+    );
+
+    $run_step->(
+        'D4-purge',
+        sub {
+            my ( $bad, $days, $bytes ) = ( FALSE, 0, 0 );
+            foreach my $name (@names) {
+                if ( $blocked{$name} ) {
+                    $skip_blocked->( 'D4-purge', $name );
+                    next;
+                }
+                my $spec = $registered->{$name}{'spec'};
+                my $r    = eval {
+                    AMOS7::N7FS::Seal::holder_trash_purge(
+                        qw| root |   => $root,
+                        qw| holder | => $spec,
+                        qw| older |  => parse_y_age( $c->{'trash-age'} ),
+                        qw| delete | => $dry ? FALSE : TRUE,
+                    );
+                };
+                if ( not defined $r ) {
+                    my $error = $error_text->($EVAL_ERROR);
+                    $blocked{$name} = TRUE;
+                    $bad = TRUE;
+                    _holder_result( $state, 'D4-purge', $name, qw| failed |,
+                        $error );
+                    next;
+                }
+                $days  += $r->{'days'};
+                $bytes += $r->{'bytes'};
+                _holder_result(
+                    $state,
+                    'D4-purge',
+                    $name,
+                    qw| ok |,
+                    sprintf '%s%d trash buckets, %d bytes',
+                    $dry ? 'would purge ' : 'purged ',
+                    $r->{'days'},
+                    $r->{'bytes'}
+                );
+            }
+            return {
+                $bad ? ( qw| result | => qw| failed | ) : (),
+                qw| detail | => ( $dry ? 'would purge ' : 'purged ' )
+                    . "$days trash buckets, $bytes bytes"
+            };
+        }
+    );
+
+    $run_step->(
+        'D5-reclaim',
+        sub {
+            if ( lc( $c->{'reclaim-local'} ) eq qw| no | ) {
+                _holder_result( $state, 'D5-reclaim', qw| local |,
+                    qw| skipped |, 'reclaim-local = no' );
+                return { qw| detail | => 'local reclaim disabled' };
+            }
+            refuse('local reclaim requires a snapshot-only disk')
+                if not $c->{'snapshot-only'}
+                or $c->{'reclaim-local'} ne qw| 13Y2 |;
+            if ( grep { $blocked{$ARG} } @names and not $dry ) {
+                _holder_result( $state, 'D5-reclaim', qw| local |,
+                    qw| skipped |, 'an earlier holder step failed' );
+                return { qw| detail | => 'local reclaim blocked' };
+            }
+            require AMOS7::N7FS::Release;
+            my %disk_opt = (
+                qw| host_dir | => $host_dir,
+                qw| disk |     => $c->{'disk'},
+                qw| host |     => $host,
+                qw| older |    => parse_y_age('13Y2'),
+                qw| dry_run |  => $dry,
+            );
+            $disk_opt{'root'} = $disk_root if defined $disk_root;
+            my $r = eval { AMOS7::N7FS::Release::store_reclaim(%disk_opt) };
+            if ( not defined $r ) {
+                my $error = $error_text->($EVAL_ERROR);
+                _holder_result(
+                    $state, 'D5-reclaim', qw| local |, qw| failed |,
+                    $error
+                );
+                return {
+                    qw| result | => qw| failed |,
+                    qw| detail | => $error
+                };
+            }
+            my $count = scalar $r->{'released'}->@*;
+            _holder_result(
+                $state,
+                'D5-reclaim',
+                qw| local |,
+                qw| ok |,
+                sprintf '%s%d nodes, %d bytes older than 13Y2 [ %d held ]',
+                $dry ? 'would reclaim ' : 'reclaimed ',
+                $count,
+                $r->{'freed'},
+                scalar keys $r->{'held'}->%*
+            );
+            return {
+                qw| detail | => ( $dry ? 'would reclaim ' : 'reclaimed ' )
+                    . "$count nodes, $r->{'freed'} bytes" };
+        }
+    );
+
+    my $failed
+        = grep { ( $state->{"step.$ARG.result"} // '' ) eq qw| failed | }
+        qw| D1-retain D2-repack D3-gc D4-purge D5-reclaim |;
+    my $degraded
+        = grep { ( $state->{"step.$ARG.result"} // '' ) eq qw| degraded | }
+        qw| D1-retain D2-repack D3-gc D4-purge D5-reclaim |;
+    _say('dry-run : no destructive data or state was changed') if $dry;
+    return {
+        qw| gate |     => $gate,
+        qw| failed |   => $failed   ? TRUE : FALSE,
+        qw| degraded | => $degraded ? TRUE : FALSE
+    };
+}
+
+sub _cycle_dry_run {
+    my %opt      = @_;
+    my $host_dir = $opt{'host_dir'} // refuse('cycle needs a host dir');
+    my $name     = _name_ok( $opt{'name'} );
+    my ( $c, $root, $host );
+    my $preflight = eval {
+        $c    = config_read( $host_dir, $name );
+        $root = _open_root( $c, $host_dir );
+        $host = key_file_signer( $opt{'host_key'} // "$host_dir/host.key" );
+        require AMOS7::N7FS::Disk;
+        require AMOS7::N7FS::Placement;
+        require AMOS7::N7FS::Seal;
+        my $status = AMOS7::N7FS::Disk::disk_status(
+            defined $opt{'root'} ? ( qw| root | => $opt{'root'} ) : (),
+            qw| host_dir |       => $host_dir,
+            qw| host |           => $host,
+            qw| disk |           => $c->{'disk'},
+            qw| allow_rollback | => FALSE,
+        );
+        refuse( 'cycle disk is not attached here [ %s ]', $c->{'disk'} )
+            if not defined $status->{'attached'};
+        1;
+    };
+    return { qw| exit | => 4, qw| error | => $EVAL_ERROR }
+        if not $preflight;
+    my $state = {
+        qw| format | => 1,
+        qw| cycle |  => $name,
+        qw| period | => $c->{'period'},
+    };
+    my $run_step = sub {
+        my ( $step, $code ) = @_;
+        my $result = eval { fault("cycle:before-$step"); $code->() };
+        if ( not defined $result ) {
+            my $error = $EVAL_ERROR // 'step failed';
+            chomp $error;
+            $error =~ s|\s+| |g;
+            $state->{"step.$step.result"} = qw| failed |;
+            $state->{"step.$step.detail"} = $error;
+            _say( $step, ' failed [ ', $error, ' ]' );
+            return;
+        }
+        $state->{"step.$step.result"} = $result->{'result'} // qw| ok |;
+        $state->{"step.$step.detail"} = $result->{'detail'} // '';
+        _say(
+            $step,
+            ' ',
+            $result->{'result'} // 'ok',
+            length( $result->{'detail'} // '' )
+            ? ' [ ' . $result->{'detail'} . ' ]'
+            : ''
+        );
+        return $result;
+    };
+    _say(     'dry-run : additive steps are not '
+            . 'run ; no locks or state are written' );
+    my $destructive = _destructive_phase(
+        qw| state |         => $state,
+        qw| run_step |      => $run_step,
+        qw| config |        => $c,
+        qw| root |          => $root,
+        qw| host |          => $host,
+        qw| host_dir |      => $host_dir,
+        qw| disk_root |     => $opt{'root'},
+        qw| dry_run |       => TRUE,
+        qw| accept_shrink | => $opt{'accept_shrink'} ? TRUE : FALSE,
+        qw| rule |          => $opt{'gate_rule'} // 'strict',
+    );
+    my $exit
+        = $destructive->{'failed'}                                       ? 2
+        : not $destructive->{'gate'}{'ok'} || $destructive->{'degraded'} ? 1
+        :                                                                  0;
+    $state->{'last.result'}
+        = $exit == 2 ? qw| failed |
+        : $exit == 1 ? qw| degraded |
+        :              qw| clean |;
+    return { qw| exit | => $exit, qw| state | => $state };
+}
+
 sub cycle_run {
     my %opt      = @_;
     my $host_dir = $opt{'host_dir'} // refuse('cycle needs a host dir');
     my $name     = _name_ok( $opt{'name'} );
+    return _cycle_dry_run(%opt) if $opt{'dry_run'};
     make_dirs( _cycle_dir($host_dir), 0700 );
     my $cycle_lock
         = _lock( _cycle_dir($host_dir) . "/$name.lock", 'cycle lock' );
@@ -582,6 +1545,7 @@ sub cycle_run {
                 qw| host_pub |          => $host->public,
                 qw| signer |            => $host,
                 qw| exclude |           => \@exclude,
+                qw| allow_stale |       => TRUE,
                 qw| check_coverage |    => $c->{'check'},
                 qw| unreachable_grace | => 0,
             );
@@ -903,6 +1867,25 @@ sub cycle_run {
     );
     $failed = TRUE
         if ( $state->{'step.A6-drill.result'} // '' ) eq qw| failed |;
+    if ( $opt{'no_destructive'} ) {
+        $state->{'destructive.result'} = qw| skipped |;
+        _say('destructive phase disabled [ -no-destructive ]');
+        return _finish( $host_dir, $name, $state, $failed, $degraded );
+    }
+    my $destructive = _destructive_phase(
+        qw| state |         => $state,
+        qw| run_step |      => $run_step,
+        qw| config |        => $c,
+        qw| root |          => $root,
+        qw| host |          => $host,
+        qw| host_dir |      => $host_dir,
+        qw| disk_root |     => $opt{'root'},
+        qw| accept_shrink | => $opt{'accept_shrink'} ? TRUE : FALSE,
+        qw| rule |          => $opt{'gate_rule'} // 'strict',
+    );
+    $failed   = TRUE if $destructive->{'failed'};
+    $degraded = TRUE
+        if not $destructive->{'gate'}{'ok'} or $destructive->{'degraded'};
     return _finish( $host_dir, $name, $state, $failed, $degraded );
 }
 
@@ -971,6 +1954,12 @@ sub cycle_status {
                 ' [ ', $state->{"$prefix$holder.detail"} // '', ' ]' );
         }
     }
+    foreach my $condition (
+        qw| additive stale-head shrink-freeze clock replication drill |) {
+        next if not exists $state->{"gate.$condition.result"};
+        _say( 'gate ', $condition, ' : ', $state->{"gate.$condition.result"},
+            ' [ ', $state->{"gate.$condition.detail"} // '', ' ]' );
+    }
     my $due = $state->{'drill.next-due'} // 0;
     _say(
         'next drill due : ',
@@ -992,8 +1981,8 @@ sub cycle_status {
 
 1;
 
-#,,,,,..,,.,.,..,,,..,,,.,,.,,..,,..,,...,,,.,..,,...,...,...,,,.,,.,,,,,,,,,,
-#XU7JBISJT33XE5A7JU5SAMVA5NFTZQ7DVXGY3FEAYJUU4DY73HQRT7ZZAVUUVYFF5K7A5OOXLE4WW
-#\\\|5E6YPFUVPQHFR3FQEFD33X2JPSAAZ5ZYGH456C4BSMAXOZ65Q6B \ / AMOS7 \ YOURUM ::
-#\[7]PSYK4PRJ5AQ3QO3QSOACKVOPHC4WIFMDMG6XFOB2G47LWYHA2SDQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,,,.,,..,...,.,.,,..,.,.,..,,..,,...,...,,,,,.,.,,,.,,,.,,..,
+#P2UFOXTSTLRAP7RBXPTVTN7WYVHFPVTW2FV75EIYGFQV3PC7OI4SGHNHHN6FQTS7CIO32JOKOP4OQ
+#\\\|YRX52QORKXVK67YCPR5D4AGPEJZWQDIKPGQXB7ROMPSWVMSXKTC \ / AMOS7 \ YOURUM ::
+#\[7]RA3RXEXJZ3T67XRMV2YK73YZWFV6ZQ5GDA4Y6KR5WCZMN5NNUWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

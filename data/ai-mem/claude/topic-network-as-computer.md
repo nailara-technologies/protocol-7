@@ -490,6 +490,30 @@ computation ; the place computes, machines are only its current occupants.
   the shell PROJECTS the payload. carrier and modulation : the carrier is
   the even background, the modulation the message ; what is seen is what it
   projects, not the carrier.
+- **workloads matched to topology** [ owner ] : combining SLOTS with
+  suitable topologies, data-intensive parallel workloads are saturated
+  proportionally in all components ; despite complexity they converge by
+  cooperative agreement into a cycle with EXACTLY ONE expected result
+  format [ tree reduction + gates ], and over multiple iterations each
+  result is backed by a guaranteed relevance \ quality assertion
+  threshold. all without leaving the topology layer for an organization
+  layer -- the workload's own topology is DEFINED to match the network's,
+  the organization IS the structure [ frame intelligence for workloads ],
+  with the strongest multi-use logic dominant on each layer or scale.
+  honest bound : saturation is limited by the slowest dependent part [ the
+  critical path, amdahl ] ; matching minimizes it, the overlapping
+  alternates absorb the rest -- near-perfect, as good as the fit.
+- **the physical layer** : `data/tasks/psytrance-stem-remix-and-optical-controller.md`
+  makes these ideas tangible -- translucent layers as real fluorescent
+  acrylic plates and blue \ polarizing foils lit by uv through fiber
+  optics [ precise layering in material ] ; PHOTOELASTICITY behind crossed
+  polarizers reads force and deformation optically [ the picture as a
+  measurement, physically ] ; a SQUARE light pipe mirrors its source into
+  a regular grid of virtual images [ the cubic lattice appears in the
+  material by internal reflection alone -- round rods do not ] ; edge-lit
+  segments instead of point sources [ the light-sensitivity rule in
+  hardware ]. with a 3D-printed shell of cubes, the bridge from design to
+  object.
   related : `bin/dev/division-13-table` and the 7-bit protocol
   in its comments -- `00 00 110` hop count [ 1 + 3 bit ] + 2-bit direction
   [ up \ left \ right \ down, 90 degrees ] = the countdown + turn bit
@@ -541,8 +565,8 @@ storage and addressing side.
 - [[harmonic-mathematics]] — generator 076923, the attractor values
 - [[project-vision-origin]] — 24-year foundational vision, threshold reached
 
-#,,..,...,..,,..,,,,.,.,.,,.,,.,.,,.,,,,.,,,,,..,,...,.,.,.,.,..,,,.,,,.,,,..,
-#SGNYROIJ6IBF7YYIJ7AXBRYR2FBOURFTYKLHC2QQBNCNDSBSMSVFUZY3OW64ZRPEDJZOLUGWGRWOW
-#\\\|XHTZX3S7DZGERSVIVTJYKOG3BJKFVLJYZZGFOVMIYGWDOQJ72GM \ / AMOS7 \ YOURUM ::
-#\[7]2GMTSOYYLKW2MONE3RLXUPS6B6ZC6WTWHAQ7YZDBO24U4ODYV6CY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,.,,.,,,,..,.,.,,,,,,,,,,,.,...,..,,...,...,...,..,,,..,,..,...,
+#PPF76KZLY5QUCH7T24JKZNXK7VCMN6EFWL65GHDJVAKO3PCPZPS46ARP2RFWGQARJNV4HPCU7YK6K
+#\\\|BQZPMAURHHA7O2EHP4PSGSMGMH6UYR7OMOWO7U2I7PDBKCYOMVW \ / AMOS7 \ YOURUM ::
+#\[7]JOVF5DWWEUPQAATU6PUQMT4KNFULZJES7F5QOPT34BURIVCMFYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
