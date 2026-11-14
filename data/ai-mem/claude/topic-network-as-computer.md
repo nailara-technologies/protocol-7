@@ -375,7 +375,66 @@ computation ; the place computes, machines are only its current occupants.
   are enriched and made more efficient by the new element. it spreads
   like the dedup waves : offered to its neighbours on the template tree,
   kept where it resonates [ proves itself there ], passing where it does
-  not.
+  not. owner : in return the original entity gets an ADDRESS provided by
+  the infrastructure of space itself, the place of the template that was
+  first personal to it -- derived from the template's content [ checksum,
+  position ], so nobody grants it and nobody can take it ; and PAID by it
+  from its own activity management [ its own cycles and attempts : earned
+  history, not grindable ]. sharing costs it nothing it keeps and gains it
+  a lasting place -- attribution as a property of space, not a list.
+- **the pulse rule : a combining frequency divider** [ owner, core math
+  logic ] : a pulse can only occur in a moment that equally HALVES the
+  frequency of all 4 [ or more ] connected sides. hardware's frequency
+  divider [ a flip-flop toggling on every second edge, chained into clock
+  trees ], combined over all neighbours : a node's pulse is their shared
+  subdivision. self-synchronizing without a central clock [ a hierarchy
+  of rhythms, each level half the rate of the one below -- the CCW radar
+  spokes' alignment points ], scale built in [ halving per step = the
+  rings' exponential growth with linear depth ], stable [ one disturbed
+  neighbour cannot pull it off beat ]. condition : the neighbours'
+  frequencies must be COMMENSURATE [ whole-number ratios -- the harmonic
+  1:2, 2:3, 13:26 give alignments regularly ] ; otherwise a halving moment
+  may never come, so a TOLERANCE window takes the nearest alignment [ like
+  the 3 valid epochs ]. its concrete form is PYTAURAZUMA
+  [ `harmonic-transit-vision-architecture.md` 6 ] : the multiples of the
+  1\13 generator 076923 hold a zero at four places -- x3 230769, x4 307692,
+  x9 692307 [ interior : prep 1-3, phase without being checkable ], x10
+  769230 [ trailing : CANVAS CLEAN, checkable from its own structure,
+  769230 \ 10 = 076923 ] -- the four sides that must agree, the fourth the
+  moment the pulse may happen. self-framing, no central clock [ SCANNING ->
+  PREP_1\2\3 -> CANVAS_CLEAN ] ; 4 CCW positions x 3 rotations + 1 sync
+  frame = 13 [ the 13+1 principle, `RING-FIELD-SPHERE-PRIMITIVE.md` ] ;
+  769230 = `L\` in ascii, the decoder's layer delimiter -- the boundary
+  marker IS the convergence attractor. owner : after the four zeros, with
+  the 4th as the true zulum \ first true zero [ AUTHENTICATED, checkable
+  from its own structure ], the 5TH ELEMENT IS THE PULSE -- overlapping and
+  beating or not, but at a KNOWN WHEN in the 4x0 overlap ; in the T = 5
+  sense [ AMOS7 TRUE => 5 ] it can raise information or a connection into
+  existence : instantiate or initialize. the four zeros authenticate, the
+  fifth acts. related : `bin/dev/division-13-table` and the 7-bit protocol
+  in its comments -- `00 00 110` hop count [ 1 + 3 bit ] + 2-bit direction
+  [ up \ left \ right \ down, 90 degrees ] = the countdown + turn bit
+  program ; `01 0 xxxxx` one base32 character [ utf-7 payload ] ;
+  `01 1x xxxx` document cube header [ monochrome \ colour, size, pages,
+  files, style ; blue background #09052A, foreground #0647C3 ] ;
+  `1 xxxxxx` a 5x7 pixel matrix with colour and alpha ops [ add \ subtract
+  colour, reset alpha ] -- where, what and how in one 7-bit stream. also
+  5-of-7 consensus, the octal bit encoding, and amos-chksum [ returning
+  later in the axis-coordinate checksum overlap ].
+- **general structure principle : the build-up as a handshaking stream**
+  [ owner ] : joining a structure one refers to, participates in or
+  neighbours [ eventually on another scale ] is committed as a SEQUENCE
+  that compensates the initial trust in an ASSUMED topology by aligning it
+  with the ACTUAL phase offsets and lengths of the waveforms involved,
+  stream reading direction included. the preamble does not presume the
+  map, it measures it : each step checks one more relation [ phase, length,
+  direction ] before the next is trusted -- the gated states and the
+  4-zero preamble as one shape. reading direction counts :
+  `holographic-cubic-topology-research-2026-01-13.md` -- at the 57 overlap
+  [ 56 + 1, the dimensional turn ] the boundary cannot be crossed, the
+  reading direction reverses [ left-to-right becomes right-to-left, a 90
+  degree turn on the staircase ] : implicit rules prevent invalid
+  traversals, the frame-intelligence point at 57.
 - **one structure** [ owner, closing ] : resonance is the cable ; the
   layered representation of the invisible as one coherent system creates
   the stability in projected structure for the self-similar emergence of
@@ -403,8 +462,8 @@ storage and addressing side.
 - [[harmonic-mathematics]] — generator 076923, the attractor values
 - [[project-vision-origin]] — 24-year foundational vision, threshold reached
 
-#,,,.,,.,,...,...,,..,,.,,,.,,...,,..,,,,,.,.,..,,...,...,...,,..,,..,,.,,.,,,
-#75B3RX34KFR4HDIC2VMXETYT7X7ENXD2Q6NODL6XXWD6F5THRLGPZQR4XJIH5J35U2XZNM2ICKBBK
-#\\\|E4IFBWBAZDAP6S2ZMQ5MGUJD353KWQJJEO5GYV2U2VEAZVN3P7V \ / AMOS7 \ YOURUM ::
-#\[7]PJIVM3SU6HAH7PDBSY334G73FCIYPEN3IDLUX5GAVG3LG6CLKSCI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,,,,.,,..,,,..,.,.,,..,,,.,,.,,..,,...,..,,,.,,,,.,...,,,,,,,,,
+#6GRKA7ZPZXMMGCKFHQVZRNBGHM7NFEZ2DBSJMJLIXQGI6MXTLIMBF6VXSJNNMGG2KHMC4LAPBYEOW
+#\\\|FVWXCLCQEBWMFXKLQ4GQPCFMU4UZRPFBEB6BRRICG5QPSCIYJRI \ / AMOS7 \ YOURUM ::
+#\[7]2TPNFCCFFNH5NQ5VXKWU2TLXTUYUNO2OCXOYQFK6NTD7RH7MAIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
