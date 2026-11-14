@@ -245,7 +245,9 @@ my $relay_blob = AMOS7::N7FS::Sum::bmw_b32(
 write_file( "$sub/$relay_blob", 'pending relay bytes' );
 my $relay_tag = substr(
     AMOS7::N7FS::Sum::bmw_b32(
-        AMOS7::N7FS::Sum::bmw384_bytes( "p7 n7fs relay v1\0" . $holder )
+        AMOS7::N7FS::Sum::bmw384_bytes(
+            "p7 n7fs relay v2\0" . open_root()->{'root_id'} . "\0" . $holder
+        )
     ),
     0, 13
 );
@@ -794,8 +796,8 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
 
 done();
 
-#,,.,,..,,..,,.,,,.,,,.,,,.,.,,..,,..,,.,,,.,,..,,...,...,..,,,,.,.,,,...,.,.,
-#I23KQSBQYFYLKL6KU2YX7QDKNKWD5P726FYXQRQTK67ZURR5O7R3YCHEZFCU4RXVYVA5CGKTG3RJW
-#\\\|MLLPUMBGT7E6J4JZ556ZZK7OVUC36HRXDBTJGEXIP3M6B6SS7NM \ / AMOS7 \ YOURUM ::
-#\[7]J4NZE4M7JBOHWD5VUGPSYB3JHJI65OTXSAQXDFZGHJWMAIBTOKCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,...,.,.,..,,,,.,.,.,,,,,...,.,.,..,,...,...,...,..,,,,.,..,,...,
+#IUXAQJAXNHUA5JTNV22QCCX3ESIY3JV3PH2DKUPQPXOJMUKWKIJ6EZAFBJ7LFVXCLCYLOMJO26H6U
+#\\\|FJBSHOXFRJWFIW7NIW3FQNFHQEW2RHAMJLHABAUTTJXPJG76VFS \ / AMOS7 \ YOURUM ::
+#\[7]IVIQN5DCAXUUI3R3MGY6PA27I6B772DE6KOSUC32LUXFIJ6SE6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

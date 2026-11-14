@@ -14,7 +14,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.Q225LXQ |;
+our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.5WTMMXI |;
 
 @EXPORT_OK = qw| root_init root_open root_convert root_passphrase
     vault_note_load vault_note_save |;
@@ -282,10 +282,13 @@ sub root_open {
     my $signer = seed_signer( substr( $secret, 64, 32 ) );
     my $id     = _root_id($signer);
     return {
-        qw| keys |    => $keys,
-        qw| signer |  => $signer,
-        qw| root_id | => $id,
-        qw| path |    => _state_base( $ref, $id, %opt ),
+        qw| keys |      => $keys,
+        qw| signer |    => $signer,
+        qw| root_id |   => $id,
+        qw| path |      => _state_base( $ref, $id, %opt ),
+        qw| key_ref |   => $ref,
+        qw| vault_dir | => $opt{'vault_dir'},
+        qw| vault |     => _is_vault($ref) ? 1 : 0,
     };
 }
 
@@ -316,8 +319,8 @@ sub root_convert {
 
 1;
 
-#,,.,,.,,,...,,..,,.,,,,,,,,,,...,,,.,.,,,,,.,..,,...,...,,.,,,,,,.,,,.,,,.,.,
-#KKHQWFYYAHTPGPMSKDBUTFAXSRTIZCL2AM4ABO5MW3Z4LDVB5ZQRYXCESXMLBK2L375CFWH2P4LBO
-#\\\|JOSFCMCWR2HEI332SNHU3LMAJYMYTYRZBFRHSYONQSMSMCRYKMD \ / AMOS7 \ YOURUM ::
-#\[7]YIIPM66GAVMNNW75OXH6HZVC5BKRW7DYKWJEVURUZECIREJFLCDA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,,,,,,.,,,..,,..,.,,,..,,,..,..,,...,...,..,,,,.,.,,,.,,,...,
+#TJGHCYXT3EIP2EVCLAJK6SSAIRYQXTSVOHK2OV3HBVJIVZL5VXTO3WI3X35FKZTAMWEKQX7BLOXZE
+#\\\|CCKFPUHXUIAXZAMLJYOW3XPMULXJGCW5W6UPN6ZFCTHE2MUCBFT \ / AMOS7 \ YOURUM ::
+#\[7]QK47VN2E4CSO4VOGU5ISWRZB2QDL4AFRVKCIESD5A5OS7D5GDSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

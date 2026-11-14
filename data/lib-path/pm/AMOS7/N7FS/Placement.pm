@@ -2,8 +2,8 @@
 
 package AMOS7::N7FS::Placement;    ##########################################
 
-## stage 5 : the holder registry in the vault, holder-check receipts, the
-## placement report and placing what is under-replicated.
+## stage 6 : per-root holder registries, holder-check receipts, the placement
+## report and placing what is under-replicated.
 
 use v5.32.0;
 use utf8;
@@ -18,13 +18,13 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.MYTDVAY |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.2YZOH7A |;
 
-@EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
-    receipt_fresh receipt_coverage receipt_covered receipt_digest n7fs_now
-    clock_floor_reset placement_report place_missing parse_size
-    parse_age holder_drain holder_prune holder_rename holder_room
-    holder_accepts |;
+@EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
+    registry_path holder_add holder_remove receipt_write receipt_fresh
+    receipt_coverage receipt_covered receipt_digest n7fs_now clock_floor_reset
+    placement_report place_missing parse_size parse_age holder_drain
+    holder_prune holder_rename holder_room holder_accepts |;
 
 use JSON::PP;
 use AMOS7::NTIME qw| parse_y_age |;
@@ -72,8 +72,138 @@ sub parse_age {
     return int( $n * $f{ lc $unit } * 4200 );
 }
 
+sub registry_path {
+    my $root = shift // refuse('a registry file needs the open root');
+    refuse('a vault root keeps its registry in the vault')
+        if $root->{'vault'};
+    return "$root->{'path'}.state/registry";
+}
+
+## the file-root and sealed form : one aligned config block per holder. the
+## vault note keeps its older json body, but its sealed copy uses this too
+## sizes are written in the largest exact unit [ 400G, not 429496729600 ] :
+## the registry is a file people read and edit by hand
+sub _size_text {
+    my $bytes = shift // return undef;
+    foreach my $unit (
+        [ T => 1024**4 ],
+        [ G => 1024**3 ],
+        [ M => 1024**2 ],
+        [ K => 1024 ]
+    ) {
+        return ( $bytes / $unit->[1] ) . $unit->[0]
+            if $bytes >= $unit->[1] and $bytes % $unit->[1] == 0;
+    }
+    return $bytes;
+}
+
+sub holders_config {
+    my $holders = shift // {};
+    my @blocks;
+    foreach my $name ( sort keys %{$holders} ) {
+        my $h = $holders->{$name};
+        my %v = (
+            qw| spec |   => $h->{'spec'},
+            qw| role |   => $h->{'role'} // qw| durable |,
+            qw| domain | => $h->{'domain'},
+            qw| owned |  => $h->{'owned'} ? 1 : 0,
+        );
+        $v{'id'}      = $h->{'id'}                  if defined $h->{'id'};
+        $v{'quota'}   = _size_text( $h->{'quota'} ) if defined $h->{'quota'};
+        $v{'reserve'} = _size_text( $h->{'reserve'} )
+            if defined $h->{'reserve'};
+        $v{'min_priority'} = $h->{'min_priority'}
+            if defined $h->{'min_priority'};
+        $v{'via'}        = $h->{'via'}    if defined $h->{'via'};
+        $v{'access'}     = $h->{'access'} if defined $h->{'access'};
+        $v{'categories'} = join ',', @{ $h->{'categories'} }
+            if ref $h->{'categories'} eq qw| ARRAY |;
+        my @fields = grep { defined $v{$ARG} }
+            qw| id spec role domain owned quota reserve categories
+            min_priority via access |;
+        my $width = 0;
+
+        foreach my $field (@fields) {
+            my $length = length "holder.$name.$field";
+            $width = $length if $length > $width;
+        }
+        push @blocks, join '', map {
+            my $key = "holder.$name.$ARG";
+            sprintf "%-${width}s : %s\n", $key, $v{$ARG}
+        } @fields;
+    }
+    return join "\n", @blocks;
+}
+
+## both separators and arbitrary horizontal spacing are accepted. values keep
+## everything after the separator, so access hints may contain ':' or '='
+sub holders_parse {
+    my $body = shift // '';
+    my %holders;
+    foreach my $line ( split m|\n|, $body, -1 ) {
+        next if $line =~ m|\A\s*(?:#.*)?\z|;
+        my ( $name, $field, $value ) = $line =~ m{
+            \A\s*holder\.([A-Za-z0-9_.-]{1,64})\.
+            (id|spec|role|domain|owned|quota|reserve|categories|
+             min_priority|via|access)\s*[:=]\s*(.*?)\s*\z
+        }x;
+        refuse( 'invalid holder registry line [ %s ]', $line )
+            if not defined $field;
+        refuse( 'duplicate holder registry key [ %s.%s ]', $name, $field )
+            if exists $holders{$name}{$field};
+        $holders{$name}{$field} = $value;
+    }
+    foreach my $name ( keys %holders ) {
+        my $h = $holders{$name};
+        refuse( 'holder registry entry is incomplete [ %s ]', $name )
+            if not defined $h->{'spec'}
+            or not defined $h->{'role'}
+            or not defined $h->{'domain'};
+        $h->{'owned'} = {
+            qw| 0 |     => 0,
+            qw| 1 |     => 1,
+            qw| no |    => 0,
+            qw| yes |   => 1,
+            qw| false | => 0,
+            qw| true |  => 1,
+        }->{ lc( $h->{'owned'} // 0 ) };
+        refuse( 'holder registry owned flag is invalid [ %s ]', $name )
+            if not defined $h->{'owned'};
+        foreach my $field (qw| quota reserve |) {
+            next if not defined $h->{$field};
+            $h->{$field} = parse_size( $h->{$field} );
+        }
+        foreach my $field (qw| min_priority |) {
+            next if not defined $h->{$field};
+            refuse( 'holder registry number is invalid [ %s.%s ]',
+                $name, $field )
+                if $h->{$field} !~ m|\A\d+\z|;
+            $h->{$field} += 0;
+        }
+        refuse( 'holder registry via name is invalid [ %s ]', $name )
+            if defined $h->{'via'}
+            and $h->{'via'} !~ m|\A[A-Za-z0-9_.-]{1,64}\z|;
+        refuse( 'holder registry access hint exceeds 256 bytes [ %s ]',
+            $name )
+            if defined $h->{'access'}
+            and ( length( $h->{'access'} ) > 256
+            or $h->{'access'} =~ m|[\0\r]| );
+        $h->{'categories'} = [ grep {length} split m|,|, $h->{'categories'} ]
+            if defined $h->{'categories'};
+    }
+    return \%holders;
+}
+
 sub holders_load {
     my %opt = @_;
+    if ( ref $opt{'root'} eq qw| HASH | and not $opt{'root'}{'vault'} ) {
+        my $body = read_file( registry_path( $opt{'root'} ) );
+        return {} if not defined $body or not length $body;
+        return holders_parse($body);
+    }
+    $opt{'vault_dir'} = $opt{'root'}{'vault_dir'}
+        if ref $opt{'root'} eq qw| HASH |
+        and not defined $opt{'vault_dir'};
     require AMOS7::N7FS::Keys;
     my $body = AMOS7::N7FS::Keys::vault_note_load( $REGISTRY, %opt );
     return {} if not defined $body or not length $body;
@@ -84,11 +214,35 @@ sub holders_load {
     return $data->{'holders'};
 }
 
-sub _holders_save {
+sub holders_save {
     my ( $holders, %opt ) = @_;
+    if ( ref $opt{'root'} eq qw| HASH | and not $opt{'root'}{'vault'} ) {
+        my $path = registry_path( $opt{'root'} );
+        my $dir  = $path;
+        $dir =~ s|/[^/]+\z||;
+        make_dirs( $dir, 0700 );
+        _replace_file(
+            $path,
+            holders_config($holders),
+            qw| registry:before-rename |
+        );
+        return;
+    }
+    $opt{'vault_dir'} = $opt{'root'}{'vault_dir'}
+        if ref $opt{'root'} eq qw| HASH |
+        and not defined $opt{'vault_dir'};
     require AMOS7::N7FS::Keys;
     AMOS7::N7FS::Keys::vault_note_save( $REGISTRY,
         $JSON->encode( { qw| holders | => $holders } ), %opt );
+    return;
+}
+
+sub _holders_changed {
+    my ( $holders, %opt ) = @_;
+    holders_save( $holders, %opt );
+    return if ref $opt{'root'} ne qw| HASH |;
+    require AMOS7::N7FS::Seal;
+    AMOS7::N7FS::Seal::registry_publish( $opt{'root'} );
     return;
 }
 
@@ -114,11 +268,25 @@ sub holder_add {
     refuse('-min-priority must be a whole number')
         if defined $opt{'min_priority'}
         and $opt{'min_priority'} !~ m|\A\d+\z|;
+    refuse('-via must name a holder')
+        if defined $opt{'via'}
+        and $opt{'via'} !~ m|\A[A-Za-z0-9_.-]{1,64}\z|;
+    refuse('-access is free text of at most 256 bytes on one line')
+        if defined $opt{'access'}
+        and ( length( $opt{'access'} ) > 256
+        or $opt{'access'} =~ m|[\0\r\n]| );
     my $holders = holders_load(%opt);
+    my $old     = $holders->{$name};
     $holders->{$name} = {
         @categories ? ( qw| categories | => [ sort @categories ] ) : (),
         defined $opt{'min_priority'}
         ? ( qw| min_priority | => $opt{'min_priority'} + 0 )
+        : (),
+        defined $opt{'via'}    ? ( qw| via |    => $opt{'via'} )    : (),
+        defined $opt{'access'} ? ( qw| access | => $opt{'access'} ) : (),
+        ref $old eq qw| HASH |
+            && ( $old->{'spec'} // '' ) eq $spec && defined $old->{'id'}
+        ? ( qw| id | => $old->{'id'} )
         : (),
         qw| spec |    => $spec,
         qw| role |    => $role,
@@ -127,7 +295,7 @@ sub holder_add {
         qw| quota |   => parse_size( $opt{'quota'} ),
         qw| reserve | => parse_size( $opt{'reserve'} ),
     };
-    _holders_save( $holders, %opt );
+    _holders_changed( $holders, %opt );
     return $holders->{$name};
 }
 
@@ -137,7 +305,7 @@ sub holder_remove {
     refuse( 'no holder named %s', $opt{'name'} // '' )
         if not exists $holders->{ $opt{'name'} // '' };
     delete $holders->{ $opt{'name'} };
-    _holders_save( $holders, %opt );
+    _holders_changed( $holders, %opt );
     return;
 }
 
@@ -175,7 +343,7 @@ sub holder_rename {
     return $result              if $opt{'dry_run'};
     delete $holders->{$old};
     $holders->{$new} = \%h;
-    _holders_save( $holders, %opt );
+    _holders_changed( $holders, %opt );
     return $result;
 }
 
@@ -193,10 +361,10 @@ sub _clock_floor_path {
 }
 
 sub _replace_file {
-    my ( $path, $bytes ) = @_;
+    my ( $path, $bytes, $fault_point ) = @_;
     my $tmp = "$path.tmp." . b32( random_bytes(5) );
     write_new_file( $tmp, $bytes );
-    fault(qw| receipt:before-rename |);
+    fault( $fault_point // qw| receipt:before-rename | );
     rename $tmp, $path
         or refuse( 'cannot replace %s : %s', $path, $OS_ERROR );
     my $dir = $path;
@@ -1039,8 +1207,8 @@ sub holder_prune {
 
 1;
 
-#,,.,,,..,,,.,,,,,,,.,...,,.,,,,.,.,.,,,.,.,.,..,,...,..,,...,,.,,..,,,,,,,.,,
-#CGGJ5VRSOGPUEZXAMDHU6Q75GZV2KAUXSRIHTGJE5ATLYOZRBOYTCDG536U4TNDDTSLUFIZ2BNJEO
-#\\\|FM7B3IPOZJKTKCTSEDNZAUOAMU6VECPV4CIRQROMPHHKGHNH27M \ / AMOS7 \ YOURUM ::
-#\[7]UEGOMPBARQ3XYGDZ657T3FITM4OYSSXJ3XB2B4IXWRGVU7HTBAAY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,...,,.,,.,.,..,,,,,,.,,,,,,,..,,...,...,...,.,.,...,,..,.,.,
+#JDL7SEDLIRAARQO4UGLBJQ3EDOSYU76VJZK4VIMSJ6RSL7SSMS7EOLQJ423OGGD5VVEZNT46F5WRE
+#\\\|23G2KH34CX7PXRC5TJ6OHC3JA6Y33VRAJ27AJSHST6HJPCZFOL4 \ / AMOS7 \ YOURUM ::
+#\[7]JY4R2QAFHJ44MQUAD3HBLXQVS3F6HLPBA2NYL5RGK36OBB6BXUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

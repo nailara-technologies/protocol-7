@@ -17,13 +17,13 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.VVU7JHI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.6PVS27Y |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
     holder_migrate root_subdir retention_update retention_plan repack_packs
     seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt
-    head_survey head_refresh |;
+    head_survey head_refresh registry_open registry_publish |;
 
 use JSON::PP;
 use Digest::BMW;
@@ -126,7 +126,7 @@ sub _open_outer {
 sub _siv_domain {
     my $domain = shift // '';
     return $domain
-        =~ m{\A(?:head|map|map-shard-[A-Z2-7]{2}|map-tree|journal|manifest-index|manifest-chunk)\z};
+        =~ m{\A(?:head|map|map-shard-[A-Z2-7]{2}|map-tree|journal|registry|manifest-index|manifest-chunk)\z};
 }
 
 sub _long_aad {
@@ -282,7 +282,7 @@ sub _state_write {
     my ( $root, $state ) = @_;
     my $dir    = _state_dir($root);
     my $stored = { %{$state} };
-    delete @{$stored}{qw| new_holder holder_id |};
+    delete @{$stored}{qw| new_holder holder_id head_registry |};
     make_dirs( $dir, 0700 );
     _replace_file( "$dir/state", $JSON->encode($stored) );
 }
@@ -438,8 +438,9 @@ sub _peers {
 }
 
 sub _head_bytes {
-    my ( $root, $writer, $version, $holder, $time, $map, $journal, $peers )
-        = @_;
+    my ($root, $writer,  $version, $holder, $time,
+        $map,  $journal, $peers,   $registry
+    ) = @_;
     my $head = {
         qw| format |  => qw| n7fs-head-v2 |,
         qw| root_id | => $root->{'root_id'},
@@ -450,7 +451,8 @@ sub _head_bytes {
         qw| map |     => $map,
         qw| journal | => $journal,
         qw| peers |   => $peers // {},
-        qw| pub |     => b32( $root->{'signer'}->public ),
+        defined $registry ? ( qw| registry | => $registry ) : (),
+        qw| pub | => b32( $root->{'signer'}->public ),
     };
     $head->{'sig'} = b32( $root->{'signer'}->sign( $JSON->encode($head) ) );
     my $plain = $JSON->encode($head);
@@ -517,8 +519,9 @@ sub _lazy_nodes {
 
 sub _map_blob_names {
     my ( $root, $base, $alt, $head, $map ) = @_;
-    my %names = map { $ARG => TRUE } $head->{'map'}{'blob'},
-        $head->{'journal'},
+    my %names = map { $ARG => TRUE }
+        grep {defined} $head->{'map'}{'blob'}, $head->{'journal'},
+        ( $head->{'registry'} ? $head->{'registry'}{'blob'} : () ),
         ( map { $ARG->{'blob'} } values $map->{'_shards'}->%* );
     $names{ $map->{'_tree_blob'}{'blob'} } = TRUE if $map->{'_tree_blob'};
     $names{$ARG} = TRUE
@@ -534,6 +537,8 @@ sub _context {
     holder_authorize( $dir, $root );
     my $state = _state_read($root);
     my ( $head, $base ) = _head_locate( $root, $dir );
+    $state->{'head_registry'} = $head->{'registry'}
+        if defined $head and defined $head->{'registry'};
     if ( not defined $head and not $recover ) {
         ## a writer on a holder with no head anywhere starts it in the    ##
         ## per-root layout : the subdirectory is created before any write ##
@@ -758,8 +763,60 @@ sub holder_respec {
     return $head->{'version'};
 }
 
+## sync holder ids learned from signed heads into the authority, then return
+## the config text sealed into every head's registry descriptor
+sub _registry_text {
+    my ( $root, $state, $pin, $holder ) = @_;
+    require AMOS7::N7FS::Placement;
+    my $holders = AMOS7::N7FS::Placement::holders_load( qw| root | => $root );
+    my $changed = 0;
+    foreach my $name ( keys %{$holders} ) {
+        my $h = $holders->{$name};
+        my ($id) = grep {
+            ( $state->{'holders'}{$ARG}{'spec'} // '' ) eq $h->{'spec'}
+            }
+            keys $state->{'holders'}->%*;
+        $id = $holder
+            if defined $holder and $h->{'spec'} eq $pin;
+        next if not defined $id or ( $h->{'id'} // '' ) eq $id;
+        $h->{'id'} = $id;
+        $changed++;
+    }
+    AMOS7::N7FS::Placement::holders_save( $holders, qw| root | => $root )
+        if $changed;
+    return AMOS7::N7FS::Placement::holders_config($holders);
+}
+
+sub registry_open {
+    my ( $root, $head, $base, $alt ) = @_;
+    refuse('this head names no sealed holder registry')
+        if ref $head->{'registry'} ne qw| HASH |;
+    my $plain = _map_plain( $root, $base, $alt, $head->{'registry'},
+        qw| registry | );
+    require AMOS7::N7FS::Placement;
+    return AMOS7::N7FS::Placement::holders_parse($plain);
+}
+
+## a registry edit refreshes every existing head ; a new empty holder gets its
+## first registry on its first seal, and an unreachable existing holder fails
+sub registry_publish {
+    my $root = shift;
+    require AMOS7::N7FS::Placement;
+    my $holders = AMOS7::N7FS::Placement::holders_load( qw| root | => $root );
+    my $written = 0;
+    foreach my $name ( sort keys %{$holders} ) {
+        my ($head) = _head_locate( $root, $holders->{$name}{'spec'} );
+        next if not defined $head;
+        head_refresh( $root, $holders->{$name}{'spec'} );
+        $written++;
+    }
+    return $written;
+}
+
 sub _commit {
     my ( $root, $base, $pin, $state, $map, $operation ) = @_;
+    my $registry
+        = _registry_text( $root, $state, $pin, $state->{'holder_id'} );
     my $writer  = _writer($state);
     my $version = $state->{'version'} + 1;
     my $holder  = $state->{'holder_id'} // refuse('commit has no holder id');
@@ -847,6 +904,12 @@ sub _commit {
     $map->{'_shards'}    = \%shards;
     $map->{'_tree_blob'} = $stored->{'tree_blob'};
     $nodes->{'shards'}   = \%shards;
+    my $registry_sum = bmw_b32( bmw384_bytes($registry) );
+    my $registry_desc
+        = ( $state->{'head_registry'}{'checksum'} // '' ) eq $registry_sum
+        ? $state->{'head_registry'}
+        : $seal_map->( $registry, qw| registry | );
+    $state->{'head_registry'} = $registry_desc;
     fault(qw| seal:after-map |);
     my $journal = $JSON->encode(
         {   qw| writer |    => b32($writer),
@@ -868,9 +931,11 @@ sub _commit {
         qw| journal |
     );
     fault(qw| seal:after-journal |);
-    my $head_name  = _head_name($root);
-    my $head_bytes = _head_bytes( $root, $writer, $version, $holder, $time,
-        $map_desc, $journal_name, _peers( $state, $holder ) );
+    my $head_name = _head_name($root);
+    my $head_bytes
+        = _head_bytes( $root, $writer, $version, $holder, $time,
+        $map_desc, $journal_name, _peers( $state, $holder ),
+        $registry_desc );
 
     if ( holder_parse($base)->{'type'} eq qw| ssh | ) {
         my $spool = "$state_dir/spool";
@@ -966,10 +1031,11 @@ sub head_refresh {
     my $pin = holder_canonical($dir);
     my ( $state, $head, undef, $base ) = _context( $root, $pin, TRUE );
     refuse('no sealed head to refresh') if not defined $head;
-    my $writer  = _writer($state);
-    my $version = $state->{'version'} + 1;
-    my $holder  = $head->{'holder'};
-    my $time    = ntime_now();
+    my $registry = _registry_text( $root, $state, $pin, $head->{'holder'} );
+    my $writer   = _writer($state);
+    my $version  = $state->{'version'} + 1;
+    my $holder   = $head->{'holder'};
+    my $time     = ntime_now();
     $time = $state->{'last_time'} + 1
         if $time <= ( $state->{'last_time'} // 0 );
     my $state_dir = _state_dir($root);
@@ -984,8 +1050,15 @@ sub head_refresh {
         )
     );
     _state_write( $root, { %{$state}, qw| version | => $version } );
-    my $head_bytes = _head_bytes( $root, $writer, $version, $holder, $time,
-        $head->{'map'}, $head->{'journal'}, _peers( $state, $holder ) );
+    my $registry_sum = bmw_b32( bmw384_bytes($registry) );
+    my $registry_desc
+        = ( $head->{'registry'}{'checksum'} // '' ) eq $registry_sum
+        ? $head->{'registry'}
+        : _manifest_seal( $root, $base, $registry, qw| registry |, $version );
+    my $head_bytes
+        = _head_bytes( $root, $writer, $version, $holder, $time,
+        $head->{'map'}, $head->{'journal'}, _peers( $state, $holder ),
+        $registry_desc );
     my $head_name = _head_name($root);
 
     if ( holder_parse($base)->{'type'} eq qw| ssh | ) {
@@ -1921,6 +1994,34 @@ sub seal_recover {
         ? $opt{'holders'}->@*
         : ( $opt{'holder'} );
     refuse('seal-recover needs -from <holder-dir>') if not @specs;
+    my ( $registry, $registry_head );
+    if (   $opt{'all_holders'}
+        or $opt{'show_holders'}
+        or $opt{'import_holders'} ) {
+        my $top = holder_canonical( $specs[0] );
+        my ( $head, $base ) = _head_locate( $opt{'root'}, $top );
+        refuse('no sealed head with a holder registry') if not defined $head;
+        my $alt = holder_sub_spec( $top, root_subdir( $opt{'root'} ) );
+        $registry      = registry_open( $opt{'root'}, $head, $base, $alt );
+        $registry_head = $head;
+    }
+    push @specs, map { $registry->{$ARG}{'spec'} } sort keys %{$registry}
+        if $opt{'all_holders'};
+    if ( $opt{'import_holders'} ) {
+        require AMOS7::N7FS::Placement;
+        AMOS7::N7FS::Placement::holders_save( $registry,
+            qw| root | => $opt{'root'} );
+    }
+    return {
+        qw| registry | => $registry,
+        qw| head |     => $registry_head,
+        qw| imported | => $opt{'import_holders'} ? TRUE : FALSE,
+        }
+        if $opt{'show_holders'}
+        or ( $opt{'import_holders'}
+        and not defined $opt{'target'}
+        and not $opt{'list'}
+        and not defined $opt{'tree'} );
     my %seen;
     @specs = grep { not $seen{ holder_canonical($ARG) }++ } @specs;
     my $peers = $opt{'peers'} // {
@@ -2332,6 +2433,7 @@ sub holder_check {
             if not defined $sizes->{$name};
     }
     my @descriptors = ( $head->{'map'}, values $map->{'_shards'}->%* );
+    push @descriptors, $head->{'registry'}  if $head->{'registry'};
     push @descriptors, $map->{'_tree_blob'} if $map->{'_tree_blob'};
     foreach my $tree ( values $map->{'trees'}->%* ) {
         my $index = _manifest_index_read( $opt{'root'}, $base, undef, $tree );
@@ -3323,8 +3425,8 @@ sub shred_node {
 
 1;
 
-#,,.,,.,,,.,.,.,.,.,.,..,,.,.,.,.,..,,.,.,,,,,..,,...,...,,,,,...,..,,.,.,.,.,
-#FU5YZZDPBU34QQYOHMVJJPFLE5WQJ3TKRIJ52W4476XO5DOFXWQB5SPUK7IRTRHNDBPDTWATU625U
-#\\\|HFAPDU7K3WNWMIJGURR6TOEPAVDIIIBNQ2OQBQ4YMWB4TETSV36 \ / AMOS7 \ YOURUM ::
-#\[7]KV3MVKF4TPWKAJMZ4VMRSULE5OG4423CA42YU5AH62OLRDPADUCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,,,.,,,,,,.,,.,,,,,.,.,.,,.,,..,,...,...,.,.,,,,,..,,.,,,.,,,
+#2HQYTOEMFZA3I7ELFT4EEDX34FT4MR7JWUL3D7ZILWFYNUR65DBHFRHWWPWV4Y53UZJ5QRBKYBRMG
+#\\\|WPDR2KYFWYQ67TBPKB46QHD773Y5DJJ66AMDVBOXO5MGRXRKRMX \ / AMOS7 \ YOURUM ::
+#\[7]74DZOKW2CEK7ZNY4MBIQIC3EYDHAMTGIFXRP3K477RCMEVI7SICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

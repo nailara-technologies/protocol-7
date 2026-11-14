@@ -365,6 +365,50 @@ derived, not stored ] :
   next layer [ an identity-bound compartment ]. same stacking as the
   registration form `<epoch>:<key>:<name>` : content, epoch, name.
 
+- **key-last transport : abortable bitstreams** [ owner, mentioned earlier
+  too ]. the ciphertext travels first, the decryption key is sent LAST : until
+  then the sender can abort and the receiver holds only useless bytes.
+  gains : abort without a readable trace ; prefetch large data when bandwidth
+  is cheap and decide access later in one small packet ; commit-then-reveal
+  [ a ciphertext checksum sent first proves the bytes did not change before
+  the key came ]. n7fs already has half : holders store sealed bytes without
+  a key -- sending the key later is GRANTING ACCESS, separate from transport,
+  the same shape as the index layer. keep : integrity is checkable only with
+  the key [ send the ciphertext checksum first ] ; withholding is a weapon
+  [ unrequested transfers need receiver-side limits ] ; ciphertext does not
+  age [ a key leaked years later still opens kept bytes -- delete when the key
+  never comes, for sensitive data ]. owner extension -- FAIR EXCHANGE :
+  two parties send their ciphertexts first [ any size, any type ] ; an
+  intermediary ring [ the home zenki ring ] holds the key material, checks
+  the agreed condition [ e.g. each ciphertext checksum matches what was
+  promised ] and releases both keys at once or neither. only small key
+  material passes the ring, never the payload. fair exchange is known to be
+  impossible between two parties alone -- the ring is the needed third
+  party. the ring must NOT be able to read along : it holds only key SHARES
+  [ k-of-n across ring members ] and never sees the ciphertexts, or each key
+  is encrypted to the other party and the ring holds a small unlock value
+  useless on its own. owner : the protection is also REDUNDANCY -- k-of-n
+  shares survive a ring member dropping out mid-exchange, n7fs keeps the
+  ciphertexts redundant, so no technical single point of failure remains
+  late in an advanced transaction. care : the release must stay ATOMIC
+  across the ring [ one member releasing key A while another fails before B
+  leaves one party with everything ] -- a short commit decision of the ring
+  first, then both keys from that one decision ; a natural case for the
+  ring state machine of `design-open-questions-2026-10-02.md` q4
+  [ request, granted, completing, completed, dropped ]. owner : the gated
+  states also NARROW verifiability -- a step cannot begin while the obvious
+  stream exchange of the previous one is incomplete, so each gate checks one
+  small question [ both ciphertexts complete + checksums as promised ->
+  enough ring members agree -> both keys delivered ] and a stuck transaction
+  names the one gate that did not open. owner : the network benefits from a
+  completed transaction too, so any node that can VALIDATE the current state
+  may prioritize carrying it to the next gate, by the layer the state is on
+  [ reserved hyperspace included ] -- serious to the users means serious to
+  the network. the other side : once all assertions pass the network
+  completes it, so starting means meaning it ; a user merely probing
+  whether it would pass gets, by unfailing statistics, a pass-through no-op
+  [ answered, never executed ] -- probing costs nothing and commits nothing.
+
 see `data/md/design/N7FS-SEALED-REPLICAS.md` [ open : derived placement,
 home zenki ring ] and [[topic-checksum-addressing]].
 
@@ -1084,8 +1128,8 @@ User said "let us first dispatch something" while still mid-riff — dispatched
 to opus via claude_dispatch to draft a design doc capturing this material
 (see commit/doc once written). More nodes in this tree are expected to follow.
 
-#,,,.,.,.,,,,,.,,,.,.,.,,,.,,,,..,,..,,,.,...,..,,...,...,,..,,,.,...,,,.,...,
-#Y7HLRKDUHC2V3PUYF2YCYSCRJP3WTCVB72GST4KXK5WFPJYPQI2EHNPRLCK3SWBPBTM3SUXXLZG2S
-#\\\|ACBTT5WFYRFEIFCOO3ASSIO6LNV7SAKG54C3NL7GKIECSRQLPUO \ / AMOS7 \ YOURUM ::
-#\[7]7W427CBZ5TBTYSGRYNDZ6R4OSY5YPUG2F7Y4XPJXJPTGIH5A3WBI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,..,,.,,,,.,,,,.,.,,,...,.,.,..,,...,...,...,,.,,.,,,.,,,,..,
+#VWJTEYGI7ZRGUFTB4TZSLZJMS2H3OGK3A7GHTE5XSMVIJIWDMLM74DWT3TUUPUBHXZHTNKZR2OXK6
+#\\\|QMI6VW3ITR4MS2A2PAMR5WRT7WWFXZAEU2Q4K3B7SBI2FCJMRU6 \ / AMOS7 \ YOURUM ::
+#\[7]5S3MIIQUWMT62J5KYZHIWQPOOVBIVGAZWWP4IACOU2MULYKG4ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -87,8 +87,11 @@ use warnings;
 ## n7fs unseal <disk> -root-key <file> -from <dir> <tree-or-address> <target>
 ## n7fs seal-recover -root-key <file> -from <dir> [ -from <dir> ]..
 ##                 [ -list ] [ -tree <name> ] [ -partial ] [ <target-dir> ]
+##                 [ -holders ] [ -import-holders ] [ -all-holders ]
 ##                 several holders combine one restore ; -list shows complete
 ##                 or partial n of m per holder ; -partial lists missing paths
+##                 -holders prints the sealed registry ; -import-holders makes
+##                 it this root's authority ; -all-holders adds every holder
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
 ## n7fs heads -root-key <file> [ <holder>.. ] [ -anchor ]
 ##                 head versions, freshness verdicts and offline anchor
@@ -116,7 +119,10 @@ use warnings;
 ##                 [ -owned ] [ -quota <size> ] [ -reserve <size> ]
 ##                 [ -categories <a,b> ] [ -min-priority <n> ]  what place
 ##                 may put there ; one passing category is enough
-## n7fs holder list | remove <name>         registry in the vault
+##                 [ -via <hub> ] [ -access <text> ] [ -root-key <key> ]
+## n7fs holder list | remove <name> [ -root-key <key> ]
+##                 a file root has its own config registry ; a vault root
+##                 keeps the vault note. -root-key also publishes sealed copies
 ## n7fs holder rename <old> <new> [ -spec <holder> -root-key <key> ]
 ##                 one registry write ; a new spec moves the rollback pin
 ##                 [ its head must match ] and needs a new holder-check
@@ -250,7 +256,8 @@ GetOptionsFromArray(
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
         categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
         no-check check-full repack threshold=f allow-stale min-version=i anchor
-        list adopt seal-root=s also-root-key=s@ accept-clock show reset |
+        list adopt seal-root=s also-root-key=s@ accept-clock show reset
+        via=s access=s holders import-holders all-holders |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -978,7 +985,7 @@ sub _retention_holders {
     my ( $root, $unavailable ) = @_;
     require AMOS7::N7FS::Placement;
     require AMOS7::N7FS::Seal;
-    my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+    my $holders = AMOS7::N7FS::Placement::holders_load( _registry_opt() );
     my @out;
     foreach my $name ( sort keys %{$holders} ) {
         my ( undef, $head, $map ) = eval {
@@ -1683,9 +1690,12 @@ sub cmd_confirm {
     return 0;
 }
 
+my $SEAL_ROOT;
+
 sub _seal_root {
+    return $SEAL_ROOT if defined $SEAL_ROOT;
     require AMOS7::N7FS::Keys;
-    return AMOS7::N7FS::Keys::root_open(
+    return $SEAL_ROOT = AMOS7::N7FS::Keys::root_open(
         qw| path | => $o{'root-key'}
             // fail('sealing needs -root-key <file>'),
         qw| pass_fd |   => $o{'pass-fd'},
@@ -1802,7 +1812,10 @@ sub cmd_seal_recover {
     my $target = shift;
     fail('seal-recover : unexpected arguments') if @ARG;
     fail('seal-recover needs a target directory')
-        if not defined $target and not $o{'list'};
+        if not defined $target
+        and not $o{'list'}
+        and not $o{'holders'}
+        and not $o{'import-holders'};
     fail('seal-recover -list takes no target directory')
         if defined $target and $o{'list'};
     fail('seal-recover needs -from <holder-dir>')
@@ -1811,20 +1824,55 @@ sub cmd_seal_recover {
     fail('seal-recover -partial needs -tree')
         if $o{'partial'} and not defined $o{'tree'};
     my $r = AMOS7::N7FS::Seal::seal_recover(
-        qw| root |        => _seal_root(),
-        qw| holder |      => $o{'from'}[0],
-        qw| holders |     => $o{'from'},
-        qw| target |      => $target,
-        qw| tree |        => $o{'tree'},
-        qw| list |        => $o{'list'}        ? TRUE : FALSE,
-        qw| partial |     => $o{'partial'}     ? TRUE : FALSE,
-        qw| owners |      => $o{'owners'}      ? TRUE : FALSE,
-        qw| allow_stale | => $o{'allow-stale'} ? TRUE : FALSE,
+        qw| root |           => _seal_root(),
+        qw| holder |         => $o{'from'}[0],
+        qw| holders |        => $o{'from'},
+        qw| target |         => $target,
+        qw| tree |           => $o{'tree'},
+        qw| list |           => $o{'list'}           ? TRUE : FALSE,
+        qw| partial |        => $o{'partial'}        ? TRUE : FALSE,
+        qw| owners |         => $o{'owners'}         ? TRUE : FALSE,
+        qw| allow_stale |    => $o{'allow-stale'}    ? TRUE : FALSE,
+        qw| show_holders |   => $o{'holders'}        ? TRUE : FALSE,
+        qw| import_holders | => $o{'import-holders'} ? TRUE : FALSE,
+        qw| all_holders |    => $o{'all-holders'}    ? TRUE : FALSE,
         defined $o{'min-version'}
         ? ( qw| min_version | => $o{'min-version'} )
         : (),
     );
     require AMOS7::NTIME;
+
+    if ( $o{'holders'} ) {
+        foreach my $name ( sort keys $r->{'registry'}->%* ) {
+            my $h    = $r->{'registry'}{$name};
+            my $id   = $h->{'id'} // '';
+            my $peer = $r->{'head'}{'peers'}{$id};
+            say join ' ', $name, $h->{'role'}, $h->{'domain'},
+                $h->{'owned'}          ? 'owned' : 'foreign', $h->{'spec'},
+                length $id             ? "id=$id"                : (),
+                defined $h->{'via'}    ? "via=$h->{'via'}"       : (),
+                defined $h->{'access'} ? "access=$h->{'access'}" : (),
+                defined $peer ? ( "head=v$peer->{'v'}", "time=$peer->{'t'}" )
+                : (),
+                ref $peer->{'r'} eq qw| HASH |
+                ? (
+                "receipt=v$peer->{'r'}{'v'}", "coverage=$peer->{'r'}{'c'}",
+                "covered=$peer->{'r'}{'n'}"
+                )
+                : ();
+        }
+    }
+    say_line(
+        'imported ',
+        scalar keys $r->{'registry'}->%*,
+        ' holders into this root registry'
+    ) if $o{'import-holders'};
+    return 0
+        if $o{'holders'}
+        or ( $o{'import-holders'}
+        and not defined $target
+        and not $o{'list'}
+        and not defined $o{'tree'} );
 
     if ( $o{'list'} ) {
         foreach my $tree ( $r->{'list'}->@* ) {
@@ -1886,7 +1934,7 @@ sub _holder_arg {
     my $arg = shift;
     return $arg if $arg =~ m{[:/]};
     require AMOS7::N7FS::Placement;
-    my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+    my $holders = AMOS7::N7FS::Placement::holders_load( _registry_opt() );
     my $h       = $holders->{$arg}
         // fail("no holder named $arg [ a spec holds ':' or '/' ]");
     return $h->{'spec'};
@@ -1897,7 +1945,7 @@ sub _survey_holders {
     return { map { $ARG => $ARG } @selected }
         if @selected and not grep { $_ !~ m{[:/]} } @selected;
     require AMOS7::N7FS::Placement;
-    my $registered = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+    my $registered = AMOS7::N7FS::Placement::holders_load( _registry_opt() );
     return {
         map { $ARG => $registered->{$ARG}{'spec'} }
         sort keys %{$registered}
@@ -2163,7 +2211,7 @@ sub cmd_relay {
     my $from = shift // fail('relay needs a source holder name');
     my $to   = shift // fail('relay needs a target holder name');
     fail('relay : unexpected arguments') if @ARG;
-    my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+    my $holders = AMOS7::N7FS::Placement::holders_load( _registry_opt() );
     foreach my $name ( $from, $to ) {
         fail("no holder named $name") if not $holders->{$name};
     }
@@ -2230,14 +2278,18 @@ sub cmd_relay {
     return 0;
 }
 
-## a relay list is named by a tag of its target, not the target's name ##
+## relay lists and pending names belong to one root and one target spec ##
 sub _relay_tag {
     require AMOS7::N7FS::Sum;
     require AMOS7::N7FS::Holder;
     my $spec = AMOS7::N7FS::Holder::holder_canonical(shift);
     return substr(
         bmw_b32(
-            AMOS7::N7FS::Sum::bmw384_bytes( "p7 n7fs relay v1\0" . $spec )
+            AMOS7::N7FS::Sum::bmw384_bytes(
+                      "p7 n7fs relay v2\0"
+                    . _seal_root()->{'root_id'} . "\0"
+                    . $spec
+            )
         ),
         0, 13
     );
@@ -2451,10 +2503,16 @@ sub _vault_opt {
     );
 }
 
+sub _registry_opt {
+    return ( _vault_opt(),
+        defined $o{'root-key'} ? ( qw| root | => _seal_root() ) : () );
+}
+
 sub cmd_holder_receiver_line {
     require AMOS7::N7FS::Holder;
     require AMOS7::N7FS::Receiver;
     require AMOS7::N7FS::Seal;
+    require AMOS7::N7FS::Keys;
     my $holder
         = _holder_arg( shift // fail('holder-receiver-line needs a holder') );
     fail('holder-receiver-line : unexpected arguments') if @ARG;
@@ -2499,7 +2557,7 @@ sub cmd_holder {
         my $spec = shift // fail('holder add needs a holder');
         fail('holder add : unexpected arguments') if @ARG;
         my $h = AMOS7::N7FS::Placement::holder_add(
-            _vault_opt(),
+            _registry_opt(),
             qw| name |         => $name,
             qw| spec |         => $spec,
             qw| role |         => $o{'role'},
@@ -2509,6 +2567,8 @@ sub cmd_holder {
             qw| reserve |      => $o{'reserve'},
             qw| categories |   => $o{'categories'},
             qw| min_priority | => $o{'min-priority'},
+            qw| via |          => $o{'via'},
+            qw| access |       => $o{'access'},
         );
         say_line( 'holder ', $name, ' : ', $h->{'role'}, ' in ',
             $h->{'domain'}, $h->{'owned'} ? ' [ owned ]' : '' );
@@ -2516,7 +2576,7 @@ sub cmd_holder {
     }
     if ( $action eq qw| list | ) {
         fail('holder list : unexpected arguments') if @ARG;
-        my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+        my $holders = AMOS7::N7FS::Placement::holders_load( _registry_opt() );
         foreach my $name ( sort keys %{$holders} ) {
             my $h = $holders->{$name};
             say join ' ', $name, $h->{'role'}, $h->{'domain'},
@@ -2527,14 +2587,16 @@ sub cmd_holder {
                 : (),
                 defined $h->{'min_priority'}
                 ? "min-priority=$h->{'min_priority'}"
-                : ();
+                : (),
+                defined $h->{'via'}    ? "via=$h->{'via'}"       : (),
+                defined $h->{'access'} ? "access=$h->{'access'}" : ();
         }
         return 0;
     }
     if ( $action eq qw| remove | ) {
         my $name = shift // fail('holder remove needs a name');
         fail('holder remove : unexpected arguments') if @ARG;
-        AMOS7::N7FS::Placement::holder_remove( _vault_opt(),
+        AMOS7::N7FS::Placement::holder_remove( _registry_opt(),
             qw| name | => $name );
         say_line( 'holder ', $name, ' removed from the registry' );
         return 0;
@@ -2543,7 +2605,7 @@ sub cmd_holder {
         require AMOS7::N7FS::Holder;
         my $name = shift // fail('holder receiver needs a name');
         fail('holder receiver : unexpected arguments') if @ARG;
-        my $holders = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+        my $holders = AMOS7::N7FS::Placement::holders_load( _registry_opt() );
         my $h       = $holders->{$name} // fail("no holder named $name");
         my $parsed  = AMOS7::N7FS::Holder::holder_parse( $h->{'spec'} );
         fail('holder receiver is for an ssh holder')
@@ -2551,7 +2613,7 @@ sub cmd_holder {
         fail('holder is already in receiver mode') if $parsed->{'receiver'};
         my $spec = $h->{'spec'} =~ s|\Assh:|ssh-receiver:|r;
         my $r    = AMOS7::N7FS::Placement::holder_rename(
-            _vault_opt(),
+            _registry_opt(),
             qw| name |     => $name,
             qw| new_name | => $name,
             qw| new_spec | => $spec,
@@ -2570,7 +2632,7 @@ sub cmd_holder {
         my $new = shift // $old;
         fail('holder rename : unexpected arguments') if @ARG;
         my $r = AMOS7::N7FS::Placement::holder_rename(
-            _vault_opt(),
+            _registry_opt(),
             qw| name |     => $old,
             qw| new_name | => $new,
             defined $o{'spec'}
@@ -2747,8 +2809,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,,,,,,,,,..,,,.,.,.,.,,,.,.,,.,,,.,,.,,,..,,...,..,,...,,..,,,,,...,,,.,
-#KQNQKBY4K7LPKDKOMXO2LFE7WO35BZP6R36VYUD3MLWB7RPN2UQRP5TOO4IHOKIDBMGSVIJVAOW7K
-#\\\|QQJKXJY7LOIFTSOZISSNDJBOKUNELGHERQYRZRWYLEN2FDMWM7H \ / AMOS7 \ YOURUM ::
-#\[7]ZPGSKJOJZW5KTAWTZZALKH3A46FHABDEK5G7D5FE6NG6HOBW4IBQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,,..,.,.,.,.,...,,,,,..,,,.,,..,,...,..,,..,,..,,,,,,,.,,,,,,
+#PRLTSFUNVXH47OFFC622VC7W2HJIRGMGGVLT7HM62ZR3MLCH4LWQ42KQSWPFXQI5BFUAXWSPYVL26
+#\\\|WSHPTZD3FAKBEM7XTSFYDGSFPHXACKZT6WN3IKZ7MJQ3HA3DYI4 \ / AMOS7 \ YOURUM ::
+#\[7]J23Q3S6YXGM7AO5CQZ7EAW4KIBGOZ5HUZMUFIRLXCEPQQZJXBCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
