@@ -17,12 +17,13 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.4YDMPFY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.VPZRVMI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
     holder_migrate root_subdir retention_update retention_plan repack_packs
-    seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt |;
+    seal_bytes open_sealed_bytes wrap_bytes unwrap_bytes twofish_crypt
+    head_survey head_refresh |;
 
 use JSON::PP;
 use Digest::BMW;
@@ -402,8 +403,22 @@ sub _head_open {
     return $head;
 }
 
+sub _peers {
+    my ( $state, $holder ) = @_;
+    return {
+        map {
+            $ARG => {
+                qw| v | => $state->{'holders'}{$ARG}{'version'} // 0,
+                qw| t | => $state->{'holders'}{$ARG}{'time'}    // 0,
+            }
+        }
+        grep { $ARG ne $holder } keys $state->{'holders'}->%*
+    };
+}
+
 sub _head_bytes {
-    my ( $root, $writer, $version, $holder, $time, $map, $journal ) = @_;
+    my ( $root, $writer, $version, $holder, $time, $map, $journal, $peers )
+        = @_;
     my $head = {
         qw| format |  => qw| n7fs-head-v2 |,
         qw| root_id | => $root->{'root_id'},
@@ -413,6 +428,7 @@ sub _head_bytes {
         qw| holder |  => $holder,
         qw| map |     => $map,
         qw| journal | => $journal,
+        qw| peers |   => $peers // {},
         qw| pub |     => b32( $root->{'signer'}->public ),
     };
     $head->{'sig'} = b32( $root->{'signer'}->sign( $JSON->encode($head) ) );
@@ -825,7 +841,7 @@ sub _commit {
     fault(qw| seal:after-journal |);
     my $head_name  = _head_name($root);
     my $head_bytes = _head_bytes( $root, $writer, $version, $holder, $time,
-        $map_desc, $journal_name );
+        $map_desc, $journal_name, _peers( $state, $holder ) );
 
     if ( holder_parse($base)->{'type'} eq qw| ssh | ) {
         my $spool = "$state_dir/spool";
@@ -854,6 +870,107 @@ sub _commit {
         for @expired;
     fault(qw| seal:after-head |);
     return $version;
+}
+
+sub head_survey {
+    my ( $root, $holders ) = @_;
+    my $state = _state_read($root);
+    my %survey;
+    foreach my $name ( sort keys %{$holders} ) {
+        my $spec = holder_canonical( $holders->{$name} );
+        my ( $head, $base ) = eval { _head_locate( $root, $spec ) };
+        $survey{$name} = {
+            qw| spec |  => $spec,
+            qw| base |  => $base,
+            qw| head |  => $head,
+            qw| error | => $EVAL_ERROR || undef,
+            qw| floor | => 0,
+        };
+        next if not defined $head;
+        $survey{$name}{'holder'} = $head->{'holder'};
+    }
+    foreach my $name ( keys %survey ) {
+        my $item = $survey{$name};
+        my $head = $item->{'head'} // next;
+        my $id   = $head->{'holder'};
+        my $home = $state->{'holders'}{$id};
+        if ( defined $home ) {
+            $item->{'floor'}   = $home->{'version'} // 0;
+            $item->{'witness'} = 'home state';
+        }
+        foreach my $other_name ( keys %survey ) {
+            next if $other_name eq $name;
+            my $other = $survey{$other_name}{'head'} // next;
+            my $peer  = $other->{'peers'}{$id}       // next;
+            refuse('signed head peer record is invalid')
+                if ref $peer ne qw| HASH |
+                or ( $peer->{'v'} // '' ) !~ m|\A\d+\z|
+                or ( $peer->{'t'} // '' ) !~ m|\A\d+\z|;
+            next if $peer->{'v'} <= $item->{'floor'};
+            $item->{'floor'}   = $peer->{'v'};
+            $item->{'witness'} = $other_name;
+            $item->{'seen'}    = $peer->{'t'};
+        }
+        $item->{'stale'} = $head->{'version'} < $item->{'floor'};
+        $item->{'verdict'}
+            = $item->{'stale'}   ? qw| stale |
+            : keys(%survey) == 1 ? qw| unverified |
+            :                      qw| current |;
+    }
+    return \%survey;
+}
+
+sub head_refresh {
+    my ( $root, $dir ) = @_;
+    my $pin = holder_canonical($dir);
+    my ( $state, $head, undef, $base ) = _context( $root, $pin, TRUE );
+    refuse('no sealed head to refresh') if not defined $head;
+    my $writer  = _writer($state);
+    my $version = $state->{'version'} + 1;
+    my $holder  = $head->{'holder'};
+    my $time    = ntime_now();
+    $time = $state->{'last_time'} + 1
+        if $time <= ( $state->{'last_time'} // 0 );
+    my $state_dir = _state_dir($root);
+    make_dirs( "$state_dir/reservations", 0700 );
+    write_new_file(
+        "$state_dir/reservations/$version",
+        $JSON->encode(
+            {   qw| root_id | => $root->{'root_id'},
+                qw| writer |  => b32($writer),
+                qw| version | => $version
+            }
+        )
+    );
+    _state_write( $root, { %{$state}, qw| version | => $version } );
+    my $head_bytes = _head_bytes( $root, $writer, $version, $holder, $time,
+        $head->{'map'}, $head->{'journal'}, _peers( $state, $holder ) );
+    my $head_name = _head_name($root);
+
+    if ( holder_parse($base)->{'type'} eq qw| ssh | ) {
+        my $spool = "$state_dir/spool";
+        make_dirs( $spool, 0700 );
+        my $path = "$spool/$head_name";
+        write_new_file( $path, $head_bytes ) if not -e $path;
+        holder_put( $base, $path, $head_name, qw| head |, TRUE );
+        unlink $path or refuse('cannot remove confirmed head spool');
+    } else {
+        _replace_file( "$base/$head_name", $head_bytes );
+    }
+    $state->{'holders'}{$holder} = {
+        qw| spec |    => $pin,
+        qw| version | => $version,
+        qw| time |    => $time,
+    };
+    $state->{'last_time'} = $time;
+    _state_write( $root, { %{$state}, qw| version | => $version } );
+    unlink "$state_dir/reservations/$version"
+        or refuse( 'cannot remove version reservation %s', $version );
+    return {
+        qw| version | => $version,
+        qw| time |    => $time,
+        qw| map |     => $head->{'map'}{'blob'},
+    };
 }
 
 sub _category {
@@ -1705,17 +1822,42 @@ sub unseal_address {
 }
 
 sub seal_recover {
-    my %opt = @_;
+    my %opt         = @_;
+    my $peers       = $opt{'peers'} // { qw| recovery | => $opt{'holder'} };
+    my $survey      = head_survey( $opt{'root'}, $peers );
+    my ($freshness) = grep {
+        ( $ARG->{'spec'} // '' ) eq holder_canonical( $opt{'holder'} )
+    } values %{$survey};
+    refuse('recovery holder is missing from the head survey')
+        if not defined $freshness;
+    my $served = $freshness->{'head'};
+    refuse('no sealed head to recover') if not defined $served;
+    refuse( 'head version %d is below -min-version %d',
+        $served->{'version'}, $opt{'min_version'} )
+        if defined $opt{'min_version'}
+        and $served->{'version'} < $opt{'min_version'};
+    refuse( 'refusing a rolled back head [ holder v%d, '
+            . 'floor v%d via %s ; use -allow-stale to proceed ]',
+        $served->{'version'}, $freshness->{'floor'}, $freshness->{'witness'} )
+        if $freshness->{'stale'} and not $opt{'allow_stale'};
+    warn "n7fs : warning : recovering from a "
+        . "proven-stale head [ -allow-stale ]\n"
+        if $freshness->{'stale'};
+    warn "n7fs : warning : no second holder was reachable "
+        . "; a withheld newer head cannot be seen from here\n"
+        if $freshness->{'verdict'} eq qw| unverified |;
     my ( undef, $head, $map, $base )
         = _context( @opt{qw| root holder |}, TRUE );
     refuse('no sealed head to recover') if not defined $head;
     my $age = ntime_now() - $head->{'time'};
     $age = 0 if $age < 0;
     my $fresh = {
-        qw| version |   => $head->{'version'},
-        qw| head_time | => $head->{'time'},
-        qw| head_age |  => $age,
+        qw| version |    => $head->{'version'},
+        qw| head_time |  => $head->{'time'},
+        qw| head_age |   => $age,
+        qw| unverified | => $freshness->{'verdict'} eq qw| unverified |,
     };
+
     if ( defined $opt{'tree'} ) {
         my $r = _restore_sealed_tree(
             %opt,
@@ -2890,8 +3032,8 @@ sub shred_node {
 
 1;
 
-#,,,,,...,..,,..,,.,,,.,,,.,,,.,.,.,,,,..,,,,,..,,...,..,,.,.,,,,,..,,,.,,.,.,
-#FTLQO2P77XGTCUIW4VU7L2I5MJCEQKU5ZAUN7I2E4HMBYIZMCEN6OGMYB2PJ7H74OPURYMJG7QTYK
-#\\\|DTHUZFVWIEMZM3R5UVP5AJF5CGZLFHVAPV3XC27DD5YZF2JRPWY \ / AMOS7 \ YOURUM ::
-#\[7]S5ANPCLUNFPR443V7VPT7HSNTTWAD343OTUSE4BPFGC5KSS64ECI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,,,,..,.,,,,,,,,,,,.,,,.,.,,..,..,,...,...,,.,,,.,,.,,,,.,,.,,,
+#PQSTMJXKTFUQFFO2E4NG7IBJJLDXH664SYTVLOW2FLDHXKLST6KNLEDFK2UPCJTGTJDOF25QFY5MK
+#\\\|QVLA4T7XBR2EJ5X6PE4FJ4T64UKK7WLHBO5LTGXB37NHSGCNN4Z \ / AMOS7 \ YOURUM ::
+#\[7]TJBSV4N2R7JYUUT4Z5UBWZ2S7YJG2TI7RB34ZNW6JF7C4MZS2IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

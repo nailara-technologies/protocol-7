@@ -33,7 +33,7 @@ in the sealed map, repack ; all times ntime, durations in Y levels = ntime year
 stage 2 sharded map 1061c8697 [ kimi sealed root + all shards under ONE nonce --
 caught in review, now per-blob domains map-shard-XX \ map-tree ; check nonce
 domains in every new sealed kind ] ; next stage 3 chunked manifests, 4 retain +
-repack ; 2026-11-14 : Fable review of finding 5 [ R1-R17 ] fixed in 4 groups : 771276547 R1 R2 R8, f63ba9f91 R5 R7, 46d246899 R3 R6 R4 [ shard key = 2 b32 chars of the bmw part, 1024 shards ], 88da14772 R10 R11 R13 R14 R15 ; Fable design stage 1 = 3d40bfd51 [ receipts per root, clock floor ]. OPEN : R9 [ copied state repeats writer+version -> keystream reuse ; do BEFORE D9 reservation pruning ] with Fable stage 2 head v2 ; R12 R16 R17 small cleanup ; + derive a separate SIV subkey [ head v2 _long_id hashes with the same outer key that encrypts : key separation, not a hole ] ; owner answers 1-6 recorded at the end of the Fable design file [ registry : middle way, p7 config style, aligned ]. NOTHING PUSHED since e0c4b7916. DONE : PENDING DOC REFS for the next commit [ N7FS-SEALED-REPLICAS.md derived placement paragraph ] : data/md/design/EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md [ rolling validity window prev/current/next, totp shape ; first seen rule ], data/md/design/CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md §2 [ epoch as temporal network root, <epoch>:<key>[:<name>] auto-closing collision exclusion ], data/tasks/epoch-validity-search-protocol.md [ search result checksum IS its route = the rocket ] ; 7 [ rollback : signed head time + other holders'
+repack ; 2026-11-14 : Fable review of finding 5 [ R1-R17 ] fixed in 4 groups : 771276547 R1 R2 R8, f63ba9f91 R5 R7, 46d246899 R3 R6 R4 [ shard key = 2 b32 chars of the bmw part, 1024 shards ], 88da14772 R10 R11 R13 R14 R15 ; Fable design stage 1 = 3d40bfd51 [ receipts per root, clock floor ]. ALL review findings R1-R17 FIXED : 3203321b7 [ head v2 = Fable design stage 2 + R9 SIV nonces ], 35a32e27b [ R12 R16 R17 + SIV subkey ]. NEXT : Fable design stage 3 [ peers, head_survey, heads, head-refresh, stale refused ] ; + derive a separate SIV subkey [ head v2 _long_id hashes with the same outer key that encrypts : key separation, not a hole ] ; owner answers 1-6 recorded at the end of the Fable design file [ registry : middle way, p7 config style, aligned ]. NOTHING PUSHED since e0c4b7916. DONE : PENDING DOC REFS for the next commit [ N7FS-SEALED-REPLICAS.md derived placement paragraph ] : data/md/design/EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md [ rolling validity window prev/current/next, totp shape ; first seen rule ], data/md/design/CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md §2 [ epoch as temporal network root, <epoch>:<key>[:<name>] auto-closing collision exclusion ], data/tasks/epoch-validity-search-protocol.md [ search result checksum IS its route = the rocket ] ; 7 [ rollback : signed head time + other holders'
 versions, tree complete \ partial, registry in the sealed map ] ; 8 [ snapshot
 before pull ] ; 9 [ `n7fs cycle`, monthly restore drill ] ; 10 small [ receipts
 signed by the same host key, local clock ].
@@ -55,8 +55,8 @@ CPU to 545 MHz ] -- killed, updated, fixed ; check `% Processor Performance` fir
 next time. kimi cost : see [[kimi-dispatch-model-verify-before-send]].
 [[n7fs-first-live-round]] [[n7fs-host-migration-goal]]
 
-#,,,,,.,,,,,.,..,,...,,,.,.,,,...,...,..,,...,..,,...,...,...,,.,,..,,,..,.,.,
-#33NOZWAVQT43RI73AAOQ5Y7OQMEVQXNUA4KHGOZCL3IE5UH3Y76G4ZJBG2M6Q5ML5HMBTFB3VBWH6
-#\\\|RJLXRCA23LGKPONDC5BLEIS3YMHY2KQSTZL2WQAKSDUZCTJIHP4 \ / AMOS7 \ YOURUM ::
-#\[7]5XMHMQ7VGB5FW46JBWSSTLHCNL5M3HRK6JAGOSNF72ILO34PUGCA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,,,.,.,,,.,,,.,.,.,.,,,,,.,.,..,,...,...,.,.,...,.,.,,..,...,
+#5QYSYNPJ2PVCUW6JBQEZ6PHKQZWEDQPBW74FI2DVGWCWN2CHV2NBTFFX67XM2J5SOXJ2RLJXDCLOS
+#\\\|4ORDP7T2F4O5YKUXCPWOWQI7BAQS6C2JSNO22KADWFQGPHBRGTY \ / AMOS7 \ YOURUM ::
+#\[7]WBGMPCMLSLZZVISBJJ54CV4GSMOEA6HW77RKV3MB6HODBPRLPSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
