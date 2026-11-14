@@ -81,10 +81,20 @@ $ok     = eval { holder_put_batch( $spec, [ spooled('alone') ] ); 1 };
 ok( $ok,                    'single item placed' );
 ok( calls() - $before >= 1, 'single item uses holder_put' );
 
+## more than 1000 names : groups under the remote command length cap
+my @many = map { spooled("many $ARG") } 1 .. 2300;
+$before = calls();
+$ok     = eval { holder_put_batch( $spec, \@many ); 1 };
+ok( $ok,                    '2300 blobs accepted' ) or say $EVAL_ERROR;
+ok( calls() - $before == 9, 'three groups, three calls each' )
+    or say calls() - $before;
+ok( !grep( { !-e "$remote/holder/$ARG->[1]" } @many ),
+    'every grouped blob on the holder' );
+
 done();
 
-#,,..,.,,,,,.,,,.,...,,,.,.,.,.,.,..,,.,,,.,,,..,,...,...,,,,,,..,,,.,,,,,,,,,
-#MPM33TCCIPZLCAAQCYQWPWRL4SZV3RMP6MMVJH2FWBIS4PRSO2YUUWC77ETZCWTFOSIK54UKYPOLQ
-#\\\|Z6HIYNIPZ7K3TJQX63HQ2IY5AE7EFKEXGR6WOAOSILFNTMFSMPF \ / AMOS7 \ YOURUM ::
-#\[7]OZGCXMHYYE6JN3HR2C27WPNZYZQM7ONKHFNYKFCKWJELW5K22AAA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,,,,,...,,,.,,,,,,,.,,,,,,.,,..,,...,..,,..,,.,,,,..,,..,,,,,
+#D3BN4OLNLPNVULWQGFSFQFZK3JNMOD6O2FQRRZITGRH75XAP5MN4FMHJWN22SBQMD4CYP5NTKB2TM
+#\\\|P5TYDUGXMSC7LODFZGOYP5FDRTYYPMZST36G6RGH6HPGRFRMCK6 \ / AMOS7 \ YOURUM ::
+#\[7]E2NF3ZOAGD5PK3FZVVESQ67YNMKBIAMRW6R5Z6GG5P76HEI3IADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

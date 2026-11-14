@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.KQJRJWA |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.W4LWTZY |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -996,6 +996,11 @@ sub holder_put_batch {
     }
     holder_put( $spec, $ARG->[0], $ARG->[1], $ARG->[2], 0 ) for @single;
     return if not @batch;
+    ## a remote command string is capped at 128 KiB [ MAX_ARG_STRLEN ] : ##
+    ## groups of 1000 names stay near 78 KiB                             ##
+    while ( @batch > 1000 ) {
+        holder_put_batch( $spec, [ splice @batch, 0, 1000 ] );
+    }
 
     _legacy_write( $h, 'put-batch' );
     my %item  = map { $ARG->[1] => $ARG } @batch;
@@ -1167,8 +1172,8 @@ sub holder_put {
 
 1;
 
-#,,..,.,.,..,,...,,.,,,..,,,.,.,.,..,,,,,,,.,,..,,...,...,..,,,,.,..,,,,,,,,.,
-#Q3FPXQFBWDTOCV4IBW37YZEOAM422SPC6ORBQ325YOZDENYPKU5JO6PRGIFXLLYVMPMIMMLLVF2OK
-#\\\|3OED52NV2WX3BJ45SBG3KYK777EFT7GRPP5DJVQASKLU4A4HVVS \ / AMOS7 \ YOURUM ::
-#\[7]T5NMJK7X4K66BK6AMNSSJXOU7X56TRNZVZC4HENQPNWRZUWS7ADY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,.,,,,,,,,,,,.,,,,,.,..,,,..,..,,...,...,...,...,...,..,,,.,,
+#XPT645JCI7UOERHH57UTNIQ7PKGLBJ6CXWAEQNZLCKYL5CZQRM66AIJIEBLOSP5WHP7YLNG2A6VFC
+#\\\|RFOJV7KMJ6GGTPMO2DOAYQDRWAASFZZPMA2AGNP6AR4YP3OCPAS \ / AMOS7 \ YOURUM ::
+#\[7]2ZBVGSQTSFVMZXW2ARNDODDVRRKCMBIIPHFDXNC67JKFVC2XZMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
