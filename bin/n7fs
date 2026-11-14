@@ -27,6 +27,7 @@ use warnings;
 ## n7fs find <disk> [ -name <regex> ] [ -format <fmt> ]
 ##                  [ -chksum <prefix> ] [ -all ]
 ##                  live references by default ; -all adds dropped history
+##
 ## n7fs drop <disk> <address> -holder <name>
 ##                  sign and journal a reference drop ; removes nothing
 ## n7fs release <disk> <address> [ -force ] [ -reason <text> ]
@@ -38,6 +39,7 @@ use warnings;
 ## n7fs repair <disk>                  finish releases, adopt unjournaled data
 ## n7fs trees <disk>                   list live tree manifests
 ## n7fs tree-drop <disk> <name>        journal tree removal ; removes no bytes
+##
 ## n7fs retain-set <disk> -root-key <key> <prefix> <rule>
 ##                 store a ladder such as '13 Y4 13 Y3 13 Y2 13 Y1'
 ## n7fs retain-show <disk> -root-key <key>
@@ -52,6 +54,7 @@ use warnings;
 ## n7fs hold <disk> [ -reason <text> ] [ -for <n>Y<level> ]
 ## n7fs holds <disk>                   live holds and what they protect
 ## n7fs hold-release <disk> <id>      release a hold before its expiry
+##
 ## n7fs category <disk> set <name>     [ -local-encryption none|cascade ]
 ##                  [ -copies <n> ] [ -priority <n> ] [ -replica full|manifest ]
 ##                  [ -want <holder,..> ] [ -foreign-work no|yes ]
@@ -67,6 +70,7 @@ use warnings;
 ## n7fs incoming <disk> tag -from <file>  lines of <selector> <category> ; one run
 ## n7fs incoming <disk> list -group-by name:<n>  buckets by filename start
 ## n7fs incoming <disk> done         exit 0 when empty, 1 while nonempty
+##
 ## n7fs sync <from-disk> <to-disk> [ -dry-run ] [ -trees-only ]
 ##                  [ -hold <n>Y<level> ] [ -no-hold ]   default hold 1Y1
 ## n7fs sync-conflicts <disk>         unresolved concurrent sync changes
@@ -90,6 +94,7 @@ use warnings;
 ## n7fs upgrade <disk> [ -epoch <n> ]     convert into the next epoch of
 ##                                         the window [ -epoch : tests ]
 ## n7fs confirm <disk>                    confirm an upgrade
+##
 ## n7fs root init <file|vault:<name>>      [ -vault-dir <dir> ]
 ## n7fs root convert <from> <to>           file or vault:<name> ; rewraps only
 ## n7fs root export-check <file>           open a copy with the passphrase
@@ -116,28 +121,25 @@ use warnings;
 ## n7fs key-copy-moved <root-id>          a copy was made or moved : its offline
 ##                 drill is due now [ host-local protocol-7 config state ]
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
-## n7fs heads -root-key <file> [ <holder>.. ] [ -anchor ]
-##                 head versions, freshness verdicts and offline anchor
-## n7fs head-refresh -root-key <file> [ <holder>.. ]
-##                 re-sign current heads without resealing their maps
-## n7fs holder-check <holder> -root-key <file>   also writes a receipt ;
-##                 [ -accept-clock ] allows a floor jump larger than 1Y2
-## n7fs clock-floor <root-id> -show | -reset
-##                 inspect or clear the per-root receipt clock floor
-##                 <holder> : a spec or a registered name [ also holder-gc ]
-##                 [ -full ] authenticate every chunk [ coverage full ]
-##                 [ -scrub ] keyless full coverage : verify every mapped
-##                 blob's checksum name on the holder, no key material
-##                 proved [ coverage full ]
-##                 [ -sizes-only ] sizes, no chunk authentication
-##                 receipts without -full \ -scrub read as sampled :
-##                 place counts them, drain never relies on them
-## n7fs holder-scrub <holder> -root-key <file> [ -nonce <b32> ]
-##                 keyless on the holder : recompute every mapped blob's
-##                 checksum name there and report bad and missing ; home
-##                 names the blobs from the holder's own map. with -nonce
-##                 the digest runs over nonce + blob, so two holders answer
-##                 one challenge the same way and home compares the answers
+##
+## n7fs heads -root-key <file> [ <holder>.. ] [ -anchor ]  head versions,
+## freshness verdicts and offline anchor  n7fs head-refresh -root-key <file>
+## [ <holder>.. ]  re-sign current heads without resealing their maps  n7fs
+## holder-check <holder> -root-key <file>   also writes a receipt ;
+## [ -accept-clock ] allows a floor jump larger than 1Y2  n7fs clock-floor
+## <root-id> -show | -reset  inspect or clear the per-root receipt clock floor
+## <holder> : a spec or a registered name [ also holder-gc ]  [ -full ]
+## authenticate every chunk [ coverage full ]  [ -scrub ] keyless full
+## coverage : verify every mapped  blob's checksum name on the holder, no key
+## material  proved [ coverage full ]  [ -sizes-only ] sizes, no chunk
+## authentication  receipts without -full \ -scrub read as sampled :  place
+## counts them, drain never relies on them  n7fs holder-scrub <holder>
+## -root-key <file> [ -nonce <b32> ] keyless on the holder : recompute every
+## mapped blob's  checksum name there and report bad and missing ; home  names
+## the blobs from the holder's own map. with -nonce  the digest runs over
+## nonce + blob, so two holders answer  one challenge the same way and home
+## compares the answers
+##
 ## n7fs holder add <name> <holder> -role durable|intake -domain <label>
 ##                 [ -owned ] [ -quota <size> ] [ -reserve <size> ]
 ##                 [ -categories <a,b> ] [ -min-priority <n> ]  what place
@@ -202,7 +204,9 @@ use warnings;
 ##                 fresh receipt keeps counting its covered entries for
 ##                 -unreachable-grace [ default 1Y2 ] : no re-placement
 ##                 -exclude <holder> : do not count it [ before draining it ]
-## -bwlimit <size>                         cap uploads to ssh holders, per second
+##
+## -bwlimit <size>                         cap uploads to ssh holders, per
+## second
 ##
 ## sealing : -pass-fd <n> reads the passphrase from that descriptor -argon-m
 ## <KiB> -argon-t <n> -argon-p <n> override root init
@@ -426,7 +430,7 @@ sub usage {
     while ( my $line = <$fh> ) {
         last if $line =~ m|^use FindBin|;
         next if $line =~ m|^##\s+n7fs\s+##|;
-        next if $line !~ s|^## | :  |;
+        next if $line !~ s|^## | :  | and $line !~ s|^##$| :|;
         print {*STDERR} $line;
     }
     print {*STDERR} " :.\n\n";
@@ -3118,8 +3122,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,..,.,,,,.,,,,,,.,.,,,,,,,.,..,,,.,,..,,..,,...,...,.,.,...,.,,,...,...,
-#CCPFUVBCEBBY4GILWB42KGZUV2TQGHBFHXUZJSIMBAWCCZ2FJ3ZOZY333NA7FUXB2MR62LYRPKU72
-#\\\|5EJXR4I6FFL234WLBHLCZL4DBHH66GVMPKIURW32DU6HMHIWX3F \ / AMOS7 \ YOURUM ::
-#\[7]2W2LO6VYZ7T3GE73C76HH3G6CVZER3U7EAQCOPDE2MAJ3G7EH4BI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,,.,,...,.,,,,,,,,,,,,,.,.,,,..,,...,...,,,,,..,,,,.,...,.,,,
+#XVMSUANJTIXYEDXBMQXL7UP2RIDUMEXNNRGUX4GG2RWBGKTDNCX5PYKBMROWC7KP4OXI2VR3TBSGW
+#\\\|52MB676PEN5SFV6YXG4GYMDFOPVKZ4OJNMURDVXYMRF2QDMVX4E \ / AMOS7 \ YOURUM ::
+#\[7]UTNMH6LQHYSSRCBF536D5P32FESIUH5SGQ2RG2O5R4M4WMXJN6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
