@@ -422,7 +422,7 @@ foreach my $case (
     ],
     [   'map shard', ( values $authenticated_map->{'_shards'}->%* )[0]{'blob'}
     ],
-    [ 'map root', $authenticated_head->{'map'} ],
+    [ 'map root', $authenticated_head->{'map'}{'blob'} ],
 ) {
     my ( $kind, $name ) = @{$case};
     my $good = read_file("$sub/$name");
@@ -738,8 +738,8 @@ foreach my $fault (qw| repack:before-commit repack:after-receipt |) {
 
 done();
 
-#,,,,,.,.,.,.,.,.,.,,,.,.,.,.,.,,,,,.,,,,,,.,,..,,...,...,...,.,.,.,,,,,.,.,.,
-#WKGPZB2YRPGKW7BQVGNI52WK4VHBYCJKR6WLRY3CM6BT2HM54DCGOUA2RQ5BSJQK3K5W7A7543OIG
-#\\\|MJL4FDUPGD7DJQ5JDAZKVH75N2AIR4W2ZTCWZUXV32JGRTGOMYU \ / AMOS7 \ YOURUM ::
-#\[7]TPOXKMNLWNUJJAHCNXPE7XATDRHE5YRBFPHROYA3WHA2CZFZICAQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,.,,..,.,.,.,.,..,,,,,,,.,,,,,,..,,...,.,,,,..,,..,...,..,,.,.,
+#JY4QMAKIBEDXLCK2EWRHIZ4THBOSQDTIQFVZQR4WDDINSPQEAN64UXHND2Q56LKR2MKKELU6ZBZLK
+#\\\|YYHYV45DT3BAU2Z2DQ6ZOBUZZNEISHQMT5HPN6MN2NLDP4G2CHQ \ / AMOS7 \ YOURUM ::
+#\[7]27BZGGXO74A3D3TEB7XILKUHWVKQVTXTHR5GXQFHD4KJOO47UUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

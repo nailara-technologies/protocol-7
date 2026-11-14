@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.L5B7WNY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.LR6C3BI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -121,18 +121,42 @@ sub _open_outer {
     return $plain;
 }
 
+sub _siv_domain {
+    my $domain = shift // '';
+    return $domain
+        =~ m{\A(?:head|map|map-shard-[A-Z2-7]{2}|map-tree|journal|manifest-index|manifest-chunk)\z};
+}
+
 sub _long_aad {
     my ( $domain, $id, $counter ) = @_;
     return "P7SE\x01" . $domain . pack( qw| Q> |, $counter )
-        if $domain
-        !~ m{\A(?:head|map|map-shard-[A-Z2-7]{2}|map-tree|journal|manifest-index|manifest-chunk)\z};
-    return "P7SE\x01" . pack( 'n/a* a16 Q>', $domain, $id, $counter );
+        if $domain =~ m{\A(?:category:|node:)}
+        or $domain eq qw| pending |
+        or $domain eq qw| content |
+        or $domain eq qw| root-file |;
+    refuse( 'unknown long-key domain [ %s ]', $domain )
+        if not _siv_domain($domain);
+    refuse('long-key id is not 32 bytes') if length( $id // '' ) != 32;
+    return "P7SE\x01" . pack( 'n/a* a32 Q>', $domain, $id, $counter );
+}
+
+sub _long_id {
+    my ( $keys, $writer, $domain, $plain ) = @_;
+    refuse('long-key writer id is not 16 bytes') if length $writer != 16;
+    my ( undef, $outer ) = _keys($keys);
+    return $writer
+        . substr(
+        bmw384_bytes( "p7 n7fs siv v1\0" . $outer . $domain . $plain ),
+        0, 16 );
 }
 
 sub seal_bytes {
     my ( $keys, $plain, $domain, $id, $counter, $chunk, $final ) = @_;
     my ( $inner, $outer ) = _keys($keys);
-    my $aad    = _long_aad( $domain, $id, $counter );
+    my $aad = _long_aad( $domain, $id, $counter );
+    refuse('long-key id does not match its plaintext')
+        if _siv_domain($domain)
+        and _long_id( $keys, substr( $id, 0, 16 ), $domain, $plain ) ne $id;
     my $middle = twofish_crypt( $inner, _long_iv( 0, $domain, $id, $counter ),
         $plain );
     if ( defined $chunk ) {
@@ -163,13 +187,17 @@ sub open_sealed_bytes {
         substr( $sealed, 0, -16 ),
         substr( $sealed, -16 )
     );
-    return twofish_crypt(
+    my $plain = twofish_crypt(
         $inner,
         defined $chunk
         ? _content_iv( 0, $chunk, $final )
         : _long_iv( 0, $domain, $id, $counter ),
         $middle
     );
+    refuse('long-key id does not match its plaintext')
+        if _siv_domain($domain)
+        and _long_id( $keys, substr( $id, 0, 16 ), $domain, $plain ) ne $id;
+    return $plain;
 }
 
 sub wrap_bytes {
@@ -225,6 +253,7 @@ sub _state_read {
     }
     $state->{'version'} //= 0;
     $state->{'writer'}  //= b32( random_bytes(16) );
+    $state->{'holders'} //= {};
     $state->{'version'} = _reserved_max($root)
         if _reserved_max($root) > $state->{'version'};
     return $state;
@@ -241,9 +270,11 @@ sub _writer {
 
 sub _state_write {
     my ( $root, $state ) = @_;
-    my $dir = _state_dir($root);
+    my $dir    = _state_dir($root);
+    my $stored = { %{$state} };
+    delete @{$stored}{qw| new_holder holder_id |};
     make_dirs( $dir, 0700 );
-    _replace_file( "$dir/state", $JSON->encode($state) );
+    _replace_file( "$dir/state", $JSON->encode($stored) );
 }
 
 sub _head_name {
@@ -316,7 +347,7 @@ sub _head_open {
     my $bytes = holder_read( $dir, $name );
     refuse('sealed head not found')    if not defined $bytes and $required;
     return undef                       if not defined $bytes;
-    refuse('sealed head is truncated') if length $bytes < 24 + 16;
+    refuse('sealed head is truncated') if length $bytes < 40 + 16;
     my $sealed = $bytes;
     ## new heads carry a second, clear signature over the complete sealed  ##
     ## head : a blind receiver verifies it without the root symmetric keys ##
@@ -331,8 +362,9 @@ sub _head_open {
     }
     my $version = unpack qw| Q> |, substr( $sealed, 0, 8 );
     my $writer  = substr( $sealed, 8, 16 );
-    my $plain   = open_sealed_bytes( $root->{'keys'}, substr( $sealed, 24 ),
-        qw| head |, $writer, $version );
+    my $id      = $writer . substr( $sealed, 24, 16 );
+    my $plain   = open_sealed_bytes( $root->{'keys'}, substr( $sealed, 40 ),
+        qw| head |, $id, $version );
     my $head = eval { $JSON->decode($plain) };
     refuse('head payload is invalid') if ref $head ne qw| HASH |;
     my $pub    = unb32( $head->{'pub'} // '' );
@@ -345,43 +377,63 @@ sub _head_open {
         or not verify( $pub, $JSON->encode($signed), $sig );
     refuse('head root id does not match')
         if ( $head->{'root_id'} // '' ) ne $root->{'root_id'};
+    refuse('old head form is refused')
+        if ( $head->{'format'} // '' ) ne qw| n7fs-head-v2 |;
+    refuse('clear and signed head fields differ')
+        if ( $head->{'writer'} // '' ) ne b32($writer)
+        or ( $head->{'version'} // 0 ) != $version;
+    my $holder = unb32( $head->{'holder'} // '' );
+    refuse('head holder id is invalid')
+        if not defined $holder
+        or length $holder != 16;
+    refuse('head time is not a whole ntime')
+        if ( $head->{'time'} // '' ) !~ m|\A\d+\z|;
+    refuse('head map descriptor is missing')
+        if ref $head->{'map'} ne qw| HASH |;
     return $head;
 }
 
 sub _head_bytes {
-    my ( $root, $writer, $version, $map, $journal, $map_size ) = @_;
+    my ( $root, $writer, $version, $holder, $time, $map, $journal ) = @_;
     my $head = {
+        qw| format |  => qw| n7fs-head-v2 |,
         qw| root_id | => $root->{'root_id'},
         qw| writer |  => b32($writer),
         qw| version | => $version + 0,
+        qw| time |    => $time + 0,
+        qw| holder |  => $holder,
         qw| map |     => $map,
         qw| journal | => $journal,
         qw| pub |     => b32( $root->{'signer'}->public ),
-        defined $map_size ? ( qw| map_size | => $map_size ) : (),
     };
     $head->{'sig'} = b32( $root->{'signer'}->sign( $JSON->encode($head) ) );
     my $plain = $JSON->encode($head);
+    my $id    = _long_id( $root->{'keys'}, $writer, qw| head |, $plain );
     my $sealed
         = pack( qw| Q> |, $version )
         . $writer
-        . seal_bytes( $root->{'keys'}, $plain, qw| head |, $writer,
-        $version );
+        . substr( $id, 16 )
+        . seal_bytes( $root->{'keys'}, $plain, qw| head |, $id, $version );
     my $outer = $root->{'signer'}
         ->sign( "p7 n7fs sealed head exterior v1\0" . $sealed );
     return $sealed . "P7SH\x01" . $outer;
 }
 
-## every sealed map blob of one commit shares writer and version : the ##
-## domain [ map \ map-shard-XX \ map-tree ] keeps each nonce unique    ##
+## a keyed plaintext id makes equal writer and version harmless when their ##
+## plaintexts differ ; the domain remains bound in both the nonce and aad  ##
 sub _map_plain {
     my ( $root, $base, $alt, $desc, $domain ) = @_;
     refuse('sealed map blob descriptor is invalid')
         if ref $desc ne qw| HASH |
         or ( $desc->{'version'} // '' ) !~ m|\A[1-9]\d*\z|;
     my $writer = unb32( $desc->{'writer'} // '' );
-    refuse('sealed map blob writer is invalid')
+    my $id     = unb32( $desc->{'id'}     // '' );
+    refuse('sealed map blob id is invalid')
         if not defined $writer
-        or length $writer != 16;
+        or not defined $id
+        or length $writer != 16
+        or length $id != 32
+        or substr( $id, 0, 16 ) ne $writer;
     my $bytes = eval { _read_blob( $base, $desc->{'blob'} ) };
     $bytes = _read_blob( $alt, $desc->{'blob'} )
         if not defined $bytes
@@ -389,13 +441,13 @@ sub _map_plain {
         and $alt ne $base;
     refuse('sealed map blob size does not match its descriptor')
         if defined $desc->{'size'} and length($bytes) != $desc->{'size'};
-    refuse('map writer does not match its descriptor')
-        if substr( $bytes, 0, 16 ) ne $writer;
+    refuse('map id does not match its descriptor')
+        if substr( $bytes, 0, 32 ) ne $id;
     my $plain = open_sealed_bytes(
         $root->{'keys'},
-        substr( $bytes, 16 ),
+        substr( $bytes, 32 ),
         $domain // qw| map |,
-        $writer, $desc->{'version'}
+        $id, $desc->{'version'}
     );
     refuse('sealed map shard checksum does not match')
         if defined $desc->{'checksum'}
@@ -419,7 +471,8 @@ sub _lazy_nodes {
 
 sub _map_blob_names {
     my ( $root, $base, $alt, $head, $map ) = @_;
-    my %names = map { $ARG => TRUE } $head->{'map'}, $head->{'journal'},
+    my %names = map { $ARG => TRUE } $head->{'map'}{'blob'},
+        $head->{'journal'},
         ( map { $ARG->{'blob'} } values $map->{'_shards'}->%* );
     $names{ $map->{'_tree_blob'}{'blob'} } = TRUE if $map->{'_tree_blob'};
     $names{$ARG} = TRUE
@@ -442,19 +495,44 @@ sub _context {
         $base = holder_sub_spec( $dir, $tag );
         holder_mkdir($base) if not holder_isdir( $dir, $tag );
     }
+    my ($known_spec)
+        = grep { ( $state->{'holders'}{$ARG}{'spec'} // '' ) eq $dir }
+        keys $state->{'holders'}->%*;
     refuse('pinned holder head is missing')
-        if not defined $head and ( $state->{'pins'}{$dir} // 0 ) > 0;
-    $state->{'new_holder'} = not defined $head;
+        if not defined $head and defined $known_spec;
     if ( defined $head ) {
-        my $pinned = $state->{'pins'}{$dir} // 0;
+        my $holder       = $head->{'holder'};
+        my $wrong_holder = 'head belongs to another holder [ %s ]';
+        refuse( $wrong_holder, substr $holder, 0, 7 )
+            if defined $known_spec and $known_spec ne $holder;
+        my $known  = $state->{'holders'}{$holder} // {};
+        my $pinned = $known->{'version'}          // 0;
         refuse( 'pinned head rollback [ holder %d, pinned %d ]',
             $head->{'version'}, $pinned )
             if $head->{'version'} < $pinned;
+        warn "n7fs : signed head time moved "
+            . "backwards under a higher version\n"
+            if $head->{'version'} > $pinned
+            and defined $known->{'time'}
+            and $head->{'time'} < $known->{'time'};
+        warn "n7fs : signed head time is more than 1Y4 ahead of the clock\n"
+            if $head->{'time'} > ntime_now() + parse_y_age('1Y4');
         $state->{'version'} = $head->{'version'}
             if $head->{'version'} > $state->{'version'};
-        $state->{'pins'}{$dir} = $head->{'version'};
+        $state->{'last_time'} = $head->{'time'}
+            if $head->{'time'} > ( $state->{'last_time'} // 0 );
+        $state->{'holders'}{$holder} = {
+            qw| spec |    => $dir,
+            qw| version | => $head->{'version'},
+            qw| time |    => $head->{'time'},
+        };
     }
     _state_write( $root, $state );
+    $state->{'new_holder'} = not defined $head;
+    $state->{'holder_id'}
+        = defined $head ? $head->{'holder'}
+        : $recover      ? undef
+        :                 b32( random_bytes(16) );
     my $map = {
         qw| root_id |    => $root->{'root_id'},
         qw| categories | => {},
@@ -465,16 +543,7 @@ sub _context {
     if ( defined $head ) {
         my $alt = holder_sub_spec( $dir, root_subdir($root) );
         ## mid-migration the root may already sit in the other layout dir ##
-        my $plain = _map_plain(
-            $root, $base, $alt,
-            {   qw| blob |    => $head->{'map'},
-                qw| writer |  => $head->{'writer'},
-                qw| version | => $head->{'version'},
-                defined $head->{'map_size'}
-                ? ( qw| size | => $head->{'map_size'} )
-                : (),
-            }
-        );
+        my $plain  = _map_plain( $root, $base, $alt, $head->{'map'} );
         my $stored = eval { $JSON->decode($plain) };
         refuse(   'legacy single-map form is refused '
                 . '; reseal into a sharded map' )
@@ -600,23 +669,37 @@ sub SCALAR {
 
 package AMOS7::N7FS::Seal;
 
-## a holder reached under a new spec : its head must be there and not older
-## than the pin of the old spec, then the pin moves over
+## a holder reached under a new spec keeps its identity in the head ; the ##
+## version pin moves only after that identity and the version both check  ##
 sub holder_respec {
     my ( $root, $old, $new, $dry_run ) = @_;
     $old = holder_canonical($old);
     $new = holder_canonical($new);
     holder_authorize( $new, $root );
-    my $state  = _state_read($root);
-    my $pinned = $state->{'pins'}{$old} // 0;
+    my $state = _state_read($root);
+    my ($old_id)
+        = grep { ( $state->{'holders'}{$ARG}{'spec'} // '' ) eq $old }
+        keys $state->{'holders'}->%*;
+    my $pinned
+        = defined $old_id
+        ? $state->{'holders'}{$old_id}{'version'} // 0
+        : 0;
     my ($head) = _head_locate( $root, $new );
     refuse('no sealed head under the new spec') if not defined $head;
+    refuse(
+        'head belongs to another holder [ %s ]',
+        substr $head->{'holder'},
+        0, 7
+    ) if defined $old_id and $head->{'holder'} ne $old_id;
     refuse( 'the new spec serves an older head [ %d, pinned %d ]',
         $head->{'version'}, $pinned )
         if $head->{'version'} < $pinned;
     return $head->{'version'} if $dry_run;
-    $state->{'pins'}{$new} = $head->{'version'};
-    delete $state->{'pins'}{$old};
+    $state->{'holders'}{ $head->{'holder'} } = {
+        qw| spec |    => $new,
+        qw| version | => $head->{'version'},
+        qw| time |    => $head->{'time'},
+    };
     _state_write( $root, $state );
     return $head->{'version'};
 }
@@ -625,6 +708,10 @@ sub _commit {
     my ( $root, $base, $pin, $state, $map, $operation ) = @_;
     my $writer  = _writer($state);
     my $version = $state->{'version'} + 1;
+    my $holder  = $state->{'holder_id'} // refuse('commit has no holder id');
+    my $time    = ntime_now();
+    $time = $state->{'last_time'} + 1
+        if $time <= ( $state->{'last_time'} // 0 );
     fault(qw| seal:before-version |);
     my $state_dir = _state_dir($root);
     make_dirs( "$state_dir/reservations", 0700 );
@@ -651,13 +738,15 @@ sub _commit {
         my ( $plain, $domain ) = @_;
         my $sum = bmw_b32( bmw384_bytes($plain) );
         return $sealed_map{"$domain\0$sum"} if $sealed_map{"$domain\0$sum"};
+        my $id = _long_id( $root->{'keys'}, $writer, $domain, $plain );
         my $bytes
             = $writer
-            . seal_bytes( $root->{'keys'}, $plain, $domain, $writer,
-            $version );
+            . substr( $id, 16 )
+            . seal_bytes( $root->{'keys'}, $plain, $domain, $id, $version );
         return $sealed_map{"$domain\0$sum"} = {
             qw| blob |     => _write_blob( $root, $base, $bytes, qw| map | ),
             qw| checksum | => $sum,
+            qw| id |       => b32($id),
             qw| writer   | => b32($writer),
             qw| version  | => $version,
             qw| size     | => length($bytes),
@@ -712,18 +801,22 @@ sub _commit {
             qw| operation | => $operation,
         }
     );
+    my $journal_id
+        = _long_id( $root->{'keys'}, $writer, qw| journal |, $journal );
     my $journal_name = _write_blob(
         $root, $base,
         $writer
+            . substr( $journal_id, 16 )
             . seal_bytes(
-            $root->{'keys'}, $journal, qw| journal |, $writer, $version
+            $root->{'keys'}, $journal, qw| journal |,
+            $journal_id,     $version
             ),
         qw| journal |
     );
     fault(qw| seal:after-journal |);
     my $head_name  = _head_name($root);
-    my $head_bytes = _head_bytes( $root, $writer, $version, $map_name,
-        $journal_name, $map_desc->{'size'} );
+    my $head_bytes = _head_bytes( $root, $writer, $version, $holder, $time,
+        $map_desc, $journal_name );
 
     if ( holder_parse($base)->{'type'} eq qw| ssh | ) {
         my $spool = "$state_dir/spool";
@@ -735,8 +828,21 @@ sub _commit {
     } else {
         _replace_file( "$base/$head_name", $head_bytes );
     }
-    $state->{'pins'}{$pin} = $version;
+    $state->{'holders'}{$holder} = {
+        qw| spec |    => $pin,
+        qw| version | => $version,
+        qw| time |    => $time,
+    };
+    $state->{'last_time'} = $time;
     _state_write( $root, { %{$state}, qw| version | => $version } );
+    opendir( my $reservations, "$state_dir/reservations" )
+        or refuse('cannot read version reservations for pruning');
+    my @expired
+        = grep { m|\A[1-9]\d*\z| and $ARG <= $version } readdir $reservations;
+    closedir $reservations;
+    unlink "$state_dir/reservations/$ARG"
+        or refuse( 'cannot remove version reservation %s', $ARG )
+        for @expired;
     fault(qw| seal:after-head |);
     return $version;
 }
@@ -875,10 +981,11 @@ sub _manifest_entry_limit {
 sub _manifest_seal {
     my ( $root, $base, $plain, $domain, $version ) = @_;
     my $sum    = bmw_b32( bmw384_bytes($plain) );
-    my $id     = substr( bmw384_bytes($plain), 0, 16 );
     my $writer = _writer( _state_read($root) );
+    my $id     = _long_id( $root->{'keys'}, $writer, $domain, $plain );
     my $bytes
         = $writer
+        . substr( $id, 16 )
         . seal_bytes( $root->{'keys'}, $plain, $domain, $id, $version );
     return {
         qw| blob |     => _write_blob( $root, $base, $bytes, qw| manifest | ),
@@ -898,11 +1005,12 @@ sub _manifest_plain {
     my $id = unb32( $desc->{'id'} // '' );
     refuse('sealed manifest id is invalid')
         if not defined $id
-        or length $id != 16;
+        or length $id != 32;
     my $writer = unb32( $desc->{'writer'} // '' );
     refuse('sealed manifest writer is invalid')
         if not defined $writer
-        or length $writer != 16;
+        or length $writer != 16
+        or substr( $id, 0, 16 ) ne $writer;
     my $bytes = eval { _read_blob( $base, $desc->{'blob'} ) };
     if ( not defined $bytes ) {
         die $EVAL_ERROR if not defined $alt or $alt eq $base;
@@ -910,9 +1018,9 @@ sub _manifest_plain {
     }
     refuse('sealed manifest size does not match its descriptor')
         if defined $desc->{'size'} and length($bytes) != $desc->{'size'};
-    refuse('manifest writer does not match its descriptor')
-        if substr( $bytes, 0, 16 ) ne $writer;
-    my $plain = open_sealed_bytes( $root->{'keys'}, substr( $bytes, 16 ),
+    refuse('manifest id does not match its descriptor')
+        if substr( $bytes, 0, 32 ) ne $id;
+    my $plain = open_sealed_bytes( $root->{'keys'}, substr( $bytes, 32 ),
         $domain, $id, $desc->{'version'} );
     refuse('sealed manifest checksum does not match')
         if bmw_b32( bmw384_bytes($plain) ) ne ( $desc->{'checksum'} // '' );
@@ -1545,64 +1653,6 @@ sub _restore_node {
     unlink $path if $downloaded and -e $path;
 }
 
-sub _unseal_tree {
-    my %opt = @_;
-    my $id  = disk_read_id(
-        defined $opt{'host_dir'}
-        ? ( qw| host_dir | => $opt{'host_dir'} )
-        : (),
-        qw| disk | => $opt{'disk'}
-    );
-    _disk_binding_check( $id, $opt{'root'}, FALSE );
-    my $tree = $opt{'map'}{'trees'}{ $opt{'address'} }
-        // refuse( 'no live tree named %s', $opt{'address'} );
-    refuse('tree restore target exists')
-        if -e $opt{'target'}
-        or -l $opt{'target'};
-    my $tmp = $opt{'target'} . '.incomplete.' . b32( random_bytes(5) );
-    make_dirs( $tmp, 0700 );
-    my ( $head, @entries )
-        = _manifest_read( $opt{'root'}, $opt{'holder'}, undef, $tree );
-    my @links;
-
-    foreach my $entry (@entries) {
-        my $relative = _tree_path( $entry->{'p'} );
-        my $dest     = "$tmp/$relative";
-        my $type     = $entry->{'t'} // '';
-        if ( $type eq qw| dir | ) {
-            make_dirs( $dest, 0700 );
-        } elsif ( $type eq qw| file | ) {
-            my $parent = $dest;
-            $parent =~ s|/[^/]+\z||;
-            make_dirs( $parent, 0700 );
-            _restore_node( @opt{qw| root holder |}, $opt{'map'},
-                $entry->{'a'}, $dest );
-        } elsif ( $type eq qw| symlink | or $type eq qw| hardlink | ) {
-            push @links, [ $relative, $entry ];
-        } elsif ( $type ne qw| skipped | ) {
-            refuse('manifest entry has a bad type');
-        }
-    }
-    foreach my $item (@links) {
-        my ( $relative, $entry ) = @{$item};
-        my $dest = "$tmp/$relative";
-        if ( ( $entry->{'t'} // '' ) eq qw| hardlink | ) {
-            my $earlier = _tree_path( $entry->{'h'} );
-            link "$tmp/$earlier", $dest
-                or refuse( 'cannot restore hardlink : %s', $OS_ERROR );
-        } else {
-            my $link = unb32( $entry->{'l'} // '' );
-            refuse('manifest symlink target is invalid')
-                if not defined $link
-                or index( $link, "\0" ) >= 0;
-            symlink $link, $dest
-                or refuse( 'cannot restore symlink : %s', $OS_ERROR );
-        }
-    }
-    rename $tmp, $opt{'target'} or refuse('cannot publish restored tree');
-    return TRUE;
-}
-
 sub _restore_sealed_tree {
     my %opt  = @_;
     my $tree = $opt{'map'}{'trees'}{ $opt{'address'} };
@@ -1650,6 +1700,13 @@ sub seal_recover {
     my ( undef, $head, $map, $base )
         = _context( @opt{qw| root holder |}, TRUE );
     refuse('no sealed head to recover') if not defined $head;
+    my $age = ntime_now() - $head->{'time'};
+    $age = 0 if $age < 0;
+    my $fresh = {
+        qw| version |   => $head->{'version'},
+        qw| head_time | => $head->{'time'},
+        qw| head_age |  => $age,
+    };
     if ( defined $opt{'tree'} ) {
         my $r = _restore_sealed_tree(
             %opt,
@@ -1657,7 +1714,7 @@ sub seal_recover {
             qw| address | => $opt{'tree'},
             qw| map |     => $map
         );
-        return { %{$r}, qw| version | => $head->{'version'} };
+        return { %{$r}, %{$fresh} };
     }
     make_dirs( $opt{'target'}, 0700 );
     foreach my $address ( sort keys $map->{'nodes'}->%* ) {
@@ -1666,10 +1723,7 @@ sub seal_recover {
         _restore_node( $opt{'root'}, $base, $map, $address,
             $opt{'target'} . "/$safe" );
     }
-    return {
-        qw| nodes |   => scalar keys $map->{'nodes'}->%*,
-        qw| version | => $head->{'version'}
-    };
+    return { %{$fresh}, qw| nodes | => scalar keys $map->{'nodes'}->%*, };
 }
 
 ## the sealed header of a mapped blob : chunk size and chunk count, checked ##
@@ -1843,10 +1897,7 @@ sub holder_check {
         refuse( 'mapped blob is missing : %s', $name )
             if not defined $sizes->{$name};
     }
-    refuse('map root has the wrong size')
-        if defined $head->{'map_size'}
-        and $sizes->{ $head->{'map'} } != $head->{'map_size'};
-    my @descriptors = values $map->{'_shards'}->%*;
+    my @descriptors = ( $head->{'map'}, values $map->{'_shards'}->%* );
     push @descriptors, $map->{'_tree_blob'} if $map->{'_tree_blob'};
     foreach my $tree ( values $map->{'trees'}->%* ) {
         my $index = _manifest_index_read( $opt{'root'}, $base, undef, $tree );
@@ -2805,8 +2856,8 @@ sub shred_node {
 
 1;
 
-#,,,,,.,.,,,.,,.,,,,,,,,,,,..,,.,,...,,..,,.,,..,,...,...,...,.,.,.,.,..,,,.,,
-#II4FZON5LMEHZXRCBSIUCQTRVWCBPEUJHQE5K2TITXO45RXFIMZCMDCGVJQXVWWEX5WH5CE7DXXCM
-#\\\|FICZZ5FSDGH6QNF2ZYX2M2VGZFWXC4HAA7FTEJU6JDGHDIHUK7G \ / AMOS7 \ YOURUM ::
-#\[7]4K2PHKLF5BB7XEA66AQ3KC7ZM7OHM6FKGBZOGEOXDPI7FYR4EQCY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,,,.,...,,..,,..,,..,,.,,.,,,..,,...,...,.,.,,,,,,,,,.,.,,.,,
+#B272XP72H7RCPIS3VXTHT6OKJIYJLU2LO2SIC5O5ZIIKZHXICUD6MKVJA4AED5MOZFRE3VJP7IFGC
+#\\\|OL3JV3WJANJCDQSHDMFQNPBMRNFZWCPFF6TIPK4MOHWSL7YLOXI \ / AMOS7 \ YOURUM ::
+#\[7]VPLZKZYR376XOM7QBRYHDYPVRRGPI74J2F2UFNG33M45EFUQF2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

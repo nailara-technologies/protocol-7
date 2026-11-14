@@ -84,13 +84,8 @@ sub current_root {
     my $target = shift               // $holder;
     my $sub    = holder_sub($target) // die 'missing per-root holder';
     my $head   = AMOS7::N7FS::Seal::_head_open( $root, $sub, 1 );
-    my $plain  = AMOS7::N7FS::Seal::_map_plain(
-        $root, $sub, undef,
-        {   qw| blob |    => $head->{'map'},
-            qw| writer |  => $head->{'writer'},
-            qw| version | => $head->{'version'},
-        }
-    );
+    my $plain
+        = AMOS7::N7FS::Seal::_map_plain( $root, $sub, undef, $head->{'map'} );
     return ( $head, $json->decode($plain), $sub );
 }
 
@@ -160,7 +155,9 @@ my @changed = grep {
     ( $root1->{'shards'}{$ARG}{'blob'}     // '' ) ne
         ( $root2->{'shards'}{$ARG}{'blob'} // '' )
 } keys $root2->{'shards'}->%*;
-ok( @map_writes == 2 && @changed == 1 && $head2->{'map'} ne $head1->{'map'},
+ok( @map_writes == 2
+        && @changed == 1
+        && $head2->{'map'}{'blob'} ne $head1->{'map'}{'blob'},
     'adding one node uploads exactly one changed shard and a new root'
 );
 
@@ -176,8 +173,8 @@ AMOS7::N7FS::Seal::holder_gc(
 my $day            = AMOS7::N7FS::Seal::_trash_day();
 my @current_shards = map { $ARG->{'blob'} } values $root2->{'shards'}->%*;
 my ($old_shard)    = keys $root1->{'shards'}->%*;
-ok( ( !grep { !-e "$sub/$ARG" } $head2->{'map'}, @current_shards )
-        && -e "$sub/.trash/$day/$head1->{'map'}"
+ok( ( !grep { !-e "$sub/$ARG" } $head2->{'map'}{'blob'}, @current_shards )
+        && -e "$sub/.trash/$day/$head1->{'map'}{'blob'}"
         && -e "$sub/.trash/$day/$root1->{'shards'}{$old_shard}{'blob'}",
     'gc keeps every current shard and trashes the superseded root and shard'
 );
@@ -203,16 +200,31 @@ my $legacy_map = {
     qw| trees |      => {},
 };
 my $writer       = unb32( $head2->{'writer'} );
-my $legacy_bytes = $writer
-    . AMOS7::N7FS::Seal::seal_bytes( $root->{'keys'},
-    $json->encode($legacy_map),
-    qw| map |, $writer, $head2->{'version'} );
+my $legacy_plain = $json->encode($legacy_map);
+my $legacy_id    = AMOS7::N7FS::Seal::_long_id( $root->{'keys'}, $writer,
+    qw| map |, $legacy_plain );
+my $legacy_bytes
+    = $writer
+    . substr( $legacy_id, 16 )
+    . AMOS7::N7FS::Seal::seal_bytes( $root->{'keys'}, $legacy_plain,
+    qw| map |, $legacy_id, $head2->{'version'} );
 my $legacy_name = AMOS7::N7FS::Sum::bmw_b32(
     AMOS7::N7FS::Sum::bmw384_bytes($legacy_bytes) );
 write_new_file( "$legacy_sub/$legacy_name", $legacy_bytes );
+my $legacy_desc = {
+    qw| blob |     => $legacy_name,
+    qw| checksum | => AMOS7::N7FS::Sum::bmw_b32(
+        AMOS7::N7FS::Sum::bmw384_bytes($legacy_plain)
+    ),
+    qw| id |      => AMOS7::N7FS::b32($legacy_id),
+    qw| writer |  => $head2->{'writer'},
+    qw| version | => $head2->{'version'},
+    qw| size |    => length $legacy_bytes,
+};
 my $legacy_head
-    = AMOS7::N7FS::Seal::_head_bytes( $root, $writer, $head2->{'version'},
-    $legacy_name, $head2->{'journal'} );
+    = AMOS7::N7FS::Seal::_head_bytes( $root, $writer,
+    $head2->{'version'}, $head2->{'holder'}, $head2->{'time'} + 1,
+    $legacy_desc,        $head2->{'journal'} );
 write_file( "$legacy_sub/" . AMOS7::N7FS::Seal::_head_name($root),
     $legacy_head );
 refused(
@@ -249,8 +261,8 @@ my $clock       = 1_000_000;
 
 done();
 
-#,,,,,,.,,,,.,..,,,.,,,,.,.,,,,..,.,,,..,,..,,..,,...,...,...,.,.,,.,,,,,,,.,,
-#BNGNTINKIIR2JLQEQUOHOWXQU6H5XGQXVJE6XT2PK6WBP6T7LQLSMI5FDOOCQ6KGK2FBXNEBQXL2W
-#\\\|MQEHYWBGHIQM6GW6VRHOKCJGQYT2XRL3AZLBASFLNBHJ7GASUWU \ / AMOS7 \ YOURUM ::
-#\[7]A3KVLKVTWSLEQMSDGEWVNE4PKPALKNRCLWBHX36DMCHU7W46DYAY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,,,.,,,,.,,,,,,.,,,,.,,.,.,...,..,,...,..,,...,.,.,...,.,,,,.,,
+#CJYRST4CFSMHWZFHV53UZTFQ5S5L522MD5XYGQA6VXIIOP7CSASGHZWWNORULXMS2YHQTPGLVOOBQ
+#\\\|KE27XVJ7FWW5DLVG2SWDIMVNWMVUFZGQ7HTR6TP5BNA2IXHGVST \ / AMOS7 \ YOURUM ::
+#\[7]56QQ4WKQ6ZV22JXS6IWNFBSKLDQI5HSSHPUXE6PNADFPBUJCWQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
