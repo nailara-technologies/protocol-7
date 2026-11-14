@@ -19,7 +19,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Sync-VERSION.27EMC6Y |;
+our $VERSION = qw| AMOS7::N7FS::Sync-VERSION.LWAAWKY |;
 
 @EXPORT_OK = qw| store_sync sync_conflict_list sync_conflict_resolve
     sync_records_verify |;
@@ -43,6 +43,7 @@ use AMOS7::N7FS::Reference qw| reference_write reference_drop_write
 use AMOS7::N7FS::Category qw| category_definitions category_strict_merge |;
 use AMOS7::N7FS::Batch    qw| batch_read batch_write |;
 use AMOS7::N7FS::Tree     qw| manifest_open manifest_entry_read |;
+use AMOS7::N7FS::Hold     qw| hold_create |;
 
 our $JSON    = JSON::PP->new->utf8->canonical;
 our $ADDR_RE = qr{\AV7[A-Z2-7]{5}/[A-Z2-7]{7}/[A-Z2-7]{77}\z};
@@ -989,9 +990,68 @@ sub store_sync {
         qw| dry_run |    => $opt{'dry_run'}    ? TRUE : FALSE,
         qw| trees_only | => $opt{'trees_only'} ? TRUE : FALSE,
     };
-    _indexes($c);
-    _revisit_tree_conflicts($c);
     my $start = defined $cursor ? $cursor->{'source_seq'} : 0;
+    _indexes($c);
+    my $needs_hold = FALSE;
+    foreach my $index ( $start .. $source_replay->{'seq'} - 1 ) {
+        my $p = $source_replay->{'entries'}[$index]{'payload'};
+        foreach my $operation ( $p->{'drop'}{'trees'}->@* ) {
+            my $source = $c->{'tree_drops'}{ $operation->{'path'} }
+                // refuse('sync : source tree-drop record is missing');
+            my $origin = {
+                qw| disk | => $from->{'disk'},
+                qw| id |   => $source->{'tree'}
+            };
+            $origin = $c->{'tree_records'}{ $source->{'tree'} }{'origin'}
+                if ref $c->{'tree_records'}{ $source->{'tree'} }{'origin'};
+            my $target  = $c->{'tree_origin'}{ _okey($origin) };
+            my $current = $c->{'live_trees'}{ $target->{'name'} // '' };
+            $needs_hold = TRUE
+                if defined $target
+                and defined $current
+                and $current->{'path'} eq $target->{'path'};
+        }
+        next if $c->{'trees_only'};
+        foreach my $operation ( $p->{'drop'}{'references'}->@* ) {
+            my ( undef, $target ) = _reference_for( $c, $operation );
+            $needs_hold = TRUE
+                if defined $target
+                and not $target->{'dropped'}
+                and not $c->{'dropped_origin'}
+                { _okey( _origin( $from->{'disk'}, $operation, 'path' ) ) };
+        }
+        foreach my $address ( $p->{'drop'}{'releases'}->@* ) {
+            next if $source_replay->{'nodes'}{$address};
+            my $target = _translate_address( $c, $address );
+            $needs_hold = TRUE if not $c->{'released_address'}{$target};
+        }
+    }
+    my $hold;
+    if ( $needs_hold and not $opt{'no_hold'} ) {
+        if ( $c->{'dry_run'} ) {
+            push $c->{'messages'}->@*,
+                "would hold journal "
+                . "$target_replay->{'seq'} before sync drops";
+        } else {
+            $hold = hold_create(
+                %opt,
+                qw| disk |     => $to->{'disk'},
+                qw| seq |      => $target_replay->{'seq'},
+                qw| source |   => $from->{'disk'},
+                qw| reason |   => 'before sync drops',
+                qw| hold_age | => $opt{'hold_age'},
+                qw| _id |      => $to,
+                qw| _store |   => $store,
+                qw| _replay |  => $target_replay,
+            );
+            $c->{'journal_seq'} = $hold->{'journal_seq'};
+            push $c->{'messages'}->@*,
+                "hold $hold->{'path'} before sync from $from->{'disk'} [ "
+                . "journal $hold->{'seq'} ; expires $hold->{'expires'} ]";
+            fault(qw| sync:after-hold |);
+        }
+    }
+    _revisit_tree_conflicts($c);
     foreach my $index ( $start .. $source_replay->{'seq'} - 1 ) {
         my $p = $source_replay->{'entries'}[$index]{'payload'};
         _drop_tree( $c,
@@ -1084,10 +1144,13 @@ sub store_sync {
     $work ||= $c->{'drop'}{'conflicts'}->@*;
     if ( not $work ) {
         return {
-            qw| changed |     => defined $early_seq ? TRUE : FALSE,
+            qw| changed | => ( defined $early_seq or defined $hold )
+            ? TRUE
+            : FALSE,
             qw| count |       => $c->{'count'},
             qw| messages |    => $c->{'messages'},
-            qw| journal_seq | => $early_seq,
+            qw| journal_seq | => $c->{'journal_seq'} // $early_seq,
+            qw| hold |        => $hold,
             qw| dry_run |     => $c->{'dry_run'},
         };
     }
@@ -1125,6 +1188,7 @@ sub store_sync {
         qw| count |       => $c->{'count'},
         qw| messages |    => $c->{'messages'},
         qw| journal_seq | => $c->{'journal_seq'},
+        qw| hold |        => $hold,
         qw| dry_run |     => $c->{'dry_run'},
     };
 }
@@ -1207,8 +1271,8 @@ sub sync_records_verify {
 
 1;
 
-#,,,.,,..,,,,,.,,,,..,,,.,,..,.,,,,,,,..,,.,.,.,.,...,.,.,,.,,,..,,.,,,.,,,,,,
-#VUZSO6JI3OKYWG5TF25VWKOFLYLE53PSW6X3UDNLE4KWYAZVHGJLJFEYPMREB6KCLIS4VES6RKJAA
-#\\\|PMUUIJPK6LCKOA3OYNHAHEXYTWWCVBP22HPORWWFDIXODK6U6KH \ / AMOS7 \ YOURUM ::
-#\[7]HD6G2OLIN6U2NYJOE56XWEY35K73DXJQERCBLND25OJCIQH2W4DY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,..,,..,,,,.,,,.,,,.,.,.,.,,,.,.,.,.,...,...,.,,,..,,,,.,.,,,.,.,
+#JRB7K43GXQOYENDRKIWCZXW55ZUGOXLDK2GDXM2FDZVEQDG2EOJULGVJYRVTC7ROWRACEPS3IEEDM
+#\\\|NES56YAI2SLWWH54MX4Z7WJ737RQRXQ7HWC3Z5HUBNSO2T26HAK \ / AMOS7 \ YOURUM ::
+#\[7]TXMCRLG2EDN2VEUZPWXSBNPW47ZC6MAJ22IKN2NZOWNOUU6XNKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

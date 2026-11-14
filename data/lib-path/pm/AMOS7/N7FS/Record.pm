@@ -14,7 +14,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Record-VERSION.FCDTWBQ |;
+our $VERSION = qw| AMOS7::N7FS::Record-VERSION.AILAUZY |;
 
 @EXPORT_OK = qw| record_write record_scan |;
 
@@ -51,6 +51,8 @@ sub record_write {
     my $name = sprintf qw| %s.%s.%s |, ntime14($ntime),
         b32( random_bytes(5) ), $suffix;
     $payload->{'ntime'} //= ntime14($ntime);
+    $payload->{'expires'} = $payload->{'expires'}->($ntime)
+        if ref $payload->{'expires'} eq qw| CODE |;
     refuse( 'record %s : ntime does not match its path', $name )
         if $payload->{'ntime'} ne ntime14($ntime);
     write_new_file( "$dir/$name",
@@ -95,8 +97,8 @@ sub record_scan {
 
 1;
 
-#,,..,,.,,.,.,...,..,,,,,,.,.,,.,,...,,..,..,,..,,...,...,..,,,..,.,.,,.,,,,,,
-#2KZ7FLWZNR4OKPDUC4ZNLZHXZLHKF5M4WA62EMHARZA47O6T5QKYBD3KNGXW7GLELAVRN25YZUC5S
-#\\\|BJMAGSYAE266DTSFPISA23L6OPNRYWSE4UVKLRCTXTUS26CQFXD \ / AMOS7 \ YOURUM ::
-#\[7]BYKJT3NZBKITEE64U5VOD2BBF2NNYWLY4PPVDZ564UU6AL2DPGAY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,,,.,...,..,,,..,.,.,.,,,,,,,..,,...,...,.,.,...,..,,,..,.,.,
+#5G2IUCVYEGU4EKYIN53KKXZ6ZP3ZJXRYOIWADTD4RQEBDELQJHPEPRKDCIMQL6Z5X3QDITCESTLEO
+#\\\|UD5GBOOB6NMODCQDTEJAJ3DPTJIGVTQNXSWWNXGYZ5CV5EU3OGV \ / AMOS7 \ YOURUM ::
+#\[7]ZSTQNIZOAPWVTGRM627PPCSEVIAMXW45EHQGJFVGIMKDSIDQR2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

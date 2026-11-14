@@ -21,7 +21,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.BPKG5TQ |;
+our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.BUWMUVA |;
 
 @EXPORT_OK = qw| journal_replay journal_head journal_write |;
 
@@ -89,11 +89,14 @@ sub _record {
     $p->{'drop'}{'conflicts'}     //= [];
     $p->{'add'}{'conflicts'}      //= [];
     $p->{'add'}{'sync_cursors'}   //= [];
-    foreach my $part (qw| sync_releases conflicts |) {
+    $p->{'add'}{'holds'}          //= [];
+    $p->{'drop'}{'holds'}         //= [];
+
+    foreach my $part (qw| sync_releases conflicts holds |) {
         refuse( 'journal %s : drop %s is not a list', $path, $part )
             if ref $p->{'drop'}{$part} ne qw| ARRAY |;
     }
-    foreach my $part (qw| conflicts sync_cursors |) {
+    foreach my $part (qw| conflicts sync_cursors holds |) {
         refuse( 'journal %s : add %s is not a list', $path, $part )
             if ref $p->{'add'}{$part} ne qw| ARRAY |;
     }
@@ -309,6 +312,32 @@ sub _operations {
                 = $conflict;
         }
     }
+    foreach my $which (qw| add drop |) {
+        foreach my $hold ( $p->{$which}{'holds'}->@* ) {
+            refuse( 'journal seq %d : bad hold operation', $p->{'seq'} )
+                if ref $hold ne qw| HASH |
+                or ( $hold->{'path'} // '' )
+                !~ m|\A\d{14}\.[A-Z2-7]{8}\.hold\z|;
+            if ( $which eq qw| add | ) {
+                refuse( 'journal seq %d : bad hold operation', $p->{'seq'} )
+                    if ( $hold->{'seq'} // '' ) !~ m|\A\d+\z|
+                    or $hold->{'seq'} >= $p->{'seq'}
+                    or ( $hold->{'ntime'}   // '' ) !~ m|\A\d{14}\z|
+                    or ( $hold->{'expires'} // '' ) !~ m|\A\d{14}\z|
+                    or not length( $hold->{'reason'} // '' );
+                refuse( 'journal seq %d : duplicate hold %s',
+                    $p->{'seq'}, $hold->{'path'} )
+                    if $expected->{'hold_history'}{ $hold->{'path'} };
+                $expected->{'holds'}{ $hold->{'path'} }        = $hold;
+                $expected->{'hold_history'}{ $hold->{'path'} } = $hold;
+            } else {
+                refuse( 'journal seq %d : release of a non-live hold %s',
+                    $p->{'seq'}, $hold->{'path'} )
+                    if not $expected->{'holds'}{ $hold->{'path'} };
+                delete $expected->{'holds'}{ $hold->{'path'} };
+            }
+        }
+    }
     foreach my $node ( $p->{'drop'}{'releases'}->@* ) {
         refuse( 'journal seq %d : bad release address', $p->{'seq'} )
             if ( $node // '' ) !~ $ADDR_RE;
@@ -331,15 +360,18 @@ sub _operations {
 }
 
 sub journal_replay {
-    my $id       = shift;
-    my $dir      = "$id->{'path'}/.n7fs/journal";
+    my ( $id, %opt ) = @ARG;
+    my $dir  = "$id->{'path'}/.n7fs/journal";
+    my $upto = $opt{'upto'};
+    refuse( 'journal replay : bad upper sequence [ %s ]', $upto // '' )
+        if defined $upto and $upto !~ m|\A\d+\z|;
     my @name     = _list($dir);
     my %expected = (
         qw| nodes |      => {},
         qw| metas |      => {},
         qw| references | => {}
     );
-    my ( $previous, $seq, $baseline ) = ( '', 0, FALSE );
+    my ( $previous, $seq, $bounded, $baseline ) = ( '', 0, 0, FALSE );
     my ( %seen_seq, %seen_prev );
     my @entries;
 
@@ -359,19 +391,26 @@ sub journal_replay {
             if $p->{'prev'} ne $previous;
         refuse( 'journal %s : baseline is only valid at sequence 1', $name )
             if $p->{'baseline'} and $p->{'seq'} != 1;
-        _operations( $p, \%expected, $id );
-        $baseline = TRUE if $p->{'baseline'};
+        if ( not defined $upto or $p->{'seq'} <= $upto ) {
+            _operations( $p, \%expected, $id );
+            $baseline = TRUE if $p->{'baseline'};
+            $bounded  = $p->{'seq'};
+            push @entries,
+                {
+                qw| name |    => $name,
+                qw| bytes |   => $r->{'bytes'},
+                qw| payload | => $p
+                };
+        }
         $previous = bmw_b32( bmw384_bytes( $r->{'bytes'} ) );
         $seq      = $p->{'seq'};
-        push @entries,
-            {
-            qw| name |    => $name,
-            qw| bytes |   => $r->{'bytes'},
-            qw| payload | => $p
-            };
     }
+    refuse( 'journal replay : upper sequence %d is beyond the head %d',
+        $upto, $seq )
+        if defined $upto and $upto > $seq;
     return {
-        qw| seq |                   => $seq,
+        qw| seq |                   => defined $upto ? $bounded : $seq,
+        qw| head_seq |              => $seq,
         qw| baseline |              => $baseline,
         qw| nodes |                 => $expected{'nodes'},
         qw| metas |                 => $expected{'metas'},
@@ -395,6 +434,8 @@ sub journal_replay {
             // {},
         qw| sync_releases |      => $expected{'sync_releases'}      // {},
         qw| sync_release_order | => $expected{'sync_release_order'} // [],
+        qw| holds |              => $expected{'holds'}              // {},
+        qw| hold_history |       => $expected{'hold_history'}       // {},
         qw| entries |            => \@entries,
     };
 }
@@ -449,6 +490,7 @@ sub journal_write {
             qw| batches |      => [ ( $add->{'batches'}      // [] )->@* ],
             qw| sync_cursors | => [ ( $add->{'sync_cursors'} // [] )->@* ],
             qw| conflicts |    => [ ( $add->{'conflicts'}    // [] )->@* ],
+            qw| holds |        => [ ( $add->{'holds'}        // [] )->@* ],
         },
         qw| drop | => {
             qw| nodes |         => [ $drop->{'nodes'}->@* ],
@@ -458,6 +500,7 @@ sub journal_write {
             qw| trees |         => [ ( $drop->{'trees'}         // [] )->@* ],
             qw| sync_releases | => [ ( $drop->{'sync_releases'} // [] )->@* ],
             qw| conflicts |     => [ ( $drop->{'conflicts'}     // [] )->@* ],
+            qw| holds |         => [ ( $drop->{'holds'}         // [] )->@* ],
         },
     );
     $payload{'baseline'} = JSON::PP::true if $flags->{'baseline'};
@@ -488,8 +531,8 @@ sub journal_write {
 
 1;
 
-#,,,.,,..,.,,,...,,,.,.,,,,,,,.,,,,,.,,,,,.,.,.,.,...,...,,,.,.,.,.,.,,..,,..,
-#YNWCFCDHQSM5LD2OLJS2OVN26KV3ATGW7TOUSWLYNVZJAXIXORFY3NK35FGA6GGT52MFMAFUYIX2Y
-#\\\|OAOSROJBEHCNNVVHJYKCNQUFUMQZAM3URJVMTA6XL57CBUQBZKR \ / AMOS7 \ YOURUM ::
-#\[7]PZIAP5VBXYV674BYLFADMRHZVXU7HIAJURSPCVDPJD76NTOARMDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,.,.,.,.,,,...,.,.,..,,..,,..,,.,.,...,...,..,,,..,.,,,.,.,.,,,
+#JYPYCIL5FCLLLXM7RDNTQHSEOWPAAC6DMOS4J3JGT7OUS6Z7TWCSMGT2R7JEZMJT4XO3OPQEEBRKG
+#\\\|JFZAU44LHQ2XZV3U2VUBICUO2N4DT3DZITQCXT6JXEEH3CRCMQU \ / AMOS7 \ YOURUM ::
+#\[7]P5UD6CZZDLNN7OOENRQWUX5XMY6LS5T3MLQDK2RDZL3C3KYMHUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

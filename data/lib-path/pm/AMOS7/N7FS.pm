@@ -31,7 +31,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS-VERSION.UFDBFHA |;
+our $VERSION = qw| AMOS7::N7FS-VERSION.JZAUYGQ |;
 
 @EXPORT_OK = qw|
     root_dir
@@ -85,6 +85,7 @@ our %MAGIC = (
     qw| batch |         => qw| P7FI |, ## batched reference categories ##
     qw| sync_cursor |   => qw| P7FY |, ## per-source sync position ##
     qw| sync_conflict | => qw| P7FZ |, ## unresolved concurrent sync change ##
+    qw| hold |          => qw| P7FH |, ## pre-change journal restore hold ##
 );
 
 ## one label per signed kind and record format : no signature is valid as
@@ -117,6 +118,7 @@ our %LABEL_VERSION = (
     qw| batch |         => { 3 => 'p7 n7fs category batch:0001' },
     qw| sync_cursor |   => { 3 => 'p7 n7fs sync cursor:0001' },
     qw| sync_conflict | => { 3 => 'p7 n7fs sync conflict:0001' },
+    qw| hold |          => { 3 => 'p7 n7fs hold:0001' },
 );
 
 ## record formats this code reads [ per kind ; the store format is a field of
@@ -137,6 +139,7 @@ $RECORD_FORMAT{'assignment'}{3}    = TRUE;
 $RECORD_FORMAT{'batch'}{3}         = TRUE;
 $RECORD_FORMAT{'sync_cursor'}{3}   = TRUE;
 $RECORD_FORMAT{'sync_conflict'}{3} = TRUE;
+$RECORD_FORMAT{'hold'}{3}          = TRUE;
 
 our %SIGNED_FORMAT = (
     qw| state |         => { 2 => TRUE, 3 => TRUE },
@@ -152,6 +155,7 @@ our %SIGNED_FORMAT = (
     qw| batch |         => { 3 => TRUE },
     qw| sync_cursor |   => { 3 => TRUE },
     qw| sync_conflict | => { 3 => TRUE },
+    qw| hold |          => { 3 => TRUE },
 );
 
 our $JSON = JSON::PP->new->utf8->canonical;
@@ -489,8 +493,8 @@ sub remove_tree {
 
 1;
 
-#,,,.,,..,..,,.,.,,,.,.,.,..,,,..,..,,.,,,,..,..,,...,...,..,,.,,,,,,,...,..,,
-#MSQ6ASLGRDD6XA2WGDVNCHB5CQFJAFYONQKKV3K5HHNQA2LQHAVJL74NHF5NV5WBYVVMXMYZ4VTHW
-#\\\|QAS2DUB7U4YG7G5FPT465R7T24KNHMBHX6MUAA7DBGFALXOR2UA \ / AMOS7 \ YOURUM ::
-#\[7]KTAPAUMLIUWFWXWMMWXONNV3XT4THR2PCGUM5ZK35NGBIQN7EGDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,.,,..,,,.,,.,.,,,,,,.,,,.,,,..,..,,...,..,,.,.,..,,,.,,,.,,..,,
+#6OORVLYELNTYKJOW5YD46GPCNUFVLLB63L76HYL47Y7E63S4MWSOGXYPLVEFWW3VWKWEWS6WCTOSM
+#\\\|56IUWJ5LQAY2WYNVSR76OJWEBQNKMQ6QUBYPJX4C5QJ3H4JLYH5 \ / AMOS7 \ YOURUM ::
+#\[7]AKWKJGVXHIM6IWA2WLDRUWYPCZ3G6HNXNEO6UDXHGJ42UAS4JQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

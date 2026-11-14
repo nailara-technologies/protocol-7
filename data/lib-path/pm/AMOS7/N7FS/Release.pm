@@ -19,7 +19,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Release-VERSION.YPDC3DY |;
+our $VERSION = qw| AMOS7::N7FS::Release-VERSION.RA4HF5I |;
 
 @EXPORT_OK = qw| release_node store_reclaim release_repair tombstone_read
     tombstone_latest tombstone_verify |;
@@ -305,8 +305,33 @@ sub store_reclaim {
         if $state->{'store_format'} != 3;
     my $replay = journal_replay($id);
     require AMOS7::N7FS::Tree;
+    require AMOS7::N7FS::Hold;
+    my $now = ntime_now();
+
+    if ( not $opt{'dry_run'}
+        and grep { $ARG->{'expires'} <= $now } values $replay->{'holds'}->%* )
+    {
+        my $store = store_key_signer( %opt, qw| id | => $id );
+        my $expired
+            = AMOS7::N7FS::Hold::hold_expire( $id, $store, $state, $replay,
+            $now );
+        witness_note_format(
+            %opt,
+            qw| id |          => $id,
+            qw| state |       => $state,
+            qw| journal_seq | => $expired->{'journal_seq'}
+        );
+        $replay = journal_replay($id);
+    }
     my $tree_held
         = AMOS7::N7FS::Tree::tree_live_addresses( $id, $state, $replay );
+    my %hold_held;
+    foreach my $hold ( values $replay->{'holds'}->%* ) {
+        next if $hold->{'expires'} <= $now;
+        my $before = journal_replay( $id, qw| upto | => $hold->{'seq'} );
+        push $hold_held{$ARG}->@*, $hold->{'path'}
+            for keys $before->{'nodes'}->%*;
+    }
     my @garbage;
 
     foreach my $node ( store_nodes( $id->{'path'}, $state->{'epochs'}->@* ) )
@@ -314,6 +339,7 @@ sub store_reclaim {
         my @refs = reference_scan( $node, $id );
         next if grep { not $ARG->{'dropped'} } @refs;
         next if $tree_held->{ reference_address($node) };
+        next if $hold_held{ reference_address($node) };
         my $read = codec(3)->{'read_node'}
             ->( $node->{'path'}, $node, { qw| id | => $id } );
         my $newest = 0;
@@ -350,7 +376,11 @@ sub store_reclaim {
             qw| reason |  => 'reclaim : no live reference',
         );
     }
-    return { qw| released | => \@released, qw| freed | => $freed };
+    return {
+        qw| released | => \@released,
+        qw| freed |    => $freed,
+        qw| held |     => \%hold_held
+    };
 }
 
 sub release_repair {
@@ -373,8 +403,8 @@ sub release_repair {
 
 1;
 
-#,,,,,,,.,,..,.,,,..,,.,,,.,.,,,.,,.,,...,.,,,..,,...,...,,.,,,,.,,,,,,.,,.,.,
-#LGMNPF4QNQIXROYJNFOKRXZFN4S7FBVBCUYQIJ4LB5OCPLRSOLIYFIAM77QXEQEVZWO7ZHA43NGAY
-#\\\|FIQIJWFHHGH3FFONIJIZ5TNVTJTO5Q7OP76AIHU2RMMY4LJI3LW \ / AMOS7 \ YOURUM ::
-#\[7]V3NWUNKODHIYDMWI3UO523D7Y3TGNU6ZVKZWBKMKYDK5VZU4YCDQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,.,,,,,,..,.,,,,..,,..,.,,,,,.,..,,...,...,,,.,,.,,,..,...,.,.,
+#E3ARH6YVPPSKQP7LT4ZJITBJVF45NYSZFM6JZFWHRJKK76TP4OY7JUL3JS7QIYPEVTQTRNPAFCY5W
+#\\\|EOIU2H5ORZ3AL5SGFU6ZTVKJSAWKVUAXGMGKRLG47VYFOJE23B7 \ / AMOS7 \ YOURUM ::
+#\[7]IAA6YP345IYF6VINLR5ISIDD25KJKRK4ZINCJGRUR4QPHMVXU2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
