@@ -76,8 +76,9 @@ use warnings;
 ##                 [ -shrink-limit <percent> ] [ -snapshot-cmd <words> ]
 ## n7fs snapshot-confirm <disk> <prefix>
 ##                 confirm a shrink ; unfreeze retention for that snap: prefix
-## n7fs cycle <name> [ -status ]
-##                 additive snapshot, place, relay, check, refresh and drill ;
+## n7fs cycle <name> [ -status ] [ -dry-run ] [ -no-destructive ]
+##                 [ -accept-shrink ]   additive placement and drill, then a
+##                 strict gate before retain, repack, gc, purge and reclaim ;
 ##                 <host-dir>/cycle/<name>.cfg, state readable without a key
 ## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -prune ] [ -dry-run ]
 ##                 [ -incoming ]    unclassified roots, each gets its own tree
@@ -277,7 +278,7 @@ GetOptionsFromArray(
         list adopt seal-root=s also-root-key=s@ accept-clock show reset
         via=s access=s holders import-holders all-holders state-dir=s
         method=s snapshot-cmd=s staging=s keep-staging=i shrink-limit=f
-        hold=s no-hold for=s at=s status |
+        hold=s no-hold for=s at=s status no-destructive accept-shrink |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -3011,8 +3012,11 @@ sub cmd_cycle {
         )
         : AMOS7::N7FS::Cycle::cycle_run(
         %common,
-        qw| name |     => $name,
-        qw| host_dir | => host_dir(%common),
+        qw| name |           => $name,
+        qw| host_dir |       => host_dir(%common),
+        qw| dry_run |        => $o{'dry-run'}        ? TRUE : FALSE,
+        qw| no_destructive | => $o{'no-destructive'} ? TRUE : FALSE,
+        qw| accept_shrink |  => $o{'accept-shrink'}  ? TRUE : FALSE,
         defined $o{'host-key'} ? ( qw| host_key | => $o{'host-key'} ) : (),
         );
     print STDERR $r->{'error'} if defined $r->{'error'};
@@ -3045,8 +3049,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,...,.,.,,.,,.,.,,,.,,..,.,,,...,.,,,.,.,..,,...,..,,...,,,,,,.,,.,,,,,,,
-#LVFHHSWGAXAQEEY73XL2Y4TGBDLEF57AA2WOJBIIXQRNNKSNM2HQQQH7RV6WXPFNH2TCQLSYMI6WO
-#\\\|XCKXSBIWFDCDSY64TU3L4BXKCDQHUDH3CPIJGCJQYE6MOJTCUQS \ / AMOS7 \ YOURUM ::
-#\[7]7CN6UOHYBSQVBNCSDN44MMI7DVXHB3YCE4LITB6BKWSMUQU4FSBQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,..,,,..,,,.,,..,...,,..,,,,,..,,...,...,,,,,,..,,..,,,,,...,
+#Y3ANOAYZO22OW63T5DNHVYXSPXML3NZQWZHBPZ4EXGP45IGLTPEJCZV37VC4RECXRVCM3VJWAENMI
+#\\\|27CQ3LHQK5KCOSQF2HUTVZXIHU5NN3XQI6SFSQVY3RPXV6XDJ6E \ / AMOS7 \ YOURUM ::
+#\[7]MBC5IJVUWKONX63RSVLVRUTRBBBSS475F4RRUGM7JQCY7EPRDMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

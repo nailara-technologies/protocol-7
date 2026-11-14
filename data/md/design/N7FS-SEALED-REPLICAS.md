@@ -594,7 +594,54 @@ stage 4 is the first that gets essential data off the host.
   stays as the parent in the lineage ]. sustainable because idle
   pipelines go DORMANT [ a miniature in the parent, no resources, waking
   on a tap ] and wrong ones are TRANSFORMED into their corrected version,
-  never left running beside it
+  never left running beside it. a fourth path, DECOMPOSED [ owner ] : when
+  lineage is lost beyond a point, versions sort themselves -- auto-branching
+  around quality centres of gravity, style and face mismatches repelling,
+  image difference detection bridging [ the difference between two
+  versions IS the missing information ] -- recreating the source entropy
+  from the last PUBLIC state and separating flattened mixes back into
+  layers down to the granularity of the last flattened partial imports
+  [ source separation : hopeless from one mix, solvable from several
+  differently filtered versions ]. the true value is the TRANSLUCENCY
+  SETTINGS AND THEIR PROPORTIONS in high precision : known blend weights
+  make decomposition exact [ a linear system ], unknown ones make it an
+  estimate whose error compounds over refined generations -- so every
+  flatten stores per layer opacity, blend mode and proportion in full
+  precision with its recipe [ a few numbers, the merge stays reversible ].
+  keep : without exact weights the layers are RECONSTRUCTED [ marked, own
+  checksums, the source versions as parents ] ; face signals stay local to
+  the sorting decision, never a lasting identity index of real people
+  without their consent. owner : decomposed also allows REBASING -- keep
+  replacing the base image with its best-rated quality and rebase only the
+  translucent differentials onto it [ delta compression against an ever
+  improving keyframe : all variants improve at once ]. keep : a difference
+  computed against the old base may not apply identically to the new one,
+  so rebasing RECOMPUTES each difference and verifies the variant comes out
+  the same [ or deliberately better ] ; the old base stays reachable until
+  every difference is rebased and verified. owner : the LOWER the quality,
+  the LONGER the diff chain by logic -- high-quality variants sit one short
+  difference from the best base [ needed often, quick, exact ], low-quality
+  ones at the end of longer chains [ cheap per step, slower to rebuild,
+  rarely needed ]. retention drops chain ENDS first [ low quality and most
+  expensive to rebuild ], falling back to miniature + recipe. a maximum
+  chain length sets a new intermediate base [ like periodic keyframes in
+  video ] so error and rebuild time stay bounded. owner : the long chain is
+  mapped onto the lowest expected result, but its LENGTH is also a SURFACE
+  for alterations away from the worst rating -- every step is a point where
+  a better branch can fork. low quality = most room to improve and least to
+  lose, so the periphery is exploration terrain ; a markedly better fork
+  moves toward the centre [ a shorter chain to the base, or a new
+  intermediate base ], the original chain staying as its parent. owner : a
+  longer hop count is likely on the OUTER RING ids, where there is room for
+  many similar inputs of the same quality to be COMBINED into fewer but
+  higher-quality extractions -- e.g. a still sweet elf character from a
+  whole session of misgenerations with anatomical jitter : none reaches
+  the next ring alone, but their defects are random while the character
+  essence is shared, so together they give a model enough perspectives to
+  reconstruct the next higher-quality layer without loss in essence
+  [ photo stacking, multi-image super-resolution ]. the extraction is a
+  new version with ALL source images as parents -- failed sessions become
+  raw material for the next ring inward
 - erasure coding as the form of a "copy" : k-of-n fragments over sealed chunks.
   a placement rule : at most n-k fragments of a stripe per control domain.
   fragments differ between holders, so the two-holder challenge of identical
@@ -622,8 +669,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,.,,...,..,,,,,,,,.,,..,,..,,,,,.,.,,,.,,.,,..,,...,..,,,..,,,,,,..,,,,,,..,
-#ETX3S6AKDCKRJZZUWBIJI5P6TCZOH6XUXD7KP425LBSLTLKULTX62CHPF7F5XQWMVS3Y6XHQAW6YQ
-#\\\|LGNJLNYNNN4K5AZAJTI46XEWNP2MHNOFSP7AGZ4K6LT6AW23XZD \ / AMOS7 \ YOURUM ::
-#\[7]HEWTZSGA2V72F2IWLQZHD673JMBYKVXSLK23XD2XZHNO4B7432BQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,,,...,.,.,,,,,...,,.,,,.,,,,.,..,,...,...,...,...,...,,,.,.,,,
+#64YYNLRRGSSSW2NJSQIIAHFPO777OMTLHS2KDLEVCCP43H2BKP4AEGOLA6R5P5G43PKVXJK5GXEFY
+#\\\|IB5GPZ3U3GMHYJTTAAMBJ5OJUANGYT55356COCFGQY27ILIGUO6 \ / AMOS7 \ YOURUM ::
+#\[7]NAJLXK2IWDJ6MAUFNK4L3ZXMRQXOLFCVUI5FSBGQJUYCRHWTTIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
