@@ -87,6 +87,10 @@ use warnings;
 ## n7fs unseal <disk> -root-key <file> -from <dir> <tree-or-address> <target>
 ## n7fs seal-recover -root-key <file> -from <dir> [ -tree <name> ] <target-dir>
 ## n7fs shred <disk> -root-key <file> -out <dir> <address>
+## n7fs heads -root-key <file> [ <holder>.. ] [ -anchor ]
+##                 head versions, freshness verdicts and offline anchor
+## n7fs head-refresh -root-key <file> [ <holder>.. ]
+##                 re-sign current heads without resealing their maps
 ## n7fs holder-check <holder> -root-key <file>   also writes a receipt ;
 ##                 [ -accept-clock ] allows a floor jump larger than 1Y2
 ## n7fs clock-floor <root-id> -show | -reset
@@ -242,7 +246,7 @@ GetOptionsFromArray(
         full scrub sizes-only nonce=s
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
         categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
-        no-check check-full repack threshold=f
+        no-check check-full repack threshold=f allow-stale min-version=i anchor
         list adopt seal-root=s also-root-key=s@ accept-clock show reset |
 ) or usage(2);
 usage(0) if $o{'help'};
@@ -306,6 +310,8 @@ my %run = (
     qw| seal-recover |         => \&cmd_seal_recover,
     qw| shred |                => \&cmd_shred,
     qw| holder-check |         => \&cmd_holder_check,
+    qw| heads |                => \&cmd_heads,
+    qw| head-refresh |         => \&cmd_head_refresh,
     qw| clock-floor |          => \&cmd_clock_floor,
     qw| holder-scrub |         => \&cmd_holder_scrub,
     qw| holder-receiver-line | => \&cmd_holder_receiver_line,
@@ -339,7 +345,7 @@ $PROGRAM_NAME = "n7fs $command";
 my %holder_writer = map { $ARG => 1 }
     qw| seal place relay holder-check holder-drain holder-prune holder-gc shred
     holder-trash-purge holder-trash-restore holder-migrate retain repack
-    retain-set retain-clear tree-pin tree-unpin |;
+    retain-set retain-clear tree-pin tree-unpin head-refresh |;
 our $HOLDER_LOCK;
 if ( $holder_writer{$command} and not $o{'dry-run'} ) {
     require Fcntl;
@@ -1792,11 +1798,15 @@ sub cmd_seal_recover {
     fail('seal-recover : unexpected arguments')   if @ARG;
     fail('seal-recover needs -from <holder-dir>') if not defined $o{'from'};
     my $r = AMOS7::N7FS::Seal::seal_recover(
-        qw| root |   => _seal_root(),
-        qw| holder | => $o{'from'},
-        qw| target | => $target,
-        qw| tree |   => $o{'tree'},
-        qw| owners | => $o{'owners'} ? TRUE : FALSE,
+        qw| root |        => _seal_root(),
+        qw| holder |      => $o{'from'},
+        qw| target |      => $target,
+        qw| tree |        => $o{'tree'},
+        qw| owners |      => $o{'owners'}      ? TRUE : FALSE,
+        qw| allow_stale | => $o{'allow-stale'} ? TRUE : FALSE,
+        defined $o{'min-version'}
+        ? ( qw| min_version | => $o{'min-version'} )
+        : (),
     );
     require AMOS7::NTIME;
     say_line(
@@ -1822,6 +1832,86 @@ sub _holder_arg {
     my $h       = $holders->{$arg}
         // fail("no holder named $arg [ a spec holds ':' or '/' ]");
     return $h->{'spec'};
+}
+
+sub _survey_holders {
+    my @selected = @ARG;
+    return { map { $ARG => $ARG } @selected }
+        if @selected and not grep { $_ !~ m{[:/]} } @selected;
+    require AMOS7::N7FS::Placement;
+    my $registered = AMOS7::N7FS::Placement::holders_load( _vault_opt() );
+    return {
+        map { $ARG => $registered->{$ARG}{'spec'} }
+        sort keys %{$registered}
+        }
+        if not @selected;
+    return {
+        map {
+            my $name = $ARG;
+            $name => _holder_arg($name)
+        } @selected
+    };
+}
+
+sub cmd_heads {
+    require AMOS7::N7FS::Seal;
+    my $root = _seal_root();
+    my $survey
+        = AMOS7::N7FS::Seal::head_survey( $root, _survey_holders(@ARG) );
+    my $failed = 0;
+    my $anchor;
+    foreach my $name ( sort keys %{$survey} ) {
+        my $item = $survey->{$name};
+        my $head = $item->{'head'};
+        if ( not defined $head ) {
+            my $error = $item->{'error'} // 'no sealed head';
+            chomp $error;
+            say_line( 'holder ', $name, ' : unreachable [ ', $error, ' ]' );
+            $failed = 1;
+            next;
+        }
+        my $age = ntime_now() - $head->{'time'};
+        $age = 0 if $age < 0;
+        say_line(
+            'holder ',
+            $name,
+            ' : head v',
+            $head->{'version'},
+            ', age ',
+            _age_label($age),
+            ', floor v',
+            $item->{'floor'},
+            ', ',
+            $item->{'verdict'},
+            $item->{'stale'}
+            ? " [ $item->{'witness'} recorded v$item->{'floor'} ]"
+            : $item->{'verdict'} eq 'unverified'
+            ? ' : a withheld newer head cannot be seen from here'
+            : ''
+        );
+        $failed = 1 if $item->{'stale'};
+        $anchor = $head
+            if not defined $anchor
+            or $head->{'version'} > $anchor->{'version'}
+            or ($head->{'version'} == $anchor->{'version'}
+            and $head->{'time'} > $anchor->{'time'} );
+    }
+    say join ' ', substr( $root->{'root_id'}, 0, 7 ),
+        $anchor->{'version'}, $anchor->{'time'}
+        if $o{'anchor'} and defined $anchor;
+    return $failed;
+}
+
+sub cmd_head_refresh {
+    require AMOS7::N7FS::Seal;
+    my $root    = _seal_root();
+    my $holders = _survey_holders(@ARG);
+    foreach my $name ( sort keys %{$holders} ) {
+        my $r = AMOS7::N7FS::Seal::head_refresh( $root, $holders->{$name} );
+        say_line( 'refreshed ', $name, ' : head v', $r->{'version'},
+            ' ; map unchanged' );
+    }
+    return 0;
 }
 
 sub cmd_clock_floor {
@@ -2459,6 +2549,7 @@ sub _placement_opt {
         qw| host_pub |     => host_signer()->public,
         qw| exclude |      => $o{'exclude'} // [],
         qw| accept_clock | => $o{'accept-clock'} ? TRUE : FALSE,
+        qw| allow_stale |  => $o{'allow-stale'}  ? TRUE : FALSE,
     );
 }
 
@@ -2597,8 +2688,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,..,,...,.,.,,,.,..,,..,,,..,,,,,.,,,...,..,,...,..,,.,,,..,,...,..,,,.,,
-#JTUC2KCW5TODG4ZVWP3QZGCYFACH4E3ZX7BIRLAXQ6QMT2ZO7D7PVAQJVPLIECBJVPXMDLDWMDETQ
-#\\\|COXNZK56N22H3ML3AH3PYUVLE2FPAAOVMJTPWZ5KP32DPFEZNEY \ / AMOS7 \ YOURUM ::
-#\[7]7STEBDDDZAGJHSGVA72ITMV4A522CGE3UDQ4CS7GWO7RH63XI2CY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,,,,,,,,,.,..,,..,,,.,,,,.,,..,..,,...,...,,..,,,,,..,,,,,,..,,
+#YU53P4IFI57CAKPB3WNOHCGR3ZNMAXLJVJCTJO4ZI3EV35Y7XF43IYWKRHJNHIFIYJCYYIFZOLGWG
+#\\\|4XAHE3WHGM3ST2HMX7LPL7QWBDKC7NX2M5Y6EIJ4GOIOVLVH7RM \ / AMOS7 \ YOURUM ::
+#\[7]4VME2UNAD6KLBQWFUHMVKO7ZLMGIHZORGBACB2UBPL42A2NPS4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

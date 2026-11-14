@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.UXIUT5A |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.PTPZYVQ |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage receipt_covered receipt_digest n7fs_now
@@ -441,18 +441,33 @@ sub _copies {
     my %proven;
     my %status;
     require AMOS7::N7FS::Seal;
+    my $survey = AMOS7::N7FS::Seal::head_survey( $opt{'root'},
+        { map { $ARG => $holders->{$ARG}{'spec'} } keys %{$holders} } );
     ## an excluded holder is read but not counted [ moving away from it ] ##
     my %excluded = map { $ARG => TRUE } @{ $opt{'exclude'} // [] };
     foreach my $name ( sort keys %{$holders} ) {
         my $h       = $holders->{$name};
+        my $fresh   = $survey->{$name};
         my $receipt = receipt_fresh( $opt{'host_dir'}, $opt{'host_pub'},
             $h->{'spec'}, $opt{'root'}{'root_id'}, $now );
+        refuse(
+            'holder %s serves a rolled back head [ v%d, '
+                . 'floor v%d via %s ; use -allow-stale to proceed ]',
+            $name,             $fresh->{'head'}{'version'},
+            $fresh->{'floor'}, $fresh->{'witness'}
+        ) if $fresh->{'stale'} and not $opt{'allow_stale'};
+        warn "n7fs : warning : holder $name is stale ; "
+            . "counting no copies from it [ -allow-stale ]\n"
+            if $fresh->{'stale'};
         my ( undef, $head, $map ) = eval {
             AMOS7::N7FS::Seal::_context( $opt{'root'}, $h->{'spec'}, TRUE );
         };
         my $state = qw| counted |;
         my $covered;
-        if ($EVAL_ERROR) {
+        if ( $fresh->{'stale'} ) {
+            $state = 'rolled back';
+            ( undef, $head, $map ) = ();
+        } elsif ($EVAL_ERROR) {
             $state = qw| unreachable |;
             ## within the grace a fresh receipt keeps the covered entries ##
             ## counting in place planning, from the cache it wrote ; the  ##
@@ -641,6 +656,7 @@ sub place_missing {
         next if $holders->{$name}{'role'} ne qw| durable |;
         next if $status->{$name}{'state'} =~ m|\Aunreachable|;
         next if $status->{$name}{'state'} eq 'excluded';
+        next if $status->{$name}{'state'} eq 'rolled back';
         $left{$name}
             = holder_room( $holders->{$name}, $status->{$name}{'used'} );
     }
@@ -656,6 +672,7 @@ sub place_missing {
             next if $holders->{$name}{'role'} ne qw| durable |;
             next if $status->{$name}{'state'} =~ m|\Aunreachable|;
             next if $status->{$name}{'state'} eq 'excluded';
+            next if $status->{$name}{'state'} eq 'rolled back';
             next
                 if $status->{$name}{'covered_set'}
                 and $status->{$name}{'covered_set'}{$address};
@@ -998,8 +1015,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,..,,.,,,..,,,,.,,,.,,..,.,.,.,.,.,,,,,,,..,,...,...,.,,,.,,,,..,.,,,.,.,
-#3YH2PJKA222UFWEWKN73AO22I44N3FNXH5R2EX7HCXP5F5ZMGAR5O5B6N6YCW53CFY4SFKEALWENU
-#\\\|METLNCPYQ5SDP4OKORJL5CAZB2CBK5N4MV5BPALPJ6CK4USU74M \ / AMOS7 \ YOURUM ::
-#\[7]ZQ5BW77AZ6DSZERCU4ZYGV7VKEG5V5WWNFVTKJN4BNB5Z5EOQYBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,..,,,.,.,.,...,...,..,,,..,..,,..,,...,...,..,,...,,.,,.,,,,,,,
+#BHNWZ5IWYZ2NVT5MSSIEMH5U25M7OIJQ3AWQCXYGJZGAIDCQL5B2E4VY6TP4BSYVOFKAHF3NK7SMW
+#\\\|ONZELWHVWLUGW5CQ7IATCBI5KKKYHT67WJRRVIUHCIDAUETSU37 \ / AMOS7 \ YOURUM ::
+#\[7]XXATOA55VAEWMP6A2LWH7PD3X7GPRJKZZ47OTJ7XJCEQ6JXJMCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
