@@ -115,7 +115,7 @@ my $right_bytes = read_file("$sub/$right->{'blob'}");
 my $left_open   = eval {
     AMOS7::N7FS::Seal::open_sealed_bytes(
         $root->{'keys'},
-        substr( $left_bytes, 16 ),
+        substr( $left_bytes, 32 ),
         qw| manifest-chunk |,
         unb32( $left->{'id'} ),
         $left->{'version'}
@@ -124,7 +124,7 @@ my $left_open   = eval {
 my $wrong_open = eval {
     AMOS7::N7FS::Seal::open_sealed_bytes(
         $root->{'keys'},
-        substr( $left_bytes, 16 ),
+        substr( $left_bytes, 32 ),
         qw| manifest-chunk |,
         unb32( $right->{'id'} ),
         $left->{'version'}
@@ -243,8 +243,8 @@ refused(
 
 done();
 
-#,,..,.,.,,.,,,.,,.,,,.,,,,.,,,..,.,,,...,.,,,..,,...,..,,...,,..,.,.,...,...,
-#74OYSM7HGXHMHX5Y5WCYX35TFT56WK4X76IJ46KWD6A6HJQFELOC5Y3I3HIA3XGLJNNPKYXY3CDTE
-#\\\|VGBCCR75TW3F3GB6K6N4OZ7R22LAHJWEBL3VGNZLYCV6ZEXLHDZ \ / AMOS7 \ YOURUM ::
-#\[7]JZWIK77JQEVFPVYIB4U4UAJJNNIKSRDGTHOJ3I5ZDOEVRDP3P4DY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,..,,,,,.,,,.,.,,..,,,.,,.,,,,,,..,,...,...,,,.,,,.,.,,,.,.,,.,,
+#DMWNJOQ2MIGINLV3OMJJMHXGQEMEBFU65JDUKQQD2J2KLCJKCDUP2FZIAWPDSXGJXSH3XBW4VUBJS
+#\\\|HSFFYAEZ52VZDZQUIIWAHWCVMZFKL2H6322JAYKPUW7MOXNSEJ2 \ / AMOS7 \ YOURUM ::
+#\[7]ALYMHRX5PCO5I6ITIDVIXEPYE7WDYLYPXPBC73RXOTK4PK4GRQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

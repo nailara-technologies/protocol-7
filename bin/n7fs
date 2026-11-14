@@ -1798,11 +1798,15 @@ sub cmd_seal_recover {
         qw| tree |   => $o{'tree'},
         qw| owners | => $o{'owners'} ? TRUE : FALSE,
     );
+    require AMOS7::NTIME;
     say_line(
         'recovered ',
         $r->{'nodes'} // $r->{'files'} // 0,
         ' nodes [ head ',
-        $r->{'version'}, ' ]'
+        $r->{'version'},
+        ', age ',
+        AMOS7::NTIME::y_age_str( $r->{'head_age'} ),
+        ' ]'
     );
     say_line( 'clean recovery accepts the reachable signed '
             . 'head ; a holder can withhold newer versions' );
@@ -1918,7 +1922,7 @@ sub cmd_holder_scrub {
         : undef;
     my %blobs = map { $ARG->{'blob'} => TRUE } values $map->{'nodes'}->%*;
     my @names = sort keys %blobs;
-    push @names, $head->{'map'}, $head->{'journal'};
+    push @names, $head->{'map'}{'blob'}, $head->{'journal'};
     my $r = AMOS7::N7FS::Holder::holder_scrub( $holder, \@names, $o{'nonce'},
         $tag );
     say_line(
@@ -2593,8 +2597,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,.,.,,,,,,,,,,.,,,..,,,,,.,,,...,,,,,,..,..,,...,...,,.,,,..,...,.,,,,.,,
-#FFFJYTNDZQ5YLL23T3ZIDYVON7VUOLFGOCQYBQI3LNMCDMHT4CMBRL75RODXXYPRURYNZYOJVR4FE
-#\\\|CBRSSQMWWI6RX7RQFDZVJKPODCOJNK3J4Y2VS5QZZ7SVDZRJTX7 \ / AMOS7 \ YOURUM ::
-#\[7]UUAEZQOHFTMGC2W67FVV3DPUS7UJRZLWH2BYUYTQCBOCNEMNGIBA 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,,,.,..,,..,,,..,,,,,.,,,...,..,,...,..,,.,,,..,,...,..,,,.,,
+#JTUC2KCW5TODG4ZVWP3QZGCYFACH4E3ZX7BIRLAXQ6QMT2ZO7D7PVAQJVPLIECBJVPXMDLDWMDETQ
+#\\\|COXNZK56N22H3ML3AH3PYUVLE2FPAAOVMJTPWZ5KP32DPFEZNEY \ / AMOS7 \ YOURUM ::
+#\[7]7STEBDDDZAGJHSGVA72ITMV4A522CGE3UDQ4CS7GWO7RH63XI2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

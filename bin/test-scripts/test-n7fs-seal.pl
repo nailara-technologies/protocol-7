@@ -78,13 +78,13 @@ cli( 0, 'root export-check',
 }
 my $vector_key = join '', map {chr} 0 .. 63;
 my $vector
-    = seal_bytes( $vector_key, 'n7fs known answer', 'vector', 'V' x 16, 7 );
-ok( open_sealed_bytes( $vector_key, $vector, 'vector', 'V' x 16, 7 ) eq
+    = seal_bytes( $vector_key, 'n7fs known answer', 'pending', 'V' x 16, 7 );
+ok( open_sealed_bytes( $vector_key, $vector, 'pending', 'V' x 16, 7 ) eq
         'n7fs known answer',
     'both layers round trip'
 );
 ok( unpack( 'H*', $vector ) eq
-        'bf027f789933045d0d2a5b384d2a69bdd3bee977e8067f9c127999cf89a2e2f4d5',
+        'e5e70fb83337b86f3b916bd579ec343a43dcee3c7fcdac919e1a625dc8eee811f3',
     'suite known-answer vector'
 );
 my $rollover_iv = "\0" x 6 . "\x01\x01" . "\xff" x 8;
@@ -393,8 +393,8 @@ ok( $writer_head1->{'writer'} ne $writer_head2->{'writer'}
         and $writer_bytes1 ne $writer_bytes2,
     'state loss cannot repeat a head nonce'
 );
-my $writer_map1     = read_file("$whsub1/$writer_head1->{'map'}");
-my $writer_map2     = read_file("$whsub2/$writer_head2->{'map'}");
+my $writer_map1     = read_file("$whsub1/$writer_head1->{'map'}{'blob'}");
+my $writer_map2     = read_file("$whsub2/$writer_head2->{'map'}{'blob'}");
 my $writer_journal1 = read_file("$whsub1/$writer_head1->{'journal'}");
 my $writer_journal2 = read_file("$whsub2/$writer_head2->{'journal'}");
 ok( $writer_map1 ne $writer_map2 and $writer_journal1 ne $writer_journal2,
@@ -526,10 +526,10 @@ cli( 0, 'all-trees seals live tree records and file nodes',
 AMOS7::N7FS::Seal::_context( $multi_root, "$multi_holder/.", 0 );
 my $canonical_state = AMOS7::N7FS::Seal::_state_read($multi_root);
 ok(
-    (   grep { $_ eq Cwd::abs_path($ARG) }
-            keys $canonical_state->{'pins'}->%*
-    ) == scalar keys $canonical_state->{'pins'}->%*,
-    'holder pins use canonical paths'
+    (   grep { $ARG->{'spec'} eq Cwd::abs_path( $ARG->{'spec'} ) }
+            values $canonical_state->{'holders'}->%*
+    ) == scalar keys $canonical_state->{'holders'}->%*,
+    'holder state uses canonical paths'
 );
 {
     my $calls    = 0;
@@ -586,8 +586,8 @@ cli( 1, 'cascade refused rather than ignored',
 
 done();
 
-#,,,.,,.,,,..,.,.,..,,,,.,..,,...,.,,,...,,..,..,,...,...,.,,,.,.,.,,,...,.,,,
-#7IG6M23DX3W2LJHL4IIEM7ALGNLRLKGEEGMMM5NKL2PNUHGWIVOMKATWQFCACJV6RBUBDXDATHUOG
-#\\\|X5ZBQDWVTCUXIH7C7SLIOUF3G2ZK6F4G2EMZ5UENYV26ORFKQ5C \ / AMOS7 \ YOURUM ::
-#\[7]YWIBKOZQPFRDWHZ25D6OJDLQIHFR53EEIVDBSN2HSGSZ4AFI4UBQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,..,,.,.,.,.,.,,,,.,,.,,,,,,,...,..,,...,...,..,,,,.,.,,,,,,,.,.,
+#FTFUMKNOQFM27BW53FJFU2SSPIF3FUUXRDH2G2JHMA6HT6FVEDE5KF7EJZTNOAJCI7AKY3AFJJCVW
+#\\\|DPJA34PVPCX4BAEMRYLPD3UHOYULPGFDEL524OBCVVAJEXBUOE7 \ / AMOS7 \ YOURUM ::
+#\[7]H6LZHMX4H55MOTK4I7NI4DSWFA3UBHG3U2VBSMIXFWIGPYNFXGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
