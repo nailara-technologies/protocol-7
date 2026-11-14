@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.6BPFMBQ |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.L5B7WNY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -31,9 +31,9 @@ use Fcntl qw| O_RDONLY |;
 use Crypt::Mode::CTR;
 use Crypt::AuthEnc::ChaCha20Poly1305 qw| chacha20poly1305_encrypt_authenticate
     chacha20poly1305_decrypt_verify |;
-use AMOS7::NTIME qw| ntime_now parse_y_age y_level_ntime |;
+use AMOS7::NTIME qw| parse_y_age y_level_ntime |;
 use AMOS7::N7FS  qw| b32 unb32 random_bytes read_file write_new_file
-    write_new_file_stream make_dirs sync_dir refuse fault ntime14 |;
+    write_new_file_stream make_dirs sync_dir refuse fault ntime_now ntime14 |;
 use AMOS7::N7FS::Sum      qw| bmw384_bytes bmw_b32 epoch_from_b32 |;
 use AMOS7::N7FS::Sign     qw| verify |;
 use AMOS7::N7FS::Disk     qw| disk_read_id disk_lock state_read |;
@@ -42,8 +42,8 @@ use AMOS7::N7FS::Journal  qw| journal_replay |;
 use AMOS7::N7FS::Category qw| category_report category_definitions |;
 use AMOS7::N7FS::Holder   qw| holder_parse holder_canonical holder_mkdir
     holder_read holder_size holder_put holder_delete holder_verify
-    holder_download holder_read_range holder_sizes holder_stats holder_scrub
-    holder_isdir holder_sub_spec holder_make_path holder_move
+    holder_download holder_read_range holder_sizes holder_stats holder_now
+    holder_scrub holder_isdir holder_sub_spec holder_make_path holder_move
     holder_trash_days holder_trash_list holder_remove_day holder_authorize |;
 
 use constant CHUNK_SIZE => 16 * 1024 * 1024;
@@ -1994,7 +1994,7 @@ sub retention_update {
     return { qw| changed | => TRUE, qw| version | => $version };
 }
 
-## pure planner : tree times are whole ntime values, buckets share the grid ##
+## pure planner : owners and bucket winners are computed once per rule term
 sub retention_plan {
     my %opt   = @_;
     my $now   = $opt{'now'}   // ntime_now();
@@ -2008,13 +2008,43 @@ sub retention_plan {
             if ( $time // '' ) !~ m|\A\d+\z|;
         $time{$name} = $time;
     }
-    ## the longest matching prefix owns a tree ##
-    my $owner = sub {
-        my $tree = shift;
-        my ($best) = sort { length($b) <=> length($a) || $a cmp $b }
-            grep { index( $tree, $ARG ) == 0 } keys %{$rules};
-        return $best // '';
-    };
+    my @prefixes
+        = sort { length($b) <=> length($a) || $a cmp $b } keys %{$rules};
+    my %owner;
+    foreach my $name ( keys %time ) {
+        my ($best) = grep { index( $name, $ARG ) == 0 } @prefixes;
+        $owner{$name} = $best // '';
+    }
+    my ( %terms, %finest, %bucket_keep );
+    foreach my $prefix (@prefixes) {
+        my @terms;
+        foreach my $text ( split ' ', $rules->{$prefix} ) {
+            my ( $count, $level ) = $text =~ m|\A([1-9]\d*)Y([0-7])\z|;
+            push @terms,
+                { qw| count | => $count + 0, qw| level | => $level + 0 };
+        }
+        $terms{$prefix} = \@terms;
+        ( $finest{$prefix} )
+            = sort { $b->{'level'} <=> $a->{'level'} } @terms;
+        for my $index ( 0 .. $#terms ) {
+            my $term = $terms[$index];
+            my $unit = y_level_ntime( $term->{'level'} );
+            my %newest;
+            foreach my $name ( keys %time ) {
+                next if $owner{$name} ne $prefix;
+                my $bucket = int( $time{$name} / $unit );
+                my $other  = $newest{$bucket};
+                $newest{$bucket} = $name
+                    if not defined $other
+                    or $time{$name} > $time{$other}
+                    or ( $time{$name} == $time{$other} and $name gt $other );
+            }
+            my @buckets = sort { $b <=> $a } keys %newest;
+            splice @buckets, $term->{'count'} if @buckets > $term->{'count'};
+            $bucket_keep{$prefix}[$index]
+                = { map { $newest{$ARG} => TRUE } @buckets };
+        }
+    }
     my @out;
     foreach my $name ( sort keys %time ) {
         my $time = $time{$name};
@@ -2027,23 +2057,17 @@ sub retention_plan {
                 };
             next;
         }
-        my $prefix = $owner->($name);
+        my $prefix = $owner{$name};
         if ( not length $prefix ) {
             push @out,
                 {
                 qw| tree |   => $name,
                 qw| keep |   => TRUE,
-                qw| reason | => qw| no retention rule |
+                qw| reason | => 'no retention rule'
                 };
             next;
         }
-        my @terms;
-        foreach my $text ( split ' ', $rules->{$prefix} ) {
-            my ( $count, $level ) = $text =~ m|\A([1-9]\d*)Y([0-7])\z|;
-            push @terms,
-                { qw| count | => $count + 0, qw| level | => $level + 0 };
-        }
-        my $finest = ( sort { $b->{'level'} <=> $a->{'level'} } @terms )[0];
+        my $finest    = $finest{$prefix};
         my $fine_unit = y_level_ntime( $finest->{'level'} );
         if ( $time >= int( $now / $fine_unit ) * $fine_unit ) {
             push @out,
@@ -2056,34 +2080,17 @@ sub retention_plan {
             next;
         }
         my $reason;
-        foreach my $term (@terms) {
-            my $unit = y_level_ntime( $term->{'level'} );
-            my %newest;
-            foreach my $other ( keys %time ) {
-                ## a tree under a longer prefix with its own rule belongs ##
-                ## to that ladder, it never takes a bucket from this one  ##
-                next if $owner->($other) ne $prefix;
-                my $bucket = int( $time{$other} / $unit );
-                $newest{$bucket} = $other
-                    if not exists $newest{$bucket}
-                    or $time{$other} > $time{ $newest{$bucket} };
-            }
-            my @buckets
-                = ( sort { $b <=> $a } keys %newest )
-                [ 0 .. $term->{'count'} - 1 ];
-            if ( grep { defined $newest{$ARG} and $newest{$ARG} eq $name }
-                @buckets ) {
-                $reason = "$term->{'count'} Y$term->{'level'}";
-                last;
-            }
+        for my $index ( 0 .. $#{ $terms{$prefix} } ) {
+            next if not $bucket_keep{$prefix}[$index]{$name};
+            my $term = $terms{$prefix}[$index];
+            $reason = "$term->{'count'} Y$term->{'level'}";
+            last;
         }
         push @out,
             {
-            qw| tree | => $name,
-            qw| keep | => defined $reason ? TRUE : FALSE,
-            defined $reason
-            ? ( qw| reason | => $reason )
-            : ( qw| reason | => "outside $prefix ladder" )
+            qw| tree |   => $name,
+            qw| keep |   => defined $reason ? TRUE : FALSE,
+            qw| reason | => $reason // "outside $prefix ladder"
             };
     }
     return \@out;
@@ -2191,14 +2198,17 @@ sub repack_packs {
             qw| covered |           => $checked->{'covered'},
             qw| covered_nodes |     => $checked->{'covered_nodes'},
             qw| covered_addresses | => $checked->{'covered_list'},
+            qw| accept_clock |      => $opt{'accept_clock'},
         );
         $receipts++;
         fault(qw| repack:after-receipt |);
         my $gc = holder_gc(
-            qw| root |    => $opt{'root'},
-            qw| holder |  => $opt{'holder'},
-            qw| receipt | => $receipt,
-            qw| delete |  => TRUE,
+            qw| root |      => $opt{'root'},
+            qw| holder |    => $opt{'holder'},
+            qw| receipt |   => $receipt,
+            qw| keep |      => $opt{'keep'},
+            qw| only_root | => $opt{'only_root'},
+            qw| delete |    => TRUE,
             defined $opt{'grace'} ? ( qw| grace | => $opt{'grace'} ) : (),
         );
         $counter->{'version'} = $gc->{'version'};
@@ -2228,9 +2238,26 @@ sub repack_packs {
 ## on a per-root holder the listing is the root's own subdirectory, so
 ## -only-root is structural there and the flag is redundant [ warned ] ; a
 ## holder may still hold other roots in the old flat layout, whose blobs
-## cannot be told apart from outside, so the flat layout keeps requiring it
+## cannot be told apart from outside, so the flat layout keeps requiring it a
+## destructive age decision needs one clock on both sides, and refuses a
+## home/holder disagreement large enough to void the grace or trash lifetime
+sub _age_now {
+    my ( $base, $delete ) = @_;
+    my $home   = ntime_now();
+    my $holder = holder_now($base);
+    my $skew   = abs( $home - $holder );
+    refuse(
+        'home and holder clocks disagree by %d ntime [ '
+            . 'limit 1Y3 ] ; refusing a destructive age decision',
+        $skew
+    ) if $delete and $skew > parse_y_age('1Y3');
+    return $holder;
+}
+
 sub holder_gc {
     my %opt = @_;
+    refuse('holder-gc needs an explicit keep list [ possibly empty ]')
+        if not exists $opt{'keep'};
     my ( $counter, $head, $map, $base )
         = _context( @opt{qw| root holder |}, TRUE );
     refuse('no sealed head on this holder') if not defined $head;
@@ -2268,7 +2295,7 @@ sub holder_gc {
     ## pushed by a relay, not adopted yet ##
     $keep{$ARG} = TRUE for @{ $opt{'keep'} // [] };
     my $grace = $opt{'grace'} // parse_y_age('6Y3');
-    my $now   = ntime_now();
+    my $now   = _age_now( $base, $opt{'delete'} );
     my $stats = holder_stats($base);
     my ( @drop, @young );
     foreach my $name ( sort grep { not $keep{$ARG} } keys %{$stats} ) {
@@ -2282,7 +2309,7 @@ sub holder_gc {
     $bytes += $stats->{$ARG}{'size'} for @drop;
 
     if ( $opt{'delete'} and @drop ) {
-        my $day = _trash_day();
+        my $day = _trash_day($now);
         holder_make_path( $base, ".trash/$day", 0700 );
         holder_move( $base, $ARG, ".trash/$day/$ARG" ) for @drop;
     }
@@ -2299,8 +2326,9 @@ sub holder_gc {
 
 ## the trash bucket of the current 1Y2 interval ##
 sub _trash_day {
+    my $now  = shift // ntime_now();
     my $unit = y_level_ntime(2);
-    return ntime14( int( int( ntime_now() / $unit ) * $unit ) );
+    return ntime14( int( int( $now / $unit ) * $unit ) );
 }
 
 ## the holder directory gc, purge and restore act on : the root's  ##
@@ -2319,7 +2347,7 @@ sub holder_trash_purge {
     my %opt   = @_;
     my $base  = _trash_base(%opt);
     my $older = $opt{'older'} // refuse('trash purge needs an age');
-    my $now   = ntime_now();
+    my $now   = _age_now( $base, $opt{'delete'} );
     my $days  = holder_trash_days($base);
     my $list  = holder_trash_list($base);
     my @old   = sort grep { $now - $days->{$ARG} > $older } keys %{$days};
@@ -2777,8 +2805,8 @@ sub shred_node {
 
 1;
 
-#,,,,,.,.,,..,.,.,.,,,...,,,,,,,,,,.,,...,,,.,..,,...,...,.,,,..,,,..,,.,,,.,,
-#GACT3H2LINX324XFNZI3IDIPGSYKBSBDD2CQH6T3HNKU7YFJM2RQFZQJKZYECQ7DOGS55I5YGTPRY
-#\\\|C5JV3JNRWWM37QHQVJ4X6YCLZOJLWTUR5CO32H7OOCSINT4N3KR \ / AMOS7 \ YOURUM ::
-#\[7]COUQ2UY7QJM4TLLG3EVHOKCAYLBDZQIEOQFH5KLWTYXZCPDD5ABQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,.,,,,,,,,,,,..,,.,,...,,..,,.,,..,,...,...,...,.,.,.,.,..,,,.,,
+#II4FZON5LMEHZXRCBSIUCQTRVWCBPEUJHQE5K2TITXO45RXFIMZCMDCGVJQXVWWEX5WH5CE7DXXCM
+#\\\|FICZZ5FSDGH6QNF2ZYX2M2VGZFWXC4HAA7FTEJU6JDGHDIHUK7G \ / AMOS7 \ YOURUM ::
+#\[7]4K2PHKLF5BB7XEA66AQ3KC7ZM7OHM6FKGBZOGEOXDPI7FYR4EQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

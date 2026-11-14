@@ -18,11 +18,11 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.MXOUFGQ |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.UXIUT5A |;
 
 @EXPORT_OK = qw| holders_load holder_add holder_remove receipt_write
     receipt_fresh receipt_coverage receipt_covered receipt_digest n7fs_now
-    placement_report place_missing parse_size
+    clock_floor_reset placement_report place_missing parse_size
     parse_age holder_drain holder_prune holder_rename holder_room
     holder_accepts |;
 
@@ -38,9 +38,11 @@ use AMOS7::N7FS::Category qw| category_definitions |;
 
 my $JSON = JSON::PP->new->utf8->canonical;
 
-our $REGISTRY     = 'n7fs holders';
-our $RECEIPT_AGE  = parse_y_age('3Y2');
-our $RECEIPT_SKEW = parse_y_age('1Y5');
+our $REGISTRY         = 'n7fs holders';
+our $RECEIPT_AGE      = parse_y_age('3Y2');
+our $RECEIPT_SKEW     = parse_y_age('1Y5');
+our $CLOCK_STEP_LIMIT = parse_y_age('1Y2');
+our $CLOCK_WARN_SKEW  = parse_y_age('1Y4');
 
 sub parse_size {
     my $text = shift // return undef;
@@ -203,9 +205,10 @@ sub _replace_file {
     return;
 }
 
-## the highest ntime seen by this root is the floor for every later read ##
+## reads never raise the floor ; receipt writes may raise it by at most 1Y2
+## unless the operator explicitly accepts a larger clock step
 sub n7fs_now {
-    my ( $host_dir, $root_id, $now ) = @_;
+    my ( $host_dir, $root_id, $now, $raise, $accept_clock ) = @_;
     $now //= ntime_now();
     refuse('n7fs clock is not whole ntime') if $now !~ m|\A\d+\z|;
     my $path  = _clock_floor_path( $host_dir, $root_id );
@@ -217,10 +220,35 @@ sub n7fs_now {
             if $bytes !~ m|\A\d+\z|;
         $floor = $bytes + 0;
     }
-    return $floor if $now <= $floor;
+    if ( $floor > $now ) {
+        warn sprintf "n7fs : warning : the local clock is %d ntime behind "
+            . "the floor ; using the floor\n", $floor - $now
+            if $floor - $now > $CLOCK_WARN_SKEW;
+        return $floor;
+    }
+    return $now + 0 if not $raise or $now == $floor;
+    refuse(
+        'n7fs clock step %d exceeds 1Y2 [ floor %d, '
+            . 'local %d ] ; use -accept-clock to raise it',
+        $now - $floor,
+        $floor, $now
+        )
+        if $floor > 0
+        and $now - $floor > $CLOCK_STEP_LIMIT
+        and not $accept_clock;
     make_dirs( "$host_dir/clock-floor", 0700 );
     _replace_file( $path, "$now\n" );
     return $now + 0;
+}
+
+sub clock_floor_reset {
+    my ( $host_dir, $root_id ) = @_;
+    my $path = _clock_floor_path( $host_dir, $root_id );
+    return FALSE if not -e $path and not -l $path;
+    unlink $path
+        or refuse( 'cannot reset clock floor %s : %s', $path, $OS_ERROR );
+    sync_dir("$host_dir/clock-floor");
+    return TRUE;
 }
 
 ## the addresses a receipt for $version covers : every entry added at or below
@@ -271,16 +299,19 @@ sub _covered_cache_read {
 
 ## a holder-check result, signed by the host key
 sub receipt_write {
-    my %opt     = @_;
-    my $now     = n7fs_now( @opt{qw| host_dir root_id |} );
+    my %opt       = @_;
+    my $local_now = ntime_now();
+    my $now       = n7fs_now( @opt{qw| host_dir root_id |},
+        $local_now, TRUE, $opt{'accept_clock'} );
     my $payload = {
-        qw| holder |   => $opt{'spec'},
-        qw| root_id |  => $opt{'root_id'},
-        qw| time |     => $now,
-        qw| version |  => $opt{'version'} + 0,
-        qw| nodes |    => $opt{'nodes'} + 0,
-        qw| samples |  => $opt{'samples'} + 0,
-        qw| coverage | => $opt{'coverage'} // qw| sampled |,
+        qw| holder |     => $opt{'spec'},
+        qw| root_id |    => $opt{'root_id'},
+        qw| time |       => $now,
+        qw| local_time | => $local_now,
+        qw| version |    => $opt{'version'} + 0,
+        qw| nodes |      => $opt{'nodes'} + 0,
+        qw| samples |    => $opt{'samples'} + 0,
+        qw| coverage |   => $opt{'coverage'} // qw| sampled |,
         defined $opt{'covered'}
         ? ( qw| covered |       => $opt{'covered'},
             qw| covered_nodes | => $opt{'covered_nodes'} + 0
@@ -707,6 +738,7 @@ sub place_missing {
                     qw| covered |           => $r->{'covered'},
                     qw| covered_nodes |     => $r->{'covered_nodes'},
                     qw| covered_addresses | => $r->{'covered_list'},
+                    qw| accept_clock |      => $opt{'accept_clock'},
                 );
             }
             $checks{$name}
@@ -966,8 +998,8 @@ sub holder_prune {
 
 1;
 
-#,,..,.,,,.,,,...,,,,,..,,.,.,...,,..,.,.,,.,,..,,...,...,,.,,.,.,,,.,...,.,.,
-#XX63WTD2ELCCAWQ4ZQ7UR2PCFXMWYYGVWBNFYXC3GCBUPOHAKMN4G6MD3FMSOOCIVAOLQQZJN6VVK
-#\\\|NSWJKGP5SAGQ27SKYBT7KZ7AWW7CBRJSHW4HQJ7JRLS6NQAKS56 \ / AMOS7 \ YOURUM ::
-#\[7]EN4RL36RKAOSYDCFV4JLCVLDMZPQSSPFD56WLUAOPD32VNWOTIDQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,,,.,,,.,,..,.,.,.,.,.,,,,,,,..,,...,...,.,,,.,,,,..,.,,,.,.,
+#3YH2PJKA222UFWEWKN73AO22I44N3FNXH5R2EX7HCXP5F5ZMGAR5O5B6N6YCW53CFY4SFKEALWENU
+#\\\|METLNCPYQ5SDP4OKORJL5CAZB2CBK5N4MV5BPALPJ6CK4USU74M \ / AMOS7 \ YOURUM ::
+#\[7]ZQ5BW77AZ6DSZERCU4ZYGV7VKEG5V5WWNFVTKJN4BNB5Z5EOQYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

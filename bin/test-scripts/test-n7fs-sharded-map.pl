@@ -169,6 +169,7 @@ utime $old, $old, "$sub/$ARG" or die $OS_ERROR for holder_blobs($holder);
 AMOS7::N7FS::Seal::holder_gc(
     qw| root |   => $root,
     qw| holder | => $holder,
+    qw| keep |   => [],
     qw| delete | => 1,
     qw| grace |  => 0,
 );
@@ -248,8 +249,8 @@ my $clock       = 1_000_000;
 
 done();
 
-#,,..,...,..,,.,.,,.,,.,,,...,..,,...,,,,,.,.,..,,...,..,,.,.,,,.,,.,,,,,,.,.,
-#5IB2SNG7FMIKC4K26MNW5NJI3TLCUSBQDKGYKLSGBZJEPZZLMRLETWV6QPDKR6C5GOWTVAIZEGBRW
-#\\\|CJB3XD6HF6QYCO46YH27QKI23JCFNRA5Q5LR7ONZGXABANELQR5 \ / AMOS7 \ YOURUM ::
-#\[7]KFFTLF5DVDVH7NINDVSZWISZLLGBN55VCTRL3BM4XPSMCY63VEAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,..,,,.,,,,.,.,,,,..,.,,,..,,..,,..,,...,...,...,.,.,,.,,,,,,,.,,
+#BNGNTINKIIR2JLQEQUOHOWXQU6H5XGQXVJE6XT2PK6WBP6T7LQLSMI5FDOOCQ6KGK2FBXNEBQXL2W
+#\\\|MQEHYWBGHIQM6GW6VRHOKCJGQYT2XRL3AZLBASFLNBHJ7GASUWU \ / AMOS7 \ YOURUM ::
+#\[7]A3KVLKVTWSLEQMSDGEWVNE4PKPALKNRCLWBHX36DMCHU7W46DYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

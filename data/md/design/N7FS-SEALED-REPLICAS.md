@@ -453,7 +453,11 @@ stage 4 is the first that gets essential data off the host.
   [ previous, current, next -- the rolling "3 valid" epoch index ], so
   reindexing spreads evenly over time instead of a cliff at each change,
   and happens as part of travel : a blob that moves or is checked anyway
-  is placed and validated for the current epoch on the way ; a new key's weight grows with proven,
+  is placed and validated for the current epoch on the way ; [ the same
+  window as `EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md` "rolling validity
+  window" and `CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md` §2 : the
+  epoch as a self-closing temporal root, `<epoch>:<key>[:<name>]` ; the
+  search result checksum as its route, `data/tasks/epoch-validity-search-protocol.md` ] a new key's weight grows with proven,
   checked holding time [ history is not cheap, keys are ] ; the floors keep
   every blob across several control domains whatever the keys. the same
   holds for a content address [ or size plus checksum : a second, free
@@ -502,8 +506,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,,,,,.,,,..,,..,.,,,,.,,.,,,,,.,,.,,...,,,.,..,,...,...,.,,,,,.,,..,.,.,,,,,
-#CO5BV635SVC7IQM6ADHB57OXQUXEAVC5NLPADSFFZIYGPEUT2LLUYT2GR26GYFMW6C5VXV3OGIWX4
-#\\\|LSW5EZN5XW74AIRDAIIPN6Y4UX56RNFY6ROQGHPSBUDXF7Z337S \ / AMOS7 \ YOURUM ::
-#\[7]CLCSGKDAEA2LNJZI7MK3SWBG5R6TDVJW23ROFZ2T5YKEPDSEUGAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,..,,..,,..,,,,,.,,,...,.,.,,.,,..,,...,...,,..,,,.,.,,,,,,,,..,
+#OMHZOM5JHV62C5IHAR3VG65DORGHMM7EZBLKKSFWN4SZNH7EGTR7NCXR2OJOMJKWFBRCXT5EKFEP4
+#\\\|QDWU6L7FCAYKJ264NYNROWLY4YHUPGQ6RNGWJVMUB26C4MOVZ6O \ / AMOS7 \ YOURUM ::
+#\[7]AW6W3T6GINQSZQCS54N7RIQ3N7AIGGV2WIVMB76V7IN346QKAICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
