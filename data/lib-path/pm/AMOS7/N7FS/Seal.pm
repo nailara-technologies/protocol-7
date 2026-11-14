@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.WFAGSHQ |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.OEX2PSY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -320,6 +320,53 @@ sub _head_locate {
     return ( _head_open( $root, $base, FALSE ), $base );
 }
 
+## one upload in flight while the next pack seals : a pack sealed with the
+## line idle, then uploaded with the cpu idle [ 2026-11-14 ]. the worker puts,
+## verifies and removes the spool ; a commit waits for it before any map blob
+## or head. N7FS_UPLOAD_ASYNC=0 uploads in line
+my %UPLOAD;
+
+sub _upload_wait {
+    my $failed;
+    foreach my $pid ( keys %UPLOAD ) {
+        my $got  = waitpid( $pid, 0 );
+        my $name = delete $UPLOAD{$pid};
+        $failed //= $name if $got > 0 and $CHILD_ERROR;
+    }
+    refuse( 'background upload of blob %s failed', $failed )
+        if defined $failed;
+    return;
+}
+
+sub _upload {
+    my ( $dir, $path, $name, $kind ) = @_;
+    my $h = holder_parse($dir);
+    if ( ( $ENV{'N7FS_UPLOAD_ASYNC'} // 1 ) eq '0' or $h->{'type'} ne 'ssh' )
+    {
+        holder_put( $dir, $path, $name, $kind, FALSE );
+        unlink $path or refuse('cannot remove confirmed spool');
+        return;
+    }
+    _upload_wait();
+    ## the parent warns : a worker's once-only mark would die with it ##
+    if ( not $h->{'receiver'} ) {
+        AMOS7::N7FS::Holder::_legacy_write( $h, $ARG ) for qw| put delete |;
+    }
+    require POSIX;
+    my $pid = fork // refuse('cannot fork an upload worker');
+    if ( $pid == 0 ) {
+        my $ok = eval {
+            holder_put( $dir, $path, $name, $kind, FALSE );
+            unlink $path or die "cannot remove confirmed spool\n";
+            1;
+        };
+        print STDERR $EVAL_ERROR if not $ok;
+        POSIX::_exit( $ok ? 0 : 1 );
+    }
+    $UPLOAD{$pid} = $name;
+    return;
+}
+
 sub _write_blob {
     my ( $root, $dir, $bytes, $kind, $batch ) = @_;
     my $name = bmw_b32( bmw384_bytes($bytes) );
@@ -331,6 +378,10 @@ sub _write_blob {
         ## a commit collects its blobs : one batch before the head ##
         if ( ref $batch ) {
             push $batch->@*, [ $path, $name, $kind ];
+            return $name;
+        }
+        if ( $kind eq qw| pack | ) {
+            _upload( $dir, $path, $name, $kind );
             return $name;
         }
         holder_put( $dir, $path, $name, $kind, FALSE );
@@ -838,6 +889,8 @@ sub registry_publish {
 
 sub _commit {
     my ( $root, $base, $pin, $state, $map, $operation ) = @_;
+    ## every background pack and content upload is confirmed first ##
+    _upload_wait();
     my $registry
         = _registry_text( $root, $state, $pin, $state->{'holder_id'} );
     my $writer  = _writer($state);
@@ -1211,8 +1264,7 @@ sub _node_blob {
         return ( $name, $chunks, $bytes );
     }
     if ($remote) {
-        holder_put( $dir, $tmp, $name, qw| content |, FALSE );
-        unlink $tmp or refuse('cannot remove confirmed content spool');
+        _upload( $dir, $tmp, $name, qw| content | );
         return ( $name, $chunks, undef, $length );
     }
     refuse('ciphertext blob already exists') if -e "$dir/$name";
@@ -3461,8 +3513,8 @@ sub shred_node {
 
 1;
 
-#,,.,,..,,,.,,.,,,...,,..,...,,.,,.,.,.,.,.,,,..,,...,.,,,...,,,.,,.,,,.,,.,,,
-#JSAN2NXFUTKPRECUQJSYM5BRRG3ZMQCUGYEX7SFUV4FSLWSOIWXDVQG7EHW5PNMKMJF5JODIE3ENY
-#\\\|4UHJY7BFPJP6VBIQZEDMFKBA7BS6GSSHM43IPN3LBRJTY4E4TZ3 \ / AMOS7 \ YOURUM ::
-#\[7]BZYOVPUGJQGDXCQM4T4BZ3QQKNN7ERTKRV3D7JCGDRPWWKYMUCAA 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,.,.,,,.,,,.,..,,,.,,...,,.,,..,,...,...,,..,..,,...,,..,...,
+#4N2KRPGET4YRZ7PCWDS3A5TIQKOJ4SGBZCB2S76TGGD6AREEYGMNDIPGCPCGUK27SSDMQM4QOCQ6O
+#\\\|77NQDWNDRAGZOLVVPASU6NI3URMUGNFAYDW2RG3WCNP236HT5FG \ / AMOS7 \ YOURUM ::
+#\[7]NC7FYYFWV2Z2YSLR7KS22EV5OWSDDJDODQEUQHWC2SK4OLQFLKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
